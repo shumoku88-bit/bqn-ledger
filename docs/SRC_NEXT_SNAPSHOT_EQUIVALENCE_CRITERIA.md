@@ -301,14 +301,14 @@ Gate 充足状態（本 PR merge 後）:
 
 ## 10. Related Documents
 
-- [SRC_NEXT_STAGE4B_TRIAL_SCOPE.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_STAGE4B_TRIAL_SCOPE.md) — Stage 4b trial scope（allowed observation areas / out-of-scope areas / prohibited advice usage）
-- [SRC_NEXT_STAGE4B_READINESS_GATE.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_STAGE4B_READINESS_GATE.md) — Stage 4b daily-use trial readiness gate 定義（Gate A の本拠）
-- [SRC_NEXT_STAGE4A_OBSERVATION_INVENTORY.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_STAGE4A_OBSERVATION_INVENTORY.md) — Stage 4a 観測面棚卸し
-- [SRC_NEXT_REPLACEMENT_READINESS.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_REPLACEMENT_READINESS.md) — 置き換え準備チェックリスト（Stage 1〜5 gate、差分分類体系 §5）
-- [SRC_NEXT_REPORT_SECTION_PARITY.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_REPORT_SECTION_PARITY.md) — レポートセクション適合度マトリクス
-- [SRC_NEXT_SNAPSHOT_OBSERVATION_SCREEN.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_SNAPSHOT_OBSERVATION_SCREEN.md) — Snapshot 観測画面設計（実装済み範囲 §7）
-- [SRC_NEXT_MANUAL_COMPARISON_PROCEDURE.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_MANUAL_COMPARISON_PROCEDURE.md) — 手動比較手順の正本（Gate B 充足の手順書）
-- [SRC_NEXT_STAGE4_TRIAL_LOG.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_STAGE4_TRIAL_LOG.md) — Stage 4 観察ログ template（divergence log format §12）
-- [SRC_NEXT_ENVELOPE_COMPUTATION_CONTRACT.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_ENVELOPE_COMPUTATION_CONTRACT.md) — 封筒計算仕様契約
-- [SRC_NEXT_CURRENT_ENGINE_COMPARISON.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_CURRENT_ENGINE_COMPARISON.md) — current engine との比較 notes
-- [CURRENT_STATE_REFERENCE.md](file:///Users/user/Projects/moko/bqn-ledger/docs/CURRENT_STATE_REFERENCE.md) — 現行エンジン比較基準
+- [SRC_NEXT_STAGE4B_TRIAL_SCOPE.md](SRC_NEXT_STAGE4B_TRIAL_SCOPE.md) — Stage 4b trial scope（allowed observation areas / out-of-scope areas / prohibited advice usage）
+- [SRC_NEXT_STAGE4B_READINESS_GATE.md](SRC_NEXT_STAGE4B_READINESS_GATE.md) — Stage 4b daily-use trial readiness gate 定義（Gate A の本拠）
+- [SRC_NEXT_STAGE4A_OBSERVATION_INVENTORY.md](SRC_NEXT_STAGE4A_OBSERVATION_INVENTORY.md) — Stage 4a 観測面棚卸し
+- [SRC_NEXT_REPLACEMENT_READINESS.md](SRC_NEXT_REPLACEMENT_READINESS.md) — 置き換え準備チェックリスト（Stage 1〜5 gate、差分分類体系 §5）
+- [SRC_NEXT_REPORT_SECTION_PARITY.md](SRC_NEXT_REPORT_SECTION_PARITY.md) — レポートセクション適合度マトリクス
+- [SRC_NEXT_SNAPSHOT_OBSERVATION_SCREEN.md](SRC_NEXT_SNAPSHOT_OBSERVATION_SCREEN.md) — Snapshot 観測画面設計（実装済み範囲 §7）
+- [SRC_NEXT_MANUAL_COMPARISON_PROCEDURE.md](SRC_NEXT_MANUAL_COMPARISON_PROCEDURE.md) — 手動比較手順の正本（Gate B 充足の手順書）
+- [SRC_NEXT_STAGE4_TRIAL_LOG.md](SRC_NEXT_STAGE4_TRIAL_LOG.md) — Stage 4 観察ログ template（divergence log format §12）
+- [SRC_NEXT_ENVELOPE_COMPUTATION_CONTRACT.md](SRC_NEXT_ENVELOPE_COMPUTATION_CONTRACT.md) — 封筒計算仕様契約
+- [SRC_NEXT_CURRENT_ENGINE_COMPARISON.md](SRC_NEXT_CURRENT_ENGINE_COMPARISON.md) — current engine との比較 notes
+- [CURRENT_STATE_REFERENCE.md](CURRENT_STATE_REFERENCE.md) — 現行エンジン比較基準

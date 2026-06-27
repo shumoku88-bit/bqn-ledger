@@ -30,10 +30,10 @@ Phase 0 の成果物であり、以下の情報を一箇所にまとめる：
 - `docs/REPORT_VALUE_CONTRACT.md`
 - `docs/MIGRATION_PLAN.md`
 - `docs/CYCLE_LEDGER_DECISIONS.md`
-- [SRC_NEXT_STAGE4A_OBSERVATION_INVENTORY.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_STAGE4A_OBSERVATION_INVENTORY.md) — Stage 4a 検証面棚卸し
-- [SRC_NEXT_SNAPSHOT_EQUIVALENCE_CRITERIA.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_SNAPSHOT_EQUIVALENCE_CRITERIA.md) — production-equivalent Snapshot criteria 定義
-- [SRC_NEXT_STAGE4B_READINESS_GATE.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_STAGE4B_READINESS_GATE.md) — Stage 4b validation run readiness gate 定義
-- [SRC_NEXT_MANUAL_COMPARISON_PROCEDURE.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_MANUAL_COMPARISON_PROCEDURE.md) — 手動比較手順の正本（Gate B 充足の手順書）
+- [SRC_NEXT_STAGE4A_OBSERVATION_INVENTORY.md](SRC_NEXT_STAGE4A_OBSERVATION_INVENTORY.md) — Stage 4a 検証面棚卸し
+- [SRC_NEXT_SNAPSHOT_EQUIVALENCE_CRITERIA.md](SRC_NEXT_SNAPSHOT_EQUIVALENCE_CRITERIA.md) — production-equivalent Snapshot criteria 定義
+- [SRC_NEXT_STAGE4B_READINESS_GATE.md](SRC_NEXT_STAGE4B_READINESS_GATE.md) — Stage 4b validation run readiness gate 定義
+- [SRC_NEXT_MANUAL_COMPARISON_PROCEDURE.md](SRC_NEXT_MANUAL_COMPARISON_PROCEDURE.md) — 手動比較手順の正本（Gate B 充足の手順書）
 
 
 ## 2. 現行レポートの主要コマンド

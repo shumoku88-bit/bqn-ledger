@@ -12,14 +12,14 @@
 - [ ] **BQNコード内の日本語表示文字列の完全追放 (Presentationの外部化)**
   - `src_next/` 配下のBQNファイルから、人間向けの日本語表示ラベルや見出し文字を一掃する。
   - 計算エンジン側はデータ射影キーのみを出力し、表示層（`color-filter` 等）で適切な日本語やスタイルを当てる設計にする。
-  - 監査台帳: [docs/REPORT_ASSUMPTION_AUDIT.md](file:///Users/user/Projects/moko/bqn-ledger/docs/REPORT_ASSUMPTION_AUDIT.md)
+  - 監査台帳: [docs/REPORT_ASSUMPTION_AUDIT.md](docs/REPORT_ASSUMPTION_AUDIT.md)
 - [ ] **Prefix Fallback（接頭辞による暗黙の役割推測）の完全廃止**
   - アカウント名（`expenses:`, `income:` 等）による暗黙判定を廃止し、explicit `role=` を厳格に適用する。
-  - [docs/ACCOUNT_ROLE_CONTRACT.md](file:///Users/user/Projects/moko/bqn-ledger/docs/ACCOUNT_ROLE_CONTRACT.md) の契約に準拠。
+  - [docs/ACCOUNT_ROLE_CONTRACT.md](docs/ACCOUNT_ROLE_CONTRACT.md) の契約に準拠。
 - [ ] **Command Hub（日常操作ランチャー）による安全な導線一元化**
   - 閲覧・追加・修正のCLIインターフェースを1つに統合（例：`gbk` や `kakei` コマンド等）。
   - エラー時の Fail-Closed や操作ログの安全性をCLIのラッパーレベルで一元保証する。
-  - 設計メモ: [docs/COMMAND_HUB_DESIGN.md](file:///Users/user/Projects/moko/bqn-ledger/docs/COMMAND_HUB_DESIGN.md)
+  - 設計メモ: [docs/COMMAND_HUB_DESIGN.md](docs/COMMAND_HUB_DESIGN.md)
 
 ### その他保留事項
 
@@ -67,7 +67,7 @@ Audit note: `docs/REPORT_ASSUMPTION_AUDIT.md`
 - [x] 外部宣言を増やす場合は、未知値・欠損・重複を検査する lint と fixture を先に設計する。（`check-src-next-lint.sh` 等にて実装済み）
 - [x] docs/REPORT_ASSUMPTION_AUDIT.md — レポートコード内の生活前提・表示用ラベルの棚卸し台帳を作成完了。(2026-06-27)
 - [ ] `journal.tsv` / `plan.tsv` / `budget_alloc.tsv` / `accounts.tsv` の実データは勝手に変更しない。
-- [ ] `report_sections.tsv` や `account_display.tsv` は、棚卸しが終わるまで作らない。
+- [ ] `report_sections.tsv` や `account_display.tsv` は、Phase 1/2 の判断と fixture/check 方針が決まるまで作らない。
 
 ---
 

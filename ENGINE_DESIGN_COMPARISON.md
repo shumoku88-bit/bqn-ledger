@@ -1,6 +1,6 @@
 # 新エンジン設計案 総合比較評価書 (Engine Design Comparison)
 
-本ドキュメントは、`bqn-ledger` の新しい計算エンジン刷新に向けて、これまでに検討された設計オプション（ [SRC_NEXT_ARCHITECTURE_DESIGN.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_ARCHITECTURE_DESIGN.md) 記載の案を含む）と、簿記・会計の保守性・拡張性を担保するために追加提案された新案を統合し、比較・評価したものです。
+本ドキュメントは、`bqn-ledger` の新しい計算エンジン刷新に向けて、これまでに検討された設計オプション（ [SRC_NEXT_ARCHITECTURE_DESIGN.md](docs/SRC_NEXT_ARCHITECTURE_DESIGN.md) 記載の案を含む）と、簿記・会計の保守性・拡張性を担保するために追加提案された新案を統合し、比較・評価したものです。
 
 ---
 
@@ -38,7 +38,7 @@
 * **データフロー**: `TSV ➔ Cube ➔ views/*.bqn (計算) ➔ fmt/*.bqn (表示) ➔ report.bqn (制御) ➔ stdout`
 
 #### Option 4: C+F 中間案 (1セクション1ファイル・関数分離方式)
-※ [SRC_NEXT_ARCHITECTURE_DESIGN.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_ARCHITECTURE_DESIGN.md) 推奨案。
+※ [SRC_NEXT_ARCHITECTURE_DESIGN.md](docs/SRC_NEXT_ARCHITECTURE_DESIGN.md) 推奨案。
 計算（ `Build` ）と表示（ `Format` ）を関数レベルで分けるが、ファイルは分けすぎず、同じ物理ファイルに置く。
 * **データフロー**: `TSV ➔ Cube ➔ section.bqn (Build関数の計算 ➔ Format関数の表示) ➔ report.bqn (制御) ➔ stdout`
 

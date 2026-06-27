@@ -64,7 +64,7 @@ The resolved cycle period (start, end_exclusive) must be determined dynamically 
 
 ### BQN Resolver Signature Change
 
-Change [cycle.bqn](file:///Users/user/Projects/moko/bqn-ledger/src/core/cycle.bqn)'s signature to explicitly accept `as_of_dn` (8-digit integer date):
+Change [cycle.bqn](../src/core/cycle.bqn)'s signature to explicitly accept `as_of_dn` (8-digit integer date):
 
 ```bqn
 ResolveFrom ← { cycle_file ResolveFrom args }
@@ -122,7 +122,7 @@ Before an apply mode is implemented:
 ## 4. Implementation order
 
 1. Keep both features disabled.
-2. Update BQN `ResolveFrom` signature in [cycle.bqn](file:///Users/user/Projects/moko/bqn-ledger/src/core/cycle.bqn) to accept `as_of` and implement dynamic anchor/calendar month resolving.
+2. Update BQN `ResolveFrom` signature in [cycle.bqn](../src/core/cycle.bqn) to accept `as_of` and implement dynamic anchor/calendar month resolving.
 3. Update callers in `report_engine.bqn` and views to pass `as_of` to the cycle resolver.
 4. Remove dormant prototype calculations after the public quarantine is stable.
 5. Add historical-cycle fixtures and verify the pure resolver.

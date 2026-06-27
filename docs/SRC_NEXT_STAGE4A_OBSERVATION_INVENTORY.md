@@ -78,11 +78,11 @@ Stage 4b（日常試用）へ進む前に、以下の要件を満たす必要が
 
 ## 6. Related Documents (関連文書)
 
-* [SRC_NEXT_SNAPSHOT_EQUIVALENCE_CRITERIA.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_SNAPSHOT_EQUIVALENCE_CRITERIA.md) — production-equivalent Snapshot criteria 定義
-* [SRC_NEXT_STAGE4B_READINESS_GATE.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_STAGE4B_READINESS_GATE.md) — Stage 4b readiness gate 定義
-* [SRC_NEXT_MANUAL_COMPARISON_PROCEDURE.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_MANUAL_COMPARISON_PROCEDURE.md) — 手動比較手順の正本（Gate B 充足の手順書）
-* [SRC_NEXT_REPLACEMENT_READINESS.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_REPLACEMENT_READINESS.md) — 置き換え準備チェックリスト
-* [SRC_NEXT_ENVELOPE_COMPUTATION_CONTRACT.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_ENVELOPE_COMPUTATION_CONTRACT.md) — 封筒計算仕様契約
-* [SRC_NEXT_REPORT_SECTION_PARITY.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_REPORT_SECTION_PARITY.md) — レポートセクション適合度マトリクス
-* [SRC_NEXT_GOLDEN_CHECK.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_GOLDEN_CHECK.md) — fixture 期待値検証
-* [CURRENT_STATE_REFERENCE.md](file:///Users/user/Projects/moko/bqn-ledger/docs/CURRENT_STATE_REFERENCE.md) — 現行エンジン比較基準
+* [SRC_NEXT_SNAPSHOT_EQUIVALENCE_CRITERIA.md](SRC_NEXT_SNAPSHOT_EQUIVALENCE_CRITERIA.md) — production-equivalent Snapshot criteria 定義
+* [SRC_NEXT_STAGE4B_READINESS_GATE.md](SRC_NEXT_STAGE4B_READINESS_GATE.md) — Stage 4b readiness gate 定義
+* [SRC_NEXT_MANUAL_COMPARISON_PROCEDURE.md](SRC_NEXT_MANUAL_COMPARISON_PROCEDURE.md) — 手動比較手順の正本（Gate B 充足の手順書）
+* [SRC_NEXT_REPLACEMENT_READINESS.md](SRC_NEXT_REPLACEMENT_READINESS.md) — 置き換え準備チェックリスト
+* [SRC_NEXT_ENVELOPE_COMPUTATION_CONTRACT.md](SRC_NEXT_ENVELOPE_COMPUTATION_CONTRACT.md) — 封筒計算仕様契約
+* [SRC_NEXT_REPORT_SECTION_PARITY.md](SRC_NEXT_REPORT_SECTION_PARITY.md) — レポートセクション適合度マトリクス
+* [SRC_NEXT_GOLDEN_CHECK.md](SRC_NEXT_GOLDEN_CHECK.md) — fixture 期待値検証
+* [CURRENT_STATE_REFERENCE.md](CURRENT_STATE_REFERENCE.md) — 現行エンジン比較基準

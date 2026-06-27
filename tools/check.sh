@@ -54,6 +54,7 @@ bash checks/check-src-next-golden.sh fixtures/src-next-anchor-unmet >/dev/null
 bash checks/check-src-next-golden.sh fixtures/src-next-zero-vs-unavailable >/dev/null
 bash checks/check-src-next-golden.sh fixtures/src-next-missing-budget-mapping >/dev/null
 bash checks/check-src-next-golden.sh fixtures/src-next-broken-empty-columns >/dev/null
+bash checks/check-src-next-golden.sh fixtures/src-next-budget-group-rename >/dev/null
 
 echo "[3/4] src_next section checks" >&2
 bash checks/check-src-next-minimal-summary.sh fixtures/src-next-golden >/dev/null
@@ -99,5 +100,6 @@ bash checks/check-devtools-negative.sh >/dev/null
 bash checks/check-missing-role-fallback.sh >/dev/null
 bash checks/check-src-next-lint.sh >/dev/null
 bash checks/check-ui-smoke.sh >/dev/null
+bash checks/check-absolute-links.sh >/dev/null
 
 echo "OK" >&2

@@ -171,6 +171,6 @@ Keep each fixture small and give it its own expected summary. Avoid large cleanu
 
 ## Related documents
 
-- [SRC_NEXT_STAGE4A_OBSERVATION_INVENTORY.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_STAGE4A_OBSERVATION_INVENTORY.md) — Stage 4a 観測面棚卸し
-- [SRC_NEXT_REPLACEMENT_READINESS.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_REPLACEMENT_READINESS.md) — 置き換え準備チェックリスト
+- [SRC_NEXT_STAGE4A_OBSERVATION_INVENTORY.md](SRC_NEXT_STAGE4A_OBSERVATION_INVENTORY.md) — Stage 4a 観測面棚卸し
+- [SRC_NEXT_REPLACEMENT_READINESS.md](SRC_NEXT_REPLACEMENT_READINESS.md) — 置き換え準備チェックリスト
 

@@ -1,0 +1,7 @@
+# Fixture: src-next-budget-group-rename
+# Purpose: test budget group rename
+
+assets:bank					role=asset	currency=JPY
+assets:cash					role=asset	currency=JPY
+expenses:food					role=expense	budget=food	budget_group=living_life	spend_class=variable
+expenses:rent					role=expense	budget=rent	budget_group=buffer	spend_class=fixed

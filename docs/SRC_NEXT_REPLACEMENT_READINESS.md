@@ -239,6 +239,6 @@ AI がこの repo で作業するときは、次を守ること。
 - `docs/SRC_NEXT_STAGE4_TRIAL_LOG.md` — Stage 4a / 4b の検証ログ template
 - `docs/SRC_NEXT_REPORT_SECTION_PARITY.md` — 本番 12 section の parity matrix
 - `docs/SRC_NEXT_SNAPSHOT_OBSERVATION_SCREEN.md` — Snapshot を検証画面へ育てる設計メモ
-- [SRC_NEXT_MANUAL_COMPARISON_PROCEDURE.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_MANUAL_COMPARISON_PROCEDURE.md) — 手動比較手順の正本（Gate B 充足の手順書）
-- [SRC_NEXT_SNAPSHOT_EQUIVALENCE_CRITERIA.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_SNAPSHOT_EQUIVALENCE_CRITERIA.md) — production-equivalent Snapshot criteria 定義
-- [SRC_NEXT_STAGE4A_OBSERVATION_INVENTORY.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_STAGE4A_OBSERVATION_INVENTORY.md) — Stage 4a 検証面棚卸し
+- [SRC_NEXT_MANUAL_COMPARISON_PROCEDURE.md](SRC_NEXT_MANUAL_COMPARISON_PROCEDURE.md) — 手動比較手順の正本（Gate B 充足の手順書）
+- [SRC_NEXT_SNAPSHOT_EQUIVALENCE_CRITERIA.md](SRC_NEXT_SNAPSHOT_EQUIVALENCE_CRITERIA.md) — production-equivalent Snapshot criteria 定義
+- [SRC_NEXT_STAGE4A_OBSERVATION_INVENTORY.md](SRC_NEXT_STAGE4A_OBSERVATION_INVENTORY.md) — Stage 4a 検証面棚卸し

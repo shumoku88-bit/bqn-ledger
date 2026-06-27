@@ -395,14 +395,14 @@ Gate 充足状態（本 PR merge 後、実比較実施前）:
 
 ## 10. Related Documents
 
-- [SRC_NEXT_STAGE4B_TRIAL_SCOPE.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_STAGE4B_TRIAL_SCOPE.md) — Stage 4b trial scope（observation-only usage, out-of-scope fields, pause conditions）
+- [SRC_NEXT_STAGE4B_TRIAL_SCOPE.md](SRC_NEXT_STAGE4B_TRIAL_SCOPE.md) — Stage 4b trial scope（observation-only usage, out-of-scope fields, pause conditions）
 - [SRC_NEXT_STAGE4B_THIRD_DRY_RUN_PLAN.md](SRC_NEXT_STAGE4B_THIRD_DRY_RUN_PLAN.md) — Public-safe plan for a third manual comparison dry run before any Stage 4b start decision
-- [SRC_NEXT_STAGE4B_READINESS_GATE.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_STAGE4B_READINESS_GATE.md) — Stage 4b daily-use trial readiness gate 定義（Gate B の本拠）
-- [SRC_NEXT_SNAPSHOT_EQUIVALENCE_CRITERIA.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_SNAPSHOT_EQUIVALENCE_CRITERIA.md) — production-equivalent Snapshot criteria 定義（比較対象 fields、difference classification の正本）
-- [SRC_NEXT_STAGE4A_OBSERVATION_INVENTORY.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_STAGE4A_OBSERVATION_INVENTORY.md) — Stage 4a 観測面棚卸し
-- [SRC_NEXT_REPLACEMENT_READINESS.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_REPLACEMENT_READINESS.md) — 置き換え準備チェックリスト（Stage 1〜5 gate、差分分類体系 §5）
-- [SRC_NEXT_STAGE4_TRIAL_LOG.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_STAGE4_TRIAL_LOG.md) — Stage 4 観察ログ template（divergence log format §12、分類 categories §13）
-- [SRC_NEXT_CURRENT_ENGINE_COMPARISON.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_CURRENT_ENGINE_COMPARISON.md) — current engine との比較 notes
-- [CURRENT_STATE_REFERENCE.md](file:///Users/user/Projects/moko/bqn-ledger/docs/CURRENT_STATE_REFERENCE.md) — 現行エンジン比較基準（baseline commands、fixtures、exporters）
-- [SRC_NEXT_REPORT_SECTION_PARITY.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_REPORT_SECTION_PARITY.md) — レポートセクション適合度マトリクス
-- [SRC_NEXT_SNAPSHOT_OBSERVATION_SCREEN.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_SNAPSHOT_OBSERVATION_SCREEN.md) — Snapshot 観測画面設計
+- [SRC_NEXT_STAGE4B_READINESS_GATE.md](SRC_NEXT_STAGE4B_READINESS_GATE.md) — Stage 4b daily-use trial readiness gate 定義（Gate B の本拠）
+- [SRC_NEXT_SNAPSHOT_EQUIVALENCE_CRITERIA.md](SRC_NEXT_SNAPSHOT_EQUIVALENCE_CRITERIA.md) — production-equivalent Snapshot criteria 定義（比較対象 fields、difference classification の正本）
+- [SRC_NEXT_STAGE4A_OBSERVATION_INVENTORY.md](SRC_NEXT_STAGE4A_OBSERVATION_INVENTORY.md) — Stage 4a 観測面棚卸し
+- [SRC_NEXT_REPLACEMENT_READINESS.md](SRC_NEXT_REPLACEMENT_READINESS.md) — 置き換え準備チェックリスト（Stage 1〜5 gate、差分分類体系 §5）
+- [SRC_NEXT_STAGE4_TRIAL_LOG.md](SRC_NEXT_STAGE4_TRIAL_LOG.md) — Stage 4 観察ログ template（divergence log format §12、分類 categories §13）
+- [SRC_NEXT_CURRENT_ENGINE_COMPARISON.md](SRC_NEXT_CURRENT_ENGINE_COMPARISON.md) — current engine との比較 notes
+- [CURRENT_STATE_REFERENCE.md](CURRENT_STATE_REFERENCE.md) — 現行エンジン比較基準（baseline commands、fixtures、exporters）
+- [SRC_NEXT_REPORT_SECTION_PARITY.md](SRC_NEXT_REPORT_SECTION_PARITY.md) — レポートセクション適合度マトリクス
+- [SRC_NEXT_SNAPSHOT_OBSERVATION_SCREEN.md](SRC_NEXT_SNAPSHOT_OBSERVATION_SCREEN.md) — Snapshot 観測画面設計

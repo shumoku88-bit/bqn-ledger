@@ -336,5 +336,5 @@ When these conditions are not met, the prototype emits `unavailable/src_next` ra
 - `docs/REPORT_POLICY_EXTERNALIZATION_PLAN.md` — report policy externalization の設計トラック。
 - `docs/REPORT_ASSUMPTION_AUDIT.md` — hard-coded household label 棚卸し。
 - `docs/ACCOUNT_ROLE_CONTRACT.md` — account role / budget_group contract。
-- [SRC_NEXT_STAGE4A_OBSERVATION_INVENTORY.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SRC_NEXT_STAGE4A_OBSERVATION_INVENTORY.md) — Stage 4a 観測面棚卸し
+- [SRC_NEXT_STAGE4A_OBSERVATION_INVENTORY.md](SRC_NEXT_STAGE4A_OBSERVATION_INVENTORY.md) — Stage 4a 観測面棚卸し
 
