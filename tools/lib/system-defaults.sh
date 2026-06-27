@@ -67,8 +67,10 @@ ledger_suggest_base_dir() {
 
 ensure_ledger_report_base() {
   local base_dir="$1"
-  local missing suggestion
-  mapfile -t missing < <(ledger_base_missing_required "$base_dir")
+  local missing=() suggestion line
+  while IFS= read -r line; do
+    missing+=("$line")
+  done < <(ledger_base_missing_required "$base_dir")
 
   if [[ ${#missing[@]} -eq 0 ]]; then
     return 0

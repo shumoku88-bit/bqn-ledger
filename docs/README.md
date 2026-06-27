@@ -63,6 +63,8 @@
 - `docs/DEBUG_PROVENANCE_DESIGN.md`
   - 主要数値の計算に使用されたデータの出所（provenance）表示の設計。
 - `docs/DECISION_TERMINAL_COLOR_CONFIG.md`
+- `docs/DECISION_TUI_VS_FZF_2026_06.md`
+  - TUI (tview) と fzf+gum UI の比較検証・境界の堅牢化に関する議論。
   - ANSI カラー出力の制御方法（semantic helper / NO_COLOR / パイプ検出）。Phase 1 実装済み、theme 設定は未導入。
 
 ### Done / Current Baseline (完了済み・現行仕様として機能)

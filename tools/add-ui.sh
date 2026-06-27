@@ -176,7 +176,8 @@ fi
 select_line() {
   local prompt="$1"
   local -a lines=()
-  mapfile -t lines
+  local _line
+  while IFS= read -r _line; do lines+=("$_line"); done
 
   if [[ ${#lines[@]} -eq 0 ]]; then
     shout "No candidates for: $prompt"
@@ -402,7 +403,9 @@ case "$mode" in
     ;;
   plan-finish|plan-edit)
     plan_tsv_lines=()
-    mapfile -t plan_tsv_lines < <("$ROOT_DIR/tools/edit" --base "$base_dir" plan list --format tsv)
+    plan_tsv_lines=()
+    local _pl
+    while IFS= read -r _pl; do plan_tsv_lines+=("$_pl"); done < <("$ROOT_DIR/tools/edit" --base "$base_dir" plan list --format tsv)
     if [[ ${#plan_tsv_lines[@]} -eq 0 ]]; then
       shout "No active plans found."
       exit 0

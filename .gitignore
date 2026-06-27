@@ -8,6 +8,7 @@ node_modules/
 budget_journal.tsv
 out/
 tools/edit.bin
+tools/tui.bin
 editor/editor
 .backup/
 
