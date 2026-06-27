@@ -156,6 +156,7 @@ Audit note: `docs/REPORT_ASSUMPTION_AUDIT.md`
 現在の芯:
 
 - [x] 外部宣言を増やす場合は、未知値・欠損・重複を検査する lint と fixture を先に設計する。（`check-src-next-lint.sh` 等にて実装済み）
+- [x] docs/REPORT_ASSUMPTION_AUDIT.md — レポートコード内の生活前提・表示用ラベルの棚卸し台帳を作成完了。(2026-06-27)
 - [ ] `journal.tsv` / `plan.tsv` / `budget_alloc.tsv` / `accounts.tsv` の実データは勝手に変更しない。
 - [ ] `report_sections.tsv` や `account_display.tsv` は、棚卸しが終わるまで作らない。
 
