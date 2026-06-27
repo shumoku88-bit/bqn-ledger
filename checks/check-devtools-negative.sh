@@ -67,7 +67,7 @@ else
 fi
 
 echo "Testing tools/bqn-eval negative paths..." >&2
-if out=$(bash tools/bqn-eval 2>&1); then
+if out=$(bash tools/bqn-eval </dev/null 2>&1); then
   fail "tools/bqn-eval with no args should fail"
 else
   code=$?
@@ -84,7 +84,7 @@ else
 fi
 
 echo "Testing tools/bqn-dump negative paths..." >&2
-if out=$(bash tools/bqn-dump 2>&1); then
+if out=$(bash tools/bqn-dump </dev/null 2>&1); then
   fail "tools/bqn-dump with no args should fail"
 else
   code=$?

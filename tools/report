@@ -30,11 +30,31 @@ if [[ $# -gt 0 && "$1" != --* ]]; then
   shift
 fi
 
-color_args=("$@")
+color_args=()
 has_color_arg=0
-for arg in "${color_args[@]}"; do
-  case "$arg" in
-    --no-color|--color=never|--color=always) has_color_arg=1 ;;
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --write-section-cache)
+      if [[ $# -lt 2 ]]; then
+        echo "Error: --write-section-cache requires a directory" >&2
+        exit 1
+      fi
+      dir_arg="$2"
+      if [[ "$dir_arg" != /* ]]; then
+        dir_arg="$PWD/$dir_arg"
+      fi
+      color_args+=("--write-section-cache" "$dir_arg")
+      shift 2
+      ;;
+    --no-color|--color=never|--color=always)
+      has_color_arg=1
+      color_args+=("$1")
+      shift
+      ;;
+    *)
+      color_args+=("$1")
+      shift
+      ;;
   esac
 done
 

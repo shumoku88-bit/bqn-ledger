@@ -113,6 +113,7 @@ Docs整理では、いきなり削除せず、まず archive 候補・superseded
 - `pi agent` や `gemini` CLI などのAI（pit）環境では、出力が長くなりそうなコマンド（git/npm/test等）はトークン節約のため `rtk` または `sqz` を使うこと。任意コマンドの前置きには原則 `rtk` を使う（例: `rtk git diff`, `rtk bash ./tools/check.sh`）。この環境の `sqz` は stdin 圧縮型なので、使う場合は `some-command 2>&1 | sqz compress --cmd <name>` の形にする。
 - AIの作業効率化、デバッグツール、または開発体験の改善に関する相談や作業を行う際は、必ず `docs/DECISION_AI_DEVELOPMENT_EFFICIENCY_PROPOSALS.md` をロードして、そこに蓄積された提案（1〜9）をもとに議論・提案すること。
 - **UIツールの責務分離**: レポート表示系の機能は `tools/main-ui.sh` に追加する。ファイル操作系（仕訳追加・取消・予定管理など）の機能は `tools/add-ui.sh` に追加する。両者の責務を混ぜないこと。
+- **作業完了時の実データ確認ルール**: AIは作業の完了報告時にレポートの表示結果等を提示する際、公開 sandbox (`data/`) ではなく、**常にユーザーの実運用データ (`LEDGER_DATA_DIR` が指す実データ。設定がない場合は `moko/data/`)** を使用してコマンドを実行・表示すること。報告の中にダミーデータ（架空）のレポート内容を含めてはならない。また、`tools/add-ui.sh` などの編集ツールも、一時的なテスト用設定等で汚染したままにせず、常にユーザーの実運用データに対して安全に即座に編集・稼働できる状態で引き渡して作業完了とすること。
 
 ## AI開発ツール（devtools）の使い方
 

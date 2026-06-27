@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+# Load local environment variables from .env if present
+if [[ -f ".env" ]]; then
+  # shellcheck disable=SC1090
+  source ".env"
+fi
+
 # Resolve system defaults from config/system_defaults.tsv
 
 get_default_base_dir() {

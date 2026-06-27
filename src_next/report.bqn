@@ -87,6 +87,8 @@ Main ← {𝕊 args:
   list_sections ← HasArg ⟨args, "--list-sections"⟩
   section_flag ← HasArg ⟨args, "--section"⟩
   section_key ← ArgValue ⟨args, "--section"⟩
+  write_cache_flag ← HasArg ⟨args, "--write-section-cache"⟩
+  write_cache_dir ← ArgValue ⟨args, "--write-section-cache"⟩
 
   {𝕊:
     •Out "ERROR: --section requires a section key"
@@ -94,12 +96,32 @@ Main ← {𝕊 args:
   }⍟(section_flag ∧ (0 = ≠section_key)) @
 
   {𝕊:
+    •Out "ERROR: --write-section-cache requires a directory path"
+    •Exit 1
+  }⍟(write_cache_flag ∧ (0 = ≠write_cache_dir)) @
+
+  {𝕊:
     •Out "ERROR: --list-sections cannot be combined with --section"
     •Exit 1
   }⍟(list_sections ∧ section_flag) @
 
+  {𝕊:
+    •Out "ERROR: --write-section-cache cannot be combined with other major flags"
+    •Exit 1
+  }⍟(write_cache_flag ∧ (list_sections ∨ section_flag)) @
+
   ctx ← ctx_mod.BuildContext base
   entries ← BuildSectionEntries ctx
+
+  {𝕊:
+    {𝕊 entry:
+      key ← ⊑entry ⋄ text ← 1⊑entry
+      (write_cache_dir ∾ "/" ∾ key ∾ ".txt") •FChars text
+    }¨ entries
+    all_text ← ∾ { (1⊑𝕩) ∾ "\n\n" }¨ entries
+    (write_cache_dir ∾ "/all.txt") •FChars all_text
+    •Exit 0
+  }⍟(write_cache_flag) @
 
   {𝕊:
     {𝕊 entry:
