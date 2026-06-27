@@ -107,6 +107,38 @@ else
 fi
 rm -f "$bad_out" "$bad_err"
 
+# Verify --list-sections produces the expected keys (catches section drift)
+list_sections_out="$(mktemp)"
+if tools/report "$fixture" --list-sections --no-color >"$list_sections_out" 2>/dev/null; then
+  required_keys=(snapshot ytd balances cycle trial-balance envelopes planned recent check outlook daily-trend actual-comparison debug)
+  for rk in "${required_keys[@]}"; do
+    if awk -F'\t' -v k="$rk" '$1 == k { found=1; exit } END { exit !found }' "$list_sections_out"; then
+      pass "report --list-sections key: $rk"
+    else
+      fail "report --list-sections missing key: $rk"
+    fi
+  done
+
+  # Verify section count matches main-ui section_list
+  declared_count=$(awk -F'\t' 'NF>=2 && $1!="" {n++} END {print n+0}' "$list_sections_out")
+  if [[ "$declared_count" -ge 13 ]]; then
+    pass "report --list-sections returns $declared_count sections"
+  else
+    fail "report --list-sections returned only $declared_count sections (expected >=13)"
+  fi
+
+  # Verify each marker is non-empty
+  while IFS=$'\t' read -r key marker; do
+    [[ -z "$key" ]] && continue
+    if [[ -z "$marker" ]]; then
+      fail "report --list-sections empty marker for key: $key"
+    fi
+  done < "$list_sections_out"
+else
+  fail "report --list-sections failed"
+fi
+rm -f "$list_sections_out"
+
 if [[ "$failures" -eq 0 ]]; then
   echo "OK: UI smoke checks passed" >&2
   exit 0

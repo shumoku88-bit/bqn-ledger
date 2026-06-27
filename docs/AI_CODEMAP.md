@@ -90,7 +90,7 @@
 - `date.bqn` — 日付操作 (Today, Parts, Ordinal, DaysBetween)。
 - `unavailable.bqn` — unavailable sentinel の正本定義と helper (`IsUnavailable`, `StartsWith`)。
 - `config.bqn` — config.tsv 読み込み。
-- `report.bqn` — 人間向け12セクションレポート。
+- `report.bqn` — 人間向け12セクションレポート。 `--list-sections` でセクションキー↔見出しの機械可読マッピングを出力（UIツールが動的にセクション抽出するための正本）。
 - `summary.bqn` — 機械向けコンパクト出力。
 
 ### `editor/` (Go source TSV editor)
@@ -132,7 +132,7 @@ source-of-truth TSV を安全に編集する Go ツール。
 
 ### UI 操作
 - `tools/add-ui.sh` — 仕訳追加・取消・予定管理。`--check` で read-only preflight。
-- `tools/main-ui.sh` — レポート表示系。
+- `tools/main-ui.sh` — レポート表示系。セクション見出しは `report.bqn --list-sections` から動的取得。
 - `tools/edit` — Go editor ラッパー。
 
 ### AI 開発支援（devtools）
