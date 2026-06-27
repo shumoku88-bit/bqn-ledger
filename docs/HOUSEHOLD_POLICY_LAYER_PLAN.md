@@ -215,37 +215,32 @@ First, make the boundary real:
 
 ## 10. Work phases
 
-### Phase 0 — Document boundary
+### Phase 0 — Document boundary ✅ Done (2026-06-27)
 
 - [x] Create this plan.
-- [ ] Link this plan from active docs and TODO.
-- [ ] Record that `pension_bimonthly` is a policy profile candidate, not a core invariant.
+- [x] Link this plan from active docs and TODO.
+- [x] Record that `pension_bimonthly` is a policy profile candidate, not a core invariant.
+  - Explicit in Section 6 (Policy profile concept) and Section 8.4 (No hard-coded lifestyle).
+  - `pension_bimonthly` is a profile label, never a core invariant.
 
-### Phase 1 — Policy assumption audit
+### Phase 1 — Policy assumption audit ✅ Done (2026-06-27)
 
-- [ ] Audit `src_next` and current report code for hard-coded lifestyle labels.
-- [ ] Classify assumptions as core / metadata / policy / presentation / fixture.
-- [ ] Update `docs/REPORT_ASSUMPTION_AUDIT.md` or create a focused household policy audit table.
+- [x] Audit `src_next` and current report code for hard-coded lifestyle labels.
+- [x] Classify assumptions as core / metadata / policy / presentation / fixture.
+- [x] Update `docs/REPORT_ASSUMPTION_AUDIT.md` or create a focused household policy audit table.
 
-Search terms:
+Audit findings:
 
-```text
-pension
-年金
-incomeAnchor
-calendarMonth
-fixed
-daily
-flex
-reserve
-food
-食費
-safe
-cashflow
-anchor
-budget_group
-spend_class
-```
+| File | Finding | Classification | Action |
+|------|---------|----------------|--------|
+| `config.bqn` | Missing POLICY_* values → silent default | Policy | Fixed: added CONFIG WARNING on default fallback |
+| `envelope_computation.bqn` | `GetPri` hard-coded `⟨"daily","flex","reserve"⟩` | Policy | Fixed: now reads `cfg.HouseholdGroupOrderLabels` |
+| `envelope_computation.bqn` | `FixtureFoodLikeTarget` hard-codes `"食費"` | Fixture | Acceptable (test-only, not production path) |
+| `envelope_computation.bqn` | FormatHuman status strings ("reserve 確保中" etc.) | Presentation | Acceptable for now (presentation layer) |
+| `config/meta_schema.tsv` | POLICY_* keys not defined in schema | Metadata | Fixed: added policy key definitions |
+| `household_policy.bqn` | Uses cfg for group labels | Policy-driven | ✅ Already correct |
+| `cycle.bqn` | Reads mode/income_account from config | Config-driven | ✅ Already correct |
+| `readiness_check.bqn` | Validates spend_class against known values | Metadata | ✅ Already correct |
 
 ### Phase 2 — Minimal policy schema design
 

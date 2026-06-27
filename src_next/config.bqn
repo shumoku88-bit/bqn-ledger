@@ -89,6 +89,7 @@ LoadConfig ← {
 
   PolicyBudgetStyle ← { 𝕊 ⋄
     v ← Get "POLICY_BUDGET_STYLE"
+    {𝕊: •Out "CONFIG WARNING: POLICY_BUDGET_STYLE missing, using default=envelope"}⍟(0 = ≠ v) @
     v ↩ (0 = ≠ v) ⊑ ⟨ v, "envelope" ⟩
     ( (v ≢ "envelope") ∧ (v ≢ "none") ) ◶ ⟨
       { @ },
@@ -102,6 +103,7 @@ LoadConfig ← {
 
   PolicyRiskStyle ← { 𝕊 ⋄
     v ← Get "POLICY_RISK_STYLE"
+    {𝕊: •Out "CONFIG WARNING: POLICY_RISK_STYLE missing, using default=conservative"}⍟(0 = ≠ v) @
     v ↩ (0 = ≠ v) ⊑ ⟨ v, "conservative" ⟩
     ( (v ≢ "conservative") ∧ (v ≢ "simple") ) ◶ ⟨
       { @ },
@@ -115,6 +117,7 @@ LoadConfig ← {
 
   PolicyIncomeCadence ← { 𝕊 ⋄
     v ← Get "POLICY_INCOME_CADENCE"
+    {𝕊: •Out "CONFIG WARNING: POLICY_INCOME_CADENCE missing"}⍟(0 = ≠ v) @
     ( (0 < ≠ v) ∧ (v ≢ "bimonthly") ∧ (v ≢ "monthly") ∧ (v ≢ "weekly") ∧ (v ≢ "irregular") ) ◶ ⟨
       { @ },
       { 𝕊 ⋄

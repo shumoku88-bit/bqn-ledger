@@ -3,6 +3,14 @@
 # type: enum | string | date | number | account
 # scope: plan (optional)
 
+# Config (policy profile keys)
+POLICY_BUDGET_STYLE	enum	envelope|none	
+POLICY_RISK_STYLE	enum	conservative|simple	
+POLICY_INCOME_CADENCE	enum	bimonthly|monthly|weekly|irregular	
+HOUSEHOLD_GROUP_LIFE	string		
+HOUSEHOLD_GROUP_RESERVE	string		
+HOUSEHOLD_GROUP_ORDER	string		
+
 # Common
 tax	enum	private|business|mixed
 biz	number	

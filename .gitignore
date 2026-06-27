@@ -12,7 +12,6 @@ editor/editor
 .backup/
 
 # Private and logs
-moko/
 private/
 learning-private/
 logs/

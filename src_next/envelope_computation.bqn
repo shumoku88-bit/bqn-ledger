@@ -331,6 +331,7 @@ Build ← {𝕊 base‿resolved‿cy‿valid_rows:
         remaining ⇐ remaining_val,
         status ⇐ status_val,
         envelopes ⇐ envelopes,
+        order_groups ⇐ cfg.HouseholdGroupOrderLabels @,
         has_policy ⇐ tgt.has_policy,
         selected_expense_account_count ⇐ selected_expense_account_count,
         allocation_row_count ⇐ allocation_row_count,
@@ -347,6 +348,7 @@ Build ← {𝕊 base‿resolved‿cy‿valid_rows:
         remaining ⇐ 0,
         status ⇐ "disabled",
         envelopes ⇐ ⟨⟩,
+        order_groups ⇐ ⟨⟩,
         has_policy ⇐ 0,
         selected_expense_account_count ⇐ 0,
         allocation_row_count ⇐ 0,
@@ -378,7 +380,8 @@ FormatHuman ← {𝕊 s:
   {𝕊:
     out ↩ "== Envelope & Budget ==" ∾ (@+10) ∾ (@+10)
 
-    GetPri ← { ⊑ ⟨"daily", "flex", "reserve"⟩ ⊐ ⟨𝕩⟩ }
+    order ← s.order_groups
+    GetPri ← { (≠ order) ⌊ ⊑ (order ⊐ ⟨𝕩⟩) ∾ ⟨≠order⟩ }
     groups ← {𝕩.group}¨ s.envelopes
     sort_indices ← ⍋ GetPri¨ groups
     sorted_envs ← sort_indices ⊏ s.envelopes
