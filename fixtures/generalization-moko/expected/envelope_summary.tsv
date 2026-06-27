@@ -1,0 +1,8 @@
+group	account	allocated	spent	balance	avg_day	target_day	health_status
+daily	食費封筒	40000	1909	38091	954	666	WARN
+flex	食費ストック封筒	10000	0	10000	0	166	SAFE
+daily	タバコ封筒	30000	1000	29000	500	500	SAFE
+flex	一般生活封筒	30000	12356	17644	6178	500	SHORT
+flex	通院封筒	0	0	0	0	0	SHORT
+reserve	ゆうちょ貯金封筒	5000	5000	0	2500	83	DRAWN
+reserve	オルカン投資封筒	2600	2600	0	1300	43	DRAWN

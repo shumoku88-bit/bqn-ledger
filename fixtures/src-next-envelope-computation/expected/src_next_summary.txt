@@ -1,0 +1,8 @@
+--- SrcNext Envelope Computation ---
+src_next_envelope_target_id: fixture_food_like
+src_next_envelope_label: 食費
+src_next_envelope_selector: budget=食費
+src_next_envelope_allocated: 1000
+src_next_envelope_actual_spent: 350
+src_next_envelope_remaining: 650
+src_next_envelope_status: computed

@@ -1,0 +1,7 @@
+equity:opening	role=equity
+assets:bank	role=asset	type=liquid	type=savings
+assets:cash	role=magical	type=liquid
+income:salary	role=income
+expenses:food	role=expense	spend_class=variable	budget=食費
+expenses:food	role=expense	spend_class=maybe	budget=食費
+expenses:rent	role=expense	spend_class=fixed	budget=家賃

@@ -1,0 +1,9 @@
+# Fixture: src-next-unknown-account
+# Purpose: src_next unknown account skipped-row check
+
+equity:opening
+assets:bank
+assets:cash
+income:salary
+expenses:food
+expenses:rent

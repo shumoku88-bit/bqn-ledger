@@ -1,0 +1,67 @@
+mode: incomeAnchor
+start: 2026-01-10
+end_exclusive: 2026-03-10
+day_count: 59
+accounts: 5
+"source_file"	"source_row"	"source_id"	"tx_id"	"posting_id"	"date"	"side"	"day_index"	"account_key"	"account_key_index"	"layer_name"	"layer_index"	"delta"	"kind"	"status"	"message"	
+"journal.tsv"	"0"	"INC1"	"INC1"	"journal.tsv:0:debit"	"2026-01-10"	"debit"	"0"	"assets:bank/JPY"	"1"	"actual"	"0"	"100000"	"income"	"ok"	⟨⟩	
+"journal.tsv"	"0"	"INC1"	"INC1"	"journal.tsv:0:credit"	"2026-01-10"	"credit"	"0"	"income:example/JPY"	"0"	"actual"	"0"	"¯100000"	"income"	"ok"	⟨⟩	
+"journal.tsv"	"1"	"FOOD1"	"FOOD1"	"journal.tsv:1:debit"	"2026-01-11"	"debit"	"1"	"expenses:food/JPY"	"2"	"actual"	"0"	"1200"	"expense"	"ok"	⟨⟩	
+"journal.tsv"	"1"	"FOOD1"	"FOOD1"	"journal.tsv:1:credit"	"2026-01-11"	"credit"	"1"	"assets:bank/JPY"	"1"	"actual"	"0"	"¯1200"	"expense"	"ok"	⟨⟩	
+"journal.tsv"	"2"	"RENT1"	"RENT1"	"journal.tsv:2:debit"	"2026-01-20"	"debit"	"10"	"expenses:rent/JPY"	"3"	"actual"	"0"	"3000"	"expense"	"ok"	⟨⟩	
+"journal.tsv"	"2"	"RENT1"	"RENT1"	"journal.tsv:2:credit"	"2026-01-20"	"credit"	"10"	"assets:bank/JPY"	"1"	"actual"	"0"	"¯3000"	"expense"	"ok"	⟨⟩	
+"source_file"	"source_row"	"source_id"	"tx_id"	"posting_id"	"date"	"side"	"day_index"	"account_key"	"account_key_index"	"layer_name"	"layer_index"	"delta"	"kind"	"status"	"message"	
+"plan.tsv"	"0"	"PLAN_FOOD1"	"PLAN_FOOD1"	"plan.tsv:0:debit"	"2026-01-25"	"debit"	"15"	"expenses:food/JPY"	"2"	"plan"	"1"	"2000"	"expense"	"ok"	⟨⟩	
+"plan.tsv"	"0"	"PLAN_FOOD1"	"PLAN_FOOD1"	"plan.tsv:0:credit"	"2026-01-25"	"credit"	"15"	"assets:bank/JPY"	"1"	"plan"	"1"	"¯2000"	"expense"	"ok"	⟨⟩	
+"plan.tsv"	"1"	"INC2"	"INC2"	"plan.tsv:1:debit"	"2026-03-10"	"debit"	"59"	"assets:bank/JPY"	"1"	"plan"	"1"	"100000"	"income"	"ok"	⟨⟩	
+"plan.tsv"	"1"	"INC2"	"INC2"	"plan.tsv:1:credit"	"2026-03-10"	"credit"	"59"	"income:example/JPY"	"0"	"plan"	"1"	"¯100000"	"income"	"ok"	⟨⟩	
+"plan.tsv"	"2"	"PLAN_AFTER"	"PLAN_AFTER"	"plan.tsv:2:debit"	"2026-03-11"	"debit"	"60"	"expenses:food/JPY"	"2"	"plan"	"1"	"500"	"expense"	"ok"	⟨⟩	
+"plan.tsv"	"2"	"PLAN_AFTER"	"PLAN_AFTER"	"plan.tsv:2:credit"	"2026-03-11"	"credit"	"60"	"assets:bank/JPY"	"1"	"plan"	"1"	"¯500"	"expense"	"ok"	⟨⟩	
+projection_balance_by_source: ok
+shape: 59 × 5 × 4
+valid projection rows: 8
+skipped projection rows: 4
+  day_index 59 >= 59  plan.tsv:1  INC2
+  day_index 59 >= 59  plan.tsv:1  INC2
+  day_index 60 >= 59  plan.tsv:2  PLAN_AFTER
+  day_index 60 >= 59  plan.tsv:2  PLAN_AFTER
+  actual: 0
+  plan: 0
+  budget: 0
+  forecast: 0
+  0  income:example/JPY  ¯100000
+  1  assets:bank/JPY  95800
+  2  expenses:food/JPY  1200
+  3  expenses:rent/JPY  3000
+src_next_cycle_range: 2026-01-10..2026-03-10
+src_next_valid_projection_rows: 8
+src_next_skipped_projection_rows: 4
+src_next_actual_total: 0
+src_next_plan_total: 0
+src_next_actual_expense_total: 4200
+src_next_plan_expense_total: 2000
+src_next_actual_account_total: 0 income:example/JPY ¯100000
+src_next_actual_account_total: 1 assets:bank/JPY 95800
+src_next_actual_account_total: 2 expenses:food/JPY 1200
+src_next_actual_account_total: 3 expenses:rent/JPY 3000
+src_next_plan_account_total: 1 assets:bank/JPY ¯2000
+src_next_plan_account_total: 2 expenses:food/JPY 2000
+src_next_household_metadata_expense_accounts_total: 2
+src_next_household_metadata_missing_budget_count: 2
+src_next_household_metadata_missing_budget_group_count: 2
+src_next_household_metadata_missing_spend_class_count: 2
+src_next_household_metadata_prefix_fallback_total_count: 4
+src_next_household_metadata_prefix_fallback_expense_count: 2
+src_next_household_metadata_budget_values: 
+src_next_household_metadata_budget_group_values: 
+src_next_household_metadata_spend_class_values: 
+src_next_household_metadata_missing_budget_accounts: expenses:food,expenses:rent
+src_next_household_metadata_missing_budget_group_accounts: expenses:food,expenses:rent
+src_next_household_metadata_missing_spend_class_accounts: expenses:food,expenses:rent
+valid_actual_delta_total: 0
+cube_actual_total: 0
+actual_total_match: ok
+valid_plan_delta_total: 0
+cube_plan_total: 0
+plan_total_match: ok
+actual_per_account_totals_match: ok

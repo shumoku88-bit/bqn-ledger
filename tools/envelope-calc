@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+# tools/envelope-calc — envelope budget calculation CLI
+#
+# Uses src_next/calc/main.bqn to perform P1-P4 envelope calculations.
+# Pure calculation tool (read-only, no data modification).
+#
+# Usage:
+#   tools/envelope-calc list                     封筒一覧
+#   tools/envelope-calc pace <label>              ペース診断
+#   tools/envelope-calc recover <label> <n>       1日n円で復帰までの日数
+#   tools/envelope-calc recover-target <label> <n> n日で復帰する1日上限
+#   tools/envelope-calc deplete <label>           枯渇予測
+#
+# Flags:
+#   --base DIR  dataset base dir (default: LEDGER_DATA_DIR or configured default)
+#   --machine   key:value output for AI consumption
+#   --debug     dump intermediate values to stderr
+#   --help, -h  show this help
+
+set -euo pipefail
+
+# Resolve repository root
+SOURCE="${BASH_SOURCE[0]}"
+while [ -L "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+ROOT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+cd "$ROOT_DIR"
+source "$ROOT_DIR/tools/lib/system-defaults.sh"
+
+BASE="${LEDGER_DATA_DIR:-$(get_default_base_dir)}"
+
+usage() {
+  cat <<'EOF'
+Usage:
+  tools/envelope-calc list
+  tools/envelope-calc pace <label>
+  tools/envelope-calc recover <label> <daily_limit>
+  tools/envelope-calc recover-target <label> <target_days>
+  tools/envelope-calc deplete <label>
+
+Flags:
+  --base DIR  dataset base dir (default: LEDGER_DATA_DIR or configured default)
+  --machine   key:value output for AI consumption
+  --debug     dump intermediate values to stderr
+
+Examples:
+  tools/envelope-calc list
+  tools/envelope-calc pace 食費
+  tools/envelope-calc recover 食費 550
+  tools/envelope-calc recover-target 食費 7
+  tools/envelope-calc deplete 一般生活
+  tools/envelope-calc --machine deplete 一般生活
+  tools/envelope-calc --base fixtures/src-next-envelope-computation list
+  tools/envelope-calc --machine --debug pace 食費  2>debug.log
+
+Uses src_next/calc/main.bqn (envelope_calc.bqn P1-P4 primitives).
+EOF
+}
+
+[ $# -lt 1 ] && { usage; exit 1; }
+
+case "$1" in
+  --help|-h) usage; exit 0 ;;
+esac
+
+# Detect --machine and --debug flags, transform op for BQN
+prefix=""
+bqn_args=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --base)
+      if [ -z "${2:-}" ] || [[ "$2" == -* ]]; then
+        echo "Error: --base requires a directory argument." >&2
+        usage >&2
+        exit 1
+      fi
+      BASE="$2"
+      shift 2
+      ;;
+    --machine)
+      prefix="${prefix}machine:"
+      shift
+      ;;
+    --debug)
+      prefix="${prefix}debug:"
+      shift
+      ;;
+    *)
+      bqn_args+=("$1")
+      shift
+      ;;
+  esac
+done
+
+if [[ ${#bqn_args[@]} -eq 0 ]]; then
+  usage
+  exit 1
+fi
+
+# Prepend prefix(es) to the operation
+if [[ -n "$prefix" ]]; then
+  bqn_args[0]="${prefix}${bqn_args[0]}"
+fi
+
+exec bqn src_next/calc/main.bqn "$BASE" "${bqn_args[@]}"

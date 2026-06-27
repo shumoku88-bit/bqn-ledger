@@ -1,0 +1,3 @@
+# date	memo	from	to	amount	meta
+2026-08-15	年金支給8月(予定)	income:年金	assets:bank	200000	plan_id=plan-2026-08-15-pension
+2026-08-20	食費予定	assets:bank	expenses:food	8000	plan_id=plan-2026-08-20-food

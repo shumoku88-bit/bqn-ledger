@@ -1,0 +1,22 @@
+# BQN temporary files
+*.bqn.log
+
+# Node (no longer required, kept for convenience)
+node_modules/
+
+# Generated (optional)
+budget_journal.tsv
+out/
+tools/edit.bin
+editor/editor
+.backup/
+
+# Private and logs
+moko/
+private/
+learning-private/
+logs/
+tools/.repo-index-baseline.tsv
+
+# Local scratch datasets
+sandbox/

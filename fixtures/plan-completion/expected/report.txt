@@ -1,0 +1,223 @@
+--- 256-Slot Accounting Report ---
+
+【1. 全体サマリ (Snapshot)】
+  流動資産 (type=liquid) :        36000
+  貯金     (type=savings):            0
+  投資     (type=invest) :            0
+  ------------------------------------
+  総資産合計             :        36000
+
+  負債合計 (liabilities) :            0
+  ------------------------------------
+  純資産 (Net Worth)     :        36000
+
+【2. 年初来サマリ (YTD Summary)】
+  収入合計 : +           0
+  支出合計 : -       64000
+  収支     :        ¯64000
+
+  [固定費] 合計 : -       64000
+                |       Amount
+expenses:rent:  |        64000
+
+
+  [変動費] 合計 : -           0
+   |       Amount
+
+
+【3. 勘定科目一覧 (Balances)】
+                          |       Amount
+equity:opening-balances:  |       100000
+assets:bank:              |        36000
+assets:cash:              |            0
+assets:wallet:            |            0
+assets:zero:              |            0
+assets:savings:           |            0
+expenses:rent:            |        64000
+
+
+【4. 今サイクル集計 (Cycle Summary)】
+Cycle (fixed) : 2026-01-01〜2026-01-31
+  収入合計 : +           0
+  支出合計 : -       64000
+  収支     :        ¯64000
+
+  [支出内訳]
+                |       Amount
+expenses:rent:  |        64000
+
+
+【5. 封筒・予算残高 (Envelopes & Balances)】
+ group   | account        | allocated | spent     | balance   | avg/day   | health
+---------+----------------+-----------+-----------+-----------+-----------+--------
+         | daily          |     10000 |         0 |     10000 |         0 | SAFE
+         | flex           |      5000 |         0 |      5000 |         0 | SAFE
+         | reserve        |     25000 |         0 |     25000 |         0 | SAFE
+---------+----------------+-----------+-----------+-----------+-----------+--------
+
+[封筒 seed 可能額]
+  流動資産                 :         36000
+  未来の収入予定(cycle内)  : +           0
+  残り固定費予定(reserve)  : -           0
+  ------------------------------------
+  seed可能額               :         36000
+  生活封筒合計(daily+flex) : -           0
+  貯金・投資仮確保(reserve): -           0
+  全封筒合計               : -       40000
+  ------------------------------------
+  端数の未割り当て         :         ¯4000
+  NOTE:
+  daily/flex は生活費として使う封筒。
+  reserve は貯金・投資などの仮確保封筒。
+  reserve は使い切る対象ではなく、サイクル末または月末まで維持できた分を確定分として見る。
+
+[封筒の健康診断 (Pace Status)]
+avg/day   : サイクル開始日からの経過日数と純消費額(spent)ベース。
+SAFE      : ペース通り。WARN: 少し早い。SHORT: ペースの1.5倍以上使っており危険。
+HELD      : reserve (貯金・投資など) が取り崩されずに仮確保されている状態。
+DONE      : サイクル終了時点で、 reserve (貯金・投資など) の仮確保額が守られた状態。
+DRAWN     : reserve (貯金・投資など) から取り崩しが発生した状態。
+
+【6. 未来の支払い等予定 (Planned Payments)】
+Date       | Category      | Memo           |       Amount
+2026-01-24 | expenses:misc | Planned book   |         2000
+2026-01-25 | expenses:food | Unplanned food |          500
+
+
+[予定状態 (Plan Status)]
+status: future_open=これから / due_open=今日 / overdue_open=期日超過未完了 / completed=支払い済み
+Date       | Status       | Category      | Memo              |      Planned |       Actual
+2026-01-10 | overdue_open | expenses:misc | Unfulfilled phone |         1500 |            0
+2026-01-15 | completed    | expenses:rent | Rent              |        64000 |        64000
+2026-01-24 | future_open  | expenses:misc | Planned book      |         2000 |            0
+2026-01-25 | future_open  | expenses:food | Unplanned food    |          500 |            0
+
+
+【7. 直近の取引 (Recent Journal)】
+(newest first, last 10)
+Date       | From                    -> To            | Memo    |       Amount
+2026-01-15 | assets:bank             -> expenses:rent | Rent    |        64000
+2026-01-01 | equity:opening-balances -> assets:bank   | Opening |       100000
+
+
+【8. レポート準備チェック (Report Readiness Check)】
+Strict check: OK (invalid rows would stop execution)
+
+[Input files]
+  base dir          : fixtures/plan-completion
+  journal rows      : 2
+  plan rows         : 4
+  accounts defined  : 16
+  cycle (fixed) : 2026-01-01〜2026-01-31
+
+[Report readiness]
+  accounts missing role metadata  : 16
+  equity:opening-balances
+  assets:bank
+  assets:cash
+  assets:wallet
+  assets:zero
+  assets:savings
+  income:salary
+  expenses:food
+  expenses:rent
+  expenses:misc
+  budget:opening
+  budget:unassigned
+  budget:daily
+  budget:flex
+  budget:reserve
+  budget:spent
+  assets missing type             : 0
+  expenses missing spend_class    : 0
+  variable expenses without budget: 0
+
+[Data hygiene warnings]
+  future journal rows after as_of : 0
+  envelopes spent without alloc   : 0
+  plan rows already in journal    : 1
+    - 2026-01-15 Rent (64000)
+  stale plan rows (before cycle) : 0
+  redundant budget allocations    : 0
+
+【9. 見通し・日割り (Outlook / Daily Amount)】
+基準日: 2026-01-16
+journal最終記録日: 2026-01-15（基準日との差: 1日）
+サイクル (fixed) : 2026-01-01〜2026-01-31
+残日数: 16日
+
+[資産]
+  総資産             :        36000
+  負債合計           :            0
+  ------------------------------------
+  純資産 (Net Worth) :        36000
+
+  流動資産合計       :        36000
+  貯金               :            0
+  資産形成           :            0
+
+  [流動資産内訳]
+                          |       Amount
+assets:bank:              |        36000
+assets:cash:              |            0
+assets:wallet:            |            0
+assets:zero:              |            0
+
+
+[日割り金額]
+  流動資産 (実績+予定) ÷ 残日数 :         2093
+  流動資産 (安全/保守) ÷ 残日数 :         2093
+
+  [封筒予算 日割り]
+                          |    Remaining |        Daily
+budget:daily:             |        10000 |          625
+budget:flex:              |         5000 |          312
+budget:reserve:           |        25000 |         1562
+
+
+【10. 日割り推移 (Daily Trend)】
+基準日: 2026-01-16
+サイクル (fixed) : 2026-01-01〜2026-01-31
+NOTE: journal記録日ベース。variable/saving/fixedは日次Actual更新由来。savingの負値は取り崩し。
+
+[日割り推移]
+date       |   liquid | reserve |     fund | days | daily | Δdaily | variable | saving
+2026-01-01 |   100000 |   64000 |    36000 |   31 |  1161 |      0 |        0 |       0
+2026-01-15 |    36000 |       0 |    36000 |   17 |  2117 |    956 |        0 |       0
+2026-01-16 |    36000 |       0 |    36000 |   16 |  2250 |    133 |        0 |       0
+
+
+[日割り下落日 Top10]
+date       | Δdaily | daily | variable | saving | fixed
+
+
+【11. Actual比較観察 (Actual Comparison)】
+period: current_cycle_elapsed
+current : 2026-01-01〜2026-01-17
+baseline: 2026-01-01〜2026-01-17
+status  : unavailable
+NOTE: 比較可能な前サイクル履歴が足りないため、Actual比較は表示しません。
+
+【12. デバッグ・由来 (Debug & Provenance)】
+  as_of: 2026-01-16
+  cycle: 2026-01-01 to 2026-02-01 (fixed)
+
+[Sources]
+  journal.tsv : 2 rows
+  plan.tsv    : 4 rows
+  alloc.tsv   : 4 rows
+  accounts    : 256 accounts
+
+[Provenance & Formulas]
+  liquid_assets        [F001] Actual layer balance (sum type=liquid)
+  envelope_balance     [F012] Budget layer balance (layer 2)
+  safe_liquid_assets   [F021] Derived: liquid_assets - fixed_plan_reserve
+  seedable_budget      [F022] Derived: liquid_assets + future_income - fixed_plan_reserve
+  unallocated_buffer   [F023] Derived: seedable_budget - sum(envelope_balance)
+
+[Invariants Check]
+  Actual Layer Zero-Sum: 0
+    [OK] Zero-sum invariant holds.
+  Liquid Assets Match  : 36000
+    [OK] Liquid assets sum matches.
+

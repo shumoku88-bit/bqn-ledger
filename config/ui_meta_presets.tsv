@@ -1,0 +1,6 @@
+# Format: key TAB description TAB meta_tokens
+# UI presets for metadata append in tools/add-ui.sh.
+empty	(no meta)	
+private	tax=private biz=0	tax=private biz=0
+business	tax=business biz=1	tax=business biz=1
+custom	enter key=value tokens	custom

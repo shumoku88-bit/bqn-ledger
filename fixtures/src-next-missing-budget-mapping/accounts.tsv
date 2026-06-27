@@ -1,0 +1,13 @@
+# Fixture: src-next-missing-budget-mapping
+# Purpose: envelope consumption without budget mapping
+# expenses:food has spend_class=variable but NO budget=food
+# budget:food exists (envelope computation is active) but the mapping is broken
+
+equity:opening
+assets:bank	type=liquid
+income:salary	role=income
+expenses:food	role=expense	spend_class=variable
+budget:opening
+budget:unassigned
+budget:food
+budget:spent

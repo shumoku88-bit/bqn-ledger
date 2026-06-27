@@ -1,0 +1,42 @@
+MOCK / layout only
+report_screen: YTD Summary
+status: mock / pending human review
+question: 今年、全科目でいくら動いたか
+view_type: year-to-date flow (all accounts)
+basis: sample values only; not calculated from data/*.tsv
+as_of: 2026-06-26
+
+== YTD Summary ==
+
+2026-01-01 〜 2026-06-26
+
+account              | YTD
+income:年金          |   +456,000
+income:支援給付金    |    +22,000
+income:返金          |     +1,500
+income:ポイント      |        +57
+expenses:家賃        |   -128,000
+expenses:食費        |    -45,000
+expenses:光熱費      |    -49,502
+expenses:タバコ      |    -24,000
+expenses:学習        |    -15,000
+expenses:借金返済    |    -20,000
+expenses:予備        |    -12,000
+expenses:通信        |    -19,552
+expenses:AIサブスク  |    -16,137
+expenses:保険料      |     -9,520
+expenses:日用消耗品  |     -1,200
+expenses:缶コーヒー  |     -1,500
+expenses:交通        |     -2,000
+expenses:医療        |     -3,000
+assets:smbc          |    -80,000
+assets:yuucho        |    +50,000
+assets:cash          |       +500
+assets:paypay        |       +104
+assets:savings:yuucho|    +10,000
+assets:investment:   |     +5,200
+liabilities:card     |    +80,000
+
+review_prompt:
+  - ソート: role 別（income → expenses → assets → liabilities）？ |YTD| 降順？
+  - Account Balances と YTD Summary の関係は「stock と flow」で明確に分かれた。OK？

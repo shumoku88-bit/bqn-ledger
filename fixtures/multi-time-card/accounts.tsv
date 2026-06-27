@@ -1,0 +1,8 @@
+equity:opening-balances
+assets:bank	type=liquid
+liabilities:card	due_day=27	due_month_offset=1	payment_account=assets:bank
+expenses:book	spend_class=variable	budget=unassigned
+expenses:computer	spend_class=variable	budget=unassigned
+budget:opening
+budget:unassigned
+budget:spent

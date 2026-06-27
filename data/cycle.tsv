@@ -1,0 +1,4 @@
+# Fixture: household-moko
+# Purpose: contrasting fixture for Phase 3 — pension bimonthly + incomeAnchor + envelope
+mode	incomeAnchor
+income_account	income:年金

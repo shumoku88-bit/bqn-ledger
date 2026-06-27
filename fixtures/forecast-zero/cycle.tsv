@@ -1,0 +1,4 @@
+# Fixture cycle: fixed period
+mode	fixed
+start	2026-01-01
+end_exclusive	2026-02-01

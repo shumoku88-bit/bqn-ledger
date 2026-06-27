@@ -1,0 +1,9 @@
+# Fixture: src-next-envelope-computation
+assets:cash	role=asset
+income:salary	role=income
+expenses:食費	role=expense	budget=食費	budget_group=life_primary	spend_class=variable
+expenses:日用品	role=expense	budget=日用品	budget_group=life_primary	spend_class=variable
+expenses:missing	role=expense
+budget:unassigned	role=budget	kind=unassigned
+budget:食費	role=budget	kind=envelope	budget_group=life_primary
+budget:日用品	role=budget	kind=envelope	budget_group=life_primary

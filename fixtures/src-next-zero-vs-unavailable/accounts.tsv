@@ -1,0 +1,12 @@
+# Zero vs Unavailable Failure Fixture
+# Tests that missing data shows "unavailable" not 0.
+# Key case: Actual Comparison with no previous cycle data.
+
+equity:opening-balances
+assets:bank	type=liquid
+income:salary	role=income
+expenses:food	role=expense	spend_class=variable	budget=food
+budget:opening
+budget:unassigned
+budget:food
+budget:spent

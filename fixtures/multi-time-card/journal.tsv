@@ -1,0 +1,4 @@
+2026-01-01	Opening	equity:opening-balances	assets:bank	100000
+2026-01-10	Book	liabilities:card	expenses:book	800
+2026-01-20	Computer	liabilities:card	expenses:computer	1200	due_on=2026-03-05
+2026-02-28	Pay card	assets:bank	liabilities:card	800

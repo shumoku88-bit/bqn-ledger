@@ -1,0 +1,5 @@
+# date	action	from	to	amount
+2026-02-13	seed	budget:opening	budget:unassigned	200000
+2026-02-13	alloc	budget:unassigned	budget:daily	100000
+2026-04-15	seed	budget:opening	budget:unassigned	200000
+2026-04-15	alloc	budget:unassigned	budget:daily	100000

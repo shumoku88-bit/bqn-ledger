@@ -1,0 +1,13 @@
+# Anchor Unmet Failure Fixture
+# Tests plan rows with anchor= that references income not yet received.
+
+equity:opening-balances
+assets:bank	type=liquid
+income:年金	role=income
+income:月給	role=income
+expenses:家賃	role=expense	spend_class=fixed
+expenses:食費	role=expense	spend_class=variable	budget=food
+budget:opening
+budget:unassigned
+budget:food
+budget:spent

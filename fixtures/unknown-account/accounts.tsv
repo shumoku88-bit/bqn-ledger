@@ -1,0 +1,8 @@
+equity:opening-balances
+assets:bank	type=liquid
+income:salary
+expenses:food	budget=daily	spend_class=variable
+budget:opening
+budget:unassigned
+budget:daily
+budget:spent

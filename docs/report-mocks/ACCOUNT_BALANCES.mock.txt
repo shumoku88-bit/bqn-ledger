@@ -1,0 +1,53 @@
+MOCK / layout only
+report_screen: Account Balances
+status: mock / pending human review
+question: 各 account key の現在残高はいくらか
+view_type: point-in-time balance / stock view
+basis: sample values only; not calculated from data/*.tsv
+as_of: 2026-06-26
+
+== Account Balances ==
+
+[Assets / Liquid]
+account_key                       |        balance
+----------------------------------+---------------
+assets:yuucho                     |       123,456
+assets:cash                       |         2,000
+
+[Assets / Savings]
+account_key                       |        balance
+----------------------------------+---------------
+assets:savings:yuucho             |        80,000
+
+[Assets / Investment]
+account_key                       |        balance
+----------------------------------+---------------
+assets:investment:allcountry      |        18,000
+
+[Liabilities]
+account_key                       |        balance
+----------------------------------+---------------
+liabilities:card                  |       -24,000
+
+[Budget / Envelopes]
+account_key                       |        balance
+----------------------------------+---------------
+budget:food                       |        12,340
+budget:flex                       |         8,000
+budget:reserve                    |        30,000
+
+[Totals]
+name                              |        balance
+----------------------------------+---------------
+liquid_assets_total               |       125,456
+savings_total                     |        80,000
+investment_total                  |        18,000
+assets_total                      |       223,456
+liabilities_total                 |       -24,000
+net_worth                         |       199,456
+
+review_prompt:
+  - Should Budget / Envelopes be shown here, or only in Envelope / Budget?
+  - Should liabilities be negative here, or shown as positive owed amounts?
+  - Should totals stay here, or move to Balance Summary?
+  - Should zero-balance accounts be hidden?

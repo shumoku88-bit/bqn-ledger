@@ -1,0 +1,102 @@
+mode: fixed
+start: 2026-01-01
+end_exclusive: 2026-01-15
+day_count: 14
+accounts: 8
+"source_file"	"source_row"	"source_id"	"tx_id"	"posting_id"	"date"	"side"	"day_index"	"account_key"	"account_key_index"	"layer_name"	"layer_index"	"delta"	"kind"	"status"	"message"	
+"journal.tsv"	"0"	"actual_daily_food"	"actual_daily_food"	"journal.tsv:0:debit"	"2026-01-01"	"debit"	"0"	"expenses:食費/JPY"	"2"	"actual"	"0"	"100"	"expense"	"ok"	⟨⟩	
+"journal.tsv"	"0"	"actual_daily_food"	"actual_daily_food"	"journal.tsv:0:credit"	"2026-01-01"	"credit"	"0"	"assets:bank/JPY"	"0"	"actual"	"0"	"¯100"	"expense"	"ok"	⟨⟩	
+"journal.tsv"	"1"	"actual_flex"	"actual_flex"	"journal.tsv:1:debit"	"2026-01-02"	"debit"	"1"	"expenses:娯楽/JPY"	"4"	"actual"	"0"	"200"	"expense"	"ok"	⟨⟩	
+"journal.tsv"	"1"	"actual_flex"	"actual_flex"	"journal.tsv:1:credit"	"2026-01-02"	"credit"	"1"	"assets:bank/JPY"	"0"	"actual"	"0"	"¯200"	"expense"	"ok"	⟨⟩	
+"journal.tsv"	"2"	"actual_reserve"	"actual_reserve"	"journal.tsv:2:debit"	"2026-01-03"	"debit"	"2"	"expenses:予備/JPY"	"5"	"actual"	"0"	"300"	"expense"	"ok"	⟨⟩	
+"journal.tsv"	"2"	"actual_reserve"	"actual_reserve"	"journal.tsv:2:credit"	"2026-01-03"	"credit"	"2"	"assets:bank/JPY"	"0"	"actual"	"0"	"¯300"	"expense"	"ok"	⟨⟩	
+"journal.tsv"	"3"	"actual_transfer"	"actual_transfer"	"journal.tsv:3:debit"	"2026-01-04"	"debit"	"3"	"assets:cash/JPY"	"1"	"actual"	"0"	"50"	"transfer"	"ok"	⟨⟩	
+"journal.tsv"	"3"	"actual_transfer"	"actual_transfer"	"journal.tsv:3:credit"	"2026-01-04"	"credit"	"3"	"assets:bank/JPY"	"0"	"actual"	"0"	"¯50"	"transfer"	"ok"	⟨⟩	
+"journal.tsv"	"4"	"actual_no_group"	"actual_no_group"	"journal.tsv:4:debit"	"2026-01-05"	"debit"	"4"	"expenses:未分類/JPY"	"6"	"actual"	"0"	"40"	"expense"	"ok"	⟨⟩	
+"journal.tsv"	"4"	"actual_no_group"	"actual_no_group"	"journal.tsv:4:credit"	"2026-01-05"	"credit"	"4"	"assets:bank/JPY"	"0"	"actual"	"0"	"¯40"	"expense"	"ok"	⟨⟩	
+"journal.tsv"	"5"	"actual_fallback"	"actual_fallback"	"journal.tsv:5:debit"	"2026-01-06"	"debit"	"5"	"expenses:fallback/JPY"	"7"	"actual"	"0"	"30"	"expense"	"ok"	⟨⟩	
+"journal.tsv"	"5"	"actual_fallback"	"actual_fallback"	"journal.tsv:5:credit"	"2026-01-06"	"credit"	"5"	"assets:bank/JPY"	"0"	"actual"	"0"	"¯30"	"expense"	"ok"	⟨⟩	
+"source_file"	"source_row"	"source_id"	"tx_id"	"posting_id"	"date"	"side"	"day_index"	"account_key"	"account_key_index"	"layer_name"	"layer_index"	"delta"	"kind"	"status"	"message"	
+"plan.tsv"	"0"	"plan_daily_goods"	"plan_daily_goods"	"plan.tsv:0:debit"	"2026-01-07"	"debit"	"6"	"expenses:日用品/JPY"	"3"	"plan"	"1"	"70"	"expense"	"ok"	⟨⟩	
+"plan.tsv"	"0"	"plan_daily_goods"	"plan_daily_goods"	"plan.tsv:0:credit"	"2026-01-07"	"credit"	"6"	"assets:bank/JPY"	"0"	"plan"	"1"	"¯70"	"expense"	"ok"	⟨⟩	
+"plan.tsv"	"1"	"plan_flex"	"plan_flex"	"plan.tsv:1:debit"	"2026-01-08"	"debit"	"7"	"expenses:娯楽/JPY"	"4"	"plan"	"1"	"80"	"expense"	"ok"	⟨⟩	
+"plan.tsv"	"1"	"plan_flex"	"plan_flex"	"plan.tsv:1:credit"	"2026-01-08"	"credit"	"7"	"assets:bank/JPY"	"0"	"plan"	"1"	"¯80"	"expense"	"ok"	⟨⟩	
+"plan.tsv"	"2"	"plan_reserve"	"plan_reserve"	"plan.tsv:2:debit"	"2026-01-09"	"debit"	"8"	"expenses:予備/JPY"	"5"	"plan"	"1"	"90"	"expense"	"ok"	⟨⟩	
+"plan.tsv"	"2"	"plan_reserve"	"plan_reserve"	"plan.tsv:2:credit"	"2026-01-09"	"credit"	"8"	"assets:bank/JPY"	"0"	"plan"	"1"	"¯90"	"expense"	"ok"	⟨⟩	
+"plan.tsv"	"3"	"plan_transfer"	"plan_transfer"	"plan.tsv:3:debit"	"2026-01-10"	"debit"	"9"	"assets:cash/JPY"	"1"	"plan"	"1"	"10"	"transfer"	"ok"	⟨⟩	
+"plan.tsv"	"3"	"plan_transfer"	"plan_transfer"	"plan.tsv:3:credit"	"2026-01-10"	"credit"	"9"	"assets:bank/JPY"	"0"	"plan"	"1"	"¯10"	"transfer"	"ok"	⟨⟩	
+projection_balance_by_source: ok
+shape: 14 × 8 × 4
+valid projection rows: 20
+skipped projection rows: 0
+  actual: 0
+  plan: 0
+  budget: 0
+  forecast: 0
+  0  assets:bank/JPY  ¯720
+  1  assets:cash/JPY  50
+  2  expenses:食費/JPY  100
+  4  expenses:娯楽/JPY  200
+  5  expenses:予備/JPY  300
+  6  expenses:未分類/JPY  40
+  7  expenses:fallback/JPY  30
+src_next_cycle_range: 2026-01-01..2026-01-15
+src_next_valid_projection_rows: 20
+src_next_skipped_projection_rows: 0
+src_next_actual_total: 0
+src_next_plan_total: 0
+src_next_actual_expense_total: 670
+src_next_plan_expense_total: 240
+src_next_actual_account_total: 0 assets:bank/JPY ¯720
+src_next_actual_account_total: 1 assets:cash/JPY 50
+src_next_actual_account_total: 2 expenses:食費/JPY 100
+src_next_actual_account_total: 4 expenses:娯楽/JPY 200
+src_next_actual_account_total: 5 expenses:予備/JPY 300
+src_next_actual_account_total: 6 expenses:未分類/JPY 40
+src_next_actual_account_total: 7 expenses:fallback/JPY 30
+src_next_plan_account_total: 0 assets:bank/JPY ¯250
+src_next_plan_account_total: 1 assets:cash/JPY 10
+src_next_plan_account_total: 3 expenses:日用品/JPY 70
+src_next_plan_account_total: 4 expenses:娯楽/JPY 80
+src_next_plan_account_total: 5 expenses:予備/JPY 90
+src_next_household_policy_expense_accounts: 6
+src_next_household_policy_expense_accounts_prefix_fallback: 1
+src_next_household_policy_expense_accounts_with_budget: 5
+src_next_household_policy_expense_budget_group_daily: 2
+src_next_household_policy_expense_budget_group_flex: 1
+src_next_household_policy_expense_budget_group_reserve: 1
+src_next_household_policy_expense_budget_group_missing: 2
+src_next_household_policy_expense_budget_group_other: 0
+src_next_household_policy_expense_spend_class_variable: 4
+src_next_household_policy_expense_spend_class_fixed: 0
+src_next_household_policy_expense_spend_class_missing: 2
+src_next_household_policy_expense_spend_class_other: 0
+src_next_household_policy_actual_budget_group_daily_total: 100
+src_next_household_policy_actual_budget_group_flex_total: 200
+src_next_household_policy_actual_budget_group_reserve_total: 300
+src_next_household_policy_actual_budget_group_missing_total: 70
+src_next_household_policy_actual_budget_group_other_total: 0
+src_next_household_policy_plan_budget_group_daily_total: 70
+src_next_household_policy_plan_budget_group_flex_total: 80
+src_next_household_policy_plan_budget_group_reserve_total: 90
+src_next_household_policy_plan_budget_group_missing_total: 0
+src_next_household_policy_plan_budget_group_other_total: 0
+src_next_household_metadata_expense_accounts_total: 6
+src_next_household_metadata_missing_budget_count: 1
+src_next_household_metadata_missing_budget_group_count: 2
+src_next_household_metadata_missing_spend_class_count: 2
+src_next_household_metadata_prefix_fallback_total_count: 1
+src_next_household_metadata_prefix_fallback_expense_count: 1
+src_next_household_metadata_budget_values: 予備,娯楽,日用品,未分類,食費
+src_next_household_metadata_budget_group_values: life_flex,life_primary,reserve_pool
+src_next_household_metadata_spend_class_values: variable
+src_next_household_metadata_missing_budget_accounts: expenses:fallback
+src_next_household_metadata_missing_budget_group_accounts: expenses:未分類,expenses:fallback
+src_next_household_metadata_missing_spend_class_accounts: expenses:未分類,expenses:fallback
+valid_actual_delta_total: 0
+cube_actual_total: 0
+actual_total_match: ok
+valid_plan_delta_total: 0
+cube_plan_total: 0
+plan_total_match: ok
+actual_per_account_totals_match: ok

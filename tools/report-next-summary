@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+# tools/report-next-summary
+# Compact read-only summary surface for src_next.
+#
+# Prints Snapshot + compact src_next report sections.
+# Full diagnostic output: tools/report-next
+# Daily production report entrypoint: tools/report
+
+set -euo pipefail
+
+usage() {
+  cat <<'USAGE'
+Usage:
+  tools/report-next-summary
+  tools/report-next-summary <base-dir>
+  tools/report-next-summary --base <base-dir>
+  tools/report-next-summary --help
+
+Purpose:
+  Compact read-only summary surface for src_next.
+  Prints Snapshot + compact src_next report sections.
+  Full diagnostic output: tools/report-next
+  Daily production report entrypoint: tools/report
+
+Default:
+  <base-dir> defaults to LEDGER_DATA_DIR, then config/system_defaults.tsv (data/ sandbox).
+
+Examples:
+  tools/report-next-summary
+  tools/report-next-summary data
+  tools/report-next-summary fixtures/src-next-golden
+  tools/report-next-summary --base fixtures/src-next-golden
+USAGE
+}
+
+# Resolve repository root from this script location.
+SOURCE="${BASH_SOURCE[0]}"
+while [ -L "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+ROOT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+cd "$ROOT_DIR"
+source "$ROOT_DIR/tools/lib/system-defaults.sh"
+
+BASE_DIR="${LEDGER_DATA_DIR:-$(get_default_base_dir)}"
+BASE_SET=0
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    --base)
+      if [ -z "${2:-}" ] || [[ "$2" == -* ]]; then
+        echo "Error: --base requires a directory argument." >&2
+        usage >&2
+        exit 1
+      fi
+      if [ "$BASE_SET" -eq 1 ]; then
+        echo "Error: base directory specified more than once." >&2
+        usage >&2
+        exit 1
+      fi
+      BASE_DIR="$2"
+      BASE_SET=1
+      shift 2
+      ;;
+    -*)
+      echo "Error: unknown option: $1" >&2
+      usage >&2
+      exit 1
+      ;;
+    *)
+      if [ "$BASE_SET" -eq 1 ]; then
+        echo "Error: base directory specified more than once." >&2
+        usage >&2
+        exit 1
+      fi
+      BASE_DIR="$1"
+      BASE_SET=1
+      shift
+      ;;
+  esac
+done
+
+if [ ! -d "$BASE_DIR" ]; then
+  echo "Error: base directory not found: $BASE_DIR" >&2
+  exit 1
+fi
+
+echo "[diagnostic] tools/report-next-summary prints compact src_next summary." >&2
+echo "[diagnostic] Full diagnostic: tools/report-next" >&2
+echo "[diagnostic] Daily production report entrypoint: tools/report" >&2
+
+exec bqn src_next/summary.bqn "$BASE_DIR"

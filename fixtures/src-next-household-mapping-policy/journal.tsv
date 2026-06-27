@@ -1,0 +1,6 @@
+2026-01-01	actual_daily_food	assets:bank	expenses:食費	100
+2026-01-02	actual_flex	assets:bank	expenses:娯楽	200
+2026-01-03	actual_reserve	assets:bank	expenses:予備	300
+2026-01-04	actual_transfer	assets:bank	assets:cash	50
+2026-01-05	actual_no_group	assets:bank	expenses:未分類	40
+2026-01-06	actual_fallback	assets:bank	expenses:fallback	30

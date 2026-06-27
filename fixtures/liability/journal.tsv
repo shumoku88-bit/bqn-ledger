@@ -1,0 +1,3 @@
+2026-06-01	opening balances	equity:opening-balances	assets:bank	10000
+2026-06-02	buy dinner	liabilities:creditcard	expenses:food	1200
+2026-06-05	pay cc	assets:bank	liabilities:creditcard	1200

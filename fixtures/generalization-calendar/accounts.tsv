@@ -1,0 +1,9 @@
+assets:bank	role=asset	type=liquid
+assets:cash	role=asset	type=liquid
+liability:credit-card	role=liability
+income:salary	role=income
+expenses:rent	role=expense	spend_class=fixed
+expenses:food	role=expense	spend_class=variable
+expenses:util	role=expense	spend_class=variable
+expenses:misc	role=expense	spend_class=variable
+equity:opening-balances	role=equity

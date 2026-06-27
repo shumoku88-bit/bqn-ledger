@@ -1,0 +1,2 @@
+period_start	period_end_exclusive	period_kind	account	plan_amount	actual_amount	residual_amount	observation_status
+2026-01-01	2026-01-10	cycle	expenses:food	0	300	300	actual_only

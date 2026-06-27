@@ -1,0 +1,6 @@
+asset:cash	type=liquid
+expense:food	budget=daily
+env:opening
+env:unassigned
+env:spent
+env:daily

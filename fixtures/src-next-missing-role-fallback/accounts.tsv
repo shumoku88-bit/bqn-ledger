@@ -1,0 +1,11 @@
+# Fixture: src-next-missing-role-fallback
+# Purpose: Test fallback behavior when role metadata is missing
+
+equity:opening
+assets:bank
+assets:cash
+income:salary
+expenses:food
+expenses:rent
+expenses:hobby
+

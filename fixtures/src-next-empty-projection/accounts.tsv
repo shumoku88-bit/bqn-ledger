@@ -1,0 +1,9 @@
+# Fixture: src-next-empty-projection
+# Purpose: src_next empty journal / empty projection result check
+
+equity:opening
+assets:bank
+assets:cash
+income:salary
+expenses:food
+expenses:rent

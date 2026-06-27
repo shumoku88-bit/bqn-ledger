@@ -1,0 +1,122 @@
+#!/usr/bin/env bash
+# tools/bqn-eval
+# Tiny AI-friendly wrapper for evaluating a single BQN expression.
+#
+# Phase 1 scope:
+# - no repo module loading
+# - no TSV loading
+# - no source writes
+# - text/raw output only
+
+set -euo pipefail
+
+usage() {
+  cat <<'USAGE'
+Usage:
+  tools/bqn-eval [--format text|raw] '<bqn-expression>'
+  printf '<bqn-expression>\n' | tools/bqn-eval [--format text|raw]
+
+Purpose:
+  Evaluate one tiny BQN expression through the existing BQN executable.
+  This is a language-level probe for AI debugging, not a repo-aware probe.
+
+Phase 1 boundary:
+  - no repo module loading
+  - no TSV loading
+  - no source TSV writes
+  - no report engine changes
+
+Options:
+  --format text   Default. Run the expression and print BQN output.
+  --format raw    Same as text for Phase 1; reserved for future contrast.
+  -h, --help      Show this help.
+
+Environment:
+  BQN_BIN         Override BQN executable name/path. Default: bqn
+
+Examples:
+  tools/bqn-eval '≢ "OK"'
+  tools/bqn-eval '<"OK"'
+  tools/bqn-eval '⟨<"OK", <"WARN"⟩'
+USAGE
+}
+
+FORMAT="text"
+EXPR=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    --format)
+      if [ -z "${2:-}" ] || [[ "$2" == -* ]]; then
+        echo "Error: --format requires one of: text, raw" >&2
+        exit 1
+      fi
+      FORMAT="$2"
+      shift 2
+      ;;
+    --format=*)
+      FORMAT="${1#--format=}"
+      shift
+      ;;
+    --*)
+      echo "Unknown option: $1" >&2
+      usage >&2
+      exit 1
+      ;;
+    *)
+      if [ -n "$EXPR" ]; then
+        echo "Error: only one expression argument is supported. Quote the expression if it contains spaces." >&2
+        exit 1
+      fi
+      EXPR="$1"
+      shift
+      ;;
+  esac
+done
+
+case "$FORMAT" in
+  text|raw)
+    ;;
+  json)
+    echo "Error: --format json is not implemented in Phase 1. Use --format text or --format raw." >&2
+    exit 1
+    ;;
+  *)
+    echo "Error: unsupported format: $FORMAT" >&2
+    echo "Supported formats: text, raw" >&2
+    exit 1
+    ;;
+esac
+
+if [ -z "$EXPR" ]; then
+  if [ -t 0 ]; then
+    echo "Error: BQN expression is required." >&2
+    usage >&2
+    exit 1
+  fi
+  EXPR="$(cat)"
+fi
+
+if [ -z "${EXPR//$'\n'/}" ]; then
+  echo "Error: BQN expression is empty." >&2
+  exit 1
+fi
+
+BQN_BIN="${BQN_BIN:-bqn}"
+if ! command -v "$BQN_BIN" >/dev/null 2>&1; then
+  echo "Error: BQN executable not found: $BQN_BIN" >&2
+  echo "Set BQN_BIN=/path/to/bqn or install a 'bqn' executable." >&2
+  exit 127
+fi
+
+tmpdir="$(mktemp -d)"
+trap 'rm -rf "$tmpdir"' EXIT
+
+expr_file="$tmpdir/eval.bqn"
+printf '%s\n' "$EXPR" > "$expr_file"
+
+"$BQN_BIN" "$expr_file"

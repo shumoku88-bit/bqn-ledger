@@ -1,0 +1,6 @@
+key	account	value	note
+account_balance	assets:bank	99700	
+liquid_assets_total		99700	sum of liquid account actual balances
+reserved_fixed_plan		0	fixed expenses planned but not yet paid
+safe_liquid_assets		99700	liquid_assets_total - reserved_fixed_plan
+seedable_budget		99700	liquid_assets_total + future_income - reserved_fixed_plan

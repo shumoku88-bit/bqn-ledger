@@ -1,0 +1,29 @@
+MOCK / layout only
+report_screen: Readiness Check
+status: adopted
+question: 入力データ・メタデータ・plan/journal の状態は信頼できるか
+view_type: diagnostic / data quality check
+basis: sample values only; not calculated from data/*.tsv
+as_of: 2026-06-26
+
+== Readiness Check ==
+
+[Input files]
+  journal rows      : 289
+  plan rows         : 14
+  accounts defined  : 38
+  cycle             : 2026-06-15〜2026-08-14
+
+[Report readiness]
+  accounts missing role metadata  : 0
+  assets missing type             : 0
+  expenses missing spend_class    : 0
+  variable expenses without budget: 0
+
+[Data hygiene warnings]
+  future journal rows             : 0
+  plan rows already in journal    : 3
+    - 2026-06-18 健康保険料(6月分) (2760)
+    - 2026-06-18 健康保険料(滞納分) (1000)
+    - 2026-06-24 google-one (1450)
+  stale plan rows                 : 0

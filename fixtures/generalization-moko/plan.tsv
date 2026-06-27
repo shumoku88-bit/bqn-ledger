@@ -1,0 +1,19 @@
+# 2026-06 after income-day payments
+2026-06-18	健康保険料(6月分)	三井住友銀行	保険料	2760	recur=once	series=health-insurance	plan_id=plan-2026-06-18-health-insurance-regular
+2026-06-18	健康保険料(滞納分)	三井住友銀行	保険料	1000	recur=once	series=health-insurance	plan_id=plan-2026-06-18-health-insurance-arrears
+2026-06-24	google-one	三井住友銀行	AIサブスク	1450	recur=monthly	series=google-one	plan_id=plan-2026-06-24-google-one
+
+# 2026-07 monthly payments in next cycle
+2026-07-15	gpt-plus	三井住友銀行	AIサブスク	3000	recur=monthly	series=gpt-plus	plan_id=plan-2026-07-15-gpt-plus
+2026-07-16	wifi	三井住友銀行	通信費	4812	recur=monthly	series=wifi	plan_id=plan-2026-07-16-wifi
+2026-07-10	povo	三井住友銀行	通信費	330	recur=monthly	series=povo	plan_id=plan-2026-07-10-povo
+2026-07-24	google-one	三井住友銀行	AIサブスク	1450	recur=monthly	series=google-one	plan_id=plan-2026-07-24-google-one
+2026-07-18	健康保険料(7月分)	三井住友銀行	保険料	2100	recur=once	series=health-insurance	plan_id=plan-2026-07-18-health-insurance-regular
+2026-07-18	健康保険料(滞納分)	三井住友銀行	保険料	1000	recur=once	series=health-insurance	plan_id=plan-2026-07-18-health-insurance-arrears
+
+# 2026-08 next income anchor
+2026-08-14	年金	年金収入	三井住友銀行	225276	recur=cycle	series=pension	plan_id=plan-2026-08-14-pension
+2026-08-14	支援給付金	支援給付金	三井住友銀行	11240	recur=cycle	anchor=年金収入	offset=0	series=support	plan_id=plan-2026-08-14-support
+2026-08-14	家賃	三井住友銀行	家賃	64000	recur=cycle	anchor=年金収入	offset=0	series=rent	plan_id=plan-2026-08-14-rent
+2026-08-14	光熱費(2ヶ月見込)	三井住友銀行	光熱費	21002	recur=cycle	anchor=年金収入	offset=0	series=utilities	plan_id=plan-2026-08-14-utilities
+2026-08-14	借金返済	三井住友銀行	友人への借入	10000	recur=cycle	anchor=年金収入	offset=0	series=debt	cashflow=fixed_obligation	plan_id=plan-2026-08-14-debt

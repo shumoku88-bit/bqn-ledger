@@ -1,0 +1,8 @@
+key	value
+DEFAULT_BASE_DIR	data
+DEFAULT_ACCOUNTS_FILE	accounts.tsv
+DEFAULT_JOURNAL_FILE	journal.tsv
+DEFAULT_PLAN_FILE	plan.tsv
+DEFAULT_BUDGET_ALLOC_FILE	budget_alloc.tsv
+DEFAULT_CYCLE_FILE	cycle.tsv
+DEFAULT_CONFIG_FILE	config.tsv

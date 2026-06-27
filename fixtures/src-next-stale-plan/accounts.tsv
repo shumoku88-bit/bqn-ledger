@@ -1,0 +1,11 @@
+# Stale Plan Failure Fixture
+# Tests detection of plan rows dated before the cycle start.
+
+equity:opening-balances
+assets:bank	type=liquid
+income:salary	role=income
+expenses:food	role=expense	spend_class=variable	budget=food
+budget:opening
+budget:unassigned
+budget:food
+budget:spent

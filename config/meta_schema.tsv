@@ -1,0 +1,23 @@
+# Meta schema definitions
+# Format: key TAB type TAB rules TAB scope
+# type: enum | string | date | number | account
+# scope: plan (optional)
+
+# Common
+tax	enum	private|business|mixed
+biz	number	
+invoice	enum	none|ok
+note	string	
+due_on	date	
+receipt	string	
+txn_id	string	
+party	string	
+plan_id	string	
+cashflow	enum	fixed_obligation
+
+# Plan
+recur	enum	monthly|cycle|once	plan
+months	enum	all|even|odd	plan
+anchor	account		plan
+offset	number		plan
+series	string	

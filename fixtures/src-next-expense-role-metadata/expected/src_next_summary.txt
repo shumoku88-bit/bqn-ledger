@@ -1,0 +1,65 @@
+mode: fixed
+start: 2026-06-15
+end_exclusive: 2026-06-22
+day_count: 7
+accounts: 4
+"source_file"	"source_row"	"source_id"	"tx_id"	"posting_id"	"date"	"side"	"day_index"	"account_key"	"account_key_index"	"layer_name"	"layer_index"	"delta"	"kind"	"status"	"message"	
+"journal.tsv"	"0"	"A"	"A"	"journal.tsv:0:debit"	"2026-06-15"	"debit"	"0"	"expenses:food/JPY"	"2"	"actual"	"0"	"100"	"expense"	"ok"	⟨⟩	
+"journal.tsv"	"0"	"A"	"A"	"journal.tsv:0:credit"	"2026-06-15"	"credit"	"0"	"assets:bank/JPY"	"0"	"actual"	"0"	"¯100"	"expense"	"ok"	⟨⟩	
+"journal.tsv"	"1"	"B"	"B"	"journal.tsv:1:debit"	"2026-06-16"	"debit"	"1"	"医療費/JPY"	"3"	"actual"	"0"	"200"	"expense"	"ok"	⟨⟩	
+"journal.tsv"	"1"	"B"	"B"	"journal.tsv:1:credit"	"2026-06-16"	"credit"	"1"	"assets:bank/JPY"	"0"	"actual"	"0"	"¯200"	"expense"	"ok"	⟨⟩	
+"journal.tsv"	"2"	"C"	"C"	"journal.tsv:2:debit"	"2026-06-17"	"debit"	"2"	"assets:cash/JPY"	"1"	"actual"	"0"	"50"	"transfer"	"ok"	⟨⟩	
+"journal.tsv"	"2"	"C"	"C"	"journal.tsv:2:credit"	"2026-06-17"	"credit"	"2"	"assets:bank/JPY"	"0"	"actual"	"0"	"¯50"	"transfer"	"ok"	⟨⟩	
+"source_file"	"source_row"	"source_id"	"tx_id"	"posting_id"	"date"	"side"	"day_index"	"account_key"	"account_key_index"	"layer_name"	"layer_index"	"delta"	"kind"	"status"	"message"	
+"plan.tsv"	"0"	"P1"	"P1"	"plan.tsv:0:debit"	"2026-06-18"	"debit"	"3"	"expenses:food/JPY"	"2"	"plan"	"1"	"300"	"expense"	"ok"	⟨⟩	
+"plan.tsv"	"0"	"P1"	"P1"	"plan.tsv:0:credit"	"2026-06-18"	"credit"	"3"	"assets:bank/JPY"	"0"	"plan"	"1"	"¯300"	"expense"	"ok"	⟨⟩	
+"plan.tsv"	"1"	"P2"	"P2"	"plan.tsv:1:debit"	"2026-06-19"	"debit"	"4"	"医療費/JPY"	"3"	"plan"	"1"	"400"	"expense"	"ok"	⟨⟩	
+"plan.tsv"	"1"	"P2"	"P2"	"plan.tsv:1:credit"	"2026-06-19"	"credit"	"4"	"assets:bank/JPY"	"0"	"plan"	"1"	"¯400"	"expense"	"ok"	⟨⟩	
+"plan.tsv"	"2"	"P3"	"P3"	"plan.tsv:2:debit"	"2026-06-20"	"debit"	"5"	"assets:cash/JPY"	"1"	"plan"	"1"	"60"	"transfer"	"ok"	⟨⟩	
+"plan.tsv"	"2"	"P3"	"P3"	"plan.tsv:2:credit"	"2026-06-20"	"credit"	"5"	"assets:bank/JPY"	"0"	"plan"	"1"	"¯60"	"transfer"	"ok"	⟨⟩	
+projection_balance_by_source: ok
+shape: 7 × 4 × 4
+valid projection rows: 12
+skipped projection rows: 0
+  actual: 0
+  plan: 0
+  budget: 0
+  forecast: 0
+  0  assets:bank/JPY  ¯350
+  1  assets:cash/JPY  50
+  2  expenses:food/JPY  100
+  3  医療費/JPY  200
+src_next_cycle_range: 2026-06-15..2026-06-22
+src_next_valid_projection_rows: 12
+src_next_skipped_projection_rows: 0
+src_next_actual_total: 0
+src_next_plan_total: 0
+src_next_actual_expense_total: 300
+src_next_plan_expense_total: 700
+src_next_actual_account_total: 0 assets:bank/JPY ¯350
+src_next_actual_account_total: 1 assets:cash/JPY 50
+src_next_actual_account_total: 2 expenses:food/JPY 100
+src_next_actual_account_total: 3 医療費/JPY 200
+src_next_plan_account_total: 0 assets:bank/JPY ¯760
+src_next_plan_account_total: 1 assets:cash/JPY 60
+src_next_plan_account_total: 2 expenses:food/JPY 300
+src_next_plan_account_total: 3 医療費/JPY 400
+src_next_household_metadata_expense_accounts_total: 2
+src_next_household_metadata_missing_budget_count: 2
+src_next_household_metadata_missing_budget_group_count: 2
+src_next_household_metadata_missing_spend_class_count: 2
+src_next_household_metadata_prefix_fallback_total_count: 1
+src_next_household_metadata_prefix_fallback_expense_count: 1
+src_next_household_metadata_budget_values: 
+src_next_household_metadata_budget_group_values: 
+src_next_household_metadata_spend_class_values: 
+src_next_household_metadata_missing_budget_accounts: expenses:food,医療費
+src_next_household_metadata_missing_budget_group_accounts: expenses:food,医療費
+src_next_household_metadata_missing_spend_class_accounts: expenses:food,医療費
+valid_actual_delta_total: 0
+cube_actual_total: 0
+actual_total_match: ok
+valid_plan_delta_total: 0
+cube_plan_total: 0
+plan_total_match: ok
+actual_per_account_totals_match: ok

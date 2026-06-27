@@ -1,0 +1,5 @@
+# Unsorted on purpose (should be sorted by date in report)
+2026-02-03	Rent	assets:bank	expenses:rent	60000
+2026-02-01	Groceries	assets:cash	expenses:food	3000
+2026-02-02	Household	assets:cash	expenses:misc	2000
+2026-02-01	Salary	income:salary	assets:bank	200000

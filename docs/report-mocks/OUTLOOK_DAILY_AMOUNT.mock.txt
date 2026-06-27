@@ -1,0 +1,29 @@
+MOCK / layout only
+report_screen: Outlook Dashboard
+status: mock / pending human review
+question: 今日から1日いくらまで使えるか。よく使う封筒の日割りはどうか。
+view_type: daily dashboard / forecast
+basis: sample values only; not calculated from data/*.tsv
+as_of: 2026-06-26
+
+== Outlook Dashboard ==
+
+サイクル: 2026-06-15 〜 2026-08-14  (残 50 日)
+基準日:   2026-06-25
+
+── 日割り ──
+  流動資産             91,484
+  予定収入(残)         +    0   (なし)
+  予定支出(残)         -12,692
+  ─────────────────────────────
+  使える流動資産        78,792  ÷ 50日 = 1,575 /日
+
+── 封筒日割り ──
+  envelope      | remaining | /day
+  食費          |    31,185 |  623
+  タバコ        |    24,000 |  480
+  一般生活      |    23,607 |  472
+  食費:ストック |    10,000 |  200
+
+review_prompt:
+  - 表示する封筒をどう決めるか？ config で指定する？ budget_group で判定する？

@@ -1,0 +1,7 @@
+# Fixture: src-next-expense-role-metadata
+# Purpose: src_next expense classification uses role=expense plus expenses: fallback
+
+assets:bank	role=asset
+assets:cash	role=asset
+expenses:food
+医療費	role=expense

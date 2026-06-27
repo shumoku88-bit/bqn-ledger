@@ -1,0 +1,9 @@
+# Name	Meta
+銀行	role=asset	type=liquid
+財布	role=asset	type=liquid
+給料	role=income
+食費	role=expense	spend_class=variable	budget=生活費
+日用品	role=expense	spend_class=variable	budget=生活費
+家賃	role=expense	spend_class=fixed
+生活費	role=budget
+開始残高	role=equity

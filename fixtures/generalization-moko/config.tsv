@@ -1,0 +1,22 @@
+# config.tsv - Global application configurations
+# Format: key=value (lines starting with # are comments)
+
+CYCLE_START_DAY=15
+DEFAULT_PAYMENT_DUE=25
+MAIN_CYCLE_ANCHOR=年金収入
+
+# --- Household envelope group policy labels ---
+HOUSEHOLD_GROUP_LIFE=daily,flex
+HOUSEHOLD_GROUP_RESERVE=reserve
+HOUSEHOLD_GROUP_ORDER=daily,flex,reserve
+
+# --- Special budget accounts (core internal logic) ---
+BUDGET_PREFIX=dummy
+BUDGET_ID_OPENING=開始時予算
+BUDGET_ID_UNASSIGNED=none
+BUDGET_ID_SPENT=消費済予算
+
+# --- Policy profile choices ---
+POLICY_BUDGET_STYLE=envelope
+POLICY_RISK_STYLE=conservative
+POLICY_INCOME_CADENCE=bimonthly

@@ -1,0 +1,9 @@
+# Fixture: src-next-plan-overlap
+# Purpose: plan/journal overlap diagnostics (exact match + unmatched plan)
+
+equity:opening
+assets:bank
+assets:cash
+income:salary
+expenses:food
+expenses:rent

@@ -1,0 +1,43 @@
+MOCK / layout only
+report_screen: Current Cycle Summary
+status: mock / pending human review
+question: 今サイクルの収入・支出・収支・予定支出残はどうか
+view_type: period flow (cycle-bounded income/expense statement)
+basis: sample values only; not calculated from data/*.tsv
+as_of: 2026-06-26
+
+== Current Cycle Summary ==
+
+Cycle: 2026-06-15 〜 2026-08-14  (あと 49 日)
+
+  収入合計          +    236,573
+  支出合計（含 負債返済）-    137,087
+  ─────────────────────────────
+  収支                   99,486
+
+  予定支出(残)      -     12,692
+
+  ── 収入内訳 ──
+  income:年金            156,573
+  income:支援給付金       70,000
+  income:返金             10,000
+
+  ── 支出内訳 ──
+  expenses:家賃           64,000
+  expenses:光熱費         21,002
+  expenses:食費            8,142
+  expenses:学習            7,700
+  expenses:タバコ          6,000
+  expenses:予備            4,894
+  expenses:日用消耗品      2,500
+  expenses:医療            1,600
+  liabilities:card        10,000
+
+review_prompt:
+  - 「あとN日」は表示するか（既存reportにはない）
+  - 収支がプラスの場合の意味づけをするか → しない方針（事実表示のみ）
+  - 支出内訳のソート順: 金額降順でよいか ✓
+  - 金額0の行は非表示 ✓
+  - 収入内訳も表示する ✓
+  - 予定支出(残)の日割りをここに出すか → 出すならOutlookとの関係を再考
+  - Expense Breakdown を独立画面にするか、ここに統合するか → 保留

@@ -1,0 +1,9 @@
+# Fixture: src-next-out-of-cycle-journal
+# Purpose: src_next out-of-cycle journal skipped-row check
+
+equity:opening
+assets:bank
+assets:cash
+income:salary
+expenses:food
+expenses:rent

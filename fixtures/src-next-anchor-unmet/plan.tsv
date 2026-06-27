@@ -1,0 +1,3 @@
+# Plan: rent anchored to 年金 (not yet received), salary anchored to 月給 (received)
+2026-06-25	家賃	assets:bank	expenses:家賃	64000	anchor=income:年金
+2026-06-30	食費補充	income:月給	assets:bank	50000	anchor=income:月給

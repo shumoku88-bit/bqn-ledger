@@ -1,0 +1,24 @@
+# Fixture: basic
+
+equity:opening-balances
+
+liabilities:creditcard
+
+assets:bank	type=liquid
+assets:cash	type=liquid
+assets:wallet	type=liquid
+assets:zero	type=liquid
+assets:savings	type=savings
+
+income:salary
+
+expenses:food	budget=daily	spend_class=variable
+expenses:rent	fixed=1	spend_class=fixed
+expenses:misc	budget=flex	spend_class=variable
+
+budget:opening
+budget:unassigned
+budget:daily
+budget:flex
+budget:reserve
+budget:spent

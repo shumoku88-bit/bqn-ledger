@@ -1,0 +1,8 @@
+# Fixture-local config proving src_next diagnostics read HOUSEHOLD_GROUP_* policy labels.
+HOUSEHOLD_GROUP_LIFE=life_primary,life_flex
+HOUSEHOLD_GROUP_RESERVE=reserve_pool
+HOUSEHOLD_GROUP_ORDER=life_primary,life_flex,reserve_pool
+BUDGET_PREFIX=budget:
+BUDGET_ID_OPENING=budget:opening
+BUDGET_ID_UNASSIGNED=none
+BUDGET_ID_SPENT=budget:spent

@@ -1,0 +1,9 @@
+# Fixture: src-next-currency-accountkey
+# Purpose: src_next AccountKey currency metadata check
+
+equity:opening
+assets:cash
+assets:usd_cash	currency=USD
+income:salary
+expenses:food
+expenses:rent

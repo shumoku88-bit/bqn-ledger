@@ -1,0 +1,49 @@
+--- SrcNext Snapshot ---
+as_of: 2026-06-22
+cycle: 2026-06-15 .. 2026-06-22 exclusive
+next_income: 2026-06-22 (cycle_end_equivalent)
+remaining_days: 0
+status: caution
+
+cycle:
+  income_actual:  0
+  expense_actual: 120
+  net_actual:     ¯120
+  plan_expense:   30
+
+assets:
+  account_totals: src_next/partial
+    - equity:opening/JPY ¯100
+    - expenses:food/JPY 80
+    - expenses:rent/JPY 20
+  net_worth: 0
+
+living:
+  daily_remaining:   fallback/current-engine
+  food_remaining:    fallback/current-engine
+  flex_remaining:    fallback/current-engine
+  reserve_remaining: fallback/current-engine
+
+readiness:
+  valid_projection_rows: 6
+  skipped_projection_rows: 2
+  unknown_account_count: 0
+  out_of_cycle_skipped_count: 2
+
+period_scope:
+  NOTE: skipped rows with day_before_start/after_end are valid ledger postings
+  outside the selected report period. They contributed to TBDS opening balances.
+
+notes:
+  - src_next Snapshot is a Stage 4a observation surface
+  - envelope and daily amount values are not implemented here yet
+  - use current engine for daily household decisions when fallback is shown
+  - as_of is TBDS period end (cycle_end_exclusive)
+
+section_source:
+  snapshot_base: src_next/tbds
+  cycle: src_next/tbds
+  balances: src_next/tbds
+  net_worth: src_next/tbds
+  envelopes: fallback/current-engine
+  outlook_daily: fallback/current-engine

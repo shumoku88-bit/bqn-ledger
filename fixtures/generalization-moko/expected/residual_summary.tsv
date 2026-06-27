@@ -1,0 +1,13 @@
+period_start	period_end_exclusive	period_kind	account	plan_amount	actual_amount	residual_amount	observation_status
+2026-06-15	2026-08-14	cycle	AIサブスク	0	3000	3000	actual_only
+2026-06-15	2026-08-14	cycle	タバコ	0	1000	1000	actual_only
+2026-06-15	2026-08-14	cycle	予備費	0	4000	4000	actual_only
+2026-06-15	2026-08-14	cycle	保険料	3760	0	¯3760	plan_only
+2026-06-15	2026-08-14	cycle	借金返済	0	10000	10000	actual_only
+2026-06-15	2026-08-14	cycle	光熱費	0	21002	21002	actual_only
+2026-06-15	2026-08-14	cycle	学習費	0	7700	7700	actual_only
+2026-06-15	2026-08-14	cycle	家賃	0	64000	64000	actual_only
+2026-06-15	2026-08-14	cycle	日用品	0	656	656	actual_only
+2026-06-15	2026-08-14	cycle	缶コーヒー	0	138	138	actual_only
+2026-06-15	2026-08-14	cycle	通信費	0	4810	4810	actual_only
+2026-06-15	2026-08-14	cycle	食費	0	1771	1771	actual_only

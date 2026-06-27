@@ -1,0 +1,33 @@
+MOCK / layout only
+report_screen: Trial Balance
+status: adopted
+question: TBDS の opening / movement / closing と zero-sum は成立するか
+view_type: accounting integrity check
+basis: sample values only; not calculated from data/*.tsv
+as_of: 2026-06-26
+
+== Trial Balance (actual layer) ==
+
+Period: 2026-06-15〜2026-08-14
+
+                            |   Opening |     Debit |    Credit |   Closing
+----------------------------+----------+----------+----------+----------
+equity:opening-balances/JPY |   -10,051 |   197,706 |         0 |   187,655
+liabilities:友人/JPY        |         0 |         0 |  -197,706 |  -197,706
+assets:smbc/JPY             |        91 |   236,516 |  -145,227 |    91,380
+assets:paypay/JPY           |         7 |     3,857 |    -3,760 |       104
+assets:ゆうちょ/JPY         |         0 |     5,000 |         0 |     5,000
+assets:オルカン積立/JPY     |     3,000 |     2,600 |         0 |     5,600
+income:年金/JPY             |  -221,016 |         0 |  -225,276 |  -446,292
+income:支援給付金/JPY       |   -10,900 |         0 |   -11,240 |   -22,140
+expenses:家賃/JPY           |    64,000 |    64,000 |         0 |   128,000
+expenses:光熱費/JPY         |    28,500 |    21,002 |         0 |    49,502
+expenses:食費/JPY           |    35,021 |     8,142 |         0 |    43,163
+expenses:タバコ/JPY         |    33,308 |     6,000 |         0 |    39,308
+expenses:学習/JPY           |     6,187 |     7,700 |         0 |    13,887
+expenses:予備/JPY           |    12,318 |     4,894 |         0 |    17,212
+...
+----------------------------+----------+----------+----------+----------
+Total                       |         0 |   446,197 |  -446,197 |         0
+
+Zero-sum check (debit=credit): OK

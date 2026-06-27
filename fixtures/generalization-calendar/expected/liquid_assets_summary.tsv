@@ -1,0 +1,7 @@
+key	account	value	note
+account_balance	assets:bank	222000	
+account_balance	assets:cash	8800	
+liquid_assets_total		230800	sum of liquid account actual balances
+reserved_fixed_plan		60000	fixed expenses planned but not yet paid
+safe_liquid_assets		170800	liquid_assets_total - reserved_fixed_plan
+seedable_budget		370800	liquid_assets_total + future_income - reserved_fixed_plan

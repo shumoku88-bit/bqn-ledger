@@ -1,0 +1,9 @@
+key	value	note
+as_of	2025-01-01	report observation date
+cycle_mode	fixed	cycle resolver mode
+cycle_start	2026-01-01	inclusive cycle start
+cycle_end_exclusive	2026-02-01	exclusive cycle end
+days_left	396	days between as_of and cycle_end_exclusive
+cycle_income_actual	0	actual income inside current cycle
+cycle_expense_actual	0	actual expenses inside current cycle
+cycle_net_actual	0	cycle income - cycle expense

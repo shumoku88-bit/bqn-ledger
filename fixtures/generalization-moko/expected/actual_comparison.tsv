@@ -1,0 +1,16 @@
+period_kind	lane	unit_kind	unit	current_start	current_end_exclusive	baseline_start	baseline_end_exclusive	current_amount	baseline_amount	diff_amount	current_count	baseline_count	diff_count	ratio	status	observation_status
+current_cycle_elapsed	income	account	年金収入	2026-06-15	2026-06-17	2026-04-15	2026-04-17	225276	221016	4260	1	1	0	101%	increased	ok
+current_cycle_elapsed	income	account	支援給付金	2026-06-15	2026-06-17	2026-04-15	2026-04-17	11240	10900	340	1	1	0	103%	increased	ok
+current_cycle_elapsed	recurring_fixed	account	光熱費	2026-06-15	2026-06-17	2026-04-15	2026-04-17	21002	28500	¯7498	1	2	¯1	73%	decreased	ok
+current_cycle_elapsed	recurring_fixed	account	家賃	2026-06-15	2026-06-17	2026-04-15	2026-04-17	64000	64000	0	1	1	0	100%	same	ok
+current_cycle_elapsed	variable	account	予備費	2026-06-15	2026-06-17	2026-04-15	2026-04-17	4000	0	4000	2	0	2	n/a	new	ok
+current_cycle_elapsed	recurring_fixed	account	借金返済	2026-06-15	2026-06-17	2026-04-15	2026-04-17	10000	10000	0	1	1	0	100%	same	ok
+current_cycle_elapsed	variable	account	タバコ	2026-06-15	2026-06-17	2026-04-15	2026-04-17	1000	1000	0	2	2	0	100%	same	ok
+current_cycle_elapsed	variable	account	食費	2026-06-15	2026-06-17	2026-04-15	2026-04-17	1771	7278	¯5507	3	5	¯2	24%	decreased	ok
+current_cycle_elapsed	variable	account	学習費	2026-06-15	2026-06-17	2026-04-15	2026-04-17	7700	0	7700	1	0	1	n/a	new	ok
+current_cycle_elapsed	recurring_fixed	account	AIサブスク	2026-06-15	2026-06-17	2026-04-15	2026-04-17	3000	3000	0	1	1	0	100%	same	ok
+current_cycle_elapsed	variable	account	日用品	2026-06-15	2026-06-17	2026-04-15	2026-04-17	656	0	656	2	0	2	n/a	new	ok
+current_cycle_elapsed	recurring_fixed	account	通信費	2026-06-15	2026-06-17	2026-04-15	2026-04-17	4810	5426	¯616	1	2	¯1	88%	decreased	ok
+current_cycle_elapsed	variable	account	缶コーヒー	2026-06-15	2026-06-17	2026-04-15	2026-04-17	138	0	138	1	0	1	n/a	new	ok
+current_cycle_elapsed	variable	account	交通費	2026-06-15	2026-06-17	2026-04-15	2026-04-17	0	1000	¯1000	0	1	¯1	0%	stopped	ok
+current_cycle_elapsed	variable	account	食費ストック	2026-06-15	2026-06-17	2026-04-15	2026-04-17	0	2718	¯2718	0	1	¯1	0%	stopped	ok

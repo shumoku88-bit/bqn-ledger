@@ -1,0 +1,4 @@
+# Fixture cycle crossing month boundary
+mode	fixed
+start	2026-01-31
+end_exclusive	2026-02-10

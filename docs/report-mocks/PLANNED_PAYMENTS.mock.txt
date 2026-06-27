@@ -1,0 +1,35 @@
+MOCK / layout only
+report_screen: Planned Payments
+status: mock / pending human review
+question: 予定支払いは未来・今日・期限超過・完了のどれか
+view_type: plan tracking (cycle-bounded)
+basis: sample values only; not calculated from data/*.tsv
+as_of: 2026-06-26
+
+== Planned Payments ==
+
+── 未了 ──
+Date       | Category    | Memo              |  Amount | Status
+2026-07-10 | 通信        | povo              |     330 | future
+2026-07-15 | AIサブスク  | gpt-plus          |   3,000 | future
+2026-07-16 | 通信        | wifi              |   4,812 | future
+2026-07-18 | 保険料      | 健康保険料(7月分) |   2,100 | future
+2026-07-18 | 保険料      | 健康保険料(滞納分) |   1,000 | future
+2026-07-24 | AIサブスク  | google-one        |   1,450 | future
+
+未了合計: 12,692
+
+── 完了 ──
+Date       | Category    | Memo              | Planned | Actual
+2026-06-18 | 保険料      | 健康保険料(6月分) |   2,760 |  2,760
+2026-06-18 | 保険料      | 健康保険料(滞納分) |   1,000 |  1,000
+2026-06-24 | AIサブスク  | google-one        |   1,450 |  1,450
+
+[Status]
+future  : これから
+due     : 今日が期限
+overdue : 期限超過 ⚠
+completed : 支払い済み
+
+review_prompt:
+  - Category の表示: 内部キーから prefix を剥がすルールで決定的にする？それとも accounts.tsv に表示用カラム追加？

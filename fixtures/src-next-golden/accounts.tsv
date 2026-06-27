@@ -1,0 +1,9 @@
+# Fixture: src-next-golden
+# Purpose: tiny src_next fixture for Phase 8 golden checks
+
+equity:opening
+assets:bank
+assets:cash
+income:salary
+expenses:food
+expenses:rent

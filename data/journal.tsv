@@ -1,0 +1,10 @@
+# Cycle 1: opening + pension + expenses
+2026-04-15	Opening	equity:opening-balances	assets:bank	200000
+2026-04-15	Pension	income:年金	assets:bank	200000
+2026-04-20	Food	assets:bank	expenses:食費	15000
+2026-05-01	Rent	assets:bank	expenses:家賃	80000
+2026-05-10	Food	assets:bank	expenses:食費	25000
+2026-05-20	Supplies	assets:bank	expenses:日用品	10000
+2026-06-15	Pension	income:年金	assets:bank	200000
+2026-06-18	Food	assets:bank	expenses:食費	20000
+2026-06-25	Food	assets:bank	expenses:食費	10000

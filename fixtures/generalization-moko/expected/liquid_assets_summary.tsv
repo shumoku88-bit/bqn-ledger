@@ -1,0 +1,8 @@
+key	account	value	note
+account_balance	三井住友銀行	110430	
+account_balance	PayPay	7	
+liquid_assets_total		110437	sum of liquid account actual balances
+reserved_fixed_plan		17902	fixed expenses planned but not yet paid
+next_cycle_start_fixed_obligations		10000	cashflow=fixed_obligation plans exactly on cycle end / next cycle start
+safe_liquid_assets		92535	liquid_assets_total - reserved_fixed_plan
+seedable_budget		92535	liquid_assets_total + future_income - reserved_fixed_plan

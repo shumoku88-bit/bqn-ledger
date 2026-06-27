@@ -1,0 +1,7 @@
+2026-01-25	Opening Balance	equity:opening-balances	assets:bank	100000
+2026-01-25	Salary	income:salary	assets:bank	200000
+2026-01-26	Rent	assets:bank	expenses:rent	60000
+2026-01-27	Lunch	assets:cash	expenses:food	1200
+2026-01-28	Grocery	liability:credit-card	expenses:food	5000
+2026-01-30	ATM	assets:bank	assets:cash	10000
+2026-02-10	Electricity	assets:bank	expenses:util	8000

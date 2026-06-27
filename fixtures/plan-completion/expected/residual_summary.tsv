@@ -1,0 +1,3 @@
+period_start	period_end_exclusive	period_kind	account	plan_amount	actual_amount	residual_amount	observation_status
+2026-01-01	2026-02-01	cycle	expenses:misc	1500	0	¯1500	plan_only
+2026-01-01	2026-02-01	cycle	expenses:rent	64000	64000	0	both

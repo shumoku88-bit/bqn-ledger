@@ -1,0 +1,9 @@
+# Fixture: src-next-missing-plan
+# Purpose: src_next optional missing plan.tsv check
+
+equity:opening
+assets:bank
+assets:cash
+income:salary
+expenses:food
+expenses:rent

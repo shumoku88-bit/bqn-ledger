@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+# tools/bqn-dump — compact BQN value diagnostic dumper
+#
+# Phase 2 scope:
+# - inspect tiny BQN expressions only
+# - output compact shape / preview / boxed hint
+# - no repo module loading
+# - no TSV loading
+# - no source TSV writes
+# - no report engine behavior changes
+
+set -euo pipefail
+
+usage() {
+  cat <<'USAGE'
+Usage:
+  tools/bqn-dump '<bqn-expression>'
+  printf '<bqn-expression>\n' | tools/bqn-dump
+
+Purpose:
+  Evaluate a tiny BQN expression and print compact diagnostics:
+  kind, shape, preview, and boxed hint.
+  Designed for AI debugging of type/shape/homogenization issues.
+
+Phase 2 boundary:
+  - no repo module loading
+  - no TSV loading
+  - no source TSV writes
+  - no report engine behavior changes
+
+Options:
+  -h, --help      Show this help.
+
+Environment:
+  BQN_BIN         Override BQN executable name/path. Default: bqn
+
+Examples:
+  tools/bqn-dump '5'
+  tools/bqn-dump '"OK"'
+  tools/bqn-dump '⟨1,2,3⟩'
+  tools/bqn-dump '⟨<"OK", <"WARN"⟩'
+  tools/bqn-dump '"OK"∾"WARN"'
+USAGE
+}
+
+EXPR=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    --*)
+      echo "Unknown option: $1" >&2
+      usage >&2
+      exit 1
+      ;;
+    *)
+      if [ -n "$EXPR" ]; then
+        echo "Error: only one expression argument is supported. Quote the expression if it contains spaces." >&2
+        exit 1
+      fi
+      EXPR="$1"
+      shift
+      ;;
+  esac
+done
+
+if [ -z "$EXPR" ]; then
+  if [ -t 0 ]; then
+    echo "Error: BQN expression is required." >&2
+    usage >&2
+    exit 1
+  fi
+  EXPR="$(cat)"
+fi
+
+if [ -z "${EXPR//$'\n'/}" ]; then
+  echo "Error: BQN expression is empty." >&2
+  exit 1
+fi
+
+# Resolve script dir to find bqn-dump.bqn module
+SOURCE="${BASH_SOURCE[0]}"
+while [ -L "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+
+BQN_BIN="${BQN_BIN:-bqn}"
+if ! command -v "$BQN_BIN" >/dev/null 2>&1; then
+  echo "Error: BQN executable not found: $BQN_BIN" >&2
+  echo "Set BQN_BIN=/path/to/bqn or install a 'bqn' executable." >&2
+  exit 127
+fi
+
+tmpdir="$(mktemp -d)"
+trap 'rm -rf "$tmpdir"' EXIT
+
+# Generate wrapper .bqn file that imports the dumper and evaluates the expression
+cat > "$tmpdir/dump.bqn" <<BQNEOF
+dump ← •Import "$SCRIPT_DIR/bqn-dump.bqn"
+dump.Dump $EXPR
+BQNEOF
+
+"$BQN_BIN" "$tmpdir/dump.bqn"

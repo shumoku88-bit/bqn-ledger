@@ -1,0 +1,4 @@
+group	account	allocated	spent	balance	avg_day	target_day	health_status
+	daily	10000	0	10000	0	322	SAFE
+	flex	5000	0	5000	0	161	SAFE
+	reserve	25000	0	25000	0	806	SAFE

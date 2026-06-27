@@ -1,0 +1,168 @@
+--- 256-Slot Accounting Report ---
+
+【1. 全体サマリ (Snapshot)】
+  流動資産 (type=liquid) :       100000
+  貯金     (type=savings):            0
+  投資     (type=invest) :            0
+  ------------------------------------
+  総資産合計             :       100000
+
+  負債合計 (liabilities) :            0
+  ------------------------------------
+  純資産 (Net Worth)     :       100000
+
+【2. 年初来サマリ (YTD Summary)】
+  収入合計 : +           0
+  支出合計 : -           0
+  収支     :             0
+
+  [固定費] 合計 : -           0
+   |       Amount
+
+
+  [変動費] 合計 : -           0
+   |       Amount
+
+
+【3. 勘定科目一覧 (Balances)】
+                          |       Amount
+equity:opening-balances:  |       100000
+assets:bank:              |       100000
+
+
+ [負債 (Liabilities)]
+liabilities:card:         |            0
+
+
+【4. 今サイクル集計 (Cycle Summary)】
+Cycle (fixed) : 2026-01-01〜2026-03-31
+  収入合計 : +           0
+  支出合計 : -           0
+  収支     :             0
+
+  [支出内訳]
+   |       Amount
+
+
+【6. 未来の支払い等予定 (Planned Payments)】
+Date       | Category | Memo |       Amount
+
+
+[予定状態 (Plan Status)]
+status: future_open=これから / due_open=今日 / overdue_open=期日超過未完了 / completed=支払い済み
+Date       | Status       | Category | Memo |      Planned |       Actual
+
+
+【7. 直近の取引 (Recent Journal)】
+(newest first, last 10)
+Date       | From                    -> To                | Memo     |       Amount
+2026-02-28 | assets:bank             -> liabilities:card  | Pay card |          800
+2026-01-20 | liabilities:card        -> expenses:computer | Computer |         1200
+2026-01-10 | liabilities:card        -> expenses:book     | Book     |          800
+2026-01-01 | equity:opening-balances -> assets:bank       | Opening  |       100000
+
+
+【8. レポート準備チェック (Report Readiness Check)】
+Strict check: OK (invalid rows would stop execution)
+
+[Input files]
+  base dir          : fixtures/multi-time-card
+  journal rows      : 4
+  plan rows         : 0
+  accounts defined  : 8
+  cycle (fixed) : 2026-01-01〜2026-03-31
+
+[Report readiness]
+  accounts missing role metadata  : 8
+  equity:opening-balances
+  assets:bank
+  liabilities:card
+  expenses:book
+  expenses:computer
+  budget:opening
+  budget:unassigned
+  budget:spent
+  assets missing type             : 0
+  expenses missing spend_class    : 0
+  variable expenses without budget: 0
+
+[Data hygiene warnings]
+  future journal rows after as_of : 3
+    - 2026-01-10 Book (800)
+    - 2026-01-20 Computer (1200)
+    - 2026-02-28 Pay card (800)
+  envelopes spent without alloc   : 0
+  plan rows already in journal    : 0
+  stale plan rows (before cycle) : 0
+  redundant budget allocations    : 0
+
+【9. 見通し・日割り (Outlook / Daily Amount)】
+基準日: 2026-01-05
+journal最終記録日: 2026-02-28（基準日との差: ¯54日）
+サイクル (fixed) : 2026-01-01〜2026-03-31
+残日数: 86日
+
+[資産]
+  総資産             :       100000
+  負債合計           :            0
+  ------------------------------------
+  純資産 (Net Worth) :       100000
+
+  流動資産合計       :       100000
+  貯金               :            0
+  資産形成           :            0
+
+  [流動資産内訳]
+                          |       Amount
+assets:bank:              |       100000
+
+
+[日割り金額]
+  流動資産 (実績+予定) ÷ 残日数 :         1162
+  流動資産 (安全/保守) ÷ 残日数 :         1162
+
+【10. 日割り推移 (Daily Trend)】
+基準日: 2026-01-05
+サイクル (fixed) : 2026-01-01〜2026-03-31
+NOTE: journal記録日ベース。variable/saving/fixedは日次Actual更新由来。savingの負値は取り崩し。
+
+[日割り推移]
+date       |   liquid | reserve |     fund | days | daily | Δdaily | variable | saving
+2026-01-01 |   100000 |       0 |   100000 |   90 |  1111 |      0 |        0 |       0
+2026-01-05 |   100000 |       0 |   100000 |   86 |  1162 |     51 |        0 |       0
+
+
+[日割り下落日 Top10]
+date       | Δdaily | daily | variable | saving | fixed
+
+
+【11. Actual比較観察 (Actual Comparison)】
+period: current_cycle_elapsed
+current : 2026-01-01〜2026-01-06
+baseline: 2026-01-01〜2026-01-06
+status  : unavailable
+NOTE: 比較可能な前サイクル履歴が足りないため、Actual比較は表示しません。
+
+【12. デバッグ・由来 (Debug & Provenance)】
+  as_of: 2026-01-05
+  cycle: 2026-01-01 to 2026-04-01 (fixed)
+
+[Sources]
+  journal.tsv : 4 rows
+  plan.tsv    : 0 rows
+  alloc.tsv   : 0 rows
+  accounts    : 256 accounts
+
+[Provenance & Formulas]
+  liquid_assets        [F001] Actual layer balance (sum type=liquid)
+  envelope_balance     [F012] Budget layer balance (layer 2)
+  safe_liquid_assets   [F021] Derived: liquid_assets - fixed_plan_reserve
+  seedable_budget      [F022] Derived: liquid_assets + future_income - fixed_plan_reserve
+  unallocated_buffer   [F023] Derived: seedable_budget - sum(envelope_balance)
+
+[Invariants Check]
+  Actual Layer Zero-Sum: 0
+    [OK] Zero-sum invariant holds.
+  Liquid Assets Match  : 100000
+    [OK] Liquid assets sum matches.
+

@@ -1,0 +1,6 @@
+key	account	value	note
+account_balance	assets:bank	0	
+liquid_assets_total		0	sum of liquid account actual balances
+reserved_fixed_plan		0	fixed expenses planned but not yet paid
+safe_liquid_assets		0	liquid_assets_total - reserved_fixed_plan
+seedable_budget		0	liquid_assets_total + future_income - reserved_fixed_plan

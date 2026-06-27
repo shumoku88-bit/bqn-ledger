@@ -1,0 +1,22 @@
+# Fixture: plan-completion
+
+equity:opening-balances
+
+assets:bank	type=liquid
+assets:cash	type=liquid
+assets:wallet	type=liquid
+assets:zero	type=liquid
+assets:savings	type=savings
+
+income:salary
+
+expenses:food	budget=daily	spend_class=variable
+expenses:rent	fixed=1	spend_class=fixed
+expenses:misc	budget=flex	spend_class=variable
+
+budget:opening	kind=opening
+budget:unassigned	kind=unassigned
+budget:daily	kind=envelope
+budget:flex	kind=envelope
+budget:reserve	kind=envelope
+budget:spent	kind=spent

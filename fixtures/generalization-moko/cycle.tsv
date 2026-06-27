@@ -1,0 +1,20 @@
+# cycle.tsv - 集計サイクル設定
+# 目的: main.bqn の「今サイクル集計」の期間を、コードを変えずに切り替える
+# 形式: key<TAB>value
+#
+# mode:
+#   - fixed         : start (inclusive) 〜 end_exclusive (exclusive)
+#   - incomeAnchor  : journal.tsv で直近の income_account の入金日を start、plan.tsv の次回入金日を end_exclusive
+#   - calendarMonth : journal.tsv の最終日が属する月の 1日 〜 翌月1日
+#
+# --- 例1) 固定期間で指定 (4/15〜6/14 を見たいなら end_exclusive は 6/15) ---
+# mode	fixed
+# start	2026-04-15
+# end_exclusive	2026-06-15
+#
+# --- 例2) 年金日のサイクル(直近年金〜次回年金の前まで) ---
+mode	incomeAnchor
+income_account	年金収入
+#
+# --- 例3) 月末締め（月初〜月末、内部的には翌月1日未満） ---
+# mode	calendarMonth

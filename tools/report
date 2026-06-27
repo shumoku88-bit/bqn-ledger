@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# tools/report — daily household report using src_next engine
+#
+# Default production report entrypoint.
+# Uses src_next/report.bqn and defaults to LEDGER_DATA_DIR, then config/system_defaults.tsv.
+#
+# Usage:
+#   tools/report                 → uses LEDGER_DATA_DIR or configured default (data/ sandbox)
+#   tools/report data            → explicit sandbox
+#   tools/report fixtures/basic  → fixture mode
+#   tools/report --no-color      → suppress ANSI color
+#   tools/report --color=always  → force ANSI color
+
+set -euo pipefail
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -L "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+ROOT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+cd "$ROOT_DIR"
+source "$ROOT_DIR/tools/lib/system-defaults.sh"
+
+base="${LEDGER_DATA_DIR:-$(get_default_base_dir)}"
+if [[ $# -gt 0 && "$1" != --* ]]; then
+  base="$1"
+  shift
+fi
+
+color_args=("$@")
+has_color_arg=0
+for arg in "${color_args[@]}"; do
+  case "$arg" in
+    --no-color|--color=never|--color=always) has_color_arg=1 ;;
+  esac
+done
+
+if [[ "$has_color_arg" -eq 0 ]]; then
+  if [[ -n "${NO_COLOR:-}" || ! -t 1 ]]; then
+    color_args+=(--no-color)
+  fi
+fi
+
+exec bqn src_next/report.bqn "$base" "${color_args[@]}"

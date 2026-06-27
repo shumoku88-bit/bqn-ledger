@@ -1,0 +1,80 @@
+mode: fixed
+start: 2026-06-15
+end_exclusive: 2026-07-15
+day_count: 30
+accounts: 10
+"source_file"	"source_row"	"source_id"	"tx_id"	"posting_id"	"date"	"side"	"day_index"	"account_key"	"account_key_index"	"layer_name"	"layer_index"	"delta"	"kind"	"status"	"message"	
+"journal.tsv"	"0"	"給料日"	"給料日"	"journal.tsv:0:debit"	"2026-06-15"	"debit"	"0"	"assets:bank/JPY"	"1"	"actual"	"0"	"200000"	"income"	"ok"	⟨⟩	
+"journal.tsv"	"0"	"給料日"	"給料日"	"journal.tsv:0:credit"	"2026-06-15"	"credit"	"0"	"income:月給/JPY"	"3"	"actual"	"0"	"¯200000"	"income"	"ok"	⟨⟩	
+"journal.tsv"	"1"	"買い物"	"買い物"	"journal.tsv:1:debit"	"2026-06-20"	"debit"	"5"	"expenses:食費/JPY"	"5"	"actual"	"0"	"5000"	"expense"	"ok"	⟨⟩	
+"journal.tsv"	"1"	"買い物"	"買い物"	"journal.tsv:1:credit"	"2026-06-20"	"credit"	"5"	"assets:bank/JPY"	"1"	"actual"	"0"	"¯5000"	"expense"	"ok"	⟨⟩	
+"source_file"	"source_row"	"source_id"	"tx_id"	"posting_id"	"date"	"side"	"day_index"	"account_key"	"account_key_index"	"layer_name"	"layer_index"	"delta"	"kind"	"status"	"message"	
+"plan.tsv"	"0"	"家賃"	"家賃"	"plan.tsv:0:debit"	"2026-06-25"	"debit"	"10"	"expenses:家賃/JPY"	"4"	"plan"	"1"	"64000"	"expense"	"ok"	⟨⟩	
+"plan.tsv"	"0"	"家賃"	"家賃"	"plan.tsv:0:credit"	"2026-06-25"	"credit"	"10"	"assets:bank/JPY"	"1"	"plan"	"1"	"¯64000"	"expense"	"ok"	⟨⟩	
+"plan.tsv"	"1"	"食費補充"	"食費補充"	"plan.tsv:1:debit"	"2026-06-30"	"debit"	"15"	"assets:bank/JPY"	"1"	"plan"	"1"	"50000"	"income"	"ok"	⟨⟩	
+"plan.tsv"	"1"	"食費補充"	"食費補充"	"plan.tsv:1:credit"	"2026-06-30"	"credit"	"15"	"income:月給/JPY"	"3"	"plan"	"1"	"¯50000"	"income"	"ok"	⟨⟩	
+projection_balance_by_source: ok
+shape: 30 × 10 × 4
+valid projection rows: 8
+skipped projection rows: 0
+  actual: 0
+  plan: 0
+  budget: 0
+  forecast: 0
+  1  assets:bank/JPY  195000
+  3  income:月給/JPY  ¯200000
+  5  expenses:食費/JPY  5000
+src_next_cycle_range: 2026-06-15..2026-07-15
+src_next_valid_projection_rows: 8
+src_next_skipped_projection_rows: 0
+src_next_actual_total: 0
+src_next_plan_total: 0
+src_next_actual_expense_total: 5000
+src_next_plan_expense_total: 64000
+src_next_actual_account_total: 1 assets:bank/JPY 195000
+src_next_actual_account_total: 3 income:月給/JPY ¯200000
+src_next_actual_account_total: 5 expenses:食費/JPY 5000
+src_next_plan_account_total: 1 assets:bank/JPY ¯14000
+src_next_plan_account_total: 3 income:月給/JPY ¯50000
+src_next_plan_account_total: 4 expenses:家賃/JPY 64000
+src_next_household_policy_expense_accounts: 2
+src_next_household_policy_expense_accounts_prefix_fallback: 0
+src_next_household_policy_expense_accounts_with_budget: 1
+src_next_household_policy_expense_budget_group_daily: 0
+src_next_household_policy_expense_budget_group_flex: 0
+src_next_household_policy_expense_budget_group_reserve: 0
+src_next_household_policy_expense_budget_group_missing: 2
+src_next_household_policy_expense_budget_group_other: 0
+src_next_household_policy_expense_spend_class_variable: 1
+src_next_household_policy_expense_spend_class_fixed: 1
+src_next_household_policy_expense_spend_class_missing: 0
+src_next_household_policy_expense_spend_class_other: 0
+src_next_household_policy_actual_budget_group_daily_total: 0
+src_next_household_policy_actual_budget_group_flex_total: 0
+src_next_household_policy_actual_budget_group_reserve_total: 0
+src_next_household_policy_actual_budget_group_missing_total: 5000
+src_next_household_policy_actual_budget_group_other_total: 0
+src_next_household_policy_plan_budget_group_daily_total: 0
+src_next_household_policy_plan_budget_group_flex_total: 0
+src_next_household_policy_plan_budget_group_reserve_total: 0
+src_next_household_policy_plan_budget_group_missing_total: 64000
+src_next_household_policy_plan_budget_group_other_total: 0
+src_next_household_metadata_expense_accounts_total: 2
+src_next_household_metadata_missing_budget_count: 1
+src_next_household_metadata_missing_budget_group_count: 2
+src_next_household_metadata_missing_spend_class_count: 0
+src_next_household_metadata_prefix_fallback_total_count: 5
+src_next_household_metadata_prefix_fallback_expense_count: 0
+src_next_household_metadata_budget_values: food
+src_next_household_metadata_budget_group_values: 
+src_next_household_metadata_spend_class_values: fixed,variable
+src_next_household_metadata_missing_budget_accounts: expenses:家賃
+src_next_household_metadata_missing_budget_group_accounts: expenses:家賃,expenses:食費
+src_next_household_metadata_missing_spend_class_accounts: 
+valid_actual_delta_total: 0
+cube_actual_total: 0
+actual_total_match: ok
+valid_plan_delta_total: 0
+cube_plan_total: 0
+plan_total_match: ok
+actual_per_account_totals_match: ok

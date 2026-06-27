@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# tools/query — thin query wrapper over src_next summary output.
+# Reads key:value lines from tools/report-next-summary, filters, returns values.
+# Does NOT compute — only queries existing machine-readable fields.
+#
+# Usage:
+#   tools/query <base> <key>           return value for key
+#   tools/query <base> --list           list all keys and values
+#   tools/query <base> --keys           list all keys only
+#   tools/query <base> --grep <pat>     grep keys (awk regex)
+#   tools/query <base> --grep-val <pat> grep values (awk regex)
+
+usage() {
+  echo "Usage: tools/query <base> <key>" >&2
+  echo "       tools/query <base> --list" >&2
+  echo "       tools/query <base> --keys" >&2
+  echo "       tools/query <base> --grep <pattern>" >&2
+  echo "       tools/query <base> --grep-val <pattern>" >&2
+  exit 1
+}
+
+[ $# -lt 1 ] && usage
+
+# Resolve base dir
+base="$1"
+if [ ! -d "$base" ]; then
+  if [ -d "fixtures/$base" ]; then
+    base="fixtures/$base"
+  elif [ "$base" = "data" ] && [ -d "data" ]; then
+    base="data"
+  else
+    echo "ERROR: base directory not found: $base" >&2
+    exit 2
+  fi
+fi
+shift
+
+# Collect summary to temp file (avoid pipefail SIGPIPE with early awk exit)
+tmp="$(mktemp)"
+trap 'rm -f "$tmp"' EXIT
+tools/report-next-summary "$base" 2>/dev/null > "$tmp"
+
+case "${1:-}" in
+  --list)
+    grep '^src_next_' "$tmp" || true
+    ;;
+  --keys)
+    grep '^src_next_' "$tmp" | sed 's/: .*//' || true
+    ;;
+  --grep)
+    pat="${2:-}"
+    [ -z "$pat" ] && usage
+    awk -F': ' -v p="$pat" '$1 ~ p' "$tmp" || true
+    ;;
+  --grep-val)
+    pat="${2:-}"
+    [ -z "$pat" ] && usage
+    awk -F': ' -v p="$pat" '$2 ~ p' "$tmp" || true
+    ;;
+  -*)
+    usage
+    ;;
+  *)
+    key="$1"
+    val="$(awk -F': ' -v k="$key" '$1 == k { print $2; exit }' "$tmp")"
+    if [ -z "$val" ]; then
+      echo "ERROR: key not found: $key" >&2
+      exit 1
+    fi
+    echo "$val"
+    ;;
+esac

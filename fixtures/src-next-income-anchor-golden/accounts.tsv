@@ -1,0 +1,11 @@
+# Fixture: src-next-income-anchor-golden
+# Purpose: fabricated incomeAnchor cycle fixture for src_next
+#
+# Values are intentionally fictional.
+# Do not copy production data/cycle.tsv values into this fixture.
+
+income:example
+assets:bank
+expenses:food
+expenses:rent
+equity:opening

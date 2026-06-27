@@ -1,0 +1,227 @@
+--- 256-Slot Accounting Report ---
+
+【1. 全体サマリ (Snapshot)】
+  流動資産 (type=liquid) :       238300
+  貯金     (type=savings):            0
+  投資     (type=invest) :            0
+  ------------------------------------
+  総資産合計             :       238300
+
+  負債合計 (liabilities) :            0
+  ------------------------------------
+  純資産 (Net Worth)     :       238300
+
+【2. 年初来サマリ (YTD Summary)】
+  収入合計 : +      200000
+  支出合計 : -       61700
+  収支     :        138300
+
+  [固定費] 合計 : -       60000
+                |       Amount
+expenses:rent:  |        60000
+
+
+  [変動費] 合計 : -        1700
+                |       Amount
+expenses:food:  |         1200
+expenses:misc:  |          500
+
+
+【3. 勘定科目一覧 (Balances)】
+                          |       Amount
+equity:opening-balances:  |       100000
+assets:bank:              |       235000
+assets:cash:              |         3300
+assets:wallet:            |            0
+assets:zero:              |            0
+assets:savings:           |            0
+income:salary:            |       200000
+expenses:food:            |         1200
+expenses:rent:            |        60000
+expenses:misc:            |          500
+
+
+【4. 今サイクル集計 (Cycle Summary)】
+Cycle (fixed) : 2026-01-01〜2026-01-31
+  収入合計 : +      200000
+  支出合計 : -       61700
+  収支     :        138300
+
+  [支出内訳]
+                |       Amount
+expenses:rent:  |        60000
+expenses:food:  |         1200
+expenses:misc:  |          500
+
+
+【5. 封筒・予算残高 (Envelopes & Balances)】
+ group   | account        | allocated | spent     | balance   | avg/day   | health
+---------+----------------+-----------+-----------+-----------+-----------+--------
+        | unassigned     |         0 |         0 |         0 |         0 | SHORT
+        | daily          |     10000 |      1200 |      8800 |       240 | SAFE
+        | flex           |      5000 |       500 |      4500 |       100 | SAFE
+        | reserve        |     25000 |         0 |     25000 |         0 | SAFE
+---------+--------------+-----------+-----------+-----------+-----------+--------
+
+[封筒 seed 可能額]
+  流動資産                 :        238300
+  未来の収入予定(cycle内)  : +           0
+  残り固定費予定(reserve)  : -           0
+  ------------------------------------
+  seed可能額               :        238300
+  現在封筒にある総額       : -       38300
+  ------------------------------------
+  端数の未割り当て         :        200000
+  NOTE: 固定費・貯金・投資は封筒化しない前提。daily/flex/reserve への投入上限です。
+
+[封筒の健康診断 (Pace Status)]
+avg/day   : サイクル開始日からの経過日数と純消費額(spent)ベース。
+SAFE      : ペース通り。WARN: 少し早い。SHORT: ペースの1.5倍以上使っており危険。
+DONE      : 貯金や投資など、使い切って(移動して)正解のカテゴリ。
+
+【6. 未来の支払い等予定 (Planned Payments)】
+Date       | Category      | Memo      |       Amount
+2026-02-01 | expenses:food | Groceries |         3000
+2026-02-01 | income:salary | Salary    |       200000
+2026-02-02 | expenses:misc | Household |         2000
+2026-02-03 | expenses:rent | Rent      |        60000
+
+
+【7. 直近の取引 (Recent Journal)】
+(newest first, last 10)
+Date       | From                    -> To            | Memo            |       Amount
+2026-01-05 | income:salary           -> assets:bank   | Salary          |       200000
+2026-01-04 | assets:cash             -> expenses:misc | Stationery      |          500
+2026-01-04 | assets:cash             -> expenses:food | Lunch           |         1200
+2026-01-03 | assets:bank             -> expenses:rent | Rent            |        60000
+2026-01-02 | assets:bank             -> assets:cash   | ATM             |         5000
+2026-01-01 | equity:opening-balances -> assets:bank   | Opening Balance |       100000
+
+
+【8. レポート準備チェック (Report Readiness Check)】
+Strict check: OK (invalid rows would stop execution)
+
+[Input files]
+  base dir          : fixtures/basic
+  journal rows      : 6
+  plan rows         : 4
+  accounts defined  : 16
+  cycle (fixed) : 2026-01-01〜2026-01-31
+
+[Report readiness]
+  assets missing type             : 0
+  expenses missing spend_class    : 0
+  variable expenses without budget: 0
+
+【9. 見通し・日割り (Outlook / Daily Amount)】
+基準日: 2026-01-05
+journal最終記録日: 2026-01-05（基準日との差: 0日）
+サイクル (fixed) : 2026-01-01〜2026-01-31
+残日数: 27日
+
+[資産]
+  総資産             :       238300
+  負債合計           :            0
+  ------------------------------------
+  純資産 (Net Worth) :       238300
+
+  流動資産合計       :       238300
+  貯金               :            0
+  資産形成           :            0
+
+  [流動資産内訳]
+                          |       Amount
+assets:bank:              |       235000
+assets:cash:              |         3300
+assets:wallet:            |            0
+assets:zero:              |            0
+
+
+[日割り金額]
+  流動資産 (実績+予定) ÷ 残日数 :         8825
+  流動資産 (安全/保守) ÷ 残日数 :         8825
+
+  [封筒予算 日割り]
+                          |    Remaining |        Daily
+budget:opening:           |            0 |            0
+budget:daily:             |         8800 |          325
+budget:flex:              |         4500 |          166
+budget:reserve:           |        25000 |          925
+
+
+【10. 日割り推移 (Daily Trend)】
+基準日: 2026-01-05
+サイクル (fixed) : 2026-01-01〜2026-01-31
+NOTE: journal記録日ベース。variable/saving/fixedは日次Actual更新由来。savingの負値は取り崩し。
+
+[日割り推移]
+date       |   liquid | reserve |     fund | days | daily | Δdaily | variable | saving
+2026-01-01 |   100000 |       0 |   100000 |   31 |  3225 |      0 |        0 |       0
+2026-01-02 |   100000 |       0 |   100000 |   30 |  3333 |    108 |        0 |       0
+2026-01-03 |    40000 |       0 |    40000 |   29 |  1379 |  ¯1954 |        0 |       0
+2026-01-04 |    38300 |       0 |    38300 |   28 |  1367 |    ¯12 |     1700 |       0
+2026-01-05 |   238300 |       0 |   238300 |   27 |  8825 |   7458 |        0 |       0
+
+
+[日割り下落日 Top10]
+date       | Δdaily | daily | variable | saving | fixed
+2026-01-03 |  ¯1954 |  1379 |        0 |       0 |   60000
+2026-01-04 |    ¯12 |  1367 |     1700 |       0 |       0
+
+
+【11. サイクル相談 (Cycle Consultation)】
+NOTE: recurメタは展開しません。plan.tsv に明示された予定だけを日付範囲で集計します。
+
+[現在サイクルの途中経過（記録済みベース）]
+  サイクル期間       : 2026-01-01〜2026-01-31
+  レポート基準日     : 2026-01-05
+  記録済み実績対象   : journal.tsv の 2026-01-01〜2026-01-05（サイクル内: 2026-01-01〜2026-01-31）
+  記録済み収入       : +      200000
+  記録済み支出       : -       61700
+  記録済み差引       :        138300
+  注意               : この差引はサイクル終了時の残額ではありません。基準日以降の支出・未入力取引で減ります。
+
+[残り期間の登録済み予定]
+  範囲               : 2026-01-05〜2026-01-31（plan.tsvに明示された予定のみ）
+  予定収入           : +           0
+  予定支出           : -           0
+  未反映             : recurメタの自動展開・未入力の日常支出
+  (なし)
+
+[次サイクル予定（登録済みベース）]
+  WARNING: plan.tsvに次回収入予定がないため、次サイクル範囲を確定できません。
+  次サイクル予定は集計しません。
+
+【12. 資金繰りモック (Cashflow Mock)】
+基準日: 2026-01-05
+サイクル (fixed) : 2026-01-01〜2026-01-31
+残日数: 27日
+
+[資金繰り]
+  Liquid 現在値               :       238300
+  固定費 reserve 控除後       :       238300
+  予定支出のみ控除の日割り   :         8825
+  予定収入込みの日割り       :         8825
+  予定収入への依存差分       :            0
+
+[封筒警戒]
+critical envelopes: 1
+envelope | balance | avg spend | health
+unassign |            0 |         0 |          "SHORT"
+
+
+[日割り下落の主要日]
+date       | Δdaily | daily | variable | saving | fixed
+2026-01-03 |  ¯1954 |  1379 |        0 |       0 |   60000
+2026-01-04 |    ¯12 |  1367 |     1700 |       0 |       0
+
+
+NOTE: この section は既存の outlook / envelopes / daily-trend を束ねた判断用モック。新しい正データや計算契約は増やさない。
+
+【13. 行動ブレ観察 (Residual: Plan vs Actual)】
+Account       |       Plan |     Actual |   Residual | Status      
+expenses:food |          0 |       1200 |       1200 | actual_only 
+expenses:misc |          0 |        500 |        500 | actual_only 
+expenses:rent |          0 |      60000 |      60000 | actual_only 
+
+

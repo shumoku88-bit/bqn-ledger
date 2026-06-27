@@ -1,0 +1,438 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# tools/add-ui.sh — fuzzy transaction adder using fzf/gum
+#
+# Architecture (Seam Reduction):
+#   Bash handles UI, selection, and display.
+#   Go editor handles safe TSV append.
+#   BQN is NOT called for account listing — awk reads accounts.tsv directly.
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -L "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+ROOT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+cd "$ROOT_DIR"
+
+# Load shared system defaults helper
+source "$ROOT_DIR/tools/lib/system-defaults.sh"
+
+usage() {
+  cat <<'EOF'
+Usage:
+  tools/add-ui.sh [--base <dir>]
+
+Fuzzy transaction adder for everyday entries.
+
+Modes:
+  expense  assets -> expenses  (writes journal.tsv)
+  move     assets -> assets    (writes journal.tsv)
+  income   income -> assets    (writes journal.tsv)
+  budget   budget -> budget    (writes budget_alloc.tsv)
+  plan-add assets -> expenses  (writes plan.tsv)
+  plan-edit date/amount        (edits plan.tsv)  plan-finish                 (plan -> journal)
+
+Append is delegated to tools/edit (Go safe-append path).
+EOF
+}
+
+shout() { printf '%s\n' "$*" >&2; }
+
+base_dir="${LEDGER_DATA_DIR:-$(get_default_base_dir)}"
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --base) base_dir="$2"; shift 2 ;;
+    -h|--help) usage; exit 0 ;;
+    *) shout "Error: Unknown argument: $1"; usage; exit 1 ;;
+  esac
+done
+
+# ── Account listing (reads accounts.tsv directly, no BQN needed) ──
+
+accounts() {
+  local role="${1:-}"
+  local accounts_file="$base_dir/accounts.tsv"
+
+  if [[ ! -f "$accounts_file" ]]; then
+    shout "accounts.tsv not found: $accounts_file"
+    return 1
+  fi
+
+  if [[ -n "$role" ]]; then
+    # Filter by role= metadata in column 2+
+    awk -F'\t' -v role="$role" '
+      /^#/ || /^[[:space:]]*$/ { next }
+      {
+        for (i=2; i<=NF; i++) {
+          if ($i ~ "^role=" role "$") { print $1; next }
+        }
+      }
+    ' "$accounts_file"
+  else
+    awk -F'\t' '/^#/ || /^[[:space:]]*$/ { next } { print $1 }' "$accounts_file"
+  fi
+}
+
+# ── UI helpers ──
+
+select_line() {
+  local prompt="$1"
+  local -a lines=()
+  mapfile -t lines
+
+  if [[ ${#lines[@]} -eq 0 ]]; then
+    shout "No candidates for: $prompt"
+    return 1
+  fi
+
+  if command -v fzf >/dev/null 2>&1; then
+    printf '%s\n' "${lines[@]}" |
+      fzf --prompt="$prompt> " --height=40% --reverse --select-1 --exit-0
+  elif command -v gum >/dev/null 2>&1; then
+    printf '%s\n' "${lines[@]}" | gum filter --placeholder="$prompt"
+  else
+    shout "$prompt"
+    local idx=1 ans
+    for line in "${lines[@]}"; do
+      printf '  %2d) %s\n' "$idx" "$line" >&2
+      idx=$((idx + 1))
+    done
+    printf '> ' >&2
+    read -r ans </dev/tty
+    if [[ "$ans" =~ ^[0-9]+$ ]] && (( ans >= 1 && ans <= ${#lines[@]} )); then
+      printf '%s\n' "${lines[$((ans - 1))]}"
+    else
+      printf '%s\n' "$ans"
+    fi
+  fi
+}
+
+read_tty() {
+  local prompt="$1" default="${2:-}" ans
+  if command -v gum >/dev/null 2>&1 && [[ -r /dev/tty ]]; then
+    if [[ -n "$default" ]]; then
+      ans="$(gum input --prompt "${prompt}: " --value "$default" </dev/tty || true)"
+    else
+      ans="$(gum input --prompt "${prompt}: " </dev/tty || true)"
+    fi
+  else
+    if [[ -n "$default" ]]; then
+      printf '%s [%s]: ' "$prompt" "$default" >&2
+    else
+      printf '%s: ' "$prompt" >&2
+    fi
+    read -r ans </dev/tty
+  fi
+  if [[ -z "$ans" && -n "$default" ]]; then
+    printf '%s\n' "$default"
+  else
+    printf '%s\n' "$ans"
+  fi
+}
+
+# ── Date handling ──
+
+today="$(date +%Y-%m-%d)"
+yesterday="$(date -v-1d +%Y-%m-%d 2>/dev/null || date -d yesterday +%Y-%m-%d)"
+tomorrow="$(date -v+1d +%Y-%m-%d 2>/dev/null || date -d tomorrow +%Y-%m-%d)"
+
+choose_date_key() {
+  {
+    printf 'today\t%s (default)\n' "$today"
+    printf 'yesterday\t%s\n' "$yesterday"
+    printf 'other\tenter YYYY-MM-DD\n'
+  } | select_line 'date'
+}
+
+choose_plan_date_key() {
+  {
+    printf 'tomorrow\t%s (default)\n' "$tomorrow"
+    printf 'today\t%s\n' "$today"
+    printf 'other\tenter YYYY-MM-DD\n'
+  } | select_line 'plan date'
+}
+
+# ── Mode selection ──
+
+choose_mode() {
+  cat <<'EOF' | select_line 'mode'
+expense	支出 assets -> expenses
+move	資金移動 assets -> assets
+income	収入 income -> assets
+budget	予算配賦 budget -> budget
+plan-add	予定の追加 assets -> expenses
+plan-edit	予定の日付・金額修正
+plan-finish	予定の実績化 plan -> journal
+reverse	仕訳取消 (反対仕訳追記)
+EOF
+}
+
+choose_budget_memo() {
+  local selected key custom
+  selected="$({
+    printf 'alloc\talloc (default)\n'
+    printf 'seed\tseed\n'
+    printf 'move\tmove\n'
+    printf 'custom\tenter memo\n'
+  } | select_line 'budget memo')"
+  key="${selected%%$'\t'*}"
+  case "$key" in
+    alloc|seed|move) printf '%s\n' "$key" ;;
+    custom) custom="$(read_tty 'Budget memo' 'alloc')"; printf '%s\n' "$custom" ;;
+    *) printf '%s\n' "$key" ;;
+  esac
+}
+
+# ── Meta presets ──
+
+meta_has_key() {
+  local key="$1" tokens="${2:-}" token token_key
+  for token in $tokens; do
+    token_key="${token%%=*}"
+    [[ "$token_key" == "$key" ]] && return 0
+  done
+  return 1
+}
+
+choose_meta() {
+  local selected key meta_tokens custom
+  local presets_file="$ROOT_DIR/config/ui_meta_presets.tsv"
+  local -a lines=()
+
+  if [[ -f "$presets_file" ]]; then
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      [[ -z "$line" || "$line" =~ ^# ]] && continue
+      lines+=("$line")
+    done < "$presets_file"
+  else
+    lines=(
+      $'empty\t(no meta)\t'
+      $'private\ttax=private biz=0\ttax=private biz=0'
+      $'business\ttax=business biz=1\ttax=business biz=1'
+      $'custom\tenter key=value tokens\tcustom'
+    )
+  fi
+
+  selected="$(
+    for l in "${lines[@]}"; do
+      local k d
+      k="$(printf '%s' "$l" | cut -f1)"
+      d="$(printf '%s' "$l" | cut -f2)"
+      printf '%s\t%s\n' "$k" "$d"
+    done | select_line 'meta'
+  )"
+
+  [[ -z "$selected" ]] && return 1
+  key="${selected%%$'\t'*}"
+
+  meta_tokens=""
+  for l in "${lines[@]}"; do
+    local k
+    k="$(printf '%s' "$l" | cut -f1)"
+    if [[ "$k" == "$key" ]]; then
+      meta_tokens="$(printf '%s' "$l" | cut -f3)"
+      break
+    fi
+  done
+
+  case "$key" in
+    empty) printf '\n' ;;
+    custom) custom="$(read_tty 'Meta key=value tokens' '')"; printf '%s\n' "$custom" ;;
+    *) printf '%s\n' "$meta_tokens" ;;
+  esac
+}
+
+# ── Main flow ──
+
+# Make terminal erase UTF-8-aware
+if [[ -r /dev/tty ]]; then
+  stty iutf8 </dev/tty 2>/dev/null || true
+fi
+
+mode_line="$(choose_mode || true)"
+if [[ -z "$mode_line" ]]; then
+  shout 'Cancelled.'
+  exit 0
+fi
+mode="${mode_line%%$'\t'*}"
+
+memo=''; from=''; to=''; amt=''; meta=''; plan_series=''
+
+case "$mode" in
+  expense)
+    memo="$(read_tty 'Memo/Description' '')"
+    from="$(accounts 'asset' | select_line 'from asset' || true)"
+    to="$(accounts 'expense' | select_line 'to expense' || true)"
+    amt="$(read_tty 'Amount' '')"
+    meta="$(choose_meta || true)"
+    ;;
+  move)
+    from="$(accounts 'asset' | select_line 'from asset' || true)"
+    to="$(accounts 'asset' | select_line 'to asset' || true)"
+    amt="$(read_tty 'Amount' '')"
+    memo="$(read_tty 'Memo/Description' "${from}→${to}")"
+    meta="$(choose_meta || true)"
+    ;;
+  income)
+    from="$(accounts 'income' | select_line 'from income' || true)"
+    to="$(accounts 'asset' | select_line 'to asset' || true)"
+    amt="$(read_tty 'Amount' '')"
+    memo="$(read_tty 'Memo/Description' 'income')"
+    meta="$(choose_meta || true)"
+    ;;
+  budget)
+    memo="$(choose_budget_memo || true)"
+    from="$(accounts 'budget' | select_line 'from budget' || true)"
+    to="$(accounts 'budget' | select_line 'to budget' || true)"
+    amt="$(read_tty 'Amount' '')"
+    meta="$(choose_meta || true)"
+    ;;
+  plan-add)
+    memo="$(read_tty 'Memo/Description' '')"
+    from="$(accounts 'asset' | select_line 'from asset' || true)"
+    to="$(accounts 'expense' | select_line 'to expense' || true)"
+    amt="$(read_tty 'Amount' '')"
+    meta="$(choose_meta || true)"
+    plan_series="$(read_tty 'Series for plan_id (empty: use memo, no spaces)' '')"
+    if [[ -n "$plan_series" && ! "$plan_series" =~ ^[A-Za-z0-9._-]+$ ]]; then
+      shout 'Series must contain only A-Z, a-z, 0-9, dot, underscore, or hyphen.'
+      exit 1
+    fi
+    if [[ -n "$plan_series" ]] && ! meta_has_key 'series' "$meta"; then
+      meta="${meta:+$meta }series=$plan_series"
+    fi
+    ;;
+  plan-finish|plan-edit)
+    plan_tsv_lines=()
+    mapfile -t plan_tsv_lines < <("$ROOT_DIR/tools/edit" --base "$base_dir" plan list --format tsv)
+    if [[ ${#plan_tsv_lines[@]} -eq 0 ]]; then
+      shout "No active plans found."
+      exit 0
+    fi
+    display_lines=()
+    for line in "${plan_tsv_lines[@]}"; do
+      display_lines+=("$(printf '%s\n' "$line" | cut -f9)")
+    done
+    select_prompt='select plan to finish'
+    [[ "$mode" == 'plan-edit' ]] && select_prompt='select plan to edit'
+    selected_display="$(printf '%s\n' "${display_lines[@]}" | select_line "$select_prompt" || true)"
+    if [[ -z "$selected_display" ]]; then shout 'Cancelled.'; exit 0; fi
+    selected_row=""
+    for line in "${plan_tsv_lines[@]}"; do
+      if [[ "$(printf '%s\n' "$line" | cut -f9)" == "$selected_display" ]]; then
+        selected_row="$line"; break
+      fi
+    done
+    if [[ -z "$selected_row" ]]; then
+      shout "Failed to match selected display: $selected_display"; exit 1
+    fi
+    plan_number="$(printf '%s\n' "$selected_row" | cut -f1)"
+    plan_id="$(printf '%s\n' "$selected_row" | cut -f2)"
+    plan_date="$(printf '%s\n' "$selected_row" | cut -f3)"
+    plan_amount="$(printf '%s\n' "$selected_row" | cut -f7)"
+    if [[ -n "$plan_id" ]]; then
+      plan_selector_args=(--id "$plan_id")
+    else
+      plan_selector_args=(--index "$plan_number")
+    fi
+    if [[ "$mode" == 'plan-finish' ]]; then
+      plan_finish_args=("${plan_selector_args[@]}")
+    else
+      new_plan_date="$(read_tty 'New plan date YYYY-MM-DD' "$plan_date")"
+      new_plan_amount="$(read_tty 'New amount' "$plan_amount")"
+      plan_edit_args=("${plan_selector_args[@]}")
+      [[ "$new_plan_date" != "$plan_date" ]] && plan_edit_args+=(--date "$new_plan_date")
+      [[ "$new_plan_amount" != "$plan_amount" ]] && plan_edit_args+=(--amount "$new_plan_amount")
+      if [[ ${#plan_edit_args[@]} -eq ${#plan_selector_args[@]} ]]; then
+        shout 'No changes entered.'; exit 0
+      fi
+    fi
+    ;;
+  reverse)
+    journal_file="$base_dir/journal.tsv"
+    if [[ ! -f "$journal_file" ]]; then
+      shout "journal.tsv not found: $journal_file"; exit 1
+    fi
+    # Build display lines: "<index>: <date> <memo> <from>-><to> <amount>"
+    display_lines=()
+    idx=0
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      [[ -z "$line" || "$line" =~ ^# || "$line" =~ ^\\ ]] && continue
+      idx=$((idx + 1))
+      date_f="$(printf '%s\n' "$line" | cut -f1)"
+      memo_f="$(printf '%s\n' "$line" | cut -f2)"
+      from_f="$(printf '%s\n' "$line" | cut -f3)"
+      to_f="$(printf '%s\n' "$line" | cut -f4)"
+      amt_f="$(printf '%s\n' "$line" | cut -f5)"
+      display_lines+=("$idx: $date_f  $memo_f  $from_f→$to_f  $amt_f")
+    done < "$journal_file"
+    if [[ ${#display_lines[@]} -eq 0 ]]; then
+      shout "No journal entries found."; exit 0
+    fi
+    selected_display="$(printf '%s\n' "${display_lines[@]}" | select_line 'select entry to reverse' || true)"
+    if [[ -z "$selected_display" ]]; then shout 'Cancelled.'; exit 0; fi
+    reverse_index="${selected_display%%:*}"
+    reverse_date="$(read_tty 'Reversal date YYYY-MM-DD (empty=today)' "$today")"
+    reverse_args=(--index "$reverse_index")
+    [[ -n "$reverse_date" && "$reverse_date" != "$today" ]] && reverse_args+=(--date "$reverse_date")
+    ;;
+  *)
+    shout "Unknown mode: $mode"; exit 1 ;;
+esac
+
+# ── Date selection (skip for plan-finish/edit) ──
+
+if [[ "$mode" != 'plan-finish' && "$mode" != 'plan-edit' && "$mode" != 'reverse' ]]; then
+  if [[ "$mode" == 'plan-add' ]]; then
+    date_line="$(choose_plan_date_key || true)"
+  else
+    date_line="$(choose_date_key || true)"
+  fi
+  if [[ -z "$date_line" ]]; then shout 'Cancelled.'; exit 0; fi
+  date_key="${date_line%%$'\t'*}"
+  manual_date=''
+  case "$date_key" in
+    today) selected_date="$today" ;;
+    yesterday) selected_date="$yesterday" ;;
+    tomorrow) selected_date="$tomorrow" ;;
+    other) selected_date="$(read_tty 'Date YYYY-MM-DD' "$today")" ;;
+    *) selected_date="$today" ;;
+  esac
+  if [[ -z "$from" || -z "$to" || -z "$amt" ]]; then
+    shout 'Cancelled or missing required value.'; exit 1
+  fi
+fi
+
+# ── Execute via Go editor ──
+
+if [[ "$mode" == 'plan-finish' ]]; then
+  cmd=("$ROOT_DIR/tools/edit" --base "$base_dir" plan finish "${plan_finish_args[@]}" --apply)
+elif [[ "$mode" == 'plan-edit' ]]; then
+  cmd=("$ROOT_DIR/tools/edit" --base "$base_dir" plan edit "${plan_edit_args[@]}")
+elif [[ "$mode" == 'reverse' ]]; then
+  cmd=("$ROOT_DIR/tools/edit" --base "$base_dir" journal reverse "${reverse_args[@]}")
+else
+  target='journal'
+  [[ "$mode" == 'budget' ]] && target='budget'
+  [[ "$mode" == 'plan-add' ]] && target='plan'
+  cmd=(
+    "$ROOT_DIR/tools/edit" --base "$base_dir" "$target" add
+    --date "$selected_date"
+    --from "$from"
+    --to "$to"
+    --amount "$amt"
+    --memo "$memo"
+  )
+fi
+
+if [[ "$mode" != 'plan-finish' && "$mode" != 'plan-edit' && "$mode" != 'reverse' && -n "$meta" ]]; then
+  for token in $meta; do
+    [[ -n "$token" ]] && cmd+=(--meta "$token")
+  done
+fi
+
+exec "${cmd[@]}"

@@ -1,0 +1,16 @@
+# Fixture: historical-cycle
+equity:opening-balances
+
+assets:bank	type=liquid
+assets:savings	type=savings
+
+income:年金
+income:other
+
+expenses:food	budget=daily	spend_class=variable
+expenses:rent	fixed=1	spend_class=fixed
+
+budget:opening	kind=opening
+budget:unassigned	kind=unassigned
+budget:daily	kind=envelope
+budget:spent	kind=spent

@@ -1,0 +1,40 @@
+key	value	source_layer	status	formula_id	note
+as_of	2026-01-03	derived	canonical	F080	report observation date
+cycle_mode	fixed	derived	canonical	F080	cycle resolver mode
+cycle_start	2026-01-01	derived	canonical	F050	inclusive cycle start
+cycle_end_exclusive	2026-02-01	derived	canonical	F050	exclusive cycle end
+liquid_assets_today	40000	actual	canonical	F001	sum of type=liquid actual balances
+savings_assets_today	0	actual	canonical	F002	sum of type=savings actual balances
+investment_assets_today	0	actual	canonical	F003	sum of type=invest actual balances
+assets_total	40000	actual	canonical	F004	all asset balances
+liabilities_total	0	actual	canonical	F004	liability balances use internal sign
+net_worth	40000	actual	canonical	F004	assets_total + liabilities_total
+fixed_plan_reserve	0	plan+actual	derived	F020	remaining fixed reserve in current cycle
+safe_liquid_assets_today	40000	actual+plan	derived	F021	liquid assets minus fixed reserve
+planned_future_income_in_cycle	0	plan	derived	F022	future income inside current cycle
+seedable_budget	40000	actual+plan	derived	F022	liquid + future income - fixed reserve
+envelope_balance_total	40000	budget	derived	F013	sum of reportable envelope balances
+daily_envelope_balance_total	0	budget	derived	F013	sum of daily envelope balances
+flex_envelope_balance_total	0	budget	derived	F013	sum of flex envelope balances
+reserve_envelope_balance_total	0	budget	derived	F013	sum of reserve envelope balances
+unallocated_buffer	0	actual+plan+budget	derived	F023	seedable_budget - envelope_balance_total
+planned_spending_until_cycle_end	0	plan	derived	F030	planned expenses where as_of <= date < cycle_end_exclusive
+planned_income_remaining_in_cycle	0	plan	derived	F031	planned income where as_of <= date < cycle_end_exclusive
+cycle_days_left	29	derived	derived	F050	days between as_of and cycle_end_exclusive
+liquid_assets_daily	1379	actual+plan	derived	F024	(liquid + future_income) / days_left
+safe_liquid_assets_daily	1379	actual+plan	derived	F025	(liquid + future_income - fixed_reserve) / days_left
+cycle_actual_income	0	actual	canonical	F040	actual income inside current cycle
+cycle_actual_expense	60000	actual	canonical	F041	actual expenses inside current cycle
+cycle_actual_net	¯60000	actual	canonical	F042	cycle income - cycle expense
+actual_comparison_observation_status	unavailable	derived	canonical	F090	observation validation status
+actual_comparison_period_kind	current_cycle_elapsed	derived	canonical	F090	period resolution logic
+actual_comparison_current_start	2026-01-01	derived	canonical	F090	inclusive actual comparison start date
+actual_comparison_current_end_exclusive	2026-01-04	derived	canonical	F090	exclusive actual comparison end date
+actual_comparison_baseline_start	2026-01-01	derived	canonical	F090	inclusive baseline start date
+actual_comparison_baseline_end_exclusive	2026-01-04	derived	canonical	F090	exclusive baseline end date
+actual_comparison_income_current	0	actual	canonical	F091	sum of actual income in current period
+actual_comparison_income_baseline	0	actual	canonical	F091	sum of actual income in baseline period
+actual_comparison_variable_current	0	actual	canonical	F092	sum of actual variable expenses in current period
+actual_comparison_variable_baseline	0	actual	canonical	F092	sum of actual variable expenses in baseline period
+actual_comparison_recurring_fixed_current	0	actual	canonical	F093	sum of actual fixed expenses in current period
+actual_comparison_recurring_fixed_baseline	0	actual	canonical	F093	sum of actual fixed expenses in baseline period

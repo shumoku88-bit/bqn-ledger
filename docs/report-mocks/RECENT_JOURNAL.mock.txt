@@ -1,0 +1,28 @@
+MOCK / layout only
+report_screen: Recent Journal
+status: mock / pending human review
+question: 直近に何を記帳したか
+view_type: activity log (newest first)
+basis: sample values only; not calculated from data/*.tsv
+as_of: 2026-06-26
+
+== Recent Journal ==
+
+(newest first, last 10)
+
+Date       | From  → To         | Memo                     | Amount | txn_id
+2026-06-25 | smbc  → 缶コーヒー | コンビニ                 |    138 | t20260625-001
+2026-06-25 | smbc  → タバコ     | コンビニ                 |    500 | t20260625-002
+2026-06-25 | smbc  → 食費       | 三和(焼そば他)           |    926 | t20260625-003
+2026-06-24 | smbc  → タバコ     | コンビニ                 |    500 | t20260624-001
+2026-06-24 | smbc  → タバコ     | コンビニ                 |    500 | t20260624-002
+2026-06-23 | smbc  → 予備       | deepseek-api             |    894 | t20260623-001
+2026-06-23 | smbc  → タバコ     | コンビニ                 |    500 | t20260623-002
+2026-06-23 | smbc  → AIサブスク | google-one               |  1,450 | t20260623-003
+2026-06-22 | smbc  → 食費       | 三和(生クリーム野菜、麺) |    812 | t20260622-001
+2026-06-22 | smbc  → タバコ     | コンビニ                 |    500 | t20260622-002
+
+decided:
+  - 表示件数: 10件 ✓
+  - From/To: prefix 剥がし ✓
+  - txn_id: 表示する ✓

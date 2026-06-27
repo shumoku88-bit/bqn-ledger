@@ -1,0 +1,10 @@
+# Fixture: empty-fields
+
+equity:opening-balances
+assets:bank	type=liquid
+income:salary
+expenses:food	budget=food	spend_class=variable
+budget:opening
+budget:unassigned
+budget:food
+budget:spent

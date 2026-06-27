@@ -1,0 +1,8 @@
+# Fixture: household-monthly-salary
+# Purpose: contrasting fixture for Phase 3 — monthly salary + calendar month + no envelope
+
+assets:bank	role=asset	type=liquid
+expenses:食費	role=expense	spend_class=variable
+expenses:家賃	role=expense	spend_class=fixed
+income:給与	role=income
+equity:opening-balances	role=equity

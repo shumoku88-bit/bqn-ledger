@@ -1,0 +1,11 @@
+# Fixture: src-next-household-mapping-policy
+# Purpose: src_next household mapping metadata visibility only
+
+assets:bank	role=asset	currency=JPY
+assets:cash	role=asset	currency=JPY
+expenses:食費	role=expense	budget=食費	budget_group=life_primary	spend_class=variable
+expenses:日用品	role=expense	budget=日用品	budget_group=life_primary	spend_class=variable
+expenses:娯楽	role=expense	budget=娯楽	budget_group=life_flex	spend_class=variable
+expenses:予備	role=expense	budget=予備	budget_group=reserve_pool	spend_class=variable
+expenses:未分類	role=expense	budget=未分類
+expenses:fallback

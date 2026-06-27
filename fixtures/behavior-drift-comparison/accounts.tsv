@@ -1,0 +1,14 @@
+equity:opening-balances
+assets:bank	type=liquid
+income:salary
+expenses:food	budget=daily	spend_class=variable
+expenses:tobacco	budget=daily	spend_class=variable
+expenses:learning	budget=flex	spend_class=variable
+expenses:medical	budget=medical	spend_class=variable
+budget:opening
+budget:unassigned
+budget:daily
+budget:flex
+budget:reserve
+budget:medical
+budget:spent

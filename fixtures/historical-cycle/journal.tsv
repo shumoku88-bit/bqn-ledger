@@ -1,0 +1,8 @@
+# date	memo	from	to	amount	meta
+2026-01-01	Opening	equity:opening-balances	assets:bank	1000000	
+2026-02-13	年金支給2月	income:年金	assets:bank	200000	
+2026-02-20	食費	assets:bank	expenses:food	5000	
+2026-04-15	年金支給4月	income:年金	assets:bank	200000	
+2026-04-20	食費	assets:bank	expenses:food	6000	
+2026-06-15	年金支給6月	income:年金	assets:bank	200000	
+2026-06-16	食費	assets:bank	expenses:food	7000	

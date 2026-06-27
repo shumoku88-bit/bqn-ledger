@@ -1,0 +1,38 @@
+MOCK / layout only
+report_screen: Actual Comparison
+status: mock / pending human review
+question: 前サイクル同時点と比べて何が増減したか
+view_type: period comparison (current vs previous cycle, same elapsed days)
+basis: sample values only; not calculated from data/*.tsv
+as_of: 2026-06-26
+
+== Actual Comparison ==
+
+current : 2026-06-15 〜 2026-06-26 (12 日経過)
+baseline: 2026-04-15 〜 2026-04-26 (前サイクル同時点)
+
+Unit              | Current | Baseline |    Diff |  Ratio | Status
+光熱費            |  21,002 |   28,500 |  ¯7,498 |    73% | decreased
+学習              |   7,700 |    2,827 |   4,873 |   272% | increased
+食費              |   8,142 |   12,902 |  ¯4,760 |    63% | decreased
+年金              | 225,276 |  221,016 |   4,260 |   101% | increased
+保険料            |   3,760 |        0 |   3,760 |    n/a | new
+AIサブスク        |   4,450 |    7,237 |  ¯2,787 |    61% | decreased
+食費:ストック     |       0 |    2,718 |  ¯2,718 |     0% | stopped
+タバコ            |   6,000 |    4,500 |   1,500 |   133% | increased
+サブスク          |       0 |    1,490 |  ¯1,490 |     0% | stopped
+予備              |   4,894 |    6,460 |  ¯1,566 |    75% | decreased
+通信              |   4,810 |    5,426 |    ¯616 |    88% | decreased
+返金              |       0 |      520 |    ¯520 |     0% | stopped
+缶コーヒー        |     673 |      160 |     513 |   420% | increased
+日用品            |     656 |       70 |     586 |   937% | increased
+支援給付金        |  11,240 |   10,900 |     340 |   103% | increased
+借金返済          |  10,000 |   10,000 |       0 |   100% | same
+交通              |   1,000 |    1,000 |       0 |   100% | same
+家賃              |  64,000 |   64,000 |       0 |   100% | same
+ポイント          |      57 |        0 |      57 |    n/a | new
+
+review_prompt:
+  - diff=0 の行（家賃、交通、借金返済）は表示する？ 変わらないものは非表示？
+  - stopped 行を表示するか → mock では表示。非表示にする？
+  - ソート: |diff| 降順でよさそう

@@ -1,0 +1,147 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# tools/doctor — dependency health check and SBOM for bqn-ledger
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -L "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+ROOT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+cd "$ROOT_DIR"
+
+red=''
+green=''
+yellow=''
+reset=''
+if [[ -t 1 && -z "${NO_COLOR:-}" ]]; then
+  red='\033[31m' green='\033[32m' yellow='\033[33m' reset='\033[0m'
+fi
+
+pass()  { printf "  ${green}PASS${reset} %s\n" "$*"; }
+warn()  { printf "  ${yellow}WARN${reset} %s\n" "$*"; }
+fail()  { printf "  ${red}FAIL${reset} %s\n" "$*"; all_ok=0; }
+info()  { printf "  %s\n" "$*"; }
+
+all_ok=1
+failures=0
+
+echo "=== bqn-ledger doctor ==="
+echo ""
+
+# ── Required dependencies ──
+echo "Required:"
+
+# CBQN
+if command -v bqn >/dev/null 2>&1; then
+  ver=$(bqn --version 2>&1 | head -1)
+  pass "CBQN: $ver"
+else
+  fail "CBQN not found (install: https://github.com/dzaima/CBQN)"
+  failures=$((failures + 1))
+fi
+
+# Go
+if command -v go >/dev/null 2>&1; then
+  ver=$(go version 2>&1)
+  pass "Go: $ver"
+else
+  fail "Go not found (install: https://go.dev/dl/)"
+  failures=$((failures + 1))
+fi
+
+echo ""
+
+# ── Optional dependencies ──
+echo "Optional:"
+
+for tool in fzf gum rg; do
+  if command -v "$tool" >/dev/null 2>&1; then
+    pass "$tool: $(command -v "$tool")"
+  else
+    warn "$tool: not installed"
+  fi
+done
+
+echo ""
+
+# ── Data directory ──
+echo "Data:"
+get_default_base_dir() {
+  local defaults_file="config/system_defaults.tsv"
+  local fallback="data"
+  if [[ -f "$defaults_file" ]]; then
+    local val
+    val=$(awk -F'\t' '$1 == "DEFAULT_BASE_DIR" { print $2 }' "$defaults_file")
+    if [[ -n "$val" ]]; then echo "$val"; return; fi
+  fi
+  echo "$fallback"
+}
+base_dir="${LEDGER_DATA_DIR:-$(get_default_base_dir)}"
+info "base dir: $base_dir"
+if [[ -d "$base_dir" ]]; then
+  required_files=("accounts.tsv" "journal.tsv" "plan.tsv" "cycle.tsv")
+  for f in "${required_files[@]}"; do
+    if [[ -f "$base_dir/$f" ]]; then
+      pass "$f"
+    else
+      fail "$f missing"
+      failures=$((failures + 1))
+    fi
+  done
+  if [[ -f "$base_dir/budget_alloc.tsv" ]]; then
+    pass "budget_alloc.tsv"
+  else
+    info "budget_alloc.tsv: not present (optional)"
+  fi
+else
+  fail "base dir not found: $base_dir"
+  failures=$((failures + 1))
+fi
+
+echo ""
+
+# ── Quick engine smoke test ──
+echo "Engine:"
+if out=$(bqn src_next/summary.bqn "$base_dir" 2>&1); then
+  if echo "$out" | grep -q "as_of:"; then
+    pass "src_next engine produces valid summary"
+  else
+    fail "src_next engine output missing expected fields"
+    failures=$((failures + 1))
+  fi
+else
+  fail "src_next engine failed: $out"
+  failures=$((failures + 1))
+fi
+
+echo ""
+
+# ── SBOM ──
+echo "=== SBOM (Software Bill of Materials) ==="
+echo ""
+echo "Runtime dependencies:"
+echo "  CBQN (dzaima/BQN)  — BQN implementation, commit 12a4fb9f+"
+echo "  Go 1.22+            — editor binary build (stdlib only, zero external deps)"
+echo ""
+echo "Optional tools:"
+echo "  fzf  — fuzzy selector for add-ui.sh / main-ui.sh"
+echo "  gum  — TUI widgets for add-ui.sh"
+echo "  rg   — ripgrep for check scripts"
+echo ""
+echo "Dev tools (bundled):"
+echo "  bqn-eval, bqn-dump, query, envelope-calc, scaffold-check.sh, repo-index"
+echo ""
+
+# ── Result ──
+echo "=== Result ==="
+if [[ "$all_ok" -eq 1 ]]; then
+  echo "${green}All checks passed.${reset}"
+  exit 0
+else
+  echo "${red}$failures issue(s) found.${reset}"
+  exit 1
+fi

@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# tools/coverage — test coverage report for Go editor
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -L "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+ROOT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+
+cd "$ROOT_DIR/editor"
+
+echo "=== Go editor coverage ==="
+go test -cover ./...
+
+echo ""
+echo "=== BQN module test inventory ==="
+cd "$ROOT_DIR"
+total_modules=0
+tested_modules=0
+
+for mod in src_next/*.bqn; do
+  basename=$(basename "$mod" .bqn)
+  total_modules=$((total_modules + 1))
+  if [ -f "tests/test_${basename}.bqn" ] || [ -f "tests/test_src_next_${basename}.bqn" ]; then
+    tested_modules=$((tested_modules + 1))
+  else
+    echo "  untested: $basename"
+  fi
+done
+
+echo "  tested: $tested_modules / $total_modules BQN modules"

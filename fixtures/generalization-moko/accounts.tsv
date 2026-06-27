@@ -1,0 +1,52 @@
+# accounts.tsv - 勘定科目マスター (+ メタ情報)
+#
+# 形式:
+#   <科目名> [TAB] key=value [TAB] key=value ...
+#
+
+開始残高	role=equity
+クレジットカード	role=liability
+母への借入	role=liability
+友人への借入	role=liability
+三井住友銀行	role=asset	type=liquid
+PayPay	role=asset	type=liquid
+ゆうちょ銀行	role=asset	type=savings	budget=ゆうちょ貯金封筒
+オルカン積立	role=asset	type=invest	budget=オルカン投資封筒
+
+ポイント収入	role=income
+年金収入	role=income
+支援給付金	role=income
+返金	role=income
+
+# --- budget accounts (envelopes) ---
+開始時予算	role=budget	kind=opening	budget_group=reserve
+未割当予算	role=budget	kind=unassigned	budget_group=reserve
+消費済予算	role=budget	kind=spent	budget_group=reserve
+食費封筒	role=budget	kind=envelope	budget_group=daily
+食費ストック封筒	role=budget	kind=envelope	budget_group=flex
+タバコ封筒	role=budget	kind=envelope	budget_group=daily
+一般生活封筒	role=budget	kind=envelope	budget_group=flex
+通院封筒	role=budget	kind=envelope	budget_group=flex
+ゆうちょ貯金封筒	role=budget	kind=envelope	budget_group=reserve
+オルカン投資封筒	role=budget	kind=envelope	budget_group=reserve
+
+# --- expenses -> budget mapping (for generator) ---
+食費	role=expense	budget=食費封筒	spend_class=variable
+食費ストック	role=expense	budget=食費ストック封筒	spend_class=variable
+タバコ	role=expense	budget=タバコ封筒	spend_class=variable
+缶コーヒー	role=expense	budget=食費封筒	spend_class=variable
+日用品	role=expense	budget=一般生活封筒	spend_class=variable
+交通費	role=expense	budget=一般生活封筒	spend_class=variable
+学習費	role=expense	budget=一般生活封筒	spend_class=variable
+通院	role=expense	budget=通院封筒	spend_class=variable
+予備費	role=expense	budget=一般生活封筒	spend_class=variable
+
+# --- fixed expenses ---
+家賃	role=expense	fixed=1	spend_class=fixed
+光熱費	role=expense	fixed=1	spend_class=fixed
+通信費	role=expense	fixed=1	spend_class=fixed
+保険料	role=expense	fixed=1	spend_class=fixed
+# legacy: 過去の借金返済記録用。今後の元本返済は 友人への借入 + cashflow=fixed_obligation を使う。
+借金返済	role=expense	fixed=1	spend_class=fixed
+AIサブスク	role=expense	fixed=1	spend_class=fixed
+一般サブスク	role=expense	fixed=1	spend_class=fixed

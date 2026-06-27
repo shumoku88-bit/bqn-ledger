@@ -1,0 +1,11 @@
+# Fixture: src-next-broken-empty-columns
+# Purpose: tests that empty columns in journal-like TSV are preserved
+# If SplitKeepEmpty is not used, empty memo columns shift and break parsing
+
+equity:opening
+assets:bank	type=liquid
+income:salary	role=income
+expenses:food	role=expense	spend_class=variable	budget=food
+budget:opening
+budget:food
+budget:spent

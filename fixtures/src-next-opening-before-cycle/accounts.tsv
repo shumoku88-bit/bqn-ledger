@@ -1,0 +1,7 @@
+# Fixture: src-next-opening-before-cycle
+# Purpose: accounting-grade TBDS must compute opening from pre-period postings.
+
+assets:bank	role=asset	type=liquid
+expenses:food	role=expense	spend_class=variable
+income:salary	role=income
+equity:opening-balances	role=equity

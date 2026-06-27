@@ -1,0 +1,5 @@
+key	value	source_layer	note
+planned_income_remaining_current_cycle	0	plan	future income inside current cycle
+planned_expense_remaining_current_cycle	500	plan	future expenses inside current cycle
+planned_fixed_expense_remaining_current_cycle	0	plan	future fixed expenses inside current cycle
+planned_expense_until_next_income	500	plan	future expenses before next income (or cycle end)

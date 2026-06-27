@@ -1,0 +1,39 @@
+mode: fixed
+start: 2026-06-15
+end_exclusive: 2026-06-22
+day_count: 7
+accounts: 6
+projection_balance_by_source: ok
+shape: 7 × 6 × 4
+valid projection rows: 0
+skipped projection rows: 0
+  actual: 0
+  plan: 0
+  budget: 0
+  forecast: 0
+src_next_cycle_range: 2026-06-15..2026-06-22
+src_next_valid_projection_rows: 0
+src_next_skipped_projection_rows: 0
+src_next_actual_total: 0
+src_next_plan_total: 0
+src_next_actual_expense_total: 0
+src_next_plan_expense_total: 0
+src_next_household_metadata_expense_accounts_total: 2
+src_next_household_metadata_missing_budget_count: 2
+src_next_household_metadata_missing_budget_group_count: 2
+src_next_household_metadata_missing_spend_class_count: 2
+src_next_household_metadata_prefix_fallback_total_count: 5
+src_next_household_metadata_prefix_fallback_expense_count: 2
+src_next_household_metadata_budget_values: 
+src_next_household_metadata_budget_group_values: 
+src_next_household_metadata_spend_class_values: 
+src_next_household_metadata_missing_budget_accounts: expenses:food,expenses:rent
+src_next_household_metadata_missing_budget_group_accounts: expenses:food,expenses:rent
+src_next_household_metadata_missing_spend_class_accounts: expenses:food,expenses:rent
+valid_actual_delta_total: 0
+cube_actual_total: 0
+actual_total_match: ok
+valid_plan_delta_total: 0
+cube_plan_total: 0
+plan_total_match: ok
+actual_per_account_totals_match: ok

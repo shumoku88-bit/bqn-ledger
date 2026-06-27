@@ -1,0 +1,9 @@
+# Fixture: src-next-invalid-posting
+# Purpose: src_next invalid scalar fields are rejected before cube materialization
+
+equity:opening
+assets:bank
+assets:cash
+income:salary
+expenses:food
+expenses:rent
