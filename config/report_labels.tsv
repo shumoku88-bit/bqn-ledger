@@ -71,6 +71,8 @@ recent.amount_header	Amount
 report.debug_title	12. デバッグ・由来 (Debug & Provenance)
 report.envelope_section_title	== Envelope & Budget ==
 report.envelope_guard_note	NOTE: src_next envelope production advice is guarded
+envelope.fixture_food_like_label	食費
+envelope.fixture_food_like_selector_value	食費
 balances.section_title	== Account Balances ==
 readiness.section_title	== Readiness Check ==
 ytd.section_title	== YTD Summary ==

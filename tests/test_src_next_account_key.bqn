@@ -8,13 +8,13 @@ tab ← @+9
 lines ← ⟨
   "assets:bank" ∾ tab ∾ "role=asset",
   "医療費" ∾ tab ∾ "role=expense" ∾ tab ∾ "budget=医療" ∾ tab ∾ "budget_group=reserve" ∾ tab ∾ "spend_class=fixed",
-  "expenses:food",
+  "expenses:food" ∾ tab ∾ "role=expense",
   "assets:usd" ∾ tab ∾ "currency=USD",
   "食費" ∾ tab ∾ "role=expense" ∾ tab ∾ "budget=食費" ∾ tab ∾ "budget_group=daily" ∾ tab ∾ "spend_class=variable" ∾ tab ∾ "currency=USD"
 ⟩
 
 resolved ← ak.Resolve lines
-⟨"asset", "expense", "", "", "expense"⟩ lib.AssertEq resolved.roles
+⟨"asset", "expense", "expense", "", "expense"⟩ lib.AssertEq resolved.roles
 ⟨"JPY", "JPY", "JPY", "USD", "USD"⟩ lib.AssertEq resolved.currencies
 ⟨"", "医療", "", "", "食費"⟩ lib.AssertEq resolved.budgets
 ⟨"", "reserve", "", "", "daily"⟩ lib.AssertEq resolved.budget_groups
@@ -30,12 +30,10 @@ resolved ← ak.Resolve lines
 "" lib.AssertEq ak.RoleFromMeta ⟨"budget=食費", "budget_group=daily"⟩
 "JPY" lib.AssertEq ak.CurrencyFromMeta ⟨"budget=食費", "budget_group=daily"⟩
 
-# src_next expense kind inference: role=expense, then expenses: fallback,
-# then existing income/transfer behavior.
-"expense" lib.AssertEq proj.InferKind ⟨"assets:bank", "医療費", "expense"⟩
-"expense" lib.AssertEq proj.InferKind ⟨"assets:bank", "expenses:food", ""⟩
-"income" lib.AssertEq proj.InferKind ⟨"income:salary", "assets:bank", ""⟩
-"transfer" lib.AssertEq proj.InferKind ⟨"assets:bank", "assets:cash", ""⟩
+# src_next kind inference: explicit roles preferred, legacy prefixes retained as fallback.
+"expense" lib.AssertEq proj.InferKind ⟨"asset", "expense", "assets:bank", "expenses:food"⟩
+"income" lib.AssertEq proj.InferKind ⟨"income", "asset", "income:salary", "assets:bank"⟩
+"transfer" lib.AssertEq proj.InferKind ⟨"asset", "asset", "assets:bank", "assets:cash"⟩
 
 # Posting IR identity helpers.
 "T-001" lib.AssertEq proj.TxIdFromMeta ⟨"fallback-id", ⟨"2026-06-01", "memo", "assets:bank", "医療費", "1200", "txn_id=T-001"⟩⟩

@@ -11,7 +11,7 @@ Ceil ← ⌈
 labels ← •Import "../report_labels.bqn"
 L ← labels.Text
 
-# P1: 封筒ペース診断
+# P1: pace diagnosis
 # Args: ⟨allocated, spent, elapsed, total_days⟩
 # Returns namespace: ideal_spent, overshoot, daily_actual, daily_target,
 #   pace_ratio, health
@@ -32,7 +32,7 @@ EnvelopePace ← {𝕊 a‿s‿e‿t:
   }
 }
 
-# P2: 復帰日数（指定した1日上限でペースラインに復帰する日数）
+# P2: recovery days at a fixed daily limit
 # Args: ⟨allocated, spent, elapsed, total_days, daily_limit⟩
 # Returns: days_to_recover (0 if at pace, ∞ if never recoverable)
 DaysToRecover ← {𝕊 a‿s‿e‿t‿limit:
@@ -45,7 +45,7 @@ DaysToRecover ← {𝕊 a‿s‿e‿t‿limit:
   (overshoot ≤ 0) ⊑ ((diff ≤ 0) ⊑ (Ceil (overshoot ÷ diff))‿∞)‿0
 }
 
-# P3: 目標復帰日数に対する1日上限額
+# P3: daily limit needed to recover within target days
 # Args: ⟨allocated, spent, elapsed, total_days, target_days⟩
 # Returns: required_daily_limit (maximum daily spend for target_days)
 RequiredDailyLimit ← {𝕊 a‿s‿e‿t‿tdays:
@@ -54,7 +54,7 @@ RequiredDailyLimit ← {𝕊 a‿s‿e‿t‿tdays:
   Floor remaining_allowed ÷ tdays
 }
 
-# P4: 枯渇予測
+# P4: depletion forecast
 # Args: ⟨remaining, spent, elapsed, total_days⟩
 # Returns namespace: burn_rate, days_until_empty, days_left, shortfall_days
 EnvelopeDepletion ← {𝕊 r‿s‿e‿t:

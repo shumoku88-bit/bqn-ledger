@@ -32,9 +32,9 @@ rows ← ⟨
 result ← cube.Materialize ⟨rows, 1, 1⟩
 
 tbdsRows ← ⟨
-  {layer_index ⇐ cube.layer_actual, account_name ⇐ "income:salary", account_key ⇐ "income:salary/JPY", role ⇐ "", debit_movement ⇐ 0, credit_movement ⇐ ¯100000, movement ⇐ ¯100000},
-  {layer_index ⇐ cube.layer_actual, account_name ⇐ "expenses:food", account_key ⇐ "expenses:food/JPY", role ⇐ "", debit_movement ⇐ 4200, credit_movement ⇐ 0, movement ⇐ 4200},
-  {layer_index ⇐ cube.layer_plan, account_name ⇐ "expenses:food", account_key ⇐ "expenses:food/JPY", role ⇐ "", debit_movement ⇐ 2000, credit_movement ⇐ 0, movement ⇐ 2000}
+  {layer_index ⇐ cube.layer_actual, account_name ⇐ "income:salary", account_key ⇐ "income:salary/JPY", role ⇐ "income", debit_movement ⇐ 0, credit_movement ⇐ ¯100000, movement ⇐ ¯100000},
+  {layer_index ⇐ cube.layer_actual, account_name ⇐ "expenses:food", account_key ⇐ "expenses:food/JPY", role ⇐ "expense", debit_movement ⇐ 4200, credit_movement ⇐ 0, movement ⇐ 4200},
+  {layer_index ⇐ cube.layer_plan, account_name ⇐ "expenses:food", account_key ⇐ "expenses:food/JPY", role ⇐ "expense", debit_movement ⇐ 2000, credit_movement ⇐ 0, movement ⇐ 2000}
 ⟩
 
 cy ← { start ⇐ "2026-01-10", end_exclusive ⇐ "2026-03-10", day_count ⇐ 59 }

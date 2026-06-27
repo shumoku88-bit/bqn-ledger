@@ -77,7 +77,7 @@ Source: `docs/HOUSEHOLD_POLICY_LAYER_PLAN.md` Phase 1
 
 | 行 | 内容 | 分類 | 理由 |
 |---|---|---|---|
-| 32-36 | `FixtureFoodLikeTarget` — `"食費"` ラベル hardcoded | **fixture** | テスト用 fixture のみ。production では `NoPolicyTarget`。ただし fixture 内の日本語ラベルはmoko固有。 |
+| 32-36 | `FixtureFoodLikeTarget` — label / selector value loaded from `config/report_labels.tsv` | **fixture** | テスト用 fixture のみ。production では `NoPolicyTarget`。日本語値は code から外出し済み。 |
 | 160 | `kind_envelope_mask ← "envelope"⊸≡¨` | **metadata** | `kind=envelope` は metadata 契約 |
 | 358 | `GetPri ← { ⊑ ⟨"daily", "flex", "reserve"⟩ ⊐ ⟨𝕩⟩ }` | **policy** | グループの表示優先順を "daily > flex > reserve" に固定。moko の封筒スタイル固有。 |
 
@@ -123,7 +123,7 @@ Source: `docs/HOUSEHOLD_POLICY_LAYER_PLAN.md` Phase 1
 | 項目 | 状態 |
 |---|---|
 | `pension` / `年金` | ❌ コード中に出現しない。cycle.tsv の `income_account` 値としてのみ存在。 |
-| `food` / `食費` | ⚠️ `envelope_computation.bqn` の fixture にのみ出現。production コードにはなし。 |
+| `food` / `食費` | ⚠️ `envelope_computation.bqn` の fixture 値は `config/report_labels.tsv` へ外出し済み。production コードにはなし。 |
 | `calendarMonth` | ❌ コード中に出現しない。cycle.tsv の `mode` 値としてのみ存在。 |
 | `incomeAnchor` | ❌ コード中に出現しない。同上。 |
 

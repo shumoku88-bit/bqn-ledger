@@ -9,6 +9,7 @@ This document tracks the remaining design decisions for the lifestyle configurat
 
 1. **Prefix fallback removal decision**:
    Condition: All account references in live ledger TSVs must explicitly declare `role=`. Use counts are detected in `src_next_household_metadata_prefix_fallback_total_count`. Removal parameters are defined in [docs/ACCOUNT_ROLE_CONTRACT.md](ACCOUNT_ROLE_CONTRACT.md).
+   Current note: `src_next/projection.bqn` and some report paths already prefer explicit roles, but legacy prefix fallback is still present for compatibility. Keep this item open until the removal decision is made.
 2. **Configuration boundary policy**:
    Any configuration-externalization candidate must respect the [docs/SAFETY_PROFILE.md](SAFETY_PROFILE.md). Keep user configs simple; do not turn configuration into a DSL for arbitrary accounting computation.
 3. **Canonical Daily Cube axis constraint**:

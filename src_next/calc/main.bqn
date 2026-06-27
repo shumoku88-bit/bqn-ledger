@@ -2,11 +2,11 @@
 # Usage: bqn src_next/calc/main.bqn <base> <op> [args...]
 #
 # Operations:
-#   pace <label>                 P1: ペース診断
-#   recover <label> <limit>      P2: 指定1日上限での復帰日数
-#   recover-target <label> <days> P3: 指定日数で復帰する1日上限
-#   deplete <label>              P4: 枯渇予測
-#   list                         封筒一覧
+#   pace <label>                 P1: pace diagnosis
+#   recover <label> <limit>      P2: days to recover with a fixed daily limit
+#   recover-target <label> <days> P3: daily limit needed to recover in N days
+#   deplete <label>              P4: depletion forecast
+#   list                         envelope list
 #
 # Machine mode: prefix op with "machine:" (e.g. machine:pace)
 #   → key:value output for AI consumption

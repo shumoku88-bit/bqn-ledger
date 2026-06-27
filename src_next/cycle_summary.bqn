@@ -45,7 +45,7 @@ PlanExpenseRemaining ← {𝕊 ctx‿fallback_total:
       toAcc ← 3⊑flds
       idx ← ⊑ accounts ⊐ ⟨toAcc⟩
       role ← idx ⊑ (roles ∾ ⟨""⟩)
-      (role ≡ "expense") ∨ ("expenses:" ≡ 9 ↑ toAcc)
+      role ≡ "expense"
     }
     InRemaining ← {𝕊 line:
       flds ← Pad5 loader.SplitTsvKeepEmpty line
@@ -83,8 +83,7 @@ Build ← {𝕊 ctx:
 
   # Extract nonzero actual income entries for breakdown
   all_actual ← tbds.RowsForLayer ⟨cube.layer_actual, ctx.tbds⟩
-  StartsWith ← { pref ← 𝕨 ⋄ pref ≡ (≠ pref) ↑ 𝕩 }
-  IsIncome ← { (("income:" StartsWith 𝕩.account_key) ∧ (𝕩.credit_movement ≠ 0)) }
+  IsIncome ← { (𝕩.role ≡ "income") ∧ (𝕩.credit_movement ≠ 0) }
   income_rows ← (IsIncome¨ all_actual) / all_actual
   income_entries ← {⟨𝕩.account_key, -𝕩.credit_movement⟩}¨ income_rows
 
@@ -120,7 +119,7 @@ Format ← {𝕊 summary:
 #   summary       - from Build(ctx)
 #   expenseEntries - ⟨account_key, amount⟩ pairs from expense_breakdown.Build(ctx)
 FormatHuman ← {𝕊 summary‿expenseEntries:
-  # ¯ を - に変換する金額フォーマッタ (幅14)
+  # Amount formatter: convert ¯ to - (width 14)
   FmtAmt2 ← { s ← fmt.PadL ⟨14, 𝕩⟩ ⋄ { 𝕩 ≡ '¯' ? '-' ; 𝕩 }¨ s }
 
   FormatTableGroup ← {
@@ -154,13 +153,13 @@ FormatHuman ← {𝕊 summary‿expenseEntries:
   out ↩ out ∾ "  " ∾ (fmt.PadV ⟨24, L "cycle.net_label"⟩) ∾ "  " ∾ net_str ∾ (@+10) ∾ (@+10)
   out ↩ out ∾ "  " ∾ (fmt.PadV ⟨24, L "cycle.planned_remaining_label"⟩) ∾ "- " ∾ rem_str ∾ (@+10) ∾ (@+10)
 
-  # ── 収入内訳 ──
+  # Income breakdown
   inc_amounts ← {1⊑𝕩}¨ summary.income_entries
   inc_sorted ← (⌽⍋inc_amounts) ⊏ summary.income_entries
   tbl_inc ← FormatTableGroup inc_sorted
   out ↩ out ∾ (0 < ≠tbl_inc) ◶ ⟨{""}, {(L "cycle.income_breakdown_title") ∾ (@+10) ∾ tbl_inc ∾ (@+10)}⟩ @
 
-  # ── 支出内訳 ──
+  # Expense breakdown
   exp_amounts ← {1⊑𝕩}¨ expenseEntries
   exp_sorted ← (⌽⍋exp_amounts) ⊏ expenseEntries
   tbl_exp ← FormatTableGroup exp_sorted

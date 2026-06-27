@@ -332,7 +332,7 @@ FormatHuman ← {𝕊 vm:
   out ← (L "actual.section_title") ∾ (@+10)
   out ↩ out ∾ (@+10)
 
-  # Note: Display days elapsed for current, and "(前サイクル同時点)" for baseline
+  # Note: Display days elapsed for current, and baseline at the same point in the previous cycle
   out ↩ out ∾ (L "actual.current_label") ∾ (fmt.RangeDisp ⟨vm.current_start, vm.current_end_exclusive⟩) ∾ (L "actual.current_open") ∾ (•Fmt vm.elapsed_days) ∾ (L "actual.current_days_suffix") ∾ (@+10)
   out ↩ out ∾ (L "actual.baseline_label") ∾ (fmt.RangeDisp ⟨vm.baseline_start, vm.baseline_end_exclusive⟩) ∾ (L "actual.baseline_suffix") ∾ (@+10)
   out ↩ out ∾ (@+10)

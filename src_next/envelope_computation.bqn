@@ -32,9 +32,9 @@ FixtureFoodLikeTarget ← {𝕊:
   {
     has_policy ⇐ 1,
     target_id ⇐ "fixture_food_like",
-    label ⇐ "食費",
+    label ⇐ (L "envelope.fixture_food_like_label"),
     selector_key ⇐ "budget",
-    selector_value ⇐ "食費"
+    selector_value ⇐ (L "envelope.fixture_food_like_selector_value")
   }
 }
 

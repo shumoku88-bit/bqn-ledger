@@ -54,8 +54,8 @@ Build ← {𝕊 ctx:
   actual_slice ← {𝕊 day: {(day‿𝕩‿0) ⊑ c3d}¨ ↕ ak_count}¨ ↕ day_count
   cum_mat ← +` actual_slice  # shape: day_count × ak_count
 
-  # 1. trend_dates & trend_dns の構築
-  # 有効な実績仕訳行（layer = 0）から日付を収集
+  # 1. Build trend_dates & trend_dns
+  # Collect dates from valid actual postings (layer = 0)
   valid_rows ← ctx.cube.valid_rows
   j_projs ← (0 = {𝕩.layer_index}¨ valid_rows) / valid_rows
   j_dates ← {𝕩.date}¨ j_projs
@@ -63,7 +63,7 @@ Build ← {𝕊 ctx:
   as_of ← LatestActualDateInCycle ⟨base, cy⟩
   trend_dates_all ← j_dates ∾ ⟨as_of⟩
 
-  # ソートとユニーク化
+  # Sort and deduplicate
   dns ← proj.DaysFromEpoch¨ trend_dates_all
   ord ← ⍋ dns
   sorted_dates ← ord ⊏ trend_dates_all
@@ -76,13 +76,13 @@ Build ← {𝕊 ctx:
   cycle_end_excl_dn ← proj.DaysFromEpoch cy.end_exclusive
   as_of_dn ← proj.DaysFromEpoch as_of
 
-  # サイクル内の日付に制限
+  # Restrict to dates within the cycle
   valid_mask ← (trend_dns_uniq ≥ cycle_start_dn) ∧ (trend_dns_uniq < cycle_end_excl_dn)
   trend_dates ← valid_mask / trend_dates_uniq
   trend_dns ← valid_mask / trend_dns_uniq
   obs_count ← ≠ trend_dates
 
-  # 2. plan.tsv と journal.tsv の読み込み (予備費計算のため)
+  # 2. Load plan.tsv and journal.tsv (for reserve calculation)
   planLines ← loader.ReadLinesOptional (base ∾ "/plan.tsv")
   plan_pids ← overlap.PlanId¨ planLines
   plan_dns ← { proj.DaysFromEpoch ⊑ loader.SplitTsvKeepEmpty 𝕩 }¨ planLines
@@ -102,13 +102,13 @@ Build ← {𝕊 ctx:
   j_pids_all ← overlap.PlanId¨ journalLines
   j_dns_all ← { proj.DaysFromEpoch ⊑ loader.SplitTsvKeepEmpty 𝕩 }¨ journalLines
 
-  # 3. planned_future_income の計算
+  # 3. Compute planned_future_income
   p_rows ← (1 = {𝕩.layer_index}¨ valid_rows) / valid_rows
   p_dns_valid ← {proj.DaysFromEpoch 𝕩.date}¨ p_rows
   future_income_mask ← (p_dns_valid > as_of_dn) ∧ (p_dns_valid < cycle_end_excl_dn) ∧ ("debit"⊸≡¨ {𝕩.side}¨ p_rows) ∧ (({𝕩.account_key_index}¨ p_rows) ∊ liq_ak) ∧ (("income"⊸≡¨ {𝕩.kind}¨ p_rows) ∨ ("income:" ⊸ ≡¨ 7 ↑¨ {𝕩.account_key}¨ p_rows))
   planned_future_income ← cube.Sum0 (future_income_mask / {𝕩.delta}¨ p_rows)
 
-  # 4. 各 trend_dates (絶対日数 dn) に対する計算
+  # 4. Compute each trend date (absolute day dn)
   trend_rows ← {𝕊 dn:
     d ← dn - cycle_start_dn
     d_safe ← 0 ⌈ d
@@ -117,7 +117,7 @@ Build ← {𝕊 ctx:
     liq ← cube.Sum0 { 𝕩 ⊑ cum }¨ liq_ak
     sav ← cube.Sum0 { 𝕩 ⊑ cum }¨ sav_ak
 
-    # reserve (固定予備費)
+    # reserve (fixed reserve)
     j_pids ← (j_dns_all ≤ dn) / j_pids_all
     j_pids_clean ← (0 < ≠¨ j_pids) / j_pids
     
@@ -145,7 +145,7 @@ Build ← {𝕊 ctx:
     daily_div ← 1 ⌈ days_left
     daily ← (days_left > 0) ⊑ 0‿(⌊ (fund ÷ daily_div))
 
-    # 当日実績
+    # Actuals for the day
     day_upd ← d_safe ⊑ actual_slice
     day_var ← cube.Sum0 { 𝕩 ⊑ day_upd }¨ var_ak
     day_sav ← cube.Sum0 { 𝕩 ⊑ day_upd }¨ sav_ak

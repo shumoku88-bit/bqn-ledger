@@ -73,16 +73,12 @@ proj_cols ← ⟨
 
 # ── Kind inference ───────────────────────────────────────────
 # Infer kind from source from/to account metadata and prefixes.
-# - to has explicit role=expense → expense (metadata-aware src_next)
-# - to starts with "expenses:"   → expense (existing prefix fallback)
-# - from starts with "income:"   → income  (existing behavior)
-# - otherwise                    → transfer
+# - explicit roles win; legacy prefixes remain compatibility fallback
+# - otherwise         → transfer
 
-InferKind ← {𝕊 ⟨fromAcc, toAcc, toRole⟩:
-  isInc ← "income:"≡7↑fromAcc
-  isExpRole ← toRole ≡ "expense"
-  isExpPrefix ← "expenses:"≡9↑toAcc
-  isExp ← isExpRole ∨ isExpPrefix
+InferKind ← {𝕊 ⟨fromRole, toRole, fromAcc, toAcc⟩:
+  isInc ← (fromRole ≡ "income") ∨ ("income:"≡7↑fromAcc)
+  isExp ← (toRole ≡ "expense") ∨ ("expenses:"≡9↑toAcc)
   isExp ⊑ (isInc ⊑ "transfer"‿"income")‿"expense"
 }
 
@@ -253,6 +249,7 @@ MakeRow ← {𝕊 ⟨srcFile, rowIdx, flds, accounts, accountRoles, accountKeys,
 
   roleWithSentinel ← accountRoles ∾ ⟨""⟩
   keyWithSentinel ← accountKeys ∾ ⟨""⟩
+  fromRole ← fromAkOut ⊑ roleWithSentinel
   toRole ← toAkOut ⊑ roleWithSentinel
 
   day ← 0
@@ -260,7 +257,7 @@ MakeRow ← {𝕊 ⟨srcFile, rowIdx, flds, accounts, accountRoles, accountKeys,
 
   layer ← SourceLayer srcFile
   layerName ← LayerName layer
-  kind  ← InferKind ⟨fromAcc, toAcc, toRole⟩
+  kind  ← InferKind ⟨fromRole, toRole, fromAcc, toAcc⟩
 
   MakeSideRow ← {𝕊 side‿akIdx‿sideDelta:
     {

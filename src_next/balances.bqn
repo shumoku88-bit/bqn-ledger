@@ -72,7 +72,7 @@ FormatHuman ← {𝕊 entries:
   liabilities_total ← SumAmount liabilities
   net_worth ← assets_total + liabilities_total
 
-  # ¯ を - に変換する金額フォーマッタ
+  # Amount formatter: convert ¯ to -
   FmtAmt2 ← { s ← fmt.PadL ⟨14, 𝕩⟩ ⋄ { 𝕩 ≡ '¯' ? '-' ; 𝕩 }¨ s }
 
   FormatTableGroup ← {

@@ -154,7 +154,7 @@ FormatHuman ← {𝕊 ctx:
   out ← (L "planned.section_title") ∾ (@+10)
   out ↩ out ∾ (@+10)
 
-  # 1. 未了テーブル
+  # 1. Open items table
   open_mask ← ¬ "completed"⊸≡¨ hstatuses
   open_indices ← open_mask / ↕ ≠ rows
 
@@ -187,7 +187,7 @@ FormatHuman ← {𝕊 ctx:
   out ↩ out ∾ (@+10) ∾ (L "planned.open_total") ∾ (•Fmt open_total) ∾ (@+10)
   out ↩ out ∾ (@+10)
 
-  # 2. 完了テーブル
+  # 2. Completed items table
   completed_mask ← "completed"⊸≡¨ hstatuses
   completed_indices ← completed_mask / ↕ ≠ rows
 
