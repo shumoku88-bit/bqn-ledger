@@ -94,6 +94,14 @@ source TSV -> Posting IR -> validation -> ledger-wide postings -> TBDS(period, a
 - default switch は gate を満たすまでしない。
 - docs / contract / fixture / check を実装と同じ単位で更新する。
 
+### 7. Test Visibility and Strictness
+
+CIやチェックスクリプトが失敗した際に、原因が即座に分かる状態を維持する。
+
+- **エラー出力の隠蔽厳禁**: テストコマンド (`go test`, `bqn` など) の出力を `>/dev/null` で捨ててはならない。失敗した時に「なぜ落ちたか」が隠されてしまい、CIデバッグが困難になる罠を防ぐ。
+- **Goテストキャッシュの罠に注意**: Goのテストは `.go` ファイル自体が変更されないと結果がキャッシュされる（`ok (cached)`）。BQNファイルを追加・変更してGo側のLinter（依存関係チェック等）に違反した場合、ローカルではエラーに気づかないことがある。BQNの依存を変えた時は `go test -count=1 ./...` でキャッシュを無効化するか、CIの実行結果を必ず確認する。
+- **環境差異への防御**: CI (Ubuntu/UTC) と ローカル (macOS/JST) の差異で落ちないように、CI側でタイムゾーンを明示的に指定する（`TZ: Asia/Tokyo`）、またはテスト側を堅牢に書く。
+
 ## 作業選択ルール
 
 次に何をするか迷ったら、次の順に優先する。
