@@ -109,10 +109,14 @@ tools/check.sh
 ### Interactive UI
 
 ```bash
+# read-only preflight
+tools/add-ui.sh --check
+
+# interactive input
 tools/add-ui.sh
 ```
 
-`tools/add-ui.sh` は `<base>/accounts.tsv` を読み、支出、収入、資産移動、予算配賦の入力を補助します。fzf があれば fzf、なければ gum、さらにどちらもなければ番号入力にフォールバックします。
+`tools/add-ui.sh` は `<base>/accounts.tsv` を読み、支出、収入、資産移動、予算配賦の入力を補助します。fzf があれば fzf、なければ gum、さらにどちらもなければ番号入力にフォールバックします。`--check` は source TSV を書き換えず、data dir と候補一覧・Go editor 経路を事前確認します。
 
 実際の追記は通常 Go 製の `tools/edit` に委譲されます。これにより、プレビュー、バックアップ、stale check、lint などの安全経路を通ります。
 

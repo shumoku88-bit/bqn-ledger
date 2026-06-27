@@ -131,7 +131,7 @@ source-of-truth TSV を安全に編集する Go ツール。
 - `tools/query` — `report-next-summary` の thin filter（`--list`/`--keys`/`--grep`/`--grep-val`）。
 
 ### UI 操作
-- `tools/add-ui.sh` — 仕訳追加・取消・予定管理。
+- `tools/add-ui.sh` — 仕訳追加・取消・予定管理。`--check` で read-only preflight。
 - `tools/main-ui.sh` — レポート表示系。
 - `tools/edit` — Go editor ラッパー。
 

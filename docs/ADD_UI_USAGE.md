@@ -12,6 +12,14 @@ tools/add-ui.sh
 
 画面の質問に沿って、mode / date / account / amount / memo / meta を入力します。
 
+入力画面を開く前に read-only で確認したい場合:
+
+```sh
+tools/add-ui.sh --check
+```
+
+`--check` は source TSV を書き換えません。base directory、主要 TSV、role 別 account 候補、Go editor 経路、plan list の読み取りを確認します。
+
 ## mode
 
 | mode | 意味 | 書き込み先 | 内部コマンド |
@@ -100,6 +108,7 @@ tools/edit journal add \
 ## 注意
 
 - `journal.tsv` / `budget_alloc.tsv` は source-of-truth TSV です。
+- `tools/add-ui.sh --check` は read-only preflight です。入力UIが壊れていないか先に確認できます。
 - `tools/add-ui.sh` は承認済み範囲の single-file append だけを行います。
 - `plan finish apply`、削除、複数ファイル更新はまだ未承認です。
 - 詳細設計は `docs/GO_SOURCE_TSV_EDITOR_DESIGN.md` を参照してください。

@@ -24,7 +24,7 @@ source "$ROOT_DIR/tools/lib/system-defaults.sh"
 usage() {
   cat <<'EOF'
 Usage:
-  tools/add-ui.sh [--base <dir>]
+  tools/add-ui.sh [--base <dir>] [--check]
 
 Fuzzy transaction adder for everyday entries.
 
@@ -37,15 +37,29 @@ Modes:
   plan-edit date/amount        (edits plan.tsv)  plan-finish                 (plan -> journal)
 
 Append is delegated to tools/edit (Go safe-append path).
+
+Options:
+  --base <dir>  Use an explicit source TSV base directory
+  --check       Read-only preflight; validate data dir, candidates, and editor path
 EOF
 }
 
 shout() { printf '%s\n' "$*" >&2; }
 
 base_dir="${LEDGER_DATA_DIR:-$(get_default_base_dir)}"
+preflight=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --base) base_dir="$2"; shift 2 ;;
+    --base)
+      if [[ $# -lt 2 ]]; then
+        shout "Error: --base requires a directory"
+        usage
+        exit 1
+      fi
+      base_dir="$2"
+      shift 2
+      ;;
+    --check) preflight=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *) shout "Error: Unknown argument: $1"; usage; exit 1 ;;
   esac
@@ -78,6 +92,84 @@ accounts() {
     awk -F'\t' '/^#/ || /^[[:space:]]*$/ { next } { print $1 }' "$accounts_file"
   fi
 }
+
+run_preflight() {
+  local failures=0 warnings=0 count role f
+
+  ok() { printf 'PASS %s\n' "$*"; }
+  warn_check() { printf 'WARN %s\n' "$*"; warnings=$((warnings + 1)); }
+  fail_check() { printf 'FAIL %s\n' "$*"; failures=$((failures + 1)); }
+
+  printf 'add-ui preflight\n'
+  printf 'base: %s\n' "$base_dir"
+
+  for f in accounts.tsv journal.tsv cycle.tsv; do
+    if [[ -f "$base_dir/$f" ]]; then
+      ok "$f"
+    else
+      fail_check "$f missing"
+    fi
+  done
+
+  for f in plan.tsv budget_alloc.tsv config.tsv; do
+    if [[ -f "$base_dir/$f" ]]; then
+      ok "$f"
+    else
+      warn_check "$f missing; related mode/view may be unavailable"
+    fi
+  done
+
+  if [[ -x "$ROOT_DIR/tools/edit" ]]; then
+    ok "tools/edit wrapper"
+  else
+    fail_check "tools/edit wrapper is not executable"
+  fi
+
+  if command -v go >/dev/null 2>&1; then
+    ok "go command"
+  else
+    fail_check "go command not found; tools/edit cannot build"
+  fi
+
+  for role in asset expense income; do
+    count="$(accounts "$role" | awk 'END { print NR + 0 }')"
+    if [[ "$count" -gt 0 ]]; then
+      ok "role=$role candidates: $count"
+    else
+      fail_check "role=$role has no candidates"
+    fi
+  done
+
+  count="$(accounts budget | awk 'END { print NR + 0 }')"
+  if [[ "$count" -gt 0 ]]; then
+    ok "role=budget candidates: $count"
+  else
+    warn_check "role=budget has no candidates; budget mode may be unavailable"
+  fi
+
+  if [[ -f "$base_dir/plan.tsv" ]]; then
+    if "$ROOT_DIR/tools/edit" --base "$base_dir" plan list --format tsv >/dev/null; then
+      ok "tools/edit plan list --format tsv"
+    else
+      fail_check "tools/edit plan list --format tsv failed"
+    fi
+  else
+    warn_check "skipped plan list check because plan.tsv is missing"
+  fi
+
+  if [[ "$failures" -eq 0 ]]; then
+    printf 'OK add-ui preflight passed (%s warning(s))\n' "$warnings"
+    return 0
+  fi
+
+  printf 'FAILED add-ui preflight: %s failure(s), %s warning(s)\n' "$failures" "$warnings" >&2
+  return 1
+}
+
+if [[ "$preflight" -eq 1 ]]; then
+  run_preflight
+  exit $?
+fi
 
 # ── UI helpers ──
 

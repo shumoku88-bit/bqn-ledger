@@ -70,6 +70,11 @@ else
   fail "add-ui help failed"
 fi
 
+assert_nonempty_contains \
+  "add-ui preflight" \
+  "OK add-ui preflight passed" \
+  tools/add-ui.sh --base data --check
+
 if tools/main-ui.sh --help >/dev/null; then
   pass "main-ui help works"
 else
@@ -85,6 +90,19 @@ else
     pass "main-ui missing base reports visible error"
   else
     fail "main-ui missing base failed silently"
+  fi
+fi
+rm -f "$bad_out" "$bad_err"
+
+bad_out="$(mktemp)"
+bad_err="$(mktemp)"
+if tools/add-ui.sh --base /definitely/missing/base --check >"$bad_out" 2>"$bad_err"; then
+  fail "add-ui missing base unexpectedly succeeded"
+else
+  if [[ -s "$bad_err" ]]; then
+    pass "add-ui missing base reports visible error"
+  else
+    fail "add-ui missing base failed silently"
   fi
 fi
 rm -f "$bad_out" "$bad_err"

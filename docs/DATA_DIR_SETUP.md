@@ -55,12 +55,14 @@ After changing or moving the source data directory, run:
 ```sh
 tools/doctor
 tools/main-ui.sh
+tools/add-ui.sh --check
 ```
 
 Expected result:
 
 - `tools/doctor` reports the effective base directory and required TSV files.
 - `tools/main-ui.sh` displays a report.
+- `tools/add-ui.sh --check` confirms the read-only preflight for input paths.
 
 If the configured directory is stale, tools should fail with a visible diagnostic instead of a blank screen or a long raw trace.
 
@@ -73,7 +75,8 @@ When the real source data directory moves:
 3. Open a new shell or reload the startup file.
 4. Run `tools/doctor`.
 5. Run `tools/main-ui.sh`.
-6. Only then use `tools/add-ui.sh` or `tools/edit` for writes.
+6. Run `tools/add-ui.sh --check`.
+7. Only then use `tools/add-ui.sh` or `tools/edit` for writes.
 
 Do not change `config/system_defaults.tsv` to point at private real data. It is committed to the public repo and should remain a sandbox default.
 
