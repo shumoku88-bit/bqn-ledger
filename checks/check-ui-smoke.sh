@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Smoke-test daily shell UI entry points.
-# Read-only: protects the normal report path and representative UI routes.
+# Read-only: protects selector, full report, and representative UI routes.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
@@ -34,12 +34,33 @@ assert_nonempty_contains() {
   rm -f "$out" "$err"
 }
 
+assert_stdin_nonempty_contains() {
+  local name="$1" expected="$2" input="$3"
+  shift 3
+  local out err
+  out="$(mktemp)"
+  err="$(mktemp)"
+  if printf '%s\n' "$input" | "$@" >"$out" 2>"$err"; then
+    if [[ ! -s "$out" ]]; then
+      fail "$name produced empty output"
+    elif ! grep -qF -- "$expected" "$out"; then
+      fail "$name output did not contain expected text: $expected"
+    else
+      pass "$name renders visible output"
+    fi
+  else
+    fail "$name failed: $(head -1 "$err")"
+  fi
+  rm -f "$out" "$err"
+}
+
 if bash -n tools/main-ui.sh; then pass "main-ui syntax ok"; else fail "main-ui syntax error"; fi
 if bash -n tools/add-ui.sh; then pass "add-ui syntax ok"; else fail "add-ui syntax error"; fi
 
-assert_nonempty_contains \
-  "main-ui default report" \
+assert_stdin_nonempty_contains \
+  "main-ui default selector" \
   "1. 全体サマリ" \
+  "snapshot" \
   tools/main-ui.sh --base "$fixture"
 
 assert_nonempty_contains \
@@ -83,13 +104,13 @@ fi
 
 bad_out="$(mktemp)"
 bad_err="$(mktemp)"
-if tools/main-ui.sh --base /definitely/missing/base >"$bad_out" 2>"$bad_err"; then
-  fail "main-ui missing base unexpectedly succeeded"
+if tools/main-ui.sh --base /definitely/missing/base report >"$bad_out" 2>"$bad_err"; then
+  fail "main-ui missing base report unexpectedly succeeded"
 else
   if [[ -s "$bad_err" ]]; then
-    pass "main-ui missing base reports visible error"
+    pass "main-ui missing base report reports visible error"
   else
-    fail "main-ui missing base failed silently"
+    fail "main-ui missing base report failed silently"
   fi
 fi
 rm -f "$bad_out" "$bad_err"
@@ -119,7 +140,6 @@ if tools/report "$fixture" --list-sections --no-color >"$list_sections_out" 2>/d
     fi
   done
 
-  # Verify section count matches main-ui section_list
   declared_count=$(awk -F'\t' 'NF>=2 && $1!="" {n++} END {print n+0}' "$list_sections_out")
   if [[ "$declared_count" -ge 13 ]]; then
     pass "report --list-sections returns $declared_count sections"
@@ -127,7 +147,6 @@ if tools/report "$fixture" --list-sections --no-color >"$list_sections_out" 2>/d
     fail "report --list-sections returned only $declared_count sections (expected >=13)"
   fi
 
-  # Verify each marker is non-empty
   while IFS=$'\t' read -r key marker; do
     [[ -z "$key" ]] && continue
     if [[ -z "$marker" ]]; then
