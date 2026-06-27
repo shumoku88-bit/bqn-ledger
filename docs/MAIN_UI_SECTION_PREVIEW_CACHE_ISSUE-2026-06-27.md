@@ -39,6 +39,15 @@ On `tools/main-ui.sh` selector startup:
 6. Do not use awk boundaries for preview.
 7. Delete the temporary cache when selector exits.
 
+## Review notes / implementation priorities
+
+Suggested order:
+
+1. Keep `tools/check.sh` resolving repo root from the repo root, not the parent directory.
+2. Make `--section envelopes` safe on envelope-less / no-budget-data fixtures (fail closed or render a visible unavailable message).
+3. If a ToC/select path exists, keep branch selection lazy-safe (`◶`) so `q`/cancel paths do not eagerly execute the body. If this logic ever lives on the historical report side again, the note target is `src/reports/main_impl.bqn` / `src/reports/report_sections.bqn`.
+4. Add a smoke check for envelope-less and empty fixtures for `--section envelopes`.
+
 ## Future command shape
 
 Possible report command:
