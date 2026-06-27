@@ -50,7 +50,7 @@ EOF
 }
 
 base_dir="${LEDGER_DATA_DIR:-$(get_default_base_dir)}"
-cmd="report"
+cmd="select"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
