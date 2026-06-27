@@ -122,7 +122,7 @@ show_section_direct() {
   out="$(mktemp)"
   err="$(mktemp)"
   trap 'rm -f "$out" "$err"' RETURN
-  if "$ROOT_DIR/tools/report" "$base_dir" --section "$key" --no-color >"$out" 2>"$err"; then
+  if "$ROOT_DIR/tools/report" "$base_dir" --section "$key" "${report_color_args[@]}" >"$out" 2>"$err"; then
     cat "$out"
   else
     status=$?
@@ -143,6 +143,7 @@ select_section() {
         --height=80% \
         --reverse \
         --exit-0 \
+        --ansi \
         --preview "cat '$cache_dir'/{1}.txt 2>/dev/null || echo '(No preview available)'" \
         --preview-window 'right:60%'
     else
@@ -176,7 +177,7 @@ case "$cmd" in
     cache_dir="$(mktemp -d)"
     trap 'rm -rf "$cache_dir"' EXIT
 
-    if ! "$ROOT_DIR/tools/report" "$base_dir" --write-section-cache "$cache_dir" --no-color >/dev/null; then
+    if ! "$ROOT_DIR/tools/report" "$base_dir" --write-section-cache "$cache_dir" "${report_color_args[@]}" >/dev/null; then
       echo "Failed to generate report cache" >&2
       exit 1
     fi
