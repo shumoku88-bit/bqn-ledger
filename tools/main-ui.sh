@@ -7,8 +7,8 @@ set -euo pipefail
 #   tools/main-ui.sh  -> open the lightweight section selector
 # Full report output remains available through `report` / `all`.
 #
-# Section extraction uses report.bqn --list-sections for marker mapping,
-# so section headers can change in BQN without breaking direct section commands.
+# Selector-based section extraction uses report.bqn --list-sections for marker mapping,
+# so section headers can change in BQN without breaking menu browsing.
 
 SOURCE="${BASH_SOURCE[0]}"
 while [ -L "$SOURCE" ]; do
@@ -211,7 +211,7 @@ extract_section_from_cache() {
   }
 }
 
-show_section() {
+show_section_cached() {
   local key="$1" report_cache err_cache
   report_cache="$(mktemp)"
   err_cache="$(mktemp)"
@@ -219,6 +219,21 @@ show_section() {
   load_section_map "$base_dir" || return 1
   build_report_cache "$report_cache" "$err_cache"
   extract_section_from_cache "$key" "$report_cache"
+}
+
+show_section_direct() {
+  local key="$1" out err status
+  out="$(mktemp)"
+  err="$(mktemp)"
+  trap 'rm -f "$out" "$err"' RETURN
+  if "$ROOT_DIR/tools/report" "$base_dir" --section "$key" --no-color >"$out" 2>"$err"; then
+    cat "$out"
+  else
+    status=$?
+    if [[ -s "$out" ]]; then cat "$out" >&2; fi
+    if [[ -s "$err" ]]; then cat "$err" >&2; fi
+    return "$status"
+  fi
 }
 
 select_section() {
@@ -254,10 +269,10 @@ case "$cmd" in
     case "$key" in
       actions) exec "$ROOT_DIR/tools/add-ui.sh" --base "$base_dir" ;;
       all) show_full_report ;;
-      *) show_section "$key" ;;
+      *) show_section_cached "$key" ;;
     esac
     ;;
   *)
-    show_section "$cmd"
+    show_section_direct "$cmd"
     ;;
 esac
