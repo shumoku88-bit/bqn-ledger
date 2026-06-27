@@ -11,7 +11,10 @@ if [ ! -d "$fixture" ]; then
 fi
 
 out="$(mktemp)"
-trap 'rm -f "$out"' EXIT
+section_out="$(mktemp)"
+bad_out="$(mktemp)"
+bad_err="$(mktemp)"
+trap 'rm -f "$out" "$section_out" "$bad_out" "$bad_err"' EXIT
 
 bqn src_next/report.bqn "$fixture" > "$out"
 
@@ -41,6 +44,44 @@ for section in "${sections[@]}"; do
     fail "human report missing: $section"
   fi
 done
+
+if tools/report "$fixture" --section envelopes --no-color >"$section_out" 2>/dev/null; then
+  if grep -qF -- '== Envelope & Budget ==' "$section_out"; then
+    pass "report --section envelopes contains the envelope header"
+  else
+    fail "report --section envelopes missing the envelope header"
+  fi
+
+  if grep -qF -- '== Planned Payments ==' "$section_out"; then
+    fail "report --section envelopes leaked the next section header"
+  else
+    pass "report --section envelopes stays within one section"
+  fi
+else
+  fail "report --section envelopes failed"
+fi
+
+if tools/report "$fixture" --section snapshot --no-color >"$section_out" 2>/dev/null; then
+  if grep -qF -- '1. 全体サマリ (Snapshot)' "$section_out"; then
+    pass "report --section snapshot contains the snapshot header"
+  else
+    fail "report --section snapshot missing the snapshot header"
+  fi
+
+  if grep -qF -- '== YTD Summary ==' "$section_out"; then
+    fail "report --section snapshot leaked the next section header"
+  else
+    pass "report --section snapshot stays within one section"
+  fi
+else
+  fail "report --section snapshot failed"
+fi
+
+if tools/report "$fixture" --section does-not-exist --no-color >"$bad_out" 2>"$bad_err"; then
+  fail "report --section does-not-exist unexpectedly succeeded"
+else
+  pass "report --section does-not-exist fails"
+fi
 
 if grep -qiE '(production.ready|default switch|replacement ready)' "$out"; then
   fail "human report appears to claim production readiness"
