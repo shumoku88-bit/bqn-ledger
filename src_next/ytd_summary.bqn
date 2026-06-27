@@ -9,6 +9,8 @@ loader ← •Import "loader.bqn"
 proj ← •Import "projection.bqn"
 cube ← •Import "cube.bqn"
 fmt ← •Import "format.bqn"
+labels ← •Import "report_labels.bqn"
+L ← labels.Text
 
 YearStartForEnd ← {𝕊 endExclusive: (4↑endExclusive) ∾ "-01-01" }
 
@@ -167,7 +169,7 @@ FormatHuman ← {𝕊 summary:
     ((0 ⌈ w - ≠ s) ⥊ " ") ∾ s
   }
 
-  out ← "== YTD Summary ==" ∾ (@+10) ∾ (@+10)
+  out ← (L "ytd.section_title") ∾ (@+10) ∾ (@+10)
   out ↩ out ∾ (summary.range_start ∾ " 〜 " ∾ summary.range_end_exclusive) ∾ (@+10) ∾ (@+10)
   out ↩ out ∾ (fmt.PadV ⟨w_acc, "account"⟩) ∾ " | " ∾ (AlignR ⟨w_amt, "YTD"⟩) ∾ (@+10)
 

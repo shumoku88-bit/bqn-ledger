@@ -134,7 +134,7 @@ FormatHuman ← {𝕊 summary‿expenseEntries:
     ∾ rows
   }
 
-  out ← "== Current Cycle Summary ==" ∾ (@+10) ∾ (@+10)
+  out ← (L "cycle.section_title") ∾ (@+10) ∾ (@+10)
   
   days_str ← •Fmt summary.days_remaining
   out ↩ out ∾ (L "cycle.cycle_prefix") ∾ (fmt.RangeDisp ⟨summary.start, summary.end_exclusive⟩) ∾ (L "cycle.days_left_prefix") ∾ days_str ∾ (L "cycle.days_left_suffix") ∾ (@+10) ∾ (@+10)

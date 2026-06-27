@@ -59,10 +59,10 @@ FormatHuman ← {𝕊 ctx‿n:
 
     PadCol ← {w‿s: fmt.PadV ⟨w, s⟩}
 
-    out ↩ out ∾ "Date" ∾ ((date_w - 4) ⥊ " ") ∾ " | "
-    out ↩ out ∾ "From" ∾ ((from_w - 4) ⥊ " ") ∾ " -> "
-    out ↩ out ∾ "To" ∾ ((to_w - 2) ⥊ " ") ∾ " | "
-    out ↩ out ∾ "Memo" ∾ ((0⌈memo_w - 4) ⥊ " ") ∾ " |       Amount" ∾ (@+10)
+    out ↩ out ∾ (L "recent.date_header") ∾ ((date_w - 4) ⥊ " ") ∾ " | "
+    out ↩ out ∾ (L "recent.from_header") ∾ ((from_w - 4) ⥊ " ") ∾ " -> "
+    out ↩ out ∾ (L "recent.to_header") ∾ ((to_w - 2) ⥊ " ") ∾ " | "
+    out ↩ out ∾ (L "recent.memo_header") ∾ ((0⌈memo_w - 4) ⥊ " ") ∾ " |       " ∾ (L "recent.amount_header") ∾ (@+10)
 
     {
       r ← 𝕩

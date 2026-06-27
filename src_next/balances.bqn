@@ -3,6 +3,8 @@
 
 tbds ← •Import "tbds.bqn"
 fmt ← •Import "format.bqn"
+labels ← •Import "report_labels.bqn"
+L ← labels.Text
 
 # Build: extract nonzero actual closing balances from context.
 # Args: ctx (context namespace with ctx.tbds)
@@ -86,7 +88,7 @@ FormatHuman ← {𝕊 entries:
     hdr ∾ div ∾ ∾ rows
   }
 
-  out ← "== Account Balances ==" ∾ (@+10) ∾ (@+10)
+  out ← (L "balances.section_title") ∾ (@+10) ∾ (@+10)
   
   tbl_liq ← FormatTableGroup liquid
   out ↩ out ∾ (0 < ≠tbl_liq) ◶ ⟨{""}, {"[Assets / Liquid]" ∾ (@+10) ∾ tbl_liq ∾ (@+10)}⟩ @

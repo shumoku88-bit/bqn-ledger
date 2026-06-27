@@ -7,6 +7,7 @@ snapshot.assets_total_line	総資産合計             :
 snapshot.liabilities_total_line	負債合計 (liabilities) : 
 snapshot.net_worth_line	純資産 (Net Worth)     : 
 cycle.cycle_prefix	Cycle: 
+cycle.section_title	== Current Cycle Summary ==
 cycle.days_left_prefix	  (あと 
 cycle.days_left_suffix	 日)
 cycle.income_total_label	収入合計
@@ -22,6 +23,15 @@ planned.future_status	future  : これから
 planned.due_status	     : 今日が期限
 planned.overdue_status	 : 期限超過 ⚠
 planned.completed_status	completed : 支払い済み
+planned.section_title	== Planned Payments ==
+planned.date_header	Date
+planned.category_header	Category
+planned.memo_header	Memo
+planned.amount_header	Amount
+planned.status_header	Status
+planned.planned_header	Planned
+planned.actual_header	Actual
+planned.status_legend_title	[Status]
 actual.section_title	== Actual Comparison ==
 actual.current_label	current : 
 actual.current_open	 (
@@ -30,6 +40,12 @@ actual.baseline_label	baseline:
 actual.baseline_suffix	 (前サイクル同時点)
 actual.no_history	NOTE: 比較可能な前サイクル履歴が足りないため、Actual比較は表示しません。(status: 
 actual.no_rows	(no comparable actual activity)
+actual.table_unit	Unit
+actual.table_current	Current
+actual.table_baseline	Baseline
+actual.table_diff	Diff
+actual.table_ratio	Ratio
+actual.table_status	Status
 outlook.section_title	== Outlook Dashboard ==
 outlook.cycle_label	サイクル: 
 outlook.as_of_label	基準日:   
@@ -47,7 +63,19 @@ outlook.days_suffix	日 =
 outlook.remaining_open	  (残 
 outlook.remaining_close	 日)
 recent.section_title	7. 直近の取引 (Recent Journal)
+recent.date_header	Date
+recent.from_header	From
+recent.to_header	To
+recent.memo_header	Memo
+recent.amount_header	Amount
 report.debug_title	12. デバッグ・由来 (Debug & Provenance)
+report.envelope_section_title	== Envelope & Budget ==
+report.envelope_guard_note	NOTE: src_next envelope production advice is guarded
+balances.section_title	== Account Balances ==
+readiness.section_title	== Readiness Check ==
+ytd.section_title	== YTD Summary ==
+trial_balance.section_title_prefix	== Trial Balance (
+trial_balance.section_title_suffix	 layer) ==
 calc.pace_title	ペース診断
 calc.recovery_title	復帰計算
 calc.depletion_title	枯渇予測

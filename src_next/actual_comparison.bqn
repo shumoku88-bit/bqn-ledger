@@ -329,7 +329,7 @@ Format ← {𝕊 vm:
 # ── FormatHuman ────────────────────────────────────────────
 
 FormatHuman ← {𝕊 vm:
-  out ← "== Actual Comparison ==" ∾ (@+10)
+  out ← (L "actual.section_title") ∾ (@+10)
   out ↩ out ∾ (@+10)
 
   # Note: Display days elapsed for current, and "(前サイクル同時点)" for baseline
@@ -361,7 +361,7 @@ FormatHuman ← {𝕊 vm:
             ((0 ⌈ w - ≠ s) ⥊ " ") ∾ s
           }
 
-          out ↩ out ∾ (fmt.PadV ⟨w_unit, "Unit"⟩) ∾ " | " ∾ (AlignR ⟨w_amt, "Current"⟩) ∾ " | " ∾ (AlignR ⟨w_amt, "Baseline"⟩) ∾ " | " ∾ (AlignR ⟨w_amt, "Diff"⟩) ∾ " | " ∾ (AlignR ⟨w_ratio, "Ratio"⟩) ∾ " | " ∾ (fmt.PadV ⟨w_status, "Status"⟩) ∾ (@+10)
+          out ↩ out ∾ (fmt.PadV ⟨w_unit, (L "actual.table_unit")⟩) ∾ " | " ∾ (AlignR ⟨w_amt, (L "actual.table_current")⟩) ∾ " | " ∾ (AlignR ⟨w_amt, (L "actual.table_baseline")⟩) ∾ " | " ∾ (AlignR ⟨w_amt, (L "actual.table_diff")⟩) ∾ " | " ∾ (AlignR ⟨w_ratio, (L "actual.table_ratio")⟩) ∾ " | " ∾ (fmt.PadV ⟨w_status, (L "actual.table_status")⟩) ∾ (@+10)
 
           FormatRow ← {𝕊 row:
             unit ← 3⊑row

@@ -14,6 +14,7 @@
   - 計算エンジン側はデータ射影キーのみを出力し、表示層（`color-filter` 等）で適切な日本語やスタイルを当てる設計にする。
   - 監査台帳: [docs/REPORT_ASSUMPTION_AUDIT.md](docs/REPORT_ASSUMPTION_AUDIT.md)
   - 2026-06-28: first boundary as `config/report_labels.tsv` + `src_next/report_labels.bqn` を追加。
+  - 2026-06-28: section titles / table headers も `report_labels.tsv` 経由へ拡張。
 - [ ] **Prefix Fallback（接頭辞による暗黙の役割推測）の完全廃止**
   - アカウント名（`expenses:`, `income:` 等）による暗黙判定を廃止し、explicit `role=` を厳格に適用する。
   - [docs/ACCOUNT_ROLE_CONTRACT.md](docs/ACCOUNT_ROLE_CONTRACT.md) の契約に準拠。

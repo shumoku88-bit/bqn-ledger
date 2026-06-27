@@ -13,6 +13,8 @@
 tbds_mod ← •Import "tbds.bqn"
 cube_mod ← •Import "cube.bqn"
 fmt ← •Import "format.bqn"
+labels ← •Import "report_labels.bqn"
+L ← labels.Text
 
 # Build: extract Trial Balance rows from TBDS for a selected layer.
 # Args: ⟨ctx, layerIdx⟩
@@ -66,7 +68,7 @@ FormatHuman ← {𝕊 tb:
   n ← ≠ tb.accounts
   maxName ← ⌈´ (fmt.VWidth¨ tb.accounts) ∾ ⟨7⟩
 
-  out ← "== Trial Balance (" ∾ tb.layer_name ∾ " layer) ==" ∾ (@+10)
+  out ← (L "trial_balance.section_title_prefix") ∾ tb.layer_name ∾ (L "trial_balance.section_title_suffix") ∾ (@+10)
   out ↩ out ∾ "Period: " ∾ (fmt.RangeDisp ⟨tb.period_start, tb.period_end_exclusive⟩) ∾ (@+10)
   out ↩ out ∾ "As of : " ∾ tb.as_of ∾ (@+10)
   out ↩ out ∾ (@+10)

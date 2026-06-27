@@ -62,8 +62,8 @@ BuildSectionEntries ← {𝕊 ctx:
     ⟨"envelopes", {
       txt ← envelope_computation.FormatHuman vm
       (0=≠txt)◶⟨{𝕊: txt},{
-        hdr ← "== Envelope & Budget =="
-        hdr∾(@+10)∾"status: "∾vm.status∾(@+10)∾"NOTE: src_next envelope production advice is guarded"∾(@+10)
+        hdr ← L "report.envelope_section_title"
+        hdr∾(@+10)∾"status: "∾vm.status∾(@+10)∾(L "report.envelope_guard_note")∾(@+10)
       }⟩ @
     }⍟(vm.status ≢ "disabled") @⟩
     ⟨"planned", planned_payments.FormatHuman ctx⟩

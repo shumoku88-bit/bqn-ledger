@@ -151,7 +151,7 @@ FormatHuman ← {𝕊 ctx:
 
   actuals ← { ("paid" ≡ 𝕩⊑statuses) ? (4⊑(𝕩⊑parsed)) ; 0 }¨ ↕ ≠ rows
 
-  out ← "== Planned Payments ==" ∾ (@+10)
+  out ← (L "planned.section_title") ∾ (@+10)
   out ↩ out ∾ (@+10)
 
   # 1. 未了テーブル
@@ -159,8 +159,8 @@ FormatHuman ← {𝕊 ctx:
   open_indices ← open_mask / ↕ ≠ rows
 
   w_date ← 10
-  w_cat_o ← ⌈´ ⟨ fmt.VWidth "Category" ⟩ ∾ (fmt.VWidth¨ open_mask/cats)
-  w_memo_o ← ⌈´ ⟨ fmt.VWidth "Memo" ⟩ ∾ (fmt.VWidth¨ open_mask/{1⊑𝕩}¨ parsed)
+  w_cat_o ← ⌈´ ⟨ fmt.VWidth (L "planned.category_header") ⟩ ∾ (fmt.VWidth¨ open_mask/cats)
+  w_memo_o ← ⌈´ ⟨ fmt.VWidth (L "planned.memo_header") ⟩ ∾ (fmt.VWidth¨ open_mask/{1⊑𝕩}¨ parsed)
   w_amt ← 10
   w_status ← 10
 
@@ -170,7 +170,7 @@ FormatHuman ← {𝕊 ctx:
   }
 
   out ↩ out ∾ (L "planned.open_title") ∾ (@+10)
-  out ↩ out ∾ (fmt.PadV ⟨w_date, "Date"⟩) ∾ " | " ∾ (fmt.PadV ⟨w_cat_o, "Category"⟩) ∾ " | " ∾ (fmt.PadV ⟨w_memo_o, "Memo"⟩) ∾ " | " ∾ (AlignR ⟨w_amt, "Amount"⟩) ∾ " | " ∾ (fmt.PadV ⟨w_status, "Status"⟩) ∾ (@+10)
+  out ↩ out ∾ (fmt.PadV ⟨w_date, (L "planned.date_header")⟩) ∾ " | " ∾ (fmt.PadV ⟨w_cat_o, (L "planned.category_header")⟩) ∾ " | " ∾ (fmt.PadV ⟨w_memo_o, (L "planned.memo_header")⟩) ∾ " | " ∾ (AlignR ⟨w_amt, (L "planned.amount_header")⟩) ∾ " | " ∾ (fmt.PadV ⟨w_status, (L "planned.status_header")⟩) ∾ (@+10)
 
   {
     idx ← 𝕩
@@ -191,13 +191,13 @@ FormatHuman ← {𝕊 ctx:
   completed_mask ← "completed"⊸≡¨ hstatuses
   completed_indices ← completed_mask / ↕ ≠ rows
 
-  w_cat_c ← ⌈´ ⟨ fmt.VWidth "Category" ⟩ ∾ (fmt.VWidth¨ completed_mask/cats)
-  w_memo_c ← ⌈´ ⟨ fmt.VWidth "Memo" ⟩ ∾ (fmt.VWidth¨ completed_mask/{1⊑𝕩}¨ parsed)
+  w_cat_c ← ⌈´ ⟨ fmt.VWidth (L "planned.category_header") ⟩ ∾ (fmt.VWidth¨ completed_mask/cats)
+  w_memo_c ← ⌈´ ⟨ fmt.VWidth (L "planned.memo_header") ⟩ ∾ (fmt.VWidth¨ completed_mask/{1⊑𝕩}¨ parsed)
   w_planned ← 10
   w_actual ← 10
 
   out ↩ out ∾ (L "planned.completed_title") ∾ (@+10)
-  out ↩ out ∾ (fmt.PadV ⟨w_date, "Date"⟩) ∾ " | " ∾ (fmt.PadV ⟨w_cat_c, "Category"⟩) ∾ " | " ∾ (fmt.PadV ⟨w_memo_c, "Memo"⟩) ∾ " | " ∾ (AlignR ⟨w_planned, "Planned"⟩) ∾ " | " ∾ (AlignR ⟨w_actual, "Actual"⟩) ∾ (@+10)
+  out ↩ out ∾ (fmt.PadV ⟨w_date, (L "planned.date_header")⟩) ∾ " | " ∾ (fmt.PadV ⟨w_cat_c, (L "planned.category_header")⟩) ∾ " | " ∾ (fmt.PadV ⟨w_memo_c, (L "planned.memo_header")⟩) ∾ " | " ∾ (AlignR ⟨w_planned, (L "planned.planned_header")⟩) ∾ " | " ∾ (AlignR ⟨w_actual, (L "planned.actual_header")⟩) ∾ (@+10)
 
   {
     idx ← 𝕩
@@ -210,7 +210,7 @@ FormatHuman ← {𝕊 ctx:
   out ↩ out ∾ (@+10)
 
   # Status legend
-  out ↩ out ∾ "[Status]" ∾ (@+10)
+  out ↩ out ∾ (L "planned.status_legend_title") ∾ (@+10)
   out ↩ out ∾ (L "planned.future_status") ∾ (@+10)
   out ↩ out ∾ (fmt.Warn "due") ∾ (L "planned.due_status") ∾ (@+10)
   out ↩ out ∾ (fmt.Bad "overdue") ∾ (L "planned.overdue_status") ∾ (@+10)

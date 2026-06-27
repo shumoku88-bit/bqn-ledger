@@ -381,7 +381,7 @@ Format ← {𝕊 s:
 FormatHuman ← {𝕊 s:
   out ← ""
   {𝕊:
-    out ↩ "== Envelope & Budget ==" ∾ (@+10) ∾ (@+10)
+    out ↩ (L "report.envelope_section_title") ∾ (@+10) ∾ (@+10)
 
     order ← s.order_groups
     GetPri ← { (≠ order) ⌊ ⊑ (order ⊐ ⟨𝕩⟩) ∾ ⟨≠order⟩ }

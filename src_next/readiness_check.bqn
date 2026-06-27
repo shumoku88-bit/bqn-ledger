@@ -5,6 +5,8 @@ loader ← •Import "loader.bqn"
 proj ← •Import "projection.bqn"
 fmt ← •Import "format.bqn"
 cube ← •Import "cube.bqn"
+labels ← •Import "report_labels.bqn"
+L ← labels.Text
 
 # Build: extract readiness counts and warning lists from context.
 # Args: ctx (context namespace with ctx.cube)
@@ -144,7 +146,7 @@ FormatHuman ← {𝕊 ctx:
   j_lines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
   p_lines ← loader.ReadLinesOptional (base ∾ "/plan.tsv")
 
-  out ← "== Readiness Check ==" ∾ (@+10)
+  out ← (L "readiness.section_title") ∾ (@+10)
   out ↩ out ∾ (@+10)
   out ↩ out ∾ "[Input files]" ∾ (@+10)
   out ↩ out ∾ "  journal rows      : " ∾ (•Fmt ≠ j_lines) ∾ (@+10)
