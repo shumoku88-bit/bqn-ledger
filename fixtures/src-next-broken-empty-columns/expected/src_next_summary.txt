@@ -31,6 +31,7 @@ src_next_plan_expense_total: 0
 src_next_actual_account_total: 1 assets:bank/JPY 92000
 src_next_actual_account_total: 2 income:salary/JPY ¯100000
 src_next_actual_account_total: 3 expenses:food/JPY 8000
+src_next_household_policy_available: 1
 src_next_household_policy_expense_accounts: 1
 src_next_household_policy_expense_accounts_prefix_fallback: 0
 src_next_household_policy_expense_accounts_with_budget: 1

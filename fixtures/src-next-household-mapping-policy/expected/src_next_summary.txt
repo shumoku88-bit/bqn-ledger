@@ -59,6 +59,7 @@ src_next_plan_account_total: 1 assets:cash/JPY 10
 src_next_plan_account_total: 3 expenses:日用品/JPY 70
 src_next_plan_account_total: 4 expenses:娯楽/JPY 80
 src_next_plan_account_total: 5 expenses:予備/JPY 90
+src_next_household_policy_available: 1
 src_next_household_policy_expense_accounts: 6
 src_next_household_policy_expense_accounts_prefix_fallback: 1
 src_next_household_policy_expense_accounts_with_budget: 5

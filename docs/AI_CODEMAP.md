@@ -88,6 +88,7 @@
 - `format.bqn` — テキスト整形、ANSI color helper、semantic color/no-color制御。
 - `util.bqn` — 基本ユーティリティ (Split, ToNum, LoadLines)。
 - `date.bqn` — 日付操作 (Today, Parts, Ordinal, DaysBetween)。
+- `unavailable.bqn` — unavailable sentinel の正本定義と helper (`IsUnavailable`, `StartsWith`)。
 - `config.bqn` — config.tsv 読み込み。
 - `report.bqn` — 人間向け12セクションレポート。
 - `summary.bqn` — 機械向けコンパクト出力。

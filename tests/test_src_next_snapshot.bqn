@@ -17,8 +17,8 @@ MakeVm ← {𝕊 cycleAvail‿asOf‿elapsed‿skipped‿unknown‿outOfCycle:
   }
 }
 
-"unknown" lib.AssertEq snapshot.StatusLabel (MakeVm ⟨0, "unavailable/src_next", ¯1, 0, 0, 0⟩)
-"unknown" lib.AssertEq snapshot.StatusLabel (MakeVm ⟨1, "unavailable/src_next", ¯1, 0, 0, 0⟩)
+"unknown" lib.AssertEq snapshot.StatusLabel (MakeVm ⟨0, "unavailable/no_cycle", ¯1, 0, 0, 0⟩)
+"unknown" lib.AssertEq snapshot.StatusLabel (MakeVm ⟨1, "unavailable/no_cycle", ¯1, 0, 0, 0⟩)
 "reset" lib.AssertEq snapshot.StatusLabel (MakeVm ⟨1, "2026-06-15", 0, 0, 0, 0⟩)
 "stable" lib.AssertEq snapshot.StatusLabel (MakeVm ⟨1, "2026-06-17", 2, 0, 0, 0⟩)
 "caution" lib.AssertEq snapshot.StatusLabel (MakeVm ⟨1, "2026-06-17", 2, 1, 0, 0⟩)

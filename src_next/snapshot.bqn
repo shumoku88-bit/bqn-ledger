@@ -16,8 +16,8 @@ proj ← •Import "projection.bqn"
 tbds ← •Import "tbds.bqn"
 cube ← •Import "cube.bqn"
 fmt ← •Import "format.bqn"
+unav ← •Import "unavailable.bqn"
 
-unavailable ← "unavailable/src_next"
 fallback_current ← "fallback/current-engine"
 
 # Latest in-cycle actual journal date. src_next has no CLI --as-of yet, so this
@@ -25,7 +25,7 @@ fallback_current ← "fallback/current-engine"
 LatestActualDateInCycle ← {𝕊 base‿cy:
   lines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
   available_cycle ← (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (cy.day_count > 0)
-  out ← unavailable
+  out ← "unavailable/no_data"
   {𝕊:
     start_dn ← proj.DaysFromEpoch cy.start
     end_dn ← proj.DaysFromEpoch cy.end_exclusive
@@ -37,22 +37,23 @@ LatestActualDateInCycle ← {𝕊 base‿cy:
     in_dates ← (DateInCycle¨ dates) / dates
     {𝕊: out ↩ ¯1 ⊑ (∧ in_dates)}⍟(0 < ≠ in_dates) @
   }⍟(available_cycle ∧ (0 < ≠ lines)) @
+  out ↩ (¬ available_cycle) ⊑ out‿"unavailable/no_cycle"
   out
 }
 
 RemainingDaysText ← {𝕊 asOf‿cy:
-  (asOf ≢ unavailable) ? •Fmt ((proj.DaysFromEpoch cy.end_exclusive) - proj.DaysFromEpoch asOf) ; unavailable
+  (unav.IsUnavailable asOf) ⊑ (•Fmt ((proj.DaysFromEpoch cy.end_exclusive) - proj.DaysFromEpoch asOf))‿asOf
 }
 
 DaysElapsed ← {𝕊 asOf‿cy:
-  (asOf ≢ unavailable) ? ((proj.DaysFromEpoch asOf) - proj.DaysFromEpoch cy.start) ; ¯1
+  (unav.IsUnavailable asOf) ⊑ ((proj.DaysFromEpoch asOf) - proj.DaysFromEpoch cy.start)‿¯1
 }
 
 StatusLabel ← {𝕊 vm:
   label ← "stable"
   label ↩ ((vm.days_elapsed ≥ 0) ∧ (vm.days_elapsed ≤ 1)) ⊑ label‿"reset"
   label ↩ ((vm.readiness.skipped_rows > 0) ∨ (vm.readiness.unknown_account_count > 0) ∨ (vm.readiness.out_of_cycle_skipped_count > 0)) ⊑ label‿"caution"
-  label ↩ ((¬ vm.cycle_available) ∨ (vm.as_of ≡ unavailable)) ⊑ label‿"unknown"
+  label ↩ ((¬ vm.cycle_available) ∨ unav.IsUnavailable vm.as_of) ⊑ label‿"unknown"
   label
 }
 

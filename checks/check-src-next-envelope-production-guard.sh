@@ -42,7 +42,8 @@ else
 fi
 
 # Production data must not opt into the fixture-only policy source. All polished
-# envelope amount fields stay unavailable, and status must not become computed.
+# envelope amount fields stay unavailable (any unavailable/* reason), and status
+# must not become computed.
 for field in \
   src_next_envelope_target_id \
   src_next_envelope_label \
@@ -51,7 +52,11 @@ for field in \
   src_next_envelope_actual_spent \
   src_next_envelope_remaining \
   src_next_envelope_status; do
-  expect_value "$field" "unavailable/src_next"
+  actual="$(value "$field" "$output")"
+  case "$actual" in
+    unavailable/*) pass "$field is $actual" ;;
+    *) fail "$field expected 'unavailable/*' but got '${actual:-<missing>}'" ;;
+  esac
 done
 
 if grep -qE '^src_next_envelope_status:[[:space:]]*computed$' "$output"; then

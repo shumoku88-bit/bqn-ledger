@@ -38,6 +38,7 @@ src_next_actual_account_total: 4 expenses:food/JPY 80
 src_next_actual_account_total: 5 expenses:rent/JPY 20
 src_next_plan_account_total: 4 expenses:food/JPY 30
 src_next_plan_account_total: 5 expenses:rent/JPY ¯30
+src_next_household_policy_available: 0
 src_next_household_metadata_expense_accounts_total: 2
 src_next_household_metadata_missing_budget_count: 2
 src_next_household_metadata_missing_budget_group_count: 2

@@ -52,14 +52,14 @@ text ← env.Format summary
 # and formatted amounts are not polished remaining values.
 tgt ← env.FixtureFoodLikeTarget @
 no_alloc ← env.BuildFromInputs ⟨tgt, resolved, cy, result.valid_rows, ⟨⟩⟩
-"unavailable/src_next" lib.AssertEq no_alloc.status
+"unavailable/no_policy" lib.AssertEq no_alloc.status
 0 lib.AssertEq no_alloc.allocation_row_count
 no_alloc_text ← env.Format no_alloc
-1 lib.AssertEq (1 ≤ +´ ("src_next_envelope_remaining: unavailable/src_next" ⍷ no_alloc_text))
+1 lib.AssertEq (1 ≤ +´ ("src_next_envelope_remaining: unavailable/no_policy" ⍷ no_alloc_text))
 
 # No fixture policy source: production-like bases must not compute.
 no_policy ← env.BuildFromInputs ⟨env.NoPolicyTarget @, resolved, cy, result.valid_rows, loader.ReadLines (base ∾ "/budget_alloc.tsv")⟩
-"unavailable/src_next" lib.AssertEq no_policy.status
-"unavailable/src_next" lib.AssertEq no_policy.target_id
+"unavailable/no_policy" lib.AssertEq no_policy.status
+"unavailable/no_policy" lib.AssertEq no_policy.target_id
 
 •Out "test_src_next_envelope_computation.bqn: OK"

@@ -44,6 +44,7 @@ src_next_plan_account_total: 0 assets:bank/JPY ¯760
 src_next_plan_account_total: 1 assets:cash/JPY 60
 src_next_plan_account_total: 2 expenses:food/JPY 300
 src_next_plan_account_total: 3 医療費/JPY 400
+src_next_household_policy_available: 0
 src_next_household_metadata_expense_accounts_total: 2
 src_next_household_metadata_missing_budget_count: 2
 src_next_household_metadata_missing_budget_group_count: 2

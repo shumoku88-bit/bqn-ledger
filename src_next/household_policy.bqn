@@ -91,6 +91,7 @@ BuildSummary ← {𝕊 base‿resolved‿valid_rows:
   }
 
   {
+    available ⇐ HasPolicyMetadata ⟨cfg, resolved⟩,
     has_policy_metadata ⇐ HasPolicyMetadata ⟨cfg, resolved⟩,
     expense_account_count ⇐ Sum0 expense_accounts,
     prefix_fallback_expense_account_count ⇐ Sum0 prefix_fallback,
@@ -119,6 +120,7 @@ BuildSummary ← {𝕊 base‿resolved‿valid_rows:
 
 FormatSummary ← {𝕊 s:
   out ← ""
+  out ↩ out ∾ "src_next_household_policy_available: " ∾ (•Fmt s.available) ∾ (@+10)
   {𝕊:
     out ↩ out ∾ "--- SrcNext Household Policy Diagnostic ---" ∾ (@+10)
     out ↩ out ∾ "src_next_household_policy_expense_accounts: " ∾ (•Fmt s.expense_account_count) ∾ (@+10)

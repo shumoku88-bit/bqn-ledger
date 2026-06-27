@@ -116,6 +116,72 @@ Phase 6の `fixtures/multi-time-card` で検証中のキー。まだ本番のク
 
 通常の購入行は先頭5列のままとし、`due_on` は自動導出で表現できない例外的な行にのみ使用します。
 
+## BQN 実装上のはまりどころ (BQN pitfalls)
+
+`src_next` で頻出する BQN の罠。pit が新規コードを書くときの参考に。
+
+### 1. 大文字始まりの名前は関数役割に推論される
+
+BQN は識別子の先頭文字で役割 (role) を推論する：
+
+- `Uppercase` / `_underscore` → 関数役割
+- `lowercase` → サブジェクト役割
+
+```bqn
+# ❌ エラー: NoPolicy は関数役割と推論され、文字列を代入できない
+NoPolicy ⇐ "unavailable/no_policy"
+
+# ✅ 一度ローカル変数（小文字）で受けてから渡す
+noPolicy ← "unavailable/no_policy"
+{ NoPolicy ⇐ noPolicy }
+```
+
+`⇐` で文字列や数値を直接エクスポートする場合は、必ず小文字名を経由する。
+
+### 2. `? ... ;` の false 節で外側変数が見えない
+
+```bqn
+# ❌ エラー: status が undefined
+FmtAmount ← {𝕊 status‿amount:
+  (cond) ? (•Fmt amount) ; status
+}
+
+# ✅ ⊑ (pick) を使う
+FmtAmount ← {𝕊 status‿amount:
+  (cond) ⊑ (•Fmt amount)‿status
+}
+```
+
+`? ... ;` の false 節はスコープが分離されることがある。値の選択には `⊑` を使う方が安全。
+
+### 3. `⍟` (repeat) は関数を期待する
+
+```bqn
+# ❌ エラー: 文字列を ⍟ に渡せない
+out ↩ "unavailable/no_cycle" ⍟(cond) @
+
+# ✅ ブロックで包む
+{𝕊: out ↩ "unavailable/no_cycle"}⍟(cond) @
+
+# ✅ または ⊑ で条件選択
+out ↩ (cond) ⊑ out‿"unavailable/no_cycle"
+```
+
+### 4. module field を `⇐` に直接渡せない
+
+```bqn
+unav ← •Import "unavailable.bqn"
+
+# ❌ エラー: unav.NoPolicy を ⇐ の右辺にできない
+{ field ⇐ unav.NoPolicy }
+
+# ✅ ローカル変数に取り出してから渡す
+noPolicy ← unav.noPolicy
+{ field ⇐ noPolicy }
+```
+
+module field の値は `⇐` の右辺で直接使えない。一度 `←` で受ける必要がある。
+
 ## 出力互換性 (Output compatibility)
 
 ### `tools/summary.bqn` (`summary.tsv`)

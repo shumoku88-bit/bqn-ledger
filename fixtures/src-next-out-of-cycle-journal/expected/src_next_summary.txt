@@ -29,6 +29,7 @@ src_next_actual_expense_total: 100
 src_next_plan_expense_total: 0
 src_next_actual_account_total: 0 equity:opening/JPY ¯100
 src_next_actual_account_total: 4 expenses:food/JPY 100
+src_next_household_policy_available: 0
 src_next_household_metadata_expense_accounts_total: 2
 src_next_household_metadata_missing_budget_count: 2
 src_next_household_metadata_missing_budget_group_count: 2

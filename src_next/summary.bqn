@@ -24,6 +24,7 @@ balances ← •Import "balances.bqn"
 readiness_check ← •Import "readiness_check.bqn"
 actual_comparison ← •Import "actual_comparison.bqn"
 household_metadata ← •Import "household_metadata.bqn"
+household_policy ← •Import "household_policy.bqn"
 plan_journal_overlap ← •Import "plan_journal_overlap.bqn"
 envelope_computation ← •Import "envelope_computation.bqn"
 snapshot ← •Import "snapshot.bqn"
@@ -70,6 +71,8 @@ Main ← {𝕊 base:
   hm_text ← household_metadata.Format hm
   {𝕊: •Out hm_text }⍟(0 < ≠ hm_text) @
   {𝕊: •Out "" }⍟(0 < ≠ hm_text) @
+  •Out household_policy.FormatSummary (household_policy.BuildSummary ⟨ctx.base, ctx.resolved, ctx.cube.valid_rows⟩)
+  •Out ""
   •Out outlook.Format (outlook.Build ctx)
   •Out ""
   •Out daily_trend.Format (daily_trend.Build ctx)

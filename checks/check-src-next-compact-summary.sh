@@ -133,7 +133,7 @@ fi
 
 # ── 2. Compact output does NOT contain verbose sections ─────
 
-for banned in 'AccountKey Table' 'Projection Row Structure' 'Sample Projection Rows' 'Household Policy' 'Cube Numeric Verification' 'safe_remaining' 'daily_amount'; do
+for banned in 'AccountKey Table' 'Projection Row Structure' 'Sample Projection Rows' 'Cube Numeric Verification' 'safe_remaining' 'daily_amount'; do
   if grep -qF -- "$banned" "$output"; then
     fail "compact output contains banned section: '$banned'"
   else

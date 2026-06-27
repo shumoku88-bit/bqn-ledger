@@ -6,11 +6,11 @@ proj ← •Import "projection.bqn"
 cube ← •Import "cube.bqn"
 conf ← •Import "config.bqn"
 fmt ← •Import "format.bqn"
+unav ← •Import "unavailable.bqn"
 
 layer_actual ← 0
 
 Sum0 ← cube.Sum0
-StartsWith ← { pref ← 𝕨 ⋄ pref ≡ (≠ pref) ↑ 𝕩 }
 NonEmpty ← { 0 < ≠ 𝕩 }
 Contains ← { needle ← 𝕨 ⋄ 0 < +´ (needle ⍷ 𝕩) }
 IsMember ← { list ← 𝕨 ⋄ item ← 𝕩 ⋄ (⊑ list ⊐ ⟨item⟩) < ≠ list }
@@ -19,8 +19,8 @@ IsMember ← { list ← 𝕨 ⋄ item ← 𝕩 ⋄ (⊑ list ⊐ ⟨item⟩) < �
 NoPolicyTarget ← {𝕊:
   {
     has_policy ⇐ 0,
-    target_id ⇐ "unavailable/src_next",
-    label ⇐ "unavailable/src_next",
+    target_id ⇐ "unavailable/no_policy",
+    label ⇐ "unavailable/no_policy",
     selector_key ⇐ "",
     selector_value ⇐ ""
   }
@@ -44,7 +44,7 @@ PolicyForBase ← {𝕊 base:
 ExpenseAccountMask ← {𝕊 resolved:
   role_expense ← "expense"⊸≡¨ resolved.roles
   role_missing ← ""⊸≡¨ resolved.roles
-  prefix_fallback ← role_missing ∧ ({ "expenses:" StartsWith 𝕩 }¨ resolved.accounts)
+  prefix_fallback ← role_missing ∧ ({ "expenses:" unav.StartsWith 𝕩 }¨ resolved.accounts)
   role_expense ∨ prefix_fallback
 }
 
@@ -60,12 +60,12 @@ SelectedExpenseIndices ← {𝕊 tgt‿resolved:
 BudgetAccountMask ← {𝕊 resolved:
   role_budget ← "budget"⊸≡¨ resolved.roles
   role_missing ← ""⊸≡¨ resolved.roles
-  prefix_fallback ← role_missing ∧ ({ "budget:" StartsWith 𝕩 }¨ resolved.accounts)
+  prefix_fallback ← role_missing ∧ ({ "budget:" unav.StartsWith 𝕩 }¨ resolved.accounts)
   role_budget ∨ prefix_fallback
 }
 
 BudgetLabel ← {𝕊 account:
-  ("budget:" StartsWith account) ⊑ account‿(7 ↓ account)
+  ("budget:" unav.StartsWith account) ⊑ account‿(7 ↓ account)
 }
 
 TargetBudgetAccountIndices ← {𝕊 tgt‿resolved:
@@ -125,14 +125,14 @@ CalcRemaining ← {𝕊 allocated‿actual_spent: allocated - actual_spent }
 
 DecideStatus ← {𝕊 tgt‿selected_indices‿allocated:
   computed ← tgt.has_policy ∧ (0 < ≠ selected_indices) ∧ allocated.has_allocation
-  computed ⊑ "unavailable/src_next"‿"computed"
+  computed ⊑ "unavailable/no_policy"‿"computed"
 }
 
 # ── Latest Actual Date ───────────────────────────────────────
 LatestActualDateInCycle ← {𝕊 base‿cy:
   lines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
   available_cycle ← (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (cy.day_count > 0)
-  out ← "unavailable/src_next"
+  out ← "unavailable/no_data"
   {𝕊:
     start_dn ← proj.DaysFromEpoch cy.start
     end_dn ← proj.DaysFromEpoch cy.end_exclusive
@@ -144,6 +144,7 @@ LatestActualDateInCycle ← {𝕊 base‿cy:
     in_dates ← (DateInCycle¨ dates) / dates
     {𝕊: out ↩ ¯1 ⊑ in_dates }⍟(0 < ≠ in_dates) @
   }⍟(available_cycle ∧ (0 < ≠ lines)) @
+  out ↩ (¬ available_cycle) ⊑ out‿"unavailable/no_cycle"
   out
 }
 
@@ -154,7 +155,7 @@ BuildEnvelopes ← {𝕊 base‿resolved‿cy‿valid_rows:
   reserve_groups ← cfg.HouseholdGroupReserveLabels @
 
   as_of ← LatestActualDateInCycle ⟨base, cy⟩
-  has_as_of ← as_of ≢ "unavailable/src_next"
+  has_as_of ← ¬ unav.IsUnavailable as_of
 
   budget_mask ← BudgetAccountMask resolved
   kind_envelope_mask ← "envelope"⊸≡¨ resolved.kinds
@@ -242,7 +243,7 @@ BuildFromInputs ← {𝕊 tgt‿resolved‿cy‿valid_rows‿alloc_lines:
   actual_spent ← CalcActualSpent ⟨selected_indices, valid_rows⟩
   remaining ← CalcRemaining ⟨allocated.amount, actual_spent⟩
   status ← DecideStatus ⟨tgt, selected_indices, allocated⟩
-  selector ← tgt.has_policy ⊑ "unavailable/src_next"‿(tgt.selector_key ∾ "=" ∾ tgt.selector_value)
+  selector ← tgt.has_policy ⊑ "unavailable/no_policy"‿(tgt.selector_key ∾ "=" ∾ tgt.selector_value)
   target_id_out ← tgt.target_id
   label_out ← tgt.label
   allocated_amount ← allocated.amount
@@ -288,14 +289,14 @@ Build ← {𝕊 base‿resolved‿cy‿valid_rows:
       allocated_val ← 0
       spent_val ← 0
       remaining_val ← 0
-      status_val ← "unavailable/src_next"
+      status_val ← "unavailable/no_policy"
 
       {𝕊:
         env_match ← matching_idx ⊑ envelopes
         allocated_val ↩ env_match.allocated
         spent_val ↩ env_match.actual_spent
         remaining_val ↩ env_match.remaining
-        status_val ↩ tgt.has_policy ⊑ "unavailable/src_next"‿"computed"
+        status_val ↩ tgt.has_policy ⊑ "unavailable/no_policy"‿"computed"
       }⍟has_match @
 
       {𝕊:
@@ -311,7 +312,7 @@ Build ← {𝕊 base‿resolved‿cy‿valid_rows:
         status_val ↩ DecideStatus ⟨tgt, selected_indices, allocated⟩
       }⍟((¬has_match) ∧ tgt.has_policy) @
 
-      selector ← tgt.has_policy ⊑ "unavailable/src_next"‿(tgt.selector_key ∾ "=" ∾ tgt.selector_value)
+      selector ← tgt.has_policy ⊑ "unavailable/no_policy"‿(tgt.selector_key ∾ "=" ∾ tgt.selector_value)
 
       # Compute compatibility fields for existing test assertions
       selected_indices_tgt ← SelectedExpenseIndices ⟨tgt, resolved⟩
@@ -360,7 +361,7 @@ Build ← {𝕊 base‿resolved‿cy‿valid_rows:
 
 # ── rendering / compact fields ──────────────────────────────
 FmtAmount ← {𝕊 status‿amount:
-  (status ≢ "unavailable/src_next") ? (•Fmt amount) ; "unavailable/src_next"
+  (unav.IsUnavailable status) ⊑ (•Fmt amount)‿status
 }
 
 Format ← {𝕊 s:

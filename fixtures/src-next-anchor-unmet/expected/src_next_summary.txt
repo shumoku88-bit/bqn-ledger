@@ -37,6 +37,7 @@ src_next_actual_account_total: 5 expenses:食費/JPY 5000
 src_next_plan_account_total: 1 assets:bank/JPY ¯14000
 src_next_plan_account_total: 3 income:月給/JPY ¯50000
 src_next_plan_account_total: 4 expenses:家賃/JPY 64000
+src_next_household_policy_available: 1
 src_next_household_policy_expense_accounts: 2
 src_next_household_policy_expense_accounts_prefix_fallback: 0
 src_next_household_policy_expense_accounts_with_budget: 1
