@@ -1,6 +1,15 @@
 # household_policy.bqn
 # Read-only diagnostic household policy summary for src_next.
 #
+# Clarification:
+#   The machine-readable field names output by this module containing
+#   "daily", "flex", and "reserve" (e.g. src_next_household_policy_expense_budget_group_daily)
+#   are compatibility slots (fixed output keys). The actual policy values compared against
+#   are resolved dynamically from the configuration variables:
+#     - HOUSEHOLD_GROUP_LIFE (mapped to daily and flex slots)
+#     - HOUSEHOLD_GROUP_RESERVE (mapped to reserve slot)
+#   and the account metadata 'budget_group' defined in accounts.tsv.
+#
 # Boundary:
 #   - consumes account metadata already exposed by account_key.bqn
 #   - consumes valid projection rows already accepted by cube.bqn

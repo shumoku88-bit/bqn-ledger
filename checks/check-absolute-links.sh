@@ -28,19 +28,19 @@ fail() { FAIL=$((FAIL + 1)); echo "  FAIL: $1" >&2; }
 # Find all tracked md files and specific root files
 tracked_files=()
 while IFS= read -r file; do
-  if [[ "$file" == docs/**/*.md ]] || [[ "$file" == "TODO.md" ]] || [[ "$file" == "README.md" ]] || [[ "$file" == "AGENTS.md" ]]; then
+  if [[ "$file" == docs/*.md ]] || [[ "$file" == docs/**/*.md ]] || [[ "$file" == *.md ]]; then
     tracked_files+=("$file")
   fi
-done < <(git ls-files 2>/dev/null || find docs TODO.md README.md AGENTS.md -type f 2>/dev/null)
+done < <(git ls-files 2>/dev/null || find docs TODO.md README.md AGENTS.md GEMINI.md -type f 2>/dev/null)
 
 found_links=0
 for file in "${tracked_files[@]}"; do
   if [ -f "$file" ]; then
-    # Search for absolute paths that match the forbidden prefix
-    if grep -q "file:///Users/user/Projects/moko" "$file"; then
+    # Search for any file:// links
+    if grep -q "file://" "$file"; then
       # Print matching lines
-      echo "Absolute path found in $file:" >&2
-      grep -n "file:///Users/user/Projects/moko" "$file" >&2
+      echo "file:// link found in $file:" >&2
+      grep -n "file://" "$file" >&2
       found_links=$((found_links + 1))
     fi
   fi
@@ -49,7 +49,7 @@ done
 if [ "$found_links" -eq 0 ]; then
   pass
 else
-  fail "Found $found_links file(s) with absolute links matching file:///Users/user/Projects/moko"
+  fail "Found $found_links file(s) with file:// links"
 fi
 
 # ── Summary ──
