@@ -6,9 +6,11 @@
 
 ## Quick commands
 
+- Environment / data-dir doctor: `tools/doctor`
 - Full check suite: `tools/check.sh`
-- Human report: `tools/report`
-  - Section selector (fzf/gum): `tools/main-ui.sh`
+- Daily report entry: `tools/main-ui.sh`
+  - Full human report: `tools/report`
+  - Section selector (fzf/gum): `tools/main-ui.sh select`
 - Machine summary: `tools/report-next-summary`
 - Add a transaction (Go editor):
   - `tools/edit journal add` — 実績取引の追記
@@ -43,5 +45,6 @@ When you change behavior:
 
 - TSV schema / row rules changed → update `docs/ARCHITECTURE.md` + `docs/JOURNAL_META.md`
 - New/renamed tool or command → update `docs/ARCHITECTURE.md` + `docs/AI_CODEMAP.md`
+- Data directory resolution / `LEDGER_DATA_DIR` behavior changed → update `docs/DATA_DIR_SETUP.md` + `README.md`
 - New meta key adopted → update `docs/JOURNAL_META.md`
 - After changes, run: `tools/check.sh`

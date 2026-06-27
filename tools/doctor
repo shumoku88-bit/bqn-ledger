@@ -12,6 +12,7 @@ done
 SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 ROOT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 cd "$ROOT_DIR"
+source "$ROOT_DIR/tools/lib/system-defaults.sh"
 
 red=''
 green=''
@@ -70,43 +71,53 @@ echo ""
 
 # ── Data directory ──
 echo "Data:"
-get_default_base_dir() {
-  local defaults_file="config/system_defaults.tsv"
-  local fallback="data"
-  if [[ -f "$defaults_file" ]]; then
-    local val
-    val=$(awk -F'\t' '$1 == "DEFAULT_BASE_DIR" { print $2 }' "$defaults_file")
-    if [[ -n "$val" ]]; then echo "$val"; return; fi
-  fi
-  echo "$fallback"
-}
+base_source="config/system_defaults.tsv DEFAULT_BASE_DIR"
+if [[ -n "${LEDGER_DATA_DIR:-}" ]]; then
+  base_source="LEDGER_DATA_DIR"
+fi
 base_dir="${LEDGER_DATA_DIR:-$(get_default_base_dir)}"
-info "base dir: $base_dir"
+data_ok=1
+info "base dir ($base_source): $base_dir"
+
 if [[ -d "$base_dir" ]]; then
-  required_files=("accounts.tsv" "journal.tsv" "plan.tsv" "cycle.tsv")
-  for f in "${required_files[@]}"; do
+  mapfile -t missing_required < <(ledger_base_missing_required "$base_dir")
+  if [[ ${#missing_required[@]} -eq 0 ]]; then
+    pass "report-required TSV present: accounts.tsv journal.tsv cycle.tsv"
+  else
+    fail "missing report-required TSV: ${missing_required[*]}"
+    failures=$((failures + 1))
+    data_ok=0
+  fi
+
+  for f in plan.tsv budget_alloc.tsv config.tsv; do
     if [[ -f "$base_dir/$f" ]]; then
       pass "$f"
     else
-      fail "$f missing"
-      failures=$((failures + 1))
+      warn "$f missing (some views or write paths may be unavailable)"
     fi
   done
-  if [[ -f "$base_dir/budget_alloc.tsv" ]]; then
-    pass "budget_alloc.tsv"
-  else
-    info "budget_alloc.tsv: not present (optional)"
-  fi
 else
   fail "base dir not found: $base_dir"
   failures=$((failures + 1))
+  data_ok=0
+fi
+
+if [[ "$data_ok" -eq 0 ]]; then
+  if suggestion="$(ledger_suggest_base_dir)"; then
+    warn "candidate data directory found: $suggestion"
+    info "try: export LEDGER_DATA_DIR=$suggestion"
+  else
+    warn "no local candidate data directory found"
+  fi
 fi
 
 echo ""
 
 # ── Quick engine smoke test ──
 echo "Engine:"
-if out=$(bqn src_next/summary.bqn "$base_dir" 2>&1); then
+if [[ "$data_ok" -ne 1 ]]; then
+  warn "src_next engine smoke skipped because data directory is not usable"
+elif out=$(bqn src_next/summary.bqn "$base_dir" 2>&1); then
   if echo "$out" | grep -q "as_of:"; then
     pass "src_next engine produces valid summary"
   else

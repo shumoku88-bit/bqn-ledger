@@ -30,3 +30,62 @@ get_system_default_file() {
   fi
   printf '%s\n' "$fallback"
 }
+
+ledger_base_missing_required() {
+  local base_dir="$1"
+  local required=(accounts.tsv journal.tsv cycle.tsv)
+  local file missing=()
+
+  for file in "${required[@]}"; do
+    if [[ ! -f "$base_dir/$file" ]]; then
+      missing+=("$file")
+    fi
+  done
+
+  if [[ ${#missing[@]} -gt 0 ]]; then
+    printf '%s\n' "${missing[@]}"
+  fi
+}
+
+ledger_suggest_base_dir() {
+  local candidates=(
+    "../ledger-data/data"
+    "../../ledger-data/data"
+    "data"
+  )
+  local candidate
+
+  for candidate in "${candidates[@]}"; do
+    if [[ -d "$candidate" ]] && [[ -f "$candidate/accounts.tsv" ]] && [[ -f "$candidate/journal.tsv" ]] && [[ -f "$candidate/cycle.tsv" ]]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+ensure_ledger_report_base() {
+  local base_dir="$1"
+  local missing suggestion
+  mapfile -t missing < <(ledger_base_missing_required "$base_dir")
+
+  if [[ ${#missing[@]} -eq 0 ]]; then
+    return 0
+  fi
+
+  echo "Error: ledger data directory is not usable for reports: $base_dir" >&2
+  echo "Missing required file(s): ${missing[*]}" >&2
+
+  if suggestion="$(ledger_suggest_base_dir)"; then
+    echo "Candidate data directory found: $suggestion" >&2
+    echo "Try:" >&2
+    echo "  export LEDGER_DATA_DIR=$suggestion" >&2
+    echo "  tools/main-ui.sh" >&2
+    echo "  tools/add-ui.sh" >&2
+  else
+    echo "Set LEDGER_DATA_DIR to the directory containing accounts.tsv, journal.tsv, and cycle.tsv." >&2
+  fi
+
+  return 1
+}

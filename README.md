@@ -49,7 +49,7 @@ BQN Ledger は、一般向けの完成された家計簿アプリではありま
 
 ## Design principles
 
-- **TSV is the source of truth.** 正データは base directory 配下の TSV です。公開 repo の `data/` は匿名 sandbox、実運用データは `LEDGER_DATA_DIR`（例: `moko/data`）で指定します。
+- **TSV is the source of truth.** 正データは base directory 配下の TSV です。公開 repo の `data/` は匿名 sandbox、実運用データは `LEDGER_DATA_DIR`（例: `/path/to/ledger-data/data`）で指定します。
 - **BQN derives views.** BQN は正データを書き換えず、読み取りと派生計算を担当します。
 - **Daily writes go through safety paths.** 日常入力は `tools/add-ui.sh` または Go 製の `tools/edit` から行います。
 - **Large corrections stay visible.** 削除や大きな修正は、人間が TSV を直接確認して行います。
@@ -59,7 +59,7 @@ BQN Ledger は、一般向けの完成された家計簿アプリではありま
 
 ## Source data
 
-各ツールは base directory 配下の TSV を読みます。既定は `LEDGER_DATA_DIR`、未設定なら `config/system_defaults.tsv` の `DEFAULT_BASE_DIR`（公開 repo では `data/` sandbox）です。実運用データは `moko/data` など gitignore 済みの場所に置き、`export LEDGER_DATA_DIR=moko/data` で指定します。個人的な非公開メモや検証ログは root の `private/` ではなく `moko/private/` に寄せます。
+各ツールは base directory 配下の TSV を読みます。既定は `LEDGER_DATA_DIR`、未設定なら `config/system_defaults.tsv` の `DEFAULT_BASE_DIR`（公開 repo では `data/` sandbox）です。実運用データは repo 外の任意の場所に置き、`export LEDGER_DATA_DIR=/path/to/ledger-data/data` で指定します。場所は移動可能なので、移動後は `tools/doctor` で確認します。詳細は `docs/DATA_DIR_SETUP.md` を参照してください。
 
 | ファイル | 役割 |
 |---|---|
@@ -81,16 +81,22 @@ BQN Ledger は、一般向けの完成された家計簿アプリではありま
 tools/report
 
 # 実運用データを明示する例
-LEDGER_DATA_DIR=moko/data tools/report
+LEDGER_DATA_DIR=/path/to/ledger-data/data tools/report
 
 # fixture や別データセットを見る
 tools/report fixtures/src-next-golden
 
-# セクション選択 UI
+# 日常レポート入口
 tools/main-ui.sh
+
+# セクション選択 UI
+tools/main-ui.sh select
 
 # 機械向けコンパクトサマリー
 tools/report-next-summary
+
+# 環境・正データ場所の診断
+tools/doctor
 
 # 全チェック
 tools/check.sh

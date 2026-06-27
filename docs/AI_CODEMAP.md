@@ -22,7 +22,7 @@
 
 ## 絶対に守ること
 
-- base directory 配下の `journal.tsv` / `plan.tsv` / `budget_alloc.tsv` / `accounts.tsv` が正データ。公開 repo の `data/` は匿名 sandbox、実運用は `LEDGER_DATA_DIR`（例: `moko/data`）で外出しする。
+- base directory 配下の `journal.tsv` / `plan.tsv` / `budget_alloc.tsv` / `accounts.tsv` が正データ。公開 repo の `data/` は匿名 sandbox、実運用は `LEDGER_DATA_DIR`（例: `/path/to/ledger-data/data`）で外出しする。正データの場所は変わり得るので、pit は `tools/doctor` と `LEDGER_DATA_DIR` で確認し、古いパスを前提にしない。
 - pit は実データ TSV を勝手に書き換えない。必要ならユーザー確認を取る。
 - journal-like TSV の先頭5列は固定: `date memo from to amount`。
 - 6列目以降は `key=value` メタ。会計計算は原則として先頭5列だけを見る。
@@ -48,7 +48,7 @@
 
 ## 正データファイル
 
-各ツールは `LEDGER_DATA_DIR`、未設定なら `config/system_defaults.tsv` の `DEFAULT_BASE_DIR` を base directory として読む。公開 repo の `data/` は sandbox fixture として扱う。
+各ツールは `LEDGER_DATA_DIR`、未設定なら `config/system_defaults.tsv` の `DEFAULT_BASE_DIR` を base directory として読む。公開 repo の `data/` は sandbox fixture として扱う。実データの場所を確認する入口は `docs/DATA_DIR_SETUP.md` と `tools/doctor`。
 
 - `config/meta_schema.tsv` — メタデータキーの定義
 - `<base>/accounts.tsv` — 勘定科目マスタ

@@ -94,5 +94,6 @@ bash checks/check-devtools.sh >/dev/null
 bash checks/check-devtools-negative.sh >/dev/null
 bash checks/check-missing-role-fallback.sh >/dev/null
 bash checks/check-src-next-lint.sh >/dev/null
+bash checks/check-ui-smoke.sh >/dev/null
 
 echo "OK" >&2

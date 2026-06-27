@@ -51,6 +51,8 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+ensure_ledger_report_base "$base_dir"
+
 # ── Account listing (reads accounts.tsv directly, no BQN needed) ──
 
 accounts() {

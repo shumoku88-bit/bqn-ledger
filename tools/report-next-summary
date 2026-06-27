@@ -87,10 +87,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [ ! -d "$BASE_DIR" ]; then
-  echo "Error: base directory not found: $BASE_DIR" >&2
-  exit 1
-fi
+ensure_ledger_report_base "$BASE_DIR"
 
 echo "[diagnostic] tools/report-next-summary prints compact src_next summary." >&2
 echo "[diagnostic] Full diagnostic: tools/report-next" >&2

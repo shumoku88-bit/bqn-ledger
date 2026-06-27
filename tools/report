@@ -44,4 +44,6 @@ if [[ "$has_color_arg" -eq 0 ]]; then
   fi
 fi
 
+ensure_ledger_report_base "$base"
+
 exec bqn src_next/report.bqn "$base" "${color_args[@]}"
