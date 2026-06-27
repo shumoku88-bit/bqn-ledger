@@ -86,15 +86,9 @@ if [[ -t 0 && -t 1 ]]; then
   IS_TTY=1
 fi
 
-report_color_args=()
-if [[ -n "${NO_COLOR:-}" || ! -t 1 ]]; then
-  report_color_args+=(--no-color)
-else
-  report_color_args+=(--color=always)
-fi
 show_full_report() {
   ensure_ledger_report_base "$base_dir"
-  exec "$ROOT_DIR/tools/report" "$base_dir" "${report_color_args[@]}"
+  "$ROOT_DIR/tools/report" "$base_dir" --no-color | "$ROOT_DIR/tools/lib/color-filter"
 }
 
 section_list() {
@@ -122,8 +116,8 @@ show_section_direct() {
   out="$(mktemp)"
   err="$(mktemp)"
   trap 'rm -f "$out" "$err"' RETURN
-  if "$ROOT_DIR/tools/report" "$base_dir" --section "$key" "${report_color_args[@]}" >"$out" 2>"$err"; then
-    cat "$out"
+  if "$ROOT_DIR/tools/report" "$base_dir" --section "$key" --no-color >"$out" 2>"$err"; then
+    cat "$out" | "$ROOT_DIR/tools/lib/color-filter"
   else
     status=$?
     if [[ -s "$out" ]]; then cat "$out" >&2; fi
@@ -144,7 +138,7 @@ select_section() {
         --reverse \
         --exit-0 \
         --ansi \
-        --preview "cat '$cache_dir'/{1}.txt 2>/dev/null || echo '(No preview available)'" \
+        --preview "cat '$cache_dir'/{1}.txt 2>/dev/null | '$ROOT_DIR/tools/lib/color-filter' || echo '(No preview available)'" \
         --preview-window 'right:60%'
     else
       section_list | fzf \
@@ -177,7 +171,7 @@ case "$cmd" in
     cache_dir="$(mktemp -d)"
     trap 'rm -rf "$cache_dir"' EXIT
 
-    if ! "$ROOT_DIR/tools/report" "$base_dir" --write-section-cache "$cache_dir" "${report_color_args[@]}" >/dev/null; then
+    if ! "$ROOT_DIR/tools/report" "$base_dir" --write-section-cache "$cache_dir" --no-color >/dev/null; then
       echo "Failed to generate report cache" >&2
       exit 1
     fi
@@ -190,7 +184,7 @@ case "$cmd" in
       all) show_full_report ;;
       *)
         if [[ -f "$cache_dir/$key.txt" ]]; then
-          cat "$cache_dir/$key.txt"
+          cat "$cache_dir/$key.txt" | "$ROOT_DIR/tools/lib/color-filter"
         else
           echo "Error: cached file not found for $key" >&2
           exit 1

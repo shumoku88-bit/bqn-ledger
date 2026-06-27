@@ -2,16 +2,17 @@
 # Minimal formatting helpers for src_next human-readable output.
 # Includes ANSI color support for terminal display.
 
-# ANSI color codes (ESC = @ + 27)
-c_reset   ← (@ + 27) ∾ "[0m"
-c_bold    ← (@ + 27) ∾ "[1m"
-c_dim     ← (@ + 27) ∾ "[2m"
-c_red     ← (@ + 27) ∾ "[31m"
-c_green   ← (@ + 27) ∾ "[32m"
-c_yellow  ← (@ + 27) ∾ "[33m"
-c_blue    ← (@ + 27) ∾ "[34m"
-c_magenta ← (@ + 27) ∾ "[35m"
-c_cyan    ← (@ + 27) ∾ "[36m"
+# ANSI color codes (ESC = @ + 27) - Disabled inside BQN engine.
+# Presentation layer (shell UI) handles coloring.
+c_reset   ← ""
+c_bold    ← ""
+c_dim     ← ""
+c_red     ← ""
+c_green   ← ""
+c_yellow  ← ""
+c_blue    ← ""
+c_magenta ← ""
+c_cyan    ← ""
 
 # Color control. BQN cannot read NO_COLOR directly, so CLI/wrapper code calls
 # SetColorEnabled 0 when color should be suppressed.

@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# tools/lib/color-filter — Add terminal ANSI colors to plain text ledger reports.
+# Read stdin, write colored text to stdout.
+
+set -euo pipefail
+
+# Check if color is disabled by user environment or if stdout is not a TTY.
+if [[ -n "${NO_COLOR:-}" || ! -t 1 ]]; then
+  exec cat
+fi
+
+esc=$'\e'
+
+# Colorize keywords and headers:
+# - completed / paid: green (32)
+# - future: magenta (35)
+# - due: yellow (33)
+# - overdue: bold red (1;31)
+# - Section headers (== ... == / ── ... ──): bold cyan (1;36) / bold blue (1;34)
+# - Numeric list headers (e.g., 1. 全体サマリ): bold (1)
+sed \
+  -e "s/\<completed\>/${esc}[32mcompleted${esc}[0m/g" \
+  -e "s/\<paid\>/${esc}[32mpaid${esc}[0m/g" \
+  -e "s/\<future\>/${esc}[35mfuture${esc}[0m/g" \
+  -e "s/\<due\>/${esc}[33mdue${esc}[0m/g" \
+  -e "s/\<overdue\>/${esc}[1;31moverdue${esc}[0m/g" \
+  -e "s/== \(.*\) ==/${esc}[1;36m== \1 ==${esc}[0m/g" \
+  -e "s/── \(.*\) ──/${esc}[1;34m── \1 ──${esc}[0m/g" \
+  -e "s/^\([0-9]\{1,2\}\. .*\)/${esc}[1m\1${esc}[0m/g"
