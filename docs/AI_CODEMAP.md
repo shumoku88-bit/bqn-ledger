@@ -90,7 +90,7 @@
 - `date.bqn` — 日付操作 (Today, Parts, Ordinal, DaysBetween)。
 - `unavailable.bqn` — unavailable sentinel の正本定義と helper (`IsUnavailable`, `StartsWith`)。
 - `config.bqn` — config.tsv 読み込み。
-- `report.bqn` — 人間向け12セクションレポート。 `--list-sections` でセクションキー↔見出しの機械可読マッピングを出力（UIツールが動的にセクション抽出するための正本）。
+- `report.bqn` — 人間向け12セクションレポート。 `--list-sections` でセクションキー↔見出しの機械可読マッピングを出力し、`--section <key>` で単一セクションを出力する（UIツールが動的にセクション抽出するための正本）。
 - `summary.bqn` — 機械向けコンパクト出力。
 
 ### `editor/` (Go source TSV editor)

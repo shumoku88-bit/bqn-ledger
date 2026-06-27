@@ -1,9 +1,11 @@
 # report.bqn — human-readable src_next report
 # Usage: bqn src_next/report.bqn <baseDir>
 #        bqn src_next/report.bqn <baseDir> --list-sections
+#        bqn src_next/report.bqn <baseDir> --section <key>
 #
 # --list-sections outputs tab-separated section-key and first-line marker
 # so UI tools can extract sections without hard-coding header strings.
+# --section prints one canonical section body by its stable key.
 
 ctx_mod ← •Import "context.bqn"
 snapshot ← •Import "snapshot.bqn"
@@ -25,6 +27,14 @@ fmt ← •Import "format.bqn"
 PrintSection ← {𝕊 text: •Out text ⋄ •Out ""}
 
 HasArg ← {𝕊 args‿flag: 0 < +´ flag⊸≡¨ args }
+
+ArgValue ← {𝕊 args‿flag:
+  idx ← ⊑ ((flag⊸≡¨ args) ⊐ ⟨1⟩)
+  next_idx ← 1 + idx
+  (next_idx < ≠args) ? (next_idx ⊑ args) ; ""
+}
+
+FindSectionIndex ← {𝕊 entries‿key: ({⊑𝕩}¨ entries) ⊐ ⟨key⟩ }
 
 # FirstLine extracts the first line of text (up to first newline)
 FirstLine ← {𝕊 text:
@@ -73,15 +83,45 @@ Main ← {𝕊 args:
   no_color ← (HasArg ⟨args, "--no-color"⟩) ∨ (HasArg ⟨args, "--color=never"⟩)
   force_color ← HasArg ⟨args, "--color=always"⟩
   fmt.SetColorEnabled force_color ∨ ¬ no_color
-  ctx ← ctx_mod.BuildContext base
 
   list_sections ← HasArg ⟨args, "--list-sections"⟩
+  section_flag ← HasArg ⟨args, "--section"⟩
+  section_key ← ArgValue ⟨args, "--section"⟩
+
+  {𝕊:
+    •Out "ERROR: --section requires a section key"
+    •Exit 1
+  }⍟(section_flag ∧ (0 = ≠section_key)) @
+
+  {𝕊:
+    •Out "ERROR: --list-sections cannot be combined with --section"
+    •Exit 1
+  }⍟(list_sections ∧ section_flag) @
+
+  ctx ← ctx_mod.BuildContext base
   entries ← BuildSectionEntries ctx
 
-  {𝕊 entry:
-    key ← ⊑entry ⋄ text ← 1⊑entry
-    list_sections◶⟨{𝕊:PrintSection text},{𝕊:•Out key∾"	"∾FirstLine text}⟩ @
-  }¨ entries
+  {𝕊:
+    {𝕊 entry:
+      key ← ⊑entry ⋄ text ← 1⊑entry
+      •Out key∾(@+9)∾FirstLine text
+    }¨ entries
+  }⍟(list_sections) @
+
+  {𝕊:
+    idx ← FindSectionIndex ⟨entries, section_key⟩
+    {𝕊: PrintSection (1⊑ idx ⊑ entries)}⍟(idx < ≠entries) @
+    {𝕊:
+      •Out "ERROR: unknown section key: "∾section_key
+      •Exit 1
+    }⍟(idx ≥ ≠entries) @
+  }⍟(section_flag) @
+
+  {𝕊:
+    {𝕊 entry:
+      PrintSection (1⊑entry)
+    }¨ entries
+  }⍟((¬ list_sections) ∧ (¬ section_flag)) @
 }
 
 Main •args
