@@ -22,6 +22,34 @@ else
 fi
 cd "$ROOT_DIR"
 
+check_bqn_presentation_boundary() {
+    local status=0 file
+
+    if grep -RIl $'\033' src_next tests >/dev/null; then
+        echo "FAIL: literal ANSI ESC byte found in BQN source" >&2
+        grep -RIn $'\033' src_next tests >&2 || true
+        status=1
+    fi
+
+    while IFS= read -r file; do
+        if ! awk '
+            /^[[:space:]]*#/ { next }
+            /@[[:space:]]*\+[[:space:]]*27|\\033|\\x1[Bb]|\\u001[Bb]|\\e\[[0-9;]*m/ {
+                print FILENAME ":" FNR ": " $0
+                found=1
+            }
+            END { exit found ? 1 : 0 }
+        ' "$file"; then
+            status=1
+        fi
+    done < <(find src_next tests -type f -name '*.bqn' | sort)
+
+    if [ "$status" -ne 0 ]; then
+        echo "FAIL: BQN source must not emit terminal styling; keep color in presentation layer" >&2
+        exit 1
+    fi
+}
+
 echo "[1/4] unit tests" >&2
 for test_file in tests/test_*.bqn; do
     if [ -f "$test_file" ]; then
@@ -101,5 +129,6 @@ bash checks/check-missing-role-fallback.sh >/dev/null
 bash checks/check-src-next-lint.sh >/dev/null
 bash checks/check-ui-smoke.sh >/dev/null
 bash checks/check-absolute-links.sh >/dev/null
+check_bqn_presentation_boundary
 
 echo "OK" >&2
