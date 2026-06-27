@@ -1,73 +1,82 @@
 # DECISION_TERMINAL_COLOR_CONFIG
 
-レポート出力の ANSI カラー制御をどのように設定可能にするか。
+レポート出力の terminal color / styling をどの層で扱うか。
 
-Status: Phase 1 実装済み（2026-06-27: semantic color helpers + `--no-color` / wrapper auto制御）
+Status: 決定更新（2026-06-28: BQN layer は terminal styling を出力しない）
 
-## 現状
+## 決定
 
-`src_next/format.bqn` が ANSI カラー helper を提供する。色は semantic helper 経由へ寄せ始めている。
+BQN layer は terminal styling を出力しない。
 
-- セクションヘッダー：太字（`Bold`）
-- マイナス金額：赤（`FmtAmt` で自動）
-- semantic helpers: `Ok` / `Warn` / `Bad` / `Info` / `Muted` / `Accent` / `Future`
-- 試算表 OK/FAIL：`Ok` / `Bad`
-- 封筒 health：SAFE系=`Ok`、WARN=`Warn`、SHORT/DRAWN=`Bad`
-- 予定支払い：future=`Future`、completed=`Ok`、due=`Warn`、overdue=`Bad`
-- snapshot/cycle summary の主要金額に意味色を一部追加
+BQN が出してよいもの:
 
-`bqn src_next/report.bqn <base> --no-color` または `--color=never` で ANSI を抑制できる。`--color=always` は強制表示。
-`tools/report` / `tools/main-ui.sh` は `NO_COLOR` または stdout 非TTY時に `--no-color` を渡す。
+- plain text report
+- section key
+- machine-readable summary
+- semantic status word（例: `ok`, `warn`, `due`, `overdue`, `future`, `completed`）
 
-## プロの CLI/TUI ツールの標準アプローチ
+BQN が出してはいけないもの:
 
-1. **`NO_COLOR` 環境変数** — https://no-color.org で標準化。設定されていれば色を抑制。
-2. **パイプ検出** — `isatty(stdout)` が false なら色抑制。`--color=always|never|auto` で上書き可能。
-3. **テーマファイル** — TUI で細かく設定する場合（lazygit, k9s 等）。このプロジェクトではオーバースペック。
+- ANSI escape sequence
+- terminal color code
+- cursor control
+- TTY 依存の表示制御
+- fzf / gum など特定 UI ツール向けの装飾 markup
 
-## 選択肢
+色、太字、枠、カード、preview 用の加工は presentation layer が担当する。
 
-### A: 最小構成 — Bash 層で `NO_COLOR` + パイプ検出（採用済み）
+主な置き場:
 
-`tools/report` / `tools/main-ui.sh` で環境変数またはパイプ検出を行い、BQN へ `--no-color` を渡す。
-BQN 側は `report.bqn` が `fmt.SetColorEnabled 0` を呼び、各 module の `format.bqn` helper が無色文字列を返す。
+- `tools/lib/color-filter`
+- `tools/main-ui.sh`
+- `tools/add-ui.sh` の表示補助
+- Go TUI / future viewer layer
 
-```bash
-bqn src_next/report.bqn data --no-color
-bqn src_next/report.bqn data --color=always
-```
+## 理由
 
-CBQN に `•GetEnv` がないため、BQN が環境変数を直接読む設計にはしない。
+BQN は source TSV の検査、意味解釈、計算、export の正本である。terminal 表示の都合を BQN に混ぜると、plain text report、machine-readable output、golden check、将来の TUI / Web viewer が同じ文字列に引きずられる。
 
-### B: 何もしない
+特に `src_next/format.bqn` の `VWidth` / `PadV` は ANSI escape sequence を幅0として扱わない。そのため、BQN output に ANSI を混ぜると表の桁揃えが壊れやすい。
 
-個人ツールであり、`tools/main-ui.sh` は常に対話実行なのでカラーが問題になる場面は限られる。
-
-### C: `format.bqn` に on/off スイッチ（軽量版を採用済み）
-
-`SetColorEnabled` と semantic color helper を追加済み。テーマ辞書や `config/theme.tsv` はまだ作らない。
-将来 theme 化する場合も、report 各所は `Ok` / `Warn` / `Bad` などの意味名を使い、色の割当は `format.bqn` に閉じ込める。
-
-## 表示実装の注意
-
-表の幅計算 (`VWidth` / `PadV`) は ANSI escape sequence を幅0として扱わない。
-そのため、表セルを色付けする時は原則として次の順序を守る。
+## 表示境界
 
 ```text
-先に PadV / PadL / AlignR で幅を揃える → 最後に semantic color helper で巻く
+source TSV
+  -> BQN validated model / view model / plain report text
+  -> shell / Go / future UI presentation layer
+  -> terminal color, cards, preview, interaction
 ```
 
-既に色が付いた文字列を `PadV` に渡すと、桁ズレの原因になる。
+BQN は意味を出す。UI は見せ方を決める。
+
+## 実装上のルール
+
+1. `src_next/**/*.bqn` と `tests/**/*.bqn` に ANSI escape sequence を追加しない。
+2. `fmt.Ok`, `fmt.Warn`, `fmt.Bad` などの semantic helper を terminal color 実装として使わない。
+3. BQN 内に `ESC`, `@+27`, `\033`, `\x1b`, `\e[` 相当の terminal styling を置かない。
+4. 色付けしたい場合は、BQN が plain text または semantic status word を出し、presentation layer で後処理する。
+5. `--no-color`, `--color=never`, `--color=always` のような CLI 互換フラグが残っていても、それを BQN に ANSI を戻す許可とは扱わない。
+
+## 既存実装との関係
+
+`src_next/format.bqn` には歴史的に semantic color helper 名が残っているが、terminal styling の実装場所ではない。これらは、将来の意味ラベルや presentation layer 連携に置き換える候補として扱う。
+
+現在の色付き表示は、BQN の外側で plain text を受け取り、必要な場面だけ `tools/lib/color-filter` などで装飾する。
+
+## check
+
+`tools/check.sh` は、BQN source に terminal styling が混入していないかを engine-independent check として確認する。
 
 ## 議論メモ
 
-- moko: 「これどうするか考えるから議題としてドキュメントにして」（2026-06-26）
-- 実装済みの色付け自体は気に入っている
-- 2026-06-27: config-theme はまだ早い。まず semantic helper と no-color 制御だけ入れる方針。
-- パイプ時に ANSI が混ざらない仕組みは `tools/report` / `tools/main-ui.sh` で導入済み。
+- moko: BQN 側に色を埋め込まない方針を今のうちに厳格にルール化する。
+- 色付きUI自体は否定しない。色の置き場を BQN ではなく presentation layer に固定する。
+- Bubble Tea / Lip Gloss / Rich / Textual などの将来UIも、この境界に従えば後から安全に足せる。
 
 ## 導線
 
 - `AGENTS.md` 作業ルール
-- `src_next/format.bqn`（色の実装箇所）
-- `tools/main-ui.sh`（呼び出し元）
+- `docs/ARCHITECTURE.md` presentation boundary
+- `tools/lib/color-filter`
+- `tools/main-ui.sh`
+- `tools/check.sh`
