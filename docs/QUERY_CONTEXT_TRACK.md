@@ -232,8 +232,9 @@ Do not implement until the money query/context boundary is stable.
 
 The safe next step is documentation only:
 
-1. Keep this document linked from `TODO.md` and `docs/README.md`.
-2. Keep command hub design separate from query logic.
-3. Finish current ledger hardening work before implementing this track.
+1. Keep this document linked from `docs/README.md`.
+2. Add `TODO.md` linkage later only if this track becomes active work.
+3. Keep command hub design separate from query logic.
+4. Finish current ledger hardening work before implementing this track.
 
 This keeps the idea alive without letting it swallow the accounting engine.
