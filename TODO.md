@@ -172,3 +172,4 @@ Design note: `docs/COMMAND_HUB_DESIGN.md`
 - [ ] 初期実装するなら shell + gum の薄いランチャー候補。
 - [ ] hub自体は source TSV を直接変更しない。
 - [ ] 単一 `events.tsv` への統一方針ではない。
+- [ ] `docs/MAIN_UI_SECTION_PREVIEW_CACHE_ISSUE-2026-06-27.md` — fzf section preview を一時セクションキャッシュで復元する案を追跡する。

@@ -118,6 +118,7 @@ all print non-empty output.
 - Move current fzf/gum behavior under `select` or `--select`.
 - Selector preview is convenience only.
 - If preview fails, the normal report path must remain unaffected.
+- Related issue: `docs/MAIN_UI_SECTION_PREVIEW_CACHE_ISSUE-2026-06-27.md` (temporary section cache preview path).
 
 ### Phase 3: small command hub
 
