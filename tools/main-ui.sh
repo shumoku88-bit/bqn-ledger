@@ -3,12 +3,12 @@ set -euo pipefail
 
 # tools/main-ui.sh — daily report entry / small command hub
 #
-# Default path must be boring and reliable:
-#   tools/main-ui.sh  -> show the full report through tools/report
-# fzf/gum selection is optional and lives under `select` / `--select`.
+# Default path must be useful for daily browsing:
+#   tools/main-ui.sh  -> open the lightweight section selector
+# Full report output remains available through `report` / `all`.
 #
 # Section extraction uses report.bqn --list-sections for marker mapping,
-# so section headers can change in BQN without breaking the UI.
+# so section headers can change in BQN without breaking direct section commands.
 
 SOURCE="${BASH_SOURCE[0]}"
 while [ -L "$SOURCE" ]; do
@@ -28,8 +28,8 @@ Usage:
   tools/main-ui.sh [--base <dir>] [command]
 
 Commands:
-  report, all          Show the full report (default)
-  select, --select     Open fzf/gum section selector
+  select, --select     Open fzf/gum section selector (default)
+  report, all          Show the full report
   snapshot             Show Snapshot section
   envelopes            Show Envelope & Budget section
   outlook              Show Outlook Dashboard section
@@ -45,7 +45,7 @@ Commands:
   debug                Show Debug & Provenance section
   add, actions         Launch tools/add-ui.sh
 
-Default behavior intentionally does not depend on fzf/gum.
+Default behavior intentionally opens the lightweight selector.
 EOF
 }
 
@@ -90,17 +90,16 @@ fi
 
 # Load section key→marker mapping from BQN report.
 # Sets global SECTION_MAP (assoc array: key→marker) and SECTION_KEYS (ordered list).
-# Returns the path to a temp file containing the key\tmarker TSV for awk usage.
 load_section_map() {
-  local base="$1" tsv_file line key marker
+  local base="$1" tsv_file key marker
   declare -gA SECTION_MAP=()
   declare -ga SECTION_KEYS=()
   local count=0
 
   tsv_file="$(mktemp)"
-  trap 'rm -f "$tsv_file"' RETURN
 
   if ! "$ROOT_DIR/tools/report" "$base" --list-sections --no-color >"$tsv_file" 2>/dev/null; then
+    rm -f "$tsv_file"
     echo "Failed to load section map from report" >&2
     return 1
   fi
@@ -111,13 +110,12 @@ load_section_map() {
     SECTION_KEYS+=("$key")
     count=$((count + 1))
   done < "$tsv_file"
+  rm -f "$tsv_file"
 
   if [[ "$count" -eq 0 ]]; then
     echo "Failed to load section map: no sections found" >&2
     return 1
   fi
-
-  echo "$tsv_file"
 }
 
 # get the next section key in order (empty if last)
@@ -133,14 +131,6 @@ get_next_section_key() {
     fi
   done
   return 1
-}
-
-# Write section map as TSV for awk preview scripts
-write_section_map_tsv() {
-  local k marker
-  for k in "${SECTION_KEYS[@]}"; do
-    printf '%s\t%s\n' "$k" "${SECTION_MAP[$k]}"
-  done
 }
 
 show_full_report() {
@@ -222,66 +212,42 @@ extract_section_from_cache() {
 }
 
 show_section() {
-  local key="$1" report_cache err_cache map_file
+  local key="$1" report_cache err_cache
   report_cache="$(mktemp)"
   err_cache="$(mktemp)"
   trap 'rm -f "$report_cache" "$err_cache"' RETURN
-  map_file="$(load_section_map "$base_dir")" || return 1
+  load_section_map "$base_dir" || return 1
   build_report_cache "$report_cache" "$err_cache"
   extract_section_from_cache "$key" "$report_cache"
 }
 
 select_section() {
-  local map_file report_cache err_cache preview_cmd section_map_tsv
-  map_file="$(load_section_map "$base_dir")" || return 1
-
-  if command -v fzf >/dev/null 2>&1; then
-    report_cache="$(mktemp)"
-    err_cache="$(mktemp)"
-    section_map_tsv="$(mktemp)"
-    trap 'rm -f "$report_cache" "$err_cache" "$section_map_tsv"' RETURN
-
-    echo "Building report..." >&2
-    build_report_cache "$report_cache" "$err_cache"
-    write_section_map_tsv > "$section_map_tsv"
-    export MAIN_UI_REPORT_CACHE="$report_cache"
-    export MAIN_UI_SECTION_MAP="$section_map_tsv"
-
-    # preview_cmd uses the section map TSV to look up markers dynamically
-    preview_cmd='key={1}; file="$MAIN_UI_REPORT_CACHE"; map="$MAIN_UI_SECTION_MAP"; case "$key" in all) cat "$file"; exit ;; actions) echo "→ Launch add-ui.sh (仕訳追加・予定管理・取消)"; exit ;; esac; marker=$(awk -F"\t" -v k="$key" '\''$1 == k { print $2; exit }'\'' "$map"); if [[ -z "$marker" ]]; then echo "(unknown section: $key)"; exit; fi; next_key=$(awk -F"\t" -v k="$key" '\''found{print $1; exit} $1==k{found=1}'\'' "$map"); if [[ -n "$next_key" ]]; then next_marker=$(awk -F"\t" -v k="$next_key" '\''$1 == k { print $2; exit }'\'' "$map"); awk -v m="$marker" -v nm="$next_marker" '\''index($0,m)>0{f=1;print;next} f&&index($0,nm)>0{exit} f{print} END{if(!f)exit 3}'\'' "$file"; else awk -v m="$marker" '\''index($0,m)>0{f=1;print;next} f{print} END{if(!f)exit 3}'\'' "$file"; fi'
-
+  if command -v fzf >/dev/null 2>&1 && [[ -t 0 && -t 1 ]]; then
     section_list | fzf \
       --prompt='section> ' \
       --delimiter=$'\t' \
       --with-nth=2.. \
-      --ansi \
-      --height=100% \
+      --height=80% \
       --reverse \
-      --exit-0 \
-      --preview="$preview_cmd" \
-      --preview-window='down:70%' \
-      --bind='ctrl-p:change-preview-window(right:80%|down:70%|hidden|)'
-  elif command -v gum >/dev/null 2>&1; then
+      --exit-0
+  elif command -v gum >/dev/null 2>&1 && [[ -t 0 && -t 1 ]]; then
     section_list | gum filter --placeholder='section / category'
   else
-    section_list
+    section_list >&2
     printf 'section key> ' >&2
     read -r key
     printf '%s\n' "$key"
   fi
 }
 
-# Load section map early so SECTION_MAP is available for all paths
-load_section_map "$base_dir" >/dev/null
-
 case "$cmd" in
-  report|all|'')
+  report|all)
     show_full_report
     ;;
   add|actions)
     exec "$ROOT_DIR/tools/add-ui.sh" --base "$base_dir"
     ;;
-  select|--select)
+  select|--select|'')
     selection="$(select_section || true)"
     [[ -z "$selection" ]] && echo "Cancelled." >&2 && exit 0
     key="${selection%%$'\t'*}"
