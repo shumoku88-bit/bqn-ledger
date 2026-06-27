@@ -82,11 +82,9 @@ docs/DOCS_HYGIENE_AUDIT-2026-06-22.md
 docs/STALE_DOCS_STATUS-2026-06-22.md
 ```
 
-残り候補:
-
-- [x] `docs/GENERALIZATION_TODO.md` を短い active remainder / historical stub に置き換えるか判断する。
-- [x] `docs/BEHAVIOR_DRIFT_REPORT_PLAN.md` を全文archiveまたは短い historical stub にするか判断する。
-- [x] `docs/GO_SOURCE_TSV_EDITOR_DESIGN.md` を全文archiveまたは短い historical stub にするか判断する。
+- [x] `docs/GENERALIZATION_TODO.md` を短い active remainder stub に圧縮完了。
+- [x] `docs/BEHAVIOR_DRIFT_REPORT_PLAN.md` を archive に移動完了。
+- [x] `docs/GO_SOURCE_TSV_EDITOR_DESIGN.md` を判断完了（必要に応じて stub/archive 化）。
 
 方針:
 

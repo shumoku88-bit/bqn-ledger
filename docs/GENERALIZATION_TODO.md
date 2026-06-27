@@ -1,14 +1,20 @@
-# 生活スタイル設定駆動化計画 (Historical Stub)
+# bqn-ledger: lifestyle configuration active remainder
 
-Status: **stale / active remainder moved to TODO**
+Status: active remainder / compressed
+Date: 2026-06-27
 
-この文書は、生活スタイル設定駆動化（Generalization）の初期設計と計画を記録した過去の文書です。
-完了済みのフェーズや古い履歴は archive に退避され、現在進行中の残件は `TODO.md` に移管されました。
-現行の実装方針としてこの文書の長文を読まないでください。
-Original long form is preserved in Git history.
+This document tracks the remaining design decisions for the lifestyle configuration (generalization) framework.
 
-## 現在の参照先
+## Current active remainder
 
-- **進行中の計画**: `TODO.md` の "Active plan: lifestyle configuration"
-- **完了済みの履歴**: `docs/archive/completed-plans/GENERALIZATION_COMPLETED_PHASES.md`
-- **ステータスノート**: `docs/GENERALIZATION_TODO.status.md`
+1. **Prefix fallback removal decision**:
+   Condition: All account references in live ledger TSVs must explicitly declare `role=`. Use counts are detected in `src_next_household_metadata_prefix_fallback_total_count`. Removal parameters are defined in [docs/ACCOUNT_ROLE_CONTRACT.md](file:///Users/user/Projects/moko/bqn-ledger/docs/ACCOUNT_ROLE_CONTRACT.md).
+2. **Configuration boundary policy**:
+   Any configuration-externalization candidate must respect the [docs/SAFETY_PROFILE.md](file:///Users/user/Projects/moko/bqn-ledger/docs/SAFETY_PROFILE.md). Keep user configs simple; do not turn configuration into a DSL for arbitrary accounting computation.
+3. **Canonical Daily Cube axis constraint**:
+   Canonical Daily Cube shape and Layer contracts must not become user configuration. New coordinates or meanings should become separate projections/views rather than extra Daily Cube axes.
+
+## Historical completed phase details
+
+Detailed roadmaps and completed phases are archived in:
+- [docs/archive/completed-plans/GENERALIZATION_COMPLETED_PHASES.md](file:///Users/user/Projects/moko/bqn-ledger/docs/archive/completed-plans/GENERALIZATION_COMPLETED_PHASES.md)
