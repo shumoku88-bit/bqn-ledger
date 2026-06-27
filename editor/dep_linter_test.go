@@ -28,6 +28,7 @@ var allowedImports = map[string]bool{
 	"util.bqn":             true,
 	"actual_snapshot.bqn":  true,
 	"trial_balance.bqn":    true,
+	"unavailable.bqn":      true,
 }
 
 // Section modules (the targets of checking inter-dependencies)
