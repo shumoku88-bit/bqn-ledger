@@ -13,6 +13,8 @@ loader ← •Import "loader.bqn"
 proj ← •Import "projection.bqn"
 cube ← •Import "cube.bqn"
 fmt ← •Import "format.bqn"
+labels ← •Import "report_labels.bqn"
+L ← labels.Text
 
 # ── CleanName helper ──────────────────────────────────────
 StartsWith ← { 𝕨 ≡ (≠ 𝕨) ↑ 𝕩 }
@@ -331,19 +333,19 @@ FormatHuman ← {𝕊 vm:
   out ↩ out ∾ (@+10)
 
   # Note: Display days elapsed for current, and "(前サイクル同時点)" for baseline
-  out ↩ out ∾ "current : " ∾ (fmt.RangeDisp ⟨vm.current_start, vm.current_end_exclusive⟩) ∾ " (" ∾ (•Fmt vm.elapsed_days) ∾ " 日経過)" ∾ (@+10)
-  out ↩ out ∾ "baseline: " ∾ (fmt.RangeDisp ⟨vm.baseline_start, vm.baseline_end_exclusive⟩) ∾ " (前サイクル同時点)" ∾ (@+10)
+  out ↩ out ∾ (L "actual.current_label") ∾ (fmt.RangeDisp ⟨vm.current_start, vm.current_end_exclusive⟩) ∾ (L "actual.current_open") ∾ (•Fmt vm.elapsed_days) ∾ (L "actual.current_days_suffix") ∾ (@+10)
+  out ↩ out ∾ (L "actual.baseline_label") ∾ (fmt.RangeDisp ⟨vm.baseline_start, vm.baseline_end_exclusive⟩) ∾ (L "actual.baseline_suffix") ∾ (@+10)
   out ↩ out ∾ (@+10)
 
   (vm.observation_status ≡ "ok") ◶ ⟨
     {𝕊:
-      out ↩ out ∾ "NOTE: 比較可能な前サイクル履歴が足りないため、Actual比較は表示しません。(status: " ∾ vm.observation_status ∾ ")" ∾ (@+10)
+      out ↩ out ∾ (L "actual.no_history") ∾ vm.observation_status ∾ ")" ∾ (@+10)
       out ↩ out ∾ (@+10)
     },
     {𝕊:
       table ← vm.table
       (0 < ≠ table) ◶ ⟨
-        {𝕊: out ↩ out ∾ "(no comparable actual activity)" ∾ (@+10) ∾ (@+10) },
+        {𝕊: out ↩ out ∾ (L "actual.no_rows") ∾ (@+10) ∾ (@+10) },
         {𝕊:
           # Sort table by |diff| (absolute difference value) descending
           diffs ← | 10⊑¨ table

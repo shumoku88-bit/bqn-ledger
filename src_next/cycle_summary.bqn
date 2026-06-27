@@ -6,6 +6,8 @@ tbds ← •Import "tbds.bqn"
 loader ← •Import "loader.bqn"
 proj ← •Import "projection.bqn"
 fmt ← •Import "format.bqn"
+labels ← •Import "report_labels.bqn"
+L ← labels.Text
 cube ← •Import "cube.bqn"
 
 Pad5 ← { 𝕩 ∾ ((5 - (5⌊≠𝕩)) ⥊ ⟨""⟩) }
@@ -135,7 +137,7 @@ FormatHuman ← {𝕊 summary‿expenseEntries:
   out ← "== Current Cycle Summary ==" ∾ (@+10) ∾ (@+10)
   
   days_str ← •Fmt summary.days_remaining
-  out ↩ out ∾ "Cycle: " ∾ (fmt.RangeDisp ⟨summary.start, summary.end_exclusive⟩) ∾ "  (あと " ∾ days_str ∾ " 日)" ∾ (@+10) ∾ (@+10)
+  out ↩ out ∾ (L "cycle.cycle_prefix") ∾ (fmt.RangeDisp ⟨summary.start, summary.end_exclusive⟩) ∾ (L "cycle.days_left_prefix") ∾ days_str ∾ (L "cycle.days_left_suffix") ∾ (@+10) ∾ (@+10)
 
   inc_raw ← FmtAmt2 summary.income_actual
   exp_raw ← FmtAmt2 summary.expense_actual
@@ -146,23 +148,23 @@ FormatHuman ← {𝕊 summary‿expenseEntries:
   net_str ← (summary.net_actual < 0) ⊑ ⟨fmt.Ok net_raw, fmt.Bad net_raw⟩
   rem_str ← fmt.Future rem_raw
 
-  out ↩ out ∾ "  " ∾ (fmt.PadV ⟨24, "収入合計"⟩) ∾ "+ " ∾ inc_str ∾ (@+10)
-  out ↩ out ∾ "  " ∾ (fmt.PadV ⟨24, "支出合計（含 負債返済）"⟩) ∾ "- " ∾ exp_str ∾ (@+10)
+  out ↩ out ∾ "  " ∾ (fmt.PadV ⟨24, L "cycle.income_total_label"⟩) ∾ "+ " ∾ inc_str ∾ (@+10)
+  out ↩ out ∾ "  " ∾ (fmt.PadV ⟨24, L "cycle.expense_total_label"⟩) ∾ "- " ∾ exp_str ∾ (@+10)
   out ↩ out ∾ "  ────────────────────────────" ∾ (@+10)
-  out ↩ out ∾ "  " ∾ (fmt.PadV ⟨24, "収支"⟩) ∾ "  " ∾ net_str ∾ (@+10) ∾ (@+10)
-  out ↩ out ∾ "  " ∾ (fmt.PadV ⟨24, "予定支出(残)"⟩) ∾ "- " ∾ rem_str ∾ (@+10) ∾ (@+10)
+  out ↩ out ∾ "  " ∾ (fmt.PadV ⟨24, L "cycle.net_label"⟩) ∾ "  " ∾ net_str ∾ (@+10) ∾ (@+10)
+  out ↩ out ∾ "  " ∾ (fmt.PadV ⟨24, L "cycle.planned_remaining_label"⟩) ∾ "- " ∾ rem_str ∾ (@+10) ∾ (@+10)
 
   # ── 収入内訳 ──
   inc_amounts ← {1⊑𝕩}¨ summary.income_entries
   inc_sorted ← (⌽⍋inc_amounts) ⊏ summary.income_entries
   tbl_inc ← FormatTableGroup inc_sorted
-  out ↩ out ∾ (0 < ≠tbl_inc) ◶ ⟨{""}, {"  ── 収入内訳 ──" ∾ (@+10) ∾ tbl_inc ∾ (@+10)}⟩ @
+  out ↩ out ∾ (0 < ≠tbl_inc) ◶ ⟨{""}, {(L "cycle.income_breakdown_title") ∾ (@+10) ∾ tbl_inc ∾ (@+10)}⟩ @
 
   # ── 支出内訳 ──
   exp_amounts ← {1⊑𝕩}¨ expenseEntries
   exp_sorted ← (⌽⍋exp_amounts) ⊏ expenseEntries
   tbl_exp ← FormatTableGroup exp_sorted
-  out ↩ out ∾ (0 < ≠tbl_exp) ◶ ⟨{""}, {"  ── 支出内訳 ──" ∾ (@+10) ∾ tbl_exp ∾ (@+10)}⟩ @
+  out ↩ out ∾ (0 < ≠tbl_exp) ◶ ⟨{""}, {(L "cycle.expense_breakdown_title") ∾ (@+10) ∾ tbl_exp ∾ (@+10)}⟩ @
 
   out
 }

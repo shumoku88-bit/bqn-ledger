@@ -8,6 +8,8 @@
 # ── Helpers ──────────────────────────────────────────────
 Floor ← ⌊
 Ceil ← ⌈
+labels ← •Import "../report_labels.bqn"
+L ← labels.Text
 
 # P1: 封筒ペース診断
 # Args: ⟨allocated, spent, elapsed, total_days⟩
@@ -72,40 +74,40 @@ EnvelopeDepletion ← {𝕊 r‿s‿e‿t:
 
 FormatPace ← {𝕊 p‿label:
   spent_total ← p.ideal_spent + p.overshoot
-  out ← "── " ∾ label ∾ " ペース診断 ──" ∾ (@+10)
-  out ↩ out ∾ "  理想消化額:   " ∾ (•Fmt p.ideal_spent) ∾ (@+10)
-  out ↩ out ∾ "  実消化額:     " ∾ (•Fmt spent_total) ∾ (@+10)
-  out ↩ out ∾ "  超過額:       " ∾ (•Fmt p.overshoot) ∾ (@+10)
-  out ↩ out ∾ "  実績/日:      " ∾ (•Fmt p.daily_actual) ∾ (@+10)
-  out ↩ out ∾ "  目標/日:      " ∾ (•Fmt p.daily_target) ∾ (@+10)
-  out ↩ out ∾ "  ペース比:     " ∾ (•Fmt (Floor 100 × p.pace_ratio)) ∾ "%" ∾ (@+10)
-  out ↩ out ∾ "  判定:         " ∾ p.health ∾ (@+10)
+  out ← "── " ∾ label ∾ " " ∾ (L "calc.pace_title") ∾ " ──" ∾ (@+10)
+  out ↩ out ∾ (L "calc.ideal_spent_label") ∾ (•Fmt p.ideal_spent) ∾ (@+10)
+  out ↩ out ∾ (L "calc.actual_spent_label") ∾ (•Fmt spent_total) ∾ (@+10)
+  out ↩ out ∾ (L "calc.overshoot_label") ∾ (•Fmt p.overshoot) ∾ (@+10)
+  out ↩ out ∾ (L "calc.daily_actual_label") ∾ (•Fmt p.daily_actual) ∾ (@+10)
+  out ↩ out ∾ (L "calc.daily_target_label") ∾ (•Fmt p.daily_target) ∾ (@+10)
+  out ↩ out ∾ (L "calc.pace_ratio_label") ∾ (•Fmt (Floor 100 × p.pace_ratio)) ∾ "%" ∾ (@+10)
+  out ↩ out ∾ (L "calc.judge_label") ∾ p.health ∾ (@+10)
   out
 }
 
 FormatRecovery ← {𝕊 days‿limit‿label:
-  out ← "── " ∾ label ∾ " 復帰計算 ──" ∾ (@+10)
+  out ← "── " ∾ label ∾ " " ∾ (L "calc.recovery_title") ∾ " ──" ∾ (@+10)
   (days = ∞) ◶ ⟨
-    {𝕊: out ↩ out ∾ "  1日上限 " ∾ (•Fmt limit) ∾ " 円 で ペースラインに戻るまで: " ∾ (•Fmt days) ∾ " 日" ∾ (@+10)},
-    {𝕊: out ↩ out ∾ "  1日上限 " ∾ (•Fmt limit) ∾ " 円: 目標ペースより高いため回復不能" ∾ (@+10)}
+    {𝕊: out ↩ out ∾ (L "calc.days_limit_prefix") ∾ (•Fmt limit) ∾ (L "calc.days_limit_suffix") ∾ (•Fmt days) ∾ (L "calc.day_unit") ∾ (@+10)},
+    {𝕊: out ↩ out ∾ (L "calc.days_limit_impossible_prefix") ∾ (•Fmt limit) ∾ (L "calc.days_limit_impossible_suffix") ∾ (@+10)}
   ⟩ @
   out
 }
 
 FormatRecoveryTarget ← {𝕊 limit‿tdays‿label:
-  out ← "── " ∾ label ∾ " 復帰計算 ──" ∾ (@+10)
-  out ↩ out ∾ "  " ∾ (•Fmt tdays) ∾ " 日でペースラインに戻るための 1日上限: " ∾ (•Fmt limit) ∾ " 円" ∾ (@+10)
+  out ← "── " ∾ label ∾ " " ∾ (L "calc.recovery_title") ∾ " ──" ∾ (@+10)
+  out ↩ out ∾ (L "calc.target_days_prefix") ∾ (•Fmt tdays) ∾ (L "calc.target_days_suffix") ∾ (•Fmt limit) ∾ (L "calc.currency_unit") ∾ (@+10)
   out
 }
 
 FormatDepletion ← {𝕊 d‿label:
-  out ← "── " ∾ label ∾ " 枯渇予測 ──" ∾ (@+10)
-  out ↩ out ∾ "  消化速度/日:   " ∾ (•Fmt d.burn_rate) ∾ (@+10)
-  out ↩ out ∾ "  残日数:        " ∾ (•Fmt d.days_left) ∾ (@+10)
-  out ↩ out ∾ "  枯渇まで:      " ∾ (•Fmt d.days_until_empty) ∾ " 日" ∾ (@+10)
+  out ← "── " ∾ label ∾ " " ∾ (L "calc.depletion_title") ∾ " ──" ∾ (@+10)
+  out ↩ out ∾ (L "calc.burn_rate_label") ∾ (•Fmt d.burn_rate) ∾ (@+10)
+  out ↩ out ∾ (L "calc.days_left_label") ∾ (•Fmt d.days_left) ∾ (@+10)
+  out ↩ out ∾ (L "calc.until_empty_label") ∾ (•Fmt d.days_until_empty) ∾ (L "calc.day_unit") ∾ (@+10)
   (d.shortfall_days > 0) ◶ ⟨
-    {𝕊: out ↩ out ∾ "  判定:          SAFE (残日数内に収まる)" ∾ (@+10)},
-    {𝕊: out ↩ out ∾ "  不足日数:      " ∾ (•Fmt d.shortfall_days) ∾ " 日 ⚠" ∾ (@+10)}
+    {𝕊: out ↩ out ∾ (L "calc.safe_judge") ∾ (@+10)},
+    {𝕊: out ↩ out ∾ (L "calc.shortfall_label") ∾ (•Fmt d.shortfall_days) ∾ (L "calc.shortfall_unit") ∾ (@+10)}
   ⟩ @
   out
 }

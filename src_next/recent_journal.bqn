@@ -3,6 +3,8 @@
 
 loader ← •Import "loader.bqn"
 fmt ← •Import "format.bqn"
+labels ← •Import "report_labels.bqn"
+L ← labels.Text
 
 Pad5 ← { 𝕩 ∾ ((5 - (5⌊≠𝕩)) ⥊ ⟨""⟩) }
 
@@ -41,7 +43,7 @@ FormatHuman ← {𝕊 ctx‿n:
   start ← 0⌈(c - n)
   recent ← (ParseLine¨ ⌽ (start ↓ lines))
 
-  out ← fmt.Section "7. 直近の取引 (Recent Journal)" ∾ (@+10)
+  out ← fmt.Section (L "recent.section_title") ∾ (@+10)
   out ↩ out ∾ "(newest first, last " ∾ (•Fmt n) ∾ ")" ∾ (@+10)
 
   {𝕊:

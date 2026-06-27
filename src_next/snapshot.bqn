@@ -16,6 +16,8 @@ proj ← •Import "projection.bqn"
 tbds ← •Import "tbds.bqn"
 cube ← •Import "cube.bqn"
 fmt ← •Import "format.bqn"
+labels ← •Import "report_labels.bqn"
+L ← labels.Text
 unav ← •Import "unavailable.bqn"
 
 fallback_current ← "fallback/current-engine"
@@ -252,16 +254,16 @@ FormatHuman ← {𝕊 vm:
   liab_str ← (vm.liabilities_total > 0) ⊑ ⟨liab_raw, fmt.Bad liab_raw⟩
   net_raw ← fmt.FmtAmt vm.net_worth
   net_str ← (vm.net_worth < 0) ⊑ ⟨fmt.Ok net_raw, fmt.Bad net_raw⟩
-  out ← fmt.Section "1. 全体サマリ (Snapshot)" ∾ (@+10)
-  out ↩ out ∾ "  流動資産 (type=liquid) : " ∾ (fmt.Info fmt.FmtAmt vm.liq_total) ∾ (@+10)
-  out ↩ out ∾ "  貯金     (type=savings): " ∾ (fmt.FmtAmt vm.sav_total) ∾ (@+10)
-  out ↩ out ∾ "  投資     (type=invest) : " ∾ (fmt.FmtAmt vm.inv_total) ∾ (@+10)
+  out ← fmt.Section (L "snapshot.section_title") ∾ (@+10)
+  out ↩ out ∾ (L "snapshot.liquid_line") ∾ (fmt.Info fmt.FmtAmt vm.liq_total) ∾ (@+10)
+  out ↩ out ∾ (L "snapshot.savings_line") ∾ (fmt.FmtAmt vm.sav_total) ∾ (@+10)
+  out ↩ out ∾ (L "snapshot.invest_line") ∾ (fmt.FmtAmt vm.inv_total) ∾ (@+10)
   out ↩ out ∾ "  ------------------------------------" ∾ (@+10)
-  out ↩ out ∾ "  総資産合計             : " ∾ assets_str ∾ (@+10)
+  out ↩ out ∾ (L "snapshot.assets_total_line") ∾ assets_str ∾ (@+10)
   out ↩ out ∾ (@+10)
-  out ↩ out ∾ "  負債合計 (liabilities) : " ∾ liab_str ∾ (@+10)
+  out ↩ out ∾ (L "snapshot.liabilities_total_line") ∾ liab_str ∾ (@+10)
   out ↩ out ∾ "  ------------------------------------" ∾ (@+10)
-  out ↩ out ∾ "  純資産 (Net Worth)     : " ∾ net_str ∾ (@+10)
+  out ↩ out ∾ (L "snapshot.net_worth_line") ∾ net_str ∾ (@+10)
   out ↩ out ∾ (@+10)
   out
 }

@@ -9,6 +9,8 @@ cube ← •Import "cube.bqn"
 tbds ← •Import "tbds.bqn"
 actual_snapshot ← •Import "actual_snapshot.bqn"
 fmt ← •Import "format.bqn"
+labels ← •Import "report_labels.bqn"
+L ← labels.Text
 env_comp ← •Import "envelope_computation.bqn"
 
 StartsWith ← { pref ← 𝕨 ⋄ pref ≡ (≠ pref) ↑ 𝕩 }
@@ -260,36 +262,36 @@ Format ← {𝕊 vm:
 
 FormatHuman ← {𝕊 vm:
   days_left ← vm.days_left
-  out ← "== Outlook Dashboard ==" ∾ (@+10) ∾ (@+10)
-  out ↩ out ∾ "サイクル: " ∾ vm.cycle_start ∾ " 〜 " ∾ vm.cycle_end_exclusive ∾ "  (残 " ∾ (•Fmt days_left) ∾ " 日)" ∾ (@+10)
-  out ↩ out ∾ "基準日:   " ∾ vm.as_of ∾ (@+10) ∾ (@+10)
+  out ← (L "outlook.section_title") ∾ (@+10) ∾ (@+10)
+  out ↩ out ∾ (L "outlook.cycle_label") ∾ vm.cycle_start ∾ " 〜 " ∾ vm.cycle_end_exclusive ∾ (L "outlook.remaining_open") ∾ (•Fmt days_left) ∾ (L "outlook.remaining_close") ∾ (@+10)
+  out ↩ out ∾ (L "outlook.as_of_label") ∾ vm.as_of ∾ (@+10) ∾ (@+10)
 
   AlignR ← {𝕊 w‿x:
     s ← (1 = •Type x) ⊑ ⟨x, •Fmt x⟩
     ((0 ⌈ w - ≠ s) ⥊ " ") ∾ s
   }
 
-  out ↩ out ∾ "── 日割り ──" ∾ (@+10)
-  out ↩ out ∾ "  流動資産           " ∾ (AlignR ⟨10, vm.liq_total⟩) ∾ (@+10)
+  out ↩ out ∾ (L "outlook.daily_title") ∾ (@+10)
+  out ↩ out ∾ (L "outlook.liquid_label") ∾ (AlignR ⟨10, vm.liq_total⟩) ∾ (@+10)
   
-  inc_str ← (vm.planned_future_income = 0) ⊑ ("+    0   (なし)")‿("+ " ∾ (•Fmt vm.planned_future_income))
-  out ↩ out ∾ "  予定収入(残)       " ∾ (AlignR ⟨10, inc_str⟩) ∾ (@+10)
+  inc_str ← (vm.planned_future_income = 0) ⊑ (L "outlook.future_none")‿("+ " ∾ (•Fmt vm.planned_future_income))
+  out ↩ out ∾ (L "outlook.future_income_label") ∾ (AlignR ⟨10, inc_str⟩) ∾ (@+10)
   
-  exp_str ← (vm.fixed_reserve = 0) ⊑ ("-    0   (なし)")‿("-" ∾ (•Fmt vm.fixed_reserve))
-  out ↩ out ∾ "  予定支出(残)       " ∾ (AlignR ⟨10, exp_str⟩) ∾ (@+10)
+  exp_str ← (vm.fixed_reserve = 0) ⊑ (L "outlook.expense_none")‿("-" ∾ (•Fmt vm.fixed_reserve))
+  out ↩ out ∾ (L "outlook.future_expense_label") ∾ (AlignR ⟨10, exp_str⟩) ∾ (@+10)
   out ↩ out ∾ "  ─────────────────────────────" ∾ (@+10)
   
   liq_basis ← vm.liq_total + vm.planned_future_income - vm.fixed_reserve
-  out ↩ out ∾ "  使える流動資産      " ∾ (AlignR ⟨8, liq_basis⟩) ∾ "  ÷ " ∾ (•Fmt days_left) ∾ "日 = " ∾ (•Fmt vm.liq_daily) ∾ " /日" ∾ (@+10)
+  out ↩ out ∾ (L "outlook.using_liquid_label") ∾ (AlignR ⟨8, liq_basis⟩) ∾ "  ÷ " ∾ (•Fmt days_left) ∾ (L "outlook.days_suffix") ∾ (•Fmt vm.liq_daily) ∾ (L "outlook.per_day_suffix") ∾ (@+10)
 
   # For backward-compatible tests: if liq_safe_daily is calculated, output it
   {𝕊:
-    out ↩ out ∾ "  流動資産 (安全/保守) ÷ 残日数 : " ∾ (fmt.FmtAmt vm.liq_safe_daily) ∾ (@+10)
+    out ↩ out ∾ (L "outlook.safe_liquid_label") ∾ (fmt.FmtAmt vm.liq_safe_daily) ∾ (@+10)
   }⍟(vm.liq_safe_daily ≢ "unavailable/policy") @
 
   # Envelope breakdown section
   {𝕊:
-    out ↩ out ∾ (@+10) ∾ "── 封筒日割り ──" ∾ (@+10)
+    out ↩ out ∾ (@+10) ∾ (L "outlook.envelope_title") ∾ (@+10)
     max_w ← ⌈´ ⟨8⟩ ∾ (fmt.VWidth¨ {0⊑𝕩}¨ vm.budget_breakdown)
     hdr_pad ← (max_w - 8) ⥊ " "
     out ↩ out ∾ "  envelope" ∾ hdr_pad ∾ " | remaining | /day" ∾ (@+10)

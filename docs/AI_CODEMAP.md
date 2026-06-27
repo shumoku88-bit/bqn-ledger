@@ -51,6 +51,7 @@
 各ツールは `LEDGER_DATA_DIR`、未設定なら `config/system_defaults.tsv` の `DEFAULT_BASE_DIR` を base directory として読む。公開 repo の `data/` は sandbox fixture として扱う。実データの場所を確認する入口は `docs/DATA_DIR_SETUP.md` と `tools/doctor`。
 
 - `config/meta_schema.tsv` — メタデータキーの定義
+- `config/report_labels.tsv` — src_next report の表示ラベル定義。
 - `<base>/accounts.tsv` — 勘定科目マスタ
 - `<base>/journal.tsv` — 実績取引
 - `<base>/plan.tsv` — 未来予定
@@ -86,6 +87,7 @@
 - `household_metadata.bqn` — 家計メタデータ診断。
 - `plan_journal_overlap.bqn` — plan/journal 重複検出。
 - `format.bqn` — テキスト整形、ANSI color helper、semantic color/no-color制御。
+- `report_labels.bqn` — report presentation labels の正本ローダー (`config/report_labels.tsv`)。
 - `util.bqn` — 基本ユーティリティ (Split, ToNum, LoadLines)。
 - `date.bqn` — 日付操作 (Today, Parts, Ordinal, DaysBetween)。
 - `unavailable.bqn` — unavailable sentinel の正本定義と helper (`IsUnavailable`, `StartsWith`)。

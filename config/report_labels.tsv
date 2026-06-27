@@ -1,0 +1,85 @@
+# key	text
+snapshot.section_title	1. 全体サマリ (Snapshot)
+snapshot.liquid_line	流動資産 (type=liquid) : 
+snapshot.savings_line	貯金     (type=savings): 
+snapshot.invest_line	投資     (type=invest) : 
+snapshot.assets_total_line	総資産合計             : 
+snapshot.liabilities_total_line	負債合計 (liabilities) : 
+snapshot.net_worth_line	純資産 (Net Worth)     : 
+cycle.cycle_prefix	Cycle: 
+cycle.days_left_prefix	  (あと 
+cycle.days_left_suffix	 日)
+cycle.income_total_label	収入合計
+cycle.expense_total_label	支出合計（含 負債返済）
+cycle.net_label	収支
+cycle.planned_remaining_label	予定支出(残)
+cycle.income_breakdown_title	  ── 収入内訳 ──
+cycle.expense_breakdown_title	  ── 支出内訳 ──
+planned.open_title	── 未了 ──
+planned.open_total	未了合計: 
+planned.completed_title	── 完了 ──
+planned.future_status	future  : これから
+planned.due_status	     : 今日が期限
+planned.overdue_status	 : 期限超過 ⚠
+planned.completed_status	completed : 支払い済み
+actual.section_title	== Actual Comparison ==
+actual.current_label	current : 
+actual.current_open	 (
+actual.current_days_suffix	 日経過)
+actual.baseline_label	baseline: 
+actual.baseline_suffix	 (前サイクル同時点)
+actual.no_history	NOTE: 比較可能な前サイクル履歴が足りないため、Actual比較は表示しません。(status: 
+actual.no_rows	(no comparable actual activity)
+outlook.section_title	== Outlook Dashboard ==
+outlook.cycle_label	サイクル: 
+outlook.as_of_label	基準日:   
+outlook.daily_title	── 日割り ──
+outlook.liquid_label	  流動資産           
+outlook.future_income_label	  予定収入(残)       
+outlook.future_expense_label	  予定支出(残)       
+outlook.using_liquid_label	  使える流動資産      
+outlook.safe_liquid_label	  流動資産 (安全/保守) ÷ 残日数 : 
+outlook.envelope_title	── 封筒日割り ──
+outlook.future_none	+    0   (なし)
+outlook.expense_none	-    0   (なし)
+outlook.per_day_suffix	 /日
+outlook.days_suffix	日 = 
+outlook.remaining_open	  (残 
+outlook.remaining_close	 日)
+recent.section_title	7. 直近の取引 (Recent Journal)
+report.debug_title	12. デバッグ・由来 (Debug & Provenance)
+calc.pace_title	ペース診断
+calc.recovery_title	復帰計算
+calc.depletion_title	枯渇予測
+calc.ideal_spent_label	理想消化額:   
+calc.actual_spent_label	実消化額:     
+calc.overshoot_label	超過額:       
+calc.daily_actual_label	実績/日:      
+calc.daily_target_label	目標/日:      
+calc.pace_ratio_label	ペース比:     
+calc.judge_label	判定:         
+calc.days_limit_prefix	  1日上限 
+calc.days_limit_suffix	 円 で ペースラインに戻るまで: 
+calc.days_limit_impossible_prefix	  1日上限 
+calc.days_limit_impossible_suffix	 円: 目標ペースより高いため回復不能
+calc.target_days_prefix	  
+calc.target_days_suffix	 日でペースラインに戻るための 1日上限: 
+calc.burn_rate_label	  消化速度/日:   
+calc.days_left_label	  残日数:        
+calc.until_empty_label	  枯渇まで:      
+calc.safe_judge	  判定:          SAFE (残日数内に収まる)
+calc.shortfall_label	  不足日数:      
+calc.day_unit	 日
+calc.currency_unit	 円
+calc.shortfall_unit	 日 ⚠
+env.safe	  : ペース通り
+env.warn	  : 少し早い (target 超過、1.5倍未満)
+env.short	 : 危険 (ペースの1.5倍以上)
+env.held	HELD  : reserve 確保中（未実行）
+env.done	DONE  : サイクル終了、reserve 確保済
+env.saved	SAVED : 予定通り貯金・投資に回せた
+env.drawn	 : reserve から取崩発生（⚠）
+daily.section_title	== Daily Trend ==
+daily.cycle_label	サイクル: 
+daily.current_suffix	  (現在 
+daily.current_days_suffix	 日残)

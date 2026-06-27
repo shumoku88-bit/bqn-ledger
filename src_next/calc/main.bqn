@@ -179,7 +179,7 @@ DoMain ← {𝕊:
     •Out "  Operations: pace recover recover-target deplete list"
     •Out "  Prefix op with machine: for key:value output"
     •Out "  Prefix op with debug: for stderr diagnostics"
-    •Out "  Combine: machine:debug:pace 食費"
+    •Out "  Combine: machine:debug:pace food"
   }⍟(op ≡ "help") @
 
   {𝕊: DoList @}⍟((op ≡ "list") ∧ (¬ is_machine)) @

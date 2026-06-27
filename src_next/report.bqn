@@ -23,6 +23,8 @@ actual_comparison ← •Import "actual_comparison.bqn"
 cube ← •Import "cube.bqn"
 trial_balance ← •Import "trial_balance.bqn"
 fmt ← •Import "format.bqn"
+labels ← •Import "report_labels.bqn"
+L ← labels.Text
 
 PrintSection ← {𝕊 text: •Out text ⋄ •Out ""}
 
@@ -71,7 +73,7 @@ BuildSectionEntries ← {𝕊 ctx:
     ⟨"daily-trend", daily_trend.FormatHuman daily_trend.Build ctx⟩
     ⟨"actual-comparison", actual_comparison.FormatHuman actual_comparison.Build ctx⟩
     ⟨"debug", {
-      hdr ← fmt.Section "12. デバッグ・由来 (Debug & Provenance)"
+      hdr ← fmt.Section (L "report.debug_title")
       hdr∾(@+10)∾"status: partial/src_next"∾(@+10)∾cube.VerifyNumeric ⟨ctx.cube, ctx.resolved.account_keys⟩
     }⟩
   ⟩

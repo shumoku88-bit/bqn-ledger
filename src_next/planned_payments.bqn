@@ -7,6 +7,8 @@ loader ← •Import "loader.bqn"
 proj ← •Import "projection.bqn"
 cube ← •Import "cube.bqn"
 fmt ← •Import "format.bqn"
+labels ← •Import "report_labels.bqn"
+L ← labels.Text
 
 # ── CleanName helper ──────────────────────────────────────
 StartsWith ← { 𝕨 ≡ (≠ 𝕨) ↑ 𝕩 }
@@ -167,7 +169,7 @@ FormatHuman ← {𝕊 ctx:
     ((0 ⌈ w - ≠ s) ⥊ " ") ∾ s
   }
 
-  out ↩ out ∾ "── 未了 ──" ∾ (@+10)
+  out ↩ out ∾ (L "planned.open_title") ∾ (@+10)
   out ↩ out ∾ (fmt.PadV ⟨w_date, "Date"⟩) ∾ " | " ∾ (fmt.PadV ⟨w_cat_o, "Category"⟩) ∾ " | " ∾ (fmt.PadV ⟨w_memo_o, "Memo"⟩) ∾ " | " ∾ (AlignR ⟨w_amt, "Amount"⟩) ∾ " | " ∾ (fmt.PadV ⟨w_status, "Status"⟩) ∾ (@+10)
 
   {
@@ -182,7 +184,7 @@ FormatHuman ← {𝕊 ctx:
 
   open_amts ← open_mask / {4⊑𝕩}¨ parsed
   open_total ← +´ open_amts
-  out ↩ out ∾ (@+10) ∾ "未了合計: " ∾ (•Fmt open_total) ∾ (@+10)
+  out ↩ out ∾ (@+10) ∾ (L "planned.open_total") ∾ (•Fmt open_total) ∾ (@+10)
   out ↩ out ∾ (@+10)
 
   # 2. 完了テーブル
@@ -194,7 +196,7 @@ FormatHuman ← {𝕊 ctx:
   w_planned ← 10
   w_actual ← 10
 
-  out ↩ out ∾ "── 完了 ──" ∾ (@+10)
+  out ↩ out ∾ (L "planned.completed_title") ∾ (@+10)
   out ↩ out ∾ (fmt.PadV ⟨w_date, "Date"⟩) ∾ " | " ∾ (fmt.PadV ⟨w_cat_c, "Category"⟩) ∾ " | " ∾ (fmt.PadV ⟨w_memo_c, "Memo"⟩) ∾ " | " ∾ (AlignR ⟨w_planned, "Planned"⟩) ∾ " | " ∾ (AlignR ⟨w_actual, "Actual"⟩) ∾ (@+10)
 
   {
@@ -209,10 +211,10 @@ FormatHuman ← {𝕊 ctx:
 
   # Status legend
   out ↩ out ∾ "[Status]" ∾ (@+10)
-  out ↩ out ∾ "future  : これから" ∾ (@+10)
-  out ↩ out ∾ (fmt.Warn "due") ∾ "     : 今日が期限" ∾ (@+10)
-  out ↩ out ∾ (fmt.Bad "overdue") ∾ " : 期限超過 ⚠" ∾ (@+10)
-  out ↩ out ∾ "completed : 支払い済み" ∾ (@+10)
+  out ↩ out ∾ (L "planned.future_status") ∾ (@+10)
+  out ↩ out ∾ (fmt.Warn "due") ∾ (L "planned.due_status") ∾ (@+10)
+  out ↩ out ∾ (fmt.Bad "overdue") ∾ (L "planned.overdue_status") ∾ (@+10)
+  out ↩ out ∾ (L "planned.completed_status") ∾ (@+10)
   out ↩ out ∾ (@+10)
 
   out

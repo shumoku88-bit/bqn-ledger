@@ -6,6 +6,8 @@ loader ← •Import "loader.bqn"
 proj ← •Import "projection.bqn"
 cube ← •Import "cube.bqn"
 fmt ← •Import "format.bqn"
+labels ← •Import "report_labels.bqn"
+L ← labels.Text
 overlap ← •Import "plan_journal_overlap.bqn"
 
 # ── Latest actual journal date ─────────────────────────────
@@ -208,8 +210,8 @@ FormatHuman ← {𝕊 vm:
   rows ← vm.trend_rows
   days_left ← 0 ⌈ (proj.DaysFromEpoch vm.cycle_end_exclusive) - proj.DaysFromEpoch vm.as_of
 
-  out ← "== Daily Trend ==" ∾ (@+10) ∾ (@+10)
-  out ↩ out ∾ "サイクル: " ∾ vm.cycle_start ∾ " 〜 " ∾ vm.cycle_end_exclusive ∾ "  (現在 " ∾ (•Fmt days_left) ∾ " 日残)" ∾ (@+10) ∾ (@+10)
+  out ← (L "daily.section_title") ∾ (@+10) ∾ (@+10)
+  out ↩ out ∾ (L "daily.cycle_label") ∾ vm.cycle_start ∾ " 〜 " ∾ vm.cycle_end_exclusive ∾ (L "daily.current_suffix") ∾ (•Fmt days_left) ∾ (L "daily.current_days_suffix") ∾ (@+10) ∾ (@+10)
 
   out ↩ out ∾ "date       | liquid   | fund     | daily  | Δdaily | variable | saving" ∾ (@+10)
 

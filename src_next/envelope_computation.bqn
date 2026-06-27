@@ -6,6 +6,8 @@ proj ← •Import "projection.bqn"
 cube ← •Import "cube.bqn"
 conf ← •Import "config.bqn"
 fmt ← •Import "format.bqn"
+labels ← •Import "report_labels.bqn"
+L ← labels.Text
 unav ← •Import "unavailable.bqn"
 
 layer_actual ← 0
@@ -411,13 +413,13 @@ FormatHuman ← {𝕊 s:
     out ↩ out ∾ (@+10)
 
     out ↩ out ∾ "[Health]" ∾ (@+10)
-    out ↩ out ∾ (fmt.Ok "SAFE") ∾ "  : ペース通り" ∾ (@+10)
-    out ↩ out ∾ (fmt.Warn "WARN") ∾ "  : 少し早い (target 超過、1.5倍未満)" ∾ (@+10)
-    out ↩ out ∾ (fmt.Bad "SHORT") ∾ " : 危険 (ペースの1.5倍以上)" ∾ (@+10)
-    out ↩ out ∾ "HELD  : reserve 確保中（未実行）" ∾ (@+10)
-    out ↩ out ∾ "DONE  : サイクル終了、reserve 確保済" ∾ (@+10)
-    out ↩ out ∾ "SAVED : 予定通り貯金・投資に回せた" ∾ (@+10)
-    out ↩ out ∾ (fmt.Bad "DRAWN") ∾ " : reserve から取崩発生（⚠）" ∾ (@+10)
+    out ↩ out ∾ (fmt.Ok "SAFE") ∾ (L "env.safe") ∾ (@+10)
+    out ↩ out ∾ (fmt.Warn "WARN") ∾ (L "env.warn") ∾ (@+10)
+    out ↩ out ∾ (fmt.Bad "SHORT") ∾ (L "env.short") ∾ (@+10)
+    out ↩ out ∾ (L "env.held") ∾ (@+10)
+    out ↩ out ∾ (L "env.done") ∾ (@+10)
+    out ↩ out ∾ (L "env.saved") ∾ (@+10)
+    out ↩ out ∾ (fmt.Bad "DRAWN") ∾ (L "env.drawn") ∾ (@+10)
     out ↩ out ∾ (@+10)
   }⍟(0 < ≠ s.envelopes) @
   out

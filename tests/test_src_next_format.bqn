@@ -3,7 +3,7 @@
 lib ← •Import "test_lib.bqn"
 fmt ← •Import "../src_next/format.bqn"
 
-esc ← @+27
+esc ← 1 + @+26
 
 fmt.SetColorEnabled 1
 1 lib.AssertEq fmt.AnsiColorEnabled @
