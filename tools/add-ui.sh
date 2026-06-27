@@ -24,17 +24,19 @@ source "$ROOT_DIR/tools/lib/system-defaults.sh"
 usage() {
   cat <<'EOF'
 Usage:
-  tools/add-ui.sh [--base <dir>] [--check]
+  tools/add-ui.sh [--base <dir>] [--check] [<mode>]
 
 Fuzzy transaction adder for everyday entries.
 
 Modes:
-  expense  assets -> expenses  (writes journal.tsv)
-  move     assets -> assets    (writes journal.tsv)
-  income   income -> assets    (writes journal.tsv)
-  budget   budget -> budget    (writes budget_alloc.tsv)
-  plan-add assets -> expenses  (writes plan.tsv)
-  plan-edit date/amount        (edits plan.tsv)  plan-finish                 (plan -> journal)
+  expense       assets -> expenses  (writes journal.tsv)
+  move          assets -> assets    (writes journal.tsv)
+  income        income -> assets    (writes journal.tsv)
+  budget        budget -> budget    (writes budget_alloc.tsv)
+  plan-add      assets -> expenses  (writes plan.tsv)
+  plan-edit     date/amount         (edits plan.tsv)
+  plan-finish                       (plan -> journal)
+  reverse       仕訳取消 (反対仕訳追記)
 
 Append is delegated to tools/edit (Go safe-append path).
 
@@ -48,6 +50,7 @@ shout() { printf '%s\n' "$*" >&2; }
 
 base_dir="${LEDGER_DATA_DIR:-$(get_default_base_dir)}"
 preflight=0
+mode_arg=''
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --base)
@@ -61,11 +64,51 @@ while [[ $# -gt 0 ]]; do
       ;;
     --check) preflight=1; shift ;;
     -h|--help) usage; exit 0 ;;
-    *) shout "Error: Unknown argument: $1"; usage; exit 1 ;;
+    --)
+      shift
+      if [[ $# -gt 0 ]]; then
+        if [[ -n "$mode_arg" ]]; then
+          shout "Error: Extra argument: $1"
+          usage
+          exit 1
+        fi
+        mode_arg="$1"
+        shift
+      fi
+      if [[ $# -gt 0 ]]; then
+        shout "Error: Extra argument: $1"
+        usage
+        exit 1
+      fi
+      ;;
+    -*) shout "Error: Unknown argument: $1"; usage; exit 1 ;;
+    *)
+      if [[ -n "$mode_arg" ]]; then
+        shout "Error: Extra argument: $1"
+        usage
+        exit 1
+      fi
+      mode_arg="$1"
+      shift
+      ;;
   esac
 done
 
 ensure_ledger_report_base "$base_dir"
+
+mode=''
+if [[ -n "$mode_arg" ]]; then
+  case "$mode_arg" in
+    expense|move|income|budget|plan-add|plan-edit|plan-finish|reverse)
+      mode="$mode_arg"
+      ;;
+    *)
+      shout "Error: Unknown argument: $mode_arg"
+      usage
+      exit 1
+      ;;
+  esac
+fi
 
 # ── Account listing (reads accounts.tsv directly, no BQN needed) ──
 
@@ -348,12 +391,14 @@ if [[ -r /dev/tty ]]; then
   stty iutf8 </dev/tty 2>/dev/null || true
 fi
 
-mode_line="$(choose_mode || true)"
-if [[ -z "$mode_line" ]]; then
-  shout 'Cancelled.'
-  exit 0
+if [[ -z "$mode" ]]; then
+  mode_line="$(choose_mode || true)"
+  if [[ -z "$mode_line" ]]; then
+    shout 'Cancelled.'
+    exit 0
+  fi
+  mode="${mode_line%%$'\t'*}"
 fi
-mode="${mode_line%%$'\t'*}"
 
 memo=''; from=''; to=''; amt=''; meta=''; plan_series=''
 
