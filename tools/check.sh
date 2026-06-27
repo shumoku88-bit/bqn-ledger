@@ -25,7 +25,11 @@ cd "$ROOT_DIR"
 echo "[1/4] unit tests" >&2
 for test_file in tests/test_*.bqn; do
     if [ -f "$test_file" ]; then
-        bqn "$test_file" >/dev/null
+        if ! bqn "$test_file" >/dev/null; then
+            echo "FAIL: $test_file" >&2
+            bqn "$test_file" # rerun without redirect to show error
+            exit 1
+        fi
     fi
 done
 if command -v go >/dev/null 2>&1; then
