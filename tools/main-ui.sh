@@ -78,6 +78,13 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+# Record whether both stdin and stdout are connected to a terminal at startup.
+# This preserves the interactive check state even when we execute select_section
+# inside a command substitution (which redirects stdout and makes [[ -t 1 ]] false).
+IS_TTY=0
+if [[ -t 0 && -t 1 ]]; then
+  IS_TTY=1
+fi
 
 report_color_args=()
 if [[ -n "${NO_COLOR:-}" || ! -t 1 ]]; then
@@ -127,7 +134,7 @@ show_section_direct() {
 
 select_section() {
   local cache_dir="${1:-}"
-  if command -v fzf >/dev/null 2>&1 && [[ -t 0 ]]; then
+  if command -v fzf >/dev/null 2>&1 && [[ "$IS_TTY" -eq 1 ]]; then
     if [[ -n "$cache_dir" ]]; then
       section_list | fzf \
         --prompt='section> ' \
@@ -147,7 +154,7 @@ select_section() {
         --reverse \
         --exit-0
     fi
-  elif command -v gum >/dev/null 2>&1 && [[ -t 0 ]]; then
+  elif command -v gum >/dev/null 2>&1 && [[ "$IS_TTY" -eq 1 ]]; then
     section_list | gum filter --placeholder='section / category'
   else
     section_list >&2
