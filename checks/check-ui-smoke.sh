@@ -68,6 +68,19 @@ assert_nonempty_contains \
   "== Readiness Check ==" \
   tools/main-ui.sh --base "$fixture" report
 
+bad_out="$(mktemp)"
+bad_err="$(mktemp)"
+if tools/main-ui.sh --base "$fixture" does-not-exist >"$bad_out" 2>"$bad_err"; then
+  fail "main-ui unknown section unexpectedly succeeded"
+else
+  if [[ -s "$bad_err" ]]; then
+    pass "main-ui unknown section reports visible error"
+  else
+    fail "main-ui unknown section failed silently"
+  fi
+fi
+rm -f "$bad_out" "$bad_err"
+
 sections=(
   "snapshot|1. 全体サマリ"
   "envelopes|== Envelope & Budget =="
