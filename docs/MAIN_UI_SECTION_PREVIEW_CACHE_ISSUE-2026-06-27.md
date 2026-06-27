@@ -1,6 +1,6 @@
 # Restore fzf section preview using temporary section cache
 
-Status: open issue / docs-only / no implementation yet
+Status: resolved / implemented (2026-06-27)
 Date: 2026-06-27
 
 ## Goal
