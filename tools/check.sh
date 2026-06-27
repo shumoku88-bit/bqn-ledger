@@ -34,7 +34,7 @@ for test_file in tests/test_*.bqn; do
     fi
 done
 if command -v go >/dev/null 2>&1; then
-    (cd editor && go test ./...) >/dev/null
+    (cd editor && go test ./...)
 else
     echo "[WARN] go command not found, skipping Go editor tests" >&2
 fi
