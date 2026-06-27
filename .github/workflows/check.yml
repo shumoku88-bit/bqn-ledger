@@ -16,6 +16,9 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.22'
+          cache-dependency-path: |
+            editor/go.sum
+            tui/go.sum
 
       - name: Install CBQN
         run: |
