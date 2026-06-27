@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
-set -x
 
 # tools/check.sh — src_next engine-only check suite
 #
