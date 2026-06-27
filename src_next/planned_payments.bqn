@@ -176,7 +176,7 @@ FormatHuman ← {𝕊 ctx:
     cat ← idx⊑cats
     status ← idx⊑hstatuses
     status_padded ← fmt.PadV ⟨w_status, status⟩
-    status_colored ← ⊑ (⟨"future","completed","due","overdue"⟩ ⊐ ⟨status⟩) ⊑ ⟨fmt.Future status_padded, fmt.Ok status_padded, fmt.Warn status_padded, fmt.Bad status_padded⟩
+    status_colored ← (⊑ ⟨"future","completed","due","overdue"⟩ ⊐ ⟨status⟩) ⊑ ⟨fmt.Future status_padded, fmt.Ok status_padded, fmt.Warn status_padded, fmt.Bad status_padded⟩
     out ↩ out ∾ (fmt.PadV ⟨w_date, 0⊑r⟩) ∾ " | " ∾ (fmt.PadV ⟨w_cat_o, cat⟩) ∾ " | " ∾ (fmt.PadV ⟨w_memo_o, 1⊑r⟩) ∾ " | " ∾ (AlignR ⟨w_amt, 4⊑r⟩) ∾ " | " ∾ status_colored ∾ (@+10)
   }¨ open_indices
 
