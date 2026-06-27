@@ -59,6 +59,10 @@ Format ← {𝕊 ctx:
   mask ← { InCycle ⟨cy.start, cy.day_count, 𝕩⟩ }¨ lines
   rows ← mask / lines
 
+  # Sort rows by date (first field in TSV)
+  GetDate ← { ⊑ Pad5 loader.SplitTsvKeepEmpty 𝕩 }
+  rows ↩ (⍋ GetDate¨ rows) ⊏ rows
+
   journalLines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
   journalInCycleMask ← { InCycle ⟨cy.start, cy.day_count, 𝕩⟩ }¨ journalLines
   journalInCycle ← journalInCycleMask / journalLines
@@ -98,6 +102,10 @@ FormatHuman ← {𝕊 ctx:
   lines ← loader.ReadLinesOptional (base ∾ "/plan.tsv")
   mask ← { InCycle ⟨cy.start, cy.day_count, 𝕩⟩ }¨ lines
   rows ← mask / lines
+
+  # Sort rows by date (first field in TSV)
+  GetDate ← { ⊑ Pad5 loader.SplitTsvKeepEmpty 𝕩 }
+  rows ↩ (⍋ GetDate¨ rows) ⊏ rows
 
   journalLines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
   journalInCycleMask ← { InCycle ⟨cy.start, cy.day_count, 𝕩⟩ }¨ journalLines
