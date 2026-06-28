@@ -27,6 +27,7 @@
   - 閲覧・追加・修正のCLIインターフェースを1つに統合（例：`gbk` や `kakei` コマンド等）。
   - エラー時の Fail-Closed や操作ログの安全性をCLIのラッパーレベルで一元保証する。
   - 設計メモ: [docs/archive/active-plans/COMMAND_HUB_DESIGN.md](docs/archive/active-plans/COMMAND_HUB_DESIGN.md)
+  - 表示サブトラック: [docs/archive/active-plans/GUM_FZF_COLOR_LAYER_PLAN.md](docs/archive/active-plans/GUM_FZF_COLOR_LAYER_PLAN.md)
 
 ### その他保留事項
 
@@ -81,11 +82,13 @@ Audit note: `docs/archive/audits/REPORT_ASSUMPTION_AUDIT.md`
 
 ## Independent design track: command hub / daily launcher
 
-Design note: `docs/COMMAND_HUB_DESIGN.md`
+Design note: `docs/archive/active-plans/COMMAND_HUB_DESIGN.md`
+Presentation subtrack: `docs/archive/active-plans/GUM_FZF_COLOR_LAYER_PLAN.md`
 
 - [ ] 実装しない。まず名前・範囲・既存toolsとの接続を決める。
 - [ ] コマンド名は未決（候補: `bq`, `bk`, `bqk`, `gbk`, `kakei`, `ledger`）。
 - [ ] 初期実装するなら shell + gum の薄いランチャー候補。
+- [ ] gum/fzf/color は presentation-only とし、plain 出力を canonical に残す。
 - [ ] hub自体は source TSV を直接変更しない。
 - [ ] 単一 `events.tsv` への統一方針ではない。
 - [x] `docs/MAIN_UI_SECTION_PREVIEW_CACHE_ISSUE-2026-06-27.md` — fzf section preview を一時セクションキャッシュで復元する案を追跡する。
