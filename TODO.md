@@ -30,6 +30,7 @@
 
 ### その他保留事項
 
+- [ ] plan関連の編集機能（口座・メモの変更、削除やキャンセルなど）をUIおよびGoエディタから安全に実現する方法の検討
 - lifestyle configuration / report policy externalization の残り整理
 - safety / docs hygiene の小さい整合性修正
 - 多通貨対応（保留）
