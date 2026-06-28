@@ -72,6 +72,11 @@ func runCmd(args []string, in io.Reader, out io.Writer, errOut io.Writer) error 
 			return errors.New("unknown budget subcommand (expected 'add')")
 		}
 		return runBudgetAdd(cmdArgs[1:], opts, in, out)
+	case "issue":
+		if len(cmdArgs) < 1 || cmdArgs[0] != "add" {
+			return errors.New("unknown issue subcommand (expected 'add')")
+		}
+		return runIssueAdd(cmdArgs[1:], opts, in, out)
 	case "plan":
 		if len(cmdArgs) < 1 {
 			return errors.New("plan subcommand is required ('list', 'add', 'finish', or 'edit')")
@@ -107,6 +112,8 @@ Commands:
   plan add --date <date> --memo <memo> --from <account> --to <account> --amount <amount> [--meta key=value] [--id <plan_id>] [--dry-run] [--yes] [--post-check lint|none|full]
   plan finish [--index <number>] [--id <plan_id>] [--actual-date <date>] [--apply]
   plan edit [--index <number>] [--id <plan_id>] [--date <date>] [--amount <amount>] [--dry-run] [--yes] [--post-check lint|none|full]
+  issue add --date <date> --status <status> --title <title> --amount <amount> --memo <memo> [--dry-run] [--yes]
+
 
 Global Options:
   --base <dir>    Base directory of datasets (default: %q)

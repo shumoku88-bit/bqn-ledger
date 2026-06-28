@@ -37,6 +37,7 @@ Modes:
   plan-edit     date/amount         (edits plan.tsv)
   plan-finish                       (plan -> journal)
   reverse       仕訳取消 (反対仕訳追記)
+  issue         懸案事項・意思決定の追加 (writes issues.tsv)
 
 Append is delegated to tools/edit (Go safe-append path).
 
@@ -99,7 +100,7 @@ ensure_ledger_report_base "$base_dir"
 mode=''
 if [[ -n "$mode_arg" ]]; then
   case "$mode_arg" in
-    expense|move|income|budget|plan-add|plan-edit|plan-finish|reverse)
+    expense|move|income|budget|plan-add|plan-edit|plan-finish|reverse|issue)
       mode="$mode_arg"
       ;;
     *)
@@ -306,6 +307,7 @@ plan-add	予定の追加 assets -> expenses
 plan-edit	予定の日付・金額修正
 plan-finish	予定の実績化 plan -> journal
 reverse	仕訳取消 (反対仕訳追記)
+issue	懸案事項・意思決定の追加
 EOF
 }
 
@@ -403,6 +405,11 @@ fi
 memo=''; from=''; to=''; amt=''; meta=''; plan_series=''
 
 case "$mode" in
+  issue)
+    title="$(read_tty 'Title/Item' '')"
+    amt="$(read_tty 'Amount (optional JST)' '0')"
+    memo="$(read_tty 'Memo/Details' '')"
+    ;;
   expense)
     memo="$(read_tty 'Memo/Description' '')"
     from="$(accounts 'asset' | select_line 'from asset' || true)"
@@ -544,8 +551,14 @@ if [[ "$mode" != 'plan-finish' && "$mode" != 'plan-edit' && "$mode" != 'reverse'
     other) selected_date="$(read_tty 'Date YYYY-MM-DD' "$today")" ;;
     *) selected_date="$today" ;;
   esac
-  if [[ -z "$from" || -z "$to" || -z "$amt" ]]; then
-    shout 'Cancelled or missing required value.'; exit 1
+  if [[ "$mode" != 'issue' ]]; then
+    if [[ -z "$from" || -z "$to" || -z "$amt" ]]; then
+      shout 'Cancelled or missing required value.'; exit 1
+    fi
+  else
+    if [[ -z "$title" ]]; then
+      shout 'Cancelled or missing title.'; exit 1
+    fi
   fi
 fi
 
@@ -557,6 +570,14 @@ elif [[ "$mode" == 'plan-edit' ]]; then
   cmd=("$ROOT_DIR/tools/edit" --base "$base_dir" plan edit "${plan_edit_args[@]}")
 elif [[ "$mode" == 'reverse' ]]; then
   cmd=("$ROOT_DIR/tools/edit" --base "$base_dir" journal reverse "${reverse_args[@]}")
+elif [[ "$mode" == 'issue' ]]; then
+  cmd=(
+    "$ROOT_DIR/tools/edit" --base "$base_dir" issue add
+    --date "$selected_date"
+    --title "$title"
+    --amount "$amt"
+    --memo "$memo"
+  )
 else
   target='journal'
   [[ "$mode" == 'budget' ]] && target='budget'
@@ -571,7 +592,7 @@ else
   )
 fi
 
-if [[ "$mode" != 'plan-finish' && "$mode" != 'plan-edit' && "$mode" != 'reverse' && -n "$meta" ]]; then
+if [[ "$mode" != 'plan-finish' && "$mode" != 'plan-edit' && "$mode" != 'reverse' && "$mode" != 'issue' && -n "$meta" ]]; then
   for token in $meta; do
     [[ -n "$token" ]] && cmd+=(--meta "$token")
   done
