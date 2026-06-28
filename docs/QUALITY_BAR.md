@@ -22,7 +22,7 @@ Date: 2026-06-25
 
 - 一般向けオンボーディング
 - SaaS 化、同期サービス、マルチユーザー対応
-- 見栄えのための GUI / TUI 作り込み
+- 見栄えのための GUI 作り込み
 - 誰にでも説明できる設定画面
 - ブランド、配布、インストーラ整備
 - AI 相談やおすすめ配分を canonical engine に混ぜること
@@ -122,8 +122,6 @@ CIやチェックスクリプトが失敗した際に、原因が即座に分か
   - 入力正規化境界。
 - `docs/TBDS_CONTRACT.md`
   - 試算表データセット境界。
-- `docs/archive/active-plans/APPLICATION_FOUNDATION.md`
-  - TUI / GUI / Web UI を被せる場合の外装境界。
 - `TODO.md`
   - 実際の次作業。迷ったらこの Quality Bar で優先順位を決める。
 

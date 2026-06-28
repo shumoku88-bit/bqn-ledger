@@ -61,58 +61,7 @@ Date: 2026-06-26
 
 ---
 
-## 3. TUI (Terminal UI) ❄️ 一旦凍結 (2026-06-28)
-
-> [!WARNING]
-> 2026-06-28の指示により、TUI開発は一旦凍結となりました。当面は fzf+gum 路線を維持・強化します。
-
-### なぜやるか
-
-今の `tools/main-ui.sh`（fzf でセクション切り替え）は動くが、
-section → detail → action の導線がバラバラ。
-
-TUI で「レポートを見る → 気になる数字を深掘り → 仕訳を追加する」を
-一画面で完結させたい。
-
-### 導線
-
-- 現状: `tools/main-ui.sh` — fzf セクションセレクタ（今回高速化済み）
-- 現状: `tools/add-ui.sh` — 対話式入力（今回修正済み）
-- 設計: `docs/archive/active-plans/APPLICATION_FOUNDATION.md` — TUI/GUI 外装の境界契約
-- 設計: `docs/archive/active-plans/COMMAND_HUB_DESIGN.md` — 単一エントリポイントの設計メモ
-- 候補: `libvaxis` (Zig) — `docs/archive/active-plans/APPLICATION_FOUNDATION.md` で本命候補
-
-### やること
-
-#### Phase A: 設計確定
-
-1. `docs/TUI_DESIGN.md` を作成
-   - 画面構成（レポート表示 / セクション一覧 / アクションパネル）
-   - BQN との境界（計算は BQN、表示は TUI）
-   - キーバインド
-2. Zig libvaxis の PoC（`src_next/report.bqn` の出力をパースして表示）
-
-#### Phase B: 最小実装
-
-1. レポートセクション一覧 + 選択表示
-2. `tools/edit journal add` を TUI から呼び出す導線
-3. `tools/add-ui.sh` 相当の対話フローを TUI に内蔵
-
-#### Phase C: 仕上げ
-
-1. 日次トレンドのグラフ表示（libvaxis の canvas/widget）
-2. 封筒残高のカラー警告
-
-### 難易度: 中〜高（新規コードだが責務境界は明確）
-
-### 注意
-
-TUI は BQN の計算責務を奪わない。`src_next/report.bqn` の出力を読んで表示するだけ。
-source TSV へは Go editor 経由でのみ書き込む。
-
----
-
-## 4. 多通貨・為替 (Multi-Currency)
+## 3. 多通貨・為替 (Multi-Currency)
 
 ### なぜやるか
 
@@ -233,10 +182,9 @@ policy profile の切り替えをもっと実用的にする。
 1. 動的勘定科目空間        ← コードベースの健全性、mental overhead 低減
 2. Failure Fixtures        ← 安全網を先に張る
 3. 取消・修正UI            ← 実用性がすぐ上がる
-4. TUI Phase A（設計のみ） ← (凍結)
-5. コントリビュータ文書    ← 並行して進められる
-6. 多通貨                  ← 設計が固まってから
-7. Household Policy 完成   ← 実装の積み残し
+4. コントリビュータ文書    ← 並行して進められる
+5. 多通貨                  ← 設計が固まってから
+6. Household Policy 完成   ← 実装の積み残し
 ```
 
 ---

@@ -233,7 +233,6 @@ fixture を更新する場合は、対象が本当に仕様変更なのか、そ
 | `docs/archive/completed-plans/REPORT_FIELD_MAP.md` | historical: 旧エンジン `report_engine.Build` のフィールド履歴。 |
 | `docs/JOURNAL_META.md` | journal-like TSV のメタデータ契約。 |
 | `docs/GO_EDITOR_USAGE.md` | Go editor の使い方。 |
-| `docs/archive/active-plans/APPLICATION_FOUNDATION.md` | TUI / GUI / Web UI などを被せるためのアプリ土台・境界・不足物の整理。 |
 | `docs/archive/completed-plans/GENERALIZATION_TODO.md` | 設定駆動化・一般化の段階計画。 |
 | `docs/archive/completed-plans/DECISION_MULTI_POSTING_INVESTIGATION.md` | 複数ポスティング方針。 |
 | `docs/archive/completed-plans/DECISION_AI_DEVELOPMENT_EFFICIENCY_PROPOSALS.md` | AI 作業効率化・開発体験改善の提案。 |

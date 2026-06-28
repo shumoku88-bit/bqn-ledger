@@ -32,7 +32,6 @@
 
 ### その他保留事項
 
-- [x] TUI (Terminal UI) 開発は一旦凍結（2026-06-28 ユーザー指示）
 - lifestyle configuration / report policy externalization の残り整理
 - safety / docs hygiene の小さい整合性修正
 - 多通貨対応（保留）
