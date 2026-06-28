@@ -1,6 +1,6 @@
 # Gum/Fzf Color Layer Plan
 
-Status: planning note only / no implementation approved yet  
+Status: Phase 1 implemented as tools/bl / Phase 2 pending  
 Date: 2026-06-28
 
 This note describes a small terminal presentation layer for `bqn-ledger` using shell, `gum`, and `fzf`.

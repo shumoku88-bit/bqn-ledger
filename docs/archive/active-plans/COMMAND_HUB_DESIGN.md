@@ -1,7 +1,7 @@
 # Command Hub Design
 
-Status: planning note only / no implementation approved yet  
-Date: 2026-06-19
+Status: Phase 1 implemented as tools/bl / Phase 2 pending  
+Date: 2026-06-28
 
 This note describes a possible single entry command for everyday `bqn-ledger` use.
 It is separate from the Go source TSV editor design.

@@ -1,0 +1,271 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# tools/bl — Command Hub / doorway into bqn-ledger tools
+
+# Resolve script paths
+SOURCE="${BASH_SOURCE[0]}"
+while [ -L "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+ROOT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+cd "$ROOT_DIR"
+
+source "$ROOT_DIR/tools/lib/system-defaults.sh"
+
+# Color constants (ANSI)
+# Respect NO_COLOR environment variable (https://no-color.org/)
+if [[ -n "${NO_COLOR:-}" ]]; then
+  COLOR_HEADER=""
+  COLOR_OK=""
+  COLOR_WARN=""
+  COLOR_ERROR=""
+  COLOR_RESET=""
+else
+  COLOR_HEADER="\033[1;36m" # Cyan bold
+  COLOR_OK="\033[1;32m"     # Green bold
+  COLOR_WARN="\033[1;33m"   # Yellow bold
+  COLOR_ERROR="\033[1;31m"  # Red bold
+  COLOR_RESET="\033[0m"
+fi
+
+usage() {
+  cat <<EOF
+Usage:
+  tools/bl [--base <dir>] [command]
+
+Commands:
+  (no command)     Open interactive main menu
+  report, all      Show the full report
+  section [<key>]  Show section selector or direct section output
+  add              Launch transaction addition / cancellation UI
+  check            Run data validation checks
+  edit [<file>]    Open TSV files in \$EDITOR
+  help             Show this help message
+
+Options:
+  --base <dir>     Specify ledger base directory
+EOF
+}
+
+base_dir="${LEDGER_DATA_DIR:-$(get_default_base_dir)}"
+cmd=""
+
+# Simple argument parsing
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --base)
+      if [[ $# -lt 2 ]]; then
+        echo "Error: --base requires a directory" >&2
+        usage >&2
+        exit 1
+      fi
+      base_dir="$2"
+      shift 2
+      ;;
+    -h|--help|help)
+      usage
+      exit 0
+      ;;
+    *)
+      if [[ -z "$cmd" ]]; then
+        cmd="$1"
+        shift
+      else
+        # Accumulate remaining args
+        break
+      fi
+      ;;
+  esac
+done
+
+IS_TTY=0
+if [[ -t 0 && -t 1 ]]; then
+  IS_TTY=1
+fi
+
+# Print section wrapper with a colored header
+print_header() {
+  local title="$1"
+  printf "${COLOR_HEADER}=== %s ===${COLOR_RESET}\n" "$title"
+}
+
+# Main menu items
+menu_list() {
+  cat <<EOF
+report	Show full report
+section	Show report sections (fzf selector)
+add	Add or cancel transaction / plan
+check	Run check.sh
+edit	Open TSV files in \$EDITOR
+exit	Exit
+EOF
+}
+
+# TSV files list for edit command
+tsv_list() {
+  cat <<EOF
+journal.tsv	Journal transactions
+plan.tsv	Future plans
+budget_alloc.tsv	Budget allocations
+accounts.tsv	Account master
+cycle.tsv	Cycle parameters
+config.tsv	Local configuration
+EOF
+}
+
+run_check() {
+  print_header "Running Checks"
+  # Run check.sh and check its exit code
+  if "$ROOT_DIR/tools/check.sh"; then
+    printf "${COLOR_OK}All checks passed successfully.${COLOR_RESET}\n"
+  else
+    printf "${COLOR_ERROR}Checks failed. Please review errors above.${COLOR_ERROR}\n"
+  fi
+}
+
+run_edit() {
+  local file="${1:-}"
+  if [[ -z "$file" ]]; then
+    # Menu for file selection
+    if command -v fzf >/dev/null 2>&1 && [[ "$IS_TTY" -eq 1 ]]; then
+      selection="$(tsv_list | fzf --prompt='edit file> ' --delimiter=$'\t' --with-nth=2.. --reverse --exit-0)"
+      [[ -z "$selection" ]] && echo "Cancelled." && return 0
+      file="${selection%%$'\t'*}"
+    elif command -v gum >/dev/null 2>&1 && [[ "$IS_TTY" -eq 1 ]]; then
+      selection="$(tsv_list | gum filter --placeholder='edit file')"
+      [[ -z "$selection" ]] && echo "Cancelled." && return 0
+      file="${selection%%$'\t'*}"
+    else
+      tsv_list
+      printf 'Enter file to edit: '
+      read -r file
+    fi
+  fi
+
+  # Resolve file path
+  local file_path=""
+  case "$file" in
+    journal.tsv|plan.tsv|budget_alloc.tsv|accounts.tsv|cycle.tsv)
+      file_path="$base_dir/$file"
+      ;;
+    config.tsv)
+      file_path="$base_dir/config.tsv"
+      if [[ ! -f "$file_path" ]]; then
+        file_path="$ROOT_DIR/config/default_config.tsv"
+      fi
+      ;;
+    *)
+      file_path="$file"
+      ;;
+  esac
+
+  if [[ -z "${EDITOR:-}" ]]; then
+    EDITOR="nano"
+    if command -v vim >/dev/null 2>&1; then EDITOR="vim"; fi
+    if command -v vi >/dev/null 2>&1; then EDITOR="vi"; fi
+  fi
+
+  print_header "Opening $file_path in $EDITOR"
+  $EDITOR "$file_path"
+}
+
+# Main routing
+if [[ -z "$cmd" ]]; then
+  # Interactive main menu
+  if [[ "$IS_TTY" -eq 0 ]]; then
+    echo "Error: Not a TTY. Cannot open interactive menu. Use --help for direct commands." >&2
+    exit 1
+  fi
+
+  while true; do
+    selection=""
+    if command -v gum >/dev/null 2>&1; then
+      # use gum choose for a clean vertical menu
+      selection="$(menu_list | cut -f2 | gum choose --header="BQN-Ledger Command Hub (${base_dir})")"
+      [[ -z "$selection" ]] && break
+      key="$(menu_list | grep -F "$selection" | cut -f1)"
+    elif command -v fzf >/dev/null 2>&1; then
+      selection="$(menu_list | fzf --prompt='bl> ' --delimiter=$'\t' --with-nth=2.. --reverse --exit-0)"
+      [[ -z "$selection" ]] && break
+      key="${selection%%$'\t'*}"
+    else
+      # Simple read fallback
+      echo "=== BQN-Ledger Command Hub ==="
+      menu_list | awk -F'\t' '{print NR ") " $2 " (" $1 ")"}'
+      printf "Select option: "
+      read -r opt
+      key="$(menu_list | sed -n "${opt}p" | cut -f1)"
+      if [[ -z "$key" ]]; then
+        key="$opt"
+      fi
+    fi
+
+    case "$key" in
+      report)
+        print_header "Full Report"
+        "$ROOT_DIR/tools/main-ui.sh" --base "$base_dir" report
+        echo ""
+        ;;
+      section)
+        "$ROOT_DIR/tools/main-ui.sh" --base "$base_dir" select
+        echo ""
+        ;;
+      add)
+        "$ROOT_DIR/tools/add-ui.sh" --base "$base_dir"
+        echo ""
+        ;;
+      check)
+        run_check
+        echo ""
+        ;;
+      edit)
+        run_edit ""
+        echo ""
+        ;;
+      exit)
+        break
+        ;;
+      *)
+        echo "Unknown option: $key"
+        ;;
+    esac
+  done
+else
+  # Direct subcommand execution
+  case "$cmd" in
+    report|all)
+      "$ROOT_DIR/tools/main-ui.sh" --base "$base_dir" report
+      ;;
+    section)
+      section_key="${1:-}"
+      if [[ -z "$section_key" ]]; then
+        "$ROOT_DIR/tools/main-ui.sh" --base "$base_dir" select
+      else
+        "$ROOT_DIR/tools/main-ui.sh" --base "$base_dir" "$section_key"
+      fi
+      ;;
+    add)
+      exec "$ROOT_DIR/tools/add-ui.sh" --base "$base_dir" "$@"
+      ;;
+    check)
+      run_check
+      ;;
+    edit)
+      run_edit "${1:-}"
+      ;;
+    *)
+      # Fallback: check if it's a section key directly
+      if "$ROOT_DIR/tools/main-ui.sh" --base "$base_dir" "$cmd" >/dev/null 2>&1; then
+        exec "$ROOT_DIR/tools/main-ui.sh" --base "$base_dir" "$cmd"
+      else
+        echo "Error: Unknown command or section '$cmd'" >&2
+        usage >&2
+        exit 1
+      fi
+      ;;
+  esac
+fi
