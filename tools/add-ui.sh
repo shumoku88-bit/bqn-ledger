@@ -455,8 +455,6 @@ case "$mode" in
     ;;
   plan-finish|plan-edit)
     plan_tsv_lines=()
-    plan_tsv_lines=()
-    local _pl
     while IFS= read -r _pl; do plan_tsv_lines+=("$_pl"); done < <("$ROOT_DIR/tools/edit" --base "$base_dir" plan list --format tsv)
     if [[ ${#plan_tsv_lines[@]} -eq 0 ]]; then
       shout "No active plans found."
