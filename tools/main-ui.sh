@@ -21,6 +21,7 @@ ROOT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 cd "$ROOT_DIR"
 
 source "$ROOT_DIR/tools/lib/system-defaults.sh"
+source "$ROOT_DIR/tools/lib/theme.sh"
 
 usage() {
   cat <<'EOF'
@@ -150,7 +151,7 @@ select_section() {
         --exit-0
     fi
   elif command -v gum >/dev/null 2>&1 && [[ "$IS_TTY" -eq 1 ]]; then
-    section_list | gum filter --placeholder='section / category'
+    section_list | gum filter "${GUM_FILTER_ARGS[@]}" --placeholder='section / category'
   else
     section_list >&2
     printf 'section key> ' >&2

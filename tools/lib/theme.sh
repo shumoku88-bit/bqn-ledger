@@ -11,16 +11,15 @@ else
   # 3. Default fallback: 'nord' (calm and muted Nordic frost palette)
   if [[ -z "${BL_THEME:-}" ]]; then
     # Try reading from config.tsv in base_dir
-    check_dir="${base_dir:-}"
+    local check_dir="${base_dir:-}"
     if [[ -z "$check_dir" ]]; then
       if [[ -n "${LEDGER_DATA_DIR:-}" ]]; then
         check_dir="$LEDGER_DATA_DIR"
       else
-        defaults_file="config/system_defaults.tsv"
+        local defaults_file="config/system_defaults.tsv"
         if [[ -f "$defaults_file" ]]; then
           check_dir=$(awk -F'\t' '$1 == "DEFAULT_BASE_DIR" { print $2 }' "$defaults_file" 2>/dev/null || true)
         fi
-        unset defaults_file
       fi
     fi
     # If we resolved check_dir, look for config.tsv (Key=Value format)
@@ -48,6 +47,11 @@ case "$BL_THEME" in
     export ESC_MUTED="${esc}[38;2;76;86;106m"           # Slate Gray (#4C566A)
     export ESC_NUM_HEADER="${esc}[1;38;2;136;192;208m" # Bold Frost Blue for numeric headers
     export ESC_RESET="${esc}[0m"
+    
+    # gum-specific styles (Hex values are supported by gum/lipgloss)
+    export GUM_HEADER_FG="#88C0D0"
+    export GUM_CURSOR_FG="#A3BE8C"
+    export GUM_MATCH_FG="#EBCB8B"
     ;;
   classic|vibrant)
     # Traditional 16-color ANSI colors (vibrant)
@@ -59,6 +63,11 @@ case "$BL_THEME" in
     export ESC_MUTED="${esc}[1;34m"       # Bold Blue
     export ESC_NUM_HEADER="${esc}[1m"     # Bold
     export ESC_RESET="${esc}[0m"
+    
+    # gum-specific styles (ANSI color index)
+    export GUM_HEADER_FG="6"
+    export GUM_CURSOR_FG="2"
+    export GUM_MATCH_FG="3"
     ;;
   *)
     # Plain text / No color
@@ -70,5 +79,29 @@ case "$BL_THEME" in
     export ESC_MUTED=""
     export ESC_NUM_HEADER=""
     export ESC_RESET=""
+    
+    export GUM_HEADER_FG=""
+    export GUM_CURSOR_FG=""
+    export GUM_MATCH_FG=""
     ;;
 esac
+
+# Set gum style options into global array variables
+set_gum_theme_args() {
+  GUM_CHOOSE_ARGS=()
+  GUM_FILTER_ARGS=()
+  if [[ -n "${GUM_HEADER_FG:-}" ]]; then
+    GUM_CHOOSE_ARGS+=(--header.foreground="$GUM_HEADER_FG")
+    GUM_FILTER_ARGS+=(--header.foreground="$GUM_HEADER_FG")
+  fi
+  if [[ -n "${GUM_CURSOR_FG:-}" ]]; then
+    GUM_CHOOSE_ARGS+=(--cursor.foreground="$GUM_CURSOR_FG" --selected.foreground="$GUM_CURSOR_FG")
+    GUM_FILTER_ARGS+=(--indicator.foreground="$GUM_CURSOR_FG" --selected-indicator.foreground="$GUM_CURSOR_FG")
+  fi
+  if [[ -n "${GUM_MATCH_FG:-}" ]]; then
+    GUM_FILTER_ARGS+=(--match.foreground="$GUM_MATCH_FG")
+  fi
+}
+
+# Auto-execute to set arrays
+set_gum_theme_args

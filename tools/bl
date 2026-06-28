@@ -130,7 +130,7 @@ run_edit() {
       [[ -z "$selection" ]] && echo "Cancelled." && return 0
       file="${selection%%$'\t'*}"
     elif command -v gum >/dev/null 2>&1 && [[ "$IS_TTY" -eq 1 ]]; then
-      selection="$(tsv_list | gum filter --placeholder='edit file')"
+      selection="$(tsv_list | gum filter "${GUM_FILTER_ARGS[@]}" --placeholder='edit file')"
       [[ -z "$selection" ]] && echo "Cancelled." && return 0
       file="${selection%%$'\t'*}"
     else
@@ -179,7 +179,7 @@ if [[ -z "$cmd" ]]; then
     selection=""
     if command -v gum >/dev/null 2>&1; then
       # use gum choose for a clean vertical menu
-      selection="$(menu_list | cut -f2 | gum choose --header="BQN-Ledger Command Hub (${base_dir})")"
+      selection="$(menu_list | cut -f2 | gum choose "${GUM_CHOOSE_ARGS[@]}" --header="BQN-Ledger Command Hub (${base_dir})")"
       [[ -z "$selection" ]] && break
       key="$(menu_list | grep -F "$selection" | cut -f1)"
     elif command -v fzf >/dev/null 2>&1; then
