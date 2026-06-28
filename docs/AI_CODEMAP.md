@@ -144,4 +144,6 @@ source-of-truth TSV を安全に編集する Go ツール。
 - `tools/devtools-check.sh` — **全devtoolsの健全性メタチェック**（check.sh [4/4] に組み込み済み）。
 - `rtk` / `sqz` — 長出力のトークン節約ラッパー（`rtk git diff`, `sqz compress`）。
 
+AI作業品質・トークン効率・devtools改善の気づきは `docs/archive/active-plans/AI_WORKING_FEEDBACK_LOG.md` に一時収集し、まとまったら `docs/archive/completed-plans/DECISION_AI_DEVELOPMENT_EFFICIENCY_PROPOSALS.md` と照合してレビューする。
+
 → 詳しい使い方は `AGENTS.md` の「AI開発ツール（devtools）の使い方」セクションを参照。

@@ -194,7 +194,11 @@ BuildEnvelopes ← {𝕊 base‿resolved‿cy‿valid_rows:
     spent_mask ← (row_layer = 0) ∧ (budget_match_indices⊸IsMember¨ row_ak) ∧ ("debit"⊸≡¨ row_side)
     spent ← Sum0 (spent_mask / row_delta)
 
-    remaining ← allocated - spent
+    # drawn: layer = 0 (layer_actual), credit to any account whose budget= matches
+    drawn_mask ← (row_layer = 0) ∧ (budget_match_indices⊸IsMember¨ row_ak) ∧ ("credit"⊸≡¨ row_side)
+    drawn ← - Sum0 (drawn_mask / row_delta)
+
+    remaining ← allocated - (spent - drawn)
     avg_spend ← (elapsed > 0) ⊑ 0‿(⌊ spent ÷ elapsed)
     target_daily ← ⌊ allocated ÷ total_days
 
@@ -216,7 +220,7 @@ BuildEnvelopes ← {𝕊 base‿resolved‿cy‿valid_rows:
         (avg_spend ≥ ⌊1.5×target_daily) ⊑ ( (avg_spend > target_daily) ⊑ "SAFE"‿"WARN" )‿"SHORT"
       },
       {𝕊:
-        (spent > 0) ⊑ ( (days_left = 0) ⊑ "HELD"‿"DONE" )‿"DRAWN"
+        (drawn > 0) ⊑ ( (days_left = 0) ⊑ "HELD"‿"DONE" )‿"DRAWN"
       }
     ⟩ @
 
@@ -226,7 +230,7 @@ BuildEnvelopes ← {𝕊 base‿resolved‿cy‿valid_rows:
       label ⇐ label,
       group ⇐ group,
       allocated ⇐ allocated,
-      actual_spent ⇐ spent,
+      actual_spent ⇐ spent - drawn,
       remaining ⇐ remaining,
       avg_spend ⇐ avg_spend,
       status ⇐ status,
@@ -389,7 +393,7 @@ FormatHuman ← {𝕊 s:
     sort_indices ← ⍋ GetPri¨ groups
     sorted_envs ← sort_indices ⊏ s.envelopes
 
-    out ↩ out ∾ " group   | account        | allocated | spent |  bal |   % | avg/day | health" ∾ (@+10)
+    out ↩ out ∾ " group   | account        | allocated| spent |  bal |   % | avg/day | health" ∾ (@+10)
     out ↩ out ∾ "---------+----------------+----------+-------+------+-----+---------+--------" ∾ (@+10)
 
     RenderRow ← {
@@ -410,7 +414,6 @@ FormatHuman ← {𝕊 s:
 
     RenderRow¨ sorted_envs
     out ↩ out ∾ "---------+----------------+----------+-------+------+-----+---------+--------" ∾ (@+10)
-    out ↩ out ∾ (@+10)
 
     out ↩ out ∾ "[Health]" ∾ (@+10)
     out ↩ out ∾ (fmt.Ok "SAFE") ∾ (L "env.safe") ∾ (@+10)

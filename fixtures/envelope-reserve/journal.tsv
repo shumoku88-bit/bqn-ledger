@@ -1,2 +1,3 @@
 2026-01-01	Opening	equity:opening-balances	assets:bank	100000
-2026-01-04	drawn_orukan	assets:bank	expenses:オルカン取り崩し	1000
+2026-01-02	save_orukan	assets:bank	assets:オルカン積立	3000
+2026-01-04	drawn_orukan	assets:オルカン積立	assets:bank	1000

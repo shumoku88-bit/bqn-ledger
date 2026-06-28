@@ -205,4 +205,4 @@ comparison 実施中に記録すべき補足事項があればここに記入す
 - [SRC_NEXT_STAGE4_TRIAL_LOG.md](SRC_NEXT_STAGE4_TRIAL_LOG.md) — Stage 4 観察ログ template（divergence log format §12）
 - [SRC_NEXT_STAGE4A_OBSERVATION_INVENTORY.md](SRC_NEXT_STAGE4A_OBSERVATION_INVENTORY.md) — Stage 4a 観測面棚卸し
 - [SRC_NEXT_STATUS_JA.md](SRC_NEXT_STATUS_JA.md) — src_next 全体状況
-- [CURRENT_STATE_REFERENCE.md](CURRENT_STATE_REFERENCE.md) — 現行エンジン比較基準
+- [CURRENT_STATE_REFERENCE.md](../completed-plans/CURRENT_STATE_REFERENCE.md) — 現行エンジン比較基準

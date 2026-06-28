@@ -5,7 +5,7 @@ Date: 2026-06-27
 
 This document audits hard-coded assumptions, presentation metadata, and lifestyle-dependent rules currently residing inside the BQN codebase (`src_next/`). 
 
-The goal is to catalog these assumptions before any externalization implementation begins, in accordance with the [Report Policy Externalization Plan](REPORT_POLICY_EXTERNALIZATION_PLAN.md).
+The goal is to catalog these assumptions before any externalization implementation begins, in accordance with the [Report Policy Externalization Plan](../active-plans/REPORT_POLICY_EXTERNALIZATION_PLAN.md).
 
 ---
 
@@ -28,7 +28,7 @@ The goal is to catalog these assumptions before any externalization implementati
 
 ## Key Takeaways
 
-1. **Decouple Presentation Text**: BQN engine files currently contain raw Japanese strings for titles, row labels, and legends. Since BQN is now purely plain text (decoupled from colors in [feat: complete presentation-layer color-filter delegation](../tools/main-ui.sh)), the next step should strip these presentation strings from the calculation engine, leaving only semantic data keys. A shared `config/report_labels.tsv` has been introduced as the first label boundary.
+1. **Decouple Presentation Text**: BQN engine files currently contain raw Japanese strings for titles, row labels, and legends. Since BQN is now purely plain text (decoupled from colors in [feat: complete presentation-layer color-filter delegation](../../../tools/main-ui.sh)), the next step should strip these presentation strings from the calculation engine, leaving only semantic data keys. A shared `config/report_labels.tsv` has been introduced as the first label boundary.
 2. **Preserve Math & Cube Constraints**: The core multidimensional cube aggregation (layer mapping, zero-sum checking, epoch-to-day conversion) is clean and correctly kept in-code.
 3. **Prefix Fallback Phaseout**: Prefix checking is still pervasive for fallback role identification. Keeping it as-is for now is fine, but it remains the primary target for complete deprecation once `role=` is enforced.
 
@@ -37,5 +37,5 @@ The goal is to catalog these assumptions before any externalization implementati
 ## Next Steps
 
 1. Review these audited assumptions with the user.
-2. Update [TODO.md](../TODO.md) to log this audit phase as complete.
+2. Update [TODO.md](../../../TODO.md) to log this audit phase as complete.
 3. Formulate the concrete implementation plan for Phase 1 (budget group contract clarification) and Phase 2 (decoupling BQN labels).

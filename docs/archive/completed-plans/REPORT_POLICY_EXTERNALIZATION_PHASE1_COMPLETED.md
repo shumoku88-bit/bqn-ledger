@@ -3,7 +3,7 @@
 Status: verification-complete
 Date: 2026-06-27
 
-This document records the completion and verification of **Phase 1: Budget Group Contract Verification** under the [Report Policy Externalization Plan](REPORT_POLICY_EXTERNALIZATION_PLAN.md).
+This document records the completion and verification of **Phase 1: Budget Group Contract Verification** under the [Report Policy Externalization Plan](../active-plans/REPORT_POLICY_EXTERNALIZATION_PLAN.md).
 
 ---
 

@@ -1,7 +1,10 @@
 # Application Foundation Guide
 
-Status: design guide / not an implementation plan
+Status: design guide / frozen (TUI凍結)
 Date: 2026-06-22
+
+> [!WARNING]
+> 2026-06-28の指示により、TUI開発は一旦凍結されました。本ガイドは将来の参照用として残されています。
 
 This document records what is still needed if `bqn-ledger` is treated as a foundation for a TUI, GUI, web UI, or other application shell.
 

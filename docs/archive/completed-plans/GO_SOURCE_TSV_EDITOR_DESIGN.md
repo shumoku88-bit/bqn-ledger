@@ -9,9 +9,9 @@ Original long form is preserved in Git history.
 
 ## 現在の参照先
 
-- **現在の実装境界と次計画**: [GO_EDITOR_NEXT_PLAN.md](GO_EDITOR_NEXT_PLAN.md)
+- **現在の実装境界と次計画**: [GO_EDITOR_NEXT_PLAN.md](../active-plans/GO_EDITOR_NEXT_PLAN.md)
 - **許可された書き込み範囲**: [GO_EDITOR_WRITE_SCOPE_INVENTORY.md](GO_EDITOR_WRITE_SCOPE_INVENTORY.md)
-- **過去の決定事項の抜粋**: [archive/completed-plans/GO_SOURCE_TSV_EDITOR_DESIGN_DECISIONS.md](archive/completed-plans/GO_SOURCE_TSV_EDITOR_DESIGN_DECISIONS.md)
+- **過去の決定事項の抜粋**: [GO_SOURCE_TSV_EDITOR_DESIGN_DECISIONS.md](GO_SOURCE_TSV_EDITOR_DESIGN_DECISIONS.md)
 
 ## 実装境界の概要 (Reconciliation Snapshot)
 

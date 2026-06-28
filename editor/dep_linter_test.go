@@ -15,6 +15,7 @@ import (
 // unless specifically allowed in legacyExceptions.
 var allowedImports = map[string]bool{
 	"format.bqn":           true,
+	"report_labels.bqn":    true,
 	"context.bqn":          true,
 	"tbds.bqn":             true,
 	"cube.bqn":             true,

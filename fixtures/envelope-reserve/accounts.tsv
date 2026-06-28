@@ -2,7 +2,7 @@ equity:opening-balances	role=equity
 assets:bank	role=asset	type=liquid
 income:salary	role=income
 expenses:food	role=expense	budget=daily	spend_class=variable
-expenses:オルカン取り崩し	role=expense	budget=オルカン投資	spend_class=variable
+assets:オルカン積立	role=asset	type=invest	budget=オルカン投資
 budget:opening	role=budget
 budget:unassigned	role=budget
 budget:spent	role=budget

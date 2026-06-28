@@ -74,14 +74,15 @@ FormatHuman ← {𝕊 tb:
   out ↩ out ∾ (@+10)
 
   # Header
-  out ↩ out ∾ (maxName ⥊ " ") ∾ " |   Opening |     Debit |    Credit |   Closing" ∾ (@+10)
-  out ↩ out ∾ (maxName ⥊ "-") ∾ "-+----------+----------+----------+----------" ∾ (@+10)
+  div_line ← (maxName ⥊ "-") ∾ "-+--------------+--------------+--------------+--------------"
+  out ↩ out ∾ (maxName ⥊ " ") ∾ " |      Opening |        Debit |       Credit |      Closing " ∾ (@+10)
+  out ↩ out ∾ div_line ∾ (@+10)
 
   {
     nm ← 𝕩⊑tb.accounts ⋄ op ← 𝕩⊑tb.openings
     db ← 𝕩⊑tb.debits ⋄ cr ← 𝕩⊑tb.credits ⋄ cl ← 𝕩⊑tb.closings
     pad ← (maxName - fmt.VWidth nm) ⥊ " "
-    out ↩ out ∾ nm ∾ pad ∾ " | " ∾ (fmt.FmtAmt op) ∾ " | " ∾ (fmt.FmtAmt db) ∾ " | " ∾ (fmt.FmtAmt cr) ∾ " | " ∾ (fmt.FmtAmt cl) ∾ (@+10)
+    out ↩ out ∾ nm ∾ pad ∾ " | " ∾ (fmt.FmtAmt op) ∾ " | " ∾ (fmt.FmtAmt db) ∾ " | " ∾ (fmt.FmtAmt cr) ∾ " | " ∾ (fmt.FmtAmt cl) ∾ " " ∾ (@+10)
   }¨ ↕ n
 
   # Totals row
@@ -90,10 +91,10 @@ FormatHuman ← {𝕊 tb:
   total_cr ← +´ tb.credits
   total_cl ← +´ tb.closings
 
-  out ↩ out ∾ (maxName ⥊ "-") ∾ "-+----------+----------+----------+----------" ∾ (@+10)
+  out ↩ out ∾ div_line ∾ (@+10)
   totalLabel ← "Total"
   totalPad ← (maxName - ≠ totalLabel) ⥊ " "
-  out ↩ out ∾ totalLabel ∾ totalPad ∾ " | " ∾ (fmt.FmtAmt total_op) ∾ " | " ∾ (fmt.FmtAmt total_db) ∾ " | " ∾ (fmt.FmtAmt total_cr) ∾ " | " ∾ (fmt.FmtAmt total_cl) ∾ (@+10)
+  out ↩ out ∾ totalLabel ∾ totalPad ∾ " | " ∾ (fmt.FmtAmt total_op) ∾ " | " ∾ (fmt.FmtAmt total_db) ∾ " | " ∾ (fmt.FmtAmt total_cr) ∾ " | " ∾ (fmt.FmtAmt total_cl) ∾ " " ∾ (@+10)
 
   # Zero-sum check
   balanced ← (total_op = 0) ∧ (total_db = ¯1 × total_cr) ∧ (total_cl = 0)

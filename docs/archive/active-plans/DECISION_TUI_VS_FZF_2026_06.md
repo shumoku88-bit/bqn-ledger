@@ -1,7 +1,10 @@
 # Decision: TUI vs fzf+gum UI Experiment
 
-Status: **pending review / research phase**
+Status: **frozen / suspended** (2026-06-28 凍結)
 Date: 2026-06-27
+
+> [!WARNING]
+> 2026-06-28の指示により、本検証およびTUIのPoC実装は一旦凍結となりました。日常運用および操作UIは引き続き fzf+gum 路線を維持・強化します。
 
 ## 背景 (Context)
 
