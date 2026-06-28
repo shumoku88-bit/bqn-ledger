@@ -22,13 +22,12 @@ Go dependencies are declared in module-local `go.mod` files.
 Known modules:
 
 - `editor/go.mod`: Go editor and tests.
-- `tui/go.mod`: frozen TUI experiment, not part of the current daily path unless explicitly revived.
 
 ## Reproducibility notes
 
 - The public repo should keep runtime requirements in README, CONTRIBUTING, and CI aligned.
 - If CBQN is pinned in CI, update README at the same time.
-- If the frozen TUI remains in the repository, its status should stay explicit so it does not look like an unsupported production path.
+- Removed or archived experiments should not be listed as current dependency paths.
 
 ## Data safety note
 

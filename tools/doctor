@@ -140,7 +140,7 @@ echo "  Go 1.22+            — editor binary build (stdlib only, zero external 
 echo ""
 echo "Optional tools:"
 echo "  fzf  — fuzzy selector for add-ui.sh / main-ui.sh"
-echo "  gum  — TUI widgets for add-ui.sh"
+echo "  gum  — terminal widgets for add-ui.sh"
 echo "  rg   — ripgrep for check scripts"
 echo ""
 echo "Dev tools (bundled):"
