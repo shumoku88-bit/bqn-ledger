@@ -51,6 +51,8 @@
   - 年金・月給・不定期収入・封筒派・口座残高派など、さまざまな生活スタイル/家計管理スタイルへ対応するための policy layer 設計。生活ルールを accounting core に埋め込まないための active design。
 - `docs/SRC_NEXT_HOUSEHOLD_REPORT_POLICY_CONTRACT.md` / `docs/SRC_NEXT_EXPENSE_ACCOUNT_MAPPING.md`
   - `src_next` の household report policy / metadata mapping 契約。既存実装との差分がある場合は、実装・fixture・check を確認してから更新する。
+- `docs/QUERY_CONTEXT_TRACK.md`
+  - read-only query / context packet / future life-log readiness の境界を定義する docs-only plan。実装承認ではない。
 
 ### Backlog (待機中の計画)
 
