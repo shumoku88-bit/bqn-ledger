@@ -1,6 +1,6 @@
 # Go Source TSV Editor & Add-UI Usage Manual
 
-BQN-Ledgerにおける元データTSV（`data/journal.tsv`, `data/plan.tsv` など）を安全に表示・編集・完了処理するための、Go製エディタ（`tools/edit`）および日常記帳UI（`tools/add-ui.sh`）の使い方説明書です。
+BQN-Ledgerにおける base directory 配下の元データTSV（`journal.tsv`, `plan.tsv` など）を安全に表示・編集・完了処理するための、Go製エディタ（`tools/edit`）および日常記帳UI（`tools/add-ui.sh`）の使い方説明書です。
 
 ## 1. 基本コンセプト：秤（はかり）と手袋
 
@@ -57,7 +57,7 @@ Goは会計エンジンとしての計算（残高や封筒の残金計算など
 日常UI（`add-ui.sh`）を介さず、シェルから直接Go製エディタ `tools/edit` を叩いて操作することも可能です。
 
 ### グローバルオプション
-*   `--base <dir>`: データセットが存在する基準ディレクトリを指定します（デフォルトは `data`）。
+*   `--base <dir>`: データセットが存在する基準ディレクトリを指定します。既定は `LEDGER_DATA_DIR`、未設定なら `config/system_defaults.tsv` の `DEFAULT_BASE_DIR`（公開 repo では `data/` sandbox）です。
 
 ### ジャーナル・予算の安全追記 (`journal add` / `journal reverse` / `budget add`)
 ```bash
@@ -90,7 +90,6 @@ Goは会計エンジンとしての計算（残高や封筒の残金計算など
     *   `--memo`: 詳細なメモや文脈を指定します（任意）。
     *   `--dry-run`: 追記プレビューのみを行い、ファイルには書き込みません。
     *   `--yes`: 追記時の確認プロンプト（`y/N`）をスキップします。
-
 
 ### 予定の追加 (`plan add`)
 ```bash
@@ -142,14 +141,14 @@ Goは会計エンジンとしての計算（残高や封筒の残金計算など
 
 ## 5. Go Editorが保証する安全書き込み機能
 
-書き込みを伴うコマンド（`journal add`、`journal reverse`、`budget add`、`plan add`、`plan finish --apply`、`plan edit`）を実行する際、Go Editorは以下の安全機構を自動で走らせます。
+書き込みを伴うコマンド（`journal add`、`journal reverse`、`budget add`、`plan add`、`plan finish --apply`、`plan edit`、`issue add`）を実行する際、Go Editorは以下の安全機構を自動で走らせます。
 
-1.  **事前バリデーション**: 日付フォーマット、金額が整数か、アカウント名が `data/accounts.tsv` に存在するか、メタデータ形式に問題がないかを書き込み前に構造検査します。
+1.  **事前バリデーション**: 日付フォーマット、金額が整数か、アカウント名が `<base>/accounts.tsv` に存在するか、メタデータ形式に問題がないかを書き込み前に構造検査します。
 2.  **プレビューと確認**: 追記または編集される正確なTSV行を画面に出力し、ユーザーが明示的に `y` または `yes` と入力しない限り書き込みません（`--yes` 指定時を除く）。
 3.  **自動バックアップ**: 置き換えを実行する直前に、対象ディレクトリ内の `.backup/YYYYMMDD-HHMMSS/<ファイル名>` にオリジナルデータを退避します。
 4.  **競合検知 (Stale check)**: 編集開始時から書き込みの瞬間までの間に、ファイルサイズ、更新日時、SHA-256ハッシュが他プロセス等で変更されていないかを確認し、競合があれば書き込みを拒否して元データを守ります。
 5.  **アトミックな置き換え**: 一時ファイルに内容をすべて書き込んで `fsync` し、最後に `rename` して元ファイルに上書きします。書き込み途中に停電やクラッシュが起きてもデータが破損しません。
-6.  **事後チェック (Post-write check)**: 書き込み直後に自動で BQN の確認を実行します。既定の `--post-check lint` は `bqn src_next/report.bqn <base>` を実行し、`--post-check full` は `./tools/check.sh` を実行します。もしチェックが失敗した場合は、警告を出した上で、バックアップからの復元コマンド（`cp ...`）を親切に提示します。
+6.  **事後チェック (Post-write check)**: 書き込み直後に自動で BQN の確認を実行します。既定の `--post-check lint` は `bqn src_next/report.bqn <base>` を実行し、`--post-check full` は `./tools/check.sh` を実行します。もしチェックが失敗した場合は、警告を出した上で、バックアップから戻すための案内を表示します。
 
 ---
 
@@ -168,10 +167,9 @@ cp fixtures/plan-completion/*.tsv sandbox/
 # 3. sandbox 内のデータが正しくアトミック更新され、Closedになったか確認する
 ./tools/edit --base sandbox plan list
 cat sandbox/journal.tsv
-
-# 4. 検証が終わったらディレクトリごと削除してクリーンアップ
-rm -rf sandbox
 ```
+
+検証後の sandbox ディレクトリは、内容を確認してから手元で片付けます。
 
 ---
 
