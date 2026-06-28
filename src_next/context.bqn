@@ -91,6 +91,23 @@ BuildContext ← {𝕊 arg:
   resolved     ← ak.Resolve accLines
   rows         ← BuildAllRows ⟨base2, resolved, cy.start⟩
   view         ← BuildPeriodView ⟨rows, resolved, cy⟩
+  
+  # Load and parse issues.tsv
+  issueLines   ← loader.ReadLinesOptional (base2 ∾ "/issues.tsv")
+  MakeIssueRow ← {𝕊 flds:
+    # Ensure at least 5 fields are present
+    flds2 ← flds ∾ (5-≠flds) ⥊ ⟨""⟩
+    {
+      date   ⇐ 0 ⊑ flds2,
+      status ⇐ 1 ⊑ flds2,
+      title  ⇐ 2 ⊑ flds2,
+      amount ⇐ 3 ⊑ flds2,
+      memo   ⇐ 4 ⊑ flds2
+    }
+  }
+  issueRawRows ← (0 < ≠ issueLines) ◶ ⟨ { ⟨⟩ }, { loader.SplitTsvKeepEmpty ¨ 1 ↓ issueLines } ⟩ @
+  issues       ← MakeIssueRow ¨ issueRawRows
+
   {
     base         ⇐ base2,
     as_of        ⇐ as_of,
@@ -98,7 +115,8 @@ BuildContext ← {𝕊 arg:
     resolved     ⇐ resolved,
     posting_rows ⇐ rows,
     cube         ⇐ view.cube,
-    tbds         ⇐ view.tbds
+    tbds         ⇐ view.tbds,
+    issues       ⇐ issues
   }
 }
 

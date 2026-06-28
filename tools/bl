@@ -107,6 +107,7 @@ plan.tsv	Future plans
 budget_alloc.tsv	Budget allocations
 accounts.tsv	Account master
 cycle.tsv	Cycle parameters
+issues.tsv	Pending issues and decisions
 config.tsv	Local configuration
 EOF
 }
@@ -143,7 +144,7 @@ run_edit() {
   # Resolve file path
   local file_path=""
   case "$file" in
-    journal.tsv|plan.tsv|budget_alloc.tsv|accounts.tsv|cycle.tsv)
+    journal.tsv|plan.tsv|budget_alloc.tsv|accounts.tsv|cycle.tsv|issues.tsv)
       file_path="$base_dir/$file"
       ;;
     config.tsv)

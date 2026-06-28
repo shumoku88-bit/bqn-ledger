@@ -24,6 +24,7 @@ cube ← •Import "cube.bqn"
 trial_balance ← •Import "trial_balance.bqn"
 fmt ← •Import "format.bqn"
 labels ← •Import "report_labels.bqn"
+issues ← •Import "issues.bqn"
 L ← labels.Text
 
 PrintSection ← {𝕊 text: •Out text ⋄ •Out ""}
@@ -55,6 +56,7 @@ BuildSectionEntries ← {𝕊 ctx:
 
   entries ← ⟨
     ⟨"snapshot", snapshot.FormatHuman snapshot.Build ctx⟩
+    ⟨"issues", issues.FormatHuman ctx⟩
     ⟨"ytd", ytd_summary.FormatHuman ytd_summary.Build ctx⟩
     ⟨"balances", balances.FormatHuman balances.Build ctx⟩
     ⟨"cycle", cycle_summary.FormatHuman ⟨cycle_summary.Build ctx, exp.entries⟩⟩

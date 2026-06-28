@@ -32,6 +32,7 @@ Commands:
   select, --select     Open fzf/gum section selector (default)
   report, all          Show the full report
   snapshot             Show Snapshot section
+  issues               Show Issues & Decisions section
   envelopes            Show Envelope & Budget section
   outlook              Show Outlook Dashboard section
   cycle                Show Current Cycle Summary section
@@ -95,6 +96,7 @@ show_full_report() {
 section_list() {
   cat <<'EOF'
 snapshot	全体サマリ
+issues	懸案事項・意思決定
 envelopes	封筒・予算残高
 outlook	見通し・日割り
 cycle	今サイクル集計
@@ -176,7 +178,6 @@ case "$cmd" in
     cache_dir="/tmp/bqn-ledger-cache-${sanitized_path}"
     mkdir -p "$cache_dir"
 
-    # Files that affect the report output
     src_files=(
       "$base_abs/accounts.tsv"
       "$base_abs/journal.tsv"
@@ -184,6 +185,9 @@ case "$cmd" in
       "$base_abs/budget_alloc.tsv"
       "$base_abs/cycle.tsv"
     )
+    if [[ -f "$base_abs/issues.tsv" ]]; then
+      src_files+=("$base_abs/issues.tsv")
+    fi
     if [[ -f "$base_abs/config.tsv" ]]; then
       src_files+=("$base_abs/config.tsv")
     fi
