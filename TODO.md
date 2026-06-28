@@ -9,26 +9,24 @@
 
 ### 3つのプロクオリティ宿題（最優先）
 
-- [x] **BQNコード内の日本語表示文字列の完全追放 (Presentationの外部化)**
-  - `src_next/` 配下のBQNファイルから、人間向けの日本語表示ラベルや見出し文字を一掃する。
-  - 計算エンジン側はデータ射影キーのみを出力し、表示層（`color-filter` 等）で適切な日本語やスタイルを当てる設計にする。
+- [x] **BQNコード内の日本語表示文字列の外部化**
+  - 計算エンジン側はデータ射影キーを出力し、表示層で適切な日本語やスタイルを当てる設計にする。
   - 監査台帳: [docs/archive/audits/REPORT_ASSUMPTION_AUDIT.md](docs/archive/audits/REPORT_ASSUMPTION_AUDIT.md)
-  - 2026-06-28: first boundary as `config/report_labels.tsv` + `src_next/report_labels.bqn` を追加。
+  - 2026-06-28: `config/report_labels.tsv` + `src_next/report_labels.bqn` を追加。
   - 2026-06-28: section titles / table headers も `report_labels.tsv` 経由へ拡張。
   - 2026-06-28: envelope fixture の日本語ラベル/selector 値も `report_labels.tsv` に外出し。
   - 2026-06-28: `src_next` の runtime 日本語表示文字列は外部化完了。docs の日本語は維持する。
-- [x] **Prefix Fallback（接頭辞による暗黙の役割推測）の完全廃止**
+- [x] **Prefix Fallback（接頭辞による暗黙の役割推測）の廃止**
   - アカウント名（`expenses:`, `income:` 等）による暗黙判定を廃止し、explicit `role=` を厳格に適用する。
   - [docs/archive/completed-plans/ACCOUNT_ROLE_CONTRACT.md](docs/archive/completed-plans/ACCOUNT_ROLE_CONTRACT.md) の契約に準拠。
   - 2026-06-28: `src_next/projection.bqn` の kind inference を explicit role 優先へ移行。
-  - 2026-06-28: Prefix fallback を完全に廃止。`projection.bqn` と `readiness_check.bqn` から fallback を除去し、`valid_roles` から空文字 `""` を削除。
-  - 2026-06-28: テスト用の fixture 全体に explicit role をマージし、`check-src-next-household-metadata.sh` で `prefix_fallback_total_count == 0` をアサートする Fail-Closed な validation を有効化。
+  - 2026-06-28: `projection.bqn` と `readiness_check.bqn` から fallback を除去し、`valid_roles` から空文字 `""` を削除。
+  - 2026-06-28: テスト用の fixture 全体に explicit role をマージし、`check-src-next-household-metadata.sh` で `prefix_fallback_total_count == 0` を確認する validation を有効化。
 - [x] **Command Hub（日常操作ランチャー）による安全な導線一元化**
   - [x] **Phase 1: 閲覧・確認用の軽量ハブを `tools/bl` として実装完了。**
   - [x] **Phase 2: アクション（仕訳追加・取消など）の既存ツールへのルーティングと、新設した懸案事項（issues.tsv）の対話的・安全な追加コマンドの実装完了。**
   - 設計メモ: [docs/archive/active-plans/COMMAND_HUB_DESIGN.md](docs/archive/active-plans/COMMAND_HUB_DESIGN.md)
   - 表示サブトラック: [docs/archive/active-plans/GUM_FZF_COLOR_LAYER_PLAN.md](docs/archive/active-plans/GUM_FZF_COLOR_LAYER_PLAN.md)
-
 
 ### その他保留事項
 
@@ -80,15 +78,15 @@ Audit note: `docs/archive/audits/REPORT_ASSUMPTION_AUDIT.md`
 
 ---
 
-## Independent design track: command hub / daily launcher
+## Completed track: command hub / daily launcher
 
 Design note: `docs/archive/active-plans/COMMAND_HUB_DESIGN.md`
 Presentation subtrack: `docs/archive/active-plans/GUM_FZF_COLOR_LAYER_PLAN.md`
 
-- [ ] 実装しない。まず名前・範囲・既存toolsとの接続を決める。
-- [ ] コマンド名は未決（候補: `bq`, `bk`, `bqk`, `gbk`, `kakei`, `ledger`）。
-- [ ] 初期実装するなら shell + gum の薄いランチャー候補。
-- [ ] gum/fzf/color は presentation-only とし、plain 出力を canonical に残す。
-- [ ] hub自体は source TSV を直接変更しない。
-- [ ] 単一 `events.tsv` への統一方針ではない。
+- [x] 初期実装名は `tools/bl` とする。
+- [x] `tools/bl` は日常操作ランチャーとして、閲覧、確認、既存編集ツールへのルーティングを担当する。
+- [x] `issues.tsv` への安全な懸案事項追加は、既存 Go editor 経路に委譲する。
+- [x] gum/fzf/color は presentation-only とし、plain 出力を canonical に残す。
+- [x] hub自体は source TSV を直接変更しない。書き込みは既存安全経路へ委譲する。
+- [x] 単一 `events.tsv` への統一方針ではない。
 - [x] `docs/MAIN_UI_SECTION_PREVIEW_CACHE_ISSUE-2026-06-27.md` — fzf section preview を一時セクションキャッシュで復元する案を追跡する。

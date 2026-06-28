@@ -57,7 +57,7 @@
 - `<base>/plan.tsv` — 未来予定
 - `<base>/budget_alloc.tsv` — 封筒/予算の手動配賦
 - `<base>/cycle.tsv` — サイクル期間設定
-- `<base>/issues.tsv` — 懸案事項・意思決定ログ (新設)
+- `<base>/issues.tsv` — 懸案事項・意思決定ログ
 
 ## コード地図
 
@@ -89,12 +89,12 @@
 - `plan_journal_overlap.bqn` — plan/journal 重複検出。
 - `format.bqn` — テキスト整形、ANSI color helper、semantic color/no-color制御。
 - `report_labels.bqn` — report presentation labels の正本ローダー (`config/report_labels.tsv`)。
-- `issues.bqn` — 懸案事項・意思決定ログの表示フォーマット (新設)。
+- `issues.bqn` — 懸案事項・意思決定ログの表示フォーマット。
 - `util.bqn` — 基本ユーティリティ (Split, ToNum, LoadLines)。
 - `date.bqn` — 日付操作 (Today, Parts, Ordinal, DaysBetween)。
 - `unavailable.bqn` — unavailable sentinel の正本定義と helper (`IsUnavailable`, `StartsWith`)。
 - `config.bqn` — config.tsv 読み込み。
-- `report.bqn` — 人間向け12セクションレポート。 `--list-sections` でセクションキー↔見出しの機械可読マッピングを出力し、`--section <key>` で単一セクションを出力する（UIツールが動的にセクション抽出するための正本）。
+- `report.bqn` — 人間向けレポートの正本入口。セクション構成は実装と `--list-sections` を正とし、`--section <key>` で単一セクションを出力する（UIツールが動的にセクション抽出するための正本）。
 - `summary.bqn` — 機械向けコンパクト出力。
 
 ### `editor/` (Go source TSV editor)
@@ -104,7 +104,7 @@ source-of-truth TSV を安全に編集する Go ツール。
 - `tools/edit` — Go editor のビルド兼実行ラッパー。
 - `editor/main.go` — CLI入口。`journal add` / `journal reverse` / `budget add` / `plan list` / `plan add` / `plan finish` / `plan edit` / `issue add`。
 - `editor/journal.go` — single-file safe append 基盤。
-- `editor/issue.go` — issues.tsv への safe append 実装 (新設)。
+- `editor/issue.go` — issues.tsv への safe append 実装。
 - `editor/*_test.go` — fixture/tmpdir ベース of tests。
 
 承認済み書き込み範囲: `journal.tsv` / `budget_alloc.tsv` / `plan.tsv` / `issues.tsv` への single-file safe append、`journal reverse`、`plan finish --apply`、open plan の `date`/`amount` 限定既存行編集。
@@ -128,26 +128,3 @@ source-of-truth TSV を安全に編集する Go ツール。
 ## tools 地図
 
 ### 検査・CI
-- `tools/check.sh` — 全チェックの一括実行 (ユニットテスト + golden + セクションチェック + エンジン独立チェック)。
-
-### レポート・表示
-- `tools/report` — 日次レポート (`bqn src_next/report.bqn <base>`)。
-- `tools/report-next-summary` — 機械向けコンパクトサマリ (`key: value` 形式)。
-- `tools/query` — `report-next-summary` の thin filter（`--list`/`--keys`/`--grep`/`--grep-val`）。
-
-### UI 操作
-- `tools/add-ui.sh` — 仕訳追加・取消・予定管理。`--check` で read-only preflight。
-- `tools/main-ui.sh` — レポート表示系。セクション見出しは `report.bqn --list-sections` から動的取得。
-- `tools/edit` — Go editor ラッパー。
-
-### AI 開発支援（devtools）
-- `tools/bqn-eval` — BQN 式の簡易評価（Phase 1、repo module不可）。
-- `tools/bqn-dump` — BQN 値の型・shape診断（Phase 2、kind/shape/preview/boxed hint）。
-- `tools/repo-index` — リポジトリ索引。`--baseline` で保存、`--diff` で差分表示。
-- `tools/scaffold-check.sh` — 新規 check スクリプトの boilerplate 生成。
-- `tools/devtools-check.sh` — **全devtoolsの健全性メタチェック**（check.sh [4/4] に組み込み済み）。
-- `rtk` / `sqz` — 長出力のトークン節約ラッパー（`rtk git diff`, `sqz compress`）。
-
-AI作業品質・トークン効率・devtools改善の気づきは `docs/archive/active-plans/AI_WORKING_FEEDBACK_LOG.md` に一時収集し、まとまったら `docs/archive/completed-plans/DECISION_AI_DEVELOPMENT_EFFICIENCY_PROPOSALS.md` と照合してレビューする。
-
-→ 詳しい使い方は `AGENTS.md` の「AI開発ツール（devtools）の使い方」セクションを参照。
