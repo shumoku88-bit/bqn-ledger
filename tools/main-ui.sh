@@ -168,12 +168,60 @@ case "$cmd" in
     ;;
   select|--select|'')
     ensure_ledger_report_base "$base_dir"
-    cache_dir="$(mktemp -d)"
-    trap 'rm -rf "$cache_dir"' EXIT
+    
+    # Create a stable cache directory based on the absolute path of base_dir
+    base_abs="$(cd "$base_dir" && pwd)"
+    sanitized_path="${base_abs//\//_}"
+    cache_dir="/tmp/bqn-ledger-cache-${sanitized_path}"
+    mkdir -p "$cache_dir"
 
-    if ! "$ROOT_DIR/tools/report" "$base_dir" --write-section-cache "$cache_dir" --no-color >/dev/null; then
-      echo "Failed to generate report cache" >&2
-      exit 1
+    # Files that affect the report output
+    src_files=(
+      "$base_abs/accounts.tsv"
+      "$base_abs/journal.tsv"
+      "$base_abs/plan.tsv"
+      "$base_abs/budget_alloc.tsv"
+      "$base_abs/cycle.tsv"
+    )
+    if [[ -f "$base_abs/config.tsv" ]]; then
+      src_files+=("$base_abs/config.tsv")
+    fi
+    if [[ -f "$ROOT_DIR/config/report_labels.tsv" ]]; then
+      src_files+=("$ROOT_DIR/config/report_labels.tsv")
+    fi
+
+    # Find the maximum modification time among source files
+    max_src_mtime=0
+    for f in "${src_files[@]}"; do
+      if [[ -f "$f" ]]; then
+        if stat -f %m "$f" >/dev/null 2>&1; then
+          mtime=$(stat -f %m "$f")
+        else
+          mtime=$(stat -c %Y "$f")
+        fi
+        if (( mtime > max_src_mtime )); then
+          max_src_mtime=$mtime
+        fi
+      fi
+    done
+
+    # Check if the cache is still valid
+    cache_ok=0
+    timestamp_file="$cache_dir/.cache-timestamp"
+    if [[ -f "$timestamp_file" && -f "$cache_dir/snapshot.txt" ]]; then
+      cache_mtime=$(cat "$timestamp_file" 2>/dev/null || echo 0)
+      if (( cache_mtime >= max_src_mtime )); then
+        cache_ok=1
+      fi
+    fi
+
+    # Regenerate cache if it is stale or missing
+    if [[ "$cache_ok" -ne 1 ]]; then
+      if ! "$ROOT_DIR/tools/report" "$base_dir" --write-section-cache "$cache_dir" --no-color >/dev/null; then
+        echo "Failed to generate report cache" >&2
+        exit 1
+      fi
+      echo "$max_src_mtime" > "$timestamp_file"
     fi
 
     selection="$(select_section "$cache_dir" || true)"
