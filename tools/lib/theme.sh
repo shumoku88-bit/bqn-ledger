@@ -11,15 +11,16 @@ else
   # 3. Default fallback: 'nord' (calm and muted Nordic frost palette)
   if [[ -z "${BL_THEME:-}" ]]; then
     # Try reading from config.tsv in base_dir
-    local check_dir="${base_dir:-}"
+    check_dir="${base_dir:-}"
     if [[ -z "$check_dir" ]]; then
       if [[ -n "${LEDGER_DATA_DIR:-}" ]]; then
         check_dir="$LEDGER_DATA_DIR"
       else
-        local defaults_file="config/system_defaults.tsv"
+        defaults_file="config/system_defaults.tsv"
         if [[ -f "$defaults_file" ]]; then
           check_dir=$(awk -F'\t' '$1 == "DEFAULT_BASE_DIR" { print $2 }' "$defaults_file" 2>/dev/null || true)
         fi
+        unset defaults_file
       fi
     fi
     # If we resolved check_dir, look for config.tsv (Key=Value format)
@@ -27,6 +28,7 @@ else
       BL_THEME=$(awk -F'=' 'tolower($1) == "theme" { print $2 }' "$check_dir/config.tsv" 2>/dev/null || true)
       BL_THEME=$(echo "${BL_THEME:-}" | xargs)
     fi
+    unset check_dir
   fi
   # Final fallback
   export BL_THEME="${BL_THEME:-nord}"
