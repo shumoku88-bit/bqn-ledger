@@ -30,6 +30,7 @@
 
 ### その他保留事項
 
+- [ ] Bashスクリプトの実行時クラッシュ防止策の検討（導線: [docs/archive/active-plans/BASH_SAFETY_ANALYSIS.md](docs/archive/active-plans/BASH_SAFETY_ANALYSIS.md)）
 - lifestyle configuration / report policy externalization の残り整理
 - safety / docs hygiene の小さい整合性修正
 - 多通貨対応（保留）
