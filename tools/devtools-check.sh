@@ -209,7 +209,35 @@ else
   echo "  INFO: scaffold-check.sh not yet implemented (Phase B)" >&2
 fi
 
+# ── H: CLI tools liveness (with colors enabled) ──
+echo "[H] CLI tools liveness (with colors enabled)" >&2
+# Temporarily unset NO_COLOR to test color theme loading in non-plain environments
+if env -u NO_COLOR ./tools/bl help >/dev/null 2>&1; then
+  echo "  PASS: tools/bl launches successfully with colors enabled" >&2
+  pass
+else
+  echo "  FAIL: tools/bl fails to launch with colors enabled" >&2
+  fail "liveness: tools/bl launch failed with colors"
+fi
+
+if env -u NO_COLOR ./tools/main-ui.sh --help >/dev/null 2>&1; then
+  echo "  PASS: tools/main-ui.sh launches successfully with colors enabled" >&2
+  pass
+else
+  echo "  FAIL: tools/main-ui.sh fails to launch with colors enabled" >&2
+  fail "liveness: tools/main-ui.sh launch failed with colors"
+fi
+
+if env -u NO_COLOR ./tools/add-ui.sh --help >/dev/null 2>&1; then
+  echo "  PASS: tools/add-ui.sh launches successfully with colors enabled" >&2
+  pass
+else
+  echo "  FAIL: tools/add-ui.sh fails to launch with colors enabled" >&2
+  fail "liveness: tools/add-ui.sh launch failed with colors"
+fi
+
 # ── Summary ──
+
 echo "" >&2
 echo "devtools-check: $PASS passed, $FAIL failed" >&2
 if [ "$FAIL" -gt 0 ]; then
