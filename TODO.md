@@ -82,7 +82,7 @@ Audit note: `docs/archive/audits/REPORT_ASSUMPTION_AUDIT.md`
 
 ## Independent design track: command hub / daily launcher
 
-Design note: `docs/COMMAND_HUB_DESIGN.md`
+Design note: `docs/archive/active-plans/COMMAND_HUB_DESIGN.md`
 Presentation subtrack: `docs/archive/active-plans/GUM_FZF_COLOR_LAYER_PLAN.md`
 
 - [ ] 実装しない。まず名前・範囲・既存toolsとの接続を決める。
