@@ -47,6 +47,14 @@ BQN Ledger は、一般向けの完成された家計簿アプリではありま
 
 これは、自分の生活会計を自分の目で読める正データとして保ち、そこから必要なレポートを派生させるための plain-text household ledger engine です。
 
+## Open-source positioning
+
+This repository is public as a maintained reference workbench for a small but demanding design space: plain-text household accounting, deterministic BQN-derived reports, and safe TSV write paths.
+
+It is not optimized for broad consumer onboarding. Its public value is different: it keeps the accounting model, fixture data, safety checks, and maintenance rules visible so that BQN users, plain-text accounting experimenters, and AI-assisted maintainers can inspect how the system is built.
+
+The public `data/` directory and fixtures are sandbox data. Real household data should stay outside this repository and be selected with `LEDGER_DATA_DIR`.
+
 ## Design principles
 
 - **TSV is the source of truth.** 正データは base directory 配下の TSV です。公開 repo の `data/` は匿名 sandbox、実運用データは `LEDGER_DATA_DIR`（例: `/path/to/ledger-data/data`）で指定します。
@@ -69,6 +77,7 @@ BQN Ledger は、一般向けの完成された家計簿アプリではありま
 | `<base>/budget_alloc.tsv` | 封筒予算の配賦。Budget allocation の正本です。 |
 | `<base>/cycle.tsv` | 生活サイクル境界。年金支給日などに基づく期間設定です。 |
 | `<base>/config.tsv` | サイクル基準日、特殊な budget account 名などの設定です。 |
+| `<base>/issues.tsv` | 懸案事項・意思決定ログ。レポートの issues セクションに表示されます。 |
 
 `budget:unassigned` のような一部の表示値は、レポート上で動的に計算されます。すべての表示値がそのまま TSV に保存されているわけではありません。
 
@@ -229,6 +238,8 @@ fixture を更新する場合は、対象が本当に仕様変更なのか、そ
 | `docs/ARCHITECTURE.md` | 全体構造、正データ、Cube、モジュール境界。 |
 | `docs/CANONICAL_DAILY_CUBE.md` | `Day × Account × Layer` の中心契約。 |
 | `docs/SAFETY_PROFILE.md` | 予測可能性、fail closed、正データ保護、不変条件をまとめた小さな安全規格。 |
+| `SECURITY.md` | 脆弱性報告と実データを公開 repo に入れないための安全方針。 |
+| `docs/THIRD_PARTY_DEPENDENCIES.md` | 主要な外部依存と再現性メモ。 |
 | `docs/archive/completed-plans/MAIN_SECTIONS.md` | historical: 旧エンジン `main.bqn` のセクション履歴。現行セクションは `src_next/report.bqn` を参照。 |
 | `docs/archive/completed-plans/REPORT_FIELD_MAP.md` | historical: 旧エンジン `report_engine.Build` のフィールド履歴。 |
 | `docs/JOURNAL_META.md` | journal-like TSV のメタデータ契約。 |
