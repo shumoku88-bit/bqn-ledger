@@ -31,14 +31,14 @@
 |---|---|
 | **封筒・予算の計算変更** | `docs/ARCHITECTURE.md`, `docs/CANONICAL_DAILY_CUBE.md` |
 | **レポートの出力変更** | `src_next/report.bqn`, 該当 `src_next/*.bqn`, `docs/AI_CODEMAP.md` |
-| **家計相談（封筒ペース・節約）** | `docs/AI_BUDGET_CALCULATOR_DESIGN.md`, `tools/envelope-calc --help` |
-| **設定駆動化** | `docs/GENERALIZATION_TODO.md` |
-| **TUI/GUI/Web UIの外装** | `docs/APPLICATION_FOUNDATION.md` |
-| **Go source TSV editor** | `docs/GO_SOURCE_TSV_EDITOR_DESIGN.md`（moko承認待ち）, `docs/GO_EDITOR_NEXT_PLAN.md` |
-| **複数ポスティング** | `docs/DECISION_MULTI_POSTING_INVESTIGATION.md` |
-| **AI効率化・開発体験改善** | `docs/DECISION_AI_DEVELOPMENT_EFFICIENCY_PROPOSALS.md` |
-| **docs整理** | `docs/DOCS_HYGIENE_AUDIT-2026-06-22.md` |
-| **ANSIカラー制御** | `docs/DECISION_TERMINAL_COLOR_CONFIG.md` |
+| **家計相談（封筒ペース・節約）** | `docs/archive/active-plans/AI_BUDGET_CALCULATOR_DESIGN.md`, `tools/envelope-calc --help` |
+| **設定駆動化** | `docs/archive/completed-plans/GENERALIZATION_TODO.md` |
+| **TUI/GUI/Web UIの外装** | `docs/archive/active-plans/APPLICATION_FOUNDATION.md` |
+| **Go source TSV editor** | `docs/archive/completed-plans/GO_SOURCE_TSV_EDITOR_DESIGN.md`（moko承認待ち）, `docs/archive/active-plans/GO_EDITOR_NEXT_PLAN.md` |
+| **複数ポスティング** | `docs/archive/completed-plans/DECISION_MULTI_POSTING_INVESTIGATION.md` |
+| **AI効率化・開発体験改善** | `docs/archive/completed-plans/DECISION_AI_DEVELOPMENT_EFFICIENCY_PROPOSALS.md` |
+| **docs整理** | `docs/archive/audits/DOCS_HYGIENE_AUDIT-2026-06-22.md` |
+| **ANSIカラー制御** | `docs/archive/active-plans/DECISION_TERMINAL_COLOR_CONFIG.md` |
 | **devtoolsの使い方** | このファイル末尾の「AI開発ツール（devtools）の使い方」 |
 
 ### L3: 参照（必要になったときだけ）
@@ -57,12 +57,12 @@
 
 mokoから大きめの作業相談が来たら、まず次のどれを進める話か確認する。
 
-1. 通常TODO / active plan（`TODO.md`, `docs/ENGINEERING_ROADMAP.md`, `docs/GENERALIZATION_TODO.md`）
+1. 通常TODO / active plan（`TODO.md`, `docs/ENGINEERING_ROADMAP.md`, `docs/archive/completed-plans/GENERALIZATION_TODO.md`）
 2. Safety Profile / fail closed / invariant 強化（`docs/SAFETY_PROFILE.md`）
-3. docs整理 / archive候補の移動（`docs/DOCS_HYGIENE_AUDIT-2026-06-22.md`）
-4. Go source TSV editor 設計相談（`docs/GO_SOURCE_TSV_EDITOR_DESIGN.md`, 最新境界は `docs/GO_EDITOR_NEXT_PLAN.md`）
-5. 複数ポスティング導入のA-1実装準備（`docs/DECISION_MULTI_POSTING_INVESTIGATION.md`）
-6. TUI/GUI/Web UIなどのアプリ外装・操作導線設計（`docs/APPLICATION_FOUNDATION.md`, `docs/COMMAND_HUB_DESIGN.md`）
+3. docs整理 / archive候補の移動（`docs/archive/audits/DOCS_HYGIENE_AUDIT-2026-06-22.md`）
+4. Go source TSV editor 設計相談（`docs/archive/completed-plans/GO_SOURCE_TSV_EDITOR_DESIGN.md`, 最新境界は `docs/archive/active-plans/GO_EDITOR_NEXT_PLAN.md`）
+5. 複数ポスティング導入のA-1実装準備（`docs/archive/completed-plans/DECISION_MULTI_POSTING_INVESTIGATION.md`）
+6. TUI/GUI/Web UIなどのアプリ外装・操作導線設計（`docs/archive/active-plans/APPLICATION_FOUNDATION.md`, `docs/archive/active-plans/COMMAND_HUB_DESIGN.md`）
 
 Go source TSV editor は独立した設計案として練る段階であり、mokoが「これでいい」と確認するまで書き込み範囲を広げない。
 複数ポスティングは、本体ではA-1を採用し、A-2は余地を残し、A-3は別repo/フォークで研究する方針とする。

@@ -23,85 +23,51 @@
 
 ## まず読む（pit向け最短ルート）
 
-1. `docs/AI_CODEMAP.md` - pit向けコード地図
-2. `TODO.md` - 現在進行中・次に着手する作業だけ
-3. `docs/QUALITY_BAR.md` - 一般向けプロダクトにはしないが、production-grade personal tool として扱う品質基準
-4. `docs/ENGINEERING_ROADMAP.md` - プロ級へ詰める導線・次の一手
-5. `docs/SAFETY_PROFILE.md` - fail closed / 正データ保護 / invariant の小さな安全規格
-6. `docs/SAFETY_PROFILE_INVARIANT_MAP.md` - Safety Profile invariant と既存 check / lint / fixture の対応表
-7. `docs/ARCHITECTURE.md` - 現行データフローとモジュール責務
-8. `docs/CANONICAL_DAILY_CUBE.md` - `Day × Account × Layer` の固定契約
-9. `docs/POSTING_IR_CONTRACT.md` / `docs/TBDS_CONTRACT.md` - Posting IR と試算表データセットの境界契約
-10. `docs/PLAN_ID_LIFECYCLE.md` - `plan_id` ライフサイクル契約 (Go/BQN 共通契約)
-11. 変更内容に応じて、下の「Done / Current Baseline (完了済み・現行仕様として機能)」を読む
+1. [AI_CODEMAP.md](AI_CODEMAP.md) - pit向けコード地図
+2. [../TODO.md](../TODO.md) - 現在進行中・次に着手する作業だけ
+3. [QUALITY_BAR.md](QUALITY_BAR.md) - production-grade personal tool として扱う品質基準
+4. [ENGINEERING_ROADMAP.md](ENGINEERING_ROADMAP.md) - プロ級へ詰める導線・次の一手
+5. [SAFETY_PROFILE.md](SAFETY_PROFILE.md) - fail closed / 正データ保護 / invariant の小さな安全規格
+6. [SAFETY_PROFILE_INVARIANT_MAP.md](SAFETY_PROFILE_INVARIANT_MAP.md) - Safety Profile invariant と既存 check / lint / fixture の対応表
+7. [ARCHITECTURE.md](ARCHITECTURE.md) - 現行データフローとモジュール責務
+8. [CANONICAL_DAILY_CUBE.md](CANONICAL_DAILY_CUBE.md) - `Day × Account × Layer` の固定契約
+9. [POSTING_IR_CONTRACT.md](POSTING_IR_CONTRACT.md) / [TBDS_CONTRACT.md](TBDS_CONTRACT.md) - Posting IR と試算表データセットの境界契約
+10. [PLAN_ID_LIFECYCLE.md](PLAN_ID_LIFECYCLE.md) - `plan_id` ライフサイクル契約 (Go/BQN 共通契約)
+11. [TIME_AS_AXIS.md](TIME_AS_AXIS.md) - 時間座標・区間ビュー
+12. [DATA_DIR_SETUP.md](DATA_DIR_SETUP.md) - データ配置の設定マニュアル
+13. [UNAVAILABLE_SENTINEL_CONTRACT.md](UNAVAILABLE_SENTINEL_CONTRACT.md) - unavailable sentinelの定義
+14. [CONVENTIONS.md](CONVENTIONS.md) / [JOURNAL_META.md](JOURNAL_META.md) - 科目命名・メタデータ規約
+15. 変更内容に応じて、下の「Done / Current Baseline (完了済み・現行仕様として機能)」を参照
 
 ---
 
-## Active plans / 進行中計画
+## Done / Current Baseline (完了済み・現行仕様として機能)
 
-### Active (現在着手中の計画)
-
-- `docs/AI_AGENT_EFFICIENCY_PLAN.md`
-  - Gemini / Codex / local agent の作業効率化候補を、実装前に優先順位づけする docs-only plan。
-- `docs/REPO_INDEX_DESIGN.md` / `docs/REPO_INDEX_IMPLEMENTATION_HANDOFF.md`
-  - CodeGraph-lite / repo-index の MVP 仕様と実装指示書。
-- `docs/AI_REVIEW_BQN_EVAL_TASK.md`
-  - `tools/bqn-eval` をAIに使わせ、レビューを受け、小さく改善するための task packet。
-- `docs/HOUSEHOLD_POLICY_LAYER_PLAN.md`
-  - 年金・月給・不定期収入・封筒派・口座残高派など、さまざまな生活スタイル/家計管理スタイルへ対応するための policy layer 設計。生活ルールを accounting core に埋め込まないための active design。
-- `docs/SRC_NEXT_HOUSEHOLD_REPORT_POLICY_CONTRACT.md` / `docs/SRC_NEXT_EXPENSE_ACCOUNT_MAPPING.md`
-  - `src_next` の household report policy / metadata mapping 契約。既存実装との差分がある場合は、実装・fixture・check を確認してから更新する。
-- `docs/QUERY_CONTEXT_TRACK.md`
-  - read-only query / context packet / future life-log readiness の境界を定義する docs-only plan。実装承認ではない。
-
-### Backlog (待機中の計画)
-
-- `docs/LEDGER_ENGINE_IDEA_CATALOG.md`
-  - Report Lens / provenance / TBDS / scenario overlay / life pressure / txn_id bundle / shape visibility など、面白い ledger engine 化の検討カタログ。
-- `docs/LEGACY_FINISH_GO_RETIREMENT_PLAN.md`
-  - `src/input/finish.go` legacy standalone preview helper の退役 / 移動計画。
-- `docs/SEAM_REDUCTION_PLAN.md`
-  - Go/Bash/BQN の境界削減（Seam Reduction）設計。
-- `docs/DEBUG_PROVENANCE_DESIGN.md`
-  - 主要数値の計算に使用されたデータの出所（provenance）表示の設計。
-- `docs/DECISION_TERMINAL_COLOR_CONFIG.md`
-- `docs/DECISION_TUI_VS_FZF_2026_06.md`
-  - TUI (tview) と fzf+gum UI の比較検証・境界の堅牢化に関する議論。
-  - ANSI カラー出力の制御方法（semantic helper / NO_COLOR / パイプ検出）。Phase 1 実装済み、theme 設定は未導入。
-
-### Done / Current Baseline (完了済み・現行仕様として機能)
-
-- `docs/OLD_ENGINE_REMOVAL_PLAN.md`
-  - 旧エンジン (`src/core/`, `src/reports/`, `src/views/`, root `main.bqn`) の除去は完了。`bqn-ledger` は `src_next` 中心の独立プロジェクトに移行済み。
-- `docs/ACCOUNTING_ENGINE_QUALITY_PLAN.md`
-  - Accounting-grade engine 化の主要 gate は完了。今後は `TODO.md` と `docs/ENGINEERING_ROADMAP.md` の残タスクを優先する。
-- `docs/POSTING_IR_CONTRACT.md` / `docs/TBDS_CONTRACT.md`
-  - Posting IR と TBDS の境界契約。現行実装の基礎として参照する。
-- `docs/REPORT_SCREEN_REVIEW_LOOP.md` / `docs/REPORT_SCREEN_CANDIDATES.md` / `docs/report-mocks/README.md`
-  - report screen mock review は完了。採用済み画面の実装・調整は別計画で扱う。
-- `docs/QUALITY_BAR.md`
-  - 一般向けプロダクトにはしないが、自分の生活会計を預ける production-grade personal tool として扱うための品質基準。
-- `docs/SAFETY_PROFILE.md` / `docs/SAFETY_PROFILE_INVARIANT_MAP.md`
+- [QUALITY_BAR.md](QUALITY_BAR.md)
+  - production-grade personal tool として扱うための品質基準。
+- [SAFETY_PROFILE.md](SAFETY_PROFILE.md) / [SAFETY_PROFILE_INVARIANT_MAP.md](SAFETY_PROFILE_INVARIANT_MAP.md)
   - 予測可能性、fail closed、正データ保護、不変条件の安全規格とその対応表。
-- `docs/CUBE_SHAPE_INVARIANT_PLAN.md` / `docs/CUBE_SHAPE_INVARIANT_IMPLEMENTATION_HANDOFF.md`
-  - Canonical Daily Cube の shape 検査実装。
-- `docs/REPORT_SECTION_STATUS_POLICY.md` / `docs/SECTION_STATUS_IMPLEMENTATION_HANDOFF.md`
-  - report section ごとの `OK / WARN / ERROR / SKIPPED / UNAVAILABLE` 方針と初回実装。
-- `docs/BQN_CONVENTIONS_FOR_AI.md`
-  - pit が BQN を触るときの AI 作業効率化ガイド。
-- `docs/BQN_REPL_AND_DUMPER_DESIGN.md`
-  - `bqn-eval` / `bqn-probe` / `bqn-dump` の薄い検査ラッパー設計。Phase 1 (`bqn-eval`), Phase 2 (`bqn-dump`) 実装済み。
-- `docs/DECISION_AI_DEVELOPMENT_EFFICIENCY_PROPOSALS.md`
-  - AI開発効率向上のための devtools 提案集。`bqn-eval`, `bqn-dump`, `repo-index`, `query`, `scaffold-check.sh`, `devtools-check.sh` 等。
-- `TODO_DEVTOOLS.md`
-  - devtools 改善の TODO チェックリスト（2026-06-27 全Phase完了）。
-- `docs/AI_TASK_PACKET_TEMPLATE.md`
-  - pit に作業を渡すときのテンプレート。
-- `docs/OUTPUT_SQUEEZER_DESIGN.md`
-  - historical: 旧 `tools/sqz-report` 設計。現在は `tools/query` が `tools/report-next-summary` の machine-readable 出力を薄く絞る。
-- `docs/CONVENTIONS.md`
+- [GO_EDITOR_USAGE.md](GO_EDITOR_USAGE.md)
+  - Go 製 source TSV editor (`tools/edit`) の使い方。
+- [CONVENTIONS.md](CONVENTIONS.md)
   - 勘定科目の命名、TSVスキーマ、メタデータ定義などの規約。
-- `docs/JOURNAL_META.md`
+- [JOURNAL_META.md](JOURNAL_META.md)
   - `journal.tsv` / `plan.tsv` で使用できるメタデータの一覧。
-- `docs/MAINTENANCE.md`
+- [MAINTENANCE.md](MAINTENANCE.md)
   - データのバックアップやメンテナンス手順。
+- [CYCLE.md](CYCLE.md)
+  - サイクル集計期間の変更・設定マニュアル。
+- [ADD_UI_USAGE.md](ADD_UI_USAGE.md)
+  - 日常の取引入力UI (`tools/add-ui.sh`) のマニュアル。
+
+---
+
+## 履歴・アーカイブ
+
+不要になった過去のドキュメントや移行期の資料、現在非アクティブな計画書は、すべて [archive/](archive/) ディレクトリに整理・退避されています。
+
+*   **[archive/active-plans/](archive/active-plans/)**: 現在進行中、または待機中(Backlog)の計画書・設計メモ。
+*   **[archive/completed-plans/](archive/completed-plans/)**: 実装完了済みの計画書・意思決定メモ。
+*   **[archive/src-next-migration/](archive/src-next-migration/)**: 旧エンジンから `src_next` への移行フェーズに関わる検証・ログ類。
+*   **[archive/audits/](archive/audits/)**: 過去に実施した一時的な drift 監査や section 監査のワークシート。
+*   **[archive/handoffs/](archive/handoffs/)**: 過去の開発セッション間ハンドオフファイル。

@@ -6,19 +6,18 @@
 
 1. `docs/AI_CODEMAP.md`（このファイル）
 2. `TODO.md`（現在進行中・次に着手する作業だけ）
-3. `docs/OLD_ENGINE_REMOVAL_PLAN.md`（旧エンジン除去計画）
+3. `docs/QUALITY_BAR.md`（品質基準）
 4. `docs/ARCHITECTURE.md`（データフロー・モジュール責務）
 5. `docs/CANONICAL_DAILY_CUBE.md`（固定するDaily Cube契約）
 6. `docs/TIME_AS_AXIS.md`（時間座標・観察時点・区間view）
 7. レポート変更なら `src_next/report.bqn` と該当する `src_next/*` モジュール、および現行の report 関連 docs / check
-8. 設定駆動化なら `docs/GENERALIZATION_TODO.md`
-9. Goによる元データTSV編集なら `docs/GO_EDITOR_USAGE.md` / `docs/GO_EDITOR_NEXT_PLAN.md`
-10. 複数ポスティング導入検討なら `docs/DECISION_MULTI_POSTING_INVESTIGATION.md`
-11. 変更内容に応じて `docs/CONVENTIONS.md` / `docs/JOURNAL_META.md` / `docs/MAINTENANCE.md`
-12. 履歴・背景が必要な場合のみ `docs/archive/` を読む
-13. AIによる家計相談計算の設計なら `docs/AI_BUDGET_CALCULATOR_DESIGN.md`
+8. Goによる元データTSV編集なら `docs/GO_EDITOR_USAGE.md` / `docs/archive/active-plans/GO_EDITOR_NEXT_PLAN.md`
+9. 複数ポスティング導入検討なら `docs/archive/completed-plans/DECISION_MULTI_POSTING_INVESTIGATION.md`
+10. 変更内容に応じて `docs/CONVENTIONS.md` / `docs/JOURNAL_META.md` / `docs/MAINTENANCE.md`
+11. 履歴・背景（非アクティブな計画書、旧エンジン移行期資料、完了済みの計画書など）が必要な場合のみ `docs/archive/` を読む
+12. AIによる家計相談計算の設計なら `docs/archive/active-plans/AI_BUDGET_CALCULATOR_DESIGN.md`
 
-`docs/REPORT_FIELD_MAP.md` と `docs/MAIN_SECTIONS.md` は旧エンジンの historical / superseded docs です。現行レポート変更の正本導線としては読まず、旧 `main.bqn` / `report_engine.Build` の履歴確認が必要な場合だけ参照します。
+`docs/archive/completed-plans/REPORT_FIELD_MAP.md` と `docs/archive/completed-plans/MAIN_SECTIONS.md` は旧エンジンの historical / superseded docs です。現行レポート変更の正本導線としては読まず、旧 `main.bqn` / `report_engine.Build` の履歴確認が必要な場合だけ参照します。
 
 ## 絶対に守ること
 

@@ -1,7 +1,7 @@
 # Maintenance guide (bqn-ledger)
 
 位置づけ:
-- 長期の方針: `docs/ROADMAP.md`
+- 長期の方針: `docs/ENGINEERING_ROADMAP.md`
 - 直近のタスク: `TODO.md`
 
 ## Quick commands

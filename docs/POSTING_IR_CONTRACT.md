@@ -100,7 +100,7 @@ The exact derivation may be implementation-specific at first, but it must be sta
 - A single-row transaction is valid.
 - Multi-row `txn_id` groups are validated by a separate grouping lint; they do not change per-row posting expansion.
 
-This follows `docs/DECISION_MULTI_POSTING_INVESTIGATION.md` A-1: keep source TSV shape stable, group related source rows using metadata.
+This follows `docs/archive/completed-plans/DECISION_MULTI_POSTING_INVESTIGATION.md` A-1: keep source TSV shape stable, group related source rows using metadata.
 
 ### `posting_id`
 

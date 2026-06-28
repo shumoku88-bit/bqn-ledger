@@ -4,7 +4,7 @@
 
 関連する文書:
 
-- 長期ロードマップ: `docs/ROADMAP.md`
+- 長期ロードマップ: `docs/ENGINEERING_ROADMAP.md`
 - 時間モデル: `docs/TIME_AS_AXIS.md`
 - 記法・運用規約: `docs/CONVENTIONS.md`
 - 保守手順: `docs/MAINTENANCE.md`
@@ -159,7 +159,7 @@ BQN: meaning, calculation, plain output
 UI: color, layout, interaction
 ```
 
-この境界の詳細は `docs/DECISION_TERMINAL_COLOR_CONFIG.md` に置く。
+この境界の詳細は `docs/archive/active-plans/DECISION_TERMINAL_COLOR_CONFIG.md` に置く。
 
 ### Layer model
 

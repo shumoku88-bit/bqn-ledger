@@ -1,7 +1,7 @@
 # journal.tsv / plan.tsv の拡張列（6列目以降メタ情報）
 
 位置づけ:
-- 長期の方針: `docs/ROADMAP.md` (Phase 2)
+- 長期の方針: `docs/ENGINEERING_ROADMAP.md` (Phase 2)
 - 表記ルール（キーの命名など）: `docs/CONVENTIONS.md`
 
 このプロジェクトでは、取引の基本フォーマット（先頭5列）は固定しつつ、**6列目以降に任意のメタ情報を追加**できるようにしています。

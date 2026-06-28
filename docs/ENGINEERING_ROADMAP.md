@@ -75,9 +75,9 @@ TUI で「レポートを見る → 気になる数字を深掘り → 仕訳を
 
 - 現状: `tools/main-ui.sh` — fzf セクションセレクタ（今回高速化済み）
 - 現状: `tools/add-ui.sh` — 対話式入力（今回修正済み）
-- 設計: `docs/APPLICATION_FOUNDATION.md` — TUI/GUI 外装の境界契約
-- 設計: `docs/COMMAND_HUB_DESIGN.md` — 単一エントリポイントの設計メモ
-- 候補: `libvaxis` (Zig) — `docs/APPLICATION_FOUNDATION.md` で本命候補
+- 設計: `docs/archive/active-plans/APPLICATION_FOUNDATION.md` — TUI/GUI 外装の境界契約
+- 設計: `docs/archive/active-plans/COMMAND_HUB_DESIGN.md` — 単一エントリポイントの設計メモ
+- 候補: `libvaxis` (Zig) — `docs/archive/active-plans/APPLICATION_FOUNDATION.md` で本命候補
 
 ### やること
 
@@ -208,10 +208,10 @@ policy profile の切り替えをもっと実用的にする。
 
 ### 導線
 
-- 現状: `docs/HOUSEHOLD_POLICY_LAYER_PLAN.md`
+- 現状: `docs/archive/active-plans/HOUSEHOLD_POLICY_LAYER_PLAN.md`
 - 現状: `src_next/household_policy.bqn`
 - 現状: `fixtures/household-moko/` `fixtures/household-monthly-salary/`
-- 現状: `docs/HOUSEHOLD_POLICY_PHASE3_PROOF.md` — 2-style fixture proof 済み
+- 現状: `docs/archive/completed-plans/HOUSEHOLD_POLICY_PHASE3_PROOF.md` — 2-style fixture proof 済み
 
 ### やること
 

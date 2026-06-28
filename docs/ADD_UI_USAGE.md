@@ -110,5 +110,5 @@ tools/edit journal add \
 - `journal.tsv` / `budget_alloc.tsv` は source-of-truth TSV です。
 - `tools/add-ui.sh --check` は read-only preflight です。入力UIが壊れていないか先に確認できます。
 - `tools/add-ui.sh` は承認済み範囲の single-file append だけを行います。
-- `plan finish apply`、削除、複数ファイル更新はまだ未承認です。
-- 詳細設計は `docs/GO_SOURCE_TSV_EDITOR_DESIGN.md` を参照してください。
+- `plan finish --apply` は承認・実装済みです。削除や複数ファイルの一括更新は未承認（機能制限中）です。
+- 現在の計画や境界は [GO_EDITOR_NEXT_PLAN.md](GO_EDITOR_NEXT_PLAN.md)、過去の設計経緯は [GO_SOURCE_TSV_EDITOR_DESIGN.md](GO_SOURCE_TSV_EDITOR_DESIGN.md) を参照してください。

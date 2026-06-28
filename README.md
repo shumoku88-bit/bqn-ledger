@@ -7,7 +7,7 @@ BQN Ledger は、個人の生活会計を預けるための accounting-grade な
 正データは人間が直接読める TSV に置き、BQN はそこから派生ビュー、レポート、検査、エクスポートを作ります。日々の追記は小さな editor / UI から安全経路で行い、正データそのものは人間が読める地面として残します。
 
 > A Technique for Opening from One Person to the World.
-> See: [`docs/OPENING_TECHNIQUE.md`](docs/OPENING_TECHNIQUE.md)
+> See: [`docs/archive/completed-plans/OPENING_TECHNIQUE.md`](docs/archive/completed-plans/OPENING_TECHNIQUE.md)
 
 ## 必要なもの
 
@@ -229,14 +229,14 @@ fixture を更新する場合は、対象が本当に仕様変更なのか、そ
 | `docs/ARCHITECTURE.md` | 全体構造、正データ、Cube、モジュール境界。 |
 | `docs/CANONICAL_DAILY_CUBE.md` | `Day × Account × Layer` の中心契約。 |
 | `docs/SAFETY_PROFILE.md` | 予測可能性、fail closed、正データ保護、不変条件をまとめた小さな安全規格。 |
-| `docs/MAIN_SECTIONS.md` | historical: 旧エンジン `main.bqn` のセクション履歴。現行セクションは `src_next/report.bqn` を参照。 |
-| `docs/REPORT_FIELD_MAP.md` | historical: 旧エンジン `report_engine.Build` のフィールド履歴。 |
+| `docs/archive/completed-plans/MAIN_SECTIONS.md` | historical: 旧エンジン `main.bqn` のセクション履歴。現行セクションは `src_next/report.bqn` を参照。 |
+| `docs/archive/completed-plans/REPORT_FIELD_MAP.md` | historical: 旧エンジン `report_engine.Build` のフィールド履歴。 |
 | `docs/JOURNAL_META.md` | journal-like TSV のメタデータ契約。 |
 | `docs/GO_EDITOR_USAGE.md` | Go editor の使い方。 |
-| `docs/APPLICATION_FOUNDATION.md` | TUI / GUI / Web UI などを被せるためのアプリ土台・境界・不足物の整理。 |
-| `docs/GENERALIZATION_TODO.md` | 設定駆動化・一般化の段階計画。 |
-| `docs/DECISION_MULTI_POSTING_INVESTIGATION.md` | 複数ポスティング方針。 |
-| `docs/DECISION_AI_DEVELOPMENT_EFFICIENCY_PROPOSALS.md` | AI 作業効率化・開発体験改善の提案。 |
+| `docs/archive/active-plans/APPLICATION_FOUNDATION.md` | TUI / GUI / Web UI などを被せるためのアプリ土台・境界・不足物の整理。 |
+| `docs/archive/completed-plans/GENERALIZATION_TODO.md` | 設定駆動化・一般化の段階計画。 |
+| `docs/archive/completed-plans/DECISION_MULTI_POSTING_INVESTIGATION.md` | 複数ポスティング方針。 |
+| `docs/archive/completed-plans/DECISION_AI_DEVELOPMENT_EFFICIENCY_PROPOSALS.md` | AI 作業効率化・開発体験改善の提案。 |
 | `TODO.md` | 現在の作業メモ。 |
 
 古い履歴や完了済みの議論は `docs/archive/` に退避します。通常作業では、必要になった時だけ参照します。

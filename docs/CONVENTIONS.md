@@ -1,7 +1,7 @@
 # Conventions (bqn-ledger 規約)
 
 位置づけ:
-- 長期の方針: `docs/ROADMAP.md`
+- 長期の方針: `docs/ENGINEERING_ROADMAP.md`
 - メタ列の詳細: `docs/JOURNAL_META.md`
 
 この文書は、データ、レポート、および統合処理の一貫性を保ち、人間とAIの双方にとって保守・拡張を容易にするためのプロジェクト規約を定義します。
@@ -94,7 +94,7 @@
   - 上記の `budget:` や `budget:spent` は既定値です。実際の名前は `config.tsv` の予算設定に従います。
 - `fixed=1` (`accounts.tsv`): 固定費フラグ（YTD内訳の集計で使用）
 - `spend_class=fixed|variable` (`accounts.tsv`): 日次トレンド / 支出分析クラス
-  - 詳細: `docs/SPEND_CLASS.md`
+  - 詳細: `docs/archive/completed-plans/SPEND_CLASS.md`
   - `expenses:予備` はこの家計簿では `variable`（変動費）として扱われます。
 - `tax=private|business`（ジャーナル形式）: 個人用 vs 事業用（ドラフト）
 - `biz=0|1`（ジャーナル形式）: 事業按分フラグ（ドラフト）
