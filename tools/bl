@@ -16,21 +16,15 @@ cd "$ROOT_DIR"
 
 source "$ROOT_DIR/tools/lib/system-defaults.sh"
 
-# Color constants (ANSI)
-# Respect NO_COLOR environment variable (https://no-color.org/)
-if [[ -n "${NO_COLOR:-}" ]]; then
-  COLOR_HEADER=""
-  COLOR_OK=""
-  COLOR_WARN=""
-  COLOR_ERROR=""
-  COLOR_RESET=""
-else
-  COLOR_HEADER="\033[1;36m" # Cyan bold
-  COLOR_OK="\033[1;32m"     # Green bold
-  COLOR_WARN="\033[1;33m"   # Yellow bold
-  COLOR_ERROR="\033[1;31m"  # Red bold
-  COLOR_RESET="\033[0m"
-fi
+# Initialize theme
+source "$ROOT_DIR/tools/lib/theme.sh"
+
+COLOR_HEADER="$ESC_HEADER"
+COLOR_OK="$ESC_OK"
+COLOR_WARN="$ESC_WARN"
+COLOR_ERROR="$ESC_ERROR"
+COLOR_RESET="$ESC_RESET"
+
 
 usage() {
   cat <<EOF

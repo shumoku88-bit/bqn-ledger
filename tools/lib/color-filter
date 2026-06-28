@@ -4,26 +4,30 @@
 
 set -euo pipefail
 
-# Check if color is disabled by user environment or if stdout is not a TTY.
-if [[ -n "${NO_COLOR:-}" || ! -t 1 ]]; then
+SOURCE="${BASH_SOURCE[0]}"
+while [ -L "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+
+# Initialize theme (which exports ESC_* variables)
+# We assume base_dir might be set by the caller (e.g. main-ui.sh), but if not it will fallback.
+source "$SCRIPT_DIR/theme.sh"
+
+# If output is not a TTY or theme is plain, don't colorize
+if [[ ! -t 1 || "$BL_THEME" == "plain" ]]; then
   exec cat
 fi
 
-esc=$'\e'
-
-# Colorize keywords and headers:
-# - completed / paid: green (32)
-# - future: magenta (35)
-# - due: yellow (33)
-# - overdue: bold red (1;31)
-# - Section headers (== ... == / ── ... ──): bold cyan (1;36) / bold blue (1;34)
-# - Numeric list headers (e.g., 1. 全体サマリ): bold (1)
+# Colorize keywords and headers using the themed escape sequences
 sed \
-  -e "s/\<completed\>/${esc}[32mcompleted${esc}[0m/g" \
-  -e "s/\<paid\>/${esc}[32mpaid${esc}[0m/g" \
-  -e "s/\<future\>/${esc}[35mfuture${esc}[0m/g" \
-  -e "s/\<due\>/${esc}[33mdue${esc}[0m/g" \
-  -e "s/\<overdue\>/${esc}[1;31moverdue${esc}[0m/g" \
-  -e "s/== \(.*\) ==/${esc}[1;36m== \1 ==${esc}[0m/g" \
-  -e "s/── \(.*\) ──/${esc}[1;34m── \1 ──${esc}[0m/g" \
-  -e "s/^\([0-9]\{1,2\}\. .*\)/${esc}[1m\1${esc}[0m/g"
+  -e "s/\<completed\>/${ESC_OK}completed${ESC_RESET}/g" \
+  -e "s/\<paid\>/${ESC_OK}paid${ESC_RESET}/g" \
+  -e "s/\<future\>/${ESC_FUTURE}future${ESC_RESET}/g" \
+  -e "s/\<due\>/${ESC_WARN}due${ESC_RESET}/g" \
+  -e "s/\<overdue\>/${ESC_ERROR}overdue${ESC_RESET}/g" \
+  -e "s/== \(.*\) ==/${ESC_HEADER}== \1 ==${ESC_RESET}/g" \
+  -e "s/── \(.*\) ──/${ESC_MUTED}── \1 ──${ESC_RESET}/g" \
+  -e "s/^\([0-9]\{1,2\}\. .*\)/${ESC_NUM_HEADER}\1${ESC_RESET}/g"
