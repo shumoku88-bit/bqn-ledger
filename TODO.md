@@ -23,10 +23,9 @@
   - 2026-06-28: `src_next/projection.bqn` の kind inference を explicit role 優先へ移行。
   - 2026-06-28: Prefix fallback を完全に廃止。`projection.bqn` と `readiness_check.bqn` から fallback を除去し、`valid_roles` から空文字 `""` を削除。
   - 2026-06-28: テスト用の fixture 全体に explicit role をマージし、`check-src-next-household-metadata.sh` で `prefix_fallback_total_count == 0` をアサートする Fail-Closed な validation を有効化。
-- [ ] **Command Hub（日常操作ランチャー）による安全な導線一元化**
-  - 閲覧・追加・修正のCLIインターフェースを1つに統合（`bl` コマンド）。
+- [x] **Command Hub（日常操作ランチャー）による安全な導線一元化**
   - [x] **Phase 1: 閲覧・確認用の軽量ハブを `tools/bl` として実装完了。**
-  - [ ] **Phase 2: アクション（仕訳追加・取消など）の既存ツールへのルーティングと安全性の検証。**
+  - [x] **Phase 2: アクション（仕訳追加・取消など）の既存ツールへのルーティングと、新設した懸案事項（issues.tsv）の対話的・安全な追加コマンドの実装完了。**
   - 設計メモ: [docs/archive/active-plans/COMMAND_HUB_DESIGN.md](docs/archive/active-plans/COMMAND_HUB_DESIGN.md)
   - 表示サブトラック: [docs/archive/active-plans/GUM_FZF_COLOR_LAYER_PLAN.md](docs/archive/active-plans/GUM_FZF_COLOR_LAYER_PLAN.md)
 

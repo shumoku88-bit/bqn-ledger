@@ -32,17 +32,18 @@
 ## 全体像
 
 ```text
-<base>/accounts.tsv / <base>/journal.tsv / <base>/plan.tsv / <base>/budget_alloc.tsv / <base>/cycle.tsv
+<base>/accounts.tsv / <base>/journal.tsv / <base>/plan.tsv / <base>/budget_alloc.tsv / <base>/cycle.tsv / <base>/issues.tsv
    │
-   └─ src_next/loader.bqn (TSV読み込み)
-        │
-        └─ src_next/context.bqn (BuildContext)
-             │
-             ├─ src_next/cube.bqn (Canonical Daily Cube: Day × Account × Layer)
-             ├─ src_next/tbds.bqn (Trial Balance Data Set: opening/movement/closing)
-             │
-             └─ src_next/report.bqn (人間向けレポート)
-                  └─ src_next/summary.bqn (機械向けコンパクト出力)
+   ├─ src_next/loader.bqn (TSV読み込み)
+   │    │
+   │    ├─ src_next/context.bqn (BuildContext: issuesもロード)
+   │    │    │
+   │    │    ├─ src_next/cube.bqn (Canonical Daily Cube: Day × Account × Layer)
+   │    │    ├─ src_next/tbds.bqn (Trial Balance Data Set: opening/movement/closing)
+   │    │    │
+   │    │    └─ src_next/report.bqn (人間向けレポート)
+   │    │         ├─ src_next/issues.bqn (懸案事項・意思決定表示)
+   │    │         └─ src_next/summary.bqn (機械向けコンパクト出力)
 ```
 
 ## 正データファイル
@@ -56,6 +57,7 @@
 - `<base>/plan.tsv` — 未来予定
 - `<base>/budget_alloc.tsv` — 封筒/予算の手動配賦
 - `<base>/cycle.tsv` — サイクル期間設定
+- `<base>/issues.tsv` — 懸案事項・意思決定ログ (新設)
 
 ## コード地図
 
@@ -87,6 +89,7 @@
 - `plan_journal_overlap.bqn` — plan/journal 重複検出。
 - `format.bqn` — テキスト整形、ANSI color helper、semantic color/no-color制御。
 - `report_labels.bqn` — report presentation labels の正本ローダー (`config/report_labels.tsv`)。
+- `issues.bqn` — 懸案事項・意思決定ログの表示フォーマット (新設)。
 - `util.bqn` — 基本ユーティリティ (Split, ToNum, LoadLines)。
 - `date.bqn` — 日付操作 (Today, Parts, Ordinal, DaysBetween)。
 - `unavailable.bqn` — unavailable sentinel の正本定義と helper (`IsUnavailable`, `StartsWith`)。
@@ -99,11 +102,12 @@
 source-of-truth TSV を安全に編集する Go ツール。
 
 - `tools/edit` — Go editor のビルド兼実行ラッパー。
-- `editor/main.go` — CLI入口。`journal add` / `journal reverse` / `budget add` / `plan list` / `plan add` / `plan finish` / `plan edit`。
+- `editor/main.go` — CLI入口。`journal add` / `journal reverse` / `budget add` / `plan list` / `plan add` / `plan finish` / `plan edit` / `issue add`。
 - `editor/journal.go` — single-file safe append 基盤。
-- `editor/*_test.go` — fixture/tmpdir ベースのテスト。
+- `editor/issue.go` — issues.tsv への safe append 実装 (新設)。
+- `editor/*_test.go` — fixture/tmpdir ベース of tests。
 
-承認済み書き込み範囲: `journal.tsv` / `budget_alloc.tsv` / `plan.tsv` への single-file safe append、`journal reverse`、`plan finish --apply`、open plan の `date`/`amount` 限定既存行編集。
+承認済み書き込み範囲: `journal.tsv` / `budget_alloc.tsv` / `plan.tsv` / `issues.tsv` への single-file safe append、`journal reverse`、`plan finish --apply`、open plan の `date`/`amount` 限定既存行編集。
 
 ### `checks/` (検証スクリプト)
 

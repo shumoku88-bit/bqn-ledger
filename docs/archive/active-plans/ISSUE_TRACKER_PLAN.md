@@ -1,6 +1,6 @@
 # Issue & Decision Tracker Plan
 
-Status: planning / awaiting feedback  
+Status: completed  
 Date: 2026-06-28  
 
 This note describes the implementation of a lightweight issue and decision tracker for `bqn-ledger`.
