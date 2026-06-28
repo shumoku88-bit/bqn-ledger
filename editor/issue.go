@@ -85,12 +85,50 @@ func runIssueAdd(args []string, opts options, in io.Reader, out io.Writer) error
 	}
 
 	// Atomic write (backup and atomic swap)
-	backupDir := filepath.Join(baseAbs, ".backup")
-	timestamp := nowFunc().Format("20060102150405")
-	backupPath := filepath.Join(backupDir, "issues.tsv."+timestamp+".bak")
+	if snapshot.sha256 == "" {
+		// New file: no backup needed, no checkStale needed.
+		// Just write atomically using temp file and rename.
+		dir := filepath.Dir(issuesPath)
+		base := filepath.Base(issuesPath)
+		tmp, err := os.CreateTemp(dir, "."+base+".tmp-*")
+		if err != nil {
+			return fmt.Errorf("create temp file: %w", err)
+		}
+		tmpPath := tmp.Name()
+		cleanup := true
+		defer func() {
+			if cleanup {
+				_ = os.Remove(tmpPath)
+			}
+		}()
 
-	if err := writeSingleFileAtomic(snapshot, proposed, backupPath); err != nil {
-		return err
+		if _, err := tmp.Write(proposed); err != nil {
+			_ = tmp.Close()
+			return fmt.Errorf("write temp file: %w", err)
+		}
+		if err := tmp.Chmod(snapshot.mode.Perm()); err != nil {
+			_ = tmp.Close()
+			return fmt.Errorf("chmod temp file: %w", err)
+		}
+		if err := tmp.Sync(); err != nil {
+			_ = tmp.Close()
+			return fmt.Errorf("sync temp file: %w", err)
+		}
+		if err := tmp.Close(); err != nil {
+			return fmt.Errorf("close temp file: %w", err)
+		}
+		if err := os.Rename(tmpPath, issuesPath); err != nil {
+			return fmt.Errorf("rename temp file to %s: %w", issuesPath, err)
+		}
+		cleanup = false
+	} else {
+		backupDir := filepath.Join(baseAbs, ".backup")
+		timestamp := nowFunc().Format("20060102150405")
+		backupPath := filepath.Join(backupDir, "issues.tsv."+timestamp+".bak")
+
+		if err := writeSingleFileAtomic(snapshot, proposed, backupPath); err != nil {
+			return err
+		}
 	}
 
 	fmt.Fprintln(out, "OK: Issue row appended.")
