@@ -3,5 +3,5 @@
 
 assets:bank	role=asset
 assets:cash	role=asset
-expenses:food
+expenses:food	role=expense
 医療費	role=expense

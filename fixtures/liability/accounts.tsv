@@ -1,24 +1,24 @@
 # Fixture: basic
 
-equity:opening-balances
+equity:opening-balances	role=equity
 
-liabilities:creditcard
+liabilities:creditcard	role=liability
 
-assets:bank	type=liquid
-assets:cash	type=liquid
-assets:wallet	type=liquid
-assets:zero	type=liquid
-assets:savings	type=savings
+assets:bank	role=asset	type=liquid
+assets:cash	role=asset	type=liquid
+assets:wallet	role=asset	type=liquid
+assets:zero	role=asset	type=liquid
+assets:savings	role=asset	type=savings
 
-income:salary
+income:salary	role=income
 
-expenses:food	budget=daily	spend_class=variable
-expenses:rent	fixed=1	spend_class=fixed
-expenses:misc	budget=flex	spend_class=variable
+expenses:food	role=expense	budget=daily	spend_class=variable
+expenses:rent	role=expense	fixed=1	spend_class=fixed
+expenses:misc	role=expense	budget=flex	spend_class=variable
 
-budget:opening
-budget:unassigned
-budget:daily
-budget:flex
-budget:reserve
-budget:spent
+budget:opening	role=budget
+budget:unassigned	role=budget
+budget:daily	role=budget
+budget:flex	role=budget
+budget:reserve	role=budget
+budget:spent	role=budget

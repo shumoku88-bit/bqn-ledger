@@ -52,7 +52,7 @@ echo "Running src_next engine on missing role fallback fixture..." >&2
 out=$(tools/report-next-summary fixtures/src-next-missing-role-fallback 2>/dev/null || true)
 
 # Check fallback detection
-assert_contains "src_next_household_metadata_expense_accounts_total: 3" "$out" "expenses count fallback works"
+assert_contains "src_next_household_metadata_expense_accounts_total: 0" "$out" "expenses count fallback is 0"
 assert_contains "src_next_household_metadata_prefix_fallback_total_count: 6" "$out" "total fallback count works (equity=0, assets=2, income=1, expenses=3)"
 assert_contains "src_next_household_metadata_prefix_fallback_expense_count: 3" "$out" "expense fallback count works"
 assert_contains "src_next_readiness_missing_role_accounts_count: 7" "$out" "missing role total count works (6 accounts + 1 unknown)"

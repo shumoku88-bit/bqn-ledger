@@ -1,4 +1,4 @@
-equity:opening-balances
+equity:opening-balances	role=equity
 assets:bank	type=liquid	role=asset
 income:salary	role=income
 expenses:food	role=expense	spend_class=variable

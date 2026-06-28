@@ -1,11 +1,11 @@
-equity:opening-balances
-assets:bank	type=liquid
-income:salary
-expenses:food	budget=daily	spend_class=variable
-expenses:オルカン取り崩し	budget=オルカン投資	spend_class=variable
-budget:opening
-budget:unassigned
-budget:spent
-budget:daily
-budget:ゆうちょ貯金	budget_group=reserve
-budget:オルカン投資	budget_group=reserve
+equity:opening-balances	role=equity
+assets:bank	role=asset	type=liquid
+income:salary	role=income
+expenses:food	role=expense	budget=daily	spend_class=variable
+expenses:オルカン取り崩し	role=expense	budget=オルカン投資	spend_class=variable
+budget:opening	role=budget
+budget:unassigned	role=budget
+budget:spent	role=budget
+budget:daily	role=budget
+budget:ゆうちょ貯金	role=budget	budget_group=reserve
+budget:オルカン投資	role=budget	budget_group=reserve

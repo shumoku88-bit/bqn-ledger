@@ -4,8 +4,8 @@
 # Values are intentionally fictional.
 # Do not copy production data/cycle.tsv values into this fixture.
 
-income:example
-assets:bank
-expenses:food
-expenses:rent
-equity:opening
+income:example	role=income
+assets:bank	role=asset
+expenses:food	role=expense
+expenses:rent	role=expense
+equity:opening	role=equity

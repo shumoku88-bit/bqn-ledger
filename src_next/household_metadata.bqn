@@ -39,7 +39,7 @@ Build ← {𝕊 ctx:
   prefix_fallback_liability ← role_missing ∧ ({ "liabilities:" StartsWith 𝕩 }¨ accounts)
   prefix_fallback_budget ← role_missing ∧ ({ "budget:" StartsWith 𝕩 }¨ accounts)
 
-  expense_mask ← role_expense ∨ prefix_fallback
+  expense_mask ← role_expense
   expense_indices ← expense_mask / ↕ ≠ expense_mask
 
   # Metadata presence for expense accounts only
@@ -95,7 +95,7 @@ Build ← {𝕊 ctx:
   missing_budget_group_accounts_str ← Join missing_budget_group_accounts
   missing_spend_class_accounts_str ← Join missing_spend_class_accounts
 
-  has_any ← 0 < expense_total
+  has_any ← 0 < resolved.count
 
   {
     has_any ⇐ has_any,
@@ -135,7 +135,7 @@ Format ← {𝕊 diag:
     out ↩ out ∾ "src_next_household_metadata_missing_budget_group_accounts: " ∾ diag.missing_budget_group_accounts ∾ (@+10)
     out ↩ out ∾ "src_next_household_metadata_missing_spend_class_accounts: " ∾ diag.missing_spend_class_accounts ∾ (@+10)
     out
-  }⍟diag.has_any @
+  }⍟diag.has_any ""
 }
 
 { Build ⇐ Build, Format ⇐ Format, Sum0 ⇐ Sum0 }

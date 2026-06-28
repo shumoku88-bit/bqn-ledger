@@ -17,11 +17,12 @@
   - 2026-06-28: section titles / table headers も `report_labels.tsv` 経由へ拡張。
   - 2026-06-28: envelope fixture の日本語ラベル/selector 値も `report_labels.tsv` に外出し。
   - 2026-06-28: `src_next` の runtime 日本語表示文字列は外部化完了。docs の日本語は維持する。
-- [ ] **Prefix Fallback（接頭辞による暗黙の役割推測）の完全廃止**
+- [x] **Prefix Fallback（接頭辞による暗黙の役割推測）の完全廃止**
   - アカウント名（`expenses:`, `income:` 等）による暗黙判定を廃止し、explicit `role=` を厳格に適用する。
   - [docs/ACCOUNT_ROLE_CONTRACT.md](docs/ACCOUNT_ROLE_CONTRACT.md) の契約に準拠。
   - 2026-06-28: `src_next/projection.bqn` の kind inference を explicit role 優先へ移行。
-  - 2026-06-28: ただし legacy prefix fallback は互換性維持のため一時残置。完全廃止の可否を要検討。
+  - 2026-06-28: Prefix fallback を完全に廃止。`projection.bqn` と `readiness_check.bqn` から fallback を除去し、`valid_roles` から空文字 `""` を削除。
+  - 2026-06-28: テスト用の fixture 全体に explicit role をマージし、`check-src-next-household-metadata.sh` で `prefix_fallback_total_count == 0` をアサートする Fail-Closed な validation を有効化。
 - [ ] **Command Hub（日常操作ランチャー）による安全な導線一元化**
   - 閲覧・追加・修正のCLIインターフェースを1つに統合（例：`gbk` や `kakei` コマンド等）。
   - エラー時の Fail-Closed や操作ログの安全性をCLIのラッパーレベルで一元保証する。

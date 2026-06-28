@@ -101,6 +101,14 @@ for fixture in "${fixtures[@]}"; do
     fail "$fixture: missing count exceeds expense total"
   fi
 
+  # Negative validation: prefix fallback count must be 0 for standard fixtures
+  fallback_count="$(value src_next_household_metadata_prefix_fallback_total_count "$out")"
+  if [ "$fallback_count" -eq 0 ] 2>/dev/null; then
+    pass "$fixture: prefix fallback total count is 0"
+  else
+    fail "$fixture: prefix fallback total count is $fallback_count (expected 0)"
+  fi
+
   # No remaining / envelope claims in the metadata section (extract just that section)
   meta_section="$(awk '/^--- SrcNext Household Metadata ---$/,/^$/' "$out" | head -20)"
   if echo "$meta_section" | grep -qF 'food_remaining' || \

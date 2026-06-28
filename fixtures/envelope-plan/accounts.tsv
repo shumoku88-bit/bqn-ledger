@@ -1,8 +1,8 @@
-equity:opening-balances
-assets:bank	type=liquid
-income:salary
-expenses:food	budget=daily	spend_class=variable
-budget:opening
-budget:unassigned
-budget:daily
-budget:spent
+equity:opening-balances	role=equity
+assets:bank	role=asset	type=liquid
+income:salary	role=income
+expenses:food	role=expense	budget=daily	spend_class=variable
+budget:opening	role=budget
+budget:unassigned	role=budget
+budget:daily	role=budget
+budget:spent	role=budget

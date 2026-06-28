@@ -25,7 +25,7 @@ Build ← {𝕊 ctx:
   raw_metas ← resolved.raw_metadata
 
   # Unknown enum checks
-  valid_roles ← ⟨"", "asset", "liability", "equity", "income", "expense", "budget", "unknown"⟩
+  valid_roles ← ⟨"asset", "liability", "equity", "income", "expense", "budget", "unknown"⟩
   unknown_role_mask ← ¬ (roles ∊ valid_roles)
   unknown_role_accounts ← unknown_role_mask / resolved.account_keys
 
@@ -54,11 +54,11 @@ Build ← {𝕊 ctx:
   missing_role_mask ← ""⊸≡¨ roles
   missing_role_accounts ← missing_role_mask / resolved.account_keys
 
-  is_asset ← ("asset"⊸≡¨ roles) ∨ ("assets:" ⊸ ≡¨ 7 ↑¨ accounts)
+  is_asset ← "asset"⊸≡¨ roles
   missing_type_mask ← is_asset ∧ (""⊸≡¨ types)
   missing_type_accounts ← missing_type_mask / resolved.account_keys
 
-  is_expense ← ("expense"⊸≡¨ roles) ∨ ("expenses:" ⊸ ≡¨ 9 ↑¨ accounts)
+  is_expense ← "expense"⊸≡¨ roles
   missing_spend_mask ← is_expense ∧ (""⊸≡¨ classes)
   missing_spend_accounts ← missing_spend_mask / resolved.account_keys
 

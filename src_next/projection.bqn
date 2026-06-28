@@ -77,8 +77,8 @@ proj_cols ← ⟨
 # - otherwise         → transfer
 
 InferKind ← {𝕊 ⟨fromRole, toRole, fromAcc, toAcc⟩:
-  isInc ← (fromRole ≡ "income") ∨ ("income:"≡7↑fromAcc)
-  isExp ← (toRole ≡ "expense") ∨ ("expenses:"≡9↑toAcc)
+  isInc ← fromRole ≡ "income"
+  isExp ← toRole ≡ "expense"
   isExp ⊑ (isInc ⊑ "transfer"‿"income")‿"expense"
 }
 

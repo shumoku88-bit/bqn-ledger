@@ -5,7 +5,7 @@ expenses:日用品	role=expense	spend_class=variable	budget=budget:一般生活	
 expenses:家賃	role=expense	spend_class=fixed
 income:年金	role=income
 equity:opening-balances	role=equity
-budget:食費	kind=envelope
-budget:一般生活	kind=envelope
-budget:opening	kind=opening
-budget:spent	kind=spent
+budget:食費	role=budget	kind=envelope
+budget:一般生活	role=budget	kind=envelope
+budget:opening	role=budget	kind=opening
+budget:spent	role=budget	kind=spent

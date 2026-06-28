@@ -30,10 +30,11 @@ resolved ← ak.Resolve lines
 "" lib.AssertEq ak.RoleFromMeta ⟨"budget=食費", "budget_group=daily"⟩
 "JPY" lib.AssertEq ak.CurrencyFromMeta ⟨"budget=食費", "budget_group=daily"⟩
 
-# src_next kind inference: explicit roles preferred, legacy prefixes retained as fallback.
+# src_next kind inference: explicit roles required.
 "expense" lib.AssertEq proj.InferKind ⟨"asset", "expense", "assets:bank", "expenses:food"⟩
 "income" lib.AssertEq proj.InferKind ⟨"income", "asset", "income:salary", "assets:bank"⟩
 "transfer" lib.AssertEq proj.InferKind ⟨"asset", "asset", "assets:bank", "assets:cash"⟩
+"transfer" lib.AssertEq proj.InferKind ⟨"", "", "income:salary", "expenses:food"⟩
 
 # Posting IR identity helpers.
 "T-001" lib.AssertEq proj.TxIdFromMeta ⟨"fallback-id", ⟨"2026-06-01", "memo", "assets:bank", "医療費", "1200", "txn_id=T-001"⟩⟩

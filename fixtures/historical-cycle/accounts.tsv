@@ -1,16 +1,16 @@
 # Fixture: historical-cycle
-equity:opening-balances
+equity:opening-balances	role=equity
 
-assets:bank	type=liquid
-assets:savings	type=savings
+assets:bank	role=asset	type=liquid
+assets:savings	role=asset	type=savings
 
-income:年金
-income:other
+income:年金	role=income
+income:other	role=income
 
-expenses:food	budget=daily	spend_class=variable
-expenses:rent	fixed=1	spend_class=fixed
+expenses:food	role=expense	budget=daily	spend_class=variable
+expenses:rent	role=expense	fixed=1	spend_class=fixed
 
-budget:opening	kind=opening
-budget:unassigned	kind=unassigned
-budget:daily	kind=envelope
-budget:spent	kind=spent
+budget:opening	role=budget	kind=opening
+budget:unassigned	role=budget	kind=unassigned
+budget:daily	role=budget	kind=envelope
+budget:spent	role=budget	kind=spent

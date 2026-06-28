@@ -1,8 +1,8 @@
-equity:opening-balances
-assets:bank	type=liquid
-liabilities:card	due_day=27	due_month_offset=1	payment_account=assets:bank
-expenses:book	spend_class=variable	budget=unassigned
-expenses:computer	spend_class=variable	budget=unassigned
-budget:opening
-budget:unassigned
-budget:spent
+equity:opening-balances	role=equity
+assets:bank	role=asset	type=liquid
+liabilities:card	role=liability	due_day=27	due_month_offset=1	payment_account=assets:bank
+expenses:book	role=expense	spend_class=variable	budget=unassigned
+expenses:computer	role=expense	spend_class=variable	budget=unassigned
+budget:opening	role=budget
+budget:unassigned	role=budget
+budget:spent	role=budget
