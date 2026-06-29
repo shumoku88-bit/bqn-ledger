@@ -121,8 +121,18 @@ if out=$(tools/edit journal add 2>&1); then
   fail "tools/edit journal add with missing args should fail"
 else
   code=$?
-  assert_eq "2" "$code" "tools/edit journal add exit code"
-  assert_contains "ERROR: missing --date" "$out" "tools/edit missing arg message"
+  # BQN editor exits with 1 on validation error, Go editor exits with 2
+  if [[ "$code" -ne 1 && "$code" -ne 2 ]]; then
+    fail "tools/edit journal add exit code: expected [1 or 2] got [$code]"
+  else
+    pass
+  fi
+  # BQN outputs "invalid date format", Go outputs "ERROR: missing --date"
+  if echo "$out" | grep -qE "ERROR: missing --date|invalid date format"; then
+    pass
+  else
+    fail "tools/edit missing arg message: expected BQN or Go error, got: $out"
+  fi
 fi
 
 echo "Testing tools/add-ui.sh negative paths..." >&2

@@ -32,7 +32,7 @@ assert_plan_list_parity() {
   cp -R "$fixture" "$base"
   before_sha="$(sha_file "$base/plan.tsv")"
 
-  ./tools/edit --base "$base" plan list "$@" >"$go_out"
+  ./tools/edit-legacy-go --base "$base" plan list "$@" >"$go_out"
   ./tools/edit-bqn --base "$base" plan list "$@" >"$bqn_out"
 
   if ! cmp -s "$go_out" "$bqn_out"; then

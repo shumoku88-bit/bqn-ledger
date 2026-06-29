@@ -61,7 +61,7 @@ run_expect_fail_closed() {
   bqn_before="$(sha_file "$bqn_base/$target_file")"
 
   set +e
-  ./tools/edit --base "$go_base" "$@" >"$go_out" 2>&1
+  ./tools/edit-legacy-go --base "$go_base" "$@" >"$go_out" 2>&1
   go_rc=$?
   ./tools/edit-bqn --base "$bqn_base" "$@" >"$bqn_out" 2>&1
   bqn_rc=$?
@@ -100,7 +100,7 @@ run_positive_parity() {
     perl -0pi -e 's/\n\z//' "$go_base/$target_file" "$bqn_base/$target_file"
   fi
 
-  ./tools/edit --base "$go_base" "$@" >"$go_out" 2>&1
+  ./tools/edit-legacy-go --base "$go_base" "$@" >"$go_out" 2>&1
   ./tools/edit-bqn --base "$bqn_base" "$@" >"$bqn_out" 2>&1
 
   if ! cmp -s "$go_base/$target_file" "$bqn_base/$target_file"; then
@@ -148,7 +148,7 @@ before_sha="$(sha_file "$dry_base/journal.tsv")"
 assert_unchanged "$dry_base" "journal.tsv" "$before_sha" "tools/edit-bqn --dry-run"
 assert_no_backup "$dry_base" "tools/edit-bqn --dry-run"
 
-./tools/edit --base "$go_base" "${args[@]}" >/dev/null
+./tools/edit-legacy-go --base "$go_base" "${args[@]}" >/dev/null
 ./tools/edit-bqn --base "$bqn_base" "${args[@]}" >/dev/null
 
 if ! cmp -s "$go_base/journal.tsv" "$bqn_base/journal.tsv"; then
@@ -348,7 +348,7 @@ issue_go_base="$tmp_root/issue-new-go"
 issue_bqn_base="$tmp_root/issue-new-bqn"
 cp -R data "$issue_go_base"
 cp -R data "$issue_bqn_base"
-./tools/edit --base "$issue_go_base" issue add \
+./tools/edit-legacy-go --base "$issue_go_base" issue add \
   --date 2026-06-29 \
   --title "edit-bqn issue parity" \
   --amount 301 \
@@ -373,7 +373,7 @@ cp -R data "$issue_existing_go"
 cp -R data "$issue_existing_bqn"
 printf 'date\tstatus\ttitle\tamount\tmemo\n2026-06-28\topen\tBefore\t0\tseed\n' > "$issue_existing_go/issues.tsv"
 printf 'date\tstatus\ttitle\tamount\tmemo\n2026-06-28\topen\tBefore\t0\tseed\n' > "$issue_existing_bqn/issues.tsv"
-./tools/edit --base "$issue_existing_go" issue add \
+./tools/edit-legacy-go --base "$issue_existing_go" issue add \
   --date 2026-06-29 \
   --status resolved \
   --title "edit-bqn issue existing" \
@@ -410,7 +410,7 @@ for issue_case in invalid-status missing-title invalid-amount title-tab memo-new
     memo-newline) issue_args=(issue add --date 2026-06-29 --title "bad memo" --memo $'bad\nmemo' --yes) ;;
   esac
   set +e
-  ./tools/edit --base "$issue_neg_go" "${issue_args[@]}" >"$tmp_root/issue-neg-${issue_case}-go.out" 2>&1
+  ./tools/edit-legacy-go --base "$issue_neg_go" "${issue_args[@]}" >"$tmp_root/issue-neg-${issue_case}-go.out" 2>&1
   go_rc=$?
   ./tools/edit-bqn --base "$issue_neg_bqn" "${issue_args[@]}" >"$tmp_root/issue-neg-${issue_case}-bqn.out" 2>&1
   bqn_rc=$?
