@@ -1,8 +1,12 @@
 # src_next レポート section parity
 
-状態: **日本語を正本とする parity gate / 本番動作の変更なし**
+状態: **historical / superseded by `docs/SRC_NEXT_CURRENT.md`**
 
-この文書は、`src_next` が現在の本番レポートをどこまで代替できているかを、section ごとに確認するための表です。
+> Current daily operation uses `tools/bl` and `tools/report` with `src_next/report.bqn`.
+> This parity matrix is historical migration evidence. Statements about `bqn main.bqn`, Stage 5 default switch, or fallback to the old current engine are not current behavior unless repeated in current docs.
+> See `docs/SRC_NEXT_CURRENT.md` and `docs/archive/audits/SRC_NEXT_DOCS_INVENTORY-2026-06-29.md`.
+
+この文書は、`src_next` が当時の本番レポートをどこまで代替できているかを、section ごとに確認するための表でした。
 
 ここでの目的は、AI が「何を作っていて、何がまだ足りないのか」を運用者が読めるようにすることです。
 英語だけの分類では、日々の家計判断に使えるかどうかを運用者が判断できないため、この文書では日本語で状態を書きます。

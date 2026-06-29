@@ -1,10 +1,14 @@
 # src_next Stage 3 Entrypoint Contract
 
-Status: **docs-only contract / no implementation**
+Status: **historical / superseded by `docs/SRC_NEXT_CURRENT.md`**
+
+> Current daily operation uses `tools/bl`; non-interactive human reports use `tools/report` with `src_next/report.bqn`.
+> `tools/report-next` remains only as a low-level diagnostic wrapper. This Stage 3 opt-in contract is migration history.
+> See `docs/SRC_NEXT_CURRENT.md` and `docs/archive/audits/SRC_NEXT_DOCS_INVENTORY-2026-06-29.md`.
 
 ## 1. Purpose
 
-Stage 3 introduces an explicit, opt-in way to run `src_next` while keeping `bqn main.bqn` as the trusted production default.
+Stage 3 introduced an explicit, opt-in way to run `src_next` while keeping `bqn main.bqn` as the trusted production default.
 
 Currently `src_next` runs only as a direct prototype command (`bqn src_next/main.bqn data`). Stage 2 confirmed that all comparable fields match the current engine on production data. The next readiness step is to give users a stable, documented trial entrypoint that:
 

@@ -1,9 +1,13 @@
 # src_next Stage 4b Readiness Gate
 
-Status: docs-only definition / no implementation change / no Stage 4b start
+Status: **historical / superseded by `docs/SRC_NEXT_CURRENT.md`**
 Branch: `docs-src-next-stage4b-readiness-gate`
 
-この文書は、`src_next` の **Stage 4b daily-use trial を開始するための readiness gate** を定義します。
+> Current daily operation uses `tools/bl` and `tools/report` with `src_next/report.bqn`.
+> This document is a historical readiness gate from the migration period. Statements such as "production default is `bqn main.bqn`" and "Stage 4b not started" are not current behavior.
+> See `docs/SRC_NEXT_CURRENT.md` and `docs/archive/audits/SRC_NEXT_DOCS_INVENTORY-2026-06-29.md`.
+
+この文書は、`src_next` の **Stage 4b daily-use trial を開始するための readiness gate** を定義していた履歴文書です。
 
 重要: この文書は Stage 4b の開始を宣言するものではありません。
 
