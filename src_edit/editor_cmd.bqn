@@ -64,7 +64,7 @@ LoadPlansList ← { 𝕩 ⋄
     
     pid ← plan_id.ExtractPlanId line
     missingID ← 0 = ≠ pid
-    invalidID ← (¬ missingID) ◶ ⟨ { 𝕊 ⋄ 0 }, { 𝕊 ⋄ ¬ (1 ⊑ plan_id.ValidatePlanIDFormat pid) } ⟩ @
+    invalidID ← (¬ missingID) ◶ ⟨ { 𝕊 ⋄ 0 }, { 𝕊 ⋄ ¬ (0 ⊑ plan_id.ValidatePlanIDFormat pid) } ⟩ @
     closed ← (¬ missingID) ◶ ⟨ { 𝕊 ⋄ 0 }, { 𝕊 ⋄ ∨´ pid ⊸ ≡¨ nonEmptyCompleted } ⟩ @
     
     {
