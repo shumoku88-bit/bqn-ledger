@@ -347,11 +347,25 @@ FormatHuman ← {𝕊 vm:
       (0 < ≠ table) ◶ ⟨
         {𝕊: out ↩ out ∾ (L "actual.no_rows") ∾ (@+10) ∾ (@+10) },
         {𝕊:
-          # Sort table by |diff| (absolute difference value) descending
-          diffs ← | 10⊑¨ table
-          table ↩ (⍒diffs) ⊏ table
+          # Sort table: primary key is lane order (income=0, fixed=1, variable=2),
+          # secondary key is |diff| descending.
+          LaneOrder ← {
+            ( "income" ≡ 𝕩 ) ? 0 ;
+            ( "recurring_fixed" ≡ 𝕩 ) ? 1 ;
+            2
+          }
+          keys ← { ⟨LaneOrder (1⊑𝕩), ¯1 × | 10⊑𝕩⟩ }¨ table
+          table ↩ (⍋keys) ⊏ table
 
-          w_unit ← ⌈´ (fmt.VWidth¨ (3⊑¨table)) ∾ ⟨4⟩
+          LaneLabel ← {
+            ( "income" ≡ 𝕩 ) ? L "actual.lane_income" ;
+            ( "recurring_fixed" ≡ 𝕩 ) ? L "actual.lane_fixed" ;
+            L "actual.lane_variable"
+          }
+
+          # Resolve display unit names with lane labels appended
+          units_with_labels ← { (3⊑𝕩) ∾ LaneLabel (1⊑𝕩) }¨ table
+          w_unit ← ⌈´ (fmt.VWidth¨ units_with_labels) ∾ ⟨4⟩
           w_amt ← 10
           w_ratio ← 7
           w_status ← 10
@@ -364,7 +378,8 @@ FormatHuman ← {𝕊 vm:
           out ↩ out ∾ (fmt.PadV ⟨w_unit, (L "actual.table_unit")⟩) ∾ " | " ∾ (AlignR ⟨w_amt, (L "actual.table_current")⟩) ∾ " | " ∾ (AlignR ⟨w_amt, (L "actual.table_baseline")⟩) ∾ " | " ∾ (AlignR ⟨w_amt, (L "actual.table_diff")⟩) ∾ " | " ∾ (AlignR ⟨w_ratio, (L "actual.table_ratio")⟩) ∾ " | " ∾ (fmt.PadV ⟨w_status, (L "actual.table_status")⟩) ∾ (@+10)
 
           FormatRow ← {𝕊 row:
-            unit ← 3⊑row
+            lane ← 1⊑row
+            unit ← (3⊑row) ∾ LaneLabel lane
             cur ← 8⊑row ⋄ base ← 9⊑row ⋄ diff ← 10⊑row
             ratio ← 14⊑row ⋄ st ← 15⊑row
             (fmt.PadV ⟨w_unit, unit⟩) ∾ " | " ∾ (AlignR ⟨w_amt, cur⟩) ∾ " | " ∾ (AlignR ⟨w_amt, base⟩) ∾ " | " ∾ (AlignR ⟨w_amt, diff⟩) ∾ " | " ∾ (AlignR ⟨w_ratio, ratio⟩) ∾ " | " ∾ (fmt.PadV ⟨w_status, st⟩)

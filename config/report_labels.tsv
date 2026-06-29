@@ -46,6 +46,9 @@ actual.table_baseline	Baseline
 actual.table_diff	Diff
 actual.table_ratio	Ratio
 actual.table_status	Status
+actual.lane_income	 (収入)
+actual.lane_fixed	 (固定)
+actual.lane_variable	 (変動)
 outlook.section_title	== Outlook Dashboard ==
 outlook.cycle_label	サイクル: 
 outlook.as_of_label	基準日:   
