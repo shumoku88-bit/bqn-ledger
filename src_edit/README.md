@@ -1,8 +1,14 @@
 # src_edit
 
-Status: scaffold only / not used by production commands yet
+Status: future production editor subsystem / staged candidate path
 
 `src_edit/` is the future BQN editor subsystem for replacing the current Go editor while keeping the existing daily interactive workflow.
+
+- `src_edit` is not the active production write path yet; it is the intended BQN editor subsystem.
+- `tools/edit-bqn` is the pre-switch candidate entry point.
+- `tools/edit` remains the final public command surface.
+
+Production design: see `../docs/PRODUCTION_EDITOR_DIRECTION.md` for the responsibility boundary, command classes, Edit Plan Protocol v1, exact replace safety, and production switch gate.
 
 ## Purpose
 

@@ -4,6 +4,14 @@ Status: design scaffold / no runtime behavior change
 
 This document defines the direction for removing the Go editor from the daily write path while preserving the current interactive workflow.
 
+## Direction and Scope
+
+For the complete architectural direction, responsibility boundaries, command classes, and the production switch gate, see [PRODUCTION_EDITOR_DIRECTION.md](PRODUCTION_EDITOR_DIRECTION.md).
+
+The primary goal of this transition is not merely removing Go. Rather, the goal is to make BQN the editor meaning layer while shell remains the safe write layer. Go removal is a consequence of production editor readiness, not the primary design goal.
+
+Production editor contract: see `docs/PRODUCTION_EDITOR_DESIGN.md` for the responsibility boundary, command classes, Edit Plan Protocol v1, exact replace safety, and production switch gate.
+
 ## Goal
 
 Move the daily edit path from:
