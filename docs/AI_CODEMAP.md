@@ -100,11 +100,15 @@
 - `report.bqn` — 人間向けレポートの正本入口。セクション構成は実装と `--list-sections` を正とし、`--section <key>` で単一セクションを出力する（UIツールが動的にセクション抽出するための正本）。
 - `summary.bqn` — 機械向けコンパクト出力。
 
-### `src_edit/` (BQN editor subsystem — 構築中)
+### `src_edit/` (BQN editor subsystem)
 
 Go editor を置き換える BQN editor subsystem。`src_next/` (report) とは独立。
 
 - `src_edit/README.md` — スキャフォールド文書。責務境界と実装対象の定義。
+- `src_edit/journal_add_cmd.bqn` — journal add 用の検証および TSV 生成。
+- `src_edit/plan_add_cmd.bqn` — plan add 用の検証および TSV 生成。
+- `src_edit/plan_list_cmd.bqn` — plan list 用の BQN 実装。
+- `src_edit/plan_finish_cmd.bqn` — plan finish 用の検証、実際のジャーナルアペンド行の生成。
 - 移行計画: `docs/EDITOR_GO_REMOVAL_PLAN.md`
 
 責務: edit intent の受取 → 入力バリデーション → 候補 TSV 行の生成 → 機械可読出力。
@@ -133,6 +137,11 @@ source-of-truth TSV を安全に編集する Go ツール。
 - `check-src-next-*.sh` — 各セクションの fixture チェック。
 - `check-repo-index.sh` — repo-index ツールのチェック。
 - `check-disabled-features.sh` — 無効化機能の隔離チェック。
+- `check-edit-bqn-journal-add.sh` — BQN journal/budget/issue add parityチェック。
+- `check-edit-bqn-plan-list.sh` — BQN plan list parityチェック。
+- `check-edit-bqn-plan-add.sh` — BQN plan add parityチェック。
+- `check-edit-bqn-plan-finish.sh` — BQN plan finish parityチェック。
+- `check-safe-replace-line.sh` — 安全置換 primitive のアサーションチェック。
 
 ### `tests/` (ユニットテスト)
 
