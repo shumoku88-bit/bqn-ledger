@@ -47,7 +47,7 @@ Scope: current `src_next/`, `config/*.tsv`, shell UI report entrypoints, and che
 
 Small, safe candidates after this audit:
 
-1. Add a check that every `report_labels.tsv` key referenced by `L "..."` exists, and duplicate keys fail closed.
+1. ✅ Add a check that every `report_labels.tsv` key referenced by `L "..."` exists, and duplicate keys fail closed. Implemented as `checks/check-report-labels.sh` on 2026-06-29.
 2. Add a docs-only target policy sketch for future envelope targets (`target_id`, `label`, `selector_key`, `selector_value`) before creating any TSV.
 3. Remove one residual prefix fallback from a single report module only if fixtures prove no output drift.
 
