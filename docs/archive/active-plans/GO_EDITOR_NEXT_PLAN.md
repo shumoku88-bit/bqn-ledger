@@ -1,14 +1,13 @@
 # Go Editor Next Plan
 
-Status: **superseded by `docs/EDITOR_GO_REMOVAL_PLAN.md`** — Go editor → BQN+shell 移行が最優先方針として決定 (2026-06-29)
+Status: **historical / superseded by `docs/PRODUCTION_EDITOR_DIRECTION.md`** — BQN+shell editor が現在の daily write path (2026-06-30)
 Date: 2026-06-20
 
-This note records the Go editor's implemented scope and decisions. For the current direction, see `docs/EDITOR_GO_REMOVAL_PLAN.md`.
-The existing Go editor remains operational as a fallback until Phase 5 (dispatcher switch) of the removal plan.
+This note records the former Go editor boundary and implemented scope. For the current direction, see `docs/PRODUCTION_EDITOR_DIRECTION.md` and `docs/BQN_EDITOR_USAGE.md`.
 
 ## Current decision
 
-The initial read-only Go editor and single-file append commands are implemented in `editor/` and exposed through `tools/edit`.
+The initial editor implementation that used to live in `editor/` has been retired from the daily write path.
 
 Allowed now:
 
@@ -145,7 +144,7 @@ This phase still must not implement multi-file transactions (modifying both plan
 - `budget` writes `budget_alloc.tsv` through `tools/edit budget add`
 - `plan-add` writes `plan.tsv` through `tools/edit plan add`
 - `plan-edit` edits open plan date/amount through `tools/edit plan edit`
-- `ADD_UI_BACKEND=bqn tools/add-ui.sh` is a temporary legacy fallback; unsupported plan modes fall back to Go
+- `tools/add-ui.sh` routes to the current BQN editor path; unsupported plan modes remain unsupported rather than silently switching write engines
 
 ### Next candidate: operation hardening
 
