@@ -5,7 +5,7 @@
 
 ## 最優先: Go editor と BQNエディタの挙動統一 & Go 削除
 
-導線: `docs/archive/active-plans/GO_BQN_GAP_ALIGNMENT_PLAN.md`, `docs/EDITOR_GO_REMOVAL_PLAN.md`
+導線: `docs/archive/active-plans/GO_BQN_GAP_ALIGNMENT_PLAN.md`, `docs/EDITOR_GO_REMOVAL_PLAN.md`, `docs/archive/active-plans/EDIT_BQN_HANDOFF.md`
 
 Go editor の安全仕様と完全一致する BQN+shell エディタの実装・検証を行い、日常パスから Go 依存を完全に排除する。
 
