@@ -3,6 +3,10 @@
 #
 # Phase 3a scope: `journal add` only. Production `tools/edit` remains the Go
 # editor fallback until parity and safety gates are closed.
+#
+# This is intentionally a narrow proof path, not the future full dispatcher shape.
+# Do not grow this by copy-pasting command branches blindly: after the second
+# command lands, extract shared dispatcher/protocol handling deliberately.
 
 set -euo pipefail
 
@@ -161,6 +165,9 @@ if [[ "$YES" -eq 0 ]]; then
   fi
 fi
 
+# Test-only stale-write injection point used by check-edit-bqn-journal-add.sh.
+# This must not become production extension behavior; it exists only to simulate
+# a concurrent source TSV edit between validation/preview and append.
 if [[ -n "${EDIT_BQN_TEST_BEFORE_APPEND_HOOK:-}" ]]; then
   eval "$EDIT_BQN_TEST_BEFORE_APPEND_HOOK"
 fi

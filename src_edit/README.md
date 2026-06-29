@@ -74,6 +74,8 @@ OK	APPEND	journal.tsv
 
 Validation errors use `ERROR	<message>` and exit non-zero. The shell dispatcher treats the second line as an opaque TSV payload and applies writes through `tools/lib/safe-write.sh`.
 
+Anti-ad-hoc guard: this narrow path is allowed to be command-specific while proving safety. Before adding a second command, review whether protocol parsing, BQN invocation, and safe append wiring should be extracted into shared helpers instead of copy-pasted branches.
+
 ## Safety rule
 
 Until the dispatcher switch is complete, the existing Go editor remains the authoritative daily write path. Files in `src_edit/` and `tools/edit-bqn` are not production write paths unless a later PR explicitly switches the daily path.

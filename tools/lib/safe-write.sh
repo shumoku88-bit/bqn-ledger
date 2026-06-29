@@ -190,6 +190,14 @@ safe_append() {
 }
 
 # Append a single row using a previously captured snapshot token.
+#
+# Responsibility boundary:
+# - Caller captures the snapshot before validation/preview.
+# - This function checks that exact snapshot before creating a backup.
+# - It checks the same snapshot again immediately before atomic rename.
+# - It is append-only. Replace/edit operations need a separate API that also
+#   asserts the expected old line/content before rewrite.
+#
 # Usage: safe_append_checked <target_file> <row_tsv> <expected_size> <expected_mtime> <expected_sha256>
 safe_append_checked() {
   local target="$1"
