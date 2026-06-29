@@ -12,6 +12,15 @@ tools/add-ui.sh
 
 画面の質問に沿って、mode / date / account / amount / memo / meta を入力します。
 
+既存 mode を直接開始したい場合は、positional mode を渡せます。mode selector だけをスキップし、その後の入力・確認・Go editor への委譲は通常フローと同じです。
+
+```sh
+tools/add-ui.sh expense
+tools/add-ui.sh income
+tools/add-ui.sh plan-finish
+tools/add-ui.sh reverse
+```
+
 入力画面を開く前に read-only で確認したい場合:
 
 ```sh
@@ -28,6 +37,11 @@ tools/add-ui.sh --check
 | `move` | 資金移動 (`assets:` → `assets:`) | `journal.tsv` | `tools/edit journal add` |
 | `income` | 収入 (`income:` → `assets:`) | `journal.tsv` | `tools/edit journal add` |
 | `budget` | 予算配賦 (`budget:` → `budget:`) | `budget_alloc.tsv` | `tools/edit budget add` |
+| `plan-add` | 予定の追加 | `plan.tsv` | `tools/edit plan add` |
+| `plan-edit` | 予定の日付・金額修正 | `plan.tsv` | `tools/edit plan edit` |
+| `plan-finish` | 予定の実績化 | `journal.tsv` | `tools/edit plan finish --apply` |
+| `reverse` | 仕訳取消（反対仕訳追記） | `journal.tsv` | `tools/edit journal reverse` |
+| `issue` | 懸案事項・意思決定の追加 | `issues.tsv` | `tools/edit issue add` |
 
 ## Go safe append で行われること
 
@@ -109,6 +123,7 @@ tools/edit journal add \
 
 - `journal.tsv` / `budget_alloc.tsv` は source-of-truth TSV です。
 - `tools/add-ui.sh --check` は read-only preflight です。入力UIが壊れていないか先に確認できます。
+- `tools/add-ui.sh <mode>` は mode selector をスキップするだけです。unknown mode は usage を表示して nonzero で終了します。
 - `tools/add-ui.sh` は承認済み範囲の single-file append だけを行います。
 - `plan finish --apply` は承認・実装済みです。削除や複数ファイルの一括更新は未承認（機能制限中）です。
 - 現在の計画や境界は [GO_EDITOR_NEXT_PLAN.md](archive/active-plans/GO_EDITOR_NEXT_PLAN.md)、過去の設計経緯は [GO_SOURCE_TSV_EDITOR_DESIGN.md](archive/completed-plans/GO_SOURCE_TSV_EDITOR_DESIGN.md) を参照してください。

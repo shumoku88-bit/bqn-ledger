@@ -104,6 +104,19 @@ else
   fail "add-ui help failed"
 fi
 
+bad_out="$(mktemp)"
+bad_err="$(mktemp)"
+if tools/add-ui.sh --base "$fixture" does-not-exist >"$bad_out" 2>"$bad_err"; then
+  fail "add-ui unknown direct mode unexpectedly succeeded"
+else
+  if grep -qF -- 'Usage:' "$bad_out" && grep -qF -- 'Unknown argument: does-not-exist' "$bad_err"; then
+    pass "add-ui unknown direct mode reports usage"
+  else
+    fail "add-ui unknown direct mode did not report usage"
+  fi
+fi
+rm -f "$bad_out" "$bad_err"
+
 assert_nonempty_contains \
   "add-ui preflight" \
   "OK add-ui preflight passed" \
