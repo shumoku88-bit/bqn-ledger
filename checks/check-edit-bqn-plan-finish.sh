@@ -76,7 +76,7 @@ run_positive_parity() {
     fi
   done
 
-  echo "y" | ./tools/edit --base "$go_base" "${go_args[@]}" >"$go_out" 2>&1
+  echo "y" | ./tools/edit-legacy-go --base "$go_base" "${go_args[@]}" >"$go_out" 2>&1
   ./tools/edit-bqn --base "$bqn_base" "$@" >"$bqn_out" 2>&1
 
   if ! cmp -s "$go_base/journal.tsv" "$bqn_base/journal.tsv"; then
@@ -115,7 +115,7 @@ run_expect_fail_closed() {
   done
 
   set +e
-  echo "y" | ./tools/edit --base "$go_base" "${go_args[@]}" >"$go_out" 2>&1
+  echo "y" | ./tools/edit-legacy-go --base "$go_base" "${go_args[@]}" >"$go_out" 2>&1
   go_rc=$?
   ./tools/edit-bqn --base "$bqn_base" "$@" >"$bqn_out" 2>&1
   bqn_rc=$?

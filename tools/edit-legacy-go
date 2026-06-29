@@ -1,0 +1,9 @@
+#!/bin/bash
+set -euo pipefail
+
+# Get the directory where this script is located
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+# Compile the editor to a local binary inside tools directory
+(cd "$DIR/../editor" && go build -o "$DIR/edit.bin" .)
+# Execute the compiled binary in the current workspace context
+exec "$DIR/edit.bin" "$@"

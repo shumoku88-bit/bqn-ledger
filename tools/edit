@@ -1,9 +1,67 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
-# Get the directory where this script is located
+# tools/edit — hybrid dispatcher routing between BQN and legacy Go editor.
+# 
+# BQN editor compatible commands route to tools/edit-bqn.
+# Unimplemented commands fallback to tools/edit-legacy-go.
+
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-# Compile the editor to a local binary inside tools directory
-(cd "$DIR/../editor" && go build -o "$DIR/edit.bin" .)
-# Execute the compiled binary in the current workspace context
-exec "$DIR/edit.bin" "$@"
+BQN_EDITOR="$DIR/edit-bqn"
+GO_EDITOR="$DIR/edit-legacy-go"
+
+# Scan arguments to find the command and subcommand.
+# Options like `--base <dir>` can precede the command.
+args=("$@")
+cmd_idx=-1
+for ((i=0; i<${#args[@]}; i++)); do
+  arg="${args[i]}"
+  if [[ "$arg" == "--base" ]]; then
+    # Skip the next argument (base directory path)
+    i=$((i + 1))
+    continue
+  fi
+  if [[ ! "$arg" =~ ^- ]]; then
+    cmd_idx=$i
+    break
+  fi
+done
+
+USE_BQN=0
+
+if [[ $cmd_idx -ne -1 ]]; then
+  cmd="${args[cmd_idx]}"
+  subcmd=""
+  if [[ $((cmd_idx + 1)) -lt ${#args[@]} ]]; then
+    subcmd="${args[cmd_idx+1]}"
+  fi
+
+  case "$cmd" in
+    journal)
+      if [[ "$subcmd" == "add" ]]; then
+        USE_BQN=1
+      fi
+      ;;
+    budget)
+      if [[ "$subcmd" == "add" ]]; then
+        USE_BQN=1
+      fi
+      ;;
+    issue)
+      if [[ "$subcmd" == "add" ]]; then
+        USE_BQN=1
+      fi
+      ;;
+    plan)
+      if [[ "$subcmd" == "add" || "$subcmd" == "list" || "$subcmd" == "finish" ]]; then
+        USE_BQN=1
+      fi
+      ;;
+  esac
+fi
+
+if [[ "$USE_BQN" -eq 1 ]]; then
+  exec "$BQN_EDITOR" "$@"
+else
+  exec "$GO_EDITOR" "$@"
+fi

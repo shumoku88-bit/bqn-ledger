@@ -59,7 +59,7 @@ run_positive_parity() {
     perl -0pi -e 's/\n\z//' "$go_base/plan.tsv" "$bqn_base/plan.tsv"
   fi
 
-  ./tools/edit --base "$go_base" "$@" >"$go_out" 2>&1
+  ./tools/edit-legacy-go --base "$go_base" "$@" >"$go_out" 2>&1
   ./tools/edit-bqn --base "$bqn_base" "$@" >"$bqn_out" 2>&1
 
   if ! cmp -s "$go_base/plan.tsv" "$bqn_base/plan.tsv"; then
@@ -89,7 +89,7 @@ run_expect_fail_closed() {
   bqn_before="$(sha_file "$bqn_base/plan.tsv")"
 
   set +e
-  ./tools/edit --base "$go_base" "$@" >"$go_out" 2>&1
+  ./tools/edit-legacy-go --base "$go_base" "$@" >"$go_out" 2>&1
   go_rc=$?
   ./tools/edit-bqn --base "$bqn_base" "$@" >"$bqn_out" 2>&1
   bqn_rc=$?
