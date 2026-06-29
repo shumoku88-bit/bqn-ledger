@@ -33,7 +33,8 @@
 - [x] Bashスクリプトの実行時クラッシュ防止策の初回対応（`tools/add-ui.sh` の `main()` 化 + dedicated Bash safety check。導線: [docs/archive/active-plans/BASH_SAFETY_ANALYSIS.md](docs/archive/active-plans/BASH_SAFETY_ANALYSIS.md)）
 - [x] lifestyle configuration / report policy externalization の残り整理（2026-06-29: `docs/archive/audits/REPORT_ASSUMPTION_AUDIT.md` を現行 remainder audit に更新。`report_sections.tsv` / `account_display.tsv` はまだ作らない判断）
 - [x] `report_labels.tsv` の参照キー存在チェック（2026-06-29: `checks/check-report-labels.sh` を追加し `tools/check.sh` に接続）
-- [ ] 次の小候補: future envelope target policy の docs-only sketch、または residual prefix fallback の小さい除去
+- [x] future envelope target policy の docs-only sketch（2026-06-29: `docs/archive/active-plans/ENVELOPE_TARGET_POLICY_SKETCH.md` 追加。`envelope_targets.tsv` はまだ作らない）
+- [ ] 次の小候補: residual prefix fallback の小さい除去、または safety / docs hygiene の小さい整合性修正
 - safety / docs hygiene の小さい整合性修正
 - 多通貨対応（保留）
 

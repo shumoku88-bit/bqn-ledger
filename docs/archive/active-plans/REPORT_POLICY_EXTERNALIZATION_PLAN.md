@@ -342,6 +342,15 @@ docs/REPORT_DESIGN.md
 
 ---
 
+## Current checkpoint (2026-06-29)
+
+The current remainder has been narrowed without adding new runtime policy TSVs:
+
+- `docs/archive/audits/REPORT_ASSUMPTION_AUDIT.md` records the current keep/externalize/defer decisions.
+- `checks/check-report-labels.sh` verifies `L "..."` references against `config/report_labels.tsv`.
+- `docs/archive/active-plans/ENVELOPE_TARGET_POLICY_SKETCH.md` sketches future target policy before any `envelope_targets.tsv` exists.
+- `report_sections.tsv` and `account_display.tsv` remain intentionally uncreated until need + lint/fixture design are clear.
+
 ## 完了条件
 
 この計画全体の完了条件は、次の状態である。
