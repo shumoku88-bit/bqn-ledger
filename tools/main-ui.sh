@@ -132,6 +132,17 @@ show_section_direct() {
 select_section() {
   local cache_dir="${1:-}"
   if command -v fzf >/dev/null 2>&1 && [[ "$IS_TTY" -eq 1 ]]; then
+    local preview_win="${FZF_PREVIEW_WINDOW:-}"
+    if [[ -z "$preview_win" && -f "$base_dir/config.tsv" ]]; then
+      local custom_win
+      custom_win=$(awk -F'=' 'tolower($1) == "fzf_preview_window" { print $2 }' "$base_dir/config.tsv" 2>/dev/null || true)
+      custom_win=$(echo "${custom_win:-}" | xargs)
+      if [[ -n "$custom_win" ]]; then
+        preview_win="$custom_win"
+      fi
+    fi
+    preview_win="${preview_win:-right:60%}"
+
     if [[ -n "$cache_dir" ]]; then
       section_list | fzf \
         --prompt='section> ' \
@@ -142,7 +153,7 @@ select_section() {
         --exit-0 \
         --ansi \
         --preview "cat '$cache_dir'/{1}.txt 2>/dev/null | '$ROOT_DIR/tools/lib/color-filter' || echo '(No preview available)'" \
-        --preview-window 'right:60%'
+        --preview-window "$preview_win"
     else
       section_list | fzf \
         --prompt='section> ' \

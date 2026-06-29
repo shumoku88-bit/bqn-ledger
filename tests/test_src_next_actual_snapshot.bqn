@@ -20,5 +20,14 @@ expected lib.AssertEq s.entries
 0 lib.AssertEq s.liq_total
 0 lib.AssertEq s.assets_total
 0 lib.AssertEq s.net_worth
+# Test with missing-role fixture to verify that prefix fallback is eliminated.
+# assets:cash balance is 800, but without role=asset it must not be included.
+ctx_fallback ← ctx_mod.BuildContext "fixtures/src-next-missing-role-fallback"
+s_fallback ← actual_snapshot.BuildAt ⟨ctx_fallback, "2026-06-16"⟩
+
+0 lib.AssertEq s_fallback.assets_total
+0 lib.AssertEq s_fallback.liq_total
+0 lib.AssertEq s_fallback.net_worth
 
 •Out "test_src_next_actual_snapshot.bqn: OK"
+

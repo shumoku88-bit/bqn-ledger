@@ -1,2 +1,3 @@
-2026-06-15	A	equity:opening	expenses:food	100
-2026-06-16	B	expenses:food	expenses:rent	20
+2026-06-15	A	equity:opening	assets:cash	1000
+2026-06-16	B	assets:cash	expenses:food	200
+

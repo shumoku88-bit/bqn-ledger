@@ -34,7 +34,7 @@
 - [x] lifestyle configuration / report policy externalization の残り整理（2026-06-29: `docs/archive/audits/REPORT_ASSUMPTION_AUDIT.md` を現行 remainder audit に更新。`report_sections.tsv` / `account_display.tsv` はまだ作らない判断）
 - [x] `report_labels.tsv` の参照キー存在チェック（2026-06-29: `checks/check-report-labels.sh` を追加し `tools/check.sh` に接続）
 - [x] future envelope target policy の docs-only sketch（2026-06-29: `docs/archive/active-plans/ENVELOPE_TARGET_POLICY_SKETCH.md` 追加。`envelope_targets.tsv` はまだ作らない）
-- [ ] 次の小候補: residual prefix fallback の小さい除去、または safety / docs hygiene の小さい整合性修正
+- [x] 次の小候補: residual prefix fallback の小さい除去、または safety / docs hygiene の小さい整合性修正
   - 作業台帳: [docs/archive/active-plans/SAFETY_DOCS_ALIGNMENT_PLAN-2026-06-29.md](docs/archive/active-plans/SAFETY_DOCS_ALIGNMENT_PLAN-2026-06-29.md)
   - まず Batch A/B/C のように小分けし、broken link / compatibility debt / stale current-path を分けて処理する。
 - 多通貨対応（保留）

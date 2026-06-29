@@ -36,8 +36,8 @@ rtk rg -n "StartsWith|\"assets:|\"income:|\"expenses:|\"budget:|Prefix|fallback"
 | `src_next/household_policy.bqn` | `expense_accounts ← role_expense ∨ prefix_fallback` and `prefix_fallback_expense_account_count` | diagnostic / policy-shape compatibility | `tests/test_src_next_household_policy.bqn`; compact summary checks | Keep until household policy diagnostic no longer reports fallback counts. |
 | `src_next/envelope_computation.bqn` | `ExpenseAccountMask` and `BudgetAccountMask` include missing-role prefix fallback; `BudgetLabel` strips `budget:` | fixture/prototype policy compatibility | `checks/check-src-next-envelope-computation.sh`; production guard | Do not remove before target policy contract exists. Budget label stripping is presentation/selector compatibility, not role inference. |
 | `src_next/tbds.bqn` | `IsExpenseAccount` / `IsIncomeAccount` prefer role, then prefix | accounting classification fallback | TBDS unit tests and golden checks | Candidate only after verifying callers still need these helpers. If used for numeric classification, remove with dedicated TBDS fixture. |
-| `src_next/actual_snapshot.bqn` | asset/liability masks: role OR prefix | accounting classification fallback | `checks/check-src-next-snapshot.sh`; actual snapshot tests | Candidate after confirming all production/fixture asset/liability accounts have explicit roles. A failure fixture with missing role should become warning/unknown, not silently included. |
-| `src_next/snapshot.bqn` | asset mask: role OR `assets:` prefix | accounting classification fallback / snapshot grouping | snapshot fixture and production envelope guard | Pair with `actual_snapshot.bqn` cleanup; do not change separately if it causes inconsistent snapshot totals. |
+| `src_next/actual_snapshot.bqn` | asset/liability masks: role OR prefix | accounting classification fallback | `checks/check-src-next-snapshot.sh`; actual snapshot tests | ✅ Removed 2026-06-29. Matching only explicit roles; missing-role becomes unknown. |
+| `src_next/snapshot.bqn` | asset mask: role OR `assets:` prefix | accounting classification fallback / snapshot grouping | snapshot fixture and production envelope guard | ✅ Removed 2026-06-29. Matching only explicit roles; missing-role becomes unknown. |
 | `src_next/daily_trend.bqn` | asset and income masks include prefix fallback | accounting classification fallback | compact summary / daily trend checks | Later candidate. Needs daily trend fixture with explicit roles and a missing-role negative case. |
 | `src_next/ytd_summary.bqn` | `GetRole` and expense mask include prefix fallback | accounting classification fallback | YTD summary checks | Later candidate. Remove only with YTD fixture proving explicit `role=expense` path. |
 | `src_next/balances.bqn` | display grouping derived role from prefix if metadata was missing | presentation helper / grouping fallback | `tests/test_src_next_balances.bqn`; balances section checks | ✅ Removed 2026-06-29. Missing role now stays `unknown`; explicit roles still group normally. |
@@ -49,13 +49,15 @@ rtk rg -n "StartsWith|\"assets:|\"income:|\"expenses:|\"budget:|Prefix|fallback"
 ## Recommended next cleanup order
 
 1. ✅ **`src_next/balances.bqn` role display fallback** — removed 2026-06-29; missing role now remains `unknown`.
-2. **`src_next/actual_snapshot.bqn` + `src_next/snapshot.bqn` asset/liability masks** — remove together to avoid snapshot inconsistency.
+2. ✅ **`src_next/actual_snapshot.bqn` + `src_next/snapshot.bqn` asset/liability masks** — removed 2026-06-29; matching only explicit roles.
 3. **`src_next/ytd_summary.bqn` expense mask** — numeric report classification; requires explicit fixture proof.
 4. **`src_next/daily_trend.bqn` and `src_next/outlook.bqn` income logic** — more policy-sensitive because income anchors and future income interact with cycle logic.
 5. **`src_next/actual_comparison.bqn`** — split display prefix stripping from classification first.
 6. Keep **`household_metadata.bqn`** and **missing-role fallback check** until the final removal phase, because they are the detector.
 
-## Implemented cleanup: `src_next/balances.bqn`
+## Implemented cleanup
+
+### `src_next/balances.bqn`
 
 2026-06-29:
 
@@ -63,5 +65,13 @@ rtk rg -n "StartsWith|\"assets:|\"income:|\"expenses:|\"budget:|Prefix|fallback"
 - Missing-role behavior is explicitly accepted: prefix-only accounts are not silently grouped as asset/liability/budget/income/expense; they stay `unknown`.
 - `tests/test_src_next_balances.bqn` asserts both missing-role `unknown` behavior and explicit-role grouping.
 - `checks/check-missing-role-fallback.sh` remains the compatibility detector and still passes.
+
+### `src_next/actual_snapshot.bqn` + `src_next/snapshot.bqn`
+
+2026-06-29:
+
+- Removed prefix fallback from assets/liabilities masks in both files.
+- Verified that unit tests `tests/test_src_next_actual_snapshot.bqn` and `tests/test_src_next_snapshot.bqn` continue to pass.
+- Standard fixture check `checks/check-src-next-snapshot.sh` passes successfully.
 
 Next code cleanup should be a new small step, not a broad sweep.

@@ -62,8 +62,8 @@ BuildAt ← {𝕊 ctx‿as_of:
   pair_amt ← {1⊑𝕩}¨ pairs
   amounts ← { cube.Sum0 ((pair_idx = 𝕩) / pair_amt) }¨ ↕ count
 
-  assets_mask ← ("asset"⊸≡¨ roles) ∨ ("assets:" ⊸ ≡¨ 7 ↑¨ accounts)
-  liabilities_mask ← ("liability"⊸≡¨ roles) ∨ ("liabilities:" ⊸ ≡¨ 12 ↑¨ accounts)
+  assets_mask ← "asset"⊸≡¨ roles
+  liabilities_mask ← "liability"⊸≡¨ roles
   liq_mask ← assets_mask ∧ ("liquid"⊸≡¨ types)
   sav_mask ← assets_mask ∧ ("savings"⊸≡¨ types)
   inv_mask ← assets_mask ∧ ("invest"⊸≡¨ types)

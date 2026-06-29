@@ -97,8 +97,8 @@ Build ← {𝕊 ctx:
   types ← resolved.types
   accounts ← resolved.accounts
 
-  isAsset ← ("asset"⊸≡¨ roles) ∨ ("assets:" ⊸ ≡¨ 7 ↑¨ accounts)
-  isLiability ← ("liability"⊸≡¨ roles) ∨ ("liabilities:" ⊸ ≡¨ 12 ↑¨ accounts)
+  isAsset ← "asset"⊸≡¨ roles
+  isLiability ← "liability"⊸≡¨ roles
   isLiquid ← isAsset ∧ ("liquid"⊸≡¨ types)
   isSavings ← isAsset ∧ ("savings"⊸≡¨ types)
   isInvest ← isAsset ∧ ("invest"⊸≡¨ types)
