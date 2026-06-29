@@ -9,13 +9,14 @@
 
 ## moko が普段読む場所
 
-普段は全部読まなくてよい。まずこの5つだけを見ます。
+普段は全部読まなくてよい。まずこの6つだけを見ます。
 
 1. `TODO.md` - 今やること、次に着手すること
 2. `docs/QUALITY_BAR.md` - 判断基準
 3. `docs/ARCHITECTURE.md` - 全体構造と責務境界
 4. `docs/AI_CODEMAP.md` - コード地図
 5. `docs/SAFETY_PROFILE.md` - 壊れた時に止める規格
+6. `docs/REAL_DATA_TRIAL_SAFETY.md` - 実データ運用を試す前の安全な観察手順
 
 迷ったら `TODO.md` へ戻ります。過去の長い計画や判断記録は、必要になった時だけ辿ります。
 
@@ -37,11 +38,12 @@
 12. [TIME_AS_AXIS.md](TIME_AS_AXIS.md) - 時間座標・区間ビュー
 13. [REPORT_CONTRACTS.md](REPORT_CONTRACTS.md) - 現行 report contract の入口（`src_next` / checks / section status policy への索引）
 14. [DATA_DIR_SETUP.md](DATA_DIR_SETUP.md) - データ配置の設定マニュアル
-15. [UNAVAILABLE_SENTINEL_CONTRACT.md](UNAVAILABLE_SENTINEL_CONTRACT.md) - unavailable sentinelの定義
-16. [EXTENSION_BOUNDARY.md](EXTENSION_BOUNDARY.md) - plugin system を入れず、read-only adapter / downstream tool の境界を定義する文書
-17. [PUBLIC_PRODUCTIZATION_REVIEW_FILTER.md](PUBLIC_PRODUCTIZATION_REVIEW_FILTER.md) - Homebrew、CI/CD、packaging、Docker、公開OSS化、plugin、marketing 等の広い改善案を分類する review filter
-18. [CONVENTIONS.md](CONVENTIONS.md) / [JOURNAL_META.md](JOURNAL_META.md) - 科目命名・メタデータ規約
-19. 変更内容に応じて、下の「Done / Current Baseline (完了済み・現行仕様として機能)」を参照
+15. [REAL_DATA_TRIAL_SAFETY.md](REAL_DATA_TRIAL_SAFETY.md) - 実データ運用を小さく試し、問題が出るか観察するための安全手順
+16. [UNAVAILABLE_SENTINEL_CONTRACT.md](UNAVAILABLE_SENTINEL_CONTRACT.md) - unavailable sentinelの定義
+17. [EXTENSION_BOUNDARY.md](EXTENSION_BOUNDARY.md) - plugin system を入れず、read-only adapter / downstream tool の境界を定義する文書
+18. [PUBLIC_PRODUCTIZATION_REVIEW_FILTER.md](PUBLIC_PRODUCTIZATION_REVIEW_FILTER.md) - Homebrew、CI/CD、packaging、Docker、公開OSS化、plugin、marketing 等の広い改善案を分類する review filter
+19. [CONVENTIONS.md](CONVENTIONS.md) / [JOURNAL_META.md](JOURNAL_META.md) - 科目命名・メタデータ規約
+20. 変更内容に応じて、下の「Done / Current Baseline (完了済み・現行仕様として機能)」を参照
 
 ---
 
@@ -51,6 +53,8 @@
   - production-grade personal tool として扱うための品質基準。
 - [SAFETY_PROFILE.md](SAFETY_PROFILE.md) / [SAFETY_PROFILE_INVARIANT_MAP.md](SAFETY_PROFILE_INVARIANT_MAP.md)
   - 予測可能性、fail closed、正データ保護、不変条件の安全規格とその対応表。
+- [REAL_DATA_TRIAL_SAFETY.md](REAL_DATA_TRIAL_SAFETY.md)
+  - 実データ運用前に sandbox rehearsal、real-data preflight、dry-run、確認付き書き込み、観察ログで小さく試すための現行運用ガイド。
 - [EXTENSION_BOUNDARY.md](EXTENSION_BOUNDARY.md)
   - Canonical engine を plugin 化せず、machine export 下流の read-only adapter を許す拡張境界。
 - [PUBLIC_PRODUCTIZATION_REVIEW_FILTER.md](PUBLIC_PRODUCTIZATION_REVIEW_FILTER.md)
