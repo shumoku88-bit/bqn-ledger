@@ -1,10 +1,10 @@
 # Go Editor Next Plan
 
-Status: read-only plan tools + `journal add`, `journal reverse`, `budget add`, and `plan finish --apply` safe append implemented
+Status: **superseded by `docs/EDITOR_GO_REMOVAL_PLAN.md`** — Go editor → BQN+shell 移行が最優先方針として決定 (2026-06-29)
 Date: 2026-06-20
 
-This note is a short handoff for terminal-based AI assistants and future implementation sessions.
-It records the current decision: keep Go editor writes limited to approved single-file append behavior unless moko explicitly approves the next phase.
+This note records the Go editor's implemented scope and decisions. For the current direction, see `docs/EDITOR_GO_REMOVAL_PLAN.md`.
+The existing Go editor remains operational as a fallback until Phase 5 (dispatcher switch) of the removal plan.
 
 ## Current decision
 

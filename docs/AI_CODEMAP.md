@@ -12,7 +12,7 @@
 6. `docs/CANONICAL_DAILY_CUBE.md`（固定するDaily Cube契約）
 7. `docs/TIME_AS_AXIS.md`（時間座標・観察時点・区間view）
 8. レポート変更なら `src_next/report.bqn` と該当する `src_next/*` モジュール、および現行の report 関連 docs / check
-9. Goによる元データTSV編集なら `docs/GO_EDITOR_USAGE.md` / `docs/archive/active-plans/GO_EDITOR_NEXT_PLAN.md`
+9. エディタ移行（Go→BQN+shell）なら `docs/EDITOR_GO_REMOVAL_PLAN.md` / `src_edit/README.md`
 10. 複数ポスティング導入検討なら `docs/archive/completed-plans/DECISION_MULTI_POSTING_INVESTIGATION.md`
 11. 変更内容に応じて `docs/CONVENTIONS.md` / `docs/JOURNAL_META.md` / `docs/MAINTENANCE.md`
 12. 履歴・背景（非アクティブな計画書、旧エンジン移行期資料、完了済みの計画書など）が必要な場合のみ `docs/archive/` を読む
@@ -100,7 +100,19 @@
 - `report.bqn` — 人間向けレポートの正本入口。セクション構成は実装と `--list-sections` を正とし、`--section <key>` で単一セクションを出力する（UIツールが動的にセクション抽出するための正本）。
 - `summary.bqn` — 機械向けコンパクト出力。
 
-### `editor/` (Go source TSV editor)
+### `src_edit/` (BQN editor subsystem — 構築中)
+
+Go editor を置き換える BQN editor subsystem。`src_next/` (report) とは独立。
+
+- `src_edit/README.md` — スキャフォールド文書。責務境界と実装対象の定義。
+- 移行計画: `docs/EDITOR_GO_REMOVAL_PLAN.md`
+
+責務: edit intent の受取 → 入力バリデーション → 候補 TSV 行の生成 → 機械可読出力。
+shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当する。
+
+### `editor/` (Go source TSV editor — superseded, fallback として維持)
+
+> **方針転換 (2026-06-29)**: `src_edit/` (BQN+shell) への移行が最優先。Go editor は Phase 5 (dispatcher switch) まで fallback として維持する。
 
 source-of-truth TSV を安全に編集する Go ツール。
 

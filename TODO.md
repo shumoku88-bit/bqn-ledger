@@ -3,6 +3,30 @@
 このファイルは **現在進行中・次に着手する作業だけ** を置く場所です。
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避済みです。
 
+## 最優先: Go editor → BQN+shell 移行
+
+導線: `docs/EDITOR_GO_REMOVAL_PLAN.md`, `src_edit/README.md`
+
+Go editor を BQN+shell に置き換え、日常パスから Go 依存を削除する。
+
+### フェーズ進捗
+
+- [x] **Phase 1: scaffold** — `src_edit/` + 計画文書（PR #19）
+- [ ] **Phase 2: append-only commands** — `journal add`, `budget add`, `plan add`, `issue add` の BQN 実装
+- [ ] **Phase 3: read/list commands** — `plan list --format tsv/text`
+- [ ] **Phase 4: derived edit commands** — `plan finish`, `plan edit`, `journal reverse`
+- [ ] **Phase 5: dispatcher switch** — `tools/edit` を Go→shell dispatcher に切替
+- [ ] **Phase 6: Go removal** — Go 依存を完全削除、`editor/` アーカイブ/削除
+
+### 制約
+
+- `tools/add-ui.sh` のインタラクションモデルは変えない
+- `tools/edit` の CLI 互換を保持する
+- source TSV 契約は変えない
+- Phase 5 まで Go editor を fallback として並存させる
+
+---
+
 ## Next: プロ級へ詰める（継続）
 
 導線: `docs/ENGINEERING_ROADMAP.md`
