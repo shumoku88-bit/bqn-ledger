@@ -25,8 +25,8 @@
 ### `tools/plan-finish-replenish-ui.sh`
 - Optional interactive helper for the recurring-plan workflow.
 - Finishes a selected plan through `tools/edit plan finish`, then optionally creates the follow-up plan through `tools/edit plan add`.
-- May display related open future plans using explicit `series` metadata, `plan_id` series, or exact `memo/from/to/amount` fallback.
-- Must not change low-level source TSV contracts or own accounting semantics.
+- Displays related open future plans using `tools/edit plan related`; the BQN editor owns relation-key semantics.
+- Must not parse source TSV metadata itself, change low-level source TSV contracts, or own accounting semantics.
 
 ### `tools/edit`
 - Public command surface for daily editor operations.
@@ -58,6 +58,7 @@
 
 ### Read-only selector
 - `plan list`
+- `plan related`
 
 ### Derived append
 - `plan finish`

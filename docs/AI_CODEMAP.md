@@ -109,6 +109,7 @@
 - `src_edit/issue_add_cmd.bqn` — issue add 用の検証および TSV 生成。
 - `src_edit/plan_add_cmd.bqn` — plan add 用の検証および TSV 生成。
 - `src_edit/plan_list_cmd.bqn` — plan list 用の BQN 実装。
+- `src_edit/plan_related_cmd.bqn` — plan finish replenishment UI 用の read-only 関連予定抽出。`series=` → `plan_id` series → exact fallback の順序を所有する。
 - `src_edit/plan_finish_cmd.bqn` — plan finish 用の検証、実際のジャーナルアペンド行の生成。
 - `src_edit/plan_id.bqn` — plan_id 生成補助。
 - `src_edit/render.bqn` / `src_edit/validate.bqn` — 共通レンダリング / バリデーション。
@@ -125,7 +126,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 ### `tools/edit-bqn`
 
 - 日常 write path の BQN+shell 実装。
-- `journal add` / `budget add` / `issue add` / `plan add` / `plan list` / `plan finish` / `plan edit` / `journal reverse` を扱う。
+- `journal add` / `budget add` / `issue add` / `plan add` / `plan list` / `plan related` / `plan finish` / `plan edit` / `journal reverse` を扱う。
 - `src_edit` の機械可読プロトコルを受け、`tools/lib/safe-write.sh` で安全に適用する。
 - Go editor の記述や fallback 前提は現行導線では使わない。
 

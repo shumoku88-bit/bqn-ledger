@@ -115,6 +115,14 @@ BQN Editor は会計エンジンとしての計算（残高や封筒の残金計
 ./tools/edit plan list --all
 ```
 
+### 関連予定の表示 (`plan related`)
+```bash
+./tools/edit plan related --id plan-2026-01-10-phone --actual-date 2026-01-12 --format tsv
+./tools/edit plan related --index 1 --actual-date 2026-01-12 --format tsv
+```
+
+`plan related` は read-only の選択補助コマンドです。`series=...` → `plan_id` 由来の series → `memo/from/to/amount` 完全一致の順に関連キーを決め、`actual-date` より後の未完了予定を TSV で出力します。`tools/plan-finish-replenish-ui.sh` はこの出力を表示に使い、Bash 側では source TSV のメタデータ意味解釈を行いません。
+
 ### 予定の実績化適用 (`plan finish`)
 ```bash
 # 1. 完了候補のプレビュー（書き込みは行われません）
@@ -134,13 +142,7 @@ BQN Editor は会計エンジンとしての計算（残高や封筒の残金計
 
 この補助UIは、`tools/edit plan finish` で予定を実績化したあと、必要なら `tools/edit plan add` で次回予定を追加します。低層の `plan finish` / `plan add` の TSV 契約は変更しません。
 
-関連予定の判定順序は固定です。
-
-1. 元行の `series=...` メタデータ
-2. `plan_id=plan-YYYY-MM-DD-<series>` から抽出した series
-3. fallback として `memo` / `from` / `to` / `amount` の完全一致
-
-補充前には、同じ関連キーを持つ未消化の未来予定を `date` / `memo` / `from -> to` / `amount` / `plan_id` 付きで表示します。`extend` モードでは、その関連予定一覧の最新日付を基準に次回日付を提案します。関連予定がない場合は `No related active future plans found.` と表示し、fuzzy な意味推測は行いません。
+関連予定の判定は `tools/edit plan related`（BQN editor 側）が所有します。補充前には、同じ関連キーを持つ未消化の未来予定を `date` / `memo` / `from -> to` / `amount` / `plan_id` 付きで表示します。`extend` モードでは、その関連予定一覧の最新日付を基準に次回日付を提案します。関連予定がない場合は `No related active future plans found.` と表示し、fuzzy な意味推測は行いません。
 
 ### 予定の日付・金額の修正 (`plan edit`)
 ```bash

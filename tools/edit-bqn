@@ -31,11 +31,12 @@ Usage:
   tools/edit-bqn [--base DIR] plan add --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount INT [--meta key=value ...] [--id plan-YYYY-MM-DD-series] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] issue add [--date YYYY-MM-DD] [--status open|resolved|dropped] --title TITLE [--amount INT] [--memo MEMO] [--dry-run] [--yes]
   tools/edit-bqn [--base DIR] plan list [--all] [--format tsv|text]
+  tools/edit-bqn [--base DIR] plan related [--index NUMBER] [--id PLAN_ID] --actual-date YYYY-MM-DD [--format tsv]
   tools/edit-bqn [--base DIR] plan finish [--index NUMBER] [--id PLAN_ID] --actual-date YYYY-MM-DD [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] plan edit [--index NUMBER] [--id PLAN_ID] [--date YYYY-MM-DD] [--amount INT] [--all] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] journal reverse [--index NUMBER] [--id TXN_ID] [--date YYYY-MM-DD] [--dry-run] [--yes] [--post-check none|lint|full]
 
-Current scope: BQN editor daily commands (journal/budget/plan/issue add, plan list, plan finish, plan edit, journal reverse).
+Current scope: BQN editor daily commands (journal/budget/plan/issue add, plan list, plan related, plan finish, plan edit, journal reverse).
 USAGE
 }
 
@@ -444,8 +445,39 @@ if [[ "$1" == "plan" && "$2" == "list" ]]; then
   exit $?
 fi
 
+if [[ "$1" == "plan" && "$2" == "related" ]]; then
+  shift 2
+  INDEX="0"
+  PLAN_ID=""
+  ACTUAL_DATE=""
+  FORMAT="tsv"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --index) INDEX="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --id) PLAN_ID="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --actual-date) ACTUAL_DATE="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --format) FORMAT="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      *) echo "ERROR: unknown related argument: $1" >&2; exit 2 ;;
+    esac
+  done
+  if [[ "$INDEX" == "0" && -z "$PLAN_ID" ]]; then
+    echo "ERROR: must specify plan using --index or --id" >&2
+    exit 2
+  fi
+  if [[ -z "$ACTUAL_DATE" ]]; then
+    echo "ERROR: missing required option: --actual-date" >&2
+    exit 2
+  fi
+  case "$FORMAT" in
+    tsv) ;;
+    *) echo "ERROR: invalid format: $FORMAT (expected 'tsv')" >&2; exit 2 ;;
+  esac
+  cd "$ROOT_DIR" && bqn src_edit/plan_related_cmd.bqn "$BASE_DIR" "$INDEX" "$PLAN_ID" "$ACTUAL_DATE" "$FORMAT"
+  exit $?
+fi
+
 if [[ "$2" != "add" ]]; then
-  echo "ERROR: tools/edit-bqn currently supports only: journal add, journal reverse, budget add, plan add, issue add, plan list, plan finish, and plan edit" >&2
+  echo "ERROR: tools/edit-bqn currently supports only: journal add, journal reverse, budget add, plan add, issue add, plan list, plan related, plan finish, and plan edit" >&2
   usage
   exit 2
 fi
@@ -472,7 +504,7 @@ case "$COMMAND" in
     ROW_TITLE="Issue row"
     ;;
   *)
-    echo "ERROR: tools/edit-bqn currently supports only: journal add, journal reverse, budget add, plan add, issue add, plan list, plan finish, and plan edit" >&2
+    echo "ERROR: tools/edit-bqn currently supports only: journal add, journal reverse, budget add, plan add, issue add, plan list, plan related, plan finish, and plan edit" >&2
     usage
     exit 2
     ;;
