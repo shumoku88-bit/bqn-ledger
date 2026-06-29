@@ -510,7 +510,7 @@ case "$mode" in
       from_f="$(printf '%s\n' "$line" | cut -f3)"
       to_f="$(printf '%s\n' "$line" | cut -f4)"
       amt_f="$(printf '%s\n' "$line" | cut -f5)"
-      display_lines+=("$idx: $date_f  $memo_f  $from_f→$to_f  $amt_f")
+      display_lines+=("$idx: $date_f  $memo_f  ${from_f}→${to_f}  $amt_f")
     done < "$journal_file"
     if [[ ${#display_lines[@]} -eq 0 ]]; then
       shout "No journal entries found."; exit 0
