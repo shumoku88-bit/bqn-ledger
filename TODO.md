@@ -7,7 +7,7 @@
 ## Real-data trial safety observation
 
 - [x] `docs/REAL_DATA_TRIAL_SAFETY.md` を追加し、sandbox rehearsal / real-data preflight / dry-run / 確認付き書き込み / 観察ログの最小手順を定義する
-- [ ] sandbox rehearsal を1回通す
+- [x] sandbox rehearsal を1回通す（2026-06-30: `tools/doctor`, `tools/report fixtures/src-next-golden`, `tools/add-ui.sh --check`, sandbox `tools/edit ... --dry-run` 確認）
 - [ ] 実データで `tools/doctor`, `tools/report`, `tools/add-ui.sh --check` を確認する
 - [ ] 最初の実データ書き込みは `--dry-run` 後、`--yes` なしの確認付き経路で行う
 - [ ] 数回の実データ書き込みについて、base dir / backup / post-check / report drift を観察する
