@@ -80,7 +80,7 @@
 
 不要になった過去のドキュメントや移行期の資料、現在非アクティブな計画書は、すべて [archive/](archive/) ディレクトリに整理・退避されています。
 
-*   **[archive/active-plans/](archive/active-plans/)**: 現在進行中、または待機中(Backlog)の計画書・設計メモ。AI作業品質・トークン効率の気づきは [AI_WORKING_FEEDBACK_LOG.md](archive/active-plans/AI_WORKING_FEEDBACK_LOG.md) に一時収集します。
+*   **[archive/active-plans/](archive/active-plans/)**: 現在進行中、または待機中(Backlog)の計画書・設計メモ。Goエディタとのギャップ解消計画は [GO_BQN_GAP_ALIGNMENT_PLAN.md](archive/active-plans/GO_BQN_GAP_ALIGNMENT_PLAN.md) に、AI作業品質・トークン効率の気づきは [AI_WORKING_FEEDBACK_LOG.md](archive/active-plans/AI_WORKING_FEEDBACK_LOG.md) に一時収集します。
 *   **[archive/completed-plans/](archive/completed-plans/)**: 実装完了済みの計画書・意思決定メモ。
 *   **[archive/src-next-migration/](archive/src-next-migration/)**: 旧エンジンから `src_next` への移行フェーズに関わる検証・ログ類。現在の入口は [SRC_NEXT_CURRENT.md](SRC_NEXT_CURRENT.md) を正とし、この下の `bqn main.bqn` / default switch / Stage 4b 未開始などの記述は履歴として読む。読み方は [archive/src-next-migration/README.md](archive/src-next-migration/README.md) と [archive/audits/SRC_NEXT_DOCS_INVENTORY-2026-06-29.md](archive/audits/SRC_NEXT_DOCS_INVENTORY-2026-06-29.md) にまとめる。
 *   **[archive/audits/](archive/audits/)**: 過去に実施した一時的な drift 監査や section 監査のワークシート。
