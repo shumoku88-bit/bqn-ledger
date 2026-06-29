@@ -136,6 +136,45 @@ The replacement path should preserve or improve the safety properties of the Go 
 
 BQN should be the place where ledger meaning is checked. Shell should be the place where bytes are moved safely.
 
+## Narrow implementation gate
+
+After the first BQN + shell prototype, the next implementation step must stay narrower than full editor replacement.
+
+Do not switch production `tools/edit` yet. Keep it on the Go editor until the BQN path proves at least one end-to-end safe append with tests.
+
+The first implementation gate is:
+
+```text
+tools/edit-bqn journal add --dry-run
+```
+
+then:
+
+```text
+tools/edit-bqn journal add --yes --post-check none
+```
+
+Rules for this gate:
+
+- `tools/edit` remains the Go fallback.
+- `tools/edit-bqn` is the experimental BQN + shell entry point.
+- Only `journal add` is in scope for the first end-to-end write.
+- Bash parses the Go-compatible flags and passes normalized edit intent to BQN.
+- BQN validates and renders an append operation.
+- BQN errors must exit non-zero.
+- BQN output must separate protocol metadata from TSV payload.
+- `tools/lib/safe-write.sh` applies the append.
+- Parity is measured first by resulting TSV bytes, then by exit codes, then by stdout/stderr compatibility.
+
+A usable append protocol should avoid mixing status and TSV fields in one tab-separated line. Prefer a small two-line protocol:
+
+```text
+OK	APPEND	journal.tsv
+<complete TSV row>
+```
+
+This gate prevents the replacement from becoming a large BQN editor black box before the smallest daily write path is trustworthy.
+
 ## Migration phases
 
 ### Phase 1: scaffold
