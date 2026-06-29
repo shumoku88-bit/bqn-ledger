@@ -187,5 +187,6 @@ Event IR -> Projection IR -> Day × Account × Layer -> report / export
 - `docs/CANONICAL_DAILY_CUBE.md`
 - `docs/TIME_AS_AXIS.md`
 - `docs/REPORT_CONTRACTS.md`
-- `docs/GO_SOURCE_TSV_EDITOR_DESIGN.md`
-- `docs/SAFE_WORKFLOW_REDESIGN.md`
+- `docs/GO_EDITOR_USAGE.md`
+- `docs/archive/active-plans/GO_EDITOR_NEXT_PLAN.md`
+- `docs/archive/completed-plans/SAFE_WORKFLOW_REDESIGN.md`

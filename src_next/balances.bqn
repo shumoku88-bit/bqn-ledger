@@ -24,17 +24,7 @@ Build ← {𝕊 ctx:
     type ← { (idx < resolved.count) ? (idx ⊑ resolved.types) ; "" }
     account ← { (idx < resolved.count) ? (idx ⊑ resolved.accounts) ; key }
     
-    StartsWith ← { pref ← 𝕨 ⋄ pref ≡ (≠ pref) ↑ 𝕩 }
-    
-    role2 ← {
-      (0 < ≠ role) ? role ;
-      ("assets:" StartsWith account) ? "asset" ;
-      ("liabilities:" StartsWith account) ? "liability" ;
-      ("budget:" StartsWith account) ? "budget" ;
-      ("income:" StartsWith account) ? "income" ;
-      ("expenses:" StartsWith account) ? "expense" ;
-      "unknown"
-    }
+    role2 ← { (0 < ≠ role) ? role ; "unknown" }
     
     ⟨key, amount, role2, type⟩
   }

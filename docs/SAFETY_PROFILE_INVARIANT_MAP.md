@@ -65,7 +65,7 @@ editor/*_test.go
 | `as_of` entry boundary | `GUARDED` | `checks/check-src-next-clock-boundary.sh` verifies that only `src_next/date.bqn` reads the system clock. `src_next/date.bqn` exports `Today` as the single approved entry point. Connected to `tools/check.sh`. |
 | Cycle half-open / historical availability | `PARTIAL` | `src_next/cycle.bqn`, TBDS tests, cycle summary checks, and opening-before-cycle tests cover important cases. Full overlap/reversal lint inventory is not mapped here. |
 | Section status policy | `PARTIAL` | Policy exists, and current compact output exposes status-like fields for some sections (`actual-comparison`, envelope/status fields), but old `section_status_*` exporter is gone. |
-| Go editor write boundary | `GUARDED/POLICY` | `docs/GO_EDITOR_NEXT_PLAN.md`, `docs/GO_EDITOR_USAGE.md`, `editor/*_test.go`, and now-gating Go tests cover approved editor behavior. |
+| Go editor write boundary | `GUARDED/POLICY` | `docs/archive/active-plans/GO_EDITOR_NEXT_PLAN.md`, `docs/GO_EDITOR_USAGE.md`, `editor/*_test.go`, and now-gating Go tests cover approved editor behavior. |
 | Multi-file write / idempotency safety | `GAP` | Explicitly not widened; failure-injection and idempotency tests remain TODO before any broader write scope. |
 
 ## Source invariants
@@ -288,7 +288,7 @@ Status: `GUARDED/POLICY`
 
 Current guards:
 
-- `docs/GO_EDITOR_NEXT_PLAN.md` defines the current Go editor boundary and safe write scope.
+- `docs/archive/active-plans/GO_EDITOR_NEXT_PLAN.md` defines the current Go editor boundary and safe write scope.
 - Current approved commands include `journal add`, `journal reverse`, `budget add`, `plan add`, `plan finish --apply`, and narrow open-plan `date` / `amount` edit.
 - `editor/*_test.go` covers the approved Go editor behavior, and `tools/check.sh` now gates on `go test ./...` in `editor/` (if `go` is not installed, it emits a warning and skips).
 
@@ -302,7 +302,7 @@ Status: `POLICY`
 
 Current guards:
 
-- `docs/GO_EDITOR_NEXT_PLAN.md` keeps deletion, broad row editing, and multi-file transactions outside current scope.
+- `docs/archive/active-plans/GO_EDITOR_NEXT_PLAN.md` keeps deletion, broad row editing, and multi-file transactions outside current scope.
 - `AGENTS.md` and `README.md` state that AI must not edit real source TSV without explicit instruction.
 
 ### E3. Multi-file transactions are not widened before idempotency / failure-injection design
@@ -311,7 +311,7 @@ Status: `GAP`
 
 Current guards:
 
-- `docs/GO_EDITOR_NEXT_PLAN.md` marks multi-file transactions and additional writes as planning-only.
+- `docs/archive/active-plans/GO_EDITOR_NEXT_PLAN.md` marks multi-file transactions and additional writes as planning-only.
 - `TODO.md` keeps idempotency, recurrence, metadata, concurrency, recovery contracts as active work.
 
 Known gap:

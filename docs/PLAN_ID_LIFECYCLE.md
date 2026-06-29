@@ -50,14 +50,15 @@ Go editor（`tools/edit`）は、**「予定の実績化（状態遷移の引き
 
 ## 3. BQN レイヤーの責務（計算・レポート射影）
 
-BQN エンジン（`report_engine.bqn` 等）は、**「残存予定の算出」**と**「多重定義の防止」**を担当します。
+BQN エンジン（主に `src_next/planned_payments.bqn` と `src_next/plan_journal_overlap.bqn`）は、**「残存予定の算出」**と**「重複・曖昧一致の診断」**を担当します。
 
-1. **残存予定（Residual）の計算**
-   - レポート生成時点で `plan.tsv` に定義されている全予定から、`journal.tsv` ですでに完了（`plan_id` が一致）しているものを除外して「これから発生する予定リスト」を作る。
-   - `plan_id` を持たない予定行は、日付が「基準日（as_of）」以降のものであれば未完了とみなす。
+1. **残存予定（planned/open items）の計算**
+   - レポート生成時点で `plan.tsv` に定義されている予定から、`journal.tsv` ですでに完了（`plan_id` が一致）しているものを除外して「これから発生する予定リスト」を作る。
+   - `plan_id` を持たない予定行は互換用 fallback として扱い、5列一致・日付境界による判定に留める。fallback は正本運用ではなく、診断対象の互換経路である。
 
-2. **重複一致のハンドリング (Safety Profile / Fail Closed)**
-   - `journal.tsv` に同じ `plan_id` を持つ実績が複数存在するなどの異常状態を検知した場合、BQNは「きれいな間違い」をサイレントに出力せず、最初の1件で完了とみなしつつ、警告や静的チェック（`check.sh` 内）で通知するか、計算を fail-closed にする。
+2. **重複・曖昧一致のハンドリング (Safety Profile / Fail Closed)**
+   - `plan.tsv` と `journal.tsv` の強一致・曖昧一致・未一致は `src_next/plan_journal_overlap.bqn` と check で観察する。
+   - 異常状態を検知した場合、BQNは「きれいな間違い」をサイレントに出力せず、警告・診断・fail-closed の対象として扱う。
 
 ---
 

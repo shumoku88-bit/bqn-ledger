@@ -158,9 +158,10 @@ journal.tsv: 2026-07-16 ... plan_id=plan-2026-07-15-gpt-plus
   - 形式は当面 `YYYY-0001` のような手動採番で十分です（自動採番は後回し）
 - `party=`（相手先）や `note=` なども同じ束で揃えておくと後で拾いやすいです
 
-`tools/txn.bqn` を使うと、`txn_id` ごとの合計・行数の一覧や、特定 `txn_id` の束表示ができます。
+現時点では、`txn_id` ごとの一覧・束表示は専用ツールの現行入口としては固定していません。必要になったら、source TSV を直接壊さない read-only helper として追加します。
 
-## tools/add.bqn について
+## 現行の追記ツールでのメタ指定
 
-- 対話モードでは、最後に `tax=private biz=0` のように入力すると、TSVの6列目以降として追記されます
-- 引数モードでも、`[meta...]` を追加できます
+- 日常入力は `tools/add-ui.sh` または `tools/edit` を使います。
+- CLI で明示する場合は `tools/edit journal add ... --meta tax=private --meta biz=0` のように、`--meta key=value` を追加します。
+- 書き込みは Go editor の preview / confirm / backup / stale check 経路を通します。

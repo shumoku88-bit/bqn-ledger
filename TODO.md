@@ -35,7 +35,8 @@
 - [x] `report_labels.tsv` の参照キー存在チェック（2026-06-29: `checks/check-report-labels.sh` を追加し `tools/check.sh` に接続）
 - [x] future envelope target policy の docs-only sketch（2026-06-29: `docs/archive/active-plans/ENVELOPE_TARGET_POLICY_SKETCH.md` 追加。`envelope_targets.tsv` はまだ作らない）
 - [ ] 次の小候補: residual prefix fallback の小さい除去、または safety / docs hygiene の小さい整合性修正
-- safety / docs hygiene の小さい整合性修正
+  - 作業台帳: [docs/archive/active-plans/SAFETY_DOCS_ALIGNMENT_PLAN-2026-06-29.md](docs/archive/active-plans/SAFETY_DOCS_ALIGNMENT_PLAN-2026-06-29.md)
+  - まず Batch A/B/C のように小分けし、broken link / compatibility debt / stale current-path を分けて処理する。
 - 多通貨対応（保留）
 
 ---
@@ -52,8 +53,8 @@ docs/archive/completed-plans/STALE_DOCS_STATUS-2026-06-22.md
 ```
 
 - [x] `docs/GENERALIZATION_TODO.md` を短い active remainder stub に圧縮完了。
-- [x] `docs/BEHAVIOR_DRIFT_REPORT_PLAN.md` を archive に移動完了。
-- [x] `docs/GO_SOURCE_TSV_EDITOR_DESIGN.md` を判断完了（必要に応じて stub/archive 化）。
+- [x] `docs/archive/completed-plans/BEHAVIOR_DRIFT_REPORT_PLAN.md` へ移動完了。
+- [x] `docs/archive/completed-plans/GO_SOURCE_TSV_EDITOR_DESIGN.md` を判断完了（最新境界は `docs/archive/active-plans/GO_EDITOR_NEXT_PLAN.md`）。
 
 方針:
 - docs hygiene のために source TSV や実装コードを触らない。

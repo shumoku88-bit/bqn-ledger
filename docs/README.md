@@ -35,7 +35,8 @@
 10. [POSTING_IR_CONTRACT.md](POSTING_IR_CONTRACT.md) / [TBDS_CONTRACT.md](TBDS_CONTRACT.md) - Posting IR と試算表データセットの境界契約
 11. [PLAN_ID_LIFECYCLE.md](PLAN_ID_LIFECYCLE.md) - `plan_id` ライフサイクル契約 (Go/BQN 共通契約)
 12. [TIME_AS_AXIS.md](TIME_AS_AXIS.md) - 時間座標・区間ビュー
-13. [DATA_DIR_SETUP.md](DATA_DIR_SETUP.md) - データ配置の設定マニュアル
+13. [REPORT_CONTRACTS.md](REPORT_CONTRACTS.md) - 現行 report contract の入口（`src_next` / checks / section status policy への索引）
+14. [DATA_DIR_SETUP.md](DATA_DIR_SETUP.md) - データ配置の設定マニュアル
 14. [UNAVAILABLE_SENTINEL_CONTRACT.md](UNAVAILABLE_SENTINEL_CONTRACT.md) - unavailable sentinelの定義
 15. [CONVENTIONS.md](CONVENTIONS.md) / [JOURNAL_META.md](JOURNAL_META.md) - 科目命名・メタデータ規約
 16. 変更内容に応じて、下の「Done / Current Baseline (完了済み・現行仕様として機能)」を参照
@@ -62,6 +63,8 @@
   - 日常の取引入力UI (`tools/add-ui.sh`) のマニュアル。
 - [SRC_NEXT_CURRENT.md](SRC_NEXT_CURRENT.md)
   - `src_next/` が現在の普段使い report engine であること、`tools/report` / `tools/report-next-summary` / `tools/report-next` の使い分け。
+- [REPORT_CONTRACTS.md](REPORT_CONTRACTS.md)
+  - 現行 report contract の入口。古い archived contract をそのまま現行仕様として読まないための境界メモ。
 
 ---
 

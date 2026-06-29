@@ -72,9 +72,10 @@ proj_cols ← ⟨
 ⟩
 
 # ── Kind inference ───────────────────────────────────────────
-# Infer kind from source from/to account metadata and prefixes.
-# - explicit roles win; legacy prefixes remain compatibility fallback
-# - otherwise         → transfer
+# Infer kind from source from/to account metadata.
+# - explicit role=income on from account → income
+# - explicit role=expense on to account  → expense
+# - otherwise                           → transfer
 
 InferKind ← {𝕊 ⟨fromRole, toRole, fromAcc, toAcc⟩:
   isInc ← fromRole ≡ "income"

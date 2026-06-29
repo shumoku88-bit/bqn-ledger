@@ -70,6 +70,20 @@ ents ← balances.Build ctx
 1 lib.AssertEq ≠ ents
 "expenses:food/JPY" lib.AssertEq (0 ⊑ (⊑ ents))
 5200 lib.AssertEq (1 ⊑ (⊑ ents))
+"unknown" lib.AssertEq (2 ⊑ (⊑ ents)) # missing role must not be classified by prefix fallback
+
+explicitRoleCtx ← {
+  tbds ⇐ tbdsRows,
+  resolved ⇐ {
+    account_keys ⇐ ⟨"expenses:food/JPY", "expenses:rent/JPY"⟩,
+    count ⇐ 2,
+    roles ⇐ ⟨"expense", "expense"⟩,
+    types ⇐ ⟨"", ""⟩,
+    accounts ⇐ ⟨"expenses:food", "expenses:rent"⟩
+  }
+}
+explicitEnts ← balances.Build explicitRoleCtx
+"expense" lib.AssertEq (2 ⊑ (⊑ explicitEnts))
 
 # ── Format ───────────────────────────────────────────────────
 
