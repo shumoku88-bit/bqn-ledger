@@ -14,7 +14,7 @@
   - Lower-level section selector (fzf/gum): `tools/main-ui.sh select`
 - Machine summary: `tools/report-next-summary`
 - Current src_next usage map: `docs/SRC_NEXT_CURRENT.md`
-- Add a transaction (Go editor):
+- Add a transaction (BQN editor):
   - `tools/edit journal add` — 実績取引の追記
   - `tools/edit budget add` — 予算配賦の追記
   - `tools/add-ui.sh` — fzf/gum 対話式入力UI

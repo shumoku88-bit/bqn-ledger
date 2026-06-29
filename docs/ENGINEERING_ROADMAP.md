@@ -39,7 +39,7 @@ Date: 2026-06-26
 
 ### 結果
 
-`journal reverse` サブコマンドを Go editor に追加。
+`journal reverse` サブコマンドを BQN editor に追加。
 `tools/add-ui.sh` に reverse モード追加。
 
 ### やったこと
@@ -57,7 +57,7 @@ Date: 2026-06-26
 4. ✅ `tools/add-ui.sh` に reverse モード追加
    - journal.tsv の一覧を fzf で選択
    - 日付指定（デフォルト: today）
-   - Go editor 経由で安全追記
+   - BQN editor 経由で安全追記
 
 ---
 
@@ -185,7 +185,7 @@ Date: 2026-06-26
 ### やったこと
 
 *   **Phase 1: 閲覧・確認**: レポート選択、fzf / gum によるプレビュー（`tools/main-ui.sh` 連携）、および一時キャッシュによる preview 状態復元を実装。
-*   **Phase 2: アクション連携**: 仕訳追加・取消UI（`tools/add-ui.sh` 連携）や、新設された懸案事項 (`issues.tsv`) を対話的に安全追加する Go editor 連携ルートの実装。
+*   **Phase 2: アクション連携**: 仕訳追加・取消UI（`tools/add-ui.sh` 連携）や、新設された懸案事項 (`issues.tsv`) を対話的に安全追加する BQN editor 連携ルートの実装。
 *   **デザイン分離**: gum / fzf 等の装飾レイヤーとPlain出力テキストの完全な分離（BQNエンジンは色を持たず、UI層がANSI制御を担当する契約を厳守）。
 
 ---

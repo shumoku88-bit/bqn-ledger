@@ -6,13 +6,13 @@ It uses fixture data only. Do not use real household data, real account names, p
 
 ## What this demo shows
 
-BQN Ledger keeps source data as human-readable TSV, derives reports with BQN, and routes daily writes through a small Go editor.
+BQN Ledger keeps source data as human-readable TSV, derives reports with BQN, and routes daily writes through a small BQN editor.
 
 The demo shows three layers:
 
 1. TSV source data as the visible ground.
 2. BQN report generation as the derived view.
-3. Go editor preview/write path as the protected input route.
+3. BQN editor preview/write path as the protected input route.
 
 ## 1. Read a fixture report
 
@@ -53,7 +53,7 @@ Expected meaning:
 - The source of truth is still plain TSV.
 - Reports are derived from these files rather than hidden application state.
 
-## 4. Try the Go editor in a scratch directory
+## 4. Try the BQN editor in a scratch directory
 
 ```bash
 mkdir -p sandbox

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # tools/lib/safe-write.sh — atomic TSV append with backup and stale check
 #
-# Replicates the Go editor's writeSingleFileAtomic + appendRowContent behavior.
+# Replicates the BQN editor's writeSingleFileAtomic + appendRowContent behavior.
 # This file is sourced by shell dispatchers, not executed directly.
 #
 # Usage:
@@ -425,7 +425,7 @@ safe_rewrite() {
 
 # ── Preview / Confirm ───────────────────────────────────────────
 
-# Print append preview (matches Go editor output format).
+# Print append preview (matches BQN editor output format).
 print_append_preview() {
   local title="$1"
   local target="$2"

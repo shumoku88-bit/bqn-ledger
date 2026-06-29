@@ -2,7 +2,7 @@
 
 `tools/add-ui.sh` は、日常の取引入力用UIです。
 
-fzf / gum / 番号選択で項目を選び、最後の追記だけを Go editor (`tools/edit`) に委譲します。通常利用では Go safe append が裏で動きます。
+fzf / gum / 番号選択で項目を選び、最後の追記だけを BQN editor (`tools/edit`) に委譲します。通常利用では Go safe append が裏で動きます。
 
 ## 基本の使い方
 
@@ -12,7 +12,7 @@ tools/add-ui.sh
 
 画面の質問に沿って、mode / date / account / amount / memo / meta を入力します。
 
-既存 mode を直接開始したい場合は、positional mode を渡せます。mode selector だけをスキップし、その後の入力・確認・Go editor への委譲は通常フローと同じです。
+既存 mode を直接開始したい場合は、positional mode を渡せます。mode selector だけをスキップし、その後の入力・確認・BQN editor への委譲は通常フローと同じです。
 
 ```sh
 tools/add-ui.sh expense
@@ -27,7 +27,7 @@ tools/add-ui.sh reverse
 tools/add-ui.sh --check
 ```
 
-`--check` は source TSV を書き換えません。base directory、主要 TSV、role 別 account 候補、Go editor 経路、plan list の読み取りを確認します。
+`--check` は source TSV を書き換えません。base directory、主要 TSV、role 別 account 候補、BQN editor 経路、plan list の読み取りを確認します。
 
 ## mode
 
@@ -47,7 +47,7 @@ tools/add-ui.sh --check
 
 通常の `tools/add-ui.sh` は最後に `tools/edit` を呼びます。
 
-Go editor 側では次を行います。
+BQN editor 側では次を行います。
 
 - preview
 - confirm
@@ -68,7 +68,7 @@ ADD_UI_BACKEND=bqn tools/add-ui.sh
 
 通常は指定不要です。
 
-## Go editor を直接使う例
+## BQN editor を直接使う例
 
 UIを通さず、直接 append したい場合は `tools/edit` を使えます。
 

@@ -12,7 +12,6 @@ BQN Ledger は、個人の生活会計を預けるための accounting-grade な
 ## 必要なもの
 
 - [CBQN](https://github.com/dzaima/CBQN)（推奨: commit `12a4fb9f` 以降。FFI + Singeli ビルド）
-- [Go](https://go.dev/dl/) 1.22+
 - fzf, gum（任意・対話 UI 用）
 
 ## What this is
@@ -22,7 +21,7 @@ BQN Ledger は、次のための個人用 accounting workbench です。
 - base directory 配下の TSV を唯一の正本として保つ（公開 repo の `data/` は sandbox、実運用は `LEDGER_DATA_DIR` で外出し）
 - journal / plan / budget / cycle から家計の現在地を読む
 - BQN で派生ビュー、会計レポート、生活レポートを作る
-- Go 製 editor と shell UI で日常入力を安全に補助する
+- BQN 製 editor と shell UI で日常入力を安全に補助する
 - fixture / golden check / lint で「きれいな間違い」を出さないように守る
 
 中心にある考え方は単純です。
@@ -59,7 +58,7 @@ The public `data/` directory and fixtures are sandbox data. Real household data 
 
 - **TSV is the source of truth.** 正データは base directory 配下の TSV です。公開 repo の `data/` は匿名 sandbox、実運用データは `LEDGER_DATA_DIR`（例: `/path/to/ledger-data/data`）で指定します。
 - **BQN derives views.** BQN は正データを書き換えず、読み取りと派生計算を担当します。
-- **Daily writes go through safety paths.** 日常入力は `tools/add-ui.sh` または Go 製の `tools/edit` から行います。
+- **Daily writes go through safety paths.** 日常入力は `tools/add-ui.sh`, `tools/edit`, または `tools/edit-bqn` から行います。
 - **Large corrections stay visible.** 削除や大きな修正は、人間が TSV を直接確認して行います。
 - **AI must not touch source data by default.** AI は、明示指示がない限り base directory 配下の source TSV を直接編集しません。
 - **Money is integer yen.** 金額は整数円で扱います。
@@ -128,11 +127,11 @@ tools/add-ui.sh --check
 tools/add-ui.sh
 ```
 
-`tools/add-ui.sh` は `<base>/accounts.tsv` を読み、支出、収入、資産移動、予算配賦の入力を補助します。fzf があれば fzf、なければ gum、さらにどちらもなければ番号入力にフォールバックします。`--check` は source TSV を書き換えず、data dir と候補一覧・Go editor 経路を事前確認します。
+`tools/add-ui.sh` は `<base>/accounts.tsv` を読み、支出、収入、資産移動、予算配賦の入力を補助します。fzf があれば fzf、なければ gum、さらにどちらもなければ番号入力にフォールバックします。`--check` は source TSV を書き換えず、data dir と候補一覧・BQN editor 経路を事前確認します。
 
-実際の追記は通常 Go 製の `tools/edit` に委譲されます。これにより、プレビュー、バックアップ、stale check、lint などの安全経路を通ります。
+実際の追記は BQN 製の `tools/edit` (内部的には `tools/edit-bqn`) に委譲されます。これにより、プレビュー、バックアップ、stale check、lint などの安全経路を通ります。
 
-### Go editor
+### BQN editor
 
 ```bash
 # 実績支出
@@ -224,7 +223,7 @@ tools/report-next-summary --base fixtures/src-next-golden
 tools/check.sh
 ```
 
-主な確認内容は、BQN unit test、Go editor test、src_next golden fixture、セクション別 check、repo index、disabled feature guard です。
+主な確認内容は、BQN unit test、BQN editor test、src_next golden fixture、セクション別 check、repo index、disabled feature guard です。
 
 fixture を更新する場合は、対象が本当に仕様変更なのか、それともバグなのかを確認してから golden を更新します。
 
@@ -246,7 +245,7 @@ fixture を更新する場合は、対象が本当に仕様変更なのか、そ
 | `docs/archive/completed-plans/MAIN_SECTIONS.md` | historical: 旧エンジン `main.bqn` のセクション履歴。現行セクションは `src_next/report.bqn` を参照。 |
 | `docs/archive/completed-plans/REPORT_FIELD_MAP.md` | historical: 旧エンジン `report_engine.Build` のフィールド履歴。 |
 | `docs/JOURNAL_META.md` | journal-like TSV のメタデータ契約。 |
-| `docs/GO_EDITOR_USAGE.md` | Go editor の使い方。 |
+| `docs/BQN_EDITOR_USAGE.md` | BQN editor の使い方。 |
 | `docs/archive/completed-plans/GENERALIZATION_TODO.md` | 設定駆動化・一般化の段階計画。 |
 | `docs/archive/completed-plans/DECISION_MULTI_POSTING_INVESTIGATION.md` | 複数ポスティング方針。 |
 | `docs/archive/completed-plans/DECISION_AI_DEVELOPMENT_EFFICIENCY_PROPOSALS.md` | AI 作業効率化・開発体験改善の提案。 |
@@ -269,4 +268,4 @@ AI がこのリポジトリを扱う場合は、必ず次を守ります。
 
 このリポジトリは、正データを守りながら家計の現在地を読むための道具です。
 
-完成された会計ソフトではなく、生活の観察、予定、実績、封筒、サイクル、派生ビューをつなぐための作業場です。TSV は人間の目で読める地面、BQN はその上を走る配列の水路、Go editor は安全に水門を開ける小さな道具です。
+完成された会計ソフトではなく、生活の観察、予定、実績、封筒、サイクル、派生ビューをつなぐための作業場です。TSV は人間の目で読める地面、BQN はその上を走る配列の水路、BQN editor は安全に水門を開ける小さな道具です。

@@ -30,7 +30,7 @@
 - 6列目以降は `key=value` メタ。会計計算は原則として先頭5列だけを見る。
 - 大改造しない。1段階・1目的・小さい差分で進める。
 - TODOを進める際は、まず `TODO.md` と該当する active plan を参照する。
-- 大きめの相談が来たら、通常TODO/active planを進める話か、Go editor トラックか、先にmokoへ確認する。
+- 大きめの相談が来たら、通常TODO/active planを進める話か、BQN editor トラックか、先にmokoへ確認する。
 
 ## 全体像
 
@@ -102,7 +102,7 @@
 
 ### `src_edit/` (BQN editor subsystem)
 
-Go editor を置き換える BQN editor subsystem。`src_next/` (report) とは独立。
+BQN editor を置き換える BQN editor subsystem。`src_next/` (report) とは独立。
 
 - `src_edit/README.md` — スキャフォールド文書。責務境界と実装対象の定義。
 - `src_edit/journal_add_cmd.bqn` — journal add 用の検証および TSV 生成。
@@ -116,11 +116,11 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 
 ### `editor/` (Go source TSV editor — superseded, fallback として維持)
 
-> **方針転換 (2026-06-29)**: `src_edit/` (BQN+shell) への移行が最優先。Go editor は Phase 5 (dispatcher switch) まで fallback として維持する。
+> **方針転換 (2026-06-29)**: `src_edit/` (BQN+shell) への移行が最優先。BQN editor は Phase 5 (dispatcher switch) まで fallback として維持する。
 
 source-of-truth TSV を安全に編集する Go ツール。
 
-- `tools/edit` — Go editor のビルド兼実行ラッパー。
+- `tools/edit` — BQN editor のビルド兼実行ラッパー。
 - `editor/main.go` — CLI入口。`journal add` / `journal reverse` / `budget add` / `plan list` / `plan add` / `plan finish` / `plan edit` / `issue add`。
 - `editor/journal.go` — single-file safe append 基盤。
 - `editor/issue.go` — issues.tsv への safe append 実装。
@@ -156,7 +156,7 @@ source-of-truth TSV を安全に編集する Go ツール。
 - `tools/check.sh` — テストランナーの正本。ユニットテスト、エンジン不変条件、各セクションの golden 差分、devtools-check などを一括実行する。
 - `tools/devtools-check.sh` — 全開発ツールの健全性チェック（`check.sh` のフェーズ4に組み込み済み）。
 - `tools/scaffold-check.sh` — 新しい `checks/check-*.sh` スクリプトのボイラープレート（テンプレート）生成用。
-- `tools/coverage` — Go editor のテストカバレッジおよび BQN モジュールのテスト網羅状況を出力する。
+- `tools/coverage` — BQN editor のテストカバレッジおよび BQN モジュールのテスト網羅状況を出力する。
 
 ### 開発・検証支援 (devtools)
 
@@ -170,8 +170,8 @@ source-of-truth TSV を安全に編集する Go ツール。
 ### ユーザーインターフェース (UI)
 
 - `tools/main-ui.sh` — 読み込み・閲覧系UI（レポート閲覧・セクション選択、fzf/gumベース）。
-- `tools/add-ui.sh` — 書き込み・操作系UI（取引の追加・取消・予定完了処理等、Go editor への安全な中継）。
-- `tools/edit` — Go editor 実行ラッパー（production fallback）。
+- `tools/add-ui.sh` — 書き込み・操作系UI（取引の追加・取消・予定完了処理等、BQN editor への安全な中継）。
+- `tools/edit` — BQN editor 実行ラッパー（production fallback）。
 - `tools/edit-bqn` — 実験中の BQN+shell editor 入口。現在の実装範囲は `journal add` の narrow parity gate のみ。
 - `tools/report` / `tools/report-next` — `src_next` を使用したコマンドラインレポートの正本入口。
 - `tools/report-next-summary` — `src_next` データの機械向け要約出力。

@@ -5,7 +5,7 @@ set -euo pipefail
 #
 # Architecture (Seam Reduction):
 #   Bash handles UI, selection, and display.
-#   Go editor handles safe TSV append.
+#   BQN editor handles safe TSV append.
 #   BQN is NOT called for account listing — awk reads accounts.tsv directly.
 
 SOURCE="${BASH_SOURCE[0]}"
@@ -39,7 +39,7 @@ Modes:
   reverse       仕訳取消 (反対仕訳追記)
   issue         懸案事項・意思決定の追加 (writes issues.tsv)
 
-Append is delegated to tools/edit (Go safe-append path).
+Append is delegated to tools/edit (BQN editor path).
 
 Options:
   --base <dir>  Use an explicit source TSV base directory
@@ -168,12 +168,6 @@ run_preflight() {
     ok "tools/edit wrapper"
   else
     fail_check "tools/edit wrapper is not executable"
-  fi
-
-  if command -v go >/dev/null 2>&1; then
-    ok "go command"
-  else
-    fail_check "go command not found; tools/edit cannot build"
   fi
 
   for role in asset expense income; do
@@ -561,7 +555,7 @@ if [[ "$mode" != 'plan-finish' && "$mode" != 'plan-edit' && "$mode" != 'reverse'
   fi
 fi
 
-# ── Execute via Go editor ──
+# ── Execute via BQN editor ──
 
 if [[ "$mode" == 'plan-finish' ]]; then
   cmd=("$ROOT_DIR/tools/edit" --base "$base_dir" plan finish "${plan_finish_args[@]}" --apply)
