@@ -1,9 +1,9 @@
 # Posting IR Contract
 
-Status: **active contract draft / next ledger engine candidate**
-Date: 2026-06-25
+Status: **current contract / src_next engine**
+Date: 2026-06-25 / updated 2026-06-29
 
-This document defines the normalized posting boundary for the next `bqn-ledger` engine path.
+This document defines the normalized posting boundary for the current `src_next` engine path.
 
 The goal is to make source TSV parsing, accounting validation, cube materialization, and report views separable.
 
@@ -37,7 +37,7 @@ Posting IR is allowed to be richer than source TSV, but it must be derived read-
 - Validate account, layer, date, and balance invariants before cube materialization.
 - Make future `txn_id` / multi-row grouping support possible without changing report views.
 - Make Option 5 TBDS possible by giving it a clean posting input.
-- Preserve equivalence with the current cube until an explicit migration decision.
+- Preserve equivalence with the Canonical Daily Cube and TBDS report path unless an explicit design decision changes it.
 
 ## 3. Non-goals
 

@@ -1,11 +1,13 @@
 # レポート設計方針（main.bqn を育てる）
 
+Status: **historical design note / superseded by `docs/SRC_NEXT_CURRENT.md` and `docs/ARCHITECTURE.md`**
+
 位置づけ:
-- 長期の方針: `docs/ROADMAP.md`
+- 現在の入口: `docs/SRC_NEXT_CURRENT.md`
 - 計算/データフロー: `docs/ARCHITECTURE.md`
 - 時間モデル: `docs/TIME_AS_AXIS.md`
 
-この家計簿のレポートは、当面 **`bqn main.bqn` の1コマンド**を入口として育てます。
+この文書は旧 `main.bqn` レポートを育てていた時期の設計メモです。現在の普段使い入口は `tools/bl`、非対話レポート入口は `tools/report` です。
 
 将来「スナップショットだけ見たい」「年初来だけ見たい」などでコマンドを分けたくなっても、
 **内部ロジックを部品化しておけば分割は容易**、という方針です。

@@ -47,7 +47,7 @@ For current behavior, prefer these docs:
 - `docs/MAINTENANCE.md`
 - this file
 
-Treat `docs/archive/src-next-migration/` as migration history unless a current doc explicitly links to a specific archived decision record.
+Treat `docs/archive/src-next-migration/` as migration history unless a current doc explicitly links to a specific archived decision record. Its local reading guide is `docs/archive/src-next-migration/README.md`; the 2026-06-29 inventory is `docs/archive/audits/SRC_NEXT_DOCS_INVENTORY-2026-06-29.md`.
 
 ## Safety boundary
 

@@ -1,9 +1,11 @@
 # Command Hub Design
 
-Status: Phase 1 implemented as tools/bl / Phase 2 pending  
-Date: 2026-06-28
+Status: **historical design / implemented as `tools/bl`**  
+Date: 2026-06-28 / updated 2026-06-29
 
-This note describes a possible single entry command for everyday `bqn-ledger` use.
+> Current daily operation entry is `tools/bl`. This note is the design history for the command hub.
+
+This note described a possible single entry command for everyday `bqn-ledger` use.
 It is separate from the Go source TSV editor design.
 
 ## Purpose
@@ -25,18 +27,7 @@ The command hub is not an accounting engine and not a source TSV editor by itsel
 
 ## Name
 
-The public command name is not decided yet.
-
-Candidates:
-
-- `bq`
-- `bk`
-- `bqk`
-- `gbk`
-- `kakei`
-- `ledger`
-
-For now, documents may call it `command hub` or `tools/<name>` until the name is decided.
+The implemented command name is `tools/bl`.
 
 ## Boundary
 
@@ -134,43 +125,41 @@ If a TUI is later useful, it should start as a read-only viewer or browser, not 
 
 ## Possible command shape
 
-The exact command name is undecided, so examples use `<hub>`.
+The historical examples used `<hub>` before the name was decided. Current command examples use `tools/bl`.
 
 ```sh
-<hub>
-<hub> report
-<hub> report envelopes
-<hub> report cashflow
-<hub> add
-<hub> plan
-<hub> check
-<hub> edit journal
-<hub> edit plan
-<hub> export summary
+tools/bl
+tools/bl report
+tools/bl section envelopes
+tools/bl add
+tools/bl check
+tools/bl edit journal.tsv
+tools/bl edit plan.tsv
 ```
 
 Possible routing:
 
 ```text
-<hub> report
-  -> bqn main.bqn
+tools/bl report
+  -> tools/main-ui.sh report
+  -> tools/report
+  -> src_next/report.bqn
 
-<hub> report <section>
-  -> bqn main.bqn --section <section>
+tools/bl section <key>
+  -> tools/main-ui.sh <key>
+  -> tools/report --section <key>
+  -> src_next/report.bqn --section <key>
 
-<hub> add
+tools/bl add
   -> tools/add-ui.sh
 
-<hub> plan
-  -> current plan view, later tools/edit plan list
-
-<hub> check
+tools/bl check
   -> tools/check.sh
 
-<hub> edit journal
+tools/bl edit journal.tsv
   -> $EDITOR journal.tsv
 
-<hub> edit plan
+tools/bl edit plan.tsv
   -> $EDITOR plan.tsv
 ```
 

@@ -1,7 +1,7 @@
 # TBDS Contract
 
-Status: **active contract draft / next ledger engine candidate**
-Date: 2026-06-25
+Status: **current contract / src_next engine**
+Date: 2026-06-25 / updated 2026-06-29
 
 TBDS means **Trial Balance Dataset**.
 

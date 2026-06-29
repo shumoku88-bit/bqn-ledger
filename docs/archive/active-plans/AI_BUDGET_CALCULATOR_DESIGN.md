@@ -3,6 +3,8 @@
 Status: **P1-P4 実装済み / P5-P7 未着手**
 実装: `src_next/calc/envelope_calc.bqn`, CLI: `tools/envelope-calc`
 
+Note (2026-06-29): examples that mention `bqn main.bqn` are historical traces from the original consultation. Current daily operation starts from `tools/bl`; non-interactive report output is `tools/report`; envelope consultation calculations should prefer `tools/envelope-calc`.
+
 ## 1. 目的
 
 AI（pit）が家計相談に答えるときに使う計算を、その場の ad-hoc Python や暗算ではなく、
