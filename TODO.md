@@ -9,8 +9,9 @@
 - [x] `docs/REAL_DATA_TRIAL_SAFETY.md` を追加し、sandbox rehearsal / real-data preflight / dry-run / 確認付き書き込み / 観察ログの最小手順を定義する
 - [x] sandbox rehearsal を1回通す（2026-06-30: `tools/doctor`, `tools/report fixtures/src-next-golden`, `tools/add-ui.sh --check`, sandbox `tools/edit ... --dry-run` 確認）
 - [x] 実データで `tools/doctor`, `tools/report`, `tools/add-ui.sh --check` を確認する（2026-06-30: read-only OK。base dir は `../ledger-data/data` 表示のため、本番書き込み前は absolute `LEDGER_DATA_DIR` 推奨）
-- [ ] 最初の実データ書き込みは `--dry-run` 後、`--yes` なしの確認付き経路で行う
-- [ ] 数回の実データ書き込みについて、base dir / backup / post-check / report drift を観察する
+- [x] 最初の実データ書き込みは `--dry-run` 後、`--yes` なしの確認付き経路で行う（2026-06-30: `real-data-trial-delete-me` 1円、human confirmation、backup 作成、post-check OK。観察後に人間が実データから削除し、report 復帰を確認）
+- [x] 数回の sandbox/temp copy 書き込みで、base dir / backup / post-check / report drift を観察する（2026-06-30: temp copy に journal add 3回、backup 3件、post-check OK、report OK）
+- [ ] 実データの追加観察は、ダミー取引ではなく日常入力が自然に発生した時だけ行う
 - [ ] 観察後、追加で必要なら safe-write lock / preflight helper / CI pinning を別PRで検討する
 
 ## CI / workflow drift stabilization
