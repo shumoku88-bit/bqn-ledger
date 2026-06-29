@@ -133,6 +133,7 @@ bash checks/check-edit-bqn-journal-reverse.sh >/dev/null
 bash checks/check-edit-bqn-plan-list.sh >/dev/null
 bash checks/check-edit-bqn-plan-add.sh >/dev/null
 bash checks/check-edit-bqn-plan-finish.sh >/dev/null
+bash checks/check-plan-finish-replenish-ui.sh >/dev/null
 bash checks/check-edit-bqn-plan-edit.sh >/dev/null
 bash checks/check-editor-parity.sh >/dev/null
 bash checks/check-edit-hybrid-dispatcher.sh >/dev/null
