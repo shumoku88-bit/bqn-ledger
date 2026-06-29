@@ -13,8 +13,28 @@ set -euo pipefail
 
 # ── Snapshot ────────────────────────────────────────────────────
 
+# Return a portable mtime token for stale detection.
+_safe_write_mtime() {
+  local path="$1"
+  if stat -f %m "$path" >/dev/null 2>&1; then
+    stat -f %m "$path"
+  else
+    stat -c %Y "$path"
+  fi
+}
+
+# Return a portable SHA256 digest.
+_safe_write_sha256() {
+  local path="$1"
+  if command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 "$path" | awk '{print $1}'
+  else
+    openssl dgst -sha256 "$path" | awk '{print $NF}'
+  fi
+}
+
 # Take a SHA256 snapshot of a file for stale detection.
-# Sets global: _SW_SNAP_PATH, _SW_SNAP_SHA256, _SW_SNAP_SIZE
+# Sets global: _SW_SNAP_PATH, _SW_SNAP_SHA256, _SW_SNAP_SIZE, _SW_SNAP_MTIME
 _safe_write_snapshot() {
   local path="$1"
   if [[ ! -f "$path" ]]; then
@@ -22,18 +42,28 @@ _safe_write_snapshot() {
     return 1
   fi
   _SW_SNAP_PATH="$path"
-  _SW_SNAP_SHA256="$(openssl dgst -sha256 "$path" | awk '{print $NF}')"
+  _SW_SNAP_SHA256="$(_safe_write_sha256 "$path")"
   _SW_SNAP_SIZE="$(wc -c < "$path" | tr -d ' ')"
+  _SW_SNAP_MTIME="$(_safe_write_mtime "$path")"
+}
+
+# Print a tab-separated snapshot token: size, mtime, sha256.
+# Callers can capture this before validation/preview and pass it to
+# safe_append_checked immediately before writing.
+safe_snapshot_token() {
+  local path="$1"
+  _safe_write_snapshot "$path"
+  printf '%s\t%s\t%s\n' "$_SW_SNAP_SIZE" "$_SW_SNAP_MTIME" "$_SW_SNAP_SHA256"
 }
 
 # Check if a file has changed since the snapshot.
 # Returns 0 if unchanged, 1 if stale.
 _safe_write_check_stale() {
   local path="$_SW_SNAP_PATH"
-  local current_sha256
-  current_sha256="$(openssl dgst -sha256 "$path" | awk '{print $NF}')"
-  local current_size
+  local current_sha256 current_size current_mtime
+  current_sha256="$(_safe_write_sha256 "$path")"
   current_size="$(wc -c < "$path" | tr -d ' ')"
+  current_mtime="$(_safe_write_mtime "$path")"
   if [[ "$current_sha256" != "$_SW_SNAP_SHA256" ]]; then
     echo "ERROR: file $path is stale; it changed during editing" >&2
     return 1
@@ -42,7 +72,33 @@ _safe_write_check_stale() {
     echo "ERROR: file $path is stale; size changed during editing" >&2
     return 1
   fi
+  if [[ "$current_mtime" != "$_SW_SNAP_MTIME" ]]; then
+    echo "ERROR: file $path is stale; modification time changed during editing" >&2
+    return 1
+  fi
   return 0
+}
+
+# Seed the internal stale-check snapshot from a previously captured token.
+_safe_write_seed_snapshot() {
+  local path="$1"
+  local size="$2"
+  local mtime="$3"
+  local sha256="$4"
+  _SW_SNAP_PATH="$path"
+  _SW_SNAP_SIZE="$size"
+  _SW_SNAP_MTIME="$mtime"
+  _SW_SNAP_SHA256="$sha256"
+}
+
+# Check an explicit previously captured snapshot token.
+_safe_write_check_expected_snapshot() {
+  local path="$1"
+  local size="$2"
+  local mtime="$3"
+  local sha256="$4"
+  _safe_write_seed_snapshot "$path" "$size" "$mtime" "$sha256"
+  _safe_write_check_stale
 }
 
 # ── Backup ──────────────────────────────────────────────────────
@@ -129,6 +185,56 @@ safe_append() {
   trap - EXIT
 
   # Print results
+  printf 'Wrote: %s\n' "$target"
+  printf 'Backup: %s\n' "$backup_path"
+}
+
+# Append a single row using a previously captured snapshot token.
+# Usage: safe_append_checked <target_file> <row_tsv> <expected_size> <expected_mtime> <expected_sha256>
+safe_append_checked() {
+  local target="$1"
+  local row="$2"
+  local expected_size="$3"
+  local expected_mtime="$4"
+  local expected_sha256="$5"
+  local base_dir
+  base_dir="$(cd "$(dirname "$target")" && pwd)"
+  local filename
+  filename="$(basename "$target")"
+  local backup_path
+  backup_path="$(_choose_backup_path "$base_dir" "$filename")"
+
+  # Stale check against the caller's pre-validation/pre-preview snapshot.
+  # Do this before creating a backup so a stale write attempt has no side effects.
+  if ! _safe_write_check_expected_snapshot "$target" "$expected_size" "$expected_mtime" "$expected_sha256"; then
+    return 1
+  fi
+
+  # Create backup
+  _create_backup "$target" "$backup_path"
+
+  # Build proposed content: original + ensure trailing newline + row + newline
+  local tmp_file
+  tmp_file="$(mktemp "${target}.tmp-XXXXXX")"
+  # shellcheck disable=SC2064
+  trap "rm -f '$tmp_file'" EXIT
+
+  cat "$target" > "$tmp_file"
+
+  if [[ -s "$tmp_file" ]] && [[ "$(tail -c 1 "$tmp_file" | xxd -p)" != "0a" ]]; then
+    printf '\n' >> "$tmp_file"
+  fi
+
+  printf '%s\n' "$row" >> "$tmp_file"
+
+  # Re-check immediately before rename. This closes the gap between backup and write.
+  if ! _safe_write_check_expected_snapshot "$target" "$expected_size" "$expected_mtime" "$expected_sha256"; then
+    return 1
+  fi
+
+  mv "$tmp_file" "$target"
+  trap - EXIT
+
   printf 'Wrote: %s\n' "$target"
   printf 'Backup: %s\n' "$backup_path"
 }

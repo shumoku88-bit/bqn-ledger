@@ -100,6 +100,10 @@ case "$POST_CHECK" in
   *) echo "ERROR: invalid --post-check mode: $POST_CHECK" >&2; exit 2 ;;
 esac
 
+TARGET_PATH="$BASE_DIR/$JOURNAL_FILE"
+SNAPSHOT_TOKEN="$(safe_snapshot_token "$TARGET_PATH")"
+IFS=$'\t' read -r SNAP_SIZE SNAP_MTIME SNAP_SHA256 <<< "$SNAPSHOT_TOKEN"
+
 BQN_STDERR="$(mktemp)"
 trap 'rm -f "$BQN_STDERR"' EXIT
 BQN_OUT=""
@@ -126,7 +130,6 @@ if [[ -n "${EXTRA:-}" || "$STATUS" != "OK" || "$OP" != "APPEND" || "$TARGET_FILE
   exit 1
 fi
 
-TARGET_PATH="$BASE_DIR/$TARGET_FILE"
 MODE="confirm"
 if [[ "$DRY_RUN" -eq 1 ]]; then
   MODE="dry-run"
@@ -158,7 +161,11 @@ if [[ "$YES" -eq 0 ]]; then
   fi
 fi
 
-WRITE_OUT="$(safe_append "$TARGET_PATH" "$PAYLOAD")"
+if [[ -n "${EDIT_BQN_TEST_BEFORE_APPEND_HOOK:-}" ]]; then
+  eval "$EDIT_BQN_TEST_BEFORE_APPEND_HOOK"
+fi
+
+WRITE_OUT="$(safe_append_checked "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256")"
 printf '%s\n' "$WRITE_OUT"
 
 BACKUP_PATH="$(awk -F': ' '$1 == "Backup" {print $2}' <<< "$WRITE_OUT")"

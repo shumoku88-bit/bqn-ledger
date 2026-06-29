@@ -129,6 +129,39 @@ if ! find "$bqn_base/.backup" -type f -name 'journal.tsv*' | grep -q .; then
   exit 1
 fi
 
+# ── Stale write protection ──────────────────────────────────────
+
+stale_base="$tmp_root/stale"
+stale_out="$tmp_root/stale.out"
+cp -R data "$stale_base"
+set +e
+EDIT_BQN_TEST_BEFORE_APPEND_HOOK="printf '%s\\n' '# concurrent edit' >> '$stale_base/journal.tsv'" \
+  ./tools/edit-bqn --base "$stale_base" journal add \
+    --date 2026-06-29 \
+    --memo "stale append should not land" \
+    --from assets:bank \
+    --to expenses:食費 \
+    --amount 123 \
+    --yes \
+    --post-check none >"$stale_out" 2>&1
+stale_rc=$?
+set -e
+if [ "$stale_rc" -eq 0 ]; then
+  echo "FAIL: tools/edit-bqn accepted a stale journal append" >&2
+  cat "$stale_out" >&2
+  exit 1
+fi
+if grep -Fq "stale append should not land" "$stale_base/journal.tsv"; then
+  echo "FAIL: stale tools/edit-bqn append payload landed in journal.tsv" >&2
+  exit 1
+fi
+if ! tail -n 1 "$stale_base/journal.tsv" | grep -Fxq '# concurrent edit'; then
+  echo "FAIL: stale test did not leave the simulated concurrent edit as the final line" >&2
+  tail -n 5 "$stale_base/journal.tsv" >&2
+  exit 1
+fi
+assert_no_backup "$stale_base" "tools/edit-bqn stale append"
+
 # ── Negative fail-closed parity ─────────────────────────────────
 # At this stage stdout/stderr text does not need to match exactly. The gate is:
 # both paths reject the input, leave journal.tsv byte-identical, and create no backup.
