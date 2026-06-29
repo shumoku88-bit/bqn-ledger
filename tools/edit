@@ -38,7 +38,7 @@ if [[ $cmd_idx -ne -1 ]]; then
 
   case "$cmd" in
     journal)
-      if [[ "$subcmd" == "add" ]]; then
+      if [[ "$subcmd" == "add" || "$subcmd" == "reverse" ]]; then
         USE_BQN=1
       fi
       ;;
@@ -53,7 +53,7 @@ if [[ $cmd_idx -ne -1 ]]; then
       fi
       ;;
     plan)
-      if [[ "$subcmd" == "add" || "$subcmd" == "list" || "$subcmd" == "finish" ]]; then
+      if [[ "$subcmd" == "add" || "$subcmd" == "list" || "$subcmd" == "finish" || "$subcmd" == "edit" ]]; then
         USE_BQN=1
       fi
       ;;

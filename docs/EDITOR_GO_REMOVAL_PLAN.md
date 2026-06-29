@@ -1,12 +1,19 @@
 # Editor Go Removal Plan
 
-Status: BQN editor v0 complete / Opt-in testing available
+Status: BQN editor v1 complete / Full Go parity achieved
 
 This document defines the direction for removing the Go editor from the daily write path while preserving the current interactive workflow.
 
 ## Current Status & Opt-in Trial
 
-As of BQN editor v0 completion (including `journal add`, `budget add`, `plan add`, `issue add`, `plan list`, and `plan finish`), the experimental BQN path is stable enough for daily trial usage.
+As of BQN editor v1 completion, all daily commands are fully supported by BQN:
+- `journal add`, `budget add`, `plan add`, `issue add`
+- `plan list`
+- `plan finish`
+- `plan edit` (exact replace)
+- `journal reverse` (derived append)
+
+The experimental BQN path has reached 100% functional parity with the Go editor.
 
 You can run the interactive daily launcher through the BQN editor path by setting the `BQN_EDITOR=1` environment variable:
 
@@ -14,14 +21,7 @@ You can run the interactive daily launcher through the BQN editor path by settin
 BQN_EDITOR=1 tools/bl
 ```
 
-### Functional Gaps (Not yet Go-compatible)
-
-While BQN editor v0 covers the majority of daily append operations, **it is not yet fully Go-compatible**. The following commands are missing from the BQN path and must be implemented in the next phase (v1):
-
-1. **`plan edit` (exact replace)**: Editing date/amount of an existing plan row. (BQN primitive `safe_replace_line_checked` is merged but not integrated into the command dispatch yet).
-2. **`journal reverse` (derived append)**: Creating a reversed cancellation row.
-
-*Note: If you run under `BQN_EDITOR=1` and invoke these unimplemented commands, `tools/edit-bqn` will output a clean support error and exit safely without modifying any files.*
+*Note: Since the hybrid dispatcher routing is fully enabled, even without `BQN_EDITOR=1`, all daily commands automatically route to `tools/edit-bqn` instead of the legacy Go editor.*
 
 ---
 

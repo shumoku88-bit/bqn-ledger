@@ -129,9 +129,12 @@ bash checks/check-missing-role-fallback.sh >/dev/null
 bash checks/check-src-next-lint.sh >/dev/null
 bash checks/check-report-labels.sh >/dev/null
 bash checks/check-edit-bqn-journal-add.sh >/dev/null
+bash checks/check-edit-bqn-journal-reverse.sh >/dev/null
 bash checks/check-edit-bqn-plan-list.sh >/dev/null
 bash checks/check-edit-bqn-plan-add.sh >/dev/null
 bash checks/check-edit-bqn-plan-finish.sh >/dev/null
+bash checks/check-edit-bqn-plan-edit.sh >/dev/null
+bash checks/check-editor-parity.sh >/dev/null
 bash checks/check-edit-hybrid-dispatcher.sh >/dev/null
 bash checks/check-safe-replace-line.sh >/dev/null
 bash checks/check-bash-safety.sh >/dev/null

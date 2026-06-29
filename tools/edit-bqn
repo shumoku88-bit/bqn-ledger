@@ -32,8 +32,10 @@ Usage:
   tools/edit-bqn [--base DIR] issue add [--date YYYY-MM-DD] [--status open|resolved|dropped] --title TITLE [--amount INT] [--memo MEMO] [--dry-run] [--yes]
   tools/edit-bqn [--base DIR] plan list [--all] [--format tsv|text]
   tools/edit-bqn [--base DIR] plan finish [--index NUMBER] [--id PLAN_ID] --actual-date YYYY-MM-DD [--dry-run] [--yes] [--post-check none|lint|full]
+  tools/edit-bqn [--base DIR] plan edit [--index NUMBER] [--id PLAN_ID] [--date YYYY-MM-DD] [--amount INT] [--all] [--dry-run] [--yes] [--post-check none|lint|full]
+  tools/edit-bqn [--base DIR] journal reverse [--index NUMBER] [--id TXN_ID] [--date YYYY-MM-DD] [--dry-run] [--yes] [--post-check none|lint|full]
 
-Phase 3 scope: BQN editor v0 commands (journal/budget/plan/issue add, plan list, plan finish). Use tools/edit for all other commands.
+Phase 3 scope: BQN editor v0 commands (journal/budget/plan/issue add, plan list, plan finish, plan edit, journal reverse). Use tools/edit for all other commands.
 USAGE
 }
 
@@ -79,6 +81,238 @@ if [[ $# -lt 2 ]]; then
   echo "ERROR: missing command/subcommand" >&2
   usage
   exit 2
+fi
+
+if [[ "$1" == "journal" && "$2" == "reverse" ]]; then
+  shift 2
+  INDEX="0"
+  ID=""
+  DATE=""
+  DRY_RUN=0
+  YES=0
+  POST_CHECK="lint"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --index) INDEX="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --id) ID="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --date) DATE="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --dry-run) DRY_RUN=1; shift ;;
+      --yes) YES=1; shift ;;
+      --post-check) POST_CHECK="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      *) echo "ERROR: unknown option: $1" >&2; exit 2 ;;
+    esac
+  done
+
+  if [[ "$INDEX" == "0" && -z "$ID" ]]; then
+    echo "ERROR: must specify journal row to reverse using --index or --id" >&2
+    exit 2
+  fi
+  case "$POST_CHECK" in
+    none|lint|full) ;;
+    *) echo "ERROR: invalid --post-check mode: $POST_CHECK" >&2; exit 2 ;;
+  esac
+
+  TARGET_PATH="$BASE_DIR/$JOURNAL_FILE"
+  SNAPSHOT_TOKEN="$(safe_snapshot_token "$TARGET_PATH")"
+  IFS=$'\t' read -r SNAP_SIZE SNAP_MTIME SNAP_SHA256 <<< "$SNAPSHOT_TOKEN"
+
+  BQN_STDERR="$(mktemp)"
+  trap 'rm -f "$BQN_STDERR"' EXIT
+  BQN_OUT=""
+  if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/editor_cmd.bqn "$BASE_DIR" journal reverse "$ID" "$INDEX" "$DATE" "$YES" 2>"$BQN_STDERR")"; then
+    if [[ -n "$BQN_OUT" ]]; then
+      printf '%s\n' "$BQN_OUT" >&2
+    fi
+    if [[ -s "$BQN_STDERR" ]]; then
+      cat "$BQN_STDERR" >&2
+    fi
+    exit 1
+  fi
+
+  FIRST_LINE="${BQN_OUT%%$'\n'*}"
+  if [[ "$FIRST_LINE" == "$BQN_OUT" ]]; then
+    echo "ERROR: invalid BQN protocol: missing payload line" >&2
+    exit 1
+  fi
+  PAYLOAD="${BQN_OUT#*$'\n'}"
+
+  IFS=$'\t' read -r STATUS OP PROTOCOL_TARGET_FILE TARGET_IDX ORIG_DATE ORIG_MEMO ORIG_FROM ORIG_TO ORIG_AMOUNT <<< "$FIRST_LINE"
+  if [[ "$STATUS" == "ERROR" ]]; then
+    echo "ERROR: $OP" >&2
+    exit 1
+  fi
+  if [[ "$STATUS" != "OK" || "$OP" != "APPEND" || "$PROTOCOL_TARGET_FILE" != "$JOURNAL_FILE" ]]; then
+    echo "ERROR: invalid BQN protocol header: $FIRST_LINE" >&2
+    exit 1
+  fi
+
+  MODE="confirm"
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    MODE="dry-run"
+  elif [[ "$YES" -eq 1 ]]; then
+    MODE="yes"
+  fi
+
+  printf 'Reversing journal row %s (date=%s, memo=%s)\n' "$TARGET_IDX" "$ORIG_DATE" "$ORIG_MEMO"
+  printf '  Original: %s -> %s  %s\n' "$ORIG_FROM" "$ORIG_TO" "$ORIG_AMOUNT"
+  printf '  Reversed: %s -> %s  %s\n' "$ORIG_TO" "$ORIG_FROM" "$ORIG_AMOUNT"
+
+  printf 'Journal reverse preview\n'
+  printf 'Target: %s\n' "$TARGET_PATH"
+  printf 'Mode: %s\n' "$MODE"
+  printf 'Post-check: %s\n' "$POST_CHECK"
+  printf 'Reversed row:\n'
+  printf '%s\n' "$PAYLOAD"
+
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    printf 'Dry-run only. No files were modified.\n'
+    exit 0
+  fi
+
+  if [[ "$YES" -eq 0 ]]; then
+    printf 'Append this row? [y/N]: '
+    read -r REPLY
+    case "$REPLY" in
+      y|Y|yes|YES) ;;
+      *) echo "Cancelled. No files were modified."; exit 0 ;;
+    esac
+  fi
+
+  if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && -n "${EDIT_BQN_TEST_BEFORE_APPEND_HOOK:-}" ]]; then
+    eval "$EDIT_BQN_TEST_BEFORE_APPEND_HOOK"
+  fi
+
+  WRITE_OUT="$(safe_append_checked "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256")"
+  printf '%s\n' "$WRITE_OUT"
+
+  BACKUP_PATH="$(awk -F': ' '$1 == "Backup" {print $2}' <<< "$WRITE_OUT")"
+  run_post_check "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$BACKUP_PATH"
+  exit 0
+fi
+
+if [[ "$1" == "plan" && "$2" == "edit" ]]; then
+  shift 2
+  INDEX="0"
+  PLAN_ID=""
+  DATE=""
+  AMOUNT=""
+  SHOW_ALL=0
+  DRY_RUN=0
+  YES=0
+  POST_CHECK="lint"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --index) INDEX="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --id) PLAN_ID="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --date) DATE="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --amount) AMOUNT="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --all) SHOW_ALL=1; shift ;;
+      --dry-run) DRY_RUN=1; shift ;;
+      --yes) YES=1; shift ;;
+      --post-check) POST_CHECK="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      *) echo "ERROR: unknown option: $1" >&2; exit 2 ;;
+    esac
+  done
+
+  if [[ "$INDEX" == "0" && -z "$PLAN_ID" ]]; then
+    echo "ERROR: must specify plan to edit using --index or --id" >&2
+    exit 2
+  fi
+  if [[ -z "$DATE" && -z "$AMOUNT" ]]; then
+    echo "ERROR: must specify at least one of --date or --amount" >&2
+    exit 2
+  fi
+  case "$POST_CHECK" in
+    none|lint|full) ;;
+    *) echo "ERROR: invalid --post-check mode: $POST_CHECK" >&2; exit 2 ;;
+  esac
+
+  TARGET_PATH="$BASE_DIR/$PLAN_FILE"
+  SNAPSHOT_TOKEN="$(safe_snapshot_token "$TARGET_PATH")"
+  IFS=$'\t' read -r SNAP_SIZE SNAP_MTIME SNAP_SHA256 <<< "$SNAPSHOT_TOKEN"
+
+  BQN_STDERR="$(mktemp)"
+  trap 'rm -f "$BQN_STDERR"' EXIT
+  BQN_OUT=""
+  if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/editor_cmd.bqn "$BASE_DIR" plan edit "$INDEX" "$PLAN_ID" "$DATE" "$AMOUNT" "$SHOW_ALL" "$DRY_RUN" "$YES" "$POST_CHECK" 2>"$BQN_STDERR")"; then
+    if [[ -n "$BQN_OUT" ]]; then
+      printf '%s\n' "$BQN_OUT" >&2
+    fi
+    if [[ -s "$BQN_STDERR" ]]; then
+      cat "$BQN_STDERR" >&2
+    fi
+    exit 1
+  fi
+
+  # Parse REPLACE protocol:
+  # BQN outputs:
+  # Line 1: OK\tREPLACE\t<lineNum>\t<planID>  (or ERROR\t<msg>)
+  # Line 2: <oldLine>
+  # Line 3: <newLine>
+  bqn_lines=()
+  mapfile -t bqn_lines <<< "$BQN_OUT"
+
+  IFS=$'\t' read -r STATUS OP LINE_NUM EDIT_PLAN_ID <<< "${bqn_lines[0]}"
+  if [[ "$STATUS" == "ERROR" ]]; then
+    echo "ERROR: $OP" >&2
+    exit 1
+  fi
+  if [[ "$STATUS" != "OK" || "$OP" != "REPLACE" ]]; then
+    echo "ERROR: unexpected BQN protocol: expected OK REPLACE, got: $STATUS $OP" >&2
+    exit 1
+  fi
+
+  OLD_LINE="${bqn_lines[1]}"
+  NEW_LINE="${bqn_lines[2]}"
+
+  if [[ -z "$LINE_NUM" || -z "$OLD_LINE" || -z "$NEW_LINE" ]]; then
+    echo "ERROR: incomplete REPLACE protocol output" >&2
+    exit 1
+  fi
+
+  MODE="confirm"
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    MODE="dry-run"
+  elif [[ "$YES" -eq 1 ]]; then
+    MODE="yes"
+  fi
+
+  # Preview output matching Go editor format
+  printf 'Plan edit preview\n'
+  printf 'Target: %s\n' "$TARGET_PATH"
+  printf 'Line: %s\n' "$LINE_NUM"
+  printf 'Plan ID: %s\n' "$EDIT_PLAN_ID"
+  printf 'Mode: %s\n' "$MODE"
+  printf 'Post-check: %s\n' "$POST_CHECK"
+  printf 'Diff:\n'
+  printf -- '- %s\n' "$OLD_LINE"
+  printf -- '+ %s\n' "$NEW_LINE"
+
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    printf 'Dry-run only. No files were modified.\n'
+    exit 0
+  fi
+
+  if [[ "$YES" -eq 0 ]]; then
+    printf 'Rewrite this plan row? [y/N]: '
+    read -r REPLY
+    case "$REPLY" in
+      y|Y|yes|YES) ;;
+      *) echo "Cancelled. No files were modified."; exit 0 ;;
+    esac
+  fi
+
+  # Test-only stale-write injection point.
+  if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && -n "${EDIT_BQN_TEST_BEFORE_REPLACE_HOOK:-}" ]]; then
+    eval "$EDIT_BQN_TEST_BEFORE_REPLACE_HOOK"
+  fi
+
+  WRITE_OUT="$(safe_replace_line_checked "$TARGET_PATH" "$LINE_NUM" "$OLD_LINE" "$NEW_LINE" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256")"
+  printf '%s\n' "$WRITE_OUT"
+
+  BACKUP_PATH="$(awk -F': ' '$1 == "Backup" {print $2}' <<< "$WRITE_OUT")"
+  run_post_check "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$BACKUP_PATH"
+  exit 0
 fi
 
 if [[ "$1" == "plan" && "$2" == "finish" ]]; then
@@ -211,7 +445,7 @@ if [[ "$1" == "plan" && "$2" == "list" ]]; then
 fi
 
 if [[ "$2" != "add" ]]; then
-  echo "ERROR: tools/edit-bqn currently supports only: journal add, budget add, plan add, issue add, plan list, and plan finish" >&2
+  echo "ERROR: tools/edit-bqn currently supports only: journal add, journal reverse, budget add, plan add, issue add, plan list, plan finish, and plan edit" >&2
   usage
   exit 2
 fi
@@ -238,7 +472,7 @@ case "$COMMAND" in
     ROW_TITLE="Issue row"
     ;;
   *)
-    echo "ERROR: tools/edit-bqn currently supports only: journal add, budget add, plan add, issue add, and plan list" >&2
+    echo "ERROR: tools/edit-bqn currently supports only: journal add, journal reverse, budget add, plan add, issue add, plan list, plan finish, and plan edit" >&2
     usage
     exit 2
     ;;

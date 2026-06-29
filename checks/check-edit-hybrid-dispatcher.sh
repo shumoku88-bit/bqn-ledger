@@ -39,17 +39,17 @@ assert_contains() {
 trace1="$(bash -x tools/edit --base data journal add --date 2026-06-30 --memo "test" --from assets:bank --to expenses:食費 --amount 100 --dry-run 2>&1 || true)"
 assert_contains "edit-bqn" "$trace1" "journal-add-routed-to-bqn"
 
-# Test 2: routing for plan edit (Go fallback)
+# Test 2: routing for plan edit (BQN)
 trace2="$(bash -x tools/edit --base data plan edit --index 1 --date 2026-06-30 --dry-run 2>&1 || true)"
-assert_contains "edit-legacy-go" "$trace2" "plan-edit-routed-to-go"
+assert_contains "edit-bqn" "$trace2" "plan-edit-routed-to-bqn"
 
 # Test 3: routing for plan finish (BQN)
 trace3="$(bash -x tools/edit --base data plan finish --index 1 --actual-date 2026-06-29 --dry-run 2>&1 || true)"
 assert_contains "edit-bqn" "$trace3" "plan-finish-routed-to-bqn"
 
-# Test 4: routing for journal reverse (Go fallback)
+# Test 4: routing for journal reverse (BQN)
 trace4="$(bash -x tools/edit --base data journal reverse --index 1 --dry-run 2>&1 || true)"
-assert_contains "edit-legacy-go" "$trace4" "journal-reverse-routed-to-go"
+assert_contains "edit-bqn" "$trace4" "journal-reverse-routed-to-bqn"
 
 # Test 5: routing for plan list (BQN)
 trace5="$(bash -x tools/edit --base data plan list --format tsv 2>&1 || true)"

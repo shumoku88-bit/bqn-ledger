@@ -2,20 +2,17 @@
 
 ## Status
 
-- production direction / docs-only
-- no runtime behavior change
-- no tools/edit switch
-- no Go removal
-- no source TSV format change
+- BQN editor v1 complete
+- All daily edit commands supported in BQN
+- Hybrid dispatcher routing fully active (Go editor is now legacy/fallback only)
+- Differential parity check suite automated (`checks/check-editor-parity.sh`)
 
 ## Decision
 
-- `src_edit` is the future production editor subsystem.
-- `tools/edit-bqn` is a staged candidate path before switching `tools/edit`.
-- `tools/edit` remains the final public editor command surface.
-- The current append-only implementation is not a toy experiment; it is the first production-directed stage.
-
-Note: At this time, `tools/edit-bqn` is not yet the active production write path. The active production write path remains `tools/edit` / Go editor until an explicit switch PR.
+- `src_edit` is the active production editor subsystem.
+- `tools/edit-bqn` is the active production BQN write path.
+- `tools/edit` is the public editor command surface, routing to `tools/edit-bqn` for all daily commands.
+- The Go editor remains in the repository as `tools/edit-legacy-go` for safety fallback during the transition period.
 
 ## Editor Architecture
 
