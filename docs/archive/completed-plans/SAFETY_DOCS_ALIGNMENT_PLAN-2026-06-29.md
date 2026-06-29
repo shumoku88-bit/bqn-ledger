@@ -1,7 +1,9 @@
 # Safety / Docs Alignment Plan 2026-06-29
 
-Status: active / small-batch plan
+Status: completed / small-batch plan
 Date: 2026-06-29
+
+*Note: All batches (A, B, C, D) are complete. This plan is now closed and moved to the archive of completed plans.*
 
 ## Purpose
 
