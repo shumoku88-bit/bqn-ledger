@@ -225,6 +225,34 @@ safe_create_checked() {
   printf 'Backup: none (created new file)\n'
 }
 
+# Assert that a specific 1-based line number exists and exactly matches an expected row.
+# No normalization is performed: tabs, empty fields, and bytes other than the line
+# terminator must match exactly.
+_safe_write_assert_line_exact() {
+  local target="$1"
+  local line_number="$2"
+  local expected_old_row="$3"
+
+  if [[ ! "$line_number" =~ ^[0-9]+$ || "$line_number" -lt 1 ]]; then
+    echo "ERROR: invalid line number for replace: $line_number" >&2
+    return 1
+  fi
+
+  local -a lines=()
+  mapfile -t lines < "$target"
+  local line_count="${#lines[@]}"
+  if (( line_number > line_count )); then
+    echo "ERROR: replace line $line_number out of range for $target (lines: $line_count)" >&2
+    return 1
+  fi
+
+  local current_row="${lines[$((line_number - 1))]}"
+  if [[ "$current_row" != "$expected_old_row" ]]; then
+    echo "ERROR: replace old row mismatch for $target line $line_number" >&2
+    return 1
+  fi
+}
+
 # Append a single row using a previously captured snapshot token.
 #
 # Responsibility boundary:
@@ -273,6 +301,86 @@ safe_append_checked() {
 
   # Re-check immediately before rename. This closes the gap between backup and write.
   if ! _safe_write_check_expected_snapshot "$target" "$expected_size" "$expected_mtime" "$expected_sha256"; then
+    return 1
+  fi
+
+  mv "$tmp_file" "$target"
+  trap - EXIT
+
+  printf 'Wrote: %s\n' "$target"
+  printf 'Backup: %s\n' "$backup_path"
+}
+
+# Replace exactly one line using a previously captured snapshot token.
+#
+# Responsibility boundary:
+# - Caller captures the snapshot before validation/preview.
+# - This function checks that exact snapshot before creating a backup.
+# - It asserts the expected old row at the expected 1-based line number.
+# - It checks the same snapshot and old row again immediately before atomic rename.
+# - It replaces one line only. It never searches for similar rows or repairs TSV.
+#
+# Usage: safe_replace_line_checked <target_file> <line_number> <expected_old_row> <new_row> <expected_size> <expected_mtime> <expected_sha256>
+safe_replace_line_checked() {
+  local target="$1"
+  local line_number="$2"
+  local expected_old_row="$3"
+  local new_row="$4"
+  local expected_size="$5"
+  local expected_mtime="$6"
+  local expected_sha256="$7"
+  local base_dir
+  base_dir="$(cd "$(dirname "$target")" && pwd)"
+  local filename
+  filename="$(basename "$target")"
+  local backup_path
+  backup_path="$(_choose_backup_path "$base_dir" "$filename")"
+
+  # Stale and exact-row checks before backup creation: stale/no-op failures must
+  # not create side effects.
+  if ! _safe_write_check_expected_snapshot "$target" "$expected_size" "$expected_mtime" "$expected_sha256"; then
+    return 1
+  fi
+  if ! _safe_write_assert_line_exact "$target" "$line_number" "$expected_old_row"; then
+    return 1
+  fi
+
+  _create_backup "$target" "$backup_path"
+
+  local -a lines=()
+  mapfile -t lines < "$target"
+  lines[$((line_number - 1))]="$new_row"
+
+  local had_final_newline=0
+  if [[ -s "$target" ]] && [[ "$(tail -c 1 "$target" | xxd -p)" == "0a" ]]; then
+    had_final_newline=1
+  fi
+
+  local tmp_file
+  tmp_file="$(mktemp "${target}.tmp-XXXXXX")"
+  # shellcheck disable=SC2064
+  trap "rm -f '$tmp_file'" EXIT
+
+  local i line_count
+  line_count="${#lines[@]}"
+  for ((i = 0; i < line_count; i++)); do
+    printf '%s' "${lines[$i]}" >> "$tmp_file"
+    if (( i < line_count - 1 || had_final_newline == 1 )); then
+      printf '\n' >> "$tmp_file"
+    fi
+  done
+
+  # Test-only hook for simulating a concurrent edit between backup/content build
+  # and final rename. This is ignored unless explicit test mode is enabled.
+  if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && -n "${SAFE_WRITE_TEST_BEFORE_REPLACE_RENAME_HOOK:-}" ]]; then
+    eval "$SAFE_WRITE_TEST_BEFORE_REPLACE_RENAME_HOOK"
+  fi
+
+  # Re-check immediately before rename. This closes the gap between backup and write.
+  if ! _safe_write_check_expected_snapshot "$target" "$expected_size" "$expected_mtime" "$expected_sha256"; then
+    return 1
+  fi
+  if ! _safe_write_assert_line_exact "$target" "$line_number" "$expected_old_row"; then
     return 1
   fi
 
