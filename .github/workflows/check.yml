@@ -11,19 +11,16 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TZ: Asia/Tokyo
+      CBQN_COMMIT: 12a4fb9f
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.22'
-          cache-dependency-path: |
-            editor/go.sum
-
       - name: Install CBQN
         run: |
-          git clone --depth 1 https://github.com/dzaima/CBQN.git
+          git init CBQN
+          git -C CBQN remote add origin https://github.com/dzaima/CBQN.git
+          git -C CBQN fetch --depth 1 origin "$CBQN_COMMIT"
+          git -C CBQN checkout --detach FETCH_HEAD
           echo "CBQN commit: $(git -C CBQN rev-parse HEAD)"
           make -C CBQN -j$(nproc)
           sudo cp CBQN/BQN /usr/local/bin/bqn

@@ -12,7 +12,7 @@
 6. `docs/CANONICAL_DAILY_CUBE.md`（固定するDaily Cube契約）
 7. `docs/TIME_AS_AXIS.md`（時間座標・観察時点・区間view）
 8. レポート変更なら `src_next/report.bqn` と該当する `src_next/*` モジュール、および現行の report 関連 docs / check
-9. エディタ移行（Go→BQN+shell）なら `docs/EDITOR_GO_REMOVAL_PLAN.md` / `src_edit/README.md`
+9. エディタ作業なら `docs/PRODUCTION_EDITOR_DIRECTION.md` / `docs/BQN_EDITOR_USAGE.md` / `src_edit/README.md`
 10. 複数ポスティング導入検討なら `docs/archive/completed-plans/DECISION_MULTI_POSTING_INVESTIGATION.md`
 11. 変更内容に応じて `docs/CONVENTIONS.md` / `docs/JOURNAL_META.md` / `docs/MAINTENANCE.md`
 12. 履歴・背景（非アクティブな計画書、旧エンジン移行期資料、完了済みの計画書など）が必要な場合のみ `docs/archive/` を読む
@@ -102,31 +102,32 @@
 
 ### `src_edit/` (BQN editor subsystem)
 
-BQN editor を置き換える BQN editor subsystem。`src_next/` (report) とは独立。
+`tools/edit-bqn` を支える BQN editor subsystem。`src_next/` (report) とは独立。
 
-- `src_edit/README.md` — スキャフォールド文書。責務境界と実装対象の定義。
-- `src_edit/journal_add_cmd.bqn` — journal add 用の検証および TSV 生成。
+- `src_edit/README.md` — 責務境界と実装対象の定義。
+- `src_edit/journal_add_cmd.bqn` — journal add / budget add 用の検証および TSV 生成。
+- `src_edit/issue_add_cmd.bqn` — issue add 用の検証および TSV 生成。
 - `src_edit/plan_add_cmd.bqn` — plan add 用の検証および TSV 生成。
 - `src_edit/plan_list_cmd.bqn` — plan list 用の BQN 実装。
 - `src_edit/plan_finish_cmd.bqn` — plan finish 用の検証、実際のジャーナルアペンド行の生成。
-- 移行計画: `docs/EDITOR_GO_REMOVAL_PLAN.md`
+- `src_edit/plan_id.bqn` — plan_id 生成補助。
+- `src_edit/render.bqn` / `src_edit/validate.bqn` — 共通レンダリング / バリデーション。
 
-責務: edit intent の受取 → 入力バリデーション → 候補 TSV 行の生成 → 機械可読出力。
+責務: edit intent の受取 → 入力バリデーション → 候補 TSV 行や編集操作の生成 → 機械可読出力。
 shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当する。
 
-### `editor/` (Go source TSV editor — superseded, fallback として維持)
+### `tools/edit`
 
-> **方針転換 (2026-06-29)**: `src_edit/` (BQN+shell) への移行が最優先。BQN editor は Phase 5 (dispatcher switch) まで fallback として維持する。
+- 日常の公開 editor コマンド入口。
+- `tools/edit-bqn` へそのまま委譲する薄いラッパー。
+- CLI 互換の安定点として扱う。
 
-source-of-truth TSV を安全に編集する Go ツール。
+### `tools/edit-bqn`
 
-- `tools/edit` — BQN editor のビルド兼実行ラッパー。
-- `editor/main.go` — CLI入口。`journal add` / `journal reverse` / `budget add` / `plan list` / `plan add` / `plan finish` / `plan edit` / `issue add`。
-- `editor/journal.go` — single-file safe append 基盤。
-- `editor/issue.go` — issues.tsv への safe append 実装。
-- `editor/*_test.go` — fixture/tmpdir ベース of tests。
-
-承認済み書き込み範囲: `journal.tsv` / `budget_alloc.tsv` / `plan.tsv` / `issues.tsv` への single-file safe append、`journal reverse`、`plan finish --apply`、open plan の `date`/`amount` 限定既存行編集。
+- 日常 write path の BQN+shell 実装。
+- `journal add` / `budget add` / `issue add` / `plan add` / `plan list` / `plan finish` / `plan edit` / `journal reverse` を扱う。
+- `src_edit` の機械可読プロトコルを受け、`tools/lib/safe-write.sh` で安全に適用する。
+- Go editor の記述や fallback 前提は現行導線では使わない。
 
 ### `checks/` (検証スクリプト)
 
@@ -156,7 +157,7 @@ source-of-truth TSV を安全に編集する Go ツール。
 - `tools/check.sh` — テストランナーの正本。ユニットテスト、エンジン不変条件、各セクションの golden 差分、devtools-check などを一括実行する。
 - `tools/devtools-check.sh` — 全開発ツールの健全性チェック（`check.sh` のフェーズ4に組み込み済み）。
 - `tools/scaffold-check.sh` — 新しい `checks/check-*.sh` スクリプトのボイラープレート（テンプレート）生成用。
-- `tools/coverage` — BQN モジュールのテスト網羅状況を出力する。
+- `tools/coverage` — BQN module / editor-check inventory を出力する。
 
 ### 開発・検証支援 (devtools)
 
@@ -171,8 +172,8 @@ source-of-truth TSV を安全に編集する Go ツール。
 
 - `tools/main-ui.sh` — 読み込み・閲覧系UI（レポート閲覧・セクション選択、fzf/gumベース）。
 - `tools/add-ui.sh` — 書き込み・操作系UI（取引の追加・取消・予定完了処理等、BQN editor への安全な中継）。
-- `tools/edit` — BQN editor 実行ラッパー（production fallback）。
-- `tools/edit-bqn` — 実験中の BQN+shell editor 入口。現在の実装範囲は `journal add` の narrow parity gate のみ。
+- `tools/edit` — 公開 editor コマンドの薄い shell wrapper。
+- `tools/edit-bqn` — 現行の BQN+shell editor 入口。`src_edit` の write path を実行する。
 - `tools/report` / `tools/report-next` — `src_next` を使用したコマンドラインレポートの正本入口。
 - `tools/report-next-summary` — `src_next` データの機械向け要約出力。
 - `tools/bl` — 日常操作 Command Hub。report / section / add / check / edit をまとめ、読み取り表示と安全な書き込み導線へルーティングする。

@@ -55,8 +55,8 @@
   - Canonical engine を plugin 化せず、machine export 下流の read-only adapter を許す拡張境界。
 - [PUBLIC_PRODUCTIZATION_REVIEW_FILTER.md](PUBLIC_PRODUCTIZATION_REVIEW_FILTER.md)
   - Homebrew、CI/CD、packaging、Docker、公開OSS化、plugin、marketing 等の広い改善提案を現在の設計境界で分類する review filter。
-- [GO_EDITOR_USAGE.md](GO_EDITOR_USAGE.md)
-  - Go 製 source TSV editor (`tools/edit`) の使い方。
+- [BQN_EDITOR_USAGE.md](BQN_EDITOR_USAGE.md)
+  - BQN 製 source TSV editor (`tools/edit` / `tools/edit-bqn`) と `tools/add-ui.sh` の使い方。
 - [CONVENTIONS.md](CONVENTIONS.md)
   - 勘定科目の命名、TSVスキーマ、メタデータ定義などの規約。
 - [JOURNAL_META.md](JOURNAL_META.md)

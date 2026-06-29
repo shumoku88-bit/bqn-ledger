@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# tools/coverage — test coverage report for BQN ledger
+# tools/coverage — BQN module inventory and direct editor-check map.
 
 SOURCE="${BASH_SOURCE[0]}"
 while [ -L "$SOURCE" ]; do
@@ -14,18 +14,65 @@ ROOT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 
 cd "$ROOT_DIR"
 
-echo "=== BQN module test inventory ==="
-total_modules=0
-tested_modules=0
+shopt -s nullglob
 
-for mod in src_next/*.bqn; do
+src_next_modules=(src_next/*.bqn)
+src_next_tests=(tests/test_src_next_*.bqn)
+
+printf '=== src_next module inventory ===\n'
+printf '  modules: %s\n' "${#src_next_modules[@]}"
+printf '  matching test files: %s\n' "${#src_next_tests[@]}"
+for test_file in "${src_next_tests[@]}"; do
+  printf '    %s\n' "$(basename "$test_file")"
+done
+
+printf '=== src_edit module inventory ===\n'
+covered=0
+total=0
+for mod in src_edit/*.bqn; do
   basename=$(basename "$mod" .bqn)
-  total_modules=$((total_modules + 1))
-  if [ -f "tests/test_${basename}.bqn" ] || [ -f "tests/test_src_next_${basename}.bqn" ]; then
-    tested_modules=$((tested_modules + 1))
+  total=$((total + 1))
+
+  case "$basename" in
+    validate|render|plan_id)
+      coverage=(tests/test_edit_validate.bqn)
+      ;;
+    editor_cmd)
+      coverage=(
+        checks/check-edit-bqn-journal-add.sh
+        checks/check-edit-bqn-journal-reverse.sh
+        checks/check-edit-bqn-plan-add.sh
+        checks/check-edit-bqn-plan-edit.sh
+        checks/check-edit-bqn-plan-finish.sh
+        checks/check-edit-bqn-plan-list.sh
+      )
+      ;;
+    journal_add_cmd)
+      coverage=(checks/check-edit-bqn-journal-add.sh)
+      ;;
+    issue_add_cmd)
+      coverage=(checks/check-edit-bqn-journal-add.sh)
+      ;;
+    plan_add_cmd)
+      coverage=(checks/check-edit-bqn-plan-add.sh)
+      ;;
+    plan_finish_cmd)
+      coverage=(checks/check-edit-bqn-plan-finish.sh)
+      ;;
+    plan_list_cmd)
+      coverage=(checks/check-edit-bqn-plan-list.sh)
+      ;;
+    *)
+      coverage=()
+      ;;
+  esac
+
+  if ((${#coverage[@]} > 0)); then
+    covered=$((covered + 1))
+    printf '  covered: %s <- %s\n' "$basename" "${coverage[*]}"
   else
-    echo "  untested: $basename"
+    printf '  untested: %s\n' "$basename"
   fi
 done
 
-echo "  tested: $tested_modules / $total_modules BQN modules"
+printf '  covered: %s / %s BQN modules\n' "$covered" "$total"

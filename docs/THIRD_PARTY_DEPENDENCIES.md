@@ -9,19 +9,14 @@ It is not a full SBOM. It exists so maintainers and reviewers can see the main r
 | Dependency | Used for | Notes |
 |---|---|---|
 | CBQN | Running BQN report engine, tests, and checks | README currently recommends commit `12a4fb9f` or later. CI reproducibility should keep this relationship explicit. |
-| Go | Building and testing the TSV editor | README and CI use Go 1.22+. |
 | Bash | Shell wrappers and check scripts | Used by `tools/`, `checks/`, and GitHub Actions. |
 | ripgrep | Repository checks | Installed in CI for check tooling. |
 | fzf | Optional interactive UI | Presentation/selection helper only. |
 | gum | Optional interactive UI | Presentation/selection helper only. |
 
-## Go module dependencies
+## Legacy / archived implementation notes
 
-Go dependencies are declared in module-local `go.mod` files.
-
-Known modules:
-
-- `editor/go.mod`: BQN editor and tests.
+Any remaining Go source in the repository is historical support code only and is not a normal runtime or development dependency. It should not be treated as a current toolchain requirement.
 
 ## Reproducibility notes
 

@@ -33,7 +33,7 @@
 |---|---|
 | `data/*.tsv` | 正データ。AIとレポートエンジンは原則直接変更しない。 |
 | BQN report engine | 読み取り、検査、派生ビュー、レポート生成を担当する。 |
-| BQN editor | 明示操作に基づく安全な TSV 追記・将来の編集経路を担当する。 |
+| BQN editor | 明示操作に基づく安全な TSV 追記・編集経路を担当する。 |
 | shell / gum / fzf | 表示、選択、検索、入力補助に徹する。 |
 | docs / fixtures / tests | 契約と回帰確認を固定する。 |
 
@@ -187,6 +187,8 @@ Event IR -> Projection IR -> Day × Account × Layer -> report / export
 - `docs/CANONICAL_DAILY_CUBE.md`
 - `docs/TIME_AS_AXIS.md`
 - `docs/REPORT_CONTRACTS.md`
-- `docs/GO_EDITOR_USAGE.md`
-- `docs/archive/active-plans/GO_EDITOR_NEXT_PLAN.md`
+- `docs/BQN_EDITOR_USAGE.md`
+- `docs/PRODUCTION_EDITOR_DIRECTION.md`
+- `src_edit/README.md`
+- `checks/check-edit-bqn-*.sh`
 - `docs/archive/completed-plans/SAFE_WORKFLOW_REDESIGN.md`

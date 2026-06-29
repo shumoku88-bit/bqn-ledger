@@ -2,19 +2,20 @@
 
 ## Status
 
-- BQN editor v1 complete
-- All daily edit commands supported in BQN
-- Hybrid dispatcher routing fully active (Go editor is now legacy/fallback only)
-- Differential parity check suite automated (`checks/check-editor-parity.sh`)
+- BQN editor production path is complete for the current daily commands.
+- `tools/edit` is the stable public command surface and thin wrapper.
+- `tools/edit-bqn` is the active BQN write path.
+- `src_edit` is the BQN editor subsystem that validates edit intent and renders write operations.
+- `tools/check.sh` includes the current BQN editor checks and unit coverage.
 
 ## Decision
 
-- `src_edit` is the active production editor subsystem.
-- `tools/edit-bqn` is the active production BQN write path.
-- `tools/edit` is the public editor command surface, routing to `tools/edit-bqn` for all daily commands.
-- The Go editor remains in the repository as `tools/edit-legacy-go` for safety fallback during the transition period.
+- `src_edit` owns edit validation and protocol rendering.
+- `tools/edit-bqn` owns daily editor dispatch and machine-readable write protocols.
+- `tools/edit` stays as the user-facing shell entrypoint and delegates to `tools/edit-bqn`.
+- No Go editor remains in the active daily write path.
 
-## Editor Architecture
+## Editor architecture
 
 ### `tools/add-ui.sh`
 - Responsible for user interaction, mode selection, fzf / gum / numbered fallback, text input, and account selection.
@@ -22,130 +23,72 @@
 - Does not own TSV write semantics.
 
 ### `tools/edit`
-- The final public command surface.
-- Must preserve current command compatibility.
-- Will eventually become a shell dispatcher to `src_edit`.
-- Must not be switched in this PR.
+- Public command surface for daily editor operations.
+- Preserves CLI compatibility for current commands.
+- Delegates immediately to `tools/edit-bqn`.
 
 ### `tools/edit-bqn`
-- The staged candidate entry point.
-- Used to prove the BQN + shell editor path.
-- Must not grow ad-hoc branches without design.
-- Should be removed, folded, or retired after the `tools/edit` switch is complete.
+- Active BQN + shell editor entry point.
+- Applies append and replace operations through validated machine-readable protocols.
+- Must stay small and predictable; no ad-hoc business logic.
 
 ### `src_edit`
-- Validates edit intent.
-- Reads source TSV only when needed for edit meaning.
-- Renders edit plans or append operations.
-- Owners of ledger meaning for edit commands.
-- Must not directly write source TSV files.
+- Parses command-level edit intent.
+- Validates date / amount / account / metadata contracts.
+- Renders append rows, replace plans, or other edit operations.
 - Must not become the report engine.
 
 ### `tools/lib/safe-write.sh`
-- Responsible for backup, temp files, atomic rename, stale checks, expected old row checks for future replace operations, and post-check invocation.
+- Responsible for backup, temp files, atomic rename, stale checks, expected old row checks, and post-check invocation.
 - Must not own ledger/accounting meaning.
 
-## Command Classes
+## Command classes
 
-We classify current and future commands as follows:
-
-### Append-Only (Low Risk)
+### Append-only
 - `journal add`
 - `budget add`
 - `plan add`
 - `issue add`
-These commands only append new data, making them lower risk.
 
-### Read-Only Selector
+### Read-only selector
 - `plan list`
-Provides display fields used for plan selection.
 
-### Derived Append
+### Derived append
 - `plan finish`
 - `journal reverse`
-Appends a row derived from an existing row.
 
-### Exact Replace
+### Exact replace
 - `plan edit`
-Replaces an existing row.
 
-Append-only commands are lower risk, but derived append and exact replace require a stronger edit plan protocol before implementation.
+Append-only commands are the lowest-risk path. Derived append and exact replace rely on explicit old-row / line-number safety.
 
-## Required Next Boundary Before Derived Edits
+## Safety model
 
-Before implementing `plan finish`, `plan edit`, or `journal reverse`, we must design the replace/oldLine/edit plan boundary.
+1. Build the candidate row or edit operation.
+2. Validate before touching source TSV.
+3. Apply through a small shell safe-write function.
+4. Run post-checks after write.
+5. Keep large corrections visible rather than hiding them behind silent mutation.
 
-This must include:
-- Expected target file.
-- Expected line number where relevant.
-- Expected old row exact match.
-- Snapshot token: size / mtime / sha256.
-- Stale check before backup.
-- Stale check again immediately before rename.
-- Backup before write.
-- Atomic temp-file rename.
-- Post-check behavior.
-- Restore suggestion on post-check failure.
+BQN should be the place where ledger meaning is checked. Shell should be the place where bytes are moved safely.
 
-## Plan Finish Semantics
+## Acceptance criteria
 
-`plan finish` must be a derived append, not a `plan.tsv` mutation.
-
-It should:
-- Read `plan.tsv`.
-- Identify the selected plan row.
-- Confirm the source row still matches the expected old row.
-- Append a `journal.tsv` row with `plan_id` metadata.
-- Not delete or rewrite the plan row.
-- Rely on report semantics to treat the plan as completed when a matching journal row exists.
-
-## Journal Reverse Semantics
-
-`journal reverse` must be a derived append.
-
-It should:
-- Read the original `journal.tsv` row.
-- Confirm the source row still matches the expected old row.
-- Append a reversal row to `journal.tsv`.
-- Not mutate the original journal row.
-
-## Plan Edit Semantics
-
-`plan edit` is an exact replace.
-
-It should:
-- Replace exactly one row in `plan.tsv`.
-- Require the line number plus the expected old row exact match.
-- Fail closed if the file changed (stale check failure).
-- Never replace based only on the line number.
-
-## Production Switch Gate
-
-`tools/edit` must not switch from Go to BQN + shell until all of the following are true:
-- Append-only commands are covered.
-- `plan list` compatibility is covered.
-- Derived append design exists.
-- Exact replace design exists.
-- `plan finish` has tests.
-- `plan edit` has tests.
-- `journal reverse` has tests.
-- `tools/add-ui.sh` works through `tools/edit` without behavior regression.
+- `tools/add-ui.sh` continues to work for existing interactive modes.
+- `tools/edit` command compatibility is preserved for daily commands.
 - `tools/check.sh` passes.
-- README can honestly remove Go from normal daily requirements, or clearly mark Go as legacy/fallback only.
+- No source TSV format changes are required.
+- The daily path stays BQN-centered and shell-safe.
 
-## Language Guidance
+## Language guidance
 
-Avoid framing `src_edit` as a loose experiment. Use language like:
-- Staged production editor path
-- Production-directed candidate path
-- Future production editor subsystem
-- Pre-switch candidate entry point
-- Not yet the active production write path
+Use language like:
+- production BQN editor path
+- stable daily write path
+- shell dispatcher with BQN validation
+- thin shell wrapper
 
 Avoid language like:
-- Toy
-- Scratch
-- Temporary hack
-- Experimental editor (as the main identity)
-
-It is acceptable to say `tools/edit-bqn` is not yet production. It is not acceptable to imply `src_edit` has no production destiny.
+- Go fallback
+- legacy daily write path
+- experimental main editor path

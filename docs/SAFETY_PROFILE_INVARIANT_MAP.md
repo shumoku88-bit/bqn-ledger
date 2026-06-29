@@ -30,10 +30,13 @@ tools/check.sh
 checks/check-src-next-*.sh
 checks/check-src-next-budget-actual-zero.sh
 checks/check-src-next-clock-boundary.sh
+checks/check-edit-bqn-*.sh
 checks/check-repo-index.sh
 checks/check-disabled-features.sh
 tests/test_src_next_*.bqn
-editor/*_test.go
+tests/test_edit_*.bqn
+src_edit/*.bqn
+tools/edit-bqn
 ```
 
 ## Status labels
@@ -65,7 +68,7 @@ editor/*_test.go
 | `as_of` entry boundary | `GUARDED` | `checks/check-src-next-clock-boundary.sh` verifies that only `src_next/date.bqn` reads the system clock. `src_next/date.bqn` exports `Today` as the single approved entry point. Connected to `tools/check.sh`. |
 | Cycle half-open / historical availability | `PARTIAL` | `src_next/cycle.bqn`, TBDS tests, cycle summary checks, and opening-before-cycle tests cover important cases. Full overlap/reversal lint inventory is not mapped here. |
 | Section status policy | `PARTIAL` | Policy exists, and current compact output exposes status-like fields for some sections (`actual-comparison`, envelope/status fields), but old `section_status_*` exporter is gone. |
-| BQN editor write boundary | `GUARDED/POLICY` | `docs/archive/active-plans/GO_EDITOR_NEXT_PLAN.md`, `docs/GO_EDITOR_USAGE.md`, `editor/*_test.go`, and now-gating Go tests cover approved editor behavior. |
+| BQN editor write boundary | `GUARDED/POLICY` | `docs/PRODUCTION_EDITOR_DIRECTION.md`, `docs/BQN_EDITOR_USAGE.md`, `checks/check-edit-bqn-*.sh`, `tests/test_edit_*.bqn`, and `tools/edit-bqn` cover the current approved editor behavior. |
 | Multi-file write / idempotency safety | `GAP` | Explicitly not widened; failure-injection and idempotency tests remain TODO before any broader write scope. |
 
 ## Source invariants
@@ -288,9 +291,9 @@ Status: `GUARDED/POLICY`
 
 Current guards:
 
-- `docs/archive/active-plans/GO_EDITOR_NEXT_PLAN.md` defines the current BQN editor boundary and safe write scope.
+- `docs/PRODUCTION_EDITOR_DIRECTION.md` defines the current BQN editor boundary and safe write scope.
 - Current approved commands include `journal add`, `journal reverse`, `budget add`, `plan add`, `plan finish --apply`, and narrow open-plan `date` / `amount` edit.
-- `editor/*_test.go` covers the approved BQN editor behavior, and `tools/check.sh` now gates on `go test ./...` in `editor/` (if `go` is not installed, it emits a warning and skips).
+- `checks/check-edit-bqn-*.sh` and `tests/test_edit_*.bqn` cover the approved BQN editor behavior, and `tools/check.sh` gates them as part of the normal suite.
 
 Known gap:
 
@@ -302,7 +305,7 @@ Status: `POLICY`
 
 Current guards:
 
-- `docs/archive/active-plans/GO_EDITOR_NEXT_PLAN.md` keeps deletion, broad row editing, and multi-file transactions outside current scope.
+- `docs/PRODUCTION_EDITOR_DIRECTION.md` and `docs/BQN_EDITOR_USAGE.md` keep deletion and broad row editing outside the current approved daily write scope.
 - `AGENTS.md` and `README.md` state that AI must not edit real source TSV without explicit instruction.
 
 ### E3. Multi-file transactions are not widened before idempotency / failure-injection design
@@ -311,7 +314,7 @@ Status: `GAP`
 
 Current guards:
 
-- `docs/archive/active-plans/GO_EDITOR_NEXT_PLAN.md` marks multi-file transactions and additional writes as planning-only.
+- `docs/PRODUCTION_EDITOR_DIRECTION.md` keeps the daily write path single-file and shell-safe.
 - `TODO.md` keeps idempotency, recurrence, metadata, concurrency, recovery contracts as active work.
 
 Known gap:

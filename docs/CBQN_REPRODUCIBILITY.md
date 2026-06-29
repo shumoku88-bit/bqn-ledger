@@ -7,8 +7,8 @@ This document records how the repository treats CBQN version drift.
 ## Current policy
 
 - README declares the recommended CBQN baseline as commit `12a4fb9f` or later.
-- GitHub Actions currently builds CBQN from the upstream repository during CI.
-- CI should log the actual CBQN commit used for each run when possible.
+- GitHub Actions currently pins CBQN to commit `12a4fb9f` during CI.
+- CI logs the exact CBQN commit used for each run.
 - If upstream CBQN drift breaks this repository, pin CI to a known working commit and update README, CONTRIBUTING, and `docs/THIRD_PARTY_DEPENDENCIES.md` in the same PR.
 
 ## Why not hide this behind a generic version string?
@@ -33,8 +33,8 @@ When changing the CBQN policy, make one small PR that includes:
 
 ## Failure handling
 
-If CI fails after an upstream CBQN change, first reproduce with the commit used by CI, then decide whether the correct fix is:
+If CI fails after a CBQN update, first reproduce with the commit used by CI, then decide whether the correct fix is:
 
 - update BQN Ledger for the new CBQN behavior,
-- pin CBQN while investigating,
+- keep CI pinned while investigating,
 - or document a new minimum CBQN baseline.

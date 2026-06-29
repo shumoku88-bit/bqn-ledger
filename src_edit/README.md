@@ -1,18 +1,16 @@
 # src_edit
 
-Status: future production editor subsystem / staged candidate path
+Status: current BQN editor subsystem
 
-`src_edit/` is the future BQN editor subsystem for replacing the current Go editor while keeping the existing daily interactive workflow.
+`src_edit/` is the BQN editor subsystem that powers the daily write path.
 
-- `src_edit` is not the active production write path yet; it is the intended BQN editor subsystem.
-- `tools/edit-bqn` is the pre-switch candidate entry point.
-- `tools/edit` remains the final public command surface.
-
-Production design: see `../docs/PRODUCTION_EDITOR_DIRECTION.md` for the responsibility boundary, command classes, Edit Plan Protocol v1, exact replace safety, and production switch gate.
+- `src_edit` validates edit intent and renders machine-readable write operations.
+- `tools/edit-bqn` is the active BQN + shell entry point.
+- `tools/edit` is the stable public wrapper.
 
 ## Purpose
 
-This directory is for BQN code that turns edit intent into validated ledger edit operations.
+This directory turns edit intent into validated ledger edit operations.
 
 It is separate from report code on purpose:
 
@@ -26,7 +24,8 @@ The editor subsystem should not make reports, and the report subsystem should no
 
 ## Intended command surface
 
-The public surface remains `tools/edit`. `src_edit/` should be called behind that wrapper and should preserve the current command shapes:
+The public surface remains `tools/edit`.
+`src_edit/` is called behind that wrapper and preserves the current command shapes:
 
 ```text
 tools/edit journal add ...
@@ -51,46 +50,14 @@ BQN code here may:
 
 BQN code here must not silently overwrite source TSV files. The shell write layer applies validated output through explicit safe-write helpers.
 
-## First implementation target
+## Command surface notes
 
-Start with the smallest safe surfaces before derived edits:
-
-1. `journal add`
-2. `budget add`
-3. `issue add`
-4. `plan list --format tsv` / `--format text` — read-only, but `tools/add-ui.sh plan-finish` and `plan-edit` rely on the exact 9-field TSV interface
-5. `plan add`
-
-Append-only commands are now covered in the experimental path. Next move to derived edits (`plan finish`, `plan edit`, `journal reverse`) after exact replace/oldLine safety is designed.
-
-## Experimental narrow entry point
-
-`tools/edit-bqn` is the experimental BQN + shell entry point for proving append paths before replacing the Go editor. Current scope is intentionally limited:
-
-```text
-tools/edit-bqn journal add --dry-run
-tools/edit-bqn journal add --yes --post-check none
-tools/edit-bqn budget add --dry-run
-tools/edit-bqn budget add --yes --post-check none
-tools/edit-bqn issue add --dry-run
-tools/edit-bqn issue add --yes
-tools/edit-bqn plan list --format tsv
-tools/edit-bqn plan list --all --format tsv
-tools/edit-bqn plan add --dry-run
-tools/edit-bqn plan add --yes --post-check none
-```
-
-The BQN append commands (`src_edit/journal_add_cmd.bqn`, `src_edit/issue_add_cmd.bqn`, `src_edit/plan_add_cmd.bqn`) emit a two-line append protocol:
-
-```text
-OK	APPEND	<target-file>
-<complete TSV row>
-```
-
-Validation errors use `ERROR	<message>` and exit non-zero. The shell dispatcher treats the second line as an opaque TSV payload and applies writes through `tools/lib/safe-write.sh`.
-
-Anti-ad-hoc guard: this narrow path now supports append-only commands through explicit shared boundaries in `tools/edit-bqn`, plus read-only `plan list`. `journal add` / `budget add` share the journal-like path; `plan add` has a dedicated BQN command because it owns plan_id generation and duplicate checks; `issue add` has a small dedicated parser because its CLI and new-file semantics differ. `plan list` is byte-parity checked against Go because its TSV output is a UI selection contract. Do not grow it by copy-pasting branches; before derived edits, design the replace/oldLine boundary.
+- `journal add` / `budget add` share the journal-like append path.
+- `issue add` has a small dedicated parser because its CLI and new-file semantics differ.
+- `plan add` owns plan_id generation and duplicate checks.
+- `plan list` is byte-parity checked because its TSV output is a UI selection contract.
+- `plan finish`, `plan edit`, and `journal reverse` use derived edit protocols.
 
 ## Safety rule
 
-Until the dispatcher switch is complete, the existing Go editor remains the authoritative daily write path. Files in `src_edit/` and `tools/edit-bqn` are not production write paths unless a later PR explicitly switches the daily path.
+`tools/edit-bqn` and `src_edit/` are the current daily write path. Keep the boundary small, predictable, and shell-safe.
