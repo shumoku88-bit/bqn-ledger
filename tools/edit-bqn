@@ -20,6 +20,7 @@ source "$DIR/lib/safe-write.sh"
 BASE_DIR="${LEDGER_DATA_DIR:-$(get_default_base_dir)}"
 JOURNAL_FILE="$(get_system_default_file DEFAULT_JOURNAL_FILE journal.tsv)"
 BUDGET_ALLOC_FILE="$(get_system_default_file DEFAULT_BUDGET_ALLOC_FILE budget_alloc.tsv)"
+PLAN_FILE="$(get_system_default_file DEFAULT_PLAN_FILE plan.tsv)"
 ISSUES_FILE="issues.tsv"
 
 usage() {
@@ -27,9 +28,11 @@ usage() {
 Usage:
   tools/edit-bqn [--base DIR] journal add --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount INT [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] budget add  --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount INT [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
+  tools/edit-bqn [--base DIR] plan add --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount INT [--meta key=value ...] [--id plan-YYYY-MM-DD-series] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] issue add [--date YYYY-MM-DD] [--status open|resolved|dropped] --title TITLE [--amount INT] [--memo MEMO] [--dry-run] [--yes]
+  tools/edit-bqn [--base DIR] plan list [--all] [--format tsv|text]
 
-Phase 3 scope: only append-only journal/budget/issue add commands are implemented here. Use tools/edit for all other production editor commands.
+Phase 3 scope: append-only journal/budget/plan/issue add plus read-only plan list. Use tools/edit for all other production editor commands.
 USAGE
 }
 
@@ -71,8 +74,33 @@ while [[ $# -gt 0 ]]; do
 done
 set -- "${REM_ARGS[@]}"
 
-if [[ $# -lt 2 || "$2" != "add" ]]; then
-  echo "ERROR: tools/edit-bqn currently supports only: journal add, budget add, issue add" >&2
+if [[ $# -lt 2 ]]; then
+  echo "ERROR: missing command/subcommand" >&2
+  usage
+  exit 2
+fi
+
+if [[ "$1" == "plan" && "$2" == "list" ]]; then
+  shift 2
+  SHOW_ALL=0
+  FORMAT="text"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --all) SHOW_ALL=1; shift ;;
+      --format) FORMAT="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      *) echo "ERROR: unknown list argument: $1" >&2; exit 2 ;;
+    esac
+  done
+  case "$FORMAT" in
+    tsv|text) ;;
+    *) echo "ERROR: invalid format: $FORMAT (expected 'tsv' or 'text')" >&2; exit 2 ;;
+  esac
+  cd "$ROOT_DIR" && bqn src_edit/plan_list_cmd.bqn "$BASE_DIR" "$SHOW_ALL" "$FORMAT"
+  exit $?
+fi
+
+if [[ "$2" != "add" ]]; then
+  echo "ERROR: tools/edit-bqn currently supports only: journal add, budget add, plan add, issue add, and plan list" >&2
   usage
   exit 2
 fi
@@ -88,13 +116,18 @@ case "$COMMAND" in
     PREVIEW_TITLE="Budget allocation"
     ROW_TITLE="Budget allocation row"
     ;;
+  plan)
+    EXPECTED_TARGET_FILE="$PLAN_FILE"
+    PREVIEW_TITLE="Plan"
+    ROW_TITLE="Plan row"
+    ;;
   issue)
     EXPECTED_TARGET_FILE="$ISSUES_FILE"
     PREVIEW_TITLE="Issue"
     ROW_TITLE="Issue row"
     ;;
   *)
-    echo "ERROR: tools/edit-bqn currently supports only: journal add, budget add, issue add" >&2
+    echo "ERROR: tools/edit-bqn currently supports only: journal add, budget add, plan add, issue add, and plan list" >&2
     usage
     exit 2
     ;;
@@ -194,6 +227,7 @@ FROM=""
 TO=""
 AMOUNT=""
 META=()
+PLAN_ID=""
 DRY_RUN=0
 YES=0
 POST_CHECK="lint"
@@ -206,6 +240,7 @@ while [[ $# -gt 0 ]]; do
     --to) TO="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
     --amount) AMOUNT="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
     --meta) META+=("$(get_opt_val "$1" "${2-}")"); shift 2 ;;
+    --id) PLAN_ID="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
     --dry-run) DRY_RUN=1; shift ;;
     --yes) YES=1; shift ;;
     --post-check) POST_CHECK="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
@@ -225,14 +260,26 @@ IFS=$'\t' read -r SNAP_SIZE SNAP_MTIME SNAP_SHA256 <<< "$SNAPSHOT_TOKEN"
 BQN_STDERR="$(mktemp)"
 trap 'rm -f "$BQN_STDERR"' EXIT
 BQN_OUT=""
-if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/journal_add_cmd.bqn "$BASE_DIR" "$COMMAND" "$DATE" "$MEMO" "$FROM" "$TO" "$AMOUNT" "${META[@]}" 2>"$BQN_STDERR")"; then
-  if [[ -n "$BQN_OUT" ]]; then
-    printf '%s\n' "$BQN_OUT" >&2
+if [[ "$COMMAND" == "plan" ]]; then
+  if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/plan_add_cmd.bqn "$BASE_DIR" "$DATE" "$MEMO" "$FROM" "$TO" "$AMOUNT" "$PLAN_ID" "${META[@]}" 2>"$BQN_STDERR")"; then
+    if [[ -n "$BQN_OUT" ]]; then
+      printf '%s\n' "$BQN_OUT" >&2
+    fi
+    if [[ -s "$BQN_STDERR" ]]; then
+      cat "$BQN_STDERR" >&2
+    fi
+    exit 1
   fi
-  if [[ -s "$BQN_STDERR" ]]; then
-    cat "$BQN_STDERR" >&2
+else
+  if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/journal_add_cmd.bqn "$BASE_DIR" "$COMMAND" "$DATE" "$MEMO" "$FROM" "$TO" "$AMOUNT" "${META[@]}" 2>"$BQN_STDERR")"; then
+    if [[ -n "$BQN_OUT" ]]; then
+      printf '%s\n' "$BQN_OUT" >&2
+    fi
+    if [[ -s "$BQN_STDERR" ]]; then
+      cat "$BQN_STDERR" >&2
+    fi
+    exit 1
   fi
-  exit 1
 fi
 
 FIRST_LINE="${BQN_OUT%%$'\n'*}"

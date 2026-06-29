@@ -8,7 +8,7 @@ This note summarizes the current Go editor removal / BQN editor replacement stat
 ## Current state
 
 - Production `tools/edit` still uses the Go editor.
-- Experimental `tools/edit-bqn` exists, but only supports append-only commands:
+- Experimental `tools/edit-bqn` exists, supporting append-only commands plus read-only plan listing:
 
 ```text
 tools/edit-bqn journal add --dry-run
@@ -17,9 +17,14 @@ tools/edit-bqn budget add --dry-run
 tools/edit-bqn budget add --yes --post-check none
 tools/edit-bqn issue add --dry-run
 tools/edit-bqn issue add --yes
+tools/edit-bqn plan list --format tsv
+tools/edit-bqn plan list --all --format tsv
+tools/edit-bqn plan list --format text
+tools/edit-bqn plan add --dry-run
+tools/edit-bqn plan add --yes --post-check none
 ```
 
-- The narrow path shares parsing/protocol/write handling for `journal add` and `budget add`; `issue add` has a dedicated parser because its CLI and new-file semantics differ. Do not grow it into a large dispatcher by copy-paste.
+- The narrow path shares parsing/protocol/write handling for `journal add` and `budget add`; `plan add` has a dedicated BQN command because it owns plan_id generation and duplicate checks; `issue add` has a dedicated parser because its CLI and new-file semantics differ. `plan list` is read-only and byte-parity checked because `--format tsv` is a `tools/add-ui.sh` selection contract. Do not grow it into a large dispatcher by copy-paste.
 - `src_edit/journal_add_cmd.bqn` / `src_edit/issue_add_cmd.bqn` validate and render append operations for the requested target file.
 - Shell applies the append through `tools/lib/safe-write.sh`.
 
@@ -41,7 +46,9 @@ Rules:
 
 ## Safety currently covered
 
-`checks/check-edit-bqn-journal-add.sh` is connected to `tools/check.sh` and covers:
+`checks/check-edit-bqn-journal-add.sh`, `checks/check-edit-bqn-plan-list.sh`, and `checks/check-edit-bqn-plan-add.sh` are connected to `tools/check.sh`.
+
+`check-edit-bqn-journal-add.sh` covers:
 
 - dry-run does not modify target TSVs (`journal.tsv`, `budget_alloc.tsv`, `issues.tsv`)
 - dry-run does not create backup files
@@ -49,7 +56,20 @@ Rules:
 - negative fail-closed cases leave target files unchanged or uncreated and create no backup
 - stale journal write simulation fails without appending the candidate row
 
-`tools/edit-bqn journal add` / `budget add` / existing-file `issue add` capture a pre-validation/pre-preview snapshot and write via `safe_append_checked`, which checks the same snapshot before backup creation and again immediately before atomic rename. Missing `issues.tsv` uses `safe_create_checked` to create the header plus candidate row without backup.
+`check-edit-bqn-plan-list.sh` covers:
+
+- Go stdout byte parity for `plan list --format tsv`, `--all --format tsv`, `--format text`, and `--all --format text`
+- 9-field TSV shape required by `tools/add-ui.sh`
+- read-only protection: no `plan.tsv` changes and no backups
+- invalid `--format` fail-closed behavior
+
+`check-edit-bqn-plan-add.sh` covers:
+
+- resulting `plan.tsv` byte parity with Go for generated IDs, explicit IDs, collision suffixes, empty memo slug, and no-trailing-newline append
+- dry-run protection: no `plan.tsv` changes and no backups
+- negative fail-closed cases for `plan_id` metadata, invalid explicit ID, and unknown account
+
+`tools/edit-bqn journal add` / `budget add` / `plan add` / existing-file `issue add` capture a pre-validation/pre-preview snapshot and write via `safe_append_checked`, which checks the same snapshot before backup creation and again immediately before atomic rename. Missing `issues.tsv` uses `safe_create_checked` to create the header plus candidate row without backup.
 
 ## Important boundaries
 
@@ -71,9 +91,9 @@ Before adding the next command, keep shared helpers explicit for:
 
 ## Suggested next steps
 
-1. Consider `plan add` as the next append-only command; it needs plan_id generation and duplicate checks, so do not force it through the journal-like path blindly.
-2. Start sketching the black-box `checks/check-editor-parity.sh` harness once append-only coverage is stable.
-3. Before `plan edit` / `plan finish`, design a replace API with exact `oldLine` assertion.
+1. Design the derived-edit safety boundary for `plan finish` / `plan edit`: exact `oldLine` assertion, stale snapshot, and replace/append operation protocol.
+2. Start sketching the black-box `checks/check-editor-parity.sh` harness now that append-only coverage is stable.
+3. Implement `plan finish` before `plan edit` / `journal reverse` if keeping the current migration order.
 
 ## Related files
 
@@ -83,5 +103,9 @@ Before adding the next command, keep shared helpers explicit for:
 - `src_edit/README.md`
 - `tools/edit-bqn`
 - `src_edit/journal_add_cmd.bqn`
+- `src_edit/plan_list_cmd.bqn`
+- `src_edit/plan_add_cmd.bqn`
 - `tools/lib/safe-write.sh`
 - `checks/check-edit-bqn-journal-add.sh`
+- `checks/check-edit-bqn-plan-list.sh`
+- `checks/check-edit-bqn-plan-add.sh`
