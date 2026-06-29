@@ -251,6 +251,7 @@ stale_base="$tmp_root/stale"
 stale_out="$tmp_root/stale.out"
 cp -R data "$stale_base"
 set +e
+BQN_LEDGER_TEST_MODE=1 \
 EDIT_BQN_TEST_BEFORE_APPEND_HOOK="printf '%s\\n' '# concurrent edit' >> '$stale_base/journal.tsv'" \
   ./tools/edit-bqn --base "$stale_base" journal add \
     --date 2026-06-29 \
