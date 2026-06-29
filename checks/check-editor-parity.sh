@@ -34,7 +34,9 @@ normalize_backup_dir() {
       dir="$(dirname "$f")"
       local name
       name="$(basename "$f")"
-      mv "$f" "$base/.backup/$name"
+      if [ "$f" != "$base/.backup/$name" ]; then
+        mv "$f" "$base/.backup/$name"
+      fi
     done
     # Remove mtime/timestamp directories
     find "$base/.backup" -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} +
