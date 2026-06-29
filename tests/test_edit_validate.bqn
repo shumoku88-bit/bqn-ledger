@@ -4,6 +4,7 @@
 t ← •Import "test_lib.bqn"
 validate ← •Import "../src_edit/validate.bqn"
 plan_id ← •Import "../src_edit/plan_id.bqn"
+render ← •Import "../src_edit/render.bqn"
 
 # ── Date validation tests ───────────────────────────────────────
 •Out "Running Date tests..."
@@ -46,6 +47,26 @@ t.Assert (0 ≡ ⊑ validate.ValidateMetaToken "key") # missing =
 t.Assert (0 ≡ ⊑ validate.ValidateMetaToken "=value") # empty key
 t.Assert (0 ≡ ⊑ validate.ValidateMetaToken "KEY=value") # uppercase key
 t.Assert (0 ≡ ⊑ validate.ValidateMetaToken "key =value") # space in key
+
+# ── Render tests ─────────────────────────────────────────────────
+•Out "Running Render tests..."
+tab ← @+9
+("2026-06-29" ∾ tab ∾ "memo" ∾ tab ∾ "assets:bank" ∾ tab ∾ "expenses:rent" ∾ tab ∾ "100") t.AssertEq render.RenderJournalRow {
+  date ⇐ "2026-06-29" ⋄
+  memo ⇐ "memo" ⋄
+  from ⇐ "assets:bank" ⋄
+  to ⇐ "expenses:rent" ⋄
+  amount ⇐ "100" ⋄
+  meta ⇐ ⟨⟩
+}
+("2026-06-29" ∾ tab ∾ "memo" ∾ tab ∾ "assets:bank" ∾ tab ∾ "expenses:rent" ∾ tab ∾ "100" ∾ tab ∾ "source=test") t.AssertEq render.RenderJournalRow {
+  date ⇐ "2026-06-29" ⋄
+  memo ⇐ "memo" ⋄
+  from ⇐ "assets:bank" ⋄
+  to ⇐ "expenses:rent" ⋄
+  amount ⇐ "100" ⋄
+  meta ⇐ ⟨"source=test"⟩
+}
 
 # ── Slugify tests ────────────────────────────────────────────────
 •Out "Running Slugify tests..."

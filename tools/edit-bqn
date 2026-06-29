@@ -1,0 +1,340 @@
+#!/usr/bin/env bash
+# tools/edit-bqn — experimental BQN-backed editor entry point.
+#
+# Phase 3 scope: append-only `journal add`, `budget add`, and `issue add`.
+# Production `tools/edit` remains the Go editor fallback until parity and safety gates are closed.
+#
+# This is intentionally a narrow proof path, not the future full dispatcher shape.
+# Shared parsing/protocol/write handling is kept in one path for the two
+# journal-like append commands instead of copy-pasting command branches.
+
+set -euo pipefail
+
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$DIR/.." && pwd)"
+# shellcheck source=tools/lib/system-defaults.sh
+source "$DIR/lib/system-defaults.sh"
+# shellcheck source=tools/lib/safe-write.sh
+source "$DIR/lib/safe-write.sh"
+
+BASE_DIR="${LEDGER_DATA_DIR:-$(get_default_base_dir)}"
+JOURNAL_FILE="$(get_system_default_file DEFAULT_JOURNAL_FILE journal.tsv)"
+BUDGET_ALLOC_FILE="$(get_system_default_file DEFAULT_BUDGET_ALLOC_FILE budget_alloc.tsv)"
+PLAN_FILE="$(get_system_default_file DEFAULT_PLAN_FILE plan.tsv)"
+ISSUES_FILE="issues.tsv"
+
+usage() {
+  cat <<'USAGE' >&2
+Usage:
+  tools/edit-bqn [--base DIR] journal add --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount INT [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
+  tools/edit-bqn [--base DIR] budget add  --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount INT [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
+  tools/edit-bqn [--base DIR] plan add --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount INT [--meta key=value ...] [--id plan-YYYY-MM-DD-series] [--dry-run] [--yes] [--post-check none|lint|full]
+  tools/edit-bqn [--base DIR] issue add [--date YYYY-MM-DD] [--status open|resolved|dropped] --title TITLE [--amount INT] [--memo MEMO] [--dry-run] [--yes]
+  tools/edit-bqn [--base DIR] plan list [--all] [--format tsv|text]
+
+Phase 3 scope: append-only journal/budget/plan/issue add plus read-only plan list. Use tools/edit for all other production editor commands.
+USAGE
+}
+
+get_opt_val() {
+  local opt="$1"
+  local val="${2-}"
+  if [[ $# -lt 2 || -z "$val" || "$val" == --* ]]; then
+    echo "ERROR: missing value for $opt" >&2
+    exit 2
+  fi
+  printf '%s\n' "$val"
+}
+
+get_opt_val_allow_empty() {
+  local opt="$1"
+  if [[ $# -lt 2 ]]; then
+    echo "ERROR: missing value for $opt" >&2
+    exit 2
+  fi
+  printf '%s\n' "$2"
+}
+
+REM_ARGS=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --base)
+      BASE_DIR="$(get_opt_val "$1" "${2-}")"
+      shift 2
+      ;;
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    *)
+      REM_ARGS+=("$1")
+      shift
+      ;;
+  esac
+done
+set -- "${REM_ARGS[@]}"
+
+if [[ $# -lt 2 ]]; then
+  echo "ERROR: missing command/subcommand" >&2
+  usage
+  exit 2
+fi
+
+if [[ "$1" == "plan" && "$2" == "list" ]]; then
+  shift 2
+  SHOW_ALL=0
+  FORMAT="text"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --all) SHOW_ALL=1; shift ;;
+      --format) FORMAT="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      *) echo "ERROR: unknown list argument: $1" >&2; exit 2 ;;
+    esac
+  done
+  case "$FORMAT" in
+    tsv|text) ;;
+    *) echo "ERROR: invalid format: $FORMAT (expected 'tsv' or 'text')" >&2; exit 2 ;;
+  esac
+  cd "$ROOT_DIR" && bqn src_edit/plan_list_cmd.bqn "$BASE_DIR" "$SHOW_ALL" "$FORMAT"
+  exit $?
+fi
+
+if [[ "$2" != "add" ]]; then
+  echo "ERROR: tools/edit-bqn currently supports only: journal add, budget add, plan add, issue add, and plan list" >&2
+  usage
+  exit 2
+fi
+COMMAND="$1"
+case "$COMMAND" in
+  journal)
+    EXPECTED_TARGET_FILE="$JOURNAL_FILE"
+    PREVIEW_TITLE="Journal"
+    ROW_TITLE="Journal row"
+    ;;
+  budget)
+    EXPECTED_TARGET_FILE="$BUDGET_ALLOC_FILE"
+    PREVIEW_TITLE="Budget allocation"
+    ROW_TITLE="Budget allocation row"
+    ;;
+  plan)
+    EXPECTED_TARGET_FILE="$PLAN_FILE"
+    PREVIEW_TITLE="Plan"
+    ROW_TITLE="Plan row"
+    ;;
+  issue)
+    EXPECTED_TARGET_FILE="$ISSUES_FILE"
+    PREVIEW_TITLE="Issue"
+    ROW_TITLE="Issue row"
+    ;;
+  *)
+    echo "ERROR: tools/edit-bqn currently supports only: journal add, budget add, plan add, issue add, and plan list" >&2
+    usage
+    exit 2
+    ;;
+esac
+shift 2
+
+if [[ "$COMMAND" == "issue" ]]; then
+  ISSUE_DATE="$(date +%F)"
+  ISSUE_STATUS="open"
+  ISSUE_TITLE=""
+  ISSUE_AMOUNT="0"
+  ISSUE_MEMO=""
+  DRY_RUN=0
+  YES=0
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --date) ISSUE_DATE="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --status) ISSUE_STATUS="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --title) ISSUE_TITLE="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --amount) ISSUE_AMOUNT="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --memo) ISSUE_MEMO="$(get_opt_val_allow_empty "$1" "${2-}")"; shift 2 ;;
+      --dry-run) DRY_RUN=1; shift ;;
+      --yes) YES=1; shift ;;
+      *) echo "ERROR: unknown option: $1" >&2; exit 2 ;;
+    esac
+  done
+
+  TARGET_PATH="$BASE_DIR/$EXPECTED_TARGET_FILE"
+  TARGET_EXISTS=0
+  SNAP_SIZE=""
+  SNAP_MTIME=""
+  SNAP_SHA256=""
+  if [[ -f "$TARGET_PATH" ]]; then
+    TARGET_EXISTS=1
+    SNAPSHOT_TOKEN="$(safe_snapshot_token "$TARGET_PATH")"
+    IFS=$'\t' read -r SNAP_SIZE SNAP_MTIME SNAP_SHA256 <<< "$SNAPSHOT_TOKEN"
+  fi
+
+  BQN_STDERR="$(mktemp)"
+  trap 'rm -f "$BQN_STDERR"' EXIT
+  BQN_OUT=""
+  if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/issue_add_cmd.bqn "$ISSUE_DATE" "$ISSUE_STATUS" "$ISSUE_TITLE" "$ISSUE_AMOUNT" "$ISSUE_MEMO" 2>"$BQN_STDERR")"; then
+    if [[ -n "$BQN_OUT" ]]; then
+      printf '%s\n' "$BQN_OUT" >&2
+    fi
+    if [[ -s "$BQN_STDERR" ]]; then
+      cat "$BQN_STDERR" >&2
+    fi
+    exit 1
+  fi
+
+  FIRST_LINE="${BQN_OUT%%$'\n'*}"
+  if [[ "$FIRST_LINE" == "$BQN_OUT" ]]; then
+    echo "ERROR: invalid BQN protocol: missing payload line" >&2
+    exit 1
+  fi
+  PAYLOAD="${BQN_OUT#*$'\n'}"
+
+  IFS=$'\t' read -r STATUS OP PROTOCOL_TARGET_FILE EXTRA <<< "$FIRST_LINE"
+  if [[ -n "${EXTRA:-}" || "$STATUS" != "OK" || "$OP" != "APPEND" || "$PROTOCOL_TARGET_FILE" != "$EXPECTED_TARGET_FILE" ]]; then
+    echo "ERROR: invalid BQN protocol header: $FIRST_LINE" >&2
+    exit 1
+  fi
+
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    printf 'Proposed row:\n'
+    printf '%s\n' "$PAYLOAD"
+    printf '(Dry-run mode, no changes saved)\n'
+    exit 0
+  fi
+
+  printf 'File: %s\n' "$TARGET_PATH"
+  printf 'Proposed row:\n'
+  printf '%s\n' "$PAYLOAD"
+
+  if [[ "$YES" -eq 0 ]]; then
+    if ! confirm_append; then
+      echo "aborted by user" >&2
+      exit 1
+    fi
+  fi
+
+  if [[ "$TARGET_EXISTS" -eq 1 ]]; then
+    safe_append_checked "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256" >/dev/null
+  else
+    safe_create_checked "$TARGET_PATH" $'date\tstatus\ttitle\tamount\tmemo\n'"$PAYLOAD"$'\n' >/dev/null
+  fi
+
+  printf 'OK: Issue row appended.\n'
+  exit 0
+fi
+
+DATE=""
+MEMO=""
+FROM=""
+TO=""
+AMOUNT=""
+META=()
+PLAN_ID=""
+DRY_RUN=0
+YES=0
+POST_CHECK="lint"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --date) DATE="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+    --memo) MEMO="$(get_opt_val_allow_empty "$1" "${2-}")"; shift 2 ;;
+    --from) FROM="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+    --to) TO="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+    --amount) AMOUNT="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+    --meta) META+=("$(get_opt_val "$1" "${2-}")"); shift 2 ;;
+    --id) PLAN_ID="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+    --dry-run) DRY_RUN=1; shift ;;
+    --yes) YES=1; shift ;;
+    --post-check) POST_CHECK="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+    *) echo "ERROR: unknown option $1" >&2; exit 2 ;;
+  esac
+done
+
+case "$POST_CHECK" in
+  none|lint|full) ;;
+  *) echo "ERROR: invalid --post-check mode: $POST_CHECK" >&2; exit 2 ;;
+esac
+
+TARGET_PATH="$BASE_DIR/$EXPECTED_TARGET_FILE"
+SNAPSHOT_TOKEN="$(safe_snapshot_token "$TARGET_PATH")"
+IFS=$'\t' read -r SNAP_SIZE SNAP_MTIME SNAP_SHA256 <<< "$SNAPSHOT_TOKEN"
+
+BQN_STDERR="$(mktemp)"
+trap 'rm -f "$BQN_STDERR"' EXIT
+BQN_OUT=""
+if [[ "$COMMAND" == "plan" ]]; then
+  if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/plan_add_cmd.bqn "$BASE_DIR" "$DATE" "$MEMO" "$FROM" "$TO" "$AMOUNT" "$PLAN_ID" "${META[@]}" 2>"$BQN_STDERR")"; then
+    if [[ -n "$BQN_OUT" ]]; then
+      printf '%s\n' "$BQN_OUT" >&2
+    fi
+    if [[ -s "$BQN_STDERR" ]]; then
+      cat "$BQN_STDERR" >&2
+    fi
+    exit 1
+  fi
+else
+  if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/journal_add_cmd.bqn "$BASE_DIR" "$COMMAND" "$DATE" "$MEMO" "$FROM" "$TO" "$AMOUNT" "${META[@]}" 2>"$BQN_STDERR")"; then
+    if [[ -n "$BQN_OUT" ]]; then
+      printf '%s\n' "$BQN_OUT" >&2
+    fi
+    if [[ -s "$BQN_STDERR" ]]; then
+      cat "$BQN_STDERR" >&2
+    fi
+    exit 1
+  fi
+fi
+
+FIRST_LINE="${BQN_OUT%%$'\n'*}"
+if [[ "$FIRST_LINE" == "$BQN_OUT" ]]; then
+  echo "ERROR: invalid BQN protocol: missing payload line" >&2
+  exit 1
+fi
+PAYLOAD="${BQN_OUT#*$'\n'}"
+
+IFS=$'\t' read -r STATUS OP PROTOCOL_TARGET_FILE EXTRA <<< "$FIRST_LINE"
+if [[ -n "${EXTRA:-}" || "$STATUS" != "OK" || "$OP" != "APPEND" || "$PROTOCOL_TARGET_FILE" != "$EXPECTED_TARGET_FILE" ]]; then
+  echo "ERROR: invalid BQN protocol header: $FIRST_LINE" >&2
+  exit 1
+fi
+
+MODE="confirm"
+if [[ "$DRY_RUN" -eq 1 ]]; then
+  MODE="dry-run"
+elif [[ "$YES" -eq 1 ]]; then
+  MODE="yes"
+fi
+
+if [[ "$DRY_RUN" -eq 1 ]]; then
+  printf '%s append preview\n' "$PREVIEW_TITLE"
+  printf 'Target: %s\n' "$TARGET_PATH"
+  printf 'Mode: %s\n' "$MODE"
+  printf 'Post-check: %s\n' "$POST_CHECK"
+  printf '%s:\n' "$ROW_TITLE"
+  printf '%s\n' "$PAYLOAD"
+  printf 'Dry-run only. No files were modified.\n'
+  exit 0
+fi
+
+if [[ "$YES" -eq 0 ]]; then
+  printf '%s append preview\n' "$PREVIEW_TITLE"
+  printf 'Target: %s\n' "$TARGET_PATH"
+  printf 'Mode: %s\n' "$MODE"
+  printf 'Post-check: %s\n' "$POST_CHECK"
+  printf '%s:\n' "$ROW_TITLE"
+  printf '%s\n' "$PAYLOAD"
+  if ! confirm_append; then
+    echo "Cancelled. No files were modified."
+    exit 0
+  fi
+fi
+
+# Test-only stale-write injection point used by check-edit-bqn-journal-add.sh.
+# This must not become production extension behavior; it exists only to simulate
+# a concurrent source TSV edit between validation/preview and append.
+if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && -n "${EDIT_BQN_TEST_BEFORE_APPEND_HOOK:-}" ]]; then
+  eval "$EDIT_BQN_TEST_BEFORE_APPEND_HOOK"
+fi
+
+WRITE_OUT="$(safe_append_checked "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256")"
+printf '%s\n' "$WRITE_OUT"
+
+BACKUP_PATH="$(awk -F': ' '$1 == "Backup" {print $2}' <<< "$WRITE_OUT")"
+run_post_check "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$BACKUP_PATH"
