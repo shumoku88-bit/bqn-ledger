@@ -166,6 +166,86 @@ field() {
   printf '%s\n' "$line" | cut -f"$n"
 }
 
+plan_file_path() {
+  printf '%s/%s\n' "$base_dir" "${DEFAULT_PLAN_FILE:-plan.tsv}"
+}
+
+meta_value_from_tsv_line() {
+  local key="$1" line="$2" token
+  IFS=$'\t' read -r -a fields <<< "$line"
+  for token in "${fields[@]:5}"; do
+    if [[ "$token" == "$key="* ]]; then
+      printf '%s\n' "${token#*=}"
+      return 0
+    fi
+  done
+  printf '\n'
+}
+
+plan_id_from_tsv_line() {
+  meta_value_from_tsv_line plan_id "$1"
+}
+
+raw_plan_line_for_row() {
+  local row="$1" pid date_v memo_v from_v to_v amount_v raw raw_pid
+  pid="$(field 2 "$row")"
+  date_v="$(field 3 "$row")"
+  memo_v="$(field 4 "$row")"
+  from_v="$(field 5 "$row")"
+  to_v="$(field 6 "$row")"
+  amount_v="$(field 7 "$row")"
+
+  while IFS= read -r raw || [[ -n "$raw" ]]; do
+    [[ -z "$raw" || "${raw:0:1}" == "#" || "${raw:0:1}" == "\\" ]] && continue
+    raw_pid="$(plan_id_from_tsv_line "$raw")"
+    if [[ -n "$pid" && "$raw_pid" == "$pid" ]]; then
+      printf '%s\n' "$raw"
+      return 0
+    fi
+    IFS=$'\t' read -r -a raw_fields <<< "$raw"
+    if [[ -z "$pid" && \
+          "${raw_fields[0]:-}" == "$date_v" && \
+          "${raw_fields[1]:-}" == "$memo_v" && \
+          "${raw_fields[2]:-}" == "$from_v" && \
+          "${raw_fields[3]:-}" == "$to_v" && \
+          "${raw_fields[4]:-}" == "$amount_v" ]]; then
+      printf '%s\n' "$raw"
+      return 0
+    fi
+  done < "$(plan_file_path)"
+  printf '\n'
+}
+
+related_key_for_row() {
+  local row="$1" raw pid meta_series pid_series
+  raw="$(raw_plan_line_for_row "$row")"
+  meta_series="$(meta_value_from_tsv_line series "$raw")"
+  if [[ -n "$meta_series" ]]; then
+    printf 'series:%s\n' "$meta_series"
+    return 0
+  fi
+  pid="$(field 2 "$row")"
+  pid_series="$(plan_series_from_id "$pid")"
+  if [[ -n "$pid_series" ]]; then
+    printf 'series:%s\n' "$pid_series"
+    return 0
+  fi
+  printf 'exact:%s\t%s\t%s\t%s\n' "$(field 4 "$row")" "$(field 5 "$row")" "$(field 6 "$row")" "$(field 7 "$row")"
+}
+
+related_display_for_row() {
+  local row="$1" pid
+  pid="$(field 2 "$row")"
+  [[ -z "$pid" ]] && pid="(missing)"
+  printf '%s\t%s\t%s -> %s\t%s\t%s\n' \
+    "$(field 3 "$row")" \
+    "$(field 4 "$row")" \
+    "$(field 5 "$row")" \
+    "$(field 6 "$row")" \
+    "$(field 7 "$row")" \
+    "$pid"
+}
+
 if [[ "$preflight" -eq 1 ]]; then
   if [[ ! -x "$ROOT_DIR/tools/edit" ]]; then
     shout "FAIL tools/edit is not executable"
@@ -216,7 +296,12 @@ plan_memo="$(field 4 "$selected_row")"
 plan_from="$(field 5 "$selected_row")"
 plan_to="$(field 6 "$selected_row")"
 plan_amount="$(field 7 "$selected_row")"
-plan_series="$(plan_series_from_id "$plan_id")"
+plan_series="$(related_key_for_row "$selected_row")"
+if [[ "$plan_series" == series:* ]]; then
+  plan_series="${plan_series#series:}"
+else
+  plan_series=""
+fi
 
 today="$(date +%Y-%m-%d)"
 actual_date="$(read_tty 'Actual date YYYY-MM-DD' "$today")"
@@ -239,17 +324,15 @@ fi
 fresh_plan_rows=()
 while IFS= read -r _pl; do fresh_plan_rows+=("$_pl"); done < <(load_plan_rows)
 
+selected_related_key="$(related_key_for_row "$selected_row")"
 related_lines=()
 latest_related_date=""
 for line in "${fresh_plan_rows[@]}"; do
   date_f="$(field 3 "$line")"
-  memo_f="$(field 4 "$line")"
-  from_f="$(field 5 "$line")"
-  to_f="$(field 6 "$line")"
-  amount_f="$(field 7 "$line")"
-  display_f="$(field 9 "$line")"
-  if [[ "$memo_f" == "$plan_memo" && "$from_f" == "$plan_from" && "$to_f" == "$plan_to" && "$amount_f" == "$plan_amount" ]]; then
-    related_lines+=("$display_f")
+  # "future" here means still later than the actual finish date. Do not infer fuzzy relations.
+  [[ "$date_f" > "$actual_date" ]] || continue
+  if [[ "$(related_key_for_row "$line")" == "$selected_related_key" ]]; then
+    related_lines+=("$(related_display_for_row "$line")")
     if [[ -z "$latest_related_date" || "$date_f" > "$latest_related_date" ]]; then
       latest_related_date="$date_f"
     fi
@@ -258,6 +341,7 @@ done
 
 if [[ ${#related_lines[@]} -gt 0 ]]; then
   printf 'Related active future plans:\n' >&2
+  printf '  date\tmemo\tfrom -> to\tamount\tplan_id\n' >&2
   printf '  %s\n' "${related_lines[@]}" >&2
 else
   printf 'No related active future plans found.\n' >&2

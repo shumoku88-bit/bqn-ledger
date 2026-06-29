@@ -21,12 +21,19 @@ cp -R fixtures/plan-completion "$base"
 before_plan="$(shasum -a 256 "$base/plan.tsv" | awk '{print $1}')"
 before_journal="$(shasum -a 256 "$base/journal.tsv" | awk '{print $1}')"
 
-out="$(bash tools/plan-finish-replenish-ui.sh --base "$base" --check)"
-if ! grep -qF 'OK plan finish replenish preflight passed' <<< "$out"; then
-  echo "FAIL: preflight output mismatch" >&2
-  printf '%s\n' "$out" >&2
-  exit 1
-fi
+run_preflight() {
+  local label="$1"
+  shift
+  out="$($@ bash tools/plan-finish-replenish-ui.sh --base "$base" --check)"
+  if ! grep -qF 'OK plan finish replenish preflight passed' <<< "$out"; then
+    echo "FAIL: preflight output mismatch ($label)" >&2
+    printf '%s\n' "$out" >&2
+    exit 1
+  fi
+}
+
+run_preflight default env
+run_preflight bqn-editor env BQN_EDITOR=1
 
 after_plan="$(shasum -a 256 "$base/plan.tsv" | awk '{print $1}')"
 after_journal="$(shasum -a 256 "$base/journal.tsv" | awk '{print $1}')"

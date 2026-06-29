@@ -24,20 +24,20 @@
 PR #24 は merge 済み。smoke check は `tools/check.sh` で合格済み。
 残りは実データへ書かずに確認できる範囲を優先し、必要なら fixture / check 化する。
 
-- [ ] `tools/plan-finish-replenish-ui.sh` の BQN エディタ環境（BQN_EDITOR=1 / ハイブリッド）での動作確認
+- [x] `tools/plan-finish-replenish-ui.sh` の BQN エディタ環境（BQN_EDITOR=1 / ハイブリッド）での動作確認（2026-06-30: `checks/check-plan-finish-replenish-ui.sh` の preflight を default env / `BQN_EDITOR=1` の両方で確認）
 - [ ] 補填モード（翌月作成、最新アクティブプラン後への延長）の対話的挙動を sandbox / dry-run 相当で確認する
-- [ ] `series=...` メタデータの継承・生成処理が正常に機能するか確認する
-- [ ] 関連予定一覧の表示と設計を確認/実装する
-  - [ ] 補充前に、選択した予定と同じ `series` の未消化予定一覧を表示する
-  - [ ] `series` 判定順序を厳格に守る:
+- [x] `series=...` メタデータの継承・生成処理が正常に機能するか確認する（2026-06-30: `meta series` → `plan_id` series → exact fallback の順に統一）
+- [x] 関連予定一覧の表示と設計を確認/実装する（2026-06-30: `tools/plan-finish-replenish-ui.sh` で実装）
+  - [x] 補充前に、選択した予定と同じ `series` の未消化予定一覧を表示する
+  - [x] `series` 判定順序を厳格に守る:
     1. meta の `series=...`
     2. `plan_id=plan-YYYY-MM-DD-<series>` から series 部分を抽出
     3. fallback として `memo`/`from`/`to`/`amount` 完全一致
-  - [ ] 表示フィールドに `date` / `memo` / `from -> to` / `amount` / `plan_id` を含める
-  - [ ] `extend` モードの基準日を、関連予定一覧の最新日付にする
-  - [ ] 関連予定がない場合に `No related active future plans found` と出力する
-  - [ ] fuzzy な意味推測を行わない
-  - [ ] source TSV format および plan finish / plan add の低層仕様を変更しない
+  - [x] 表示フィールドに `date` / `memo` / `from -> to` / `amount` / `plan_id` を含める
+  - [x] `extend` モードの基準日を、関連予定一覧の最新日付にする
+  - [x] 関連予定がない場合に `No related active future plans found` と出力する
+  - [x] fuzzy な意味推測を行わない
+  - [x] source TSV format および plan finish / plan add の低層仕様を変更しない
 
 
 ### 制約

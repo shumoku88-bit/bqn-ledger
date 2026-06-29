@@ -172,6 +172,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 
 - `tools/main-ui.sh` — 読み込み・閲覧系UI（レポート閲覧・セクション選択、fzf/gumベース）。
 - `tools/add-ui.sh` — 書き込み・操作系UI（取引の追加・取消・予定完了処理等、BQN editor への安全な中継）。
+- `tools/plan-finish-replenish-ui.sh` — 予定実績化後に次回予定補充を案内する任意の対話補助。`tools/edit plan finish` と `tools/edit plan add` を合成するだけで、低層 TSV 契約は持たない。
 - `tools/edit` — 公開 editor コマンドの薄い shell wrapper。
 - `tools/edit-bqn` — 現行の BQN+shell editor 入口。`src_edit` の write path を実行する。
 - `tools/report` / `tools/report-next` — `src_next` を使用したコマンドラインレポートの正本入口。

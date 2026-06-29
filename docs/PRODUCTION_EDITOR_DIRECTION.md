@@ -22,6 +22,12 @@
 - Calls `tools/edit`.
 - Does not own TSV write semantics.
 
+### `tools/plan-finish-replenish-ui.sh`
+- Optional interactive helper for the recurring-plan workflow.
+- Finishes a selected plan through `tools/edit plan finish`, then optionally creates the follow-up plan through `tools/edit plan add`.
+- May display related open future plans using explicit `series` metadata, `plan_id` series, or exact `memo/from/to/amount` fallback.
+- Must not change low-level source TSV contracts or own accounting semantics.
+
 ### `tools/edit`
 - Public command surface for daily editor operations.
 - Preserves CLI compatibility for current commands.
@@ -56,6 +62,9 @@
 ### Derived append
 - `plan finish`
 - `journal reverse`
+
+### Interactive orchestration
+- `tools/plan-finish-replenish-ui.sh` composes `plan finish` and `plan add` for replenishment; it is not a new write primitive.
 
 ### Exact replace
 - `plan edit`
