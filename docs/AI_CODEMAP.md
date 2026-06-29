@@ -131,3 +131,26 @@ source-of-truth TSV を安全に編集する Go ツール。
 ## tools 地図
 
 ### 検査・CI
+
+- `tools/check.sh` — テストランナーの正本。ユニットテスト、エンジン不変条件、各セクションの golden 差分、devtools-check などを一括実行する。
+- `tools/devtools-check.sh` — 全開発ツールの健全性チェック（`check.sh` のフェーズ4に組み込み済み）。
+- `tools/scaffold-check.sh` — 新しい `checks/check-*.sh` スクリプトのボイラープレート（テンプレート）生成用。
+
+### 開発・検証支援 (devtools)
+
+- `tools/repo-index` — リポジトリの BQN ファイルやチェックスクリプトの索引を管理。ファイル追加・削除時は `--baseline` で更新する。
+- `tools/doctor` — 設定とデータディレクトリの整合性診断。
+- `tools/bqn-eval` — BQN式の簡易評価用。
+- `tools/bqn-dump` — BQN値の型とshape診断用。
+- `tools/query` — `report-next-summary` 出力の機械可読検索・抽出フィルタ。
+- `tools/envelope-calc` — 封筒予算の対話的計算（P1〜P4 プリミティブ実行）。
+
+### ユーザーインターフェース (UI)
+
+- `tools/main-ui.sh` — 読み込み・閲覧系UI（レポート閲覧・セクション選択、fzf/gumベース）。
+- `tools/add-ui.sh` — 書き込み・操作系UI（取引の追加・取消・予定完了処理等、Go editor への安全な中継）。
+- `tools/edit` — Go editor 実行ラッパー。
+- `tools/report` / `tools/report-next` — `src_next` を使用したコマンドラインレポートの正本入口。
+- `tools/report-next-summary` — `src_next` データの機械向け要約出力。
+- `tools/bl` — `src_next/trial_balance.bqn` を呼び出す貸借対照表/試算表ビューワー。
+

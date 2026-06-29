@@ -151,12 +151,13 @@ Date: 2026-06-26
 
 ---
 
-## 7. Household Policy Layer 完成
+## 7. Household Policy Layer 完成 ✅ 一部完了 (2026-06-28)
 
-### なぜやるか
+### 結果
 
-Phase 0〜4 は完了しているが、まだ「moko の生活スタイル」が色濃い。
-policy profile の切り替えをもっと実用的にする。
+以下のサブタスクが完了し、mokoの個別生活前提がエンジンから剥離されました。
+*   **BQNコード内の日本語表示文字列の外部化**: `config/report_labels.tsv` と `src_next/report_labels.bqn` を新設し、セクション名やテーブルヘッダー、レポート表示用の日本語文字列をすべて外部化しました。
+*   **Prefix Fallback（接頭辞による暗黙の役割推測）の廃止**: アカウント接頭辞（`expenses:` など）による暗黙判定を完全に廃止し、`accounts.tsv` に指定された `role=` 属性のみを厳密に適用するように変更しました（`valid_roles` からの空文字除去完了）。
 
 ### 導線
 
@@ -165,26 +166,40 @@ policy profile の切り替えをもっと実用的にする。
 - 現状: `fixtures/household-moko/` `fixtures/household-monthly-salary/`
 - 現状: `docs/archive/completed-plans/HOUSEHOLD_POLICY_PHASE3_PROOF.md` — 2-style fixture proof 済み
 
-### やること
+### 残っているやること
 
 1. `config/meta_schema.tsv` に policy 設定キーを正式定義
 2. `data/config.tsv` で policy profile を選択できるように
 3. household views の `UNAVAILABLE` 状態をもっと細かく分類
 4. 欠損時に policy を推測しない（fail visible）
+5. `report_sections.tsv` や `account_display.tsv` の将来的な導入判断
 
-### 難易度: 低〜中（設計は済、実装の積み残し）
+---
+
+## 8. Command Hub (日常操作ランチャー) ✅ 完了 (2026-06-28)
+
+### 結果
+
+日常操作の確認・閲覧・実行導線を一元化する `tools/bl` (Command Hub) を実装しました。
+
+### やったこと
+
+*   **Phase 1: 閲覧・確認**: レポート選択、fzf / gum によるプレビュー（`tools/main-ui.sh` 連携）、および一時キャッシュによる preview 状態復元を実装。
+*   **Phase 2: アクション連携**: 仕訳追加・取消UI（`tools/add-ui.sh` 連携）や、新設された懸案事項 (`issues.tsv`) を対話的に安全追加する Go editor 連携ルートの実装。
+*   **デザイン分離**: gum / fzf 等の装飾レイヤーとPlain出力テキストの完全な分離（BQNエンジンは色を持たず、UI層がANSI制御を担当する契約を厳守）。
 
 ---
 
 ## 着手順の提案
 
 ```text
-1. 動的勘定科目空間        ← コードベースの健全性、mental overhead 低減
-2. Failure Fixtures        ← 安全網を先に張る
-3. 取消・修正UI            ← 実用性がすぐ上がる
-4. コントリビュータ文書    ← 並行して進められる
+1. 動的勘定科目空間        ← 完了 (2026-06-26)
+2. Failure Fixtures        ← 完了 (2026-06-26)
+3. 取消・修正UI            ← 完了 (2026-06-26)
+4. コントリビュータ文書    ← 進行中 (docs/AI_CODEMAP.md の補完)
 5. 多通貨                  ← 設計が固まってから
-6. Household Policy 完成   ← 実装の積み残し
+6. Household Policy 完成   ← 一部完了 (ラベル外部化・Prefix Fallback廃止完了)
+7. Command Hub 導入        ← 完了 (2026-06-28)
 ```
 
 ---

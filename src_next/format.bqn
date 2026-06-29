@@ -1,6 +1,6 @@
 # format.bqn
 # Minimal formatting helpers for src_next human-readable output.
-# Includes ANSI color support for terminal display.
+# Terminal styling and coloring helpers (disabled in engine, presentation layer's responsibility).
 
 # ANSI color codes (ESC = @ + 27) - Disabled inside BQN engine.
 # Presentation layer (shell UI) handles coloring.
@@ -20,7 +20,7 @@ enabled ← 1
 SetColorEnabled ← { enabled ↩ 𝕩 }
 AnsiColorEnabled ← {𝕊: enabled }
 
-# Color helpers (wrap text in ANSI escapes)
+# Terminal styling helpers (disabled in engine; returns plain text)
 Wrap    ← {𝕊 code‿text: enabled ⊑ ⟨text, code ∾ text ∾ c_reset⟩ }
 Bold    ← { Wrap ⟨c_bold, 𝕩⟩ }
 Dim     ← { Wrap ⟨c_dim, 𝕩⟩ }
