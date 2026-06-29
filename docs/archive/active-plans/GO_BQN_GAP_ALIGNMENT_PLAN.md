@@ -51,18 +51,25 @@ Before closing all parity gaps, prove one safe append path end to end:
 2. Add or use an experimental `tools/edit-bqn` wrapper only for BQN editor work.
 3. Parse the existing Go-compatible `journal add` flags in Bash.
 4. Pass normalized edit intent to BQN.
-5. Have BQN return a stable protocol, not `OK` and TSV payload mixed in a single ambiguous field.
-6. Apply the resulting append through `tools/lib/safe-write.sh`.
+5. Have BQN return a stable line-oriented protocol, not `OK` and TSV payload mixed in a single ambiguous field.
+6. Apply the resulting append through `tools/lib/safe-write.sh` with the same minimum write-safety guarantees as the Go append path: backup, temp-file + atomic rename, and stale detection before rename.
 7. Verify the resulting `journal.tsv` bytes against the Go editor for at least one fixture case.
 
-Suggested BQN output shape for append operations:
+Required BQN output shape for append operations:
 
 ```text
 OK	APPEND	journal.tsv
 <complete TSV row>
 ```
 
-Errors must exit non-zero:
+Protocol rules:
+
+- Line 1 is protocol metadata only: `status`, `operation`, and repo-relative target file.
+- Line 2 is the complete TSV row payload. It may contain tabs, so the shell dispatcher must not parse it as protocol fields.
+- Validation errors are written as a single `ERROR	<message>` line and must exit non-zero.
+- Diagnostics that are not part of the protocol go to stderr, not stdout.
+
+Errors:
 
 ```text
 ERROR	<message>
@@ -111,7 +118,7 @@ graph TD
 
 1. **Phase 0**: Add `tools/edit-bqn journal add` as a narrow experimental path. Keep `tools/edit` on Go.
 2. **Phase A**: Update `src_edit/editor_cmd.bqn` to dynamically read plan-only keys.
-3. **Phase B**: Add robust TTY detection, exact line matching, and SHA256 stale checking in `tools/edit` and `safe-write.sh`.
+3. **Phase B**: Add robust TTY detection, exact line matching, and SHA256 stale checking in the BQN dispatcher path and `safe-write.sh`.
 4. **Phase C**: Write `checks/check-editor-parity.sh` and hook it into `tools/check.sh`.
 5. **Phase D**: Run parity testing until all test cases produce identical outputs.
 6. **Phase E**: Change the `tools/edit` symlink/dispatch to point to the BQN path, verify, and archive the `editor/` Go codebase.

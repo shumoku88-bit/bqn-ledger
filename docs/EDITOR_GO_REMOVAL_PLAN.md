@@ -163,15 +163,23 @@ Rules for this gate:
 - BQN validates and renders an append operation.
 - BQN errors must exit non-zero.
 - BQN output must separate protocol metadata from TSV payload.
-- `tools/lib/safe-write.sh` applies the append.
+- `tools/lib/safe-write.sh` applies the append with backup, temp-file + atomic rename, and stale detection before rename.
+- `--dry-run` must not create a backup or modify source TSV.
 - Parity is measured first by resulting TSV bytes, then by exit codes, then by stdout/stderr compatibility.
 
-A usable append protocol should avoid mixing status and TSV fields in one tab-separated line. Prefer a small two-line protocol:
+The append protocol is line-oriented and must avoid mixing status and TSV fields in one tab-separated line:
 
 ```text
 OK	APPEND	journal.tsv
 <complete TSV row>
 ```
+
+Protocol rules:
+
+- Line 1 is protocol metadata only.
+- Line 2 is the complete TSV row payload. It may contain tabs, so the shell dispatcher must treat it as an opaque payload line.
+- Validation errors are a single `ERROR	<message>` line and must exit non-zero.
+- Non-protocol diagnostics go to stderr.
 
 This gate prevents the replacement from becoming a large BQN editor black box before the smallest daily write path is trustworthy.
 
