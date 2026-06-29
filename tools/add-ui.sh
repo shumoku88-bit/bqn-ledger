@@ -49,6 +49,7 @@ EOF
 
 shout() { printf '%s\n' "$*" >&2; }
 
+main() {
 base_dir="${LEDGER_DATA_DIR:-$(get_default_base_dir)}"
 preflight=0
 mode_arg=''
@@ -597,3 +598,6 @@ if [[ "$mode" != 'plan-finish' && "$mode" != 'plan-edit' && "$mode" != 'reverse'
 fi
 
 exec "${cmd[@]}"
+}
+
+main "$@"

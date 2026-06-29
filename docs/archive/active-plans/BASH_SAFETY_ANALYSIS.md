@@ -1,8 +1,14 @@
 # Bash Safety & Crash Prevention Analysis
 
-- Status: awaiting decision / pending review
+- Status: implemented first pass (Option 1 + guardrail)
 - Date: 2026-06-29
 - Context: A crash occurred in `tools/add-ui.sh` at line 459 where the `local` keyword was used outside a function, causing a runtime failure. This occurred because `bash -n` only checks syntax, and CLI smoke checks did not reach the specific `plan-edit`/`plan-finish` code paths.
+
+## Implemented first pass (2026-06-29)
+
+- `tools/add-ui.sh` top-level runtime flow is now wrapped in `main()`, so helper-path `local` declarations execute inside function scope.
+- Added `checks/check-bash-safety.sh` as a dedicated lightweight Bash safety check, wired into `tools/check.sh`.
+- The check runs `bash -n` for shell entrypoints and guards against top-level `local` without adding a new external `shellcheck` dependency.
 
 ## Proposed Options
 
