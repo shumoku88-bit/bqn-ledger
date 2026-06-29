@@ -51,30 +51,34 @@ Start with append-only commands before derived edits:
 
 1. `journal add`
 2. `budget add`
-3. `plan add`
-4. `issue add`
+3. `issue add`
+4. `plan add`
 
 Then add `plan list --format tsv`, because `tools/add-ui.sh plan-finish` and `plan-edit` rely on that exact interface.
 
 ## Experimental narrow entry point
 
-`tools/edit-bqn` is the experimental BQN + shell entry point for proving one edit path before replacing the Go editor. Current scope is intentionally limited:
+`tools/edit-bqn` is the experimental BQN + shell entry point for proving append paths before replacing the Go editor. Current scope is intentionally limited:
 
 ```text
 tools/edit-bqn journal add --dry-run
 tools/edit-bqn journal add --yes --post-check none
+tools/edit-bqn budget add --dry-run
+tools/edit-bqn budget add --yes --post-check none
+tools/edit-bqn issue add --dry-run
+tools/edit-bqn issue add --yes
 ```
 
-The BQN command (`src_edit/journal_add_cmd.bqn`) emits a two-line append protocol:
+The BQN commands (`src_edit/journal_add_cmd.bqn`, `src_edit/issue_add_cmd.bqn`) emit a two-line append protocol:
 
 ```text
-OK	APPEND	journal.tsv
+OK	APPEND	<target-file>
 <complete TSV row>
 ```
 
 Validation errors use `ERROR	<message>` and exit non-zero. The shell dispatcher treats the second line as an opaque TSV payload and applies writes through `tools/lib/safe-write.sh`.
 
-Anti-ad-hoc guard: this narrow path is allowed to be command-specific while proving safety. Before adding a second command, review whether protocol parsing, BQN invocation, and safe append wiring should be extracted into shared helpers instead of copy-pasted branches.
+Anti-ad-hoc guard: this narrow path now supports append-only commands through explicit shared boundaries in `tools/edit-bqn`. `journal add` / `budget add` share the journal-like path; `issue add` has a small dedicated parser because its CLI and file creation semantics differ. Do not grow it by copy-pasting branches; before adding `plan add`, review whether another shared boundary is needed.
 
 ## Safety rule
 

@@ -189,6 +189,42 @@ safe_append() {
   printf 'Backup: %s\n' "$backup_path"
 }
 
+# Create a new file atomically if it still does not exist.
+#
+# Usage: safe_create_checked <target_file> <content>
+# This is used for optional append-only source files such as issues.tsv.
+# Existing files must use safe_append_checked so a backup and stale check exist.
+safe_create_checked() {
+  local target="$1"
+  local content="$2"
+  local target_dir
+  target_dir="$(dirname "$target")"
+
+  if [[ -e "$target" ]]; then
+    echo "ERROR: file $target is stale; it appeared during editing" >&2
+    return 1
+  fi
+
+  mkdir -p "$target_dir"
+  local tmp_file
+  tmp_file="$(mktemp "${target}.tmp-XXXXXX")"
+  # shellcheck disable=SC2064
+  trap "rm -f '$tmp_file'" EXIT
+
+  printf '%s' "$content" > "$tmp_file"
+
+  if [[ -e "$target" ]]; then
+    echo "ERROR: file $target is stale; it appeared during editing" >&2
+    return 1
+  fi
+
+  mv "$tmp_file" "$target"
+  trap - EXIT
+
+  printf 'Wrote: %s\n' "$target"
+  printf 'Backup: none (created new file)\n'
+}
+
 # Append a single row using a previously captured snapshot token.
 #
 # Responsibility boundary:

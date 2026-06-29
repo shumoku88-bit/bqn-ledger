@@ -8,15 +8,19 @@ This note summarizes the current Go editor removal / BQN editor replacement stat
 ## Current state
 
 - Production `tools/edit` still uses the Go editor.
-- Experimental `tools/edit-bqn` exists, but only supports:
+- Experimental `tools/edit-bqn` exists, but only supports append-only commands:
 
 ```text
 tools/edit-bqn journal add --dry-run
 tools/edit-bqn journal add --yes --post-check none
+tools/edit-bqn budget add --dry-run
+tools/edit-bqn budget add --yes --post-check none
+tools/edit-bqn issue add --dry-run
+tools/edit-bqn issue add --yes
 ```
 
-- The narrow path is intentionally command-specific for now. Do not grow it into a large dispatcher by copy-paste.
-- `src_edit/journal_add_cmd.bqn` validates and renders the append operation.
+- The narrow path shares parsing/protocol/write handling for `journal add` and `budget add`; `issue add` has a dedicated parser because its CLI and new-file semantics differ. Do not grow it into a large dispatcher by copy-paste.
+- `src_edit/journal_add_cmd.bqn` / `src_edit/issue_add_cmd.bqn` validate and render append operations for the requested target file.
 - Shell applies the append through `tools/lib/safe-write.sh`.
 
 ## Protocol
@@ -24,7 +28,7 @@ tools/edit-bqn journal add --yes --post-check none
 Successful append output from BQN is two lines:
 
 ```text
-OK	APPEND	journal.tsv
+OK	APPEND	<target-file>
 <complete TSV row>
 ```
 
@@ -39,13 +43,13 @@ Rules:
 
 `checks/check-edit-bqn-journal-add.sh` is connected to `tools/check.sh` and covers:
 
-- dry-run does not modify `journal.tsv`
+- dry-run does not modify target TSVs (`journal.tsv`, `budget_alloc.tsv`, `issues.tsv`)
 - dry-run does not create backup files
 - positive resulting TSV byte parity with Go editor
-- negative fail-closed cases leave `journal.tsv` unchanged and create no backup
-- stale write simulation fails without appending the candidate row
+- negative fail-closed cases leave target files unchanged or uncreated and create no backup
+- stale journal write simulation fails without appending the candidate row
 
-`tools/edit-bqn journal add` captures a pre-validation/pre-preview snapshot and writes via `safe_append_checked`, which checks the same snapshot before backup creation and again immediately before atomic rename.
+`tools/edit-bqn journal add` / `budget add` / existing-file `issue add` capture a pre-validation/pre-preview snapshot and write via `safe_append_checked`, which checks the same snapshot before backup creation and again immediately before atomic rename. Missing `issues.tsv` uses `safe_create_checked` to create the header plus candidate row without backup.
 
 ## Important boundaries
 
@@ -58,7 +62,7 @@ Do not:
 - parse the TSV payload line as protocol fields
 - use `EDIT_BQN_TEST_BEFORE_APPEND_HOOK` outside tests
 
-Before adding a second command, decide whether to extract shared helpers for:
+Before adding the next command, keep shared helpers explicit for:
 
 - Go-compatible flag parsing
 - BQN command invocation
@@ -67,12 +71,8 @@ Before adding a second command, decide whether to extract shared helpers for:
 
 ## Suggested next steps
 
-1. Add more positive `journal add` parity cases:
-   - empty memo
-   - multiple `--meta`
-   - Japanese memo/account values
-   - append to a file without trailing newline
-2. Then consider `budget add` as the next append-only command.
+1. Consider `plan add` as the next append-only command; it needs plan_id generation and duplicate checks, so do not force it through the journal-like path blindly.
+2. Start sketching the black-box `checks/check-editor-parity.sh` harness once append-only coverage is stable.
 3. Before `plan edit` / `plan finish`, design a replace API with exact `oldLine` assertion.
 
 ## Related files

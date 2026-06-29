@@ -1,11 +1,11 @@
 # src_edit/journal_add_cmd.bqn
-# Narrow BQN command for experimental `tools/edit-bqn journal add`.
+# Narrow BQN command for experimental `tools/edit-bqn journal add` and `budget add`.
 #
 # Input args:
-#   <baseDir> <date> <memo> <from> <to> <amount> [meta...]
+#   <baseDir> <targetKind: journal|budget> <date> <memo> <from> <to> <amount> [meta...]
 #
 # Stdout protocol on success:
-#   OK\tAPPEND\tjournal.tsv
+#   OK\tAPPEND\t<target-file>
 #   <complete TSV row>
 #
 # Stdout protocol on validation error (with non-zero exit):
@@ -25,15 +25,20 @@ Fail ← {𝕊 msg:
   •Exit 1
 }
 
-{𝕊 ⋄ Fail "usage: journal_add_cmd.bqn <baseDir> <date> <memo> <from> <to> <amount> [meta...]"}⍟(6 > ≠ args) @
+{𝕊 ⋄ Fail "usage: journal_add_cmd.bqn <baseDir> <targetKind: journal|budget> <date> <memo> <from> <to> <amount> [meta...]"}⍟(7 > ≠ args) @
 
 baseDir ← 0 ⊑ args
-dateVal ← 1 ⊑ args
-memoVal ← 2 ⊑ args
-fromVal ← 3 ⊑ args
-toVal ← 4 ⊑ args
-amountVal ← 5 ⊑ args
-metaTokens ← 6 ↓ args
+targetKind ← 1 ⊑ args
+dateVal ← 2 ⊑ args
+memoVal ← 3 ⊑ args
+fromVal ← 4 ⊑ args
+toVal ← 5 ⊑ args
+amountVal ← 6 ⊑ args
+metaTokens ← 7 ↓ args
+
+validTargetKind ← ∨´ targetKind ⊸ ≡¨ "journal"‿"budget"
+{𝕊 ⋄ Fail ("invalid target kind: " ∾ targetKind)}⍟(¬ validTargetKind) @
+targetFile ← (targetKind ≡ "budget") ◶ ⟨ {𝕊 ⋄ sys.DefaultJournalFile @}, {𝕊 ⋄ sys.DefaultBudgetAllocFile @} ⟩ @
 
 ResolvePath ← { baseDir ∾ "/" ∾ 𝕩 }
 
@@ -70,5 +75,5 @@ row ← render.RenderJournalRow {
   meta ⇐ metaTokens
 }
 
-•Out "OK" ∾ tab ∾ "APPEND" ∾ tab ∾ (sys.DefaultJournalFile @)
+•Out "OK" ∾ tab ∾ "APPEND" ∾ tab ∾ targetFile
 •Out row
