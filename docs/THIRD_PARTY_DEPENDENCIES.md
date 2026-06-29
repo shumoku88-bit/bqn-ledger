@@ -11,12 +11,13 @@ It is not a full SBOM. It exists so maintainers and reviewers can see the main r
 | CBQN | Running BQN report engine, tests, and checks | README currently recommends commit `12a4fb9f` or later. CI reproducibility should keep this relationship explicit. |
 | Bash | Shell wrappers and check scripts | Used by `tools/`, `checks/`, and GitHub Actions. |
 | ripgrep | Repository checks | Installed in CI for check tooling. |
+| Go | Legacy preview-helper safety check | Not part of the active daily editor path; used to keep `tools/legacy/finish-preview.go` preview-only until removal/archive. |
 | fzf | Optional interactive UI | Presentation/selection helper only. |
 | gum | Optional interactive UI | Presentation/selection helper only. |
 
 ## Legacy / archived implementation notes
 
-Any remaining Go source in the repository is historical support code only and is not a normal runtime or development dependency. It should not be treated as a current toolchain requirement.
+Any remaining Go source in the repository is historical support code only and is not the active editor implementation. Go may still be required by checks that prove legacy helpers remain preview-only; it should not be treated as the current daily write path.
 
 ## Reproducibility notes
 

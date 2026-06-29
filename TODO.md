@@ -16,8 +16,8 @@
 
 ## CI / workflow drift stabilization
 
-- [ ] GitHub Actions の workflow から Go / editor 前提の残骸が混ざらないように、`checks/check-workflow-drift.sh` を維持する
-- [ ] CBQN の CI 取得 commit と `docs/CBQN_REPRODUCIBILITY.md` の記述を同期する
+- [x] GitHub Actions の workflow から Go / editor 前提の残骸が混ざらないように、`checks/check-workflow-drift.sh` を維持する（2026-06-30: workflow drift check に CBQN policy guard を追加し、active docs の stale Go editor 記述を修正）
+- [x] CBQN の CI 取得 commit と `docs/CBQN_REPRODUCIBILITY.md` の記述を同期する（2026-06-30: CI は `CBQN_REF: master` を取得し exact commit をログ、docs も master tracking と明記）
 - [ ] workflow / docs / check の変更時は `tools/check.sh` と GitHub Actions の両方を再確認する
 
 ## Post-merge follow-up: plan finish replenishment helper

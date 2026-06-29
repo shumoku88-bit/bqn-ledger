@@ -2,8 +2,8 @@
 set -euo pipefail
 
 # Verify read-only `tools/edit-bqn plan list` output compatibility.
-# `--format tsv` is consumed by tools/add-ui.sh plan selection, so this is
-# byte-parity checked against the current Go editor fallback.
+# `--format tsv` is consumed by tools/add-ui.sh plan selection, so this check
+# keeps the BQN editor output contract stable.
 
 if [ -f "src_next/report.bqn" ]; then
   ROOT_DIR="$PWD"

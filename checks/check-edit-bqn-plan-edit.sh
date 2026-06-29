@@ -4,7 +4,7 @@ export NO_COLOR=1
 
 # Verify BQN-backed `plan edit` exact-replace path.
 # Scope:
-#   - resulting plan.tsv byte parity with Go editor
+#   - resulting plan.tsv replace creates expected TSV/backup effects
 #   - dry-run source protection
 #   - negative cases fail closed without source/backup writes
 
@@ -64,9 +64,6 @@ run_positive_parity() {
 
   prepare_fixtures "$bqn_base"
 
-  # Go editor doesn't support --yes or --post-check for plan edit
-  # We must pipe "y" to confirm the edit operation.
-
   ./tools/edit-bqn --base "$bqn_base" "$@" >"$bqn_out" 2>&1
 
 
@@ -85,9 +82,6 @@ run_expect_fail_closed() {
 
   prepare_fixtures "$bqn_base"
   bqn_before="$(sha_file "$bqn_base/plan.tsv")"
-
-  # Go editor doesn't support --yes or --post-check for plan edit
-  # We must pipe "y" to confirm the edit operation.
 
   set +e
   ./tools/edit-bqn --base "$bqn_base" "$@" >"$bqn_out" 2>&1

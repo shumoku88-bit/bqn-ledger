@@ -30,4 +30,19 @@ for needle in 'bash tools/check.sh' 'bash tools/coverage'; do
   fi
 done
 
+# CBQN policy drift guard: CI currently tracks upstream master and logs the
+# exact commit. Keep this synchronized with docs/CBQN_REPRODUCIBILITY.md.
+if ! grep -q 'CBQN_REF: master' "$WORKFLOW"; then
+  echo "FAIL: workflow CBQN_REF no longer tracks master; update docs/CBQN_REPRODUCIBILITY.md with the policy change" >&2
+  exit 1
+fi
+if ! grep -q 'CBQN commit:' "$WORKFLOW"; then
+  echo "FAIL: workflow must log the exact CBQN commit used by CI" >&2
+  exit 1
+fi
+if ! grep -q 'GitHub Actions currently tracks CBQN `master` during CI' docs/CBQN_REPRODUCIBILITY.md; then
+  echo "FAIL: docs/CBQN_REPRODUCIBILITY.md is not synchronized with workflow CBQN_REF=master" >&2
+  exit 1
+fi
+
 echo "workflow drift check OK" >&2

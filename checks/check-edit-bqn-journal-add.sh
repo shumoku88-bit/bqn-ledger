@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Verify the narrow experimental BQN editor append paths.
+# Verify the BQN editor append paths.
 # Scope:
-#   - positive resulting TSV byte parity with Go editor
+#   - positive append creates expected TSV/backup effects
 #   - dry-run source protection
 #   - negative cases fail closed without source/backup writes
 

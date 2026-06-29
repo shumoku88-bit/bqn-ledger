@@ -3,8 +3,8 @@ set -euo pipefail
 
 # This check intentionally covers the legacy standalone plan finish helper
 # at tools/legacy/finish-preview.go. The active write-capable path is tools/edit
-# (editor/main.go), where `plan finish --apply` safely appends to journal.tsv.
-# Keep this legacy helper preview-only until it is either removed or archived.
+# (BQN editor + shell safe-write). Keep this legacy helper preview-only until
+# it is either removed or archived.
 
 # Get the physical directory of the script
 SOURCE="${BASH_SOURCE[0]}"

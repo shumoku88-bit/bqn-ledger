@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Verify experimental BQN-backed `plan add` append path.
+# Verify BQN-backed `plan add` append path.
 # Scope:
-#   - resulting plan.tsv byte parity with Go editor
+#   - resulting plan.tsv append creates expected TSV/backup effects
 #   - dry-run source protection
 #   - negative cases fail closed without source/backup writes
 
