@@ -70,19 +70,19 @@ echo "[2/4] src_next golden checks" >&2
 bash checks/check-src-next-golden.sh fixtures/src-next-golden >/dev/null
 bash checks/check-src-next-golden.sh fixtures/src-next-missing-plan >/dev/null
 bash checks/check-src-next-golden.sh fixtures/src-next-empty-projection >/dev/null
-bash checks/check-src-next-unknown-account >/dev/null
-bash checks/check-src-next-invalid-posting >/dev/null
-bash checks/check-src-next-out-of-cycle-journal >/dev/null
-bash checks/check-src-next-currency-accountkey >/dev/null
-bash checks/check-src-next-expense-role-metadata >/dev/null
-bash checks/check-src-next-household-mapping-policy >/dev/null
-bash checks/check-src-next-income-anchor-golden >/dev/null
-bash checks/check-src-next-stale-plan >/dev/null
-bash checks/check-src-next-anchor-unmet >/dev/null
-bash checks/check-src-next-zero-vs-unavailable >/dev/null
-bash checks/check-src-next-missing-budget-mapping >/dev/null
-bash checks/check-src-next-broken-empty-columns >/dev/null
-bash checks/check-src-next-budget-group-rename >/dev/null
+bash checks/check-src-next-golden.sh fixtures/src-next-unknown-account >/dev/null
+bash checks/check-src-next-golden.sh fixtures/src-next-invalid-posting >/dev/null
+bash checks/check-src-next-golden.sh fixtures/src-next-out-of-cycle-journal >/dev/null
+bash checks/check-src-next-golden.sh fixtures/src-next-currency-accountkey >/dev/null
+bash checks/check-src-next-golden.sh fixtures/src-next-expense-role-metadata >/dev/null
+bash checks/check-src-next-golden.sh fixtures/src-next-household-mapping-policy >/dev/null
+bash checks/check-src-next-golden.sh fixtures/src-next-income-anchor-golden >/dev/null
+bash checks/check-src-next-golden.sh fixtures/src-next-stale-plan >/dev/null
+bash checks/check-src-next-golden.sh fixtures/src-next-anchor-unmet >/dev/null
+bash checks/check-src-next-golden.sh fixtures/src-next-zero-vs-unavailable >/dev/null
+bash checks/check-src-next-golden.sh fixtures/src-next-missing-budget-mapping >/dev/null
+bash checks/check-src-next-golden.sh fixtures/src-next-broken-empty-columns >/dev/null
+bash checks/check-src-next-golden.sh fixtures/src-next-budget-group-rename >/dev/null
 
 echo "[3/4] src_next section checks" >&2
 bash checks/check-src-next-minimal-summary.sh fixtures/src-next-golden >/dev/null
