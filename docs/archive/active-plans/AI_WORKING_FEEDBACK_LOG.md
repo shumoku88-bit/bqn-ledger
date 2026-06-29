@@ -63,3 +63,14 @@ Date: 2026-06-28
 - Idea: local Markdown link checker を check/devtool 化し、active docs は fail、archive は policy に応じて warn/fail に分ける
 - Candidate type: check / devtool
 - Related tool/doc: `tools/check.sh`, `docs/archive/active-plans/AI_WORKING_FEEDBACK_LOG.md`
+
+### 2026-06-30: BQN precedence & function role gotchas
+
+- Context: BQNエディタにおける plan edit / journal reverse 実装およびデバッグ
+- Friction: 
+  - BQNの右結合的な関数適用規則により `sys.DefaultJournalFile @ ∾ ...` が右側全体を引数として飲み込んでしまい、メタデータ出力が消えた。
+  - `𝕊/𝕩/𝕨` を含まない `{ ... }` ブロックが即時評価されるため、`⍟`（条件適用）によるガードが機能せず無条件に変数が書き換わった。
+  - 小文字の変数名に代入した関数（例: `f ← { ... }`）は構文上「主語（値）」扱いになるため、`f 1` などで "Double subjects" 構文エラーになり、大文字 `F` で始める必要があった。
+- Idea: AIがBQNを編集・デバッグする際、これらの特有のハマりどころ（Gotchas）を `AGENTS.md` や開発者ガイドラインにルールとして明文化する。
+- Candidate type: rule / docs
+- Related tool/doc: `AGENTS.md`, `docs/CONVENTIONS.md`

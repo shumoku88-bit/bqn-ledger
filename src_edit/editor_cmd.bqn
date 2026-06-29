@@ -7,6 +7,7 @@ validate ← •Import "validate.bqn"
 render ← •Import "render.bqn"
 plan_id ← •Import "plan_id.bqn"
 config ← •Import "../src_next/config.bqn"
+date ← •Import "../src_next/date.bqn"
 
 # Load system defaults
 sys ← config.LoadSystemDefaults @
@@ -164,6 +165,11 @@ RunReverse ← { 𝕩 ⋄
   reverseDate ← 5 ⊑ args
   yes ← 6 ⊑ args
   
+  tab ← @+9
+  revDate ← (0 = ≠ reverseDate) ◶ ⟨ { 𝕊 ⋄ reverseDate }, { 𝕊 ⋄ date.Today @ } ⟩ @
+  dateCheck ← validate.ValidateDate revDate
+  { 𝕊 ⋄ Fail (1 ⊑ dateCheck) }⍟(¬ 0 ⊑ dateCheck) @
+
   journalPath ← ResolvePath (sys.DefaultJournalFile @)
   journalLines ← loader.ReadLinesOptional journalPath
   
@@ -202,7 +208,7 @@ RunReverse ← { 𝕩 ⋄
   reversedMemo ← "[reverse]" ∾ originalMemo
   
   renderedReverse ← render.RenderJournalRow {
-    date ⇐ reverseDate ⋄
+    date ⇐ revDate ⋄
     memo ⇐ reversedMemo ⋄
     from ⇐ originalTo ⋄
     to ⇐ originalFrom ⋄
@@ -210,7 +216,8 @@ RunReverse ← { 𝕩 ⋄
     meta ⇐ originalMeta
   }
   
-  •Out "REVERSE" ∾ (@+9) ∾ (•Fmt targetIdx) ∾ (@+9) ∾ originalDate ∾ (@+9) ∾ originalMemo ∾ (@+9) ∾ originalFrom ∾ (@+9) ∾ originalTo ∾ (@+9) ∾ originalAmount ∾ (@+9) ∾ renderedReverse
+  •Out "OK" ∾ tab ∾ "APPEND" ∾ tab ∾ (sys.DefaultJournalFile @) ∾ tab ∾ (•Fmt targetIdx) ∾ tab ∾ originalDate ∾ tab ∾ originalMemo ∾ tab ∾ originalFrom ∾ tab ∾ originalTo ∾ tab ∾ originalAmount
+  •Out renderedReverse
 }
 
 # ── Dispatch issue add ─────────────────────────────────────────
@@ -396,8 +403,8 @@ RunEdit ← { 𝕩 ⋄
   oldFields ← selected.fields
   newFields ← oldFields
   
-  { newFields ↩ ⟨dateVal⟩ ∾ 1↓newFields }⍟(0 < ≠ dateVal) @
-  { newFields ↩ (4↑newFields) ∾ ⟨amountVal⟩ ∾ 5↓newFields }⍟(0 < ≠ amountVal) @
+  { 𝕊 ⋄ newFields ↩ ⟨dateVal⟩ ∾ 1↓newFields }⍟(0 < ≠ dateVal) @
+  { 𝕊 ⋄ newFields ↩ (4↑newFields) ∾ ⟨amountVal⟩ ∾ 5↓newFields }⍟(0 < ≠ amountVal) @
   
   tab ← @+9
   oldLine ← tab plan_id.Join oldFields
@@ -405,7 +412,9 @@ RunEdit ← { 𝕩 ⋄
   
   { 𝕊 ⋄ Fail "edit would not change the selected plan row" }⍟(oldLine ≡ newLine) @
   
-  •Out "REPLACE" ∾ tab ∾ (•Fmt selected.lineNum) ∾ tab ∾ oldLine ∾ tab ∾ newLine ∾ tab ∾ selected.planID
+  •Out "OK" ∾ tab ∾ "REPLACE" ∾ tab ∾ (•Fmt selected.lineNum) ∾ tab ∾ selected.planID
+  •Out oldLine
+  •Out newLine
 }
 
 # ── Main router ─────────────────────────────────────────────────
