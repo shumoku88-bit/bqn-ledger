@@ -31,7 +31,8 @@
 ### その他保留事項
 
 - [x] Bashスクリプトの実行時クラッシュ防止策の初回対応（`tools/add-ui.sh` の `main()` 化 + dedicated Bash safety check。導線: [docs/archive/active-plans/BASH_SAFETY_ANALYSIS.md](docs/archive/active-plans/BASH_SAFETY_ANALYSIS.md)）
-- lifestyle configuration / report policy externalization の残り整理
+- [x] lifestyle configuration / report policy externalization の残り整理（2026-06-29: `docs/archive/audits/REPORT_ASSUMPTION_AUDIT.md` を現行 remainder audit に更新。`report_sections.tsv` / `account_display.tsv` はまだ作らない判断）
+- [ ] 次の小候補: `report_labels.tsv` の参照キー存在チェック、または future envelope target policy の docs-only sketch
 - safety / docs hygiene の小さい整合性修正
 - 多通貨対応（保留）
 
