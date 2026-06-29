@@ -38,6 +38,37 @@ The current interactive input path already has a useful split:
 
 This plan keeps the first part stable and replaces the Go editor from underneath the existing `tools/edit` command surface.
 
+## Expected lightness
+
+This direction may make daily input lighter, but only if the replacement stays small.
+
+The current `tools/edit` wrapper builds the Go editor before executing it:
+
+```text
+cd editor && go build -o tools/edit.bin .
+```
+
+Removing that step should reduce the startup cost of daily edit commands and remove the Go toolchain from normal daily use.
+
+The intended lightness gains are:
+
+- no `go build` during each `tools/edit` invocation
+- fewer required daily dependencies
+- a thinner command path for append-style edits
+- a clearer BQN-centered project shape for BQN users
+
+This is not automatic. The BQN + shell replacement must avoid becoming heavier than the Go editor it replaces.
+
+Keep the replacement path small:
+
+- invoke BQN at most once per edit command where practical
+- avoid repeatedly rereading the same TSV files in one command
+- keep shell focused on dispatch and file safety
+- keep accounting validation in BQN rather than spreading it across many shell fragments
+- keep heavy checks for explicit check commands, not every small append
+
+The target is a lighter daily path, not a larger shell system wearing a BQN hat.
+
 ## Target responsibility boundary
 
 ### `tools/add-ui.sh`
