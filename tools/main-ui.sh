@@ -106,8 +106,8 @@ trial-balance	試算表
 recent	直近の取引
 planned	予定支払い
 daily-trend	日割り推移
-check	データチェック
 actual-comparison	前期比較
+check	データチェック
 debug	デバッグ
 all	全セクション
 actions	→ 仕訳追加・取消
