@@ -24,6 +24,7 @@ jobs:
       - name: Install CBQN
         run: |
           git clone --depth 1 https://github.com/dzaima/CBQN.git
+          echo "CBQN commit: $(git -C CBQN rev-parse HEAD)"
           make -C CBQN -j$(nproc)
           sudo cp CBQN/BQN /usr/local/bin/bqn
 

@@ -63,6 +63,8 @@
   - 日常の取引入力UI (`tools/add-ui.sh`) のマニュアル。
 - [SRC_NEXT_CURRENT.md](SRC_NEXT_CURRENT.md)
   - `src_next/` が現在の普段使い report engine であること、`tools/report` / `tools/report-next-summary` / `tools/report-next` の使い分け。
+- [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md)
+  - tag / release note / public checkpoint 前の確認手順。
 - [REPORT_CONTRACTS.md](REPORT_CONTRACTS.md)
   - 現行 report contract の入口。古い archived contract をそのまま現行仕様として読まないための境界メモ。
 
