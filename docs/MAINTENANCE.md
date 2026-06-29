@@ -8,10 +8,12 @@
 
 - Environment / data-dir doctor: `tools/doctor`
 - Full check suite: `tools/check.sh`
-- Daily report entry: `tools/main-ui.sh`
-  - Full human report: `tools/report`
-  - Section selector (fzf/gum): `tools/main-ui.sh select`
+- Daily operation entry / command hub: `tools/bl`
+  - Full human report via hub: `tools/bl report`
+  - Direct full human report: `tools/report`
+  - Lower-level section selector (fzf/gum): `tools/main-ui.sh select`
 - Machine summary: `tools/report-next-summary`
+- Current src_next usage map: `docs/SRC_NEXT_CURRENT.md`
 - Add a transaction (Go editor):
   - `tools/edit journal add` — 実績取引の追記
   - `tools/edit budget add` — 予算配賦の追記

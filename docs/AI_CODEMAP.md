@@ -7,17 +7,20 @@
 1. `docs/AI_CODEMAP.md`（このファイル）
 2. `TODO.md`（現在進行中・次に着手する作業だけ）
 3. `docs/QUALITY_BAR.md`（品質基準）
-4. `docs/ARCHITECTURE.md`（データフロー・モジュール責務）
-5. `docs/CANONICAL_DAILY_CUBE.md`（固定するDaily Cube契約）
-6. `docs/TIME_AS_AXIS.md`（時間座標・観察時点・区間view）
-7. レポート変更なら `src_next/report.bqn` と該当する `src_next/*` モジュール、および現行の report 関連 docs / check
-8. Goによる元データTSV編集なら `docs/GO_EDITOR_USAGE.md` / `docs/archive/active-plans/GO_EDITOR_NEXT_PLAN.md`
-9. 複数ポスティング導入検討なら `docs/archive/completed-plans/DECISION_MULTI_POSTING_INVESTIGATION.md`
-10. 変更内容に応じて `docs/CONVENTIONS.md` / `docs/JOURNAL_META.md` / `docs/MAINTENANCE.md`
-11. 履歴・背景（非アクティブな計画書、旧エンジン移行期資料、完了済みの計画書など）が必要な場合のみ `docs/archive/` を読む
-12. AIによる家計相談計算の設計なら `docs/archive/active-plans/AI_BUDGET_CALCULATOR_DESIGN.md`
+4. `docs/SRC_NEXT_CURRENT.md`（`src_next` が現在の普段使い report engine であること、旧 migration docs の扱い）
+5. `docs/ARCHITECTURE.md`（データフロー・モジュール責務）
+6. `docs/CANONICAL_DAILY_CUBE.md`（固定するDaily Cube契約）
+7. `docs/TIME_AS_AXIS.md`（時間座標・観察時点・区間view）
+8. レポート変更なら `src_next/report.bqn` と該当する `src_next/*` モジュール、および現行の report 関連 docs / check
+9. Goによる元データTSV編集なら `docs/GO_EDITOR_USAGE.md` / `docs/archive/active-plans/GO_EDITOR_NEXT_PLAN.md`
+10. 複数ポスティング導入検討なら `docs/archive/completed-plans/DECISION_MULTI_POSTING_INVESTIGATION.md`
+11. 変更内容に応じて `docs/CONVENTIONS.md` / `docs/JOURNAL_META.md` / `docs/MAINTENANCE.md`
+12. 履歴・背景（非アクティブな計画書、旧エンジン移行期資料、完了済みの計画書など）が必要な場合のみ `docs/archive/` を読む
+13. AIによる家計相談計算の設計なら `docs/archive/active-plans/AI_BUDGET_CALCULATOR_DESIGN.md`
 
 `docs/archive/completed-plans/REPORT_FIELD_MAP.md` と `docs/archive/completed-plans/MAIN_SECTIONS.md` は旧エンジンの historical / superseded docs です。現行レポート変更の正本導線としては読まず、旧 `main.bqn` / `report_engine.Build` の履歴確認が必要な場合だけ参照します。
+
+`docs/archive/src-next-migration/` も移行期の履歴です。現在の入口は `docs/SRC_NEXT_CURRENT.md` と `tools/report` を正とし、archive 内の「production default is bqn main.bqn」「Stage 4b 未開始」などの記述を現行仕様として扱わないでください。
 
 ## 絶対に守ること
 

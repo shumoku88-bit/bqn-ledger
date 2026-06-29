@@ -18,7 +18,7 @@
 - **正データは TSV** に置く。人間が直接読めて、差分も追える形を守る。
 - **読み込み時に厳しく検査** する。typo や壊れた行は早めに失敗させる。
 - **会計計算は配列中心** にする。BQN の強みであるベクトル・行列演算を使う。
-- 日常の入口は **`tools/report` の1コマンド** として保つ。
+- 日常操作の入口は **`tools/bl`（Command Hub）** とし、非対話のレポート入口は **`tools/report`** として保つ。
 - 記録 → 検査 → 集計 → 表示の流れを毎日使えるようにする。
 
 ### やらないこと
@@ -152,7 +152,7 @@ BQN が出してはいけないもの:
 - TTY 依存の表示制御
 - fzf / gum など特定 UI ツール向けの装飾 markup
 
-色、太字、枠、カード、preview、対話的な見せ方は presentation layer の責務である。現在の置き場は `tools/lib/color-filter`、`tools/main-ui.sh`、`tools/add-ui.sh` の表示補助とする。将来 viewer を追加する場合も、この境界を越えない。
+色、太字、枠、カード、preview、対話的な見せ方は presentation layer の責務である。現在の置き場は `tools/bl`、`tools/lib/color-filter`、`tools/main-ui.sh`、`tools/add-ui.sh` の表示補助とする。将来 viewer を追加する場合も、この境界を越えない。
 
 ```text
 BQN: meaning, calculation, plain output

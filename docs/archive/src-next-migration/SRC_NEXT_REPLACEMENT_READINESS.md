@@ -2,9 +2,12 @@
 
 
 > **Note (2026-06-26):** Old engine has been deleted. References in this doc are historical. Current engine is src_next/.
-状態: **日本語を正本とする移行ゲート / 本番動作の変更なし**
+状態: **historical / superseded by `docs/SRC_NEXT_CURRENT.md`**
 
-この文書は、AI が `src_next` で何を進めているのか、いつ本番へ近づけてよいのかを確認するための日本語の地図です。
+> 現在の `src_next` 普段使い入口は `docs/SRC_NEXT_CURRENT.md` を正とします。
+> この文書内の「本番の信頼ルートは `bqn main.bqn`」「default switch 前」などの記述は移行期のゲート記録です。
+
+この文書は、AI が `src_next` で何を進めているのか、いつ本番へ近づけてよいのかを確認するための日本語の地図でした。
 
 重要な前提:
 

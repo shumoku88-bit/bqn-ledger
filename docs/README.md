@@ -26,18 +26,19 @@
 1. [AI_CODEMAP.md](AI_CODEMAP.md) - pit向けコード地図
 2. [../TODO.md](../TODO.md) - 現在進行中・次に着手する作業だけ
 3. [QUALITY_BAR.md](QUALITY_BAR.md) - production-grade personal tool として扱う品質基準
-4. [ENGINEERING_ROADMAP.md](ENGINEERING_ROADMAP.md) - プロ級へ詰める導線・次の一手
-5. [SAFETY_PROFILE.md](SAFETY_PROFILE.md) - fail closed / 正データ保護 / invariant の小さな安全規格
-6. [SAFETY_PROFILE_INVARIANT_MAP.md](SAFETY_PROFILE_INVARIANT_MAP.md) - Safety Profile invariant と既存 check / lint / fixture の対応表
-7. [ARCHITECTURE.md](ARCHITECTURE.md) - 現行データフローとモジュール責務
-8. [CANONICAL_DAILY_CUBE.md](CANONICAL_DAILY_CUBE.md) - `Day × Account × Layer` の固定契約
-9. [POSTING_IR_CONTRACT.md](POSTING_IR_CONTRACT.md) / [TBDS_CONTRACT.md](TBDS_CONTRACT.md) - Posting IR と試算表データセットの境界契約
-10. [PLAN_ID_LIFECYCLE.md](PLAN_ID_LIFECYCLE.md) - `plan_id` ライフサイクル契約 (Go/BQN 共通契約)
-11. [TIME_AS_AXIS.md](TIME_AS_AXIS.md) - 時間座標・区間ビュー
-12. [DATA_DIR_SETUP.md](DATA_DIR_SETUP.md) - データ配置の設定マニュアル
-13. [UNAVAILABLE_SENTINEL_CONTRACT.md](UNAVAILABLE_SENTINEL_CONTRACT.md) - unavailable sentinelの定義
-14. [CONVENTIONS.md](CONVENTIONS.md) / [JOURNAL_META.md](JOURNAL_META.md) - 科目命名・メタデータ規約
-15. 変更内容に応じて、下の「Done / Current Baseline (完了済み・現行仕様として機能)」を参照
+4. [SRC_NEXT_CURRENT.md](SRC_NEXT_CURRENT.md) - 現在の `src_next` 普段使い入口と旧 migration docs の扱い
+5. [ENGINEERING_ROADMAP.md](ENGINEERING_ROADMAP.md) - プロ級へ詰める導線・次の一手
+6. [SAFETY_PROFILE.md](SAFETY_PROFILE.md) - fail closed / 正データ保護 / invariant の小さな安全規格
+7. [SAFETY_PROFILE_INVARIANT_MAP.md](SAFETY_PROFILE_INVARIANT_MAP.md) - Safety Profile invariant と既存 check / lint / fixture の対応表
+8. [ARCHITECTURE.md](ARCHITECTURE.md) - 現行データフローとモジュール責務
+9. [CANONICAL_DAILY_CUBE.md](CANONICAL_DAILY_CUBE.md) - `Day × Account × Layer` の固定契約
+10. [POSTING_IR_CONTRACT.md](POSTING_IR_CONTRACT.md) / [TBDS_CONTRACT.md](TBDS_CONTRACT.md) - Posting IR と試算表データセットの境界契約
+11. [PLAN_ID_LIFECYCLE.md](PLAN_ID_LIFECYCLE.md) - `plan_id` ライフサイクル契約 (Go/BQN 共通契約)
+12. [TIME_AS_AXIS.md](TIME_AS_AXIS.md) - 時間座標・区間ビュー
+13. [DATA_DIR_SETUP.md](DATA_DIR_SETUP.md) - データ配置の設定マニュアル
+14. [UNAVAILABLE_SENTINEL_CONTRACT.md](UNAVAILABLE_SENTINEL_CONTRACT.md) - unavailable sentinelの定義
+15. [CONVENTIONS.md](CONVENTIONS.md) / [JOURNAL_META.md](JOURNAL_META.md) - 科目命名・メタデータ規約
+16. 変更内容に応じて、下の「Done / Current Baseline (完了済み・現行仕様として機能)」を参照
 
 ---
 
@@ -59,6 +60,8 @@
   - サイクル集計期間の変更・設定マニュアル。
 - [ADD_UI_USAGE.md](ADD_UI_USAGE.md)
   - 日常の取引入力UI (`tools/add-ui.sh`) のマニュアル。
+- [SRC_NEXT_CURRENT.md](SRC_NEXT_CURRENT.md)
+  - `src_next/` が現在の普段使い report engine であること、`tools/report` / `tools/report-next-summary` / `tools/report-next` の使い分け。
 
 ---
 
@@ -68,6 +71,6 @@
 
 *   **[archive/active-plans/](archive/active-plans/)**: 現在進行中、または待機中(Backlog)の計画書・設計メモ。AI作業品質・トークン効率の気づきは [AI_WORKING_FEEDBACK_LOG.md](archive/active-plans/AI_WORKING_FEEDBACK_LOG.md) に一時収集します。
 *   **[archive/completed-plans/](archive/completed-plans/)**: 実装完了済みの計画書・意思決定メモ。
-*   **[archive/src-next-migration/](archive/src-next-migration/)**: 旧エンジンから `src_next` への移行フェーズに関わる検証・ログ類。
+*   **[archive/src-next-migration/](archive/src-next-migration/)**: 旧エンジンから `src_next` への移行フェーズに関わる検証・ログ類。現在の入口は [SRC_NEXT_CURRENT.md](SRC_NEXT_CURRENT.md) を正とし、この下の `bqn main.bqn` / default switch / Stage 4b 未開始などの記述は履歴として読む。
 *   **[archive/audits/](archive/audits/)**: 過去に実施した一時的な drift 監査や section 監査のワークシート。
 *   **[archive/handoffs/](archive/handoffs/)**: 過去の開発セッション間ハンドオフファイル。

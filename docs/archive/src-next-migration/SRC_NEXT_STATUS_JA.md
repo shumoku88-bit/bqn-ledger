@@ -1,8 +1,11 @@
 # src_next 現在地メモ
 
-Status: **日本語の入口 / 運用メモ / no production behavior change**
+Status: **historical / superseded by `docs/SRC_NEXT_CURRENT.md`**
 
-この文書は、英語の `src_next` readiness docs を読む前に、現在地を日本語で確認するための入口です。
+> 現在の `src_next` 普段使い入口は `docs/SRC_NEXT_CURRENT.md` を正とします。
+> この文書内の「production default は `bqn main.bqn`」「Stage 4b 未開始」などの記述は移行期の履歴です。
+
+この文書は、英語の `src_next` readiness docs を読む前に、当時の現在地を日本語で確認するための入口でした。
 
 英語 docs は AI 作業員・GitHub・将来の保守向けの契約書として扱います。この文書は、日々の運用で迷わないための日本語ガイドです。
 

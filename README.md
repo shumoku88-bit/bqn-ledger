@@ -95,10 +95,13 @@ LEDGER_DATA_DIR=/path/to/ledger-data/data tools/report
 # fixture や別データセットを見る
 tools/report fixtures/src-next-golden
 
-# 日常レポート入口
-tools/main-ui.sh
+# 日常操作ハブ（普段の入口）
+tools/bl
 
-# セクション選択 UI
+# 全体レポートをハブ経由で見る
+tools/bl report
+
+# セクション選択 UI（低レベル入口）
 tools/main-ui.sh select
 
 # 機械向けコンパクトサマリー
@@ -111,7 +114,7 @@ tools/doctor
 tools/check.sh
 ```
 
-低レベルの診断や履歴的な確認が必要な場合だけ、`tools/report-next` や `bqn src_next/main.bqn <base-dir>` を直接使います。通常の日常確認では `tools/report` を使います。
+低レベルの診断や履歴的な確認が必要な場合だけ、`tools/report-next` や `bqn src_next/main.bqn <base-dir>` を直接使います。通常の日常操作は `tools/bl`、非対話の全体レポート確認は `tools/report` を使います。
 
 ## Daily input
 
