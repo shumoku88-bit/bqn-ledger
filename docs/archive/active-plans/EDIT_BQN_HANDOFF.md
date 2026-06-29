@@ -71,6 +71,8 @@ Rules:
 
 `tools/edit-bqn journal add` / `budget add` / `plan add` / existing-file `issue add` capture a pre-validation/pre-preview snapshot and write via `safe_append_checked`, which checks the same snapshot before backup creation and again immediately before atomic rename. Missing `issues.tsv` uses `safe_create_checked` to create the header plus candidate row without backup.
 
+`tools/lib/safe-write.sh` also has the exact replace primitive `safe_replace_line_checked`, covered by `checks/check-safe-replace-line.sh`. It checks the expected snapshot and exact old row before backup creation, then checks them again immediately before atomic rename.
+
 ## Important boundaries
 
 Do not:
@@ -91,7 +93,7 @@ Before adding the next command, keep shared helpers explicit for:
 
 ## Suggested next steps
 
-1. Design the derived-edit safety boundary for `plan finish` / `plan edit`: exact `oldLine` assertion, stale snapshot, and replace/append operation protocol.
+1. Add the Edit Plan Protocol v1 parser/apply path in shell for append/replace plans without switching `tools/edit`.
 2. Start sketching the black-box `checks/check-editor-parity.sh` harness now that append-only coverage is stable.
 3. Implement `plan finish` before `plan edit` / `journal reverse` if keeping the current migration order.
 
@@ -109,3 +111,4 @@ Before adding the next command, keep shared helpers explicit for:
 - `checks/check-edit-bqn-journal-add.sh`
 - `checks/check-edit-bqn-plan-list.sh`
 - `checks/check-edit-bqn-plan-add.sh`
+- `checks/check-safe-replace-line.sh`
