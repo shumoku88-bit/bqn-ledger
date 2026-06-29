@@ -4,6 +4,15 @@
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避済みです。
 
 
+## Real-data trial safety observation
+
+- [x] `docs/REAL_DATA_TRIAL_SAFETY.md` を追加し、sandbox rehearsal / real-data preflight / dry-run / 確認付き書き込み / 観察ログの最小手順を定義する
+- [ ] sandbox rehearsal を1回通す
+- [ ] 実データで `tools/doctor`, `tools/report`, `tools/add-ui.sh --check` を確認する
+- [ ] 最初の実データ書き込みは `--dry-run` 後、`--yes` なしの確認付き経路で行う
+- [ ] 数回の実データ書き込みについて、base dir / backup / post-check / report drift を観察する
+- [ ] 観察後、追加で必要なら safe-write lock / preflight helper / CI pinning を別PRで検討する
+
 ## CI / workflow drift stabilization
 
 - [ ] GitHub Actions の workflow から Go / editor 前提の残骸が混ざらないように、`checks/check-workflow-drift.sh` を維持する
