@@ -4,8 +4,8 @@
 #
 # Contract: ACTUAL_COMPARISON_REPORT_PLAN.md
 #   - Lane: income / recurring_fixed / variable
-#   - income: from-account with income: prefix
-#   - expense: to-account with role=expense or expenses: prefix
+#   - income: from-account with role=income
+#   - expense: to-account with role=expense
 #   - recurring_fixed: spend_class=fixed
 #   - variable: everything else
 
@@ -195,13 +195,8 @@ Build ← {𝕊 ctx:
   AccRole ← {𝕊 acc: (AccIdx acc) ⊑ (roles ∾ ⟨""⟩) }
   AccSpendClass ← {𝕊 acc: (AccIdx acc) ⊑ (spend_classes ∾ ⟨""⟩) }
 
-  IsIncAcc ← {𝕊 acc: "income:" ≡ 7 ↑ acc }
-  IsExpAcc ← {𝕊 acc:
-    role ← AccRole acc
-    is_exp_role ← role ≡ "expense"
-    is_exp_prefix ← "expenses:" ≡ 9 ↑ acc
-    is_exp_role ∨ is_exp_prefix
-  }
+  IsIncAcc ← {𝕊 acc: "income" ≡ AccRole acc }
+  IsExpAcc ← {𝕊 acc: "expense" ≡ AccRole acc }
 
   # ── Build observation rows ─────────────────────────────
   # obs: ⟨lane, unit_kind, unit, amount, date_dn⟩

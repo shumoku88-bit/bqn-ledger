@@ -153,5 +153,5 @@ source-of-truth TSV を安全に編集する Go ツール。
 - `tools/edit` — Go editor 実行ラッパー。
 - `tools/report` / `tools/report-next` — `src_next` を使用したコマンドラインレポートの正本入口。
 - `tools/report-next-summary` — `src_next` データの機械向け要約出力。
-- `tools/bl` — `src_next/trial_balance.bqn` を呼び出す貸借対照表/試算表ビューワー。
+- `tools/bl` — 日常操作 Command Hub。report / section / add / check / edit をまとめ、読み取り表示と安全な書き込み導線へルーティングする。
 
