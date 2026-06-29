@@ -2,8 +2,10 @@
 # Minimal formatting helpers for src_next human-readable output.
 # Terminal styling and coloring helpers (disabled in engine, presentation layer's responsibility).
 
-# ANSI color codes (ESC = @ + 27) - Disabled inside BQN engine.
-# Presentation layer (shell UI) handles coloring.
+# ANSI color configuration - strictly disabled inside the BQN engine to enforce the
+# presentation boundary. All terminal style variables are empty strings, keeping engine
+# outputs as plain text. The presentation layer (TUI/UI wrapper) is solely responsible
+# for terminal colors.
 c_reset   ← ""
 c_bold    ← ""
 c_dim     ← ""
@@ -14,8 +16,8 @@ c_blue    ← ""
 c_magenta ← ""
 c_cyan    ← ""
 
-# Color control. BQN cannot read NO_COLOR directly, so CLI/wrapper code calls
-# SetColorEnabled 0 when color should be suppressed.
+# Color control interface. Retained for API compatibility with existing report wrappers.
+# In this color-disabled engine, changing enabled has no visual output impact.
 enabled ← 1
 SetColorEnabled ← { enabled ↩ 𝕩 }
 AnsiColorEnabled ← {𝕊: enabled }

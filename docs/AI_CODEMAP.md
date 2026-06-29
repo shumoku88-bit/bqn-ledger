@@ -135,6 +135,7 @@ source-of-truth TSV を安全に編集する Go ツール。
 - `tools/check.sh` — テストランナーの正本。ユニットテスト、エンジン不変条件、各セクションの golden 差分、devtools-check などを一括実行する。
 - `tools/devtools-check.sh` — 全開発ツールの健全性チェック（`check.sh` のフェーズ4に組み込み済み）。
 - `tools/scaffold-check.sh` — 新しい `checks/check-*.sh` スクリプトのボイラープレート（テンプレート）生成用。
+- `tools/coverage` — Go editor のテストカバレッジおよび BQN モジュールのテスト網羅状況を出力する。
 
 ### 開発・検証支援 (devtools)
 

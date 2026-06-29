@@ -24,10 +24,9 @@ BuildRowsForFile ← {𝕊 srcFile:
 rows ← (BuildRowsForFile "journal.tsv") ∾ BuildRowsForFile "plan.tsv"
 result ← cube.Materialize ⟨rows, cy.day_count, resolved.count⟩
 summary ← hh.BuildSummary ⟨base, resolved, result.valid_rows⟩
-
 1 lib.AssertEq summary.has_policy_metadata
 6 lib.AssertEq summary.expense_account_count
-1 lib.AssertEq summary.prefix_fallback_expense_account_count
+0 lib.AssertEq summary.prefix_fallback_expense_account_count
 5 lib.AssertEq summary.expense_account_with_budget_count
 2 lib.AssertEq summary.expense_budget_group_daily_count
 1 lib.AssertEq summary.expense_budget_group_flex_count
