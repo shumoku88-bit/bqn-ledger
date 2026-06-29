@@ -16,16 +16,6 @@ cd "$ROOT_DIR"
 
 source "$ROOT_DIR/tools/lib/system-defaults.sh"
 
-# Initialize theme
-source "$ROOT_DIR/tools/lib/theme.sh"
-
-COLOR_HEADER="$ESC_HEADER"
-COLOR_OK="$ESC_OK"
-COLOR_WARN="$ESC_WARN"
-COLOR_ERROR="$ESC_ERROR"
-COLOR_RESET="$ESC_RESET"
-
-
 usage() {
   cat <<EOF
 Usage:
@@ -76,6 +66,15 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+# Initialize theme after resolving base_dir so --base config can affect the hub.
+source "$ROOT_DIR/tools/lib/theme.sh"
+
+COLOR_HEADER="$ESC_HEADER"
+COLOR_OK="$ESC_OK"
+COLOR_WARN="$ESC_WARN"
+COLOR_ERROR="$ESC_ERROR"
+COLOR_RESET="$ESC_RESET"
+
 IS_TTY=0
 if [[ -t 0 && -t 1 ]]; then
   IS_TTY=1
@@ -114,11 +113,13 @@ EOF
 
 run_check() {
   print_header "Running Checks"
-  # Run check.sh and check its exit code
+  # Run check.sh and propagate its exit status for direct command use.
   if "$ROOT_DIR/tools/check.sh"; then
     printf "${COLOR_OK}All checks passed successfully.${COLOR_RESET}\n"
+    return 0
   else
-    printf "${COLOR_ERROR}Checks failed. Please review errors above.${COLOR_ERROR}\n"
+    printf "${COLOR_ERROR}Checks failed. Please review errors above.${COLOR_RESET}\n"
+    return 1
   fi
 }
 
@@ -214,7 +215,7 @@ if [[ -z "$cmd" ]]; then
         echo ""
         ;;
       check)
-        run_check
+        run_check || true
         echo ""
         ;;
       edit)
