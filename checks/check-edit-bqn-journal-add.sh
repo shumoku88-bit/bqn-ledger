@@ -254,17 +254,6 @@ assert_no_backup "$stale_base" "tools/edit-bqn stale append"
 # At this stage stdout/stderr text does not need to match exactly. The gate is:
 # both paths reject the input, leave journal.tsv byte-identical, and create no backup.
 
-valid_prefix=(
-  journal add
-  --date 2026-06-29
-  --memo "edit-bqn negative"
-  --from assets:bank
-  --to expenses:食費
-  --amount 123
-  --yes
-  --post-check none
-)
-
 run_expect_fail_closed invalid-date journal.tsv \
   journal add --date 2026-02-30 --memo "bad date" --from assets:bank --to expenses:食費 --amount 123 --yes --post-check none
 run_expect_fail_closed unknown-from journal.tsv \

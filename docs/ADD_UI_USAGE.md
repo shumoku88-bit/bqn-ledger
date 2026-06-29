@@ -2,7 +2,7 @@
 
 `tools/add-ui.sh` は、日常の取引入力用UIです。
 
-fzf / gum / 番号選択で項目を選び、最後の追記だけを BQN editor (`tools/edit`) に委譲します。通常利用では Go safe append が裏で動きます。
+fzf / gum / 番号選択で項目を選び、最後の追記だけを BQN editor (`tools/edit`) に委譲します。通常利用では `tools/edit-bqn` と shell safe-write が裏で動きます。
 
 ## 基本の使い方
 
@@ -43,7 +43,7 @@ tools/add-ui.sh --check
 | `reverse` | 仕訳取消（反対仕訳追記） | `journal.tsv` | `tools/edit journal reverse` |
 | `issue` | 懸案事項・意思決定の追加 | `issues.tsv` | `tools/edit issue add` |
 
-## Go safe append で行われること
+## BQN editor + shell safe-write で行われること
 
 通常の `tools/add-ui.sh` は最後に `tools/edit` を呼びます。
 
@@ -126,4 +126,4 @@ tools/edit journal add \
 - `tools/add-ui.sh <mode>` は mode selector をスキップするだけです。unknown mode は usage を表示して nonzero で終了します。
 - `tools/add-ui.sh` は承認済み範囲の single-file append だけを行います。
 - `plan finish --apply` は承認・実装済みです。削除や複数ファイルの一括更新は未承認（機能制限中）です。
-- 現在の計画や境界は [GO_EDITOR_NEXT_PLAN.md](archive/active-plans/GO_EDITOR_NEXT_PLAN.md)、過去の設計経緯は [GO_SOURCE_TSV_EDITOR_DESIGN.md](archive/completed-plans/GO_SOURCE_TSV_EDITOR_DESIGN.md) を参照してください。
+- 現在の BQN editor の使い方は [BQN_EDITOR_USAGE.md](BQN_EDITOR_USAGE.md) を参照してください。Go editor 関連の計画・設計文書は historical として扱います。

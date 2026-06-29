@@ -34,7 +34,7 @@
 8. [ARCHITECTURE.md](ARCHITECTURE.md) - 現行データフローとモジュール責務
 9. [CANONICAL_DAILY_CUBE.md](CANONICAL_DAILY_CUBE.md) - `Day × Account × Layer` の固定契約
 10. [POSTING_IR_CONTRACT.md](POSTING_IR_CONTRACT.md) / [TBDS_CONTRACT.md](TBDS_CONTRACT.md) - Posting IR と試算表データセットの境界契約
-11. [PLAN_ID_LIFECYCLE.md](PLAN_ID_LIFECYCLE.md) - `plan_id` ライフサイクル契約 (Go/BQN 共通契約)
+11. [PLAN_ID_LIFECYCLE.md](PLAN_ID_LIFECYCLE.md) - `plan_id` ライフサイクル契約 (BQN editor / BQN report 共通契約)
 12. [TIME_AS_AXIS.md](TIME_AS_AXIS.md) - 時間座標・区間ビュー
 13. [REPORT_CONTRACTS.md](REPORT_CONTRACTS.md) - 現行 report contract の入口（`src_next` / checks / section status policy への索引）
 14. [DATA_DIR_SETUP.md](DATA_DIR_SETUP.md) - データ配置の設定マニュアル
@@ -84,7 +84,7 @@
 
 不要になった過去のドキュメントや移行期の資料、現在非アクティブな計画書は、すべて [archive/](archive/) ディレクトリに整理・退避されています。
 
-*   **[archive/active-plans/](archive/active-plans/)**: 現在進行中、または待機中(Backlog)の計画書・設計メモ。Goエディタとのギャップ解消計画は [GO_BQN_GAP_ALIGNMENT_PLAN.md](archive/active-plans/GO_BQN_GAP_ALIGNMENT_PLAN.md) に、AI作業品質・トークン効率の気づきは [AI_WORKING_FEEDBACK_LOG.md](archive/active-plans/AI_WORKING_FEEDBACK_LOG.md) に一時収集します。
+*   **[archive/active-plans/](archive/active-plans/)**: 現在進行中、または待機中(Backlog)の計画書・設計メモ。Goエディタ関連のギャップ解消計画は historical として扱い、現行の書き込み導線は BQN editor (`tools/edit` / `tools/edit-bqn`) を正とします。AI作業品質・トークン効率の気づきは [AI_WORKING_FEEDBACK_LOG.md](archive/active-plans/AI_WORKING_FEEDBACK_LOG.md) に一時収集します。
 *   **[archive/completed-plans/](archive/completed-plans/)**: 実装完了済みの計画書・意思決定メモ。
 *   **[archive/src-next-migration/](archive/src-next-migration/)**: 旧エンジンから `src_next` への移行フェーズに関わる検証・ログ類。現在の入口は [SRC_NEXT_CURRENT.md](SRC_NEXT_CURRENT.md) を正とし、この下の `bqn main.bqn` / default switch / Stage 4b 未開始などの記述は履歴として読む。読み方は [archive/src-next-migration/README.md](archive/src-next-migration/README.md) と [archive/audits/SRC_NEXT_DOCS_INVENTORY-2026-06-29.md](archive/audits/SRC_NEXT_DOCS_INVENTORY-2026-06-29.md) にまとめる。
 *   **[archive/audits/](archive/audits/)**: 過去に実施した一時的な drift 監査や section 監査のワークシート。

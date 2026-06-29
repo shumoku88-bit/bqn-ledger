@@ -24,7 +24,7 @@ before_journal="$(shasum -a 256 "$base/journal.tsv" | awk '{print $1}')"
 run_preflight() {
   local label="$1"
   shift
-  out="$($@ bash tools/plan-finish-replenish-ui.sh --base "$base" --check)"
+  out="$("$@" bash tools/plan-finish-replenish-ui.sh --base "$base" --check)"
   if ! grep -qF 'OK plan finish replenish preflight passed' <<< "$out"; then
     echo "FAIL: preflight output mismatch ($label)" >&2
     printf '%s\n' "$out" >&2

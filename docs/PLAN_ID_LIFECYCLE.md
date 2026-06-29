@@ -1,8 +1,8 @@
-# plan_id ライフサイクル契約 (Go/BQN 共通契約)
+# plan_id ライフサイクル契約 (BQN editor / BQN report 共通契約)
 
 `plan_id` は、将来発生する予定（`plan.tsv`）と、実際に発生した取引実績（`journal.tsv`）を紐づけ、予定の履行状態（完了・未完了）を管理するためのセマンティック・メタデータです。
 
-このドキュメントでは、Go レイヤー（入力・追記）と BQN レイヤー（計算・レポート）の双方が従うべき `plan_id` のライフサイクルおよび仕様を定義します。
+このドキュメントでは、BQN editor レイヤー（入力・追記）と BQN report レイヤー（計算・レポート）の双方が従うべき `plan_id` のライフサイクルおよび仕様を定義します。旧 Go editor 前提の記述は historical として扱い、現行 daily write path は `tools/edit` / `tools/edit-bqn` です。
 
 ---
 
@@ -20,18 +20,18 @@ stateDiagram-v2
 ### ① OPEN（未履行・予定）
 - **条件**: `plan.tsv` に `plan_id=plan-YYYY-MM-DD-series` メタデータを持つ行が存在し、かつ `journal.tsv` に同じ `plan_id` を持つ行が存在しない状態。
 - **挙動**:
-  - **Go**: `tools/edit plan list` に未完了の予定として表示される。
+  - **BQN editor**: `tools/edit plan list` に未完了の予定として表示される。
   - **BQN**: 将来の資金需要予測（残存予定残高・キャッシュアウト予約）に参入される。
 
 ### ② CLOSED（履行済み・実績化完了）
 - **条件**: `journal.tsv` に対象の `plan_id` を持つ行が1つ以上記録された状態。
 - **挙動**:
-  - **Go**: `tools/edit plan list` で非表示（`--all` 指定時のみ `[CLOSED]` 表示）となり、`tools/edit plan finish` での重ねての実績化が拒否される。
+  - **BQN editor**: `tools/edit plan list` で非表示（`--all` 指定時のみ `[CLOSED]` 表示）となり、`tools/edit plan finish` での重ねての実績化が拒否される。
   - **BQN**: 予定レイヤからは除外され、実績残高として計算される。これによって二重計上を防ぐ。
 
 ---
 
-## 2. Go レイヤーの責務（入力・ライフサイクル操作）
+## 2. BQN editor レイヤーの責務（入力・ライフサイクル操作）
 
 BQN editor（`tools/edit`）は、**「予定の実績化（状態遷移の引き金）」**と**「多重履行の防止」**を担当します。
 
@@ -64,6 +64,6 @@ BQN エンジン（主に `src_next/planned_payments.bqn` と `src_next/plan_jou
 
 ## 4. 境界不変条件 (Invariants)
 
-- **Go は会計意味を知らない**: Go は `plan_id` が一致したかどうかのみを検出し、それが「何の費用であるか」「今月の残高にどう影響するか」は解釈しない。
+- **BQN editor は会計意味を広げない**: BQN editor は `plan_id` が一致したかどうかと安全な追記可否のみを扱い、それが「何の費用であるか」「今月の残高にどう影響するか」は report engine 側に委ねる。
 - **BQN が意味の正本**: `plan_id` の完了判定ロジックや、IDなし行の日付ベースの完了フォールバックは BQN の計算コアが正本として定義する。
 - **データ不変**: `plan_id` ライフサイクル操作において、`plan.tsv` 自体は一切書き換え・削除されない（データ追記のみの安全設計）。

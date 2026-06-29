@@ -349,7 +349,7 @@ safe_replace_line_checked() {
 
   local -a lines=()
   mapfile -t lines < "$target"
-  lines[$((line_number - 1))]="$new_row"
+  lines[line_number - 1]="$new_row"
 
   local had_final_newline=0
   if [[ -s "$target" ]] && [[ "$(tail -c 1 "$target" | xxd -p)" == "0a" ]]; then

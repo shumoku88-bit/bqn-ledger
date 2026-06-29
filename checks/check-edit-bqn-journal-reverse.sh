@@ -4,7 +4,7 @@ export NO_COLOR=1
 
 # Verify BQN-backed `journal reverse` append path.
 # Scope:
-#   - resulting journal.tsv byte parity with Go editor
+#   - successful BQN editor reverse append creates backup
 #   - dry-run source protection
 #   - negative cases fail closed without source/backup writes
 
@@ -57,7 +57,7 @@ prepare_fixtures() {
   echo -e "2026-06-27\tInvalid Self Transfer\tassets:bank\tassets:bank\t5000" >> "$base/journal.tsv"
 }
 
-run_positive_parity() {
+run_positive_case() {
   local name="$1"
   shift
   local bqn_base="$tmp_root/pos-$name-bqn"
@@ -85,8 +85,7 @@ run_expect_fail_closed() {
   prepare_fixtures "$bqn_base"
   bqn_before="$(sha_file "$bqn_base/journal.tsv")"
 
-  # Go editor doesn't support --yes or --post-check for journal reverse
-  # We must pipe "y" to confirm the reverse operation.
+  # Negative cases should be rejected before any confirmation/write path.
 
   set +e
   ./tools/edit-bqn --base "$bqn_base" "$@" >"$bqn_out" 2>&1
@@ -117,21 +116,21 @@ assert_unchanged "$dry_base" "$dry_before" "tools/edit-bqn journal reverse dry-r
 assert_no_backup "$dry_base" "tools/edit-bqn journal reverse dry-run"
 
 # Positive cases.
-run_positive_parity reverse-by-index-date \
+run_positive_case reverse-by-index-date \
   journal reverse \
   --index 10 \
   --date 2026-06-26 \
   --yes \
   --post-check none
 
-run_positive_parity reverse-by-id-date \
+run_positive_case reverse-by-id-date \
   journal reverse \
   --id "Reversable Memo" \
   --date 2026-06-26 \
   --yes \
   --post-check none
 
-run_positive_parity reverse-by-index-default-date \
+run_positive_case reverse-by-index-default-date \
   journal reverse \
   --index 10 \
   --yes \

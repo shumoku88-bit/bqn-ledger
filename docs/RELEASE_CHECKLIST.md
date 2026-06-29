@@ -66,7 +66,8 @@ This repository is not packaged as a general consumer product.  A "release" mean
 ## Dependency notes
 
 - CBQN:
-- Go:
+- Shell/UI helpers:
+- Go historical code (if touched):
 ```
 
 ## After release

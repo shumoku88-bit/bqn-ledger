@@ -82,6 +82,7 @@ trap 'rm -f "$tmp_idx" "$tmp_summary"' EXIT
 if ./tools/report-next-summary fixtures/src-next-golden > "$tmp_summary" 2>/dev/null; then
   # Extract all src_next_* keys
   total_keys=$(grep -c '^src_next_' "$tmp_summary" || echo 0)
+  echo "  INFO: summary exposes $total_keys src_next_* keys" >&2
   
   # Test that the first key is queryable
   first_key=$(grep '^src_next_' "$tmp_summary" | head -1 | sed 's/: .*//')

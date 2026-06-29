@@ -536,7 +536,6 @@ if [[ "$mode" != 'plan-finish' && "$mode" != 'plan-edit' && "$mode" != 'reverse'
   fi
   if [[ -z "$date_line" ]]; then shout 'Cancelled.'; exit 0; fi
   date_key="${date_line%%$'\t'*}"
-  manual_date=''
   case "$date_key" in
     today) selected_date="$today" ;;
     yesterday) selected_date="$yesterday" ;;

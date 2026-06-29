@@ -90,6 +90,8 @@ PR #24 は merge 済み。smoke check は `tools/check.sh` で合格済み。
 
 Status: **major hygiene pass complete / large originals preserved**
 
+- [x] stale Go docs cleanup: 現行導線を BQN editor / shell safe-write として明記し、Go editor 前提の現行docs記述を historical 扱いへ修正する（2026-06-30）
+
 Current docs map:
 ```text
 docs/README.md

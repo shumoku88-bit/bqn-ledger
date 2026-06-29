@@ -35,25 +35,25 @@ Date: 2026-06-26
 
 ---
 
-## 2. 取消・修正UI (Journal Reversal in Go Editor) ✅ 完了 (2026-06-26)
+## 2. 取消・修正UI (Journal Reversal in BQN Editor) ✅ 完了 (2026-06-26)
 
 ### 結果
 
-`journal reverse` サブコマンドを BQN editor に追加。
+`journal reverse` サブコマンドを現行の BQN editor (`tools/edit` / `tools/edit-bqn`) に追加。
 `tools/add-ui.sh` に reverse モード追加。
+
+旧 Go editor での検討・実装メモは historical として archive 側に残す。現行の日常 write path は BQN editor + shell safe-write であり、Go editor 前提ではない。
 
 ### やったこと
 
-1. ✅ `editor/journal.go` に `runJournalReverse` 関数追加
+1. ✅ `src_edit/editor_cmd.bqn` と `tools/edit-bqn` に `journal reverse` 経路を追加
    - `--id <txn_id>` または `--index <number>` で対象指定
    - from/to を入れ替え、memo に `[reverse]` プレフィックス
-   - 通常の safe append フローで追記
+   - BQN editor protocol と shell safe-write 経由で追記
    - `--date` で日付指定可（デフォルト: today）
    - `--yes` で確認スキップ可
-2. ✅ `editor/main.go` に `journal reverse` サブコマンド追加
-3. ✅ テスト追加（8 tests）:
-   - ByIndex, ByID, DuplicateIDError, NotFoundError, InvalidIndexError,
-   - PreservesMetadata, UsesTodayWhenNoDate, SameFromToError
+2. ✅ `tools/edit` から `journal reverse` を利用できるように維持
+3. ✅ `checks/check-edit-bqn-journal-reverse.sh` で dry-run / backup / positive / negative ケースを検証
 4. ✅ `tools/add-ui.sh` に reverse モード追加
    - journal.tsv の一覧を fzf で選択
    - 日付指定（デフォルト: today）
@@ -108,7 +108,7 @@ Date: 2026-06-26
 ### やること
 
 1. `CONTRIBUTING.md` を repo 直下に作成
-   - セットアップ（BQN, Go, 依存）
+   - セットアップ（BQN, shell tools, 依存。Go は現行 daily path の必須依存ではなく historical code 用）
    - 最初に読む docs の導線
    - テストの走らせ方（`tools/check.sh`）
    - アーキテクチャの概要（`docs/ARCHITECTURE.md` へのリンク）
