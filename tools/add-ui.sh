@@ -21,6 +21,12 @@ cd "$ROOT_DIR"
 # Load shared system defaults helper
 source "$ROOT_DIR/tools/lib/system-defaults.sh"
 
+# Opt-in to experimental BQN editor if BQN_EDITOR=1
+EDITOR_CMD="$ROOT_DIR/tools/edit"
+if [[ "${BQN_EDITOR:-}" == "1" ]]; then
+  EDITOR_CMD="$ROOT_DIR/tools/edit-bqn"
+fi
+
 usage() {
   cat <<'EOF'
 Usage:
@@ -164,16 +170,24 @@ run_preflight() {
     fi
   done
 
-  if [[ -x "$ROOT_DIR/tools/edit" ]]; then
-    ok "tools/edit wrapper"
+  if [[ -x "$EDITOR_CMD" ]]; then
+    ok "$EDITOR_CMD wrapper"
   else
-    fail_check "tools/edit wrapper is not executable"
+    fail_check "$EDITOR_CMD wrapper is not executable"
   fi
 
-  if command -v go >/dev/null 2>&1; then
-    ok "go command"
+  if [[ "${BQN_EDITOR:-}" == "1" ]]; then
+    if command -v bqn >/dev/null 2>&1; then
+      ok "bqn command"
+    else
+      fail_check "bqn command not found; BQN editor cannot run"
+    fi
   else
-    fail_check "go command not found; tools/edit cannot build"
+    if command -v go >/dev/null 2>&1; then
+      ok "go command"
+    else
+      fail_check "go command not found; tools/edit cannot build"
+    fi
   fi
 
   for role in asset expense income; do
@@ -193,10 +207,10 @@ run_preflight() {
   fi
 
   if [[ -f "$base_dir/plan.tsv" ]]; then
-    if "$ROOT_DIR/tools/edit" --base "$base_dir" plan list --format tsv >/dev/null; then
-      ok "tools/edit plan list --format tsv"
+    if "$EDITOR_CMD" --base "$base_dir" plan list --format tsv >/dev/null; then
+      ok "$EDITOR_CMD plan list --format tsv"
     else
-      fail_check "tools/edit plan list --format tsv failed"
+      fail_check "$EDITOR_CMD plan list --format tsv failed"
     fi
   else
     warn_check "skipped plan list check because plan.tsv is missing"
@@ -456,7 +470,7 @@ case "$mode" in
     ;;
   plan-finish|plan-edit)
     plan_tsv_lines=()
-    while IFS= read -r _pl; do plan_tsv_lines+=("$_pl"); done < <("$ROOT_DIR/tools/edit" --base "$base_dir" plan list --format tsv)
+    while IFS= read -r _pl; do plan_tsv_lines+=("$_pl"); done < <("$EDITOR_CMD" --base "$base_dir" plan list --format tsv)
     if [[ ${#plan_tsv_lines[@]} -eq 0 ]]; then
       shout "No active plans found."
       exit 0
@@ -561,17 +575,17 @@ if [[ "$mode" != 'plan-finish' && "$mode" != 'plan-edit' && "$mode" != 'reverse'
   fi
 fi
 
-# ── Execute via Go editor ──
+# ── Execute via Editor Subsystem ──
 
 if [[ "$mode" == 'plan-finish' ]]; then
-  cmd=("$ROOT_DIR/tools/edit" --base "$base_dir" plan finish "${plan_finish_args[@]}" --apply)
+  cmd=("$EDITOR_CMD" --base "$base_dir" plan finish "${plan_finish_args[@]}" --apply)
 elif [[ "$mode" == 'plan-edit' ]]; then
-  cmd=("$ROOT_DIR/tools/edit" --base "$base_dir" plan edit "${plan_edit_args[@]}")
+  cmd=("$EDITOR_CMD" --base "$base_dir" plan edit "${plan_edit_args[@]}")
 elif [[ "$mode" == 'reverse' ]]; then
-  cmd=("$ROOT_DIR/tools/edit" --base "$base_dir" journal reverse "${reverse_args[@]}")
+  cmd=("$EDITOR_CMD" --base "$base_dir" journal reverse "${reverse_args[@]}")
 elif [[ "$mode" == 'issue' ]]; then
   cmd=(
-    "$ROOT_DIR/tools/edit" --base "$base_dir" issue add
+    "$EDITOR_CMD" --base "$base_dir" issue add
     --date "$selected_date"
     --title "$title"
     --amount "$amt"
@@ -582,7 +596,7 @@ else
   [[ "$mode" == 'budget' ]] && target='budget'
   [[ "$mode" == 'plan-add' ]] && target='plan'
   cmd=(
-    "$ROOT_DIR/tools/edit" --base "$base_dir" "$target" add
+    "$EDITOR_CMD" --base "$base_dir" "$target" add
     --date "$selected_date"
     --from "$from"
     --to "$to"
