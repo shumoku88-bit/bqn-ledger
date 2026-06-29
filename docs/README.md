@@ -37,9 +37,11 @@
 12. [TIME_AS_AXIS.md](TIME_AS_AXIS.md) - 時間座標・区間ビュー
 13. [REPORT_CONTRACTS.md](REPORT_CONTRACTS.md) - 現行 report contract の入口（`src_next` / checks / section status policy への索引）
 14. [DATA_DIR_SETUP.md](DATA_DIR_SETUP.md) - データ配置の設定マニュアル
-14. [UNAVAILABLE_SENTINEL_CONTRACT.md](UNAVAILABLE_SENTINEL_CONTRACT.md) - unavailable sentinelの定義
-15. [CONVENTIONS.md](CONVENTIONS.md) / [JOURNAL_META.md](JOURNAL_META.md) - 科目命名・メタデータ規約
-16. 変更内容に応じて、下の「Done / Current Baseline (完了済み・現行仕様として機能)」を参照
+15. [UNAVAILABLE_SENTINEL_CONTRACT.md](UNAVAILABLE_SENTINEL_CONTRACT.md) - unavailable sentinelの定義
+16. [EXTENSION_BOUNDARY.md](EXTENSION_BOUNDARY.md) - plugin system を入れず、read-only adapter / downstream tool の境界を定義する文書
+17. [PUBLIC_PRODUCTIZATION_REVIEW_FILTER.md](PUBLIC_PRODUCTIZATION_REVIEW_FILTER.md) - Homebrew、CI/CD、packaging、Docker、公開OSS化、plugin、marketing 等の広い改善案を分類する review filter
+18. [CONVENTIONS.md](CONVENTIONS.md) / [JOURNAL_META.md](JOURNAL_META.md) - 科目命名・メタデータ規約
+19. 変更内容に応じて、下の「Done / Current Baseline (完了済み・現行仕様として機能)」を参照
 
 ---
 
@@ -49,6 +51,10 @@
   - production-grade personal tool として扱うための品質基準。
 - [SAFETY_PROFILE.md](SAFETY_PROFILE.md) / [SAFETY_PROFILE_INVARIANT_MAP.md](SAFETY_PROFILE_INVARIANT_MAP.md)
   - 予測可能性、fail closed、正データ保護、不変条件の安全規格とその対応表。
+- [EXTENSION_BOUNDARY.md](EXTENSION_BOUNDARY.md)
+  - Canonical engine を plugin 化せず、machine export 下流の read-only adapter を許す拡張境界。
+- [PUBLIC_PRODUCTIZATION_REVIEW_FILTER.md](PUBLIC_PRODUCTIZATION_REVIEW_FILTER.md)
+  - Homebrew、CI/CD、packaging、Docker、公開OSS化、plugin、marketing 等の広い改善提案を現在の設計境界で分類する review filter。
 - [GO_EDITOR_USAGE.md](GO_EDITOR_USAGE.md)
   - Go 製 source TSV editor (`tools/edit`) の使い方。
 - [CONVENTIONS.md](CONVENTIONS.md)
