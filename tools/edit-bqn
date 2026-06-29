@@ -1,0 +1,165 @@
+#!/usr/bin/env bash
+# tools/edit-bqn — experimental BQN-backed editor entry point.
+#
+# Phase 3a scope: `journal add` only. Production `tools/edit` remains the Go
+# editor fallback until parity and safety gates are closed.
+
+set -euo pipefail
+
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$DIR/.." && pwd)"
+# shellcheck source=tools/lib/system-defaults.sh
+source "$DIR/lib/system-defaults.sh"
+# shellcheck source=tools/lib/safe-write.sh
+source "$DIR/lib/safe-write.sh"
+
+BASE_DIR="${LEDGER_DATA_DIR:-$(get_default_base_dir)}"
+JOURNAL_FILE="$(get_system_default_file DEFAULT_JOURNAL_FILE journal.tsv)"
+
+usage() {
+  cat <<'USAGE' >&2
+Usage:
+  tools/edit-bqn [--base DIR] journal add --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount INT [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
+
+Phase 3a scope: only `journal add` is implemented here. Use tools/edit for all production editor commands.
+USAGE
+}
+
+get_opt_val() {
+  local opt="$1"
+  local val="${2-}"
+  if [[ $# -lt 2 || -z "$val" || "$val" == --* ]]; then
+    echo "ERROR: missing value for $opt" >&2
+    exit 2
+  fi
+  printf '%s\n' "$val"
+}
+
+get_opt_val_allow_empty() {
+  local opt="$1"
+  if [[ $# -lt 2 ]]; then
+    echo "ERROR: missing value for $opt" >&2
+    exit 2
+  fi
+  printf '%s\n' "$2"
+}
+
+REM_ARGS=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --base)
+      BASE_DIR="$(get_opt_val "$1" "${2-}")"
+      shift 2
+      ;;
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    *)
+      REM_ARGS+=("$1")
+      shift
+      ;;
+  esac
+done
+set -- "${REM_ARGS[@]}"
+
+if [[ $# -lt 2 || "$1" != "journal" || "$2" != "add" ]]; then
+  echo "ERROR: tools/edit-bqn currently supports only: journal add" >&2
+  usage
+  exit 2
+fi
+shift 2
+
+DATE=""
+MEMO=""
+FROM=""
+TO=""
+AMOUNT=""
+META=()
+DRY_RUN=0
+YES=0
+POST_CHECK="lint"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --date) DATE="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+    --memo) MEMO="$(get_opt_val_allow_empty "$1" "${2-}")"; shift 2 ;;
+    --from) FROM="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+    --to) TO="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+    --amount) AMOUNT="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+    --meta) META+=("$(get_opt_val "$1" "${2-}")"); shift 2 ;;
+    --dry-run) DRY_RUN=1; shift ;;
+    --yes) YES=1; shift ;;
+    --post-check) POST_CHECK="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+    *) echo "ERROR: unknown option $1" >&2; exit 2 ;;
+  esac
+done
+
+case "$POST_CHECK" in
+  none|lint|full) ;;
+  *) echo "ERROR: invalid --post-check mode: $POST_CHECK" >&2; exit 2 ;;
+esac
+
+BQN_STDERR="$(mktemp)"
+trap 'rm -f "$BQN_STDERR"' EXIT
+BQN_OUT=""
+if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/journal_add_cmd.bqn "$BASE_DIR" "$DATE" "$MEMO" "$FROM" "$TO" "$AMOUNT" "${META[@]}" 2>"$BQN_STDERR")"; then
+  if [[ -n "$BQN_OUT" ]]; then
+    printf '%s\n' "$BQN_OUT" >&2
+  fi
+  if [[ -s "$BQN_STDERR" ]]; then
+    cat "$BQN_STDERR" >&2
+  fi
+  exit 1
+fi
+
+FIRST_LINE="${BQN_OUT%%$'\n'*}"
+if [[ "$FIRST_LINE" == "$BQN_OUT" ]]; then
+  echo "ERROR: invalid BQN protocol: missing payload line" >&2
+  exit 1
+fi
+PAYLOAD="${BQN_OUT#*$'\n'}"
+
+IFS=$'\t' read -r STATUS OP TARGET_FILE EXTRA <<< "$FIRST_LINE"
+if [[ -n "${EXTRA:-}" || "$STATUS" != "OK" || "$OP" != "APPEND" || "$TARGET_FILE" != "$JOURNAL_FILE" ]]; then
+  echo "ERROR: invalid BQN protocol header: $FIRST_LINE" >&2
+  exit 1
+fi
+
+TARGET_PATH="$BASE_DIR/$TARGET_FILE"
+MODE="confirm"
+if [[ "$DRY_RUN" -eq 1 ]]; then
+  MODE="dry-run"
+elif [[ "$YES" -eq 1 ]]; then
+  MODE="yes"
+fi
+
+if [[ "$DRY_RUN" -eq 1 ]]; then
+  printf 'Journal append preview\n'
+  printf 'Target: %s\n' "$TARGET_PATH"
+  printf 'Mode: %s\n' "$MODE"
+  printf 'Post-check: %s\n' "$POST_CHECK"
+  printf 'Journal row:\n'
+  printf '%s\n' "$PAYLOAD"
+  printf 'Dry-run only. No files were modified.\n'
+  exit 0
+fi
+
+if [[ "$YES" -eq 0 ]]; then
+  printf 'Journal append preview\n'
+  printf 'Target: %s\n' "$TARGET_PATH"
+  printf 'Mode: %s\n' "$MODE"
+  printf 'Post-check: %s\n' "$POST_CHECK"
+  printf 'Journal row:\n'
+  printf '%s\n' "$PAYLOAD"
+  if ! confirm_append; then
+    echo "Cancelled. No files were modified."
+    exit 0
+  fi
+fi
+
+WRITE_OUT="$(safe_append "$TARGET_PATH" "$PAYLOAD")"
+printf '%s\n' "$WRITE_OUT"
+
+BACKUP_PATH="$(awk -F': ' '$1 == "Backup" {print $2}' <<< "$WRITE_OUT")"
+run_post_check "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$BACKUP_PATH"

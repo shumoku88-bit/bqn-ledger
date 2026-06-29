@@ -128,6 +128,7 @@ bash checks/check-devtools-negative.sh >/dev/null
 bash checks/check-missing-role-fallback.sh >/dev/null
 bash checks/check-src-next-lint.sh >/dev/null
 bash checks/check-report-labels.sh >/dev/null
+bash checks/check-edit-bqn-journal-add.sh >/dev/null
 bash checks/check-bash-safety.sh >/dev/null
 bash checks/check-ui-smoke.sh >/dev/null
 bash checks/check-absolute-links.sh >/dev/null

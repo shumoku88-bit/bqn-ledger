@@ -6,6 +6,13 @@
 
 lib ← •Import "../src_next/util.bqn"
 
+# Join list of strings with a separator.
+Join ← {
+  sep ← 𝕨
+  list ← 𝕩
+  (0 = ≠ list) ◶ ⟨ { 𝕊 ⋄ 1↓ ∾ (sep ⊸ ∾) ¨ list }, { 𝕊 ⋄ ""} ⟩ @
+}
+
 # Build a TSV row string from add options.
 # 𝕩: namespace with date, memo, from, to, amount, meta
 # Returns: tab-separated string (no trailing newline)
@@ -13,7 +20,7 @@ RenderJournalRow ⇐ {
   fields ← 𝕩.date‿𝕩.memo‿𝕩.from‿𝕩.to‿𝕩.amount
   allFields ← fields ∾ 𝕩.meta
   tab ← @+9
-  ∾ 1↓ ⥊ (⊣ ∾ tab⊸∾)˘ ⍉ ⟨(≠allFields)⥊<"", allFields⟩
+  tab Join allFields
 }
 
 # Build a TSV row for an issue add.
@@ -22,5 +29,5 @@ RenderJournalRow ⇐ {
 RenderIssueRow ⇐ {
   fields ← 𝕩.date‿𝕩.status‿𝕩.title‿𝕩.amount‿𝕩.memo
   tab ← @+9
-  ∾ 1↓ ⥊ (⊣ ∾ tab⊸∾)˘ ⍉ ⟨(≠fields)⥊<"", fields⟩
+  tab Join fields
 }

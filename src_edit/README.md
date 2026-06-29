@@ -56,6 +56,24 @@ Start with append-only commands before derived edits:
 
 Then add `plan list --format tsv`, because `tools/add-ui.sh plan-finish` and `plan-edit` rely on that exact interface.
 
+## Experimental narrow entry point
+
+`tools/edit-bqn` is the experimental BQN + shell entry point for proving one edit path before replacing the Go editor. Current scope is intentionally limited:
+
+```text
+tools/edit-bqn journal add --dry-run
+tools/edit-bqn journal add --yes --post-check none
+```
+
+The BQN command (`src_edit/journal_add_cmd.bqn`) emits a two-line append protocol:
+
+```text
+OK	APPEND	journal.tsv
+<complete TSV row>
+```
+
+Validation errors use `ERROR	<message>` and exit non-zero. The shell dispatcher treats the second line as an opaque TSV payload and applies writes through `tools/lib/safe-write.sh`.
+
 ## Safety rule
 
-Until the dispatcher switch is complete, the existing Go editor remains the authoritative daily write path. Files in `src_edit/` are not production write paths unless a later PR explicitly wires them in.
+Until the dispatcher switch is complete, the existing Go editor remains the authoritative daily write path. Files in `src_edit/` and `tools/edit-bqn` are not production write paths unless a later PR explicitly switches the daily path.

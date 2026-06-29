@@ -162,7 +162,8 @@ source-of-truth TSV を安全に編集する Go ツール。
 
 - `tools/main-ui.sh` — 読み込み・閲覧系UI（レポート閲覧・セクション選択、fzf/gumベース）。
 - `tools/add-ui.sh` — 書き込み・操作系UI（取引の追加・取消・予定完了処理等、Go editor への安全な中継）。
-- `tools/edit` — Go editor 実行ラッパー。
+- `tools/edit` — Go editor 実行ラッパー（production fallback）。
+- `tools/edit-bqn` — 実験中の BQN+shell editor 入口。現在の実装範囲は `journal add` の narrow parity gate のみ。
 - `tools/report` / `tools/report-next` — `src_next` を使用したコマンドラインレポートの正本入口。
 - `tools/report-next-summary` — `src_next` データの機械向け要約出力。
 - `tools/bl` — 日常操作 Command Hub。report / section / add / check / edit をまとめ、読み取り表示と安全な書き込み導線へルーティングする。
