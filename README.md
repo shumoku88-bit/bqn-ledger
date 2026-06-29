@@ -76,7 +76,7 @@ The public `data/` directory and fixtures are sandbox data. Real household data 
 | `<base>/plan.tsv` | 将来予定。Plan layer の正本です。 |
 | `<base>/budget_alloc.tsv` | 封筒予算の配賦。Budget allocation の正本です。 |
 | `<base>/cycle.tsv` | 生活サイクル境界。年金支給日などに基づく期間設定です。 |
-| `<base>/config.tsv` | サイクル基準日、特殊な budget account 名などの設定です。 |
+| `<base>/config.tsv` | サイクル基準日、特殊な budget account 名、および UI 表示設定（FZF_PREVIEW_WINDOW）などの設定です。 |
 | `<base>/issues.tsv` | 懸案事項・意思決定ログ。レポートの issues セクションに表示されます。 |
 
 `budget:unassigned` のような一部の表示値は、レポート上で動的に計算されます。すべての表示値がそのまま TSV に保存されているわけではありません。
