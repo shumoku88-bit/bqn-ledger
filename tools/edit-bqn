@@ -31,8 +31,9 @@ Usage:
   tools/edit-bqn [--base DIR] plan add --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount INT [--meta key=value ...] [--id plan-YYYY-MM-DD-series] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] issue add [--date YYYY-MM-DD] [--status open|resolved|dropped] --title TITLE [--amount INT] [--memo MEMO] [--dry-run] [--yes]
   tools/edit-bqn [--base DIR] plan list [--all] [--format tsv|text]
+  tools/edit-bqn [--base DIR] plan finish [--index NUMBER] [--id PLAN_ID] --actual-date YYYY-MM-DD [--dry-run] [--yes] [--post-check none|lint|full]
 
-Phase 3 scope: append-only journal/budget/plan/issue add plus read-only plan list. Use tools/edit for all other production editor commands.
+Phase 3 scope: BQN editor v0 commands (journal/budget/plan/issue add, plan list, plan finish). Use tools/edit for all other commands.
 USAGE
 }
 
@@ -80,6 +81,116 @@ if [[ $# -lt 2 ]]; then
   exit 2
 fi
 
+if [[ "$1" == "plan" && "$2" == "finish" ]]; then
+  shift 2
+  INDEX="0"
+  PLAN_ID=""
+  ACTUAL_DATE=""
+  APPLY=0
+  DRY_RUN_EXPLICIT=0
+  YES=0
+  POST_CHECK="lint"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --index) INDEX="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --id) PLAN_ID="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --actual-date) ACTUAL_DATE="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --apply) APPLY=1; shift ;;
+      --dry-run) DRY_RUN_EXPLICIT=1; shift ;;
+      --yes) YES=1; shift ;;
+      --post-check) POST_CHECK="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      *) echo "ERROR: unknown option: $1" >&2; exit 2 ;;
+    esac
+  done
+
+  if [[ "$APPLY" -eq 1 && "$DRY_RUN_EXPLICIT" -eq 0 ]]; then
+    DRY_RUN=0
+  else
+    DRY_RUN=1
+  fi
+
+  if [[ "$INDEX" == "0" && -z "$PLAN_ID" ]]; then
+    echo "ERROR: must specify plan to finish using --index or --id" >&2
+    exit 2
+  fi
+  if [[ -z "$ACTUAL_DATE" ]]; then
+    echo "ERROR: missing required option: --actual-date" >&2
+    exit 2
+  fi
+
+  TARGET_PATH="$BASE_DIR/$JOURNAL_FILE"
+  SNAPSHOT_TOKEN="$(safe_snapshot_token "$TARGET_PATH")"
+  IFS=$'\t' read -r SNAP_SIZE SNAP_MTIME SNAP_SHA256 <<< "$SNAPSHOT_TOKEN"
+
+  BQN_STDERR="$(mktemp)"
+  trap 'rm -f "$BQN_STDERR"' EXIT
+  BQN_OUT=""
+  if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/plan_finish_cmd.bqn "$BASE_DIR" "$INDEX" "$PLAN_ID" "$ACTUAL_DATE" 2>"$BQN_STDERR")"; then
+    if [[ -n "$BQN_OUT" ]]; then
+      printf '%s\n' "$BQN_OUT" >&2
+    fi
+    if [[ -s "$BQN_STDERR" ]]; then
+      cat "$BQN_STDERR" >&2
+    fi
+    exit 1
+  fi
+
+  FIRST_LINE="${BQN_OUT%%$'\n'*}"
+  if [[ "$FIRST_LINE" == "$BQN_OUT" ]]; then
+    echo "ERROR: invalid BQN protocol: missing payload line" >&2
+    exit 1
+  fi
+  PAYLOAD="${BQN_OUT#*$'\n'}"
+
+  IFS=$'\t' read -r STATUS OP PROTOCOL_TARGET_FILE EXTRA <<< "$FIRST_LINE"
+  if [[ -n "${EXTRA:-}" || "$STATUS" != "OK" || "$OP" != "APPEND" || "$PROTOCOL_TARGET_FILE" != "$JOURNAL_FILE" ]]; then
+    echo "ERROR: invalid BQN protocol header: $FIRST_LINE" >&2
+    exit 1
+  fi
+
+  MODE="confirm"
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    MODE="dry-run"
+  elif [[ "$YES" -eq 1 ]]; then
+    MODE="yes"
+  fi
+
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    printf 'Journal (from plan) append preview\n'
+    printf 'Target: %s\n' "$TARGET_PATH"
+    printf 'Mode: %s\n' "$MODE"
+    printf 'Post-check: %s\n' "$POST_CHECK"
+    printf 'Journal row:\n'
+    printf '%s\n' "$PAYLOAD"
+    printf 'Dry-run only. No files were modified.\n'
+    exit 0
+  fi
+
+  if [[ "$YES" -eq 0 ]]; then
+    printf 'Journal (from plan) append preview\n'
+    printf 'Target: %s\n' "$TARGET_PATH"
+    printf 'Mode: %s\n' "$MODE"
+    printf 'Post-check: %s\n' "$POST_CHECK"
+    printf 'Journal row:\n'
+    printf '%s\n' "$PAYLOAD"
+    if ! confirm_append; then
+      echo "Cancelled. No files were modified."
+      exit 0
+    fi
+  fi
+
+  if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && -n "${EDIT_BQN_TEST_BEFORE_APPEND_HOOK:-}" ]]; then
+    eval "$EDIT_BQN_TEST_BEFORE_APPEND_HOOK"
+  fi
+
+  WRITE_OUT="$(safe_append_checked "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256")"
+  printf '%s\n' "$WRITE_OUT"
+
+  BACKUP_PATH="$(awk -F': ' '$1 == "Backup" {print $2}' <<< "$WRITE_OUT")"
+  run_post_check "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$BACKUP_PATH"
+  exit 0
+fi
+
 if [[ "$1" == "plan" && "$2" == "list" ]]; then
   shift 2
   SHOW_ALL=0
@@ -100,7 +211,7 @@ if [[ "$1" == "plan" && "$2" == "list" ]]; then
 fi
 
 if [[ "$2" != "add" ]]; then
-  echo "ERROR: tools/edit-bqn currently supports only: journal add, budget add, plan add, issue add, and plan list" >&2
+  echo "ERROR: tools/edit-bqn currently supports only: journal add, budget add, plan add, issue add, plan list, and plan finish" >&2
   usage
   exit 2
 fi
