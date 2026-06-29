@@ -21,7 +21,7 @@ Go dependencies are declared in module-local `go.mod` files.
 
 Known modules:
 
-- `editor/go.mod`: Go editor and tests.
+- `editor/go.mod`: BQN editor and tests.
 
 ## Reproducibility notes
 

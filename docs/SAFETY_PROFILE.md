@@ -22,8 +22,8 @@
 - 同じ入力からは同じレポートを出す。
 - 入力不正や仕様外の状態を黙って補正しない。
 - レポートが信用できない場合は、成功したふりをしない。
-- BQN core / Go editor / UI 補助 / AI 作業の責務境界を保つ。
-- Go editor や shell UI がなくても、source TSV、config TSV、BQN core だけで canonical report / export を生成できる経路を保つ。
+- BQN core / BQN editor / UI 補助 / AI 作業の責務境界を保つ。
+- BQN editor や shell UI がなくても、source TSV、config TSV、BQN core だけで canonical report / export を生成できる経路を保つ。
 
 ## 対象範囲
 
@@ -33,7 +33,7 @@
 |---|---|
 | `data/*.tsv` | 正データ。AIとレポートエンジンは原則直接変更しない。 |
 | BQN report engine | 読み取り、検査、派生ビュー、レポート生成を担当する。 |
-| Go editor | 明示操作に基づく安全な TSV 追記・将来の編集経路を担当する。 |
+| BQN editor | 明示操作に基づく安全な TSV 追記・将来の編集経路を担当する。 |
 | shell / gum / fzf | 表示、選択、検索、入力補助に徹する。 |
 | docs / fixtures / tests | 契約と回帰確認を固定する。 |
 
@@ -103,12 +103,12 @@ Event IR -> Projection IR -> Day × Account × Layer -> report / export
 責務境界を崩さないことを、安全性の一部として扱います。
 
 - BQN は正本数値エンジン。
-- Go editor は安全な書き込み経路。
+- BQN editor は安全な書き込み経路。
 - UI は入力補助と表示。
 - AI は原則として実データ TSV を直接編集しない。
 - 相談用の意味づけや助言は、canonical output に混ぜない。
 - Canonical report / export は、source TSV (`data/*.tsv`)、config TSV (`data/config.tsv`, `config/system_defaults.tsv`, `config/default_config.tsv`, `config/meta_schema.tsv`) と BQN core だけで生成できる状態を維持する。
-- Go editor / shell UI / gum / fzf / helper scripts / helper-generated cache は外装であり、正本レポート計算の必須依存にしない。
+- BQN editor / shell UI / gum / fzf / helper scripts / helper-generated cache は外装であり、正本レポート計算の必須依存にしない。
 
 ## レポート状態
 
@@ -152,7 +152,7 @@ Event IR -> Projection IR -> Day × Account × Layer -> report / export
 ### Report execution invariant
 
 - source TSV (`data/*.tsv`)、config TSV (`data/config.tsv`, `config/system_defaults.tsv`, `config/default_config.tsv`, `config/meta_schema.tsv`) と `src_next/**/*.bqn` で canonical report / export を生成できる。
-- Go editor, shell UI, gum/fzf, cache/helper-generated files を canonical report calculation の必須依存にしない。
+- BQN editor, shell UI, gum/fzf, cache/helper-generated files を canonical report calculation の必須依存にしない。
 - shell script で BQN-only 経路をテストすることは許容する。ただし守る対象は、レポート計算そのものが BQN と source/config TSV だけで完結すること。
 
 ### Editor invariant
@@ -169,7 +169,7 @@ Event IR -> Projection IR -> Day × Account × Layer -> report / export
 2. 不足している invariant を `docs/REPORT_CONTRACTS.md`, `docs/CANONICAL_DAILY_CUBE.md`, `docs/TIME_AS_AXIS.md` へ接続する。
 3. `ERROR / WARN / SKIPPED / UNAVAILABLE` の出力方針を section 単位で設計する。
 4. 失敗 fixture を追加し、きれいな間違いが出ないことを確認する。
-5. Go editor の書き込み範囲を広げる前に、idempotency / recurrence / recovery 契約を決める。
+5. BQN editor の書き込み範囲を広げる前に、idempotency / recurrence / recovery 契約を決める。
 
 ## 非目標
 

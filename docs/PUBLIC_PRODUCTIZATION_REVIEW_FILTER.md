@@ -59,7 +59,7 @@ bqn-ledger doctor
 bqn-ledger init <dir>
 ```
 
-A Homebrew formula should not make the Go editor appear to be the whole product if the canonical engine remains BQN plus source/config TSV.
+A Homebrew formula should not make the BQN editor appear to be the whole product if the canonical engine remains BQN plus source/config TSV.
 
 ### 4. Add shellcheck only as a staged check
 

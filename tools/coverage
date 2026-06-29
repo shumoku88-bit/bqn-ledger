@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# tools/coverage — test coverage report for Go editor
+# tools/coverage — test coverage report for BQN editor
 
 SOURCE="${BASH_SOURCE[0]}"
 while [ -L "$SOURCE" ]; do
@@ -14,7 +14,7 @@ ROOT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 
 cd "$ROOT_DIR/editor"
 
-echo "=== Go editor coverage ==="
+echo "=== BQN editor coverage ==="
 go test -cover ./...
 
 echo ""

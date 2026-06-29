@@ -6,7 +6,7 @@
 
 - [ ] Docs only
 - [ ] BQN report/summary logic
-- [ ] Go editor / write path
+- [ ] BQN editor / write path
 - [ ] Shell UI / launcher
 - [ ] Fixtures / checks
 

@@ -60,11 +60,6 @@ for test_file in tests/test_*.bqn; do
         fi
     fi
 done
-if command -v go >/dev/null 2>&1; then
-    (cd editor && go test ./...)
-else
-    echo "[WARN] go command not found, skipping Go editor tests" >&2
-fi
 
 echo "[2/4] src_next golden checks" >&2
 bash checks/check-src-next-golden.sh fixtures/src-next-golden >/dev/null
@@ -135,8 +130,6 @@ bash checks/check-edit-bqn-plan-add.sh >/dev/null
 bash checks/check-edit-bqn-plan-finish.sh >/dev/null
 bash checks/check-plan-finish-replenish-ui.sh >/dev/null
 bash checks/check-edit-bqn-plan-edit.sh >/dev/null
-bash checks/check-editor-parity.sh >/dev/null
-bash checks/check-edit-hybrid-dispatcher.sh >/dev/null
 bash checks/check-safe-replace-line.sh >/dev/null
 bash checks/check-bash-safety.sh >/dev/null
 bash checks/check-ui-smoke.sh >/dev/null

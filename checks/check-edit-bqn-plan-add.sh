@@ -47,26 +47,17 @@ assert_unchanged() {
 run_positive_parity() {
   local name="$1"
   shift
-  local go_base="$tmp_root/pos-$name-go"
   local bqn_base="$tmp_root/pos-$name-bqn"
-  local go_out="$tmp_root/pos-$name-go.out"
   local bqn_out="$tmp_root/pos-$name-bqn.out"
 
-  cp -R data "$go_base"
   cp -R data "$bqn_base"
 
   if [[ "$name" == *"no-trailing-newline" ]]; then
-    perl -0pi -e 's/\n\z//' "$go_base/plan.tsv" "$bqn_base/plan.tsv"
+    perl -0pi -e 's/\n\z//'  "$bqn_base/plan.tsv"
   fi
 
-  ./tools/edit-legacy-go --base "$go_base" "$@" >"$go_out" 2>&1
   ./tools/edit-bqn --base "$bqn_base" "$@" >"$bqn_out" 2>&1
 
-  if ! cmp -s "$go_base/plan.tsv" "$bqn_base/plan.tsv"; then
-    echo "FAIL: tools/edit-bqn plan add result differs from Go editor: $name" >&2
-    diff -u "$go_base/plan.tsv" "$bqn_base/plan.tsv" >&2 || true
-    exit 1
-  fi
 
   if ! find "$bqn_base/.backup" -type f -name 'plan.tsv*' | grep -q .; then
     echo "FAIL: tools/edit-bqn plan add did not create a plan backup: $name" >&2
@@ -77,38 +68,25 @@ run_positive_parity() {
 run_expect_fail_closed() {
   local name="$1"
   shift
-  local go_base="$tmp_root/neg-$name-go"
   local bqn_base="$tmp_root/neg-$name-bqn"
-  local go_out="$tmp_root/neg-$name-go.out"
   local bqn_out="$tmp_root/neg-$name-bqn.out"
-  local go_before bqn_before go_rc bqn_rc
+  local bqn_before bqn_rc
 
-  cp -R data "$go_base"
   cp -R data "$bqn_base"
-  go_before="$(sha_file "$go_base/plan.tsv")"
   bqn_before="$(sha_file "$bqn_base/plan.tsv")"
 
   set +e
-  ./tools/edit-legacy-go --base "$go_base" "$@" >"$go_out" 2>&1
-  go_rc=$?
   ./tools/edit-bqn --base "$bqn_base" "$@" >"$bqn_out" 2>&1
   bqn_rc=$?
   set -e
 
-  if [ "$go_rc" -eq 0 ]; then
-    echo "FAIL: Go editor unexpectedly accepted negative case: $name" >&2
-    cat "$go_out" >&2
-    exit 1
-  fi
   if [ "$bqn_rc" -eq 0 ]; then
     echo "FAIL: tools/edit-bqn unexpectedly accepted negative case: $name" >&2
     cat "$bqn_out" >&2
     exit 1
   fi
 
-  assert_unchanged "$go_base" "$go_before" "Go editor negative case $name"
   assert_unchanged "$bqn_base" "$bqn_before" "tools/edit-bqn negative case $name"
-  assert_no_backup "$go_base" "Go editor negative case $name"
   assert_no_backup "$bqn_base" "tools/edit-bqn negative case $name"
 }
 

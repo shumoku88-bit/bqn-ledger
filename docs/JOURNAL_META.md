@@ -82,7 +82,7 @@ plan-2026-08-15-rent
 - `YYYY-MM-DD` は実績日ではなく、`plan.tsv` に置いた予定日です。
 - `<series>` は原則 `series=<id>` と同じ値を使います。
 - 同じ `plan_id` が既にある場合だけ、末尾に `-02`, `-03` のような連番を付けます。
-- 一回予定など `series=` がない場合は、Go editor または人間が短い識別名を補い、必要なら `-01` を付けます。
+- 一回予定など `series=` がない場合は、BQN editor または人間が短い識別名を補い、必要なら `-01` を付けます。
 
 衝突時の例:
 
@@ -113,7 +113,7 @@ journal.tsv: 2026-07-16 ... plan_id=plan-2026-07-15-gpt-plus
 - `anchor=<account>` : `recur=cycle` の基準になる勘定。例: `anchor=income:年金`
 - `offset=<days>` : 基準日から何日後か。例: 当日なら `offset=0`、翌日なら `offset=1`
 - `series=<id>` : 同じ定期予定を束ねる名前。例: `series=rent`, `series=pension`
-- `plan_id=<id>` : 個別の予定行と、後日の実績行を結ぶ任意ID。手入力必須ではなく、将来のGo editorが生成・引き継ぐ想定。
+- `plan_id=<id>` : 個別の予定行と、後日の実績行を結ぶ任意ID。手入力必須ではなく、将来のBQN editorが生成・引き継ぐ想定。
 - `cashflow=fixed_obligation` : 固定的に確保すべきキャッシュアウト。会計上の費用に混ぜず、流動資産・資金繰りの控除候補として扱う。
 
 例:
@@ -133,7 +133,7 @@ journal.tsv: 2026-07-16 ... plan_id=plan-2026-07-15-gpt-plus
 - 現時点の会計計算・予定表示は、先頭5列の日付と金額をそのまま使います。
 - `recur` / `months` はまず「人間が見分けるためのメモ」です。
 - `plan_id` は履行確認や Plan / Actual / Residual の対応付けに使います。
-- `plan_id` は人間が毎回手で入力する前提ではありません。将来の Go editor が予定作成時に生成し、実績化時に `journal.tsv` へ引き継ぐ想定です。実データでは原則必須とします。
+- `plan_id` は人間が毎回手で入力する前提ではありません。将来の BQN editor が予定作成時に生成し、実績化時に `journal.tsv` へ引き継ぐ想定です。実データでは原則必須とします。
 - 将来、必要になったらこのメタから翌月分の予定行を生成するツールを追加できます。
 
 ## レシートを分割したいとき（複数行 + `receipt` / `txn_id`）
@@ -164,4 +164,4 @@ journal.tsv: 2026-07-16 ... plan_id=plan-2026-07-15-gpt-plus
 
 - 日常入力は `tools/add-ui.sh` または `tools/edit` を使います。
 - CLI で明示する場合は `tools/edit journal add ... --meta tax=private --meta biz=0` のように、`--meta key=value` を追加します。
-- 書き込みは Go editor の preview / confirm / backup / stale check 経路を通します。
+- 書き込みは BQN editor の preview / confirm / backup / stale check 経路を通します。

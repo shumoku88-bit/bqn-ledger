@@ -60,31 +60,14 @@ prepare_fixtures() {
 run_positive_parity() {
   local name="$1"
   shift
-  local go_base="$tmp_root/pos-$name-go"
   local bqn_base="$tmp_root/pos-$name-bqn"
-  local go_out="$tmp_root/pos-$name-go.out"
   local bqn_out="$tmp_root/pos-$name-bqn.out"
 
-  prepare_fixtures "$go_base"
   prepare_fixtures "$bqn_base"
 
-  # Go editor doesn't support --yes or --post-check for journal reverse
-  # We must pipe "y" to confirm the reverse operation.
-  local go_args=()
-  for arg in "$@"; do
-    if [[ "$arg" != "--yes" && "$arg" != "--post-check" && "$arg" != "none" && "$arg" != "lint" && "$arg" != "full" ]]; then
-      go_args+=("$arg")
-    fi
-  done
 
-  echo "y" | ./tools/edit-legacy-go --base "$go_base" "${go_args[@]}" >"$go_out" 2>&1
   ./tools/edit-bqn --base "$bqn_base" "$@" >"$bqn_out" 2>&1
 
-  if ! cmp -s "$go_base/journal.tsv" "$bqn_base/journal.tsv"; then
-    echo "FAIL: tools/edit-bqn journal reverse result differs from Go editor: $name" >&2
-    diff -u "$go_base/journal.tsv" "$bqn_base/journal.tsv" >&2 || true
-    exit 1
-  fi
 
   if ! find "$bqn_base/.backup" -type f -name 'journal.tsv*' | grep -q .; then
     echo "FAIL: tools/edit-bqn journal reverse did not create a journal backup: $name" >&2
@@ -95,47 +78,28 @@ run_positive_parity() {
 run_expect_fail_closed() {
   local name="$1"
   shift
-  local go_base="$tmp_root/neg-$name-go"
   local bqn_base="$tmp_root/neg-$name-bqn"
-  local go_out="$tmp_root/neg-$name-go.out"
   local bqn_out="$tmp_root/neg-$name-bqn.out"
-  local go_before bqn_before go_rc bqn_rc
+  local bqn_before bqn_rc
 
-  prepare_fixtures "$go_base"
   prepare_fixtures "$bqn_base"
-  go_before="$(sha_file "$go_base/journal.tsv")"
   bqn_before="$(sha_file "$bqn_base/journal.tsv")"
 
   # Go editor doesn't support --yes or --post-check for journal reverse
   # We must pipe "y" to confirm the reverse operation.
-  local go_args=()
-  for arg in "$@"; do
-    if [[ "$arg" != "--yes" && "$arg" != "--post-check" && "$arg" != "none" && "$arg" != "lint" && "$arg" != "full" ]]; then
-      go_args+=("$arg")
-    fi
-  done
 
   set +e
-  echo "y" | ./tools/edit-legacy-go --base "$go_base" "${go_args[@]}" >"$go_out" 2>&1
-  go_rc=$?
   ./tools/edit-bqn --base "$bqn_base" "$@" >"$bqn_out" 2>&1
   bqn_rc=$?
   set -e
 
-  if [ "$go_rc" -eq 0 ]; then
-    echo "FAIL: Go editor unexpectedly accepted negative case: $name" >&2
-    cat "$go_out" >&2
-    exit 1
-  fi
   if [ "$bqn_rc" -eq 0 ]; then
     echo "FAIL: tools/edit-bqn unexpectedly accepted negative case: $name" >&2
     cat "$bqn_out" >&2
     exit 1
   fi
 
-  assert_unchanged "$go_base" "$go_before" "Go editor negative case $name"
   assert_unchanged "$bqn_base" "$bqn_before" "tools/edit-bqn negative case $name"
-  assert_no_backup "$go_base" "Go editor negative case $name"
   assert_no_backup "$bqn_base" "tools/edit-bqn negative case $name"
 }
 

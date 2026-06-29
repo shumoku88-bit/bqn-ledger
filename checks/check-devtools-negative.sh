@@ -106,7 +106,7 @@ if out=$(tools/edit 2>&1); then
 else
   code=$?
   assert_eq "2" "$code" "tools/edit exit code"
-  assert_contains "ERROR: command is required" "$out" "tools/edit missing command message"
+  assert_contains "ERROR: missing command" "$out" "tools/edit missing command message"
 fi
 
 if out=$(tools/edit invalid_cmd 2>&1); then
@@ -114,21 +114,21 @@ if out=$(tools/edit invalid_cmd 2>&1); then
 else
   code=$?
   assert_eq "2" "$code" "tools/edit invalid cmd exit code"
-  assert_contains "ERROR: unknown command" "$out" "tools/edit invalid command message"
+  assert_contains "ERROR: missing command/subcommand" "$out" "tools/edit invalid command message"
 fi
 
 if out=$(tools/edit journal add 2>&1); then
   fail "tools/edit journal add with missing args should fail"
 else
   code=$?
-  # BQN editor exits with 1 on validation error, Go editor exits with 2
+  # BQN editor exits with 2
   if [[ "$code" -ne 1 && "$code" -ne 2 ]]; then
     fail "tools/edit journal add exit code: expected [1 or 2] got [$code]"
   else
     pass
   fi
-  # BQN outputs "invalid date format", Go outputs "ERROR: missing --date"
-  if echo "$out" | grep -qE "ERROR: missing --date|invalid date format"; then
+  # BQN outputs "invalid date format"
+  if echo "$out" | grep -qE "invalid date format"; then
     pass
   else
     fail "tools/edit missing arg message: expected BQN or Go error, got: $out"

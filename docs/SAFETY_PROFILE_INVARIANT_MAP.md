@@ -65,7 +65,7 @@ editor/*_test.go
 | `as_of` entry boundary | `GUARDED` | `checks/check-src-next-clock-boundary.sh` verifies that only `src_next/date.bqn` reads the system clock. `src_next/date.bqn` exports `Today` as the single approved entry point. Connected to `tools/check.sh`. |
 | Cycle half-open / historical availability | `PARTIAL` | `src_next/cycle.bqn`, TBDS tests, cycle summary checks, and opening-before-cycle tests cover important cases. Full overlap/reversal lint inventory is not mapped here. |
 | Section status policy | `PARTIAL` | Policy exists, and current compact output exposes status-like fields for some sections (`actual-comparison`, envelope/status fields), but old `section_status_*` exporter is gone. |
-| Go editor write boundary | `GUARDED/POLICY` | `docs/archive/active-plans/GO_EDITOR_NEXT_PLAN.md`, `docs/GO_EDITOR_USAGE.md`, `editor/*_test.go`, and now-gating Go tests cover approved editor behavior. |
+| BQN editor write boundary | `GUARDED/POLICY` | `docs/archive/active-plans/GO_EDITOR_NEXT_PLAN.md`, `docs/GO_EDITOR_USAGE.md`, `editor/*_test.go`, and now-gating Go tests cover approved editor behavior. |
 | Multi-file write / idempotency safety | `GAP` | Explicitly not widened; failure-injection and idempotency tests remain TODO before any broader write scope. |
 
 ## Source invariants
@@ -79,7 +79,7 @@ Current guards:
 - Source TSV contract is documented in `docs/ARCHITECTURE.md`, `docs/CONVENTIONS.md`, and `docs/JOURNAL_META.md`.
 - `src_next/loader.bqn` exposes `SplitTsvKeepEmpty` for journal-like rows.
 - `fixtures/src-next-broken-empty-columns` is connected to `check-src-next-golden.sh` through `tools/check.sh`.
-- Go editor tests cover safe append/edit behavior for approved writer commands.
+- BQN editor tests cover safe append/edit behavior for approved writer commands.
 
 Known gap:
 
@@ -288,9 +288,9 @@ Status: `GUARDED/POLICY`
 
 Current guards:
 
-- `docs/archive/active-plans/GO_EDITOR_NEXT_PLAN.md` defines the current Go editor boundary and safe write scope.
+- `docs/archive/active-plans/GO_EDITOR_NEXT_PLAN.md` defines the current BQN editor boundary and safe write scope.
 - Current approved commands include `journal add`, `journal reverse`, `budget add`, `plan add`, `plan finish --apply`, and narrow open-plan `date` / `amount` edit.
-- `editor/*_test.go` covers the approved Go editor behavior, and `tools/check.sh` now gates on `go test ./...` in `editor/` (if `go` is not installed, it emits a warning and skips).
+- `editor/*_test.go` covers the approved BQN editor behavior, and `tools/check.sh` now gates on `go test ./...` in `editor/` (if `go` is not installed, it emits a warning and skips).
 
 Known gap:
 

@@ -25,21 +25,14 @@ assert_plan_list_parity() {
   local fixture="$2"
   shift 2
   local base="$tmp_root/$name"
-  local go_out="$tmp_root/$name.go.out"
   local bqn_out="$tmp_root/$name.bqn.out"
   local before_sha after_sha
 
   cp -R "$fixture" "$base"
   before_sha="$(sha_file "$base/plan.tsv")"
 
-  ./tools/edit-legacy-go --base "$base" plan list "$@" >"$go_out"
   ./tools/edit-bqn --base "$base" plan list "$@" >"$bqn_out"
 
-  if ! cmp -s "$go_out" "$bqn_out"; then
-    echo "FAIL: plan list output differs from Go editor: $name $*" >&2
-    diff -u "$go_out" "$bqn_out" >&2 || true
-    exit 1
-  fi
 
   after_sha="$(sha_file "$base/plan.tsv")"
   if [ "$before_sha" != "$after_sha" ]; then

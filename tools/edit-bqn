@@ -2,7 +2,7 @@
 # tools/edit-bqn — experimental BQN-backed editor entry point.
 #
 # Phase 3 scope: append-only `journal add`, `budget add`, and `issue add`.
-# Production `tools/edit` remains the Go editor fallback until parity and safety gates are closed.
+# Production `tools/edit` remains the BQN editor fallback until parity and safety gates are closed.
 #
 # This is intentionally a narrow proof path, not the future full dispatcher shape.
 # Shared parsing/protocol/write handling is kept in one path for the two
@@ -277,7 +277,7 @@ if [[ "$1" == "plan" && "$2" == "edit" ]]; then
     MODE="yes"
   fi
 
-  # Preview output matching Go editor format
+  # Preview output matching BQN editor format
   printf 'Plan edit preview\n'
   printf 'Target: %s\n' "$TARGET_PATH"
   printf 'Line: %s\n' "$LINE_NUM"

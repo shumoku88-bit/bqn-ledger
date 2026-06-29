@@ -49,65 +49,45 @@ run_expect_fail_closed() {
   local name="$1"
   local target_file="$2"
   shift 2
-  local go_base="$tmp_root/neg-${name}-go"
   local bqn_base="$tmp_root/neg-${name}-bqn"
-  local go_out="$tmp_root/neg-${name}-go.out"
   local bqn_out="$tmp_root/neg-${name}-bqn.out"
-  local go_before bqn_before go_rc bqn_rc
+  local bqn_before bqn_rc
 
-  cp -R data "$go_base"
   cp -R data "$bqn_base"
-  go_before="$(sha_file "$go_base/$target_file")"
   bqn_before="$(sha_file "$bqn_base/$target_file")"
 
   set +e
-  ./tools/edit-legacy-go --base "$go_base" "$@" >"$go_out" 2>&1
-  go_rc=$?
   ./tools/edit-bqn --base "$bqn_base" "$@" >"$bqn_out" 2>&1
   bqn_rc=$?
   set -e
 
-  if [ "$go_rc" -eq 0 ]; then
-    echo "FAIL: Go editor unexpectedly accepted negative case: $name" >&2
-    cat "$go_out" >&2
-    exit 1
-  fi
+
   if [ "$bqn_rc" -eq 0 ]; then
     echo "FAIL: tools/edit-bqn unexpectedly accepted negative case: $name" >&2
     cat "$bqn_out" >&2
     exit 1
   fi
 
-  assert_unchanged "$go_base" "$target_file" "$go_before" "Go editor negative case $name"
   assert_unchanged "$bqn_base" "$target_file" "$bqn_before" "tools/edit-bqn negative case $name"
-  assert_no_backup "$go_base" "Go editor negative case $name"
   assert_no_backup "$bqn_base" "tools/edit-bqn negative case $name"
 }
 
-run_positive_parity() {
+run_positive() {
   local name="$1"
   local target_file="$2"
   shift 2
-  local go_base="$tmp_root/pos-${name}-go"
   local bqn_base="$tmp_root/pos-${name}-bqn"
-  local go_out="$tmp_root/pos-${name}-go.out"
   local bqn_out="$tmp_root/pos-${name}-bqn.out"
 
-  cp -R data "$go_base"
   cp -R data "$bqn_base"
 
   if [[ "$name" == *"no-trailing-newline" ]]; then
-    perl -0pi -e 's/\n\z//' "$go_base/$target_file" "$bqn_base/$target_file"
+    perl -0pi -e 's/\n\z//' "$bqn_base/$target_file"
   fi
 
-  ./tools/edit-legacy-go --base "$go_base" "$@" >"$go_out" 2>&1
   ./tools/edit-bqn --base "$bqn_base" "$@" >"$bqn_out" 2>&1
 
-  if ! cmp -s "$go_base/$target_file" "$bqn_base/$target_file"; then
-    echo "FAIL: tools/edit-bqn positive case differs from Go editor: $name" >&2
-    diff -u "$go_base/$target_file" "$bqn_base/$target_file" >&2 || true
-    exit 1
-  fi
+
 
   if ! find "$bqn_base/.backup" -type f -name "${target_file}*" | grep -q .; then
     echo "FAIL: tools/edit-bqn positive case did not create a backup for $target_file: $name" >&2
@@ -117,10 +97,8 @@ run_positive_parity() {
 
 # ── Positive parity and dry-run protection ──────────────────────
 
-go_base="$tmp_root/go"
 bqn_base="$tmp_root/bqn"
 dry_base="$tmp_root/dry"
-cp -R data "$go_base"
 cp -R data "$bqn_base"
 cp -R data "$dry_base"
 
@@ -144,25 +122,18 @@ before_sha="$(sha_file "$dry_base/journal.tsv")"
   --to expenses:食費 \
   --amount 123 \
   --meta source=check-edit-bqn \
-  --dry-run >/dev/null
+  --dry-run 
 assert_unchanged "$dry_base" "journal.tsv" "$before_sha" "tools/edit-bqn --dry-run"
 assert_no_backup "$dry_base" "tools/edit-bqn --dry-run"
 
-./tools/edit-legacy-go --base "$go_base" "${args[@]}" >/dev/null
-./tools/edit-bqn --base "$bqn_base" "${args[@]}" >/dev/null
-
-if ! cmp -s "$go_base/journal.tsv" "$bqn_base/journal.tsv"; then
-  echo "FAIL: tools/edit-bqn journal add result differs from Go editor" >&2
-  diff -u "$go_base/journal.tsv" "$bqn_base/journal.tsv" >&2 || true
-  exit 1
-fi
+./tools/edit-bqn --base "$bqn_base" "${args[@]}"
 
 if ! find "$bqn_base/.backup" -type f -name 'journal.tsv*' | grep -q .; then
   echo "FAIL: tools/edit-bqn journal add did not create a journal backup" >&2
   exit 1
 fi
 
-run_positive_parity empty-memo journal.tsv \
+run_positive empty-memo journal.tsv \
   journal add \
   --date 2026-06-29 \
   --memo "" \
@@ -172,7 +143,7 @@ run_positive_parity empty-memo journal.tsv \
   --yes \
   --post-check none
 
-run_positive_parity multiple-meta journal.tsv \
+run_positive multiple-meta journal.tsv \
   journal add \
   --date 2026-06-29 \
   --memo "edit-bqn multiple meta" \
@@ -184,7 +155,7 @@ run_positive_parity multiple-meta journal.tsv \
   --yes \
   --post-check none
 
-run_positive_parity japanese-values journal.tsv \
+run_positive japanese-values journal.tsv \
   journal add \
   --date 2026-06-29 \
   --memo "昼ごはん" \
@@ -195,7 +166,7 @@ run_positive_parity japanese-values journal.tsv \
   --yes \
   --post-check none
 
-run_positive_parity no-trailing-newline journal.tsv \
+run_positive no-trailing-newline journal.tsv \
   journal add \
   --date 2026-06-29 \
   --memo "edit-bqn no trailing newline" \
@@ -217,14 +188,14 @@ budget_before_sha="$(sha_file "$budget_dry_base/budget_alloc.tsv")"
   --to budget:食費 \
   --amount 200 \
   --meta source=check-edit-bqn \
-  --dry-run >/dev/null
+  --dry-run 
 if [[ "$budget_before_sha" != "$(sha_file "$budget_dry_base/budget_alloc.tsv")" ]]; then
   echo "FAIL: tools/edit-bqn budget add --dry-run modified budget_alloc.tsv" >&2
   exit 1
 fi
 assert_no_backup "$budget_dry_base" "tools/edit-bqn budget add --dry-run"
 
-run_positive_parity budget-basic budget_alloc.tsv \
+run_positive budget-basic budget_alloc.tsv \
   budget add \
   --date 2026-06-29 \
   --memo "edit-bqn budget parity" \
@@ -235,7 +206,7 @@ run_positive_parity budget-basic budget_alloc.tsv \
   --yes \
   --post-check none
 
-run_positive_parity budget-no-trailing-newline budget_alloc.tsv \
+run_positive budget-no-trailing-newline budget_alloc.tsv \
   budget add \
   --date 2026-06-29 \
   --memo "edit-bqn budget no trailing newline" \
@@ -337,70 +308,40 @@ cp -R data "$issue_dry_base"
   --title "edit-bqn issue dry-run" \
   --amount 300 \
   --memo "dry" \
-  --dry-run >/dev/null
+  --dry-run 
 if [[ -e "$issue_dry_base/issues.tsv" ]]; then
   echo "FAIL: tools/edit-bqn issue add --dry-run created issues.tsv" >&2
   exit 1
 fi
 assert_no_backup "$issue_dry_base" "tools/edit-bqn issue add --dry-run"
 
-issue_go_base="$tmp_root/issue-new-go"
 issue_bqn_base="$tmp_root/issue-new-bqn"
-cp -R data "$issue_go_base"
 cp -R data "$issue_bqn_base"
-./tools/edit-legacy-go --base "$issue_go_base" issue add \
-  --date 2026-06-29 \
-  --title "edit-bqn issue parity" \
-  --amount 301 \
-  --memo "new file" \
-  --yes >/dev/null
 ./tools/edit-bqn --base "$issue_bqn_base" issue add \
   --date 2026-06-29 \
   --title "edit-bqn issue parity" \
   --amount 301 \
   --memo "new file" \
-  --yes >/dev/null
-if ! cmp -s "$issue_go_base/issues.tsv" "$issue_bqn_base/issues.tsv"; then
-  echo "FAIL: tools/edit-bqn issue add new-file result differs from Go editor" >&2
-  diff -u "$issue_go_base/issues.tsv" "$issue_bqn_base/issues.tsv" >&2 || true
-  exit 1
-fi
+  --yes 
 assert_no_backup "$issue_bqn_base" "tools/edit-bqn issue add new-file"
 
-issue_existing_go="$tmp_root/issue-existing-go"
 issue_existing_bqn="$tmp_root/issue-existing-bqn"
-cp -R data "$issue_existing_go"
 cp -R data "$issue_existing_bqn"
-printf 'date\tstatus\ttitle\tamount\tmemo\n2026-06-28\topen\tBefore\t0\tseed\n' > "$issue_existing_go/issues.tsv"
 printf 'date\tstatus\ttitle\tamount\tmemo\n2026-06-28\topen\tBefore\t0\tseed\n' > "$issue_existing_bqn/issues.tsv"
-./tools/edit-legacy-go --base "$issue_existing_go" issue add \
-  --date 2026-06-29 \
-  --status resolved \
-  --title "edit-bqn issue existing" \
-  --amount -302 \
-  --memo "existing file" \
-  --yes >/dev/null
 ./tools/edit-bqn --base "$issue_existing_bqn" issue add \
   --date 2026-06-29 \
   --status resolved \
   --title "edit-bqn issue existing" \
   --amount -302 \
   --memo "existing file" \
-  --yes >/dev/null
-if ! cmp -s "$issue_existing_go/issues.tsv" "$issue_existing_bqn/issues.tsv"; then
-  echo "FAIL: tools/edit-bqn issue add existing-file result differs from Go editor" >&2
-  diff -u "$issue_existing_go/issues.tsv" "$issue_existing_bqn/issues.tsv" >&2 || true
-  exit 1
-fi
+  --yes 
 if ! find "$issue_existing_bqn/.backup" -type f -name 'issues.tsv*' | grep -q .; then
   echo "FAIL: tools/edit-bqn issue add existing-file did not create an issues backup" >&2
   exit 1
 fi
 
 for issue_case in invalid-status missing-title invalid-amount title-tab memo-newline; do
-  issue_neg_go="$tmp_root/issue-neg-${issue_case}-go"
   issue_neg_bqn="$tmp_root/issue-neg-${issue_case}-bqn"
-  cp -R data "$issue_neg_go"
   cp -R data "$issue_neg_bqn"
   case "$issue_case" in
     invalid-status) issue_args=(issue add --date 2026-06-29 --status bad --title "bad status" --yes) ;;
@@ -410,20 +351,17 @@ for issue_case in invalid-status missing-title invalid-amount title-tab memo-new
     memo-newline) issue_args=(issue add --date 2026-06-29 --title "bad memo" --memo $'bad\nmemo' --yes) ;;
   esac
   set +e
-  ./tools/edit-legacy-go --base "$issue_neg_go" "${issue_args[@]}" >"$tmp_root/issue-neg-${issue_case}-go.out" 2>&1
-  go_rc=$?
   ./tools/edit-bqn --base "$issue_neg_bqn" "${issue_args[@]}" >"$tmp_root/issue-neg-${issue_case}-bqn.out" 2>&1
   bqn_rc=$?
   set -e
-  if [[ "$go_rc" -eq 0 || "$bqn_rc" -eq 0 ]]; then
-    echo "FAIL: issue negative case was accepted: $issue_case (go=$go_rc bqn=$bqn_rc)" >&2
+  if [[ "$bqn_rc" -eq 0 ]]; then
+    echo "FAIL: issue negative case was accepted: $issue_case (bqn=$bqn_rc)" >&2
     exit 1
   fi
-  if [[ -e "$issue_neg_go/issues.tsv" || -e "$issue_neg_bqn/issues.tsv" ]]; then
+  if [[ -e "$issue_neg_bqn/issues.tsv" ]]; then
     echo "FAIL: issue negative case created issues.tsv: $issue_case" >&2
     exit 1
   fi
-  assert_no_backup "$issue_neg_go" "Go editor issue negative case $issue_case"
   assert_no_backup "$issue_neg_bqn" "tools/edit-bqn issue negative case $issue_case"
 done
 

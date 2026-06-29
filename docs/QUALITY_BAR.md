@@ -72,7 +72,7 @@ source TSV -> Posting IR -> validation -> ledger-wide postings -> TBDS(period, a
 - TBDS は period/account/layer の会計状態境界であり、`opening / movement / closing` を明示する。
 - 残高系 report は `closing`、期間 flow 系 report は `movement` を使う。
 - 年金・月給・不定期収入・封筒派などの生活スタイルは household policy layer で扱い、accounting core に埋め込まない。
-- UI / shell / Go editor は計算責務を持たない。
+- UI / shell / BQN editor は計算責務を持たない。
 
 ### 5. Recovery and diagnostics
 
