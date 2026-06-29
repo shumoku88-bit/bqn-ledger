@@ -25,7 +25,7 @@ PR #24 は merge 済み。smoke check は `tools/check.sh` で合格済み。
 残りは実データへ書かずに確認できる範囲を優先し、必要なら fixture / check 化する。
 
 - [x] `tools/plan-finish-replenish-ui.sh` の BQN エディタ環境（BQN_EDITOR=1 / ハイブリッド）での動作確認（2026-06-30: `checks/check-plan-finish-replenish-ui.sh` の preflight を default env / `BQN_EDITOR=1` の両方で確認）
-- [ ] 補填モード（翌月作成、最新アクティブプラン後への延長）の対話的挙動を sandbox / dry-run 相当で確認する
+- [x] 補填モード（翌月作成、最新アクティブプラン後への延長）の対話的挙動を sandbox / dry-run 相当で確認する（2026-06-30: expect + temp sandbox で `extend` → `1m` → `series=phone` 継承、journal/plan 追記、post-check OK を確認）
 - [x] `series=...` メタデータの継承・生成処理が正常に機能するか確認する（2026-06-30: `meta series` → `plan_id` series → exact fallback の順に統一）
 - [x] 関連予定一覧の表示と設計を確認/実装する（2026-06-30: `tools/plan-finish-replenish-ui.sh` で実装）
   - [x] 補充前に、選択した予定と同じ `series` の未消化予定一覧を表示する

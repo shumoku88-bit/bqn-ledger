@@ -139,8 +139,8 @@ ask_yes_no() {
 
 add_months() {
   local date_val="$1" months="$2"
-  if date -j -f %Y-%m-%d "$date_val" -v+"$months"m +%Y-%m-%d >/dev/null 2>&1; then
-    date -j -f %Y-%m-%d "$date_val" -v+"$months"m +%Y-%m-%d
+  if date -j -v+"$months"m -f %Y-%m-%d "$date_val" +%Y-%m-%d >/dev/null 2>&1; then
+    date -j -v+"$months"m -f %Y-%m-%d "$date_val" +%Y-%m-%d
   elif date -d "$date_val +$months month" +%Y-%m-%d >/dev/null 2>&1; then
     date -d "$date_val +$months month" +%Y-%m-%d
   else
@@ -249,6 +249,10 @@ related_display_for_row() {
 if [[ "$preflight" -eq 1 ]]; then
   if [[ ! -x "$ROOT_DIR/tools/edit" ]]; then
     shout "FAIL tools/edit is not executable"
+    exit 1
+  fi
+  if [[ "$(add_months 2026-02-10 1 || true)" != "2026-03-10" ]]; then
+    shout "FAIL add_months portability check failed"
     exit 1
   fi
   if load_plan_rows >/dev/null; then
