@@ -13,9 +13,9 @@
   - [x] `checks/check-safe-replace-line.sh` を更新し、フック関数（例: `append_race_marker`）を定義して呼び出しを確認する
   - [x] `tools/lib/safe-write.sh` もしくはすべての safe-write パスで、不要な `eval` 混入を検知・防止する grep / check を追加する
 
-- [ ] **Batch 2: Loader correctness (P1)**
-  - [ ] 必須 vs 任意ソースファイルの定義と、存在しない任意のファイルのテスト追加
-  - [ ] 存在しないこと（任意欠損）と、存在するが読み込めない（unreadable/破損）エラー状態を明示的に区別する (`ReadLinesIfPresent` 等の導入)
+- [x] **Batch 2: Loader correctness (P1)**
+  - [x] 必須 vs 任意ソースファイルの定義と、存在しない任意のファイルのテスト追加
+  - [x] 存在しないこと（任意欠損）と、存在するが読み込めない（unreadable/破損）エラー状態を明示的に区別する (`ReadLinesIfPresent` 等の導入)
   
 - [ ] **Batch 3: Dispatcher boundary (P1)**
   - [ ] `tools/edit-bqn` のサブコマンドグループの文書化と、共通シェルヘルパー関数の抽出

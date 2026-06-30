@@ -135,6 +135,7 @@ bash checks/check-safe-replace-line.sh >/dev/null
 bash checks/check-bash-safety.sh >/dev/null
 bash checks/check-ui-smoke.sh >/dev/null
 bash checks/check-absolute-links.sh >/dev/null
+bash checks/check-loader-unreadable.sh >/dev/null
 check_bqn_presentation_boundary
 
 echo "OK" >&2

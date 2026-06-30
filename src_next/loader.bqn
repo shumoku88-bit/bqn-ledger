@@ -11,11 +11,16 @@
 
 # ReadRaw: read file content as a string.
 # Uses native •FChars resolved against working directory (•wdpath) for relative paths.
-ReadRaw ← {
+# ResolvePath: resolve relative path against working directory (•wdpath) if not absolute.
+ResolvePath ← {
   path ← 𝕩
   is_abs ← (0 < ≠ path) ∧ (("/" ≡ 1 ↑ path) ∨ ("~" ≡ 1 ↑ path))
-  full_path ← is_abs ◶ ⟨ { 𝕊 ⋄ •wdpath ∾ "/" ∾ path }, { 𝕊 ⋄ path } ⟩ @
-  •FChars full_path
+  is_abs ◶ ⟨ { 𝕊 ⋄ •wdpath ∾ "/" ∾ path }, { 𝕊 ⋄ path } ⟩ @
+}
+
+# ReadRaw: read file content as a string.
+ReadRaw ← {
+  •FChars ResolvePath 𝕩
 }
 
 # ReadLines: read file, split by newline, skip comments and empties.
@@ -31,11 +36,12 @@ ReadLines ← {
 }
 
 # ReadLinesOptional: like ReadLines but returns empty list if file does not exist.
-# Uses native try-catch block (⎊) instead of shell test -f.
+# Strict: if file is present but unreadable, it fails (throws exception).
 # Args: 𝕩 is file path (String)
-# Returns: 1D Array of Strings (empty if file missing or unreadable)
+# Returns: 1D Array of Strings (empty if file missing)
 ReadLinesOptional ← {
-  ( ReadLines ⎊ { ⟨⟩ } ) 𝕩
+  full_path ← ResolvePath 𝕩
+  (•file.Exists full_path) ? ReadLines full_path ; ⟨⟩
 }
 
 # SplitTsv: split a line by TAB into fields.
