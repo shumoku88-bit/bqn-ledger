@@ -7,8 +7,6 @@ node_modules/
 # Generated (optional)
 budget_journal.tsv
 out/
-tools/edit.bin
-editor/editor
 .backup/
 
 # Private and logs
