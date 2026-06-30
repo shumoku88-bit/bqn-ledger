@@ -177,59 +177,72 @@ FormatHuman ← {𝕊 vm:
   out ← "== Daily Flow ==" ∾ (@+10) ∾ (@+10)
   out ↩ out ∾ "cycle: " ∾ vm.cycle_start ∾ " 〜 " ∾ vm.cycle_end_exclusive ∾ " (as of " ∾ vm.as_of ∾ "; " ∾ (•Fmt days_left) ∾ " days left)" ∾ (@+10) ∾ (@+10)
 
-  AlignR ← {𝕊 w‿x:
-    val ← Unbox x
+  AlignR ← {
+    w      ← 𝕨
+    val    ← Unbox 𝕩
     is_str ← (0 = ≠ val) ◶ ⟨ { 2 = •Type ⊑ val }, {1} ⟩ @
-    s ← is_str ◶ ⟨ {•Fmt val}, {val} ⟩ @
+    s      ← is_str ◶ ⟨ {•Fmt val}, {val} ⟩ @
     ((0 ⌈ w - StringWidth s) ⥊ " ") ∾ s
   }
 
   headers ← ⟨"date"⟩ ∾ ⟨"income"⟩ ∾ vm.env_labels ∾ ⟨"other"⟩ ∾ ⟨"net"⟩
   
   # Format header row
-  date_col ← "date      "
-  num_cols ← 1 ↓ headers
-  padded_nums ← { AlignR ⟨10, 𝕩⟩ }¨ num_cols
-  header_line ← date_col ∾ ∾ { " | " ∾ 𝕩 }¨ padded_nums
+  date_col       ← "date      "
+  num_cols       ← 1 ↓ headers
+  col_widths     ← { 10 ⌈ StringWidth 𝕩 }¨ num_cols
+  padded_nums    ← { (𝕩 ⊑ col_widths) AlignR (𝕩 ⊑ num_cols) }¨ ↕   ≠ num_cols
+  header_line    ← date_col ∾ ∾ { " | " ∾ 𝕩 }¨ padded_nums
   
   # Build separator matching column widths
-  # 10 chars for date, 10 chars for each num col
-  sep ← "----------"
-  num_seps ← (¯1 + ≠ headers) ⥊ ⟨"----------"⟩
+  # 10 chars for date, matching chars for each num col
+  sep            ← "----------"
+  num_seps       ← { 𝕩 ⥊ "-" }¨ col_widths
   separator_line ← sep ∾ ∾ { "-+-" ∾ 𝕩 }¨ num_seps
 
   out ↩ out ∾ header_line ∾ (@+10) ∾ separator_line ∾ (@+10)
 
   FmtNum ← {
-    val ← >𝕩
+    w ← 𝕨
+    v ← >𝕩
     # negate expense values to show as negative numbers (if non-zero)
-    (val = 0) ◶ ⟨ {AlignR ⟨10, -val⟩}, {"         0"} ⟩ @
+    (v = 0) ◶ ⟨ {w AlignR -v}, { ((0 ⌈ w - 1) ⥊ " ") ∾ "0" } ⟩ @
   }
   
   FmtIncome ← {
-    val ← >𝕩
-    (val = 0) ◶ ⟨ {AlignR ⟨10, val⟩}, {"         0"} ⟩ @
+    w ← 𝕨
+    v ← >𝕩
+    (v = 0) ◶ ⟨ {w AlignR v}, { ((0 ⌈ w - 1) ⥊ " ") ∾ "0" } ⟩ @
   }
 
   FmtNet ← {
-    val ← >𝕩
-    (val = 0) ◶ ⟨ {AlignR ⟨10, val⟩}, {"         0"} ⟩ @
+    w ← 𝕨
+    v ← >𝕩
+    (v = 0) ◶ ⟨ {w AlignR v}, { ((0 ⌈ w - 1) ⥊ " ") ∾ "0" } ⟩ @
   }
 
   FmtRow ← {𝕊 i:
-    r ← i ⊑ rows
-    date_str ← 0⊑r
-    inc ← 1⊑r
-    envs ← 2⊑r
-    oth ← 3⊑r
-    net ← 4⊑r
+    r        ← i ⊑ rows
+    date_str ← 0 ⊑ r
+    inc      ← 1 ⊑ r
+    envs     ← 2 ⊑ r
+    oth      ← 3 ⊑ r
+    net      ← 4 ⊑ r
 
     # Columns: date | income | env1 | env2 | ... | other | net
-    date_part ← > date_str
-    inc_part ← > FmtIncome inc
-    envs_part ← ∾ { " | " ∾ > FmtNum 𝕩 }¨ envs
-    oth_part ← > FmtNum oth
-    net_part ← > FmtNet net
+    date_part       ← > date_str
+    
+    # Extract widths for each part
+    inc_w           ← 0 ⊑ col_widths
+    env_widths      ← (1 + ↕ ≠ envs) ⊏ col_widths
+    oth_w           ← ¯2 ⊑ col_widths
+    net_w           ← ¯1 ⊑ col_widths
+
+    inc_part        ← > inc_w FmtIncome inc
+    envs_formatted  ← { (𝕩 ⊑ env_widths) FmtNum (𝕩 ⊑ envs) }¨ ↕   ≠ envs
+    envs_part       ← ∾ { " | " ∾ > 𝕩 }¨ envs_formatted
+    oth_part        ← > oth_w FmtNum oth
+    net_part        ← > net_w FmtNet net
 
     date_part ∾ " | " ∾ inc_part ∾ envs_part ∾ " | " ∾ oth_part ∾ " | " ∾ net_part ∾ ⟨@+10⟩
   }

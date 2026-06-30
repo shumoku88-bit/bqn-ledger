@@ -89,9 +89,17 @@ if [[ -t 0 && -t 1 ]]; then
   IS_TTY=1
 fi
 
+pager_display() {
+  if [[ "$IS_TTY" -eq 1 ]] && command -v less >/dev/null 2>&1; then
+    less -SRFX
+  else
+    cat
+  fi
+}
+
 show_full_report() {
   ensure_ledger_report_base "$base_dir"
-  "$ROOT_DIR/tools/report" "$base_dir" --no-color | "$ROOT_DIR/tools/lib/color-filter"
+  "$ROOT_DIR/tools/report" "$base_dir" --no-color | "$ROOT_DIR/tools/lib/color-filter" | pager_display
 }
 
 section_list() {
@@ -122,7 +130,7 @@ show_section_direct() {
   err="$(mktemp)"
   trap 'rm -f "$out" "$err"' RETURN
   if "$ROOT_DIR/tools/report" "$base_dir" --section "$key" --no-color >"$out" 2>"$err"; then
-    cat "$out" | "$ROOT_DIR/tools/lib/color-filter"
+    cat "$out" | "$ROOT_DIR/tools/lib/color-filter" | pager_display
   else
     status=$?
     if [[ -s "$out" ]]; then cat "$out" >&2; fi
@@ -254,7 +262,7 @@ case "$cmd" in
       all) show_full_report ;;
       *)
         if [[ -f "$cache_dir/$key.txt" ]]; then
-          cat "$cache_dir/$key.txt" | "$ROOT_DIR/tools/lib/color-filter"
+          cat "$cache_dir/$key.txt" | "$ROOT_DIR/tools/lib/color-filter" | pager_display
         else
           echo "Error: cached file not found for $key" >&2
           exit 1
