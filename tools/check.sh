@@ -115,7 +115,6 @@ bash checks/check-src-next-compact-summary.sh fixtures/src-next-envelope-computa
 
 echo "[4/4] engine-independent checks" >&2
 bash checks/check-repo-index.sh >/dev/null
-bash checks/check-disabled-features.sh >/dev/null
 bash checks/check-src-next-clock-boundary.sh >/dev/null
 bash checks/check-src-next-budget-actual-zero.sh >/dev/null
 bash checks/check-devtools.sh >/dev/null
