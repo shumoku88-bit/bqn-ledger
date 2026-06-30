@@ -16,6 +16,10 @@ ROOT_DIR="$(cd "$DIR/.." && pwd)"
 source "$DIR/lib/system-defaults.sh"
 # shellcheck source=tools/lib/safe-write.sh
 source "$DIR/lib/safe-write.sh"
+# shellcheck source=tools/lib/edit-bqn-common.sh
+source "$DIR/lib/edit-bqn-common.sh"
+# shellcheck source=tools/lib/edit-bqn-issue.sh
+source "$DIR/lib/edit-bqn-issue.sh"
 
 BASE_DIR="${LEDGER_DATA_DIR:-$(get_default_base_dir)}"
 JOURNAL_FILE="$(get_system_default_file DEFAULT_JOURNAL_FILE journal.tsv)"
@@ -30,33 +34,15 @@ Usage:
   tools/edit-bqn [--base DIR] budget add  --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount INT [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] plan add --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount INT [--meta key=value ...] [--id plan-YYYY-MM-DD-series] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] issue add [--date YYYY-MM-DD] [--status open|resolved|dropped] --title TITLE [--amount INT] [--memo MEMO] [--dry-run] [--yes]
+  tools/edit-bqn [--base DIR] account list [--role ROLE]
   tools/edit-bqn [--base DIR] plan list [--all] [--format tsv|text]
   tools/edit-bqn [--base DIR] plan related [--index NUMBER] [--id PLAN_ID] --actual-date YYYY-MM-DD [--format tsv]
   tools/edit-bqn [--base DIR] plan finish [--index NUMBER] [--id PLAN_ID] --actual-date YYYY-MM-DD [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] plan edit [--index NUMBER] [--id PLAN_ID] [--date YYYY-MM-DD] [--amount INT] [--all] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] journal reverse [--index NUMBER] [--id TXN_ID] [--date YYYY-MM-DD] [--dry-run] [--yes] [--post-check none|lint|full]
 
-Current scope: BQN editor daily commands (journal/budget/plan/issue add, plan list, plan related, plan finish, plan edit, journal reverse).
+Current scope: BQN editor daily commands (journal/budget/plan/issue add, account list, plan list, plan related, plan finish, plan edit, journal reverse).
 USAGE
-}
-
-get_opt_val() {
-  local opt="$1"
-  local val="${2-}"
-  if [[ $# -lt 2 || -z "$val" || "$val" == --* ]]; then
-    echo "ERROR: missing value for $opt" >&2
-    exit 2
-  fi
-  printf '%s\n' "$val"
-}
-
-get_opt_val_allow_empty() {
-  local opt="$1"
-  if [[ $# -lt 2 ]]; then
-    echo "ERROR: missing value for $opt" >&2
-    exit 2
-  fi
-  printf '%s\n' "$2"
 }
 
 REM_ARGS=()
@@ -84,6 +70,19 @@ if [[ $# -lt 2 ]]; then
   exit 2
 fi
 
+if [[ "$1" == "account" && "$2" == "list" ]]; then
+  shift 2
+  ROLE=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --role) ROLE="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      *) echo "ERROR: unknown account list argument: $1" >&2; exit 2 ;;
+    esac
+  done
+  cd "$ROOT_DIR" && bqn src_edit/account_list_cmd.bqn "$BASE_DIR" "$ROLE"
+  exit $?
+fi
+
 if [[ "$1" == "journal" && "$2" == "reverse" ]]; then
   shift 2
   INDEX="0"
@@ -108,10 +107,7 @@ if [[ "$1" == "journal" && "$2" == "reverse" ]]; then
     echo "ERROR: must specify journal row to reverse using --index or --id" >&2
     exit 2
   fi
-  case "$POST_CHECK" in
-    none|lint|full) ;;
-    *) echo "ERROR: invalid --post-check mode: $POST_CHECK" >&2; exit 2 ;;
-  esac
+  edit_bqn_validate_post_check "$POST_CHECK"
 
   TARGET_PATH="$BASE_DIR/$JOURNAL_FILE"
   SNAPSHOT_TOKEN="$(safe_snapshot_token "$TARGET_PATH")"
@@ -147,12 +143,7 @@ if [[ "$1" == "journal" && "$2" == "reverse" ]]; then
     exit 1
   fi
 
-  MODE="confirm"
-  if [[ "$DRY_RUN" -eq 1 ]]; then
-    MODE="dry-run"
-  elif [[ "$YES" -eq 1 ]]; then
-    MODE="yes"
-  fi
+  MODE="$(edit_bqn_mode "$DRY_RUN" "$YES")"
 
   printf 'Reversing journal row %s (date=%s, memo=%s)\n' "$TARGET_IDX" "$ORIG_DATE" "$ORIG_MEMO"
   printf '  Original: %s -> %s  %s\n' "$ORIG_FROM" "$ORIG_TO" "$ORIG_AMOUNT"
@@ -179,9 +170,7 @@ if [[ "$1" == "journal" && "$2" == "reverse" ]]; then
     esac
   fi
 
-  if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && -n "${EDIT_BQN_TEST_BEFORE_APPEND_HOOK:-}" ]]; then
-    eval "$EDIT_BQN_TEST_BEFORE_APPEND_HOOK"
-  fi
+  edit_bqn_run_test_hook EDIT_BQN_TEST_BEFORE_APPEND_HOOK
 
   WRITE_OUT="$(safe_append_checked "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256")"
   printf '%s\n' "$WRITE_OUT"
@@ -223,10 +212,7 @@ if [[ "$1" == "plan" && "$2" == "edit" ]]; then
     echo "ERROR: must specify at least one of --date or --amount" >&2
     exit 2
   fi
-  case "$POST_CHECK" in
-    none|lint|full) ;;
-    *) echo "ERROR: invalid --post-check mode: $POST_CHECK" >&2; exit 2 ;;
-  esac
+  edit_bqn_validate_post_check "$POST_CHECK"
 
   TARGET_PATH="$BASE_DIR/$PLAN_FILE"
   SNAPSHOT_TOKEN="$(safe_snapshot_token "$TARGET_PATH")"
@@ -271,12 +257,7 @@ if [[ "$1" == "plan" && "$2" == "edit" ]]; then
     exit 1
   fi
 
-  MODE="confirm"
-  if [[ "$DRY_RUN" -eq 1 ]]; then
-    MODE="dry-run"
-  elif [[ "$YES" -eq 1 ]]; then
-    MODE="yes"
-  fi
+  MODE="$(edit_bqn_mode "$DRY_RUN" "$YES")"
 
   # Preview output matching BQN editor format
   printf 'Plan edit preview\n'
@@ -304,9 +285,7 @@ if [[ "$1" == "plan" && "$2" == "edit" ]]; then
   fi
 
   # Test-only stale-write injection point.
-  if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && -n "${EDIT_BQN_TEST_BEFORE_REPLACE_HOOK:-}" ]]; then
-    eval "$EDIT_BQN_TEST_BEFORE_REPLACE_HOOK"
-  fi
+  edit_bqn_run_test_hook EDIT_BQN_TEST_BEFORE_REPLACE_HOOK
 
   WRITE_OUT="$(safe_replace_line_checked "$TARGET_PATH" "$LINE_NUM" "$OLD_LINE" "$NEW_LINE" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256")"
   printf '%s\n' "$WRITE_OUT"
@@ -383,12 +362,7 @@ if [[ "$1" == "plan" && "$2" == "finish" ]]; then
     exit 1
   fi
 
-  MODE="confirm"
-  if [[ "$DRY_RUN" -eq 1 ]]; then
-    MODE="dry-run"
-  elif [[ "$YES" -eq 1 ]]; then
-    MODE="yes"
-  fi
+  MODE="$(edit_bqn_mode "$DRY_RUN" "$YES")"
 
   if [[ "$DRY_RUN" -eq 1 ]]; then
     printf 'Journal (from plan) append preview\n'
@@ -414,9 +388,7 @@ if [[ "$1" == "plan" && "$2" == "finish" ]]; then
     fi
   fi
 
-  if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && -n "${EDIT_BQN_TEST_BEFORE_APPEND_HOOK:-}" ]]; then
-    eval "$EDIT_BQN_TEST_BEFORE_APPEND_HOOK"
-  fi
+  edit_bqn_run_test_hook EDIT_BQN_TEST_BEFORE_APPEND_HOOK
 
   WRITE_OUT="$(safe_append_checked "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256")"
   printf '%s\n' "$WRITE_OUT"
@@ -477,7 +449,7 @@ if [[ "$1" == "plan" && "$2" == "related" ]]; then
 fi
 
 if [[ "$2" != "add" ]]; then
-  echo "ERROR: tools/edit-bqn currently supports only: journal add, journal reverse, budget add, plan add, issue add, plan list, plan related, plan finish, and plan edit" >&2
+  echo "ERROR: tools/edit-bqn currently supports only: account list, journal add, journal reverse, budget add, plan add, issue add, plan list, plan related, plan finish, and plan edit" >&2
   usage
   exit 2
 fi
@@ -504,7 +476,7 @@ case "$COMMAND" in
     ROW_TITLE="Issue row"
     ;;
   *)
-    echo "ERROR: tools/edit-bqn currently supports only: journal add, journal reverse, budget add, plan add, issue add, plan list, plan related, plan finish, and plan edit" >&2
+    echo "ERROR: tools/edit-bqn currently supports only: account list, journal add, journal reverse, budget add, plan add, issue add, plan list, plan related, plan finish, and plan edit" >&2
     usage
     exit 2
     ;;
@@ -512,92 +484,9 @@ esac
 shift 2
 
 if [[ "$COMMAND" == "issue" ]]; then
-  ISSUE_DATE="$(date +%F)"
-  ISSUE_STATUS="open"
-  ISSUE_TITLE=""
-  ISSUE_AMOUNT="0"
-  ISSUE_MEMO=""
-  DRY_RUN=0
-  YES=0
-
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      --date) ISSUE_DATE="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
-      --status) ISSUE_STATUS="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
-      --title) ISSUE_TITLE="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
-      --amount) ISSUE_AMOUNT="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
-      --memo) ISSUE_MEMO="$(get_opt_val_allow_empty "$1" "${2-}")"; shift 2 ;;
-      --dry-run) DRY_RUN=1; shift ;;
-      --yes) YES=1; shift ;;
-      *) echo "ERROR: unknown option: $1" >&2; exit 2 ;;
-    esac
-  done
-
-  TARGET_PATH="$BASE_DIR/$EXPECTED_TARGET_FILE"
-  TARGET_EXISTS=0
-  SNAP_SIZE=""
-  SNAP_MTIME=""
-  SNAP_SHA256=""
-  if [[ -f "$TARGET_PATH" ]]; then
-    TARGET_EXISTS=1
-    SNAPSHOT_TOKEN="$(safe_snapshot_token "$TARGET_PATH")"
-    IFS=$'\t' read -r SNAP_SIZE SNAP_MTIME SNAP_SHA256 <<< "$SNAPSHOT_TOKEN"
-  fi
-
-  BQN_STDERR="$(mktemp)"
-  trap 'rm -f "$BQN_STDERR"' EXIT
-  BQN_OUT=""
-  if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/issue_add_cmd.bqn "$ISSUE_DATE" "$ISSUE_STATUS" "$ISSUE_TITLE" "$ISSUE_AMOUNT" "$ISSUE_MEMO" 2>"$BQN_STDERR")"; then
-    if [[ -n "$BQN_OUT" ]]; then
-      printf '%s\n' "$BQN_OUT" >&2
-    fi
-    if [[ -s "$BQN_STDERR" ]]; then
-      cat "$BQN_STDERR" >&2
-    fi
-    exit 1
-  fi
-
-  FIRST_LINE="${BQN_OUT%%$'\n'*}"
-  if [[ "$FIRST_LINE" == "$BQN_OUT" ]]; then
-    echo "ERROR: invalid BQN protocol: missing payload line" >&2
-    exit 1
-  fi
-  PAYLOAD="${BQN_OUT#*$'\n'}"
-
-  IFS=$'\t' read -r STATUS OP PROTOCOL_TARGET_FILE EXTRA <<< "$FIRST_LINE"
-  if [[ -n "${EXTRA:-}" || "$STATUS" != "OK" || "$OP" != "APPEND" || "$PROTOCOL_TARGET_FILE" != "$EXPECTED_TARGET_FILE" ]]; then
-    echo "ERROR: invalid BQN protocol header: $FIRST_LINE" >&2
-    exit 1
-  fi
-
-  if [[ "$DRY_RUN" -eq 1 ]]; then
-    printf 'Proposed row:\n'
-    printf '%s\n' "$PAYLOAD"
-    printf '(Dry-run mode, no changes saved)\n'
-    exit 0
-  fi
-
-  printf 'File: %s\n' "$TARGET_PATH"
-  printf 'Proposed row:\n'
-  printf '%s\n' "$PAYLOAD"
-
-  if [[ "$YES" -eq 0 ]]; then
-    if ! confirm_append; then
-      echo "aborted by user" >&2
-      exit 1
-    fi
-  fi
-
-  if [[ "$TARGET_EXISTS" -eq 1 ]]; then
-    safe_append_checked "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256" >/dev/null
-  else
-    safe_create_checked "$TARGET_PATH" $'date\tstatus\ttitle\tamount\tmemo\n'"$PAYLOAD"$'\n' >/dev/null
-  fi
-
-  printf 'OK: Issue row appended.\n'
-  exit 0
+  handle_edit_bqn_issue_add "$@"
+  exit $?
 fi
-
 DATE=""
 MEMO=""
 FROM=""
@@ -625,10 +514,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-case "$POST_CHECK" in
-  none|lint|full) ;;
-  *) echo "ERROR: invalid --post-check mode: $POST_CHECK" >&2; exit 2 ;;
-esac
+edit_bqn_validate_post_check "$POST_CHECK"
 
 TARGET_PATH="$BASE_DIR/$EXPECTED_TARGET_FILE"
 SNAPSHOT_TOKEN="$(safe_snapshot_token "$TARGET_PATH")"
@@ -672,12 +558,7 @@ if [[ -n "${EXTRA:-}" || "$STATUS" != "OK" || "$OP" != "APPEND" || "$PROTOCOL_TA
   exit 1
 fi
 
-MODE="confirm"
-if [[ "$DRY_RUN" -eq 1 ]]; then
-  MODE="dry-run"
-elif [[ "$YES" -eq 1 ]]; then
-  MODE="yes"
-fi
+MODE="$(edit_bqn_mode "$DRY_RUN" "$YES")"
 
 if [[ "$DRY_RUN" -eq 1 ]]; then
   printf '%s append preview\n' "$PREVIEW_TITLE"
@@ -706,9 +587,7 @@ fi
 # Test-only stale-write injection point used by check-edit-bqn-journal-add.sh.
 # This must not become production extension behavior; it exists only to simulate
 # a concurrent source TSV edit between validation/preview and append.
-if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && -n "${EDIT_BQN_TEST_BEFORE_APPEND_HOOK:-}" ]]; then
-  eval "$EDIT_BQN_TEST_BEFORE_APPEND_HOOK"
-fi
+edit_bqn_run_test_hook EDIT_BQN_TEST_BEFORE_APPEND_HOOK
 
 WRITE_OUT="$(safe_append_checked "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256")"
 printf '%s\n' "$WRITE_OUT"

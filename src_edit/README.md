@@ -30,6 +30,7 @@ The public surface remains `tools/edit`.
 ```text
 tools/edit journal add ...
 tools/edit journal reverse ...
+tools/edit account list [--role ROLE]
 tools/edit budget add ...
 tools/edit plan list --format tsv
 tools/edit plan related ... --actual-date YYYY-MM-DD --format tsv
@@ -53,8 +54,10 @@ BQN code here must not silently overwrite source TSV files. The shell write laye
 
 ## Command surface notes
 
-- `journal add` / `budget add` share the journal-like append path.
-- `issue add` has a small dedicated parser because its CLI and new-file semantics differ.
+Dispatcher boundary note: see `docs/EDIT_BQN_DISPATCHER.md` for the current shell command groups and extraction rule.
+
+- `account list` is a read-only account candidate export for UI shell wrappers; account role metadata interpretation stays in BQN.
+- `issue add` has a small dedicated parser because its CLI and new-file semantics differ; its shell handler is split into `tools/lib/edit-bqn-issue.sh`.
 - `plan add` owns plan_id generation and duplicate checks.
 - `plan list` is byte-parity checked because its TSV output is a UI selection contract.
 - `plan related` is read-only and owns recurring-plan relation-key semantics for replenishment UI.

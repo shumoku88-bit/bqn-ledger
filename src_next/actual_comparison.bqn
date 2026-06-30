@@ -11,6 +11,7 @@
 
 loader ← •Import "loader.bqn"
 proj ← •Import "projection.bqn"
+dt ← •Import "date.bqn"
 cube ← •Import "cube.bqn"
 fmt ← •Import "format.bqn"
 labels ← •Import "report_labels.bqn"
@@ -27,55 +28,7 @@ CleanName ← {
 
 # ── Date helpers ──────────────────────────────────────────
 
-# Add n days to YYYY-MM-DD string.
-# Uses pure integer arithmetic (no external date command).
-# DaysFromEpoch inverse: convert day count back to YYYY-MM-DD.
-# Handles proleptic Gregorian calendar (year 0 is leap).
-DaysToDate ← {𝕊 tdn:
-  # Year length for any year (boolean ops: ∧/∨ on 0/1 are correct LCM/GCD)
-  YearLen ← {𝕊 yy: ((=⟜0 4|yy) ∧ ((≠⟜0 100|yy) ∨ (=⟜0 400|yy))) ⊑ 365‿366 }
-
-  # Find year using same leap formula as projection.bqn:
-  # leaps = (⌊y÷4) - (⌊y÷100) + (⌊y÷400) which BQN parses as
-  #        (⌊y÷4) - ((⌊y÷100) + (⌊y÷400))
-  Leaps ← {𝕊 yy: (⌊yy÷4) - (⌊yy÷100) + (⌊yy÷400) }
-
-  # Approximate year
-  y0 ← ⌊ tdn ÷ 365
-  days_to_y0 ← (y0 × 365) + (Leaps y0)
-  y ← y0 - (days_to_y0 > tdn)
-  cum ← (y × 365) + (Leaps y)
-  # Fine-tune (should only need +0 or +1)
-  {𝕊:
-    yl ← YearLen y
-    cum2 ← cum + yl
-    {𝕊: y ↩ y + 1 ⋄ cum ↩ cum2 }⍟(cum2 ≤ tdn) @
-  }⍟((cum + (YearLen y)) ≤ tdn) @
-
-  rem ← tdn - cum
-  leap ← (=⟜0 4|y) ∧ ((≠⟜0 100|y) ∨ (=⟜0 400|y))
-  mdays ← ⟨31, (leap⊑28‿29), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31⟩
-  # Find month: cumulative days before month m
-  cum_m ← +` (0 ∾ mdays)
-  # Find first month where cumulative > rem
-  m_idx ← ⊑ (cum_m > rem) ⊐ ⟨1⟩
-  m ← m_idx
-  r ← rem - (m_idx - 1) ⊑ cum_m
-  d ← r + 1
-  Pad2 ← { s ← •Fmt 𝕩 ⋄ ((0 ⌈ 2 - ≠ s) ⥊ "0") ∾ s }
-  (•Fmt y) ∾ "-" ∾ (Pad2 m) ∾ "-" ∾ (Pad2 d)
-}
-
-# Add n days to a YYYY-MM-DD date string.
-AddDays ← {𝕊 date‿n:
-  # Guard against "unavailable" or empty dates
-  result ← "unavailable"
-  {𝕊:
-    dn ← proj.DaysFromEpoch date
-    result ↩ DaysToDate (dn + n)
-  }⍟(date ≢ "unavailable") @
-  result
-}
+AddDays ← dt.AddDays
 
 # ── Resolve previous cycle ─────────────────────────────────
 # Finds income anchors in journal+plan and picks the pair before the current cycle start.

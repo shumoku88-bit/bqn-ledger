@@ -15,6 +15,8 @@
 #   - does not produce report sections
 #   - does not perform currency conversion
 
+dt ← •Import "date.bqn"
+
 # ── Layer constants (AXIS_CONTRACT.md) ───────────────────────
 
 layer_actual   ← 0
@@ -94,55 +96,15 @@ FieldOrEmpty ← {𝕊 flds‿i:
   (i < ≠ flds) ? (i ⊑ flds) ; ""
 }
 
-# Date validation is intentionally small and deterministic. It is not a
-# calendar library; it only prevents malformed source dates from reaching
-# DaysFromEpoch / cube indexing as successful rows.
-IsValidDateText ← {𝕊 s:
-  okShape ← 0
-  {𝕊: okShape ↩ ("-" ≡ 1⥊4⊑s) ∧ ("-" ≡ 1⥊7⊑s) }⍟(10 = ≠ s) @
-  okDigits ← 0
-  {𝕊: okDigits ↩ (IsDigits(4↑s)) ∧ (IsDigits(2↑5↓s)) ∧ (IsDigits(2↑8↓s)) }⍟okShape @
-  r ← 0
-  {𝕊:
-    y ← •BQN (4↑s)
-    m ← •BQN (2↑(5↓s))
-    d ← •BQN (2↑(8↓s))
-    leap ← (=⟜0 4|y) ∧ ((≠⟜0 100|y) ∨ (=⟜0 400|y))
-    mdays ← ⟨31, (leap⊑28‿29), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31⟩
-    r ↩ (1 ≤ m) ∧ (m ≤ 12) ∧ (1 ≤ d) ∧ (d ≤ ((m-1)⊑mdays))
-  }⍟okDigits @
-  r
-}
+# Date validation is owned by src_next/date.bqn so edit and report paths share
+# one Gregorian YYYY-MM-DD contract.
+IsValidDateText ← dt.IsValidDateText
 
 # ── Pure BQN date-to-absolute-days (proleptic Gregorian) ────
 # Returns days since year 0-01-01.
 # No external date command; no external library.
 
-DaysFromEpoch ← {
-  s ← 𝕩
-  y ← •BQN (4↑s)
-  m ← •BQN (2↑(5↓s))
-  d ← •BQN (2↑(8↓s))
-
-  # Leap year count in years [0, y-1]
-  leaps ← (⌊y÷4) - (⌊y÷100) + (⌊y÷400)
-
-  # Days from complete years before y
-  yearDays ← (y × 365) + leaps
-
-  # Cumulative month days (non-leap-year base)
-  moOffs ← ⟨0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334⟩
-  moDays ← (m-1) ⊑ moOffs
-
-  # Leap day correction for current year if m > 2
-  yMod4 ← 4|y
-  yMod100 ← 100|y
-  yMod400 ← 400|y
-  isLeap ← (=⟜0 yMod4) ∧ ((≠⟜0 yMod100) ∨ (=⟜0 yMod400))
-  leapCorr ← (isLeap ∧ m > 2) ⊑ ⟨0, 1⟩
-
-  yearDays + moDays + leapCorr + d - 1
-}
+DaysFromEpoch ← dt.DaysFromEpoch
 
 # ── Day index resolution (cycle-start-based) ────────────────
 # Returns day offset from cycle start (0 = cycle start date).

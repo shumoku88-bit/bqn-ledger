@@ -5,7 +5,6 @@
 # All functions return ⟨1, ""⟩ on success or ⟨0, "error message"⟩ on failure.
 # This module has no side effects and does not read files.
 
-lib ← •Import "../src_next/util.bqn"
 date ← •Import "../src_next/date.bqn"
 
 # ── Date validation ─────────────────────────────────────────────
@@ -13,34 +12,18 @@ date ← •Import "../src_next/date.bqn"
 # Validate YYYY-MM-DD format and calendar correctness.
 ValidateDate ⇐ {
   s ← 𝕩
-  
   lenOk ← 10 = ≠ s
   sepOk ← lenOk ◶ ⟨ { 𝕊 ⋄ 0 }, { 𝕊 ⋄ ('-' = 4 ⊑ s) ∧ ('-' = 7 ⊑ s) } ⟩ @
   yearS ← lenOk ◶ ⟨ { 𝕊 ⋄ "" }, { 𝕊 ⋄ 4 ↑ s } ⟩ @
   monthS ← lenOk ◶ ⟨ { 𝕊 ⋄ "" }, { 𝕊 ⋄ 2 ↑ 5 ↓ s } ⟩ @
   dayS ← lenOk ◶ ⟨ { 𝕊 ⋄ "" }, { 𝕊 ⋄ 2 ↑ 8 ↓ s } ⟩ @
-  
-  digits ← "0123456789"
-  AllDigits ← { ∧´ 𝕩 ∊ digits }
-  digitsOk ← lenOk ◶ ⟨ { 𝕊 ⋄ 0 }, { 𝕊 ⋄ ((AllDigits yearS) ∧ (AllDigits monthS) ∧ (AllDigits dayS)) } ⟩ @
-  
-  y ← digitsOk ◶ ⟨ { 𝕊 ⋄ 0 }, { 𝕊 ⋄ lib.ToNum yearS } ⟩ @
-  m ← digitsOk ◶ ⟨ { 𝕊 ⋄ 0 }, { 𝕊 ⋄ lib.ToNum monthS } ⟩ @
-  d ← digitsOk ◶ ⟨ { 𝕊 ⋄ 0 }, { 𝕊 ⋄ lib.ToNum dayS } ⟩ @
-  
-  monthOk ← digitsOk ◶ ⟨ { 𝕊 ⋄ 0 }, { 𝕊 ⋄ ((m ≥ 1) ∧ (m ≤ 12)) } ⟩ @
-  IsLeap ← { yr ← 𝕩 ⋄ ((0 = 4 | yr) ∧ (0 ≠ 100 | yr)) ∨ (0 = 400 | yr) }
-  daysInMonth ← monthOk ◶ ⟨ { 𝕊 ⋄ ⟨⟩ }, { 𝕊 ⋄ ⟨31, 28 + IsLeap y, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31⟩ } ⟩ @
-  maxDay ← monthOk ◶ ⟨ { 𝕊 ⋄ 0 }, { 𝕊 ⋄ (m - 1) ⊑ daysInMonth } ⟩ @
-  dayOk ← monthOk ◶ ⟨ { 𝕊 ⋄ 0 }, { 𝕊 ⋄ ((d ≥ 1) ∧ (d ≤ maxDay)) } ⟩ @
-  
-  # Inner block with checks only (no variable assignments, so semicolon bodies are safe)
+  digitsOk ← lenOk ◶ ⟨ { 𝕊 ⋄ 0 }, { 𝕊 ⋄ (date.IsDigits yearS) ∧ (date.IsDigits monthS) ∧ (date.IsDigits dayS) } ⟩ @
+  calendarOk ← digitsOk ∧ date.IsValidDateText s
   {
     (¬ lenOk) ? ⟨0, "invalid date format (expected YYYY-MM-DD): " ∾ s⟩ ;
     (¬ sepOk) ? ⟨0, "invalid date format (expected YYYY-MM-DD): " ∾ s⟩ ;
     (¬ digitsOk) ? ⟨0, "invalid date format (non-digit characters): " ∾ s⟩ ;
-    (¬ monthOk) ? ⟨0, "invalid date (month out of range): " ∾ s⟩ ;
-    (¬ dayOk) ? ⟨0, "invalid date (day out of range): " ∾ s⟩ ;
+    (¬ calendarOk) ? ⟨0, "invalid date (day/month out of range): " ∾ s⟩ ;
     ⟨1, ""⟩
   }
 }

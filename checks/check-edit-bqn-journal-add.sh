@@ -221,9 +221,14 @@ run_positive budget-no-trailing-newline budget_alloc.tsv \
 stale_base="$tmp_root/stale"
 stale_out="$tmp_root/stale.out"
 cp -R data "$stale_base"
+append_stale_marker() {
+  printf '%s\n' '# concurrent edit' >> "$EDIT_BQN_TEST_STALE_JOURNAL"
+}
+export -f append_stale_marker
 set +e
 BQN_LEDGER_TEST_MODE=1 \
-EDIT_BQN_TEST_BEFORE_APPEND_HOOK="printf '%s\\n' '# concurrent edit' >> '$stale_base/journal.tsv'" \
+EDIT_BQN_TEST_STALE_JOURNAL="$stale_base/journal.tsv" \
+EDIT_BQN_TEST_BEFORE_APPEND_HOOK="append_stale_marker" \
   ./tools/edit-bqn --base "$stale_base" journal add \
     --date 2026-06-29 \
     --memo "stale append should not land" \

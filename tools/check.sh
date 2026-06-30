@@ -122,6 +122,7 @@ bash checks/check-devtools-negative.sh >/dev/null
 bash checks/check-missing-role-fallback.sh >/dev/null
 bash checks/check-src-next-lint.sh >/dev/null
 bash checks/check-report-labels.sh >/dev/null
+bash checks/check-edit-bqn-account-list.sh >/dev/null
 bash checks/check-edit-bqn-journal-add.sh >/dev/null
 bash checks/check-edit-bqn-journal-reverse.sh >/dev/null
 bash checks/check-edit-bqn-plan-list.sh >/dev/null

@@ -6,7 +6,7 @@ set -euo pipefail
 # Architecture (Seam Reduction):
 #   Bash handles UI, selection, and display.
 #   BQN editor handles safe TSV append.
-#   BQN is NOT called for account listing — awk reads accounts.tsv directly.
+#   Account listing is provided by BQN editor export (`tools/edit account list`).
 
 SOURCE="${BASH_SOURCE[0]}"
 while [ -L "$SOURCE" ]; do
@@ -112,29 +112,15 @@ if [[ -n "$mode_arg" ]]; then
   esac
 fi
 
-# ── Account listing (reads accounts.tsv directly, no BQN needed) ──
+# ── Account listing (BQN-owned account metadata interpretation) ──
 
 accounts() {
   local role="${1:-}"
-  local accounts_file="$base_dir/accounts.tsv"
-
-  if [[ ! -f "$accounts_file" ]]; then
-    shout "accounts.tsv not found: $accounts_file"
-    return 1
-  fi
 
   if [[ -n "$role" ]]; then
-    # Filter by role= metadata in column 2+
-    awk -F'\t' -v role="$role" '
-      /^#/ || /^[[:space:]]*$/ { next }
-      {
-        for (i=2; i<=NF; i++) {
-          if ($i ~ "^role=" role "$") { print $1; next }
-        }
-      }
-    ' "$accounts_file"
+    "$ROOT_DIR/tools/edit" --base "$base_dir" account list --role "$role"
   else
-    awk -F'\t' '/^#/ || /^[[:space:]]*$/ { next } { print $1 }' "$accounts_file"
+    "$ROOT_DIR/tools/edit" --base "$base_dir" account list
   fi
 }
 

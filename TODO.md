@@ -17,16 +17,21 @@
   - [x] 必須 vs 任意ソースファイルの定義と、存在しない任意のファイルのテスト追加
   - [x] 存在しないこと（任意欠損）と、存在するが読み込めない（unreadable/破損）エラー状態を明示的に区別する (`ReadLinesIfPresent` 等の導入)
   
-- [ ] **Batch 3: Dispatcher boundary (P1)**
-  - [ ] `tools/edit-bqn` のサブコマンドグループの文書化と、共通シェルヘルパー関数の抽出
-  - [ ] 最小のコマンド（`issue add` 等）を `tools/edit-bqn` から別モジュールへ切り出す
+- [x] **Batch 3: Dispatcher boundary (P1)**
+  - [x] `tools/edit-bqn` のサブコマンドグループの文書化と、共通シェルヘルパー関数の抽出
+  - [x] 最小のコマンド（`issue add` 等）を `tools/edit-bqn` から別モジュールへ切り出す
+    - 2026-06-30: `docs/EDIT_BQN_DISPATCHER.md`, `tools/lib/edit-bqn-common.sh`, `tools/lib/edit-bqn-issue.sh` を追加。`issue add` を handler 化し、test hook は eval ではなく宣言済み関数呼び出しに統一。
 
-- [ ] **Batch 4: Date spine (P1)**
-  - [ ] 日付処理用のコントラクトチェックを追加する
-  - [ ] 日付の検証や変換処理を `src_next/date.bqn` に集約・一元化し、重複実装を削除する
+- [x] **Batch 4: Date spine (P1)**
+  - [x] 日付処理用のコントラクトチェックを追加する
+  - [x] 日付の検証や変換処理を `src_next/date.bqn` に集約・一元化し、重複実装を削除する
+    - 2026-06-30: `tests/test_src_next_date.bqn` を追加。`IsValidDateText`, `DaysFromEpoch`, `FromDaysFromEpoch`, `AddDays` を `src_next/date.bqn` に集約し、`projection.bqn` / `src_edit/validate.bqn` / `actual_comparison.bqn` から重複実装を削減。
 
 - [ ] **Batch 5: Shell/BQN boundary polishing (P2)**
-  - [ ] ソースTSVの意味解釈を行っているシェルスクリプトを棚卸しし、BQN export 経由での取得に置き換える
+  - [x] ソースTSVの意味解釈を行っているシェルスクリプトを棚卸しする
+    - 2026-06-30: `docs/archive/audits/SHELL_BQN_BOUNDARY_AUDIT-2026-06-30.md` を追加。
+  - [x] リファレンス置換として、`tools/add-ui.sh` の account role 候補取得を BQN export (`tools/edit account list --role ...`) 経由へ移す
+  - [ ] 次の置換候補: `tools/add-ui.sh` reverse selection の journal direct read を BQN/editor export 化する
 
 - [ ] **Batch 6: Define a report section contract checklist (P2)**
   - [ ] 各セクションモジュールの契約チェックリスト文書を作成し、1セクションをリファレンス例として適用する
