@@ -472,13 +472,13 @@ run_post_check() {
   local root_dir
   root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
-  local cmd_str
+  local -a cmd
   case "$mode" in
     lint)
-      cmd_str="bqn src_next/report.bqn $base_dir"
+      cmd=(bqn src_next/report.bqn "$base_dir")
       ;;
     full)
-      cmd_str="./tools/check.sh"
+      cmd=(./tools/check.sh)
       ;;
     *)
       printf 'Post-check: skipped\n'
@@ -486,10 +486,12 @@ run_post_check() {
       ;;
   esac
 
-  printf 'Post-check command: %s\n' "$cmd_str"
+  printf 'Post-check command:'
+  printf ' %q' "${cmd[@]}"
+  printf '\n'
 
   local output
-  if output=$(cd "$root_dir" && eval "$cmd_str" 2>&1); then
+  if output=$(cd "$root_dir" && "${cmd[@]}" 2>&1); then
     printf 'Post-check: OK\n'
     return 0
   else
