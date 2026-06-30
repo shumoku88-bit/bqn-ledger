@@ -11,8 +11,7 @@
 - [x] 実データで `tools/doctor`, `tools/report`, `tools/add-ui.sh --check` を確認する（2026-06-30: read-only OK。base dir は `../ledger-data/data` 表示のため、本番書き込み前は absolute `LEDGER_DATA_DIR` 推奨）
 - [x] 最初の実データ書き込みは `--dry-run` 後、`--yes` なしの確認付き経路で行う（2026-06-30: `real-data-trial-delete-me` 1円、human confirmation、backup 作成、post-check OK。観察後に人間が実データから削除し、report 復帰を確認）
 - [x] 数回の sandbox/temp copy 書き込みで、base dir / backup / post-check / report drift を観察する（2026-06-30: temp copy に journal add 3回、backup 3件、post-check OK、report OK）
-- [ ] 実データの追加観察は、ダミー取引ではなく日常入力が自然に発生した時だけ行う
-- [ ] 観察後、追加で必要なら safe-write lock / preflight helper / CI pinning を別PRで検討する
+- [x] 実データの追加観察は廃止する（2026-06-30: 日常入力時の CLI 操作負荷が高いため、観察 TODO としては閉じる。追加の安全策は実際の不具合・要望が出た時に別タスク化する）
 
 ## CI / workflow drift stabilization
 

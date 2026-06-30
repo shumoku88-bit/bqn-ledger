@@ -171,8 +171,9 @@ Build ← {𝕊 ctx:
   rem_mask ← InRemaining¨ plan_lines
   plan_liquid_deltas ← PlanLiquidDelta¨ (rem_mask / plan_lines)
   future_planned_liquid_net ← cube.Sum0 plan_liquid_deltas
+  future_planned_liquid_income ← cube.Sum0 (0⌈plan_liquid_deltas)
   future_planned_liquid_expenses ← cube.Sum0 (0⌊plan_liquid_deltas)
-  planned_future_income ← 0⌈future_planned_liquid_net
+  planned_future_income ← future_planned_liquid_income
   fixed_reserve ← ¯1 × future_planned_liquid_expenses
 
   # Next cycle obligations: plan entries on cycle end_exclusive date
@@ -274,20 +275,15 @@ FormatHuman ← {𝕊 vm:
   out ↩ out ∾ (L "outlook.daily_title") ∾ (@+10)
   out ↩ out ∾ (L "outlook.liquid_label") ∾ (AlignR ⟨10, vm.liq_total⟩) ∾ (@+10)
   
-  inc_str ← (vm.planned_future_income = 0) ⊑ (L "outlook.future_none")‿("+ " ∾ (•Fmt vm.planned_future_income))
+  inc_str ← (vm.planned_future_income ≠ 0) ⊑ (L "outlook.future_none")‿("+ " ∾ (•Fmt vm.planned_future_income))
   out ↩ out ∾ (L "outlook.future_income_label") ∾ (AlignR ⟨10, inc_str⟩) ∾ (@+10)
   
-  exp_str ← (vm.fixed_reserve = 0) ⊑ (L "outlook.expense_none")‿("-" ∾ (•Fmt vm.fixed_reserve))
+  exp_str ← (vm.fixed_reserve ≠ 0) ⊑ (L "outlook.expense_none")‿("-" ∾ (•Fmt vm.fixed_reserve))
   out ↩ out ∾ (L "outlook.future_expense_label") ∾ (AlignR ⟨10, exp_str⟩) ∾ (@+10)
   out ↩ out ∾ "  ─────────────────────────────" ∾ (@+10)
   
   liq_basis ← vm.liq_total + vm.planned_future_income - vm.fixed_reserve
   out ↩ out ∾ (L "outlook.using_liquid_label") ∾ (AlignR ⟨8, liq_basis⟩) ∾ "  ÷ " ∾ (•Fmt days_left) ∾ (L "outlook.days_suffix") ∾ (•Fmt vm.liq_daily) ∾ (L "outlook.per_day_suffix") ∾ (@+10)
-
-  # For backward-compatible tests: if liq_safe_daily is calculated, output it
-  {𝕊:
-    out ↩ out ∾ (L "outlook.safe_liquid_label") ∾ (fmt.FmtAmt vm.liq_safe_daily) ∾ (@+10)
-  }⍟(vm.liq_safe_daily ≢ "unavailable/policy") @
 
   # Envelope breakdown section
   {𝕊:

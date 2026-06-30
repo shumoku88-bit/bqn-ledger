@@ -249,9 +249,13 @@ read_tty() {
   local prompt="$1" default="${2:-}" ans
   if command -v gum >/dev/null 2>&1 && [[ -r /dev/tty ]]; then
     if [[ -n "$default" ]]; then
-      ans="$(gum input --prompt "${prompt}: " --value "$default" </dev/tty || true)"
+      if ! ans="$(gum input --prompt "${prompt}: " --value "$default" </dev/tty)"; then
+        return 130
+      fi
     else
-      ans="$(gum input --prompt "${prompt}: " </dev/tty || true)"
+      if ! ans="$(gum input --prompt "${prompt}: " </dev/tty)"; then
+        return 130
+      fi
     fi
   else
     if [[ -n "$default" ]]; then
@@ -259,13 +263,39 @@ read_tty() {
     else
       printf '%s: ' "$prompt" >&2
     fi
-    read -r ans </dev/tty
+    if ! read -r ans </dev/tty; then
+      return 130
+    fi
   fi
   if [[ -z "$ans" && -n "$default" ]]; then
     printf '%s\n' "$default"
   else
     printf '%s\n' "$ans"
   fi
+}
+
+cancel_ui() {
+  shout 'Cancelled.'
+  exit 130
+}
+
+capture_or_cancel() {
+  local __var="$1" __out
+  shift
+  if ! __out="$("$@")"; then
+    cancel_ui
+  fi
+  printf -v "$__var" '%s' "$__out"
+}
+
+select_account() {
+  local role="$1" prompt="$2"
+  accounts "$role" | select_line "$prompt"
+}
+
+select_display_lines() {
+  local prompt="$1"
+  printf '%s\n' "${display_lines[@]}" | select_line "$prompt"
 }
 
 # ── Date handling ──
@@ -308,16 +338,21 @@ EOF
 
 choose_budget_memo() {
   local selected key custom
-  selected="$({
+  if ! selected="$( {
     printf 'alloc\talloc (default)\n'
     printf 'seed\tseed\n'
     printf 'move\tmove\n'
     printf 'custom\tenter memo\n'
-  } | select_line 'budget memo')"
+  } | select_line 'budget memo')"; then
+    return 130
+  fi
   key="${selected%%$'\t'*}"
   case "$key" in
     alloc|seed|move) printf '%s\n' "$key" ;;
-    custom) custom="$(read_tty 'Budget memo' 'alloc')"; printf '%s\n' "$custom" ;;
+    custom)
+      if ! custom="$(read_tty 'Budget memo' 'alloc')"; then return 130; fi
+      printf '%s\n' "$custom"
+      ;;
     *) printf '%s\n' "$key" ;;
   esac
 }
@@ -352,16 +387,18 @@ choose_meta() {
     )
   fi
 
-  selected="$(
+  if ! selected="$(
     for l in "${lines[@]}"; do
       local k d
       k="$(printf '%s' "$l" | cut -f1)"
       d="$(printf '%s' "$l" | cut -f2)"
       printf '%s\t%s\n' "$k" "$d"
     done | select_line 'meta'
-  )"
+  )"; then
+    return 130
+  fi
 
-  [[ -z "$selected" ]] && return 1
+  [[ -z "$selected" ]] && return 130
   key="${selected%%$'\t'*}"
 
   meta_tokens=""
@@ -376,7 +413,10 @@ choose_meta() {
 
   case "$key" in
     empty) printf '\n' ;;
-    custom) custom="$(read_tty 'Meta key=value tokens' '')"; printf '%s\n' "$custom" ;;
+    custom)
+      if ! custom="$(read_tty 'Meta key=value tokens' '')"; then return 130; fi
+      printf '%s\n' "$custom"
+      ;;
     *) printf '%s\n' "$meta_tokens" ;;
   esac
 }
@@ -389,7 +429,10 @@ if [[ -r /dev/tty ]]; then
 fi
 
 if [[ -z "$mode" ]]; then
-  mode_line="$(choose_mode || true)"
+  if ! mode_line="$(choose_mode)"; then
+    shout 'Cancelled.'
+    exit 0
+  fi
   if [[ -z "$mode_line" ]]; then
     shout 'Cancelled.'
     exit 0
@@ -401,45 +444,45 @@ memo=''; from=''; to=''; amt=''; meta=''; plan_series=''
 
 case "$mode" in
   issue)
-    title="$(read_tty 'Title/Item' '')"
-    amt="$(read_tty 'Amount (optional JST)' '0')"
-    memo="$(read_tty 'Memo/Details' '')"
+    capture_or_cancel title read_tty 'Title/Item' ''
+    capture_or_cancel amt read_tty 'Amount (optional JST)' '0'
+    capture_or_cancel memo read_tty 'Memo/Details' ''
     ;;
   expense)
-    memo="$(read_tty 'Memo/Description' '')"
-    from="$(accounts 'asset' | select_line 'from asset' || true)"
-    to="$(accounts 'expense' | select_line 'to expense' || true)"
-    amt="$(read_tty 'Amount' '')"
-    meta="$(choose_meta || true)"
+    capture_or_cancel memo read_tty 'Memo/Description' ''
+    capture_or_cancel from select_account 'asset' 'from asset'
+    capture_or_cancel to select_account 'expense' 'to expense'
+    capture_or_cancel amt read_tty 'Amount' ''
+    capture_or_cancel meta choose_meta
     ;;
   move)
-    from="$(accounts 'asset' | select_line 'from asset' || true)"
-    to="$(accounts 'asset' | select_line 'to asset' || true)"
-    amt="$(read_tty 'Amount' '')"
-    memo="$(read_tty 'Memo/Description' "${from}→${to}")"
-    meta="$(choose_meta || true)"
+    capture_or_cancel from select_account 'asset' 'from asset'
+    capture_or_cancel to select_account 'asset' 'to asset'
+    capture_or_cancel amt read_tty 'Amount' ''
+    capture_or_cancel memo read_tty 'Memo/Description' "${from}→${to}"
+    capture_or_cancel meta choose_meta
     ;;
   income)
-    from="$(accounts 'income' | select_line 'from income' || true)"
-    to="$(accounts 'asset' | select_line 'to asset' || true)"
-    amt="$(read_tty 'Amount' '')"
-    memo="$(read_tty 'Memo/Description' 'income')"
-    meta="$(choose_meta || true)"
+    capture_or_cancel from select_account 'income' 'from income'
+    capture_or_cancel to select_account 'asset' 'to asset'
+    capture_or_cancel amt read_tty 'Amount' ''
+    capture_or_cancel memo read_tty 'Memo/Description' 'income'
+    capture_or_cancel meta choose_meta
     ;;
   budget)
-    memo="$(choose_budget_memo || true)"
-    from="$(accounts 'budget' | select_line 'from budget' || true)"
-    to="$(accounts 'budget' | select_line 'to budget' || true)"
-    amt="$(read_tty 'Amount' '')"
-    meta="$(choose_meta || true)"
+    capture_or_cancel memo choose_budget_memo
+    capture_or_cancel from select_account 'budget' 'from budget'
+    capture_or_cancel to select_account 'budget' 'to budget'
+    capture_or_cancel amt read_tty 'Amount' ''
+    capture_or_cancel meta choose_meta
     ;;
   plan-add)
-    memo="$(read_tty 'Memo/Description' '')"
-    from="$(accounts 'asset' | select_line 'from asset' || true)"
-    to="$(accounts 'expense' | select_line 'to expense' || true)"
-    amt="$(read_tty 'Amount' '')"
-    meta="$(choose_meta || true)"
-    plan_series="$(read_tty 'Series for plan_id (empty: use memo, no spaces)' '')"
+    capture_or_cancel memo read_tty 'Memo/Description' ''
+    capture_or_cancel from select_account 'asset' 'from asset'
+    capture_or_cancel to select_account 'expense' 'to expense'
+    capture_or_cancel amt read_tty 'Amount' ''
+    capture_or_cancel meta choose_meta
+    capture_or_cancel plan_series read_tty 'Series for plan_id (empty: use memo, no spaces)' ''
     if [[ -n "$plan_series" && ! "$plan_series" =~ ^[A-Za-z0-9._-]+$ ]]; then
       shout 'Series must contain only A-Z, a-z, 0-9, dot, underscore, or hyphen.'
       exit 1
@@ -461,8 +504,8 @@ case "$mode" in
     done
     select_prompt='select plan to finish'
     [[ "$mode" == 'plan-edit' ]] && select_prompt='select plan to edit'
-    selected_display="$(printf '%s\n' "${display_lines[@]}" | select_line "$select_prompt" || true)"
-    if [[ -z "$selected_display" ]]; then shout 'Cancelled.'; exit 0; fi
+    capture_or_cancel selected_display select_display_lines "$select_prompt"
+    if [[ -z "$selected_display" ]]; then cancel_ui; fi
     selected_row=""
     for line in "${plan_tsv_lines[@]}"; do
       if [[ "$(printf '%s\n' "$line" | cut -f9)" == "$selected_display" ]]; then
@@ -484,8 +527,8 @@ case "$mode" in
     if [[ "$mode" == 'plan-finish' ]]; then
       plan_finish_args=("${plan_selector_args[@]}")
     else
-      new_plan_date="$(read_tty 'New plan date YYYY-MM-DD' "$plan_date")"
-      new_plan_amount="$(read_tty 'New amount' "$plan_amount")"
+      capture_or_cancel new_plan_date read_tty 'New plan date YYYY-MM-DD' "$plan_date"
+      capture_or_cancel new_plan_amount read_tty 'New amount' "$plan_amount"
       plan_edit_args=("${plan_selector_args[@]}")
       [[ "$new_plan_date" != "$plan_date" ]] && plan_edit_args+=(--date "$new_plan_date")
       [[ "$new_plan_amount" != "$plan_amount" ]] && plan_edit_args+=(--amount "$new_plan_amount")
@@ -515,10 +558,10 @@ case "$mode" in
     if [[ ${#display_lines[@]} -eq 0 ]]; then
       shout "No journal entries found."; exit 0
     fi
-    selected_display="$(printf '%s\n' "${display_lines[@]}" | select_line 'select entry to reverse' || true)"
-    if [[ -z "$selected_display" ]]; then shout 'Cancelled.'; exit 0; fi
+    capture_or_cancel selected_display select_display_lines 'select entry to reverse'
+    if [[ -z "$selected_display" ]]; then cancel_ui; fi
     reverse_index="${selected_display%%:*}"
-    reverse_date="$(read_tty 'Reversal date YYYY-MM-DD (empty=today)' "$today")"
+    capture_or_cancel reverse_date read_tty 'Reversal date YYYY-MM-DD (empty=today)' "$today"
     reverse_args=(--index "$reverse_index")
     [[ -n "$reverse_date" && "$reverse_date" != "$today" ]] && reverse_args+=(--date "$reverse_date")
     ;;
@@ -530,17 +573,17 @@ esac
 
 if [[ "$mode" != 'plan-finish' && "$mode" != 'plan-edit' && "$mode" != 'reverse' ]]; then
   if [[ "$mode" == 'plan-add' ]]; then
-    date_line="$(choose_plan_date_key || true)"
+    capture_or_cancel date_line choose_plan_date_key
   else
-    date_line="$(choose_date_key || true)"
+    capture_or_cancel date_line choose_date_key
   fi
-  if [[ -z "$date_line" ]]; then shout 'Cancelled.'; exit 0; fi
+  if [[ -z "$date_line" ]]; then cancel_ui; fi
   date_key="${date_line%%$'\t'*}"
   case "$date_key" in
     today) selected_date="$today" ;;
     yesterday) selected_date="$yesterday" ;;
     tomorrow) selected_date="$tomorrow" ;;
-    other) selected_date="$(read_tty 'Date YYYY-MM-DD' "$today")" ;;
+    other) capture_or_cancel selected_date read_tty 'Date YYYY-MM-DD' "$today" ;;
     *) selected_date="$today" ;;
   esac
   if [[ "$mode" != 'issue' ]]; then

@@ -210,7 +210,20 @@ if [[ -z "$cmd" ]]; then
         echo ""
         ;;
       add)
-        "$ROOT_DIR/tools/add-ui.sh" --base "$base_dir"
+        while true; do
+          set +e
+          "$ROOT_DIR/tools/add-ui.sh" --base "$base_dir"
+          status=$?
+          set -e
+          if [[ "$status" -eq 130 ]]; then
+            # Input-flow cancel: discard partial input and reopen the add/cancel menu.
+            continue
+          fi
+          if [[ "$status" -ne 0 ]]; then
+            printf '%bAdd/cancel UI failed. Please review errors above.%b\n' "$COLOR_ERROR" "$COLOR_RESET"
+          fi
+          break
+        done
         echo ""
         ;;
       check)
@@ -244,7 +257,19 @@ else
       fi
       ;;
     add)
-      exec "$ROOT_DIR/tools/add-ui.sh" --base "$base_dir" "$@"
+      if [[ $# -gt 0 ]]; then
+        exec "$ROOT_DIR/tools/add-ui.sh" --base "$base_dir" "$@"
+      fi
+      while true; do
+        set +e
+        "$ROOT_DIR/tools/add-ui.sh" --base "$base_dir"
+        status=$?
+        set -e
+        if [[ "$status" -eq 130 ]]; then
+          continue
+        fi
+        exit "$status"
+      done
       ;;
     check)
       run_check

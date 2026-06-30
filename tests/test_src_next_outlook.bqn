@@ -23,5 +23,18 @@ text ← outlook.Format vm
 human ← outlook.FormatHuman vm
 1 lib.AssertEq ∨´ "== Outlook Dashboard =="⍷human
 1 lib.AssertEq ∨´ "使える流動資産"⍷human
+0 lib.AssertEq ∨´ "流動資産 (安全/保守)"⍷human
+
+anchor_ctx ← ctx_mod.BuildContext "fixtures/src-next-anchor-unmet"
+anchor_vm ← outlook.Build anchor_ctx
+50000 lib.AssertEq anchor_vm.planned_future_income
+64000 lib.AssertEq anchor_vm.fixed_reserve
+7240 lib.AssertEq anchor_vm.liq_daily
+5240 lib.AssertEq anchor_vm.liq_safe_daily
+anchor_human ← outlook.FormatHuman anchor_vm
+1 lib.AssertEq ∨´ "予定収入(残)          + 50000"⍷anchor_human
+1 lib.AssertEq ∨´ "予定支出(残)           -64000"⍷anchor_human
+1 lib.AssertEq ∨´ "使える流動資産        181000  ÷ 25日 = 7240 /日"⍷anchor_human
+0 lib.AssertEq ∨´ "流動資産 (安全/保守)"⍷anchor_human
 
 •Out "test_src_next_outlook.bqn: OK"
