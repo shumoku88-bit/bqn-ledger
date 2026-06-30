@@ -4,6 +4,34 @@
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避済みです。
 
 
+## PR #30 Audit Improvement Backlog (最優先)
+
+- [ ] **Batch 1: Safety burrs**
+  - [ ] `tools/lib/safe-write.sh` 内のテスト用 hook に残っている `eval` を排除し、シェル関数名チェック（`declare -F` 等）と直接呼び出しに書き換える (P0)
+    - 関連ファイル: `tools/lib/safe-write.sh`, `checks/check-safe-replace-line.sh`
+    - フックをコマンド文字列ではなくシェル関数名とし、`declare -F -- "$hook"` で確認した上で `"$hook"` として呼び出す
+  - [ ] `checks/check-safe-replace-line.sh` を更新し、フック関数（例: `append_race_marker`）を定義して呼び出しを確認する
+  - [ ] `tools/lib/safe-write.sh` もしくはすべての safe-write パスで、不要な `eval` 混入を検知・防止する grep / check を追加する
+
+- [ ] **Batch 2: Loader correctness (P1)**
+  - [ ] 必須 vs 任意ソースファイルの定義と、存在しない任意のファイルのテスト追加
+  - [ ] 存在しないこと（任意欠損）と、存在するが読み込めない（unreadable/破損）エラー状態を明示的に区別する (`ReadLinesIfPresent` 等の導入)
+  
+- [ ] **Batch 3: Dispatcher boundary (P1)**
+  - [ ] `tools/edit-bqn` のサブコマンドグループの文書化と、共通シェルヘルパー関数の抽出
+  - [ ] 最小のコマンド（`issue add` 等）を `tools/edit-bqn` から別モジュールへ切り出す
+
+- [ ] **Batch 4: Date spine (P1)**
+  - [ ] 日付処理用のコントラクトチェックを追加する
+  - [ ] 日付の検証や変換処理を `src_next/date.bqn` に集約・一元化し、重複実装を削除する
+
+- [ ] **Batch 5: Shell/BQN boundary polishing (P2)**
+  - [ ] ソースTSVの意味解釈を行っているシェルスクリプトを棚卸しし、BQN export 経由での取得に置き換える
+
+- [ ] **Batch 6: Define a report section contract checklist (P2)**
+  - [ ] 各セクションモジュールの契約チェックリスト文書を作成し、1セクションをリファレンス例として適用する
+
+
 ## Real-data trial safety observation
 
 - [x] `docs/REAL_DATA_TRIAL_SAFETY.md` を追加し、sandbox rehearsal / real-data preflight / dry-run / 確認付き書き込み / 観察ログの最小手順を定義する
