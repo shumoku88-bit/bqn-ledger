@@ -42,6 +42,7 @@ Commands:
   recent               Show Recent Journal section
   planned              Show Planned Payments section
   daily-trend          Show Daily Trend section
+  daily-flow           Show Daily Flow section
   check                Show Readiness Check section
   actual-comparison    Show Actual Comparison section
   debug                Show Debug & Provenance section
@@ -106,6 +107,7 @@ trial-balance	試算表
 recent	直近の取引
 planned	予定支払い
 daily-trend	日割り推移
+daily-flow	日次収支
 actual-comparison	前期比較
 check	データチェック
 debug	デバッグ

@@ -25,6 +25,7 @@ trial_balance ← •Import "trial_balance.bqn"
 fmt ← •Import "format.bqn"
 labels ← •Import "report_labels.bqn"
 issues ← •Import "issues.bqn"
+daily_flow ← •Import "daily_flow.bqn"
 L ← labels.Text
 
 PrintSection ← {𝕊 text: •Out text ⋄ •Out ""}
@@ -73,6 +74,7 @@ BuildSectionEntries ← {𝕊 ctx:
     ⟨"check", readiness_check.FormatHuman ctx⟩
     ⟨"outlook", outlook.FormatHuman outlook.Build ctx⟩
     ⟨"daily-trend", daily_trend.FormatHuman daily_trend.Build ctx⟩
+    ⟨"daily-flow", daily_flow.FormatHuman daily_flow.Build ctx⟩
     ⟨"actual-comparison", actual_comparison.FormatHuman actual_comparison.Build ctx⟩
     ⟨"debug", {
       hdr ← fmt.Section (L "report.debug_title")
