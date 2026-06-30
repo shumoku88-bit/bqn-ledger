@@ -1,0 +1,135 @@
+BQN Ledger Report Mock
+This is sanitized public mock output. It is not real household data.
+
+base: demo:sanitized-public
+period: cycle_demo_001  cycle_day_001..cycle_day_014
+currency: JPY integer yen
+
+================================================================================
+COMMAND HUB SURFACE
+================================================================================
+
+bqn-ledger
+
+  1  report: full ledger report
+  2  report: daily flow
+  3  report: account matrix
+  4  report: envelope status
+  5  report: plan and actual
+  6  report: issues
+  7  edit: add journal entry
+  8  edit: finish planned entry
+  9  check: doctor
+  0  exit
+
+selected: 1 report: full ledger report
+
+================================================================================
+CYCLE SUMMARY
+================================================================================
+
+cycle_id         cycle_demo_001
+range            cycle_day_001..cycle_day_014
+actual_days      14
+source_status    sanitized mock
+
+metric                         amount
+------------------------------------------------
+income:main                    120000
+expenses:food                   -8200
+expenses:daily                  -4300
+expenses:medical                -1600
+transfers:internal                  0
+budget:allocated                45000
+budget:remaining                30900
+assets:bank_main               104900
+assets:wallet                    3100
+liabilities:card_1              -7200
+
+================================================================================
+ACCOUNT SNAPSHOT
+================================================================================
+
+account                 role          opening       change      closing
+-----------------------------------------------------------------------
+assets:bank_main        asset          92000        12900       104900
+assets:wallet           asset           4200        -1100         3100
+liabilities:card_1      liability      -3000        -4200        -7200
+income:main             income             0       120000       120000
+expenses:food           expense            0        -8200        -8200
+expenses:daily          expense            0        -4300        -4300
+expenses:medical        expense            0        -1600        -1600
+budget:daily            budget         25000        -9100        15900
+budget:flex             budget         12000        -6200         5800
+budget:reserve          budget          8000         1200         9200
+
+================================================================================
+ENVELOPE STATUS
+================================================================================
+
+envelope          allocated      spent      remaining      status
+---------------------------------------------------------------
+budget:daily          25000      -9100          15900      ok
+budget:flex           12000      -6200           5800      watch
+budget:reserve         8000       1200           9200      held
+
+note: amounts are synthetic and preserve only the report shape.
+
+================================================================================
+DAILY FLOW
+================================================================================
+
+day             income      food      daily     medical      net
+----------------------------------------------------------------
+cycle_day_001   120000     -1300       -500           0   118200
+cycle_day_002        0      -800       -700           0    -1500
+cycle_day_003        0         0       -900       -1600    -2500
+cycle_day_004        0     -1200          0           0    -1200
+cycle_day_005        0      -600       -400           0    -1000
+cycle_day_006        0         0          0           0        0
+cycle_day_007        0     -1500       -300           0    -1800
+cycle_day_008        0      -700       -600           0    -1300
+cycle_day_009        0     -1100          0           0    -1100
+cycle_day_010        0         0       -500           0     -500
+cycle_day_011        0      -900          0           0     -900
+cycle_day_012        0     -1400       -400           0    -1800
+cycle_day_013        0         0          0           0        0
+cycle_day_014        0      -700          0           0     -700
+
+================================================================================
+JOURNAL SAMPLE
+================================================================================
+
+day             memo                from                 to                 amount
+---------------------------------------------------------------------------------
+cycle_day_001   income:main          income:main          assets:bank_main   120000
+cycle_day_001   store:grocery_1      assets:wallet        expenses:food       -1300
+cycle_day_001   store:daily_1        assets:wallet        expenses:daily       -500
+cycle_day_002   store:grocery_1      assets:wallet        expenses:food        -800
+cycle_day_002   store:daily_1        assets:wallet        expenses:daily       -700
+cycle_day_003   clinic:medical_1     assets:bank_main     expenses:medical    -1600
+cycle_day_004   store:grocery_2      assets:wallet        expenses:food       -1200
+
+================================================================================
+PLAN AND ACTUAL
+================================================================================
+
+plan_id          label              planned_day      actual_day       status
+-------------------------------------------------------------------------
+plan:rent_1      fixed:rent         cycle_day_005    cycle_day_005    done
+plan:utility_1   fixed:utility      cycle_day_010    cycle_day_010    done
+plan:food_1      budget:food        cycle_day_001    mixed            active
+plan:reserve_1   save:reserve       cycle_day_001    cycle_day_001    held
+
+================================================================================
+ISSUES
+================================================================================
+
+id         severity    label                  state
+---------------------------------------------------
+issue:1    info        mock-data-boundary      closed
+issue:2    note        layout-review-needed    open
+
+================================================================================
+END
+================================================================================
