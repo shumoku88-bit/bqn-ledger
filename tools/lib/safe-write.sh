@@ -373,7 +373,12 @@ safe_replace_line_checked() {
   # Test-only hook for simulating a concurrent edit between backup/content build
   # and final rename. This is ignored unless explicit test mode is enabled.
   if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && -n "${SAFE_WRITE_TEST_BEFORE_REPLACE_RENAME_HOOK:-}" ]]; then
-    eval "$SAFE_WRITE_TEST_BEFORE_REPLACE_RENAME_HOOK"
+    local hook="$SAFE_WRITE_TEST_BEFORE_REPLACE_RENAME_HOOK"
+    if declare -F -- "$hook" >/dev/null; then
+      "$hook"
+    else
+      printf 'Warning: SAFE_WRITE_TEST_BEFORE_REPLACE_RENAME_HOOK is set but not a declared function: %s\n' "$hook" >&2
+    fi
   fi
 
   # Re-check immediately before rename. This closes the gap between backup and write.

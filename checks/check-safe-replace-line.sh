@@ -152,8 +152,11 @@ race_file="$race_base/plan.tsv"
 make_file "$race_file"
 IFS=$'\t' read -r size mtime sha <<< "$(safe_snapshot_token "$race_file")"
 set +e
+append_race_marker() {
+  printf 'race\n' >> "$race_file"
+}
 BQN_LEDGER_TEST_MODE=1 \
-SAFE_WRITE_TEST_BEFORE_REPLACE_RENAME_HOOK="printf 'race\\n' >> '$race_file'" \
+SAFE_WRITE_TEST_BEFORE_REPLACE_RENAME_HOOK="append_race_marker" \
 safe_replace_line_checked "$race_file" 2 "$old_row" "$new_row" "$size" "$mtime" "$sha" >/dev/null 2>"$tmp_root/race.err"
 rc=$?
 set -e
@@ -170,5 +173,11 @@ if ! grep -q '^race$' "$race_file"; then
   exit 1
 fi
 assert_has_backup "$race_base" "race-before-rename"
+
+# Guard against eval introduction in tools/lib/safe-write.sh
+if grep -q '\beval\b' tools/lib/safe-write.sh; then
+  echo "FAIL: tools/lib/safe-write.sh contains 'eval'. Please use functions and direct invocation instead." >&2
+  exit 1
+fi
 
 printf 'OK: safe_replace_line_checked checks passed\n'

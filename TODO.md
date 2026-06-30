@@ -6,12 +6,12 @@
 
 ## PR #30 Audit Improvement Backlog (最優先)
 
-- [ ] **Batch 1: Safety burrs**
-  - [ ] `tools/lib/safe-write.sh` 内のテスト用 hook に残っている `eval` を排除し、シェル関数名チェック（`declare -F` 等）と直接呼び出しに書き換える (P0)
+- [x] **Batch 1: Safety burrs**
+  - [x] `tools/lib/safe-write.sh` 内のテスト用 hook に残っている `eval` を排除し、シェル関数名チェック（`declare -F` 等）と直接呼び出しに書き換える (P0)
     - 関連ファイル: `tools/lib/safe-write.sh`, `checks/check-safe-replace-line.sh`
     - フックをコマンド文字列ではなくシェル関数名とし、`declare -F -- "$hook"` で確認した上で `"$hook"` として呼び出す
-  - [ ] `checks/check-safe-replace-line.sh` を更新し、フック関数（例: `append_race_marker`）を定義して呼び出しを確認する
-  - [ ] `tools/lib/safe-write.sh` もしくはすべての safe-write パスで、不要な `eval` 混入を検知・防止する grep / check を追加する
+  - [x] `checks/check-safe-replace-line.sh` を更新し、フック関数（例: `append_race_marker`）を定義して呼び出しを確認する
+  - [x] `tools/lib/safe-write.sh` もしくはすべての safe-write パスで、不要な `eval` 混入を検知・防止する grep / check を追加する
 
 - [ ] **Batch 2: Loader correctness (P1)**
   - [ ] 必須 vs 任意ソースファイルの定義と、存在しない任意のファイルのテスト追加
