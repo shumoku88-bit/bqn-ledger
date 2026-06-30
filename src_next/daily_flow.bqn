@@ -174,7 +174,7 @@ FormatHuman ← {𝕊 vm:
   headers ← ⟨"date"⟩ ∾ ⟨"income"⟩ ∾ vm.env_labels ∾ ⟨"other"⟩ ∾ ⟨"net"⟩
   
   # Format header row
-  date_col ← ⊑headers
+  date_col ← "date      "
   num_cols ← 1 ↓ headers
   padded_nums ← { AlignR ⟨10, 𝕩⟩ }¨ num_cols
   header_line ← date_col ∾ ∾ { " | " ∾ 𝕩 }¨ padded_nums
