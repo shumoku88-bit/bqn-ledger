@@ -14,6 +14,19 @@ env_comp ← •Import "envelope_computation.bqn"
 
 IsMember ← { list ← 𝕨 ⋄ item ← 𝕩 ⋄ (⊑ list ⊐ ⟨item⟩) < ≠ list }
 
+Unbox ← {
+  val ← 𝕩
+  (0 = ≠ ≢ val) ◶ ⟨ {val}, {>val} ⟩ @
+}
+
+TrimBudgetPrefix ← {
+  val ← 𝕩
+  (7 ≤ ≠ val) ◶ ⟨
+    {val},
+    { ("budget:" ≡ 7 ↑ val) ◶ ⟨ {val}, {7 ↓ val} ⟩ @ }
+  ⟩ @
+}
+
 LatestActualDateInCycle ← {𝕊 base‿cy:
   lines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
   available ← (cy.start ≢ "unavailable") ∧ (cy.day_count > 0)
@@ -37,39 +50,22 @@ Build ← {𝕊 ctx:
   day_count ← cy.day_count
   ak_count ← resolved.count
 
-  roles ← resolved.roles
-  accounts ← resolved.accounts
-  budgets ← resolved.budgets
+  roles ← Unbox¨ resolved.roles
+  accounts ← Unbox¨ resolved.accounts
+  budgets ← Unbox¨ resolved.budgets
+  kinds ← Unbox¨ resolved.kinds
 
-  SafeStartsWith ← {
-    pref ← 𝕨 ⋄ str ← 𝕩
-    ( (≠ pref) ≤ ≠ str ) ◶ ⟨ {0}, { pref ≡ (≠ pref) ↑ str } ⟩ @
-  }
-
-  BudgetAccountMask ← {𝕊 res:
-    role_budget ← "budget"⊸≡¨ res.roles
-    role_missing ← ""⊸≡¨ res.roles
-    prefix_fallback ← role_missing ∧ ({ "budget:" SafeStartsWith 𝕩 }¨ res.accounts)
-    role_budget ∨ prefix_fallback
-  }
-
-  BudgetLabel ← {𝕊 account:
-    (7 ≤ ≠ account) ◶ ⟨
-      { account },
-      { ("budget:" SafeStartsWith account) ⊑ account‿(7 ↓ account) }
-    ⟩ @
-  }
-
-  # 1. Identify envelopes and their matching expense accounts
-  budget_mask ← BudgetAccountMask resolved
-  kind_envelope_mask ← "envelope"⊸≡¨ resolved.kinds
-  budget_indices ← (budget_mask ∧ kind_envelope_mask) / ↕ ak_count
+  # 1. Identify envelopes and their matching expense accounts using explicit metadata
+  kind_envelope_mask ← "envelope"⊸≡¨ kinds
+  budget_indices ← kind_envelope_mask / ↕ ak_count
   
-  # For each envelope, find matching expense account indices
+  # For each envelope, find matching expense account indices using direct budget matching
   env_expense_aks ← {𝕊 idx:
     name ← idx ⊑ accounts
-    label ← BudgetLabel name
-    match_mask ← label⊸≡¨ budgets
+    label ← TrimBudgetPrefix name
+    match_mask ← { label ≡ TrimBudgetPrefix 𝕩 }¨ budgets
+    
+
     match_indices ← match_mask / ↕ ak_count
     match_indices
   }¨ budget_indices
@@ -77,10 +73,10 @@ Build ← {𝕊 ctx:
   # Flat list of all envelope expense account indices
   all_env_expense_ak ← ∾ env_expense_aks
 
-  # Expense and Income masks
-  expenses_ak ← (("expense"⊸≡¨ roles) ∨ ("expenses:" ⊸ ≡¨ 9 ↑¨ accounts)) / ↕ ak_count
+  # Identify expense and income accounts using explicit roles (no prefix fallback)
+  expenses_ak ← ("expense"⊸≡¨ roles) / ↕ ak_count
   other_expense_ak ← (¬ { all_env_expense_ak IsMember 𝕩 }¨ expenses_ak) / expenses_ak
-  inc_ak ← (("income"⊸≡¨ roles) ∨ ("income:" ⊸ ≡¨ 7 ↑¨ accounts)) / ↕ ak_count
+  inc_ak ← ("income"⊸≡¨ roles) / ↕ ak_count
 
   # Layer 0 = actual
   actual_slice ← {𝕊 day: {(day‿𝕩‿0) ⊑ c3d}¨ ↕ ak_count}¨ ↕ day_count
@@ -134,9 +130,10 @@ Build ← {𝕊 ctx:
     ⟨date_str, income_val, env_vals, other_val, net_val⟩
   }¨ trend_dns
 
+
   env_labels ← {
     name ← 𝕩 ⊑ accounts
-    BudgetLabel name
+    TrimBudgetPrefix name
   }¨ budget_indices
 
   {
@@ -168,7 +165,9 @@ FormatHuman ← {𝕊 vm:
   out ↩ out ∾ "cycle: " ∾ vm.cycle_start ∾ " 〜 " ∾ vm.cycle_end_exclusive ∾ " (as of " ∾ vm.as_of ∾ "; " ∾ (•Fmt days_left) ∾ " days left)" ∾ (@+10) ∾ (@+10)
 
   AlignR ← {𝕊 w‿x:
-    s ← > (1 = •Type x) ⊑ ⟨x, •Fmt x⟩
+    val ← Unbox x
+    is_str ← (0 = ≠ val) ◶ ⟨ { 2 = •Type ⊑ val }, {1} ⟩ @
+    s ← is_str ◶ ⟨ {•Fmt val}, {val} ⟩ @
     ((0 ⌈ w - ≠ s) ⥊ " ") ∾ s
   }
 
