@@ -1,0 +1,24 @@
+BQN Ledger Report Selection Mock
+This is sanitized public mock output. It is not real household data.
+
+================================================================================
+REPORT SELECTION SURFACE
+================================================================================
+
+section> 
+> snapshot           全体サマリ
+  issues             懸案事項・意思決定
+  envelopes          封筒・予算残高
+  outlook            見通し・日割り
+  cycle              今サイクル集計
+  ytd                年初来サマリ
+  balances           口座残高一覧
+  trial-balance      試算表
+  recent             直近の取引
+  planned            予定支払い
+  daily-trend        日割り推移
+  actual-comparison  前期比較
+  check              データチェック
+  debug              デバッグ
+  all                全セクション
+  actions            → 仕訳追加・取消

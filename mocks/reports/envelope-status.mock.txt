@@ -1,0 +1,14 @@
+BQN Ledger Envelope Status Mock
+This is sanitized public mock output. It is not real household data.
+
+================================================================================
+ENVELOPE STATUS
+================================================================================
+
+envelope          allocated      spent      remaining      status
+---------------------------------------------------------------
+budget:daily          25000      -9100          15900      ok
+budget:flex           12000      -6200           5800      watch
+budget:reserve         8000       1200           9200      held
+
+note: amounts are synthetic and preserve only the report shape.

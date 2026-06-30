@@ -1,0 +1,17 @@
+BQN Ledger Command Hub Mock
+This is sanitized public mock output. It is not real household data.
+
+================================================================================
+COMMAND HUB SURFACE
+================================================================================
+
+BQN-Ledger Command Hub (demo:sanitized-public)
+
+  report   Show full report
+  section  Show report sections (fzf selector)
+  add      Add or cancel transaction / plan
+  check    Run check.sh
+  edit     Open TSV files in $EDITOR
+  exit     Exit
+
+selected: section (Show report sections)

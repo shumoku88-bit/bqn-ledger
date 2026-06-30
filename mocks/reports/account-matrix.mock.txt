@@ -1,0 +1,19 @@
+BQN Ledger Account Matrix Mock
+This is sanitized public mock output. It is not real household data.
+
+================================================================================
+ACCOUNT SNAPSHOT (ACCOUNT MATRIX)
+================================================================================
+
+account                 role          opening       change      closing
+-----------------------------------------------------------------------
+assets:bank_main        asset          92000        12900       104900
+assets:wallet           asset           4200        -1100         3100
+liabilities:card_1      liability      -3000        -4200        -7200
+income:main             income             0       120000       120000
+expenses:food           expense            0        -8200        -8200
+expenses:daily          expense            0        -4300        -4300
+expenses:medical        expense            0        -1600        -1600
+budget:daily            budget         25000        -9100        15900
+budget:flex             budget         12000        -6200         5800
+budget:reserve          budget          8000         1200         9200
