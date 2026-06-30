@@ -13,10 +13,10 @@ validation and TSV row/edit rendering live in `src_edit/*.bqn`.
 | Group | Commands | Shell owner | BQN owner |
 |---|---|---|---|
 | account | `account list` | `tools/edit-bqn` read-only dispatch | `src_edit/account_list_cmd.bqn` |
-| journal | `journal add`, `journal list`, `journal reverse` | `tools/edit-bqn` | `src_edit/journal_add_cmd.bqn`, `src_edit/journal_list_cmd.bqn`, `src_edit/editor_cmd.bqn` |
+| journal | `journal add`, `journal list`, `journal reverse` | `tools/edit-bqn` | `src_edit/journal_add_cmd.bqn`, `src_edit/journal_list_cmd.bqn`, `src_edit/journal_reverse_cmd.bqn` |
 | budget | `budget add` | `tools/edit-bqn` shared journal-like append path | `src_edit/journal_add_cmd.bqn` |
 | plan read | `plan list`, `plan related` | `tools/edit-bqn` read-only dispatch | `src_edit/plan_list_cmd.bqn`, `src_edit/plan_related_cmd.bqn` |
-| plan write | `plan add`, `plan finish`, `plan edit` | `tools/edit-bqn` | `src_edit/plan_add_cmd.bqn`, `src_edit/plan_finish_cmd.bqn`, `src_edit/editor_cmd.bqn` |
+| plan write | `plan add`, `plan finish`, `plan edit` | `tools/edit-bqn` | `src_edit/plan_add_cmd.bqn`, `src_edit/plan_finish_cmd.bqn`, `src_edit/plan_edit_cmd.bqn` |
 | issue | `issue add` | `tools/lib/edit-bqn-issue.sh` | `src_edit/issue_add_cmd.bqn` |
 
 ## Shell helper boundary
@@ -51,3 +51,6 @@ Current boundary-polishing references:
 
 - `tools/add-ui.sh` account candidates use `tools/edit account list [--role ROLE]` instead of reading `accounts.tsv` directly.
 - `tools/add-ui.sh` reverse selection uses `tools/edit journal list --format tsv` instead of reading `journal.tsv` directly.
+- `journal reverse` uses the narrow `src_edit/journal_reverse_cmd.bqn`.
+- `plan edit` uses the narrow `src_edit/plan_edit_cmd.bqn`.
+- The former aggregate `src_edit/editor_cmd.bqn` dispatcher has been removed after its active paths were replaced by narrow commands.

@@ -134,7 +134,7 @@ if [[ "$1" == "journal" && "$2" == "reverse" ]]; then
   BQN_STDERR="$(mktemp)"
   trap 'rm -f "$BQN_STDERR"' EXIT
   BQN_OUT=""
-  if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/editor_cmd.bqn "$BASE_DIR" journal reverse "$ID" "$INDEX" "$DATE" "$YES" 2>"$BQN_STDERR")"; then
+  if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/journal_reverse_cmd.bqn "$BASE_DIR" "$ID" "$INDEX" "$DATE" 2>"$BQN_STDERR")"; then
     if [[ -n "$BQN_OUT" ]]; then
       printf '%s\n' "$BQN_OUT" >&2
     fi
@@ -231,7 +231,7 @@ if [[ "$1" == "plan" && "$2" == "edit" ]]; then
   BQN_STDERR="$(mktemp)"
   trap 'rm -f "$BQN_STDERR"' EXIT
   BQN_OUT=""
-  if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/editor_cmd.bqn "$BASE_DIR" plan edit "$INDEX" "$PLAN_ID" "$DATE" "$AMOUNT" "$SHOW_ALL" "$DRY_RUN" "$YES" "$POST_CHECK" 2>"$BQN_STDERR")"; then
+  if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/plan_edit_cmd.bqn "$BASE_DIR" "$INDEX" "$PLAN_ID" "$DATE" "$AMOUNT" "$SHOW_ALL" 2>"$BQN_STDERR")"; then
     if [[ -n "$BQN_OUT" ]]; then
       printf '%s\n' "$BQN_OUT" >&2
     fi

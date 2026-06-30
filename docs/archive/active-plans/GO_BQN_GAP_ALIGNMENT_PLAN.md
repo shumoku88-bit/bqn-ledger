@@ -1,11 +1,10 @@
 # Go/BQN Editor Gap Alignment Plan
 
-Status: **Active Draft / implementation gated by narrow journal-add entry path**
+Status: **Superseded historical draft**
 Date: 2026-06-29
+Superseded: 2026-07-01 by the production BQN editor path and narrow `src_edit/*_cmd.bqn` commands.
 
-This document outlines the concrete steps required to close behavioral, functional, and safety gaps between the original Go editor and the new BQN + Bash editor implementation before permanently removing the Go editor.
-
-The immediate next milestone is deliberately narrower than full parity: keep `tools/edit` on the Go editor, add an experimental `tools/edit-bqn` entry point, and prove `journal add` through dry-run and safe append first.
+This document records the old gap-closing plan from the Go-to-BQN editor transition. The active daily path is now `tools/edit` → `tools/edit-bqn` → narrow BQN commands + shell safe-write. The former aggregate `src_edit/editor_cmd.bqn` dispatcher has been removed.
 
 ---
 
@@ -21,7 +20,7 @@ We will now close the remaining safety and functional gaps systematically before
 
 ### 0. Dispatcher Contract and Output Protocol
 * **Go Editor**: `tools/edit` accepts the current Go-style flag interface directly, for example `tools/edit journal add --date ... --memo ... --from ... --to ... --amount ...`.
-* **BQN Editor Prototype**: `src_edit/editor_cmd.bqn` should receive normalized edit intent, not be responsible for preserving every detail of the Go CLI parser.
+* **BQN Editor Prototype**: the former aggregate BQN dispatcher was expected to receive normalized edit intent, not preserve every detail of the Go CLI parser.
 * **Gap**: A thin Bash dispatcher must translate the Go-compatible CLI shape into a stable BQN input packet and must parse a stable BQN output protocol before any source TSV write.
 * **Safety Rule**: Do not replace production `tools/edit` while this gap is open. Use `tools/edit-bqn` as the experimental entry point.
 
@@ -91,7 +90,7 @@ Enhance `tools/edit` and `tools/lib/safe-write.sh` to implement strict stale and
 
 ### Step 3: Parity Test Suite (`checks/check-editor-parity.sh`)
 Build an automated, black-box parity testing tool to assert identical behavior:
-1. Runs the Go editor (`tools/edit.bin`) and BQN editor dispatcher (`bqn src_edit/editor_cmd.bqn`) on identical copies of fixture directories.
+1. Runs the Go editor (`tools/edit.bin`) and the BQN editor dispatcher on identical copies of fixture directories.
 2. Exercises all 8 CLI commands:
    - `journal add` / `journal reverse`
    - `budget add`
@@ -117,7 +116,7 @@ graph TD
 ```
 
 1. **Phase 0**: Add `tools/edit-bqn journal add` as a narrow experimental path. Keep `tools/edit` on Go.
-2. **Phase A**: Update `src_edit/editor_cmd.bqn` to dynamically read plan-only keys.
+2. **Phase A**: Update the BQN editor command path to dynamically read plan-only keys.
 3. **Phase B**: Add robust TTY detection, exact line matching, and SHA256 stale checking in the BQN dispatcher path and `safe-write.sh`.
 4. **Phase C**: Write `checks/check-editor-parity.sh` and hook it into `tools/check.sh`.
 5. **Phase D**: Run parity testing until all test cases produce identical outputs.

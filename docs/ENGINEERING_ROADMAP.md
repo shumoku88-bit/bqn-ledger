@@ -46,7 +46,7 @@ Date: 2026-06-26
 
 ### やったこと
 
-1. ✅ `src_edit/editor_cmd.bqn` と `tools/edit-bqn` に `journal reverse` 経路を追加
+1. ✅ `src_edit/journal_reverse_cmd.bqn` と `tools/edit-bqn` に `journal reverse` 経路を追加
    - `--id <txn_id>` または `--index <number>` で対象指定
    - from/to を入れ替え、memo に `[reverse]` プレフィックス
    - BQN editor protocol と shell safe-write 経由で追記

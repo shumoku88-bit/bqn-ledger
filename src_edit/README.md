@@ -59,11 +59,13 @@ Dispatcher boundary note: see `docs/EDIT_BQN_DISPATCHER.md` for the current shel
 
 - `account list` is a read-only account candidate export for UI shell wrappers; account role metadata interpretation stays in BQN.
 - `journal list` is a read-only journal row export for reverse-selection UI; journal row formatting and empty-column preservation stay in BQN.
+- `journal reverse` is handled by `src_edit/journal_reverse_cmd.bqn`; reverse-row validation and APPEND protocol rendering stay in BQN.
 - `issue add` has a small dedicated parser because its CLI and new-file semantics differ; its shell handler is split into `tools/lib/edit-bqn-issue.sh`.
 - `plan add` owns plan_id generation and duplicate checks.
 - `plan list` is byte-parity checked because its TSV output is a UI selection contract.
 - `plan related` is read-only and owns recurring-plan relation-key semantics for replenishment UI.
 - `plan finish`, `plan edit`, and `journal reverse` use derived edit protocols.
+- `plan edit` is handled by `src_edit/plan_edit_cmd.bqn`; line selection, closed-plan rejection, date/amount validation, and REPLACE protocol rendering stay in BQN.
 
 ## Safety rule
 

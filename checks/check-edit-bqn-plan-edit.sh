@@ -164,4 +164,18 @@ run_expect_fail_closed no-change \
   --yes \
   --post-check none
 
+run_expect_fail_closed invalid-date \
+  plan edit \
+  --id plan-2026-08-15-test-edit \
+  --date not-a-date \
+  --yes \
+  --post-check none
+
+run_expect_fail_closed invalid-amount \
+  plan edit \
+  --id plan-2026-08-15-test-edit \
+  --amount 12.34 \
+  --yes \
+  --post-check none
+
 echo "check-edit-bqn-plan-edit: OK"

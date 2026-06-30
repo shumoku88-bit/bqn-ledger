@@ -28,7 +28,7 @@
   - いきなり巨大 module 化しない
 - [x] write protocol helper 抽出の実装方針を決める
   - `APPEND` / `REPLACE` stdout protocol を safe-write に適用する helper を作る
-  - helper は `editor_cmd.bqn` 固有の引数形に依存しない
+  - helper は旧 aggregate dispatcher の引数形に依存しない
   - C案（BQN narrow command 化）後も残る shell 責務だけを共通化する
   - 2026-07-01: まず `tools/lib/edit-bqn-common.sh` に BQN command 非依存の APPEND helper を追加し、journal/budget/plan add の共通 append path に適用。
   - 2026-07-01: 同じ helper を `plan finish` と `journal reverse` の append apply にも適用。`journal reverse` の拡張ヘッダは command-specific preview extras として残し、APPEND prefix だけを共通検証。
@@ -43,18 +43,21 @@
   - UI は `series=` を入力補助として付与してよいか
   - series 判定・関連予定判定の正本は `src_edit/plan_related_cmd.bqn` 側に固定する
   - 2026-07-01: UI-only input convenience として許容。shell は対話入力の安全な token 文字チェックに限定し、関連予定判定・fallback 順序は BQN 所有と audit / code comment に明記。
-- [ ] BQN narrow command 化（C案）の候補と順番を決める
+- [x] BQN narrow command 化（C案）の候補と順番を決める
   - `journal_reverse_cmd.bqn`
   - `plan_edit_cmd.bqn`
   - `plan_finish_cmd.bqn`
   - shell protocol helper 抽出後に、どれから切るのが安全か判断する
-- [ ] 小さな実装バッチに分けて進める
+  - 2026-07-01: 第1候補は `journal_reverse_cmd.bqn` と判断し実装。理由: APPEND helper が既に安定、shell に残る original/reversed summary は preview extras として分離しやすい。続けて `plan_edit_cmd.bqn` も実装し、REPLACE helper 経路を narrow command 化。`plan_finish_cmd.bqn` は既に narrow command 済みのため docs/legacy 整理側。
+- [x] 小さな実装バッチに分けて進める
   - Batch A: docs/audit only（後で C案をやっても残る shell 責務 / 消える責務を明記）
   - Batch B: BQN command に依存しない write protocol helper 抽出
   - Batch C: issue add 観測性調整
   - Batch D: add-ui plan_series 境界の明文化または軽微修正
-  - Batch E: BQN narrow command 化の候補決定または最小1件の実装
-- [ ] 各バッチで `rtk bash ./tools/check.sh` を通す
+  - Batch E: BQN narrow command 化の候補決定または最小1件の実装（2026-07-01: `journal_reverse_cmd.bqn` / `plan_edit_cmd.bqn` 実装、`tools/edit-bqn` 経路を切替）
+  - 2026-07-01: 旧 aggregate `src_edit/editor_cmd.bqn` を削除し、現行 write path を narrow command 群へ整理完了。
+- [x] 各バッチで `rtk bash ./tools/check.sh` を通す
+  - 2026-07-01: `rtk bash checks/check-edit-bqn-plan-edit.sh`, `rtk bash checks/check-edit-bqn-journal-reverse.sh`, `rtk bash ./tools/check.sh` 通過。
 
 ## Real-data trial safety observation
 
