@@ -33,7 +33,7 @@ Usage:
   tools/edit-bqn [--base DIR] journal add --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount INT [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] budget add  --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount INT [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] plan add --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount INT [--meta key=value ...] [--id plan-YYYY-MM-DD-series] [--dry-run] [--yes] [--post-check none|lint|full]
-  tools/edit-bqn [--base DIR] issue add [--date YYYY-MM-DD] [--status open|resolved|dropped] --title TITLE [--amount INT] [--memo MEMO] [--dry-run] [--yes]
+  tools/edit-bqn [--base DIR] issue add [--date YYYY-MM-DD] [--status open|resolved|dropped] --title TITLE [--amount INT] [--memo MEMO] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] account list [--role ROLE]
   tools/edit-bqn [--base DIR] journal list [--format tsv|text]
   tools/edit-bqn [--base DIR] plan list [--all] [--format tsv|text]
@@ -144,20 +144,18 @@ if [[ "$1" == "journal" && "$2" == "reverse" ]]; then
     exit 1
   fi
 
-  FIRST_LINE="${BQN_OUT%%$'\n'*}"
-  if [[ "$FIRST_LINE" == "$BQN_OUT" ]]; then
-    echo "ERROR: invalid BQN protocol: missing payload line" >&2
+  if ! edit_bqn_split_protocol_output "$BQN_OUT"; then
     exit 1
   fi
-  PAYLOAD="${BQN_OUT#*$'\n'}"
+  FIRST_LINE="$EDIT_BQN_PROTOCOL_FIRST_LINE"
+  PAYLOAD="$EDIT_BQN_PROTOCOL_PAYLOAD"
 
   IFS=$'\t' read -r STATUS OP PROTOCOL_TARGET_FILE TARGET_IDX ORIG_DATE ORIG_MEMO ORIG_FROM ORIG_TO ORIG_AMOUNT <<< "$FIRST_LINE"
   if [[ "$STATUS" == "ERROR" ]]; then
     echo "ERROR: $OP" >&2
     exit 1
   fi
-  if [[ "$STATUS" != "OK" || "$OP" != "APPEND" || "$PROTOCOL_TARGET_FILE" != "$JOURNAL_FILE" ]]; then
-    echo "ERROR: invalid BQN protocol header: $FIRST_LINE" >&2
+  if ! edit_bqn_require_append_protocol_prefix "$FIRST_LINE" "$JOURNAL_FILE"; then
     exit 1
   fi
 
@@ -188,13 +186,7 @@ if [[ "$1" == "journal" && "$2" == "reverse" ]]; then
     esac
   fi
 
-  edit_bqn_run_test_hook EDIT_BQN_TEST_BEFORE_APPEND_HOOK
-
-  WRITE_OUT="$(safe_append_checked "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256")"
-  printf '%s\n' "$WRITE_OUT"
-
-  BACKUP_PATH="$(awk -F': ' '$1 == "Backup" {print $2}' <<< "$WRITE_OUT")"
-  run_post_check "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$BACKUP_PATH"
+  edit_bqn_apply_append_checked "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256" EDIT_BQN_TEST_BEFORE_APPEND_HOOK
   exit 0
 fi
 
@@ -249,44 +241,17 @@ if [[ "$1" == "plan" && "$2" == "edit" ]]; then
     exit 1
   fi
 
-  # Parse REPLACE protocol:
-  # BQN outputs:
-  # Line 1: OK\tREPLACE\t<lineNum>\t<planID>  (or ERROR\t<msg>)
-  # Line 2: <oldLine>
-  # Line 3: <newLine>
-  bqn_lines=()
-  mapfile -t bqn_lines <<< "$BQN_OUT"
-
-  IFS=$'\t' read -r STATUS OP LINE_NUM EDIT_PLAN_ID <<< "${bqn_lines[0]}"
-  if [[ "$STATUS" == "ERROR" ]]; then
-    echo "ERROR: $OP" >&2
+  if ! edit_bqn_parse_replace_protocol "$BQN_OUT"; then
     exit 1
   fi
-  if [[ "$STATUS" != "OK" || "$OP" != "REPLACE" ]]; then
-    echo "ERROR: unexpected BQN protocol: expected OK REPLACE, got: $STATUS $OP" >&2
-    exit 1
-  fi
-
-  OLD_LINE="${bqn_lines[1]}"
-  NEW_LINE="${bqn_lines[2]}"
-
-  if [[ -z "$LINE_NUM" || -z "$OLD_LINE" || -z "$NEW_LINE" ]]; then
-    echo "ERROR: incomplete REPLACE protocol output" >&2
-    exit 1
-  fi
+  LINE_NUM="$EDIT_BQN_REPLACE_LINE_NUM"
+  EDIT_PLAN_ID="$EDIT_BQN_REPLACE_ID"
+  OLD_LINE="$EDIT_BQN_REPLACE_OLD_LINE"
+  NEW_LINE="$EDIT_BQN_REPLACE_NEW_LINE"
 
   MODE="$(edit_bqn_mode "$DRY_RUN" "$YES")"
 
-  # Preview output matching BQN editor format
-  printf 'Plan edit preview\n'
-  printf 'Target: %s\n' "$TARGET_PATH"
-  printf 'Line: %s\n' "$LINE_NUM"
-  printf 'Plan ID: %s\n' "$EDIT_PLAN_ID"
-  printf 'Mode: %s\n' "$MODE"
-  printf 'Post-check: %s\n' "$POST_CHECK"
-  printf 'Diff:\n'
-  printf -- '- %s\n' "$OLD_LINE"
-  printf -- '+ %s\n' "$NEW_LINE"
+  edit_bqn_print_replace_preview "Plan edit" "$TARGET_PATH" "$LINE_NUM" "$EDIT_PLAN_ID" "$MODE" "$POST_CHECK" "$OLD_LINE" "$NEW_LINE"
 
   if [[ "$DRY_RUN" -eq 1 ]]; then
     printf 'Dry-run only. No files were modified.\n'
@@ -302,14 +267,7 @@ if [[ "$1" == "plan" && "$2" == "edit" ]]; then
     esac
   fi
 
-  # Test-only stale-write injection point.
-  edit_bqn_run_test_hook EDIT_BQN_TEST_BEFORE_REPLACE_HOOK
-
-  WRITE_OUT="$(safe_replace_line_checked "$TARGET_PATH" "$LINE_NUM" "$OLD_LINE" "$NEW_LINE" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256")"
-  printf '%s\n' "$WRITE_OUT"
-
-  BACKUP_PATH="$(awk -F': ' '$1 == "Backup" {print $2}' <<< "$WRITE_OUT")"
-  run_post_check "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$BACKUP_PATH"
+  edit_bqn_apply_replace_checked "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$LINE_NUM" "$OLD_LINE" "$NEW_LINE" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256" EDIT_BQN_TEST_BEFORE_REPLACE_HOOK
   exit 0
 fi
 
@@ -367,52 +325,33 @@ if [[ "$1" == "plan" && "$2" == "finish" ]]; then
     exit 1
   fi
 
-  FIRST_LINE="${BQN_OUT%%$'\n'*}"
-  if [[ "$FIRST_LINE" == "$BQN_OUT" ]]; then
-    echo "ERROR: invalid BQN protocol: missing payload line" >&2
+  if ! edit_bqn_split_protocol_output "$BQN_OUT"; then
     exit 1
   fi
-  PAYLOAD="${BQN_OUT#*$'\n'}"
+  FIRST_LINE="$EDIT_BQN_PROTOCOL_FIRST_LINE"
+  PAYLOAD="$EDIT_BQN_PROTOCOL_PAYLOAD"
 
-  IFS=$'\t' read -r STATUS OP PROTOCOL_TARGET_FILE EXTRA <<< "$FIRST_LINE"
-  if [[ -n "${EXTRA:-}" || "$STATUS" != "OK" || "$OP" != "APPEND" || "$PROTOCOL_TARGET_FILE" != "$JOURNAL_FILE" ]]; then
-    echo "ERROR: invalid BQN protocol header: $FIRST_LINE" >&2
+  if ! edit_bqn_require_append_protocol "$FIRST_LINE" "$JOURNAL_FILE"; then
     exit 1
   fi
 
   MODE="$(edit_bqn_mode "$DRY_RUN" "$YES")"
 
   if [[ "$DRY_RUN" -eq 1 ]]; then
-    printf 'Journal (from plan) append preview\n'
-    printf 'Target: %s\n' "$TARGET_PATH"
-    printf 'Mode: %s\n' "$MODE"
-    printf 'Post-check: %s\n' "$POST_CHECK"
-    printf 'Journal row:\n'
-    printf '%s\n' "$PAYLOAD"
+    edit_bqn_print_append_preview "Journal (from plan)" "$TARGET_PATH" "$MODE" "$POST_CHECK" "Journal row" "$PAYLOAD"
     printf 'Dry-run only. No files were modified.\n'
     exit 0
   fi
 
   if [[ "$YES" -eq 0 ]]; then
-    printf 'Journal (from plan) append preview\n'
-    printf 'Target: %s\n' "$TARGET_PATH"
-    printf 'Mode: %s\n' "$MODE"
-    printf 'Post-check: %s\n' "$POST_CHECK"
-    printf 'Journal row:\n'
-    printf '%s\n' "$PAYLOAD"
+    edit_bqn_print_append_preview "Journal (from plan)" "$TARGET_PATH" "$MODE" "$POST_CHECK" "Journal row" "$PAYLOAD"
     if ! confirm_append; then
       echo "Cancelled. No files were modified."
       exit 0
     fi
   fi
 
-  edit_bqn_run_test_hook EDIT_BQN_TEST_BEFORE_APPEND_HOOK
-
-  WRITE_OUT="$(safe_append_checked "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256")"
-  printf '%s\n' "$WRITE_OUT"
-
-  BACKUP_PATH="$(awk -F': ' '$1 == "Backup" {print $2}' <<< "$WRITE_OUT")"
-  run_post_check "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$BACKUP_PATH"
+  edit_bqn_apply_append_checked "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256" EDIT_BQN_TEST_BEFORE_APPEND_HOOK
   exit 0
 fi
 
@@ -563,39 +502,26 @@ else
   fi
 fi
 
-FIRST_LINE="${BQN_OUT%%$'\n'*}"
-if [[ "$FIRST_LINE" == "$BQN_OUT" ]]; then
-  echo "ERROR: invalid BQN protocol: missing payload line" >&2
+if ! edit_bqn_split_protocol_output "$BQN_OUT"; then
   exit 1
 fi
-PAYLOAD="${BQN_OUT#*$'\n'}"
+FIRST_LINE="$EDIT_BQN_PROTOCOL_FIRST_LINE"
+PAYLOAD="$EDIT_BQN_PROTOCOL_PAYLOAD"
 
-IFS=$'\t' read -r STATUS OP PROTOCOL_TARGET_FILE EXTRA <<< "$FIRST_LINE"
-if [[ -n "${EXTRA:-}" || "$STATUS" != "OK" || "$OP" != "APPEND" || "$PROTOCOL_TARGET_FILE" != "$EXPECTED_TARGET_FILE" ]]; then
-  echo "ERROR: invalid BQN protocol header: $FIRST_LINE" >&2
+if ! edit_bqn_require_append_protocol "$FIRST_LINE" "$EXPECTED_TARGET_FILE"; then
   exit 1
 fi
 
 MODE="$(edit_bqn_mode "$DRY_RUN" "$YES")"
 
 if [[ "$DRY_RUN" -eq 1 ]]; then
-  printf '%s append preview\n' "$PREVIEW_TITLE"
-  printf 'Target: %s\n' "$TARGET_PATH"
-  printf 'Mode: %s\n' "$MODE"
-  printf 'Post-check: %s\n' "$POST_CHECK"
-  printf '%s:\n' "$ROW_TITLE"
-  printf '%s\n' "$PAYLOAD"
+  edit_bqn_print_append_preview "$PREVIEW_TITLE" "$TARGET_PATH" "$MODE" "$POST_CHECK" "$ROW_TITLE" "$PAYLOAD"
   printf 'Dry-run only. No files were modified.\n'
   exit 0
 fi
 
 if [[ "$YES" -eq 0 ]]; then
-  printf '%s append preview\n' "$PREVIEW_TITLE"
-  printf 'Target: %s\n' "$TARGET_PATH"
-  printf 'Mode: %s\n' "$MODE"
-  printf 'Post-check: %s\n' "$POST_CHECK"
-  printf '%s:\n' "$ROW_TITLE"
-  printf '%s\n' "$PAYLOAD"
+  edit_bqn_print_append_preview "$PREVIEW_TITLE" "$TARGET_PATH" "$MODE" "$POST_CHECK" "$ROW_TITLE" "$PAYLOAD"
   if ! confirm_append; then
     echo "Cancelled. No files were modified."
     exit 0
@@ -605,10 +531,4 @@ fi
 # Test-only stale-write injection point used by check-edit-bqn-journal-add.sh.
 # This must not become production extension behavior; it exists only to simulate
 # a concurrent source TSV edit between validation/preview and append.
-edit_bqn_run_test_hook EDIT_BQN_TEST_BEFORE_APPEND_HOOK
-
-WRITE_OUT="$(safe_append_checked "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256")"
-printf '%s\n' "$WRITE_OUT"
-
-BACKUP_PATH="$(awk -F': ' '$1 == "Backup" {print $2}' <<< "$WRITE_OUT")"
-run_post_check "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$BACKUP_PATH"
+edit_bqn_apply_append_checked "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256" EDIT_BQN_TEST_BEFORE_APPEND_HOOK

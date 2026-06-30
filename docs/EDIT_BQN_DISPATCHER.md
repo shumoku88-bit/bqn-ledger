@@ -27,6 +27,8 @@ Shared syntax-only helpers live in `tools/lib/edit-bqn-common.sh`:
 - `--post-check` mode validation
 - preview mode naming (`confirm` / `dry-run` / `yes`)
 - BQN command capture with stderr preservation
+- BQN stdout protocol parsing for command-independent `APPEND` / `REPLACE` apply helpers
+- preview / safe-write / post-check orchestration for common append/replace paths
 - test-only hook invocation by declared shell function name
 
 These helpers must not inspect account names, source TSV business meaning, or
@@ -41,7 +43,9 @@ to use the same BQN protocol and `tools/lib/safe-write.sh` APIs. Do not create a
 second write path.
 
 Current reference extraction: `issue add` → `handle_edit_bqn_issue_add` in
-`tools/lib/edit-bqn-issue.sh`.
+`tools/lib/edit-bqn-issue.sh`. Existing-file issue append uses the common
+`APPEND` helper; missing `issues.tsv` remains an explicit optional-file
+`safe_create_checked` exception.
 
 Current boundary-polishing references:
 

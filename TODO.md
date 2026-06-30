@@ -4,6 +4,58 @@
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避済みです。
 
 
+## Next: editor boundary整理（tools/edit-bqn / add-ui / src_edit）
+
+目的: 全面再設計ではなく、日常 write path の責務境界を小さく整理し、今後の増築で壊れにくくする。
+
+方針:
+- source TSV 契約と既存 CLI 互換を変えない。
+- safe-write 経路を増やさない。
+- Bash は UI / dispatch / preview / confirm / safe-write orchestration に留める。
+- BQN は account / journal / plan / metadata などの意味解釈と validation を持つ。
+- 1回の変更は1境界だけ。各変更で check を追加または既存 check を維持する。
+
+作業順:
+- [x] 現状監査メモを `docs/archive/audits/SHELL_BQN_BOUNDARY_AUDIT-2026-06-30.md` または新規 audit に追記する
+  - `tools/edit-bqn` の command group ごとの残り責務を棚卸しする
+  - `tools/add-ui.sh` の UI入力補助と意味解釈の境界を明記する
+  - `src_edit` 側へ寄せるべき意味が残っていないか確認する
+  - 2026-07-01: Batch A / docs-audit only として追記。C案後も残る shell 責務と、BQN 側へ置く意味を分離。
+- [x] `tools/edit-bqn` の append / replace / read-only の3系統を整理する小計画を作る
+  - 後続の BQN narrow command 化（例: `journal_reverse_cmd.bqn`, `plan_edit_cmd.bqn`）で捨てない整理を優先する
+  - まず共通化対象を BQN command 名・引数に依存しない protocol parsing / preview / confirm / safe-write orchestration に限定する
+  - journal add / budget add / plan add / plan finish / journal reverse の write path を増やさない
+  - いきなり巨大 module 化しない
+- [x] write protocol helper 抽出の実装方針を決める
+  - `APPEND` / `REPLACE` stdout protocol を safe-write に適用する helper を作る
+  - helper は `editor_cmd.bqn` 固有の引数形に依存しない
+  - C案（BQN narrow command 化）後も残る shell 責務だけを共通化する
+  - 2026-07-01: まず `tools/lib/edit-bqn-common.sh` に BQN command 非依存の APPEND helper を追加し、journal/budget/plan add の共通 append path に適用。
+  - 2026-07-01: 同じ helper を `plan finish` と `journal reverse` の append apply にも適用。`journal reverse` の拡張ヘッダは command-specific preview extras として残し、APPEND prefix だけを共通検証。
+  - 2026-07-01: `plan edit` の REPLACE protocol parse / preview / safe replace / post-check も BQN command 非依存 helper へ抽出。
+- [x] `issue add` の観測性を他の append 系に寄せるか判断する
+  - backup / write result 表示
+  - `--post-check` 対応の要否
+  - `issues.tsv` 新規作成許容の扱いを明記
+  - 可能なら protocol helper に乗せ、create-if-missing だけ特例にする
+  - 2026-07-01: 既存 `issues.tsv` への append は common APPEND helper に寄せ、write result / backup / post-check を表示。missing `issues.tsv` は optional file として create-if-missing 例外を維持し、`safe_create_checked` の write result と post-check を表示。
+- [x] `tools/add-ui.sh` の `plan_series` 入力補助を設計上許容するか再確認する
+  - UI は `series=` を入力補助として付与してよいか
+  - series 判定・関連予定判定の正本は `src_edit/plan_related_cmd.bqn` 側に固定する
+  - 2026-07-01: UI-only input convenience として許容。shell は対話入力の安全な token 文字チェックに限定し、関連予定判定・fallback 順序は BQN 所有と audit / code comment に明記。
+- [ ] BQN narrow command 化（C案）の候補と順番を決める
+  - `journal_reverse_cmd.bqn`
+  - `plan_edit_cmd.bqn`
+  - `plan_finish_cmd.bqn`
+  - shell protocol helper 抽出後に、どれから切るのが安全か判断する
+- [ ] 小さな実装バッチに分けて進める
+  - Batch A: docs/audit only（後で C案をやっても残る shell 責務 / 消える責務を明記）
+  - Batch B: BQN command に依存しない write protocol helper 抽出
+  - Batch C: issue add 観測性調整
+  - Batch D: add-ui plan_series 境界の明文化または軽微修正
+  - Batch E: BQN narrow command 化の候補決定または最小1件の実装
+- [ ] 各バッチで `rtk bash ./tools/check.sh` を通す
+
 ## Real-data trial safety observation
 
 - [x] `docs/REAL_DATA_TRIAL_SAFETY.md` を追加し、sandbox rehearsal / real-data preflight / dry-run / 確認付き書き込み / 観察ログの最小手順を定義する

@@ -5,7 +5,7 @@
 # TSV row rendering, while this shell layer handles preview/confirm/safe write.
 
 handle_edit_bqn_issue_add() {
-  local ISSUE_DATE ISSUE_STATUS ISSUE_TITLE ISSUE_AMOUNT ISSUE_MEMO DRY_RUN YES
+  local ISSUE_DATE ISSUE_STATUS ISSUE_TITLE ISSUE_AMOUNT ISSUE_MEMO DRY_RUN YES POST_CHECK
   ISSUE_DATE="$(date +%F)"
   ISSUE_STATUS="open"
   ISSUE_TITLE=""
@@ -13,6 +13,7 @@ handle_edit_bqn_issue_add() {
   ISSUE_MEMO=""
   DRY_RUN=0
   YES=0
+  POST_CHECK="lint"
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -23,9 +24,12 @@ handle_edit_bqn_issue_add() {
       --memo) ISSUE_MEMO="$(get_opt_val_allow_empty "$1" "${2-}")"; shift 2 ;;
       --dry-run) DRY_RUN=1; shift ;;
       --yes) YES=1; shift ;;
+      --post-check) POST_CHECK="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
       *) echo "ERROR: unknown option: $1" >&2; return 2 ;;
     esac
   done
+
+  edit_bqn_validate_post_check "$POST_CHECK"
 
   local TARGET_PATH TARGET_EXISTS SNAP_SIZE SNAP_MTIME SNAP_SHA256 SNAPSHOT_TOKEN
   TARGET_PATH="$BASE_DIR/$EXPECTED_TARGET_FILE"
@@ -47,42 +51,40 @@ handle_edit_bqn_issue_add() {
   fi
   rm -f "$BQN_STDERR"
 
-  FIRST_LINE="${BQN_OUT%%$'\n'*}"
-  if [[ "$FIRST_LINE" == "$BQN_OUT" ]]; then
-    echo "ERROR: invalid BQN protocol: missing payload line" >&2
+  if ! edit_bqn_split_protocol_output "$BQN_OUT"; then
     return 1
   fi
-  PAYLOAD="${BQN_OUT#*$'\n'}"
+  FIRST_LINE="$EDIT_BQN_PROTOCOL_FIRST_LINE"
+  PAYLOAD="$EDIT_BQN_PROTOCOL_PAYLOAD"
 
-  IFS=$'\t' read -r STATUS OP PROTOCOL_TARGET_FILE EXTRA <<< "$FIRST_LINE"
-  if [[ -n "${EXTRA:-}" || "$STATUS" != "OK" || "$OP" != "APPEND" || "$PROTOCOL_TARGET_FILE" != "$EXPECTED_TARGET_FILE" ]]; then
-    echo "ERROR: invalid BQN protocol header: $FIRST_LINE" >&2
+  if ! edit_bqn_require_append_protocol "$FIRST_LINE" "$EXPECTED_TARGET_FILE"; then
     return 1
   fi
+
+  local MODE
+  MODE="$(edit_bqn_mode "$DRY_RUN" "$YES")"
 
   if [[ "$DRY_RUN" -eq 1 ]]; then
-    printf 'Proposed row:\n'
-    printf '%s\n' "$PAYLOAD"
-    printf '(Dry-run mode, no changes saved)\n'
+    edit_bqn_print_append_preview "Issue" "$TARGET_PATH" "$MODE" "$POST_CHECK" "Issue row" "$PAYLOAD"
+    printf 'Dry-run only. No files were modified.\n'
     return 0
   fi
 
-  printf 'File: %s\n' "$TARGET_PATH"
-  printf 'Proposed row:\n'
-  printf '%s\n' "$PAYLOAD"
-
   if [[ "$YES" -eq 0 ]]; then
+    edit_bqn_print_append_preview "Issue" "$TARGET_PATH" "$MODE" "$POST_CHECK" "Issue row" "$PAYLOAD"
     if ! confirm_append; then
-      echo "aborted by user" >&2
-      return 1
+      echo "Cancelled. No files were modified."
+      return 0
     fi
   fi
 
   if [[ "$TARGET_EXISTS" -eq 1 ]]; then
-    safe_append_checked "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256" >/dev/null
+    edit_bqn_apply_append_checked "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256"
   else
-    safe_create_checked "$TARGET_PATH" $'date\tstatus\ttitle\tamount\tmemo\n'"$PAYLOAD"$'\n' >/dev/null
+    local WRITE_OUT BACKUP_PATH
+    WRITE_OUT="$(safe_create_checked "$TARGET_PATH" $'date\tstatus\ttitle\tamount\tmemo\n'"$PAYLOAD"$'\n')"
+    printf '%s\n' "$WRITE_OUT"
+    BACKUP_PATH="$(awk -F': ' '$1 == "Backup" {print $2}' <<< "$WRITE_OUT")"
+    run_post_check "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$BACKUP_PATH"
   fi
-
-  printf 'OK: Issue row appended.\n'
 }

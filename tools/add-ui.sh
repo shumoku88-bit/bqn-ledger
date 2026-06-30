@@ -468,6 +468,9 @@ case "$mode" in
     capture_or_cancel to select_account 'expense' 'to expense'
     capture_or_cancel amt read_tty 'Amount' ''
     capture_or_cancel meta choose_meta
+    # UI-only input convenience: add-ui may attach an explicit series= token
+    # when the user enters one. Recurring-plan relation semantics and fallback
+    # order remain owned by src_edit/plan_related_cmd.bqn, not by this shell UI.
     capture_or_cancel plan_series read_tty 'Series for plan_id (empty: use memo, no spaces)' ''
     if [[ -n "$plan_series" && ! "$plan_series" =~ ^[A-Za-z0-9._-]+$ ]]; then
       shout 'Series must contain only A-Z, a-z, 0-9, dot, underscore, or hyphen.'
