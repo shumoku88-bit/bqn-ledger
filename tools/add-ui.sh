@@ -524,29 +524,27 @@ case "$mode" in
     fi
     ;;
   reverse)
-    journal_file="$base_dir/journal.tsv"
-    if [[ ! -f "$journal_file" ]]; then
-      shout "journal.tsv not found: $journal_file"; exit 1
-    fi
-    # Build display lines: "<index>: <date> <memo> <from>-><to> <amount>"
-    display_lines=()
-    idx=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-      [[ -z "$line" || "$line" =~ ^# || "$line" =~ ^\\ ]] && continue
-      idx=$((idx + 1))
-      date_f="$(printf '%s\n' "$line" | cut -f1)"
-      memo_f="$(printf '%s\n' "$line" | cut -f2)"
-      from_f="$(printf '%s\n' "$line" | cut -f3)"
-      to_f="$(printf '%s\n' "$line" | cut -f4)"
-      amt_f="$(printf '%s\n' "$line" | cut -f5)"
-      display_lines+=("$idx: $date_f  $memo_f  ${from_f}→${to_f}  $amt_f")
-    done < "$journal_file"
-    if [[ ${#display_lines[@]} -eq 0 ]]; then
+    journal_tsv_lines=()
+    while IFS= read -r _jl; do journal_tsv_lines+=("$_jl"); done < <("$ROOT_DIR/tools/edit" --base "$base_dir" journal list --format tsv)
+    if [[ ${#journal_tsv_lines[@]} -eq 0 ]]; then
       shout "No journal entries found."; exit 0
     fi
+    display_lines=()
+    for line in "${journal_tsv_lines[@]}"; do
+      display_lines+=("$(printf '%s\n' "$line" | cut -f7)")
+    done
     capture_or_cancel selected_display select_display_lines 'select entry to reverse'
     if [[ -z "$selected_display" ]]; then cancel_ui; fi
-    reverse_index="${selected_display%%:*}"
+    selected_row=""
+    for line in "${journal_tsv_lines[@]}"; do
+      if [[ "$(printf '%s\n' "$line" | cut -f7)" == "$selected_display" ]]; then
+        selected_row="$line"; break
+      fi
+    done
+    if [[ -z "$selected_row" ]]; then
+      shout "Failed to match selected journal row: $selected_display"; exit 1
+    fi
+    reverse_index="$(printf '%s\n' "$selected_row" | cut -f1)"
     capture_or_cancel reverse_date read_tty 'Reversal date YYYY-MM-DD (empty=today)' "$today"
     reverse_args=(--index "$reverse_index")
     [[ -n "$reverse_date" && "$reverse_date" != "$today" ]] && reverse_args+=(--date "$reverse_date")

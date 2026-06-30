@@ -15,7 +15,7 @@ Shell must not own ledger/accounting/household meaning from source TSV. In parti
 |---|---|---|---|---|
 | B5-001 | `tools/add-ui.sh:accounts()` | Previously read `accounts.tsv` directly and filtered `role=` metadata with awk. | **Meaning in shell** | Replaced in this batch with `tools/edit account list [--role ROLE]`, backed by `src_edit/account_list_cmd.bqn`. |
 | B5-002 | `tools/add-ui.sh` plan finish/edit selection | Parses `tools/edit plan list --format tsv` fields with `cut`. | OK: BQN/editor protocol parsing | Keep. The meaning and row ordering are owned by `src_edit/plan_list_cmd.bqn`; shell only selects a displayed row. |
-| B5-003 | `tools/add-ui.sh` reverse selection | Reads `journal.tsv` directly and formats date/memo/from/to/amount for selection. | **Meaning in shell** | Candidate for next replacement. Add a BQN/editor `journal list` or `journal recent/list --format tsv` export, then parse that protocol in shell. |
+| B5-003 | `tools/add-ui.sh` reverse selection | Previously read `journal.tsv` directly and formatted date/memo/from/to/amount for selection. | **Meaning moved to BQN/editor export** | Replaced with `tools/edit journal list --format tsv`, backed by `src_edit/journal_list_cmd.bqn`; shell now parses only the UI selection protocol. |
 | B5-004 | `tools/main-ui.sh` source file list for preview/cache invalidation | Enumerates known source/config files to hash/check cache freshness. | OK: file plumbing | Keep. It does not interpret row/account meaning. |
 | B5-005 | `tools/main-ui.sh` reads `config.tsv` key `fzf_preview_window`. | Config/presentation setting read in shell. | OK: presentation config | Keep unless config loading is later centralized. |
 | B5-006 | `tools/lib/theme.sh` reads `config.tsv` / `system_defaults.tsv` for theme/base lookup. | Config/presentation setting read in shell. | OK: presentation config | Keep; not source TSV accounting meaning. |
@@ -34,11 +34,13 @@ tools/edit --base "$base_dir" account list --role asset
 
 The export is implemented by `src_edit/account_list_cmd.bqn`, using `src_next/account_key.bqn` role resolution. This keeps account metadata semantics on the BQN side while preserving shell UI selection behavior.
 
-## Next non-ad-hoc step
+## Reference replacement completed: journal reverse selection
 
-Do not continue by editing random shell snippets. The next targeted replacement should be B5-003:
+B5-003 was replaced without broadening shell responsibility:
 
-1. Define a small BQN/editor export for journal selection rows.
-2. Add a parity/smoke check using sandbox data.
-3. Switch only `tools/add-ui.sh` reverse selection to that export.
-4. Leave safe-write and UI display plumbing in shell.
+1. `src_edit/journal_list_cmd.bqn` defines a small read-only export for journal selection rows.
+2. `tools/edit journal list --format tsv` exposes the protocol (`number date memo from to amount display`).
+3. `checks/check-edit-bqn-journal-list.sh` verifies read-only behavior, TSV shape, invalid format fail-closed behavior, and empty memo preservation.
+4. `tools/add-ui.sh` reverse selection consumes only the BQN/editor protocol and no longer reads `journal.tsv` directly.
+
+Next boundary work should start with another audit row or a new audit entry before implementation; do not continue by editing random shell snippets.

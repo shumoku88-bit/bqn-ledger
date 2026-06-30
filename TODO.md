@@ -27,14 +27,16 @@
   - [x] 日付の検証や変換処理を `src_next/date.bqn` に集約・一元化し、重複実装を削除する
     - 2026-06-30: `tests/test_src_next_date.bqn` を追加。`IsValidDateText`, `DaysFromEpoch`, `FromDaysFromEpoch`, `AddDays` を `src_next/date.bqn` に集約し、`projection.bqn` / `src_edit/validate.bqn` / `actual_comparison.bqn` から重複実装を削減。
 
-- [ ] **Batch 5: Shell/BQN boundary polishing (P2)**
+- [x] **Batch 5: Shell/BQN boundary polishing (P2)**
   - [x] ソースTSVの意味解釈を行っているシェルスクリプトを棚卸しする
     - 2026-06-30: `docs/archive/audits/SHELL_BQN_BOUNDARY_AUDIT-2026-06-30.md` を追加。
   - [x] リファレンス置換として、`tools/add-ui.sh` の account role 候補取得を BQN export (`tools/edit account list --role ...`) 経由へ移す
-  - [ ] 次の置換候補: `tools/add-ui.sh` reverse selection の journal direct read を BQN/editor export 化する
+  - [x] 次の置換候補: `tools/add-ui.sh` reverse selection の journal direct read を BQN/editor export 化する
+    - 2026-07-01: `src_edit/journal_list_cmd.bqn` / `tools/edit journal list --format tsv` / `checks/check-edit-bqn-journal-list.sh` を追加し、reverse selection を BQN/editor protocol parsing に変更。
 
-- [ ] **Batch 6: Define a report section contract checklist (P2)**
-  - [ ] 各セクションモジュールの契約チェックリスト文書を作成し、1セクションをリファレンス例として適用する
+- [x] **Batch 6: Define a report section contract checklist (P2)**
+  - [x] 各セクションモジュールの契約チェックリスト文書を作成し、1セクションをリファレンス例として適用する
+    - 2026-07-01: `docs/REPORT_SECTION_CONTRACT_CHECKLIST.md` を追加し、`planned` section を reference example として注釈。
 
 
 ## Real-data trial safety observation

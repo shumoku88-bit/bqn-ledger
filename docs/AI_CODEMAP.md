@@ -11,7 +11,7 @@
 5. `docs/ARCHITECTURE.md`（データフロー・モジュール責務）
 6. `docs/CANONICAL_DAILY_CUBE.md`（固定するDaily Cube契約）
 7. `docs/TIME_AS_AXIS.md`（時間座標・観察時点・区間view）
-8. レポート変更なら `src_next/report.bqn` と該当する `src_next/*` モジュール、および現行の report 関連 docs / check
+8. レポート変更なら `src_next/report.bqn` と該当する `src_next/*` モジュール、`docs/REPORT_CONTRACTS.md` / `docs/REPORT_SECTION_CONTRACT_CHECKLIST.md`、および現行の report 関連 check
 9. エディタ作業なら `docs/PRODUCTION_EDITOR_DIRECTION.md` / `docs/BQN_EDITOR_USAGE.md` / `src_edit/README.md`
 10. 複数ポスティング導入検討なら `docs/archive/completed-plans/DECISION_MULTI_POSTING_INVESTIGATION.md`
 11. 変更内容に応じて `docs/CONVENTIONS.md` / `docs/JOURNAL_META.md` / `docs/MAINTENANCE.md`
@@ -107,6 +107,7 @@
 - `src_edit/README.md` — 責務境界と実装対象の定義。
 - `src_edit/account_list_cmd.bqn` — UI向け account candidate export。`accounts.tsv` の role メタ解釈を BQN 側に閉じ込める。
 - `src_edit/journal_add_cmd.bqn` — journal add / budget add 用の検証および TSV 生成。
+- `src_edit/journal_list_cmd.bqn` — journal reverse UI向け read-only journal selection export。
 - `src_edit/issue_add_cmd.bqn` — issue add 用の検証および TSV 生成。
 - `src_edit/plan_add_cmd.bqn` — plan add 用の検証および TSV 生成。
 - `src_edit/plan_list_cmd.bqn` — plan list 用の BQN 実装。
@@ -128,7 +129,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 ### `tools/edit-bqn`
 
 - 日常 write path の BQN+shell 実装。
-- `account list` / `journal add` / `budget add` / `issue add` / `plan add` / `plan list` / `plan related` / `plan finish` / `plan edit` / `journal reverse` を扱う。
+- `account list` / `journal add` / `journal list` / `budget add` / `issue add` / `plan add` / `plan list` / `plan related` / `plan finish` / `plan edit` / `journal reverse` を扱う。
 - `src_edit` の機械可読プロトコルを受け、`tools/lib/safe-write.sh` で安全に適用する。
 - Dispatcher boundary の現行メモは `docs/EDIT_BQN_DISPATCHER.md`。共通 shell helper は `tools/lib/edit-bqn-common.sh`、`issue add` handler は `tools/lib/edit-bqn-issue.sh`。
 - Go editor の記述や fallback 前提は現行導線では使わない。
@@ -144,6 +145,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 - `check-disabled-features.sh` — 無効化機能の隔離チェック。
 - `check-edit-bqn-account-list.sh` — BQN account list export チェック。
 - `check-edit-bqn-journal-add.sh` — BQN journal/budget/issue add parityチェック。
+- `check-edit-bqn-journal-list.sh` — BQN journal list read-only selection exportチェック。
 - `check-edit-bqn-plan-list.sh` — BQN plan list parityチェック。
 - `check-edit-bqn-plan-add.sh` — BQN plan add parityチェック。
 - `check-edit-bqn-plan-finish.sh` — BQN plan finish parityチェック。

@@ -2,7 +2,7 @@
 # tools/edit-bqn — BQN-backed editor entry point.
 #
 # Current scope: daily write commands (`journal add`, `budget add`, `issue add`,
-# `plan add`, `plan list`, `plan finish`, `plan edit`, `journal reverse`).
+# `plan add`, `plan list`, `plan finish`, `plan edit`, `journal list`, `journal reverse`).
 # `tools/edit` is the public wrapper that delegates here.
 #
 # Shared parsing/protocol/write handling is kept in one path for the
@@ -35,13 +35,14 @@ Usage:
   tools/edit-bqn [--base DIR] plan add --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount INT [--meta key=value ...] [--id plan-YYYY-MM-DD-series] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] issue add [--date YYYY-MM-DD] [--status open|resolved|dropped] --title TITLE [--amount INT] [--memo MEMO] [--dry-run] [--yes]
   tools/edit-bqn [--base DIR] account list [--role ROLE]
+  tools/edit-bqn [--base DIR] journal list [--format tsv|text]
   tools/edit-bqn [--base DIR] plan list [--all] [--format tsv|text]
   tools/edit-bqn [--base DIR] plan related [--index NUMBER] [--id PLAN_ID] --actual-date YYYY-MM-DD [--format tsv]
   tools/edit-bqn [--base DIR] plan finish [--index NUMBER] [--id PLAN_ID] --actual-date YYYY-MM-DD [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] plan edit [--index NUMBER] [--id PLAN_ID] [--date YYYY-MM-DD] [--amount INT] [--all] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] journal reverse [--index NUMBER] [--id TXN_ID] [--date YYYY-MM-DD] [--dry-run] [--yes] [--post-check none|lint|full]
 
-Current scope: BQN editor daily commands (journal/budget/plan/issue add, account list, plan list, plan related, plan finish, plan edit, journal reverse).
+Current scope: BQN editor daily commands (journal/budget/plan/issue add, account list, journal list, journal reverse, plan list, plan related, plan finish, and plan edit).
 USAGE
 }
 
@@ -80,6 +81,23 @@ if [[ "$1" == "account" && "$2" == "list" ]]; then
     esac
   done
   cd "$ROOT_DIR" && bqn src_edit/account_list_cmd.bqn "$BASE_DIR" "$ROLE"
+  exit $?
+fi
+
+if [[ "$1" == "journal" && "$2" == "list" ]]; then
+  shift 2
+  FORMAT="text"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --format) FORMAT="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      *) echo "ERROR: unknown journal list argument: $1" >&2; exit 2 ;;
+    esac
+  done
+  case "$FORMAT" in
+    tsv|text) ;;
+    *) echo "ERROR: invalid format: $FORMAT (expected 'tsv' or 'text')" >&2; exit 2 ;;
+  esac
+  cd "$ROOT_DIR" && bqn src_edit/journal_list_cmd.bqn "$BASE_DIR" "$FORMAT"
   exit $?
 fi
 
@@ -449,7 +467,7 @@ if [[ "$1" == "plan" && "$2" == "related" ]]; then
 fi
 
 if [[ "$2" != "add" ]]; then
-  echo "ERROR: tools/edit-bqn currently supports only: account list, journal add, journal reverse, budget add, plan add, issue add, plan list, plan related, plan finish, and plan edit" >&2
+  echo "ERROR: tools/edit-bqn currently supports only: account list, journal add, journal list, journal reverse, budget add, plan add, issue add, plan list, plan related, plan finish, and plan edit" >&2
   usage
   exit 2
 fi
@@ -476,7 +494,7 @@ case "$COMMAND" in
     ROW_TITLE="Issue row"
     ;;
   *)
-    echo "ERROR: tools/edit-bqn currently supports only: account list, journal add, journal reverse, budget add, plan add, issue add, plan list, plan related, plan finish, and plan edit" >&2
+    echo "ERROR: tools/edit-bqn currently supports only: account list, journal add, journal list, journal reverse, budget add, plan add, issue add, plan list, plan related, plan finish, and plan edit" >&2
     usage
     exit 2
     ;;
