@@ -4,41 +4,6 @@
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避済みです。
 
 
-## PR #30 Audit Improvement Backlog (最優先)
-
-- [x] **Batch 1: Safety burrs**
-  - [x] `tools/lib/safe-write.sh` 内のテスト用 hook に残っている `eval` を排除し、シェル関数名チェック（`declare -F` 等）と直接呼び出しに書き換える (P0)
-    - 関連ファイル: `tools/lib/safe-write.sh`, `checks/check-safe-replace-line.sh`
-    - フックをコマンド文字列ではなくシェル関数名とし、`declare -F -- "$hook"` で確認した上で `"$hook"` として呼び出す
-  - [x] `checks/check-safe-replace-line.sh` を更新し、フック関数（例: `append_race_marker`）を定義して呼び出しを確認する
-  - [x] `tools/lib/safe-write.sh` もしくはすべての safe-write パスで、不要な `eval` 混入を検知・防止する grep / check を追加する
-
-- [x] **Batch 2: Loader correctness (P1)**
-  - [x] 必須 vs 任意ソースファイルの定義と、存在しない任意のファイルのテスト追加
-  - [x] 存在しないこと（任意欠損）と、存在するが読み込めない（unreadable/破損）エラー状態を明示的に区別する (`ReadLinesIfPresent` 等の導入)
-  
-- [x] **Batch 3: Dispatcher boundary (P1)**
-  - [x] `tools/edit-bqn` のサブコマンドグループの文書化と、共通シェルヘルパー関数の抽出
-  - [x] 最小のコマンド（`issue add` 等）を `tools/edit-bqn` から別モジュールへ切り出す
-    - 2026-06-30: `docs/EDIT_BQN_DISPATCHER.md`, `tools/lib/edit-bqn-common.sh`, `tools/lib/edit-bqn-issue.sh` を追加。`issue add` を handler 化し、test hook は eval ではなく宣言済み関数呼び出しに統一。
-
-- [x] **Batch 4: Date spine (P1)**
-  - [x] 日付処理用のコントラクトチェックを追加する
-  - [x] 日付の検証や変換処理を `src_next/date.bqn` に集約・一元化し、重複実装を削除する
-    - 2026-06-30: `tests/test_src_next_date.bqn` を追加。`IsValidDateText`, `DaysFromEpoch`, `FromDaysFromEpoch`, `AddDays` を `src_next/date.bqn` に集約し、`projection.bqn` / `src_edit/validate.bqn` / `actual_comparison.bqn` から重複実装を削減。
-
-- [x] **Batch 5: Shell/BQN boundary polishing (P2)**
-  - [x] ソースTSVの意味解釈を行っているシェルスクリプトを棚卸しする
-    - 2026-06-30: `docs/archive/audits/SHELL_BQN_BOUNDARY_AUDIT-2026-06-30.md` を追加。
-  - [x] リファレンス置換として、`tools/add-ui.sh` の account role 候補取得を BQN export (`tools/edit account list --role ...`) 経由へ移す
-  - [x] 次の置換候補: `tools/add-ui.sh` reverse selection の journal direct read を BQN/editor export 化する
-    - 2026-07-01: `src_edit/journal_list_cmd.bqn` / `tools/edit journal list --format tsv` / `checks/check-edit-bqn-journal-list.sh` を追加し、reverse selection を BQN/editor protocol parsing に変更。
-
-- [x] **Batch 6: Define a report section contract checklist (P2)**
-  - [x] 各セクションモジュールの契約チェックリスト文書を作成し、1セクションをリファレンス例として適用する
-    - 2026-07-01: `docs/REPORT_SECTION_CONTRACT_CHECKLIST.md` を追加し、`planned` section を reference example として注釈。
-
-
 ## Real-data trial safety observation
 
 - [x] `docs/REAL_DATA_TRIAL_SAFETY.md` を追加し、sandbox rehearsal / real-data preflight / dry-run / 確認付き書き込み / 観察ログの最小手順を定義する
