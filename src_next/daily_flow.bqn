@@ -14,6 +14,19 @@ env_comp ← •Import "envelope_computation.bqn"
 
 IsMember ← { list ← 𝕨 ⋄ item ← 𝕩 ⋄ (⊑ list ⊐ ⟨item⟩) < ≠ list }
 
+CharWidth ← {
+  cp ← 𝕩 - @
+  ( (cp ≥ 12288) ∧ (cp < 40960) ) + 1
+}
+
+StringWidth ← {
+  val ← 𝕩
+  (0 = ≠ ≢ val) ◶ ⟨
+    { (0 < ≠ val) ◶ ⟨ {0}, {+´ CharWidth¨ val} ⟩ @ },
+    { CharWidth val }
+  ⟩ @
+}
+
 Unbox ← {
   val ← 𝕩
   (0 = ≠ ≢ val) ◶ ⟨ {val}, {>val} ⟩ @
@@ -168,7 +181,7 @@ FormatHuman ← {𝕊 vm:
     val ← Unbox x
     is_str ← (0 = ≠ val) ◶ ⟨ { 2 = •Type ⊑ val }, {1} ⟩ @
     s ← is_str ◶ ⟨ {•Fmt val}, {val} ⟩ @
-    ((0 ⌈ w - ≠ s) ⥊ " ") ∾ s
+    ((0 ⌈ w - StringWidth s) ⥊ " ") ∾ s
   }
 
   headers ← ⟨"date"⟩ ∾ ⟨"income"⟩ ∾ vm.env_labels ∾ ⟨"other"⟩ ∾ ⟨"net"⟩
