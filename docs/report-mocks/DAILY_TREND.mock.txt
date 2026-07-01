@@ -1,7 +1,7 @@
 MOCK / layout only
 report_screen: Daily Trend
 status: mock / pending human review
-question: 日ごとの流動資産・日割り・変動費はどう動いたか
+question: 日ごとの可用資金・日割り・変動費はどう動いたか
 view_type: daily time series (cycle-bounded)
 basis: sample values only; not calculated from data/*.tsv
 as_of: 2026-06-26

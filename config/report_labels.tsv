@@ -1,6 +1,6 @@
 # key	text
 snapshot.section_title	1. 全体サマリ (Snapshot)
-snapshot.liquid_line	流動資産 (type=liquid) : 
+snapshot.liquid_line	可用資金 (type=liquid) : 
 snapshot.savings_line	貯金     (type=savings): 
 snapshot.invest_line	投資     (type=invest) : 
 snapshot.assets_total_line	総資産合計             : 
@@ -53,11 +53,11 @@ outlook.section_title	== Outlook Dashboard ==
 outlook.cycle_label	サイクル: 
 outlook.as_of_label	基準日:   
 outlook.daily_title	── 日割り ──
-outlook.liquid_label	  流動資産           
+outlook.liquid_label	  可用資金           
 outlook.future_income_label	  予定収入(残)       
 outlook.future_expense_label	  予定支出(残)       
-outlook.using_liquid_label	  使える流動資産      
-outlook.safe_liquid_label	  流動資産 (安全/保守) ÷ 残日数 : 
+outlook.using_liquid_label	  使える可用資金      
+outlook.safe_liquid_label	  可用資金 (安全/保守) ÷ 残日数 : 
 outlook.envelope_title	── 封筒日割り ──
 outlook.future_none	+    0   (なし)
 outlook.expense_none	-    0   (なし)

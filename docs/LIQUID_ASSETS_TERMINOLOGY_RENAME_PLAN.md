@@ -1,14 +1,14 @@
 # 流動資産 terminology rename plan
 
-状態: draft / discussion-only / docs-only
+状態: adopted / human-facing labels updated / machine keys unchanged
 
-この文書は、bqn-ledger 内で現在「流動資産」と表示している概念を、より正確な名前へ変更するための計画草案です。
+この文書は、bqn-ledger 内で以前「流動資産」と表示していた概念を、より正確な名前へ変更するための計画です。
 
-この PR では実装変更を行いません。
+現行実装では、人間向け表示は `可用資金` に統一します。内部 metadata / BQN 変数 / machine-readable key は互換性維持のため当面変更しません。
 
 ## 背景
 
-bqn-ledger では現在、`role=asset` かつ `type=liquid` の account を「流動資産」として表示しています。
+bqn-ledger では以前、`role=asset` かつ `type=liquid` の account を「流動資産」として表示していました。
 
 ただし、一般的な会計用語としての「流動資産 / current assets」は、現金・預金だけでなく、売掛金、棚卸資産、短期投資、前払費用などを含み得ます。
 
@@ -80,13 +80,13 @@ bqn-ledger 内で `type=liquid` の残高を生活判断用に読むための pr
 
 ## 当面の方針
 
-まずは、表示名とドキュメントだけを変える方向で検討します。
+表示名とドキュメントでは `可用資金` を使います。
 
 内部 metadata や machine-readable output は、すぐには変更しません。
 
 ```text
 表示名:
-流動資産 -> 可用資金
+流動資産 -> 可用資金 (implemented for human-facing report labels)
 
 内部 metadata:
 type=liquid は維持
@@ -134,7 +134,7 @@ reserve として残す資金
 
 ### Phase 2: 人間向け表示だけ変える
 
-主な対象候補:
+実施済み:
 
 ```text
 config/report_labels.tsv
@@ -146,7 +146,7 @@ config/report_labels.tsv
 流動資産 (type=liquid)
 ```
 
-を、次のような表示へ変更することを検討します。
+を、次の表示へ変更しました。
 
 ```text
 可用資金 (type=liquid)

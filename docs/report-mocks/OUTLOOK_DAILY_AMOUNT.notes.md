@@ -19,7 +19,7 @@ daily dashboard / forecast
 
 ## Relationship to other screens
 
-- **Account Balances**: 資産残高の全景。Outlook はそのうち流動資産だけを日割り計算の根拠に使う
+- **Account Balances**: 資産残高の全景。Outlook はそのうち可用資金だけを日割り計算の根拠に使う
 - **Current Cycle Summary**: サイクル収支の実績。Outlook は残日数ベースの将来ペース
 - **Envelope / Budget**: 全封筒の健全性。Outlook は daily+flex 封筒だけの日割り簡易表示
 
@@ -35,7 +35,7 @@ envelope_computation → remaining per envelope
 ## Include
 
 - サイクル期間と残日数
-- 流動資産 → 予定収入・支出差引 → 使える流動資産 → 日割り
+- 可用資金 → 予定収入・支出差引 → 使える可用資金 → 日割り
 - daily + flex 封筒（remaining > 0）の日割り
 
 ## Exclude
@@ -47,7 +47,7 @@ envelope_computation → remaining per envelope
 
 ## Review decisions (2026-06-26)
 
-- 日割り: 1種類（使える流動資産 ÷ 残日数） ✓
+- 日割り: 1種類（使える可用資金 ÷ 残日数） ✓
 - 表示封筒: budget_group ∈ {daily, flex} かつ remaining > 0 ✓
 - 画面名: Outlook Dashboard ✓
 

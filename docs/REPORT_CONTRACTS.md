@@ -48,7 +48,7 @@ Do not edit this list by hand as a contract change. If section behavior changes,
 
 The `envelopes` section must not show only per-envelope balances while hiding an over-allocated budget pool. Current `src_next/envelope_computation.bqn` derives the unassigned pool from `accounts.tsv` entries with `role=budget kind=unassigned` and exposes these compact summary keys.
 
-Important: this is **ledger unassigned**, not cash-backed surplus. It is the unallocated amount inside the Budget layer / `budget_alloc.tsv` movements. It must not be presented as "safe to spend" until a Budget Backing invariant defines liquid assets and cash backing for envelope balances.
+Important: this is **ledger unassigned**, not cash-backed surplus. It is the unallocated amount inside the Budget layer / `budget_alloc.tsv` movements. It must not be presented as "safe to spend" until a Budget Backing invariant defines 可用資金 (`type=liquid`) and cash backing for envelope balances.
 
 - `src_next_envelope_unassigned_remaining`
 - `src_next_envelope_unassigned_status`

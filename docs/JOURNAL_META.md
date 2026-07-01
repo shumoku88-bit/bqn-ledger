@@ -114,7 +114,7 @@ journal.tsv: 2026-07-16 ... plan_id=plan-2026-07-15-gpt-plus
 - `offset=<days>` : 基準日から何日後か。例: 当日なら `offset=0`、翌日なら `offset=1`
 - `series=<id>` : 同じ定期予定を束ねる名前。例: `series=rent`, `series=pension`
 - `plan_id=<id>` : 個別の予定行と、後日の実績行を結ぶ任意ID。手入力必須ではなく、将来のBQN editorが生成・引き継ぐ想定。
-- `cashflow=fixed_obligation` : 固定的に確保すべきキャッシュアウト。会計上の費用に混ぜず、流動資産・資金繰りの控除候補として扱う。
+- `cashflow=fixed_obligation` : 固定的に確保すべきキャッシュアウト。会計上の費用に混ぜず、可用資金・資金繰りの控除候補として扱う。
 
 例:
 
