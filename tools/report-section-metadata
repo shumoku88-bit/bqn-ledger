@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# tools/report-section-metadata — structured report section metadata export
+#
+# Docs/contract: docs/STRUCTURED_UI_EXPORT_CONTRACT.md
+# Output: TSV header + rows. This wrapper does not read source TSV.
+
+set -euo pipefail
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -L "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+ROOT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+cd "$ROOT_DIR"
+
+if [[ $# -gt 0 ]]; then
+  case "$1" in
+    -h|--help)
+      cat <<'EOF'
+Usage:
+  tools/report-section-metadata
+
+Print structured report section metadata as TSV.
+
+Fields:
+  key, label, category, owner, human_output, structured_output
+EOF
+      exit 0
+      ;;
+    *)
+      echo "Error: unexpected argument: $1" >&2
+      exit 2
+      ;;
+  esac
+fi
+
+exec bqn src_next/report_section_metadata.bqn

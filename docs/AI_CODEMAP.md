@@ -99,6 +99,7 @@
 - `unavailable.bqn` — unavailable sentinel の正本定義と helper (`IsUnavailable`, `StartsWith`)。
 - `config.bqn` — config.tsv 読み込み。
 - `report.bqn` — 人間向けレポートの正本入口。セクション構成は実装と `--list-sections` を正とし、`--section <key>` で単一セクションを出力する（UIツールが動的にセクション抽出するための正本）。
+- `report_section_metadata.bqn` — UI向け structured report section metadata TSV export。source TSV は読まず、section key / label / category / owner / output mode を出す。
 - `summary.bqn` — 機械向けコンパクト出力。
 
 ### `src_edit/` (BQN editor subsystem)
@@ -144,6 +145,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 - `check-src-next-cycle-summary.sh` — サイクルサマリチェック。
 - `check-src-next-ytd-summary.sh` — YTD サマリチェック。
 - `check-src-next-*.sh` — 各セクションの fixture チェック。
+- `check-report-section-metadata.sh` — report section metadata TSV export の契約チェック。
 - `check-repo-index.sh` — repo-index ツールのチェック。
 - `check-disabled-features.sh` — 無効化機能の隔離チェック。
 - `check-edit-bqn-account-list.sh` — BQN account list export チェック。
@@ -187,5 +189,6 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 - `tools/edit-bqn` — 現行の BQN+shell editor 入口。`src_edit` の write path を実行する。
 - `tools/report` / `tools/report-next` — `src_next` を使用したコマンドラインレポートの正本入口。
 - `tools/report-next-summary` — `src_next` データの機械向け要約出力。
+- `tools/report-section-metadata` — source TSV を読まない report section metadata TSV export。UI は human report 文字列を parse せず、このような structured export を使う。
 - `tools/bl` — 日常操作 Command Hub。report / section / add / check / edit をまとめ、読み取り表示と安全な書き込み導線へルーティングする。`edit` の対話モードは TSV 選択サブメニューを持ち、編集後は同じサブメニューへ戻り、`back` / cancel / Ctrl-C で hub 上位へ戻る。
 
