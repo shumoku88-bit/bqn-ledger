@@ -97,6 +97,10 @@ candidate surfaces are:
    - status words such as `due`, `overdue`, `future`, `completed` when applicable
    - enough fields for a UI to choose a plan without parsing report text
 
+   Current surface: `tools/edit plan list --format tsv` exports unfinished plan
+   candidates from `src_edit/plan_list_cmd.bqn`. Its contract is documented in
+   `docs/UNFINISHED_PLAN_ENTRIES_EXPORT_CONTRACT.md`.
+
 3. **Envelope / budget candidate rows**
    - envelope account key / label
    - current semantic status word
@@ -177,4 +181,5 @@ presentation tweak.
 - `docs/REPORT_SECTION_CONTRACT_CHECKLIST.md` — report section contract checklist
 - `src_next/report_section_metadata.bqn` / `tools/report-section-metadata` — first structured report section metadata export
 - `checks/check-report-section-metadata.sh` — contract check for the first export slice
+- `docs/UNFINISHED_PLAN_ENTRIES_EXPORT_CONTRACT.md` — existing unfinished plan candidate export contract
 - `docs/archive/active-plans/STRUCTURED_UI_EXPORT_CONTRACT-2026-07-01.md` — dated active plan

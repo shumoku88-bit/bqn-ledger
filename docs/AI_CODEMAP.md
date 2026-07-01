@@ -113,7 +113,7 @@
 - `src_edit/journal_reverse_cmd.bqn` — journal reverse 用の検証および反対仕訳 APPEND protocol 生成。
 - `src_edit/issue_add_cmd.bqn` — issue add 用の検証および TSV 生成。
 - `src_edit/plan_add_cmd.bqn` — plan add 用の検証および TSV 生成。
-- `src_edit/plan_list_cmd.bqn` — plan list 用の BQN 実装。
+- `src_edit/plan_list_cmd.bqn` — plan list 用の BQN 実装。`tools/edit plan list --format tsv` の unfinished plan candidate export 契約は `docs/UNFINISHED_PLAN_ENTRIES_EXPORT_CONTRACT.md`。
 - `src_edit/plan_related_cmd.bqn` — plan finish replenishment UI 用の read-only 関連予定抽出。`series=` → `plan_id` series → exact fallback の順序を所有する。
 - `src_edit/plan_finish_cmd.bqn` — plan finish 用の検証、実際のジャーナルアペンド行の生成。
 - `src_edit/plan_edit_cmd.bqn` — plan edit 用の検証および exact REPLACE protocol 生成。
@@ -151,7 +151,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 - `check-edit-bqn-account-list.sh` — BQN account list export チェック。
 - `check-edit-bqn-journal-add.sh` — BQN journal/budget/issue add parityチェック。
 - `check-edit-bqn-journal-list.sh` — BQN journal list read-only selection exportチェック。
-- `check-edit-bqn-plan-list.sh` — BQN plan list parityチェック。
+- `check-edit-bqn-plan-list.sh` — BQN plan list parity / unfinished plan candidate export 契約チェック。
 - `check-edit-bqn-plan-add.sh` — BQN plan add parityチェック。
 - `check-edit-bqn-plan-finish.sh` — BQN plan finish parityチェック。
 - `check-safe-replace-line.sh` — 安全置換 primitive のアサーションチェック。
