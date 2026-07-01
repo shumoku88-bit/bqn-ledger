@@ -24,27 +24,24 @@
 
 ## まず読む（pit向け最短ルート）
 
-1. [AI_CODEMAP.md](AI_CODEMAP.md) - pit向けコード地図
+毎回の入口はこの5つだけでよいです。
+
+1. [AI_CODEMAP.md](AI_CODEMAP.md) - pit向けコード地図、データフロー、触る場所の索引
 2. [../TODO.md](../TODO.md) - 現在進行中・次に着手する作業だけ
 3. [QUALITY_BAR.md](QUALITY_BAR.md) - production-grade personal tool として扱う品質基準
 4. [SRC_NEXT_CURRENT.md](SRC_NEXT_CURRENT.md) - 現在の `src_next` 普段使い入口と旧 migration docs の扱い
-5. [ENGINEERING_ROADMAP.md](ENGINEERING_ROADMAP.md) - プロ級へ詰める導線・次の一手
-6. [SAFETY_PROFILE.md](SAFETY_PROFILE.md) - fail closed / 正データ保護 / invariant の小さな安全規格
-7. [SAFETY_PROFILE_INVARIANT_MAP.md](SAFETY_PROFILE_INVARIANT_MAP.md) - Safety Profile invariant と既存 check / lint / fixture の対応表
-8. [ARCHITECTURE.md](ARCHITECTURE.md) - 現行データフローとモジュール責務
-9. [CANONICAL_DAILY_CUBE.md](CANONICAL_DAILY_CUBE.md) - `Day × Account × Layer` の固定契約
-10. [POSTING_IR_CONTRACT.md](POSTING_IR_CONTRACT.md) / [TBDS_CONTRACT.md](TBDS_CONTRACT.md) - Posting IR と試算表データセットの境界契約
-11. [PLAN_ID_LIFECYCLE.md](PLAN_ID_LIFECYCLE.md) - `plan_id` ライフサイクル契約 (BQN editor / BQN report 共通契約)
-12. [TIME_AS_AXIS.md](TIME_AS_AXIS.md) - 時間座標・区間ビュー
-13. [REPORT_CONTRACTS.md](REPORT_CONTRACTS.md) - 現行 report contract の入口（`src_next` / checks / section status policy への索引）
-14. [REPORT_SECTION_CONTRACT_CHECKLIST.md](REPORT_SECTION_CONTRACT_CHECKLIST.md) - report section 追加・変更時の契約チェックリスト
-15. [DATA_DIR_SETUP.md](DATA_DIR_SETUP.md) - データ配置の設定マニュアル
-16. [REAL_DATA_TRIAL_SAFETY.md](REAL_DATA_TRIAL_SAFETY.md) - 実データ運用を小さく試し、問題が出るか観察するための安全手順
-17. [UNAVAILABLE_SENTINEL_CONTRACT.md](UNAVAILABLE_SENTINEL_CONTRACT.md) - unavailable sentinelの定義
-18. [EXTENSION_BOUNDARY.md](EXTENSION_BOUNDARY.md) - plugin system を入れず、read-only adapter / downstream tool の境界を定義する文書
-19. [PUBLIC_PRODUCTIZATION_REVIEW_FILTER.md](PUBLIC_PRODUCTIZATION_REVIEW_FILTER.md) - Homebrew、CI/CD、packaging、Docker、公開OSS化、plugin、marketing 等の広い改善案を分類する review filter
-20. [CONVENTIONS.md](CONVENTIONS.md) / [JOURNAL_META.md](JOURNAL_META.md) - 科目命名・メタデータ規約
-21. 変更内容に応じて、下の「Done / Current Baseline (完了済み・現行仕様として機能)」を参照
+5. [ARCHITECTURE.md](ARCHITECTURE.md) - 現行データフローとモジュール責務
+
+その後は作業内容に応じて読むものを足します。
+
+- 会計エンジン / レポート計算: [CANONICAL_DAILY_CUBE.md](CANONICAL_DAILY_CUBE.md), [POSTING_IR_CONTRACT.md](POSTING_IR_CONTRACT.md), [TBDS_CONTRACT.md](TBDS_CONTRACT.md), [TIME_AS_AXIS.md](TIME_AS_AXIS.md)
+- レポート section 変更: [REPORT_CONTRACTS.md](REPORT_CONTRACTS.md), [REPORT_SECTION_CONTRACT_CHECKLIST.md](REPORT_SECTION_CONTRACT_CHECKLIST.md)
+- source TSV / メタデータ変更: [CONVENTIONS.md](CONVENTIONS.md), [JOURNAL_META.md](JOURNAL_META.md), [DATA_DIR_SETUP.md](DATA_DIR_SETUP.md)
+- editor / 日常入力: [BQN_EDITOR_USAGE.md](BQN_EDITOR_USAGE.md), [ADD_UI_USAGE.md](ADD_UI_USAGE.md), [PLAN_ID_LIFECYCLE.md](PLAN_ID_LIFECYCLE.md)
+- safety / fail closed: [SAFETY_PROFILE.md](SAFETY_PROFILE.md), [SAFETY_PROFILE_INVARIANT_MAP.md](SAFETY_PROFILE_INVARIANT_MAP.md), [UNAVAILABLE_SENTINEL_CONTRACT.md](UNAVAILABLE_SENTINEL_CONTRACT.md), [REAL_DATA_TRIAL_SAFETY.md](REAL_DATA_TRIAL_SAFETY.md)
+- 今後の改善候補: [ENGINEERING_ROADMAP.md](ENGINEERING_ROADMAP.md), [EXTENSION_BOUNDARY.md](EXTENSION_BOUNDARY.md), [PUBLIC_PRODUCTIZATION_REVIEW_FILTER.md](PUBLIC_PRODUCTIZATION_REVIEW_FILTER.md)
+
+迷ったら [../TODO.md](../TODO.md) と [AI_CODEMAP.md](AI_CODEMAP.md) に戻ります。
 
 ---
 

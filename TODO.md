@@ -15,13 +15,12 @@ Last hygiene pass: 2026-07-01 — editor boundary / real-data trial / replenishm
 
 導線: `docs/ENGINEERING_ROADMAP.md` の「コントリビュータ向け文書」。
 
-- [ ] `CONTRIBUTING.md` を repo 直下に作るか判断する
-  - セットアップ
-  - 最初に読む docs
-  - `tools/check.sh` の走らせ方
-  - Go は現行 daily path の必須依存ではなく historical code 用であること
-- [ ] `docs/README.md` の pit 向け「まず読む」を短くするか判断する
-- [ ] `docs/AI_CODEMAP.md` に人間向け補足が必要か確認する
+- [x] `CONTRIBUTING.md` を repo 直下に作るか判断する
+  - 既存 `CONTRIBUTING.md` を現行 daily path に合わせて更新。Go は必須依存から外し、historical / helper 扱いと明記。
+- [x] `docs/README.md` の pit 向け「まず読む」を短くするか判断する
+  - 5項目の最短ルート + 作業別追加 docs に圧縮。
+- [x] `docs/AI_CODEMAP.md` に人間向け補足が必要か確認する
+  - 外部向け入口は `docs/README.md` / `CONTRIBUTING.md`、AI_CODEMAP は人間にも使えるコード索引と明記。
 
 ### 候補 B: report policy externalization の残り判断
 

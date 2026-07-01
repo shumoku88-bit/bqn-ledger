@@ -98,26 +98,24 @@ Date: 2026-06-26
 
 ---
 
-## 5. コントリビュータ向け文書 (Contributor Documentation)
+## 5. コントリビュータ向け文書 (Contributor Documentation) ✅ 完了 (2026-07-01)
 
 ### なぜやるか
 
 現状の docs は moko と pit 向けに最適化されていて、
 外部の人が読むには入口が多すぎる。整理すれば8割はできている。
 
-### やること
+### 結果
 
-1. `CONTRIBUTING.md` を repo 直下に作成
-   - セットアップ（BQN, shell tools, 依存。Go は現行 daily path の必須依存ではなく historical code 用）
-   - 最初に読む docs の導線
-   - テストの走らせ方（`tools/check.sh`）
-   - アーキテクチャの概要（`docs/ARCHITECTURE.md` へのリンク）
-2. `docs/README.md` の「まず読む」セクションを整理
-   - 現状12項目 → 5項目に圧縮
-3. `docs/AI_CODEMAP.md` を人間向けに補足
-4. 各モジュールの先頭コメントを整備（すでに多くのファイルにある）
-
-### 難易度: 低（既存 docs の再編が主）
+- 既存 `CONTRIBUTING.md` を現行 daily path に合わせて更新。
+  - セットアップ
+  - 最初に読む docs
+  - テストの走らせ方（`tools/check.sh`）
+  - アーキテクチャ概要
+  - Go は現行 daily report / TSV editor path の必須依存ではなく historical / helper 扱いであること
+- `docs/README.md` の「まず読む」セクションを5項目の最短ルートへ圧縮し、作業内容別に追加で読む文書を分けた。
+- `docs/AI_CODEMAP.md` に、人間が読む場合の位置づけと外部向け入口を補足した。
+- 各モジュールの先頭コメント整備は、必要が出た時に個別変更として扱う。
 
 ---
 
