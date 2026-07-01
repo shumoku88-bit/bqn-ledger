@@ -264,7 +264,44 @@ backing_status
   OK / MISMATCH / OVER_ALLOCATED / unavailable...。
 ```
 
+status の意味:
+
+```text
+OK
+  cash-backed未割当 == 予算台帳未割当。
+
+MISMATCH
+  cash-backed未割当 != 予算台帳未割当。
+  readonly診断。自動補正しない。
+
+OVER_ALLOCATED
+  cash-backed未割当 < 0。
+  封筒残高合計が封筒対象資金を超えている。
+
+unavailable... / error...
+  unassigned account が未定義・重複などで診断できない。
+```
+
 これは readonly 診断です。`budget_alloc.tsv` を自動補正したり、`budget:unassigned` の意味を置き換えたりはしません。
+
+## 現行 human 表示
+
+現行 human report は MISMATCH / OVER_ALLOCATED を追いやすいよう、式を分解して表示します。
+
+```text
+[Backing check]
+  封筒対象資金(暫定:type=liquid): 81396
+  active封筒残高合計:              68655
+  cash-backed未割当:               12741
+
+[Budget ledger]
+  予算台帳未割当:                   4389
+
+[Delta]
+  cash-backed - ledger:              8352
+  status: MISMATCH
+  NOTE: readonly診断。cash-backed未割当と予算台帳未割当が一致していません。自動補正しません。
+```
 
 ## あり得るレポート表示
 

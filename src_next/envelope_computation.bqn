@@ -519,13 +519,25 @@ FormatHuman ← {𝕊 s:
     out ↩ out ∾ (@+10)
 
     out ↩ out ∾ "[Backing check]" ∾ (@+10)
-    backing_text ← "封筒対象資金(暫定:type=liquid): " ∾ (FmtAmount ⟨s.backing_status, s.funding_base⟩) ∾ " / 封筒残高合計: " ∾ (FmtAmount ⟨s.backing_status, s.allocated_total⟩) ∾ " / cash-backed未割当: " ∾ (FmtAmount ⟨s.backing_status, s.cash_backed_unassigned⟩) ∾ " (" ∾ s.backing_status ∾ ")"
-    out ↩ out ∾ ((s.backing_status ≡ "OK") ⊑ (fmt.Bad backing_text)‿backing_text) ∾ (@+10)
+    out ↩ out ∾ "  封筒対象資金(暫定:type=liquid): " ∾ (FmtAmount ⟨s.backing_status, s.funding_base⟩) ∾ (@+10)
+    out ↩ out ∾ "  active封筒残高合計:              " ∾ (FmtAmount ⟨s.backing_status, s.allocated_total⟩) ∾ (@+10)
+    out ↩ out ∾ "  cash-backed未割当:               " ∾ (FmtAmount ⟨s.backing_status, s.cash_backed_unassigned⟩) ∾ (@+10)
+    out ↩ out ∾ (@+10)
+
+    out ↩ out ∾ "[Budget ledger]" ∾ (@+10)
+    out ↩ out ∾ "  予算台帳未割当:                   " ∾ (FmtAmount ⟨s.unassigned_status, s.unassigned_remaining⟩) ∾ (@+10)
+    out ↩ out ∾ (@+10)
+
+    out ↩ out ∾ "[Delta]" ∾ (@+10)
+    delta_text ← "  cash-backed - ledger:              " ∾ (FmtAmount ⟨s.backing_status, s.ledger_cash_delta⟩)
+    status_text ← "  status: " ∾ s.backing_status
+    out ↩ out ∾ ((s.backing_status ≡ "OK") ⊑ (fmt.Bad delta_text)‿delta_text) ∾ (@+10)
+    out ↩ out ∾ ((s.backing_status ≡ "OK") ⊑ (fmt.Bad status_text)‿status_text) ∾ (@+10)
     {𝕊:
-      out ↩ out ∾ (fmt.Warn "NOTE: cash-backed未割当と予算台帳未割当が一致していません。現段階ではreadonly診断です。") ∾ (@+10)
+      out ↩ out ∾ (fmt.Warn "  NOTE: readonly診断。cash-backed未割当と予算台帳未割当が一致していません。自動補正しません。") ∾ (@+10)
     }⍟(s.backing_status ≡ "MISMATCH") @
     {𝕊:
-      out ↩ out ∾ (fmt.Bad "WARNING: 封筒残高合計が封筒対象資金を超えています。") ∾ (@+10)
+      out ↩ out ∾ (fmt.Bad "  WARNING: 封筒残高合計が封筒対象資金を超えています。") ∾ (@+10)
     }⍟(s.backing_status ≡ "OVER_ALLOCATED") @
     out ↩ out ∾ (@+10)
 

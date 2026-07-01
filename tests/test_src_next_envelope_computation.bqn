@@ -58,6 +58,16 @@ text ← env.Format summary
 0 lib.AssertEq +´ ("safe_remaining" ⍷ text)
 0 lib.AssertEq +´ ("daily_amount" ⍷ text)
 
+human ← env.FormatHuman summary
+1 lib.AssertEq ∨´ "[Backing check]"⍷human
+1 lib.AssertEq ∨´ "封筒対象資金(暫定:type=liquid): 0"⍷human
+1 lib.AssertEq ∨´ "active封筒残高合計:              1070"⍷human
+1 lib.AssertEq ∨´ "cash-backed未割当:               ¯1070"⍷human
+1 lib.AssertEq ∨´ "[Budget ledger]"⍷human
+1 lib.AssertEq ∨´ "予算台帳未割当:                   ¯1500"⍷human
+1 lib.AssertEq ∨´ "cash-backed - ledger:              430"⍷human
+1 lib.AssertEq ∨´ "status: OVER_ALLOCATED"⍷human
+
 # No allocation: target exists and actual can be observed, but status is unavailable
 # and formatted amounts are not polished remaining values.
 tgt ← env.FixtureFoodLikeTarget @

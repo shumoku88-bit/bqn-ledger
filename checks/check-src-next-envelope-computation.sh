@@ -15,7 +15,8 @@ fi
 
 actual_raw="$(mktemp)"
 actual_summary="$(mktemp)"
-trap 'rm -f "$actual_raw" "$actual_summary"' EXIT
+human_out="$(mktemp)"
+trap 'rm -f "$actual_raw" "$actual_summary" "$human_out"' EXIT
 
 tools/report-next-summary "$fixture" 2>/dev/null > "$actual_raw"
 
@@ -42,5 +43,16 @@ if grep -Eq 'safe_remaining|daily_amount|per-day allowance' "$actual_raw"; then
   echo "FAIL: envelope prototype output leaked later-work safe/daily_amount fields" >&2
   exit 1
 fi
+
+tools/report "$fixture" --section envelopes --no-color > "$human_out"
+grep -q '^\[Backing check\]$' "$human_out"
+grep -q '^  封筒対象資金(暫定:type=liquid): 0$' "$human_out"
+grep -q '^  active封筒残高合計:              1070$' "$human_out"
+grep -q '^  cash-backed未割当:               ¯1070$' "$human_out"
+grep -q '^\[Budget ledger\]$' "$human_out"
+grep -q '^  予算台帳未割当:                   ¯1500$' "$human_out"
+grep -q '^\[Delta\]$' "$human_out"
+grep -q '^  cash-backed - ledger:              430$' "$human_out"
+grep -q '^  status: OVER_ALLOCATED$' "$human_out"
 
 echo "OK: src_next envelope computation fixture passed: $fixture" >&2

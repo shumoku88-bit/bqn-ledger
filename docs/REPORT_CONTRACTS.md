@@ -58,6 +58,13 @@ If the unassigned pool is negative, status is `OVER_ALLOCATED` and the human rep
 
 The section also exposes a readonly backing diagnostic. This is intentionally not a write-path or allocation rule yet: `src_next_envelope_funding_base` is currently a provisional `type=liquid` actual closing balance, while `src_next_envelope_allocated_total` is the sum of active envelope remaining balances. `src_next_envelope_cash_backed_unassigned` and `src_next_envelope_backing_status` show whether the envelope balances are cash-backed under that provisional base.
 
+Backing status vocabulary:
+
+- `OK`: cash-backed unassigned equals ledger unassigned.
+- `MISMATCH`: cash-backed unassigned differs from ledger unassigned; readonly diagnostic only, no automatic correction.
+- `OVER_ALLOCATED`: active envelope remaining total exceeds the provisional funding base.
+- `unavailable...` / `error...`: backing diagnostic cannot be trusted because the unassigned budget account is missing, ambiguous, or otherwise unavailable.
+
 - `src_next_envelope_funding_base`
 - `src_next_envelope_allocated_total`
 - `src_next_envelope_cash_backed_unassigned`
