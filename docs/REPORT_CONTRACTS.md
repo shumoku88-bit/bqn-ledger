@@ -15,10 +15,11 @@ For current `src_next` behavior, use these in order:
 
 1. `tools/report --list-sections` — canonical list of currently runnable human report sections.
 2. `src_next/report.bqn` — section dispatcher and human report rendering entrypoint.
-3. `src_next/summary.bqn` — current machine-readable compact summary fields.
-4. `docs/REPORT_SECTION_CONTRACT_CHECKLIST.md` — checklist for section identity, data ownership, empty-state/status behavior, labels, machine output, and fixture coverage.
-5. `docs/archive/active-plans/REPORT_SECTION_STATUS_POLICY.md` — `OK / WARN / ERROR / SKIPPED / UNAVAILABLE` status vocabulary and partial implementation policy.
-6. Fixture checks under `checks/check-src-next-*.sh` and BQN unit tests under `tests/test_src_next_*.bqn` — executable contracts.
+3. `tools/report-section-metadata` — structured section metadata export for UI tools (TSV default / JSON), without reading source TSV.
+4. `src_next/summary.bqn` — current machine-readable compact summary fields.
+5. `docs/REPORT_SECTION_CONTRACT_CHECKLIST.md` — checklist for section identity, data ownership, empty-state/status behavior, labels, machine output, and fixture coverage.
+6. `docs/archive/active-plans/REPORT_SECTION_STATUS_POLICY.md` — `OK / WARN / ERROR / SKIPPED / UNAVAILABLE` status vocabulary and partial implementation policy.
+7. Fixture checks under `checks/check-src-next-*.sh` and BQN unit tests under `tests/test_src_next_*.bqn` — executable contracts.
 
 ## Current section list
 

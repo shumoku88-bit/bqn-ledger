@@ -50,6 +50,7 @@ Current reference extraction: `issue add` → `handle_edit_bqn_issue_add` in
 Current boundary-polishing references:
 
 - `tools/add-ui.sh` account candidates use `tools/edit account list [--role ROLE]` instead of reading `accounts.tsv` directly.
+- `tools/add-ui.sh` plan selection uses `tools/edit plan list --format tsv` instead of reading `plan.tsv` directly; see `docs/UNFINISHED_PLAN_ENTRIES_EXPORT_CONTRACT.md`.
 - `tools/add-ui.sh` reverse selection uses `tools/edit journal list --format tsv` instead of reading `journal.tsv` directly.
 - `journal reverse` uses the narrow `src_edit/journal_reverse_cmd.bqn`.
 - `plan edit` uses the narrow `src_edit/plan_edit_cmd.bqn`.

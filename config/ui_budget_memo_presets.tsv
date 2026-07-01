@@ -1,0 +1,6 @@
+# Format: key TAB description TAB memo_value
+# UI presets for budget_alloc.tsv memo in tools/add-ui.sh budget mode.
+alloc	alloc (default)	alloc
+seed	seed	seed
+move	move	move
+custom	enter memo	custom

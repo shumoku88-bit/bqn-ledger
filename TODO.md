@@ -47,6 +47,23 @@ Last hygiene pass: 2026-07-01 — editor boundary / real-data trial / replenishm
 - [ ] 完了済み計画は archive へ移し、現行仕様・進行中計画・履歴メモを混ぜない
 - [ ] いきなり削除せず、小さな移動・短い stub・導線確認を優先する
 
+### 候補 D: report structured JSON 層の次 slice
+
+導線:
+- `docs/STRUCTURED_UI_EXPORT_CONTRACT.md`
+- `docs/REPORT_CONTRACTS.md`
+- `docs/REPORT_SECTION_CONTRACT_CHECKLIST.md`
+
+完了済み境界:
+- `tools/report-section-metadata` は TSV default / `--format json` に対応済み。
+- `tools/main-ui.sh` は human report 文字列ではなく section metadata export を使う。
+
+次に選ぶなら小さく分ける:
+- [ ] `tools/report --section <key> --format json` の入口方針を設計する（いきなり全 section 実装しない）
+- [ ] 最初の対象 section を1つ選び、ViewModel JSON の required fields / unavailable 表現 / check 方針を決める
+- [ ] JSON helper を `src_next/json.bqn` 等へ共通化するか、metadata 専用のまま保留するか判断する
+- [ ] human `FormatHuman` は維持し、UI は human report を parse しない境界を守る
+
 ---
 
 ## Active guardrails / reminders

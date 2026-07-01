@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# tools/report-section-metadata — structured report section metadata export
+#
+# Docs/contract: docs/STRUCTURED_UI_EXPORT_CONTRACT.md
+# Output: TSV header + rows. This wrapper does not read source TSV.
+
+set -euo pipefail
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -L "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+ROOT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+cd "$ROOT_DIR"
+
+format="tsv"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h|--help)
+      cat <<'EOF'
+Usage:
+  tools/report-section-metadata [--format tsv|json]
+
+Print structured report section metadata.
+
+Default format: tsv
+Fields:
+  key, label, category, owner, human_output, structured_output
+EOF
+      exit 0
+      ;;
+    --format)
+      if [[ $# -lt 2 ]]; then
+        echo "Error: --format requires one of: tsv, json" >&2
+        exit 2
+      fi
+      format="$2"
+      shift 2
+      ;;
+    --format=*)
+      format="${1#--format=}"
+      shift
+      ;;
+    *)
+      echo "Error: unexpected argument: $1" >&2
+      exit 2
+      ;;
+  esac
+done
+
+case "$format" in
+  tsv|json) ;;
+  *)
+    echo "Error: unsupported format: $format" >&2
+    exit 2
+    ;;
+esac
+
+exec bqn src_next/report_section_metadata.bqn --format "$format"

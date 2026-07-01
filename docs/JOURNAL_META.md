@@ -164,4 +164,5 @@ journal.tsv: 2026-07-16 ... plan_id=plan-2026-07-15-gpt-plus
 
 - 日常入力は `tools/add-ui.sh` または `tools/edit` を使います。
 - CLI で明示する場合は `tools/edit journal add ... --meta tax=private --meta biz=0` のように、`--meta key=value` を追加します。
+- `tools/add-ui.sh` のメタ候補プリセットは `config/ui_meta_presets.tsv` に置きます。Shell は候補を表示するだけで、メタキーの意味解釈や検証は BQN editor / `config/meta_schema.tsv` 側に寄せます。
 - 書き込みは BQN editor の preview / confirm / backup / stale check 経路を通します。

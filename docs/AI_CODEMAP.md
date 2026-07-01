@@ -99,6 +99,7 @@
 - `unavailable.bqn` — unavailable sentinel の正本定義と helper (`IsUnavailable`, `StartsWith`)。
 - `config.bqn` — config.tsv 読み込み。
 - `report.bqn` — 人間向けレポートの正本入口。セクション構成は実装と `--list-sections` を正とし、`--section <key>` で単一セクションを出力する（UIツールが動的にセクション抽出するための正本）。
+- `report_section_metadata.bqn` — UI向け structured report section metadata export（TSV default / JSON）。source TSV は読まず、section key / label / category / owner / output mode を出す。
 - `summary.bqn` — 機械向けコンパクト出力。
 
 ### `src_edit/` (BQN editor subsystem)
@@ -112,7 +113,7 @@
 - `src_edit/journal_reverse_cmd.bqn` — journal reverse 用の検証および反対仕訳 APPEND protocol 生成。
 - `src_edit/issue_add_cmd.bqn` — issue add 用の検証および TSV 生成。
 - `src_edit/plan_add_cmd.bqn` — plan add 用の検証および TSV 生成。
-- `src_edit/plan_list_cmd.bqn` — plan list 用の BQN 実装。
+- `src_edit/plan_list_cmd.bqn` — plan list 用の BQN 実装。`tools/edit plan list --format tsv` の unfinished plan candidate export 契約は `docs/UNFINISHED_PLAN_ENTRIES_EXPORT_CONTRACT.md`。
 - `src_edit/plan_related_cmd.bqn` — plan finish replenishment UI 用の read-only 関連予定抽出。`series=` → `plan_id` series → exact fallback の順序を所有する。
 - `src_edit/plan_finish_cmd.bqn` — plan finish 用の検証、実際のジャーナルアペンド行の生成。
 - `src_edit/plan_edit_cmd.bqn` — plan edit 用の検証および exact REPLACE protocol 生成。
@@ -144,12 +145,13 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 - `check-src-next-cycle-summary.sh` — サイクルサマリチェック。
 - `check-src-next-ytd-summary.sh` — YTD サマリチェック。
 - `check-src-next-*.sh` — 各セクションの fixture チェック。
+- `check-report-section-metadata.sh` — report section metadata TSV export の契約チェック。
 - `check-repo-index.sh` — repo-index ツールのチェック。
 - `check-disabled-features.sh` — 無効化機能の隔離チェック。
 - `check-edit-bqn-account-list.sh` — BQN account list export チェック。
 - `check-edit-bqn-journal-add.sh` — BQN journal/budget/issue add parityチェック。
 - `check-edit-bqn-journal-list.sh` — BQN journal list read-only selection exportチェック。
-- `check-edit-bqn-plan-list.sh` — BQN plan list parityチェック。
+- `check-edit-bqn-plan-list.sh` — BQN plan list parity / unfinished plan candidate export 契約チェック。
 - `check-edit-bqn-plan-add.sh` — BQN plan add parityチェック。
 - `check-edit-bqn-plan-finish.sh` — BQN plan finish parityチェック。
 - `check-safe-replace-line.sh` — 安全置換 primitive のアサーションチェック。
@@ -187,5 +189,6 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 - `tools/edit-bqn` — 現行の BQN+shell editor 入口。`src_edit` の write path を実行する。
 - `tools/report` / `tools/report-next` — `src_next` を使用したコマンドラインレポートの正本入口。
 - `tools/report-next-summary` — `src_next` データの機械向け要約出力。
+- `tools/report-section-metadata` — source TSV を読まない report section metadata export（TSV default / JSON）。UI は human report 文字列を parse せず、このような structured export を使う。
 - `tools/bl` — 日常操作 Command Hub。report / section / add / check / edit をまとめ、読み取り表示と安全な書き込み導線へルーティングする。`edit` の対話モードは TSV 選択サブメニューを持ち、編集後は同じサブメニューへ戻り、`back` / cancel / Ctrl-C で hub 上位へ戻る。
 
