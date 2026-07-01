@@ -9,21 +9,22 @@ Last hygiene pass: 2026-07-01 — active-plans 棚卸しを `docs/archive/active
 
 ## Now: 次に選ぶ作業
 
-### 最重要: 封筒予算の backing invariant 設計
+### 最重要: 封筒予算 hybrid backing policy の次設計
 
-Status: urgent docs/design before relying on envelope surplus figures.
+Status: short-term hybrid policy adopted; next is operation/design details before writing real data.
 
-背景:
-- 封筒レポートに `role=budget kind=unassigned` 由来の未割当表示を追加したが、これは **予算台帳上の未配賦額** であり、可用資金（`type=liquid`）で裏付けられた「使ってよい余り」ではない。
-- 「封筒レポート通りに使ったら現金が足りない」を防ぐには、プログラム全体で可用資金の定義と封筒予算対象資産を先に決める必要がある。
-- 固定費は最初の運用では `budget:固定費` のような封筒へ集約し、予定支出引当との二重計上を避ける案が有力。
+完了済み:
+- `docs/LIQUID_ASSETS_TERMINOLOGY_RENAME_PLAN.md` で `流動資産` 表示を `可用資金` に整理。`type=liquid` / machine keys は互換維持。
+- `docs/ENVELOPE_FUNDING_BASE_INVARIANT.md` で `封筒対象資金` / `予算台帳未割当` / `現金裏付け未割当` を分離。
+- `src_next/envelope_computation.bqn` に readonly backing diagnostic / provenance / budget movement provenance を追加。
+- 短期方針として C案 hybrid を採用: `budget_alloc.tsv` は配分台帳の正本、現金裏付け未割当は readonly diagnostic、MISMATCH は強い警告ではなく診断差分、OVER_ALLOCATED だけ強い警告。
 
 次の小さい slice:
-- [ ] `docs/BUDGET_BACKING_INVARIANT.md` などで、可用資金 (`type=liquid`) / budget-backed liquid assets / 未割当 / 封筒残高 / 固定費封筒の用語を定義する
-- [ ] `未割当(予算台帳)` と `cash-backed surplus` を明確に分け、現状表示を要修正・暫定扱いにする
-- [ ] `budget:未割当 + active envelope remaining` が何とバランスすべきかを決める
+- [ ] adjustment row の運用設計を docs-only で決める（いつ、どの memo/source_id、どの向きで `budget:未割当` を調整するか）
+- [ ] cycle seed の基準を設計する（暫定 `type=liquid` actual closing / 予定支出控除後 / 明示 `budget_pool=main` など）
+- [ ] reserve / savings / investment envelope を active envelope remaining に含めるか決める
 - [ ] 固定費を封筒に含める方式と、予定支出引当として別枠にする方式の二重計上リスクを整理する
-- [ ] 実装に進む前に fixture/check 方針を決める
+- [ ] `budget_pool=main` metadata 導入の要否・fixture/check 方針を決める
 
 ---
 

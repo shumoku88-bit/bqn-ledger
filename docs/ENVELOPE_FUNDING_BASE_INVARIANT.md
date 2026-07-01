@@ -232,6 +232,39 @@ type=liquid の実残高
 - 次に「封筒対象資金」を定義すると、封筒未割り当てが資産ではないことを明確にできる。
 - 実装変更は、概念が固まってからでよい。
 
+## Adopted short-term policy
+
+短期方針として、C案 hybrid を採用します。
+
+```text
+budget_alloc.tsv
+  封筒配分台帳の正本として維持する。
+
+予算台帳未割当
+  `role=budget kind=unassigned` account の Budget layer 残高。
+  source TSV 由来の配分台帳上の未配賦残として扱う。
+
+現金裏付け未割当
+  `envelope_funding_base - active_envelope_remaining_total` の readonly diagnostic。
+  現行実装では envelope_funding_base を暫定 `role=asset type=liquid` actual closing balance とする。
+
+MISMATCH
+  予算台帳未割当と現金裏付け未割当が異なる状態。
+  エラーや強い警告ではなく、診断差分 / 調整候補として扱う。
+
+OVER_ALLOCATED
+  active envelope remaining total が envelope_funding_base を超える状態。
+  これは「封筒残高が現金裏付けを超える」強い警告として扱う。
+```
+
+運用方針:
+
+- `budget:未割当` を自動で computed に寄せない。
+- 差分が出ても自動補正しない。
+- 差分を調整する場合は、人間が理由を確認し、明示的な adjustment row を `budget_alloc.tsv` に追加する。
+- 日常判断では封筒残高を主表示し、現金裏付け未割当は安全確認として添える。
+- `budget_pool=main`、reserve / savings / investment envelope の扱い、cycle seed 基準は中期設計として残す。
+
 ## 現行 readonly diagnostic
 
 現行実装では、封筒セクションに次の machine-readable fields を追加しています。
@@ -372,13 +405,12 @@ unavailable... / error...
 
 ## 未決定事項
 
-- 中心用語を「封筒対象資金」とするか。
-- 英語内部名を `envelope_funding_base`、`budgetable_funds`、`budget_pool` のどれに寄せるか。
 - `budget_pool=main` のような metadata を導入するか。
 - `type=liquid|savings|invest` の分類名・境界をどう再設計するか（貯金・投資信託も換金可能性の観点では liquid と見なせるため、この文書では決めない）。
 - `type=liquid` と `budget_pool` / `envelope_funding_base` の関係をどう説明するか。
-- 封筒未割り当てを account として表すか、計算結果としてのみ表すか。
 - 複数 budget pool を将来許容するか。
+- reserve / savings / investment envelope を active envelope remaining に含めるか。
+- cycle seed の基準を `type=liquid` actual closing、予定支出控除後、または別設定にするか。
 - report label と machine-readable key をいつ変更するか。
 
 ## 暫定結論
