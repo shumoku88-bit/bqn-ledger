@@ -70,6 +70,35 @@ BudgetLabel ← {𝕊 account:
   ("budget:" unav.StartsWith account) ⊑ account‿(7 ↓ account)
 }
 
+UnassignedBudgetAccountIndices ← {𝕊 resolved:
+  budget_mask ← BudgetAccountMask resolved
+  kind_unassigned_mask ← "unassigned"⊸≡¨ resolved.kinds
+  (budget_mask ∧ kind_unassigned_mask) / ↕ resolved.count
+}
+
+UnassignedStatus ← {𝕊 cnt‿remaining:
+  status ← "OK"
+  {𝕊: status ↩ "OVER_ALLOCATED"}⍟(remaining < 0) @
+  {𝕊: status ↩ "error/ambiguous_unassigned_account"}⍟(cnt > 1) @
+  {𝕊: status ↩ "unavailable/no_unassigned_account"}⍟(cnt = 0) @
+  status
+}
+
+CalcUnassignedRemaining ← {𝕊 resolved‿valid_rows:
+  unassigned_indices ← UnassignedBudgetAccountIndices resolved
+  row_layer ← {𝕩.layer_index}¨ valid_rows
+  row_ak ← {𝕩.account_key_index}¨ valid_rows
+  row_delta ← {𝕩.delta}¨ valid_rows
+  mask ← (row_layer = 2) ∧ (unassigned_indices⊸IsMember¨ row_ak)
+  remaining ← Sum0 (mask / row_delta)
+  cnt ← ≠ unassigned_indices
+  {
+    account_count ⇐ cnt,
+    remaining ⇐ remaining,
+    status ⇐ UnassignedStatus ⟨cnt, remaining⟩
+  }
+}
+
 TargetBudgetAccountIndices ← {𝕊 tgt‿resolved:
   can_select ← tgt.has_policy ∧ (tgt.selector_key ≡ "budget")
   {𝕊:
@@ -269,6 +298,9 @@ BuildFromInputs ← {𝕊 tgt‿resolved‿cy‿valid_rows‿alloc_lines:
     allocation_row_count ⇐ allocation_row_count,
     target_budget_account_count ⇐ target_budget_account_count,
     envelopes ⇐ ⟨⟩,
+    unassigned_remaining ⇐ 0,
+    unassigned_status ⇐ "unavailable/not_computed",
+    unassigned_account_count ⇐ 0,
     has_policy ⇐ tgt.has_policy
   }
 }
@@ -329,6 +361,8 @@ Build ← {𝕊 base‿resolved‿cy‿valid_rows:
       allocation_row_count ← allocated_info_tgt.row_count
       target_budget_account_count ← allocated_info_tgt.target_budget_account_count
 
+      unassigned ← CalcUnassignedRemaining ⟨resolved, valid_rows⟩
+
       {
         target_id ⇐ tgt.target_id,
         label ⇐ tgt.label,
@@ -342,7 +376,10 @@ Build ← {𝕊 base‿resolved‿cy‿valid_rows:
         has_policy ⇐ tgt.has_policy,
         selected_expense_account_count ⇐ selected_expense_account_count,
         allocation_row_count ⇐ allocation_row_count,
-        target_budget_account_count ⇐ target_budget_account_count
+        target_budget_account_count ⇐ target_budget_account_count,
+        unassigned_remaining ⇐ unassigned.remaining,
+        unassigned_status ⇐ unassigned.status,
+        unassigned_account_count ⇐ unassigned.account_count
       }
     },
     { 𝕊 ⋄
@@ -359,7 +396,10 @@ Build ← {𝕊 base‿resolved‿cy‿valid_rows:
         has_policy ⇐ 0,
         selected_expense_account_count ⇐ 0,
         allocation_row_count ⇐ 0,
-        target_budget_account_count ⇐ 0
+        target_budget_account_count ⇐ 0,
+        unassigned_remaining ⇐ 0,
+        unassigned_status ⇐ "disabled",
+        unassigned_account_count ⇐ 0
       }
     }
   ⟩ @
@@ -379,6 +419,9 @@ Format ← {𝕊 s:
   out ↩ out ∾ "src_next_envelope_actual_spent: " ∾ (FmtAmount ⟨s.status, s.actual_spent⟩) ∾ (@+10)
   out ↩ out ∾ "src_next_envelope_remaining: " ∾ (FmtAmount ⟨s.status, s.remaining⟩) ∾ (@+10)
   out ↩ out ∾ "src_next_envelope_status: " ∾ s.status ∾ (@+10)
+  out ↩ out ∾ "src_next_envelope_unassigned_remaining: " ∾ (FmtAmount ⟨s.unassigned_status, s.unassigned_remaining⟩) ∾ (@+10)
+  out ↩ out ∾ "src_next_envelope_unassigned_status: " ∾ s.unassigned_status ∾ (@+10)
+  out ↩ out ∾ "src_next_envelope_unassigned_account_count: " ∾ (•Fmt s.unassigned_account_count) ∾ (@+10)
   out
 }
 
@@ -414,6 +457,15 @@ FormatHuman ← {𝕊 s:
 
     RenderRow¨ sorted_envs
     out ↩ out ∾ "---------+----------------+----------+-------+------+-----+---------+--------" ∾ (@+10)
+    out ↩ out ∾ (@+10)
+
+    out ↩ out ∾ "[Budget pool]" ∾ (@+10)
+    unassigned_text ← "未割当(予算台帳): " ∾ (FmtAmount ⟨s.unassigned_status, s.unassigned_remaining⟩) ∾ " (" ∾ s.unassigned_status ∾ ")"
+    out ↩ out ∾ ((s.unassigned_status ≡ "OVER_ALLOCATED") ⊑ unassigned_text‿(fmt.Bad unassigned_text)) ∾ (@+10)
+    {𝕊:
+      out ↩ out ∾ (fmt.Bad "WARNING: 未割当がマイナスです。封筒合計が予算原資を超えている可能性があります。") ∾ (@+10)
+    }⍟(s.unassigned_status ≡ "OVER_ALLOCATED") @
+    out ↩ out ∾ (@+10)
 
     out ↩ out ∾ "[Health]" ∾ (@+10)
     out ↩ out ∾ (fmt.Ok "SAFE") ∾ (L "env.safe") ∾ (@+10)
@@ -441,6 +493,8 @@ FormatHuman ← {𝕊 s:
   CalcActualSpent ⇐ CalcActualSpent,
   CalcRemaining ⇐ CalcRemaining,
   DecideStatus ⇐ DecideStatus,
+  UnassignedBudgetAccountIndices ⇐ UnassignedBudgetAccountIndices,
+  CalcUnassignedRemaining ⇐ CalcUnassignedRemaining,
   Format ⇐ Format,
   FormatHuman ⇐ FormatHuman
 }

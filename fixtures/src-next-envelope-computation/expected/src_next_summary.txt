@@ -6,3 +6,6 @@ src_next_envelope_allocated: 1000
 src_next_envelope_actual_spent: 350
 src_next_envelope_remaining: 650
 src_next_envelope_status: computed
+src_next_envelope_unassigned_remaining: ¯1500
+src_next_envelope_unassigned_status: OVER_ALLOCATED
+src_next_envelope_unassigned_account_count: 1

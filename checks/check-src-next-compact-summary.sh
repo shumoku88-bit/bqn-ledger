@@ -185,6 +185,8 @@ for field in src_next_cycle_range src_next_valid_projection_rows src_next_skippe
              src_next_envelope_target_id src_next_envelope_label src_next_envelope_selector \
              src_next_envelope_allocated src_next_envelope_actual_spent \
              src_next_envelope_remaining src_next_envelope_status \
+             src_next_envelope_unassigned_remaining src_next_envelope_unassigned_status \
+             src_next_envelope_unassigned_account_count \
              src_next_household_metadata_expense_accounts_total \
              src_next_household_metadata_missing_budget_count \
              src_next_household_metadata_missing_budget_group_count \

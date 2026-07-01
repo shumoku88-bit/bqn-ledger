@@ -34,6 +34,9 @@ summary ← env.Build { base ⇐ base, resolved ⇐ resolved, cy ⇐ cy, cube �
 1000 lib.AssertEq summary.allocated
 350 lib.AssertEq summary.actual_spent
 650 lib.AssertEq summary.remaining
+¯1500 lib.AssertEq summary.unassigned_remaining
+"OVER_ALLOCATED" lib.AssertEq summary.unassigned_status
+1 lib.AssertEq summary.unassigned_account_count
 
 # Planned spending is present (200) but the prototype remaining does not subtract it.
 200 lib.AssertEq result.plan_expense_total

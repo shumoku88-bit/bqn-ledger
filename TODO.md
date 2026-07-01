@@ -9,6 +9,24 @@ Last hygiene pass: 2026-07-01 — active-plans 棚卸しを `docs/archive/active
 
 ## Now: 次に選ぶ作業
 
+### 最重要: 封筒予算の backing invariant 設計
+
+Status: urgent docs/design before relying on envelope surplus figures.
+
+背景:
+- 封筒レポートに `role=budget kind=unassigned` 由来の未割当表示を追加したが、これは **予算台帳上の未配賦額** であり、流動資産で裏付けられた「使ってよい余り」ではない。
+- 「封筒レポート通りに使ったら現金が足りない」を防ぐには、プログラム全体で流動資産の定義と封筒予算対象資産を先に決める必要がある。
+- 固定費は最初の運用では `budget:固定費` のような封筒へ集約し、予定支出引当との二重計上を避ける案が有力。
+
+次の小さい slice:
+- [ ] `docs/BUDGET_BACKING_INVARIANT.md` などで、流動資産 / budget-backed liquid assets / 未割当 / 封筒残高 / 固定費封筒の用語を定義する
+- [ ] `未割当(予算台帳)` と `cash-backed surplus` を明確に分け、現状表示を要修正・暫定扱いにする
+- [ ] `budget:未割当 + active envelope remaining` が何とバランスすべきかを決める
+- [ ] 固定費を封筒に含める方式と、予定支出引当として別枠にする方式の二重計上リスクを整理する
+- [ ] 実装に進む前に fixture/check 方針を決める
+
+---
+
 直近の structured UI export 境界整理は main にマージ済み。次は下のどれかを小さく選ぶ。
 
 ### 候補 C: TODO / docs hygiene 継続
