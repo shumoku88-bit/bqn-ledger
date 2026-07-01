@@ -56,6 +56,7 @@ assert_stdin_nonempty_contains() {
 
 if bash -n tools/main-ui.sh; then pass "main-ui syntax ok"; else fail "main-ui syntax error"; fi
 if bash -n tools/add-ui.sh; then pass "add-ui syntax ok"; else fail "add-ui syntax error"; fi
+if bash -n tools/bl; then pass "bl syntax ok"; else fail "bl syntax error"; fi
 
 assert_stdin_nonempty_contains \
   "main-ui default selector" \
@@ -127,6 +128,32 @@ if tools/main-ui.sh --help >/dev/null; then
 else
   fail "main-ui help failed"
 fi
+
+bl_edit_out="$(mktemp)"
+bl_edit_err="$(mktemp)"
+if EDITOR=true tools/bl --base "$fixture" edit journal.tsv >"$bl_edit_out" 2>"$bl_edit_err"; then
+  if grep -qF -- "Opening $fixture/journal.tsv" "$bl_edit_out"; then
+    pass "bl direct edit opens requested TSV"
+  else
+    fail "bl direct edit did not show requested TSV path"
+  fi
+else
+  fail "bl direct edit failed: $(head -1 "$bl_edit_err")"
+fi
+rm -f "$bl_edit_out" "$bl_edit_err"
+
+bl_edit_out="$(mktemp)"
+bl_edit_err="$(mktemp)"
+if printf 'journal.tsv\nback\n' | EDITOR=true tools/bl --base "$fixture" edit >"$bl_edit_out" 2>"$bl_edit_err"; then
+  if grep -qF -- "Back to main menu" "$bl_edit_err" && grep -qF -- "Opening $fixture/journal.tsv" "$bl_edit_out"; then
+    pass "bl edit submenu returns after editing and accepts back"
+  else
+    fail "bl edit submenu did not show edit menu/back flow"
+  fi
+else
+  fail "bl edit submenu failed: $(head -1 "$bl_edit_err")"
+fi
+rm -f "$bl_edit_out" "$bl_edit_err"
 
 bad_out="$(mktemp)"
 bad_err="$(mktemp)"

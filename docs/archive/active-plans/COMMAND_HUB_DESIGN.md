@@ -163,6 +163,20 @@ tools/bl edit plan.tsv
   -> $EDITOR plan.tsv
 ```
 
+Current interactive edit navigation:
+
+```text
+tools/bl
+  -> edit
+     -> TSV selection submenu
+        -> $EDITOR <selected.tsv>
+        -> return to TSV selection submenu
+     -> back / cancel / Ctrl-C
+  -> top-level hub menu
+```
+
+The hub only owns navigation and editor launch. It does not parse TSV meaning or implement source-row edits itself.
+
 ## Implementation preference
 
 Initial implementation, if approved later:

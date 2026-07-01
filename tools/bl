@@ -97,7 +97,8 @@ exit	Exit
 EOF
 }
 
-# TSV files list for edit command
+# TSV files list for edit command.
+# Keep this as file identity + presentation text only; TSV meaning stays in BQN/docs.
 tsv_list() {
   cat <<EOF
 journal.tsv	Journal transactions
@@ -108,6 +109,11 @@ cycle.tsv	Cycle parameters
 issues.tsv	Pending issues and decisions
 config.tsv	Local configuration
 EOF
+}
+
+tsv_menu_list() {
+  tsv_list
+  printf 'back\tBack to main menu\n'
 }
 
 run_check() {
@@ -122,50 +128,104 @@ run_check() {
   fi
 }
 
-run_edit() {
-  local file="${1:-}"
-  if [[ -z "$file" ]]; then
-    # Menu for file selection
-    if command -v fzf >/dev/null 2>&1 && [[ "$IS_TTY" -eq 1 ]]; then
-      selection="$(tsv_list | fzf --prompt='edit file> ' --delimiter=$'\t' --with-nth=2.. --reverse --exit-0)"
-      [[ -z "$selection" ]] && echo "Cancelled." && return 0
-      file="${selection%%$'\t'*}"
-    elif command -v gum >/dev/null 2>&1 && [[ "$IS_TTY" -eq 1 ]]; then
-      selection="$(tsv_list | gum filter "${GUM_FILTER_ARGS[@]}" --placeholder='edit file')"
-      [[ -z "$selection" ]] && echo "Cancelled." && return 0
-      file="${selection%%$'\t'*}"
-    else
-      tsv_list
-      printf 'Enter file to edit: '
-      read -r file
+select_tsv_file() {
+  local selection="" status=0 file=""
+
+  if command -v fzf >/dev/null 2>&1 && [[ "$IS_TTY" -eq 1 ]]; then
+    set +e
+    selection="$(tsv_menu_list | fzf --prompt='edit file> ' --delimiter=$'\t' --with-nth=2.. --reverse --exit-0)"
+    status=$?
+    set -e
+    [[ "$status" -eq 130 || -z "$selection" ]] && return 130
+    file="${selection%%$'\t'*}"
+  elif command -v gum >/dev/null 2>&1 && [[ "$IS_TTY" -eq 1 ]]; then
+    set +e
+    selection="$(tsv_menu_list | gum filter "${GUM_FILTER_ARGS[@]}" --placeholder='edit file')"
+    status=$?
+    set -e
+    [[ "$status" -eq 130 || -z "$selection" ]] && return 130
+    file="${selection%%$'\t'*}"
+  else
+    tsv_menu_list >&2
+    printf 'Enter file to edit (or back): ' >&2
+    if ! read -r file; then
+      return 130
     fi
   fi
 
-  # Resolve file path
-  local file_path=""
+  case "$file" in
+    back|quit|exit|'') return 130 ;;
+    *) printf '%s\n' "$file" ;;
+  esac
+}
+
+resolve_tsv_path() {
+  local file="$1"
   case "$file" in
     journal.tsv|plan.tsv|budget_alloc.tsv|accounts.tsv|cycle.tsv|issues.tsv)
-      file_path="$base_dir/$file"
+      printf '%s\n' "$base_dir/$file"
       ;;
     config.tsv)
-      file_path="$base_dir/config.tsv"
+      local file_path="$base_dir/config.tsv"
       if [[ ! -f "$file_path" ]]; then
         file_path="$ROOT_DIR/config/default_config.tsv"
       fi
+      printf '%s\n' "$file_path"
       ;;
     *)
-      file_path="$file"
+      printf '%s\n' "$file"
       ;;
   esac
+}
 
+ensure_editor() {
   if [[ -z "${EDITOR:-}" ]]; then
     EDITOR="nano"
     if command -v vim >/dev/null 2>&1; then EDITOR="vim"; fi
     if command -v vi >/dev/null 2>&1; then EDITOR="vi"; fi
   fi
+}
+
+open_tsv_file() {
+  local file="$1" file_path status
+  file_path="$(resolve_tsv_path "$file")"
+  ensure_editor
 
   print_header "Opening $file_path in $EDITOR"
+  set +e
   $EDITOR "$file_path"
+  status=$?
+  set -e
+  if [[ "$status" -ne 0 ]]; then
+    printf '%bEditor exited with status %s.%b\n' "$COLOR_ERROR" "$status" "$COLOR_RESET" >&2
+  fi
+  return "$status"
+}
+
+run_edit() {
+  local file="${1:-}" status
+
+  if [[ -n "$file" ]]; then
+    open_tsv_file "$file"
+    return $?
+  fi
+
+  # Interactive edit submenu: after editing one file, return here.
+  # back / cancel / Ctrl-C returns to the parent bl menu.
+  while true; do
+    set +e
+    file="$(select_tsv_file)"
+    status=$?
+    set -e
+    if [[ "$status" -eq 130 ]]; then
+      return 0
+    elif [[ "$status" -ne 0 ]]; then
+      return "$status"
+    fi
+
+    open_tsv_file "$file" || true
+    echo ""
+  done
 }
 
 # Main routing
