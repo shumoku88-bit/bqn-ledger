@@ -9,6 +9,6 @@ Original long form is preserved in Git history.
 
 ## 現在の参照先
 
-- **現在のレポート方針**: `docs/ACTUAL_COMPARISON_REPORT_PLAN.md`
+- **現在のレポート方針**: `docs/archive/completed-plans/ACTUAL_COMPARISON_REPORT_PLAN.md`
 - **過去の決定事項の抜粋**: `docs/archive/completed-plans/BEHAVIOR_DRIFT_REPORT_DECISIONS.md`
 - **ステータスノート**: `docs/BEHAVIOR_DRIFT_REPORT_PLAN.status.md`

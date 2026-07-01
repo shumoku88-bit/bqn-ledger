@@ -10,13 +10,13 @@ It should not be used as the current report direction.
 ## Current report direction
 
 ```text
-docs/ACTUAL_COMPARISON_REPORT_PLAN.md
+docs/archive/completed-plans/ACTUAL_COMPARISON_REPORT_PLAN.md
 docs/REPORT_DESIGN.md
 ```
 
 ## Trust order
 
-1. `docs/ACTUAL_COMPARISON_REPORT_PLAN.md`
+1. `docs/archive/completed-plans/ACTUAL_COMPARISON_REPORT_PLAN.md`
 2. `docs/REPORT_DESIGN.md`
 3. `docs/BEHAVIOR_DRIFT_REPORT_PLAN.status.md`
 4. `docs/archive/completed-plans/BEHAVIOR_DRIFT_REPORT_DECISIONS.md`
@@ -59,7 +59,7 @@ Do not delete or rewrite the full original immediately. It is long historical re
 Later, either:
 
 1. Move the full original document to `docs/archive/completed-plans/BEHAVIOR_DRIFT_REPORT_PLAN.md`, if a safe full-file move is practical; or
-2. Replace the original document with a shorter historical stub that points here, to the decisions digest, and to `docs/ACTUAL_COMPARISON_REPORT_PLAN.md`.
+2. Replace the original document with a shorter historical stub that points here, to the decisions digest, and to `docs/archive/completed-plans/ACTUAL_COMPARISON_REPORT_PLAN.md`.
 
 For now, this status file and the decisions digest mark the document as historical without risking loss of the long original text.
 

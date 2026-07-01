@@ -7,7 +7,7 @@ Current status note: `docs/BEHAVIOR_DRIFT_REPORT_PLAN.status.md`
 Current report direction:
 
 ```text
-docs/ACTUAL_COMPARISON_REPORT_PLAN.md
+docs/archive/completed-plans/ACTUAL_COMPARISON_REPORT_PLAN.md
 docs/REPORT_DESIGN.md
 ```
 
@@ -22,7 +22,7 @@ Use this file to understand historical decisions about Plan / Actual / Residual,
 Use these files for current report work:
 
 ```text
-docs/ACTUAL_COMPARISON_REPORT_PLAN.md
+docs/archive/completed-plans/ACTUAL_COMPARISON_REPORT_PLAN.md
 docs/REPORT_DESIGN.md
 docs/BEHAVIOR_DRIFT_REPORT_PLAN.status.md
 ```

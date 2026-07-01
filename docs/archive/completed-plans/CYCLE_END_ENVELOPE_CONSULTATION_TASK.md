@@ -29,7 +29,7 @@ bqn-ledger の cycle-end envelope consultation をしてください。
 - docs/SAFETY_PROFILE.md
 - docs/PLAN.md
 - docs/CYCLE.md
-- docs/ACTUAL_COMPARISON_REPORT_PLAN.md
+- docs/archive/completed-plans/ACTUAL_COMPARISON_REPORT_PLAN.md
 
 読むデータ/出力:
 - BQN report / BQN export output supplied by the human

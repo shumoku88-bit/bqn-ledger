@@ -142,7 +142,7 @@ bqn main.bqn --section daily-trend
    - `current`, `baseline`, `diff` に加えて増減率を出す。
    - `baseline=0` の扱い（`new` / `n/a` / `∞` など）は実装前に決める。
 
-詳細計画は `docs/ACTUAL_COMPARISON_REPORT_PLAN.md` に移した。新方針では、収入・変動費・固定/定期支出・単発支出をlaneで分け、初期比較単位は account name 優先、envelope は variable spending の文脈として扱う。
+詳細計画は `docs/archive/completed-plans/ACTUAL_COMPARISON_REPORT_PLAN.md` に移した。新方針では、収入・変動費・固定/定期支出・単発支出をlaneで分け、初期比較単位は account name 優先、envelope は variable spending の文脈として扱う。
 
 実装前に固定する主な点:
 

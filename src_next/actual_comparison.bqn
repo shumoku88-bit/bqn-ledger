@@ -2,7 +2,7 @@
 # Actual Comparison section for src_next.
 # Compares current cycle elapsed period against previous cycle same elapsed period.
 #
-# Contract: ACTUAL_COMPARISON_REPORT_PLAN.md
+# Contract: docs/archive/completed-plans/ACTUAL_COMPARISON_REPORT_PLAN.md
 #   - Lane: income / recurring_fixed / variable
 #   - income: from-account with role=income
 #   - expense: to-account with role=expense

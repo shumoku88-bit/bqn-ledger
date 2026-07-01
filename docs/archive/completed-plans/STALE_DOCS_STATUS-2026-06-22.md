@@ -15,7 +15,7 @@ All three tracked documents have been compressed to short historical stubs (14-1
 |---|---|---|
 | `docs/GO_SOURCE_TSV_EDITOR_DESIGN.md` | ✅ historical stub (14 lines) | `docs/GO_EDITOR_NEXT_PLAN.md` |
 | `docs/GENERALIZATION_TODO.md` | ✅ historical stub (14 lines) | `TODO.md` |
-| `docs/BEHAVIOR_DRIFT_REPORT_PLAN.md` | ✅ historical stub (14 lines) | `docs/ACTUAL_COMPARISON_REPORT_PLAN.md` |
+| `docs/BEHAVIOR_DRIFT_REPORT_PLAN.md` | ✅ historical stub (14 lines) | `docs/archive/completed-plans/ACTUAL_COMPARISON_REPORT_PLAN.md` |
 
 ## Resolution
 

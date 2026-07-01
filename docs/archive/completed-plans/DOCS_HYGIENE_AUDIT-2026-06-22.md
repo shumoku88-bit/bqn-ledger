@@ -73,7 +73,7 @@ archive 移動は、小さなコミットに分けて段階的に行う。
 |---|---|---|
 | `docs/GO_SOURCE_TSV_EDITOR_DESIGN.md` | `docs/GO_SOURCE_TSV_EDITOR_DESIGN.status.md` | `docs/GO_EDITOR_NEXT_PLAN.md` |
 | `docs/GENERALIZATION_TODO.md` | `docs/GENERALIZATION_TODO.status.md` | `TODO.md`, `docs/GENERALIZATION_TODO.status.md` |
-| `docs/BEHAVIOR_DRIFT_REPORT_PLAN.md` | `docs/BEHAVIOR_DRIFT_REPORT_PLAN.status.md` | `docs/ACTUAL_COMPARISON_REPORT_PLAN.md`, `docs/REPORT_DESIGN.md` |
+| `docs/BEHAVIOR_DRIFT_REPORT_PLAN.md` | `docs/BEHAVIOR_DRIFT_REPORT_PLAN.status.md` | `docs/archive/completed-plans/ACTUAL_COMPARISON_REPORT_PLAN.md`, `docs/REPORT_DESIGN.md` |
 
 ### Phase 4: Canonical hardening TODO の圧縮
 
@@ -120,7 +120,7 @@ These original long documents are preserved for now. Their status notes and dige
 | `docs/CANONICAL_DAILY_CUBE.md` | current spec | `Day × Account × Layer` の中心契約。 |
 | `docs/SAFETY_PROFILE.md` | active principle | fail closed / invariant / 正データ保護の安全規格。 |
 | `docs/GO_EDITOR_NEXT_PLAN.md` | active plan | Go editor の現在の実装境界と次候補。 |
-| `docs/ACTUAL_COMPARISON_REPORT_PLAN.md` | decision record / current report plan | `actual-comparison` の実装済み決定メモ。 |
+| `docs/archive/completed-plans/ACTUAL_COMPARISON_REPORT_PLAN.md` | decision record / current report plan | `actual-comparison` の実装済み決定メモ。 |
 
 ## Historical / digest map
 

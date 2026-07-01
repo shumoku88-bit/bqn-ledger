@@ -20,7 +20,7 @@ When choosing work, prefer `TODO.md` first. Use this inventory to avoid treating
 
 | File | Class | Current reading path / note |
 |---|---|---|
-| `ACTUAL_COMPARISON_REPORT_PLAN.md` | historical | Implemented decision record for `actual-comparison`; current report entry is `docs/REPORT_CONTRACTS.md` plus `src_next/` checks. |
+| `../completed-plans/ACTUAL_COMPARISON_REPORT_PLAN.md` | historical | Moved to completed plans. Implemented decision record for `actual-comparison`; current report entry is `docs/REPORT_CONTRACTS.md` plus `src_next/` checks. |
 | `AI_AGENT_EFFICIENCY_PLAN.md` | parked | AI efficiency ideas; use only when doing dev-experience work with `AI_WORKING_FEEDBACK_LOG.md`. |
 | `AI_BUDGET_CALCULATOR_DESIGN.md` | active | P1-P4 implemented, P5-P7 pending; current CLI is `tools/envelope-calc`. |
 | `AI_REVIEW_BQN_EVAL_TASK.md` | parked | Review request for devtool work; not a standing TODO by itself. |
@@ -54,7 +54,6 @@ When choosing work, prefer `TODO.md` first. Use this inventory to avoid treating
 Do not delete or move these blindly; first update inbound references and keep a short stub if needed.
 
 1. Move remaining clearly completed/historical files to `docs/archive/completed-plans/` in small batches:
-   - `ACTUAL_COMPARISON_REPORT_PLAN.md`
    - `BASH_SAFETY_ANALYSIS.md`
 2. Replace stale handoffs with stubs or completed-plan records:
    - `EDIT_BQN_HANDOFF.md`
