@@ -40,7 +40,7 @@ export contract changes.
 
 This document does not require, authorize, or imply the following changes:
 
-- no JSON export implementation in this PR
+- no full report JSON implementation in this PR
 - no retirement of `FormatHuman`
 - no changes to `tools/report` behavior
 - no source TSV format changes
@@ -119,8 +119,9 @@ candidate surfaces are:
    - whether the section supports human output, structured output, or both
 
    Current first slice: `tools/report-section-metadata` exports this metadata as
-   TSV from `src_next/report_section_metadata.bqn`. It does not read source TSV
-   or change `tools/report` behavior.
+   TSV by default, with `--format json` available for JSON consumers, from
+   `src_next/report_section_metadata.bqn`. It does not read source TSV or change
+   `tools/report` behavior.
 
 Existing exports such as editor candidate commands and report section listing are
 part of the current direction, but this contract does not change their CLI shape.
@@ -135,6 +136,10 @@ Likely choices:
 - **TSV** for simple rectangular candidate tables
 - **JSONL** for row streams with optional fields
 - **JSON** for nested report view models or section metadata
+
+Current implemented format example: report section metadata supports both TSV
+(default) and JSON (`tools/report-section-metadata --format json`). This is a
+small metadata surface, not a full report ViewModel export.
 
 Format selection should happen per export. Do not choose JSON for every surface
 only because some future UI may want it; also do not force TSV where nested data
@@ -163,10 +168,11 @@ A structured export should define:
 Breaking a structured export should be treated as a contract change, not a
 presentation tweak.
 
-## Acceptance criteria for this docs-only step
+## Acceptance criteria for this boundary step
 
-- docs only
-- no runtime behavior changes
+- keep the implementation slice limited to report section metadata JSON
+- `tools/report-section-metadata --format json` does not read source TSV and does
+  not change `tools/report` behavior
 - no source TSV changes
 - no report calculation changes
 - no CLI behavior changes

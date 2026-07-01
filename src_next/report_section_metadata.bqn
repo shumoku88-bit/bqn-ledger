@@ -10,6 +10,22 @@ labels ← •Import "report_labels.bqn"
 L ← labels.Text
 
 tab ← @+9
+quote ← @+34
+backslash ← @+92
+
+HasArg ← {𝕊 args‿flag: 0 < +´ flag⊸≡¨ args }
+ArgValue ← {𝕊 args‿flag:
+  idx ← ⊑ ((flag⊸≡¨ args) ⊐ ⟨1⟩)
+  next_idx ← 1 + idx
+  (next_idx < ≠args) ? (next_idx ⊑ args) ; ""
+}
+
+EscapeJsonChar ← {𝕊 c:
+  (c=quote) ⊑ ⟨((c=backslash) ⊑ ⟨⟨c⟩, backslash∾backslash⟩), backslash∾quote⟩
+}
+
+JsonString ← {𝕊 s: quote ∾ (∾ EscapeJsonChar¨ s) ∾ quote }
+JsonField ← {𝕊 key‿value: (JsonString key) ∾ ": " ∾ (JsonString value) }
 
 FormatRow ← {𝕊 row:
   key ← 0⊑row
@@ -19,6 +35,21 @@ FormatRow ← {𝕊 row:
   human ← 4⊑row
   structured ← 5⊑row
   key∾tab∾label∾tab∾category∾tab∾owner∾tab∾human∾tab∾structured
+}
+
+FormatJsonRow ← {𝕊 row:
+  fields ← ⟨
+    ⟨"key", 0⊑row⟩
+    ⟨"label", 1⊑row⟩
+    ⟨"category", 2⊑row⟩
+    ⟨"owner", 3⊑row⟩
+    ⟨"human_output", 4⊑row⟩
+    ⟨"structured_output", 5⊑row⟩
+  ⟩
+  "  {" ∾ (∾ {𝕊 i:
+    prefix ← (i=0) ⊑ ⟨", ", ""⟩
+    prefix ∾ JsonField (i⊑fields)
+  }¨ ↕≠fields) ∾ "}"
 }
 
 rows ← ⟨
@@ -39,9 +70,23 @@ rows ← ⟨
     ⟨"debug", L "report.debug_title", "diagnostics", "src_next/report.bqn", "yes", "metadata"⟩
   ⟩
 
-Main ← {𝕊 args:
+PrintTsv ← {𝕊:
   •Out "key"∾tab∾"label"∾tab∾"category"∾tab∾"owner"∾tab∾"human_output"∾tab∾"structured_output"
   {𝕊 row: •Out FormatRow row}¨ rows
+}
+
+PrintJson ← {𝕊:
+  •Out "["
+  {𝕊 i:
+    suffix ← (i = (≠rows)-1) ⊑ ⟨",", ""⟩
+    •Out (FormatJsonRow (i⊑rows)) ∾ suffix
+  }¨ ↕≠rows
+  •Out "]"
+}
+
+Main ← {𝕊 args:
+  fmtname ← ArgValue ⟨args, "--format"⟩
+  (fmtname ≡ "json") ? (PrintJson @) ; (PrintTsv @)
 }
 
 Main •args

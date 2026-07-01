@@ -8,12 +8,15 @@ if [ ! -d "$fixture" ]; then
 fi
 
 out="$(mktemp)"
+json_out="$(mktemp)"
 list="$(mktemp)"
 keys="$(mktemp)"
+json_keys="$(mktemp)"
 list_keys="$(mktemp)"
-trap 'rm -f "$out" "$list" "$keys" "$list_keys"' EXIT
+trap 'rm -f "$out" "$json_out" "$list" "$keys" "$json_keys" "$list_keys"' EXIT
 
 ./tools/report-section-metadata >"$out"
+./tools/report-section-metadata --format json >"$json_out"
 tools/report "$fixture" --list-sections --no-color >"$list"
 
 failures=0
@@ -54,6 +57,52 @@ if grep -qF $'check\t== Readiness Check ==\tdiagnostics\tsrc_next/readiness_chec
   pass "readiness metadata row is present"
 else
   fail "readiness metadata row missing"
+fi
+
+if python3 - "$json_out" >"$json_keys" <<'PY'
+import json
+import sys
+path = sys.argv[1]
+with open(path, encoding="utf-8") as f:
+    rows = json.load(f)
+required = ["key", "label", "category", "owner", "human_output", "structured_output"]
+if not isinstance(rows, list):
+    raise SystemExit("top-level JSON is not an array")
+for i, row in enumerate(rows, 1):
+    if not isinstance(row, dict):
+        raise SystemExit(f"row {i} is not an object")
+    missing = [k for k in required if k not in row]
+    if missing:
+        raise SystemExit(f"row {i} missing keys: {missing}")
+    print(row["key"])
+PY
+then
+  pass "json metadata output parses and exposes required fields"
+else
+  fail "json metadata output is invalid"
+fi
+
+if diff -u "$list_keys" "$json_keys" >/dev/null; then
+  pass "json metadata section keys match report --list-sections order"
+else
+  fail "json metadata section keys differ from report --list-sections"
+  diff -u "$list_keys" "$json_keys" >&2 || true
+fi
+
+if python3 - "$json_out" <<'PY'
+import json
+import sys
+with open(sys.argv[1], encoding="utf-8") as f:
+    rows = json.load(f)
+for row in rows:
+    if row.get("key") == "daily-flow" and row.get("structured_output") == "metadata":
+        raise SystemExit(0)
+raise SystemExit(1)
+PY
+then
+  pass "json daily-flow metadata row is present"
+else
+  fail "json daily-flow metadata row missing"
 fi
 
 if [ "$failures" -eq 0 ]; then
