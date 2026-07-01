@@ -73,6 +73,10 @@ Backing status vocabulary:
 - `src_next_envelope_funding_base_source` (repeated when funding source accounts exist)
 - `src_next_envelope_active_remaining_source` (repeated)
 - `src_next_envelope_ledger_unassigned_source` (repeated when unassigned account exists)
+- `src_next_envelope_active_movement` (repeated budget-layer movement provenance)
+- `src_next_envelope_ledger_unassigned_movement` (repeated budget-layer movement provenance)
+
+Movement provenance values are TSV-like payloads: `date<TAB>source_row<TAB>account<TAB>side<TAB>delta<TAB>source_id`.
 
 ## What belongs here later
 

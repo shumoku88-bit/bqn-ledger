@@ -284,7 +284,7 @@ ActualClosingVecFromTbds ← {𝕊 resolved‿tbds_rows:
   { Sum0 ((ak_indices = 𝕩) / closings) }¨ ↕ resolved.count
 }
 
-CalcEnvelopeBacking ← {𝕊 resolved‿tbds_rows‿envelopes‿unassigned:
+CalcEnvelopeBacking ← {𝕊 resolved‿tbds_rows‿valid_rows‿envelopes‿unassigned:
   closing_vec ← ActualClosingVecFromTbds ⟨resolved, tbds_rows⟩
   liquid_mask ← ("asset"⊸≡¨ resolved.roles) ∧ ("liquid"⊸≡¨ resolved.types)
   funding_indices ← liquid_mask / ↕ resolved.count
@@ -295,6 +295,23 @@ CalcEnvelopeBacking ← {𝕊 resolved‿tbds_rows‿envelopes‿unassigned:
   funding_sources ← { { name ⇐ 𝕩 ⊑ resolved.accounts, amount ⇐ 𝕩 ⊑ closing_vec } }¨ funding_indices
   active_sources ← { { name ⇐ 𝕩.label, amount ⇐ 𝕩.remaining } }¨ envelopes
   ledger_sources ← unassigned.sources
+
+  row_layer ← {𝕩.layer_index}¨ valid_rows
+  row_ak ← {𝕩.account_key_index}¨ valid_rows
+  active_indices ← {𝕩.account_index}¨ envelopes
+  unassigned_indices ← UnassignedBudgetAccountIndices resolved
+  BudgetMovement ← {𝕊 row:
+    {
+      date ⇐ row.date,
+      source_row ⇐ row.source_row,
+      source_id ⇐ row.source_id,
+      account ⇐ row.account_key_index ⊑ resolved.accounts,
+      side ⇐ row.side,
+      delta ⇐ row.delta
+    }
+  }
+  active_movements ← BudgetMovement¨ ((row_layer = 2) ∧ (active_indices⊸IsMember¨ row_ak)) / valid_rows
+  ledger_movements ← BudgetMovement¨ ((row_layer = 2) ∧ (unassigned_indices⊸IsMember¨ row_ak)) / valid_rows
 
   status ← "OK"
   {𝕊: status ↩ "MISMATCH"}⍟(ledger_cash_delta ≠ 0) @
@@ -309,7 +326,9 @@ CalcEnvelopeBacking ← {𝕊 resolved‿tbds_rows‿envelopes‿unassigned:
     status ⇐ status,
     funding_sources ⇐ funding_sources,
     active_sources ⇐ active_sources,
-    ledger_sources ⇐ ledger_sources
+    ledger_sources ⇐ ledger_sources,
+    active_movements ⇐ active_movements,
+    ledger_movements ⇐ ledger_movements
   }
 }
 
@@ -352,6 +371,8 @@ BuildFromInputs ← {𝕊 tgt‿resolved‿cy‿valid_rows‿alloc_lines:
     funding_sources ⇐ ⟨⟩,
     active_sources ⇐ ⟨⟩,
     ledger_sources ⇐ ⟨⟩,
+    active_movements ⇐ ⟨⟩,
+    ledger_movements ⇐ ⟨⟩,
     has_policy ⇐ tgt.has_policy
   }
 }
@@ -413,7 +434,7 @@ Build ← {𝕊 base‿resolved‿cy‿valid_rows‿tbds_rows:
       target_budget_account_count ← allocated_info_tgt.target_budget_account_count
 
       unassigned ← CalcUnassignedRemaining ⟨resolved, valid_rows⟩
-      backing ← CalcEnvelopeBacking ⟨resolved, tbds_rows, envelopes, unassigned⟩
+      backing ← CalcEnvelopeBacking ⟨resolved, tbds_rows, valid_rows, envelopes, unassigned⟩
 
       {
         target_id ⇐ tgt.target_id,
@@ -439,7 +460,9 @@ Build ← {𝕊 base‿resolved‿cy‿valid_rows‿tbds_rows:
         backing_status ⇐ backing.status,
         funding_sources ⇐ backing.funding_sources,
         active_sources ⇐ backing.active_sources,
-        ledger_sources ⇐ backing.ledger_sources
+        ledger_sources ⇐ backing.ledger_sources,
+        active_movements ⇐ backing.active_movements,
+        ledger_movements ⇐ backing.ledger_movements
       }
     },
     { 𝕊 ⋄
@@ -467,7 +490,9 @@ Build ← {𝕊 base‿resolved‿cy‿valid_rows‿tbds_rows:
         backing_status ⇐ "disabled",
         funding_sources ⇐ ⟨⟩,
         active_sources ⇐ ⟨⟩,
-        ledger_sources ⇐ ⟨⟩
+        ledger_sources ⇐ ⟨⟩,
+        active_movements ⇐ ⟨⟩,
+        ledger_movements ⇐ ⟨⟩
       }
     }
   ⟩ @
@@ -498,6 +523,11 @@ Format ← {𝕊 s:
   {𝕊 src: out ↩ out ∾ "src_next_envelope_funding_base_source: " ∾ src.name ∾ (@+9) ∾ (•Fmt src.amount) ∾ (@+10)}¨ s.funding_sources
   {𝕊 src: out ↩ out ∾ "src_next_envelope_active_remaining_source: " ∾ src.name ∾ (@+9) ∾ (•Fmt src.amount) ∾ (@+10)}¨ s.active_sources
   {𝕊 src: out ↩ out ∾ "src_next_envelope_ledger_unassigned_source: " ∾ src.name ∾ (@+9) ∾ (•Fmt src.amount) ∾ (@+10)}¨ s.ledger_sources
+  MovementLine ← {𝕊 prefix‿m:
+    out ↩ out ∾ prefix ∾ ": " ∾ m.date ∾ (@+9) ∾ (•Fmt m.source_row) ∾ (@+9) ∾ m.account ∾ (@+9) ∾ m.side ∾ (@+9) ∾ (•Fmt m.delta) ∾ (@+9) ∾ m.source_id ∾ (@+10)
+  }
+  {𝕊 m: MovementLine ⟨"src_next_envelope_active_movement", m⟩}¨ s.active_movements
+  {𝕊 m: MovementLine ⟨"src_next_envelope_ledger_unassigned_movement", m⟩}¨ s.ledger_movements
   out
 }
 
@@ -580,6 +610,21 @@ FormatHuman ← {𝕊 s:
     RenderSources ⟨"  funding_base sources:", s.funding_sources⟩
     RenderSources ⟨"  active envelope remaining:", s.active_sources⟩
     RenderSources ⟨"  ledger unassigned source:", s.ledger_sources⟩
+    out ↩ out ∾ (@+10)
+
+    RenderMovements ← {𝕊 title‿movements:
+      out ↩ out ∾ title ∾ (@+10)
+      {𝕊:
+        out ↩ out ∾ "  (none)" ∾ (@+10)
+      }⍟(0 = ≠ movements) @
+      {𝕊 m:
+        out ↩ out ∾ "  " ∾ m.date ∾ " #" ∾ (•Fmt m.source_row) ∾ " " ∾ (fmt.PadV ⟨18, m.account⟩) ∾ " " ∾ (fmt.PadV ⟨6, m.side⟩) ∾ " " ∾ (fmt.PadL ⟨8, m.delta⟩) ∾ " " ∾ m.source_id ∾ (@+10)
+      }¨ movements
+    }
+
+    out ↩ out ∾ "[Budget movement provenance]" ∾ (@+10)
+    RenderMovements ⟨"  ledger unassigned movements:", s.ledger_movements⟩
+    RenderMovements ⟨"  active envelope movements:", s.active_movements⟩
     out ↩ out ∾ (@+10)
 
     out ↩ out ∾ "[Health]" ∾ (@+10)

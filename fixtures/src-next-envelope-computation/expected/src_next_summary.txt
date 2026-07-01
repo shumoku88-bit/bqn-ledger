@@ -17,3 +17,7 @@ src_next_envelope_backing_status: OVER_ALLOCATED
 src_next_envelope_active_remaining_source: 食費	650
 src_next_envelope_active_remaining_source: 日用品	420
 src_next_envelope_ledger_unassigned_source: budget:unassigned	¯1500
+src_next_envelope_active_movement: 2026-01-01	0	budget:食費	debit	1000	alloc_food
+src_next_envelope_active_movement: 2026-01-01	1	budget:日用品	debit	500	alloc_goods
+src_next_envelope_ledger_unassigned_movement: 2026-01-01	0	budget:unassigned	credit	¯1000	alloc_food
+src_next_envelope_ledger_unassigned_movement: 2026-01-01	1	budget:unassigned	credit	¯500	alloc_goods

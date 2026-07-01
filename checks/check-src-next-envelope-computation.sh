@@ -39,6 +39,10 @@ grep -q '^src_next_envelope_backing_status: OVER_ALLOCATED$' "$actual_summary"
 grep -q $'^src_next_envelope_active_remaining_source: 食費\t650$' "$actual_summary"
 grep -q $'^src_next_envelope_active_remaining_source: 日用品\t420$' "$actual_summary"
 grep -q $'^src_next_envelope_ledger_unassigned_source: budget:unassigned\t¯1500$' "$actual_summary"
+grep -q $'^src_next_envelope_active_movement: 2026-01-01\t0\tbudget:食費\tdebit\t1000\talloc_food$' "$actual_summary"
+grep -q $'^src_next_envelope_active_movement: 2026-01-01\t1\tbudget:日用品\tdebit\t500\talloc_goods$' "$actual_summary"
+grep -q $'^src_next_envelope_ledger_unassigned_movement: 2026-01-01\t0\tbudget:unassigned\tcredit\t¯1000\talloc_food$' "$actual_summary"
+grep -q $'^src_next_envelope_ledger_unassigned_movement: 2026-01-01\t1\tbudget:unassigned\tcredit\t¯500\talloc_goods$' "$actual_summary"
 
 # Planned spending must not be folded into remaining, and later-work fields must
 # not appear under this prototype surface.
@@ -65,5 +69,12 @@ grep -q '^  食費                                650$' "$human_out"
 grep -q '^  日用品                              420$' "$human_out"
 grep -q '^  ledger unassigned source:$' "$human_out"
 grep -q '^  budget:unassigned                 ¯1500$' "$human_out"
+grep -q '^\[Budget movement provenance\]$' "$human_out"
+grep -q '^  ledger unassigned movements:$' "$human_out"
+grep -q '^  2026-01-01 #0 budget:unassigned  credit    ¯1000 alloc_food$' "$human_out"
+grep -q '^  2026-01-01 #1 budget:unassigned  credit     ¯500 alloc_goods$' "$human_out"
+grep -q '^  active envelope movements:$' "$human_out"
+grep -q '^  2026-01-01 #0 budget:食費        debit      1000 alloc_food$' "$human_out"
+grep -q '^  2026-01-01 #1 budget:日用品      debit       500 alloc_goods$' "$human_out"
 
 echo "OK: src_next envelope computation fixture passed: $fixture" >&2

@@ -75,6 +75,13 @@ human ← env.FormatHuman summary
 1 lib.AssertEq ∨´ "日用品                              420"⍷human
 1 lib.AssertEq ∨´ "ledger unassigned source:"⍷human
 1 lib.AssertEq ∨´ "budget:unassigned                 ¯1500"⍷human
+1 lib.AssertEq ∨´ "[Budget movement provenance]"⍷human
+1 lib.AssertEq ∨´ "ledger unassigned movements:"⍷human
+1 lib.AssertEq ∨´ "2026-01-01 #0 budget:unassigned  credit    ¯1000 alloc_food"⍷human
+1 lib.AssertEq ∨´ "2026-01-01 #1 budget:unassigned  credit     ¯500 alloc_goods"⍷human
+1 lib.AssertEq ∨´ "active envelope movements:"⍷human
+1 lib.AssertEq ∨´ "2026-01-01 #0 budget:食費        debit      1000 alloc_food"⍷human
+1 lib.AssertEq ∨´ "2026-01-01 #1 budget:日用品      debit       500 alloc_goods"⍷human
 
 # No allocation: target exists and actual can be observed, but status is unavailable
 # and formatted amounts are not polished remaining values.

@@ -245,6 +245,8 @@ src_next_envelope_backing_status
 src_next_envelope_funding_base_source       (repeated)
 src_next_envelope_active_remaining_source  (repeated)
 src_next_envelope_ledger_unassigned_source (repeated)
+src_next_envelope_active_movement          (repeated)
+src_next_envelope_ledger_unassigned_movement (repeated)
 ```
 
 意味:
@@ -267,7 +269,10 @@ backing_status
   OK / MISMATCH / OVER_ALLOCATED / unavailable...。
 
 *_source
-  provenance rows. machine-readable では `name<TAB>amount` 形式で複数行出る。
+  balance provenance rows. machine-readable では `name<TAB>amount` 形式で複数行出る。
+
+*_movement
+  budget-layer movement provenance rows. machine-readable では `date<TAB>source_row<TAB>account<TAB>side<TAB>delta<TAB>source_id` 形式で複数行出る。
 ```
 
 status の意味:
@@ -319,6 +324,12 @@ unavailable... / error...
     reserve                             ...
   ledger unassigned source:
     budget:unassigned                  4389
+
+[Budget movement provenance]
+  ledger unassigned movements:
+    2026-.. #.. budget:未割当 credit ...
+  active envelope movements:
+    2026-.. #.. budget:食費   debit  ...
 ```
 
 ## あり得るレポート表示
