@@ -103,25 +103,9 @@ show_full_report() {
 }
 
 section_list() {
-  cat <<'EOF'
-snapshot	全体サマリ
-issues	懸案事項・意思決定
-envelopes	封筒・予算残高
-outlook	見通し・日割り
-cycle	今サイクル集計
-ytd	年初来サマリ
-balances	口座残高一覧
-trial-balance	試算表
-recent	直近の取引
-planned	予定支払い
-daily-trend	日割り推移
-daily-flow	日次収支
-actual-comparison	前期比較
-check	データチェック
-debug	デバッグ
-all	全セクション
-actions	→ 仕訳追加・取消
-EOF
+  "$ROOT_DIR/tools/report-section-metadata" | awk -F'\t' 'NR > 1 { print $1 "\t" $2 }'
+  printf 'all\t全セクション\n'
+  printf 'actions\t→ 仕訳追加・取消\n'
 }
 
 show_section_direct() {

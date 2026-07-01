@@ -27,7 +27,7 @@ TEST check-only parsing; acceptable unless it becomes runtime behavior
 
 | Priority | File / function | What shell currently knows | Source touched | Replacement candidate | Notes |
 |---|---|---|---|---|---|
-| P2 | `tools/main-ui.sh::section_list` | Report section keys, labels, order, `all`, `actions` | none | `tools/report-section-metadata` plus UI-local synthetic actions | Good first replacement target. `all` and `actions` are UI commands, not BQN report sections. |
+| OK | `tools/main-ui.sh::section_list` | Reads report section key/label/order from structured metadata export; appends UI-local `all`, `actions` | none | implemented: `tools/report-section-metadata` plus UI-local synthetic actions | Completed first replacement slice. `all` and `actions` remain UI commands, not BQN report sections. |
 | P2 | `tools/main-ui.sh` command usage / `case "$cmd"` | Direct section command names and display menu surface | none | Same metadata export for section keys; keep command aliases in shell | Direct CLI compatibility may keep known aliases even after selector uses export. |
 | P3 | `tools/main-ui.sh` cache invalidation `src_files` | Which source/config files affect report cache | source file mtimes only | possible future BQN/report cache manifest | Does not parse TSV meaning; it only tracks mtimes. Safe for now. |
 | OK | `tools/main-ui.sh::select_section` | Reads `fzf_preview_window` from `<base>/config.tsv` | `config.tsv` | config is UI-owned | This is presentation config, not accounting meaning. Keep in shell unless config contract changes. |
@@ -66,7 +66,9 @@ becoming copy-pasted runtime logic.
 
 ### Slice 1: `main-ui` section selector uses metadata export
 
-Replace only the selector data source:
+Status: done in this branch.
+
+Replacement:
 
 ```text
 tools/main-ui.sh::section_list
@@ -74,7 +76,7 @@ tools/main-ui.sh::section_list
   + append UI-local rows: all, actions
 ```
 
-Constraints:
+Constraints kept:
 
 - Do not change `tools/report` behavior.
 - Do not remove `--list-sections` yet.
@@ -100,9 +102,8 @@ reading source TSV rows to compute accounting or household numbers.
 
 The main leaks are P2:
 
-- report section metadata hard-coded in shell
 - budget/meta/series UI vocabulary
 - replenishment follow-up date logic
 
-The first leak now has an export surface (`tools/report-section-metadata`), so it
-is the safest next implementation target.
+The first leak, report section metadata hard-coded in shell, is now resolved by
+`tools/report-section-metadata` for `tools/main-ui.sh::section_list`.
