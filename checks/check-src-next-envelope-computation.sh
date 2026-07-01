@@ -30,6 +30,11 @@ grep -q '^src_next_envelope_remaining: 650$' "$actual_summary"
 grep -q '^src_next_envelope_unassigned_remaining: ¯1500$' "$actual_summary"
 grep -q '^src_next_envelope_unassigned_status: OVER_ALLOCATED$' "$actual_summary"
 grep -q '^src_next_envelope_unassigned_account_count: 1$' "$actual_summary"
+grep -q '^src_next_envelope_funding_base: 0$' "$actual_summary"
+grep -q '^src_next_envelope_allocated_total: 1070$' "$actual_summary"
+grep -q '^src_next_envelope_cash_backed_unassigned: ¯1070$' "$actual_summary"
+grep -q '^src_next_envelope_ledger_cash_delta: 430$' "$actual_summary"
+grep -q '^src_next_envelope_backing_status: OVER_ALLOCATED$' "$actual_summary"
 
 # Planned spending must not be folded into remaining, and later-work fields must
 # not appear under this prototype surface.

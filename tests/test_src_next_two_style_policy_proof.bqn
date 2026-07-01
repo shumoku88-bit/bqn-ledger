@@ -59,7 +59,8 @@ ctx_cal_mock_out ← {
   base ⇐ base_cal,
   cy ⇐ cy_cal_mock,
   resolved ⇐ res_cal,
-  cube ⇐ result_cal
+  cube ⇐ result_cal,
+  tbds ⇐ tbds_cal
 }
 vm_cal_outlook ← outlook.Build ctx_cal_mock_out
 "unavailable/policy" lib.AssertEq vm_cal_outlook.liq_safe_daily

@@ -9,3 +9,8 @@ src_next_envelope_status: computed
 src_next_envelope_unassigned_remaining: ¯1500
 src_next_envelope_unassigned_status: OVER_ALLOCATED
 src_next_envelope_unassigned_account_count: 1
+src_next_envelope_funding_base: 0
+src_next_envelope_allocated_total: 1070
+src_next_envelope_cash_backed_unassigned: ¯1070
+src_next_envelope_ledger_cash_delta: 430
+src_next_envelope_backing_status: OVER_ALLOCATED

@@ -270,6 +270,36 @@ BuildEnvelopes ← {𝕊 base‿resolved‿cy‿valid_rows:
   CalcOne¨ budget_indices
 }
 
+# ── backing invariant calculation ───────────────────────────
+ActualClosingVecFromTbds ← {𝕊 resolved‿tbds_rows:
+  actual_rows ← (cube.layer_actual = {𝕩.layer_index}¨ tbds_rows) / tbds_rows
+  ak_indices ← {𝕩.account_key_index}¨ actual_rows
+  closings ← {𝕩.closing}¨ actual_rows
+  { Sum0 ((ak_indices = 𝕩) / closings) }¨ ↕ resolved.count
+}
+
+CalcEnvelopeBacking ← {𝕊 resolved‿tbds_rows‿envelopes‿unassigned:
+  closing_vec ← ActualClosingVecFromTbds ⟨resolved, tbds_rows⟩
+  liquid_mask ← ("asset"⊸≡¨ resolved.roles) ∧ ("liquid"⊸≡¨ resolved.types)
+  funding_base ← Sum0 (liquid_mask / closing_vec)
+  allocated_total ← Sum0 ({𝕩.remaining}¨ envelopes)
+  cash_backed_unassigned ← funding_base - allocated_total
+  ledger_cash_delta ← cash_backed_unassigned - unassigned.remaining
+
+  status ← "OK"
+  {𝕊: status ↩ "MISMATCH"}⍟(ledger_cash_delta ≠ 0) @
+  {𝕊: status ↩ "OVER_ALLOCATED"}⍟(cash_backed_unassigned < 0) @
+  {𝕊: status ↩ unassigned.status}⍟((unav.IsUnavailable unassigned.status) ∨ ("error/" unav.StartsWith unassigned.status)) @
+
+  {
+    funding_base ⇐ funding_base,
+    allocated_total ⇐ allocated_total,
+    cash_backed_unassigned ⇐ cash_backed_unassigned,
+    ledger_cash_delta ⇐ ledger_cash_delta,
+    status ⇐ status
+  }
+}
+
 # BuildFromInputs: pure-ish builder used by tests and Build.
 # Args: ⟨target, resolved, cy, valid_rows, alloc_lines⟩
 BuildFromInputs ← {𝕊 tgt‿resolved‿cy‿valid_rows‿alloc_lines:
@@ -301,6 +331,11 @@ BuildFromInputs ← {𝕊 tgt‿resolved‿cy‿valid_rows‿alloc_lines:
     unassigned_remaining ⇐ 0,
     unassigned_status ⇐ "unavailable/not_computed",
     unassigned_account_count ⇐ 0,
+    funding_base ⇐ 0,
+    allocated_total ⇐ 0,
+    cash_backed_unassigned ⇐ 0,
+    ledger_cash_delta ⇐ 0,
+    backing_status ⇐ "unavailable/not_computed",
     has_policy ⇐ tgt.has_policy
   }
 }
@@ -308,10 +343,10 @@ BuildFromInputs ← {𝕊 tgt‿resolved‿cy‿valid_rows‿alloc_lines:
 # Build: compute envelope balances from context.
 # Args: ctx (context namespace)
 BuildCtx ← {𝕊 ctx:
-  Build ⟨ctx.base, ctx.resolved, ctx.cy, ctx.cube.valid_rows⟩
+  Build ⟨ctx.base, ctx.resolved, ctx.cy, ctx.cube.valid_rows, ctx.tbds⟩
 }
 
-Build ← {𝕊 base‿resolved‿cy‿valid_rows:
+Build ← {𝕊 base‿resolved‿cy‿valid_rows‿tbds_rows:
   cfg ← conf.LoadConfig base
   is_none ← "none" ≡ cfg.PolicyBudgetStyle @
 
@@ -362,6 +397,7 @@ Build ← {𝕊 base‿resolved‿cy‿valid_rows:
       target_budget_account_count ← allocated_info_tgt.target_budget_account_count
 
       unassigned ← CalcUnassignedRemaining ⟨resolved, valid_rows⟩
+      backing ← CalcEnvelopeBacking ⟨resolved, tbds_rows, envelopes, unassigned⟩
 
       {
         target_id ⇐ tgt.target_id,
@@ -379,7 +415,12 @@ Build ← {𝕊 base‿resolved‿cy‿valid_rows:
         target_budget_account_count ⇐ target_budget_account_count,
         unassigned_remaining ⇐ unassigned.remaining,
         unassigned_status ⇐ unassigned.status,
-        unassigned_account_count ⇐ unassigned.account_count
+        unassigned_account_count ⇐ unassigned.account_count,
+        funding_base ⇐ backing.funding_base,
+        allocated_total ⇐ backing.allocated_total,
+        cash_backed_unassigned ⇐ backing.cash_backed_unassigned,
+        ledger_cash_delta ⇐ backing.ledger_cash_delta,
+        backing_status ⇐ backing.status
       }
     },
     { 𝕊 ⋄
@@ -399,7 +440,12 @@ Build ← {𝕊 base‿resolved‿cy‿valid_rows:
         target_budget_account_count ⇐ 0,
         unassigned_remaining ⇐ 0,
         unassigned_status ⇐ "disabled",
-        unassigned_account_count ⇐ 0
+        unassigned_account_count ⇐ 0,
+        funding_base ⇐ 0,
+        allocated_total ⇐ 0,
+        cash_backed_unassigned ⇐ 0,
+        ledger_cash_delta ⇐ 0,
+        backing_status ⇐ "disabled"
       }
     }
   ⟩ @
@@ -422,6 +468,11 @@ Format ← {𝕊 s:
   out ↩ out ∾ "src_next_envelope_unassigned_remaining: " ∾ (FmtAmount ⟨s.unassigned_status, s.unassigned_remaining⟩) ∾ (@+10)
   out ↩ out ∾ "src_next_envelope_unassigned_status: " ∾ s.unassigned_status ∾ (@+10)
   out ↩ out ∾ "src_next_envelope_unassigned_account_count: " ∾ (•Fmt s.unassigned_account_count) ∾ (@+10)
+  out ↩ out ∾ "src_next_envelope_funding_base: " ∾ (FmtAmount ⟨s.backing_status, s.funding_base⟩) ∾ (@+10)
+  out ↩ out ∾ "src_next_envelope_allocated_total: " ∾ (FmtAmount ⟨s.backing_status, s.allocated_total⟩) ∾ (@+10)
+  out ↩ out ∾ "src_next_envelope_cash_backed_unassigned: " ∾ (FmtAmount ⟨s.backing_status, s.cash_backed_unassigned⟩) ∾ (@+10)
+  out ↩ out ∾ "src_next_envelope_ledger_cash_delta: " ∾ (FmtAmount ⟨s.backing_status, s.ledger_cash_delta⟩) ∾ (@+10)
+  out ↩ out ∾ "src_next_envelope_backing_status: " ∾ s.backing_status ∾ (@+10)
   out
 }
 
@@ -467,6 +518,17 @@ FormatHuman ← {𝕊 s:
     }⍟(s.unassigned_status ≡ "OVER_ALLOCATED") @
     out ↩ out ∾ (@+10)
 
+    out ↩ out ∾ "[Backing check]" ∾ (@+10)
+    backing_text ← "封筒対象資金(暫定:type=liquid): " ∾ (FmtAmount ⟨s.backing_status, s.funding_base⟩) ∾ " / 封筒残高合計: " ∾ (FmtAmount ⟨s.backing_status, s.allocated_total⟩) ∾ " / cash-backed未割当: " ∾ (FmtAmount ⟨s.backing_status, s.cash_backed_unassigned⟩) ∾ " (" ∾ s.backing_status ∾ ")"
+    out ↩ out ∾ ((s.backing_status ≡ "OK") ⊑ (fmt.Bad backing_text)‿backing_text) ∾ (@+10)
+    {𝕊:
+      out ↩ out ∾ (fmt.Warn "NOTE: cash-backed未割当と予算台帳未割当が一致していません。現段階ではreadonly診断です。") ∾ (@+10)
+    }⍟(s.backing_status ≡ "MISMATCH") @
+    {𝕊:
+      out ↩ out ∾ (fmt.Bad "WARNING: 封筒残高合計が封筒対象資金を超えています。") ∾ (@+10)
+    }⍟(s.backing_status ≡ "OVER_ALLOCATED") @
+    out ↩ out ∾ (@+10)
+
     out ↩ out ∾ "[Health]" ∾ (@+10)
     out ↩ out ∾ (fmt.Ok "SAFE") ∾ (L "env.safe") ∾ (@+10)
     out ↩ out ∾ (fmt.Warn "WARN") ∾ (L "env.warn") ∾ (@+10)
@@ -495,6 +557,8 @@ FormatHuman ← {𝕊 s:
   DecideStatus ⇐ DecideStatus,
   UnassignedBudgetAccountIndices ⇐ UnassignedBudgetAccountIndices,
   CalcUnassignedRemaining ⇐ CalcUnassignedRemaining,
+  ActualClosingVecFromTbds ⇐ ActualClosingVecFromTbds,
+  CalcEnvelopeBacking ⇐ CalcEnvelopeBacking,
   Format ⇐ Format,
   FormatHuman ⇐ FormatHuman
 }

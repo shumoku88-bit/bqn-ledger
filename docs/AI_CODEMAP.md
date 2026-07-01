@@ -80,7 +80,7 @@
 - `ytd_summary.bqn` — YTD 集計。
 - `cycle_summary.bqn` — サイクル収支 (Income Statement)。
 - `expense_breakdown.bqn` — サイクル支出内訳。
-- `envelope_computation.bqn` — 封筒予算計算。封筒ごとの allocated/spent/remaining に加え、`accounts.tsv` の `role=budget kind=unassigned` から未割当 budget pool 残高と OVER_ALLOCATED status を出す。
+- `envelope_computation.bqn` — 封筒予算計算。封筒ごとの allocated/spent/remaining に加え、`accounts.tsv` の `role=budget kind=unassigned` から未割当 budget pool 残高と OVER_ALLOCATED status を出す。さらに readonly 診断として、暫定 `type=liquid` ベースの `envelope_funding_base` と封筒残高合計との差分（cash-backed未割当 / backing_status）を出す。
 - `planned_payments.bqn` — 予定支払い表示。
 - `recent_journal.bqn` — 最近の仕訳表示。
 - `readiness_check.bqn` — データ品質チェック。

@@ -6,6 +6,7 @@ ak ← •Import "../src_next/account_key.bqn"
 proj ← •Import "../src_next/projection.bqn"
 cycle ← •Import "../src_next/cycle.bqn"
 cube ← •Import "../src_next/cube.bqn"
+tbds ← •Import "../src_next/tbds.bqn"
 env ← •Import "../src_next/envelope_computation.bqn"
 
 base ← "fixtures/src-next-envelope-computation"
@@ -23,7 +24,8 @@ BuildRowsForFile ← {𝕊 srcFile:
 
 rows ← (BuildRowsForFile "journal.tsv") ∾ (BuildRowsForFile "plan.tsv") ∾ BuildRowsForFile "budget_alloc.tsv"
 result ← cube.Materialize ⟨rows, cy.day_count, resolved.count⟩
-summary ← env.Build { base ⇐ base, resolved ⇐ resolved, cy ⇐ cy, cube ⇐ result }
+tbds_rows ← tbds.Build ⟨rows, result, resolved, cy⟩
+summary ← env.Build { base ⇐ base, resolved ⇐ resolved, cy ⇐ cy, cube ⇐ result, tbds ⇐ tbds_rows }
 
 "fixture_food_like" lib.AssertEq summary.target_id
 "食費" lib.AssertEq summary.label
@@ -37,6 +39,11 @@ summary ← env.Build { base ⇐ base, resolved ⇐ resolved, cy ⇐ cy, cube �
 ¯1500 lib.AssertEq summary.unassigned_remaining
 "OVER_ALLOCATED" lib.AssertEq summary.unassigned_status
 1 lib.AssertEq summary.unassigned_account_count
+0 lib.AssertEq summary.funding_base
+1070 lib.AssertEq summary.allocated_total
+¯1070 lib.AssertEq summary.cash_backed_unassigned
+430 lib.AssertEq summary.ledger_cash_delta
+"OVER_ALLOCATED" lib.AssertEq summary.backing_status
 
 # Planned spending is present (200) but the prototype remaining does not subtract it.
 200 lib.AssertEq result.plan_expense_total

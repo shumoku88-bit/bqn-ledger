@@ -56,6 +56,14 @@ Important: this is **ledger unassigned**, not cash-backed surplus. It is the una
 
 If the unassigned pool is negative, status is `OVER_ALLOCATED` and the human report shows a visible warning.
 
+The section also exposes a readonly backing diagnostic. This is intentionally not a write-path or allocation rule yet: `src_next_envelope_funding_base` is currently a provisional `type=liquid` actual closing balance, while `src_next_envelope_allocated_total` is the sum of active envelope remaining balances. `src_next_envelope_cash_backed_unassigned` and `src_next_envelope_backing_status` show whether the envelope balances are cash-backed under that provisional base.
+
+- `src_next_envelope_funding_base`
+- `src_next_envelope_allocated_total`
+- `src_next_envelope_cash_backed_unassigned`
+- `src_next_envelope_ledger_cash_delta`
+- `src_next_envelope_backing_status`
+
 ## What belongs here later
 
 Only add stable contracts here when they are true for the current `src_next` engine and have a check/fixture or clear implementation reference.

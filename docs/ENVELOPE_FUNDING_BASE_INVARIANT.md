@@ -1,10 +1,10 @@
 # Envelope funding base invariant
 
-状態: draft / discussion-only / docs-only
+状態: draft / design with readonly diagnostic slice
 
 この文書は、封筒予算が「実残高の何に対してバランスしているのか」を明示するための設計草案です。
 
-この PR では実装変更を行いません。
+現行実装では、最初の小さい slice として readonly の backing diagnostic を `src_next/envelope_computation.bqn` に追加しています。schema / write path / source TSV は変更しません。
 
 ## 背景
 
@@ -170,7 +170,7 @@ budget:unassigned	role=budget	budget_pool=main	kind=unassigned
 
 ただし、この文書では `type=liquid` の名前や境界を再設計しません。貯金・投資信託なども換金可能性の観点では liquid と見なせるため、`liquid|savings|invest` が本当に liquidity 分類として妥当かは未解決です。
 
-この PR で固定する境界は、次の一点だけです。
+現行実装で固定する境界は、次の一点だけです。
 
 ```text
 asset classification の名前・境界
@@ -232,6 +232,40 @@ type=liquid の実残高
 - 次に「封筒対象資金」を定義すると、封筒未割り当てが資産ではないことを明確にできる。
 - 実装変更は、概念が固まってからでよい。
 
+## 現行 readonly diagnostic
+
+現行実装では、封筒セクションに次の machine-readable fields を追加しています。
+
+```text
+src_next_envelope_funding_base
+src_next_envelope_allocated_total
+src_next_envelope_cash_backed_unassigned
+src_next_envelope_ledger_cash_delta
+src_next_envelope_backing_status
+```
+
+意味:
+
+```text
+envelope_funding_base
+  暫定: `role=asset type=liquid` の actual closing balance 合計。
+
+allocated_total
+  active envelope remaining balance の合計。
+  初期配賦額そのものではなく、支出反映後に封筒内に残っている札付き残高。
+
+cash_backed_unassigned
+  envelope_funding_base - allocated_total。
+
+ledger_cash_delta
+  cash_backed_unassigned - ledger_unassigned。
+
+backing_status
+  OK / MISMATCH / OVER_ALLOCATED / unavailable...。
+```
+
+これは readonly 診断です。`budget_alloc.tsv` を自動補正したり、`budget:unassigned` の意味を置き換えたりはしません。
+
 ## あり得るレポート表示
 
 将来的には、次のような表示が考えられます。
@@ -260,7 +294,7 @@ type=liquid の実残高
 
 この文書では、次のことはしません。
 
-- 実装を変更しない
+- source TSV / schema / write path を変更しない
 - `accounts.tsv` の schema を変更しない
 - `budget_alloc.tsv` の形式を変更しない
 - `journal.tsv` の扱いを変更しない
