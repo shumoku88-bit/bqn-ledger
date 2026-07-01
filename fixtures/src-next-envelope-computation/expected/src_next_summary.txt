@@ -14,3 +14,6 @@ src_next_envelope_allocated_total: 1070
 src_next_envelope_cash_backed_unassigned: ¯1070
 src_next_envelope_ledger_cash_delta: 430
 src_next_envelope_backing_status: OVER_ALLOCATED
+src_next_envelope_active_remaining_source: 食費	650
+src_next_envelope_active_remaining_source: 日用品	420
+src_next_envelope_ledger_unassigned_source: budget:unassigned	¯1500

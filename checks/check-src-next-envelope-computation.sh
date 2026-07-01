@@ -36,6 +36,9 @@ grep -q '^src_next_envelope_allocated_total: 1070$' "$actual_summary"
 grep -q '^src_next_envelope_cash_backed_unassigned: ¯1070$' "$actual_summary"
 grep -q '^src_next_envelope_ledger_cash_delta: 430$' "$actual_summary"
 grep -q '^src_next_envelope_backing_status: OVER_ALLOCATED$' "$actual_summary"
+grep -q $'^src_next_envelope_active_remaining_source: 食費\t650$' "$actual_summary"
+grep -q $'^src_next_envelope_active_remaining_source: 日用品\t420$' "$actual_summary"
+grep -q $'^src_next_envelope_ledger_unassigned_source: budget:unassigned\t¯1500$' "$actual_summary"
 
 # Planned spending must not be folded into remaining, and later-work fields must
 # not appear under this prototype surface.
@@ -54,5 +57,13 @@ grep -q '^  予算台帳未割当:                   ¯1500$' "$human_out"
 grep -q '^\[Delta\]$' "$human_out"
 grep -q '^  cash-backed - ledger:              430$' "$human_out"
 grep -q '^  status: OVER_ALLOCATED$' "$human_out"
+grep -q '^\[Backing provenance\]$' "$human_out"
+grep -q '^  funding_base sources:$' "$human_out"
+grep -q '^  (none)$' "$human_out"
+grep -q '^  active envelope remaining:$' "$human_out"
+grep -q '^  食費                                650$' "$human_out"
+grep -q '^  日用品                              420$' "$human_out"
+grep -q '^  ledger unassigned source:$' "$human_out"
+grep -q '^  budget:unassigned                 ¯1500$' "$human_out"
 
 echo "OK: src_next envelope computation fixture passed: $fixture" >&2

@@ -67,6 +67,14 @@ human ← env.FormatHuman summary
 1 lib.AssertEq ∨´ "予算台帳未割当:                   ¯1500"⍷human
 1 lib.AssertEq ∨´ "cash-backed - ledger:              430"⍷human
 1 lib.AssertEq ∨´ "status: OVER_ALLOCATED"⍷human
+1 lib.AssertEq ∨´ "[Backing provenance]"⍷human
+1 lib.AssertEq ∨´ "funding_base sources:"⍷human
+1 lib.AssertEq ∨´ "(none)"⍷human
+1 lib.AssertEq ∨´ "active envelope remaining:"⍷human
+1 lib.AssertEq ∨´ "食費                                650"⍷human
+1 lib.AssertEq ∨´ "日用品                              420"⍷human
+1 lib.AssertEq ∨´ "ledger unassigned source:"⍷human
+1 lib.AssertEq ∨´ "budget:unassigned                 ¯1500"⍷human
 
 # No allocation: target exists and actual can be observed, but status is unavailable
 # and formatted amounts are not polished remaining values.

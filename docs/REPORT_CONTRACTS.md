@@ -70,6 +70,9 @@ Backing status vocabulary:
 - `src_next_envelope_cash_backed_unassigned`
 - `src_next_envelope_ledger_cash_delta`
 - `src_next_envelope_backing_status`
+- `src_next_envelope_funding_base_source` (repeated when funding source accounts exist)
+- `src_next_envelope_active_remaining_source` (repeated)
+- `src_next_envelope_ledger_unassigned_source` (repeated when unassigned account exists)
 
 ## What belongs here later
 

@@ -242,6 +242,9 @@ src_next_envelope_allocated_total
 src_next_envelope_cash_backed_unassigned
 src_next_envelope_ledger_cash_delta
 src_next_envelope_backing_status
+src_next_envelope_funding_base_source       (repeated)
+src_next_envelope_active_remaining_source  (repeated)
+src_next_envelope_ledger_unassigned_source (repeated)
 ```
 
 意味:
@@ -262,6 +265,9 @@ ledger_cash_delta
 
 backing_status
   OK / MISMATCH / OVER_ALLOCATED / unavailable...。
+
+*_source
+  provenance rows. machine-readable では `name<TAB>amount` 形式で複数行出る。
 ```
 
 status の意味:
@@ -301,6 +307,18 @@ unavailable... / error...
   cash-backed - ledger:              8352
   status: MISMATCH
   NOTE: readonly診断。cash-backed未割当と予算台帳未割当が一致していません。自動補正しません。
+
+[Backing provenance]
+  funding_base sources:
+    assets:bank                       81396
+    assets:cash                           0
+  active envelope remaining:
+    食費                                ...
+    日用品                              ...
+    固定費                              ...
+    reserve                             ...
+  ledger unassigned source:
+    budget:unassigned                  4389
 ```
 
 ## あり得るレポート表示

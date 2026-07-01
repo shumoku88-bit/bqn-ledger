@@ -92,10 +92,16 @@ CalcUnassignedRemaining ← {𝕊 resolved‿valid_rows:
   mask ← (row_layer = 2) ∧ (unassigned_indices⊸IsMember¨ row_ak)
   remaining ← Sum0 (mask / row_delta)
   cnt ← ≠ unassigned_indices
+  SourceFor ← {𝕊 idx:
+    idx_mask ← (row_layer = 2) ∧ (row_ak = idx)
+    { name ⇐ idx ⊑ resolved.accounts, amount ⇐ Sum0 (idx_mask / row_delta) }
+  }
+  sources ← SourceFor¨ unassigned_indices
   {
     account_count ⇐ cnt,
     remaining ⇐ remaining,
-    status ⇐ UnassignedStatus ⟨cnt, remaining⟩
+    status ⇐ UnassignedStatus ⟨cnt, remaining⟩,
+    sources ⇐ sources
   }
 }
 
@@ -281,10 +287,14 @@ ActualClosingVecFromTbds ← {𝕊 resolved‿tbds_rows:
 CalcEnvelopeBacking ← {𝕊 resolved‿tbds_rows‿envelopes‿unassigned:
   closing_vec ← ActualClosingVecFromTbds ⟨resolved, tbds_rows⟩
   liquid_mask ← ("asset"⊸≡¨ resolved.roles) ∧ ("liquid"⊸≡¨ resolved.types)
+  funding_indices ← liquid_mask / ↕ resolved.count
   funding_base ← Sum0 (liquid_mask / closing_vec)
   allocated_total ← Sum0 ({𝕩.remaining}¨ envelopes)
   cash_backed_unassigned ← funding_base - allocated_total
   ledger_cash_delta ← cash_backed_unassigned - unassigned.remaining
+  funding_sources ← { { name ⇐ 𝕩 ⊑ resolved.accounts, amount ⇐ 𝕩 ⊑ closing_vec } }¨ funding_indices
+  active_sources ← { { name ⇐ 𝕩.label, amount ⇐ 𝕩.remaining } }¨ envelopes
+  ledger_sources ← unassigned.sources
 
   status ← "OK"
   {𝕊: status ↩ "MISMATCH"}⍟(ledger_cash_delta ≠ 0) @
@@ -296,7 +306,10 @@ CalcEnvelopeBacking ← {𝕊 resolved‿tbds_rows‿envelopes‿unassigned:
     allocated_total ⇐ allocated_total,
     cash_backed_unassigned ⇐ cash_backed_unassigned,
     ledger_cash_delta ⇐ ledger_cash_delta,
-    status ⇐ status
+    status ⇐ status,
+    funding_sources ⇐ funding_sources,
+    active_sources ⇐ active_sources,
+    ledger_sources ⇐ ledger_sources
   }
 }
 
@@ -336,6 +349,9 @@ BuildFromInputs ← {𝕊 tgt‿resolved‿cy‿valid_rows‿alloc_lines:
     cash_backed_unassigned ⇐ 0,
     ledger_cash_delta ⇐ 0,
     backing_status ⇐ "unavailable/not_computed",
+    funding_sources ⇐ ⟨⟩,
+    active_sources ⇐ ⟨⟩,
+    ledger_sources ⇐ ⟨⟩,
     has_policy ⇐ tgt.has_policy
   }
 }
@@ -420,7 +436,10 @@ Build ← {𝕊 base‿resolved‿cy‿valid_rows‿tbds_rows:
         allocated_total ⇐ backing.allocated_total,
         cash_backed_unassigned ⇐ backing.cash_backed_unassigned,
         ledger_cash_delta ⇐ backing.ledger_cash_delta,
-        backing_status ⇐ backing.status
+        backing_status ⇐ backing.status,
+        funding_sources ⇐ backing.funding_sources,
+        active_sources ⇐ backing.active_sources,
+        ledger_sources ⇐ backing.ledger_sources
       }
     },
     { 𝕊 ⋄
@@ -445,7 +464,10 @@ Build ← {𝕊 base‿resolved‿cy‿valid_rows‿tbds_rows:
         allocated_total ⇐ 0,
         cash_backed_unassigned ⇐ 0,
         ledger_cash_delta ⇐ 0,
-        backing_status ⇐ "disabled"
+        backing_status ⇐ "disabled",
+        funding_sources ⇐ ⟨⟩,
+        active_sources ⇐ ⟨⟩,
+        ledger_sources ⇐ ⟨⟩
       }
     }
   ⟩ @
@@ -473,6 +495,9 @@ Format ← {𝕊 s:
   out ↩ out ∾ "src_next_envelope_cash_backed_unassigned: " ∾ (FmtAmount ⟨s.backing_status, s.cash_backed_unassigned⟩) ∾ (@+10)
   out ↩ out ∾ "src_next_envelope_ledger_cash_delta: " ∾ (FmtAmount ⟨s.backing_status, s.ledger_cash_delta⟩) ∾ (@+10)
   out ↩ out ∾ "src_next_envelope_backing_status: " ∾ s.backing_status ∾ (@+10)
+  {𝕊 src: out ↩ out ∾ "src_next_envelope_funding_base_source: " ∾ src.name ∾ (@+9) ∾ (•Fmt src.amount) ∾ (@+10)}¨ s.funding_sources
+  {𝕊 src: out ↩ out ∾ "src_next_envelope_active_remaining_source: " ∾ src.name ∾ (@+9) ∾ (•Fmt src.amount) ∾ (@+10)}¨ s.active_sources
+  {𝕊 src: out ↩ out ∾ "src_next_envelope_ledger_unassigned_source: " ∾ src.name ∾ (@+9) ∾ (•Fmt src.amount) ∾ (@+10)}¨ s.ledger_sources
   out
 }
 
@@ -539,6 +564,22 @@ FormatHuman ← {𝕊 s:
     {𝕊:
       out ↩ out ∾ (fmt.Bad "  WARNING: 封筒残高合計が封筒対象資金を超えています。") ∾ (@+10)
     }⍟(s.backing_status ≡ "OVER_ALLOCATED") @
+    out ↩ out ∾ (@+10)
+
+    RenderSources ← {𝕊 title‿sources:
+      out ↩ out ∾ title ∾ (@+10)
+      {𝕊:
+        out ↩ out ∾ "  (none)" ∾ (@+10)
+      }⍟(0 = ≠ sources) @
+      {𝕊 src:
+        out ↩ out ∾ "  " ∾ (fmt.PadV ⟨28, src.name⟩) ∾ " " ∾ (fmt.PadL ⟨10, src.amount⟩) ∾ (@+10)
+      }¨ sources
+    }
+
+    out ↩ out ∾ "[Backing provenance]" ∾ (@+10)
+    RenderSources ⟨"  funding_base sources:", s.funding_sources⟩
+    RenderSources ⟨"  active envelope remaining:", s.active_sources⟩
+    RenderSources ⟨"  ledger unassigned source:", s.ledger_sources⟩
     out ↩ out ∾ (@+10)
 
     out ↩ out ∾ "[Health]" ∾ (@+10)
