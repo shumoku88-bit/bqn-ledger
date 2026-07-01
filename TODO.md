@@ -38,6 +38,16 @@ Last hygiene pass: 2026-07-01 — contributor docs / report policy externalizati
 - [ ] JSON helper を `src_next/json.bqn` 等へ共通化するか、metadata 専用のまま保留するか判断する
 - [ ] human `FormatHuman` は維持し、UI は human report を parse しない境界を守る
 
+### 候補 E: Fintech engineering review backlog の取捨選択
+
+導線:
+- `docs/FINTECH_ENGINEERING_REVIEW_BACKLOG.md`
+- `docs/archive/active-plans/FINTECH_ENGINEERING_REVIEW_BACKLOG-2026-07-01.md`
+
+- [ ] 候補を一つだけ選び、`adopt-now` / `adopt-later` / `observe` / `reject` を決める
+- [ ] 採用する場合も実装へ直行せず、docs-only の小さな設計PRに切り出す
+- [ ] 不採用・保留の場合も理由を残し、同じ候補が曖昧なTODOとして戻らないようにする
+
 ---
 
 ## Active guardrails / reminders
