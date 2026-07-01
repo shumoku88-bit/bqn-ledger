@@ -27,9 +27,27 @@ EscapeJsonChar ← {𝕊 c:
 JsonString ← {𝕊 s: quote ∾ (∾ EscapeJsonChar¨ s) ∾ quote }
 JsonField ← {𝕊 key‿value: (JsonString key) ∾ ": " ∾ (JsonString value) }
 
+TrimReportHeading ← {𝕊 s:
+  out ← s
+  out ↩ {2↓𝕩}⍟((2 ≤ ≠out) ∧ ("==" ≡ 2↑out)) out
+  out ↩ {1↓𝕩}⍟((1 ≤ ≠out) ∧ (' ' = ⊑out)) out
+  out ↩ {¯2↓𝕩}⍟((2 ≤ ≠out) ∧ ("==" ≡ ¯2↑out)) out
+  out ↩ {¯1↓𝕩}⍟((1 ≤ ≠out) ∧ (' ' = ⊑¯1↑out)) out
+  out
+}
+
+TrimLeadingOrdinal ← {𝕊 s:
+  out ← s
+  out ↩ {3↓𝕩}⍟((3 ≤ ≠out) ∧ ('.' = 1⊑out) ∧ (' ' = 2⊑out)) out
+  out ↩ {4↓𝕩}⍟((4 ≤ ≠out) ∧ ('.' = 2⊑out) ∧ (' ' = 3⊑out)) out
+  out
+}
+
+DisplayLabel ← {𝕊 s: TrimLeadingOrdinal TrimReportHeading s }
+
 FormatRow ← {𝕊 row:
   key ← 0⊑row
-  label ← 1⊑row
+  label ← DisplayLabel 1⊑row
   category ← 2⊑row
   owner ← 3⊑row
   human ← 4⊑row
@@ -40,7 +58,7 @@ FormatRow ← {𝕊 row:
 FormatJsonRow ← {𝕊 row:
   fields ← ⟨
     ⟨"key", 0⊑row⟩
-    ⟨"label", 1⊑row⟩
+    ⟨"label", DisplayLabel 1⊑row⟩
     ⟨"category", 2⊑row⟩
     ⟨"owner", 3⊑row⟩
     ⟨"human_output", 4⊑row⟩

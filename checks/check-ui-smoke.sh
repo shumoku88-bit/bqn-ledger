@@ -64,6 +64,22 @@ assert_stdin_nonempty_contains \
   "snapshot" \
   tools/main-ui.sh --base "$fixture"
 
+selector_out="$(mktemp)"
+selector_err="$(mktemp)"
+if printf 'snapshot\n' | tools/main-ui.sh --base "$fixture" >"$selector_out" 2>"$selector_err"; then
+  if grep -qF $'snapshot\t全体サマリ (Snapshot)' "$selector_err" && \
+     ! grep -qF $'snapshot\t1.' "$selector_err" && \
+     grep -qF $'ytd\tYTD Summary' "$selector_err" && \
+     ! grep -qF $'ytd\t==' "$selector_err"; then
+    pass "main-ui selector labels are presentation-normalized"
+  else
+    fail "main-ui selector labels still expose report heading decorations"
+  fi
+else
+  fail "main-ui selector label check failed"
+fi
+rm -f "$selector_out" "$selector_err"
+
 assert_nonempty_contains \
   "main-ui report command" \
   "== Readiness Check ==" \

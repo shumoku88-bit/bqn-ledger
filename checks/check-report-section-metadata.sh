@@ -47,13 +47,13 @@ else
   diff -u "$list_keys" "$keys" >&2 || true
 fi
 
-if grep -qF $'daily-flow\t== Daily Flow ==\thousehold\tsrc_next/daily_flow.bqn\tyes\tmetadata' "$out"; then
+if grep -qF $'daily-flow\tDaily Flow\thousehold\tsrc_next/daily_flow.bqn\tyes\tmetadata' "$out"; then
   pass "daily-flow metadata row is present"
 else
   fail "daily-flow metadata row missing"
 fi
 
-if grep -qF $'check\t== Readiness Check ==\tdiagnostics\tsrc_next/readiness_check.bqn\tyes\tmetadata' "$out"; then
+if grep -qF $'check\tReadiness Check\tdiagnostics\tsrc_next/readiness_check.bqn\tyes\tmetadata' "$out"; then
   pass "readiness metadata row is present"
 else
   fail "readiness metadata row missing"
