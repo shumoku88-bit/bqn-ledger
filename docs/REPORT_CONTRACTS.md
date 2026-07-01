@@ -60,9 +60,9 @@ The section also exposes a readonly backing diagnostic. This is intentionally no
 
 Backing status vocabulary:
 
-- `OK`: cash-backed unassigned equals ledger unassigned.
-- `MISMATCH`: cash-backed unassigned differs from ledger unassigned; readonly diagnostic only, no automatic correction.
-- `OVER_ALLOCATED`: active envelope remaining total exceeds the provisional funding base.
+- `OK`: 現金裏付け未割当 (cash-backed unassigned) equals ledger unassigned.
+- `MISMATCH`: 現金裏付け未割当 differs from ledger unassigned; readonly diagnostic only, no automatic correction. This is not a hard warning by itself.
+- `OVER_ALLOCATED`: active envelope remaining total exceeds the provisional funding base. This is the strong warning state.
 - `unavailable...` / `error...`: backing diagnostic cannot be trusted because the unassigned budget account is missing, ambiguous, or otherwise unavailable.
 
 - `src_next_envelope_funding_base`

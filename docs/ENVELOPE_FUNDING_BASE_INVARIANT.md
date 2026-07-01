@@ -279,15 +279,15 @@ status の意味:
 
 ```text
 OK
-  cash-backed未割当 == 予算台帳未割当。
+  現金裏付け未割当 (cash-backed unassigned) == 予算台帳未割当。
 
 MISMATCH
-  cash-backed未割当 != 予算台帳未割当。
-  readonly診断。自動補正しない。
+  現金裏付け未割当 != 予算台帳未割当。
+  readonly診断。自動補正しない。これ単体では強い警告扱いにしない。
 
 OVER_ALLOCATED
-  cash-backed未割当 < 0。
-  封筒残高合計が封筒対象資金を超えている。
+  現金裏付け未割当 < 0。
+  封筒残高合計が封筒対象資金を超えている。これは強い警告扱いにする。
 
 unavailable... / error...
   unassigned account が未定義・重複などで診断できない。
@@ -303,15 +303,15 @@ unavailable... / error...
 [Backing check]
   封筒対象資金(暫定:type=liquid): 81396
   active封筒残高合計:              68655
-  cash-backed未割当:               12741
+  現金裏付け未割当:                12741
 
 [Budget ledger]
   予算台帳未割当:                   4389
 
 [Delta]
-  cash-backed - ledger:              8352
+  現金裏付け未割当 - 予算台帳未割当: 8352
   status: MISMATCH
-  NOTE: readonly診断。cash-backed未割当と予算台帳未割当が一致していません。自動補正しません。
+  NOTE: readonly診断。現金裏付け未割当と予算台帳未割当が一致していません。自動補正しません。
 
 [Backing provenance]
   funding_base sources:
