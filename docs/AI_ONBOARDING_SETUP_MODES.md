@@ -1,54 +1,61 @@
-# AI onboarding setup modes
+# AI補助セットアップモード草案
 
-Status: draft / discussion-only / docs-only
+状態: draft / discussion-only / docs-only
 
-This document sketches how a new user could start using bqn-ledger with help from the AI service they already use, such as Codex, Claude Code, Gemini CLI, or another terminal-based coding assistant.
+この文書は、bqn-ledger を初めて使う人が、自分の契約している AI サービスに助けてもらいながら初期セットアップを始めるための草案です。
 
-The goal is not to make bqn-ledger fully automatic. The goal is to make the first usable ledger possible for a beginner while preserving the core rule that canonical data must be handled deliberately.
+想定する AI サービスは、Codex、Claude Code、Gemini CLI、またはその他のターミナル上で使う AI コーディングアシスタントです。
 
-## Core idea
+この文書の目的は、bqn-ledger を完全自動化することではありません。
 
-A beginner should be able to open a terminal, start their AI assistant, and say something like:
+目的は、初心者でも最初の使える ledger を作れるようにしつつ、正データは意識して扱う、という bqn-ledger の中核ルールを守ることです。
+
+## 中核の考え
+
+初心者は、ターミナルを開き、自分の AI アシスタントを起動して、次のように話しかけられる状態を目指します。
 
 ```text
 bqn-ledger の初期セットアップをしたいです。
 このリポジトリの docs/AI_ONBOARDING_SETUP_MODES.md を読んで、質問しながら進めてください。
 ```
 
-The AI assistant should then ask questions, create the initial TSV files, summarize the result, and ask for confirmation before setup is considered complete.
+AI アシスタントは、ユーザーに質問し、初期 TSV ファイルを作り、最後に内容を要約して確認を取ります。
 
-After setup is complete, the AI assistant must switch to a more restrictive daily-use mode.
+セットアップ完了後、AI アシスタントはより制限の強い daily-use mode に切り替わります。
 
-## Beginner terminal entry sketch
+## 初心者向けターミナル導線の草案
 
-For a Mac beginner, the onboarding document may eventually say something like:
+Mac 初心者向けには、将来次のような案内を書くかもしれません。
 
 ```text
-1. Start the Mac.
-2. Press Command + Space.
-3. Type: terminal
-4. Press Enter.
-5. In Terminal, type the command for the AI service you use, for example:
+1. Mac を起動します。
+2. Command + Space を押します。
+3. terminal と入力します。
+4. Enter を押します。
+5. ターミナルに、自分が契約している AI サービスのコマンドを入力します。
+   例:
    codex
    claude
    gemini
    agy
-6. Press Enter.
-7. Tell the AI:
+6. Enter を押します。
+7. AI にこう話しかけます。
    bqn-ledger の初期セットアップをしたいです。
 ```
 
-This is only a sketch. It should not be treated as finished installation documentation yet.
+これはまだ草案です。完成したインストール手順として扱ってはいけません。
 
-## Modes
+## モード
 
-### 1. Initial setup mode
+### 1. initial setup mode
 
-Initial setup mode is active before the first usable ledger exists.
+initial setup mode は、最初の使える ledger がまだ存在しない状態で有効になります。
 
-In this mode, the AI assistant may create and edit the initial canonical TSV files, because a beginner may not yet know how to create them by hand.
+このモードでは、AI アシスタントは初期 canonical TSV ファイルを作成・編集してよいです。
 
-Expected files may include:
+理由は、初心者が最初から `accounts.tsv` や `journal.tsv` や `cycle.tsv` を手で作れるとは限らないからです。
+
+作成候補のファイル:
 
 ```text
 data/accounts.tsv
@@ -58,33 +65,33 @@ data/plan.tsv
 data/budget_alloc.tsv
 ```
 
-The AI assistant should ask for at least:
+AI アシスタントは、少なくとも次のことを質問します。
 
-- setup start date
-- managed accounts
-- opening balances
-- next income date or cycle boundary
-- whether cash is managed
-- whether planned payments should be entered now
-- whether envelope/budget management should be skipped for now
+- セットアップ開始日
+- 管理したい口座
+- 各口座の開始残高
+- 次の収入日、または生活サイクルの境界
+- 現金を管理するか
+- 支払い予定を最初から入れるか
+- 封筒予算管理を今は使わずに後回しにするか
 
-At the end of initial setup, the AI assistant must summarize the generated files and ask:
+initial setup の最後に、AI アシスタントは生成した内容を要約し、次のように確認します。
 
 ```text
 この内容で bqn-ledger を開始してよいですか？
 ```
 
-Only after user confirmation should setup be considered complete.
+ユーザーが確認するまでは、セットアップ完了とは扱いません。
 
-### 2. Daily-use mode
+### 2. daily-use mode
 
-Daily-use mode is active after initial setup is complete.
+daily-use mode は、initial setup が完了したあとに有効になります。
 
-In daily-use mode, the AI assistant may read files, explain reports, answer questions, and propose edits.
+このモードでは、AI アシスタントはファイルを読み、レポートを説明し、相談に乗り、編集案を提案できます。
 
-The AI assistant must not edit canonical TSV files unless the user gives an explicit edit instruction.
+ただし、ユーザーが明示的に編集を指示しない限り、canonical TSV ファイルを編集してはいけません。
 
-Examples of questions that do not grant edit permission:
+編集許可にならない相談例:
 
 ```text
 今日のお金の状況を見て。
@@ -93,7 +100,7 @@ Examples of questions that do not grant edit permission:
 今期の予算をどうしたらいい？
 ```
 
-Examples of explicit edit instructions:
+明示的な編集指示の例:
 
 ```text
 journal.tsv に今日の支出を追記して。
@@ -102,13 +109,13 @@ accounts.tsv に新しい支出カテゴリを追加して。
 budget_alloc.tsv をこの内容で更新して。
 ```
 
-### 3. Plan setup mode
+### 3. plan setup mode
 
-A user may not understand planned payments during initial setup.
+ユーザーは、初期セットアップの時点で予定管理を理解しているとは限りません。
 
-Plan setup mode is a later guided mode for creating or revising `plan.tsv`.
+plan setup mode は、あとから `plan.tsv` を作成・見直しするための補助モードです。
 
-This mode may be entered when the user says something like:
+次のような発言で入ることを想定します。
 
 ```text
 予定管理を始めたい。
@@ -116,17 +123,21 @@ This mode may be entered when the user says something like:
 plan.tsv の使い方を一緒に整理したい。
 ```
 
-`plan.tsv` is important, but it is less dangerous than `journal.tsv`: it describes expectations, not historical evidence.
+`plan.tsv` は重要ですが、`journal.tsv` より危険度は低いです。
 
-The AI assistant may help more actively here, but should still summarize changes before applying them when the user is unsure.
+`plan.tsv` は履歴の証拠ではなく、予定や見込みを表すものだからです。
 
-### 4. Budget / envelope setup mode
+AI アシスタントは、このモードでは比較的積極的に手伝ってよいです。
 
-A user may not want envelope budgeting from day one.
+ただし、ユーザーが不慣れな場合は、適用前に変更内容を要約して確認します。
 
-Budget / envelope setup mode is a later guided mode for creating or revising budget-related data such as `budget_alloc.tsv` and account metadata used for budget grouping.
+### 4. budget / envelope setup mode
 
-This mode may be entered when the user says something like:
+ユーザーは、最初の日から封筒予算管理を使いたいとは限りません。
+
+budget / envelope setup mode は、`budget_alloc.tsv` や、予算グループに関係する account metadata をあとから作成・見直しするための補助モードです。
+
+次のような発言で入ることを想定します。
 
 ```text
 封筒予算管理を始めたい。
@@ -134,94 +145,110 @@ This mode may be entered when the user says something like:
 今期の budget_alloc.tsv を一緒に作りたい。
 ```
 
-Budget data is allowed to be experimental. If it is wrong, the reports may be unhelpful, but the historical journal is still intact.
+予算データは実験してよい領域です。
 
-### 5. Repair / review mode
+間違っていればレポートは役に立たなくなるかもしれませんが、歴史的な実績である journal は残ります。
 
-Repair / review mode is for investigating inconsistent or confusing output.
+### 5. repair / review mode
 
-The AI assistant should first inspect reports and TSV files without editing. It should identify whether the issue is in journal data, account metadata, plan data, budget data, or report interpretation.
+repair / review mode は、レポート出力が矛盾して見えるときや、何かがおかしいと感じたときに使う確認モードです。
 
-Editing rules remain governed by file protection levels and explicit user instructions.
+AI アシスタントは、まずレポートと TSV ファイルを読み、編集せずに調査します。
 
-## File protection levels
+問題の場所が journal data、account metadata、plan data、budget data、report interpretation のどれに近いかを切り分けます。
 
-Not all TSV files have the same weight.
+編集ルールは、ファイル保護レベルとユーザーの明示指示に従います。
 
-### Strongly protected
+## ファイル保護レベル
+
+すべての TSV ファイルが同じ重さではありません。
+
+### 強く保護するファイル
 
 ```text
 data/journal.tsv
 ```
 
-`journal.tsv` is historical evidence. It records what actually happened. It must not be edited without an explicit user instruction.
+`journal.tsv` は歴史的な実績の証拠です。
 
-Edits to `journal.tsv` should normally be append-only. If correction is needed, prefer an explicit correction entry or a clearly explained targeted edit.
+実際に何が起きたかを記録します。
 
-### Protected
+ユーザーの明示指示なしに編集してはいけません。
+
+`journal.tsv` の編集は、基本的には追記を優先します。
+
+修正が必要な場合は、明確な修正エントリ、または説明された対象行編集を優先します。
+
+### 保護するファイル
 
 ```text
 data/accounts.tsv
 data/cycle.tsv
 ```
 
-These files shape interpretation. They may be edited with explicit user instruction, but the AI assistant should explain expected report impact before destructive changes such as renaming or removing accounts.
+これらのファイルは、レポートの解釈を形作ります。
 
-### Flexible / experimental
+ユーザーの明示指示があれば編集してよいですが、口座名の変更や削除など破壊的な変更を行う場合は、レポートへの影響を説明します。
+
+### 柔軟・実験的に扱えるファイル
 
 ```text
 data/plan.tsv
 data/budget_alloc.tsv
 ```
 
-These files describe expectations and budget plans. They are important for reports, but if they break, the historical journal is still preserved.
+これらのファイルは予定や予算を表します。
 
-The AI assistant may provide more active setup help here, especially inside plan setup mode or budget / envelope setup mode.
+レポートにとって重要ですが、壊れても歴史的な journal は残ります。
 
-## Draft setup-complete marker idea
+AI アシスタントは、plan setup mode や budget / envelope setup mode の中では、比較的積極的にセットアップを手伝ってよいです。
 
-A future implementation may create a small marker after initial setup, for example:
+## setup-complete marker の草案
+
+将来の実装では、initial setup の完了後に小さな marker を作るかもしれません。
+
+例:
 
 ```text
 data/.setup-complete
 ```
 
-or
+または:
 
 ```text
 data/SETUP_STATE.tsv
 ```
 
-The marker would tell AI assistants and tooling that initial setup mode is over and daily-use mode should apply.
+この marker によって、AI アシスタントや補助ツールが、initial setup mode は終わり、daily-use mode を適用すべきだと判断できます。
 
-This is only a design idea. No implementation is specified by this draft.
+これは設計アイデアです。この草案では実装を指定しません。
 
-## Non-goals for this draft
+## この草案でやらないこと
 
-- Do not implement a setup wizard yet.
-- Do not change current report behavior.
-- Do not change canonical TSV formats yet.
-- Do not make AI edits impossible.
-- Do not let AI edit canonical files silently.
+- まだ setup wizard は実装しません。
+- 現在のレポート動作は変更しません。
+- canonical TSV format はまだ変更しません。
+- AI による編集を不可能にはしません。
+- AI が canonical files を無断で編集できる状態にはしません。
 
-## Open questions
+## 未決定事項
 
-- What exact phrase should mark explicit edit permission?
-- Should initial setup write directly to `data/`, or write to `setup-draft/` first?
-- Should `journal.tsv` corrections be append-only by policy?
-- Should plan and budget setup modes require confirmation before every write?
-- What should be the smallest beginner-friendly initial setup?
-- How should non-Mac users be guided?
+- どの言葉を「明示的な編集許可」とみなすか。
+- initial setup は直接 `data/` に書くべきか、まず `setup-draft/` に書くべきか。
+- `journal.tsv` の修正は、方針として append-only を優先すべきか。
+- plan / budget setup modes では、すべての書き込み前に確認が必要か。
+- 初心者向けの最小セットアップはどこまでか。
+- Mac 以外のユーザーをどう案内するか。
 
-## Merge readiness checklist
+## merge readiness checklist
 
-This PR should not be merged until the onboarding policy is clearer.
+この PR は、onboarding policy がもう少し明確になるまでマージしません。
 
-- [ ] Initial setup mode is defined clearly enough for an AI assistant.
-- [ ] Daily-use edit rules are unambiguous.
-- [ ] `journal.tsv` protection level is agreed.
-- [ ] `plan.tsv` setup mode is described.
-- [ ] Budget / envelope setup mode is described.
-- [ ] Beginner terminal entry is written carefully.
-- [ ] AI prompt examples are tested conversationally.
-- [ ] Merge readiness is reviewed separately.
+- [ ] initial setup mode が AI アシスタントに十分明確に定義されている。
+- [ ] daily-use edit rules が曖昧ではない。
+- [ ] `journal.tsv` protection level が合意されている。
+- [ ] `plan.tsv` setup mode が説明されている。
+- [ ] budget / envelope setup mode が説明されている。
+- [ ] 初心者向けターミナル導線が慎重に書かれている。
+- [ ] AI prompt examples を会話で試している。
+- [ ] merge readiness を別途レビューしている。
