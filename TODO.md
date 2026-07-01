@@ -3,7 +3,7 @@
 このファイルは **現在進行中・次に着手する作業だけ** を置く場所です。
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避済みです。
 
-Last hygiene pass: 2026-07-01 — contributor docs / report policy externalization の完了ログを `docs/archive/TODO_HISTORY-2026-07-01.md` へ退避。
+Last hygiene pass: 2026-07-01 — active-plans 棚卸しを `docs/archive/active-plans/README.md` に追加。contributor docs / report policy externalization の完了ログを `docs/archive/TODO_HISTORY-2026-07-01.md` へ退避。
 
 ---
 
