@@ -323,23 +323,49 @@ EOF
 }
 
 choose_budget_memo() {
-  local selected key custom
-  if ! selected="$( {
-    printf 'alloc\talloc (default)\n'
-    printf 'seed\tseed\n'
-    printf 'move\tmove\n'
-    printf 'custom\tenter memo\n'
-  } | select_line 'budget memo')"; then
+  local selected key memo_value custom line
+  local presets_file="$ROOT_DIR/config/ui_budget_memo_presets.tsv"
+  local -a lines=()
+
+  if [[ -f "$presets_file" ]]; then
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      [[ -z "$line" || "$line" =~ ^# ]] && continue
+      lines+=("$line")
+    done < "$presets_file"
+  else
+    # Keep budget-specific memo vocabulary in config/ui_budget_memo_presets.tsv.
+    # Fallback only preserves a generic custom input path.
+    lines=($'custom\tenter memo\tcustom')
+  fi
+
+  if ! selected="$(
+    for line in "${lines[@]}"; do
+      local k d
+      k="$(printf '%s' "$line" | cut -f1)"
+      d="$(printf '%s' "$line" | cut -f2)"
+      printf '%s\t%s\n' "$k" "$d"
+    done | select_line 'budget memo'
+  )"; then
     return 130
   fi
+
   key="${selected%%$'\t'*}"
+  memo_value=""
+  for line in "${lines[@]}"; do
+    local k
+    k="$(printf '%s' "$line" | cut -f1)"
+    if [[ "$k" == "$key" ]]; then
+      memo_value="$(printf '%s' "$line" | cut -f3)"
+      break
+    fi
+  done
+
   case "$key" in
-    alloc|seed|move) printf '%s\n' "$key" ;;
     custom)
       if ! custom="$(read_tty 'Budget memo' 'alloc')"; then return 130; fi
       printf '%s\n' "$custom"
       ;;
-    *) printf '%s\n' "$key" ;;
+    *) printf '%s\n' "${memo_value:-$key}" ;;
   esac
 }
 

@@ -36,7 +36,7 @@ TEST check-only parsing; acceptable unless it becomes runtime behavior
 | P2 | `tools/add-ui.sh::choose_mode` | Daily write modes and from/to role shape (`expense`, `income`, `budget`, etc.) | none | probably keep as UI intent menu; BQN editor validates | Shell chooses operation intent; BQN owns validation and account semantics. |
 | OK/P2 | `tools/add-ui.sh::accounts`, `select_account` | Account roles requested by UI (`asset`, `expense`, `income`, `budget`) | no direct TSV read | already `tools/edit account list --role` | Good boundary: role interpretation is BQN-owned. Shell still owns which role a mode asks for. |
 | P2 | `tools/add-ui.sh::choose_date_key`, `choose_plan_date_key` | Date presets `today`, `yesterday`, `tomorrow` | none | keep UI convenience | Not accounting meaning. Watch reproducibility if used in tests; editor/report core should still validate dates. |
-| P2 | `tools/add-ui.sh::choose_budget_memo` | Budget memo presets `alloc`, `seed`, `move` | none | possible config/BQN budget candidate export | Low risk but budget-specific vocabulary lives in shell. |
+| OK | `tools/add-ui.sh::choose_budget_memo` | Reads budget memo presets from `config/ui_budget_memo_presets.tsv`; shell fallback is only generic `custom` | config preset file | implemented: config-owned UI presets | Completed small cleanup: budget-specific `alloc` / `seed` / `move` vocabulary no longer lives in shell. |
 | OK | `tools/add-ui.sh::choose_meta` presets | Reads metadata presets from `config/ui_meta_presets.tsv`; shell fallback is only generic `empty` / `custom` | `config/ui_meta_presets.tsv` optional | implemented: config-owned UI presets + BQN validation on write | Completed small cleanup: domain-specific `tax` / `biz` presets no longer live as shell fallback values. |
 | P2 | `tools/add-ui.sh::meta_has_key` / `series=` addition | Knows `series` metadata key and allowed series characters | none | BQN editor plan-id/metadata helper | Shell currently adds a convenience `series=` token. Semantics are documented as owned by BQN, but the key leaks into shell. |
 | OK | `tools/add-ui.sh` plan list / journal list selection | Parses BQN editor TSV protocol columns for display/index/id | no direct TSV read | already `tools/edit ... list --format tsv` | Acceptable protocol parsing. Keep column contract documented and checked. |
@@ -93,8 +93,14 @@ Decision for `choose_meta`:
 - shell fallback keeps only generic `empty` / `custom`
 - BQN editor validation remains the write-time guard for `key=value` metadata
 
-Remaining: decide whether `choose_budget_memo` should remain UI convenience,
-move to config, or be exported by BQN/editor.
+Decision for `choose_budget_memo`:
+
+- budget memo presets live in `config/ui_budget_memo_presets.tsv`
+- shell fallback keeps only generic `custom`
+- this remains UI convenience; BQN editor still validates and writes the row
+
+Remaining: decide whether recurring `series=` input convenience should remain in
+shell or move behind a BQN editor helper/export.
 
 ### Slice 3: recurring plan replenishment boundary
 
@@ -110,10 +116,11 @@ reading source TSV rows to compute accounting or household numbers.
 
 The main leaks are P2:
 
-- budget memo / series UI vocabulary
+- series UI vocabulary
 - replenishment follow-up date logic
 
 Resolved in this branch:
 
 - report section metadata hard-coded in shell → `tools/report-section-metadata`
 - domain-specific meta preset fallback in shell → `config/ui_meta_presets.tsv`
+- budget memo preset vocabulary in shell → `config/ui_budget_memo_presets.tsv`

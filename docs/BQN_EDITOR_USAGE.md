@@ -29,7 +29,7 @@ BQN Editor は会計エンジンとしての計算（残高や封筒の残金計
 1.  **`expense` (支出)**: 資産口座から費用口座への支出（例: `assets:bank` $\rightarrow$ `expenses:food`）。`journal.tsv` に追記。
 2.  **`move` (資金移動)**: 資産口座間の振替（例: `assets:bank` $\rightarrow$ `assets:cash`）。`journal.tsv` に追記。
 3.  **`income` (収入)**: 収入元から資産口座への入金（例: `income:salary` $\rightarrow$ `assets:bank`）。`journal.tsv` に追記。
-4.  **`budget` (予算配賦)**: 封筒への予算割り当て（例: `budget:unassigned` $\rightarrow$ `budget:daily`）。`budget_alloc.tsv` に追記。
+4.  **`budget` (予算配賦)**: 封筒への予算割り当て（例: `budget:unassigned` $\rightarrow$ `budget:daily`）。`budget_alloc.tsv` に追記。memo 候補は `config/ui_budget_memo_presets.tsv` で管理します。
 5.  **`plan-add` (予定の追加)**: 未来の支払い予定を `plan.tsv` に安全追記。必要なら `series` を入力でき、`plan_id` は自動生成。
 6.  **`plan-edit` (予定の日付・金額修正)**: 未完了予定を選び、`date` / `amount` だけを差分プレビュー付きで修正。
 7.  **`plan-finish` (予定の実績化)**: `plan.tsv` で宣言された予定を完了させて実績化。`journal.tsv` に `plan_id` 付きで追記。
