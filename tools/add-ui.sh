@@ -365,10 +365,10 @@ choose_meta() {
       lines+=("$line")
     done < "$presets_file"
   else
+    # Keep semantic meta presets in config/ui_meta_presets.tsv, not shell.
+    # Fallback only preserves the generic empty/custom UI shape.
     lines=(
       $'empty\t(no meta)\t'
-      $'private\ttax=private biz=0\ttax=private biz=0'
-      $'business\ttax=business biz=1\ttax=business biz=1'
       $'custom\tenter key=value tokens\tcustom'
     )
   fi
