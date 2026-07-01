@@ -85,7 +85,7 @@ if ./tools/report-next-summary fixtures/src-next-golden > "$tmp_summary" 2>/dev/
   echo "  INFO: summary exposes $total_keys src_next_* keys" >&2
   
   # Test that the first key is queryable
-  first_key=$(grep '^src_next_' "$tmp_summary" | head -1 | sed 's/: .*//')
+  first_key=$(sed -n '/^src_next_/{s/: .*//;p;q;}' "$tmp_summary")
   if [ -n "$first_key" ]; then
     if ./tools/query fixtures/src-next-golden "$first_key" >/dev/null 2>&1; then
       echo "  PASS: query can retrieve keys (sample: $first_key)" >&2
