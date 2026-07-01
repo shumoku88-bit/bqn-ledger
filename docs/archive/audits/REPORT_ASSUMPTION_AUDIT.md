@@ -1,7 +1,7 @@
 # Report Assumption Audit
 
 Status: current remainder audit
-Date: 2026-06-29
+Date: 2026-06-29 / reviewed 2026-07-01
 
 This document tracks report / household-policy assumptions that are allowed to remain in code, already externalized, or still need a decision.  It is the Phase 0 artifact for `docs/archive/active-plans/REPORT_POLICY_EXTERNALIZATION_PLAN.md`.
 
@@ -25,7 +25,7 @@ Scope: current `src_next/`, `config/*.tsv`, shell UI report entrypoints, and che
 | `src_next/cube.bqn`, `src_next/tbds.bqn`, `src_next/projection.bqn` | `actual / plan / budget / forecast`, cube shape, posting projection | core invariant | Keep in code. | Do not externalize. New meanings should be separate projections/views. |
 | `config/report_labels.tsv`, `src_next/report_labels.bqn` | Human-readable section titles, table labels, legends | presentation | Externalized first pass complete. Runtime Japanese labels now go through the label table where practical. | Keep using this boundary. Add duplicate/missing-key checks before expanding semantics. |
 | `src_next/report.bqn` `BuildSectionEntries` | Canonical section keys and dispatcher order | presentation / dispatcher contract | Keep in code for now. Section functions are code-level capabilities; `--list-sections` is the UI boundary. | Do not create `report_sections.tsv` until section enable/order/alias changes become a real need and lint is designed. |
-| `tools/main-ui.sh` `section_list` | UI menu labels / aliases for daily launcher | presentation / shell UI | UI-only; not part of accounting semantics. | Optional later: derive more from `tools/report --list-sections`, but keep shell responsibility to display/selection only. |
+| `tools/main-ui.sh` `section_list` | UI menu labels / aliases for daily launcher | presentation / shell UI | UI-only; not part of accounting semantics. Still intentionally hard-coded for the picker, including newer `daily-flow`. | Optional later: derive labels from `config/report_labels.tsv` or `tools/report --list-sections` only if picker label drift becomes painful. Keep shell responsibility to display/selection only. |
 | `config/default_config.tsv`, `config/meta_schema.tsv`, `src_next/config.bqn` | `HOUSEHOLD_GROUP_LIFE`, `HOUSEHOLD_GROUP_RESERVE`, `HOUSEHOLD_GROUP_ORDER` | lifestyle policy | Correct boundary: concrete values like `daily`, `flex`, `reserve` are config values, not arithmetic concepts. | Keep. If new group policy keys are added, add lint/fixture first. |
 | `src_next/household_policy.bqn` machine keys containing `daily/flex/reserve` | Compatibility output slots | compatibility shim | Acceptable for stable machine-readable fields; compared values are loaded from `HOUSEHOLD_GROUP_*`. | Do not treat the field names as policy values. Consider neutral keys only if changing machine API is worth it. |
 | `src_next/envelope_computation.bqn` `PolicyForBase` / `FixtureFoodLikeTarget` | Fixture-gated target `fixture_food_like`, selector `budget=食費` via labels | fixture example / prototype policy | Safe as fixture/prototype guard, not production policy. Production defaults remain disabled unless policy is available. | Docs-only future contract sketched in `docs/archive/active-plans/ENVELOPE_TARGET_POLICY_SKETCH.md`. Do not infer food from account names. |
@@ -33,15 +33,27 @@ Scope: current `src_next/`, `config/*.tsv`, shell UI report entrypoints, and che
 | `src_next/readiness_check.bqn` `valid_roles`, `valid_types`, `valid_classes` | allowed metadata values | data contract | Good lint/readiness boundary. | Expand only with `config/meta_schema.tsv`, docs, and fixture updates. |
 | `src_next/ytd_summary.bqn`, `src_next/actual_snapshot.bqn`, `src_next/daily_trend.bqn`, `src_next/envelope_computation.bqn`, `src_next/household_policy.bqn` | prefix compatibility such as `assets:`, `income:`, `expenses:`, `budget:` | compatibility shim | Residual view/report compatibility remains outside projection/readiness. It is not a new policy mechanism. `src_next/balances.bqn` display grouping fallback was removed on 2026-06-29. | Later cleanup candidate: remove or confine fallback after fixtures prove explicit `role=` paths cover all active reports. |
 | `src_next/planned_payments.bqn`, `src_next/actual_comparison.bqn`, `src_next/outlook.bqn` | short display names by stripping prefixes | presentation helper | Display-only convenience; still tied to account naming style. | Prefer account label metadata only if account display configuration becomes a real requirement. Do not add `account_display.tsv` yet. |
+| `src_next/daily_flow.bqn` | budget prefix stripping for compact per-day envelope labels | presentation helper | Display-only convenience, similar to the short-name helpers above. It should not become a policy selector. | Keep for now. If account label/order needs become concrete, solve with account metadata or a designed display layer, not ad-hoc report-specific policy. |
+| `src_next/daily_trend.bqn`, `src_next/outlook.bqn` | `fixed`, `variable`, `saving` spend classes and daily allowance terms | data contract / household view | `spend_class` values are metadata contract values; daily allowance math is a household view, not Cube/TBDS core. | Keep metadata enums linted via existing readiness/lint checks. Do not make Cube shape or Layer names configurable. Threshold/policy changes need separate fixture-backed design. |
 | `checks/check-src-next-envelope-production-guard.sh` | fallback markers for daily/food/flex/reserve in snapshot | safety guard | Good: prevents polished numeric claims where src_next intentionally delegates/falls back. | Keep until replacement report values have contracts and fixtures. |
 
 ## Decisions from this pass
 
-1. **Do not create `report_sections.tsv` now.**  Section dispatch is still code-owned; `--list-sections` is enough for UI tools.
+1. **Do not create `report_sections.tsv` now.**  Section dispatch is still code-owned; `--list-sections` is enough for UI tools. Picker labels may stay in `tools/main-ui.sh` until label drift becomes a real problem.
 2. **Do not create `account_display.tsv` now.**  Account labels/order should first try `accounts.tsv` metadata if the need becomes concrete.
 3. **Keep `HOUSEHOLD_GROUP_*` config.**  This is the right boundary for lifestyle group values; Canonical Daily Cube axes remain fixed.
 4. **Treat residual prefix checks as compatibility debt, not policy.**  They are candidates for a later small cleanup, but not part of this docs-only pass.
 5. **Real target policy is still not designed.**  The existing food-like target is fixture/prototype-gated; production policy needs a separate contract and lint before implementation.
+6. **Do not externalize daily-flow / daily-trend presentation helpers yet.**  They contain display convenience and household-view terms, but no new runtime policy TSV is justified by current usage.
+
+## Current checkpoint (2026-07-01)
+
+A docs-only recheck found no reason to add runtime policy TSVs now:
+
+- `report_sections.tsv` remains intentionally uncreated. Current section keys and execution order are a code-owned dispatcher contract in `src_next/report.bqn`; UI selection can consume `--list-sections` and/or keep picker labels as presentation-only shell text.
+- `account_display.tsv` remains intentionally uncreated. Current short-name/prefix-stripping helpers are display conveniences, not policy selectors. If display labels/order become concrete needs, try `accounts.tsv` metadata first and add lint/fixture with the change.
+- `HOUSEHOLD_GROUP_*` remains the right boundary for current `daily/flex/reserve` group values. These values are policy labels, not Cube/TBDS axes.
+- Newer daily view modules (`daily_trend`, `daily_flow`, `outlook`) do not change the boundary: daily allowance/report views may use metadata and config, but Canonical Daily Cube shape and Layer names stay fixed.
 
 ## Next implementation candidates
 

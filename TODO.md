@@ -29,10 +29,13 @@ Last hygiene pass: 2026-07-01 — editor boundary / real-data trial / replenishm
 - `docs/archive/audits/REPORT_ASSUMPTION_AUDIT.md`
 - `docs/archive/completed-plans/SRC_NEXT_HOUSEHOLD_REPORT_POLICY_CONTRACT.md`
 
-- [ ] 現在残っている外部設定候補を再確認する
-- [ ] 新しい外部設定候補が出たら、生活ポリシー値か計算規則かを分ける
-- [ ] `report_sections.tsv` や `account_display.tsv` は、Phase 1/2 の判断と fixture/check 方針が決まるまで作らない
-- [ ] Canonical Daily Cube の shape や Layer 契約は設定化しない
+- [x] 現在残っている外部設定候補を再確認する
+  - 2026-07-01: docs-only recheck 完了。`daily_flow` / `daily_trend` / `outlook` 追加後も新規 runtime policy TSV は不要。
+- [x] 新しい外部設定候補が出たら、生活ポリシー値か計算規則かを分ける
+  - `HOUSEHOLD_GROUP_*` は生活ポリシー値、Cube shape / Layer / Posting IR / TBDS は計算規則として固定。
+- [x] `report_sections.tsv` や `account_display.tsv` は、Phase 1/2 の判断と fixture/check 方針が決まるまで作らない
+  - 現時点では作らない判断を維持。picker label は shell presentation、短縮表示は display helper として扱う。
+- [x] Canonical Daily Cube の shape や Layer 契約は設定化しない
 
 ### 候補 C: TODO / docs hygiene 継続
 

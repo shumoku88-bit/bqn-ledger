@@ -342,14 +342,15 @@ docs/REPORT_DESIGN.md
 
 ---
 
-## Current checkpoint (2026-06-29)
+## Current checkpoint (2026-06-29 / reviewed 2026-07-01)
 
 The current remainder has been narrowed without adding new runtime policy TSVs:
 
-- `docs/archive/audits/REPORT_ASSUMPTION_AUDIT.md` records the current keep/externalize/defer decisions.
+- `docs/archive/audits/REPORT_ASSUMPTION_AUDIT.md` records the current keep/externalize/defer decisions and was rechecked on 2026-07-01 after the daily view additions.
 - `checks/check-report-labels.sh` verifies `L "..."` references against `config/report_labels.tsv`.
 - `docs/archive/active-plans/ENVELOPE_TARGET_POLICY_SKETCH.md` sketches future target policy before any `envelope_targets.tsv` exists.
 - `report_sections.tsv` and `account_display.tsv` remain intentionally uncreated until need + lint/fixture design are clear.
+- `daily_flow` / `daily_trend` / `outlook` presentation helpers do not change the boundary: household views may use metadata/config, but Cube shape and Layer names stay fixed.
 
 ## 完了条件
 
