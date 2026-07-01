@@ -78,9 +78,9 @@ budget_pool
 封筒予算が配分対象として扱う actual asset balance の合計。
 ```
 
-これは、すべての資産ではありません。
+これは、すべての資産とは限りません。
 
-貯金、投資、長期保管資金などは封筒対象から外れることがあります。
+貯金、投資、長期保管資金などを封筒対象に含めるか外すかは、資産の換金可能性だけでは決めません。`type=liquid|savings|invest` の分類名や境界は未解決の別論点として残し、この文書では封筒予算がバランスすべき対象プールを別概念として定義します。
 
 ## 中心 invariant
 
@@ -166,25 +166,29 @@ budget:unassigned	role=budget	budget_pool=main	kind=unassigned
 
 ## `type=liquid` との関係
 
-`type=liquid` は「すぐ動かせる資金置き場」を表す分類として当面維持します。
+`type=liquid` は historical / compatibility name として当面維持します。
 
-ただし、`type=liquid` のすべてが必ず封筒対象資金になるとは限りません。
+ただし、この文書では `type=liquid` の名前や境界を再設計しません。貯金・投資信託なども換金可能性の観点では liquid と見なせるため、`liquid|savings|invest` が本当に liquidity 分類として妥当かは未解決です。
 
-将来的には、次のような違いを明確にする必要があります。
+この PR で固定する境界は、次の一点だけです。
 
 ```text
-type=liquid
-  すぐ動かせる actual asset の分類。
+asset classification の名前・境界
+  未解決。`type=liquid` は当面互換性のため維持する。
 
-budget_pool=main
+可用資金
+  現行 human-facing label。現行実装では主に `type=liquid` の実残高を表示する。
+
+封筒対象資金 / envelope_funding_base
   封筒予算が配分対象として扱う actual asset の範囲。
+  `type=liquid` 全額と決め打ちしない。
 ```
 
-つまり、`type=liquid` と `budget_pool` は似ていますが、同じ概念ではありません。
+つまり、`type=liquid` と `budget_pool` / `envelope_funding_base` は似ていますが、同じ概念ではありません。
 
 ## 可用資金との関係
 
-関連 PR では、「流動資産」という表示名を「可用資金」または「使える資金」に変えることを検討しています。
+関連 PR #33 で、人間向け表示名は「流動資産」から「可用資金」に寄せました。
 
 この文書では、それとは別に、封筒予算が何に対してバランスしているかを定義します。
 
@@ -192,7 +196,8 @@ budget_pool=main
 
 ```text
 type=liquid の実残高
-  すぐ動かせる actual asset の合計。
+  現行実装で可用資金表示の基礎になる actual asset の合計。
+  ただし分類名・境界は未解決。
 
 封筒対象資金
   封筒予算が配分対象にする actual asset の合計。
@@ -214,11 +219,11 @@ type=liquid の実残高
 推奨される順番は次の通りです。
 
 ```text
-1. 流動資産という表示名の問題を整理する
-2. 封筒対象資金の invariant を整理する
-3. 表示名や docs を変える
+1. 流動資産という表示名の問題を整理する（#33: 可用資金）
+2. `type=liquid` の分類名・境界は未解決として残す
+3. 封筒対象資金の invariant を整理する
 4. 必要なら実装を変える
-5. 最後に machine-readable key の rename を検討する
+5. 最後に machine-readable key / metadata rename を検討する
 ```
 
 理由:
@@ -260,6 +265,7 @@ type=liquid の実残高
 - `budget_alloc.tsv` の形式を変更しない
 - `journal.tsv` の扱いを変更しない
 - `type=liquid` を変更しない
+- `type=liquid|savings|invest` の分類名・境界を決定しない
 - `liq_total` などの内部変数を変更しない
 - machine-readable output を変更しない
 - 封筒予算の最終設計を決定しない
@@ -269,7 +275,8 @@ type=liquid の実残高
 - 中心用語を「封筒対象資金」とするか。
 - 英語内部名を `envelope_funding_base`、`budgetable_funds`、`budget_pool` のどれに寄せるか。
 - `budget_pool=main` のような metadata を導入するか。
-- `type=liquid` と `budget_pool` の関係をどう説明するか。
+- `type=liquid|savings|invest` の分類名・境界をどう再設計するか（貯金・投資信託も換金可能性の観点では liquid と見なせるため、この文書では決めない）。
+- `type=liquid` と `budget_pool` / `envelope_funding_base` の関係をどう説明するか。
 - 封筒未割り当てを account として表すか、計算結果としてのみ表すか。
 - 複数 budget pool を将来許容するか。
 - report label と machine-readable key をいつ変更するか。
