@@ -62,3 +62,74 @@ Status: complete as of 2026-07-01.
 - `rtk bash ./tools/check.sh` passed.
 - `tools/repo-index --baseline` was refreshed after new files were added.
 - Committed as `78b8fd1 refactor: finish PR 30 audit follow-ups`.
+
+---
+
+## Completed: editor boundary cleanup (tools/edit-bqn / add-ui / src_edit)
+
+Status: complete as of 2026-07-01.
+
+Goal: keep the daily write path stable while reducing responsibility drift between shell UI/orchestration and BQN validation/meaning.
+
+Completed decisions and implementation batches:
+
+- Extended the shell/BQN boundary audit with the remaining `tools/edit-bqn` and `tools/add-ui.sh` responsibilities.
+- Planned the three write-path families explicitly:
+  - append protocol
+  - replace protocol
+  - read-only export/list protocol
+- Extracted BQN-command-independent shell helpers for protocol parsing, preview/confirmation, safe-write orchestration, and post-check display.
+- Moved common APPEND handling for journal/budget/plan add, plan finish, journal reverse, and existing issue append paths onto the shared helper.
+- Kept `issues.tsv` create-if-missing as the optional-file exception, while aligning backup/write-result/post-check observability.
+- Clarified that `tools/add-ui.sh` may attach `series=` as UI-only input convenience; related-plan matching and fallback order remain owned by `src_edit/plan_related_cmd.bqn`.
+- Chose BQN narrow command conversion order and implemented the safe first cuts:
+  - `src_edit/journal_reverse_cmd.bqn`
+  - `src_edit/plan_edit_cmd.bqn`
+- Removed the old aggregate `src_edit/editor_cmd.bqn`; current write path is the narrow command set plus shell safe-write helpers.
+
+Verification:
+
+- `rtk bash checks/check-edit-bqn-plan-edit.sh` passed.
+- `rtk bash checks/check-edit-bqn-journal-reverse.sh` passed.
+- `rtk bash ./tools/check.sh` passed.
+
+---
+
+## Completed: real-data trial safety observation
+
+Status: complete as of 2026-06-30.
+
+- Added `docs/REAL_DATA_TRIAL_SAFETY.md` with sandbox rehearsal, real-data preflight, dry-run, confirmation write, and observation logging guidance.
+- Ran sandbox rehearsal for `tools/doctor`, `tools/report`, `tools/add-ui.sh --check`, and editor dry-run behavior.
+- Ran read-only real-data preflight for `tools/doctor`, `tools/report`, and `tools/add-ui.sh --check`.
+- Performed the first real-data write only after dry-run and human confirmation, using a harmless `real-data-trial-delete-me` entry.
+- Observed backup creation, post-check success, and report recovery after human cleanup.
+- Ran several temp-copy sandbox writes to observe base dir, backup, post-check, and report drift behavior.
+- Closed additional real-data observation as a TODO; future safety improvements should come from actual defects or specific requests.
+
+---
+
+## Completed: plan finish replenishment helper follow-up
+
+Status: complete as of 2026-06-30.
+
+- Verified `tools/plan-finish-replenish-ui.sh` under default and `BQN_EDITOR=1` environments.
+- Added/used `checks/check-plan-finish-replenish-ui.sh` preflight coverage.
+- Verified replenish/extend behavior in temp sandbox with dry-run-like interaction.
+- Confirmed `series=...` inheritance and related-plan resolution order:
+  1. explicit `series=` metadata
+  2. `plan_id=plan-YYYY-MM-DD-<series>` derived series
+  3. exact fallback by memo/from/to/amount
+- Implemented related future plan listing before replenishment.
+- Kept source TSV schema and low-level `plan finish` / `plan add` behavior unchanged.
+
+---
+
+## Completed / mostly closed: CI and workflow drift stabilization
+
+Status: active guard remains; completed work archived here.
+
+- Kept `checks/check-workflow-drift.sh` as the guard against stale Go/editor assumptions in GitHub Actions workflows.
+- Added CBQN policy guard coverage.
+- Synced CI CBQN behavior with `docs/CBQN_REPRODUCIBILITY.md`: CI tracks `CBQN_REF: master` and logs the exact commit.
+- Active reminder left in `TODO.md`: when workflow/docs/check behavior changes, verify both `tools/check.sh` and GitHub Actions.
