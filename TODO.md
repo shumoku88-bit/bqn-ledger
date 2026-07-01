@@ -3,39 +3,13 @@
 このファイルは **現在進行中・次に着手する作業だけ** を置く場所です。
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避済みです。
 
-Last hygiene pass: 2026-07-01 — editor boundary / real-data trial / replenishment follow-up の完了ログを `docs/archive/TODO_HISTORY-2026-07-01.md` へ退避。
+Last hygiene pass: 2026-07-01 — contributor docs / report policy externalization の完了ログを `docs/archive/TODO_HISTORY-2026-07-01.md` へ退避。
 
 ---
 
 ## Now: 次に選ぶ作業
 
-直近の大きな editor boundary 整理は完了。次は下のどれかを小さく選ぶ。
-
-### 候補 A: Contributor docs / 入口整理
-
-導線: `docs/ENGINEERING_ROADMAP.md` の「コントリビュータ向け文書」。
-
-- [x] `CONTRIBUTING.md` を repo 直下に作るか判断する
-  - 既存 `CONTRIBUTING.md` を現行 daily path に合わせて更新。Go は必須依存から外し、historical / helper 扱いと明記。
-- [x] `docs/README.md` の pit 向け「まず読む」を短くするか判断する
-  - 5項目の最短ルート + 作業別追加 docs に圧縮。
-- [x] `docs/AI_CODEMAP.md` に人間向け補足が必要か確認する
-  - 外部向け入口は `docs/README.md` / `CONTRIBUTING.md`、AI_CODEMAP は人間にも使えるコード索引と明記。
-
-### 候補 B: report policy externalization の残り判断
-
-導線:
-- `docs/archive/active-plans/REPORT_POLICY_EXTERNALIZATION_PLAN.md`
-- `docs/archive/audits/REPORT_ASSUMPTION_AUDIT.md`
-- `docs/archive/completed-plans/SRC_NEXT_HOUSEHOLD_REPORT_POLICY_CONTRACT.md`
-
-- [x] 現在残っている外部設定候補を再確認する
-  - 2026-07-01: docs-only recheck 完了。`daily_flow` / `daily_trend` / `outlook` 追加後も新規 runtime policy TSV は不要。
-- [x] 新しい外部設定候補が出たら、生活ポリシー値か計算規則かを分ける
-  - `HOUSEHOLD_GROUP_*` は生活ポリシー値、Cube shape / Layer / Posting IR / TBDS は計算規則として固定。
-- [x] `report_sections.tsv` や `account_display.tsv` は、Phase 1/2 の判断と fixture/check 方針が決まるまで作らない
-  - 現時点では作らない判断を維持。picker label は shell presentation、短縮表示は display helper として扱う。
-- [x] Canonical Daily Cube の shape や Layer 契約は設定化しない
+直近の structured UI export 境界整理は main にマージ済み。次は下のどれかを小さく選ぶ。
 
 ### 候補 C: TODO / docs hygiene 継続
 

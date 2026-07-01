@@ -133,3 +133,26 @@ Status: active guard remains; completed work archived here.
 - Added CBQN policy guard coverage.
 - Synced CI CBQN behavior with `docs/CBQN_REPRODUCIBILITY.md`: CI tracks `CBQN_REF: master` and logs the exact commit.
 - Active reminder left in `TODO.md`: when workflow/docs/check behavior changes, verify both `tools/check.sh` and GitHub Actions.
+
+## Completed: contributor docs / entry cleanup
+
+Status: complete as of 2026-07-01.
+
+- Updated the existing `CONTRIBUTING.md` for the current daily path.
+- Clarified that Go is no longer a required daily dependency, and is historical/helper context unless a specific task says otherwise.
+- Compressed the `docs/README.md` pit reading path to the shortest current route plus task-specific additions.
+- Clarified in `docs/AI_CODEMAP.md` that external human entry points are `docs/README.md` and `CONTRIBUTING.md`, while `AI_CODEMAP` remains a practical code index.
+
+---
+
+## Completed: report policy externalization recheck
+
+Status: complete as of 2026-07-01.
+
+- Rechecked the remaining report policy externalization candidates after `daily_flow`, `daily_trend`, and `outlook` work.
+- Kept `HOUSEHOLD_GROUP_*` as lifestyle policy values.
+- Kept Canonical Daily Cube shape, Layer names, Posting IR, and TBDS as fixed calculation contracts rather than user configuration.
+- Decided not to create `report_sections.tsv` or `account_display.tsv` until a concrete Phase 1/2 need and fixture/check policy exist.
+- Treated picker labels and shortened display strings as presentation helpers, not new runtime policy TSVs.
+
+---
