@@ -38,7 +38,7 @@ backing diagnostic
 
 ```text
 adjustment row の具体的な format / memo / source_id / 向き（`docs/ENVELOPE_ADJUSTMENT_ROW_POLICY.md` で運用方針を定義）
-cycle seed の基準
+cycle seed の基準（`docs/ENVELOPE_CYCLE_SEED_POLICY.md` でサイクル収入系を主原資とする方針を定義）
 budget_pool=main metadata の導入要否
 report grouping の実装方法
 実データ accounts.tsv / budget_alloc.tsv の移行
@@ -361,7 +361,7 @@ execution remaining
 
 ただし、組み替えは過去の配分を黙って解釈し直すのではなく、明示的な `budget_alloc.tsv` adjustment row として残す方針を優先します。
 
-adjustment row の具体的な運用方針は `docs/ENVELOPE_ADJUSTMENT_ROW_POLICY.md` で扱います。この文書では、cycle seed 基準はまだ決めません。
+adjustment row の具体的な運用方針は `docs/ENVELOPE_ADJUSTMENT_ROW_POLICY.md` で扱います。cycle seed 基準は `docs/ENVELOPE_CYCLE_SEED_POLICY.md` で扱います。
 
 ## human report sketch
 
