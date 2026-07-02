@@ -1,10 +1,48 @@
 # Envelope role design
 
-状態: draft / discussion-only / docs-only
+状態: adopted direction / docs-only / implementation pending
 
-この文書は、bqn-ledger の封筒予算を「金額の箱」ではなく、生活判断上の役割を持つ budget layer として整理するための設計草案です。
+この文書は、bqn-ledger の封筒予算を「金額の箱」ではなく、生活判断上の役割を持つ budget layer として整理するための設計メモです。
 
-この PR では実装変更を行いません。
+この PR では、封筒 role の初期3分類と短期方針だけを採用します。実装変更、source TSV schema 変更、実データ変更は行いません。
+
+## 採用する短期方針
+
+この文書で採用する短期方針は次の通りです。
+
+```text
+initial envelope roles
+  dynamic
+  execution
+  unassigned
+
+active envelope remaining
+  dynamic + execution の remaining 合計。
+
+unassigned
+  active envelope には含めず、別枠で表示する。
+  account が存在しない場合も自動生成しない。
+
+unknown role
+  active envelope には含めない。
+  表示できる範囲で表示し、pace / execution advice はしない。
+
+backing diagnostic
+  readonly のまま維持する。
+  不一致があっても budget_alloc.tsv を自動補正しない。
+```
+
+この方針は `docs/ENVELOPE_FUNDING_BASE_INVARIANT.md` の hybrid backing policy と組み合わせて扱います。
+
+この文書でまだ決めないこと:
+
+```text
+adjustment row の具体的な format / memo / source_id / 向き
+cycle seed の基準
+budget_pool=main metadata の導入要否
+report grouping の実装方法
+実データ accounts.tsv / budget_alloc.tsv の移行
+```
 
 ## 背景
 
@@ -385,7 +423,7 @@ src_next_envelope_row:
 
 ### Phase 1: docs-only
 
-この文書で、封筒 role の考え方を固定します。
+この文書で、封筒 role の初期3分類と短期方針を固定します。
 
 ### Phase 2: metadata inventory
 
@@ -401,7 +439,9 @@ unassigned
 
 ### Phase 3: report grouping
 
-human report だけを role ごとに分けます。
+human report を role ごとに分けます。
+
+ただし、role の正本をどこに置くかを先に決めます。実データ `accounts.tsv` に `envelope_role=...` を導入する場合は、metadata schema / docs / fixture / check を同じ単位で更新します。
 
 未知 role は表示のみ、診断なしにします。
 
@@ -411,9 +451,9 @@ human report だけを role ごとに分けます。
 
 導入する場合も、未指定 account は fail-closed で扱います。
 
-## tentative conclusion
+## conclusion
 
-封筒は、少なくとも次の3つの role に分けると安全です。
+封筒は、少なくとも次の3つの role に分ける方針を採用します。
 
 ```text
 dynamic
