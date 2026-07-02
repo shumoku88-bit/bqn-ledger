@@ -1,0 +1,187 @@
+# Envelope execution and plan policy
+
+状態: adopted operating policy / docs-only
+
+この文書は、固定費・支払い予定・貯金・投資などを execution envelope として扱う場合に、`plan.tsv` の予定支出と二重計上しないための運用方針を固定します。
+
+この文書では実装変更、source TSV schema 変更、自動連携は行いません。
+
+## 結論
+
+reserve / savings / investment / fixed payment などの執行待ち資金は、サイクル中の execution envelope として active envelope remaining に含めます。
+
+```text
+active envelope remaining
+  = dynamic envelope remaining
+  + execution envelope remaining
+```
+
+`unassigned` は active envelope に含めず、別枠で表示します。
+
+execution envelope の remaining は、自由に使える余りではありません。
+
+```text
+execution remaining
+  まだ実行されていない確保額。
+  safe-to-spend surplus ではない。
+```
+
+## 対象
+
+execution envelope として扱えるもの:
+
+```text
+固定費予定
+クレカ引落し予定
+通院予定
+貯金予定
+投資予定
+その他、サイクル中に実行するために確保した資金
+```
+
+例:
+
+```text
+budget:未割当 -> budget:固定費予定
+budget:未割当 -> budget:ゆうちょ貯金
+budget:未割当 -> budget:オルカン投資
+```
+
+これらは、実行前は budget layer の札付けとして見ます。
+
+実行後の結果は actual layer 側で見ます。
+
+```text
+実行前
+  budget:固定費予定 に remaining がある。
+
+実行後
+  actual layer の支出・資産移動・投資移動に反映される。
+  execution envelope は必要に応じて 0 に向かう。
+```
+
+## plan.tsv との役割分担
+
+`plan.tsv` は、将来起きる予定の actual layer 取引を表します。
+
+execution envelope は、その予定を実行するために budget layer 上で資金を確保した状態を表します。
+
+```text
+plan.tsv
+  いつ、何を、いくら支払う/移動する予定か。
+
+execution envelope
+  その予定のために、今サイクルの資金からいくら札付け済みか。
+```
+
+この2つは同じ金額を指すことがありますが、意味は違います。
+
+## 二重計上リスク
+
+危険なのは、同じ予定支出を次の両方で控除してしまうことです。
+
+```text
+1. plan.tsv の予定支出を outlook / usable funds で控除する。
+2. 同じ予定支出を execution envelope として active remaining に含める。
+```
+
+これを safe-to-spend 計算で両方差し引くと、固定費を二重に控除してしまいます。
+
+例:
+
+```text
+可用資金: 50000
+未了予定支払い: 12000
+固定費予定 envelope: 12000
+```
+
+この時、自由に使える金額を次のように計算してはいけません。
+
+```text
+50000 - 12000(plan) - 12000(envelope)
+```
+
+同じ支払い予定を二重に差し引いています。
+
+## 採用する運用
+
+短期運用では、固定費・支払い予定は execution envelope として確保します。
+
+```text
+budget:未割当 -> budget:固定費予定
+```
+
+plan.tsv は、支払い予定の due / completed / overdue を見るために使います。
+
+```text
+plan.tsv
+  支払い予定リスト、期限、完了判定の正本。
+
+budget:固定費予定
+  その支払い予定を実行するための確保額。
+```
+
+したがって、封筒レポート上の active envelope remaining には固定費予定を含めます。
+
+ただし、safe-to-spend / 可用資金の計算で plan と execution envelope を同時に控除しないようにします。
+
+## 表示方針
+
+人間向けには、次のように分けるのが望ましいです。
+
+```text
+[Dynamic envelopes]
+  食費、タバコ、一般生活など。
+  ペース管理する。
+
+[Execution envelopes]
+  固定費予定、通院、貯金、投資など。
+  期限・実行状況を見る。
+
+[Planned payments]
+  plan.tsv 由来の予定支払い一覧。
+  due / future / overdue / completed を見る。
+
+[Backing check]
+  active envelope remaining と actual funding base の照合。
+```
+
+この時、`Execution envelopes` と `Planned payments` は同じ予定を別視点で表示してよいです。
+
+ただし、合計値を作る時は「同じ予定支出を二重に控除していないか」を明示します。
+
+## 実行後の扱い
+
+支払いや投資を実行したら、actual layer に取引が入ります。
+
+その支払いが expense account の `budget=...` metadata により該当 envelope へ投影される場合、execution envelope の remaining は減ります。
+
+現行実装で自動対応できない場合は、人間が明示的な budget adjustment row で execution envelope を減らします。
+
+例:
+
+```text
+budget:固定費予定 -> budget:spent  330
+```
+
+または、既存の投影規則で支出が `budget:固定費予定` を消費するように account metadata を整えることを検討します。
+
+この文書では、実行後の自動消費ルールは実装しません。
+
+## fail-closed policy
+
+- plan.tsv から execution envelope を自動生成しない。
+- execution envelope から plan.tsv を自動生成しない。
+- 金額が一致しない場合も自動補正しない。
+- due / done 判定と envelope remaining を混同しない。
+- safe-to-spend 計算では plan 控除と execution envelope 控除の二重計上を避ける。
+
+## 次に決めること
+
+この文書では、次はまだ決めません。
+
+```text
+budget_pool=main metadata の導入要否
+execution envelope と plan.tsv の explicit link metadata
+固定費予定 envelope の自動消費ルール
+```

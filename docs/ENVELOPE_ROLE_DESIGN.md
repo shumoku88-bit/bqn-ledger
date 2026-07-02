@@ -339,6 +339,8 @@ execution remaining
   safe-to-spend surplus ではない。
 ```
 
+固定費・予定支払い・貯金・投資を execution envelope として扱う時の plan.tsv との二重計上リスクは `docs/ENVELOPE_EXECUTION_AND_PLAN_POLICY.md` で扱います。
+
 執行が完了すると、その envelope の remaining は 0 に向かいます。
 
 完了後の結果は、budget layer ではなく actual layer の資産・負債・投資・支出側で観察します。
