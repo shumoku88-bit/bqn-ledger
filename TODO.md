@@ -20,7 +20,7 @@ Status: short-term hybrid policy adopted; next is operation/design details befor
 - 短期方針として C案 hybrid を採用: `budget_alloc.tsv` は配分台帳の正本、現金裏付け未割当は readonly diagnostic、MISMATCH は強い警告ではなく診断差分、OVER_ALLOCATED だけ強い警告。
 
 次の小さい slice:
-- [ ] adjustment row の運用設計を docs-only で決める（いつ、どの memo/source_id、どの向きで `budget:未割当` を調整するか）
+- [x] adjustment row の運用設計を docs-only で決める（いつ、どの memo/source_id、どの向きで `budget:未割当` を調整するか）→ `docs/ENVELOPE_ADJUSTMENT_ROW_POLICY.md`
 - [ ] cycle seed の基準を設計する（暫定 `type=liquid` actual closing / 予定支出控除後 / 明示 `budget_pool=main` など）
 - [ ] reserve / savings / investment envelope を active envelope remaining に含めるか決める
 - [ ] 固定費を封筒に含める方式と、予定支出引当として別枠にする方式の二重計上リスクを整理する

@@ -37,7 +37,7 @@ backing diagnostic
 この文書でまだ決めないこと:
 
 ```text
-adjustment row の具体的な format / memo / source_id / 向き
+adjustment row の具体的な format / memo / source_id / 向き（`docs/ENVELOPE_ADJUSTMENT_ROW_POLICY.md` で運用方針を定義）
 cycle seed の基準
 budget_pool=main metadata の導入要否
 report grouping の実装方法
@@ -361,7 +361,7 @@ execution remaining
 
 ただし、組み替えは過去の配分を黙って解釈し直すのではなく、明示的な `budget_alloc.tsv` adjustment row として残す方針を優先します。
 
-この文書では、adjustment row の具体的な format、memo、source_id、向き、cycle seed 基準はまだ決めません。
+adjustment row の具体的な運用方針は `docs/ENVELOPE_ADJUSTMENT_ROW_POLICY.md` で扱います。この文書では、cycle seed 基準はまだ決めません。
 
 ## human report sketch
 
