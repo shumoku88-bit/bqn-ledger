@@ -185,6 +185,83 @@ LatestActualDateInCycle ← {𝕊 base‿cy:
   out
 }
 
+# ── Execution planned coverage diagnostic ────────────────────
+PlanId ← {𝕊 line:
+  flds ← loader.SplitTsvKeepEmpty line
+  meta ← 5 ↓ flds
+  IsPlanId ← {"plan_id=" ≡ 8↑𝕩}
+  cand ← IsPlanId¨ meta
+  has ← ∨´cand
+  id ← ∾ 5↑flds
+  id ↩ ({𝕊: 8 ↓ (⊑(cand/↕≠meta)) ⊑ meta}⍟has) id
+  id
+}
+
+CleanName ← {
+  ( "expenses:" unav.StartsWith 𝕩 ) ? 9 ↓ 𝕩 ;
+  ( "income:" unav.StartsWith 𝕩 ) ? 7 ↓ 𝕩 ;
+  ( "liabilities:" unav.StartsWith 𝕩 ) ? 12 ↓ 𝕩 ;
+  𝕩
+}
+
+BuildExecutionPlannedCoverage ← {𝕊 base‿cy‿envelopes‿cfg:
+  env_label ← cfg.ExecutionPlannedPaymentsEnvelope @
+  disabled ← 0 = ≠ env_label
+
+  status ← "disabled"
+  env_remaining ← 0
+  planned_total ← 0
+  delta ← 0
+  rows_out ← ⟨⟩
+
+  {𝕊:
+    labels ← {𝕩.label}¨ envelopes
+    env_idx ← labels ⊐ ⟨env_label⟩
+    has_env ← env_idx < ≠ envelopes
+
+    {𝕊:
+      env ← env_idx ⊑ envelopes
+      env_remaining ↩ env.remaining
+
+      plan_lines ← loader.ReadLinesOptional (base ∾ "/plan.tsv")
+      plan_mask ← { InCycle ⟨cy, ⊑ Pad5 loader.SplitTsvKeepEmpty 𝕩⟩ }¨ plan_lines
+      plan_rows ← plan_mask / plan_lines
+
+      journal_lines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
+      journal_mask ← { InCycle ⟨cy, ⊑ Pad5 loader.SplitTsvKeepEmpty 𝕩⟩ }¨ journal_lines
+      journal_rows ← journal_mask / journal_lines
+      journal_ids ← PlanId¨ journal_rows
+
+      ParsePlanRow ← {𝕊 line:
+        f ← Pad5 loader.SplitTsvKeepEmpty line
+        from ← 2⊑f ⋄ to ← 3⊑f
+        is_inc ← "income:" unav.StartsWith from
+        cat ← CleanName (is_inc ⊑ to‿from)
+        { date ⇐ 0⊑f, memo ⇐ 1⊑f, category ⇐ cat, amount ⇐ •BQN 4⊑f, plan_id ⇐ PlanId line }
+      }
+      parsed ← ParsePlanRow¨ plan_rows
+      plan_ids ← {𝕩.plan_id}¨ parsed
+      open_mask ← { ¬ ∨´ 𝕩⊸≡¨ journal_ids }¨ plan_ids
+      rows_out ↩ open_mask / parsed
+      rows_out ↩ (⍋ {𝕩.date}¨ rows_out) ⊏ rows_out
+      planned_total ↩ Sum0 ({𝕩.amount}¨ rows_out)
+      delta ↩ env_remaining - planned_total
+      status ↩ (delta = 0) ⊑ "MISMATCH"‿"OK"
+    }⍟has_env @
+
+    {𝕊: status ↩ "unavailable/missing_execution_envelope"}⍟(¬ has_env) @
+  }⍟(¬ disabled) @
+
+  {
+    envelope_label ⇐ env_label,
+    envelope_remaining ⇐ env_remaining,
+    planned_open_total ⇐ planned_total,
+    delta ⇐ delta,
+    status ⇐ status,
+    rows ⇐ rows_out
+  }
+}
+
 # ── Multi-envelope calculation ───────────────────────────────
 BuildEnvelopes ← {𝕊 base‿resolved‿cy‿valid_rows:
   cfg ← conf.LoadConfig base
@@ -373,6 +450,7 @@ BuildFromInputs ← {𝕊 tgt‿resolved‿cy‿valid_rows‿alloc_lines:
     ledger_sources ⇐ ⟨⟩,
     active_movements ⇐ ⟨⟩,
     ledger_movements ⇐ ⟨⟩,
+    execution_planned ⇐ { envelope_label ⇐ "", envelope_remaining ⇐ 0, planned_open_total ⇐ 0, delta ⇐ 0, status ⇐ "disabled", rows ⇐ ⟨⟩ },
     has_policy ⇐ tgt.has_policy
   }
 }
@@ -435,6 +513,7 @@ Build ← {𝕊 base‿resolved‿cy‿valid_rows‿tbds_rows:
 
       unassigned ← CalcUnassignedRemaining ⟨resolved, valid_rows⟩
       backing ← CalcEnvelopeBacking ⟨resolved, tbds_rows, valid_rows, envelopes, unassigned⟩
+      execution_planned ← BuildExecutionPlannedCoverage ⟨base, cy, envelopes, cfg⟩
 
       {
         target_id ⇐ tgt.target_id,
@@ -462,7 +541,8 @@ Build ← {𝕊 base‿resolved‿cy‿valid_rows‿tbds_rows:
         active_sources ⇐ backing.active_sources,
         ledger_sources ⇐ backing.ledger_sources,
         active_movements ⇐ backing.active_movements,
-        ledger_movements ⇐ backing.ledger_movements
+        ledger_movements ⇐ backing.ledger_movements,
+        execution_planned ⇐ execution_planned
       }
     },
     { 𝕊 ⋄
@@ -492,7 +572,8 @@ Build ← {𝕊 base‿resolved‿cy‿valid_rows‿tbds_rows:
         active_sources ⇐ ⟨⟩,
         ledger_sources ⇐ ⟨⟩,
         active_movements ⇐ ⟨⟩,
-        ledger_movements ⇐ ⟨⟩
+        ledger_movements ⇐ ⟨⟩,
+        execution_planned ⇐ { envelope_label ⇐ "", envelope_remaining ⇐ 0, planned_open_total ⇐ 0, delta ⇐ 0, status ⇐ "disabled", rows ⇐ ⟨⟩ }
       }
     }
   ⟩ @
@@ -520,6 +601,13 @@ Format ← {𝕊 s:
   out ↩ out ∾ "src_next_envelope_cash_backed_unassigned: " ∾ (FmtAmount ⟨s.backing_status, s.cash_backed_unassigned⟩) ∾ (@+10)
   out ↩ out ∾ "src_next_envelope_ledger_cash_delta: " ∾ (FmtAmount ⟨s.backing_status, s.ledger_cash_delta⟩) ∾ (@+10)
   out ↩ out ∾ "src_next_envelope_backing_status: " ∾ s.backing_status ∾ (@+10)
+  ep ← s.execution_planned
+  out ↩ out ∾ "src_next_envelope_execution_planned_envelope: " ∾ ep.envelope_label ∾ (@+10)
+  out ↩ out ∾ "src_next_envelope_execution_planned_remaining: " ∾ (•Fmt ep.envelope_remaining) ∾ (@+10)
+  out ↩ out ∾ "src_next_envelope_execution_planned_open_total: " ∾ (•Fmt ep.planned_open_total) ∾ (@+10)
+  out ↩ out ∾ "src_next_envelope_execution_planned_delta: " ∾ (•Fmt ep.delta) ∾ (@+10)
+  out ↩ out ∾ "src_next_envelope_execution_planned_status: " ∾ ep.status ∾ (@+10)
+  {𝕊 r: out ↩ out ∾ "src_next_envelope_execution_planned_row: " ∾ r.date ∾ (@+9) ∾ r.category ∾ (@+9) ∾ r.memo ∾ (@+9) ∾ (•Fmt r.amount) ∾ (@+9) ∾ r.plan_id ∾ (@+10)}¨ ep.rows
   {𝕊 src: out ↩ out ∾ "src_next_envelope_funding_base_source: " ∾ src.name ∾ (@+9) ∾ (•Fmt src.amount) ∾ (@+10)}¨ s.funding_sources
   {𝕊 src: out ↩ out ∾ "src_next_envelope_active_remaining_source: " ∾ src.name ∾ (@+9) ∾ (•Fmt src.amount) ∾ (@+10)}¨ s.active_sources
   {𝕊 src: out ↩ out ∾ "src_next_envelope_ledger_unassigned_source: " ∾ src.name ∾ (@+9) ∾ (•Fmt src.amount) ∾ (@+10)}¨ s.ledger_sources
@@ -572,6 +660,27 @@ FormatHuman ← {𝕊 s:
       out ↩ out ∾ (fmt.Bad "WARNING: 未割当がマイナスです。封筒合計が予算原資を超えている可能性があります。") ∾ (@+10)
     }⍟(s.unassigned_status ≡ "OVER_ALLOCATED") @
     out ↩ out ∾ (@+10)
+
+    ep ← s.execution_planned
+    {𝕊:
+      out ↩ out ∾ "[Execution planned coverage]" ∾ (@+10)
+      out ↩ out ∾ "  envelope:                 " ∾ ep.envelope_label ∾ (@+10)
+      out ↩ out ∾ "  envelope remaining:       " ∾ (•Fmt ep.envelope_remaining) ∾ (@+10)
+      out ↩ out ∾ "  unfinished planned total: " ∾ (•Fmt ep.planned_open_total) ∾ (@+10)
+      delta_text ← "  envelope - planned:       " ∾ (•Fmt ep.delta)
+      status_text ← "  status: " ∾ ep.status
+      out ↩ out ∾ ((ep.status ≡ "MISMATCH") ⊑ delta_text‿(fmt.Warn delta_text)) ∾ (@+10)
+      out ↩ out ∾ ((ep.status ≡ "MISMATCH") ⊑ status_text‿(fmt.Warn status_text)) ∾ (@+10)
+      {𝕊:
+        out ↩ out ∾ "  NOTE: readonly診断。固定費予定封筒と未了予定支払いが一致していません。自動補正しません。" ∾ (@+10)
+      }⍟(ep.status ≡ "MISMATCH") @
+      out ↩ out ∾ "  planned rows:" ∾ (@+10)
+      {𝕊: out ↩ out ∾ "    (none)" ∾ (@+10)}⍟(0 = ≠ ep.rows) @
+      {𝕊 r:
+        out ↩ out ∾ "    " ∾ r.date ∾ " " ∾ (fmt.PadV ⟨12, r.category⟩) ∾ " " ∾ (fmt.PadV ⟨20, r.memo⟩) ∾ " " ∾ (fmt.PadL ⟨8, r.amount⟩) ∾ (@+10)
+      }¨ ep.rows
+      out ↩ out ∾ (@+10)
+    }⍟(ep.status ≢ "disabled") @
 
     out ↩ out ∾ "[Backing check]" ∾ (@+10)
     out ↩ out ∾ "  封筒対象資金(暫定:type=liquid): " ∾ (FmtAmount ⟨s.backing_status, s.funding_base⟩) ∾ (@+10)

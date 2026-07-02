@@ -70,6 +70,16 @@ Backing status vocabulary:
 - `src_next_envelope_cash_backed_unassigned`
 - `src_next_envelope_ledger_cash_delta`
 - `src_next_envelope_backing_status`
+
+The section also exposes a readonly execution-vs-plan coverage diagnostic when `EXECUTION_PLANNED_PAYMENTS_ENVELOPE` is set in config. It compares the named execution envelope remaining balance with unfinished in-cycle planned payments. This is diagnostic only and never writes adjustment rows.
+
+- `src_next_envelope_execution_planned_envelope`
+- `src_next_envelope_execution_planned_remaining`
+- `src_next_envelope_execution_planned_open_total`
+- `src_next_envelope_execution_planned_delta`
+- `src_next_envelope_execution_planned_status`
+- `src_next_envelope_execution_planned_row` (repeated: `date<TAB>category<TAB>memo<TAB>amount<TAB>plan_id`)
+
 - `src_next_envelope_funding_base_source` (repeated when funding source accounts exist)
 - `src_next_envelope_active_remaining_source` (repeated)
 - `src_next_envelope_ledger_unassigned_source` (repeated when unassigned account exists)

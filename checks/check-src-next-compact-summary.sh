@@ -190,6 +190,11 @@ for field in src_next_cycle_range src_next_valid_projection_rows src_next_skippe
              src_next_envelope_funding_base src_next_envelope_allocated_total \
              src_next_envelope_cash_backed_unassigned src_next_envelope_ledger_cash_delta \
              src_next_envelope_backing_status \
+             src_next_envelope_execution_planned_envelope \
+             src_next_envelope_execution_planned_remaining \
+             src_next_envelope_execution_planned_open_total \
+             src_next_envelope_execution_planned_delta \
+             src_next_envelope_execution_planned_status \
              src_next_household_metadata_expense_accounts_total \
              src_next_household_metadata_missing_budget_count \
              src_next_household_metadata_missing_budget_group_count \

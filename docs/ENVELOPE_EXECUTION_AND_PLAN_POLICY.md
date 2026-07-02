@@ -1,10 +1,10 @@
 # Envelope execution and plan policy
 
-状態: adopted operating policy / docs-only
+状態: adopted operating policy / readonly diagnostic implemented
 
 この文書は、固定費・支払い予定・貯金・投資などを execution envelope として扱う場合に、`plan.tsv` の予定支出と二重計上しないための運用方針を固定します。
 
-この文書では実装変更、source TSV schema 変更、自動連携は行いません。
+現行実装では、`EXECUTION_PLANNED_PAYMENTS_ENVELOPE` 設定時に、指定 envelope remaining と未了 planned payments 合計を照合する readonly diagnostic を `envelopes` section に表示します。source TSV schema 変更、自動連携、自動補正は行いません。
 
 ## 結論
 
@@ -175,6 +175,38 @@ budget:固定費予定 -> budget:spent  330
 - 金額が一致しない場合も自動補正しない。
 - due / done 判定と envelope remaining を混同しない。
 - safe-to-spend 計算では plan 控除と execution envelope 控除の二重計上を避ける。
+
+## Readonly diagnostic
+
+設定例:
+
+```text
+EXECUTION_PLANNED_PAYMENTS_ENVELOPE=固定費予定
+```
+
+この設定がある場合、`envelopes` section は次を表示します。
+
+```text
+[Execution planned coverage]
+  envelope:                 固定費予定
+  envelope remaining:       ...
+  unfinished planned total: ...
+  envelope - planned:       ...
+  status: OK / MISMATCH
+```
+
+Machine-readable summary keys:
+
+```text
+src_next_envelope_execution_planned_envelope
+src_next_envelope_execution_planned_remaining
+src_next_envelope_execution_planned_open_total
+src_next_envelope_execution_planned_delta
+src_next_envelope_execution_planned_status
+src_next_envelope_execution_planned_row
+```
+
+`MISMATCH` でも自動補正しません。人間または pit が差分理由を確認し、必要なら `docs/ENVELOPE_ADJUSTMENT_ROW_POLICY.md` に従って adjustment row を追加します。
 
 ## 次に決めること
 
