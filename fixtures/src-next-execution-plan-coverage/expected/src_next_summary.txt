@@ -1,0 +1,28 @@
+--- SrcNext Envelope Computation ---
+src_next_envelope_target_id: unavailable/no_policy
+src_next_envelope_label: unavailable/no_policy
+src_next_envelope_selector: unavailable/no_policy
+src_next_envelope_allocated: unavailable/no_policy
+src_next_envelope_actual_spent: unavailable/no_policy
+src_next_envelope_remaining: unavailable/no_policy
+src_next_envelope_status: unavailable/no_policy
+src_next_envelope_unassigned_remaining: 0
+src_next_envelope_unassigned_status: OK
+src_next_envelope_unassigned_account_count: 1
+src_next_envelope_funding_base: 0
+src_next_envelope_allocated_total: 3330
+src_next_envelope_cash_backed_unassigned: ¯3330
+src_next_envelope_ledger_cash_delta: ¯3330
+src_next_envelope_backing_status: OVER_ALLOCATED
+src_next_envelope_execution_planned_envelope: 固定費予定
+src_next_envelope_execution_planned_remaining: 3330
+src_next_envelope_execution_planned_open_total: 3330
+src_next_envelope_execution_planned_delta: 0
+src_next_envelope_execution_planned_status: OK
+src_next_envelope_execution_planned_row: 2026-01-05	fixed	wifi	3000	wifi
+src_next_envelope_execution_planned_row: 2026-01-06	fixed	povo	330	povo
+src_next_envelope_active_remaining_source: 固定費予定	3330
+src_next_envelope_ledger_unassigned_source: budget:unassigned	0
+src_next_envelope_active_movement: 2026-01-01	1	budget:固定費予定	debit	3330	fixed coverage
+src_next_envelope_ledger_unassigned_movement: 2026-01-01	0	budget:unassigned	debit	3330	seed
+src_next_envelope_ledger_unassigned_movement: 2026-01-01	1	budget:unassigned	credit	¯3330	fixed coverage

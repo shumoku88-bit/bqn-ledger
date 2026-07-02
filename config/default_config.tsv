@@ -16,3 +16,7 @@ BUDGET_ID_SPENT=budget:spent
 POLICY_BUDGET_STYLE=envelope
 POLICY_RISK_STYLE=conservative
 POLICY_INCOME_CADENCE=
+
+# --- Optional execution envelope diagnostics ---
+# If set, envelopes report compares this envelope remaining against unfinished planned payments.
+EXECUTION_PLANNED_PAYMENTS_ENVELOPE=

@@ -104,6 +104,7 @@ bash checks/check-src-next-readiness.sh >/dev/null
 bash checks/check-src-next-household-metadata.sh >/dev/null
 bash checks/check-src-next-plan-journal-overlap.sh >/dev/null
 bash checks/check-src-next-envelope-computation.sh fixtures/src-next-envelope-computation >/dev/null
+bash checks/check-src-next-execution-plan-coverage.sh fixtures/src-next-execution-plan-coverage >/dev/null
 bash checks/check-src-next-envelope-production-guard.sh >/dev/null
 bash checks/check-src-next-actual-comparison.sh fixtures/src-next-golden >/dev/null
 bash checks/check-src-next-snapshot.sh fixtures/src-next-golden >/dev/null

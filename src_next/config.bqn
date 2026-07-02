@@ -128,6 +128,8 @@ LoadConfig ← {
     v
   }
 
+  ExecutionPlannedPaymentsEnvelope ← { 𝕊 ⋄ Get "EXECUTION_PLANNED_PAYMENTS_ENVELOPE" }
+
   Warnings ← { 𝕊 ⋄
     bs ← PolicyBudgetStyle @
     gl ← Get "HOUSEHOLD_GROUP_LIFE"
@@ -155,6 +157,7 @@ LoadConfig ← {
     PolicyBudgetStyle ⇐ PolicyBudgetStyle,
     PolicyRiskStyle ⇐ PolicyRiskStyle,
     PolicyIncomeCadence ⇐ PolicyIncomeCadence,
+    ExecutionPlannedPaymentsEnvelope ⇐ ExecutionPlannedPaymentsEnvelope,
     warnings ⇐ Warnings @
   }
 }
