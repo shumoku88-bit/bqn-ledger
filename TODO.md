@@ -11,7 +11,7 @@ Last hygiene pass: 2026-07-01 — active-plans 棚卸しを `docs/archive/active
 
 ### 最重要: 封筒予算 hybrid backing policy の次設計
 
-Status: short-term hybrid policy adopted; next is operation/design details before writing real data.
+Status: short-term hybrid policy adopted; operation/design details documented; next optional slice is report readability.
 
 完了済み:
 - `docs/LIQUID_ASSETS_TERMINOLOGY_RENAME_PLAN.md` で `流動資産` 表示を `可用資金` に整理。`type=liquid` / machine keys は互換維持。
@@ -25,6 +25,9 @@ Status: short-term hybrid policy adopted; next is operation/design details befor
 - [x] reserve / savings / investment envelope を active envelope remaining に含めるか決める → execution envelope として含める。`docs/ENVELOPE_EXECUTION_AND_PLAN_POLICY.md`
 - [x] 固定費を封筒に含める方式と、予定支出引当として別枠にする方式の二重計上リスクを整理する → `docs/ENVELOPE_EXECUTION_AND_PLAN_POLICY.md`
 - [x] `budget_pool=main` metadata 導入の要否・fixture/check 方針を決める → docs-only で将来方針として採用、現行 fallback 維持。`docs/ENVELOPE_BUDGET_POOL_METADATA_POLICY.md`
+
+次に封筒レポートを触るなら:
+- [ ] human `envelopes` section を Dynamic / Execution / Unassigned / Backing diagnostic に分けて表示する（方針: `docs/ENVELOPE_ROLE_DESIGN.md`, `docs/ENVELOPE_EXECUTION_AND_PLAN_POLICY.md`。既存の machine keys は維持し、自動補正はしない）
 
 ---
 
