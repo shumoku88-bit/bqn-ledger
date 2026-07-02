@@ -24,7 +24,7 @@ Status: short-term hybrid policy adopted; next is operation/design details befor
 - [x] cycle seed の基準を設計する（暫定 `type=liquid` actual closing / 予定支出控除後 / 明示 `budget_pool=main` など）→ `docs/ENVELOPE_CYCLE_SEED_POLICY.md`
 - [x] reserve / savings / investment envelope を active envelope remaining に含めるか決める → execution envelope として含める。`docs/ENVELOPE_EXECUTION_AND_PLAN_POLICY.md`
 - [x] 固定費を封筒に含める方式と、予定支出引当として別枠にする方式の二重計上リスクを整理する → `docs/ENVELOPE_EXECUTION_AND_PLAN_POLICY.md`
-- [ ] `budget_pool=main` metadata 導入の要否・fixture/check 方針を決める
+- [x] `budget_pool=main` metadata 導入の要否・fixture/check 方針を決める → docs-only で将来方針として採用、現行 fallback 維持。`docs/ENVELOPE_BUDGET_POOL_METADATA_POLICY.md`
 
 ---
 

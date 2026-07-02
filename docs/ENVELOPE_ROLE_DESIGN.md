@@ -39,7 +39,7 @@ backing diagnostic
 ```text
 adjustment row の具体的な format / memo / source_id / 向き（`docs/ENVELOPE_ADJUSTMENT_ROW_POLICY.md` で運用方針を定義）
 cycle seed の基準（`docs/ENVELOPE_CYCLE_SEED_POLICY.md` でサイクル収入系を主原資とする方針を定義）
-budget_pool=main metadata の導入要否
+budget_pool=main metadata の導入要否（`docs/ENVELOPE_BUDGET_POOL_METADATA_POLICY.md` で docs-only 採用、現行 fallback 維持）
 report grouping の実装方法
 実データ accounts.tsv / budget_alloc.tsv の移行
 ```
