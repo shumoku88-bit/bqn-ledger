@@ -287,6 +287,44 @@ execution
 
 未知の role は最初は active envelope に含めません。必要になったら docs と実装を更新して明示的に扱います。
 
+## cycle-local execution policy
+
+`execution` envelope は、サイクル中の執行待ちラベルとして扱います。
+
+貯金、投資、固定支払い、通院予定、クレカ引落し予定などは、現在サイクル内では `execution` envelope として表現できます。
+
+この場合の `remaining` は、生活に自由に使える余りではありません。
+
+```text
+execution remaining
+  まだ実行されていない確保額。
+  safe-to-spend surplus ではない。
+```
+
+執行が完了すると、その envelope の remaining は 0 に向かいます。
+
+完了後の結果は、budget layer ではなく actual layer の資産・負債・投資・支出側で観察します。
+
+```text
+サイクル中
+  budget:オルカン投資
+    投資実行待ちの確保額。
+
+実行後
+  actual asset / investment 側
+    実際に移動した資産、または支出・振替結果。
+```
+
+次のサイクル境界では、封筒配分を永続 account balance として引き継ぐとは限りません。
+
+新しいサイクルの収入、支払い予定、生活状況、貯金・投資方針に応じて、封筒を re-seed / reallocate します。
+
+サイクル途中の組み替えも許容します。
+
+ただし、組み替えは過去の配分を黙って解釈し直すのではなく、明示的な `budget_alloc.tsv` adjustment row として残す方針を優先します。
+
+この文書では、adjustment row の具体的な format、memo、source_id、向き、cycle seed 基準はまだ決めません。
+
 ## human report sketch
 
 人間向け表示は、role ごとに分けます。
