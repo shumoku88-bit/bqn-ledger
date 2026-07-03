@@ -26,8 +26,17 @@ Status: short-term hybrid policy adopted; operation/design details documented; n
 - [x] 固定費を封筒に含める方式と、予定支出引当として別枠にする方式の二重計上リスクを整理する → `docs/ENVELOPE_EXECUTION_AND_PLAN_POLICY.md`
 - [x] `budget_pool=main` metadata 導入の要否・fixture/check 方針を決める → docs-only で将来方針として採用、現行 fallback 維持。`docs/ENVELOPE_BUDGET_POOL_METADATA_POLICY.md`
 
-次に封筒レポートを触るなら:
-- [ ] human `envelopes` section を Dynamic / Execution / Unassigned / Backing diagnostic に分けて表示する（方針: `docs/ENVELOPE_ROLE_DESIGN.md`, `docs/ENVELOPE_EXECUTION_AND_PLAN_POLICY.md`。既存の machine keys は維持し、自動補正はしない）
+封筒レポート表示 slice:
+- [x] human `envelopes` section を Dynamic / Execution / Unassigned / Backing diagnostic に分けて表示する（方針: `docs/ENVELOPE_ROLE_DESIGN.md`, `docs/ENVELOPE_EXECUTION_AND_PLAN_POLICY.md`。既存の machine keys は維持し、自動補正はしない）
+
+次に封筒を触るなら:
+- [x] `envelope_role=` の実データ導入候補を棚卸しし、moko確認後に実運用 `accounts.tsv` へ適用する（backup作成済み）
+- [x] unknown `envelope_role` 用の fixture/check を追加し、active total から除外されることを明示する
+- [x] `envelope_role` の unknown / kind不整合を readiness diagnostics に出す
+
+残り候補:
+- [ ] execution envelope の `DUE` / `LATE` / `MISSING` を plan.tsv との関係で設計する
+- [ ] `budget_pool=main` metadata 導入の実装計画を小さく切る
 
 ---
 

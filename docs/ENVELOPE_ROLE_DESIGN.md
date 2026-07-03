@@ -1,10 +1,10 @@
 # Envelope role design
 
-状態: adopted direction / docs-only / implementation pending
+状態: adopted direction / initial human report grouping implemented
 
 この文書は、bqn-ledger の封筒予算を「金額の箱」ではなく、生活判断上の役割を持つ budget layer として整理するための設計メモです。
 
-この PR では、封筒 role の初期3分類と短期方針だけを採用します。実装変更、source TSV schema 変更、実データ変更は行いません。
+初期方針では、封筒 role の3分類を採用します。現行実装では、`accounts.tsv` の `envelope_role=` を読んで human `envelopes` section を Dynamic / Execution / Unassigned / Backing diagnostic に分けます。repo 内の fixture/check で契約を固定し、実運用 `accounts.tsv` には moko確認後に同じ分類を適用済みです。
 
 ## 採用する短期方針
 
@@ -34,14 +34,12 @@ backing diagnostic
 
 この方針は `docs/ENVELOPE_FUNDING_BASE_INVARIANT.md` の hybrid backing policy と組み合わせて扱います。
 
-この文書でまだ決めないこと:
+現時点の未実施事項:
 
 ```text
-adjustment row の具体的な format / memo / source_id / 向き（`docs/ENVELOPE_ADJUSTMENT_ROW_POLICY.md` で運用方針を定義）
-cycle seed の基準（`docs/ENVELOPE_CYCLE_SEED_POLICY.md` でサイクル収入系を主原資とする方針を定義）
-budget_pool=main metadata の導入要否（`docs/ENVELOPE_BUDGET_POOL_METADATA_POLICY.md` で docs-only 採用、現行 fallback 維持）
-report grouping の実装方法
-実データ accounts.tsv / budget_alloc.tsv の移行
+budget_pool=main metadata の実装（`docs/ENVELOPE_BUDGET_POOL_METADATA_POLICY.md` で docs-only 採用、現行 fallback 維持）
+固定費予定 envelope と plan.tsv の自動対応
+execution envelope の DUE / LATE / MISSING 判定強化
 ```
 
 ## 背景
@@ -167,15 +165,20 @@ remaining to execute
 due status
 ```
 
-代表 status:
+現行の初期 status:
 
 ```text
-HELD
+HELD  remaining > 0、または allocated=0 の待機状態
+DONE  allocated > 0 かつ remaining = 0 の執行完了
+DRAWN remaining < 0 の取崩/過剰執行
+```
+
+将来候補:
+
+```text
 DUE
-DONE
 MISSING
 LATE
-DRAWN
 ```
 
 ### unassigned envelope
@@ -441,11 +444,16 @@ unassigned
 
 ### Phase 3: report grouping
 
-human report を role ごとに分けます。
+実装済みの初期 slice として、human report を role ごとに分けます。
 
-ただし、role の正本をどこに置くかを先に決めます。実データ `accounts.tsv` に `envelope_role=...` を導入する場合は、metadata schema / docs / fixture / check を同じ単位で更新します。
+- `envelope_role=dynamic` は Dynamic envelopes に表示します。
+- `envelope_role=execution` は Execution envelopes に表示します。
+- 未指定の `kind=envelope` は既存互換のため dynamic 相当として扱います。
+- `kind=unassigned` は Unassigned として別枠表示します。
+- 未知 role は Unknown role envelopes に表示し、active envelope total に含めず、pace / execution advice もしません（fixture/check あり）。
+- `readiness` は unknown `envelope_role` と `kind` / `envelope_role` の不整合を machine-readable / human diagnostics に出します。
 
-未知 role は表示のみ、診断なしにします。
+既存 envelope machine-readable keys は維持します。`readiness` には `envelope_role` metadata drift を見る machine-readable keys を追加済みです。
 
 ### Phase 4: optional metadata
 

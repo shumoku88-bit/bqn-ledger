@@ -70,6 +70,28 @@ BudgetLabel ← {𝕊 account:
   ("budget:" unav.StartsWith account) ⊑ account‿(7 ↓ account)
 }
 
+known_envelope_roles ← ⟨"dynamic","execution","unassigned"⟩
+
+EnvelopeRoleForIndex ← {𝕊 resolved‿idx:
+  explicit ← idx ⊑ resolved.envelope_roles
+  kind ← idx ⊑ resolved.kinds
+  is_known ← known_envelope_roles IsMember explicit
+  role ← "unknown"
+  {𝕊: role ↩ explicit}⍟is_known @
+  {𝕊: role ↩ "dynamic"}⍟((0 = ≠ explicit) ∧ (kind ≡ "envelope")) @
+  {𝕊: role ↩ "unassigned"}⍟((0 = ≠ explicit) ∧ (kind ≡ "unassigned")) @
+  role
+}
+
+IsActiveEnvelopeRole ← { (𝕩 ≡ "dynamic") ∨ (𝕩 ≡ "execution") }
+
+ExecutionStatus ← {𝕊 allocated‿remaining‿actual_spent:
+  status ← "HELD"
+  {𝕊: status ↩ "DONE"}⍟((allocated > 0) ∧ (remaining = 0) ∧ (actual_spent ≥ 0)) @
+  {𝕊: status ↩ "DRAWN"}⍟(remaining < 0) @
+  status
+}
+
 UnassignedBudgetAccountIndices ← {𝕊 resolved:
   budget_mask ← BudgetAccountMask resolved
   kind_unassigned_mask ← "unassigned"⊸≡¨ resolved.kinds
@@ -295,6 +317,7 @@ BuildEnvelopes ← {𝕊 base‿resolved‿cy‿valid_rows:
     name ← idx ⊑ resolved.accounts
     label ← BudgetLabel name
     group ← idx ⊑ resolved.budget_groups
+    envelope_role ← EnvelopeRoleForIndex ⟨resolved, idx⟩
 
     # allocated: layer = 2 (layer_budget), ak = idx (sum all, debit+credit)
     alloc_mask ← (row_layer = 2) ∧ (row_ak = idx)
@@ -326,21 +349,23 @@ BuildEnvelopes ← {𝕊 base‿resolved‿cy‿valid_rows:
     b ← 0 ⌈ remaining - future_planned_spent
     days_until_empty ← ((avg_spend = 0) × 999) + (avg_spend > 0) × (0 ⌈ ⌊ b ÷ avg_spend + avg_spend = 0)
 
-    is_reserve ← reserve_groups IsMember group
-    status ← is_reserve ◶ ⟨
+    is_execution ← envelope_role ≡ "execution"
+    status ← is_execution ◶ ⟨
       {𝕊:
         (avg_spend ≥ ⌊1.5×target_daily) ⊑ ( (avg_spend > target_daily) ⊑ "SAFE"‿"WARN" )‿"SHORT"
       },
       {𝕊:
-        (drawn > 0) ⊑ ( (days_left = 0) ⊑ "HELD"‿"DONE" )‿"DRAWN"
+        ExecutionStatus ⟨allocated, remaining, spent - drawn⟩
       }
     ⟩ @
+    {𝕊: status ↩ "unknown_role"}⍟(envelope_role ≡ "unknown") @
 
     {
       account_index ⇐ idx,
       account_name ⇐ name,
       label ⇐ label,
       group ⇐ group,
+      envelope_role ⇐ envelope_role,
       allocated ⇐ allocated,
       actual_spent ⇐ spent - drawn,
       remaining ⇐ remaining,
@@ -366,16 +391,18 @@ CalcEnvelopeBacking ← {𝕊 resolved‿tbds_rows‿valid_rows‿envelopes‿un
   liquid_mask ← ("asset"⊸≡¨ resolved.roles) ∧ ("liquid"⊸≡¨ resolved.types)
   funding_indices ← liquid_mask / ↕ resolved.count
   funding_base ← Sum0 (liquid_mask / closing_vec)
-  allocated_total ← Sum0 ({𝕩.remaining}¨ envelopes)
+  active_envelope_mask ← IsActiveEnvelopeRole¨ ({𝕩.envelope_role}¨ envelopes)
+  active_envelopes ← active_envelope_mask / envelopes
+  allocated_total ← Sum0 ({𝕩.remaining}¨ active_envelopes)
   cash_backed_unassigned ← funding_base - allocated_total
   ledger_cash_delta ← cash_backed_unassigned - unassigned.remaining
   funding_sources ← { { name ⇐ 𝕩 ⊑ resolved.accounts, amount ⇐ 𝕩 ⊑ closing_vec } }¨ funding_indices
-  active_sources ← { { name ⇐ 𝕩.label, amount ⇐ 𝕩.remaining } }¨ envelopes
+  active_sources ← { { name ⇐ 𝕩.label, amount ⇐ 𝕩.remaining } }¨ active_envelopes
   ledger_sources ← unassigned.sources
 
   row_layer ← {𝕩.layer_index}¨ valid_rows
   row_ak ← {𝕩.account_key_index}¨ valid_rows
-  active_indices ← {𝕩.account_index}¨ envelopes
+  active_indices ← {𝕩.account_index}¨ active_envelopes
   unassigned_indices ← UnassignedBudgetAccountIndices resolved
   BudgetMovement ← {𝕊 row:
     {
@@ -630,30 +657,56 @@ FormatHuman ← {𝕊 s:
     sort_indices ← ⍋ GetPri¨ groups
     sorted_envs ← sort_indices ⊏ s.envelopes
 
-    out ↩ out ∾ " group   | account        | allocated| spent |  bal |   % | avg/day | health" ∾ (@+10)
-    out ↩ out ∾ "---------+----------------+----------+-------+------+-----+---------+--------" ∾ (@+10)
-
-    RenderRow ← {
-      pct ← (𝕩.allocated ≠ 0) × ⌊ 0.5 + 100 × 𝕩.actual_spent ÷ (1 ⌈ 𝕩.allocated)
-      
-      grp_cell ← " " ∾ fmt.PadV ⟨8, 𝕩.group⟩
-      name_cell ← " " ∾ fmt.PadV ⟨15, 𝕩.label⟩
-      alloc_cell ← " " ∾ fmt.PadL ⟨9, 𝕩.allocated⟩
-      spent_cell ← " " ∾ fmt.PadL ⟨6, 𝕩.actual_spent⟩
-      bal_cell ← " " ∾ fmt.PadL ⟨5, 𝕩.remaining⟩
-      pct_cell ← " " ∾ fmt.PadL ⟨4, pct⟩
-      avg_cell ← " " ∾ fmt.PadL ⟨8, 𝕩.avg_spend⟩
-      raw_st ← fmt.PadV ⟨7, 𝕩.status⟩
-      st_cell ← (⟨"HELD","SAFE","SAVED","DONE","WARN","SHORT","DRAWN"⟩ ⊐ ⟨𝕩.status⟩) ⊑ ⟨fmt.Muted raw_st, fmt.Ok raw_st, fmt.Ok raw_st, fmt.Ok raw_st, fmt.Warn raw_st, fmt.Bad raw_st, fmt.Bad raw_st⟩
-
-      out ↩ out ∾ grp_cell ∾ "|" ∾ name_cell ∾ "|" ∾ alloc_cell ∾ "|" ∾ spent_cell ∾ "|" ∾ bal_cell ∾ "|" ∾ pct_cell ∾ "|" ∾ avg_cell ∾ "|" ∾ st_cell ∾ (@+10)
+    StatusCell ← {𝕊 st:
+      raw_st ← fmt.PadV ⟨12, st⟩
+      (⟨"HELD","SAFE","SAVED","DONE","WARN","SHORT","DRAWN","unknown_role"⟩ ⊐ ⟨st⟩) ⊑ ⟨fmt.Muted raw_st, fmt.Ok raw_st, fmt.Ok raw_st, fmt.Ok raw_st, fmt.Warn raw_st, fmt.Bad raw_st, fmt.Bad raw_st, fmt.Warn raw_st⟩
     }
 
-    RenderRow¨ sorted_envs
-    out ↩ out ∾ "---------+----------------+----------+-------+------+-----+---------+--------" ∾ (@+10)
-    out ↩ out ∾ (@+10)
+    RenderDynamicRow ← {𝕊 e:
+      pct ← (e.allocated ≠ 0) × ⌊ 0.5 + 100 × e.actual_spent ÷ (1 ⌈ e.allocated)
+      row ← (" " ∾ fmt.PadV ⟨8, e.group⟩) ∾ "|" ∾ (" " ∾ fmt.PadV ⟨15, e.label⟩) ∾ "|" ∾ (" " ∾ fmt.PadL ⟨9, e.allocated⟩) ∾ "|" ∾ (" " ∾ fmt.PadL ⟨6, e.actual_spent⟩) ∾ "|" ∾ (" " ∾ fmt.PadL ⟨5, e.remaining⟩) ∾ "|" ∾ (" " ∾ fmt.PadL ⟨4, pct⟩) ∾ "|" ∾ (" " ∾ fmt.PadL ⟨8, e.avg_spend⟩) ∾ "|" ∾ StatusCell e.status
+      out ↩ out ∾ row ∾ (@+10)
+    }
 
-    out ↩ out ∾ "[Budget pool]" ∾ (@+10)
+    RenderExecutionRow ← {𝕊 e:
+      executed ← e.actual_spent
+      row ← (" " ∾ fmt.PadV ⟨8, e.group⟩) ∾ "|" ∾ (" " ∾ fmt.PadV ⟨15, e.label⟩) ∾ "|" ∾ (" " ∾ fmt.PadL ⟨9, e.allocated⟩) ∾ "|" ∾ (" " ∾ fmt.PadL ⟨8, executed⟩) ∾ "|" ∾ (" " ∾ fmt.PadL ⟨9, e.remaining⟩) ∾ "|" ∾ StatusCell e.status
+      out ↩ out ∾ row ∾ (@+10)
+    }
+
+    RenderUnknownRow ← {𝕊 e:
+      row ← (" " ∾ fmt.PadV ⟨8, e.group⟩) ∾ "|" ∾ (" " ∾ fmt.PadV ⟨15, e.label⟩) ∾ "|" ∾ (" " ∾ fmt.PadL ⟨9, e.allocated⟩) ∾ "|" ∾ (" " ∾ fmt.PadL ⟨6, e.actual_spent⟩) ∾ "|" ∾ (" " ∾ fmt.PadL ⟨5, e.remaining⟩) ∾ "|" ∾ StatusCell e.status
+      out ↩ out ∾ row ∾ (@+10)
+    }
+
+    dynamic_envs ← (("dynamic"⊸≡¨ {𝕩.envelope_role}¨ sorted_envs) / sorted_envs)
+    execution_envs ← (("execution"⊸≡¨ {𝕩.envelope_role}¨ sorted_envs) / sorted_envs)
+    unknown_envs ← (("unknown"⊸≡¨ {𝕩.envelope_role}¨ sorted_envs) / sorted_envs)
+
+    out ↩ out ∾ "[Dynamic envelopes]" ∾ (@+10)
+    out ↩ out ∾ " group   | account        | allocated| spent |  bal |   % | avg/day | health" ∾ (@+10)
+    out ↩ out ∾ "---------+----------------+----------+-------+------+-----+---------+-------------" ∾ (@+10)
+    {𝕊: out ↩ out ∾ "  (none)" ∾ (@+10)}⍟(0 = ≠ dynamic_envs) @
+    RenderDynamicRow¨ dynamic_envs
+    out ↩ out ∾ "---------+----------------+----------+-------+------+-----+---------+-------------" ∾ (@+10) ∾ (@+10)
+
+    out ↩ out ∾ "[Execution envelopes]" ∾ (@+10)
+    out ↩ out ∾ " group   | account        | held     | executed| remaining| status" ∾ (@+10)
+    out ↩ out ∾ "---------+----------------+----------+---------+----------+-------------" ∾ (@+10)
+    {𝕊: out ↩ out ∾ "  (none)" ∾ (@+10)}⍟(0 = ≠ execution_envs) @
+    RenderExecutionRow¨ execution_envs
+    out ↩ out ∾ "---------+----------------+----------+---------+----------+-------------" ∾ (@+10) ∾ (@+10)
+
+    {𝕊:
+      out ↩ out ∾ "[Unknown role envelopes]" ∾ (@+10)
+      out ↩ out ∾ " group   | account        | allocated| spent |  bal | status" ∾ (@+10)
+      out ↩ out ∾ "---------+----------------+----------+-------+------+-------------" ∾ (@+10)
+      RenderUnknownRow¨ unknown_envs
+      out ↩ out ∾ "---------+----------------+----------+-------+------+-------------" ∾ (@+10) ∾ (@+10)
+      out ↩ out ∾ "NOTE: unknown envelope_role は active envelope total に含めず、pace / execution advice もしません。" ∾ (@+10) ∾ (@+10)
+    }⍟(0 < ≠ unknown_envs) @
+
+    out ↩ out ∾ "[Unassigned]" ∾ (@+10)
     unassigned_text ← "未割当(予算台帳): " ∾ (FmtAmount ⟨s.unassigned_status, s.unassigned_remaining⟩) ∾ " (" ∾ s.unassigned_status ∾ ")"
     out ↩ out ∾ ((s.unassigned_status ≡ "OVER_ALLOCATED") ⊑ unassigned_text‿(fmt.Bad unassigned_text)) ∾ (@+10)
     {𝕊:
@@ -767,5 +820,8 @@ FormatHuman ← {𝕊 s:
   ActualClosingVecFromTbds ⇐ ActualClosingVecFromTbds,
   CalcEnvelopeBacking ⇐ CalcEnvelopeBacking,
   Format ⇐ Format,
-  FormatHuman ⇐ FormatHuman
+  FormatHuman ⇐ FormatHuman,
+  EnvelopeRoleForIndex ⇐ EnvelopeRoleForIndex,
+  IsActiveEnvelopeRole ⇐ IsActiveEnvelopeRole,
+  ExecutionStatus ⇐ ExecutionStatus
 }

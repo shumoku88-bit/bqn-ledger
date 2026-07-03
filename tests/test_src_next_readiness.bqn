@@ -15,4 +15,15 @@ human ← readiness.FormatHuman ctx
 1 lib.AssertEq ∨´ "[Report readiness]"⍷human
 1 lib.AssertEq ∨´ "[Data hygiene warnings]"⍷human
 
+lint_ctx ← context.BuildContext "fixtures/src-next-lint-failures"
+lint_summary ← readiness.Build lint_ctx
+1 lib.AssertEq ≠ lint_summary.unknown_envelope_role_accounts
+2 lib.AssertEq ≠ lint_summary.inconsistent_envelope_role_accounts
+lint_text ← readiness.Format lint_summary
+1 lib.AssertEq ∨´ "src_next_readiness_unknown_envelope_role_accounts_count: 1"⍷lint_text
+1 lib.AssertEq ∨´ "src_next_readiness_inconsistent_envelope_role_accounts_count: 2"⍷lint_text
+lint_human ← readiness.FormatHuman lint_ctx
+1 lib.AssertEq ∨´ "unknown envelope_role accounts  : 1"⍷lint_human
+1 lib.AssertEq ∨´ "inconsistent envelope_role      : 2"⍷lint_human
+
 •Out "test_src_next_readiness.bqn: OK"

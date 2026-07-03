@@ -44,6 +44,8 @@ unknown_acc=$(get_val "src_next_readiness_unknown_account_count")
 unknown_role=$(get_val "src_next_readiness_unknown_role_accounts_count")
 unknown_type=$(get_val "src_next_readiness_unknown_type_accounts_count")
 unknown_spend=$(get_val "src_next_readiness_unknown_spend_class_accounts_count")
+unknown_env_role=$(get_val "src_next_readiness_unknown_envelope_role_accounts_count")
+inconsistent_env_role=$(get_val "src_next_readiness_inconsistent_envelope_role_accounts_count")
 dup_acc=$(get_val "src_next_readiness_duplicate_accounts_count")
 dup_keys=$(get_val "src_next_readiness_accounts_with_dup_keys_count")
 
@@ -51,6 +53,8 @@ assert_eq "2" "$unknown_acc" "unknown account references (2 projection rows)"
 assert_eq "1" "$unknown_role" "unknown role account (magical)"
 assert_eq "0" "$unknown_type" "unknown type accounts"
 assert_eq "1" "$unknown_spend" "unknown spend_class account (maybe)"
+assert_eq "1" "$unknown_env_role" "unknown envelope_role account (reserve)"
+assert_eq "2" "$inconsistent_env_role" "inconsistent envelope_role accounts"
 assert_eq "1" "$dup_acc" "duplicate account definitions (expenses:food)"
 assert_eq "1" "$dup_keys" "accounts with duplicate keys (assets:bank has 2 type keys)"
 

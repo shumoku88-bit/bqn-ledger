@@ -10,7 +10,7 @@ lines ← ⟨
   "医療費" ∾ tab ∾ "role=expense" ∾ tab ∾ "budget=医療" ∾ tab ∾ "budget_group=reserve" ∾ tab ∾ "spend_class=fixed",
   "expenses:food" ∾ tab ∾ "role=expense",
   "assets:usd" ∾ tab ∾ "currency=USD",
-  "食費" ∾ tab ∾ "role=expense" ∾ tab ∾ "budget=食費" ∾ tab ∾ "budget_group=daily" ∾ tab ∾ "spend_class=variable" ∾ tab ∾ "currency=USD"
+  "食費" ∾ tab ∾ "role=expense" ∾ tab ∾ "budget=食費" ∾ tab ∾ "budget_group=daily" ∾ tab ∾ "spend_class=variable" ∾ tab ∾ "envelope_role=dynamic" ∾ tab ∾ "currency=USD"
 ⟩
 
 resolved ← ak.Resolve lines
@@ -19,11 +19,13 @@ resolved ← ak.Resolve lines
 ⟨"", "医療", "", "", "食費"⟩ lib.AssertEq resolved.budgets
 ⟨"", "reserve", "", "", "daily"⟩ lib.AssertEq resolved.budget_groups
 ⟨"", "fixed", "", "", "variable"⟩ lib.AssertEq resolved.spend_classes
+⟨"", "", "", "", "dynamic"⟩ lib.AssertEq resolved.envelope_roles
 "expense" lib.AssertEq ak.RoleFromMeta ⟨"role=expense"⟩
 "" lib.AssertEq ak.RoleFromMeta ⟨"currency=USD"⟩
 "食費" lib.AssertEq ak.BudgetFromMeta ⟨"role=expense", "budget=食費"⟩
 "daily" lib.AssertEq ak.BudgetGroupFromMeta ⟨"budget_group=daily"⟩
 "variable" lib.AssertEq ak.SpendClassFromMeta ⟨"spend_class=variable"⟩
+"execution" lib.AssertEq ak.EnvelopeRoleFromMeta ⟨"envelope_role=execution"⟩
 "" lib.AssertEq ak.BudgetFromMeta ⟨"role=expense"⟩
 "" lib.AssertEq ak.BudgetGroupFromMeta ⟨"budget=食費"⟩
 "" lib.AssertEq ak.SpendClassFromMeta ⟨"fixed=1"⟩

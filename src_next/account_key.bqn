@@ -33,6 +33,7 @@ BudgetFromMeta ← { MetaValue ⟨"budget", "", 𝕩⟩ }
 BudgetGroupFromMeta ← { MetaValue ⟨"budget_group", "", 𝕩⟩ }
 KindFromMeta ← { MetaValue ⟨"kind", "", 𝕩⟩ }
 SpendClassFromMeta ← { MetaValue ⟨"spend_class", "", 𝕩⟩ }
+EnvelopeRoleFromMeta ← { MetaValue ⟨"envelope_role", "", 𝕩⟩ }
 
 # Resolve: build AccountKey table from accounts.tsv lines.
 # Args: 𝕩 is 1D Array of Strings (parsed lines from accounts.tsv, each TAB-separated)
@@ -63,6 +64,7 @@ Resolve ← {
   budget_groups ← BudgetGroupFromMeta ¨ metas
   spend_classes ← SpendClassFromMeta ¨ metas
   kinds ← KindFromMeta ¨ metas
+  envelope_roles ← EnvelopeRoleFromMeta ¨ metas
 
   # Build AccountKey: "account/currency"
   n ← ≠ accounts
@@ -83,6 +85,7 @@ Resolve ← {
     budget_groups ⇐ budget_groups,
     spend_classes ⇐ spend_classes,
     kinds ⇐ kinds,
+    envelope_roles ⇐ envelope_roles,
     raw_accounts ⇐ accounts,
     raw_metadata ⇐ metas,
     account_keys ⇐ keys,
@@ -113,6 +116,7 @@ FormatTable ← {
   BudgetGroupFromMeta ⇐ BudgetGroupFromMeta,
   KindFromMeta ⇐ KindFromMeta,
   SpendClassFromMeta ⇐ SpendClassFromMeta,
+  EnvelopeRoleFromMeta ⇐ EnvelopeRoleFromMeta,
   Resolve ⇐ Resolve,
   FormatTable ⇐ FormatTable
 }

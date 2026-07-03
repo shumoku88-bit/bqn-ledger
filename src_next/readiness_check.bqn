@@ -21,6 +21,8 @@ Build ← {𝕊 ctx:
   types ← resolved.types
   budgets ← resolved.budgets
   classes ← resolved.spend_classes
+  kinds ← resolved.kinds
+  envelope_roles ← resolved.envelope_roles
   raw_accounts ← resolved.raw_accounts
   raw_metas ← resolved.raw_metadata
 
@@ -36,6 +38,19 @@ Build ← {𝕊 ctx:
   valid_classes ← ⟨"", "fixed", "variable"⟩
   unknown_spend_class_mask ← ¬ (classes ∊ valid_classes)
   unknown_spend_class_accounts ← unknown_spend_class_mask / resolved.account_keys
+
+  valid_envelope_roles ← ⟨"", "dynamic", "execution", "unassigned"⟩
+  unknown_envelope_role_mask ← ¬ (envelope_roles ∊ valid_envelope_roles)
+  unknown_envelope_role_accounts ← unknown_envelope_role_mask / resolved.account_keys
+
+  has_env_role ← ¬ (""⊸≡¨ envelope_roles)
+  kind_envelope ← "envelope"⊸≡¨ kinds
+  kind_unassigned ← "unassigned"⊸≡¨ kinds
+  bad_unassigned_role ← kind_unassigned ∧ has_env_role ∧ (¬ "unassigned"⊸≡¨ envelope_roles)
+  bad_envelope_role ← kind_envelope ∧ ("unassigned"⊸≡¨ envelope_roles)
+  bad_non_envelope_role ← (¬ (kind_envelope ∨ kind_unassigned)) ∧ has_env_role
+  inconsistent_envelope_role_mask ← bad_unassigned_role ∨ bad_envelope_role ∨ bad_non_envelope_role
+  inconsistent_envelope_role_accounts ← inconsistent_envelope_role_mask / resolved.account_keys
 
   # Duplicate checks
   first_acc_idx ← raw_accounts ⊐ raw_accounts
@@ -96,6 +111,8 @@ Build ← {𝕊 ctx:
     unknown_role_accounts ⇐ unknown_role_accounts,
     unknown_type_accounts ⇐ unknown_type_accounts,
     unknown_spend_class_accounts ⇐ unknown_spend_class_accounts,
+    unknown_envelope_role_accounts ⇐ unknown_envelope_role_accounts,
+    inconsistent_envelope_role_accounts ⇐ inconsistent_envelope_role_accounts,
     duplicate_accounts ⇐ duplicate_accounts,
     accounts_with_dup_keys ⇐ accounts_with_dup_keys,
 
@@ -125,6 +142,8 @@ Format ← {𝕊 summary:
   out ↩ out ∾ "src_next_readiness_unknown_role_accounts_count: " ∾ (•Fmt ≠ summary.unknown_role_accounts) ∾ (@+10)
   out ↩ out ∾ "src_next_readiness_unknown_type_accounts_count: " ∾ (•Fmt ≠ summary.unknown_type_accounts) ∾ (@+10)
   out ↩ out ∾ "src_next_readiness_unknown_spend_class_accounts_count: " ∾ (•Fmt ≠ summary.unknown_spend_class_accounts) ∾ (@+10)
+  out ↩ out ∾ "src_next_readiness_unknown_envelope_role_accounts_count: " ∾ (•Fmt ≠ summary.unknown_envelope_role_accounts) ∾ (@+10)
+  out ↩ out ∾ "src_next_readiness_inconsistent_envelope_role_accounts_count: " ∾ (•Fmt ≠ summary.inconsistent_envelope_role_accounts) ∾ (@+10)
   out ↩ out ∾ "src_next_readiness_duplicate_accounts_count: " ∾ (•Fmt ≠ summary.duplicate_accounts) ∾ (@+10)
   out ↩ out ∾ "src_next_readiness_accounts_with_dup_keys_count: " ∾ (•Fmt ≠ summary.accounts_with_dup_keys) ∾ (@+10)
   out ↩ out ∾ "src_next_readiness_missing_role_accounts_count: " ∾ (•Fmt ≠ summary.missing_role_accounts) ∾ (@+10)
@@ -179,6 +198,10 @@ FormatHuman ← {𝕊 ctx:
   out ↩ out ∾ OutIndented summary.unknown_type_accounts
   out ↩ out ∾ "  unknown spend_class accounts    : " ∾ (•Fmt ≠ summary.unknown_spend_class_accounts) ∾ (@+10)
   out ↩ out ∾ OutIndented summary.unknown_spend_class_accounts
+  out ↩ out ∾ "  unknown envelope_role accounts  : " ∾ (•Fmt ≠ summary.unknown_envelope_role_accounts) ∾ (@+10)
+  out ↩ out ∾ OutIndented summary.unknown_envelope_role_accounts
+  out ↩ out ∾ "  inconsistent envelope_role      : " ∾ (•Fmt ≠ summary.inconsistent_envelope_role_accounts) ∾ (@+10)
+  out ↩ out ∾ OutIndented summary.inconsistent_envelope_role_accounts
   out ↩ out ∾ "  duplicate accounts              : " ∾ (•Fmt ≠ summary.duplicate_accounts) ∾ (@+10)
   out ↩ out ∾ OutIndented summary.duplicate_accounts
   out ↩ out ∾ "  accounts with duplicate keys    : " ∾ (•Fmt ≠ summary.accounts_with_dup_keys) ∾ (@+10)

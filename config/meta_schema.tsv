@@ -11,6 +11,9 @@ HOUSEHOLD_GROUP_LIFE	string
 HOUSEHOLD_GROUP_RESERVE	string		
 HOUSEHOLD_GROUP_ORDER	string		
 
+# Account metadata
+envelope_role	enum	dynamic|execution|unassigned	accounts
+
 # Common
 tax	enum	private|business|mixed
 biz	number	

@@ -56,6 +56,8 @@ Important: this is **ledger unassigned**, not cash-backed surplus. It is the una
 
 If the unassigned pool is negative, status is `OVER_ALLOCATED` and the human report shows a visible warning.
 
+The human section groups envelopes into Dynamic / Execution / Unassigned / Backing diagnostic blocks. `envelope_role=dynamic|execution` is used when present; missing `kind=envelope` falls back to dynamic for compatibility. Unknown roles are displayed separately and excluded from active envelope totals. Existing envelope machine-readable keys are preserved. `readiness` exposes unknown/inconsistent `envelope_role` counts so metadata drift is visible.
+
 The section also exposes a readonly backing diagnostic. This is intentionally not a write-path or allocation rule yet: `src_next_envelope_funding_base` is currently a provisional `type=liquid` actual closing balance, while `src_next_envelope_allocated_total` is the sum of active envelope remaining balances. `src_next_envelope_cash_backed_unassigned` and `src_next_envelope_backing_status` show whether the envelope balances are cash-backed under that provisional base.
 
 Backing status vocabulary:

@@ -3,4 +3,4 @@ income:salary	role=income
 expenses:fixed	role=expense
 budget:opening	role=budget	kind=opening
 budget:unassigned	role=budget	kind=unassigned
-budget:固定費予定	role=budget	kind=envelope	budget_group=reserve
+budget:固定費予定	role=budget	kind=envelope	envelope_role=execution	budget_group=reserve

@@ -36,14 +36,21 @@ summary ← env.Build { base ⇐ base, resolved ⇐ resolved, cy ⇐ cy, cube �
 1000 lib.AssertEq summary.allocated
 350 lib.AssertEq summary.actual_spent
 650 lib.AssertEq summary.remaining
-¯1500 lib.AssertEq summary.unassigned_remaining
+¯1800 lib.AssertEq summary.unassigned_remaining
 "OVER_ALLOCATED" lib.AssertEq summary.unassigned_status
 1 lib.AssertEq summary.unassigned_account_count
 0 lib.AssertEq summary.funding_base
 1070 lib.AssertEq summary.allocated_total
 ¯1070 lib.AssertEq summary.cash_backed_unassigned
-430 lib.AssertEq summary.ledger_cash_delta
+730 lib.AssertEq summary.ledger_cash_delta
 "OVER_ALLOCATED" lib.AssertEq summary.backing_status
+roles ← {𝕩.envelope_role}¨ summary.envelopes
+1 lib.AssertEq ∨´ "dynamic"⊸≡¨ roles
+1 lib.AssertEq ∨´ "execution"⊸≡¨ roles
+1 lib.AssertEq ∨´ "unknown"⊸≡¨ roles
+"HELD" lib.AssertEq env.ExecutionStatus ⟨500, 420, 80⟩
+"DONE" lib.AssertEq env.ExecutionStatus ⟨500, 0, 500⟩
+"DRAWN" lib.AssertEq env.ExecutionStatus ⟨500, ¯100, 600⟩
 
 # Planned spending is present (200) but the prototype remaining does not subtract it.
 200 lib.AssertEq result.plan_expense_total
@@ -57,15 +64,25 @@ summary ← env.Build { base ⇐ base, resolved ⇐ resolved, cy ⇐ cy, cube �
 text ← env.Format summary
 0 lib.AssertEq +´ ("safe_remaining" ⍷ text)
 0 lib.AssertEq +´ ("daily_amount" ⍷ text)
+0 lib.AssertEq +´ ("src_next_envelope_active_remaining_source: 謎" ⍷ text)
+0 lib.AssertEq +´ ("src_next_envelope_active_movement: 2026-01-01\t2\tbudget:謎" ⍷ text)
 
 human ← env.FormatHuman summary
+1 lib.AssertEq ∨´ "[Dynamic envelopes]"⍷human
+1 lib.AssertEq ∨´ "[Execution envelopes]"⍷human
+1 lib.AssertEq ∨´ "[Unknown role envelopes]"⍷human
+1 lib.AssertEq ∨´ "[Unassigned]"⍷human
+1 lib.AssertEq ∨´ "食費           |      1000|    350|   650"⍷human
+1 lib.AssertEq ∨´ "日用品         |       500|       80|       420|HELD"⍷human
+1 lib.AssertEq ∨´ "謎             |       300|      0|   300|unknown_role"⍷human
+1 lib.AssertEq ∨´ "unknown envelope_role は active envelope total に含めず"⍷human
 1 lib.AssertEq ∨´ "[Backing check]"⍷human
 1 lib.AssertEq ∨´ "封筒対象資金(暫定:type=liquid): 0"⍷human
 1 lib.AssertEq ∨´ "active封筒残高合計:              1070"⍷human
 1 lib.AssertEq ∨´ "現金裏付け未割当:                ¯1070"⍷human
 1 lib.AssertEq ∨´ "[Budget ledger]"⍷human
-1 lib.AssertEq ∨´ "予算台帳未割当:                   ¯1500"⍷human
-1 lib.AssertEq ∨´ "現金裏付け未割当 - 予算台帳未割当: 430"⍷human
+1 lib.AssertEq ∨´ "予算台帳未割当:                   ¯1800"⍷human
+1 lib.AssertEq ∨´ "現金裏付け未割当 - 予算台帳未割当: 730"⍷human
 1 lib.AssertEq ∨´ "status: OVER_ALLOCATED"⍷human
 1 lib.AssertEq ∨´ "[Backing provenance]"⍷human
 1 lib.AssertEq ∨´ "funding_base sources:"⍷human
@@ -74,11 +91,12 @@ human ← env.FormatHuman summary
 1 lib.AssertEq ∨´ "食費                                650"⍷human
 1 lib.AssertEq ∨´ "日用品                              420"⍷human
 1 lib.AssertEq ∨´ "ledger unassigned source:"⍷human
-1 lib.AssertEq ∨´ "budget:unassigned                 ¯1500"⍷human
+1 lib.AssertEq ∨´ "budget:unassigned                 ¯1800"⍷human
 1 lib.AssertEq ∨´ "[Budget movement provenance]"⍷human
 1 lib.AssertEq ∨´ "ledger unassigned movements:"⍷human
 1 lib.AssertEq ∨´ "2026-01-01 #0 budget:unassigned  credit    ¯1000 alloc_food"⍷human
 1 lib.AssertEq ∨´ "2026-01-01 #1 budget:unassigned  credit     ¯500 alloc_goods"⍷human
+1 lib.AssertEq ∨´ "2026-01-01 #2 budget:unassigned  credit     ¯300 alloc_unknown"⍷human
 1 lib.AssertEq ∨´ "active envelope movements:"⍷human
 1 lib.AssertEq ∨´ "2026-01-01 #0 budget:食費        debit      1000 alloc_food"⍷human
 1 lib.AssertEq ∨´ "2026-01-01 #1 budget:日用品      debit       500 alloc_goods"⍷human
