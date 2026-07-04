@@ -348,6 +348,50 @@ else
   fail "snapshot JSON with no-cycle fixture failed to execute"
 fi
 
+# Cross-section consistency verification when cycle is unresolvable (no-cycle).
+json_snap="$(mktemp)"
+json_bal="$(mktemp)"
+if tools/report "$no_cycle_fixture" --section snapshot --format json >"$json_snap" 2>/dev/null && \
+   tools/report "$no_cycle_fixture" --section balances --format json >"$json_bal" 2>/dev/null; then
+  if python3 - "$json_snap" "$json_bal" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as f:
+    snap = json.load(f)
+with open(sys.argv[2], encoding="utf-8") as f:
+    bal = json.load(f)
+
+# Consistency 1: Liquid assets total must match exactly (5000 in fixture)
+snap_liq = snap["totals"]["liquid_assets"]
+bal_liq = bal["totals"]["liquid_assets_total"]
+if snap_liq != bal_liq:
+    raise SystemExit(f"Consistency failure: snap liquid ({snap_liq}) != bal liquid ({bal_liq})")
+if snap_liq != 5000:
+    raise SystemExit(f"Expected liquid assets to be 5000, got {snap_liq}")
+
+# Consistency 2: Net worth must match exactly
+snap_nw = snap["totals"]["net_worth"]
+bal_nw = bal["totals"]["net_worth"]
+if snap_nw != bal_nw:
+    raise SystemExit(f"Consistency failure: snap net worth ({snap_nw}) != bal net worth ({bal_nw})")
+
+# Consistency 3: Since cycle is unavailable, all movements must be 0 (no period duration)
+snap_inc = snap["cycle_summary"]["income_actual"]
+snap_exp = snap["cycle_summary"]["expense_actual"]
+if snap_inc != 0 or snap_exp != 0:
+    raise SystemExit(f"Expected 0 cycle movements, got income={snap_inc}, expense={snap_exp}")
+PY
+  then
+    pass "cross-section consistency when cycle is unresolvable is verified"
+  else
+    fail "cross-section consistency when cycle is unresolvable contract violated"
+  fi
+else
+  fail "failed to execute JSON report commands for consistency check"
+fi
+rm -f "$json_snap" "$json_bal"
+
 actual_fixture="$(mktemp -d)"
 cp -R fixtures/plan-completion/. "$actual_fixture/"
 python3 - "$actual_fixture/journal.tsv" <<'PY'
