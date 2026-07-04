@@ -29,4 +29,12 @@ obj ← ⟨
 obj_expected ← "{" ∾ quote ∾ "amount" ∾ quote ∾ ": -12, " ∾ quote ∾ "memo" ∾ quote ∾ ": " ∾ quoted_expected ∾ "}"
 obj_expected lib.AssertEq json.Serialize obj
 
+"null" lib.AssertEq json.Serialize @
+
+obj_with_null ← ⟨
+  ⟨"val", @⟩
+⟩
+obj_with_null_expected ← "{" ∾ quote ∾ "val" ∾ quote ∾ ": null}"
+obj_with_null_expected lib.AssertEq json.Serialize obj_with_null
+
 •Out "test_src_next_json.bqn: OK"

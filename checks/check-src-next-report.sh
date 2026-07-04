@@ -211,6 +211,95 @@ else
   fail "report --section balances --format json failed"
 fi
 
+# JSON output verification: snapshot section ViewModel contract.
+if tools/report "$fixture" --section snapshot --format json >"$json_out" 2>/dev/null; then
+  if python3 - "$json_out" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as f:
+    root = json.load(f)
+
+if not isinstance(root, dict):
+    raise SystemExit("top-level JSON is not an object")
+
+required_root = {"as_of", "status", "cycle", "remaining_days", "days_elapsed", "totals", "cycle_summary", "readiness"}
+missing_root = sorted(required_root - root.keys())
+if missing_root:
+    raise SystemExit(f"missing root fields: {missing_root}")
+
+if not isinstance(root["as_of"], str):
+    raise SystemExit("as_of is not a string")
+if not isinstance(root["status"], str):
+    raise SystemExit("status is not a string")
+if not isinstance(root["cycle"], dict):
+    raise SystemExit("cycle is not an object")
+if not isinstance(root["totals"], dict):
+    raise SystemExit("totals is not an object")
+if not isinstance(root["cycle_summary"], dict):
+    raise SystemExit("cycle_summary is not an object")
+if not isinstance(root["readiness"], dict):
+    raise SystemExit("readiness is not an object")
+
+# remaining_days and days_elapsed can be null or int
+for key in ("remaining_days", "days_elapsed"):
+    val = root[key]
+    if val is not None:
+        if not isinstance(val, int) or isinstance(val, bool):
+            raise SystemExit(f"{key} is not an integer or null")
+
+cycle_required = {"start", "end_exclusive", "available"}
+missing_cycle = sorted(cycle_required - root["cycle"].keys())
+if missing_cycle:
+    raise SystemExit(f"missing cycle fields: {missing_cycle}")
+
+if not isinstance(root["cycle"]["available"], (int, bool)): # BQN uses 0/1 for booleans
+    raise SystemExit("cycle.available is not boolean/numeric")
+
+for key in ("start", "end_exclusive"):
+    val = root["cycle"][key]
+    if val is not None and not isinstance(val, str):
+        raise SystemExit(f"cycle.{key} is not string or null")
+
+totals_required = {"liquid_assets", "savings", "investments", "assets_total", "liabilities_total", "net_worth"}
+missing_totals = sorted(totals_required - root["totals"].keys())
+if missing_totals:
+    raise SystemExit(f"missing totals fields: {missing_totals}")
+
+for key in totals_required:
+    val = root["totals"][key]
+    if not isinstance(val, (int, float)) or isinstance(val, bool):
+        raise SystemExit(f"totals.{key} is not numeric")
+
+cs_required = {"income_actual", "expense_actual", "net_actual", "plan_expense"}
+missing_cs = sorted(cs_required - root["cycle_summary"].keys())
+if missing_cs:
+    raise SystemExit(f"missing cycle_summary fields: {missing_cs}")
+
+for key in cs_required:
+    val = root["cycle_summary"][key]
+    if not isinstance(val, (int, float)) or isinstance(val, bool):
+        raise SystemExit(f"cycle_summary.{key} is not numeric")
+
+rd_required = {"valid_projection_rows", "skipped_projection_rows", "unknown_account_count", "out_of_cycle_skipped_count"}
+missing_rd = sorted(rd_required - root["readiness"].keys())
+if missing_rd:
+    raise SystemExit(f"missing readiness fields: {missing_rd}")
+
+for key in rd_required:
+    val = root["readiness"][key]
+    if not isinstance(val, int) or isinstance(val, bool):
+        raise SystemExit(f"readiness.{key} is not an integer")
+PY
+  then
+    pass "report --section snapshot --format json parses and matches contract"
+  else
+    fail "report --section snapshot --format json is invalid"
+  fi
+else
+  fail "report --section snapshot --format json failed"
+fi
+
 actual_fixture="$(mktemp -d)"
 cp -R fixtures/plan-completion/. "$actual_fixture/"
 python3 - "$actual_fixture/journal.tsv" <<'PY'
@@ -256,13 +345,13 @@ fi
 rm -rf "$actual_fixture"
 actual_fixture=""
 
-if tools/report "$fixture" --section snapshot --format json >"$bad_out" 2>&1; then
-  fail "report --section snapshot --format json unexpectedly succeeded"
+if tools/report "$fixture" --section envelopes --format json >"$bad_out" 2>&1; then
+  fail "report --section envelopes --format json unexpectedly succeeded"
 else
-  if grep -qF -- 'ERROR: JSON format not supported for section: snapshot' "$bad_out"; then
-    pass "report --section snapshot --format json fails with unsupported error"
+  if grep -qF -- 'ERROR: JSON format not supported for section: envelopes' "$bad_out"; then
+    pass "report --section envelopes --format json fails with unsupported error"
   else
-    fail "report --section snapshot --format json fails with unexpected error message"
+    fail "report --section envelopes --format json fails with unexpected error message"
   fi
 fi
 

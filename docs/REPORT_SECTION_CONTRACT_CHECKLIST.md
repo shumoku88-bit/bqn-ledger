@@ -220,6 +220,53 @@ This is consumed by compact summary checks and can be filtered by `tools/query` 
 }
 ```
 
+## Reference example: snapshot
+
+### Identity and routing
+- Section key: `snapshot`
+- Owning module: `src_next/snapshot.bqn`
+- Human renderer: `snapshot.FormatHuman (snapshot.Build ctx)`
+- Compact renderer: `snapshot.Format (snapshot.Build ctx)`
+- JSON renderer: `snapshot.FormatJson ctx`
+- Registration: `src_next/report.bqn`
+
+### Structured JSON output
+`tools/report --section snapshot --format json` calls `snapshot.FormatJson ctx` and outputs ViewModel JSON:
+
+```json
+{
+  "as_of": "2026-06-30",
+  "status": "stable",
+  "cycle": {
+    "start": "2026-06-15",
+    "end_exclusive": "2026-08-15",
+    "available": true
+  },
+  "remaining_days": 45,
+  "days_elapsed": 15,
+  "totals": {
+    "liquid_assets": 65297,
+    "savings": 5000,
+    "investments": 5600,
+    "assets_total": 75897,
+    "liabilities_total": -197706,
+    "net_worth": -121809
+  },
+  "cycle_summary": {
+    "income_actual": 446292,
+    "expense_actual": 204300,
+    "net_actual": 241992,
+    "plan_expense": 128000
+  },
+  "readiness": {
+    "valid_projection_rows": 142,
+    "skipped_projection_rows": 0,
+    "unknown_account_count": 0,
+    "out_of_cycle_skipped_count": 12
+  }
+}
+```
+
 ## How to apply this later
 
 For the next section alignment task:

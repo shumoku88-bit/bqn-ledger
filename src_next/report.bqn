@@ -147,6 +147,11 @@ Main ← {𝕊 args:
       {𝕊:
         •Out balances.FormatJson ctx
         •Exit 0
+      } @ ;
+    (section_key ≡ "snapshot") ?
+      {𝕊:
+        •Out snapshot.FormatJson ctx
+        •Exit 0
       } @
     ; {𝕊:
       •Out "ERROR: JSON format not supported for section: "∾section_key

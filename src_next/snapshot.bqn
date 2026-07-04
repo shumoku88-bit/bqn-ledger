@@ -19,6 +19,7 @@ fmt ← •Import "format.bqn"
 labels ← •Import "report_labels.bqn"
 L ← labels.Text
 unav ← •Import "unavailable.bqn"
+json ← •Import "json.bqn"
 
 fallback_current ← "fallback/current-engine"
 
@@ -268,4 +269,65 @@ FormatHuman ← {𝕊 vm:
   out
 }
 
-{ Build ⇐ Build, StatusLabel ⇐ StatusLabel, SelectArt ⇐ SelectArt, Format ⇐ Format, FormatHuman ⇐ FormatHuman, FormatAccountTotalsFromEntries ⇐ FormatAccountTotalsFromEntries, LatestActualDateInCycle ⇐ LatestActualDateInCycle, RemainingDaysText ⇐ RemainingDaysText, DaysElapsed ⇐ DaysElapsed }
+# FormatJson: render Snapshot as structured JSON.
+FormatJson ← {𝕊 ctx:
+  vm ← Build ctx
+
+  # Helper to parse string to number or return null token (@)
+  ToNumOrNull ← {
+    (unav.IsUnavailable 𝕩) ? @ ;
+    { (0 < ≠𝕩) ? (•BQN 𝕩) ; @ } 𝕩
+  }
+
+  rem_days ← { (vm.cycle_available) ? (ToNumOrNull vm.remaining_days) ; @ }
+  days_el ← { (vm.cycle_available ∧ (vm.days_elapsed ≠ ¯1)) ? vm.days_elapsed ; @ }
+
+  cycle_start ← { (vm.cycle_available) ? vm.cycle_start ; @ }
+  cycle_end ← { (vm.cycle_available) ? vm.cycle_end_exclusive ; @ }
+
+  cycle_summary ← ⟨
+    ⟨"income_actual", vm.cycle_summary.income_actual⟩,
+    ⟨"expense_actual", vm.cycle_summary.expense_actual⟩,
+    ⟨"net_actual", vm.cycle_summary.net_actual⟩,
+    ⟨"plan_expense", vm.cycle_summary.plan_expense⟩
+  ⟩
+
+  readiness ← ⟨
+    ⟨"valid_projection_rows", vm.readiness.valid_rows⟩,
+    ⟨"skipped_projection_rows", vm.readiness.skipped_rows⟩,
+    ⟨"unknown_account_count", vm.readiness.unknown_account_count⟩,
+    ⟨"out_of_cycle_skipped_count", vm.readiness.out_of_cycle_skipped_count⟩
+  ⟩
+
+  totals ← ⟨
+    ⟨"liquid_assets", vm.liq_total⟩,
+    ⟨"savings", vm.sav_total⟩,
+    ⟨"investments", vm.inv_total⟩,
+    ⟨"assets_total", vm.assets_total⟩,
+    ⟨"liabilities_total", vm.liabilities_total⟩,
+    ⟨"net_worth", vm.net_worth⟩
+  ⟩
+
+  cycle ← ⟨
+    ⟨"start", cycle_start⟩,
+    ⟨"end_exclusive", cycle_end⟩,
+    ⟨"available", vm.cycle_available⟩
+  ⟩
+
+  as_of_val ← { (unav.IsUnavailable vm.as_of) ? @ ; vm.as_of }
+
+  root ← ⟨
+    ⟨"as_of", as_of_val⟩,
+    ⟨"status", vm.status_label⟩,
+    ⟨"cycle", cycle⟩,
+    ⟨"remaining_days", rem_days⟩,
+    ⟨"days_elapsed", days_el⟩,
+    ⟨"totals", totals⟩,
+    ⟨"cycle_summary", cycle_summary⟩,
+    ⟨"readiness", readiness⟩
+  ⟩
+
+  json.Serialize root
+}
+
+{ Build ⇐ Build, StatusLabel ⇐ StatusLabel, SelectArt ⇐ SelectArt, Format ⇐ Format, FormatHuman ⇐ FormatHuman, FormatJson ⇐ FormatJson, FormatAccountTotalsFromEntries ⇐ FormatAccountTotalsFromEntries, LatestActualDateInCycle ⇐ LatestActualDateInCycle, RemainingDaysText ⇐ RemainingDaysText, DaysElapsed ⇐ DaysElapsed }

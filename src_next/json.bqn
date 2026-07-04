@@ -63,6 +63,7 @@ Serialize_inner ← {
   is_obj ← {𝕊: is_arr ? ∧´ IsKvPair¨ arr ; 0 } @
 
   {𝕊:
+    (arr ≡ @) ? "null" ;
     (1 = t) ? Number arr ;
     (2 = t) ? String ⟨arr⟩ ; # Single char to string
     (IsString arr) ? String arr ;
