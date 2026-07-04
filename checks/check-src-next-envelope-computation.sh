@@ -23,32 +23,7 @@ tools/report-next-summary "$fixture" 2>/dev/null > "$actual_raw"
 grep -E '^(--- SrcNext Envelope Computation ---|src_next_envelope_)' "$actual_raw" > "$actual_summary"
 diff -u "$expected" "$actual_summary"
 
-# Semantic boundary checks for the Stage 4a prototype.
-grep -q '^src_next_envelope_status: computed$' "$actual_summary"
-grep -q '^src_next_envelope_allocated: 1000$' "$actual_summary"
-grep -q '^src_next_envelope_actual_spent: 350$' "$actual_summary"
-grep -q '^src_next_envelope_remaining: 650$' "$actual_summary"
-grep -q '^src_next_envelope_unassigned_remaining: ¯1800$' "$actual_summary"
-grep -q '^src_next_envelope_unassigned_status: OVER_ALLOCATED$' "$actual_summary"
-grep -q '^src_next_envelope_unassigned_account_count: 1$' "$actual_summary"
-grep -q '^src_next_envelope_funding_base: 0$' "$actual_summary"
-grep -q '^src_next_envelope_allocated_total: 1070$' "$actual_summary"
-grep -q '^src_next_envelope_cash_backed_unassigned: ¯1070$' "$actual_summary"
-grep -q '^src_next_envelope_ledger_cash_delta: 730$' "$actual_summary"
-grep -q '^src_next_envelope_backing_status: OVER_ALLOCATED$' "$actual_summary"
-grep -q '^src_next_envelope_execution_planned_envelope: $' "$actual_summary"
-grep -q '^src_next_envelope_execution_planned_remaining: @$' "$actual_summary"
-grep -q '^src_next_envelope_execution_planned_open_total: @$' "$actual_summary"
-grep -q '^src_next_envelope_execution_planned_delta: @$' "$actual_summary"
-grep -q '^src_next_envelope_execution_planned_status: disabled$' "$actual_summary"
-grep -q $'^src_next_envelope_active_remaining_source: 食費\t650$' "$actual_summary"
-grep -q $'^src_next_envelope_active_remaining_source: 日用品\t420$' "$actual_summary"
-grep -q $'^src_next_envelope_ledger_unassigned_source: budget:unassigned\t¯1800$' "$actual_summary"
-grep -q $'^src_next_envelope_active_movement: 2026-01-01\t0\tbudget:食費\tdebit\t1000\talloc_food$' "$actual_summary"
-grep -q $'^src_next_envelope_active_movement: 2026-01-01\t1\tbudget:日用品\tdebit\t500\talloc_goods$' "$actual_summary"
-grep -q $'^src_next_envelope_ledger_unassigned_movement: 2026-01-01\t0\tbudget:unassigned\tcredit\t¯1000\talloc_food$' "$actual_summary"
-grep -q $'^src_next_envelope_ledger_unassigned_movement: 2026-01-01\t1\tbudget:unassigned\tcredit\t¯500\talloc_goods$' "$actual_summary"
-grep -q $'^src_next_envelope_ledger_unassigned_movement: 2026-01-01\t2\tbudget:unassigned\tcredit\t¯300\talloc_unknown$' "$actual_summary"
+# Semantic boundary checks for the Stage 4a prototype are now delegated to expected/src_next_summary.txt.
 if grep -q $'^src_next_envelope_active_remaining_source: 謎\t' "$actual_summary" || \
    grep -q $'^src_next_envelope_active_movement: .*\tbudget:謎\t' "$actual_summary"; then
   echo "FAIL: unknown envelope_role leaked into active envelope total/provenance" >&2
