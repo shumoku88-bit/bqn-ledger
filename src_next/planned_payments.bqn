@@ -54,31 +54,6 @@ FormatLine ← {𝕊 line‿status:
   "src_next_planned_payment: " ∾ date ∾ " " ∾ status ∾ " " ∾ memo ∾ " " ∾ fromAcc ∾ " " ∾ toAcc ∾ " " ∾ amount ∾ (@+10)
 }
 
-# Format: show plan entries with status from context.
-Format ← {𝕊 ctx:
-  base ← ctx.base
-  cy ← ctx.cy
-  lines ← loader.ReadLinesOptional (base ∾ "/plan.tsv")
-  mask ← { InCycle ⟨cy.start, cy.day_count, 𝕩⟩ }¨ lines
-  rows ← mask / lines
-
-  # Sort rows by date (first field in TSV)
-  GetDate ← { ⊑ Pad5 loader.SplitTsvKeepEmpty 𝕩 }
-  rows ↩ (⍋ GetDate¨ rows) ⊏ rows
-
-  journalLines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
-  journalInCycleMask ← { InCycle ⟨cy.start, cy.day_count, 𝕩⟩ }¨ journalLines
-  journalInCycle ← journalInCycleMask / journalLines
-  journalPlanIds ← PlanId¨ journalInCycle
-
-  statuses ← { StatusFor ⟨PlanId 𝕩, journalPlanIds⟩ }¨ rows
-
-  out ← "--- SrcNext Planned Payments ---" ∾ (@+10)
-  { out ↩ out ∾ ∾ ({ FormatLine ⟨𝕩⊑rows, 𝕩⊑statuses⟩ }¨ ↕ ≠ rows) }⍟(0 < ≠ rows) @
-  {𝕊: out ↩ out ∾ "src_next_planned_payment: (none)" ∾ (@+10)}⍟(0 = ≠ rows) @
-  out
-}
-
 # Latest in-cycle actual journal date.
 LatestActualDateInCycle ← {𝕊 base‿cy:
   lines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
@@ -98,15 +73,17 @@ LatestActualDateInCycle ← {𝕊 base‿cy:
   out
 }
 
-# FormatHuman: render planned payments as human-readable tables.
-FormatHuman ← {𝕊 ctx:
+# BuildViewModel: compute planned-payment meaning once for compact, human,
+# and structured JSON renderers.
+# Completed actual amounts are summed from matching in-cycle journal rows.
+BuildViewModel ← {𝕊 ctx:
   base ← ctx.base
   cy ← ctx.cy
+
   lines ← loader.ReadLinesOptional (base ∾ "/plan.tsv")
   mask ← { InCycle ⟨cy.start, cy.day_count, 𝕩⟩ }¨ lines
   rows ← mask / lines
 
-  # Sort rows by date (first field in TSV)
   GetDate ← { ⊑ Pad5 loader.SplitTsvKeepEmpty 𝕩 }
   rows ↩ (⍋ GetDate¨ rows) ⊏ rows
 
@@ -132,7 +109,9 @@ FormatHuman ← {𝕊 ctx:
     amt ← ToNum 4⊑flds
     ⟨date, memo, fromAcc, toAcc, amt⟩
   }
+
   parsed ← ParsedRow¨ rows
+  journalParsed ← ParsedRow¨ journalInCycle
 
   CatFor ← {
     from ← 2⊑𝕩 ⋄ to ← 3⊑𝕩
@@ -150,15 +129,62 @@ FormatHuman ← {𝕊 ctx:
   }
   hstatuses ← { HumanStatusFor ⟨𝕩⊑statuses, 0⊑(𝕩⊑parsed)⟩ }¨ ↕ ≠ rows
 
-  actuals ← { ("paid" ≡ 𝕩⊑statuses) ? (4⊑(𝕩⊑parsed)) ; 0 }¨ ↕ ≠ rows
+  ActualAmountFor ← {𝕊 pid:
+    matches ← pid⊸≡¨ journalPlanIds
+    +´ matches / {4⊑𝕩}¨ journalParsed
+  }
+  actuals ← ActualAmountFor¨ planIds
+
+  open_mask ← ¬ "completed"⊸≡¨ hstatuses
+  open_indices ← open_mask / ↕ ≠ rows
+  open_total ← +´ open_mask / {4⊑𝕩}¨ parsed
+
+  completed_mask ← "completed"⊸≡¨ hstatuses
+  completed_indices ← completed_mask / ↕ ≠ rows
+
+  {
+    rows ⇐ rows,
+    parsed ⇐ parsed,
+    cats ⇐ cats,
+    plan_ids ⇐ planIds,
+    statuses ⇐ statuses,
+    human_statuses ⇐ hstatuses,
+    actuals ⇐ actuals,
+    open_mask ⇐ open_mask,
+    open_indices ⇐ open_indices,
+    open_total ⇐ open_total,
+    completed_mask ⇐ completed_mask,
+    completed_indices ⇐ completed_indices
+  }
+}
+
+# Format: show plan entries with status from the shared view model.
+Format ← {𝕊 ctx:
+  vm ← BuildViewModel ctx
+  out ← "--- SrcNext Planned Payments ---" ∾ (@+10)
+  { out ↩ out ∾ ∾ ({ FormatLine ⟨𝕩⊑vm.rows, 𝕩⊑vm.statuses⟩ }¨ ↕ ≠ vm.rows) }⍟(0 < ≠ vm.rows) @
+  {𝕊: out ↩ out ∾ "src_next_planned_payment: (none)" ∾ (@+10)}⍟(0 = ≠ vm.rows) @
+  out
+}
+
+# FormatHuman: render planned payments as human-readable tables.
+FormatHuman ← {𝕊 ctx:
+  vm ← BuildViewModel ctx
+
+  rows ← vm.rows
+  parsed ← vm.parsed
+  cats ← vm.cats
+  hstatuses ← vm.human_statuses
+  actuals ← vm.actuals
+  open_mask ← vm.open_mask
+  open_indices ← vm.open_indices
+  completed_mask ← vm.completed_mask
+  completed_indices ← vm.completed_indices
 
   out ← (L "planned.section_title") ∾ (@+10)
   out ↩ out ∾ (@+10)
 
   # 1. Open items table
-  open_mask ← ¬ "completed"⊸≡¨ hstatuses
-  open_indices ← open_mask / ↕ ≠ rows
-
   w_date ← 10
   w_cat_o ← ⌈´ ⟨ fmt.VWidth (L "planned.category_header") ⟩ ∾ (fmt.VWidth¨ open_mask/cats)
   w_memo_o ← ⌈´ ⟨ fmt.VWidth (L "planned.memo_header") ⟩ ∾ (fmt.VWidth¨ open_mask/{1⊑𝕩}¨ parsed)
@@ -183,15 +209,10 @@ FormatHuman ← {𝕊 ctx:
     out ↩ out ∾ (fmt.PadV ⟨w_date, 0⊑r⟩) ∾ " | " ∾ (fmt.PadV ⟨w_cat_o, cat⟩) ∾ " | " ∾ (fmt.PadV ⟨w_memo_o, 1⊑r⟩) ∾ " | " ∾ (AlignR ⟨w_amt, 4⊑r⟩) ∾ " | " ∾ status_colored ∾ (@+10)
   }¨ open_indices
 
-  open_amts ← open_mask / {4⊑𝕩}¨ parsed
-  open_total ← +´ open_amts
-  out ↩ out ∾ (@+10) ∾ (L "planned.open_total") ∾ (•Fmt open_total) ∾ (@+10)
+  out ↩ out ∾ (@+10) ∾ (L "planned.open_total") ∾ (•Fmt vm.open_total) ∾ (@+10)
   out ↩ out ∾ (@+10)
 
   # 2. Completed items table
-  completed_mask ← "completed"⊸≡¨ hstatuses
-  completed_indices ← completed_mask / ↕ ≠ rows
-
   w_cat_c ← ⌈´ ⟨ fmt.VWidth (L "planned.category_header") ⟩ ∾ (fmt.VWidth¨ completed_mask/cats)
   w_memo_c ← ⌈´ ⟨ fmt.VWidth (L "planned.memo_header") ⟩ ∾ (fmt.VWidth¨ completed_mask/{1⊑𝕩}¨ parsed)
   w_planned ← 10
@@ -221,114 +242,48 @@ FormatHuman ← {𝕊 ctx:
   out
 }
 
-# FormatJson: render planned payments as structured JSON.
+# FormatJson: render the same planned-payment view model as structured JSON.
 FormatJson ← {𝕊 ctx:
-  base ← ctx.base
-  cy ← ctx.cy
-  lines ← loader.ReadLinesOptional (base ∾ "/plan.tsv")
-  mask ← { InCycle ⟨cy.start, cy.day_count, 𝕩⟩ }¨ lines
-  rows ← mask / lines
-
-  # Sort rows by date (first field in TSV)
-  GetDate ← { ⊑ Pad5 loader.SplitTsvKeepEmpty 𝕩 }
-  rows ↩ (⍋ GetDate¨ rows) ⊏ rows
-
-  journalLines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
-  journalInCycleMask ← { InCycle ⟨cy.start, cy.day_count, 𝕩⟩ }¨ journalLines
-  journalInCycle ← journalInCycleMask / journalLines
-  journalPlanIds ← PlanId¨ journalInCycle
-
-  planIds ← PlanId¨ rows
-  statuses ← { StatusFor ⟨𝕩, journalPlanIds⟩ }¨ planIds
-
-  as_of ← LatestActualDateInCycle ⟨base, cy⟩
-  as_of_dn ← proj.DaysFromEpoch as_of
-
-  ToNum ← { (0 < ≠ 𝕩) ? (•BQN 𝕩) ; 0 }
-
-  ParsedRow ← {
-    flds ← Pad5 loader.SplitTsvKeepEmpty 𝕩
-    date ← 0⊑flds
-    memo ← 1⊑flds
-    fromAcc ← 2⊑flds
-    toAcc ← 3⊑flds
-    amt ← ToNum 4⊑flds
-    ⟨date, memo, fromAcc, toAcc, amt⟩
-  }
-  parsed ← ParsedRow¨ rows
-
-  CatFor ← {
-    from ← 2⊑𝕩 ⋄ to ← 3⊑𝕩
-    is_inc ← "income:" ≡ 7 ↑ from
-    is_inc ⊑ ⟨to, from⟩
-  }
-  cats ← CleanName¨ CatFor¨ parsed
-
-  HumanStatusFor ← {
-    mstatus ← 0⊑𝕩 ⋄ pdate ← 1⊑𝕩
-    p_dn ← proj.DaysFromEpoch pdate
-    open_idx ← (p_dn = as_of_dn) + (2 × p_dn > as_of_dn)
-    open_status ← open_idx ⊑ ⟨ "overdue", "due", "future" ⟩
-    ("paid" ≡ mstatus) ⊑ ⟨ open_status , "completed" ⟩
-  }
-  hstatuses ← { HumanStatusFor ⟨𝕩⊑statuses, 0⊑(𝕩⊑parsed)⟩ }¨ ↕ ≠ rows
-
-  actuals ← { ("paid" ≡ 𝕩⊑statuses) ? (4⊑(𝕩⊑parsed)) ; 0 }¨ ↕ ≠ rows
-
-  # 1. Open items
-  open_mask ← ¬ "completed"⊸≡¨ hstatuses
-  open_indices ← open_mask / ↕ ≠ rows
+  vm ← BuildViewModel ctx
 
   BuildOpenItem ← {
     idx ← 𝕩
-    r ← idx⊑parsed
-    cat ← idx⊑cats
-    status ← idx⊑hstatuses
-    pid ← idx⊑planIds
+    r ← idx⊑vm.parsed
     ⟨
       ⟨"date", 0⊑r⟩,
-      ⟨"category", cat⟩,
+      ⟨"category", idx⊑vm.cats⟩,
       ⟨"memo", 1⊑r⟩,
       ⟨"amount", 4⊑r⟩,
-      ⟨"status", status⟩,
-      ⟨"plan_id", pid⟩
+      ⟨"status", idx⊑vm.human_statuses⟩,
+      ⟨"plan_id", idx⊑vm.plan_ids⟩
     ⟩
   }
-  open_items ← BuildOpenItem¨ open_indices
+  open_items ← BuildOpenItem¨ vm.open_indices
   open_items ↩ {𝕊: (0 = ≠ open_items) ? 0 ⥊ 0 ; open_items } @
-  open_total ← +´ open_mask / {4⊑𝕩}¨ parsed
-
-  # 2. Completed items
-  completed_mask ← "completed"⊸≡¨ hstatuses
-  completed_indices ← completed_mask / ↕ ≠ rows
 
   BuildCompletedItem ← {
     idx ← 𝕩
-    r ← idx⊑parsed
-    cat ← idx⊑cats
-    status ← idx⊑hstatuses
-    pid ← idx⊑planIds
-    act ← idx⊑actuals
+    r ← idx⊑vm.parsed
     ⟨
       ⟨"date", 0⊑r⟩,
-      ⟨"category", cat⟩,
+      ⟨"category", idx⊑vm.cats⟩,
       ⟨"memo", 1⊑r⟩,
       ⟨"amount", 4⊑r⟩,
-      ⟨"actual_amount", act⟩,
-      ⟨"status", status⟩,
-      ⟨"plan_id", pid⟩
+      ⟨"actual_amount", idx⊑vm.actuals⟩,
+      ⟨"status", idx⊑vm.human_statuses⟩,
+      ⟨"plan_id", idx⊑vm.plan_ids⟩
     ⟩
   }
-  completed_items ← BuildCompletedItem¨ completed_indices
+  completed_items ← BuildCompletedItem¨ vm.completed_indices
   completed_items ↩ {𝕊: (0 = ≠ completed_items) ? 0 ⥊ 0 ; completed_items } @
 
   root ← ⟨
     ⟨"open_items", open_items⟩,
-    ⟨"open_total", open_total⟩,
+    ⟨"open_total", vm.open_total⟩,
     ⟨"completed_items", completed_items⟩
   ⟩
 
   json.Serialize root
 }
 
-{ Format ⇐ Format, StatusFor ⇐ StatusFor, FormatHuman ⇐ FormatHuman, FormatJson ⇐ FormatJson, LatestActualDateInCycle ⇐ LatestActualDateInCycle, PlanId ⇐ PlanId }
+{ Format ⇐ Format, StatusFor ⇐ StatusFor, BuildViewModel ⇐ BuildViewModel, FormatHuman ⇐ FormatHuman, FormatJson ⇐ FormatJson, LatestActualDateInCycle ⇐ LatestActualDateInCycle, PlanId ⇐ PlanId }
