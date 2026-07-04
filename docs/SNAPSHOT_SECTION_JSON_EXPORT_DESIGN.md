@@ -71,7 +71,7 @@ If `--format json` is requested for `snapshot`, the dispatcher in `report.bqn` i
 
 ### Type Constraints
 
-- `as_of`, `status`, `cycle.start`, `cycle.end_exclusive`: Strings (`YYYY-MM-DD` or descriptive status strings like `"stable"`/`"caution"`).
+- `as_of`, `status`, `cycle.start`, `cycle.end_exclusive`: Strings (`YYYY-MM-DD` or descriptive status strings like `"stable"`/`"caution"`) or `null`.
 - `cycle.available`: Boolean.
 - `remaining_days`, `days_elapsed`: Integers. If cycle dates are unavailable or invalid, these should resolve to `null` rather than a fake zero or negative value.
 - All totals and cycle summary fields: Numbers (integers in local currency, negative values preserved).
@@ -86,10 +86,10 @@ If `--format json` is requested for `snapshot`, the dispatcher in `report.bqn` i
 
 The implementation PR must ensure:
 
-1. `tools/report --section snapshot --format json` produces valid JSON matching the schema contract.
-2. An automated check in `checks/check-src-next-report.sh` validates the output against the schema using python3 parsing rules.
-3. Test fixtures cover both valid data (with full numbers) and empty/unresolvable states (confirming `null` fallback outputs).
-4. The default human report `tools/report --section snapshot` is completely unaffected.
+1. ✅ `tools/report --section snapshot --format json` produces valid JSON matching the schema contract.
+2. ✅ An automated check in `checks/check-src-next-report.sh` validates the output against the schema using python3 parsing rules.
+3. ✅ Test fixtures cover both valid data (`fixtures/src-next-golden`) and empty/unresolvable states (`fixtures/snapshot-no-cycle`, confirming `null` fallback outputs).
+4. ✅ The default human report `tools/report --section snapshot` is completely unaffected.
 
 ## Related Documents
 

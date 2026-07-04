@@ -1,0 +1,8 @@
+# Fixture: snapshot-no-cycle
+# Purpose: test snapshot JSON null fallback when cycle is unresolvable
+# cycle.tsv uses mode=none which is not a recognised mode,
+# causing ReadCycle to return unavailable sentinels.
+
+equity:opening	role=equity
+assets:bank	role=asset	type=liquid
+expenses:food	role=expense

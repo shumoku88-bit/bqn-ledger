@@ -300,6 +300,54 @@ else
   fail "report --section snapshot --format json failed"
 fi
 
+# JSON output verification: snapshot section null fallback when cycle is unresolvable.
+no_cycle_fixture="fixtures/snapshot-no-cycle"
+if tools/report "$no_cycle_fixture" --section snapshot --format json >"$json_out" 2>/dev/null; then
+  if python3 - "$json_out" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as f:
+    root = json.load(f)
+
+if not isinstance(root, dict):
+    raise SystemExit("top-level JSON is not an object")
+
+# When cycle is unresolvable: as_of, cycle.start, cycle.end_exclusive must be null
+if root["as_of"] is not None:
+    raise SystemExit(f"as_of should be null when cycle unavailable, got: {root['as_of']!r}")
+if root["cycle"]["start"] is not None:
+    raise SystemExit(f"cycle.start should be null, got: {root['cycle']['start']!r}")
+if root["cycle"]["end_exclusive"] is not None:
+    raise SystemExit(f"cycle.end_exclusive should be null, got: {root['cycle']['end_exclusive']!r}")
+if root["cycle"]["available"] not in (0, False):
+    raise SystemExit(f"cycle.available should be 0/false, got: {root['cycle']['available']!r}")
+
+# remaining_days and days_elapsed must be null
+if root["remaining_days"] is not None:
+    raise SystemExit(f"remaining_days should be null, got: {root['remaining_days']!r}")
+if root["days_elapsed"] is not None:
+    raise SystemExit(f"days_elapsed should be null, got: {root['days_elapsed']!r}")
+
+# status should be "unknown" when cycle is unavailable
+if root["status"] != "unknown":
+    raise SystemExit(f"status should be 'unknown', got: {root['status']!r}")
+
+# totals must still be present and numeric
+for key in ("liquid_assets", "savings", "investments", "assets_total", "liabilities_total", "net_worth"):
+    val = root["totals"][key]
+    if not isinstance(val, (int, float)) or isinstance(val, bool):
+        raise SystemExit(f"totals.{key} is not numeric: {val!r}")
+PY
+  then
+    pass "snapshot JSON null fallback works when cycle is unresolvable"
+  else
+    fail "snapshot JSON null fallback contract violated"
+  fi
+else
+  fail "snapshot JSON with no-cycle fixture failed to execute"
+fi
+
 actual_fixture="$(mktemp -d)"
 cp -R fixtures/plan-completion/. "$actual_fixture/"
 python3 - "$actual_fixture/journal.tsv" <<'PY'

@@ -45,11 +45,17 @@ LatestActualDateInCycle ← {𝕊 base‿cy:
 }
 
 RemainingDaysText ← {𝕊 asOf‿cy:
-  (unav.IsUnavailable asOf) ⊑ (•Fmt ((proj.DaysFromEpoch cy.end_exclusive) - proj.DaysFromEpoch asOf))‿asOf
+  unavail ← (unav.IsUnavailable asOf) ∨ (unav.IsUnavailable cy.end_exclusive)
+  out ← asOf
+  {𝕊: out ↩ •Fmt ((proj.DaysFromEpoch cy.end_exclusive) - proj.DaysFromEpoch asOf) }⍟(¬unavail) @
+  out
 }
 
 DaysElapsed ← {𝕊 asOf‿cy:
-  (unav.IsUnavailable asOf) ⊑ ((proj.DaysFromEpoch asOf) - proj.DaysFromEpoch cy.start)‿¯1
+  unavail ← (unav.IsUnavailable asOf) ∨ (unav.IsUnavailable cy.start)
+  out ← ¯1
+  {𝕊: out ↩ (proj.DaysFromEpoch asOf) - proj.DaysFromEpoch cy.start }⍟(¬unavail) @
+  out
 }
 
 StatusLabel ← {𝕊 vm:
@@ -126,9 +132,11 @@ Build ← {𝕊 ctx:
 
   # as_of from TBDS period end
   asOf ← cy.end_exclusive
-  remaining_days ← RemainingDaysText ⟨asOf, cy⟩
-  days_elapsed ← DaysElapsed ⟨asOf, cy⟩
   cycleAvail ← (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (cy.day_count > 0)
+  remaining_days ← unav.noCycle
+  days_elapsed ← ¯1
+  {𝕊: remaining_days ↩ RemainingDaysText ⟨asOf, cy⟩ }⍟cycleAvail @
+  {𝕊: days_elapsed ↩ DaysElapsed ⟨asOf, cy⟩ }⍟cycleAvail @
 
   vm ← {
     as_of ⇐ asOf,
@@ -314,7 +322,7 @@ FormatJson ← {𝕊 ctx:
     ⟨"available", vm.cycle_available⟩
   ⟩
 
-  as_of_val ← { (unav.IsUnavailable vm.as_of) ? @ ; vm.as_of }
+  as_of_val ← { ((unav.IsUnavailable vm.as_of) ∨ (vm.as_of ≡ "unavailable")) ? @ ; vm.as_of }
 
   root ← ⟨
     ⟨"as_of", as_of_val⟩,

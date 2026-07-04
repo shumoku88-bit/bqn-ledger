@@ -216,7 +216,8 @@ MakeRow ← {𝕊 ⟨srcFile, rowIdx, flds, accounts, accountRoles, accountKeys,
   toRole ← toAkOut ⊑ roleWithSentinel
 
   day ← 0
-  {𝕊: day ↩ ResolveDayFromCycle ⟨date, cycleStart⟩ }⍟dateOk @
+  cycleStartOk ← IsValidDateText cycleStart
+  {𝕊: day ↩ ResolveDayFromCycle ⟨date, cycleStart⟩ }⍟(dateOk ∧ cycleStartOk) @
 
   layer ← SourceLayer srcFile
   layerName ← LayerName layer
