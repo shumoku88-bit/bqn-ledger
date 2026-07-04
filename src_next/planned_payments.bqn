@@ -73,8 +73,8 @@ LatestActualDateInCycle ← {𝕊 base‿cy:
   out
 }
 
-# BuildViewModel: compute planned-payment meaning once for compact, human,
-# and structured JSON renderers.
+# BuildViewModel: compute planned-payment meaning once for human and
+# structured JSON renderers.
 # Completed actual amounts are summed from matching in-cycle journal rows.
 BuildViewModel ← {𝕊 ctx:
   base ← ctx.base
@@ -158,12 +158,28 @@ BuildViewModel ← {𝕊 ctx:
   }
 }
 
-# Format: show plan entries with status from the shared view model.
+# Format: show plan entries with status from context.
+# Keep the compact path narrow: it does not depend on human/JSON as-of logic.
 Format ← {𝕊 ctx:
-  vm ← BuildViewModel ctx
+  base ← ctx.base
+  cy ← ctx.cy
+  lines ← loader.ReadLinesOptional (base ∾ "/plan.tsv")
+  mask ← { InCycle ⟨cy.start, cy.day_count, 𝕩⟩ }¨ lines
+  rows ← mask / lines
+
+  GetDate ← { ⊑ Pad5 loader.SplitTsvKeepEmpty 𝕩 }
+  rows ↩ (⍋ GetDate¨ rows) ⊏ rows
+
+  journalLines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
+  journalInCycleMask ← { InCycle ⟨cy.start, cy.day_count, 𝕩⟩ }¨ journalLines
+  journalInCycle ← journalInCycleMask / journalLines
+  journalPlanIds ← PlanId¨ journalInCycle
+
+  statuses ← { StatusFor ⟨PlanId 𝕩, journalPlanIds⟩ }¨ rows
+
   out ← "--- SrcNext Planned Payments ---" ∾ (@+10)
-  { out ↩ out ∾ ∾ ({ FormatLine ⟨𝕩⊑vm.rows, 𝕩⊑vm.statuses⟩ }¨ ↕ ≠ vm.rows) }⍟(0 < ≠ vm.rows) @
-  {𝕊: out ↩ out ∾ "src_next_planned_payment: (none)" ∾ (@+10)}⍟(0 = ≠ vm.rows) @
+  { out ↩ out ∾ ∾ ({ FormatLine ⟨𝕩⊑rows, 𝕩⊑statuses⟩ }¨ ↕ ≠ rows) }⍟(0 < ≠ rows) @
+  {𝕊: out ↩ out ∾ "src_next_planned_payment: (none)" ∾ (@+10)}⍟(0 = ≠ rows) @
   out
 }
 
