@@ -26,6 +26,7 @@ This request is dispatched in [src_next/report.bqn](file:///Users/user/Projects/
   "remaining": 15000,
   "envelopes": [
     {
+      "account_index": 4,
       "account_name": "budget:食費",
       "label": "食費",
       "group": "生活",
@@ -38,48 +39,60 @@ This request is dispatched in [src_next/report.bqn](file:///Users/user/Projects/
       "status": "SAFE"
     }
   ],
-  "totals": {
-    "allocated_total": 15000,
-    "unassigned_remaining": 10000,
-    "unassigned_status": "ok",
-    "unassigned_account_count": 1
+  "unassigned": {
+    "account_count": 1,
+    "remaining": 10000,
+    "status": "ok"
   },
   "backing": {
-    "status": "OK",
     "funding_base": 25000,
+    "allocated_total": 15000,
     "cash_backed_unassigned": 10000,
-    "ledger_cash_delta": 0
+    "ledger_cash_delta": 0,
+    "status": "OK"
   },
   "execution_planned": {
     "envelope_label": "特別支出",
     "envelope_remaining": 5000,
     "planned_open_total": 3000,
     "delta": 2000,
-    "status": "OK"
+    "status": "OK",
+    "rows": [
+      {
+        "date": "2026-06-20",
+        "memo": "planned payment",
+        "category": "expenses:rent",
+        "amount": 3000,
+        "plan_id": "plan-2026-06-20"
+      }
+    ]
   }
 }
 ```
 
 ### Type Constraints
 
-- `target_id`, `label`, `selector`, `status`, `backing.status`, `totals.unassigned_status`: Strings.
+- `target_id`, `label`, `selector`, `status`, `unassigned.status`, `backing.status`, `execution_planned.envelope_label`, `execution_planned.status`: Strings.
 - `has_policy`: Boolean (`true`/`false`).
-- `allocated`, `actual_spent`, `remaining`: Numbers (integers representing currency amounts, negative values preserved).
+- `allocated`, `actual_spent`, `remaining`: Numbers.
 - `envelopes`: Array of object items, where:
+  - `account_index`, `allocated`, `actual_spent`, `remaining`, `avg_spend`: Numbers.
   - `account_name`, `label`, `group`, `envelope_role`, `status`: Strings.
-  - `allocated`, `actual_spent`, `remaining`, `avg_spend`: Numbers.
   - `days_until_empty`: Number (integer) or `null`. If average spend is `0` (or cycle is unresolvable), this must be `null` rather than a magic number like `999`.
-- `totals`: Object containing:
-  - `allocated_total`, `unassigned_remaining`: Numbers.
-  - `unassigned_status`: String.
-  - `unassigned_account_count`: Integer.
-- `backing`: Object containing:
+- `unassigned`: Object containing:
+  - `account_count`: Integer.
+  - `remaining`: Number.
   - `status`: String.
-  - `funding_base`, `cash_backed_unassigned`, `ledger_cash_delta`: Numbers.
+- `backing`: Object containing:
+  - `funding_base`, `allocated_total`, `cash_backed_unassigned`, `ledger_cash_delta`: Numbers.
+  - `status`: String.
 - `execution_planned`: Object containing:
   - `envelope_label`, `status`: Strings.
   - `envelope_remaining`, `planned_open_total`, `delta`: Numbers.
-  - If execution plan policy is disabled or unconfigured, `envelope_label` should be `null` and numbers should be `null`.
+  - `rows`: Array of objects containing:
+    - `date`, `memo`, `category`, `plan_id`: Strings.
+    - `amount`: Number.
+  - If execution plan policy is disabled or unconfigured, `envelope_label` should be `null`, numeric values should be `null`, and `rows` should be `[]` (empty list).
 
 ## Error and Unavailable State Handling
 
