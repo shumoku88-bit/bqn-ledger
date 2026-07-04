@@ -1,21 +1,42 @@
-# json.bqn — Simple JSON serialization helper for BQN
+# json.bqn — JSON serialization helper for BQN report ViewModels
 # Supports numbers, characters, strings, arrays, and objects (lists of key-value pairs).
+# Unsupported values fail closed instead of silently becoming JSON null.
 
 quote ← @+34
 backslash ← @+92
+backspace ← @+8
+tab ← @+9
+newline ← @+10
+formfeed ← @+12
+carriage_return ← @+13
+space ← @+32
 
-EscapeChar ← {
-  (𝕩=quote) ⊑ ⟨((𝕩=backslash) ⊑ ⟨⟨𝕩⟩, backslash∾backslash⟩), backslash∾quote⟩
+Fail ← {𝕊 msg:
+  •Out "ERROR: json serialization failed: " ∾ msg
+  •Exit 1
 }
 
-# String formats string with double quotes and basic escaping
+EscapeChar ← {𝕊 c:
+  (c=quote) ? backslash∾quote ;
+  (c=backslash) ? backslash∾backslash ;
+  (c=backspace) ? backslash∾"b" ;
+  (c=tab) ? backslash∾"t" ;
+  (c=newline) ? backslash∾"n" ;
+  (c=formfeed) ? backslash∾"f" ;
+  (c=carriage_return) ? backslash∾"r" ;
+  (c < space) ? Fail "unsupported control character" ;
+  ⟨c⟩
+}
+
+# String formats string with double quotes and JSON escaping.
 String ← {
   quote ∾ (∾ EscapeChar¨ 𝕩) ∾ quote
 }
 
-# Number formats numbers as string
+# Number formats BQN negative glyph ¯ as JSON minus -.
 Number ← {
-  •Fmt 𝕩
+  s ← •Fmt 𝕩
+  { 𝕩 ≡ '¯' ? '-' ; 𝕩 }¨ s
 }
 
 IsString ← {
@@ -40,15 +61,15 @@ Serialize_inner ← {
   t ← •Type arr
   is_arr ← 0 = t
   is_obj ← {𝕊: is_arr ? ∧´ IsKvPair¨ arr ; 0 } @
-  
+
   {𝕊:
     (1 = t) ? Number arr ;
     (2 = t) ? String ⟨arr⟩ ; # Single char to string
     (IsString arr) ? String arr ;
-    
+
     # Array cases
     (is_arr ∧ (0 = ≠arr)) ? "[]" ;
-    
+
     is_obj ? "{" ∾ (∾ {
       idx ← 𝕩
       pair ← DiscloseIfScalar (idx ⊑ arr)
@@ -57,20 +78,19 @@ Serialize_inner ← {
       delim ← (idx = 0) ⊑ ⟨", ", ""⟩
       delim ∾ (String k) ∾ ": " ∾ (Serialize v)
     }¨ ↕≠arr) ∾ "}" ;
-    
+
     is_arr ? "[" ∾ (∾ {
       idx ← 𝕩
       v ← DiscloseIfScalar (idx ⊑ arr)
       delim ← (idx = 0) ⊑ ⟨", ", ""⟩
       delim ∾ Serialize v
     }¨ ↕≠arr) ∾ "]" ;
-    
-    # Fallback
-    "null"
+
+    Fail "unsupported value type"
   } @
 }
 
-# Entrypoint that automatically unwraps outer enclosed values
+# Entrypoint that automatically unwraps outer enclosed values.
 Serialize ← {
   val ← DiscloseIfScalar 𝕩
   Serialize_inner val
