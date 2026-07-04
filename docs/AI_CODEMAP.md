@@ -75,7 +75,7 @@
 - `cycle.bqn` — サイクル期間の解決。date.bqn を使用。
 - `account_key.bqn` — 勘定科目のキー解決。
 - `projection.bqn` — Posting IR 投影。
-- `snapshot.bqn` — Balance Sheet / Snapshot。TBDS closing を使用。
+- `snapshot.bqn` — Balance Sheet / Snapshot。TBDS closing を使用。構造化された ViewModel JSON 出力（FormatJson）もサポート。
 - `balances.bqn` — 残高表示。フラットリストと合計から成る ViewModel JSON 出力（FormatJson）もサポート。
 - `ytd_summary.bqn` — YTD 集計。
 - `cycle_summary.bqn` — サイクル収支 (Income Statement)。
