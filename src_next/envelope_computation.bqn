@@ -9,6 +9,7 @@ fmt ← •Import "format.bqn"
 labels ← •Import "report_labels.bqn"
 L ← labels.Text
 unav ← •Import "unavailable.bqn"
+json ← •Import "json.bqn"
 
 layer_actual ← 0
 
@@ -297,15 +298,21 @@ BuildEnvelopes ← {𝕊 base‿resolved‿cy‿valid_rows:
   kind_envelope_mask ← "envelope"⊸≡¨ resolved.kinds
   budget_indices ← (budget_mask ∧ kind_envelope_mask) / ↕ resolved.count
 
-  total_days ← 1 ⌈ (proj.DaysFromEpoch cy.end_exclusive) - proj.DaysFromEpoch cy.start
-  days_left ← has_as_of ◶ ⟨
-    {𝕊: total_days},
-    {𝕊: 0 ⌈ (proj.DaysFromEpoch cy.end_exclusive) - proj.DaysFromEpoch as_of}
-  ⟩ @
-  elapsed ← has_as_of ◶ ⟨
-    {𝕊: 0},
-    {𝕊: 0 ⌈ 1 + (proj.DaysFromEpoch as_of) - proj.DaysFromEpoch cy.start}
-  ⟩ @
+  cycleAvail ← (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (cy.day_count > 0)
+  total_days ← 1
+  days_left ← 0
+  elapsed ← 0
+  {𝕊:
+    total_days ↩ 1 ⌈ (proj.DaysFromEpoch cy.end_exclusive) - proj.DaysFromEpoch cy.start
+    days_left ↩ has_as_of ◶ ⟨
+      {𝕊: total_days},
+      {𝕊: 0 ⌈ (proj.DaysFromEpoch cy.end_exclusive) - proj.DaysFromEpoch as_of}
+    ⟩ @
+    elapsed ↩ has_as_of ◶ ⟨
+      {𝕊: 0},
+      {𝕊: 0 ⌈ 1 + (proj.DaysFromEpoch as_of) - proj.DaysFromEpoch cy.start}
+    ⟩ @
+  }⍟cycleAvail @
 
   row_layer ← {𝕩.layer_index}¨ valid_rows
   row_ak ← {𝕩.account_key_index}¨ valid_rows
@@ -334,30 +341,40 @@ BuildEnvelopes ← {𝕊 base‿resolved‿cy‿valid_rows:
     drawn ← - Sum0 (drawn_mask / row_delta)
 
     remaining ← allocated - (spent - drawn)
-    avg_spend ← (elapsed > 0) ⊑ 0‿(⌊ spent ÷ elapsed)
+    avg_spend ← @
+    {𝕊: avg_spend ↩ (elapsed > 0) ⊑ 0‿(⌊ spent ÷ elapsed) }⍟cycleAvail @
     target_daily ← ⌊ allocated ÷ total_days
 
     # future_planned_spent (layer = 1, debit, date > as_of)
     plan_mask ← (row_layer = 1) ∧ (budget_match_indices⊸IsMember¨ row_ak) ∧ ("debit"⊸≡¨ row_side)
     {𝕊:
-      as_of_dn ← proj.DaysFromEpoch as_of
-      date_dns ← proj.DaysFromEpoch¨ row_date
-      plan_mask ↩ plan_mask ∧ (date_dns > as_of_dn)
-    }⍟has_as_of @
+      is_valid_date ← (proj.IsValidDateText as_of) ∧ (∧ proj.IsValidDateText¨ row_date)
+      {𝕊:
+        as_of_dn ← proj.DaysFromEpoch as_of
+        date_dns ← proj.DaysFromEpoch¨ row_date
+        plan_mask ↩ plan_mask ∧ (date_dns > as_of_dn)
+      }⍟is_valid_date @
+    }⍟(has_as_of ∧ (as_of ≢ "unavailable")) @
     future_planned_spent ← Sum0 (plan_mask / row_delta)
 
     b ← 0 ⌈ remaining - future_planned_spent
-    days_until_empty ← ((avg_spend = 0) × 999) + (avg_spend > 0) × (0 ⌈ ⌊ b ÷ avg_spend + avg_spend = 0)
+    days_until_empty ← @
+    {𝕊:
+      is_valid ← (avg_spend ≢ @) ∧ (avg_spend > 0)
+      {𝕊: days_until_empty ↩ 0 ⌈ ⌊ b ÷ avg_spend }⍟is_valid @
+    }⍟cycleAvail @
 
     is_execution ← envelope_role ≡ "execution"
-    status ← is_execution ◶ ⟨
+    status ← "unknown_role"
+    {𝕊:
+      is_computed ← (¬is_execution) ∧ (avg_spend ≢ @)
       {𝕊:
-        (avg_spend ≥ ⌊1.5×target_daily) ⊑ ( (avg_spend > target_daily) ⊑ "SAFE"‿"WARN" )‿"SHORT"
-      },
+        status ↩ (avg_spend ≥ ⌊1.5×target_daily) ⊑ ( (avg_spend > target_daily) ⊑ "SAFE"‿"WARN" )‿"SHORT"
+      }⍟is_computed @
       {𝕊:
-        ExecutionStatus ⟨allocated, remaining, spent - drawn⟩
-      }
-    ⟩ @
+        status ↩ ExecutionStatus ⟨allocated, remaining, spent - drawn⟩
+      }⍟is_execution @
+    }⍟cycleAvail @
     {𝕊: status ↩ "unknown_role"}⍟(envelope_role ≡ "unknown") @
 
     {
@@ -802,6 +819,88 @@ FormatHuman ← {𝕊 s:
   out
 }
 
+# FormatJson: render Envelopes as structured JSON.
+FormatJson ← {𝕊 ctx:
+  vm ← BuildCtx ctx
+
+  # Helper to convert namespace to kv-pairs for Serialize
+  # envelopes array of namespaces to kv-pairs
+  ToEnvJson ← {𝕊 e:
+    ⟨
+      ⟨"account_index", e.account_index⟩,
+      ⟨"account_name", e.account_name⟩,
+      ⟨"label", e.label⟩,
+      ⟨"group", e.group⟩,
+      ⟨"envelope_role", e.envelope_role⟩,
+      ⟨"allocated", e.allocated⟩,
+      ⟨"actual_spent", e.actual_spent⟩,
+      ⟨"remaining", e.remaining⟩,
+      ⟨"avg_spend", e.avg_spend⟩,
+      ⟨"days_until_empty", e.days_until_empty⟩,
+      ⟨"status", e.status⟩
+    ⟩
+  }
+  envelopes_json ← ToEnvJson¨ vm.envelopes
+
+  unassigned_json ← ⟨
+    ⟨"account_count", vm.unassigned_account_count⟩,
+    ⟨"remaining", vm.unassigned_remaining⟩,
+    ⟨"status", vm.unassigned_status⟩
+  ⟩
+
+  backing_json ← ⟨
+    ⟨"funding_base", vm.funding_base⟩,
+    ⟨"active_remaining_total", vm.allocated_total⟩,
+    ⟨"cash_backed_unassigned", vm.cash_backed_unassigned⟩,
+    ⟨"ledger_cash_delta", vm.ledger_cash_delta⟩,
+    ⟨"status", vm.backing_status⟩
+  ⟩
+
+  # Handle execution_planned rows list and scalar fields
+  ep ← vm.execution_planned
+  ep_label ← { (ep.status ≡ "disabled") ? @ ; (0 = ≠ ep.envelope_label) ? @ ; ep.envelope_label }
+  ep_remaining ← { (ep.status ≡ "disabled") ? @ ; ep.envelope_remaining }
+  ep_planned_total ← { (ep.status ≡ "disabled") ? @ ; ep.planned_open_total }
+  ep_delta ← { (ep.status ≡ "disabled") ? @ ; ep.delta }
+  
+  ToRowJson ← {𝕊 r:
+    ⟨
+      ⟨"date", r.date⟩,
+      ⟨"memo", r.memo⟩,
+      ⟨"category", r.category⟩,
+      ⟨"amount", r.amount⟩,
+      ⟨"plan_id", r.plan_id⟩
+    ⟩
+  }
+  ep_rows_json ← ToRowJson¨ ep.rows
+
+  execution_planned_json ← ⟨
+    ⟨"envelope_label", ep_label⟩,
+    ⟨"envelope_remaining", ep_remaining⟩,
+    ⟨"planned_open_total", ep_planned_total⟩,
+    ⟨"delta", ep_delta⟩,
+    ⟨"status", ep.status⟩,
+    ⟨"rows", ep_rows_json⟩
+  ⟩
+
+  root ← ⟨
+    ⟨"target_id", vm.target_id⟩,
+    ⟨"label", vm.label⟩,
+    ⟨"selector", vm.selector⟩,
+    ⟨"status", vm.status⟩,
+    ⟨"has_policy", vm.has_policy⟩,
+    ⟨"allocated", vm.allocated⟩,
+    ⟨"actual_spent", vm.actual_spent⟩,
+    ⟨"remaining", vm.remaining⟩,
+    ⟨"envelopes", envelopes_json⟩,
+    ⟨"unassigned", unassigned_json⟩,
+    ⟨"backing", backing_json⟩,
+    ⟨"execution_planned", execution_planned_json⟩
+  ⟩
+
+  json.Serialize root
+}
+
 {
   Build ⇐ BuildCtx,
   BuildFromTuple ⇐ Build,
@@ -821,6 +920,7 @@ FormatHuman ← {𝕊 s:
   CalcEnvelopeBacking ⇐ CalcEnvelopeBacking,
   Format ⇐ Format,
   FormatHuman ⇐ FormatHuman,
+  FormatJson ⇐ FormatJson,
   EnvelopeRoleForIndex ⇐ EnvelopeRoleForIndex,
   IsActiveEnvelopeRole ⇐ IsActiveEnvelopeRole,
   ExecutionStatus ⇐ ExecutionStatus

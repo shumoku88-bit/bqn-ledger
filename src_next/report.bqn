@@ -152,6 +152,11 @@ Main ← {𝕊 args:
       {𝕊:
         •Out snapshot.FormatJson ctx
         •Exit 0
+      } @ ;
+    (section_key ≡ "envelopes") ?
+      {𝕊:
+        •Out envelope_computation.FormatJson ctx
+        •Exit 0
       } @
     ; {𝕊:
       •Out "ERROR: JSON format not supported for section: "∾section_key

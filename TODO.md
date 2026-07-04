@@ -66,11 +66,8 @@ Status: short-term hybrid policy adopted; operation/design details documented; n
 - [x] 最初の対象セクション `planned` の ViewModel JSON 実装
 - [x] 2つ目の対象セクション `balances` の ViewModel JSON 実装
 - [x] 3つ目の対象セクション `snapshot` の ViewModel JSON 実装
+- [x] 4つ目の対象セクション `envelopes` の ViewModel JSON 実装 (設計書: [docs/ENVELOPES_SECTION_JSON_EXPORT_DESIGN.md](docs/ENVELOPES_SECTION_JSON_EXPORT_DESIGN.md))
 - [x] JSON helper を `src_next/json.bqn` へ共通化
-
-現在進行中:
-- [ ] `envelopes` セクションの ViewModel JSON 設計の合意 (設計書: [docs/ENVELOPES_SECTION_JSON_EXPORT_DESIGN.md](docs/ENVELOPES_SECTION_JSON_EXPORT_DESIGN.md))
-- [ ] `envelopes` セクションの ViewModel JSON 実装と検証
 
 次に選ぶなら小さく分ける:
 - [ ] human `FormatHuman` は維持し、UI は human report を parse しない境界を守る

@@ -300,6 +300,73 @@ else
   fail "report --section snapshot --format json failed"
 fi
 
+# JSON output verification: envelopes section ViewModel contract.
+if tools/report "$fixture" --section envelopes --format json >"$json_out" 2>/dev/null; then
+  if python3 - "$json_out" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as f:
+    root = json.load(f)
+
+if not isinstance(root, dict):
+    raise SystemExit("top-level JSON is not an object")
+
+required_root = {"target_id", "label", "selector", "status", "has_policy", "allocated", "actual_spent", "remaining", "envelopes", "unassigned", "backing", "execution_planned"}
+missing_root = sorted(required_root - root.keys())
+if missing_root:
+    raise SystemExit(f"missing root fields: {missing_root}")
+
+if not isinstance(root["has_policy"], (int, bool)):
+    raise SystemExit("has_policy is not an integer/boolean")
+for key in ("allocated", "actual_spent", "remaining"):
+    if not isinstance(root[key], (int, float)) or isinstance(root[key], bool):
+        raise SystemExit(f"root.{key} is not numeric")
+
+if not isinstance(root["envelopes"], list):
+    raise SystemExit("envelopes is not a list")
+
+for idx, e in enumerate(root["envelopes"]):
+    env_keys = {"account_index", "account_name", "label", "group", "envelope_role", "allocated", "actual_spent", "remaining", "avg_spend", "days_until_empty", "status"}
+    missing_env = sorted(env_keys - e.keys())
+    if missing_env:
+        raise SystemExit(f"envelope index {idx} missing fields: {missing_env}")
+    
+    if not isinstance(e["account_index"], (int, float)):
+        raise SystemExit(f"envelope index {idx} account_index is not numeric")
+    for key in ("allocated", "actual_spent", "remaining"):
+        if not isinstance(e[key], (int, float)) or isinstance(e[key], bool):
+            raise SystemExit(f"envelope index {idx} {key} is not numeric")
+    
+    if e["avg_spend"] is not None and (not isinstance(e["avg_spend"], (int, float)) or isinstance(e["avg_spend"], bool)):
+        raise SystemExit(f"envelope index {idx} avg_spend is not numeric/null")
+    if e["days_until_empty"] is not None and (not isinstance(e["days_until_empty"], int) or isinstance(e["days_until_empty"], bool)):
+        raise SystemExit(f"envelope index {idx} days_until_empty is not integer/null")
+
+unassigned_keys = {"account_count", "remaining", "status"}
+missing_unassigned = sorted(unassigned_keys - root["unassigned"].keys())
+if missing_unassigned:
+    raise SystemExit(f"missing unassigned fields: {missing_unassigned}")
+
+backing_keys = {"funding_base", "active_remaining_total", "cash_backed_unassigned", "ledger_cash_delta", "status"}
+missing_backing = sorted(backing_keys - root["backing"].keys())
+if missing_backing:
+    raise SystemExit(f"missing backing fields: {missing_backing}")
+
+ep_keys = {"envelope_label", "envelope_remaining", "planned_open_total", "delta", "status", "rows"}
+missing_ep = sorted(ep_keys - root["execution_planned"].keys())
+if missing_ep:
+    raise SystemExit(f"missing execution_planned fields: {missing_ep}")
+PY
+  then
+    pass "report --section envelopes --format json parses and matches contract"
+  else
+    fail "report --section envelopes --format json is invalid"
+  fi
+else
+  fail "report --section envelopes --format json failed"
+fi
+
 # JSON output verification: snapshot section null fallback when cycle is unresolvable.
 no_cycle_fixture="fixtures/snapshot-no-cycle"
 if tools/report "$no_cycle_fixture" --section snapshot --format json >"$json_out" 2>/dev/null; then
@@ -348,12 +415,52 @@ else
   fail "snapshot JSON with no-cycle fixture failed to execute"
 fi
 
+# JSON output verification: envelopes section null fallback when cycle is unresolvable.
+if tools/report "$no_cycle_fixture" --section envelopes --format json >"$json_out" 2>/dev/null; then
+  if python3 - "$json_out" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as f:
+    root = json.load(f)
+
+if not isinstance(root, dict):
+    raise SystemExit("top-level JSON is not an object")
+
+# Check that envelopes exist and fields are null or fall back correctly
+for e in root["envelopes"]:
+    if e["avg_spend"] is not None:
+        raise SystemExit(f"avg_spend should be null when cycle unavailable, got {e['avg_spend']!r}")
+    if e["days_until_empty"] is not None:
+        raise SystemExit(f"days_until_empty should be null when cycle unavailable, got {e['days_until_empty']!r}")
+    if e["status"] != "unknown_role":
+        raise SystemExit(f"status should be 'unknown_role' when cycle unavailable, got {e['status']!r}")
+
+# unassigned and backing should still have valid scalar values
+if root["unassigned"]["remaining"] != 0:
+    raise SystemExit(f"unassigned remaining should be 0, got {root['unassigned']['remaining']!r}")
+if root["backing"]["funding_base"] != 5000:
+    raise SystemExit(f"backing funding_base should be 5000, got {root['backing']['funding_base']!r}")
+if root["backing"]["active_remaining_total"] != 0:
+    raise SystemExit(f"active_remaining_total should be 0, got {root['backing']['active_remaining_total']!r}")
+PY
+  then
+    pass "envelopes JSON null fallback works when cycle is unresolvable"
+  else
+    fail "envelopes JSON null fallback contract violated"
+  fi
+else
+  fail "envelopes JSON with no-cycle fixture failed to execute"
+fi
+
 # Cross-section consistency verification when cycle is unresolvable (no-cycle).
 json_snap="$(mktemp)"
 json_bal="$(mktemp)"
+json_env="$(mktemp)"
 if tools/report "$no_cycle_fixture" --section snapshot --format json >"$json_snap" 2>/dev/null && \
-   tools/report "$no_cycle_fixture" --section balances --format json >"$json_bal" 2>/dev/null; then
-  if python3 - "$json_snap" "$json_bal" <<'PY'
+   tools/report "$no_cycle_fixture" --section balances --format json >"$json_bal" 2>/dev/null && \
+   tools/report "$no_cycle_fixture" --section envelopes --format json >"$json_env" 2>/dev/null; then
+  if python3 - "$json_snap" "$json_bal" "$json_env" <<'PY'
 import json
 import sys
 
@@ -361,12 +468,15 @@ with open(sys.argv[1], encoding="utf-8") as f:
     snap = json.load(f)
 with open(sys.argv[2], encoding="utf-8") as f:
     bal = json.load(f)
+with open(sys.argv[3], encoding="utf-8") as f:
+    env = json.load(f)
 
 # Consistency 1: Liquid assets total must match exactly (5000 in fixture)
 snap_liq = snap["totals"]["liquid_assets"]
 bal_liq = bal["totals"]["liquid_assets_total"]
-if snap_liq != bal_liq:
-    raise SystemExit(f"Consistency failure: snap liquid ({snap_liq}) != bal liquid ({bal_liq})")
+env_liq = env["backing"]["funding_base"]
+if snap_liq != bal_liq or snap_liq != env_liq:
+    raise SystemExit(f"Consistency failure: snap liquid ({snap_liq}) != bal liquid ({bal_liq}) or env liquid ({env_liq})")
 if snap_liq != 5000:
     raise SystemExit(f"Expected liquid assets to be 5000, got {snap_liq}")
 
@@ -390,7 +500,7 @@ PY
 else
   fail "failed to execute JSON report commands for consistency check"
 fi
-rm -f "$json_snap" "$json_bal"
+rm -f "$json_snap" "$json_bal" "$json_env"
 
 actual_fixture="$(mktemp -d)"
 cp -R fixtures/plan-completion/. "$actual_fixture/"
@@ -437,13 +547,13 @@ fi
 rm -rf "$actual_fixture"
 actual_fixture=""
 
-if tools/report "$fixture" --section envelopes --format json >"$bad_out" 2>&1; then
-  fail "report --section envelopes --format json unexpectedly succeeded"
+if tools/report "$fixture" --section ytd --format json >"$bad_out" 2>&1; then
+  fail "report --section ytd --format json unexpectedly succeeded"
 else
-  if grep -qF -- 'ERROR: JSON format not supported for section: envelopes' "$bad_out"; then
-    pass "report --section envelopes --format json fails with unsupported error"
+  if grep -qF -- 'ERROR: JSON format not supported for section: ytd' "$bad_out"; then
+    pass "report --section ytd --format json fails with unsupported error"
   else
-    fail "report --section envelopes --format json fails with unexpected error message"
+    fail "report --section ytd --format json fails with unexpected error message"
   fi
 fi
 

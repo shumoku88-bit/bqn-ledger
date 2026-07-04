@@ -41,7 +41,7 @@ Number ← {
 
 IsString ← {
   val ← 𝕩
-  (0 = •Type val) ∧ (1 = ≡val) ∧ {𝕊: (0 = ≠val) ? ({ 2 = •Type (⊑ (1 ↑ val)) } ⎊ { 0 } val) ; 2 = •Type (⊑val) } @
+  (0 = •Type val) ∧ (1 = ≡val) ∧ {𝕊: (0 = ≠val) ? ({ 2 = •Type (⊑ (1 ↑ 𝕩)) } ⎊ { 0 } val) ; 2 = •Type (⊑val) } @
 }
 
 IsScalarArray ← {

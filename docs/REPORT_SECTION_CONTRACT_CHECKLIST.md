@@ -267,6 +267,75 @@ This is consumed by compact summary checks and can be filtered by `tools/query` 
 }
 ```
 
+## Reference example: envelopes
+
+### Identity and routing
+- Section key: `envelopes`
+- Owning module: `src_next/envelope_computation.bqn`
+- Human renderer: `envelope_computation.FormatHuman (envelope_computation.Build ctx)`
+- Compact renderer: `envelope_computation.Format (envelope_computation.Build ctx)`
+- JSON renderer: `envelope_computation.FormatJson ctx`
+- Registration: `src_next/report.bqn`
+
+### Structured JSON output
+`tools/report --section envelopes --format json` calls `envelope_computation.FormatJson ctx` and outputs ViewModel JSON:
+
+```json
+{
+  "target_id": "fixture_food_like",
+  "label": "食費目安",
+  "selector": "budget=食費",
+  "status": "computed",
+  "has_policy": 1,
+  "allocated": 20000,
+  "actual_spent": 5000,
+  "remaining": 15000,
+  "envelopes": [
+    {
+      "account_index": 4,
+      "account_name": "budget:食費",
+      "label": "食費",
+      "group": "生活",
+      "envelope_role": "dynamic",
+      "allocated": 20000,
+      "actual_spent": 5000,
+      "remaining": 15000,
+      "avg_spend": 333,
+      "days_until_empty": 45,
+      "status": "SAFE"
+    }
+  ],
+  "unassigned": {
+    "account_count": 1,
+    "remaining": 10000,
+    "status": "ok"
+  },
+  "backing": {
+    "funding_base": 25000,
+    "active_remaining_total": 15000,
+    "cash_backed_unassigned": 10000,
+    "ledger_cash_delta": 0,
+    "status": "OK"
+  },
+  "execution_planned": {
+    "envelope_label": "特別支出",
+    "envelope_remaining": 5000,
+    "planned_open_total": 3000,
+    "delta": 2000,
+    "status": "OK",
+    "rows": [
+      {
+        "date": "2026-06-20",
+        "memo": "planned payment",
+        "category": "expenses:rent",
+        "amount": 3000,
+        "plan_id": "plan-2026-06-20"
+      }
+    ]
+  }
+}
+```
+
 ## How to apply this later
 
 For the next section alignment task:
