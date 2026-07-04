@@ -76,7 +76,7 @@
 - `account_key.bqn` — 勘定科目のキー解決。
 - `projection.bqn` — Posting IR 投影。
 - `snapshot.bqn` — Balance Sheet / Snapshot。TBDS closing を使用。
-- `balances.bqn` — 残高表示。
+- `balances.bqn` — 残高表示。フラットリストと合計から成る ViewModel JSON 出力（FormatJson）もサポート。
 - `ytd_summary.bqn` — YTD 集計。
 - `cycle_summary.bqn` — サイクル収支 (Income Statement)。
 - `expense_breakdown.bqn` — サイクル支出内訳。
@@ -95,6 +95,7 @@
 - `report_labels.bqn` — report presentation labels の正本ローダー (`config/report_labels.tsv`)。
 - `issues.bqn` — 懸案事項・意思決定ログの表示フォーマット。
 - `util.bqn` — 基本ユーティリティ (Split, ToNum, LoadLines)。
+- `json.bqn` — 汎用 BQN JSON シリアライザ（数値、文字列、エスケープ、リスト、オブジェクトのネストに対応）。
 - `date.bqn` — 日付操作 (Today, Parts, Ordinal, DaysBetween)。
 - `unavailable.bqn` — unavailable sentinel の正本定義と helper (`IsUnavailable`, `StartsWith`)。
 - `config.bqn` — config.tsv 読み込み。
