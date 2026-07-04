@@ -16,16 +16,16 @@ Fail ← {𝕊 msg:
   •Exit 1
 }
 
-EscapeChar ← {𝕊 c:
-  (c=quote) ? backslash∾quote ;
-  (c=backslash) ? backslash∾backslash ;
-  (c=backspace) ? backslash∾"b" ;
-  (c=tab) ? backslash∾"t" ;
-  (c=newline) ? backslash∾"n" ;
-  (c=formfeed) ? backslash∾"f" ;
-  (c=carriage_return) ? backslash∾"r" ;
-  (c < space) ? Fail "unsupported control character" ;
-  ⟨c⟩
+EscapeChar ← {
+  (𝕩=quote) ? backslash∾quote ;
+  (𝕩=backslash) ? backslash∾backslash ;
+  (𝕩=backspace) ? backslash∾"b" ;
+  (𝕩=tab) ? backslash∾"t" ;
+  (𝕩=newline) ? backslash∾"n" ;
+  (𝕩=formfeed) ? backslash∾"f" ;
+  (𝕩=carriage_return) ? backslash∾"r" ;
+  (𝕩 < space) ? Fail "unsupported control character" ;
+  ⟨𝕩⟩
 }
 
 # String formats string with double quotes and JSON escaping.
