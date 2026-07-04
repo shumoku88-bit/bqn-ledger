@@ -466,14 +466,17 @@ else
 fi
 
 # JSON output verification: envelopes when cycle is valid but actual data is empty.
-empty_journal_fixture="fixtures/empty-journal"
-if tools/report "$empty_journal_fixture" --section envelopes --format json >"$json_out" 2>/dev/null; then
+valid_no_data_fixture="fixtures/envelopes-valid-no-data"
+if tools/report "$valid_no_data_fixture" --section envelopes --format json >"$json_out" 2>/dev/null; then
   if python3 - "$json_out" <<'PY'
 import json
 import sys
 
 with open(sys.argv[1], encoding="utf-8") as f:
     root = json.load(f)
+
+if not root["envelopes"]:
+    raise SystemExit("expected at least one envelope in valid-no-data fixture")
 
 for e in root["envelopes"]:
     # avg_spend and days_until_empty must be null when there is no data in cycle
@@ -488,7 +491,7 @@ PY
     fail "envelopes JSON null fallback for empty-data cycle contract violated"
   fi
 else
-  fail "envelopes JSON with empty-journal fixture failed to execute"
+  fail "envelopes JSON with valid-no-data fixture failed to execute"
 fi
 
 # JSON output verification: envelopes when PolicyBudgetStyle = none (disabled-policy).

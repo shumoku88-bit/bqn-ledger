@@ -74,7 +74,7 @@ This request is dispatched in [src_next/report.bqn](../src_next/report.bqn) to `
 
 - `target_id`, `label`, `selector`, `status`, `unassigned.status`, `backing.status`: Strings.
 - `has_policy`: Integer (`0` or `1`).
-- `allocated`, `actual_spent`, `remaining`: Numbers.
+- `allocated`, `actual_spent`, `remaining`: Numbers or `null` (if policy is disabled).
 - `envelopes`: Array of object items, where:
   - `account_index`, `allocated`, `actual_spent`, `remaining`: Numbers.
   - `account_name`, `label`, `group`, `envelope_role`, `status`: Strings.
@@ -82,7 +82,7 @@ This request is dispatched in [src_next/report.bqn](../src_next/report.bqn) to `
   - `days_until_empty`: Number (integer) or `null`. If average spend is `0` (or cycle is unresolvable), this must be `null` rather than a magic number like `999`.
 - `unassigned`: Object containing:
   - `account_count`: Integer.
-  - `remaining`: Number.
+  - `remaining`: Number or `null` (if policy is disabled).
   - `status`: String.
 - `backing`: Object containing:
   - `funding_base`, `active_remaining_total`, `cash_backed_unassigned`, `ledger_cash_delta`: Numbers or `null` (if policy is disabled).
