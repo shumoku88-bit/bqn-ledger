@@ -10,7 +10,7 @@ The structured JSON output is requested using the existing CLI pattern:
 tools/report --section envelopes --format json
 ```
 
-This request is dispatched in [src_next/report.bqn](file:///Users/user/Projects/moko/bqn-ledger/src_next/report.bqn) to `envelope_computation.FormatJson ctx`, returning a single structured JSON payload on stdout and exiting with status `0`.
+This request is dispatched in [src_next/report.bqn](../src_next/report.bqn) to `envelope_computation.FormatJson ctx`, returning a single structured JSON payload on stdout and exiting with status `0`.
 
 ## JSON Schema Design
 
@@ -20,7 +20,7 @@ This request is dispatched in [src_next/report.bqn](file:///Users/user/Projects/
   "label": "食費目安",
   "selector": "budget=食費",
   "status": "computed",
-  "has_policy": true,
+  "has_policy": 1,
   "allocated": 20000,
   "actual_spent": 5000,
   "remaining": 15000,
@@ -46,7 +46,7 @@ This request is dispatched in [src_next/report.bqn](file:///Users/user/Projects/
   },
   "backing": {
     "funding_base": 25000,
-    "allocated_total": 15000,
+    "active_remaining_total": 15000,
     "cash_backed_unassigned": 10000,
     "ledger_cash_delta": 0,
     "status": "OK"
@@ -72,23 +72,25 @@ This request is dispatched in [src_next/report.bqn](file:///Users/user/Projects/
 
 ### Type Constraints
 
-- `target_id`, `label`, `selector`, `status`, `unassigned.status`, `backing.status`, `execution_planned.envelope_label`, `execution_planned.status`: Strings.
-- `has_policy`: Boolean (`true`/`false`).
+- `target_id`, `label`, `selector`, `status`, `unassigned.status`, `backing.status`: Strings.
+- `has_policy`: Integer (`0` or `1`).
 - `allocated`, `actual_spent`, `remaining`: Numbers.
 - `envelopes`: Array of object items, where:
-  - `account_index`, `allocated`, `actual_spent`, `remaining`, `avg_spend`: Numbers.
+  - `account_index`, `allocated`, `actual_spent`, `remaining`: Numbers.
   - `account_name`, `label`, `group`, `envelope_role`, `status`: Strings.
+  - `avg_spend`: Number or `null` (if cycle is unresolvable).
   - `days_until_empty`: Number (integer) or `null`. If average spend is `0` (or cycle is unresolvable), this must be `null` rather than a magic number like `999`.
 - `unassigned`: Object containing:
   - `account_count`: Integer.
   - `remaining`: Number.
   - `status`: String.
 - `backing`: Object containing:
-  - `funding_base`, `allocated_total`, `cash_backed_unassigned`, `ledger_cash_delta`: Numbers.
+  - `funding_base`, `active_remaining_total`, `cash_backed_unassigned`, `ledger_cash_delta`: Numbers or `null` (if policy is disabled).
   - `status`: String.
 - `execution_planned`: Object containing:
-  - `envelope_label`, `status`: Strings.
-  - `envelope_remaining`, `planned_open_total`, `delta`: Numbers.
+  - `envelope_label`: String or `null` (if disabled/unconfigured).
+  - `status`: String.
+  - `envelope_remaining`, `planned_open_total`, `delta`: Numbers or `null` (if disabled/unconfigured).
   - `rows`: Array of objects containing:
     - `date`, `memo`, `category`, `plan_id`: Strings.
     - `amount`: Number.
@@ -100,7 +102,7 @@ This request is dispatched in [src_next/report.bqn](file:///Users/user/Projects/
   - `"days_until_empty"` and `"avg_spend"` in all envelopes must be `null`.
   - `"status"` in all envelopes must fall back to `"unknown_role"` (or descriptive status if uncomputable).
 - If the policy budget style is disabled (`PolicyBudgetStyle = "none"`), or the base configuration does not support backing diagnostics:
-  - All backing numbers (`funding_base`, `cash_backed_unassigned`, etc.) must be `null` (or appropriate empty defaults) and `backing.status` must be `"disabled"`.
+  - All backing numbers (`funding_base`, `active_remaining_total`, etc.) must be `null` and `backing.status` must be `"disabled"`.
 - Under no circumstances should unresolvable calculations default to zero when that zero implies an actual computed balance. They must resolve to JSON `null`.
 
 ## Verification Checklist
