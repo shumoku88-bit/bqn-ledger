@@ -1,0 +1,5 @@
+equity:opening	role=equity
+assets:bank	role=asset	type=liquid
+expenses:food	role=expense
+budget:固定費予定	role=budget	kind=envelope	envelope_role=execution
+budget:unassigned	role=budget	kind=unassigned

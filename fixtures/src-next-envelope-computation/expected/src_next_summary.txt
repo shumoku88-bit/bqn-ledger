@@ -15,9 +15,9 @@ src_next_envelope_cash_backed_unassigned: ¯1070
 src_next_envelope_ledger_cash_delta: 730
 src_next_envelope_backing_status: OVER_ALLOCATED
 src_next_envelope_execution_planned_envelope: 
-src_next_envelope_execution_planned_remaining: 0
-src_next_envelope_execution_planned_open_total: 0
-src_next_envelope_execution_planned_delta: 0
+src_next_envelope_execution_planned_remaining: @
+src_next_envelope_execution_planned_open_total: @
+src_next_envelope_execution_planned_delta: @
 src_next_envelope_execution_planned_status: disabled
 src_next_envelope_active_remaining_source: 食費	650
 src_next_envelope_active_remaining_source: 日用品	420

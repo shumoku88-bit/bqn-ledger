@@ -229,12 +229,13 @@ CleanName ← {
 
 BuildExecutionPlannedCoverage ← {𝕊 base‿cy‿envelopes‿cfg:
   env_label ← cfg.ExecutionPlannedPaymentsEnvelope @
-  disabled ← 0 = ≠ env_label
+  cycleAvail ← (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (cy.day_count > 0)
+  disabled ← (0 = ≠ env_label) ∨ (¬ cycleAvail)
 
   status ← "disabled"
-  env_remaining ← 0
-  planned_total ← 0
-  delta ← 0
+  env_remaining ← @
+  planned_total ← @
+  delta ← @
   rows_out ← ⟨⟩
 
   {𝕊:
@@ -342,7 +343,7 @@ BuildEnvelopes ← {𝕊 base‿resolved‿cy‿valid_rows:
 
     remaining ← allocated - (spent - drawn)
     avg_spend ← @
-    {𝕊: avg_spend ↩ (elapsed > 0) ⊑ 0‿(⌊ spent ÷ elapsed) }⍟cycleAvail @
+    {𝕊: avg_spend ↩ (elapsed > 0) ⊑ 0‿(⌊ spent ÷ elapsed) }⍟(cycleAvail ∧ has_as_of) @
     target_daily ← ⌊ allocated ÷ total_days
 
     # future_planned_spent (layer = 1, debit, date > as_of)
@@ -362,7 +363,7 @@ BuildEnvelopes ← {𝕊 base‿resolved‿cy‿valid_rows:
     {𝕊:
       is_valid ← (avg_spend ≢ @) ∧ (avg_spend > 0)
       {𝕊: days_until_empty ↩ 0 ⌈ ⌊ b ÷ avg_spend }⍟is_valid @
-    }⍟cycleAvail @
+    }⍟(cycleAvail ∧ has_as_of) @
 
     is_execution ← envelope_role ≡ "execution"
     status ← "unknown_role"
@@ -594,9 +595,9 @@ Build ← {𝕊 base‿resolved‿cy‿valid_rows‿tbds_rows:
         target_id ⇐ "disabled",
         label ⇐ "disabled",
         selector ⇐ "disabled",
-        allocated ⇐ 0,
-        actual_spent ⇐ 0,
-        remaining ⇐ 0,
+        allocated ⇐ @,
+        actual_spent ⇐ @,
+        remaining ⇐ @,
         status ⇐ "disabled",
         envelopes ⇐ ⟨⟩,
         order_groups ⇐ ⟨⟩,
@@ -604,20 +605,20 @@ Build ← {𝕊 base‿resolved‿cy‿valid_rows‿tbds_rows:
         selected_expense_account_count ⇐ 0,
         allocation_row_count ⇐ 0,
         target_budget_account_count ⇐ 0,
-        unassigned_remaining ⇐ 0,
+        unassigned_remaining ⇐ @,
         unassigned_status ⇐ "disabled",
         unassigned_account_count ⇐ 0,
-        funding_base ⇐ 0,
-        allocated_total ⇐ 0,
-        cash_backed_unassigned ⇐ 0,
-        ledger_cash_delta ⇐ 0,
+        funding_base ⇐ @,
+        allocated_total ⇐ @,
+        cash_backed_unassigned ⇐ @,
+        ledger_cash_delta ⇐ @,
         backing_status ⇐ "disabled",
         funding_sources ⇐ ⟨⟩,
         active_sources ⇐ ⟨⟩,
         ledger_sources ⇐ ⟨⟩,
         active_movements ⇐ ⟨⟩,
         ledger_movements ⇐ ⟨⟩,
-        execution_planned ⇐ { envelope_label ⇐ "", envelope_remaining ⇐ 0, planned_open_total ⇐ 0, delta ⇐ 0, status ⇐ "disabled", rows ⇐ ⟨⟩ }
+        execution_planned ⇐ { envelope_label ⇐ @, envelope_remaining ⇐ @, planned_open_total ⇐ @, delta ⇐ @, status ⇐ "disabled", rows ⇐ ⟨⟩ }
       }
     }
   ⟩ @

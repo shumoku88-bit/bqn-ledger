@@ -1,0 +1,5 @@
+equity:opening	role=equity
+assets:bank	role=asset	type=liquid
+expenses:food	role=expense
+budget:food	role=budget	kind=envelope
+budget:unassigned	role=budget	kind=unassigned

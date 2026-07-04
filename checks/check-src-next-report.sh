@@ -317,11 +317,11 @@ missing_root = sorted(required_root - root.keys())
 if missing_root:
     raise SystemExit(f"missing root fields: {missing_root}")
 
-if not isinstance(root["has_policy"], (int, bool)):
-    raise SystemExit("has_policy is not an integer/boolean")
+if root["has_policy"] not in (0, 1):
+    raise SystemExit(f"has_policy should be 0 or 1, got: {root['has_policy']!r}")
 for key in ("allocated", "actual_spent", "remaining"):
-    if not isinstance(root[key], (int, float)) or isinstance(root[key], bool):
-        raise SystemExit(f"root.{key} is not numeric")
+    if root[key] is not None and (not isinstance(root[key], (int, float)) or isinstance(root[key], bool)):
+        raise SystemExit(f"root.{key} is not numeric/null: {root[key]!r}")
 
 if not isinstance(root["envelopes"], list):
     raise SystemExit("envelopes is not a list")
@@ -353,10 +353,22 @@ missing_backing = sorted(backing_keys - root["backing"].keys())
 if missing_backing:
     raise SystemExit(f"missing backing fields: {missing_backing}")
 
+for key in ("funding_base", "active_remaining_total", "cash_backed_unassigned", "ledger_cash_delta"):
+    val = root["backing"][key]
+    if val is not None and (not isinstance(val, (int, float)) or isinstance(val, bool)):
+        raise SystemExit(f"backing.{key} is not numeric/null: {val!r}")
+
 ep_keys = {"envelope_label", "envelope_remaining", "planned_open_total", "delta", "status", "rows"}
 missing_ep = sorted(ep_keys - root["execution_planned"].keys())
 if missing_ep:
     raise SystemExit(f"missing execution_planned fields: {missing_ep}")
+
+for key in ("envelope_remaining", "planned_open_total", "delta"):
+    val = root["execution_planned"][key]
+    if val is not None and (not isinstance(val, (int, float)) or isinstance(val, bool)):
+        raise SystemExit(f"execution_planned.{key} is not numeric/null: {val!r}")
+if root["execution_planned"]["envelope_label"] is not None and not isinstance(root["execution_planned"]["envelope_label"], str):
+    raise SystemExit("execution_planned.envelope_label is not string/null")
 PY
   then
     pass "report --section envelopes --format json parses and matches contract"
@@ -451,6 +463,98 @@ PY
   fi
 else
   fail "envelopes JSON with no-cycle fixture failed to execute"
+fi
+
+# JSON output verification: envelopes when cycle is valid but actual data is empty.
+empty_journal_fixture="fixtures/empty-journal"
+if tools/report "$empty_journal_fixture" --section envelopes --format json >"$json_out" 2>/dev/null; then
+  if python3 - "$json_out" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as f:
+    root = json.load(f)
+
+for e in root["envelopes"]:
+    # avg_spend and days_until_empty must be null when there is no data in cycle
+    if e["avg_spend"] is not None:
+        raise SystemExit(f"avg_spend should be null when cycle has no data, got: {e['avg_spend']!r}")
+    if e["days_until_empty"] is not None:
+        raise SystemExit(f"days_until_empty should be null when cycle has no data, got: {e['days_until_empty']!r}")
+PY
+  then
+    pass "envelopes JSON null fallback works when cycle is valid but has no data"
+  else
+    fail "envelopes JSON null fallback for empty-data cycle contract violated"
+  fi
+else
+  fail "envelopes JSON with empty-journal fixture failed to execute"
+fi
+
+# JSON output verification: envelopes when PolicyBudgetStyle = none (disabled-policy).
+disabled_policy_fixture="fixtures/envelopes-disabled-policy"
+if tools/report "$disabled_policy_fixture" --section envelopes --format json >"$json_out" 2>/dev/null; then
+  if python3 - "$json_out" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as f:
+    root = json.load(f)
+
+# backing numbers must be null and status must be "disabled"
+backing = root["backing"]
+if backing["status"] != "disabled":
+    raise SystemExit(f"backing.status should be 'disabled', got: {backing['status']!r}")
+for key in ("funding_base", "active_remaining_total", "cash_backed_unassigned", "ledger_cash_delta"):
+    if backing[key] is not None:
+        raise SystemExit(f"backing.{key} should be null when policy disabled, got: {backing[key]!r}")
+
+# execution_planned must also be null/disabled
+ep = root["execution_planned"]
+if ep["status"] != "disabled":
+    raise SystemExit(f"execution_planned.status should be 'disabled', got: {ep['status']!r}")
+if ep["envelope_label"] is not None:
+    raise SystemExit("execution_planned.envelope_label should be null when policy disabled")
+for key in ("envelope_remaining", "planned_open_total", "delta"):
+    if ep[key] is not None:
+        raise SystemExit(f"execution_planned.{key} should be null when policy disabled, got: {ep[key]!r}")
+PY
+  then
+    pass "envelopes JSON backing and execution_planned fall back to null when policy disabled"
+  else
+    fail "envelopes JSON disabled-policy contract violated"
+  fi
+else
+  fail "envelopes JSON with disabled-policy fixture failed to execute"
+fi
+
+# JSON output verification: envelopes when cycle is unavailable but execution planned envelope is configured.
+no_cycle_planned_fixture="fixtures/envelopes-no-cycle-planned"
+if tools/report "$no_cycle_planned_fixture" --section envelopes --format json >"$json_out" 2>/dev/null; then
+  if python3 - "$json_out" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as f:
+    root = json.load(f)
+
+# execution_planned must fall back to disabled and nulls rather than crashing
+ep = root["execution_planned"]
+if ep["status"] != "disabled":
+    raise SystemExit(f"execution_planned.status should be 'disabled' when cycle unavailable, got: {ep['status']!r}")
+if ep["envelope_label"] is not None:
+    raise SystemExit("execution_planned.envelope_label should be null when cycle unavailable")
+for key in ("envelope_remaining", "planned_open_total", "delta"):
+    if ep[key] is not None:
+        raise SystemExit(f"execution_planned.{key} should be null when cycle unavailable, got: {ep[key]!r}")
+PY
+  then
+    pass "envelopes JSON execution_planned falls back to null when cycle unavailable"
+  else
+    fail "envelopes JSON cycle unavailable execution_planned contract violated"
+  fi
+else
+  fail "envelopes JSON with no-cycle planned fixture failed to execute"
 fi
 
 # Cross-section consistency verification when cycle is unresolvable (no-cycle).
