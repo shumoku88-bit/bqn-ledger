@@ -27,7 +27,23 @@ jobs:
           sudo apt-get update -qq && sudo apt-get install -y -qq ripgrep
 
       - name: Run check.sh
-        run: bash tools/check.sh
+        id: check
+        continue-on-error: true
+        run: bash tools/check.sh > check.log 2>&1
+
+      - name: Upload check log
+        if: steps.check.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: check-log
+          path: check.log
+
+      - name: Report check failure
+        if: steps.check.outcome == 'failure'
+        run: |
+          tail -n 100 check.log
+          exit 1
 
       - name: Coverage
+        if: steps.check.outcome == 'success'
         run: bash tools/coverage
