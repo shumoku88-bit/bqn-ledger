@@ -5,6 +5,18 @@ Date: 2026-06-28
 
 この文書は、pit（AI作業相棒）が実作業中に気づいた **作業品質・トークン効率・デバッグ効率・安全性** に関する意見を一時的に集める intake log です。
 
+Process:
+
+- `docs/AI_WORKING_FEEDBACK_PROCESS.md`
+
+重要:
+
+- **Feedback entry is not an implementation request.**
+- このログは実装バックログではありません。
+- ここへ記録された `Idea` を、AI が勝手に実装してはいけません。
+- 根本原因の仕分けは classification review で行います。
+- 実装は classification 後に作られた approved plan からのみ開始します。
+
 ## 目的
 
 - 作業のたびに出た小さな改善案を失わない。
@@ -24,6 +36,7 @@ Date: 2026-06-28
 - 実データ TSV の内容は書かない。
 - すぐ実装しない。ここはまず収集場所。
 - 既にある devtools で解決できる場合は、そのツール名を書く。
+- Intake 時点では 5層分類を無理に確定しない。分類は review stage で行う。
 
 ## 記入テンプレート
 
@@ -41,6 +54,13 @@ Date: 2026-06-28
 
 溜まってきたら、人間がまとめてレビューする。
 
+現行の review process は `docs/AI_WORKING_FEEDBACK_PROCESS.md` を正とする。
+分類 snapshot は原則として次へ置く。
+
+```text
+docs/archive/audits/AI_WORKING_FEEDBACK_CLASSIFICATION-YYYY-MM-DD.md
+```
+
 レビュー時の判断軸:
 
 1. 正データ保護や fail-closed に効くか
@@ -48,8 +68,12 @@ Date: 2026-06-28
 3. デバッグ往復を減らすか
 4. 既存 devtools で代替できるか
 5. ツール化するほど頻出か
+6. tool / coding / architecture / verification / workflow のどの層が主因か
+7. 局所修正より先に、根本原因を減らせないか
 
-採用した案は、必要に応じて `AGENTS.md`、`docs/AI_CODEMAP.md`、check、または devtools 実装へ移す。
+分類結果はそのまま実装バックログにしない。
+採用候補は Planning stage で選び、approved plan にしたものだけを実装する。
+
 完了・採用済みになったまとまりは、後で completed plan へ退避する。
 
 ## Entries
