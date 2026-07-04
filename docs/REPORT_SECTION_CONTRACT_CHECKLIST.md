@@ -186,6 +186,40 @@ This is consumed by compact summary checks and can be filtered by `tools/query` 
 - `checks/check-ui-smoke.sh` checks direct UI section routing for `planned`.
 - `checks/check-src-next-compact-summary.sh` checks compact output contains `src_next_planned_payment`.
 
+## Reference example: balances
+
+### Identity and routing
+- Section key: `balances`
+- Owning module: `src_next/balances.bqn`
+- Human renderer: `balances.FormatHuman (balances.Build ctx)`
+- Compact renderer: `balances.Format (balances.Build ctx)`
+- JSON renderer: `balances.FormatJson ctx`
+- Registration: `src_next/report.bqn`
+
+### Structured JSON output
+`tools/report --section balances --format json` calls `balances.FormatJson ctx` and outputs ViewModel JSON:
+
+```json
+{
+  "accounts": [
+    {
+      "account_key": "assets:liquid:wallet",
+      "amount": 5000,
+      "role": "asset",
+      "type": "liquid"
+    }
+  ],
+  "totals": {
+    "liquid_assets_total": 5000,
+    "savings_total": 0,
+    "investment_total": 0,
+    "assets_total": 5000,
+    "liabilities_total": -2000,
+    "net_worth": 3000
+  }
+}
+```
+
 ## How to apply this later
 
 For the next section alignment task:

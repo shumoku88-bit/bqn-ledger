@@ -151,6 +151,66 @@ else
   fail "report --section planned --format json failed"
 fi
 
+# JSON output verification: balances section ViewModel contract.
+if tools/report "$fixture" --section balances --format json >"$json_out" 2>/dev/null; then
+  if python3 - "$json_out" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as f:
+    root = json.load(f)
+
+if not isinstance(root, dict):
+    raise SystemExit("top-level JSON is not an object")
+
+required_root = {"accounts", "totals"}
+missing_root = sorted(required_root - root.keys())
+if missing_root:
+    raise SystemExit(f"missing root fields: {missing_root}")
+
+if not isinstance(root["accounts"], list):
+    raise SystemExit("accounts is not an array")
+if not isinstance(root["totals"], dict):
+    raise SystemExit("totals is not an object")
+
+account_required = {"account_key", "amount", "role", "type"}
+for i, row in enumerate(root["accounts"], 1):
+    if not isinstance(row, dict):
+        raise SystemExit(f"account {i} is not an object")
+    missing = sorted(account_required - row.keys())
+    if missing:
+        raise SystemExit(f"account {i} missing fields: {missing}")
+    if not isinstance(row["account_key"], str):
+        raise SystemExit(f"account {i} account_key is not string")
+    if not isinstance(row["role"], str):
+        raise SystemExit(f"account {i} role is not string")
+    if not isinstance(row["type"], str):
+        raise SystemExit(f"account {i} type is not string")
+    if not isinstance(row["amount"], (int, float)) or isinstance(row["amount"], bool):
+        raise SystemExit(f"account {i} amount is not numeric")
+
+totals_required = {
+    "liquid_assets_total", "savings_total", "investment_total",
+    "assets_total", "liabilities_total", "net_worth"
+}
+missing_totals = sorted(totals_required - root["totals"].keys())
+if missing_totals:
+    raise SystemExit(f"missing totals fields: {missing_totals}")
+
+for key in totals_required:
+    val = root["totals"][key]
+    if not isinstance(val, (int, float)) or isinstance(val, bool):
+        raise SystemExit(f"totals {key} is not numeric")
+PY
+  then
+    pass "report --section balances --format json parses and matches contract"
+  else
+    fail "report --section balances --format json is invalid"
+  fi
+else
+  fail "report --section balances --format json failed"
+fi
+
 actual_fixture="$(mktemp -d)"
 cp -R fixtures/plan-completion/. "$actual_fixture/"
 python3 - "$actual_fixture/journal.tsv" <<'PY'

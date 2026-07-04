@@ -4,7 +4,13 @@
 tbds ← •Import "tbds.bqn"
 fmt ← •Import "format.bqn"
 labels ← •Import "report_labels.bqn"
+json ← •Import "json.bqn"
 L ← labels.Text
+
+# Filter helpers
+Filter ← {𝕊 entries‿r‿t: (({((2⊑𝕩) ≡ r) ∧ ((3⊑𝕩) ≡ t)}¨ entries) / entries) }
+FilterRole ← {𝕊 entries‿r: (({(2⊑𝕩) ≡ r}¨ entries) / entries) }
+SumAmount ← { 0 = ≠𝕩 ? 0 ; +´ {1⊑𝕩}¨ 𝕩 }
 
 # Build: extract nonzero actual closing balances from context.
 # Args: ctx (context namespace with ctx.tbds)
@@ -44,16 +50,11 @@ Format ← {𝕊 entries:
 
 # FormatHuman: render balance entries as human-readable text.
 FormatHuman ← {𝕊 entries:
-  # Filter helpers
-  Filter ← {𝕊 r‿t: (({((2⊑𝕩) ≡ r) ∧ ((3⊑𝕩) ≡ t)}¨ entries) / entries) }
-  FilterRole ← {𝕊 r: (({(2⊑𝕩) ≡ r}¨ entries) / entries) }
-  SumAmount ← { 0 = ≠𝕩 ? 0 ; +´ {1⊑𝕩}¨ 𝕩 }
-
-  liquid ← Filter ⟨"asset", "liquid"⟩
-  savings ← Filter ⟨"asset", "savings"⟩
-  investment ← Filter ⟨"asset", "invest"⟩
-  liabilities ← FilterRole "liability"
-  envelopes ← FilterRole "budget"
+  liquid ← Filter ⟨entries, "asset", "liquid"⟩
+  savings ← Filter ⟨entries, "asset", "savings"⟩
+  investment ← Filter ⟨entries, "asset", "invest"⟩
+  liabilities ← FilterRole ⟨entries, "liability"⟩
+  envelopes ← FilterRole ⟨entries, "budget"⟩
 
   liquid_assets_total ← SumAmount liquid
   savings_total ← SumAmount savings
@@ -88,10 +89,10 @@ FormatHuman ← {𝕊 entries:
   
   tbl_inv ← FormatTableGroup investment
   out ↩ out ∾ (0 < ≠tbl_inv) ◶ ⟨{""}, {"[Assets / Investment]" ∾ (@+10) ∾ tbl_inv ∾ (@+10)}⟩ @
-
+ 
   tbl_lia ← FormatTableGroup liabilities
   out ↩ out ∾ (0 < ≠tbl_lia) ◶ ⟨{""}, {"[Liabilities]" ∾ (@+10) ∾ tbl_lia ∾ (@+10)}⟩ @
-
+ 
   tbl_env ← FormatTableGroup envelopes
   out ↩ out ∾ (0 < ≠tbl_env) ◶ ⟨{""}, {"[Budget / Envelopes]" ∾ (@+10) ∾ tbl_env ∾ (@+10)}⟩ @
 
@@ -115,4 +116,50 @@ FormatHuman ← {𝕊 entries:
   out
 }
 
-{ Build ⇐ Build, Format ⇐ Format, FormatHuman ⇐ FormatHuman }
+# FormatJson: render balance entries as structured JSON.
+FormatJson ← {𝕊 ctx:
+  entries ← Build ctx
+
+  BuildAccountObj ← {
+    r ← 𝕩
+    ⟨
+      ⟨"account_key", 0⊑r⟩,
+      ⟨"amount", 1⊑r⟩,
+      ⟨"role", 2⊑r⟩,
+      ⟨"type", 3⊑r⟩
+    ⟩
+  }
+
+  accounts ← BuildAccountObj¨ entries
+  accounts ↩ {𝕊: (0 = ≠ accounts) ? 0 ⥊ 0 ; accounts } @
+
+  liquid ← Filter ⟨entries, "asset", "liquid"⟩
+  savings ← Filter ⟨entries, "asset", "savings"⟩
+  investment ← Filter ⟨entries, "asset", "invest"⟩
+  liabilities ← FilterRole ⟨entries, "liability"⟩
+
+  liquid_assets_total ← SumAmount liquid
+  savings_total ← SumAmount savings
+  investment_total ← SumAmount investment
+  assets_total ← liquid_assets_total + savings_total + investment_total
+  liabilities_total ← SumAmount liabilities
+  net_worth ← assets_total + liabilities_total
+
+  totals ← ⟨
+    ⟨"liquid_assets_total", liquid_assets_total⟩,
+    ⟨"savings_total", savings_total⟩,
+    ⟨"investment_total", investment_total⟩,
+    ⟨"assets_total", assets_total⟩,
+    ⟨"liabilities_total", liabilities_total⟩,
+    ⟨"net_worth", net_worth⟩
+  ⟩
+
+  root ← ⟨
+    ⟨"accounts", accounts⟩,
+    ⟨"totals", totals⟩
+  ⟩
+
+  json.Serialize root
+}
+
+{ Build ⇐ Build, Format ⇐ Format, FormatHuman ⇐ FormatHuman, FormatJson ⇐ FormatJson }

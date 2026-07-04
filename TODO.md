@@ -64,10 +64,11 @@ Status: short-term hybrid policy adopted; operation/design details documented; n
 - `tools/main-ui.sh` は human report 文字列ではなく section metadata export を使う。
 - [x] `tools/report --section <key> --format json` の入口方針の設計とディスパッチ実装
 - [x] 最初の対象セクション `planned` の ViewModel JSON 実装
+- [x] 2つ目の対象セクション `balances` の ViewModel JSON 実装
 - [x] JSON helper を `src_next/json.bqn` へ共通化
 
 次に選ぶなら小さく分ける:
-- [ ] 次の対象セクション（例: `snapshot` や `balances`）を選び、ViewModel JSON 設計を決める
+- [ ] 次の対象セクション（例: `snapshot`）を選び、ViewModel JSON 設計を決める
 - [ ] human `FormatHuman` は維持し、UI は human report を parse しない境界を守る
 
 ### 候補 E: Fintech engineering review backlog の取捨選択
