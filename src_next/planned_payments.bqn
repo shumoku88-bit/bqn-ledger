@@ -8,6 +8,7 @@ proj ← •Import "projection.bqn"
 cube ← •Import "cube.bqn"
 fmt ← •Import "format.bqn"
 labels ← •Import "report_labels.bqn"
+json ← •Import "json.bqn"
 L ← labels.Text
 
 # ── CleanName helper ──────────────────────────────────────
@@ -220,4 +221,114 @@ FormatHuman ← {𝕊 ctx:
   out
 }
 
-{ Format ⇐ Format, StatusFor ⇐ StatusFor, FormatHuman ⇐ FormatHuman, LatestActualDateInCycle ⇐ LatestActualDateInCycle, PlanId ⇐ PlanId }
+# FormatJson: render planned payments as structured JSON.
+FormatJson ← {𝕊 ctx:
+  base ← ctx.base
+  cy ← ctx.cy
+  lines ← loader.ReadLinesOptional (base ∾ "/plan.tsv")
+  mask ← { InCycle ⟨cy.start, cy.day_count, 𝕩⟩ }¨ lines
+  rows ← mask / lines
+
+  # Sort rows by date (first field in TSV)
+  GetDate ← { ⊑ Pad5 loader.SplitTsvKeepEmpty 𝕩 }
+  rows ↩ (⍋ GetDate¨ rows) ⊏ rows
+
+  journalLines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
+  journalInCycleMask ← { InCycle ⟨cy.start, cy.day_count, 𝕩⟩ }¨ journalLines
+  journalInCycle ← journalInCycleMask / journalLines
+  journalPlanIds ← PlanId¨ journalInCycle
+
+  planIds ← PlanId¨ rows
+  statuses ← { StatusFor ⟨𝕩, journalPlanIds⟩ }¨ planIds
+
+  as_of ← LatestActualDateInCycle ⟨base, cy⟩
+  as_of_dn ← proj.DaysFromEpoch as_of
+
+  ToNum ← { (0 < ≠ 𝕩) ? (•BQN 𝕩) ; 0 }
+
+  ParsedRow ← {
+    flds ← Pad5 loader.SplitTsvKeepEmpty 𝕩
+    date ← 0⊑flds
+    memo ← 1⊑flds
+    fromAcc ← 2⊑flds
+    toAcc ← 3⊑flds
+    amt ← ToNum 4⊑flds
+    ⟨date, memo, fromAcc, toAcc, amt⟩
+  }
+  parsed ← ParsedRow¨ rows
+
+  CatFor ← {
+    from ← 2⊑𝕩 ⋄ to ← 3⊑𝕩
+    is_inc ← "income:" ≡ 7 ↑ from
+    is_inc ⊑ ⟨to, from⟩
+  }
+  cats ← CleanName¨ CatFor¨ parsed
+
+  HumanStatusFor ← {
+    mstatus ← 0⊑𝕩 ⋄ pdate ← 1⊑𝕩
+    p_dn ← proj.DaysFromEpoch pdate
+    open_idx ← (p_dn = as_of_dn) + (2 × p_dn > as_of_dn)
+    open_status ← open_idx ⊑ ⟨ "overdue", "due", "future" ⟩
+    ("paid" ≡ mstatus) ⊑ ⟨ open_status , "completed" ⟩
+  }
+  hstatuses ← { HumanStatusFor ⟨𝕩⊑statuses, 0⊑(𝕩⊑parsed)⟩ }¨ ↕ ≠ rows
+
+  actuals ← { ("paid" ≡ 𝕩⊑statuses) ? (4⊑(𝕩⊑parsed)) ; 0 }¨ ↕ ≠ rows
+
+  # 1. Open items
+  open_mask ← ¬ "completed"⊸≡¨ hstatuses
+  open_indices ← open_mask / ↕ ≠ rows
+
+  BuildOpenItem ← {
+    idx ← 𝕩
+    r ← idx⊑parsed
+    cat ← idx⊑cats
+    status ← idx⊑hstatuses
+    pid ← idx⊑planIds
+    ⟨
+      ⟨"date", 0⊑r⟩,
+      ⟨"category", cat⟩,
+      ⟨"memo", 1⊑r⟩,
+      ⟨"amount", 4⊑r⟩,
+      ⟨"status", status⟩,
+      ⟨"plan_id", pid⟩
+    ⟩
+  }
+  open_items ← BuildOpenItem¨ open_indices
+  open_items ↩ {𝕊: (0 = ≠ open_items) ? 0 ⥊ 0 ; open_items } @
+  open_total ← +´ open_mask / {4⊑𝕩}¨ parsed
+
+  # 2. Completed items
+  completed_mask ← "completed"⊸≡¨ hstatuses
+  completed_indices ← completed_mask / ↕ ≠ rows
+
+  BuildCompletedItem ← {
+    idx ← 𝕩
+    r ← idx⊑parsed
+    cat ← idx⊑cats
+    status ← idx⊑hstatuses
+    pid ← idx⊑planIds
+    act ← idx⊑actuals
+    ⟨
+      ⟨"date", 0⊑r⟩,
+      ⟨"category", cat⟩,
+      ⟨"memo", 1⊑r⟩,
+      ⟨"amount", 4⊑r⟩,
+      ⟨"actual_amount", act⟩,
+      ⟨"status", status⟩,
+      ⟨"plan_id", pid⟩
+    ⟩
+  }
+  completed_items ← BuildCompletedItem¨ completed_indices
+  completed_items ↩ {𝕊: (0 = ≠ completed_items) ? 0 ⥊ 0 ; completed_items } @
+
+  root ← ⟨
+    ⟨"open_items", open_items⟩,
+    ⟨"open_total", open_total⟩,
+    ⟨"completed_items", completed_items⟩
+  ⟩
+
+  json.Serialize root
+}
+
+{ Format ⇐ Format, StatusFor ⇐ StatusFor, FormatHuman ⇐ FormatHuman, FormatJson ⇐ FormatJson, LatestActualDateInCycle ⇐ LatestActualDateInCycle, PlanId ⇐ PlanId }

@@ -83,6 +83,29 @@ else
   pass "report --section does-not-exist fails"
 fi
 
+# JSON output verification
+json_out="$(mktemp)"
+if tools/report "$fixture" --section planned --format json >"$json_out" 2>/dev/null; then
+  if grep -qF -- '"open_items":' "$json_out" && grep -qF -- '"open_total":' "$json_out"; then
+    pass "report --section planned --format json returns valid JSON"
+  else
+    fail "report --section planned --format json missing required fields"
+  fi
+else
+  fail "report --section planned --format json failed"
+fi
+rm -f "$json_out"
+
+if tools/report "$fixture" --section snapshot --format json >"$bad_out" 2>&1; then
+  fail "report --section snapshot --format json unexpectedly succeeded"
+else
+  if grep -qF -- 'ERROR: JSON format not supported for section: snapshot' "$bad_out"; then
+    pass "report --section snapshot --format json fails with unsupported error"
+  else
+    fail "report --section snapshot --format json fails with unexpected error message"
+  fi
+fi
+
 if grep -qiE '(production.ready|default switch|replacement ready)' "$out"; then
   fail "human report appears to claim production readiness"
 else

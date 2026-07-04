@@ -140,6 +140,7 @@ Current human labels are loaded from `config/report_labels.tsv`:
 
 ### Machine-readable output
 
+#### Compact output
 Compact lines use the prefix:
 
 ```text
@@ -147,6 +148,36 @@ src_next_planned_payment: ...
 ```
 
 This is consumed by compact summary checks and can be filtered by `tools/query` when needed. Human table labels should not be parsed as machine keys.
+
+#### Structured JSON output
+`tools/report --section planned --format json` calls `planned_payments.FormatJson ctx` and outputs ViewModel JSON:
+
+```json
+{
+  "open_items": [
+    {
+      "date": "YYYY-MM-DD",
+      "category": "category_name",
+      "memo": "memo_text",
+      "amount": 1000,
+      "status": "due|overdue|future",
+      "plan_id": "plan-id-metadata"
+    }
+  ],
+  "open_total": 1000,
+  "completed_items": [
+    {
+      "date": "YYYY-MM-DD",
+      "category": "category_name",
+      "memo": "memo_text",
+      "amount": 1000,
+      "actual_amount": 1000,
+      "status": "completed",
+      "plan_id": "plan-id-metadata"
+    }
+  ]
+}
+```
 
 ### Current checks
 

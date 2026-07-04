@@ -93,6 +93,7 @@ Main ← {𝕊 args:
   list_sections ← HasArg ⟨args, "--list-sections"⟩
   section_flag ← HasArg ⟨args, "--section"⟩
   section_key ← ArgValue ⟨args, "--section"⟩
+  format_val ← ArgValue ⟨args, "--format"⟩
   write_cache_flag ← HasArg ⟨args, "--write-section-cache"⟩
   write_cache_dir ← ArgValue ⟨args, "--write-section-cache"⟩
 
@@ -137,12 +138,23 @@ Main ← {𝕊 args:
   }⍟(list_sections) @
 
   {𝕊:
-    idx ← FindSectionIndex ⟨entries, section_key⟩
-    {𝕊: PrintSection (1⊑ idx ⊑ entries)}⍟(idx < ≠entries) @
+    is_json ← format_val ≡ "json"
     {𝕊:
-      •Out "ERROR: unknown section key: "∾section_key
-      •Exit 1
-    }⍟(idx ≥ ≠entries) @
+      (section_key ≡ "planned") ?
+        •Out planned_payments.FormatJson ctx
+      ; {𝕊:
+        •Out "ERROR: JSON format not supported for section: "∾section_key
+        •Exit 1
+      } @
+    }⍟is_json @
+    {𝕊:
+      idx ← FindSectionIndex ⟨entries, section_key⟩
+      {𝕊: PrintSection (1⊑ idx ⊑ entries)}⍟(idx < ≠entries) @
+      {𝕊:
+        •Out "ERROR: unknown section key: "∾section_key
+        •Exit 1
+      }⍟(idx ≥ ≠entries) @
+    }⍟(¬ is_json) @
   }⍟(section_flag) @
 
   {𝕊:
