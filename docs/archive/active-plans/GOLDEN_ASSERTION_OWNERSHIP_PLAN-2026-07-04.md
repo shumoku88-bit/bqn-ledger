@@ -1,10 +1,10 @@
 # Golden Assertion Ownership Plan — 2026-07-04
 
-Status: active plan / implementation not yet authorized
+Status: completed / review result `resolved`
 
-## 1. 対象・目的・現在地
+## 1. Purpose
 
-この計画は、AI Working Feedback Classification Review の A5 を最初の planning slice として扱います。
+この文書は、AI Working Feedback Classification Review の A5 を最初の full process trial として扱った planning / execution / review record です。
 
 Adopted classification item:
 
@@ -20,105 +20,63 @@ Related process:
 - `docs/archive/audits/AI_WORKING_FEEDBACK_CLASSIFICATION-2026-07-04.md`
 - `docs/archive/active-plans/AI_WORKING_FEEDBACK_LOG.md`
 
-この plan の目的は、golden file と shell check が同じ exact expected values を重複所有している現行箇所を小さく確認し、各 assertion の主所有者を決め、1つの小さい implementation slice に落とすことです。
-
-**この plan 自体は implementation authorization ではありません。**
-
-## 2. Current evidence
+## 2. Original evidence
 
 Primary target:
 
 - `checks/check-src-next-envelope-computation.sh`
 - `fixtures/src-next-envelope-computation/expected/src_next_summary.txt`
 
-Current flow:
+Observed flow before implementation:
 
 1. `tools/report-next-summary` の出力から envelope summary を抽出する。
 2. `diff -u "$expected" "$actual_summary"` で golden file と exact comparison する。
-3. その直後に `grep -q` で複数の exact key/value lines を再検証する。
+3. その直後に `grep -q` で同じ exact key/value lines を再検証する。
 
-現時点で確認できる重複例:
+重複対象には、次のような exact values が含まれていました。
 
-- `src_next_envelope_status: computed`
-- `src_next_envelope_allocated: 1000`
-- `src_next_envelope_actual_spent: 350`
-- `src_next_envelope_remaining: 650`
-- `src_next_envelope_unassigned_remaining: ¯1800`
-- `src_next_envelope_unassigned_status: OVER_ALLOCATED`
-- `src_next_envelope_funding_base: 0`
-- `src_next_envelope_allocated_total: 1070`
-- `src_next_envelope_cash_backed_unassigned: ¯1070`
-- `src_next_envelope_ledger_cash_delta: 730`
-- `src_next_envelope_backing_status: OVER_ALLOCATED`
-- execution planned fields
-- source/provenance lines
+- allocated / actual_spent / remaining
+- unassigned values / status
+- funding base / backing status
+- execution planned sentinel/status fields
+- source/provenance rows
 
-これらは golden summary に exact values として存在し、同じ check script 内で exact `grep -q` により再所有されています。
+## 3. Ownership decision
 
-## 3. Root-cause hypothesis
+今回の slice では次を採用しました。
 
-現時点の仮説:
+### Golden file owns
 
-> Exact expected summary values の ownership が golden file と shell assertions に分散しているため、期待値変更時に複数箇所の同期が必要になり、AI の手戻りと fragile failure を増やしている。
-
-ただし、すべての `grep` を削除すればよいとは仮定しません。
-
-Shell check には、golden comparison と異なる責務を持つ assertions が存在する可能性があります。
-
-例:
-
-- forbidden field absence
-- unknown role が active total/provenance に漏れないこと
-- command wiring
-- key existence
-- generic format / shape
-- human report surface checks
-
-したがって、この plan は「grep を減らす」ではなく「owner を決める」ことを目的とします。
-
-## 4. Ownership hypothesis to validate
-
-### Candidate owner: golden file
-
-Golden file が主所有者候補となるもの:
-
-- machine summary の exact key/value
+- exact machine-summary key/value
 - exact row ordering
 - exact source/provenance rows
-- exact sentinel/status values when they are part of the fixture snapshot
+- fixture snapshot に属する exact status/sentinel values
 
-### Candidate owner: shell check
+### Shell check owns
 
-Shell check が主所有者候補となるもの:
-
-- command success / non-zero failure
-- fixture/expected file existence
+- command success / file existence
 - forbidden field absence
 - invariant-style negative checks
-- golden snapshotでは表現しにくい exclusion boundary
-- generic key existence or generic format checks, when independently valuable
-- human report assertions not covered by the machine summary golden
+- exclusion boundaries
+- human report assertions not covered by machine-summary golden
 
-この ownership 仮説は implementation 前に確認します。
+Core rule:
 
-## 5. Scope
+> Golden と完全に同じ exact machine-summary expectation を shell `grep -q` が再所有しない。
 
-最初の planning / implementation candidate は次だけに限定します。
+## 4. Scope
 
-Primary scope:
+Implementation scope:
 
 - `checks/check-src-next-envelope-computation.sh`
+
+Reference-only scope:
+
 - `fixtures/src-next-envelope-computation/expected/src_next_summary.txt`
 
-Read-only supporting scope:
+## 5. Non-goals preserved
 
-- `tools/report-next-summary`
-- envelope summary generation path needed to understand the check contract
-- relevant docs/check registration only if necessary to verify ownership
-
-## 6. Non-goals
-
-この plan では次を行いません。
+今回の implementation では次を行いませんでした。
 
 - 全 repository の golden/check cleanup
 - 全 `grep` assertion の棚卸し
@@ -126,158 +84,141 @@ Read-only supporting scope:
 - check scaffolder の作成
 - generic golden framework の再設計
 - BQN calculation semantics の変更
-- envelope calculation の意味変更
+- envelope calculation semantics の変更
 - human report contract の再設計
 - config semantics の変更
 - source TSV の変更
-- expected values 自体の更新を目的化しない
+- expected golden values の変更
 - A4 / 22 / 20 など他 classification item の同時実装
 
-## 7. Required review before implementation
+## 6. Implementation result
 
-Implementation plan を authorized にする前に、対象 check の assertions を次へ仕分けします。
+Implemented by:
 
-| Class | Meaning | Expected owner |
-|---|---|---|
-| exact snapshot assertion | fixture の exact machine output | golden |
-| invariant assertion | 値変更に依存しない意味境界 | shell/check または dedicated test |
-| negative boundary | 出てはいけないもの、漏れてはいけないもの | shell/check |
-| wiring assertion | command/section/export が接続されること | shell/check |
-| human surface assertion | human output contract | current human check、今回の scope では原則維持 |
-| duplicate exact assertion | golden と同値を再検証 | removal candidate |
+- PR #40 `test: remove duplicate assertions in envelope-computation check`
+- merged commit: `003373040804b9844dc50a07d30353b82550faf7`
 
-各 removal candidate について、削除後も同じ regression が golden diff で検出されることを確認します。
+Diff scope:
 
-## 8. Candidate implementation slice
+- changed files: 1
+- additions: 1
+- deletions: 26
 
-Planning 時点の候補:
+Result:
 
-1. `diff -u "$expected" "$actual_summary"` を machine summary exact values の主所有者として維持する。
-2. golden と完全に重複する exact summary `grep -q` を removal candidates として列挙する。
-3. negative / exclusion / later-work leakage checks は維持する。
-4. human report assertions は今回の scope では原則維持する。
-5. generic existence check が必要な場合は、exact value duplication を避ける。
+- `diff -u "$expected" "$actual_summary"` を exact machine-summary values の主所有者として維持した。
+- golden file と完全重複していた exact `grep -q` assertions を削除した。
+- unknown `envelope_role` leakage prevention を維持した。
+- later-work field leakage prevention を維持した。
+- human report assertions を維持した。
+- BQN / source TSV / config semantics / unrelated checks は変更しなかった。
 
-これは candidate slice であり、まだ実装指示ではありません。
+## 7. Verification result
 
-## 9. Files that may change in implementation
+PR #40 に記録された結果:
 
-Expected:
+- `bash checks/check-src-next-envelope-computation.sh` -> PASS
+- `bash tools/check.sh` -> PASS
 
-- `checks/check-src-next-envelope-computation.sh`
+したがって、targeted check と full test suite の両方で regression は観測されませんでした。
 
-Only if review proves necessary:
+## 8. Review / Learning
 
-- related test/check documentation
-- `docs/archive/active-plans/GOLDEN_ASSERTION_OWNERSHIP_PLAN-2026-07-04.md` for review result/status
-
-Golden file itselfは、ownership変更だけを理由に expected values を変更しません。
-
-## 10. Files that must not change
-
-- real `data/*.tsv`
-- `journal.tsv`
-- `plan.tsv`
-- `budget_alloc.tsv`
-- `accounts.tsv`
-- BQN computation modules
-- config semantics
-- unrelated checks
-- unrelated golden fixtures
-- `TODO.md`, unless moko separately chooses to promote this work there
-
-## 11. Acceptance criteria for the implementation slice
-
-Implementation を行う場合、最低限次を満たします。
-
-1. 対象 check 内の exact machine-summary assertions が ownership class で説明できる。
-2. Golden と完全重複する exact assertions は、維持理由がない限り removal candidate として処理される。
-3. Negative boundary checks は失われない。
-4. Unknown `envelope_role` leakage prevention は失われない。
-5. Later-work field leakage prevention は失われない。
-6. Human report checks は今回の scope で意図せず弱めない。
-7. Envelope calculation semantics は変えない。
-8. Expected golden values は ownership cleanup のためだけに変更しない。
-9. Targeted check が pass する。
-10. 可能なら repository full check が pass する。
-11. Diff review で変更が A5 scope に限定されている。
-
-## 12. Recommended checks
-
-Targeted:
-
-```bash
-bash checks/check-src-next-envelope-computation.sh
-```
-
-Repository-level when available:
-
-```bash
-rtk bash ./tools/check.sh
-```
-
-Diff review:
-
-```bash
-rtk git diff
-```
-
-必要に応じて、golden comparison が duplicate exact assertion 削除後も regression を検出することを小さく確認します。
-
-## 13. Review / Learning after implementation
-
-Implementation 後、元の A5 friction に対して次を確認します。
-
-- exact expected value の主所有者が減ったか。
-- golden 更新時に shell exact assertion の追随が不要になったか。
-- failure diagnosis が悪化していないか。
-- shell check が generic/invariant responsibility を保てているか。
-- 新しい helper や二重正本を増やしていないか。
-
-推奨 result status:
+Review result:
 
 - `resolved`
-- `mitigated`
-- `observe-more`
-- `rejected`
 
-結果は必要に応じて `AI_WORKING_FEEDBACK_LOG.md` または classification follow-up へ戻します。
+### 8.1 Root-cause hypothesis
 
-## 14. Handoff draft
+Supported.
+
+Exact expected values の ownership が golden file と shell assertions に分散していたため、期待値変更時に複数箇所の同期が必要でした。
+
+今回、duplicate exact assertions を削除し、machine-summary exact values の主所有者を golden diff に寄せました。
+
+### 8.2 Friction reduction
+
+Observed improvement:
+
+- golden expectation 更新時に、同じ exact values を shell `grep -q` へ追随させる必要が減った。
+- 同じ意味の二重正本が減った。
+- 新しい helper / framework / scaffolder を増やさずに改善できた。
+- test semantics や accounting semantics を広げず、小さい差分で完了した。
+
+### 8.3 Boundary preservation
+
+The cleanup did not collapse all checks into the golden file.
+
+Preserved responsibilities include:
+
+- unknown role leakage negative boundary
+- later-work field leakage prevention
+- human output assertions
+
+これは「`grep` を減らす」ではなく「owner を決める」という original plan の目的に合致します。
+
+### 8.4 New small observation
+
+PR #40 の追加コメント:
 
 ```text
-Read first:
-1. docs/AI_WORKING_FEEDBACK_PROCESS.md
-2. docs/archive/audits/AI_WORKING_FEEDBACK_CLASSIFICATION-2026-07-04.md
-3. docs/archive/active-plans/GOLDEN_ASSERTION_OWNERSHIP_PLAN-2026-07-04.md
-4. checks/check-src-next-envelope-computation.sh
-5. fixtures/src-next-envelope-computation/expected/src_next_summary.txt
-
-Task:
-- Review A5 only.
-- Classify assertions in checks/check-src-next-envelope-computation.sh by ownership.
-- Treat the golden summary as the candidate owner of exact machine-summary values.
-- Preserve negative/invariant checks and human output checks unless a specific duplication is proven.
-- Do not change BQN calculation semantics, source TSV data, config semantics, or unrelated checks.
-- Before implementation, report the exact removal candidates and why each is redundant.
-- Implement only after the plan is explicitly authorized.
-
-Verification:
-- bash checks/check-src-next-envelope-computation.sh
-- rtk bash ./tools/check.sh when available
-- rtk git diff
+Semantic boundary checks for the Stage 4a prototype are now delegated to expected/src_next_summary.txt.
 ```
 
-## 15. Current decision
+は、実際の責務より少し広く読めます。
 
-A5 is selected as the first process trial because it is:
+理由:
 
-- based on an observed real friction
-- small enough for one narrow slice
-- easy to review
-- low risk to source data and accounting semantics
-- suitable for testing the full intake → classification → planning → execution → review loop
+- exact machine-summary assertions は golden へ委譲された。
+- しかし semantic / negative boundary checks の一部は shell に残っている。
 
-Next step:
+より正確な表現候補:
 
-> Review this plan and explicitly decide whether to authorize the implementation slice.
+```text
+Exact machine-summary values are verified by the golden diff above.
+```
+
+Decision:
+
+- A5 を reopen しない。
+- この wording issue 単独では即修正 PR を要求しない。
+- 同種の ownership wording drift が再発する場合は Intake 候補とする。
+
+## 9. Process trial result
+
+この A5 slice で、最初の full loop が完了しました。
+
+```text
+Intake
+  -> Classification
+  -> Planning
+  -> Execution
+  -> Verification
+  -> Merge
+  -> Review / Learning
+```
+
+Process-level result:
+
+- classification item をそのまま backlog として実装しなかった。
+- A5 だけを選んだ。
+- implementation 前に ownership hypothesis を置いた。
+- small diff へ落とした。
+- targeted / full verification を記録した。
+- merge 後に learning を plan へ戻した。
+
+この trial では、AI efficiency 改善の成果が新しい tool 追加ではなく、26 行の重複 assertion 削除として現れました。
+
+## 10. Final decision
+
+A5 scope is complete.
+
+Result:
+
+- `resolved`
+
+Next action:
+
+> A5 から次の item を自動選択しない。必要なら classification review へ戻り、次の planning item を改めて選ぶ。
+
+このファイルは今後、completed historical record として読む。
