@@ -74,3 +74,17 @@ Date: 2026-06-28
 - Idea: AIがBQNを編集・デバッグする際、これらの特有のハマりどころ（Gotchas）を `AGENTS.md` や開発者ガイドラインにルールとして明文化する。
 - Candidate type: rule / docs
 - Related tool/doc: `AGENTS.md`, `docs/CONVENTIONS.md`
+
+### 2026-07-04: BQN catch (⎊) variable scope and partial config gotchas
+
+- Context: envelopes JSON export implementation and no-cycle fallback validation
+- Friction:
+  - Inside `json.IsString` catch block `{ 2 = •Type (⊑ (1 ↑ val)) } ⎊ { 0 } val`, using outer-scoped `val` inside the left operand prevented `⎊` from catching the "Fill element needed" crash when `val` was a generic empty list `⟨⟩`.
+  - When creating test fixtures, writing a partial `config.tsv` overrides the default configurations without merging, causing missing key errors (e.g. `HOUSEHOLD_GROUP_LIFE` missing).
+  - Updating a golden summary file caused test failures because the check script contained duplicate static `grep` assertions for the exact same values.
+- Idea:
+  - Document that BQN catch `⎊` left operand must operate strictly on its argument `𝕩` rather than outer-scoped variables to ensure errors are captured.
+  - Require test fixtures with custom configs to inherit/copy `config/default_config.tsv` keys completely.
+  - Simplify test scripts to delegate exact value checks to golden files, keeping `grep` checks in `.sh` files generic (e.g. regex for key existence or type).
+- Candidate type: rule / docs / check
+- Related tool/doc: `AGENTS.md`, `src_next/json.bqn`, `checks/check-src-next-envelope-computation.sh`
