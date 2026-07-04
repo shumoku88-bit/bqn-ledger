@@ -93,6 +93,7 @@ Main ← {𝕊 args:
   list_sections ← HasArg ⟨args, "--list-sections"⟩
   section_flag ← HasArg ⟨args, "--section"⟩
   section_key ← ArgValue ⟨args, "--section"⟩
+  format_flag ← HasArg ⟨args, "--format"⟩
   format_val ← ArgValue ⟨args, "--format"⟩
   write_cache_flag ← HasArg ⟨args, "--write-section-cache"⟩
   write_cache_dir ← ArgValue ⟨args, "--write-section-cache"⟩
@@ -101,6 +102,21 @@ Main ← {𝕊 args:
     •Out "ERROR: --section requires a section key"
     •Exit 1
   }⍟(section_flag ∧ (0 = ≠section_key)) @
+
+  {𝕊:
+    •Out "ERROR: --format requires a format"
+    •Exit 1
+  }⍟(format_flag ∧ (0 = ≠format_val)) @
+
+  {𝕊:
+    •Out "ERROR: unsupported format: "∾format_val
+    •Exit 1
+  }⍟((0 < ≠format_val) ∧ (format_val ≢ "json")) @
+
+  {𝕊:
+    •Out "ERROR: --format json requires --section <key>"
+    •Exit 1
+  }⍟((format_val ≡ "json") ∧ ¬ section_flag) @
 
   {𝕊:
     •Out "ERROR: --write-section-cache requires a directory path"
@@ -118,6 +134,21 @@ Main ← {𝕊 args:
   }⍟(write_cache_flag ∧ (list_sections ∨ section_flag)) @
 
   ctx ← ctx_mod.BuildContext base
+
+  # Structured section requests dispatch before any human section rendering.
+  # This keeps JSON output independent from unrelated FormatHuman failures.
+  {𝕊:
+    (section_key ≡ "planned") ?
+      {𝕊:
+        •Out planned_payments.FormatJson ctx
+        •Exit 0
+      } @
+    ; {𝕊:
+      •Out "ERROR: JSON format not supported for section: "∾section_key
+      •Exit 1
+    } @
+  }⍟(format_val ≡ "json") @
+
   entries ← BuildSectionEntries ctx
 
   {𝕊:
@@ -138,23 +169,12 @@ Main ← {𝕊 args:
   }⍟(list_sections) @
 
   {𝕊:
-    is_json ← format_val ≡ "json"
+    idx ← FindSectionIndex ⟨entries, section_key⟩
+    {𝕊: PrintSection (1⊑ idx ⊑ entries)}⍟(idx < ≠entries) @
     {𝕊:
-      (section_key ≡ "planned") ?
-        •Out planned_payments.FormatJson ctx
-      ; {𝕊:
-        •Out "ERROR: JSON format not supported for section: "∾section_key
-        •Exit 1
-      } @
-    }⍟is_json @
-    {𝕊:
-      idx ← FindSectionIndex ⟨entries, section_key⟩
-      {𝕊: PrintSection (1⊑ idx ⊑ entries)}⍟(idx < ≠entries) @
-      {𝕊:
-        •Out "ERROR: unknown section key: "∾section_key
-        •Exit 1
-      }⍟(idx ≥ ≠entries) @
-    }⍟(¬ is_json) @
+      •Out "ERROR: unknown section key: "∾section_key
+      •Exit 1
+    }⍟(idx ≥ ≠entries) @
   }⍟(section_flag) @
 
   {𝕊:
