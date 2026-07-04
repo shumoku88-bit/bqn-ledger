@@ -25,7 +25,7 @@ When choosing work, prefer `TODO.md` first. Use this inventory to avoid treating
 | `AI_BUDGET_CALCULATOR_DESIGN.md` | active | P1-P4 implemented, P5-P7 pending; current CLI is `tools/envelope-calc`. |
 | `AI_REVIEW_BQN_EVAL_TASK.md` | parked | Review request for devtool work; not a standing TODO by itself. |
 | `AI_WORKING_FEEDBACK_LOG.md` | active | Intake log for pit workflow/tooling observations. |
-| `GOLDEN_ASSERTION_OWNERSHIP_PLAN-2026-07-04.md` | active | First AI feedback process trial for A5. Plan only; implementation requires explicit authorization. Scope is duplicate exact machine-summary assertions vs golden ownership. |
+| `GOLDEN_ASSERTION_OWNERSHIP_PLAN-2026-07-04.md` | historical | Completed first AI feedback process trial for A5. Result `resolved`; PR #40 removed duplicate exact machine-summary assertions while preserving negative/human checks. |
 | `AUDIT_IMPROVEMENT_BACKLOG-2026-06-30.md` | active | Historical-dated copy of audit backlog; top-level current pointer is `docs/AUDIT_IMPROVEMENT_BACKLOG.md`. |
 | `BASH_SAFETY_ANALYSIS.md` | historical | First pass implemented; remaining shell safety work should be promoted through TODO/check-specific docs. |
 | `../completed-plans/COMMAND_HUB_DESIGN.md` | historical | Moved to completed plans. Implemented as `tools/bl`; current UI entry docs are `docs/README.md`, `docs/ADD_UI_USAGE.md`, and tool help. |
