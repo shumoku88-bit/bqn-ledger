@@ -1,7 +1,7 @@
 # active-plans inventory
 
 Status: directory inventory / docs hygiene
-Date: 2026-07-01
+Date: 2026-07-05
 
 This directory is an archive staging area, not a guarantee that every file is currently active.
 Some files are active plans or backlogs; others are completed decisions, historical handoffs, or superseded sketches kept here until references are cleaned up.
@@ -25,13 +25,15 @@ When choosing work, prefer `TODO.md` first. Use this inventory to avoid treating
 | `AI_BUDGET_CALCULATOR_DESIGN.md` | active | P1-P4 implemented, P5-P7 pending; current CLI is `tools/envelope-calc`. |
 | `AI_REVIEW_BQN_EVAL_TASK.md` | parked | Review request for devtool work; not a standing TODO by itself. |
 | `AI_WORKING_FEEDBACK_LOG.md` | active | Intake log for pit workflow/tooling observations. |
-| `CONFIG_RESOLUTION_SEMANTICS_PLAN-2026-07-05.md` | active | A4 Planning-stage plan. Recommends typed sparse override for application config, preserves full-ish live-config compatibility, defers physical UI/policy split, and does not authorize broad implementation. |
-| `CONFIG_KEY_CLASSIFICATION_DECISION-2026-07-05.md` | active | A4 Phase 0 docs-only decision. Classifies clear application/UI keys, leaves `HOUSEHOLD_GROUP_ORDER` as derived-candidate and `BUDGET_*` in legacy-contract review, and preserves live-config compatibility. |
-| `CONFIG_TYPED_POLICY_CHECKPOINT-2026-07-05.md` | active | A4 docs-only checkpoint after two typed `defaultable` policy keys. Defers shared resolver abstraction and global validation timing, treats non-zero exit as the minimum fail-closed contract, and recommends optional-key investigation next. |
-| `POLICY_INCOME_CADENCE_OWNERSHIP_INVESTIGATION-2026-07-05.md` | active | A4 docs-only investigation of current consumer/ownership for `POLICY_INCOME_CADENCE`; records historical policy intent, current ownership gap hypothesis, four-state differential experiment, and no runtime authorization. |
-| `POLICY_INCOME_CADENCE_OWNERSHIP_DECISION-2026-07-05.md` | active | A4 evidence decision. Classifies `POLICY_INCOME_CADENCE` as a dormant future policy key after exact reference mapping and a constant-path four-state experiment on 11 stable surfaces; records non-repeatable surfaces as excluded evidence. |
-| `CONFIG_EFFECTIVE_RESOLUTION_ENTRY_CHECKPOINT-2026-07-05.md` | active | A4 docs-only phase-alignment checkpoint after PR #52. Keeps typed sparse override as the target, freezes income-cadence runtime work, separates generic helper abstraction from effective-config ownership, and narrows the next candidate to a minimal BQN-owned effective resolution slice. |
-| `CONFIG_MINIMAL_EFFECTIVE_DEFAULTABLE_SLICE_PROPOSAL-2026-07-05.md` | active | A4 docs-only proposal for the first minimal effective-resolution candidate. Limits scope to `HOUSEHOLD_GROUP_LIFE` and `HOUSEHOLD_GROUP_RESERVE`, preserves raw config APIs, and avoids a global merged config table. |
+| `CONFIG_RESOLUTION_SEMANTICS_PLAN-2026-07-05.md` | historical | A4 parent plan. Superseded as active instruction by the completion decision; retain for background. |
+| `CONFIG_KEY_CLASSIFICATION_DECISION-2026-07-05.md` | historical | A4 Phase 0 decision. Key classes and quarantines remain useful background, but A4 is closed. |
+| `CONFIG_TYPED_POLICY_CHECKPOINT-2026-07-05.md` | historical | A4 checkpoint after two typed policy keys; no longer a current next-step instruction. |
+| `POLICY_INCOME_CADENCE_OWNERSHIP_INVESTIGATION-2026-07-05.md` | historical | A4 ownership investigation retained as evidence. |
+| `POLICY_INCOME_CADENCE_OWNERSHIP_DECISION-2026-07-05.md` | historical | A4 evidence decision; `POLICY_INCOME_CADENCE` remains dormant with runtime work frozen. |
+| `CONFIG_EFFECTIVE_RESOLUTION_ENTRY_CHECKPOINT-2026-07-05.md` | historical | A4 phase-alignment checkpoint retained for background. |
+| `CONFIG_MINIMAL_EFFECTIVE_DEFAULTABLE_SLICE_PROPOSAL-2026-07-05.md` | historical | Proposal implemented by the first two-key effective sparse-override runtime slice. |
+| `CONFIG_EFFECTIVE_RESOLUTION_RUNTIME_CHECKPOINT-2026-07-05.md` | historical | Post-PR #55 checkpoint that paused automatic expansion and prepared A4 closure. |
+| `CONFIG_RESOLUTION_A4_COMPLETION_DECISION-2026-07-05.md` | historical | Final A4 decision: complete enough for now; remaining config concerns must re-enter as independent concrete work. |
 | `GOLDEN_ASSERTION_OWNERSHIP_PLAN-2026-07-04.md` | historical | Completed first AI feedback process trial for A5. Result `resolved`; PR #40 removed duplicate exact machine-summary assertions while preserving negative/human checks. |
 | `AUDIT_IMPROVEMENT_BACKLOG-2026-06-30.md` | active | Historical-dated copy of audit backlog; top-level current pointer is `docs/AUDIT_IMPROVEMENT_BACKLOG.md`. |
 | `BASH_SAFETY_ANALYSIS.md` | historical | First pass implemented; remaining shell safety work should be promoted through TODO/check-specific docs. |
