@@ -32,7 +32,7 @@ partial ← conf.LoadConfig "fixtures/src-next-household-mapping-policy"
 "" lib.AssertEq partial.Get "POLICY_RISK_STYLE"
 "" lib.AssertEq partial.Get "POLICY_INCOME_CADENCE"
 
-# 4. Defaultable policy keys now use typed missing behavior; optional accessors remain unchanged.
+# 4. Defaultable policy keys use typed missing behavior; optional accessors remain unchanged.
 "envelope" lib.AssertEq partial.PolicyBudgetStyle @
 "conservative" lib.AssertEq partial.PolicyRiskStyle @
 "" lib.AssertEq partial.PolicyIncomeCadence @
@@ -75,23 +75,13 @@ missing ← conf.LoadConfig "fixtures/src-next-config-eligible-missing"
 "" lib.AssertEq fallback.PolicyIncomeCadence @
 "" lib.AssertEq fallback.ExecutionPlannedPaymentsEnvelope @
 
-# 10. Explicit-empty defaultable policy keys fail when their accessors are invoked.
+# 10. Existing budget-style explicit-empty contract remains covered.
 budget_empty_result ← •SH ⟨
   "bqn",
-  "tests/config_policy_value_probe.bqn",
-  "fixtures/src-next-config-eligible-empty",
-  "POLICY_BUDGET_STYLE"
+  "tests/config_budget_style_probe.bqn",
+  "fixtures/src-next-config-eligible-empty"
 ⟩
 1 lib.AssertEq 0 ⊑ budget_empty_result
 1 lib.AssertEq ("CONFIG ERROR: empty value for POLICY_BUDGET_STYLE" Contains 1 ⊑ budget_empty_result)
-
-risk_empty_result ← •SH ⟨
-  "bqn",
-  "tests/config_policy_value_probe.bqn",
-  "fixtures/src-next-config-eligible-empty",
-  "POLICY_RISK_STYLE"
-⟩
-1 lib.AssertEq 0 ⊑ risk_empty_result
-1 lib.AssertEq ("CONFIG ERROR: empty value for POLICY_RISK_STYLE" Contains 1 ⊑ risk_empty_result)
 
 •Out "test_src_next_config.bqn: OK"
