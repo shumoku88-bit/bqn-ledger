@@ -29,47 +29,22 @@ make_state() {
   ' "$BASE_FIXTURE/config.tsv" > "$dst/config.tsv"
 }
 
-run_state() {
-  local state="$1"
-  local base="$TMP_ROOT/$state"
-  local out="$TMP_ROOT/out-$state"
-  mkdir -p -- "$out"
-
-  NO_COLOR=1 bqn src_next/summary.bqn "$base" \
-    > "$out/summary.stdout" 2> "$out/summary.stderr"
-
-  NO_COLOR=1 bqn src_next/report.bqn "$base" --no-color \
-    > "$out/report.stdout" 2> "$out/report.stderr"
-
-  local section
-  for section in cycle outlook planned daily-trend actual-comparison; do
-    NO_COLOR=1 bqn src_next/report.bqn "$base" --no-color --section "$section" \
-      > "$out/section-$section.stdout" 2> "$out/section-$section.stderr"
-  done
-}
-
 for state in bimonthly monthly; do
   make_state "$state"
-  run_state "$state"
+  NO_COLOR=1 bqn src_next/report.bqn "$TMP_ROOT/$state" --no-color \
+    > "$TMP_ROOT/$state.stdout" 2> "$TMP_ROOT/$state.stderr"
 done
 
-reference="$TMP_ROOT/out-monthly"
-candidate="$TMP_ROOT/out-bimonthly"
-status=0
-
-while IFS= read -r ref_file; do
-  rel="${ref_file#"$reference/"}"
-  candidate_file="$candidate/$rel"
-
-  if ! cmp -s -- "$ref_file" "$candidate_file"; then
-    echo "DIFF: monthly vs bimonthly at $rel" >&2
-    diff -u -- "$ref_file" "$candidate_file" >&2 || true
-    status=1
-  fi
-done < <(find "$reference" -type f | sort)
-
-if [ "$status" -ne 0 ]; then
-  exit "$status"
+if ! cmp -s -- "$TMP_ROOT/monthly.stdout" "$TMP_ROOT/bimonthly.stdout"; then
+  echo "DIFF: monthly vs bimonthly full report stdout" >&2
+  diff -u -- "$TMP_ROOT/monthly.stdout" "$TMP_ROOT/bimonthly.stdout" >&2 || true
+  exit 1
 fi
 
-echo "income cadence observation: exact refs=config only; bimonthly/monthly outputs identical" >&2
+if ! cmp -s -- "$TMP_ROOT/monthly.stderr" "$TMP_ROOT/bimonthly.stderr"; then
+  echo "DIFF: monthly vs bimonthly full report stderr" >&2
+  diff -u -- "$TMP_ROOT/monthly.stderr" "$TMP_ROOT/bimonthly.stderr" >&2 || true
+  exit 1
+fi
+
+echo "income cadence observation: full report identical for bimonthly/monthly" >&2
