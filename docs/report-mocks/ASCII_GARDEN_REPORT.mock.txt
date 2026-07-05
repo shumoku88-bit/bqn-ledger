@@ -1,0 +1,43 @@
++--------------------------------------------------------------------------------------------------+
+| AS-OF: 2026-07-05   CYCLE: 2026-06-15..2026-07-15   WEATHER: cloudy, light rain possible       |
+|                                                                                                  |
+|                 \   |   /                              PLAN NOTICE BOARD                         |
+|                  .-*-._                        +--------------------------------+                 |
+|              --- (  .  ) ---                  | due: rent tomorrow             |                 |
+|                 .`-._.-'.                     | overdue: none reported         |                 |
+|                /  .|.  \                      | next: utilities on 07-09       |                 |
+|                                                                                                  |
+|          /\                         CENTRAL HOUSE                         [ RESERVE BARN ]         |
+|         /  \                   +----------------------+                   +--------------+        |
+|        /____\                  | liquid: 123,456 yen  |                   | reserve: ?   |        |
+|       /|    |\                 | net:    234,567 yen  |                   | status: held |        |
+|      /_|____|_\                +----------------------+                   +--------------+        |
+|                                                                                                  |
+|   DAILY FIELD                         FLEX PATH                         ENVELOPE SHEDS             |
+|   . . . . . . . . .              _/\__   ___/\__                 +------+ +------+ +------+     |
+|   . remaining: 8,900 .          /    \___/      \                | food | | life | | misc |     |
+|   . pace: calm      .          \__/\______/\____/                | OK   | | WARN | | ?    |     |
+|                                                                                                  |
+|                 ISSUE FENCE                              CYCLE ROAD                              |
+|          |open|hold| ?  |                    ================>....................                |
+|          |    |    |    |                    day 21 of 30, horizon from cycle input              |
+|          +----+----+----+                                                                      |
+|                                                                                                  |
++--------------------------------------------------------------------------------------------------+
+
+FACT LEGEND
+  actual / balances : mock liquid=123,456 yen; mock net=234,567 yen
+  plan              : mock due=rent tomorrow; mock next=utilities on 2026-07-09
+  budget / envelope : mock food=OK; mock life=WARN; misc unavailable as '?'
+  issues            : mock open fence posts; details intentionally omitted
+  weather forecast  : mock cloudy / light rain scene only; not an accounting fact
+
+SCENE NOTES
+  The central house shows point-in-time balances. Envelope sheds show supplied envelope status words
+  without recomputing them. The rain marks come only from the weather material and do not change any
+  budget or spending interpretation. Unknown or unavailable material remains visible as '?'.
+
+PROVENANCE
+  mock only: no source TSV, no real weather snapshot, no real household data
+  layout reference: docs/templates/ASCII_GARDEN_LAYOUT.txt
+  renderer guidance: docs/templates/ASCII_GARDEN_REPORT_PROMPT.md
