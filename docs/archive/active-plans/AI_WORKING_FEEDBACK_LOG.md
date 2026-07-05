@@ -112,3 +112,16 @@ docs/archive/audits/AI_WORKING_FEEDBACK_CLASSIFICATION-YYYY-MM-DD.md
   - Simplify test scripts to delegate exact value checks to golden files, keeping `grep` checks in `.sh` files generic (e.g. regex for key existence or type).
 - Candidate type: rule / docs / check
 - Related tool/doc: `AGENTS.md`, `src_next/json.bqn`, `checks/check-src-next-envelope-computation.sh`
+
+### 2026-07-05: Subprocess testing debug visibility & temporary pipeline SIGPIPE
+
+- Context: A4 config resolution negative tests implementation and verification slice (PR #45, #47, #48)
+- Friction:
+  - Subprocess-level negative tests (using `•SH` on `.bqn` probes) only report exit code 1 to the parent test runner. When the assertion fails, it's hard to diagnose *why* or *where* the subprocess failed without manually executing the probe command in the terminal.
+  - Intermittent SIGPIPE (exit code 141) occurred during the execution of `check.sh` under `rtk` wrapper, causing the test suite to fail halfway without a clear BQN-level trace.
+- Idea:
+  - Add stdout/stderr capturing or auto-dumping helper in `test_lib.bqn` for `•SH` calls so that when a subprocess test fails, it prints the captured output inline.
+  - Review how `rtk` or pipeline consumers handle SIGPIPE, ensuring robust logging or exit status handling to avoid fragile CI/check failures.
+- Candidate type: existing-tool-improvement / check
+- Related tool/doc: `tests/test_src_next_config_required_negative.bqn`, `tools/check.sh`
+
