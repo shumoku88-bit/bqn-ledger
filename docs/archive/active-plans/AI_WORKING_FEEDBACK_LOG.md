@@ -124,4 +124,11 @@ docs/archive/audits/AI_WORKING_FEEDBACK_CLASSIFICATION-YYYY-MM-DD.md
   - Review how `rtk` or pipeline consumers handle SIGPIPE, ensuring robust logging or exit status handling to avoid fragile CI/check failures.
 - Candidate type: existing-tool-improvement / check
 - Related tool/doc: `tests/test_src_next_config_required_negative.bqn`, `tools/check.sh`
-
+- Review outcome:
+  - Subprocess debug visibility: `resolved` for the selected first slice through PR #59 → #60 → #61.
+  - Root cause was refined to failure evidence being retained but not surfaced at the nearest useful assertion owner.
+  - `tests/test_lib.bqn` now owns generic failure-only evidence surfacing; domain expectations remain in the individual negative test.
+  - Controlled red-path regression coverage was added; GitHub Actions `Run check.sh` and `Coverage` were green before merge.
+  - Broader subprocess migration is not authorized by momentum.
+  - Temporary SIGPIPE / exit 141 remains separate `observe-more` work.
+- Review record: `../completed-plans/SUBPROCESS_DEBUG_VISIBILITY_REVIEW-2026-07-05.md`
