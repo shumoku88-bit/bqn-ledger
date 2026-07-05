@@ -44,16 +44,6 @@ else
   fail "CBQN not found (install: https://github.com/dzaima/CBQN)"
   failures=$((failures + 1))
 fi
-
-# Go (needed by the legacy preview-helper safety check, not by the active editor path)
-if command -v go >/dev/null 2>&1; then
-  ver=$(go version 2>&1)
-  pass "Go: $ver"
-else
-  fail "Go not found for legacy preview-helper check (install: https://go.dev/dl/)"
-  failures=$((failures + 1))
-fi
-
 echo ""
 
 # ── Optional dependencies ──
@@ -136,7 +126,6 @@ echo "=== SBOM (Software Bill of Materials) ==="
 echo ""
 echo "Runtime dependencies:"
 echo "  CBQN (dzaima/BQN)  — BQN implementation, commit 12a4fb9f+"
-echo "  Go 1.22+            — legacy preview-helper safety check (not active editor path)"
 echo ""
 echo "Optional tools:"
 echo "  fzf  — fuzzy selector for add-ui.sh / main-ui.sh"

@@ -22,6 +22,6 @@ Do not include private household data, real account names, personal addresses, s
 
 ## Current security posture
 
-BQN derives reports and checks from source TSV files. Daily writes go through the Go editor and shell wrappers, which are intended to preserve reviewable write paths, backups, stale checks, and post-write validation.
+BQN derives reports and checks from source TSV files. Daily writes go through the BQN editor and shell wrappers, which are intended to preserve reviewable write paths, backups, stale checks, and post-write validation.
 
 This project is not a network service and does not provide authentication, authorization, or hosted storage.
