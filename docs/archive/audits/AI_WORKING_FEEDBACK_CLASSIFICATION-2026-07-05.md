@@ -174,7 +174,7 @@ The first snapshot is retained as historical classification evidence. The table 
 | 22 | Soft-gated Tests | observe-more | Top-level check paths are mostly strict, while some `|| true`, optional tools, and suppression patterns are intentional or local. No fresh semantic audit has been completed. |
 | 23 | Historical Docs Status Note | resolved | `AI_CODEMAP.md` explicitly separates current vs historical paths, and `active-plans/README.md` classifies active / parked / historical documents. |
 | 24 | Follow-up TODO | mitigated | `TODO.md` is current-only, archive inventory records stale plans, and handoff/process docs preserve next-step context. |
-| A1 | Archive move link validation | observe-more | `checks/check-absolute-links.sh` checks `file://` links, not general relative Markdown target validity. The original friction remains plausible but is not yet frequent enough for automatic implementation. |
+| A1 | Archive move link validation | observe-more | `checks/check-absolute-links.sh` checks `file:` URL links, not general relative Markdown target validity. The original friction remains plausible but is not yet frequent enough for automatic implementation. |
 | A2 | BQN precedence / function role gotchas | resolved | `docs/CONVENTIONS.md` now contains the logged 2026-06-30 traps: immediate block evaluation, right-associative function application, role inference, and lowercase-function `Double Subjects`. |
 | A3 | BQN `⎊` outer-scope catch | candidate-for-plan | Concrete crash evidence exists, but the current conventions inspected do not yet fix this exact safe idiom. Prefer a minimal existing-doc rule over a new large guide. |
 | A4 | Partial `config.tsv` | resolved | Closed by the A4 workstream and PR #58. Do not reopen. |
@@ -270,7 +270,7 @@ observe-more
 
 Reason:
 
-A current check exists for absolute `file://` links, but not for general relative Markdown target resolution. The gap is real, yet one logged event is not enough to authorize a new checker without first defining active/archive policy and false-positive handling.
+A current check exists for absolute file URL links, but not for general relative Markdown target resolution. The gap is real, yet one logged event is not enough to authorize a new checker without first defining active/archive policy and false-positive handling.
 
 ## Cross-cutting root-cause clusters update
 
