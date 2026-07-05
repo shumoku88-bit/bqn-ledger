@@ -36,7 +36,7 @@ run_state() {
   write_state "$state"
 
   local section
-  for section in cycle outlook planned daily-trend actual-comparison; do
+  for section in snapshot issues ytd balances trial-balance envelopes recent check daily-flow debug; do
     NO_COLOR=1 bqn src_next/report.bqn "$EXPERIMENT_BASE" --no-color --section "$section" \
       > "$out/$section.stdout" 2> "$out/$section.stderr"
   done
@@ -55,7 +55,7 @@ while IFS= read -r ref_file; do
   candidate_file="$candidate/$rel"
 
   if ! cmp -s -- "$ref_file" "$candidate_file"; then
-    echo "DIFF: constant-path monthly vs bimonthly at section file $rel" >&2
+    echo "DIFF: constant-path monthly vs bimonthly at remaining section file $rel" >&2
     diff -u -- "$ref_file" "$candidate_file" >&2 || true
     status=1
   fi
@@ -65,4 +65,4 @@ if [ "$status" -ne 0 ]; then
   exit "$status"
 fi
 
-echo "income cadence observation: five stable sections identical for bimonthly/monthly" >&2
+echo "income cadence observation: remaining report sections identical for bimonthly/monthly" >&2
