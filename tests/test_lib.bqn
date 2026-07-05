@@ -19,8 +19,8 @@
     cmd‿result ← 𝕩
     code‿stdout‿stderr ← result
     •Out "Subprocess assertion failed!"
-    •Out "command: " ∾ •Fmt cmd
-    •Out "exit code: " ∾ •Fmt code
+    •Out "command: " ∾ (•Fmt cmd)
+    •Out "exit code: " ∾ (•Fmt code)
     •Out "stdout:"
     •Out stdout
     •Out "stderr:"
