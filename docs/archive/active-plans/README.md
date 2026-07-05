@@ -25,6 +25,7 @@ When choosing work, prefer `TODO.md` first. Use this inventory to avoid treating
 | `AI_BUDGET_CALCULATOR_DESIGN.md` | active | P1-P4 implemented, P5-P7 pending; current CLI is `tools/envelope-calc`. |
 | `AI_REVIEW_BQN_EVAL_TASK.md` | parked | Review request for devtool work; not a standing TODO by itself. |
 | `AI_WORKING_FEEDBACK_LOG.md` | active | Intake log for pit workflow/tooling observations. |
+| `PLAN_TEMPORAL_STATUS_PROJECTION_PLAN-2026-07-05.md` | active | Planning-stage design selected from current TODO. Keeps `future/due/overdue/completed` meaning independent from envelopes, requires explicit `as_of` in the projection core, and proposes a small behavior-preserving extraction slice. |
 | `SUBPROCESS_DEBUG_VISIBILITY_PLAN-2026-07-05.md` | historical | Implemented by PR #61 and closed as `resolved` for the selected slice. Review / Learning record: `../completed-plans/SUBPROCESS_DEBUG_VISIBILITY_REVIEW-2026-07-05.md`. Do not treat the old plan as authorization for broad subprocess migration. |
 | `CONFIG_RESOLUTION_SEMANTICS_PLAN-2026-07-05.md` | historical | A4 parent plan. Superseded as active instruction by the completion decision; retain for background. |
 | `CONFIG_KEY_CLASSIFICATION_DECISION-2026-07-05.md` | historical | A4 Phase 0 decision. Key classes and quarantines remain useful background, but A4 is closed. |
