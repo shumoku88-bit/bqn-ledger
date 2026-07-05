@@ -75,30 +75,23 @@ missing ← conf.LoadConfig "fixtures/src-next-config-eligible-missing"
 "" lib.AssertEq fallback.PolicyIncomeCadence @
 "" lib.AssertEq fallback.ExecutionPlannedPaymentsEnvelope @
 
-# 10. Explicit-empty POLICY_BUDGET_STYLE is invalid and fails closed during LoadConfig.
+# 10. Explicit-empty defaultable policy keys fail when their accessors are invoked.
 budget_empty_result ← •SH ⟨
   "bqn",
-  "tests/config_budget_style_probe.bqn",
-  "fixtures/src-next-config-eligible-empty"
+  "tests/config_policy_value_probe.bqn",
+  "fixtures/src-next-config-eligible-empty",
+  "POLICY_BUDGET_STYLE"
 ⟩
 1 lib.AssertEq 0 ⊑ budget_empty_result
 1 lib.AssertEq ("CONFIG ERROR: empty value for POLICY_BUDGET_STYLE" Contains 1 ⊑ budget_empty_result)
 
-# 11. Explicit-empty POLICY_RISK_STYLE is invalid when its accessor is invoked.
-# Use a temporary valid config so eager budget-style validation does not mask this case.
-policy_empty_path ← "/tmp/bqn-ledger-a4-policy-empty.tsv"
-policy_empty_path •FLines ⟨
-  "POLICY_BUDGET_STYLE=envelope",
-  "POLICY_RISK_STYLE="
-⟩
 risk_empty_result ← •SH ⟨
   "bqn",
   "tests/config_policy_value_probe.bqn",
-  policy_empty_path,
+  "fixtures/src-next-config-eligible-empty",
   "POLICY_RISK_STYLE"
 ⟩
 1 lib.AssertEq 0 ⊑ risk_empty_result
 1 lib.AssertEq ("CONFIG ERROR: empty value for POLICY_RISK_STYLE" Contains 1 ⊑ risk_empty_result)
-0 lib.AssertEq 0 ⊑ •SH ⟨"rm", "-f", policy_empty_path⟩
 
 •Out "test_src_next_config.bqn: OK"
