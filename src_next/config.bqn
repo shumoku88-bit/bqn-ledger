@@ -115,9 +115,16 @@ LoadConfig ← {
   }
 
   PolicyRiskStyle ← { 𝕊 ⋄
-    v ← Get "POLICY_RISK_STYLE"
-    {𝕊: •Out "CONFIG WARNING: POLICY_RISK_STYLE missing, using default=conservative"}⍟(0 = ≠ v) @
-    v ↩ (0 = ≠ v) ⊑ ⟨ v, "conservative" ⟩
+    found‿v ← Lookup "POLICY_RISK_STYLE"
+    (found ∧ (0 = ≠ v)) ◶ ⟨
+      { @ },
+      { 𝕊 ⋄
+        •Out "CONFIG ERROR: empty value for POLICY_RISK_STYLE"
+        •Exit 1
+      }
+    ⟩ @
+    {𝕊: •Out "CONFIG WARNING: POLICY_RISK_STYLE missing, using default=conservative"}⍟(0 = found) @
+    v ↩ (0 = found) ⊑ ⟨ v, "conservative" ⟩
     ( (v ≢ "conservative") ∧ (v ≢ "simple") ) ◶ ⟨
       { @ },
       { 𝕊 ⋄
