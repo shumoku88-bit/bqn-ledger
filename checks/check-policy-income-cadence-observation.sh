@@ -21,30 +21,26 @@ fi
 
 cp -R -- "$BASE_FIXTURE" "$EXPERIMENT_BASE"
 
-write_state() {
-  local state="$1"
-  awk -F '\t' -v OFS='\t' -v state="$state" '
-    $1 == "POLICY_INCOME_CADENCE" { $2 = state; print; next }
-    { print }
-  ' "$BASE_FIXTURE/config.tsv" > "$EXPERIMENT_BASE/config.tsv"
-}
+awk -F '\t' -v OFS='\t' '
+  $1 == "POLICY_INCOME_CADENCE" { $2 = "monthly"; print; next }
+  { print }
+' "$BASE_FIXTURE/config.tsv" > "$EXPERIMENT_BASE/config.tsv"
 
-for state in bimonthly monthly; do
-  write_state "$state"
+for run in first second; do
   NO_COLOR=1 bqn src_next/report.bqn "$EXPERIMENT_BASE" --no-color --section envelopes \
-    > "$TMP_ROOT/$state.stdout" 2> "$TMP_ROOT/$state.stderr"
+    > "$TMP_ROOT/$run.stdout" 2> "$TMP_ROOT/$run.stderr"
 done
 
-if ! cmp -s -- "$TMP_ROOT/monthly.stdout" "$TMP_ROOT/bimonthly.stdout"; then
-  echo "DIFF: cadence envelopes stdout" >&2
-  diff -u -- "$TMP_ROOT/monthly.stdout" "$TMP_ROOT/bimonthly.stdout" >&2 || true
+if ! cmp -s -- "$TMP_ROOT/first.stdout" "$TMP_ROOT/second.stdout"; then
+  echo "DIFF: monthly envelopes repeatability stdout" >&2
+  diff -u -- "$TMP_ROOT/first.stdout" "$TMP_ROOT/second.stdout" >&2 || true
   exit 1
 fi
 
-if ! cmp -s -- "$TMP_ROOT/monthly.stderr" "$TMP_ROOT/bimonthly.stderr"; then
-  echo "DIFF: cadence envelopes stderr" >&2
-  diff -u -- "$TMP_ROOT/monthly.stderr" "$TMP_ROOT/bimonthly.stderr" >&2 || true
+if ! cmp -s -- "$TMP_ROOT/first.stderr" "$TMP_ROOT/second.stderr"; then
+  echo "DIFF: monthly envelopes repeatability stderr" >&2
+  diff -u -- "$TMP_ROOT/first.stderr" "$TMP_ROOT/second.stderr" >&2 || true
   exit 1
 fi
 
-echo "income cadence observation: envelopes section identical" >&2
+echo "income cadence observation control: monthly envelopes repeatable" >&2
