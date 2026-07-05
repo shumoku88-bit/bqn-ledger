@@ -58,6 +58,12 @@ LoadConfig ← {
   keys ← { 0 ⊑ 𝕩 } ¨ parsed
   values ← { 1 ⊑ 𝕩 } ¨ parsed
 
+  Lookup ← {
+    k ← 𝕩
+    idx ← ⊑ (keys ⊐ ⟨k⟩) ∾ ⟨≠keys⟩
+    (idx < ≠ keys) ? ⟨1, idx ⊑ values⟩ ; ⟨0, ""⟩
+  }
+
   Get ← {
     k ← 𝕩
     idx ← ⊑ (keys ⊐ ⟨k⟩) ∾ ⟨≠keys⟩
@@ -145,6 +151,7 @@ LoadConfig ← {
   {
     keys ⇐ keys,
     values ⇐ values,
+    Lookup ⇐ Lookup,
     Get ⇐ Get,
     CsvList ⇐ CsvList,
     BudgetPrefix ⇐ BudgetPrefix,
