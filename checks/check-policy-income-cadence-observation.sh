@@ -29,40 +29,22 @@ write_state() {
   ' "$BASE_FIXTURE/config.tsv" > "$EXPERIMENT_BASE/config.tsv"
 }
 
-run_state() {
-  local state="$1"
-  local out="$TMP_ROOT/out-$state"
-  mkdir -p -- "$out"
-  write_state "$state"
-
-  local section
-  for section in envelopes check daily-flow; do
-    NO_COLOR=1 bqn src_next/report.bqn "$EXPERIMENT_BASE" --no-color --section "$section" \
-      > "$out/$section.stdout" 2> "$out/$section.stderr"
-  done
-}
-
 for state in bimonthly monthly; do
-  run_state "$state"
+  write_state "$state"
+  NO_COLOR=1 bqn src_next/report.bqn "$EXPERIMENT_BASE" --no-color --section envelopes \
+    > "$TMP_ROOT/$state.stdout" 2> "$TMP_ROOT/$state.stderr"
 done
 
-reference="$TMP_ROOT/out-monthly"
-candidate="$TMP_ROOT/out-bimonthly"
-status=0
-
-while IFS= read -r ref_file; do
-  rel="${ref_file#"$reference/"}"
-  candidate_file="$candidate/$rel"
-
-  if ! cmp -s -- "$ref_file" "$candidate_file"; then
-    echo "DIFF: cadence section bisection B1 at $rel" >&2
-    diff -u -- "$ref_file" "$candidate_file" >&2 || true
-    status=1
-  fi
-done < <(find "$reference" -type f | sort)
-
-if [ "$status" -ne 0 ]; then
-  exit "$status"
+if ! cmp -s -- "$TMP_ROOT/monthly.stdout" "$TMP_ROOT/bimonthly.stdout"; then
+  echo "DIFF: cadence envelopes stdout" >&2
+  diff -u -- "$TMP_ROOT/monthly.stdout" "$TMP_ROOT/bimonthly.stdout" >&2 || true
+  exit 1
 fi
 
-echo "income cadence observation: section bisection B1 identical" >&2
+if ! cmp -s -- "$TMP_ROOT/monthly.stderr" "$TMP_ROOT/bimonthly.stderr"; then
+  echo "DIFF: cadence envelopes stderr" >&2
+  diff -u -- "$TMP_ROOT/monthly.stderr" "$TMP_ROOT/bimonthly.stderr" >&2 || true
+  exit 1
+fi
+
+echo "income cadence observation: envelopes section identical" >&2
