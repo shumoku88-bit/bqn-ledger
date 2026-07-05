@@ -4,8 +4,10 @@ set -euo pipefail
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
-# Exact runtime-reference map. A behavioral consumer may still use renamed concepts,
-# so this is evidence only, not a repository-wide absence proof.
+BASE_FIXTURE="fixtures/generalization-calendar"
+TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/bqn-ledger-income-cadence.XXXXXX")"
+trap 'rm -rf -- "$TMP_ROOT"' EXIT
+
 mapfile -t runtime_matches < <(
   grep -RIl -E 'POLICY_INCOME_CADENCE|PolicyIncomeCadence' src_next | sort
 )
@@ -16,4 +18,33 @@ if [ "${#runtime_matches[@]}" -ne 1 ] || [ "${runtime_matches[0]}" != "src_next/
   exit 1
 fi
 
-echo "income cadence observation: exact src_next refs=config only" >&2
+make_state() {
+  local state="$1"
+  local dst="$TMP_ROOT/$state"
+
+  cp -R -- "$BASE_FIXTURE" "$dst"
+  awk -F '\t' -v OFS='\t' -v state="$state" '
+    $1 == "POLICY_INCOME_CADENCE" { $2 = state; print; next }
+    { print }
+  ' "$BASE_FIXTURE/config.tsv" > "$dst/config.tsv"
+}
+
+for state in bimonthly monthly; do
+  make_state "$state"
+  NO_COLOR=1 bqn src_next/summary.bqn "$TMP_ROOT/$state" \
+    > "$TMP_ROOT/$state.stdout" 2> "$TMP_ROOT/$state.stderr"
+done
+
+if ! cmp -s -- "$TMP_ROOT/monthly.stdout" "$TMP_ROOT/bimonthly.stdout"; then
+  echo "DIFF: monthly vs bimonthly machine summary stdout" >&2
+  diff -u -- "$TMP_ROOT/monthly.stdout" "$TMP_ROOT/bimonthly.stdout" >&2 || true
+  exit 1
+fi
+
+if ! cmp -s -- "$TMP_ROOT/monthly.stderr" "$TMP_ROOT/bimonthly.stderr"; then
+  echo "DIFF: monthly vs bimonthly machine summary stderr" >&2
+  diff -u -- "$TMP_ROOT/monthly.stderr" "$TMP_ROOT/bimonthly.stderr" >&2 || true
+  exit 1
+fi
+
+echo "income cadence observation: exact refs=config only; bimonthly/monthly summary identical" >&2
