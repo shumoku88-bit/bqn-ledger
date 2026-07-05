@@ -32,7 +32,7 @@ partial ← conf.LoadConfig "fixtures/src-next-household-mapping-policy"
 "" lib.AssertEq partial.Get "POLICY_RISK_STYLE"
 "" lib.AssertEq partial.Get "POLICY_INCOME_CADENCE"
 
-# 4. POLICY_BUDGET_STYLE now uses typed missing behavior; other accessors remain unchanged.
+# 4. Defaultable policy keys now use typed missing behavior; optional accessors remain unchanged.
 "envelope" lib.AssertEq partial.PolicyBudgetStyle @
 "conservative" lib.AssertEq partial.PolicyRiskStyle @
 "" lib.AssertEq partial.PolicyIncomeCadence @
@@ -71,18 +71,34 @@ missing ← conf.LoadConfig "fixtures/src-next-config-eligible-missing"
 "" lib.AssertEq missing.Get "EXECUTION_PLANNED_PAYMENTS_ENVELOPE"
 "" lib.AssertEq fallback.Get "EXECUTION_PLANNED_PAYMENTS_ENVELOPE"
 
-# 9. Non-budget-style policy/optional behavior remains unchanged in this slice.
-"conservative" lib.AssertEq missing.PolicyRiskStyle @
+# 9. Optional policy behavior remains unchanged in this slice.
 "" lib.AssertEq fallback.PolicyIncomeCadence @
 "" lib.AssertEq fallback.ExecutionPlannedPaymentsEnvelope @
 
 # 10. Explicit-empty POLICY_BUDGET_STYLE is invalid and fails closed during LoadConfig.
-empty_result ← •SH ⟨
+budget_empty_result ← •SH ⟨
   "bqn",
   "tests/config_budget_style_probe.bqn",
   "fixtures/src-next-config-eligible-empty"
 ⟩
-1 lib.AssertEq 0 ⊑ empty_result
-1 lib.AssertEq ("CONFIG ERROR: empty value for POLICY_BUDGET_STYLE" Contains 1 ⊑ empty_result)
+1 lib.AssertEq 0 ⊑ budget_empty_result
+1 lib.AssertEq ("CONFIG ERROR: empty value for POLICY_BUDGET_STYLE" Contains 1 ⊑ budget_empty_result)
+
+# 11. Explicit-empty POLICY_RISK_STYLE is invalid when its accessor is invoked.
+# Use a temporary valid config so eager budget-style validation does not mask this case.
+policy_empty_path ← "/tmp/bqn-ledger-a4-policy-empty.tsv"
+policy_empty_path •FLines ⟨
+  "POLICY_BUDGET_STYLE=envelope",
+  "POLICY_RISK_STYLE="
+⟩
+risk_empty_result ← •SH ⟨
+  "bqn",
+  "tests/config_policy_value_probe.bqn",
+  policy_empty_path,
+  "POLICY_RISK_STYLE"
+⟩
+1 lib.AssertEq 0 ⊑ risk_empty_result
+1 lib.AssertEq ("CONFIG ERROR: empty value for POLICY_RISK_STYLE" Contains 1 ⊑ risk_empty_result)
+0 lib.AssertEq 0 ⊑ •SH ⟨"rm", "-f", policy_empty_path⟩
 
 •Out "test_src_next_config.bqn: OK"
