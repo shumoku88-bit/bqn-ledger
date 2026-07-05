@@ -7,8 +7,8 @@ set -euo pipefail
 #   tools/main-ui.sh  -> open the lightweight section selector
 # Full report output remains available through `report` / `all`.
 #
-# Selector-based section extraction uses report.bqn --list-sections for marker mapping,
-# so section headers can change in BQN without breaking menu browsing.
+# Selector-based browsing uses structured report-section metadata for menu labels.
+# Section display uses section keys / cache files, not human heading parsing.
 
 SOURCE="${BASH_SOURCE[0]}"
 while [ -L "$SOURCE" ]; do

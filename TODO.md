@@ -77,7 +77,7 @@ plan temporal status slice:
 - [x] JSON helper を `src_next/json.bqn` へ共通化
 
 次に選ぶなら小さく分ける:
-- [ ] human `FormatHuman` は維持し、UI は human report を parse しない境界を守る
+- [x] human `FormatHuman` は維持し、UI は human report を parse しない境界を守る → `checks/check-structured-ui-boundary.sh`
 
 ### 候補 E: Fintech engineering review backlog の取捨選択
 
