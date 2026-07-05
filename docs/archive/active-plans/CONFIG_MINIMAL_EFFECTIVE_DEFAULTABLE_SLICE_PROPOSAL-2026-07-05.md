@@ -8,9 +8,9 @@ Classification item: A4 Partial `config.tsv` semantics
 
 ## Purpose
 
-Define the smallest BQN-owned runtime candidate that can prove typed sparse override semantics without introducing a global config merge or generic config framework.
+Define the smallest BQN-owned runtime candidate that can prove typed sparse override semantics without a global config merge or generic config framework.
 
-This proposal narrows the candidate to exactly two keys:
+Exact scope:
 
 ```text
 HOUSEHOLD_GROUP_LIFE
@@ -21,24 +21,23 @@ No runtime change is authorized by this document.
 
 ## Why these two keys
 
-They are a useful first effective-resolution slice because all of the following are already established:
+Both keys are already:
 
-1. both are classified `defaultable`,
-2. both have repository-owned defaults in `config/default_config.tsv`,
-3. both still use current `Required` accessors,
-4. both have real application consumers,
-5. neither introduces enum-helper abstraction pressure,
-6. neither is quarantined,
-7. neither is UI-only.
+- classified `defaultable`,
+- backed by repository-owned defaults,
+- consumed by real application paths,
+- still accessed through current `Required` behavior,
+- outside quarantine,
+- non-UI.
 
-Current repository defaults are:
+Current defaults:
 
 ```text
 HOUSEHOLD_GROUP_LIFE=daily,flex
 HOUSEHOLD_GROUP_RESERVE=reserve
 ```
 
-Current accessors still behave conceptually as:
+Current accessors conceptually remain:
 
 ```text
 HouseholdGroupLifeLabels
@@ -48,11 +47,11 @@ HouseholdGroupReserveLabels
   -> Required HOUSEHOLD_GROUP_RESERVE
 ```
 
-This creates a clean test of the A4 target:
+This gives A4 a clean proof target:
 
-> a sparse local config can override one approved value while inheriting another approved repository-owned default.
+> A sparse local config can override one approved value while inheriting another approved repository default.
 
-## Proposed exact scope
+## Exact scope
 
 Included:
 
@@ -74,19 +73,17 @@ UI-only keys
 all unknown keys
 ```
 
-The exclusion is intentional.
+This is not a six-key resolver, global application-config merge, or schema framework.
 
-This slice is not a six-key resolver, not a global application-config merge, and not a schema framework.
-
-## Proposed ownership
+## Ownership decision
 
 BQN owns effective application meaning for the two approved keys.
 
-The shell layer does not participate in resolving them.
+The shell layer does not resolve them.
 
 The BQN-only canonical path must remain valid.
 
-## Proposed raw/effective boundary
+## Raw versus effective boundary
 
 Keep current raw APIs compatible:
 
@@ -98,15 +95,15 @@ Get
 Required
 ```
 
-In particular:
+Therefore:
 
-- `Lookup` remains presence-aware lookup over the currently loaded raw config,
+- `Lookup` remains raw presence-aware lookup,
 - `Get` keeps current missing-to-empty compatibility,
-- `Required` keeps current behavior for consumers not migrated by this slice,
+- `Required` keeps current behavior for consumers outside this slice,
 - `Path` keeps current file-selection behavior,
 - `LoadConfig` is not redefined into a merged effective table.
 
-Add a separate effective-resolution boundary for the two approved keys.
+Add a separate narrow effective-resolution boundary for the two approved keys.
 
 Conceptual name only:
 
@@ -114,11 +111,11 @@ Conceptual name only:
 EffectiveDefaultable
 ```
 
-The final BQN function name is not decided by this document.
+The final BQN function name is not decided here.
 
-## Do not build a merged config table
+## No merged config table
 
-This proposal prefers source-preserving resolution:
+Preferred shape:
 
 ```text
 repository default source
@@ -126,10 +123,10 @@ repository default source
 local source when present
         |
         v
-resolve only an approved key
+resolve one approved key
 ```
 
-It does not propose:
+Rejected first-slice shape:
 
 ```text
 merge every default row
@@ -141,20 +138,20 @@ one global effective config table
 
 Reason:
 
-- a global table would pull UI and quarantined keys into the same ownership boundary,
+- UI and quarantined keys would enter the same ownership boundary,
 - duplicate and unknown-key policy are not ready globally,
-- the first proof only needs two `defaultable` keys,
-- source-preserving lookup keeps the experiment narrow and reviewable.
+- the proof only needs two `defaultable` keys,
+- source-preserving resolution is smaller and easier to review.
 
-## Proposed resolution rule
+## Resolution rule
 
 For each included key:
 
 ```text
-local key present with non-empty value
+local non-empty value
   -> use local value
 
-local key present with explicit empty value
+local explicit empty
   -> ERROR
 
 local key missing
@@ -167,75 +164,51 @@ repository default explicit empty
   -> ERROR
 ```
 
-This is the `defaultable` class contract already chosen by A4, specialized to the exact two-key scope.
+Truth table:
 
-## Resolution truth table
-
-| Local state | Repository default state | Proposed result |
+| Local state | Repository default | Result |
 |---|---|---|
-| missing | non-empty | use repository default |
-| non-empty | non-empty | use local value |
+| missing | non-empty | repository default |
+| non-empty | non-empty | local value |
 | explicit empty | non-empty | ERROR |
 | missing | missing | ERROR |
 | missing | explicit empty | ERROR |
-| non-empty | missing | use local value |
-| non-empty | explicit empty | use local value |
+| non-empty | missing | local value |
+| non-empty | explicit empty | local value |
 
-The last two rows matter:
+The last two rows intentionally avoid validating an unused fallback value.
 
-> an explicit valid local override does not require consulting a fallback value that will not be used.
+This proposal does not standardize all config validation as eager or lazy.
 
-This avoids turning repository-default validation into unrelated eager global validation.
-
-## Proposed data-source shape
-
-The candidate runtime slice may need an internal distinction that current `Path` and `LoadConfig` do not expose directly:
-
-```text
-repository default source
-local source if it exists
-```
+## Data-source boundary
 
 Current `Path` chooses one file and falls back to the repository default when no local file exists.
 
-This proposal does not change that raw contract.
+That raw contract remains unchanged.
 
-Instead, a future runtime slice should introduce the smallest internal source boundary needed to resolve the two approved keys.
-
-Conceptually:
+A future runtime slice may introduce the smallest internal source distinction needed to consult:
 
 ```text
-LoadRawConfig
-  current compatibility path
+repository default source
+local source if present
+```
 
+Illustrative internal names only:
+
+```text
 LoadRepositoryDefaults
-  repository default source
-
 LoadLocalOverridesIfPresent
-  local source only
 ```
 
-These names are illustrative, not authorized API names.
+The implementation may use a smaller shape if it preserves the same contract.
 
-The implementation may choose a smaller shape if it preserves the same contract.
+## Consumer cut
 
-## Proposed consumer cut
-
-Only these accessors are candidates to consume effective resolution:
+Only these accessors are candidates to move to effective resolution:
 
 ```text
 HouseholdGroupLifeLabels
 HouseholdGroupReserveLabels
-```
-
-Conceptually:
-
-```text
-HouseholdGroupLifeLabels
-  -> CsvList (effective value for HOUSEHOLD_GROUP_LIFE)
-
-HouseholdGroupReserveLabels
-  -> CsvList (effective value for HOUSEHOLD_GROUP_RESERVE)
 ```
 
 Do not change:
@@ -244,9 +217,9 @@ Do not change:
 HouseholdGroupOrderLabels
 ```
 
-It remains outside this slice because `HOUSEHOLD_GROUP_ORDER` is a `derived-candidate`.
+`HOUSEHOLD_GROUP_ORDER` remains a `derived-candidate` outside this slice.
 
-## Sparse override proof case
+## Central sparse-override proof
 
 Repository defaults:
 
@@ -268,9 +241,7 @@ HOUSEHOLD_GROUP_LIFE=daily,flex,weekly
 HOUSEHOLD_GROUP_RESERVE=reserve
 ```
 
-This is the central proof case.
-
-It demonstrates:
+This proves:
 
 ```text
 one local override
@@ -280,11 +251,11 @@ one inherited approved default
 typed sparse override
 ```
 
-without constructing a global merged config.
+without a global merged config.
 
-## Required focused tests before or with runtime change
+## Required focused tests
 
-### 1. No local config
+### No local config
 
 Expected:
 
@@ -293,7 +264,7 @@ LIFE    -> daily,flex
 RESERVE -> reserve
 ```
 
-### 2. Sparse local override of LIFE
+### Sparse LIFE override
 
 Local:
 
@@ -308,7 +279,7 @@ LIFE    -> daily,flex,weekly
 RESERVE -> reserve
 ```
 
-### 3. Sparse local override of RESERVE
+### Sparse RESERVE override
 
 Local:
 
@@ -323,87 +294,40 @@ LIFE    -> daily,flex
 RESERVE -> reserve,longterm
 ```
 
-### 4. Explicit empty LIFE
-
-Local:
+### Explicit empty LIFE
 
 ```text
 HOUSEHOLD_GROUP_LIFE=
 ```
 
-Expected:
+Expected: non-zero exit.
 
-```text
-non-zero exit
-```
-
-### 5. Explicit empty RESERVE
-
-Local:
+### Explicit empty RESERVE
 
 ```text
 HOUSEHOLD_GROUP_RESERVE=
 ```
 
-Expected:
+Expected: non-zero exit.
 
-```text
-non-zero exit
-```
+### Compatibility checks
 
-### 6. Full-ish local config compatibility
+Also prove:
 
-A full-ish local config with both values explicit remains valid.
-
-No migration or rewrite is required.
-
-### 7. Extra UI-owned key tolerance
-
-Example local row:
-
-```text
-THEME=...
-```
-
-must not fail merely because the effective application boundary does not own it.
-
-### 8. Raw compatibility
-
-Existing `Lookup` and `Get` characterization remains valid.
-
-The effective slice must not silently change their meaning.
-
-### 9. Canonical BQN path
-
-The BQN-only canonical report path remains valid.
-
-### 10. Full repository checks
-
-```text
-tools/check.sh
-```
-
-must pass.
+- full-ish local config remains valid,
+- extra UI-owned rows remain tolerated,
+- raw `Lookup` behavior remains unchanged,
+- raw `Get` behavior remains unchanged,
+- BQN-only canonical path remains valid,
+- `tools/check.sh` passes.
 
 ## Duplicate-key boundary
 
-Duplicate-key semantics are not changed by this proposed slice.
+Duplicate semantics do not change in this slice.
 
-This proposal does not claim duplicate safety.
+Do not claim duplicate safety.
 
-The broader A4 decision still prefers visible duplicate failure in a future tested resolver path, but bundling that behavior here would mix two independent questions:
-
-```text
-Can sparse default inheritance work?
-```
-
-and:
-
-```text
-How should duplicate rows fail?
-```
-
-Keep them separate unless implementation evidence shows they cannot be separated safely.
+The broader A4 direction still prefers visible duplicate failure in a future tested resolver path, but that is a separate question from sparse default inheritance.
 
 ## Unknown-key boundary
 
@@ -412,20 +336,12 @@ No global unknown-key validation.
 For this slice:
 
 ```text
-approved LIFE key       -> resolve
-approved RESERVE key    -> resolve
-other key               -> outside this boundary
+LIFE key       -> resolve
+RESERVE key    -> resolve
+other key      -> outside this boundary
 ```
 
-Extra keys are not automatically errors.
-
-## Validation timing
-
-Do not use this slice to standardize all config validation as eager or lazy.
-
-For the two included accessors, validate the value needed to produce the effective result.
-
-Do not validate unrelated quarantined, optional, policy, or UI keys as a side effect.
+Extra rows are not automatically errors.
 
 ## Compatibility boundary
 
@@ -446,7 +362,7 @@ Preserve:
 - global effective config table,
 - generic schema framework,
 - generic enum/default helper,
-- global validation timing decision,
+- global validation-timing decision,
 - duplicate-key behavior change,
 - global unknown-key errors,
 - `HOUSEHOLD_GROUP_ORDER` redesign,
@@ -458,21 +374,19 @@ Preserve:
 - live config rewrite,
 - source TSV mutation.
 
-## Proposed runtime slice after approval
+## Proposed later runtime slice
 
-If this proposal is approved, the next runtime PR should be limited to:
+If separately approved, limit the runtime PR to:
 
 1. focused tests for the two-key truth table and compatibility boundary,
-2. the minimum BQN source distinction needed to consult repository defaults and local overrides separately,
-3. a narrow effective-resolution function or equivalent internal boundary,
-4. migration of only `HouseholdGroupLifeLabels` and `HouseholdGroupReserveLabels` to that boundary,
+2. the minimum BQN source distinction needed to consult defaults and local overrides separately,
+3. one narrow effective-resolution function or equivalent internal boundary,
+4. migration of only `HouseholdGroupLifeLabels` and `HouseholdGroupReserveLabels`,
 5. full checks.
 
 No third key should be added merely because the mechanism can resolve it.
 
-## Acceptance criteria for the later runtime slice
-
-The slice is successful only if all are true:
+## Acceptance criteria for that later slice
 
 ```text
 sparse LIFE override inherits RESERVE default
