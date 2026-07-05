@@ -1,0 +1,4 @@
+# A4 fixture: all first-slice eligible application keys are missing.
+# A UI-owned key is present to prove that local config.tsv exists without
+# accidentally making application-key absence look like no-local-config fallback.
+THEME=nord
