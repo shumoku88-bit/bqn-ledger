@@ -1,5 +1,10 @@
 # docs README
 
+Status: current docs router
+Owner: docs
+Canonical: yes
+Exit: keep current while docs are routed from this file; revise when the docs directory layout changes
+
 このディレクトリは、`bqn-ledger` の仕様・設計・運用ルールを置く場所です。
 
 重要: ここでは **現行仕様 / 進行中計画 / 履歴メモ** を分けて扱います。
@@ -9,7 +14,7 @@
 
 ## moko が普段読む場所
 
-普段は全部読まなくてよい。まずこの6つだけを見ます。
+普段は全部読まなくてよい。まずこの7つだけを見ます。
 
 1. `TODO.md` - 今やること、次に着手すること
 2. `docs/QUALITY_BAR.md` - 判断基準
@@ -17,6 +22,7 @@
 4. `docs/AI_CODEMAP.md` - コード地図
 5. `docs/SAFETY_PROFILE.md` - 壊れた時に止める規格
 6. `docs/REAL_DATA_TRIAL_SAFETY.md` - 実データ運用を試す前の安全な観察手順
+7. `docs/DOCS_LIFECYCLE_CONTRACT.md` - docs を増やす時の状態分類・正本・退役ルール
 
 迷ったら `TODO.md` へ戻ります。過去の長い計画や判断記録は、必要になった時だけ辿ります。
 
@@ -43,8 +49,31 @@
 - safety / fail closed: [SAFETY_PROFILE.md](SAFETY_PROFILE.md), [SAFETY_PROFILE_INVARIANT_MAP.md](SAFETY_PROFILE_INVARIANT_MAP.md), [UNAVAILABLE_SENTINEL_CONTRACT.md](UNAVAILABLE_SENTINEL_CONTRACT.md), [REAL_DATA_TRIAL_SAFETY.md](REAL_DATA_TRIAL_SAFETY.md)
 - 今後の改善候補: [ENGINEERING_ROADMAP.md](ENGINEERING_ROADMAP.md), [AUDIT_IMPROVEMENT_BACKLOG.md](AUDIT_IMPROVEMENT_BACKLOG.md), [FINTECH_ENGINEERING_REVIEW_BACKLOG.md](FINTECH_ENGINEERING_REVIEW_BACKLOG.md), [EXTENSION_BOUNDARY.md](EXTENSION_BOUNDARY.md), [PUBLIC_PRODUCTIZATION_REVIEW_FILTER.md](PUBLIC_PRODUCTIZATION_REVIEW_FILTER.md)
 - AI作業品質・トークン効率の改善: [AI_WORKING_FEEDBACK_PROCESS.md](AI_WORKING_FEEDBACK_PROCESS.md) を先に読み、[AI_WORKING_FEEDBACK_LOG.md](archive/active-plans/AI_WORKING_FEEDBACK_LOG.md) を intake、[AI_WORKING_FEEDBACK_CLASSIFICATION-2026-07-04.md](archive/audits/AI_WORKING_FEEDBACK_CLASSIFICATION-2026-07-04.md) を review snapshot として扱う
+- docs を増やす/退役させる/正本を決める作業: [DOCS_LIFECYCLE_CONTRACT.md](DOCS_LIFECYCLE_CONTRACT.md) を読み、`Status` / `Owner` / `Canonical` / `Exit` を先に決める
 
 迷ったら [../TODO.md](../TODO.md) と [AI_CODEMAP.md](AI_CODEMAP.md) に戻ります。
+
+---
+
+## テーマ別ルーティング（正本）
+
+この表は「この話題なら、まずこの正本を読む」ためのルーティングです。補助文書や archive を読む前に、ここで current path を確認します。
+
+| テーマ | まず読む正本 | 補助 / 注意 |
+|---|---|---|
+| 今やること | [../TODO.md](../TODO.md) | 完了ログは TODO に溜めない。 |
+| 全体構造・コード地図 | [AI_CODEMAP.md](AI_CODEMAP.md), [ARCHITECTURE.md](ARCHITECTURE.md) | pit はまず AI_CODEMAP。 |
+| 品質判断 | [QUALITY_BAR.md](QUALITY_BAR.md) | 一般向けではなく personal production-grade。 |
+| safety / fail closed | [SAFETY_PROFILE.md](SAFETY_PROFILE.md), [SAFETY_PROFILE_INVARIANT_MAP.md](SAFETY_PROFILE_INVARIANT_MAP.md) | 実データ試行は [REAL_DATA_TRIAL_SAFETY.md](REAL_DATA_TRIAL_SAFETY.md)。 |
+| source TSV / メタデータ | [CONVENTIONS.md](CONVENTIONS.md), [JOURNAL_META.md](JOURNAL_META.md), [DATA_DIR_SETUP.md](DATA_DIR_SETUP.md) | source TSV は正データ。 |
+| src_next report engine | [SRC_NEXT_CURRENT.md](SRC_NEXT_CURRENT.md), [REPORT_CONTRACTS.md](REPORT_CONTRACTS.md) | 旧 engine docs は archive。 |
+| 会計 core contracts | [CANONICAL_DAILY_CUBE.md](CANONICAL_DAILY_CUBE.md), [POSTING_IR_CONTRACT.md](POSTING_IR_CONTRACT.md), [TBDS_CONTRACT.md](TBDS_CONTRACT.md), [TIME_AS_AXIS.md](TIME_AS_AXIS.md) | 数字の意味を変える時に読む。 |
+| 封筒予算 | [ENVELOPE_ROLE_DESIGN.md](ENVELOPE_ROLE_DESIGN.md), [ENVELOPE_FUNDING_BASE_INVARIANT.md](ENVELOPE_FUNDING_BASE_INVARIANT.md), [ENVELOPE_EXECUTION_AND_PLAN_POLICY.md](ENVELOPE_EXECUTION_AND_PLAN_POLICY.md) | 運用細部は adjustment / seed / budget_pool policy を参照。 |
+| editor / 日常入力 | [BQN_EDITOR_USAGE.md](BQN_EDITOR_USAGE.md), [ADD_UI_USAGE.md](ADD_UI_USAGE.md), [PLAN_ID_LIFECYCLE.md](PLAN_ID_LIFECYCLE.md) | Go editor 関連は historical。 |
+| UI / structured export | [STRUCTURED_UI_EXPORT_CONTRACT.md](STRUCTURED_UI_EXPORT_CONTRACT.md) | section JSON docs は対象 section の補助設計。 |
+| AI 開発品質・トークン効率 | [AI_WORKING_FEEDBACK_PROCESS.md](AI_WORKING_FEEDBACK_PROCESS.md) | intake は [archive/active-plans/AI_WORKING_FEEDBACK_LOG.md](archive/active-plans/AI_WORKING_FEEDBACK_LOG.md)。classification は audit snapshot。 |
+| docs lifecycle / docs hygiene | [DOCS_LIFECYCLE_CONTRACT.md](DOCS_LIFECYCLE_CONTRACT.md) | 新規 docs は `Status` / `Owner` / `Canonical` / `Exit` を先に決める。 |
+| 今後の広い改善候補 | [ENGINEERING_ROADMAP.md](ENGINEERING_ROADMAP.md), [AUDIT_IMPROVEMENT_BACKLOG.md](AUDIT_IMPROVEMENT_BACKLOG.md), [FINTECH_ENGINEERING_REVIEW_BACKLOG.md](FINTECH_ENGINEERING_REVIEW_BACKLOG.md) | backlog は実装指示ではない。小さい slice に切る。 |
 
 ---
 
@@ -58,6 +87,8 @@
   - 実データ運用前に sandbox rehearsal、real-data preflight、dry-run、確認付き書き込み、観察ログで小さく試すための現行運用ガイド。
 - [AI_WORKING_FEEDBACK_PROCESS.md](AI_WORKING_FEEDBACK_PROCESS.md)
   - AI作業中の摩擦を intake → classification → planning → execution → review へ流し、feedback や classification を勝手な実装指示にしない現行プロセス。
+- [DOCS_LIFECYCLE_CONTRACT.md](DOCS_LIFECYCLE_CONTRACT.md)
+  - docs の `Status` / `Owner` / `Canonical` / `Exit`、正本/補助/履歴の分離、退役条件を定める現行 docs policy。
 - [EXTENSION_BOUNDARY.md](EXTENSION_BOUNDARY.md)
   - Canonical engine を plugin 化せず、machine export 下流の read-only adapter を許す拡張境界。
 - [PUBLIC_PRODUCTIZATION_REVIEW_FILTER.md](PUBLIC_PRODUCTIZATION_REVIEW_FILTER.md)

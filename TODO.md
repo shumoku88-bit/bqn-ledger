@@ -52,6 +52,9 @@ plan temporal status slice:
 - `docs/archive/completed-plans/DOCS_HYGIENE_AUDIT-2026-06-22.md`
 - `docs/README.md`
 
+- [x] docs lifecycle contract を追加し、docs 増加時の `Status` / `Owner` / `Canonical` / `Exit` と退役ルールを固定する → `docs/DOCS_LIFECYCLE_CONTRACT.md`
+- [x] 新規 docs の `Status:` と変更 archive doc の current 誤主張を小さく検査する → `checks/check-docs-lifecycle.sh`
+- [x] `docs/README.md` をテーマ別の正本ルーティング表に寄せる
 - [ ] `TODO.md` が再び完了ログ置き場になっていないか確認する
 - [ ] 完了済み計画は archive へ移し、現行仕様・進行中計画・履歴メモを混ぜない
 - [ ] いきなり削除せず、小さな移動・短い stub・導線確認を優先する

@@ -235,6 +235,7 @@ fixture を更新する場合は、対象が本当に仕様変更なのか、そ
 |---|---|
 | `AGENTS.md` | 作業入口。AI が最初に読むべき導線と禁止事項。 |
 | `docs/README.md` | docs 全体の目次。現行仕様・進行中計画・履歴メモを分ける入口。 |
+| `docs/DOCS_LIFECYCLE_CONTRACT.md` | docs を増やす時の `Status` / `Owner` / `Canonical` / `Exit` と退役ルール。 |
 | `docs/AI_CODEMAP.md` | `src_next/`, `editor/`, `tools/`, `checks/` の現行コード地図。 |
 | `docs/QUALITY_BAR.md` | 一般向けプロダクトにはしないが、自分の生活会計を預ける production-grade personal tool として扱う品質基準。 |
 | `docs/ARCHITECTURE.md` | 全体構造、正データ、Cube、モジュール境界。 |
