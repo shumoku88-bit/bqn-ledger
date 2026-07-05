@@ -6,9 +6,10 @@ lib ← •Import "test_lib.bqn"
 Contains ← { needle ← 𝕨 ⋄ 0 < +´ (needle ⍷ 𝕩) }
 
 CheckFailure ← {𝕊 base‿key:
-  result ← •SH ⟨"bqn", "tests/config_required_probe.bqn", base, key⟩
-  1 lib.AssertEq 0 ⊑ result
-  1 lib.AssertEq (("CONFIG ERROR: missing value for " ∾ key) Contains 1 ⊑ result)
+  cmd ← ⟨"bqn", "tests/config_required_probe.bqn", base, key⟩
+  result ← •SH cmd
+  (1 = 0 ⊑ result) lib.AssertSH ⟨cmd, result⟩
+  (("CONFIG ERROR: missing value for " ∾ key) Contains 1 ⊑ result) lib.AssertSH ⟨cmd, result⟩
 }
 
 { CheckFailure ⟨"fixtures/src-next-config-eligible-missing", 𝕩⟩ }¨
