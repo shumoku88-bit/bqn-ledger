@@ -11,7 +11,7 @@ When choosing work, prefer `TODO.md` first. Use this inventory to avoid treating
 ## Reading rule
 
 | Class | Meaning | How to use |
-|---|---|---|
+|---|---------|------|
 | `active` | Current plan/backlog/intake that may feed future TODO slices | Read when the corresponding TODO asks for it |
 | `parked` | Idea/sketch/planning note with no approved implementation | Do not implement directly; first promote a small docs-only slice to `TODO.md` |
 | `historical` | Implemented, superseded, or stale handoff/decision | Read only for background; do not use as current instruction |
@@ -25,6 +25,7 @@ When choosing work, prefer `TODO.md` first. Use this inventory to avoid treating
 | `AI_BUDGET_CALCULATOR_DESIGN.md` | active | P1-P4 implemented, P5-P7 pending; current CLI is `tools/envelope-calc`. |
 | `AI_REVIEW_BQN_EVAL_TASK.md` | parked | Review request for devtool work; not a standing TODO by itself. |
 | `AI_WORKING_FEEDBACK_LOG.md` | active | Intake log for pit workflow/tooling observations. |
+| `CONFIG_RESOLUTION_SEMANTICS_PLAN-2026-07-05.md` | active | A4 Planning-stage plan. Recommends typed sparse override for application config, preserves full-ish live-config compatibility, defers physical UI/policy split, and does not authorize implementation yet. |
 | `GOLDEN_ASSERTION_OWNERSHIP_PLAN-2026-07-04.md` | historical | Completed first AI feedback process trial for A5. Result `resolved`; PR #40 removed duplicate exact machine-summary assertions while preserving negative/human checks. |
 | `AUDIT_IMPROVEMENT_BACKLOG-2026-06-30.md` | active | Historical-dated copy of audit backlog; top-level current pointer is `docs/AUDIT_IMPROVEMENT_BACKLOG.md`. |
 | `BASH_SAFETY_ANALYSIS.md` | historical | First pass implemented; remaining shell safety work should be promoted through TODO/check-specific docs. |
