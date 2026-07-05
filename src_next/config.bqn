@@ -58,6 +58,11 @@ LoadConfig ← {
   keys ← { 0 ⊑ 𝕩 } ¨ parsed
   values ← { 1 ⊑ 𝕩 } ¨ parsed
 
+  repo_raw ← lib.LoadLines "config/default_config.tsv"
+  repo_parsed ← ParseLine ¨ repo_raw
+  repo_keys ← { 0 ⊑ 𝕩 } ¨ repo_parsed
+  repo_values ← { 1 ⊑ 𝕩 } ¨ repo_parsed
+
   Lookup ← {
     k ← 𝕩
     idx ← ⊑ (keys ⊐ ⟨k⟩) ∾ ⟨≠keys⟩
@@ -82,6 +87,37 @@ LoadConfig ← {
     ⟩ @
   }
 
+  RepositoryLookup ← {
+    k ← 𝕩
+    idx ← ⊑ (repo_keys ⊐ ⟨k⟩) ∾ ⟨≠repo_keys⟩
+    (idx < ≠ repo_keys) ? ⟨1, idx ⊑ repo_values⟩ ; ⟨0, ""⟩
+  }
+
+  EffectiveDefaultable ← {
+    k ← 𝕩
+    found‿v ← Lookup k
+    (found ∧ (0 = ≠ v)) ◶ ⟨
+      { @ },
+      { 𝕊 ⋄
+        •Out "CONFIG ERROR: empty value for " ∾ k
+        •Exit 1
+      }
+    ⟩ @
+    (found ∧ (0 < ≠ v)) ◶ ⟨
+      { 𝕊 ⋄
+        repo_found‿repo_v ← RepositoryLookup k
+        ((0 = repo_found) ∨ (0 = ≠ repo_v)) ◶ ⟨
+          { repo_v },
+          { 𝕊 ⋄
+            •Out "CONFIG ERROR: missing repository default for " ∾ k
+            •Exit 1
+          }
+        ⟩ @
+      },
+      { 𝕊 ⋄ v }
+    ⟩ @
+  }
+
   CsvList ← { (@+44) lib.Split 𝕩 }
 
   BudgetPrefix ← { 𝕊 ⋄ Required "BUDGET_PREFIX" }
@@ -89,8 +125,8 @@ LoadConfig ← {
   BudgetUnassigned ← { 𝕊 ⋄ Required "BUDGET_ID_UNASSIGNED" }
   BudgetSpent ← { 𝕊 ⋄ Required "BUDGET_ID_SPENT" }
 
-  HouseholdGroupLifeLabels ← { 𝕊 ⋄ CsvList (Required "HOUSEHOLD_GROUP_LIFE") }
-  HouseholdGroupReserveLabels ← { 𝕊 ⋄ CsvList (Required "HOUSEHOLD_GROUP_RESERVE") }
+  HouseholdGroupLifeLabels ← { 𝕊 ⋄ CsvList (EffectiveDefaultable "HOUSEHOLD_GROUP_LIFE") }
+  HouseholdGroupReserveLabels ← { 𝕊 ⋄ CsvList (EffectiveDefaultable "HOUSEHOLD_GROUP_RESERVE") }
   HouseholdGroupOrderLabels ← { 𝕊 ⋄ CsvList (Required "HOUSEHOLD_GROUP_ORDER") }
 
   PolicyBudgetStyle ← { 𝕊 ⋄
