@@ -25,6 +25,7 @@ When choosing work, prefer `TODO.md` first. Use this inventory to avoid treating
 | `AI_BUDGET_CALCULATOR_DESIGN.md` | active | P1-P4 implemented, P5-P7 pending; current CLI is `tools/envelope-calc`. |
 | `AI_REVIEW_BQN_EVAL_TASK.md` | parked | Review request for devtool work; not a standing TODO by itself. |
 | `AI_WORKING_FEEDBACK_LOG.md` | active | Intake log for pit workflow/tooling observations. |
+| `SUBPROCESS_DEBUG_VISIBILITY_PLAN-2026-07-05.md` | active | Planning-stage plan for failure-only `•SH` evidence surfacing. Selects existing test helper ownership, keeps domain expectations local, and does not authorize implementation in the planning PR. |
 | `CONFIG_RESOLUTION_SEMANTICS_PLAN-2026-07-05.md` | historical | A4 parent plan. Superseded as active instruction by the completion decision; retain for background. |
 | `CONFIG_KEY_CLASSIFICATION_DECISION-2026-07-05.md` | historical | A4 Phase 0 decision. Key classes and quarantines remain useful background, but A4 is closed. |
 | `CONFIG_TYPED_POLICY_CHECKPOINT-2026-07-05.md` | historical | A4 checkpoint after two typed policy keys; no longer a current next-step instruction. |
