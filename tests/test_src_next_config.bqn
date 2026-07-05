@@ -1,7 +1,7 @@
 #!/usr/bin/env bqn
 
 # Characterization tests for current config resolution semantics.
-# A4 Phase 1: verification only. This file must not change runtime behavior.
+# A4 now also exposes presence-aware Lookup without changing existing consumers.
 
 lib ← •Import "test_lib.bqn"
 conf ← •Import "../src_next/config.bqn"
@@ -63,7 +63,16 @@ empty ← conf.LoadConfig "fixtures/src-next-config-eligible-empty"
 1 lib.AssertEq (HasKey ⟨empty, "POLICY_INCOME_CADENCE"⟩)
 1 lib.AssertEq (HasKey ⟨empty, "EXECUTION_PLANNED_PAYMENTS_ENVELOPE"⟩)
 
-# 7. Current Get collapses missing and explicit empty to the same empty string.
+# 7. Presence-aware Lookup preserves missing, explicit empty, and explicit value.
+⟨0, ""⟩ lib.AssertEq missing.Lookup "POLICY_INCOME_CADENCE"
+⟨1, ""⟩ lib.AssertEq empty.Lookup "POLICY_INCOME_CADENCE"
+⟨1, "monthly"⟩ lib.AssertEq calendar.Lookup "POLICY_INCOME_CADENCE"
+
+⟨0, ""⟩ lib.AssertEq missing.Lookup "HOUSEHOLD_GROUP_LIFE"
+⟨1, ""⟩ lib.AssertEq empty.Lookup "HOUSEHOLD_GROUP_LIFE"
+⟨1, "daily,flex"⟩ lib.AssertEq fallback.Lookup "HOUSEHOLD_GROUP_LIFE"
+
+# 8. Existing Get still collapses missing and explicit empty to the same empty string.
 "" lib.AssertEq missing.Get "HOUSEHOLD_GROUP_LIFE"
 "" lib.AssertEq empty.Get "HOUSEHOLD_GROUP_LIFE"
 "" lib.AssertEq missing.Get "HOUSEHOLD_GROUP_RESERVE"
@@ -77,9 +86,8 @@ empty ← conf.LoadConfig "fixtures/src-next-config-eligible-empty"
 "" lib.AssertEq missing.Get "EXECUTION_PLANNED_PAYMENTS_ENVELOPE"
 "" lib.AssertEq empty.Get "EXECUTION_PLANNED_PAYMENTS_ENVELOPE"
 
-# 8. Current safe accessors also collapse missing and explicit empty for policy/optional keys.
-# HOUSEHOLD_GROUP_* accessors are not invoked here because current Required exits;
-# their raw presence distinction above is enough for this no-runtime-change slice.
+# 9. Existing safe accessors also remain unchanged for policy/optional keys.
+# HOUSEHOLD_GROUP_* accessors are covered separately by subprocess negative tests.
 "envelope" lib.AssertEq missing.PolicyBudgetStyle @
 "envelope" lib.AssertEq empty.PolicyBudgetStyle @
 "conservative" lib.AssertEq missing.PolicyRiskStyle @
