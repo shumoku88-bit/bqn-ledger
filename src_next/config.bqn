@@ -94,9 +94,16 @@ LoadConfig ← {
   HouseholdGroupOrderLabels ← { 𝕊 ⋄ CsvList (Required "HOUSEHOLD_GROUP_ORDER") }
 
   PolicyBudgetStyle ← { 𝕊 ⋄
-    v ← Get "POLICY_BUDGET_STYLE"
-    {𝕊: •Out "CONFIG WARNING: POLICY_BUDGET_STYLE missing, using default=envelope"}⍟(0 = ≠ v) @
-    v ↩ (0 = ≠ v) ⊑ ⟨ v, "envelope" ⟩
+    found‿v ← Lookup "POLICY_BUDGET_STYLE"
+    (found ∧ (0 = ≠ v)) ◶ ⟨
+      { @ },
+      { 𝕊 ⋄
+        •Out "CONFIG ERROR: empty value for POLICY_BUDGET_STYLE"
+        •Exit 1
+      }
+    ⟩ @
+    {𝕊: •Out "CONFIG WARNING: POLICY_BUDGET_STYLE missing, using default=envelope"}⍟(0 = found) @
+    v ↩ (0 = found) ⊑ ⟨ v, "envelope" ⟩
     ( (v ≢ "envelope") ∧ (v ≢ "none") ) ◶ ⟨
       { @ },
       { 𝕊 ⋄
