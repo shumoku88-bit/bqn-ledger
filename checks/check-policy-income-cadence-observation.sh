@@ -6,6 +6,7 @@ cd "$ROOT_DIR"
 
 BASE_FIXTURE="fixtures/generalization-calendar"
 TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/bqn-ledger-income-cadence.XXXXXX")"
+EXPERIMENT_BASE="$TMP_ROOT/base"
 trap 'rm -rf -- "$TMP_ROOT"' EXIT
 
 mapfile -t runtime_matches < <(
@@ -18,33 +19,66 @@ if [ "${#runtime_matches[@]}" -ne 1 ] || [ "${runtime_matches[0]}" != "src_next/
   exit 1
 fi
 
-make_state() {
-  local state="$1"
-  local dst="$TMP_ROOT/$state"
+cp -R -- "$BASE_FIXTURE" "$EXPERIMENT_BASE"
 
-  cp -R -- "$BASE_FIXTURE" "$dst"
+write_state() {
+  local state="$1"
+
   awk -F '\t' -v OFS='\t' -v state="$state" '
-    $1 == "POLICY_INCOME_CADENCE" { $2 = state; print; next }
+    $1 == "POLICY_INCOME_CADENCE" {
+      if (state == "missing") next
+      if (state == "empty") { $2 = ""; print; next }
+      $2 = state
+      print
+      next
+    }
     { print }
-  ' "$BASE_FIXTURE/config.tsv" > "$dst/config.tsv"
+  ' "$BASE_FIXTURE/config.tsv" > "$EXPERIMENT_BASE/config.tsv"
 }
 
-for state in bimonthly monthly; do
-  make_state "$state"
-  NO_COLOR=1 bqn src_next/report.bqn "$TMP_ROOT/$state" --no-color \
-    > "$TMP_ROOT/$state.stdout" 2> "$TMP_ROOT/$state.stderr"
+run_state() {
+  local state="$1"
+  local out="$TMP_ROOT/out-$state"
+  mkdir -p -- "$out"
+
+  write_state "$state"
+
+  NO_COLOR=1 bqn src_next/summary.bqn "$EXPERIMENT_BASE" \
+    > "$out/summary.stdout" 2> "$out/summary.stderr"
+
+  NO_COLOR=1 bqn src_next/report.bqn "$EXPERIMENT_BASE" --no-color \
+    > "$out/report.stdout" 2> "$out/report.stderr"
+
+  local section
+  for section in cycle outlook planned daily-trend actual-comparison; do
+    NO_COLOR=1 bqn src_next/report.bqn "$EXPERIMENT_BASE" --no-color --section "$section" \
+      > "$out/section-$section.stdout" 2> "$out/section-$section.stderr"
+  done
+}
+
+for state in missing empty bimonthly monthly; do
+  run_state "$state"
 done
 
-if ! cmp -s -- "$TMP_ROOT/monthly.stdout" "$TMP_ROOT/bimonthly.stdout"; then
-  echo "DIFF: monthly vs bimonthly full report stdout" >&2
-  diff -u -- "$TMP_ROOT/monthly.stdout" "$TMP_ROOT/bimonthly.stdout" >&2 || true
-  exit 1
+reference="$TMP_ROOT/out-monthly"
+status=0
+
+for state in missing empty bimonthly; do
+  candidate="$TMP_ROOT/out-$state"
+  while IFS= read -r ref_file; do
+    rel="${ref_file#"$reference/"}"
+    candidate_file="$candidate/$rel"
+
+    if ! cmp -s -- "$ref_file" "$candidate_file"; then
+      echo "DIFF: monthly vs $state at $rel" >&2
+      diff -u -- "$ref_file" "$candidate_file" >&2 || true
+      status=1
+    fi
+  done < <(find "$reference" -type f | sort)
+done
+
+if [ "$status" -ne 0 ]; then
+  exit "$status"
 fi
 
-if ! cmp -s -- "$TMP_ROOT/monthly.stderr" "$TMP_ROOT/bimonthly.stderr"; then
-  echo "DIFF: monthly vs bimonthly full report stderr" >&2
-  diff -u -- "$TMP_ROOT/monthly.stderr" "$TMP_ROOT/bimonthly.stderr" >&2 || true
-  exit 1
-fi
-
-echo "income cadence observation: full report identical for bimonthly/monthly" >&2
+echo "income cadence observation: exact refs=config only; constant-path 4-state outputs identical" >&2
