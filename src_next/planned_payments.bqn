@@ -9,6 +9,7 @@ cube ← •Import "cube.bqn"
 fmt ← •Import "format.bqn"
 labels ← •Import "report_labels.bqn"
 json ← •Import "json.bqn"
+plan_status ← •Import "plan_status.bqn"
 L ← labels.Text
 
 # ── CleanName helper ──────────────────────────────────────
@@ -96,7 +97,6 @@ BuildViewModel ← {𝕊 ctx:
   statuses ← { StatusFor ⟨𝕩, journalPlanIds⟩ }¨ planIds
 
   as_of ← LatestActualDateInCycle ⟨base, cy⟩
-  as_of_dn ← proj.DaysFromEpoch as_of
 
   ToNum ← { (0 < ≠ 𝕩) ? (•BQN 𝕩) ; 0 }
 
@@ -120,14 +120,12 @@ BuildViewModel ← {𝕊 ctx:
   }
   cats ← CleanName¨ CatFor¨ parsed
 
-  HumanStatusFor ← {
-    mstatus ← 0⊑𝕩 ⋄ pdate ← 1⊑𝕩
-    p_dn ← proj.DaysFromEpoch pdate
-    open_idx ← (p_dn = as_of_dn) + (2 × p_dn > as_of_dn)
-    open_status ← open_idx ⊑ ⟨ "overdue", "due", "future" ⟩
-    ("paid" ≡ mstatus) ⊑ ⟨ open_status , "completed" ⟩
-  }
-  hstatuses ← { HumanStatusFor ⟨𝕩⊑statuses, 0⊑(𝕩⊑parsed)⟩ }¨ ↕ ≠ rows
+  hstatuses ← {
+    idx ← 𝕩
+    completed ← "paid" ≡ idx⊑statuses
+    planDate ← 0⊑(idx⊑parsed)
+    plan_status.Classify ⟨completed, planDate, as_of⟩
+  }¨ ↕ ≠ rows
 
   ActualAmountFor ← {𝕊 pid:
     matches ← pid⊸≡¨ journalPlanIds

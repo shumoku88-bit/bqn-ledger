@@ -36,7 +36,7 @@ Status: short-term hybrid policy adopted; operation/design details documented; n
 
 plan temporal status slice:
 - [x] execution envelope の `DUE` / `LATE` / `MISSING` 候補を見直し、時間状態を envelope から独立した projection として docs-only 設計する → `docs/archive/active-plans/PLAN_TEMPORAL_STATUS_PROJECTION_PLAN-2026-07-05.md`
-- [ ] plan 承認後、`planned_payments.BuildViewModel` 内の既存 `future` / `due` / `overdue` / `completed` 意味を explicit `as_of` の小さな projection へ behavior-preserving extraction する
+- [x] plan 承認後、`planned_payments.BuildViewModel` 内の既存 `future` / `due` / `overdue` / `completed` 意味を explicit `as_of` の小さな projection へ behavior-preserving extraction する
 - [ ] envelope coverage との join は独立 projection が安定してから別 slice で判断する
 
 残り候補:
