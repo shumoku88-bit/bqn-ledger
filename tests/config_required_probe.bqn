@@ -8,6 +8,10 @@ conf ← •Import "../src_next/config.bqn"
 base‿key ← 2 ↑ •args
 cfg ← conf.LoadConfig base
 
-(key ≡ "HOUSEHOLD_GROUP_LIFE") ?
-  cfg.HouseholdGroupLifeLabels @ ;
-  cfg.HouseholdGroupReserveLabels @
+Run ← {𝕊:
+  (key ≡ "HOUSEHOLD_GROUP_LIFE") ?
+    cfg.HouseholdGroupLifeLabels @ ;
+    cfg.HouseholdGroupReserveLabels @
+}
+
+Run @
