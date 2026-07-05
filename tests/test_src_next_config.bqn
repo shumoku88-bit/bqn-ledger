@@ -84,13 +84,13 @@ budget_empty_result ← •SH ⟨
 1 lib.AssertEq 0 ⊑ budget_empty_result
 1 lib.AssertEq ("CONFIG ERROR: empty value for POLICY_BUDGET_STYLE" Contains 1 ⊑ budget_empty_result)
 
-# 11. Generic policy probe selects risk style in a valid config.
-risk_value_result ← •SH ⟨
+# 11. Generic policy probe budget branch in a valid config.
+probe_result ← •SH ⟨
   "bqn",
   "tests/config_policy_value_probe.bqn",
   "fixtures/generalization-calendar",
-  "POLICY_RISK_STYLE"
+  "POLICY_BUDGET_STYLE"
 ⟩
-0 lib.AssertEq 0 ⊑ risk_value_result
+0 lib.AssertEq 0 ⊑ probe_result
 
 •Out "test_src_next_config.bqn: OK"
