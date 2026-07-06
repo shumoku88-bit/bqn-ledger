@@ -25,16 +25,16 @@ late_explicit ← actual_snapshot.BuildAt ⟨late_ctx, late_ctx.as_of⟩
 "2026-01-06" lib.AssertEq late_explicit.as_of
 
 expected_early ← ⟨
-  ⟨"assets:cash", 100⟩,
-  ⟨"assets:other", ¯1⟩,
-  ⟨"income:salary", ¯100⟩,
-  ⟨"expenses:misc", 1⟩
+  ⟨"assets:cash/JPY", 100⟩,
+  ⟨"assets:other/JPY", ¯1⟩,
+  ⟨"income:salary/JPY", ¯100⟩,
+  ⟨"expenses:misc/JPY", 1⟩
 ⟩
 expected_late ← ⟨
-  ⟨"assets:cash", 100⟩,
-  ⟨"assets:other", ¯2⟩,
-  ⟨"income:salary", ¯100⟩,
-  ⟨"expenses:misc", 2⟩
+  ⟨"assets:cash/JPY", 100⟩,
+  ⟨"assets:other/JPY", ¯2⟩,
+  ⟨"income:salary/JPY", ¯100⟩,
+  ⟨"expenses:misc/JPY", 2⟩
 ⟩
 
 expected_early lib.AssertEq early_explicit.entries
