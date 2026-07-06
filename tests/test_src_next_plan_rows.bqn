@@ -18,17 +18,16 @@ shared ← plan_rows.BuildBase ⟨base, cy⟩
 0 lib.AssertEq 1⊑shared.completed_mask
 0 lib.AssertEq 2⊑shared.completed_mask
 
-100 lib.AssertEq 0⊑shared.actuals
-0 lib.AssertEq 1⊑shared.actuals
-0 lib.AssertEq 2⊑shared.actuals
+valued ← plan_rows.WithValues shared
+100 lib.AssertEq 0⊑valued.actuals
+0 lib.AssertEq 1⊑valued.actuals
+0 lib.AssertEq 2⊑valued.actuals
 
-# Temporal meaning is attached from one explicit caller-owned as_of.
-temporal ← plan_rows.WithTemporal ⟨shared, "2026-01-05"⟩
+temporal ← plan_rows.WithTemporal ⟨valued, "2026-01-05"⟩
 "completed" lib.AssertEq 0⊑temporal.temporal_statuses
 "due" lib.AssertEq 1⊑temporal.temporal_statuses
 "future" lib.AssertEq 2⊑temporal.temporal_statuses
 
-# Preserve legacy five-field fallback identity when plan_id metadata is absent.
 tab ← @+9
 legacy_line ← "2026-01-05" ∾ tab ∾ "wifi" ∾ tab ∾ "assets:cash" ∾ tab ∾ "expenses:fixed" ∾ tab ∾ "3000"
 "2026-01-05wifiassets:cashexpenses:fixed3000" lib.AssertEq plan_rows.PlanId legacy_line
