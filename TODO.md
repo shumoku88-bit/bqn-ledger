@@ -29,7 +29,7 @@ Planning decision:
 - [x] current schema/config では per-plan の「funded / covered」主張をしない
 
 Next finite slices after plan review:
-- [ ] Slice A: `planned_payments.bqn` と `envelope_computation.bqn` に二重化している current-cycle open-plan 意味を、一つの reusable plan-row owner へ behavior-preserving に寄せる
+- [x] Slice A: current-cycle plan selection / identity / completion evidence を reusable owner へ寄せ、planned value / temporal attachment と envelope aggregate comparison を分離する → PR #70
 - [ ] Slice B: explicit `as_of` と `selection_scope=all_open_in_cycle` を持つ aggregate temporal coverage snapshot を readonly で追加する
 
 ---
