@@ -1,17 +1,20 @@
 +--------------------------------------------------------------------------------------------------+
-| AS-OF: ____________   CYCLE: __________________________   WEATHER: _____________________________ |
+| AS-OF: ____________   CYCLE: __________________________   WEATHER: ? (snapshot missing)          |
 |                                                                                                  |
-|                 \   |   /                              PLAN NOTICE BOARD                         |
-|                  .-*-._                        +--------------------------------+                 |
-|              --- (     ) ---                  | due: ?   overdue: ?           |                 |
-|                  `-._.-'                      | next: ?                       |                 |
-|                 /   |   \                     +--------------------------------+                 |
+|                 ? ? ?                                  PLAN NOTICE BOARD                         |
+|                ?     ?                         +--------------------------------+                 |
+|              ?   ?   ?                        | due: ?   overdue: ?           |                 |
+|                ?     ?                         | next: ?                       |                 |
+|                 ? ? ?                          +--------------------------------+                 |
 |                                                                                                  |
 |          /\                         CENTRAL HOUSE                         [ RESERVE BARN ]         |
 |         /  \                   +----------------------+                   +--------------+        |
-|        /____\                  | position: ?          |                   | reserve: ?   |        |
-|       /|    |\                 | balance: ?           |                   | status: ?    |        |
+|        /____\                  | liquid: ?            |                   | reserve: ?   |        |
+|       /|    |\                 | usable: ?            |                   | status: ?    |        |
 |      /_|____|_\                +----------------------+                   +--------------+        |
+|                                                                                                  |
+|  ----------------------------- BROADER LEDGER POSITION LINE ----------------------------------  |
+|  net / net position / other differently scoped measure: ?                                       |
 |                                                                                                  |
 |   DAILY FIELD                         FLEX PATH                         ENVELOPE SHEDS             |
 |   . . . . . . . . .              _/\__/\____/\__                 +------+ +------+ +------+     |
@@ -19,9 +22,9 @@
 |   . . . . . . . . .            \__/\____/\_____/                +------+ +------+ +------+     |
 |                                                                                                  |
 |                 ISSUE FENCE                              CYCLE ROAD                              |
-|          |?   |?   |?   |                    ======================================>             |
-|          |    |    |    |                    progress / horizon grounded from inputs             |
-|          +----+----+----+                                                                      |
+|       | issue: ? | issue: ? | issue: ? |      ======================================>             |
+|       | label:?  | label:?  | label:?  |      progress / horizon grounded from inputs             |
+|       +----------+----------+----------+                                                          |
 |                                                                                                  |
 +--------------------------------------------------------------------------------------------------+
 
@@ -33,7 +36,7 @@ FACT LEGEND
   weather forecast  : ...
 
 SCENE NOTES
-  ...
+  Explain today's visual mapping and any missing material. Do not invent source meaning.
 
 PROVENANCE
   manifest.tsv, ...
