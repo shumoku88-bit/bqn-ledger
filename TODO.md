@@ -23,6 +23,7 @@ Current baseline:
 - core classification receives explicit `as_of`
 - existing execution coverage diagnostic compares one configured envelope against all unfinished in-cycle plan rows
 - temporal observation found multiple current clock semantics across cycle/context/planned/envelope/outlook paths; audit snapshot: `docs/archive/audits/TEMPORAL_SEMANTICS_OBSERVATION-2026-07-06.md`
+- current temporal classification aligns runtime observations with existing `docs/TIME_AS_AXIS.md` vocabulary; review: `docs/archive/audits/TEMPORAL_SEMANTICS_CLASSIFICATION-2026-07-06.md`
 
 Planning decision:
 - [x] envelope coverage との join に実用上の価値があるか docs-only で判断する → valueあり。ただし aggregate-only。`docs/archive/active-plans/PLAN_TEMPORAL_EXECUTION_COVERAGE_JOIN-2026-07-06.md`
@@ -32,8 +33,9 @@ Planning decision:
 Next finite slices after plan review:
 - [x] Slice A: current-cycle plan selection / identity / completion evidence を reusable owner へ寄せ、planned value / temporal attachment と envelope aggregate comparison を分離する → PR #70
 - [x] Observation: Slice B 前に current temporal semantics を docs-only で地図化し、同名 `LatestActualDateInCycle` の drift、`ctx.as_of` bypass、basis-date visibility を記録する → `docs/archive/audits/TEMPORAL_SEMANTICS_OBSERVATION-2026-07-06.md`
-- [ ] Review: current clocks を `intentional distinct meaning` / `compatibility behavior` / `accidental duplication` / `bug candidate` / `unknown` に分類し、Slice B の `as_of` が何を意味するかを決める
-- [ ] Slice B: review 後、選ばれた explicit `as_of` meaning と `selection_scope=all_open_in_cycle` を持つ aggregate temporal coverage snapshot を readonly で追加する
+- [x] Review: current clocks を分類し、Slice B の `as_of` は canonical observation time を意味すると判断する。`latest actual` / source tail / cycle start は代用しない → `docs/archive/audits/TEMPORAL_SEMANTICS_CLASSIFICATION-2026-07-06.md`
+- [ ] Characterization: behavior change 前に、(A) non-monotonic journal source order に対する envelope local date と、(B) historical cycle + later journal data に対する outlook local date を fixture/check で固定する
+- [ ] Slice B: characterization と次の runtime decision 後、explicit observation `as_of` と `selection_scope=all_open_in_cycle` を持つ aggregate temporal coverage snapshot を readonly で追加する
 
 ---
 
