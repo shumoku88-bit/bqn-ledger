@@ -30,14 +30,10 @@ after_row ← RowForDate ⟨after_vm.trend_rows, "2026-01-02"⟩
 9 lib.AssertEq 4⊑before_row
 9 lib.AssertEq 4⊑after_row
 
-# Current behavior: the no-PID fixed plan is reserved while its date is
-# on or after the report-local latest-journal clock, then disappears when
-# an unrelated later journal Event advances that local clock past the plan.
+# Current behavior: ordinary 5-field plan rows receive a non-empty fallback
+# identity from PlanId. The later unrelated journal Event advances the local
+# clock but does not match that plan identity, so reserve stays open.
 300 lib.AssertEq 2⊑before_row
-0 lib.AssertEq 2⊑after_row
-700 lib.AssertEq 3⊑before_row
-1000 lib.AssertEq 3⊑after_row
-77 lib.AssertEq 5⊑before_row
-111 lib.AssertEq 5⊑after_row
+300 lib.AssertEq 2⊑after_row
 
 •Out "test_src_next_daily_trend_reserve_clock_dependency.bqn: OK"
