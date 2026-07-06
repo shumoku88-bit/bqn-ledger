@@ -23,6 +23,8 @@ For current `src_next` behavior, use these in order:
 
 ## Current section list
 
+Daily Trend has a characterized but unresolved temporal meaning for historical rows. See `docs/DAILY_TREND_TEMPORAL_SEMANTICS.md`; this note does not change current runtime behavior.
+
 As of this note, `tools/report --list-sections` reports these section keys:
 
 ```text
