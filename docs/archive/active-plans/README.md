@@ -1,7 +1,7 @@
 # active-plans inventory
 
 Status: directory inventory / docs hygiene
-Date: 2026-07-05
+Date: 2026-07-06
 
 This directory is an archive staging area, not a guarantee that every file is currently active.
 Some files are active plans or backlogs; others are completed decisions, historical handoffs, or superseded sketches kept here until references are cleaned up.
@@ -25,7 +25,8 @@ When choosing work, prefer `TODO.md` first. Use this inventory to avoid treating
 | `AI_BUDGET_CALCULATOR_DESIGN.md` | active | P1-P4 implemented, P5-P7 pending; current CLI is `tools/envelope-calc`. |
 | `AI_REVIEW_BQN_EVAL_TASK.md` | parked | Review request for devtool work; not a standing TODO by itself. |
 | `AI_WORKING_FEEDBACK_LOG.md` | active | Intake log for pit workflow/tooling observations. |
-| `PLAN_TEMPORAL_STATUS_PROJECTION_PLAN-2026-07-05.md` | active | Planning-stage design selected from current TODO. Keeps `future/due/overdue/completed` meaning independent from envelopes, requires explicit `as_of` in the projection core, and proposes a small behavior-preserving extraction slice. |
+| `PLAN_TEMPORAL_STATUS_PROJECTION_PLAN-2026-07-05.md` | historical | First extraction slice implemented by PR #64. Keep for rationale; current follow-up is `PLAN_TEMPORAL_EXECUTION_COVERAGE_JOIN-2026-07-06.md`. |
+| `PLAN_TEMPORAL_EXECUTION_COVERAGE_JOIN-2026-07-06.md` | active | Selected from current TODO. Adopts one aggregate-only temporal execution coverage snapshot, rejects per-plan funded claims without stronger linking semantics, and identifies duplicated open-plan ownership as the first seam to reduce. |
 | `SUBPROCESS_DEBUG_VISIBILITY_PLAN-2026-07-05.md` | historical | Implemented by PR #61 and closed as `resolved` for the selected slice. Review / Learning record: `../completed-plans/SUBPROCESS_DEBUG_VISIBILITY_REVIEW-2026-07-05.md`. Do not treat the old plan as authorization for broad subprocess migration. |
 | `CONFIG_RESOLUTION_SEMANTICS_PLAN-2026-07-05.md` | historical | A4 parent plan. Superseded as active instruction by the completion decision; retain for background. |
 | `CONFIG_KEY_CLASSIFICATION_DECISION-2026-07-05.md` | historical | A4 Phase 0 decision. Key classes and quarantines remain useful background, but A4 is closed. |
