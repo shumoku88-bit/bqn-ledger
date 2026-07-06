@@ -9,7 +9,7 @@ cube ← •Import "cube.bqn"
 fmt ← •Import "format.bqn"
 labels ← •Import "report_labels.bqn"
 json ← •Import "json.bqn"
-plan_status ← •Import "plan_status.bqn"
+plan_rows ← •Import "plan_rows.bqn"
 L ← labels.Text
 
 # ── CleanName helper ──────────────────────────────────────
@@ -23,23 +23,8 @@ CleanName ← {
 
 Pad5 ← { 𝕩 ∾ ((5 - (5⌊≠𝕩)) ⥊ ⟨""⟩) }
 
-# Extract plan_id from metadata (primary) or use first 5 TSV fields (fallback).
-PlanId ← {𝕊 line:
-  flds ← loader.SplitTsvKeepEmpty line
-  meta ← 5 ↓ flds
-  IsPlanId ← {"plan_id=" ≡ 8↑𝕩}
-  cand ← IsPlanId¨ meta
-  has ← ∨´cand
-  id ← ∾ 5↑flds
-  id ↩ ({𝕊: 8 ↓ (⊑(cand/↕≠meta)) ⊑ meta}⍟has) id
-  id
-}
-
-InCycle ← {𝕊 cycleStart‿dayCount‿line:
-  flds ← Pad5 loader.SplitTsvKeepEmpty line
-  day ← proj.ResolveDayFromCycle ⟨0⊑flds, cycleStart⟩
-  (day ≥ 0) ∧ (day < dayCount)
-}
+# Compatibility export. Identity ownership lives in plan_rows.bqn.
+PlanId ← plan_rows.PlanId
 
 StatusFor ← {𝕊 planId‿journalPlanIds:
   (∨´ (planId⊸≡¨ journalPlanIds)) ⊑ ⟨ "planned", "paid" ⟩
@@ -76,42 +61,22 @@ LatestActualDateInCycle ← {𝕊 base‿cy:
 
 # BuildViewModel: compute planned-payment meaning once for human and
 # structured JSON renderers.
-# Completed actual amounts are summed from matching in-cycle journal rows.
+# Current-cycle row selection, identity and completion evidence are shared
+# with envelope coverage through plan_rows.bqn.
 BuildViewModel ← {𝕊 ctx:
   base ← ctx.base
   cy ← ctx.cy
-
-  lines ← loader.ReadLinesOptional (base ∾ "/plan.tsv")
-  mask ← { InCycle ⟨cy.start, cy.day_count, 𝕩⟩ }¨ lines
-  rows ← mask / lines
-
-  GetDate ← { ⊑ Pad5 loader.SplitTsvKeepEmpty 𝕩 }
-  rows ↩ (⍋ GetDate¨ rows) ⊏ rows
-
-  journalLines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
-  journalInCycleMask ← { InCycle ⟨cy.start, cy.day_count, 𝕩⟩ }¨ journalLines
-  journalInCycle ← journalInCycleMask / journalLines
-  journalPlanIds ← PlanId¨ journalInCycle
-
-  planIds ← PlanId¨ rows
-  statuses ← { StatusFor ⟨𝕩, journalPlanIds⟩ }¨ planIds
-
   as_of ← LatestActualDateInCycle ⟨base, cy⟩
 
-  ToNum ← { (0 < ≠ 𝕩) ? (•BQN 𝕩) ; 0 }
+  shared ← plan_rows.Build ⟨base, cy, as_of⟩
+  rows ← shared.rows
+  parsed ← shared.parsed
+  planIds ← shared.plan_ids
+  completed_mask ← shared.completed_mask
+  actuals ← shared.actuals
+  hstatuses ← shared.temporal_statuses
 
-  ParsedRow ← {
-    flds ← Pad5 loader.SplitTsvKeepEmpty 𝕩
-    date ← 0⊑flds
-    memo ← 1⊑flds
-    fromAcc ← 2⊑flds
-    toAcc ← 3⊑flds
-    amt ← ToNum 4⊑flds
-    ⟨date, memo, fromAcc, toAcc, amt⟩
-  }
-
-  parsed ← ParsedRow¨ rows
-  journalParsed ← ParsedRow¨ journalInCycle
+  statuses ← { 𝕩 ⊑ ⟨"planned", "paid"⟩ }¨ completed_mask
 
   CatFor ← {
     from ← 2⊑𝕩 ⋄ to ← 3⊑𝕩
@@ -120,24 +85,10 @@ BuildViewModel ← {𝕊 ctx:
   }
   cats ← CleanName¨ CatFor¨ parsed
 
-  hstatuses ← {
-    idx ← 𝕩
-    completed ← "paid" ≡ idx⊑statuses
-    planDate ← 0⊑(idx⊑parsed)
-    plan_status.Classify ⟨completed, planDate, as_of⟩
-  }¨ ↕ ≠ rows
-
-  ActualAmountFor ← {𝕊 pid:
-    matches ← pid⊸≡¨ journalPlanIds
-    +´ matches / {4⊑𝕩}¨ journalParsed
-  }
-  actuals ← ActualAmountFor¨ planIds
-
-  open_mask ← ¬ "completed"⊸≡¨ hstatuses
+  open_mask ← ¬ completed_mask
   open_indices ← open_mask / ↕ ≠ rows
   open_total ← +´ open_mask / {4⊑𝕩}¨ parsed
 
-  completed_mask ← "completed"⊸≡¨ hstatuses
   completed_indices ← completed_mask / ↕ ≠ rows
 
   {
@@ -159,21 +110,9 @@ BuildViewModel ← {𝕊 ctx:
 # Format: show plan entries with status from context.
 # Keep the compact path narrow: it does not depend on human/JSON as-of logic.
 Format ← {𝕊 ctx:
-  base ← ctx.base
-  cy ← ctx.cy
-  lines ← loader.ReadLinesOptional (base ∾ "/plan.tsv")
-  mask ← { InCycle ⟨cy.start, cy.day_count, 𝕩⟩ }¨ lines
-  rows ← mask / lines
-
-  GetDate ← { ⊑ Pad5 loader.SplitTsvKeepEmpty 𝕩 }
-  rows ↩ (⍋ GetDate¨ rows) ⊏ rows
-
-  journalLines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
-  journalInCycleMask ← { InCycle ⟨cy.start, cy.day_count, 𝕩⟩ }¨ journalLines
-  journalInCycle ← journalInCycleMask / journalLines
-  journalPlanIds ← PlanId¨ journalInCycle
-
-  statuses ← { StatusFor ⟨PlanId 𝕩, journalPlanIds⟩ }¨ rows
+  shared ← plan_rows.BuildBase ⟨ctx.base, ctx.cy⟩
+  rows ← shared.rows
+  statuses ← { 𝕩 ⊑ ⟨"planned", "paid"⟩ }¨ shared.completed_mask
 
   out ← "--- SrcNext Planned Payments ---" ∾ (@+10)
   { out ↩ out ∾ ∾ ({ FormatLine ⟨𝕩⊑rows, 𝕩⊑statuses⟩ }¨ ↕ ≠ rows) }⍟(0 < ≠ rows) @
