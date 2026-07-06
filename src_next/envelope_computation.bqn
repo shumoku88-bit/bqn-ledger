@@ -10,6 +10,7 @@ labels ← •Import "report_labels.bqn"
 L ← labels.Text
 unav ← •Import "unavailable.bqn"
 json ← •Import "json.bqn"
+plan_rows ← •Import "plan_rows.bqn"
 
 layer_actual ← 0
 
@@ -209,17 +210,6 @@ LatestActualDateInCycle ← {𝕊 base‿cy:
 }
 
 # ── Execution planned coverage diagnostic ────────────────────
-PlanId ← {𝕊 line:
-  flds ← loader.SplitTsvKeepEmpty line
-  meta ← 5 ↓ flds
-  IsPlanId ← {"plan_id=" ≡ 8↑𝕩}
-  cand ← IsPlanId¨ meta
-  has ← ∨´cand
-  id ← ∾ 5↑flds
-  id ↩ ({𝕊: 8 ↓ (⊑(cand/↕≠meta)) ⊑ meta}⍟has) id
-  id
-}
-
 CleanName ← {
   ( "expenses:" unav.StartsWith 𝕩 ) ? 9 ↓ 𝕩 ;
   ( "income:" unav.StartsWith 𝕩 ) ? 7 ↓ 𝕩 ;
@@ -247,26 +237,18 @@ BuildExecutionPlannedCoverage ← {𝕊 base‿cy‿envelopes‿cfg:
       env ← env_idx ⊑ envelopes
       env_remaining ↩ env.remaining
 
-      plan_lines ← loader.ReadLinesOptional (base ∾ "/plan.tsv")
-      plan_mask ← { InCycle ⟨cy, ⊑ Pad5 loader.SplitTsvKeepEmpty 𝕩⟩ }¨ plan_lines
-      plan_rows ← plan_mask / plan_lines
+      shared ← plan_rows.BuildBase ⟨base, cy⟩
+      open_indices ← (¬ shared.completed_mask) / ↕ ≠ shared.rows
 
-      journal_lines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
-      journal_mask ← { InCycle ⟨cy, ⊑ Pad5 loader.SplitTsvKeepEmpty 𝕩⟩ }¨ journal_lines
-      journal_rows ← journal_mask / journal_lines
-      journal_ids ← PlanId¨ journal_rows
-
-      ParsePlanRow ← {𝕊 line:
+      ParsePlanRow ← {𝕊 idx:
+        line ← idx ⊑ shared.rows
         f ← Pad5 loader.SplitTsvKeepEmpty line
         from ← 2⊑f ⋄ to ← 3⊑f
         is_inc ← "income:" unav.StartsWith from
         cat ← CleanName (is_inc ⊑ to‿from)
-        { date ⇐ 0⊑f, memo ⇐ 1⊑f, category ⇐ cat, amount ⇐ •BQN 4⊑f, plan_id ⇐ PlanId line }
+        { date ⇐ 0⊑f, memo ⇐ 1⊑f, category ⇐ cat, amount ⇐ •BQN 4⊑f, plan_id ⇐ idx ⊑ shared.plan_ids }
       }
-      parsed ← ParsePlanRow¨ plan_rows
-      plan_ids ← {𝕩.plan_id}¨ parsed
-      open_mask ← { ¬ ∨´ 𝕩⊸≡¨ journal_ids }¨ plan_ids
-      rows_out ↩ open_mask / parsed
+      rows_out ↩ ParsePlanRow¨ open_indices
       rows_out ↩ (⍋ {𝕩.date}¨ rows_out) ⊏ rows_out
       planned_total ↩ Sum0 ({𝕩.amount}¨ rows_out)
       delta ↩ env_remaining - planned_total
