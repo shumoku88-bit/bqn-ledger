@@ -1,0 +1,4 @@
+assets:cash	role=asset	type=liquid
+expenses:食費	role=expense	budget=食費	budget_group=life_primary	spend_class=variable
+budget:unassigned	role=budget	kind=unassigned
+budget:食費	role=budget	kind=envelope	envelope_role=dynamic	budget_group=life_primary
