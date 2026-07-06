@@ -34,7 +34,8 @@ Next finite slices after plan review:
 - [x] Slice A: current-cycle plan selection / identity / completion evidence を reusable owner へ寄せ、planned value / temporal attachment と envelope aggregate comparison を分離する → PR #70
 - [x] Observation: Slice B 前に current temporal semantics を docs-only で地図化し、同名 `LatestActualDateInCycle` の drift、`ctx.as_of` bypass、basis-date visibility を記録する → `docs/archive/audits/TEMPORAL_SEMANTICS_OBSERVATION-2026-07-06.md`
 - [x] Review: current clocks を分類し、Slice B の `as_of` は canonical observation time を意味すると判断する。`latest actual` / source tail / cycle start は代用しない → `docs/archive/audits/TEMPORAL_SEMANTICS_CLASSIFICATION-2026-07-06.md`
-- [ ] Characterization: behavior change 前に、(A) non-monotonic journal source order に対する envelope local date と、(B) historical cycle + later journal data に対する outlook local date を fixture/check で固定する
+- [x] Characterization: (A) non-monotonic journal source order で envelope `avg_spend=66`、(B) historical cycle `[2026-07-01, 2026-08-01)` で outlook local date が `2026-08-02` になる current behavior を fixture/test で固定する → `tests/test_src_next_temporal_clock_characterization.bqn`
+- [ ] Runtime decision: characterization evidence を見て、envelope source-order recency / outlook period leak / explicit observation `as_of` path などから次の runtime slice を一つだけ選ぶ。bundleしない
 - [ ] Slice B: characterization と次の runtime decision 後、explicit observation `as_of` と `selection_scope=all_open_in_cycle` を持つ aggregate temporal coverage snapshot を readonly で追加する
 
 ---
