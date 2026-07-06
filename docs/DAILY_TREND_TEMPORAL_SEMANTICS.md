@@ -2,7 +2,7 @@
 
 Status: current design note / unresolved semantic contract
 Owner: report
-Canonical: no; canonical temporal principle: `docs/TIME_AS_AXIS.md`; current runtime behavior remains `src_next/daily_trend.bqn` plus `tests/test_src_next_daily_trend_historical_stability.bqn`
+Canonical: no; canonical temporal principle: `docs/TIME_AS_AXIS.md`; current runtime behavior remains `src_next/daily_trend.bqn` plus characterization tests
 Exit: replace or archive after a later explicit Daily Trend temporal contract chooses and documents a semantic model
 
 ## Purpose
@@ -12,6 +12,8 @@ This note records an unresolved temporal meaning in Daily Trend historical rows.
 It does not choose a final model, and it does not authorize runtime changes. Its purpose is to keep the ambiguity visible before any fix, refactor, or semantic selection.
 
 The baseline principle is still `docs/TIME_AS_AXIS.md`: coordinate time, observation `as_of`, `system_today`, `last_recorded_on`, `data_cutoff`, `horizon_end`, and period/cycle boundaries are distinct meanings. They must not be collapsed into one global date.
+
+The first protected property for subsequent Daily Trend temporal work is now selected as **observation consistency**. See `docs/DAILY_TREND_OBSERVATION_CONSISTENCY_DECISION.md`. That decision does not choose Candidate A or Candidate B.
 
 ## Current unresolved question
 
@@ -48,6 +50,8 @@ an unrelated later journal Event
 ```
 
 This is a characterization of current runtime behavior, not a semantic decision.
+
+`tests/test_src_next_daily_trend_row_frame_mixing.bqn` further characterizes that one historical row can keep coordinate-local `days_left` while a shared future-income contribution changes with the report-local clock. This is the direct evidence used by the observation-consistency decision.
 
 ## Candidate A: fixed historical observation
 
@@ -96,20 +100,24 @@ shared helper shape == shared semantic contract
 
 Daily Trend and another section may both use similarly shaped local date helpers while answering different temporal questions.
 
-## Protected properties to consider before choosing
+## Protected properties
 
-A later semantic decision should state which properties it protects. These properties are related but not equivalent:
+These properties are related but not equivalent:
 
 - **Historical stability**: a previously rendered row for coordinate `D` remains stable under later unrelated Events, unless the chosen contract intentionally replays it.
-- **Observation consistency**: all values in a row use the same named observation frame rather than mixing row coordinate, cycle boundary, local latest journal date, and plan cutoff accidentally.
+- **Observation consistency**: every time-sensitive term has an explainable dependency on a named temporal frame, and combinations of distinct frames are intentional rather than accidental consequences of an implicit local clock.
 - **Cross-domain independence**: unrelated journal Events should not affect old Daily Trend rows through a hidden coupling unless the semantic contract explicitly permits that dependency.
 - **Auditability**: a user can tell whether a row records past decision state or a present-knowledge reinterpretation.
 - **Reproducibility**: given the same source TSV, config, code, and explicit temporal frame, the row can be regenerated with the same values.
 
-Choosing Candidate A emphasizes historical stability and past decision audit. Choosing Candidate B emphasizes retrospective reinterpretation. Either choice still needs an explicit temporal frame.
+The first selected property is **observation consistency**. This selection is recorded in `docs/DAILY_TREND_OBSERVATION_CONSISTENCY_DECISION.md`.
+
+This does not mean all values must use one date. Coordinate `D`, observation/replay frame `O`, and cycle/period boundary `C` remain distinct. The selected property requires their dependencies and compositions to be explainable.
+
+Choosing Candidate A would emphasize historical stability and past decision audit. Choosing Candidate B would emphasize retrospective reinterpretation. Either choice still needs an explicit temporal frame.
 
 ## Current decision
 
 No final Daily Trend temporal semantic model is selected here.
 
-This docs-only slice records that the current behavior is ambiguous and characterized, while leaving runtime behavior unchanged. A future runtime slice should first choose the intended protected property and name the Daily Trend observation/replay frame before changing implementation.
+The first protected property is observation consistency. Candidate A and Candidate B remain open, runtime behavior remains unchanged, and the next finite slice should map current Daily Trend term dependencies before any runtime fix.
