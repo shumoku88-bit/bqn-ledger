@@ -87,7 +87,9 @@ FormatHuman ← {𝕊 ctx‿n:
     dates ← {𝕩.date}¨ recent
     froms ← {𝕩.from}¨ recent
     tos ← {𝕩.to}¨ recent
-    memos ← {𝕩.memo}¨ recent
+    
+    TrimMemo ← { (fmt.VWidth 𝕩) ≤ 20 ? 𝕩 ; (fmt.PadV ⟨18, 𝕩⟩) ∾ ".." }
+    memos ← TrimMemo¨ {𝕩.memo}¨ recent
 
     date_w ← ⌈´ (fmt.VWidth¨ dates) ∾ ⟨4⟩
     from_w ← ⌈´ (fmt.VWidth¨ froms) ∾ ⟨4⟩
@@ -102,13 +104,15 @@ FormatHuman ← {𝕊 ctx‿n:
     out ↩ out ∾ (L "recent.memo_header") ∾ ((0⌈memo_w - 4) ⥊ " ") ∾ " |       " ∾ (L "recent.amount_header") ∾ (@+10)
 
     {
-      r ← 𝕩
+      idx ← 𝕩
+      r ← idx ⊑ recent
+      m_val ← idx ⊑ memos
       d ← PadCol ⟨date_w, r.date⟩
       f ← PadCol ⟨from_w, r.from⟩
       t ← PadCol ⟨to_w, r.to⟩
-      m ← PadCol ⟨memo_w, r.memo⟩
+      m ← PadCol ⟨memo_w, m_val⟩
       out ↩ out ∾ d ∾ " | " ∾ f ∾ " -> " ∾ t ∾ " | " ∾ m ∾ " | " ∾ (fmt.FmtAmt r.amount) ∾ (@+10)
-    }¨ recent
+    }¨ ↕ ≠ recent
   }⍟(0 < ≠ recent) @
   {𝕊: out ↩ out ∾ "  (none)" ∾ (@+10)}⍟(0 = ≠ recent) @
   out ↩ out ∾ (@+10)
