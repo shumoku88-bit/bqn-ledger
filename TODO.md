@@ -9,36 +9,54 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-06 — finite work と continuous maintenance を分離。完了済み baseline は `docs/archive/TODO_HISTORY-2026-07-06.md` へ退避。
+Last hygiene pass: 2026-07-08 — Daily Trend temporal work の current routing を #100〜#111 後の実装・docs truth に同期。
 
 ---
 
 ## Active work
 
-### Plan temporal status × envelope coverage
+### Daily Trend temporal semantics continuation
 
 Current baseline:
-- temporal status projection is independent from envelope state
-- current vocabulary remains `future` / `due` / `overdue` / `completed`
-- core classification receives explicit `as_of`
-- existing execution coverage diagnostic compares one configured envelope against all unfinished in-cycle plan rows
-- temporal observation found multiple current clock semantics across cycle/context/planned/envelope/outlook paths; audit snapshot: `docs/archive/audits/TEMPORAL_SEMANTICS_OBSERVATION-2026-07-06.md`
-- current temporal classification aligns runtime observations with existing `docs/TIME_AS_AXIS.md` vocabulary; review: `docs/archive/audits/TEMPORAL_SEMANTICS_CLASSIFICATION-2026-07-06.md`
-- consumer-side observation maps how a one-day temporal shift changes status, cutoffs, pace, period windows, historical rows, or only presentation; audit: `docs/archive/audits/TEMPORAL_CONSUMER_SENSITIVITY_OBSERVATION-2026-07-06.md`
+- canonical temporal principle is `docs/TIME_AS_AXIS.md`
+- selected Daily Trend product is A1-like current-source coordinate replay
+- `S = source snapshot supplied to this run`
+- `D = Daily Trend row coordinate`
+- `O_row = D`
+- `C = cycle boundary`
+- `L = record-frontier context`
+- `K = unavailable / not claimed`
+- preserve `L != O_row`, `L != K`, `O_row != K`, and `historical coordinate != historical knowledge state`
+- planned future income is row-local after PR #101: `f(S, D, C)`
+- row membership is owned by accepted in-cycle actual coordinates plus explicit empty-state anchor after PR #105; `L` does not own ordinary row membership
+- explicit empty `plan_id=` now falls back to the existing five-field compatibility identity after PR #110; the characterized PR #107 reserve drift is historical pre-#110 evidence
+- the empty-id reserve branch code remains present; other reachability is not claimed
+- named current `L` responsibilities still include VM `as_of` and human header `days_left`
 
-Planning decision:
-- [x] envelope coverage との join に実用上の価値があるか docs-only で判断する → valueあり。ただし aggregate-only。`docs/archive/active-plans/PLAN_TEMPORAL_EXECUTION_COVERAGE_JOIN-2026-07-06.md`
-- [x] 最初の derived view を一つだけ選ぶ → `Temporal execution coverage snapshot`
-- [x] current schema/config では per-plan の「funded / covered」主張をしない
+Current re-entry path:
+1. `docs/TIME_AS_AXIS.md`
+2. `docs/DAILY_TREND_CURRENT_SOURCE_COORDINATE_REPLAY_DECISION.md`
+3. `docs/DAILY_TREND_TEMPORAL_DEPENDENCY_MAP.md`
+4. `src_next/daily_trend.bqn`
+5. relevant characterization / contract tests for the specific consumer being changed
 
-Next finite slices after plan review:
-- [x] Slice A: current-cycle plan selection / identity / completion evidence を reusable owner へ寄せ、planned value / temporal attachment と envelope aggregate comparison を分離する → PR #70
-- [x] Observation: Slice B 前に current temporal semantics を docs-only で地図化し、同名 `LatestActualDateInCycle` の drift、`ctx.as_of` bypass、basis-date visibility を記録する → `docs/archive/audits/TEMPORAL_SEMANTICS_OBSERVATION-2026-07-06.md`
-- [x] Review: current clocks を分類し、Slice B の `as_of` は canonical observation time を意味すると判断する。`latest actual` / source tail / cycle start は代用しない → `docs/archive/audits/TEMPORAL_SEMANTICS_CLASSIFICATION-2026-07-06.md`
-- [x] Characterization: (A) non-monotonic journal source order で envelope `avg_spend=66`、(B) historical cycle `[2026-07-01, 2026-08-01)` で outlook local date が `2026-08-02` になる current behavior を fixture/test で固定する → `tests/test_src_next_temporal_clock_characterization.bqn`
-- [x] Consumer observation: clock producer ではなく temporal consumer を横断し、`hard_cutoff` / `threshold` / `denominator` / `future_cutoff` / `window_length` / `period_boundary` / `source_order` の sensitivity を地図化する → `docs/archive/audits/TEMPORAL_CONSUMER_SENSITIVITY_OBSERVATION-2026-07-06.md`
-- [ ] Runtime decision: producer map + characterization + consumer sensitivity evidence を見て、次の runtime slice が守る性質を `period containment` / `observation consistency` / `historical stability` / `cross-domain independence` / `auditability` / `reproducibility` から一つ選ぶ。bundleしない
-- [ ] Slice B: characterization と次の runtime decision 後、explicit observation `as_of` と `selection_scope=all_open_in_cycle` を持つ aggregate temporal coverage snapshot を readonly で追加する
+Next finite rule:
+- [ ] start from current runtime + current dependency map, not from superseded A/B candidate wording
+- [ ] choose one concrete inconsistency or unclear ownership question backed by current evidence
+- [ ] characterize reachability / sensitivity before runtime repair when behavior is not already protected
+- [ ] state the protected property and owner before changing runtime
+- [ ] keep each slice separate; do not bundle VM `as_of`, header, reserve, Outlook, K, or shared temporal-kernel work
+- [ ] do not perform a global `L -> D`, `L -> O`, or `L -> K` rewrite
+- [ ] after a runtime slice, synchronize current dependency docs and retire stale routing before continuing
+
+Campaigns already completed and not automatic next work:
+- PR #100〜#106: current-source coordinate replay selection, row-local future income, row-membership ownership and docs sync
+- PR #107〜#111: explicit-empty identity characterization, semantic map, product decision, runtime alignment and docs closure
+
+Deferred earlier track:
+- aggregate `Temporal execution coverage snapshot` remains a separate candidate from the earlier plan temporal-status × envelope-coverage work
+- do not treat old “Slice B” wording as automatic authorization
+- revisit only if the derived view is still useful under an explicit current observation contract
 
 ---
 
