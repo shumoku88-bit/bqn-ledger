@@ -1,26 +1,46 @@
 # Daily Trend Temporal Dependency Map
 
-Status: current observation / pre-runtime dependency map
+Status: current observation / post-first-runtime dependency map
 Owner: report
 Canonical: no; canonical temporal principle remains `docs/TIME_AS_AXIS.md`
-Exit: revise or archive after an explicit Daily Trend temporal contract and runtime slice consume this map
+Selected product: `docs/DAILY_TREND_CURRENT_SOURCE_COORDINATE_REPLAY_DECISION.md`
+Knowledge boundary: `docs/DAILY_TREND_KNOWLEDGE_BOUNDARY_DECISION.md`
+Exit: revise after later Daily Trend runtime slices materially change current dependencies
 
 ## Purpose
 
-This docs-only map follows `docs/DAILY_TREND_OBSERVATION_CONSISTENCY_DECISION.md`.
+This map records the temporal and source-state dependencies currently present in `src_next/daily_trend.bqn` after the first runtime slice selected by the current-source coordinate replay decision.
 
-It classifies current `src_next/daily_trend.bqn` terms by the temporal frames and matching state they actually consume before any runtime change.
+The first protected property remains:
 
-This map does not choose between:
+```text
+observation consistency
+```
 
-1. fixed historical observation,
-2. present-knowledge retrospective projection.
+The selected product direction is now:
 
-It also does not authorize a runtime fix.
+```text
+A1-like current-source coordinate replay
+```
 
-## Revision note
+with initial reasoning shape:
 
-The first version of this map broadly classified reserve as:
+```text
+S = source snapshot supplied to this run
+D = row coordinate
+O_row = D
+C = cycle / period boundary
+L = current local last-recorded coordinate frontier
+K = unavailable / not claimed
+```
+
+This map describes current implementation dependencies. It does not claim that all selected product work is complete.
+
+## Revision history
+
+### Revision A: reserve dependency correction
+
+The first dependency map broadly classified ordinary reserve as:
 
 ```text
 reserve = f(D, L, C)
@@ -28,19 +48,17 @@ reserve = f(D, L, C)
 
 That was too broad.
 
-A follow-up characterization attempt expected an ordinary 5-field fixed plan reserve to change from `300` to `0` when an unrelated later journal Event advanced local `L`. The first dedicated run instead reported:
+A dedicated characterization disproved the expected ordinary 5-field behavior:
 
 ```text
-Assertion failed: expected 0 but got 300
+expected reserve:
+  300 -> 0
+
+observed reserve:
+  300 -> 300
 ```
 
-Inspection of `src_next/plan_journal_overlap.bqn` explains why.
-
-`PlanId` does not return an empty identity merely because a plan lacks `plan_id=` metadata. For ordinary 5-field rows it falls back to the first five TSV fields.
-
-Therefore ordinary 5-field plans follow the non-empty identity branch in current Daily Trend reserve logic.
-
-This revision separates:
+Inspection of `src_next/plan_journal_overlap.bqn` showed that ordinary 5-field rows receive a non-empty fallback identity. The current map therefore separates:
 
 ```text
 ordinary fallback-identity reserve path
@@ -49,100 +67,158 @@ ordinary fallback-identity reserve path
 from:
 
 ```text
-empty-identity edge path
+empty-identity reserve edge path
 ```
 
-and removes the unsupported claim that normal reserve behavior is simply `f(D, L, C)`.
+### Revision B: row-local future income
+
+PR #101 implemented the first runtime slice selected by PR #100.
+
+Before:
+
+```text
+planned_future_income = f(L, C)
+```
+
+One report-local scalar was computed outside the row loop using:
+
+```text
+plan.date > L
+plan.date < C.end_exclusive
+```
+
+After:
+
+```text
+planned_future_income_for_row = f(S, D, C)
+```
+
+Each row computes its own future income using:
+
+```text
+plan.date > D
+plan.date < C.end_exclusive
+```
+
+Existing plan admission and income classification remain unchanged.
+
+This removes the previously characterized shared `L` cutoff from ordinary row fund / daily values.
 
 ## Symbols
 
 ```text
+S = source snapshot supplied to the run
 D = current trend-row coordinate date
-P = predecessor trend-row coordinate used by delta
-O = explicit observation or replay frame
+P = predecessor rendered row coordinate used by delta
+O = explicit observation / replay frame when one exists
+O_row = selected Daily Trend row observation rule; currently D
 C = cycle / period boundary
-L = current report-local latest-journal clock from LatestActualDateInCycle
+L = current report-local latest-journal coordinate from LatestActualDateInCycle
 R = current trend-row coordinate set / ordering
 M = plan/journal identity matching state visible at row D
-E = empty-identity edge path
+E = empty-identity reserve edge path
+K = historical knowledge boundary; unavailable / not claimed in current product
 ```
 
 Important:
 
 ```text
-O is not currently supplied as an explicit Daily Trend observation/replay frame.
+O_row = D
 ```
 
-The current variable named `as_of` is derived locally from `LatestActualDateInCycle`; this map therefore classifies it as `L`, not as proof of canonical observation time `O`.
+is the selected product rule for row-local O-shaped calculations.
+
+Current Daily Trend still does not expose a generic explicit `BuildAt(ctx, O)` boundary.
+
+Also:
+
+```text
+L != O_row
+L != K
+O_row != K
+```
 
 ## High-level result
 
-Current Daily Trend is not one temporal frame.
-
-At least these structures are present:
+The first runtime slice removed the strongest directly characterized ordinary-row frame mixture:
 
 ```text
+historical D
++
+shared planned_future_income(L, C)
+```
+
+Current ordinary row calculations are now approximately centered on:
+
+```text
+S
 D
 C
-L
-R
 M
 ```
 
-and `delta` additionally depends on predecessor row `P`.
-
-The strongest currently characterized row-frame mixing remains:
+Residual `L` dependencies remain in separate places:
 
 ```text
-coordinate-local actual state
-  +
-report-local planned-future-income cutoff
-  +
-cycle boundary
+trend row-set construction R
+empty-identity reserve edge E
+VM as_of
+human header days_left
 ```
 
-inside one historical row.
+Therefore the temporal investigation is not complete.
 
-The reserve path is more conditional than the first map claimed and must be split by identity semantics.
-
-## Dependency table
+## Current dependency table
 
 | Term | Current dependency | Current mechanism | Observation |
 |---|---|---|---|
-| `trend row coordinate set` | `R + L + C` | actual posting dates plus local `as_of`, then sort/deduplicate and cycle filter | local clock can add a coordinate row |
-| `date_str` | `D + R` | row `dn` resolved through `trend_dns` / `trend_dates` | presentation coordinate follows row set |
-| `liquid` | `D + C` | cumulative actual cube slice at day offset from cycle start | coordinate-local cumulative actual state |
-| cumulative `sav` | `D + C` | same cumulative actual cube mechanism | coordinate-local cumulative actual state |
-| `planned_future_income` | `L + C` | plan date `> as_of_dn` and `< cycle_end_exclusive` | shared report-local scalar reused across rows |
-| ordinary 5-field `reserve` | `D + C + M` | plan window uses `D`; journal identities visible through `D`; ordinary rows receive non-empty fallback identity | no direct `L` dependence established for this path |
-| empty-identity reserve edge | `D + L + C + E` | empty identity branch compares plan date with `last_act_dn`, whose current expression includes local `as_of_dn` | edge path exists statically; ordinary 5-field reachability is not implied |
-| ordinary-path `fund` | `D + L + C + M` | `liquid + planned_future_income - reserve` | still mixes row-local state with shared `L` cutoff through future income |
-| `days_left` | `D + C` | `cycle_end_exclusive - D` | coordinate-local denominator term |
-| ordinary-path `daily` | `D + L + C + M` | `fund / days_left` | inherits mixed fund plus coordinate denominator |
-| `day_var` | `D + C` | actual slice for row day | coordinate-local day actual |
-| `day_sav` | `D + C` | actual slice for row day | coordinate-local day actual |
-| `day_fixed` | `D + C` | actual slice for row day | coordinate-local day actual |
-| `delta` | `D + P + L + C + R + M` | current `daily` minus previous rendered row `daily` | also depends on predecessor and row ordering |
-| VM `as_of` | `L` | `LatestActualDateInCycle(base, cy)` | local clock, not explicit `O` |
-| human header `days_left` | `L + C` | `cycle_end_exclusive - vm.as_of` | header clock differs from historical row `D` |
+| `trend row coordinate set` | `R + L + C` | actual posting dates plus local `as_of`, then sort/deduplicate and cycle filter | local frontier still participates in row-set construction |
+| `date_str` | `D + R` | row `dn` resolved through current row set | presentation coordinate follows row set |
+| `liquid` | `S + D + C` | cumulative actual cube slice at row day offset | current-source coordinate-local actual state |
+| cumulative `sav` | `S + D + C` | same cumulative actual mechanism over savings accounts | current-source coordinate-local actual state |
+| `planned_future_income` | `S + D + C` | plan date `> D` and `< C.end_exclusive`; existing income/liquid admission rules | row-local future-income contribution |
+| ordinary 5-field `reserve` | `S + D + C + M` | plan window uses D; journal identities visible through D; ordinary rows receive fallback identity | no direct L dependence established for ordinary path |
+| empty-identity reserve edge | `S + D + L + C + E` | empty identity branch compares plan date with `last_act_dn` containing local `as_of_dn` | residual local-L edge path |
+| ordinary-path `fund` | `S + D + C + M` | `liquid + planned_future_income - reserve` | selected row-local future income removes direct L path |
+| `days_left` | `D + C` | `C.end_exclusive - D` | coordinate-local denominator |
+| ordinary-path `daily` | `S + D + C + M` | `fund / days_left` | no direct L path from ordinary future income |
+| `day_var` | `S + D + C` | actual slice for row day | coordinate-local day actual |
+| `day_sav` | `S + D + C` | actual slice for row day | coordinate-local day actual |
+| `day_fixed` | `S + D + C` | actual slice for row day | coordinate-local day actual |
+| `delta` | `S + D + P + C + R + M` | current daily minus predecessor daily | indirectly sensitive to any L effect on row set R |
+| VM `as_of` | `L` | `LatestActualDateInCycle(base, cy)` | still local frontier, not row O |
+| human header `days_left` | `L + C` | `C.end_exclusive - vm.as_of` | section-level frame remains separate from row D |
 
 ## Evidence by term
 
 ### 1. Trend coordinate set: `R + L + C`
 
-Current row coordinates are built from valid actual posting dates and local `as_of`:
+Current row coordinates are built from valid actual posting dates plus local `as_of`:
 
 ```text
 trend_dates_all = j_dates + <as_of>
 ```
 
-They are then sorted, deduplicated, and filtered to the selected cycle.
+Then sorted, deduplicated, and cycle-filtered.
 
-Therefore local `L` can participate in row-coordinate membership itself.
+So local `L` still participates in row-set construction.
 
-### 2. `liquid`: `D + C`
+This map does not yet decide whether that participation is semantically necessary.
 
-The actual cube is cumulatively summed and indexed by row day offset:
+Important nuance:
+
+```text
+when L is itself one of the actual posting dates,
+appending L may deduplicate to an already-present coordinate
+```
+
+while fallback / empty-source cases may behave differently.
+
+This deserves characterization before any row-set rewrite.
+
+### 2. `liquid`: `S + D + C`
+
+Current actual cube is cumulatively summed and indexed by row offset:
 
 ```text
 d = D - C.start
@@ -150,38 +226,141 @@ cum = cumulative_actual[d]
 liquid = sum liquid accounts from cum
 ```
 
-Once row `D` exists, the local liquid formula does not directly consume `L`.
+PR #99 proves that changing source snapshot `S` with a backdated actual Event at `D` can change the row while `D`, `L`, and `C` stay fixed.
 
-### 3. cumulative `sav`: `D + C`
-
-Cumulative saving is read from the same cumulative actual row as liquid, over savings accounts.
-
-### 4. `planned_future_income`: `L + C`
-
-Current plan rows are admitted when:
+Therefore current-source state is a real dependency:
 
 ```text
-plan.date > L
+liquid = f(S, D, C)
+```
+
+This is compatible with the selected A1-like product.
+
+### 3. cumulative `sav`: `S + D + C`
+
+Saving cumulative state is read from the same cumulative actual row as liquid, over savings accounts.
+
+It therefore shares current-source coordinate-local shape.
+
+### 4. `planned_future_income`: `S + D + C`
+
+Current plan rows are admitted per row when:
+
+```text
+plan.date > D
 plan.date < C.end_exclusive
 ```
 
-The result is computed once outside the per-row loop:
+plus unchanged existing conditions for:
 
 ```text
-planned_future_income = f(L, C)
+planned layer
+liquid destination
+income classification
 ```
 
-Existing characterization shows the visible effect when `L` advances past a future-income plan date:
+The calculation now occurs inside the row loop.
+
+Conceptual shape:
 
 ```text
-future contribution: 900 -> 0
+planned_future_income_for_row = f(S, D, C)
 ```
 
-while the same historical row coordinate remains present.
+This implements the first selected consequence of:
 
-### 5. ordinary 5-field `reserve`: `D + C + M`
+```text
+O_row = D
+L does not own historical row observation
+```
 
-Current reserve logic first filters journal identity evidence through row `D`:
+### 5. Characterized removal of ordinary L-driven future-income drift
+
+Existing fixture shape:
+
+```text
+historical row D = 2026-01-02
+future income plan = 2026-01-05 amount 900
+
+before local L = 2026-01-03
+after local L  = 2026-01-06
+```
+
+Old behavior:
+
+```text
+future contribution:
+  900 -> 0
+
+fund:
+  1000 -> 100
+
+daily:
+  111 -> 11
+```
+
+Current behavior after PR #101:
+
+```text
+future contribution:
+  900 -> 900
+
+fund:
+  1000 -> 1000
+
+daily:
+  111 -> 111
+```
+
+The section-level VM `as_of` still moves:
+
+```text
+2026-01-03 -> 2026-01-06
+```
+
+so the slice specifically removes cutoff ownership from ordinary row future income rather than deleting local L entirely.
+
+### 6. PR #99 backdated-source behavior remains valid
+
+Fixture shape:
+
+```text
+D fixed
+L fixed
+C fixed
+row set fixed
+
+S changes by adding a backdated Event at D
+```
+
+Current row still changes:
+
+```text
+liquid:
+  100 -> 90
+
+fund:
+  1000 -> 990
+
+daily:
+  111 -> 110
+```
+
+This distinction is intentional under current-source coordinate replay:
+
+```text
+later unrelated L movement
+  -> no longer rewrites row through shared future-income cutoff
+
+backdated source fact at/before D
+  -> may change coordinate-local row state
+```
+
+This is not historical immutability.
+
+### 7. ordinary 5-field reserve: `S + D + C + M`
+
+Current reserve logic filters journal identity evidence through row D:
 
 ```text
 journal.date <= D
@@ -194,47 +373,35 @@ plan.date >= D
 plan.date < C.end_exclusive
 ```
 
-The critical correction is identity extraction.
+Ordinary 5-field plans receive non-empty fallback identity from `PlanId`.
 
-For an ordinary 5-field plan without `plan_id=` metadata, current `PlanId` falls back to the first five fields rather than returning empty identity.
-
-Therefore the ordinary path reaches the non-empty identity branch:
+Therefore ordinary open/closed status depends on identity matching state visible at D:
 
 ```text
-plan remains open when its fallback identity is not present
-among journal identities visible at D
+M
 ```
 
-A later unrelated Event can advance `L` without matching that plan identity.
+Current evidence does not establish direct L dependence for this ordinary path.
 
-The first dedicated reserve run observed exactly the contradiction to the earlier hypothesis:
-
-```text
-expected after reserve: 0
-observed after reserve: 300
-```
-
-So normal 5-field reserve must not be documented as direct `L` dependence on current evidence.
-
-### 6. empty-identity reserve edge: `D + L + C + E`
+### 8. empty-identity reserve edge: `S + D + L + C + E`
 
 The code still contains an empty-identity branch.
 
-That branch compares plan date with `last_act_dn`, whose current expression appends local `as_of_dn`:
+That branch uses:
 
 ```text
 last_act_dn = last((journal dates <= D) + <as_of_dn>)
 ```
 
-Under the current expression shape, the appended local value is the final element, so the branch can consume `L`.
+where `as_of_dn` is local L.
 
-But this is an edge-path statement.
+This remains a residual static L path.
 
-It does not imply ordinary 5-field plans use that path.
+Do not generalize it to ordinary 5-field reserve behavior.
 
-Reachability and intended semantics of explicit empty identity should be characterized separately before any broader conclusion.
+Reachability and product meaning remain unresolved.
 
-### 7. ordinary-path `fund`: `D + L + C + M`
+### 9. ordinary-path `fund`: `S + D + C + M`
 
 Current formula:
 
@@ -242,45 +409,41 @@ Current formula:
 fund = liquid + planned_future_income - reserve
 ```
 
-For the ordinary identity path:
+For ordinary identity path:
 
 ```text
-liquid                = f(D, C)
-planned_future_income = f(L, C)
-reserve               = f(D, C, M)
+liquid                = f(S, D, C)
+planned_future_income = f(S, D, C)
+reserve               = f(S, D, C, M)
 ```
 
-Therefore:
+Therefore approximately:
 
 ```text
-fund = f(D, L, C, M)
+fund = f(S, D, C, M)
 ```
 
-The mixed `L` path remains through `planned_future_income` even after correcting reserve semantics.
+The previously characterized ordinary direct L path through future income has been removed.
 
-### 8. `days_left`: `D + C`
+### 10. `days_left`: `D + C`
 
-Current formula:
+Current formula remains:
 
 ```text
 days_left = max(0, C.end_exclusive - D)
 ```
 
-Existing characterization shows historical `days_left` remains tied to row `D` when local `L` advances.
+### 11. ordinary-path `daily`: `S + D + C + M`
 
-### 9. ordinary-path `daily`: `D + L + C + M`
-
-Current formula:
+Current formula remains:
 
 ```text
 daily = floor(fund / max(1, days_left))
 ```
 
-Because ordinary-path `fund` contains the shared `planned_future_income(L, C)` term while `days_left` is coordinate-local, current `daily` still mixes row and report-local frames.
+With ordinary fund now row-local for future income, direct L dependence is no longer present through that path.
 
-### 10. day actual terms: `D + C`
-
-The following index the actual slice for row day:
+### 12. day actual terms: `S + D + C`
 
 ```text
 day_var
@@ -288,160 +451,242 @@ day_sav
 day_fixed
 ```
 
-No direct `L` cutoff is consumed in their current local formulas.
+index actual state for row day D.
 
-### 11. `delta`: `D + P + L + C + R + M`
+PR #99 demonstrates that current source snapshot changes can alter such terms under fixed L.
 
-`delta` is computed after trend rows exist:
+### 13. `delta`: second-order consumer
+
+Current delta is:
 
 ```text
-current daily - previous rendered row daily
+current row daily - predecessor rendered row daily
 ```
 
-It inherits the temporal and matching dependencies of `daily`, and predecessor selection depends on sorted/deduplicated row set `R`.
+It therefore depends on:
 
-A local clock shift can affect delta through at least:
+```text
+current D
+predecessor P
+row set R
+row daily dependencies
+```
 
-1. mixed daily values,
-2. row-set membership and predecessor relation.
+Approximate ordinary shape:
 
-### 12. human header: `L + C`
+```text
+delta = f(S, D, P, C, R, M)
+```
 
-`FormatHuman` computes header days remaining from:
+Because current R may depend on L, delta can still be indirectly L-sensitive through predecessor / row membership even after ordinary future income becomes row-local.
+
+### 14. VM `as_of`: `L`
+
+Current VM still returns:
+
+```text
+as_of = LatestActualDateInCycle(base, cy)
+```
+
+This remains local frontier evidence.
+
+It is not proof that:
+
+```text
+historical row O = L
+```
+
+The current product rule is:
+
+```text
+O_row = D
+```
+
+for selected row-local O-shaped calculations.
+
+### 15. Human header: `L + C`
+
+Current human header computes section days remaining from:
 
 ```text
 C.end_exclusive - vm.as_of
 ```
 
-where VM `as_of` is current local `L`.
+where VM `as_of` remains L.
 
-The section can therefore display:
+So one section can still contain:
 
 ```text
 historical row days_left = f(D, C)
-header current days_left = f(L, C)
+header days_left         = f(L, C)
 ```
 
-This may be intentional presentation, but the distinction should remain explicit.
+This may be intentional section presentation, but remains a separate unresolved semantic decision.
 
-## Current absence of explicit `O`
+## Current relationship to explicit O
 
-No term in this map is classified as consuming an explicit Daily Trend observation/replay frame `O`.
-
-That does not mean the report has no observation-like behavior.
-
-It means Daily Trend derives local `L` and names the VM field `as_of`, but current implementation does not receive an explicit observation/replay frame whose semantic contract is established for Daily Trend.
-
-Therefore:
+Daily Trend still has no generic consumer API shaped like:
 
 ```text
-current local L
-  != automatically explicit O
+BuildAt(ctx, O)
+```
+
+The selected product does not require one for the first slice.
+
+Instead, the row rule:
+
+```text
+O_row = D
+```
+
+is currently realized locally in the selected future-income cutoff and already-existing coordinate-local calculations.
+
+Do not infer:
+
+```text
+ctx.as_of = Daily Trend O
+```
+
+or:
+
+```text
+Outlook O = Daily Trend O
 ```
 
 ## Findings
 
-### Finding A: planned future income remains the characterized cross-frame path
+### Finding A: strongest characterized ordinary row-frame mixture was removed
 
-The strongest directly characterized row-frame mixing remains:
+The old directly characterized path:
 
 ```text
-historical D
+D-local actual / denominator
 +
 shared planned_future_income(L, C)
-+
-days_left(D, C)
 ```
 
-This is sufficient to keep the observation-consistency question open.
+no longer exists for ordinary future-income contribution.
 
-### Finding B: the first reserve map overgeneralized an edge branch
+This is the main result of PR #101.
 
-The earlier map treated the empty-identity branch as representative of ordinary plan rows.
+### Finding B: source snapshot S is an independent dependency
 
-That was incorrect because ordinary 5-field rows receive fallback identity.
+PR #99 proves:
 
-### Finding C: identity semantics are part of reserve dependency
+```text
+same D
+same L
+same C
+same row set
+different S
+  -> row changes
+```
 
-Reserve is not only a date-cutoff problem.
+Therefore L cannot stand in for source knowledge / snapshot identity.
 
-For ordinary rows it also depends on which plan identity is considered matched by journal identities visible at row `D`.
+### Finding C: residual L dependencies remain finite and named
 
-This is captured as `M`.
+Current residual L areas are:
 
-### Finding D: row membership itself consumes `L`
+```text
+row-set construction R
+empty-identity reserve edge E
+VM as_of
+human header
+```
 
-Because local `as_of` is appended before row sort/deduplication, `L` can influence which trend rows exist.
+This is materially narrower than the pre-#101 dependency shape.
 
-### Finding E: `delta` is a second-order consumer
+### Finding D: ordinary reserve remains identity-sensitive
 
-Delta compares adjacent rendered rows and therefore depends on predecessor selection and row ordering in addition to each row's own value dependencies.
+Reserve is not merely a date-cutoff problem.
 
-### Finding F: no explicit `O` path is present
+Ordinary path depends on plan/journal identity matching state M visible through D.
 
-Candidate A/B remains unresolved.
+### Finding E: delta remains second-order
+
+Even when row daily values are better aligned to D, delta depends on predecessor selection and row set.
+
+### Finding F: current product is not historical-knowledge replay
+
+Current-source coordinate replay uses S supplied to the run.
+
+No K is implemented or claimed.
 
 ## What this map does not decide
 
 This map does not decide:
 
-- that historical rows must be stable,
-- that retrospective replay is intended,
-- that `D` must equal `O`,
-- that local `L` must be replaced by `ctx.as_of`,
-- that ordinary reserve is wrong,
-- that the empty-identity edge path is reachable in normal data,
-- that `planned_future_income` is wrong,
-- that row coordinates should exclude local `L`,
-- that all sections should share one date helper.
+- that historical rows are immutable,
+- that K should be implemented,
+- that all L usage is wrong,
+- that row coordinates should exclude L,
+- that the empty-identity edge path should be removed,
+- that reserve should be rewritten,
+- that header must use D,
+- that Daily Trend needs a generic BuildAt API,
+- that `ctx.as_of` should become row O,
+- that all report consumers should share one date,
+- that a shared temporal kernel is now justified.
 
-## Recommended next finite slices
+## Recommended next finite slice
 
-### Immediate verification
+Do not perform another broad runtime rewrite immediately.
 
-Rerun the corrected dedicated reserve test after changing its expectation from the disproved `300 -> 0` hypothesis to the observed ordinary-path stability:
+The strongest next question is:
 
 ```text
-reserve: 300 -> 300
+Does local L materially and independently change the Daily Trend row set,
+or is the appended L normally redundant with an existing actual posting date?
 ```
 
-Do not merge that characterization until the corrected test actually passes.
+Recommended test-only characterization:
 
-### After that
+```text
+A. non-empty in-cycle journal
+   compare actual posting coordinate set
+   vs final trend row set contribution from appended L
 
-Choose one finite question, not a bundled redesign:
+B. empty / fallback journal case
+   characterize whether cycle.start fallback creates a synthetic row
+```
 
-1. characterize explicit empty `plan_id=` reachability and behavior, or
-2. return to the already characterized `planned_future_income(L, C)` path and decide what explicit observation/replay contract it should obey.
+Why this next:
 
-The second path is more directly connected to current observed historical-row instability.
+```text
+row-set construction is the broadest remaining residual L path
+and delta inherits row-set behavior
+```
 
-Keep either slice separate from:
+Keep that slice separate from:
 
-- broad runtime repair,
-- global `as_of`,
-- `TemporalFrame`,
-- helper deduplication,
-- source TSV changes.
+```text
+row-set redesign
+header changes
+reserve changes
+K implementation
+shared temporal kernel
+```
 
 ## Current conclusion
 
-The corrected approximate shape is:
+Approximate current shape after PR #101:
 
 ```text
 row coordinates             = f(R, L, C)
-liquid                       = f(D, C)
-ordinary reserve             = f(D, C, M)
-empty-identity reserve edge  = f(D, L, C, E)
-planned_future_income        = f(L, C)
-ordinary-path fund           = f(D, L, C, M)
+liquid                       = f(S, D, C)
+ordinary reserve             = f(S, D, C, M)
+empty-identity reserve edge  = f(S, D, L, C, E)
+planned_future_income        = f(S, D, C)
+ordinary-path fund           = f(S, D, C, M)
 days_left                    = f(D, C)
-ordinary-path daily          = f(D, L, C, M)
-day actual terms             = f(D, C)
-delta                        = f(D, P, L, C, R, M)
+ordinary-path daily          = f(S, D, C, M)
+day actual terms             = f(S, D, C)
+delta                        = f(S, D, P, C, R, M)
+VM as_of                     = f(L)
 header days_left             = f(L, C)
 ```
 
-This correction preserves the broader observation-consistency problem while removing an unsupported claim about ordinary reserve behavior.
+The first selected runtime slice has narrowed the ordinary row problem substantially.
 
-The next question should still be answered by one narrow characterization at a time, not by a bundled temporal redesign.
+The next work should characterize the remaining L paths one at a time rather than generalize from the old mixed-frame shape.
