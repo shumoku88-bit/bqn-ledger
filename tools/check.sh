@@ -109,6 +109,7 @@ bash checks/check-src-next-envelope-production-guard.sh >/dev/null
 bash checks/check-src-next-actual-comparison.sh fixtures/src-next-golden >/dev/null
 bash checks/check-src-next-snapshot.sh fixtures/src-next-golden >/dev/null
 bash checks/check-src-next-report.sh fixtures/src-next-golden >/dev/null
+bash checks/check-src-next-outlook-observation-source.sh >/dev/null
 bash checks/check-report-section-metadata.sh fixtures/src-next-golden >/dev/null
 bash checks/check-src-next-stage4-fields.sh fixtures/src-next-golden >/dev/null
 bash checks/check-src-next-compact-summary.sh fixtures/src-next-golden >/dev/null
