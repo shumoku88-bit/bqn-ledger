@@ -55,13 +55,13 @@ Build ← {𝕊 ctx:
   cum_mat ← +` actual_slice  # shape: day_count × ak_count
 
   # 1. Build trend_dates & trend_dns
-  # Collect dates from valid actual postings (layer = 0)
+  # Collect dates from accepted actual projection coordinates (layer = 0).
   valid_rows ← ctx.cube.valid_rows
   j_projs ← (0 = {𝕩.layer_index}¨ valid_rows) / valid_rows
   j_dates ← {𝕩.date}¨ j_projs
 
   as_of ← LatestActualDateInCycle ⟨base, cy⟩
-  trend_dates_all ← j_dates ∾ ⟨as_of⟩
+  trend_dates_all ← j_dates
 
   # Sort and deduplicate
   dns ← proj.DaysFromEpoch¨ trend_dates_all
@@ -76,10 +76,13 @@ Build ← {𝕊 ctx:
   cycle_end_excl_dn ← proj.DaysFromEpoch cy.end_exclusive
   as_of_dn ← proj.DaysFromEpoch as_of
 
-  # Restrict to dates within the cycle
+  # Restrict to dates within the cycle, then anchor empty state explicitly.
   valid_mask ← (trend_dns_uniq ≥ cycle_start_dn) ∧ (trend_dns_uniq < cycle_end_excl_dn)
-  trend_dates ← valid_mask / trend_dates_uniq
-  trend_dns ← valid_mask / trend_dns_uniq
+  trend_dates_pre ← valid_mask / trend_dates_uniq
+  trend_dns_pre ← valid_mask / trend_dns_uniq
+  has_trend_dates ← 0 < ≠ trend_dates_pre
+  trend_dates ← has_trend_dates ◶ ⟨{ ⟨cy.start⟩ }, { trend_dates_pre }⟩ @
+  trend_dns ← has_trend_dates ◶ ⟨{ ⟨cycle_start_dn⟩ }, { trend_dns_pre }⟩ @
   obs_count ← ≠ trend_dates
 
   # 2. Load plan.tsv and journal.tsv (for reserve calculation)
