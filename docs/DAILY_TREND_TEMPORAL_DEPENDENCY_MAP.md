@@ -1,16 +1,16 @@
 # Daily Trend Temporal Dependency Map
 
-Status: current observation / post-first-runtime dependency map
+Status: current observation / post-#110 dependency map
 Owner: report
 Canonical: no; canonical temporal principle remains `docs/TIME_AS_AXIS.md`
 Selected product: `docs/DAILY_TREND_CURRENT_SOURCE_COORDINATE_REPLAY_DECISION.md`
 Knowledge boundary: `docs/DAILY_TREND_KNOWLEDGE_BOUNDARY_DECISION.md`
 Row membership producer decision: `docs/DAILY_TREND_ROW_MEMBERSHIP_PRODUCER_DECISION.md`
-Exit: revise after later Daily Trend runtime slices materially change current dependencies
+Exit: revise only if later Daily Trend runtime slices materially change current dependencies
 
 ## Purpose
 
-This map records the temporal and source-state dependencies currently present in `src_next/daily_trend.bqn` after the first runtime slice selected by the current-source coordinate replay decision.
+This map records the temporal and source-state dependencies currently present in `src_next/daily_trend.bqn` after PR #110 closed the explicit-empty identity reachability path characterized in PR #107.
 
 The first protected property remains:
 
@@ -158,7 +158,7 @@ C = cycle / period boundary
 L = current report-local latest-journal coordinate from LatestActualDateInCycle
 R = current trend-row coordinate set / ordering
 M = plan/journal identity matching state visible at row D
-E = empty-identity reserve edge path
+E = historical empty-identity reserve branch path (code remains; explicit-empty path closed)
 K = historical knowledge boundary; unavailable / not claimed in current product
 ```
 
@@ -202,12 +202,12 @@ M
 Residual `L` dependencies remain in separate places:
 
 ```text
-empty-identity reserve edge E
 VM as_of
 human header days_left
+empty-identity reserve branch code (historical explicit-empty path closed by PR #110)
 ```
 
-Therefore the temporal investigation is not complete.
+Therefore the temporal investigation is not complete for all L usage.
 
 ## Current dependency table
 
@@ -219,7 +219,7 @@ Therefore the temporal investigation is not complete.
 | cumulative `sav` | `S + D + C` | same cumulative actual mechanism over savings accounts | current-source coordinate-local actual state |
 | `planned_future_income` | `S + D + C` | plan date `> D` and `< C.end_exclusive`; existing income/liquid admission rules | row-local future-income contribution |
 | ordinary 5-field `reserve` | `S + D + C + M` | plan window uses D; journal identities visible through D; ordinary rows receive fallback identity | no direct L dependence established for ordinary path |
-| empty-identity reserve edge | `S + D + L + C + E` | empty identity branch compares plan date with `last_act_dn` containing local `as_of_dn` | residual local-L edge path |
+| empty-identity reserve edge | code present; explicit-empty path closed by PR #110 | branch still exists, but explicit empty syntax no longer reaches it after PR #110 | branch preserved; characterized explicit-empty path closed; other reachability not claimed |
 | ordinary-path `fund` | `S + D + C + M` | `liquid + planned_future_income - reserve` | selected row-local future income removes direct L path |
 | `days_left` | `D + C` | `C.end_exclusive - D` | coordinate-local denominator |
 | ordinary-path `daily` | `S + D + C + M` | `fund / days_left` | no direct L path from ordinary future income |
@@ -432,7 +432,7 @@ M
 
 Current evidence does not establish direct L dependence for this ordinary path.
 
-### 8. empty-identity reserve edge: `S + D + L + C + E`
+### 8. empty-identity reserve branch code (historical explicit-empty path closed)
 
 The code still contains an empty-identity branch.
 
@@ -444,11 +444,12 @@ last_act_dn = last((journal dates <= D) + <as_of_dn>)
 
 where `as_of_dn` is local L.
 
-This remains a residual static L path.
+PR #110 removed the characterized explicit-empty syntax path into this branch.
+The branch remains in code.
 
 Do not generalize it to ordinary 5-field reserve behavior.
 
-Reachability and product meaning remain unresolved.
+Other reachability, if any, is not claimed here.
 
 ### 9. ordinary-path `fund`: `S + D + C + M`
 
@@ -639,9 +640,9 @@ Therefore L cannot stand in for source knowledge / snapshot identity.
 Current residual L areas are:
 
 ```text
-empty-identity reserve edge E
 VM as_of
 human header days_left
+empty-identity reserve branch code (historical explicit-empty path closed by PR #110)
 ```
 
 This is materially narrower than the pre-#101 dependency shape.
@@ -709,13 +710,12 @@ materializing every cycle day
 
 ## Current conclusion
 
-Approximate current shape after PR #105:
+Approximate current shape after PR #110:
 
 ```text
 row coordinates             = f(R_actual, A_empty, C)
 liquid                      = f(S, D, C)
 ordinary reserve            = f(S, D, C, M)
-empty-identity reserve edge = f(S, D, L, C, E)
 planned_future_income       = f(S, D, C)
 ordinary-path fund          = f(S, D, C, M)
 days_left                   = f(D, C)
@@ -724,7 +724,8 @@ day actual terms            = f(S, D, C)
 delta                       = f(S, D, P, C, R, M)
 VM as_of                    = f(L)
 header days_left            = f(L, C)
+empty-identity reserve branch code = preserved; explicit-empty path closed by PR #110
 ```
 
-PR #105 completed the row-membership alignment while leaving the remaining named `L` paths intact.
-The next work, if any, should characterize those residual paths one at a time rather than reopen row membership ownership.
+PR #105 completed the row-membership alignment while PR #110 closed the characterized explicit-empty reachability path.
+The remaining named `L` paths are now VM/header related, plus preserved branch code whose explicit-empty path is historical.

@@ -1,11 +1,12 @@
 # Daily Trend Explicit Empty Plan Identity Meaning Decision
 
-Status: current decision / repo-wide product meaning
+Status: implemented product decision / repo-wide product meaning
 Owner: report
 Canonical: no; canonical temporal principle remains `docs/TIME_AS_AXIS.md`
 Related map: `docs/DAILY_TREND_EXPLICIT_EMPTY_PLAN_IDENTITY_SEMANTICS.md`
 Related characterization: PR #107 empty-id reserve frontier
-Exit: revise or archive after the next runtime slice consumes this decision
+Implemented by: PR #110
+Exit: archive after docs synchronization; reopen only with new evidence
 
 ## 0. Decision
 
@@ -37,7 +38,8 @@ non-empty plan_id=value
 ```
 
 This is a product meaning decision.
-It does **not** by itself change runtime code, TSV data, or editor behavior.
+PR #110 implemented the report-side runtime alignment while preserving first matching token precedence.
+It does **not** by itself decide duplicate metadata validity, TSV data, or editor behavior.
 
 ## 1. What this decision does and does not decide
 
@@ -46,6 +48,7 @@ This document decides the meaning of explicit empty `plan_id=` for the repo as a
 It does **not** decide:
 
 - malformed non-empty identity policy
+- duplicate `plan_id` metadata validity / uniqueness
 - a broad `PlanId` redesign
 - deletion of the empty-id reserve branch
 - direct `L -> D` rewrite
@@ -117,21 +120,19 @@ That is not selected because:
 
 ### 3.1 Report-side fallback semantics
 
-Current report-side `PlanId` behavior can observe:
+Current report-side `PlanId` implementation (post-#110) preserves first matching token precedence:
 
 - metadata absent -> five-field fallback
-- metadata `plan_id=` -> extracted empty string today
-- metadata `plan_id=value` -> explicit identity value
+- first matching `plan_id=` token empty -> five-field fallback
+- first matching `plan_id=` token non-empty -> explicit identity value
 
-This decision chooses the product meaning that empty syntax is **not** a usable explicit identity.
+Historical pre-#110 report behavior was narrower:
 
-Therefore the report-side compatibility meaning is:
+- metadata absent -> five-field fallback
+- explicit `plan_id=` -> extracted empty string
 
-- absence of metadata -> fallback identity
-- explicit empty metadata -> fallback identity
-- non-empty explicit metadata -> explicit identity
-
-This is the narrow distinction that the next runtime slice should implement.
+PR #110 changed only the empty-value selection rule.
+It did not add duplicate-key validation or a new metadata policy.
 
 ### 3.2 Editor-side extraction behavior
 
@@ -142,7 +143,7 @@ Current editor-side extraction already collapses both of these to empty extracte
 
 That is compatible with the decision because the editor surface is already treating the empty case as “missing usable identity,” not as a positive semantic identity.
 
-The editor extraction shape is therefore consistent with the decision’s product meaning, even though the report-side extractor currently still needs a runtime follow-up to align fully.
+The editor extraction shape is therefore consistent with the decision’s product meaning, and PR #110 now aligns the report-side extractor as well.
 
 ### 3.3 Plan list behavior
 
@@ -212,11 +213,13 @@ But product meaning becomes:
 
 PR #107 proved the empty-id reserve edge is reachable and that raw frontier `L` can move reserve at a fixed historical row.
 
-This decision chooses the product meaning that explicit empty syntax should **not** continue to own a special empty-id semantic regime.
+PR #110 implemented the report-side alignment that treats explicit empty `plan_id=` like an absent usable identity.
+The Daily Trend reserve formula was not rewritten and the empty-id branch code remains.
 
-The next runtime slice should therefore make report-side identity resolution treat explicit empty `plan_id=` like an absent usable identity, so the reserve branch is no longer selected by empty syntax alone.
+Current consequence:
 
-This PR does **not** implement that change.
+- explicit empty syntax no longer selects the empty-id reserve regime
+- the historical PR #107 result remains historical evidence only
 
 ### 3.10 Legacy / manual TSV compatibility
 
@@ -334,20 +337,20 @@ explicit empty syntax presence
 usable explicit identity
 ```
 
-## 7. Next runtime slice
+## 7. Runtime alignment implemented by PR #110
 
-The next runtime slice should be the smallest behavior change necessary to align report-side identity resolution with this decision:
+The smallest behavior change is now live:
 
-- treat explicit empty `plan_id=` like absent usable identity
-- preserve non-empty explicit identity behavior
-- preserve ordinary five-field fallback
-- characterize affected consumers before any broader deduplication
-
-That runtime slice is **not** implemented here.
+- explicit empty `plan_id=` falls back to the existing five-field compatibility identity
+- non-empty explicit `plan_id=value` remains explicit identity
+- ordinary five-field fallback is preserved
+- first matching token precedence is preserved
+- reserve formula is unchanged
+- empty-id branch code is unchanged
 
 ## 8. Decision summary
 
-Selected meaning:
+Selected and implemented meaning:
 
 ```text
 explicit empty syntax presence
@@ -368,4 +371,4 @@ non-empty plan_id=value
   -> explicit identity value
 ```
 
-This is the product decision for PR #109.
+This is the product decision for PR #109, implemented by PR #110.

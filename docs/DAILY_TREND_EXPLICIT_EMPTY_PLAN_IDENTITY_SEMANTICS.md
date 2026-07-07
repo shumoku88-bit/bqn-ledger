@@ -1,12 +1,12 @@
 # Daily Trend Explicit Empty Plan Identity Semantics
 
-Status: current observation map
+Status: historical observation map / synced with PR #110 runtime alignment
 Date: 2026-07-07
 Owner: report / semantics map only
 
 ## Purpose
 
-Map the repo-wide meaning of explicit empty `plan_id=` after PR #107 proved the state is reachable and materially affects Daily Trend reserve.
+Map the repo-wide meaning of explicit empty `plan_id=` across the pre-#110 characterization and the post-#110 runtime alignment.
 
 This document is a **meaning map**, not a product decision.
 It does **not** authorize runtime repair, validation-policy change, or identity redesign.
@@ -34,14 +34,16 @@ It does **not** change:
 
 ## Core finding
 
-Current layers do **not** assign one consistent meaning to explicit empty identity.
+Pre-#110 runtime layers did **not** assign one consistent meaning to explicit empty identity.
+PR #110 aligned report-side resolution with the PR #109 product decision.
 
-The same textual form can be observed as:
+The same textual form is now understood across time as:
 
-- report-side empty identity
+- historical pre-#110 report-side empty identity
+- current post-#110 fallback identity at report-side resolution
 - editor-side missing identity
 - UI `MISSING-ID`
-- reserved-but-empty candidate in Daily Trend
+- historical Daily Trend empty-id reserve path
 
 That is the inconsistency this map records.
 
@@ -58,11 +60,17 @@ Those four states are not handled uniformly across layers.
 
 ## Current evidence summary
 
-Observed distinctions include:
+Observed distinctions are split across time:
 
-- **report compatibility identity**
+- **historical pre-#110 report behavior**
   - metadata absence -> five-field fallback
   - explicit `plan_id=` -> empty identity
+  - explicit empty syntax could reach the L-sensitive reserve branch characterized in PR #107
+- **current post-#110 report behavior**
+  - metadata absence -> five-field fallback
+  - first matching `plan_id=` token empty -> five-field fallback
+  - first matching `plan_id=` token non-empty -> explicit identity
+  - explicit empty syntax alone no longer selects the empty-id reserve regime
 - **editor extraction**
   - absence and explicit empty both surface as empty extracted identity
 - **plan list**
@@ -76,19 +84,19 @@ Observed distinctions include:
 - **shared completion / actual matching**
   - consumes exact identity equality
 - **Daily Trend**
-  - explicit empty identity reaches the L-sensitive reserve branch characterized in PR #107
+  - the branch remains in runtime, but explicit empty syntax is no longer the characterized reachability path
 
 ## Current layer map
 
 | Layer | Current behavior | Current meaning |
 |---|---|---|
-| `src_next/plan_journal_overlap.bqn` / `PlanId` | metadata `plan_id=` overrides five-field fallback and can yield `""` | report-side identity can be explicitly empty |
+| `src_next/plan_journal_overlap.bqn` / `PlanId` | metadata absent or first matching empty `plan_id=` falls back; first matching non-empty `plan_id=` preserves explicit identity | report-side resolution now preserves first-token precedence and empty-value fallback |
 | `src_edit/plan_id.bqn` / `ExtractPlanId` | absence and explicit empty both extract as `""` | editor-side extraction collapses both into empty identity |
 | `src_edit/plan_list_cmd.bqn` | empty extracted identity is rendered via `MISSING-ID` path | selection UI treats it as missing identity |
 | `src_edit/plan_add_cmd.bqn` | plan ID must be non-empty and metadata `plan_id=` is rejected | write path does not accept explicit empty plan_id metadata |
 | `src_edit/plan_finish_cmd.bqn` | missing or invalid plan_id is refused | completion requires usable identity |
-| `src_next/plan_journal_overlap.bqn` diagnostics | exact identity equality is used for overlap counting | empty identity can participate in exact equality diagnostics |
-| `src_next/daily_trend.bqn` | empty-id branch compares plan date with local `last_act_dn` | reserve can depend on report-local frontier `L` |
+| `src_next/plan_journal_overlap.bqn` diagnostics | exact identity equality is used for overlap counting; current PlanId resolution no longer produces empty IDs from explicit empty syntax | overlap checks remain exact-equality diagnostics, not a product endorsement of empty identity as meaningful input |
+| `src_next/daily_trend.bqn` | empty-id branch still compares plan date with local `last_act_dn`; explicit empty syntax no longer reaches it through current report-side identity resolution | branch remains in runtime, but the characterized explicit-empty reachability path was closed by PR #110 |
 
 ## State-by-state map
 
@@ -110,22 +118,28 @@ Implications:
 
 ### 2. Explicit empty metadata (`plan_id=`)
 
-Observed shape:
+Historical pre-#110 shape:
 
 - metadata token exists
 - extracted value is empty string
-- report-side fallback is **suppressed** because metadata exists and is selected first
+- report-side fallback was **suppressed** because metadata existed and the first matching token was selected
+- Daily Trend reserve could reach the empty-id branch and consume local `L`
 
-Implications:
+Historical implications:
 
-- report-side `PlanId` returns `""`
-- editor-side `ExtractPlanId` also returns `""`
+- report-side `PlanId` returned `""`
+- editor-side `ExtractPlanId` also returned `""`
 - plan list routes it through `MISSING-ID`
 - plan add rejects generic metadata input containing `plan_id=...`
 - plan finish refuses missing identity
-- Daily Trend reserve can reach the empty-id branch and consume local `L`
+- the reachable edge was characterized in PR #107
 
-This is the reachable edge characterized in PR #107.
+Current post-#110 shape:
+
+- metadata token exists
+- if the first matching `plan_id=` token is empty, report-side `PlanId` falls back to the five-field identity
+- explicit empty syntax alone no longer establishes an empty report-side identity
+- the Daily Trend reserve branch still exists in code, but this syntax no longer selects it
 
 ### 3. Explicit non-empty metadata
 
@@ -166,21 +180,21 @@ This is a key asymmetry:
 
 ## Report-side fallback semantics
 
-The report-side extractor in `src_next/plan_journal_overlap.bqn` is intentionally different from the editor-side extractor.
+The report-side extractor in `src_next/plan_journal_overlap.bqn` preserves first matching `plan_id=` token precedence.
 
 Current behavior:
 
 - if metadata is absent, use five-field fallback
-- if metadata contains `plan_id=`, select that metadata token first
-- if the value after `plan_id=` is empty, the extracted identity is empty
+- if the first matching `plan_id=` token has an empty value, use five-field fallback
+- if the first matching `plan_id=` token has a non-empty value, use that explicit identity value
 
-That means:
+Historical pre-#110 behavior was narrower:
 
-- ordinary 5-field plans are **not** evidence for the empty-id reserve edge
-- explicit empty metadata is the only observed path to the empty-id branch
-- this branch exists only because metadata presence suppresses fallback
+- metadata absence -> five-field fallback
+- explicit `plan_id=` could override fallback and yield empty identity
 
-This is the exact distinction PR #107 tested.
+PR #110 changed only the empty-value selection rule.
+It did not add duplicate-key validation or a new metadata policy.
 
 ## Editor-side collapse of empty and missing
 
@@ -270,7 +284,7 @@ This is a structural reason the repo can observe empty identity in report calcul
 
 Current behavior:
 
-- `PlanId` extracts report-side identity, including explicit empty
+- `PlanId` now preserves first matching token precedence and falls back on empty first-token values
 - plan/journal rows are partitioned by cycle membership first
 - strong overlap counts exact identity equality on the extracted IDs
 - ambiguous overlap counts exact match presence without uniqueness
@@ -278,15 +292,17 @@ Current behavior:
 
 Implications:
 
-- explicit empty identity is visible to overlap diagnostics
+- explicit empty metadata no longer reaches diagnostics as an empty report-side identity through the current report path
 - the diagnostic layer does not itself decide whether empty is valid
-- empty identity can exist as a comparable string in diagnostics even if editor paths reject or collapse it
+- exact equality still governs any identity string that reaches the diagnostic layer
 
 This is one of the reasons the map must keep report semantics separate from editor semantics.
 
 ## Daily Trend empty-identity reserve branch
 
-Current Daily Trend reserve logic has a separate branch for empty plan identity.
+Current runtime still contains a reserve branch for empty plan identity.
+
+However, after PR #110, explicit empty `plan_id=` no longer produces the empty report-side identity that characterized the PR #107 reachability path.
 
 Relevant current structure:
 
@@ -306,9 +322,9 @@ if pid is empty:
   open iff plan.date >= last_act_dn
 ```
 
-That means the explicit empty branch consumes local frontier `L` via `last_act_dn`.
-
-PR #107 confirmed this branch is reachable.
+PR #107 characterized this branch as reachable through explicit empty syntax.
+PR #110 changed the upstream identity resolution so explicit empty syntax now falls back instead.
+The branch remains in code; other reachability is not claimed here.
 
 ## PR #107 characterization evidence
 
@@ -369,17 +385,18 @@ That proves the plan reached empty identity semantics rather than merely matchin
 
 ### Observed result
 
-Before:
+Historical pre-#110 result:
 
-- `vm.as_of = 2026-01-03`
-- reserve at `D = 2026-01-02` was `300`
+- before: `vm.as_of = 2026-01-03`, reserve at `D = 2026-01-02` was `300`
+- after: `vm.as_of = 2026-01-06`, reserve at `D = 2026-01-02` was `0`
 
-After:
+Current post-#110 consequence for the same fixture pair:
 
-- `vm.as_of = 2026-01-06`
-- reserve at `D = 2026-01-02` was `0`
+- before: `vm.as_of = 2026-01-03`, reserve at `D = 2026-01-02` is `300`
+- after: `vm.as_of = 2026-01-06`, reserve at `D = 2026-01-02` is `300`
+- the historical `300 -> 0` observation remains valid as pre-#110 evidence only
 
-Held-fixed invariants also remained equal:
+Held-fixed invariants also remain equal:
 
 - accepted actual coordinates: `⟨2026-01-02, 2026-01-03⟩`
 - final row set/order: `⟨2026-01-02, 2026-01-03⟩`
@@ -388,7 +405,7 @@ Held-fixed invariants also remained equal:
 
 Mechanical downstream consequence:
 
-- fund / daily / delta moved because reserve moved
+- fund / daily / delta now stay aligned with the fallback identity path
 
 The semantic target remained reserve, not downstream fields.
 
@@ -396,9 +413,10 @@ The semantic target remained reserve, not downstream fields.
 
 Only this:
 
-- the explicitly empty-identity reserve edge is reachable
-- that edge currently consumes local `L`
+- the explicitly empty-identity reserve edge was reachable in the pre-#110 runtime
+- that edge consumed local `L` in the pre-#110 runtime
 - row membership and coordinate-local actual state can remain fixed while reserve changes
+- after PR #110, the same fixture pair follows the fallback identity path instead of the historical empty-id path
 
 It does **not** prove:
 
@@ -488,15 +506,18 @@ O_row != K
 historical coordinate != historical knowledge state
 ```
 
-## Why this map exists at all
+## Campaign closure
 
-The repo now has three separate observations:
+The explicit-empty identity campaign is complete:
 
-1. explicit empty identity is reachable
-2. the empty-id reserve branch is L-sensitive
-3. the repo does not yet agree on what explicit empty identity *means*
+1. PR #107 characterized the pre-#110 reachability
+2. PR #108 recorded the repo-wide semantic map
+3. PR #109 selected the product meaning
+4. PR #110 aligned runtime with that meaning
+5. this document syncs the historical map with current runtime truth
 
-That is why a product decision is now needed **before** any runtime repair.
+PR #107 remains valid as historical characterization evidence.
+No further investigation is authorized here without new concrete evidence.
 
 ## Related evidence and contracts
 
@@ -505,7 +526,4 @@ That is why a product decision is now needed **before** any runtime repair.
 - `docs/UNFINISHED_PLAN_ENTRIES_EXPORT_CONTRACT.md`
 - PR #107 characterization: empty-id reserve frontier
 - PR #105 runtime row-membership alignment
-
-## Next finite question
-
-Choose the product meaning of explicit empty plan identity before authorizing any runtime repair.
+- PR #110 runtime alignment: explicit empty syntax falls back
