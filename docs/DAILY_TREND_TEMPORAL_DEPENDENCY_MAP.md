@@ -219,7 +219,7 @@ Therefore the temporal investigation is not complete for all L usage.
 | cumulative `sav` | `S + D + C` | same cumulative actual mechanism over savings accounts | current-source coordinate-local actual state |
 | `planned_future_income` | `S + D + C` | plan date `> D` and `< C.end_exclusive`; existing income/liquid admission rules | row-local future-income contribution |
 | ordinary 5-field `reserve` | `S + D + C + M` | plan window uses D; journal identities visible through D; ordinary rows receive fallback identity | no direct L dependence established for ordinary path |
-| empty-identity reserve edge | code present; explicit-empty path closed by PR #110 | branch still exists, but explicit empty syntax no longer reaches it after PR #110 | historical code path only |
+| empty-identity reserve edge | code present; explicit-empty path closed by PR #110 | branch still exists, but explicit empty syntax no longer reaches it after PR #110 | branch preserved; characterized explicit-empty path closed; other reachability not claimed |
 | ordinary-path `fund` | `S + D + C + M` | `liquid + planned_future_income - reserve` | selected row-local future income removes direct L path |
 | `days_left` | `D + C` | `C.end_exclusive - D` | coordinate-local denominator |
 | ordinary-path `daily` | `S + D + C + M` | `fund / days_left` | no direct L path from ordinary future income |
