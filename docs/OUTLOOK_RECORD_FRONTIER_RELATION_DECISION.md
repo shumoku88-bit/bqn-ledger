@@ -45,16 +45,7 @@ This document selects that relation.
 
 ## 1. Decision
 
-Canonical Outlook record-frontier relation uses four states:
-
-```text
-before_observation
-a t_observation
-after_observation
-unavailable
-```
-
-The intended spelling is:
+Canonical Outlook record-frontier relation uses exactly four states:
 
 ```text
 before_observation
@@ -84,20 +75,7 @@ The distance gives magnitude.
 
 Neither field claims that records are complete, reconciled, or authoritative through `L`.
 
-## 2. Correction of the vocabulary typo above
-
-The only valid relation values selected by this document are exactly:
-
-```text
-before_observation
-at_observation
-after_observation
-unavailable
-```
-
-No value containing whitespace is part of the contract.
-
-## 3. Why relation + distance is selected
+## 2. Why relation + distance is selected
 
 A single scalar called `journal_lag` cannot faithfully represent all characterized states without an additional convention.
 
@@ -183,7 +161,7 @@ unavailable state
 
 without overloading sign or inventing one universal cutoff meaning.
 
-## 4. Exact meanings
+## 3. Exact meanings
 
 ### `before_observation`
 
@@ -312,7 +290,7 @@ cycle.start
 
 is not automatically evidence that an actual record exists on that date.
 
-## 5. Important limitation: L is not K
+## 4. Important limitation: L is not K
 
 This relation compares:
 
@@ -350,7 +328,7 @@ fully_recorded_through
 
 unless a separate K or completeness contract is introduced later.
 
-## 6. Selected conceptual output shape
+## 5. Selected conceptual output shape
 
 For a future explicit Outlook observation path, the preferred conceptual fields are:
 
@@ -371,7 +349,7 @@ may remain as a compatibility alias during migration if it truly carries the sel
 
 This document does not require an immediate rename.
 
-## 7. Decision for current `journal_lag`
+## 6. Decision for current `journal_lag`
 
 Current:
 
@@ -417,7 +395,7 @@ this document does not authorize fabricating `0`.
 
 A runtime slice must choose an explicit unavailable representation compatible with its output surface.
 
-## 8. Why `current` / `stale` / `future` are not selected values
+## 7. Why `current` / `stale` / `future` are not selected values
 
 These labels were considered informally but are not selected.
 
@@ -459,7 +437,7 @@ after
 
 relative to observation.
 
-## 9. Producer scope remains separate
+## 8. Producer scope remains separate
 
 This decision does not standardize how `L` is produced.
 
@@ -491,7 +469,7 @@ O/L relation classification
 
 remain separate responsibilities.
 
-## 10. Current helper fallback warning
+## 9. Current helper fallback warning
 
 Current local helpers may return a cycle boundary fallback when no qualifying journal row exists.
 
@@ -519,7 +497,7 @@ L = cycle.start
 
 This is a future runtime requirement, not a change in this docs-only slice.
 
-## 11. Relationship to the selected household question
+## 10. Relationship to the selected household question
 
 Canonical Outlook asks at `O` about spending room through `C`, while separately showing recorded frontier `L`.
 
@@ -557,7 +535,7 @@ lag = 0
 
 with no further explanation.
 
-## 12. Consequence for explicit `Outlook.BuildAt`
+## 11. Consequence for explicit `Outlook.BuildAt`
 
 The freshness blocker identified in PR #92 is now resolved at the relation-contract level.
 
@@ -579,7 +557,7 @@ provided it can:
 
 This decision does not itself authorize runtime changes.
 
-## 13. Recommended next finite runtime slice
+## 12. Recommended next finite runtime slice
 
 The next runtime slice should remain narrow:
 
@@ -623,7 +601,7 @@ The runtime slice should not bundle:
 - universal TemporalFrame,
 - source TSV changes.
 
-## 14. Runtime gate
+## 13. Runtime gate
 
 A runtime slice may proceed only after it can state:
 
@@ -636,7 +614,7 @@ A runtime slice may proceed only after it can state:
 7. any retained `journal_lag` is compatibility-only and cannot replace relation,
 8. current production Build(ctx) behavior remains separately controlled.
 
-## 15. Decision summary
+## 14. Decision summary
 
 ```text
 Selected relation:
