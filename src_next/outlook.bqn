@@ -79,8 +79,11 @@ ClassifyRecordFrontier ← {𝕊 as_of‿frontier:
     o_dn ← proj.DaysFromEpoch as_of
     l_dn ← proj.DaysFromEpoch frontier.date
     delta ← o_dn - l_dn
-    relation ↩ (l_dn < o_dn) ? "before_observation" ; (l_dn = o_dn) ? "at_observation" ; "after_observation"
-    distance_days ↩ (delta < 0) ? (- delta) ; delta
+    relation ↩ "at_observation"
+    {𝕊: relation ↩ "before_observation"}⍟(l_dn < o_dn) @
+    {𝕊: relation ↩ "after_observation"}⍟(l_dn > o_dn) @
+    distance_days ↩ delta
+    {𝕊: distance_days ↩ - delta}⍟(delta < 0) @
     lag_days ↩ 0⌈ delta
   }⍟(frontier.available ∧ proj.IsValidDateText as_of) @
   {
