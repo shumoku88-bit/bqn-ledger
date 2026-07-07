@@ -151,14 +151,11 @@ Main ← {𝕊 args:
     •Exit 1
   }⍟(outlook_as_of_flag ∧ (¬ outlook_as_of_missing) ∧ ¬ date.IsValidDateText outlook_as_of_val) @
 
-  outlook_as_of ← ""
-  {𝕊: outlook_as_of ↩ outlook_as_of_val}⍟outlook_as_of_flag @
-  {𝕊: outlook_as_of ↩ date.Today @}⍟(¬ outlook_as_of_flag) @
-
   ctx ← ctx_mod.BuildContext base
 
   # Structured section requests dispatch before any human section rendering.
-  # This keeps JSON output independent from unrelated FormatHuman failures.
+  # This keeps JSON output independent from unrelated FormatHuman failures and
+  # from the human Outlook system-today default.
   {𝕊:
     (section_key ≡ "planned") ?
       {𝕊:
@@ -185,6 +182,10 @@ Main ← {𝕊 args:
       •Exit 1
     } @
   }⍟(format_val ≡ "json") @
+
+  outlook_as_of ← ""
+  {𝕊: outlook_as_of ↩ outlook_as_of_val}⍟outlook_as_of_flag @
+  {𝕊: outlook_as_of ↩ date.Today @}⍟(¬ outlook_as_of_flag) @
 
   entries ← BuildSectionEntries ⟨ctx, outlook_as_of⟩
 
