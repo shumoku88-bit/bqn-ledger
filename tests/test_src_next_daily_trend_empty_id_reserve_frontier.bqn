@@ -43,8 +43,8 @@ after_vm ← daily_trend.Build after_ctx
 before_plan_line ← ⊑ loader.ReadLinesOptional (before_base ∾ "/plan.tsv")
 after_plan_line ← ⊑ loader.ReadLinesOptional (after_base ∾ "/plan.tsv")
 before_plan_line lib.AssertEq after_plan_line
-"" lib.AssertEq overlap.PlanId before_plan_line
-"" lib.AssertEq overlap.PlanId after_plan_line
+"2026-01-05future_fixedassets:cashexpenses:fixed300" lib.AssertEq overlap.PlanId before_plan_line
+"2026-01-05future_fixedassets:cashexpenses:fixed300" lib.AssertEq overlap.PlanId after_plan_line
 ⟨"2026-01-05", "future_fixed", "assets:cash", "expenses:fixed", "300"⟩ lib.AssertEq 5↑ loader.SplitTsvKeepEmpty before_plan_line
 ⟨"2026-01-05", "future_fixed", "assets:cash", "expenses:fixed", "300"⟩ lib.AssertEq 5↑ loader.SplitTsvKeepEmpty after_plan_line
 
@@ -77,7 +77,7 @@ after_row ← RowForDate ⟨after_vm.trend_rows, "2026-01-02"⟩
 1000 lib.AssertEq 1⊑before_row
 1000 lib.AssertEq 1⊑after_row
 300 lib.AssertEq 2⊑before_row
-0 lib.AssertEq 2⊑after_row
+300 lib.AssertEq 2⊑after_row
 9 lib.AssertEq 4⊑before_row
 9 lib.AssertEq 4⊑after_row
 

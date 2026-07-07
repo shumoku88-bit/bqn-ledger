@@ -10,7 +10,7 @@ cube ← •Import "cube.bqn"
 # ── Key extraction ──────────────────────────────────────────
 Pad5 ← { 𝕩 ∾ ((5 - (5⌊≠𝕩)) ⥊ ⟨""⟩) }
 
-# Extract plan_id from metadata (primary) or use first 5 TSV fields (fallback).
+# Extract plan_id from the first matching metadata token when usable; otherwise use first 5 TSV fields (fallback).
 PlanId ← {𝕊 line:
   flds ← loader.SplitTsvKeepEmpty line
   meta ← 5 ↓ flds
@@ -18,7 +18,11 @@ PlanId ← {𝕊 line:
   cand ← IsPlanId¨ meta
   has ← ∨´cand
   id ← ∾ 5↑flds
-  id ↩ ({𝕊: 8 ↓ (⊑(cand/↕≠meta)) ⊑ meta}⍟has) id
+  id ↩ ({𝕊:
+    first ← ⊑(cand/↕≠meta)
+    val ← 8 ↓ first ⊑ meta
+    (0 < ≠ val) ? val ; id
+  }⍟has) id
   id
 }
 

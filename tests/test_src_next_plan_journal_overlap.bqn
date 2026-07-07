@@ -19,6 +19,21 @@ Assert ← {𝕊 expected‿actual‿msg:
 
 AllOk ← ∧
 
+# ── PlanId contract: absent / empty / non-empty metadata ─────
+tab ← @+9
+fallback_line ← "2026-01-05" ∾ tab ∾ "future_fixed" ∾ tab ∾ "assets:cash" ∾ tab ∾ "expenses:fixed" ∾ tab ∾ "300"
+fallback_id ← "2026-01-05future_fixedassets:cashexpenses:fixed300"
+empty_line ← fallback_line ∾ tab ∾ "plan_id="
+valued_line ← fallback_line ∾ tab ∾ "plan_id=some-value"
+empty_then_value_line ← fallback_line ∾ tab ∾ "plan_id=" ∾ tab ∾ "plan_id=some-value"
+value_then_empty_line ← fallback_line ∾ tab ∾ "plan_id=some-value" ∾ tab ∾ "plan_id="
+
+r31 ← Assert ⟨fallback_id, pjo.PlanId fallback_line, "metadata absent uses fallback identity"⟩
+r32 ← Assert ⟨fallback_id, pjo.PlanId empty_line, "explicit empty uses fallback identity"⟩
+r33 ← Assert ⟨"some-value", pjo.PlanId valued_line, "explicit non-empty preserves identity value"⟩
+r34 ← Assert ⟨fallback_id, pjo.PlanId empty_then_value_line, "first empty token preserves fallback precedence"⟩
+r35 ← Assert ⟨"some-value", pjo.PlanId value_then_empty_line, "first non-empty token preserves explicit identity"⟩
+
 # ── Build: fixture src-next-plan-overlap (has overlap) ─────
 cy ← {start⇐"2026-06-15", day_count⇐7}
 summary ← pjo.Build { base ⇐ "fixtures/src-next-plan-overlap", cy ⇐ cy }
@@ -79,7 +94,7 @@ r29 ← Assert ⟨1, ∨´ "src_next_plan_rows_checked"⊸⍷ text, "Format cont
 r30 ← Assert ⟨1, ∨´ "src_next_plan_journal_strong_overlap_key"⊸⍷ text, "Format contains strong_overlap_key"⟩
 
 # All results
-results ← r1‿r2‿r3‿r4‿r5‿r6‿r7‿r8‿r9‿r10‿r11‿r12‿r13‿r14‿r15‿r16‿r17‿r18‿r19‿r20‿r21‿r22‿r23‿r24‿r25‿r26‿r27‿r28‿r29‿r30
+results ← r31‿r32‿r33‿r34‿r35‿r1‿r2‿r3‿r4‿r5‿r6‿r7‿r8‿r9‿r10‿r11‿r12‿r13‿r14‿r15‿r16‿r17‿r18‿r19‿r20‿r21‿r22‿r23‿r24‿r25‿r26‿r27‿r28‿r29‿r30
 
 {𝕊:
   •Out "All tests passed (" ∾ (•Fmt (+´results)) ∾ "/" ∾ (•Fmt (≠results)) ∾ ")"
