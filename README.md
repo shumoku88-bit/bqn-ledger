@@ -1,6 +1,6 @@
 # BQN Ledger
 
-> A plain-text, BQN-powered household ledger and report engine.
+> A plain-text household event ledger and report engine.
 
 BQN Ledger は、個人の生活会計を預けるための accounting-grade な ledger / report engine です。
 
