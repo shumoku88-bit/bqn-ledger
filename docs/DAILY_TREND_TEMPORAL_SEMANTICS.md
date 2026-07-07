@@ -1,6 +1,6 @@
 # Daily Trend Temporal Semantics
 
-Status: superseded routing stub / historical pre-selection note
+Status: superseded
 Owner: report
 Canonical: no; current temporal principle: `docs/TIME_AS_AXIS.md`; current Daily Trend route below
 Exit: keep as a short routing stub while older references may still point here
