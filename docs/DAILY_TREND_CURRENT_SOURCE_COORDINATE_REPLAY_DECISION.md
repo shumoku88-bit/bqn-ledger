@@ -5,6 +5,7 @@ Owner: report
 Canonical: no; canonical temporal principle remains `docs/TIME_AS_AXIS.md`
 Protected property: `docs/DAILY_TREND_OBSERVATION_CONSISTENCY_DECISION.md`
 Knowledge boundary: `docs/DAILY_TREND_KNOWLEDGE_BOUNDARY_DECISION.md`
+Row membership producer decision: `docs/DAILY_TREND_ROW_MEMBERSHIP_PRODUCER_DECISION.md`
 Current semantics note: `docs/DAILY_TREND_TEMPORAL_SEMANTICS.md`
 Exit: revise or archive after the first runtime slice consumes this product contract and later review confirms the chosen direction
 
@@ -477,22 +478,41 @@ Earlier dependency mapping required correction after ordinary 5-field plan ident
 
 Therefore reserve remains outside the first runtime slice.
 
-## 14. Row membership remains unresolved
+## 14. Row membership ownership
 
-Current trend row set includes actual posting dates plus local `as_of` derived from `L`.
-
-This means `L` can influence row membership.
-
-The selected product does not yet decide:
+Current trend row set still includes actual posting dates plus local `as_of` derived from `L`.
 
 ```text
-whether a current terminal row should exist
-whether row set should include O
-whether row set should include L
-whether every cycle day should be materialized
+R_current = cycle_filter(dedupe(sort(R_actual + <L>)))
 ```
 
-Do not bundle row-set redesign with future-income cutoff repair.
+PR #103 characterized that this current `L` append is:
+
+```text
+ordinary valid journal: often redundant with an existing valid actual coordinate
+empty/fallback journal: able to create a cycle.start row
+producer disagreement: able to reintroduce a coordinate rejected by valid actual projection
+```
+
+The row-membership ownership decision is now:
+
+```text
+R_actual owns accepted actual projection coordinates.
+A_empty owns explicit empty-state anchoring.
+L owns record-frontier context, not row membership.
+```
+
+See `docs/DAILY_TREND_ROW_MEMBERSHIP_PRODUCER_DECISION.md`.
+
+This does not immediately change runtime behavior and does not decide:
+
+```text
+whether a separate current terminal row should exist
+whether every cycle day should be materialized
+how VM as_of or the human header should be renamed or reframed
+```
+
+Do not bundle row-set runtime repair with header, reserve, Outlook, K, or shared temporal-kernel work.
 
 ## 15. Delta remains unresolved
 
@@ -584,7 +604,7 @@ The first runtime slice may proceed only if it can state:
 4. cycle boundary C is unchanged
 5. plan classification / anchor semantics are unchanged
 6. reserve logic is unchanged
-7. row membership is unchanged
+7. row membership runtime behavior is unchanged
 8. header semantics are unchanged
 9. no K is invented
 10. no shared temporal kernel is introduced
@@ -677,7 +697,7 @@ First runtime slice:
 
 Explicitly deferred:
   reserve
-  row membership
+  row membership runtime change (ownership now decided separately)
   delta redesign
   header
   K
