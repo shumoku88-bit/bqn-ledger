@@ -1,6 +1,6 @@
 # Daily Trend Row Membership Producer Decision
 
-Status: current decision / pre-runtime product contract
+Status: current decision / implemented product contract
 Owner: report
 Canonical: no; canonical temporal principle remains `docs/TIME_AS_AXIS.md`
 Selected product: `docs/DAILY_TREND_CURRENT_SOURCE_COORDINATE_REPLAY_DECISION.md`
@@ -9,16 +9,19 @@ Exit: revise after a runtime slice changes Daily Trend row-set construction or a
 
 ## 0. Purpose
 
-PR #103 exposed that Daily Trend row membership currently mixes more than one row-coordinate producer.
+PR #103 exposed the pre-runtime row-membership mix, and PR #105 implemented the selected ownership.
 
-Current runtime combines:
+Current runtime now treats ordinary row membership as:
 
 ```text
-valid actual projection coordinates
-raw-journal-derived frontier L
+accepted actual projection coordinates restricted to C
+sorted and deduplicated
+explicit cycle.start anchor only when the accepted in-cycle set is empty
 ```
 
-This document decides which evidence grants ordinary existence to a Daily Trend row coordinate.
+`L` remains separate frontier / freshness context and does not own ordinary row membership.
+
+This document records which evidence grants ordinary existence to a Daily Trend row coordinate.
 
 Decision questions:
 
@@ -28,7 +31,7 @@ Are ordinary row membership and empty-state anchoring separate responsibilities?
 Does L semantically produce row coordinates, or is it frontier/freshness context only?
 ```
 
-This is docs-only. It does not change runtime behavior.
+This is docs-only post-runtime synchronization; it records the runtime contract rather than changing it.
 
 ## 1. Vocabulary
 
@@ -56,38 +59,29 @@ historical coordinate != historical knowledge state
 
 ## 2. Current behavior
 
-The current implementation should always be verified against `src_next/daily_trend.bqn` before changing runtime behavior. At the time of this decision, its row-set construction is approximately:
+The current implementation follows the selected ownership model:
 
 ```text
 valid_rows = ctx.cube.valid_rows
-j_projs = valid_rows where layer_index = 0
-j_dates = j_projs.date
+j_projs = valid actual projection rows where layer_index = 0
+j_dates = accepted actual dates
 
-L = LatestActualDateInCycle(base, cy)
-trend_dates_all = j_dates + <L>
+R_actual_in_cycle = accepted actual dates restricted to C
+sorted and deduplicated
 
-R_current = cycle_filter(dedupe(sort(trend_dates_all)))
-```
-
-Conceptually:
-
-```text
-R_current = cycle_filter(dedupe(sort(R_actual ∪ {L})))
+if R_actual_in_cycle is non-empty:
+  R = R_actual_in_cycle
+else:
+  R = {cycle.start}
 ```
 
 `R_actual` is produced through the projection / cube acceptance boundary.
 
-`L` is produced separately by `LatestActualDateInCycle`, which reads `journal.tsv` dates directly and falls back to `cy.start` when no in-cycle journal date is found.
+`A_empty` is an explicit empty-state anchor, not a fallback append of `L`.
 
-Therefore current runtime row membership mixes:
+`L` is still produced separately by `LatestActualDateInCycle` and remains available for non-membership responsibilities such as VM `as_of`.
 
-```text
-valid actual evidence
-frontier evidence
-empty-state fallback behavior
-```
-
-This document decides the product ownership model. It does not claim the runtime has already been repaired.
+This document records the ownership model that PR #105 implemented in runtime.
 
 ## 3. Evidence from PR #103
 
@@ -200,6 +194,25 @@ What evidence grants existence to a Daily Trend row coordinate?
 
 PR #103 C shows that raw frontier evidence and valid actual evidence can disagree.
 
+### 3.4 PR #105 runtime result
+
+PR #105 implemented the selected ownership:
+
+```text
+A unchanged:
+  2026-01-02, 2026-01-03
+
+B unchanged visible row:
+  2026-06-15 via explicit A_empty = cycle.start
+
+C updated ownership:
+  accepted actual row membership = 2026-06-15
+  L / vm.as_of = 2026-06-16
+  rejected 2026-06-16 stays out of row membership
+```
+
+`L` remains frontier context for VM `as_of`; it is no longer row-membership evidence.
+
 ## 4. Decision
 
 Separate row-membership responsibilities conceptually:
@@ -228,18 +241,16 @@ A raw journal coordinate rejected by valid projection must not gain ordinary Dai
 
 ## 5. Selected conceptual row-set shape
 
-The selected conceptual shape for a later runtime slice is approximately:
+The current runtime shape is:
 
 ```text
-if R_actual is non-empty:
-  R = R_actual
+if R_actual_in_cycle is non-empty:
+  R = cycle_filter(dedupe(sort(R_actual_in_cycle)))
 else:
-  R = A_empty(S, C)
+  R = {cycle.start}
 ```
 
-This is not currently implemented.
-
-This document intentionally does not fully specify the exact runtime representation of `A_empty`. Existing evidence shows that current fallback behavior creates a `cycle.start` row in the empty fixture, but choosing the final runtime representation of empty-state anchoring belongs to the later implementation slice.
+`A_empty` is implemented as `cycle.start` in the current minimal slice.
 
 The important ownership decision is narrower:
 
@@ -249,19 +260,20 @@ empty-state anchoring is not ordinary L row-membership authority
 
 ## 6. Position of cycle.start
 
-PR #103 B shows current behavior:
+PR #103 B shows the empty fixture row shape.
+
+PR #105 makes that visible row an explicit ownership decision:
 
 ```text
-empty valid actual coordinates
-LatestActualDateInCycle fallback L = cycle.start
-append L
+empty accepted in-cycle actual coordinates
+explicit A_empty = cycle.start
 -> final row cycle.start
 ```
 
 This decision distinguishes:
 
 ```text
-cycle.start as an explicit empty-state anchor candidate
+cycle.start as an explicit empty-state anchor
 ```
 
 from:
@@ -270,11 +282,7 @@ from:
 cycle.start appearing accidentally because fallback L is appended
 ```
 
-A later runtime slice may preserve `cycle.start` as the desired empty-state coordinate while changing who semantically owns that coordinate:
-
-```text
-owner should be A_empty, not L
-```
+The current runtime already uses `cycle.start` through `A_empty`, not through an appended frontier fallback.
 
 ## 7. Position of L
 
@@ -296,6 +304,7 @@ automatic Daily Trend row-membership authority
 ```
 
 This decision does not require deleting `L` from Daily Trend. It only rejects using `L` as the general producer of row coordinates.
+The current runtime therefore keeps `L` for non-membership responsibilities while ordinary row membership comes from accepted actual coordinates plus explicit empty-state anchoring.
 
 ## 8. Rejected projection coordinates
 
@@ -317,6 +326,8 @@ It claims only:
 ordinary Daily Trend row coordinates need valid row-membership evidence,
 and raw L alone is not that evidence.
 ```
+
+PR #105 C confirms that the rejected 2026-06-16 row stays out of membership even though `L / vm.as_of = 2026-06-16`.
 
 ## 9. Knowledge boundary
 
@@ -364,20 +375,19 @@ historical-knowledge replay
 materializing every cycle day
 ```
 
-## 11. Runtime consequence deferred
+## 11. Runtime consequence implemented in PR #105
 
-A later slice must separately decide and implement the smallest runtime change that aligns code with this ownership model.
+PR #105 consumed the runtime consequence of this ownership model.
 
-That later slice should start from the current code and explicitly state:
+Implemented shape:
 
 ```text
-current runtime behavior being changed
-chosen A_empty representation
-expected effect on PR #103 A/B/C fixtures
-unchanged VM as_of / header / reserve / Outlook / K behavior
+ordinary membership from accepted actual coordinates restricted to C
+explicit cycle.start A_empty when the accepted in-cycle set is empty
+L remains frontier context only
 ```
 
-This PR does not implement that runtime slice.
+The remaining questions, if any, are separate from row-membership ownership.
 
 ## 12. Decision summary
 
@@ -395,5 +405,5 @@ Rejected:
   row-membership authority merely because it becomes L
 
 Runtime impact:
-  none in this docs-only decision
+  implemented in PR #105; this document now records the contract and evidence
 ```

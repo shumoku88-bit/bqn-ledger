@@ -105,9 +105,9 @@ Existing plan admission and income classification remain unchanged.
 
 This removes the previously characterized shared `L` cutoff from ordinary row fund / daily values.
 
-### Revision C: row-set frontier characterization and ownership decision
+### Revision C: row-set frontier characterization (pre-runtime)
 
-PR #103 characterized the remaining `L` dependency in row-set construction:
+PR #103 characterized the remaining `L` dependency in row-set construction before PR #105:
 
 ```text
 A. ordinary valid in-cycle journal:
@@ -120,14 +120,28 @@ C. frontier producer vs valid-row producer disagreement:
    L can reintroduce a coordinate rejected by valid actual projection.
 ```
 
-The current runtime still appends `L` to row membership.
-
-The selected ownership decision is now separate:
+The ownership decision was already separated conceptually:
 
 ```text
 R_actual owns accepted actual projection coordinates.
 A_empty owns explicit empty-state anchoring.
 L owns local record-frontier context, not row membership.
+```
+
+### Revision D: PR #105 runtime alignment
+
+PR #105 implemented the selected ownership in runtime:
+
+```text
+ordinary row membership:
+  accepted actual projection coordinates restricted to C,
+  sorted and deduplicated
+
+empty-state anchoring:
+  if the accepted in-cycle actual set is empty, use cycle.start
+
+row-membership evidence rejected by projection:
+  does not re-enter through L
 ```
 
 See `docs/DAILY_TREND_ROW_MEMBERSHIP_PRODUCER_DECISION.md`.
@@ -188,7 +202,6 @@ M
 Residual `L` dependencies remain in separate places:
 
 ```text
-trend row-set construction R
 empty-identity reserve edge E
 VM as_of
 human header days_left
@@ -200,7 +213,7 @@ Therefore the temporal investigation is not complete.
 
 | Term | Current dependency | Current mechanism | Observation |
 |---|---|---|---|
-| `trend row coordinate set` | current runtime: `R + L + C`; selected ownership: `R_actual + A_empty + C` | actual posting dates plus local `as_of`, then sort/deduplicate and cycle filter | current runtime still appends local frontier; ownership decision rejects L as semantic row-membership owner |
+| `trend row coordinate set` | current runtime: `R_actual + A_empty + C` | accepted actual coordinates are cycle-restricted, sorted, deduplicated; if empty, anchor at `cycle.start` | L no longer contributes row-membership evidence; it remains frontier context |
 | `date_str` | `D + R` | row `dn` resolved through current row set | presentation coordinate follows row set |
 | `liquid` | `S + D + C` | cumulative actual cube slice at row day offset | current-source coordinate-local actual state |
 | cumulative `sav` | `S + D + C` | same cumulative actual mechanism over savings accounts | current-source coordinate-local actual state |
@@ -213,60 +226,44 @@ Therefore the temporal investigation is not complete.
 | `day_var` | `S + D + C` | actual slice for row day | coordinate-local day actual |
 | `day_sav` | `S + D + C` | actual slice for row day | coordinate-local day actual |
 | `day_fixed` | `S + D + C` | actual slice for row day | coordinate-local day actual |
-| `delta` | `S + D + P + C + R + M` | current daily minus predecessor daily | indirectly sensitive to any L effect on row set R |
+| `delta` | `S + D + P + C + R + M` | current daily minus predecessor daily | depends on rendered predecessor rows and row set R; not on L as row-membership evidence |
 | VM `as_of` | `L` | `LatestActualDateInCycle(base, cy)` | still local frontier, not row O |
 | human header `days_left` | `L + C` | `C.end_exclusive - vm.as_of` | section-level frame remains separate from row D |
 
 ## Evidence by term
 
-### 1. Trend coordinate set: `R + L + C`
+### 1. Trend coordinate set: `R_actual + A_empty + C`
 
-Current row coordinates are built from valid actual posting dates plus local `as_of`:
+Current row coordinates are built from accepted actual projection coordinates restricted to the selected cycle `C`.
+They are sorted and deduplicated.
 
-```text
-trend_dates_all = j_dates + <as_of>
-```
+If that accepted in-cycle set is empty, `cycle.start` is used as the explicit empty-state anchor `A_empty`.
 
-Then sorted, deduplicated, and cycle-filtered.
-
-So local `L` still participates in current runtime row-set construction.
-
-PR #103 characterized that participation:
+PR #103 characterized the pre-runtime frontier effects:
 
 ```text
 A. ordinary valid in-cycle journal
-   L is already a valid actual coordinate and deduplicates away.
+   accepted actual coordinates already cover the visible rows.
 
 B. empty/fallback journal
-   fallback L = C.start contributes a row coordinate.
+   cycle.start is the visible empty-state row.
 
 C. producer disagreement
-   a raw journal date rejected from valid actual projection can re-enter
-   row membership through L.
+   a raw journal date rejected by valid actual projection must not
+   re-enter row membership through L.
 ```
 
-The ownership decision after this characterization is:
+PR #105 implemented the selected ownership in runtime.
+The current row-membership shape is:
 
 ```text
-R_actual = accepted actual projection coordinates
-A_empty  = explicit empty-state anchor producer
-L        = record-frontier context, not row-membership owner
+R_current = if R_actual_in_cycle is non-empty:
+              cycle_filter(dedupe(sort(R_actual_in_cycle)))
+            else:
+              {C.start}
 ```
 
-Therefore current runtime remains:
-
-```text
-R_current = cycle_filter(dedupe(sort(R_actual + <L>)))
-```
-
-but the selected product direction for a later runtime slice is:
-
-```text
-R_selected = cycle_filter(dedupe(sort(R_actual ∪ A_empty)))
-```
-
-A coordinate rejected from valid actual projection must not be reintroduced into
-Daily Trend row membership solely through L.
+`L` remains frontier / freshness context and may still feed non-membership responsibilities such as VM `as_of`.
 
 ### 2. `liquid`: `S + D + C`
 
@@ -530,7 +527,8 @@ Approximate ordinary shape:
 delta = f(S, D, P, C, R, M)
 ```
 
-Because current R may depend on L, delta can still be indirectly L-sensitive through predecessor / row membership even after ordinary future income becomes row-local.
+Delta still depends on rendered predecessor rows and row set `R`, but PR #105 removed row-membership sensitivity through `L`.
+PR #105 can still change `delta` mechanically in producer-disagreement cases because `R` changed, not because `L` owns membership.
 
 ### 14. VM `as_of`: `L`
 
@@ -641,10 +639,9 @@ Therefore L cannot stand in for source knowledge / snapshot identity.
 Current residual L areas are:
 
 ```text
-row-set construction R
 empty-identity reserve edge E
 VM as_of
-human header
+human header days_left
 ```
 
 This is materially narrower than the pre-#101 dependency shape.
@@ -694,28 +691,11 @@ Row-membership producer ownership is decided separately in `docs/DAILY_TREND_ROW
 
 ## Recommended next finite slice
 
-Do not perform another broad runtime rewrite immediately.
+PR #105 completed the row-membership runtime alignment that this map records.
 
-PR #103 completed the previously recommended row-set frontier characterization.
+If a new finite question is needed, choose it from a separately justified runtime need rather than inventing a follow-on row-membership slice here.
 
-The strongest next finite slice is a narrow runtime change, only if separately authorized, to align row-set construction with the selected ownership model:
-
-```text
-R_actual = accepted actual projection coordinates
-A_empty  = explicit empty-state anchor
-L        = record-frontier context, not row-membership owner
-```
-
-A candidate runtime slice would:
-
-```text
-1. derive row coordinates from R_actual;
-2. add A_empty only when R_actual is empty and C is available;
-3. stop appending raw L to row membership;
-4. preserve VM as_of, header, reserve, Outlook, K, and shared temporal kernel.
-```
-
-Keep that slice separate from:
+Keep any future slice separate from:
 
 ```text
 header changes
@@ -729,23 +709,22 @@ materializing every cycle day
 
 ## Current conclusion
 
-Approximate current shape after PR #101:
+Approximate current shape after PR #105:
 
 ```text
-row coordinates             = current runtime f(R, L, C); selected ownership f(R_actual, A_empty, C)
-liquid                       = f(S, D, C)
-ordinary reserve             = f(S, D, C, M)
-empty-identity reserve edge  = f(S, D, L, C, E)
-planned_future_income        = f(S, D, C)
-ordinary-path fund           = f(S, D, C, M)
-days_left                    = f(D, C)
-ordinary-path daily          = f(S, D, C, M)
-day actual terms             = f(S, D, C)
-delta                        = f(S, D, P, C, R, M)
-VM as_of                     = f(L)
-header days_left             = f(L, C)
+row coordinates             = f(R_actual, A_empty, C)
+liquid                      = f(S, D, C)
+ordinary reserve            = f(S, D, C, M)
+empty-identity reserve edge = f(S, D, L, C, E)
+planned_future_income       = f(S, D, C)
+ordinary-path fund          = f(S, D, C, M)
+days_left                   = f(D, C)
+ordinary-path daily         = f(S, D, C, M)
+day actual terms            = f(S, D, C)
+delta                       = f(S, D, P, C, R, M)
+VM as_of                    = f(L)
+header days_left            = f(L, C)
 ```
 
-The first selected runtime slice has narrowed the ordinary row problem substantially.
-
-The next work should characterize the remaining L paths one at a time rather than generalize from the old mixed-frame shape.
+PR #105 completed the row-membership alignment while leaving the remaining named `L` paths intact.
+The next work, if any, should characterize those residual paths one at a time rather than reopen row membership ownership.

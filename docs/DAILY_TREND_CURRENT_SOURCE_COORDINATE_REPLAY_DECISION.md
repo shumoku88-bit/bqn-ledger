@@ -1,6 +1,6 @@
 # Daily Trend Current-Source Coordinate Replay Decision
 
-Status: current decision / pre-runtime product contract
+Status: current decision / post-runtime product contract
 Owner: report
 Canonical: no; canonical temporal principle remains `docs/TIME_AS_AXIS.md`
 Protected property: `docs/DAILY_TREND_OBSERVATION_CONSISTENCY_DECISION.md`
@@ -480,21 +480,24 @@ Therefore reserve remains outside the first runtime slice.
 
 ## 14. Row membership ownership
 
-Current trend row set still includes actual posting dates plus local `as_of` derived from `L`.
+Current trend row set now comes from accepted actual projection coordinates restricted to `C`, with explicit `cycle.start` anchoring when the accepted in-cycle set is empty.
 
 ```text
-R_current = cycle_filter(dedupe(sort(R_actual + <L>)))
+if R_actual_in_cycle is non-empty:
+  R = cycle_filter(dedupe(sort(R_actual_in_cycle)))
+else:
+  R = {cycle.start}
 ```
 
-PR #103 characterized that this current `L` append is:
+PR #103 characterized the pre-runtime frontier effects:
 
 ```text
-ordinary valid journal: often redundant with an existing valid actual coordinate
-empty/fallback journal: able to create a cycle.start row
-producer disagreement: able to reintroduce a coordinate rejected by valid actual projection
+ordinary valid journal: L was often redundant with an accepted actual coordinate
+empty/fallback journal: cycle.start visible through the frontier fallback
+producer disagreement: raw frontier could reintroduce a rejected coordinate
 ```
 
-The row-membership ownership decision is now:
+PR #105 implemented the selected ownership:
 
 ```text
 R_actual owns accepted actual projection coordinates.
@@ -504,7 +507,7 @@ L owns record-frontier context, not row membership.
 
 See `docs/DAILY_TREND_ROW_MEMBERSHIP_PRODUCER_DECISION.md`.
 
-This does not immediately change runtime behavior and does not decide:
+PR #105 already changed runtime behavior; the unresolved questions below are separate and remain open:
 
 ```text
 whether a separate current terminal row should exist
@@ -512,7 +515,7 @@ whether every cycle day should be materialized
 how VM as_of or the human header should be renamed or reframed
 ```
 
-Do not bundle row-set runtime repair with header, reserve, Outlook, K, or shared temporal-kernel work.
+Do not bundle any further row-set work with header, reserve, Outlook, K, or shared temporal-kernel work.
 
 ## 15. Delta remains unresolved
 
@@ -593,49 +596,35 @@ source-history audit    -> requires K if claimed
 freshness context       -> L
 ```
 
-## 19. Runtime gate for first slice
+## 19. Historical gate for the first slice
 
-The first runtime slice may proceed only if it can state:
+PR #101 handled the first selected runtime slice by moving planned_future_income cutoff ownership from report-local `L` to row `D`.
+PR #105 later handled row-membership ownership separately.
 
-```text
-1. only planned_future_income cutoff ownership changes
-2. cutoff moves from report-local L to row D
-3. current source snapshot S remains the source state
-4. cycle boundary C is unchanged
-5. plan classification / anchor semantics are unchanged
-6. reserve logic is unchanged
-7. row membership runtime behavior is unchanged
-8. header semantics are unchanged
-9. no K is invented
-10. no shared temporal kernel is introduced
-```
-
-## 20. Test gate for first slice
-
-At minimum protect both directions:
-
-### A. later unrelated L movement
+The first slice remained compatible with:
 
 ```text
-D fixed
-later unrelated Event advances L past future plan date
-
-expected after slice:
-  row-local future income remains tied to D
+current source snapshot S
+cycle boundary C
+plan classification / anchor semantics
+reserve logic
+header semantics
+no K
+no shared temporal kernel
 ```
 
-### B. backdated source change
+The later row-membership slice changed only the selected row-set ownership model.
+
+## 20. Historical test gate for the first slice
+
+The same characterization pair that motivated PR #101 remains the useful evidence split:
 
 ```text
-D fixed
-L fixed
-backdated Event at/before D changes S
-
-expected after slice:
-  row may still change through coordinate-local actual state
+A. later unrelated L movement should not move row-local future income
+B. backdated source change at/before D may still change the row through coordinate-local actual state
 ```
 
-This pair distinguishes:
+This distinguishes:
 
 ```text
 observation consistency
@@ -695,9 +684,13 @@ First runtime slice:
   planned_future_income cutoff
     L -> D
 
+Row membership ownership:
+  implemented in PR #105
+    accepted actual coordinates -> R_actual
+    cycle.start -> A_empty when empty
+
 Explicitly deferred:
   reserve
-  row membership runtime change (ownership now decided separately)
   delta redesign
   header
   K
