@@ -39,25 +39,60 @@ GetMetaVal ← {𝕊 key‿fields:
   ⟩ @
 }
 
-# ── Latest actual journal date ─────────────────────────────
+# ── Recorded actual frontier ─────────────────────────────────
 
-LatestActualDateInCycle ← {𝕊 base‿cy:
+# Preserves the current Outlook producer scope: journal coordinates at or after
+# cycle.start, with no upper cycle bound. Unlike LatestActualDateInCycle, this
+# helper keeps absence explicit instead of falling back to cycle.start.
+RecordedFrontierInfo ← {𝕊 base‿cy:
   lines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
-  available ← (cy.start ≢ "unavailable") ∧ (cy.day_count > 0)
-  out ← cy.start
+  scope_available ← (cy.start ≢ "unavailable") ∧ (cy.day_count > 0)
+  found ← 0
+  out ← ""
   {𝕊:
     start_dn ← proj.DaysFromEpoch cy.start
     dates ← {⊑ loader.SplitTsvKeepEmpty 𝕩}¨ lines
-    DateInCycle ← {𝕊 d: (proj.DaysFromEpoch d) ≥ start_dn }
-    in_dates ← (DateInCycle¨ dates) / dates
-    {𝕊: out ↩ ¯1 ⊑ (∧ in_dates)}⍟(0 < ≠ in_dates) @
-  }⍟(available ∧ (0 < ≠ lines)) @
+    DateInScope ← {𝕊 d: (proj.DaysFromEpoch d) ≥ start_dn }
+    in_dates ← (DateInScope¨ dates) / dates
+    {𝕊:
+      out ↩ ¯1 ⊑ (∧ in_dates)
+      found ↩ 1
+    }⍟(0 < ≠ in_dates) @
+  }⍟(scope_available ∧ (0 < ≠ lines)) @
+  { available ⇐ found, date ⇐ out }
+}
+
+# Compatibility helper. Current callers historically receive cycle.start when
+# no frontier row exists.
+LatestActualDateInCycle ← {𝕊 base‿cy:
+  frontier ← RecordedFrontierInfo ⟨base, cy⟩
+  out ← cy.start
+  {𝕊: out ↩ frontier.date}⍟frontier.available @
   out
+}
+
+ClassifyRecordFrontier ← {𝕊 as_of‿frontier:
+  relation ← "unavailable"
+  distance_days ← "unavailable"
+  lag_days ← "unavailable"
+  {𝕊:
+    o_dn ← proj.DaysFromEpoch as_of
+    l_dn ← proj.DaysFromEpoch frontier.date
+    delta ← o_dn - l_dn
+    relation ↩ (l_dn < o_dn) ? "before_observation" ; (l_dn = o_dn) ? "at_observation" ; "after_observation"
+    distance_days ↩ (delta < 0) ? (- delta) ; delta
+    lag_days ↩ 0⌈ delta
+  }⍟(frontier.available ∧ proj.IsValidDateText as_of) @
+  {
+    relation ⇐ relation,
+    distance_days ⇐ distance_days,
+    journal_lag ⇐ lag_days
+  }
 }
 
 # ── Build ──────────────────────────────────────────────────
 
-Build ← {𝕊 ctx:
+BuildCore ← {𝕊 ctx‿as_of‿frontier‿legacy_default:
   base ← ctx.base
   cy ← ctx.cy
   resolved ← ctx.resolved
@@ -67,15 +102,28 @@ Build ← {𝕊 ctx:
   is_simple ← risk_style ≡ "simple"
 
   # Dates
-  as_of ← LatestActualDateInCycle ⟨base, cy⟩
   as_of_dn ← proj.DaysFromEpoch as_of
   end_dn ← proj.DaysFromEpoch cy.end_exclusive
   start_dn ← proj.DaysFromEpoch cy.start
   days_left ← 0⌈ (end_dn - as_of_dn)
   days_elapsed ← 0⌈ (as_of_dn - start_dn) + 1
-  journal_lag ← 0  # same date for now
 
-  # Determine active incomes in current period
+  frontier_relation ← ClassifyRecordFrontier ⟨as_of, frontier⟩
+  last_recorded_on ← "unavailable"
+  {𝕊: last_recorded_on ↩ frontier.date}⍟frontier.available @
+
+  # last_journal and journal_lag are compatibility fields. Explicit BuildAt
+  # exposes unavailable when no frontier exists; legacy Build preserves its
+  # historical cycle.start fallback and zero lag.
+  last_journal ← last_recorded_on
+  journal_lag ← frontier_relation.journal_lag
+  {𝕊:
+    last_journal ↩ as_of
+    journal_lag ↩ 0
+  }⍟((¬ frontier.available) ∧ legacy_default) @
+
+  # Determine active incomes in current period. Anchor activation semantics are
+  # intentionally unchanged in this slice.
   jlines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
   InPeriodJ ← {𝕊 line:
     flds ← loader.SplitTsvKeepEmpty line
@@ -116,7 +164,7 @@ Build ← {𝕊 ctx:
 
   active_incomes ← j_incomes ∾ p_incomes
 
-  # as_of actual balance snapshot (full actual history up to as_of)
+  # Explicit observation cutoff for actual balances.
   snap ← actual_snapshot.BuildAt ⟨ctx, as_of⟩
   liq_total ← snap.liq_total
   sav_total ← snap.sav_total
@@ -208,7 +256,8 @@ Build ← {𝕊 ctx:
     { 𝕊 ⋄ "unavailable/policy" }
   ⟩ @
 
-  # Build budget breakdown using envelope_computation
+  # Build budget breakdown using envelope_computation. Envelope temporal semantics
+  # remain outside this explicit-observation slice.
   env_summary ← env_comp.Build ctx
   life_groups ← cfg.HouseholdGroupLifeLabels @
   daily_flex_envs ← ( { life_groups IsMember 𝕩.group }¨ env_summary.envelopes ) / env_summary.envelopes
@@ -221,7 +270,10 @@ Build ← {𝕊 ctx:
 
   {
     as_of ⇐ as_of,
-    last_journal ⇐ as_of,
+    last_journal ⇐ last_journal,
+    last_recorded_on ⇐ last_recorded_on,
+    record_frontier_relation ⇐ frontier_relation.relation,
+    record_frontier_distance_days ⇐ frontier_relation.distance_days,
     journal_lag ⇐ journal_lag,
     cycle_start ⇐ cy.start,
     cycle_end_exclusive ⇐ cy.end_exclusive,
@@ -244,6 +296,20 @@ Build ← {𝕊 ctx:
     budget_breakdown ⇐ budget_breakdown,
     budget_daily_total ⇐ budget_daily_total
   }
+}
+
+# Caller-owned explicit Outlook observation path. This is not wired into current
+# production report or summary entrypoints in this slice.
+BuildAt ← {𝕊 ctx‿as_of:
+  frontier ← RecordedFrontierInfo ⟨ctx.base, ctx.cy⟩
+  BuildCore ⟨ctx, as_of, frontier, 0⟩
+}
+
+# Compatibility default: preserve current local-L observation policy.
+Build ← {𝕊 ctx:
+  frontier ← RecordedFrontierInfo ⟨ctx.base, ctx.cy⟩
+  as_of ← LatestActualDateInCycle ⟨ctx.base, ctx.cy⟩
+  BuildCore ⟨ctx, as_of, frontier, 1⟩
 }
 
 # ── Format (machine) ───────────────────────────────────────
@@ -306,4 +372,4 @@ FormatHuman ← {𝕊 vm:
   out
 }
 
-{ Build ⇐ Build, Format ⇐ Format, FormatHuman ⇐ FormatHuman, LatestActualDateInCycle ⇐ LatestActualDateInCycle }
+{ Build ⇐ Build, BuildAt ⇐ BuildAt, Format ⇐ Format, FormatHuman ⇐ FormatHuman, LatestActualDateInCycle ⇐ LatestActualDateInCycle }
