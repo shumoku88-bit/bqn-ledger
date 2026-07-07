@@ -16,6 +16,7 @@ after_ctx ← ctx_mod.BuildContext "fixtures/src-next-daily-trend-stability-afte
 before_vm ← daily_trend.Build before_ctx
 after_vm ← daily_trend.Build after_ctx
 
+# The section-level local frontier still moves in this slice.
 "2026-01-03" lib.AssertEq before_vm.as_of
 "2026-01-06" lib.AssertEq after_vm.as_of
 
@@ -32,12 +33,12 @@ after_row ← RowForDate ⟨after_vm.trend_rows, "2026-01-02"⟩
 9 lib.AssertEq 4⊑before_row
 9 lib.AssertEq 4⊑after_row
 
-# Current behavior: advancing the local latest-journal clock past the
-# 2026-01-05 income plan removes that plan from planned_future_income.
-# The same historical 2026-01-02 row is therefore recomputed differently.
+# Selected behavior: the 2026-01-05 income plan is future relative to row D in
+# both source snapshots. Advancing unrelated local frontier L no longer removes
+# that plan from this historical row.
 1000 lib.AssertEq 3⊑before_row
-100 lib.AssertEq 3⊑after_row
+1000 lib.AssertEq 3⊑after_row
 111 lib.AssertEq 5⊑before_row
-11 lib.AssertEq 5⊑after_row
+111 lib.AssertEq 5⊑after_row
 
 •Out "test_src_next_daily_trend_historical_stability.bqn: OK"

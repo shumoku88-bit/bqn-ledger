@@ -102,11 +102,10 @@ Build ← {𝕊 ctx:
   j_pids_all ← overlap.PlanId¨ journalLines
   j_dns_all ← { proj.DaysFromEpoch ⊑ loader.SplitTsvKeepEmpty 𝕩 }¨ journalLines
 
-  # 3. Compute planned_future_income
+  # 3. Prepare planned-income projection rows. The date cutoff is selected
+  # inside each trend row from that row coordinate D, not from report-local L.
   p_rows ← (1 = {𝕩.layer_index}¨ valid_rows) / valid_rows
   p_dns_valid ← {proj.DaysFromEpoch 𝕩.date}¨ p_rows
-  future_income_mask ← (p_dns_valid > as_of_dn) ∧ (p_dns_valid < cycle_end_excl_dn) ∧ ("debit"⊸≡¨ {𝕩.side}¨ p_rows) ∧ (({𝕩.account_key_index}¨ p_rows) ∊ liq_ak) ∧ (("income"⊸≡¨ {𝕩.kind}¨ p_rows) ∨ ("income:" ⊸ ≡¨ 7 ↑¨ {𝕩.account_key}¨ p_rows))
-  planned_future_income ← cube.Sum0 (future_income_mask / {𝕩.delta}¨ p_rows)
 
   # 4. Compute each trend date (absolute day dn)
   trend_rows ← {𝕊 dn:
@@ -116,6 +115,11 @@ Build ← {𝕊 ctx:
     cum ← d_safe ⊑ cum_mat
     liq ← cube.Sum0 { 𝕩 ⊑ cum }¨ liq_ak
     sav ← cube.Sum0 { 𝕩 ⊑ cum }¨ sav_ak
+
+    # Current-source coordinate replay: future planned income is row-local.
+    # Existing plan admission and income classification remain unchanged.
+    future_income_mask ← (p_dns_valid > dn) ∧ (p_dns_valid < cycle_end_excl_dn) ∧ ("debit"⊸≡¨ {𝕩.side}¨ p_rows) ∧ (({𝕩.account_key_index}¨ p_rows) ∊ liq_ak) ∧ (("income"⊸≡¨ {𝕩.kind}¨ p_rows) ∨ ("income:" ⊸ ≡¨ 7 ↑¨ {𝕩.account_key}¨ p_rows))
+    planned_future_income ← cube.Sum0 (future_income_mask / {𝕩.delta}¨ p_rows)
 
     # reserve (fixed reserve)
     j_pids ← (j_dns_all ≤ dn) / j_pids_all

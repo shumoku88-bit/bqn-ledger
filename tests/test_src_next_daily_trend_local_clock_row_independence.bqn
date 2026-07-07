@@ -24,16 +24,13 @@ observation lib.AssertEq after_ctx.as_of
 before_vm ← daily_trend.Build before_ctx
 after_vm ← daily_trend.Build after_ctx
 
-# Current behavior: Daily Trend derives its own report-local clock from journal
-# data, so the later unrelated Event advances the VM clock despite fixed ctx.as_of.
+# The section-level local frontier still moves in this slice.
 "2026-01-03" lib.AssertEq before_vm.as_of
 "2026-01-06" lib.AssertEq after_vm.as_of
 
 before_row ← RowForDate ⟨before_vm.trend_rows, "2026-01-02"⟩
 after_row ← RowForDate ⟨after_vm.trend_rows, "2026-01-02"⟩
 
-# Same explicit observation and same historical coordinate-local state, but the
-# local latest-journal clock crosses the 2026-01-05 planned income cutoff.
 "2026-01-02" lib.AssertEq 0⊑before_row
 "2026-01-02" lib.AssertEq 0⊑after_row
 100 lib.AssertEq 1⊑before_row
@@ -43,11 +40,12 @@ after_row ← RowForDate ⟨after_vm.trend_rows, "2026-01-02"⟩
 9 lib.AssertEq 4⊑before_row
 9 lib.AssertEq 4⊑after_row
 
-# Current behavior: fixed explicit ctx.as_of does not stabilize the row when the
-# report-local latest-journal clock advances.
+# Selected behavior: row-local future income is tied to D. The unrelated later
+# Event may move section-level L, but it no longer removes the 2026-01-05 income
+# plan from the 2026-01-02 row.
 1000 lib.AssertEq 3⊑before_row
-100 lib.AssertEq 3⊑after_row
+1000 lib.AssertEq 3⊑after_row
 111 lib.AssertEq 5⊑before_row
-11 lib.AssertEq 5⊑after_row
+111 lib.AssertEq 5⊑after_row
 
-•Out "test_src_next_daily_trend_local_clock_dominance.bqn: OK"
+•Out "test_src_next_daily_trend_local_clock_row_independence.bqn: OK"
