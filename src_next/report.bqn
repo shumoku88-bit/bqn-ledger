@@ -2,12 +2,15 @@
 # Usage: bqn src_next/report.bqn <baseDir>
 #        bqn src_next/report.bqn <baseDir> --list-sections
 #        bqn src_next/report.bqn <baseDir> --section <key>
+#        bqn src_next/report.bqn <baseDir> --outlook-as-of YYYY-MM-DD
 #
 # --list-sections outputs tab-separated section-key and first-line marker
 # so UI tools can extract sections without hard-coding header strings.
 # --section prints one canonical section body by its stable key.
+# --outlook-as-of selects observation O for the Outlook consumer only.
 
 ctx_mod ← •Import "context.bqn"
+date ← •Import "date.bqn"
 snapshot ← •Import "snapshot.bqn"
 ytd_summary ← •Import "ytd_summary.bqn"
 balances ← •Import "balances.bqn"
@@ -50,7 +53,8 @@ FirstLine ← {𝕊 text:
 # BuildSectionEntries returns ⟨⟨key,full_text⟩,...⟩ for all report sections.
 # The key is the canonical section name used by UI tools.
 # The full_text is what would be printed for that section.
-BuildSectionEntries ← {𝕊 ctx:
+# Outlook O is supplied explicitly and does not redefine other consumers.
+BuildSectionEntries ← {𝕊 ctx‿outlook_as_of:
   exp ← expense_breakdown.Build ctx
   tb ← trial_balance.Build ⟨ctx, cube.layer_actual⟩
   vm ← envelope_computation.Build ctx
@@ -72,7 +76,7 @@ BuildSectionEntries ← {𝕊 ctx:
     ⟨"planned", planned_payments.FormatHuman ctx⟩
     ⟨"recent", recent_journal.FormatHuman ⟨ctx, 10⟩⟩
     ⟨"check", readiness_check.FormatHuman ctx⟩
-    ⟨"outlook", outlook.FormatHuman outlook.Build ctx⟩
+    ⟨"outlook", outlook.FormatHuman outlook.BuildAt ⟨ctx, outlook_as_of⟩⟩
     ⟨"daily-trend", daily_trend.FormatHuman daily_trend.Build ctx⟩
     ⟨"daily-flow", daily_flow.FormatHuman daily_flow.Build ctx⟩
     ⟨"actual-comparison", actual_comparison.FormatHuman actual_comparison.Build ctx⟩
@@ -97,6 +101,8 @@ Main ← {𝕊 args:
   format_val ← ArgValue ⟨args, "--format"⟩
   write_cache_flag ← HasArg ⟨args, "--write-section-cache"⟩
   write_cache_dir ← ArgValue ⟨args, "--write-section-cache"⟩
+  outlook_as_of_flag ← HasArg ⟨args, "--outlook-as-of"⟩
+  outlook_as_of_val ← ArgValue ⟨args, "--outlook-as-of"⟩
 
   {𝕊:
     •Out "ERROR: --section requires a section key"
@@ -133,6 +139,20 @@ Main ← {𝕊 args:
     •Exit 1
   }⍟(write_cache_flag ∧ (list_sections ∨ section_flag)) @
 
+  {𝕊:
+    •Out "ERROR: --outlook-as-of requires YYYY-MM-DD"
+    •Exit 1
+  }⍟(outlook_as_of_flag ∧ (0 = ≠outlook_as_of_val)) @
+
+  {𝕊:
+    •Out "ERROR: invalid --outlook-as-of date: "∾outlook_as_of_val
+    •Exit 1
+  }⍟(outlook_as_of_flag ∧ (0 < ≠outlook_as_of_val) ∧ ¬ date.IsValidDateText outlook_as_of_val) @
+
+  outlook_as_of ← ""
+  {𝕊: outlook_as_of ↩ outlook_as_of_val}⍟outlook_as_of_flag @
+  {𝕊: outlook_as_of ↩ date.Today @}⍟(¬ outlook_as_of_flag) @
+
   ctx ← ctx_mod.BuildContext base
 
   # Structured section requests dispatch before any human section rendering.
@@ -164,7 +184,7 @@ Main ← {𝕊 args:
     } @
   }⍟(format_val ≡ "json") @
 
-  entries ← BuildSectionEntries ctx
+  entries ← BuildSectionEntries ⟨ctx, outlook_as_of⟩
 
   {𝕊:
     {𝕊 entry:
