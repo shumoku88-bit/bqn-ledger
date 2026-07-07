@@ -103,6 +103,8 @@ Main ← {𝕊 args:
   write_cache_dir ← ArgValue ⟨args, "--write-section-cache"⟩
   outlook_as_of_flag ← HasArg ⟨args, "--outlook-as-of"⟩
   outlook_as_of_val ← ArgValue ⟨args, "--outlook-as-of"⟩
+  outlook_as_of_next_is_option ← "--" ≡ 2 ↑ outlook_as_of_val
+  outlook_as_of_missing ← outlook_as_of_flag ∧ ((0 = ≠outlook_as_of_val) ∨ outlook_as_of_next_is_option)
 
   {𝕊:
     •Out "ERROR: --section requires a section key"
@@ -142,12 +144,12 @@ Main ← {𝕊 args:
   {𝕊:
     •Out "ERROR: --outlook-as-of requires YYYY-MM-DD"
     •Exit 1
-  }⍟(outlook_as_of_flag ∧ (0 = ≠outlook_as_of_val)) @
+  }⍟outlook_as_of_missing @
 
   {𝕊:
     •Out "ERROR: invalid --outlook-as-of date: "∾outlook_as_of_val
     •Exit 1
-  }⍟(outlook_as_of_flag ∧ (0 < ≠outlook_as_of_val) ∧ ¬ date.IsValidDateText outlook_as_of_val) @
+  }⍟(outlook_as_of_flag ∧ (¬ outlook_as_of_missing) ∧ ¬ date.IsValidDateText outlook_as_of_val) @
 
   outlook_as_of ← ""
   {𝕊: outlook_as_of ↩ outlook_as_of_val}⍟outlook_as_of_flag @
