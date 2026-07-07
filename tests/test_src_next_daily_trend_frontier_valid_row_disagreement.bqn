@@ -45,14 +45,13 @@ valid_actual_dates ← ActualCoordinateSet ctx
 "2026-06-16" lib.AssertEq vm.as_of
 
 row_dates ← {0⊑𝕩}¨ vm.trend_rows
-⟨"2026-06-15", "2026-06-16"⟩ lib.AssertEq row_dates
-1 lib.AssertEq CountDate ⟨row_dates, "2026-06-16"⟩
-2 lib.AssertEq vm.obs_days
+⟨"2026-06-15"⟩ lib.AssertEq row_dates
+0 lib.AssertEq CountDate ⟨row_dates, "2026-06-16"⟩
+1 lib.AssertEq vm.obs_days
 
 # Narrow conclusion: in this reachable producer-disagreement fixture, the
-# frontier producer admits the 2026-06-16 journal date as L while the valid-row
-# producer excludes that date. Appending L independently contributes a Daily
-# Trend row coordinate. This does not decide which producer should own row
-# membership.
+# frontier producer still reports 2026-06-16 as L/as_of while the accepted
+# actual projection coordinates only yield the 2026-06-15 row. Rejected
+# 2026-06-16 stays out of row membership.
 
 •Out "test_src_next_daily_trend_frontier_valid_row_disagreement.bqn: OK"

@@ -26,8 +26,8 @@ ctx ← ctx_mod.BuildContext base
 vm ← daily_trend.Build ctx
 
 # Characterization A holds C and source S fixed to an ordinary non-empty
-# in-cycle journal. The only question is whether appending local L adds an
-# independent row coordinate beyond the valid actual projection coordinates.
+# in-cycle journal. Row membership should come only from accepted actual
+# projection coordinates.
 "2026-01-01" lib.AssertEq ctx.cy.start
 "2026-01-11" lib.AssertEq ctx.cy.end_exclusive
 "2026-01-03" lib.AssertEq vm.as_of
@@ -41,8 +41,7 @@ row_dates ← {0⊑𝕩}¨ vm.trend_rows
 1 lib.AssertEq CountDate ⟨row_dates, vm.as_of⟩
 2 lib.AssertEq vm.obs_days
 
-# Narrow conclusion: in this ordinary valid in-cycle fixture, L is already a
-# valid actual coordinate, so the appended L is deduplicated and does not expand
-# row membership. This does not claim that L is always redundant.
+# Narrow conclusion: in this ordinary valid in-cycle fixture, the accepted
+# actual row coordinates already match the final Daily Trend row set.
 
 •Out "test_src_next_daily_trend_row_set_frontier_redundancy.bqn: OK"

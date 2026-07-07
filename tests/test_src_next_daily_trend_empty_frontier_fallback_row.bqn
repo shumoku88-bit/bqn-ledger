@@ -24,13 +24,13 @@ ctx ← ctx_mod.BuildContext base
 vm ← daily_trend.Build ctx
 
 # Characterization B holds C and source S fixed to an empty journal fixture.
-# There are no valid actual coordinates; this observes whether
-# LatestActualDateInCycle's cycle.start fallback contributes the final row.
+# There are no valid actual coordinates; row membership should therefore use
+# an explicit cycle.start anchor.
 "2026-06-15" lib.AssertEq ctx.cy.start
 "2026-06-22" lib.AssertEq ctx.cy.end_exclusive
 ⟨⟩ lib.AssertEq ActualCoordinateSet ctx
 
-# Current fallback L is cycle.start.
+# L/as_of still resolves to cycle.start for VM consumers.
 "2026-06-15" lib.AssertEq vm.as_of
 
 row_dates ← {0⊑𝕩}¨ vm.trend_rows
@@ -48,8 +48,7 @@ row ← 0⊑vm.trend_rows
 0 lib.AssertEq 8⊑row  # day saving
 0 lib.AssertEq 9⊑row  # day fixed spend
 
-# Narrow conclusion: in this empty/fallback fixture, cycle.start fallback L
-# contributes a synthetic row coordinate. This does not decide whether that row
-# is correct product behavior.
+# Narrow conclusion: in this empty fixture, the visible cycle.start row is
+# produced by explicit empty-state anchoring rather than by appending L.
 
 •Out "test_src_next_daily_trend_empty_frontier_fallback_row.bqn: OK"
