@@ -25,6 +25,8 @@ cd "$ROOT_DIR"
 
 # shellcheck source=tools/lib/system-defaults.sh
 source "$ROOT_DIR/tools/lib/system-defaults.sh"
+# shellcheck source=tools/lib/plan-finish-workflow.sh
+source "$ROOT_DIR/tools/lib/plan-finish-workflow.sh"
 
 usage() {
   cat <<'EOF'
@@ -235,6 +237,20 @@ fi
 finish_cmd=("$ROOT_DIR/tools/edit" --base "$base_dir" plan finish "${selector_args[@]}" --actual-date "$actual_date" --actual-amount "$actual_amount" --apply)
 printf 'Running plan finish...\n' >&2
 "${finish_cmd[@]}"
+
+finish_verify_status=0
+plan_finish_require_applied "$ROOT_DIR/tools/edit" "$base_dir" "$plan_id" || finish_verify_status=$?
+case "$finish_verify_status" in
+  0) ;;
+  130)
+    shout 'Plan finish was not applied; skipping follow-up replenishment.'
+    exit 130
+    ;;
+  *)
+    shout "Failed to verify plan finish postcondition (status=$finish_verify_status)."
+    exit "$finish_verify_status"
+    ;;
+esac
 
 if ! ask_yes_no 'Create or extend a future plan from the finished plan?' 'N'; then
   exit 0
