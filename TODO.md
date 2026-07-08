@@ -9,7 +9,7 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-08 — Daily Trend temporal routing を PR #115 / #116 後の状態に同期。
+Last hygiene pass: 2026-07-08 — Daily Trend temporal routing を PR #118 後の状態に同期。
 
 ---
 
@@ -32,30 +32,42 @@ Current baseline:
 - explicit empty `plan_id=` now falls back to the existing five-field compatibility identity after PR #110
 - PR #115 proved independent human-header `vm.as_of` sensitivity
 - PR #116 selected report observation `O` as the semantic owner of human-header days remaining
-- current runtime header is still `L`-driven; selected owner `O` must not be equated with current `ctx.as_of` (which defaults from `cycle.start`) by assumption
-- concrete `O` carrier for Daily Trend remains unresolved
+- PR #118 selected the concrete Daily Trend header O carrier: neutral `report_today = date.Today` read once at the human report-entry path and passed explicitly to the Daily Trend header consumer boundary
+- `--outlook-as-of` remains Outlook-specific (does not control Daily Trend header O)
+- current runtime is still `L`-driven until the authorized runtime slice is implemented; internal L-derived dependencies (including reserve-sensitive paths) are not authorized to become O
+- selected owner `O` must not be equated with current `ctx.as_of` (which defaults from `cycle.start`) by assumption
 
 Current re-entry path:
 1. `docs/TIME_AS_AXIS.md`
 2. `docs/DAILY_TREND_CURRENT_SOURCE_COORDINATE_REPLAY_DECISION.md`
 3. `docs/DAILY_TREND_TEMPORAL_DEPENDENCY_MAP.md`
 4. `docs/DAILY_TREND_HEADER_TIME_OWNER_DECISION.md`
-5. `src_next/daily_trend.bqn`
-6. relevant characterization / contract tests (e.g. `tests/test_src_next_daily_trend_header_as_of_sensitivity.bqn`)
+5. `docs/DAILY_TREND_HEADER_CONCRETE_TIME_CARRIER_DECISION.md`
+6. `src_next/daily_trend.bqn`
+7. relevant characterization / contract tests (e.g. `tests/test_src_next_daily_trend_header_as_of_sensitivity.bqn`)
 
 Next finite rule:
-- [ ] start from current runtime + current dependency map, not from superseded A/B candidate wording
-- [ ] characterize current report-entry observation paths and decide the concrete `O` carrier for Daily Trend (inspect at minimum: `src_next/report.bqn`, `src_next/context.bqn`, `src_next/date.bqn`, existing Outlook observation wiring, and CLI compatibility; keep selected header owner `O`, concrete `O` carrier, current `ctx.as_of`, Outlook-specific `O`, general CLI design, and `K` separate)
-- [ ] characterize reachability / sensitivity before runtime repair when behavior is not already protected
-- [ ] state the protected property and owner before changing runtime
-- [ ] keep each slice separate; do not bundle VM `as_of`, header, reserve, Outlook, K, or shared temporal-kernel work
-- [ ] do not perform a global `L -> D`, `L -> O`, or `L -> K` rewrite
-- [ ] after a runtime slice, synchronize current dependency docs and retire stale routing before continuing
+- [ ] implement the smallest authorized runtime alignment from PR #118:
+  - report entry:
+    - after structured JSON early dispatch (preserving JSON paths' clock independence), resolve neutral `report_today = date.Today` once for the human report path
+    - resolve Outlook-specific O separately, preserving explicit `--outlook-as-of` override behavior for Outlook only
+  - Daily Trend:
+    - introduce an explicit header observation carrier, conceptually: `daily_trend.BuildAt ⟨ctx, header_O⟩` (or equivalent explicit interface)
+    - preserve existing L-derived `as_of`, `as_of_dn`, reserve behavior, and row-local behavior (do not globally replace `as_of` with `O` or `as_of_dn` with `header_O_dn` for internal logic; keep `O_row = D` and `K` unavailable)
+    - use `header_O` only for formatting the human header days-remaining presentation
+  - Validation:
+    - prove changing header O changes header days remaining (FormatHuman)
+    - prove rendered Daily Trend rows, row-local values, and reserve remain unchanged
+    - prove internal L remains unchanged
+    - prove `--outlook-as-of` does not change Daily Trend header output
+    - prove structured JSON requests do not acquire an unnecessary `date.Today` dependency
+    - preserve `O_row = D` and `K` as unavailable / not claimed
 
 Campaigns already completed and not automatic next work:
 - PR #100〜#106: current-source coordinate replay selection, row-local future income, row-membership ownership and docs sync
 - PR #107〜#111: explicit-empty identity characterization, semantic map, product decision, runtime alignment and docs closure
 - PR #115〜#116: human-header sensitivity test characterization and report observation O owner decision docs
+- PR #118: Daily Trend header concrete O carrier decision docs
 
 Deferred earlier track:
 - aggregate `Temporal execution coverage snapshot` remains a separate candidate from the earlier plan temporal-status × envelope-coverage work
