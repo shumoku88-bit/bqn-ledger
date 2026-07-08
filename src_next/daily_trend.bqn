@@ -193,9 +193,24 @@ Build ← {𝕊 ctx:
     top_drops ⇐ top_drops,
     obs_days ⇐ obs_count,
     as_of ⇐ as_of,
+    header_O ⇐ as_of,
     cycle_start ⇐ cy.start,
     cycle_end_exclusive ⇐ cy.end_exclusive,
     cycle_mode ⇐ cy.mode
+  }
+}
+
+BuildAt ← {𝕊 ⟨ctx, header_O⟩:
+  vm ← Build ctx
+  {
+    trend_rows ⇐ vm.trend_rows,
+    top_drops ⇐ vm.top_drops,
+    obs_days ⇐ vm.obs_days,
+    as_of ⇐ vm.as_of,
+    header_O ⇐ header_O,
+    cycle_start ⇐ vm.cycle_start,
+    cycle_end_exclusive ⇐ vm.cycle_end_exclusive,
+    cycle_mode ⇐ vm.cycle_mode
   }
 }
 
@@ -215,7 +230,7 @@ Format ← {𝕊 vm:
 
 FormatHuman ← {𝕊 vm:
   rows ← vm.trend_rows
-  days_left ← 0 ⌈ (proj.DaysFromEpoch vm.cycle_end_exclusive) - proj.DaysFromEpoch vm.as_of
+  days_left ← 0 ⌈ (proj.DaysFromEpoch vm.cycle_end_exclusive) - proj.DaysFromEpoch vm.header_O
 
   out ← (L "daily.section_title") ∾ (@+10) ∾ (@+10)
   out ↩ out ∾ (L "daily.cycle_label") ∾ vm.cycle_start ∾ " 〜 " ∾ vm.cycle_end_exclusive ∾ (L "daily.current_suffix") ∾ (•Fmt days_left) ∾ (L "daily.current_days_suffix") ∾ (@+10) ∾ (@+10)
@@ -242,4 +257,4 @@ FormatHuman ← {𝕊 vm:
   out
 }
 
-{ Build ⇐ Build, Format ⇐ Format, FormatHuman ⇐ FormatHuman }
+{ Build ⇐ Build, BuildAt ⇐ BuildAt, Format ⇐ Format, FormatHuman ⇐ FormatHuman }
