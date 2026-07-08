@@ -223,6 +223,7 @@ plan_series=""
 
 today="$(date +%Y-%m-%d)"
 actual_date="$(read_tty 'Actual date YYYY-MM-DD' "$today")"
+actual_amount="$(read_tty 'Actual amount' "$plan_amount")"
 
 selector_args=()
 if [[ -n "$plan_id" ]]; then
@@ -231,7 +232,7 @@ else
   selector_args=(--index "$plan_number")
 fi
 
-finish_cmd=("$ROOT_DIR/tools/edit" --base "$base_dir" plan finish "${selector_args[@]}" --actual-date "$actual_date" --apply)
+finish_cmd=("$ROOT_DIR/tools/edit" --base "$base_dir" plan finish "${selector_args[@]}" --actual-date "$actual_date" --actual-amount "$actual_amount" --apply)
 printf 'Running plan finish...\n' >&2
 "${finish_cmd[@]}"
 
