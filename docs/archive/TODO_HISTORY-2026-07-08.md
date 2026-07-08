@@ -1,6 +1,8 @@
-# Current Task: Generalization Phase 1
+# TODO History - 2026-07-08
 
-Date: 2026-06-15
+Status: Historical snapshot moved from `tasks/todo.md`.
+
+Original date: 2026-06-15
 
 ## Plan
 
