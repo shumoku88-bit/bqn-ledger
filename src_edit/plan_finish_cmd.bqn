@@ -2,7 +2,7 @@
 # BQN command for experimental `tools/edit-bqn plan finish`.
 #
 # Input args:
-#   <baseDir> <index: 0 or number> <planId: "" or id> <actualDate>
+#   <baseDir> <index: 0 or number> <planId: "" or id> <actualDate> <actualAmount: "" or amount>
 #
 # Stdout protocol on success:
 #   OK\tAPPEND\tjournal.tsv
@@ -27,12 +27,13 @@ Fail ← {𝕊 msg:
   •Exit 1
 }
 
-{𝕊 ⋄ Fail "usage: plan_finish_cmd.bqn <baseDir> <index> <planId> <actualDate>"}⍟(4 ≠ ≠ args) @
+{𝕊 ⋄ Fail "usage: plan_finish_cmd.bqn <baseDir> <index> <planId> <actualDate> <actualAmount>"}⍟(5 ≠ ≠ args) @
 
 baseDir ← 0 ⊑ args
 indexStr ← 1 ⊑ args
 targetPlanID ← 2 ⊑ args
 actualDate ← 3 ⊑ args
+actualAmount ← 4 ⊑ args
 
 # パース処理
 lib ← •Import "../src_next/util.bqn"
@@ -138,6 +139,11 @@ dateCheck ← validate.ValidateDate actualDate
 today ← date.Today @
 {𝕊 ⋄ Fail ("payment date cannot be in the future: " ∾ actualDate)}⍟((date.Ordinal actualDate) > date.Ordinal today) @
 
+# actualAmount: empty means preserve the planned amount; non-empty is the observed amount.
+amountToUse ← (0 = ≠ actualAmount) ◶ ⟨ {𝕊 ⋄ actualAmount}, {𝕊 ⋄ 4 ⊑ fields} ⟩ @
+actualAmountCheck ← validate.ValidateAmount amountToUse
+{𝕊 ⋄ Fail (1 ⊑ actualAmountCheck)}⍟(¬ 0 ⊑ actualAmountCheck) @
+
 # ジャーナル用メタデータの構築
 meta ← 5 ↓ fields
 IsPlanId ← { (8 ≤ ≠ 𝕩) ? "plan_id=" plan_id.StartsWith 𝕩 ; 0 }
@@ -150,7 +156,7 @@ row ← render.RenderJournalRow {
   memo ⇐ 1 ⊑ fields ⋄
   from ⇐ 2 ⊑ fields ⋄
   to ⇐ 3 ⊑ fields ⋄
-  amount ⇐ 4 ⊑ fields ⋄
+  amount ⇐ amountToUse ⋄
   meta ⇐ metaToUse
 }
 
