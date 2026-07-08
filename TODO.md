@@ -9,74 +9,18 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-08 — Daily Trend temporal routing を PR #118 後の状態に同期。
+Last hygiene pass: 2026-07-08 — Daily Trend temporal campaign closure review 後の状態に同期。
 
 ---
 
 ## Active work
 
-### Daily Trend temporal semantics continuation
+現在、明示的に承認された finite work はありません。
 
-Current baseline:
-- canonical temporal principle is `docs/TIME_AS_AXIS.md`
-- selected Daily Trend product is A1-like current-source coordinate replay
-- `S = source snapshot supplied to this run`
-- `D = Daily Trend row coordinate`
-- `O_row = D`
-- `C = cycle boundary`
-- `L = record-frontier context`
-- `K = unavailable / not claimed`
-- preserve `L != O_row`, `L != K`, `O_row != K`, and `historical coordinate != historical knowledge state`
-- planned future income is row-local after PR #101: `f(S, D, C)`
-- row membership is owned by accepted in-cycle actual coordinates plus explicit empty-state anchor after PR #105; `L` does not own ordinary row membership
-- explicit empty `plan_id=` now falls back to the existing five-field compatibility identity after PR #110
-- PR #115 proved independent human-header `vm.as_of` sensitivity
-- PR #116 selected report observation `O` as the semantic owner of human-header days remaining
-- PR #118 selected the concrete Daily Trend header O carrier
-- PR #120 implemented explicit Daily Trend header O transport:
-  - neutral `report_today = date.Today` is resolved once after structured JSON early dispatch on the human path
-  - `--outlook-as-of` remains Outlook-only
-  - Daily Trend receives explicit `header_O`
-  - human header days remaining is now O-driven
-  - internal `vm.as_of` remains L-driven
-  - `O_row = D` remains unchanged
-  - K remains unavailable / not claimed
-  - reserve, rows, and row-local future-income semantics remain unchanged
-- selected owner `O` must not be equated with current `ctx.as_of` (which defaults from `cycle.start`) by assumption
+Daily Trend temporal semantics の major campaign は closure review により終了しました。
 
-Current re-entry path:
-1. `docs/TIME_AS_AXIS.md`
-2. `docs/DAILY_TREND_CURRENT_SOURCE_COORDINATE_REPLAY_DECISION.md`
-3. `docs/DAILY_TREND_TEMPORAL_DEPENDENCY_MAP.md`
-4. `docs/DAILY_TREND_HEADER_TIME_OWNER_DECISION.md`
-5. `docs/DAILY_TREND_HEADER_CONCRETE_TIME_CARRIER_DECISION.md`
-6. `src_next/daily_trend.bqn`
-7. relevant characterization / contract tests (e.g. `tests/test_src_next_daily_trend_header_as_of_sensitivity.bqn`)
-
-Next finite rule:
-- [ ] Review whether the Daily Trend temporal semantics campaign can now close,
-      or whether any remaining L usage has a concrete unresolved product problem
-      backed by current evidence.
-
-      Explicitly preserve:
-      - no automatic `L -> O`
-      - no automatic `L -> D`
-      - no automatic `L -> K`
-      - no automatic VM `as_of` rewrite
-      - no automatic reserve branch cleanup
-      - no shared temporal-kernel extraction without a second independent consumer
-
-Campaigns already completed and not automatic next work:
-- PR #100〜#106: current-source coordinate replay selection, row-local future income, row-membership ownership and docs sync
-- PR #107〜#111: explicit-empty identity characterization, semantic map, product decision, runtime alignment and docs closure
-- PR #115〜#116: human-header sensitivity test characterization and report observation O owner decision docs
-- PR #118: Daily Trend header concrete O carrier decision docs
-- PR #120: Daily Trend header O runtime implementation and validation
-
-Deferred earlier track:
-- aggregate `Temporal execution coverage snapshot` remains a separate candidate from the earlier plan temporal-status × envelope-coverage work
-- do not treat old “Slice B” wording as automatic authorization
-- revisit only if the derived view is still useful under an explicit current observation contract
+導線:
+- `docs/archive/audits/DAILY_TREND_TEMPORAL_CAMPAIGN_CLOSURE_REVIEW-2026-07-08.md`
 
 ---
 
@@ -185,6 +129,27 @@ Recurring review prompts:
 ---
 
 ## Hold / later
+
+### Daily Trend residual temporal candidates
+
+Status: 保留。major temporal campaign は closure review で終了。以下は独立候補であり、自動実装しない。
+
+導線:
+- `docs/archive/audits/DAILY_TREND_TEMPORAL_CAMPAIGN_CLOSURE_REVIEW-2026-07-08.md`
+- `docs/TIME_AS_AXIS.md`
+- `docs/DAILY_TREND_TEMPORAL_DEPENDENCY_MAP.md`
+
+- [ ] `vm.as_of = L` は、実 consumer / API confusion / product drift の concrete evidence が出た場合だけ独立再検討する
+- [ ] empty-identity reserve branch は、valid current source reachability または具体的 product effect が示された場合だけ再検討する
+- [ ] shared temporal kernel は、同じ temporal contract を持つ second independent consumer が確認された場合だけ再検討する
+- [ ] `L -> O` / `L -> D` / `L -> K` を自動変換しない
+
+### Temporal execution coverage snapshot
+
+Status: 保留。以前の plan temporal-status × envelope-coverage work とは別候補。
+
+- [ ] old “Slice B” wording を自動 authorization として扱わない
+- [ ] explicit current observation contract の下で derived view がまだ有用な場合だけ再検討する
 
 ### 多通貨対応
 
