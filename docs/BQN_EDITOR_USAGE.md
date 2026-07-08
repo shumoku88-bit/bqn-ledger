@@ -32,7 +32,7 @@ BQN Editor は会計エンジンとしての計算（残高や封筒の残金計
 4.  **`budget` (予算配賦)**: 封筒への予算割り当て（例: `budget:unassigned` $\rightarrow$ `budget:daily`）。`budget_alloc.tsv` に追記。memo 候補は `config/ui_budget_memo_presets.tsv` で管理します。
 5.  **`plan-add` (予定の追加)**: 未来の支払い予定を `plan.tsv` に安全追記。必要なら `series` を入力でき、`plan_id` は自動生成。
 6.  **`plan-edit` (予定の日付・金額修正)**: 未完了予定を選び、`date` / `amount` だけを差分プレビュー付きで修正。
-7.  **`plan-finish` (予定の実績化)**: `plan.tsv` で宣言された予定を完了させて実績化。`journal.tsv` に `plan_id` 付きで追記。
+7.  **`plan-finish` (予定の実績化)**: `tools/plan-finish-replenish-ui.sh` に委譲し、`plan.tsv` で宣言された予定を完了させて実績化。`journal.tsv` に `plan_id` 付きで追記し、必要なら次回予定も追加。
 8.  **`reverse` (仕訳取消)**: 既存の `journal.tsv` 行を選び、from/to を入れ替えた反対仕訳を `journal.tsv` に安全追記。
 9.  **`issue` (懸案事項・意思決定の追加)**: 財務的な懸案事項や意思決定（例: サブスクリプションの見直し）を `issues.tsv` に安全追記。
 

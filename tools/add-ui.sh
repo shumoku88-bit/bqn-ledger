@@ -35,7 +35,7 @@ Modes:
   budget        budget -> budget    (writes budget_alloc.tsv)
   plan-add      assets -> expenses  (writes plan.tsv)
   plan-edit     date/amount         (edits plan.tsv)
-  plan-finish                       (plan -> journal)
+  plan-finish                       (plan -> journal, optional next plan)
   reverse       仕訳取消 (反対仕訳追記)
   issue         懸案事項・意思決定の追加 (writes issues.tsv)
 
@@ -154,6 +154,12 @@ run_preflight() {
     ok "tools/edit wrapper"
   else
     fail_check "tools/edit wrapper is not executable"
+  fi
+
+  if [[ -x "$ROOT_DIR/tools/plan-finish-replenish-ui.sh" ]]; then
+    ok "tools/plan-finish-replenish-ui.sh"
+  else
+    fail_check "tools/plan-finish-replenish-ui.sh is not executable"
   fi
 
   for role in asset expense income; do
@@ -316,7 +322,7 @@ income	収入 income -> assets
 budget	予算配賦 budget -> budget
 plan-add	予定の追加 assets -> expenses
 plan-edit	予定の日付・金額修正
-plan-finish	予定の実績化 plan -> journal
+plan-finish	予定の実績化 + 次回予定補充
 reverse	仕訳取消 (反対仕訳追記)
 issue	懸案事項・意思決定の追加
 EOF
@@ -452,6 +458,10 @@ if [[ -z "$mode" ]]; then
   mode="${mode_line%%$'\t'*}"
 fi
 
+if [[ "$mode" == 'plan-finish' ]]; then
+  exec "$ROOT_DIR/tools/plan-finish-replenish-ui.sh" --base "$base_dir"
+fi
+
 memo=''; from=''; to=''; amt=''; meta=''; plan_series=''
 
 case "$mode" in
@@ -506,7 +516,7 @@ case "$mode" in
       meta="${meta:+$meta }series=$plan_series"
     fi
     ;;
-  plan-finish|plan-edit)
+  plan-edit)
     plan_tsv_lines=()
     while IFS= read -r _pl; do plan_tsv_lines+=("$_pl"); done < <("$ROOT_DIR/tools/edit" --base "$base_dir" plan list --format tsv)
     if [[ ${#plan_tsv_lines[@]} -eq 0 ]]; then
@@ -517,8 +527,7 @@ case "$mode" in
     for line in "${plan_tsv_lines[@]}"; do
       display_lines+=("$(printf '%s\n' "$line" | cut -f9)")
     done
-    select_prompt='select plan to finish'
-    [[ "$mode" == 'plan-edit' ]] && select_prompt='select plan to edit'
+    select_prompt='select plan to edit'
     capture_or_cancel selected_display select_display_lines "$select_prompt"
     if [[ -z "$selected_display" ]]; then cancel_ui; fi
     selected_row=""
@@ -539,17 +548,13 @@ case "$mode" in
     else
       plan_selector_args=(--index "$plan_number")
     fi
-    if [[ "$mode" == 'plan-finish' ]]; then
-      plan_finish_args=("${plan_selector_args[@]}")
-    else
-      capture_or_cancel new_plan_date read_tty 'New plan date YYYY-MM-DD' "$plan_date"
-      capture_or_cancel new_plan_amount read_tty 'New amount' "$plan_amount"
-      plan_edit_args=("${plan_selector_args[@]}")
-      [[ "$new_plan_date" != "$plan_date" ]] && plan_edit_args+=(--date "$new_plan_date")
-      [[ "$new_plan_amount" != "$plan_amount" ]] && plan_edit_args+=(--amount "$new_plan_amount")
-      if [[ ${#plan_edit_args[@]} -eq ${#plan_selector_args[@]} ]]; then
-        shout 'No changes entered.'; exit 0
-      fi
+    capture_or_cancel new_plan_date read_tty 'New plan date YYYY-MM-DD' "$plan_date"
+    capture_or_cancel new_plan_amount read_tty 'New amount' "$plan_amount"
+    plan_edit_args=("${plan_selector_args[@]}")
+    [[ "$new_plan_date" != "$plan_date" ]] && plan_edit_args+=(--date "$new_plan_date")
+    [[ "$new_plan_amount" != "$plan_amount" ]] && plan_edit_args+=(--amount "$new_plan_amount")
+    if [[ ${#plan_edit_args[@]} -eq ${#plan_selector_args[@]} ]]; then
+      shout 'No changes entered.'; exit 0
     fi
     ;;
   reverse)
@@ -582,9 +587,9 @@ case "$mode" in
     shout "Unknown mode: $mode"; exit 1 ;;
 esac
 
-# ── Date selection (skip for plan-finish/edit) ──
+# ── Date selection (skip for plan-edit/reverse) ──
 
-if [[ "$mode" != 'plan-finish' && "$mode" != 'plan-edit' && "$mode" != 'reverse' ]]; then
+if [[ "$mode" != 'plan-edit' && "$mode" != 'reverse' ]]; then
   if [[ "$mode" == 'plan-add' ]]; then
     capture_or_cancel date_line choose_plan_date_key
   else
@@ -612,9 +617,7 @@ fi
 
 # ── Execute via BQN editor ──
 
-if [[ "$mode" == 'plan-finish' ]]; then
-  cmd=("$ROOT_DIR/tools/edit" --base "$base_dir" plan finish "${plan_finish_args[@]}" --apply)
-elif [[ "$mode" == 'plan-edit' ]]; then
+if [[ "$mode" == 'plan-edit' ]]; then
   cmd=("$ROOT_DIR/tools/edit" --base "$base_dir" plan edit "${plan_edit_args[@]}")
 elif [[ "$mode" == 'reverse' ]]; then
   cmd=("$ROOT_DIR/tools/edit" --base "$base_dir" journal reverse "${reverse_args[@]}")
@@ -640,7 +643,7 @@ else
   )
 fi
 
-if [[ "$mode" != 'plan-finish' && "$mode" != 'plan-edit' && "$mode" != 'reverse' && "$mode" != 'issue' && -n "$meta" ]]; then
+if [[ "$mode" != 'plan-edit' && "$mode" != 'reverse' && "$mode" != 'issue' && -n "$meta" ]]; then
   for token in $meta; do
     [[ -n "$token" ]] && cmd+=(--meta "$token")
   done
