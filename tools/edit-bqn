@@ -38,7 +38,7 @@ Usage:
   tools/edit-bqn [--base DIR] journal list [--format tsv|text]
   tools/edit-bqn [--base DIR] plan list [--all] [--format tsv|text]
   tools/edit-bqn [--base DIR] plan related [--index NUMBER] [--id PLAN_ID] --actual-date YYYY-MM-DD [--format tsv]
-  tools/edit-bqn [--base DIR] plan finish [--index NUMBER] [--id PLAN_ID] --actual-date YYYY-MM-DD [--dry-run] [--yes] [--post-check none|lint|full]
+  tools/edit-bqn [--base DIR] plan finish [--index NUMBER] [--id PLAN_ID] --actual-date YYYY-MM-DD [--actual-amount INT] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] plan edit [--index NUMBER] [--id PLAN_ID] [--date YYYY-MM-DD] [--amount INT] [--all] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] journal reverse [--index NUMBER] [--id TXN_ID] [--date YYYY-MM-DD] [--dry-run] [--yes] [--post-check none|lint|full]
 
@@ -276,6 +276,7 @@ if [[ "$1" == "plan" && "$2" == "finish" ]]; then
   INDEX="0"
   PLAN_ID=""
   ACTUAL_DATE=""
+  ACTUAL_AMOUNT=""
   APPLY=0
   DRY_RUN_EXPLICIT=0
   YES=0
@@ -285,6 +286,7 @@ if [[ "$1" == "plan" && "$2" == "finish" ]]; then
       --index) INDEX="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
       --id) PLAN_ID="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
       --actual-date) ACTUAL_DATE="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --actual-amount) ACTUAL_AMOUNT="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
       --apply) APPLY=1; shift ;;
       --dry-run) DRY_RUN_EXPLICIT=1; shift ;;
       --yes) YES=1; shift ;;
@@ -315,7 +317,7 @@ if [[ "$1" == "plan" && "$2" == "finish" ]]; then
   BQN_STDERR="$(mktemp)"
   trap 'rm -f "$BQN_STDERR"' EXIT
   BQN_OUT=""
-  if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/plan_finish_cmd.bqn "$BASE_DIR" "$INDEX" "$PLAN_ID" "$ACTUAL_DATE" 2>"$BQN_STDERR")"; then
+  if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/plan_finish_cmd.bqn "$BASE_DIR" "$INDEX" "$PLAN_ID" "$ACTUAL_DATE" "$ACTUAL_AMOUNT" 2>"$BQN_STDERR")"; then
     if [[ -n "$BQN_OUT" ]]; then
       printf '%s\n' "$BQN_OUT" >&2
     fi
