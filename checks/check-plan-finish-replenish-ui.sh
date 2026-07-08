@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Verify plan finish replenishment helper stays shell-safe and supports read-only preflight.
+# Verify plan finish replenishment helper stays shell-safe, supports read-only
+# preflight, and refuses replenishment unless the selected plan is actually closed.
 
 if [ -f "src_next/report.bqn" ]; then
   ROOT_DIR="$PWD"
@@ -12,6 +13,10 @@ fi
 cd "$ROOT_DIR"
 
 bash -n tools/plan-finish-replenish-ui.sh
+bash -n tools/lib/plan-finish-workflow.sh
+
+# shellcheck source=tools/lib/plan-finish-workflow.sh
+source "$ROOT_DIR/tools/lib/plan-finish-workflow.sh"
 
 tmp_root="$(mktemp -d)"
 trap 'rm -rf "$tmp_root"' EXIT
@@ -44,6 +49,39 @@ if [ "$before_plan" != "$after_plan" ]; then
 fi
 if [ "$before_journal" != "$after_journal" ]; then
   echo "FAIL: preflight modified journal.tsv" >&2
+  exit 1
+fi
+
+# Open plan: a cancelled/non-applied finish must be distinguishable from success.
+if ! plan_finish_plan_id_is_open "$ROOT_DIR/tools/edit" "$base" plan-2026-01-10-phone; then
+  echo "FAIL: expected phone plan to be open" >&2
+  exit 1
+fi
+
+set +e
+plan_finish_require_applied "$ROOT_DIR/tools/edit" "$base" plan-2026-01-10-phone
+open_status=$?
+set -e
+if [ "$open_status" -ne 130 ]; then
+  echo "FAIL: still-open plan should report cancellation/not-applied status 130, got $open_status" >&2
+  exit 1
+fi
+
+# Closed plan: the fixture journal already contains the matching plan_id.
+if plan_finish_plan_id_is_open "$ROOT_DIR/tools/edit" "$base" plan-2026-01-15-rent; then
+  echo "FAIL: expected rent plan to be closed" >&2
+  exit 1
+fi
+if ! plan_finish_require_applied "$ROOT_DIR/tools/edit" "$base" plan-2026-01-15-rent; then
+  echo "FAIL: closed plan should satisfy finish postcondition" >&2
+  exit 1
+fi
+
+# Guard wiring: helper must check the postcondition before the replenish prompt.
+require_line="$(grep -nF 'plan_finish_require_applied "$ROOT_DIR/tools/edit" "$base_dir" "$plan_id"' tools/plan-finish-replenish-ui.sh | head -n1 | cut -d: -f1)"
+prompt_line="$(grep -nF "Create or extend a future plan from the finished plan?" tools/plan-finish-replenish-ui.sh | head -n1 | cut -d: -f1)"
+if [ -z "$require_line" ] || [ -z "$prompt_line" ] || [ "$require_line" -ge "$prompt_line" ]; then
+  echo "FAIL: plan finish applied-state guard must run before replenish prompt" >&2
   exit 1
 fi
 
