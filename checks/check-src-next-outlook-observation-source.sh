@@ -51,4 +51,12 @@ if [[ "$snapshot_a" != "$snapshot_b" ]]; then
   exit 1
 fi
 
+daily_trend_a="$(tools/report "$base" --section daily-trend --outlook-as-of 2026-06-18 --no-color)"
+daily_trend_b="$(tools/report "$base" --section daily-trend --outlook-as-of 2026-06-19 --no-color)"
+if [[ "$daily_trend_a" != "$daily_trend_b" ]]; then
+  echo "FAIL: Outlook-specific observation changed daily-trend section output" >&2
+  diff -u <(printf '%s\n' "$daily_trend_a") <(printf '%s\n' "$daily_trend_b") >&2 || true
+  exit 1
+fi
+
 echo "check-src-next-outlook-observation-source.sh: OK"

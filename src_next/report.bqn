@@ -54,7 +54,7 @@ FirstLine ← {𝕊 text:
 # The key is the canonical section name used by UI tools.
 # The full_text is what would be printed for that section.
 # Outlook O is supplied explicitly and does not redefine other consumers.
-BuildSectionEntries ← {𝕊 ctx‿outlook_as_of:
+BuildSectionEntries ← {𝕊 ctx‿outlook_as_of‿report_today:
   exp ← expense_breakdown.Build ctx
   tb ← trial_balance.Build ⟨ctx, cube.layer_actual⟩
   vm ← envelope_computation.Build ctx
@@ -77,7 +77,7 @@ BuildSectionEntries ← {𝕊 ctx‿outlook_as_of:
     ⟨"recent", recent_journal.FormatHuman ⟨ctx, 10⟩⟩
     ⟨"check", readiness_check.FormatHuman ctx⟩
     ⟨"outlook", outlook.FormatHuman outlook.BuildAt ⟨ctx, outlook_as_of⟩⟩
-    ⟨"daily-trend", daily_trend.FormatHuman daily_trend.Build ctx⟩
+    ⟨"daily-trend", daily_trend.FormatHuman daily_trend.BuildAt ⟨ctx, report_today⟩⟩
     ⟨"daily-flow", daily_flow.FormatHuman daily_flow.Build ctx⟩
     ⟨"actual-comparison", actual_comparison.FormatHuman actual_comparison.Build ctx⟩
     ⟨"debug", {
@@ -183,11 +183,12 @@ Main ← {𝕊 args:
     } @
   }⍟(format_val ≡ "json") @
 
+  report_today ← date.Today @
   outlook_as_of ← ""
   {𝕊: outlook_as_of ↩ outlook_as_of_val}⍟outlook_as_of_flag @
-  {𝕊: outlook_as_of ↩ date.Today @}⍟(¬ outlook_as_of_flag) @
+  {𝕊: outlook_as_of ↩ report_today}⍟(¬ outlook_as_of_flag) @
 
-  entries ← BuildSectionEntries ⟨ctx, outlook_as_of⟩
+  entries ← BuildSectionEntries ⟨ctx, outlook_as_of, report_today⟩
 
   {𝕊:
     {𝕊 entry:
