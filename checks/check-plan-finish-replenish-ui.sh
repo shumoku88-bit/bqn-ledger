@@ -89,7 +89,7 @@ fi
 
 # Query failure must remain a verification error rather than looking closed.
 set +e
-plan_finish_require_applied /bin/false "$base" plan-2026-01-10-phone
+plan_finish_require_applied false "$base" plan-2026-01-10-phone
 query_status=$?
 set -e
 if [ "$query_status" -ne 2 ]; then
