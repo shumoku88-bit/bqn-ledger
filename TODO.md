@@ -9,13 +9,29 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-08 — Daily Trend temporal campaign closure review 後の状態に同期。
+Last hygiene pass: 2026-07-08 — currency-awareness campaign map 着手状態に同期。
 
 ---
 
 ## Active work
 
-現在、明示的に承認された finite work はありません。
+### Currency awareness campaign map
+
+Current authorized finite slice:
+- docs-only で全体 campaign map を定義する
+- current JPY / single-amount assumptions から、single-currency awareness、per-row original currency、currency-partitioned reports、travel proof、必要時のみ FX valuation へ段階化する
+- 既存 `docs/ENGINEERING_ROADMAP.md` の広い multi-currency / FX 案は削除せず、後半段階の設計材料として保持する
+
+導線:
+- `docs/CURRENCY_AWARENESS_CAMPAIGN_MAP.md`
+- `docs/ENGINEERING_ROADMAP.md`
+- `docs/JOURNAL_META.md`
+- `docs/POSTING_IR_CONTRACT.md`
+
+Boundary:
+- runtime / tests / fixtures / source TSV はこの slice では変更しない
+- `currency=` / `base_amount=` / `BASE_CURRENCY` / TBDS axis を自動実装しない
+- 次の finite slice は map 受理後に Stage 0 current-assumption map を別途選ぶ
 
 Daily Trend temporal semantics の major campaign は closure review により終了しました。
 
@@ -150,15 +166,6 @@ Status: 保留。以前の plan temporal-status × envelope-coverage work とは
 
 - [ ] old “Slice B” wording を自動 authorization として扱わない
 - [ ] explicit current observation contract の下で derived view がまだ有用な場合だけ再検討する
-
-### 多通貨対応
-
-Status: 保留。必要性が具体化してから設計する。
-
-導線: `docs/ENGINEERING_ROADMAP.md` の「多通貨・為替」。
-
-- [ ] Phase A に入る前に schema / Posting IR / TBDS への影響を設計する
-- [ ] `currency=` / `base_amount=` などのメタデータを増やす場合は `config/meta_schema.tsv` と `docs/JOURNAL_META.md` を先に更新する
 
 ---
 
