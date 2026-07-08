@@ -46,6 +46,12 @@ after_table  ← after_table_idx ↓ after_human
 # The table part must be byte-for-byte identical
 before_table lib.AssertEq after_table
 
+# Direct header days_left containment and cross-negative assertions
+1 lib.AssertEq ∨´ "(現在 8 日残)" ⍷ before_human
+1 lib.AssertEq ∨´ "(現在 5 日残)" ⍷ after_human
+0 lib.AssertEq ∨´ "(現在 5 日残)" ⍷ before_human
+0 lib.AssertEq ∨´ "(現在 8 日残)" ⍷ after_human
+
 # The human header itself must be different
 1 lib.AssertEq before_human ≢ after_human
 
