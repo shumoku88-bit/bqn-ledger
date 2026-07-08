@@ -9,7 +9,7 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-08 — Daily Trend temporal work の current routing を #100〜#111 後の実装・docs truth に同期。
+Last hygiene pass: 2026-07-08 — Daily Trend temporal routing を PR #115 / #116 後の状態に同期。
 
 ---
 
@@ -29,20 +29,23 @@ Current baseline:
 - preserve `L != O_row`, `L != K`, `O_row != K`, and `historical coordinate != historical knowledge state`
 - planned future income is row-local after PR #101: `f(S, D, C)`
 - row membership is owned by accepted in-cycle actual coordinates plus explicit empty-state anchor after PR #105; `L` does not own ordinary row membership
-- explicit empty `plan_id=` now falls back to the existing five-field compatibility identity after PR #110; the characterized PR #107 reserve drift is historical pre-#110 evidence
-- the empty-id reserve branch code remains present; other reachability is not claimed
-- named current `L` responsibilities still include VM `as_of` and human header `days_left`
+- explicit empty `plan_id=` now falls back to the existing five-field compatibility identity after PR #110
+- PR #115 proved independent human-header `vm.as_of` sensitivity
+- PR #116 selected report observation `O` as the semantic owner of human-header days remaining
+- current runtime header is still `L`-driven; selected owner `O` must not be equated with current `ctx.as_of` (which defaults from `cycle.start`) by assumption
+- concrete `O` carrier for Daily Trend remains unresolved
 
 Current re-entry path:
 1. `docs/TIME_AS_AXIS.md`
 2. `docs/DAILY_TREND_CURRENT_SOURCE_COORDINATE_REPLAY_DECISION.md`
 3. `docs/DAILY_TREND_TEMPORAL_DEPENDENCY_MAP.md`
-4. `src_next/daily_trend.bqn`
-5. relevant characterization / contract tests for the specific consumer being changed
+4. `docs/DAILY_TREND_HEADER_TIME_OWNER_DECISION.md`
+5. `src_next/daily_trend.bqn`
+6. relevant characterization / contract tests (e.g. `tests/test_src_next_daily_trend_header_as_of_sensitivity.bqn`)
 
 Next finite rule:
 - [ ] start from current runtime + current dependency map, not from superseded A/B candidate wording
-- [ ] choose one concrete inconsistency or unclear ownership question backed by current evidence
+- [ ] characterize current report-entry observation paths and decide the concrete `O` carrier for Daily Trend (inspect at minimum: `src_next/report.bqn`, `src_next/context.bqn`, `src_next/date.bqn`, existing Outlook observation wiring, and CLI compatibility; keep selected header owner `O`, concrete `O` carrier, current `ctx.as_of`, Outlook-specific `O`, general CLI design, and `K` separate)
 - [ ] characterize reachability / sensitivity before runtime repair when behavior is not already protected
 - [ ] state the protected property and owner before changing runtime
 - [ ] keep each slice separate; do not bundle VM `as_of`, header, reserve, Outlook, K, or shared temporal-kernel work
@@ -52,6 +55,7 @@ Next finite rule:
 Campaigns already completed and not automatic next work:
 - PR #100〜#106: current-source coordinate replay selection, row-local future income, row-membership ownership and docs sync
 - PR #107〜#111: explicit-empty identity characterization, semantic map, product decision, runtime alignment and docs closure
+- PR #115〜#116: human-header sensitivity test characterization and report observation O owner decision docs
 
 Deferred earlier track:
 - aggregate `Temporal execution coverage snapshot` remains a separate candidate from the earlier plan temporal-status × envelope-coverage work
