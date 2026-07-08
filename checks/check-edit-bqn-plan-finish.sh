@@ -5,6 +5,7 @@ export NO_COLOR=1
 # Verify BQN-backed `plan finish` append path.
 # Scope:
 #   - resulting journal.tsv append creates expected TSV/backup effects
+#   - actual amount override changes only the journal actual row, not plan.tsv
 #   - dry-run source protection
 #   - negative cases fail closed without source/backup writes
 
@@ -66,9 +67,38 @@ run_positive_parity() {
 
   ./tools/edit-bqn --base "$bqn_base" "$@" >"$bqn_out" 2>&1
 
-
   if ! find "$bqn_base/.backup" -type f -name 'journal.tsv*' | grep -q .; then
     echo "FAIL: tools/edit-bqn plan finish did not create a journal backup: $name" >&2
+    exit 1
+  fi
+}
+
+run_actual_amount_override() {
+  local bqn_base="$tmp_root/actual-amount-override"
+  local bqn_out="$tmp_root/actual-amount-override.out"
+  local plan_before plan_after last_amount
+
+  prepare_fixtures "$bqn_base"
+  plan_before="$(sha_file "$bqn_base/plan.tsv")"
+
+  ./tools/edit-bqn --base "$bqn_base" plan finish \
+    --id plan-2026-08-15-test-finish \
+    --actual-date 2026-06-29 \
+    --actual-amount 1750 \
+    --apply \
+    --yes \
+    --post-check none >"$bqn_out" 2>&1
+
+  last_amount="$(tail -n 1 "$bqn_base/journal.tsv" | cut -f5)"
+  if [ "$last_amount" != "1750" ]; then
+    echo "FAIL: actual amount override was not written to journal.tsv" >&2
+    tail -n 1 "$bqn_base/journal.tsv" >&2
+    exit 1
+  fi
+
+  plan_after="$(sha_file "$bqn_base/plan.tsv")"
+  if [ "$plan_before" != "$plan_after" ]; then
+    echo "FAIL: actual amount override modified plan.tsv" >&2
     exit 1
   fi
 }
@@ -127,6 +157,8 @@ run_positive_parity finish-by-id \
   --yes \
   --post-check none
 
+run_actual_amount_override
+
 # Negative cases.
 run_expect_fail_closed closed-plan \
   plan finish \
@@ -156,6 +188,15 @@ run_expect_fail_closed invalid-index \
   plan finish \
   --index 3 \
   --actual-date 2026-06-29 \
+  --apply \
+  --yes \
+  --post-check none
+
+run_expect_fail_closed invalid-actual-amount \
+  plan finish \
+  --id plan-2026-08-15-test-finish \
+  --actual-date 2026-06-29 \
+  --actual-amount not-a-number \
   --apply \
   --yes \
   --post-check none
