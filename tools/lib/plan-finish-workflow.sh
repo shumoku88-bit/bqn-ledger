@@ -20,7 +20,7 @@ plan_finish_plan_id_is_open() {
     return 2
   fi
 
-  awk -F '\t' -v pid="$plan_id" '
+  awk -F $'\t' -v pid="$plan_id" '
     $2 == pid {
       found = 1
       if ($8 == "CLOSED") closed = 1
