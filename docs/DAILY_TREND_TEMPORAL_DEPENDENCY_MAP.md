@@ -655,7 +655,7 @@ A_empty: explicit empty-state anchor
 L: record-frontier context only
 ```
 
-The runtime has not yet been changed to match this selected ownership.
+The runtime has been changed to match this selected ownership (PR #105).
 
 ### Finding D: ordinary reserve remains identity-sensitive
 
