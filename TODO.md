@@ -9,37 +9,37 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-08 — plan finish actual-amount slice の優先状態に同期。
+Last hygiene pass: 2026-07-08 — plan finish cancellation guard slice の優先状態に同期。
 
 ---
 
 ## Active work
 
-### Plan finish actual amount override
+### Plan finish cancellation postcondition guard
 
 Context:
-- `tools/add-ui.sh plan-finish` は 2026-07-08 の tactical fix で既存 `tools/plan-finish-replenish-ui.sh` へ接続済み
-- daily use で予定日・予定金額と実績が異なるケースが発生し、予定編集後に金額差異へ気づいて source data を手修正する必要があった
-- current `plan finish` は `actual_date` を別入力できるが、journal amount は予定額をそのまま使う
+- PR #124 で `plan finish` は optional actual amount を記録でき、予定額を `plan.tsv` に保持できるようになった
+- current low-level confirmation path は append をキャンセルしても process exit 0 になり得る
+- `tools/plan-finish-replenish-ui.sh` は exit 0 を finish success と解釈すると、actual append が無いまま follow-up replenishment へ進む可能性がある
 
 Current authorized finite slice:
-- `tools/edit plan finish` に optional `--actual-amount` を追加する
-- 省略時は planned amount を使い、既存挙動を維持する
-- 指定時は journal actual row だけに実績額を使い、`plan.tsv` の予定額は変更しない
-- daily replenish UI で actual amount を planned amount default 付きで入力できるようにする
-- override / fallback / invalid amount / source protection を narrow check で固定する
+- finish command の process exit だけを actual append 成功証拠として扱わない
+- selected `plan_id` が finish 後も open なら not-applied と判定する
+- not-applied は status 130 として daily workflow から返し、replenishment prompt へ進まない
+- closed plan は finish postcondition success と判定する
+- open / closed / guard-before-prompt を narrow check で固定する
 
 導線:
-- `docs/archive/active-plans/PLAN_COMPLETION_WORKFLOW_DESIGN_INTAKE-2026-07-08.md`
-- `src_edit/plan_finish_cmd.bqn`
 - `tools/plan-finish-replenish-ui.sh`
-- `checks/check-edit-bqn-plan-finish.sh`
+- `tools/lib/plan-finish-workflow.sh`
+- `checks/check-plan-finish-replenish-ui.sh`
+- `docs/archive/active-plans/PLAN_COMPLETION_WORKFLOW_DESIGN_INTAKE-2026-07-08.md`
 
 Boundary:
-- source TSV schema は変更しない
-- real source TSV は変更しない
-- cancel semantics / metadata inheritance / follow-up failure recovery / next-date rules はこの slice へ混ぜない
-- broad Plan Completion Workflow Contract はこの slice 後に独立判断する
+- low-level editor 全体の cancellation exit contract は変更しない
+- journal add など他 command の confirmation semantics は変更しない
+- metadata inheritance / partial failure recovery / next-date rules はこの slice へ混ぜない
+- source TSV schema / real source TSV は変更しない
 
 Daily Trend temporal semantics の major campaign は closure review により終了しました。
 
@@ -69,14 +69,14 @@ Current baseline:
 ### Plan completion workflow contract
 
 Context:
-- tactical routing fix と actual-amount slice の外側には、date / meta 継承 / failure recovery / next-date rule の未整理問題が残る
+- tactical routing fix / actual-amount slice / cancellation guard の外側には、meta 継承 / partial failure recovery / next-date rule の未整理問題が残る
 
 導線:
 - `docs/archive/active-plans/PLAN_COMPLETION_WORKFLOW_DESIGN_INTAKE-2026-07-08.md`
 
-- [ ] actual-amount slice 後に docs-only contract が必要か再判断する
+- [ ] cancellation guard slice 後に docs-only contract が必要か再判断する
 - [ ] `tools/edit plan finish` / `tools/plan-finish-replenish-ui.sh` / `tools/add-ui.sh` / `tools/bl` の責務境界を固定する
-- [ ] cancel semantics / meta 継承 / partial failure recovery / next-date rule を一度に自動実装しない
+- [ ] meta 継承 / partial failure recovery / next-date rule を一度に自動実装しない
 - [ ] 設計が固まるまで source TSV migration や実データ変更はしない
 
 ### `budget_pool=main` metadata
