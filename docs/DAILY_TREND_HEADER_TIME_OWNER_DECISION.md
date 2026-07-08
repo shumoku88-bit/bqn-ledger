@@ -1,6 +1,6 @@
 # Daily Trend Header Time Owner Decision
 
-Status: current decision / docs-only product contract
+Status: current decision / implemented product decision
 Owner: report
 Canonical: no; canonical temporal principle remains `docs/TIME_AS_AXIS.md`
 Selected product: `docs/DAILY_TREND_CURRENT_SOURCE_COORDINATE_REPLAY_DECISION.md`
@@ -22,7 +22,7 @@ Decision question:
 What semantic owner should the Daily Trend human header days-remaining presentation use?
 ```
 
-This PR is docs-only; it establishes the product contract without changing the runtime.
+This decision was implemented by PR #120.
 
 ## 1. Vocabulary
 
@@ -30,9 +30,7 @@ This PR is docs-only; it establishes the product contract without changing the r
 S = source snapshot supplied to this run
 D = Daily Trend row coordinate
 O = report-level observation date selected by this decision as the header owner.
-    A concrete general report-entry source is not yet established for Daily Trend runtime.
-    Canonical policy prefers an explicit observation input with system_today as default,
-    but current wiring must be characterized before implementation.
+    In current runtime (post-#120), this is carried by the neutral report-entry `report_today` value, passed down to Daily Trend.
 O_row = Daily Trend row observation rule, currently D
 C = cycle / period boundary
 L = local last-recorded coordinate frontier from LatestActualDateInCycle
@@ -50,26 +48,24 @@ historical coordinate != historical knowledge state
 selected owner O != current ctx.as_of by assumption
 ```
 
-## 2. Current runtime shape
+## 2. Pre-#120 characterized runtime shape
 
-The current runtime implementation has the following characteristics:
-1. **Header calculation**: The current implementation in `src_next/daily_trend.bqn` sets:
-   ```text
-   as_of = LatestActualDateInCycle(base, cy)
-   ```
-   which represents the record-frontier context `L`. The formatted human output in `FormatHuman` computes days remaining as:
-   ```text
-   days_left = cycle_end_exclusive - vm.as_of
-   ```
-   This is presented in the section header as:
-   ```text
-   サイクル: 2026-01-01 〜 2026-01-11  (現在 8 日残)
-   ```
-   This conflates record-frontier context `L` (the date of the latest actual transaction in the cycle) with "current" (`現在`) observation time.
+Before PR #120, the runtime implementation had the following characteristics:
+1. **Header calculation**: The implementation in `src_next/daily_trend.bqn` set `as_of = LatestActualDateInCycle(base, cy)` which represented the record-frontier context `L`. The formatted human output in `FormatHuman` computed days remaining as `days_left = cycle_end_exclusive - vm.as_of`. This conflated record-frontier context `L` with "current" (`現在`) observation time.
+2. **Context as_of default**: In `src_next/context.bqn`, `BuildContext` defaulted `ctx.as_of` from the selected cycle start, not a general report-wide observation date `O` defaulted from `system_today`.
+3. **Report CLI options**: In `src_next/report.bqn`, there was no general `--as-of` option. There was only an Outlook-specific `--outlook-as-of` flag.
 
-2. **Context as_of default**: In `src_next/context.bqn`, the normal `BuildContext` default path resolves `ctx.as_of` from the selected cycle start (`cy_default.start`), not a general report-wide observation date `O` defaulted from `system_today`. Thus, `ctx.as_of` does not safely represent a general observation `O`.
+## 2b. Current post-#120 runtime truth
 
-3. **Report CLI options**: In `src_next/report.bqn`, there is currently no general `--as-of` option. There is only an Outlook-specific `--outlook-as-of` flag, and the report reads `date.Today` solely as the default observation source for Outlook. The general report path does not yet expose or pass down a verified general `--as-of` or system today.
+Under the current runtime:
+1. **Header calculation**: The human header days-remaining is now observation-driven. The formatted human output computes days remaining as:
+   ```text
+   days_left = cycle_end_exclusive - vm.header_O
+   ```
+   where `vm.header_O` carries the report-level observation date `O`.
+2. **Distinct variables**: `vm.as_of` remains L-derived and is distinct from `vm.header_O`.
+3. **Observation carrier**: No generic report-wide `--as-of` exists, and `ctx.as_of` is not reinterpreted as O.
+4. **Outlook isolation**: Outlook-specific O remains separate, and `K` remains unavailable / not claimed.
 
 ## 3. Candidate evaluation
 
@@ -113,39 +109,21 @@ The human header is a report-level presentation element and should be driven by 
 
 ## 6. Runtime consequences
 
-In a future runtime implementation slice:
-1. A future runtime slice must first establish or identify an explicit report-level observation source `O` for Daily Trend without reusing current `ctx.as_of` by assumption.
-2. Only then should the header be aligned to that `O`, allowing the daily trend to display days remaining relative to `O`.
-3. `LatestActualDateInCycle` (representing `L`) will no longer drive header days-left calculations (though it may still be returned or used for freshness indicators if explicitly justified).
+PR #120 implemented the product decision as follows:
+1. Resolved a neutral `report_today` from `date.Today` once at report entry.
+2. Passed `report_today` explicitly to the Daily Trend consumer boundary as `header_O` via `daily_trend.BuildAt ⟨ctx, report_today⟩`.
+3. Retained `vm.as_of` as L-derived, keeping `header_O` and `vm.as_of` distinct.
 
 ## 7. Non-goals
 
-Do not:
-- Modify `src_next/daily_trend.bqn` or any runtime code in this branch.
-- Modify tests or fixtures in this branch.
-- Change report labels or wording in this branch.
-- Unify `LatestActualDateInCycle` or introduce a generic `BuildAt` API.
-- Claim that `as_of` reconstructs historical knowledge `K`.
-- Add general `--as-of` CLI options or change Outlook's specific clock behavior.
+The implementation adhered to the following constraints:
+- Did not unify `LatestActualDateInCycle` or introduce a generic `BuildAt` API for all sections.
+- Did not claim that `as_of` reconstructs historical knowledge `K`.
+- Did not add general `--as-of` CLI options or change Outlook's specific clock behavior.
 
 ## 8. Next finite slice
 
-The next finite slice is a prior characterization / wiring slice:
+The implementation of the concrete carrier is complete. The next step is a campaign closure review:
 ```text
-characterize current report-entry observation paths and decide the concrete O carrier for Daily Trend
+Review whether the Daily Trend temporal semantics campaign can now close.
 ```
-
-This characterization slice must inspect at minimum:
-- `src_next/report.bqn`
-- `src_next/context.bqn`
-- `src_next/date.bqn`
-- existing Outlook observation wiring
-- CLI compatibility
-
-It must keep separate:
-- product owner decision B
-- concrete `O` carrier
-- general CLI design
-- Outlook-specific `O`
-- current `ctx.as_of`
-- `K`

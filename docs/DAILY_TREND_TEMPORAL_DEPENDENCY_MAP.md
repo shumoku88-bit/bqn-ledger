@@ -1,6 +1,6 @@
 # Daily Trend Temporal Dependency Map
 
-Status: current observation / post-#110 dependency map
+Status: current observation / post-#120 dependency map
 Owner: report
 Canonical: no; canonical temporal principle remains `docs/TIME_AS_AXIS.md`
 Selected product: `docs/DAILY_TREND_CURRENT_SOURCE_COORDINATE_REPLAY_DECISION.md`
@@ -203,7 +203,6 @@ Residual `L` dependencies remain in separate places:
 
 ```text
 VM as_of
-human header days_left
 empty-identity reserve branch code (historical explicit-empty path closed by PR #110)
 ```
 
@@ -228,7 +227,7 @@ Therefore the temporal investigation is not complete for all L usage.
 | `day_fixed` | `S + D + C` | actual slice for row day | coordinate-local day actual |
 | `delta` | `S + D + P + C + R + M` | current daily minus predecessor daily | depends on rendered predecessor rows and row set R; not on L as row-membership evidence |
 | VM `as_of` | `L` | `LatestActualDateInCycle(base, cy)` | still local frontier, not row O |
-| human header `days_left` | `L + C` | `C.end_exclusive - vm.as_of` | section-level frame remains separate from row D |
+| human header `days_left` | `O + C` | `C.end_exclusive - vm.header_O` | PR #120 updated the header to be observation-driven, using the report_today carrier |
 
 ## Evidence by term
 
@@ -555,24 +554,21 @@ O_row = D
 
 for selected row-local O-shaped calculations.
 
-### 15. Human header: `L + C`
+### 15. Human header: `O + C`
 
-Current human header computes section days remaining from:
-
-```text
-C.end_exclusive - vm.as_of
-```
-
-where VM `as_of` remains L.
-
-So one section can still contain:
+PR #120 updated the human header to compute section days remaining from:
 
 ```text
-historical row days_left = f(D, C)
-header days_left         = f(L, C)
+C.end_exclusive - vm.header_O
 ```
 
-This may be intentional section presentation, but remains a separate unresolved semantic decision.
+where `vm.header_O` is driven by the report observation `O`.
+
+In pre-#120 characterized runtime, the header was L-driven and computed from `C.end_exclusive - vm.as_of` (where `vm.as_of` is `L`).
+Now, under post-#120 runtime:
+- `O` is carried explicitly via `report_today -> daily_trend.BuildAt ⟨ctx, header_O⟩ -> vm.header_O`
+- the human header days-remaining presentation is fully O-driven
+- VM `as_of` (representing `L`) and `header_O` are kept separate.
 
 ## Current relationship to explicit O
 
@@ -641,7 +637,6 @@ Current residual L areas are:
 
 ```text
 VM as_of
-human header days_left
 empty-identity reserve branch code (historical explicit-empty path closed by PR #110)
 ```
 
@@ -710,7 +705,7 @@ materializing every cycle day
 
 ## Current conclusion
 
-Approximate current shape after PR #110:
+Approximate current shape after PR #120:
 
 ```text
 row coordinates             = f(R_actual, A_empty, C)
@@ -723,9 +718,9 @@ ordinary-path daily         = f(S, D, C, M)
 day actual terms            = f(S, D, C)
 delta                       = f(S, D, P, C, R, M)
 VM as_of                    = f(L)
-header days_left            = f(L, C)
+header days_left            = f(O, C)
 empty-identity reserve branch code = preserved; explicit-empty path closed by PR #110
 ```
 
-PR #105 completed the row-membership alignment while PR #110 closed the characterized explicit-empty reachability path.
-The remaining named `L` paths are now VM/header related, plus preserved branch code whose explicit-empty path is historical.
+PR #105 completed the row-membership runtime alignment, PR #110 closed the characterized explicit-empty reachability path, and PR #120 aligned the human header days-remaining to the observation time `O` (using the neutral `report_today` carrier).
+The remaining named `L` paths in Daily Trend are VM `as_of` plus the preserved empty-identity reserve branch code (whose explicit-empty path is historical).

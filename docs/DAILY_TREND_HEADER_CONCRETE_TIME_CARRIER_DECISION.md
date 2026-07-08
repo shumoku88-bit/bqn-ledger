@@ -1,6 +1,6 @@
 # Daily Trend Header Concrete Time Carrier Decision
 
-Status: current decision / docs-only product contract
+Status: current decision / implemented carrier contract
 Owner: report
 Canonical: no; canonical temporal principle remains `docs/TIME_AS_AXIS.md`
 Selected product: `docs/DAILY_TREND_CURRENT_SOURCE_COORDINATE_REPLAY_DECISION.md`
@@ -12,25 +12,51 @@ Exit: revise or archive after a runtime slice implements this decision and subse
 PR #115 characterized human-header sensitivity.
 PR #116 selected the report observation `O` as the semantic owner of the Daily Trend header's days-remaining count.
 PR #117 synchronized current routing.
-However, the concrete carrier for transporting `O` to the Daily Trend header remains unresolved, and the runtime implementation is still driven by `L` (LatestActualDateInCycle).
+PR #118 selected the concrete carrier for transporting `O` to the Daily Trend header.
+PR #120 implemented the runtime carrier contract and validated the behavior.
 
-This document evaluates potential concrete carriers for Daily Trend header `O` and selects a single concrete carrier without modifying the runtime behavior in this slice.
+This document evaluates potential concrete carriers for Daily Trend header `O`, records the selection of Candidate E, and describes the implemented runtime carrier contract.
 
-## 1. Characterization of Current Report-Entry Observation Paths
+## 1. Implemented Report-Entry Observation Paths
 
-When executing `tools/report [base] [args]`, the program calls `src_next/report.bqn`'s `Main`.
+The runtime report-entry shape implemented by PR #120 is:
 
-1. **Context Resolution**: `ctx ← BuildContext base` resolves `ctx.as_of`.
-   - In `src_next/context.bqn`, `BuildContext` defaults `ctx.as_of` from the selected default cycle start (`cy_default.start`).
-   - Thus, `ctx.as_of` is not a clean observation clock defaulted from the external system today.
-2. **Outlook-Specific Observation**: `report.bqn` parses `--outlook-as-of YYYY-MM-DD`.
-   - If present, `outlook_as_of` is set to the parsed value.
-   - Otherwise, `outlook_as_of` defaults to the system date `date.Today` read once at entry.
-   - This value is passed explicitly to `outlook.BuildAt ⟨ctx, outlook_as_of⟩`.
-3. **Daily Trend Section**: `report.bqn` calls `daily_trend.Build ctx` (without passing any observation date).
-   - In `src_next/daily_trend.bqn`, `Build` resolves a local `as_of` date from `LatestActualDateInCycle ⟨base, cy⟩` representing record-frontier context `L`.
-   - In `FormatHuman`, `days_left` is computed from `C.end_exclusive - vm.as_of`.
-   - Consequently, the Daily Trend header remains `L`-driven.
+```text
+ctx ← BuildContext base
+
+structured JSON early dispatch
+  -> exits before date.Today
+
+report_today ← date.Today
+  # exactly once on human path
+
+outlook_as_of
+  = explicit --outlook-as-of value when supplied
+  = report_today otherwise
+
+BuildSectionEntries ⟨ctx, outlook_as_of, report_today⟩
+
+Outlook:
+  outlook.BuildAt ⟨ctx, outlook_as_of⟩
+
+Daily Trend:
+  daily_trend.BuildAt ⟨ctx, report_today⟩
+```
+
+The Daily Trend shape implemented by PR #120 is:
+
+```text
+Build ctx
+  -> existing L-derived as_of
+  -> compatibility header_O defaults to as_of
+
+BuildAt ⟨ctx, header_O⟩
+  -> preserves vm.as_of
+  -> overrides only explicit header_O
+
+FormatHuman
+  -> header days remaining from vm.header_O
+```
 
 ## 2. Vocabulary and Distinctions
 
@@ -96,25 +122,17 @@ This value will be passed explicitly to the Daily Trend consumer boundary via a 
 *   **Outlook-specific O** remains isolated: `--outlook-as-of` overrides only Outlook and does not affect the Daily Trend header.
 *   **Daily Trend internal L** remains isolated: the header `O` is not substituted for internal calculations like reserve logic that depend on the record-frontier `L`.
 
-## 5. Smallest Authorized Next Runtime Slice
+## 5. Implemented Runtime Validation
 
-The next runtime slice is authorized to implement the selected concrete carrier via the following minimal changes:
+PR #120 implemented the validation asserting that:
+- Changing header `O` changes header days remaining (asserted in `tests/test_src_next_daily_trend_header_as_of_sensitivity.bqn`).
+- Rendered Daily Trend rows remain byte-for-byte identical.
+- Trend rows remain identical.
+- Row-local days_left remains identical in the VM rows.
+- Internal L / `vm.as_of` remains unchanged.
+- The reserve column remains unchanged.
+- `--outlook-as-of` does not change Daily Trend header behavior (isolated Outlook-specific O).
+- Structured JSON requests remain independent of `date.Today` clock dependencies (asserted in `checks/check-json-clock-independence.sh`).
 
-1.  **Report Entry Update**:
-    - Resolve/read `report_today` from `date.Today` once at `src_next/report.bqn` entry.
-    - Resolve Outlook-specific `O` separately, preserving the explicit `--outlook-as-of` override behavior.
-2.  **Daily Trend Engine Update**:
-    - Introduce an explicit header observation carrier in the `daily_trend` module interface, conceptually:
-      `daily_trend.BuildAt ⟨ctx, header_O⟩`
-    - Retain `daily_trend.Build ctx` as a compatibility wrapper that defaults `header_O` using `LatestActualDateInCycle ⟨ctx.base, ctx.cy⟩`.
-    - Keep the existing `L`-derived internal dependencies intact: **do not globally replace `as_of` or `as_of_dn` with `header_O`**. Use `header_O` only for human header days-remaining presentation.
-3.  **Behavioral Validation**:
-    - Update `tests/test_src_next_daily_trend.bqn` or add focused tests asserting that:
-      - Changing header `O` changes header days remaining.
-      - Rendered Daily Trend rows remain unchanged.
-      - Row-local values remain unchanged.
-      - Reserve remains unchanged.
-      - `--outlook-as-of` does not change Daily Trend header behavior.
-      - Existing `O_row = D` and `K` as unavailable are preserved.
-
-No other code or CLI option changes are authorized in the next slice.
+No unrelated runtime behavior or CLI options were changed in the slice.
+A universal report-wide O contract, generic `--as-of` flags, historical K representation, and bitemporal semantics were not introduced or claimed.
