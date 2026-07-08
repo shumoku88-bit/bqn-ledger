@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Verify plan finish replenishment helper stays shell-safe, supports read-only
-# preflight, and refuses replenishment unless the selected plan is actually closed.
+# preflight, and refuses replenishment unless the selected plan is explicitly closed.
 
 if [ -f "src_next/report.bqn" ]; then
   ROOT_DIR="$PWD"
@@ -74,6 +74,26 @@ if plan_finish_plan_id_is_open "$ROOT_DIR/tools/edit" "$base" plan-2026-01-15-re
 fi
 if ! plan_finish_require_applied "$ROOT_DIR/tools/edit" "$base" plan-2026-01-15-rent; then
   echo "FAIL: closed plan should satisfy finish postcondition" >&2
+  exit 1
+fi
+
+# Missing plan_id must not be confused with a closed plan.
+set +e
+plan_finish_require_applied "$ROOT_DIR/tools/edit" "$base" plan-does-not-exist
+missing_status=$?
+set -e
+if [ "$missing_status" -ne 2 ]; then
+  echo "FAIL: missing plan_id should report verification error status 2, got $missing_status" >&2
+  exit 1
+fi
+
+# Query failure must remain a verification error rather than looking closed.
+set +e
+plan_finish_require_applied /bin/false "$base" plan-2026-01-10-phone
+query_status=$?
+set -e
+if [ "$query_status" -ne 2 ]; then
+  echo "FAIL: plan-list query failure should report verification error status 2, got $query_status" >&2
   exit 1
 fi
 
