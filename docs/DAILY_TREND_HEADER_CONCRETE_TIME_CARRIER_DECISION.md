@@ -14,7 +14,7 @@ PR #116 selected the report observation `O` as the semantic owner of the Daily T
 PR #117 synchronized current routing.
 However, the concrete carrier for transporting `O` to the Daily Trend header remains unresolved, and the runtime implementation is still driven by `L` (LatestActualDateInCycle).
 
-This document evaluates the potential concrete carriers for `O` and selects a single concrete carrier for Daily Trend header `O` without modifying the runtime behavior in this slice.
+This document evaluates potential concrete carriers for Daily Trend header `O` and selects a single concrete carrier without modifying the runtime behavior in this slice.
 
 ## 1. Characterization of Current Report-Entry Observation Paths
 
@@ -45,17 +45,16 @@ To ensure clarity, we preserve the following distinct meanings and roles:
 
 ## 3. Concrete Carrier Candidate Evaluation
 
-At minimum, we evaluate four potential concrete carriers for Daily Trend header `O`:
+At minimum, we evaluate five potential concrete carriers for Daily Trend header `O`:
 
-### Candidate A: Report-entry selected general O, passed explicitly to Daily Trend consumer boundary
-*   **Meaning**: At report entry, a general observation date `O` is determined (e.g. from a generic `--as-of` CLI flag or system today) and passed explicitly to `daily_trend.BuildAt ⟨ctx, O⟩`.
+### Candidate A: Universal report-wide O contract (generic `--as-of` CLI option)
+*   **Meaning**: Implement a generic `--as-of` flag for all report sections and pass it globally.
 *   **Reason for rejection**:
-    - Adding a general `--as-of` CLI option or establishing a universal report-wide `O` is premature.
-    - Other report sections (YTD summary, TBDS, balances) do not yet share a unified observation contract.
+    - Premature. Other report sections (YTD summary, TBDS, balances) do not yet share a unified observation contract.
     - Introducing a generic `--as-of` CLI option or a report-wide `O` would imply a universal observation model that has not yet been designed or validated, violating our constraint: *Do not add generic `--as-of` merely because it seems convenient*.
 
-### Candidate B: Daily-Trend-specific O / CLI source
-*   **Meaning**: Parse a Daily-Trend-specific CLI option (e.g., `--daily-trend-as-of`) at the report entry and pass it specifically to Daily Trend.
+### Candidate B: Daily-Trend-specific CLI source (`--daily-trend-as-of`)
+*   **Meaning**: Parse a Daily-Trend-specific CLI option at the report entry and pass it specifically to Daily Trend.
 *   **Reason for rejection**:
     - Adds unnecessary complexity to the CLI interface.
     - Since both Outlook and Daily Trend are human-oriented presentation sections meant to represent "the status of the household as of today", having separate CLI flags for them is confusing for daily usage.
@@ -67,36 +66,55 @@ At minimum, we evaluate four potential concrete carriers for Daily Trend header 
     - If reused for the header, the header's days remaining would lock to the cycle length (e.g., 31 days remaining) rather than representing the actual days remaining from today (the observer's clock). This would cause a semantic lie in the presentation.
     - Reusing `ctx.as_of` by name alone violates the constraint: *Do not reuse `ctx.as_of` by name alone* and *Do not assume current `ctx.as_of` is `O`*.
 
-### Candidate D: Reuse or generalize current Outlook-specific observation value (Selected)
-*   **Meaning**: Reuses/generalizes the observation clock resolved at report entry (which is currently named `outlook_as_of` and defaults to `date.Today` or the explicit `--outlook-as-of`) to serve as the concrete carrier for the Daily Trend human header `O`.
+### Candidate D: Reuse or generalize current Outlook-specific observation value (`--outlook-as-of`)
+*   **Meaning**: Reuses the observation clock resolved at report entry for Outlook (derived from explicit `--outlook-as-of` or defaulted to `date.Today`) to also serve as the Daily Trend header `O`.
+*   **Reason for rejection**:
+    - Silently widens the narrow, consumer-specific promise of `--outlook-as-of` (established in PR #95) to also control the Daily Trend header.
+    - This constitutes a semantic behavior change under the same CLI flag syntax, violating decoupling rules.
+
+### Candidate E: Neutral report-entry clock source (`report_today`) passed explicitly only to Daily Trend header consumer boundary (Selected)
+*   **Meaning**: Read `date.Today` once at the report entry to establish a neutral clock value `report_today`. This value is passed explicitly to the Daily Trend consumer boundary to drive the header `O`, while `--outlook-as-of` remains strictly Outlook-specific (i.e. setting `--outlook-as-of` does NOT affect the Daily Trend header).
 *   **Justification**:
-    - The resolved report-entry variable (either explicitly set via `--outlook-as-of YYYY-MM-DD` or defaulted to `date.Today` read once at entry) represents the natural, single "clock of the run" for human presentation sections.
-    - Reusing this value under the hood to also drive `daily_trend` (via a new signature `daily_trend.BuildAt ⟨ctx, O⟩`) provides a concrete, reliable carrier for the Daily Trend human header.
-    - It avoids introducing a premature generic `--as-of` CLI flag, while still keeping the daily trend consumer boundary explicit (`BuildAt ⟨ctx, O⟩`).
-    - It avoids duplicating clock-reading logic (`date.Today` is read once at the report entry and passed down).
-    - It preserves CLI compatibility (no new flags are added).
+    - Preserves PR #95 narrow `--outlook-as-of` contract (Outlook override only).
+    - Avoids a generic `--as-of`.
+    - Avoids reusing `ctx.as_of`.
+    - Reads system today once at report entry.
+    - Keeps consumer boundaries explicit.
+    - Does not claim all report sections share one observation contract.
+    - Does not alter reserve semantics or `O_row = D`.
 
 ## 4. Decision
 
 The concrete `O` carrier for the Daily Trend header `O` shall be:
 
 ```text
-The report-entry resolved variable (derived from explicit `--outlook-as-of` or defaulted to system_today)
+The neutral report-entry clock source (report_today = date.Today read once at report entry)
 ```
 
-This resolved value will be passed explicitly to the Daily Trend consumer boundary via a new `daily_trend.BuildAt ⟨ctx, O⟩` signature.
+This value will be passed explicitly to the Daily Trend consumer boundary via a new `daily_trend.BuildAt ⟨ctx, header_O⟩` signature (or equivalent explicit argument).
+
+*   **Outlook-specific O** remains isolated: `--outlook-as-of` overrides only Outlook and does not affect the Daily Trend header.
+*   **Daily Trend internal L** remains isolated: the header `O` is not substituted for internal calculations like reserve logic that depend on the record-frontier `L`.
 
 ## 5. Smallest Authorized Next Runtime Slice
 
 The next runtime slice is authorized to implement the selected concrete carrier via the following minimal changes:
 
-1.  **Interface Evolution**:
-    - Introduce `daily_trend.BuildAt ⟨ctx, O⟩` in `src_next/daily_trend.bqn` where `as_of` is set to `O`.
-    - Retain `daily_trend.Build ctx` as a compatibility wrapper that defaults `O` using `LatestActualDateInCycle ⟨ctx.base, ctx.cy⟩` (preserving existing behavior for non-human/test callers if any).
-2.  **Report Entry Update**:
-    - Update `src_next/report.bqn` to call `daily_trend.BuildAt ⟨ctx, outlook_as_of⟩`.
+1.  **Report Entry Update**:
+    - Resolve/read `report_today` from `date.Today` once at `src_next/report.bqn` entry.
+    - Resolve Outlook-specific `O` separately, preserving the explicit `--outlook-as-of` override behavior.
+2.  **Daily Trend Engine Update**:
+    - Introduce an explicit header observation carrier in the `daily_trend` module interface, conceptually:
+      `daily_trend.BuildAt ⟨ctx, header_O⟩`
+    - Retain `daily_trend.Build ctx` as a compatibility wrapper that defaults `header_O` using `LatestActualDateInCycle ⟨ctx.base, ctx.cy⟩`.
+    - Keep the existing `L`-derived internal dependencies intact: **do not globally replace `as_of` or `as_of_dn` with `header_O`**. Use `header_O` only for human header days-remaining presentation.
 3.  **Behavioral Validation**:
-    - Update `tests/test_src_next_daily_trend.bqn` or add focused tests asserting that `daily_trend.BuildAt` behaves correctly under different `O` values.
-    - Asserts that row-local calculations (including `LatestActualDateInCycle` used inside `BuildAt` for matching/frontier logic if needed) must NOT be rewritten or conflated.
+    - Update `tests/test_src_next_daily_trend.bqn` or add focused tests asserting that:
+      - Changing header `O` changes header days remaining.
+      - Rendered Daily Trend rows remain unchanged.
+      - Row-local values remain unchanged.
+      - Reserve remains unchanged.
+      - `--outlook-as-of` does not change Daily Trend header behavior.
+      - Existing `O_row = D` and `K` as unavailable are preserved.
 
 No other code or CLI option changes are authorized in the next slice.
