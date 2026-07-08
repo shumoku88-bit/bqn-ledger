@@ -32,9 +32,16 @@ Current baseline:
 - explicit empty `plan_id=` now falls back to the existing five-field compatibility identity after PR #110
 - PR #115 proved independent human-header `vm.as_of` sensitivity
 - PR #116 selected report observation `O` as the semantic owner of human-header days remaining
-- PR #118 selected the concrete Daily Trend header O carrier: neutral `report_today = date.Today` read once at the human report-entry path and passed explicitly to the Daily Trend header consumer boundary
-- `--outlook-as-of` remains Outlook-specific (does not control Daily Trend header O)
-- current runtime is still `L`-driven until the authorized runtime slice is implemented; internal L-derived dependencies (including reserve-sensitive paths) are not authorized to become O
+- PR #118 selected the concrete Daily Trend header O carrier
+- PR #120 implemented explicit Daily Trend header O transport:
+  - neutral `report_today = date.Today` is resolved once after structured JSON early dispatch on the human path
+  - `--outlook-as-of` remains Outlook-only
+  - Daily Trend receives explicit `header_O`
+  - human header days remaining is now O-driven
+  - internal `vm.as_of` remains L-driven
+  - `O_row = D` remains unchanged
+  - K remains unavailable / not claimed
+  - reserve, rows, and row-local future-income semantics remain unchanged
 - selected owner `O` must not be equated with current `ctx.as_of` (which defaults from `cycle.start`) by assumption
 
 Current re-entry path:
@@ -47,27 +54,24 @@ Current re-entry path:
 7. relevant characterization / contract tests (e.g. `tests/test_src_next_daily_trend_header_as_of_sensitivity.bqn`)
 
 Next finite rule:
-- [ ] implement the smallest authorized runtime alignment from PR #118:
-  - report entry:
-    - after structured JSON early dispatch (preserving JSON paths' clock independence), resolve neutral `report_today = date.Today` once for the human report path
-    - resolve Outlook-specific O separately, preserving explicit `--outlook-as-of` override behavior for Outlook only
-  - Daily Trend:
-    - introduce an explicit header observation carrier, conceptually: `daily_trend.BuildAt ⟨ctx, header_O⟩` (or equivalent explicit interface)
-    - preserve existing L-derived `as_of`, `as_of_dn`, reserve behavior, and row-local behavior (do not globally replace `as_of` with `O` or `as_of_dn` with `header_O_dn` for internal logic; keep `O_row = D` and `K` unavailable)
-    - use `header_O` only for formatting the human header days-remaining presentation
-  - Validation:
-    - prove changing header O changes header days remaining (FormatHuman)
-    - prove rendered Daily Trend rows, row-local values, and reserve remain unchanged
-    - prove internal L remains unchanged
-    - prove `--outlook-as-of` does not change Daily Trend header output
-    - prove structured JSON requests do not acquire an unnecessary `date.Today` dependency
-    - preserve `O_row = D` and `K` as unavailable / not claimed
+- [ ] Review whether the Daily Trend temporal semantics campaign can now close,
+      or whether any remaining L usage has a concrete unresolved product problem
+      backed by current evidence.
+
+      Explicitly preserve:
+      - no automatic `L -> O`
+      - no automatic `L -> D`
+      - no automatic `L -> K`
+      - no automatic VM `as_of` rewrite
+      - no automatic reserve branch cleanup
+      - no shared temporal-kernel extraction without a second independent consumer
 
 Campaigns already completed and not automatic next work:
 - PR #100〜#106: current-source coordinate replay selection, row-local future income, row-membership ownership and docs sync
 - PR #107〜#111: explicit-empty identity characterization, semantic map, product decision, runtime alignment and docs closure
 - PR #115〜#116: human-header sensitivity test characterization and report observation O owner decision docs
 - PR #118: Daily Trend header concrete O carrier decision docs
+- PR #120: Daily Trend header O runtime implementation and validation
 
 Deferred earlier track:
 - aggregate `Temporal execution coverage snapshot` remains a separate candidate from the earlier plan temporal-status × envelope-coverage work
