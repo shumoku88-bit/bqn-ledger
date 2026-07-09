@@ -222,6 +222,36 @@ F ← { 𝕩 ⋄ "res" }
 •Out F 1
 ```
 
+### 8. Merge 境界での要素境界の揺らぎ
+
+`⟨...⟩` は評価結果を list の要素として置くだけで、同じ shape の配列を自動で高ランク化するわけではありません。高ランク化は、明示的な Merge `>` や array notation `[]`（`>⟨...⟩` 相当）など、互換 shape の cell を結合する境界で起きます。その境界を越えても要素境界に意味がある場合は、明示的に Enclose し、取り出す側で必要な時だけ Disclose します。
+
+```bqn
+# ❌ [] は cell を merge するため、2つの文字列が shape ⟨2 2⟩ の文字配列になる
+statuses ← ["OK", "NO"]
+
+# ✅ Merge 境界を越えても文字列単位を残したい値は Enclose してから結合する
+statuses ← >⟨<"OK", <"NO"⟩
+firstStatus ← 0⊏statuses
+```
+
+### 9. `⎊` の左オペランドを意図せず immediate block にしない
+
+`𝕩` / `𝕨` などの特殊名を含まない headerless block は immediate block になり、そこに到達した時点で評価されます。`⎊` は左関数の評価中に起きたエラーを catch するため、左オペランドを作る前に immediate block として失敗すると意図した catch 境界に入りません。外側変数の参照自体は禁止ではありませんが、入力依存のエラー処理では左オペランドを確実に遅延された関数にし、原則 `𝕩` を操作します。
+
+```bqn
+outer ← ⟨⟩
+
+# ❌ 𝕩 を含まないので immediate block として先に評価され、catch 境界に入らない
+({1⊑outer}⎊{0}) 123
+
+# ✅ 関数として遅延されていれば、外側変数を見た失敗でも catch される
+({𝕩 ⋄ 1⊑outer}⎊{0}) 123  # => 0
+
+# ✅ 入力 𝕩 に対する失敗を catch する
+({1⊑𝕩}⎊{0}) outer  # => 0
+```
+
 ## 出力互換性 (Output compatibility)
 
 ### `src_next/summary.bqn` / `tools/report-next-summary`
