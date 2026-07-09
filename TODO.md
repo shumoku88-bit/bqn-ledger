@@ -9,46 +9,49 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-09 — Currency Awareness Stage 2 single-currency domain decision を受け、次の active work を minimal implementation plan に更新。
+Last hygiene pass: 2026-07-09 — Currency Awareness Stage 2 minimal domain-proof implementation plan を受け、次の active work を narrow runtime implementation に更新。
 
 ---
 
 ## Active work
 
-### Currency Awareness Stage 2 minimal domain-proof implementation plan
+### Currency Awareness Stage 2 minimal domain-proof runtime implementation
 
 Current baseline:
 - PR #123 で `docs/CURRENCY_AWARENESS_CAMPAIGN_MAP.md` を main に受理済み
 - Stage 0 current-assumption map は `docs/CURRENT_CURRENCY_ASSUMPTION_MAP.md`
 - Stage 1 amount/currency semantics decision は `docs/CURRENCY_STAGE1_AMOUNT_SEMANTICS_DECISION.md`
 - Stage 2 single-currency domain decision は `docs/CURRENCY_STAGE2_SINGLE_CURRENCY_DOMAIN_DECISION.md`
+- Stage 2 minimal runtime implementation plan は `docs/CURRENCY_STAGE2_MINIMAL_DOMAIN_PROOF_IMPLEMENTATION_PLAN.md`
 - broad FX implementation へ直行しない
 
-Current selected Stage 2 architecture:
-- source compatibility resolution = proof input / evidence
-- run context = resolved runtime carrier of the proven arithmetic currency domain
-- projection boundary = enforcement gate before naked Posting IR delta creation
-- ledger config may later constrain or declare policy, but is not sufficient proof by itself
-- downstream cube / TBDS / reports consume only proven-domain posting rows and do not infer the domain independently
+Current selected minimal runtime slice:
+- posting-source snapshot (`journal.tsv` / `plan.tsv` / `budget_alloc.tsv`) を一度だけ読み、proof input snapshot = projection input snapshot を守る
+- no explicit source-row currency metadata -> legacy compatibility JPY proof
+- no monetary source rows -> empty-source compatibility JPY proof
+- any explicit source-row `currency=` marker, including `currency=JPY`, is unsupported in this minimal runtime slice and must fail closed before naked delta creation
+- context carries `arithmetic_currency_proof` as proof result, not invented domain
+- projection-owned authorization gate must run before any naked Posting IR deltas are created
 
 Smallest justified next finite slice:
-- implementation ではなく、minimal runtime implementation plan を docs-only で切る
-- next finite question: current JPY compatibility domain を BuildAllRows / projection より前に解決し、context に proof として運び、per-row multi-currency support を導入せず fail closed する最小 runtime slice は何か
+- selected plan の narrow runtime implementation
+- source snapshot loader / compatibility proof resolver / context proof carrier / projection authorization gate / same-snapshot tests を最小単位で実装する
 
 導線:
 - `docs/CURRENCY_AWARENESS_CAMPAIGN_MAP.md`
 - `docs/CURRENT_CURRENCY_ASSUMPTION_MAP.md`
 - `docs/CURRENCY_STAGE1_AMOUNT_SEMANTICS_DECISION.md`
 - `docs/CURRENCY_STAGE2_SINGLE_CURRENCY_DOMAIN_DECISION.md`
+- `docs/CURRENCY_STAGE2_MINIMAL_DOMAIN_PROOF_IMPLEMENTATION_PLAN.md`
 - `docs/ENGINEERING_ROADMAP.md`
 - `docs/JOURNAL_META.md`
 - `docs/POSTING_IR_CONTRACT.md`
 
 Boundary:
-- implementation plan なしに runtime / tests / fixtures / source TSV を変更しない
-- `currency=` / `base_amount=` / `BASE_CURRENCY` / TBDS axis を自動実装しない
+- selected minimal plan の範囲を超えて runtime / tests / fixtures / source TSV を変更しない
+- explicit `currency=` admitted-row support / per-row multi-currency support を実装しない
+- `base_amount=` / `BASE_CURRENCY` / TBDS axis を自動実装しない
 - live FX API / automatic conversion / valuation semantics を始めない
-- Stage 2 domain decision を実装指示として扱わない
 
 Daily Trend temporal semantics の major campaign は closure review により終了しました。
 
