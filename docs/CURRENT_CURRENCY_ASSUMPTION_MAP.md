@@ -3,8 +3,10 @@
 Status: audit snapshot / docs-only current-state map
 Owner: config
 Canonical: no; canonical path: `docs/CURRENCY_AWARENESS_CAMPAIGN_MAP.md`
-Exit: archive or supersede when Stage 1 selects an amount/currency semantics contract
+Exit: keep as Stage 0 evidence; selected Stage 1 semantics are now owned by `docs/CURRENCY_STAGE1_AMOUNT_SEMANTICS_DECISION.md`
 Date: 2026-07-09
+
+Stage 1 update: this map remains Stage 0 observation evidence. The selected amount/currency semantics are now owned by `docs/CURRENCY_STAGE1_AMOUNT_SEMANTICS_DECISION.md`; do not read this audit snapshot's Stage 1 candidate list as the current decision.
 
 ## 1. Purpose
 
