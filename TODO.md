@@ -9,28 +9,33 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-09 — PR #132 merged; TODO active work narrowed to post-implementation contract verification.
+Last hygiene pass: 2026-07-09 — Stage 2 post-implementation contract verification completed; active work narrowed to the downstream `BuildPeriodView` proof-boundary decision.
 
 ---
 
 ## Active work
 
-### Currency Awareness Stage 2 post-implementation contract verification
+### Currency Awareness Stage 2 downstream proof-boundary decision
 
 Current baseline:
 - PR #132 `feat: implement Stage 2 minimal domain proof runtime` has been merged into `main`
-- merged runtime / tests / check wiring live in `src_next/context.bqn`, `src_next/projection.bqn`, `src_next/ytd_summary.bqn`, `tests/test_src_next_currency_domain_proof.bqn`, `checks/check-src-next-currency-domain-proof.sh`, and `tools/check.sh`
-- Stage 0 current-assumption map is `docs/CURRENT_CURRENCY_ASSUMPTION_MAP.md`
-- Stage 1 amount/currency semantics decision is `docs/CURRENCY_STAGE1_AMOUNT_SEMANTICS_DECISION.md`
-- Stage 2 single-currency domain decision is `docs/CURRENCY_STAGE2_SINGLE_CURRENCY_DOMAIN_DECISION.md`
-- Stage 2 minimal runtime implementation plan is `docs/CURRENCY_STAGE2_MINIMAL_DOMAIN_PROOF_IMPLEMENTATION_PLAN.md`
+- post-implementation claim-to-evidence verification is `docs/archive/audits/CURRENCY_STAGE2_POST_IMPLEMENTATION_CONTRACT_VERIFICATION-2026-07-09.md`
+- the audit found the core Stage 2 proof -> carrier -> gate chain substantially aligned with the selected decision and plan
+- the normal `BuildContext` path authorizes proof before row construction and reaches `BuildPeriodView` only with gated rows
+- `BuildPeriodView` remains exported with shape `BuildPeriodView ⟨rows, resolved, cy⟩` and does not receive or validate arithmetic currency proof
+- `docs/CURRENCY_STAGE2_MINIMAL_DOMAIN_PROOF_IMPLEMENTATION_PLAN.md` describes the runtime slice implemented by PR #132; use it as a verification baseline, not as fresh authorization for broader work
 - broad FX implementation remains out of scope
 
 Current selected smallest next finite slice:
-- verify the merged Stage 2 runtime still matches the selected Stage 2 decision and implementation plan before broader per-row currency work begins
+- docs-only decide whether exported `BuildPeriodView` is:
+  - A. an intentional trusted post-gate function whose caller contract requires already-authorized rows
+  - B. an enforced downstream boundary that must carry or require proof
+  - C. a surface whose public export should be narrowed behind a checked path
+- select meaning only; do not implement the selected option in the same slice
 - keep Stage 3 / explicit row `currency=` / FX out of scope
 
 導線:
+- `docs/archive/audits/CURRENCY_STAGE2_POST_IMPLEMENTATION_CONTRACT_VERIFICATION-2026-07-09.md`
 - `docs/CURRENCY_AWARENESS_CAMPAIGN_MAP.md`
 - `docs/CURRENT_CURRENCY_ASSUMPTION_MAP.md`
 - `docs/CURRENCY_STAGE1_AMOUNT_SEMANTICS_DECISION.md`
@@ -41,7 +46,9 @@ Current selected smallest next finite slice:
 - `docs/POSTING_IR_CONTRACT.md`
 
 Boundary:
-- no runtime / tests / fixture / source TSV changes in this slice
+- docs-only decision in this slice
+- no runtime / tests / fixture / source TSV changes
+- no automatic proof argument / carrier / API change
 - no Stage 3 authorization
 - no explicit `currency=` admitted-row support / per-row multi-currency support
 - no `base_amount=` / `BASE_CURRENCY` / TBDS axis auto-implementation
