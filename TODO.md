@@ -15,7 +15,10 @@ Last hygiene pass: 2026-07-10 — Stage 2 `BuildPeriodView` downstream proof-bou
 
 ## Active work
 
-No finite active work is selected at this time.
+Selected next finite slice (not executed in this PR):
+- `docs/archive/active-plans/AI_DIFF_SELF_REVIEW_PILOT_PLAN-2026-07-10.md` approves classification ID 11 as a docs-only Execution candidate.
+- Execution is limited to one short `AGENTS.md` pre-push / pre-PR actual-diff self-review rule plus lifecycle routing.
+- The approved plan does not authorize tooling, CI, token telemetry, or runtime/test/check/source TSV changes.
 
 Recently closed finite slice:
 - `docs/CURRENCY_STAGE2_BUILDPERIODVIEW_DOWNSTREAM_BOUNDARY_DECISION.md` selects option A:
