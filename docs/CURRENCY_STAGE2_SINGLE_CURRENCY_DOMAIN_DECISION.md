@@ -4,7 +4,7 @@ Status: current contract / docs-only decision record
 Owner: config
 Canonical: yes
 Decision date: 2026-07-09
-Depends on: `docs/CURRENCY_AWARENESS_CAMPAIGN_MAP.md`, `docs/CURRENT_CURRENCY_ASSUMPTION_MAP.md`, `docs/CURRENCY_STAGE1_AMOUNT_SEMANTICS_DECISION.md`, `docs/POSTING_IR_CONTRACT.md`, `docs/CURRENCY_STAGE2_BUILDPERIODVIEW_DOWNSTREAM_BOUNDARY_DECISION.md`
+Depends on: `docs/CURRENCY_AWARENESS_CAMPAIGN_MAP.md`, `docs/CURRENT_CURRENCY_ASSUMPTION_MAP.md`, `docs/CURRENCY_STAGE1_AMOUNT_SEMANTICS_DECISION.md`, `docs/POSTING_IR_CONTRACT.md`
 Exit: supersede when a later current currency contract replaces the single-currency domain proof, carrier, enforcement-gate semantics, and downstream trusted-precondition boundary
 
 This PR selects the Stage 2 domain-proof architecture only. Current runtime remains unchanged.
