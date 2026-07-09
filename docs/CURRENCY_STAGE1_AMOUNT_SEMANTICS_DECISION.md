@@ -18,11 +18,14 @@ This is a product-semantics decision. It does not change current runtime behavio
 Stage 1 selects these semantics:
 
 ```text
-source amount = human-readable original observed amount in the source row's currency
+source amount = exact decimal monetary quantity, human-readable original observed amount in the source row's currency
+precision semantics = exact decimal monetary quantity; no implicit binary floating-point semantics; no automatic rounding policy selected
 explicit currency = identity of the source amount's monetary unit
+currency scope = source amount currency identity is row-level semantics; arithmetic currency domain is domain-level context; concrete carriers are Stage 2
 missing currency = legacy JPY compatibility resolution, not explicit JPY
 unknown explicit currency = invalid / fail closed
 account-level currency= = account denomination / account identity metadata
+display precision = presentation policy, not source amount authority, currency identity, or arithmetic semantics
 Posting IR naked delta = temporarily valid only inside a proven single-currency arithmetic domain
 mixed-currency arithmetic = not authorized merely by currency labels
 FX / reporting valuation = out of scope
@@ -37,7 +40,14 @@ currency != exchange_rate
 missing currency != unknown explicit currency
 missing currency != explicit JPY
 account currency != source amount authority
+source amount currency != arithmetic domain currency
+source amount currency != display precision policy
+source amount currency != reporting valuation
+row-level currency identity != arithmetic domain currency
 currency label != arithmetic addability
+display precision != source amount authority
+display precision != currency identity
+display precision != arithmetic semantics
 naked delta != universally addable monetary value
 ```
 
@@ -79,7 +89,20 @@ source amount != FX valuation
 
 The source amount represents the amount as observed in the original transaction currency.
 
-Current runtime note: current projection and editor validation remain integer-only in this PR. Decimal parsing is not implemented here. This decision selects future semantics only.
+### 3.1 Precision semantics
+
+Selected precision contract:
+
+```text
+source amount
+=
+exact decimal monetary quantity
+in the source currency
+```
+
+The source amount must not be given implicit binary floating-point semantics. No automatic rounding policy is selected here.
+
+Current runtime note: current projection and editor validation remain integer-only in this PR. Decimal parsing, scale validation, and rounding are not implemented here. This decision selects future semantics only.
 
 ## 4. Explicit currency meaning
 
@@ -100,6 +123,29 @@ amount=12.34 currency=USD
 ```
 
 `amount` and `currency` remain separate concepts. A currency code identifies the unit of the observed source amount; it is not itself an exchange rate, a reporting value, or a proof of arithmetic addability with other currencies.
+
+### 4.1 Currency scope
+
+Selected currency-scope contract:
+
+```text
+source amount currency identity = row-level semantics
+arithmetic currency domain = domain-level context
+row-level currency identity != arithmetic domain currency
+```
+
+A source row's explicit currency identifies the monetary unit of that row's observed source amount. It does not by itself establish that the current projection, cube, TBDS, report, or export is operating inside a proven single-currency arithmetic domain.
+
+Concrete carriers for the arithmetic currency domain remain a Stage 2 decision. Possible carrier questions include ledger config, run context, source compatibility resolution, and the projection boundary.
+
+Preserve:
+
+```text
+source amount currency
+!= arithmetic domain currency
+!= display precision policy
+!= reporting valuation
+```
 
 ## 5. Missing currency compatibility
 
@@ -274,9 +320,29 @@ missing source currency -> compatibility JPY fallback
 
 This does not rewrite historical source rows. This does not claim absence and explicit JPY are identical meanings. This does not change current integer-only runtime behavior.
 
-Current runtime remains integer-only in this PR even though the selected source semantics allow future human-readable decimal amounts for currencies that require them.
+Current runtime remains integer-only in this PR even though the selected source semantics allow future exact decimal human-readable amounts for currencies that require them.
 
-## 11. Non-goals
+## 11. Display precision decision
+
+Selected display precision contract:
+
+```text
+display precision = presentation policy
+```
+
+Display precision is not source amount authority, currency identity, or arithmetic semantics.
+
+Preserve:
+
+```text
+display precision != source amount authority
+display precision != currency identity
+display precision != arithmetic semantics
+```
+
+Currency metadata may later inform formatting, but it must not redefine the stored source amount. For example, a future formatter may choose how many decimal places to show for a known currency, but that presentation choice must not change the observed source amount, establish arithmetic addability, or create reporting valuation.
+
+## 12. Non-goals
 
 This decision does not select or implement:
 
@@ -312,7 +378,7 @@ rate_observation_date != valuation_date
 valuation_date != report_coordinate
 ```
 
-## 12. Consequences for next implementation slice
+## 13. Consequences for next implementation slice
 
 Smallest justified next finite slice:
 
@@ -342,15 +408,18 @@ This decision does not select the carrier. The carrier question remains separate
 
 The Stage 2 design intake must not smuggle in FX valuation or mixed-currency reporting. It should decide how a single-currency arithmetic domain is established, observed, and failed closed before current naked-delta arithmetic is allowed to proceed.
 
-## 13. Exit / supersession conditions
+## 14. Exit / supersession conditions
 
 This decision remains current until replaced by a later current currency contract that explicitly covers these meanings:
 
 - source amount representation;
+- precision semantics;
 - explicit currency identity;
+- row-level currency identity vs domain-level arithmetic currency;
 - missing currency compatibility;
 - unknown explicit currency failure;
 - account-level currency role;
+- display precision policy;
 - Posting IR amount/currency shape;
 - arithmetic domain proof;
 - mixed-currency aggregation boundary.
