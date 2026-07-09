@@ -232,7 +232,7 @@ statuses ← ["OK", "NO"]
 
 # ✅ Merge 境界を越えても文字列単位を残したい値は Enclose してから結合する
 statuses ← >⟨<"OK", <"NO"⟩
-firstStatus ← >(0⊏statuses)
+firstStatus ← 0⊏statuses
 ```
 
 ### 9. `⎊` の左オペランドを意図せず immediate block にしない
