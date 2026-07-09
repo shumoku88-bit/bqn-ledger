@@ -56,6 +56,8 @@ Later Execution may edit only the workflow rule owner and lifecycle routing need
    - actual diff;
    - unrelated additions / deletions / restorations;
    - visible scope leakage or semantic side effects.
+
+   `actual diff` means the full proposed change set against the intended base, including already-committed changes. The actual proposed change set is not only the current unstaged working-tree diff; the appropriate command may depend on state, such as working-tree diff, staged diff, or base...HEAD branch diff.
 3. State that this is a human/pit self-review routine, not a new lint, parser, CI gate, permanent form, or metrics service.
 4. After the observation window, record one Review / Learning result and retire this plan.
 
@@ -70,6 +72,10 @@ Meaning: an extra correction commit or edit becomes necessary because the first 
 Secondary observable: `escaped unrelated-diff incident`.
 
 Meaning: an unrelated changed file or unrelated changed hunk escapes the first self-review and is found later.
+
+Positive learning signal: `pre-first-push / pre-PR intercepted scope-leak incident`.
+
+Meaning: an unrelated changed file or hunk, accidental deletion, restoration loss, or other scope leakage is detected by the selected actual-diff self-review and corrected before the first push / PR. This is not a failure count; it is evidence that the selected review mechanism actually fired. Record it only when contemporaneous evidence exists, without retroactive guessing and without telemetry, a tracker, a database, or a permanent per-PR form.
 
 Optional learning signal: `same-cause rediscovery`.
 
