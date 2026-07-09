@@ -80,6 +80,14 @@ docs/archive/audits/AI_WORKING_FEEDBACK_CLASSIFICATION-YYYY-MM-DD.md
 
 <!-- New feedback entries go below. -->
 
+### 2026-07-09: Stage 2 merge left TODO routing stale
+
+- Context: PR #132 merged the Stage 2 minimal domain-proof runtime slice.
+- Friction: mandatory L1 `TODO.md` routing still pointed new agents at already-completed runtime implementation work, which adds reread / rediscovery churn, duplicate-work risk, and token waste.
+- Idea: when an Active TODO slice completes, synchronize L1 routing in the same change; if that is not possible, leave an explicit routing follow-up instead of silently leaving completed work Active.
+- Candidate type: rule / docs / workflow
+- Related tool/doc: `TODO.md`, `AGENTS.md`
+
 ### 2026-06-28: docs archive move needs link validation
 
 - Context: docs整理後のリンク修正作業
