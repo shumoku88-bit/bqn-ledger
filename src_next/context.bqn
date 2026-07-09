@@ -32,9 +32,6 @@ LoadPostingSourceSnapshot ← {𝕊 base:
   planLines ← loader.ReadLinesOptional (base ∾ "/plan.tsv")
   budgetLines ← loader.ReadLinesOptional (base ∾ "/budget_alloc.tsv")
   {
-    journal ⇐ MakePostingSource ⟨"journal.tsv", 1, journalLines⟩,
-    plan ⇐ MakePostingSource ⟨"plan.tsv", 0, planLines⟩,
-    budget_alloc ⇐ MakePostingSource ⟨"budget_alloc.tsv", 0, budgetLines⟩,
     sources ⇐ ⟨
       MakePostingSource ⟨"journal.tsv", 1, journalLines⟩,
       MakePostingSource ⟨"plan.tsv", 0, planLines⟩,
@@ -174,8 +171,12 @@ SourceFromSnapshot ← {𝕊 snapshot‿srcFile:
     •Out "ERROR: unsupported posting source file: " ∾ srcFile
     •Exit 1
   }⍟(¬known) @
-  idx ← isPlan + 2 × isBudget
-  idx ⊑ ⟨snapshot.journal, snapshot.plan, snapshot.budget_alloc⟩
+  matches ← (({𝕩.source_file}¨ snapshot.sources) ≡¨ <srcFile) / snapshot.sources
+  {𝕊:
+    •Out "ERROR: posting source missing from snapshot: " ∾ srcFile
+    •Exit 1
+  }⍟(0 = ≠ matches) @
+  ⊑ matches
 }
 
 # BuildRowsForFile: compatibility exported path; still loads one full posting-source
@@ -195,10 +196,8 @@ BuildRowsForFileOptional ← BuildRowsForFile
 BuildAuthorizedRowsFromSnapshot ← {𝕊 snapshot‿resolved‿cycleStart:
   proof ← ResolveArithmeticCurrencyProof snapshot
   proj.RequireArithmeticCurrencyProof proof
-  jrows ← BuildRowsForSourceAuthorized ⟨snapshot.journal, resolved, cycleStart⟩
-  prows ← BuildRowsForSourceAuthorized ⟨snapshot.plan, resolved, cycleStart⟩
-  brows ← BuildRowsForSourceAuthorized ⟨snapshot.budget_alloc, resolved, cycleStart⟩
-  { rows ⇐ jrows ∾ prows ∾ brows, arithmetic_currency_proof ⇐ proof }
+  rows ← ∾ ({𝕊 source: BuildRowsForSourceAuthorized ⟨source, resolved, cycleStart⟩} ¨ snapshot.sources)
+  { rows ⇐ rows, arithmetic_currency_proof ⇐ proof }
 }
 
 # BuildAllRowsFromSnapshot: compatibility wrapper with no independently supplied proof.

@@ -18,9 +18,6 @@ resolved ← ak.Resolve lines
 Line ← {𝕊 fields: ∾ fields ∾¨ tab}
 SnapshotForLine ← {𝕊 line:
   {
-    journal ⇐ {source_file⇐"journal.tsv", required⇐1, lines⇐⟨line⟩},
-    plan ⇐ {source_file⇐"plan.tsv", required⇐0, lines⇐⟨⟩},
-    budget_alloc ⇐ {source_file⇐"budget_alloc.tsv", required⇐0, lines⇐⟨⟩},
     sources ⇐ ⟨
       {source_file⇐"journal.tsv", required⇐1, lines⇐⟨line⟩},
       {source_file⇐"plan.tsv", required⇐0, lines⇐⟨⟩},

@@ -74,6 +74,36 @@ case "$same_out" in
   *) echo "FAIL: same snapshot check failed" >&2; echo "$same_out" >&2; exit 1 ;;
 esac
 
+cat > "$tmp/inconsistent_snapshot.bqn" <<BQN
+ctx ← •Import "$ROOT_DIR/src_next/context.bqn"
+ak ← •Import "$ROOT_DIR/src_next/account_key.bqn"
+loader ← •Import "$ROOT_DIR/src_next/loader.bqn"
+base ← "$same_dir"
+resolved ← ak.Resolve loader.ReadLines (base∾"/accounts.tsv")
+tab ← @+9
+Line ← {𝕊 fields: ∾ fields ∾¨ tab}
+clean ← Line ⟨"2026-06-15", "clean", "assets:bank", "expenses:food", "100"⟩
+dirty ← Line ⟨"2026-06-15", "dirty", "assets:bank", "expenses:food", "999", "currency=USD"⟩
+snapshot ← {
+  journal ⇐ {source_file⇐"journal.tsv", required⇐1, lines⇐⟨dirty⟩},
+  sources ⇐ ⟨
+    {source_file⇐"journal.tsv", required⇐1, lines⇐⟨clean⟩},
+    {source_file⇐"plan.tsv", required⇐0, lines⇐⟨⟩},
+    {source_file⇐"budget_alloc.tsv", required⇐0, lines⇐⟨⟩}
+  ⟩
+}
+built ← ctx.BuildAuthorizedRowsFromSnapshot ⟨snapshot, resolved, "2026-06-15"⟩
+debits ← (({𝕩.side}¨ built.rows) ≡¨ <"debit") / built.rows
+amount ← (⊑ debits).delta
+{𝕊: •Out "FAIL: inconsistent snapshot projected non-canonical amount "∾•Fmt amount ⋄ •Exit 1}⍟(amount≠100) @
+•Out "inconsistent-snapshot-canonical-ok"
+BQN
+inconsistent_out="$(bqn "$tmp/inconsistent_snapshot.bqn" 2>&1)"
+case "$inconsistent_out" in
+  *"inconsistent-snapshot-canonical-ok"*) ;;
+  *) echo "FAIL: inconsistent snapshot canonical-source check failed" >&2; echo "$inconsistent_out" >&2; exit 1 ;;
+esac
+
 cat > "$tmp/cross_snapshot_substitution.bqn" <<BQN
 ctx ← •Import "$ROOT_DIR/src_next/context.bqn"
 ak ← •Import "$ROOT_DIR/src_next/account_key.bqn"

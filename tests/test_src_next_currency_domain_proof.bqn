@@ -9,9 +9,6 @@ Line ← {𝕊 fields: ∾ fields ∾¨ tab}
 
 ProofSnapshot ← {𝕊 jlines‿plines‿blines:
   {
-    journal ⇐ {source_file⇐"journal.tsv", required⇐1, lines⇐jlines},
-    plan ⇐ {source_file⇐"plan.tsv", required⇐0, lines⇐plines},
-    budget_alloc ⇐ {source_file⇐"budget_alloc.tsv", required⇐0, lines⇐blines},
     sources ⇐ ⟨
       {source_file⇐"journal.tsv", required⇐1, lines⇐jlines},
       {source_file⇐"plan.tsv", required⇐0, lines⇐plines},
@@ -61,6 +58,21 @@ precision ← ctx.ResolveArithmeticCurrencyProof ProofSnapshot ⟨
 "JPY" lib.AssertEq precision.domain
 "legacy_compatibility" lib.AssertEq precision.basis
 1 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof precision
+
+# The canonical snapshot source representation is sources. Extra legacy-looking
+# fields must not become a second projection input that can diverge from proof input.
+inconsistent ← {
+  journal ⇐ {source_file⇐"journal.tsv", required⇐1, lines⇐⟨Line ⟨"2026-06-15", "dirty", "assets:bank", "expenses:food", "999", "currency=USD"⟩⟩},
+  sources ⇐ ⟨
+    {source_file⇐"journal.tsv", required⇐1, lines⇐⟨Line ⟨"2026-06-15", "clean", "assets:bank", "expenses:food", "100"⟩⟩},
+    {source_file⇐"plan.tsv", required⇐0, lines⇐⟨⟩},
+    {source_file⇐"budget_alloc.tsv", required⇐0, lines⇐⟨⟩}
+  ⟩
+}
+inconsistentBuilt ← ctx.BuildAuthorizedRowsFromSnapshot ⟨inconsistent, legacy.resolved, legacy.cy.start⟩
+"proven" lib.AssertEq inconsistentBuilt.arithmetic_currency_proof.state
+debits ← (({𝕩.side}¨ inconsistentBuilt.rows) ≡¨ <"debit") / inconsistentBuilt.rows
+100 lib.AssertEq (⊑ debits).delta
 
 0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"unsupported", domain⇐"", basis⇐"explicit_source_currency", message⇐"x"}
 0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"unresolved", domain⇐"JPY", basis⇐"legacy_compatibility", message⇐"x"}
