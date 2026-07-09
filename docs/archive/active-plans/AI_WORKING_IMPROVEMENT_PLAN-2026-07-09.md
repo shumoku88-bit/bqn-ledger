@@ -46,6 +46,10 @@ It is a missing narrow current-doc contract for two BQN-specific hazards that ke
 1. stable element boundaries are easy to lose unless boxed explicitly when collection shape may vary;
 2. `⎊` only helps when the left operand is a real function of `𝕩`, not when the body silently depends on outer lexical state or gets evaluated too early.
 
+## Planning decision
+
+A. Approve the existing-CONVENTIONS extension as the next Execution slice.
+
 ## Selected smallest execution slice
 
 Authorize only this next slice:
