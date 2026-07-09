@@ -25,7 +25,7 @@ When choosing work, prefer `TODO.md` first. Use this inventory to avoid treating
 | `AI_BUDGET_CALCULATOR_DESIGN.md` | active | P1-P4 implemented, P5-P7 pending; current CLI is `tools/envelope-calc`. |
 | `AI_REVIEW_BQN_EVAL_TASK.md` | parked | Review request for devtool work; not a standing TODO by itself. |
 | `AI_WORKING_FEEDBACK_LOG.md` | active | Intake log for pit workflow/tooling observations. |
-| `AI_WORKING_IMPROVEMENT_PLAN-2026-07-09.md` | active | Small docs-only plan for extending the current BQN pitfalls section without creating a duplicate guide. |
+| `../completed-plans/AI_WORKING_IMPROVEMENT_PLAN-2026-07-09.md` | historical | Completed Review / Learning as `mitigated` after PR #135. `docs/CONVENTIONS.md` remains the single BQN pitfalls owner; broader tutorial, lint, and devtool work are not authorized. |
 | `PLAN_TEMPORAL_STATUS_PROJECTION_PLAN-2026-07-05.md` | historical | First extraction slice implemented by PR #64. Keep for rationale; current follow-up is `PLAN_TEMPORAL_EXECUTION_COVERAGE_JOIN-2026-07-06.md`. |
 | `PLAN_TEMPORAL_EXECUTION_COVERAGE_JOIN-2026-07-06.md` | active | Aggregate-only follow-up remains active. Slice A seam reduction was implemented by PR #70. Before Slice B, use `../audits/TEMPORAL_SEMANTICS_OBSERVATION-2026-07-06.md` and `../audits/TEMPORAL_SEMANTICS_CLASSIFICATION-2026-07-06.md`; next finite step is characterization of envelope source-order and outlook historical-cycle clock behavior. |
 | `PLAN_COMPLETION_WORKFLOW_DESIGN_INTAKE-2026-07-08.md` | active | Intake for designing the plan completion + follow-up replenishment workflow contract. Current TODO item is docs-only design; multi-currency work may be prioritized first. |
