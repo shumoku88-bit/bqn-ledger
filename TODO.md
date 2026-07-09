@@ -9,13 +9,13 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-09 — PR #132 merged; TODO routing updated from the completed runtime slice to post-implementation contract verification / routing review.
+Last hygiene pass: 2026-07-09 — PR #132 merged; TODO active work narrowed to post-implementation contract verification.
 
 ---
 
 ## Active work
 
-### Currency Awareness Stage 2 post-implementation contract verification / routing review
+### Currency Awareness Stage 2 post-implementation contract verification
 
 Current baseline:
 - PR #132 `feat: implement Stage 2 minimal domain proof runtime` has been merged into `main`
@@ -28,7 +28,6 @@ Current baseline:
 
 Current selected smallest next finite slice:
 - verify the merged Stage 2 runtime still matches the selected Stage 2 decision and implementation plan before broader per-row currency work begins
-- refresh L1 routing so `TODO.md` no longer points new agents at completed runtime implementation work
 - keep Stage 3 / explicit row `currency=` / FX out of scope
 
 導線:
