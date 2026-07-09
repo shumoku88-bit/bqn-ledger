@@ -3,26 +3,17 @@
 lib ← •Import "test_lib.bqn"
 loader ← •Import "../src_next/loader.bqn"
 ak ← •Import "../src_next/account_key.bqn"
-proj ← •Import "../src_next/projection.bqn"
+context ← •Import "../src_next/context.bqn"
 cycle ← •Import "../src_next/cycle.bqn"
 cube ← •Import "../src_next/cube.bqn"
 tbds ← •Import "../src_next/tbds.bqn"
 hh ← •Import "../src_next/household_policy.bqn"
 
-BuildRowsForFile ← {𝕊 base‿srcFile‿resolved‿cycleStart:
-  lines ← loader.ReadLines (base ∾ "/" ∾ srcFile)
-  args ← {𝕊 i:
-    flds ← loader.SplitTsv (i ⊑ lines)
-    ⟨srcFile, i, flds, resolved.accounts, resolved.roles, resolved.account_keys, cycleStart⟩
-  } ¨ ↕ ≠ lines
-  ∾ (proj.MakeRow ¨ args)
-}
-
 # ── 1. moko-style test (POLICY_BUDGET_STYLE=envelope) ──
 base_moko ← "fixtures/generalization-moko"
 res_moko ← ak.Resolve loader.ReadLines (base_moko ∾ "/accounts.tsv")
 cy_moko ← cycle.ReadCycle base_moko
-rows_moko ← (BuildRowsForFile ⟨base_moko, "journal.tsv", res_moko, cy_moko.start⟩) ∾ BuildRowsForFile ⟨base_moko, "plan.tsv", res_moko, cy_moko.start⟩
+rows_moko ← context.BuildAllRows ⟨base_moko, res_moko, cy_moko.start⟩
 result_moko ← cube.Materialize ⟨rows_moko, cy_moko.day_count, res_moko.count⟩
 
 # Core TBDS construction should work
@@ -40,7 +31,7 @@ cy_cal ← cycle.ReadCycle base_cal
 # For calendarMonth, resolution is unavailable, use mock period for engine loading test
 cal_start ← "2026-02-01"
 cal_days ← 28
-rows_cal ← (BuildRowsForFile ⟨base_cal, "journal.tsv", res_cal, cal_start⟩) ∾ BuildRowsForFile ⟨base_cal, "plan.tsv", res_cal, cal_start⟩
+rows_cal ← context.BuildAllRows ⟨base_cal, res_cal, cal_start⟩
 result_cal ← cube.Materialize ⟨rows_cal, cal_days, res_cal.count⟩
 
 # Core TBDS construction should work (core is policy-independent)

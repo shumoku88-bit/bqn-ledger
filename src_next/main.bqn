@@ -10,6 +10,7 @@
 loader ← •Import "loader.bqn"
 ak ← •Import "account_key.bqn"
 proj ← •Import "projection.bqn"
+context ← •Import "context.bqn"
 cycle ← •Import "cycle.bqn"
 cube ← •Import "cube.bqn"
 household_policy ← •Import "household_policy.bqn"
@@ -55,57 +56,23 @@ PrintProjHeader ← {𝕊 𝕩:
   •Out "Skeleton: no final report section."
 }
 
-# BuildRowsForFile: build projection rows for a single source file.
-# Args: ⟨base2, resolved, cycleStart, srcFile⟩
-# Returns: 1D array of projection row namespaces (empty if file missing/empty)
-BuildRowsForFile ← {𝕊 base2‿resolved‿cycleStart‿srcFile:
-  lines ← loader.ReadLines (base2 ∾ "/" ∾ srcFile)
-  names  ← resolved.accounts
-  roles  ← resolved.roles
-  keys   ← resolved.account_keys
-  n      ← ≠ lines
-
-  args ← {𝕊 i:
-    flds ← loader.SplitTsvKeepEmpty (i ⊑ lines)
-    ⟨srcFile, i, flds, names, roles, keys, cycleStart⟩
-  } ¨ ↕ n
-  ∾ (proj.MakeRow ¨ args)
+RowsForSourceFile ← {𝕊 rows‿srcFile:
+  (({𝕩.source_file}¨ rows) ≡¨ <srcFile) / rows
 }
 
-# PrintRowsForFile: build and print projection rows for a source file.
-# Args: ⟨base2, resolved, cycleStart, srcFile, title⟩
-# Returns: 1D array of projection row namespaces
-PrintRowsForFile ← {𝕊 base2‿resolved‿cycleStart‿srcFile‿title:
-  rows ← BuildRowsForFile ⟨base2, resolved, cycleStart, srcFile⟩
+PrintRowsForFile ← {𝕊 rows‿srcFile‿title:
+  selected ← RowsForSourceFile ⟨rows, srcFile⟩
   •Out ""
   •Out "--- Sample Projection Rows (" ∾ title ∾ ") ---"
   •Out ""
-  {𝕊:
-    •Out proj.FormatProjTable rows
-  }⍟(0 < ≠ rows) @
-  {𝕊:
-    •Out "(none)"
-  }⍟(0 = ≠ rows) @
-  rows
+  {𝕊: •Out proj.FormatProjTable selected}⍟(0 < ≠ selected) @
+  {𝕊: •Out "(none)"}⍟(0 = ≠ selected) @
+  selected
 }
 
-PrintSampleRows ← {𝕊 base2‿resolved‿cycleStart:
-  jrows ← PrintRowsForFile ⟨base2, resolved, cycleStart, "journal.tsv", "journal.tsv"⟩
-  # plan.tsv is optional; use ReadLinesOptional to avoid crash when missing
-  linesPlan ← loader.ReadLinesOptional (base2 ∾ "/plan.tsv")
-  names  ← resolved.accounts
-  roles  ← resolved.roles
-  keys   ← resolved.account_keys
-  argsPlan ← {𝕊 i:
-    flds ← loader.SplitTsvKeepEmpty (i ⊑ linesPlan)
-    ⟨"plan.tsv", i, flds, names, roles, keys, cycleStart⟩
-  } ¨ ↕ (≠ linesPlan)
-  prows ← ∾ (proj.MakeRow ¨ argsPlan)
-  •Out ""
-  •Out "--- Sample Projection Rows (plan.tsv) ---"
-  •Out ""
-  {𝕊: •Out proj.FormatProjTable prows }⍟(0 < ≠ prows) @
-  {𝕊: •Out "(none)" }⍟(0 = ≠ prows) @
+PrintSampleRows ← {𝕊 rows:
+  jrows ← PrintRowsForFile ⟨rows, "journal.tsv", "journal.tsv"⟩
+  prows ← PrintRowsForFile ⟨rows, "plan.tsv", "plan.tsv"⟩
   jrows ∾ prows
 }
 
@@ -115,7 +82,8 @@ Main ← {𝕊 base:
   base2 ← (0 < ≠ base) ⊑ ⟨ ".", base ⟩
 
   # ── Cycle info ─────────────────────────────────────────────
-  cy ← cycle.ReadCycle base2
+  ctx ← context.BuildContext base2
+  cy ← ctx.cy
   •Out cycle.FormatCycleInfo cy
 
   # ── AccountKey table ───────────────────────────────────────
@@ -123,7 +91,7 @@ Main ← {𝕊 base:
 
   # ── Projection skeleton ────────────────────────────────────
   PrintProjHeader 0
-  rows ← PrintSampleRows ⟨base2, resolved, cy.start⟩
+  rows ← PrintSampleRows ctx.posting_rows
   •Out ""
   •Out proj.FormatBalanceCheck rows
 

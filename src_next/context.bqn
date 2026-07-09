@@ -21,43 +21,194 @@ cycle ← •Import "cycle.bqn"
 cube ← •Import "cube.bqn"
 tbds ← •Import "tbds.bqn"
 
-# BuildRowsForFile: build projection rows for a single source file.
+MakePostingSource ← {𝕊 srcFile‿required‿lines:
+  { source_file ⇐ srcFile, required ⇐ required, lines ⇐ lines }
+}
+
+# LoadPostingSourceSnapshot: load all posting source lines once.
+# journal.tsv remains required; plan.tsv and budget_alloc.tsv remain optional.
+LoadPostingSourceSnapshot ← {𝕊 base:
+  journalLines ← loader.ReadLines (base ∾ "/journal.tsv")
+  planLines ← loader.ReadLinesOptional (base ∾ "/plan.tsv")
+  budgetLines ← loader.ReadLinesOptional (base ∾ "/budget_alloc.tsv")
+  {
+    sources ⇐ ⟨
+      MakePostingSource ⟨"journal.tsv", 1, journalLines⟩,
+      MakePostingSource ⟨"plan.tsv", 0, planLines⟩,
+      MakePostingSource ⟨"budget_alloc.tsv", 0, budgetLines⟩
+    ⟩
+  }
+}
+
+ProofProven ← {𝕊 basis: { state ⇐ "proven", domain ⇐ "JPY", basis ⇐ basis, message ⇐ "" } }
+ProofUnsupportedCurrency ← {𝕊 srcFile‿rowIdx:
+  { state ⇐ "unsupported", domain ⇐ "", basis ⇐ "explicit_source_currency", message ⇐ "explicit source currency unsupported in Stage 2 minimal runtime slice: " ∾ srcFile ∾ " row " ∾ (•Fmt rowIdx) }
+}
+
+HasCurrencyMeta ← {𝕊 flds:
+  metas ← 5 ↓ flds
+  pref ← "currency="
+  plen ← ≠ pref
+  ok_len ← { plen ≤ ≠ 𝕩 } ¨ metas
+  is_match ← ok_len × { pref ≡ plen ↑ 𝕩 } ¨ metas
+  ∨´ 0 ∾ is_match
+}
+
+ResolveArithmeticCurrencyProof ← {𝕊 snapshot:
+  proof ← ProofProven "legacy_compatibility"
+  rowCount ← 0
+  found ← 0
+  {𝕊 src:
+    rowCount ↩ rowCount + ≠ src.lines
+    {𝕊 i:
+      flds ← loader.SplitTsvKeepEmpty (i ⊑ src.lines)
+      {𝕊:
+        proof ↩ ProofUnsupportedCurrency ⟨src.source_file, i⟩
+        found ↩ 1
+      }⍟((¬found) ∧ HasCurrencyMeta flds) @
+    }¨ ↕ ≠ src.lines
+  }¨ snapshot.sources
+  {𝕊: proof ↩ ProofProven "empty_source_compatibility"}⍟((0=rowCount) ∧ (¬found)) @
+  proof
+}
+
+MakeProjectionRowRaw ← {𝕊 ⟨srcFile, rowIdx, flds, accounts, accountRoles, accountKeys, cycleStart⟩:
+  date   ← proj.FieldOrEmpty ⟨flds, 0⟩
+  srcId  ← proj.FieldOrEmpty ⟨flds, 1⟩
+  txId   ← proj.TxIdFromMeta ⟨srcId, flds⟩
+  fromAcc ← proj.FieldOrEmpty ⟨flds, 2⟩
+  toAcc   ← proj.FieldOrEmpty ⟨flds, 3⟩
+  amountText ← proj.FieldOrEmpty ⟨flds, 4⟩
+
+  dateOk ← proj.IsValidDateText date
+  amountOk ← proj.IsIntegerText amountText
+  amount ← 0
+  {𝕊: amount ↩ •BQN amountText }⍟amountOk @
+
+  fromIdx ← ⊑ accounts ⊐ ⟨fromAcc⟩
+  toIdx   ← ⊑ accounts ⊐ ⟨toAcc⟩
+  n         ← ≠ accounts
+
+  fromKnown ← fromIdx < n
+  toKnown   ← toIdx < n
+  known     ← fromKnown ∧ toKnown
+
+  status ← "ok"
+  status ↩ (¬known) ⊑ status‿"unknown_account"
+  status ↩ (¬amountOk) ⊑ status‿"invalid_amount"
+  status ↩ (¬dateOk) ⊑ status‿"invalid_date"
+  fromAkOut ← fromKnown ⊑ n‿fromIdx
+  toAkOut   ← toKnown ⊑ n‿toIdx
+
+  unknownMsg ← ""
+  unknownMsg ↩ ((¬fromKnown) ∧ (¬toKnown)) ⊑ unknownMsg‿("unknown from account: "∾fromAcc∾"; unknown to account: "∾toAcc)
+  unknownMsg ↩ ((¬fromKnown) ∧ toKnown) ⊑ unknownMsg‿("unknown from account: "∾fromAcc)
+  unknownMsg ↩ (fromKnown ∧ (¬toKnown)) ⊑ unknownMsg‿("unknown to account: "∾toAcc)
+  msg ← ""
+  msg ↩ (status ≡ "unknown_account") ⊑ msg‿unknownMsg
+  msg ↩ (status ≡ "invalid_amount") ⊑ msg‿("invalid amount: "∾amountText)
+  msg ↩ (status ≡ "invalid_date") ⊑ msg‿("invalid date: "∾date)
+
+  roleWithSentinel ← accountRoles ∾ ⟨""⟩
+  keyWithSentinel ← accountKeys ∾ ⟨""⟩
+  fromRole ← fromAkOut ⊑ roleWithSentinel
+  toRole ← toAkOut ⊑ roleWithSentinel
+
+  day ← 0
+  cycleStartOk ← proj.IsValidDateText cycleStart
+  {𝕊: day ↩ proj.ResolveDayFromCycle ⟨date, cycleStart⟩ }⍟(dateOk ∧ cycleStartOk) @
+
+  layer ← proj.SourceLayer srcFile
+  layerName ← proj.LayerName layer
+  kind  ← proj.InferKind ⟨fromRole, toRole, fromAcc, toAcc⟩
+
+  MakeSideRow ← {𝕊 side‿akIdx‿sideDelta:
+    {
+      source_file       ⇐ srcFile,
+      source_row        ⇐ rowIdx,
+      source_id         ⇐ srcId,
+      tx_id             ⇐ txId,
+      posting_id        ⇐ proj.PostingId ⟨srcFile, rowIdx, side⟩,
+      date              ⇐ date,
+      side              ⇐ side,
+      day_index         ⇐ day,
+      account_key       ⇐ akIdx ⊑ keyWithSentinel,
+      account_key_index ⇐ akIdx,
+      layer_name        ⇐ layerName,
+      layer_index       ⇐ layer,
+      delta             ⇐ sideDelta,
+      kind              ⇐ kind,
+      status            ⇐ status,
+      message           ⇐ msg
+    }
+  }
+
+  ⟨ MakeSideRow ⟨"debit", toAkOut, amount⟩,
+    MakeSideRow ⟨"credit", fromAkOut, - amount⟩ ⟩
+}
+
+ArgsForSource ← {𝕊 src‿resolved‿cycleStart:
+  names  ← resolved.accounts
+  roles  ← resolved.roles
+  keys   ← resolved.account_keys
+  {𝕊 i:
+    flds ← loader.SplitTsvKeepEmpty (i ⊑ src.lines)
+    ⟨src.source_file, i, flds, names, roles, keys, cycleStart⟩
+  } ¨ ↕ ≠ src.lines
+}
+
+BuildRowsForSourceAuthorized ← {𝕊 source‿resolved‿cycleStart:
+  args ← ArgsForSource ⟨source, resolved, cycleStart⟩
+  ∾ (MakeProjectionRowRaw ¨ args)
+}
+
+SourceFromSnapshot ← {𝕊 snapshot‿srcFile:
+  isJournal ← srcFile ≡ "journal.tsv"
+  isPlan ← srcFile ≡ "plan.tsv"
+  isBudget ← srcFile ≡ "budget_alloc.tsv"
+  known ← isJournal ∨ isPlan ∨ isBudget
+  {𝕊:
+    •Out "ERROR: unsupported posting source file: " ∾ srcFile
+    •Exit 1
+  }⍟(¬known) @
+  matches ← (({𝕩.source_file}¨ snapshot.sources) ≡¨ <srcFile) / snapshot.sources
+  {𝕊:
+    •Out "ERROR: posting source missing from snapshot: " ∾ srcFile
+    •Exit 1
+  }⍟(0 = ≠ matches) @
+  ⊑ matches
+}
+
+# BuildRowsForFile: compatibility exported path; still loads one full posting-source
+# snapshot, derives proof from that snapshot, and projects only after authorization.
 BuildRowsForFile ← {𝕊 base‿resolved‿cycleStart‿srcFile:
-  lines ← loader.ReadLines (base ∾ "/" ∾ srcFile)
-  names  ← resolved.accounts
-  roles  ← resolved.roles
-  keys   ← resolved.account_keys
-  n      ← ≠ lines
-  args ← {𝕊 i:
-    flds ← loader.SplitTsvKeepEmpty (i ⊑ lines)
-    ⟨srcFile, i, flds, names, roles, keys, cycleStart⟩
-  } ¨ ↕ n
-  ∾ (proj.MakeRow ¨ args)
+  snapshot ← LoadPostingSourceSnapshot base
+  built ← BuildAuthorizedRowsFromSnapshot ⟨snapshot, resolved, cycleStart⟩
+  sourceRows ← (({𝕩.source_file}¨ built.rows) ≡¨ <srcFile) / built.rows
+  SourceFromSnapshot ⟨snapshot, srcFile⟩ # fail closed for unsupported srcFile
+  sourceRows
 }
 
-# BuildRowsForFileOptional: like BuildRowsForFile but returns empty for missing/empty files.
-BuildRowsForFileOptional ← {𝕊 base‿resolved‿cycleStart‿srcFile:
-  lines ← loader.ReadLinesOptional (base ∾ "/" ∾ srcFile)
-  names  ← resolved.accounts
-  roles  ← resolved.roles
-  keys   ← resolved.account_keys
-  args ← {𝕊 i:
-    flds ← loader.SplitTsvKeepEmpty (i ⊑ lines)
-    ⟨srcFile, i, flds, names, roles, keys, cycleStart⟩
-  } ¨ ↕ (≠ lines)
-  ∾ (proj.MakeRow ¨ args)
+# BuildRowsForFileOptional: compatibility wrapper; same authorization behavior as BuildRowsForFile.
+BuildRowsForFileOptional ← BuildRowsForFile
+
+# BuildAuthorizedRowsFromSnapshot: derive proof from the exact snapshot being projected.
+BuildAuthorizedRowsFromSnapshot ← {𝕊 snapshot‿resolved‿cycleStart:
+  proof ← ResolveArithmeticCurrencyProof snapshot
+  proj.RequireArithmeticCurrencyProof proof
+  rows ← ∾ ({𝕊 source: BuildRowsForSourceAuthorized ⟨source, resolved, cycleStart⟩} ¨ snapshot.sources)
+  { rows ⇐ rows, arithmetic_currency_proof ⇐ proof }
 }
 
-# BuildAllRows: construct all posting rows from source TSV files.
-# Args: ⟨base, resolved, cycleStart⟩
-#   cycleStart is used for day_index computation, not for row filtering.
-#   All valid source dates produce posting rows regardless of cycle position.
-# Returns: 1D array of posting row namespaces.
+# BuildAllRowsFromSnapshot: compatibility wrapper with no independently supplied proof.
+BuildAllRowsFromSnapshot ← {𝕊 snapshot‿resolved‿cycleStart:
+  (BuildAuthorizedRowsFromSnapshot ⟨snapshot, resolved, cycleStart⟩).rows
+}
+
+# BuildAllRows: compatibility wrapper preserving one-snapshot proof/projection invariant.
 BuildAllRows ← {𝕊 base‿resolved‿cycleStart:
-  jrows ← BuildRowsForFile ⟨base, resolved, cycleStart, "journal.tsv"⟩
-  prows ← BuildRowsForFileOptional ⟨base, resolved, cycleStart, "plan.tsv"⟩
-  brows ← BuildRowsForFileOptional ⟨base, resolved, cycleStart, "budget_alloc.tsv"⟩
-  jrows ∾ prows ∾ brows
+  snapshot ← LoadPostingSourceSnapshot base
+  BuildAllRowsFromSnapshot ⟨snapshot, resolved, cycleStart⟩
 }
 
 # BuildPeriodView: materialize cycle-bounded cube and ledger-wide TBDS from posting rows.
@@ -89,7 +240,10 @@ BuildContext ← {𝕊 arg:
   cy           ← cycle.ReadCycle ⟨base2, as_of⟩
   accLines     ← loader.ReadLines (base2 ∾ "/accounts.tsv")
   resolved     ← ak.Resolve accLines
-  rows         ← BuildAllRows ⟨base2, resolved, cy.start⟩
+  posting_snapshot ← LoadPostingSourceSnapshot base2
+  built_rows   ← BuildAuthorizedRowsFromSnapshot ⟨posting_snapshot, resolved, cy.start⟩
+  arithmetic_currency_proof ← built_rows.arithmetic_currency_proof
+  rows         ← built_rows.rows
   view         ← BuildPeriodView ⟨rows, resolved, cy⟩
   
   # Load and parse issues.tsv
@@ -114,10 +268,11 @@ BuildContext ← {𝕊 arg:
     cy           ⇐ cy,
     resolved     ⇐ resolved,
     posting_rows ⇐ rows,
+    arithmetic_currency_proof ⇐ arithmetic_currency_proof,
     cube         ⇐ view.cube,
     tbds         ⇐ view.tbds,
     issues       ⇐ issues
   }
 }
 
-{ BuildContext ⇐ BuildContext, BuildAllRows ⇐ BuildAllRows, BuildPeriodView ⇐ BuildPeriodView, BuildRowsForFile ⇐ BuildRowsForFile, BuildRowsForFileOptional ⇐ BuildRowsForFileOptional }
+{ BuildContext ⇐ BuildContext, LoadPostingSourceSnapshot ⇐ LoadPostingSourceSnapshot, ResolveArithmeticCurrencyProof ⇐ ResolveArithmeticCurrencyProof, BuildAuthorizedRowsFromSnapshot ⇐ BuildAuthorizedRowsFromSnapshot, BuildAllRowsFromSnapshot ⇐ BuildAllRowsFromSnapshot, BuildAllRows ⇐ BuildAllRows, BuildPeriodView ⇐ BuildPeriodView, BuildRowsForFile ⇐ BuildRowsForFile, BuildRowsForFileOptional ⇐ BuildRowsForFileOptional }

@@ -142,110 +142,41 @@ PostingId ← {𝕊 srcFile‿rowIdx‿side:
   srcFile ∾ ":" ∾ (•Fmt rowIdx) ∾ ":" ∾ side
 }
 
-# ── Row builder ──────────────────────────────────────────────
-# Builds ledger-like projection rows from a parsed source record.
-# Args: ⟨srcFile, rowIdx, flds, accounts, accountKeys, cycleStart⟩
-#   srcFile     - source TSV file name
-#   rowIdx      - zero-based line number in source file
-#   flds        - parsed TSV fields (1D array)
-#   accounts     - 1D array of account names (from AccountKey table)
-#   accountRoles - 1D array of explicit role= metadata values, empty if absent
-#   accountKeys  - 1D array of AccountKey strings
-#   cycleStart   - YYYY-MM-DD cycle start date (String)
-#
-# Handles:
-#   - account key resolution with unknown_account detection (checks both from and to)
-#   - one source record expands to a debit-side row (to account, +amount)
-#     and a credit-side row (from account, -amount)
-#   - day index resolution via ResolveDayFromCycle (cycle-start-based)
-#   - layer assignment via SourceLayer
-#   - kind inference via InferKind
-#
-# Note: unknown_account rows receive sentinel index = n (≠accounts).
-# This sentinel must NOT be used as a cube index later —
-# cube materialize should filter or reject invalid rows before indexing.
+# ── Arithmetic currency proof authorization ─────────────────
 
-MakeRow ← {𝕊 ⟨srcFile, rowIdx, flds, accounts, accountRoles, accountKeys, cycleStart⟩:
-  date   ← FieldOrEmpty ⟨flds, 0⟩
-  srcId  ← FieldOrEmpty ⟨flds, 1⟩
-  txId   ← TxIdFromMeta ⟨srcId, flds⟩
-  fromAcc ← FieldOrEmpty ⟨flds, 2⟩
-  toAcc   ← FieldOrEmpty ⟨flds, 3⟩
-  amountText ← FieldOrEmpty ⟨flds, 4⟩
+allowed_proof_basis ← ⟨"legacy_compatibility", "empty_source_compatibility"⟩
+IsAllowedProofBasis ← {𝕊 basis: ∨´ 0 ∾ (basis⊸≡¨ allowed_proof_basis) }
+ProofState ← ({𝕩.state}⎊{""})
+ProofDomain ← ({𝕩.domain}⎊{""})
+ProofBasis ← ({𝕩.basis}⎊{""})
+ProofMessage ← ({𝕩.message}⎊{""})
 
-  dateOk ← IsValidDateText date
-  amountOk ← IsIntegerText amountText
-  amount ← 0
-  {𝕊: amount ↩ •BQN amountText }⍟amountOk @
+AuthorizeArithmeticCurrencyProof ← {𝕊 proof:
+  state ← ProofState proof
+  domain ← ProofDomain proof
+  basis ← ProofBasis proof
+  (state ≡ "proven") ∧ (domain ≡ "JPY") ∧ IsAllowedProofBasis basis
+}
 
-
-  # Account resolution: look up both source accounts in accounts table
-  fromIdx ← ⊑ accounts ⊐ ⟨fromAcc⟩
-  toIdx   ← ⊑ accounts ⊐ ⟨toAcc⟩
-  n         ← ≠ accounts
-
-  fromKnown ← fromIdx < n
-  toKnown   ← toIdx < n
-  known     ← fromKnown ∧ toKnown
-
-  # Determine status before cube materialization. Invalid scalar fields win
-  # over account errors because they would otherwise crash date/amount parsing.
-  # sentinel: n (≠accounts) — marks unknown_account rows
-  # WARNING: do NOT use sentinel as a real cube index.
-  # Cube materialize must filter rows where account_key_index = n or status ≠ ok.
-  status ← "ok"
-  status ↩ (¬known) ⊑ status‿"unknown_account"
-  status ↩ (¬amountOk) ⊑ status‿"invalid_amount"
-  status ↩ (¬dateOk) ⊑ status‿"invalid_date"
-  fromAkOut ← fromKnown ⊑ n‿fromIdx
-  toAkOut   ← toKnown ⊑ n‿toIdx
-
-  # Build diagnostic message for non-ok statuses.
-  unknownMsg ← ""
-  unknownMsg ↩ ((¬fromKnown) ∧ (¬toKnown)) ⊑ unknownMsg‿("unknown from account: "∾fromAcc∾"; unknown to account: "∾toAcc)
-  unknownMsg ↩ ((¬fromKnown) ∧ toKnown) ⊑ unknownMsg‿("unknown from account: "∾fromAcc)
-  unknownMsg ↩ (fromKnown ∧ (¬toKnown)) ⊑ unknownMsg‿("unknown to account: "∾toAcc)
+ArithmeticCurrencyAuthorizationMessage ← {𝕊 proof:
+  state ← ProofState proof
+  domain ← ProofDomain proof
+  basis ← ProofBasis proof
+  message ← ProofMessage proof
   msg ← ""
-  msg ↩ (status ≡ "unknown_account") ⊑ msg‿unknownMsg
-  msg ↩ (status ≡ "invalid_amount") ⊑ msg‿("invalid amount: "∾amountText)
-  msg ↩ (status ≡ "invalid_date") ⊑ msg‿("invalid date: "∾date)
+  msg ↩ (¬ IsAllowedProofBasis basis) ⊑ msg‿("unsupported arithmetic currency proof basis: " ∾ basis)
+  msg ↩ (domain ≢ "JPY") ⊑ msg‿("unsupported arithmetic currency domain: " ∾ domain)
+  msg ↩ (state ≢ "proven") ⊑ msg‿((0 < ≠ message) ⊑ ("arithmetic currency proof is not proven: " ∾ state)‿message)
+  msg
+}
 
-  roleWithSentinel ← accountRoles ∾ ⟨""⟩
-  keyWithSentinel ← accountKeys ∾ ⟨""⟩
-  fromRole ← fromAkOut ⊑ roleWithSentinel
-  toRole ← toAkOut ⊑ roleWithSentinel
-
-  day ← 0
-  cycleStartOk ← IsValidDateText cycleStart
-  {𝕊: day ↩ ResolveDayFromCycle ⟨date, cycleStart⟩ }⍟(dateOk ∧ cycleStartOk) @
-
-  layer ← SourceLayer srcFile
-  layerName ← LayerName layer
-  kind  ← InferKind ⟨fromRole, toRole, fromAcc, toAcc⟩
-
-  MakeSideRow ← {𝕊 side‿akIdx‿sideDelta:
-    {
-      source_file       ⇐ srcFile,
-      source_row        ⇐ rowIdx,
-      source_id         ⇐ srcId,
-      tx_id             ⇐ txId,
-      posting_id        ⇐ PostingId ⟨srcFile, rowIdx, side⟩,
-      date              ⇐ date,
-      side              ⇐ side,
-      day_index         ⇐ day,
-      account_key       ⇐ akIdx ⊑ keyWithSentinel,
-      account_key_index ⇐ akIdx,
-      layer_name        ⇐ layerName,
-      layer_index       ⇐ layer,
-      delta             ⇐ sideDelta,
-      kind              ⇐ kind,
-      status            ⇐ status,
-      message           ⇐ msg
-    }
-  }
-
-  ⟨ MakeSideRow ⟨"debit", toAkOut, amount⟩,
-    MakeSideRow ⟨"credit", fromAkOut, - amount⟩ ⟩
+RequireArithmeticCurrencyProof ← {𝕊 proof:
+  ok ← AuthorizeArithmeticCurrencyProof proof
+  {𝕊:
+    •Out "ERROR: " ∾ ArithmeticCurrencyAuthorizationMessage proof
+    •Exit 1
+  }⍟(¬ok) @
+  ok
 }
 
 # ── Balance validation by source_id ──────────────────────────
@@ -305,7 +236,9 @@ FormatProjTable ← {𝕊 rows:
   DaysFromEpoch         ⇐ DaysFromEpoch,
   ResolveDay            ⇐ ResolveDay,
   ResolveDayFromCycle   ⇐ ResolveDayFromCycle,
-  MakeRow               ⇐ MakeRow,
+  AuthorizeArithmeticCurrencyProof ⇐ AuthorizeArithmeticCurrencyProof,
+  ArithmeticCurrencyAuthorizationMessage ⇐ ArithmeticCurrencyAuthorizationMessage,
+  RequireArithmeticCurrencyProof ⇐ RequireArithmeticCurrencyProof,
   BalanceBySourceOk     ⇐ BalanceBySourceOk,
   FormatBalanceCheck    ⇐ FormatBalanceCheck,
   FormatProjTable       ⇐ FormatProjTable
