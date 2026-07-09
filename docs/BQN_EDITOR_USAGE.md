@@ -98,7 +98,7 @@ BQN Editor は会計エンジンとしての計算（残高や封筒の残金計
 ./tools/edit issue close --index 1 --status resolved --decision "2026-07-09 解約済み。固定支出/plan化しない。" --yes
 ```
 
-`issue close` は open issue の title と元 memo を保持し、memo 末尾へ `Decision: ...` を追記したうえで `status` を `resolved` または `dropped` に変更します。直接 TSV を手編集する代わりに、preview / backup / stale check 付きの replace path を使います。Decision memo は必須で、`2026-07-09 ` のような日付だけの入力は拒否されます。
+`issue close --index N` の `N` は、現在の open issue list に表示される 1-based ordinal です（物理 TSV 行番号ではありません）。`issue close` は open issue の title と元 memo を保持し、memo 末尾へ `Decision: ...` を追記したうえで `status` を `resolved` または `dropped` に変更します。直接 TSV を手編集する代わりに、preview / backup / stale check 付きの replace path を使います。Decision memo は必須で、`2026-07-09 ` のような日付だけの入力は拒否されます。
 
 ### 予定の追加 (`plan add`)
 ```bash

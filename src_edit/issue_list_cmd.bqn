@@ -6,6 +6,7 @@
 #
 # `--format tsv` is a UI contract used by tools/add-ui.sh issue-close selection:
 #   number date title amount memo display
+# number is the 1-based ordinal within current open issues, matching issue close --index.
 
 loader ← •Import "../src_next/loader.bqn"
 
@@ -82,19 +83,22 @@ ParseIssueRow ← {𝕊 index:
 allIssues ← ParseIssueRow¨ ↕ ≠ bodyLines
 openIssues ← ({𝕩.status ≡ "open"}¨ allIssues) / allIssues
 
-Display ← {𝕊 r:
-  (•Fmt r.lineNum) ∾ " | " ∾ r.date ∾ " | " ∾ r.title ∾ " | " ∾ r.amount ∾ " | " ∾ r.memo
+Display ← {
+  n ← 𝕨
+  r ← 𝕩
+  (•Fmt n) ∾ " | line " ∾ (•Fmt r.lineNum) ∾ " | " ∾ r.date ∾ " | " ∾ r.title ∾ " | " ∾ r.amount ∾ " | " ∾ r.memo
 }
 
 PrintTsv ← {𝕊 index:
   r ← index ⊑ openIssues
   n ← index + 1
-  •Out tab Join ⟨(•Fmt n), r.date, r.title, r.amount, r.memo, Display r⟩
+  •Out tab Join ⟨(•Fmt n), r.date, r.title, r.amount, r.memo, n Display r⟩
 }
 
 PrintText ← {𝕊 index:
   r ← index ⊑ openIssues
-  •Out (Display r)
+  n ← index + 1
+  •Out (n Display r)
 }
 
 (format ≡ "tsv") ◶ ⟨
