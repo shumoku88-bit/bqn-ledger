@@ -67,6 +67,9 @@ precision ← ctx.ResolveArithmeticCurrencyProof ProofSnapshot ⟨
 0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"", basis⇐"legacy_compatibility", message⇐"x"}
 0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"USD", basis⇐"legacy_compatibility", message⇐"x"}
 0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", basis⇐"forged_basis", message⇐"x"}
+0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {domain⇐"JPY", basis⇐"legacy_compatibility", message⇐"message mentions state"}
+0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", basis⇐"legacy_compatibility", message⇐"message mentions domain"}
+0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", message⇐"message mentions basis"}
 0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", basis⇐"legacy_compatibility", message⇐"x"}
 0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", message⇐"x"}
 0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof "not-a-proof"

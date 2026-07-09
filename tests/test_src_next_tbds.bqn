@@ -3,25 +3,15 @@
 lib ← •Import "test_lib.bqn"
 loader ← •Import "../src_next/loader.bqn"
 ak ← •Import "../src_next/account_key.bqn"
-proj ← •Import "../src_next/projection.bqn"
+context ← •Import "../src_next/context.bqn"
 cycle ← •Import "../src_next/cycle.bqn"
 cube ← •Import "../src_next/cube.bqn"
 tbds ← •Import "../src_next/tbds.bqn"
 
-BuildRowsForFile ← {𝕊 base‿resolved‿cycleStart‿srcFile:
-  lines ← loader.ReadLinesOptional (base ∾ "/" ∾ srcFile)
-  args ← {𝕊 i:
-    flds ← loader.SplitTsvKeepEmpty (i ⊑ lines)
-    ⟨srcFile, i, flds, resolved.accounts, resolved.roles, resolved.account_keys, cycleStart⟩
-  } ¨ ↕ (≠ lines)
-  proj.MakeRowsAuthorized ⟨proof, args⟩
-}
-
 base ← "fixtures/src-next-golden"
 cy ← cycle.ReadCycle base
 resolved ← ak.Resolve (loader.ReadLines (base ∾ "/accounts.tsv"))
-proof ← {state⇐"proven", domain⇐"JPY", basis⇐"legacy_compatibility", message⇐""}
-rows ← (BuildRowsForFile ⟨base, resolved, cy.start, "journal.tsv"⟩) ∾ (BuildRowsForFile ⟨base, resolved, cy.start, "plan.tsv"⟩) ∾ (BuildRowsForFile ⟨base, resolved, cy.start, "budget_alloc.tsv"⟩)
+rows ← context.BuildAllRows ⟨base, resolved, cy.start⟩
 result ← cube.Materialize ⟨rows, cy.day_count, resolved.count⟩
 tbdsRows ← tbds.Build ⟨rows, result, resolved, cy⟩
 

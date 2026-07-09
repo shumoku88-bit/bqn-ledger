@@ -146,39 +146,27 @@ PostingId ← {𝕊 srcFile‿rowIdx‿side:
 
 allowed_proof_basis ← ⟨"legacy_compatibility", "empty_source_compatibility"⟩
 IsAllowedProofBasis ← {𝕊 basis: ∨´ 0 ∾ (basis⊸≡¨ allowed_proof_basis) }
-HasSubstring ← {𝕊 pat‿s:
-  n ← ≠ pat
-  (n ≤ ≠ s) ∧ ∨´ 0 ∾ ({𝕊 i: pat ≡ n ↑ i ↓ s} ¨ ↕ 1 + (≠ s) - n)
-}
-ProofHasField ← {𝕊 proof‿field:
-  isNs ← 6 = •Type proof
-  ok ← 0
-  {𝕊: ok ↩ HasSubstring ⟨field, •Fmt 1 ⊑ •Decompose proof⟩}⍟isNs @
-  ok
-}
-ProofHasRequiredFields ← {𝕊 proof:
-  ∧´ ({𝕊 field: ProofHasField ⟨proof, field⟩} ¨ ⟨"state", "domain", "basis", "message"⟩)
-}
+ProofState ← ({𝕩.state}⎊{""})
+ProofDomain ← ({𝕩.domain}⎊{""})
+ProofBasis ← ({𝕩.basis}⎊{""})
+ProofMessage ← ({𝕩.message}⎊{""})
 
 AuthorizeArithmeticCurrencyProof ← {𝕊 proof:
-  ok ← 0
-  hasShape ← ProofHasRequiredFields proof
-  {𝕊:
-    ok ↩ (proof.state ≡ "proven") ∧ (proof.domain ≡ "JPY") ∧ IsAllowedProofBasis proof.basis
-  }⍟hasShape @
-  ok
+  state ← ProofState proof
+  domain ← ProofDomain proof
+  basis ← ProofBasis proof
+  (state ≡ "proven") ∧ (domain ≡ "JPY") ∧ IsAllowedProofBasis basis
 }
 
 ArithmeticCurrencyAuthorizationMessage ← {𝕊 proof:
-  msg ← "missing or invalid arithmetic currency proof"
-  hasShape ← ProofHasRequiredFields proof
-  {𝕊:
-    msg ↩ ""
-    msg ↩ (proof.state ≢ "proven") ⊑ msg‿("arithmetic currency proof is not proven: " ∾ proof.state)
-    msg ↩ ((proof.state ≢ "proven") ∧ (0 < ≠ proof.message)) ⊑ msg‿proof.message
-    msg ↩ ((proof.state ≡ "proven") ∧ (proof.domain ≢ "JPY")) ⊑ msg‿("unsupported arithmetic currency domain: " ∾ proof.domain)
-    msg ↩ ((proof.state ≡ "proven") ∧ (proof.domain ≡ "JPY") ∧ (¬ IsAllowedProofBasis proof.basis)) ⊑ msg‿("unsupported arithmetic currency proof basis: " ∾ proof.basis)
-  }⍟hasShape @
+  state ← ProofState proof
+  domain ← ProofDomain proof
+  basis ← ProofBasis proof
+  message ← ProofMessage proof
+  msg ← ""
+  msg ↩ (¬ IsAllowedProofBasis basis) ⊑ msg‿("unsupported arithmetic currency proof basis: " ∾ basis)
+  msg ↩ (domain ≢ "JPY") ⊑ msg‿("unsupported arithmetic currency domain: " ∾ domain)
+  msg ↩ (state ≢ "proven") ⊑ msg‿((0 < ≠ message) ⊑ ("arithmetic currency proof is not proven: " ∾ state)‿message)
   msg
 }
 
@@ -367,8 +355,6 @@ FormatProjTable ← {𝕊 rows:
   AuthorizeArithmeticCurrencyProof ⇐ AuthorizeArithmeticCurrencyProof,
   ArithmeticCurrencyAuthorizationMessage ⇐ ArithmeticCurrencyAuthorizationMessage,
   RequireArithmeticCurrencyProof ⇐ RequireArithmeticCurrencyProof,
-  MakeRow               ⇐ MakeRow,
-  MakeRowsAuthorized    ⇐ MakeRowsAuthorized,
   BalanceBySourceOk     ⇐ BalanceBySourceOk,
   FormatBalanceCheck    ⇐ FormatBalanceCheck,
   FormatProjTable       ⇐ FormatProjTable

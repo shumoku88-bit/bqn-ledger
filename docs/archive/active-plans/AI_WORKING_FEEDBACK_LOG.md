@@ -80,6 +80,22 @@ docs/archive/audits/AI_WORKING_FEEDBACK_CLASSIFICATION-YYYY-MM-DD.md
 
 <!-- New feedback entries go below. -->
 
+### 2026-07-09: BQN proof shape guards and bypass scans
+
+- Context: Currency Awareness Stage 2 minimal domain-proof runtime implementation.
+- Friction: BQN namespace/proof shape validation was awkward; safely rejecting missing fields without accidentally reading absent fields required extra probing. Projection bypass review also required manual `rg` scans for direct `proj.MakeRow` callers.
+- Idea: Add or document a small BQN helper pattern for namespace field/required-field guards, and standardize boundary-specific bypass grep checks for important fail-closed gates.
+- Candidate type: docs / check / devtool
+- Related tool/doc: `src_next/projection.bqn`, `checks/check-src-next-currency-domain-proof.sh`, `docs/archive/active-plans/AI_WORKING_FEEDBACK_LOG.md`
+
+### 2026-07-09: Task-focused BQN gotchas and check scaffolding
+
+- Context: Same Stage 2 runtime work plus focused test/check creation.
+- Friction: Known BQN pitfalls are recorded across prior feedback, but not available as a short task-time cheat sheet. New shell check creation still required attention to temp dirs, traps, root resolution, and diagnostic robustness.
+- Idea: Create a concise AI-facing BQN gotchas cheat sheet covering lowercase function names, immediate blocks without `𝕊/𝕩/𝕨`, `⎊` scope, homogenization, and namespace guard patterns; reinforce using `tools/scaffold-check.sh` for new checks.
+- Candidate type: docs / rule / existing-tool-improvement
+- Related tool/doc: `tools/scaffold-check.sh`, `docs/archive/active-plans/AI_WORKING_FEEDBACK_LOG.md`
+
 ### 2026-06-28: docs archive move needs link validation
 
 - Context: docs整理後のリンク修正作業

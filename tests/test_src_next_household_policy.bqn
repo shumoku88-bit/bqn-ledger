@@ -3,26 +3,15 @@
 lib ← •Import "test_lib.bqn"
 loader ← •Import "../src_next/loader.bqn"
 ak ← •Import "../src_next/account_key.bqn"
-proj ← •Import "../src_next/projection.bqn"
+context ← •Import "../src_next/context.bqn"
 cycle ← •Import "../src_next/cycle.bqn"
 cube ← •Import "../src_next/cube.bqn"
 hh ← •Import "../src_next/household_policy.bqn"
 
 base ← "fixtures/src-next-household-mapping-policy"
 resolved ← ak.Resolve loader.ReadLines (base ∾ "/accounts.tsv")
-proof ← {state⇐"proven", domain⇐"JPY", basis⇐"legacy_compatibility", message⇐""}
 cy ← cycle.ReadCycle base
-
-BuildRowsForFile ← {𝕊 srcFile:
-  lines ← loader.ReadLines (base ∾ "/" ∾ srcFile)
-  args ← {𝕊 i:
-    flds ← loader.SplitTsv (i ⊑ lines)
-    ⟨srcFile, i, flds, resolved.accounts, resolved.roles, resolved.account_keys, cy.start⟩
-  } ¨ ↕ ≠ lines
-  proj.MakeRowsAuthorized ⟨proof, args⟩
-}
-
-rows ← (BuildRowsForFile "journal.tsv") ∾ BuildRowsForFile "plan.tsv"
+rows ← context.BuildAllRows ⟨base, resolved, cy.start⟩
 result ← cube.Materialize ⟨rows, cy.day_count, resolved.count⟩
 summary ← hh.BuildSummary ⟨base, resolved, result.valid_rows⟩
 1 lib.AssertEq summary.has_policy_metadata

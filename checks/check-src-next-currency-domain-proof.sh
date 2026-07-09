@@ -53,7 +53,8 @@ snapshot ← ctx.LoadPostingSourceSnapshot base
 proof ← ctx.ResolveArithmeticCurrencyProof snapshot
 (base∾"/journal.tsv") •file.Chars "2026-06-15\tmutated\tassets:bank\texpenses:food\t999\n"
 resolved ← ak.Resolve loader.ReadLines (base∾"/accounts.tsv")
-rows ← ctx.BuildAllRowsFromSnapshot ⟨snapshot, resolved, "2026-06-15", proof⟩
+built ← ctx.BuildAuthorizedRowsFromSnapshot ⟨snapshot, resolved, "2026-06-15"⟩
+rows ← built.rows
 debits ← (({𝕩.side}¨ rows) ≡¨ <"debit") / rows
 amount ← (⊑ debits).delta
 {𝕊: •Out "FAIL: same snapshot amount was "∾•Fmt amount ⋄ •Exit 1}⍟(amount≠100) @
@@ -73,18 +74,56 @@ case "$same_out" in
   *) echo "FAIL: same snapshot check failed" >&2; echo "$same_out" >&2; exit 1 ;;
 esac
 
+cat > "$tmp/cross_snapshot_substitution.bqn" <<BQN
+ctx ← •Import "$ROOT_DIR/src_next/context.bqn"
+ak ← •Import "$ROOT_DIR/src_next/account_key.bqn"
+loader ← •Import "$ROOT_DIR/src_next/loader.bqn"
+baseA ← "$same_dir"
+baseB ← "$tmp/journal-currency"
+snapshotA ← ctx.LoadPostingSourceSnapshot baseA
+proofA ← ctx.ResolveArithmeticCurrencyProof snapshotA
+snapshotB ← ctx.LoadPostingSourceSnapshot baseB
+resolved ← ak.Resolve loader.ReadLines (baseA∾"/accounts.tsv")
+# Old vulnerable shape with independent proof must not be accepted.
+ctx.BuildAllRowsFromSnapshot ⟨snapshotB, resolved, "2026-06-15", proofA⟩
+•Out "unexpected-old-api-ok"
+BQN
 set +e
-forged_out="$(bqn -e 'proj←•Import "src_next/projection.bqn" ⋄ proof←{state⇐"proven",domain⇐"USD",basis⇐"legacy_compatibility",message⇐""} ⋄ proj.MakeRowsAuthorized ⟨proof,⟨⟩⟩ ⋄ •Out "unexpected-ok"' 2>&1)"
+cross_out="$(bqn "$tmp/cross_snapshot_substitution.bqn" 2>&1)"
+cross_status=$?
+set -e
+if [ "$cross_status" -eq 0 ]; then
+  echo "FAIL: cross-snapshot substitution old API unexpectedly succeeded" >&2
+  echo "$cross_out" >&2
+  exit 1
+fi
+
+set +e
+forged_out="$(bqn -e 'proj←•Import "src_next/projection.bqn" ⋄ proof←{state⇐"proven",domain⇐"JPY",basis⇐"legacy_compatibility",message⇐""} ⋄ proj.MakeRowsAuthorized ⟨proof,⟨⟩⟩ ⋄ •Out "unexpected-ok"' 2>&1)"
 forged_status=$?
 set -e
 if [ "$forged_status" -eq 0 ]; then
-  echo "FAIL: forged proof unexpectedly authorized projection" >&2
+  echo "FAIL: exported projection accepted a forged plain proof" >&2
   echo "$forged_out" >&2
   exit 1
 fi
 
-if rg 'proj\.MakeRow|MakeRow ¨ args' src_next/main.bqn src_next/ytd_summary.bqn >/tmp/stage2-domain-proof-rg.txt; then
-  echo "FAIL: hidden direct projection MakeRow bypass remains" >&2
+set +e
+alias_out="$(bqn -e 'ctx←•Import "src_next/context.bqn" ⋄ loader←•Import "src_next/loader.bqn" ⋄ ak←•Import "src_next/account_key.bqn" ⋄ base←"fixtures/src-next-golden" ⋄ resolved←ak.Resolve loader.ReadLines (base∾"/accounts.tsv") ⋄ ctx.BuildRowsForFile ⟨base,resolved,"2026-06-15","unknown.tsv"⟩ ⋄ •Out "unexpected-ok"' 2>&1)"
+alias_status=$?
+set -e
+if [ "$alias_status" -eq 0 ]; then
+  echo "FAIL: unknown posting source silently mapped to a known source" >&2
+  echo "$alias_out" >&2
+  exit 1
+fi
+case "$alias_out" in
+  *"unsupported posting source file"*) ;;
+  *) echo "FAIL: missing unsupported source diagnostic" >&2; echo "$alias_out" >&2; exit 1 ;;
+esac
+
+if rg 'proj\.MakeRow|proj\.MakeRowsAuthorized|MakeRow ¨ args' src_next tests -n >/tmp/stage2-domain-proof-rg.txt; then
+  echo "FAIL: direct exported projection bypass remains" >&2
   cat /tmp/stage2-domain-proof-rg.txt >&2
   exit 1
 fi
