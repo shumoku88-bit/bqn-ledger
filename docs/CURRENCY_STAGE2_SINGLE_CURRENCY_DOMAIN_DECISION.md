@@ -5,7 +5,7 @@ Owner: config
 Canonical: yes
 Decision date: 2026-07-09
 Depends on: `docs/CURRENCY_AWARENESS_CAMPAIGN_MAP.md`, `docs/CURRENT_CURRENCY_ASSUMPTION_MAP.md`, `docs/CURRENCY_STAGE1_AMOUNT_SEMANTICS_DECISION.md`, `docs/POSTING_IR_CONTRACT.md`
-Exit: supersede when a later current currency contract replaces the single-currency domain proof, carrier, and enforcement-gate semantics
+Exit: supersede when a later current currency contract replaces the single-currency domain proof, carrier, enforcement-gate semantics, and downstream trusted-precondition boundary
 
 This PR selects the Stage 2 domain-proof architecture only. Current runtime remains unchanged.
 
@@ -24,7 +24,7 @@ source currency resolution
   -> prove exactly one arithmetic currency domain
   -> carry proven domain in run context
   -> enforce proof before naked Posting IR delta creation
-  -> downstream cube / TBDS / reports consume only proven-domain posting rows
+  -> downstream cube / TBDS / reports consume posting rows under the trusted post-gate caller contract
 ```
 
 The candidate locations are not interchangeable alternatives. They have distinct responsibilities:
@@ -344,16 +344,30 @@ cube / TBDS / ViewModels / reports
 do not independently infer arithmetic currency domain
 ```
 
-They may consume posting rows only after the upstream single-currency proof and gate succeeds.
+They consume posting rows under the trusted post-gate caller contract selected in `docs/CURRENCY_STAGE2_BUILDPERIODVIEW_DOWNSTREAM_BOUNDARY_DECISION.md`.
+
+The executable Stage 2 claim is scoped to the normal checked path:
+
+```text
+normal checked BuildContext path
+-> proof resolution
+-> projection-owned authorization
+-> authorized posting rows
+-> BuildPeriodView
+```
+
+This does not claim that arbitrary direct invocation of exported `BuildPeriodView` is mechanically proof-gated.
 
 Preserve:
 
 ```text
 downstream aggregation
 != currency inference
+trusted precondition
+!= mechanically enforced boundary
 ```
 
-Current runtime fact: downstream runtime is not modified in this PR.
+Current runtime fact: `BuildPeriodView` itself remains a proof-free downstream consumer; the projection boundary is the arithmetic authorization gate before naked delta construction.
 
 ## 12. Failure states
 
