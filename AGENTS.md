@@ -105,6 +105,7 @@ Docs整理では、いきなり削除せず、まず archive 候補・superseded
 - docs整理では、現行仕様と履歴メモを混ぜない。完了済み計画は `docs/archive/completed-plans/` へ移す候補として扱い、移動前に導線を確認すること。
 - **生活のルール（AI用更新ガイドライン）**: 実運用 base directory の `plan.tsv` を更新する際は、年金が「偶数月の隔月支給」であること、および家賃・光熱費等の固定費が「年金支給日に連動する（`anchor=income:年金`）」ことを必ず考慮し、奇数月への誤ったロールオーバーを防ぐこと。詳細は `GEMINI.md` を参照。
 - 仕様変更時は docs も更新する。
+- `TODO.md` の current Active work finite slice を終える変更では、同じ PR で TODO の routing も更新する。難しい場合は completed work を Active のまま残さず、明示的な routing follow-up を置く。
 - 変更後は可能なら `./tools/check.sh` を実行する。pit環境では通常 `rtk bash ./tools/check.sh` を使う。**新しい BQN モジュールや check スクリプトを追加した場合は、`check.sh` に含まれる `devtools-check.sh` が repo-index の未索引を検出するので、`./tools/repo-index --baseline` で更新すること。**
 - mokoが他AI（DeepSeek, Gemini, Codex, pi agent 等）へ渡す作業指示書を作る場合は、明示的に local-only / no-push と指定されない限り、作業範囲に `git status`、必要なチェック、`git add`、`git commit`、`git push` までを含める。push後は commit hash と実行したチェック結果を報告させる。
 - `pi agent` や `gemini` CLI などのAI（pit）環境では、出力が長くなりそうなコマンド（git/npm/test等）はトークン節約のため `rtk` または `sqz` を使うこと。任意コマンドの前置きには原則 `rtk` を使う（例: `rtk git diff`, `rtk bash ./tools/check.sh`）。この環境の `sqz` は stdin 圧縮型なので、使う場合は `some-command 2>&1 | sqz compress --cmd <name>` の形にする。

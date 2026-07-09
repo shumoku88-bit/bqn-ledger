@@ -9,33 +9,27 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-09 — Currency Awareness Stage 2 minimal domain-proof implementation plan を受け、次の active work を narrow runtime implementation に更新。
+Last hygiene pass: 2026-07-09 — PR #132 merged; TODO routing updated from the completed runtime slice to post-implementation contract verification / routing review.
 
 ---
 
 ## Active work
 
-### Currency Awareness Stage 2 minimal domain-proof runtime implementation
+### Currency Awareness Stage 2 post-implementation contract verification / routing review
 
 Current baseline:
-- PR #123 で `docs/CURRENCY_AWARENESS_CAMPAIGN_MAP.md` を main に受理済み
-- Stage 0 current-assumption map は `docs/CURRENT_CURRENCY_ASSUMPTION_MAP.md`
-- Stage 1 amount/currency semantics decision は `docs/CURRENCY_STAGE1_AMOUNT_SEMANTICS_DECISION.md`
-- Stage 2 single-currency domain decision は `docs/CURRENCY_STAGE2_SINGLE_CURRENCY_DOMAIN_DECISION.md`
-- Stage 2 minimal runtime implementation plan は `docs/CURRENCY_STAGE2_MINIMAL_DOMAIN_PROOF_IMPLEMENTATION_PLAN.md`
-- broad FX implementation へ直行しない
+- PR #132 `feat: implement Stage 2 minimal domain proof runtime` has been merged into `main`
+- merged runtime / tests / check wiring live in `src_next/context.bqn`, `src_next/projection.bqn`, `src_next/ytd_summary.bqn`, `tests/test_src_next_currency_domain_proof.bqn`, `checks/check-src-next-currency-domain-proof.sh`, and `tools/check.sh`
+- Stage 0 current-assumption map is `docs/CURRENT_CURRENCY_ASSUMPTION_MAP.md`
+- Stage 1 amount/currency semantics decision is `docs/CURRENCY_STAGE1_AMOUNT_SEMANTICS_DECISION.md`
+- Stage 2 single-currency domain decision is `docs/CURRENCY_STAGE2_SINGLE_CURRENCY_DOMAIN_DECISION.md`
+- Stage 2 minimal runtime implementation plan is `docs/CURRENCY_STAGE2_MINIMAL_DOMAIN_PROOF_IMPLEMENTATION_PLAN.md`
+- broad FX implementation remains out of scope
 
-Current selected minimal runtime slice:
-- posting-source snapshot (`journal.tsv` / `plan.tsv` / `budget_alloc.tsv`) を一度だけ読み、proof input snapshot = projection input snapshot を守る
-- no explicit source-row currency metadata -> legacy compatibility JPY proof
-- no monetary source rows -> empty-source compatibility JPY proof
-- any explicit source-row `currency=` marker, including `currency=JPY`, is unsupported in this minimal runtime slice and must fail closed before naked delta creation
-- context carries `arithmetic_currency_proof` as proof result, not invented domain
-- projection-owned authorization gate must run before any naked Posting IR deltas are created
-
-Smallest justified next finite slice:
-- selected plan の narrow runtime implementation
-- source snapshot loader / compatibility proof resolver / context proof carrier / projection authorization gate / same-snapshot tests を最小単位で実装する
+Current selected smallest next finite slice:
+- verify the merged Stage 2 runtime still matches the selected Stage 2 decision and implementation plan before broader per-row currency work begins
+- refresh L1 routing so `TODO.md` no longer points new agents at completed runtime implementation work
+- keep Stage 3 / explicit row `currency=` / FX out of scope
 
 導線:
 - `docs/CURRENCY_AWARENESS_CAMPAIGN_MAP.md`
@@ -48,10 +42,11 @@ Smallest justified next finite slice:
 - `docs/POSTING_IR_CONTRACT.md`
 
 Boundary:
-- selected minimal plan の範囲を超えて runtime / tests / fixtures / source TSV を変更しない
-- explicit `currency=` admitted-row support / per-row multi-currency support を実装しない
-- `base_amount=` / `BASE_CURRENCY` / TBDS axis を自動実装しない
-- live FX API / automatic conversion / valuation semantics を始めない
+- no runtime / tests / fixture / source TSV changes in this slice
+- no Stage 3 authorization
+- no explicit `currency=` admitted-row support / per-row multi-currency support
+- no `base_amount=` / `BASE_CURRENCY` / TBDS axis auto-implementation
+- no live FX API / automatic conversion / valuation semantics
 
 Daily Trend temporal semantics の major campaign は closure review により終了しました。
 
