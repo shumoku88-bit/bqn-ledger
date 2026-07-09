@@ -142,9 +142,58 @@ PostingId ← {𝕊 srcFile‿rowIdx‿side:
   srcFile ∾ ":" ∾ (•Fmt rowIdx) ∾ ":" ∾ side
 }
 
+# ── Arithmetic currency proof authorization ─────────────────
+
+allowed_proof_basis ← ⟨"legacy_compatibility", "empty_source_compatibility"⟩
+IsAllowedProofBasis ← {𝕊 basis: ∨´ 0 ∾ (basis⊸≡¨ allowed_proof_basis) }
+HasSubstring ← {𝕊 pat‿s:
+  n ← ≠ pat
+  (n ≤ ≠ s) ∧ ∨´ 0 ∾ ({𝕊 i: pat ≡ n ↑ i ↓ s} ¨ ↕ 1 + (≠ s) - n)
+}
+ProofHasField ← {𝕊 proof‿field:
+  isNs ← 6 = •Type proof
+  ok ← 0
+  {𝕊: ok ↩ HasSubstring ⟨field, •Fmt 1 ⊑ •Decompose proof⟩}⍟isNs @
+  ok
+}
+ProofHasRequiredFields ← {𝕊 proof:
+  ∧´ ({𝕊 field: ProofHasField ⟨proof, field⟩} ¨ ⟨"state", "domain", "basis", "message"⟩)
+}
+
+AuthorizeArithmeticCurrencyProof ← {𝕊 proof:
+  ok ← 0
+  hasShape ← ProofHasRequiredFields proof
+  {𝕊:
+    ok ↩ (proof.state ≡ "proven") ∧ (proof.domain ≡ "JPY") ∧ IsAllowedProofBasis proof.basis
+  }⍟hasShape @
+  ok
+}
+
+ArithmeticCurrencyAuthorizationMessage ← {𝕊 proof:
+  msg ← "missing or invalid arithmetic currency proof"
+  hasShape ← ProofHasRequiredFields proof
+  {𝕊:
+    msg ↩ ""
+    msg ↩ (proof.state ≢ "proven") ⊑ msg‿("arithmetic currency proof is not proven: " ∾ proof.state)
+    msg ↩ ((proof.state ≢ "proven") ∧ (0 < ≠ proof.message)) ⊑ msg‿proof.message
+    msg ↩ ((proof.state ≡ "proven") ∧ (proof.domain ≢ "JPY")) ⊑ msg‿("unsupported arithmetic currency domain: " ∾ proof.domain)
+    msg ↩ ((proof.state ≡ "proven") ∧ (proof.domain ≡ "JPY") ∧ (¬ IsAllowedProofBasis proof.basis)) ⊑ msg‿("unsupported arithmetic currency proof basis: " ∾ proof.basis)
+  }⍟hasShape @
+  msg
+}
+
+RequireArithmeticCurrencyProof ← {𝕊 proof:
+  ok ← AuthorizeArithmeticCurrencyProof proof
+  {𝕊:
+    •Out "ERROR: " ∾ ArithmeticCurrencyAuthorizationMessage proof
+    •Exit 1
+  }⍟(¬ok) @
+  ok
+}
+
 # ── Row builder ──────────────────────────────────────────────
 # Builds ledger-like projection rows from a parsed source record.
-# Args: ⟨srcFile, rowIdx, flds, accounts, accountKeys, cycleStart⟩
+# Args: ⟨proof, srcFile, rowIdx, flds, accounts, accountKeys, cycleStart⟩
 #   srcFile     - source TSV file name
 #   rowIdx      - zero-based line number in source file
 #   flds        - parsed TSV fields (1D array)
@@ -165,7 +214,7 @@ PostingId ← {𝕊 srcFile‿rowIdx‿side:
 # This sentinel must NOT be used as a cube index later —
 # cube materialize should filter or reject invalid rows before indexing.
 
-MakeRow ← {𝕊 ⟨srcFile, rowIdx, flds, accounts, accountRoles, accountKeys, cycleStart⟩:
+MakeRowRaw ← {𝕊 ⟨srcFile, rowIdx, flds, accounts, accountRoles, accountKeys, cycleStart⟩:
   date   ← FieldOrEmpty ⟨flds, 0⟩
   srcId  ← FieldOrEmpty ⟨flds, 1⟩
   txId   ← TxIdFromMeta ⟨srcId, flds⟩
@@ -248,6 +297,16 @@ MakeRow ← {𝕊 ⟨srcFile, rowIdx, flds, accounts, accountRoles, accountKeys,
     MakeSideRow ⟨"credit", fromAkOut, - amount⟩ ⟩
 }
 
+MakeRow ← {𝕊 ⟨proof, srcFile, rowIdx, flds, accounts, accountRoles, accountKeys, cycleStart⟩:
+  RequireArithmeticCurrencyProof proof
+  MakeRowRaw ⟨srcFile, rowIdx, flds, accounts, accountRoles, accountKeys, cycleStart⟩
+}
+
+MakeRowsAuthorized ← {𝕊 proof‿args:
+  RequireArithmeticCurrencyProof proof
+  ∾ (MakeRowRaw ¨ args)
+}
+
 # ── Balance validation by source_id ──────────────────────────
 
 Sum0 ← { 0 < ≠𝕩 ? +´𝕩 ; 0 }
@@ -305,7 +364,11 @@ FormatProjTable ← {𝕊 rows:
   DaysFromEpoch         ⇐ DaysFromEpoch,
   ResolveDay            ⇐ ResolveDay,
   ResolveDayFromCycle   ⇐ ResolveDayFromCycle,
+  AuthorizeArithmeticCurrencyProof ⇐ AuthorizeArithmeticCurrencyProof,
+  ArithmeticCurrencyAuthorizationMessage ⇐ ArithmeticCurrencyAuthorizationMessage,
+  RequireArithmeticCurrencyProof ⇐ RequireArithmeticCurrencyProof,
   MakeRow               ⇐ MakeRow,
+  MakeRowsAuthorized    ⇐ MakeRowsAuthorized,
   BalanceBySourceOk     ⇐ BalanceBySourceOk,
   FormatBalanceCheck    ⇐ FormatBalanceCheck,
   FormatProjTable       ⇐ FormatProjTable

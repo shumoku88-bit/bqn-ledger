@@ -9,13 +9,15 @@ cube ← •Import "../src_next/cube.bqn"
 tbds ← •Import "../src_next/tbds.bqn"
 hh ← •Import "../src_next/household_policy.bqn"
 
+proof ← {state⇐"proven", domain⇐"JPY", basis⇐"legacy_compatibility", message⇐""}
+
 BuildRowsForFile ← {𝕊 base‿srcFile‿resolved‿cycleStart:
   lines ← loader.ReadLines (base ∾ "/" ∾ srcFile)
   args ← {𝕊 i:
     flds ← loader.SplitTsv (i ⊑ lines)
     ⟨srcFile, i, flds, resolved.accounts, resolved.roles, resolved.account_keys, cycleStart⟩
   } ¨ ↕ ≠ lines
-  ∾ (proj.MakeRow ¨ args)
+  proj.MakeRowsAuthorized ⟨proof, args⟩
 }
 
 # ── 1. moko-style test (POLICY_BUDGET_STYLE=envelope) ──

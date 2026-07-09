@@ -14,12 +14,13 @@ BuildRowsForFile ← {𝕊 base‿resolved‿cycleStart‿srcFile:
     flds ← loader.SplitTsvKeepEmpty (i ⊑ lines)
     ⟨srcFile, i, flds, resolved.accounts, resolved.roles, resolved.account_keys, cycleStart⟩
   } ¨ ↕ (≠ lines)
-  ∾ (proj.MakeRow ¨ args)
+  proj.MakeRowsAuthorized ⟨proof, args⟩
 }
 
 base ← "fixtures/src-next-golden"
 cy ← cycle.ReadCycle base
 resolved ← ak.Resolve (loader.ReadLines (base ∾ "/accounts.tsv"))
+proof ← {state⇐"proven", domain⇐"JPY", basis⇐"legacy_compatibility", message⇐""}
 rows ← (BuildRowsForFile ⟨base, resolved, cy.start, "journal.tsv"⟩) ∾ (BuildRowsForFile ⟨base, resolved, cy.start, "plan.tsv"⟩) ∾ (BuildRowsForFile ⟨base, resolved, cy.start, "budget_alloc.tsv"⟩)
 result ← cube.Materialize ⟨rows, cy.day_count, resolved.count⟩
 tbdsRows ← tbds.Build ⟨rows, result, resolved, cy⟩

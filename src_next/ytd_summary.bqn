@@ -5,7 +5,6 @@
 # journal rows in the calendar year containing the loaded cycle end and before
 # cycle.end_exclusive. The rendered range makes that observation boundary explicit.
 
-loader ← •Import "loader.bqn"
 proj ← •Import "projection.bqn"
 cube ← •Import "cube.bqn"
 fmt ← •Import "format.bqn"
@@ -26,27 +25,41 @@ GetRole ← {
   "unknown"
 }
 
-BuildRows ← {𝕊 base‿resolved‿rangeStart:
-  lines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
-  names  ← resolved.accounts
-  roles  ← resolved.roles
-  keys   ← resolved.account_keys
-  args ← {𝕊 i:
-    flds ← loader.SplitTsvKeepEmpty (i ⊑ lines)
-    ⟨"journal.tsv", i, flds, names, roles, keys, rangeStart⟩
-  } ¨ ↕ (≠ lines)
-  ∾ (proj.MakeRow ¨ args)
+BuildRows ← {𝕊 ctx‿rangeStart:
+  rows0 ← (({𝕩.source_file}¨ ctx.posting_rows) ≡¨ <"journal.tsv") / ctx.posting_rows
+  {𝕊 r:
+    day ← 0
+    dateOk ← proj.IsValidDateText r.date
+    {𝕊: day ↩ (proj.DaysFromEpoch r.date) - proj.DaysFromEpoch rangeStart}⍟dateOk @
+    {
+      source_file       ⇐ r.source_file,
+      source_row        ⇐ r.source_row,
+      source_id         ⇐ r.source_id,
+      tx_id             ⇐ r.tx_id,
+      posting_id        ⇐ r.posting_id,
+      date              ⇐ r.date,
+      side              ⇐ r.side,
+      day_index         ⇐ day,
+      account_key       ⇐ r.account_key,
+      account_key_index ⇐ r.account_key_index,
+      layer_name        ⇐ r.layer_name,
+      layer_index       ⇐ r.layer_index,
+      delta             ⇐ r.delta,
+      kind              ⇐ r.kind,
+      status            ⇐ r.status,
+      message           ⇐ r.message
+    }
+  }¨ rows0
 }
 
 # Build: build YTD summary from context.
 # Args: ctx (context namespace)
 Build ← {𝕊 ctx:
-  base ← ctx.base
   resolved ← ctx.resolved
   cy ← ctx.cy
   rangeStart ← YearStartForEnd cy.end_exclusive
   dayCount ← (proj.DaysFromEpoch cy.end_exclusive) - proj.DaysFromEpoch rangeStart
-  rows ← BuildRows ⟨base, resolved, rangeStart⟩
+  rows ← BuildRows ⟨ctx, rangeStart⟩
   result ← cube.Materialize ⟨rows, dayCount, resolved.count⟩
 
   valid ← result.valid_rows

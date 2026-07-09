@@ -14,6 +14,7 @@ lines ← ⟨
 ⟩
 
 resolved ← ak.Resolve lines
+proof ← {state⇐"proven", domain⇐"JPY", basis⇐"legacy_compatibility", message⇐""}
 ⟨"asset", "expense", "expense", "", "expense"⟩ lib.AssertEq resolved.roles
 ⟨"JPY", "JPY", "JPY", "USD", "USD"⟩ lib.AssertEq resolved.currencies
 ⟨"", "医療", "", "", "食費"⟩ lib.AssertEq resolved.budgets
@@ -49,7 +50,7 @@ resolved ← ak.Resolve lines
 0 lib.AssertEq proj.IsValidDateText "2026-02-31"
 0 lib.AssertEq proj.IsValidDateText "20260601"
 
-rows ← proj.MakeRow ⟨"journal.tsv", 3, ⟨"2026-06-01", "memo", "assets:bank", "医療費", "1200", "txn_id=T-001"⟩, resolved.accounts, resolved.roles, resolved.account_keys, "2026-06-01"⟩
+rows ← proj.MakeRow ⟨proof, "journal.tsv", 3, ⟨"2026-06-01", "memo", "assets:bank", "医療費", "1200", "txn_id=T-001"⟩, resolved.accounts, resolved.roles, resolved.account_keys, "2026-06-01"⟩
 debit ← ⊑ rows
 "T-001" lib.AssertEq debit.tx_id
 "journal.tsv:3:debit" lib.AssertEq debit.posting_id
@@ -57,19 +58,19 @@ debit ← ⊑ rows
 "医療費/JPY" lib.AssertEq debit.account_key
 "actual" lib.AssertEq debit.layer_name
 
-badAmountRows ← proj.MakeRow ⟨"journal.tsv", 4, ⟨"2026-06-01", "bad amount", "assets:bank", "医療費", "12x"⟩, resolved.accounts, resolved.roles, resolved.account_keys, "2026-06-01"⟩
+badAmountRows ← proj.MakeRow ⟨proof, "journal.tsv", 4, ⟨"2026-06-01", "bad amount", "assets:bank", "医療費", "12x"⟩, resolved.accounts, resolved.roles, resolved.account_keys, "2026-06-01"⟩
 badAmountDebit ← ⊑ badAmountRows
 "invalid_amount" lib.AssertEq badAmountDebit.status
 "invalid amount: 12x" lib.AssertEq badAmountDebit.message
 0 lib.AssertEq badAmountDebit.delta
 
-badDateRows ← proj.MakeRow ⟨"journal.tsv", 5, ⟨"2026-02-31", "bad date", "assets:bank", "医療費", "1200"⟩, resolved.accounts, resolved.roles, resolved.account_keys, "2026-06-01"⟩
+badDateRows ← proj.MakeRow ⟨proof, "journal.tsv", 5, ⟨"2026-02-31", "bad date", "assets:bank", "医療費", "1200"⟩, resolved.accounts, resolved.roles, resolved.account_keys, "2026-06-01"⟩
 badDateDebit ← ⊑ badDateRows
 "invalid_date" lib.AssertEq badDateDebit.status
 "invalid date: 2026-02-31" lib.AssertEq badDateDebit.message
 0 lib.AssertEq badDateDebit.day_index
 
-missingAmountRows ← proj.MakeRow ⟨"journal.tsv", 6, ⟨"2026-06-01", "missing amount", "assets:bank", "医療費"⟩, resolved.accounts, resolved.roles, resolved.account_keys, "2026-06-01"⟩
+missingAmountRows ← proj.MakeRow ⟨proof, "journal.tsv", 6, ⟨"2026-06-01", "missing amount", "assets:bank", "医療費"⟩, resolved.accounts, resolved.roles, resolved.account_keys, "2026-06-01"⟩
 "invalid_amount" lib.AssertEq (⊑ missingAmountRows).status
 
 •Out "test_src_next_account_key.bqn: OK"

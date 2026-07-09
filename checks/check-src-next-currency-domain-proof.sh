@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT_DIR"
+
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+
+make_fixture() {
+  local dir="$1" journal_line="$2" plan_line="${3:-}" budget_line="${4:-}"
+  mkdir -p "$dir"
+  printf 'assets:bank\trole=asset\nexpenses:food\trole=expense\nbudget:food\trole=budget\n' > "$dir/accounts.tsv"
+  printf 'mode\tfixed\nstart\t2026-06-15\nend_exclusive\t2026-06-22\n' > "$dir/cycle.tsv"
+  printf '%s\n' "$journal_line" > "$dir/journal.tsv"
+  [ -z "$plan_line" ] || printf '%s\n' "$plan_line" > "$dir/plan.tsv"
+  [ -z "$budget_line" ] || printf '%s\n' "$budget_line" > "$dir/budget_alloc.tsv"
+}
+
+expect_fail_context() {
+  local dir="$1" label="$2" out status
+  set +e
+  out="$(bqn -e 'ctx←•Import "src_next/context.bqn" ⋄ ctx.BuildContext "'"$dir"'" ⋄ •Out "unexpected-ok"' 2>&1)"
+  status=$?
+  set -e
+  if [ "$status" -eq 0 ]; then
+    echo "FAIL: explicit currency fixture unexpectedly succeeded: $label" >&2
+    echo "$out" >&2
+    exit 1
+  fi
+  case "$out" in
+    *"explicit source currency unsupported"*) ;;
+    *) echo "FAIL: missing explicit currency diagnostic for $label" >&2; echo "$out" >&2; exit 1 ;;
+  esac
+}
+
+clean='2026-06-15	memo	assets:bank	expenses:food	100'
+make_fixture "$tmp/journal-currency" "2026-06-15	memo	assets:bank	expenses:food	100	currency=JPY"
+make_fixture "$tmp/plan-currency" "$clean" "2026-06-16	plan	assets:bank	expenses:food	20	currency=USD"
+make_fixture "$tmp/budget-currency" "$clean" "" "2026-06-16	budget	assets:bank	budget:food	20	currency="
+expect_fail_context "$tmp/journal-currency" journal
+expect_fail_context "$tmp/plan-currency" plan
+expect_fail_context "$tmp/budget-currency" budget_alloc
+
+same_dir="$tmp/same-snapshot"
+make_fixture "$same_dir" "$clean"
+cat > "$tmp/same_snapshot.bqn" <<BQN
+ctx ← •Import "$ROOT_DIR/src_next/context.bqn"
+ak ← •Import "$ROOT_DIR/src_next/account_key.bqn"
+loader ← •Import "$ROOT_DIR/src_next/loader.bqn"
+base ← 0⊑•args
+snapshot ← ctx.LoadPostingSourceSnapshot base
+proof ← ctx.ResolveArithmeticCurrencyProof snapshot
+(base∾"/journal.tsv") •file.Chars "2026-06-15\tmutated\tassets:bank\texpenses:food\t999\n"
+resolved ← ak.Resolve loader.ReadLines (base∾"/accounts.tsv")
+rows ← ctx.BuildAllRowsFromSnapshot ⟨snapshot, resolved, "2026-06-15", proof⟩
+debits ← (({𝕩.side}¨ rows) ≡¨ <"debit") / rows
+amount ← (⊑ debits).delta
+{𝕊: •Out "FAIL: same snapshot amount was "∾•Fmt amount ⋄ •Exit 1}⍟(amount≠100) @
+•Out "same-snapshot-ok"
+BQN
+set +e
+same_out="$(bqn "$tmp/same_snapshot.bqn" "$same_dir" 2>&1)"
+same_status=$?
+set -e
+if [ "$same_status" -ne 0 ]; then
+  echo "FAIL: same snapshot check failed" >&2
+  echo "$same_out" >&2
+  exit 1
+fi
+case "$same_out" in
+  *"same-snapshot-ok"*) ;;
+  *) echo "FAIL: same snapshot check failed" >&2; echo "$same_out" >&2; exit 1 ;;
+esac
+
+set +e
+forged_out="$(bqn -e 'proj←•Import "src_next/projection.bqn" ⋄ proof←{state⇐"proven",domain⇐"USD",basis⇐"legacy_compatibility",message⇐""} ⋄ proj.MakeRowsAuthorized ⟨proof,⟨⟩⟩ ⋄ •Out "unexpected-ok"' 2>&1)"
+forged_status=$?
+set -e
+if [ "$forged_status" -eq 0 ]; then
+  echo "FAIL: forged proof unexpectedly authorized projection" >&2
+  echo "$forged_out" >&2
+  exit 1
+fi
+
+if rg 'proj\.MakeRow|MakeRow ¨ args' src_next/main.bqn src_next/ytd_summary.bqn >/tmp/stage2-domain-proof-rg.txt; then
+  echo "FAIL: hidden direct projection MakeRow bypass remains" >&2
+  cat /tmp/stage2-domain-proof-rg.txt >&2
+  exit 1
+fi
+
+printf 'OK: src_next currency domain proof runtime checks passed\n'

@@ -10,6 +10,7 @@ hh ← •Import "../src_next/household_policy.bqn"
 
 base ← "fixtures/src-next-household-mapping-policy"
 resolved ← ak.Resolve loader.ReadLines (base ∾ "/accounts.tsv")
+proof ← {state⇐"proven", domain⇐"JPY", basis⇐"legacy_compatibility", message⇐""}
 cy ← cycle.ReadCycle base
 
 BuildRowsForFile ← {𝕊 srcFile:
@@ -18,7 +19,7 @@ BuildRowsForFile ← {𝕊 srcFile:
     flds ← loader.SplitTsv (i ⊑ lines)
     ⟨srcFile, i, flds, resolved.accounts, resolved.roles, resolved.account_keys, cy.start⟩
   } ¨ ↕ ≠ lines
-  ∾ (proj.MakeRow ¨ args)
+  proj.MakeRowsAuthorized ⟨proof, args⟩
 }
 
 rows ← (BuildRowsForFile "journal.tsv") ∾ BuildRowsForFile "plan.tsv"

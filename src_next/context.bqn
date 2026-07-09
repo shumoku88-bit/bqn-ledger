@@ -21,43 +21,103 @@ cycle ← •Import "cycle.bqn"
 cube ← •Import "cube.bqn"
 tbds ← •Import "tbds.bqn"
 
-# BuildRowsForFile: build projection rows for a single source file.
+MakePostingSource ← {𝕊 srcFile‿required‿lines:
+  { source_file ⇐ srcFile, required ⇐ required, lines ⇐ lines }
+}
+
+# LoadPostingSourceSnapshot: load all posting source lines once.
+# journal.tsv remains required; plan.tsv and budget_alloc.tsv remain optional.
+LoadPostingSourceSnapshot ← {𝕊 base:
+  journalLines ← loader.ReadLines (base ∾ "/journal.tsv")
+  planLines ← loader.ReadLinesOptional (base ∾ "/plan.tsv")
+  budgetLines ← loader.ReadLinesOptional (base ∾ "/budget_alloc.tsv")
+  {
+    journal ⇐ MakePostingSource ⟨"journal.tsv", 1, journalLines⟩,
+    plan ⇐ MakePostingSource ⟨"plan.tsv", 0, planLines⟩,
+    budget_alloc ⇐ MakePostingSource ⟨"budget_alloc.tsv", 0, budgetLines⟩,
+    sources ⇐ ⟨
+      MakePostingSource ⟨"journal.tsv", 1, journalLines⟩,
+      MakePostingSource ⟨"plan.tsv", 0, planLines⟩,
+      MakePostingSource ⟨"budget_alloc.tsv", 0, budgetLines⟩
+    ⟩
+  }
+}
+
+ProofProven ← {𝕊 basis: { state ⇐ "proven", domain ⇐ "JPY", basis ⇐ basis, message ⇐ "" } }
+ProofUnsupportedCurrency ← {𝕊 srcFile‿rowIdx:
+  { state ⇐ "unsupported", domain ⇐ "", basis ⇐ "explicit_source_currency", message ⇐ "explicit source currency unsupported in Stage 2 minimal runtime slice: " ∾ srcFile ∾ " row " ∾ (•Fmt rowIdx) }
+}
+
+HasCurrencyMeta ← {𝕊 flds:
+  metas ← 5 ↓ flds
+  pref ← "currency="
+  plen ← ≠ pref
+  ok_len ← { plen ≤ ≠ 𝕩 } ¨ metas
+  is_match ← ok_len × { pref ≡ plen ↑ 𝕩 } ¨ metas
+  ∨´ 0 ∾ is_match
+}
+
+ResolveArithmeticCurrencyProof ← {𝕊 snapshot:
+  proof ← ProofProven "legacy_compatibility"
+  rowCount ← 0
+  found ← 0
+  {𝕊 src:
+    rowCount ↩ rowCount + ≠ src.lines
+    {𝕊 i:
+      flds ← loader.SplitTsvKeepEmpty (i ⊑ src.lines)
+      {𝕊:
+        proof ↩ ProofUnsupportedCurrency ⟨src.source_file, i⟩
+        found ↩ 1
+      }⍟((¬found) ∧ HasCurrencyMeta flds) @
+    }¨ ↕ ≠ src.lines
+  }¨ snapshot.sources
+  {𝕊: proof ↩ ProofProven "empty_source_compatibility"}⍟((0=rowCount) ∧ (¬found)) @
+  proof
+}
+
+ArgsForSource ← {𝕊 src‿resolved‿cycleStart:
+  names  ← resolved.accounts
+  roles  ← resolved.roles
+  keys   ← resolved.account_keys
+  {𝕊 i:
+    flds ← loader.SplitTsvKeepEmpty (i ⊑ src.lines)
+    ⟨src.source_file, i, flds, names, roles, keys, cycleStart⟩
+  } ¨ ↕ ≠ src.lines
+}
+
+# BuildRowsForSource: projection-owned authorization gate before naked deltas.
+BuildRowsForSource ← {𝕊 source‿resolved‿cycleStart‿proof:
+  args ← ArgsForSource ⟨source, resolved, cycleStart⟩
+  proj.MakeRowsAuthorized ⟨proof, args⟩
+}
+
+# BuildRowsForFile: compatibility exported path; still loads one full posting-source
+# snapshot and projects from that same snapshot after proof authorization.
 BuildRowsForFile ← {𝕊 base‿resolved‿cycleStart‿srcFile:
-  lines ← loader.ReadLines (base ∾ "/" ∾ srcFile)
-  names  ← resolved.accounts
-  roles  ← resolved.roles
-  keys   ← resolved.account_keys
-  n      ← ≠ lines
-  args ← {𝕊 i:
-    flds ← loader.SplitTsvKeepEmpty (i ⊑ lines)
-    ⟨srcFile, i, flds, names, roles, keys, cycleStart⟩
-  } ¨ ↕ n
-  ∾ (proj.MakeRow ¨ args)
+  snapshot ← LoadPostingSourceSnapshot base
+  proof ← ResolveArithmeticCurrencyProof snapshot
+  idx ← (srcFile ≡ "plan.tsv") + 2 × (srcFile ≡ "budget_alloc.tsv")
+  source ← idx ⊑ ⟨snapshot.journal, snapshot.plan, snapshot.budget_alloc⟩
+  BuildRowsForSource ⟨source, resolved, cycleStart, proof⟩
 }
 
-# BuildRowsForFileOptional: like BuildRowsForFile but returns empty for missing/empty files.
-BuildRowsForFileOptional ← {𝕊 base‿resolved‿cycleStart‿srcFile:
-  lines ← loader.ReadLinesOptional (base ∾ "/" ∾ srcFile)
-  names  ← resolved.accounts
-  roles  ← resolved.roles
-  keys   ← resolved.account_keys
-  args ← {𝕊 i:
-    flds ← loader.SplitTsvKeepEmpty (i ⊑ lines)
-    ⟨srcFile, i, flds, names, roles, keys, cycleStart⟩
-  } ¨ ↕ (≠ lines)
-  ∾ (proj.MakeRow ¨ args)
-}
+# BuildRowsForFileOptional: compatibility wrapper; same authorization behavior as BuildRowsForFile.
+BuildRowsForFileOptional ← BuildRowsForFile
 
-# BuildAllRows: construct all posting rows from source TSV files.
-# Args: ⟨base, resolved, cycleStart⟩
-#   cycleStart is used for day_index computation, not for row filtering.
-#   All valid source dates produce posting rows regardless of cycle position.
-# Returns: 1D array of posting row namespaces.
-BuildAllRows ← {𝕊 base‿resolved‿cycleStart:
-  jrows ← BuildRowsForFile ⟨base, resolved, cycleStart, "journal.tsv"⟩
-  prows ← BuildRowsForFileOptional ⟨base, resolved, cycleStart, "plan.tsv"⟩
-  brows ← BuildRowsForFileOptional ⟨base, resolved, cycleStart, "budget_alloc.tsv"⟩
+# BuildAllRowsFromSnapshot: construct all posting rows from one already loaded snapshot.
+BuildAllRowsFromSnapshot ← {𝕊 snapshot‿resolved‿cycleStart‿proof:
+  proj.RequireArithmeticCurrencyProof proof
+  jrows ← BuildRowsForSource ⟨snapshot.journal, resolved, cycleStart, proof⟩
+  prows ← BuildRowsForSource ⟨snapshot.plan, resolved, cycleStart, proof⟩
+  brows ← BuildRowsForSource ⟨snapshot.budget_alloc, resolved, cycleStart, proof⟩
   jrows ∾ prows ∾ brows
+}
+
+# BuildAllRows: compatibility wrapper preserving one-snapshot proof/projection invariant.
+BuildAllRows ← {𝕊 base‿resolved‿cycleStart:
+  snapshot ← LoadPostingSourceSnapshot base
+  proof ← ResolveArithmeticCurrencyProof snapshot
+  BuildAllRowsFromSnapshot ⟨snapshot, resolved, cycleStart, proof⟩
 }
 
 # BuildPeriodView: materialize cycle-bounded cube and ledger-wide TBDS from posting rows.
@@ -89,7 +149,9 @@ BuildContext ← {𝕊 arg:
   cy           ← cycle.ReadCycle ⟨base2, as_of⟩
   accLines     ← loader.ReadLines (base2 ∾ "/accounts.tsv")
   resolved     ← ak.Resolve accLines
-  rows         ← BuildAllRows ⟨base2, resolved, cy.start⟩
+  posting_snapshot ← LoadPostingSourceSnapshot base2
+  arithmetic_currency_proof ← ResolveArithmeticCurrencyProof posting_snapshot
+  rows         ← BuildAllRowsFromSnapshot ⟨posting_snapshot, resolved, cy.start, arithmetic_currency_proof⟩
   view         ← BuildPeriodView ⟨rows, resolved, cy⟩
   
   # Load and parse issues.tsv
@@ -114,10 +176,11 @@ BuildContext ← {𝕊 arg:
     cy           ⇐ cy,
     resolved     ⇐ resolved,
     posting_rows ⇐ rows,
+    arithmetic_currency_proof ⇐ arithmetic_currency_proof,
     cube         ⇐ view.cube,
     tbds         ⇐ view.tbds,
     issues       ⇐ issues
   }
 }
 
-{ BuildContext ⇐ BuildContext, BuildAllRows ⇐ BuildAllRows, BuildPeriodView ⇐ BuildPeriodView, BuildRowsForFile ⇐ BuildRowsForFile, BuildRowsForFileOptional ⇐ BuildRowsForFileOptional }
+{ BuildContext ⇐ BuildContext, LoadPostingSourceSnapshot ⇐ LoadPostingSourceSnapshot, ResolveArithmeticCurrencyProof ⇐ ResolveArithmeticCurrencyProof, BuildAllRowsFromSnapshot ⇐ BuildAllRowsFromSnapshot, BuildAllRows ⇐ BuildAllRows, BuildPeriodView ⇐ BuildPeriodView, BuildRowsForFile ⇐ BuildRowsForFile, BuildRowsForFileOptional ⇐ BuildRowsForFileOptional }

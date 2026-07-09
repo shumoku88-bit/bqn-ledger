@@ -113,6 +113,7 @@ bash checks/check-src-next-outlook-observation-source.sh >/dev/null
 bash checks/check-json-clock-independence.sh >/dev/null
 bash checks/check-report-section-metadata.sh fixtures/src-next-golden >/dev/null
 bash checks/check-src-next-stage4-fields.sh fixtures/src-next-golden >/dev/null
+bash checks/check-src-next-currency-domain-proof.sh >/dev/null
 bash checks/check-src-next-compact-summary.sh fixtures/src-next-golden >/dev/null
 bash checks/check-src-next-compact-summary.sh fixtures/empty-fields >/dev/null
 bash checks/check-src-next-compact-summary.sh fixtures/src-next-envelope-computation >/dev/null
