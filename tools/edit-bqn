@@ -34,6 +34,8 @@ Usage:
   tools/edit-bqn [--base DIR] budget add  --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount INT [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] plan add --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount INT [--meta key=value ...] [--id plan-YYYY-MM-DD-series] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] issue add [--date YYYY-MM-DD] [--status open|resolved|dropped] --title TITLE [--amount INT] [--memo MEMO] [--dry-run] [--yes] [--post-check none|lint|full]
+  tools/edit-bqn [--base DIR] issue list [--format tsv|text]
+  tools/edit-bqn [--base DIR] issue close --index NUMBER [--status resolved|dropped] --decision MEMO [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] account list [--role ROLE]
   tools/edit-bqn [--base DIR] journal list [--format tsv|text]
   tools/edit-bqn [--base DIR] plan list [--all] [--format tsv|text]
@@ -42,7 +44,7 @@ Usage:
   tools/edit-bqn [--base DIR] plan edit [--index NUMBER] [--id PLAN_ID] [--date YYYY-MM-DD] [--amount INT] [--all] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] journal reverse [--index NUMBER] [--id TXN_ID] [--date YYYY-MM-DD] [--dry-run] [--yes] [--post-check none|lint|full]
 
-Current scope: BQN editor daily commands (journal/budget/plan/issue add, account list, journal list, journal reverse, plan list, plan related, plan finish, and plan edit).
+Current scope: BQN editor daily commands (journal/budget/plan/issue add, issue list/close, account list, journal list, journal reverse, plan list, plan related, plan finish, and plan edit).
 USAGE
 }
 
@@ -407,8 +409,22 @@ if [[ "$1" == "plan" && "$2" == "related" ]]; then
   exit $?
 fi
 
+if [[ "$1" == "issue" && "$2" == "list" ]]; then
+  shift 2
+  EXPECTED_TARGET_FILE="$ISSUES_FILE"
+  handle_edit_bqn_issue_list "$@"
+  exit $?
+fi
+
+if [[ "$1" == "issue" && "$2" == "close" ]]; then
+  shift 2
+  EXPECTED_TARGET_FILE="$ISSUES_FILE"
+  handle_edit_bqn_issue_close "$@"
+  exit $?
+fi
+
 if [[ "$2" != "add" ]]; then
-  echo "ERROR: tools/edit-bqn currently supports only: account list, journal add, journal list, journal reverse, budget add, plan add, issue add, plan list, plan related, plan finish, and plan edit" >&2
+  echo "ERROR: tools/edit-bqn currently supports only: account list, journal add, journal list, journal reverse, budget add, issue add/list/close, plan add, plan list, plan related, plan finish, and plan edit" >&2
   usage
   exit 2
 fi
@@ -435,7 +451,7 @@ case "$COMMAND" in
     ROW_TITLE="Issue row"
     ;;
   *)
-    echo "ERROR: tools/edit-bqn currently supports only: account list, journal add, journal list, journal reverse, budget add, plan add, issue add, plan list, plan related, plan finish, and plan edit" >&2
+    echo "ERROR: tools/edit-bqn currently supports only: account list, journal add, journal list, journal reverse, budget add, issue add/list/close, plan add, plan list, plan related, plan finish, and plan edit" >&2
     usage
     exit 2
     ;;

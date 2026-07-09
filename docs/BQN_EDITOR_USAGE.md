@@ -34,7 +34,7 @@ BQN Editor は会計エンジンとしての計算（残高や封筒の残金計
 6.  **`plan-edit` (予定の日付・金額修正)**: 未完了予定を選び、`date` / `amount` だけを差分プレビュー付きで修正。
 7.  **`plan-finish` (予定の実績化)**: `tools/plan-finish-replenish-ui.sh` に委譲し、`plan.tsv` で宣言された予定を完了させて実績化。`journal.tsv` に `plan_id` 付きで追記し、必要なら次回予定も追加。
 8.  **`reverse` (仕訳取消)**: 既存の `journal.tsv` 行を選び、from/to を入れ替えた反対仕訳を `journal.tsv` に安全追記。
-9.  **`issue` (懸案事項・意思決定の追加)**: 財務的な懸案事項や意思決定（例: サブスクリプションの見直し）を `issues.tsv` に安全追記。
+9.  **`issue` (Issues & Decisions の追加)**: 財務的な issue / decision（例: サブスクリプションの見直し）を `issues.tsv` に安全追記。
 
 ---
 
@@ -79,17 +79,26 @@ BQN Editor は会計エンジンとしての計算（残高や封筒の残金計
     *   `--dry-run`: 追記プレビューのみを行い、ファイルには書き込みません。
     *   `--yes`: 追記時の確認プロンプト（`y/N`）をスキップします。
 
-### 懸案事項・意思決定の安全追記 (`issue add`)
+### Issues & Decisions の安全追記 (`issue add`)
 ```bash
 ./tools/edit issue add --date 2026-06-28 --status open --title "Amazon Prime Review" --amount 5900 --memo "Keep annual subscription or cancel?"
 ```
 *   **オプション**:
     *   `--status`: 状態（`open` / `resolved` / `dropped`）を指定します（デフォルトは `open`）。
-    *   `--title`: 懸案事項の簡潔なタイトルを指定します（必須）。
+    *   `--title`: issue / decision の簡潔なタイトルを指定します（必須）。
     *   `--amount`: 関連する概算金額を指定します（任意、デフォルトは `0`）。
     *   `--memo`: 詳細なメモや文脈を指定します（任意）。
     *   `--dry-run`: 追記プレビューのみを行い、ファイルには書き込みません。
     *   `--yes`: 追記時の確認プロンプト（`y/N`）をスキップします。
+
+### Issues & Decisions を閉じる (`issue close`)
+```bash
+./tools/edit issue list --format tsv
+./tools/edit issue close --index 1 --status resolved --decision "2026-07-09 解約済み。固定支出/plan化しない。" --dry-run
+./tools/edit issue close --index 1 --status resolved --decision "2026-07-09 解約済み。固定支出/plan化しない。" --yes
+```
+
+`issue close` は open issue の title と元 memo を保持し、memo 末尾へ `Decision: ...` を追記したうえで `status` を `resolved` または `dropped` に変更します。直接 TSV を手編集する代わりに、preview / backup / stale check 付きの replace path を使います。Decision memo は必須で、`2026-07-09 ` のような日付だけの入力は拒否されます。
 
 ### 予定の追加 (`plan add`)
 ```bash

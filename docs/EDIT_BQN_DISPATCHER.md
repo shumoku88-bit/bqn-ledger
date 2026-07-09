@@ -17,7 +17,7 @@ validation and TSV row/edit rendering live in `src_edit/*.bqn`.
 | budget | `budget add` | `tools/edit-bqn` shared journal-like append path | `src_edit/journal_add_cmd.bqn` |
 | plan read | `plan list`, `plan related` | `tools/edit-bqn` read-only dispatch | `src_edit/plan_list_cmd.bqn`, `src_edit/plan_related_cmd.bqn` |
 | plan write | `plan add`, `plan finish`, `plan edit` | `tools/edit-bqn` | `src_edit/plan_add_cmd.bqn`, `src_edit/plan_finish_cmd.bqn`, `src_edit/plan_edit_cmd.bqn` |
-| issue | `issue add` | `tools/lib/edit-bqn-issue.sh` | `src_edit/issue_add_cmd.bqn` |
+| issue | `issue add`, `issue list`, `issue close` | `tools/lib/edit-bqn-issue.sh` | `src_edit/issue_add_cmd.bqn`, `src_edit/issue_list_cmd.bqn`, `src_edit/issue_close_cmd.bqn` |
 
 ## Shell helper boundary
 
@@ -42,16 +42,18 @@ at a time. The extracted module should expose one handler function and continue
 to use the same BQN protocol and `tools/lib/safe-write.sh` APIs. Do not create a
 second write path.
 
-Current reference extraction: `issue add` → `handle_edit_bqn_issue_add` in
+Current reference extraction: `issue add` / `issue list` / `issue close` →
 `tools/lib/edit-bqn-issue.sh`. Existing-file issue append uses the common
 `APPEND` helper; missing `issues.tsv` remains an explicit optional-file
-`safe_create_checked` exception.
+`safe_create_checked` exception. `issue close` uses the common `REPLACE` helper
+so open issues can be resolved/dropped without erasing the original title/memo.
 
 Current boundary-polishing references:
 
 - `tools/add-ui.sh` account candidates use `tools/edit account list [--role ROLE]` instead of reading `accounts.tsv` directly.
 - `tools/add-ui.sh` plan selection uses `tools/edit plan list --format tsv` instead of reading `plan.tsv` directly; see `docs/UNFINISHED_PLAN_ENTRIES_EXPORT_CONTRACT.md`.
 - `tools/add-ui.sh` reverse selection uses `tools/edit journal list --format tsv` instead of reading `journal.tsv` directly.
+- `tools/add-ui.sh` issue-close selection uses `tools/edit issue list --format tsv` instead of reading `issues.tsv` directly.
 - `journal reverse` uses the narrow `src_edit/journal_reverse_cmd.bqn`.
 - `plan edit` uses the narrow `src_edit/plan_edit_cmd.bqn`.
 - The former aggregate `src_edit/editor_cmd.bqn` dispatcher has been removed after its active paths were replaced by narrow commands.

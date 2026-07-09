@@ -41,7 +41,8 @@ tools/add-ui.sh --check
 | `plan-edit` | 予定の日付・金額修正 | `plan.tsv` | `tools/edit plan edit` |
 | `plan-finish` | 予定の実績化 | `journal.tsv` | `tools/edit plan finish --apply` |
 | `reverse` | 仕訳取消（反対仕訳追記） | `journal.tsv` | `tools/edit journal reverse` |
-| `issue` | 懸案事項・意思決定の追加 | `issues.tsv` | `tools/edit issue add` |
+| `issue` | Issues & Decisions の追加 | `issues.tsv` | `tools/edit issue add` |
+| `issue-close` | Issues & Decisions を閉じる | `issues.tsv` | `tools/edit issue close` |
 
 ## BQN editor + shell safe-write で行われること
 

@@ -46,7 +46,7 @@
    │    │    ├─ src_next/tbds.bqn (Trial Balance Data Set: opening/movement/closing)
    │    │    │
    │    │    └─ src_next/report.bqn (人間向けレポート)
-   │    │         ├─ src_next/issues.bqn (懸案事項・意思決定表示)
+   │    │         ├─ src_next/issues.bqn (Issues & Decisions 表示)
    │    │         └─ src_next/summary.bqn (機械向けコンパクト出力)
 ```
 
@@ -61,7 +61,7 @@
 - `<base>/plan.tsv` — 未来予定
 - `<base>/budget_alloc.tsv` — 封筒/予算の手動配賦
 - `<base>/cycle.tsv` — サイクル期間設定
-- `<base>/issues.tsv` — 懸案事項・意思決定ログ
+- `<base>/issues.tsv` — Issues & Decisions ログ
 
 ## コード地図
 
@@ -93,7 +93,7 @@
 - `plan_journal_overlap.bqn` — plan/journal 重複検出。
 - `format.bqn` — テキスト整形、ANSI color helper、semantic color/no-color制御。
 - `report_labels.bqn` — report presentation labels の正本ローダー (`config/report_labels.tsv`)。
-- `issues.bqn` — 懸案事項・意思決定ログの表示フォーマット。
+- `issues.bqn` — Issues & Decisions ログの表示フォーマット。
 - `util.bqn` — 基本ユーティリティ (Split, ToNum, LoadLines)。
 - `json.bqn` — 汎用 BQN JSON シリアライザ（数値、文字列、エスケープ、リスト、オブジェクトのネストに対応）。
 - `date.bqn` — 日付操作 (Today, Parts, Ordinal, DaysBetween)。
@@ -113,6 +113,8 @@
 - `src_edit/journal_list_cmd.bqn` — journal reverse UI向け read-only journal selection export。
 - `src_edit/journal_reverse_cmd.bqn` — journal reverse 用の検証および反対仕訳 APPEND protocol 生成。
 - `src_edit/issue_add_cmd.bqn` — issue add 用の検証および TSV 生成。
+- `src_edit/issue_list_cmd.bqn` — issue close UI向けの open issue 候補 export。
+- `src_edit/issue_close_cmd.bqn` — issue close 用の検証および safe replace TSV 生成。
 - `src_edit/plan_add_cmd.bqn` — plan add 用の検証および TSV 生成。
 - `src_edit/plan_list_cmd.bqn` — plan list 用の BQN 実装。`tools/edit plan list --format tsv` の unfinished plan candidate export 契約は `docs/UNFINISHED_PLAN_ENTRIES_EXPORT_CONTRACT.md`。
 - `src_edit/plan_related_cmd.bqn` — plan finish replenishment UI 用の read-only 関連予定抽出。`series=` → `plan_id` series → exact fallback の順序を所有する。
@@ -134,7 +136,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 ### `tools/edit-bqn`
 
 - 日常 write path の BQN+shell 実装。
-- `account list` / `journal add` / `journal list` / `budget add` / `issue add` / `plan add` / `plan list` / `plan related` / `plan finish` / `plan edit` / `journal reverse` を扱う。
+- `account list` / `journal add` / `journal list` / `budget add` / `issue add` / `issue list` / `issue close` / `plan add` / `plan list` / `plan related` / `plan finish` / `plan edit` / `journal reverse` を扱う。
 - `src_edit` の機械可読プロトコルを受け、`tools/lib/safe-write.sh` で安全に適用する。
 - Dispatcher boundary の現行メモは `docs/EDIT_BQN_DISPATCHER.md`。共通 shell helper は `tools/lib/edit-bqn-common.sh`、`issue add` handler は `tools/lib/edit-bqn-issue.sh`。
 - Go editor の記述や fallback 前提は現行導線では使わない。
@@ -151,6 +153,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 - `check-disabled-features.sh` — 無効化機能の隔離チェック。
 - `check-edit-bqn-account-list.sh` — BQN account list export チェック。
 - `check-edit-bqn-journal-add.sh` — BQN journal/budget/issue add parityチェック。
+- `check-edit-bqn-issue-close.sh` — BQN issue list/close の履歴保持・dry-run・fail-closed チェック。
 - `check-edit-bqn-journal-list.sh` — BQN journal list read-only selection exportチェック。
 - `check-edit-bqn-plan-list.sh` — BQN plan list parity / unfinished plan candidate export 契約チェック。
 - `check-edit-bqn-plan-add.sh` — BQN plan add parityチェック。

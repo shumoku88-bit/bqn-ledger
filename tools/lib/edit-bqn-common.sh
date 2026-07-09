@@ -186,7 +186,7 @@ edit_bqn_print_replace_preview() {
   printf '%s preview\n' "$title"
   printf 'Target: %s\n' "$target_path"
   printf 'Line: %s\n' "$line_num"
-  printf 'Plan ID: %s\n' "$edit_id"
+  printf 'Record ID: %s\n' "$edit_id"
   printf 'Mode: %s\n' "$mode"
   printf 'Post-check: %s\n' "$post_check"
   printf 'Diff:\n'

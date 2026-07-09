@@ -37,7 +37,8 @@ Modes:
   plan-edit     date/amount         (edits plan.tsv)
   plan-finish                       (plan -> journal, optional next plan)
   reverse       仕訳取消 (反対仕訳追記)
-  issue         懸案事項・意思決定の追加 (writes issues.tsv)
+  issue         Issues & Decisions の追加 (writes issues.tsv)
+  issue-close   Issues & Decisions を閉じる (edits issues.tsv)
 
 Append is delegated to tools/edit (BQN editor path).
 
@@ -101,7 +102,7 @@ ensure_ledger_report_base "$base_dir"
 mode=''
 if [[ -n "$mode_arg" ]]; then
   case "$mode_arg" in
-    expense|move|income|budget|plan-add|plan-edit|plan-finish|reverse|issue)
+    expense|move|income|budget|plan-add|plan-edit|plan-finish|reverse|issue|issue-close)
       mode="$mode_arg"
       ;;
     *)
@@ -186,6 +187,12 @@ run_preflight() {
     fi
   else
     warn_check "skipped plan list check because plan.tsv is missing"
+  fi
+
+  if "$ROOT_DIR/tools/edit" --base "$base_dir" issue list --format tsv >/dev/null; then
+    ok "tools/edit issue list --format tsv"
+  else
+    fail_check "tools/edit issue list --format tsv failed"
   fi
 
   if [[ "$failures" -eq 0 ]]; then
@@ -324,7 +331,15 @@ plan-add	予定の追加 assets -> expenses
 plan-edit	予定の日付・金額修正
 plan-finish	予定の実績化 + 次回予定補充
 reverse	仕訳取消 (反対仕訳追記)
-issue	懸案事項・意思決定の追加
+issue	Issues & Decisions の追加
+issue-close	Issues & Decisions を閉じる
+EOF
+}
+
+choose_issue_close_status() {
+  cat <<'EOF' | select_line 'close status'
+resolved	resolved: decision made / completed
+dropped	dropped: no action / no longer relevant
 EOF
 }
 
@@ -462,13 +477,41 @@ if [[ "$mode" == 'plan-finish' ]]; then
   exec "$ROOT_DIR/tools/plan-finish-replenish-ui.sh" --base "$base_dir"
 fi
 
-memo=''; from=''; to=''; amt=''; meta=''; plan_series=''
+memo=''; from=''; to=''; amt=''; meta=''; plan_series=''; issue_close_args=()
 
 case "$mode" in
   issue)
     capture_or_cancel title read_tty 'Title/Item' ''
     capture_or_cancel amt read_tty 'Amount (optional JST)' '0'
     capture_or_cancel memo read_tty 'Memo/Details' ''
+    ;;
+  issue-close)
+    issue_tsv_lines=()
+    while IFS= read -r _il; do issue_tsv_lines+=("$_il"); done < <("$ROOT_DIR/tools/edit" --base "$base_dir" issue list --format tsv)
+    if [[ ${#issue_tsv_lines[@]} -eq 0 ]]; then
+      shout "No open issues found."
+      exit 0
+    fi
+    display_lines=()
+    for line in "${issue_tsv_lines[@]}"; do
+      display_lines+=("$(printf '%s\n' "$line" | cut -f6)")
+    done
+    capture_or_cancel selected_display select_display_lines 'select issue to close'
+    if [[ -z "$selected_display" ]]; then cancel_ui; fi
+    selected_row=""
+    for line in "${issue_tsv_lines[@]}"; do
+      if [[ "$(printf '%s\n' "$line" | cut -f6)" == "$selected_display" ]]; then
+        selected_row="$line"; break
+      fi
+    done
+    if [[ -z "$selected_row" ]]; then
+      shout "Failed to match selected issue: $selected_display"; exit 1
+    fi
+    issue_number="$(printf '%s\n' "$selected_row" | cut -f1)"
+    capture_or_cancel close_status_line choose_issue_close_status
+    close_status="${close_status_line%%$'\t'*}"
+    capture_or_cancel decision_memo read_tty 'Decision memo (例: 2026-07-09 解約済み。固定支出/plan化しない。)' ''
+    issue_close_args=(--index "$issue_number" --status "$close_status" --decision "$decision_memo")
     ;;
   expense)
     capture_or_cancel memo read_tty 'Memo/Description' ''
@@ -587,9 +630,9 @@ case "$mode" in
     shout "Unknown mode: $mode"; exit 1 ;;
 esac
 
-# ── Date selection (skip for plan-edit/reverse) ──
+# ── Date selection (skip for edit/close/reverse modes) ──
 
-if [[ "$mode" != 'plan-edit' && "$mode" != 'reverse' ]]; then
+if [[ "$mode" != 'plan-edit' && "$mode" != 'reverse' && "$mode" != 'issue-close' ]]; then
   if [[ "$mode" == 'plan-add' ]]; then
     capture_or_cancel date_line choose_plan_date_key
   else
@@ -621,6 +664,8 @@ if [[ "$mode" == 'plan-edit' ]]; then
   cmd=("$ROOT_DIR/tools/edit" --base "$base_dir" plan edit "${plan_edit_args[@]}")
 elif [[ "$mode" == 'reverse' ]]; then
   cmd=("$ROOT_DIR/tools/edit" --base "$base_dir" journal reverse "${reverse_args[@]}")
+elif [[ "$mode" == 'issue-close' ]]; then
+  cmd=("$ROOT_DIR/tools/edit" --base "$base_dir" issue close "${issue_close_args[@]}")
 elif [[ "$mode" == 'issue' ]]; then
   cmd=(
     "$ROOT_DIR/tools/edit" --base "$base_dir" issue add
@@ -643,7 +688,7 @@ else
   )
 fi
 
-if [[ "$mode" != 'plan-edit' && "$mode" != 'reverse' && "$mode" != 'issue' && -n "$meta" ]]; then
+if [[ "$mode" != 'plan-edit' && "$mode" != 'reverse' && "$mode" != 'issue' && "$mode" != 'issue-close' && -n "$meta" ]]; then
   for token in $meta; do
     [[ -n "$token" ]] && cmd+=(--meta "$token")
   done

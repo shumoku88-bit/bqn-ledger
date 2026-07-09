@@ -183,7 +183,7 @@ Date: 2026-06-26
 ### やったこと
 
 *   **Phase 1: 閲覧・確認**: レポート選択、fzf / gum によるプレビュー（`tools/main-ui.sh` 連携）、および一時キャッシュによる preview 状態復元を実装。
-*   **Phase 2: アクション連携**: 仕訳追加・取消UI（`tools/add-ui.sh` 連携）や、新設された懸案事項 (`issues.tsv`) を対話的に安全追加する BQN editor 連携ルートの実装。
+*   **Phase 2: アクション連携**: 仕訳追加・取消UI（`tools/add-ui.sh` 連携）や、Issues & Decisions (`issues.tsv`) を対話的に安全追加する BQN editor 連携ルートの実装。
 *   **デザイン分離**: gum / fzf 等の装飾レイヤーとPlain出力テキストの完全な分離（BQNエンジンは色を持たず、UI層がANSI制御を担当する契約を厳守）。
 
 ---
