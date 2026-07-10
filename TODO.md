@@ -9,7 +9,7 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-10 — Slice B execution split decision completed; next currency work narrowed to runtime Slice B1 ingestion.
+Last hygiene pass: 2026-07-10 — merged Currency Stage 2 Slice B1 post-implementation verified; next finite currency route narrowed to Slice B2 arithmetic evidence.
 
 ---
 
@@ -24,22 +24,27 @@ Current state:
 - Do not add a per-PR form, tracker, telemetry, lint, parser, CI gate, or metrics service.
 - Do not turn the observation itself into repeated self-review work; after the window, record one Review / Learning assessment and retire the plan.
 
-### Currency Stage 2 Slice B1: Row Ingestion and Pre-Gate Row Evidence
+### Currency Stage 2 Slice B2: Snapshot Arithmetic Evidence
 
-Selected next finite slice (runtime implementation; not executed in this PR):
-- orchestrate and consume `exact_decimal.Parse` in `context.bqn` during row ingestion as a pre-gate row evidence stage (`BuildRowEvidenceFromSnapshot`), keeping exact decimal grammar and diagnostics owned by `src_next/exact_decimal.bqn`;
-- resolve row currency metadata (`currency=`) for all rows after the first five fields, rejecting duplicate tags, syntax errors, or unsupported values at the row level;
-- attach resolved currency and parsed `{coefficient, scale}` structure directly to row evidence records in the shared snapshot;
-- downstream `ResolveArithmeticCurrencyProof` consumes this pre-built row evidence list;
-- maintain existing JPY legacy behavior (amounts are parsed as scale 0 JPY);
-- do not yet implement domain aggregation, `amount_scale` selection, coefficient normalization, or proof carrier extension;
-- keep projection admission (BuildContext / projection) closed for: (a) explicit currency metadata (e.g. `currency=JPY` or `currency=ILS`), or (b) any participating row with canonical parsed amount scale > 0 (e.g. `12.34` without `currency=`); any snapshot containing explicit currency metadata or a row with canonical scale > 0 causes the proof gate to fail closed (as the proof resolver remains strictly JPY-legacy-only, accepting only `legacy_compatibility` or `empty_source_compatibility` bases, and does not reuse `legacy_compatibility` or introduce `resolved_single_currency` early; explicit JPY, explicit ILS, and implicit JPY decimal with canonical scale > 0 are resolved and parsed internally at the row evidence level, but their snapshots must fail the proof gate);
-- preserve the only admitted snapshot shape for full projection during B1: all participating rows must lack explicit currency metadata and have canonical parsed scale = 0; do not reject scale > 0 internal row evidence, and do not reuse `legacy_compatibility` as a bypass;
-- exit evidence: unit/check tests verify that invalid row metadata and syntax errors fail closed, and correct parsed row evidence is attached (with JPY/ILS/decimal rows resolved internally but snapshots containing them failing the proof gate).
+Next authorized finite slice; not implemented by the B1 verification PR:
+- aggregate the pre-built B1 row evidence;
+- require exactly one resolved currency domain;
+- select snapshot-wide `amount_scale`;
+- normalize coefficients exactly;
+- fail closed on normalized coefficient overflow;
+- return internal arithmetic evidence.
 
-Recently closed finite slice:
-- `docs/CURRENCY_STAGE2_SLICE_B_SPLIT_DECISION.md` splits remaining Slice B semantics into B1, B2, B3, and C slices with explicit boundaries and exit evidence;
-- `docs/archive/audits/CURRENCY_STAGE2_SLICE_A_EXACT_DECIMAL_VERIFICATION-2026-07-10.md` verifies Slice A exact-decimal kernel.
+Preserved B2 exclusions:
+- no proof carrier extension;
+- no projection row `delta` change;
+- no ILS projection admission;
+- full projection admission for scale > 0 rows remains closed.
+
+Recently completed and verified:
+- PR #146 merged Currency Stage 2 Slice B1 row ingestion and pre-gate evidence;
+- `docs/archive/audits/CURRENCY_STAGE2_SLICE_B1_POST_IMPLEMENTATION_VERIFICATION-2026-07-10.md` verifies the shared-snapshot flow, pre-built evidence ownership, exact-decimal ownership, provenance, fail-closed row errors, narrow admission, no unchecked projection bypass, and no B2/B3/C leakage;
+- implementation learning records the corrected untagged row-error proof hole and the removed temporary unchecked projection-helper export;
+- `docs/CURRENCY_STAGE2_SLICE_B_SPLIT_DECISION.md` remains the active staged boundary owner.
 
 Daily Trend temporal semantics の major campaign は closure review により終了しました。
 

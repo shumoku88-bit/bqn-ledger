@@ -96,6 +96,22 @@ Observe the first 3 comparable finite AI-authored slices after later Execution.
 
 Use descriptive notes only. Make no statistical claims. If 3 slices creates awkward lifecycle overhead, the later Review / Learning may close earlier with explicit rationale rather than adding infrastructure.
 
+## Observation notes
+
+### Comparable slice 1 of 3: Currency Stage 2 Slice B1 (PR #146)
+
+- Comparable finite AI-authored slice: yes.
+- PR creation: `2026-07-10T14:22:40Z`, after initial commit `f3207ed` and before correction commits `a4adf9c` and `e8287f0`.
+- Primary descriptive signal: post-first-push / post-PR scope/safety correction loops occurred.
+- Review finding 1: untagged invalid decimal/range row evidence could avoid the original proof disqualifiers; the final gate makes row error state independently disqualifying.
+- Review finding 2: the first correction temporarily exported `BuildProjectionRowsForEvidence` and used it from a test without proof authorization; the final correction removed the export and restored the checked path.
+- Green checks before the stronger review did not establish either stronger safety claim.
+- No contemporaneous evidence records a pre-first-push / pre-PR intercepted scope-leak incident; both final corrections postdate PR creation.
+- These are implementation/safety-boundary corrections, not unrelated changed-file incidents, so they are not classified as an `escaped unrelated-diff incident`.
+- Causation: not established. Record only that post-PR actual-diff review exposed claim/evidence gaps.
+- Window status: incomplete; do not perform final Review / Learning yet.
+- Point-in-time evidence: `docs/archive/audits/CURRENCY_STAGE2_SLICE_B1_POST_IMPLEMENTATION_VERIFICATION-2026-07-10.md`.
+
 ## Acceptance criteria
 
 Planning slice acceptance:
