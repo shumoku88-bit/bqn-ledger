@@ -9,7 +9,7 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-10 — exact-decimal + explicit single-domain runtime path planned; next currency work narrowed to Slice A pure exact-decimal kernel.
+Last hygiene pass: 2026-07-10 — Currency Stage 2 Slice A exact-decimal kernel implemented; next currency work narrowed to post-implementation claim-to-evidence verification. Slice B is not automatically authorized.
 
 ---
 
@@ -24,26 +24,25 @@ Current state:
 - Do not add a per-PR form, tracker, telemetry, lint, parser, CI gate, or metrics service.
 - Do not turn the observation itself into repeated self-review work; after the window, record one Review / Learning assessment and retire the plan.
 
-### Currency Stage 2 Slice A: exact-decimal kernel
+### Currency Stage 2 Slice A post-implementation verification
 
-Selected next finite slice (not executed in this PR):
-- use `docs/CURRENCY_STAGE2_EXPLICIT_SINGLE_CURRENCY_EXACT_DECIMAL_IMPLEMENTATION_PLAN.md` as the current implementation plan;
-- add a pure BQN exact-decimal text parser with canonical coefficient + scale output;
-- accept only the selected unsigned finite-decimal grammar;
-- do not parse decimal source text as a generic decimal Number;
-- reject invalid syntax visibly rather than producing zero;
-- fail closed if coefficient conversion or normalization cannot remain exact;
-- add focused unit tests for valid, invalid, canonicalization, and exact-range cases;
-- do not yet admit `currency=ILS` into projection;
-- do not change source TSV, metadata schema, editor, cube, TBDS, report, or JSON behavior.
+Selected next finite slice (docs-only; not executed in this PR):
+- verify the Slice A safety claims against the current runtime owner in `src_next/exact_decimal.bqn` and focused unit evidence;
+- confirm accepted grammar, canonical coefficient + scale, visible invalid syntax, and exact-range fail-closed behavior are executable rather than docs-only claims;
+- confirm failing states do not become coefficient zero;
+- confirm no `currency=ILS` projection admission, proof carrier extension, source TSV, metadata schema, editor, cube, TBDS, report, or JSON behavior changed;
+- record any plan/runtime mismatch precisely rather than silently widening the implementation;
+- decide the next routing explicitly after verification; do not automatically authorize Slice B.
 
 Recently closed finite slice:
-- `docs/CURRENCY_STAGE2_EXPLICIT_SINGLE_CURRENCY_EXACT_DECIMAL_IMPLEMENTATION_PLAN.md` selects source parse carrier = canonical coefficient + scale.
-- it selects snapshot arithmetic carrier = one `amount_scale` + normalized integer coefficients.
-- `amount_scale` is carried inside `arithmetic_currency_proof`; it is not currency identity, display precision, FX, or valuation policy.
-- legacy integer JPY must remain scale-0 behaviorally compatible.
-- future all-ILS exact-decimal operation remains staged; broad daily-use ILS support is not yet claimed.
-- no runtime / tests / fixtures / source TSV / schema / editor / report / JSON / Stage 3 / FX changes are authorized by that planning PR.
+- `src_next/exact_decimal.bqn` now owns the pure BQN exact-decimal kernel selected by `docs/CURRENCY_STAGE2_EXPLICIT_SINGLE_CURRENCY_EXACT_DECIMAL_IMPLEMENTATION_PLAN.md`;
+- accepted grammar remains only `digits+` or `digits+ "." digits+`;
+- source decimal text is not parsed directly as a generic decimal Number;
+- arithmetic canonicalization removes leading coefficient zeros and trailing fractional zeros, producing canonical coefficient + scale;
+- digit-only coefficient conversion is admitted only when the current runtime round-trips the identical canonical integer text;
+- invalid syntax and non-exact coefficient conversion remain visible failure states;
+- focused unit tests cover valid, invalid, canonicalization, and exact-range cases;
+- no `currency=ILS` projection admission or later Slice B/C runtime work is included.
 
 Daily Trend temporal semantics の major campaign は closure review により終了しました。
 
