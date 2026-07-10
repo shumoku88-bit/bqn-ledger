@@ -66,7 +66,6 @@ bash checks/check-src-next-golden.sh fixtures/src-next-golden >/dev/null
 bash checks/check-src-next-golden.sh fixtures/src-next-missing-plan >/dev/null
 bash checks/check-src-next-golden.sh fixtures/src-next-empty-projection >/dev/null
 bash checks/check-src-next-golden.sh fixtures/src-next-unknown-account >/dev/null
-bash checks/check-src-next-golden.sh fixtures/src-next-invalid-posting >/dev/null
 bash checks/check-src-next-golden.sh fixtures/src-next-out-of-cycle-journal >/dev/null
 bash checks/check-src-next-golden.sh fixtures/src-next-currency-accountkey >/dev/null
 bash checks/check-src-next-golden.sh fixtures/src-next-expense-role-metadata >/dev/null
@@ -83,7 +82,6 @@ echo "[3/4] src_next section checks" >&2
 bash checks/check-src-next-minimal-summary.sh fixtures/src-next-golden >/dev/null
 bash checks/check-src-next-minimal-summary.sh fixtures/src-next-empty-projection >/dev/null
 bash checks/check-src-next-minimal-summary.sh fixtures/src-next-unknown-account >/dev/null
-bash checks/check-src-next-minimal-summary.sh fixtures/src-next-invalid-posting >/dev/null
 bash checks/check-src-next-minimal-summary.sh fixtures/src-next-out-of-cycle-journal >/dev/null
 bash checks/check-src-next-minimal-summary.sh fixtures/src-next-currency-accountkey >/dev/null
 bash checks/check-src-next-minimal-summary.sh fixtures/src-next-missing-plan >/dev/null

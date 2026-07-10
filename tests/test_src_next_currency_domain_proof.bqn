@@ -17,6 +17,8 @@ ProofSnapshot ← {𝕊 jlines‿plines‿blines:
   }
 }
 
+ResolveProof ← { ctx.ResolveArithmeticCurrencyProof ctx.BuildRowEvidenceFromSnapshot 𝕩 }
+
 legacy ← ctx.BuildContext "fixtures/src-next-golden"
 "proven" lib.AssertEq legacy.arithmetic_currency_proof.state
 "JPY" lib.AssertEq legacy.arithmetic_currency_proof.domain
@@ -31,21 +33,21 @@ empty ← ctx.BuildContext "fixtures/src-next-empty-projection"
 1 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof empty.arithmetic_currency_proof
 0 lib.AssertEq ≠ empty.posting_rows
 
-explicitJournal ← ctx.ResolveArithmeticCurrencyProof ProofSnapshot ⟨⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "100", "currency=JPY"⟩⟩, ⟨⟩, ⟨⟩⟩
+explicitJournal ← ResolveProof ProofSnapshot ⟨⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "100", "currency=JPY"⟩⟩, ⟨⟩, ⟨⟩⟩
 "unsupported" lib.AssertEq explicitJournal.state
-"" lib.AssertEq explicitJournal.domain
 "explicit_source_currency" lib.AssertEq explicitJournal.basis
 0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof explicitJournal
 
-explicitPlan ← ctx.ResolveArithmeticCurrencyProof ProofSnapshot ⟨⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "100"⟩⟩, ⟨Line ⟨"2026-06-16", "plan", "assets:bank", "expenses:food", "20", "currency=USD"⟩⟩, ⟨⟩⟩
+explicitPlan ← ResolveProof ProofSnapshot ⟨⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "100"⟩⟩, ⟨Line ⟨"2026-06-16", "plan", "assets:bank", "expenses:food", "20", "currency=USD"⟩⟩, ⟨⟩⟩
 "unsupported" lib.AssertEq explicitPlan.state
 "explicit_source_currency" lib.AssertEq explicitPlan.basis
 
-explicitBudget ← ctx.ResolveArithmeticCurrencyProof ProofSnapshot ⟨⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "100"⟩⟩, ⟨⟩, ⟨Line ⟨"2026-06-16", "budget", "assets:bank", "budget:food", "20", "currency="⟩⟩⟩
+explicitBudget ← ResolveProof ProofSnapshot ⟨⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "100"⟩⟩, ⟨⟩, ⟨Line ⟨"2026-06-16", "budget", "assets:bank", "budget:food", "20", "currency="⟩⟩⟩
 "unsupported" lib.AssertEq explicitBudget.state
 "explicit_source_currency" lib.AssertEq explicitBudget.basis
 
-precision ← ctx.ResolveArithmeticCurrencyProof ProofSnapshot ⟨
+
+precision ← ResolveProof ProofSnapshot ⟨
   ⟨
     Line ⟨"2026-06-15", "memo currency=JPY", "assets:bank", "expenses:food", "100"⟩,
     Line ⟨"2026-06-16", "memo", "assets:bank", "expenses:food", "100", "currency_hint=JPY"⟩,
@@ -86,4 +88,82 @@ debits ← (({𝕩.side}¨ inconsistentBuilt.rows) ≡¨ <"debit") / inconsisten
 0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", message⇐"x"}
 0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof "not-a-proof"
 
+# Slice B1 Row Ingestion and Pre-Gate Row Evidence tests
+CheckRowEvidence ← {𝕊 args:
+  line‿expectedCurrency‿expectedProvenance‿expectedState‿expectedCoef‿expectedScale ← args
+  snapshot ← ProofSnapshot ⟨⟨line⟩, ⟨⟩, ⟨⟩⟩
+  ev ← ⊑ ctx.BuildRowEvidenceFromSnapshot snapshot
+  expectedCurrency lib.AssertEq ev.currency
+  expectedProvenance lib.AssertEq ev.provenance
+  expectedState lib.AssertEq ev.state
+  expectedCoef lib.AssertEq ev.parsed.coefficient
+  expectedScale lib.AssertEq ev.parsed.scale
+  1
+}
+
+CheckProofGateFail ← {𝕊 args:
+  line‿expectedMsgSubstring ← args
+  snapshot ← ProofSnapshot ⟨⟨line⟩, ⟨⟩, ⟨⟩⟩
+  proof ← ResolveProof snapshot
+  "unsupported" lib.AssertEq proof.state
+  1 lib.AssertEq ∨´ expectedMsgSubstring ⍷ proof.message
+  1
+}
+
+# 1. Legacy integer JPY success
+CheckRowEvidence ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "1200"⟩, "JPY", "legacy_compatibility", "ok", 1200, 0⟩
+
+# 2. Explicit JPY decimal internal evidence (fails proof gate)
+CheckRowEvidence ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "12.34", "currency=JPY"⟩, "JPY", "explicit", "ok", 1234, 2⟩
+CheckProofGateFail ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "12.34", "currency=JPY"⟩, "explicit source currency unsupported"⟩
+
+# 3. Explicit ILS decimal internal evidence (fails proof gate)
+CheckRowEvidence ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "42.50", "currency=ILS"⟩, "ILS", "explicit", "ok", 425, 1⟩
+CheckProofGateFail ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "42.50", "currency=ILS"⟩, "explicit source currency unsupported"⟩
+
+# 4. Implicit JPY decimal (fails proof gate due to scale > 0)
+CheckRowEvidence ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "12.34"⟩, "JPY", "legacy_compatibility", "ok", 1234, 2⟩
+CheckProofGateFail ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "12.34"⟩, "implicit decimal JPY unsupported"⟩
+
+# 5. Explicit JPY integer (fails proof gate because metadata is explicit)
+CheckRowEvidence ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "1200", "currency=JPY"⟩, "JPY", "explicit", "ok", 1200, 0⟩
+CheckProofGateFail ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "1200", "currency=JPY"⟩, "explicit source currency unsupported"⟩
+
+# 6. Duplicate currency metadata (fails at row evidence stage)
+CheckRowEvidence ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "1200", "currency=JPY", "currency=JPY"⟩, "JPY", "explicit", "error", 1200, 0⟩
+CheckProofGateFail ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "1200", "currency=JPY", "currency=JPY"⟩, "duplicate currency metadata"⟩
+
+# 7. Unsupported currency (fails at row evidence stage)
+CheckRowEvidence ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "1200", "currency=USD"⟩, "JPY", "explicit", "error", 1200, 0⟩
+CheckProofGateFail ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "1200", "currency=USD"⟩, "unsupported currency: USD"⟩
+
+# 8. Invalid decimal syntax (propagates and fails gate on explicit currency)
+CheckRowEvidence ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "12x", "currency=JPY"⟩, "JPY", "explicit", "error", ⟨⟩, ⟨⟩⟩
+CheckProofGateFail ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "12x", "currency=JPY"⟩, "invalid_decimal_syntax"⟩
+
+# 9. Parsed coefficient range failure (propagates and fails gate on explicit currency)
+CheckRowEvidence ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "9007199254740993", "currency=JPY"⟩, "JPY", "explicit", "error", ⟨⟩, ⟨⟩⟩
+CheckProofGateFail ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "9007199254740993", "currency=JPY"⟩, "amount_out_of_exact_range"⟩
+
+# 10. Empty snapshot regression
+emptyProof ← ResolveProof ProofSnapshot ⟨⟨⟩, ⟨⟩, ⟨⟩⟩
+"proven" lib.AssertEq emptyProof.state
+"empty_source_compatibility" lib.AssertEq emptyProof.basis
+
+# Focused regression tests for untagged invalid rows (B1 fail-closed error state directly)
+# 11. Untagged invalid decimal syntax (fails proof gate directly)
+CheckRowEvidence ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "12x"⟩, "JPY", "legacy_compatibility", "error", ⟨⟩, ⟨⟩⟩
+CheckProofGateFail ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "12x"⟩, "row error in Stage 2 minimal runtime slice"⟩
+CheckProofGateFail ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "12x"⟩, "invalid_decimal_syntax"⟩
+untaggedInvalidProof ← ResolveProof ProofSnapshot ⟨⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "12x"⟩⟩, ⟨⟩, ⟨⟩⟩
+"unsupported_row_evidence" lib.AssertEq untaggedInvalidProof.basis
+
+# 12. Untagged parsed coefficient range failure (fails proof gate directly)
+CheckRowEvidence ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "9007199254740993"⟩, "JPY", "legacy_compatibility", "error", ⟨⟩, ⟨⟩⟩
+CheckProofGateFail ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "9007199254740993"⟩, "row error in Stage 2 minimal runtime slice"⟩
+CheckProofGateFail ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "9007199254740993"⟩, "amount_out_of_exact_range"⟩
+untaggedRangeProof ← ResolveProof ProofSnapshot ⟨⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "9007199254740993"⟩⟩, ⟨⟩, ⟨⟩⟩
+"unsupported_row_evidence" lib.AssertEq untaggedRangeProof.basis
+
 •Out "test_src_next_currency_domain_proof.bqn: OK"
+

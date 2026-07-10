@@ -60,6 +60,8 @@ TSV（TAB区切り）で以下の5列は必須です。
 - `due_on=YYYY-MM-DD` : 引落予定日の例外上書き（Phase 6実験中。通常は口座メタから導出）
 - `plan_id=<id>` : `plan.tsv` の予定と、対応する `journal.tsv` 実績候補を結ぶ任意ID
 - `cashflow=fixed_obligation` : 費用ではないが、生活資金から固定的に確保すべき支払い予定。例: 借金元本返済 (`assets:* -> liabilities:*`)。
+- `currency=JPY|ILS` : 通貨指定 (Stage 2 段階的導入用)
+
 
 ※どのキーを正式採用するかは、確定申告フローが固まった時点で更新します。`plan_id` は実データの `plan.tsv` では原則として必須（バックフィル済み・新規追加時に自動付与）としますが、BQNエンジン側は互換性・手入力の非常口としてIDなし行も許容します。
 

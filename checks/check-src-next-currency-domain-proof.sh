@@ -18,7 +18,7 @@ make_fixture() {
 }
 
 expect_fail_context() {
-  local dir="$1" label="$2" out status
+  local dir="$1" label="$2" pat="${3:-explicit source currency unsupported}" out status
   set +e
   out="$(bqn -e 'ctx←•Import "src_next/context.bqn" ⋄ ctx.BuildContext "'"$dir"'" ⋄ •Out "unexpected-ok"' 2>&1)"
   status=$?
@@ -29,8 +29,8 @@ expect_fail_context() {
     exit 1
   fi
   case "$out" in
-    *"explicit source currency unsupported"*) ;;
-    *) echo "FAIL: missing explicit currency diagnostic for $label" >&2; echo "$out" >&2; exit 1 ;;
+    *"$pat"*) ;;
+    *) echo "FAIL: missing diagnostic for $label (expected pattern: $pat)" >&2; echo "$out" >&2; exit 1 ;;
   esac
 }
 
@@ -41,6 +41,7 @@ make_fixture "$tmp/budget-currency" "$clean" "" "2026-06-16	budget	assets:bank	b
 expect_fail_context "$tmp/journal-currency" journal
 expect_fail_context "$tmp/plan-currency" plan
 expect_fail_context "$tmp/budget-currency" budget_alloc
+expect_fail_context "fixtures/src-next-invalid-posting" invalid-posting "row error in Stage 2 minimal runtime slice"
 
 same_dir="$tmp/same-snapshot"
 make_fixture "$same_dir" "$clean"
@@ -50,7 +51,8 @@ ak ← •Import "$ROOT_DIR/src_next/account_key.bqn"
 loader ← •Import "$ROOT_DIR/src_next/loader.bqn"
 base ← 0⊑•args
 snapshot ← ctx.LoadPostingSourceSnapshot base
-proof ← ctx.ResolveArithmeticCurrencyProof snapshot
+evidence ← ctx.BuildRowEvidenceFromSnapshot snapshot
+proof ← ctx.ResolveArithmeticCurrencyProof evidence
 (base∾"/journal.tsv") •file.Chars "2026-06-15\tmutated\tassets:bank\texpenses:food\t999\n"
 resolved ← ak.Resolve loader.ReadLines (base∾"/accounts.tsv")
 built ← ctx.BuildAuthorizedRowsFromSnapshot ⟨snapshot, resolved, "2026-06-15"⟩
@@ -111,7 +113,8 @@ loader ← •Import "$ROOT_DIR/src_next/loader.bqn"
 baseA ← "$same_dir"
 baseB ← "$tmp/journal-currency"
 snapshotA ← ctx.LoadPostingSourceSnapshot baseA
-proofA ← ctx.ResolveArithmeticCurrencyProof snapshotA
+evidenceA ← ctx.BuildRowEvidenceFromSnapshot snapshotA
+proofA ← ctx.ResolveArithmeticCurrencyProof evidenceA
 snapshotB ← ctx.LoadPostingSourceSnapshot baseB
 resolved ← ak.Resolve loader.ReadLines (baseA∾"/accounts.tsv")
 # Old vulnerable shape with independent proof must not be accepted.

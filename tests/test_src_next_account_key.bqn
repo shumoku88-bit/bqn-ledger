@@ -93,19 +93,10 @@ debit ← ⊑ rows
 "医療費/JPY" lib.AssertEq debit.account_key
 "actual" lib.AssertEq debit.layer_name
 
-badAmountRows ← RowsForFields ⟨4, ⟨"2026-06-01", "bad amount", "assets:bank", "医療費", "12x"⟩⟩
-badAmountDebit ← ⊑ badAmountRows
-"invalid_amount" lib.AssertEq badAmountDebit.status
-"invalid amount: 12x" lib.AssertEq badAmountDebit.message
-0 lib.AssertEq badAmountDebit.delta
-
 badDateRows ← RowsForFields ⟨5, ⟨"2026-02-31", "bad date", "assets:bank", "医療費", "1200"⟩⟩
 badDateDebit ← ⊑ badDateRows
 "invalid_date" lib.AssertEq badDateDebit.status
 "invalid date: 2026-02-31" lib.AssertEq badDateDebit.message
 0 lib.AssertEq badDateDebit.day_index
-
-missingAmountRows ← RowsForFields ⟨6, ⟨"2026-06-01", "missing amount", "assets:bank", "医療費"⟩⟩
-"invalid_amount" lib.AssertEq (⊑ missingAmountRows).status
 
 •Out "test_src_next_account_key.bqn: OK"
