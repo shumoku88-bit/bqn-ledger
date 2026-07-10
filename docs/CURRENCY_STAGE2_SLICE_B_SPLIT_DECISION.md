@@ -59,13 +59,13 @@ graph TD
     3.  `ResolveArithmeticCurrencyProof` consumes this pre-built row evidence list (rather than re-splitting the snapshot lines).
 *   **Boundary Constraints**:
     *   **B1 row evidence != projection posting rows**: The evidence is internal and does not replace or modify the final projection posting rows.
-    *   **B1 must not admit explicit currency rows (including explicit JPY) through the proof gate**: Since the proof carrier is not extended and the basis `resolved_single_currency` is not introduced until Slice B3, `ResolveArithmeticCurrencyProof` must continue to accept only legacy JPY snapshots (where all rows lack explicit currency metadata, mapping to `legacy_compatibility`) or empty snapshots (`empty_source_compatibility`). Any participating explicit currency metadata (e.g. `currency=JPY` or `currency=ILS`) on any row in the snapshot must cause the proof gate to fail closed. `legacy_compatibility` must not be reused for explicit currency rows.
+    *   **B1 must not admit explicit currency rows or implicit JPY decimal rows (canonical scale > 0) through the proof gate**: Since the proof carrier is not extended and the basis `resolved_single_currency` is not introduced until Slice B3, `ResolveArithmeticCurrencyProof` must continue to accept only legacy JPY snapshots (where all rows lack explicit currency metadata, mapping to `legacy_compatibility`) or empty snapshots (`empty_source_compatibility`) AND every participating row has parsed canonical amount scale = 0. If any row contains explicit currency metadata (e.g. `currency=JPY` or `currency=ILS`) or has parsed canonical amount scale > 0 (e.g. `12.34` without `currency=`), the proof gate must fail closed. `legacy_compatibility` must not be reused for explicit currency rows or implicit decimal JPY rows, as normalization is not integrated yet.
     *   `delta` in final projection posting rows remains the parsed JPY integer (with scale 0).
 *   **Exit Evidence**:
     *   Valid legacy JPY integers (e.g. `1200`) parse to scale 0 and resolve to JPY.
     *   Valid explicit JPY decimals (e.g. `12.34 currency=JPY`) parse to scale 2 and resolve to JPY in internal row evidence.
     *   Valid explicit ILS decimals (e.g. `42.50 currency=ILS`) parse to scale 1 and resolve to ILS in internal row evidence.
-    *   Context load fails closed on any snapshot containing explicit JPY rows (e.g. `currency=JPY`), explicit ILS rows (e.g. `currency=ILS`), or mixed rows, because the proof resolver remains strictly JPY-legacy-only and accepts only `legacy_compatibility` or `empty_source_compatibility` bases.
+    *   Context load fails closed on any snapshot containing explicit JPY rows (e.g. `currency=JPY`), explicit ILS rows (e.g. `currency=ILS`), implicit JPY decimal rows with canonical scale > 0 (e.g. `12.34` without `currency=`), or mixed rows, because the proof resolver remains strictly JPY-legacy-only and accepts only `legacy_compatibility` or `empty_source_compatibility` bases.
     *   Unit tests in `tests/test_src_next_context.bqn` verify that row currency resolution and amount parsing correctly fail closed on duplicate `currency=` tokens or invalid syntax (e.g. `currency=USD`) at the row level.
 
 ### Slice B2: Snapshot Arithmetic Evidence
@@ -84,6 +84,7 @@ graph TD
     *   No proof carrier extension.
     *   No projection row `delta` changes (projection still uses JPY integers).
     *   No ILS projection admission.
+    *   **B2 must keep full projection admission for scale > 0 rows closed**: Although B2 computes and tests scale > 0 arithmetic evidence internally, full projection admission for scale > 0 rows remains closed because the projection posting row deltas are not normalized and proof carrier is not extended. The existence of correct B2 arithmetic evidence must not silently change projection behavior.
 *   **Exit Evidence**:
     *   Unit tests in `tests/test_src_next_context.bqn` verify that:
         *   Mixed JPY/ILS row evidence fails closed.
@@ -92,7 +93,7 @@ graph TD
 
 ### Slice B3: Proof and JPY-only Posting Integration
 
-*   **Description**: Integrates the snapshot arithmetic evidence into the main context proof carrier and projection posting rows.
+*   **Description**: Integrates the snapshot arithmetic evidence into the main context proof carrier and projection posting rows. B3 is the first slice that integrates the selected proof basis and normalization into the main projection path. Therefore, B3 is the earliest slice where scale > 0 JPY rows (both explicit JPY and implicit JPY decimals) may be considered for full checked posting admission.
 *   **Prerequisites**: Slice B2.
 *   **Ownership**: `src_next/context.bqn` (context building orchestration).
 *   **Execution Flow**:
@@ -100,7 +101,7 @@ graph TD
     *   Supports `resolved_single_currency` proof basis.
     *   Updates the final projection row building so that `delta` uses the signed normalized coefficient.
 *   **Boundary Constraints**:
-    *   Projection authorization in `projection.bqn` remains JPY-only (ILS remains closed).
+    *   Projection authorization in `projection.bqn` remains JPY-only (ILS remains closed). Only JPY proof domains (both legacy and resolved single currency) are admitted.
 *   **Exit Evidence**:
     *   Existing JPY dataset (both legacy and explicit JPY) works as before with `amount_scale` 0 and legacy/resolved_single_currency basis. All golden reports and check scripts pass.
     *   Any ILS proof resolves successfully with correct `amount_scale`, but context loading fails closed because the projection authorizer rejects ILS.
