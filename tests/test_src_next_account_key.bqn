@@ -27,7 +27,8 @@ SnapshotForLine ← {𝕊 line:
 }
 RowsForFields ← {𝕊 rowIdx‿fields:
   snapshot ← SnapshotForLine Line fields
-  rows ← (ctx.BuildAuthorizedRowsFromSnapshot ⟨snapshot, resolved, "2026-06-01"⟩).rows
+  evidence ← ctx.BuildRowEvidenceFromSnapshot snapshot
+  rows ← ∾ ({𝕊 row: ctx.BuildProjectionRowsForEvidence ⟨row, resolved, "2026-06-01"⟩} ¨ evidence)
   # Preserve historical rowIdx assertions for this unit test.
   {𝕊 r:
     {

@@ -110,26 +110,39 @@ BuildRowEvidenceFromSnapshot ← {𝕊 snapshot:
   } ¨ snapshot.sources
 }
 
-ResolveArithmeticCurrencyProof ← {𝕊 arg:
-  evidence ← (6 = •Type arg) ◶ ⟨{𝕊: arg}, {𝕊: BuildRowEvidenceFromSnapshot arg}⟩ @
-
-
+ResolveArithmeticCurrencyProof ← {𝕊 evidence:
   proof ← ProofProven "empty_source_compatibility"
 
   {𝕊:
+    has_error    ← ∨´ { 𝕩.state ≢ "ok" } ¨ evidence
     has_explicit ← ∨´ { 𝕩.provenance ≢ "legacy_compatibility" } ¨ evidence
     has_scale    ← ∨´ { (0 < ≠ 𝕩.parsed.scale) ⊑ 0‿(𝕩.parsed.scale > 0) } ¨ evidence
 
-    (has_explicit ∨ has_scale) ◶ ⟨
+    (has_error ∨ has_explicit ∨ has_scale) ◶ ⟨
       {𝕊: proof ↩ ProofProven "legacy_compatibility" },
       {𝕊:
-        bad_mask ← { (𝕩.provenance ≢ "legacy_compatibility") ∨ ((0 < ≠ 𝕩.parsed.scale) ⊑ 0‿(𝕩.parsed.scale > 0)) } ¨ evidence
+        bad_mask ← { (𝕩.state ≢ "ok") ∨ (𝕩.provenance ≢ "legacy_compatibility") ∨ ((0 < ≠ 𝕩.parsed.scale) ⊑ 0‿(𝕩.parsed.scale > 0)) } ¨ evidence
         bad_row ← ⊑ (bad_mask / evidence)
+        
+        # Default: explicit currency
         basis ← "explicit_source_currency"
         msg ← "explicit source currency unsupported in Stage 2 minimal runtime slice: " ∾ bad_row.source_file ∾ " row " ∾ (•Fmt bad_row.source_row)
         {𝕊:
           msg ↩ msg ∾ ": " ∾ bad_row.message
         } ⍟ (bad_row.state ≢ "ok") @
+
+        # Override for legacy_compatibility (untagged) rows
+        {𝕊:
+          is_scale ← (0 < ≠ bad_row.parsed.scale) ⊑ 0‿(bad_row.parsed.scale > 0)
+          {𝕊:
+            basis ↩ "implicit_decimal_jpy"
+            msg ↩ "implicit decimal JPY unsupported in Stage 2 minimal runtime slice: " ∾ bad_row.source_file ∾ " row " ∾ (•Fmt bad_row.source_row)
+          } ⍟ is_scale @
+          {𝕊:
+            basis ↩ bad_row.message
+            msg ↩ "row error in Stage 2 minimal runtime slice: " ∾ bad_row.source_file ∾ " row " ∾ (•Fmt bad_row.source_row) ∾ ": " ∾ bad_row.message
+          } ⍟ (bad_row.state ≢ "ok") @
+        } ⍟ (bad_row.provenance ≡ "legacy_compatibility") @
 
         proof ↩ {
           state ⇐ "unsupported",
@@ -140,6 +153,7 @@ ResolveArithmeticCurrencyProof ← {𝕊 arg:
       }
     ⟩ @
   } ⍟ (0 < ≠ evidence) @
+
 
   proof
 }
@@ -340,4 +354,4 @@ BuildContext ← {𝕊 arg:
   }
 }
 
-{ BuildContext ⇐ BuildContext, LoadPostingSourceSnapshot ⇐ LoadPostingSourceSnapshot, BuildRowEvidenceFromSnapshot ⇐ BuildRowEvidenceFromSnapshot, ResolveArithmeticCurrencyProof ⇐ ResolveArithmeticCurrencyProof, BuildAuthorizedRowsFromSnapshot ⇐ BuildAuthorizedRowsFromSnapshot, BuildAllRowsFromSnapshot ⇐ BuildAllRowsFromSnapshot, BuildAllRows ⇐ BuildAllRows, BuildPeriodView ⇐ BuildPeriodView, BuildRowsForFile ⇐ BuildRowsForFile, BuildRowsForFileOptional ⇐ BuildRowsForFileOptional }
+{ BuildContext ⇐ BuildContext, LoadPostingSourceSnapshot ⇐ LoadPostingSourceSnapshot, BuildRowEvidenceFromSnapshot ⇐ BuildRowEvidenceFromSnapshot, ResolveArithmeticCurrencyProof ⇐ ResolveArithmeticCurrencyProof, BuildAuthorizedRowsFromSnapshot ⇐ BuildAuthorizedRowsFromSnapshot, BuildAllRowsFromSnapshot ⇐ BuildAllRowsFromSnapshot, BuildAllRows ⇐ BuildAllRows, BuildPeriodView ⇐ BuildPeriodView, BuildRowsForFile ⇐ BuildRowsForFile, BuildRowsForFileOptional ⇐ BuildRowsForFileOptional, BuildProjectionRowsForEvidence ⇐ BuildProjectionRowsForEvidence }
