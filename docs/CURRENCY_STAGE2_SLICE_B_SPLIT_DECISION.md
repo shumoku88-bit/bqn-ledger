@@ -12,13 +12,13 @@ Decide how the remaining selected Currency Stage 2 Slice B semantics should be d
 
 ## Reviewed Current Owners
 
-*   [exact_decimal.bqn](file:///Users/user/Projects/moko/bqn-ledger/src_next/exact_decimal.bqn) - Pure exact-decimal source parser module (Slice A kernel).
-*   [context.bqn](file:///Users/user/Projects/moko/bqn-ledger/src_next/context.bqn) - Ingestion orchestration, proof resolution, and projection coordination.
-*   [projection.bqn](file:///Users/user/Projects/moko/bqn-ledger/src_next/projection.bqn) - Proof authorization and posting row projection.
+*   [exact_decimal.bqn](../src_next/exact_decimal.bqn) - Pure exact-decimal source parser module (Slice A kernel).
+*   [context.bqn](../src_next/context.bqn) - Ingestion orchestration, proof resolution, and projection coordination.
+*   [projection.bqn](../src_next/projection.bqn) - Proof authorization and posting row projection.
 
 ## Preserved Semantics
 
-This decision preserves the semantics already selected by [CURRENCY_STAGE2_EXPLICIT_SINGLE_CURRENCY_EXACT_DECIMAL_IMPLEMENTATION_PLAN.md](file:///Users/user/Projects/moko/bqn-ledger/docs/CURRENCY_STAGE2_EXPLICIT_SINGLE_CURRENCY_EXACT_DECIMAL_IMPLEMENTATION_PLAN.md):
+This decision preserves the semantics already selected by [CURRENCY_STAGE2_EXPLICIT_SINGLE_CURRENCY_EXACT_DECIMAL_IMPLEMENTATION_PLAN.md](CURRENCY_STAGE2_EXPLICIT_SINGLE_CURRENCY_EXACT_DECIMAL_IMPLEMENTATION_PLAN.md):
 *   **Exact decimal representation**: `{coefficient, scale, source_text, state, message}`.
 *   **Parser grammar**: `digits+` or `digits+ "." digits+`.
 *   **Snapshot-wide scale (`amount_scale`)**: Maximum canonical scale of all admitted rows.
