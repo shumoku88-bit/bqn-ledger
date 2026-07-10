@@ -2,7 +2,7 @@
 
 Minimal fixture for `src_next` household mapping metadata visibility.
 
-It covers `role=expense`, `budget=...`, config-backed `budget_group` policy labels, direct `spend_class=...`, missing group metadata, prefix fallback, and a non-expense transfer.
+It covers explicit `role=expense`, `budget=...`, config-backed `budget_group` policy labels, direct `spend_class=...`, missing group metadata, and a non-expense transfer.
 
 The expected output covers only `src_next` diagnostic household policy summary fields. It does not define food remaining or daily remaining report output.
 

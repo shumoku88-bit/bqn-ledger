@@ -12,7 +12,7 @@ hm ← •Import "../src_next/household_metadata.bqn"
 #   expenses:娯楽    role=expense budget=娯楽 budget_group=life_flex    spend_class=variable
 #   expenses:予備    role=expense budget=予備 budget_group=reserve_pool  spend_class=variable
 #   expenses:未分類  role=expense budget=未分類  (no budget_group, no spend_class)
-#   expenses:fallback  (no metadata, prefix fallback expense)
+#   expenses:fallback  role=expense (explicit role; other household metadata absent)
 #   assets:bank      role=asset
 #   assets:cash      role=asset
 
@@ -44,13 +44,12 @@ text ← hm.Format diag
 1 lib.AssertEq (0 ≠ ⊑ "--- SrcNext Household Metadata ---" ≡ (≠ "--- SrcNext Household Metadata ---") ↑ text)
 1 lib.AssertEq (1 ≤ +´ ("src_next_household_metadata_expense_accounts_total:" ⍷ text))
 
-# ── Fixture: no expense accounts ─────────────────────────────────────
-# src-next-golden has expenses:food and expenses:rent (prefix fallback).
-# Use it to test that expense accounts are still detected even without metadata.
+# ── Fixture: explicit-role expense accounts without household metadata ───────
+# src-next-golden has role=expense on expenses:food and expenses:rent.
 base2 ← "fixtures/src-next-golden"
 resolved2 ← ak.Resolve loader.ReadLines (base2 ∾ "/accounts.tsv")
 diag2 ← hm.Build { resolved ⇐ resolved2 }
-# src-next-golden: expenses:food and expenses:rent are prefix-fallback expense accounts
+# Both expense accounts are classified by explicit role metadata.
 1 lib.AssertEq diag2.has_any
 2 lib.AssertEq diag2.expense_accounts_total
 2 lib.AssertEq diag2.missing_budget_count

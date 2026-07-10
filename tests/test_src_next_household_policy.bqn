@@ -38,4 +38,25 @@ summary ← hh.BuildSummary ⟨base, resolved, result.valid_rows⟩
 0 lib.AssertEq summary.plan_budget_group_missing_total
 0 lib.AssertEq summary.plan_budget_group_other_total
 
+# A prefix-shaped missing-role expense remains visible diagnostically but must not
+# inflate any field that claims classified expense accounts.
+negative_base ← "fixtures/src-next-envelope-computation-prefix-negative"
+negative_resolved ← ak.Resolve loader.ReadLines (negative_base ∾ "/accounts.tsv")
+negative_cy ← cycle.ReadCycle negative_base
+negative_rows ← context.BuildAllRows ⟨negative_base, negative_resolved, negative_cy.start⟩
+negative_result ← cube.Materialize ⟨negative_rows, negative_cy.day_count, negative_resolved.count⟩
+negative ← hh.BuildSummary ⟨negative_base, negative_resolved, negative_result.valid_rows⟩
+1 lib.AssertEq negative.prefix_fallback_expense_account_count
+0 lib.AssertEq negative.expense_account_count
+0 lib.AssertEq negative.expense_account_with_budget_count
+0 lib.AssertEq negative.expense_budget_group_daily_count
+0 lib.AssertEq negative.expense_budget_group_flex_count
+0 lib.AssertEq negative.expense_budget_group_reserve_count
+0 lib.AssertEq negative.expense_budget_group_missing_count
+0 lib.AssertEq negative.expense_budget_group_other_count
+0 lib.AssertEq negative.expense_spend_class_variable_count
+0 lib.AssertEq negative.expense_spend_class_fixed_count
+0 lib.AssertEq negative.expense_spend_class_missing_count
+0 lib.AssertEq negative.expense_spend_class_other_count
+
 •Out "test_src_next_household_policy.bqn: OK"

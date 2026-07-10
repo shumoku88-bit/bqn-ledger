@@ -1,5 +1,5 @@
 # Fixture: src-next-expense-role-metadata
-# Purpose: src_next expense classification uses role=expense plus expenses: fallback
+# Purpose: src_next expense classification uses explicit role=expense regardless of account-name shape
 
 assets:bank	role=asset
 assets:cash	role=asset

@@ -1,0 +1,5 @@
+# Fixture: prefix-shaped missing roles remain diagnostic-only
+assets:cash	role=asset	type=liquid
+expenses:prefix-only	budget=食費	budget_group=life_primary	spend_class=variable
+budget:食費	kind=envelope	envelope_role=dynamic	budget_group=life_primary
+budget:unassigned	kind=unassigned
