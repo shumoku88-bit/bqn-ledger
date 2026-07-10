@@ -59,13 +59,13 @@ graph TD
     3.  `ResolveArithmeticCurrencyProof` consumes this pre-built row evidence list (rather than re-splitting the snapshot lines).
 *   **Boundary Constraints**:
     *   **B1 row evidence != projection posting rows**: The evidence is internal and does not replace or modify the final projection posting rows.
-    *   **B1 must not require ILS projection admission**: Since the proof carrier is not extended, `ResolveArithmeticCurrencyProof` still fails closed if any row has `resolved_currency = "ILS"` (as ILS is not JPY).
+    *   **B1 must not admit explicit currency rows (including explicit JPY) through the proof gate**: Since the proof carrier is not extended and the basis `resolved_single_currency` is not introduced until Slice B3, `ResolveArithmeticCurrencyProof` must continue to accept only legacy JPY snapshots (where all rows lack explicit currency metadata, mapping to `legacy_compatibility`) or empty snapshots (`empty_source_compatibility`). Any participating explicit currency metadata (e.g. `currency=JPY` or `currency=ILS`) on any row in the snapshot must cause the proof gate to fail closed. `legacy_compatibility` must not be reused for explicit currency rows.
     *   `delta` in final projection posting rows remains the parsed JPY integer (with scale 0).
 *   **Exit Evidence**:
     *   Valid legacy JPY integers (e.g. `1200`) parse to scale 0 and resolve to JPY.
-    *   Valid explicit JPY decimals (e.g. `12.34 currency=JPY`) parse to scale 2 and resolve to JPY.
+    *   Valid explicit JPY decimals (e.g. `12.34 currency=JPY`) parse to scale 2 and resolve to JPY in internal row evidence.
     *   Valid explicit ILS decimals (e.g. `42.50 currency=ILS`) parse to scale 1 and resolve to ILS in internal row evidence.
-    *   Context load fails closed on any ILS row or mixed rows at the proof gate because the proof resolver remains JPY-only.
+    *   Context load fails closed on any snapshot containing explicit JPY rows (e.g. `currency=JPY`), explicit ILS rows (e.g. `currency=ILS`), or mixed rows, because the proof resolver remains strictly JPY-legacy-only and accepts only `legacy_compatibility` or `empty_source_compatibility` bases.
     *   Unit tests in `tests/test_src_next_context.bqn` verify that row currency resolution and amount parsing correctly fail closed on duplicate `currency=` tokens or invalid syntax (e.g. `currency=USD`) at the row level.
 
 ### Slice B2: Snapshot Arithmetic Evidence
@@ -125,8 +125,8 @@ graph TD
 | Feature / Invariant | Introduced in Slice | Owner | Input | Output / Evidence |
 |---|---|---|---|---|
 | Row currency resolution | **Slice B1** | `context.bqn` | Raw metadata fields | Row evidence resolved currency |
-| Row exact decimal parsing | **Slice B1** | `context.bqn` | Raw amount text | Row evidence parsed amount |
-| Row-level exact range check | **Slice B1** | `context.bqn` | Parsed coefficient | Fail closed on parsed overflow |
+| Row exact decimal parsing | **Slice B1** | `exact_decimal.bqn` (parsing) / `context.bqn` (orchestration) | Raw amount text | Row evidence parsed amount |
+| Row-level exact range check | **Slice B1** | `exact_decimal.bqn` (diagnostic) / `context.bqn` (orchestration) | Parsed coefficient | Fail closed on parsed overflow |
 | Single domain constraint | **Slice B2** | `context.bqn` | Row evidence currencies | Fail closed if mixed domains |
 | Snapshot-wide `amount_scale` | **Slice B2** | `context.bqn` | Row evidence scales | Snapshot arithmetic scale |
 | Coefficient normalization | **Slice B2** | `context.bqn` | Row evidence coefficients | Normalized coefficients |

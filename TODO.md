@@ -33,8 +33,8 @@ Selected next finite slice (runtime implementation; not executed in this PR):
 - downstream `ResolveArithmeticCurrencyProof` consumes this pre-built row evidence list;
 - maintain existing JPY legacy behavior (amounts are parsed as scale 0 JPY);
 - do not yet implement domain aggregation, `amount_scale` selection, coefficient normalization, or proof carrier extension;
-- keep `currency=ILS` projection authorization closed;
-- exit evidence: unit/check tests verify that invalid row metadata and syntax errors fail closed, and correct parsed row evidence is attached.
+- keep `currency=ILS` and explicit `currency=JPY` projection admission closed; any snapshot containing explicit currency metadata causes the proof gate to fail closed (as the proof resolver remains strictly JPY-legacy-only, accepting only `legacy_compatibility` or `empty_source_compatibility` bases and not reusing `legacy_compatibility` or introducing `resolved_single_currency` early);
+- exit evidence: unit/check tests verify that invalid row metadata and syntax errors fail closed, and correct parsed row evidence is attached (with JPY/ILS rows resolved internally but snapshots containing them failing the proof gate).
 
 Recently closed finite slice:
 - `docs/CURRENCY_STAGE2_SLICE_B_SPLIT_DECISION.md` splits remaining Slice B semantics into B1, B2, B3, and C slices with explicit boundaries and exit evidence;
