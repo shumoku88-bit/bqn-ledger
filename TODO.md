@@ -24,19 +24,20 @@ Current state:
 - Do not add a per-PR form, tracker, telemetry, lint, parser, CI gate, or metrics service.
 - Do not turn the observation itself into repeated self-review work; after the window, record one Review / Learning assessment and retire the plan.
 
-### Currency Stage 2 Slice B1: Row Currency and Exact Decimal Ingestion
+### Currency Stage 2 Slice B1: Row Ingestion and Pre-Gate Row Evidence
 
 Selected next finite slice (runtime implementation; not executed in this PR):
-- implement pure BQN exact decimal parsing and validation in `context.bqn` row ingestion loop;
+- orchestrate and consume `exact_decimal.Parse` in `context.bqn` during row ingestion as a pre-gate row evidence stage (`BuildRowEvidenceFromSnapshot`), keeping exact decimal grammar and diagnostics owned by `src_next/exact_decimal.bqn`;
 - resolve row currency metadata (`currency=`) for all rows after the first five fields, rejecting duplicate tags, syntax errors, or unsupported values at the row level;
-- attach resolved currency and parsed `{coefficient, scale}` structure directly to the row records in the shared snapshot;
+- attach resolved currency and parsed `{coefficient, scale}` structure directly to row evidence records in the shared snapshot;
+- downstream `ResolveArithmeticCurrencyProof` consumes this pre-built row evidence list;
 - maintain existing JPY legacy behavior (amounts are parsed as scale 0 JPY);
 - do not yet implement domain aggregation, `amount_scale` selection, coefficient normalization, or proof carrier extension;
 - keep `currency=ILS` projection authorization closed;
 - exit evidence: unit/check tests verify that invalid row metadata and syntax errors fail closed, and correct parsed row evidence is attached.
 
 Recently closed finite slice:
-- `docs/CURRENCY_STAGE2_SLICE_B_SPLIT_DECISION.md` splits remaining Slice B semantics into B1, B2, and C slices with explicit boundaries and exit evidence;
+- `docs/CURRENCY_STAGE2_SLICE_B_SPLIT_DECISION.md` splits remaining Slice B semantics into B1, B2, B3, and C slices with explicit boundaries and exit evidence;
 - `docs/archive/audits/CURRENCY_STAGE2_SLICE_A_EXACT_DECIMAL_VERIFICATION-2026-07-10.md` verifies Slice A exact-decimal kernel.
 
 Daily Trend temporal semantics の major campaign は closure review により終了しました。

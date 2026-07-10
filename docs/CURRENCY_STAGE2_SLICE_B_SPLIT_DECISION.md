@@ -1,10 +1,10 @@
 # Currency Stage 2 Slice B Split Decision
 
-Status: completed
+Status: active plan
 Owner: config
 Canonical: yes
 Decision date: 2026-07-10
-Exit: archived or superseded when Currency Stage 2 Slice B runtime implementation is fully complete or superseded by a later implementation plan
+Exit: archive or supersede after the selected staged runtime path reaches checked ILS posting path (Slice C completion) or a later decision replaces this split
 
 ## Purpose
 
@@ -20,62 +20,96 @@ Decide how the remaining selected Currency Stage 2 Slice B semantics should be d
 
 This decision preserves the semantics already selected by [CURRENCY_STAGE2_EXPLICIT_SINGLE_CURRENCY_EXACT_DECIMAL_IMPLEMENTATION_PLAN.md](CURRENCY_STAGE2_EXPLICIT_SINGLE_CURRENCY_EXACT_DECIMAL_IMPLEMENTATION_PLAN.md):
 *   **Exact decimal representation**: `{coefficient, scale, source_text, state, message}`.
+    *   *Example*: `12.00` yields `coefficient = 12`, `scale = 0`, and `source_text = "12.00"`. Trailing fractional zeros are removed for arithmetic canonicalization.
+    *   *Example*: `12.34` yields `coefficient = 1234`, `scale = 2`, and `source_text = "12.34"`.
+    *   *Preserve*: Canonical arithmetic scale (`scale`) is distinct from the raw source spelling or display precision.
 *   **Parser grammar**: `digits+` or `digits+ "." digits+`.
 *   **Snapshot-wide scale (`amount_scale`)**: Maximum canonical scale of all admitted rows.
 *   **Coefficient normalization**: `normalized_coefficient = coefficient × 10^(amount_scale - row.scale)`.
 *   **Fail-closed invariants**: Fails closed on any invalid decimal syntax, duplicated metadata, or coefficient overflow (parsed or normalized).
 *   **One shared-snapshot invariant**: Load, parse, resolve, normalize, prove, and project must happen on the same in-memory snapshot.
 
+---
+
 ## Selected Split
 
-We divide the remaining work into three sequential, independently finite executable sub-slices:
+We divide the remaining work into four sequential, independently finite executable sub-slices:
 
 ```mermaid
 graph TD
-    A[Slice A: Exact Decimal Kernel - Completed] --> B1[Slice B1: Row Ingestion & Validation]
-    B1 --> B2[Slice B2: Snapshot Proof & Normalization]
-    B2 --> C[Slice C: Checked ILS Posting Path]
+    A[Slice A: Exact Decimal Kernel - Completed] --> B1[Slice B1: Row Ingestion & Pre-Gate Evidence]
+    B1 --> B2[Slice B2: Snapshot Arithmetic Evidence]
+    B2 --> B3[Slice B3: Proof & JPY Posting Integration]
+    B3 --> C[Slice C: Checked ILS Posting Path]
 ```
 
-### Slice B1: Row Currency and Exact Decimal Ingestion
+### Slice B1: Row Ingestion and Pre-Gate Row Evidence
 
-*   **Description**: Replaces the simple integer-only amount check in `context.bqn` with `exact_decimal.Parse` for all rows. Resolves row currency metadata from fields after the first five. Parses amounts to `{coefficient, scale}` and checks row-level exact coefficient conversion. Attaches resolved currency and exact-decimal information to each row as raw evidence.
+*   **Description**: Replaces the simple integer-only amount check in `context.bqn` row ingestion with a pre-gate row evidence stage that consumes the in-memory snapshot exactly once. Resolves row currency metadata and parses row amounts using `exact_decimal.Parse`.
 *   **Prerequisites**: Slice A (completed).
-*   **Ownership**: `src_next/context.bqn` (row ingestion / `MakeProjectionRowRaw`).
-*   **Inputs**: Raw posting source lines (`journalLines`, `planLines`, `budgetLines`).
-*   **Outputs**: Projection rows augmented with:
-    *   `row.resolved_currency` (string)
-    *   `row.parsed_amount` (exact-decimal result structure)
-*   **What Remains Absent**: No snapshot-wide domain aggregation (no checking of multi-domain compatibility at the snapshot level yet), no `amount_scale` selection, no coefficient normalization, no proof carrier extension, and no ILS projection admission.
+*   **Ownership**: `src_next/context.bqn` (ingestion orchestration).
+*   **Execution Flow**:
+    1.  `LoadPostingSourceSnapshot` once.
+    2.  `BuildRowEvidenceFromSnapshot`:
+        *   Splits admitted rows into fields.
+        *   Resolves currency metadata (no tag → JPY, currency=JPY → JPY, currency=ILS → ILS, others/duplicates → fail closed).
+        *   Invokes `exact_decimal.Parse` to parse the amount text.
+        *   Fails closed immediately on any row-level syntax error, duplicate metadata token, unsupported currency, or out-of-range parsed coefficient.
+        *   Returns a list of structured row evidence records carrying resolved currency and parsed exact-decimal fields.
+    3.  `ResolveArithmeticCurrencyProof` consumes this pre-built row evidence list (rather than re-splitting the snapshot lines).
+*   **Boundary Constraints**:
+    *   **B1 row evidence != projection posting rows**: The evidence is internal and does not replace or modify the final projection posting rows.
+    *   **B1 must not require ILS projection admission**: Since the proof carrier is not extended, `ResolveArithmeticCurrencyProof` still fails closed if any row has `resolved_currency = "ILS"` (as ILS is not JPY).
+    *   `delta` in final projection posting rows remains the parsed JPY integer (with scale 0).
 *   **Exit Evidence**:
     *   Valid legacy JPY integers (e.g. `1200`) parse to scale 0 and resolve to JPY.
-    - Valid explicit JPY amounts (e.g. `12.00 currency=JPY`) parse to scale 2 and resolve to JPY.
-    *   Valid explicit ILS amounts (e.g. `42.50 currency=ILS`) parse to scale 1 and resolve to ILS in internal row evidence.
-    *   Snapshot loading still fails closed on ILS rows at context/proof level because the proof resolver remains JPY-only.
+    *   Valid explicit JPY decimals (e.g. `12.34 currency=JPY`) parse to scale 2 and resolve to JPY.
+    *   Valid explicit ILS decimals (e.g. `42.50 currency=ILS`) parse to scale 1 and resolve to ILS in internal row evidence.
+    *   Context load fails closed on any ILS row or mixed rows at the proof gate because the proof resolver remains JPY-only.
     *   Unit tests in `tests/test_src_next_context.bqn` verify that row currency resolution and amount parsing correctly fail closed on duplicate `currency=` tokens or invalid syntax (e.g. `currency=USD`) at the row level.
 
-### Slice B2: Snapshot Domain Aggregation and Arithmetic Proof
+### Slice B2: Snapshot Arithmetic Evidence
 
-*   **Description**: Aggregates row evidence across the loaded snapshot. Requires exactly one resolved domain across all rows (fails closed on mixed domains). Selects `amount_scale` (maximum canonical row scale). Normalizes coefficients to `amount_scale`, checking that normalized values remain within exact integer range (fails closed on overflow). Extends `arithmetic_currency_proof` carrier. Updates projected `delta` to use the signed normalized coefficient.
+*   **Description**: Implements the snapshot-wide arithmetic verification logic in a pure helper function. Aggregates row evidence, selects the snapshot-wide `amount_scale`, and normalizes coefficients.
 *   **Prerequisites**: Slice B1.
-*   **Ownership**: `src_next/context.bqn` (proof resolution, normalization loop).
-*   **Inputs**: Row evidence from Slice B1.
-*   **Outputs**:
-    *   Posting row `delta` updated to normalized signed integer coefficients.
-    *   Extended `arithmetic_currency_proof` carrier: `{state, domain, basis, amount_scale, message}`.
-    *   Proof basis `resolved_single_currency` supported.
-*   **What Remains Absent**: Still no ILS projection admission. Projection authorizer still rejects non-JPY domains.
+*   **Ownership**: `src_next/context.bqn` (arithmetic aggregation helper).
+*   **Execution Flow**:
+    *   Aggregates the row evidence records from Slice B1.
+    *   Requires exactly one resolved domain across all rows (fails closed on mixed domains, e.g. JPY + ILS).
+    *   Selects `amount_scale` (maximum canonical row scale).
+    *   Exact-normalizes coefficients to `amount_scale`.
+    *   Fails closed if any normalized coefficient overflows the exact integer range.
+    *   Returns an internal arithmetic evidence structure.
+*   **Boundary Constraints**:
+    *   No proof carrier extension.
+    *   No projection row `delta` changes (projection still uses JPY integers).
+    *   No ILS projection admission.
 *   **Exit Evidence**:
-    *   Fixture with mixed JPY/ILS rows fails closed.
-    *   Fixture with normalized coefficient range overflow fails closed.
-    *   Legacy JPY works as before (under basis `legacy_compatibility` or `resolved_single_currency` with scale 0).
-    *   ILS proof resolves successfully with correct `amount_scale` and basis `resolved_single_currency`, but projection fails closed with an authorization error.
-    *   Unit tests verify exactness checks and proof results.
+    *   Unit tests in `tests/test_src_next_context.bqn` verify that:
+        *   Mixed JPY/ILS row evidence fails closed.
+        *   Normalized coefficient range overflow fails closed.
+        *   Single-currency row evidence aggregates correctly and returns correct `amount_scale` and normalized coefficients (verified for both JPY and ILS inputs).
+
+### Slice B3: Proof and JPY-only Posting Integration
+
+*   **Description**: Integrates the snapshot arithmetic evidence into the main context proof carrier and projection posting rows.
+*   **Prerequisites**: Slice B2.
+*   **Ownership**: `src_next/context.bqn` (context building orchestration).
+*   **Execution Flow**:
+    *   Extends `arithmetic_currency_proof` carrier to carry `amount_scale`: `{state, domain, basis, amount_scale, message}`.
+    *   Supports `resolved_single_currency` proof basis.
+    *   Updates the final projection row building so that `delta` uses the signed normalized coefficient.
+*   **Boundary Constraints**:
+    *   Projection authorization in `projection.bqn` remains JPY-only (ILS remains closed).
+*   **Exit Evidence**:
+    *   Existing JPY dataset (both legacy and explicit JPY) works as before with `amount_scale` 0 and legacy/resolved_single_currency basis. All golden reports and check scripts pass.
+    *   Any ILS proof resolves successfully with correct `amount_scale`, but context loading fails closed because the projection authorizer rejects ILS.
+    *   Fixture tests confirm JPY normalized postings.
 
 ### Slice C: Checked ILS Posting Path
 
-*   **Description**: Permits the projection to authorize proven `ILS` domain proofs. Downstream cube and TBDS receive the normalized signed integer deltas under the same-snapshot invariant.
-*   **Prerequisites**: Slice B2.
+*   **Description**: Opens the projection authorization gate to permit proven `ILS` domain proofs. Downstream cube and TBDS receive the normalized signed integer deltas under the same-snapshot invariant.
+*   **Prerequisites**: Slice B3.
 *   **Ownership**: `src_next/projection.bqn` (proof authorizer logic).
 *   **Inputs**: Snapshot proof and normalized rows.
 *   **Outputs**: Admitted ILS projection rows in cube/TBDS.
@@ -90,14 +124,15 @@ graph TD
 
 | Feature / Invariant | Introduced in Slice | Owner | Input | Output / Evidence |
 |---|---|---|---|---|
-| Row currency resolution | **Slice B1** | `context.bqn` | Raw metadata fields | `row.resolved_currency` |
-| Row exact decimal parsing | **Slice B1** | `context.bqn` | Raw amount text | `row.parsed_amount` |
-| Row-level exact range check | **Slice B1** | `context.bqn` | Parsed coefficient | Fail closed if out of range |
-| Single domain constraint | **Slice B2** | `context.bqn` | All `row.resolved_currency` | Fail closed if mixed domains |
-| Snapshot-wide `amount_scale` | **Slice B2** | `context.bqn` | All `row.parsed_amount.scale` | `proof.amount_scale` |
-| Coefficient normalization | **Slice B2** | `context.bqn` | Parsed row coefficients | `row.delta` (normalized) |
-| Normalized range check | **Slice B2** | `context.bqn` | Normalized coefficients | Fail closed if out of range |
-| Extended proof carrier | **Slice B2** | `context.bqn` | In-memory aggregation | `arithmetic_currency_proof` |
+| Row currency resolution | **Slice B1** | `context.bqn` | Raw metadata fields | Row evidence resolved currency |
+| Row exact decimal parsing | **Slice B1** | `context.bqn` | Raw amount text | Row evidence parsed amount |
+| Row-level exact range check | **Slice B1** | `context.bqn` | Parsed coefficient | Fail closed on parsed overflow |
+| Single domain constraint | **Slice B2** | `context.bqn` | Row evidence currencies | Fail closed if mixed domains |
+| Snapshot-wide `amount_scale` | **Slice B2** | `context.bqn` | Row evidence scales | Snapshot arithmetic scale |
+| Coefficient normalization | **Slice B2** | `context.bqn` | Row evidence coefficients | Normalized coefficients |
+| Normalized range check | **Slice B2** | `context.bqn` | Normalized coefficients | Fail closed on normalized overflow |
+| Extended proof carrier | **Slice B3** | `context.bqn` | Arithmetic evidence | `arithmetic_currency_proof` |
+| Normalized posting deltas | **Slice B3** | `context.bqn` | Normalized coefficients | Projection posting row `delta` |
 | ILS projection admission | **Slice C** | `projection.bqn` | Admitted proof & rows | Admitted ILS posting rows |
 
 ---
@@ -106,9 +141,15 @@ graph TD
 
 The one-shared-snapshot invariant is preserved across the split as follows:
 1.  **Ingestion**: `LoadPostingSourceSnapshot` is called once, loading `journal.tsv`, `plan.tsv`, and `budget_alloc.tsv` into memory.
-2.  **Row Resolution (B1)**: All rows in the snapshot are parsed and validated in place. Row metadata and exact decimal properties are attached directly to the row records.
-3.  **Proof Generation & Normalization (B2)**: The snapshot proof resolver reads the resolved currencies and scales from the in-memory row records, aggregates them, and updates the row records' `delta` values with normalized coefficients.
-4.  **Authorization (C)**: The projection receives the normalized rows and the proof directly from the same context structure without re-reading the source TSV files.
+2.  **Row Evidence (B1)**: All rows in the snapshot are parsed and validated in place by `BuildRowEvidenceFromSnapshot`. No files are re-read.
+3.  **Proof Generation & Normalization (B2/B3)**: Snapshot arithmetic evidence and final proofs are generated directly from the in-memory row evidence list.
+4.  **Authorization (C)**: The projection receives the normalized rows and the proof directly from the same context structure, referencing the same in-memory data structures.
+
+---
+
+## Exact-Decimal Ownership Preservation
+
+The pure exact-decimal grammar, canonicalization, and coefficient exactness diagnostics are owned exclusively by `src_next/exact_decimal.bqn`. `src_next/context.bqn` orchestrates and consumes `exact_decimal.Parse` as a black box and does not reimplement parser or exact-range validation logic.
 
 ---
 
@@ -118,8 +159,8 @@ The one-shared-snapshot invariant is preserved across the split as follows:
     *   *Why rejected*: Combined too many changes. Row metadata parsing, amount parsing, domain aggregation, scale selection, normalization, and proof extension would be implemented all at once. This makes the PR extremely large and violates the Quality Bar requirement of small, reversible changes.
 *   **Alternative 2: Separating B1 into B1a (amount parsing only) and B1b (currency resolution only)**
     *   *Why rejected*: Over-fragmentation. Amount parsing and currency resolution are both row-level parsing operations that occur during raw row ingestion. Implementing them together in B1 is highly coherent because they are both stateless operations performed on the same row metadata fields and amount fields. Separating them would require introducing temporary row schemas that have parsed amounts but no currency metadata, or vice versa, creating unnecessary intermediate code churn.
-*   **Alternative 3: Separating B2 into B2a (domain proof and scale selection) and B2b (coefficient normalization)**
-    *   *Why rejected*: Mathematically inconsistent. Selecting a snapshot-wide `amount_scale` without normalizing the coefficients to that scale would leave the projection in an incorrect state where deltas of different scales are aggregated, causing silent arithmetic errors or requiring temporary dummy normalization. The scale selection and normalization are structurally co-dependent and must be introduced together to remain correct.
+*   **Alternative 3: Original B1/B2 split (combining normalization and integration in B2)**
+    *   *Why rejected*: B2 would still combine snapshot arithmetic math (normalization, range check) and structural integration (proof carrier extension, projection delta switch). Splitting them into B2 (pure arithmetic evidence) and B3 (proof/posting integration) allows verifying the math in isolation via unit tests before introducing integration risk to the main JPY projection path.
 
 ---
 
@@ -128,7 +169,7 @@ The one-shared-snapshot invariant is preserved across the split as follows:
 The next authorized runtime slice is:
 
 ```text
-Currency Stage 2 Slice B1: Row Currency and Exact Decimal Ingestion
+Currency Stage 2 Slice B1: Row Ingestion and Pre-Gate Row Evidence
 ```
 
 No later slices are authorized for execution until Slice B1 is successfully implemented, verified, and merged.
