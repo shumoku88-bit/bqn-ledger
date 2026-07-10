@@ -9,7 +9,7 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-10 — classification ID 11 actual-diff self-review rule executed; finite observation window opened without claiming Review / Learning outcome yet.
+Last hygiene pass: 2026-07-10 — explicit JPY/ILS single-currency admission meaning selected; next currency work narrowed to a docs-only exact-decimal + explicit-domain implementation plan.
 
 ---
 
@@ -24,13 +24,23 @@ Current state:
 - Do not add a per-PR form, tracker, telemetry, lint, parser, CI gate, or metrics service.
 - Do not turn the observation itself into repeated self-review work; after the window, record one Review / Learning assessment and retire the plan.
 
+### Currency Stage 2 explicit single-currency + exact-decimal implementation plan
+
+Selected next finite slice (not executed in this PR):
+- use `docs/CURRENCY_STAGE2_EXPLICIT_SINGLE_CURRENCY_ADMISSION_DECISION.md` as the current decision boundary;
+- plan the smallest honest runtime path for an all-ILS single domain with exact decimal source amount support;
+- decide exact-decimal parser / internal carrier before runtime implementation;
+- preserve one-snapshot proof input = projection input;
+- resolve missing currency as compatibility JPY, so missing + explicit ILS is mixed and fails closed;
+- keep Stage 3 mixed-currency operation, currency-partitioned reports, FX, conversion, and valuation out of scope;
+- do not change real or sample source TSV in the planning slice.
+
 Recently closed finite slice:
-- `docs/CURRENCY_STAGE2_BUILDPERIODVIEW_DOWNSTREAM_BOUNDARY_DECISION.md` selects option A:
-  `BuildPeriodView = trusted post-gate downstream consumer`.
-- The claim is scoped to the normal checked path:
-  `BuildContext -> proof resolution -> projection-owned authorization -> authorized posting rows -> BuildPeriodView`.
-- This does not claim arbitrary direct invocation of exported `BuildPeriodView` is mechanically proof-gated.
-- No runtime / tests / fixture / source TSV / proof argument / carrier / API / export changes are authorized by that decision.
+- `docs/CURRENCY_STAGE2_EXPLICIT_SINGLE_CURRENCY_ADMISSION_DECISION.md` selects explicit JPY / ILS row identity as Stage 2 single-domain proof evidence under an exact-one-domain snapshot rule.
+- all-ILS may prove domain ILS; missing + ILS and JPY + ILS fail closed as mixed.
+- duplicate `currency=` metadata fails closed.
+- ordinary ILS recording is not claimed complete while exact decimal amounts such as `42.50` remain unsupported by runtime.
+- no runtime / tests / fixtures / source TSV / schema / editor / Stage 3 / FX changes are authorized by that decision.
 
 Daily Trend temporal semantics の major campaign は closure review により終了しました。
 
@@ -40,17 +50,6 @@ Daily Trend temporal semantics の major campaign は closure review により�
 ---
 
 ## Next candidates
-
-### Currency awareness next slice
-
-Current baseline:
-- PR #132 `feat: implement Stage 2 minimal domain proof runtime` has been merged into `main`.
-- Stage 2 post-implementation verification is `docs/archive/audits/CURRENCY_STAGE2_POST_IMPLEMENTATION_CONTRACT_VERIFICATION-2026-07-09.md`.
-- Downstream boundary decision is `docs/CURRENCY_STAGE2_BUILDPERIODVIEW_DOWNSTREAM_BOUNDARY_DECISION.md`.
-
-Routing:
-- If future evidence shows the trusted `BuildPeriodView` precondition is insufficient, choose a separate docs-only runtime/API decision before implementation.
-- Do not auto-start proof argument changes, carrier/API changes, export reduction, Stage 3, explicit row `currency=` support, per-row multi-currency, `BASE_CURRENCY`, `base_amount=`, FX, conversion, or valuation semantics.
 
 ### `budget_pool=main` metadata
 
