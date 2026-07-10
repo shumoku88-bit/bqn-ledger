@@ -46,10 +46,7 @@ PolicyForBase ← {𝕊 base:
 
 # ── Target selection ────────────────────────────────────────
 ExpenseAccountMask ← {𝕊 resolved:
-  role_expense ← "expense"⊸≡¨ resolved.roles
-  role_missing ← ""⊸≡¨ resolved.roles
-  prefix_fallback ← role_missing ∧ ({ "expenses:" unav.StartsWith 𝕩 }¨ resolved.accounts)
-  role_expense ∨ prefix_fallback
+  "expense"⊸≡¨ resolved.roles
 }
 
 SelectedExpenseIndices ← {𝕊 tgt‿resolved:
@@ -62,10 +59,7 @@ SelectedExpenseIndices ← {𝕊 tgt‿resolved:
 }
 
 BudgetAccountMask ← {𝕊 resolved:
-  role_budget ← "budget"⊸≡¨ resolved.roles
-  role_missing ← ""⊸≡¨ resolved.roles
-  prefix_fallback ← role_missing ∧ ({ "budget:" unav.StartsWith 𝕩 }¨ resolved.accounts)
-  role_budget ∨ prefix_fallback
+  "budget"⊸≡¨ resolved.roles
 }
 
 BudgetLabel ← {𝕊 account:

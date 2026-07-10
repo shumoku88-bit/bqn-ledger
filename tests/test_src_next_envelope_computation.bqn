@@ -8,6 +8,8 @@ cycle ← •Import "../src_next/cycle.bqn"
 cube ← •Import "../src_next/cube.bqn"
 tbds ← •Import "../src_next/tbds.bqn"
 env ← •Import "../src_next/envelope_computation.bqn"
+hm ← •Import "../src_next/household_metadata.bqn"
+readiness ← •Import "../src_next/readiness_check.bqn"
 
 base ← "fixtures/src-next-envelope-computation"
 resolved ← ak.Resolve loader.ReadLines (base ∾ "/accounts.tsv")
@@ -90,6 +92,27 @@ human ← env.FormatHuman summary
 1 lib.AssertEq ∨´ "active envelope movements:"⍷human
 1 lib.AssertEq ∨´ "2026-01-01 #0 budget:食費        debit      1000 alloc_food"⍷human
 1 lib.AssertEq ∨´ "2026-01-01 #1 budget:日用品      debit       500 alloc_goods"⍷human
+
+# Prefix-shaped accounts with missing roles remain diagnostic-only even when their
+# budget/kind metadata would otherwise make them selectable.
+negative_base ← "fixtures/src-next-envelope-computation-prefix-negative"
+negative_ctx ← context.BuildContext negative_base
+negative_resolved ← negative_ctx.resolved
+negative_tgt ← env.FixtureFoodLikeTarget @
+0 lib.AssertEq ≠ env.SelectedExpenseIndices ⟨negative_tgt, negative_resolved⟩
+0 lib.AssertEq ≠ env.TargetBudgetAccountIndices ⟨negative_tgt, negative_resolved⟩
+0 lib.AssertEq ≠ env.UnassignedBudgetAccountIndices negative_resolved
+negative_summary ← env.Build negative_ctx
+0 lib.AssertEq ≠ negative_summary.envelopes
+0 lib.AssertEq negative_summary.selected_expense_account_count
+0 lib.AssertEq negative_summary.target_budget_account_count
+0 lib.AssertEq negative_summary.unassigned_account_count
+negative_diag ← hm.Build negative_ctx
+1 lib.AssertEq negative_diag.prefix_fallback_expense_count
+2 lib.AssertEq negative_diag.prefix_fallback_budget_count
+0 lib.AssertEq negative_diag.expense_accounts_total
+negative_readiness ← readiness.Build negative_ctx
+3 lib.AssertEq ≠ negative_readiness.missing_role_accounts
 
 # No allocation: target exists and actual can be observed, but status is unavailable
 # and formatted amounts are not polished remaining values.

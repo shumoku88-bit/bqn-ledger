@@ -58,7 +58,7 @@ BuildSummary ← {𝕊 base‿resolved‿valid_rows:
   role_expense ← "expense"⊸≡¨ roles
   role_missing ← ""⊸≡¨ roles
   prefix_fallback ← role_missing ∧ ({ "expenses:" StartsWith 𝕩 }¨ accounts)
-  expense_accounts ← role_expense ∨ prefix_fallback
+  expense_accounts ← role_expense
 
   budget_present ← NonEmpty¨budgets
   group_present ← NonEmpty¨groups

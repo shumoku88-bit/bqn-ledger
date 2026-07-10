@@ -30,7 +30,7 @@ Build ← {𝕊 ctx:
   groups ← resolved.budget_groups
   spend_classes ← resolved.spend_classes
 
-  # Expense account classification: role=expense explicit + expenses: prefix fallback
+  # Explicit role owns expense classification; familiar missing-role prefixes are diagnostics only.
   role_expense ← "expense"⊸≡¨ roles
   role_missing ← ""⊸≡¨ roles
   prefix_fallback ← role_missing ∧ ({ "expenses:" StartsWith 𝕩 }¨ accounts)
