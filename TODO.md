@@ -9,7 +9,7 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-10 — Currency Stage 2 Slice A exact-decimal kernel implemented; next currency work narrowed to post-implementation claim-to-evidence verification. Slice B is not automatically authorized.
+Last hygiene pass: 2026-07-10 — Slice A exact-decimal claim-to-evidence verification completed with no material plan/runtime mismatch; next currency work narrowed to a docs-only Slice B execution split.
 
 ---
 
@@ -24,25 +24,28 @@ Current state:
 - Do not add a per-PR form, tracker, telemetry, lint, parser, CI gate, or metrics service.
 - Do not turn the observation itself into repeated self-review work; after the window, record one Review / Learning assessment and retire the plan.
 
-### Currency Stage 2 Slice A post-implementation verification
+### Currency Stage 2 Slice B execution split
 
 Selected next finite slice (docs-only; not executed in this PR):
-- verify the Slice A safety claims against the current runtime owner in `src_next/exact_decimal.bqn` and focused unit evidence;
-- confirm accepted grammar, canonical coefficient + scale, visible invalid syntax, and exact-range fail-closed behavior are executable rather than docs-only claims;
-- confirm failing states do not become coefficient zero;
-- confirm no `currency=ILS` projection admission, proof carrier extension, source TSV, metadata schema, editor, cube, TBDS, report, or JSON behavior changed;
-- record any plan/runtime mismatch precisely rather than silently widening the implementation;
-- decide the next routing explicitly after verification; do not automatically authorize Slice B.
+- use `docs/archive/audits/CURRENCY_STAGE2_SLICE_A_EXACT_DECIMAL_VERIFICATION-2026-07-10.md` as the point-in-time verification evidence;
+- preserve the semantics already selected by `docs/CURRENCY_STAGE2_EXPLICIT_SINGLE_CURRENCY_EXACT_DECIMAL_IMPLEMENTATION_PLAN.md`;
+- divide current Slice B into the smallest executable sub-slices with explicit owner and exit evidence;
+- preserve one shared in-memory posting-source snapshot across row evidence, proof, normalization, and later projection use;
+- keep `currency=ILS` projection authorization closed;
+- do not implement runtime, tests, checks, fixtures, source TSV, schema, editor, cube, TBDS, report, or JSON changes in the split-decision PR.
+
+Candidate split to decide, not yet authorized as runtime:
+- B1 shared-snapshot row evidence: resolve row currency state + parse amount through `exact_decimal.Parse`; no domain aggregation, `amount_scale`, normalization, proof extension, or projection admission;
+- B2 snapshot arithmetic proof: require exactly one domain, select `amount_scale`, exact-normalize coefficients, extend proof carrier, and add focused fixture evidence; still no ILS projection admission.
 
 Recently closed finite slice:
-- `src_next/exact_decimal.bqn` now owns the pure BQN exact-decimal kernel selected by `docs/CURRENCY_STAGE2_EXPLICIT_SINGLE_CURRENCY_EXACT_DECIMAL_IMPLEMENTATION_PLAN.md`;
-- accepted grammar remains only `digits+` or `digits+ "." digits+`;
-- source decimal text is not parsed directly as a generic decimal Number;
-- arithmetic canonicalization removes leading coefficient zeros and trailing fractional zeros, producing canonical coefficient + scale;
-- digit-only coefficient conversion is admitted only when the current runtime round-trips the identical canonical integer text;
-- invalid syntax and non-exact coefficient conversion remain visible failure states;
-- focused unit tests cover valid, invalid, canonicalization, and exact-range cases;
-- no `currency=ILS` projection admission or later Slice B/C runtime work is included.
+- `docs/archive/audits/CURRENCY_STAGE2_SLICE_A_EXACT_DECIMAL_VERIFICATION-2026-07-10.md` maps Slice A claims to current runtime owner and evidence;
+- accepted grammar, canonical coefficient + scale, visible invalid syntax, preserved source spelling, and exact coefficient range failure are aligned;
+- failing parse/range states keep coefficient and scale empty rather than becoming zero;
+- current context still rejects any explicit `currency=` metadata and projection still authorizes proven JPY only;
+- current proof carrier still has no `amount_scale`;
+- no material plan/runtime mismatch was found;
+- this verification does not prove later normalized coefficient exactness and does not automatically authorize the full Slice B bundle.
 
 Daily Trend temporal semantics の major campaign は closure review により終了しました。
 
