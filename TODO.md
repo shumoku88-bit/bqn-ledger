@@ -9,7 +9,7 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-10 — merged Currency Stage 2 Slice B1 post-implementation verified; next finite currency route narrowed to Slice B2 arithmetic evidence.
+Last hygiene pass: 2026-07-11 — added a periodic external-audit reassessment lane; audit findings remain evidence rather than implementation authority, and current finite routing remains explicit below.
 
 ---
 
@@ -96,6 +96,31 @@ Recurring review prompts:
 - [ ] 改善候補は一度に一つを優先し、必要なら docs-only plan → Execution → Review / Learning の小さいループを回す
 - [ ] green path は静かに保ち、red path では command / exit code / stdout / stderr など十分な failure evidence が見えるか確認する
 - [ ] AI向け導線、repo index、contracts、checks が current architecture を指しているか確認する
+
+### External audit reassessment
+
+目的:
+- 外部監査を実装キューではなく、current main と TODO の偏りを点検する観測資料として使う
+- 古い ZIP 時点の指摘、current policy、current runtime、daily-use evidence を混同しない
+- 有効な指摘だけを小さな finite slice として一件ずつ昇格する
+
+導線:
+- `docs/archive/audits/EXTERNAL_STATIC_AUDIT_REASSESSMENT_SOURCE-2026-07-11.md`
+
+Review triggers:
+- major finite campaign が閉じた時
+- `TODO.md` hygiene pass を行う時
+- concrete friction が繰り返された時
+- broad refactor / CI / privacy / i18n / observability / release work を検討する時
+- moko が再評価を依頼した時
+
+Recurring review prompts:
+- [ ] finding を current `main` で再検証し、古い ZIP の状態を current truth として扱わない
+- [ ] `confirmed-current` / `policy-choice` / `already-resolved` / `stale` / `unclear-needs-evidence` に再分類する
+- [ ] 監査レポートの元の優先順位を TODO へコピーしない
+- [ ] concrete consumer / daily-use / maintenance / CI evidence があるか確認する
+- [ ] TODO へ昇格する場合も一度に一つの finite candidate に絞る
+- [ ] broad campaign や新 infrastructure を、監査提案だけを理由に開始しない
 
 ### Documentation currency / lifecycle
 
