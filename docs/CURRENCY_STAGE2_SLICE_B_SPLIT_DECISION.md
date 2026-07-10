@@ -33,6 +33,11 @@ This decision preserves the semantics already selected by [CURRENCY_STAGE2_EXPLI
 
 ## Selected Split
 
+Execution status at 2026-07-10:
+
+- B1 merged in PR #146 and is post-implementation verified by [`CURRENCY_STAGE2_SLICE_B1_POST_IMPLEMENTATION_VERIFICATION-2026-07-10.md`](archive/audits/CURRENCY_STAGE2_SLICE_B1_POST_IMPLEMENTATION_VERIFICATION-2026-07-10.md).
+- B2 is the next authorized finite runtime slice; B3 and C remain unauthorized until their prerequisites are implemented and verified.
+
 We divide the remaining work into four sequential, independently finite executable sub-slices:
 
 ```mermaid
@@ -178,10 +183,12 @@ The pure exact-decimal grammar, canonicalization, and coefficient exactness diag
 
 ## Next Runtime Slice Only
 
-The next authorized runtime slice is:
+After merged B1 post-implementation verification, the next authorized runtime slice is:
 
 ```text
-Currency Stage 2 Slice B1: Row Ingestion and Pre-Gate Row Evidence
+Currency Stage 2 Slice B2: Snapshot Arithmetic Evidence
 ```
 
-No later slices are authorized for execution until Slice B1 is successfully implemented, verified, and merged.
+Its boundary is aggregation of B1 row evidence, exactly one resolved domain, snapshot-wide `amount_scale`, exact coefficient normalization, normalized-overflow failure, and an internal arithmetic evidence result. It does not extend the proof carrier, change projection deltas, admit ILS projection, or open full projection admission for scale > 0 rows.
+
+B3 and Slice C remain unauthorized until their sequential prerequisites are implemented and verified.
