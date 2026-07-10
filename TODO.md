@@ -9,16 +9,20 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-10 — Stage 2 `BuildPeriodView` downstream proof-boundary decision selected; no next currency runtime/API slice is automatically authorized.
+Last hygiene pass: 2026-07-10 — classification ID 11 actual-diff self-review rule executed; finite observation window opened without claiming Review / Learning outcome yet.
 
 ---
 
 ## Active work
 
-Selected next finite slice (not executed in this PR):
-- `docs/archive/active-plans/AI_DIFF_SELF_REVIEW_PILOT_PLAN-2026-07-10.md` approves classification ID 11 as a docs-only Execution candidate.
-- Execution is limited to one short `AGENTS.md` pre-push / pre-PR actual-diff self-review rule plus lifecycle routing.
-- The approved plan does not authorize tooling, CI, token telemetry, or runtime/test/check/source TSV changes.
+### AI actual-diff self-review pilot observation
+
+Current state:
+- `docs/archive/active-plans/AI_DIFF_SELF_REVIEW_PILOT_PLAN-2026-07-10.md` remains the finite owner through observation and one Review / Learning assessment.
+- `AGENTS.md` now requires one short actual-diff self-review before the first push / PR.
+- Observe the first 3 comparable finite AI-authored slices after this Execution using the plan's descriptive observables.
+- Do not add a per-PR form, tracker, telemetry, lint, parser, CI gate, or metrics service.
+- Do not turn the observation itself into repeated self-review work; after the window, record one Review / Learning assessment and retire the plan.
 
 Recently closed finite slice:
 - `docs/CURRENCY_STAGE2_BUILDPERIODVIEW_DOWNSTREAM_BOUNDARY_DECISION.md` selects option A:
