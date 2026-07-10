@@ -156,14 +156,14 @@ CheckRowEvidence ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food"
 CheckProofGateFail ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "12x"⟩, "row error in Stage 2 minimal runtime slice"⟩
 CheckProofGateFail ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "12x"⟩, "invalid_decimal_syntax"⟩
 untaggedInvalidProof ← ResolveProof ProofSnapshot ⟨⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "12x"⟩⟩, ⟨⟩, ⟨⟩⟩
-"invalid_decimal_syntax" lib.AssertEq untaggedInvalidProof.basis
+"unsupported_row_evidence" lib.AssertEq untaggedInvalidProof.basis
 
 # 12. Untagged parsed coefficient range failure (fails proof gate directly)
 CheckRowEvidence ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "9007199254740993"⟩, "JPY", "legacy_compatibility", "error", ⟨⟩, ⟨⟩⟩
 CheckProofGateFail ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "9007199254740993"⟩, "row error in Stage 2 minimal runtime slice"⟩
 CheckProofGateFail ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "9007199254740993"⟩, "amount_out_of_exact_range"⟩
 untaggedRangeProof ← ResolveProof ProofSnapshot ⟨⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "9007199254740993"⟩⟩, ⟨⟩, ⟨⟩⟩
-"amount_out_of_exact_range" lib.AssertEq untaggedRangeProof.basis
+"unsupported_row_evidence" lib.AssertEq untaggedRangeProof.basis
 
 •Out "test_src_next_currency_domain_proof.bqn: OK"
 

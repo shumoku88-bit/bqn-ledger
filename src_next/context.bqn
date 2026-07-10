@@ -139,7 +139,7 @@ ResolveArithmeticCurrencyProof ← {𝕊 evidence:
             msg ↩ "implicit decimal JPY unsupported in Stage 2 minimal runtime slice: " ∾ bad_row.source_file ∾ " row " ∾ (•Fmt bad_row.source_row)
           } ⍟ is_scale @
           {𝕊:
-            basis ↩ bad_row.message
+            basis ↩ "unsupported_row_evidence"
             msg ↩ "row error in Stage 2 minimal runtime slice: " ∾ bad_row.source_file ∾ " row " ∾ (•Fmt bad_row.source_row) ∾ ": " ∾ bad_row.message
           } ⍟ (bad_row.state ≢ "ok") @
         } ⍟ (bad_row.provenance ≡ "legacy_compatibility") @
@@ -354,4 +354,4 @@ BuildContext ← {𝕊 arg:
   }
 }
 
-{ BuildContext ⇐ BuildContext, LoadPostingSourceSnapshot ⇐ LoadPostingSourceSnapshot, BuildRowEvidenceFromSnapshot ⇐ BuildRowEvidenceFromSnapshot, ResolveArithmeticCurrencyProof ⇐ ResolveArithmeticCurrencyProof, BuildAuthorizedRowsFromSnapshot ⇐ BuildAuthorizedRowsFromSnapshot, BuildAllRowsFromSnapshot ⇐ BuildAllRowsFromSnapshot, BuildAllRows ⇐ BuildAllRows, BuildPeriodView ⇐ BuildPeriodView, BuildRowsForFile ⇐ BuildRowsForFile, BuildRowsForFileOptional ⇐ BuildRowsForFileOptional, BuildProjectionRowsForEvidence ⇐ BuildProjectionRowsForEvidence }
+{ BuildContext ⇐ BuildContext, LoadPostingSourceSnapshot ⇐ LoadPostingSourceSnapshot, BuildRowEvidenceFromSnapshot ⇐ BuildRowEvidenceFromSnapshot, ResolveArithmeticCurrencyProof ⇐ ResolveArithmeticCurrencyProof, BuildAuthorizedRowsFromSnapshot ⇐ BuildAuthorizedRowsFromSnapshot, BuildAllRowsFromSnapshot ⇐ BuildAllRowsFromSnapshot, BuildAllRows ⇐ BuildAllRows, BuildPeriodView ⇐ BuildPeriodView, BuildRowsForFile ⇐ BuildRowsForFile, BuildRowsForFileOptional ⇐ BuildRowsForFileOptional }
