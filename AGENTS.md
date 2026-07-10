@@ -90,6 +90,7 @@ Docs整理では、いきなり削除せず、まず archive 候補・superseded
 
 - AIは、実データ TSV（base directory 配下の `journal.tsv`, `plan.tsv`, `budget_alloc.tsv`, `accounts.tsv`。例: `LEDGER_DATA_DIR=moko/data`）を絶対に直接編集・新規作成・削除してはならない。公開 repo の `data/` は匿名 sandbox だが、実データと同じ schema のため無用な変更は避ける。特に実運用 `journal.tsv` を含むこれら正本データへの書き込み操作は、AIのいかなる手段（sed, echo, overwrite, 追記等）を用いても厳禁とする。AIができるのは、あくまで「人間への編集依頼案（diffの提示）」の作成までである。ただしmokoから明示的に指示をされた場合は編集できるものとする。
 - 変更は小さく、1目的ずつ。
+- 初回 push / PR 前に一度、intended scope と actual proposed diff を突き合わせる。changed filenames と、状態に応じた working tree / staged / intended base...HEAD の full diff（既コミット分を含む）を見て、無関係な追加・削除・復元漏れ、scope leakage、semantic side effect を確認する。これは短い human/pit self-review であり、lint / parser / CI gate / permanent form / metrics service にしない。
 - TSVの先頭5列を壊さない。拡張は6列目以降の `key=value` で行う。
 - journal-like TSV を読み込む際は、空の memo フィールド等で列がずれないよう、必ず `lib.SplitKeepEmpty` を使用すること。
 - `src_next/report.bqn` のセクション構成や `src_next/summary.bqn` の機械向けフィールドを変更した場合は、必ず `docs/AI_CODEMAP.md` と該当する現行 report docs / check を更新すること。`docs/REPORT_FIELD_MAP.md` と `docs/MAIN_SECTIONS.md` は旧エンジン履歴として扱う。
