@@ -103,7 +103,16 @@ graph TD
 *   **Boundary Constraints**:
     *   Projection authorization in `projection.bqn` remains JPY-only (ILS remains closed). Only JPY proof domains (both legacy and resolved single currency) are admitted.
 *   **Exit Evidence**:
-    *   Existing JPY dataset (both legacy and explicit JPY) works as before with `amount_scale` 0 and legacy/resolved_single_currency basis. All golden reports and check scripts pass.
+    *   legacy integer-only JPY regression:
+        *   amount_scale = 0
+        *   normalized coefficient equals existing integer amount
+        *   posting delta unchanged
+        *   golden behavior unchanged
+    *   explicit or implicit decimal JPY:
+        *   amount_scale equals maximum canonical row scale
+        *   normalized coefficients are exact
+        *   signed posting deltas use normalized coefficients
+        *   aggregate totals remain exact
     *   Any ILS proof resolves successfully with correct `amount_scale`, but context loading fails closed because the projection authorizer rejects ILS.
     *   Fixture tests confirm JPY normalized postings.
 
@@ -144,7 +153,9 @@ The one-shared-snapshot invariant is preserved across the split as follows:
 1.  **Ingestion**: `LoadPostingSourceSnapshot` is called once, loading `journal.tsv`, `plan.tsv`, and `budget_alloc.tsv` into memory.
 2.  **Row Evidence (B1)**: All rows in the snapshot are parsed and validated in place by `BuildRowEvidenceFromSnapshot`. No files are re-read.
 3.  **Proof Generation & Normalization (B2/B3)**: Snapshot arithmetic evidence and final proofs are generated directly from the in-memory row evidence list.
-4.  **Authorization (C)**: The projection receives the normalized rows and the proof directly from the same context structure, referencing the same in-memory data structures.
+4.  **Authorization (B3/C)**:
+    *   **B3**: The proof and normalized rows come from the same in-memory evidence, but projection authorization remains JPY-only.
+    *   **C**: Later widen authorization to proven ILS without source re-read, preserving the same-snapshot invariant.
 
 ---
 
