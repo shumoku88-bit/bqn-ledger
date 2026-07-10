@@ -95,7 +95,7 @@ graph TD
 
 *   **Description**: Integrates the snapshot arithmetic evidence into the main context proof carrier and projection posting rows. B3 is the first slice that integrates the selected proof basis and normalization into the main projection path. Therefore, B3 is the earliest slice where scale > 0 JPY rows (both explicit JPY and implicit JPY decimals) may be considered for full checked posting admission.
 *   **Prerequisites**: Slice B2.
-*   **Ownership**: `src_next/context.bqn` (context building orchestration).
+*   **Ownership**: `src_next/context.bqn` (context building orchestration) and `src_next/projection.bqn` (proof authorization JPY-only constraint).
 *   **Execution Flow**:
     *   Extends `arithmetic_currency_proof` carrier to carry `amount_scale`: `{state, domain, basis, amount_scale, message}`.
     *   Supports `resolved_single_currency` proof basis.
