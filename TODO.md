@@ -9,7 +9,7 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-10 — explicit JPY/ILS single-currency admission meaning selected; next currency work narrowed to a docs-only exact-decimal + explicit-domain implementation plan.
+Last hygiene pass: 2026-07-10 — exact-decimal + explicit single-domain runtime path planned; next currency work narrowed to Slice A pure exact-decimal kernel.
 
 ---
 
@@ -24,23 +24,26 @@ Current state:
 - Do not add a per-PR form, tracker, telemetry, lint, parser, CI gate, or metrics service.
 - Do not turn the observation itself into repeated self-review work; after the window, record one Review / Learning assessment and retire the plan.
 
-### Currency Stage 2 explicit single-currency + exact-decimal implementation plan
+### Currency Stage 2 Slice A: exact-decimal kernel
 
 Selected next finite slice (not executed in this PR):
-- use `docs/CURRENCY_STAGE2_EXPLICIT_SINGLE_CURRENCY_ADMISSION_DECISION.md` as the current decision boundary;
-- plan the smallest honest runtime path for an all-ILS single domain with exact decimal source amount support;
-- decide exact-decimal parser / internal carrier before runtime implementation;
-- preserve one-snapshot proof input = projection input;
-- resolve missing currency as compatibility JPY, so missing + explicit ILS is mixed and fails closed;
-- keep Stage 3 mixed-currency operation, currency-partitioned reports, FX, conversion, and valuation out of scope;
-- do not change real or sample source TSV in the planning slice.
+- use `docs/CURRENCY_STAGE2_EXPLICIT_SINGLE_CURRENCY_EXACT_DECIMAL_IMPLEMENTATION_PLAN.md` as the current implementation plan;
+- add a pure BQN exact-decimal text parser with canonical coefficient + scale output;
+- accept only the selected unsigned finite-decimal grammar;
+- do not parse decimal source text as a generic decimal Number;
+- reject invalid syntax visibly rather than producing zero;
+- fail closed if coefficient conversion or normalization cannot remain exact;
+- add focused unit tests for valid, invalid, canonicalization, and exact-range cases;
+- do not yet admit `currency=ILS` into projection;
+- do not change source TSV, metadata schema, editor, cube, TBDS, report, or JSON behavior.
 
 Recently closed finite slice:
-- `docs/CURRENCY_STAGE2_EXPLICIT_SINGLE_CURRENCY_ADMISSION_DECISION.md` selects explicit JPY / ILS row identity as Stage 2 single-domain proof evidence under an exact-one-domain snapshot rule.
-- all-ILS may prove domain ILS; missing + ILS and JPY + ILS fail closed as mixed.
-- duplicate `currency=` metadata fails closed.
-- ordinary ILS recording is not claimed complete while exact decimal amounts such as `42.50` remain unsupported by runtime.
-- no runtime / tests / fixtures / source TSV / schema / editor / Stage 3 / FX changes are authorized by that decision.
+- `docs/CURRENCY_STAGE2_EXPLICIT_SINGLE_CURRENCY_EXACT_DECIMAL_IMPLEMENTATION_PLAN.md` selects source parse carrier = canonical coefficient + scale.
+- it selects snapshot arithmetic carrier = one `amount_scale` + normalized integer coefficients.
+- `amount_scale` is carried inside `arithmetic_currency_proof`; it is not currency identity, display precision, FX, or valuation policy.
+- legacy integer JPY must remain scale-0 behaviorally compatible.
+- future all-ILS exact-decimal operation remains staged; broad daily-use ILS support is not yet claimed.
+- no runtime / tests / fixtures / source TSV / schema / editor / report / JSON / Stage 3 / FX changes are authorized by that planning PR.
 
 Daily Trend temporal semantics の major campaign は closure review により終了しました。
 
