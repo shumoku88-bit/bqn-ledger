@@ -5,9 +5,9 @@ Owner: config
 Canonical: yes
 Decision date: 2026-07-10
 Depends on: `docs/CURRENCY_STAGE1_AMOUNT_SEMANTICS_DECISION.md`, `docs/CURRENCY_STAGE2_SINGLE_CURRENCY_DOMAIN_DECISION.md`, `docs/CURRENCY_STAGE2_MINIMAL_DOMAIN_PROOF_IMPLEMENTATION_PLAN.md`, `docs/CURRENCY_STAGE2_BUILDPERIODVIEW_DOWNSTREAM_BOUNDARY_DECISION.md`, `docs/CURRENCY_STAGE2_EXPLICIT_SINGLE_CURRENCY_ADMISSION_DECISION.md`, `docs/POSTING_IR_CONTRACT.md`
-Exit: archive or supersede after the selected staged runtime path either reaches honest all-ILS exact-decimal operation or a later current contract replaces its exact-decimal carrier, normalization scale, proof shape, or output-readiness boundary
+Exit: archive or supersede after the selected staged runtime path reaches honest all-ILS exact-decimal operation or a later current contract replaces its exact-decimal carrier, normalization scale, or proof shape
 
-This document plans the smallest staged runtime path from the current JPY-only integer projection implementation to an honest all-ILS single-currency domain that can preserve an exact source amount such as:
+This document plans the smallest staged runtime path from the current integer-only JPY compatibility implementation toward an all-ILS single-currency domain that can preserve an exact source amount such as:
 
 ```text
 42.50 currency=ILS
@@ -15,21 +15,16 @@ This document plans the smallest staged runtime path from the current JPY-only i
 
 This PR is docs-only. It does not implement runtime, tests, checks, fixtures, source TSV, metadata schema, editor, report, JSON, Posting IR, cube, or TBDS changes.
 
-## 1. Current implementation evidence
+## 1. Current runtime facts
 
-The current runtime is narrower than the selected Stage 1 and explicit-admission semantics.
-
-### 1.1 Amount path
-
-Current `src_next/context.bqn`:
+Current `src_next/context.bqn` amount flow is:
 
 ```text
 amountText
   -> projection.IsIntegerText
   -> •BQN amountText
   -> scalar Number amount
-  -> debit delta = amount
-  -> credit delta = -amount
+  -> debit / credit delta
 ```
 
 Therefore:
@@ -39,18 +34,14 @@ Therefore:
   -> invalid_amount
 ```
 
-The current source-to-projection path is integer-only.
-
-### 1.2 Currency proof path
-
-Current `ResolveArithmeticCurrencyProof`:
+Current currency proof behavior is also narrower than the selected decision:
 
 ```text
 any explicit currency= token
   -> unsupported
 ```
 
-Current projection authorization:
+Current projection authorization requires:
 
 ```text
 proof.state = proven
@@ -61,35 +52,20 @@ proof.basis in {
 }
 ```
 
-Only then is projection authorized.
+Current cube and TBDS consumers sum scalar `delta` values with ordinary numeric reductions.
 
-### 1.3 Aggregation path
-
-Current cube and TBDS consumers assume each posting row carries one addable scalar `delta` and use ordinary numeric reduction:
+Consequence:
 
 ```text
-+´ deltas
+admit currency=ILS only
+  != honest ILS support
 ```
 
-and related array sums.
+The amount path and arithmetic carrier must be made exact first.
 
-This scalar shape is valuable. Replacing every cube / TBDS cell with a decimal namespace pair in the first non-JPY slice would broaden the change surface substantially.
+## 2. Selected exact-decimal parse carrier
 
-## 2. Selected exact-decimal representation
-
-This plan selects a two-boundary representation:
-
-```text
-source parse boundary
-  -> canonical exact-decimal pair
-
-arithmetic boundary for one proven snapshot
-  -> snapshot-scale normalized integer coefficient
-```
-
-### 2.1 Parsed exact-decimal pair
-
-Selected conceptual parse result:
+At the source parse boundary, represent one exact finite decimal as:
 
 ```text
 {
@@ -104,11 +80,10 @@ Selected conceptual parse result:
 Meaning:
 
 ```text
-exact monetary quantity
-  = coefficient × 10^(-scale)
+quantity = coefficient × 10^(-scale)
 ```
 
-Examples after canonicalization:
+Examples after arithmetic canonicalization:
 
 ```text
 1200
@@ -128,20 +103,20 @@ Examples after canonicalization:
   -> scale = 0
 ```
 
-Trailing fractional zeros are removed for arithmetic canonicalization because Stage 1 selects an exact decimal monetary quantity, not lexical display precision.
+Trailing fractional zeros are removed for arithmetic canonicalization.
 
 Preserve:
 
 ```text
-source amount quantity != source text spelling
-source amount quantity != display precision
+exact quantity != source text spelling
+exact quantity != display precision
 ```
 
-The original source text remains available for diagnostics where needed.
+The original source text remains available for diagnostics.
 
-### 2.2 Selected source grammar
+## 3. Selected parser grammar
 
-The first exact-decimal parser accepts only:
+Accept only:
 
 ```text
 digits+
@@ -162,9 +137,10 @@ Examples:
 00042.50  valid, canonicalized
 ```
 
-The first parser rejects:
+Reject:
 
 ```text
+empty
 +42.50
 -42.50
 .50
@@ -173,37 +149,30 @@ The first parser rejects:
 1E3
 1,200
 42 50
-empty
+1.2.3
 ```
 
 Rationale:
 
-- current journal direction is expressed by `from` / `to`, not by a signed amount field;
-- exponent and locale syntax are not needed for the concrete ILS consumer;
-- a deliberately small grammar reduces ambiguous parsing and silent normalization.
+- current transaction direction is expressed by `from` / `to`;
+- exponent and locale syntax are not required by the concrete ILS consumer;
+- no automatic rounding policy is selected.
 
-No automatic rounding is selected.
-
-### 2.3 Do not parse a decimal literal through the current generic numeric path
-
-The first implementation must not treat this as sufficient:
+The implementation must not treat this as sufficient:
 
 ```text
 •BQN "42.50"
 ```
 
-The parser must separate decimal text into digit-only coefficient information and scale before arithmetic admission.
+Decimal text must be split into digit-only coefficient information and scale before arithmetic admission.
 
-This plan does not claim any host/runtime decimal literal representation is exact.
-
-## 3. Selected arithmetic carrier
+## 4. Selected arithmetic carrier
 
 After all admitted posting-source rows in one shared snapshot have valid exact-decimal parse results, select one snapshot-wide arithmetic scale:
 
 ```text
 amount_scale
   = maximum canonical row scale
-    across all admitted monetary source rows
 ```
 
 Empty source:
@@ -212,27 +181,26 @@ Empty source:
 amount_scale = 0
 ```
 
-For each parsed amount:
+Normalize each parsed amount exactly:
 
 ```text
 normalized_coefficient
   = coefficient × 10^(amount_scale - row.scale)
 ```
 
-Examples:
+Example:
 
 ```text
-source rows:
-  42.50 -> canonical 425 × 10^-1
-  0.05  -> canonical   5 × 10^-2
-  18    -> canonical  18 × 10^0
+42.50 -> canonical 425 × 10^-1
+0.05  -> canonical   5 × 10^-2
+18    -> canonical  18 × 10^0
 
-snapshot amount_scale = 2
+amount_scale = 2
 
 normalized coefficients:
-  4250
-     5
-  1800
+4250
+5
+1800
 ```
 
 Selected Posting IR direction:
@@ -240,44 +208,13 @@ Selected Posting IR direction:
 ```text
 delta
   = signed normalized integer coefficient
-    inside one proven arithmetic currency domain
+    inside one proven currency domain
     at one carried amount_scale
 ```
 
-Therefore current scalar aggregation shape can remain structurally usable:
+This preserves the useful scalar aggregation shape of cube and TBDS.
 
-```text
-cube / TBDS
-  -> continue summing scalar integer coefficients
-```
-
-while monetary meaning is carried by the proven run context:
-
-```text
-currency domain + amount_scale
-```
-
-## 4. Why snapshot-wide scale is selected
-
-This plan does not select:
-
-```text
-A. decimal pair namespace in every cube cell
-B. implicit binary floating-point amount
-C. per-currency hardcoded minor-unit scale as source truth
-D. automatic rounding to a fixed scale
-```
-
-Selected reason for snapshot-wide scale:
-
-- preserves exact finite-decimal quantities by power-of-ten normalization;
-- keeps one addable scalar delta shape for array aggregation;
-- preserves current JPY integer fixtures as `amount_scale = 0`;
-- does not make display precision the authority for source amount meaning;
-- does not require FX or mixed-currency partitions;
-- avoids introducing a broad currency registry merely to prove the first ILS path.
-
-Important consequence:
+Preserve:
 
 ```text
 amount_scale
@@ -289,7 +226,7 @@ amount_scale
 
 It is an arithmetic-unit carrier for one loaded posting-source snapshot.
 
-## 5. Exactness and representable-range boundary
+## 5. Exactness / range boundary
 
 The implementation must fail closed if either:
 
@@ -305,26 +242,26 @@ normalized coefficient
 
 cannot be represented exactly by the selected runtime integer path.
 
-Selected diagnostic class:
+Selected diagnostic meaning:
 
 ```text
 amount_out_of_exact_range
 ```
 
-or a repository-native equivalent with the same meaning.
+or a repository-native equivalent.
 
-The implementation must not silently continue after numeric rounding or overflow.
+Do not silently continue after numeric rounding or overflow.
 
-This plan does not hardcode an unverified numeric limit. The first runtime implementation must add executable boundary evidence for its exact-integer conversion and normalization path.
+This plan does not hardcode an unverified numeric limit. Slice A must include executable boundary evidence for its exact integer conversion path.
 
 Preserve:
 
 ```text
 syntactically valid decimal
-  != exactly representable normalized runtime coefficient
+  != exactly representable runtime coefficient
 ```
 
-## 6. Selected row currency resolver
+## 6. Selected row currency resolution
 
 For every admitted monetary source row from:
 
@@ -336,37 +273,35 @@ budget_alloc.tsv
 
 inspect only metadata tokens after the protected first five fields.
 
-Selected resolver:
+Selected resolution:
 
 ```text
 no currency= token
-  -> row currency identity = JPY
-  -> evidence kind = legacy_compatibility
+  -> JPY identity
+  -> evidence = legacy_compatibility
 
 exactly one currency=JPY
-  -> row currency identity = JPY
-  -> evidence kind = explicit
+  -> JPY identity
+  -> evidence = explicit
 
 exactly one currency=ILS
-  -> row currency identity = ILS
-  -> evidence kind = explicit
+  -> ILS identity
+  -> evidence = explicit
 
 exactly one other currency=<value>
-  -> invalid / unsupported explicit currency
+  -> invalid / unsupported
   -> fail closed
 
 more than one currency= token
-  -> invalid duplicate currency metadata
+  -> invalid duplicate metadata
   -> fail closed
 ```
 
 Duplicate tokens fail closed even when values are identical.
 
-Do not use first-wins or last-wins behavior.
+## 7. Selected snapshot arithmetic-proof flow
 
-## 7. Selected snapshot proof algorithm
-
-Proof input remains the exact same in-memory snapshot later used for amount normalization and posting-row construction.
+Proof input, amount normalization input, and projection input must remain one shared in-memory snapshot.
 
 Selected order:
 
@@ -380,14 +315,12 @@ LoadPostingSourceSnapshot once
   -> reject non-exact coefficient range states
   -> collect distinct resolved currency identities
   -> require exactly one currency domain
-  -> select snapshot amount_scale
-  -> exact-normalize every row coefficient
+  -> select amount_scale
+  -> exact-normalize row coefficients
   -> build proof
   -> projection-owned authorization
-  -> build posting rows from the same snapshot-derived row evidence
+  -> build posting rows from the same snapshot evidence
 ```
-
-Do not re-read source TSV between proof and projection.
 
 Preserve:
 
@@ -397,7 +330,9 @@ proof input snapshot
   = projection input snapshot
 ```
 
-## 8. Selected proof shape extension
+Do not re-read source TSV between these stages.
+
+## 8. Selected proof carrier extension
 
 Current carrier:
 
@@ -410,7 +345,7 @@ ctx.arithmetic_currency_proof = {
 }
 ```
 
-Selected extension:
+Selected future carrier:
 
 ```text
 ctx.arithmetic_currency_proof = {
@@ -422,17 +357,9 @@ ctx.arithmetic_currency_proof = {
 }
 ```
 
-Do not add a second independent truth such as:
+Do not add a second independent domain or scale truth unless a concrete consumer later requires it.
 
-```text
-ctx.amount_scale
-```
-
-unless a concrete consumer later requires a separately owned carrier.
-
-The proof carrier remains the single current arithmetic-domain context.
-
-### 8.1 Selected proof basis vocabulary
+### 8.1 Proof basis vocabulary
 
 Retain:
 
@@ -441,24 +368,28 @@ empty_source_compatibility
 legacy_compatibility
 ```
 
-Add one narrow basis:
+Add:
 
 ```text
 resolved_single_currency
 ```
 
-Selected meaning:
+Selected meanings:
 
 ```text
 empty_source_compatibility
   -> no admitted monetary rows
   -> domain = JPY
   -> amount_scale = 0
+```
 
+```text
 legacy_compatibility
   -> all admitted rows lack explicit currency metadata
-  -> all resolve through compatibility JPY
+  -> all resolve to JPY
+```
 
+```text
 resolved_single_currency
   -> at least one explicit JPY or ILS identity participates
   -> every admitted row resolves to exactly one domain
@@ -478,11 +409,9 @@ all explicit ILS
   -> basis = resolved_single_currency
 ```
 
-The basis records proof evidence meaning. It does not duplicate the domain.
+## 9. Future projection authorization rule
 
-## 9. Selected projection authorization rule
-
-Future authorization after the staged implementation reaches ILS admission:
+After the staged implementation reaches ILS admission:
 
 ```text
 proof.state = proven
@@ -503,56 +432,33 @@ empty_source_compatibility
   -> amount_scale = 0
 ```
 
-Projection must not normalize amounts independently from proof resolution.
+Projection must not choose or change amount scale independently from proof resolution.
 
-Preferred evidence shape:
+## 10. Compatibility and fail-closed matrix
+
+### Existing JPY compatibility
+
+For current rows shaped as:
 
 ```text
-ResolvePostingArithmeticEvidence snapshot
-  -> {
-       proof,
-       admitted_rows_with_parsed_amounts,
-       normalized_coefficients
-     }
+missing currency=
+integer amount text
 ```
 
-or an equivalent focused shape that makes it impossible for proof, scale selection, and projection to use different row snapshots.
-
-Exact function names remain implementation details.
-
-## 10. JPY compatibility boundary
-
-Existing JPY source data must remain behaviorally compatible.
-
-For current data shaped as:
+require:
 
 ```text
-all rows missing currency=
-all amounts integer text
-```
-
-expected:
-
-```text
-proof.domain = JPY
-proof.basis = legacy_compatibility
-proof.amount_scale = 0
+domain = JPY
+basis = legacy_compatibility
+amount_scale = 0
 normalized coefficient = existing integer amount
-posting delta = existing delta
-cube / TBDS numeric values unchanged
+posting delta unchanged
+existing golden behavior unchanged
 ```
 
-This is the strongest compatibility requirement of the plan.
+Historical JPY rows are not rewritten.
 
-The first ILS work must not require rewriting historical JPY rows with explicit `currency=JPY`.
-
-## 11. ILS target boundary
-
-The first honest non-JPY target is:
-
-```text
-all admitted monetary source rows resolve to ILS
-```
+### All-ILS target
 
 Example:
 
@@ -562,24 +468,16 @@ Example:
 0.05   currency=ILS
 ```
 
-Expected arithmetic evidence:
+Expected:
 
 ```text
-proof.state = proven
-proof.domain = ILS
-proof.basis = resolved_single_currency
-proof.amount_scale = 2
+domain = ILS
+basis = resolved_single_currency
+amount_scale = 2
+normalized coefficients = 4250, 1800, 5
 ```
 
-Expected normalized amounts:
-
-```text
-42.50 -> 4250
-18    -> 1800
-0.05  -> 5
-```
-
-Expected exact sum meaning:
+Exact aggregate meaning:
 
 ```text
 4250 + 1800 + 5
@@ -587,15 +485,11 @@ Expected exact sum meaning:
   = 60.55 ILS
 ```
 
-No FX conversion is involved.
-
-## 12. Mixed and invalid boundaries
-
-Selected fail-closed cases:
+### Mixed / invalid states
 
 ```text
 missing + explicit ILS
-  -> resolved JPY + ILS
+  -> JPY + ILS
   -> mixed
   -> fail closed
 ```
@@ -608,7 +502,7 @@ explicit JPY + explicit ILS
 
 ```text
 currency=USD
-  -> unsupported explicit currency in first admitted set
+  -> unsupported in first admitted set
   -> fail closed
 ```
 
@@ -624,17 +518,44 @@ currency=ILS currency=ILS
   -> fail closed
 ```
 
-```text
-valid decimal text whose normalized coefficient is not exactly representable
-  -> amount_out_of_exact_range
-  -> fail closed
-```
-
 No failing state becomes zero.
 
-## 13. Account currency boundary
+## 11. Cube / TBDS and output boundary
 
-Account-level currency remains separate:
+This plan does not add a cube currency axis or TBDS currency partition.
+
+Selected arithmetic consequence:
+
+```text
+one proven domain + one amount_scale
+  -> normalized scalar deltas remain addable
+  -> cube / TBDS may keep numeric reduction shape
+```
+
+But:
+
+```text
+raw normalized coefficient
+  != human monetary amount text
+```
+
+Therefore current raw `•Fmt` rendering is not automatically ILS-ready.
+
+Before a user-facing surface claims ILS monetary amounts, it must either:
+
+```text
+format coefficient using amount_scale and domain
+```
+
+or explicitly remain unsupported for ILS.
+
+Machine output must not silently emit a normalized coefficient as though it were the original amount.
+
+This plan does not select a repository-wide JSON migration.
+
+## 12. Account currency boundary
+
+Preserve:
 
 ```text
 account currency
@@ -644,172 +565,58 @@ account currency
 
 Do not infer the ILS proof from account metadata or AccountKey suffixes.
 
-However, an end-to-end ILS fixture should use explicitly ILS-denominated fixture accounts for the accounts it exercises, so TBDS/account labels do not misleadingly describe an ILS arithmetic fixture as JPY.
-
-This is fixture coherence, not proof ownership.
+A later all-ILS fixture should nevertheless use coherent ILS-denominated fixture accounts for the accounts it exercises, so TBDS/account labels do not misleadingly describe the fixture as JPY.
 
 Cross-currency account settlement remains out of scope.
 
-## 14. Cube and TBDS consequence
+## 13. Staged runtime path
 
-This plan does not select a new cube axis or TBDS currency partition.
-
-Selected arithmetic consequence:
-
-```text
-within one proven domain and one amount_scale
-  -> normalized scalar deltas remain addable
-  -> cube / TBDS reductions may remain structurally numeric
-```
-
-But preserve:
-
-```text
-raw normalized coefficient
-  != human monetary amount text
-```
-
-Therefore current raw `•Fmt` amount rendering is not automatically ILS-ready.
-
-## 15. Human and machine output readiness boundary
-
-The runtime must not claim complete daily-use ILS support merely because BuildContext can aggregate normalized coefficients.
-
-Before a user-facing report surface claims ILS monetary amounts, it must either:
-
-```text
-format normalized coefficient using proof.amount_scale and proof.domain
-```
-
-or explicitly remain unsupported for ILS.
-
-Selected shared conceptual formatter:
-
-```text
-FormatExactAmount ⟨coefficient, scale⟩
-  -> canonical exact decimal text
-```
-
-Examples:
-
-```text
-⟨4250, 2⟩ -> 42.50 or a separately selected presentation form
-⟨5, 2⟩    -> 0.05
-```
-
-Presentation trailing-zero policy remains separate from arithmetic canonicalization.
-
-### 15.1 Machine output
-
-Do not silently emit a normalized coefficient as though it were the original monetary amount.
-
-For JSON or other structured consumers, a later surface decision must choose one explicit shape, for example:
-
-```text
-amount_text
-currency
-```
-
-or:
-
-```text
-coefficient
-scale
-currency
-```
-
-This plan does not select a repository-wide JSON migration.
-
-Until a concrete structured consumer is updated, ILS support claims must remain scoped to the checked engine surface actually carrying scale.
-
-## 16. Metadata schema and editor ordering
-
-Current `config/meta_schema.tsv` does not operationally register source-row `currency=`.
-
-Selected ordering:
-
-```text
-1. exact-decimal kernel
-2. fixture-only row currency resolver / proof evidence
-3. normalized posting-row path with focused ILS fixture evidence
-4. only then metadata-schema admission for JPY|ILS
-5. editor input support only after the parser and schema contract exist
-6. real source TSV remains human-controlled and is not migrated automatically
-```
-
-Do not add `currency=` to schema first and thereby create an appearance of runtime support.
-
-Do not loosen amount validation in the editor before the exact parser contract exists.
-
-## 17. Planned staged runtime slices
-
-The path is deliberately staged. Completion of one slice does not automatically authorize the next unless TODO routing is updated.
+Completion of one slice does not automatically authorize the next.
 
 ### Slice A: exact-decimal kernel
 
-Scope:
-
 ```text
-pure BQN exact-decimal text parser
-canonical coefficient + scale result
+pure BQN parser
+canonical coefficient + scale
 exactness/range failure boundary
-unit tests
+focused unit tests
 ```
 
-No source-row `currency=` admission.
+No `currency=ILS` projection admission.
 
-No projection authorization change.
-
-No fixture source change required beyond test-local parser cases.
-
-### Slice B: row currency resolution + snapshot arithmetic evidence
-
-Scope:
+### Slice B: snapshot arithmetic evidence
 
 ```text
-resolve missing / JPY / ILS / unknown / duplicate
-parse admitted row amounts
-prove exactly one resolved domain
-select amount_scale
-normalize coefficients
-carry proof amount_scale
-focused fixture/test evidence
+row currency resolver
+exact decimal row parse
+exactly-one-domain proof
+amount_scale selection
+normalized coefficients
+proof carrier extension
+focused fixture evidence
 ```
 
-Projection ILS authorization may remain closed until Slice C if needed to prevent partial downstream support.
+ILS projection authorization may remain closed until the next slice.
 
 ### Slice C: checked ILS posting path
 
-Scope:
-
 ```text
-projection authorizes proven ILS domain
-posting rows use normalized signed integer coefficients
-same-snapshot invariant preserved
-all-ILS exact-decimal fixture reaches BuildContext / cube / TBDS arithmetic evidence
-legacy JPY scale-0 behavior remains unchanged
+projection authorizes proven ILS
+normalized signed integer deltas
+same-snapshot invariant
+all-ILS fixture through BuildContext / cube / TBDS evidence
+legacy JPY scale-0 regression
 ```
 
-This slice must not claim all report / JSON surfaces are ILS-ready.
+This still does not imply every report or JSON surface is ILS-ready.
 
-### Slice D: daily-use admission boundary
+Daily-use schema/editor/output admission remains a later consumer-driven slice.
 
-Only after concrete consumer review:
+## 14. Planned executable evidence
 
-```text
-metadata schema admission
-editor input path
-required human formatting
-required structured output contract
-```
+### Slice A parser cases
 
-This is the earliest point at which broad daily-use ILS support may be claimed.
-
-Do not auto-start Stage 3 mixed-currency work.
-
-## 18. Planned executable evidence matrix
-
-### 18.1 Parser valid cases
+Valid:
 
 ```text
 1200
@@ -819,9 +626,7 @@ Do not auto-start Stage 3 mixed-currency work.
 0.000
 ```
 
-Assert exact canonical coefficient and scale.
-
-### 18.2 Parser invalid cases
+Invalid:
 
 ```text
 empty
@@ -834,132 +639,42 @@ empty
 1.2.3
 ```
 
-Assert visible failure, not zero.
+Assert canonical coefficient + scale or visible failure.
 
-### 18.3 Exact-range failure
+Also include an implementation-owned exact-range boundary case.
 
-Use an implementation-owned boundary case that proves a syntactically valid decimal is rejected if coefficient conversion or scale normalization cannot remain exact.
-
-Do not rely only on happy-path monetary sizes.
-
-### 18.4 Legacy JPY compatibility
-
-Existing fixture with integer amounts and no explicit currency:
+### Later domain cases
 
 ```text
-domain = JPY
-basis = legacy_compatibility
-amount_scale = 0
-existing deltas unchanged
-existing golden output unchanged
+legacy integer JPY
+empty source
+explicit JPY single domain
+all-ILS exact decimal
+missing + ILS mixed
+JPY + ILS mixed
+unknown explicit currency
+duplicate currency metadata
+same-snapshot mutation property
+cube / TBDS normalized exact total
 ```
 
-### 18.5 Empty source
+These later cases are planned, not authorized by Slice A.
 
-```text
-domain = JPY
-basis = empty_source_compatibility
-amount_scale = 0
-```
-
-### 18.6 Explicit JPY single domain
-
-All rows resolve to JPY, with at least one explicit `currency=JPY`:
-
-```text
-domain = JPY
-basis = resolved_single_currency
-```
-
-First implementation may retain integer-only JPY admission if needed for compatibility containment; any such narrower boundary must be explicit and tested.
-
-### 18.7 All-ILS exact decimal
-
-Fixture-local source rows:
-
-```text
-42.50 currency=ILS
-18     currency=ILS
-0.05   currency=ILS
-```
-
-Assert:
-
-```text
-domain = ILS
-basis = resolved_single_currency
-amount_scale = 2
-normalized coefficients = 4250, 1800, 5
-exact aggregate meaning = 60.55 ILS
-```
-
-### 18.8 Missing + ILS
-
-Assert mixed-domain fail closed before posting-row construction.
-
-### 18.9 JPY + ILS
-
-Assert mixed-domain fail closed before posting-row construction.
-
-### 18.10 Unknown explicit currency
-
-Assert fail closed.
-
-### 18.11 Duplicate currency metadata
-
-Cover both:
-
-```text
-currency=ILS currency=ILS
-currency=JPY currency=ILS
-```
-
-Assert fail closed.
-
-### 18.12 Same-snapshot property
-
-Preserve existing Stage 2 property:
-
-```text
-load snapshot
-mutate backing temporary fixture
-resolve / normalize / project loaded snapshot
-```
-
-Assert no re-read changes proof, amount scale, or projected coefficients.
-
-### 18.13 Cube / TBDS scaled-integer arithmetic
-
-For one all-ILS fixture, assert exact normalized totals through:
-
-```text
-posting rows
-cube
-TBDS
-```
-
-and interpret totals only with the carried amount scale.
-
-## 19. Likely runtime owners
-
-Preferred ownership:
+## 15. Preferred ownership
 
 ```text
 src_next/exact_decimal.bqn
   -> exact decimal grammar
   -> canonical coefficient + scale
-  -> normalization helper
-  -> exactness/range diagnostics
+  -> exactness/range diagnostic
 ```
-
-or an equivalently focused module.
 
 ```text
 src_next/context.bqn
   -> one posting-source snapshot
   -> row currency resolution orchestration
   -> snapshot arithmetic evidence
-  -> proof carrier construction
+  -> proof carrier
 ```
 
 ```text
@@ -970,42 +685,39 @@ src_next/projection.bqn
 
 ```text
 src_next/cube.bqn / src_next/tbds.bqn
-  -> no new currency ownership
-  -> continue arithmetic only on already authorized normalized scalars
+  -> no new currency or scale ownership
 ```
 
 Do not make cube or TBDS infer currency or scale.
 
-## 20. Explicit non-goals
+## 16. Explicit non-goals
 
-This plan does not authorize in this PR:
+This planning PR does not authorize:
 
 - runtime BQN changes;
 - tests or checks;
 - fixtures;
 - source TSV changes;
-- real data changes;
-- sample data changes;
+- real or sample data changes;
 - metadata schema changes;
 - editor changes;
 - report formatting changes;
 - JSON schema changes;
 - Posting IR field additions;
-- cube axis changes;
-- TBDS axis changes;
+- cube or TBDS axis changes;
 - per-row mixed-currency operation;
 - currency partitions;
 - `BASE_CURRENCY`;
 - `base_amount=`;
 - FX rates;
 - conversion;
-- valuation semantics;
+- valuation;
 - live APIs;
 - broad ISO currency registry;
 - automatic source migration;
 - account-currency-derived proof.
 
-## 21. Exact next authorized runtime slice
+## 17. Exact next authorized runtime slice
 
 After this plan is merged, the next finite runtime slice is only:
 
@@ -1013,35 +725,33 @@ After this plan is merged, the next finite runtime slice is only:
 Currency Stage 2 Slice A: exact-decimal kernel
 ```
 
-Implement a pure BQN exact-decimal helper that:
+Implement a pure BQN helper that:
 
 1. accepts only the selected unsigned finite-decimal grammar;
-2. returns canonical coefficient + scale without parsing the decimal text as a generic decimal Number;
+2. returns canonical coefficient + scale without parsing decimal source text as a generic decimal Number;
 3. canonicalizes leading zeros and trailing fractional zeros without changing quantity;
 4. rejects invalid syntax visibly;
-5. fails closed when the selected integer conversion / normalization path cannot remain exact;
-6. includes focused unit tests for valid, invalid, canonicalization, and exact-range cases;
+5. fails closed when coefficient conversion cannot remain exact;
+6. includes focused tests for valid, invalid, canonicalization, and exact-range cases;
 7. does not yet admit `currency=ILS` into projection;
 8. does not change source TSV, metadata schema, editor, cube, TBDS, report, or JSON behavior.
 
-This slice is intentionally smaller than full ILS admission.
+This creates the exact amount kernel required before explicit ILS proof can safely reach arithmetic.
 
-It creates the exact amount kernel required before explicit ILS proof can safely reach arithmetic.
-
-## 22. Closure of this planning slice
+## 18. Closure of this planning slice
 
 ```text
-source exact decimal parse representation
-  -> selected: coefficient + scale
+source parse carrier
+  -> coefficient + scale
 
 single-domain arithmetic carrier
-  -> selected: snapshot-wide amount_scale + normalized integer coefficients
+  -> snapshot-wide amount_scale + normalized integer coefficients
 
 proof carrier
-  -> selected: extend arithmetic_currency_proof with amount_scale
+  -> arithmetic_currency_proof gains amount_scale in later slice
 
-explicit domains
-  -> selected first admitted set: JPY / ILS
+first explicit domains
+  -> JPY / ILS
 
 mixed JPY + ILS
   -> fail closed
@@ -1052,13 +762,13 @@ missing + ILS
 unknown / duplicate currency metadata
   -> fail closed
 
-legacy JPY integers
-  -> scale 0 compatibility requirement
+legacy integer JPY
+  -> scale-0 compatibility requirement
 
 cube / TBDS
-  -> keep scalar aggregation shape; do not infer currency/scale
+  -> keep scalar aggregation shape; no currency/scale ownership
 
-full ILS daily-use claim
+broad daily-use ILS claim
   -> not yet authorized
 
 next runtime slice
