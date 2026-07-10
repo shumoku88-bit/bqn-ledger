@@ -26,7 +26,15 @@ Current state:
 
 ### Currency Stage 2 Slice B2: Snapshot Arithmetic Evidence
 
-Next authorized finite slice; not implemented by the B1 verification PR:
+Next authorized finite slice; not implemented by the B1 verification PR.
+
+Before B2 runtime implementation:
+- complete the docs-only ownership recheck in `docs/archive/active-plans/CURRENCY_STAGE2_B2_ARITHMETIC_OWNERSHIP_RECHECK-2026-07-11.md`;
+- decide only where B2 snapshot arithmetic lives: current `src_next/context.bqn` owner vs one dedicated pure arithmetic module;
+- preserve B2 semantics and exclusions unchanged;
+- do not implement B2 arithmetic in the ownership-decision slice.
+
+B2 runtime meaning remains:
 - aggregate the pre-built B1 row evidence;
 - require exactly one resolved currency domain;
 - select snapshot-wide `amount_scale`;
