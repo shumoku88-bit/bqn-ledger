@@ -25,6 +25,7 @@ txn_id	string
 party	string	
 plan_id	string	
 cashflow	enum	fixed_obligation
+currency	enum	JPY|ILS	
 
 # Plan
 recur	enum	monthly|cycle|once	plan

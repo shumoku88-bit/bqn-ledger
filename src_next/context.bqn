@@ -15,6 +15,7 @@
 #   Context is read-only within sections. Sections must not mutate ctx.
 
 loader ← •Import "loader.bqn"
+dec ← •Import "exact_decimal.bqn"
 ak ← •Import "account_key.bqn"
 proj ← •Import "projection.bqn"
 cycle ← •Import "cycle.bqn"
@@ -45,49 +46,127 @@ ProofUnsupportedCurrency ← {𝕊 srcFile‿rowIdx:
   { state ⇐ "unsupported", domain ⇐ "", basis ⇐ "explicit_source_currency", message ⇐ "explicit source currency unsupported in Stage 2 minimal runtime slice: " ∾ srcFile ∾ " row " ∾ (•Fmt rowIdx) }
 }
 
-HasCurrencyMeta ← {𝕊 flds:
+BuildRowEvidenceForLine ← {𝕊 ⟨srcFile, rowIdx, flds⟩:
+  amountText ← proj.FieldOrEmpty ⟨flds, 4⟩
+  parsed ← dec.Parse amountText
+
   metas ← 5 ↓ flds
   pref ← "currency="
-  plen ← ≠ pref
+  plen ← 9 # length of "currency="
   ok_len ← { plen ≤ ≠ 𝕩 } ¨ metas
   is_match ← ok_len × { pref ≡ plen ↑ 𝕩 } ¨ metas
-  ∨´ 0 ∾ is_match
+  hits ← is_match / metas
+
+  # Default currency resolution values
+  currency_state ← "ok"
+  resolved_currency ← "JPY"
+  provenance ← "legacy_compatibility"
+  err_msg ← ""
+
+  # 1. Duplicate currency tags
+  {𝕊:
+    currency_state ↩ "error"
+    provenance ↩ "explicit"
+    err_msg ↩ "duplicate currency metadata"
+  } ⍟ (1 < ≠ hits) @
+
+  # 2. Exactly one currency tag
+  {𝕊:
+    val ← plen ↓ ⊑ hits
+    provenance ↩ "explicit"
+    {𝕊:
+      resolved_currency ↩ "JPY"
+    } ⍟ (val ≡ "JPY") @
+    {𝕊:
+      resolved_currency ↩ "ILS"
+    } ⍟ (val ≡ "ILS") @
+    {𝕊:
+      currency_state ↩ "error"
+      err_msg ↩ "unsupported currency: " ∾ val
+    } ⍟ (¬ (∨´ ⟨"JPY", "ILS"⟩ ≡¨ <val)) @
+  } ⍟ (1 = ≠ hits) @
+
+  row_state ← ((currency_state ≡ "ok") ∧ (parsed.state ≡ "ok")) ⊑ "error"‿"ok"
+  message   ← (currency_state ≢ "ok") ⊑ parsed.message‿err_msg
+
+  {
+    source_file ⇐ srcFile,
+    source_row ⇐ rowIdx,
+    flds ⇐ flds,
+    currency ⇐ resolved_currency,
+    provenance ⇐ provenance,
+    parsed ⇐ parsed,
+    state ⇐ row_state,
+    message ⇐ message
+  }
 }
 
-ResolveArithmeticCurrencyProof ← {𝕊 snapshot:
-  proof ← ProofProven "legacy_compatibility"
-  rowCount ← 0
-  found ← 0
-  {𝕊 src:
-    rowCount ↩ rowCount + ≠ src.lines
+BuildRowEvidenceFromSnapshot ← {𝕊 snapshot:
+  ∾ {𝕊 src:
     {𝕊 i:
       flds ← loader.SplitTsvKeepEmpty (i ⊑ src.lines)
+      BuildRowEvidenceForLine ⟨src.source_file, i, flds⟩
+    } ¨ ↕ ≠ src.lines
+  } ¨ snapshot.sources
+}
+
+ResolveArithmeticCurrencyProof ← {𝕊 arg:
+  evidence ← (6 = •Type arg) ◶ ⟨{𝕊: arg}, {𝕊: BuildRowEvidenceFromSnapshot arg}⟩ @
+
+
+  proof ← ProofProven "empty_source_compatibility"
+
+  {𝕊:
+    has_explicit ← ∨´ { 𝕩.provenance ≢ "legacy_compatibility" } ¨ evidence
+    has_scale    ← ∨´ { (0 < ≠ 𝕩.parsed.scale) ⊑ 0‿(𝕩.parsed.scale > 0) } ¨ evidence
+
+    (has_explicit ∨ has_scale) ◶ ⟨
+      {𝕊: proof ↩ ProofProven "legacy_compatibility" },
       {𝕊:
-        proof ↩ ProofUnsupportedCurrency ⟨src.source_file, i⟩
-        found ↩ 1
-      }⍟((¬found) ∧ HasCurrencyMeta flds) @
-    }¨ ↕ ≠ src.lines
-  }¨ snapshot.sources
-  {𝕊: proof ↩ ProofProven "empty_source_compatibility"}⍟((0=rowCount) ∧ (¬found)) @
+        bad_mask ← { (𝕩.provenance ≢ "legacy_compatibility") ∨ ((0 < ≠ 𝕩.parsed.scale) ⊑ 0‿(𝕩.parsed.scale > 0)) } ¨ evidence
+        bad_row ← ⊑ (bad_mask / evidence)
+        basis ← "explicit_source_currency"
+        msg ← "explicit source currency unsupported in Stage 2 minimal runtime slice: " ∾ bad_row.source_file ∾ " row " ∾ (•Fmt bad_row.source_row)
+        {𝕊:
+          msg ↩ msg ∾ ": " ∾ bad_row.message
+        } ⍟ (bad_row.state ≢ "ok") @
+
+        proof ↩ {
+          state ⇐ "unsupported",
+          domain ⇐ "",
+          basis ⇐ basis,
+          message ⇐ msg
+        }
+      }
+    ⟩ @
+  } ⍟ (0 < ≠ evidence) @
+
   proof
 }
 
-MakeProjectionRowRaw ← {𝕊 ⟨srcFile, rowIdx, flds, accounts, accountRoles, accountKeys, cycleStart⟩:
-  date   ← proj.FieldOrEmpty ⟨flds, 0⟩
-  srcId  ← proj.FieldOrEmpty ⟨flds, 1⟩
-  txId   ← proj.TxIdFromMeta ⟨srcId, flds⟩
-  fromAcc ← proj.FieldOrEmpty ⟨flds, 2⟩
-  toAcc   ← proj.FieldOrEmpty ⟨flds, 3⟩
+BuildProjectionRowsForEvidence ← {𝕊 ⟨row, resolved, cycleStart⟩:
+  srcFile      ← row.source_file
+  rowIdx       ← row.source_row
+  flds         ← row.flds
+  accounts     ← resolved.accounts
+  accountRoles ← resolved.roles
+  accountKeys  ← resolved.account_keys
+
+  date       ← proj.FieldOrEmpty ⟨flds, 0⟩
+  srcId      ← proj.FieldOrEmpty ⟨flds, 1⟩
+  txId       ← proj.TxIdFromMeta ⟨srcId, flds⟩
+  fromAcc    ← proj.FieldOrEmpty ⟨flds, 2⟩
+  toAcc      ← proj.FieldOrEmpty ⟨flds, 3⟩
   amountText ← proj.FieldOrEmpty ⟨flds, 4⟩
 
-  dateOk ← proj.IsValidDateText date
+  dateOk   ← proj.IsValidDateText date
   amountOk ← proj.IsIntegerText amountText
-  amount ← 0
-  {𝕊: amount ↩ •BQN amountText }⍟amountOk @
+  amount   ← 0
+  {𝕊: amount ↩ row.parsed.coefficient }⍟amountOk @
 
   fromIdx ← ⊑ accounts ⊐ ⟨fromAcc⟩
   toIdx   ← ⊑ accounts ⊐ ⟨toAcc⟩
-  n         ← ≠ accounts
+  n       ← ≠ accounts
 
   fromKnown ← fromIdx < n
   toKnown   ← toIdx < n
@@ -110,9 +189,9 @@ MakeProjectionRowRaw ← {𝕊 ⟨srcFile, rowIdx, flds, accounts, accountRoles,
   msg ↩ (status ≡ "invalid_date") ⊑ msg‿("invalid date: "∾date)
 
   roleWithSentinel ← accountRoles ∾ ⟨""⟩
-  keyWithSentinel ← accountKeys ∾ ⟨""⟩
+  keyWithSentinel  ← accountKeys ∾ ⟨""⟩
   fromRole ← fromAkOut ⊑ roleWithSentinel
-  toRole ← toAkOut ⊑ roleWithSentinel
+  toRole   ← toAkOut ⊑ roleWithSentinel
 
   day ← 0
   cycleStartOk ← proj.IsValidDateText cycleStart
@@ -147,21 +226,6 @@ MakeProjectionRowRaw ← {𝕊 ⟨srcFile, rowIdx, flds, accounts, accountRoles,
     MakeSideRow ⟨"credit", fromAkOut, - amount⟩ ⟩
 }
 
-ArgsForSource ← {𝕊 src‿resolved‿cycleStart:
-  names  ← resolved.accounts
-  roles  ← resolved.roles
-  keys   ← resolved.account_keys
-  {𝕊 i:
-    flds ← loader.SplitTsvKeepEmpty (i ⊑ src.lines)
-    ⟨src.source_file, i, flds, names, roles, keys, cycleStart⟩
-  } ¨ ↕ ≠ src.lines
-}
-
-BuildRowsForSourceAuthorized ← {𝕊 source‿resolved‿cycleStart:
-  args ← ArgsForSource ⟨source, resolved, cycleStart⟩
-  ∾ (MakeProjectionRowRaw ¨ args)
-}
-
 SourceFromSnapshot ← {𝕊 snapshot‿srcFile:
   isJournal ← srcFile ≡ "journal.tsv"
   isPlan ← srcFile ≡ "plan.tsv"
@@ -194,9 +258,10 @@ BuildRowsForFileOptional ← BuildRowsForFile
 
 # BuildAuthorizedRowsFromSnapshot: derive proof from the exact snapshot being projected.
 BuildAuthorizedRowsFromSnapshot ← {𝕊 snapshot‿resolved‿cycleStart:
-  proof ← ResolveArithmeticCurrencyProof snapshot
+  evidence ← BuildRowEvidenceFromSnapshot snapshot
+  proof ← ResolveArithmeticCurrencyProof evidence
   proj.RequireArithmeticCurrencyProof proof
-  rows ← ∾ ({𝕊 source: BuildRowsForSourceAuthorized ⟨source, resolved, cycleStart⟩} ¨ snapshot.sources)
+  rows ← ∾ ({𝕊 row: BuildProjectionRowsForEvidence ⟨row, resolved, cycleStart⟩} ¨ evidence)
   { rows ⇐ rows, arithmetic_currency_proof ⇐ proof }
 }
 
@@ -275,4 +340,4 @@ BuildContext ← {𝕊 arg:
   }
 }
 
-{ BuildContext ⇐ BuildContext, LoadPostingSourceSnapshot ⇐ LoadPostingSourceSnapshot, ResolveArithmeticCurrencyProof ⇐ ResolveArithmeticCurrencyProof, BuildAuthorizedRowsFromSnapshot ⇐ BuildAuthorizedRowsFromSnapshot, BuildAllRowsFromSnapshot ⇐ BuildAllRowsFromSnapshot, BuildAllRows ⇐ BuildAllRows, BuildPeriodView ⇐ BuildPeriodView, BuildRowsForFile ⇐ BuildRowsForFile, BuildRowsForFileOptional ⇐ BuildRowsForFileOptional }
+{ BuildContext ⇐ BuildContext, LoadPostingSourceSnapshot ⇐ LoadPostingSourceSnapshot, BuildRowEvidenceFromSnapshot ⇐ BuildRowEvidenceFromSnapshot, ResolveArithmeticCurrencyProof ⇐ ResolveArithmeticCurrencyProof, BuildAuthorizedRowsFromSnapshot ⇐ BuildAuthorizedRowsFromSnapshot, BuildAllRowsFromSnapshot ⇐ BuildAllRowsFromSnapshot, BuildAllRows ⇐ BuildAllRows, BuildPeriodView ⇐ BuildPeriodView, BuildRowsForFile ⇐ BuildRowsForFile, BuildRowsForFileOptional ⇐ BuildRowsForFileOptional }
