@@ -40,11 +40,7 @@ Failure ← {𝕊 sourceText‿stateText‿messageText:
   }
 }
 
-TryInteger ← (
-  {𝕩 ⋄ parsedValue ← •BQN 𝕩 ⋄ {ok⇐1, value⇐parsedValue}}
-  ⎊
-  {𝕩 ⋄ {ok⇐0, value⇐0}}
-)
+TryInteger ← {𝕩 ⋄ parsedValue ← •BQN 𝕩 ⋄ {ok⇐1, value⇐parsedValue}}⎊{𝕩 ⋄ {ok⇐0, value⇐0}}
 
 ConvertExactInteger ← {𝕊 coefficientText:
   parsed ← TryInteger coefficientText
