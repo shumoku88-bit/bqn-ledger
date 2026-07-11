@@ -16,6 +16,7 @@
 
 loader ← •Import "loader.bqn"
 dec ← •Import "exact_decimal.bqn"
+arith ← •Import "currency_arithmetic.bqn"
 ak ← •Import "account_key.bqn"
 proj ← •Import "projection.bqn"
 cycle ← •Import "cycle.bqn"
@@ -273,8 +274,15 @@ BuildRowsForFileOptional ← BuildRowsForFile
 # BuildAuthorizedRowsFromSnapshot: derive proof from the exact snapshot being projected.
 BuildAuthorizedRowsFromSnapshot ← {𝕊 snapshot‿resolved‿cycleStart:
   evidence ← BuildRowEvidenceFromSnapshot snapshot
+  arithmeticEvidence ← arith.Build evidence
   proof ← ResolveArithmeticCurrencyProof evidence
+  # Preserve the B1 proof diagnostic/authorization boundary before requiring the
+  # internal B2 evidence. B2 success does not widen projection authorization.
   proj.RequireArithmeticCurrencyProof proof
+  {𝕊:
+    •Out "ERROR: snapshot arithmetic evidence failed: " ∾ arithmeticEvidence.message
+    •Exit 1
+  }⍟(arithmeticEvidence.state ≢ "ok") @
   rows ← ∾ ({𝕊 row: BuildProjectionRowsForEvidence ⟨row, resolved, cycleStart⟩} ¨ evidence)
   { rows ⇐ rows, arithmetic_currency_proof ⇐ proof }
 }
