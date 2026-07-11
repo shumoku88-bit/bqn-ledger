@@ -77,9 +77,9 @@ Status: adopt-later (2026-07-11)
 Audit document: [FINTECH_F1_MULTI_TIME_FIT_REVIEW-2026-07-11.md](archive/audits/FINTECH_F1_MULTI_TIME_FIT_REVIEW-2026-07-11.md)
 
 ### Decision summary
-Classified as `adopt-later`. The current single-`date` model (where `date` represents the economic occurrence date) is sufficient. All 18 existing report sections and editor flows work correctly. The two-entry model (representing card usage as expense → credit-card liability, and card payment as credit-card liability → bank asset) naturally and correctly separates usage from settlement date as distinct economic events without double-counting.
+Classified as `adopt-later`. The first journal date column is the current default Event/projection coordinate used by Posting IR, Cube, TBDS, and report period selection; the production contract does not unconditionally define it as an “economic occurrence date.” The card fixture uses separate Events in the repository's actual `from -> to` direction: card usage is `liabilities:card -> expenses:*` (expense and liability increase), and card payment is `assets:bank -> liabilities:card` (bank asset and liability decrease).
 
-No concrete consumer gaps exist in current `main`. Future metadata vocabulary (such as `occurred_on`, `booked_on`, `settled_on`, or `value_on`) remains completely unadopted.
+The existing cashflow-due design derives a default due date from liability account metadata (`due_day`, `due_month_offset`, `payment_account`) and permits row-level `due_on` overrides. The current tracked tree has no executable derivation/report/check consumer, so this is fixture-backed projection design rather than a current accounting calculation. Future metadata vocabulary such as `occurred_on`, `booked_on`, `paid_on`, or `settled_on` remains unadopted.
 
 ### Reopen conditions
 Reopen F1 consideration only if:

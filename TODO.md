@@ -9,7 +9,7 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-11 — Fintech F1 Multi-time Transaction Semantics review complete (Decision: adopt-later). Previous: Read-only Event Lens Slice 2 complete (PR #177 merged).
+Last hygiene pass: 2026-07-11 — Fintech F1 Multi-time Transaction Semantics fit evidence corrected; decision remains adopt-later. Previous: Read-only Event Lens Slice 2 complete (PR #177 merged).
 
 ---
 
