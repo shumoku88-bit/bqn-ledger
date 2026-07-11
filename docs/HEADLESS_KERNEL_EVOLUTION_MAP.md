@@ -238,7 +238,8 @@ Phase D closed through:
 - merged PR #170 (recorded evidence and conclusion A);
 - [`archive/audits/HEADLESS_KERNEL_PHASE_D_6D_FEASIBILITY-2026-07-11.md`](archive/audits/HEADLESS_KERNEL_PHASE_D_6D_FEASIBILITY-2026-07-11.md);
 - conclusion A: existing evidence is sufficient;
-- the next finite slice `Read-only Event Lens Slice 1` explicitly selected.
+- `Read-only Event Lens Slice 1` runtime implementation complete through merged PR #171 (merge commit `75f944d2689b9486b013a35f2be3b0b234a44942`, GitHub Actions run #633, `tools/check.sh` success, coverage success, exactly 2 changed runtime/test paths: `src_next/event_lens.bqn` and `tests/test_src_next_event_lens.bqn`);
+- the next finite slice `Read-only Event Lens Representative Observation Slice` explicitly selected.
 
 ### Phase D finite scope
 
@@ -331,22 +332,67 @@ Phase D is complete. The feasibility investigation established that current row 
 
 ### Read-only Event Lens Slice 1
 
-The first runtime slice for the read-only event lens implements a pure builder:
+Complete. The first runtime slice for the read-only event lens implements a pure builder `BuildRows checkedResult` in a new small module `src_next/event_lens.bqn` with these boundaries:
+- one source evidence row -> one lens row
+- no debit/credit duplication
+- pure read-only derivation
+- no file loading
+- no clock access
+- no `•Out`
+- no `•Exit`
+- no source mutation
+- no report rendering
+- no JSON rendering
+- no Cube/TBDS construction
+- no household policy
+- no FX or mixed-currency support
+- no shared event carrier
 
-```text
-BuildRows checkedResult
-```
+Semantic states implemented:
+- `direct`
+- `derived`
+- `ambiguous`
+- `absent`
 
-in a new small module `src_next/event_lens.bqn`.
+Proven all-ILS evidence implemented:
+- 1200   -> coefficient 120000, scale 2, currency ILS
+- 42.50  -> coefficient 4250, scale 2, currency ILS
+- 0.05   -> coefficient 5, scale 2, currency ILS
 
-The builder converts each source evidence row from a successful checked posting projection result into a single lens row.
+### Read-only Event Lens Representative Observation Slice
 
-Rules:
-- One source evidence row creates exactly one lens row (no debit/credit split).
-- It must not perform: file loading, I/O, clock access, `•Out`, `•Exit`, source data modification, Cube/TBDS construction, report text parsing, JSON output, or household policy application.
-- If `checkedResult.state != "ok"`, it must return a structured error or reject explicitly.
-- Dimensions (`when`, `party_place`, `what`, `where_to`, `amount`, `action`) must report their semantic state (`direct`, `derived`, `ambiguous`, `absent`).
-- No FX, currency conversion, display formatting, or display policy is authorized.
+The next finite slice is observation and evidence only.
+
+Its question is:
+- What does the current event lens actually reveal, preserve, classify as ambiguous, and leave absent when applied to representative checked results?
+
+Its purpose is not to improve or widen the implementation.
+
+Observation slice allowed work:
+- run the existing checked-result builder and event lens locally
+- inspect representative lens rows
+- record exact outputs in one audit document
+- compare actual output with the Slice 1 contract
+- identify useful, awkward, ambiguous, and absent fields
+- verify all-ILS rows remain exact and unformatted
+
+Observation slice prohibited work:
+- no event_lens runtime changes
+- no formatter implementation
+- no report integration
+- no JSON output
+- no CLI command
+- no TSV schema changes
+- no metadata requirements
+- no Cube or TBDS changes
+- no `CanonicalEvent`
+- no `Project(events, spec)`
+- no shared carrier
+- no strict event sourcing
+- no Phase E
+- no mixed JPY/ILS
+- no FX or valuation
+- no ₪ display formatting
 
 ### Phase E: Shared event carrier decision
 
@@ -430,13 +476,15 @@ The map should remain compact enough to restart work, but complete enough that a
 
 ## 11. Current next action
 
-Read-only Event Lens Slice 1 only:
+Read-only Event Lens Representative Observation Slice only:
 
 ```text
-implement BuildRows in src_next/event_lens.bqn
-  -> convert checkedResult to read-only lens rows
-  -> add tests/test_src_next_event_lens.bqn
-  -> keep checks and coverage green
+run the existing checked-result builder and event lens locally
+  -> inspect representative lens rows
+  -> record exact outputs in one audit document
+  -> compare actual output with the Slice 1 contract
+  -> identify useful, awkward, ambiguous, and absent fields
+  -> verify all-ILS rows remain exact and unformatted
 ```
 
-PR 1 (docs-only) must merge before runtime implementation begins.
+PR 1 (docs-only) must merge before representative observation begins.

@@ -9,34 +9,38 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-11 — Phase D is closed with conclusion A. Read-only Event Lens Slice 1 is explicitly selected as the sole active finite work.
+Last hygiene pass: 2026-07-11 — Read-only Event Lens Slice 1 is complete. Representative Observation Slice is explicitly selected as the sole active finite work.
 
 ---
 
 ## Active work
 
-### Read-only Event Lens Slice 1
+### Read-only Event Lens Representative Observation Slice
 
-One finite implementation slice.
+One finite evidence-collection slice.
 
 Question:
-- Can a pure function `BuildRows checkedResult` derive a source-row-level read-only inspection record from successful checked posting results?
+- What does the current event lens actually reveal, preserve, classify as ambiguous, and leave absent when applied to representative checked results?
 
 Allowed:
-- implement `src_next/event_lens.bqn` with `BuildRows` public function
-- add `tests/test_src_next_event_lens.bqn` with focused tests
-- keep repository checks and coverage green
+- run the existing checked-result builder and event lens locally
+- inspect representative lens rows
+- record exact outputs in one audit document (`docs/archive/audits/READ_ONLY_EVENT_LENS_REPRESENTATIVE_OBSERVATION-2026-07-11.md`)
+- compare actual output with the Slice 1 contract
+- identify useful, awkward, ambiguous, and absent fields
+- verify all-ILS rows remain exact and unformatted
 
 Not authorized:
-- I/O, file loading, clock access, `•Out`, `•Exit` inside the lens module
-- source data or schema modifications
-- Cube/TBDS construction, report text parsing, JSON output, household policy
-- mixed JPY/ILS, FX, or display/valuation policy
-- Phase E, `CanonicalEvent`, `Project(events, spec)`
+- no event_lens runtime changes
+- no formatter implementation, report integration, JSON output, or CLI command
+- no TSV schema changes, metadata requirements, or Cube/TBDS changes
+- no `CanonicalEvent`, `Project(events, spec)`, or shared carrier
+- no strict event sourcing or Phase E
+- no FX, valuation, mixed JPY/ILS, or currency symbol display formatting
 
 Exit:
-- implement `src_next/event_lens.bqn` and verify all tests and checks pass
-- ensure `tests/test_src_next_event_lens.bqn` covers all 10 required test cases
+- record exact outputs in the audit document
+- select exactly one A/B/C conclusion (A: formatter next, B: more observation, C: no formatter)
 - keep repository checks and coverage green
 
 ---
