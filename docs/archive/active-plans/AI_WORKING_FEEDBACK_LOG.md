@@ -80,14 +80,6 @@ docs/archive/audits/AI_WORKING_FEEDBACK_CLASSIFICATION-YYYY-MM-DD.md
 
 <!-- New feedback entries go below. -->
 
-### 2026-07-11: Contract-validity-first audit classification
-
-- Context: Currency Stage 2 B2 post-implementation claim-to-evidence audit.
-- Friction: A handcrafted `state=ok / currency=USD` namespace was initially classified as a material runtime mismatch before confirming that the B1 constructor cannot produce it. Separately, the normalized exact-range test initially assumed a generic numeric boundary rather than probing the current parser boundary.
-- Idea: In focused runtime audits, classify each examined input first as source-derived / contract-valid constructed / forged defensive input before assigning materiality. For runtime exactness boundaries, run a few small owner-module probes before selecting test constants. During actual-diff review, combine working-tree, staged, and `base...HEAD` views according to state so uncommitted corrections are not omitted.
-- Candidate type: rule / docs
-- Related tool/doc: `docs/archive/audits/`, `src_next/exact_decimal.bqn`, `AGENTS.md`, `rtk git diff`
-
 ### 2026-07-09: Stage 2 merge left TODO routing stale
 
 - Context: PR #132 merged the Stage 2 minimal domain-proof runtime slice.
