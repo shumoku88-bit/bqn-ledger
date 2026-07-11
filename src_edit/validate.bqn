@@ -68,6 +68,36 @@ ValidateAccount ⇐ {
   }
 }
 
+# Validate a new account definition. Explicit role metadata is mandatory and
+# the account namespace must agree with it; this prevents selectable-looking
+# accounts with missing or contradictory roles.
+ValidateAccountAdd ⇐ {
+  name ← 𝕩.name
+  role ← 𝕩.role
+  type ← 𝕩.type
+  accounts ← 𝕩.accounts
+  roles ← "asset"‿"liability"‿"income"‿"expense"
+  prefixes ← "assets:"‿"liabilities:"‿"income:"‿"expenses:"
+  roleMask ← role ⊸ ≡¨ roles
+  roleOk ← ∨´ roleMask
+  prefix ← roleOk ◶ ⟨ {𝕊 ⋄ ""}, {𝕊 ⋄ ⊑ roleMask / prefixes} ⟩ @
+  prefixOk ← (≠prefix) ≤ ≠name
+  prefixOk ∧↩ prefix ≡ (≠prefix) ↑ name
+  suffixOk ← prefixOk ∧ (≠prefix) < ≠name
+  typeOk ← (0 = ≠type) ∨ ((role ≡ "asset") ∧ (∨´ type ⊸ ≡¨ "liquid"‿"savings"‿"invest"))
+  fieldCheck ← ValidateNoTabNewline "account name"‿name
+  {
+    (¬ ⊑fieldCheck) ? fieldCheck ;
+    (0 = ≠name) ? ⟨0, "account name must not be empty"⟩ ;
+    (∨´ name ⊸ ≡¨ accounts) ? ⟨0, "account already exists: " ∾ name⟩ ;
+    (¬roleOk) ? ⟨0, "invalid account role: " ∾ role⟩ ;
+    (¬prefixOk) ? ⟨0, "account namespace must match role=" ∾ role ∾ ": " ∾ name⟩ ;
+    (¬suffixOk) ? ⟨0, "account name must include a name after namespace: " ∾ name⟩ ;
+    (¬typeOk) ? ⟨0, "invalid account type for role=" ∾ role ∾ ": " ∾ type⟩ ;
+    ⟨1, ""⟩
+  }
+}
+
 # ── Metadata validation ────────────────────────────────────────
 
 # Validate a single metadata token: must be key=value where key is [a-z0-9_-]+

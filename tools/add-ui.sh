@@ -29,6 +29,7 @@ Usage:
 Fuzzy transaction adder for everyday entries.
 
 Modes:
+  account-add   アカウント追加 (writes accounts.tsv)
   expense       assets -> expenses  (writes journal.tsv)
   move          assets -> assets    (writes journal.tsv)
   income        income -> assets    (writes journal.tsv)
@@ -102,7 +103,7 @@ ensure_ledger_report_base "$base_dir"
 mode=''
 if [[ -n "$mode_arg" ]]; then
   case "$mode_arg" in
-    expense|move|income|budget|plan-add|plan-edit|plan-finish|reverse|issue|issue-close)
+    account-add|expense|move|income|budget|plan-add|plan-edit|plan-finish|reverse|issue|issue-close)
       mode="$mode_arg"
       ;;
     *)
@@ -323,6 +324,7 @@ choose_plan_date_key() {
 
 choose_mode() {
   cat <<'EOF' | select_line 'mode'
+account-add	アカウント追加
 expense	支出 assets -> expenses
 move	資金移動 assets -> assets
 income	収入 income -> assets
@@ -333,6 +335,24 @@ plan-finish	予定の実績化 + 次回予定補充
 reverse	仕訳取消 (反対仕訳追記)
 issue	Issues & Decisions の追加
 issue-close	Issues & Decisions を閉じる
+EOF
+}
+
+choose_account_role() {
+  cat <<'EOF' | select_line 'account role'
+asset	資産 (assets:)
+liability	負債 (liabilities:)
+income	収入 (income:)
+expense	費用 (expenses:)
+EOF
+}
+
+choose_asset_type() {
+  cat <<'EOF' | select_line 'asset type'
+liquid	日常的に利用可能
+savings	貯蓄
+invest	投資
+none	未指定
 EOF
 }
 
@@ -480,6 +500,25 @@ fi
 memo=''; from=''; to=''; amt=''; meta=''; plan_series=''; issue_close_args=()
 
 case "$mode" in
+  account-add)
+    capture_or_cancel account_role_line choose_account_role
+    account_role="${account_role_line%%$'\t'*}"
+    case "$account_role" in
+      asset) account_prefix='assets:' ;;
+      liability) account_prefix='liabilities:' ;;
+      income) account_prefix='income:' ;;
+      expense) account_prefix='expenses:' ;;
+      *) shout "Invalid account role: $account_role"; exit 1 ;;
+    esac
+    capture_or_cancel account_suffix read_tty 'Account name (namespace is added automatically)' ''
+    account_name="${account_prefix}${account_suffix}"
+    account_type=''
+    if [[ "$account_role" == 'asset' ]]; then
+      capture_or_cancel account_type_line choose_asset_type
+      account_type="${account_type_line%%$'\t'*}"
+      [[ "$account_type" == 'none' ]] && account_type=''
+    fi
+    ;;
   issue)
     capture_or_cancel title read_tty 'Title/Item' ''
     capture_or_cancel amt read_tty 'Amount (optional JST)' '0'
@@ -632,7 +671,7 @@ esac
 
 # ── Date selection (skip for edit/close/reverse modes) ──
 
-if [[ "$mode" != 'plan-edit' && "$mode" != 'reverse' && "$mode" != 'issue-close' ]]; then
+if [[ "$mode" != 'account-add' && "$mode" != 'plan-edit' && "$mode" != 'reverse' && "$mode" != 'issue-close' ]]; then
   if [[ "$mode" == 'plan-add' ]]; then
     capture_or_cancel date_line choose_plan_date_key
   else
@@ -660,7 +699,14 @@ fi
 
 # ── Execute via BQN editor ──
 
-if [[ "$mode" == 'plan-edit' ]]; then
+if [[ "$mode" == 'account-add' ]]; then
+  cmd=(
+    "$ROOT_DIR/tools/edit" --base "$base_dir" account add
+    --name "$account_name"
+    --role "$account_role"
+  )
+  [[ -n "$account_type" ]] && cmd+=(--type "$account_type")
+elif [[ "$mode" == 'plan-edit' ]]; then
   cmd=("$ROOT_DIR/tools/edit" --base "$base_dir" plan edit "${plan_edit_args[@]}")
 elif [[ "$mode" == 'reverse' ]]; then
   cmd=("$ROOT_DIR/tools/edit" --base "$base_dir" journal reverse "${reverse_args[@]}")
@@ -688,7 +734,7 @@ else
   )
 fi
 
-if [[ "$mode" != 'plan-edit' && "$mode" != 'reverse' && "$mode" != 'issue' && "$mode" != 'issue-close' && -n "$meta" ]]; then
+if [[ "$mode" != 'account-add' && "$mode" != 'plan-edit' && "$mode" != 'reverse' && "$mode" != 'issue' && "$mode" != 'issue-close' && -n "$meta" ]]; then
   for token in $meta; do
     [[ -n "$token" ]] && cmd+=(--meta "$token")
   done

@@ -51,6 +51,7 @@
 ## Command classes
 
 ### Append-only
+- `account add`
 - `journal add`
 - `budget add`
 - `plan add`

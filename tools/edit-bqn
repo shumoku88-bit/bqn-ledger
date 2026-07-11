@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # tools/edit-bqn — BQN-backed editor entry point.
 #
-# Current scope: daily write commands (`journal add`, `budget add`, `issue add`,
-# `plan add`, `plan list`, `plan finish`, `plan edit`, `journal list`, `journal reverse`).
+# Current scope: daily commands (`account add/list`, `journal add/list/reverse`,
+# `budget add`, `issue add/list/close`, and `plan add/list/related/finish/edit`).
 # `tools/edit` is the public wrapper that delegates here.
 #
 # Shared parsing/protocol/write handling is kept in one path for the
@@ -26,6 +26,7 @@ JOURNAL_FILE="$(get_system_default_file DEFAULT_JOURNAL_FILE journal.tsv)"
 BUDGET_ALLOC_FILE="$(get_system_default_file DEFAULT_BUDGET_ALLOC_FILE budget_alloc.tsv)"
 PLAN_FILE="$(get_system_default_file DEFAULT_PLAN_FILE plan.tsv)"
 ISSUES_FILE="issues.tsv"
+ACCOUNTS_FILE="$(get_system_default_file DEFAULT_ACCOUNTS_FILE accounts.tsv)"
 
 usage() {
   cat <<'USAGE' >&2
@@ -36,6 +37,7 @@ Usage:
   tools/edit-bqn [--base DIR] issue add [--date YYYY-MM-DD] [--status open|resolved|dropped] --title TITLE [--amount INT] [--memo MEMO] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] issue list [--format tsv|text]
   tools/edit-bqn [--base DIR] issue close --index NUMBER [--status resolved|dropped] --decision MEMO [--dry-run] [--yes] [--post-check none|lint|full]
+  tools/edit-bqn [--base DIR] account add --name ACCOUNT --role asset|liability|income|expense [--type liquid|savings|invest] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] account list [--role ROLE]
   tools/edit-bqn [--base DIR] journal list [--format tsv|text]
   tools/edit-bqn [--base DIR] plan list [--all] [--format tsv|text]
@@ -44,7 +46,7 @@ Usage:
   tools/edit-bqn [--base DIR] plan edit [--index NUMBER] [--id PLAN_ID] [--date YYYY-MM-DD] [--amount INT] [--all] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] journal reverse [--index NUMBER] [--id TXN_ID] [--date YYYY-MM-DD] [--dry-run] [--yes] [--post-check none|lint|full]
 
-Current scope: BQN editor daily commands (journal/budget/plan/issue add, issue list/close, account list, journal list, journal reverse, plan list, plan related, plan finish, and plan edit).
+Current scope: BQN editor daily commands (account add/list, journal/budget/plan/issue add, issue list/close, journal list/reverse, and plan list/related/finish/edit).
 USAGE
 }
 
@@ -71,6 +73,58 @@ if [[ $# -lt 2 ]]; then
   echo "ERROR: missing command/subcommand" >&2
   usage
   exit 2
+fi
+
+if [[ "$1" == "account" && "$2" == "add" ]]; then
+  shift 2
+  NAME=""
+  ROLE=""
+  TYPE=""
+  DRY_RUN=0
+  YES=0
+  POST_CHECK="lint"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --name) NAME="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --role) ROLE="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --type) TYPE="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --dry-run) DRY_RUN=1; shift ;;
+      --yes) YES=1; shift ;;
+      --post-check) POST_CHECK="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      *) echo "ERROR: unknown account add argument: $1" >&2; exit 2 ;;
+    esac
+  done
+  [[ -n "$NAME" ]] || { echo "ERROR: missing required option: --name" >&2; exit 2; }
+  [[ -n "$ROLE" ]] || { echo "ERROR: missing required option: --role" >&2; exit 2; }
+  edit_bqn_validate_post_check "$POST_CHECK"
+
+  TARGET_PATH="$BASE_DIR/$ACCOUNTS_FILE"
+  SNAPSHOT_TOKEN="$(safe_snapshot_token "$TARGET_PATH")"
+  IFS=$'\t' read -r SNAP_SIZE SNAP_MTIME SNAP_SHA256 <<< "$SNAPSHOT_TOKEN"
+  BQN_STDERR="$(mktemp)"
+  trap 'rm -f "$BQN_STDERR"' EXIT
+  BQN_OUT=""
+  if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/account_add_cmd.bqn "$BASE_DIR" "$NAME" "$ROLE" "$TYPE" 2>"$BQN_STDERR")"; then
+    [[ -n "$BQN_OUT" ]] && printf '%s\n' "$BQN_OUT" >&2
+    [[ -s "$BQN_STDERR" ]] && cat "$BQN_STDERR" >&2
+    exit 1
+  fi
+  if ! edit_bqn_split_protocol_output "$BQN_OUT"; then exit 1; fi
+  FIRST_LINE="$EDIT_BQN_PROTOCOL_FIRST_LINE"
+  PAYLOAD="$EDIT_BQN_PROTOCOL_PAYLOAD"
+  if ! edit_bqn_require_append_protocol "$FIRST_LINE" "$ACCOUNTS_FILE"; then exit 1; fi
+  MODE="$(edit_bqn_mode "$DRY_RUN" "$YES")"
+  edit_bqn_print_append_preview "Account" "$TARGET_PATH" "$MODE" "$POST_CHECK" "Account row" "$PAYLOAD"
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    printf 'Dry-run only. No files were modified.\n'
+    exit 0
+  fi
+  if [[ "$YES" -eq 0 ]] && ! confirm_append; then
+    echo "Cancelled. No files were modified."
+    exit 0
+  fi
+  edit_bqn_apply_append_checked "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256" EDIT_BQN_TEST_BEFORE_APPEND_HOOK
+  exit 0
 fi
 
 if [[ "$1" == "account" && "$2" == "list" ]]; then

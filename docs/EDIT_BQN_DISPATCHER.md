@@ -12,7 +12,7 @@ validation and TSV row/edit rendering live in `src_edit/*.bqn`.
 
 | Group | Commands | Shell owner | BQN owner |
 |---|---|---|---|
-| account | `account list` | `tools/edit-bqn` read-only dispatch | `src_edit/account_list_cmd.bqn` |
+| account | `account add`, `account list` | `tools/edit-bqn` safe append / read-only dispatch | `src_edit/account_add_cmd.bqn`, `src_edit/account_list_cmd.bqn` |
 | journal | `journal add`, `journal list`, `journal reverse` | `tools/edit-bqn` | `src_edit/journal_add_cmd.bqn`, `src_edit/journal_list_cmd.bqn`, `src_edit/journal_reverse_cmd.bqn` |
 | budget | `budget add` | `tools/edit-bqn` shared journal-like append path | `src_edit/journal_add_cmd.bqn` |
 | plan read | `plan list`, `plan related` | `tools/edit-bqn` read-only dispatch | `src_edit/plan_list_cmd.bqn`, `src_edit/plan_related_cmd.bqn` |

@@ -26,15 +26,16 @@ BQN Editor は会計エンジンとしての計算（残高や封筒の残金計
 ### モード一覧
 起動すると、まず以下の記帳モードを選択します。
 
-1.  **`expense` (支出)**: 資産口座から費用口座への支出（例: `assets:bank` $\rightarrow$ `expenses:food`）。`journal.tsv` に追記。
-2.  **`move` (資金移動)**: 資産口座間の振替（例: `assets:bank` $\rightarrow$ `assets:cash`）。`journal.tsv` に追記。
-3.  **`income` (収入)**: 収入元から資産口座への入金（例: `income:salary` $\rightarrow$ `assets:bank`）。`journal.tsv` に追記。
-4.  **`budget` (予算配賦)**: 封筒への予算割り当て（例: `budget:unassigned` $\rightarrow$ `budget:daily`）。`budget_alloc.tsv` に追記。memo 候補は `config/ui_budget_memo_presets.tsv` で管理します。
-5.  **`plan-add` (予定の追加)**: 未来の支払い予定を `plan.tsv` に安全追記。必要なら `series` を入力でき、`plan_id` は自動生成。
-6.  **`plan-edit` (予定の日付・金額修正)**: 未完了予定を選び、`date` / `amount` だけを差分プレビュー付きで修正。
-7.  **`plan-finish` (予定の実績化)**: `tools/plan-finish-replenish-ui.sh` に委譲し、`plan.tsv` で宣言された予定を完了させて実績化。`journal.tsv` に `plan_id` 付きで追記し、必要なら次回予定も追加。
-8.  **`reverse` (仕訳取消)**: 既存の `journal.tsv` 行を選び、from/to を入れ替えた反対仕訳を `journal.tsv` に安全追記。
-9.  **`issue` (Issues & Decisions の追加)**: 財務的な issue / decision（例: サブスクリプションの見直し）を `issues.tsv` に安全追記。
+1.  **`account-add` (アカウント追加)**: `asset / liability / income / expense` を選び、明示的な `role=` と一致する名前空間で `accounts.tsv` に安全追記します。assetでは任意で `type=liquid|savings|invest` を選べます。
+2.  **`expense` (支出)**: 資産口座から費用口座への支出（例: `assets:bank` $\rightarrow$ `expenses:food`）。`journal.tsv` に追記。
+3.  **`move` (資金移動)**: 資産口座間の振替（例: `assets:bank` $\rightarrow$ `assets:cash`）。`journal.tsv` に追記。
+4.  **`income` (収入)**: 収入元から資産口座への入金（例: `income:salary` $\rightarrow$ `assets:bank`）。`journal.tsv` に追記。
+5.  **`budget` (予算配賦)**: 封筒への予算割り当て（例: `budget:unassigned` $\rightarrow$ `budget:daily`）。`budget_alloc.tsv` に追記。memo 候補は `config/ui_budget_memo_presets.tsv` で管理します。
+6.  **`plan-add` (予定の追加)**: 未来の支払い予定を `plan.tsv` に安全追記。必要なら `series` を入力でき、`plan_id` は自動生成。
+7.  **`plan-edit` (予定の日付・金額修正)**: 未完了予定を選び、`date` / `amount` だけを差分プレビュー付きで修正。
+8.  **`plan-finish` (予定の実績化)**: `tools/plan-finish-replenish-ui.sh` に委譲し、`plan.tsv` で宣言された予定を完了させて実績化。`journal.tsv` に `plan_id` 付きで追記し、必要なら次回予定も追加。
+9.  **`reverse` (仕訳取消)**: 既存の `journal.tsv` 行を選び、from/to を入れ替えた反対仕訳を `journal.tsv` に安全追記。
+10.  **`issue` (Issues & Decisions の追加)**: 財務的な issue / decision（例: サブスクリプションの見直し）を `issues.tsv` に安全追記。
 
 ---
 
@@ -58,6 +59,14 @@ BQN Editor は会計エンジンとしての計算（残高や封筒の残金計
 
 ### グローバルオプション
 *   `--base <dir>`: データセットが存在する基準ディレクトリを指定します。既定は `LEDGER_DATA_DIR`、未設定なら `config/system_defaults.tsv` の `DEFAULT_BASE_DIR`（公開 repo では `data/` sandbox）です。
+
+### アカウントの安全追記 (`account add`)
+```bash
+./tools/edit account add --name 'income:友人精算' --role income
+./tools/edit account add --name 'assets:PayPay' --role asset --type liquid
+```
+
+`role` は `asset|liability|income|expense`、名前空間はそれぞれ `assets:|liabilities:|income:|expenses:` に一致する必要があります。重複、空の名前部分、矛盾する名前空間、asset以外への `type=`、未知のtypeは書き込み前に拒否されます。通常の追記と同様に `--dry-run`、`--yes`、`--post-check` を利用できます。
 
 ### ジャーナル・予算の安全追記 (`journal add` / `journal reverse` / `budget add`)
 ```bash
@@ -169,7 +178,7 @@ BQN Editor は会計エンジンとしての計算（残高や封筒の残金計
 
 ## 5. BQN Editorが保証する安全書き込み機能
 
-書き込みを伴うコマンド（`journal add`、`journal reverse`、`budget add`、`plan add`、`plan finish --apply`、`plan edit`、`issue add`）を実行する際、BQN Editorは以下の安全機構を自動で走らせます。
+書き込みを伴うコマンド（`account add`、`journal add`、`journal reverse`、`budget add`、`plan add`、`plan finish --apply`、`plan edit`、`issue add`）を実行する際、BQN Editorは以下の安全機構を自動で走らせます。
 
 1.  **事前バリデーション**: 日付フォーマット、金額が整数か、アカウント名が `<base>/accounts.tsv` に存在するか、メタデータ形式に問題がないかを書き込み前に構造検査します。
 2.  **プレビューと確認**: 追記または編集される正確なTSV行を画面に出力し、ユーザーが明示的に `y` または `yes` と入力しない限り書き込みません（`--yes` 指定時を除く）。

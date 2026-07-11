@@ -58,4 +58,34 @@ if ./tools/edit --base "$base" account list --bad > /tmp/check-edit-bqn-account-
 fi
 rm -f /tmp/check-edit-bqn-account-list.out
 
+# account add uses the same BQN-owned account contract and safe append path.
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+cp data/*.tsv "$tmp/"
+
+preview="$(./tools/edit --base "$tmp" account add --name 'income:友人精算' --role income --dry-run --post-check none)"
+grep -Fq $'income:友人精算\trole=income' <<< "$preview"
+if grep -Fq 'income:友人精算' "$tmp/accounts.tsv"; then
+  echo "FAIL: account add dry-run modified accounts.tsv" >&2
+  exit 1
+fi
+
+./tools/edit --base "$tmp" account add --name 'income:友人精算' --role income --yes --post-check none >/dev/null
+grep -Fxq $'income:友人精算\trole=income' "$tmp/accounts.tsv"
+compgen -G "$tmp/.backup/accounts.tsv.*.bak" >/dev/null
+
+if ./tools/edit --base "$tmp" account add --name 'income:友人精算' --role income --dry-run --post-check none >/tmp/account-add-duplicate.out 2>&1; then
+  echo "FAIL: account add accepted duplicate account" >&2
+  exit 1
+fi
+if ./tools/edit --base "$tmp" account add --name 'expenses:食費2' --role income --dry-run --post-check none >/tmp/account-add-role.out 2>&1; then
+  echo "FAIL: account add accepted mismatched namespace and role" >&2
+  exit 1
+fi
+if ./tools/edit --base "$tmp" account add --name 'assets:test' --role asset --type crypto --dry-run --post-check none >/tmp/account-add-type.out 2>&1; then
+  echo "FAIL: account add accepted unknown asset type" >&2
+  exit 1
+fi
+rm -f /tmp/account-add-duplicate.out /tmp/account-add-role.out /tmp/account-add-type.out
+
 echo "check-edit-bqn-account-list: OK"

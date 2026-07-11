@@ -108,6 +108,7 @@
 `tools/edit-bqn` を支える BQN editor subsystem。`src_next/` (report) とは独立。
 
 - `src_edit/README.md` — 責務境界と実装対象の定義。
+- `src_edit/account_add_cmd.bqn` — 明示role・名前空間・重複・asset typeを検証し、accounts.tsv追記候補を生成。
 - `src_edit/account_list_cmd.bqn` — UI向け account candidate export。`accounts.tsv` の role メタ解釈を BQN 側に閉じ込める。
 - `src_edit/journal_add_cmd.bqn` — journal add / budget add 用の検証および TSV 生成。
 - `src_edit/journal_list_cmd.bqn` — journal reverse UI向け read-only journal selection export。
@@ -136,7 +137,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 ### `tools/edit-bqn`
 
 - 日常 write path の BQN+shell 実装。
-- `account list` / `journal add` / `journal list` / `budget add` / `issue add` / `issue list` / `issue close` / `plan add` / `plan list` / `plan related` / `plan finish` / `plan edit` / `journal reverse` を扱う。
+- `account add` / `account list` / `journal add` / `journal list` / `budget add` / `issue add` / `issue list` / `issue close` / `plan add` / `plan list` / `plan related` / `plan finish` / `plan edit` / `journal reverse` を扱う。
 - `src_edit` の機械可読プロトコルを受け、`tools/lib/safe-write.sh` で安全に適用する。
 - Dispatcher boundary の現行メモは `docs/EDIT_BQN_DISPATCHER.md`。共通 shell helper は `tools/lib/edit-bqn-common.sh`、`issue add` handler は `tools/lib/edit-bqn-issue.sh`。
 - Go editor の記述や fallback 前提は現行導線では使わない。

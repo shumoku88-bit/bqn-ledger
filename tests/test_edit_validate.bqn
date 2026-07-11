@@ -39,6 +39,19 @@ accts ← ⟨"assets:bank", "expenses:rent", "income:salary"⟩
 t.Assert (0 ≡ ⊑ validate.ValidateAccount "from"‿"expenses:food"‿accts)
 t.Assert (0 ≡ ⊑ validate.ValidateAccount "from"‿""‿accts)
 
+# Account-add contract: explicit role, matching namespace, uniqueness, and
+# controlled asset type.
+⟨1, ""⟩ t.AssertEq validate.ValidateAccountAdd {
+  name ⇐ "income:友人精算" ⋄ role ⇐ "income" ⋄ type ⇐ "" ⋄ accounts ⇐ accts
+}
+⟨1, ""⟩ t.AssertEq validate.ValidateAccountAdd {
+  name ⇐ "assets:PayPay" ⋄ role ⇐ "asset" ⋄ type ⇐ "liquid" ⋄ accounts ⇐ accts
+}
+t.Assert (0 ≡ ⊑ validate.ValidateAccountAdd { name ⇐ "income:salary" ⋄ role ⇐ "income" ⋄ type ⇐ "" ⋄ accounts ⇐ accts })
+t.Assert (0 ≡ ⊑ validate.ValidateAccountAdd { name ⇐ "expenses:food" ⋄ role ⇐ "income" ⋄ type ⇐ "" ⋄ accounts ⇐ accts })
+t.Assert (0 ≡ ⊑ validate.ValidateAccountAdd { name ⇐ "assets:bank2" ⋄ role ⇐ "asset" ⋄ type ⇐ "crypto" ⋄ accounts ⇐ accts })
+t.Assert (0 ≡ ⊑ validate.ValidateAccountAdd { name ⇐ "income:" ⋄ role ⇐ "income" ⋄ type ⇐ "" ⋄ accounts ⇐ accts })
+
 # ── Meta token validation tests ──────────────────────────────────
 •Out "Running Meta token tests..."
 ⟨1, ""⟩ t.AssertEq validate.ValidateMetaToken "key=value"
@@ -51,6 +64,12 @@ t.Assert (0 ≡ ⊑ validate.ValidateMetaToken "key =value") # space in key
 # ── Render tests ─────────────────────────────────────────────────
 •Out "Running Render tests..."
 tab ← @+9
+("income:友人精算" ∾ tab ∾ "role=income") t.AssertEq render.RenderAccountRow {
+  name ⇐ "income:友人精算" ⋄ role ⇐ "income" ⋄ type ⇐ ""
+}
+("assets:PayPay" ∾ tab ∾ "role=asset" ∾ tab ∾ "type=liquid") t.AssertEq render.RenderAccountRow {
+  name ⇐ "assets:PayPay" ⋄ role ⇐ "asset" ⋄ type ⇐ "liquid"
+}
 ("2026-06-29" ∾ tab ∾ "memo" ∾ tab ∾ "assets:bank" ∾ tab ∾ "expenses:rent" ∾ tab ∾ "100") t.AssertEq render.RenderJournalRow {
   date ⇐ "2026-06-29" ⋄
   memo ⇐ "memo" ⋄
