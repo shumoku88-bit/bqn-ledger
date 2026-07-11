@@ -41,11 +41,6 @@ EscapeChar ← {𝕊 ch:
   ⟨ch⟩
 }
 
-EscapeCell ← {𝕊 cell:
-  pieces ← EscapeChar¨ cell
-  (0 = ≠ pieces) ? "" ; ∾ pieces
-}
-
 FormatTsv ← {𝕊 lensResult:
   { state ⇐ lensResult.state, text ⇐ header ∾ lf_char, message ⇐ "" }
 }
