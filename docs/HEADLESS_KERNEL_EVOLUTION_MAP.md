@@ -86,18 +86,21 @@ The current runtime implements a narrower accounting-specific form of this flow.
 
 ## 4. Current runtime truth
 
-At the start of this workstream, current `main` uses this path for journal-like posting sources:
+At the start of this workstream, the snapshot posting path used `RequireArithmeticCurrencyProof` directly to authorize calculations and exit on failure. Since Phase C, the path uses the pure checked posting projection to return a result without inner terminal effects:
 
 ```text
 LoadPostingSourceSnapshot
-  -> BuildRowEvidenceFromSnapshot
-  -> currency_arithmetic.Build
-  -> ResolveArithmeticCurrencyProof
-  -> RequireArithmeticCurrencyProof
-  -> BuildProjectionRowsForEvidence
-  -> Posting IR rows
-  -> cube.Materialize / tbds.Build
-  -> accounting and household views
+  -> BuildCheckedPostingProjectionFromSnapshot
+       -> row evidence
+       -> arithmetic evidence
+       -> arithmetic-currency proof
+       -> proof authorization
+       -> structural admission
+       -> Posting IR rows or structured diagnostic
+  -> BuildAuthorizedRowsFromSnapshot compatibility wrapper
+       -> existing success shape
+       -> existing ERROR stdout / exit 1
+  -> Cube / TBDS / reports
 ```
 
 Current ownership:
@@ -171,8 +174,8 @@ Every phase must preserve these unless a separate explicit decision replaces one
 |---|---|---|---|---|
 | A. Current boundary map | **complete** | What kernel, household layer, side effects, and projection boundaries already exist? | PR #164, the point-in-time audit, canonical map/TODO/docs routing, and green CI run #614 | None |
 | B. Pure checked-result contract | **complete** | What data-only result can replace inner `•Out` / `•Exit` without changing outer behavior? | PR #165, [`PURE_CHECKED_POSTING_PROJECTION_RESULT_CONTRACT.md`](PURE_CHECKED_POSTING_PROJECTION_RESULT_CONTRACT.md), canonical routing, and green CI run #616 | None; design contract only |
-| C. Pure checked projection extraction | **selected runtime slice** | Can the selected result builder be implemented while preserving all existing outputs and failures? | Focused direct-result tests, compatibility parity, full checks, coverage, and actual-diff review | Authorized only for the exact Phase B contract seam; no semantic widening |
-| D. 6D feasibility from existing evidence | not started | Can a read-only 6D projection be derived from current evidence/raw fields without a new shared event carrier? | Docs/test evidence classifying sufficient, small extension, or insufficient | Not authorized by Phase C |
+| C. Pure checked projection extraction | **complete** | Can the selected result builder be implemented while preserving all existing outputs and failures? | Focused direct-result tests, compatibility parity, full checks, coverage, and actual-diff review | Authorized only for the exact Phase B contract seam; no semantic widening |
+| D. 6D feasibility from existing evidence | **eligible; not selected** | Can a read-only 6D projection be derived from current evidence/raw fields without a new shared event carrier? | Docs/test evidence classifying sufficient, small extension, or insufficient | Not authorized by Phase C |
 | E. Shared event carrier decision | not started | Do at least two independent projections require the same normalized event carrier? | Explicit adopt/reject/defer decision with consumer evidence | No `CanonicalEvent` implementation is authorized now |
 
 ### Phase A completion evidence
@@ -194,6 +197,16 @@ Phase B closed through:
 - GitHub Actions run #616 with `tools/check.sh` and coverage successful.
 
 Phase B selected the exact pure builder inputs, six-field result carrier, fatal diagnostics, compatibility-wrapper ownership, and Phase C verification requirements. Phase C was then selected separately through the docs-only routing update that made it the sole active finite slice.
+
+### Phase C completion evidence
+
+Phase C closed through:
+
+- merged PR #167, `feat: extract pure checked posting projection` (merge commit `ced42eaf9852b17a2fedf87262be8e0f6dbab9d9`);
+- GitHub Actions run #622 with `tools/check.sh` and coverage successful;
+- focused direct-result tests covering legacy-compatible JPY, explicit JPY, explicit ILS, empty-source, mixed-currency, unsupported/duplicate/malformed metadata, and structural mismatch in `tests/test_src_next_checked_posting_projection.bqn`;
+- compatibility-wrapper parity checks in `checks/check-src-next-checked-posting-projection.sh`;
+- actual-diff review confirming exactly 4 files changed.
 
 ### Phase C finite scope
 
@@ -315,6 +328,12 @@ C. an independent intermediate representation is required
 
 No formal 6D source contract is selected before this evidence exists.
 
+For clarity:
+- runtime implementation is not authorized
+- source schema changes are not authorized
+- 6D export/report is not authorized
+- this closure does not select Phase D as the active slice
+
 ### Phase E: Shared event carrier decision
 
 A shared event carrier is justified only if at least two independent consumers require the same normalized information and cannot safely consume current evidence or Posting IR.
@@ -364,7 +383,7 @@ This is a parked direction, not an authorized phase in the current sequence.
 | Pure checked builder inputs | selected as `snapshot`, `resolved`, `cycleStart` | Phase C evidence proves the boundary cannot preserve current behavior |
 | Fatal checked-result behavior | selected as structured error plus empty posting rows | A separate contract selects partial or accumulated projection behavior |
 | Existing wrappers own terminal effects | selected | A separate CLI/API boundary migration is justified |
-| Phase C runtime extraction | selected as the exact Phase B contract seam | Implementation evidence shows the seam cannot preserve current behavior without a new decision |
+| Phase C runtime extraction | complete | Implementation evidence shows the seam preserves current behavior and exits on failure correctly |
 | Add `CanonicalEvent` now | rejected for now | Two independent consumers demonstrate the same missing carrier semantics |
 | Start strict event sourcing now | rejected for now | One bounded domain and replay requirement are selected with migration safety |
 | Start broad headless refactor | rejected | A finite pure-result seam is implemented and tested first |
@@ -396,15 +415,13 @@ The map should remain compact enough to restart work, but complete enough that a
 
 ## 11. Current next action
 
-Complete Phase C only:
+Phase C is complete. The next action is a docs-only decision:
 
 ```text
-selected Phase B contract
-  -> pure checked builder
-  -> compatibility wrapper parity
-  -> focused result and failure tests
-  -> actual-diff review
-  -> green repository checks and coverage
+Phase C complete
+  -> review existing evidence/raw fields
+  -> decide select or defer Phase D
+  -> do not implement 6D in the decision PR
 ```
 
-After Phase C merges, record its implementation evidence and make a separate decision on whether Phase D becomes the next active finite slice. Phase D must not begin automatically from runtime extraction or from conversation memory.
+Phase C is merged and this closure records its implementation evidence. The next docs-only decision must explicitly select or defer Phase D; no 6D implementation begins from this closure.

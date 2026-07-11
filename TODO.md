@@ -9,50 +9,23 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-11 — Phase B merged through PR #165; selected one finite Phase C pure checked projection extraction slice. No broad `context.bqn` split, CanonicalEvent, 6D implementation, event-sourcing migration, or new Stage is authorized.
+Last hygiene pass: 2026-07-11 — Phase C merged through PR #167; the sole active finite work is a docs-only decision to select or defer Phase D. No 6D implementation, CanonicalEvent, event-sourcing migration, broad `context.bqn` split, or new Stage is authorized.
 
 ---
 
 ## Active work
 
-### Headless Kernel Evolution Phase C: Pure Checked Posting Projection Extraction
+### Headless Kernel Evolution: Phase D selection decision
 
-One finite runtime extraction slice.
+Phase D の read-only 6D feasibility investigation を次の有限sliceとして明示的に選択するか、eligible のまま保留するか。これは Phase D の開始ではない。
 
-Canonical workstream map:
-- [`docs/HEADLESS_KERNEL_EVOLUTION_MAP.md`](docs/HEADLESS_KERNEL_EVOLUTION_MAP.md)
-
-Selected boundary contract:
-- [`docs/PURE_CHECKED_POSTING_PROJECTION_RESULT_CONTRACT.md`](docs/PURE_CHECKED_POSTING_PROJECTION_RESULT_CONTRACT.md)
-
-Phase B evidence:
-- merged PR #165;
-- the selected six-field checked-result contract;
-- successful GitHub Actions run #616.
-
-This slice implements only the selected seam:
-- add `BuildCheckedPostingProjectionFromSnapshot ⟨snapshot, resolved, cycleStart⟩`;
-- return `{state, row_evidence, arithmetic_evidence, arithmetic_currency_proof, posting_rows, diagnostics}`;
-- preserve the current fail-closed order for proof rejection before structural mismatch;
-- keep `unknown_account` and `invalid_date` as Posting IR row statuses rather than aggregate result failure;
-- adapt `BuildAuthorizedRowsFromSnapshot` as the compatibility wrapper that preserves current `ERROR: ` stdout and exit code `1`;
-- add focused direct-result and compatibility-parity tests required by the contract.
-
-Exit evidence:
-- the pure builder performs no file loading, `•Out`, `•Exit`, clock access, Cube/TBDS construction, report rendering, JSON rendering, or household policy;
-- existing callers keep their current signatures and observable success/failure behavior;
-- JPY, checked ILS, empty-source compatibility, mixed-domain rejection, malformed/unsupported/duplicate metadata rejection, structural mismatch, unknown-account parity, and invalid-date parity are covered;
-- repository checks and coverage are green;
-- the actual diff contains no source TSV, metadata schema, editor, report-output, JSON, Cube, TBDS, 6D, event-storage, or currency-semantics widening.
-
-Do not auto-start after Phase C:
-- Phase D 6D feasibility;
-- a broad split of `context.bqn`;
-- `CanonicalEvent` or `Project(events, spec)`;
-- strict event sourcing for journal, plan, budget, or issues;
-- a new numbered Stage.
-
-Currency Stage 2 remains complete enough for now through PR #162 and PR #163. This extraction does not reopen currency semantics.
+Phase C status:
+* Phase C は merged PR #167 (merge commit `ced42eaf9852b17a2fedf87262be8e0f6dbab9d9`) により完了
+* GitHub Actions run #622 で `tools/check.sh` と coverage が成功
+* 実差分は4ファイルのみ
+* pure checked builder、six-field result、compatibility wrapper parity が実装済み
+* Cube、TBDS、reports、JSON、source TSV、currency semantics、6D、event sourcing は変更なし
+* Phase D、`CanonicalEvent`、`Project(events, spec)`、strict event sourcing は未承認
 
 ---
 
