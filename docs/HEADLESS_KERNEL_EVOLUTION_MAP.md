@@ -41,7 +41,7 @@ Any future session working on this direction must begin in this order:
 
 1. Read [`../TODO.md`](../TODO.md) to identify the one active finite slice.
 2. Read this map from the beginning through **Current phase**.
-3. Read the evidence document linked from the current phase row.
+3. Read the evidence or contract linked from the current phase row.
 4. Inspect current `main`; do not assume this document proves runtime behavior after later merges.
 5. Compare the intended slice with the actual changed paths before committing or opening a PR.
 6. Update this map in the same PR whenever the current phase, selected next slice, or a workstream decision changes.
@@ -169,51 +169,76 @@ Every phase must preserve these unless a separate explicit decision replaces one
 
 | Phase | Status | Question owned by the phase | Exit evidence | Runtime authorization |
 |---|---|---|---|---|
-| A. Current boundary map | **active docs-only slice** | What kernel, household layer, side effects, and projection boundaries already exist? | This map, the point-in-time audit, TODO routing, docs routing, and green repository checks | None |
-| B. Pure checked-result contract | not started | What data-only result can replace inner `•Out` / `•Exit` without changing outer behavior? | A docs-only contract with inputs, result carrier, diagnostics, wrappers, and tests | None until separately selected |
-| C. Pure checked projection extraction | not started | Can the selected result builder be implemented while preserving all existing outputs and failures? | Focused tests, fixture parity, full checks, actual-diff review | Not authorized by Phase A |
-| D. 6D feasibility from existing evidence | not started | Can a read-only 6D projection be derived from current evidence/raw fields without a new shared event carrier? | Docs/test evidence classifying sufficient, small extension, or insufficient | Not authorized by Phase A |
+| A. Current boundary map | **complete** | What kernel, household layer, side effects, and projection boundaries already exist? | PR #164, the point-in-time audit, canonical map/TODO/docs routing, and green CI run #614 | None |
+| B. Pure checked-result contract | **active docs-only slice** | What data-only result can replace inner `•Out` / `•Exit` without changing outer behavior? | [`PURE_CHECKED_POSTING_PROJECTION_RESULT_CONTRACT.md`](PURE_CHECKED_POSTING_PROJECTION_RESULT_CONTRACT.md), TODO/docs routing, actual-diff review, and green checks | None; Phase C requires a later explicit selection |
+| C. Pure checked projection extraction | not started | Can the selected result builder be implemented while preserving all existing outputs and failures? | Focused tests, fixture parity, full checks, actual-diff review | Not authorized by Phase B until separately selected after merge |
+| D. 6D feasibility from existing evidence | not started | Can a read-only 6D projection be derived from current evidence/raw fields without a new shared event carrier? | Docs/test evidence classifying sufficient, small extension, or insufficient | Not authorized by Phase B |
 | E. Shared event carrier decision | not started | Do at least two independent projections require the same normalized event carrier? | Explicit adopt/reject/defer decision with consumer evidence | No `CanonicalEvent` implementation is authorized now |
 
-### Phase A finite scope
+### Phase A completion evidence
 
-Phase A may:
+Phase A closed through:
 
-- record the current implementation path;
-- classify I/O, pure computation, accounting, household, and presentation ownership;
-- identify current side effects and seams;
-- compare the input needs of existing and candidate projections;
-- record why a shared event carrier is not yet selected;
-- route the next possible docs-only phase without starting it.
+- merged PR #164, `docs: map headless kernel and projection evolution`;
+- [`archive/audits/HEADLESS_KERNEL_AND_EVENT_PROJECTION_BOUNDARY_AUDIT-2026-07-11.md`](archive/audits/HEADLESS_KERNEL_AND_EVENT_PROJECTION_BOUNDARY_AUDIT-2026-07-11.md);
+- GitHub Actions run #614 with `tools/check.sh` and coverage successful.
 
-Phase A must not:
+Phase A established the map and made Phase B eligible. Phase B was then explicitly selected as a separate docs-only slice.
+
+### Phase B finite scope
+
+Phase B may:
+
+- select the exact pure builder inputs;
+- select the result carrier fields;
+- distinguish aggregate result failure from Posting IR row status;
+- select structured diagnostics for current fatal paths;
+- identify compatibility wrappers and exact preserved terminal behavior;
+- define focused Phase C verification requirements;
+- update map, TODO, and docs routing.
+
+Phase B must not:
 
 - modify BQN runtime code;
 - change source TSV or metadata schema;
+- change arithmetic proof domain, basis, scale, or admission rules;
+- change Posting IR fields or row statuses;
+- change Cube, TBDS, report, or JSON meaning;
 - add a 6D report or export;
 - add `CanonicalEvent` or `Project(events, spec)`;
 - convert issues or journal records to append-only event sourcing;
-- generalize Cube or TBDS axes;
+- start Phase C automatically;
 - start a new numbered Stage or broad campaign.
 
 ## 7. Planned finite sequence
 
 ### Phase B: Pure checked-result contract
 
-The candidate design question is whether the current inner path can return a data result similar to:
+The selected contract is:
+
+- [`PURE_CHECKED_POSTING_PROJECTION_RESULT_CONTRACT.md`](PURE_CHECKED_POSTING_PROJECTION_RESULT_CONTRACT.md)
+
+It selects this pure calculation boundary:
+
+```text
+BuildCheckedPostingProjectionFromSnapshot
+  ⟨snapshot, resolved, cycleStart⟩
+```
+
+and this data result:
 
 ```text
 {
   state
   row_evidence
   arithmetic_evidence
-  proof
+  arithmetic_currency_proof
   posting_rows
   diagnostics
 }
 ```
 
-The contract must distinguish:
+The contract distinguishes:
 
 ```text
 pure result construction
@@ -221,33 +246,41 @@ pure result construction
 CLI rendering and process exit
 ```
 
-It must decide:
+Selected decisions include:
 
-- exact inputs;
-- whether account resolution and temporal coordinates are inputs or adapters;
-- error and diagnostic carrier shape;
-- which current functions remain compatibility wrappers;
-- how current `•Out` / `•Exit` behavior remains unchanged at outer boundaries;
-- focused test and fixture requirements.
+- source loading, account-file loading, cycle-file loading, and clocks remain outside;
+- proof is derived from the same snapshot and is not independently supplied;
+- proof rejection and coefficient-length mismatch return `state = "error"` with no posting rows;
+- `unknown_account` and `invalid_date` remain Posting IR row statuses under current semantics;
+- diagnostics contain data and omit the `ERROR: ` terminal prefix;
+- `BuildAuthorizedRowsFromSnapshot` remains the compatibility wrapper that preserves current output and exit behavior.
 
-Phase B is docs-only and must be selected explicitly after Phase A review.
+Phase B is docs-only. This contract does not itself authorize runtime extraction.
 
 ### Phase C: Runtime extraction
 
-Only after Phase B selects a contract may one small runtime extraction be considered.
+Only after Phase B merges and Phase C is selected separately may one small runtime extraction be considered.
 
-The expected shape is:
+The selected candidate shape is:
 
 ```text
 pure checked builder
   -> data result
 
 existing compatibility wrapper
-  -> render diagnostic
+  -> render first fatal diagnostic
   -> preserve current process exit behavior
 ```
 
-No report, Cube, TBDS, currency, or source semantics may widen in the same PR.
+The smallest candidate is:
+
+```text
+add BuildCheckedPostingProjectionFromSnapshot
+adapt BuildAuthorizedRowsFromSnapshot as compatibility wrapper
+add focused result and parity tests
+```
+
+No report, Cube, TBDS, currency, source, 6D, or event-storage semantics may widen in the same PR.
 
 ### Phase D: 6D feasibility
 
@@ -320,9 +353,12 @@ This is a parked direction, not an authorized phase in the current sequence.
 | Preserve current source TSV | selected | Separate source migration decision with concrete consumer and compatibility plan |
 | Treat 6D as a projection first | selected | Evidence proves source-level 6D ownership is required |
 | Reuse Posting IR for accounting projections | selected | A concrete accounting projection cannot be represented safely |
+| Pure checked builder inputs | selected as `snapshot`, `resolved`, `cycleStart` | Phase C evidence proves the boundary cannot preserve current behavior |
+| Fatal checked-result behavior | selected as structured error plus empty posting rows | A separate contract selects partial or accumulated projection behavior |
+| Existing wrappers own terminal effects | selected | A separate CLI/API boundary migration is justified |
 | Add `CanonicalEvent` now | rejected for now | Two independent consumers demonstrate the same missing carrier semantics |
 | Start strict event sourcing now | rejected for now | One bounded domain and replay requirement are selected with migration safety |
-| Start broad headless refactor | rejected | A finite pure-result seam is selected and tested first |
+| Start broad headless refactor | rejected | A finite pure-result seam is implemented and tested first |
 | Create a new repository | rejected for now | Current repository constraints demonstrably block the selected work |
 
 ## 10. Map maintenance rule
@@ -351,13 +387,14 @@ The map should remain compact enough to restart work, but complete enough that a
 
 ## 11. Current next action
 
-Complete Phase A only:
+Complete Phase B only:
 
 ```text
-current implementation inspection
-  -> durable workstream map
-  -> point-in-time boundary audit
+current fatal-path inspection
+  -> selected pure checked-result contract
   -> TODO and docs routing
+  -> docs-only actual-diff review
+  -> green repository checks
 ```
 
-After Phase A merges, review its findings and make a separate decision on whether Phase B becomes the next active finite slice.
+After Phase B merges, review the contract and make a separate decision on whether Phase C becomes the next active finite slice. Phase C must not begin from an unmerged contract or from conversation memory.
