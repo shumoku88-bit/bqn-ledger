@@ -9,16 +9,16 @@ export NO_COLOR=1
 
 # Resolve repo root — use CWD if it looks like the root, otherwise resolve from script location
 if [ -f "src_next/report.bqn" ]; then
-  ROOT_DIR="$PWD"
+    ROOT_DIR="$PWD"
 else
-  SOURCE="${BASH_SOURCE[0]}"
-  while [ -L "$SOURCE" ]; do
-    DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
-    SOURCE="$(readlink "$SOURCE")"
-    [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
-  done
-  SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
-  ROOT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+    SOURCE="${BASH_SOURCE[0]}"
+    while [ -L "$SOURCE" ]; do
+        DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+        SOURCE="$(readlink "$SOURCE")"
+        [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+    done
+    SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+    ROOT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 fi
 cd "$ROOT_DIR"
 
@@ -112,6 +112,7 @@ bash checks/check-json-clock-independence.sh >/dev/null
 bash checks/check-report-section-metadata.sh fixtures/src-next-golden >/dev/null
 bash checks/check-src-next-stage4-fields.sh fixtures/src-next-golden >/dev/null
 bash checks/check-src-next-currency-domain-proof.sh >/dev/null
+bash checks/check-src-next-checked-posting-projection.sh >/dev/null
 bash checks/check-src-next-compact-summary.sh fixtures/src-next-golden >/dev/null
 bash checks/check-src-next-compact-summary.sh fixtures/empty-fields >/dev/null
 bash checks/check-src-next-compact-summary.sh fixtures/src-next-envelope-computation >/dev/null
