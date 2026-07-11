@@ -19,7 +19,7 @@ external audit finding
   != implementation authorization
 ```
 
-The review also performs a repository shelf check without defining when a different experiment may begin.
+The review also performs a repository shelf check.
 
 ## Reassessment rule
 
@@ -241,13 +241,11 @@ Do not externalize canonical Daily Cube shape, layer meaning, or arbitrary accou
 
 `CURRENT_ENGINE_DESIGN_IDEAS.md` remains exploratory. Temporal, scenario, proof, registry, and policy options are not authorized merely because they are ranked there. The completed temporal campaign and current TODO routing take precedence.
 
-## No maturity gate
+## Relationship to separate experiments
 
-This audit does not define criteria for when `bqn-ledger` is finished, mature, in maintenance mode, or `枯れた`.
+This audit classifies work inside `bqn-ledger` only. It does not schedule, authorize, or restrict work in other repositories.
 
-The user's sense that a tool has become `枯れた` is deliberately not converted into a checklist, milestone, completion condition, or repository state.
-
-A separate 6D event-sourcing experiment may begin whenever the user chooses. Keeping it in a separate repository is an architectural boundary, not a timing gate, and it is not conditional on Slice C completion, an empty Active section, or a maintenance-mode declaration.
+A separate 6D event-sourcing project is independent. Keeping it in a separate repository is an architectural separation, not a dependency on this repository's TODO state.
 
 ## Final routing
 
