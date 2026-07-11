@@ -239,7 +239,9 @@ Phase D closed through:
 - [`archive/audits/HEADLESS_KERNEL_PHASE_D_6D_FEASIBILITY-2026-07-11.md`](archive/audits/HEADLESS_KERNEL_PHASE_D_6D_FEASIBILITY-2026-07-11.md);
 - conclusion A: existing evidence is sufficient;
 - `Read-only Event Lens Slice 1` runtime implementation complete through merged PR #171 (merge commit `75f944d2689b9486b013a35f2be3b0b234a44942`, GitHub Actions run #633, `tools/check.sh` success, coverage success, exactly 2 changed runtime/test paths: `src_next/event_lens.bqn` and `tests/test_src_next_event_lens.bqn`);
-- the next finite slice `Read-only Event Lens Representative Observation Slice` explicitly selected.
+- `Read-only Event Lens Representative Observation Slice` completed through merged PR #174 (merge commit `d34b5ca5e86d1c059ead939595a98f6e25eb78e5`, GitHub Actions run #640, `tools/check.sh` success, coverage success, exactly one changed audit-document path: [`archive/audits/READ_ONLY_EVENT_LENS_REPRESENTATIVE_OBSERVATION-2026-07-11.md`](archive/audits/READ_ONLY_EVENT_LENS_REPRESENTATIVE_OBSERVATION-2026-07-11.md));
+- Conclusion A: "A formatter is justified as the next finite slice" selected and recorded;
+- the next finite slice `Read-only Event Lens Slice 2: Pure TSV Formatter` explicitly selected.
 
 ### Phase D finite scope
 
@@ -361,38 +363,65 @@ Proven all-ILS evidence implemented:
 
 ### Read-only Event Lens Representative Observation Slice
 
-The next finite slice is observation and evidence only.
+Complete. Verified that the current event lens derivation works correctly.
+- Evidence document: [`archive/audits/READ_ONLY_EVENT_LENS_REPRESENTATIVE_OBSERVATION-2026-07-11.md`](archive/audits/READ_ONLY_EVENT_LENS_REPRESENTATIVE_OBSERVATION-2026-07-11.md)
+- Completion evidence: PR #174, merge commit `d34b5ca5e86d1c059ead939595a98f6e25eb78e5`, GitHub Actions run #640, `tools/check.sh` success, coverage success.
+- Key findings:
+  - one checked source evidence row -> one lens row
+  - source order and source identity are preserved
+  - party is direct only with explicit `party=` metadata
+  - party remains absent when unsupported by source evidence
+  - nonempty memo remains ambiguous as what
+  - empty memo remains absent
+  - action is derived from layer and coarse kind
+  - amount preserves raw text, exact coefficient, scale, and currency domain
+  - all-ILS decimal rows remain exact and unformatted
+  - failed checked results remain structured errors
+- Selected conclusion:
+  - A. A formatter is justified as the next finite slice (authorizes a formatter only, no report, export system, source schema, or event-sourcing model).
 
-Its question is:
-- What does the current event lens actually reveal, preserve, classify as ambiguous, and leave absent when applied to representative checked results?
+### Read-only Event Lens Slice 2: Pure TSV Formatter
 
-Its purpose is not to improve or widen the implementation.
+The next finite slice is the implementation of a pure TSV formatter.
 
-Observation slice allowed work:
-- run the existing checked-result builder and event lens locally
-- inspect representative lens rows
-- record exact outputs in one audit document
-- compare actual output with the Slice 1 contract
-- identify useful, awkward, ambiguous, and absent fields
-- verify all-ILS rows remain exact and unformatted
+Question:
+- Can a pure FormatTsv lensResult function convert the current event-lens result into deterministic, inspectable TSV text without changing its meaning or introducing side effects?
 
-Observation slice prohibited work:
-- no event_lens runtime changes
-- no formatter implementation
-- no report integration
-- no JSON output
-- no CLI command
-- no TSV schema changes
-- no metadata requirements
-- no Cube or TBDS changes
-- no `CanonicalEvent`
-- no `Project(events, spec)`
-- no shared carrier
-- no strict event sourcing
-- no Phase E
-- no mixed JPY/ILS
-- no FX or valuation
-- no ₪ display formatting
+Selected module:
+- `src_next/event_lens_format.bqn`
+
+Selected public function:
+- `FormatTsv lensResult`
+
+Result Contract:
+- Successful input:
+  ```bqn
+  {
+    state: "ok",
+    text: <deterministic TSV text>,
+    message: ""
+  }
+  ```
+- Failed input:
+  ```bqn
+  {
+    state: "error",
+    text: "",
+    message: <preserved or deterministic error message>
+  }
+  ```
+
+TSV Contract Details:
+- Column order:
+  The output must contain these columns in exactly this order:
+  `source_file`, `source_row`, `source_id`, `when_value`, `when_state`, `party_value`, `party_state`, `what_value`, `what_state`, `from_account`, `where_to_value`, `where_to_state`, `amount_text`, `amount_coefficient`, `amount_scale`, `currency`, `amount_state`, `action_value`, `action_state`, `layer`, `kind`
+- Header: A successful result always includes one header row. For a successful result with zero lens rows, return:
+  `<header row>\n` (exactly one LF, no data rows).
+- Row order: Preserve `lensResult.rows` order exactly. Do not sort, group, filter, deduplicate, aggregate, split debit and credit.
+- Cell conversion: Text fields remain text. Convert these integer fields to plain base-10 text: `source_row`, `amount_coefficient`, `amount_scale` (no digit grouping, no locale formatting, no scientific notation, no currency symbols, no amount rescaling). E.g. `amount_text` = "42.50", `amount_coefficient` = 4250, `amount_scale` = 2, `currency` = "ILS" -> three separate TSV cells: `42.50\t4250\t2\tILS`. Do not produce `₪42.50`, `42.5`, `ILS 42.50`.
+- Cell escaping: TSV cells must not contain literal tab, LF, or CR characters. Apply deterministic backslash escape convention: `\` -> `\\`, `TAB` -> `\t`, `CR` -> `\r`, `LF` -> `\n`. Apply escaping before replacing control characters. Do not add CSV-style quotation marks. Empty values remain empty TSV cells.
+- Line endings: Use LF only (`@+10`). The successful output must end with exactly one LF. Do not emit CRLF.
+- Purity: Read no files, write no files, inspect no clock, print nothing, call no `•Out`, call no `•Exit`, modify no source data, modify no lens rows, depend on no global mutable state. Repeated calls with the same input must return equal results.
 
 ### Phase E: Shared event carrier decision
 
@@ -445,6 +474,7 @@ This is a parked direction, not an authorized phase in the current sequence.
 | Existing wrappers own terminal effects | selected | A separate CLI/API boundary migration is justified |
 | Phase C runtime extraction | complete | Implementation evidence shows the seam preserves current behavior and exits on failure correctly |
 | Phase D read-only feasibility investigation | complete | The investigation closes with Conclusion A and explicit dimension evidence |
+| Representative Observation Slice | complete | Closed via PR #174, run #640, confirming event lens preservation and Conclusion A |
 | Add `CanonicalEvent` now | rejected for now | Two independent consumers demonstrate the same missing carrier semantics |
 | Start strict event sourcing now | rejected for now | One bounded domain and replay requirement are selected with migration safety |
 | Start broad headless refactor | rejected | A finite pure-result seam is implemented and tested first |
@@ -476,15 +506,9 @@ The map should remain compact enough to restart work, but complete enough that a
 
 ## 11. Current next action
 
-Read-only Event Lens Representative Observation Slice only:
+Read-only Event Lens Slice 2: Pure TSV Formatter:
 
 ```text
-run the existing checked-result builder and event lens locally
-  -> inspect representative lens rows
-  -> record exact outputs in one audit document
-  -> compare actual output with the Slice 1 contract
-  -> identify useful, awkward, ambiguous, and absent fields
-  -> verify all-ILS rows remain exact and unformatted
+implement the pure TSV formatter FormatTsv lensResult in src_next/event_lens_format.bqn
+add focused formatter tests in tests/test_src_next_event_lens_format.bqn
 ```
-
-PR 1 (docs-only) must merge before representative observation begins.
