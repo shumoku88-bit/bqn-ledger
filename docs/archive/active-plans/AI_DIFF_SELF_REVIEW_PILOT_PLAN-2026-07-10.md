@@ -112,6 +112,19 @@ Use descriptive notes only. Make no statistical claims. If 3 slices creates awkw
 - Window status: incomplete; do not perform final Review / Learning yet.
 - Point-in-time evidence: `docs/archive/audits/CURRENCY_STAGE2_SLICE_B1_POST_IMPLEMENTATION_VERIFICATION-2026-07-10.md`.
 
+### Comparable slice 2 of 3: Currency Stage 2 Slice B2 (PR #155)
+
+- Comparable finite AI-authored slice: yes.
+- PR #155 had one implementation commit: `395dd1fe69eddc6c8b7f644dc92e4c8d1fcf0050`.
+- The PR recorded a pre-push full actual-diff self-review.
+- No post-first-push correction commit is visible.
+- No review thread or later scope correction is visible.
+- No escaped unrelated changed file or hunk is visible.
+- No contemporaneous evidence proves that a scope leak was intercepted before push.
+- Do not claim causation, token savings, or statistical significance.
+- Window status: **2 of 3 comparable slices observed; incomplete; no final Review / Learning assessment**.
+- Point-in-time evidence: `docs/archive/audits/CURRENCY_STAGE2_SLICE_B2_POST_IMPLEMENTATION_VERIFICATION-2026-07-11.md`.
+
 ## Acceptance criteria
 
 Planning slice acceptance:

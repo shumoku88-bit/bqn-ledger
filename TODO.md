@@ -26,15 +26,21 @@ Current state:
 
 ### Currency Stage 2 Slice B2: Snapshot Arithmetic Evidence
 
-Next authorized finite runtime slice.
+B2 implementation is merged, but the post-implementation audit found one material diagnostic mismatch. Keep the next authorized route on B2; do not route to B3 yet.
 
-Selected ownership:
+Current owner and boundary:
 - `src_next/currency_arithmetic.bqn` owns the dedicated pure snapshot arithmetic boundary;
 - `src_next/context.bqn` remains the orchestrator: load one shared snapshot, build B1 row evidence, pass that evidence to the arithmetic owner, and consume the returned internal evidence;
-- focused B2 unit tests import `currency_arithmetic.bqn` directly without requiring full context construction;
-- completed ownership decision: `docs/archive/completed-plans/CURRENCY_STAGE2_B2_ARITHMETIC_OWNERSHIP_RECHECK-2026-07-11.md`.
+- focused B2 tests import `currency_arithmetic.bqn` directly;
+- implementation: PR #155, merge commit `32f6c474dd73b49d539f1beef04203d57aa56722`;
+- audit: `docs/archive/audits/CURRENCY_STAGE2_SLICE_B2_POST_IMPLEMENTATION_VERIFICATION-2026-07-11.md`.
 
-B2 runtime meaning remains:
+Smallest corrective runtime slice:
+- distinguish unsupported single-domain evidence from `mixed_currency_domains` in `currency_arithmetic.Build`;
+- add focused direct evidence for a single unsupported domain;
+- preserve fail-closed output and all B2/B3/C exclusions.
+
+B2 meaning otherwise remains:
 - aggregate the pre-built B1 row evidence;
 - require exactly one resolved currency domain;
 - select snapshot-wide `amount_scale`;
