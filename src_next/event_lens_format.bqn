@@ -31,18 +31,23 @@ Columns ← ⟨
 ⟩
 
 JoinWith ← {𝕊 sep‿parts:
-  (0 = ≠ parts) ? "" ; (⊑ parts) ∾ ∾ { sep ∾ 𝕩 }¨ 1 ↓ parts
+  (0 = ≠ parts) ? "" ; {𝕊:
+    rest ← { sep ∾ 𝕩 }¨ (1 ↓ parts)
+    (⊑ parts) ∾ ∾ rest
+  } @
 }
 
 EscapeChar ← {𝕊 ch:
   (ch = Slash) ? ⟨Slash, Slash⟩ ;
-  (ch = Tab) ? ⟨Slash, @+116⟩ ;
-  (ch = Cr) ? ⟨Slash, @+114⟩ ;
-  (ch = Lf) ? ⟨Slash, @+110⟩ ;
-  ⟨ch⟩
+  ((ch = Tab) ? ⟨Slash, @+116⟩ ;
+    ((ch = Cr) ? ⟨Slash, @+114⟩ ;
+      ((ch = Lf) ? ⟨Slash, @+110⟩ ; ⟨ch⟩)))
 }
 
-EscapeCell ← { ∾ EscapeChar¨ 𝕩 }
+EscapeCell ← {𝕊 cell:
+  pieces ← EscapeChar¨ cell
+  (0 = ≠ pieces) ? "" ; ∾ pieces
+}
 
 RowCells ← {𝕊 row:
   ⟨
@@ -71,11 +76,16 @@ RowCells ← {𝕊 row:
 }
 
 Header ← JoinWith ⟨Tab, Columns⟩
-FormatRow ← { JoinWith ⟨Tab, EscapeCell¨ RowCells 𝕩⟩ }
+FormatRow ← {𝕊 row:
+  cells ← RowCells row
+  JoinWith ⟨Tab, EscapeCell¨ cells⟩
+}
 
 FormatTsv ← {
   (𝕩.state ≢ "ok") ?
-    { state ⇐ "error", text ⇐ "", message ⇐ 𝕩.message } ;
+    {𝕊 lensResult:
+      { state ⇐ "error", text ⇐ "", message ⇐ lensResult.message }
+    } 𝕩 ;
     {𝕊 lensResult:
       lines ← ⟨Header⟩ ∾ FormatRow¨ lensResult.rows
       { state ⇐ "ok", text ⇐ (JoinWith ⟨Lf, lines⟩) ∾ Lf, message ⇐ "" }
