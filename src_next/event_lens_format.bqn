@@ -30,8 +30,11 @@ columns ← ⟨
   "kind"
 ⟩
 
+FormatFields ← { ¯1 ↓ ∾ (𝕩 ∾¨ tab_char) }
+header ← FormatFields columns
+
 FormatTsv ← {𝕊 lensResult:
-  { state ⇐ lensResult.state, text ⇐ "", message ⇐ "" }
+  { state ⇐ lensResult.state, text ⇐ header ∾ lf_char, message ⇐ "" }
 }
 
 {
