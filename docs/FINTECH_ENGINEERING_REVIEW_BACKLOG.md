@@ -73,9 +73,28 @@ read candidate
 
 ## F1. Multi-time transaction semantics
 
-Status: candidate
+Status: selected for finite fit review (2026-07-11)
+
+This is the only candidate currently selected from the backlog. All other candidates remain unselected.
 
 Fintech systems distinguish several timestamps. The handbook names value time, booking time, and settlement time. `bqn-ledger` already has a strong time model: `date`, `as_of`, `system_today`, `generated_at`, `data_cutoff`, `due_on`, and related concepts appear in `docs/TIME_AS_AXIS.md`.
+
+Review focus questions:
+
+1. What does the existing journal `date` column mean today? Is it the economic event date, the recording date, or the settlement date?
+2. For credit-card transactions, are the transaction date (利用日), billing due date (支払期日), and actual fund movement date (引落日) separate coordinates, or does the current `date` absorb all three?
+3. Which current consumers (reports, projections, checks) would need additional time metadata beyond the existing `date` + optional `due_on`?
+4. Can existing `journal.tsv` + `plan.tsv` projection handle credit-card timing without new metadata, or is there a concrete gap?
+
+Required decision:
+
+Classify F1 into exactly one of `adopt-now` / `adopt-later` / `observe` / `reject`, with rationale. The decision will be recorded in a follow-up PR, not during this review.
+
+Constraints during review:
+
+- The metadata vocabulary (`occurred_on`, `booked_on`, `settled_on`, `value_on`) listed below is illustrative only and must not be treated as adopted during the fit review
+- Do not decide that `booked_on` should be editor-generated or that `settled_on` should be required input
+- Do not change runtime, source TSV, metadata schema, fixtures, or checks
 
 Current opportunity:
 
@@ -83,7 +102,7 @@ Current opportunity:
 - avoid overloading `date` with too many meanings
 - add optional metadata only when a real report needs it
 
-Possible metadata vocabulary:
+Possible metadata vocabulary (illustrative, not adopted):
 
 ```text
 occurred_on=YYYY-MM-DD   # when the event happened economically
