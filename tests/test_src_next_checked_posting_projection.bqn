@@ -17,8 +17,8 @@ Snapshot ← {𝕊 jlines‿plines‿blines:
 }
 
 resolved ← ak.Resolve ⟨
-  "assets:bank\trole=asset",
-  "expenses:food\trole=expense"
+  "assets:bank"∾tab∾"role=asset",
+  "expenses:food"∾tab∾"role=expense"
 ⟩
 cycleStart ← "2026-06-15"
 
