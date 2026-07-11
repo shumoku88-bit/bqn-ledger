@@ -33,12 +33,11 @@ columns ← ⟨
 FormatFields ← { ¯1 ↓ ∾ (𝕩 ∾¨ tab_char) }
 header ← FormatFields columns
 
-EscapeChar ← {𝕊 ch:
+escape_char ← {𝕊 ch:
   (ch = slash_char) ? ⟨slash_char, slash_char⟩ ;
-  (ch = tab_char) ? ⟨slash_char, @+116⟩ ;
-  (ch = cr_char) ? ⟨slash_char, @+114⟩ ;
-  (ch = lf_char) ? ⟨slash_char, @+110⟩ ;
-  ⟨ch⟩
+  ((ch = tab_char) ? ⟨slash_char, @+116⟩ ;
+    ((ch = cr_char) ? ⟨slash_char, @+114⟩ ;
+      ((ch = lf_char) ? ⟨slash_char, @+110⟩ ; ⟨ch⟩)))
 }
 
 FormatTsv ← {𝕊 lensResult:
