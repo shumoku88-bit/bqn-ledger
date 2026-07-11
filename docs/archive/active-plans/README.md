@@ -23,7 +23,7 @@ When choosing work, prefer `TODO.md` first. Use this inventory to avoid treating
 | `../completed-plans/ACTUAL_COMPARISON_REPORT_PLAN.md` | historical | Moved to completed plans. Implemented decision record for `actual-comparison`; current report entry is `docs/REPORT_CONTRACTS.md` plus `src_next/` checks. |
 | `AI_AGENT_EFFICIENCY_PLAN.md` | parked | AI efficiency ideas; use only when doing dev-experience work with `AI_WORKING_FEEDBACK_LOG.md`. |
 | `AI_BUDGET_CALCULATOR_DESIGN.md` | active | P1-P4 implemented, P5-P7 pending; current CLI is `tools/envelope-calc`. |
-| `AI_DIFF_SELF_REVIEW_PILOT_PLAN-2026-07-10.md` | active | Approved Planning slice for classification ID 11. Later Execution is limited to one short `AGENTS.md` pre-push / pre-PR actual-diff self-review rule plus lifecycle routing; no workflow change is performed by the plan itself. |
+| `../completed-plans/AI_DIFF_SELF_REVIEW_PILOT_PLAN-2026-07-10.md` | historical | Completed after 3 comparable slices. Review / Learning retains the small `AGENTS.md` actual-diff rule without lint, telemetry, a tracker, a parser, a permanent form, or statistical/token-efficiency claims. |
 | `AI_REVIEW_BQN_EVAL_TASK.md` | parked | Review request for devtool work; not a standing TODO by itself. |
 | `AI_WORKING_FEEDBACK_LOG.md` | active | Intake log for pit workflow/tooling observations. |
 | `../completed-plans/AI_WORKING_IMPROVEMENT_PLAN-2026-07-09.md` | historical | Completed Review / Learning as `mitigated` after PR #135. `docs/CONVENTIONS.md` remains the single BQN pitfalls owner; broader tutorial, lint, and devtool work are not authorized. |
