@@ -34,25 +34,44 @@ expect_fail_context() {
   esac
 }
 
+expect_ok_context() {
+  local dir="$1" label="$2" out status
+  set +e
+  out="$(bqn -e 'ctx←•Import "src_next/context.bqn" ⋄ ctx.BuildContext "'"$dir"'" ⋄ •Out "ok"' 2>&1)"
+  status=$?
+  set -e
+  if [ "$status" -ne 0 ]; then
+    echo "FAIL: explicit currency fixture unexpectedly failed: $label" >&2
+    echo "$out" >&2
+    exit 1
+  fi
+}
+
 clean='2026-06-15	memo	assets:bank	expenses:food	100'
 make_fixture "$tmp/journal-currency" "2026-06-15	memo	assets:bank	expenses:food	100	currency=JPY"
 make_fixture "$tmp/plan-currency" "$clean" "2026-06-16	plan	assets:bank	expenses:food	20	currency=USD"
 make_fixture "$tmp/budget-currency" "$clean" "" "2026-06-16	budget	assets:bank	budget:food	20	currency="
-expect_fail_context "$tmp/journal-currency" journal
-expect_fail_context "$tmp/plan-currency" plan
-expect_fail_context "$tmp/budget-currency" budget_alloc
+make_fixture "$tmp/ils-currency" "2026-06-15	memo	assets:bank	expenses:food	100	currency=ILS"
+make_fixture "$tmp/implicit-decimal-jpy" "2026-06-15	memo	assets:bank	expenses:food	100.50"
+
+expect_ok_context "$tmp/journal-currency" journal
+expect_ok_context "$tmp/implicit-decimal-jpy" implicit_decimal_jpy
+expect_fail_context "$tmp/plan-currency" plan "unsupported currency: USD"
+expect_fail_context "$tmp/budget-currency" budget_alloc "unsupported currency: "
+expect_fail_context "$tmp/ils-currency" ils "unsupported arithmetic currency domain: ILS"
 expect_fail_context "fixtures/src-next-invalid-posting" invalid-posting "row error in Stage 2 minimal runtime slice"
 
 same_dir="$tmp/same-snapshot"
 make_fixture "$same_dir" "$clean"
 cat > "$tmp/same_snapshot.bqn" <<BQN
 ctx ← •Import "$ROOT_DIR/src_next/context.bqn"
+arith ← •Import "$ROOT_DIR/src_next/currency_arithmetic.bqn"
 ak ← •Import "$ROOT_DIR/src_next/account_key.bqn"
 loader ← •Import "$ROOT_DIR/src_next/loader.bqn"
 base ← 0⊑•args
 snapshot ← ctx.LoadPostingSourceSnapshot base
 evidence ← ctx.BuildRowEvidenceFromSnapshot snapshot
-proof ← ctx.ResolveArithmeticCurrencyProof evidence
+proof ← ctx.ResolveArithmeticCurrencyProof ⟨evidence, arith.Build evidence⟩
 (base∾"/journal.tsv") •file.Chars "2026-06-15\tmutated\tassets:bank\texpenses:food\t999\n"
 resolved ← ak.Resolve loader.ReadLines (base∾"/accounts.tsv")
 built ← ctx.BuildAuthorizedRowsFromSnapshot ⟨snapshot, resolved, "2026-06-15"⟩

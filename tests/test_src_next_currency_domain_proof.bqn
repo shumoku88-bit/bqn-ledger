@@ -3,6 +3,7 @@
 lib ← •Import "test_lib.bqn"
 ctx ← •Import "../src_next/context.bqn"
 proj ← •Import "../src_next/projection.bqn"
+arith ← •Import "../src_next/currency_arithmetic.bqn"
 
 tab ← @+9
 Line ← {𝕊 fields: ∾ fields ∾¨ tab}
@@ -17,7 +18,7 @@ ProofSnapshot ← {𝕊 jlines‿plines‿blines:
   }
 }
 
-ResolveProof ← { ctx.ResolveArithmeticCurrencyProof ctx.BuildRowEvidenceFromSnapshot 𝕩 }
+ResolveProof ← { ev ← ctx.BuildRowEvidenceFromSnapshot 𝕩 ⋄ ctx.ResolveArithmeticCurrencyProof ⟨ev, arith.Build ev⟩ }
 
 legacy ← ctx.BuildContext "fixtures/src-next-golden"
 "proven" lib.AssertEq legacy.arithmetic_currency_proof.state
@@ -34,9 +35,10 @@ empty ← ctx.BuildContext "fixtures/src-next-empty-projection"
 0 lib.AssertEq ≠ empty.posting_rows
 
 explicitJournal ← ResolveProof ProofSnapshot ⟨⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "100", "currency=JPY"⟩⟩, ⟨⟩, ⟨⟩⟩
-"unsupported" lib.AssertEq explicitJournal.state
-"explicit_source_currency" lib.AssertEq explicitJournal.basis
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof explicitJournal
+"proven" lib.AssertEq explicitJournal.state
+"resolved_single_currency" lib.AssertEq explicitJournal.basis
+0 lib.AssertEq explicitJournal.amount_scale
+1 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof explicitJournal
 
 explicitPlan ← ResolveProof ProofSnapshot ⟨⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "100"⟩⟩, ⟨Line ⟨"2026-06-16", "plan", "assets:bank", "expenses:food", "20", "currency=USD"⟩⟩, ⟨⟩⟩
 "unsupported" lib.AssertEq explicitPlan.state
@@ -110,24 +112,35 @@ CheckProofGateFail ← {𝕊 args:
   1
 }
 
+CheckProofGateSuccess ← {𝕊 args:
+  line‿expectedDomain‿expectedBasis‿expectedScale ← args
+  snapshot ← ProofSnapshot ⟨⟨line⟩, ⟨⟩, ⟨⟩⟩
+  proof ← ResolveProof snapshot
+  "proven" lib.AssertEq proof.state
+  expectedDomain lib.AssertEq proof.domain
+  expectedBasis lib.AssertEq proof.basis
+  expectedScale lib.AssertEq proof.amount_scale
+  1
+}
+
 # 1. Legacy integer JPY success
 CheckRowEvidence ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "1200"⟩, "JPY", "legacy_compatibility", "ok", 1200, 0⟩
 
-# 2. Explicit JPY decimal internal evidence (fails proof gate)
+# 2. Explicit JPY decimal internal evidence (succeeds in proof gate)
 CheckRowEvidence ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "12.34", "currency=JPY"⟩, "JPY", "explicit", "ok", 1234, 2⟩
-CheckProofGateFail ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "12.34", "currency=JPY"⟩, "explicit source currency unsupported"⟩
+CheckProofGateSuccess ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "12.34", "currency=JPY"⟩, "JPY", "resolved_single_currency", 2⟩
 
-# 3. Explicit ILS decimal internal evidence (fails proof gate)
+# 3. Explicit ILS decimal internal evidence (succeeds in proof gate)
 CheckRowEvidence ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "42.50", "currency=ILS"⟩, "ILS", "explicit", "ok", 425, 1⟩
-CheckProofGateFail ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "42.50", "currency=ILS"⟩, "explicit source currency unsupported"⟩
+CheckProofGateSuccess ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "42.50", "currency=ILS"⟩, "ILS", "resolved_single_currency", 1⟩
 
-# 4. Implicit JPY decimal (fails proof gate due to scale > 0)
+# 4. Implicit JPY decimal (succeeds in proof gate)
 CheckRowEvidence ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "12.34"⟩, "JPY", "legacy_compatibility", "ok", 1234, 2⟩
-CheckProofGateFail ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "12.34"⟩, "implicit decimal JPY unsupported"⟩
+CheckProofGateSuccess ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "12.34"⟩, "JPY", "legacy_compatibility", 2⟩
 
-# 5. Explicit JPY integer (fails proof gate because metadata is explicit)
+# 5. Explicit JPY integer (succeeds in proof gate)
 CheckRowEvidence ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "1200", "currency=JPY"⟩, "JPY", "explicit", "ok", 1200, 0⟩
-CheckProofGateFail ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "1200", "currency=JPY"⟩, "explicit source currency unsupported"⟩
+CheckProofGateSuccess ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "1200", "currency=JPY"⟩, "JPY", "resolved_single_currency", 0⟩
 
 # 6. Duplicate currency metadata (fails at row evidence stage)
 CheckRowEvidence ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "1200", "currency=JPY", "currency=JPY"⟩, "JPY", "explicit", "error", 1200, 0⟩

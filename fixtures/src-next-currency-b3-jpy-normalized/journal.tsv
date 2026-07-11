@@ -1,0 +1,3 @@
+2026-06-15	legacy integer JPY	assets:bank	expenses:food	1200
+2026-06-16	implicit decimal JPY	assets:bank	expenses:food	42.50
+2026-06-17	explicit JPY decimal	assets:bank	expenses:food	0.05	currency=JPY

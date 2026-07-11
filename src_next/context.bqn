@@ -111,55 +111,77 @@ BuildRowEvidenceFromSnapshot ← {𝕊 snapshot:
   } ¨ snapshot.sources
 }
 
-ResolveArithmeticCurrencyProof ← {𝕊 evidence:
-  proof ← ProofProven "empty_source_compatibility"
+ResolveArithmeticCurrencyProof ← {𝕊 evidence‿arithmeticEvidence:
+  has_error ← ∨´ { 𝕩.state ≢ "ok" } ¨ evidence
+  
+  proof ← {
+    state ⇐ "unsupported",
+    domain ⇐ "",
+    basis ⇐ "",
+    amount_scale ⇐ ⟨⟩,
+    message ⇐ ""
+  }
 
   {𝕊:
-    has_error    ← ∨´ { 𝕩.state ≢ "ok" } ¨ evidence
-    has_explicit ← ∨´ { 𝕩.provenance ≢ "legacy_compatibility" } ¨ evidence
-    has_scale    ← ∨´ { (0 < ≠ 𝕩.parsed.scale) ⊑ 0‿(𝕩.parsed.scale > 0) } ¨ evidence
+    bad_row ← ⊑ ({ 𝕩.state ≢ "ok" } ¨ evidence) / evidence
+    basis ← (bad_row.provenance ≡ "legacy_compatibility") ⊑ ⟨"explicit_source_currency", "unsupported_row_evidence"⟩
+    msg ← (bad_row.provenance ≡ "legacy_compatibility") ⊑ ⟨
+      "explicit source currency unsupported in Stage 2 minimal runtime slice: " ∾ bad_row.source_file ∾ " row " ∾ (•Fmt bad_row.source_row) ∾ ": " ∾ bad_row.message,
+      "row error in Stage 2 minimal runtime slice: " ∾ bad_row.source_file ∾ " row " ∾ (•Fmt bad_row.source_row) ∾ ": " ∾ bad_row.message
+    ⟩
+    proof ↩ {
+      state ⇐ "unsupported",
+      domain ⇐ "",
+      basis ⇐ basis,
+      amount_scale ⇐ ⟨⟩,
+      message ⇐ msg
+    }
+  } ⍟ has_error @
 
-    (has_error ∨ has_explicit ∨ has_scale) ◶ ⟨
-      {𝕊: proof ↩ ProofProven "legacy_compatibility" },
+  {𝕊:
+    {𝕊:
+      proof ↩ {
+        state ⇐ "proven",
+        domain ⇐ "JPY",
+        basis ⇐ "empty_source_compatibility",
+        amount_scale ⇐ 0,
+        message ⇐ ""
+      }
+    } ⍟ (0 = ≠ evidence) @
+
+    {𝕊:
       {𝕊:
-        bad_mask ← { (𝕩.state ≢ "ok") ∨ (𝕩.provenance ≢ "legacy_compatibility") ∨ ((0 < ≠ 𝕩.parsed.scale) ⊑ 0‿(𝕩.parsed.scale > 0)) } ¨ evidence
-        bad_row ← ⊑ (bad_mask / evidence)
-        
-        # Default: explicit currency
-        basis ← "explicit_source_currency"
-        msg ← "explicit source currency unsupported in Stage 2 minimal runtime slice: " ∾ bad_row.source_file ∾ " row " ∾ (•Fmt bad_row.source_row)
-        {𝕊:
-          msg ↩ msg ∾ ": " ∾ bad_row.message
-        } ⍟ (bad_row.state ≢ "ok") @
-
-        # Override for legacy_compatibility (untagged) rows
-        {𝕊:
-          is_scale ← (0 < ≠ bad_row.parsed.scale) ⊑ 0‿(bad_row.parsed.scale > 0)
-          {𝕊:
-            basis ↩ "implicit_decimal_jpy"
-            msg ↩ "implicit decimal JPY unsupported in Stage 2 minimal runtime slice: " ∾ bad_row.source_file ∾ " row " ∾ (•Fmt bad_row.source_row)
-          } ⍟ is_scale @
-          {𝕊:
-            basis ↩ "unsupported_row_evidence"
-            msg ↩ "row error in Stage 2 minimal runtime slice: " ∾ bad_row.source_file ∾ " row " ∾ (•Fmt bad_row.source_row) ∾ ": " ∾ bad_row.message
-          } ⍟ (bad_row.state ≢ "ok") @
-        } ⍟ (bad_row.provenance ≡ "legacy_compatibility") @
-
         proof ↩ {
           state ⇐ "unsupported",
           domain ⇐ "",
-          basis ⇐ basis,
-          message ⇐ msg
+          basis ⇐ "",
+          amount_scale ⇐ ⟨⟩,
+          message ⇐ arithmeticEvidence.message
         }
-      }
-    ⟩ @
-  } ⍟ (0 < ≠ evidence) @
+      } ⍟ (arithmeticEvidence.state ≢ "ok") @
 
+      {𝕊:
+        domain ← arithmeticEvidence.domain
+        amount_scale ← arithmeticEvidence.amount_scale
+        
+        has_explicit ← ∨´ { 𝕩.provenance ≢ "legacy_compatibility" } ¨ evidence
+        basis ← has_explicit ⊑ "legacy_compatibility"‿"resolved_single_currency"
+        
+        proof ↩ {
+          state ⇐ "proven",
+          domain ⇐ domain,
+          basis ⇐ basis,
+          amount_scale ⇐ amount_scale,
+          message ⇐ ""
+        }
+      } ⍟ (arithmeticEvidence.state ≡ "ok") @
+    } ⍟ (0 < ≠ evidence) @
+  } ⍟ (¬ has_error) @
 
   proof
 }
 
-BuildProjectionRowsForEvidence ← {𝕊 ⟨row, resolved, cycleStart⟩:
+BuildProjectionRowsForEvidence ← {𝕊 ⟨row, coef, resolved, cycleStart⟩:
   srcFile      ← row.source_file
   rowIdx       ← row.source_row
   flds         ← row.flds
@@ -175,9 +197,9 @@ BuildProjectionRowsForEvidence ← {𝕊 ⟨row, resolved, cycleStart⟩:
   amountText ← proj.FieldOrEmpty ⟨flds, 4⟩
 
   dateOk   ← proj.IsValidDateText date
-  amountOk ← proj.IsIntegerText amountText
+  amountOk   ← row.parsed.state ≡ "ok"
   amount   ← 0
-  {𝕊: amount ↩ row.parsed.coefficient }⍟amountOk @
+  {𝕊: amount ↩ coef }⍟amountOk @
 
   fromIdx ← ⊑ accounts ⊐ ⟨fromAcc⟩
   toIdx   ← ⊑ accounts ⊐ ⟨toAcc⟩
@@ -275,7 +297,7 @@ BuildRowsForFileOptional ← BuildRowsForFile
 BuildAuthorizedRowsFromSnapshot ← {𝕊 snapshot‿resolved‿cycleStart:
   evidence ← BuildRowEvidenceFromSnapshot snapshot
   arithmeticEvidence ← arith.Build evidence
-  proof ← ResolveArithmeticCurrencyProof evidence
+  proof ← ResolveArithmeticCurrencyProof ⟨evidence, arithmeticEvidence⟩
   # Preserve the B1 proof diagnostic/authorization boundary before requiring the
   # internal B2 evidence. B2 success does not widen projection authorization.
   proj.RequireArithmeticCurrencyProof proof
@@ -283,7 +305,18 @@ BuildAuthorizedRowsFromSnapshot ← {𝕊 snapshot‿resolved‿cycleStart:
     •Out "ERROR: snapshot arithmetic evidence failed: " ∾ arithmeticEvidence.message
     •Exit 1
   }⍟(arithmeticEvidence.state ≢ "ok") @
-  rows ← ∾ ({𝕊 row: BuildProjectionRowsForEvidence ⟨row, resolved, cycleStart⟩} ¨ evidence)
+
+  # Fail closed if length mismatch
+  {𝕊:
+    •Out "ERROR: evidence and normalized coefficients length mismatch"
+    •Exit 1
+  }⍟((≠evidence) ≢ (≠arithmeticEvidence.normalized_coefficients)) @
+
+  rows ← ∾ ({𝕊 i:
+    row ← i ⊑ evidence
+    coef ← i ⊑ arithmeticEvidence.normalized_coefficients
+    BuildProjectionRowsForEvidence ⟨row, coef, resolved, cycleStart⟩
+  } ¨ ↕ ≠ evidence)
   { rows ⇐ rows, arithmetic_currency_proof ⇐ proof }
 }
 

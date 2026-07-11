@@ -144,26 +144,41 @@ PostingId ← {𝕊 srcFile‿rowIdx‿side:
 
 # ── Arithmetic currency proof authorization ─────────────────
 
-allowed_proof_basis ← ⟨"legacy_compatibility", "empty_source_compatibility"⟩
+allowed_proof_basis ← ⟨"legacy_compatibility", "empty_source_compatibility", "resolved_single_currency"⟩
 IsAllowedProofBasis ← {𝕊 basis: ∨´ 0 ∾ (basis⊸≡¨ allowed_proof_basis) }
 ProofState ← ({𝕩.state}⎊{""})
 ProofDomain ← ({𝕩.domain}⎊{""})
 ProofBasis ← ({𝕩.basis}⎊{""})
+ProofScale ← ({𝕩.amount_scale}⎊{⟨⟩})
 ProofMessage ← ({𝕩.message}⎊{""})
+
+IsNonNegativeInteger ← { (•Type 𝕩 ≡ 1) ∧ (0 = =𝕩) ? (𝕩 ≥ 0) ∧ (𝕩 ≡ ⌊𝕩) ; 0 }
 
 AuthorizeArithmeticCurrencyProof ← {𝕊 proof:
   state ← ProofState proof
   domain ← ProofDomain proof
   basis ← ProofBasis proof
-  (state ≡ "proven") ∧ (domain ≡ "JPY") ∧ IsAllowedProofBasis basis
+  scale ← ProofScale proof
+  
+  ok ← (state ≡ "proven") ∧ (domain ≡ "JPY") ∧ (IsAllowedProofBasis basis) ∧ (IsNonNegativeInteger scale)
+  ok ↩ ok ∧ (basis ≢ "empty_source_compatibility") ∨ scale ≡ 0
+  ok
 }
 
 ArithmeticCurrencyAuthorizationMessage ← {𝕊 proof:
   state ← ProofState proof
   domain ← ProofDomain proof
   basis ← ProofBasis proof
+  scale ← ProofScale proof
   message ← ProofMessage proof
   msg ← ""
+  
+  is_valid_scale ← IsNonNegativeInteger scale
+  
+  msg ↩ (¬ is_valid_scale) ⊑ msg‿"invalid amount_scale in proof"
+  {𝕊:
+    msg ↩ (scale ≢ 0) ⊑ msg‿"empty_source_compatibility requires amount_scale = 0"
+  } ⍟ (basis ≡ "empty_source_compatibility") @
   msg ↩ (¬ IsAllowedProofBasis basis) ⊑ msg‿("unsupported arithmetic currency proof basis: " ∾ basis)
   msg ↩ (domain ≢ "JPY") ⊑ msg‿("unsupported arithmetic currency domain: " ∾ domain)
   msg ↩ (state ≢ "proven") ⊑ msg‿((0 < ≠ message) ⊑ ("arithmetic currency proof is not proven: " ∾ state)‿message)
