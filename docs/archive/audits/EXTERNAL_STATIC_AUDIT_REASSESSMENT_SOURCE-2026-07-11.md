@@ -1,16 +1,16 @@
-# External Static Audit Reassessment Source
+# External Static Audit Reassessment and Repository Shelf Review
 
 Status: audit snapshot
 Owner: docs
 Canonical: no; current work routing: `TODO.md`
-Exit: retain as point-in-time review source; create a newer dated reassessment snapshot only when current-main evidence materially changes the classification
+Exit: retain as the 2026-07-11 post-B3 reassessment snapshot; create a newer dated snapshot only when current-main evidence materially changes the routing
 
 Date: 2026-07-11
-Source: external static audit of a user-supplied `bqn-ledger` ZIP. The original long-form report was supplied out of repository and is not copied verbatim here.
+Source: external static audit of a user-supplied `bqn-ledger` ZIP, re-checked against current `main` after Currency Stage 2 Slice B3 verification and the AI actual-diff pilot closure.
 
 ## Purpose
 
-Preserve the external audit as a periodic review lens without turning its recommendation order into an implementation queue.
+This document preserves the useful parts of the external audit without turning the audit's recommendation order into an implementation queue.
 
 ```text
 external audit finding
@@ -19,239 +19,268 @@ external audit finding
   != implementation authorization
 ```
 
-This snapshot is intentionally compact. It keeps the findings that are useful for future reassessment while avoiding another large duplicated roadmap.
+The review also performs a repository shelf check before any separate event-sourcing experiment is started.
 
 ## Reassessment rule
 
-When this source is revisited:
+When an audit finding is revisited:
 
-1. Re-check the finding against current `main`, not against the old ZIP alone.
-2. Classify it as one of:
-   - `confirmed-current`
-   - `policy-choice`
-   - `already-resolved`
-   - `stale`
-   - `unclear-needs-evidence`
-3. Check whether there is concrete daily-use, maintenance, CI, review, or consumer evidence.
+1. Re-check it against current `main`, not only against the old ZIP.
+2. Classify it as `confirmed-current`, `policy-choice`, `already-resolved`, `stale`, `hold`, or `unclear-needs-evidence`.
+3. Look for concrete daily-use, maintenance, CI, review, ownership, or consumer evidence.
 4. Do not preserve the audit's original priority order automatically.
 5. Promote at most one small finite candidate into `TODO.md` at a time.
-6. If source meaning, arithmetic, policy, or ownership is involved, prefer a docs-only decision slice before runtime changes.
-7. Do not create a broad refactor, observability, i18n, security, or release campaign merely because the audit proposed one.
+6. Prefer a docs-only decision slice before runtime changes when source meaning, arithmetic, policy, or ownership is involved.
+7. Do not start broad refactor, observability, i18n, security, release, or supply-chain campaigns merely because the audit proposed them.
 
-## Review triggers
+## Executive routing decision
 
-Reassessment is useful when one of these occurs:
+At this reassessment:
 
-- a major finite campaign closes;
-- a `TODO.md` hygiene pass is already being performed;
-- repeated concrete friction appears;
-- a broad refactor, CI, security/privacy, i18n, observability, or release initiative is being considered;
-- moko explicitly requests a reassessment.
+- Currency Stage 2 Slice C remains the sole finite Active work in `TODO.md`.
+- No additional audit finding is promoted into Active work.
+- configuration externalization remains `complete enough for now`; future additions are evidence-driven ownership decisions, not a key-by-key migration campaign.
+- Prefix fallback is split into three different concerns rather than treated as one switch:
+  - semantic account classification;
+  - missing-role diagnostics;
+  - presentation-only prefix trimming.
+- broad `context.bqn` or `envelope_computation.bqn` decomposition is not authorized.
+- `tools/coverage` truthfulness and the legacy `ResolveDay` export remain small evidence-gathering candidates, not current work.
+- the old engineering roadmap and the compressed generalization remainder are historical decision records, not parallel TODO authorities.
 
-No calendar cadence is required. Do not create review work only to satisfy the existence of this snapshot.
+## Finding inventory after current-main review
 
-## Preserved finding inventory
+| ID | Finding | Current classification | Routing |
+|---|---|---|---|
+| F1 | Prefix fallback documentation/runtime drift | `confirmed-current` docs/terminology drift; primary inspected semantic selectors already use explicit roles | clarify ownership; no blanket code deletion |
+| F2 | CBQN `master` tracking | `policy-choice` | keep current documented policy; revisit on upstream break or release need |
+| F3 | `context.bqn` centralization | `unclear-needs-evidence` | observe; no broad decomposition |
+| F4 | `envelope_computation.bqn` centralization | `unclear-needs-evidence` | observe change friction; do not reopen closed temporal semantics |
+| F5 | `tools/coverage` truthfulness | `confirmed-current` small review candidate | do not promote while Slice C is active |
+| F6 | structured operation logs / OpenTelemetry | `hold` | require a concrete troubleshooting consumer and privacy boundary |
+| F7 | privacy, redaction, backup handling | `policy-choice` with narrow future value | current baseline remains; revisit on concrete sharing friction |
+| F8 | i18n / locale / UTF-8 architecture | `hold` | require a real multilingual consumer or distribution goal |
+| F9 | CI matrix, artifacts, OIDC, attestation, packaging | `hold` | require a release or support goal |
+| F10 | currency / exact-decimal transition | `confirmed-current`, already governed | `TODO.md` and staged currency contracts remain authoritative |
+| F11 | documentation volume and lifecycle drift | `confirmed-current` standing risk | use small lifecycle corrections, not a broad rewrite |
 
-### F1. Prefix fallback documentation/runtime drift
+## F1. Prefix fallback is three separate things
 
-External finding:
+The phrase `Prefix fallback` had been used for different behaviors. They must not be removed or preserved as one bundle.
 
-- roadmap wording says Prefix Fallback removal is complete;
-- current runtime or diagnostics may still contain prefix-based compatibility behavior.
+### A. Semantic account classification
 
-Initial current-main reassessment on 2026-07-11: `confirmed-current` as a semantic-drift candidate.
+Primary inspected current paths classify accounting meaning from explicit metadata:
 
-Observed evidence at review time:
+- `src_next/projection.bqn` infers income and expense from resolved `role=` values.
+- `src_next/household_policy.bqn` selects expense accounts with explicit `role=expense`.
+- `src_next/household_metadata.bqn` uses explicit roles for the actual expense-account set.
+- `src_next/envelope_computation.bqn` uses explicit expense and budget roles for selection.
 
-- `docs/ENGINEERING_ROADMAP.md` describes Prefix Fallback removal as complete;
-- `src_next/household_policy.bqn` still computes an `expenses:` prefix fallback and includes it in `expense_accounts`;
-- `src_next/envelope_computation.bqn` still uses expense and budget prefix fallback in selection masks;
-- `src_next/household_metadata.bqn` counts fallback observations while its actual expense selection uses explicit `role=expense`;
-- `AGENTS.md` still describes a role-migration path that preserves an explicit-role / Prefix-fallback contract before real-data migration.
+Current decision:
 
-Interpretation:
+```text
+accounting or product selection
+  -> explicit role metadata owns meaning
+  -> account-name prefix does not silently supply the role
+```
 
-- this is not proof that fallback should simply be deleted;
-- current code appears to mix diagnostic observation, compatibility behavior, and product/accounting selection;
-- a future finite review should classify each fallback site before any removal or preservation decision.
+### B. Missing-role diagnostics
 
-Do not auto-implement from this snapshot.
+`household_policy.bqn` and `household_metadata.bqn` still observe familiar prefixes when `role=` is missing. Those counts are diagnostic evidence for migration/readiness; they are not semantic classification.
 
-### F2. CBQN reproducibility and `master` tracking
+Current decision:
 
-External finding:
+```text
+missing explicit role + familiar prefix
+  -> diagnostic observation
+  -> not an inferred accounting role
+```
 
-- CI follows CBQN `master` while README names a recommended baseline;
-- pinning was proposed as urgent reproducibility work.
+Do not delete these observations merely because semantic fallback was removed. Rename or document them more precisely when a touched-path change requires it.
 
-Initial current-main reassessment on 2026-07-11: `policy-choice`.
+### C. Presentation-only prefix trimming
 
-Observed evidence at review time:
+Helpers that shorten labels such as `expenses:food` to `food` are display behavior. They do not decide accounting meaning.
 
-- `.github/workflows/check.yml` intentionally uses `CBQN_REF: master` and logs the resolved commit;
-- `docs/CBQN_REPRODUCIBILITY.md` explicitly documents this policy and defines failure handling, including temporary pinning when upstream drift breaks the repository.
+Current decision:
 
-Interpretation:
+```text
+presentation label cleanup
+  != role inference
+  != compatibility fallback
+```
 
-- upstream tracking is a real risk surface, but not an undocumented drift by itself;
-- review again when an upstream break occurs, reproducible release artifacts become a goal, or repeatability requirements change;
-- do not auto-pin merely because this audit proposed it.
+### Documentation correction
 
-### F3. `context.bqn` centralization
+The old roadmap statement that Prefix fallback was "completely removed" was too broad. The correct claim is:
 
-External finding:
+- semantic role inference from account prefixes is removed from the primary inspected selection paths;
+- explicit-role migration diagnostics remain intentionally observable;
+- presentation-only prefix trimming is a separate concern.
 
-- `context.bqn` is becoming a central dependency and may need decomposition.
+No runtime change is authorized by this wording correction alone.
 
-Initial current-main reassessment on 2026-07-11: `unclear-needs-evidence`, with a concrete ownership question near Currency Stage 2 B2.
+## F2. CBQN reproducibility
 
-Interpretation:
+Current CI intentionally tracks CBQN `master`, records the resolved commit, and documents failure handling in `docs/CBQN_REPRODUCIBILITY.md`.
 
-- file size alone is not authorization for refactoring;
-- before adding new pure snapshot arithmetic logic, re-check whether `context.bqn` should remain the owner or whether a dedicated pure arithmetic module is justified;
-- do not begin broad `context.bqn` decomposition automatically.
+Classification: `policy-choice`.
 
-### F4. `envelope_computation.bqn` centralization
+Revisit only when:
 
-External finding:
+- an upstream change breaks the repository;
+- reproducible release artifacts become a goal;
+- repeatability requirements materially change.
 
-- selection, allocation, spend, status, temporal helpers, backing checks, and output concerns are concentrated.
+Do not auto-pin from the audit.
 
-Initial current-main reassessment on 2026-07-11: `unclear-needs-evidence`.
+## F3. `context.bqn` ownership
 
-Interpretation:
+B2/B3 introduced a dedicated pure arithmetic module while `context.bqn` retained snapshot loading, evidence orchestration, proof integration, and posting construction coordination.
 
-- complexity is observable;
-- no broad split is authorized without concrete change friction, repeated multi-site edits, test-isolation problems, or a selected ownership decision;
-- temporal semantics recently completed a major campaign, so structural cleanup must not casually reopen closed meaning questions.
+This addresses the immediate concern that every new arithmetic rule would automatically accumulate in `context.bqn`, but it does not prove that the file should never be decomposed.
 
-### F5. `tools/coverage` truthfulness
+Classification: `unclear-needs-evidence`.
 
-External finding:
+Evidence required before a split:
 
-- the visible coverage inventory may lag actual tests/checks.
+- repeated multi-site edits for one concept;
+- test-isolation problems;
+- an ownership conflict that cannot be expressed by a small pure module;
+- concrete maintenance friction, not file size alone.
 
-Initial current-main reassessment on 2026-07-11: `confirmed-current` as a small review candidate, not as proof of missing runtime tests.
+## F4. `envelope_computation.bqn` ownership
 
-Observed evidence at review time:
+The module remains broad, but the recent temporal campaign is closed. A structural split must not casually reopen policy or time semantics.
 
-- `tools/coverage` is a hand-maintained module inventory and direct editor-check map;
-- unmatched modules are printed as `untested`;
-- mappings should be compared with actual current checks before the output is treated as evidence.
+Classification: `unclear-needs-evidence`.
 
-Possible future finite slice:
+Observe:
 
-- compare current mappings with actual tests/checks;
-- clarify naming and semantics if the tool overstates what it measures;
-- do not build a broad coverage framework automatically.
+- repeated edits spanning unrelated responsibilities;
+- inability to test a responsibility independently;
+- recurring ownership confusion during real work.
 
-### F6. Structured operation logs / OpenTelemetry
+## F5. `tools/coverage` truthfulness
 
-External finding:
+`tools/coverage` is a hand-maintained module inventory and direct editor-check map. Its `covered` and `untested` words can be mistaken for a full runtime coverage claim.
 
-- add JSONL operation logs and potentially align naming with OpenTelemetry conventions.
+Classification: `confirmed-current` small review candidate.
 
-Initial current-main reassessment on 2026-07-11: `hold`.
+Possible finite review, only after current Active work is resolved:
 
-Interpretation:
+- compare the map with current tests/checks;
+- rename output if it overstates what is measured;
+- do not build a broad coverage framework.
 
-- this is a proposal, not a demonstrated defect;
-- the project is a local CLI/workbench rather than a hosted distributed service;
-- operation logs can create a new private evidence surface, including local paths and financial context;
-- revisit only with a concrete troubleshooting or operational consumer.
+## F6-F9. Broad infrastructure proposals
 
-### F7. Privacy, redaction, and backup handling
+Structured telemetry, broad privacy programs, i18n architecture, CI matrices, attestation, and release packaging remain unapproved without a concrete consumer.
 
-External finding:
+The repository is a personal local ledger/workbench. Infrastructure must earn its upkeep and must not create a new private-data surface.
 
-- public-development procedures for screenshots, paths, backups, and fixture conversion could be stronger.
+Classification: `hold` or documented `policy-choice`.
 
-Initial current-main reassessment on 2026-07-11: `unclear-needs-evidence`, with narrow value.
+## F10. Currency work
 
-Observed current baseline at review time:
-
-- real data is kept outside the public repository via `LEDGER_DATA_DIR`;
-- `SECURITY.md` forbids private household data, identifying local paths, screenshots with private financial details, tokens, and similar material in public reports;
-- fixture-based reproduction is preferred.
-
-Interpretation:
-
-- do not start a broad privacy program automatically;
-- reconsider a narrow public-evidence/redaction procedure if screenshot sharing, fixture extraction, backup retention, or external collaboration creates concrete friction.
-
-### F8. i18n / locale / UTF-8 contract
-
-External finding:
-
-- label externalization exists, but locale selection and broader i18n contracts are incomplete.
-
-Initial current-main reassessment on 2026-07-11: `hold`.
-
-Interpretation:
-
-- this may matter for a real multi-language consumer or distribution goal;
-- do not create locale architecture only because the audit proposed it.
-
-### F9. CI matrix, artifacts, OIDC, attestation, release packaging
-
-External finding:
-
-- expand CI/CD and supply-chain controls.
-
-Initial current-main reassessment on 2026-07-11: `hold`.
-
-Interpretation:
-
-- distinguish CI reliability from release/distribution needs;
-- matrix testing, release tarballs, OIDC, and attestation require concrete support or release goals;
-- do not turn a local personal ledger into a release-engineering project without a consumer.
-
-### F10. Currency / exact-decimal transition
-
-External finding:
-
-- integer-JPY behavior and exact-decimal / currency preparations coexist and can be misread as completed multi-currency support.
-
-Initial current-main reassessment on 2026-07-11: `confirmed-current`, but already governed by a current staged plan.
-
-Current authority remains:
+The audit correctly observed that integer-JPY behavior and exact-decimal/currency preparation coexist. Current authority is not the old broad roadmap; it is:
 
 - `docs/CURRENCY_STAGE2_SLICE_B_SPLIT_DECISION.md`;
+- the B3 post-implementation verification;
 - `TODO.md` finite routing.
 
-Interpretation:
+Slice C is limited to checked ILS posting admission while preserving JPY behavior and mixed-domain failure. It does not authorize FX, conversion, valuation, base currency, display precision, rounding policy, mixed-currency aggregation, report, JSON, or axis expansion.
 
-- do not create a second currency backlog from the audit;
-- use the audit only to question ownership, drift, or misleading claims against the current staged contract.
+Classification: `confirmed-current`, already governed.
 
-### F11. Documentation volume and lifecycle drift
+## F11. Documentation authority and lifecycle
 
-External finding:
+Two authority problems were confirmed:
 
-- documentation is unusually large and can become a second source of confusion.
+1. `docs/ENGINEERING_ROADMAP.md` still looked like an active implementation queue even though several sections were superseded by narrower current contracts.
+2. `docs/archive/completed-plans/GENERALIZATION_TODO.md` was located under completed plans while describing itself as an active remainder.
 
-Initial current-main reassessment on 2026-07-11: `confirmed-current` as a standing risk already addressed by current policy.
+Current decision:
 
-Current authority remains:
+- the roadmap is a historical summary and router, not an implementation authority;
+- the generalization record is a completed boundary decision, not an active migration queue;
+- current work comes from `TODO.md` and current canonical contracts;
+- option catalogs remain exploratory until one small slice is explicitly selected.
 
-- `docs/DOCS_LIFECYCLE_CONTRACT.md`;
-- `docs/README.md` routing;
-- `TODO.md` documentation currency/lifecycle maintenance lane.
+## Additional shelf findings
 
-Interpretation:
+### Legacy `ResolveDay`
 
-- do not start a broad docs rewrite from this audit;
-- use small lifecycle corrections when concrete drift is found.
+`src_next/projection.bqn` still exports a compatibility `ResolveDay` with a hard-coded `2026-01-01` base, while current context construction uses `ResolveDayFromCycle` with an explicit cycle start.
 
-## Initial routing conclusion
+Classification: `unclear-needs-evidence`.
 
-At the 2026-07-11 reassessment:
+Before any change:
 
-- the Prefix Fallback finding is the strongest confirmed semantic-drift candidate;
-- B2 remains current work and is not demoted merely because the audit proposed other work first;
-- B2 ownership deserves a focused re-check before adding more pure arithmetic logic to a central module;
-- CBQN pinning is a policy question, not an automatic defect fix;
-- coverage inventory truthfulness is a small future candidate;
-- broad decomposition, observability, i18n, release, and supply-chain initiatives remain unapproved.
+1. identify current callers;
+2. confirm whether the export is test-only, compatibility-only, or unused;
+3. remove or migrate it only as a separate finite slice.
 
-This conclusion is point-in-time evidence only. Re-check current `main` before using it for future routing.
+It is not promoted while Slice C is active.
+
+### Configuration externalization
+
+A4 configuration resolution remains `complete enough for now`.
+
+Future candidates must answer:
+
+- which semantic owner is correct: config, metadata, cycle, source schema, or code contract;
+- how unknown, missing, duplicate, and empty values behave;
+- which lint, fixture, and check prove the boundary;
+- whether a real user-facing rule needs to vary.
+
+Do not externalize canonical Daily Cube shape, layer meaning, or arbitrary accounting computation. Configuration must not become a household-accounting DSL.
+
+### Option catalogs
+
+`CURRENT_ENGINE_DESIGN_IDEAS.md` remains exploratory. Temporal, scenario, proof, registry, and policy options are not authorized merely because they are ranked there. The completed temporal campaign and current TODO routing take precedence.
+
+## Maintenance-mode criteria
+
+`bqn-ledger` may be treated as maintenance-oriented when all of the following are true:
+
+1. finite Active work is empty or explicitly paused with a recorded reason;
+2. no concrete daily-use P0/P1 defect is unresolved;
+3. source TSV, projection, cube, TBDS, report, and editor ownership boundaries are stable enough for normal use;
+4. current docs authorities agree about implemented behavior;
+5. external audit findings are classified without becoming a shadow backlog;
+6. configuration changes are evidence-driven rather than a general migration campaign;
+7. new architecture experiments are kept out of this repository unless separately authorized.
+
+A separate 6D event-sourcing experiment should begin in a separate repository after this boundary is reached or deliberately accepted. It must not be used to avoid closing or explicitly pausing current finite work here.
+
+## Final routing
+
+```text
+Active
+  -> Currency Stage 2 Slice C only
+
+Continuous maintenance
+  -> docs lifecycle
+  -> configuration ownership discipline
+  -> CI/workflow drift
+  -> source TSV safety
+  -> audit reassessment on concrete triggers
+
+Observe / evidence needed
+  -> context ownership
+  -> envelope computation ownership
+  -> diagnostic prefix terminology
+  -> legacy ResolveDay callers
+  -> tools/coverage semantics
+
+Hold
+  -> telemetry / OpenTelemetry
+  -> broad privacy program
+  -> i18n architecture
+  -> release packaging / attestation / CI matrix
+  -> broad refactors without concrete friction
+```
+
+No additional finite candidate is promoted by this shelf review.

@@ -1,210 +1,145 @@
-# ENGINEERING_ROADMAP: プロ級へ詰めるための導線
+# ENGINEERING_ROADMAP: historical implementation summary
 
-Status: **planning / active roadmap**
-Date: 2026-06-26
+Status: historical / superseded roadmap
+Owner: docs
+Canonical: no; current routing: `TODO.md` and the current feature contracts linked from `docs/README.md`
+Exit: retain as a compact historical summary; do not implement directly from this file
 
-この文書は、`bqn-ledger` を「生活会計の数字を預けられる秤」として
-プロ級に詰めるために **可能かつやる価値のある項目** を列挙する。
+Original date: 2026-06-26
+Reclassified: 2026-07-11
 
-それぞれに「なぜやるか」「どこから始めるか」「何を変えるか」を示す。
-いずれも既存のアーキテクチャ（Posting IR → Cube → TBDS → ViewModel → Format）を
-壊さずに追加できる。
+## Purpose
 
----
-
-## 1. 動的勘定科目空間 (Dynamic Account Space) ✅ 完了 (2026-06-26)
-
-### 結果
-
-`src_next/` は既に `≠accounts` による動的勘定科目空間へ完全移行済みだった。
-`256` リテラルは `src_next/` 内にゼロ。`cube.Materialize` は `ak_count` パラメータを受け取り、すべての配列確保が動的。
-
-残作業として以下を実施:
-- `docs/ARCHITECTURE.md` の「256スロットの勘定空間」→「動的勘定科目空間」に更新
-- `docs/CANONICAL_DAILY_CUBE.md` の Account 軸説明を更新
-- `docs/CONVENTIONS.md` の256上限記述を削除
-
-### やったこと（コードは変更不要）
-
-1. `src_next/loader.bqn` で `≠accounts` を返す → 既存（`account_key.bqn` の `Resolve.count`）
-2. `src_next/cube.bqn` の `Materialize`、空 cube 生成で `≠accounts` を使う → 既存
-3. `src_next/tbds.bqn` 以下の集計も動的サイズに対応 → 既存
-4. `256` リテラルを `src_next/` から完全除去 → 既存（ゼロ件）
-5. fixture / golden output が変わらないことを確認 → `src_next/` golden check は既存の動的出力を使用
-6. `docs/ARCHITECTURE.md` の256スロット節を更新 → 完了
-
----
-
-## 2. 取消・修正UI (Journal Reversal in BQN Editor) ✅ 完了 (2026-06-26)
-
-### 結果
-
-`journal reverse` サブコマンドを現行の BQN editor (`tools/edit` / `tools/edit-bqn`) に追加。
-`tools/add-ui.sh` に reverse モード追加。
-
-旧 Go editor での検討・実装メモは historical として archive 側に残す。現行の日常 write path は BQN editor + shell safe-write であり、Go editor 前提ではない。
-
-### やったこと
-
-1. ✅ `src_edit/journal_reverse_cmd.bqn` と `tools/edit-bqn` に `journal reverse` 経路を追加
-   - `--id <txn_id>` または `--index <number>` で対象指定
-   - from/to を入れ替え、memo に `[reverse]` プレフィックス
-   - BQN editor protocol と shell safe-write 経由で追記
-   - `--date` で日付指定可（デフォルト: today）
-   - `--yes` で確認スキップ可
-2. ✅ `tools/edit` から `journal reverse` を利用できるように維持
-3. ✅ `checks/check-edit-bqn-journal-reverse.sh` で dry-run / backup / positive / negative ケースを検証
-4. ✅ `tools/add-ui.sh` に reverse モード追加
-   - journal.tsv の一覧を fzf で選択
-   - 日付指定（デフォルト: today）
-   - BQN editor 経由で安全追記
-
----
-
-## 3. 多通貨・為替 (Multi-Currency)
-
-### なぜやるか
-
-今は単一通貨（JPY）前提。外貨取引や海外サービス支払いの記録が正確にできない。
-
-### 導線
-
-- 現状: `src_next/projection.bqn` — Posting IR への投影。amount は1軸
-- 現状: `src_next/tbds.bqn` — opening/movement/closing は amount 1軸
-- 現状: `docs/POSTING_IR_CONTRACT.md` — Posting IR のフィールド定義
-
-### やること
-
-#### Phase A: スキーマ設計
-
-1. `config/meta_schema.tsv` に `currency=...` と `base_amount=...` を追加
-2. `docs/POSTING_IR_CONTRACT.md` に `currency`, `base_amount` フィールド追加
-3. 設計文書 `docs/MULTI_CURRENCY_DESIGN.md` 作成
-
-#### Phase B: データ層
-
-1. `src_next/projection.bqn` の Posting IR に `currency` フィールド追加
-2. `src_next/loader.bqn` で `currency=` メタデータを読み取り
-3. `src_next/tbds.bqn` に `base_amount` 軸追加（amount は元通貨、base_amount は基準通貨換算）
-4. `data/config.tsv` に `BASE_CURRENCY=JPY` 追加
-
-#### Phase C: 表示層
-
-1. `src_next/snapshot.bqn` で通貨別表示
-2. `src_next/balances.bqn` で `amount` / `base_amount` 両表示
-3. 非JPY取引のハイライト
-
-### 難易度: 中（設計が肝。実装は軸追加で吸収できる）
-
----
-
-## 5. コントリビュータ向け文書 (Contributor Documentation) ✅ 完了 (2026-07-01)
-
-### なぜやるか
-
-現状の docs は moko と pit 向けに最適化されていて、
-外部の人が読むには入口が多すぎる。整理すれば8割はできている。
-
-### 結果
-
-- 既存 `CONTRIBUTING.md` を現行 daily path に合わせて更新。
-  - セットアップ
-  - 最初に読む docs
-  - テストの走らせ方（`tools/check.sh`）
-  - アーキテクチャ概要
-  - Go は現行 daily report / TSV editor path の必須依存ではなく historical / helper 扱いであること
-- `docs/README.md` の「まず読む」セクションを5項目の最短ルートへ圧縮し、作業内容別に追加で読む文書を分けた。
-- `docs/AI_CODEMAP.md` に、人間が読む場合の位置づけと外部向け入口を補足した。
-- 各モジュールの先頭コメント整備は、必要が出た時に個別変更として扱う。
-
----
-
-## 6. Failure Fixtures / Safety Profile 強化 ✅ 完了 (2026-06-26)
-
-### 結果
-
-既存の failure fixture（2-5は既存）:
-- `src-next-stale-plan/` — stale plan ✓
-- `src-next-anchor-unmet/` — future anchor 欠け ✓
-- `src-next-zero-vs-unavailable/` — 0 vs unavailable ✓
-- `src-next-unknown-account/` — unknown account ✓
-- `src-next-invalid-posting/` — invalid posting ✓
-- `src-next-empty-projection/` — empty projection ✓
-- `src-next-missing-plan/` — missing plan.tsv ✓
-
-新規追加 (1, 4):
-- `src-next-missing-budget-mapping/` — budget mapping 欠け（封筒消費はあるが budget= なし）
-- `src-next-broken-empty-columns/` — 空列保持が壊れた journal 行（SplitKeepEmpty 検証）
-
-両方 `check-src-next-golden.sh` に接続済み。`tools/check.sh` 全PASS。
-
-### やったこと
-
-1. ✅ 封筒消費はあるが budget mapping がない fixture 追加 → `src-next-missing-budget-mapping/`
-2. ✅ stale plan が残っている fixture → 既存 `src-next-stale-plan/`
-3. ✅ future anchor が欠けている fixture → 既存 `src-next-anchor-unmet/`
-4. ✅ 空列保持が壊れている fixture 追加 → `src-next-broken-empty-columns/`
-5. ✅ `0` に見えるが実際は unavailable → 既存 `src-next-zero-vs-unavailable/`
-6. ✅ 各 fixture を check-src-next-golden.sh に接続 → `tools/check.sh` に追加
-
----
-
-## 7. Household Policy Layer 完成 ✅ 一部完了 (2026-06-28)
-
-### 結果
-
-以下のサブタスクが完了し、mokoの個別生活前提がエンジンから剥離されました。
-*   **BQNコード内の日本語表示文字列の外部化**: `config/report_labels.tsv` と `src_next/report_labels.bqn` を新設し、セクション名やテーブルヘッダー、レポート表示用の日本語文字列をすべて外部化しました。
-*   **Prefix Fallback（接頭辞による暗黙の役割推測）の廃止**: アカウント接頭辞（`expenses:` など）による暗黙判定を完全に廃止し、`accounts.tsv` に指定された `role=` 属性のみを厳密に適用するように変更しました（`valid_roles` からの空文字除去完了）。
-
-### 導線
-
-- 現状: `docs/archive/active-plans/HOUSEHOLD_POLICY_LAYER_PLAN.md`
-- 現状: `src_next/household_policy.bqn`
-- 現状: `fixtures/household-moko/` `fixtures/household-monthly-salary/`
-- 現状: `docs/archive/completed-plans/HOUSEHOLD_POLICY_PHASE3_PROOF.md` — 2-style fixture proof 済み
-
-### 残っているやること
-
-1. `config/meta_schema.tsv` に policy 設定キーを正式定義
-2. `data/config.tsv` で policy profile を選択できるように
-3. household views の `UNAVAILABLE` 状態をもっと細かく分類
-4. 欠損時に policy を推測しない（fail visible）
-5. `report_sections.tsv` や `account_display.tsv` の将来的な導入判断
-
----
-
-## 8. Command Hub (日常操作ランチャー) ✅ 完了 (2026-06-28)
-
-### 結果
-
-日常操作の確認・閲覧・実行導線を一元化する `tools/bl` (Command Hub) を実装しました。
-
-### やったこと
-
-*   **Phase 1: 閲覧・確認**: レポート選択、fzf / gum によるプレビュー（`tools/main-ui.sh` 連携）、および一時キャッシュによる preview 状態復元を実装。
-*   **Phase 2: アクション連携**: 仕訳追加・取消UI（`tools/add-ui.sh` 連携）や、Issues & Decisions (`issues.tsv`) を対話的に安全追加する BQN editor 連携ルートの実装。
-*   **デザイン分離**: gum / fzf 等の装飾レイヤーとPlain出力テキストの完全な分離（BQNエンジンは色を持たず、UI層がANSI制御を担当する契約を厳守）。
-
----
-
-## 着手順の提案
+This file records a June 2026 engineering roadmap and the work it helped initiate. It is no longer an active implementation queue.
 
 ```text
-1. 動的勘定科目空間        ← 完了 (2026-06-26)
-2. Failure Fixtures        ← 完了 (2026-06-26)
-3. 取消・修正UI            ← 完了 (2026-06-26)
-4. コントリビュータ文書    ← 進行中 (docs/AI_CODEMAP.md の補完)
-5. 多通貨                  ← 設計が固まってから
-6. Household Policy 完成   ← 一部完了 (ラベル外部化・Prefix Fallback廃止完了)
-7. Command Hub 導入        ← 完了 (2026-06-28)
+historical roadmap
+  != current TODO
+  != implementation authorization
 ```
 
----
+For current work, read:
 
-## やらないと決めたこと
+1. `TODO.md` for the sole selected finite slice and standing maintenance lanes;
+2. `docs/AI_CODEMAP.md` for current data flow and ownership;
+3. `docs/QUALITY_BAR.md` and `docs/SAFETY_PROFILE.md` for quality and failure boundaries;
+4. the focused current contract or decision record for the feature being changed.
 
-- **データベース化**: TSV + git で十分。同時編集も個人なら不要
-- **多ユーザー対応**: 別カテゴリのプロダクト。目指さない
-- **期間ロック・監査証跡**: 個人利用では「自分が過去を変えない」で十分
-- **BQN → Rust/Zig 移植**: 別プロジェクト。今の BQN の表現力は維持する
+## Completed foundations recorded by the roadmap
+
+### Dynamic Account Space
+
+The current engine uses the resolved account count rather than a fixed 256-slot account space. Cube and downstream structures use dynamic account dimensions.
+
+### Journal reversal in the BQN editor
+
+The current BQN editor and shell safe-write path support reversal as an appended transaction. The retired Go editor is not a current daily dependency.
+
+### Contributor documentation
+
+`CONTRIBUTING.md`, `docs/README.md`, and `docs/AI_CODEMAP.md` provide the current contributor and pit entry routes.
+
+### Failure fixtures and safety checks
+
+The repository contains positive and negative fixtures for source-shape, unknown-account, empty-projection, missing-plan, stale-plan, anchor, budget mapping, and related fail-visible behavior.
+
+### Command Hub
+
+`tools/bl` provides the current navigation hub while calculation and source meaning remain owned by BQN and the source contracts.
+
+### Household configuration foundations
+
+Report labels and household policy inputs were externalized in finite phases. The current boundary is recorded in:
+
+- `docs/archive/completed-plans/GENERALIZATION_TODO.md`;
+- `docs/archive/completed-plans/GENERALIZATION_COMPLETED_PHASES.md`.
+
+Configuration externalization is `complete enough for now`. New settings require an evidence-driven ownership decision; there is no automatic migration campaign.
+
+## Correction: Prefix fallback terminology
+
+The old roadmap said Prefix fallback had been completely removed. That wording combined three different concerns.
+
+Current classification:
+
+```text
+semantic account classification
+  -> explicit role metadata owns meaning
+
+missing role + familiar prefix
+  -> diagnostic observation only
+
+prefix removal for a displayed label
+  -> presentation behavior only
+```
+
+The primary inspected current classification and selection paths use explicit roles. Diagnostic counts for missing-role accounts may remain intentionally. Presentation-only trimming does not infer accounting meaning.
+
+Do not perform blanket deletion of prefix-related code from this historical roadmap statement.
+
+## Correction: Multi-currency routing
+
+The broad Phase A/B/C plan formerly listed here is superseded by the staged Currency Stage 2 contracts and `TODO.md`.
+
+Current authority includes:
+
+- `docs/CURRENCY_STAGE2_SLICE_B_SPLIT_DECISION.md`;
+- the dated B3 post-implementation verification;
+- `TODO.md` finite routing.
+
+Current Slice C is limited to checked ILS posting admission while preserving:
+
+- exact JPY behavior;
+- the normalized integer and snapshot-wide amount-scale model;
+- mixed JPY/ILS failure.
+
+It does not authorize:
+
+- FX or conversion;
+- valuation or base currency;
+- display precision or rounding policy;
+- mixed-currency aggregation;
+- a currency axis;
+- broad report or JSON changes.
+
+## Current option catalogs
+
+Exploratory future architecture options are described in `CURRENT_ENGINE_DESIGN_IDEAS.md`.
+
+That file is an option catalog, not an active plan. A proposal becomes work only after one finite slice is selected in `TODO.md` with explicit acceptance criteria and non-goals.
+
+## External audit routing
+
+The current post-B3 reassessment is:
+
+- `docs/archive/audits/EXTERNAL_STATIC_AUDIT_REASSESSMENT_SOURCE-2026-07-11.md`.
+
+Audit findings are evidence, not a shadow roadmap. Re-check them against current `main` and promote at most one finite candidate at a time.
+
+## Work that remains deliberately unstarted
+
+Do not auto-start the following without a concrete consumer or observed defect:
+
+- broad module decomposition based on file size alone;
+- OpenTelemetry or structured operation-log infrastructure;
+- broad i18n architecture;
+- release packaging, attestation, or CI matrices;
+- database migration;
+- multi-user product work;
+- a rewrite in another implementation language.
+
+## Historical order
+
+The roadmap's original order was useful at the time:
+
+```text
+1. dynamic account space
+2. failure fixtures
+3. reversal UI
+4. contributor documentation
+5. staged currency investigation
+6. household policy/configuration work
+7. command hub
+```
+
+Most of these became completed foundations or were replaced by narrower current contracts. Use git history and the completed-plan archive for the original detailed proposal; use current contracts for present truth.
