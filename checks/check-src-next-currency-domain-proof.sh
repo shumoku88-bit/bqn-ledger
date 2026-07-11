@@ -58,7 +58,7 @@ expect_ok_context "$tmp/journal-currency" journal
 expect_ok_context "$tmp/implicit-decimal-jpy" implicit_decimal_jpy
 expect_fail_context "$tmp/plan-currency" plan "unsupported currency: USD"
 expect_fail_context "$tmp/budget-currency" budget_alloc "unsupported currency: "
-expect_fail_context "$tmp/ils-currency" ils "unsupported arithmetic currency domain: ILS"
+expect_ok_context "$tmp/ils-currency" ils
 expect_fail_context "fixtures/src-next-invalid-posting" invalid-posting "row error in Stage 2 minimal runtime slice"
 
 same_dir="$tmp/same-snapshot"
