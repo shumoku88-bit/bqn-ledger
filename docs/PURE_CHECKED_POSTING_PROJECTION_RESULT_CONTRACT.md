@@ -1,9 +1,11 @@
 # Pure Checked Posting Projection Result Contract
 
-Status: selected design contract; runtime not yet implemented
+Status: current contract
 Owner: other
 Canonical: yes; canonical for Headless Kernel Evolution Phase B
 Exit: retain as the current boundary contract after implementation; supersede only through an explicit replacement decision
+
+Implementation state: selected design; runtime not yet implemented. This document does not authorize Phase C by itself.
 
 ## 1. Purpose
 
