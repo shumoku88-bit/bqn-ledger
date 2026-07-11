@@ -25,8 +25,8 @@ Intended source shape:
 
 ```tsv
 # accounts.tsv
-assets:現金-JPY	role=asset	type=liquid	currency=JPY
-expenses:食費-JPY	role=expense	currency=JPY	report_group=食費
+assets:現金	role=asset	type=liquid	currency=JPY
+expenses:食費	role=expense	currency=JPY	report_group=食費
 assets:現金-ILS	role=asset	type=liquid	currency=ILS
 expenses:食費-ILS	role=expense	currency=ILS	report_group=食費
 expenses:書籍-ILS	role=expense	currency=ILS	report_group=書籍
@@ -35,11 +35,11 @@ expenses:交通-ILS	role=expense	currency=ILS	report_group=交通
 
 ```tsv
 # journal.tsv
-2026-07-12	スーパー	assets:現金-JPY	expenses:食費-JPY	1800	currency=JPY
+2026-07-12	スーパー	assets:現金	expenses:食費	1800	currency=JPY
 2026-07-12	パン	assets:現金-ILS	expenses:食費-ILS	12.50	currency=ILS
 ```
 
-The first daily-use design uses unique raw account names for currency-specific accounts, such as `expenses:食費-JPY` and `expenses:食費-ILS`. Defining the same raw account name once for JPY and again for ILS is not adopted until ambiguity in the current raw-name account lookup is resolved.
+The first daily-use design preserves existing JPY raw account names and uses unique raw names for additional currency-specific accounts, such as `expenses:食費-ILS`. Defining the same raw account name once for JPY and again for ILS is not adopted until ambiguity in the current raw-name account lookup is resolved.
 
 `report_group=食費` is a future presentation grouping candidate. It may group currency-specific accounts under one human category, but it must never authorize cross-currency addition.
 
@@ -110,12 +110,13 @@ budget_alloc.tsv
   -> every monetary account/row has exactly one explicit currency metadata token
 ```
 
-The first production migration is expected to add `currency=JPY` to existing JPY source where currency is absent.
+The first production migration is expected to add `currency=JPY` to existing JPY source where currency is absent. It must not rename existing account identifiers or rewrite From/To references.
 
 Migration safety requirements:
 
 - provide a read-only audit before any write;
 - preserve the first five journal-like TSV columns exactly;
+- preserve existing account names and all journal-like From/To account references exactly;
 - preserve row order, empty fields, comments, and unrelated metadata;
 - append `currency=JPY` only when currency metadata is absent;
 - reject duplicate currency metadata, unknown explicit currency, or structurally invalid rows;
@@ -232,7 +233,7 @@ Independent slice after M1 and before strict production source enforcement:
 - expose effective selected currency and selection provenance to later consumers;
 - add a read-only missing/duplicate/unknown currency audit;
 - add idempotent dry-run migration tooling for `accounts.tsv`, `journal.tsv`, `plan.tsv`, and `budget_alloc.tsv`;
-- add fake fixtures proving `currency=JPY` migration without first-five-column drift;
+- add fake fixtures proving `currency=JPY` migration without first-five-column or account-name drift;
 - do not modify production data inside the implementation PR;
 - execute production migration only as a separate user-approved operation after tooling verification;
 - do not yet remove all legacy compatibility paths.
@@ -257,7 +258,7 @@ Separate operational checkpoint after M1.5 tooling and M2 write-path support are
 
 - audit the actual `LEDGER_DATA_DIR` source;
 - review the dry-run result;
-- append `currency=JPY` to existing untagged JPY accounts and journal-like rows;
+- append `currency=JPY` to existing untagged JPY accounts and journal-like rows without renaming accounts;
 - run post-migration checks;
 - verify that the new editor writes explicit currency metadata;
 - decide in a separate docs/runtime slice whether production missing currency can now fail closed;
@@ -313,6 +314,7 @@ Example future output:
 - changes to the first five source columns;
 - direct production data mutation by implementation PRs;
 - using the configured default to reinterpret missing source currency;
+- renaming existing production account identifiers during currency migration;
 - duplicate definitions of the same raw account name across currencies;
 - automatic expansion under a broad `Stage 3` campaign name.
 
