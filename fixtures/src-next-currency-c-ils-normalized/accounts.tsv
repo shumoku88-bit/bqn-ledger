@@ -1,0 +1,3 @@
+assets:bank	role=asset
+expenses:food	role=expense
+expenses:housing	role=expense
