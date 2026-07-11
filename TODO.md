@@ -9,41 +9,35 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-11 — Phase D is explicitly selected as the sole active finite slice: a read-only 6D feasibility investigation over existing evidence and raw source fields. No 6D implementation, source/schema change, `CanonicalEvent`, `Project(events, spec)`, event-sourcing migration, broad `context.bqn` split, or new Stage is authorized.
+Last hygiene pass: 2026-07-11 — Phase D is closed with conclusion A. Read-only Event Lens Slice 1 is explicitly selected as the sole active finite work.
 
 ---
 
 ## Active work
 
-### Headless Kernel Evolution Phase D: Read-only 6D feasibility investigation
+### Read-only Event Lens Slice 1
 
-One finite evidence-classification slice.
+One finite implementation slice.
 
 Question:
-- can the provisional 6D view be derived read-only from fields already preserved by row evidence and raw source rows, without a new shared event carrier?
-
-Required evidence:
-- inventory the exact current row-evidence and raw-field ownership for journal-like sources
-- compare `when`, `party / place`, `what`, `where-to / account destination`, `amount`, and `what-happened / action` dimension by dimension
-- classify each dimension as available, derivable with a small provenance extension, or insufficient without an independent intermediate representation
-- finish with exactly one overall conclusion: **A. existing evidence is sufficient**, **B. a small provenance extension is sufficient**, or **C. an independent intermediate representation is required**
+- Can a pure function `BuildRows checkedResult` derive a source-row-level read-only inspection record from successful checked posting results?
 
 Allowed:
-- inspect current `main`, contracts, fixtures, focused tests, and exact source snapshots
-- add docs and narrowly scoped read-only test or inspection evidence when needed to prove current field preservation
+- implement `src_next/event_lens.bqn` with `BuildRows` public function
+- add `tests/test_src_next_event_lens.bqn` with focused tests
+- keep repository checks and coverage green
 
 Not authorized:
-- 6D runtime implementation, report, export, or formal source contract
-- source TSV or metadata schema changes
-- `CanonicalEvent`, `Project(events, spec)`, or another shared carrier
-- strict event sourcing for journal, plan, budget, or issues
-- Phase E, a broad `context.bqn` split, or a new numbered Stage
+- I/O, file loading, clock access, `•Out`, `•Exit` inside the lens module
+- source data or schema modifications
+- Cube/TBDS construction, report text parsing, JSON output, household policy
+- mixed JPY/ILS, FX, or display/valuation policy
+- Phase E, `CanonicalEvent`, `Project(events, spec)`
 
 Exit:
-- publish the dimension-by-dimension evidence and one A/B/C conclusion
-- review actual changed paths against the read-only scope
+- implement `src_next/event_lens.bqn` and verify all tests and checks pass
+- ensure `tests/test_src_next_event_lens.bqn` covers all 10 required test cases
 - keep repository checks and coverage green
-- close Phase D separately and leave Phase E merely eligible unless another docs-only decision explicitly selects it
 
 ---
 
