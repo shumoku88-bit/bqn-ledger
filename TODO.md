@@ -24,29 +24,34 @@ Current state:
 - Do not add a per-PR form, tracker, telemetry, lint, parser, CI gate, or metrics service.
 - Do not turn the observation itself into repeated self-review work; after the window, record one Review / Learning assessment and retire the plan.
 
-### Currency Stage 2 Slice B2: Snapshot Arithmetic Evidence
+### Currency Stage 2 Slice B3: Proof and JPY-only Posting Integration
 
-Next authorized finite runtime slice.
+Next authorized finite runtime slice. Currency Stage 2 Slice B2 is recently completed and verified by PR #155 and [`CURRENCY_STAGE2_SLICE_B2_POST_IMPLEMENTATION_VERIFICATION-2026-07-11.md`](docs/archive/audits/CURRENCY_STAGE2_SLICE_B2_POST_IMPLEMENTATION_VERIFICATION-2026-07-11.md).
 
-Selected ownership:
-- `src_next/currency_arithmetic.bqn` owns the dedicated pure snapshot arithmetic boundary;
-- `src_next/context.bqn` remains the orchestrator: load one shared snapshot, build B1 row evidence, pass that evidence to the arithmetic owner, and consume the returned internal evidence;
-- focused B2 unit tests import `currency_arithmetic.bqn` directly without requiring full context construction;
-- completed ownership decision: `docs/archive/completed-plans/CURRENCY_STAGE2_B2_ARITHMETIC_OWNERSHIP_RECHECK-2026-07-11.md`.
+B2 completion evidence covers:
+- pure owner `src_next/currency_arithmetic.bqn`;
+- same-snapshot pre-built B1 evidence input;
+- empty-source compatibility;
+- one-domain JPY/ILS aggregation and mixed-domain failure;
+- snapshot-wide amount-scale selection;
+- exact unsigned normalization with input-order preservation;
+- normalized overflow failure;
+- invalid row-evidence failure;
+- no B3 or Slice C leakage.
 
-B2 runtime meaning remains:
-- aggregate the pre-built B1 row evidence;
-- require exactly one resolved currency domain;
-- select snapshot-wide `amount_scale`;
-- normalize coefficients exactly;
-- fail closed on normalized coefficient overflow;
-- return internal arithmetic evidence.
+One non-material out-of-contract defensive diagnostic imprecision is retained in the audit: forged `state=ok` unknown-domain evidence receives `mixed_currency_domains`, but B1 cannot generate that evidence and regular unsupported source rows fail closed as `invalid_row_evidence`. It does not block B3 and is not an active correction prerequisite.
 
-Preserved B2 exclusions:
-- no proof carrier extension;
-- no projection row `delta` change;
-- no ILS projection admission;
-- full projection admission for scale > 0 rows remains closed.
+B3 boundary:
+- owners: `src_next/context.bqn` and `src_next/projection.bqn`;
+- extend `arithmetic_currency_proof` with `amount_scale`;
+- support `resolved_single_currency`;
+- use signed normalized coefficients for projection posting deltas;
+- preserve JPY-only projection authorization;
+- keep ILS projection closed;
+- no Slice C;
+- no FX, conversion, valuation, display, or JSON widening.
+
+Do not implement Slice C or broader currency support in the B3 slice.
 
 Recently completed and verified:
 - PR #146 merged Currency Stage 2 Slice B1 row ingestion and pre-gate evidence;
