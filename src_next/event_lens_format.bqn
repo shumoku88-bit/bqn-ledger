@@ -28,11 +28,8 @@ Columns ← ⟨
   "kind"
 ⟩
 
-FormatRowCells ← { ¯1 ↓ ∾ (𝕩 ∾¨ Tab) }
-Header ← FormatRowCells Columns
-
 FormatTsv ← {𝕊 lensResult:
-  { state ⇐ lensResult.state, text ⇐ Header ∾ Lf, message ⇐ "" }
+  { state ⇐ lensResult.state, text ⇐ "", message ⇐ "" }
 }
 
 {
