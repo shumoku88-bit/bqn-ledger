@@ -1,9 +1,9 @@
 # Currency Stage 2 B2 Arithmetic Ownership Recheck
 
-Status: active plan
+Status: completed
 Owner: currency/docs
-Canonical: no; B2 semantics remain owned by `docs/CURRENCY_STAGE2_SLICE_B_SPLIT_DECISION.md`
-Exit: retire after one docs-only ownership decision records the selected runtime owner and routing returns to B2 implementation
+Canonical: no; current B2 semantics and routing: `docs/CURRENCY_STAGE2_SLICE_B_SPLIT_DECISION.md`
+Exit: retired after Outcome B selected one runtime owner and routing returned to B2 implementation
 
 Date: 2026-07-11
 
@@ -35,16 +35,30 @@ The following exclusions remain fixed:
 
 This review must not reopen those decisions.
 
-## Current selected owner
+## Selected outcome: B — dedicated pure arithmetic owner
 
-Current split decision:
+The later B2 runtime slice will introduce exactly one dedicated owner:
 
 ```text
-src_next/context.bqn
-  arithmetic aggregation helper
+src_next/currency_arithmetic.bqn
 ```
 
-This remains the selected owner unless the finite review explicitly changes it.
+Its exact input is only the pre-built B1 row evidence produced from the shared in-memory posting snapshot. It must not read source files, reload a snapshot, split TSV rows, resolve metadata, parse source amounts, or rebuild row evidence.
+
+Its output is internal snapshot arithmetic evidence containing:
+
+- exactly one resolved currency domain, or fail-closed domain error evidence;
+- snapshot-wide `amount_scale`, selected as the maximum canonical row scale;
+- exact normalized coefficients;
+- normalized coefficient overflow/error evidence.
+
+`src_next/context.bqn` remains the orchestration owner. It loads one shared snapshot, builds B1 row evidence, passes that evidence to `currency_arithmetic.bqn`, and consumes the returned arithmetic evidence. This preserves the same-snapshot invariant without giving the arithmetic module any loading or projection responsibility.
+
+Focused B2 unit tests will import `src_next/currency_arithmetic.bqn` directly. They will prove mixed-domain failure, amount-scale selection, exact normalization, and normalized overflow without requiring full context construction.
+
+This is a real semantic seam reduction rather than a decorative wrapper: exactly-one-domain aggregation and snapshot-wide coefficient normalization form an independently meaningful pure boundary, separate from context loading, cycle resolution, account resolution, projection authorization, cube, and TBDS.
+
+The dedicated module is not a generic arithmetic framework, FX owner, display precision owner, valuation owner, or mixed-currency engine.
 
 ## Candidate ownership models
 
@@ -167,14 +181,18 @@ Do not:
 - the selected next runtime route is explicit;
 - any dedicated module decision names one owner only and preserves the same-snapshot invariant.
 
-## Routing after decision
+## Decision closure and next routing
 
-After this ownership recheck closes:
+Outcome B is the only selected outcome. Current-main B1 evidence establishes a coherent pre-built row-evidence input, while `context.bqn` already owns loading, row-evidence construction, proof gating, projection coordination, cycle/account resolution, cube, and TBDS orchestration. The dedicated pure owner therefore removes independently testable arithmetic meaning from that central orchestrator without changing the B1 evidence shape.
+
+The exact next authorized runtime slice is:
 
 ```text
 Currency Stage 2 Slice B2: Snapshot Arithmetic Evidence
+owner: src_next/currency_arithmetic.bqn
+orchestrator: src_next/context.bqn
 ```
 
-remains the next runtime slice.
+B2 semantics remain unchanged: aggregate pre-built B1 row evidence, require exactly one resolved domain, select maximum canonical row scale as `amount_scale`, exact-normalize coefficients, fail closed on normalized coefficient overflow, and return internal arithmetic evidence.
 
-The ownership decision changes only where B2 arithmetic lives, not what B2 means.
+Exclusions also remain unchanged: no proof carrier extension, projection row `delta` change, ILS projection admission, full projection admission for scale > 0 rows, B1 row-evidence shape change, broad `context.bqn` decomposition, or broad `exact_decimal.bqn` refactor. This completed decision contains no runtime implementation.

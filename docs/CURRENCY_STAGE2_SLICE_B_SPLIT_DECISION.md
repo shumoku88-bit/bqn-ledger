@@ -77,7 +77,7 @@ graph TD
 
 *   **Description**: Implements the snapshot-wide arithmetic verification logic in a pure helper function. Aggregates row evidence, selects the snapshot-wide `amount_scale`, and normalizes coefficients.
 *   **Prerequisites**: Slice B1.
-*   **Ownership**: `src_next/context.bqn` (arithmetic aggregation helper).
+*   **Ownership**: `src_next/currency_arithmetic.bqn` (dedicated pure snapshot arithmetic owner), orchestrated by `src_next/context.bqn`. The completed ownership recheck is [`CURRENCY_STAGE2_B2_ARITHMETIC_OWNERSHIP_RECHECK-2026-07-11.md`](archive/completed-plans/CURRENCY_STAGE2_B2_ARITHMETIC_OWNERSHIP_RECHECK-2026-07-11.md).
 *   **Execution Flow**:
     *   Aggregates the row evidence records from Slice B1.
     *   Requires exactly one resolved domain across all rows (fails closed on mixed domains, e.g. JPY + ILS).
@@ -91,7 +91,7 @@ graph TD
     *   No ILS projection admission.
     *   **B2 must keep full projection admission for scale > 0 rows closed**: Although B2 computes and tests scale > 0 arithmetic evidence internally, full projection admission for scale > 0 rows remains closed because the projection posting row deltas are not normalized and proof carrier is not extended. The existence of correct B2 arithmetic evidence must not silently change projection behavior.
 *   **Exit Evidence**:
-    *   Unit tests in `tests/test_src_next_context.bqn` verify that:
+    *   Focused unit tests import `src_next/currency_arithmetic.bqn` directly and verify that:
         *   Mixed JPY/ILS row evidence fails closed.
         *   Normalized coefficient range overflow fails closed.
         *   Single-currency row evidence aggregates correctly and returns correct `amount_scale` and normalized coefficients (verified for both JPY and ILS inputs).
@@ -142,10 +142,10 @@ graph TD
 | Row currency resolution | **Slice B1** | `context.bqn` | Raw metadata fields | Row evidence resolved currency |
 | Row exact decimal parsing | **Slice B1** | `exact_decimal.bqn` (parsing) / `context.bqn` (orchestration) | Raw amount text | Row evidence parsed amount |
 | Row-level exact range check | **Slice B1** | `exact_decimal.bqn` (diagnostic) / `context.bqn` (orchestration) | Parsed coefficient | Fail closed on parsed overflow |
-| Single domain constraint | **Slice B2** | `context.bqn` | Row evidence currencies | Fail closed if mixed domains |
-| Snapshot-wide `amount_scale` | **Slice B2** | `context.bqn` | Row evidence scales | Snapshot arithmetic scale |
-| Coefficient normalization | **Slice B2** | `context.bqn` | Row evidence coefficients | Normalized coefficients |
-| Normalized range check | **Slice B2** | `context.bqn` | Normalized coefficients | Fail closed on normalized overflow |
+| Single domain constraint | **Slice B2** | `currency_arithmetic.bqn` | Pre-built B1 row evidence currencies | Fail closed if mixed domains |
+| Snapshot-wide `amount_scale` | **Slice B2** | `currency_arithmetic.bqn` | Pre-built B1 row evidence scales | Snapshot arithmetic scale |
+| Coefficient normalization | **Slice B2** | `currency_arithmetic.bqn` | Pre-built B1 row evidence coefficients | Normalized coefficients |
+| Normalized range check | **Slice B2** | `currency_arithmetic.bqn` | Normalized coefficients | Fail closed on normalized overflow |
 | Extended proof carrier | **Slice B3** | `context.bqn` | Arithmetic evidence | `arithmetic_currency_proof` |
 | Normalized posting deltas | **Slice B3** | `context.bqn` | Normalized coefficients | Projection posting row `delta` |
 | ILS projection admission | **Slice C** | `projection.bqn` | Admitted proof & rows | Admitted ILS posting rows |
@@ -157,7 +157,7 @@ graph TD
 The one-shared-snapshot invariant is preserved across the split as follows:
 1.  **Ingestion**: `LoadPostingSourceSnapshot` is called once, loading `journal.tsv`, `plan.tsv`, and `budget_alloc.tsv` into memory.
 2.  **Row Evidence (B1)**: All rows in the snapshot are parsed and validated in place by `BuildRowEvidenceFromSnapshot`. No files are re-read.
-3.  **Proof Generation & Normalization (B2/B3)**: Snapshot arithmetic evidence and final proofs are generated directly from the in-memory row evidence list.
+3.  **Arithmetic & Proof Generation (B2/B3)**: `context.bqn` passes the in-memory B1 row evidence directly to pure `currency_arithmetic.bqn`; the arithmetic owner does not read files or rebuild evidence. `context.bqn` later consumes that evidence for final proof generation.
 4.  **Authorization (B3/C)**:
     *   **B3**: The proof and normalized rows come from the same in-memory evidence, but projection authorization remains JPY-only.
     *   **C**: Later widen authorization to proven ILS without source re-read, preserving the same-snapshot invariant.
@@ -189,6 +189,6 @@ After merged B1 post-implementation verification, the next authorized runtime sl
 Currency Stage 2 Slice B2: Snapshot Arithmetic Evidence
 ```
 
-Its boundary is aggregation of B1 row evidence, exactly one resolved domain, snapshot-wide `amount_scale`, exact coefficient normalization, normalized-overflow failure, and an internal arithmetic evidence result. It does not extend the proof carrier, change projection deltas, admit ILS projection, or open full projection admission for scale > 0 rows.
+Its owner is `src_next/currency_arithmetic.bqn`, orchestrated by `src_next/context.bqn`. Its input is only pre-built B1 row evidence from the shared in-memory snapshot; its output is internal arithmetic evidence for exactly one resolved domain, snapshot-wide `amount_scale`, exact normalized coefficients, and normalized overflow/error state. The arithmetic owner does not read source files or rebuild row evidence. It does not extend the proof carrier, change projection deltas, admit ILS projection, or open full projection admission for scale > 0 rows.
 
 B3 and Slice C remain unauthorized until their sequential prerequisites are implemented and verified.
