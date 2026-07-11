@@ -380,48 +380,28 @@ Complete. Verified that the current event lens derivation works correctly.
 - Selected conclusion:
   - A. A formatter is justified as the next finite slice (authorizes a formatter only, no report, export system, source schema, or event-sourcing model).
 
-### Read-only Event Lens Slice 2: Pure TSV Formatter
+### Read-only Event Lens Slice 2: Pure TSV Formatter (Complete)
 
-The next finite slice is the implementation of a pure TSV formatter.
+Complete. The second runtime slice for the read-only event lens implements a pure TSV formatter converting the event lens result into deterministic, inspectable TSV text.
 
-Question:
-- Can a pure FormatTsv lensResult function convert the current event-lens result into deterministic, inspectable TSV text without changing its meaning or introducing side effects?
+Completion Evidence:
+- Merged PR #176
+- Merge commit: `e5792e1a62912a12b31eda91323cc9c81f18a5c0`
+- GitHub Actions run #662 success
+- tools/check.sh success
+- coverage success
+- Exactly 2 changed runtime/test paths:
+  - `src_next/event_lens_format.bqn`
+  - `tests/test_src_next_event_lens_format.bqn`
 
-Selected module:
-- `src_next/event_lens_format.bqn`
-
-Selected public function:
-- `FormatTsv lensResult`
-
-Result Contract:
-- Successful input:
-  ```bqn
-  {
-    state: "ok",
-    text: <deterministic TSV text>,
-    message: ""
-  }
-  ```
-- Failed input:
-  ```bqn
-  {
-    state: "error",
-    text: "",
-    message: <preserved or deterministic error message>
-  }
-  ```
-
-TSV Contract Details:
-- Column order:
-  The output must contain these columns in exactly this order:
-  `source_file`, `source_row`, `source_id`, `when_value`, `when_state`, `party_value`, `party_state`, `what_value`, `what_state`, `from_account`, `where_to_value`, `where_to_state`, `amount_text`, `amount_coefficient`, `amount_scale`, `currency`, `amount_state`, `action_value`, `action_state`, `layer`, `kind`
-- Header: A successful result always includes one header row. For a successful result with zero lens rows, return:
-  `<header row>\n` (exactly one LF, no data rows).
-- Row order: Preserve `lensResult.rows` order exactly. Do not sort, group, filter, deduplicate, aggregate, split debit and credit.
-- Cell conversion: Text fields remain text. Convert these integer fields to plain base-10 text: `source_row`, `amount_coefficient`, `amount_scale` (no digit grouping, no locale formatting, no scientific notation, no currency symbols, no amount rescaling). E.g. `amount_text` = "42.50", `amount_coefficient` = 4250, `amount_scale` = 2, `currency` = "ILS" -> three separate TSV cells: `42.50\t4250\t2\tILS`. Do not produce `₪42.50`, `42.5`, `ILS 42.50`.
-- Cell escaping: TSV cells must not contain literal tab, LF, or CR characters. Apply deterministic backslash escape convention: `\` -> `\\`, `TAB` -> `\t`, `CR` -> `\r`, `LF` -> `\n`. Apply escaping before replacing control characters. Do not add CSV-style quotation marks. Empty values remain empty TSV cells.
-- Line endings: Use LF only (`@+10`). The successful output must end with exactly one LF. Do not emit CRLF.
-- Purity: Read no files, write no files, inspect no clock, print nothing, call no `•Out`, call no `•Exit`, modify no source data, modify no lens rows, depend on no global mutable state. Repeated calls with the same input must return equal results.
+Boundary details for `FormatTsv lensResult`:
+- 21 columns emitted in exact selected order
+- Deterministic backslash escaping (`\` -> `\\`, `TAB` -> `\t`, `CR` -> `\r`, `LF` -> `\n`, no CSV-style quotation marks)
+- Header-only success for empty results
+- Failed lens result returns error state with empty TSV text
+- Row order and 1-to-1 identity preserved
+- Exact JPY/ILS amount evidence preserved (unformatted integer coefficient, scale, currency)
+- Pure: no file I/O, no clocks, no print or terminal effects
 
 ### Phase E: Shared event carrier decision
 
@@ -437,6 +417,8 @@ Possible consumers include:
 A carrier must not become a sparse universal record merely because several future ideas exist.
 
 The name `CanonicalEvent` is provisional and currently unselected.
+
+Note: The TSV Formatter is an output adapter for the same event lens rather than an independent second projection consumer, so it does not count as a justification for adopting a shared event carrier.
 
 ## 8. Deferred event-sourcing direction
 
@@ -475,6 +457,7 @@ This is a parked direction, not an authorized phase in the current sequence.
 | Phase C runtime extraction | complete | Implementation evidence shows the seam preserves current behavior and exits on failure correctly |
 | Phase D read-only feasibility investigation | complete | The investigation closes with Conclusion A and explicit dimension evidence |
 | Representative Observation Slice | complete | Closed via PR #174, run #640, confirming event lens preservation and Conclusion A |
+| Read-only Event Lens Slice 2 | complete | Closed via PR #176, run #662, confirming pure TSV formatter output adapter liveness |
 | Add `CanonicalEvent` now | rejected for now | Two independent consumers demonstrate the same missing carrier semantics |
 | Start strict event sourcing now | rejected for now | One bounded domain and replay requirement are selected with migration safety |
 | Start broad headless refactor | rejected | A finite pure-result seam is implemented and tested first |
@@ -506,9 +489,4 @@ The map should remain compact enough to restart work, but complete enough that a
 
 ## 11. Current next action
 
-Read-only Event Lens Slice 2: Pure TSV Formatter:
-
-```text
-implement the pure TSV formatter FormatTsv lensResult in src_next/event_lens_format.bqn
-add focused formatter tests in tests/test_src_next_event_lens_format.bqn
-```
+No finite work selected. Choose one candidate (e.g. from Phase E or other backlogs) through a separate docs-only selection PR.
