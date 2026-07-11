@@ -33,13 +33,16 @@ Columns ← ⟨
 ⟩
 
 JoinWith ← {𝕊 sep‿parts:
-  (0 = ≠ parts) ? "" ; (⊑ parts) ∾ ∾ { sep ∾ 𝕩 }¨ 1 ↓ parts
+  (0 = ≠ parts) ? "" ; {𝕊:
+    rest ← { sep ∾ 𝕩 }¨ (1 ↓ parts)
+    (⊑ parts) ∾ ∾ rest
+  } @
 }
 
 Header ← JoinWith ⟨Tab, Columns⟩
 ExpectedRow ← { JoinWith ⟨Tab, 𝕩⟩ }
 
-MakeRow ← {𝕊 sourceRow‿sourceId‿partyValue‿partyState‿whatValue‿whatState‿amountText‿coefficient‿scale‿currency:
+MakeRow ← {𝕊 sourceRow‿sourceId‿partyValue‿partyState‿whatValue‿whatState‿amountText‿coefficient‿scale‿currencyValue:
   {
     source_file ⇐ "journal.tsv",
     source_row ⇐ sourceRow,
@@ -56,7 +59,7 @@ MakeRow ← {𝕊 sourceRow‿sourceId‿partyValue‿partyState‿whatValue‿w
     amount_text ⇐ amountText,
     amount_coefficient ⇐ coefficient,
     amount_scale ⇐ scale,
-    currency ⇐ currency,
+    currency ⇐ currencyValue,
     amount_state ⇐ "direct",
     action_value ⇐ "actual:expense",
     action_state ⇐ "derived",
