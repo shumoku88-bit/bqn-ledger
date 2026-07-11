@@ -289,30 +289,95 @@ BuildRowsForFile ← {𝕊 base‿resolved‿cycleStart‿srcFile:
 # BuildRowsForFileOptional: compatibility wrapper; same authorization behavior as BuildRowsForFile.
 BuildRowsForFileOptional ← BuildRowsForFile
 
-# BuildAuthorizedRowsFromSnapshot: derive proof from the exact snapshot being projected.
-# The integrated proof (ResolveArithmeticCurrencyProof) combines B1 row evidence
-# and B2 arithmetic results into a single five-field carrier {state, domain,
-# basis, amount_scale, message}. Projection authorization (RequireArithmeticCurrencyProof)
-# remains JPY-only: successful authorization permits normalized JPY posting
-# construction; ILS remains closed.
-BuildAuthorizedRowsFromSnapshot ← {𝕊 snapshot‿resolved‿cycleStart:
+MakeCheckedDiagnostic ← {𝕊 stage‿code‿message:
+  {
+    severity ⇐ "error",
+    stage ⇐ stage,
+    code ⇐ code,
+    message ⇐ message
+  }
+}
+
+# BuildCheckedPostingProjectionFromPrepared: pure checked-result owner over
+# already-derived evidence and arithmetic evidence. The exported ForTest alias is
+# a narrow structural-mismatch seam; normal callers use the snapshot boundary.
+BuildCheckedPostingProjectionFromPrepared ← {𝕊 evidence‿arithmeticEvidence‿resolved‿cycleStart:
+  proof ← ResolveArithmeticCurrencyProof ⟨evidence, arithmeticEvidence⟩
+  authorizationMessage ← proj.ArithmeticCurrencyAuthorizationMessage proof
+  result ← {
+    state ⇐ "error",
+    row_evidence ⇐ evidence,
+    arithmetic_evidence ⇐ arithmeticEvidence,
+    arithmetic_currency_proof ⇐ proof,
+    posting_rows ⇐ ⟨⟩,
+    diagnostics ⇐ ⟨MakeCheckedDiagnostic ⟨"authorization", "arithmetic_currency_proof_rejected", authorizationMessage⟩⟩
+  }
+
+  authorized ← proj.AuthorizeArithmeticCurrencyProof proof
+  {𝕊:
+    lengthMismatch ← (≠evidence) ≢ (≠arithmeticEvidence.normalized_coefficients)
+    {𝕊:
+      result ↩ {
+        state ⇐ "error",
+        row_evidence ⇐ evidence,
+        arithmetic_evidence ⇐ arithmeticEvidence,
+        arithmetic_currency_proof ⇐ proof,
+        posting_rows ⇐ ⟨⟩,
+        diagnostics ⇐ ⟨MakeCheckedDiagnostic ⟨"structure", "normalized_coefficient_length_mismatch", "evidence and normalized coefficients length mismatch"⟩⟩
+      }
+    }⍟lengthMismatch @
+
+    {𝕊:
+      rows ← ∾ ({𝕊 i:
+        row ← i ⊑ evidence
+        coef ← i ⊑ arithmeticEvidence.normalized_coefficients
+        BuildProjectionRowsForEvidence ⟨row, coef, resolved, cycleStart⟩
+      } ¨ ↕ ≠ evidence)
+      result ↩ {
+        state ⇐ "ok",
+        row_evidence ⇐ evidence,
+        arithmetic_evidence ⇐ arithmeticEvidence,
+        arithmetic_currency_proof ⇐ proof,
+        posting_rows ⇐ rows,
+        diagnostics ⇐ ⟨⟩
+      }
+    }⍟(¬lengthMismatch) @
+  }⍟authorized @
+
+  result
+}
+
+# BuildCheckedPostingProjectionFromSnapshot: selected Phase C public pure boundary.
+# It reads no files, prints nothing, exits nowhere, and derives all checked data
+# from the exact supplied snapshot.
+BuildCheckedPostingProjectionFromSnapshot ← {𝕊 snapshot‿resolved‿cycleStart:
   evidence ← BuildRowEvidenceFromSnapshot snapshot
   arithmeticEvidence ← arith.Build evidence
-  proof ← ResolveArithmeticCurrencyProof ⟨evidence, arithmeticEvidence⟩
-  proj.RequireArithmeticCurrencyProof proof
+  BuildCheckedPostingProjectionFromPrepared ⟨evidence, arithmeticEvidence, resolved, cycleStart⟩
+}
 
-  # Fail closed if length mismatch
+AuthorizedRowsFromCheckedResult ← {𝕊 result:
   {𝕊:
-    •Out "ERROR: evidence and normalized coefficients length mismatch"
+    diagnostic ← ⊑ result.diagnostics
+    •Out "ERROR: " ∾ diagnostic.message
     •Exit 1
-  }⍟((≠evidence) ≢ (≠arithmeticEvidence.normalized_coefficients)) @
+  }⍟(result.state ≢ "ok") @
+  { rows ⇐ result.posting_rows, arithmetic_currency_proof ⇐ result.arithmetic_currency_proof }
+}
 
-  rows ← ∾ ({𝕊 i:
-    row ← i ⊑ evidence
-    coef ← i ⊑ arithmeticEvidence.normalized_coefficients
-    BuildProjectionRowsForEvidence ⟨row, coef, resolved, cycleStart⟩
-  } ¨ ↕ ≠ evidence)
-  { rows ⇐ rows, arithmetic_currency_proof ⇐ proof }
+# BuildAuthorizedRowsFromPreparedForTest: narrow compatibility-wrapper test seam
+# for the otherwise defensive structural-mismatch branch.
+BuildAuthorizedRowsFromPreparedForTest ← {𝕊 evidence‿arithmeticEvidence‿resolved‿cycleStart:
+  result ← BuildCheckedPostingProjectionFromPrepared ⟨evidence, arithmeticEvidence, resolved, cycleStart⟩
+  AuthorizedRowsFromCheckedResult result
+}
+
+# BuildAuthorizedRowsFromSnapshot: compatibility wrapper preserving the existing
+# success shape, fatal stdout prefix, and exit code while delegating calculation
+# to the pure checked-result boundary.
+BuildAuthorizedRowsFromSnapshot ← {𝕊 snapshot‿resolved‿cycleStart:
+  result ← BuildCheckedPostingProjectionFromSnapshot ⟨snapshot, resolved, cycleStart⟩
+  AuthorizedRowsFromCheckedResult result
 }
 
 # BuildAllRowsFromSnapshot: compatibility wrapper with no independently supplied proof.
@@ -390,4 +455,18 @@ BuildContext ← {𝕊 arg:
   }
 }
 
-{ BuildContext ⇐ BuildContext, LoadPostingSourceSnapshot ⇐ LoadPostingSourceSnapshot, BuildRowEvidenceFromSnapshot ⇐ BuildRowEvidenceFromSnapshot, ResolveArithmeticCurrencyProof ⇐ ResolveArithmeticCurrencyProof, BuildAuthorizedRowsFromSnapshot ⇐ BuildAuthorizedRowsFromSnapshot, BuildAllRowsFromSnapshot ⇐ BuildAllRowsFromSnapshot, BuildAllRows ⇐ BuildAllRows, BuildPeriodView ⇐ BuildPeriodView, BuildRowsForFile ⇐ BuildRowsForFile, BuildRowsForFileOptional ⇐ BuildRowsForFileOptional }
+{
+  BuildContext ⇐ BuildContext,
+  LoadPostingSourceSnapshot ⇐ LoadPostingSourceSnapshot,
+  BuildRowEvidenceFromSnapshot ⇐ BuildRowEvidenceFromSnapshot,
+  ResolveArithmeticCurrencyProof ⇐ ResolveArithmeticCurrencyProof,
+  BuildCheckedPostingProjectionFromSnapshot ⇐ BuildCheckedPostingProjectionFromSnapshot,
+  BuildCheckedPostingProjectionFromPreparedForTest ⇐ BuildCheckedPostingProjectionFromPrepared,
+  BuildAuthorizedRowsFromPreparedForTest ⇐ BuildAuthorizedRowsFromPreparedForTest,
+  BuildAuthorizedRowsFromSnapshot ⇐ BuildAuthorizedRowsFromSnapshot,
+  BuildAllRowsFromSnapshot ⇐ BuildAllRowsFromSnapshot,
+  BuildAllRows ⇐ BuildAllRows,
+  BuildPeriodView ⇐ BuildPeriodView,
+  BuildRowsForFile ⇐ BuildRowsForFile,
+  BuildRowsForFileOptional ⇐ BuildRowsForFileOptional
+}
