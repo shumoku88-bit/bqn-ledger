@@ -146,6 +146,9 @@ PostingId ← {𝕊 srcFile‿rowIdx‿side:
 
 allowed_proof_basis ← ⟨"legacy_compatibility", "empty_source_compatibility", "resolved_single_currency"⟩
 IsAllowedProofBasis ← {𝕊 basis: ∨´ 0 ∾ (basis⊸≡¨ allowed_proof_basis) }
+IsAllowedProofDomainBasis ← {𝕊 domain‿basis:
+  (domain ≡ "JPY") ∨ ((domain ≡ "ILS") ∧ basis ≡ "resolved_single_currency")
+}
 ProofState ← ({𝕩.state}⎊{""})
 ProofDomain ← ({𝕩.domain}⎊{""})
 ProofBasis ← ({𝕩.basis}⎊{""})
@@ -160,7 +163,7 @@ AuthorizeArithmeticCurrencyProof ← {𝕊 proof:
   basis ← ProofBasis proof
   scale ← ProofScale proof
   
-  ok ← (state ≡ "proven") ∧ ((domain ≡ "JPY") ∨ domain ≡ "ILS") ∧ (IsAllowedProofBasis basis) ∧ (IsNonNegativeInteger scale)
+  ok ← (state ≡ "proven") ∧ (IsAllowedProofDomainBasis ⟨domain, basis⟩) ∧ (IsAllowedProofBasis basis) ∧ (IsNonNegativeInteger scale)
   ok ↩ ok ∧ (basis ≢ "empty_source_compatibility") ∨ scale ≡ 0
   ok
 }
@@ -180,6 +183,7 @@ ArithmeticCurrencyAuthorizationMessage ← {𝕊 proof:
     msg ↩ (scale ≢ 0) ⊑ msg‿"empty_source_compatibility requires amount_scale = 0"
   } ⍟ (basis ≡ "empty_source_compatibility") @
   msg ↩ (¬ IsAllowedProofBasis basis) ⊑ msg‿("unsupported arithmetic currency proof basis: " ∾ basis)
+  msg ↩ ((IsAllowedProofBasis basis) ∧ (domain ≡ "ILS") ∧ basis ≢ "resolved_single_currency") ⊑ msg‿"ILS requires resolved_single_currency proof basis"
   msg ↩ (¬((domain ≡ "JPY") ∨ domain ≡ "ILS")) ⊑ msg‿("unsupported arithmetic currency domain: " ∾ domain)
   msg ↩ (state ≢ "proven") ⊑ msg‿((0 < ≠ message) ⊑ ("arithmetic currency proof is not proven: " ∾ state)‿message)
   msg
