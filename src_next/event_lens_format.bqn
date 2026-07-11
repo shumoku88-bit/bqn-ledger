@@ -33,6 +33,19 @@ columns ← ⟨
 FormatFields ← { ¯1 ↓ ∾ (𝕩 ∾¨ tab_char) }
 header ← FormatFields columns
 
+EscapeChar ← {𝕊 ch:
+  (ch = slash_char) ? ⟨slash_char, slash_char⟩ ;
+  (ch = tab_char) ? ⟨slash_char, @+116⟩ ;
+  (ch = cr_char) ? ⟨slash_char, @+114⟩ ;
+  (ch = lf_char) ? ⟨slash_char, @+110⟩ ;
+  ⟨ch⟩
+}
+
+EscapeCell ← {𝕊 cell:
+  pieces ← EscapeChar¨ cell
+  (0 = ≠ pieces) ? "" ; ∾ pieces
+}
+
 FormatTsv ← {𝕊 lensResult:
   { state ⇐ lensResult.state, text ⇐ header ∾ lf_char, message ⇐ "" }
 }
