@@ -30,19 +30,66 @@ columns ← ⟨
   "kind"
 ⟩
 
-FormatFields ← { ¯1 ↓ ∾ (𝕩 ∾¨ tab_char) }
-header ← FormatFields columns
-
-escape_char ← {𝕊 ch:
-  plain ← ⟨ch⟩
-  lf_result ← (ch = lf_char) ⊑ ⟨plain, ⟨slash_char, @+110⟩⟩
-  cr_result ← (ch = cr_char) ⊑ ⟨lf_result, ⟨slash_char, @+114⟩⟩
-  tab_result ← (ch = tab_char) ⊑ ⟨cr_result, ⟨slash_char, @+116⟩⟩
-  (ch = slash_char) ⊑ ⟨tab_result, ⟨slash_char, slash_char⟩⟩
+Escape ← {
+  ∾ {
+    𝕩 = slash_char ? ⟨slash_char, slash_char⟩ ;
+    𝕩 = tab_char   ? ⟨slash_char, @+116⟩ ;
+    𝕩 = lf_char    ? ⟨slash_char, @+110⟩ ;
+    𝕩 = cr_char    ? ⟨slash_char, @+114⟩ ;
+    ⟨𝕩⟩
+  }¨ 𝕩
 }
 
-FormatTsv ← {𝕊 lensResult:
-  { state ⇐ lensResult.state, text ⇐ header ∾ lf_char, message ⇐ "" }
+FormatFields ← { ¯1 ↓ ∾ (𝕩 ∾¨ tab_char) }
+header ← FormatFields Escape¨ columns
+
+FormatInt ← {
+  𝕩 < 0 ? "-" ∾ •Fmt -𝕩 ;
+  •Fmt 𝕩
+}
+
+FormatRow ← {
+  FormatFields Escape¨ ⟨
+    𝕩.source_file,
+    FormatInt 𝕩.source_row,
+    𝕩.source_id,
+    𝕩.when_value,
+    𝕩.when_state,
+    𝕩.party_value,
+    𝕩.party_state,
+    𝕩.what_value,
+    𝕩.what_state,
+    𝕩.from_account,
+    𝕩.where_to_value,
+    𝕩.where_to_state,
+    𝕩.amount_text,
+    FormatInt 𝕩.amount_coefficient,
+    FormatInt 𝕩.amount_scale,
+    𝕩.currency,
+    𝕩.amount_state,
+    𝕩.action_value,
+    𝕩.action_state,
+    𝕩.layer,
+    𝕩.kind
+  ⟩
+}
+
+FormatTsv ← {
+  (𝕩.state ≢ "ok") ? {
+    msg ← 𝕩.message
+    {
+      state ⇐ "error",
+      text ⇐ "",
+      message ⇐ msg
+    }
+  } 𝕩 ;
+  formatted_rows ← FormatRow¨ 𝕩.rows
+  text_out ← header ∾ lf_char ∾ ∾ formatted_rows ∾¨ lf_char
+  {
+    state ⇐ "ok",
+    text ⇐ text_out,
+    message ⇐ ""
+  }
 }
 
 {
