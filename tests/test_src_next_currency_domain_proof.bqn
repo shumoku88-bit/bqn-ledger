@@ -78,16 +78,21 @@ inconsistentBuilt ← ctx.BuildAuthorizedRowsFromSnapshot ⟨inconsistent, legac
 debits ← (({𝕩.side}¨ inconsistentBuilt.rows) ≡¨ <"debit") / inconsistentBuilt.rows
 100 lib.AssertEq (⊑ debits).delta
 
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"unsupported", domain⇐"", basis⇐"explicit_source_currency", message⇐"x"}
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"unresolved", domain⇐"JPY", basis⇐"legacy_compatibility", message⇐"x"}
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"", basis⇐"legacy_compatibility", message⇐"x"}
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"USD", basis⇐"legacy_compatibility", message⇐"x"}
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", basis⇐"forged_basis", message⇐"x"}
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {domain⇐"JPY", basis⇐"legacy_compatibility", message⇐"message mentions state"}
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", basis⇐"legacy_compatibility", message⇐"message mentions domain"}
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", message⇐"message mentions basis"}
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", basis⇐"legacy_compatibility", message⇐"x"}
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", message⇐"x"}
+# Negative evidence: each case isolates the field it claims to test
+# State rejection (otherwise valid)
+0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"unsupported", domain⇐"JPY", basis⇐"legacy_compatibility", amount_scale⇐0, message⇐"x"}
+0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"unresolved", domain⇐"JPY", basis⇐"legacy_compatibility", amount_scale⇐0, message⇐"x"}
+# Domain rejection (otherwise valid)
+0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"", basis⇐"legacy_compatibility", amount_scale⇐0, message⇐""}
+0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"USD", basis⇐"legacy_compatibility", amount_scale⇐0, message⇐""}
+# Basis rejection (otherwise valid)
+0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", basis⇐"forged_basis", amount_scale⇐0, message⇐""}
+# Missing-field cases: independently omit exactly one field
+0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {domain⇐"JPY", basis⇐"legacy_compatibility", amount_scale⇐0, message⇐""} # missing state
+0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", basis⇐"legacy_compatibility", amount_scale⇐0, message⇐""} # missing domain
+0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", amount_scale⇐0, message⇐""} # missing basis
+0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", basis⇐"legacy_compatibility", message⇐""} # missing amount_scale
+# Non-proof input
 0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof "not-a-proof"
 
 # Slice B1 Row Ingestion and Pre-Gate Row Evidence tests

@@ -127,13 +127,14 @@ esac
 
 cat > "$tmp/cross_snapshot_substitution.bqn" <<BQN
 ctx ← •Import "$ROOT_DIR/src_next/context.bqn"
+arith ← •Import "$ROOT_DIR/src_next/currency_arithmetic.bqn"
 ak ← •Import "$ROOT_DIR/src_next/account_key.bqn"
 loader ← •Import "$ROOT_DIR/src_next/loader.bqn"
 baseA ← "$same_dir"
 baseB ← "$tmp/journal-currency"
 snapshotA ← ctx.LoadPostingSourceSnapshot baseA
 evidenceA ← ctx.BuildRowEvidenceFromSnapshot snapshotA
-proofA ← ctx.ResolveArithmeticCurrencyProof evidenceA
+proofA ← ctx.ResolveArithmeticCurrencyProof ⟨evidenceA, arith.Build evidenceA⟩
 snapshotB ← ctx.LoadPostingSourceSnapshot baseB
 resolved ← ak.Resolve loader.ReadLines (baseA∾"/accounts.tsv")
 # Old vulnerable shape with independent proof must not be accepted.
@@ -177,6 +178,29 @@ esac
 if rg 'proj\.MakeRow|proj\.MakeRowsAuthorized|MakeRow ¨ args' src_next tests -n >/tmp/stage2-domain-proof-rg.txt; then
   echo "FAIL: direct exported projection bypass remains" >&2
   cat /tmp/stage2-domain-proof-rg.txt >&2
+  exit 1
+fi
+
+# ── Structural guard evidence: length alignment ──
+# The runtime length guard and index-based pairing are structural properties
+# of the checked construction path. Verify their presence by source inspection.
+ctx_src="src_next/context.bqn"
+
+# 1. Explicit evidence/coefficient length comparison exists before indexing
+if ! grep -q '(≠evidence) ≢ (≠arithmeticEvidence.normalized_coefficients)' "$ctx_src"; then
+  echo "FAIL: missing explicit evidence/coefficient length comparison guard" >&2
+  exit 1
+fi
+
+# 2. Row/coefficient pairing is index-based over ↕ ≠ evidence
+if ! grep -q '↕ ≠ evidence' "$ctx_src"; then
+  echo "FAIL: missing index-based pairing (↕ ≠ evidence)" >&2
+  exit 1
+fi
+
+# 3. No shortest-length zip or truncating pairing
+if grep -qE '(≠⌊|⌊≠|↑¨|⌊´)' "$ctx_src"; then
+  echo "FAIL: detected possible truncating pairing in context.bqn" >&2
   exit 1
 fi
 

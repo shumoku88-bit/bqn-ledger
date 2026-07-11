@@ -42,10 +42,6 @@ LoadPostingSourceSnapshot ← {𝕊 base:
   }
 }
 
-ProofProven ← {𝕊 basis: { state ⇐ "proven", domain ⇐ "JPY", basis ⇐ basis, message ⇐ "" } }
-ProofUnsupportedCurrency ← {𝕊 srcFile‿rowIdx:
-  { state ⇐ "unsupported", domain ⇐ "", basis ⇐ "explicit_source_currency", message ⇐ "explicit source currency unsupported in Stage 2 minimal runtime slice: " ∾ srcFile ∾ " row " ∾ (•Fmt rowIdx) }
-}
 
 BuildRowEvidenceForLine ← {𝕊 ⟨srcFile, rowIdx, flds⟩:
   amountText ← proj.FieldOrEmpty ⟨flds, 4⟩
@@ -294,17 +290,16 @@ BuildRowsForFile ← {𝕊 base‿resolved‿cycleStart‿srcFile:
 BuildRowsForFileOptional ← BuildRowsForFile
 
 # BuildAuthorizedRowsFromSnapshot: derive proof from the exact snapshot being projected.
+# The integrated proof (ResolveArithmeticCurrencyProof) combines B1 row evidence
+# and B2 arithmetic results into a single five-field carrier {state, domain,
+# basis, amount_scale, message}. Projection authorization (RequireArithmeticCurrencyProof)
+# remains JPY-only: successful authorization permits normalized JPY posting
+# construction; ILS remains closed.
 BuildAuthorizedRowsFromSnapshot ← {𝕊 snapshot‿resolved‿cycleStart:
   evidence ← BuildRowEvidenceFromSnapshot snapshot
   arithmeticEvidence ← arith.Build evidence
   proof ← ResolveArithmeticCurrencyProof ⟨evidence, arithmeticEvidence⟩
-  # Preserve the B1 proof diagnostic/authorization boundary before requiring the
-  # internal B2 evidence. B2 success does not widen projection authorization.
   proj.RequireArithmeticCurrencyProof proof
-  {𝕊:
-    •Out "ERROR: snapshot arithmetic evidence failed: " ∾ arithmeticEvidence.message
-    •Exit 1
-  }⍟(arithmeticEvidence.state ≢ "ok") @
 
   # Fail closed if length mismatch
   {𝕊:
