@@ -16,9 +16,9 @@ Implementation-head GitHub Actions run #587: **success**.
 Overall result:
 
 ```text
-B2 selected claims -> verified with one material unresolved diagnostic mismatch
-material unresolved plan/runtime mismatch -> present
-next finite currency route -> remain on B2 corrective runtime slice; do not route to B3
+B2 selected claims -> verified, with one non-material out-of-contract diagnostic imprecision
+material unresolved plan/runtime mismatch -> none
+next finite currency route -> Currency Stage 2 Slice B3: Proof and JPY-only Posting Integration
 ```
 
 This is a docs-only claim-to-evidence audit. It inspects merged `main`, the implementation, focused tests, the existing currency check, and the full aggregate check. Green checks and the Actions result are supporting evidence, not substitutes for the claim mapping below.
@@ -30,7 +30,7 @@ This is a docs-only claim-to-evidence audit. It inspects merged `main`, the impl
 | 1 | `src_next/currency_arithmetic.bqn` is the dedicated pure B2 owner and exposes exactly one main API, `Build` | Module export namespace contains only `Build`; implementation imports only `exact_decimal.bqn` and has no loader, context, projection, cube, or TBDS import. `Success`, `Failure`, and `Normalize` remain private. | **verified** |
 | 2 | Input is only pre-built B1 row evidence | `context.BuildAuthorizedRowsFromSnapshot` calls `BuildRowEvidenceFromSnapshot` once, passes that exact `evidence` list to `arith.Build`, and passes the same list to `ResolveArithmeticCurrencyProof`; the arithmetic module does not split TSV, scan metadata, parse source amount text, rebuild evidence, or read files. | **verified** |
 | 3 | Empty evidence preserves compatibility | `currency_arithmetic.Build ⟨⟩` returns `state=ok`, `domain=JPY`, `amount_scale=0`, empty normalized coefficients, and empty message; the direct unit test asserts all five fields. This is an explicit empty-source compatibility case, not ordinary non-empty domain aggregation. | **verified** |
-| 4 | Exactly one domain is required | Direct tests prove all-JPY and all-ILS internal success and JPY+ILS failure with `mixed_currency_domains`. Domain is read only from B1 `row.currency`; no account or AccountKey lookup occurs. Invalid row evidence is rejected before aggregation. | **verified**, subject to finding in §6 |
+| 4 | Exactly one domain is required | Direct tests prove all-JPY and all-ILS internal success and JPY+ILS failure with `mixed_currency_domains`. Domain is read only from B1 `row.currency`; no account or AccountKey lookup occurs. Invalid row evidence is rejected before aggregation. | **verified** |
 | 5 | Snapshot-wide scale is the maximum canonical parsed scale | Direct JPY and ILS tests use scales `1,2,0` and assert `amount_scale=2`; reordered input asserts order-independent scale selection. Empty evidence asserts scale 0. The value is internal arithmetic evidence, not currency identity or display precision. | **verified** |
 | 6 | Normalization is exact and order-preserving | `Normalize` constructs canonical integer text by appending `amount_scale-row.parsed.scale` zeroes and validates it through `exact_decimal.Parse`; no unchecked decimal multiplication is used. Tests assert `4250,5,1800` and a reordered `1800,4250,5`. Coefficients remain unsigned; signs are not introduced. | **verified** |
 | 7 | Normalized overflow fails closed | The direct test derives `999999999999999` from `exact_decimal.Parse`, proves it succeeds without scale-up, then proves scale-up fails with `normalized_amount_out_of_exact_range`. Failure asserts empty domain, scale, and coefficient list; no rounded value is admitted. | **verified** |
@@ -83,27 +83,25 @@ For source-derived B1 evidence, unsupported currencies and duplicate metadata be
 
 The direct B2 API does not infer currency from accounts, AccountKey suffixes, or source text. It consumes the B1 evidence contract only.
 
-## 6. Material unresolved mismatch
+## 6. Non-material out-of-contract defensive diagnostic imprecision
 
-The module uses this branch:
+The module uses this defensive branch:
 
 ```text
 (oneDomain ∧ supportedDomain) == false
   -> mixed_currency_domains
 ```
 
-Therefore a handcrafted row evidence namespace with `state="ok"`, `parsed.state="ok"`, and one unsupported currency such as `USD` is reported as `mixed_currency_domains`, even though it is a single unsupported domain, not a mixed-domain failure. The current direct tests cover JPY+ILS and invalid B1 states, but not this diagnostic case.
+A handcrafted namespace with `state="ok"`, `parsed.state="ok"`, and `currency="USD"` therefore receives `mixed_currency_domains`, although it is a single unsupported domain. Classification: **non-material out-of-contract defensive diagnostic imprecision**.
 
-Classification: **material unresolved plan/runtime mismatch** for the B2 diagnostic contract. Source-derived unsupported currency rows are still fail-closed by B1 before reaching this branch, but the dedicated pure owner accepts pre-built evidence and its error vocabulary must remain truthful for that boundary. This audit does not fix runtime code.
+This namespace is not regular pre-built B1 evidence:
 
-Smallest corrective runtime slice:
+- the B1 constructor cannot generate `state=ok` for `currency=USD`; it sets `currency_state="error"`, which produces `row.state="error"`;
+- source-derived unsupported currency therefore reaches B2 as invalid evidence and is rejected before domain aggregation with `invalid_row_evidence`;
+- B2 rejects the forged input fail-closed as well, with no successful domain, scale, or coefficient list;
+- the selected B2 input contract is B1 row evidence, and no independent diagnostic contract for forged unknown domains was selected.
 
-```text
-Currency Stage 2 B2 correction: distinguish unsupported single-domain evidence
-from mixed_currency_domains in currency_arithmetic.Build, with a focused direct test.
-```
-
-Until that correction is implemented and verified, B3 is not authorized and TODO remains on B2.
+The message is narrower than ideal for this contract-invalid defensive input, but the imprecision does not affect the selected B2 runtime claims, safety behavior, same-snapshot boundary, or projection boundary. It does not block B3. This is not an active runtime correction route; any future hardening remains optional and separately authorized.
 
 ## 7. AI actual-diff pilot observation — comparable slice 2 of 3
 
@@ -121,13 +119,20 @@ Observation window status: **2 of 3 comparable slices observed; incomplete; no f
 
 ## 8. Routing decision
 
-Because the diagnostic mismatch above remains unresolved:
-
 ```text
-B2 selected claims -> not fully verified
-material unresolved plan/runtime mismatch -> present
-next route -> B2 corrective runtime slice
-B3 -> not authorized by this audit
+B2 selected claims -> verified, with one non-material out-of-contract diagnostic imprecision
+material unresolved plan/runtime mismatch -> none
+next finite currency route -> Currency Stage 2 Slice B3: Proof and JPY-only Posting Integration
 ```
 
-This audit records evidence and routing only. It does not implement the correction, B3, or Slice C.
+B3 remains unimplemented in this docs-only audit. Its canonical boundary is:
+
+- owners: `src_next/context.bqn` and `src_next/projection.bqn`;
+- extend `arithmetic_currency_proof` with `amount_scale`;
+- support `resolved_single_currency`;
+- use signed normalized coefficients for projection posting deltas;
+- preserve JPY-only projection authorization;
+- keep ILS projection closed;
+- no Slice C, FX, conversion, valuation, display, or JSON widening.
+
+This audit records evidence and routing only. It does not implement B3 or Slice C.
