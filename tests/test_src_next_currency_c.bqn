@@ -24,9 +24,9 @@ credits ← (({𝕩.side}¨ allRows) ≡¨ <"credit") / allRows
 ¯120000 lib.AssertEq (0 ⊑ credits).delta
 ¯4250 lib.AssertEq (1 ⊑ credits).delta
 ¯5 lib.AssertEq (2 ⊑ credits).delta
-124255 lib.AssertEq +´ {𝕩.delta}¨ debits
-¯124255 lib.AssertEq +´ {𝕩.delta}¨ credits
-0 lib.AssertEq +´ {𝕩.delta}¨ allRows
+124255 lib.AssertEq (+´ {𝕩.delta}¨ debits)
+¯124255 lib.AssertEq (+´ {𝕩.delta}¨ credits)
+0 lib.AssertEq (+´ {𝕩.delta}¨ allRows)
 
 # Cube evidence: six valid postings, no skipped rows, balanced actual layer,
 # and the exact expense-side movement preserved in normalized integer units.
@@ -34,7 +34,7 @@ cubeResult ← fixtureContext.cube
 6 lib.AssertEq cubeResult.valid_count
 0 lib.AssertEq cubeResult.skipped_count
 0 lib.AssertEq cubeResult.valid_total_delta
-0 lib.AssertEq cube.layer_actual ⊑ cubeResult.layer_totals_vec
+0 lib.AssertEq (cube.layer_actual ⊑ cubeResult.layer_totals_vec)
 124255 lib.AssertEq cubeResult.actual_expense_total
 1 lib.AssertEq cubeResult.validation_summary.actual_total_match
 1 lib.AssertEq cubeResult.validation_summary.actual_per_account_totals_match
