@@ -9,68 +9,15 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-11 — Representative Observation Slice is complete. Pure TSV Formatter is explicitly selected as the sole active finite work.
+Last hygiene pass: 2026-07-11 — Read-only Event Lens Slice 2: Pure TSV Formatter is complete. No next active finite slice selected; choose one candidate through a separate docs-only selection PR.
 
 ---
 
 ## Active work
 
-### Read-only Event Lens Slice 2: Pure TSV Formatter
+No finite work selected.
 
-One finite formatter slice.
-
-Question:
-- Can a pure FormatTsv lensResult function convert the current event-lens result into deterministic, inspectable TSV text without changing its meaning or introducing side effects?
-
-Selected module:
-- `src_next/event_lens_format.bqn`
-
-Selected public function:
-- `FormatTsv lensResult`
-
-Result Contract:
-- Successful input:
-  ```bqn
-  {
-    state: "ok",
-    text: <deterministic TSV text>,
-    message: ""
-  }
-  ```
-- Failed input:
-  ```bqn
-  {
-    state: "error",
-    text: "",
-    message: <preserved or deterministic error message>
-  }
-  ```
-
-Allowed:
-- add `src_next/event_lens_format.bqn` implementing the TSV formatter
-- add `tests/test_src_next_event_lens_format.bqn` covering JPY, ILS, empty/ambiguous, explicit party, empty memo, multiple rows, header-only success, error failure-closed, escaping, and determinism
-- follow the selected column order, escaping, cell conversion, purity, and line-ending requirements
-
-Not authorized (Prohibited):
-- no BQN runtime implementation beyond the pure TSV formatter
-- no changes to `src_next/event_lens.bqn` or Posting IR
-- no source TSV or metadata changes
-- no Cube/TBDS changes or report integration
-- no JSON or CLI/UI adapters
-- no file I/O, FX, valuation, mixed-currency aggregation, or currency symbol formatting
-- no CanonicalEvent, Project(events, spec), or strict event sourcing (Phase E)
-
-Exit:
-- exactly one formatter module added and exactly one focused formatter test added
-- FormatTsv follows the selected structured-result contract and pure requirements
-- 21 columns are emitted in the exact selected order
-- header-only success works
-- error input fails closed without TSV text
-- escaping is deterministic
-- row order and 1-to-1 identity are preserved
-- ILS evidence remains exact and unformatted
-- tools/check.sh passes
-- coverage passes
+Select one candidate from Next candidates or other backlogs through a separate docs-only routing/selection PR.
 
 ---
 
