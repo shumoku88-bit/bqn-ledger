@@ -9,46 +9,51 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-11 — started one docs-only headless-kernel boundary-mapping slice after Currency Stage 2 closure; no runtime extraction, CanonicalEvent, 6D implementation, event-sourcing migration, or new Stage is authorized.
+Last hygiene pass: 2026-07-11 — Phase A merged through PR #164; selected one Phase B docs-only pure checked-result contract slice. No runtime extraction, CanonicalEvent, 6D implementation, event-sourcing migration, or new Stage is authorized.
 
 ---
 
 ## Active work
 
-### Headless Kernel Evolution Phase A: Current Boundary Map
+### Headless Kernel Evolution Phase B: Pure Checked Posting Result Contract
 
 One finite docs-only slice.
 
 Canonical workstream map:
 - [`docs/HEADLESS_KERNEL_EVOLUTION_MAP.md`](docs/HEADLESS_KERNEL_EVOLUTION_MAP.md)
 
-Point-in-time current-main evidence:
-- [`docs/archive/audits/HEADLESS_KERNEL_AND_EVENT_PROJECTION_BOUNDARY_AUDIT-2026-07-11.md`](docs/archive/audits/HEADLESS_KERNEL_AND_EVENT_PROJECTION_BOUNDARY_AUDIT-2026-07-11.md)
+Selected Phase B contract:
+- [`docs/PURE_CHECKED_POSTING_PROJECTION_RESULT_CONTRACT.md`](docs/PURE_CHECKED_POSTING_PROJECTION_RESULT_CONTRACT.md)
 
-This slice records:
-- the existing `source snapshot -> row evidence -> arithmetic evidence -> proof -> checked Posting IR -> Cube / TBDS` path;
-- which modules already act as pure calculation owners;
-- which boundaries remain accounting-specific or household-specific;
-- where I/O, `•Out`, and `•Exit` remain coupled to reusable calculation;
-- whether current row evidence or Posting IR can support candidate projections before a new shared event carrier is invented;
-- a durable restart procedure so later work does not depend on conversation memory.
+Phase A evidence:
+- merged PR #164;
+- [`docs/archive/audits/HEADLESS_KERNEL_AND_EVENT_PROJECTION_BOUNDARY_AUDIT-2026-07-11.md`](docs/archive/audits/HEADLESS_KERNEL_AND_EVENT_PROJECTION_BOUNDARY_AUDIT-2026-07-11.md);
+- successful GitHub Actions run #614.
+
+This slice decides:
+- the pure builder inputs `snapshot`, `resolved`, and `cycleStart`;
+- the six-field data result carrying evidence, arithmetic evidence, proof, Posting IR rows, and diagnostics;
+- fail-closed result semantics for proof rejection and structural length mismatch;
+- the distinction between aggregate admission failure and existing Posting IR row statuses;
+- compatibility-wrapper ownership of current `ERROR:` output and process exit behavior;
+- the focused tests and parity evidence required before a later runtime extraction can close.
 
 Exit evidence:
-- the workstream map and audit are present and routed;
-- this TODO points to exactly one active finite phase;
-- docs lifecycle headers and links are valid;
+- the contract, map, TODO, and docs routing agree;
+- Phase A is recorded complete and Phase B is the only active finite slice;
+- lifecycle headers and internal links are valid;
 - repository checks are green;
 - the PR contains no BQN runtime, source TSV, fixture, test, editor, report-output, JSON, workflow, or metadata-schema change.
 
-Do not auto-start after Phase A:
-- the Phase B pure checked-result contract;
-- runtime extraction from `context.bqn` / `projection.bqn`;
+Do not auto-start after Phase B:
+- Phase C runtime extraction;
+- a broad split of `context.bqn`;
 - a 6D report, export, source schema, or Cube axis;
 - `CanonicalEvent` or `Project(events, spec)`;
 - strict event sourcing for journal, plan, budget, or issues;
-- a broad headless refactor or a new numbered Stage.
+- a new numbered Stage.
 
-Currency Stage 2 remains complete enough for now through PR #162 and PR #163. This new docs-only slice does not reopen currency work.
+Currency Stage 2 remains complete enough for now through PR #162 and PR #163. This docs-only slice does not reopen currency semantics.
 
 ---
 
