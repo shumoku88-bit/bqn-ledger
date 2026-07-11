@@ -238,7 +238,8 @@ Phase D closed through:
 - merged PR #170 (recorded evidence and conclusion A);
 - [`archive/audits/HEADLESS_KERNEL_PHASE_D_6D_FEASIBILITY-2026-07-11.md`](archive/audits/HEADLESS_KERNEL_PHASE_D_6D_FEASIBILITY-2026-07-11.md);
 - conclusion A: existing evidence is sufficient;
-- the next finite slice `Read-only Event Lens Slice 1` explicitly selected.
+- `Read-only Event Lens Slice 1` runtime implementation complete through merged PR #171 (introducing `src_next/event_lens.bqn` and `tests/test_src_next_event_lens.bqn`);
+- the next finite slice `Read-only Event Lens Slice 2: TSV Formatter` explicitly selected.
 
 ### Phase D finite scope
 
@@ -331,22 +332,43 @@ Phase D is complete. The feasibility investigation established that current row 
 
 ### Read-only Event Lens Slice 1
 
-The first runtime slice for the read-only event lens implements a pure builder:
+Complete. The first runtime slice for the read-only event lens was implemented in `src_next/event_lens.bqn` through PR #171.
+
+### Read-only Event Lens Slice 2: TSV Formatter
+
+The second runtime slice for the event lens implements a pure formatter:
 
 ```text
-BuildRows checkedResult
+FormatTsv lensResult
 ```
 
-in a new small module `src_next/event_lens.bqn`.
+in a new small module `src_next/event_lens_format.bqn`.
 
-The builder converts each source evidence row from a successful checked posting projection result into a single lens row.
+The formatter converts the output of `event_lens.BuildRows` (a successful or failed lens result) into formatted read-only TSV text.
+
+The output TSV columns are (ordered):
+1. `source_file`
+2. `source_row`
+3. `when_value`
+4. `when_state`
+5. `party_value`
+6. `party_state`
+7. `what_value`
+8. `what_state`
+9. `from_account`
+10. `where_to_value`
+11. `where_to_state`
+12. `amount_text`
+13. `amount_coefficient`
+14. `amount_scale`
+15. `currency`
+16. `action_value`
+17. `action_state`
 
 Rules:
-- One source evidence row creates exactly one lens row (no debit/credit split).
-- It must not perform: file loading, I/O, clock access, `•Out`, `•Exit`, source data modification, Cube/TBDS construction, report text parsing, JSON output, or household policy application.
-- If `checkedResult.state != "ok"`, it must return a structured error or reject explicitly.
-- Dimensions (`when`, `party_place`, `what`, `where_to`, `amount`, `action`) must report their semantic state (`direct`, `derived`, `ambiguous`, `absent`).
-- No FX, currency conversion, display formatting, or display policy is authorized.
+- If `lensResult.state != "ok"`, it should output a structured error text or fail closed.
+- It must not perform: file I/O, stdout printing (`•Out`), process exit (`•Exit`), report engine integration, JSON formatting, or CLI extension.
+- 6D rows must remain a read-only projection; no canonical model changes or Phase E integration.
 
 ### Phase E: Shared event carrier decision
 
@@ -430,13 +452,13 @@ The map should remain compact enough to restart work, but complete enough that a
 
 ## 11. Current next action
 
-Read-only Event Lens Slice 1 only:
+Read-only Event Lens Slice 2: TSV Formatter only:
 
 ```text
-implement BuildRows in src_next/event_lens.bqn
-  -> convert checkedResult to read-only lens rows
-  -> add tests/test_src_next_event_lens.bqn
+implement FormatTsv in src_next/event_lens_format.bqn
+  -> convert lensResult to formatted TSV text
+  -> add tests/test_src_next_event_lens_format.bqn
   -> keep checks and coverage green
 ```
 
-PR 1 (docs-only) must merge before runtime implementation begins.
+PR 3 (docs-only) must merge before runtime implementation begins.

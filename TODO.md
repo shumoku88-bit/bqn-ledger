@@ -9,34 +9,34 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-11 — Phase D is closed with conclusion A. Read-only Event Lens Slice 1 is explicitly selected as the sole active finite work.
+Last hygiene pass: 2026-07-11 — Read-only Event Lens Slice 1 is complete. Slice 2 (TSV Formatter) is explicitly selected as the sole active finite work.
 
 ---
 
 ## Active work
 
-### Read-only Event Lens Slice 1
+### Read-only Event Lens Slice 2: TSV Formatter
 
 One finite implementation slice.
 
 Question:
-- Can a pure function `BuildRows checkedResult` derive a source-row-level read-only inspection record from successful checked posting results?
+- Can a pure function `FormatTsv lensResult` format the event lens rows into a read-only TSV text for human inspection?
 
 Allowed:
-- implement `src_next/event_lens.bqn` with `BuildRows` public function
-- add `tests/test_src_next_event_lens.bqn` with focused tests
+- implement `src_next/event_lens_format.bqn` with `FormatTsv` public function
+- add `tests/test_src_next_event_lens_format.bqn` with focused tests
 - keep repository checks and coverage green
 
 Not authorized:
-- I/O, file loading, clock access, `•Out`, `•Exit` inside the lens module
-- source data or schema modifications
-- Cube/TBDS construction, report text parsing, JSON output, household policy
-- mixed JPY/ILS, FX, or display/valuation policy
+- file writing or loading, stdout printing (`•Out`), process exit (`•Exit`) inside the formatter module
+- report engine integration or JSON formatting
+- CLI or UI changes
+- changing canonical models or 6D event-sourcing integration
 - Phase E, `CanonicalEvent`, `Project(events, spec)`
 
 Exit:
-- implement `src_next/event_lens.bqn` and verify all tests and checks pass
-- ensure `tests/test_src_next_event_lens.bqn` covers all 10 required test cases
+- implement `src_next/event_lens_format.bqn` and verify all tests and checks pass
+- ensure `tests/test_src_next_event_lens_format.bqn` covers formatting rules (columns order, ok/error formatting)
 - keep repository checks and coverage green
 
 ---
