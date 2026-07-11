@@ -34,6 +34,9 @@ for mod in src_edit/*.bqn; do
   total=$((total + 1))
 
   case "$basename" in
+    account_add_cmd)
+      coverage=(checks/check-edit-bqn-account-list.sh)
+      ;;
     validate|render|plan_id)
       coverage=(tests/test_edit_validate.bqn)
       ;;
