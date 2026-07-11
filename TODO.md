@@ -15,13 +15,49 @@ Last hygiene pass: 2026-07-11 — Fintech F1 Multi-time Transaction Semantics fi
 
 ## Active work
 
-No finite work selected.
+### Currency Mixed-Ledger M1: Checked Selected-Currency Projection Seam
 
-Select one candidate from Next candidates or other backlogs through a separate docs-only routing/selection PR.
+Plan: `docs/archive/active-plans/CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md`
+
+Goal:
+- 同じsource snapshotにJPYとILSが存在しても、明示された一通貨だけを既存single-currency exact arithmeticへ安全に通せるpure checked seamを作る。
+
+Allowed:
+- `src_next` のpure checked projection boundary
+- mixed fake fixture
+- focused BQN tests / shell checks
+- selected currency carrier
+- row/account currency consistency check
+- JPY compatibility verification
+
+Not authorized:
+- editor変更
+- public report CLI変更
+- human balance表示
+- source schema first-five-column変更
+- real data変更
+- FX / conversion / valuation
+- Currency axis
+- mixed aggregation
+- plan/budget/envelope/report campaign
+- M2以降の実装
+
+Exit:
+- mixed fixture exists
+- no-selector mixed fails closed
+- explicit JPY selection succeeds
+- explicit ILS selection succeeds
+- both produce exact balanced postings
+- mismatched row/account currency fails closed
+- existing JPY checks remain green
+- `tools/check.sh` and `tools/coverage` pass
+- post-implementation verification is a separate PR
 
 ---
 
 ## Next candidates
+
+Mixed-ledger daily-use の後続候補とslice境界は `docs/archive/active-plans/CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md` を参照する。M2/M3を自動実装キューとして扱わない。
 
 ### `budget_pool=main` metadata
 
