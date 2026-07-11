@@ -9,44 +9,37 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-11 — verified Currency Stage 2 Slice B3, routed the next finite currency work to Slice C, and retired the completed AI actual-diff pilot without adding tooling or measurement infrastructure.
+Last hygiene pass: 2026-07-11 — verified Currency Stage 2 Slice C, closed Currency Stage 2 as complete enough for now, and left the finite Active work slot intentionally quiet without auto-promoting a candidate.
 
 ---
 
 ## Active work
 
-### Currency Stage 2 Slice C: Checked ILS Posting Path
+### No active finite implementation slice
 
-Next authorized finite runtime slice. Currency Stage 2 Slice B3 is implemented on `main` and verified by [`CURRENCY_STAGE2_SLICE_B3_POST_IMPLEMENTATION_VERIFICATION-2026-07-11.md`](docs/archive/audits/CURRENCY_STAGE2_SLICE_B3_POST_IMPLEMENTATION_VERIFICATION-2026-07-11.md).
+Currency Stage 2 Slice C is implemented on `main` through PR #162 and verified by [`CURRENCY_STAGE2_SLICE_C_POST_IMPLEMENTATION_VERIFICATION-2026-07-11.md`](docs/archive/audits/CURRENCY_STAGE2_SLICE_C_POST_IMPLEMENTATION_VERIFICATION-2026-07-11.md).
 
-B3 completion evidence covers:
-- five-field proof carrier `{state, domain, basis, amount_scale, message}`;
-- `legacy_compatibility`, `empty_source_compatibility`, and `resolved_single_currency` basis selection;
-- one shared snapshot, one evidence list, one B2 arithmetic result, and one integrated proof;
-- explicit evidence/coefficient length equality and index-based pairing;
-- exact normalized JPY posting deltas with signs introduced only during posting construction;
-- implicit decimal JPY and explicit JPY admission;
-- exact downstream TBDS movement evidence;
-- internal ILS proof resolution with projection still closed;
-- no Slice C, FX, conversion, valuation, display, JSON, report, cube, or TBDS implementation widening.
+Completion evidence covers:
+- proven ILS admission through the existing checked projection path;
+- ILS authorization only with `resolved_single_currency`;
+- exact normalized integer postings for an all-ILS fixture;
+- exact cube and TBDS downstream evidence;
+- preserved JPY behavior;
+- preserved mixed JPY/ILS failure;
+- no FX, conversion, valuation, base currency, display, rounding, mixed aggregation, currency-axis, report, or JSON widening.
 
-Slice C boundary:
-- owner: `src_next/projection.bqn`;
-- widen the existing checked proof authorization from proven JPY to proven ILS;
-- preserve the same normalized integer and snapshot-wide `amount_scale` model;
-- add an all-ILS fixture that succeeds through context, cube, and TBDS with exact balances;
-- preserve JPY behavior exactly;
-- preserve mixed JPY/ILS failure;
-- no FX, conversion, valuation, base currency, display precision, rounding policy, mixed-currency aggregation, currency axis, report, or JSON widening.
+Currency Stage 2 is **complete enough for now**.
 
-Do not expand Slice C beyond checked ILS posting admission.
+Do not auto-start:
+- FX or conversion;
+- valuation or base currency;
+- display precision or rounding policy;
+- mixed-currency aggregation;
+- a currency axis;
+- report or JSON widening;
+- an invented Currency Stage 3 without a concrete consumer, daily-use problem, or reproducible defect.
 
-The AI actual-diff self-review pilot completed its finite 3-slice observation window. Its Review / Learning record is `docs/archive/completed-plans/AI_DIFF_SELF_REVIEW_PILOT_PLAN-2026-07-10.md`; the small `AGENTS.md` rule remains, and no lint, telemetry, tracker, parser, permanent form, or token-efficiency claim is authorized.
-
-Daily Trend temporal semantics の major campaign は closure review により終了しました。
-
-導線:
-- `docs/archive/audits/DAILY_TREND_TEMPORAL_CAMPAIGN_CLOSURE_REVIEW-2026-07-08.md`
+The empty finite-work slot is intentional. Do not promote a Next candidate solely because the previous slice completed.
 
 ---
 
