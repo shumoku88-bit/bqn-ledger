@@ -20,8 +20,8 @@ Snapshot ← {𝕊 lines:
   ⟩}
 }
 resolved ← ak.Resolve ⟨"assets:bank"∾tab∾"role=asset", "expenses:food"∾tab∾"role=expense"⟩
-snapshot ← Snapshot ⟨Line ⟨"2026-06-15", "ok", "assets:bank", "expenses:food", "100"⟩⟩
-built ← ctx.BuildAuthorizedRowsFromSnapshot ⟨snapshot, resolved, "2026-06-15"⟩
+jSnapshot ← Snapshot ⟨Line ⟨"2026-06-15", "ok", "assets:bank", "expenses:food", "100"⟩⟩
+built ← ctx.BuildAuthorizedRowsFromSnapshot ⟨jSnapshot, resolved, "2026-06-15"⟩
 {𝕊: •Out "unexpected-success-shape" ⋄ •Exit 2}⍟((≠built.rows)≠2) @
 {𝕊: •Out "unexpected-success-proof" ⋄ •Exit 2}⍟(built.arithmetic_currency_proof.state≢"proven") @
 •Out "wrapper-success-ok"
@@ -47,8 +47,8 @@ Snapshot ← {𝕊 lines:
   ⟩}
 }
 resolved ← ak.Resolve ⟨"assets:bank"∾tab∾"role=asset", "expenses:food"∾tab∾"role=expense"⟩
-snapshot ← Snapshot ⟨Line ⟨"2026-06-15", "usd", "assets:bank", "expenses:food", "100", "currency=USD"⟩⟩
-ctx.BuildAuthorizedRowsFromSnapshot ⟨snapshot, resolved, "2026-06-15"⟩
+usdSnapshot ← Snapshot ⟨Line ⟨"2026-06-15", "usd", "assets:bank", "expenses:food", "100", "currency=USD"⟩⟩
+ctx.BuildAuthorizedRowsFromSnapshot ⟨usdSnapshot, resolved, "2026-06-15"⟩
 •Out "unexpected-proof-ok"
 BQN
 
@@ -82,8 +82,8 @@ Snapshot ← {𝕊 lines:
   ⟩}
 }
 resolved ← ak.Resolve ⟨"assets:bank"∾tab∾"role=asset", "expenses:food"∾tab∾"role=expense"⟩
-snapshot ← Snapshot ⟨Line ⟨"2026-06-15", "ok", "assets:bank", "expenses:food", "100"⟩⟩
-good ← ctx.BuildCheckedPostingProjectionFromSnapshot ⟨snapshot, resolved, "2026-06-15"⟩
+goodSnapshot ← Snapshot ⟨Line ⟨"2026-06-15", "ok", "assets:bank", "expenses:food", "100"⟩⟩
+good ← ctx.BuildCheckedPostingProjectionFromSnapshot ⟨goodSnapshot, resolved, "2026-06-15"⟩
 arithmetic ← good.arithmetic_evidence
 mismatched ← {
   state⇐arithmetic.state,
