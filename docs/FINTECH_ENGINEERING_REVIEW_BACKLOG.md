@@ -73,28 +73,20 @@ read candidate
 
 ## F1. Multi-time transaction semantics
 
-Status: selected for finite fit review (2026-07-11)
+Status: adopt-later (2026-07-11)
+Audit document: [FINTECH_F1_MULTI_TIME_FIT_REVIEW-2026-07-11.md](archive/audits/FINTECH_F1_MULTI_TIME_FIT_REVIEW-2026-07-11.md)
 
-This is the only candidate currently selected from the backlog. All other candidates remain unselected.
+### Decision summary
+Classified as `adopt-later`. The first journal date column is the current default Event/projection coordinate used by Posting IR, Cube, TBDS, and report period selection; the production contract does not unconditionally define it as an “economic occurrence date.” The card fixture uses separate Events in the repository's actual `from -> to` direction: card usage is `liabilities:card -> expenses:*` (expense and liability increase), and card payment is `assets:bank -> liabilities:card` (bank asset and liability decrease).
 
-Fintech systems distinguish several timestamps. The handbook names value time, booking time, and settlement time. `bqn-ledger` already has a strong time model: `date`, `as_of`, `system_today`, `generated_at`, `data_cutoff`, `due_on`, and related concepts appear in `docs/TIME_AS_AXIS.md`.
+The existing cashflow-due design derives a default due date from liability account metadata (`due_day`, `due_month_offset`, `payment_account`) and permits row-level `due_on` overrides. The current tracked tree has no executable derivation/report/check consumer, so this is fixture-backed projection design rather than a current accounting calculation. Future metadata vocabulary such as `occurred_on`, `booked_on`, `paid_on`, or `settled_on` remains unadopted.
 
-Review focus questions:
-
-1. What does the existing journal `date` column mean today? Is it the economic event date, the recording date, or the settlement date?
-2. For credit-card transactions, are the transaction date (利用日), billing due date (支払期日), and actual fund movement date (引落日) separate coordinates, or does the current `date` absorb all three?
-3. Which current consumers (reports, projections, checks) would need additional time metadata beyond the existing `date` + optional `due_on`?
-4. Can existing `journal.tsv` + `plan.tsv` projection handle credit-card timing without new metadata, or is there a concrete gap?
-
-Required decision:
-
-Classify F1 into exactly one of `adopt-now` / `adopt-later` / `observe` / `reject`, with rationale. The decision will be recorded in a follow-up PR, not during this review.
-
-Constraints during review:
-
-- The metadata vocabulary (`occurred_on`, `booked_on`, `settled_on`, `value_on`) listed below is illustrative only and must not be treated as adopted during the fit review
-- Do not decide that `booked_on` should be editor-generated or that `settled_on` should be required input
-- Do not change runtime, source TSV, metadata schema, fixtures, or checks
+### Reopen conditions
+Reopen F1 consideration only if:
+- A specific consumer (reconciliation, tax export, credit card view, audit view) is designed and requires single-row multi-time metadata for correctness.
+- A real data scenario is found where the current model produces incorrect results (e.g. wrong expense period, wrong balance).
+- Bank statement import (F4) shows that settlement date matching requires per-row settlement metadata rather than separate entries.
+- Tax reporting requires separating economic event date from payment date and cannot derive it from existing postings.
 
 Current opportunity:
 

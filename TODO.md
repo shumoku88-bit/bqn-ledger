@@ -9,53 +9,15 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-11 — Fintech F1 Multi-time Transaction Semantics selected for finite fit review. Previous: Read-only Event Lens Slice 2 complete (PR #177 merged).
+Last hygiene pass: 2026-07-11 — Fintech F1 Multi-time Transaction Semantics fit evidence corrected; decision remains adopt-later. Previous: Read-only Event Lens Slice 2 complete (PR #177 merged).
 
 ---
 
 ## Active work
 
-### Fintech F1 Fit Review: Multi-time Transaction Semantics
+No finite work selected.
 
-Finite question:
-
-Examine the current meanings of `date`, `occurred_on`, `due_on`, `paid_on` and the credit-card lifecycle (transaction date, billing date, settlement date). Classify F1 into exactly one of:
-
-- `adopt-now`
-- `adopt-later`
-- `observe`
-- `reject`
-
-Allowed:
-
-- read-only investigation of current `main` date/time semantics
-- `docs/TIME_AS_AXIS.md`, `docs/JOURNAL_META.md`
-- credit-card, plan, cashflow, journal related docs and implementation
-- verify existing first-five-column compatibility
-- record one explicit fit decision with rationale in a follow-up PR
-- if needed, identify which concrete consumers require multi-time metadata
-
-Not authorized:
-
-- runtime implementation
-- source TSV changes
-- metadata schema changes (`config/meta_schema.tsv`, `docs/JOURNAL_META.md`)
-- fixture / check changes
-- adopting `occurred_on`, `booked_on`, `settled_on`, or `paid_on` as committed vocabulary
-- credit-card report implementation
-- changing existing `date` semantics
-- changing first five journal columns
-- Phase E, CanonicalEvent, Project(events, spec)
-- strict event sourcing
-- OS clock, `as_of`, `generated_at` responsibility changes
-
-Exit:
-
-- investigate current behavior and current docs
-- classify F1 as one of `adopt-now` / `adopt-later` / `observe` / `reject`
-- record concrete consumers and non-goals
-- even if `adopt-now`, do not start implementation until a separate docs-only contract PR
-- `tools/check.sh` and `tools/coverage` pass
+Select one candidate from Next candidates or other backlogs through a separate docs-only routing/selection PR.
 
 ---
 
