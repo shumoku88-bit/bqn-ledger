@@ -19,7 +19,7 @@ external audit finding
   != implementation authorization
 ```
 
-The review also performs a repository shelf check before any separate event-sourcing experiment is started.
+The review also performs a repository shelf check without defining when a different experiment may begin.
 
 ## Reassessment rule
 
@@ -241,19 +241,13 @@ Do not externalize canonical Daily Cube shape, layer meaning, or arbitrary accou
 
 `CURRENT_ENGINE_DESIGN_IDEAS.md` remains exploratory. Temporal, scenario, proof, registry, and policy options are not authorized merely because they are ranked there. The completed temporal campaign and current TODO routing take precedence.
 
-## Maintenance-mode criteria
+## No maturity gate
 
-`bqn-ledger` may be treated as maintenance-oriented when all of the following are true:
+This audit does not define criteria for when `bqn-ledger` is finished, mature, in maintenance mode, or `枯れた`.
 
-1. finite Active work is empty or explicitly paused with a recorded reason;
-2. no concrete daily-use P0/P1 defect is unresolved;
-3. source TSV, projection, cube, TBDS, report, and editor ownership boundaries are stable enough for normal use;
-4. current docs authorities agree about implemented behavior;
-5. external audit findings are classified without becoming a shadow backlog;
-6. configuration changes are evidence-driven rather than a general migration campaign;
-7. new architecture experiments are kept out of this repository unless separately authorized.
+The user's sense that a tool has become `枯れた` is deliberately not converted into a checklist, milestone, completion condition, or repository state.
 
-A separate 6D event-sourcing experiment should begin in a separate repository after this boundary is reached or deliberately accepted. It must not be used to avoid closing or explicitly pausing current finite work here.
+A separate 6D event-sourcing experiment may begin whenever the user chooses. Keeping it in a separate repository is an architectural boundary, not a timing gate, and it is not conditional on Slice C completion, an empty Active section, or a maintenance-mode declaration.
 
 ## Final routing
 
