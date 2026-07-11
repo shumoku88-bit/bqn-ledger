@@ -9,23 +9,41 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-11 — Phase C merged through PR #167; the sole active finite work is a docs-only decision to select or defer Phase D. No 6D implementation, CanonicalEvent, event-sourcing migration, broad `context.bqn` split, or new Stage is authorized.
+Last hygiene pass: 2026-07-11 — Phase D is explicitly selected as the sole active finite slice: a read-only 6D feasibility investigation over existing evidence and raw source fields. No 6D implementation, source/schema change, `CanonicalEvent`, `Project(events, spec)`, event-sourcing migration, broad `context.bqn` split, or new Stage is authorized.
 
 ---
 
 ## Active work
 
-### Headless Kernel Evolution: Phase D selection decision
+### Headless Kernel Evolution Phase D: Read-only 6D feasibility investigation
 
-Phase D の read-only 6D feasibility investigation を次の有限sliceとして明示的に選択するか、eligible のまま保留するか。これは Phase D の開始ではない。
+One finite evidence-classification slice.
 
-Phase C status:
-* Phase C は merged PR #167 (merge commit `ced42eaf9852b17a2fedf87262be8e0f6dbab9d9`) により完了
-* GitHub Actions run #622 で `tools/check.sh` と coverage が成功
-* 実差分は4ファイルのみ
-* pure checked builder、six-field result、compatibility wrapper parity が実装済み
-* Cube、TBDS、reports、JSON、source TSV、currency semantics、6D、event sourcing は変更なし
-* Phase D、`CanonicalEvent`、`Project(events, spec)`、strict event sourcing は未承認
+Question:
+- can the provisional 6D view be derived read-only from fields already preserved by row evidence and raw source rows, without a new shared event carrier?
+
+Required evidence:
+- inventory the exact current row-evidence and raw-field ownership for journal-like sources
+- compare `when`, `party / place`, `what`, `where-to / account destination`, `amount`, and `what-happened / action` dimension by dimension
+- classify each dimension as available, derivable with a small provenance extension, or insufficient without an independent intermediate representation
+- finish with exactly one overall conclusion: **A. existing evidence is sufficient**, **B. a small provenance extension is sufficient**, or **C. an independent intermediate representation is required**
+
+Allowed:
+- inspect current `main`, contracts, fixtures, focused tests, and exact source snapshots
+- add docs and narrowly scoped read-only test or inspection evidence when needed to prove current field preservation
+
+Not authorized:
+- 6D runtime implementation, report, export, or formal source contract
+- source TSV or metadata schema changes
+- `CanonicalEvent`, `Project(events, spec)`, or another shared carrier
+- strict event sourcing for journal, plan, budget, or issues
+- Phase E, a broad `context.bqn` split, or a new numbered Stage
+
+Exit:
+- publish the dimension-by-dimension evidence and one A/B/C conclusion
+- review actual changed paths against the read-only scope
+- keep repository checks and coverage green
+- close Phase D separately and leave Phase E merely eligible unless another docs-only decision explicitly selects it
 
 ---
 

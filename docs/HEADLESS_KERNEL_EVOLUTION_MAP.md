@@ -175,7 +175,7 @@ Every phase must preserve these unless a separate explicit decision replaces one
 | A. Current boundary map | **complete** | What kernel, household layer, side effects, and projection boundaries already exist? | PR #164, the point-in-time audit, canonical map/TODO/docs routing, and green CI run #614 | None |
 | B. Pure checked-result contract | **complete** | What data-only result can replace inner `•Out` / `•Exit` without changing outer behavior? | PR #165, [`PURE_CHECKED_POSTING_PROJECTION_RESULT_CONTRACT.md`](PURE_CHECKED_POSTING_PROJECTION_RESULT_CONTRACT.md), canonical routing, and green CI run #616 | None; design contract only |
 | C. Pure checked projection extraction | **complete** | Can the selected result builder be implemented while preserving all existing outputs and failures? | Focused direct-result tests, compatibility parity, full checks, coverage, and actual-diff review | Authorized only for the exact Phase B contract seam; no semantic widening |
-| D. 6D feasibility from existing evidence | **eligible; not selected** | Can a read-only 6D projection be derived from current evidence/raw fields without a new shared event carrier? | Docs/test evidence classifying sufficient, small extension, or insufficient | Not authorized by Phase C |
+| D. 6D feasibility from existing evidence | **selected investigation** | Can a read-only 6D projection be derived from current evidence/raw fields without a new shared event carrier? | Dimension-by-dimension docs/test evidence and one A/B/C feasibility conclusion | Read-only inspection and evidence only; no runtime, source/schema, report, or export change |
 | E. Shared event carrier decision | not started | Do at least two independent projections require the same normalized event carrier? | Explicit adopt/reject/defer decision with consumer evidence | No `CanonicalEvent` implementation is authorized now |
 
 ### Phase A completion evidence
@@ -280,7 +280,7 @@ Phase B is docs-only. This contract does not itself authorize runtime extraction
 
 ### Phase C: Runtime extraction
 
-Phase C is now selected as one small runtime extraction using the merged Phase B contract.
+Phase C was selected as one small runtime extraction using the merged Phase B contract.
 
 The selected implementation shape is:
 
@@ -305,7 +305,7 @@ The implementation must satisfy the direct-result and compatibility checks in th
 
 ### Phase D: 6D feasibility
 
-The first 6D work is a feasibility check, not a source schema migration.
+Phase D is selected as the sole active finite investigation. The first 6D work is a feasibility check, not a source schema migration or projection implementation.
 
 Candidate dimensions remain provisional:
 
@@ -318,7 +318,14 @@ amount
 what-happened / action
 ```
 
-The phase must compare each candidate dimension with fields already preserved by row evidence and raw source fields. Its conclusion must be one of:
+The phase must compare each candidate dimension with fields already preserved by row evidence and raw source fields. For every dimension, the evidence must state:
+
+- the exact current field or fields that supply the meaning;
+- whether the meaning is direct, derived, ambiguous, or absent;
+- whether provenance survives through current row evidence;
+- whether Posting IR loses information that the 6D view would require.
+
+Its overall conclusion must be exactly one of:
 
 ```text
 A. existing evidence is sufficient
@@ -326,13 +333,21 @@ B. a small provenance extension is sufficient
 C. an independent intermediate representation is required
 ```
 
+Allowed evidence work:
+
+- inspect current `main`, source adapters, row-evidence construction, fixtures, contracts, and focused tests;
+- document exact field ownership and information loss;
+- add narrowly scoped read-only test or inspection evidence when current preservation cannot be established from docs alone.
+
 No formal 6D source contract is selected before this evidence exists.
 
 For clarity:
 - runtime implementation is not authorized
-- source schema changes are not authorized
+- source schema or metadata changes are not authorized
 - 6D export/report is not authorized
-- this closure does not select Phase D as the active slice
+- `CanonicalEvent`, `Project(events, spec)`, and another shared carrier are not authorized
+- strict event sourcing is not authorized
+- Phase E does not start automatically when the investigation closes
 
 ### Phase E: Shared event carrier decision
 
@@ -384,6 +399,7 @@ This is a parked direction, not an authorized phase in the current sequence.
 | Fatal checked-result behavior | selected as structured error plus empty posting rows | A separate contract selects partial or accumulated projection behavior |
 | Existing wrappers own terminal effects | selected | A separate CLI/API boundary migration is justified |
 | Phase C runtime extraction | complete | Implementation evidence shows the seam preserves current behavior and exits on failure correctly |
+| Phase D read-only feasibility investigation | selected | The investigation closes with one A/B/C conclusion and explicit dimension evidence |
 | Add `CanonicalEvent` now | rejected for now | Two independent consumers demonstrate the same missing carrier semantics |
 | Start strict event sourcing now | rejected for now | One bounded domain and replay requirement are selected with migration safety |
 | Start broad headless refactor | rejected | A finite pure-result seam is implemented and tested first |
@@ -415,13 +431,15 @@ The map should remain compact enough to restart work, but complete enough that a
 
 ## 11. Current next action
 
-Phase C is complete. The next action is a docs-only decision:
+Perform Phase D only:
 
 ```text
-Phase C complete
-  -> review existing evidence/raw fields
-  -> decide select or defer Phase D
-  -> do not implement 6D in the decision PR
+inventory current row evidence and raw fields
+  -> compare six provisional dimensions
+  -> identify direct, derived, ambiguous, or absent meaning
+  -> classify provenance sufficiency
+  -> conclude A, B, or C
+  -> do not implement 6D
 ```
 
-Phase C is merged and this closure records its implementation evidence. The next docs-only decision must explicitly select or defer Phase D; no 6D implementation begins from this closure.
+After the investigation evidence merges, close Phase D separately and make another docs-only decision about what becomes eligible next. Phase E, a shared event carrier, and strict event sourcing do not begin automatically.
