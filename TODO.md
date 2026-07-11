@@ -9,51 +9,50 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-11 — Phase A merged through PR #164; selected one Phase B docs-only pure checked-result contract slice. No runtime extraction, CanonicalEvent, 6D implementation, event-sourcing migration, or new Stage is authorized.
+Last hygiene pass: 2026-07-11 — Phase B merged through PR #165; selected one finite Phase C pure checked projection extraction slice. No broad `context.bqn` split, CanonicalEvent, 6D implementation, event-sourcing migration, or new Stage is authorized.
 
 ---
 
 ## Active work
 
-### Headless Kernel Evolution Phase B: Pure Checked Posting Result Contract
+### Headless Kernel Evolution Phase C: Pure Checked Posting Projection Extraction
 
-One finite docs-only slice.
+One finite runtime extraction slice.
 
 Canonical workstream map:
 - [`docs/HEADLESS_KERNEL_EVOLUTION_MAP.md`](docs/HEADLESS_KERNEL_EVOLUTION_MAP.md)
 
-Selected Phase B contract:
+Selected boundary contract:
 - [`docs/PURE_CHECKED_POSTING_PROJECTION_RESULT_CONTRACT.md`](docs/PURE_CHECKED_POSTING_PROJECTION_RESULT_CONTRACT.md)
 
-Phase A evidence:
-- merged PR #164;
-- [`docs/archive/audits/HEADLESS_KERNEL_AND_EVENT_PROJECTION_BOUNDARY_AUDIT-2026-07-11.md`](docs/archive/audits/HEADLESS_KERNEL_AND_EVENT_PROJECTION_BOUNDARY_AUDIT-2026-07-11.md);
-- successful GitHub Actions run #614.
+Phase B evidence:
+- merged PR #165;
+- the selected six-field checked-result contract;
+- successful GitHub Actions run #616.
 
-This slice decides:
-- the pure builder inputs `snapshot`, `resolved`, and `cycleStart`;
-- the six-field data result carrying evidence, arithmetic evidence, proof, Posting IR rows, and diagnostics;
-- fail-closed result semantics for proof rejection and structural length mismatch;
-- the distinction between aggregate admission failure and existing Posting IR row statuses;
-- compatibility-wrapper ownership of current `ERROR:` output and process exit behavior;
-- the focused tests and parity evidence required before a later runtime extraction can close.
+This slice implements only the selected seam:
+- add `BuildCheckedPostingProjectionFromSnapshot ⟨snapshot, resolved, cycleStart⟩`;
+- return `{state, row_evidence, arithmetic_evidence, arithmetic_currency_proof, posting_rows, diagnostics}`;
+- preserve the current fail-closed order for proof rejection before structural mismatch;
+- keep `unknown_account` and `invalid_date` as Posting IR row statuses rather than aggregate result failure;
+- adapt `BuildAuthorizedRowsFromSnapshot` as the compatibility wrapper that preserves current `ERROR: ` stdout and exit code `1`;
+- add focused direct-result and compatibility-parity tests required by the contract.
 
 Exit evidence:
-- the contract, map, TODO, and docs routing agree;
-- Phase A is recorded complete and Phase B is the only active finite slice;
-- lifecycle headers and internal links are valid;
-- repository checks are green;
-- the PR contains no BQN runtime, source TSV, fixture, test, editor, report-output, JSON, workflow, or metadata-schema change.
+- the pure builder performs no file loading, `•Out`, `•Exit`, clock access, Cube/TBDS construction, report rendering, JSON rendering, or household policy;
+- existing callers keep their current signatures and observable success/failure behavior;
+- JPY, checked ILS, empty-source compatibility, mixed-domain rejection, malformed/unsupported/duplicate metadata rejection, structural mismatch, unknown-account parity, and invalid-date parity are covered;
+- repository checks and coverage are green;
+- the actual diff contains no source TSV, metadata schema, editor, report-output, JSON, Cube, TBDS, 6D, event-storage, or currency-semantics widening.
 
-Do not auto-start after Phase B:
-- Phase C runtime extraction;
+Do not auto-start after Phase C:
+- Phase D 6D feasibility;
 - a broad split of `context.bqn`;
-- a 6D report, export, source schema, or Cube axis;
 - `CanonicalEvent` or `Project(events, spec)`;
 - strict event sourcing for journal, plan, budget, or issues;
 - a new numbered Stage.
 
-Currency Stage 2 remains complete enough for now through PR #162 and PR #163. This docs-only slice does not reopen currency semantics.
+Currency Stage 2 remains complete enough for now through PR #162 and PR #163. This extraction does not reopen currency semantics.
 
 ---
 
