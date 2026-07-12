@@ -1,0 +1,5 @@
+2026-02-22	Water	assets:bank	expenses:water	3000
+2026-02-23	Groceries	assets:bank	expenses:groceries	10000
+2026-02-25	Dining	assets:bank	expenses:dining	5000
+2026-02-28	Monthly savings	assets:bank	assets:savings	45000
+2026-03-01	Salary	income:salary	assets:bank	300000
