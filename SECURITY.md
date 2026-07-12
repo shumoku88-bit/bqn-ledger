@@ -24,4 +24,6 @@ Do not include private household data, real account names, personal addresses, s
 
 BQN derives reports and checks from source TSV files. Daily writes go through the BQN editor and shell wrappers, which are intended to preserve reviewable write paths, backups, stale checks, and post-write validation.
 
-This project is not a network service and does not provide authentication, authorization, or hosted storage.
+The optional `mcp-server/` is a local-first network adapter. It binds to loopback by default, requires a bearer secret, limits commands/paths/sections, and stores short-lived private drafts outside source data. It is not hosted storage and does not implement ChatGPT OAuth itself. Remote use requires a secure TLS tunnel plus an OAuth-capable authorization boundary supported by the client; never expose the local port directly. See `docs/MCP_RECEIPT_ENTRY.md`.
+
+MCP logs must not contain request bodies, journal rows, report contents, amounts, filesystem paths, or tokens. Receipt images remain on the ChatGPT side and are outside the server scope.
