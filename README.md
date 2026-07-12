@@ -6,8 +6,7 @@ BQN Ledger は、個人の生活会計を預けるための accounting-grade な
 
 正データは人間が直接読める TSV に置き、BQN はそこから派生ビュー、レポート、検査、エクスポートを作ります。日々の追記は小さな editor / UI から安全経路で行い、正データそのものは人間が読める地面として残します。
 
-> A Technique for Opening from One Person to the World.
-> See: [`docs/archive/completed-plans/OPENING_TECHNIQUE.md`](docs/archive/completed-plans/OPENING_TECHNIQUE.md)
+このリポジトリを共有している理由は [`Why Share?`](docs/WHY_SHARE.md) に記しています。
 
 ## 必要なもの
 
