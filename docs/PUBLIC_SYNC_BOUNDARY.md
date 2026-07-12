@@ -1,6 +1,24 @@
 # Public Sync Boundary
 
-Status: proposed contract for the future public repository.
+Status: superseded
+Owner: docs
+Canonical: no; current path: README.md
+Exit: retained as a historical proposal; do not use as current repository topology
+
+This document records an earlier private-canonical/public-mirror proposal. It is not the current repository model.
+
+`shumoku88-bit/bqn-ledger` is now the public active repository for the code, documentation, configuration templates, and synthetic fixtures committed here. Real operational ledger data remains outside the repository and is selected with `LEDGER_DATA_DIR`.
+
+Use these current paths:
+
+- `README.md` for the public entry and Quick Start;
+- `docs/WHY_SHARE.md` for why the repository is shared;
+- `docs/DATA_DIR_SETUP.md` and `SECURITY.md` for private data boundaries;
+- `AGENTS.md`, `TODO.md`, and `docs/AI_CODEMAP.md` for ongoing work and handoff.
+
+The safety ideas below remain useful as historical rationale, especially synthetic fixtures, secret exclusion, and fail-closed publication review. The one-way synchronization topology itself was not adopted.
+
+## Historical proposal (not current)
 
 ## Purpose
 
