@@ -1,0 +1,18 @@
+# High-risk personal-context patterns for public export audit.
+# One extended regular expression per line. Blank lines and comments are ignored.
+# This list is intentionally conservative. A match blocks publication until reviewed.
+
+# Direct contact and location indicators
+住所|電話|携帯|郵便番号|メールアドレス|@gmail\.com|@icloud\.com|@outlook\.com
+
+# Health, welfare, and highly personal institutional context
+病院|診療所|通院|入院|薬局|処方|障害年金|精神障害|生活保護|ケースワーカー
+
+# Financial identity and real-account context
+口座番号|支店番号|顧客番号|カード番号|暗証番号|ゆうちょ|年金支給
+
+# First-person lived-log language that should not occur in public fixtures/docs
+私の生活|今日買った|昨日買った|次の収入日|実運用データ|実ジャーナル|家族の|友人の
+
+# Common secret material
+BEGIN (RSA |OPENSSH |EC )?PRIVATE KEY|ghp_[A-Za-z0-9]+|github_pat_[A-Za-z0-9_]+|AKIA[0-9A-Z]{16}
