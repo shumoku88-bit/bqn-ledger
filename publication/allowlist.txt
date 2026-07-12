@@ -1,0 +1,25 @@
+# Public export allowlist
+#
+# Deny by default. Only paths matching an entry below may enter the
+# candidate public tree. Exclusions and the pre-sync audit still apply.
+
+.github/**
+.gitignore
+LICENSE
+README.md
+*.bqn
+config/**
+docs/**
+fixtures/**
+publication/**
+src/**
+src_next/**
+tests/**
+tools/**
+
+# Explicitly not allowlisted:
+# data/**
+# private/**
+# logs/**
+# snapshots/**
+# backups/**
