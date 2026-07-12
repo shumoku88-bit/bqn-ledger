@@ -1,0 +1,112 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root=$(git rev-parse --show-toplevel 2>/dev/null) || {
+  echo "publication-audit: not inside a git repository" >&2
+  exit 2
+}
+cd "$repo_root"
+
+allowlist=${PUBLICATION_ALLOWLIST:-publication/allowlist.txt}
+patterns=${PUBLICATION_PERSONAL_PATTERNS:-publication/personal-patterns.txt}
+
+for required in "$allowlist" "$patterns"; do
+  if [[ ! -f "$required" ]]; then
+    echo "publication-audit: missing required file: $required" >&2
+    exit 2
+  fi
+done
+
+tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/bqn-ledger-publication-audit.XXXXXX")
+trap 'rm -rf "$tmpdir"' EXIT
+
+rules="$tmpdir/allowlist.rules"
+pattern_file="$tmpdir/personal-patterns.regex"
+candidates="$tmpdir/candidates.list"
+blocked="$tmpdir/blocked.list"
+findings="$tmpdir/findings.txt"
+
+awk 'NF && $1 !~ /^#/' "$allowlist" > "$rules"
+awk 'NF && $1 !~ /^#/' "$patterns" > "$pattern_file"
+: > "$candidates"
+: > "$blocked"
+: > "$findings"
+
+is_allowlisted() {
+  local path=$1 rule prefix
+  while IFS= read -r rule; do
+    case "$rule" in
+      */\*\*)
+        prefix=${rule%/**}
+        [[ "$path" == "$prefix" || "$path" == "$prefix/"* ]] && return 0
+        ;;
+      \*.*)
+        [[ "$path" == $rule ]] && return 0
+        ;;
+      *)
+        [[ "$path" == "$rule" ]] && return 0
+        ;;
+    esac
+  done < "$rules"
+  return 1
+}
+
+# Inventory only committed files. Untracked private work cannot accidentally enter
+# the candidate set, and no files are copied or pushed by this command.
+while IFS= read -r path; do
+  if is_allowlisted "$path"; then
+    printf '%s\n' "$path" >> "$candidates"
+  else
+    printf '%s\n' "$path" >> "$blocked"
+  fi
+done < <(git ls-files)
+
+# Hard path boundary. These paths must never be present in a candidate tree even
+# if a future allowlist edit becomes too broad.
+if grep -E '(^|/)(data|private|logs?|snapshots?|backups?|recorda)(/|$)' "$candidates" > "$tmpdir/forbidden-paths"; then
+  {
+    echo "[forbidden-path]"
+    cat "$tmpdir/forbidden-paths"
+  } >> "$findings"
+fi
+
+# Detect machine/user paths and common credential or contact shapes.
+while IFS= read -r path; do
+  [[ -f "$path" ]] || continue
+  if grep -IEn \
+    -e '/Users/[^/[:space:]]+' \
+    -e '/home/[^/[:space:]]+' \
+    -e '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}' \
+    -e '([0-9]{3}-[0-9]{4}|〒[0-9]{3}-?[0-9]{4})' \
+    -e '(api[_-]?key|secret|token|password)[[:space:]]*[:=][[:space:]]*[^[:space:]]+' \
+    -- "$path" >> "$findings" 2>/dev/null; then
+    :
+  fi
+done < "$candidates"
+
+# Project-specific personal-context patterns. A match is a review blocker, not an
+# automatic accusation that the text is private.
+if [[ -s "$pattern_file" ]]; then
+  while IFS= read -r path; do
+    [[ -f "$path" ]] || continue
+    if grep -IEn -f "$pattern_file" -- "$path" >> "$findings" 2>/dev/null; then
+      :
+    fi
+  done < "$candidates"
+fi
+
+candidate_count=$(wc -l < "$candidates" | tr -d ' ')
+blocked_count=$(wc -l < "$blocked" | tr -d ' ')
+
+printf 'publication-audit: candidate files: %s\n' "$candidate_count"
+printf 'publication-audit: denied files:    %s\n' "$blocked_count"
+
+if [[ -s "$findings" ]]; then
+  echo "publication-audit: BLOCKED" >&2
+  echo "Potential private or lived-context material was found:" >&2
+  sort -u "$findings" >&2
+  exit 1
+fi
+
+echo "publication-audit: PASS"
+echo "No candidate tree was created and nothing was pushed."
