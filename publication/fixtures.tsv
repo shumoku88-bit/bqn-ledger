@@ -1,0 +1,7 @@
+fixture_path	public_status	data_class	purpose	review_state
+fixtures/src-next-golden	candidate	synthetic	canonical report and summary behavior	needs-audit
+fixtures/basic	candidate	synthetic	basic ledger behavior	needs-audit
+fixtures/empty-fields	candidate	synthetic	empty TSV field preservation	needs-audit
+fixtures/envelope-plan	candidate	synthetic	plan and envelope interaction	needs-audit
+fixtures/envelope-bootstrap	candidate	synthetic	envelope initialization	needs-audit
+fixtures/budget-row-boundary	candidate	synthetic	budget row boundary behavior	needs-audit
