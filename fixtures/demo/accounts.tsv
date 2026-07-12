@@ -1,0 +1,30 @@
+# Quick Start demo: fictional ordinary household
+
+equity:opening-balances	role=equity
+
+assets:bank	role=asset	type=liquid
+assets:cash	role=asset	type=liquid
+assets:savings	role=asset	type=savings
+
+income:salary	role=income
+
+expenses:rent	role=expense	fixed=1	spend_class=fixed
+expenses:electricity	role=expense	fixed=1	spend_class=fixed
+expenses:gas	role=expense	fixed=1	spend_class=fixed
+expenses:water	role=expense	fixed=1	spend_class=fixed
+expenses:phone	role=expense	fixed=1	spend_class=fixed
+expenses:internet	role=expense	fixed=1	spend_class=fixed
+expenses:insurance	role=expense	fixed=1	spend_class=fixed
+expenses:groceries	role=expense	budget=daily	spend_class=variable
+expenses:household	role=expense	budget=flex	spend_class=variable
+expenses:transport	role=expense	budget=flex	spend_class=variable
+expenses:dining	role=expense	budget=flex	spend_class=variable
+expenses:books	role=expense	budget=flex	spend_class=variable
+expenses:repairs	role=expense	budget=reserve	spend_class=variable
+
+budget:opening	role=budget	kind=opening
+budget:unassigned	role=budget	kind=unassigned
+budget:daily	role=budget	kind=envelope
+budget:flex	role=budget	kind=envelope
+budget:reserve	role=budget	kind=envelope
+budget:spent	role=budget	kind=spent
