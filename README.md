@@ -19,28 +19,53 @@ BQN Ledger は、人間が直接読める TSV を正データとして保ち、B
 
 ## Requirements
 
-- [CBQN](https://github.com/dzaima/CBQN)（推奨: commit `12a4fb9f` 以降。FFI + Singeli ビルド）
-- fzf, gum（任意・対話 UI 用）
+Quick Start で追加導入が必要な外部依存は [CBQN](https://github.com/dzaima/CBQN) だけです（推奨: commit `12a4fb9f` 以降。FFI + Singeli ビルド）。
+
+`fzf` と `gum` は任意の対話 UI 用です。Quick Start のレポートには必要ありません。
 
 ## Quick start
 
-公開リポジトリの `data/` は、すぐに試せる sandbox data です。
+`fixtures/demo/` には、架空の一般的な家計を 2026 年 1 月と 2 月の 2 サイクル分収録しています。実データは含みません。
+
+CBQN を用意し、リポジトリのルートで次を実行します。
+
+### 1. Start with a short snapshot
+
+最初は、短い現在地だけを表示します。
 
 ```bash
-# sandbox data から全体レポートを表示
-tools/report
+tools/report fixtures/demo --section snapshot
+```
 
-# 日常操作ハブ
-tools/bl
+### 2. See the available sections
 
-# fixture や別データセットを見る
-tools/report fixtures/src-next-golden
+```bash
+tools/report fixtures/demo --list-sections
+```
 
-# 環境とデータ場所を確認
-tools/doctor
+### 3. Compare cycles and read YTD
 
-# 全チェック
-tools/check.sh
+1 月と 2 月の支出傾向の違いと、年初来の集計を確認できます。
+
+```bash
+tools/report fixtures/demo --section actual-comparison
+tools/report fixtures/demo --section ytd
+```
+
+### 4. Inspect the outlook at a fixed date
+
+`outlook` は通常、実行時の現在日付を観測日として使います。過去の静的デモでは、固定観測日を指定します。
+
+```bash
+tools/report fixtures/demo --section outlook --outlook-as-of 2026-02-21
+```
+
+### 5. Print every section only when needed
+
+全セクションは情報量が多いため、最初の確認には必要ありません。
+
+```bash
+tools/report fixtures/demo
 ```
 
 実運用データはリポジトリ外へ置き、`LEDGER_DATA_DIR` で指定します。
@@ -49,7 +74,22 @@ tools/check.sh
 LEDGER_DATA_DIR=/path/to/ledger-data/data tools/report
 ```
 
-通常の日常操作は `tools/bl`、非対話の全体レポート確認は `tools/report` を使います。低レベルの診断が必要な場合だけ、`tools/report-next` や `bqn src_next/main.bqn <base-dir>` を直接使います。
+通常の日常操作は `tools/bl`、非対話のレポート確認は `tools/report` を使います。低レベルの診断が必要な場合だけ、`tools/report-next` や `bqn src_next/main.bqn <base-dir>` を直接使います。
+
+### Optional conveniences
+
+`fzf` と `gum` は、`tools/bl` や `tools/add-ui.sh` の対話的な選択と表示を補助します。TSV と BQN の中核や、上の Quick Start コマンドからは独立しています。
+
+```bash
+# 日常操作ハブ
+tools/bl
+
+# 環境とデータ場所を確認
+tools/doctor
+
+# 全チェック
+tools/check.sh
+```
 
 ## Core concepts
 
