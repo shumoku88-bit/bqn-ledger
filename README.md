@@ -2,26 +2,56 @@
 
 > A plain-text household event ledger and report engine.
 
-BQN Ledger は、個人の生活会計を預けるための accounting-grade な ledger / report engine です。
-
-正データは人間が直接読める TSV に置き、BQN はそこから派生ビュー、レポート、検査、エクスポートを作ります。日々の追記は小さな editor / UI から安全経路で行い、正データそのものは人間が読める地面として残します。
+BQN Ledger は、人間が直接読める TSV を正データとして保ち、BQN でレポート、検査、派生ビュー、エクスポートを作る household accounting workbench です。
 
 このリポジトリを共有している理由は [`Why Share?`](docs/WHY_SHARE.md) に記しています。
 
-## 必要なもの
+## Start here
+
+目的に近い入口から進めます。
+
+- **まず試す**: [Quick start](#quick-start)
+- **自分のデータを置く**: [`docs/DATA_DIR_SETUP.md`](docs/DATA_DIR_SETUP.md)
+- **日常入力を使う**: [Daily input](#daily-input) / [`docs/BQN_EDITOR_USAGE.md`](docs/BQN_EDITOR_USAGE.md)
+- **データと集計の考え方を知る**: [Core concepts](#core-concepts) / [Architecture](#architecture)
+- **詳しい文書を探す**: [Documentation](#documentation)
+- **開発や保守に参加する**: [`AGENTS.md`](AGENTS.md) / [`docs/README.md`](docs/README.md)
+
+## Requirements
 
 - [CBQN](https://github.com/dzaima/CBQN)（推奨: commit `12a4fb9f` 以降。FFI + Singeli ビルド）
 - fzf, gum（任意・対話 UI 用）
 
-## What this is
+## Quick start
 
-BQN Ledger は、次のための個人用 accounting workbench です。
+公開リポジトリの `data/` は、すぐに試せる sandbox data です。
 
-- base directory 配下の TSV を唯一の正本として保つ（公開 repo の `data/` は sandbox、実運用は `LEDGER_DATA_DIR` で外出し）
-- journal / plan / budget / cycle から家計の現在地を読む
-- BQN で派生ビュー、会計レポート、生活レポートを作る
-- BQN 製 editor と shell UI で日常入力を安全に補助する
-- fixture / golden check / lint で「きれいな間違い」を出さないように守る
+```bash
+# sandbox data から全体レポートを表示
+tools/report
+
+# 日常操作ハブ
+tools/bl
+
+# fixture や別データセットを見る
+tools/report fixtures/src-next-golden
+
+# 環境とデータ場所を確認
+tools/doctor
+
+# 全チェック
+tools/check.sh
+```
+
+実運用データはリポジトリ外へ置き、`LEDGER_DATA_DIR` で指定します。
+
+```bash
+LEDGER_DATA_DIR=/path/to/ledger-data/data tools/report
+```
+
+通常の日常操作は `tools/bl`、非対話の全体レポート確認は `tools/report` を使います。低レベルの診断が必要な場合だけ、`tools/report-next` や `bqn src_next/main.bqn <base-dir>` を直接使います。
+
+## Core concepts
 
 中心にある考え方は単純です。
 
@@ -31,104 +61,55 @@ human-readable TSV
   -> report / check / export / UI
 ```
 
-生活の数字は、アプリの中に隠すのではなく、検査できる形で置く。けれど、毎日の確認や入力は手作業だけにしない。その中間に置くための道具です。
+BQN Ledger は、次のための個人用 accounting workbench です。
 
-## What this is not
+- base directory 配下の TSV を唯一の正本として保つ
+- journal / plan / budget / cycle から家計の現在地を読む
+- BQN で派生ビュー、会計レポート、生活レポートを作る
+- BQN 製 editor と shell UI で日常入力を安全に補助する
+- fixture / golden check / lint で、もっともらしい誤りを防ぐ
 
-BQN Ledger は、一般向けの完成された家計簿アプリではありません。
+一般向けの完成された家計簿アプリ、銀行同期サービス、多ユーザー SaaS、データベース中心の会計ソフトではありません。生活の数字を検査できる形で残しつつ、確認や入力のすべてを手作業にはしないための道具です。
 
-- 銀行同期サービスではありません
-- 多ユーザー SaaS ではありません
-- データベース中心の会計ソフトではありません
-- すべての人に同じ予算ルールを勧めるアプリではありません
-- 正データを見えない場所へ閉じ込めるツールではありません
+### Design principles
 
-これは、自分の生活会計を自分の目で読める正データとして保ち、そこから必要なレポートを派生させるための plain-text household ledger engine です。
-
-## Open-source positioning
-
-This repository is public as a maintained reference workbench for a small but demanding design space: plain-text household accounting, deterministic BQN-derived reports, and safe TSV write paths.
-
-It is not optimized for broad consumer onboarding. Its public value is different: it keeps the accounting model, fixture data, safety checks, and maintenance rules visible so that BQN users, plain-text accounting experimenters, and AI-assisted maintainers can inspect how the system is built.
-
-The public `data/` directory and fixtures are sandbox data. Real household data should stay outside this repository and be selected with `LEDGER_DATA_DIR`.
-
-## Design principles
-
-- **TSV is the source of truth.** 正データは base directory 配下の TSV です。公開 repo の `data/` は匿名 sandbox、実運用データは `LEDGER_DATA_DIR`（例: `/path/to/ledger-data/data`）で指定します。
+- **TSV is the source of truth.** 正データは base directory 配下の TSV です。
 - **BQN derives views.** BQN は正データを書き換えず、読み取りと派生計算を担当します。
 - **Daily writes go through safety paths.** 日常入力は `tools/add-ui.sh`, `tools/edit`, または `tools/edit-bqn` から行います。
 - **Large corrections stay visible.** 削除や大きな修正は、人間が TSV を直接確認して行います。
-- **AI must not touch source data by default.** AI は、明示指示がない限り base directory 配下の source TSV を直接編集しません。
-- **Money is integer yen.** 金額は整数円で扱います。
-- **The first five TSV columns are contract.** TSV の先頭5列を基本契約とし、拡張情報は6列目以降の `key=value` メタデータで表します。
+- **AI must not touch source data by default.** AI は、明示指示がない限り source TSV を直接編集しません。
+- **Money is integer yen.** 現行の通常経路では金額を整数円で扱います。
+- **The first five TSV columns are contract.** 拡張情報は6列目以降の `key=value` メタデータで表します。
 
 ## Source data
 
-各ツールは base directory 配下の TSV を読みます。既定は `LEDGER_DATA_DIR`、未設定なら `config/system_defaults.tsv` の `DEFAULT_BASE_DIR`（公開 repo では `data/` sandbox）です。実運用データは repo 外の任意の場所に置き、`export LEDGER_DATA_DIR=/path/to/ledger-data/data` で指定します。場所は移動可能なので、移動後は `tools/doctor` で確認します。詳細は `docs/DATA_DIR_SETUP.md` を参照してください。
+各ツールは base directory 配下の TSV を読みます。既定は `LEDGER_DATA_DIR`、未設定なら `config/system_defaults.tsv` の `DEFAULT_BASE_DIR` です。公開リポジトリでは `data/` sandbox が使われます。
 
 | ファイル | 役割 |
 |---|---|
-| `<base>/accounts.tsv` | 勘定科目とメタデータ。存在しない勘定を使うと検査で検出されます。 |
-| `<base>/journal.tsv` | 実績取引。Actual layer の正本です。 |
-| `<base>/plan.tsv` | 将来予定。Plan layer の正本です。 |
-| `<base>/budget_alloc.tsv` | 封筒予算の配賦。Budget allocation の正本です。 |
-| `<base>/cycle.tsv` | 生活サイクル境界。年金支給日などに基づく期間設定です。 |
-| `<base>/config.tsv` | サイクル基準日、特殊な budget account 名、および UI 表示設定（FZF_PREVIEW_WINDOW）などの設定です。 |
-| `<base>/issues.tsv` | 懸案事項・意思決定ログ。レポートの issues セクションに表示されます。 |
+| `<base>/accounts.tsv` | 勘定科目とメタデータ |
+| `<base>/journal.tsv` | 実績取引。Actual layer の正本 |
+| `<base>/plan.tsv` | 将来予定。Plan layer の正本 |
+| `<base>/budget_alloc.tsv` | 封筒予算の配賦 |
+| `<base>/cycle.tsv` | 生活サイクル境界 |
+| `<base>/config.tsv` | ledger と UI の設定 |
+| `<base>/issues.tsv` | 懸案事項・意思決定ログ |
 
-`budget:unassigned` のような一部の表示値は、レポート上で動的に計算されます。すべての表示値がそのまま TSV に保存されているわけではありません。
-
-## Quick start
-
-現在の本番入口は `tools/report` です。既定で `LEDGER_DATA_DIR`（未設定時は `data/` sandbox）を読み、`src_next/report.bqn` から人間向けレポートを出します。
-
-```bash
-# 全体レポート（LEDGER_DATA_DIR or data/ sandbox）
-tools/report
-
-# 実運用データを明示する例
-LEDGER_DATA_DIR=/path/to/ledger-data/data tools/report
-
-# fixture や別データセットを見る
-tools/report fixtures/src-next-golden
-
-# 日常操作ハブ（普段の入口）
-tools/bl
-
-# 全体レポートをハブ経由で見る
-tools/bl report
-
-# セクション選択 UI（低レベル入口）
-tools/main-ui.sh select
-
-# 機械向けコンパクトサマリー
-tools/report-next-summary
-
-# 環境・正データ場所の診断
-tools/doctor
-
-# 全チェック
-tools/check.sh
-```
-
-低レベルの診断や履歴的な確認が必要な場合だけ、`tools/report-next` や `bqn src_next/main.bqn <base-dir>` を直接使います。通常の日常操作は `tools/bl`、非対話の全体レポート確認は `tools/report` を使います。
+詳細は [`docs/DATA_DIR_SETUP.md`](docs/DATA_DIR_SETUP.md) と [`docs/JOURNAL_META.md`](docs/JOURNAL_META.md) を参照してください。
 
 ## Daily input
 
 ### Interactive UI
 
 ```bash
-# read-only preflight
+# source TSV を書き換えない事前確認
 tools/add-ui.sh --check
 
-# interactive input
+# 対話入力
 tools/add-ui.sh
 ```
 
-`tools/add-ui.sh` は `<base>/accounts.tsv` を読み、支出、収入、資産移動、予算配賦の入力を補助します。fzf があれば fzf、なければ gum、さらにどちらもなければ番号入力にフォールバックします。`--check` は source TSV を書き換えず、data dir と候補一覧・BQN editor 経路を事前確認します。
-
-実際の追記は BQN 製の `tools/edit` (内部的には `tools/edit-bqn`) に委譲されます。これにより、プレビュー、バックアップ、stale check、lint などの安全経路を通ります。
+`tools/add-ui.sh` は勘定候補の選択を補助し、実際の追記を BQN 製 editor の安全経路へ委譲します。
 
 ### BQN editor
 
@@ -141,54 +122,24 @@ tools/edit journal add \
   --to expenses:食費 \
   --amount 1240
 
-# 予算配賦
-tools/edit budget add \
-  --date 2026-06-21 \
-  --memo "食費配賦" \
-  --from budget:unassigned \
-  --to budget:daily \
-  --amount 10000
-```
-
-`tools/edit` も既定で `LEDGER_DATA_DIR`（未設定時は `data/` sandbox）を読み書きします。別データセットを扱う場合は `--base <dir>` を使います。
-
-## Finishing planned entries
-
-`<base>/plan.tsv` の予定には `plan_id=...` を付けられます。同じ `plan_id` を持つ実績が `<base>/journal.tsv` に入ると、その予定は完了済みとして扱われます。
-
-```bash
 # 未完了予定の一覧
 tools/edit plan list
 
 # 予定を実績化するプレビュー
 tools/edit plan finish --index 4 --actual-date 2026-06-21
-
-# 実際に追記する
-tools/edit plan finish --index 4 --actual-date 2026-06-21 --apply
 ```
 
-予定を消すのではなく、実績側に `plan_id` を残して閉じる設計です。未来の予定表と実績ログの両方を保ちます。
+入力経路、プレビュー、`--apply`、バックアップ、stale check の詳細は [`docs/BQN_EDITOR_USAGE.md`](docs/BQN_EDITOR_USAGE.md) を参照してください。
 
 ## Architecture
 
-中心にあるのは Canonical Daily Cube です。
+集計の中心は Canonical Daily Cube です。
 
 ```text
 Day × Account × Layer
 ```
 
-主な layer は次の通りです。
-
-| Layer | 内容 |
-|---|---|
-| actual | `<base>/journal.tsv` 由来の実績 |
-| plan | `<base>/plan.tsv` 由来の予定 |
-| budget | `<base>/budget_alloc.tsv` と実績から見た封筒状態 |
-| forecast | 将来拡張用 |
-
-買い物先、memo、カテゴリなどは Cube の軸にしません。必要に応じて別の派生ビューや検査で扱います。これは、正データを細かく保ちながら、集計の中心を安定させるためです。
-
-大まかな流れは次の通りです。
+主な layer は `actual`, `plan`, `budget`, `forecast` です。
 
 ```text
 TSV source data
@@ -199,70 +150,51 @@ TSV source data
   -> terminal report / exporter
 ```
 
-詳しくは [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) と [`docs/CANONICAL_DAILY_CUBE.md`](docs/CANONICAL_DAILY_CUBE.md) を参照します。
+詳しくは [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) と [`docs/CANONICAL_DAILY_CUBE.md`](docs/CANONICAL_DAILY_CUBE.md) を参照してください。
 
-## Export
-
-機械向けのコンパクト出力は `tools/report-next-summary` から使います。
+## Export and checks
 
 ```bash
-# LEDGER_DATA_DIR or data/ sandbox を読む
+# 機械向けコンパクトサマリー
 tools/report-next-summary
 
-# fixture や別データセットを見る
+# fixture を指定
 tools/report-next-summary fixtures/src-next-golden
-tools/report-next-summary --base fixtures/src-next-golden
-```
 
-会計ソフトや別システム向けの出力は、正データを直接変形するのではなく、派生エクスポートとして作ります。新しい export 入口を追加する場合も、base directory 配下の source TSV を正本として保ち、`src_next/` と `tools/` の境界を壊さないようにします。
-
-## Checks
-
-```bash
+# 全チェック
 tools/check.sh
 ```
 
-主な確認内容は、BQN unit test、BQN editor test、src_next golden fixture、セクション別 check、repo index、disabled feature guard です。
+fixture / golden output を更新する場合は、仕様変更なのか不具合なのかを確認してから更新します。
 
-fixture を更新する場合は、対象が本当に仕様変更なのか、それともバグなのかを確認してから golden を更新します。
+## Documentation
 
-## Documentation map
+README は入口、`docs/` は現行仕様と詳しい説明、`docs/archive/` は設計経緯と履歴です。
 
-最初に読む場所は `AGENTS.md` と `docs/README.md` です。AI 作業者も人間も、まずそこから現在の入口を確認します。
+### Use the ledger
 
-| ドキュメント | 役割 |
-|---|---|
-| `AGENTS.md` | 作業入口。AI が最初に読むべき導線と禁止事項。 |
-| `docs/README.md` | docs 全体の目次。現行仕様・進行中計画・履歴メモを分ける入口。 |
-| `docs/DOCS_LIFECYCLE_CONTRACT.md` | docs を増やす時の `Status` / `Owner` / `Canonical` / `Exit` と退役ルール。 |
-| `docs/AI_CODEMAP.md` | `src_next/`, `editor/`, `tools/`, `checks/` の現行コード地図。 |
-| `docs/QUALITY_BAR.md` | 一般向けプロダクトにはしないが、自分の生活会計を預ける production-grade personal tool として扱う品質基準。 |
-| `docs/ARCHITECTURE.md` | 全体構造、正データ、Cube、モジュール境界。 |
-| `docs/CANONICAL_DAILY_CUBE.md` | `Day × Account × Layer` の中心契約。 |
-| `docs/SAFETY_PROFILE.md` | 予測可能性、fail closed、正データ保護、不変条件をまとめた小さな安全規格。 |
-| `SECURITY.md` | 脆弱性報告と実データを公開 repo に入れないための安全方針。 |
-| `docs/THIRD_PARTY_DEPENDENCIES.md` | 主要な外部依存と再現性メモ。 |
-| `docs/archive/completed-plans/MAIN_SECTIONS.md` | historical: 旧エンジン `main.bqn` のセクション履歴。現行セクションは `src_next/report.bqn` を参照。 |
-| `docs/archive/completed-plans/REPORT_FIELD_MAP.md` | historical: 旧エンジン `report_engine.Build` のフィールド履歴。 |
-| `docs/JOURNAL_META.md` | journal-like TSV のメタデータ契約。 |
-| `docs/BQN_EDITOR_USAGE.md` | BQN editor の使い方。 |
-| `docs/archive/completed-plans/GENERALIZATION_TODO.md` | 設定駆動化・一般化の段階計画。 |
-| `docs/archive/completed-plans/DECISION_MULTI_POSTING_INVESTIGATION.md` | 複数ポスティング方針。 |
-| `docs/archive/completed-plans/DECISION_AI_DEVELOPMENT_EFFICIENCY_PROPOSALS.md` | AI 作業効率化・開発体験改善の提案。 |
-| `TODO.md` | 現在の作業メモ。 |
+- [`docs/DATA_DIR_SETUP.md`](docs/DATA_DIR_SETUP.md): 実運用データの置き場所
+- [`docs/BQN_EDITOR_USAGE.md`](docs/BQN_EDITOR_USAGE.md): editor の使い方
+- [`docs/JOURNAL_META.md`](docs/JOURNAL_META.md): journal-like TSV のメタデータ契約
+- [`SECURITY.md`](SECURITY.md): 脆弱性報告と秘密情報・実データの扱い
 
-古い履歴や完了済みの議論は `docs/archive/` に退避します。通常作業では、必要になった時だけ参照します。
+### Understand the design
 
-## AI working rules
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): 全体構造とモジュール境界
+- [`docs/CANONICAL_DAILY_CUBE.md`](docs/CANONICAL_DAILY_CUBE.md): `Day × Account × Layer` の中心契約
+- [`docs/SAFETY_PROFILE.md`](docs/SAFETY_PROFILE.md): 予測可能性、fail closed、正データ保護
+- [`docs/QUALITY_BAR.md`](docs/QUALITY_BAR.md): 日常で使う道具としての品質基準
+- [`docs/THIRD_PARTY_DEPENDENCIES.md`](docs/THIRD_PARTY_DEPENDENCIES.md): 外部依存と再現性
 
-AI がこのリポジトリを扱う場合は、必ず次を守ります。
+### Work on the repository
 
-- base directory 配下の `journal.tsv`, `plan.tsv`, `budget_alloc.tsv`, `accounts.tsv` は、明示指示なしに編集しません。
-- TSV の先頭5列を壊しません。
-- 空列を含む TSV を読む時は、列ずれを避けるため `SplitKeepEmpty` を使います。
-- 設定値や生活ルールを BQN コードへ直書きせず、可能なものは `<base>/config.tsv`, `<base>/accounts.tsv`, `<base>/cycle.tsv`, `config/meta_schema.tsv` へ寄せます。
-- Cube の shape と Layer 契約は利用者設定にしません。
-- 変更後は可能なら `tools/check.sh` を実行します。
+- [`AGENTS.md`](AGENTS.md): 作業入口と禁止事項
+- [`docs/README.md`](docs/README.md): docs 全体の目次
+- [`docs/AI_CODEMAP.md`](docs/AI_CODEMAP.md): 現行コード地図
+- [`docs/DOCS_LIFECYCLE_CONTRACT.md`](docs/DOCS_LIFECYCLE_CONTRACT.md): 文書の追加・退役ルール
+- [`TODO.md`](TODO.md): 現在の作業メモ
+
+古い履歴や完了済みの議論は `docs/archive/` にあります。通常の利用では、必要になった時だけ参照します。
 
 ## Project boundary
 
