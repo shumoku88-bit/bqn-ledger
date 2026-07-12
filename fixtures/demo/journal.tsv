@@ -1,0 +1,35 @@
+2026-01-01	Opening balance	equity:opening-balances	assets:bank	100000
+2026-01-01	Salary	income:salary	assets:bank	300000
+2026-01-02	Rent	assets:bank	expenses:rent	100000
+2026-01-03	Internet	assets:bank	expenses:internet	5000
+2026-01-03	Phone	assets:bank	expenses:phone	5000
+2026-01-04	Cash withdrawal	assets:bank	assets:cash	10000
+2026-01-05	Groceries	assets:bank	expenses:groceries	12000
+2026-01-07	Transport	assets:cash	expenses:transport	4000
+2026-01-09	Dining	assets:bank	expenses:dining	6000
+2026-01-10	Electricity	assets:bank	expenses:electricity	8000
+2026-01-10	Gas	assets:bank	expenses:gas	4000
+2026-01-12	Household goods	assets:bank	expenses:household	5000
+2026-01-14	Groceries	assets:bank	expenses:groceries	13000
+2026-01-16	Insurance	assets:bank	expenses:insurance	10000
+2026-01-18	Books	assets:bank	expenses:books	4000
+2026-01-20	Groceries	assets:bank	expenses:groceries	12000
+2026-01-24	Water	assets:bank	expenses:water	3000
+2026-01-25	Dining	assets:bank	expenses:dining	8000
+2026-01-27	Groceries	assets:bank	expenses:groceries	10000
+2026-01-28	Monthly savings	assets:bank	assets:savings	40000
+2026-02-01	Salary	income:salary	assets:bank	300000
+2026-02-02	Rent	assets:bank	expenses:rent	100000
+2026-02-03	Internet	assets:bank	expenses:internet	5000
+2026-02-03	Phone	assets:bank	expenses:phone	5000
+2026-02-04	Cash withdrawal	assets:bank	assets:cash	10000
+2026-02-05	Groceries	assets:bank	expenses:groceries	10000
+2026-02-07	Transport	assets:cash	expenses:transport	4000
+2026-02-09	Electricity	assets:bank	expenses:electricity	10000
+2026-02-09	Gas	assets:bank	expenses:gas	4000
+2026-02-10	Household goods	assets:bank	expenses:household	4000
+2026-02-12	Dining	assets:bank	expenses:dining	5000
+2026-02-14	Groceries	assets:bank	expenses:groceries	12000
+2026-02-16	Insurance	assets:bank	expenses:insurance	10000
+2026-02-18	Bicycle repair	assets:bank	expenses:repairs	12000
+2026-02-20	Groceries	assets:bank	expenses:groceries	11000
