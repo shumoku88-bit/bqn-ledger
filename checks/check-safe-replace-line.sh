@@ -79,7 +79,7 @@ if [ "$(printf '%s' "$(cat "$no_nl_file")")" != $'first\nchanged' ]; then
   od -An -tx1 "$no_nl_file" >&2
   exit 1
 fi
-if [[ "$(tail -c 1 "$no_nl_file" | xxd -p)" == "0a" ]]; then
+if [[ "$(tail -c 1 "$no_nl_file" | od -An -tx1 | tr -d '[:space:]')" == "0a" ]]; then
   echo "FAIL: no-final-newline case gained a trailing newline" >&2
   exit 1
 fi

@@ -23,6 +23,12 @@ _safe_write_mtime() {
   fi
 }
 
+# Return the final byte as lowercase hex using POSIX od (empty for empty files).
+_safe_write_last_byte_hex() {
+  local path="$1"
+  tail -c 1 "$path" | od -An -tx1 | tr -d '[:space:]'
+}
+
 # Return a portable SHA256 digest.
 _safe_write_sha256() {
   local path="$1"
@@ -173,7 +179,7 @@ safe_append() {
   cat "$target" > "$tmp_file"
 
   # Ensure trailing newline before appending
-  if [[ -s "$tmp_file" ]] && [[ "$(tail -c 1 "$tmp_file" | xxd -p)" != "0a" ]]; then
+  if [[ -s "$tmp_file" ]] && [[ "$(_safe_write_last_byte_hex "$tmp_file")" != "0a" ]]; then
     printf '\n' >> "$tmp_file"
   fi
 
@@ -293,7 +299,7 @@ safe_append_checked() {
 
   cat "$target" > "$tmp_file"
 
-  if [[ -s "$tmp_file" ]] && [[ "$(tail -c 1 "$tmp_file" | xxd -p)" != "0a" ]]; then
+  if [[ -s "$tmp_file" ]] && [[ "$(_safe_write_last_byte_hex "$tmp_file")" != "0a" ]]; then
     printf '\n' >> "$tmp_file"
   fi
 
@@ -352,7 +358,7 @@ safe_replace_line_checked() {
   lines[line_number - 1]="$new_row"
 
   local had_final_newline=0
-  if [[ -s "$target" ]] && [[ "$(tail -c 1 "$target" | xxd -p)" == "0a" ]]; then
+  if [[ -s "$target" ]] && [[ "$(_safe_write_last_byte_hex "$target")" == "0a" ]]; then
     had_final_newline=1
   fi
 
