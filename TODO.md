@@ -15,6 +15,13 @@ Last hygiene pass: 2026-07-13 — closed strict-source Step 1 (policy carrier an
 
 ## Active work
 
+### Friend foreign-liability → JPY-liability settlement: pure-preview design
+
+Status: docs-only design selected. Canonical plan: `docs/archive/active-plans/FRIEND_FOREIGN_LIABILITY_JPY_SETTLEMENT_PLAN-2026-07-13.md`.
+
+- [ ] Select no write path yet: the first later implementation slice is I/O-free pure validation plus an all-or-nothing two-row preview only.
+- [ ] Keep strict-source Steps 2–5 and M4 independently unselected; do not treat this consumer as their authorization.
+
 ## Next candidates
 
 Mixed-ledger daily-use の後続候補とslice境界は `docs/archive/active-plans/CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md` を参照する。M3は実装・検証済みで、strict-source Step 1（policy carrier / pure admission core）は完了済み。strict-sourceのSteps 2–5（writer closure、compatibility preparation、production activation、post-implementation verification）とM4は未選定であり、自動選定しない。
