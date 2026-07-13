@@ -31,14 +31,14 @@ ACCOUNTS_FILE="$(get_system_default_file DEFAULT_ACCOUNTS_FILE accounts.tsv)"
 usage() {
   cat <<'USAGE' >&2
 Usage:
-  tools/edit-bqn [--base DIR] journal add --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount INT [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
+  tools/edit-bqn [--base DIR] journal add --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount DECIMAL [--currency JPY|ILS] [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] budget add  --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount INT [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] plan add --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount INT [--meta key=value ...] [--id plan-YYYY-MM-DD-series] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] issue add [--date YYYY-MM-DD] [--status open|resolved|dropped] --title TITLE [--amount INT] [--memo MEMO] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] issue list [--format tsv|text]
   tools/edit-bqn [--base DIR] issue close --index NUMBER [--status resolved|dropped] --decision MEMO [--dry-run] [--yes] [--post-check none|lint|full]
-  tools/edit-bqn [--base DIR] account add --name ACCOUNT --role asset|liability|income|expense [--type liquid|savings|invest] [--dry-run] [--yes] [--post-check none|lint|full]
-  tools/edit-bqn [--base DIR] account list [--role ROLE]
+  tools/edit-bqn [--base DIR] account add --name ACCOUNT --role asset|liability|income|expense [--type liquid|savings|invest] [--currency JPY|ILS] [--dry-run] [--yes] [--post-check none|lint|full]
+  tools/edit-bqn [--base DIR] account list [--role ROLE] [--currency JPY|ILS]
   tools/edit-bqn [--base DIR] journal list [--format tsv|text]
   tools/edit-bqn [--base DIR] plan list [--all] [--format tsv|text]
   tools/edit-bqn [--base DIR] plan related [--index NUMBER] [--id PLAN_ID] --actual-date YYYY-MM-DD [--format tsv]
@@ -80,6 +80,7 @@ if [[ "$1" == "account" && "$2" == "add" ]]; then
   NAME=""
   ROLE=""
   TYPE=""
+  CURRENCY=""
   DRY_RUN=0
   YES=0
   POST_CHECK="lint"
@@ -88,6 +89,7 @@ if [[ "$1" == "account" && "$2" == "add" ]]; then
       --name) NAME="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
       --role) ROLE="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
       --type) TYPE="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --currency) CURRENCY="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
       --dry-run) DRY_RUN=1; shift ;;
       --yes) YES=1; shift ;;
       --post-check) POST_CHECK="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
@@ -104,7 +106,7 @@ if [[ "$1" == "account" && "$2" == "add" ]]; then
   BQN_STDERR="$(mktemp)"
   trap 'rm -f "$BQN_STDERR"' EXIT
   BQN_OUT=""
-  if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/account_add_cmd.bqn "$BASE_DIR" "$NAME" "$ROLE" "$TYPE" 2>"$BQN_STDERR")"; then
+  if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/account_add_cmd.bqn "$BASE_DIR" "$NAME" "$ROLE" "$TYPE" "$CURRENCY" 2>"$BQN_STDERR")"; then
     [[ -n "$BQN_OUT" ]] && printf '%s\n' "$BQN_OUT" >&2
     [[ -s "$BQN_STDERR" ]] && cat "$BQN_STDERR" >&2
     exit 1
@@ -130,13 +132,15 @@ fi
 if [[ "$1" == "account" && "$2" == "list" ]]; then
   shift 2
   ROLE=""
+  CURRENCY=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --role) ROLE="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --currency) CURRENCY="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
       *) echo "ERROR: unknown account list argument: $1" >&2; exit 2 ;;
     esac
   done
-  cd "$ROOT_DIR" && bqn src_edit/account_list_cmd.bqn "$BASE_DIR" "$ROLE"
+  cd "$ROOT_DIR" && bqn src_edit/account_list_cmd.bqn "$BASE_DIR" "$ROLE" "$CURRENCY"
   exit $?
 fi
 
@@ -521,6 +525,7 @@ MEMO=""
 FROM=""
 TO=""
 AMOUNT=""
+CURRENCY=""
 META=()
 PLAN_ID=""
 DRY_RUN=0
@@ -534,6 +539,7 @@ while [[ $# -gt 0 ]]; do
     --from) FROM="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
     --to) TO="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
     --amount) AMOUNT="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+    --currency) CURRENCY="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
     --meta) META+=("$(get_opt_val "$1" "${2-}")"); shift 2 ;;
     --id) PLAN_ID="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
     --dry-run) DRY_RUN=1; shift ;;
@@ -543,6 +549,10 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+if [[ "$COMMAND" != "journal" && -n "$CURRENCY" ]]; then
+  echo "ERROR: --currency is currently supported only for journal add" >&2
+  exit 2
+fi
 edit_bqn_validate_post_check "$POST_CHECK"
 
 TARGET_PATH="$BASE_DIR/$EXPECTED_TARGET_FILE"
@@ -563,7 +573,7 @@ if [[ "$COMMAND" == "plan" ]]; then
     exit 1
   fi
 else
-  if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/journal_add_cmd.bqn "$BASE_DIR" "$COMMAND" "$DATE" "$MEMO" "$FROM" "$TO" "$AMOUNT" "${META[@]}" 2>"$BQN_STDERR")"; then
+  if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/journal_add_cmd.bqn "$BASE_DIR" "$COMMAND" "$DATE" "$MEMO" "$FROM" "$TO" "$AMOUNT" "$CURRENCY" "${META[@]}" 2>"$BQN_STDERR")"; then
     if [[ -n "$BQN_OUT" ]]; then
       printf '%s\n' "$BQN_OUT" >&2
     fi
