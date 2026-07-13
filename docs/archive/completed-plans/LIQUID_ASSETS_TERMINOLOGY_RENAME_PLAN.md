@@ -1,6 +1,9 @@
 # 流動資産 terminology rename plan
 
-状態: adopted / human-facing labels updated / machine keys unchanged
+Status: completed
+Owner: docs
+Canonical: no
+Exit: archived; the rename of liquid assets to Available Funds has been adopted.
 
 この文書は、bqn-ledger 内で以前「流動資産」と表示していた概念を、より正確な名前へ変更するための計画です。
 

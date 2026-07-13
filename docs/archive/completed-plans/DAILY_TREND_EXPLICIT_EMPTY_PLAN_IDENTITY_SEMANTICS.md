@@ -3,6 +3,8 @@
 Status: historical observation map / synced with PR #110 runtime alignment
 Date: 2026-07-07
 Owner: report / semantics map only
+Canonical: no
+Exit: archived; this records the historical plan identity semantics comparison synced with PR #110.
 
 ## Purpose
 

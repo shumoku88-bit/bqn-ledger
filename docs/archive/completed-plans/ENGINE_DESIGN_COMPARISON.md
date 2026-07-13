@@ -1,5 +1,10 @@
 # 新エンジン設計案 総合比較評価書 (Engine Design Comparison)
 
+Status: completed / historical
+Owner: docs
+Canonical: no
+Exit: archived; this was an exploratory design options comparison for the new engine transition (src_next), which has already been completed.
+
 本ドキュメントは、`bqn-ledger` の新しい計算エンジン刷新に向けて、これまでに検討された設計オプション（ [SRC_NEXT_ARCHITECTURE_DESIGN.md](docs/SRC_NEXT_ARCHITECTURE_DESIGN.md) 記載の案を含む）と、簿記・会計の保守性・拡張性を担保するために追加提案された新案を統合し、比較・評価したものです。
 
 ---

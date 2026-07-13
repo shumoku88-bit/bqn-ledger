@@ -3,7 +3,7 @@
 Status: implemented product decision / repo-wide product meaning
 Owner: report
 Canonical: no; canonical temporal principle remains `docs/TIME_AS_AXIS.md`
-Related map: `docs/DAILY_TREND_EXPLICIT_EMPTY_PLAN_IDENTITY_SEMANTICS.md`
+Related map: `docs/archive/completed-plans/DAILY_TREND_EXPLICIT_EMPTY_PLAN_IDENTITY_SEMANTICS.md`
 Related characterization: PR #107 empty-id reserve frontier
 Implemented by: PR #110
 Exit: archive after docs synchronization; reopen only with new evidence

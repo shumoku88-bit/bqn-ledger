@@ -1,6 +1,9 @@
 # Editor Go Removal Plan
 
 Status: completed / historical record
+Owner: docs
+Canonical: no
+Exit: archived; Go editor has been successfully retired.
 
 This document records the transition away from the Go editor to the current BQN+shell editor path.
 It is no longer a transition plan.
