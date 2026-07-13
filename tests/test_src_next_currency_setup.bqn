@@ -112,7 +112,7 @@ separated ← setup.Build ⟨ilsDefaultLines, ⟨"assets:bank"∾tab∾"role=ass
 "ILS" lib.AssertEq separated.default_currency.currency
 "JPY" lib.AssertEq separated.migration_target
 1 lib.AssertEq separated.changed_count
-1 lib.AssertEq ∨´ "currency=JPY" ⍷ (1 ⊑ (0 ⊑ separated.files).proposed_lines)
+1 lib.AssertEq ∨´ "currency=JPY" ⍷ (0 ⊑ (0 ⊑ separated.files).proposed_lines)
 
 # Unknown and duplicate row currency fail closed with no proposed replacement.
 unknownRow ← "2026-07-01"∾tab∾"x"∾tab∾"assets:bank"∾tab∾"expenses:food"∾tab∾"1"∾tab∾"currency=USD"
