@@ -1,0 +1,6 @@
+# account order and metadata must remain exact
+assets:bank	role=asset	type=liquid
+expenses:food	role=expense	report_group=food
+
+assets:cash-ils	role=asset	type=liquid	currency=ILS
+expenses:food-ils	role=expense	report_group=food	currency=ILS
