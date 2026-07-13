@@ -54,6 +54,18 @@ duplicate ← CheckRejected Request ⟨"2026-07-20", "memo", Source @, "100", "J
 "exchange_id_duplicate" lib.AssertEq (¯1⊑duplicate.diagnostics).code
 CheckRejected Request ⟨"2026-07-20", "memo", Source @, "100", "JPY", Target @, "2", "ILS", "id", "other", ⟨⟩⟩
 
+# Full-source pure validation renders one exact fixed-ten-column candidate.
+accounts ← ⟨Source @, Target @⟩
+fields ← ⟨"2026-07-20", "airport exchange", "assets:bank-jpy", "10000", "JPY", "assets:cash-ils", "250.00", "ILS", "israel-2026-exchange-0001", "israel-2026"⟩
+sourceAccepted ← exchange.ValidateSourceAndPreview {candidate_fields⇐fields, existing_lines⇐⟨⟩, accounts⇐accounts}
+"ok" lib.AssertEq sourceAccepted.state
+1 lib.AssertEq ≠sourceAccepted.preview_rows
+("2026-07-20"∾tab∾"airport exchange"∾tab∾"assets:bank-jpy"∾tab∾"10000"∾tab∾"JPY"∾tab∾"assets:cash-ils"∾tab∾"250.00"∾tab∾"ILS"∾tab∾"israel-2026-exchange-0001"∾tab∾"israel-2026") lib.AssertEq ⊑sourceAccepted.preview_rows
+existingLine ← ⊑sourceAccepted.preview_rows
+"error" lib.AssertEq (exchange.ValidateSourceAndPreview {candidate_fields⇐fields, existing_lines⇐⟨existingLine⟩, accounts⇐accounts}).state
+"error" lib.AssertEq (exchange.ValidateExisting ⟨⟨"malformed"∾tab∾"row"⟩, accounts⟩).state
+"error" lib.AssertEq (exchange.ValidateExisting ⟨⟨existingLine, existingLine⟩, accounts⟩).state
+
 # The structured contract contains observations, not a rate or journal row.
 1 lib.AssertEq ({𝕩.rate ⋄ 0}⎊{𝕩⋄1}) preview
 1 lib.AssertEq ({𝕩.journal_row ⋄ 0}⎊{𝕩⋄1}) preview

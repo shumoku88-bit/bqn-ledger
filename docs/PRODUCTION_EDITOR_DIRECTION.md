@@ -59,6 +59,7 @@ Exit: revise if the production write-path ownership changes.
 - `account add`
 - `journal add`
 - `travel friend add` (dedicated pending source event; no journal projection)
+- `travel exchange add` (dedicated two-amount source event; no journal projection or rate)
 - `budget add`
 - `plan add`
 - `issue add`

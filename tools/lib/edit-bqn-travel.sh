@@ -83,3 +83,74 @@ handle_edit_bqn_travel_friend_add() {
   echo 'Post-check: OK (friend travel source validator)'
   printf 'Event ID: %s\n' "$source_event_id"
 }
+
+handle_edit_bqn_travel_exchange_add() {
+  local date="" memo="" source_account="" source_amount="" source_currency=""
+  local target_account="" target_amount="" target_currency="" exchange_id="" trip_id=""
+  local dry_run=0 yes=0
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --date) date="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --memo) memo="$(get_opt_val_allow_empty "$1" "${2-}")"; shift 2 ;;
+      --source-account) source_account="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --source-amount) source_amount="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --source-currency) source_currency="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --target-account) target_account="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --target-amount) target_amount="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --target-currency) target_currency="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --exchange-id) exchange_id="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --trip-id) trip_id="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --dry-run) dry_run=1; shift ;;
+      --yes) yes=1; shift ;;
+      *) echo "ERROR: unknown travel exchange add argument: $1" >&2; return 2 ;;
+    esac
+  done
+  [[ -n "$date" && -n "$source_account" && -n "$source_amount" && -n "$source_currency" && -n "$target_account" && -n "$target_amount" && -n "$target_currency" && -n "$exchange_id" && -n "$trip_id" ]] || {
+    echo 'ERROR: missing required travel exchange option' >&2; return 2;
+  }
+  [[ -d "$BASE_DIR" ]] || { echo "ERROR: base directory does not exist: $BASE_DIR" >&2; return 1; }
+
+  local target_file="travel_exchange_events.tsv" target_path="$BASE_DIR/travel_exchange_events.tsv"
+  local existed=0 snap_size="" snap_mtime="" snap_sha=""
+  if [[ -e "$target_path" ]]; then
+    [[ -f "$target_path" ]] || { echo "ERROR: source path is not a regular file: $target_path" >&2; return 1; }
+    existed=1
+    IFS=$'\t' read -r snap_size snap_mtime snap_sha <<< "$(safe_snapshot_token "$target_path")"
+  fi
+
+  local stderr_file output
+  stderr_file="$(mktemp)"
+  if ! output="$(edit_bqn_bqn_capture "$stderr_file" bqn src_edit/travel_exchange_add_cmd.bqn "$BASE_DIR" add "$date" "$memo" "$source_account" "$source_amount" "$source_currency" "$target_account" "$target_amount" "$target_currency" "$exchange_id" "$trip_id")"; then
+    rm -f "$stderr_file"; return 1
+  fi
+  rm -f "$stderr_file"
+  edit_bqn_split_protocol_output "$output" || return 1
+  edit_bqn_require_append_protocol "$EDIT_BQN_PROTOCOL_FIRST_LINE" "$target_file" || return 1
+  local payload="$EDIT_BQN_PROTOCOL_PAYLOAD" mode
+  mode="$(edit_bqn_mode "$dry_run" "$yes")"
+  edit_bqn_print_append_preview 'Travel exchange event' "$target_path" "$mode" dedicated 'Exchange event row' "$payload"
+  if [[ "$dry_run" -eq 1 ]]; then echo 'Dry-run only. No files were modified.'; return 0; fi
+  if [[ "$yes" -eq 0 ]] && ! confirm_append; then echo 'Cancelled. No files were modified.'; return 0; fi
+
+  local write_out backup_path post_sha
+  if [[ "$existed" -eq 1 ]]; then
+    edit_bqn_run_test_hook EDIT_BQN_TEST_BEFORE_APPEND_HOOK
+    write_out="$(safe_append_checked "$target_path" "$payload" "$snap_size" "$snap_mtime" "$snap_sha")" || return 1
+  else
+    write_out="$(safe_create_exclusive_checked "$target_path" "$payload")" || return 1
+  fi
+  printf '%s\n' "$write_out"
+  backup_path="$(awk -F': ' '$1 == "Backup" {print $2}' <<< "$write_out")"
+  post_sha="$(_safe_write_sha256 "$target_path")"
+  local post_ok=1
+  if ! (cd "$ROOT_DIR" && bqn src_edit/travel_exchange_add_cmd.bqn "$BASE_DIR" validate >/dev/null); then post_ok=0; fi
+  if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && "${EDIT_BQN_TEST_EXCHANGE_POST_CHECK_FAIL:-}" == "1" ]]; then post_ok=0; fi
+  if [[ "$post_ok" -ne 1 ]]; then
+    echo 'ERROR: exchange source post-check failed; rolling back' >&2
+    if [[ "$existed" -eq 1 ]]; then safe_restore_backup_checked "$target_path" "$backup_path" "$post_sha"; else safe_remove_created_checked "$target_path" "$post_sha"; fi
+    echo 'Rollback: OK' >&2
+    return 1
+  fi
+  echo 'Post-check: OK (travel exchange source validator)'
+  printf 'Exchange ID: %s\n' "$exchange_id"
+}

@@ -93,6 +93,20 @@ BQN Editor は会計エンジンとしての計算（残高や封筒の残金計
     *   `--dry-run`: 追記プレビューのみを行い、ファイルには書き込みません。
     *   `--yes`: 追記時の確認プロンプト（`y/N`）をスキップします。
 
+### JPY→ILS exchange eventの安全追記 (`travel exchange add`)
+
+JPYを渡してILSを受け取った事実は、expense/incomeやordinary journalではなく専用sourceへ記録します。
+
+```bash
+./tools/edit travel exchange add \
+  --date 2026-07-20 --memo "synthetic airport exchange" \
+  --source-account assets:bank-jpy --source-amount 10000 --source-currency JPY \
+  --target-account assets:cash-ils --target-amount 250.00 --target-currency ILS \
+  --exchange-id israel-2026-exchange-0001 --trip-id israel-2026 --dry-run
+```
+
+確認後は`--dry-run`を`--yes`へ替えます。両amountを保持する固定10列契約は [ISRAEL_TRAVEL_EDITOR_USAGE.md](ISRAEL_TRAVEL_EDITOR_USAGE.md) を参照してください。rate計算、journal projection、account作成は行いません。
+
 ### 友人立替pending eventの安全追記 (`travel friend add`)
 
 Israel旅行中に友人がILSで立て替えた観測事実は、ordinary journalへ入れず専用sourceへ記録します。
@@ -197,7 +211,7 @@ Israel旅行中に友人がILSで立て替えた観測事実は、ordinary journ
 
 ## 5. BQN Editorが保証する安全書き込み機能
 
-書き込みを伴うコマンド（`account add`、`journal add`、`journal reverse`、`travel friend add`、`budget add`、`plan add`、`plan finish --apply`、`plan edit`、`issue add`）を実行する際、BQN Editorは以下の安全機構を自動で走らせます。
+書き込みを伴うコマンド（`account add`、`journal add`、`journal reverse`、`travel friend add`、`travel exchange add`、`budget add`、`plan add`、`plan finish --apply`、`plan edit`、`issue add`）を実行する際、BQN Editorは以下の安全機構を自動で走らせます。
 
 1.  **事前バリデーション**: 日付フォーマット、金額が整数か、アカウント名が `<base>/accounts.tsv` に存在するか、メタデータ形式に問題がないかを書き込み前に構造検査します。
 2.  **プレビューと確認**: 追記または編集される正確なTSV行を画面に出力し、ユーザーが明示的に `y` または `yes` と入力しない限り書き込みません（`--yes` 指定時を除く）。
