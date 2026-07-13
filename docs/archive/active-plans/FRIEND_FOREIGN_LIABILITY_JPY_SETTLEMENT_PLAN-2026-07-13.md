@@ -23,10 +23,10 @@ A settlement is exactly two ordinary `journal.tsv` rows with the same date and l
 
 ```tsv
 # foreign close: reduce the FCY friend liability
-<date>	<settlement memo>	assets:clearing:friend-<FCY>	<liabilities:friend-<FCY>>	<F>	currency=<FCY>	settlement_id=<id>	party=<party>	trip_id=<trip>
+<date>	<settlement memo>	clearing:friend-<FCY>	<liabilities:friend-<FCY>>	<F>	currency=<FCY>	settlement_id=<id>	party=<party>	trip_id=<trip>
 
 # JPY assumption: add the confirmed amount to the existing JPY friend liability
-<date>	<settlement memo>	<liabilities:friend-JPY>	assets:clearing:friend-JPY	<J>	currency=JPY	settlement_id=<id>	party=<party>	trip_id=<trip>
+<date>	<settlement memo>	<liabilities:friend-JPY>	clearing:friend-JPY	<J>	currency=JPY	settlement_id=<id>	party=<party>	trip_id=<trip>
 ```
 
 `<liabilities:friend-JPY>` is a selected, already-existing JPY-denominated friend-liability account; the literal shown above is illustrative and must not cause account creation or account-name inference. The preview input must name it explicitly.
@@ -37,14 +37,14 @@ The two amounts are independently confirmed observations. They are not required 
 
 ## Clearing-account contract
 
-`settlement_clearing` is a prospective account role, not an ordinary liquid asset, cash account, expense, budget account, or FX-gain/loss account. A settlement needs one such account per currency domain:
+`settlement_clearing` is a prospective account role, not an ordinary liquid asset, cash account, expense, budget account, or FX-gain/loss account. To preserve namespace-role consistency, its future design target is the dedicated `clearing:*` namespace paired with `role=settlement_clearing`, not `assets:clearing:*`. A settlement needs one such account per currency domain:
 
-- `assets:clearing:friend-<FCY>` has account currency `FCY` and appears only in the FCY close row.
-- `assets:clearing:friend-JPY` has account currency `JPY` and appears only in the JPY assumption row.
+- `clearing:friend-<FCY>` has account currency `FCY` and appears only in the FCY close row.
+- `clearing:friend-JPY` has account currency `JPY` and appears only in the JPY assumption row.
 
 The two accounts form one linked clearing pair through `settlement_id`; they must never be treated as equal-valued balances, netted across currencies, included in liquid-funds/envelope funding, or presented as a market valuation. Their nonzero per-currency movements are the explicit accounting bridge between two confirmed quantities.
 
-A later implementation must introduce the account-role/source-schema admission needed to recognize this role. It must not infer the role from the account name, silently create either account, or select the JPY liability by prefix.
+Extending the existing account-role/schema contract for `clearing:*`, creating either clearing account, and admitting these rows through a writer are separately selected future work. None is in the pure-preview slice. That slice receives supplied descriptors only; it must not infer the role from an account name, silently create either account, or select the JPY liability by prefix.
 
 ## Linkage metadata contract
 
@@ -59,6 +59,14 @@ All three keys are required on both rows and have identical values within the pa
 The settlement date is the human-confirmed settlement/assumption date, not a replacement for the date of the original foreign expense. Both rows use the same memo supplied for the settlement; the memo is descriptive only and is not an identity key.
 
 ## Safety invariants
+
+### Foreign-liability closure evidence
+
+The typed request must include `foreign_liability_open`, a supplied current-unsettled-liability evidence record containing all of: the selected FCY liability account, its `FCY` currency, its exact positive current unsettled amount, and provenance. Provenance is required structured evidence tying that amount to the source snapshot/reconciliation from which it was derived (including the snapshot identity and the liability-account/currency identity); it is carried into the accepted preview. A human-entered `F` alone is not closure evidence.
+
+The pure validator must require that the selected FCY liability account and `FCY` agree with this evidence and that `F` exactly equals its current unsettled amount at the currency's exact amount representation. An accepted preview carries the evidence and explicitly declares the resulting FCY unsettled amount as zero. Any absent, malformed, contradictory, wrong-account/wrong-currency, or unequal evidence rejects the entire proposal. In particular, an `F` below or above the current unsettled amount fails closed: partial reduction and over-close are outside this consumer.
+
+This remains I/O-free: the preview function does not read a ledger to calculate the amount or provenance. Its caller must supply the evidence value; a later, separately selected read/admission boundary may define how current balance evidence is constructed and freshness-checked.
 
 ### Pair admission and duplicate rejection
 
@@ -94,11 +102,11 @@ It needs no settlement-clearing row and does not reopen or alter the settled FCY
 
 ## First implementation slice: pure validation + two-row preview only
 
-The only implementation slice this plan authorizes for later selection is an I/O-free BQN pure function and unit tests. Its inputs are a typed settlement request, supplied account descriptors, and supplied existing `settlement_id` occurrences; its output is a structured accepted two-row preview or structured rejection diagnostics. It performs no TSV reads, writes, environment reads, report changes, editor/UI dispatch, or account creation.
+The only implementation slice this plan authorizes for later selection is an I/O-free BQN pure function and unit tests. Its inputs are a typed settlement request (including `foreign_liability_open`), supplied account descriptors, and supplied existing `settlement_id` occurrences; its output is a structured accepted two-row preview carrying the closure evidence or structured rejection diagnostics. It performs no TSV reads, writes, environment reads, report changes, editor/UI dispatch, or account creation.
 
-Required characterization cases for that later slice include: accepted pair; each malformed/missing/mismatched linkage key; duplicate and pre-existing partial ID; unknown or wrong-currency account; non-JPY domestic liability; `FCY=JPY`; non-positive/malformed amounts; wrong direction; and an expense/budget endpoint.
+Required characterization cases for that later slice include: accepted pair; absent/malformed/contradictory foreign-liability evidence; FCY account/currency mismatch; `F` below or above the evidenced unsettled amount; each malformed/missing/mismatched linkage key; duplicate and pre-existing partial ID; unknown or wrong-currency account; non-JPY domestic liability; `FCY=JPY`; non-positive/malformed amounts; wrong direction; and an expense/budget endpoint.
 
-The write path, metadata-schema admission, account setup, editor command, fixtures, reports, and real-data trial are deliberately **not** part of this slice. Select any write slice only after the pure preview has been reviewed and a new plan defines commit/rollback evidence and recovery ownership.
+The write path, balance-evidence read/freshness boundary, existing account-role/schema extension, clearing-account setup, editor command, fixtures, reports, and real-data trial are deliberately **not** part of this slice. Select any write slice only after the pure preview has been reviewed and a new plan defines commit/rollback evidence and recovery ownership.
 
 ## Dependencies and routing
 
