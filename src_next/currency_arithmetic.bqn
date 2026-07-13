@@ -4,6 +4,7 @@
 # or build posting rows. Exact normalization is admitted through exact_decimal.
 
 dec ← •Import "exact_decimal.bqn"
+setup ← •Import "currency_setup.bqn"
 
 empty ← ⟨⟩
 
@@ -45,7 +46,7 @@ Build ← {𝕊 evidence:
         currencies ← {𝕩.currency} ¨ evidence
         domain ← ⊑ currencies
         oneDomain ← ∧´ currencies ≡¨ <domain
-        supportedDomain ← ∨´ ⟨"JPY", "ILS"⟩ ≡¨ <domain
+        supportedDomain ← setup.IsSupportedCurrency domain
 
         (oneDomain ∧ supportedDomain) ◶ ⟨
           {𝕊: result ↩ Failure "mixed_currency_domains" },

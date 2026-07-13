@@ -1,10 +1,11 @@
 # currency_setup.bqn
-# Pure M1.5 core for explicit ledger default currency and read-only JPY
-# migration audit / preview.
+# Pure M1.5 core for explicit ledger default currency, built-in currency policy,
+# and read-only JPY migration audit / preview.
 #
 # Important boundary:
 # - DEFAULT_CURRENCY selects an initial view only.
 # - It never supplies missing source currency.
+# - Built-in currency policy owns admission and lexical precision metadata.
 # - Migration target is an independent explicit argument and is currently JPY only.
 # - This module performs no file I/O and no writes.
 
@@ -12,11 +13,40 @@ util ← •Import "util.bqn"
 
 empty ← ⟨⟩
 tab ← @+9
-supportedCurrencies ← ⟨"JPY", "ILS"⟩
+currencyCodes ← ⟨"JPY", "ILS"⟩
+currencyMaxFractionDigits ← ⟨¯1, 2⟩
 defaultKey ← "DEFAULT_CURRENCY"
 
+PolicyFailure ← {𝕊 currency:
+  {
+    state ⇐ "error",
+    currency ⇐ currency,
+    max_fraction_digits ⇐ ¯1,
+    code ⇐ "unsupported_currency",
+    message ⇐ "unsupported currency: " ∾ currency
+  }
+}
+
+PolicySuccess ← {𝕊 index:
+  {
+    state ⇐ "ok",
+    currency ⇐ index ⊑ currencyCodes,
+    max_fraction_digits ⇐ index ⊑ currencyMaxFractionDigits,
+    code ⇐ "",
+    message ⇐ ""
+  }
+}
+
+Policy ← {𝕊 currency:
+  index ← ⊑ currencyCodes ⊐ ⟨currency⟩
+  result ← PolicyFailure currency
+  {𝕊: result ↩ PolicySuccess index } ⍟ (index < ≠ currencyCodes) @
+  result
+}
+
 IsSupportedCurrency ← {𝕊 currency:
-  ∨´ 0 ∾ (currency⊸≡¨ supportedCurrencies)
+  policy ← Policy currency
+  policy.state ≡ "ok"
 }
 
 IsIgnoredLine ← {𝕊 line:
@@ -239,6 +269,8 @@ Build ← {𝕊 configLines‿accountsLines‿journalLines‿planLines‿budgetL
 }
 
 {
+  supported_currencies ⇐ currencyCodes,
+  Policy ⇐ Policy,
   IsSupportedCurrency ⇐ IsSupportedCurrency,
   ResolveDefault ⇐ ResolveDefault,
   ResolveSelection ⇐ ResolveSelection,
