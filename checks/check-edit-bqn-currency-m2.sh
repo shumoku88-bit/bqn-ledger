@@ -13,7 +13,8 @@ sha_file() {
 }
 
 copy_fixture() {
-  local name="$1" target="$tmp_root/$name"
+  local name="$1"
+  local target="$tmp_root/$name"
   cp -R "$fixture" "$target"
   printf '%s' "$target"
 }
