@@ -4,3 +4,5 @@ income:salary	role=income	currency=JPY
 assets:cash-ils	role=asset	type=liquid	currency=ILS
 expenses:food-ils	role=expense	currency=ILS
 income:refund-ils	role=income	currency=ILS
+liabilities:card-jpy	role=liability	currency=JPY
+expenses:transit-jpy	role=expense	currency=JPY

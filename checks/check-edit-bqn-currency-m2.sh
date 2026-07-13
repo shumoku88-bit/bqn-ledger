@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
+unset LEDGER_DATA_DIR
 
 fixture="fixtures/editor-currency-m2"
 tmp_root="$(mktemp -d)"
@@ -10,6 +11,15 @@ trap 'rm -rf "$tmp_root"' EXIT
 
 sha_file() {
   shasum -a 256 "$1" | awk '{print $1}'
+}
+
+assert_no_backup() {
+  local base="$1" label="$2"
+  if [[ -d "$base/.backup" ]] && find "$base/.backup" -type f | grep -q .; then
+    echo "FAIL: $label created a backup" >&2
+    find "$base/.backup" -type f >&2
+    exit 1
+  fi
 }
 
 copy_fixture() {
@@ -122,5 +132,84 @@ expect_fail_unchanged manual-currency-meta journal.tsv \
 expect_fail_unchanged unsupported-selector journal.tsv \
   journal add --date 2026-07-02 --memo usd \
   --from assets:bank --to expenses:food --amount 1 --currency USD --yes --post-check none
+
+# Israel predeparture readiness reuses the ordinary journal owner unchanged.
+travel_base="$(copy_fixture israel-travel)"
+travel_before="$(sha_file "$travel_base/journal.tsv")"
+travel_lines_before="$(wc -l < "$travel_base/journal.tsv" | tr -d ' ')"
+
+cash_preview="$(./tools/edit --base "$travel_base" journal add \
+  --date 2026-07-20 --memo 'synthetic meal' \
+  --from assets:cash-ils --to expenses:food-ils --amount 42.50 --currency ILS \
+  --meta trip_id=israel-2026 --meta payment=cash --dry-run --post-check none)"
+grep -Fq $'2026-07-20\tsynthetic meal\tassets:cash-ils\texpenses:food-ils\t42.50\ttrip_id=israel-2026\tpayment=cash\tcurrency=ILS' <<<"$cash_preview"
+[[ "$travel_before" == "$(sha_file "$travel_base/journal.tsv")" ]]
+assert_no_backup "$travel_base" 'Israel cash dry-run'
+
+card_preview="$(./tools/edit --base "$travel_base" journal add \
+  --date 2026-07-20 --memo 'synthetic transit' \
+  --from liabilities:card-jpy --to expenses:transit-jpy --amount 1800 --currency JPY \
+  --meta trip_id=israel-2026 --meta payment=card --dry-run --post-check none)"
+grep -Fq $'2026-07-20\tsynthetic transit\tliabilities:card-jpy\texpenses:transit-jpy\t1800\ttrip_id=israel-2026\tpayment=card\tcurrency=JPY' <<<"$card_preview"
+[[ "$travel_before" == "$(sha_file "$travel_base/journal.tsv")" ]]
+assert_no_backup "$travel_base" 'Israel card dry-run'
+
+./tools/edit --base "$travel_base" journal add \
+  --date 2026-07-20 --memo 'synthetic meal' \
+  --from assets:cash-ils --to expenses:food-ils --amount 42.50 --currency ILS \
+  --meta trip_id=israel-2026 --meta payment=cash --yes --post-check none >/dev/null
+[[ "$((travel_lines_before + 1))" -eq "$(wc -l < "$travel_base/journal.tsv" | tr -d ' ')" ]]
+grep -Fxq $'2026-07-20\tsynthetic meal\tassets:cash-ils\texpenses:food-ils\t42.50\ttrip_id=israel-2026\tpayment=cash\tcurrency=ILS' "$travel_base/journal.tsv"
+
+./tools/edit --base "$travel_base" journal add \
+  --date 2026-07-20 --memo 'synthetic transit' \
+  --from liabilities:card-jpy --to expenses:transit-jpy --amount 1800 --currency JPY \
+  --meta trip_id=israel-2026 --meta payment=card --yes --post-check none >/dev/null
+[[ "$((travel_lines_before + 2))" -eq "$(wc -l < "$travel_base/journal.tsv" | tr -d ' ')" ]]
+grep -Fxq $'2026-07-20\tsynthetic transit\tliabilities:card-jpy\texpenses:transit-jpy\t1800\ttrip_id=israel-2026\tpayment=card\tcurrency=JPY' "$travel_base/journal.tsv"
+
+# The public read-only loader can reload both ordinary rows.
+travel_list="$(./tools/edit --base "$travel_base" journal list --format tsv)"
+grep -Fq $'2\t2026-07-20\tsynthetic meal\tassets:cash-ils\texpenses:food-ils\t42.50\t' <<<"$travel_list"
+grep -Fq $'3\t2026-07-20\tsynthetic transit\tliabilities:card-jpy\texpenses:transit-jpy\t1800\t' <<<"$travel_list"
+
+expect_fail_unchanged travel-mismatch journal.tsv \
+  journal add --date 2026-07-20 --memo mismatch \
+  --from assets:cash-ils --to expenses:food --amount 1 --currency ILS \
+  --meta trip_id=israel-2026 --meta payment=cash --yes --post-check none
+expect_fail_unchanged travel-ils-precision journal.tsv \
+  journal add --date 2026-07-20 --memo precision \
+  --from assets:cash-ils --to expenses:food-ils --amount 42.501 --currency ILS \
+  --meta trip_id=israel-2026 --meta payment=cash --yes --post-check none
+expect_fail_unchanged travel-invalid-meta journal.tsv \
+  journal add --date 2026-07-20 --memo meta \
+  --from assets:cash-ils --to expenses:food-ils --amount 42.50 --currency ILS \
+  --meta trip_id --meta payment=cash --yes --post-check none
+
+# Existing snapshot-hook semantics reject a stale travel append. Only the
+# simulated concurrent marker may change the file; the candidate never lands.
+stale_travel_base="$(copy_fixture israel-stale)"
+append_israel_stale_marker() {
+  printf '%s\n' '# synthetic concurrent edit' >> "$EDIT_BQN_TEST_STALE_JOURNAL"
+}
+export -f append_israel_stale_marker
+set +e
+BQN_LEDGER_TEST_MODE=1 \
+EDIT_BQN_TEST_STALE_JOURNAL="$stale_travel_base/journal.tsv" \
+EDIT_BQN_TEST_BEFORE_APPEND_HOOK=append_israel_stale_marker \
+  ./tools/edit --base "$stale_travel_base" journal add \
+    --date 2026-07-20 --memo 'stale synthetic meal' \
+    --from assets:cash-ils --to expenses:food-ils --amount 42.50 --currency ILS \
+    --meta trip_id=israel-2026 --meta payment=cash --yes --post-check none \
+    >"$tmp_root/israel-stale.out" 2>&1
+stale_travel_rc=$?
+set -e
+if [[ "$stale_travel_rc" -eq 0 ]] || grep -Fq 'stale synthetic meal' "$stale_travel_base/journal.tsv"; then
+  echo 'FAIL: stale Israel journal candidate was accepted' >&2
+  cat "$tmp_root/israel-stale.out" >&2
+  exit 1
+fi
+tail -n 1 "$stale_travel_base/journal.tsv" | grep -Fxq '# synthetic concurrent edit'
+assert_no_backup "$stale_travel_base" 'stale Israel journal append'
 
 printf 'OK: M2 currency-aware account and journal editor contracts passed\n'
