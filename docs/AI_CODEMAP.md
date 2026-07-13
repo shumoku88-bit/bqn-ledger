@@ -83,7 +83,7 @@ Exit: keep current while this remains the pit code/data-flow entry point
 - `account_key.bqn` — 勘定科目のキー解決。
 - `projection.bqn` — Posting IR 投影。
 - `snapshot.bqn` — Balance Sheet / Snapshot。TBDS closing を使用。構造化された ViewModel JSON 出力（FormatJson）もサポート。
-- `balances.bqn` — 残高表示。フラットリストと合計から成る ViewModel JSON 出力（FormatJson）もサポート。
+- `balances.bqn` — 残高表示。human `--section balances` では `DEFAULT_CURRENCY` または明示 `--currency JPY|ILS` を解決し、checked selected-currency projection 後の単一通貨残高だけを provenance / amount scale 付きで表示する。既存JSONは非selectedのフラットリストと合計の契約を維持する。
 - `ytd_summary.bqn` — YTD 集計。
 - `cycle_summary.bqn` — サイクル収支 (Income Statement)。
 - `expense_breakdown.bqn` — サイクル支出内訳。
@@ -106,7 +106,7 @@ Exit: keep current while this remains the pit code/data-flow entry point
 - `date.bqn` — 日付操作 (Today, Parts, Ordinal, DaysBetween)。
 - `unavailable.bqn` — unavailable sentinel の正本定義と helper (`IsUnavailable`, `StartsWith`)。
 - `config.bqn` — config.tsv 読み込み。
-- `report.bqn` — 人間向けレポートの正本入口。セクション構成は実装と `--list-sections` を正とし、`--section <key>` で単一セクションを出力する（UIツールが動的にセクション抽出するための正本）。
+- `report.bqn` — 人間向けレポートの正本入口。セクション構成は実装と `--list-sections` を正とし、`--section <key>` で単一セクションを出力する（UIツールが動的にセクション抽出するための正本）。M3の `--currency` はhuman `balances` 専用で、full report・他section・cache・JSONとの組合せはfail closed。
 - `report_section_metadata.bqn` — UI向け structured report section metadata export（TSV default / JSON）。source TSV は読まず、section key / label / category / owner / output mode を出す。
 - `summary.bqn` — 機械向けコンパクト出力。
 

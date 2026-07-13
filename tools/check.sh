@@ -98,6 +98,7 @@ bash checks/check-src-next-planned-payments.sh fixtures/src-next-missing-plan >/
 bash checks/check-src-next-planned-payments.sh fixtures/plan-completion >/dev/null
 bash checks/check-src-next-balances.sh fixtures/src-next-golden >/dev/null
 bash checks/check-src-next-balances.sh fixtures/src-next-empty-projection >/dev/null
+bash checks/check-currency-m3-balances.sh >/dev/null
 bash checks/check-src-next-readiness.sh >/dev/null
 bash checks/check-src-next-household-metadata.sh >/dev/null
 bash checks/check-src-next-plan-journal-overlap.sh >/dev/null

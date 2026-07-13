@@ -10,6 +10,8 @@
 #   tools/report fixtures/basic  → fixture mode
 #   tools/report --no-color      → suppress ANSI color
 #   tools/report --color=always  → force ANSI color
+#   tools/report <base> --section balances [--currency JPY|ILS]
+#                                → selected human balances (default from config.tsv)
 
 set -euo pipefail
 

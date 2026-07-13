@@ -322,4 +322,4 @@ Example future output:
 
 Stage 2 documents remain the current single-currency exact foundation. This plan owns selection and sequencing for the concrete mixed-ledger daily-use consumer.
 
-The current authorization remains M1 only. This amendment does not authorize M1.5, production migration, M2, M2.5, M3, or M4 implementation. After each implementation slice, use a separate post-implementation verification PR. Archive this plan as completed when the selected daily-use slices are implemented and verified, or as superseded if a later plan replaces this boundary.
+The current authorization is M3 only, as selected in `TODO.md`; implementation does not itself close or verify M3. Strict-source enforcement and M4 remain separate, unauthorized candidates. After each implementation slice, use a separate post-implementation verification PR. Archive this plan as completed when the selected daily-use slices are implemented and verified, or as superseded if a later plan replaces this boundary.

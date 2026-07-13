@@ -2,6 +2,7 @@
 # Usage: bqn src_next/report.bqn <baseDir>
 #        bqn src_next/report.bqn <baseDir> --list-sections
 #        bqn src_next/report.bqn <baseDir> --section <key>
+#        bqn src_next/report.bqn <baseDir> --section balances [--currency JPY|ILS]
 #        bqn src_next/report.bqn <baseDir> --outlook-as-of YYYY-MM-DD
 #
 # --list-sections outputs tab-separated section-key and first-line marker
@@ -105,6 +106,10 @@ Main ← {𝕊 args:
   outlook_as_of_val ← ArgValue ⟨args, "--outlook-as-of"⟩
   outlook_as_of_next_is_option ← "--" ≡ 2 ↑ outlook_as_of_val
   outlook_as_of_missing ← outlook_as_of_flag ∧ ((0 = ≠outlook_as_of_val) ∨ outlook_as_of_next_is_option)
+  currency_flag ← HasArg ⟨args, "--currency"⟩
+  currency_val ← ArgValue ⟨args, "--currency"⟩
+  currency_next_is_option ← "--" ≡ 2 ↑ currency_val
+  currency_missing ← currency_flag ∧ ((0 = ≠currency_val) ∨ currency_next_is_option)
 
   {𝕊:
     •Out "ERROR: --section requires a section key"
@@ -150,6 +155,28 @@ Main ← {𝕊 args:
     •Out "ERROR: invalid --outlook-as-of date: "∾outlook_as_of_val
     •Exit 1
   }⍟(outlook_as_of_flag ∧ (¬ outlook_as_of_missing) ∧ ¬ date.IsValidDateText outlook_as_of_val) @
+
+  {𝕊:
+    •Out "ERROR: --currency requires JPY or ILS"
+    •Exit 1
+  }⍟currency_missing @
+
+  {𝕊:
+    •Out "ERROR: --currency is supported only with human --section balances"
+    •Exit 1
+  }⍟(currency_flag ∧ ((¬section_flag) ∨ list_sections ∨ write_cache_flag ∨ (section_key ≢ "balances") ∨ (format_val ≡ "json"))) @
+
+  # M3 selected balances dispatches before the ordinary mixed-snapshot context.
+  # No-override human balances resolves DEFAULT_CURRENCY through the same path.
+  {𝕊:
+    selected ← balances.BuildSelected ⟨base, currency_val⟩
+    {𝕊:
+      •Out "ERROR: " ∾ selected.message
+      •Exit 1
+    }⍟(selected.state ≢ "ok") @
+    •Out balances.FormatSelectedHuman selected
+    •Exit 0
+  }⍟(section_flag ∧ (section_key ≡ "balances") ∧ (format_val ≢ "json")) @
 
   ctx ← ctx_mod.BuildContext base
 

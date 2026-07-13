@@ -196,8 +196,19 @@ This is consumed by compact summary checks and can be filtered by `tools/query` 
 - JSON renderer: `balances.FormatJson ctx`
 - Registration: `src_next/report.bqn`
 
+### Selected human output
+
+`tools/report <base> --section balances [--currency JPY|ILS]` is the first
+currency-selected human report consumer. An explicit selector has
+`explicit selection` provenance; without an override, `<base>/config.tsv` must
+provide one valid `DEFAULT_CURRENCY`, shown as `ledger default`. The section
+reuses the checked selected-currency projection and single-currency TBDS
+arithmetic, displays `Currency view:`, and passes the checked `amount_scale` to
+the human formatter. ILS uses exact two-decimal `₪` display. `--currency` with
+full report, another section, cache/list routing, or JSON fails closed.
+
 ### Structured JSON output
-`tools/report --section balances --format json` calls `balances.FormatJson ctx` and outputs ViewModel JSON:
+`tools/report --section balances --format json` calls `balances.FormatJson ctx` and outputs the existing non-selected ViewModel JSON. M3 does not widen this schema and does not permit `--currency` with JSON:
 
 ```json
 {
