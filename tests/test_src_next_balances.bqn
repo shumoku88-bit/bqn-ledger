@@ -108,4 +108,46 @@ emptyEnts ← balances.Build emptyCtx
 emptyText ← balances.Format emptyEnts
 1 lib.AssertEq ∨´ "(none)"⍷emptyText
 
+# ── M3 exact selected-currency formatting and orchestration ──
+
+"₪12.00" lib.AssertEq balances.FormatCoefficient ⟨12, 0, 2, "ILS"⟩
+"₪12.50" lib.AssertEq balances.FormatCoefficient ⟨125, 1, 2, "ILS"⟩
+"₪0.05" lib.AssertEq balances.FormatCoefficient ⟨5, 2, 2, "ILS"⟩
+"-₪12.50" lib.AssertEq balances.FormatCoefficient ⟨¯125, 1, 2, "ILS"⟩
+"1200" lib.AssertEq balances.FormatCoefficient ⟨1200, 0, 0, "JPY"⟩
+ilsIntegerPolicy ← balances.PresentationPolicy ⟨"ILS", 0⟩
+"ok" lib.AssertEq ilsIntegerPolicy.state
+0 lib.AssertEq ilsIntegerPolicy.calculation_scale
+2 lib.AssertEq ilsIntegerPolicy.presentation_scale
+ilsTooPrecise ← balances.PresentationPolicy ⟨"ILS", 3⟩
+"error" lib.AssertEq ilsTooPrecise.state
+1 lib.AssertEq ∨´ "ILS source precision exceeds 2 fractional digits" ⍷ ilsTooPrecise.message
+"ledger default" lib.AssertEq balances.ProvenanceLabel "ledger_default"
+"explicit selection" lib.AssertEq balances.ProvenanceLabel "explicit_selection"
+
+m3Base ← "fixtures/currency-m3-balances"
+selectedJpy ← balances.BuildSelected ⟨m3Base, "JPY"⟩
+"ok" lib.AssertEq selectedJpy.state
+"JPY" lib.AssertEq selectedJpy.selected_currency
+"explicit_selection" lib.AssertEq selectedJpy.provenance
+0 lib.AssertEq selectedJpy.calculation_scale
+0 lib.AssertEq selectedJpy.presentation_scale
+2 lib.AssertEq ≠ selectedJpy.entries
+
+selectedIls ← balances.BuildSelected ⟨m3Base, "ILS"⟩
+"ok" lib.AssertEq selectedIls.state
+"ILS" lib.AssertEq selectedIls.selected_currency
+2 lib.AssertEq selectedIls.calculation_scale
+2 lib.AssertEq selectedIls.presentation_scale
+4 lib.AssertEq ≠ selectedIls.entries
+ilsHuman ← balances.FormatSelectedHuman selectedIls
+1 lib.AssertEq ∨´ "Currency view: ILS (explicit selection)" ⍷ ilsHuman
+1 lib.AssertEq ∨´ "₪12.50" ⍷ ilsHuman
+1 lib.AssertEq ∨´ "₪0.05" ⍷ ilsHuman
+
+selectedDefault ← balances.BuildSelected ⟨m3Base, ""⟩
+"ok" lib.AssertEq selectedDefault.state
+"JPY" lib.AssertEq selectedDefault.selected_currency
+"ledger_default" lib.AssertEq selectedDefault.provenance
+
 •Out "test_src_next_balances.bqn: OK"

@@ -5,6 +5,12 @@ tbds ← •Import "tbds.bqn"
 fmt ← •Import "format.bqn"
 labels ← •Import "report_labels.bqn"
 json ← •Import "json.bqn"
+loader ← •Import "loader.bqn"
+ak ← •Import "account_key.bqn"
+cycle ← •Import "cycle.bqn"
+ctx_mod ← •Import "context.bqn"
+currency_selection ← •Import "currency_selection.bqn"
+currency_setup ← •Import "currency_setup.bqn"
 L ← labels.Text
 
 # Filter helpers
@@ -48,8 +54,122 @@ Format ← {𝕊 entries:
   out
 }
 
-# FormatHuman: render balance entries as human-readable text.
-FormatHuman ← {𝕊 entries:
+# PresentationPolicy keeps checked arithmetic scale distinct from human display
+# scale. ILS is fixed at two decimals and rejects broader source precision.
+PresentationPolicy ← {𝕊 selectedCurrency‿calculationScale:
+  presentationScale ← (selectedCurrency ≡ "ILS") ⊑ ⟨calculationScale, 2⟩
+  tooPrecise ← (selectedCurrency ≡ "ILS") ∧ (calculationScale > presentationScale)
+  {
+    state ⇐ tooPrecise ⊑ "ok"‿"error",
+    calculation_scale ⇐ calculationScale,
+    presentation_scale ⇐ presentationScale,
+    message ⇐ tooPrecise ⊑ ⟨"", "ILS source precision exceeds 2 fractional digits: calculation scale " ∾ (•Fmt calculationScale)⟩
+  }
+}
+
+# BuildSelected: balances-only M3 orchestration over one checked currency projection.
+# DEFAULT_CURRENCY selects the view only; source currency evidence remains owned by
+# the existing row/account validation seams.
+BuildSelected ← {𝕊 base‿explicitCurrency:
+  defaultResult ← currency_setup.ResolveDefault loader.ReadLinesOptional (base ∾ "/config.tsv")
+  selection ← currency_setup.ResolveSelection ⟨defaultResult, explicitCurrency⟩
+  result ← {
+    state ⇐ "error", message ⇐ selection.message,
+    selected_currency ⇐ "", provenance ⇐ "",
+    calculation_scale ⇐ ⟨⟩, presentation_scale ⇐ ⟨⟩, entries ⇐ ⟨⟩
+  }
+
+  {𝕊:
+    accountLines ← loader.ReadLines (base ∾ "/accounts.tsv")
+    accountAudit ← currency_setup.AuditFile ⟨"accounts.tsv", "accounts", accountLines, selection.currency⟩
+    {𝕊:
+      bad ← ⊑ ({𝕩.state ≢ "ok"}¨ accountAudit.rows) / accountAudit.rows
+      result ↩ {
+        state ⇐ "error", message ⇐ bad.message,
+        selected_currency ⇐ selection.currency, provenance ⇐ selection.provenance,
+        calculation_scale ⇐ ⟨⟩, presentation_scale ⇐ ⟨⟩, entries ⇐ ⟨⟩
+      }
+    }⍟(accountAudit.state ≢ "ok") @
+
+    {𝕊:
+      resolved ← ak.Resolve accountLines
+      cy ← cycle.ReadCycle base
+      snapshot ← ctx_mod.LoadPostingSourceSnapshot base
+      selected ← currency_selection.Build ⟨snapshot, resolved, cy.start, selection.currency⟩
+
+      {𝕊:
+        diagnostic ← ⊑ selected.diagnostics
+        result ↩ {
+          state ⇐ "error", message ⇐ diagnostic.message,
+          selected_currency ⇐ selection.currency, provenance ⇐ selection.provenance,
+          calculation_scale ⇐ ⟨⟩, presentation_scale ⇐ ⟨⟩, entries ⇐ ⟨⟩
+        }
+      }⍟(selected.state ≢ "ok") @
+
+      {𝕊:
+        calculationScale ← selected.arithmetic_currency_proof.amount_scale
+        policy ← PresentationPolicy ⟨selection.currency, calculationScale⟩
+
+        {𝕊:
+          result ↩ {
+            state ⇐ "error", message ⇐ policy.message,
+            selected_currency ⇐ selection.currency, provenance ⇐ selection.provenance,
+            calculation_scale ⇐ calculationScale,
+            presentation_scale ⇐ policy.presentation_scale,
+            entries ⇐ ⟨⟩
+          }
+        }⍟(policy.state ≢ "ok") @
+
+        {𝕊:
+          view ← ctx_mod.BuildPeriodView ⟨selected.posting_rows, resolved, cy⟩
+          selectedContext ← { resolved ⇐ resolved, tbds ⇐ view.tbds }
+          balanceEntries ← Build selectedContext
+          selectedEntries ← ({((2⊑𝕩) ≡ "asset") ∨ ((2⊑𝕩) ≡ "liability")}¨ balanceEntries) / balanceEntries
+          result ↩ {
+            state ⇐ "ok", message ⇐ "",
+            selected_currency ⇐ selection.currency,
+            provenance ⇐ selection.provenance,
+            calculation_scale ⇐ calculationScale,
+            presentation_scale ⇐ policy.presentation_scale,
+            entries ⇐ selectedEntries
+          }
+        }⍟(policy.state ≡ "ok") @
+      }⍟(selected.state ≡ "ok") @
+    }⍟(accountAudit.state ≡ "ok") @
+  }⍟(selection.state ≡ "ok") @
+
+  result
+}
+
+# Exact coefficient formatter. Scaling appends decimal zeroes as text, which is
+# equivalent to multiplying by 10^(presentation-calculation) without overflow,
+# rounding, or reinterpreting the checked coefficient.
+FormatCoefficient ← {𝕊 coefficient‿calculationScale‿presentationScale‿currency:
+  negative ← coefficient < 0
+  scaleDelta ← presentationScale - calculationScale
+  digits ← (•Fmt | coefficient) ∾ scaleDelta ⥊ '0'
+  padded ← ((0 ⌈ (presentationScale + 1) - ≠digits) ⥊ '0') ∾ digits
+  body ← padded
+  {𝕊:
+    split ← (≠padded) - presentationScale
+    body ↩ (split ↑ padded) ∾ "." ∾ (split ↓ padded)
+  }⍟(0 < presentationScale) @
+  symbol ← (currency ≡ "ILS") ⊑ ⟨"", "₪"⟩
+  (negative ⊑ ⟨"", "-"⟩) ∾ symbol ∾ body
+}
+
+ProvenanceLabel ← {𝕊 provenance:
+  label ← "unknown provenance"
+  {𝕊: label ↩ "ledger default"}⍟(provenance ≡ "ledger_default") @
+  {𝕊: label ↩ "explicit selection"}⍟(provenance ≡ "explicit_selection") @
+  label
+}
+
+# RenderHuman is shared by the legacy JPY-compatible renderer and M3 selected
+# renderer. view_line is empty for the legacy path.
+RenderHuman ← {𝕊 render:
+  entries ← render.entries
+  viewLine ← render.view_line
   liquid ← Filter ⟨entries, "asset", "liquid"⟩
   savings ← Filter ⟨entries, "asset", "savings"⟩
   investment ← Filter ⟨entries, "asset", "invest"⟩
@@ -63,8 +183,11 @@ FormatHuman ← {𝕊 entries:
   liabilities_total ← SumAmount liabilities
   net_worth ← assets_total + liabilities_total
 
-  # Amount formatter: convert ¯ to -
-  FmtAmt2 ← { s ← fmt.PadL ⟨14, 𝕩⟩ ⋄ { 𝕩 ≡ '¯' ? '-' ; 𝕩 }¨ s }
+  # Amount formatter: right-align preformatted exact text.
+  FmtAmt2 ← {
+    s ← render.FormatAmount 𝕩
+    ((0 ⌈ 14 - ≠s) ⥊ ' ') ∾ s
+  }
 
   FormatTableGroup ← {
     (0 = ≠𝕩) ? "" ;
@@ -79,7 +202,9 @@ FormatHuman ← {𝕊 entries:
     hdr ∾ div ∾ ∾ rows
   }
 
-  out ← (L "balances.section_title") ∾ (@+10) ∾ (@+10)
+  out ← (L "balances.section_title") ∾ (@+10)
+  {𝕊: out ↩ out ∾ viewLine ∾ (@+10)}⍟(0 < ≠viewLine) @
+  out ↩ out ∾ (@+10)
   
   tbl_liq ← FormatTableGroup liquid
   out ↩ out ∾ (0 < ≠tbl_liq) ◶ ⟨{""}, {"[Assets / Liquid]" ∾ (@+10) ∾ tbl_liq ∾ (@+10)}⟩ @
@@ -114,6 +239,25 @@ FormatHuman ← {𝕊 entries:
   
   out ↩ out ∾ tot ∾ (@+10)
   out
+}
+
+# FormatHuman: preserve the existing integer-yen-compatible human output.
+FormatHuman ← {𝕊 entries:
+  LegacyAmount ← {𝕊 amount:
+    s ← •Fmt amount
+    { 𝕩 ≡ '¯' ? '-' ; 𝕩 }¨ s
+  }
+  RenderHuman { entries ⇐ entries, FormatAmount ⇐ LegacyAmount, view_line ⇐ "" }
+}
+
+# FormatSelectedHuman: selected currency/provenance/scale are explicit carrier
+# fields and are never inferred from account_key text.
+FormatSelectedHuman ← {𝕊 selected:
+  Amount ← {𝕊 amount:
+    FormatCoefficient ⟨amount, selected.calculation_scale, selected.presentation_scale, selected.selected_currency⟩
+  }
+  viewLine ← "Currency view: " ∾ selected.selected_currency ∾ " (" ∾ (ProvenanceLabel selected.provenance) ∾ ")"
+  RenderHuman { entries ⇐ selected.entries, FormatAmount ⇐ Amount, view_line ⇐ viewLine }
 }
 
 # FormatJson: render balance entries as structured JSON.
@@ -162,4 +306,14 @@ FormatJson ← {𝕊 ctx:
   json.Serialize root
 }
 
-{ Build ⇐ Build, Format ⇐ Format, FormatHuman ⇐ FormatHuman, FormatJson ⇐ FormatJson }
+{
+  Build ⇐ Build,
+  BuildSelected ⇐ BuildSelected,
+  Format ⇐ Format,
+  PresentationPolicy ⇐ PresentationPolicy,
+  FormatCoefficient ⇐ FormatCoefficient,
+  ProvenanceLabel ⇐ ProvenanceLabel,
+  FormatHuman ⇐ FormatHuman,
+  FormatSelectedHuman ⇐ FormatSelectedHuman,
+  FormatJson ⇐ FormatJson
+}
