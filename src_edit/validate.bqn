@@ -6,8 +6,7 @@
 
 date ← •Import "../src_next/date.bqn"
 dec ← •Import "../src_next/exact_decimal.bqn"
-
-supportedCurrencies ← ⟨"JPY", "ILS"⟩
+setup ← •Import "../src_next/currency_setup.bqn"
 
 # ── Date validation ─────────────────────────────────────────────
 
@@ -32,7 +31,7 @@ ValidateDate ⇐ {
 
 # ── Currency and amount validation ──────────────────────────────
 
-IsSupportedCurrency ⇐ { ∨´ 0 ∾ (𝕩⊸≡¨ supportedCurrencies) }
+IsSupportedCurrency ⇐ { setup.IsSupportedCurrency 𝕩 }
 
 ValidateCurrency ⇐ {
   currency ← 𝕩
@@ -67,17 +66,19 @@ ValidateAmount ⇐ {
   }
 }
 
-# Journal M2 path: exact decimal source text, with lexical ILS precision policy.
-# More than two ILS fractional digits is rejected without rounding, including
-# trailing zero forms such as 1.000.
+# Journal M2 path: exact decimal source text, with lexical precision policy owned
+# by currency_setup. A negative max_fraction_digits means no finite lexical cap.
 ValidateExactAmountForCurrency ⇐ {
   currency ‿ amount ← 𝕩
+  policy ← setup.Policy currency
   parsed ← dec.Parse amount
   fractionDigits ← FractionDigits amount
+  hasFiniteLimit ← 0 ≤ policy.max_fraction_digits
+  exceedsLimit ← hasFiniteLimit ∧ (policy.max_fraction_digits < fractionDigits)
   {
-    (¬ IsSupportedCurrency currency) ? ⟨0, "unsupported currency: " ∾ currency⟩ ;
+    (policy.state ≢ "ok") ? ⟨0, "unsupported currency: " ∾ currency⟩ ;
     (parsed.state ≢ "ok") ? ⟨0, "amount must be an exact decimal: " ∾ amount⟩ ;
-    ((currency ≡ "ILS") ∧ (2 < fractionDigits)) ? ⟨0, "ILS amount must have at most 2 fractional digits: " ∾ amount⟩ ;
+    exceedsLimit ? ⟨0, currency ∾ " amount must have at most " ∾ (•Fmt policy.max_fraction_digits) ∾ " fractional digits: " ∾ amount⟩ ;
     ⟨1, ""⟩
   }
 }
