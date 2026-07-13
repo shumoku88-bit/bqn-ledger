@@ -20,7 +20,7 @@ IsSupportedCurrency ← {𝕊 currency:
 }
 
 IsIgnoredLine ← {𝕊 line:
-  (0 = ≠ line) ? 1 ; ((⊑ line) = '#') ∨ ((⊑ line) = '\\')
+  (0 = ≠ line) ? 1 ; ((⊑ line) = '#') ∨ ((⊑ line) = ⊑"\\")
 }
 
 HasPrefix ← {𝕊 prefix‿text:
