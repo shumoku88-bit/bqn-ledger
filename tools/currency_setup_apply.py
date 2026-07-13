@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
-"""Safely apply the reviewed JPY currency migration to one ledger directory.
+"""Apply the reviewed JPY currency migration with backups and rollback.
 
-The BQN dry-run remains the semantic authority for which source rows change.
-This helper validates that protocol, stages complete replacement files, checks
-snapshots twice, creates recoverable backups, atomically replaces the set, and
-rolls back the set if a write or post-check fails.
+The BQN dry-run is the semantic authority for changed rows. This helper only
+accepts proposals that append exactly one TAB plus ``currency=JPY``.
 """
 
 from __future__ import annotations
 
 import argparse
+from dataclasses import dataclass
 import hashlib
 import os
 from pathlib import Path
@@ -19,19 +18,21 @@ import subprocess
 import sys
 import tempfile
 import time
-from dataclasses import dataclass
 
 SOURCE_FILES = ("accounts.tsv", "journal.tsv", "plan.tsv", "budget_alloc.tsv")
+ALL_FILES = ("config.tsv",) + SOURCE_FILES
 DEFAULT_LINE = "DEFAULT_CURRENCY=JPY"
-FILE_CHANGE_RE = re.compile(r"^FILE (accounts\.tsv|journal\.tsv|plan\.tsv|budget_alloc\.tsv) ROW ([0-9]+)$")
-FILE_SUMMARY_RE = re.compile(
+CHANGE_RE = re.compile(
+    r"^FILE (accounts\.tsv|journal\.tsv|plan\.tsv|budget_alloc\.tsv) ROW ([0-9]+)$"
+)
+SUMMARY_RE = re.compile(
     r"^file=(accounts\.tsv|journal\.tsv|plan\.tsv|budget_alloc\.tsv) "
     r"state=([^ ]+) missing=([0-9]+) explicit=([0-9]+) errors=([0-9]+)$"
 )
 
 
 class MigrationError(RuntimeError):
-    pass
+    """Expected fail-closed migration error."""
 
 
 @dataclass(frozen=True)
@@ -49,14 +50,14 @@ class Change:
     new: str
 
 
-def digest(data: bytes) -> str:
+def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
 def snapshot(path: Path) -> Snapshot:
     data = path.read_bytes()
     stat = path.stat()
-    return Snapshot(size=len(data), mtime_ns=stat.st_mtime_ns, sha256=digest(data))
+    return Snapshot(len(data), stat.st_mtime_ns, sha256(data))
 
 
 def assert_snapshot(path: Path, expected: Snapshot) -> None:
@@ -75,9 +76,9 @@ def parse_dry_run(output: str, returncode: int) -> tuple[list[Change], dict[str,
     missing_default = False
 
     for line in lines:
-        match = FILE_SUMMARY_RE.match(line)
-        if match:
-            file_name, state, missing, _explicit, errors = match.groups()
+        summary = SUMMARY_RE.match(line)
+        if summary:
+            file_name, state, missing, _explicit, errors = summary.groups()
             if state != "ok" or int(errors) != 0:
                 raise MigrationError(f"dry-run source audit is not clean: {line}")
             summaries[file_name] = int(missing)
@@ -86,14 +87,13 @@ def parse_dry_run(output: str, returncode: int) -> tuple[list[Change], dict[str,
 
     index = 0
     while index < len(lines):
-        match = FILE_CHANGE_RE.match(lines[index])
+        match = CHANGE_RE.match(lines[index])
         if not match:
             index += 1
             continue
         if index + 2 >= len(lines):
             raise MigrationError(f"truncated dry-run change after: {lines[index]}")
-        old_line = lines[index + 1]
-        new_line = lines[index + 2]
+        old_line, new_line = lines[index + 1 : index + 3]
         if not old_line.startswith("-") or not new_line.startswith("+"):
             raise MigrationError(f"invalid dry-run change protocol after: {lines[index]}")
         file_name, row_text = match.groups()
@@ -101,41 +101,44 @@ def parse_dry_run(output: str, returncode: int) -> tuple[list[Change], dict[str,
         new = new_line[1:]
         if new != old + "\tcurrency=JPY":
             raise MigrationError(
-                f"unsafe proposal for {file_name} row {row_text}: expected exact tab + currency=JPY append"
+                f"unsafe proposal for {file_name} row {row_text}: "
+                "expected exact TAB + currency=JPY append"
             )
-        changes.append(Change(file_name=file_name, row_index=int(row_text), old=old, new=new))
+        changes.append(Change(file_name, int(row_text), old, new))
         index += 3
 
     if set(summaries) != set(SOURCE_FILES):
         raise MigrationError("dry-run did not report all four source files")
-    for file_name, expected_count in summaries.items():
-        actual_count = sum(change.file_name == file_name for change in changes)
-        if actual_count != expected_count:
+    for file_name, expected in summaries.items():
+        actual = sum(change.file_name == file_name for change in changes)
+        if actual != expected:
             raise MigrationError(
-                f"dry-run count mismatch for {file_name}: summary={expected_count} proposals={actual_count}"
+                f"dry-run count mismatch for {file_name}: summary={expected} proposals={actual}"
             )
 
     changed_line = next((line for line in lines if line.startswith("changed_count=")), None)
     if changed_line is None:
         raise MigrationError("dry-run did not report changed_count")
-    changed_count = int(changed_line.split("=", 1)[1])
-    if changed_count != len(changes):
-        raise MigrationError(f"dry-run total mismatch: summary={changed_count} proposals={len(changes)}")
+    reported_total = int(changed_line.split("=", 1)[1])
+    if reported_total != len(changes):
+        raise MigrationError(
+            f"dry-run total mismatch: summary={reported_total} proposals={len(changes)}"
+        )
 
     if returncode != 0 and not missing_default:
         raise MigrationError(f"dry-run failed with exit {returncode}\n{output}")
     if returncode == 0 and missing_default:
         raise MigrationError("dry-run protocol contradicted itself about DEFAULT_CURRENCY")
 
-    error_lines = [line for line in lines if line.startswith("ERROR:")]
-    allowed_errors = ["ERROR: missing ledger config key: DEFAULT_CURRENCY"] if missing_default else []
-    if error_lines != allowed_errors:
-        raise MigrationError("unexpected dry-run errors:\n" + "\n".join(error_lines))
+    errors = [line for line in lines if line.startswith("ERROR:")]
+    allowed = ["ERROR: missing ledger config key: DEFAULT_CURRENCY"] if missing_default else []
+    if errors != allowed:
+        raise MigrationError("unexpected dry-run errors:\n" + "\n".join(errors))
 
     return changes, summaries, missing_default
 
 
-def split_body_and_ending(raw_line: bytes) -> tuple[bytes, bytes]:
+def body_and_ending(raw_line: bytes) -> tuple[bytes, bytes]:
     if raw_line.endswith(b"\r\n"):
         return raw_line[:-2], b"\r\n"
     if raw_line.endswith(b"\n"):
@@ -152,19 +155,19 @@ def stage_source(path: Path, changes: list[Change]) -> bytes:
     for row_index, change in by_row.items():
         if row_index >= len(raw_lines):
             raise MigrationError(f"proposal row out of range for {path.name}: {row_index}")
-        body, ending = split_body_and_ending(raw_lines[row_index])
+        body, ending = body_and_ending(raw_lines[row_index])
         try:
-            body_text = body.decode("utf-8")
+            current = body.decode("utf-8")
         except UnicodeDecodeError as exc:
             raise MigrationError(f"non-UTF-8 source row in {path.name}: {row_index}") from exc
-        if body_text != change.old:
+        if current != change.old:
             raise MigrationError(f"proposal old row no longer matches {path.name} row {row_index}")
         raw_lines[row_index] = change.new.encode("utf-8") + ending
 
     return b"".join(raw_lines)
 
 
-def config_state(data: bytes) -> str:
+def inspect_config(data: bytes) -> str:
     try:
         text = data.decode("utf-8")
     except UnicodeDecodeError as exc:
@@ -189,7 +192,9 @@ def config_state(data: bytes) -> str:
     if len(values) > 1:
         raise MigrationError("duplicate ledger config key: DEFAULT_CURRENCY")
     if values[0] != "JPY":
-        raise MigrationError(f"production JPY migration requires DEFAULT_CURRENCY=JPY, found {values[0]!r}")
+        raise MigrationError(
+            f"production JPY migration requires DEFAULT_CURRENCY=JPY, found {values[0]!r}"
+        )
     return "explicit-jpy"
 
 
@@ -212,7 +217,7 @@ def choose_backup(base: Path, file_name: str, stamp: str) -> Path:
     return candidate
 
 
-def write_temp_for_target(target: Path, data: bytes) -> Path:
+def write_candidate_temp(target: Path, data: bytes) -> Path:
     fd, name = tempfile.mkstemp(prefix=f".{target.name}.currency-m25-", dir=target.parent)
     temp_path = Path(name)
     try:
@@ -227,15 +232,13 @@ def write_temp_for_target(target: Path, data: bytes) -> Path:
         raise
 
 
-def restore_all(backups: dict[Path, Path], targets: list[Path]) -> None:
+def restore(backups: dict[Path, Path], targets: list[Path]) -> None:
     failures: list[str] = []
     for target in targets:
-        backup = backups.get(target)
-        if backup is None or not backup.exists():
-            continue
+        backup = backups[target]
         try:
             shutil.copy2(backup, target)
-        except Exception as exc:  # pragma: no cover
+        except Exception as exc:  # pragma: no cover - catastrophic filesystem path
             failures.append(f"{target}: {exc}")
     if failures:
         raise MigrationError("rollback failed:\n" + "\n".join(failures))
@@ -243,21 +246,21 @@ def restore_all(backups: dict[Path, Path], targets: list[Path]) -> None:
 
 def post_check(root: Path, base: Path, mode: str) -> None:
     audit = run([str(root / "tools" / "currency-setup"), "audit", str(base)], cwd=root)
-    combined = "\n".join(part for part in (audit.stdout, audit.stderr) if part)
+    audit_text = "\n".join(part for part in (audit.stdout, audit.stderr) if part)
     required = ("state=ok", "changed_count=0", "error_count=0")
-    if audit.returncode != 0 or any(item not in audit.stdout for item in required):
-        raise MigrationError(f"post-migration audit failed\n{combined}")
+    if audit.returncode != 0 or any(marker not in audit.stdout for marker in required):
+        raise MigrationError(f"post-migration audit failed\n{audit_text}")
 
     lint = run(["bqn", "src_next/report.bqn", str(base)], cwd=root)
     if lint.returncode != 0:
-        combined = "\n".join(part for part in (lint.stdout, lint.stderr) if part)
-        raise MigrationError(f"post-migration ledger lint failed\n{combined}")
+        lint_text = "\n".join(part for part in (lint.stdout, lint.stderr) if part)
+        raise MigrationError(f"post-migration ledger lint failed\n{lint_text}")
 
     if mode == "full":
         full = run(["bash", "tools/check.sh"], cwd=root)
         if full.returncode != 0:
-            combined = "\n".join(part for part in (full.stdout, full.stderr) if part)
-            raise MigrationError(f"repository full check failed\n{combined}")
+            full_text = "\n".join(part for part in (full.stdout, full.stderr) if part)
+            raise MigrationError(f"repository full check failed\n{full_text}")
 
 
 def main() -> int:
@@ -270,22 +273,26 @@ def main() -> int:
 
     root = args.root.resolve()
     base = args.base.resolve()
-    paths = {name: base / name for name in ("config.tsv",) + SOURCE_FILES}
+    paths = {name: base / name for name in ALL_FILES}
     for path in paths.values():
         if not path.is_file():
             raise MigrationError(f"required source file not found: {path}")
 
     snapshots = {path: snapshot(path) for path in paths.values()}
     dry = run([str(root / "tools" / "currency-setup"), "dry-run", str(base)], cwd=root)
-    dry_output = "\n".join(part for part in (dry.stdout.rstrip("\n"), dry.stderr.rstrip("\n")) if part)
-    changes, summaries, missing_default = parse_dry_run(dry_output, dry.returncode)
+    dry_text = "\n".join(
+        part for part in (dry.stdout.rstrip("\n"), dry.stderr.rstrip("\n")) if part
+    )
+    changes, summaries, missing_default = parse_dry_run(dry_text, dry.returncode)
 
-    current_config = paths["config.tsv"].read_bytes()
-    config_kind = config_state(current_config)
-    if missing_default != (config_kind == "missing"):
+    config_bytes = paths["config.tsv"].read_bytes()
+    config_state = inspect_config(config_bytes)
+    if missing_default != (config_state == "missing"):
         raise MigrationError("dry-run and direct config inspection disagree")
 
-    staged: dict[Path, bytes] = {paths["config.tsv"]: stage_config(current_config, config_kind)}
+    staged: dict[Path, bytes] = {
+        paths["config.tsv"]: stage_config(config_bytes, config_state)
+    }
     for file_name in SOURCE_FILES:
         staged[paths[file_name]] = stage_source(
             paths[file_name], [change for change in changes if change.file_name == file_name]
@@ -294,7 +301,7 @@ def main() -> int:
     changed_targets = [path for path, candidate in staged.items() if candidate != path.read_bytes()]
     print("Currency migration apply preview")
     print(f"Base: {base}")
-    print(f"DEFAULT_CURRENCY: {'append JPY' if config_kind == 'missing' else 'already JPY'}")
+    print(f"DEFAULT_CURRENCY: {'append JPY' if config_state == 'missing' else 'already JPY'}")
     for file_name in SOURCE_FILES:
         print(f"{file_name}: add currency=JPY to {summaries[file_name]} row(s)")
     print(f"Source rows: {len(changes)}")
@@ -331,33 +338,44 @@ def main() -> int:
     try:
         for path, expected in snapshots.items():
             assert_snapshot(path, expected)
-
-        temps = {target: write_temp_for_target(target, staged[target]) for target in changed_targets}
-        replaced: list[Path] = []
-        try:
-            for target in changed_targets:
-                os.replace(temps[target], target)
-                replaced.append(target)
-        except Exception:
-            for temp_path in temps.values():
-                temp_path.unlink(missing_ok=True)
-            restore_all(backups, replaced)
-            raise
-
-        try:
-            post_check(root, base, args.post_check)
-        except Exception:
-            restore_all(backups, changed_targets)
-            raise
     except Exception:
-        print("Migration failed. Source files were restored from backups.", file=sys.stderr)
+        print(
+            "Migration aborted before replacement because a source became stale. "
+            "The migration did not overwrite that change.",
+            file=sys.stderr,
+        )
         for target, backup in backups.items():
-            print(f"Restore copy: {backup} -> {target}", file=sys.stderr)
+            print(f"Pre-write backup: {backup} (source: {target})", file=sys.stderr)
+        raise
+
+    try:
+        temps = {target: write_candidate_temp(target, staged[target]) for target in changed_targets}
+    except Exception:
+        print("Migration aborted before replacement while staging candidate files.", file=sys.stderr)
+        raise
+
+    replaced: list[Path] = []
+    try:
+        for target in changed_targets:
+            os.replace(temps[target], target)
+            replaced.append(target)
+    except Exception:
+        for temp_path in temps.values():
+            temp_path.unlink(missing_ok=True)
+        restore(backups, replaced)
+        print("Migration write failed; replaced files were restored from backups.", file=sys.stderr)
+        raise
+
+    try:
+        post_check(root, base, args.post_check)
+    except Exception:
+        restore(backups, changed_targets)
+        print("Post-check failed; the complete source set was restored from backups.", file=sys.stderr)
         raise
 
     print("Migration applied successfully.")
     for target, backup in backups.items():
-        print(f"Backup: {backup}")
+        print(f"Backup: {backup} (source: {target})")
     print("Idempotence: audit reports changed_count=0")
     return 0
 
