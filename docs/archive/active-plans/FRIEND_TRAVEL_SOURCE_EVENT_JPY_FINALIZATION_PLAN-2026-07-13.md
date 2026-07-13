@@ -10,7 +10,7 @@ Exit: archive as completed only after the separately selected pure-preview slice
 This plan selects only this consumer from [TRAVEL_MULTI_CURRENCY_SETTLEMENT_DESIGN_INTAKE-2026-07-12.md](TRAVEL_MULTI_CURRENCY_SETTLEMENT_DESIGN_INTAKE-2026-07-12.md):
 
 1. At purchase time, keep a friend's foreign-currency travel purchase as a pending source event, not a canonical journal posting.
-2. After return, a human confirms the final JPY amount with the friend.
+2. After return, a human explicitly supplies a valid `finalization_date` and confirms the final JPY amount with the friend.
 3. Preview exactly one JPY canonical-journal row from the existing JPY friend-liability account to an existing JPY travel-expense account.
 4. Repay that JPY friend liability later through the ordinary journal path.
 
@@ -36,10 +36,10 @@ The event is a source fact and must not enter Posting IR, canonical journal expe
 
 ## Chosen one-row JPY preview
 
-Let `J` be the human-confirmed final JPY amount. An accepted result contains exactly this one canonical journal preview row:
+Let `J` be the human-confirmed final JPY amount. `finalization_date` is a valid date explicitly supplied by the human. It is distinct from the source event's purchase `date`, which remains the observed purchase date and must never be reused as a finalization date. An accepted result contains exactly this one canonical journal preview row:
 
 ```tsv
-<finalization-date>	<party>: <item_or_category>	<liabilities:friend-JPY>	<expenses:travel-JPY>	<J>	currency=JPY	source_event_id=<source_event_id>	trip_id=<trip_id>
+<finalization_date>	<party>: <item_or_category>	<liabilities:friend-JPY>	<expenses:travel-JPY>	<J>	currency=JPY	source_event_id=<source_event_id>	trip_id=<trip_id>
 ```
 
 `<liabilities:friend-JPY>` and `<expenses:travel-JPY>` are explicit, already-existing account descriptors supplied to the validator. The illustrative names do not authorize account creation, prefix inference, or selection by a UI. The direction is intentional: it increases the existing JPY friend liability and records the sole canonical JPY travel expense.
@@ -57,12 +57,13 @@ The accepted result binds the one JPY preview to the pending source event and de
 The pure validator accepts only:
 
 - a pending source event or typed descriptor satisfying every source-event field contract above;
+- an explicitly human-supplied valid `finalization_date`;
 - a human-confirmed `J` that is a positive JPY integer;
 - an explicit existing JPY friend-liability account descriptor;
 - an explicit existing JPY travel-expense account descriptor; and
 - the supplied existing-finalization index.
 
-It rejects with zero preview rows if `source_event_id`, `trip_id`, `payer`, `original_amount`, or `original_currency` is missing or invalid; status is not `pending`; `J` is not a positive integer; either selected account is unknown/not-existing or is not JPY; the accounts do not have the required liability/expense roles; or `source_event_id` is already finalized. It also rejects any request that would emit an endpoint other than the selected JPY liability and JPY expense accounts.
+It rejects with zero preview rows if `source_event_id`, `trip_id`, `payer`, `original_amount`, or `original_currency` is missing or invalid; `finalization_date` is missing or invalid; status is not `pending`; `J` is not a positive integer; either selected account is unknown/not-existing or is not JPY; the accounts do not have the required liability/expense roles; or `source_event_id` is already finalized. It also rejects any request that would emit an endpoint other than the selected JPY liability and JPY expense accounts.
 
 An accepted result always contains exactly one JPY journal preview row and no foreign-currency journal row, clearing row, or second expense row. An error result contains zero preview rows. This is the complete all-or-nothing boundary of the first slice.
 
@@ -87,9 +88,9 @@ It does not reopen the source event, create a second expense, or require a final
 
 ## First implementation slice: pure validation + one-row JPY preview only
 
-The only implementation slice this plan authorizes for later selection is an I/O-free BQN pure function and unit tests. Its inputs are the pending source-event descriptor, confirmed JPY amount, explicit existing JPY liability and expense account descriptors, and existing-finalization index. Its output is either structured rejection diagnostics with zero preview rows or an accepted result with exactly one JPY journal preview. It performs no TSV reads, writes, environment reads, report changes, editor/UI dispatch, account creation, or status/index mutation.
+The only implementation slice this plan authorizes for later selection is an I/O-free BQN pure function and unit tests. Its inputs are the pending source-event descriptor, explicitly human-supplied `finalization_date`, confirmed JPY amount, explicit existing JPY liability and expense account descriptors, and existing-finalization index. Its output is either structured rejection diagnostics with zero preview rows or an accepted result with exactly one JPY journal preview. It performs no TSV reads, writes, environment reads, report changes, editor/UI dispatch, account creation, or status/index mutation.
 
-Required characterization cases include: accepted pending event; each missing/invalid source-event identity and observed-amount/currency field; non-`friend` payer; non-pending status; non-positive/non-integer JPY amount; unknown/non-JPY/wrong-role liability or expense account; pre-existing finalization; wrong row direction; any foreign or clearing endpoint; accepted output exactly one row; and every rejection output zero rows.
+Required characterization cases include: accepted pending event; each missing/invalid source-event identity and observed-amount/currency field; missing/invalid `finalization_date`; non-`friend` payer; non-pending status; non-positive/non-integer JPY amount; unknown/non-JPY/wrong-role liability or expense account; pre-existing finalization; wrong row direction; any foreign or clearing endpoint; accepted output exactly one row; and every rejection output zero rows.
 
 The source-event read/write and status-transition boundary, finalization-index persistence, journal writer, metadata-schema admission, fixtures, reports, and real-data trial are deliberately **not** part of this slice. Select a write slice only after this preview is reviewed and a new plan defines atomic source-event finalization plus journal-write evidence and recovery ownership.
 
