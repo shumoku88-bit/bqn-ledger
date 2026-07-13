@@ -27,7 +27,9 @@ Ordered phases:
 4. exchange-event safe append and recovery;
 5. integrated four-path synthetic rehearsal and closure.
 
-Only Phase 1 is the immediate implementation slice after this selection PR. Each phase is an independent PR and begins only after its predecessor passes CI and merges. The sequence does not select the return-home atomic finalization writer, router, cash view, strict-source Steps 2–5, M4, or Ledger Observatory work.
+Phase 1 ordinary journal metadata readiness is complete: the unchanged generic `key=value` path preserves ordered `trip_id=israel-2026` and `payment=cash|card` metadata for synthetic ILS cash and confirmed-JPY card rows. `config/meta_schema.tsv` remains unchanged.
+
+Phase 2 friend-paid pending source-event storage and safe append is the immediate implementation slice after the Phase 1 PR passes CI and merges. Each phase is an independent PR and begins only after its predecessor passes CI and merges. The sequence does not select the return-home atomic finalization writer, router, cash view, strict-source Steps 2–5, M4, or Ledger Observatory work.
 
 Canonical execution plan: `docs/archive/active-plans/ISRAEL_PREDEPARTURE_EDITOR_CAPTURE_COMPLETION-2026-07-13.md`.
 

@@ -34,7 +34,11 @@ Each phase is a separate PR. A phase begins only after the preceding PR has pass
 4. **Exchange-event safe append and recovery** — add dedicated checked source-event persistence without journal projection.
 5. **Integrated four-path synthetic rehearsal and closure** — exercise all public entries in one temporary synthetic base, finish usage docs, and archive this plan.
 
-Only Phase 1 is the immediate implementation slice after the selection PR. Completion of one phase does not authorize skipping its review or combining it with the next PR.
+Completion of one phase does not authorize skipping its review or combining it with the next PR.
+
+## Progress
+
+- Phase 1 verifies on a synthetic base that the unchanged ordinary journal path preserves ordered `trip_id=israel-2026` and `payment=cash|card` metadata for ILS cash and confirmed-JPY card rows. The generic `key=value` path is sufficient, so `config/meta_schema.tsv` remains unchanged. After its PR passes CI and merges, Phase 2 is the immediate slice.
 
 ## Ownership and exclusions
 
