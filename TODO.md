@@ -29,6 +29,15 @@ Status: unselected candidate only. The pure-preview implementation is verified a
 
 Mixed-ledger daily-use の後続候補とslice境界は `docs/archive/active-plans/CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md` を参照する。M3は実装・検証済みで、strict-source Step 1（policy carrier / pure admission core）は完了済み。strict-sourceのSteps 2–5（writer closure、compatibility preparation、production activation、post-implementation verification）とM4は未選定であり、自動選定しない。
 
+### Ledger Observatory long-term program
+
+Status: active long-term direction; no runtime slice selected. Canonical plan: `docs/archive/active-plans/LEDGER_OBSERVATORY_LONG_TERM_PLAN-2026-07-13.md`.
+
+- [ ] 次に選定可能なのは、synthetic inputだけを使う source-row → Posting IR → Cube coordinate evidence trace の docs-only finite design。
+- [ ] evidence trace の input/output shape、privacy-safe identity、all-or-nothing rejection、fixture/test boundaryを先に決め、production source read・CLI・report/UI統合は含めない。
+- [ ] scenario overlay、Cube Theatre、BQN Ledger Kata、Projection Workbench、新しいAI観測基盤は、この長期計画だけを理由に自動選定しない。
+- [ ] Projection Workbenchは、独立した具体consumerが少なくとも2つ完成し、同じprojection contractが実証されるまで開始しない。
+
 ### M4: Expense breakdown grouped by meaning and currency
 
 Status: candidate only。Daily-use observationと既存expense/cycle consumer contractの再確認前に実装しない。strict-source decisionまたは将来のstrict runtime completionはM4を自動選定しない。
