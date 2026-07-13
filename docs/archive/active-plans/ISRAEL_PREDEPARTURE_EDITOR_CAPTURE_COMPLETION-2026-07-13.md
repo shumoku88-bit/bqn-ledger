@@ -51,7 +51,9 @@ No production or actual `LEDGER_DATA_DIR` was read. The stopped branch was clean
 
 Phase 5 is paused while the selected prerequisite makes ordinary journal `lint` a mixed-safe source-integrity check and adds checked automatic rollback. The prerequisite must preserve per-row date, exact amount, metadata, account existence, account/row currency, ILS precision, and legacy missing-currency compatibility checks. It must refuse rollback if a later writer changed the post-write target. It must not change full report, strict-source Steps 2–5, candidate 6, friend/exchange writers, M4, or cash views.
 
-After that prerequisite passes CI and merges, Phase 5 resumes through the public commands without `--post-check none`.
+The prerequisite implements `src_edit/journal_source_integrity.bqn` plus the journal CLI check owner. Ordinary journal `lint` now validates mixed JPY/ILS source row integrity without report arithmetic. Journal post-check failure performs digest-guarded rollback to exact original bytes; later-writer mutation refuses rollback with recovery-required evidence. `full` remains the separate broad check mode and report contracts remain unchanged.
+
+After the prerequisite PR passes CI and merges, Phase 5 resumes through the public commands without `--post-check none`.
 
 ## Ownership and exclusions
 

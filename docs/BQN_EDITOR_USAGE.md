@@ -217,7 +217,7 @@ Israel旅行中に友人がILSで立て替えた観測事実は、ordinary journ
 2.  **プレビューと確認**: 追記または編集される正確なTSV行を画面に出力し、ユーザーが明示的に `y` または `yes` と入力しない限り書き込みません（`--yes` 指定時を除く）。
 3.  **自動バックアップ**: 置き換えを実行する直前に、対象ディレクトリ内の `.backup/YYYYMMDD-HHMMSS/<ファイル名>` にオリジナルデータを退避します。
 4.  **安全な置き換え**: 追記や編集はBashスクリプト連携で安全に行い、編集中にデータが破損しないように努めます。
-5.  **事後チェック (Post-write check)**: 書き込み直後に自動で確認を実行します。既定の `--post-check lint` は `bqn src_next/report.bqn <base>` を実行し、`--post-check full` は `./tools/check.sh` を実行します。もしチェックが失敗した場合は、警告を出した上で、バックアップから戻すための案内を表示します。
+5.  **事後チェック (Post-write check)**: 書き込み直後に自動で確認を実行します。ordinary journalの既定 `--post-check lint` はmixed JPY/ILSを合算せず、`src_edit/journal_source_check.bqn`で各source rowの日付、exact amount、metadata、currency、account整合性を検査します。正常なmixed-currency sourceは許容しますが、full reportのsingle-currency consumer contractは変更しません。その他の既存lint ownerは従来どおりで、`--post-check full` は別の広い検証modeとして `./tools/check.sh` を実行します。journal post-check失敗時は、post-write digestが一致する場合だけbackupからoriginal bytesへ自動rollbackし、後続writerが変更した場合はrollbackを拒否してrecovery-requiredを表示します。
 
 ---
 
