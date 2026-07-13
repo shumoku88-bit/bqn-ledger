@@ -148,3 +148,35 @@ docs/archive/audits/AI_WORKING_FEEDBACK_CLASSIFICATION-YYYY-MM-DD.md
   - Broader subprocess migration is not authorized by momentum.
   - Temporary SIGPIPE / exit 141 remains separate `observe-more` work.
 - Review record: `../completed-plans/SUBPROCESS_DEBUG_VISIBILITY_REVIEW-2026-07-05.md`
+
+### 2026-07-13: Public-command fidelity must be tested before final rehearsal
+
+- Context: Israel ordinary journal readiness and later four-path synthetic rehearsal.
+- Friction: Phase 1 used `--post-check none` for focused metadata checks, so the documented default `lint` path was not exercised until Phase 5; only then did the valid ILS-then-JPY sequence reveal append-success followed by `mixed_currency_domains` failure without rollback.
+- Idea: Separate focused contract tests from public-use rehearsal, and run at least one exact documented command with its default options in the earliest readiness phase. Do not add a bypass flag that is absent from the acceptance command merely to make a focused fixture pass.
+- Candidate type: rule / verification / workflow
+- Related tool/doc: `checks/check-edit-bqn-currency-m2.sh`, `checks/check-israel-travel-four-path-rehearsal.sh`, `docs/ISRAEL_TRAVEL_EDITOR_USAGE.md`
+
+### 2026-07-13: Green-path check output consumes excessive context
+
+- Context: Repeated `env -u LEDGER_DATA_DIR rtk bash ./tools/check.sh` validation across the Israel multi-PR sequence.
+- Friction: Successful section checks emitted a large amount of repetitive output through `rtk`, consuming substantial conversation context even though only phase/result summaries were needed; red-path evidence must still remain complete.
+- Idea: Evaluate a green-path summary mode or existing `rtk` / `sqz` improvement that reports phase names, counts, and final PASS while preserving full stdout/stderr for the failing check. Do not hide failure output with unconditional redirection.
+- Candidate type: existing-tool-improvement / check
+- Related tool/doc: `tools/check.sh`, `rtk`, `sqz`, `docs/QUALITY_BAR.md`
+
+### 2026-07-13: Coverage leaves Python bytecode during clean-tree gates
+
+- Context: Running `tools/coverage` before each Israel phase commit and PR.
+- Friction: The command repeatedly created ignored `tools/__pycache__/` content, requiring manual removal before reliable clean-tree and scope review.
+- Idea: Check whether `tools/coverage` can internally prevent bytecode generation, for example with the equivalent of `PYTHONDONTWRITEBYTECODE=1`, without changing coverage semantics.
+- Candidate type: existing-tool-improvement
+- Related tool/doc: `tools/coverage`, `git status`
+
+### 2026-07-13: Completion records cannot contain their own final merge hash
+
+- Context: Phase 5 moved its active plan to completed and was required to record every merge commit in the same PR.
+- Friction: A PR's final merge commit does not exist while that PR's completed record is being authored; satisfying the requirement literally would need an otherwise unnecessary follow-up PR.
+- Idea: Standardize completion evidence so the closing PR records its PR number, branch commit, and checks, names PR metadata as the merge-hash owner, and the final human/pit report records the resolved merge commit after merge.
+- Candidate type: rule / docs / workflow
+- Related tool/doc: `docs/DOCS_LIFECYCLE_CONTRACT.md`, completed-plan templates, GitHub PR metadata
