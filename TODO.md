@@ -48,6 +48,35 @@ Rows 3–7 are routing candidates only and no next program slice is selected. Fe
 
 ## Next candidates
 
+### Unreferenced docs hygiene and routing
+
+Status: candidate only.
+
+- [ ] Check and resolve remaining unreferenced Markdown files in `docs/` that are not linked in `docs/README.md`:
+  - Canonical/Current specs (add to `docs/README.md`):
+    - `docs/PRODUCTION_EDITOR_DIRECTION.md`
+    - `docs/THIRD_PARTY_DEPENDENCIES.md`
+    - `docs/EDIT_BQN_DISPATCHER.md`
+  - Daily Trend / Outlook decision records (archive to `docs/archive/completed-plans/` or link as auxiliary):
+    - `docs/DAILY_TREND_OBSERVATION_CONSISTENCY_DECISION.md`
+    - `docs/DAILY_TREND_KNOWLEDGE_BOUNDARY_DECISION.md`
+    - `docs/DAILY_TREND_ROW_MEMBERSHIP_PRODUCER_DECISION.md`
+    - `docs/DAILY_TREND_HEADER_TIME_OWNER_DECISION.md`
+    - `docs/DAILY_TREND_EXPLICIT_EMPTY_PLAN_IDENTITY_MEANING_DECISION.md`
+    - `docs/OUTLOOK_PRODUCTION_OBSERVATION_SOURCE_DECISION.md`
+    - `docs/OUTLOOK_RECORD_FRONTIER_RELATION_DECISION.md`
+    - `docs/OUTLOOK_OBSERVATION_TRANSPORT_BOUNDARY.md`
+    - `docs/OUTLOOK_HOUSEHOLD_QUESTION_DECISION.md`
+  - Experimental / Demos (archive to `docs/archive/completed-plans/` or document in `docs/README.md` as exploratory):
+    - `docs/ASCII_GARDEN_REPORT.md`
+    - `docs/FIXTURE_DEMO.md`
+    - `docs/REPORT_MOCK_SANITIZATION.md`
+    - `docs/CBQN_REPRODUCIBILITY.md`
+    - `docs/WHY_SHARE.md`
+  - Subdirectories (add index routing in `docs/README.md`):
+    - `docs/report-mocks/README.md`
+    - `docs/variable-catalog/README.md`
+
 ### Friend travel atomic finalization writer (Israel candidate 6)
 
 Status: unselected / parked candidate. The pure one-row JPY preview is implemented and independently verified; see `docs/archive/active-plans/FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md`.
