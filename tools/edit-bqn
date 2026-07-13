@@ -3,6 +3,7 @@
 #
 # Current scope: daily commands (`account add/list`, `journal add/list/reverse`,
 # `budget add`, `issue add/list/close`, and `plan add/list/related/finish/edit`).
+# plus the dedicated `travel friend add` pending source-event command.
 # `tools/edit` is the public wrapper that delegates here.
 #
 # Shared parsing/protocol/write handling is kept in one path for the
@@ -20,6 +21,8 @@ source "$DIR/lib/safe-write.sh"
 source "$DIR/lib/edit-bqn-common.sh"
 # shellcheck source=tools/lib/edit-bqn-issue.sh
 source "$DIR/lib/edit-bqn-issue.sh"
+# shellcheck source=tools/lib/edit-bqn-travel.sh
+source "$DIR/lib/edit-bqn-travel.sh"
 
 BASE_DIR="${LEDGER_DATA_DIR:-$(get_default_base_dir)}"
 JOURNAL_FILE="$(get_system_default_file DEFAULT_JOURNAL_FILE journal.tsv)"
@@ -45,8 +48,9 @@ Usage:
   tools/edit-bqn [--base DIR] plan finish [--index NUMBER] [--id PLAN_ID] --actual-date YYYY-MM-DD [--actual-amount INT] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] plan edit [--index NUMBER] [--id PLAN_ID] [--date YYYY-MM-DD] [--amount INT] [--all] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] journal reverse [--index NUMBER] [--id TXN_ID] [--date YYYY-MM-DD] [--dry-run] [--yes] [--post-check none|lint|full]
+  tools/edit-bqn [--base DIR] travel friend add --date YYYY-MM-DD --party PARTY --item ITEM --amount DECIMAL --currency ILS --payer friend --trip-id israel-2026 --source-event-id ID [--dry-run] [--yes]
 
-Current scope: BQN editor daily commands (account add/list, journal/budget/plan/issue add, issue list/close, journal list/reverse, and plan list/related/finish/edit).
+Current scope: BQN editor daily commands (account add/list, journal/budget/plan/issue add, travel friend add, issue list/close, journal list/reverse, and plan list/related/finish/edit).
 USAGE
 }
 
@@ -73,6 +77,12 @@ if [[ $# -lt 2 ]]; then
   echo "ERROR: missing command/subcommand" >&2
   usage
   exit 2
+fi
+
+if [[ "$1" == "travel" && "$2" == "friend" && "${3-}" == "add" ]]; then
+  shift 3
+  handle_edit_bqn_travel_friend_add "$@"
+  exit $?
 fi
 
 if [[ "$1" == "account" && "$2" == "add" ]]; then

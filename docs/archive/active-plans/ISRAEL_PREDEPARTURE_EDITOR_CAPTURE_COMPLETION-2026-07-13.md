@@ -38,7 +38,8 @@ Completion of one phase does not authorize skipping its review or combining it w
 
 ## Progress
 
-- Phase 1 verifies on a synthetic base that the unchanged ordinary journal path preserves ordered `trip_id=israel-2026` and `payment=cash|card` metadata for ILS cash and confirmed-JPY card rows. The generic `key=value` path is sufficient, so `config/meta_schema.tsv` remains unchanged. After its PR passes CI and merges, Phase 2 is the immediate slice.
+- Phase 1 verifies on a synthetic base that the unchanged ordinary journal path preserves ordered `trip_id=israel-2026` and `payment=cash|card` metadata for ILS cash and confirmed-JPY card rows. The generic `key=value` path is sufficient, so `config/meta_schema.tsv` remains unchanged.
+- Phase 2 adds `tools/edit travel friend add` and headerless `friend_travel_events.tsv`. Blank/comment lines follow the existing loader convention; every data row is the fixed nine-column pending contract. BQN owns full-source validation and identity uniqueness; shell owns exclusive first-file creation, checked append, dedicated post-check, and checked rollback. No journal or finalization write is added. After its PR passes CI and merges, Phase 3 is the immediate slice.
 
 ## Ownership and exclusions
 
