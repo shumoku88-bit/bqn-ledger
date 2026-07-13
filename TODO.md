@@ -9,51 +9,56 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-13 — verified Currency Mixed-Ledger M1 from PR #194 and selected M1.5 as the next finite travel-readiness slice.
+Last hygiene pass: 2026-07-13 — verified Currency Mixed-Ledger M1.5 from PR #196 and selected M2 as the next finite travel-readiness slice.
 
 ---
 
 ## Active work
 
-### Currency Mixed-Ledger M1.5: Explicit Default Carrier and Migration Tooling
+### Currency Mixed-Ledger M2: Editor Currency-aware Account and Journal Input
 
 Plan: `docs/archive/active-plans/CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md`
 
-Verification: `docs/archive/audits/CURRENCY_MIXED_LEDGER_M1_POST_IMPLEMENTATION_VERIFICATION-2026-07-13.md`
+Verification: `docs/archive/audits/CURRENCY_MIXED_LEDGER_M15_POST_IMPLEMENTATION_VERIFICATION-2026-07-13.md`
 
 Goal:
-- 帳簿のdefault currencyを明示的なledger-level設定として解決し、source currency authorityとは分離したまま、既存JPY sourceの安全な監査とdry-run migrationを可能にする。
+- JPY / ILS の選択をeditor入力境界へ持ち込み、勘定科目と新規journal rowへ通貨を必ず明示し、異なる通貨の勘定を混ぜた入力をfail closedにする。
 
 Allowed:
-- ledger-level owner / exact key の選定
-- explicit default currency carrier
-- effective selected currency / provenance carrier
-- read-only missing / duplicate / unknown currency audit
-- `accounts.tsv` / `journal.tsv` / `plan.tsv` / `budget_alloc.tsv` のidempotent dry-run migration tooling
-- fake fixtures and focused tests / checks
-- first-five-column、account name、From/To、row order、empty field、comment、unrelated metadata の保存検証
-- existing safe-write / snapshot-token boundary の再利用設計
+- `account add --currency`
+- `account list --role --currency`
+- `journal add --currency`
+- exact-decimal editor amount validation
+- ILS source amountを最大2小数桁に制限し、丸めず拒否する検証
+- selected currencyに一致するFrom/To account candidate filtering
+- From / To account currency mismatch rejection
+- 新規account / journal rowへの明示的な `currency=` metadata生成（JPYを含む）
+- `<ledger>/config.tsv` の `DEFAULT_CURRENCY` をinitial selectionとして利用
+- explicit currency overrideとselection provenance
+- fake fixtures and focused BQN / shell checks
+- existing JPY editor behaviorの回帰確認
 
 Not authorized:
-- production source data変更
-- strict missing-currency enforcement
-- editor変更
-- public report CLI変更
-- human balance formatting
+- existing production source row変更
+- production JPY migrationの実行または自動apply
+- historical missing currencyのstrict rejection
+- plan / budget / issue editorの広範な通貨campaign
+- public report / balances / human currency formatting変更
 - FX / conversion / valuation
 - Currency axis
 - mixed aggregation
-- M2以降の実装
+- M2.5 / M3以降の実装
 
 Exit:
-- default currency owner and exact key are explicit
-- default selection is not used as missing source currency authority
-- audit reports missing / duplicate / unknown currency states without mutation
-- dry-run proposes only absent `currency=JPY` additions
-- migration proposal is idempotent
-- first five journal-like columns and account/reference identity remain exact
-- row order, empty fields, comments, and unrelated metadata remain exact
-- no production data is changed
+- account addがsupported currencyを要求し、明示的なaccount currency metadataを生成する
+- account listがroleとcurrencyを同時に絞り込める
+- journal addがsupported currencyを要求し、明示的なrow currency metadataを生成する
+- From / To accountsがselected currencyと一致しない場合は書き込み前に拒否される
+- ILSは0〜2小数桁を正確に受け付け、3桁以上を丸めず拒否する
+- ledger defaultはinitial selectionにだけ使われ、source currency omissionを許可しない
+- explicit overrideがdefaultを安全に上書きする
+- existing JPY editor checks remain green
+- production source data is not migrated or rewritten
 - `tools/check.sh` and `tools/coverage` pass
 - post-implementation verification is a separate PR
 
@@ -61,7 +66,7 @@ Exit:
 
 ## Next candidates
 
-Mixed-ledger daily-use の後続候補とslice境界は `docs/archive/active-plans/CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md` を参照する。M2/M3を自動実装キューとして扱わない。
+Mixed-ledger daily-use の後続候補とslice境界は `docs/archive/active-plans/CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md` を参照する。M2.5/M3を自動実装キューとして扱わない。
 
 ### `budget_pool=main` metadata
 
