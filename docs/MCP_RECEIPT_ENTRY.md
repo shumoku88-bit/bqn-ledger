@@ -89,7 +89,31 @@ For prepare-only/dry-run operation, use all read tools and `ledger_prepare_entry
 
 ## Remote use and authentication
 
-The built-in bearer gate is mandatory and intended for localhost clients or a trusted authenticated reverse proxy. Do not expose port 3000 directly. For ChatGPT remote use, place a secure TLS tunnel and an OAuth-capable authorization boundary supported by ChatGPT in front of the server. Set `MCP_ALLOWED_HOSTS` to the exact proxy host. A tunnel does not make authentication optional and must not expose fixture or real data accidentally.
+### Recommended path: Secure MCP Tunnel
+
+For ChatGPT remote use, the supported operational path is a **Secure MCP Tunnel**: a TLS tunnel with an OAuth-capable authorization boundary in front of the loopback-only MCP origin.
+
+```text
+ChatGPT
+  -> public HTTPS / OAuth authorization
+  -> Secure MCP Tunnel
+  -> 127.0.0.1:3000/mcp (mandatory origin bearer)
+  -> BQN MCP adapter
+```
+
+Required properties:
+
+1. keep the MCP process bound to `127.0.0.1`; never expose port 3000 directly;
+2. require an authentication flow supported by ChatGPT at the public boundary (normally OAuth);
+3. keep the independent origin `MCP_BEARER_TOKEN` secret between the trusted tunnel/proxy and MCP server;
+4. set `MCP_ALLOWED_HOSTS` to the exact public hostname rather than a wildcard;
+5. publish only `/mcp` and the minimal health endpoint needed operationally;
+6. rotate credentials and stop the tunnel immediately if a URL or credential leaks;
+7. test read tools first, then one real prepare without commit, and only then one explicitly confirmed commit.
+
+An account-less TryCloudflare Quick Tunnel is suitable only for anonymous fixture connectivity experiments. It has no uptime guarantee or stable hostname and must **not** expose a real `LEDGER_DATA_DIR`, even briefly. A random URL is not authentication.
+
+The built-in bearer gate is mandatory and intended for localhost clients or a trusted authenticated reverse proxy. It is defense in depth, not a replacement for ChatGPT-compatible OAuth. A TLS tunnel alone does not make authentication optional.
 
 `.env.example` contains placeholders only. Never commit tokens, tunnel credentials, drafts, real reports, receipts, or real account data.
 
