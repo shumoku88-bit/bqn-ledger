@@ -9,27 +9,50 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-13 — Currency Mixed-Ledger M3 implementation and post-implementation verification completed; no next finite slice selected.
+Last hygiene pass: 2026-07-13 — selected the docs-only strict production source currency boundary decision after Currency Mixed-Ledger M3 verification.
 
 ---
 
 ## Active work
 
-No finite slice is currently selected. Strict production source enforcement and M4 remain separate candidates and are not authorized by M3 completion.
+### Strict production source currency enforcement boundary decision (docs-only)
+
+Plan: `docs/archive/active-plans/STRICT_PRODUCTION_SOURCE_CURRENCY_ENFORCEMENT_DECISION-2026-07-13.md`
+
+**Goal**
+
+- select where production-capable reads fail closed on missing account and journal-like row currency
+- define an explicit strict/compatibility policy carrier, diagnostic contract, compatibility inventory, and finite activation sequence
+
+**Allowed**
+
+- docs-only architecture and fixture/test classification
+- routing updates for this decision
+- identification of one finite first implementation slice
+
+**Not authorized**
+
+- runtime enforcement implementation or fallback deletion
+- fixture bulk rewrite or production source changes
+- M4, report section expansion, JSON widening, FX / conversion / valuation, or a broad Stage 3 campaign
+
+**Exit criteria**
+
+- production and compatibility selection are explicit and do not depend on `LEDGER_DATA_DIR` or private path strings
+- account/row diagnostics and no-partial-output behavior are specified
+- the first implementation slice is finite
+- required docs checks pass and the decision PR is reviewed/merged
+- strict-source runtime implementation remains unselected until this decision PR merges
 
 ---
 
 ## Next candidates
 
-Mixed-ledger daily-use の後続候補とslice境界は `docs/archive/active-plans/CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md` を参照する。M3は実装・検証済みだが、その完了は後続sliceを自動選定しない。
+Mixed-ledger daily-use の後続候補とslice境界は `docs/archive/active-plans/CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md` を参照する。M3は実装・検証済みで、strict-sourceはdocs-only decisionだけを選定中。runtime implementationとM4は自動選定しない。
 
-### Strict production source enforcement
+### M4: Expense breakdown grouped by meaning and currency
 
-Status: candidate only。Production migration is complete, but legacy compatibility fixtures remain valid until a separate runtime/docs slice is selected.
-
-- decide where missing account/row currency may now fail closed
-- preserve explicitly documented compatibility fixtures and migration tests
-- do not combine with M3 reporting unless separately justified
+Status: candidate only。Daily-use observationと既存expense/cycle consumer contractの再確認前に実装しない。strict-source decisionまたは将来のstrict runtime completionはM4を自動選定しない。
 
 ### `budget_pool=main` metadata
 
