@@ -1,11 +1,11 @@
 # Friend travel source-event → JPY finalization
 
-Status: active plan
+Status: active semantic plan; atomic write implementation selected
 Owner: currency / editor / source contract
 Canonical: yes; canonical path: `docs/archive/active-plans/FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md`
-Exit: archive as completed only after the implemented pure-preview slice is reviewed and its follow-up source-event/journal write slice is explicitly selected or declined.
+Exit: archive as completed only after the selected atomic write implementation is independently verified and its production-use follow-up is separately selected or declined.
 
-Runtime status (2026-07-13): the I/O-free `src_next/friend_travel_jpy_finalization.bqn` validator and its unit tests were implemented in PR #210 and independently verified in `docs/archive/audits/FRIEND_TRAVEL_JPY_FINALIZATION_POST_IMPLEMENTATION_VERIFICATION-2026-07-13.md`. No source-event storage, status/index mutation, journal writer, editor/UI, fixture, report, or public runtime path is selected or connected. The pure-preview slice is closed; any future atomic write design remains an explicitly unselected candidate.
+Runtime status (2026-07-13): the I/O-free `src_next/friend_travel_jpy_finalization.bqn` validator and its unit tests were implemented in PR #210 and independently verified in `docs/archive/audits/FRIEND_TRAVEL_JPY_FINALIZATION_POST_IMPLEMENTATION_VERIFICATION-2026-07-13.md`. The follow-up recoverable write boundary is now selected in `FRIEND_TRAVEL_ATOMIC_FINALIZATION_WRITE_DESIGN-2026-07-13.md`. Only a synthetic-fixture transaction implementation is selected; actual `LEDGER_DATA_DIR`, production trial, MCP/editor/UI/report integration, strict-source Steps 2–5, and M4 remain unselected.
 
 ## Selected consumer and accounting boundary
 
@@ -36,7 +36,7 @@ A pending source event, or its typed descriptor supplied to the pure function, c
 
 For preview metadata safety, `source_event_id` and `trip_id` are nonempty tokens containing no TAB, CR, LF, whitespace, or `=`. `party` and `item_or_category` are nonempty journal-field text and contain no TAB, CR, or LF. In this first slice, `original_currency` is exactly three uppercase ASCII letters; this validates a source-fact token and does not restrict it to the canonical JPY/ILS posting allowlist.
 
-The event is a source fact and must not enter Posting IR, canonical journal expense/cycle totals, envelope consumption, or JPY valuation merely because it exists. This plan does not choose its source file, storage format, or status-transition writer.
+The event is a source fact and must not enter Posting IR, canonical journal expense/cycle totals, envelope consumption, or JPY valuation merely because it exists. The selected write design stores these facts in `friend_travel_events.tsv` with a fixed pending/finalized schema. That storage selection is narrow to this consumer and does not establish a generic source-event framework.
 
 ## Chosen one-row JPY preview
 
@@ -54,7 +54,7 @@ The row retains `source_event_id` and `trip_id` for provenance. Its memo may be 
 
 `existing_finalization_index` is a supplied index of already-finalized `source_event_id` values. Before producing a preview, the validator requires that the pending event's `source_event_id` has no entry in that index. Any entry rejects the request, including an incomplete or ambiguous historical finalization. The normal path never emits a replacement, second, or repair row for the same identifier.
 
-The accepted result binds the one JPY preview to the pending source event and declares that identifier finalization-reserved for the eventual writer. It is not itself a source-event status write. A future write slice must define the one committed transition from `pending` and the durable finalization-index update together with the journal write; that work is unselected.
+The selected write design derives the durable finalization index from the complete validated set of finalized rows in `friend_travel_events.tsv`; it does not add a second index file. A commit changes exactly one pending event row to finalized and appends exactly the accepted journal row under one recoverable two-file transaction. One-sided or conflicting states reject and never authorize an automatic repair row.
 
 ## Validation and fail-closed invariants
 
@@ -69,7 +69,7 @@ The pure validator accepts only:
 
 It rejects with zero preview rows if `source_event_id`, `trip_id`, `payer`, `original_amount`, or `original_currency` is missing or invalid; `finalization_date` is missing or invalid; status is not `pending`; `J` is not a positive integer; either selected account is unknown/not-existing or is not JPY; the accounts do not have the required liability/expense roles; or `source_event_id` is already finalized. A missing required top-level, event, or account-descriptor namespace member fails closed as one privacy-safe `request_shape_invalid` diagnostic rather than escaping as an evaluation error. It also rejects any request that would emit an endpoint other than the selected JPY liability and JPY expense accounts.
 
-An accepted result always contains exactly one JPY journal preview row and no foreign-currency journal row, clearing row, or second expense row. An error result contains zero preview rows. This is the complete all-or-nothing boundary of the first slice.
+An accepted result always contains exactly one JPY journal preview row and no foreign-currency journal row, clearing row, or second expense row. An error result contains zero preview rows. This remains the semantic authority used by the later transaction implementation.
 
 ## Later repayment
 
@@ -83,8 +83,9 @@ It does not reopen the source event, create a second expense, or require a final
 
 ## Explicit non-goals
 
-- source TSV reads or writes, source-event storage selection, or status-transition implementation;
-- editor/UI, account creation, metadata-schema changes, or writer work;
+- actual production source reads/writes or production trial in the selected first transaction slice;
+- MCP, editor UI, gum/fzf, report, JSON, or Ledger Observatory integration;
+- account creation, automatic account selection, or generic source-event storage;
 - FX-rate calculation, conversion inference, market valuation, or FX gain/loss;
 - clearing accounts, `settlement_clearing`, foreign-currency friend-liability accounts, or two-row settlement;
 - foreign-currency canonical postings, foreign expense re-expression, partial finalization, refunds, reversals, or one-to-many allocation;
@@ -96,13 +97,25 @@ The completed and independently verified slice is an I/O-free BQN pure function 
 
 Required characterization cases include: accepted pending event; each missing/invalid source-event identity and observed-amount/currency field; missing/invalid `finalization_date`; non-`friend` payer; non-pending status; non-positive/non-integer JPY amount; unknown/non-JPY/wrong-role liability or expense account; pre-existing finalization; wrong row direction; any foreign or clearing endpoint; accepted output exactly one row; and every rejection output zero rows.
 
-The source-event read/write and status-transition boundary, finalization-index persistence, journal writer, metadata-schema admission, fixtures, reports, and real-data trial are deliberately **not** part of this slice. The completed preview does not authorize further runtime work.
+The verification record classifies every required pure-preview claim as `verified` and closes that finite slice.
 
-## Post-implementation verification and remaining routing
+## Selected second implementation slice: synthetic recoverable transaction
 
-The verification record classifies every required pure-preview claim as `verified` and closes that finite slice. The plan remains active only because its Exit contract also requires the follow-up write slice to be explicitly selected or declined.
+The canonical write design is [FRIEND_TRAVEL_ATOMIC_FINALIZATION_WRITE_DESIGN-2026-07-13.md](FRIEND_TRAVEL_ATOMIC_FINALIZATION_WRITE_DESIGN-2026-07-13.md).
 
-A future design for one atomic source-event status transition + durable finalization-index update + journal append is an **unselected candidate**, not active work. It must receive separate authorization and define atomicity, recovery ownership, stale checks, backup, and post-write evidence before implementation. No writer, source-event storage format, strict-source Step 2–5 work, or M4 work is selected automatically.
+Only its synthetic-fixture transaction core is selected:
+
+- fixed `friend_travel_events.tsv` parse/render and all-or-nothing finalized-index derivation;
+- exact events-row replacement plus one exact journal append;
+- read-only accounts evidence;
+- prepared/committed recovery manifest and exact backups;
+- stale checks before replacement;
+- rollback after detected or injected partial replacement;
+- dedicated exact-byte recovery for interrupted recognized states;
+- exact `already_committed` retry recognition;
+- focused fixtures and executable checks.
+
+The design explicitly describes this as an application-level recoverable two-file transaction, not a filesystem-wide indivisible transaction. Production use is not selected by this handoff.
 
 ## Rejected alternative
 
@@ -111,5 +124,6 @@ The former design that recorded foreign-currency friend liability/expense journa
 ## Dependencies and routing
 
 - The broader travel semantic rails remain in [TRAVEL_MULTI_CURRENCY_SETTLEMENT_DESIGN_INTAKE-2026-07-12.md](TRAVEL_MULTI_CURRENCY_SETTLEMENT_DESIGN_INTAKE-2026-07-12.md).
+- Atomicity, storage, recovery ownership, stale checks, backup, retry, and write evidence are owned by [FRIEND_TRAVEL_ATOMIC_FINALIZATION_WRITE_DESIGN-2026-07-13.md](FRIEND_TRAVEL_ATOMIC_FINALIZATION_WRITE_DESIGN-2026-07-13.md).
 - Current mixed-ledger history and strict-source routing remain in [CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md](CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md), [STRICT_PRODUCTION_SOURCE_CURRENCY_ENFORCEMENT_DECISION-2026-07-13.md](STRICT_PRODUCTION_SOURCE_CURRENCY_ENFORCEMENT_DECISION-2026-07-13.md), and `TODO.md`.
-- This plan does not select strict-source Steps 2–5 or M4; those remain independently unselected.
+- This plan does not select strict-source Steps 2–5, M4, Ledger Observatory runtime work, or production finalization writes.
