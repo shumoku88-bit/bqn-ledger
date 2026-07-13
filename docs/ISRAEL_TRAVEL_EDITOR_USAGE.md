@@ -84,4 +84,28 @@ The return-home JPY finalization writer is not implemented. Correction/reversal 
 
 ## Ordinary cash and card capture
 
-ILS cash expenses and the user's confirmed-JPY card expenses continue to use `tools/edit journal add`. They preserve `trip_id=israel-2026` and `payment=cash|card` through the existing generic metadata path. The default journal `--post-check lint` is a mixed-currency-safe source-integrity check; it does not add currencies or broaden the full report. If that check fails, the editor restores exact pre-append bytes only when no later writer changed the target. `--post-check none` is not the standard travel solution. Full four-path examples will be finalized at integrated rehearsal closure.
+ILS cash expenses use the ordinary journal once:
+
+```bash
+tools/edit --base "$BASE" journal add \
+  --date 2026-07-20 --memo "synthetic meal" \
+  --from "assets:cash-ils" --to "expenses:food-ils" \
+  --amount "42.50" --currency ILS \
+  --meta trip_id=israel-2026 --meta payment=cash \
+  --yes --post-check lint
+```
+
+Record the user's card only after the issuer confirms the JPY amount. Do not also record the displayed ILS amount:
+
+```bash
+tools/edit --base "$BASE" journal add \
+  --date 2026-07-20 --memo "synthetic transit" \
+  --from "liabilities:card-jpy" --to "expenses:transit-jpy" \
+  --amount "1800" --currency JPY \
+  --meta trip_id=israel-2026 --meta payment=card \
+  --yes --post-check lint
+```
+
+These paths preserve `trip_id=israel-2026` and `payment=cash|card` through the existing generic metadata path. Journal `lint` is a mixed-currency-safe source-integrity check; it does not add currencies or broaden the full report. If it fails, the editor restores exact pre-append bytes only when no later writer changed the target. `--post-check none` is not the standard travel solution.
+
+Before real use, confirm that every account shown in the command exists with the expected currency. Account names above are synthetic examples. Accounts are never created automatically. Return-home friend finalization is not implemented. Correction/reversal for friend and exchange source events remains unselected and must not be improvised through the ordinary journal.
