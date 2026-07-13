@@ -269,7 +269,7 @@ Build ← {𝕊 configLines‿accountsLines‿journalLines‿planLines‿budgetL
 }
 
 {
-  SupportedCurrencies ⇐ currencyCodes,
+  supported_currencies ⇐ currencyCodes,
   Policy ⇐ Policy,
   IsSupportedCurrency ⇐ IsSupportedCurrency,
   ResolveDefault ⇐ ResolveDefault,
