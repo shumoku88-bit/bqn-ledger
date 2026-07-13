@@ -15,18 +15,23 @@ Last hygiene pass: 2026-07-13 — completed and archived the Israel travel daily
 
 ## Active work
 
-No finite implementation slice is currently selected.
+### Israel predeparture editor capture completion
+
+Status: selected finite program. The user explicitly selected completion of the four travel-day capture paths before departure.
+
+Ordered phases:
+
+1. ordinary journal metadata synthetic readiness;
+2. friend-paid pending source-event storage and safe append;
+3. exchange-event pure validation and preview;
+4. exchange-event safe append and recovery;
+5. integrated four-path synthetic rehearsal and closure.
+
+Only Phase 1 is the immediate implementation slice after this selection PR. Each phase is an independent PR and begins only after its predecessor passes CI and merges. The sequence does not select the return-home atomic finalization writer, router, cash view, strict-source Steps 2–5, M4, or Ledger Observatory work.
+
+Canonical execution plan: `docs/archive/active-plans/ISRAEL_PREDEPARTURE_EDITOR_CAPTURE_COMPLETION-2026-07-13.md`.
 
 ## Next candidates
-
-### Israel ordinary journal metadata synthetic readiness
-
-Status: unselected candidate only. The completed Israel travel design expects ordinary cash/card journal rows to preserve `trip_id=israel-2026` and `payment=cash|card`, but no readiness slice is currently selected.
-
-- [ ] If selected separately, use synthetic fixtures only to verify journal add, checked safe append, lint/check, reload, and exact metadata preservation.
-- [ ] Determine whether the current generic `key=value` metadata path is sufficient before considering any `config/meta_schema.tsv` change.
-- [ ] Do not read or modify actual `LEDGER_DATA_DIR`, production source TSV, or private account/amount data.
-- [ ] Do not combine this readiness check with friend pending-event storage, exchange contracts, router work, cash views, candidate 6, strict-source Steps 2–5, or M4.
 
 ### Friend travel atomic finalization writer (Israel candidate 6)
 
