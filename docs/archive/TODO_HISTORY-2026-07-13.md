@@ -5,6 +5,29 @@ Owner: docs
 Canonical: no; current route: `TODO.md`
 Exit: retained as the completion record for finite work closed on 2026-07-13
 
+## Strict production source currency enforcement: Step 1 admission core
+
+Status: completed and separately verified.
+
+Implementation identity:
+
+- PR #207: `feat: add source currency admission core`
+- final implementation head: `c37c75a7671822d472475a1564cf6b8202e39a56`
+- merge commit: `3ca72e6f9484b3f57a6ea6748ac887d69c447c90`
+- CI run #750: pass
+
+Verified result:
+
+- added the closed `production_strict` / `legacy_compatibility` policy carrier and pure supplied-source admission core;
+- added structured privacy-safe diagnostics and complete no-partial-admission behavior on error;
+- validates only allowlisted posting source basenames and fail-closes path-shaped or unknown supplied source names without reflecting them;
+- public wiring, existing fallbacks, fixtures, writers, and production source remain unchanged.
+
+Routing after closure:
+
+- Steps 2–5 are not selected;
+- writer closure, compatibility preparation, production read activation, post-implementation verification, and M4 do not auto-start.
+
 ## Currency Mixed-Ledger M3: Currency-selected balances report
 
 Status: completed and separately verified.

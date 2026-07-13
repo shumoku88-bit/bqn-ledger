@@ -75,6 +75,7 @@ Exit: keep current while this remains the pit code/data-flow entry point
 - `context.bqn` — BuildAllRows / BuildPeriodView / BuildContext。1つの共有 posting snapshot から B1 row evidence を構築し、pure arithmetic owner へ渡す orchestration owner。cycle は読み込み境界ではなく report query parameter。
 - `exact_decimal.bqn` — source amount text の exact-decimal parse、canonical coefficient / scale、parsed coefficient exact-range 診断の owner。
 - `currency_arithmetic.bqn` — pre-built B1 row evidence だけを入力に、single-domain 検査、snapshot-wide `amount_scale`、exact normalization、normalized overflow evidence を返す pure B2 owner。source file や projection は扱わない。
+- `source_currency_admission.bqn` — supplied account lines と posting snapshot のみを検査する pure source-currency admission owner。closed strict/compatibility policy、privacy-safe diagnostics、no-partial-admission を持ち、I/Oなし・public runtime未配線。
 - `loader.bqn` — TSV ファイル読み込み (`•FChars` 使用)。
 - `cube.bqn` — Canonical Daily Cube (`Day × Account × Layer`) の構築。
 - `tbds.bqn` — Trial Balance Data Set (period/account/layer/opening/movement/closing)。

@@ -9,51 +9,15 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-13 — selected the docs-only strict production source currency boundary decision after Currency Mixed-Ledger M3 verification.
+Last hygiene pass: 2026-07-13 — closed strict-source Step 1 (policy carrier and pure admission core); Steps 2–5 remain unselected.
 
 ---
 
 ## Active work
 
-### Source currency policy carrier and pure admission core
-
-Plan: `docs/archive/active-plans/STRICT_PRODUCTION_SOURCE_CURRENCY_ENFORCEMENT_DECISION-2026-07-13.md`
-
-**Goal**
-
-- add the selected closed strict/compatibility policy carrier and pure supplied-source admission core
-- retain structured safe diagnostics and complete no-partial-admission behavior without public wiring
-
-**Allowed**
-
-- policy carrier
-- pure admission
-- structured diagnostics
-- synthetic tests
-
-**Not authorized**
-
-- public wiring
-- writer closure
-- compatibility fixture preparation
-- production read activation
-- fallback removal
-- fixture rewrite
-- production source change
-- M4
-
-**Exit criteria**
-
-- strict and compatibility supplied-source admission behavior is covered by synthetic tests
-- error results retain diagnostics but no admitted evidence
-- full checks pass
-- public entrypoints and existing fallbacks remain unchanged
-
----
-
 ## Next candidates
 
-Mixed-ledger daily-use の後続候補とslice境界は `docs/archive/active-plans/CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md` を参照する。M3は実装・検証済みで、strict-sourceはdocs-only decisionだけを選定中。runtime implementationとM4は自動選定しない。
+Mixed-ledger daily-use の後続候補とslice境界は `docs/archive/active-plans/CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md` を参照する。M3は実装・検証済みで、strict-source Step 1（policy carrier / pure admission core）は完了済み。strict-sourceのSteps 2–5（writer closure、compatibility preparation、production activation、post-implementation verification）とM4は未選定であり、自動選定しない。
 
 ### M4: Expense breakdown grouped by meaning and currency
 
