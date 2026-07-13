@@ -231,6 +231,80 @@ safe_create_checked() {
   printf 'Backup: none (created new file)\n'
 }
 
+# Create a new file without replacing a concurrently-created target.
+# The parent directory must already exist. A same-filesystem hard link publishes
+# the fully staged bytes atomically and fails with no target mutation if another
+# writer wins first-file creation.
+safe_create_exclusive_checked() {
+  local target="$1"
+  local content="$2"
+  local target_dir
+  target_dir="$(dirname "$target")"
+  if [[ ! -d "$target_dir" ]]; then
+    echo "ERROR: base directory does not exist: $target_dir" >&2
+    return 1
+  fi
+  if [[ -e "$target" ]]; then
+    echo "ERROR: file $target is stale; it appeared during editing" >&2
+    return 1
+  fi
+
+  local tmp_file
+  tmp_file="$(mktemp "${target}.tmp-XXXXXX")"
+  # shellcheck disable=SC2064
+  trap "rm -f '$tmp_file'" EXIT
+  printf '%s\n' "$content" > "$tmp_file"
+
+  if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && -n "${SAFE_WRITE_TEST_BEFORE_EXCLUSIVE_CREATE_HOOK:-}" ]]; then
+    local hook="$SAFE_WRITE_TEST_BEFORE_EXCLUSIVE_CREATE_HOOK"
+    if declare -F -- "$hook" >/dev/null; then
+      if ! "$hook"; then
+        echo "ERROR: exclusive-create hook interrupted staged write" >&2
+        return 1
+      fi
+    fi
+  fi
+
+  if ! ln "$tmp_file" "$target" 2>/dev/null; then
+    echo "ERROR: file $target is stale; concurrent first-write won" >&2
+    return 1
+  fi
+  rm -f "$tmp_file"
+  trap - EXIT
+  printf 'Wrote: %s\n' "$target"
+  printf 'Backup: none (exclusive first-file creation)\n'
+}
+
+# Restore a backup only if the just-written target still matches the expected
+# post-write digest. This prevents rollback from overwriting a later writer.
+safe_restore_backup_checked() {
+  local target="$1" backup="$2" expected_sha="$3"
+  if [[ "$(_safe_write_sha256 "$target")" != "$expected_sha" ]]; then
+    echo "ERROR: rollback refused; target changed after write: $target" >&2
+    return 1
+  fi
+  local tmp_file
+  tmp_file="$(mktemp "${target}.rollback-XXXXXX")"
+  # shellcheck disable=SC2064
+  trap "rm -f '$tmp_file'" EXIT
+  cp -p "$backup" "$tmp_file"
+  if [[ "$(_safe_write_sha256 "$target")" != "$expected_sha" ]]; then
+    echo "ERROR: rollback refused; target changed during recovery: $target" >&2
+    return 1
+  fi
+  mv "$tmp_file" "$target"
+  trap - EXIT
+}
+
+safe_remove_created_checked() {
+  local target="$1" expected_sha="$2"
+  if [[ "$(_safe_write_sha256 "$target")" != "$expected_sha" ]]; then
+    echo "ERROR: rollback refused; newly created target changed: $target" >&2
+    return 1
+  fi
+  rm -f "$target"
+}
+
 # Assert that a specific 1-based line number exists and exactly matches an expected row.
 # No normalization is performed: tabs, empty fields, and bytes other than the line
 # terminator must match exactly.
@@ -468,12 +542,13 @@ confirm_append() {
 # ── Post-check ──────────────────────────────────────────────────
 
 # Run BQN post-check.
-# Usage: run_post_check <base_dir> <mode> <target_path> <backup_path>
+# Usage: run_post_check <base_dir> <mode> <target_path> <backup_path> [owner]
 run_post_check() {
   local base_dir="$1"
   local mode="$2"
   local target_path="$3"
   local backup_path="$4"
+  local owner="${5:-default}"
 
   if [[ "$mode" == "none" ]]; then
     printf 'Post-check: skipped\n'
@@ -486,7 +561,11 @@ run_post_check() {
   local -a cmd
   case "$mode" in
     lint)
-      cmd=(bqn src_next/report.bqn "$base_dir")
+      if [[ "$owner" == "journal" ]]; then
+        cmd=(bqn src_edit/journal_source_check.bqn "$base_dir")
+      else
+        cmd=(bqn src_next/report.bqn "$base_dir")
+      fi
       ;;
     full)
       cmd=(./tools/check.sh)

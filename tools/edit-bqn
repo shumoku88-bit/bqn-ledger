@@ -3,6 +3,7 @@
 #
 # Current scope: daily commands (`account add/list`, `journal add/list/reverse`,
 # `budget add`, `issue add/list/close`, and `plan add/list/related/finish/edit`).
+# plus dedicated `travel friend add` and `travel exchange add` source-event commands.
 # `tools/edit` is the public wrapper that delegates here.
 #
 # Shared parsing/protocol/write handling is kept in one path for the
@@ -20,6 +21,8 @@ source "$DIR/lib/safe-write.sh"
 source "$DIR/lib/edit-bqn-common.sh"
 # shellcheck source=tools/lib/edit-bqn-issue.sh
 source "$DIR/lib/edit-bqn-issue.sh"
+# shellcheck source=tools/lib/edit-bqn-travel.sh
+source "$DIR/lib/edit-bqn-travel.sh"
 
 BASE_DIR="${LEDGER_DATA_DIR:-$(get_default_base_dir)}"
 JOURNAL_FILE="$(get_system_default_file DEFAULT_JOURNAL_FILE journal.tsv)"
@@ -45,8 +48,10 @@ Usage:
   tools/edit-bqn [--base DIR] plan finish [--index NUMBER] [--id PLAN_ID] --actual-date YYYY-MM-DD [--actual-amount INT] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] plan edit [--index NUMBER] [--id PLAN_ID] [--date YYYY-MM-DD] [--amount INT] [--all] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] journal reverse [--index NUMBER] [--id TXN_ID] [--date YYYY-MM-DD] [--dry-run] [--yes] [--post-check none|lint|full]
+  tools/edit-bqn [--base DIR] travel friend add --date YYYY-MM-DD --party PARTY --item ITEM --amount DECIMAL --currency ILS --payer friend --trip-id israel-2026 --source-event-id ID [--dry-run] [--yes]
+  tools/edit-bqn [--base DIR] travel exchange add --date YYYY-MM-DD --memo MEMO --source-account ACCOUNT --source-amount INT --source-currency JPY --target-account ACCOUNT --target-amount DECIMAL --target-currency ILS --exchange-id ID --trip-id israel-2026 [--dry-run] [--yes]
 
-Current scope: BQN editor daily commands (account add/list, journal/budget/plan/issue add, issue list/close, journal list/reverse, and plan list/related/finish/edit).
+Current scope: BQN editor daily commands (account add/list, journal/budget/plan/issue add, travel friend/exchange add, issue list/close, journal list/reverse, and plan list/related/finish/edit).
 USAGE
 }
 
@@ -73,6 +78,17 @@ if [[ $# -lt 2 ]]; then
   echo "ERROR: missing command/subcommand" >&2
   usage
   exit 2
+fi
+
+if [[ "$1" == "travel" && "$2" == "friend" && "${3-}" == "add" ]]; then
+  shift 3
+  handle_edit_bqn_travel_friend_add "$@"
+  exit $?
+fi
+if [[ "$1" == "travel" && "$2" == "exchange" && "${3-}" == "add" ]]; then
+  shift 3
+  handle_edit_bqn_travel_exchange_add "$@"
+  exit $?
 fi
 
 if [[ "$1" == "account" && "$2" == "add" ]]; then
@@ -246,7 +262,7 @@ if [[ "$1" == "journal" && "$2" == "reverse" ]]; then
     esac
   fi
 
-  edit_bqn_apply_append_checked "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256" EDIT_BQN_TEST_BEFORE_APPEND_HOOK
+  edit_bqn_apply_append_checked "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256" EDIT_BQN_TEST_BEFORE_APPEND_HOOK journal
   exit 0
 fi
 
@@ -413,7 +429,7 @@ if [[ "$1" == "plan" && "$2" == "finish" ]]; then
     fi
   fi
 
-  edit_bqn_apply_append_checked "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256" EDIT_BQN_TEST_BEFORE_APPEND_HOOK
+  edit_bqn_apply_append_checked "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256" EDIT_BQN_TEST_BEFORE_APPEND_HOOK journal
   exit 0
 fi
 
@@ -613,4 +629,6 @@ fi
 # Test-only stale-write injection point used by check-edit-bqn-journal-add.sh.
 # This must not become production extension behavior; it exists only to simulate
 # a concurrent source TSV edit between validation/preview and append.
-edit_bqn_apply_append_checked "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256" EDIT_BQN_TEST_BEFORE_APPEND_HOOK
+POST_CHECK_OWNER="default"
+[[ "$COMMAND" == "journal" ]] && POST_CHECK_OWNER="journal"
+edit_bqn_apply_append_checked "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256" EDIT_BQN_TEST_BEFORE_APPEND_HOOK "$POST_CHECK_OWNER"

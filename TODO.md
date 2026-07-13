@@ -9,29 +9,51 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-13 — completed and archived the Israel travel daily-capture docs-only design; all implementation candidates remain unselected, the friend atomic writer remains parked as candidate 6, and strict-source Steps 2–5 and M4 remain unselected.
+Last hygiene pass: 2026-07-13 — Israel predeparture editor capture is READY; only real-account readiness remains selected, while friend finalization candidate 6, strict-source Steps 2–5, M4, and other implementation candidates remain unselected.
 
 ---
 
 ## Active work
 
-### Israel predeparture editor capture completion
+### Israel predeparture real-account readiness
 
-Status: selected finite program. The user explicitly selected completion of the four travel-day capture paths before departure.
+Status: selected operational preparation only. Editor implementation and the integrated synthetic four-path rehearsal are complete; completion record: `docs/archive/completed-plans/ISRAEL_PREDEPARTURE_EDITOR_CAPTURE_COMPLETION-2026-07-13.md`.
 
-Ordered phases:
+- [ ] Read-onlyで、実運用に使う次のaccountと`currency`が存在・一致することを確認する: JPY交換元asset、ILS現金asset、JPYカードliability、ILS支出expense、JPYカード支出expense。
+- [ ] 不足がある場合もaccount名を推測・自動作成せず、通常のaccount追加手順で人間が明示的に決める。
+- [ ] private account名、金額、実データpathをpublic repoへ記録しない。
+- [ ] この確認と同時にruntime、source schema、friend finalization、router、cash view、M4、strict-source Steps 2–5を開始しない。
 
-1. ordinary journal metadata synthetic readiness;
-2. friend-paid pending source-event storage and safe append;
-3. exchange-event pure validation and preview;
-4. exchange-event safe append and recovery;
-5. integrated four-path synthetic rehearsal and closure.
+### PR #219 built-in currency policy integration
 
-Phase 1 ordinary journal metadata readiness is complete: the unchanged generic `key=value` path preserves ordered `trip_id=israel-2026` and `payment=cash|card` metadata for synthetic ILS cash and confirmed-JPY card rows. `config/meta_schema.tsv` remains unchanged.
+Status: selected priority dependency after Israel readiness. PR #219 centralizes built-in JPY/ILS admission and lexical precision in one BQN owner, which is the first seam toward adding currencies without scattering currency knowledge.
 
-Phase 2 friend-paid pending source-event storage and safe append is the immediate implementation slice after the Phase 1 PR passes CI and merges. Each phase is an independent PR and begins only after its predecessor passes CI and merges. The sequence does not select the return-home atomic finalization writer, router, cash view, strict-source Steps 2–5, M4, or Ledger Observatory work.
+- [ ] Revalidate the existing open PR against current `main`, preserve its narrow registry/refactor scope, and require current CI before merge.
+- [ ] Treat the registry as built-in code policy, not yet as a user-editable configuration surface.
+- [ ] Do not use #219 to add currencies, change schemas, activate strict-source Steps 2–5, add a Currency axis, FX, valuation, or mixed-currency totals.
+- [ ] This docs routing PR does not rewrite or merge #219.
 
-Canonical execution plan: `docs/archive/active-plans/ISRAEL_PREDEPARTURE_EDITOR_CAPTURE_COMPLETION-2026-07-13.md`.
+The latest AI working feedback record was completed by PR #227 and is an evidence input only; it is not an automatic implementation queue.
+
+### Configurable AI-assisted household ledger and report
+
+Status: selected highest-priority development direction; only the first docs-only synthesis slice is immediately authorized.
+
+Purpose: keep human-readable TSV and configuration as source truth; make user-specific currencies, accounts, life cycles, classifications, budget policy, presentation, and privacy boundaries configurable when they truly belong to configuration; let BQN generate evidence-bearing derived data and reports; and keep AI as an explanatory/proposal partner whose accepted changes pass through human judgment and the existing safe editor.
+
+Immediate finite slice: **Configurable AI-assisted ledger foundation synthesis**. Active synthesis plan: `docs/archive/active-plans/CONFIGURABLE_AI_ASSISTED_LEDGER_FOUNDATION-2026-07-13.md`.
+
+Routing order after readiness and the completed feedback evidence:
+
+1. revalidate/integrate PR #219 in its existing narrow scope;
+2. foundation synthesis docs;
+3. config ownership inventory;
+4. privacy-safe AI context-bundle contract;
+5. one read-only AI consultation report;
+6. safe proposal-to-editor handoff;
+7. PR #211 Ledger Observatory synthetic evidence-trace connection last.
+
+Only the docs-only synthesis is selected inside this program. Later rows do not auto-start. Feedback entries do not authorize work. Candidate 6, strict-source Steps 2–5, M4, Projection Workbench, Currency axis, FX/valuation, broad report rewrites, automatic advice/TODOs/writes, and private production-data access remain unselected.
 
 ## Next candidates
 

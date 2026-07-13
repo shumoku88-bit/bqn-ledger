@@ -1,5 +1,10 @@
 # Production Editor Direction
 
+Status: current policy / architecture direction
+Owner: editor
+Canonical: yes
+Exit: revise if the production write-path ownership changes.
+
 ## Status
 
 - BQN editor production path is complete for the current daily commands.
@@ -53,6 +58,8 @@
 ### Append-only
 - `account add`
 - `journal add`
+- `travel friend add` (dedicated pending source event; no journal projection)
+- `travel exchange add` (dedicated two-amount source event; no journal projection or rate)
 - `budget add`
 - `plan add`
 - `issue add`
@@ -71,7 +78,7 @@
 ### Exact replace
 - `plan edit`
 
-Append-only commands are the lowest-risk path. Derived append and exact replace rely on explicit old-row / line-number safety.
+Append-only commands are the lowest-risk path. Optional travel source first-write uses exclusive staged creation rather than production bootstrap or parent-directory creation. Derived append and exact replace rely on explicit old-row / line-number safety.
 
 ## Safety model
 

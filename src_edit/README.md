@@ -31,6 +31,8 @@ The public surface remains `tools/edit`.
 tools/edit journal add ...
 tools/edit journal list --format tsv
 tools/edit journal reverse ...
+tools/edit travel friend add ...
+tools/edit travel exchange add ...
 tools/edit account list [--role ROLE]
 tools/edit budget add ...
 tools/edit plan list --format tsv
@@ -60,7 +62,10 @@ Dispatcher boundary note: see `docs/EDIT_BQN_DISPATCHER.md` for the current shel
 - `account list` is a read-only account candidate export for UI shell wrappers; account role metadata interpretation stays in BQN.
 - `journal list` is a read-only journal row export for reverse-selection UI; journal row formatting and empty-column preservation stay in BQN.
 - `journal reverse` is handled by `src_edit/journal_reverse_cmd.bqn`; reverse-row validation and APPEND protocol rendering stay in BQN.
+- Ordinary journal `--post-check lint` is owned by `journal_source_integrity.bqn` / `journal_source_check.bqn`; valid mixed JPY/ILS rows are checked independently without invoking report arithmetic.
 - `issue add` has a small dedicated parser because its CLI and new-file semantics differ; its shell handler is split into `tools/lib/edit-bqn-issue.sh`.
+- `travel friend add` validates all existing and candidate source events through `src_next/friend_travel_source_event.bqn`; shell only transports arguments and applies exclusive-create/checked-append/recovery bytes.
+- `travel exchange add` validates accounts plus all existing and candidate two-amount events through `src_next/travel_exchange_event.bqn`; shell does not interpret currency, decimals, or exchange meaning.
 - `plan add` owns plan_id generation and duplicate checks.
 - `plan list` is byte-parity checked because its TSV output is a UI selection contract.
 - `plan related` is read-only and owns recurring-plan relation-key semantics for replenishment UI.

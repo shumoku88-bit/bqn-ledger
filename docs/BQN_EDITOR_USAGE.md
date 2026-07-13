@@ -1,5 +1,10 @@
 # BQN Editor & Add-UI Usage Manual
 
+Status: current operational guide
+Owner: editor
+Canonical: yes
+Exit: keep current while `tools/edit` and `tools/add-ui.sh` remain the daily write paths.
+
 BQN-Ledgerにおける base directory 配下の元データTSV（`journal.tsv`, `plan.tsv` など）を安全に表示・編集・完了処理するための、BQN製エディタ（`tools/edit` / `tools/edit-bqn`）および日常記帳UI（`tools/add-ui.sh`）の使い方説明書です。
 
 ## 1. 基本コンセプト：秤（はかり）と手袋
@@ -87,6 +92,34 @@ BQN Editor は会計エンジンとしての計算（残高や封筒の残金計
     *   `--meta key=value`: 拡張列用のメタデータを指定します。
     *   `--dry-run`: 追記プレビューのみを行い、ファイルには書き込みません。
     *   `--yes`: 追記時の確認プロンプト（`y/N`）をスキップします。
+
+### JPY→ILS exchange eventの安全追記 (`travel exchange add`)
+
+JPYを渡してILSを受け取った事実は、expense/incomeやordinary journalではなく専用sourceへ記録します。
+
+```bash
+./tools/edit travel exchange add \
+  --date 2026-07-20 --memo "synthetic airport exchange" \
+  --source-account assets:bank-jpy --source-amount 10000 --source-currency JPY \
+  --target-account assets:cash-ils --target-amount 250.00 --target-currency ILS \
+  --exchange-id israel-2026-exchange-0001 --trip-id israel-2026 --dry-run
+```
+
+確認後は`--dry-run`を`--yes`へ替えます。両amountを保持する固定10列契約は [ISRAEL_TRAVEL_EDITOR_USAGE.md](ISRAEL_TRAVEL_EDITOR_USAGE.md) を参照してください。rate計算、journal projection、account作成は行いません。
+
+### 友人立替pending eventの安全追記 (`travel friend add`)
+
+Israel旅行中に友人がILSで立て替えた観測事実は、ordinary journalへ入れず専用sourceへ記録します。
+
+```bash
+./tools/edit travel friend add \
+  --date 2026-07-20 --party "synthetic friend" --item "meal" \
+  --amount 42.50 --currency ILS --payer friend \
+  --trip-id israel-2026 --source-event-id israel-2026-friend-0001 \
+  --dry-run
+```
+
+確認後は`--dry-run`を`--yes`へ替えます。固定9列契約と安全上の制限は [ISRAEL_TRAVEL_EDITOR_USAGE.md](ISRAEL_TRAVEL_EDITOR_USAGE.md) を参照してください。この入口はJPY finalizationやjournal projectionを行いません。
 
 ### Issues & Decisions の安全追記 (`issue add`)
 ```bash
@@ -178,13 +211,13 @@ BQN Editor は会計エンジンとしての計算（残高や封筒の残金計
 
 ## 5. BQN Editorが保証する安全書き込み機能
 
-書き込みを伴うコマンド（`account add`、`journal add`、`journal reverse`、`budget add`、`plan add`、`plan finish --apply`、`plan edit`、`issue add`）を実行する際、BQN Editorは以下の安全機構を自動で走らせます。
+書き込みを伴うコマンド（`account add`、`journal add`、`journal reverse`、`travel friend add`、`travel exchange add`、`budget add`、`plan add`、`plan finish --apply`、`plan edit`、`issue add`）を実行する際、BQN Editorは以下の安全機構を自動で走らせます。
 
 1.  **事前バリデーション**: 日付フォーマット、金額が整数か、アカウント名が `<base>/accounts.tsv` に存在するか、メタデータ形式に問題がないかを書き込み前に構造検査します。
 2.  **プレビューと確認**: 追記または編集される正確なTSV行を画面に出力し、ユーザーが明示的に `y` または `yes` と入力しない限り書き込みません（`--yes` 指定時を除く）。
 3.  **自動バックアップ**: 置き換えを実行する直前に、対象ディレクトリ内の `.backup/YYYYMMDD-HHMMSS/<ファイル名>` にオリジナルデータを退避します。
 4.  **安全な置き換え**: 追記や編集はBashスクリプト連携で安全に行い、編集中にデータが破損しないように努めます。
-5.  **事後チェック (Post-write check)**: 書き込み直後に自動で確認を実行します。既定の `--post-check lint` は `bqn src_next/report.bqn <base>` を実行し、`--post-check full` は `./tools/check.sh` を実行します。もしチェックが失敗した場合は、警告を出した上で、バックアップから戻すための案内を表示します。
+5.  **事後チェック (Post-write check)**: 書き込み直後に自動で確認を実行します。ordinary journalの既定 `--post-check lint` はmixed JPY/ILSを合算せず、`src_edit/journal_source_check.bqn`で各source rowの日付、exact amount、metadata、currency、account整合性を検査します。正常なmixed-currency sourceは許容しますが、full reportのsingle-currency consumer contractは変更しません。その他の既存lint ownerは従来どおりで、`--post-check full` は別の広い検証modeとして `./tools/check.sh` を実行します。journal post-check失敗時は、post-write digestが一致する場合だけbackupからoriginal bytesへ自動rollbackし、後続writerが変更した場合はrollbackを拒否してrecovery-requiredを表示します。
 
 ---
 
