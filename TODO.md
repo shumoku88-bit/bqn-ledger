@@ -31,7 +31,9 @@ Phase 1 ordinary journal metadata readiness is complete: the unchanged generic `
 
 Phase 2 friend-paid pending source-event storage and safe append is complete: `tools/edit travel friend add` writes only validated pending ILS observations to `friend_travel_events.tsv` with exclusive first-write, checked append, dedicated post-check, and rollback recovery.
 
-Phase 3 exchange-event pure validation and structured preview is the immediate implementation slice after the Phase 2 PR passes CI and merges. Each phase is an independent PR and begins only after its predecessor passes CI and merges. The sequence does not select the return-home atomic finalization writer, router, cash view, strict-source Steps 2–5, M4, or Ledger Observatory work.
+Phase 3 exchange-event pure validation and structured preview is complete: the I/O-free BQN owner preserves distinct JPY source and ILS target observations, checks supplied accounts and IDs, and exposes no rate or journal row.
+
+Phase 4 exchange-event safe append and recovery is the immediate implementation slice after the Phase 3 PR passes CI and merges. Each phase is an independent PR and begins only after its predecessor passes CI and merges. The sequence does not select the return-home atomic finalization writer, router, cash view, strict-source Steps 2–5, M4, or Ledger Observatory work.
 
 Canonical execution plan: `docs/archive/active-plans/ISRAEL_PREDEPARTURE_EDITOR_CAPTURE_COMPLETION-2026-07-13.md`.
 
