@@ -1,0 +1,4 @@
+assets:bank	role=asset	currency=JPY
+expenses:food	role=expense	currency=JPY
+assets:cash-ils	role=asset	currency=ILS
+expenses:food-ils	role=expense	currency=ILS
