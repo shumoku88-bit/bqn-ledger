@@ -4,7 +4,7 @@ Status: parked intake
 Owner: currency / travel settlement
 Canonical: no
 Current implementation authorization: none, except the separately selected I/O-free preview design slice below
-Current selected consumer: `FRIEND_FOREIGN_LIABILITY_JPY_SETTLEMENT_PLAN-2026-07-13.md` is the canonical active plan for closing a confirmed FCY friend liability into an existing JPY friend liability. Follow that plan; this intake remains non-canonical for all other travel rails.
+Current selected consumer: `FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md` is the canonical active plan for finalizing a pending friend-paid travel source event into one existing-JPY-liability → JPY-expense journal preview. Follow that plan; this intake remains non-canonical for all other travel rails.
 Reopen: only after the selected mixed-ledger daily-use path is stable enough to support another concrete travel consumer
 
 ## Purpose

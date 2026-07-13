@@ -15,11 +15,11 @@ Last hygiene pass: 2026-07-13 — closed strict-source Step 1 (policy carrier an
 
 ## Active work
 
-### Friend foreign-liability → JPY-liability settlement: pure-preview design
+### Friend travel source-event → JPY finalization: pure-preview design
 
-Status: docs-only design selected. Canonical plan: `docs/archive/active-plans/FRIEND_FOREIGN_LIABILITY_JPY_SETTLEMENT_PLAN-2026-07-13.md`.
+Status: docs-only design selected. Canonical plan: `docs/archive/active-plans/FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md`.
 
-- [ ] Select no write path yet: the first later implementation slice is I/O-free pure validation plus an all-or-nothing two-row preview only.
+- [ ] Select no write path yet: the first later implementation slice is I/O-free pure validation plus an all-or-nothing one-row JPY preview only.
 - [ ] Keep strict-source Steps 2–5 and M4 independently unselected; do not treat this consumer as their authorization.
 
 ## Next candidates
