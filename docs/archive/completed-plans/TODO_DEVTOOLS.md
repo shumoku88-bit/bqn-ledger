@@ -1,5 +1,10 @@
 # TODO — devtools improvement (2026-06-27)
 
+Status: completed
+Owner: docs
+Canonical: no
+Exit: archived; devtools improvements are fully implemented and integrated.
+
 ## Phase A: devtools-check.sh（メタチェック） ✅
 
 - [x] A-1: `tools/devtools-check.sh` 作成
