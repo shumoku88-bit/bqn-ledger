@@ -179,6 +179,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 - `check-edit-bqn-travel-friend-add.sh` — friend pending source-eventのdry-run、exclusive first-write、checked append、stale/duplicate拒否、rollback回帰チェック。
 - `check-travel-exchange-pure.sh` — exchange structured previewのpure contractとI/O/rate/journal output不在チェック。
 - `check-edit-bqn-travel-exchange-add.sh` — exchange sourceのexclusive first-write、全行検査、checked append、stale/duplicate拒否、rollback回帰チェック。
+- `check-israel-travel-four-path-rehearsal.sh` — exchange → ILS cash journal → confirmed-JPY card journal → friend pendingを一つのsynthetic baseで公開入口から実行する統合回帰。
 - `check-edit-bqn-issue-close.sh` — BQN issue list/close の履歴保持・dry-run・fail-closed チェック。
 - `check-edit-bqn-journal-list.sh` — BQN journal list read-only selection exportチェック。
 - `check-edit-bqn-plan-list.sh` — BQN plan list parity / unfinished plan candidate export 契約チェック。

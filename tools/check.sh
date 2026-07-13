@@ -138,6 +138,7 @@ bash checks/check-edit-bqn-journal-post-check-recovery.sh >/dev/null
 bash checks/check-edit-bqn-travel-friend-add.sh >/dev/null
 bash checks/check-travel-exchange-pure.sh >/dev/null
 bash checks/check-edit-bqn-travel-exchange-add.sh >/dev/null
+bash checks/check-israel-travel-four-path-rehearsal.sh >/dev/null
 bash checks/check-edit-bqn-issue-close.sh >/dev/null
 bash checks/check-edit-bqn-journal-list.sh >/dev/null
 bash checks/check-edit-bqn-journal-reverse.sh >/dev/null

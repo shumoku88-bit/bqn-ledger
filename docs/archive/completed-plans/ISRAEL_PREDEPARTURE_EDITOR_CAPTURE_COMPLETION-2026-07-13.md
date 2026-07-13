@@ -1,9 +1,34 @@
 # Israel Predeparture Editor Capture Completion — 2026-07-13
 
-Status: active plan / selected finite program
+Status: completed
 Owner: editor / travel capture
-Canonical: no; current finite-work selector: `TODO.md`
-Exit: move to `docs/archive/completed-plans/` after the integrated four-path synthetic rehearsal and documentation closure succeed.
+Canonical: no; completed execution record
+Exit: archived; reopen only through a separately selected finite slice in `TODO.md`.
+
+## Completion record
+
+The integrated synthetic rehearsal completed with `journal=2`, `friend=1`, and `exchange=1`. All four public commands exited 0 with journal `--post-check lint`; dry-runs preserved bytes, duplicate source IDs were rejected, stale writer checks passed, and injected journal post-check failure restored exact original bytes.
+
+| Work | PR | Merge commit |
+|---|---:|---|
+| Program selection (Phase 0) | #217 | `5c1f6c6386299a49953edb4812562a73ea61eed3` |
+| Ordinary metadata readiness (Phase 1) | #218 | `8f744188df6dd4e93d32ef875d7db28df349d995` |
+| Friend pending capture (Phase 2) | #220 | `d521d0dbe16593affc1ecba206e09d5fec5a5f2a` |
+| Exchange pure contract (Phase 3) | #221 | `2f617445e21bd0a482465e938828e0b78ea4ebb5` |
+| Exchange safe append (Phase 4) | #222 | `c345c53841c49a6ad72d5d13523b2bd47ae8142e` |
+| Post-check prerequisite selection | #223 | `7cae0448088cdc49b47332428907a78c890a9045` |
+| Mixed journal lint and rollback recovery | #224 | `f0b9875eb87ce1610a3d7b5093dbc44d513e6174` |
+| Integrated rehearsal and closure (Phase 5) | #225 | this completed-record PR; final merge commit is recorded in PR #225 metadata and the final report |
+
+Public entries:
+
+```text
+tools/edit journal add
+tools/edit travel friend add
+tools/edit travel exchange add
+```
+
+Dedicated sources are headerless `friend_travel_events.tsv` (nine columns) and `travel_exchange_events.tsv` (ten columns). No actual `LEDGER_DATA_DIR` was read, no real source TSV or account was created or changed, and repository `data/` was not used as production data. Candidate 6 remains parked. Finalization, router, cash view, strict-source Steps 2–5, and M4 remain unselected.
 
 ## Purpose
 

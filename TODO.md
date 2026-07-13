@@ -15,35 +15,9 @@ Last hygiene pass: 2026-07-13 — completed and archived the Israel travel daily
 
 ## Active work
 
-### Israel predeparture editor capture completion
+No finite implementation slice is currently selected.
 
-Status: selected finite program. The user explicitly selected completion of the four travel-day capture paths before departure.
-
-Ordered phases:
-
-1. ordinary journal metadata synthetic readiness;
-2. friend-paid pending source-event storage and safe append;
-3. exchange-event pure validation and preview;
-4. exchange-event safe append and recovery;
-5. integrated four-path synthetic rehearsal and closure.
-
-Phase 1 ordinary journal metadata readiness is complete: the unchanged generic `key=value` path preserves ordered `trip_id=israel-2026` and `payment=cash|card` metadata for synthetic ILS cash and confirmed-JPY card rows. `config/meta_schema.tsv` remains unchanged.
-
-Phase 2 friend-paid pending source-event storage and safe append is complete: `tools/edit travel friend add` writes only validated pending ILS observations to `friend_travel_events.tsv` with exclusive first-write, checked append, dedicated post-check, and rollback recovery.
-
-Phase 3 exchange-event pure validation and structured preview is complete: the I/O-free BQN owner preserves distinct JPY source and ILS target observations, checks supplied accounts and IDs, and exposes no rate or journal row.
-
-Phase 4 exchange-event safe append and recovery is complete: `tools/edit travel exchange add` writes only validated two-amount observations to `travel_exchange_events.tsv` with exclusive first-write, full-source post-check, and checked rollback.
-
-Phase 5 is paused after discovering that ordinary journal `lint` uses a single-domain full report after append and does not automatically restore the backup on post-check failure. The synthetic ILS-then-JPY sequence appended both rows, then exited 1 with `mixed_currency_domains` while leaving both rows present.
-
-The mixed-currency ordinary journal post-check and rollback prerequisite is complete: journal `lint` now uses a mixed-safe, all-or-nothing source-integrity owner without weakening row currency/account/amount/metadata validation. Post-check failure restores exact original bytes only when the post-write digest still matches; a later writer causes explicit recovery-required refusal.
-
-Phase 5 integrated four-path synthetic rehearsal and closure is the immediate slice after the prerequisite PR passes CI and merges. It must run without `--post-check none`.
-
-Completion requires journal `lint` to accept valid mixed JPY/ILS source, checked rollback and later-writer protection to pass, and the four public Phase 5 commands to succeed. Full report contracts, the return-home atomic finalization writer, router, cash view, strict-source Steps 2–5, M4, and Ledger Observatory work remain unselected.
-
-Canonical execution plan: `docs/archive/active-plans/ISRAEL_PREDEPARTURE_EDITOR_CAPTURE_COMPLETION-2026-07-13.md`.
+The Israel predeparture editor capture program completed through an integrated synthetic four-path rehearsal. Completion record: `docs/archive/completed-plans/ISRAEL_PREDEPARTURE_EDITOR_CAPTURE_COMPLETION-2026-07-13.md`.
 
 ## Next candidates
 
