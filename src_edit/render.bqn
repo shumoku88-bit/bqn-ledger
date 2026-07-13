@@ -13,10 +13,12 @@ Join ← {
 }
 
 # Build a validated accounts.tsv row. role and currency are always explicit;
-# type is an optional controlled asset classification.
+# type is an optional controlled asset classification. Currency is appended after
+# the pre-M2 role/type order so existing editor presentation remains stable.
 RenderAccountRow ⇐ {
-  fields ← ⟨𝕩.name, "role=" ∾ 𝕩.role, "currency=" ∾ 𝕩.currency⟩
+  fields ← ⟨𝕩.name, "role=" ∾ 𝕩.role⟩
   fields ∾↩ (0 < ≠𝕩.type) / ⟨"type=" ∾ 𝕩.type⟩
+  fields ∾↩ ⟨"currency=" ∾ 𝕩.currency⟩
   (@+9) Join fields
 }
 
