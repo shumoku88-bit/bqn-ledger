@@ -8,7 +8,7 @@ loader ← •Import "../src_next/loader.bqn"
 
 tab ← @+9
 Line ← {𝕊 fields: ∾ fields ∾¨ tab}
-Snapshot ← {𝕊 lines:
+MakeSnapshot ← {𝕊 lines:
   {
     sources ⇐ ⟨
       {source_file⇐"journal.tsv", required⇐1, lines⇐lines},
@@ -62,7 +62,7 @@ ilsDebits ← (({𝕩.side}¨ ils.posting_rows) ≡¨ <"debit") / ils.posting_ro
 
 # A row/account currency mismatch rejects the whole selected projection before
 # any Posting IR rows are emitted.
-mismatchSnapshot ← Snapshot ⟨
+mismatchSnapshot ← MakeSnapshot ⟨
   Line ⟨"2026-07-04", "wrong accounts", "assets:bank", "expenses:food", "7.50", "currency=ILS"⟩
 ⟩
 mismatch ← sel.Build ⟨mismatchSnapshot, resolved, cycleStart, "ILS"⟩
