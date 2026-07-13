@@ -78,6 +78,7 @@ Exit: keep current while this remains the pit code/data-flow entry point
 - `source_currency_admission.bqn` — supplied account lines と posting snapshot のみを検査する pure source-currency admission owner。closed strict/compatibility policy、privacy-safe diagnostics、no-partial-admission を持ち、I/Oなし・public runtime未配線。
 - `friend_travel_jpy_finalization.bqn` — pending friend-travel source-event descriptor、明示 finalization date / JPY amount、既存account descriptor、既存finalization IDだけを入力にするpure validator。成功時は既存JPY liability → JPY expenseのcanonical previewを正確に1行返し、失敗時はprivacy-safe diagnosticsと0行を返す。I/O、status/index mutation、writer、public runtime配線は持たない。
 - `friend_travel_source_event.bqn` — Israel用friend-paid pending source eventの固定9列、ILS精度、固定payer/trip/status、既存全行検査、ID一意性、exact preview rowを所有するpure validator。I/Oとfinalizationを持たない。
+- `travel_exchange_event.bqn` — Israel用JPY→ILS exchangeの2観測amount、既存account descriptor、ID一意性を検査しstructured previewを返すpure owner。I/O、rate、journal row、valuationを持たない。
 - `loader.bqn` — TSV ファイル読み込み (`•FChars` 使用)。
 - `cube.bqn` — Canonical Daily Cube (`Day × Account × Layer`) の構築。
 - `tbds.bqn` — Trial Balance Data Set (period/account/layer/opening/movement/closing)。
@@ -173,6 +174,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 - `check-edit-bqn-account-list.sh` — BQN account list export チェック。
 - `check-edit-bqn-journal-add.sh` — BQN journal/budget/issue add parityチェック。
 - `check-edit-bqn-travel-friend-add.sh` — friend pending source-eventのdry-run、exclusive first-write、checked append、stale/duplicate拒否、rollback回帰チェック。
+- `check-travel-exchange-pure.sh` — exchange structured previewのpure contractとI/O/rate/journal output不在チェック。
 - `check-edit-bqn-issue-close.sh` — BQN issue list/close の履歴保持・dry-run・fail-closed チェック。
 - `check-edit-bqn-journal-list.sh` — BQN journal list read-only selection exportチェック。
 - `check-edit-bqn-plan-list.sh` — BQN plan list parity / unfinished plan candidate export 契約チェック。
