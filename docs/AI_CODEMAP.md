@@ -76,6 +76,7 @@ Exit: keep current while this remains the pit code/data-flow entry point
 - `exact_decimal.bqn` — source amount text の exact-decimal parse、canonical coefficient / scale、parsed coefficient exact-range 診断の owner。
 - `currency_arithmetic.bqn` — pre-built B1 row evidence だけを入力に、single-domain 検査、snapshot-wide `amount_scale`、exact normalization、normalized overflow evidence を返す pure B2 owner。source file や projection は扱わない。
 - `source_currency_admission.bqn` — supplied account lines と posting snapshot のみを検査する pure source-currency admission owner。closed strict/compatibility policy、privacy-safe diagnostics、no-partial-admission を持ち、I/Oなし・public runtime未配線。
+- `friend_travel_jpy_finalization.bqn` — pending friend-travel source-event descriptor、明示 finalization date / JPY amount、既存account descriptor、既存finalization IDだけを入力にするpure validator。成功時は既存JPY liability → JPY expenseのcanonical previewを正確に1行返し、失敗時はprivacy-safe diagnosticsと0行を返す。I/O、status/index mutation、writer、public runtime配線は持たない。
 - `loader.bqn` — TSV ファイル読み込み (`•FChars` 使用)。
 - `cube.bqn` — Canonical Daily Cube (`Day × Account × Layer`) の構築。
 - `tbds.bqn` — Trial Balance Data Set (period/account/layer/opening/movement/closing)。

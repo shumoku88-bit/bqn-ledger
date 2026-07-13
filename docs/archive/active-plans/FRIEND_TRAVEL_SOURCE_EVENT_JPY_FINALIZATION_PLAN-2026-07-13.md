@@ -3,7 +3,9 @@
 Status: active plan
 Owner: currency / editor / source contract
 Canonical: yes; canonical path: `docs/archive/active-plans/FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md`
-Exit: archive as completed only after the separately selected pure-preview slice is implemented, tested, and its follow-up source-event/journal write slice is explicitly selected or declined.
+Exit: archive as completed only after the implemented pure-preview slice is reviewed and its follow-up source-event/journal write slice is explicitly selected or declined.
+
+Runtime status (2026-07-13): the I/O-free `src_next/friend_travel_jpy_finalization.bqn` validator and its unit tests are implemented. No source-event storage, status/index mutation, journal writer, editor/UI, fixture, report, or public runtime path is selected or connected. Post-implementation review and any future atomic write design remain separate work.
 
 ## Selected consumer and accounting boundary
 
@@ -31,6 +33,8 @@ A pending source event, or its typed descriptor supplied to the pure function, c
 | `trip_id` | Nonempty stable trip identifier. |
 | `source_event_id` | Nonempty immutable source-event identifier, unique in its source-event domain. |
 | `status` | Exactly `pending` before finalization. |
+
+For preview metadata safety, `source_event_id` and `trip_id` are nonempty tokens containing no TAB, CR, LF, whitespace, or `=`. `party` and `item_or_category` are nonempty journal-field text and contain no TAB, CR, or LF. In this first slice, `original_currency` is exactly three uppercase ASCII letters; this validates a source-fact token and does not restrict it to the canonical JPY/ILS posting allowlist.
 
 The event is a source fact and must not enter Posting IR, canonical journal expense/cycle totals, envelope consumption, or JPY valuation merely because it exists. This plan does not choose its source file, storage format, or status-transition writer.
 
