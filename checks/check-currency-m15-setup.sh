@@ -6,28 +6,45 @@ cd "$ROOT_DIR"
 
 fixture="fixtures/currency-m15-migration"
 
+fail_output() {
+  local label="$1" expected="$2" actual="$3"
+  printf 'FAIL: %s\nexpected: %s\nactual output:\n%s\n' "$label" "$expected" "$actual" >&2
+  exit 1
+}
+
+assert_line() {
+  local expected="$1" actual="$2" label="$3"
+  grep -Fxq -- "$expected" <<<"$actual" || fail_output "$label" "$expected" "$actual"
+}
+
+assert_contains() {
+  local expected="$1" actual="$2" label="$3"
+  grep -Fq -- "$expected" <<<"$actual" || fail_output "$label" "$expected" "$actual"
+}
+
 audit_out="$(bash tools/currency-setup audit "$fixture")"
-grep -Fxq 'state=ok' <<<"$audit_out"
-grep -Fxq 'default_key=DEFAULT_CURRENCY' <<<"$audit_out"
-grep -Fxq 'default_state=ok' <<<"$audit_out"
-grep -Fxq 'default_currency=JPY' <<<"$audit_out"
-grep -Fxq 'default_provenance=ledger_config' <<<"$audit_out"
-grep -Fxq 'migration_target=JPY' <<<"$audit_out"
-grep -Fxq 'changed_count=5' <<<"$audit_out"
-grep -Fxq 'error_count=0' <<<"$audit_out"
+assert_line 'state=ok' "$audit_out" 'audit state'
+assert_line 'default_key=DEFAULT_CURRENCY' "$audit_out" 'default key'
+assert_line 'default_state=ok' "$audit_out" 'default state'
+assert_line 'default_currency=JPY' "$audit_out" 'default currency'
+assert_line 'default_provenance=ledger_config' "$audit_out" 'default provenance'
+assert_line 'migration_target=JPY' "$audit_out" 'migration target'
+assert_line 'changed_count=5' "$audit_out" 'audit changed count'
+assert_line 'error_count=0' "$audit_out" 'audit error count'
 if grep -q '^FILE ' <<<"$audit_out"; then
   echo 'FAIL: audit mode emitted migration replacement preview' >&2
+  printf '%s\n' "$audit_out" >&2
   exit 1
 fi
 
 dry_out="$(bash tools/currency-setup dry-run "$fixture")"
-grep -Fxq 'changed_count=5' <<<"$dry_out"
-grep -Fq $'FILE accounts.tsv ROW 1' <<<"$dry_out"
-grep -Fq $'+assets:bank\trole=asset\ttype=liquid\tcurrency=JPY' <<<"$dry_out"
-grep -Fq $'FILE journal.tsv ROW 1' <<<"$dry_out"
-grep -Fq $'+2026-07-01\t\tassets:bank\texpenses:food\t1200\tparty=shop\tcurrency=JPY' <<<"$dry_out"
-grep -Fq $'FILE plan.tsv ROW 0' <<<"$dry_out"
-grep -Fq $'FILE budget_alloc.tsv ROW 0' <<<"$dry_out"
+assert_line 'changed_count=5' "$dry_out" 'dry-run changed count'
+assert_contains 'FILE accounts.tsv ROW 1' "$dry_out" 'accounts preview row'
+assert_contains $'+assets:bank\trole=asset\ttype=liquid\tcurrency=JPY' "$dry_out" 'accounts proposed line'
+assert_contains 'FILE journal.tsv ROW 1' "$dry_out" 'journal preview row'
+assert_contains $'+2026-07-01\t\tassets:bank\texpenses:food\t1200\tparty=shop\tcurrency=JPY' "$dry_out" 'journal proposed line'
+assert_contains 'FILE plan.tsv ROW 0' "$dry_out" 'plan preview row'
+assert_contains 'FILE budget_alloc.tsv ROW 0' "$dry_out" 'budget preview row'
 
 # Command is read-only: fixture digests must remain unchanged.
 before="$(find "$fixture" -type f -print0 | sort -z | xargs -0 sha256sum)"
