@@ -1,3 +1,4 @@
+# Temporary M2 diagnostic wrapper; removed before merge.
 name: check
 
 on:
