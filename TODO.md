@@ -9,13 +9,20 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-13 — parked the friend-travel atomic finalization writer as Israel travel candidate 6; no finite implementation slice is selected, and production use, strict-source Steps 2–5, and M4 remain unselected.
+Last hygiene pass: 2026-07-13 — selected only the finite docs-only Israel travel daily-capture design; the friend atomic writer is parked as candidate 6, and all implementation candidates, strict-source Steps 2–5, and M4 remain unselected.
 
 ---
 
 ## Active work
 
-No finite implementation slice is currently selected.
+### Israel travel daily capture: docs-only finite design
+
+Status: selected docs-only work. Canonical plan: `docs/archive/active-plans/ISRAEL_TRAVEL_DAILY_CAPTURE_PLAN-2026-07-13.md`.
+
+- [ ] Fix the four semantic rails for ILS cash acquisition, ordinary ILS cash spending, one-time confirmed-JPY card entry, and pending friend-paid events.
+- [ ] Cross-link the existing friend-finalization plan and broader travel multi-currency intake.
+- [ ] Update only minimal docs routing/inventory and run docs-safe validation.
+- [ ] Do not start runtime, writer, source TSV, fixture, account, report, UI, production-data, strict-source Steps 2–5, M4, or friend atomic-writer work.
 
 ## Next candidates
 

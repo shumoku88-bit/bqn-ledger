@@ -111,6 +111,7 @@ The former design that recorded foreign-currency friend liability/expense journa
 
 ## Dependencies and routing
 
+- The selected Israel daily-capture operating choice, including capture-time routing into this pending-event contract, is in [ISRAEL_TRAVEL_DAILY_CAPTURE_PLAN-2026-07-13.md](ISRAEL_TRAVEL_DAILY_CAPTURE_PLAN-2026-07-13.md). That docs-only plan does not select this plan's atomic writer.
 - The broader travel semantic rails remain in [TRAVEL_MULTI_CURRENCY_SETTLEMENT_DESIGN_INTAKE-2026-07-12.md](TRAVEL_MULTI_CURRENCY_SETTLEMENT_DESIGN_INTAKE-2026-07-12.md).
 - The parked candidate 6 proposal for possible future atomicity, storage, recovery ownership, stale checks, backup, retry, and write evidence is [FRIEND_TRAVEL_ATOMIC_FINALIZATION_WRITE_DESIGN-2026-07-13.md](FRIEND_TRAVEL_ATOMIC_FINALIZATION_WRITE_DESIGN-2026-07-13.md); it is not implementation authority.
 - Current mixed-ledger history and strict-source routing remain in [CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md](CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md), [STRICT_PRODUCTION_SOURCE_CURRENCY_ENFORCEMENT_DECISION-2026-07-13.md](STRICT_PRODUCTION_SOURCE_CURRENCY_ENFORCEMENT_DECISION-2026-07-13.md), and `TODO.md`.
