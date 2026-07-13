@@ -30,7 +30,14 @@ jobs:
         run: npm ci --prefix mcp-server
 
       - name: Run check.sh
-        run: bash tools/check.sh
+        run: bash tools/check.sh >check.log 2>&1
+
+      - name: Upload check log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: check-log
+          path: check.log
 
       - name: Coverage
         run: bash tools/coverage
