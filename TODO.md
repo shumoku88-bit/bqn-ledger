@@ -9,15 +9,20 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-13 — completed and archived the Israel travel daily-capture docs-only design; all implementation candidates remain unselected, the friend atomic writer remains parked as candidate 6, and strict-source Steps 2–5 and M4 remain unselected.
+Last hygiene pass: 2026-07-13 — Israel predeparture editor capture is READY; only real-account readiness remains selected, while friend finalization candidate 6, strict-source Steps 2–5, M4, and other implementation candidates remain unselected.
 
 ---
 
 ## Active work
 
-No finite implementation slice is currently selected.
+### Israel predeparture real-account readiness
 
-The Israel predeparture editor capture program completed through an integrated synthetic four-path rehearsal. Completion record: `docs/archive/completed-plans/ISRAEL_PREDEPARTURE_EDITOR_CAPTURE_COMPLETION-2026-07-13.md`.
+Status: selected operational preparation only. Editor implementation and the integrated synthetic four-path rehearsal are complete; completion record: `docs/archive/completed-plans/ISRAEL_PREDEPARTURE_EDITOR_CAPTURE_COMPLETION-2026-07-13.md`.
+
+- [ ] Read-onlyで、実運用に使う次のaccountと`currency`が存在・一致することを確認する: JPY交換元asset、ILS現金asset、JPYカードliability、ILS支出expense、JPYカード支出expense。
+- [ ] 不足がある場合もaccount名を推測・自動作成せず、通常のaccount追加手順で人間が明示的に決める。
+- [ ] private account名、金額、実データpathをpublic repoへ記録しない。
+- [ ] この確認と同時にruntime、source schema、friend finalization、router、cash view、M4、strict-source Steps 2–5を開始しない。
 
 ## Next candidates
 
