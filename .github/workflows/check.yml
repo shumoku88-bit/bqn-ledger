@@ -1,4 +1,3 @@
-# Temporary M2 diagnostic wrapper; removed before merge.
 name: check
 
 on:
@@ -31,19 +30,7 @@ jobs:
         run: npm ci --prefix mcp-server
 
       - name: Run check.sh
-        run: |
-          set +e
-          bash tools/check.sh >check.log 2>&1
-          status=$?
-          cat check.log
-          exit "$status"
-
-      - name: Upload check log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: check-log
-          path: check.log
+        run: bash tools/check.sh
 
       - name: Coverage
         run: bash tools/coverage
