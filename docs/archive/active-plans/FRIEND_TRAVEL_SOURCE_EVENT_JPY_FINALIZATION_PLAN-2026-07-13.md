@@ -67,7 +67,7 @@ The pure validator accepts only:
 - an explicit existing JPY travel-expense account descriptor; and
 - the supplied existing-finalization index.
 
-It rejects with zero preview rows if `source_event_id`, `trip_id`, `payer`, `original_amount`, or `original_currency` is missing or invalid; `finalization_date` is missing or invalid; status is not `pending`; `J` is not a positive integer; either selected account is unknown/not-existing or is not JPY; the accounts do not have the required liability/expense roles; or `source_event_id` is already finalized. It also rejects any request that would emit an endpoint other than the selected JPY liability and JPY expense accounts.
+It rejects with zero preview rows if `source_event_id`, `trip_id`, `payer`, `original_amount`, or `original_currency` is missing or invalid; `finalization_date` is missing or invalid; status is not `pending`; `J` is not a positive integer; either selected account is unknown/not-existing or is not JPY; the accounts do not have the required liability/expense roles; or `source_event_id` is already finalized. A missing required top-level, event, or account-descriptor namespace member fails closed as one privacy-safe `request_shape_invalid` diagnostic rather than escaping as an evaluation error. It also rejects any request that would emit an endpoint other than the selected JPY liability and JPY expense accounts.
 
 An accepted result always contains exactly one JPY journal preview row and no foreign-currency journal row, clearing row, or second expense row. An error result contains zero preview rows. This is the complete all-or-nothing boundary of the first slice.
 

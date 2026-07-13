@@ -60,6 +60,48 @@ CheckRejected ← {𝕊 request:
   result
 }
 
+CheckShapeRejected ← {𝕊 request:
+  result ← CheckRejected request
+  1 lib.AssertEq ≠ result.diagnostics
+  diagnostic ← ⊑ result.diagnostics
+  "request_shape_invalid" lib.AssertEq diagnostic.code
+  "request" lib.AssertEq diagnostic.field
+  result
+}
+
+# Missing required namespace members fail closed at the extraction boundary.
+privateShapeValue ← "private-namespace-value"
+missingEvent ← {
+  finalization_date⇐"2026-07-13", jpy_amount⇐"1",
+  liability_account⇐ValidLiability @, expense_account⇐ValidExpense @,
+  existing_finalization_ids⇐⟨⟩, private_note⇐privateShapeValue
+}
+missingSourceIdEvent ← {
+  date⇐"2026-06-15", party⇐privateShapeValue, item_or_category⇐"Item",
+  original_amount⇐"1", original_currency⇐"USD", payer⇐"friend",
+  trip_id⇐"trip", status⇐"pending"
+}
+missingFinalizationDate ← {
+  event⇐ValidEvent @, jpy_amount⇐"1", liability_account⇐ValidLiability @,
+  expense_account⇐ValidExpense @, existing_finalization_ids⇐⟨⟩,
+  private_note⇐privateShapeValue
+}
+liabilityMissingCurrency ← {name⇐privateShapeValue, exists⇐1, role⇐"liability"}
+missingExistingIds ← {
+  event⇐ValidEvent @, finalization_date⇐"2026-07-13", jpy_amount⇐"1",
+  liability_account⇐ValidLiability @, expense_account⇐ValidExpense @,
+  private_note⇐privateShapeValue
+}
+shapeResults ← ⟨
+  CheckShapeRejected missingEvent,
+  CheckShapeRejected Request ⟨missingSourceIdEvent, "2026-07-13", "1", ValidLiability @, ValidExpense @, ⟨⟩⟩,
+  CheckShapeRejected missingFinalizationDate,
+  CheckShapeRejected Request ⟨ValidEvent @, "2026-07-13", "1", liabilityMissingCurrency, ValidExpense @, ⟨⟩⟩,
+  CheckShapeRejected missingExistingIds
+⟩
+shapeMessages ← ∾ ({𝕩.message∾"\n"}¨ ∾ ({𝕩.diagnostics}¨ shapeResults))
+0 lib.AssertEq ∨´ privateShapeValue ⍷ shapeMessages
+
 # Accepted pending event produces exactly one structured canonical JPY row.
 accepted ← finalization.ValidateAndPreview ValidRequest @
 "ok" lib.AssertEq accepted.state

@@ -55,6 +55,45 @@ AccountDiagnostics ← {𝕊 descriptor‿fieldName‿requiredRole:
   diagnostics
 }
 
+# Catch only required-member extraction. Validation and preview bugs remain visible.
+ExtractRequest ← {𝕊 request:
+  sourceEvent ← request.event
+  liability ← request.liability_account
+  expense ← request.expense_account
+  normalizedEvent ← {
+    date ⇐ sourceEvent.date,
+    party ⇐ sourceEvent.party,
+    item_or_category ⇐ sourceEvent.item_or_category,
+    original_amount ⇐ sourceEvent.original_amount,
+    original_currency ⇐ sourceEvent.original_currency,
+    payer ⇐ sourceEvent.payer,
+    trip_id ⇐ sourceEvent.trip_id,
+    source_event_id ⇐ sourceEvent.source_event_id,
+    status ⇐ sourceEvent.status
+  }
+  normalizedLiability ← {
+    name ⇐ liability.name,
+    exists ⇐ liability.exists,
+    role ⇐ liability.role,
+    currency ⇐ liability.currency
+  }
+  normalizedExpense ← {
+    name ⇐ expense.name,
+    exists ⇐ expense.exists,
+    role ⇐ expense.role,
+    currency ⇐ expense.currency
+  }
+  normalizedRequest ← {
+    event ⇐ normalizedEvent,
+    finalization_date ⇐ request.finalization_date,
+    jpy_amount ⇐ request.jpy_amount,
+    liability_account ⇐ normalizedLiability,
+    expense_account ⇐ normalizedExpense,
+    existing_finalization_ids ⇐ request.existing_finalization_ids
+  }
+  {ok⇐1, value⇐normalizedRequest}
+} ⎊ {𝕩 ⋄ {ok⇐0, value⇐empty}}
+
 PreviewRow ← {𝕊 request‿jpyParsed:
   event ← request.event
   {
@@ -67,7 +106,7 @@ PreviewRow ← {𝕊 request‿jpyParsed:
   }
 }
 
-ValidateAndPreview ← {𝕊 request:
+ValidateExtractedRequest ← {𝕊 request:
   event ← request.event
   originalParsed ← decimal.Parse event.original_amount
   jpyParsed ← decimal.Parse request.jpy_amount
@@ -93,6 +132,14 @@ ValidateAndPreview ← {𝕊 request:
   {𝕊:
     result ↩ {state⇐"ok", diagnostics⇐empty, preview_rows⇐⟨PreviewRow ⟨request, jpyParsed⟩⟩}
   } ⍟ (0 = ≠ diagnostics) @
+  result
+}
+
+ValidateAndPreview ← {𝕊 request:
+  extracted ← ExtractRequest request
+  shapeDiagnostic ← Diagnostic ⟨"request_shape_invalid", "request", "request is missing required members"⟩
+  result ← {state⇐"error", diagnostics⇐⟨shapeDiagnostic⟩, preview_rows⇐empty}
+  {𝕊: result ↩ ValidateExtractedRequest extracted.value } ⍟ extracted.ok @
   result
 }
 
