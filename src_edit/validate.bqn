@@ -47,7 +47,7 @@ FractionDigits ← {
   s ← 𝕩
   positions ← ('.' = s) / ↕ ≠ s
   count ← 0
-  {𝕊: count ↩ (≠ s) - 1 - ⊑ positions } ⍟ (1 = ≠ positions) @
+  {𝕊: count ↩ ((≠ s) - 1) - ⊑ positions } ⍟ (1 = ≠ positions) @
   count
 }
 
