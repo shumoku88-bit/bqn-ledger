@@ -49,6 +49,10 @@ Classification ← {𝕊 tokens:
   classification
 }
 
+IsPostingSourceFile ← {𝕊 sourceFile:
+  ∨´ 0 ∾ (sourceFile⊸≡¨ ⟨"journal.tsv", "plan.tsv", "budget_alloc.tsv"⟩)
+}
+
 Diagnostic ← {𝕊 code‿sourceKind‿sourceFile‿sourceRow:
   {
     severity ⇐ "error",
@@ -61,17 +65,20 @@ Diagnostic ← {𝕊 code‿sourceKind‿sourceFile‿sourceRow:
   }
 }
 
-policyDiagnostic ← {
+NoSourceDiagnostic ← {𝕊 code‿message:
   {
     severity ⇐ "error",
     stage ⇐ "source_currency_admission",
-    code ⇐ "source_currency_policy_unknown",
+    code ⇐ code,
     source_kind ⇐ "",
     source_file ⇐ "",
-    source_row ⇐ -1,
-    message ⇐ "source currency policy: unknown"
+    source_row ⇐ ¯1,
+    message ⇐ message
   }
 }
+
+policyDiagnostic ← NoSourceDiagnostic ⟨"source_currency_policy_unknown", "source currency policy: unknown"⟩
+invalidSourceDiagnostic ← NoSourceDiagnostic ⟨"source_currency_source_file_invalid", "posting source file invalid"⟩
 
 Evidence ← {𝕊 sourceKind‿sourceFile‿sourceRow‿currency‿provenance:
   {
@@ -136,18 +143,25 @@ AdmitAccounts ← {𝕊 policy‿lines:
   }
 }
 
-AdmitRows ← {𝕊 policy‿snapshot:
-  results ← ∾ {𝕊 source:
-    {𝕊 row:
+AdmitRowsForSource ← {𝕊 policy‿source:
+  sourceFile ← source.source_file
+  results ← ⟨{ state ⇐ "error", evidence ⇐ ⟨⟩, diagnostics ⇐ ⟨invalidSourceDiagnostic⟩ }⟩
+  {𝕊:
+    results ↩ {𝕊 row:
       line ← row ⊑ source.lines
       result ← { state ⇐ "ok", evidence ⇐ ⟨⟩, diagnostics ⇐ ⟨⟩ }
       {𝕊:
         fields ← SplitKeepEmpty line
-        result ↩ AdmissionForLine ⟨policy, "journal_like", source.source_file, row, 5 ↓ fields⟩
+        result ↩ AdmissionForLine ⟨policy, "journal_like", sourceFile, row, 5 ↓ fields⟩
       } ⍟ (¬ IsIgnoredLine line) @
       result
     } ¨ ↕ ≠ source.lines
-  } ¨ snapshot.sources
+  } ⍟ (IsPostingSourceFile sourceFile) @
+  results
+}
+
+AdmitRows ← {𝕊 policy‿snapshot:
+  results ← ∾ { AdmitRowsForSource ⟨policy, 𝕩⟩ } ¨ snapshot.sources
   {
     evidence ⇐ ∾ {𝕩.evidence} ¨ results,
     diagnostics ⇐ ∾ {𝕩.diagnostics} ¨ results

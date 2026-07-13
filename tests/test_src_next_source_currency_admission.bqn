@@ -117,4 +117,22 @@ message ← (⊑ privacy.diagnostics).message
 0 lib.AssertEq ∨´ "SECRET" ⍷ message
 "accounts.tsv row 0: account_currency_unsupported" lib.AssertEq message
 
+# An unknown or path-shaped supplied source is rejected without reflecting its value.
+privateSourceFile ← "/private/example/journal.tsv"
+privateSourceSnapshot ← {
+  sources ⇐ ⟨{source_file⇐privateSourceFile, required⇐1, lines⇐⟨Line (baseRow ∾ ⟨"currency=JPY"⟩)⟩}⟩
+}
+privateSource ← admission.Admit ⟨strictPolicy, accounts, privateSourceSnapshot⟩
+"error" lib.AssertEq privateSource.state
+0 lib.AssertEq ≠ privateSource.admitted_account_evidence
+0 lib.AssertEq ≠ privateSource.admitted_row_evidence
+privateSourceDiagnostic ← ⊑ privateSource.diagnostics
+"source_currency_source_file_invalid" lib.AssertEq privateSourceDiagnostic.code
+"" lib.AssertEq privateSourceDiagnostic.source_kind
+"" lib.AssertEq privateSourceDiagnostic.source_file
+¯1 lib.AssertEq privateSourceDiagnostic.source_row
+"posting source file invalid" lib.AssertEq privateSourceDiagnostic.message
+0 lib.AssertEq ∨´ privateSourceFile ⍷ privateSourceDiagnostic.message
+0 lib.AssertEq ∨´ privateSourceFile ⍷ privateSourceDiagnostic.source_file
+
 •Out "test_src_next_source_currency_admission.bqn: OK"
