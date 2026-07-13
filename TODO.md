@@ -9,21 +9,23 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-13 — closed strict-source Step 1 (policy carrier and pure admission core); Steps 2–5 remain unselected.
+Last hygiene pass: 2026-07-13 — closed and independently verified the friend-travel one-row JPY pure-preview slice; its atomic write follow-up, strict-source Steps 2–5, and M4 remain unselected.
 
 ---
 
 ## Active work
 
-### Friend travel source-event → JPY finalization: pure-preview implementation review
-
-Status: I/O-free pure validator and all-or-nothing one-row JPY preview implemented; post-implementation verification is the remaining finite work. Canonical plan: `docs/archive/active-plans/FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md`.
-
-- [x] Implement pure validation plus an all-or-nothing one-row JPY preview without selecting a write path.
-- [ ] Review the pure-preview result, then separately select or decline a future atomic source-event status/index/journal write design. Do not add that writer in this slice.
-- [ ] Keep strict-source Steps 2–5 and M4 independently unselected; do not treat this consumer as their authorization.
+No finite implementation slice is currently selected.
 
 ## Next candidates
+
+### Friend travel source-event → JPY finalization: atomic write design
+
+Status: unselected candidate only. The pure-preview implementation is verified and closed; see `docs/archive/audits/FRIEND_TRAVEL_JPY_FINALIZATION_POST_IMPLEMENTATION_VERIFICATION-2026-07-13.md` and the still-active canonical plan `docs/archive/active-plans/FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md`.
+
+- [ ] Select or decline this candidate separately; do not infer authorization from the completed preview.
+- [ ] If selected, first define one atomic source-event status transition + durable finalization-index update + journal append, including recovery ownership and write evidence.
+- [ ] Do not auto-select a writer, source-event storage format, strict-source Steps 2–5, or M4.
 
 Mixed-ledger daily-use の後続候補とslice境界は `docs/archive/active-plans/CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md` を参照する。M3は実装・検証済みで、strict-source Step 1（policy carrier / pure admission core）は完了済み。strict-sourceのSteps 2–5（writer closure、compatibility preparation、production activation、post-implementation verification）とM4は未選定であり、自動選定しない。
 

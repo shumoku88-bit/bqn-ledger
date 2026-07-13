@@ -58,3 +58,34 @@ Routing after closure:
 - no next finite slice is selected;
 - strict production source enforcement remains candidate only;
 - M4 remains candidate only.
+
+## Friend travel source-event → JPY finalization: pure preview
+
+Status: completed and independently verified.
+
+Implementation identity:
+
+- PR #210: `Add pure friend travel JPY finalization preview`;
+- final implementation head: `37f8edb5ec4511eddcda5fd18caedb5e1a5236af`;
+- merge commit: `078de24e8178b160f0cf63f1ed60f828f65dd9a9`;
+- CI check run #759: success.
+
+Verified result:
+
+- added the I/O-free `ValidateAndPreview` API over only supplied request descriptors;
+- separated purchase and finalization dates and validated exact source facts plus positive integer JPY amount;
+- requires explicit existing JPY liability/expense descriptors without name inference;
+- accepts only an all-or-nothing single JPY liability → JPY expense preview with provenance metadata;
+- rejects duplicate finalization IDs, collects privacy-safe deterministic diagnostics, and fail-closes missing members;
+- leaves source status/index, writer, public runtime, source TSV, fixtures, reports, and editor/UI unchanged.
+
+Verification record:
+
+- `docs/archive/audits/FRIEND_TRAVEL_JPY_FINALIZATION_POST_IMPLEMENTATION_VERIFICATION-2026-07-13.md`
+
+Routing after closure:
+
+- the atomic source-event status/index/journal write design remains an unselected candidate;
+- no writer is auto-selected;
+- strict-source Steps 2–5 and M4 remain independently unselected;
+- the canonical plan remains active until its follow-up write slice is explicitly selected or declined.

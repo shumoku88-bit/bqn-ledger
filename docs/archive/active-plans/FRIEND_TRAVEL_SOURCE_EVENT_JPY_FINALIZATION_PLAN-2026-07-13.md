@@ -5,7 +5,7 @@ Owner: currency / editor / source contract
 Canonical: yes; canonical path: `docs/archive/active-plans/FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md`
 Exit: archive as completed only after the implemented pure-preview slice is reviewed and its follow-up source-event/journal write slice is explicitly selected or declined.
 
-Runtime status (2026-07-13): the I/O-free `src_next/friend_travel_jpy_finalization.bqn` validator and its unit tests are implemented. No source-event storage, status/index mutation, journal writer, editor/UI, fixture, report, or public runtime path is selected or connected. Post-implementation review and any future atomic write design remain separate work.
+Runtime status (2026-07-13): the I/O-free `src_next/friend_travel_jpy_finalization.bqn` validator and its unit tests were implemented in PR #210 and independently verified in `docs/archive/audits/FRIEND_TRAVEL_JPY_FINALIZATION_POST_IMPLEMENTATION_VERIFICATION-2026-07-13.md`. No source-event storage, status/index mutation, journal writer, editor/UI, fixture, report, or public runtime path is selected or connected. The pure-preview slice is closed; any future atomic write design remains an explicitly unselected candidate.
 
 ## Selected consumer and accounting boundary
 
@@ -90,13 +90,19 @@ It does not reopen the source event, create a second expense, or require a final
 - foreign-currency canonical postings, foreign expense re-expression, partial finalization, refunds, reversals, or one-to-many allocation;
 - strict-source Steps 2–5 or M4.
 
-## First implementation slice: pure validation + one-row JPY preview only
+## Completed first implementation slice: pure validation + one-row JPY preview only
 
-The only implementation slice this plan authorizes for later selection is an I/O-free BQN pure function and unit tests. Its inputs are the pending source-event descriptor, explicitly human-supplied `finalization_date`, confirmed JPY amount, explicit existing JPY liability and expense account descriptors, and existing-finalization index. Its output is either structured rejection diagnostics with zero preview rows or an accepted result with exactly one JPY journal preview. It performs no TSV reads, writes, environment reads, report changes, editor/UI dispatch, account creation, or status/index mutation.
+The completed and independently verified slice is an I/O-free BQN pure function and unit tests. Its inputs are the pending source-event descriptor, explicitly human-supplied `finalization_date`, confirmed JPY amount, explicit existing JPY liability and expense account descriptors, and existing-finalization index. Its output is either structured rejection diagnostics with zero preview rows or an accepted result with exactly one JPY journal preview. It performs no TSV reads, writes, environment reads, report changes, editor/UI dispatch, account creation, or status/index mutation.
 
 Required characterization cases include: accepted pending event; each missing/invalid source-event identity and observed-amount/currency field; missing/invalid `finalization_date`; non-`friend` payer; non-pending status; non-positive/non-integer JPY amount; unknown/non-JPY/wrong-role liability or expense account; pre-existing finalization; wrong row direction; any foreign or clearing endpoint; accepted output exactly one row; and every rejection output zero rows.
 
-The source-event read/write and status-transition boundary, finalization-index persistence, journal writer, metadata-schema admission, fixtures, reports, and real-data trial are deliberately **not** part of this slice. Select a write slice only after this preview is reviewed and a new plan defines atomic source-event finalization plus journal-write evidence and recovery ownership.
+The source-event read/write and status-transition boundary, finalization-index persistence, journal writer, metadata-schema admission, fixtures, reports, and real-data trial are deliberately **not** part of this slice. The completed preview does not authorize further runtime work.
+
+## Post-implementation verification and remaining routing
+
+The verification record classifies every required pure-preview claim as `verified` and closes that finite slice. The plan remains active only because its Exit contract also requires the follow-up write slice to be explicitly selected or declined.
+
+A future design for one atomic source-event status transition + durable finalization-index update + journal append is an **unselected candidate**, not active work. It must receive separate authorization and define atomicity, recovery ownership, stale checks, backup, and post-write evidence before implementation. No writer, source-event storage format, strict-source Step 2–5 work, or M4 work is selected automatically.
 
 ## Rejected alternative
 
