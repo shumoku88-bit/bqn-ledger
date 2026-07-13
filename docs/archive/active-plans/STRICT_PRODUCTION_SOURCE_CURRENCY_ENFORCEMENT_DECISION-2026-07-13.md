@@ -1,6 +1,6 @@
 # Strict Production Source Currency Enforcement Boundary Decision — 2026-07-13
 
-Status: active plan / docs-only boundary decision
+Status: active plan / Step 1 selected; docs-only boundary decision remains canonical
 Owner: currency
 Canonical: yes
 Exit: after the decision PR merges, authorize only the first implementation slice below; archive as completed after strict runtime activation and separate post-implementation verification
