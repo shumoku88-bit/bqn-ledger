@@ -2,19 +2,20 @@
 # Pure source-currency admission before account resolution or posting projection.
 # It operates only on supplied source lines and a supplied posting snapshot.
 
+setup ← •Import "currency_setup.bqn"
+
 empty ← ⟨⟩
 tab ← @+9
-supportedCurrencies ← ⟨"JPY", "ILS"⟩
 sourceCurrencyPolicy ← {
   production_strict ⇐ "production_strict",
   legacy_compatibility ⇐ "legacy_compatibility"
 }
 
 IsSupportedCurrency ← {𝕊 currency:
-  ∨´ 0 ∾ (currency⊸≡¨ supportedCurrencies)
+  setup.IsSupportedCurrency currency
 }
 
-# Keep the source-audit rule: blank, # comment, and \\ comment lines are ignored.
+# Keep the source-audit rule: blank, # comment, and \ comment lines are ignored.
 IsIgnoredLine ← {𝕊 line:
   ignored ← 0
   {𝕊: ignored ↩ 1 } ⍟ (0 = ≠ line) @
