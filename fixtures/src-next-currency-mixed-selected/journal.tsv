@@ -1,0 +1,3 @@
+2026-07-01	JPY food	assets:bank	expenses:food	1200	currency=JPY
+2026-07-02	ILS food	assets:cash-ils	expenses:food-ils	42.50	currency=ILS
+2026-07-03	ILS small	assets:cash-ils	expenses:food-ils	0.05	currency=ILS
