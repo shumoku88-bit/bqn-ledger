@@ -17,47 +17,110 @@ usage() {
 Usage:
   tools/currency-setup audit [base-dir]
   tools/currency-setup dry-run [base-dir]
+  tools/currency-setup apply [base-dir] [--post-check lint|full] [--yes]
 
 Purpose:
-  Read-only M1.5 currency setup inspection.
+  M2.5 currency setup inspection and explicitly confirmed JPY source migration.
 
   audit    reports explicit ledger default and source currency states
-  dry-run  also prints exact old/new lines that would receive currency=JPY
+  dry-run  prints exact old/new rows that would receive currency=JPY
+  apply    stages the reviewed proposal, creates backups, checks stale sources,
+           replaces the source set, verifies changed_count=0, and rolls back the
+           set if a write or post-check fails
 
 Safety:
-  This command never writes source data. DEFAULT_CURRENCY selects an initial
-  view only and is never used as missing source currency authority. The M1.5
-  migration target is explicitly fixed to JPY.
+  DEFAULT_CURRENCY selects an initial view only and is never used as missing
+  source currency authority. The migration target is explicitly fixed to JPY.
+  apply requires terminal confirmation or --yes. It only accepts BQN proposals
+  that append exactly one TAB plus currency=JPY to a previously untagged row.
 
 Default base directory:
   LEDGER_DATA_DIR, then config/system_defaults.tsv.
 USAGE
 }
 
-if [[ $# -lt 1 || $# -gt 2 ]]; then
+if [[ $# -lt 1 ]]; then
   usage >&2
   exit 1
 fi
 
 MODE="$1"
+shift
 case "$MODE" in
-  audit|dry-run) ;;
+  audit|dry-run)
+    if [[ $# -gt 1 ]]; then
+      usage >&2
+      exit 1
+    fi
+    BASE_DIR="${1:-${LEDGER_DATA_DIR:-$(get_default_base_dir)}}"
+    ;;
+  apply)
+    BASE_DIR=""
+    POST_CHECK="full"
+    YES=0
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --post-check)
+          [[ $# -ge 2 ]] || { echo "ERROR: missing value for --post-check" >&2; exit 1; }
+          POST_CHECK="$2"
+          shift 2
+          ;;
+        --yes)
+          YES=1
+          shift
+          ;;
+        --help|-h)
+          usage
+          exit 0
+          ;;
+        --*)
+          echo "ERROR: unknown apply option: $1" >&2
+          exit 1
+          ;;
+        *)
+          if [[ -n "$BASE_DIR" ]]; then
+            echo "ERROR: apply accepts at most one base directory" >&2
+            exit 1
+          fi
+          BASE_DIR="$1"
+          shift
+          ;;
+      esac
+    done
+    BASE_DIR="${BASE_DIR:-${LEDGER_DATA_DIR:-$(get_default_base_dir)}}"
+    case "$POST_CHECK" in
+      lint|full) ;;
+      *) echo "ERROR: --post-check must be lint or full" >&2; exit 1 ;;
+    esac
+    ;;
   --help|-h)
     usage
     exit 0
     ;;
   *)
-    echo "ERROR: mode must be audit or dry-run" >&2
+    echo "ERROR: mode must be audit, dry-run, or apply" >&2
     usage >&2
     exit 1
     ;;
 esac
 
-BASE_DIR="${2:-${LEDGER_DATA_DIR:-$(get_default_base_dir)}}"
 if [[ ! -d "$BASE_DIR" ]]; then
   echo "ERROR: ledger base directory not found: $BASE_DIR" >&2
   exit 1
 fi
 BASE_DIR="$(cd -- "$BASE_DIR" && pwd -P)"
+
+if [[ "$MODE" == "apply" ]]; then
+  args=(
+    "$ROOT_DIR/tools/currency_setup_apply.py"
+    --root "$ROOT_DIR"
+    --base "$BASE_DIR"
+    --post-check "$POST_CHECK"
+  )
+  if [[ "$YES" -eq 1 ]]; then
+    args+=(--yes)
+  fi
+  exec python3 "${args[@]}"
+fi
 
 exec bqn src_next/currency_setup_cli.bqn "$MODE" "$BASE_DIR"
