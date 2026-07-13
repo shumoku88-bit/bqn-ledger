@@ -1,5 +1,10 @@
 # BQN Editor & Add-UI Usage Manual
 
+Status: current operational guide
+Owner: editor
+Canonical: yes
+Exit: keep current while `tools/edit` and `tools/add-ui.sh` remain the daily write paths.
+
 BQN-Ledgerにおける base directory 配下の元データTSV（`journal.tsv`, `plan.tsv` など）を安全に表示・編集・完了処理するための、BQN製エディタ（`tools/edit` / `tools/edit-bqn`）および日常記帳UI（`tools/add-ui.sh`）の使い方説明書です。
 
 ## 1. 基本コンセプト：秤（はかり）と手袋
@@ -87,6 +92,20 @@ BQN Editor は会計エンジンとしての計算（残高や封筒の残金計
     *   `--meta key=value`: 拡張列用のメタデータを指定します。
     *   `--dry-run`: 追記プレビューのみを行い、ファイルには書き込みません。
     *   `--yes`: 追記時の確認プロンプト（`y/N`）をスキップします。
+
+### 友人立替pending eventの安全追記 (`travel friend add`)
+
+Israel旅行中に友人がILSで立て替えた観測事実は、ordinary journalへ入れず専用sourceへ記録します。
+
+```bash
+./tools/edit travel friend add \
+  --date 2026-07-20 --party "synthetic friend" --item "meal" \
+  --amount 42.50 --currency ILS --payer friend \
+  --trip-id israel-2026 --source-event-id israel-2026-friend-0001 \
+  --dry-run
+```
+
+確認後は`--dry-run`を`--yes`へ替えます。固定9列契約と安全上の制限は [ISRAEL_TRAVEL_EDITOR_USAGE.md](ISRAEL_TRAVEL_EDITOR_USAGE.md) を参照してください。この入口はJPY finalizationやjournal projectionを行いません。
 
 ### Issues & Decisions の安全追記 (`issue add`)
 ```bash
@@ -178,7 +197,7 @@ BQN Editor は会計エンジンとしての計算（残高や封筒の残金計
 
 ## 5. BQN Editorが保証する安全書き込み機能
 
-書き込みを伴うコマンド（`account add`、`journal add`、`journal reverse`、`budget add`、`plan add`、`plan finish --apply`、`plan edit`、`issue add`）を実行する際、BQN Editorは以下の安全機構を自動で走らせます。
+書き込みを伴うコマンド（`account add`、`journal add`、`journal reverse`、`travel friend add`、`budget add`、`plan add`、`plan finish --apply`、`plan edit`、`issue add`）を実行する際、BQN Editorは以下の安全機構を自動で走らせます。
 
 1.  **事前バリデーション**: 日付フォーマット、金額が整数か、アカウント名が `<base>/accounts.tsv` に存在するか、メタデータ形式に問題がないかを書き込み前に構造検査します。
 2.  **プレビューと確認**: 追記または編集される正確なTSV行を画面に出力し、ユーザーが明示的に `y` または `yes` と入力しない限り書き込みません（`--yes` 指定時を除く）。

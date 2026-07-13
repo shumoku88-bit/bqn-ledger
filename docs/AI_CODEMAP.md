@@ -77,6 +77,7 @@ Exit: keep current while this remains the pit code/data-flow entry point
 - `currency_arithmetic.bqn` — pre-built B1 row evidence だけを入力に、single-domain 検査、snapshot-wide `amount_scale`、exact normalization、normalized overflow evidence を返す pure B2 owner。source file や projection は扱わない。
 - `source_currency_admission.bqn` — supplied account lines と posting snapshot のみを検査する pure source-currency admission owner。closed strict/compatibility policy、privacy-safe diagnostics、no-partial-admission を持ち、I/Oなし・public runtime未配線。
 - `friend_travel_jpy_finalization.bqn` — pending friend-travel source-event descriptor、明示 finalization date / JPY amount、既存account descriptor、既存finalization IDだけを入力にするpure validator。成功時は既存JPY liability → JPY expenseのcanonical previewを正確に1行返し、失敗時はprivacy-safe diagnosticsと0行を返す。I/O、status/index mutation、writer、public runtime配線は持たない。
+- `friend_travel_source_event.bqn` — Israel用friend-paid pending source eventの固定9列、ILS精度、固定payer/trip/status、既存全行検査、ID一意性、exact preview rowを所有するpure validator。I/Oとfinalizationを持たない。
 - `loader.bqn` — TSV ファイル読み込み (`•FChars` 使用)。
 - `cube.bqn` — Canonical Daily Cube (`Day × Account × Layer`) の構築。
 - `tbds.bqn` — Trial Balance Data Set (period/account/layer/opening/movement/closing)。
@@ -120,6 +121,7 @@ Exit: keep current while this remains the pit code/data-flow entry point
 - `src_edit/account_add_cmd.bqn` — 明示role・名前空間・重複・asset typeを検証し、accounts.tsv追記候補を生成。
 - `src_edit/account_list_cmd.bqn` — UI向け account candidate export。`accounts.tsv` の role メタ解釈を BQN 側に閉じ込める。
 - `src_edit/journal_add_cmd.bqn` — journal add / budget add 用の検証および TSV 生成。
+- `src_edit/travel_friend_add_cmd.bqn` — `friend_travel_events.tsv` の既存全行検査とpending候補APPEND protocol生成。意味検査はpure source-event ownerへ委譲。
 - `src_edit/journal_list_cmd.bqn` — journal reverse UI向け read-only journal selection export。
 - `src_edit/journal_reverse_cmd.bqn` — journal reverse 用の検証および反対仕訳 APPEND protocol 生成。
 - `src_edit/issue_add_cmd.bqn` — issue add 用の検証および TSV 生成。
@@ -146,7 +148,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 ### `tools/edit-bqn`
 
 - 日常 write path の BQN+shell 実装。
-- `account add` / `account list` / `journal add` / `journal list` / `budget add` / `issue add` / `issue list` / `issue close` / `plan add` / `plan list` / `plan related` / `plan finish` / `plan edit` / `journal reverse` を扱う。
+- `account add` / `account list` / `journal add` / `journal list` / `travel friend add` / `budget add` / `issue add` / `issue list` / `issue close` / `plan add` / `plan list` / `plan related` / `plan finish` / `plan edit` / `journal reverse` を扱う。
 - `src_edit` の機械可読プロトコルを受け、`tools/lib/safe-write.sh` で安全に適用する。
 - Dispatcher boundary の現行メモは `docs/EDIT_BQN_DISPATCHER.md`。共通 shell helper は `tools/lib/edit-bqn-common.sh`、`issue add` handler は `tools/lib/edit-bqn-issue.sh`。
 - Go editor の記述や fallback 前提は現行導線では使わない。
@@ -170,6 +172,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 - `check-disabled-features.sh` — 無効化機能の隔離チェック。
 - `check-edit-bqn-account-list.sh` — BQN account list export チェック。
 - `check-edit-bqn-journal-add.sh` — BQN journal/budget/issue add parityチェック。
+- `check-edit-bqn-travel-friend-add.sh` — friend pending source-eventのdry-run、exclusive first-write、checked append、stale/duplicate拒否、rollback回帰チェック。
 - `check-edit-bqn-issue-close.sh` — BQN issue list/close の履歴保持・dry-run・fail-closed チェック。
 - `check-edit-bqn-journal-list.sh` — BQN journal list read-only selection exportチェック。
 - `check-edit-bqn-plan-list.sh` — BQN plan list parity / unfinished plan candidate export 契約チェック。
