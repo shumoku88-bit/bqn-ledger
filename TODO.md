@@ -15,11 +15,12 @@ Last hygiene pass: 2026-07-13 — closed strict-source Step 1 (policy carrier an
 
 ## Active work
 
-### Friend travel source-event → JPY finalization: pure-preview design
+### Friend travel source-event → JPY finalization: pure-preview implementation review
 
-Status: docs-only design selected. Canonical plan: `docs/archive/active-plans/FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md`.
+Status: I/O-free pure validator and all-or-nothing one-row JPY preview implemented; post-implementation verification is the remaining finite work. Canonical plan: `docs/archive/active-plans/FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md`.
 
-- [ ] Select no write path yet: the first later implementation slice is I/O-free pure validation plus an all-or-nothing one-row JPY preview only.
+- [x] Implement pure validation plus an all-or-nothing one-row JPY preview without selecting a write path.
+- [ ] Review the pure-preview result, then separately select or decline a future atomic source-event status/index/journal write design. Do not add that writer in this slice.
 - [ ] Keep strict-source Steps 2–5 and M4 independently unselected; do not treat this consumer as their authorization.
 
 ## Next candidates
