@@ -36,7 +36,9 @@ PrintErrorRow ← {𝕊 row:
 
 PrintFile ← {𝕊 mode‿file:
   •Out "file=" ∾ file.file_name ∾ " state=" ∾ file.state ∾ " missing=" ∾ (•Fmt file.missing_count) ∾ " explicit=" ∾ (•Fmt file.explicit_count) ∾ " errors=" ∾ (•Fmt file.error_count)
-  {𝕊: PrintChangedRow⟜file.file_name¨ file.rows } ⍟ ((mode ≡ "dry-run") ∧ (file.state ≡ "ok")) @
+  {𝕊:
+    {𝕊 row: PrintChangedRow ⟨file.file_name, row⟩}¨ file.rows
+  } ⍟ ((mode ≡ "dry-run") ∧ (file.state ≡ "ok")) @
   PrintErrorRow¨ file.rows
 }
 
@@ -65,7 +67,7 @@ Main ← {𝕊 mode‿base:
   •Out "changed_count=" ∾ (•Fmt result.changed_count)
   •Out "error_count=" ∾ (•Fmt result.error_count)
 
-  PrintFile⟜mode¨ result.files
+  {𝕊 file: PrintFile ⟨mode, file⟩}¨ result.files
   {𝕊: •Out "ERROR: " ∾ result.message } ⍟ ((result.state ≢ "ok") ∧ (0 < ≠ result.message)) @
   {𝕊: •Exit 1 } ⍟ (result.state ≢ "ok") @
 }
