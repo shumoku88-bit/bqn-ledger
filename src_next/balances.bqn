@@ -54,6 +54,19 @@ Format ← {𝕊 entries:
   out
 }
 
+# PresentationPolicy keeps checked arithmetic scale distinct from human display
+# scale. ILS is fixed at two decimals and rejects broader source precision.
+PresentationPolicy ← {𝕊 selectedCurrency‿calculationScale:
+  presentationScale ← (selectedCurrency ≡ "ILS") ⊑ ⟨calculationScale, 2⟩
+  tooPrecise ← (selectedCurrency ≡ "ILS") ∧ (calculationScale > presentationScale)
+  {
+    state ⇐ tooPrecise ⊑ "ok"‿"error",
+    calculation_scale ⇐ calculationScale,
+    presentation_scale ⇐ presentationScale,
+    message ⇐ tooPrecise ⊑ ⟨"", "ILS source precision exceeds 2 fractional digits: calculation scale " ∾ (•Fmt calculationScale)⟩
+  }
+}
+
 # BuildSelected: balances-only M3 orchestration over one checked currency projection.
 # DEFAULT_CURRENCY selects the view only; source currency evidence remains owned by
 # the existing row/account validation seams.
@@ -62,7 +75,8 @@ BuildSelected ← {𝕊 base‿explicitCurrency:
   selection ← currency_setup.ResolveSelection ⟨defaultResult, explicitCurrency⟩
   result ← {
     state ⇐ "error", message ⇐ selection.message,
-    selected_currency ⇐ "", provenance ⇐ "", amount_scale ⇐ ⟨⟩, entries ⇐ ⟨⟩
+    selected_currency ⇐ "", provenance ⇐ "",
+    calculation_scale ⇐ ⟨⟩, presentation_scale ⇐ ⟨⟩, entries ⇐ ⟨⟩
   }
 
   {𝕊:
@@ -73,7 +87,7 @@ BuildSelected ← {𝕊 base‿explicitCurrency:
       result ↩ {
         state ⇐ "error", message ⇐ bad.message,
         selected_currency ⇐ selection.currency, provenance ⇐ selection.provenance,
-        amount_scale ⇐ ⟨⟩, entries ⇐ ⟨⟩
+        calculation_scale ⇐ ⟨⟩, presentation_scale ⇐ ⟨⟩, entries ⇐ ⟨⟩
       }
     }⍟(accountAudit.state ≢ "ok") @
 
@@ -88,22 +102,38 @@ BuildSelected ← {𝕊 base‿explicitCurrency:
         result ↩ {
           state ⇐ "error", message ⇐ diagnostic.message,
           selected_currency ⇐ selection.currency, provenance ⇐ selection.provenance,
-          amount_scale ⇐ ⟨⟩, entries ⇐ ⟨⟩
+          calculation_scale ⇐ ⟨⟩, presentation_scale ⇐ ⟨⟩, entries ⇐ ⟨⟩
         }
       }⍟(selected.state ≢ "ok") @
 
       {𝕊:
-        view ← ctx_mod.BuildPeriodView ⟨selected.posting_rows, resolved, cy⟩
-        selectedContext ← { resolved ⇐ resolved, tbds ⇐ view.tbds }
-        balanceEntries ← Build selectedContext
-        selectedEntries ← ({((2⊑𝕩) ≡ "asset") ∨ ((2⊑𝕩) ≡ "liability")}¨ balanceEntries) / balanceEntries
-        result ↩ {
-          state ⇐ "ok", message ⇐ "",
-          selected_currency ⇐ selection.currency,
-          provenance ⇐ selection.provenance,
-          amount_scale ⇐ selected.arithmetic_currency_proof.amount_scale,
-          entries ⇐ selectedEntries
-        }
+        calculationScale ← selected.arithmetic_currency_proof.amount_scale
+        policy ← PresentationPolicy ⟨selection.currency, calculationScale⟩
+
+        {𝕊:
+          result ↩ {
+            state ⇐ "error", message ⇐ policy.message,
+            selected_currency ⇐ selection.currency, provenance ⇐ selection.provenance,
+            calculation_scale ⇐ calculationScale,
+            presentation_scale ⇐ policy.presentation_scale,
+            entries ⇐ ⟨⟩
+          }
+        }⍟(policy.state ≢ "ok") @
+
+        {𝕊:
+          view ← ctx_mod.BuildPeriodView ⟨selected.posting_rows, resolved, cy⟩
+          selectedContext ← { resolved ⇐ resolved, tbds ⇐ view.tbds }
+          balanceEntries ← Build selectedContext
+          selectedEntries ← ({((2⊑𝕩) ≡ "asset") ∨ ((2⊑𝕩) ≡ "liability")}¨ balanceEntries) / balanceEntries
+          result ↩ {
+            state ⇐ "ok", message ⇐ "",
+            selected_currency ⇐ selection.currency,
+            provenance ⇐ selection.provenance,
+            calculation_scale ⇐ calculationScale,
+            presentation_scale ⇐ policy.presentation_scale,
+            entries ⇐ selectedEntries
+          }
+        }⍟(policy.state ≡ "ok") @
       }⍟(selected.state ≡ "ok") @
     }⍟(accountAudit.state ≡ "ok") @
   }⍟(selection.state ≡ "ok") @
@@ -111,17 +141,19 @@ BuildSelected ← {𝕊 base‿explicitCurrency:
   result
 }
 
-# Exact coefficient formatter. The checked projection supplies amount_scale, so
-# presentation never reparses account keys or rounds normalized source amounts.
-FormatCoefficient ← {𝕊 coefficient‿amountScale‿currency:
+# Exact coefficient formatter. Scaling appends decimal zeroes as text, which is
+# equivalent to multiplying by 10^(presentation-calculation) without overflow,
+# rounding, or reinterpreting the checked coefficient.
+FormatCoefficient ← {𝕊 coefficient‿calculationScale‿presentationScale‿currency:
   negative ← coefficient < 0
-  digits ← •Fmt | coefficient
-  padded ← ((0 ⌈ (amountScale + 1) - ≠digits) ⥊ '0') ∾ digits
+  scaleDelta ← presentationScale - calculationScale
+  digits ← (•Fmt | coefficient) ∾ scaleDelta ⥊ '0'
+  padded ← ((0 ⌈ (presentationScale + 1) - ≠digits) ⥊ '0') ∾ digits
   body ← padded
   {𝕊:
-    split ← (≠padded) - amountScale
+    split ← (≠padded) - presentationScale
     body ↩ (split ↑ padded) ∾ "." ∾ (split ↓ padded)
-  }⍟(0 < amountScale) @
+  }⍟(0 < presentationScale) @
   symbol ← (currency ≡ "ILS") ⊑ ⟨"", "₪"⟩
   (negative ⊑ ⟨"", "-"⟩) ∾ symbol ∾ body
 }
@@ -222,7 +254,7 @@ FormatHuman ← {𝕊 entries:
 # fields and are never inferred from account_key text.
 FormatSelectedHuman ← {𝕊 selected:
   Amount ← {𝕊 amount:
-    FormatCoefficient ⟨amount, selected.amount_scale, selected.selected_currency⟩
+    FormatCoefficient ⟨amount, selected.calculation_scale, selected.presentation_scale, selected.selected_currency⟩
   }
   viewLine ← "Currency view: " ∾ selected.selected_currency ∾ " (" ∾ (ProvenanceLabel selected.provenance) ∾ ")"
   RenderHuman { entries ⇐ selected.entries, FormatAmount ⇐ Amount, view_line ⇐ viewLine }
@@ -278,6 +310,7 @@ FormatJson ← {𝕊 ctx:
   Build ⇐ Build,
   BuildSelected ⇐ BuildSelected,
   Format ⇐ Format,
+  PresentationPolicy ⇐ PresentationPolicy,
   FormatCoefficient ⇐ FormatCoefficient,
   ProvenanceLabel ⇐ ProvenanceLabel,
   FormatHuman ⇐ FormatHuman,

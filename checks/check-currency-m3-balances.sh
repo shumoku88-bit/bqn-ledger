@@ -9,22 +9,35 @@ failures=0
 fail() { echo "FAIL: $*" >&2; failures=$((failures + 1)); }
 pass() { echo "PASS: $*"; }
 
-run_report() {
-  local name="$1"
-  shift
+run_report_at() {
+  local name="$1" base="$2"
+  shift 2
   local status
-  if tools/report "$fixture" "$@" >"$tmp/$name.out" 2>"$tmp/$name.err"; then
+  if tools/report "$base" "$@" >"$tmp/$name.out" 2>"$tmp/$name.err"; then
     return 0
   else
     status=$?
   fi
-  echo "command failed: tools/report $fixture $*" >&2
+  echo "command failed: tools/report $base $*" >&2
   echo "exit: $status" >&2
   echo "stdout:" >&2
   cat "$tmp/$name.out" >&2
   echo "stderr:" >&2
   cat "$tmp/$name.err" >&2
   return 1
+}
+
+run_report() {
+  local name="$1"
+  shift
+  run_report_at "$name" "$fixture" "$@"
+}
+
+make_ils_precision_fixture() {
+  local dir="$1" amount="$2"
+  cp -R "$fixture" "$dir"
+  printf '2026-07-01\tJPY opening\tliabilities:jpy-card\tassets:jpy-cash\t1200\tcurrency=JPY\n' >"$dir/journal.tsv"
+  printf '2026-07-02\tILS precision\tliabilities:ils-main\tassets:ils-main\t%s\tcurrency=ILS\n' "$amount" >>"$dir/journal.tsv"
 }
 
 expect_fail() {
@@ -65,6 +78,7 @@ if run_report ils --section balances --currency ILS --no-color; then
   grep -qF 'assets:ils-small/ILS' "$tmp/ils.out" || fail "ILS small asset missing"
   grep -qF '₪12.50' "$tmp/ils.out" || fail "ILS 12.50 is not exact"
   grep -qF '₪0.05' "$tmp/ils.out" || fail "ILS 0.05 is not exact"
+  grep -qF -- '-₪12.50' "$tmp/ils.out" || fail "negative ILS sign placement is not exact"
   grep -qE '^assets_total +\| +₪12\.55$' "$tmp/ils.out" || fail "ILS assets total is not isolated"
   grep -qE '^liabilities_total +\| +-₪12\.55$' "$tmp/ils.out" || fail "ILS liabilities total is not isolated"
   if grep -qF '/JPY' "$tmp/ils.out" || grep -qF 'jpy-' "$tmp/ils.out"; then
@@ -72,6 +86,29 @@ if run_report ils --section balances --currency ILS --no-color; then
   else
     pass "explicit ILS balances and totals are isolated"
   fi
+fi
+
+make_ils_precision_fixture "$tmp/ils-integer" "12"
+if run_report_at ils-integer "$tmp/ils-integer" --section balances --currency ILS --no-color; then
+  grep -qF '₪12.00' "$tmp/ils-integer.out" \
+    && pass "ILS integer source renders with fixed two decimals" \
+    || fail "ILS integer source did not render as ₪12.00"
+fi
+
+make_ils_precision_fixture "$tmp/ils-one-decimal" "12.5"
+if run_report_at ils-one-decimal "$tmp/ils-one-decimal" --section balances --currency ILS --no-color; then
+  grep -qF '₪12.50' "$tmp/ils-one-decimal.out" \
+    && pass "ILS one-decimal source scales exactly to two decimals" \
+    || fail "ILS one-decimal source did not render as ₪12.50"
+fi
+
+make_ils_precision_fixture "$tmp/ils-three-decimal" "1.234"
+expect_fail ils-three-decimal 'ILS source precision exceeds 2 fractional digits: calculation scale 3' \
+  tools/report "$tmp/ils-three-decimal" --section balances --currency ILS --no-color
+if grep -qF '== Account Balances ==' "$tmp/ils-three-decimal.out" || grep -qF '₪1.23' "$tmp/ils-three-decimal.out"; then
+  fail "ILS three-decimal failure emitted balances or a rounded value"
+else
+  pass "ILS three-decimal source emits no balances or rounded value"
 fi
 
 if run_report default --section balances --no-color; then

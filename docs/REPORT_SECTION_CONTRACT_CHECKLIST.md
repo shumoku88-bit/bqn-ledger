@@ -203,9 +203,12 @@ currency-selected human report consumer. An explicit selector has
 `explicit selection` provenance; without an override, `<base>/config.tsv` must
 provide one valid `DEFAULT_CURRENCY`, shown as `ledger default`. The section
 reuses the checked selected-currency projection and single-currency TBDS
-arithmetic, displays `Currency view:`, and passes the checked `amount_scale` to
-the human formatter. ILS uses exact two-decimal `₪` display. `--currency` with
-full report, another section, cache/list routing, or JSON fails closed.
+arithmetic and displays `Currency view:`. Its carrier keeps the checked
+calculation scale separate from presentation scale: ILS presentation is always
+scale 2, calculation coefficients at scale 0 or 1 are exactly scaled up for
+display, and ILS source/calculation scale above 2 fails closed without rounding.
+`--currency` with full report, another section, cache/list routing, or JSON fails
+closed.
 
 ### Structured JSON output
 `tools/report --section balances --format json` calls `balances.FormatJson ctx` and outputs the existing non-selected ViewModel JSON. M3 does not widen this schema and does not permit `--currency` with JSON:
