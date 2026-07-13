@@ -86,11 +86,11 @@ class LedgerCore {
   }
 
   async listAccounts() {
-    const allText = await this.exec('bqn', ['src_edit/account_list_cmd.bqn', this.baseReal, '']);
+    const allText = await this.exec('bqn', ['src_edit/account_list_cmd.bqn', this.baseReal, '', 'JPY']);
     const all = allText ? allText.split('\n') : [];
     const result = [];
     for (const role of ['asset', 'liability', 'income', 'expense', 'budget']) {
-      const text = await this.exec('bqn', ['src_edit/account_list_cmd.bqn', this.baseReal, role]);
+      const text = await this.exec('bqn', ['src_edit/account_list_cmd.bqn', this.baseReal, role, 'JPY']);
       for (const name of text ? text.split('\n') : []) result.push({ name, role });
     }
     const known = new Set(result.map(x => x.name));
@@ -115,7 +115,7 @@ class LedgerCore {
   }
 
   async editorCandidate(candidate, base = this.baseReal) {
-    const args = ['src_edit/journal_add_cmd.bqn', base, 'journal', candidate.date, candidate.memo, candidate.from_account, candidate.to_account, String(candidate.amount), ...candidate.metadata];
+    const args = ['src_edit/journal_add_cmd.bqn', base, 'journal', candidate.date, candidate.memo, candidate.from_account, candidate.to_account, String(candidate.amount), 'JPY', ...candidate.metadata];
     const out = await this.exec('bqn', args);
     const lines = out.split('\n');
     if (lines.length !== 2 || lines[0] !== 'OK\tAPPEND\tjournal.tsv') throw new LedgerError('EDITOR_PROTOCOL', 'Unexpected editor validation response.');
@@ -168,7 +168,7 @@ class LedgerCore {
   }
 
   async applyViaEditor(candidate, base, postCheck = 'lint') {
-    const args = ['--base', base, 'journal', 'add', '--date', candidate.date, '--memo', candidate.memo, '--from', candidate.from_account, '--to', candidate.to_account, '--amount', String(candidate.amount)];
+    const args = ['--base', base, 'journal', 'add', '--date', candidate.date, '--memo', candidate.memo, '--from', candidate.from_account, '--to', candidate.to_account, '--amount', String(candidate.amount), '--currency', 'JPY'];
     for (const token of candidate.metadata) args.push('--meta', token);
     args.push('--yes', '--post-check', postCheck);
     return this.exec(path.join(this.root, 'tools', 'edit'), args);
