@@ -1,9 +1,11 @@
 # Currency Mixed JPY / ILS Daily-Use Plan — 2026-07-12
 
-Status: active plan
+Status: active backlog
 Owner: currency
 Canonical: yes
-Exit: archive as completed or superseded after the selected mixed-ledger daily-use slices are implemented and verified
+Exit: archive as completed or superseded after the residual strict-source/M4 candidates are separately selected, rejected, or replaced
+
+Completion note (2026-07-13): M1, M1.5, M2, M2.5, and M3 are implemented and separately verified. The pre-implementation facts and future-surface wording below are retained as historical design context, not current runtime claims. No next finite slice is selected; strict-source enforcement and M4 remain independent candidates.
 
 ## Purpose and concrete user requirement
 
@@ -322,4 +324,4 @@ Example future output:
 
 Stage 2 documents remain the current single-currency exact foundation. This plan owns selection and sequencing for the concrete mixed-ledger daily-use consumer.
 
-The current authorization is M3 only, as selected in `TODO.md`; implementation does not itself close or verify M3. Strict-source enforcement and M4 remain separate, unauthorized candidates. After each implementation slice, use a separate post-implementation verification PR. Archive this plan as completed when the selected daily-use slices are implemented and verified, or as superseded if a later plan replaces this boundary.
+M1 through M3 are implemented and separately verified. No current implementation slice is authorized by this backlog. Strict-source enforcement and M4 remain separate, unselected candidates; completion of M3 does not authorize either one. After any future implementation slice, use a separate post-implementation verification PR. Archive this backlog when its residual candidates are separately selected, rejected, or superseded.
