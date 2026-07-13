@@ -3,6 +3,7 @@
 
 dates ← •Import "date.bqn"
 decimal ← •Import "exact_decimal.bqn"
+util ← •Import "util.bqn"
 
 empty ← ⟨⟩
 tab ← @+9
@@ -88,4 +89,55 @@ ValidateAndPreview ← {𝕊 request:
   result
 }
 
-{ValidateAndPreview⇐ValidateAndPreview}
+Fields ← {𝕊 request:
+  ⟨request.date, request.memo, request.source_account.name, request.source_amount, request.source_currency,
+   request.target_account.name, request.target_amount, request.target_currency, request.exchange_id, request.trip_id⟩
+}
+Render ← {𝕊 request:
+  fields ← Fields request
+  ∾({𝕩∾tab}¨¯1↓fields)∾⟨¯1⊑fields⟩
+}
+ResolveAccount ← {𝕊 accounts‿name:
+  names ← {𝕩.name}¨accounts
+  idx ← ⊑names⊐⟨name⟩
+  (idx<≠accounts) ◶ ⟨{𝕩⋄{name⇐name, exists⇐0, currency⇐""}}, {𝕩⋄idx⊑accounts}⟩ @
+}
+RequestFromFields ← {𝕊 fields‿accounts‿existingIds:
+  {date⇐0⊑fields, memo⇐1⊑fields,
+   source_account⇐ResolveAccount ⟨accounts, 2⊑fields⟩, source_amount⇐3⊑fields, source_currency⇐4⊑fields,
+   target_account⇐ResolveAccount ⟨accounts, 5⊑fields⟩, target_amount⇐6⊑fields, target_currency⇐7⊑fields,
+   exchange_id⇐8⊑fields, trip_id⇐9⊑fields, existing_exchange_ids⇐existingIds}
+}
+ParseExisting ← {𝕊 lines‿accounts:
+  diagnostics ← empty
+  requests ← empty
+  {𝕊 line:
+    fields ← tab util.SplitKeepEmpty line
+    {𝕊:
+      request ← RequestFromFields ⟨fields, accounts, ⟨⟩⟩
+      result ← ValidateAndPreview request
+      diagnostics ∾↩ result.diagnostics
+      requests ∾↩ (result.state≡"ok")/⟨request⟩
+    }⍟(10=≠fields) @
+    diagnostics ∾↩ AddIf ⟨10≠≠fields, Diagnostic ⟨"existing_row_shape_invalid", "existing_source", "existing data row must contain exactly ten columns"⟩⟩
+  }¨lines
+  ids ← {𝕩.exchange_id}¨requests
+  diagnostics ∾↩ AddIf ⟨(≠ids)≠≠⍷ids, Diagnostic ⟨"existing_exchange_id_duplicate", "existing_source", "existing exchange ids must be unique"⟩⟩
+  {state⇐(0=≠diagnostics)⊑"error"‿"ok", diagnostics⇐diagnostics, requests⇐requests, ids⇐ids}
+}
+ValidateExisting ← {𝕊 lines‿accounts:
+  parsed ← ParseExisting ⟨lines, accounts⟩
+  {state⇐parsed.state, diagnostics⇐parsed.diagnostics, event_count⇐≠parsed.requests}
+}
+ValidateSourceAndPreview ← {𝕊 request:
+  parsed ← ParseExisting ⟨request.existing_lines, request.accounts⟩
+  candidate ← RequestFromFields ⟨request.candidate_fields, request.accounts, parsed.ids⟩
+  candidateResult ← ValidateAndPreview candidate
+  diagnostics ← parsed.diagnostics∾candidateResult.diagnostics
+  rows ← empty
+  events ← empty
+  {𝕊: rows↩⟨Render candidate⟩ ⋄ events↩candidateResult.preview_events}⍟(0=≠diagnostics) @
+  {state⇐(0=≠diagnostics)⊑"error"‿"ok", diagnostics⇐diagnostics, preview_rows⇐rows, preview_events⇐events}
+}
+
+{ValidateAndPreview⇐ValidateAndPreview, ValidateExisting⇐ValidateExisting, ValidateSourceAndPreview⇐ValidateSourceAndPreview, Render⇐Render}

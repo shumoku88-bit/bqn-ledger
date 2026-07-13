@@ -136,6 +136,7 @@ bash checks/check-edit-bqn-journal-add.sh >/dev/null
 bash checks/check-edit-bqn-currency-m2.sh >/dev/null
 bash checks/check-edit-bqn-travel-friend-add.sh >/dev/null
 bash checks/check-travel-exchange-pure.sh >/dev/null
+bash checks/check-edit-bqn-travel-exchange-add.sh >/dev/null
 bash checks/check-edit-bqn-issue-close.sh >/dev/null
 bash checks/check-edit-bqn-journal-list.sh >/dev/null
 bash checks/check-edit-bqn-journal-reverse.sh >/dev/null

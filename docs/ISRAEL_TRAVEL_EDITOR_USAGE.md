@@ -7,6 +7,44 @@ Exit: revise after the integrated four-path rehearsal; keep current while these 
 
 This guide currently documents the completed capture paths. All examples use synthetic names and amounts; verify that required real accounts already exist before travel use. The editor does not create accounts.
 
+## JPY to ILS exchange event
+
+An exchange preserves the JPY handed over and ILS received as two observations. It is not an expense or income and is not written to `journal.tsv`.
+
+```bash
+tools/edit --base "$BASE" travel exchange add \
+  --date 2026-07-20 \
+  --memo "synthetic airport exchange" \
+  --source-account "assets:bank-jpy" \
+  --source-amount "10000" \
+  --source-currency JPY \
+  --target-account "assets:cash-ils" \
+  --target-amount "250.00" \
+  --target-currency ILS \
+  --exchange-id israel-2026-exchange-0001 \
+  --trip-id israel-2026 \
+  --dry-run
+```
+
+Review both amounts and account names, then replace `--dry-run` with `--yes`. Both accounts must already exist with the selected currency. JPY source amounts use zero fractional digits; ILS target amounts permit at most two. The editor does not calculate or save a rate, call a market API, value one amount in the other currency, change balances, or create accounts.
+
+The headerless `<base>/travel_exchange_events.tsv` source uses ten fixed columns:
+
+```text
+date
+memo
+source_account
+source_amount
+source_currency
+target_account
+target_amount
+target_currency
+exchange_id
+trip_id
+```
+
+Blank/comment lines follow the existing loader convention. Every data row and exchange ID is validated before append. Duplicate IDs and malformed existing data fail closed.
+
 ## Friend-paid pending event
 
 When a friend pays in ILS, record a pending source event rather than an ordinary journal expense:

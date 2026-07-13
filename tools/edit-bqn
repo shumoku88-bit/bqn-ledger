@@ -3,7 +3,7 @@
 #
 # Current scope: daily commands (`account add/list`, `journal add/list/reverse`,
 # `budget add`, `issue add/list/close`, and `plan add/list/related/finish/edit`).
-# plus the dedicated `travel friend add` pending source-event command.
+# plus dedicated `travel friend add` and `travel exchange add` source-event commands.
 # `tools/edit` is the public wrapper that delegates here.
 #
 # Shared parsing/protocol/write handling is kept in one path for the
@@ -49,8 +49,9 @@ Usage:
   tools/edit-bqn [--base DIR] plan edit [--index NUMBER] [--id PLAN_ID] [--date YYYY-MM-DD] [--amount INT] [--all] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] journal reverse [--index NUMBER] [--id TXN_ID] [--date YYYY-MM-DD] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] travel friend add --date YYYY-MM-DD --party PARTY --item ITEM --amount DECIMAL --currency ILS --payer friend --trip-id israel-2026 --source-event-id ID [--dry-run] [--yes]
+  tools/edit-bqn [--base DIR] travel exchange add --date YYYY-MM-DD --memo MEMO --source-account ACCOUNT --source-amount INT --source-currency JPY --target-account ACCOUNT --target-amount DECIMAL --target-currency ILS --exchange-id ID --trip-id israel-2026 [--dry-run] [--yes]
 
-Current scope: BQN editor daily commands (account add/list, journal/budget/plan/issue add, travel friend add, issue list/close, journal list/reverse, and plan list/related/finish/edit).
+Current scope: BQN editor daily commands (account add/list, journal/budget/plan/issue add, travel friend/exchange add, issue list/close, journal list/reverse, and plan list/related/finish/edit).
 USAGE
 }
 
@@ -82,6 +83,11 @@ fi
 if [[ "$1" == "travel" && "$2" == "friend" && "${3-}" == "add" ]]; then
   shift 3
   handle_edit_bqn_travel_friend_add "$@"
+  exit $?
+fi
+if [[ "$1" == "travel" && "$2" == "exchange" && "${3-}" == "add" ]]; then
+  shift 3
+  handle_edit_bqn_travel_exchange_add "$@"
   exit $?
 fi
 
