@@ -47,7 +47,7 @@ FractionDigits ← {
   s ← 𝕩
   positions ← ('.' = s) / ↕ ≠ s
   count ← 0
-  {𝕊: count ↩ (≠ s) - 1 + ⊑ positions } ⍟ (1 = ≠ positions) @
+  {𝕊: count ↩ (≠ s) - 1 - ⊑ positions } ⍟ (1 = ≠ positions) @
   count
 }
 
@@ -105,7 +105,7 @@ ValidateAccountCurrency ⇐ {
   name ‿ acct ‿ selectedCurrency ‿ accountList ‿ accountCurrencies ← 𝕩
   idx ← ⊑ accountList ⊐ ⟨acct⟩
   n ← ≠ accountList
-  actual ← idx ⊑ accountCurrencies ∾ ⟨""⟩
+  actual ← idx ⊑ (accountCurrencies ∾ ⟨""⟩)
   {
     (idx ≥ n) ? ⟨0, "unknown " ∾ name ∾ " account: " ∾ acct⟩ ;
     (actual ≢ selectedCurrency) ? ⟨0, name ∾ " account currency mismatch: " ∾ acct ∾ " is " ∾ actual ∾ ", selected " ∾ selectedCurrency⟩ ;
