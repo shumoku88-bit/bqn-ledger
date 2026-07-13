@@ -542,12 +542,13 @@ confirm_append() {
 # ── Post-check ──────────────────────────────────────────────────
 
 # Run BQN post-check.
-# Usage: run_post_check <base_dir> <mode> <target_path> <backup_path>
+# Usage: run_post_check <base_dir> <mode> <target_path> <backup_path> [owner]
 run_post_check() {
   local base_dir="$1"
   local mode="$2"
   local target_path="$3"
   local backup_path="$4"
+  local owner="${5:-default}"
 
   if [[ "$mode" == "none" ]]; then
     printf 'Post-check: skipped\n'
@@ -560,7 +561,11 @@ run_post_check() {
   local -a cmd
   case "$mode" in
     lint)
-      cmd=(bqn src_next/report.bqn "$base_dir")
+      if [[ "$owner" == "journal" ]]; then
+        cmd=(bqn src_edit/journal_source_check.bqn "$base_dir")
+      else
+        cmd=(bqn src_next/report.bqn "$base_dir")
+      fi
       ;;
     full)
       cmd=(./tools/check.sh)

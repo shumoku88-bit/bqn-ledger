@@ -84,4 +84,4 @@ The return-home JPY finalization writer is not implemented. Correction/reversal 
 
 ## Ordinary cash and card capture
 
-ILS cash expenses and the user's confirmed-JPY card expenses continue to use `tools/edit journal add`. They preserve `trip_id=israel-2026` and `payment=cash|card` through the existing generic metadata path. Full four-path examples will be added at integrated rehearsal closure.
+ILS cash expenses and the user's confirmed-JPY card expenses continue to use `tools/edit journal add`. They preserve `trip_id=israel-2026` and `payment=cash|card` through the existing generic metadata path. The default journal `--post-check lint` is a mixed-currency-safe source-integrity check; it does not add currencies or broaden the full report. If that check fails, the editor restores exact pre-append bytes only when no later writer changed the target. `--post-check none` is not the standard travel solution. Full four-path examples will be finalized at integrated rehearsal closure.

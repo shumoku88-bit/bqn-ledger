@@ -262,7 +262,7 @@ if [[ "$1" == "journal" && "$2" == "reverse" ]]; then
     esac
   fi
 
-  edit_bqn_apply_append_checked "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256" EDIT_BQN_TEST_BEFORE_APPEND_HOOK
+  edit_bqn_apply_append_checked "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256" EDIT_BQN_TEST_BEFORE_APPEND_HOOK journal
   exit 0
 fi
 
@@ -429,7 +429,7 @@ if [[ "$1" == "plan" && "$2" == "finish" ]]; then
     fi
   fi
 
-  edit_bqn_apply_append_checked "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256" EDIT_BQN_TEST_BEFORE_APPEND_HOOK
+  edit_bqn_apply_append_checked "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256" EDIT_BQN_TEST_BEFORE_APPEND_HOOK journal
   exit 0
 fi
 
@@ -629,4 +629,6 @@ fi
 # Test-only stale-write injection point used by check-edit-bqn-journal-add.sh.
 # This must not become production extension behavior; it exists only to simulate
 # a concurrent source TSV edit between validation/preview and append.
-edit_bqn_apply_append_checked "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256" EDIT_BQN_TEST_BEFORE_APPEND_HOOK
+POST_CHECK_OWNER="default"
+[[ "$COMMAND" == "journal" ]] && POST_CHECK_OWNER="journal"
+edit_bqn_apply_append_checked "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256" EDIT_BQN_TEST_BEFORE_APPEND_HOOK "$POST_CHECK_OWNER"

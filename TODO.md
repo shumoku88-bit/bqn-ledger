@@ -37,7 +37,9 @@ Phase 4 exchange-event safe append and recovery is complete: `tools/edit travel 
 
 Phase 5 is paused after discovering that ordinary journal `lint` uses a single-domain full report after append and does not automatically restore the backup on post-check failure. The synthetic ILS-then-JPY sequence appended both rows, then exited 1 with `mixed_currency_domains` while leaving both rows present.
 
-The immediate prerequisite slice is **mixed-currency ordinary journal post-check and rollback recovery**. It must make journal `lint` a mixed-safe source-integrity check without weakening row currency/account/amount/metadata validation, and must restore exact original bytes after post-check failure unless a later writer changed the target. After this prerequisite passes CI and merges, Phase 5 resumes without `--post-check none`.
+The mixed-currency ordinary journal post-check and rollback prerequisite is complete: journal `lint` now uses a mixed-safe, all-or-nothing source-integrity owner without weakening row currency/account/amount/metadata validation. Post-check failure restores exact original bytes only when the post-write digest still matches; a later writer causes explicit recovery-required refusal.
+
+Phase 5 integrated four-path synthetic rehearsal and closure is the immediate slice after the prerequisite PR passes CI and merges. It must run without `--post-check none`.
 
 Completion requires journal `lint` to accept valid mixed JPY/ILS source, checked rollback and later-writer protection to pass, and the four public Phase 5 commands to succeed. Full report contracts, the return-home atomic finalization writer, router, cash view, strict-source Steps 2–5, M4, and Ledger Observatory work remain unselected.
 
