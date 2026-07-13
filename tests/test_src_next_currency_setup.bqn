@@ -7,6 +7,21 @@ util ← •Import "../src_next/util.bqn"
 
 tab ← @+9
 
+# Built-in currency admission and lexical precision have one pure owner.
+⟨"JPY", "ILS"⟩ lib.AssertEq setup.SupportedCurrencies
+jpyPolicy ← setup.Policy "JPY"
+"ok" lib.AssertEq jpyPolicy.state
+"JPY" lib.AssertEq jpyPolicy.currency
+¯1 lib.AssertEq jpyPolicy.max_fraction_digits
+ilsPolicy ← setup.Policy "ILS"
+"ok" lib.AssertEq ilsPolicy.state
+"ILS" lib.AssertEq ilsPolicy.currency
+2 lib.AssertEq ilsPolicy.max_fraction_digits
+unknownPolicy ← setup.Policy "USD"
+"error" lib.AssertEq unknownPolicy.state
+"unsupported_currency" lib.AssertEq unknownPolicy.code
+0 lib.AssertEq setup.IsSupportedCurrency "USD"
+
 ReadPreserve ← {𝕊 path:
   raw ← loader.ReadRaw path
   clean ← ((@+13) ≠ raw) / raw
