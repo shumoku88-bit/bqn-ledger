@@ -9,30 +9,54 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-13 — completed and verified the M2.5 production JPY source migration; no next finite mixed-ledger slice is selected.
+Last hygiene pass: 2026-07-13 — completed and verified the M2.5 production JPY source migration; selected M3 currency-selected balances as the next finite mixed-ledger slice.
 
 ---
 
 ## Active work
 
-No finite mixed-ledger slice is currently selected. M3 and strict-source enforcement remain separate candidates and are not authorized by M2.5 completion.
+### Currency Mixed-Ledger M3: Currency-selected balances report
+
+Plan: `docs/archive/active-plans/CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md`
+
+Goal:
+- expose one selected currency to the public report boundary and make `balances` the first human report consumer
+- use explicit `--currency JPY|ILS` when supplied, otherwise use the explicit ledger default
+- show the effective selection and provenance as `Currency view:`
+- display exact ILS balances with two fractional digits such as `₪12.50`
+- preserve strict separation between JPY and ILS without conversion or aggregation
+
+Allowed:
+- public report parsing for `--currency JPY|ILS`
+- ledger-default selection when no override is supplied
+- reuse of the existing checked selected-currency projection seam
+- selected-currency `balances` computation and human formatting only
+- visible selection provenance in the balances output
+- focused mixed-currency fixtures, BQN tests, shell checks, and CLI documentation required by this slice
+
+Not authorized:
+- strict missing-currency source enforcement
+- removal or rewriting of legacy compatibility fixtures
+- JSON output widening
+- snapshot, cycle, envelope, expense, outlook, or other report-section currency work
+- Currency axis work, FX, conversion, valuation, base currency, or mixed-currency totals
+- production source mutation
+
+Exit:
+- explicit JPY and ILS report selection both reach `balances` through one checked selected-currency projection
+- no-override selection resolves from the explicit ledger default and reports that provenance
+- human output always states the effective currency view
+- JPY balances remain integer-yen compatible
+- ILS balances preserve exact source decimals and render with exactly two fractional digits without rounding broader source precision
+- the selected balances never contain or add the other currency
+- unsupported selectors and invalid or mismatched source evidence fail closed
+- focused checks, `tools/check.sh`, and coverage pass before implementation verification
 
 ---
 
 ## Next candidates
 
-Mixed-ledger daily-use の後続候補とslice境界は `docs/archive/active-plans/CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md` を参照する。M3を自動実装キューとして扱わない。
-
-### Currency Mixed-Ledger M3: Currency-selected balances report
-
-Status: candidate only。M2.5 completion does not authorize implementation.
-
-- public `--currency JPY|ILS` selection
-- ledger default when no override is supplied
-- visible `Currency view:` line with selection provenance
-- `balances` as the first report consumer
-- ILS human formatting such as `₪12.50`
-- no cross-currency aggregation, FX, JSON widening, or broad report campaign
+Mixed-ledger daily-use の後続候補とslice境界は `docs/archive/active-plans/CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md` を参照する。M3 completion does not automatically authorize later slices.
 
 ### Strict production source enforcement
 
