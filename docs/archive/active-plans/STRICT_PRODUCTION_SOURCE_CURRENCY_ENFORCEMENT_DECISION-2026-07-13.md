@@ -1,9 +1,9 @@
 # Strict Production Source Currency Enforcement Boundary Decision — 2026-07-13
 
-Status: active plan / Step 1 selected; docs-only boundary decision remains canonical
+Status: active plan / Step 1 completed; Steps 2–5 not selected; boundary decision remains canonical
 Owner: currency
 Canonical: yes
-Exit: after the decision PR merges, authorize only the first implementation slice below; archive as completed after strict runtime activation and separate post-implementation verification
+Exit: retain as active while Steps 2–5 remain separately selected or unselected; archive as completed after strict runtime activation and separate post-implementation verification
 
 ## Problem statement
 
@@ -12,7 +12,7 @@ Currency Mixed-Ledger M1 through M3 and the M2.5 production migration are comple
 - `context.BuildRowEvidenceForLine`: missing journal-like row currency becomes JPY with `provenance="legacy_compatibility"`;
 - `account_key.CurrencyFromMeta`: missing account currency becomes JPY.
 
-Those fallbacks remain useful to focused compatibility and migration evidence. They must not remain implicit source authority on daily production-capable reads. Conversely, deleting them globally would break unrelated historical fixtures and erase evidence about the compatibility contract. This decision selects the boundary without implementing it.
+Those fallbacks remain useful to focused compatibility and migration evidence. They must not remain implicit source authority on daily production-capable reads. Conversely, deleting them globally would break unrelated historical fixtures and erase evidence about the compatibility contract. This decision selected the boundary; Step 1 now implements only its pure admission core, without public activation.
 
 The configured `DEFAULT_CURRENCY` remains view-selection policy only. It must never repair or reinterpret missing source currency.
 
@@ -182,26 +182,25 @@ Contract requirements:
 
 The recommended order is changed from “strict report first, compatibility later” because current public `plan add` and `budget add` can still create missing currency, and broad report fixtures use fallback incidentally.
 
-1. **Policy carrier + pure admission (authorized first implementation slice).** Add the closed policy namespace, pure account/row classifier, structured diagnostics, and unit tests over synthetic in-memory lines/snapshots. Do not change existing public entrypoint behavior or fallback functions.
+1. **Policy carrier + pure admission (completed).** PR #207 added the closed policy namespace, pure account/row classifier, structured privacy-safe diagnostics, allowlisted posting-source names, and synthetic in-memory unit tests. Final implementation head: `c37c75a7671822d472475a1564cf6b8202e39a56`; merge commit: `3ca72e6f9484b3f57a6ea6748ac887d69c447c90`; CI run #750 passed. Public entrypoint behavior and fallback functions remain unchanged.
 2. **Writer prerequisite closure (not yet authorized).** Select a separate finite slice so `plan add` and `budget add` cannot create missing currency; verify preservation paths (`plan finish`, `journal reverse`) reject or preserve exactly one explicit token. No production source edit.
 3. **Compatibility-lane preparation (not yet authorized).** Add/narrow named compatibility orchestration for the migration and old-JPY tests; metadataize only the first public-report fixture set needed for activation; split ambiguous `src-next-currency-accountkey` evidence rather than bulk rewriting it.
 4. **Production-capable read activation (not yet authorized).** Pass strict policy from all inventoried public read roots, including ordinary report and selected balances. Use a synthetic explicit-currency full-read fixture and prove missing account and each journal-like source fail before projection/rendering.
 5. **Post-implementation verification (not yet authorized).** Separate docs-only claim-to-evidence review tied to exact implementation heads and CI.
 
-Each step requires separate selection. Completing step 1 does not authorize steps 2–5.
+Each step requires separate selection. Step 1 completion does not authorize Steps 2–5.
 
-## Authorized first implementation slice
+## Completed Step 1 implementation evidence
 
-Only the following runtime follow-up becomes eligible after this decision PR merges; it is not implemented by this PR:
+PR #207 completed the first implementation slice:
 
-- add one explicit source-currency policy carrier with `production_strict` and `legacy_compatibility` values;
-- add a pure admission function for supplied account lines and supplied posting snapshot;
-- classify account and journal-like missing/empty/duplicate/unsupported states with the diagnostic contract above;
-- add focused unit tests using synthetic in-memory source only;
-- prove strict error results contain no admitted/projection rows and compatibility classification retains current JPY evidence semantics;
-- leave `tools/report`, `BuildContext`, low-level fallbacks, fixtures, writers, and production source unchanged.
+- `src_next/source_currency_admission.bqn` exports the explicit `production_strict` and `legacy_compatibility` policy carrier plus pure supplied account-line/posting-snapshot admission;
+- account and journal-like missing/empty/duplicate/unsupported states produce structured privacy-safe diagnostics;
+- strict errors retain all diagnostics and return no admitted account or row evidence; compatibility retains missing-as-JPY evidence only;
+- synthetic in-memory tests cover the closed policies, no-partial-admission, all posting source basenames, and path-shaped source-name privacy;
+- `tools/report`, `BuildContext`, low-level fallbacks, fixtures, writers, and production source were unchanged.
 
-Exit evidence: focused unit tests, full `tools/check.sh`, `tools/coverage`, and a diff containing only the narrow module/test/docs updates selected by that future PR.
+Evidence: final implementation head `c37c75a7671822d472475a1564cf6b8202e39a56`; merge commit `3ca72e6f9484b3f57a6ea6748ac887d69c447c90`; CI run #750 passed; focused test, full `tools/check.sh`, and `tools/coverage` passed.
 
 ## Explicit non-goals
 
