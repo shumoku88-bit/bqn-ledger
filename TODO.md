@@ -15,34 +15,39 @@ Last hygiene pass: 2026-07-13 — selected the docs-only strict production sourc
 
 ## Active work
 
-### Strict production source currency enforcement boundary decision (docs-only)
+### Source currency policy carrier and pure admission core
 
 Plan: `docs/archive/active-plans/STRICT_PRODUCTION_SOURCE_CURRENCY_ENFORCEMENT_DECISION-2026-07-13.md`
 
 **Goal**
 
-- select where production-capable reads fail closed on missing account and journal-like row currency
-- define an explicit strict/compatibility policy carrier, diagnostic contract, compatibility inventory, and finite activation sequence
+- add the selected closed strict/compatibility policy carrier and pure supplied-source admission core
+- retain structured safe diagnostics and complete no-partial-admission behavior without public wiring
 
 **Allowed**
 
-- docs-only architecture and fixture/test classification
-- routing updates for this decision
-- identification of one finite first implementation slice
+- policy carrier
+- pure admission
+- structured diagnostics
+- synthetic tests
 
 **Not authorized**
 
-- runtime enforcement implementation or fallback deletion
-- fixture bulk rewrite or production source changes
-- M4, report section expansion, JSON widening, FX / conversion / valuation, or a broad Stage 3 campaign
+- public wiring
+- writer closure
+- compatibility fixture preparation
+- production read activation
+- fallback removal
+- fixture rewrite
+- production source change
+- M4
 
 **Exit criteria**
 
-- production and compatibility selection are explicit and do not depend on `LEDGER_DATA_DIR` or private path strings
-- account/row diagnostics and no-partial-output behavior are specified
-- the first implementation slice is finite
-- required docs checks pass and the decision PR is reviewed/merged
-- strict-source runtime implementation remains unselected until this decision PR merges
+- strict and compatibility supplied-source admission behavior is covered by synthetic tests
+- error results retain diagnostics but no admitted evidence
+- full checks pass
+- public entrypoints and existing fallbacks remain unchanged
 
 ---
 
