@@ -1,6 +1,5 @@
 # src_edit/render.bqn
 # Render validated edit inputs into TSV row strings.
-# Replicates Go editor's buildJournalLikeRow + appendRowContent behavior.
 #
 # This module only produces string output. It does not write files.
 
@@ -13,10 +12,10 @@ Join ← {
   (0 = ≠ list) ◶ ⟨ { 𝕊 ⋄ 1↓ ∾ (sep ⊸ ∾) ¨ list }, { 𝕊 ⋄ ""} ⟩ @
 }
 
-# Build a validated accounts.tsv row. role is always explicit; type is an
-# optional controlled asset classification.
+# Build a validated accounts.tsv row. role and currency are always explicit;
+# type is an optional controlled asset classification.
 RenderAccountRow ⇐ {
-  fields ← ⟨𝕩.name, "role=" ∾ 𝕩.role⟩
+  fields ← ⟨𝕩.name, "role=" ∾ 𝕩.role, "currency=" ∾ 𝕩.currency⟩
   fields ∾↩ (0 < ≠𝕩.type) / ⟨"type=" ∾ 𝕩.type⟩
   (@+9) Join fields
 }
@@ -32,8 +31,6 @@ RenderJournalRow ⇐ {
 }
 
 # Build a TSV row for an issue add.
-# 𝕩: namespace with date, status, title, amount, memo
-# Returns: tab-separated string (no trailing newline)
 RenderIssueRow ⇐ {
   fields ← 𝕩.date‿𝕩.status‿𝕩.title‿𝕩.amount‿𝕩.memo
   tab ← @+9
