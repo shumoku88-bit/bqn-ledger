@@ -149,6 +149,13 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 - Dispatcher boundary の現行メモは `docs/EDIT_BQN_DISPATCHER.md`。共通 shell helper は `tools/lib/edit-bqn-common.sh`、`issue add` handler は `tools/lib/edit-bqn-issue.sh`。
 - Go editor の記述や fallback 前提は現行導線では使わない。
 
+### `mcp-server/` (confirmation-gated adapter)
+
+- `core.js` — transport非依存のread/prepare/commit境界。BQN report/editorをsubprocess配列で呼び、draft、fingerprint、期限、重複警告を所有する。会計計算は持たない。
+- `server.js` — localhost既定・Bearer必須のStreamable HTTP `/mcp` transport。legacy SSEは提供しない。
+- `test/` — 匿名fixtureの一時コピーだけを使うcore/transport回帰テスト。
+- 正本運用契約は `docs/MCP_RECEIPT_ENTRY.md`。
+
 ### `checks/` (検証スクリプト)
 
 - `check-src-next-golden.sh` — src_next golden fixture チェック。
@@ -178,7 +185,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 
 ### 検査・CI
 
-- `tools/check.sh` — テストランナーの正本。ユニットテスト、エンジン不変条件、各セクションの golden 差分、devtools-check などを一括実行する。
+- `tools/check.sh` — テストランナーの正本。ユニットテスト、エンジン不変条件、各セクションの golden 差分、MCP core/transport、devtools-check などを一括実行する。
 - `tools/devtools-check.sh` — 全開発ツールの健全性チェック（`check.sh` のフェーズ4に組み込み済み）。
 - `tools/scaffold-check.sh` — 新しい `checks/check-*.sh` スクリプトのボイラープレート（テンプレート）生成用。
 - `tools/coverage` — BQN module / editor-check inventory を出力する。

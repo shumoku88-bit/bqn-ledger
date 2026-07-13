@@ -180,7 +180,7 @@ case "$cmd" in
     # Create a stable cache directory based on the absolute path of base_dir
     base_abs="$(cd "$base_dir" && pwd)"
     sanitized_path="${base_abs//\//_}"
-    cache_dir="/tmp/bqn-ledger-cache-${sanitized_path}"
+    cache_dir="${TMPDIR:-/tmp}/bqn-ledger-cache-${sanitized_path}"
     mkdir -p "$cache_dir"
 
     src_files=(

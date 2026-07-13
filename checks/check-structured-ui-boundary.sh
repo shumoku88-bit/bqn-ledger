@@ -17,18 +17,18 @@ cd "$ROOT_DIR"
 
 PASS=0
 FAIL=0
+matches_file="$(mktemp)"
+trap 'rm -f "$matches_file"' EXIT
 
 pass() { PASS=$((PASS + 1)); }
 fail() { FAIL=$((FAIL + 1)); echo "  FAIL: $1" >&2; }
 
 # UI may pipe human report to color-filter/pager for display. It must not pipe
 # human report output into grep/sed/awk/cut to recover section or semantic data.
-if rg -n 'tools/report("|[[:space:]])[^|]*\|[^#]*(grep|sed|awk|cut)' tools/main-ui.sh tools/bl >/tmp/structured-ui-boundary.matches 2>/dev/null; then
-  cat /tmp/structured-ui-boundary.matches >&2
-  rm -f /tmp/structured-ui-boundary.matches
+if rg -n 'tools/report("|[[:space:]])[^|]*\|[^#]*(grep|sed|awk|cut)' tools/main-ui.sh tools/bl >"$matches_file" 2>/dev/null; then
+  cat "$matches_file" >&2
   fail "UI appears to parse tools/report human output"
 else
-  rm -f /tmp/structured-ui-boundary.matches
   pass
 fi
 

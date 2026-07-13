@@ -175,9 +175,10 @@ case "$alias_out" in
   *) echo "FAIL: missing unsupported source diagnostic" >&2; echo "$alias_out" >&2; exit 1 ;;
 esac
 
-if rg 'proj\.MakeRow|proj\.MakeRowsAuthorized|MakeRow ¨ args' src_next tests -n >/tmp/stage2-domain-proof-rg.txt; then
+domain_proof_matches="$tmp/domain-proof-rg.txt"
+if rg 'proj\.MakeRow|proj\.MakeRowsAuthorized|MakeRow ¨ args' src_next tests -n >"$domain_proof_matches"; then
   echo "FAIL: direct exported projection bypass remains" >&2
-  cat /tmp/stage2-domain-proof-rg.txt >&2
+  cat "$domain_proof_matches" >&2
   exit 1
 fi
 

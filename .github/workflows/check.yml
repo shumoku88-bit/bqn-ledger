@@ -26,6 +26,9 @@ jobs:
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq ripgrep
 
+      - name: Install MCP dependencies
+        run: npm ci --prefix mcp-server
+
       - name: Run check.sh
         run: bash tools/check.sh
 

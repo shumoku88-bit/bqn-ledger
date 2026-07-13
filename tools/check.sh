@@ -50,7 +50,7 @@ check_bqn_presentation_boundary() {
     fi
 }
 
-echo "[1/4] unit tests" >&2
+echo "[1/5] unit tests" >&2
 for test_file in tests/test_*.bqn; do
     if [ -f "$test_file" ]; then
         if ! bqn "$test_file" >/dev/null; then
@@ -61,7 +61,7 @@ for test_file in tests/test_*.bqn; do
     fi
 done
 
-echo "[2/4] src_next golden checks" >&2
+echo "[2/5] src_next golden checks" >&2
 bash checks/check-src-next-golden.sh fixtures/src-next-golden >/dev/null
 bash checks/check-src-next-golden.sh fixtures/src-next-missing-plan >/dev/null
 bash checks/check-src-next-golden.sh fixtures/src-next-empty-projection >/dev/null
@@ -78,7 +78,7 @@ bash checks/check-src-next-golden.sh fixtures/src-next-missing-budget-mapping >/
 bash checks/check-src-next-golden.sh fixtures/src-next-broken-empty-columns >/dev/null
 bash checks/check-src-next-golden.sh fixtures/src-next-budget-group-rename >/dev/null
 
-echo "[3/4] src_next section checks" >&2
+echo "[3/5] src_next section checks" >&2
 bash checks/check-src-next-minimal-summary.sh fixtures/src-next-golden >/dev/null
 bash checks/check-src-next-minimal-summary.sh fixtures/src-next-empty-projection >/dev/null
 bash checks/check-src-next-minimal-summary.sh fixtures/src-next-unknown-account >/dev/null
@@ -117,7 +117,11 @@ bash checks/check-src-next-compact-summary.sh fixtures/src-next-golden >/dev/nul
 bash checks/check-src-next-compact-summary.sh fixtures/empty-fields >/dev/null
 bash checks/check-src-next-compact-summary.sh fixtures/src-next-envelope-computation >/dev/null
 
-echo "[4/4] engine-independent checks" >&2
+echo "[4/5] MCP core and transport checks" >&2
+npm --prefix mcp-server run lint
+npm --prefix mcp-server test
+
+echo "[5/5] engine-independent checks" >&2
 bash checks/check-repo-index.sh >/dev/null
 bash checks/check-src-next-clock-boundary.sh >/dev/null
 bash checks/check-src-next-budget-actual-zero.sh >/dev/null

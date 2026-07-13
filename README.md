@@ -13,6 +13,7 @@ BQN Ledger は、人間が直接読める TSV を正データとして保ち、B
 - **まず試す**: [Quick start](#quick-start)
 - **自分のデータを置く**: [`docs/DATA_DIR_SETUP.md`](docs/DATA_DIR_SETUP.md)
 - **日常入力を使う**: [Daily input](#daily-input) / [`docs/BQN_EDITOR_USAGE.md`](docs/BQN_EDITOR_USAGE.md)
+- **ChatGPTでレシート候補を確認して記帳する**: [`docs/MCP_RECEIPT_ENTRY.md`](docs/MCP_RECEIPT_ENTRY.md)
 - **データと集計の考え方を知る**: [Core concepts](#core-concepts) / [Architecture](#architecture)
 - **詳しい文書を探す**: [Documentation](#documentation)
 - **開発や保守に参加する**: [`AGENTS.md`](AGENTS.md) / [`docs/README.md`](docs/README.md)
@@ -170,6 +171,8 @@ tools/edit plan finish --index 4 --actual-date 2026-06-21
 ```
 
 入力経路、プレビュー、`--apply`、バックアップ、stale check の詳細は [`docs/BQN_EDITOR_USAGE.md`](docs/BQN_EDITOR_USAGE.md) を参照してください。
+
+ChatGPTが画像を構造化し、MCPが候補をpreviewして人間承認後に一件だけ追記する実験的経路は [`docs/MCP_RECEIPT_ENTRY.md`](docs/MCP_RECEIPT_ENTRY.md) を参照してください。MCP自身は画像/OCRを扱いません。
 
 ## Architecture
 

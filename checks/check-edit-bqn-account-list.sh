@@ -10,6 +10,8 @@ fi
 cd "$ROOT_DIR"
 
 base="data"
+out_dir="$(mktemp -d)"
+trap 'rm -rf "$out_dir"' EXIT
 
 actual_asset="$(./tools/edit --base "$base" account list --role asset)"
 if ! grep -Fxq 'assets:bank' <<< "$actual_asset"; then
@@ -51,16 +53,15 @@ for account in 'assets:bank' 'expenses:食費' 'income:年金' 'budget:opening';
   fi
 done
 
-if ./tools/edit --base "$base" account list --bad > /tmp/check-edit-bqn-account-list.out 2>&1; then
+if ./tools/edit --base "$base" account list --bad > "$out_dir/account-list.out" 2>&1; then
   echo "FAIL: account list accepted unknown option" >&2
-  cat /tmp/check-edit-bqn-account-list.out >&2
+  cat "$out_dir/account-list.out" >&2
   exit 1
 fi
-rm -f /tmp/check-edit-bqn-account-list.out
 
 # account add uses the same BQN-owned account contract and safe append path.
 tmp="$(mktemp -d)"
-trap 'rm -rf "$tmp"' EXIT
+trap 'rm -rf "$tmp" "$out_dir"' EXIT
 cp data/*.tsv "$tmp/"
 
 preview="$(./tools/edit --base "$tmp" account add --name 'income:友人精算' --role income --dry-run --post-check none)"
@@ -74,18 +75,16 @@ fi
 grep -Fxq $'income:友人精算\trole=income' "$tmp/accounts.tsv"
 compgen -G "$tmp/.backup/accounts.tsv.*.bak" >/dev/null
 
-if ./tools/edit --base "$tmp" account add --name 'income:友人精算' --role income --dry-run --post-check none >/tmp/account-add-duplicate.out 2>&1; then
+if ./tools/edit --base "$tmp" account add --name 'income:友人精算' --role income --dry-run --post-check none >"$out_dir/account-add-duplicate.out" 2>&1; then
   echo "FAIL: account add accepted duplicate account" >&2
   exit 1
 fi
-if ./tools/edit --base "$tmp" account add --name 'expenses:食費2' --role income --dry-run --post-check none >/tmp/account-add-role.out 2>&1; then
+if ./tools/edit --base "$tmp" account add --name 'expenses:食費2' --role income --dry-run --post-check none >"$out_dir/account-add-role.out" 2>&1; then
   echo "FAIL: account add accepted mismatched namespace and role" >&2
   exit 1
 fi
-if ./tools/edit --base "$tmp" account add --name 'assets:test' --role asset --type crypto --dry-run --post-check none >/tmp/account-add-type.out 2>&1; then
+if ./tools/edit --base "$tmp" account add --name 'assets:test' --role asset --type crypto --dry-run --post-check none >"$out_dir/account-add-type.out" 2>&1; then
   echo "FAIL: account add accepted unknown asset type" >&2
   exit 1
 fi
-rm -f /tmp/account-add-duplicate.out /tmp/account-add-role.out /tmp/account-add-type.out
-
 echo "check-edit-bqn-account-list: OK"
