@@ -4,7 +4,7 @@ Status: parked intake
 Owner: currency / travel settlement
 Canonical: no
 Current implementation authorization: none, except the separately selected I/O-free preview design slice below
-Current selected consumers: `ISRAEL_TRAVEL_DAILY_CAPTURE_PLAN-2026-07-13.md` is the canonical docs-only plan for the selected Israel daily-capture rails. `FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md` remains canonical for finalizing a pending friend-paid travel source event into one existing-JPY-liability → JPY-expense journal preview. Follow those plans within their scopes; this intake remains non-canonical for broader travel rails.
+Current routing: `../completed-plans/ISRAEL_TRAVEL_DAILY_CAPTURE_PLAN-2026-07-13.md` is the completed docs-only decision record for the Israel daily-capture rails; it selects no implementation. `FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md` remains canonical for finalizing a pending friend-paid travel source event into one existing-JPY-liability → JPY-expense journal preview. Follow `TODO.md` for current finite selection; this intake remains non-canonical for broader travel rails.
 Reopen: only through a separately selected concrete consumer; the Israel plan does not authorize implementation of this broader intake
 
 ## Purpose
@@ -13,7 +13,7 @@ Record the concrete lifestyle requirement and safety boundaries discussed on 202
 
 This document is an intake, not an implementation plan. Current finite routing is:
 
-- `ISRAEL_TRAVEL_DAILY_CAPTURE_PLAN-2026-07-13.md` for the docs-only Israel operating choice;
+- `../completed-plans/ISRAEL_TRAVEL_DAILY_CAPTURE_PLAN-2026-07-13.md` for the completed docs-only Israel operating choice;
 - `FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md` for the already-verified pure friend-finalization preview and its still-unselected writer candidate;
 - `CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md` for mixed-ledger daily-use history and residual candidates; and
 - `TODO.md` as the sole finite-work selector.

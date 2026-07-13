@@ -1,9 +1,15 @@
 # Israel Travel Daily Capture Plan — 2026-07-13
 
-Status: active plan / docs-only finite design
+Status: completed docs-only design / implementation candidates unselected
 Owner: currency / travel capture / editor routing
-Canonical: yes; canonical path: `docs/archive/active-plans/ISRAEL_TRAVEL_DAILY_CAPTURE_PLAN-2026-07-13.md`
-Exit: archive as completed after this docs-only design is reviewed and each implementation candidate remains explicitly selected, declined, or unselected through separate routing; this plan does not authorize implementation.
+Canonical: no; completed decision record
+Exit: completed by PR #215; reopen only through a separately selected finite candidate in `TODO.md`.
+
+## Completion record
+
+PR #215 reviewed and merged this docs-only design at merge commit `e3238401c216c233415f848b41546cfd392990eb`. It records the four semantic rails for ILS cash acquisition, ordinary ILS cash spending, confirmed-JPY-only own-card spending, and pending friend-paid events.
+
+No runtime implementation was performed. Candidates 1–6 remain independently unselected, including the `trip_id` / `payment` synthetic readiness check. No source TSV, fixture, metadata schema, production data, or actual `LEDGER_DATA_DIR` was changed or read. The atomic finalization writer remains parked as candidate 6. Any future work must be selected separately through `TODO.md`.
 
 ## Purpose and selected operating choice
 
@@ -157,7 +163,7 @@ trip_id = israel-2026
 status = pending
 ```
 
-The detailed validation and final JPY one-row preview contract remains canonical in [FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md](FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md). In particular, the pending ILS amount is an observed source fact, not a canonical foreign expense, Posting IR row, JPY valuation, or ordinary journal row. The already-implemented return-home pure preview can produce the sole canonical JPY expense only from explicit human-confirmed finalization input.
+The detailed validation and final JPY one-row preview contract remains canonical in [FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md](../active-plans/FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md). In particular, the pending ILS amount is an observed source fact, not a canonical foreign expense, Posting IR row, JPY valuation, or ordinary journal row. The already-implemented return-home pure preview can produce the sole canonical JPY expense only from explicit human-confirmed finalization input.
 
 This plan does not choose pending-event storage, append format, status mutation, finalization-index persistence, journal writer, or an atomic status/index/journal protocol. The friend atomic writer remains an independently unselected later candidate.
 
@@ -264,9 +270,9 @@ Forbidden changes:
 
 ## Dependencies and routing
 
-- [FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md](FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md) owns the existing friend pending-event validation and return-home one-row JPY pure-preview/finalization boundary.
-- [TRAVEL_MULTI_CURRENCY_SETTLEMENT_DESIGN_INTAKE-2026-07-12.md](TRAVEL_MULTI_CURRENCY_SETTLEMENT_DESIGN_INTAKE-2026-07-12.md) retains broader travel multi-currency background. This Israel plan supersedes that intake only for the selected Israel daily-capture choices, especially the decision not to use a card usage/settlement lifecycle.
-- [CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md](CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md) records the existing ordinary currency-aware daily-use foundation and its independently unselected residual candidates.
+- [FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md](../active-plans/FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md) owns the existing friend pending-event validation and return-home one-row JPY pure-preview/finalization boundary.
+- [TRAVEL_MULTI_CURRENCY_SETTLEMENT_DESIGN_INTAKE-2026-07-12.md](../active-plans/TRAVEL_MULTI_CURRENCY_SETTLEMENT_DESIGN_INTAKE-2026-07-12.md) retains broader travel multi-currency background. This Israel plan supersedes that intake only for the selected Israel daily-capture choices, especially the decision not to use a card usage/settlement lifecycle.
+- [CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md](../active-plans/CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md) records the existing ordinary currency-aware daily-use foundation and its independently unselected residual candidates.
 - `TODO.md` is the sole current finite-work selector. Implementation remains unselected after this docs design.
 
 ## Validation for this PR

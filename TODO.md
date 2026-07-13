@@ -9,22 +9,24 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-13 — selected only the finite docs-only Israel travel daily-capture design; the friend atomic writer is parked as candidate 6, and all implementation candidates, strict-source Steps 2–5, and M4 remain unselected.
+Last hygiene pass: 2026-07-13 — completed and archived the Israel travel daily-capture docs-only design; all implementation candidates remain unselected, the friend atomic writer remains parked as candidate 6, and strict-source Steps 2–5 and M4 remain unselected.
 
 ---
 
 ## Active work
 
-### Israel travel daily capture: docs-only finite design
-
-Status: selected docs-only work. Canonical plan: `docs/archive/active-plans/ISRAEL_TRAVEL_DAILY_CAPTURE_PLAN-2026-07-13.md`.
-
-- [ ] Fix the four semantic rails for ILS cash acquisition, ordinary ILS cash spending, one-time confirmed-JPY card entry, and pending friend-paid events.
-- [ ] Cross-link the existing friend-finalization plan and broader travel multi-currency intake.
-- [ ] Update only minimal docs routing/inventory and run docs-safe validation.
-- [ ] Do not start runtime, writer, source TSV, fixture, account, report, UI, production-data, strict-source Steps 2–5, M4, or friend atomic-writer work.
+No finite implementation slice is currently selected.
 
 ## Next candidates
+
+### Israel ordinary journal metadata synthetic readiness
+
+Status: unselected candidate only. The completed Israel travel design expects ordinary cash/card journal rows to preserve `trip_id=israel-2026` and `payment=cash|card`, but no readiness slice is currently selected.
+
+- [ ] If selected separately, use synthetic fixtures only to verify journal add, checked safe append, lint/check, reload, and exact metadata preservation.
+- [ ] Determine whether the current generic `key=value` metadata path is sufficient before considering any `config/meta_schema.tsv` change.
+- [ ] Do not read or modify actual `LEDGER_DATA_DIR`, production source TSV, or private account/amount data.
+- [ ] Do not combine this readiness check with friend pending-event storage, exchange contracts, router work, cash views, candidate 6, strict-source Steps 2–5, or M4.
 
 ### Friend travel atomic finalization writer (Israel candidate 6)
 
