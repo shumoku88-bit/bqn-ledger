@@ -4,17 +4,21 @@ Status: parked intake
 Owner: currency / travel settlement
 Canonical: no
 Current implementation authorization: none, except the separately selected I/O-free preview design slice below
-Current selected consumer: `FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md` is the canonical active plan for finalizing a pending friend-paid travel source event into one existing-JPY-liability → JPY-expense journal preview. Follow that plan; this intake remains non-canonical for all other travel rails.
-Reopen: only after the selected mixed-ledger daily-use path is stable enough to support another concrete travel consumer
+Current selected consumers: `ISRAEL_TRAVEL_DAILY_CAPTURE_PLAN-2026-07-13.md` is the canonical docs-only plan for the selected Israel daily-capture rails. `FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md` remains canonical for finalizing a pending friend-paid travel source event into one existing-JPY-liability → JPY-expense journal preview. Follow those plans within their scopes; this intake remains non-canonical for broader travel rails.
+Reopen: only through a separately selected concrete consumer; the Israel plan does not authorize implementation of this broader intake
 
 ## Purpose
 
 Record the concrete lifestyle requirement and safety boundaries discussed on 2026-07-12 so later work does not collapse ordinary spending, asset exchange, card settlement, and JPY valuation into one ambiguous journal path.
 
-This document is an intake, not an implementation plan. The current finite currency work remains M1 in:
+This document is an intake, not an implementation plan. Current finite routing is:
 
-- `CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md`
-- `TODO.md`
+- `ISRAEL_TRAVEL_DAILY_CAPTURE_PLAN-2026-07-13.md` for the docs-only Israel operating choice;
+- `FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md` for the already-verified pure friend-finalization preview and its still-unselected writer candidate;
+- `CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md` for mixed-ledger daily-use history and residual candidates; and
+- `TODO.md` as the sole finite-work selector.
+
+For Israel, the selected plan explicitly declines the card usage/settlement lifecycle described later in this broad intake: the user's card is recorded once through the ordinary JPY journal at the issuer-confirmed JPY amount.
 
 ## Concrete lifestyle requirement
 
