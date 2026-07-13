@@ -1,19 +1,23 @@
 # Friend travel atomic finalization write design
 
-Status: selected docs-only design; implementation not yet complete
+Status: parked proposal / Israel travel candidate 6
 Owner: currency / editor / source safety
-Canonical: yes; canonical path: `docs/archive/active-plans/FRIEND_TRAVEL_ATOMIC_FINALIZATION_WRITE_DESIGN-2026-07-13.md`
-Exit: close only after the selected synthetic transaction implementation is merged, independently verified, and its production-use follow-up is separately selected or declined.
+Canonical: no; current semantic path: `docs/archive/active-plans/FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md`
+Exit: reconsider only through a separate selection after Israel travel candidates 1–3 are complete or when return-home finalization is concretely needed; archive if replaced or declined.
 
-## Purpose
+## Purpose and parking decision
 
-Define one recoverable write operation that turns one validated pending friend-paid travel source event into exactly one canonical JPY journal expense while preserving duplicate protection and source recovery evidence.
+Preserve a proposed recoverable write operation that could turn one validated pending friend-paid travel source event into exactly one canonical JPY journal expense while retaining duplicate protection and source recovery evidence.
 
 This design follows the already-verified pure preview in `src_next/friend_travel_jpy_finalization.bqn`. It does not change the accounting result: one existing JPY friend-liability account points to one existing JPY travel-expense account for the human-confirmed integer JPY amount.
 
-## Selected storage boundary
+PR #213 selected this design and a synthetic transaction core, but that selection was parked to prioritize the Israel travel daily-capture order. This document remains as future design material for atomicity, recovery manifests, backups, rollback, stale checks, and exact retries. It authorizes no runtime implementation, synthetic transaction core, production use, or source-file creation now.
 
-The selected source file is:
+A future docs-only PR may select it again after Israel travel candidates 1–3 are complete or when return-home finalization is needed. Until then, all storage and protocol details below are proposals rather than current runtime or implementation contracts.
+
+## Proposed storage boundary
+
+The proposed source file is:
 
 ```text
 <ledger>/friend_travel_events.tsv
@@ -59,22 +63,22 @@ A retry after a successful commit may return `already_committed` only when the f
 
 Any one-sided or conflicting state fails as `incomplete_or_conflicting_finalization`; it must not append a repair or replacement row automatically.
 
-## Selected write set
+## Proposed write set
 
-One accepted operation changes exactly two source files:
+One proposed accepted operation would change exactly two source files:
 
 1. `friend_travel_events.tsv`: replace exactly one pending row with its finalized form;
 2. `journal.tsv`: append exactly the one row returned by the verified pure preview.
 
 All other bytes, rows, comments, blanks, ordering, line endings, and unrelated metadata remain unchanged.
 
-`accounts.tsv` is read-only evidence for the operation. The selected liability and expense descriptors must still exist with the required JPY currencies and roles immediately before replacement.
+`accounts.tsv` is read-only evidence for the operation. The proposed operation would require the liability and expense descriptors to still exist with the required JPY currencies and roles immediately before replacement.
 
 ## Atomicity claim
 
 This is an application-level recoverable two-file transaction. It is not described as a filesystem-wide atomic transaction because ordinary file replacement cannot make two independent files change in one indivisible kernel operation.
 
-The selected protocol is:
+The proposed protocol is:
 
 1. acquire one exclusive finalization lock for the ledger base;
 2. reject any unfinished earlier finalization transaction;
@@ -161,9 +165,9 @@ Diagnostics may include:
 
 Diagnostics must not echo private party, item, memo, account, original amount, final amount, or full source rows by default.
 
-## Selected first implementation slice
+## Parked synthetic transaction proposal (not selected)
 
-After this design merges, the only selected implementation slice is a synthetic-fixture transaction core that:
+If separately selected in the future, a possible synthetic-fixture transaction core would:
 
 - parses and renders the fixed `friend_travel_events.tsv` schema;
 - derives the all-or-nothing finalized index;
@@ -189,7 +193,7 @@ Required focused cases include:
 - successful retry returns `already_committed` without new row or backup;
 - post-write evidence proves exact two-file effect.
 
-## Explicit exclusions from the first implementation
+## Explicit exclusions while parked
 
 - actual `LEDGER_DATA_DIR` reads or writes;
 - production source migration or production trial;
@@ -201,13 +205,13 @@ Required focused cases include:
 - strict-source Steps 2–5 or M4;
 - changing Canonical Daily Cube axes.
 
-Production use remains a later separately selected checkpoint after implementation and independent post-implementation verification.
+Production use remains unselected. Parking this proposal does not authorize implementation, independent verification work, or any production checkpoint.
 
 ## Dependencies and routing
 
 - Consumer semantics and preview row: `FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md`.
 - Verified pure implementation: `src_next/friend_travel_jpy_finalization.bqn` and its focused tests.
 - Existing safety precedents: the editor snapshot-token/backup/stale-check/atomic-append path, the MCP prepare/commit path, and the complete-set staging/rollback pattern from Currency M2.5 migration tooling.
-- Current selection owner: `TODO.md`.
+- Current routing owner: `TODO.md`, where this proposal is an unselected Israel travel candidate 6.
 
-This design does not authorize Ledger Observatory runtime work, strict-source Steps 2–5, M4, or any production write.
+This design does not authorize its synthetic transaction core, Ledger Observatory runtime work, strict-source Steps 2–5, M4, or any production write.

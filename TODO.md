@@ -9,21 +9,24 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-13 — selected the recoverable friend-travel two-file finalization design and its synthetic transaction implementation; production use, strict-source Steps 2–5, and M4 remain unselected.
+Last hygiene pass: 2026-07-13 — parked the friend-travel atomic finalization writer as Israel travel candidate 6; no finite implementation slice is selected, and production use, strict-source Steps 2–5, and M4 remain unselected.
 
 ---
 
 ## Active work
 
-### Friend travel source-event → JPY finalization: synthetic transaction implementation
-
-Status: docs-only write design selected. Canonical consumer plan: `docs/archive/active-plans/FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md`. Atomic write design: `docs/archive/active-plans/FRIEND_TRAVEL_ATOMIC_FINALIZATION_WRITE_DESIGN-2026-07-13.md`.
-
-- [ ] Implement the fixed `friend_travel_events.tsv` schema, all-or-nothing finalized index, and exact two-file events/journal transaction core against an explicit synthetic base directory.
-- [ ] Prove prepared/committed recovery manifests, exact backups, events/journal/accounts stale rejection, rollback after injected partial replacement, and idempotent `already_committed` retry evidence.
-- [ ] Keep actual `LEDGER_DATA_DIR`, production trial, MCP/editor/UI/report integration, generic event sourcing, strict-source Steps 2–5, and M4 unselected.
+No finite implementation slice is currently selected.
 
 ## Next candidates
+
+### Friend travel atomic finalization writer (Israel candidate 6)
+
+Status: unselected / parked candidate. The pure one-row JPY preview is implemented and independently verified; see `docs/archive/active-plans/FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md`.
+
+- [ ] Preserve `docs/archive/active-plans/FRIEND_TRAVEL_ATOMIC_FINALIZATION_WRITE_DESIGN-2026-07-13.md` as a reusable parked proposal for atomicity, recovery manifest, backup, rollback, stale-check, and retry design.
+- [ ] Do not treat the former synthetic transaction implementation selection as current authorization.
+- [ ] Pending friend source-event storage and safe append may be considered first under the Israel travel sequence; they are not selected by this routing change.
+- [ ] Production use, strict-source Steps 2–5, and M4 remain independently unselected.
 
 Mixed-ledger daily-use の後続候補とslice境界は `docs/archive/active-plans/CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md` を参照する。M3は実装・検証済みで、strict-source Step 1（policy carrier / pure admission core）は完了済み。strict-sourceのSteps 2–5（writer closure、compatibility preparation、production activation、post-implementation verification）とM4は未選定であり、自動選定しない。
 
