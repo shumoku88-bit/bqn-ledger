@@ -20,19 +20,25 @@ IsSupportedCurrency ← {𝕊 currency:
 }
 
 IsIgnoredLine ← {𝕊 line:
-  (0 = ≠ line) ? 1 ; ((⊑ line) = '#') ∨ ((⊑ line) = ⊑"\\")
+  ignored ← 0
+  {𝕊: ignored ↩ 1 } ⍟ (0 = ≠ line) @
+  {𝕊: ignored ↩ ((⊑ line) = '#') ∨ ((⊑ line) = ⊑"\\") } ⍟ (0 < ≠ line) @
+  ignored
 }
 
 HasPrefix ← {𝕊 prefix‿text:
-  (≠ prefix) ≤ ≠ text ? prefix ≡ (≠ prefix) ↑ text ; 0
+  matches ← 0
+  {𝕊: matches ↩ prefix ≡ (≠ prefix) ↑ text } ⍟ ((≠ prefix) ≤ ≠ text) @
+  matches
 }
 
 ParseConfigLine ← {𝕊 line:
   hasTab ← ∨´ tab = line
-  separator ← hasTab ? tab ; '='
+  separator ← hasTab ⊑ ⟨'=', tab⟩
   parts ← separator util.SplitKeepEmpty line
   key ← 0 ⊑ parts
-  value ← (1 < ≠ parts) ? 1 ⊑ parts ; ""
+  value ← ""
+  {𝕊: value ↩ 1 ⊑ parts } ⍟ (1 < ≠ parts) @
   { key ⇐ key, value ⇐ value }
 }
 
@@ -62,19 +68,26 @@ ResolveDefault ← {𝕊 configLines:
   dataLines ← (¬ IsIgnoredLine¨ configLines) / configLines
   parsed ← ParseConfigLine¨ dataLines
   hits ← ({ defaultKey ≡ 𝕩.key }¨ parsed) / parsed
+  hitCount ← ≠ hits
 
-  (0 = ≠ hits) ?
-    DefaultFailure ⟨"missing_default_currency", "missing ledger config key: " ∾ defaultKey⟩ ;
-  (1 < ≠ hits) ?
-    DefaultFailure ⟨"duplicate_default_currency", "duplicate ledger config key: " ∾ defaultKey⟩ ;
-  {
+  result ← DefaultFailure ⟨"missing_default_currency", "missing ledger config key: " ∾ defaultKey⟩
+
+  {𝕊:
+    result ↩ DefaultFailure ⟨"duplicate_default_currency", "duplicate ledger config key: " ∾ defaultKey⟩
+  } ⍟ (1 < hitCount) @
+
+  {𝕊:
     value ← (⊑ hits).value
-    (0 = ≠ value) ?
-      DefaultFailure ⟨"empty_default_currency", "empty ledger config value: " ∾ defaultKey⟩ ;
-    (¬ IsSupportedCurrency value) ?
-      DefaultFailure ⟨"unsupported_default_currency", "unsupported default currency: " ∾ value⟩ ;
-    DefaultSuccess value
-  } @
+    result ↩ DefaultFailure ⟨"empty_default_currency", "empty ledger config value: " ∾ defaultKey⟩
+    {𝕊:
+      result ↩ DefaultFailure ⟨"unsupported_default_currency", "unsupported default currency: " ∾ value⟩
+    } ⍟ ((0 < ≠ value) ∧ (¬ IsSupportedCurrency value)) @
+    {𝕊:
+      result ↩ DefaultSuccess value
+    } ⍟ ((0 < ≠ value) ∧ IsSupportedCurrency value) @
+  } ⍟ (1 = hitCount) @
+
+  result
 }
 
 SelectionFailure ← {𝕊 code‿message:
@@ -98,54 +111,70 @@ SelectionSuccess ← {𝕊 currency‿provenance:
 }
 
 ResolveSelection ← {𝕊 defaultResult‿explicitCurrency:
-  (0 < ≠ explicitCurrency) ?
-    ((IsSupportedCurrency explicitCurrency) ?
-      SelectionSuccess ⟨explicitCurrency, "explicit_selection"⟩ ;
-      SelectionFailure ⟨"unsupported_selected_currency", "unsupported selected currency: " ∾ explicitCurrency⟩) ;
-    ((defaultResult.state ≡ "ok") ?
-      SelectionSuccess ⟨defaultResult.currency, "ledger_default"⟩ ;
-      SelectionFailure ⟨"default_currency_unavailable", defaultResult.message⟩)
+  result ← SelectionFailure ⟨"default_currency_unavailable", defaultResult.message⟩
+  hasExplicit ← 0 < ≠ explicitCurrency
+
+  {𝕊:
+    result ↩ SelectionFailure ⟨"unsupported_selected_currency", "unsupported selected currency: " ∾ explicitCurrency⟩
+    {𝕊: result ↩ SelectionSuccess ⟨explicitCurrency, "explicit_selection"⟩ } ⍟ (IsSupportedCurrency explicitCurrency) @
+  } ⍟ hasExplicit @
+
+  {𝕊:
+    {𝕊: result ↩ SelectionSuccess ⟨defaultResult.currency, "ledger_default"⟩ } ⍟ (defaultResult.state ≡ "ok") @
+  } ⍟ (¬ hasExplicit) @
+
+  result
 }
 
-LineResult ← {𝕊 state‿classification‿rowIndex‿originalLine‿proposedLine‿currency‿message:
+LineResult ← {𝕊 stateValue‿classificationValue‿rowIndex‿originalLine‿proposedLine‿currencyValue‿messageValue:
   {
-    state ⇐ state,
-    classification ⇐ classification,
+    state ⇐ stateValue,
+    classification ⇐ classificationValue,
     source_row ⇐ rowIndex,
     original_line ⇐ originalLine,
     proposed_line ⇐ proposedLine,
-    currency ⇐ currency,
-    message ⇐ message
+    currency ⇐ currencyValue,
+    message ⇐ messageValue
   }
 }
 
 AuditLine ← {𝕊 fileName‿kind‿rowIndex‿line‿targetCurrency:
-  IsIgnoredLine line ?
-    LineResult ⟨"ok", "ignored", rowIndex, line, line, "", ""⟩ ;
-  {
+  result ← LineResult ⟨"ok", "ignored", rowIndex, line, line, "", ""⟩
+
+  {𝕊:
     fields ← tab util.SplitKeepEmpty line
-    minFields ← (kind ≡ "accounts") ? 1 ; 5
+    minFields ← (kind ≡ "accounts") ⊑ 5‿1
     structurallyValid ← (minFields ≤ ≠ fields) ∧ ((kind ≢ "accounts") ∨ (0 < ≠ ⊑ fields))
 
-    (¬ structurallyValid) ?
-      LineResult ⟨"error", "invalid_structure", rowIndex, line, line, "", fileName ∾ " row " ∾ (•Fmt rowIndex) ∾ ": invalid source structure"⟩ ;
-    {
-      metaStart ← (kind ≡ "accounts") ? 1 ; 5
+    {𝕊:
+      result ↩ LineResult ⟨"error", "invalid_structure", rowIndex, line, line, "", fileName ∾ " row " ∾ (•Fmt rowIndex) ∾ ": invalid source structure"⟩
+    } ⍟ (¬ structurallyValid) @
+
+    {𝕊:
+      metaStart ← (kind ≡ "accounts") ⊑ 5‿1
       metadata ← metaStart ↓ fields
       currencyTokens ← ({ HasPrefix ⟨"currency=", 𝕩⟩ }¨ metadata) / metadata
+      tokenCount ← ≠ currencyTokens
 
-      (0 = ≠ currencyTokens) ?
-        LineResult ⟨"ok", "missing", rowIndex, line, line ∾ tab ∾ "currency=" ∾ targetCurrency, targetCurrency, ""⟩ ;
-      (1 < ≠ currencyTokens) ?
-        LineResult ⟨"error", "duplicate", rowIndex, line, line, "", fileName ∾ " row " ∾ (•Fmt rowIndex) ∾ ": duplicate currency metadata"⟩ ;
-      {
-        currency ← 9 ↓ ⊑ currencyTokens
-        (¬ IsSupportedCurrency currency) ?
-          LineResult ⟨"error", "unknown", rowIndex, line, line, currency, fileName ∾ " row " ∾ (•Fmt rowIndex) ∾ ": unsupported currency: " ∾ currency⟩ ;
-          LineResult ⟨"ok", "explicit", rowIndex, line, line, currency, ""⟩
-      } @
-    } @
-  } @
+      {𝕊:
+        result ↩ LineResult ⟨"ok", "missing", rowIndex, line, line ∾ tab ∾ "currency=" ∾ targetCurrency, targetCurrency, ""⟩
+      } ⍟ (0 = tokenCount) @
+
+      {𝕊:
+        result ↩ LineResult ⟨"error", "duplicate", rowIndex, line, line, "", fileName ∾ " row " ∾ (•Fmt rowIndex) ∾ ": duplicate currency metadata"⟩
+      } ⍟ (1 < tokenCount) @
+
+      {𝕊:
+        currencyValue ← 9 ↓ ⊑ currencyTokens
+        result ↩ LineResult ⟨"error", "unknown", rowIndex, line, line, currencyValue, fileName ∾ " row " ∾ (•Fmt rowIndex) ∾ ": unsupported currency: " ∾ currencyValue⟩
+        {𝕊:
+          result ↩ LineResult ⟨"ok", "explicit", rowIndex, line, line, currencyValue, ""⟩
+        } ⍟ (IsSupportedCurrency currencyValue) @
+      } ⍟ (1 = tokenCount) @
+    } ⍟ structurallyValid @
+  } ⍟ (¬ IsIgnoredLine line) @
+
+  result
 }
 
 AuditFile ← {𝕊 fileName‿kind‿lines‿targetCurrency:
@@ -157,10 +186,12 @@ AuditFile ← {𝕊 fileName‿kind‿lines‿targetCurrency:
   missingCount ← +´ { 𝕩.classification ≡ "missing" }¨ rows
   explicitCount ← +´ { 𝕩.classification ≡ "explicit" }¨ rows
   ignoredCount ← +´ { 𝕩.classification ≡ "ignored" }¨ rows
-  proposedLines ← (0 = errorCount) ? ({𝕩.proposed_line}¨ rows) ; empty
+  proposedLines ← empty
+  {𝕊: proposedLines ↩ {𝕩.proposed_line}¨ rows } ⍟ (0 = errorCount) @
+  stateValue ← (0 = errorCount) ⊑ "error"‿"ok"
 
   {
-    state ⇐ (0 = errorCount) ? "ok" ; "error",
+    state ⇐ stateValue,
     file_name ⇐ fileName,
     kind ⇐ kind,
     target_currency ⇐ targetCurrency,
@@ -177,26 +208,33 @@ AuditFile ← {𝕊 fileName‿kind‿lines‿targetCurrency:
 Build ← {𝕊 configLines‿accountsLines‿journalLines‿planLines‿budgetLines‿targetCurrency:
   defaultResult ← ResolveDefault configLines
   targetOk ← targetCurrency ≡ "JPY"
+  files ← empty
 
-  files ← targetOk ? ⟨
-    AuditFile ⟨"accounts.tsv", "accounts", accountsLines, targetCurrency⟩,
-    AuditFile ⟨"journal.tsv", "journal", journalLines, targetCurrency⟩,
-    AuditFile ⟨"plan.tsv", "journal", planLines, targetCurrency⟩,
-    AuditFile ⟨"budget_alloc.tsv", "journal", budgetLines, targetCurrency⟩
-  ⟩ ; empty
+  {𝕊:
+    files ↩ ⟨
+      AuditFile ⟨"accounts.tsv", "accounts", accountsLines, targetCurrency⟩,
+      AuditFile ⟨"journal.tsv", "journal", journalLines, targetCurrency⟩,
+      AuditFile ⟨"plan.tsv", "journal", planLines, targetCurrency⟩,
+      AuditFile ⟨"budget_alloc.tsv", "journal", budgetLines, targetCurrency⟩
+    ⟩
+  } ⍟ targetOk @
 
   fileErrorCount ← +´ { 𝕩.error_count }¨ files
-  targetMessage ← targetOk ? "" ; "unsupported migration target: " ∾ targetCurrency ∾ "; M1.5 permits JPY only"
+  changedCount ← +´ { 𝕩.changed_count }¨ files
   overallOk ← (defaultResult.state ≡ "ok") ∧ targetOk ∧ (0 = fileErrorCount)
+  stateValue ← overallOk ⊑ "error"‿"ok"
+  messageValue ← ""
+  {𝕊: messageValue ↩ "unsupported migration target: " ∾ targetCurrency ∾ "; M1.5 permits JPY only" } ⍟ (¬targetOk) @
+  {𝕊: messageValue ↩ defaultResult.message } ⍟ (defaultResult.state ≢ "ok") @
 
   {
-    state ⇐ overallOk ? "ok" ; "error",
+    state ⇐ stateValue,
     default_currency ⇐ defaultResult,
     migration_target ⇐ targetCurrency,
     files ⇐ files,
-    changed_count ⇐ +´ { 𝕩.changed_count }¨ files,
+    changed_count ⇐ changedCount,
     error_count ⇐ fileErrorCount + (¬targetOk) + (defaultResult.state ≢ "ok"),
-    message ⇐ (defaultResult.state ≢ "ok") ? defaultResult.message ; targetMessage
+    message ⇐ messageValue
   }
 }
 
