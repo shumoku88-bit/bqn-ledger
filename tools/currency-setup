@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -L "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+ROOT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+cd "$ROOT_DIR"
+source "$ROOT_DIR/tools/lib/system-defaults.sh"
+
+usage() {
+  cat <<'USAGE'
+Usage:
+  tools/currency-setup audit [base-dir]
+  tools/currency-setup dry-run [base-dir]
+
+Purpose:
+  Read-only M1.5 currency setup inspection.
+
+  audit    reports explicit ledger default and source currency states
+  dry-run  also prints exact old/new lines that would receive currency=JPY
+
+Safety:
+  This command never writes source data. DEFAULT_CURRENCY selects an initial
+  view only and is never used as missing source currency authority. The M1.5
+  migration target is explicitly fixed to JPY.
+
+Default base directory:
+  LEDGER_DATA_DIR, then config/system_defaults.tsv.
+USAGE
+}
+
+if [[ $# -lt 1 || $# -gt 2 ]]; then
+  usage >&2
+  exit 1
+fi
+
+MODE="$1"
+case "$MODE" in
+  audit|dry-run) ;;
+  --help|-h)
+    usage
+    exit 0
+    ;;
+  *)
+    echo "ERROR: mode must be audit or dry-run" >&2
+    usage >&2
+    exit 1
+    ;;
+esac
+
+BASE_DIR="${2:-${LEDGER_DATA_DIR:-$(get_default_base_dir)}}"
+
+exec bqn src_next/currency_setup_cli.bqn "$MODE" "$BASE_DIR"
