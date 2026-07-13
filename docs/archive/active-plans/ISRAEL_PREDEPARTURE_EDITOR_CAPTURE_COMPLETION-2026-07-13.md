@@ -41,7 +41,17 @@ Completion of one phase does not authorize skipping its review or combining it w
 - Phase 1 verifies on a synthetic base that the unchanged ordinary journal path preserves ordered `trip_id=israel-2026` and `payment=cash|card` metadata for ILS cash and confirmed-JPY card rows. The generic `key=value` path is sufficient, so `config/meta_schema.tsv` remains unchanged.
 - Phase 2 adds `tools/edit travel friend add` and headerless `friend_travel_events.tsv`. Blank/comment lines follow the existing loader convention; every data row is the fixed nine-column pending contract. BQN owns full-source validation and identity uniqueness; shell owns exclusive first-file creation, checked append, dedicated post-check, and checked rollback. No journal or finalization write is added.
 - Phase 3 adds the I/O-free `src_next/travel_exchange_event.bqn` contract. It requires existing JPY/ILS account descriptors, positive integer JPY source text, positive ILS target text with at most two fractional digits, unique safe exchange identity, and `trip_id=israel-2026`. Its exact structured preview retains both amount texts and exposes no rate, valuation, journal row, or storage behavior.
-- Phase 4 adds `tools/edit travel exchange add` and headerless fixed-ten-column `travel_exchange_events.tsv`. The BQN owner validates account currency and every existing/candidate row; shell transports the protocol and owns exclusive first-write, checked append, dedicated post-check, and checked rollback. No journal projection, balance mutation, rate, fee, or account creation is added. After its PR passes CI and merges, Phase 5 is the immediate slice.
+- Phase 4 adds `tools/edit travel exchange add` and headerless fixed-ten-column `travel_exchange_events.tsv`. The BQN owner validates account currency and every existing/candidate row; shell transports the protocol and owns exclusive first-write, checked append, dedicated post-check, and checked rollback. No journal projection, balance mutation, rate, fee, or account creation is added.
+
+## Phase 5 pause and prerequisite recovery slice
+
+The first integrated synthetic rehearsal ran exchange, then ILS cash journal append, then confirmed-JPY card journal append. Both journal rows were appended, but the second command's default `lint` invoked the single-domain full report, exited 1 with `mixed_currency_domains`, and did not restore its backup. The synthetic journal therefore retained two rows despite command failure.
+
+No production or actual `LEDGER_DATA_DIR` was read. The stopped branch was clean after its unfinished rehearsal file was removed. Phase 0 through Phase 4 remain merged and unchanged.
+
+Phase 5 is paused while the selected prerequisite makes ordinary journal `lint` a mixed-safe source-integrity check and adds checked automatic rollback. The prerequisite must preserve per-row date, exact amount, metadata, account existence, account/row currency, ILS precision, and legacy missing-currency compatibility checks. It must refuse rollback if a later writer changed the post-write target. It must not change full report, strict-source Steps 2–5, candidate 6, friend/exchange writers, M4, or cash views.
+
+After that prerequisite passes CI and merges, Phase 5 resumes through the public commands without `--post-check none`.
 
 ## Ownership and exclusions
 
