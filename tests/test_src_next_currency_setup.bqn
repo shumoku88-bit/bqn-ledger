@@ -8,7 +8,7 @@ util ← •Import "../src_next/util.bqn"
 tab ← @+9
 
 # Built-in currency admission and lexical precision have one pure owner.
-⟨"JPY", "ILS"⟩ lib.AssertEq setup.SupportedCurrencies
+⟨"JPY", "ILS"⟩ lib.AssertEq setup.supported_currencies
 jpyPolicy ← setup.Policy "JPY"
 "ok" lib.AssertEq jpyPolicy.state
 "JPY" lib.AssertEq jpyPolicy.currency
