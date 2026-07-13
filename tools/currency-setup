@@ -54,5 +54,10 @@ case "$MODE" in
 esac
 
 BASE_DIR="${2:-${LEDGER_DATA_DIR:-$(get_default_base_dir)}}"
+if [[ ! -d "$BASE_DIR" ]]; then
+  echo "ERROR: ledger base directory not found: $BASE_DIR" >&2
+  exit 1
+fi
+BASE_DIR="$(cd -- "$BASE_DIR" && pwd -P)"
 
 exec bqn src_next/currency_setup_cli.bqn "$MODE" "$BASE_DIR"
