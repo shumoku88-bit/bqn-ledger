@@ -25,7 +25,7 @@ test('read tools and prepare do not modify source TSV', async t => {
   const s = await setup(); t.after(s.cleanup); const before = await tsvHashes(s.base);
   assert.match(await s.core.listSections(), /snapshot/); assert.match(await s.core.snapshot(), /Snapshot/); assert.match(await s.core.reportSection('recent'), /Recent Journal/);
   const accounts = await s.core.listAccounts(); assert(accounts.some(x => x.name === 'assets:bank' && x.role === 'asset'));
-  const draft = await s.core.prepareEntry(good); assert.match(draft.draft_id, /^[0-9a-f-]{36}$/); assert.equal(draft.validation.editor, 'accepted'); assert.equal(draft.tsv_row.split('\t').length, 6);
+  const draft = await s.core.prepareEntry(good); assert.match(draft.draft_id, /^[0-9a-f-]{36}$/); assert.equal(draft.validation.editor, 'accepted'); assert.equal(draft.tsv_row.split('\t').length, 7); assert.match(draft.tsv_row, /\tcurrency=JPY(?:\t|$)/);
   assert.deepEqual(await tsvHashes(s.base), before); assert.equal((await fs.stat(path.join(s.runtime, `${draft.draft_id}.json`))).mode & 0o777, 0o600);
 });
 

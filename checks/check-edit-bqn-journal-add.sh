@@ -266,7 +266,7 @@ run_expect_fail_closed unknown-from journal.tsv \
 run_expect_fail_closed unknown-to journal.tsv \
   journal add --date 2026-06-29 --memo "unknown to" --from assets:bank --to expenses:missing --amount 123 --yes --post-check none
 run_expect_fail_closed invalid-amount journal.tsv \
-  journal add --date 2026-06-29 --memo "bad amount" --from assets:bank --to expenses:食費 --amount 12.3 --yes --post-check none
+  journal add --date 2026-06-29 --memo "bad amount" --from assets:bank --to expenses:食費 --amount 12x --yes --post-check none
 run_expect_fail_closed invalid-meta-missing-eq journal.tsv \
   journal add --date 2026-06-29 --memo "bad meta" --from assets:bank --to expenses:食費 --amount 123 --meta source --yes --post-check none
 run_expect_fail_closed invalid-meta-key journal.tsv \
