@@ -9,7 +9,7 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-13 — Israel predeparture editor capture is READY; only real-account readiness remains selected, while friend finalization candidate 6, strict-source Steps 2–5, M4, and other implementation candidates remain unselected.
+Last hygiene pass: 2026-07-13 — Israel predeparture editor capture is READY and only real-account readiness remains selected operational work; PR #219 and the foundation synthesis are complete, while the next configurable-ledger slice, friend finalization candidate 6, strict-source Steps 2–5, M4, and other implementation candidates remain unselected.
 
 ---
 
@@ -24,36 +24,27 @@ Status: selected operational preparation only. Editor implementation and the int
 - [ ] private account名、金額、実データpathをpublic repoへ記録しない。
 - [ ] この確認と同時にruntime、source schema、friend finalization、router、cash view、M4、strict-source Steps 2–5を開始しない。
 
-### PR #219 built-in currency policy integration
-
-Status: selected priority dependency after Israel readiness. PR #219 centralizes built-in JPY/ILS admission and lexical precision in one BQN owner, which is the first seam toward adding currencies without scattering currency knowledge.
-
-- [ ] Revalidate the existing open PR against current `main`, preserve its narrow registry/refactor scope, and require current CI before merge.
-- [ ] Treat the registry as built-in code policy, not yet as a user-editable configuration surface.
-- [ ] Do not use #219 to add currencies, change schemas, activate strict-source Steps 2–5, add a Currency axis, FX, valuation, or mixed-currency totals.
-- [ ] This docs routing PR does not rewrite or merge #219.
-
 The latest AI working feedback record was completed by PR #227 and is an evidence input only; it is not an automatic implementation queue.
 
 ### Configurable AI-assisted household ledger and report
 
-Status: selected highest-priority development direction; only the first docs-only synthesis slice is immediately authorized.
+Status: selected highest-priority development direction. The docs-only foundation synthesis and PR #219 dependency are complete; no next program slice is selected.
 
 Purpose: keep human-readable TSV and configuration as source truth; make user-specific currencies, accounts, life cycles, classifications, budget policy, presentation, and privacy boundaries configurable when they truly belong to configuration; let BQN generate evidence-bearing derived data and reports; and keep AI as an explanatory/proposal partner whose accepted changes pass through human judgment and the existing safe editor.
 
-Immediate finite slice: **Configurable AI-assisted ledger foundation synthesis**. Active synthesis plan: `docs/archive/active-plans/CONFIGURABLE_AI_ASSISTED_LEDGER_FOUNDATION-2026-07-13.md`.
+Completed foundation slice: **Configurable AI-assisted ledger foundation synthesis**. Current routing map: `docs/archive/active-plans/CONFIGURABLE_AI_ASSISTED_LEDGER_FOUNDATION-2026-07-13.md`.
 
 Routing order after readiness and the completed feedback evidence:
 
-1. revalidate/integrate PR #219 in its existing narrow scope;
-2. foundation synthesis docs;
+1. PR #219 built-in currency policy integration — completed and recorded in `docs/archive/TODO_HISTORY-2026-07-13.md`;
+2. foundation synthesis docs — completed by PR #228;
 3. config ownership inventory;
 4. privacy-safe AI context-bundle contract;
 5. one read-only AI consultation report;
 6. safe proposal-to-editor handoff;
 7. PR #211 Ledger Observatory synthetic evidence-trace connection last.
 
-Only the docs-only synthesis is selected inside this program. Later rows do not auto-start. Feedback entries do not authorize work. Candidate 6, strict-source Steps 2–5, M4, Projection Workbench, Currency axis, FX/valuation, broad report rewrites, automatic advice/TODOs/writes, and private production-data access remain unselected.
+Rows 3–7 are routing candidates only and no next program slice is selected. Feedback entries do not authorize work. Candidate 6, strict-source Steps 2–5, M4, Projection Workbench, Currency axis, FX/valuation, broad report rewrites, automatic advice/TODOs/writes, and private production-data access remain unselected.
 
 ## Next candidates
 
