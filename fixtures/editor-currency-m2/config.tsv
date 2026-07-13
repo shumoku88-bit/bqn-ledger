@@ -1,2 +1,2 @@
-# M2 editor fixture
+# M2 editor fixture: ledger default JPY, explicit ILS override exercised by checks
 DEFAULT_CURRENCY=JPY
