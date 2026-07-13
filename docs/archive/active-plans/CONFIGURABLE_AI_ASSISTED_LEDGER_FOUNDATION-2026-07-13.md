@@ -1,6 +1,6 @@
 # Configurable AI-assisted Ledger Foundation — 2026-07-13
 
-Status: active plan / selected highest-priority development direction; only the first docs-only synthesis slice is immediately authorized
+Status: active routing map / selected highest-priority development direction; foundation synthesis and PR #219 integration are complete, and no next program slice is selected
 Owner: config / report / AI consultation / privacy
 Canonical: no; finite-work selection remains in `TODO.md`
 Exit: replace this synthesis with separately approved finite contracts, then archive when the program is completed, superseded, or declined.
@@ -17,15 +17,15 @@ This plan is a synthesis and routing map. It adds no config key, schema, runtime
 
 0. Complete Israel real-account readiness as the small read-only operational preparation already selected in `TODO.md`.
 1. Treat the latest AI working feedback, completed by PR #227, as observation evidence only. It authorizes no automatic implementation.
-2. Revalidate and integrate open PR #219 (`refactor: centralize built-in currency policy`) against current `main` in its own existing PR. It centralizes built-in JPY/ILS admission and lexical precision policy; it is a code-level registry seam, not yet user configuration. This routing PR does not merge, rewrite, or widen #219.
-3. Use this foundation synthesis as the first program slice. No later runtime slice is selected by it.
+2. PR #219 (`refactor: centralize built-in currency policy`) is integrated and current-main verified. It centralizes built-in JPY/ILS admission and lexical precision policy as a code-level registry seam, not user configuration.
+3. The foundation synthesis was completed by PR #228. It selects no later runtime slice.
 4. Inventory configuration ownership before adding keys.
 5. Design a privacy-safe AI context-bundle contract.
 6. Select one read-only AI consultation report only after its evidence contract exists.
 7. Design a safe proposal-to-editor handoff without granting AI write authority.
 8. Connect PR #211 Ledger Observatory last, as the source-to-derived evidence telescope after the config, privacy, and consultation boundaries are established.
 
-The order is routing, not blanket authorization. In particular, #219 must retain its existing narrow scope and pass current-main review and CI; steps 4–8 require separate finite selection.
+The order is routing, not blanket authorization. Steps 4–8 require separate finite selection; completion of #219 and the synthesis does not authorize the next row.
 
 ## Foundation map
 
@@ -51,7 +51,7 @@ source row -> Posting IR -> Cube coordinate -> report value -> AI explanation
 | Account identity, role, currency, type, budget mapping | `<base>/accounts.tsv` | metadata-configured, with documented compatibility behavior | already the primary user-owned semantic surface | malformed/duplicate/unknown account metadata fail closed | source meaning |
 | Life/accounting cycle | `<base>/cycle.tsv` and cycle owner | configured | already appropriate; future cadence rules need owner review | invalid/missing/duplicate cycle declarations must not be guessed | source meaning / query boundary |
 | Journal/plan extension metadata vocabulary | `config/meta_schema.tsv`, `docs/JOURNAL_META.md`, source contracts | partly schema-defined; generic safe `key=value` remains available | useful only for durable source meaning | key/value admission and unknown policy must be selected before implementation | source meaning |
-| Built-in currency admission and lexical precision | currently repeated code; PR #219 proposes `currency_setup.bqn` registry | code-owned JPY/ILS policy | first seam toward adding supported currencies without scattered edits; not a user-editable setting yet | unsupported currency and invalid precision fail closed | fixed engine admission policy until separately externalized |
+| Built-in currency admission and lexical precision | `src_next/currency_setup.bqn` registry integrated by PR #219 | code-owned JPY/ILS policy | established seam toward adding supported currencies without scattered edits; not a user-editable setting yet | unsupported currency and invalid precision fail closed | fixed engine admission policy until separately externalized |
 | Report labels, section/view selection and formatting preferences | `config/report_labels.tsv`, report modules, structured export contracts | mixed | high for presentation choices that do not redefine accounting | unknown/missing presentation keys need explicit fallback or failure | view preference |
 | Privacy/export policy | safety docs and individual structured exports; no single user policy owner yet | mostly contract-owned | high before AI context export | default deny; unknown or missing policy must not widen disclosure | export policy |
 | AI context policy | no runtime owner; this synthesis only | not implemented | high for selecting period/currency/evidence and redaction | missing policy means no private bundle, not broad export | consultation/export policy |
@@ -70,7 +70,7 @@ Israel is the first proven reference profile, not a special hard-coded product m
 - mixed-currency journal source lint;
 - checked rollback and later-writer protection.
 
-PR #219 is the immediate currency-policy dependency because it gathers supported built-in currencies and lexical precision into one BQN owner. It does not by itself create user configuration, add a Currency axis, enable FX, or authorize additional currencies.
+PR #219 completed the immediate currency-policy dependency by gathering supported built-in currencies and lexical precision into one BQN owner. It did not create user configuration, add a Currency axis, enable FX, or authorize additional currencies.
 
 Future generalization candidates are profile/trip identity, supported currencies, payment methods, exchange-event policy, pending third-party-payment policy, and confirmed-card-amount policy. This synthesis adds none of those keys or schemas. It must not embed `israel-2026`, real account names, private paths, or private values into general configuration.
 
@@ -148,8 +148,8 @@ Its first eligible candidate remains the pure synthetic source-row-to-Cube evide
 |---:|---|---|
 | 0 | Israel real-account readiness | selected read-only operational preparation |
 | 1 | Latest AI feedback record | completed evidence; no implementation authorization |
-| 2 | PR #219 built-in currency policy integration | priority dependency in its existing PR; revalidate current main and preserve scope |
-| 3 | Foundation synthesis docs | selected first program slice; this document |
+| 2 | PR #219 built-in currency policy integration | completed and current-main verified; built-in code policy only |
+| 3 | Foundation synthesis docs | completed by PR #228; this document remains the routing map |
 | 4 | Config ownership inventory refinement | not selected separately |
 | 5 | Privacy-safe AI context-bundle contract | not selected |
 | 6 | One read-only AI consultation report | not selected |
@@ -175,7 +175,7 @@ Completing an earlier row does not authorize the next row.
 ## Exit criteria for the synthesis slice
 
 - Israel readiness remains the first small operational task;
-- PR #219 is identified as the currency-policy integration dependency before program expansion;
+- PR #219 is integrated as the currency-policy seam before program expansion;
 - config ownership, mixed-currency/Israel evidence, AI feedback, privacy bundle, consultation/write separation, and Observatory placement share one map;
 - only docs change;
 - feedback remains evidence, not authorization;

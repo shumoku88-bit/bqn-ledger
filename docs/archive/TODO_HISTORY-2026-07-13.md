@@ -89,3 +89,31 @@ Routing after closure:
 - no writer is auto-selected;
 - strict-source Steps 2–5 and M4 remain independently unselected;
 - the canonical plan remains active until its follow-up write slice is explicitly selected or declined.
+
+## Built-in currency policy centralization
+
+Status: completed and current-main verified.
+
+Implementation identity:
+
+- PR #219: `refactor: centralize built-in currency policy`;
+- final implementation head: `3e0b49553cd49ef7c426e37b0533c24680ade6d2`;
+- merge commit: `285fb3160776cab03545b8feccd3ddcde6e5da93`;
+- exact-head GitHub Actions run `29256333753`: success.
+
+Verified result:
+
+- `src_next/currency_setup.bqn` now owns built-in JPY/ILS admission and lexical precision policy;
+- JPY remains supported without a finite journal lexical fraction cap;
+- ILS remains supported with a maximum of two fractional digits and no rounding;
+- USD remains unsupported;
+- currency arithmetic, source admission, and editor validation use the shared policy owner;
+- the final PR diff remained limited to five intended files;
+- no config key, schema, report output, FX, valuation, Currency axis, mixed-currency total, production source, or private data access was included.
+
+Routing after closure:
+
+- the registry remains built-in code policy, not user-editable configuration;
+- the foundation synthesis is complete and remains the current routing map;
+- config ownership inventory, privacy-safe AI context, read-only consultation, editor handoff, and Ledger Observatory remain separately selected-or-unselected future slices;
+- no next configurable-ledger slice is auto-selected.
