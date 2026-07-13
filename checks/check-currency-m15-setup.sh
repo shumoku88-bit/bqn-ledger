@@ -22,7 +22,20 @@ assert_contains() {
   grep -Fq -- "$expected" <<<"$actual" || fail_output "$label" "$expected" "$actual"
 }
 
-audit_out="$(bash tools/currency-setup audit "$fixture")"
+capture_setup() {
+  local mode="$1" output status
+  set +e
+  output="$(bash tools/currency-setup "$mode" "$fixture" 2>&1)"
+  status=$?
+  set -e
+  if [[ "$status" -ne 0 ]]; then
+    fail_output "$mode command exit" 'status=0' "status=$status
+$output"
+  fi
+  printf '%s' "$output"
+}
+
+audit_out="$(capture_setup audit)"
 assert_line 'state=ok' "$audit_out" 'audit state'
 assert_line 'default_key=DEFAULT_CURRENCY' "$audit_out" 'default key'
 assert_line 'default_state=ok' "$audit_out" 'default state'
@@ -37,7 +50,7 @@ if grep -q '^FILE ' <<<"$audit_out"; then
   exit 1
 fi
 
-dry_out="$(bash tools/currency-setup dry-run "$fixture")"
+dry_out="$(capture_setup dry-run)"
 assert_line 'changed_count=5' "$dry_out" 'dry-run changed count'
 assert_contains 'FILE accounts.tsv ROW 1' "$dry_out" 'accounts preview row'
 assert_contains $'+assets:bank\trole=asset\ttype=liquid\tcurrency=JPY' "$dry_out" 'accounts proposed line'
@@ -48,7 +61,7 @@ assert_contains 'FILE budget_alloc.tsv ROW 0' "$dry_out" 'budget preview row'
 
 # Command is read-only: fixture digests must remain unchanged.
 before="$(find "$fixture" -type f -print0 | sort -z | xargs -0 sha256sum)"
-bash tools/currency-setup dry-run "$fixture" >/dev/null
+capture_setup dry-run >/dev/null
 after="$(find "$fixture" -type f -print0 | sort -z | xargs -0 sha256sum)"
 if [[ "$before" != "$after" ]]; then
   echo 'FAIL: currency setup dry-run modified fixture data' >&2
