@@ -65,14 +65,14 @@ trap 'rm -rf "$tmp" "$out_dir"' EXIT
 cp data/*.tsv "$tmp/"
 
 preview="$(./tools/edit --base "$tmp" account add --name 'income:友人精算' --role income --dry-run --post-check none)"
-grep -Fq $'income:友人精算\trole=income' <<< "$preview"
+grep -Fq $'income:友人精算\trole=income\tcurrency=JPY' <<< "$preview"
 if grep -Fq 'income:友人精算' "$tmp/accounts.tsv"; then
   echo "FAIL: account add dry-run modified accounts.tsv" >&2
   exit 1
 fi
 
 ./tools/edit --base "$tmp" account add --name 'income:友人精算' --role income --yes --post-check none >/dev/null
-grep -Fxq $'income:友人精算\trole=income' "$tmp/accounts.tsv"
+grep -Fxq $'income:友人精算\trole=income\tcurrency=JPY' "$tmp/accounts.tsv"
 compgen -G "$tmp/.backup/accounts.tsv.*.bak" >/dev/null
 
 if ./tools/edit --base "$tmp" account add --name 'income:友人精算' --role income --dry-run --post-check none >"$out_dir/account-add-duplicate.out" 2>&1; then
