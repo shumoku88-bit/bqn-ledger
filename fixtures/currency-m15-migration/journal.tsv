@@ -1,0 +1,4 @@
+# empty memo and unrelated metadata must survive
+2026-07-01		assets:bank	expenses:food	1200	party=shop
+2026-07-02	explicit JPY	assets:bank	expenses:food	300	currency=JPY	note=keep
+2026-07-03	ILS bread	assets:cash-ils	expenses:food-ils	12.50	currency=ILS
