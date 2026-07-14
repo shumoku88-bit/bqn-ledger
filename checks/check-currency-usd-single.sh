@@ -79,24 +79,79 @@ else
   echo "$report_out" >&2
 fi
 
-# 7. Plan add decimal and currency
-plan_base="$tmp_root/plan"
-cp -R "$fixture" "$plan_base"
-./tools/edit --base "$plan_base" plan add --date 2026-08-16 --memo "new plan" --from assets:checking --to expenses:utilities --amount 45.67 --currency USD --yes --post-check none >/dev/null
-if grep -qF $'2026-08-16\tnew plan\tassets:checking\texpenses:utilities\t45.67\t' "$plan_base/plan.tsv"; then
-  pass "plan add supports exact decimal and writes currency metadata"
+# 7. Complete decimal plan lifecycle (add -> edit -> finish)
+lifecycle_base="$tmp_root/lifecycle"
+cp -R "$fixture" "$lifecycle_base"
+
+# plan add
+./tools/edit --base "$lifecycle_base" plan add --date 2026-08-15 --memo "subscription" --from assets:checking --to expenses:utilities --amount 49.99 --currency USD --yes --post-check lint >/dev/null
+plan_row="$(tail -n 1 "$lifecycle_base/plan.tsv")"
+if grep -qF $'currency=USD' <<<"$plan_row" && grep -qF $'49.99' <<<"$plan_row"; then
+  pass "lifecycle step 1: plan add writes exact decimal and currency=USD"
 else
-  fail "plan add failed to save exact decimal or currency metadata"
+  fail "lifecycle step 1 failed: plan add row was '$plan_row'"
 fi
 
-# 8. Budget add decimal and currency
+# Extract plan ID
+plan_id="$(echo "$plan_row" | grep -o 'plan_id=[^[:space:]]*' | cut -d= -f2)"
+if [ -n "$plan_id" ]; then
+  pass "lifecycle step 1a: plan ID generated: $plan_id"
+else
+  fail "lifecycle step 1a failed: could not extract plan ID from '$plan_row'"
+fi
+
+# plan edit (modify amount to another decimal)
+./tools/edit --base "$lifecycle_base" plan edit --id "$plan_id" --amount 45.67 --yes --post-check lint >/dev/null
+edited_row="$(grep "$plan_id" "$lifecycle_base/plan.tsv")"
+if grep -qF $'45.67' <<<"$edited_row" && grep -qF $'currency=USD' <<<"$edited_row"; then
+  pass "lifecycle step 2: plan edit updates amount to 45.67 and preserves currency=USD"
+else
+  fail "lifecycle step 2 failed: edited row was '$edited_row'"
+fi
+
+# plan finish with explicit actual decimal amount
+./tools/edit --base "$lifecycle_base" plan finish --id "$plan_id" --actual-date 2026-07-14 --actual-amount 40.00 --yes --apply --post-check lint >/dev/null
+finished_row="$(tail -n 1 "$lifecycle_base/journal.tsv")"
+if grep -qF $'2026-07-14' <<<"$finished_row" && grep -qF $'40.00' <<<"$finished_row" && grep -qF "plan_id=$plan_id" <<<"$finished_row" && grep -qF 'currency=USD' <<<"$finished_row"; then
+  pass "lifecycle step 3: plan finish with --actual-amount appends correct journal row with currency=USD"
+else
+  fail "lifecycle step 3 failed: finished journal row was '$finished_row'"
+fi
+
+# 8. Plan finish with implicit (empty) actual amount (preserves planned amount)
+./tools/edit --base "$lifecycle_base" plan add --date 2026-08-16 --memo "implicit" --from assets:checking --to expenses:utilities --amount 19.99 --currency USD --yes --post-check lint >/dev/null
+plan_row_2="$(tail -n 1 "$lifecycle_base/plan.tsv")"
+plan_id_2="$(echo "$plan_row_2" | grep -o 'plan_id=[^[:space:]]*' | cut -d= -f2)"
+./tools/edit --base "$lifecycle_base" plan finish --id "$plan_id_2" --actual-date 2026-07-14 --yes --apply --post-check lint >/dev/null
+finished_row_2="$(tail -n 1 "$lifecycle_base/journal.tsv")"
+if grep -qF $'19.99' <<<"$finished_row_2" && grep -qF "plan_id=$plan_id_2" <<<"$finished_row_2" && grep -qF 'currency=USD' <<<"$finished_row_2"; then
+  pass "lifecycle step 4: plan finish with empty actual amount preserves original planned amount 19.99 and currency=USD"
+else
+  fail "lifecycle step 4 failed: finished journal row was '$finished_row_2'"
+fi
+
+# 9. Budget add decimal and currency
 budget_base="$tmp_root/budget"
 cp -R "$fixture" "$budget_base"
-./tools/edit --base "$budget_base" budget add --date 2026-08-02 --memo "new budget" --from budget:opening --to budget:utilities --amount 25.50 --currency USD --yes --post-check none >/dev/null
-if grep -qF $'2026-08-02\tnew budget\tbudget:opening\tbudget:utilities\t25.50\t' "$budget_base/budget_alloc.tsv"; then
-  pass "budget add supports exact decimal and writes currency metadata"
+./tools/edit --base "$budget_base" budget add --date 2026-08-02 --memo "new budget" --from budget:opening --to budget:utilities --amount 25.50 --currency USD --yes --post-check lint >/dev/null
+budget_row="$(tail -n 1 "$budget_base/budget_alloc.tsv")"
+if grep -qF $'25.50' <<<"$budget_row" && grep -qF $'currency=USD' <<<"$budget_row"; then
+  pass "budget add supports exact decimal and writes currency=USD metadata"
 else
-  fail "budget add failed to save exact decimal or currency metadata"
+  fail "budget add failed to save exact decimal or currency metadata: '$budget_row'"
+fi
+
+# 10. Run source integrity check on mutated bases
+if bqn src_edit/journal_source_check.bqn "$lifecycle_base" >/dev/null 2>&1; then
+  pass "mutated lifecycle base passes source integrity"
+else
+  fail "mutated lifecycle base failed source integrity check"
+fi
+
+if bqn src_edit/journal_source_check.bqn "$budget_base" >/dev/null 2>&1; then
+  pass "mutated budget base passes source integrity"
+else
+  fail "mutated budget base failed source integrity check"
 fi
 
 if [ "$failures" -ne 0 ]; then

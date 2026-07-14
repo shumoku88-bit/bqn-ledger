@@ -5,13 +5,12 @@
 #   <baseDir> <targetKind: journal|budget> <date> <memo> <from> <to>
 #   <amount> <currency-or-empty> [meta...]
 #
-# Journal M2 behavior:
+# Journal and Budget behavior:
 # - resolve explicit currency or ledger DEFAULT_CURRENCY
-# - validate exact-decimal amount and ILS maximum two fractional digits
-# - require From/To account currencies to match
+# - validate exact-decimal amount against registry currency policy (e.g. ILS/USD 2-decimal limit)
+# - require From/To account currencies to match selected currency
 # - append an explicit editor-owned currency= token
-#
-# Budget behavior remains integer-only and currency-neutral in this slice.
+
 
 loader ← •Import "../src_next/loader.bqn"
 validate ← •Import "validate.bqn"

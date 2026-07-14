@@ -185,8 +185,9 @@ ArithmeticCurrencyAuthorizationMessage ← {𝕊 proof:
     msg ↩ (scale ≢ 0) ⊑ msg‿"empty_source_compatibility requires amount_scale = 0"
   } ⍟ (basis ≡ "empty_source_compatibility") @
   msg ↩ (¬ IsAllowedProofBasis basis) ⊑ msg‿("unsupported arithmetic currency proof basis: " ∾ basis)
-  msg ↩ ((IsAllowedProofBasis basis) ∧ (domain ≡ "ILS") ∧ basis ≢ "resolved_single_currency") ⊑ msg‿"ILS requires resolved_single_currency proof basis"
-  msg ↩ (¬((domain ≡ "JPY") ∨ domain ≡ "ILS")) ⊑ msg‿("unsupported arithmetic currency domain: " ∾ domain)
+  is_decimal_currency ← (domain ≢ "JPY") ∧ (setup.IsSupportedCurrency domain)
+  msg ↩ ((IsAllowedProofBasis basis) ∧ is_decimal_currency ∧ basis ≢ "resolved_single_currency") ⊑ msg‿(domain ∾ " requires resolved_single_currency proof basis")
+  msg ↩ (¬ setup.IsSupportedCurrency domain) ⊑ msg‿("unsupported arithmetic currency domain: " ∾ domain)
   msg ↩ (state ≢ "proven") ⊑ msg‿((0 < ≠ message) ⊑ ("arithmetic currency proof is not proven: " ∾ state)‿message)
   msg
 }

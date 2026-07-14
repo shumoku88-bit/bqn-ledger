@@ -174,7 +174,7 @@ run_expect_fail_closed invalid-date \
 run_expect_fail_closed invalid-amount \
   plan edit \
   --id plan-2026-08-15-test-edit \
-  --amount 12.34 \
+  --amount 12x \
   --yes \
   --post-check none
 

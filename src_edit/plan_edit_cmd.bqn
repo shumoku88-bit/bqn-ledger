@@ -17,6 +17,8 @@ loader ← •Import "../src_next/loader.bqn"
 validate ← •Import "validate.bqn"
 plan_id ← •Import "plan_id.bqn"
 config ← •Import "../src_next/config.bqn"
+setup ← •Import "../src_next/currency_setup.bqn"
+
 
 sys ← config.LoadSystemDefaults @
 args ← •args
@@ -43,10 +45,8 @@ ResolvePath ← { baseDir ∾ "/" ∾ 𝕩 }
   { 𝕊 ⋄ Fail (1 ⊑ dateCheck) }⍟(¬ 0 ⊑ dateCheck) @
 }⍟(0 < ≠ dateVal) @
 
-{ 𝕊 ⋄
-  amountCheck ← validate.ValidateAmount amountVal
-  { 𝕊 ⋄ Fail (1 ⊑ amountCheck) }⍟(¬ 0 ⊑ amountCheck) @
-}⍟(0 < ≠ amountVal) @
+# Amount validation will be deferred to target resolution below
+
 
 LoadPlansList ← { 𝕩 ⋄
   planPath ← ResolvePath (sys.DefaultPlanFile @)
@@ -113,6 +113,22 @@ selected ← selIdx ⊑ selectedPlans
 { 𝕊 ⋄ Fail "cannot edit closed plan" }⍟selected.closed @
 { 𝕊 ⋄ Fail "cannot edit plan without plan_id" }⍟selected.missingID @
 { 𝕊 ⋄ Fail ("cannot edit plan with invalid plan_id: " ∾ selected.planID) }⍟selected.invalidID @
+
+{ 𝕊 ⋄
+  meta ← 5 ↓ selected.fields
+  IsCurrencyMeta ← { (9 ≤ ≠ 𝕩) ? "currency=" ≡ (9↑𝕩) ; 0 }
+  metaCurrencies ← IsCurrencyMeta¨ meta
+  explicitCurrency ← (0 < +´ metaCurrencies) ◶ ⟨ { 𝕊 ⋄ "" }, { 𝕊 ⋄ 9 ↓ ⊑ metaCurrencies / meta } ⟩ @
+
+  configLines ← loader.ReadLinesOptional (baseDir ∾ "/config.tsv")
+  defaultResult ← setup.ResolveDefault configLines
+  selection ← setup.ResolveSelection ⟨defaultResult, explicitCurrency⟩
+  {𝕊: Fail selection.message}⍟(selection.state ≢ "ok") @
+  currency ← selection.currency
+
+  amountCheck ← validate.ValidateExactAmountForCurrency currency‿amountVal
+  { 𝕊 ⋄ Fail (1 ⊑ amountCheck) }⍟(¬ 0 ⊑ amountCheck) @
+}⍟(0 < ≠ amountVal) @
 
 oldFields ← selected.fields
 { 𝕊 ⋄ Fail "plan.tsv line has fewer than 5 tab-separated columns" }⍟(5 > ≠ oldFields) @

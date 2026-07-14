@@ -17,6 +17,8 @@ render ← •Import "render.bqn"
 plan_id ← •Import "plan_id.bqn"
 config ← •Import "../src_next/config.bqn"
 date ← •Import "../src_next/date.bqn"
+setup ← •Import "../src_next/currency_setup.bqn"
+ak ← •Import "../src_next/account_key.bqn"
 
 sys ← config.LoadSystemDefaults @
 args ← •args
@@ -46,16 +48,12 @@ ResolvePath ← { baseDir ∾ "/" ∾ 𝕩 }
 planPath ← ResolvePath (sys.DefaultPlanFile @)
 journalPath ← ResolvePath (sys.DefaultJournalFile @)
 
-LoadAccountsList ← {𝕩 ⋄
-  path ← ResolvePath (sys.DefaultAccountsFile @)
-  lines ← loader.ReadLinesOptional path
-  IsDataLine ← { (0 < ≠ 𝕩) ? ((⊑ 𝕩 ≠ '#') ∧ (⊑ 𝕩 ≠ ⊑"\\")) ; 0 }
-  dataLines ← (IsDataLine¨ lines) / lines
-  fields ← loader.SplitTsvKeepEmpty¨ dataLines
-  nonEmpty ← (0 < ≠¨ fields) / fields
-  {⊑ 𝕩}¨ nonEmpty
-}
-accounts ← LoadAccountsList @
+accountsFile ← ResolvePath (sys.DefaultAccountsFile @)
+accountsLines ← loader.ReadLinesOptional accountsFile
+resolvedAccounts ← ak.Resolve accountsLines
+accounts ← resolvedAccounts.accounts
+accountCurrencies ← resolvedAccounts.currencies
+
 
 # completed plan IDs のロード
 journalLines ← loader.ReadLinesOptional journalPath
@@ -71,15 +69,19 @@ planLines ← mask / planLinesRaw
 lineNums ← mask / lineNumsRaw
 
 # ValidatePlanFields
-ValidatePlanFields ← {𝕊 fields:
+ValidatePlanFields ← {𝕊 fields ‿ currency:
   {𝕊 ⋄ Fail "plan.tsv line has fewer than 5 tab-separated columns"}⍟(5 > ≠ fields) @
   dateCheck ← validate.ValidateDate (0 ⊑ fields)
   {𝕊 ⋄ Fail (1 ⊑ dateCheck)}⍟(¬ 0 ⊑ dateCheck) @
   fromCheck ← validate.ValidateAccount "from"‿(2 ⊑ fields)‿accounts
   {𝕊 ⋄ Fail (1 ⊑ fromCheck)}⍟(¬ 0 ⊑ fromCheck) @
+  fromCurrCheck ← validate.ValidateAccountCurrency "from"‿(2 ⊑ fields)‿currency‿accounts‿accountCurrencies
+  {𝕊 ⋄ Fail (1 ⊑ fromCurrCheck)}⍟(¬ 0 ⊑ fromCurrCheck) @
   toCheck ← validate.ValidateAccount "to"‿(3 ⊑ fields)‿accounts
   {𝕊 ⋄ Fail (1 ⊑ toCheck)}⍟(¬ 0 ⊑ toCheck) @
-  amountCheck ← validate.ValidateAmount (4 ⊑ fields)
+  toCurrCheck ← validate.ValidateAccountCurrency "to"‿(3 ⊑ fields)‿currency‿accounts‿accountCurrencies
+  {𝕊 ⋄ Fail (1 ⊑ toCurrCheck)}⍟(¬ 0 ⊑ toCurrCheck) @
+  amountCheck ← validate.ValidateExactAmountForCurrency currency‿(4 ⊑ fields)
   {𝕊 ⋄ Fail (1 ⊑ amountCheck)}⍟(¬ 0 ⊑ amountCheck) @
   metaCheck ← validate.ValidateMeta (5 ↓ fields)
   {𝕊 ⋄ Fail (1 ⊑ metaCheck)}⍟(¬ 0 ⊑ metaCheck) @
@@ -128,8 +130,20 @@ pid ← > pidBox
 {𝕊 ⋄ Fail "cannot finish plan without plan_id"}⍟missingID @
 {𝕊 ⋄ Fail ("cannot finish plan with invalid plan_id: " ∾ pid)}⍟invalidID @
 
+# 通貨の解決
+meta ← 5 ↓ fields
+IsCurrencyMeta ← { (9 ≤ ≠ 𝕩) ? "currency=" ≡ (9↑𝕩) ; 0 }
+metaCurrencies ← IsCurrencyMeta¨ meta
+explicitCurrency ← (0 < +´ metaCurrencies) ◶ ⟨ { 𝕊 ⋄ "" }, { 𝕊 ⋄ 9 ↓ ⊑ metaCurrencies / meta } ⟩ @
+
+configLines ← loader.ReadLinesOptional (baseDir ∾ "/config.tsv")
+defaultResult ← setup.ResolveDefault configLines
+selection ← setup.ResolveSelection ⟨defaultResult, explicitCurrency⟩
+{𝕊: Fail selection.message}⍟(selection.state ≢ "ok") @
+currency ← selection.currency
+
 # 元のフィールドのバリデーション
-validationOk ← ValidatePlanFields fields
+validationOk ← ValidatePlanFields fields‿currency
 
 # actualDate のバリデーション
 dateCheck ← validate.ValidateDate actualDate
@@ -141,14 +155,15 @@ today ← date.Today @
 
 # actualAmount: empty means preserve the planned amount; non-empty is the observed amount.
 amountToUse ← (0 = ≠ actualAmount) ◶ ⟨ {𝕊 ⋄ actualAmount}, {𝕊 ⋄ 4 ⊑ fields} ⟩ @
-actualAmountCheck ← validate.ValidateAmount amountToUse
+actualAmountCheck ← validate.ValidateExactAmountForCurrency currency‿amountToUse
 {𝕊 ⋄ Fail (1 ⊑ actualAmountCheck)}⍟(¬ 0 ⊑ actualAmountCheck) @
 
 # ジャーナル用メタデータの構築
-meta ← 5 ↓ fields
+metaWithoutCurrency ← (¬ IsCurrencyMeta¨ meta) / meta
 IsPlanId ← { (8 ≤ ≠ 𝕩) ? "plan_id=" plan_id.StartsWith 𝕩 ; 0 }
-hasPlanId ← ∨´ IsPlanId¨ meta
-metaToUse ← hasPlanId ◶ ⟨ { 𝕊 ⋄ ⟨"plan_id=" ∾ pid⟩ ∾ meta }, { 𝕊 ⋄ meta } ⟩ @
+hasPlanId ← ∨´ IsPlanId¨ metaWithoutCurrency
+metaToUse ← hasPlanId ◶ ⟨ { 𝕊 ⋄ ⟨"plan_id=" ∾ pid⟩ ∾ metaWithoutCurrency }, { 𝕊 ⋄ metaWithoutCurrency } ⟩ @
+finalMeta ← metaToUse ∾ ⟨"currency=" ∾ currency⟩
 
 # ジャーナル行のレンダリング
 row ← render.RenderJournalRow {
@@ -157,7 +172,7 @@ row ← render.RenderJournalRow {
   from ⇐ 2 ⊑ fields ⋄
   to ⇐ 3 ⊑ fields ⋄
   amount ⇐ amountToUse ⋄
-  meta ⇐ metaToUse
+  meta ⇐ finalMeta
 }
 
 •Out "OK" ∾ tab ∾ "APPEND" ∾ tab ∾ sys.DefaultJournalFile @

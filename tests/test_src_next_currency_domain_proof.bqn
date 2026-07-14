@@ -95,6 +95,16 @@ debits ← (({𝕩.side}¨ inconsistentBuilt.rows) ≡¨ <"debit") / inconsisten
 # Non-proof input
 0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof "not-a-proof"
 
+# USD focused tests
+1 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"USD", basis⇐"resolved_single_currency", amount_scale⇐2, message⇐""}
+"" lib.AssertEq proj.ArithmeticCurrencyAuthorizationMessage {state⇐"proven", domain⇐"USD", basis⇐"resolved_single_currency", amount_scale⇐2, message⇐""}
+
+0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"USD", basis⇐"legacy_compatibility", amount_scale⇐2, message⇐""}
+"USD requires resolved_single_currency proof basis" lib.AssertEq proj.ArithmeticCurrencyAuthorizationMessage {state⇐"proven", domain⇐"USD", basis⇐"legacy_compatibility", amount_scale⇐2, message⇐""}
+
+0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"unsupported", domain⇐"USD", basis⇐"resolved_single_currency", amount_scale⇐2, message⇐"x"}
+"x" lib.AssertEq proj.ArithmeticCurrencyAuthorizationMessage {state⇐"unsupported", domain⇐"USD", basis⇐"resolved_single_currency", amount_scale⇐2, message⇐"x"}
+
 # Slice B1 Row Ingestion and Pre-Gate Row Evidence tests
 CheckRowEvidence ← {𝕊 args:
   line‿expectedCurrency‿expectedProvenance‿expectedState‿expectedCoef‿expectedScale ← args
@@ -154,6 +164,10 @@ CheckProofGateFail ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:foo
 # 7. Unsupported currency (fails at row evidence stage)
 CheckRowEvidence ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "1200", "currency=EUR"⟩, "JPY", "explicit", "error", 1200, 0⟩
 CheckProofGateFail ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "1200", "currency=EUR"⟩, "unsupported currency: EUR"⟩
+
+# 7b. Valid USD proof (succeeds in proof gate)
+CheckRowEvidence ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "12.34", "currency=USD"⟩, "USD", "explicit", "ok", 1234, 2⟩
+CheckProofGateSuccess ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "12.34", "currency=USD"⟩, "USD", "resolved_single_currency", 2⟩
 
 # 8. Invalid decimal syntax (propagates and fails gate on explicit currency)
 CheckRowEvidence ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "12x", "currency=JPY"⟩, "JPY", "explicit", "error", ⟨⟩, ⟨⟩⟩

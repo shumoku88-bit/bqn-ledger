@@ -23,3 +23,7 @@ sandbox/
 
 # Personal / workspace overrides
 moko/
+
+# Python cache files
+__pycache__/
+*.pyc

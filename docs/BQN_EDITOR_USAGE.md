@@ -87,6 +87,12 @@ BQN Editor は会計エンジンとしての計算（残高や封筒の残金計
 
 # 予定の安全追記（plan_id は未指定なら自動生成）
 ./tools/edit plan add --date 2026-06-24 --memo "google-one" --from assets:smbc --to expenses:AIサブスク --amount 1450 --meta series=google-one
+
+# 小数金額と通貨の明示指定（USDなどの exact decimal 対応通貨）
+./tools/edit journal add --date 2026-06-20 --memo "lunch" --from assets:checking --to expenses:food --amount 12.34 --currency USD
+./tools/edit budget add --date 2026-06-20 --memo "alloc" --from budget:opening --to budget:food --amount 100.00 --currency USD
+./tools/edit plan add --date 2026-06-24 --memo "sub" --from assets:checking --to expenses:food --amount 49.99 --currency USD
+
 ```
 *   **オプション**:
     *   `--meta key=value`: 拡張列用のメタデータを指定します。
