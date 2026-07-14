@@ -58,7 +58,12 @@ This header observation does not replace row `O_row = D`, internal `L`, cycle se
 3. `docs/DAILY_TREND_CURRENT_SOURCE_COORDINATE_REPLAY_DECISION.md` when the selected product rationale is needed.
 4. `docs/DAILY_TREND_TEMPORAL_DEPENDENCY_MAP.md` when exact runtime dependencies are needed.
 
-Detailed observation, knowledge-boundary, row-membership, header-owner, and carrier decisions are implementation history after their selected behavior has been consumed by runtime. They are not mandatory entry documents.
+Detailed observation, knowledge-boundary, and row-membership decisions are implementation history after their selected behavior has been consumed by runtime. They are not mandatory entry documents.
+
+Completed header decisions are archived at:
+
+- `docs/archive/completed-plans/DAILY_TREND_HEADER_TIME_OWNER_DECISION.md`
+- `docs/archive/completed-plans/DAILY_TREND_HEADER_CONCRETE_TIME_CARRIER_DECISION.md`
 
 The explicit-empty-plan-identity product decision has completed its lifecycle and is archived at `docs/archive/completed-plans/DAILY_TREND_EXPLICIT_EMPTY_PLAN_IDENTITY_MEANING_DECISION.md`.
 
