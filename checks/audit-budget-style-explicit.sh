@@ -1,32 +1,49 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Inventory ledger-like public roots and report whether POLICY_BUDGET_STYLE is
-# explicitly set to envelope or none. Audit mode is intentionally non-blocking;
-# the final compatibility check will replace this once exceptions are classified.
+# Enforce the POLICY_BUDGET_STYLE explicit-choice decision for committed
+# config-bearing ledgers and first-class public examples. Existing technical
+# fixtures without config.tsv remain legacy fallback coverage and are not
+# mass-populated by this check.
 
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
-explicit=0
-missing_key=0
-missing_config=0
-invalid=0
-roots=0
+required_first_class=(
+  data/config.tsv
+  fixtures/demo/config.tsv
+  fixtures/household-moko/config.tsv
+  fixtures/household-monthly-salary/config.tsv
+  fixtures/generalization-moko/config.tsv
+  fixtures/generalization-calendar/config.tsv
+  fixtures/currency-usd-single/config.tsv
+  fixtures/envelopes-disabled-policy/config.tsv
+)
 
-check_root() {
-  local root="$1"
-  local config="$root/config.tsv"
-  local value=""
-  local key_lines=0
+# These fixtures intentionally prove the temporary compatibility contract.
+# Keep the list narrow and verify the expected state so exceptions cannot drift.
+missing_exceptions=(
+  fixtures/src-next-config-eligible-missing/config.tsv
+  fixtures/src-next-household-mapping-policy/config.tsv
+)
 
-  roots=$((roots + 1))
+empty_exceptions=(
+  fixtures/src-next-config-eligible-empty/config.tsv
+)
 
-  if [[ ! -f "$config" ]]; then
-    echo "BUDGET_STYLE_AUDIT missing_config $root" >&2
-    missing_config=$((missing_config + 1))
-    return
-  fi
+contains_path() {
+  local needle="$1"
+  shift
+  local item
+  for item in "$@"; do
+    [[ "$item" == "$needle" ]] && return 0
+  done
+  return 1
+}
+
+budget_style_state() {
+  local config="$1"
+  local key_lines value
 
   key_lines="$(awk '
     /^[[:space:]]*#/ || /^[[:space:]]*$/ { next }
@@ -35,14 +52,12 @@ check_root() {
   ' "$config")"
 
   if [[ "$key_lines" -eq 0 ]]; then
-    echo "BUDGET_STYLE_AUDIT missing_key $config" >&2
-    missing_key=$((missing_key + 1))
+    printf 'missing\n'
     return
   fi
 
   if [[ "$key_lines" -ne 1 ]]; then
-    echo "BUDGET_STYLE_AUDIT invalid duplicate_key $config" >&2
-    invalid=$((invalid + 1))
+    printf 'duplicate\n'
     return
   fi
 
@@ -58,27 +73,79 @@ check_root() {
   ' "$config")"
 
   case "$value" in
-    envelope|none)
-      echo "BUDGET_STYLE_AUDIT explicit=$value $config" >&2
-      explicit=$((explicit + 1))
-      ;;
-    *)
-      echo "BUDGET_STYLE_AUDIT invalid value=${value:-<empty>} $config" >&2
-      invalid=$((invalid + 1))
-      ;;
+    envelope|none) printf 'explicit:%s\n' "$value" ;;
+    '') printf 'empty\n' ;;
+    *) printf 'unknown:%s\n' "$value" ;;
   esac
 }
 
-check_root data
+status=0
+explicit=0
+exceptions=0
 
-while IFS= read -r -d '' dir; do
-  if [[ -f "$dir/config.tsv" || -f "$dir/accounts.tsv" || -f "$dir/journal.tsv" || -f "$dir/cycle.tsv" || -f "$dir/plan.tsv" || -f "$dir/budget_alloc.tsv" ]]; then
-    check_root "$dir"
+while IFS= read -r -d '' config; do
+  state="$(budget_style_state "$config")"
+
+  if contains_path "$config" "${missing_exceptions[@]}"; then
+    if [[ "$state" != missing ]]; then
+      echo "FAIL: expected missing POLICY_BUDGET_STYLE compatibility fixture: $config ($state)" >&2
+      status=1
+    else
+      exceptions=$((exceptions + 1))
+    fi
+    continue
   fi
-done < <(find fixtures -mindepth 1 -maxdepth 1 -type d -print0 | sort -z)
 
-echo "BUDGET_STYLE_AUDIT summary roots=$roots explicit=$explicit missing_key=$missing_key missing_config=$missing_config invalid=$invalid" >&2
+  if contains_path "$config" "${empty_exceptions[@]}"; then
+    if [[ "$state" != empty ]]; then
+      echo "FAIL: expected empty POLICY_BUDGET_STYLE negative fixture: $config ($state)" >&2
+      status=1
+    else
+      exceptions=$((exceptions + 1))
+    fi
+    continue
+  fi
 
-# Audit-only discovery slice: do not fail yet. A later commit in this same slice
-# will classify intentional negative/compatibility fixtures and enable enforcement.
-exit 0
+  case "$state" in
+    explicit:envelope|explicit:none)
+      explicit=$((explicit + 1))
+      ;;
+    *)
+      echo "FAIL: committed config must explicitly choose POLICY_BUDGET_STYLE=envelope or none: $config ($state)" >&2
+      status=1
+      ;;
+  esac
+done < <(find data fixtures -type f -name config.tsv -print0 | sort -z)
+
+for config in "${required_first_class[@]}"; do
+  if [[ ! -f "$config" ]]; then
+    echo "FAIL: first-class public ledger/example is missing config.tsv: $config" >&2
+    status=1
+    continue
+  fi
+
+  state="$(budget_style_state "$config")"
+  case "$state" in
+    explicit:envelope|explicit:none) ;;
+    *)
+      echo "FAIL: first-class public ledger/example must explicitly choose budget style: $config ($state)" >&2
+      status=1
+      ;;
+  esac
+done
+
+for config in "${missing_exceptions[@]}" "${empty_exceptions[@]}"; do
+  if [[ ! -f "$config" ]]; then
+    echo "FAIL: stale budget-style exception path: $config" >&2
+    status=1
+  fi
+done
+
+if [[ "$status" -ne 0 ]]; then
+  exit 1
+fi
+
+tools/report fixtures/demo --section snapshot >/dev/null
+
+echo "audit-budget-style-explicit: explicit=$explicit intentional_exceptions=$exceptions; demo snapshot OK" >&2
+echo "OK" >&2
