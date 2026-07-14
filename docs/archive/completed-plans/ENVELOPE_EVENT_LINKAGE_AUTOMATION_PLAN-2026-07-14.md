@@ -1,9 +1,9 @@
 # Envelope event linkage automation plan
 
-Status: active plan / selected finite design and implementation route
+Status: completed
 Owner: envelope / editor
 Canonical: no; current policies remain `docs/ENVELOPE_EXECUTION_AND_PLAN_POLICY.md`, `docs/ENVELOPE_FUNDING_BASE_INVARIANT.md`, and `docs/PRODUCTION_EDITOR_DIRECTION.md`
-Exit: archive after the selected confirmation-gated plan-execution linkage slice is implemented, verified, and routed from current operational docs
+Exit: archived completion record; ordinary-income linkage must be separately selected through `TODO.md`
 
 ## Evidence
 
@@ -155,11 +155,23 @@ Required cases:
 9. retry appends once and the envelope backing/report postcondition is checked;
 10. unrelated plan completion remains `NOT_LINKED` with zero writes.
 
+## Implementation result
+
+Completed on 2026-07-14:
+
+- `src_edit/plan_budget_sync_cmd.bqn` owns the fail-closed proposal and idempotency decision;
+- `tools/edit plan budget-sync --id ...` provides dry-run, confirmation, apply, and retry;
+- `tools/plan-finish-replenish-ui.sh` invokes the companion only after the CLOSED postcondition;
+- cancellation/failure remains visible as `BUDGET_SYNC_PENDING`;
+- `checks/check-edit-bqn-plan-budget-sync.sh` covers actual-amount use, dry-run, idempotent retry, unrelated plans, ambiguity, and stale failure followed by retry;
+- current editor/envelope/code-map docs route the operational behavior;
+- ordinary-income linkage remains unselected.
+
 ## Completion criteria
 
 The selected slice is complete when:
 
-- the BQN proposal owner and unit tests exist;
+- the BQN proposal owner and synthetic command-level checks exist;
 - a public editor retry command exists;
 - plan-finish UI offers the confirmed companion after verified completion;
 - duplicate/retry and injected failure checks pass;

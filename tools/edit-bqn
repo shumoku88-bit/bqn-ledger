@@ -46,6 +46,7 @@ Usage:
   tools/edit-bqn [--base DIR] plan list [--all] [--format tsv|text]
   tools/edit-bqn [--base DIR] plan related [--index NUMBER] [--id PLAN_ID] --actual-date YYYY-MM-DD [--format tsv]
   tools/edit-bqn [--base DIR] plan finish [--index NUMBER] [--id PLAN_ID] --actual-date YYYY-MM-DD [--actual-amount INT] [--dry-run] [--yes] [--post-check none|lint|full]
+  tools/edit-bqn [--base DIR] plan budget-sync --id PLAN_ID [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] plan edit [--index NUMBER] [--id PLAN_ID] [--date YYYY-MM-DD] [--amount INT] [--all] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] journal reverse [--index NUMBER] [--id TXN_ID] [--date YYYY-MM-DD] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] travel friend add --date YYYY-MM-DD --party PARTY --item ITEM --amount DECIMAL --currency ILS --payer friend --trip-id israel-2026 --source-event-id ID [--dry-run] [--yes]
@@ -263,6 +264,45 @@ if [[ "$1" == "journal" && "$2" == "reverse" ]]; then
   fi
 
   edit_bqn_apply_append_checked "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256" EDIT_BQN_TEST_BEFORE_APPEND_HOOK journal
+  exit 0
+fi
+
+if [[ "$1" == "plan" && "$2" == "budget-sync" ]]; then
+  shift 2
+  PLAN_ID=""
+  DRY_RUN=0
+  YES=0
+  POST_CHECK="lint"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --id) PLAN_ID="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --dry-run) DRY_RUN=1; shift ;;
+      --yes) YES=1; shift ;;
+      --post-check) POST_CHECK="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      *) echo "ERROR: unknown plan budget-sync argument: $1" >&2; exit 2 ;;
+    esac
+  done
+  [[ -n "$PLAN_ID" ]] || { echo "ERROR: missing required option: --id" >&2; exit 2; }
+  edit_bqn_validate_post_check "$POST_CHECK"
+
+  TARGET_PATH="$BASE_DIR/$BUDGET_ALLOC_FILE"
+  SNAPSHOT_TOKEN="$(safe_snapshot_token "$TARGET_PATH")"
+  IFS=$'\t' read -r SNAP_SIZE SNAP_MTIME SNAP_SHA256 <<< "$SNAPSHOT_TOKEN"
+  BQN_STDERR="$(mktemp)"; trap 'rm -f "$BQN_STDERR"' EXIT
+  if ! BQN_OUT="$(edit_bqn_bqn_capture "$BQN_STDERR" bqn src_edit/plan_budget_sync_cmd.bqn "$BASE_DIR" "$PLAN_ID")"; then exit 1; fi
+  FIRST_LINE="${BQN_OUT%%$'\n'*}"
+  case "$FIRST_LINE" in
+    $'OK\tAPPLIED\t'*) printf 'Budget sync already applied: %s\n' "$PLAN_ID"; exit 0 ;;
+    $'OK\tNOT_LINKED\t'*) printf 'Budget sync not linked: %s\n' "$PLAN_ID"; exit 0 ;;
+  esac
+  if ! edit_bqn_split_protocol_output "$BQN_OUT"; then exit 1; fi
+  if ! edit_bqn_require_append_protocol "$EDIT_BQN_PROTOCOL_FIRST_LINE" "$BUDGET_ALLOC_FILE"; then exit 1; fi
+  PAYLOAD="$EDIT_BQN_PROTOCOL_PAYLOAD"
+  MODE="$(edit_bqn_mode "$DRY_RUN" "$YES")"
+  edit_bqn_print_append_preview "Plan budget sync" "$TARGET_PATH" "$MODE" "$POST_CHECK" "Budget companion row" "$PAYLOAD"
+  if [[ "$DRY_RUN" -eq 1 ]]; then printf 'Dry-run only. No files were modified.\n'; exit 0; fi
+  if [[ "$YES" -eq 0 ]] && ! confirm_append; then echo 'BUDGET_SYNC_PENDING: no files were modified.'; exit 130; fi
+  edit_bqn_apply_append_checked "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256" EDIT_BQN_TEST_BEFORE_APPEND_HOOK
   exit 0
 fi
 

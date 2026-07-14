@@ -157,6 +157,21 @@ Israel旅行中に友人がILSで立て替えた観測事実は、ordinary journ
 *   重複時は `-02`, `-03` のように枝番を付けます。
 *   明示したい場合は `--id <plan_id>` を使います。`--meta plan_id=...` は拒否します。
 
+### 完了済み予定と固定費封筒の同期 (`plan budget-sync`)
+
+`plan finish` で実績化した固定費予定は、設定された execution envelope の消化候補を確認付きで同期できます。
+
+```bash
+./tools/edit plan budget-sync --id plan-2026-07-08-wifi --dry-run
+./tools/edit plan budget-sync --id plan-2026-07-08-wifi
+```
+
+- BQN が `plan_id`、対応する実績行、`spend_class=fixed`、`EXECUTION_PLANNED_PAYMENTS_ENVELOPE`、budget spent sink、通貨を検査して正確な1行を生成します。
+- 同じ `plan_id` の budget row が既にあれば `already applied` として成功し、重複追記しません。
+- plan-finish UI は実績化後にこの同期を案内します。取消・失敗時は `BUDGET_SYNC_PENDING` と表示され、同じコマンドで再試行できます。
+- memo・日付・金額の類似だけでは対応付けません。曖昧な場合は書き込みません。
+- 通常収入の未割当連動はこのコマンドの対象外です。
+
 ### 予定リストの表示 (`plan list`)
 ```bash
 # 未完了（Open）の予定のみを表示
@@ -211,7 +226,7 @@ Israel旅行中に友人がILSで立て替えた観測事実は、ordinary journ
 
 ## 5. BQN Editorが保証する安全書き込み機能
 
-書き込みを伴うコマンド（`account add`、`journal add`、`journal reverse`、`travel friend add`、`travel exchange add`、`budget add`、`plan add`、`plan finish --apply`、`plan edit`、`issue add`）を実行する際、BQN Editorは以下の安全機構を自動で走らせます。
+書き込みを伴うコマンド（`account add`、`journal add`、`journal reverse`、`travel friend add`、`travel exchange add`、`budget add`、`plan add`、`plan finish --apply`、`plan budget-sync`、`plan edit`、`issue add`）を実行する際、BQN Editorは以下の安全機構を自動で走らせます。
 
 1.  **事前バリデーション**: 日付フォーマット、金額が整数か、アカウント名が `<base>/accounts.tsv` に存在するか、メタデータ形式に問題がないかを書き込み前に構造検査します。
 2.  **プレビューと確認**: 追記または編集される正確なTSV行を画面に出力し、ユーザーが明示的に `y` または `yes` と入力しない限り書き込みません（`--yes` 指定時を除く）。

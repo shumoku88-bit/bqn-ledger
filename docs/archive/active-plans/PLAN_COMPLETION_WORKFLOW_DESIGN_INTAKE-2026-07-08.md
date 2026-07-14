@@ -1,8 +1,8 @@
 # Plan Completion Workflow Design Intake
 
-Status: partially reopened by concrete execution-envelope linkage evidence; all other questions remain on observation hold
+Status: observation hold; concrete execution-envelope linkage slice completed
 Owner: workflow / editor
-Canonical: no; selected finite path: `ENVELOPE_EVENT_LINKAGE_AUTOMATION_PLAN-2026-07-14.md`
+Canonical: no; completed finite path: `../completed-plans/ENVELOPE_EVENT_LINKAGE_AUTOMATION_PLAN-2026-07-14.md`
 Exit: keep as intake until remaining workflow questions are resolved, rejected, or archived
 Date: 2026-07-08
 
@@ -47,9 +47,9 @@ When reopened, select one finite slice from the evidence. Do not automatically l
 
 ## Selected reopening
 
-A completed planned-payment workflow produced a real backing mismatch because the actual payment and execution-envelope consumption were separate manual actions. The narrow selected response is `ENVELOPE_EVENT_LINKAGE_AUTOMATION_PLAN-2026-07-14.md`.
+A completed planned-payment workflow produced a real backing mismatch because the actual payment and execution-envelope consumption were separate manual actions. The narrow response was completed in `../completed-plans/ENVELOPE_EVENT_LINKAGE_AUTOMATION_PLAN-2026-07-14.md`.
 
-This reopening covers only a confirmation-gated, idempotent plan-completion budget companion and retry path. It does not reopen replenishment rules, metadata inheritance, generic multi-file transactions, or ordinary-income automation.
+That completed slice covers only a confirmation-gated, idempotent plan-completion budget companion and retry path. It does not reopen replenishment rules, metadata inheritance, generic multi-file transactions, or ordinary-income automation.
 
 ## Remaining design questions
 

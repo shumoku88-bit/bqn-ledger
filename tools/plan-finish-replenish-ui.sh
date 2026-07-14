@@ -252,6 +252,12 @@ case "$finish_verify_status" in
     ;;
 esac
 
+printf 'Checking execution-envelope budget linkage...\n' >&2
+if ! "$ROOT_DIR/tools/edit" --base "$base_dir" plan budget-sync --id "$plan_id"; then
+  shout "BUDGET_SYNC_PENDING: journal actual is committed; retry with: tools/edit --base '$base_dir' plan budget-sync --id '$plan_id'"
+  exit 1
+fi
+
 if ! ask_yes_no 'Create or extend a future plan from the finished plan?' 'N'; then
   exit 0
 fi

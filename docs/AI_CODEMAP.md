@@ -134,6 +134,7 @@ Exit: keep current while this remains the pit code/data-flow entry point
 - `src_edit/plan_list_cmd.bqn` — plan list 用の BQN 実装。`tools/edit plan list --format tsv` の unfinished plan candidate export 契約は `docs/UNFINISHED_PLAN_ENTRIES_EXPORT_CONTRACT.md`。
 - `src_edit/plan_related_cmd.bqn` — plan finish replenishment UI 用の read-only 関連予定抽出。`series=` → `plan_id` series → exact fallback の順序を所有する。
 - `src_edit/plan_finish_cmd.bqn` — plan finish 用の検証、実際のジャーナルアペンド行の生成。
+- `src_edit/plan_budget_sync_cmd.bqn` — 完了済み固定費予定の `plan_id`、actual、設定、execution envelope、通貨、既存budget linkageを検査し、冪等なbudget companion候補を生成。曖昧な対応や通常収入は扱わない。
 - `src_edit/plan_edit_cmd.bqn` — plan edit 用の検証および exact REPLACE protocol 生成。
 - `src_edit/plan_id.bqn` — plan_id 生成補助。
 - `src_edit/render.bqn` / `src_edit/validate.bqn` — 共通レンダリング / バリデーション。
@@ -151,7 +152,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 ### `tools/edit-bqn`
 
 - 日常 write path の BQN+shell 実装。
-- `account add` / `account list` / `journal add` / `journal list` / `travel friend add` / `travel exchange add` / `budget add` / `issue add` / `issue list` / `issue close` / `plan add` / `plan list` / `plan related` / `plan finish` / `plan edit` / `journal reverse` を扱う。
+- `account add` / `account list` / `journal add` / `journal list` / `travel friend add` / `travel exchange add` / `budget add` / `issue add` / `issue list` / `issue close` / `plan add` / `plan list` / `plan related` / `plan finish` / `plan budget-sync` / `plan edit` / `journal reverse` を扱う。
 - `src_edit` の機械可読プロトコルを受け、`tools/lib/safe-write.sh` で安全に適用する。
 - Dispatcher boundary の現行メモは `docs/EDIT_BQN_DISPATCHER.md`。共通 shell helper は `tools/lib/edit-bqn-common.sh`、`issue add` handler は `tools/lib/edit-bqn-issue.sh`。
 - Go editor の記述や fallback 前提は現行導線では使わない。
@@ -185,6 +186,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 - `check-edit-bqn-plan-list.sh` — BQN plan list parity / unfinished plan candidate export 契約チェック。
 - `check-edit-bqn-plan-add.sh` — BQN plan add parityチェック。
 - `check-edit-bqn-plan-finish.sh` — BQN plan finish parityチェック。
+- `check-edit-bqn-plan-budget-sync.sh` — `plan_id` linked execution-envelope companionのdry-run、actual amount、冪等retry、NOT_LINKED、stale failure後retryを検証。
 - `check-safe-replace-line.sh` — 安全置換 primitive のアサーションチェック。
 
 ### `tests/` (ユニットテスト)

@@ -70,6 +70,7 @@ Exit: revise if the production write-path ownership changes.
 
 ### Derived append
 - `plan finish`
+- `plan budget-sync`（完了済み `plan_id` に対する確認付き・冪等な execution-envelope companion）
 - `journal reverse`
 
 ### Interactive orchestration
@@ -78,7 +79,7 @@ Exit: revise if the production write-path ownership changes.
 ### Exact replace
 - `plan edit`
 
-Append-only commands are the lowest-risk path. Optional travel source first-write uses exclusive staged creation rather than production bootstrap or parent-directory creation. Derived append and exact replace rely on explicit old-row / line-number safety.
+Append-only commands are the lowest-risk path. `plan budget-sync` は journal actual を巻き戻さず、budget companion が未適用なら `BUDGET_SYNC_PENDING` として再試行可能にする recoverable saga です。Optional travel source first-write uses exclusive staged creation rather than production bootstrap or parent-directory creation. Derived append and exact replace rely on explicit old-row / line-number safety.
 
 ## Safety model
 

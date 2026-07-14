@@ -146,6 +146,7 @@ bash checks/check-edit-bqn-plan-list.sh >/dev/null
 bash checks/check-edit-bqn-plan-related.sh >/dev/null
 bash checks/check-edit-bqn-plan-add.sh >/dev/null
 bash checks/check-edit-bqn-plan-finish.sh >/dev/null
+bash checks/check-edit-bqn-plan-budget-sync.sh >/dev/null
 bash checks/check-plan-finish-replenish-ui.sh >/dev/null
 bash checks/check-edit-bqn-plan-edit.sh >/dev/null
 bash checks/check-workflow-drift.sh >/dev/null

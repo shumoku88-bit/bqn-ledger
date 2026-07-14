@@ -1,10 +1,13 @@
 # Envelope execution and plan policy
 
-状態: adopted operating policy / readonly diagnostic implemented
+Status: current policy / readonly diagnostic and confirmation-gated plan linkage implemented
+Owner: envelope / editor
+Canonical: yes
+Exit: revise if execution-envelope source ownership or linkage identity changes
 
 この文書は、固定費・支払い予定・貯金・投資などを execution envelope として扱う場合に、`plan.tsv` の予定支出と二重計上しないための運用方針を固定します。
 
-現行実装では、`EXECUTION_PLANNED_PAYMENTS_ENVELOPE` 設定時に、指定 envelope remaining と未了 planned payments 合計を照合する readonly diagnostic を `envelopes` section に表示します。source TSV schema 変更、自動連携、自動補正は行いません。
+現行実装では、`EXECUTION_PLANNED_PAYMENTS_ENVELOPE` 設定時に、指定 envelope remaining と未了 planned payments 合計を照合する readonly diagnostic を `envelopes` section に表示します。さらに、`plan_id` で一意に対応する完了済み固定費予定に限り、`tools/edit plan budget-sync` が確認付きの消化行を提案・追記します。任意の差分を自動補正することはありません。
 
 ## 結論
 
@@ -156,7 +159,7 @@ budget:固定費予定
 
 その支払いが expense account の `budget=...` metadata により該当 envelope へ投影される場合、execution envelope の remaining は減ります。
 
-現行実装で自動対応できない場合は、人間が明示的な budget adjustment row で execution envelope を減らします。
+`plan finish` 由来で `plan_id` が一意、対象費用が `spend_class=fixed`、設定・通貨・budget account が整合する場合は、BQN editor が同じ adjustment row を確認付きで提案します。既に同じ `plan_id` の budget row があれば冪等な適用済みとして扱います。曖昧・重複・設定不足の場合は fail closed し、人間が明示的な budget adjustment row を検討します。
 
 例:
 
@@ -166,13 +169,13 @@ budget:固定費予定 -> budget:spent  330
 
 または、既存の投影規則で支出が `budget:固定費予定` を消費するように account metadata を整えることを検討します。
 
-この文書では、実行後の自動消費ルールは実装しません。
+この連動は journal append と budget append を不可分と偽装しません。journal 実績化後に budget append が取消・失敗した場合は `BUDGET_SYNC_PENDING` とし、`tools/edit plan budget-sync --id ...` で再試行します。
 
 ## fail-closed policy
 
 - plan.tsv から execution envelope を自動生成しない。
 - execution envelope から plan.tsv を自動生成しない。
-- 金額が一致しない場合も自動補正しない。
+- 金額が一致しない場合、plan の予定額ではなく一意な journal actual の観測額を候補に使い、preview と確認を必須にする。
 - due / done 判定と envelope remaining を混同しない。
 - safe-to-spend 計算では plan 控除と execution envelope 控除の二重計上を避ける。
 
@@ -214,6 +217,6 @@ src_next_envelope_execution_planned_row
 
 ```text
 budget_pool=main metadata の導入要否
-execution envelope と plan.tsv の explicit link metadata
-固定費予定 envelope の自動消費ルール
+通常収入を未割当へ連動するための durable `txn_id` 契約
+plan以外の execution event linkage
 ```
