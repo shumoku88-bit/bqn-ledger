@@ -47,8 +47,8 @@ Snapshot ← {𝕊 lines:
   ⟩}
 }
 resolved ← ak.Resolve ⟨"assets:bank"∾tab∾"role=asset", "expenses:food"∾tab∾"role=expense"⟩
-usdSnapshot ← Snapshot ⟨Line ⟨"2026-06-15", "usd", "assets:bank", "expenses:food", "100", "currency=USD"⟩⟩
-ctx.BuildAuthorizedRowsFromSnapshot ⟨usdSnapshot, resolved, "2026-06-15"⟩
+eurSnapshot ← Snapshot ⟨Line ⟨"2026-06-15", "eur", "assets:bank", "expenses:food", "100", "currency=EUR"⟩⟩
+ctx.BuildAuthorizedRowsFromSnapshot ⟨eurSnapshot, resolved, "2026-06-15"⟩
 •Out "unexpected-proof-ok"
 BQN
 
@@ -56,7 +56,7 @@ set +e
 proof_out="$(bqn "$tmp/wrapper_proof_rejection.bqn" 2>"$tmp/proof.err")"
 proof_status=$?
 set -e
-expected_proof='ERROR: explicit source currency unsupported in Stage 2 minimal runtime slice: journal.tsv row 0: unsupported currency: USD'
+expected_proof='ERROR: explicit source currency unsupported in Stage 2 minimal runtime slice: journal.tsv row 0: unsupported currency: EUR'
 if [ "$proof_status" -ne 1 ]; then
   echo "FAIL: proof rejection exit code changed: $proof_status" >&2
   cat "$tmp/proof.err" >&2

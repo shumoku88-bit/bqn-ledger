@@ -117,8 +117,8 @@ if run_report default --section balances --no-color; then
     || fail "ledger default provenance missing"
 fi
 
-expect_fail unsupported 'unsupported selected currency: USD' \
-  tools/report "$fixture" --section balances --currency USD --no-color
+expect_fail unsupported 'unsupported selected currency: EUR' \
+  tools/report "$fixture" --section balances --currency EUR --no-color
 expect_fail other-section '--currency is supported only with human --section balances' \
   tools/report "$fixture" --section snapshot --currency JPY --no-color
 expect_fail full-report '--currency is supported only with human --section balances' \
@@ -131,8 +131,8 @@ expect_fail selected-json '--currency is supported only with human --section bal
   tools/report "$fixture" --section balances --format json --currency ILS
 
 cp -R "$fixture" "$tmp/invalid-default"
-printf 'DEFAULT_CURRENCY=USD\n' >"$tmp/invalid-default/config.tsv"
-expect_fail invalid-default 'unsupported default currency: USD' \
+printf 'DEFAULT_CURRENCY=EUR\n' >"$tmp/invalid-default/config.tsv"
+expect_fail invalid-default 'unsupported default currency: EUR' \
   tools/report "$tmp/invalid-default" --section balances --no-color
 
 cp -R "$fixture" "$tmp/mismatch"

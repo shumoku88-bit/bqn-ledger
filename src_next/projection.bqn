@@ -16,6 +16,8 @@
 #   - does not perform currency conversion
 
 dt ← •Import "date.bqn"
+setup ← •Import "currency_setup.bqn"
+
 
 # ── Layer constants (AXIS_CONTRACT.md) ───────────────────────
 
@@ -147,7 +149,7 @@ PostingId ← {𝕊 srcFile‿rowIdx‿side:
 allowed_proof_basis ← ⟨"legacy_compatibility", "empty_source_compatibility", "resolved_single_currency"⟩
 IsAllowedProofBasis ← {𝕊 basis: ∨´ 0 ∾ (basis⊸≡¨ allowed_proof_basis) }
 IsAllowedProofDomainBasis ← {𝕊 domain‿basis:
-  (domain ≡ "JPY") ∨ ((domain ≡ "ILS") ∧ basis ≡ "resolved_single_currency")
+  (domain ≡ "JPY") ∨ ((setup.IsSupportedCurrency domain) ∧ basis ≡ "resolved_single_currency")
 }
 ProofState ← ({𝕩.state}⎊{""})
 ProofDomain ← ({𝕩.domain}⎊{""})

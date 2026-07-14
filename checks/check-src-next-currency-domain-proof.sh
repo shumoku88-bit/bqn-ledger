@@ -49,14 +49,14 @@ expect_ok_context() {
 
 clean='2026-06-15	memo	assets:bank	expenses:food	100'
 make_fixture "$tmp/journal-currency" "2026-06-15	memo	assets:bank	expenses:food	100	currency=JPY"
-make_fixture "$tmp/plan-currency" "$clean" "2026-06-16	plan	assets:bank	expenses:food	20	currency=USD"
+make_fixture "$tmp/plan-currency" "$clean" "2026-06-16	plan	assets:bank	expenses:food	20	currency=EUR"
 make_fixture "$tmp/budget-currency" "$clean" "" "2026-06-16	budget	assets:bank	budget:food	20	currency="
 make_fixture "$tmp/ils-currency" "2026-06-15	memo	assets:bank	expenses:food	100	currency=ILS"
 make_fixture "$tmp/implicit-decimal-jpy" "2026-06-15	memo	assets:bank	expenses:food	100.50"
 
 expect_ok_context "$tmp/journal-currency" journal
 expect_ok_context "$tmp/implicit-decimal-jpy" implicit_decimal_jpy
-expect_fail_context "$tmp/plan-currency" plan "unsupported currency: USD"
+expect_fail_context "$tmp/plan-currency" plan "unsupported currency: EUR"
 expect_fail_context "$tmp/budget-currency" budget_alloc "unsupported currency: "
 expect_ok_context "$tmp/ils-currency" ils
 expect_fail_context "fixtures/src-next-invalid-posting" invalid-posting "row error in Stage 2 minimal runtime slice"
@@ -104,7 +104,7 @@ resolved ← ak.Resolve loader.ReadLines (base∾"/accounts.tsv")
 tab ← @+9
 Line ← {𝕊 fields: ∾ fields ∾¨ tab}
 clean ← Line ⟨"2026-06-15", "clean", "assets:bank", "expenses:food", "100"⟩
-dirty ← Line ⟨"2026-06-15", "dirty", "assets:bank", "expenses:food", "999", "currency=USD"⟩
+dirty ← Line ⟨"2026-06-15", "dirty", "assets:bank", "expenses:food", "999", "currency=EUR"⟩
 snapshot ← {
   journal ⇐ {source_file⇐"journal.tsv", required⇐1, lines⇐⟨dirty⟩},
   sources ⇐ ⟨

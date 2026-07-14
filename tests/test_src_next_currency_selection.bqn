@@ -73,7 +73,7 @@ mismatchDiagnostic ← ⊑ mismatch.diagnostics
 1 lib.AssertEq ∨´ "from account currency mismatch" ⍷ mismatchDiagnostic.message
 
 # The selector itself is a closed, explicit domain.
-unsupported ← sel.Build ⟨snapshot, resolved, cycleStart, "USD"⟩
+unsupported ← sel.Build ⟨snapshot, resolved, cycleStart, "EUR"⟩
 "error" lib.AssertEq unsupported.state
 0 lib.AssertEq ≠ unsupported.posting_rows
 "unsupported_selected_currency" lib.AssertEq (⊑ unsupported.diagnostics).code

@@ -70,8 +70,8 @@ if grep -Fxq 'expenses:food-ils' <<<"$jpy_expenses"; then
   echo 'FAIL: JPY expense list included ILS account' >&2
   exit 1
 fi
-if ./tools/edit --base "$fixture" account list --currency USD >"$tmp_root/list-usd.out" 2>&1; then
-  echo 'FAIL: account list accepted unsupported USD' >&2
+if ./tools/edit --base "$fixture" account list --currency EUR >"$tmp_root/list-usd.out" 2>&1; then
+  echo 'FAIL: account list accepted unsupported EUR' >&2
   exit 1
 fi
 
@@ -89,7 +89,7 @@ ils_account_base="$(copy_fixture account-ils)"
 grep -Fxq $'expenses:transit-ils\trole=expense\tcurrency=ILS' "$ils_account_base/accounts.tsv"
 
 expect_fail_unchanged account-unsupported accounts.tsv \
-  account add --name 'assets:usd' --role asset --type liquid --currency USD --yes --post-check none
+  account add --name 'assets:eur' --role asset --type liquid --currency EUR --yes --post-check none
 
 # Default JPY journal input accepts exact decimals and emits explicit metadata.
 jpy_base="$(copy_fixture journal-jpy)"
@@ -130,8 +130,8 @@ expect_fail_unchanged manual-currency-meta journal.tsv \
   --from assets:cash-ils --to expenses:food-ils --amount 1.00 --currency ILS \
   --meta currency=ILS --yes --post-check none
 expect_fail_unchanged unsupported-selector journal.tsv \
-  journal add --date 2026-07-02 --memo usd \
-  --from assets:bank --to expenses:food --amount 1 --currency USD --yes --post-check none
+  journal add --date 2026-07-02 --memo eur \
+  --from assets:bank --to expenses:food --amount 1 --currency EUR --yes --post-check none
 
 # Israel predeparture readiness reuses the ordinary journal owner unchanged.
 travel_base="$(copy_fixture israel-travel)"

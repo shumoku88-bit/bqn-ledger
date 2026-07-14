@@ -40,7 +40,7 @@ expect_postcheck_rollback() {
 }
 expect_postcheck_rollback unknown $'2026-07-19\tbad\tassets:missing\texpenses:jpy\t1\tcurrency=JPY'
 expect_postcheck_rollback mismatch $'2026-07-19\tbad\tassets:jpy\texpenses:ils\t1\tcurrency=JPY'
-expect_postcheck_rollback unsupported $'2026-07-19\tbad\tassets:jpy\texpenses:jpy\t1\tcurrency=USD'
+expect_postcheck_rollback unsupported $'2026-07-19\tbad\tassets:jpy\texpenses:jpy\t1\tcurrency=EUR'
 expect_postcheck_rollback duplicate $'2026-07-19\tbad\tassets:jpy\texpenses:jpy\t1\tcurrency=JPY\tcurrency=JPY'
 expect_postcheck_rollback amount $'2026-07-19\tbad\tassets:jpy\texpenses:jpy\t1x\tcurrency=JPY'
 expect_postcheck_rollback precision $'2026-07-19\tbad\tassets:ils\texpenses:ils\t1.001\tcurrency=ILS'

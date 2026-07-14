@@ -39,7 +39,7 @@ commented ← check.Check Request ⟨"", "# comment", "\\ comment", jpy⟩
 
 CheckError ⟨⟨Line ⟨"2026-07-20", "x", "missing", "expenses:jpy", "1", "currency=JPY"⟩⟩, "row_from_account_unknown"⟩
 CheckError ⟨⟨Line ⟨"2026-07-20", "x", "assets:jpy", "expenses:ils", "1", "currency=JPY"⟩⟩, "row_to_currency_mismatch"⟩
-CheckError ⟨⟨Line ⟨"2026-07-20", "x", "assets:jpy", "expenses:jpy", "1", "currency=USD"⟩⟩, "row_currency_unsupported"⟩
+CheckError ⟨⟨Line ⟨"2026-07-20", "x", "assets:jpy", "expenses:jpy", "1", "currency=EUR"⟩⟩, "row_currency_unsupported"⟩
 CheckError ⟨⟨Line ⟨"2026-07-20", "x", "assets:jpy", "expenses:jpy", "1", "currency=JPY", "currency=JPY"⟩⟩, "row_currency_duplicate"⟩
 CheckError ⟨⟨Line ⟨"2026-07-20", "x", "assets:jpy", "expenses:jpy", "1x", "currency=JPY"⟩⟩, "row_amount_invalid"⟩
 CheckError ⟨⟨Line ⟨"2026-07-20", "x", "assets:ils", "expenses:ils", "1.001", "currency=ILS"⟩⟩, "row_currency_amount_invalid"⟩

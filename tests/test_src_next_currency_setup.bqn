@@ -19,7 +19,7 @@ validRegistry ← registry_core.Build (loader.ReadLines "fixtures/currency-regis
 "currency_registry_fraction_digits_invalid" lib.AssertEq (registry_core.Build (loader.ReadLines "fixtures/currency-registry-invalid/invalid-fraction.tsv")).code
 
 # Runtime policy is resolved from config/currencies.tsv through currency_setup.
-⟨"JPY", "ILS"⟩ lib.AssertEq setup.supported_currencies
+⟨"JPY", "ILS", "USD"⟩ lib.AssertEq setup.supported_currencies
 jpyPolicy ← setup.Policy "JPY"
 "ok" lib.AssertEq jpyPolicy.state
 "JPY" lib.AssertEq jpyPolicy.currency
@@ -28,10 +28,10 @@ ilsPolicy ← setup.Policy "ILS"
 "ok" lib.AssertEq ilsPolicy.state
 "ILS" lib.AssertEq ilsPolicy.currency
 2 lib.AssertEq ilsPolicy.max_fraction_digits
-unknownPolicy ← setup.Policy "USD"
+unknownPolicy ← setup.Policy "EUR"
 "error" lib.AssertEq unknownPolicy.state
 "unsupported_currency" lib.AssertEq unknownPolicy.code
-0 lib.AssertEq setup.IsSupportedCurrency "USD"
+0 lib.AssertEq setup.IsSupportedCurrency "EUR"
 
 ReadPreserve ← {𝕊 path:
   raw ← loader.ReadRaw path
@@ -61,7 +61,7 @@ duplicateDefault ← setup.ResolveDefault ⟨"DEFAULT_CURRENCY=JPY", "DEFAULT_CU
 "error" lib.AssertEq duplicateDefault.state
 "duplicate_default_currency" lib.AssertEq duplicateDefault.code
 
-unknownDefault ← setup.ResolveDefault ⟨"DEFAULT_CURRENCY=USD"⟩
+unknownDefault ← setup.ResolveDefault ⟨"DEFAULT_CURRENCY=EUR"⟩
 "error" lib.AssertEq unknownDefault.state
 "unsupported_default_currency" lib.AssertEq unknownDefault.code
 
@@ -76,7 +76,7 @@ explicitSelection ← setup.ResolveSelection ⟨defaultResult, "ILS"⟩
 "ILS" lib.AssertEq explicitSelection.currency
 "explicit_selection" lib.AssertEq explicitSelection.provenance
 
-unsupportedSelection ← setup.ResolveSelection ⟨defaultResult, "USD"⟩
+unsupportedSelection ← setup.ResolveSelection ⟨defaultResult, "EUR"⟩
 "error" lib.AssertEq unsupportedSelection.state
 "unsupported_selected_currency" lib.AssertEq unsupportedSelection.code
 
@@ -141,7 +141,7 @@ separated ← setup.Build ⟨ilsDefaultLines, ⟨"assets:bank"∾tab∾"role=ass
 1 lib.AssertEq ∨´ "currency=JPY" ⍷ (0 ⊑ (0 ⊑ separated.files).proposed_lines)
 
 # Unknown and duplicate row currency fail closed with no proposed replacement.
-unknownRow ← "2026-07-01"∾tab∾"x"∾tab∾"assets:bank"∾tab∾"expenses:food"∾tab∾"1"∾tab∾"currency=USD"
+unknownRow ← "2026-07-01"∾tab∾"x"∾tab∾"assets:bank"∾tab∾"expenses:food"∾tab∾"1"∾tab∾"currency=EUR"
 unknownFile ← setup.AuditFile ⟨"journal.tsv", "journal", ⟨unknownRow⟩, "JPY"⟩
 "error" lib.AssertEq unknownFile.state
 1 lib.AssertEq unknownFile.error_count

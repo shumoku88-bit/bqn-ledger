@@ -2,7 +2,7 @@
 # Narrow BQN command for experimental `tools/edit-bqn plan add`.
 #
 # Input args:
-#   <baseDir> <date> <memo> <from> <to> <amount> <planID-or-empty> [meta...]
+#   <baseDir> <date> <memo> <from> <to> <amount> <planID-or-empty> <currency-or-empty> [meta...]
 #
 # Stdout protocol on success:
 #   OK	APPEND	<plan-file>
@@ -13,6 +13,8 @@ validate ← •Import "validate.bqn"
 render ← •Import "render.bqn"
 plan_id ← •Import "plan_id.bqn"
 config ← •Import "../src_next/config.bqn"
+setup ← •Import "../src_next/currency_setup.bqn"
+ak ← •Import "../src_next/account_key.bqn"
 
 sys ← config.LoadSystemDefaults @
 args ← •args
@@ -23,7 +25,7 @@ Fail ← {𝕊 msg:
   •Exit 1
 }
 
-{𝕊 ⋄ Fail "usage: plan_add_cmd.bqn <baseDir> <date> <memo> <from> <to> <amount> <planID-or-empty> [meta...]"}⍟(7 > ≠ args) @
+{𝕊 ⋄ Fail "usage: plan_add_cmd.bqn <baseDir> <date> <memo> <from> <to> <amount> <planID-or-empty> <currency-or-empty> [meta...]"}⍟(8 > ≠ args) @
 
 baseDir ← 0 ⊑ args
 dateVal ← 1 ⊑ args
@@ -32,32 +34,32 @@ fromVal ← 3 ⊑ args
 toVal ← 4 ⊑ args
 amountVal ← 5 ⊑ args
 planIdArg ← 6 ⊑ args
-metaTokens ← 7 ↓ args
+explicitCurrency ← 7 ⊑ args
+metaTokens ← 8 ↓ args
 
 ResolvePath ← { baseDir ∾ "/" ∾ 𝕩 }
-
-LoadAccountsList ← {𝕩 ⋄
-  path ← ResolvePath (sys.DefaultAccountsFile @)
-  lines ← loader.ReadLinesOptional path
-  IsDataLine ← { (0 < ≠ 𝕩) ? ((⊑ 𝕩 ≠ '#') ∧ (⊑ 𝕩 ≠ ⊑"\\")) ; 0 }
-  dataLines ← (IsDataLine¨ lines) / lines
-  fields ← loader.SplitTsvKeepEmpty¨ dataLines
-  nonEmpty ← (0 < ≠¨ fields) / fields
-  {⊑ 𝕩}¨ nonEmpty
-}
 
 HasPlanIDMeta ← { ∨´ { "plan_id=" plan_id.StartsWith 𝕩 }¨ 𝕩 }
 {𝕊 ⋄ Fail "--meta plan_id=... is not allowed; use --id or let plan add generate plan_id"}⍟(HasPlanIDMeta metaTokens) @
 
-accounts ← LoadAccountsList @
-check ← validate.ValidateJournalLikeAdd {
-  date ⇐ dateVal ⋄
-  memo ⇐ memoVal ⋄
-  from ⇐ fromVal ⋄
-  to ⇐ toVal ⋄
-  amount ⇐ amountVal ⋄
-  meta ⇐ metaTokens ⋄
-  accounts ⇐ accounts
+accountsPath ← ResolvePath (sys.DefaultAccountsFile @)
+accountLines ← loader.ReadLinesOptional accountsPath
+IsDataLine ← { (0 < ≠𝕩) ? ((⊑𝕩 ≠ '#') ∧ (⊑𝕩 ≠ ⊑"\\")) ; 0 }
+accountDataLines ← (IsDataLine¨ accountLines) / accountLines
+resolved ← ak.Resolve accountDataLines
+accounts ← resolved.accounts
+accountCurrencies ← resolved.currencies
+
+configLines ← loader.ReadLinesOptional (baseDir ∾ "/config.tsv")
+defaultResult ← setup.ResolveDefault configLines
+selection ← setup.ResolveSelection ⟨defaultResult, explicitCurrency⟩
+{𝕊: Fail selection.message}⍟(selection.state ≢ "ok") @
+currency ← selection.currency
+
+check ← validate.ValidateCurrencyJournalAdd {
+  date ⇐ dateVal ⋄ memo ⇐ memoVal ⋄ from ⇐ fromVal ⋄ to ⇐ toVal ⋄
+  amount ⇐ amountVal ⋄ meta ⇐ metaTokens ⋄ accounts ⇐ accounts ⋄
+  account_currencies ⇐ accountCurrencies ⋄ currency ⇐ currency
 }
 {𝕊 ⋄ Fail (1 ⊑ check)}⍟(¬ 0 ⊑ check) @
 
@@ -83,7 +85,7 @@ finalPlanID ← ""
   }
 ⟩ @
 
-finalMeta ← metaTokens ∾ ⟨"plan_id=" ∾ finalPlanID⟩
+finalMeta ← metaTokens ∾ ⟨"plan_id=" ∾ finalPlanID, "currency=" ∾ currency⟩
 row ← render.RenderJournalRow {
   date ⇐ dateVal ⋄
   memo ⇐ memoVal ⋄

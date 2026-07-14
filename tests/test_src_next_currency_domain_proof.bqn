@@ -40,7 +40,7 @@ explicitJournal ← ResolveProof ProofSnapshot ⟨⟨Line ⟨"2026-06-15", "memo
 0 lib.AssertEq explicitJournal.amount_scale
 1 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof explicitJournal
 
-explicitPlan ← ResolveProof ProofSnapshot ⟨⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "100"⟩⟩, ⟨Line ⟨"2026-06-16", "plan", "assets:bank", "expenses:food", "20", "currency=USD"⟩⟩, ⟨⟩⟩
+explicitPlan ← ResolveProof ProofSnapshot ⟨⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "100"⟩⟩, ⟨Line ⟨"2026-06-16", "plan", "assets:bank", "expenses:food", "20", "currency=EUR"⟩⟩, ⟨⟩⟩
 "unsupported" lib.AssertEq explicitPlan.state
 "explicit_source_currency" lib.AssertEq explicitPlan.basis
 
@@ -152,8 +152,8 @@ CheckRowEvidence ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food"
 CheckProofGateFail ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "1200", "currency=JPY", "currency=JPY"⟩, "duplicate currency metadata"⟩
 
 # 7. Unsupported currency (fails at row evidence stage)
-CheckRowEvidence ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "1200", "currency=USD"⟩, "JPY", "explicit", "error", 1200, 0⟩
-CheckProofGateFail ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "1200", "currency=USD"⟩, "unsupported currency: USD"⟩
+CheckRowEvidence ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "1200", "currency=EUR"⟩, "JPY", "explicit", "error", 1200, 0⟩
+CheckProofGateFail ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "1200", "currency=EUR"⟩, "unsupported currency: EUR"⟩
 
 # 8. Invalid decimal syntax (propagates and fails gate on explicit currency)
 CheckRowEvidence ⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "12x", "currency=JPY"⟩, "JPY", "explicit", "error", ⟨⟩, ⟨⟩⟩

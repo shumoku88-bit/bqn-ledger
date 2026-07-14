@@ -289,7 +289,7 @@ run_expect_fail_closed budget-unknown-from budget_alloc.tsv \
 run_expect_fail_closed budget-unknown-to budget_alloc.tsv \
   budget add --date 2026-06-29 --memo "unknown budget to" --from budget:opening --to budget:missing --amount 123 --yes --post-check none
 run_expect_fail_closed budget-invalid-amount budget_alloc.tsv \
-  budget add --date 2026-06-29 --memo "bad budget amount" --from budget:opening --to budget:食費 --amount 12.3 --yes --post-check none
+  budget add --date 2026-06-29 --memo "bad budget amount" --from budget:opening --to budget:食費 --amount 12x --yes --post-check none
 run_expect_fail_closed budget-invalid-meta budget_alloc.tsv \
   budget add --date 2026-06-29 --memo "bad budget meta" --from budget:opening --to budget:食費 --amount 123 --meta Source=test --yes --post-check none
 

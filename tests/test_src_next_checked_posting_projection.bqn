@@ -115,7 +115,7 @@ CheckError ⟨mixedResult, "authorization", "arithmetic_currency_proof_rejected"
 
 # 6. Unsupported currency metadata rejection
 unsupportedSnapshot ← Snapshot ⟨
-  ⟨Line ⟨"2026-06-15", "usd", "assets:bank", "expenses:food", "100", "currency=USD"⟩⟩,
+  ⟨Line ⟨"2026-06-15", "eur", "assets:bank", "expenses:food", "100", "currency=EUR"⟩⟩,
   ⟨⟩,
   ⟨⟩
 ⟩
@@ -124,7 +124,7 @@ CheckError ⟨
   unsupportedResult,
   "authorization",
   "arithmetic_currency_proof_rejected",
-  "explicit source currency unsupported in Stage 2 minimal runtime slice: journal.tsv row 0: unsupported currency: USD"
+  "explicit source currency unsupported in Stage 2 minimal runtime slice: journal.tsv row 0: unsupported currency: EUR"
 ⟩
 
 # 7. Duplicate currency metadata rejection

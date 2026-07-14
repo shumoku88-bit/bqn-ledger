@@ -1,5 +1,8 @@
 # Conventions (bqn-ledger 規約)
 
+Status: active conventions
+Owner: maintainer / format / validation
+
 位置づけ:
 - 長期の方針: `docs/ENGINEERING_ROADMAP.md`
 - メタ列の詳細: `docs/JOURNAL_META.md`
@@ -57,7 +60,7 @@
 - バリデーションでは **「少なくとも5列存在すること」** および既知の勘定科目が使用されていることを強制します。
 - 現行 `src_next` の projection/readiness/lint checks は `date` / `from` / `to` / `amount` の不正を skipped / invalid / warning / error として可視化します。
   - `date` は `YYYY-MM-DD` 形式かつカレンダー上有効な日付である必要があります。
-  - `amount` は整数の文字列でなければなりません。
+  - `amount` は exact decimal (10進表記) の数値文字列でなければならず、対象の通貨で許容される最大小数桁（レジストリで定義）を満たす必要があります。
 - `memo`（摘要）は空でも構いません。
 - ジャーナル形式の TSV パース処理は空のフィールドを維持するため、摘要列が空であっても `from` / `to` / `amount` が左にずれることはありません。
 - `journal.tsv` は実績（Actual）レコードのみを記録します。`system_today` より未来の日付の行は入力エラーとして拒否されます。将来の予定は `plan.tsv` に記述してください。

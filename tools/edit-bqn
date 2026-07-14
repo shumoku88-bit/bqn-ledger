@@ -640,8 +640,8 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [[ "$COMMAND" != "journal" && -n "$CURRENCY" ]]; then
-  echo "ERROR: --currency is currently supported only for journal add" >&2
+if [[ "$COMMAND" != "journal" && "$COMMAND" != "budget" && "$COMMAND" != "plan" && -n "$CURRENCY" ]]; then
+  echo "ERROR: --currency is currently supported only for journal, budget, and plan add" >&2
   exit 2
 fi
 edit_bqn_validate_post_check "$POST_CHECK"
@@ -654,7 +654,7 @@ BQN_STDERR="$(mktemp)"
 trap 'rm -f "$BQN_STDERR"' EXIT
 BQN_OUT=""
 if [[ "$COMMAND" == "plan" ]]; then
-  if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/plan_add_cmd.bqn "$BASE_DIR" "$DATE" "$MEMO" "$FROM" "$TO" "$AMOUNT" "$PLAN_ID" "${META[@]}" 2>"$BQN_STDERR")"; then
+  if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/plan_add_cmd.bqn "$BASE_DIR" "$DATE" "$MEMO" "$FROM" "$TO" "$AMOUNT" "$PLAN_ID" "$CURRENCY" "${META[@]}" 2>"$BQN_STDERR")"; then
     if [[ -n "$BQN_OUT" ]]; then
       printf '%s\n' "$BQN_OUT" >&2
     fi

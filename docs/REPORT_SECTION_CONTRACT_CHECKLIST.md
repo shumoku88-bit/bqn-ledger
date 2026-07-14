@@ -198,7 +198,7 @@ This is consumed by compact summary checks and can be filtered by `tools/query` 
 
 ### Selected human output
 
-`tools/report <base> --section balances [--currency JPY|ILS]` is the first
+`tools/report <base> --section balances [--currency JPY|ILS|USD]` is the first
 currency-selected human report consumer. An explicit selector has
 `explicit selection` provenance; without an override, `<base>/config.tsv` must
 provide one valid `DEFAULT_CURRENCY`, shown as `ledger default`. The section

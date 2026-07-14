@@ -50,14 +50,14 @@ CheckStrictError ← {𝕊 accountLines‿snapshot‿expectedCode‿expectedFile
 CheckStrictError ⟨⟨"assets:bank"⟩, explicitRows, "account_currency_missing", "accounts.tsv", 0⟩
 CheckStrictError ⟨⟨"assets:bank"∾tab∾"currency="⟩, explicitRows, "account_currency_empty", "accounts.tsv", 0⟩
 CheckStrictError ⟨⟨"assets:bank"∾tab∾"currency=JPY"∾tab∾"currency=ILS"⟩, explicitRows, "account_currency_duplicate", "accounts.tsv", 0⟩
-CheckStrictError ⟨⟨"assets:bank"∾tab∾"currency=USD"⟩, explicitRows, "account_currency_unsupported", "accounts.tsv", 0⟩
+CheckStrictError ⟨⟨"assets:bank"∾tab∾"currency=EUR"⟩, explicitRows, "account_currency_unsupported", "accounts.tsv", 0⟩
 
 # Journal-like missing, empty, duplicate, and unsupported are independently classified.
 baseRow ← ⟨"2026-07-01", "private memo", "assets:bank", "expenses:food", "999"⟩
 CheckStrictError ⟨accounts, Snapshot ⟨⟨Line baseRow⟩, ⟨⟩, ⟨⟩⟩, "row_currency_missing", "journal.tsv", 0⟩
 CheckStrictError ⟨accounts, Snapshot ⟨⟨Line (baseRow ∾ ⟨"currency="⟩)⟩, ⟨⟩, ⟨⟩⟩, "row_currency_empty", "journal.tsv", 0⟩
 CheckStrictError ⟨accounts, Snapshot ⟨⟨Line (baseRow ∾ ⟨"currency=JPY", "currency=ILS"⟩)⟩, ⟨⟩, ⟨⟩⟩, "row_currency_duplicate", "journal.tsv", 0⟩
-CheckStrictError ⟨accounts, Snapshot ⟨⟨Line (baseRow ∾ ⟨"currency=USD"⟩)⟩, ⟨⟩, ⟨⟩⟩, "row_currency_unsupported", "journal.tsv", 0⟩
+CheckStrictError ⟨accounts, Snapshot ⟨⟨Line (baseRow ∾ ⟨"currency=EUR"⟩)⟩, ⟨⟩, ⟨⟩⟩, "row_currency_unsupported", "journal.tsv", 0⟩
 
 # All optional source rows are admitted and their zero-based row indices are retained.
 planBad ← Snapshot ⟨⟨⟩, ⟨"# ignored", Line baseRow⟩, ⟨⟩⟩
@@ -69,7 +69,7 @@ emptyOptional ← admission.Admit ⟨strictPolicy, accounts, Snapshot ⟨⟨⟩,
 0 lib.AssertEq ≠ emptyOptional.admitted_row_evidence
 
 # Errors collect across supplied account and every journal-like source without partial admission.
-multi ← admission.Admit ⟨strictPolicy, ⟨"assets:bank"⟩, Snapshot ⟨⟨Line baseRow⟩, ⟨Line (baseRow ∾ ⟨"currency="⟩)⟩, ⟨Line (baseRow ∾ ⟨"currency=USD"⟩)⟩⟩⟩
+multi  ← admission.Admit ⟨strictPolicy, ⟨"assets:bank"⟩, Snapshot ⟨⟨Line baseRow⟩, ⟨Line (baseRow ∾ ⟨"currency="⟩)⟩, ⟨Line (baseRow ∾ ⟨"currency=EUR"⟩)⟩⟩⟩
 "error" lib.AssertEq multi.state
 4 lib.AssertEq ≠ multi.diagnostics
 0 lib.AssertEq ≠ multi.admitted_account_evidence
@@ -86,7 +86,7 @@ compatIls ← admission.Admit ⟨compatibilityPolicy, ⟨"assets:bank"∾tab∾"
 "ok" lib.AssertEq compatIls.state
 "ILS" lib.AssertEq (⊑ compatIls.admitted_account_evidence).currency
 "explicit" lib.AssertEq (⊑ compatIls.admitted_row_evidence).provenance
-compatBad ← admission.Admit ⟨compatibilityPolicy, ⟨"assets:bank"∾tab∾"currency="⟩, Snapshot ⟨⟨Line (baseRow ∾ ⟨"currency=USD"⟩)⟩, ⟨⟩, ⟨⟩⟩⟩
+compatBad ← admission.Admit ⟨compatibilityPolicy, ⟨"assets:bank"∾tab∾"currency="⟩, Snapshot ⟨⟨Line (baseRow ∾ ⟨"currency=EUR"⟩)⟩, ⟨⟩, ⟨⟩⟩⟩
 "error" lib.AssertEq compatBad.state
 2 lib.AssertEq ≠ compatBad.diagnostics
 0 lib.AssertEq ≠ compatBad.admitted_account_evidence

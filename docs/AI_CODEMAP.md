@@ -87,7 +87,7 @@ Exit: keep current while this remains the pit code/data-flow entry point
 - `account_key.bqn` — 勘定科目のキー解決。
 - `projection.bqn` — Posting IR 投影。
 - `snapshot.bqn` — Balance Sheet / Snapshot。TBDS closing を使用。構造化された ViewModel JSON 出力（FormatJson）もサポート。
-- `balances.bqn` — 残高表示。human `--section balances` では `DEFAULT_CURRENCY` または明示 `--currency JPY|ILS` を解決し、checked selected-currency projection 後の単一通貨残高だけを表示する。carrierは calculation scale と presentation scale を分離し、ILSはsource precision 2桁超をfail closedして常に2桁表示する。既存JSONは非selectedのフラットリストと合計の契約を維持する。
+- `balances.bqn` — 残高表示。human `--section balances` では `DEFAULT_CURRENCY` または明示 `--currency JPY|ILS|USD` (レジストリ内の対応通貨) を解決し、checked selected-currency projection 後の単一通貨残高だけを表示する。carrierは calculation scale と presentation scale を分離し、ILSやUSDはsource precision 2桁超をfail closedして常に2桁表示する。既存JSONは非selectedのフラットリストと合計の契約を維持する。
 - `ytd_summary.bqn` — YTD 集計。
 - `cycle_summary.bqn` — サイクル収支 (Income Statement)。
 - `expense_breakdown.bqn` — サイクル支出内訳。

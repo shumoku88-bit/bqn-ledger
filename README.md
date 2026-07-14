@@ -120,7 +120,7 @@ BQN Ledger は、次のための個人用 accounting workbench です。
 - **Daily writes go through safety paths.** 日常入力は `tools/add-ui.sh`, `tools/edit`, または `tools/edit-bqn` から行います。
 - **Large corrections stay visible.** 削除や大きな修正は、人間が TSV を直接確認して行います。
 - **AI must not touch source data by default.** AI は、明示指示がない限り source TSV を直接編集しません。
-- **Money is integer yen.** 現行の通常経路では金額を整数円で扱います。
+- **Money is exact decimal.** 対応通貨は `config/currencies.tsv` レジストリで定義され、単一通貨の exact decimal (10進表記) が journal/plan/budget で利用可能です。FXやクロス通貨の合算は未対応です。
 - **The first five TSV columns are contract.** 拡張情報は6列目以降の `key=value` メタデータで表します。
 
 ## Source data

@@ -29,7 +29,7 @@ t.Assert (0 ≡ ⊑ validate.ValidateAmount "")
 
 ⟨1, ""⟩ t.AssertEq validate.ValidateCurrency "JPY"
 ⟨1, ""⟩ t.AssertEq validate.ValidateCurrency "ILS"
-t.Assert (0 ≡ ⊑ validate.ValidateCurrency "USD")
+t.Assert (0 ≡ ⊑ validate.ValidateCurrency "EUR")
 t.Assert (0 ≡ ⊑ validate.ValidateCurrency "")
 
 ⟨1, ""⟩ t.AssertEq validate.ValidateExactAmountForCurrency "JPY"‿"12.34"
@@ -73,7 +73,7 @@ t.Assert (0 ≡ ⊑ validate.ValidateAccountAdd { name ⇐ "income:salary" ⋄ r
 t.Assert (0 ≡ ⊑ validate.ValidateAccountAdd { name ⇐ "expenses:food" ⋄ role ⇐ "income" ⋄ type ⇐ "" ⋄ currency ⇐ "JPY" ⋄ accounts ⇐ accts })
 t.Assert (0 ≡ ⊑ validate.ValidateAccountAdd { name ⇐ "assets:bank2" ⋄ role ⇐ "asset" ⋄ type ⇐ "crypto" ⋄ currency ⇐ "JPY" ⋄ accounts ⇐ accts })
 t.Assert (0 ≡ ⊑ validate.ValidateAccountAdd { name ⇐ "income:" ⋄ role ⇐ "income" ⋄ type ⇐ "" ⋄ currency ⇐ "JPY" ⋄ accounts ⇐ accts })
-t.Assert (0 ≡ ⊑ validate.ValidateAccountAdd { name ⇐ "assets:usd" ⋄ role ⇐ "asset" ⋄ type ⇐ "liquid" ⋄ currency ⇐ "USD" ⋄ accounts ⇐ accts })
+t.Assert (0 ≡ ⊑ validate.ValidateAccountAdd { name ⇐ "assets:usd" ⋄ role ⇐ "asset" ⋄ type ⇐ "liquid" ⋄ currency ⇐ "EUR" ⋄ accounts ⇐ accts })
 
 # ── Meta token validation tests ─────────────────────────────────
 •Out "Running Meta token tests..."
