@@ -1,9 +1,9 @@
 # Israel Travel Editor Usage
 
-Status: current operational guide / predeparture implementation in progress
+Status: current operational guide / predeparture ready
 Owner: editor / travel capture
 Canonical: yes
-Exit: revise after the integrated four-path rehearsal; keep current while these travel capture commands are in use.
+Exit: keep current while these travel capture commands are in use.
 
 This guide currently documents the completed capture paths. All examples use synthetic names and amounts; verify that required real accounts already exist before travel use. The editor does not create accounts.
 
@@ -82,30 +82,39 @@ For this command, `original_currency=ILS`, `payer=friend`, `trip_id=israel-2026`
 
 The return-home JPY finalization writer is not implemented. Correction/reversal is also not yet selected; do not edit or reinterpret an event through the ordinary journal.
 
-## Ordinary cash and card capture
+## Ordinary cash, Wise, and debit capture
 
-ILS cash expenses use the ordinary journal once:
+ILS cash and Wise balance expenses each use the ordinary journal once. They may share one ILS expense account; the `from` account and `payment` metadata distinguish the payment path:
 
 ```bash
+# ILS cash
 tools/edit --base "$BASE" journal add \
-  --date 2026-07-20 --memo "synthetic meal" \
-  --from "assets:cash-ils" --to "expenses:food-ils" \
+  --date 2026-07-20 --memo "synthetic meal paid in cash" \
+  --from "assets:wallet-ils" --to "expenses:trip-ils" \
   --amount "42.50" --currency ILS \
   --meta trip_id=israel-2026 --meta payment=cash \
   --yes --post-check lint
-```
 
-Record the user's card only after the issuer confirms the JPY amount. Do not also record the displayed ILS amount:
-
-```bash
+# Wise ILS balance
 tools/edit --base "$BASE" journal add \
-  --date 2026-07-20 --memo "synthetic transit" \
-  --from "liabilities:card-jpy" --to "expenses:transit-jpy" \
-  --amount "1800" --currency JPY \
+  --date 2026-07-20 --memo "synthetic meal paid by Wise" \
+  --from "assets:prepaid-ils" --to "expenses:trip-ils" \
+  --amount "42.50" --currency ILS \
   --meta trip_id=israel-2026 --meta payment=card \
   --yes --post-check lint
 ```
 
-These paths preserve `trip_id=israel-2026` and `payment=cash|card` through the existing generic metadata path. Journal `lint` is a mixed-currency-safe source-integrity check; it does not add currencies or broaden the full report. If it fails, the editor restores exact pre-append bytes only when no later writer changed the target. `--post-check none` is not the standard travel solution.
+SMBC is a debit path, not a credit-card liability. Record only the JPY amount confirmed by the bank, from an existing JPY asset to a JPY expense. Do not also record the displayed ILS amount. A trip-specific JPY expense may keep food or transit detail in the memo until `trip_id` reporting is sufficient to return to ordinary expense accounts:
 
-Before real use, confirm that every account shown in the command exists with the expected currency. Account names above are synthetic examples. Accounts are never created automatically. Return-home friend finalization is not implemented. Correction/reversal for friend and exchange source events remains unselected and must not be improvised through the ordinary journal.
+```bash
+tools/edit --base "$BASE" journal add \
+  --date 2026-07-20 --memo "synthetic transit paid by debit" \
+  --from "assets:bank-jpy" --to "expenses:trip-jpy" \
+  --amount "1800" --currency JPY \
+  --meta trip_id=israel-2026 --meta payment=debit \
+  --yes --post-check lint
+```
+
+These paths preserve `trip_id=israel-2026` and `payment=cash|card|debit` through the existing generic metadata path. Journal `lint` is a mixed-currency-safe source-integrity check; it does not add currencies or broaden the full report. If it fails, the editor restores exact pre-append bytes only when no later writer changed the target. `--post-check none` is not the standard travel solution.
+
+Before real use, confirm that every account shown in the command exists with the expected role and currency. All account names above are synthetic examples; do not copy private account names into public documentation. Accounts are never created automatically by travel capture. Friend pending events are not projected into the ordinary journal. Return-home friend finalization is not implemented. Correction/reversal for friend and exchange source events remains unselected and must not be improvised through the ordinary journal.

@@ -9,7 +9,7 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-13 — Israel predeparture editor capture is READY and only real-account readiness remains selected operational work; PR #219 and the foundation synthesis are complete, while the next configurable-ledger slice, friend finalization candidate 6, strict-source Steps 2–5, M4, and other implementation candidates remain unselected.
+Last hygiene pass: 2026-07-14 — Israel predeparture real-account readiness is complete. No follow-on Israel implementation or configurable-ledger slice is selected; friend finalization candidate 6, strict-source Steps 2–5, M4, and other implementation candidates remain unselected.
 
 ---
 
@@ -17,12 +17,14 @@ Last hygiene pass: 2026-07-13 — Israel predeparture editor capture is READY an
 
 ### Israel predeparture real-account readiness
 
-Status: selected operational preparation only. Editor implementation and the integrated synthetic four-path rehearsal are complete; completion record: `docs/archive/completed-plans/ISRAEL_PREDEPARTURE_EDITOR_CAPTURE_COMPLETION-2026-07-13.md`.
+Status: completed operational preparation. Editor implementation and the integrated synthetic capture rehearsal are recorded in `docs/archive/completed-plans/ISRAEL_PREDEPARTURE_EDITOR_CAPTURE_COMPLETION-2026-07-13.md`; the production readiness check below completed on 2026-07-14 without writing travel events or ordinary journal rows.
 
-- [ ] Read-onlyで、実運用に使う次のaccountと`currency`が存在・一致することを確認する: JPY交換元asset、ILS現金asset、JPYカードliability、ILS支出expense、JPYカード支出expense。
-- [ ] 不足がある場合もaccount名を推測・自動作成せず、通常のaccount追加手順で人間が明示的に決める。
-- [ ] private account名、金額、実データpathをpublic repoへ記録しない。
-- [ ] この確認と同時にruntime、source schema、friend finalization、router、cash view、M4、strict-source Steps 2–5を開始しない。
+- [x] Read-only確認とsafe editorにより、次の実運用経路のaccount role / currencyを確認した: JPY交換元asset、ILS現金asset、JPYデビット支払元asset、ILS Wise asset、ILS支出expense、既存JPY支出expense、friend pending source path。
+- [x] Exchange、ILS現金、Wise、JPYデビット、friend pendingの5経路がsynthetic `--dry-run`に成功した。
+- [x] private account名、金額、実データpathをpublic repoへ記録せず、synthetic eventも書き込まなかった。
+- [x] runtime、source schema、friend finalization、router、cash view、M4、strict-source Steps 2–5を開始しなかった。
+
+Completion note: account preparation used only explicit human decisions and the safe editor. JPY debit is asset → existing JPY expense, Wise is ILS asset → ILS expense, and friend-paid observations remain pending events outside the ordinary journal. No follow-on work is selected.
 
 The latest AI working feedback record was completed by PR #227 and is an evidence input only; it is not an automatic implementation queue.
 
