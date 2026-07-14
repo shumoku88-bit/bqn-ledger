@@ -13,6 +13,8 @@ BUDGET_ID_UNASSIGNED=none
 BUDGET_ID_SPENT=budget:spent
 
 # --- Policy profile choices ---
+# Compatibility fallback only: new ledgers must explicitly choose envelope or none.
+# Target contract: missing POLICY_BUDGET_STYLE will fail closed after a separate migration slice.
 POLICY_BUDGET_STYLE=envelope
 POLICY_RISK_STYLE=conservative
 POLICY_INCOME_CADENCE=
