@@ -1,6 +1,6 @@
 # Configurable AI-assisted Ledger Foundation — 2026-07-13
 
-Status: active routing map / selected highest-priority development direction; foundation synthesis and PR #219 integration are complete, and no next program slice is selected
+Status: active routing map / selected highest-priority development direction; foundation synthesis, PR #219 integration, Israel readiness, and the config ownership inventory are complete, and no next program slice is selected
 Owner: config / report / AI consultation / privacy
 Canonical: no; finite-work selection remains in `TODO.md`
 Exit: replace this synthesis with separately approved finite contracts, then archive when the program is completed, superseded, or declined.
@@ -15,17 +15,17 @@ This plan is a synthesis and routing map. It adds no config key, schema, runtime
 
 ## Current priority and dependency order
 
-0. Complete Israel real-account readiness as the small read-only operational preparation already selected in `TODO.md`.
+0. Israel real-account readiness is complete; no follow-on Israel implementation is selected.
 1. Treat the latest AI working feedback, completed by PR #227, as observation evidence only. It authorizes no automatic implementation.
 2. PR #219 (`refactor: centralize built-in currency policy`) is integrated and current-main verified. It centralizes built-in JPY/ILS admission and lexical precision policy as a code-level registry seam, not user configuration.
-3. The foundation synthesis was completed by PR #228. It selects no later runtime slice.
-4. Inventory configuration ownership before adding keys.
+3. The foundation synthesis was completed by PR #228.
+4. The config ownership inventory is completed by `../completed-plans/CONFIG_OWNERSHIP_INVENTORY-2026-07-14.md`.
 5. Design a privacy-safe AI context-bundle contract.
 6. Select one read-only AI consultation report only after its evidence contract exists.
 7. Design a safe proposal-to-editor handoff without granting AI write authority.
 8. Connect PR #211 Ledger Observatory last, as the source-to-derived evidence telescope after the config, privacy, and consultation boundaries are established.
 
-The order is routing, not blanket authorization. Steps 4–8 require separate finite selection; completion of #219 and the synthesis does not authorize the next row.
+The order is routing, not blanket authorization. Steps 5–8 require separate finite selection; completion of earlier rows does not authorize the next row.
 
 ## Foundation map
 
@@ -45,6 +45,8 @@ source row -> Posting IR -> Cube coordinate -> report value -> AI explanation
 
 ### A. Configuration ownership inventory
 
+The completed refinement record is `../completed-plans/CONFIG_OWNERSHIP_INVENTORY-2026-07-14.md`. It distinguishes source meaning, ledger policy, engine admission policy, view preference, runtime bootstrap, export/consultation policy, fixed contracts, and unresolved/quarantined ownership without adding keys or runtime.
+
 | Meaning | Current owner | Hard-coded / configured today | Externalization value | Failure contract to decide | Kind |
 |---|---|---|---|---|---|
 | Ledger-level defaults and typed policy | `<base>/config.tsv` plus config defaults/resolution | mixed; some keys configured, built-in admissible values remain code-owned | high when user-specific and stable | missing / duplicate / unknown / empty must be explicit per key | source policy or initial view selection; never source amount authority |
@@ -56,7 +58,7 @@ source row -> Posting IR -> Cube coordinate -> report value -> AI explanation
 | Privacy/export policy | safety docs and individual structured exports; no single user policy owner yet | mostly contract-owned | high before AI context export | default deny; unknown or missing policy must not widen disclosure | export policy |
 | AI context policy | no runtime owner; this synthesis only | not implemented | high for selecting period/currency/evidence and redaction | missing policy means no private bundle, not broad export | consultation/export policy |
 
-The inventory must distinguish a source meaning from a view preference. Canonical Daily Cube shape, axes, and Layer meaning are fixed contracts, not user settings. Configuration must not become a DSL or arbitrary accounting program.
+The inventory distinguishes source meaning from view preference. Canonical Daily Cube shape, axes, and Layer meaning are fixed contracts, not user settings. Configuration must not become a DSL or arbitrary accounting program.
 
 ### B. Mixed currency and Israel reference profile
 
@@ -146,12 +148,12 @@ Its first eligible candidate remains the pure synthetic source-row-to-Cube evide
 
 | Order | Candidate | Current authorization |
 |---:|---|---|
-| 0 | Israel real-account readiness | selected read-only operational preparation |
+| 0 | Israel real-account readiness | completed operational preparation; no follow-on selected |
 | 1 | Latest AI feedback record | completed evidence; no implementation authorization |
 | 2 | PR #219 built-in currency policy integration | completed and current-main verified; built-in code policy only |
 | 3 | Foundation synthesis docs | completed by PR #228; this document remains the routing map |
-| 4 | Config ownership inventory refinement | not selected separately |
-| 5 | Privacy-safe AI context-bundle contract | not selected |
+| 4 | Config ownership inventory refinement | completed by `../completed-plans/CONFIG_OWNERSHIP_INVENTORY-2026-07-14.md`; no key or runtime added |
+| 5 | Privacy-safe AI context-bundle contract | next routed candidate; not selected |
 | 6 | One read-only AI consultation report | not selected |
 | 7 | Safe proposal-to-editor handoff | not selected |
 | 8 | PR #211 synthetic evidence-trace design / Observatory connection | last; not selected |
@@ -174,10 +176,10 @@ Completing an earlier row does not authorize the next row.
 
 ## Exit criteria for the synthesis slice
 
-- Israel readiness remains the first small operational task;
+- Israel readiness and the config ownership inventory are complete without selecting follow-on runtime work;
 - PR #219 is integrated as the currency-policy seam before program expansion;
 - config ownership, mixed-currency/Israel evidence, AI feedback, privacy bundle, consultation/write separation, and Observatory placement share one map;
 - only docs change;
 - feedback remains evidence, not authorization;
 - Observatory is routed last;
-- candidate 6, strict-source Steps 2–5, M4, and all runtime work remain unselected by this plan.
+- the privacy-safe bundle contract, candidate 6, strict-source Steps 2–5, M4, and all runtime work remain unselected by this plan.
