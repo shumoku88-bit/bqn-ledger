@@ -1,6 +1,11 @@
+# Assets and Income
 assets:checking	role=asset	type=liquid	currency=USD
 income:support	role=income	currency=USD
+
+# Expenses
 expenses:utilities	role=expense	currency=USD
+
+# Budget Envelopes
 budget:utilities	role=budget	kind=envelope	currency=USD
 budget:opening	role=budget	kind=opening	currency=USD
 budget:spent	role=budget	kind=spent	currency=USD

@@ -141,6 +141,20 @@ else
   fail "budget add failed to save exact decimal or currency metadata: '$budget_row'"
 fi
 
+# 9b. Focused plan edit currency mismatch fail closed test
+# Append a JPY account to accounts.tsv of the lifecycle base
+printf "assets:jpy_bank\trole=asset\ttype=liquid\tcurrency=JPY\n" >> "$lifecycle_base/accounts.tsv"
+
+# Append a plan with JPY account (assets:jpy_bank) but explicit currency=USD metadata to plan.tsv
+printf "2026-08-15\tbroken plan\tassets:jpy_bank\texpenses:utilities\t100.00\tcurrency=USD\tplan_id=plan-broken-edit\n" >> "$lifecycle_base/plan.tsv"
+
+# Attempting to edit this plan must fail due to currency mismatch, even with --post-check none
+if ./tools/edit --base "$lifecycle_base" plan edit --id "plan-broken-edit" --amount 200.00 --yes --post-check none >/dev/null 2>&1; then
+  fail "plan edit unexpectedly allowed editing a USD plan with JPY account (assets:jpy_bank)"
+else
+  pass "plan edit fails closed on currency mismatch under --post-check none"
+fi
+
 # 10. Run source integrity check on mutated bases
 if bqn src_edit/journal_source_check.bqn "$lifecycle_base" >/dev/null 2>&1; then
   pass "mutated lifecycle base passes source integrity"

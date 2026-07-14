@@ -49,10 +49,13 @@ planPath ← ResolvePath (sys.DefaultPlanFile @)
 journalPath ← ResolvePath (sys.DefaultJournalFile @)
 
 accountsFile ← ResolvePath (sys.DefaultAccountsFile @)
-accountsLines ← loader.ReadLinesOptional accountsFile
+accountsLinesRaw ← loader.ReadLinesOptional accountsFile
+IsDataLine ← { (0 < ≠ 𝕩) ? ((⊑ 𝕩 ≠ '#') ∧ (⊑ 𝕩 ≠ ⊑"\\")) ; 0 }
+accountsLines ← (IsDataLine¨ accountsLinesRaw) / accountsLinesRaw
 resolvedAccounts ← ak.Resolve accountsLines
 accounts ← resolvedAccounts.accounts
 accountCurrencies ← resolvedAccounts.currencies
+
 
 
 # completed plan IDs のロード
@@ -61,7 +64,6 @@ completedIDsAll ← plan_id.ExtractPlanId¨ journalLines
 completedIDs ← (0 < ≠¨ completedIDsAll) / completedIDsAll
 
 # planLines のロード
-IsDataLine ← { (0 < ≠ 𝕩) ? ((⊑ 𝕩 ≠ '#') ∧ (⊑ 𝕩 ≠ ⊑"\\")) ; 0 }
 planLinesRaw ← loader.ReadLinesOptional planPath
 lineNumsRaw ← 1 + ↕ ≠ planLinesRaw
 mask ← IsDataLine¨ planLinesRaw

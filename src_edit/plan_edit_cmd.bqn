@@ -18,6 +18,7 @@ validate ← •Import "validate.bqn"
 plan_id ← •Import "plan_id.bqn"
 config ← •Import "../src_next/config.bqn"
 setup ← •Import "../src_next/currency_setup.bqn"
+ak ← •Import "../src_next/account_key.bqn"
 
 
 sys ← config.LoadSystemDefaults @
@@ -39,6 +40,15 @@ amountVal ← 4 ⊑ args
 showAll ← "1" ≡ 5 ⊑ args
 
 ResolvePath ← { baseDir ∾ "/" ∾ 𝕩 }
+
+accountsFile ← ResolvePath (sys.DefaultAccountsFile @)
+accountsLinesRaw ← loader.ReadLinesOptional accountsFile
+IsDataLine ← { (0 < ≠ 𝕩) ? ((⊑ 𝕩 ≠ '#') ∧ (⊑ 𝕩 ≠ ⊑"\\")) ; 0 }
+accountsLines ← (IsDataLine¨ accountsLinesRaw) / accountsLinesRaw
+resolvedAccounts ← ak.Resolve accountsLines
+accounts ← resolvedAccounts.accounts
+accountCurrencies ← resolvedAccounts.currencies
+
 
 { 𝕊 ⋄
   dateCheck ← validate.ValidateDate dateVal
@@ -126,9 +136,17 @@ selected ← selIdx ⊑ selectedPlans
   {𝕊: Fail selection.message}⍟(selection.state ≢ "ok") @
   currency ← selection.currency
 
-  amountCheck ← validate.ValidateExactAmountForCurrency currency‿amountVal
-  { 𝕊 ⋄ Fail (1 ⊑ amountCheck) }⍟(¬ 0 ⊑ amountCheck) @
-}⍟(0 < ≠ amountVal) @
+  fromCurrCheck ← validate.ValidateAccountCurrency "from"‿(2 ⊑ selected.fields)‿currency‿accounts‿accountCurrencies
+  { 𝕊 ⋄ Fail (1 ⊑ fromCurrCheck) }⍟(¬ 0 ⊑ fromCurrCheck) @
+
+  toCurrCheck ← validate.ValidateAccountCurrency "to"‿(3 ⊑ selected.fields)‿currency‿accounts‿accountCurrencies
+  { 𝕊 ⋄ Fail (1 ⊑ toCurrCheck) }⍟(¬ 0 ⊑ toCurrCheck) @
+
+  { 𝕊 ⋄
+    amountCheck ← validate.ValidateExactAmountForCurrency currency‿amountVal
+    { 𝕊 ⋄ Fail (1 ⊑ amountCheck) }⍟(¬ 0 ⊑ amountCheck) @
+  }⍟(0 < ≠ amountVal) @
+} @
 
 oldFields ← selected.fields
 { 𝕊 ⋄ Fail "plan.tsv line has fewer than 5 tab-separated columns" }⍟(5 > ≠ oldFields) @
