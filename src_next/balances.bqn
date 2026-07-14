@@ -55,15 +55,17 @@ Format ← {𝕊 entries:
 }
 
 # PresentationPolicy keeps checked arithmetic scale distinct from human display
-# scale. ILS is fixed at two decimals and rejects broader source precision.
+# scale, using the shared registry's finite precision policy when present.
 PresentationPolicy ← {𝕊 selectedCurrency‿calculationScale:
-  presentationScale ← (selectedCurrency ≡ "ILS") ⊑ ⟨calculationScale, 2⟩
-  tooPrecise ← (selectedCurrency ≡ "ILS") ∧ (calculationScale > presentationScale)
+  policy ← currency_setup.Policy selectedCurrency
+  hasFiniteLimit ← 0 ≤ policy.max_fraction_digits
+  presentationScale ← hasFiniteLimit ⊑ ⟨calculationScale, policy.max_fraction_digits⟩
+  tooPrecise ← hasFiniteLimit ∧ (calculationScale > presentationScale)
   {
-    state ⇐ tooPrecise ⊑ "ok"‿"error",
+    state ⇐ (policy.state ≢ "ok") ⊑ (tooPrecise ⊑ "ok"‿"error")‿"error",
     calculation_scale ⇐ calculationScale,
     presentation_scale ⇐ presentationScale,
-    message ⇐ tooPrecise ⊑ ⟨"", "ILS source precision exceeds 2 fractional digits: calculation scale " ∾ (•Fmt calculationScale)⟩
+    message ⇐ (policy.state ≢ "ok") ⊑ ⟨tooPrecise ⊑ ⟨"", selectedCurrency ∾ " source precision exceeds " ∾ (•Fmt policy.max_fraction_digits) ∾ " fractional digits: calculation scale " ∾ (•Fmt calculationScale)⟩, "unsupported currency: " ∾ selectedCurrency⟩
   }
 }
 
@@ -154,7 +156,7 @@ FormatCoefficient ← {𝕊 coefficient‿calculationScale‿presentationScale�
     split ← (≠padded) - presentationScale
     body ↩ (split ↑ padded) ∾ "." ∾ (split ↓ padded)
   }⍟(0 < presentationScale) @
-  symbol ← (currency ≡ "ILS") ⊑ ⟨"", "₪"⟩
+  symbol ← (currency_setup.Policy currency).symbol
   (negative ⊑ ⟨"", "-"⟩) ∾ symbol ∾ body
 }
 

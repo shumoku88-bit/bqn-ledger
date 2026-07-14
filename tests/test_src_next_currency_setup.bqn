@@ -2,12 +2,23 @@
 
 lib ← •Import "test_lib.bqn"
 setup ← •Import "../src_next/currency_setup.bqn"
+registry_core ← •Import "../src_next/currency_registry.bqn"
 loader ← •Import "../src_next/loader.bqn"
 util ← •Import "../src_next/util.bqn"
 
 tab ← @+9
 
-# Built-in currency admission and lexical precision have one pure owner.
+# Repository registry keeps the current JPY/ILS policy, while the parser remains
+# pure and rejects malformed registry fixtures without partial admission.
+validRegistry ← registry_core.Build (loader.ReadLines "fixtures/currency-registry/valid.tsv")
+"ok" lib.AssertEq validRegistry.state
+⟨"JPY", "ILS"⟩ lib.AssertEq validRegistry.registry.codes
+"₪" lib.AssertEq (validRegistry.registry.Policy "ILS").symbol
+"currency_registry_currency_duplicate" lib.AssertEq (registry_core.Build (loader.ReadLines "fixtures/currency-registry-invalid/duplicate.tsv")).code
+"currency_registry_currency_empty" lib.AssertEq (registry_core.Build (loader.ReadLines "fixtures/currency-registry-invalid/empty-code.tsv")).code
+"currency_registry_fraction_digits_invalid" lib.AssertEq (registry_core.Build (loader.ReadLines "fixtures/currency-registry-invalid/invalid-fraction.tsv")).code
+
+# Runtime policy is resolved from config/currencies.tsv through currency_setup.
 ⟨"JPY", "ILS"⟩ lib.AssertEq setup.supported_currencies
 jpyPolicy ← setup.Policy "JPY"
 "ok" lib.AssertEq jpyPolicy.state

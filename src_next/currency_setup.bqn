@@ -10,44 +10,24 @@
 # - This module performs no file I/O and no writes.
 
 util ← •Import "util.bqn"
+loader ← •Import "loader.bqn"
+registry_core ← •Import "currency_registry.bqn"
 
 empty ← ⟨⟩
 tab ← @+9
-currencyCodes ← ⟨"JPY", "ILS"⟩
-currencyMaxFractionDigits ← ⟨¯1, 2⟩
 defaultKey ← "DEFAULT_CURRENCY"
 
-PolicyFailure ← {𝕊 currency:
-  {
-    state ⇐ "error",
-    currency ⇐ currency,
-    max_fraction_digits ⇐ ¯1,
-    code ⇐ "unsupported_currency",
-    message ⇐ "unsupported currency: " ∾ currency
-  }
-}
-
-PolicySuccess ← {𝕊 index:
-  {
-    state ⇐ "ok",
-    currency ⇐ index ⊑ currencyCodes,
-    max_fraction_digits ⇐ index ⊑ currencyMaxFractionDigits,
-    code ⇐ "",
-    message ⇐ ""
-  }
-}
-
-Policy ← {𝕊 currency:
-  index ← ⊑ currencyCodes ⊐ ⟨currency⟩
-  result ← PolicyFailure currency
-  {𝕊: result ↩ PolicySuccess index } ⍟ (index < ≠ currencyCodes) @
-  result
-}
-
-IsSupportedCurrency ← {𝕊 currency:
-  policy ← Policy currency
-  policy.state ≡ "ok"
-}
+# This is the sole I/O boundary for the repository currency registry. All
+# validation and policy lookup below consume the resulting immutable registry.
+registryResult ← registry_core.Build loader.ReadLines "config/currencies.tsv"
+{𝕊:
+  •Out "CURRENCY REGISTRY ERROR: " ∾ registryResult.message
+  •Exit 1
+}⍟(registryResult.state ≢ "ok") @
+registry ← registryResult.registry
+currencyCodes ← registry.codes
+Policy ← registry.Policy
+IsSupportedCurrency ← registry.IsSupportedCurrency
 
 IsIgnoredLine ← {𝕊 line:
   ignored ← 0
