@@ -89,10 +89,10 @@ unsupportedSelection ← setup.ResolveSelection ⟨defaultResult, "EUR"⟩
 "unsupported_selected_currency" lib.AssertEq unsupportedSelection.code
 
 # AuditFile / AuditLine tests (used by balances etc.)
-accountsFile ← setup.AuditFile ⟨"accounts.tsv", "accounts", accountLines, "JPY"⟩
+accountsFile ← setup.AuditFile ⟨"accounts.tsv", "accounts", accountLines⟩
 "ok" lib.AssertEq accountsFile.state
 
-journalFile ← setup.AuditFile ⟨"journal.tsv", "journal", journalLines, "JPY"⟩
+journalFile ← setup.AuditFile ⟨"journal.tsv", "journal", journalLines⟩
 "ok" lib.AssertEq journalFile.state
 
 # Classifications check (missing / explicit / ignored)
@@ -109,17 +109,17 @@ journalFile ← setup.AuditFile ⟨"journal.tsv", "journal", journalLines, "JPY"
 
 # Unknown, duplicate, and invalid structure fail closed
 unknownRow ← "2026-07-01"∾tab∾"x"∾tab∾"assets:bank"∾tab∾"expenses:food"∾tab∾"1"∾tab∾"currency=EUR"
-unknownFile ← setup.AuditFile ⟨"journal.tsv", "journal", ⟨unknownRow⟩, "JPY"⟩
+unknownFile ← setup.AuditFile ⟨"journal.tsv", "journal", ⟨unknownRow⟩⟩
 "error" lib.AssertEq unknownFile.state
 "unknown" lib.AssertEq (0 ⊑ unknownFile.rows).classification
 
 duplicateRow ← unknownRow ∾ tab ∾ "currency=JPY"
-duplicateFile ← setup.AuditFile ⟨"journal.tsv", "journal", ⟨duplicateRow⟩, "JPY"⟩
+duplicateFile ← setup.AuditFile ⟨"journal.tsv", "journal", ⟨duplicateRow⟩⟩
 "error" lib.AssertEq duplicateFile.state
 "duplicate" lib.AssertEq (0 ⊑ duplicateFile.rows).classification
 
 invalidRow ← "invalid line without tabs"
-invalidFile ← setup.AuditFile ⟨"journal.tsv", "journal", ⟨invalidRow⟩, "JPY"⟩
+invalidFile ← setup.AuditFile ⟨"journal.tsv", "journal", ⟨invalidRow⟩⟩
 "error" lib.AssertEq invalidFile.state
 "invalid_structure" lib.AssertEq (0 ⊑ invalidFile.rows).classification
 

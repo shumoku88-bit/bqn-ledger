@@ -11,7 +11,6 @@ util ← •Import "util.bqn"
 loader ← •Import "loader.bqn"
 registry_core ← •Import "currency_registry.bqn"
 
-empty ← ⟨⟩
 tab ← @+9
 defaultKey ← "DEFAULT_CURRENCY"
 
@@ -209,7 +208,7 @@ AuditLine ← {𝕊 fileName‿kind‿rowIndex‿line:
   result
 }
 
-AuditFile ← {𝕊 fileName‿kind‿lines‿unusedTargetCurrency:
+AuditFile ← {𝕊 fileName‿kind‿lines:
   rows ← {𝕊 index:
     AuditLine ⟨fileName, kind, index, index ⊑ lines⟩
   }¨ ↕ ≠ lines

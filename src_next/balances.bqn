@@ -83,7 +83,7 @@ BuildSelected ← {𝕊 base‿explicitCurrency:
 
   {𝕊:
     accountLines ← loader.ReadLines (base ∾ "/accounts.tsv")
-    accountAudit ← currency_setup.AuditFile ⟨"accounts.tsv", "accounts", accountLines, selection.currency⟩
+    accountAudit ← currency_setup.AuditFile ⟨"accounts.tsv", "accounts", accountLines⟩
     {𝕊:
       bad ← ⊑ ({𝕩.state ≢ "ok"}¨ accountAudit.rows) / accountAudit.rows
       result ↩ {
