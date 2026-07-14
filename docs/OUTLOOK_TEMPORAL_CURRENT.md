@@ -86,14 +86,14 @@ A later report-wide observation contract must not be inferred merely because two
 2. This document for the current Outlook contract.
 3. `src_next/report.bqn` and `src_next/outlook.bqn` for implementation truth.
 
-The following documents are detailed implementation history after runtime consumption:
+The following documents are archived implementation history after runtime consumption:
 
-- `docs/OUTLOOK_HOUSEHOLD_QUESTION_DECISION.md`
-- `docs/OUTLOOK_OBSERVATION_TRANSPORT_BOUNDARY.md`
-- `docs/OUTLOOK_RECORD_FRONTIER_RELATION_DECISION.md`
-- `docs/OUTLOOK_PRODUCTION_OBSERVATION_SOURCE_DECISION.md`
+- `docs/archive/completed-plans/OUTLOOK_HOUSEHOLD_QUESTION_DECISION.md`
+- `docs/archive/completed-plans/OUTLOOK_OBSERVATION_TRANSPORT_BOUNDARY.md`
+- `docs/archive/completed-plans/OUTLOOK_RECORD_FRONTIER_RELATION_DECISION.md`
+- `docs/archive/completed-plans/OUTLOOK_PRODUCTION_OBSERVATION_SOURCE_DECISION.md`
 
-They are candidates for a separate archive-only PR after incoming links are retargeted.
+They are not current entry documents and do not authorize a new runtime slice.
 
 ## Current evidence
 
