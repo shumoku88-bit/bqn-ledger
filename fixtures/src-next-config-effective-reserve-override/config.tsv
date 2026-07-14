@@ -1,2 +1,3 @@
 HOUSEHOLD_GROUP_RESERVE=reserve,longterm
+POLICY_BUDGET_STYLE=envelope
 THEME=nord
