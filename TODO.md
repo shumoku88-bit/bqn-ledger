@@ -15,6 +15,21 @@ Last hygiene pass: 2026-07-13 — Israel predeparture editor capture is READY an
 
 ## Active work
 
+### Confirmation-gated execution-envelope linkage
+
+Status: selected finite implementation slice. Canonical plan: `docs/archive/active-plans/ENVELOPE_EVENT_LINKAGE_AUTOMATION_PLAN-2026-07-14.md`.
+
+Concrete daily-use evidence showed that completed fixed planned payments can reduce liquid funding without consuming the configured execution envelope, leaving a backing mismatch that currently requires manual diagnosis and adjustment rows.
+
+- [ ] Implement a BQN-owned, fail-closed companion proposal for eligible completed plans only.
+- [ ] Use `plan_id` as durable identity and make retry idempotent; do not infer linkage from memo/date/amount similarity.
+- [ ] Keep journal append and budget companion as a visible recoverable saga: partial completion must report `BUDGET_SYNC_PENDING` and remain retryable.
+- [ ] Add a public retry command and confirmation-gated plan-finish UI handoff using the existing checked `budget_alloc.tsv` append path.
+- [ ] Add synthetic unit/integration/failure-injection checks and update editor/envelope operational docs.
+- [ ] Do not add ordinary-income linkage, generic backing-delta balancing, silent writes, account migration, or a multi-file atomic writer in this slice.
+
+Ordinary income-to-unassigned linkage remains a separate unselected candidate until durable `txn_id` identity is designed. Expense refunds recorded as current-date credits to mapped expense accounts continue to restore their envelope without an additional income companion.
+
 ### Israel predeparture real-account readiness
 
 Status: selected operational preparation only. Editor implementation and the integrated synthetic four-path rehearsal are complete; completion record: `docs/archive/completed-plans/ISRAEL_PREDEPARTURE_EDITOR_CAPTURE_COMPLETION-2026-07-13.md`.

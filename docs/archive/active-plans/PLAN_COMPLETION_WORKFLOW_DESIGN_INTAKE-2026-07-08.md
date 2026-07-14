@@ -1,6 +1,9 @@
 # Plan Completion Workflow Design Intake
 
-Status: observation hold / reopen on concrete daily-use evidence
+Status: partially reopened by concrete execution-envelope linkage evidence; all other questions remain on observation hold
+Owner: workflow / editor
+Canonical: no; selected finite path: `ENVELOPE_EVENT_LINKAGE_AUTOMATION_PLAN-2026-07-14.md`
+Exit: keep as intake until remaining workflow questions are resolved, rejected, or archived
 Date: 2026-07-08
 
 ## Context
@@ -41,6 +44,12 @@ Reopen only when concrete daily-use evidence shows a real problem such as:
 - another reproducible workflow defect.
 
 When reopened, select one finite slice from the evidence. Do not automatically launch a broad Plan Completion Workflow campaign.
+
+## Selected reopening
+
+A completed planned-payment workflow produced a real backing mismatch because the actual payment and execution-envelope consumption were separate manual actions. The narrow selected response is `ENVELOPE_EVENT_LINKAGE_AUTOMATION_PLAN-2026-07-14.md`.
+
+This reopening covers only a confirmation-gated, idempotent plan-completion budget companion and retry path. It does not reopen replenishment rules, metadata inheritance, generic multi-file transactions, or ordinary-income automation.
 
 ## Remaining design questions
 
