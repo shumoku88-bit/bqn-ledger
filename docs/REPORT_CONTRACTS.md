@@ -19,11 +19,14 @@ For current `src_next` behavior, use these in order:
 4. `src_next/summary.bqn` — current machine-readable compact summary fields.
 5. `docs/REPORT_SECTION_CONTRACT_CHECKLIST.md` — checklist for section identity, data ownership, empty-state/status behavior, labels, machine output, and fixture coverage.
 6. `docs/archive/active-plans/REPORT_SECTION_STATUS_POLICY.md` — `OK / WARN / ERROR / SKIPPED / UNAVAILABLE` status vocabulary and partial implementation policy.
-7. Fixture checks under `checks/check-src-next-*.sh` and BQN unit tests under `tests/test_src_next_*.bqn` — executable contracts.
+7. `docs/TIME_AS_AXIS.md` — canonical temporal vocabulary and non-equivalences.
+8. `docs/DAILY_TREND_TEMPORAL_CURRENT.md` — compact current Daily Trend temporal contract.
+9. `docs/OUTLOOK_TEMPORAL_CURRENT.md` — compact current Outlook temporal contract.
+10. Fixture checks under `checks/check-src-next-*.sh` and BQN unit tests under `tests/test_src_next_*.bqn` — executable contracts.
 
 ## Current section list
 
-Daily Trend has a characterized but unresolved temporal meaning for historical rows. See `docs/DAILY_TREND_TEMPORAL_SEMANTICS.md`; this note does not change current runtime behavior.
+Daily Trend currently uses current-source coordinate replay with row observation `O_row = D`; it does not claim historical knowledge replay. Outlook has a separate explicit observation contract. Use the two compact current routes above instead of reconstructing current behavior from archived implementation decisions.
 
 As of this note, `tools/report --list-sections` reports these section keys:
 
