@@ -23,7 +23,24 @@ text ← outlook.Format vm
 human ← outlook.FormatHuman vm
 1 lib.AssertEq ∨´ "== Outlook Dashboard =="⍷human
 1 lib.AssertEq ∨´ "使える可用資金"⍷human
+1 lib.AssertEq ∨´ " 〜 "⍷human
+1 lib.AssertEq ∨´ "  ─────────────────────────────"⍷human
 0 lib.AssertEq ∨´ "可用資金 (安全/保守)"⍷human
+
+mock_vm ← {
+  days_left ⇐ 6,
+  cycle_start ⇐ "2026-01-01",
+  cycle_end_exclusive ⇐ "2026-01-09",
+  as_of ⇐ "2026-01-04",
+  liq_total ⇐ 1000,
+  planned_future_income ⇐ 0,
+  fixed_reserve ⇐ 0,
+  liq_daily ⇐ 166,
+  budget_breakdown ⇐ ⟨⟨"daily", 600, 100⟩⟩
+}
+mock_human ← outlook.FormatHuman mock_vm
+1 lib.AssertEq ∨´ "サイクル: 2026-01-01 〜 2026-01-09  (残 6 日)"⍷mock_human
+1 lib.AssertEq ∨´ "  envelope | remaining | /day"⍷mock_human
 
 anchor_ctx ← ctx_mod.BuildContext "fixtures/src-next-anchor-unmet"
 anchor_vm ← outlook.Build anchor_ctx

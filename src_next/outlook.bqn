@@ -333,7 +333,7 @@ Format ← {𝕊 vm:
 FormatHuman ← {𝕊 vm:
   days_left ← vm.days_left
   out ← (L "outlook.section_title") ∾ (@+10) ∾ (@+10)
-  out ↩ out ∾ (L "outlook.cycle_label") ∾ vm.cycle_start ∾ " 〜 " ∾ vm.cycle_end_exclusive ∾ (L "outlook.remaining_open") ∾ (•Fmt days_left) ∾ (L "outlook.remaining_close") ∾ (@+10)
+  out ↩ out ∾ (L "outlook.cycle_label") ∾ vm.cycle_start ∾ " " ∾ (L "outlook.range_separator") ∾ " " ∾ vm.cycle_end_exclusive ∾ (L "outlook.remaining_open") ∾ (•Fmt days_left) ∾ (L "outlook.remaining_close") ∾ (@+10)
   out ↩ out ∾ (L "outlook.as_of_label") ∾ vm.as_of ∾ (@+10) ∾ (@+10)
 
   AlignR ← {𝕊 w‿x:
@@ -343,30 +343,35 @@ FormatHuman ← {𝕊 vm:
 
   out ↩ out ∾ (L "outlook.daily_title") ∾ (@+10)
   out ↩ out ∾ (L "outlook.liquid_label") ∾ (AlignR ⟨10, vm.liq_total⟩) ∾ (@+10)
-  
+
   inc_str ← (vm.planned_future_income ≠ 0) ⊑ (L "outlook.future_none")‿("+ " ∾ (•Fmt vm.planned_future_income))
   out ↩ out ∾ (L "outlook.future_income_label") ∾ (AlignR ⟨10, inc_str⟩) ∾ (@+10)
-  
+
   exp_str ← (vm.fixed_reserve ≠ 0) ⊑ (L "outlook.expense_none")‿("-" ∾ (•Fmt vm.fixed_reserve))
   out ↩ out ∾ (L "outlook.future_expense_label") ∾ (AlignR ⟨10, exp_str⟩) ∾ (@+10)
-  out ↩ out ∾ "  ─────────────────────────────" ∾ (@+10)
-  
+  out ↩ out ∾ "  " ∾ (L "outlook.daily_separator") ∾ (@+10)
+
   liq_basis ← vm.liq_total + vm.planned_future_income - vm.fixed_reserve
   out ↩ out ∾ (L "outlook.using_liquid_label") ∾ (AlignR ⟨8, liq_basis⟩) ∾ "  ÷ " ∾ (•Fmt days_left) ∾ (L "outlook.days_suffix") ∾ (•Fmt vm.liq_daily) ∾ (L "outlook.per_day_suffix") ∾ (@+10)
 
   # Envelope breakdown section
   {𝕊:
     out ↩ out ∾ (@+10) ∾ (L "outlook.envelope_title") ∾ (@+10)
-    max_w ← ⌈´ ⟨8⟩ ∾ (fmt.VWidth¨ {0⊑𝕩}¨ vm.budget_breakdown)
-    hdr_pad ← (max_w - 8) ⥊ " "
-    out ↩ out ∾ "  envelope" ∾ hdr_pad ∾ " | remaining | /day" ∾ (@+10)
-    
+    name_header ← L "outlook.envelope_name_header"
+    remaining_header ← L "outlook.envelope_remaining_header"
+    per_day_header ← L "outlook.envelope_per_day_header"
+    column_separator ← " " ∾ (L "outlook.envelope_column_separator") ∾ " "
+    name_header_width ← fmt.VWidth name_header
+    max_w ← ⌈´ ⟨name_header_width⟩ ∾ (fmt.VWidth¨ {0⊑𝕩}¨ vm.budget_breakdown)
+    hdr_pad ← (max_w - name_header_width) ⥊ " "
+    out ↩ out ∾ "  " ∾ name_header ∾ hdr_pad ∾ column_separator ∾ remaining_header ∾ column_separator ∾ per_day_header ∾ (@+10)
+
     RenderEnvRow ← {
       label ← 0⊑𝕩 ⋄ remaining ← 1⊑𝕩 ⋄ daily ← 2⊑𝕩
       name_cell ← fmt.PadV ⟨max_w, label⟩
       rem_cell ← AlignR ⟨9, remaining⟩
       day_cell ← AlignR ⟨5, daily⟩
-      out ↩ out ∾ "  " ∾ name_cell ∾ " | " ∾ rem_cell ∾ " | " ∾ day_cell ∾ (@+10)
+      out ↩ out ∾ "  " ∾ name_cell ∾ column_separator ∾ rem_cell ∾ column_separator ∾ day_cell ∾ (@+10)
     }
     RenderEnvRow¨ vm.budget_breakdown
   }⍟(0 < ≠ vm.budget_breakdown) @

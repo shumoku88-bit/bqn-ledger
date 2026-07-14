@@ -65,6 +65,12 @@ outlook.per_day_suffix	 /日
 outlook.days_suffix	日 = 
 outlook.remaining_open	  (残 
 outlook.remaining_close	 日)
+outlook.range_separator	〜
+outlook.daily_separator	─────────────────────────────
+outlook.envelope_name_header	envelope
+outlook.envelope_remaining_header	remaining
+outlook.envelope_per_day_header	/day
+outlook.envelope_column_separator	|
 recent.section_title	7. 直近の取引 (Recent Journal)
 recent.date_header	Date
 recent.from_header	From
@@ -117,4 +123,3 @@ daily.cycle_label	サイクル:
 daily.current_suffix	  (現在 
 daily.current_days_suffix	 日残)
 report.issues_title	== Issues & Decisions ==
-
