@@ -9,44 +9,36 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-14 — Israel predeparture real-account readiness is complete. No follow-on Israel implementation or configurable-ledger slice is selected; friend finalization candidate 6, strict-source Steps 2–5, M4, and other implementation candidates remain unselected.
+Last hygiene pass: 2026-07-14 — Israel predeparture real-account readiness and the config ownership inventory are complete. No follow-on Israel implementation or next configurable-ledger slice is selected; the privacy-safe AI context-bundle contract is the next routed candidate only, while friend finalization candidate 6, strict-source Steps 2–5, M4, and other implementation candidates remain unselected.
 
 ---
 
 ## Active work
 
-### Israel predeparture real-account readiness
-
-Status: completed operational preparation. Editor implementation and the integrated synthetic capture rehearsal are recorded in `docs/archive/completed-plans/ISRAEL_PREDEPARTURE_EDITOR_CAPTURE_COMPLETION-2026-07-13.md`; the production readiness check below completed on 2026-07-14 without writing travel events or ordinary journal rows.
-
-- [x] Read-only確認とsafe editorにより、次の実運用経路のaccount role / currencyを確認した: JPY交換元asset、ILS現金asset、JPYデビット支払元asset、ILS Wise asset、ILS支出expense、既存JPY支出expense、friend pending source path。
-- [x] Exchange、ILS現金、Wise、JPYデビット、friend pendingの5経路がsynthetic `--dry-run`に成功した。
-- [x] private account名、金額、実データpathをpublic repoへ記録せず、synthetic eventも書き込まなかった。
-- [x] runtime、source schema、friend finalization、router、cash view、M4、strict-source Steps 2–5を開始しなかった。
-
-Completion note: account preparation used only explicit human decisions and the safe editor. JPY debit is asset → existing JPY expense, Wise is ILS asset → ILS expense, and friend-paid observations remain pending events outside the ordinary journal. No follow-on work is selected.
-
 The latest AI working feedback record was completed by PR #227 and is an evidence input only; it is not an automatic implementation queue.
 
 ### Configurable AI-assisted household ledger and report
 
-Status: selected highest-priority development direction. The docs-only foundation synthesis and PR #219 dependency are complete; no next program slice is selected.
+Status: selected highest-priority development direction. The docs-only foundation synthesis, PR #219 dependency, and config ownership inventory are complete; no next program slice is selected.
 
 Purpose: keep human-readable TSV and configuration as source truth; make user-specific currencies, accounts, life cycles, classifications, budget policy, presentation, and privacy boundaries configurable when they truly belong to configuration; let BQN generate evidence-bearing derived data and reports; and keep AI as an explanatory/proposal partner whose accepted changes pass through human judgment and the existing safe editor.
 
-Completed foundation slice: **Configurable AI-assisted ledger foundation synthesis**. Current routing map: `docs/archive/active-plans/CONFIGURABLE_AI_ASSISTED_LEDGER_FOUNDATION-2026-07-13.md`.
+Completed foundation slices:
+
+- **Configurable AI-assisted ledger foundation synthesis**. Current routing map: `docs/archive/active-plans/CONFIGURABLE_AI_ASSISTED_LEDGER_FOUNDATION-2026-07-13.md`.
+- **Config ownership inventory**. Completion record: `docs/archive/completed-plans/CONFIG_OWNERSHIP_INVENTORY-2026-07-14.md`.
 
 Routing order after readiness and the completed feedback evidence:
 
 1. PR #219 built-in currency policy integration — completed and recorded in `docs/archive/TODO_HISTORY-2026-07-13.md`;
 2. foundation synthesis docs — completed by PR #228;
-3. config ownership inventory;
+3. config ownership inventory — completed by `docs/archive/completed-plans/CONFIG_OWNERSHIP_INVENTORY-2026-07-14.md`;
 4. privacy-safe AI context-bundle contract;
 5. one read-only AI consultation report;
 6. safe proposal-to-editor handoff;
 7. PR #211 Ledger Observatory synthetic evidence-trace connection last.
 
-Rows 3–7 are routing candidates only and no next program slice is selected. Feedback entries do not authorize work. Candidate 6, strict-source Steps 2–5, M4, Projection Workbench, Currency axis, FX/valuation, broad report rewrites, automatic advice/TODOs/writes, and private production-data access remain unselected.
+Rows 4–7 are routing candidates only and no next program slice is selected. Feedback entries do not authorize work. Candidate 6, strict-source Steps 2–5, M4, Projection Workbench, Currency axis, FX/valuation, broad report rewrites, automatic advice/TODOs/writes, and private production-data access remain unselected.
 
 ## Next candidates
 
@@ -160,6 +152,7 @@ Recurring review prompts:
 
 Current baseline:
 - A4 config resolution workstream is `complete enough for now`
+- config ownership inventory is complete; it does not authorize key-by-key migration
 - remaining config questions are independent future problems, not an automatic key-by-key migration
 
 Recurring review prompts:
