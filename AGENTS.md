@@ -1,6 +1,8 @@
 # AGENTS.md
 
-このリポジトリの作業入口です。
+このリポジトリの開発・保守作業入口です。
+
+新しく clone した利用者の初期導入を支援する AI は、maintainer 向けのこの手順から始めず、まず `docs/AI_ASSISTED_ADOPTION_GUIDE.md` を読んでください。利用者固有の設定と private data は、public repository の保守規則へ混ぜません。
 
 ## pit 初回到着時の手順
 
@@ -30,13 +32,15 @@
 | 作業の種類 | 読むもの |
 |---|---|
 | **封筒・予算の計算変更** | `docs/ARCHITECTURE.md`, `docs/CANONICAL_DAILY_CUBE.md` |
-| **レポートの出力変更** | `src_next/report.bqn`, 該当 `src_next/*.bqn`, `docs/AI_CODEMAP.md` |
+| **レポートの出力変更** | `src_next/report.bqn`, 該当 `src_next/*.bqn`, `docs/REPORT_CONTRACTS.md`, `docs/AI_CODEMAP.md` |
+| **時間・Daily Trend・Outlookの変更** | `docs/TIME_AS_AXIS.md`, `docs/DAILY_TREND_TEMPORAL_CURRENT.md`, `docs/OUTLOOK_TEMPORAL_CURRENT.md`, 必要な場合のみ `docs/DAILY_TREND_TEMPORAL_DEPENDENCY_MAP.md` |
 | **家計相談（封筒ペース・節約）** | `docs/archive/active-plans/AI_BUDGET_CALCULATOR_DESIGN.md`, `tools/envelope-calc --help` |
+| **新規利用者の導入支援** | `docs/AI_ASSISTED_ADOPTION_GUIDE.md` |
 | **設定駆動化** | `docs/archive/completed-plans/GENERALIZATION_TODO.md` |
 | **Go source TSV editor (退役)** | `docs/archive/completed-plans/GO_SOURCE_TSV_EDITOR_DESIGN.md`（現在Go退役済み）, `docs/archive/active-plans/GO_EDITOR_NEXT_PLAN.md`（historical） |
 | **複数ポスティング** | `docs/archive/completed-plans/DECISION_MULTI_POSTING_INVESTIGATION.md` |
 | **AI効率化・開発体験改善** | `docs/archive/active-plans/AI_WORKING_FEEDBACK_LOG.md`, `docs/archive/completed-plans/DECISION_AI_DEVELOPMENT_EFFICIENCY_PROPOSALS.md` |
-| **docs整理** | `docs/archive/completed-plans/DOCS_HYGIENE_AUDIT-2026-06-22.md` |
+| **docs整理** | `docs/README.md`, `docs/DOCS_LIFECYCLE_CONTRACT.md`; 過去auditは必要な調査時だけ |
 | **TODO整理・外部監査再評価** | `docs/archive/audits/EXTERNAL_STATIC_AUDIT_REASSESSMENT_SOURCE-2026-07-11.md`, `docs/DOCS_LIFECYCLE_CONTRACT.md` |
 | **ANSIカラー制御** | `docs/archive/active-plans/DECISION_TERMINAL_COLOR_CONFIG.md` |
 | **devtoolsの使い方** | このファイル末尾の「AI開発ツール（devtools）の使い方」 |
@@ -55,21 +59,24 @@
 
 ## 作業開始時の確認
 
-mokoから大きめの作業相談が来たら、まず次のどれを進める話か確認する。
+ユーザーから大きめの作業相談が来たら、まず次のどれを進める話か確認する。
 
 1. 通常TODO / active plan（`TODO.md`, `docs/ENGINEERING_ROADMAP.md`, `docs/archive/completed-plans/GENERALIZATION_TODO.md`）
 2. Safety Profile / fail closed / invariant 強化（`docs/SAFETY_PROFILE.md`）
-3. docs整理 / archive候補の移動（`docs/archive/completed-plans/DOCS_HYGIENE_AUDIT-2026-06-22.md`）
+3. docs整理 / archive候補の移動（`docs/README.md`, `docs/DOCS_LIFECYCLE_CONTRACT.md`）
 4. Go source TSV editor 設計（退役・historical。設計案は `docs/archive/completed-plans/GO_SOURCE_TSV_EDITOR_DESIGN.md` / `docs/archive/active-plans/GO_EDITOR_NEXT_PLAN.md` に残るが、現在Go自体が退役済み）
 5. 複数ポスティング導入のA-1実装準備（`docs/archive/completed-plans/DECISION_MULTI_POSTING_INVESTIGATION.md`）
 6. アプリ操作導線設計（現行入口は `tools/bl` / 履歴は `docs/archive/completed-plans/COMMAND_HUB_DESIGN.md`）
+7. 新規利用者の導入支援（`docs/AI_ASSISTED_ADOPTION_GUIDE.md`。maintainer作業と混ぜない）
 
 Go は退役済みであり、現在 Go editor 関連の新規実装・稼働は行いません。
 複数ポスティングは、本体ではA-1を採用し、A-2は余地を残し、A-3は別repo/フォークで研究する方針とする。
 アプリ外装は、BQN editor の責務を奪わず、表示・選択・入力補助・ナビゲーションに徹する。
 Quality Bar は、一般向けプロダクト化ではなく、自分の生活会計を預ける道具としての品質を優先するための判断基準として扱う。
 Safety Profile は、便利さよりも「変な入力で、きれいな間違いを出さない」ことを優先する作業として扱う。
-Docs整理では、いきなり削除せず、まず archive 候補・superseded 候補を台帳化し、小さなコミットで移動する。
+Docs整理では、いきなり削除せず、まず current route、incoming link、lifecycle metadata、archive先を確認し、小さなコミットで移動する。
+Current routing docs は archived decision record より優先する。archive や superseded stub を、新しいruntime sliceの実装指示として扱わない。
+
 ## 境界削減の不変条件 (Seam Reduction Invariants)
 
 1. **言語数を減らすことを目的にしない。**
@@ -89,7 +96,7 @@ Docs整理では、いきなり削除せず、まず archive 候補・superseded
 
 ## 作業ルール
 
-- AIは、実データ TSV（base directory 配下の `journal.tsv`, `plan.tsv`, `budget_alloc.tsv`, `accounts.tsv`。例: `LEDGER_DATA_DIR=moko/data`）を絶対に直接編集・新規作成・削除してはならない。公開 repo の `data/` は匿名 sandbox だが、実データと同じ schema のため無用な変更は避ける。特に実運用 `journal.tsv` を含むこれら正本データへの書き込み操作は、AIのいかなる手段（sed, echo, overwrite, 追記等）を用いても厳禁とする。AIができるのは、あくまで「人間への編集依頼案（diffの提示）」の作成までである。ただしmokoから明示的に指示をされた場合は編集できるものとする。
+- AIは、実データ TSV（base directory 配下の `journal.tsv`, `plan.tsv`, `budget_alloc.tsv`, `accounts.tsv`。例: `LEDGER_DATA_DIR=moko/data`）を絶対に直接編集・新規作成・削除してはならない。公開 repo の `data/` は匿名 sandbox だが、実データと同じ schema のため無用な変更は避ける。特に実運用 `journal.tsv` を含むこれら正本データへの書き込み操作は、AIのいかなる手段（sed, echo, overwrite, 追記等）を用いても厳禁とする。AIができるのは、あくまで「人間への編集依頼案（diffの提示）」の作成までである。ただしユーザーから明示的に指示をされた場合は編集できるものとする。
 - 変更は小さく、1目的ずつ。
 - 初回 push / PR 前に一度、intended scope と actual proposed diff を突き合わせる。changed filenames と、状態に応じた working tree / staged / intended base...HEAD の full diff（既コミット分を含む）を見て、無関係な追加・削除・復元漏れ、scope leakage、semantic side effect を確認する。これは短い human/pit self-review であり、lint / parser / CI gate / permanent form / metrics service にしない。
 - 外部 audit snapshot / classification / backlog は実装指示ではない。current `main` で再検証し、元の優先順位を `TODO.md` へコピーせず、昇格する場合も一度に一つの finite candidate に絞る。
@@ -99,22 +106,21 @@ Docs整理では、いきなり削除せず、まず archive 候補・superseded
 - 封筒、トレンド、サイクルの境界に関わる変更では、`tools/check-tx-updates.bqn` だけでなく、個別の境界テスト（fixture）の追加を検討すること。
 - BQNの純粋関数（モジュール内の関数など）を追加・修正した場合は、必ず `tests/` ディレクトリに単体テスト（`test_*.bqn`）を追加・更新して動作確認を行うこと。
 - 拡張列（メタデータ）のキーや許容値を増やす場合は、必ず `config/meta_schema.tsv` と `docs/JOURNAL_META.md` を更新してから実装すること。
-- 生活上のルールや日付（給料日、サイクル基準日など）は BQN コード内にハードコード（マジックナンバー化）せず、`config/meta_schema.tsv`、`cycle.tsv`、または `accounts.tsv` のメタデータとして設定ファイルに追い出すこと。
+- 生活上のルールや日付（給料日、サイクル基準日など）は BQN コードや public `AGENTS.md` に利用者共通ルールとしてハードコードせず、利用者の private data、`cycle.tsv`、`accounts.tsv`、または明示的な設定へ置くこと。特定利用者の収入周期や固定費規則を他の clone 利用者へ推測適用しない。
 - 設定駆動化を進める場合は `docs/archive/completed-plans/GENERALIZATION_TODO.md` のPhase順と境界を守ること。Canonical Daily Cubeのshape・Layer契約は利用者設定にせず、異なる座標や意味は同じEvent IRから別projection/viewとして作ること。
-- `role=`移行では実データ `accounts.tsv` を先に変更しない。明示role・Prefix fallbackの契約とfixtureを先に作り、実データ移行はmoko確認後の別Phaseで行うこと.
+- `role=`移行では実データ `accounts.tsv` を先に変更しない。明示role・Prefix fallbackの契約とfixtureを先に作り、実データ移行はユーザー確認後の別Phaseで行うこと。
 - 新しい計算・表示は原則 `src_next/` 配下のモジュールを使う。
 - base directory 配下の `journal.tsv` / `plan.tsv` / `budget_alloc.tsv` / `accounts.tsv` が正データであり、それ以外は派生であることを忘れないこと。公開 repo の `data/` は sandbox、実運用は `LEDGER_DATA_DIR` を優先する。個人的な非公開メモや検証ログは root の `private/` ではなく gitignore 済みの `moko/private/` に寄せる。
 - Safety Profile に関わる変更では、黙って補正するより、error / warning / skipped / unavailable として明示する方を優先すること。
 - docs整理では、現行仕様と履歴メモを混ぜない。完了済み計画は `docs/archive/completed-plans/` へ移す候補として扱い、移動前に導線を確認すること。
-- **生活のルール（AI用更新ガイドライン）**: 実運用 base directory の `plan.tsv` を更新する際は、年金が「偶数月の隔月支給」であること、および家賃・光熱費等の固定費が「年金支給日に連動する（`anchor=income:年金`）」ことを必ず考慮し、奇数月への誤ったロールオーバーを防ぐこと。詳細は `GEMINI.md` を参照。
 - 仕様変更時は docs も更新する。
 - `TODO.md` の current Active work finite slice を終える変更では、同じ PR で TODO の routing も更新する。難しい場合は completed work を Active のまま残さず、明示的な routing follow-up を置く。
 - 変更後は可能なら `./tools/check.sh` を実行する。pit環境では通常 `rtk bash ./tools/check.sh` を使う。**新しい BQN モジュールや check スクリプトを追加した場合は、`check.sh` に含まれる `devtools-check.sh` が repo-index の未索引を検出するので、`./tools/repo-index --baseline` で更新すること。**
-- mokoが他AI（DeepSeek, Gemini, Codex, pi agent 等）へ渡す作業指示書を作る場合は、明示的に local-only / no-push と指定されない限り、作業範囲に `git status`、必要なチェック、`git add`、`git commit`、`git push` までを含める。push後は commit hash と実行したチェック結果を報告させる。
-- `pi agent` や `gemini` CLI などのAI（pit）環境では、出力が長くなりそうなコマンド（git/npm/test等）はトークン節約のため `rtk` または `sqz` を使うこと。任意コマンドの前置きには原則 `rtk` を使う（例: `rtk git diff`, `rtk bash ./tools/check.sh`）。この環境の `sqz` は stdin 圧縮型なので、使う場合は `some-command 2>&1 | sqz compress --cmd <name>` の形にする。
+- ユーザーが他AI（DeepSeek, Gemini, Codex, pi agent 等）へ渡す作業指示書を作る場合は、明示的に local-only / no-push と指定されない限り、作業範囲に `git status`、必要なチェック、`git add`、`git commit`、`git push` までを含める。push後は commit hash と実行したチェック結果を報告させる。
+- `pi agent` や `gemini` CLI などのAI（pit）環境では、出力が長くなりそうなコマンド（git/npm/test等）はトークン節約のため `rtk` または `sqz` を使うこと。任意コマンドの前置きには原則 `rtk` を使う（例: `rtk git diff`, `rtk bash ./tools/check.sh`）。この環境の `sqz` は stdin圧縮型なので、使う場合は `some-command 2>&1 | sqz compress --cmd <name>` の形にする。
 - AIの作業効率化、デバッグツール、または開発体験の改善に関する相談や作業を行う際は、必ず `docs/archive/active-plans/AI_WORKING_FEEDBACK_LOG.md` と `docs/archive/completed-plans/DECISION_AI_DEVELOPMENT_EFFICIENCY_PROPOSALS.md` をロードすること。作業中に得た小さな改善案は必要に応じて feedback log へ追記し、溜まったらレビューしてツール化・ルール化・不採用を判断する。
 - **UIツールの責務分離**: レポート表示系の機能は `tools/main-ui.sh` に追加する。ファイル操作系（仕訳追加・取消・予定管理など）の機能は `tools/add-ui.sh` に追加する。両者の責務を混ぜないこと。
-- **作業完了時の実データ確認ルール**: AIは作業の完了報告時にレポートの表示結果等を提示する際、公開 sandbox (`data/`) ではなく、**常にユーザーの実運用データ (`LEDGER_DATA_DIR` が指す実データ。設定がない場合は `moko/data/`)** を使用してコマンドを実行・表示すること。報告の中にダミーデータ（架空）のレポート内容を含めてはならない。また、`tools/add-ui.sh` などの編集ツールも、一時的なテスト用設定等で汚染したままにせず、常にユーザーの実運用データに対して安全に即座に編集・稼働できる状態で引き渡して作業完了とすること。
+- **作業完了時の検証とprivate-data境界**: 完了確認は公開fixture / sandboxを既定とする。実運用 `LEDGER_DATA_DIR` に対する確認は、ユーザーが明示的に依頼した場合だけread-onlyで行い、正本TSVを変更しない。privateな行、金額、口座名、report本文をpublic PR・issue・commit・チャットへ貼らず、実行したcheck、構造的な結果、必要なredactionだけを報告する。実データ確認を行っていない場合は、production validation済みと主張しない。
 
 ## AI開発ツール（devtools）の使い方
 
