@@ -5,3 +5,4 @@ BUDGET_PREFIX	budget:
 BUDGET_ID_OPENING	budget:opening
 BUDGET_ID_UNASSIGNED	budget:unassigned
 BUDGET_ID_SPENT	budget:spent
+POLICY_BUDGET_STYLE	envelope

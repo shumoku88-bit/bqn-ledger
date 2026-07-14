@@ -34,6 +34,20 @@ budget_alloc.tsv
 config.tsv
 ```
 
+For a new ledger, `config.tsv` must explicitly choose the budget policy instead of relying on the repository compatibility fallback:
+
+```text
+POLICY_BUDGET_STYLE=envelope
+```
+
+or:
+
+```text
+POLICY_BUDGET_STYLE=none
+```
+
+Choose `envelope` only when the ledger owner wants to use or try envelope-oriented policy, reports, and diagnostics. Choose `none` when envelope policy is not used. Missing is not a third choice. The current missing-key `envelope` fallback exists temporarily for older ledgers and fixtures.
+
 The base directory is resolved in this order:
 
 1. `LEDGER_DATA_DIR`, if set
