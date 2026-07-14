@@ -5,7 +5,7 @@
 # - DEFAULT_CURRENCY selects an initial view only.
 # - It never supplies missing source currency.
 # - Built-in currency policy owns admission and lexical precision metadata.
-# - This module performs no file I/O and no writes.
+# - This module reads the registry file on import but performs no writes to source TSVs.
 
 util ← •Import "util.bqn"
 loader ← •Import "loader.bqn"
@@ -134,20 +134,14 @@ ResolveSelection ← {𝕊 defaultResult‿explicitCurrency:
   result
 }
 
-LineResult ← {𝕊 stateValue‿classificationValue‿rowIndex‿originalLine‿proposedLine‿currencyValue‿messageValue:
-  {
-    state ⇐ stateValue,
-    classification ⇐ classificationValue,
+AuditLine ← {𝕊 fileName‿kind‿rowIndex‿line:
+  result ← {
+    state ⇐ "ok",
+    classification ⇐ "ignored",
     source_row ⇐ rowIndex,
-    original_line ⇐ originalLine,
-    proposed_line ⇐ proposedLine,
-    currency ⇐ currencyValue,
-    message ⇐ messageValue
+    original_line ⇐ line,
+    message ⇐ ""
   }
-}
-
-AuditLine ← {𝕊 fileName‿kind‿rowIndex‿line‿targetCurrency:
-  result ← LineResult ⟨"ok", "ignored", rowIndex, line, line, "", ""⟩
 
   {𝕊:
     fields ← tab util.SplitKeepEmpty line
@@ -155,7 +149,13 @@ AuditLine ← {𝕊 fileName‿kind‿rowIndex‿line‿targetCurrency:
     structurallyValid ← (minFields ≤ ≠ fields) ∧ ((kind ≢ "accounts") ∨ (0 < ≠ ⊑ fields))
 
     {𝕊:
-      result ↩ LineResult ⟨"error", "invalid_structure", rowIndex, line, line, "", fileName ∾ " row " ∾ (•Fmt rowIndex) ∾ ": invalid source structure"⟩
+      result ↩ {
+        state ⇐ "error",
+        classification ⇐ "invalid_structure",
+        source_row ⇐ rowIndex,
+        original_line ⇐ line,
+        message ⇐ fileName ∾ " row " ∾ (•Fmt rowIndex) ∾ ": invalid source structure"
+      }
     } ⍟ (¬ structurallyValid) @
 
     {𝕊:
@@ -165,18 +165,42 @@ AuditLine ← {𝕊 fileName‿kind‿rowIndex‿line‿targetCurrency:
       tokenCount ← ≠ currencyTokens
 
       {𝕊:
-        result ↩ LineResult ⟨"ok", "missing", rowIndex, line, line ∾ tab ∾ "currency=" ∾ targetCurrency, targetCurrency, ""⟩
+        result ↩ {
+          state ⇐ "ok",
+          classification ⇐ "missing",
+          source_row ⇐ rowIndex,
+          original_line ⇐ line,
+          message ⇐ ""
+        }
       } ⍟ (0 = tokenCount) @
 
       {𝕊:
-        result ↩ LineResult ⟨"error", "duplicate", rowIndex, line, line, "", fileName ∾ " row " ∾ (•Fmt rowIndex) ∾ ": duplicate currency metadata"⟩
+        result ↩ {
+          state ⇐ "error",
+          classification ⇐ "duplicate",
+          source_row ⇐ rowIndex,
+          original_line ⇐ line,
+          message ⇐ fileName ∾ " row " ∾ (•Fmt rowIndex) ∾ ": duplicate currency metadata"
+        }
       } ⍟ (1 < tokenCount) @
 
       {𝕊:
         currencyValue ← 9 ↓ ⊑ currencyTokens
-        result ↩ LineResult ⟨"error", "unknown", rowIndex, line, line, currencyValue, fileName ∾ " row " ∾ (•Fmt rowIndex) ∾ ": unsupported currency: " ∾ currencyValue⟩
+        result ↩ {
+          state ⇐ "error",
+          classification ⇐ "unknown",
+          source_row ⇐ rowIndex,
+          original_line ⇐ line,
+          message ⇐ fileName ∾ " row " ∾ (•Fmt rowIndex) ∾ ": unsupported currency: " ∾ currencyValue
+        }
         {𝕊:
-          result ↩ LineResult ⟨"ok", "explicit", rowIndex, line, line, currencyValue, ""⟩
+          result ↩ {
+            state ⇐ "ok",
+            classification ⇐ "explicit",
+            source_row ⇐ rowIndex,
+            original_line ⇐ line,
+            message ⇐ ""
+          }
         } ⍟ (IsSupportedCurrency currencyValue) @
       } ⍟ (1 = tokenCount) @
     } ⍟ structurallyValid @
@@ -185,31 +209,17 @@ AuditLine ← {𝕊 fileName‿kind‿rowIndex‿line‿targetCurrency:
   result
 }
 
-AuditFile ← {𝕊 fileName‿kind‿lines‿targetCurrency:
+AuditFile ← {𝕊 fileName‿kind‿lines‿unusedTargetCurrency:
   rows ← {𝕊 index:
-    AuditLine ⟨fileName, kind, index, index ⊑ lines, targetCurrency⟩
+    AuditLine ⟨fileName, kind, index, index ⊑ lines⟩
   }¨ ↕ ≠ lines
 
   errorCount ← +´ { 𝕩.state ≢ "ok" }¨ rows
-  missingCount ← +´ { 𝕩.classification ≡ "missing" }¨ rows
-  explicitCount ← +´ { 𝕩.classification ≡ "explicit" }¨ rows
-  ignoredCount ← +´ { 𝕩.classification ≡ "ignored" }¨ rows
-  proposedLines ← empty
-  {𝕊: proposedLines ↩ {𝕩.proposed_line}¨ rows } ⍟ (0 = errorCount) @
   stateValue ← (0 = errorCount) ⊑ "error"‿"ok"
 
   {
     state ⇐ stateValue,
-    file_name ⇐ fileName,
-    kind ⇐ kind,
-    target_currency ⇐ targetCurrency,
-    rows ⇐ rows,
-    proposed_lines ⇐ proposedLines,
-    missing_count ⇐ missingCount,
-    explicit_count ⇐ explicitCount,
-    ignored_count ⇐ ignoredCount,
-    error_count ⇐ errorCount,
-    changed_count ⇐ missingCount
+    rows ⇐ rows
   }
 }
 

@@ -91,47 +91,36 @@ unsupportedSelection ← setup.ResolveSelection ⟨defaultResult, "EUR"⟩
 # AuditFile / AuditLine tests (used by balances etc.)
 accountsFile ← setup.AuditFile ⟨"accounts.tsv", "accounts", accountLines, "JPY"⟩
 "ok" lib.AssertEq accountsFile.state
-2 lib.AssertEq accountsFile.missing_count
-2 lib.AssertEq accountsFile.explicit_count
-0 lib.AssertEq accountsFile.error_count
 
 journalFile ← setup.AuditFile ⟨"journal.tsv", "journal", journalLines, "JPY"⟩
 "ok" lib.AssertEq journalFile.state
-1 lib.AssertEq journalFile.missing_count
-2 lib.AssertEq journalFile.explicit_count
 
-# Exact append-only proposal checked via proposed_lines of AuditFile
-"# account order and metadata must remain exact" lib.AssertEq 0 ⊑ accountsFile.proposed_lines
-("assets:bank" ∾ tab ∾ "role=asset" ∾ tab ∾ "type=liquid" ∾ tab ∾ "currency=JPY") lib.AssertEq 1 ⊑ accountsFile.proposed_lines
-("expenses:food" ∾ tab ∾ "role=expense" ∾ tab ∾ "report_group=food" ∾ tab ∾ "currency=JPY") lib.AssertEq 2 ⊑ accountsFile.proposed_lines
-"" lib.AssertEq 3 ⊑ accountsFile.proposed_lines
-(4 ⊑ accountLines) lib.AssertEq 4 ⊑ accountsFile.proposed_lines
+# Classifications check (missing / explicit / ignored)
+"ignored" lib.AssertEq (0 ⊑ accountsFile.rows).classification
+"missing" lib.AssertEq (1 ⊑ accountsFile.rows).classification
+"missing" lib.AssertEq (2 ⊑ accountsFile.rows).classification
+"ignored" lib.AssertEq (3 ⊑ accountsFile.rows).classification
+"explicit" lib.AssertEq (4 ⊑ accountsFile.rows).classification
 
-journalOriginal ← 1 ⊑ journalLines
-journalProposed ← 1 ⊑ journalFile.proposed_lines
-(journalOriginal ∾ tab ∾ "currency=JPY") lib.AssertEq journalProposed
-originalFields ← tab util.SplitKeepEmpty journalOriginal
-proposedFields ← tab util.SplitKeepEmpty journalProposed
-(5 ↑ originalFields) lib.AssertEq 5 ↑ proposedFields
-"" lib.AssertEq 1 ⊑ originalFields
-"party=shop" lib.AssertEq 5 ⊑ proposedFields
-"currency=JPY" lib.AssertEq 6 ⊑ proposedFields
+"ignored" lib.AssertEq (0 ⊑ journalFile.rows).classification
+"missing" lib.AssertEq (1 ⊑ journalFile.rows).classification
+"explicit" lib.AssertEq (2 ⊑ journalFile.rows).classification
+"explicit" lib.AssertEq (3 ⊑ journalFile.rows).classification
 
-# Existing explicit JPY and ILS rows are byte-identical in the preview.
-(2 ⊑ journalLines) lib.AssertEq 2 ⊑ journalFile.proposed_lines
-(3 ⊑ journalLines) lib.AssertEq 3 ⊑ journalFile.proposed_lines
-
-# Unknown and duplicate row currency fail closed with no proposed replacement.
+# Unknown, duplicate, and invalid structure fail closed
 unknownRow ← "2026-07-01"∾tab∾"x"∾tab∾"assets:bank"∾tab∾"expenses:food"∾tab∾"1"∾tab∾"currency=EUR"
 unknownFile ← setup.AuditFile ⟨"journal.tsv", "journal", ⟨unknownRow⟩, "JPY"⟩
 "error" lib.AssertEq unknownFile.state
-1 lib.AssertEq unknownFile.error_count
-⟨⟩ lib.AssertEq unknownFile.proposed_lines
-"unknown" lib.AssertEq (⊑ unknownFile.rows).classification
+"unknown" lib.AssertEq (0 ⊑ unknownFile.rows).classification
 
 duplicateRow ← unknownRow ∾ tab ∾ "currency=JPY"
 duplicateFile ← setup.AuditFile ⟨"journal.tsv", "journal", ⟨duplicateRow⟩, "JPY"⟩
 "error" lib.AssertEq duplicateFile.state
-"duplicate" lib.AssertEq (⊑ duplicateFile.rows).classification
+"duplicate" lib.AssertEq (0 ⊑ duplicateFile.rows).classification
+
+invalidRow ← "invalid line without tabs"
+invalidFile ← setup.AuditFile ⟨"journal.tsv", "journal", ⟨invalidRow⟩, "JPY"⟩
+"error" lib.AssertEq invalidFile.state
+"invalid_structure" lib.AssertEq (0 ⊑ invalidFile.rows).classification
 
 •Out "test_src_next_currency_setup.bqn: OK"
