@@ -22,6 +22,7 @@ proj ← •Import "projection.bqn"
 cycle ← •Import "cycle.bqn"
 cube ← •Import "cube.bqn"
 tbds ← •Import "tbds.bqn"
+currency_setup ← •Import "currency_setup.bqn"
 
 MakePostingSource ← {𝕊 srcFile‿required‿lines:
   { source_file ⇐ srcFile, required ⇐ required, lines ⇐ lines }
@@ -72,15 +73,12 @@ BuildRowEvidenceForLine ← {𝕊 ⟨srcFile, rowIdx, flds⟩:
     val ← plen ↓ ⊑ hits
     provenance ↩ "explicit"
     {𝕊:
-      resolved_currency ↩ "JPY"
-    } ⍟ (val ≡ "JPY") @
-    {𝕊:
-      resolved_currency ↩ "ILS"
-    } ⍟ (val ≡ "ILS") @
+      resolved_currency ↩ val
+    } ⍟ (currency_setup.IsSupportedCurrency val) @
     {𝕊:
       currency_state ↩ "error"
       err_msg ↩ "unsupported currency: " ∾ val
-    } ⍟ (¬ (∨´ ⟨"JPY", "ILS"⟩ ≡¨ <val)) @
+    } ⍟ (¬ currency_setup.IsSupportedCurrency val) @
   } ⍟ (1 = ≠ hits) @
 
   row_state ← ((currency_state ≡ "ok") ∧ (parsed.state ≡ "ok")) ⊑ "error"‿"ok"

@@ -11,12 +11,12 @@
 ctx ← •Import "context.bqn"
 arith ← •Import "currency_arithmetic.bqn"
 proj ← •Import "projection.bqn"
+setup ← •Import "currency_setup.bqn"
 
 empty ← ⟨⟩
-supportedCurrencies ← ⟨"JPY", "ILS"⟩
 
 IsSupportedCurrency ← {𝕊 currency:
-  ∨´ 0 ∾ (currency⊸≡¨ supportedCurrencies)
+  setup.IsSupportedCurrency currency
 }
 
 MakeDiagnostic ← {𝕊 code‿message:
