@@ -13,7 +13,7 @@ validation and TSV row/edit rendering live in `src_edit/*.bqn`.
 | Group | Commands | Shell owner | BQN owner |
 |---|---|---|---|
 | account | `account add`, `account list` | `tools/edit-bqn` safe append / read-only dispatch | `src_edit/account_add_cmd.bqn`, `src_edit/account_list_cmd.bqn` |
-| journal | `journal add`, `journal list`, `journal reverse` | `tools/edit-bqn` | `src_edit/journal_add_cmd.bqn`, `src_edit/journal_list_cmd.bqn`, `src_edit/journal_reverse_cmd.bqn` |
+| journal | `journal add`, `journal income-budget-sync`, `journal list`, `journal reverse` | `tools/edit-bqn` | `src_edit/journal_add_cmd.bqn`, `src_edit/income_budget_sync_cmd.bqn`, `src_edit/txn_id.bqn`, `src_edit/journal_list_cmd.bqn`, `src_edit/journal_reverse_cmd.bqn` |
 | budget | `budget add` | `tools/edit-bqn` shared journal-like append path | `src_edit/journal_add_cmd.bqn` |
 | plan read | `plan list`, `plan related` | `tools/edit-bqn` read-only dispatch | `src_edit/plan_list_cmd.bqn`, `src_edit/plan_related_cmd.bqn` |
 | plan write | `plan add`, `plan finish`, `plan budget-sync`, `plan edit` | `tools/edit-bqn` | `src_edit/plan_add_cmd.bqn`, `src_edit/plan_finish_cmd.bqn`, `src_edit/plan_budget_sync_cmd.bqn`, `src_edit/plan_edit_cmd.bqn` |

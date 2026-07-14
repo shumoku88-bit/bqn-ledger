@@ -48,15 +48,6 @@ Rows 3–7 are routing candidates only and no next program slice is selected. Fe
 
 ## Next candidates
 
-### Ordinary income-to-unassigned event linkage
-
-Status: unselected follow-up. The completed plan-payment linkage is recorded in `docs/archive/completed-plans/ENVELOPE_EVENT_LINKAGE_AUTOMATION_PLAN-2026-07-14.md`.
-
-- [ ] Require a durable `txn_id` identity contract before proposing budget rows; do not match legacy income by memo/date/amount similarity.
-- [ ] Distinguish ordinary budgetable income from expense refunds and asset transfers in BQN-owned policy.
-- [ ] Reuse confirmation, idempotency, pending visibility, and checked single-file append boundaries from `plan budget-sync`.
-- [ ] Do not start from generic backing-delta balancing or silent automatic writes.
-
 ### Friend travel atomic finalization writer (Israel candidate 6)
 
 Status: unselected / parked candidate. The pure one-row JPY preview is implemented and independently verified; see `docs/archive/active-plans/FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md`.

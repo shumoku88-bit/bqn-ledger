@@ -71,6 +71,7 @@ Exit: revise if the production write-path ownership changes.
 ### Derived append
 - `plan finish`
 - `plan budget-sync`（完了済み `plan_id` に対する確認付き・冪等な execution-envelope companion）
+- `journal income-budget-sync`（明示intentと`txn_id`を持つ通常収入に対する確認付き・冪等なunassigned companion）
 - `journal reverse`
 
 ### Interactive orchestration

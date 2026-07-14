@@ -3,7 +3,7 @@
 Status: completed
 Owner: envelope / editor
 Canonical: no; current policies remain `docs/ENVELOPE_EXECUTION_AND_PLAN_POLICY.md`, `docs/ENVELOPE_FUNDING_BASE_INVARIANT.md`, and `docs/PRODUCTION_EDITOR_DIRECTION.md`
-Exit: archived completion record; ordinary-income linkage must be separately selected through `TODO.md`
+Exit: archived completion record; ordinary-income follow-up is completed in `INCOME_BUDGET_LINKAGE_COMPLETION-2026-07-14.md`
 
 ## Evidence
 
@@ -165,7 +165,7 @@ Completed on 2026-07-14:
 - cancellation/failure remains visible as `BUDGET_SYNC_PENDING`;
 - `checks/check-edit-bqn-plan-budget-sync.sh` covers actual-amount use, dry-run, idempotent retry, unrelated plans, ambiguity, and stale failure followed by retry;
 - current editor/envelope/code-map docs route the operational behavior;
-- ordinary-income linkage remains unselected.
+- ordinary-income linkage was excluded from this slice and later completed separately in `INCOME_BUDGET_LINKAGE_COMPLETION-2026-07-14.md`.
 
 ## Completion criteria
 

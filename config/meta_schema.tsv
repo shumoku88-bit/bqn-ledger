@@ -26,6 +26,7 @@ party	string
 plan_id	string	
 cashflow	enum	fixed_obligation
 currency	enum	JPY|ILS	
+income_budget	enum	unassigned|exclude	journal
 
 # Plan
 recur	enum	monthly|cycle|once	plan

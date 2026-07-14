@@ -1,5 +1,10 @@
 # ADD_UI_USAGE
 
+Status: current operational guide
+Owner: editor / UI
+Canonical: yes
+Exit: revise while `tools/add-ui.sh` remains the daily write UI
+
 `tools/add-ui.sh` は、日常の取引入力用UIです。
 
 fzf / gum / 番号選択で項目を選び、最後の追記だけを BQN editor (`tools/edit`) に委譲します。通常利用では `tools/edit-bqn` と shell safe-write が裏で動きます。
@@ -35,7 +40,7 @@ tools/add-ui.sh --check
 |---|---|---|---|
 | `expense` | 支出 (`assets:` → `expenses:`) | `journal.tsv` | `tools/edit journal add` |
 | `move` | 資金移動 (`assets:` → `assets:`) | `journal.tsv` | `tools/edit journal add` |
-| `income` | 収入 (`income:` → `assets:`) | `journal.tsv` | `tools/edit journal add` |
+| `income` | 収入 (`income:` → `assets:`)。通常収入→未割当連動または除外を選択 | `journal.tsv`、opt-in時`budget_alloc.tsv` | `tools/edit journal add` → `journal income-budget-sync` |
 | `budget` | 予算配賦 (`budget:` → `budget:`) | `budget_alloc.tsv` | `tools/edit budget add` |
 | `plan-add` | 予定の追加 | `plan.tsv` | `tools/edit plan add` |
 | `plan-edit` | 予定の日付・金額修正 | `plan.tsv` | `tools/edit plan edit` |

@@ -35,6 +35,7 @@ usage() {
   cat <<'USAGE' >&2
 Usage:
   tools/edit-bqn [--base DIR] journal add --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount DECIMAL [--currency JPY|ILS] [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
+  tools/edit-bqn [--base DIR] journal income-budget-sync --id TXN_ID [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] budget add  --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount INT [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] plan add --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount INT [--meta key=value ...] [--id plan-YYYY-MM-DD-series] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] issue add [--date YYYY-MM-DD] [--status open|resolved|dropped] --title TITLE [--amount INT] [--memo MEMO] [--dry-run] [--yes] [--post-check none|lint|full]
@@ -176,6 +177,40 @@ if [[ "$1" == "journal" && "$2" == "list" ]]; then
   esac
   cd "$ROOT_DIR" && bqn src_edit/journal_list_cmd.bqn "$BASE_DIR" "$FORMAT"
   exit $?
+fi
+
+if [[ "$1" == "journal" && "$2" == "income-budget-sync" ]]; then
+  shift 2
+  TXN_ID=""; DRY_RUN=0; YES=0; POST_CHECK="lint"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --id) TXN_ID="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --dry-run) DRY_RUN=1; shift ;;
+      --yes) YES=1; shift ;;
+      --post-check) POST_CHECK="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      *) echo "ERROR: unknown journal income-budget-sync argument: $1" >&2; exit 2 ;;
+    esac
+  done
+  [[ -n "$TXN_ID" ]] || { echo "ERROR: missing required option: --id" >&2; exit 2; }
+  edit_bqn_validate_post_check "$POST_CHECK"
+  TARGET_PATH="$BASE_DIR/$BUDGET_ALLOC_FILE"
+  SNAPSHOT_TOKEN="$(safe_snapshot_token "$TARGET_PATH")"
+  IFS=$'\t' read -r SNAP_SIZE SNAP_MTIME SNAP_SHA256 <<< "$SNAPSHOT_TOKEN"
+  BQN_STDERR="$(mktemp)"; trap 'rm -f "$BQN_STDERR"' EXIT
+  if ! BQN_OUT="$(edit_bqn_bqn_capture "$BQN_STDERR" bqn src_edit/income_budget_sync_cmd.bqn "$BASE_DIR" "$TXN_ID")"; then exit 1; fi
+  FIRST_LINE="${BQN_OUT%%$'\n'*}"
+  case "$FIRST_LINE" in
+    $'OK\tAPPLIED\t'*) printf 'Income budget sync already applied: %s\n' "$TXN_ID"; exit 0 ;;
+    $'OK\tNOT_LINKED\t'*) printf 'Income budget sync not linked: %s\n' "$TXN_ID"; exit 0 ;;
+  esac
+  if ! edit_bqn_split_protocol_output "$BQN_OUT"; then exit 1; fi
+  if ! edit_bqn_require_append_protocol "$EDIT_BQN_PROTOCOL_FIRST_LINE" "$BUDGET_ALLOC_FILE"; then exit 1; fi
+  PAYLOAD="$EDIT_BQN_PROTOCOL_PAYLOAD"; MODE="$(edit_bqn_mode "$DRY_RUN" "$YES")"
+  edit_bqn_print_append_preview "Income budget sync" "$TARGET_PATH" "$MODE" "$POST_CHECK" "Budget companion row" "$PAYLOAD"
+  if [[ "$DRY_RUN" -eq 1 ]]; then printf 'Dry-run only. No files were modified.\n'; exit 0; fi
+  if [[ "$YES" -eq 0 ]] && ! confirm_append; then echo 'BUDGET_SYNC_PENDING: no files were modified.'; exit 130; fi
+  edit_bqn_apply_append_checked "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256" EDIT_BQN_TEST_BEFORE_APPEND_HOOK
+  exit 0
 fi
 
 if [[ "$1" == "journal" && "$2" == "reverse" ]]; then
@@ -646,8 +681,13 @@ fi
 FIRST_LINE="$EDIT_BQN_PROTOCOL_FIRST_LINE"
 PAYLOAD="$EDIT_BQN_PROTOCOL_PAYLOAD"
 
-if ! edit_bqn_require_append_protocol "$FIRST_LINE" "$EXPECTED_TARGET_FILE"; then
-  exit 1
+INCOME_SYNC_TXN_ID=""
+if [[ "$COMMAND" == "journal" ]]; then
+  if ! edit_bqn_require_append_protocol_prefix "$FIRST_LINE" "$EXPECTED_TARGET_FILE"; then exit 1; fi
+  IFS=$'\t' read -r _status _op _target INCOME_SYNC_TXN_ID _extra <<< "$FIRST_LINE"
+  [[ -z "${_extra:-}" ]] || { echo "ERROR: invalid journal protocol header: $FIRST_LINE" >&2; exit 1; }
+else
+  if ! edit_bqn_require_append_protocol "$FIRST_LINE" "$EXPECTED_TARGET_FILE"; then exit 1; fi
 fi
 
 MODE="$(edit_bqn_mode "$DRY_RUN" "$YES")"
@@ -672,3 +712,11 @@ fi
 POST_CHECK_OWNER="default"
 [[ "$COMMAND" == "journal" ]] && POST_CHECK_OWNER="journal"
 edit_bqn_apply_append_checked "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256" EDIT_BQN_TEST_BEFORE_APPEND_HOOK "$POST_CHECK_OWNER"
+if [[ -n "$INCOME_SYNC_TXN_ID" ]]; then
+  sync_args=(--id "$INCOME_SYNC_TXN_ID" --post-check "$POST_CHECK")
+  [[ "$YES" -eq 1 ]] && sync_args+=(--yes)
+  if ! "$ROOT_DIR/tools/edit" --base "$BASE_DIR" journal income-budget-sync "${sync_args[@]}"; then
+    echo "BUDGET_SYNC_PENDING: journal actual is committed; retry with: tools/edit --base '$BASE_DIR' journal income-budget-sync --id '$INCOME_SYNC_TXN_ID'" >&2
+    exit 1
+  fi
+fi

@@ -4,6 +4,7 @@
 t ← •Import "test_lib.bqn"
 validate ← •Import "../src_edit/validate.bqn"
 plan_id ← •Import "../src_edit/plan_id.bqn"
+txn_id ← •Import "../src_edit/txn_id.bqn"
 render ← •Import "../src_edit/render.bqn"
 
 # ── Date validation tests ───────────────────────────────────────
@@ -135,5 +136,12 @@ existing2 ← existing ∾ ⟨"plan-2026-06-29-rent-02"⟩
 "plan-2026-06-29-my-series" t.AssertEq plan_id.GeneratePlanID {
   date ⇐ "2026-06-29" ⋄ memo ⇐ "Rent payment" ⋄ meta ⇐ ⟨"series=my-series", "anchor=rent"⟩ ⋄ existing_ids ⇐ existing
 }
+
+•Out "Running transaction ID tests..."
+"txn-2026-07-14-income" t.AssertEq txn_id.Generate {date⇐"2026-07-14", memo⇐"income", existing_ids⇐⟨⟩}
+"txn-2026-07-14-income-02" t.AssertEq txn_id.Generate {date⇐"2026-07-14", memo⇐"income", existing_ids⇐⟨"txn-2026-07-14-income"⟩}
+txnTab ← @+9
+"txn-1" t.AssertEq txn_id.Extract (txnTab plan_id.Join ⟨"2026-07-14", "income", "income:test", "assets:bank", "100", "txn_id=txn-1", "currency=JPY"⟩)
+"" t.AssertEq txn_id.Extract (txnTab plan_id.Join ⟨"2026-07-14", "income", "income:test", "assets:bank", "100", "currency=JPY"⟩)
 
 •Out "All src_edit unit tests passed!"

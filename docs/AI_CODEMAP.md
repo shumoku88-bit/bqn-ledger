@@ -121,7 +121,7 @@ Exit: keep current while this remains the pit code/data-flow entry point
 - `src_edit/README.md` — 責務境界と実装対象の定義。
 - `src_edit/account_add_cmd.bqn` — 明示role・名前空間・重複・asset typeを検証し、accounts.tsv追記候補を生成。
 - `src_edit/account_list_cmd.bqn` — UI向け account candidate export。`accounts.tsv` の role メタ解釈を BQN 側に閉じ込める。
-- `src_edit/journal_add_cmd.bqn` — journal add / budget add 用の検証および TSV 生成。
+- `src_edit/journal_add_cmd.bqn` — journal add / budget add 用の検証および TSV 生成。明示`income_budget=unassigned`のincome rowには安定した`txn_id`を付与する。
 - `src_edit/journal_source_integrity.bqn` / `journal_source_check.bqn` — ordinary journal `lint` のmixed-safe source integrity owner。row単位のdate/exact amount/metadata/currency/account整合性をall-or-nothingで検査し、report arithmeticを行わない。
 - `src_edit/travel_friend_add_cmd.bqn` — `friend_travel_events.tsv` の既存全行検査とpending候補APPEND protocol生成。意味検査はpure source-event ownerへ委譲。
 - `src_edit/travel_exchange_add_cmd.bqn` — accountsと`travel_exchange_events.tsv`をpure exchange ownerへ渡し、固定10列候補APPEND protocolを生成。
@@ -134,6 +134,7 @@ Exit: keep current while this remains the pit code/data-flow entry point
 - `src_edit/plan_list_cmd.bqn` — plan list 用の BQN 実装。`tools/edit plan list --format tsv` の unfinished plan candidate export 契約は `docs/UNFINISHED_PLAN_ENTRIES_EXPORT_CONTRACT.md`。
 - `src_edit/plan_related_cmd.bqn` — plan finish replenishment UI 用の read-only 関連予定抽出。`series=` → `plan_id` series → exact fallback の順序を所有する。
 - `src_edit/plan_finish_cmd.bqn` — plan finish 用の検証、実際のジャーナルアペンド行の生成。
+- `src_edit/txn_id.bqn` / `income_budget_sync_cmd.bqn` — opt-in通常収入の安定ID生成と、income→liquid actualからopening→unassigned companionをfail closedに生成するowner。
 - `src_edit/plan_budget_sync_cmd.bqn` — 完了済み固定費予定の `plan_id`、actual、設定、execution envelope、通貨、既存budget linkageを検査し、冪等なbudget companion候補を生成。曖昧な対応や通常収入は扱わない。
 - `src_edit/plan_edit_cmd.bqn` — plan edit 用の検証および exact REPLACE protocol 生成。
 - `src_edit/plan_id.bqn` — plan_id 生成補助。
@@ -176,6 +177,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 - `check-disabled-features.sh` — 無効化機能の隔離チェック。
 - `check-edit-bqn-account-list.sh` — BQN account list export チェック。
 - `check-edit-bqn-journal-add.sh` — BQN journal/budget/issue add parityチェック。
+- `check-edit-bqn-income-budget-sync.sh` — opt-in通常収入のtxn ID、companion、除外、冪等retry、stale failure後retryを検証。
 - `check-edit-bqn-journal-post-check-recovery.sh` — mixed JPY/ILS journal source lint、post-check失敗時のexact rollback、後続writer保護チェック。
 - `check-edit-bqn-travel-friend-add.sh` — friend pending source-eventのdry-run、exclusive first-write、checked append、stale/duplicate拒否、rollback回帰チェック。
 - `check-travel-exchange-pure.sh` — exchange structured previewのpure contractとI/O/rate/journal output不在チェック。

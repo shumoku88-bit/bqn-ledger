@@ -1,5 +1,10 @@
 # journal.tsv / plan.tsv の拡張列（6列目以降メタ情報）
 
+Status: current contract
+Owner: editor / source schema
+Canonical: yes
+Exit: revise when journal-like metadata contracts change
+
 位置づけ:
 - 長期の方針: `docs/ENGINEERING_ROADMAP.md` (Phase 2)
 - 表記ルール（キーの命名など）: `docs/CONVENTIONS.md`
@@ -61,6 +66,7 @@ TSV（TAB区切り）で以下の5列は必須です。
 - `plan_id=<id>` : `plan.tsv` の予定と、対応する `journal.tsv` 実績候補を結ぶ任意ID
 - `cashflow=fixed_obligation` : 費用ではないが、生活資金から固定的に確保すべき支払い予定。例: 借金元本返済 (`assets:* -> liabilities:*`)。
 - `currency=JPY|ILS` : 通貨指定 (Stage 2 段階的導入用)
+- `income_budget=unassigned|exclude` : 通常収入を予算台帳の未割当へ連動する明示intent。`unassigned` は安定した `txn_id` と確認付き companion の対象、`exclude` は対象外。省略時も自動推測しない。費用返金や口座振替には付けない。
 
 
 ※どのキーを正式採用するかは、確定申告フローが固まった時点で更新します。`plan_id` は実データの `plan.tsv` では原則として必須（バックフィル済み・新規追加時に自動付与）としますが、BQNエンジン側は互換性・手入力の非常口としてIDなし行も許容します。
