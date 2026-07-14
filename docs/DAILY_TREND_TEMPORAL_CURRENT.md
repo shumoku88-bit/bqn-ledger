@@ -58,7 +58,10 @@ This header observation does not replace row `O_row = D`, internal `L`, cycle se
 3. `docs/DAILY_TREND_CURRENT_SOURCE_COORDINATE_REPLAY_DECISION.md` when the selected product rationale is needed.
 4. `docs/DAILY_TREND_TEMPORAL_DEPENDENCY_MAP.md` when exact runtime dependencies are needed.
 
-Detailed observation and knowledge-boundary decisions are implementation history after their selected behavior has been consumed by runtime. They are not mandatory entry documents.
+Completed observation and knowledge-boundary decisions are archived at:
+
+- `docs/archive/completed-plans/DAILY_TREND_OBSERVATION_CONSISTENCY_DECISION.md`
+- `docs/archive/completed-plans/DAILY_TREND_KNOWLEDGE_BOUNDARY_DECISION.md`
 
 Completed row-membership ownership is archived at:
 
