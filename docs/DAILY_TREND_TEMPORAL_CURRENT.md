@@ -55,8 +55,12 @@ This header observation does not replace row `O_row = D`, internal `L`, cycle se
 
 1. `docs/TIME_AS_AXIS.md` for the canonical temporal principle.
 2. This document for the current Daily Trend meaning.
-3. `docs/DAILY_TREND_CURRENT_SOURCE_COORDINATE_REPLAY_DECISION.md` when the selected product rationale is needed.
-4. `docs/DAILY_TREND_TEMPORAL_DEPENDENCY_MAP.md` when exact runtime dependencies are needed.
+3. `docs/DAILY_TREND_TEMPORAL_DEPENDENCY_MAP.md` when exact runtime dependencies are needed.
+4. `docs/archive/completed-plans/DAILY_TREND_CURRENT_SOURCE_COORDINATE_REPLAY_DECISION.md` only when the historical product-selection rationale is needed.
+
+The older unresolved temporal-semantics routing note is archived at:
+
+- `docs/archive/completed-plans/DAILY_TREND_TEMPORAL_SEMANTICS.md`
 
 Completed observation and knowledge-boundary decisions are archived at:
 
