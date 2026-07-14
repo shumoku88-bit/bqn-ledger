@@ -159,7 +159,6 @@ bash checks/check-ui-smoke.sh >/dev/null
 bash checks/check-absolute-links.sh >/dev/null
 bash checks/check-loader-unreadable.sh >/dev/null
 bash checks/check-currency-usd-single.sh >/dev/null
-bash checks/check-currency-m15-setup.sh >/dev/null
 check_bqn_presentation_boundary
 
 echo "OK" >&2

@@ -1,12 +1,10 @@
 # currency_setup.bqn
-# Pure M1.5 core for explicit ledger default currency, built-in currency policy,
-# and read-only JPY migration audit / preview.
+# Core policy and registry for explicit ledger default currency and selection.
 #
 # Important boundary:
 # - DEFAULT_CURRENCY selects an initial view only.
 # - It never supplies missing source currency.
 # - Built-in currency policy owns admission and lexical precision metadata.
-# - Migration target is an independent explicit argument and is currently JPY only.
 # - This module performs no file I/O and no writes.
 
 util ← •Import "util.bqn"
@@ -215,39 +213,6 @@ AuditFile ← {𝕊 fileName‿kind‿lines‿targetCurrency:
   }
 }
 
-Build ← {𝕊 configLines‿accountsLines‿journalLines‿planLines‿budgetLines‿targetCurrency:
-  defaultResult ← ResolveDefault configLines
-  targetOk ← targetCurrency ≡ "JPY"
-  files ← empty
-
-  {𝕊:
-    files ↩ ⟨
-      AuditFile ⟨"accounts.tsv", "accounts", accountsLines, targetCurrency⟩,
-      AuditFile ⟨"journal.tsv", "journal", journalLines, targetCurrency⟩,
-      AuditFile ⟨"plan.tsv", "journal", planLines, targetCurrency⟩,
-      AuditFile ⟨"budget_alloc.tsv", "journal", budgetLines, targetCurrency⟩
-    ⟩
-  } ⍟ targetOk @
-
-  fileErrorCount ← +´ { 𝕩.error_count }¨ files
-  changedCount ← +´ { 𝕩.changed_count }¨ files
-  overallOk ← (defaultResult.state ≡ "ok") ∧ targetOk ∧ (0 = fileErrorCount)
-  stateValue ← overallOk ⊑ "error"‿"ok"
-  messageValue ← ""
-  {𝕊: messageValue ↩ "unsupported migration target: " ∾ targetCurrency ∾ "; M1.5 permits JPY only" } ⍟ (¬targetOk) @
-  {𝕊: messageValue ↩ defaultResult.message } ⍟ (defaultResult.state ≢ "ok") @
-
-  {
-    state ⇐ stateValue,
-    default_currency ⇐ defaultResult,
-    migration_target ⇐ targetCurrency,
-    files ⇐ files,
-    changed_count ⇐ changedCount,
-    error_count ⇐ fileErrorCount + (¬targetOk) + (defaultResult.state ≢ "ok"),
-    message ⇐ messageValue
-  }
-}
-
 {
   supported_currencies ⇐ currencyCodes,
   Policy ⇐ Policy,
@@ -255,6 +220,5 @@ Build ← {𝕊 configLines‿accountsLines‿journalLines‿planLines‿budgetL
   ResolveDefault ⇐ ResolveDefault,
   ResolveSelection ⇐ ResolveSelection,
   AuditLine ⇐ AuditLine,
-  AuditFile ⇐ AuditFile,
-  Build ⇐ Build
+  AuditFile ⇐ AuditFile
 }

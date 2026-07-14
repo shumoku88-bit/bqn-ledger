@@ -9,7 +9,7 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-14 — Israel predeparture real-account readiness and the config ownership inventory are complete. No follow-on Israel implementation or next configurable-ledger slice is selected; the privacy-safe AI context-bundle contract is the next routed candidate only, while friend finalization candidate 6, strict-source Steps 2–5, M4, and other implementation candidates remain unselected.
+Last hygiene pass: 2026-07-14 — USD registry-backed exact decimal support for journal/plan/budget and plan edit/finish lifecycle are complete. No follow-on Israel implementation or next configurable-ledger slice is selected; the privacy-safe AI context-bundle contract is the next routed candidate only, while friend finalization candidate 6, strict-source Steps 2–5, M4, and other implementation candidates remain unselected.
 
 ---
 
@@ -27,6 +27,7 @@ Completed foundation slices:
 
 - **Configurable AI-assisted ledger foundation synthesis**. Current routing map: `docs/archive/active-plans/CONFIGURABLE_AI_ASSISTED_LEDGER_FOUNDATION-2026-07-13.md`.
 - **Config ownership inventory**. Completion record: `docs/archive/completed-plans/CONFIG_OWNERSHIP_INVENTORY-2026-07-14.md`.
+- **USD registry-backed exact decimal support**. Exact decimal parsing and validation for journal, plan, and budget, and plan edit/finish lifecycle are complete.
 
 Routing order after readiness and the completed feedback evidence:
 
