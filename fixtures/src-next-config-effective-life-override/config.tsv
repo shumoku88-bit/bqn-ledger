@@ -1,2 +1,3 @@
 HOUSEHOLD_GROUP_LIFE=daily,flex,weekly
+POLICY_BUDGET_STYLE=envelope
 THEME=nord
