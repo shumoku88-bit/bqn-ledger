@@ -44,8 +44,10 @@ LedgerRowValid ← {𝕊 resolved‿row:
   (row.status ≡ "ok") ∧ (row.account_key_index ≥ 0) ∧ (row.account_key_index < resolved.count) ∧ (row.layer_index ≥ 0) ∧ (row.layer_index < cube.layer_count)
 }
 
-# Keep only positive semantic contribution sides. This excludes transfer sides,
-# expense credits/refunds, income debits, and non-positive reversed sides.
+# Keep only positive semantic contribution sides for period key/count evidence.
+# This excludes transfer sides, expense credits/refunds, income debits, and
+# non-positive reversed sides. Numeric TBDS construction uses the full checked
+# ledger-wide posting set instead.
 SemanticActualRows ← {𝕊 ctx:
   resolved ← ctx.resolved
   IsSemantic ← {𝕊 row:
@@ -88,7 +90,7 @@ ResolvePreviousAnchor ← {𝕊 ctx‿currentStart:
     valid ← LedgerRowValid ⟨resolved, row⟩
     matches ← 0
     {𝕊:
-      matches ↩ (row.side ≡ "credit") ∧ (row.delta < 0) ∧ ((AccountName ⟨resolved, row⟩) ≡ incomeAccount)
+      matches ↩ (row.side ≡ "credit") ∧ ((AccountName ⟨resolved, row⟩) ≡ incomeAccount)
     }⍟valid @
     matches
   }
@@ -131,12 +133,13 @@ MakePeriodCycle ← {𝕊 start‿endExclusive:
     day_count ⇐ (proj.DaysFromEpoch endExclusive) - proj.DaysFromEpoch start }
 }
 
-BuildPeriodTbds ← {𝕊 ctx‿semanticRows‿start‿endExclusive:
+BuildPeriodTbds ← {𝕊 ctx‿start‿endExclusive:
   cy ← MakePeriodCycle ⟨start,endExclusive⟩
-  # tbds.Build owns the half-open period bounds. Its result argument is retained
-  # because the existing API accepts it; TBDS does not derive these values from
-  # the cycle-bounded canonical Cube.
-  tbds.Build ⟨semanticRows, ctx.cube, ctx.resolved, cy⟩
+  # tbds.Build receives the full checked ledger-wide posting set and owns
+  # valid/status/period filtering. Its result argument is retained because the
+  # existing API accepts it; TBDS does not derive these values from the
+  # cycle-bounded canonical Cube.
+  tbds.Build ⟨ctx.posting_rows, ctx.cube, ctx.resolved, cy⟩
 }
 
 PeriodEvidence ← {𝕊 resolved‿semanticRows‿startDn‿endDn:
@@ -241,8 +244,8 @@ BuildAt ← {𝕊 ctx‿observation:
         table ← ⟨⟩
         {𝕊:
           semanticRows ← SemanticActualRows ctx
-          currentTbds ← BuildPeriodTbds ⟨ctx,semanticRows,cy.start,currentEnd⟩
-          baselineTbds ← BuildPeriodTbds ⟨ctx,semanticRows,anchor.start,baselineEnd⟩
+          currentTbds ← BuildPeriodTbds ⟨ctx,cy.start,currentEnd⟩
+          baselineTbds ← BuildPeriodTbds ⟨ctx,anchor.start,baselineEnd⟩
           currentEvidence ← PeriodEvidence ⟨ctx.resolved,semanticRows,startDn,currentEndDn⟩
           baselineEvidence ← PeriodEvidence ⟨ctx.resolved,semanticRows,anchor.start_dn,baselineEndDn⟩
           keys0 ← ({𝕩.key}¨currentEvidence) ∾ ({𝕩.key}¨baselineEvidence)

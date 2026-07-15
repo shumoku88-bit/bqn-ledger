@@ -23,11 +23,13 @@ elapsed length. Human report and machine summary each capture today once at
 their entry and pass it explicitly. No compatibility `Build`, section CLI
 option, or report-wide `as_of` was added.
 
-Amounts are owned by checked ledger-wide Posting IR through positive semantic
-actual sides and local TBDS half-open period views. Counts use admitted source
-identity per lane/account. Anchor identity remains separate and uses admitted
-journal/plan posting dates plus the narrow `cycle.tsv` `income_account`
-evidence dependency; it parses no amount. Applicable rejected actual evidence
+Amounts flow from the full checked ledger-wide Posting IR through local TBDS
+half-open period views, then report-specific positive debit/credit measure
+selection. Positive semantic sides are used only for period keys/counts, with
+admitted source identity per lane/account. Anchor identity remains separate,
+uses admitted journal/plan posting dates plus the narrow `cycle.tsv`
+`income_account` evidence dependency, and is independent of amount sign; it
+parses no amount. Applicable rejected actual evidence
 is `error` with one diagnostic per source row and no numeric table. Missing
 anchor/empty current window is `unavailable`. Vocabulary is
 `ok / unavailable / error`; `insufficient_history` is removed.

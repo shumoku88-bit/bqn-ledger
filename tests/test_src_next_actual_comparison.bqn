@@ -36,6 +36,17 @@ AssertRow ← {row←RowFor 𝕩 ⋄ 𝕨 lib.AssertEq 8↓row}
 0 lib.AssertEq +´"savings"⊸≡¨{3⊑𝕩}¨vm.table
 0 lib.AssertEq +´"loan"⊸≡¨{3⊑𝕩}¨vm.table
 
+# Anchor identity is independent of amount sign. The appended configured
+# income-credit event with amount 0 is the previous anchor for this local cycle.
+zero_anchor_cycle ← {mode⇐"fixed",start⇐"2026-02-01",end_exclusive⇐"2026-03-01",day_count⇐28}
+zero_anchor_ctx ← {base⇐ctx.base,as_of⇐ctx.as_of,cy⇐zero_anchor_cycle,resolved⇐ctx.resolved,
+  posting_rows⇐ctx.posting_rows,arithmetic_currency_proof⇐ctx.arithmetic_currency_proof,
+  cube⇐ctx.cube,tbds⇐ctx.tbds,issues⇐ctx.issues}
+zero_anchor_vm ← actual_comparison.BuildAt ⟨zero_anchor_ctx,"2026-02-05"⟩
+"ok" lib.AssertEq zero_anchor_vm.observation_status
+"2026-01-01" lib.AssertEq zero_anchor_vm.baseline_start
+"2026-01-06" lib.AssertEq zero_anchor_vm.baseline_end_exclusive
+
 text ← actual_comparison.Format vm
 1 lib.AssertEq ∨´"src_next_actual_comparison_status: ok"⍷text
 1 lib.AssertEq ∨´"src_next_actual_comparison_row: food lane=variable cur=75 base=50 diff=25 ratio=150% status=increased"⍷text

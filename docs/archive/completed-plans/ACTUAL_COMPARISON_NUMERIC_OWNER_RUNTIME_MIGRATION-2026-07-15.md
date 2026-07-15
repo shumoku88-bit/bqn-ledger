@@ -30,31 +30,35 @@ Current and baseline amounts now follow:
 
 ```text
 checked ledger-wide Posting IR
-  -> positive semantic actual posting sides
   -> local half-open TBDS period views
-  -> account/lane debit or credit movement
+  -> report-specific positive debit/credit measure selection
 ```
 
 The baseline starts at the previous comparable income anchor and uses the same
 elapsed length as the current window. It is not derived from the existing
-cycle-bounded Cube. Income uses positive income-account credit contribution;
-recurring fixed and variable expenses use positive expense-account debit
-contribution, split by `spend_class=fixed`. Transfers, liability principal,
-expense credits/refunds, income debits, and non-positive reversed sides are
-excluded. Canonical Cube shape remains unchanged.
+cycle-bounded Cube. Each local TBDS receives the full checked ledger-wide
+Posting IR, including asset/liability counterpart postings, and owns its
+valid/status/period filtering. `AmountFor` then selects positive
+income-account credit or expense-account debit movement for the report lane,
+with expenses split by `spend_class=fixed`. Transfers, liability principal,
+expense credits/refunds, income debits, and non-positive reversed sides do not
+enter report amounts. Canonical Cube shape remains unchanged.
 
-Event counts use admitted posting evidence from the same checked Posting IR and
-identity `source_file + source_row + lane + account`. Selecting only the
-semantic posting side removes debit/credit-pair duplication without globally
-deduplicating a source row across output keys. A direct income-to-expense row
-can therefore count once in each distinct key.
+Event counts and period keys use admitted positive semantic posting evidence
+from the same checked Posting IR and identity
+`source_file + source_row + lane + account`. Selecting only the semantic
+posting side for this evidence removes debit/credit-pair duplication without
+truncating TBDS input or globally deduplicating a source row across output
+keys. A direct income-to-expense row can therefore count once in each distinct
+key.
 
 ## Anchor evidence dependency
 
 Previous-anchor discovery is separate from amount ownership. It uses admitted
-journal/plan income-credit posting identity and date. The configured
-`income_account` is still read narrowly from `cycle.tsv` as anchor identity
-evidence. Existing journal-derived anchors and the plan-derived
+journal/plan income-credit posting identity and date, independent of amount
+sign. The configured `income_account` is still read narrowly from `cycle.tsv`
+as anchor identity evidence. Existing journal-derived anchors, including a
+zero-amount configured income credit, and the plan-derived
 future-after-journal-frontier behavior remain. No amount text is read or parsed
 on this evidence path, and it contributes no numeric aggregate.
 

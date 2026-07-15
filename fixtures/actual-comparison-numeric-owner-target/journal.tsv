@@ -16,3 +16,4 @@
 2026-03-05	CUR_ASSET_TRANSFER	assets:cash	assets:savings	35
 2026-03-05	CUR_PRINCIPAL	assets:cash	liabilities:loan	20
 2026-03-07	AFTER_OBSERVATION	assets:cash	expenses:food	11
+2026-01-01	ZERO_INCOME_ANCHOR	income:salary	assets:cash	0
