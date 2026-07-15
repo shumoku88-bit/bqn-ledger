@@ -29,6 +29,9 @@ jobs:
               sub(/\.$/, "", n)
               print "•Out \"CASE " n "\""
             }
+            $1 == "r1" && $2 == "←" {
+              print "•Out •Fmt r1"
+            }
           ' tests/test_daily_capacity_contract_characterization.bqn > tests/daily_capacity_probe_generated.bqn
           set +e
           bqn tests/daily_capacity_probe_generated.bqn > daily-capacity-probe.log 2>&1
