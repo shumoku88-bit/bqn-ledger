@@ -3,10 +3,8 @@
 
 date ← •Import "../src_next/date.bqn"
 
-empty ← ⟨⟩
-
 Sum ← { +´ 0 ∾ 𝕩 }
-AnyEq ← {𝕊 value‿xs: ∨´ 0 ∾ (value⊸≡¨ xs) }
+AnyEq ← {𝕊 value‿xs: ∨´ 0 ∾ ({value ≡ 𝕩}¨ xs) }
 HasDuplicates ← {𝕊 xs:
   first ← xs ⊐ xs
   ∨´ 0 ∾ ((↕ ≠ xs) ≠ first)
@@ -100,16 +98,18 @@ Build ← {𝕊 input:
     currencies ← {𝕩.currency}¨ rows
     basisOk ← assetScope.basis_kind ∊ ⟨"account_balance", "pool_remaining"⟩
     duplicateIds ← HasDuplicates ids
-    mixedBasis ← ∨´ 0 ∾ (¬ assetScope.basis_kind⊸≡¨ sourceKinds)
+    sameBasis ← {assetScope.basis_kind ≡ 𝕩}¨ sourceKinds
+    mixedBasis ← ∨´ 0 ∾ (¬ sameBasis)
     decisionOk ← {𝕩 ∊ ⟨"include", "exclude"⟩}¨ decisions
     refOk ← {0 < ≠ 𝕩}¨ refs
-    currencyOk ← domain.currency⊸≡¨ currencies
+    currencyOk ← {domain.currency ≡ 𝕩}¨ currencies
     invalidRows ← ¬ (decisionOk ∧ refOk ∧ currencyOk)
+    hasInvalidRows ← ∨´ 0 ∾ invalidRows
     {𝕊: Add ⟨"error", "asset_scope", "asset_scope_error", "asset basis kind invalid", ⟨assetScope.scope_id⟩⟩ }⍟(¬ basisOk) @
     {𝕊: Add ⟨"error", "asset_scope", "duplicate_asset_id", "duplicate asset identity", ids⟩ }⍟duplicateIds @
     {𝕊: Add ⟨"error", "asset_scope", "mixed_asset_basis", "mixed asset basis", refs⟩ }⍟mixedBasis @
-    {𝕊: Add ⟨"error", "asset_scope", "asset_row_invalid", "asset row invalid", invalidRows / ids⟩ }⍟(∨´ 0 ∾ invalidRows) @
-    assetReady ↩ basisOk ∧ (¬ duplicateIds) ∧ (¬ mixedBasis) ∧ (¬ ∨´ 0 ∾ invalidRows)
+    {𝕊: Add ⟨"error", "asset_scope", "asset_row_invalid", "asset row invalid", invalidRows / ids⟩ }⍟hasInvalidRows @
+    assetReady ↩ basisOk ∧ (¬ duplicateIds) ∧ (¬ mixedBasis) ∧ (¬ hasInvalidRows)
   }⍟(assetScope.state ≡ "resolved") @
 
   # 5. Obligation scope and horizon admission.
@@ -131,24 +131,27 @@ Build ← {𝕊 input:
     duplicateIds ← HasDuplicates ids
     refOk ← {0 < ≠ 𝕩}¨ refs
     dueOk ← date.IsValidDateText¨ dueOns
-    currencyOk ← domain.currency⊸≡¨ currencies
-    amountOk ← 0⊸≤¨ amounts
+    currencyOk ← {domain.currency ≡ 𝕩}¨ currencies
+    amountOk ← {0 ≤ 𝕩}¨ amounts
     settlementOk ← {𝕩 ∊ ⟨"open", "completed"⟩}¨ settlements
     decisionOk ← {𝕩 ∊ ⟨"include", "exclude"⟩}¨ decisions
     reservationStateOk ← {𝕩 ∊ ⟨"none", "proven", "ambiguous"⟩}¨ reservationStates
     invalidRows ← ¬ (refOk ∧ dueOk ∧ currencyOk ∧ amountOk ∧ settlementOk ∧ decisionOk ∧ reservationStateOk)
-    included ← "include"⊸≡¨ decisions
-    completedIncluded ← included ∧ ("completed"⊸≡¨ settlements)
+    included ← {"include" ≡ 𝕩}¨ decisions
+    completedIncluded ← included ∧ ({"completed" ≡ 𝕩}¨ settlements)
     outside ← (≠ rows) ⥊ 0
     {𝕊:
       endOrdinal ← date.Ordinal horizon.end_exclusive
-      outside ↩ included ∧ dueOk ∧ ({ endOrdinal ≤ date.Ordinal 𝕩 }¨ dueOns)
+      outside ↩ included ∧ dueOk ∧ ({endOrdinal ≤ date.Ordinal 𝕩}¨ dueOns)
     }⍟horizonDatesReady @
+    hasInvalidRows ← ∨´ 0 ∾ invalidRows
+    hasCompletedIncluded ← ∨´ 0 ∾ completedIncluded
+    hasOutside ← ∨´ 0 ∾ outside
     {𝕊: Add ⟨"error", "obligation_scope", "duplicate_obligation_id", "duplicate obligation identity", ids⟩ }⍟duplicateIds @
-    {𝕊: Add ⟨"error", "obligation_scope", "obligation_row_invalid", "obligation row invalid", invalidRows / ids⟩ }⍟(∨´ 0 ∾ invalidRows) @
-    {𝕊: Add ⟨"error", "obligation_scope", "completed_obligation_included", "completed obligation included", completedIncluded / ids⟩ }⍟(∨´ 0 ∾ completedIncluded) @
-    {𝕊: Add ⟨"error", "obligation_scope", "obligation_outside_horizon", "obligation outside horizon", outside / ids⟩ }⍟(∨´ 0 ∾ outside) @
-    obligationReady ↩ (¬ duplicateIds) ∧ (¬ ∨´ 0 ∾ invalidRows) ∧ (¬ ∨´ 0 ∾ completedIncluded) ∧ (¬ ∨´ 0 ∾ outside)
+    {𝕊: Add ⟨"error", "obligation_scope", "obligation_row_invalid", "obligation row invalid", invalidRows / ids⟩ }⍟hasInvalidRows @
+    {𝕊: Add ⟨"error", "obligation_scope", "completed_obligation_included", "completed obligation included", completedIncluded / ids⟩ }⍟hasCompletedIncluded @
+    {𝕊: Add ⟨"error", "obligation_scope", "obligation_outside_horizon", "obligation outside horizon", outside / ids⟩ }⍟hasOutside @
+    obligationReady ↩ (¬ duplicateIds) ∧ (¬ hasInvalidRows) ∧ (¬ hasCompletedIncluded) ∧ (¬ hasOutside)
   }⍟(obligationScope.state ≡ "resolved") @
 
   # 6. Reservation provenance.
@@ -160,20 +163,30 @@ Build ← {𝕊 input:
     states ← {𝕩.reservation_state}¨ rows
     refs ← {𝕩.reservation_ref}¨ rows
     decisions ← {𝕩.decision}¨ rows
-    included ← "include"⊸≡¨ decisions
+    included ← {"include" ≡ 𝕩}¨ decisions
+    isAmbiguous ← {"ambiguous" ≡ 𝕩}¨ states
+    isProven ← {"proven" ≡ 𝕩}¨ states
+    isNone ← {"none" ≡ 𝕩}¨ states
+    emptyRef ← {0 = ≠ 𝕩}¨ refs
+    nonemptyRef ← {0 < ≠ 𝕩}¨ refs
     invalidAmount ← (excluded < 0) ∨ (excluded > amounts)
-    ambiguous ← included ∧ ("ambiguous"⊸≡¨ states)
-    missing ← included ∧ (excluded > 0) ∧ ((¬ "proven"⊸≡¨ states) ∨ (0 =¨ ≠¨ refs)) ∧ (¬ "ambiguous"⊸≡¨ states)
-    provenZero ← included ∧ ("proven"⊸≡¨ states) ∧ (excluded = 0)
-    noneMismatch ← included ∧ ("none"⊸≡¨ states) ∧ ((excluded ≠ 0) ∨ (0 <¨ ≠¨ refs))
-    positiveProven ← included ∧ (excluded > 0) ∧ ("proven"⊸≡¨ states) ∧ (0 <¨ ≠¨ refs)
+    ambiguous ← included ∧ isAmbiguous
+    missing ← included ∧ (excluded > 0) ∧ ((¬ isProven) ∨ emptyRef) ∧ (¬ isAmbiguous)
+    provenZero ← included ∧ isProven ∧ (excluded = 0)
+    noneMismatch ← included ∧ isNone ∧ ((excluded ≠ 0) ∨ nonemptyRef)
+    positiveProven ← included ∧ (excluded > 0) ∧ isProven ∧ nonemptyRef
     usedRefs ← positiveProven / refs
     duplicateReservation ← HasDuplicates usedRefs
-    {𝕊: Add ⟨"error", "reservation", "reservation_amount_invalid", "reservation amount invalid", invalidAmount / ids⟩ }⍟(∨´ 0 ∾ invalidAmount) @
-    {𝕊: Add ⟨"unavailable", "reservation", "reservation_provenance_ambiguous", "reservation provenance ambiguous", ambiguous / ids⟩ }⍟(∨´ 0 ∾ ambiguous) @
-    {𝕊: Add ⟨"error", "reservation", "reservation_provenance_missing", "reservation provenance missing", missing / ids⟩ }⍟(∨´ 0 ∾ missing) @
-    {𝕊: Add ⟨"error", "reservation", "reservation_amount_invalid", "proven reservation has zero amount", provenZero / ids⟩ }⍟(∨´ 0 ∾ provenZero) @
-    {𝕊: Add ⟨"error", "reservation", "reservation_amount_invalid", "none reservation carries evidence", noneMismatch / ids⟩ }⍟(∨´ 0 ∾ noneMismatch) @
+    hasInvalidAmount ← ∨´ 0 ∾ invalidAmount
+    hasAmbiguous ← ∨´ 0 ∾ ambiguous
+    hasMissing ← ∨´ 0 ∾ missing
+    hasProvenZero ← ∨´ 0 ∾ provenZero
+    hasNoneMismatch ← ∨´ 0 ∾ noneMismatch
+    {𝕊: Add ⟨"error", "reservation", "reservation_amount_invalid", "reservation amount invalid", invalidAmount / ids⟩ }⍟hasInvalidAmount @
+    {𝕊: Add ⟨"unavailable", "reservation", "reservation_provenance_ambiguous", "reservation provenance ambiguous", ambiguous / ids⟩ }⍟hasAmbiguous @
+    {𝕊: Add ⟨"error", "reservation", "reservation_provenance_missing", "reservation provenance missing", missing / ids⟩ }⍟hasMissing @
+    {𝕊: Add ⟨"error", "reservation", "reservation_amount_invalid", "proven reservation has zero amount", provenZero / ids⟩ }⍟hasProvenZero @
+    {𝕊: Add ⟨"error", "reservation", "reservation_amount_invalid", "none reservation carries evidence", noneMismatch / ids⟩ }⍟hasNoneMismatch @
     {𝕊: Add ⟨"error", "reservation", "duplicate_reservation_linkage", "duplicate reservation linkage", usedRefs⟩ }⍟duplicateReservation @
   }⍟(obligationScope.state ≡ "resolved") @
 
@@ -209,9 +222,9 @@ Build ← {𝕊 input:
   }⍟(hasError ∨ hasUnavailable) @
 
   {𝕊:
-    assetIncluded ← "include"⊸≡¨ ({𝕩.decision}¨ assetScope.rows)
+    assetIncluded ← {"include" ≡ 𝕩}¨ ({𝕩.decision}¨ assetScope.rows)
     eligibleAssets ← Sum assetIncluded / ({𝕩.amount}¨ assetScope.rows)
-    obligationIncluded ← "include"⊸≡¨ ({𝕩.decision}¨ obligationScope.rows)
+    obligationIncluded ← {"include" ≡ 𝕩}¨ ({𝕩.decision}¨ obligationScope.rows)
     admittedAmounts ← obligationIncluded / ({𝕩.amount}¨ obligationScope.rows)
     admittedExcluded ← obligationIncluded / ({𝕩.excluded_from_asset_basis}¨ obligationScope.rows)
     grossObligations ← Sum admittedAmounts
