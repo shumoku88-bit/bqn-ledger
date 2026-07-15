@@ -56,10 +56,11 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 
 ### Daily Capacity evidence adapter characterization
 
-Status: unselected. The pure `src_next/daily_capacity.bqn` seam and its 31-case synthetic characterization are complete; see `docs/archive/completed-plans/DAILY_CAPACITY_PURE_RUNTIME_SEAM-2026-07-15.md`.
+Status: unselected. The pure seam, 31-case synthetic characterization, and pre-implementation ownership audit are complete. Current evidence: `docs/archive/audits/DAILY_CAPACITY_EVIDENCE_ADAPTER_PREIMPLEMENTATION_AUDIT-2026-07-15.md`.
 
-- [ ] If selected, characterize one concrete evidence adapter boundary that constructs `⟨observation, horizon, arithmetic_domain, asset_scope, obligation_scope⟩` for the pure builder.
-- [ ] Name the exact evidence owner before implementation; do not infer owner policy from account names, prefixes, country, income cadence, or aggregate envelope labels.
+- [ ] The audit recommends, but does not select, a pure `AssembleDailyCapacityInputFromResolvedEvidence` characterization over explicit in-memory facts and owner decisions.
+- [ ] If selected, keep source loading, O-balance projection, settlement normalization, policy persistence, and pool/reservation linkage implementation outside that first characterization.
+- [ ] Do not infer owner policy from account names, prefixes, role/type alone, country, income cadence, configured envelope names, or aggregate envelope equality.
 - [ ] Keep the candidate test-only and synthetic first. Do not add config or metadata, access private data, wire Outlook/report output, or migrate `simple` / `conservative` in the same slice.
 
 ### Friend travel atomic finalization writer (Israel candidate 6)

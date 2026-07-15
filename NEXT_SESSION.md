@@ -5,17 +5,18 @@ Owner: report / ledger policy / envelope
 Canonical: no; current contract: `docs/DAILY_CAPACITY_MINIMAL_INPUT_RESULT_CONTRACT.md`
 Exit: remove or replace after the next finite slice is jointly selected
 
-The `POLICY_RISK_STYLE` meaning decision, input-evidence audit, Daily Capacity contract, synthetic characterization, and pure runtime seam are complete.
+The `POLICY_RISK_STYLE` meaning decision, Daily Capacity contract, synthetic characterization, pure runtime seam, and evidence-adapter pre-implementation ownership audit are complete.
 
 Resume by reading:
 
-1. `docs/DAILY_CAPACITY_MINIMAL_INPUT_RESULT_CONTRACT.md`;
-2. `docs/DAILY_CAPACITY_CHARACTERIZATION_AMENDMENT.md`;
-3. `docs/archive/completed-plans/DAILY_CAPACITY_PURE_RUNTIME_SEAM-2026-07-15.md`;
-4. `src_next/daily_capacity.bqn`;
-5. `tests/test_src_next_daily_capacity.bqn`;
-6. `docs/OUTLOOK_TEMPORAL_CURRENT.md`;
-7. `TODO.md`.
+1. `docs/archive/audits/DAILY_CAPACITY_EVIDENCE_ADAPTER_PREIMPLEMENTATION_AUDIT-2026-07-15.md`;
+2. `docs/DAILY_CAPACITY_MINIMAL_INPUT_RESULT_CONTRACT.md`;
+3. `docs/DAILY_CAPACITY_CHARACTERIZATION_AMENDMENT.md`;
+4. `docs/archive/completed-plans/DAILY_CAPACITY_PURE_RUNTIME_SEAM-2026-07-15.md`;
+5. `src_next/daily_capacity.bqn`;
+6. `tests/test_src_next_daily_capacity.bqn`;
+7. `docs/OUTLOOK_TEMPORAL_CURRENT.md`;
+8. `TODO.md`.
 
 The production-available pure boundary is now:
 
@@ -50,6 +51,15 @@ src_next_outlook_liq_safe_daily
 
 No config key, account or plan metadata, source schema, report field, JSON, CLI, UI, private-data access, currency conversion, or mixed-currency arithmetic was added.
 
-The smallest next candidate is a test-only characterization of one concrete evidence adapter boundary that constructs the five-part input carrier without connecting Outlook output. It remains unselected. Before selecting it, name the exact evidence owner and prove that it does not infer owner policy from account names, prefixes, salary cadence, country, or aggregate envelope labels.
+The completed audit finds that observation, resolved cycle facts, and a checked arithmetic-domain proof already have candidate fact owners. Account/pool candidates and plan settlement signals also exist, but Daily Capacity asset admission, obligation admission, and exact per-obligation reservation provenance have no current policy owner.
 
-Do not begin adapter implementation, config design, Outlook wiring, or compatibility migration automatically.
+The audit recommends, but does not select, the smallest next candidate:
+
+```text
+AssembleDailyCapacityInputFromResolvedEvidence request
+  -> {state, input, diagnostics}
+```
+
+Its first slice would characterize assembly over explicit in-memory facts and owner decisions only. It would not read source/config, project O-bounded balances, normalize settlement evidence, invent reservation links, or call the calculator/Outlook.
+
+Do not begin adapter implementation or characterization, config design, metadata/schema work, Outlook wiring, or compatibility migration automatically.
