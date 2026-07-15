@@ -9,7 +9,7 @@ Observation ← {𝕊 value:
   { date ⇐ value, source ⇐ "synthetic_test" }
 }
 
-Horizon ← {𝕊 state‿start‿end:
+MakeHorizon ← {𝕊 state‿start‿end:
   {
     state ⇐ state,
     kind ⇐ "cycle",
@@ -19,7 +19,7 @@ Horizon ← {𝕊 state‿start‿end:
   }
 }
 
-Domain ← {𝕊 state:
+MakeDomain ← {𝕊 state:
   {
     state ⇐ state,
     currency ⇐ "JPY",
@@ -107,8 +107,8 @@ CheckDiagnostic ← {𝕊 result‿state‿code:
 }
 
 obs ← Observation "2026-07-01"
-horizon ← Horizon ⟨"resolved", "2026-07-01", "2026-07-11"⟩
-domain ← Domain "proven"
+horizon ← MakeHorizon ⟨"resolved", "2026-07-01", "2026-07-11"⟩
+domain ← MakeDomain "proven"
 noAssets ← AssetScope ⟨"resolved", "account_balance", ⟨⟩⟩
 noObligations ← ObligationScope ⟨"resolved", ⟨⟩⟩
 
@@ -250,7 +250,7 @@ r25 ← reference.Build Input ⟨obs, horizon, domain, assets4, ob25⟩
 CheckDiagnostic ⟨r25, "unavailable", "obligation_scope_unavailable"⟩
 
 # 26. Rejected arithmetic domain prevents addition.
-r26 ← reference.Build Input ⟨obs, horizon, Domain "rejected", assets4, noObligations⟩
+r26 ← reference.Build Input ⟨obs, horizon, MakeDomain "rejected", assets4, noObligations⟩
 CheckDiagnostic ⟨r26, "error", "arithmetic_domain_rejected"⟩
 
 # 27. A completed obligation cannot be included.
