@@ -1,0 +1,39 @@
+name: daily-capacity-probe
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    env:
+      CBQN_REF: master
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install CBQN quietly
+        run: |
+          git clone --depth 1 --branch "$CBQN_REF" https://github.com/dzaima/CBQN.git >/dev/null 2>&1
+          make -C CBQN -j$(nproc) >/dev/null 2>&1
+          sudo cp CBQN/BQN /usr/local/bin/bqn
+
+      - name: Run characterization probe
+        id: probe
+        shell: bash
+        run: |
+          set +e
+          bqn tests/test_daily_capacity_contract_characterization.bqn > daily-capacity-probe.log 2>&1
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Upload probe log
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-capacity-probe-log
+          path: daily-capacity-probe.log
+
+      - name: Preserve probe failure
+        if: steps.probe.outputs.exit_code != '0'
+        run: exit 1
