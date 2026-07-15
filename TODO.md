@@ -43,14 +43,15 @@ Rows 4–7 are routing candidates only and no next program slice is selected. Fe
 
 ### Report projection alignment
 
-Status: selected report-engine direction. The docs-only foundation and Actual Comparison characterization foundation are complete; current runtime behavior remains unchanged. Characterization record: `docs/archive/completed-plans/ACTUAL_COMPARISON_PROJECTION_CHARACTERIZATION-2026-07-15.md`.
+Status: selected report-engine direction. The docs-only foundation, Actual Comparison characterization, and numeric-owner preimplementation compatibility decision are complete; current runtime behavior remains unchanged. Records: `docs/archive/completed-plans/ACTUAL_COMPARISON_PROJECTION_CHARACTERIZATION-2026-07-15.md` and `docs/archive/completed-plans/ACTUAL_COMPARISON_NUMERIC_OWNER_COMPATIBILITY_DECISION-2026-07-15.md`.
 
 Purpose: move eligible report numeric calculations from independent source re-parsing to checked Posting IR, Cube, or TBDS while preserving source-evidence paths for plan identity, memo, completion, and temporal semantics.
 
 - The Cube remains `Day × Account × Layer`; this is not a request to add metadata axes or force every section onto the Cube.
 - Ordered targets are `actual-comparison`, `outlook` / `actual_snapshot`, `daily-trend`, then `envelopes` / cycle remaining-plan calculation.
 - Actual Comparison now has separate public normal/history-boundary fixtures and focused executable characterization. It records that the raw parser can include a checked-Posting-IR-rejected row, derives its own maximum-journal-date cutoff, and cannot reach `insufficient_history` from valid source under the current anchor algorithm.
-- The independent runtime slice that would move Actual Comparison numeric ownership to checked Posting IR/TBDS is not selected. Do not infer that migration, a generic temporal kernel, report-wide `--as-of`, source TSV migration, policy change, or automatic write from this completed characterization.
+- The compatibility decision requires section-local fail-closed `error` for applicable rejected actual rows, an explicit hard-cutoff observation `O`, and removal of unreachable `insufficient_history` in favor of `ok / unavailable / error` when runtime migrates.
+- The independent `actual_comparison.BuildAt ⟨ctx, O⟩` runtime slice that would move numeric ownership to checked Posting IR/TBDS is next selectable but remains unselected. Do not infer that migration, a generic temporal kernel, report-wide `--as-of`, source TSV migration, policy change, or automatic write.
 
 ## Next candidates
 

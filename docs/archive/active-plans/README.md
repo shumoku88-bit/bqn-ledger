@@ -78,7 +78,7 @@ When choosing work, prefer `TODO.md` first. Use this inventory to avoid treating
 | `LEGACY_FINISH_GO_RETIREMENT_PLAN.md` | historical | Old-engine/legacy retirement note; current editor direction supersedes it. |
 | `QUERY_CONTEXT_TRACK.md` | parked | Planning note only; no implementation approved. |
 | `REPORT_DESIGN.md` | historical | Superseded by `docs/SRC_NEXT_CURRENT.md` and `docs/ARCHITECTURE.md`. |
-| `REPORT_PROJECTION_ALIGNMENT_PLAN-2026-07-15.md` | active plan | Selected, gated report numeric-owner alignment sequence. It preserves `Day × Account × Layer` and source-evidence boundaries; only a separately selected finite slice may change runtime behavior. |
+| `REPORT_PROJECTION_ALIGNMENT_PLAN-2026-07-15.md` | active plan | Selected, gated report numeric-owner alignment sequence. Actual Comparison characterization and `../completed-plans/ACTUAL_COMPARISON_NUMERIC_OWNER_COMPATIBILITY_DECISION-2026-07-15.md` are complete; only a separately selected finite slice may change runtime behavior. |
 | `REPORT_POLICY_EXTERNALIZATION_PLAN.md` | parked | Design track; old-engine references are historical, current externalization work must be sliced through TODO. |
 | `REPORT_SECTION_STATUS_POLICY.md` | active | Current policy / partial `src_next` implementation. |
 | `SEAM_REDUCTION_PLAN.md` | active | Partially implemented seam-reduction principle; current invariants are also in `AGENTS.md`. |
