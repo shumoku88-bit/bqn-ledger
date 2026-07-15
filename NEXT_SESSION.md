@@ -5,49 +5,42 @@ Owner: report
 Canonical: no; current plan: `docs/archive/active-plans/REPORT_PROJECTION_ALIGNMENT_PLAN-2026-07-15.md`
 Exit: remove or replace after the next finite slice is jointly selected
 
-The Actual Comparison projection characterization foundation is complete. Current runtime behavior remains unchanged: `src_next/actual_comparison.bqn` still rereads `cycle.tsv`, `journal.tsv`, and `plan.tsv` and independently parses amount-bearing journal rows.
+The Actual Comparison projection characterization and numeric-owner preimplementation compatibility decision are complete. Current runtime behavior remains unchanged: `src_next/actual_comparison.bqn` still rereads `cycle.tsv`, `journal.tsv`, and `plan.tsv`, independently parses amounts, and has no `BuildAt` boundary.
 
-Current characterization evidence fixes these compatibility gaps:
+The completed decision fixes three compatibility choices for a future migration:
 
-- a row rejected by checked Posting IR can still be aggregated by the raw parser when its recognized side is an income or expense account;
-- caller-owned `ctx.as_of` is not a hard cutoff because Actual Comparison independently selects the maximum journal date at or after the cycle start;
-- `insufficient_history` is not reachable from valid source under the current anchor algorithm;
-- numeric-owner migration is not selected;
-- compatibility decisions are required before any runtime migration.
+1. a consumer-observable rejected actual source row affecting the current/baseline windows makes the section `error` with an empty numeric table; valid-coordinate rejected rows outside both windows remain section-local non-failures, invalid-date applicability fails closed, and diagnostics group debit/credit postings by source identity;
+2. Actual Comparison receives an explicit hard-cutoff `O`, with current window `[cycle.start, min(O + 1 day, cycle.end_exclusive))`; `ctx.as_of`, journal maximum date, `L`, cycle end, and generation time do not own observation;
+3. unreachable `insufficient_history` is removed from the migrated vocabulary, leaving `ok / unavailable / error`; zero-event valid baselines remain `ok`.
+
+Numeric amounts and counts will be owned by checked ledger-wide Posting IR and local TBDS-family period views. Count identity is per `source_file + source_row + lane + unit/account`, so debit/credit pair duplication is removed without globally deduplicating one source row across distinct output keys. Rejected-row diagnostic identity remains source-row based.
+
+Snapshot-wide invalid amount/currency authorization currently fails before context/section construction and takes precedence over section-local status. A nonfatal checked-result carrier would require a separate, unselected design slice and is not part of the Actual Comparison migration. The PR #261 fixtures remain unchanged pre-migration evidence.
 
 Resume by reading:
 
 1. `docs/archive/active-plans/REPORT_PROJECTION_ALIGNMENT_PLAN-2026-07-15.md`;
-2. `docs/archive/completed-plans/ACTUAL_COMPARISON_PROJECTION_CHARACTERIZATION-2026-07-15.md`;
-3. `src_next/actual_comparison.bqn`;
-4. `tests/test_src_next_actual_comparison.bqn`;
+2. `docs/archive/completed-plans/ACTUAL_COMPARISON_NUMERIC_OWNER_COMPATIBILITY_DECISION-2026-07-15.md`;
+3. `docs/archive/completed-plans/ACTUAL_COMPARISON_PROJECTION_CHARACTERIZATION-2026-07-15.md`;
+4. `src_next/actual_comparison.bqn`;
 5. `src_next/context.bqn`;
 6. `src_next/projection.bqn`;
 7. `src_next/cube.bqn`;
 8. `src_next/tbds.bqn`;
-9. `docs/TIME_AS_AXIS.md`;
-10. `docs/REPORT_CONTRACTS.md`;
-11. `TODO.md`.
+9. `tests/test_src_next_actual_comparison.bqn`;
+10. `docs/TIME_AS_AXIS.md`;
+11. `docs/REPORT_CONTRACTS.md`;
+12. `TODO.md`.
 
 ## Next selectable but unselected slice
 
-The next selectable slice is an **Actual Comparison numeric-owner migration preimplementation compatibility decision**. It is not selected by this pointer.
+The next selectable slice is the **Actual Comparison numeric-owner runtime migration** around:
 
-Before implementation, decide at least:
+```text
+actual_comparison.BuildAt ⟨ctx, O⟩
+```
 
-1. When a checked-Posting-IR-rejected row falls inside the target period:
-   - make the report unavailable/error;
-   - exclude the rejected row and emit a diagnostic; or
-   - preserve the current raw-parser value for compatibility.
-2. Observation ownership:
-   - use caller-owned explicit `O` as a hard cutoff; or
-   - preserve the current maximum-journal-date behavior.
-3. `insufficient_history`:
-   - make it reachable through explicit history evidence;
-   - remove it; or
-   - redefine it as another status.
-
-Do not start the numeric-owner migration, shared temporal kernel, generic period query abstraction, Projection Workbench, Cube shape change, or another report lane automatically.
+It is not selected by this pointer. Do not start it automatically. Shared temporal kernels, generic period query abstractions, report-wide `--as-of`, Projection Workbench, Cube shape changes, Outlook / `actual_snapshot`, and another report lane also remain unselected.
 
 ## Daily Capacity completed baseline and parked candidates
 

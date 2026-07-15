@@ -54,7 +54,7 @@ Target:
 - derive current and baseline accounting flows from the one checked ledger-wide Posting IR already available in `ctx`;
 - construct each comparison period as a local TBDS query/view, retaining the current comparison-period contract;
 - keep cycle-anchor discovery and history-availability evidence explicit, but do not make that evidence a second amount parser;
-- preserve lanes (`income`, `recurring_fixed`, `variable`) and the current `unavailable` / `insufficient_history` behavior unless an explicitly documented contract change is approved.
+- preserve lanes (`income`, `recurring_fixed`, `variable`); the approved compatibility change for rejected rows, explicit observation `O`, and `ok / unavailable / error` status is recorded in `../completed-plans/ACTUAL_COMPARISON_NUMERIC_OWNER_COMPATIBILITY_DECISION-2026-07-15.md`.
 
 This is the best first slice because it is a pure accounting comparison and has an existing fixture check.
 
@@ -117,6 +117,15 @@ No automatic adjustment, source migration, or change to envelope backing policy 
 | `planned` | requires plan ID, completion, memo, and due-state evidence |
 | `issues` | separate issues-log domain, not accounting postings |
 | `check` / readiness | Cube diagnostics are the numeric owner; file counts are source inventory, not accounting totals |
+
+## Approved Actual Comparison compatibility route
+
+The docs-only characterization and preimplementation compatibility decision are complete:
+
+- `../completed-plans/ACTUAL_COMPARISON_PROJECTION_CHARACTERIZATION-2026-07-15.md`
+- `../completed-plans/ACTUAL_COMPARISON_NUMERIC_OWNER_COMPATIBILITY_DECISION-2026-07-15.md`
+
+They preserve current runtime evidence while approving future section-local fail-closed rejected-row behavior, explicit `O`, and removal of unreachable `insufficient_history`. The runtime migration remains independently selectable and is not authorized by this route alone.
 
 ## Delivery order and gates
 
