@@ -23,7 +23,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          bqn tests/test_daily_capacity_contract_characterization.bqn > daily-capacity-probe.log 2>&1
+          bqn tests/daily_capacity_probe_case1.bqn > daily-capacity-probe.log 2>&1
           code=$?
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           exit 0
