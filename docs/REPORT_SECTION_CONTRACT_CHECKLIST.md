@@ -22,7 +22,8 @@ When adding or changing a section, record or verify the following.
 - [ ] Owning module under `src_next/`.
 - [ ] Human renderer function name, usually `FormatHuman`.
 - [ ] Machine/compact renderer function name, if present.
-- [ ] Registration in `src_next/report.bqn`.
+- [ ] Static identity registration in `src_next/report_sections.bqn`.
+- [ ] Matching human builder registration in `src_next/report.bqn`.
 - [ ] Registration in `src_next/summary.bqn`, if the section has machine-readable output.
 
 ### Data ownership

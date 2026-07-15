@@ -17,15 +17,16 @@ It is **not** a revival of the archived old-engine report contract. The historic
 For current `src_next` behavior, use these in order:
 
 1. `tools/report --list-sections` — canonical list of currently runnable human report sections.
-2. `src_next/report.bqn` — section dispatcher and human report rendering entrypoint.
-3. `tools/report-section-metadata` — structured section metadata export for UI tools (TSV default / JSON), without reading source TSV.
-4. `src_next/summary.bqn` — current machine-readable compact summary fields.
-5. `docs/REPORT_SECTION_CONTRACT_CHECKLIST.md` — checklist for section identity, data ownership, empty-state/status behavior, labels, machine output, and fixture coverage.
-6. `docs/archive/active-plans/REPORT_SECTION_STATUS_POLICY.md` — `OK / WARN / ERROR / SKIPPED / UNAVAILABLE` status vocabulary and partial implementation policy.
-7. `docs/TIME_AS_AXIS.md` — canonical temporal vocabulary and non-equivalences.
-8. `docs/DAILY_TREND_TEMPORAL_CURRENT.md` — compact current Daily Trend temporal contract.
-9. `docs/OUTLOOK_TEMPORAL_CURRENT.md` — compact current Outlook temporal contract.
-10. Fixture checks under `checks/check-src-next-*.sh` and BQN unit tests under `tests/test_src_next_*.bqn` — executable contracts.
+2. `src_next/report_sections.bqn` — static section key, canonical order, and metadata descriptor fields.
+3. `src_next/report.bqn` — section builder mapping, dispatcher, and human report rendering entrypoint.
+4. `tools/report-section-metadata` — structured section metadata export for UI tools (TSV default / JSON), without reading source TSV.
+5. `src_next/summary.bqn` — current machine-readable compact summary fields.
+6. `docs/REPORT_SECTION_CONTRACT_CHECKLIST.md` — checklist for section identity, data ownership, empty-state/status behavior, labels, machine output, and fixture coverage.
+7. `docs/archive/active-plans/REPORT_SECTION_STATUS_POLICY.md` — `OK / WARN / ERROR / SKIPPED / UNAVAILABLE` status vocabulary and partial implementation policy.
+8. `docs/TIME_AS_AXIS.md` — canonical temporal vocabulary and non-equivalences.
+9. `docs/DAILY_TREND_TEMPORAL_CURRENT.md` — compact current Daily Trend temporal contract.
+10. `docs/OUTLOOK_TEMPORAL_CURRENT.md` — compact current Outlook temporal contract.
+11. Fixture checks under `checks/check-src-next-*.sh` and BQN unit tests under `tests/test_src_next_*.bqn` — executable contracts.
 
 ## Current section list
 
@@ -46,6 +47,7 @@ recent
 check
 outlook
 daily-trend
+daily-flow
 actual-comparison
 debug
 ```

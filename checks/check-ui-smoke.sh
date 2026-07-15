@@ -200,7 +200,7 @@ rm -f "$bad_out" "$bad_err"
 # Verify --list-sections produces the expected keys (catches section drift)
 list_sections_out="$(mktemp)"
 if tools/report "$fixture" --list-sections --no-color >"$list_sections_out" 2>/dev/null; then
-  required_keys=(snapshot ytd balances cycle trial-balance envelopes planned recent check outlook daily-trend actual-comparison debug)
+  required_keys=(snapshot issues ytd balances cycle trial-balance envelopes planned recent check outlook daily-trend daily-flow actual-comparison debug)
   for rk in "${required_keys[@]}"; do
     if awk -F'\t' -v k="$rk" '$1 == k { found=1; exit } END { exit !found }' "$list_sections_out"; then
       pass "report --list-sections key: $rk"

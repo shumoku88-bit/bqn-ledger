@@ -113,8 +113,9 @@ Exit: keep current while this remains the pit code/data-flow entry point
 - `date.bqn` — 日付操作 (Today, Parts, Ordinal, DaysBetween)。
 - `unavailable.bqn` — unavailable sentinel の正本定義と helper (`IsUnavailable`, `StartsWith`)。
 - `config.bqn` — config.tsv 読み込み。
-- `report.bqn` — 人間向けレポートの正本入口。セクション構成は実装と `--list-sections` を正とし、`--section <key>` で単一セクションを出力する（UIツールが動的にセクション抽出するための正本）。M3の `--currency` はhuman `balances` 専用で、full report・他section・cache・JSONとの組合せはfail closed。
-- `report_section_metadata.bqn` — UI向け structured report section metadata export（TSV default / JSON）。source TSV は読まず、section key / label / category / owner / output mode を出す。
+- `report_sections.bqn` — report sectionの静的descriptor（key、canonical order、metadata label spec、category、owner path、現行output metadata値）を所有するpure data module。builder、I/O、config、clock、CLIは持たない。
+- `report.bqn` — 人間向けレポートの正本入口。`report_sections.bqn`のkey/orderに、localなhuman builderを一対一で対応させ、`--list-sections` / `--section <key>` / full report / cacheを構築する。builder実行、first-line marker、JSON dispatch、CLIは引き続きこのmoduleが所有する。M3の`--currency`はhuman `balances`専用で、full report・他section・cache・JSONとの組合せはfail closed。
+- `report_section_metadata.bqn` — `report_sections.bqn`から静的rowを受け、label解決とUI向けstructured metadata export（TSV default / JSON）を所有する。source TSVは読まず、serializerは今回のdescriptor移行では既存実装を維持する。
 - `summary.bqn` — 機械向けコンパクト出力。
 
 ### `src_edit/` (BQN editor subsystem)

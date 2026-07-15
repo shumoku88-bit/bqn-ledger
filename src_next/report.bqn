@@ -28,6 +28,7 @@ cube ← •Import "cube.bqn"
 trial_balance ← •Import "trial_balance.bqn"
 fmt ← •Import "format.bqn"
 labels ← •Import "report_labels.bqn"
+report_sections ← •Import "report_sections.bqn"
 issues ← •Import "issues.bqn"
 daily_flow ← •Import "daily_flow.bqn"
 L ← labels.Text
@@ -43,6 +44,26 @@ ArgValue ← {𝕊 args‿flag:
 }
 
 FindSectionIndex ← {𝕊 entries‿key: ({⊑𝕩}¨ entries) ⊐ ⟨key⟩ }
+
+# Static descriptor keys own section identity/order. Executable builders remain
+# local and must form an exact one-to-one mapping with those keys.
+OrderBuilderEntries ← {𝕊 builder_entries:
+  descriptor_keys ← {0⊑𝕩}¨ report_sections.rows
+  builder_keys ← {0⊑𝕩}¨ builder_entries
+  sorted_builder_keys ← (⍋builder_keys) ⊏ builder_keys
+  duplicate_builder ← ∨´ 1↓sorted_builder_keys ≡ ¯1↓sorted_builder_keys
+  missing_builder ← ∨´ {¬ ∨´ 𝕩⊸≡¨ builder_keys}¨ descriptor_keys
+  extra_builder ← ∨´ {¬ ∨´ 𝕩⊸≡¨ descriptor_keys}¨ builder_keys
+  invalid ← duplicate_builder ∨ missing_builder ∨ extra_builder ∨ ((≠descriptor_keys) ≠ ≠builder_keys)
+  {𝕊:
+    •Out "ERROR: report section descriptor/builder mismatch"
+    •Exit 1
+  }⍟invalid @
+  {𝕊 key:
+    idx ← ⊑ (builder_keys ⊐ ⟨key⟩)
+    idx ⊑ builder_entries
+  }¨ descriptor_keys
+}
 
 # FirstLine extracts the first line of text (up to first newline)
 FirstLine ← {𝕊 text:
@@ -60,7 +81,7 @@ BuildSectionEntries ← {𝕊 ctx‿outlook_as_of‿report_today:
   tb ← trial_balance.Build ⟨ctx, cube.layer_actual⟩
   vm ← envelope_computation.Build ctx
 
-  entries ← ⟨
+  builder_entries ← ⟨
     ⟨"snapshot", snapshot.FormatHuman snapshot.Build ctx⟩
     ⟨"issues", issues.FormatHuman ctx⟩
     ⟨"ytd", ytd_summary.FormatHuman ytd_summary.Build ctx⟩
@@ -86,7 +107,7 @@ BuildSectionEntries ← {𝕊 ctx‿outlook_as_of‿report_today:
       hdr∾(@+10)∾"status: partial/src_next"∾(@+10)∾cube.VerifyNumeric ⟨ctx.cube, ctx.resolved.account_keys⟩
     }⟩
   ⟩
-  entries
+  OrderBuilderEntries builder_entries
 }
 
 Main ← {𝕊 args:

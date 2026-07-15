@@ -13,7 +13,15 @@ list="$(mktemp)"
 keys="$(mktemp)"
 json_keys="$(mktemp)"
 list_keys="$(mktemp)"
-trap 'rm -f "$out" "$json_out" "$list" "$keys" "$json_keys" "$list_keys"' EXIT
+descriptor_keys="$(mktemp)"
+descriptor_probe="$(mktemp "$PWD/.report-section-descriptors.XXXXXX.bqn")"
+trap 'rm -f "$out" "$json_out" "$list" "$keys" "$json_keys" "$list_keys" "$descriptor_keys" "$descriptor_probe"' EXIT
+
+cat >"$descriptor_probe" <<'BQN'
+sections ← •Import "src_next/report_sections.bqn"
+{•Out 0⊑𝕩}¨ sections.rows
+BQN
+bqn "$descriptor_probe" >"$descriptor_keys"
 
 ./tools/report-section-metadata >"$out"
 ./tools/report-section-metadata --format json >"$json_out"
@@ -40,11 +48,27 @@ fi
 tail -n +2 "$out" | cut -f1 >"$keys"
 cut -f1 "$list" >"$list_keys"
 
-if diff -u "$list_keys" "$keys" >/dev/null; then
-  pass "metadata section keys match report --list-sections order"
+if diff -u "$descriptor_keys" "$list_keys" >/dev/null && diff -u "$descriptor_keys" "$keys" >/dev/null; then
+  pass "descriptor, metadata, and report --list-sections keys match exactly in canonical order"
 else
-  fail "metadata section keys differ from report --list-sections"
-  diff -u "$list_keys" "$keys" >&2 || true
+  fail "descriptor, metadata, and report --list-sections keys/order differ"
+  diff -u "$descriptor_keys" "$list_keys" >&2 || true
+  diff -u "$descriptor_keys" "$keys" >&2 || true
+fi
+
+owner_failures=0
+while IFS=$'\t' read -r key label category owner human structured; do
+  if [ ! -f "$owner" ]; then
+    fail "descriptor owner path does not exist for $key: $owner"
+    owner_failures=$((owner_failures + 1))
+  fi
+  if [ "$key" = "debug" ] && [ "$owner" != "src_next/report.bqn" ]; then
+    fail "debug descriptor owner changed: $owner"
+    owner_failures=$((owner_failures + 1))
+  fi
+done < <(tail -n +2 "$out")
+if [ "$owner_failures" -eq 0 ]; then
+  pass "all descriptor owner paths exist and debug remains report-owned"
 fi
 
 if grep -qF $'daily-flow\tDaily Flow\thousehold\tsrc_next/daily_flow.bqn\tyes\tmetadata' "$out"; then
