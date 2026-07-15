@@ -43,14 +43,14 @@ Rows 4–7 are routing candidates only and no next program slice is selected. Fe
 
 ### Report projection alignment
 
-Status: selected report-engine direction. The docs-only foundation is complete in `docs/archive/active-plans/REPORT_PROJECTION_ALIGNMENT_PLAN-2026-07-15.md`; current runtime behavior remains unchanged.
+Status: selected report-engine direction. The docs-only foundation and Actual Comparison characterization foundation are complete; current runtime behavior remains unchanged. Characterization record: `docs/archive/completed-plans/ACTUAL_COMPARISON_PROJECTION_CHARACTERIZATION-2026-07-15.md`.
 
 Purpose: move eligible report numeric calculations from independent source re-parsing to checked Posting IR, Cube, or TBDS while preserving source-evidence paths for plan identity, memo, completion, and temporal semantics.
 
 - The Cube remains `Day × Account × Layer`; this is not a request to add metadata axes or force every section onto the Cube.
 - Ordered targets are `actual-comparison`, `outlook` / `actual_snapshot`, `daily-trend`, then `envelopes` / cycle remaining-plan calculation.
-- Each target requires a separate finite slice with characterization fixtures, explicit `D` / `O` / `L` ownership where relevant, output-compatibility review, and current report-contract/check updates before implementation.
-- No implementation slice is selected by this docs-only update. Do not infer a generic temporal kernel, report-wide `--as-of`, source TSV migration, policy change, or automatic write from this direction.
+- Actual Comparison now has separate public normal/history-boundary fixtures and focused executable characterization. It records that the raw parser can include a checked-Posting-IR-rejected row, derives its own maximum-journal-date cutoff, and cannot reach `insufficient_history` from valid source under the current anchor algorithm.
+- The independent runtime slice that would move Actual Comparison numeric ownership to checked Posting IR/TBDS is not selected. Do not infer that migration, a generic temporal kernel, report-wide `--as-of`, source TSV migration, policy change, or automatic write from this completed characterization.
 
 ## Next candidates
 
