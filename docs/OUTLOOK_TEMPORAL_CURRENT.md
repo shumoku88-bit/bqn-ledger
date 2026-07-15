@@ -15,6 +15,8 @@ Outlook answers:
 
 > At observation date `O`, what liquid spending room can the household rely on through active cycle end `C` under the selected Outlook policy, while separately showing that actual records are current only through `L`?
 
+The selected pre-runtime policy calculation boundary is `docs/DAILY_CAPACITY_MINIMAL_INPUT_RESULT_CONTRACT.md`. It defines explicit asset admission, obligation admission, and per-obligation reservation provenance without changing current Outlook runtime behavior.
+
 The meanings remain distinct:
 
 ```text
@@ -83,8 +85,9 @@ A later report-wide observation contract must not be inferred merely because two
 ## Read order
 
 1. `docs/TIME_AS_AXIS.md` for the canonical temporal principle.
-2. This document for the current Outlook contract.
-3. `src_next/report.bqn` and `src_next/outlook.bqn` for implementation truth.
+2. This document for the current Outlook temporal contract.
+3. `docs/DAILY_CAPACITY_MINIMAL_INPUT_RESULT_CONTRACT.md` for the selected pre-runtime policy calculation boundary.
+4. `src_next/report.bqn` and `src_next/outlook.bqn` for implementation truth.
 
 The following documents are archived implementation history after runtime consumption:
 
