@@ -22,8 +22,16 @@ jobs:
         id: probe
         shell: bash
         run: |
+          awk '
+            { print }
+            $1 == "#" && $2 ~ /^[0-9]+\.$/ {
+              n = $2
+              sub(/\.$/, "", n)
+              print "•Out \"CASE " n "\""
+            }
+          ' tests/test_daily_capacity_contract_characterization.bqn > tests/daily_capacity_probe_generated.bqn
           set +e
-          bqn tests/daily_capacity_probe_case1.bqn > daily-capacity-probe.log 2>&1
+          bqn tests/daily_capacity_probe_generated.bqn > daily-capacity-probe.log 2>&1
           code=$?
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           exit 0
