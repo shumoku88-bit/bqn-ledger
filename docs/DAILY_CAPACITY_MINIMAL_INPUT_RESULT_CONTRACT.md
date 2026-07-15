@@ -5,7 +5,7 @@ Owner: report / ledger policy / envelope
 Canonical: yes; canonical for the first evidence-bearing Daily Capacity boundary
 Exit: retain until an explicitly reviewed replacement contract supersedes it
 
-Implementation state: the pure `src_next/daily_capacity.bqn` calculation seam is implemented. Policy adapters, config, metadata, report wiring, output migration, and compatibility migration remain absent and unselected.
+Implementation state: the pure `src_next/daily_capacity.bqn` calculation seam and a test-only evidence-assembler characterization are implemented. Runtime policy adapters, config, metadata, report wiring, output migration, and compatibility migration remain absent and unselected.
 
 ## 1. Purpose
 
@@ -762,16 +762,17 @@ The characterization uses public in-memory synthetic evidence only. It does not 
 
 ## 18. Next eligible finite slice
 
-The pure runtime seam is complete. No adapter or output slice is selected by this contract.
+The pure runtime seam and the test-only evidence-assembler characterization are complete. Their companion contract is `docs/DAILY_CAPACITY_EVIDENCE_ASSEMBLER_CHARACTERIZATION_CONTRACT.md`. No adapter runtime or output slice is selected by this contract.
 
-The smallest separately selectable candidate is a test-only characterization of one evidence adapter boundary that can produce the five-part input carrier without changing Outlook output. Before selection, it must name the concrete evidence owner and preserve these constraints:
+A later candidate must separately select one finite boundary, such as promotion of the pure assembler seam, an O-bounded account-balance fact owner, or pool/reservation facts. It must preserve these constraints:
 
 - no new or reinterpreted config key;
 - no account or plan metadata change;
 - no report wiring or current Outlook arithmetic change;
 - no JSON or UI;
 - no private-data access;
-- no `simple` or `conservative` migration.
+- no `simple` or `conservative` migration;
+- no owner-policy inference from candidate facts or aggregate envelope evidence.
 
 ## 19. Non-goals
 
