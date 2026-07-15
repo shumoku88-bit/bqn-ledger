@@ -5,7 +5,8 @@ set -euo pipefail
 # Accepts implemented statuses (ok, unavailable, insufficient_history).
 # Rejects legacy placeholders and unexpected statuses.
 
-fixture="${1:-fixtures/src-next-golden}"
+fixture="${1:-fixtures/actual-comparison-projection-normal}"
+expected_status="${2:-}"
 if [ ! -d "$fixture" ]; then
   echo "ERROR: fixture directory not found: $fixture" >&2
   exit 2
@@ -14,7 +15,7 @@ fi
 out="$(mktemp)"
 trap 'rm -f "$out"' EXIT
 
-tools/report-next-summary "$fixture" > "$out" 2>/dev/null
+tools/report-next-summary "$fixture" > "$out"
 
 failures=0
 fail() { echo "FAIL: $*" >&2; failures=$((failures + 1)); }
@@ -37,6 +38,12 @@ case "$status" in
   *)
     fail "Actual Comparison status unexpected: '$status'" ;;
 esac
+
+if [ -n "$expected_status" ] && [ "$status" != "$expected_status" ]; then
+  fail "Actual Comparison status '$status' does not match expected '$expected_status'"
+elif [ -n "$expected_status" ]; then
+  pass "Actual Comparison status matches expected: $expected_status"
+fi
 
 # Reason field should be non-empty and meaningful
 if [ -n "$reason" ]; then

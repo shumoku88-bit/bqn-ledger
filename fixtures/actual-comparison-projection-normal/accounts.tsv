@@ -1,0 +1,9 @@
+income:salary	role=income
+assets:cash	role=asset
+assets:savings	role=asset
+liabilities:card	role=liability
+expenses:rent	role=expense	spend_class=fixed
+expenses:food	role=expense	spend_class=variable
+expenses:new	role=expense	spend_class=variable
+expenses:stopped	role=expense	spend_class=variable
+equity:opening	role=equity
