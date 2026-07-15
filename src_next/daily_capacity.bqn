@@ -1,7 +1,8 @@
-# Test-only reference evaluator for DAILY_CAPACITY_MINIMAL_INPUT_RESULT_CONTRACT.md.
-# This module is characterization evidence, not src_next runtime.
+# daily_capacity.bqn
+# Pure Daily Capacity builder over already-resolved in-memory evidence.
+# No source loading, policy inference, clock access, rendering, or mutation.
 
-date ← •Import "../src_next/date.bqn"
+date ← •Import "date.bqn"
 
 Sum ← { +´ 0 ∾ 𝕩 }
 AnyEq ← {𝕊 value‿xs: ∨´ 0 ∾ ({value ≡ 𝕩}¨ xs) }
@@ -37,7 +38,7 @@ NormalizeObligation ← {𝕊 row:
   }
 }
 
-Build ← {𝕊 input:
+BuildDailyCapacityFromEvidence ← {𝕊 input:
   diagnostics ← ⟨⟩
   Add ← {𝕊 severity‿stage‿code‿message‿refs:
     diagnostics ↩ diagnostics ∾ ⟨Diagnostic ⟨severity, stage, code, message, refs⟩⟩
@@ -265,5 +266,5 @@ Build ← {𝕊 input:
 }
 
 {
-  Build ⇐ Build
+  BuildDailyCapacityFromEvidence ⇐ BuildDailyCapacityFromEvidence
 }

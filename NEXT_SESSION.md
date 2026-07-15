@@ -2,42 +2,54 @@
 
 Status: active plan / temporary repository pointer
 Owner: report / ledger policy / envelope
-Canonical: no; completed characterization: `docs/archive/completed-plans/DAILY_CAPACITY_CONTRACT_CHARACTERIZATION-2026-07-15.md`
+Canonical: no; current contract: `docs/DAILY_CAPACITY_MINIMAL_INPUT_RESULT_CONTRACT.md`
 Exit: remove or replace after the next finite slice is jointly selected
 
-The `POLICY_RISK_STYLE` meaning decision, current consumer/input-evidence audit, Daily Capacity minimal contract, and test-only synthetic characterization are complete.
+The `POLICY_RISK_STYLE` meaning decision, input-evidence audit, Daily Capacity contract, synthetic characterization, and pure runtime seam are complete.
 
 Resume by reading:
 
 1. `docs/DAILY_CAPACITY_MINIMAL_INPUT_RESULT_CONTRACT.md`;
 2. `docs/DAILY_CAPACITY_CHARACTERIZATION_AMENDMENT.md`;
-3. `docs/archive/completed-plans/DAILY_CAPACITY_CONTRACT_CHARACTERIZATION-2026-07-15.md`;
-4. `docs/OUTLOOK_TEMPORAL_CURRENT.md`;
-5. `TODO.md`.
+3. `docs/archive/completed-plans/DAILY_CAPACITY_PURE_RUNTIME_SEAM-2026-07-15.md`;
+4. `src_next/daily_capacity.bqn`;
+5. `tests/test_src_next_daily_capacity.bqn`;
+6. `docs/OUTLOOK_TEMPORAL_CURRENT.md`;
+7. `TODO.md`.
 
-The selected evidence boundary remains:
-
-```text
-BuildDailyCapacityFromEvidence
-  ⟨observation, horizon, arithmetic_domain, asset_scope, obligation_scope⟩
-```
-
-Permanent executable characterization now covers 31 synthetic cases, including:
-
-- resolved-empty, included, excluded, negative, account-balance, and pool-remaining asset bases;
-- open, completed, overdue, optional, transfer, and out-of-horizon obligations;
-- full, partial, missing, ambiguous, excessive, and duplicate reservation provenance;
-- `ok`, `deficit`, `unavailable`, and `error` results;
-- floor/ceiling rounding and exhausted-horizon behavior;
-- unchanged current `simple` and `conservative` compatibility outputs.
-
-Characterization added two explicit carrier states through the companion amendment:
+The production-available pure boundary is now:
 
 ```text
-horizon.state = resolved | unavailable | error
-reservation_state = none | proven | ambiguous
+src_next/daily_capacity.bqn
+  BuildDailyCapacityFromEvidence
+    ⟨observation, horizon, arithmetic_domain, asset_scope, obligation_scope⟩
+      -> contract-shaped result
 ```
 
-No `src_next` Daily Capacity runtime, policy adapter, config key, metadata field, report field, JSON, private-data change, or compatibility migration is selected.
+It retains all 31 public synthetic characterization cases and the four states:
 
-The next eligible candidate is a pure `src_next/daily_capacity.bqn` seam implementing only the contract-shaped calculation over already-resolved evidence. Select it separately before reading config or source files, resolving owner policy, changing Outlook, or wiring output.
+```text
+ok
+deficit
+unavailable
+error
+```
+
+The former test-only reference evaluator was moved into the production module rather than duplicated. The characterization now targets the production export directly.
+
+No adapter or consumer imports this module. Current behavior remains unchanged:
+
+```text
+POLICY_RISK_STYLE=simple|conservative
+missing / empty / unknown handling
+liq_daily
+liq_safe_daily
+src_next_outlook_liq_daily
+src_next_outlook_liq_safe_daily
+```
+
+No config key, account or plan metadata, source schema, report field, JSON, CLI, UI, private-data access, currency conversion, or mixed-currency arithmetic was added.
+
+The smallest next candidate is a test-only characterization of one concrete evidence adapter boundary that constructs the five-part input carrier without connecting Outlook output. It remains unselected. Before selecting it, name the exact evidence owner and prove that it does not infer owner policy from account names, prefixes, salary cadence, country, or aggregate envelope labels.
+
+Do not begin adapter implementation, config design, Outlook wiring, or compatibility migration automatically.

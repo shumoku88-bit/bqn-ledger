@@ -54,6 +54,14 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 
 ## Next candidates
 
+### Daily Capacity evidence adapter characterization
+
+Status: unselected. The pure `src_next/daily_capacity.bqn` seam and its 31-case synthetic characterization are complete; see `docs/archive/completed-plans/DAILY_CAPACITY_PURE_RUNTIME_SEAM-2026-07-15.md`.
+
+- [ ] If selected, characterize one concrete evidence adapter boundary that constructs `⟨observation, horizon, arithmetic_domain, asset_scope, obligation_scope⟩` for the pure builder.
+- [ ] Name the exact evidence owner before implementation; do not infer owner policy from account names, prefixes, country, income cadence, or aggregate envelope labels.
+- [ ] Keep the candidate test-only and synthetic first. Do not add config or metadata, access private data, wire Outlook/report output, or migrate `simple` / `conservative` in the same slice.
+
 ### Friend travel atomic finalization writer (Israel candidate 6)
 
 Status: unselected / parked candidate. The pure one-row JPY preview is implemented and independently verified; see `docs/archive/active-plans/FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md`.
