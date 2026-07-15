@@ -15,7 +15,7 @@ Outlook answers:
 
 > At observation date `O`, what liquid spending room can the household rely on through active cycle end `C` under the selected Outlook policy, while separately showing that actual records are current only through `L`?
 
-The selected pre-runtime policy calculation boundary is `docs/DAILY_CAPACITY_MINIMAL_INPUT_RESULT_CONTRACT.md`. It defines explicit asset admission, obligation admission, and per-obligation reservation provenance without changing current Outlook runtime behavior.
+The pure policy calculation boundary is `docs/DAILY_CAPACITY_MINIMAL_INPUT_RESULT_CONTRACT.md`, implemented by the unconnected `src_next/daily_capacity.bqn` seam. It defines explicit asset admission, obligation admission, and per-obligation reservation provenance without changing current Outlook runtime behavior.
 
 The meanings remain distinct:
 
@@ -86,7 +86,7 @@ A later report-wide observation contract must not be inferred merely because two
 
 1. `docs/TIME_AS_AXIS.md` for the canonical temporal principle.
 2. This document for the current Outlook temporal contract.
-3. `docs/DAILY_CAPACITY_MINIMAL_INPUT_RESULT_CONTRACT.md` for the selected pre-runtime policy calculation boundary.
+3. `docs/DAILY_CAPACITY_MINIMAL_INPUT_RESULT_CONTRACT.md` for the pure, currently unconnected policy calculation boundary.
 4. `src_next/report.bqn` and `src_next/outlook.bqn` for implementation truth.
 
 The following documents are archived implementation history after runtime consumption:
@@ -111,4 +111,4 @@ They are not current entry documents and do not authorize a new runtime slice.
 - no automatic historical replay or knowledge cutoff;
 - no change to cycle selection;
 - no claim that `L` proves completeness;
-- no runtime, output, or policy change in this documentation slice.
+- no Outlook runtime connection, output, or policy change from the pure Daily Capacity seam.

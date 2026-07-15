@@ -5,7 +5,7 @@ Owner: report / ledger policy / envelope
 Canonical: yes; supplements `DAILY_CAPACITY_MINIMAL_INPUT_RESULT_CONTRACT.md` for the two carrier states exposed by synthetic characterization
 Exit: merge these carrier fields into a future reviewed replacement of the base contract, then retire this companion
 
-Implementation state: test-only characterization selected; `src_next` runtime remains unchanged and unselected.
+Implementation state: the amended carrier states are implemented by the pure `src_next/daily_capacity.bqn` seam and retained in synthetic characterization. Runtime adapters and outputs remain unchanged and unselected.
 
 ## Purpose
 
@@ -114,18 +114,18 @@ capacity_balance
 
 It only makes the evidence state required to authorize `already_excluded_from_asset_basis` representable and testable.
 
-## 4. Characterization owner
+## 4. Runtime and characterization owners
 
-Current test-only executable evidence:
+Current pure implementation and executable evidence:
 
-- `tests/daily_capacity_contract_reference.bqn`;
-- `tests/test_daily_capacity_contract_characterization.bqn`.
+- `src_next/daily_capacity.bqn` exports `BuildDailyCapacityFromEvidence`;
+- `tests/test_src_next_daily_capacity.bqn` retains the 31 public synthetic characterization cases.
 
-The reference evaluator is deliberately outside `src_next`. It is not a production implementation and must not be imported by report, editor, JSON, or source-writing paths.
+The module accepts already-resolved in-memory evidence only. It is not imported by report, editor, JSON, CLI, or source-writing paths.
 
 ## 5. Non-goals
 
-- no `src_next` Daily Capacity builder;
+- no Daily Capacity runtime adapter or report connection;
 - no config or account metadata key;
 - no plan/source-schema change;
 - no report, ViewModel, JSON, CLI, or UI output;

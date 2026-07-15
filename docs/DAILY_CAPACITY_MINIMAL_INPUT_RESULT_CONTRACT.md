@@ -1,11 +1,11 @@
 # Daily Capacity Minimal Input / Result Contract
 
-Status: current pre-runtime contract
+Status: current runtime contract
 Owner: report / ledger policy / envelope
 Canonical: yes; canonical for the first evidence-bearing Daily Capacity boundary
 Exit: retain until an explicitly reviewed replacement contract supersedes it
 
-Implementation state: selected design; runtime, config, metadata, report, and migration work are not selected by this document.
+Implementation state: the pure `src_next/daily_capacity.bqn` calculation seam is implemented. Policy adapters, config, metadata, report wiring, output migration, and compatibility migration remain absent and unselected.
 
 ## 1. Purpose
 
@@ -35,7 +35,7 @@ BuildDailyCapacityFromEvidence
   ⟨observation, horizon, arithmetic_domain, asset_scope, obligation_scope⟩
 ```
 
-The name is selected for future characterization and implementation discussion. This document does not authorize adding the function to `src_next`.
+The production pure boundary is exported from `src_next/daily_capacity.bqn` under this exact name. It accepts already-resolved in-memory evidence only.
 
 The boundary is specific to the first Outlook Daily Capacity consumer. It is not a universal household advice engine, generic forecast engine, or report-wide policy kernel.
 
@@ -732,9 +732,9 @@ This contract does not choose:
 
 Those choices require evidence from characterization and the smallest concrete adapter requirement.
 
-## 17. Required synthetic characterization before runtime wiring
+## 17. Synthetic characterization retained before adapter wiring
 
-A later test-only slice must cover at least:
+`tests/test_src_next_daily_capacity.bqn` covers:
 
 1. resolved empty asset scope;
 2. included and excluded liquid accounts;
@@ -758,34 +758,24 @@ A later test-only slice must cover at least:
 20. rejected arithmetic domain;
 21. current `simple` and `conservative` compatibility outputs unchanged.
 
-Public synthetic fixtures or in-memory evidence are sufficient. Private or production data is not required.
+The characterization uses public in-memory synthetic evidence only. It does not require private or production data.
 
 ## 18. Next eligible finite slice
 
-The next eligible candidate is a test-only, synthetic **Daily Capacity contract characterization**.
+The pure runtime seam is complete. No adapter or output slice is selected by this contract.
 
-It may:
+The smallest separately selectable candidate is a test-only characterization of one evidence adapter boundary that can produce the five-part input carrier without changing Outlook output. Before selection, it must name the concrete evidence owner and preserve these constraints:
 
-- construct in-memory evidence matching this contract;
-- encode expected state, calculation, and diagnostics;
-- characterize current compatibility fields separately;
-- identify the smallest future pure runtime seam.
-
-It must not yet:
-
-- add or reinterpret config keys;
-- change account or plan metadata;
-- wire a new report value;
-- change current Outlook arithmetic;
-- add JSON or UI;
-- access private data;
-- migrate `simple` or `conservative`.
-
-This characterization remains unselected after this contract.
+- no new or reinterpreted config key;
+- no account or plan metadata change;
+- no report wiring or current Outlook arithmetic change;
+- no JSON or UI;
+- no private-data access;
+- no `simple` or `conservative` migration.
 
 ## 19. Non-goals
 
-- no runtime implementation;
+- no runtime adapter or report connection;
 - no report, ViewModel, JSON, CLI, editor, or source-schema change;
 - no envelope redesign;
 - no broad temporal campaign;

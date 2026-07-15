@@ -96,6 +96,7 @@ Exit: keep current while this remains the pit code/data-flow entry point
 - `recent_journal.bqn` — 最近の仕訳表示。
 - `readiness_check.bqn` — データ品質チェック。
 - `outlook.bqn` — 見通し・日割り計算。
+- `daily_capacity.bqn` — 明示された観察日、cycle horizon、単一算術domain、owner-resolved asset / obligation evidenceだけを受ける純粋Daily Capacity計算seam。`BuildDailyCapacityFromEvidence`をexportするが、Outlook・config・source adapter・出力には未接続。
 - `daily_trend.bqn` — 日次トレンド。
 - `actual_comparison.bqn` — 前期比較。
 - `actual_snapshot.bqn` — as_of 時点スナップショット。

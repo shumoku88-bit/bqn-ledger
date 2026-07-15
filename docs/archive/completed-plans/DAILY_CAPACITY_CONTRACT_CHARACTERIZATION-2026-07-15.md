@@ -5,6 +5,8 @@ Owner: report / ledger policy / envelope
 Canonical: no; current contract remains `../../DAILY_CAPACITY_MINIMAL_INPUT_RESULT_CONTRACT.md` with companion amendment `../../DAILY_CAPACITY_CHARACTERIZATION_AMENDMENT.md`
 Exit: retain as executable-evidence completion record until the contract is replaced
 
+Follow-up: the separately selected pure-runtime seam moved this evaluator into `src_next/daily_capacity.bqn` and renamed the retained characterization to `tests/test_src_next_daily_capacity.bqn`. See `DAILY_CAPACITY_PURE_RUNTIME_SEAM-2026-07-15.md`. Statements below describe the state when this test-only slice completed.
+
 ## Purpose
 
 Characterize the selected pre-runtime Daily Capacity boundary with public synthetic evidence before any `src_next` implementation, policy storage, report wiring, or compatibility migration.
