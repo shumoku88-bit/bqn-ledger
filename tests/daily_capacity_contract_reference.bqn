@@ -56,7 +56,7 @@ Build ← {𝕊 input:
   # 2. Horizon and observation position.
   horizonReady ← 0
   horizonDatesReady ← 0
-  knownHorizonState ← horizon.state ∊ ⟨"resolved", "unavailable", "error"⟩
+  knownHorizonState ← AnyEq ⟨horizon.state, ⟨"resolved", "unavailable", "error"⟩⟩
   {𝕊: Add ⟨"error", "temporal", "horizon_invalid", "horizon state invalid", ⟨horizon.source_ref⟩⟩ }⍟(¬ knownHorizonState) @
   {𝕊: Add ⟨"unavailable", "temporal", "horizon_unavailable", "horizon unavailable", ⟨horizon.source_ref⟩⟩ }⍟(horizon.state ≡ "unavailable") @
   {𝕊: Add ⟨"error", "temporal", "horizon_invalid", "horizon evidence invalid", ⟨horizon.source_ref⟩⟩ }⍟(horizon.state ≡ "error") @
@@ -85,7 +85,7 @@ Build ← {𝕊 input:
 
   # 4. Asset scope.
   assetReady ← 0
-  knownAssetState ← assetScope.state ∊ ⟨"resolved", "unavailable", "error"⟩
+  knownAssetState ← AnyEq ⟨assetScope.state, ⟨"resolved", "unavailable", "error"⟩⟩
   {𝕊: Add ⟨"error", "asset_scope", "asset_scope_error", "asset scope state invalid", ⟨assetScope.scope_id⟩⟩ }⍟(¬ knownAssetState) @
   {𝕊: Add ⟨"unavailable", "asset_scope", "asset_scope_unavailable", "asset scope unavailable", ⟨assetScope.scope_id⟩⟩ }⍟(assetScope.state ≡ "unavailable") @
   {𝕊: Add ⟨"error", "asset_scope", "asset_scope_error", "asset scope rejected", ⟨assetScope.scope_id⟩⟩ }⍟(assetScope.state ≡ "error") @
@@ -96,11 +96,11 @@ Build ← {𝕊 input:
     decisions ← {𝕩.decision}¨ rows
     refs ← {𝕩.source_ref}¨ rows
     currencies ← {𝕩.currency}¨ rows
-    basisOk ← assetScope.basis_kind ∊ ⟨"account_balance", "pool_remaining"⟩
+    basisOk ← AnyEq ⟨assetScope.basis_kind, ⟨"account_balance", "pool_remaining"⟩⟩
     duplicateIds ← HasDuplicates ids
     sameBasis ← {assetScope.basis_kind ≡ 𝕩}¨ sourceKinds
     mixedBasis ← ∨´ 0 ∾ (¬ sameBasis)
-    decisionOk ← {𝕩 ∊ ⟨"include", "exclude"⟩}¨ decisions
+    decisionOk ← {AnyEq ⟨𝕩, ⟨"include", "exclude"⟩⟩}¨ decisions
     refOk ← {0 < ≠ 𝕩}¨ refs
     currencyOk ← {domain.currency ≡ 𝕩}¨ currencies
     invalidRows ← ¬ (decisionOk ∧ refOk ∧ currencyOk)
@@ -114,7 +114,7 @@ Build ← {𝕊 input:
 
   # 5. Obligation scope and horizon admission.
   obligationReady ← 0
-  knownObligationState ← obligationScope.state ∊ ⟨"resolved", "unavailable", "error"⟩
+  knownObligationState ← AnyEq ⟨obligationScope.state, ⟨"resolved", "unavailable", "error"⟩⟩
   {𝕊: Add ⟨"error", "obligation_scope", "obligation_scope_error", "obligation scope state invalid", ⟨obligationScope.scope_id⟩⟩ }⍟(¬ knownObligationState) @
   {𝕊: Add ⟨"unavailable", "obligation_scope", "obligation_scope_unavailable", "obligation scope unavailable", ⟨obligationScope.scope_id⟩⟩ }⍟(obligationScope.state ≡ "unavailable") @
   {𝕊: Add ⟨"error", "obligation_scope", "obligation_scope_error", "obligation scope rejected", ⟨obligationScope.scope_id⟩⟩ }⍟(obligationScope.state ≡ "error") @
@@ -133,9 +133,9 @@ Build ← {𝕊 input:
     dueOk ← date.IsValidDateText¨ dueOns
     currencyOk ← {domain.currency ≡ 𝕩}¨ currencies
     amountOk ← {0 ≤ 𝕩}¨ amounts
-    settlementOk ← {𝕩 ∊ ⟨"open", "completed"⟩}¨ settlements
-    decisionOk ← {𝕩 ∊ ⟨"include", "exclude"⟩}¨ decisions
-    reservationStateOk ← {𝕩 ∊ ⟨"none", "proven", "ambiguous"⟩}¨ reservationStates
+    settlementOk ← {AnyEq ⟨𝕩, ⟨"open", "completed"⟩⟩}¨ settlements
+    decisionOk ← {AnyEq ⟨𝕩, ⟨"include", "exclude"⟩⟩}¨ decisions
+    reservationStateOk ← {AnyEq ⟨𝕩, ⟨"none", "proven", "ambiguous"⟩⟩}¨ reservationStates
     invalidRows ← ¬ (refOk ∧ dueOk ∧ currencyOk ∧ amountOk ∧ settlementOk ∧ decisionOk ∧ reservationStateOk)
     included ← {"include" ≡ 𝕩}¨ decisions
     completedIncluded ← included ∧ ({"completed" ≡ 𝕩}¨ settlements)
