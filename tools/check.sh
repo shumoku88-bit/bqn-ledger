@@ -105,8 +105,10 @@ bash checks/check-src-next-plan-journal-overlap.sh >/dev/null
 bash checks/check-src-next-envelope-computation.sh fixtures/src-next-envelope-computation >/dev/null
 bash checks/check-src-next-execution-plan-coverage.sh fixtures/src-next-execution-plan-coverage >/dev/null
 bash checks/check-src-next-envelope-production-guard.sh >/dev/null
-bash checks/check-src-next-actual-comparison.sh fixtures/actual-comparison-projection-normal ok >/dev/null
+bash checks/check-src-next-actual-comparison.sh fixtures/actual-comparison-numeric-owner-target ok >/dev/null
+bash checks/check-src-next-actual-comparison.sh fixtures/actual-comparison-projection-normal error >/dev/null
 bash checks/check-src-next-actual-comparison.sh fixtures/actual-comparison-history-boundary unavailable >/dev/null
+bash checks/check-src-next-actual-comparison.sh fixtures/actual-comparison-invalid-date-rejected error >/dev/null
 bash checks/check-src-next-snapshot.sh fixtures/src-next-golden >/dev/null
 bash checks/check-src-next-report.sh fixtures/src-next-golden >/dev/null
 bash checks/check-src-next-outlook-observation-source.sh >/dev/null

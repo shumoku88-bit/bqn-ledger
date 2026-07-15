@@ -1,6 +1,9 @@
 # Report Contracts
 
 Status: current index / boundary note
+Owner: report
+Canonical: yes
+Exit: keep current while `src_next` report contracts route through this index
 Date: 2026-06-29
 
 This file exists so current safety and report-policy docs have a live landing page.
@@ -48,6 +51,16 @@ debug
 ```
 
 Do not edit this list by hand as a contract change. If section behavior changes, update the implementation/checks first, then refresh this note if it is useful.
+
+## Actual Comparison boundary
+
+`actual-comparison` receives an explicit observation through `actual_comparison.BuildAt ⟨ctx,O⟩`. Its current window is `[cycle.start, min(O + 1 day, cycle.end_exclusive))`; `O` is a hard cutoff and owns `vm.as_of`. Amounts come from actual-layer local TBDS period views over checked ledger-wide Posting IR. Counts use admitted posting source identity per lane/account; rejected-row diagnostics deduplicate separately per source row.
+
+Status vocabulary is `ok / unavailable / error`. A missing previous anchor or empty current window is `unavailable`; invalid observation/cycle or applicable rejected actual evidence is `error`. Both states have an empty numeric table, but machine reason and human wording distinguish them. Observable invalid-date journal evidence fails closed; a valid-date rejected journal row fails only when it falls in the current or baseline window. Snapshot-wide amount/currency authorization still precedes section construction.
+
+Production human and machine entries capture today once through `src_next/date.bqn` and pass it explicitly. There is no Actual Comparison CLI override or report-wide `as_of` contract.
+
+Executable coverage: `tests/test_src_next_actual_comparison.bqn` and `checks/check-src-next-actual-comparison.sh`.
 
 ## Envelope safety note
 

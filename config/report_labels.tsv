@@ -38,7 +38,8 @@ actual.current_open	 (
 actual.current_days_suffix	 日経過)
 actual.baseline_label	baseline: 
 actual.baseline_suffix	 (前サイクル同時点)
-actual.no_history	NOTE: 比較可能な前サイクル履歴が足りないため、Actual比較は表示しません。(status: 
+actual.no_history	NOTE: 比較可能な前サイクル履歴がないため、Actual比較は表示しません。(status:
+actual.error	ERROR: invalid actual evidenceのためActual比較の数字を表示できません。
 actual.no_rows	(no comparable actual activity)
 actual.table_unit	Unit
 actual.table_current	Current
