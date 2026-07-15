@@ -13,24 +13,35 @@ This slice changes no runtime, BQN module, fixture expectation, source/config sc
 
 ## 1. Rejected actual source rows fail the section closed
 
-If a `journal.tsv` source row rejected by checked Posting IR affects the current or baseline comparison window, Actual Comparison is `ERROR`-like and its numeric table is empty.
+If a `journal.tsv` source row rejected by checked Posting IR is observable by the section and affects the current or baseline comparison window, Actual Comparison is `ERROR`-like and its numeric table is empty. Upstream authorization failures that prevent context construction have the precedence defined below.
 
 - Do not show a normal-looking partial aggregate.
-- Do not coerce the rejected row to zero.
+- Do not coerce an observable rejected row to zero.
 - Do not silently exclude it and continue.
 - Do not preserve a value produced by the current raw parser.
-- Unknown account, invalid amount, invalid date, and equivalent invalid actual input are not trustworthy comparison evidence.
+- Unknown-account, invalid-date, and equivalent consumer-observable invalid actual evidence are not trustworthy comparison evidence. Invalid amount/currency evidence may instead stop at the upstream authorization boundary before the section is built.
 
 ### Section-local applicability
 
-Actual Comparison owns only the windows it observes, not ledger-wide strict readiness.
+Actual Comparison owns only the windows it observes, not ledger-wide strict readiness. These rules apply to rejected journal rows retained in a successful checked projection/result and therefore observable by the consumer.
 
 - A rejected journal row with a valid event coordinate `D` is section-local when `D` is in either the current or baseline half-open window.
 - A rejected journal row with a valid `D` outside both windows does not by itself fail Actual Comparison. Ledger-wide readiness may still report it independently.
-- An invalid-date journal row has no trustworthy coordinate and therefore cannot be proved outside the observed windows. It is applicability-unknown and fails Actual Comparison closed as `ERROR`; this is the narrow conservative exception to the valid-coordinate window rule.
+- An observable invalid-date journal row has no trustworthy coordinate and therefore cannot be proved outside the observed windows. It is applicability-unknown and fails Actual Comparison closed as `ERROR`; this is the narrow conservative exception to the valid-coordinate window rule.
 - Rejected non-journal layers are not actual-row failures under this decision. Any plan/cycle evidence failure remains governed by the explicit anchor and cycle rules below.
 
-Checked projection emits debit and credit posting rows for one source row. Future runtime diagnostics and failure counting must group by stable source identity, at minimum `source_file + source_row` (and may retain `source_id` / `tx_id` as evidence), so one rejected source row does not produce duplicate section diagnostics.
+Checked projection emits debit and credit posting rows for one rejected source row. Future rejected-row diagnostics and failure counting must group by stable source identity, at minimum `source_file + source_row` (and may retain `source_id` / `tx_id` as evidence), so one rejected source row does not produce duplicate section diagnostics. This diagnostic identity is separate from the numeric event-count identity in section 4.
+
+### Upstream snapshot authorization takes precedence
+
+The current context path performs snapshot-wide amount/currency arithmetic authorization before `BuildAuthorizedRowsFromSnapshot` can return a context. Therefore:
+
+- unknown-account and invalid-date failures retained as checked posting rows/evidence are observable by the consumer, so Actual Comparison applies the current/baseline window rule above;
+- invalid amount/currency evidence that makes snapshot arithmetic authorization unsupported currently produces an upstream fatal/error before `actual_comparison.BuildAt ⟨ctx, O⟩` can be reached;
+- this decision does not require converting that upstream failure into a section-local `error`;
+- continuing to render independent sections while carrying invalid amount/currency evidence would require a separately designed nonfatal checked-result carrier through context/report;
+- that carrier change must not be folded automatically into the Actual Comparison numeric-owner runtime migration;
+- the upstream fatal/error is stronger fail-closed behavior than a section-local error and does not weaken the safety decision.
 
 ## 2. Actual Comparison owns an explicit observation `O`
 
@@ -95,13 +106,25 @@ A future migration must use these owners:
 | Meaning | Owner |
 |---|---|
 | current/baseline amount | period-local actual-layer TBDS movement derived from checked ledger-wide Posting IR |
-| current/baseline event count | admitted actual posting evidence from the same checked Posting IR, grouped so one accounting event is not counted twice |
+| current/baseline event count | admitted actual posting evidence from the same checked Posting IR, counted per lane/unit key with debit/credit pair duplication removed |
 | lane/account classification | `ctx.resolved` account identity, `role`, and `spend_class` |
 | income anchor / previous-cycle identity | checked posting/source identity or explicit valid plan/cycle evidence |
 | source memo, ID, and anchor provenance | evidence path, not a second amount parser |
 | rejected-row diagnostics | checked projection and source evidence, grouped by source identity |
 
 The section must not parse the same amount again from `journal.tsv`.
+
+### Numeric event-count identity
+
+The migration preserves the current account-level amount/count semantics. Event counting is per output key, not a report-wide source-row deduplication.
+
+- Remove duplication caused by the debit/credit posting pair for the same semantic contribution.
+- Count identity is at least `source_file + source_row + lane + unit/account identity`.
+- One source row may contribute one event to each distinct output key that it semantically matches.
+- For example, when the source `from` side is an income account and the `to` side is an expense account, that row may contribute one event to the income unit and one event to the expense unit.
+- Do not globally deduplicate the whole report by source row and thereby discard one of those account-level observations.
+
+Rejected-row diagnostic deduplication remains source-identity based because it answers “how many invalid source rows?”, not “how many admitted events contributed to each numeric key?”. Diagnostic identity and numeric event-count identity must not be shared accidentally.
 
 ### Cube boundary
 

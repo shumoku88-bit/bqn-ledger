@@ -9,11 +9,13 @@ The Actual Comparison projection characterization and numeric-owner preimplement
 
 The completed decision fixes three compatibility choices for a future migration:
 
-1. a rejected actual source row affecting the current/baseline windows makes the section `error` with an empty numeric table; valid-coordinate rejected rows outside both windows remain section-local non-failures, invalid-date applicability fails closed, and diagnostics group debit/credit postings by source identity;
+1. a consumer-observable rejected actual source row affecting the current/baseline windows makes the section `error` with an empty numeric table; valid-coordinate rejected rows outside both windows remain section-local non-failures, invalid-date applicability fails closed, and diagnostics group debit/credit postings by source identity;
 2. Actual Comparison receives an explicit hard-cutoff `O`, with current window `[cycle.start, min(O + 1 day, cycle.end_exclusive))`; `ctx.as_of`, journal maximum date, `L`, cycle end, and generation time do not own observation;
 3. unreachable `insufficient_history` is removed from the migrated vocabulary, leaving `ok / unavailable / error`; zero-event valid baselines remain `ok`.
 
-Numeric amounts and counts will be owned by checked ledger-wide Posting IR and local TBDS-family period views, while anchor identity and diagnostics remain evidence concerns. The PR #261 fixtures remain unchanged pre-migration evidence.
+Numeric amounts and counts will be owned by checked ledger-wide Posting IR and local TBDS-family period views. Count identity is per `source_file + source_row + lane + unit/account`, so debit/credit pair duplication is removed without globally deduplicating one source row across distinct output keys. Rejected-row diagnostic identity remains source-row based.
+
+Snapshot-wide invalid amount/currency authorization currently fails before context/section construction and takes precedence over section-local status. A nonfatal checked-result carrier would require a separate, unselected design slice and is not part of the Actual Comparison migration. The PR #261 fixtures remain unchanged pre-migration evidence.
 
 Resume by reading:
 
