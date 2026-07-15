@@ -127,6 +127,28 @@ input = empty
 
 The assembler never returns a partial plausible five-part input.
 
+## Responsibility split with the calculator
+
+`resolved` means the assembler has established only assembly-level facts:
+
+- stable candidate and join identity validity;
+- exact same-ID joins between candidates and their decision/evidence carriers;
+- presence of every required owner decision and evidence record;
+- rejection of duplicate or unknown decision/evidence/linkage identities;
+- the explicitly supplied evidence states, including rejection of an invalid state vocabulary;
+- deterministic output row order equal to candidate input order.
+
+It does **not** mean that the five-part carrier has passed the Daily Capacity calculator's semantic validation. `BuildDailyCapacityFromEvidence` remains the sole owner of:
+
+- observation date validity;
+- horizon date and ordering semantics;
+- asset and obligation row value semantics;
+- currency agreement with the arithmetic domain;
+- decision enum validation and decision/settlement calculator-level compatibility;
+- reservation amount/ref arithmetic invariants.
+
+The assembler continues not to call the calculator and must not duplicate those calculator validations.
+
 ## Required diagnostic codes
 
 ```text
@@ -147,6 +169,7 @@ duplicate_obligation_candidate_id
 unknown_settlement_obligation_id
 duplicate_settlement_evidence
 settlement_evidence_missing
+settlement_evidence_invalid
 unknown_obligation_decision_id
 duplicate_obligation_decision_id
 obligation_decision_missing
@@ -155,6 +178,7 @@ obligation_policy_ref_missing
 unknown_reservation_obligation_id
 duplicate_reservation_evidence
 reservation_evidence_missing
+reservation_evidence_invalid
 reservation_evidence_ambiguous
 duplicate_reservation_linkage
 ```

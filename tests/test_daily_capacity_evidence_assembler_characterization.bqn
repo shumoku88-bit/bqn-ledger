@@ -163,4 +163,12 @@ r11 ← assembler.AssembleDailyCapacityInputFromResolvedEvidence Request ⟨Proo
 r12 ← assembler.AssembleDailyCapacityInputFromResolvedEvidence Request ⟨Proof "proven", baseAssets, AssetBasis "unavailable", baseAssetDecisions ∾ ⟨AssetDecision ⟨"unknown", "include"⟩⟩, baseObligations, baseSettlements, baseObligationDecisions, baseReservations⟩
 CheckDiagnostic ⟨r12, "error", "unknown_asset_decision_id"⟩
 
+# 13. An invalid supplied settlement state is an error, never a normalized state.
+r13 ← assembler.AssembleDailyCapacityInputFromResolvedEvidence Request ⟨Proof "proven", baseAssets, AssetBasis "selected", baseAssetDecisions, baseObligations, ⟨Settlement ⟨"rent", "unknown"⟩, Settlement ⟨"optional", "open"⟩⟩, baseObligationDecisions, baseReservations⟩
+CheckDiagnostic ⟨r13, "error", "settlement_evidence_invalid"⟩
+
+# 14. An invalid supplied reservation state is an error, never a normalized state.
+r14 ← assembler.AssembleDailyCapacityInputFromResolvedEvidence Request ⟨Proof "proven", baseAssets, AssetBasis "selected", baseAssetDecisions, baseObligations, baseSettlements, baseObligationDecisions, ⟨Reservation ⟨"rent", "unknown", 0, ""⟩, Reservation ⟨"optional", "none", 0, ""⟩⟩⟩
+CheckDiagnostic ⟨r14, "error", "reservation_evidence_invalid"⟩
+
 •Out "test_daily_capacity_evidence_assembler_characterization.bqn: OK"

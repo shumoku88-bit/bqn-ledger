@@ -32,7 +32,9 @@ It joins public in-memory candidate facts to explicit owner decisions by stable 
 - precedence is `error > unavailable > resolved`;
 - non-resolved results have `input = empty`.
 
-The retained public synthetic tests cover resolved assembly, missing asset/obligation decisions, unknown and duplicate decisions, missing basis, unproven domain, ambiguous/unknown/duplicate reservation evidence, deterministic ordering, and error precedence.
+A `resolved` assembler result establishes stable identities, exact joins, required carrier presence, duplicate/unknown rejection, supplied evidence states, and candidate ordering only. The calculator continues to own date/horizon semantics, row values and currency agreement, decision/settlement compatibility, and reservation arithmetic invariants; the assembler does not call or duplicate it.
+
+The retained public synthetic tests cover resolved assembly, missing asset/obligation decisions, unknown and duplicate decisions, missing basis, unproven domain, invalid settlement/reservation states, ambiguous/unknown/duplicate reservation evidence, deterministic ordering, and error precedence.
 
 ## Boundary retained
 
