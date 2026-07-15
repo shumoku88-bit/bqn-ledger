@@ -11,4 +11,4 @@ view ← plan_rows.BuildBase ⟨base, cy⟩
 1 lib.AssertEq 0⊑view.completed_mask
 "service" lib.AssertEq 0⊑view.plan_ids
 
-•Out "test_src_next_plan_evidence_boundary.bqn: OK"
+•Out "test_src_next_plan_rows_base_boundary.bqn: OK"

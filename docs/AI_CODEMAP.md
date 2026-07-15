@@ -102,6 +102,8 @@ Exit: keep current while this remains the pit code/data-flow entry point
 - `actual_snapshot.bqn` — as_of 時点スナップショット。
 - `household_policy.bqn` — 家計ポリシーレイヤ。
 - `household_metadata.bqn` — 家計メタデータ診断。
+- `plan_rows.bqn` — 予定行の source evidence（`PlanId` / `InCycle` / `BuildBase`）、actual value、temporal status の共有 owner。
+- `plan_status.bqn` — 明示 `as_of` に対する `future / due / overdue / completed` 分類の独立した純粋 owner。
 - `plan_journal_overlap.bqn` — plan/journal 重複検出。
 - `format.bqn` — テキスト整形、ANSI color helper、semantic color/no-color制御。
 - `report_labels.bqn` — report presentation labels の正本ローダー (`config/report_labels.tsv`)。
