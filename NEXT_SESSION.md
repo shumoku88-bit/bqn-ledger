@@ -2,15 +2,19 @@
 
 Status: active plan / temporary repository pointer
 Owner: config / ledger policy
-Canonical: no; detailed handoff: `docs/archive/active-plans/CONFIG_POLICY_CONTINUATION_HANDOFF-2026-07-14.md`
-Exit: remove or replace after the next jointly chosen policy decision is completed
+Canonical: no; completed decision: `docs/archive/completed-plans/POLICY_RISK_STYLE_DAILY_CAPACITY_DECISION-2026-07-15.md`
+Exit: remove or replace after the next finite slice is jointly selected
 
-Resume the configurable-ledger policy work by reading:
+The `POLICY_RISK_STYLE` meaning and ownership discussion is complete.
 
-1. `docs/archive/active-plans/CONFIG_POLICY_CONTINUATION_HANDOFF-2026-07-14.md`
-2. `TODO.md`
-3. the completed budget-style decision and compatibility audit linked from the handoff
+Resume by reading:
 
-The next selected activity is a **joint discussion about `POLICY_RISK_STYLE`**. No runtime implementation is selected yet.
+1. `docs/archive/completed-plans/POLICY_RISK_STYLE_DAILY_CAPACITY_DECISION-2026-07-15.md`;
+2. `TODO.md`;
+3. `docs/archive/completed-plans/CONFIG_POLICY_CONTINUATION_HANDOFF-2026-07-14.md` only for historical context.
 
-Start from the meaning and ownership questions. Do not automatically change fallbacks, config values, fixtures, private data, or unrelated TODO candidates.
+The durable target is an evidence-bearing daily-capacity projection over owner-selected `asset_scope`, `obligation_scope`, and `horizon`. Envelope budgeting allocates by purpose; daily capacity projects an admitted balance across time. Reserved money must not be deducted twice.
+
+No runtime implementation or migration is selected.
+
+The next eligible candidate is a docs-only audit of current `PolicyRiskStyle` consumers and available asset, obligation, horizon, and envelope evidence. Select that finite audit separately before changing runtime behavior, config values, account metadata, fixtures, private data, reports, or machine output.
