@@ -17,6 +17,21 @@ Last hygiene pass: 2026-07-14 — USD registry-backed exact decimal support for 
 
 The latest AI working feedback record was completed by PR #227 and is an evidence input only; it is not an automatic implementation queue.
 
+### Report section descriptor centralization
+
+Status: selected finite maintenance slice. This bounded maintenance work temporarily precedes other report candidates without deleting or reinterpreting the Report Projection Alignment direction below.
+
+Evidence: `docs/archive/audits/REPORT_SECTION_DESCRIPTOR_OWNERSHIP_AUDIT-2026-07-16.md`
+
+Selected plan: `docs/archive/active-plans/REPORT_SECTION_DESCRIPTOR_CENTRALIZATION_PLAN-2026-07-16.md`
+
+- Centralize only static report section descriptor ownership: key, order, metadata label spec, category, owner path, and current metadata values.
+- Preserve current report, metadata TSV/JSON, labels, section order, cache, CLI, and section-specific JSON behavior exactly.
+- Include the confirmed current inventory repairs: add missing `daily-flow` to `docs/REPORT_CONTRACTS.md` and add `issues` / `daily-flow` to explicit UI smoke required-key coverage.
+- Do not change the meaning, name, or values of `structured_output`; that remains a separate unselected future decision.
+- Do not select Outlook / `actual_snapshot`, the next Report Projection Alignment slice, report-wide `as_of`, UI redesign, or unrelated report work.
+- On completion, move the plan to completed history, update the active-plan inventory, clean this TODO routing, return to normal report routing, and do not automatically begin another task.
+
 ### Configurable AI-assisted household ledger and report
 
 Status: selected highest-priority development direction. The docs-only foundation synthesis, PR #219 dependency, and config ownership inventory are complete; no next program slice is selected.
