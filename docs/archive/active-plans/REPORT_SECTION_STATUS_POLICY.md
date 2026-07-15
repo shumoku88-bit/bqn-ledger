@@ -2,6 +2,9 @@
 
 
 Status: **current policy / src_next implementation partial**
+Owner: report
+Canonical: no; current route: `docs/REPORT_CONTRACTS.md`
+Exit: archive when a replacement current status contract covers all implemented sections
 Created: 2026-06-22
 Related:
 
@@ -155,7 +158,7 @@ A section can be `OK` even if values are zero, as long as zero is the real compu
 | `check` | `OK` | hygiene warnings found | strict error in source data | none expected | not requested |
 | `outlook` | `OK` | lag/context warning, documented fallback | invalid cycle, invalid future plan inputs, broken daily divisor contract | no future horizon only if horizon becomes optional | not requested |
 | `daily-trend` | `OK` | sparse history limitation | invalid journal/cycle inputs | insufficient trend data if no meaningful trend exists | not requested |
-| `actual-comparison` | `OK` | ratio display caveat such as `new` / `n/a` | invalid actual data or invalid cycle window | previous comparable cycle missing, insufficient history, baseline unavailable | not requested |
+| `actual-comparison` | `OK` | ratio display caveat such as `new` / `n/a` | invalid observation/cycle or applicable rejected actual evidence | previous comparable anchor missing or current observation window empty | not requested |
 | `debug` | `OK` | diagnostic-only warnings | invariant failure | requested provenance unavailable because not implemented | not requested / disabled in normal output |
 
 ## Section-specific notes
@@ -218,7 +221,8 @@ Current implementation note:
 
 - `src_next/actual_comparison.bqn` exposes status/reason through compact output keys such as `src_next_actual_comparison_status` and `src_next_actual_comparison_reason`.
 - `ok` maps to `OK`-like behavior.
-- `unavailable` / `insufficient_history` map to `UNAVAILABLE`-like behavior.
+- `unavailable` maps to `UNAVAILABLE`-like behavior; the removed `insufficient_history` status is not accepted.
+- `error` has a distinct non-empty reason/diagnostic and an empty numeric table.
 - Unavailable baseline is not converted to zero.
 
 ### `debug`

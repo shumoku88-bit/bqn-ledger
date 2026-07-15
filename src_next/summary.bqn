@@ -13,6 +13,7 @@
 # Human-readable daily report: tools/report (src_next/report.bqn)
 
 ctx_mod ← •Import "context.bqn"
+date ← •Import "date.bqn"
 cube ← •Import "cube.bqn"
 cycle ← •Import "cycle.bqn"
 cycle_summary ← •Import "cycle_summary.bqn"
@@ -37,6 +38,7 @@ daily_trend ← •Import "daily_trend.bqn"
 
 Main ← {𝕊 base:
   ctx ← ctx_mod.BuildContext base
+  summary_today ← date.Today @
 
   # Snapshot
   •Out snapshot.Format (snapshot.Build ctx)
@@ -77,7 +79,7 @@ Main ← {𝕊 base:
   •Out ""
   •Out daily_trend.Format (daily_trend.Build ctx)
   •Out ""
-  •Out actual_comparison.Format (actual_comparison.Build ctx)
+  •Out actual_comparison.Format (actual_comparison.BuildAt ⟨ctx, summary_today⟩)
 }
 
 Main ⊑•args

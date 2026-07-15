@@ -80,7 +80,7 @@ BuildSectionEntries ← {𝕊 ctx‿outlook_as_of‿report_today:
     ⟨"outlook", outlook.FormatHuman outlook.BuildAt ⟨ctx, outlook_as_of⟩⟩
     ⟨"daily-trend", daily_trend.FormatHuman daily_trend.BuildAt ⟨ctx, report_today⟩⟩
     ⟨"daily-flow", daily_flow.FormatHuman daily_flow.Build ctx⟩
-    ⟨"actual-comparison", actual_comparison.FormatHuman actual_comparison.Build ctx⟩
+    ⟨"actual-comparison", actual_comparison.FormatHuman actual_comparison.BuildAt ⟨ctx, report_today⟩⟩
     ⟨"debug", {
       hdr ← fmt.Section (L "report.debug_title")
       hdr∾(@+10)∾"status: partial/src_next"∾(@+10)∾cube.VerifyNumeric ⟨ctx.cube, ctx.resolved.account_keys⟩

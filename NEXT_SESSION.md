@@ -5,46 +5,55 @@ Owner: report
 Canonical: no; current plan: `docs/archive/active-plans/REPORT_PROJECTION_ALIGNMENT_PLAN-2026-07-15.md`
 Exit: remove or replace after the next finite slice is jointly selected
 
-The Actual Comparison projection characterization and numeric-owner preimplementation compatibility decision are complete. Current runtime behavior remains unchanged: `src_next/actual_comparison.bqn` still rereads `cycle.tsv`, `journal.tsv`, and `plan.tsv`, independently parses amounts, and has no `BuildAt` boundary.
+The Actual Comparison numeric-owner runtime migration is complete. Completion
+record:
 
-The completed decision fixes three compatibility choices for a future migration:
+- `docs/archive/completed-plans/ACTUAL_COMPARISON_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-15.md`
 
-1. a consumer-observable rejected actual source row affecting the current/baseline windows makes the section `error` with an empty numeric table; valid-coordinate rejected rows outside both windows remain section-local non-failures, invalid-date applicability fails closed, and diagnostics group debit/credit postings by source identity;
-2. Actual Comparison receives an explicit hard-cutoff `O`, with current window `[cycle.start, min(O + 1 day, cycle.end_exclusive))`; `ctx.as_of`, journal maximum date, `L`, cycle end, and generation time do not own observation;
-3. unreachable `insufficient_history` is removed from the migrated vocabulary, leaving `ok / unavailable / error`; zero-event valid baselines remain `ok`.
-
-Numeric amounts and counts will be owned by checked ledger-wide Posting IR and local TBDS-family period views. Count identity is per `source_file + source_row + lane + unit/account`, so debit/credit pair duplication is removed without globally deduplicating one source row across distinct output keys. Rejected-row diagnostic identity remains source-row based.
-
-Snapshot-wide invalid amount/currency authorization currently fails before context/section construction and takes precedence over section-local status. A nonfatal checked-result carrier would require a separate, unselected design slice and is not part of the Actual Comparison migration. The PR #261 fixtures remain unchanged pre-migration evidence.
-
-Resume by reading:
-
-1. `docs/archive/active-plans/REPORT_PROJECTION_ALIGNMENT_PLAN-2026-07-15.md`;
-2. `docs/archive/completed-plans/ACTUAL_COMPARISON_NUMERIC_OWNER_COMPATIBILITY_DECISION-2026-07-15.md`;
-3. `docs/archive/completed-plans/ACTUAL_COMPARISON_PROJECTION_CHARACTERIZATION-2026-07-15.md`;
-4. `src_next/actual_comparison.bqn`;
-5. `src_next/context.bqn`;
-6. `src_next/projection.bqn`;
-7. `src_next/cube.bqn`;
-8. `src_next/tbds.bqn`;
-9. `tests/test_src_next_actual_comparison.bqn`;
-10. `docs/TIME_AS_AXIS.md`;
-11. `docs/REPORT_CONTRACTS.md`;
-12. `TODO.md`.
-
-## Next selectable but unselected slice
-
-The next selectable slice is the **Actual Comparison numeric-owner runtime migration** around:
+Current runtime boundary:
 
 ```text
 actual_comparison.BuildAt ⟨ctx, O⟩
 ```
 
-It is not selected by this pointer. Do not start it automatically. Shared temporal kernels, generic period query abstractions, report-wide `--as-of`, Projection Workbench, Cube shape changes, Outlook / `actual_snapshot`, and another report lane also remain unselected.
+`O` is explicit, owns `vm.as_of`, and hard-cuts current actual events. The
+current window is `[cycle.start, min(O + 1 day, cycle.end_exclusive))`; the
+baseline starts at the previous comparable income anchor and has the same
+elapsed length. Human report and machine summary each capture today once at
+their entry and pass it explicitly. No compatibility `Build`, section CLI
+option, or report-wide `as_of` was added.
+
+Amounts flow from the full checked ledger-wide Posting IR through local TBDS
+half-open period views, then report-specific positive debit/credit measure
+selection. Positive semantic sides are used only for period keys/counts, with
+admitted source identity per lane/account. Anchor identity remains separate,
+uses admitted journal/plan posting dates plus the narrow `cycle.tsv`
+`income_account` evidence dependency, and is independent of amount sign; it
+parses no amount. Applicable rejected actual evidence
+is `error` with one diagnostic per source row and no numeric table. Missing
+anchor/empty current window is `unavailable`. Vocabulary is
+`ok / unavailable / error`; `insufficient_history` is removed.
+
+The PR #261 normal/history fixtures remain unchanged evidence. The normal
+fixture intentionally now returns `error` for explicit `O=2026-03-05`; new
+clean-target and invalid-date fixtures cover `ok` and fail-closed behavior.
+No private production data was accessed.
+
+## Next selectable but unselected report slice
+
+The next Report Projection Alignment candidate is an **Outlook /
+`actual_snapshot` characterization foundation**. It should first characterize
+current `O`, `L`, plan-anchor, and out-of-cycle behavior before any numeric
+migration. No next slice is selected. Do not automatically implement Outlook,
+`actual_snapshot`, a generic temporal kernel, report-wide `--as-of`, Projection
+Workbench, Daily Trend, Envelopes, or another report lane.
 
 ## Daily Capacity completed baseline and parked candidates
 
-The `POLICY_RISK_STYLE` meaning decision, Daily Capacity contract, 31-case calculator characterization, production-available pure runtime seam, evidence-adapter ownership audit, and test-only assembler characterization are complete.
+The `POLICY_RISK_STYLE` meaning decision, Daily Capacity contract, 31-case
+calculator characterization, production-available pure runtime seam,
+evidence-adapter ownership audit, and test-only assembler characterization are
+complete.
 
 The pure boundary remains:
 
@@ -55,21 +64,17 @@ src_next/daily_capacity.bqn
       -> contract-shaped result
 ```
 
-It retains the four states `ok`, `deficit`, `unavailable`, and `error`. No adapter or consumer imports it, and current Outlook behavior remains unchanged. No config key, metadata/schema change, report field, JSON, CLI, UI, private-data access, currency conversion, or mixed-currency arithmetic was added.
+It retains `ok`, `deficit`, `unavailable`, and `error`. No adapter or consumer
+imports it, and current Outlook behavior remains unchanged. The test-only
+assembler joins explicit in-memory facts and decisions by stable identity and
+returns empty input under `error > unavailable > resolved`; it remains
+unconnected.
 
-The test-only assembler characterization remains complete:
-
-```text
-AssembleDailyCapacityInputFromResolvedEvidence request
-  -> {state, input, diagnostics}
-```
-
-It joins explicit in-memory facts and decisions by stable identity and returns empty input under `error > unavailable > resolved`. It does not call the calculator, read source/config, project O-bounded balances, normalize settlement evidence, or invent reservation links.
-
-Daily Capacity remains under `TODO.md` as unselected candidates. The three independent choices remain:
+The three independent unselected choices remain:
 
 1. promote the characterized pure assembler seam;
 2. select Candidate B for O-bounded account-balance facts; or
 3. select Candidate C for pool/reservation facts.
 
-Do not promote the test-only assembler, begin Candidate B/C, add config or metadata, wire Outlook/report output, or migrate compatibility behavior automatically.
+Do not promote the assembler, begin Candidate B/C, add config or metadata, wire
+Outlook/report output, or migrate compatibility behavior automatically.

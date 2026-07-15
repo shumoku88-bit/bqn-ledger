@@ -125,15 +125,15 @@ The docs-only characterization and preimplementation compatibility decision are 
 - `../completed-plans/ACTUAL_COMPARISON_PROJECTION_CHARACTERIZATION-2026-07-15.md`
 - `../completed-plans/ACTUAL_COMPARISON_NUMERIC_OWNER_COMPATIBILITY_DECISION-2026-07-15.md`
 
-They preserve current runtime evidence while approving future section-local fail-closed rejected-row behavior, explicit `O`, and removal of unreachable `insufficient_history`. The runtime migration remains independently selectable and is not authorized by this route alone.
+They preserve pre-migration evidence and approved section-local fail-closed rejected-row behavior, explicit `O`, and removal of unreachable `insufficient_history`. The runtime migration is complete and recorded in `../completed-plans/ACTUAL_COMPARISON_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-15.md`. The next alignment candidate is Outlook / `actual_snapshot` characterization foundation, but no next slice is selected.
 
 ## Delivery order and gates
 
 Work is intentionally one report slice at a time.
 
 1. **Characterization foundation** — add only the smallest fixtures needed to state existing outputs and temporal behavior for the first target. No shared abstraction yet.
-2. **Actual Comparison** — replace local amount aggregation with checked Posting IR/TBDS-derived values; retain only necessary cycle-anchor evidence.
-3. **Outlook / actual snapshot** — establish the explicit `O`-cutoff accounting view and migrate actual values before changing plan-side aggregates.
+2. **Actual Comparison — completed** — local amount aggregation was replaced with checked Posting IR/local TBDS-derived values; only narrow cycle anchor identity evidence remains.
+3. **Outlook / actual snapshot — next candidate, unselected** — first establish characterization of the current `O`, `L`, anchor, and out-of-cycle behavior; a later selected slice may establish the explicit `O`-cutoff accounting view and migrate actual values before changing plan-side aggregates.
 4. **Daily Trend** — migrate plan monetary aggregation while preserving `D`-local identity semantics.
 5. **Envelopes / Cycle** — migrate remaining Budget and remaining-plan numeric paths without changing execution-envelope policy.
 

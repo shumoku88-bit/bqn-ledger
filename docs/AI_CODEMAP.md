@@ -98,7 +98,7 @@ Exit: keep current while this remains the pit code/data-flow entry point
 - `outlook.bqn` — 見通し・日割り計算。
 - `daily_capacity.bqn` — 明示された観察日、cycle horizon、単一算術domain、owner-resolved asset / obligation evidenceだけを受ける純粋Daily Capacity計算seam。`BuildDailyCapacityFromEvidence`をexportするが、Outlook・config・source adapter・出力には未接続。
 - `daily_trend.bqn` — 日次トレンド。
-- `actual_comparison.bqn` — 前期比較。
+- `actual_comparison.bqn` — 明示Observation `BuildAt ⟨ctx,O⟩`で前期比較を作る。current/baseline金額はchecked Posting IRからlocal TBDS period viewへ流し、count/anchor/rejected-row診断はposting source identity evidenceを使う。statusは`ok / unavailable / error`。
 - `actual_snapshot.bqn` — as_of 時点スナップショット。
 - `household_policy.bqn` — 家計ポリシーレイヤ。
 - `household_metadata.bqn` — 家計メタデータ診断。
