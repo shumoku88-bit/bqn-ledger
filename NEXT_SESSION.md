@@ -1,27 +1,38 @@
 # Next session
 
 Status: active plan / temporary repository pointer
-Owner: report / config / envelope
-Canonical: no; completed audit: `docs/archive/audits/DAILY_CAPACITY_CURRENT_CONSUMER_INPUT_EVIDENCE_AUDIT-2026-07-15.md`
+Owner: report / ledger policy / envelope
+Canonical: no; selected contract: `docs/DAILY_CAPACITY_MINIMAL_INPUT_RESULT_CONTRACT.md`
 Exit: remove or replace after the next finite slice is jointly selected
 
-The `POLICY_RISK_STYLE` meaning decision and current consumer/input-evidence audit are complete.
+The `POLICY_RISK_STYLE` meaning decision, current consumer/input-evidence audit, and Daily Capacity minimal input/result contract are complete.
 
 Resume by reading:
 
-1. `docs/archive/completed-plans/POLICY_RISK_STYLE_DAILY_CAPACITY_DECISION-2026-07-15.md`;
-2. `docs/archive/audits/DAILY_CAPACITY_CURRENT_CONSUMER_INPUT_EVIDENCE_AUDIT-2026-07-15.md`;
-3. `TODO.md`.
+1. `docs/DAILY_CAPACITY_MINIMAL_INPUT_RESULT_CONTRACT.md`;
+2. `docs/OUTLOOK_TEMPORAL_CURRENT.md`;
+3. `docs/archive/audits/DAILY_CAPACITY_CURRENT_CONSUMER_INPUT_EVIDENCE_AUDIT-2026-07-15.md` only for current-main audit evidence;
+4. `TODO.md`.
 
-Current-main audit result:
+Selected boundary:
 
-- `src_next/outlook.bqn` is the one direct behavioral consumer found in the inspected canonical surfaces;
-- `simple` and `conservative` do not select two human-facing daily formulas;
-- the current switch controls whether the secondary machine field `liq_safe_daily` is numeric or `unavailable/policy`;
-- the human Outlook continues to render `liq_daily` under both values;
-- reusable evidence exists for balances, account role/type, plan identity/completion, cycle boundaries, envelope backing, and aggregate execution coverage;
-- owner-selected asset admission, canonical obligation admission, and per-obligation reservation provenance are still missing.
+```text
+BuildDailyCapacityFromEvidence
+  ⟨observation, horizon, arithmetic_domain, asset_scope, obligation_scope⟩
+```
 
-No runtime implementation or migration is selected.
+The contract requires:
 
-The next eligible candidate is a docs-only **Daily Capacity minimal input/result contract** for the current Outlook consumer. Select it separately before adding config keys, account or plan metadata, runtime arithmetic, fixtures, report fields, JSON, private-data changes, or compatibility migration.
+- explicit Outlook observation `O` and cycle horizon `C`;
+- one proven arithmetic domain;
+- one owner-resolved non-overlapping asset basis;
+- owner-resolved open obligations;
+- per-obligation proof of any amount already outside the selected asset basis;
+- exact-once deduction of reserved obligations;
+- signed `capacity_balance`;
+- `daily_capacity` for a nonnegative result or `daily_shortfall` for a deficit;
+- structured diagnostics and no partial calculation after fatal evidence failure.
+
+No runtime implementation, config key, metadata field, report field, JSON, private-data change, or compatibility migration is selected.
+
+The next eligible candidate is a test-only synthetic Daily Capacity contract characterization. Select it separately before adding a BQN builder, changing `POLICY_RISK_STYLE`, changing current Outlook arithmetic, or wiring new output.
