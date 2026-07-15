@@ -30,7 +30,9 @@ jobs:
               print "•Out \"CASE " n "\""
             }
             $1 == "r1" && $2 == "←" {
-              print "•Out •Fmt r1"
+              print "•Out r1.state"
+              print "•Out •Fmt ({𝕩.code}¨ r1.diagnostics)"
+              print "•Out •Fmt ({𝕩.message}¨ r1.diagnostics)"
             }
           ' tests/test_daily_capacity_contract_characterization.bqn > tests/daily_capacity_probe_generated.bqn
           set +e
