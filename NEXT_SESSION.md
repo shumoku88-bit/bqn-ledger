@@ -2,37 +2,42 @@
 
 Status: active plan / temporary repository pointer
 Owner: report / ledger policy / envelope
-Canonical: no; selected contract: `docs/DAILY_CAPACITY_MINIMAL_INPUT_RESULT_CONTRACT.md`
+Canonical: no; completed characterization: `docs/archive/completed-plans/DAILY_CAPACITY_CONTRACT_CHARACTERIZATION-2026-07-15.md`
 Exit: remove or replace after the next finite slice is jointly selected
 
-The `POLICY_RISK_STYLE` meaning decision, current consumer/input-evidence audit, and Daily Capacity minimal input/result contract are complete.
+The `POLICY_RISK_STYLE` meaning decision, current consumer/input-evidence audit, Daily Capacity minimal contract, and test-only synthetic characterization are complete.
 
 Resume by reading:
 
 1. `docs/DAILY_CAPACITY_MINIMAL_INPUT_RESULT_CONTRACT.md`;
-2. `docs/OUTLOOK_TEMPORAL_CURRENT.md`;
-3. `docs/archive/audits/DAILY_CAPACITY_CURRENT_CONSUMER_INPUT_EVIDENCE_AUDIT-2026-07-15.md` only for current-main audit evidence;
-4. `TODO.md`.
+2. `docs/DAILY_CAPACITY_CHARACTERIZATION_AMENDMENT.md`;
+3. `docs/archive/completed-plans/DAILY_CAPACITY_CONTRACT_CHARACTERIZATION-2026-07-15.md`;
+4. `docs/OUTLOOK_TEMPORAL_CURRENT.md`;
+5. `TODO.md`.
 
-Selected boundary:
+The selected evidence boundary remains:
 
 ```text
 BuildDailyCapacityFromEvidence
   ⟨observation, horizon, arithmetic_domain, asset_scope, obligation_scope⟩
 ```
 
-The contract requires:
+Permanent executable characterization now covers 31 synthetic cases, including:
 
-- explicit Outlook observation `O` and cycle horizon `C`;
-- one proven arithmetic domain;
-- one owner-resolved non-overlapping asset basis;
-- owner-resolved open obligations;
-- per-obligation proof of any amount already outside the selected asset basis;
-- exact-once deduction of reserved obligations;
-- signed `capacity_balance`;
-- `daily_capacity` for a nonnegative result or `daily_shortfall` for a deficit;
-- structured diagnostics and no partial calculation after fatal evidence failure.
+- resolved-empty, included, excluded, negative, account-balance, and pool-remaining asset bases;
+- open, completed, overdue, optional, transfer, and out-of-horizon obligations;
+- full, partial, missing, ambiguous, excessive, and duplicate reservation provenance;
+- `ok`, `deficit`, `unavailable`, and `error` results;
+- floor/ceiling rounding and exhausted-horizon behavior;
+- unchanged current `simple` and `conservative` compatibility outputs.
 
-No runtime implementation, config key, metadata field, report field, JSON, private-data change, or compatibility migration is selected.
+Characterization added two explicit carrier states through the companion amendment:
 
-The next eligible candidate is a test-only synthetic Daily Capacity contract characterization. Select it separately before adding a BQN builder, changing `POLICY_RISK_STYLE`, changing current Outlook arithmetic, or wiring new output.
+```text
+horizon.state = resolved | unavailable | error
+reservation_state = none | proven | ambiguous
+```
+
+No `src_next` Daily Capacity runtime, policy adapter, config key, metadata field, report field, JSON, private-data change, or compatibility migration is selected.
+
+The next eligible candidate is a pure `src_next/daily_capacity.bqn` seam implementing only the contract-shaped calculation over already-resolved evidence. Select it separately before reading config or source files, resolving owner policy, changing Outlook, or wiring output.
