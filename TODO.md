@@ -39,7 +39,18 @@ Routing order after readiness and the completed feedback evidence:
 6. safe proposal-to-editor handoff;
 7. PR #211 Ledger Observatory synthetic evidence-trace connection last.
 
-Rows 4–7 are routing candidates only and no next program slice is selected. Feedback entries do not authorize work. Candidate 6, strict-source Steps 2–5, M4, Projection Workbench, Currency axis, FX/valuation, broad report rewrites, automatic advice/TODOs/writes, and private production-data access remain unselected.
+Rows 4–7 are routing candidates only and no next program slice is selected. Feedback entries do not authorize work. Candidate 6, strict-source Steps 2–5, M4, Projection Workbench, Currency axis, FX/valuation, automatic advice/TODOs/writes, and private production-data access remain unselected. Report projection alignment is separately selected below; it does not authorize unrelated broad report rewrites.
+
+### Report projection alignment
+
+Status: selected report-engine direction. The docs-only foundation is complete in `docs/archive/active-plans/REPORT_PROJECTION_ALIGNMENT_PLAN-2026-07-15.md`; current runtime behavior remains unchanged.
+
+Purpose: move eligible report numeric calculations from independent source re-parsing to checked Posting IR, Cube, or TBDS while preserving source-evidence paths for plan identity, memo, completion, and temporal semantics.
+
+- The Cube remains `Day × Account × Layer`; this is not a request to add metadata axes or force every section onto the Cube.
+- Ordered targets are `actual-comparison`, `outlook` / `actual_snapshot`, `daily-trend`, then `envelopes` / cycle remaining-plan calculation.
+- Each target requires a separate finite slice with characterization fixtures, explicit `D` / `O` / `L` ownership where relevant, output-compatibility review, and current report-contract/check updates before implementation.
+- No implementation slice is selected by this docs-only update. Do not infer a generic temporal kernel, report-wide `--as-of`, source TSV migration, policy change, or automatic write from this direction.
 
 ## Next candidates
 
