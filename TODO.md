@@ -50,6 +50,7 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 - The Cube remains `Day × Account × Layer`; this is not a request to add metadata axes or force every section onto the Cube.
 - Ordered targets are `actual-comparison`, `outlook` / `actual_snapshot`, `daily-trend`, then `envelopes` / cycle remaining-plan calculation.
 - Actual Comparison now exposes `BuildAt ⟨ctx,O⟩`; explicit `O` is the hard cutoff, current/baseline amounts come from checked Posting IR through local TBDS period views, and counts/anchors/diagnostics use separated posting source identity evidence.
+- Applicable rejected actual evidence fails the section closed as `error`; missing previous anchor or an empty current window is `unavailable`; runtime vocabulary is `ok / unavailable / error` and numeric rows are absent for error/unavailable.
 - Outlook characterization fixes cumulative-to-O actual behavior, differently bounded latest-date helpers, post-cycle record frontier `L`, and current all-included remaining-plan anchor behavior without changing runtime.
 - The next Report Projection Alignment candidate is a docs-only Outlook / `actual_snapshot` compatibility decision. It remains unselected. Do not infer runtime migration, a checked snapshot adapter, plan-side migration, generic temporal kernel, report-wide `--as-of`, source TSV migration, policy change, Daily Capacity connection, or automatic write.
 
