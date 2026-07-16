@@ -41,9 +41,11 @@ GetMetaVal ← {𝕊 key‿fields:
 
 # ── Recorded actual frontier ─────────────────────────────────
 
-# Preserves the current Outlook producer scope: journal coordinates at or after
-# cycle.start, with no upper cycle bound. Unlike LatestActualDateInCycle, this
-# helper keeps absence explicit instead of falling back to cycle.start.
+# Preserves the current Outlook producer scope: valid journal coordinates at or
+# after cycle.start, with no upper cycle bound. Unlike LatestActualDateInCycle,
+# this helper keeps absence explicit instead of falling back to cycle.start.
+# Invalid-date source evidence is handled by actual_snapshot fail-closed status;
+# frontier discovery must not crash before that status can propagate.
 RecordedFrontierInfo ← {𝕊 base‿cy:
   lines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
   scope_available ← (cy.start ≢ "unavailable") ∧ (cy.day_count > 0)
@@ -51,7 +53,8 @@ RecordedFrontierInfo ← {𝕊 base‿cy:
   out ← ""
   {𝕊:
     start_dn ← proj.DaysFromEpoch cy.start
-    dates ← {⊑ loader.SplitTsvKeepEmpty 𝕩}¨ lines
+    dates0 ← {⊑ loader.SplitTsvKeepEmpty 𝕩}¨ lines
+    dates ← (proj.IsValidDateText¨ dates0) / dates0
     DateInScope ← {𝕊 d: (proj.DaysFromEpoch d) ≥ start_dn }
     in_dates ← (DateInScope¨ dates) / dates
     {𝕊:
@@ -95,7 +98,52 @@ ClassifyRecordFrontier ← {𝕊 as_of‿frontier:
 
 # ── Build ──────────────────────────────────────────────────
 
-BuildCore ← {𝕊 ctx‿as_of‿frontier‿legacy_default:
+ErrorVm ← {𝕊 ctx‿as_of‿frontier‿legacy_default‿snap:
+  cy ← ctx.cy
+  frontier_relation ← ClassifyRecordFrontier ⟨as_of, frontier⟩
+  last_recorded_on ← "unavailable"
+  {𝕊: last_recorded_on ↩ frontier.date}⍟frontier.available @
+  last_journal ← last_recorded_on
+  journal_lag ← frontier_relation.journal_lag
+  {𝕊:
+    last_journal ↩ as_of
+    journal_lag ↩ 0
+  }⍟((¬ frontier.available) ∧ legacy_default) @
+
+  {
+    state ⇐ "error",
+    reason ⇐ snap.reason,
+    diagnostics ⇐ snap.diagnostics,
+    as_of ⇐ as_of,
+    last_journal ⇐ last_journal,
+    last_recorded_on ⇐ last_recorded_on,
+    record_frontier_relation ⇐ frontier_relation.relation,
+    record_frontier_distance_days ⇐ frontier_relation.distance_days,
+    journal_lag ⇐ journal_lag,
+    cycle_start ⇐ cy.start,
+    cycle_end_exclusive ⇐ cy.end_exclusive,
+    cycle_mode ⇐ cy.mode,
+    days_left ⇐ "unavailable",
+    days_elapsed ⇐ "unavailable",
+    liq_total ⇐ "unavailable",
+    sav_total ⇐ "unavailable",
+    inv_total ⇐ "unavailable",
+    assets_total ⇐ "unavailable",
+    liabilities_total ⇐ "unavailable",
+    net_worth ⇐ "unavailable",
+    liq_breakdown ⇐ ⟨⟩,
+    liq_daily ⇐ "unavailable",
+    liq_safe_daily ⇐ "unavailable",
+    planned_future_income ⇐ "unavailable",
+    fixed_reserve ⇐ "unavailable",
+    next_obligations ⇐ ⟨⟩,
+    next_obligation_total ⇐ "unavailable",
+    budget_breakdown ⇐ ⟨⟩,
+    budget_daily_total ⇐ "unavailable"
+  }
+}
+
+BuildCore ← {𝕊 ctx‿as_of‿frontier‿legacy_default‿snap:
   base ← ctx.base
   cy ← ctx.cy
   resolved ← ctx.resolved
@@ -126,7 +174,7 @@ BuildCore ← {𝕊 ctx‿as_of‿frontier‿legacy_default:
   }⍟((¬ frontier.available) ∧ legacy_default) @
 
   # Determine active incomes in current period. Anchor activation semantics are
-  # intentionally unchanged in this slice.
+  # intentionally unchanged in Slice A.
   jlines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
   InPeriodJ ← {𝕊 line:
     flds ← loader.SplitTsvKeepEmpty line
@@ -167,8 +215,8 @@ BuildCore ← {𝕊 ctx‿as_of‿frontier‿legacy_default:
 
   active_incomes ← j_incomes ∾ p_incomes
 
-  # Explicit observation cutoff for actual balances.
-  snap ← actual_snapshot.BuildAt ⟨ctx, as_of⟩
+  # Explicit observation cutoff for actual balances is already authorized and
+  # materialized by actual_snapshot before BuildCore is entered.
   liq_total ← snap.liq_total
   sav_total ← snap.sav_total
   inv_total ← snap.inv_total
@@ -272,6 +320,9 @@ BuildCore ← {𝕊 ctx‿as_of‿frontier‿legacy_default:
   budget_daily_total ← cube.Sum0 ({2⊑𝕩}¨ budget_breakdown)
 
   {
+    state ⇐ "ok",
+    reason ⇐ "outlook_active",
+    diagnostics ⇐ ⟨⟩,
     as_of ⇐ as_of,
     last_journal ⇐ last_journal,
     last_recorded_on ⇐ last_recorded_on,
@@ -301,18 +352,24 @@ BuildCore ← {𝕊 ctx‿as_of‿frontier‿legacy_default:
   }
 }
 
-# Caller-owned explicit Outlook observation path. This is not wired into current
-# production report or summary entrypoints in this slice.
+BuildWithSnapshot ← {𝕊 ctx‿as_of‿frontier‿legacy_default:
+  snap ← actual_snapshot.BuildAt ⟨ctx, as_of⟩
+  vm ← ErrorVm ⟨ctx, as_of, frontier, legacy_default, snap⟩
+  {𝕊: vm ↩ BuildCore ⟨ctx, as_of, frontier, legacy_default, snap⟩}⍟(snap.state ≡ "ok") @
+  vm
+}
+
+# Caller-owned explicit Outlook observation path.
 BuildAt ← {𝕊 ctx‿as_of:
   frontier ← RecordedFrontierInfo ⟨ctx.base, ctx.cy⟩
-  BuildCore ⟨ctx, as_of, frontier, 0⟩
+  BuildWithSnapshot ⟨ctx, as_of, frontier, 0⟩
 }
 
 # Compatibility default: preserve current local-L observation policy.
 Build ← {𝕊 ctx:
   frontier ← RecordedFrontierInfo ⟨ctx.base, ctx.cy⟩
   as_of ← LatestActualDateInCycle ⟨ctx.base, ctx.cy⟩
-  BuildCore ⟨ctx, as_of, frontier, 1⟩
+  BuildWithSnapshot ⟨ctx, as_of, frontier, 1⟩
 }
 
 # ── Format (machine) ───────────────────────────────────────
@@ -320,17 +377,22 @@ Build ← {𝕊 ctx:
 Format ← {𝕊 vm:
   FmtVal ← { (•Type 𝕩) ≡ 1 ? •Fmt 𝕩 ; 𝕩 }
   out ← "--- SrcNext Outlook ---" ∾ (@+10)
+  out ↩ out ∾ "src_next_outlook_status: " ∾ vm.state ∾ (@+10)
+  out ↩ out ∾ "src_next_outlook_reason: " ∾ vm.reason ∾ (@+10)
   out ↩ out ∾ "src_next_outlook_as_of: " ∾ vm.as_of ∾ (@+10)
-  out ↩ out ∾ "src_next_outlook_days_left: " ∾ (•Fmt vm.days_left) ∾ (@+10)
-  out ↩ out ∾ "src_next_outlook_liq_total: " ∾ (•Fmt vm.liq_total) ∾ (@+10)
-  out ↩ out ∾ "src_next_outlook_liq_daily: " ∾ (•Fmt vm.liq_daily) ∾ (@+10)
+  out ↩ out ∾ "src_next_outlook_days_left: " ∾ (FmtVal vm.days_left) ∾ (@+10)
+  out ↩ out ∾ "src_next_outlook_liq_total: " ∾ (FmtVal vm.liq_total) ∾ (@+10)
+  out ↩ out ∾ "src_next_outlook_liq_daily: " ∾ (FmtVal vm.liq_daily) ∾ (@+10)
   out ↩ out ∾ "src_next_outlook_liq_safe_daily: " ∾ (FmtVal vm.liq_safe_daily) ∾ (@+10)
+  {𝕊 diagnostic:
+    out ↩ out ∾ "src_next_outlook_diagnostic: " ∾ diagnostic.source_file ∾ (@+9) ∾ (•Fmt diagnostic.source_row) ∾ (@+9) ∾ diagnostic.status ∾ (@+9) ∾ diagnostic.date ∾ (@+9) ∾ diagnostic.message ∾ (@+10)
+  }¨ vm.diagnostics
   out
 }
 
 # ── FormatHuman ────────────────────────────────────────────
 
-FormatHuman ← {𝕊 vm:
+FormatHumanOk ← {𝕊 vm:
   days_left ← vm.days_left
   out ← (L "outlook.section_title") ∾ (@+10) ∾ (@+10)
   out ↩ out ∾ (L "outlook.cycle_label") ∾ vm.cycle_start ∾ " " ∾ (L "outlook.range_separator") ∾ " " ∾ vm.cycle_end_exclusive ∾ (L "outlook.remaining_open") ∾ (•Fmt days_left) ∾ (L "outlook.remaining_close") ∾ (@+10)
@@ -377,6 +439,24 @@ FormatHuman ← {𝕊 vm:
   }⍟(0 < ≠ vm.budget_breakdown) @
 
   out ↩ out ∾ (@+10)
+  out
+}
+
+FormatHumanError ← {𝕊 vm:
+  out ← (L "outlook.section_title") ∾ (@+10) ∾ (@+10)
+  out ↩ out ∾ (L "outlook.cycle_label") ∾ vm.cycle_start ∾ " " ∾ (L "outlook.range_separator") ∾ " " ∾ vm.cycle_end_exclusive ∾ (@+10)
+  out ↩ out ∾ (L "outlook.as_of_label") ∾ vm.as_of ∾ (@+10) ∾ (@+10)
+  out ↩ out ∾ (L "outlook.error") ∾ " (" ∾ vm.reason ∾ ")" ∾ (@+10)
+  {𝕊 diagnostic:
+    out ↩ out ∾ "  " ∾ diagnostic.source_file ∾ ":" ∾ (•Fmt diagnostic.source_row) ∾ " " ∾ diagnostic.status ∾ " " ∾ diagnostic.message ∾ (@+10)
+  }¨ vm.diagnostics
+  out ↩ out ∾ (@+10)
+  out
+}
+
+FormatHuman ← {𝕊 vm:
+  out ← FormatHumanError vm
+  {𝕊: out ↩ FormatHumanOk vm}⍟(vm.state ≡ "ok") @
   out
 }
 

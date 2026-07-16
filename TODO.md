@@ -9,7 +9,7 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-16 — loader/util ownership normalization and the Outlook / `actual_snapshot` characterization plus numeric-owner compatibility decision are complete. No Outlook runtime migration, next configurable-ledger slice, Israel follow-on, strict-source Step 2–5, M4, or other implementation candidate is selected.
+Last hygiene pass: 2026-07-16 — loader/util ownership normalization and Outlook / `actual_snapshot` Slice A checked numeric-owner runtime migration are complete. No Outlook plan/anchor Slice B, next configurable-ledger slice, Israel follow-on, strict-source Step 2–5, M4, or other implementation candidate is selected.
 
 ---
 
@@ -43,7 +43,7 @@ Rows 4–7 are routing candidates only and no next program slice is selected. Fe
 
 ### Report projection alignment
 
-Status: selected report-engine direction. Actual Comparison characterization, compatibility decision, and numeric-owner runtime migration are complete. Outlook / `actual_snapshot` characterization and numeric-owner compatibility decision are also complete. Records: `docs/archive/completed-plans/ACTUAL_COMPARISON_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-15.md`, `docs/archive/completed-plans/OUTLOOK_ACTUAL_SNAPSHOT_CHARACTERIZATION-2026-07-16.md`, and `docs/archive/completed-plans/OUTLOOK_ACTUAL_SNAPSHOT_NUMERIC_OWNER_COMPATIBILITY_DECISION-2026-07-16.md`.
+Status: selected report-engine direction. Actual Comparison and Outlook / `actual_snapshot` Slice A characterization, compatibility decisions, and numeric-owner runtime migrations are complete. Records include `docs/archive/completed-plans/ACTUAL_COMPARISON_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-15.md` and `docs/archive/completed-plans/OUTLOOK_ACTUAL_SNAPSHOT_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-16.md`.
 
 Purpose: move eligible report numeric calculations from independent source re-parsing to checked Posting IR, Cube, or TBDS while preserving source-evidence paths for plan identity, memo, completion, and temporal semantics.
 
@@ -51,9 +51,9 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 - Ordered targets are `actual-comparison`, `outlook` / `actual_snapshot`, `daily-trend`, then `envelopes` / cycle remaining-plan calculation.
 - Actual Comparison now exposes `BuildAt ⟨ctx,O⟩`; explicit `O` is the hard cutoff, current/baseline amounts come from checked Posting IR through local TBDS period views, and counts/anchors/diagnostics use separated posting source identity evidence.
 - Applicable rejected actual evidence fails Actual Comparison closed as `error`; missing previous anchor or an empty current window is `unavailable`; runtime vocabulary is `ok / unavailable / error` and numeric rows are absent for error/unavailable.
-- Outlook migration is approved as two independent runtime slices: Slice A for cumulative inclusive-O `actual_snapshot` checked ownership and fail-closed propagation, then Slice B for unfinished-plan checked amounts and asymmetric anchor policy.
-- Slice B policy is already decided but not selected: valid anchored outflows remain reserved when the anchor is unmet; valid anchored inflows require an admitted actual matching income event at or before O within C; invalid anchor metadata is `error`.
-- The next Report Projection Alignment candidate is **Slice A: `actual_snapshot` checked numeric-owner runtime migration**. It remains unselected. Do not infer plan-side migration, anchor runtime changes, helper renaming, generic temporal kernel, report-wide `--as-of`, source TSV migration, Daily Capacity connection, policy expansion, or automatic write.
+- Outlook Slice A now derives cumulative inclusive-O actual balances from checked Posting IR through a local TBDS view; applicable rejected actual evidence fails closed and Outlook suppresses derived money on snapshot error.
+- The next Report Projection Alignment candidate is **Slice B: Outlook remaining-plan monetary ownership and anchor policy**. It remains unselected. The approved policy reserves valid anchored outflows when unmet, admits valid anchored inflows only after matching actual income through O, and treats invalid anchor metadata as `error`.
+- Do not infer helper renaming, generic temporal kernel, report-wide `--as-of`, source TSV migration, Daily Capacity connection, policy expansion, or automatic write.
 
 ## Next candidates
 
