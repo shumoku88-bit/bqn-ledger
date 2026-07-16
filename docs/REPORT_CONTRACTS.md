@@ -25,7 +25,7 @@ For current `src_next` behavior, use these in order:
 7. `docs/archive/active-plans/REPORT_SECTION_STATUS_POLICY.md` — `OK / WARN / ERROR / SKIPPED / UNAVAILABLE` status vocabulary and partial implementation policy.
 8. `docs/TIME_AS_AXIS.md` — canonical temporal vocabulary and non-equivalences.
 9. `docs/DAILY_TREND_TEMPORAL_CURRENT.md` — compact current Daily Trend temporal contract.
-10. `docs/OUTLOOK_TEMPORAL_CURRENT.md` — compact current Outlook temporal and checked-actual contract.
+10. `docs/OUTLOOK_TEMPORAL_CURRENT.md` — compact current Outlook temporal and checked-money contract.
 11. Fixture checks under `checks/check-src-next-*.sh` and BQN unit tests under `tests/test_src_next_*.bqn` — executable contracts.
 
 ## Current section list
@@ -78,11 +78,41 @@ Snapshot and Outlook status vocabulary for this boundary is `ok / error`.
 - valid-coordinate rejected actual with `D > O` -> outside that O snapshot;
 - valid empty journal -> `ok` with real zero balances.
 
-Diagnostics deduplicate checked debit/credit posting pairs by source row. On snapshot error, Outlook does not combine plan values with invalid actual balances and does not render normal daily-allowance numbers. Machine output includes `src_next_outlook_status`, `src_next_outlook_reason`, and `src_next_outlook_diagnostic`.
-
-Current remaining-plan amount parsing and anchor behavior are not migrated by this boundary. Their separately approved Slice B remains unselected.
+Diagnostics deduplicate checked debit/credit posting pairs by source row. On snapshot error, Outlook does not combine plan values with invalid actual balances and does not render normal daily-allowance numbers.
 
 Executable coverage: `tests/test_src_next_actual_snapshot_numeric_owner.bqn` and `checks/check-src-next-actual-snapshot.sh`.
+
+## Outlook checked remaining-plan boundary
+
+`outlook_remaining_plan.BuildAt ⟨ctx,O⟩` owns current remaining-plan monetary aggregation.
+
+The checked owner split is:
+
+| Meaning | Owner |
+|---|---|
+| amount and liquid delta | admitted `plan.tsv` Posting IR |
+| source identity and metadata | source evidence joined by `source_row` |
+| completed / unfinished | existing `plan_rows.PlanId` evidence |
+| observation and horizon | explicit O and selected C |
+| anchor activation | admitted actual income-credit evidence through O |
+
+The remaining horizon is `O <= D < C.end_exclusive`. Completed plan rows are excluded.
+
+Anchor policy is asymmetric for household safety:
+
+- unanchored outflows are reserved;
+- valid anchored outflows are reserved even when their anchor is unmet;
+- unanchored inflows are included;
+- valid anchored inflows are included only after an actual matching income event is admitted at or before O within C;
+- an anchor event after O does not activate the inflow at O.
+
+`anchor=` must appear at most once, be nonempty, resolve exactly, and identify an account with `role=income`. Applicable unknown-account, invalid-date, invalid-anchor, or structural join evidence returns `error / rejected_plan_evidence`. Outlook then exposes source-row diagnostics and suppresses all monetary output.
+
+Cycle-end next-obligation rendering remains a separate compatibility surface and may still read source plan rows. Slice B migrates the current remaining aggregate, not every plan consumer.
+
+Machine output includes `src_next_outlook_status`, `src_next_outlook_reason`, and `src_next_outlook_diagnostic` for both actual and plan failures.
+
+Executable coverage: `tests/test_src_next_outlook_remaining_plan_numeric_owner.bqn` and `checks/check-src-next-outlook-remaining-plan.sh`.
 
 ## Envelope safety note
 

@@ -136,7 +136,7 @@ machine ← outlook.Format error_vm
 1 lib.AssertEq ∨´ "src_next_outlook_reason: rejected_actual_evidence"⍷machine
 1 lib.AssertEq ∨´ "src_next_outlook_diagnostic: journal.tsv"⍷machine
 human ← outlook.FormatHuman error_vm
-1 lib.AssertEq ∨´ "actual snapshotを信頼できない"⍷human
+1 lib.AssertEq ∨´ "Outlookの入力を信頼できない"⍷human
 0 lib.AssertEq ∨´ "使える可用資金"⍷human
 
 invalid_o_vm ← outlook.BuildAt ⟨ctx, "not-a-date"⟩

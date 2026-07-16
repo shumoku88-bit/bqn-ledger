@@ -1,0 +1,8 @@
+assets:cash	role=asset	type=liquid
+income:salary	role=income
+income:pension	role=income
+expenses:unanchored	role=expense	spend_class=variable
+expenses:met	role=expense	spend_class=fixed
+expenses:unmet	role=expense	spend_class=fixed
+expenses:done	role=expense	spend_class=variable
+expenses:later	role=expense	spend_class=variable

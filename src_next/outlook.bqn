@@ -6,38 +6,14 @@ conf ← •Import "config.bqn"
 loader ← •Import "loader.bqn"
 proj ← •Import "projection.bqn"
 cube ← •Import "cube.bqn"
-tbds ← •Import "tbds.bqn"
 actual_snapshot ← •Import "actual_snapshot.bqn"
+remaining_plan ← •Import "outlook_remaining_plan.bqn"
 fmt ← •Import "format.bqn"
 labels ← •Import "report_labels.bqn"
 L ← labels.Text
 env_comp ← •Import "envelope_computation.bqn"
 
-StartsWith ← { pref ← 𝕨 ⋄ pref ≡ (≠ pref) ↑ 𝕩 }
 IsMember ← { list ← 𝕨 ⋄ item ← 𝕩 ⋄ (⊑ list ⊐ ⟨item⟩) < ≠ list }
-
-GetMetaVal ← {𝕊 key‿fields:
-  (5 < ≠ fields) ◶ ⟨
-    { 𝕊 ⋄ "" },
-    { 𝕊 ⋄
-      metas ← 5 ↓ fields
-      FindVal ← {𝕊 meta:
-        indices ← (meta = '=') / ↕ ≠ meta
-        eq_idx ← (0 < ≠ indices) ◶ ⟨ { 𝕊 ⋄ ≠ meta }, { 𝕊 ⋄ ⊑ indices } ⟩ @
-        (eq_idx < ≠ meta) ◶ ⟨
-          { 𝕊 ⋄ ⟨⟩ },
-          { 𝕊 ⋄
-            k ← eq_idx ↑ meta
-            v ← (eq_idx + 1) ↓ meta
-            (k ≡ key) ◶ ⟨ { 𝕊 ⋄ ⟨⟩ }, { 𝕊 ⋄ ⟨v⟩ } ⟩ @
-          }
-        ⟩ @
-      }
-      matches ← ∾ FindVal¨ metas
-      (0 < ≠ matches) ◶ ⟨ { 𝕊 ⋄ "" }, { 𝕊 ⋄ 0 ⊑ matches } ⟩ @
-    }
-  ⟩ @
-}
 
 # ── Recorded actual frontier ─────────────────────────────────
 
@@ -98,7 +74,7 @@ ClassifyRecordFrontier ← {𝕊 as_of‿frontier:
 
 # ── Build ──────────────────────────────────────────────────
 
-ErrorVm ← {𝕊 ctx‿as_of‿frontier‿legacy_default‿snap:
+ErrorVm ← {𝕊 ctx‿as_of‿frontier‿legacy_default‿failure:
   cy ← ctx.cy
   frontier_relation ← ClassifyRecordFrontier ⟨as_of, frontier⟩
   last_recorded_on ← "unavailable"
@@ -112,8 +88,8 @@ ErrorVm ← {𝕊 ctx‿as_of‿frontier‿legacy_default‿snap:
 
   {
     state ⇐ "error",
-    reason ⇐ snap.reason,
-    diagnostics ⇐ snap.diagnostics,
+    reason ⇐ failure.reason,
+    diagnostics ⇐ failure.diagnostics,
     as_of ⇐ as_of,
     last_journal ⇐ last_journal,
     last_recorded_on ⇐ last_recorded_on,
@@ -143,10 +119,9 @@ ErrorVm ← {𝕊 ctx‿as_of‿frontier‿legacy_default‿snap:
   }
 }
 
-BuildCore ← {𝕊 ctx‿as_of‿frontier‿legacy_default‿snap:
+BuildCore ← {𝕊 ctx‿as_of‿frontier‿legacy_default‿snap‿remaining:
   base ← ctx.base
   cy ← ctx.cy
-  resolved ← ctx.resolved
 
   cfg ← conf.LoadConfig base
   risk_style ← cfg.PolicyRiskStyle @
@@ -173,49 +148,7 @@ BuildCore ← {𝕊 ctx‿as_of‿frontier‿legacy_default‿snap:
     journal_lag ↩ 0
   }⍟((¬ frontier.available) ∧ legacy_default) @
 
-  # Determine active incomes in current period. Anchor activation semantics are
-  # intentionally unchanged in Slice A.
-  jlines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
-  InPeriodJ ← {𝕊 line:
-    flds ← loader.SplitTsvKeepEmpty line
-    ok ← 5 ≤ ≠ flds
-    r ← 0
-    {𝕊:
-      dn ← proj.DaysFromEpoch (0⊑flds)
-      r ↩ (dn ≥ start_dn) ∧ (dn < end_dn)
-    }⍟ok @
-    r
-  }
-  in_period_jlines ← InPeriodJ¨ jlines
-  GetIncomeAccJ ← {𝕊 line:
-    flds ← loader.SplitTsvKeepEmpty line
-    fromAcc ← 2⊑flds
-    ("income:" StartsWith fromAcc) ⊑ ⟨""⟩‿⟨fromAcc⟩
-  }
-  j_incomes ← (0 < ≠ jlines) ◶ ⟨ { 𝕊 ⋄ ⟨⟩ }, { 𝕊 ⋄ ∾ GetIncomeAccJ¨ (in_period_jlines / jlines) } ⟩ @
-
-  plan_lines ← loader.ReadLinesOptional (base ∾ "/plan.tsv")
-  InPeriodP ← {𝕊 line:
-    flds ← loader.SplitTsvKeepEmpty line
-    ok ← 5 ≤ ≠ flds
-    r ← 0
-    {𝕊:
-      dn ← proj.DaysFromEpoch (0⊑flds)
-      r ↩ (dn ≥ start_dn) ∧ (dn < end_dn)
-    }⍟ok @
-    r
-  }
-  in_period_plines ← InPeriodP¨ plan_lines
-  GetIncomeAccP ← {𝕊 line:
-    flds ← loader.SplitTsvKeepEmpty line
-    fromAcc ← 2⊑flds
-    ("income:" StartsWith fromAcc) ⊑ ⟨""⟩‿⟨fromAcc⟩
-  }
-  p_incomes ← (0 < ≠ plan_lines) ◶ ⟨ { 𝕊 ⋄ ⟨⟩ }, { 𝕊 ⋄ ∾ GetIncomeAccP¨ (in_period_plines / plan_lines) } ⟩ @
-
-  active_incomes ← j_incomes ∾ p_incomes
-
-  # Explicit observation cutoff for actual balances is already authorized and
+  # Explicit observation cutoff for actual balances is authorized and
   # materialized by actual_snapshot before BuildCore is entered.
   liq_total ← snap.liq_total
   sav_total ← snap.sav_total
@@ -225,57 +158,16 @@ BuildCore ← {𝕊 ctx‿as_of‿frontier‿legacy_default‿snap:
   net_worth ← snap.net_worth
   liq_breakdown ← snap.liq_breakdown
 
-  roles ← resolved.roles
-  accounts ← resolved.accounts
-  types ← resolved.types
-  spend_classes ← resolved.spend_classes
+  # Slice B remaining-plan amounts come only from admitted plan Posting IR.
+  # Completion and anchor metadata remain source evidence in remaining_plan.
+  future_planned_liquid_net ← remaining.future_planned_liquid_net
+  planned_future_income ← remaining.planned_future_income
+  fixed_reserve ← remaining.fixed_reserve
+  future_planned_liquid_expenses ← ¯1 × fixed_reserve
 
-  AccIdx ← { ⊑ accounts ⊐ ⟨𝕩⟩ }
-  AccRole ← {𝕊 acc: (AccIdx acc) ⊑ (roles ∾ ⟨""⟩) }
-  AccType ← {𝕊 acc: (AccIdx acc) ⊑ (types ∾ ⟨""⟩) }
-  AccSpendClass ← {𝕊 acc: (AccIdx acc) ⊑ (spend_classes ∾ ⟨""⟩) }
-
-  # Plan rows used by daily amount calculations
-  InRemaining ← {𝕊 line:
-    flds ← loader.SplitTsvKeepEmpty line
-    ok ← 5 ≤ ≠ flds
-    r ← 0
-    {𝕊:
-      dn ← proj.DaysFromEpoch (0⊑flds)
-      in_date_range ← (dn ≥ as_of_dn) ∧ (dn < end_dn)
-      { 𝕊 ⋄
-        anchor ← GetMetaVal ⟨"anchor", flds⟩
-        has_anchor ← 0 < ≠ anchor
-        active ← has_anchor ◶ ⟨
-          { 𝕊 ⋄ active_incomes IsMember anchor },
-          { 𝕊 ⋄ 1 }
-        ⟩ @
-        r ↩ active
-      }⍟in_date_range @
-    }⍟ok @
-    r
-  }
-  Amount ← {𝕊 line:
-    flds ← loader.SplitTsvKeepEmpty line
-    amtText ← (4 < ≠ flds) ⊑ "0"‿(4⊑flds)
-    proj.IsIntegerText amtText ? •BQN amtText ; 0
-  }
-  PlanLiquidDelta ← {𝕊 line:
-    flds ← loader.SplitTsvKeepEmpty line
-    fromAcc ← 2⊑flds ⋄ toAcc ← 3⊑flds ⋄ amt ← Amount line
-    to_liq ← (AccType toAcc) ≡ "liquid"
-    from_liq ← (AccType fromAcc) ≡ "liquid"
-    (to_liq × amt) - (from_liq × amt)
-  }
-  rem_mask ← InRemaining¨ plan_lines
-  plan_liquid_deltas ← PlanLiquidDelta¨ (rem_mask / plan_lines)
-  future_planned_liquid_net ← cube.Sum0 plan_liquid_deltas
-  future_planned_liquid_income ← cube.Sum0 (0⌈plan_liquid_deltas)
-  future_planned_liquid_expenses ← cube.Sum0 (0⌊plan_liquid_deltas)
-  planned_future_income ← future_planned_liquid_income
-  fixed_reserve ← ¯1 × future_planned_liquid_expenses
-
-  # Next cycle obligations: plan entries on cycle end_exclusive date
+  # Next cycle obligations remain a separate compatibility surface: plan entries
+  # on cycle end_exclusive. This is not the current remaining-plan aggregate.
+  plan_lines ← loader.ReadLinesOptional (base ∾ "/plan.tsv")
   end_dn_obl ← proj.DaysFromEpoch cy.end_exclusive
   ObligationFor ← {𝕊 line:
     flds ← loader.SplitTsvKeepEmpty line
@@ -296,9 +188,8 @@ BuildCore ← {𝕊 ctx‿as_of‿frontier‿legacy_default‿snap:
   obligation_rows ← ∾ ObligationFor¨ plan_lines
   next_obligation_total ← (0 < ≠ obligation_rows) ⊑ 0‿(cube.Sum0 ({3⊑𝕩}¨ obligation_rows))
 
-  # Daily amounts. Match current engine plan_view semantics:
-  # liq_daily uses projected liquid balance after all remaining plan liquid deltas;
-  # liq_safe_daily reserves future planned liquid outflows.
+  # Daily amounts. liq_daily uses projected liquid balance after admitted
+  # remaining plan deltas; liq_safe_daily reserves admitted future outflows.
   liq_basis ← liq_total + future_planned_liquid_net
   liq_safe_basis ← liq_total + future_planned_liquid_expenses
   liq_daily ← (days_left > 0) ⊑ 0‿(⌊ (liq_basis ÷ days_left))
@@ -355,7 +246,13 @@ BuildCore ← {𝕊 ctx‿as_of‿frontier‿legacy_default‿snap:
 BuildWithSnapshot ← {𝕊 ctx‿as_of‿frontier‿legacy_default:
   snap ← actual_snapshot.BuildAt ⟨ctx, as_of⟩
   vm ← ErrorVm ⟨ctx, as_of, frontier, legacy_default, snap⟩
-  {𝕊: vm ↩ BuildCore ⟨ctx, as_of, frontier, legacy_default, snap⟩}⍟(snap.state ≡ "ok") @
+  {𝕊:
+    remaining ← remaining_plan.BuildAt ⟨ctx, as_of⟩
+    vm ↩ ErrorVm ⟨ctx, as_of, frontier, legacy_default, remaining⟩
+    {𝕊:
+      vm ↩ BuildCore ⟨ctx, as_of, frontier, legacy_default, snap, remaining⟩
+    }⍟(remaining.state ≡ "ok") @
+  }⍟(snap.state ≡ "ok") @
   vm
 }
 

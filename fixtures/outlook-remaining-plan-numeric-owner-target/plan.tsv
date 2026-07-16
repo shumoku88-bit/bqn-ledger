@@ -1,0 +1,9 @@
+2026-02-05	unanchored_outflow	assets:cash	expenses:unanchored	10
+2026-02-06	anchored_outflow_met	assets:cash	expenses:met	20	anchor=income:salary
+2026-02-07	anchored_outflow_unmet	assets:cash	expenses:unmet	30	anchor=income:pension
+2026-02-08	unanchored_inflow	income:salary	assets:cash	40
+2026-02-09	anchored_inflow_met	income:salary	assets:cash	50	anchor=income:salary
+2026-02-09	anchored_inflow_unmet	income:pension	assets:cash	60	anchor=income:pension
+2026-02-10	anchor_occurs_after_o	income:pension	assets:cash	70	anchor=income:pension
+2026-02-06	completed_outflow	assets:cash	expenses:done	80	plan_id=done
+2026-02-11	end_exclusive_outflow	assets:cash	expenses:later	90

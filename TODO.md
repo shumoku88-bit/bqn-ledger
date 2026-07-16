@@ -9,7 +9,7 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-16 — loader/util ownership normalization and Outlook / `actual_snapshot` Slice A checked numeric-owner runtime migration are complete. No Outlook plan/anchor Slice B, next configurable-ledger slice, Israel follow-on, strict-source Step 2–5, M4, or other implementation candidate is selected.
+Last hygiene pass: 2026-07-16 — loader/util ownership normalization and Outlook checked numeric-owner Slices A and B are complete. No Daily Trend alignment slice, next configurable-ledger slice, Israel follow-on, strict-source Step 2–5, M4, or other implementation candidate is selected.
 
 ---
 
@@ -43,7 +43,7 @@ Rows 4–7 are routing candidates only and no next program slice is selected. Fe
 
 ### Report projection alignment
 
-Status: selected report-engine direction. Actual Comparison and Outlook / `actual_snapshot` Slice A characterization, compatibility decisions, and numeric-owner runtime migrations are complete. Records include `docs/archive/completed-plans/ACTUAL_COMPARISON_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-15.md` and `docs/archive/completed-plans/OUTLOOK_ACTUAL_SNAPSHOT_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-16.md`.
+Status: selected report-engine direction. Actual Comparison and Outlook Slices A and B characterization, compatibility decisions, and numeric-owner runtime migrations are complete. Records include `docs/archive/completed-plans/ACTUAL_COMPARISON_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-15.md`, `docs/archive/completed-plans/OUTLOOK_ACTUAL_SNAPSHOT_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-16.md`, and `docs/archive/completed-plans/OUTLOOK_REMAINING_PLAN_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-16.md`.
 
 Purpose: move eligible report numeric calculations from independent source re-parsing to checked Posting IR, Cube, or TBDS while preserving source-evidence paths for plan identity, memo, completion, and temporal semantics.
 
@@ -51,8 +51,9 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 - Ordered targets are `actual-comparison`, `outlook` / `actual_snapshot`, `daily-trend`, then `envelopes` / cycle remaining-plan calculation.
 - Actual Comparison now exposes `BuildAt ⟨ctx,O⟩`; explicit `O` is the hard cutoff, current/baseline amounts come from checked Posting IR through local TBDS period views, and counts/anchors/diagnostics use separated posting source identity evidence.
 - Applicable rejected actual evidence fails Actual Comparison closed as `error`; missing previous anchor or an empty current window is `unavailable`; runtime vocabulary is `ok / unavailable / error` and numeric rows are absent for error/unavailable.
-- Outlook Slice A now derives cumulative inclusive-O actual balances from checked Posting IR through a local TBDS view; applicable rejected actual evidence fails closed and Outlook suppresses derived money on snapshot error.
-- The next Report Projection Alignment candidate is **Slice B: Outlook remaining-plan monetary ownership and anchor policy**. It remains unselected. The approved policy reserves valid anchored outflows when unmet, admits valid anchored inflows only after matching actual income through O, and treats invalid anchor metadata as `error`.
+- Outlook Slice A derives cumulative inclusive-O actual balances from checked Posting IR through a local TBDS view; applicable rejected actual evidence fails closed.
+- Outlook Slice B derives remaining-plan money from admitted plan Posting IR, retains plan-ID completion evidence, reserves valid anchored outflows when unmet, admits valid anchored inflows only after matching actual income through O, and treats applicable invalid anchor evidence as `error`.
+- The next Report Projection Alignment candidate is **Daily Trend plan monetary ownership**. It remains unselected.
 - Do not infer helper renaming, generic temporal kernel, report-wide `--as-of`, source TSV migration, Daily Capacity connection, policy expansion, or automatic write.
 
 ## Next candidates
