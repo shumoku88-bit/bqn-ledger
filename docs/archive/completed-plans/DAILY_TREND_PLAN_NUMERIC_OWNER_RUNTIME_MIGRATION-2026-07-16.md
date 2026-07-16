@@ -75,11 +75,12 @@ The helper returns `error / rejected_plan_evidence` for:
 - an invalid plan date, whose applicability cannot be trusted;
 - applicable unknown-account or otherwise rejected Posting IR evidence;
 - fewer than five required source evidence fields;
-- duplicate `plan_id` metadata or duplicate plan identity;
-- duplicate or invalid-date matching completion evidence;
+- invalid-date matching completion evidence;
 - a source join that is not exactly one debit and one credit with matching date and plan layer.
 
 Daily Trend then emits diagnostics and no numeric trend rows. It does not substitute zero. Invalid trend coordinates use `error / invalid_trend_coordinate`.
+
+This slice adds no identity-validity policy. It preserves `overlap.PlanId`: metadata absence and explicit empty `plan_id=` use five-field fallback, duplicate metadata uses the first matching token, and duplicate plan/completion identities retain exact-any-match behavior. Overlap ambiguity remains diagnostic rather than a Daily Trend runtime error.
 
 ## Tests
 
@@ -89,7 +90,9 @@ Daily Trend then emits diagnostics and no numeric trend rows. It does not substi
 - cycle start and `end_exclusive`;
 - D-local same-day and before-due completion;
 - unfinished identity;
-- unknown account, invalid date, missing evidence, duplicate identities, and failed source join;
+- unknown account, invalid date, missing evidence, and failed source join;
+- absent and explicit-empty fallback identity compatibility;
+- duplicate metadata first-match precedence, duplicate plan/completion exact-any-match behavior, and non-applicable horizon evidence isolation;
 - the numeric-owner proof where source evidence says `999`, admitted Posting IR says `10`, and reserve is `10`.
 
 Existing Daily Trend temporal tests remain green and characterize unchanged row/header/frontier behavior.

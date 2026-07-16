@@ -29,7 +29,7 @@ K = unavailable / not claimed
 
 Fixed-reserve money now comes from admitted `plan.tsv` Posting IR joined to source evidence by stable `source_row`. Source evidence continues to own plan ID and completion identity at each D. The existing future-income path already uses admitted plan projection rows.
 
-Applicable invalid dates, unknown accounts, duplicate identity/completion evidence, missing required evidence, or a join other than one debit/credit Posting IR pair returns `error / rejected_plan_evidence`. Numeric trend rows are then absent; rejected inputs are not converted to zero.
+Applicable invalid dates, unknown accounts, missing required evidence, or a join other than one debit/credit Posting IR pair returns `error / rejected_plan_evidence`. Numeric trend rows are then absent; rejected inputs are not converted to zero. Metadata absence and explicit empty `plan_id=` keep the five-field fallback; duplicate metadata keeps first-match precedence, and duplicate plan/completion identities keep prior exact-any-match behavior.
 
 The migration does not change row membership, header observation, cycle policy, completion policy, current-source replay, or the absence of historical knowledge boundary K.
 

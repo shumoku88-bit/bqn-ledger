@@ -96,7 +96,8 @@ The completed runtime slice:
 - derives fixed reserve money only from the admitted debit posting delta;
 - retains source evidence for plan ID and completion at each row coordinate `D`;
 - retains current-source coordinate replay (`O_row = D`) with no historical knowledge claim;
-- fails closed on applicable invalid, rejected, duplicate, missing, or structurally unjoinable plan evidence.
+- fails closed on applicable invalid, rejected, missing, or structurally unjoinable plan evidence;
+- preserves `overlap.PlanId` five-field fallback, first-match metadata precedence, and exact-any-match completion behavior without adding duplicate-identity policy.
 
 Record: `../completed-plans/DAILY_TREND_PLAN_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-16.md`.
 

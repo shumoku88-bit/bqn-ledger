@@ -132,7 +132,9 @@ For every applicable source plan row, `src_next/daily_trend_plan.bqn` requires e
 
 At D, a fixed plan contributes when `D <= plan date < C.end_exclusive` and no matching completion row exists at or before D. This preserves same-day completion exclusion, completion-before-due exclusion, multiple-day behavior, and end-exclusive cycle semantics. The separate future-income rule remains strict `plan date > D`.
 
-Invalid plan dates have unknown applicability and fail closed. Applicable unknown accounts, malformed required evidence, duplicate plan ID metadata, duplicate plan identity, duplicate completion identity, or structural join failure returns `error / rejected_plan_evidence`. Daily Trend then exposes diagnostics and no numeric trend rows; these states are not converted to zero.
+Invalid plan dates have unknown applicability and fail closed. Applicable unknown accounts, malformed required evidence, or structural join failure returns `error / rejected_plan_evidence`. Daily Trend then exposes diagnostics and no numeric trend rows; these states are not converted to zero.
+
+Identity policy is unchanged. Metadata absence and explicit empty `plan_id=` use the five-field fallback identity; duplicate metadata preserves existing first matching token precedence; duplicate plan identities and duplicate completion rows preserve exact-any-match completion behavior. Posting IR does not reject those identity shapes, so this helper does not promote overlap ambiguity diagnostics into a new runtime error.
 
 Executable coverage: `tests/test_src_next_daily_trend_plan_numeric_owner.bqn`, `fixtures/daily-trend-plan-numeric-owner-target/`, and `checks/check-src-next-daily-trend-plan-numeric-owner.sh`.
 

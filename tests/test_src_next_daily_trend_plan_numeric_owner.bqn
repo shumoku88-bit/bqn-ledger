@@ -121,22 +121,56 @@ missing ← trend_plan.BuildFromEvidenceForTest ⟨ContextWithRows owner_rows, �
 "error" lib.AssertEq missing.state
 "missing_required_fields" lib.AssertEq (⊑ missing.diagnostics).status
 
-# Duplicate plan identity and duplicate completion identity are ambiguous.
+# Identity compatibility is unchanged. Metadata absence and explicit empty
+# plan_id= both use the existing five-field fallback identity.
+fallback_fields ← ⟨"2026-02-05", "fallback", "assets:cash", "expenses:fixed", "10"⟩
+fallback_id ← ∾ fallback_fields
+absent_line ← Line fallback_fields
+empty_line ← Line fallback_fields ∾ ⟨"plan_id="⟩
+absent_evidence ← EvidenceFor ⟨⟨absent_line⟩, ⟨absent_line⟩⟩
+empty_evidence ← EvidenceFor ⟨⟨empty_line⟩, ⟨empty_line⟩⟩
+fallback_id lib.AssertEq (⊑ absent_evidence.plans).plan_id
+fallback_id lib.AssertEq (⊑ empty_evidence.plans).plan_id
+absent ← trend_plan.BuildFromEvidenceForTest ⟨ContextWithRows RowsFor ⟨absent_line⟩, ⟨"2026-02-03", "2026-02-05"⟩, absent_evidence⟩
+empty ← trend_plan.BuildFromEvidenceForTest ⟨ContextWithRows RowsFor ⟨empty_line⟩, ⟨"2026-02-03", "2026-02-05"⟩, empty_evidence⟩
+"ok" lib.AssertEq absent.state
+"ok" lib.AssertEq empty.state
+⟨10, 0⟩ lib.AssertEq absent.reserves
+absent.reserves lib.AssertEq empty.reserves
+
+# Duplicate metadata preserves overlap.PlanId first-match precedence. Duplicate
+# plan/completion identities retain prior exact-any-match behavior; this numeric
+# owner migration does not promote overlap diagnostics into a new error policy.
+dup_meta_plan ← Line ⟨"2026-02-05", "dup-meta", "assets:cash", "expenses:fixed", "10", "plan_id=first", "plan_id=second"⟩
+dup_meta_completion ← Line ⟨"2026-02-03", "actual", "assets:cash", "expenses:fixed", "10", "plan_id=first"⟩
+dup_meta_evidence ← EvidenceFor ⟨⟨dup_meta_plan⟩, ⟨dup_meta_completion⟩⟩
+"first" lib.AssertEq (⊑ dup_meta_evidence.plans).plan_id
+dup_meta ← trend_plan.BuildFromEvidenceForTest ⟨ContextWithRows RowsFor ⟨dup_meta_plan⟩, ⟨"2026-02-03"⟩, dup_meta_evidence⟩
+"ok" lib.AssertEq dup_meta.state
+⟨0⟩ lib.AssertEq dup_meta.reserves
+
 dup_a ← Line ⟨"2026-02-05", "dup-a", "assets:cash", "expenses:fixed", "10", "plan_id=dup"⟩
 dup_b ← Line ⟨"2026-02-06", "dup-b", "assets:cash", "expenses:fixed", "20", "plan_id=dup"⟩
 dup_rows ← RowsFor ⟨dup_a, dup_b⟩
 dup_evidence ← EvidenceFor ⟨⟨dup_a, dup_b⟩, ⟨⟩⟩
 dup ← trend_plan.BuildFromEvidenceForTest ⟨ContextWithRows dup_rows, ⟨"2026-02-03"⟩, dup_evidence⟩
-"error" lib.AssertEq dup.state
-1 lib.AssertEq ∨´ "duplicate_plan_identity"⊸≡¨ {𝕩.status}¨ dup.diagnostics
+"ok" lib.AssertEq dup.state
+⟨30⟩ lib.AssertEq dup.reserves
+
+outside_dup ← Line ⟨"2026-02-11", "outside-dup", "assets:cash", "expenses:fixed", "99", "plan_id=dup"⟩
+outside_rows ← RowsFor ⟨dup_a, outside_dup⟩
+outside_evidence ← EvidenceFor ⟨⟨dup_a, outside_dup⟩, ⟨⟩⟩
+outside_result ← trend_plan.BuildFromEvidenceForTest ⟨ContextWithRows outside_rows, ⟨"2026-02-03"⟩, outside_evidence⟩
+"ok" lib.AssertEq outside_result.state
+⟨10⟩ lib.AssertEq outside_result.reserves
 
 completion_plan ← Line ⟨"2026-02-05", "completion", "assets:cash", "expenses:fixed", "10", "plan_id=complete"⟩
 completion_a ← Line ⟨"2026-02-03", "actual-a", "assets:cash", "expenses:fixed", "10", "plan_id=complete"⟩
 completion_b ← Line ⟨"2026-02-04", "actual-b", "assets:cash", "expenses:fixed", "10", "plan_id=complete"⟩
 completion_evidence ← EvidenceFor ⟨⟨completion_plan⟩, ⟨completion_a, completion_b⟩⟩
-completion ← trend_plan.BuildFromEvidenceForTest ⟨ContextWithRows RowsFor ⟨completion_plan⟩, ⟨"2026-02-03"⟩, completion_evidence⟩
-"error" lib.AssertEq completion.state
-"duplicate_completion_identity" lib.AssertEq (⊑ completion.diagnostics).status
+completion ← trend_plan.BuildFromEvidenceForTest ⟨ContextWithRows RowsFor ⟨completion_plan⟩, ⟨"2026-02-02", "2026-02-03"⟩, completion_evidence⟩
+"ok" lib.AssertEq completion.state
+⟨10, 0⟩ lib.AssertEq completion.reserves
 
 # An applicable plan completed at D is excluded; an unfinished plan remains.
 completed_evidence ← EvidenceFor ⟨⟨completion_plan⟩, ⟨completion_a⟩⟩

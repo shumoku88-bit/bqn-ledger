@@ -99,7 +99,8 @@ Do not generalize that branch to ordinary 5-field reserve behavior. Other reacha
 - Backdated changes in source snapshot `S` may still change a past coordinate row.
 - `L` remains finite and named: VM frontier context and the preserved edge branch.
 - Ordinary reserve remains identity-sensitive through `M`, while its numeric owner is admitted plan Posting IR.
-- Applicable rejected or ambiguous plan evidence fails the section closed instead of becoming zero.
+- Applicable rejected, missing, or structurally unjoinable plan evidence fails the section closed instead of becoming zero.
+- `overlap.PlanId` fallback, first-match metadata precedence, and exact-any-match completion semantics are preserved; this slice adds no duplicate-identity policy.
 - Delta remains second-order because it depends on predecessor selection and row set `R`.
 - Historical knowledge boundary `K` is not implemented.
 

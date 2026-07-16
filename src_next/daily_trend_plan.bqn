@@ -21,38 +21,18 @@ MakeDiagnostic ← {𝕊 source_row‿status‿date‿message:
   }
 }
 
-PlanIdInfo ← {𝕊 line:
-  flds ← loader.SplitTsvKeepEmpty line
-  metas ← 5 ↓ flds
-  pref ← "plan_id="
-  hits ← ({𝕊 meta: (8 ≤ ≠ meta) ∧ pref ≡ 8 ↑ meta}¨ metas) / metas
-  state ← "ok"
-  status ← ""
-  message ← ""
-  {𝕊:
-    state ↩ "error"
-    status ↩ "duplicate_plan_id_metadata"
-    message ↩ "plan row has duplicate plan_id metadata"
-  }⍟(1 < ≠ hits) @
-  value ← ""
-  {𝕊: value ↩ overlap.PlanId line}⍟(5 ≤ ≠ flds) @
-  { state ⇐ state, status ⇐ status, message ⇐ message, value ⇐ value }
-}
-
 BuildEvidenceFromLines ← {𝕊 plan_lines‿journal_lines:
   plans ← {𝕊 i:
     line ← i ⊑ plan_lines
     flds ← loader.SplitTsvKeepEmpty line
-    identity ← PlanIdInfo line
+    pid ← ""
+    {𝕊: pid ↩ overlap.PlanId line}⍟(5 ≤ ≠ flds) @
     {
       source_row ⇐ i,
       line ⇐ line,
       flds ⇐ flds,
       date ⇐ proj.FieldOrEmpty ⟨flds, 0⟩,
-      plan_id ⇐ identity.value,
-      identity_state ⇐ identity.state,
-      identity_status ⇐ identity.status,
-      identity_message ⇐ identity.message,
+      plan_id ⇐ pid,
       required_ok ⇐ 5 ≤ ≠ flds
     }
   }¨ ↕ ≠ plan_lines
@@ -99,7 +79,6 @@ BuildFromEvidence ← {𝕊 ctx‿trend_dates‿evidence:
     trend_dns ← proj.DaysFromEpoch¨ trend_dates
     end_dn ← proj.DaysFromEpoch ctx.cy.end_exclusive
     diagnostics ← ⟨⟩
-    plan_ids ← {𝕩.plan_id}¨ evidence.plans
 
     {𝕊 ev:
       date_ok ← proj.IsValidDateText ev.date
@@ -116,15 +95,6 @@ BuildFromEvidence ← {𝕊 ctx‿trend_dates‿evidence:
           {𝕊:
             diagnostics ↩ diagnostics ∾ ⟨MakeDiagnostic ⟨ev.source_row, "missing_required_fields", ev.date, "plan source evidence requires the first five TSV fields"⟩⟩
           }⍟(¬ ev.required_ok) @
-
-          {𝕊:
-            diagnostics ↩ diagnostics ∾ ⟨MakeDiagnostic ⟨ev.source_row, ev.identity_status, ev.date, ev.identity_message⟩⟩
-          }⍟(ev.identity_state ≢ "ok") @
-
-          duplicate_identity ← 1 < +´ ev.plan_id⊸≡¨ plan_ids
-          {𝕊:
-            diagnostics ↩ diagnostics ∾ ⟨MakeDiagnostic ⟨ev.source_row, "duplicate_plan_identity", ev.date, "plan identity is not unique: " ∾ ev.plan_id⟩⟩
-          }⍟duplicate_identity @
 
           joined ← RowsForPlanSource ⟨ctx.posting_rows, ev.source_row⟩
           join_ok ← 2 = ≠ joined
@@ -154,10 +124,6 @@ BuildFromEvidence ← {𝕊 ctx‿trend_dates‿evidence:
                 badj ← ⊑ invalid_journals
                 diagnostics ↩ diagnostics ∾ ⟨MakeDiagnostic ⟨ev.source_row, "invalid_completion_date", badj.date, "matching completion evidence has invalid date"⟩⟩
               }⍟(0 < ≠ invalid_journals) @
-              {𝕊:
-                diagnostics ↩ diagnostics ∾ ⟨MakeDiagnostic ⟨ev.source_row, "duplicate_completion_identity", ev.date, "plan identity has multiple completion rows: " ∾ ev.plan_id⟩⟩
-              }⍟(1 < ≠ matching_journals) @
-
             }⍟((0 = ≠ rejected) ∧ structure_ok) @
           }⍟join_ok @
         }⍟applicable @
