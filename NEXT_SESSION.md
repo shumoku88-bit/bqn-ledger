@@ -2,12 +2,12 @@
 
 Status: active plan / temporary repository pointer
 Owner: report
-Canonical: no; current plan: `docs/archive/active-plans/REPORT_PROJECTION_ALIGNMENT_PLAN-2026-07-15.md`
-Exit: remove or replace after the next finite slice is jointly selected
+Canonical: no; current finite plan: `docs/archive/active-plans/CYCLE_REMAINING_PLAN_NUMERIC_OWNER_CHARACTERIZATION-2026-07-16.md`
+Exit: remove or replace after the characterization slice is completed and the next compatibility decision is jointly selected
 
 Actual Comparison, Outlook Slices A/B, and Daily Trend plan monetary ownership are complete.
 
-Latest record and executable evidence:
+Latest completed record and executable evidence:
 
 - `docs/archive/completed-plans/DAILY_TREND_PLAN_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-16.md`
 - `src_next/daily_trend_plan.bqn`
@@ -15,36 +15,28 @@ Latest record and executable evidence:
 - `tests/test_src_next_daily_trend_plan_numeric_owner.bqn`
 - `checks/check-src-next-daily-trend-plan-numeric-owner.sh`
 
-## Completed Daily Trend boundary
+## Selected next finite slice
 
-Daily Trend keeps current-source coordinate replay:
+The selected work is **Cycle Summary remaining-plan numeric-owner characterization**.
 
-```text
-S = current source snapshot
-D = rendered row coordinate
-O_row = D
-C = selected cycle
-K = unavailable / not claimed
-```
+Read in this order:
 
-Fixed-reserve money now comes from admitted `plan.tsv` Posting IR joined to source evidence by stable `source_row`. Source evidence continues to own plan ID and completion identity at each D. The existing future-income path already uses admitted plan projection rows.
+1. `docs/archive/active-plans/CYCLE_REMAINING_PLAN_NUMERIC_OWNER_CHARACTERIZATION-2026-07-16.md`
+2. `src_next/cycle_summary.bqn`
+3. `tests/test_src_next_cycle_summary.bqn`
+4. `docs/archive/audits/TEMPORAL_CONSUMER_SENSITIVITY_OBSERVATION-2026-07-06.md`
+5. `docs/archive/active-plans/REPORT_PROJECTION_ALIGNMENT_PLAN-2026-07-15.md`
 
-Applicable invalid dates, unknown accounts, missing required evidence, or a join other than one debit/credit Posting IR pair returns `error / rejected_plan_evidence`. Numeric trend rows are then absent; rejected inputs are not converted to zero. Metadata absence and explicit empty `plan_id=` keep the five-field fallback; duplicate metadata keeps first-match precedence, and duplicate plan/completion identities keep prior exact-any-match behavior.
+The characterization must independently fix current evidence for:
 
-The migration does not change row membership, header observation, cycle policy, completion policy, current-source replay, or the absence of historical knowledge boundary K.
+- the current local observation `O` and window `O <= D < C.end_exclusive`;
+- admitted expense-plan amount membership;
+- completed-plan behavior;
+- invalid, rejected, missing, and structurally unjoinable plan evidence;
+- empty/no-base fallback and stable source identity.
 
-## Next selectable but unselected report slice
+Do not change runtime behavior in this slice. In particular, do not convert rejected evidence into a valid zero, decide completion policy, add report-wide observation, or migrate envelope allocation/coverage at the same time.
 
-The next Report Projection Alignment candidate is **Envelopes / Cycle remaining-plan monetary ownership**.
+## Still unselected
 
-Before implementation, characterize allocation compatibility and cycle remaining-plan paths independently. Do not infer:
-
-- automatic selection or implementation;
-- envelope backing or cycle policy changes;
-- a report-wide observation clock or generic temporal kernel;
-- Cube shape, source/config/metadata, or editor changes;
-- Daily Capacity wiring, automatic advice, or writes.
-
-## Daily Capacity remains parked
-
-The pure `src_next/daily_capacity.bqn` seam remains unconnected. Its assembler promotion, Candidate B O-bounded balance facts, and Candidate C pool/reservation facts remain independent unselected choices.
+Envelope allocation compatibility and execution-envelope plan coverage remain separate unselected characterization/migration candidates. Daily Capacity remains parked and unconnected. No Cube shape, source/config/metadata/editor, automatic advice, or write change is selected.
