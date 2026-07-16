@@ -7,6 +7,9 @@ outlook ← •Import "../src_next/outlook.bqn"
 ctx ← ctx_mod.BuildContext "fixtures/src-next-golden"
 vm ← outlook.Build ctx
 
+"ok" lib.AssertEq vm.state
+"outlook_active" lib.AssertEq vm.reason
+0 lib.AssertEq ≠ vm.diagnostics
 "2026-06-16" lib.AssertEq vm.as_of
 6 lib.AssertEq vm.days_left
 0 lib.AssertEq vm.liq_total
@@ -16,6 +19,8 @@ vm ← outlook.Build ctx
 
 text ← outlook.Format vm
 1 lib.AssertEq ∨´ "--- SrcNext Outlook ---"⍷text
+1 lib.AssertEq ∨´ "src_next_outlook_status: ok"⍷text
+1 lib.AssertEq ∨´ "src_next_outlook_reason: outlook_active"⍷text
 1 lib.AssertEq ∨´ "src_next_outlook_as_of: 2026-06-16"⍷text
 1 lib.AssertEq ∨´ "src_next_outlook_days_left: 6"⍷text
 1 lib.AssertEq ∨´ "src_next_outlook_liq_safe_daily: 0"⍷text
@@ -28,6 +33,9 @@ human ← outlook.FormatHuman vm
 0 lib.AssertEq ∨´ "可用資金 (安全/保守)"⍷human
 
 mock_vm ← {
+  state ⇐ "ok",
+  reason ⇐ "outlook_active",
+  diagnostics ⇐ ⟨⟩,
   days_left ⇐ 6,
   cycle_start ⇐ "2026-01-01",
   cycle_end_exclusive ⇐ "2026-01-09",
@@ -44,6 +52,7 @@ mock_human ← outlook.FormatHuman mock_vm
 
 anchor_ctx ← ctx_mod.BuildContext "fixtures/src-next-anchor-unmet"
 anchor_vm ← outlook.Build anchor_ctx
+"ok" lib.AssertEq anchor_vm.state
 50000 lib.AssertEq anchor_vm.planned_future_income
 64000 lib.AssertEq anchor_vm.fixed_reserve
 7240 lib.AssertEq anchor_vm.liq_daily
