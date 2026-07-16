@@ -1,0 +1,3 @@
+2026-02-10	past-expense	assets:cash	expenses:food	100	plan_id=past-exp
+2026-02-15	today-expense	assets:cash	expenses:food	200	plan_id=today-exp
+2026-02-20	future-expense	assets:cash	expenses:food	300	plan_id=future-exp

@@ -107,11 +107,14 @@ Current issue:
 
 - envelope calculations already use valid rows and TBDS for major values, but allocation compatibility paths and cycle remaining-plan amounts reparse source amounts.
 
-Selected first slice:
-
-- Cycle Summary `plan_expense_remaining` characterization is selected in `CYCLE_REMAINING_PLAN_NUMERIC_OWNER_CHARACTERIZATION-2026-07-16.md`;
-- the slice records current temporal, completion, invalid/rejected, fallback, and source-identity behavior without changing runtime;
-- envelope allocation compatibility and execution-envelope plan coverage remain separate unselected candidates.
+Completed first slice:
+- Cycle Summary plan_expense_remaining characterization is complete.
+- Completion record:
+  `../completed-plans/CYCLE_REMAINING_PLAN_NUMERIC_OWNER_CHARACTERIZATION-2026-07-16.md`
+- A separate compatibility decision is an unselected candidate.
+- Runtime migration remains unselected.
+- Envelope allocation compatibility and execution-envelope plan coverage
+  remain separate unselected candidates.
 
 Target:
 
@@ -143,8 +146,9 @@ Work is intentionally one report slice at a time.
 2. **Actual Comparison** — completed.
 3. **Outlook / actual snapshot Slices A and B** — completed.
 4. **Daily Trend** — completed.
-5. **Cycle Summary remaining-plan characterization** — selected finite docs/test slice; runtime migration remains unselected.
-6. **Envelope allocation / execution-plan coverage characterization** — unselected independent candidate.
+5. **Cycle Summary remaining-plan characterization** — completed.
+6. **Cycle Summary remaining-plan compatibility decision** — unselected.
+7. **Envelope allocation / execution-plan coverage characterization** — unselected independent candidate.
 
 A slice may proceed only when it has:
 
