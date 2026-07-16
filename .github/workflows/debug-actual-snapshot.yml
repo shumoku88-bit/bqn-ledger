@@ -16,16 +16,20 @@ jobs:
           git clone --depth 1 --branch "$CBQN_REF" https://github.com/dzaima/CBQN.git >/dev/null 2>&1
           make -C CBQN -j$(nproc) >/dev/null 2>&1
           sudo cp CBQN/BQN /usr/local/bin/bqn
-      - name: Install dependencies
-        run: |
-          sudo apt-get update -qq >/dev/null
-          sudo apt-get install -y -qq ripgrep >/dev/null
-          npm ci --prefix mcp-server >/dev/null 2>&1
-      - name: Run full check with compact failure evidence
+      - name: Run BQN unit suite with focused failure evidence
         shell: bash
         run: |
           set +e
-          bash tools/check.sh > /tmp/check.log 2>&1
-          status=$?
-          tail -n 100 /tmp/check.log
+          status=0
+          : > /tmp/tests.log
+          for test_file in tests/test_*.bqn; do
+            echo "RUN: $test_file" >> /tmp/tests.log
+            bqn "$test_file" >> /tmp/tests.log 2>&1
+            result=$?
+            if [ "$result" -ne 0 ]; then
+              status=$result
+              break
+            fi
+          done
+          tail -n 80 /tmp/tests.log
           exit "$status"
