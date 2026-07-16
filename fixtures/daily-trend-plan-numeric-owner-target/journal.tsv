@@ -1,0 +1,5 @@
+2026-02-01	opening	income:salary	assets:cash	100
+2026-02-03	day_three	assets:cash	expenses:variable	5
+2026-02-03	completed_same_day	assets:cash	expenses:fixed	20	plan_id=done-same
+2026-02-06	completed_before_due	assets:cash	expenses:fixed	40	plan_id=done-future
+2026-02-09	late_observation	assets:cash	expenses:variable	7

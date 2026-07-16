@@ -114,6 +114,7 @@ bash checks/check-src-next-report.sh fixtures/src-next-golden >/dev/null
 bash checks/check-src-next-outlook-observation-source.sh >/dev/null
 bash checks/check-src-next-actual-snapshot.sh >/dev/null
 bash checks/check-src-next-outlook-remaining-plan.sh >/dev/null
+bash checks/check-src-next-daily-trend-plan-numeric-owner.sh >/dev/null
 bash checks/check-json-clock-independence.sh >/dev/null
 bash checks/check-report-section-metadata.sh fixtures/src-next-golden >/dev/null
 bash checks/check-src-next-stage4-fields.sh fixtures/src-next-golden >/dev/null

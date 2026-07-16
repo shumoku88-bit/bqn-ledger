@@ -1,0 +1,5 @@
+assets:cash	role=asset	type=liquid
+assets:savings	role=asset	type=savings
+income:salary	role=income
+expenses:fixed	role=expense	spend_class=fixed
+expenses:variable	role=expense	spend_class=variable

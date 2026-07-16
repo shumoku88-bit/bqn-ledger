@@ -43,7 +43,7 @@ Rows 4–7 are routing candidates only and no next program slice is selected. Fe
 
 ### Report projection alignment
 
-Status: selected report-engine direction. Actual Comparison and Outlook Slices A and B characterization, compatibility decisions, and numeric-owner runtime migrations are complete. Records include `docs/archive/completed-plans/ACTUAL_COMPARISON_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-15.md`, `docs/archive/completed-plans/OUTLOOK_ACTUAL_SNAPSHOT_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-16.md`, and `docs/archive/completed-plans/OUTLOOK_REMAINING_PLAN_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-16.md`.
+Status: selected report-engine direction. Actual Comparison, Outlook Slices A/B, and Daily Trend plan numeric-owner runtime migrations are complete. Latest record: `docs/archive/completed-plans/DAILY_TREND_PLAN_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-16.md`.
 
 Purpose: move eligible report numeric calculations from independent source re-parsing to checked Posting IR, Cube, or TBDS while preserving source-evidence paths for plan identity, memo, completion, and temporal semantics.
 
@@ -53,8 +53,9 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 - Applicable rejected actual evidence fails Actual Comparison closed as `error`; missing previous anchor or an empty current window is `unavailable`; runtime vocabulary is `ok / unavailable / error` and numeric rows are absent for error/unavailable.
 - Outlook Slice A derives cumulative inclusive-O actual balances from checked Posting IR through a local TBDS view; applicable rejected actual evidence fails closed.
 - Outlook Slice B derives remaining-plan money from admitted plan Posting IR, retains plan-ID completion evidence, reserves valid anchored outflows when unmet, admits valid anchored inflows only after matching actual income through O, and treats applicable invalid anchor evidence as `error`.
-- The next Report Projection Alignment candidate is **Daily Trend plan monetary ownership**. It remains unselected.
-- Do not infer helper renaming, generic temporal kernel, report-wide `--as-of`, source TSV migration, Daily Capacity connection, policy expansion, or automatic write.
+- Daily Trend keeps current-source coordinate replay (`O_row = D`): fixed reserve money comes from admitted `plan.tsv` Posting IR joined by `source_row`, while plan ID and row-local completion remain source evidence. Applicable rejected, missing, or structurally unjoinable plan evidence fails the section closed; existing `overlap.PlanId` fallback and exact-any-match completion behavior remain unchanged.
+- The next Report Projection Alignment candidate is **Envelopes / Cycle remaining-plan monetary ownership**. It remains unselected.
+- Do not infer helper renaming, generic temporal kernel, report-wide `--as-of`, source TSV migration, Daily Capacity connection, envelope/cycle policy expansion, or automatic write.
 
 ## Next candidates
 

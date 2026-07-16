@@ -97,7 +97,8 @@ Exit: keep current while this remains the pit code/data-flow entry point
 - `readiness_check.bqn` — データ品質チェック。
 - `outlook.bqn` — 見通し・日割り計算。
 - `daily_capacity.bqn` — 明示された観察日、cycle horizon、単一算術domain、owner-resolved asset / obligation evidenceだけを受ける純粋Daily Capacity計算seam。`BuildDailyCapacityFromEvidence`をexportするが、Outlook・config・source adapter・出力には未接続。
-- `daily_trend.bqn` — 日次トレンド。
+- `daily_trend.bqn` — 日次トレンド。current-source coordinate replayを維持し、plan reserveはchecked helperのfail-closed結果を使う。
+- `daily_trend_plan.bqn` — admitted `plan.tsv` Posting IRを`source_row`でplan ID/completion source evidenceへjoinし、D-local fixed reserveを計算するnumeric owner。raw amountは再解析しない。
 - `actual_comparison.bqn` — 明示Observation `BuildAt ⟨ctx,O⟩`で前期比較を作る。current/baseline金額はchecked Posting IRからlocal TBDS period viewへ流し、count/anchor/rejected-row診断はposting source identity evidenceを使う。statusは`ok / unavailable / error`。
 - `actual_snapshot.bqn` — as_of 時点スナップショット。
 - `household_policy.bqn` — 家計ポリシーレイヤ。
@@ -176,6 +177,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 - `check-src-next-cycle-summary.sh` — サイクルサマリチェック。
 - `check-src-next-ytd-summary.sh` — YTD サマリチェック。
 - `check-src-next-*.sh` — 各セクションの fixture チェック。
+- `check-src-next-daily-trend-plan-numeric-owner.sh` — Daily Trend plan金額owner、source join、D-local completion、fail-closed fixtureを検証。
 - `check-report-section-metadata.sh` — report section metadata TSV export の契約チェック。
 - `check-repo-index.sh` — repo-index ツールのチェック。
 - `check-disabled-features.sh` — 無効化機能の隔離チェック。

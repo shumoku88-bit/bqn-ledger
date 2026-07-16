@@ -63,7 +63,7 @@ When no accepted in-cycle actual coordinate exists, `cycle.start` is the explici
 | `liquid` | `S + D + C` | cumulative actual state at row coordinate |
 | cumulative savings | `S + D + C` | savings accounts from the same cumulative row |
 | planned future income | `S + D + C` | plan dates `> D` and `< C.end_exclusive` |
-| ordinary reserve | `S + D + C + M` | row-local plan/journal identity evidence |
+| ordinary reserve | `S + D + C + M` | admitted plan Posting IR money joined by `source_row`; row-local plan/journal completion identity evidence |
 | ordinary fund | `S + D + C + M` | `liquid + planned_future_income - reserve` |
 | `days_left` | `D + C` | `C.end_exclusive - D` |
 | ordinary daily amount | `S + D + C + M` | ordinary fund divided by remaining days |
@@ -98,7 +98,9 @@ Do not generalize that branch to ordinary 5-field reserve behavior. Other reacha
 - The former ordinary-row mixture of coordinate-local values with one shared `L` future-income cutoff has been removed.
 - Backdated changes in source snapshot `S` may still change a past coordinate row.
 - `L` remains finite and named: VM frontier context and the preserved edge branch.
-- Ordinary reserve remains identity-sensitive through `M`.
+- Ordinary reserve remains identity-sensitive through `M`, while its numeric owner is admitted plan Posting IR.
+- Applicable rejected, missing, or structurally unjoinable plan evidence fails the section closed instead of becoming zero.
+- `overlap.PlanId` fallback, first-match metadata precedence, and exact-any-match completion semantics are preserved; this slice adds no duplicate-identity policy.
 - Delta remains second-order because it depends on predecessor selection and row set `R`.
 - Historical knowledge boundary `K` is not implemented.
 
@@ -106,8 +108,11 @@ Do not generalize that branch to ordinary 5-field reserve behavior. Other reacha
 
 - `src_next/daily_trend.bqn`
 - `src_next/report.bqn`
+- `src_next/daily_trend_plan.bqn`
 - `tests/test_src_next_daily_trend_header_as_of_sensitivity.bqn`
-- Daily Trend fixture and shell checks under `checks/`
+- `tests/test_src_next_daily_trend_plan_numeric_owner.bqn`
+- `fixtures/daily-trend-plan-numeric-owner-target/`
+- `checks/check-src-next-daily-trend-plan-numeric-owner.sh`
 
 ## Archived rationale
 

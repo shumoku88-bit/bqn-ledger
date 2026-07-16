@@ -8,7 +8,7 @@ cube ← •Import "cube.bqn"
 fmt ← •Import "format.bqn"
 labels ← •Import "report_labels.bqn"
 L ← labels.Text
-overlap ← •Import "plan_journal_overlap.bqn"
+trend_plan ← •Import "daily_trend_plan.bqn"
 
 # ── Latest actual journal date ─────────────────────────────
 
@@ -74,7 +74,6 @@ Build ← {𝕊 ctx:
   
   cycle_start_dn ← proj.DaysFromEpoch cy.start
   cycle_end_excl_dn ← proj.DaysFromEpoch cy.end_exclusive
-  as_of_dn ← proj.DaysFromEpoch as_of
 
   # Restrict to dates within the cycle, then anchor empty state explicitly.
   valid_mask ← (trend_dns_uniq ≥ cycle_start_dn) ∧ (trend_dns_uniq < cycle_end_excl_dn)
@@ -85,25 +84,12 @@ Build ← {𝕊 ctx:
   trend_dns ← has_trend_dates ◶ ⟨{ ⟨cycle_start_dn⟩ }, { trend_dns_pre }⟩ @
   obs_count ← ≠ trend_dates
 
-  # 2. Load plan.tsv and journal.tsv (for reserve calculation)
-  planLines ← loader.ReadLinesOptional (base ∾ "/plan.tsv")
-  plan_pids ← overlap.PlanId¨ planLines
-  plan_dns ← { proj.DaysFromEpoch ⊑ loader.SplitTsvKeepEmpty 𝕩 }¨ planLines
-  plan_amts ← { 𝕊:
-    amt_str ← 4 ⊑ loader.SplitTsvKeepEmpty 𝕩
-    proj.IsIntegerText amt_str ? •BQN amt_str ; 0
-  }¨ planLines
-  
-  plan_to_fixed ← {
-    flds ← loader.SplitTsvKeepEmpty 𝕩
-    toAcc ← 3 ⊑ flds
-    toIdx ← ⊑ accounts ⊐ ⟨toAcc⟩
-    ∨´ toIdx = fixed_ak
-  }¨ planLines
-
-  journalLines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
-  j_pids_all ← overlap.PlanId¨ journalLines
-  j_dns_all ← { proj.DaysFromEpoch ⊑ loader.SplitTsvKeepEmpty 𝕩 }¨ journalLines
+  # 2. Join source identity/completion evidence to admitted plan Posting IR.
+  # The helper owns row-local reserve money and fails the section closed when
+  # applicable evidence cannot be trusted.
+  plan_result ← trend_plan.BuildAt ⟨ctx, trend_dates⟩
+  reserve_values ← obs_count ⥊ 0
+  {𝕊: reserve_values ↩ plan_result.reserves}⍟(plan_result.state ≡ "ok") @
 
   # 3. Prepare planned-income projection rows. The date cutoff is selected
   # inside each trend row from that row coordinate D, not from report-local L.
@@ -124,28 +110,9 @@ Build ← {𝕊 ctx:
     future_income_mask ← (p_dns_valid > dn) ∧ (p_dns_valid < cycle_end_excl_dn) ∧ ("debit"⊸≡¨ {𝕩.side}¨ p_rows) ∧ (({𝕩.account_key_index}¨ p_rows) ∊ liq_ak) ∧ (("income"⊸≡¨ {𝕩.kind}¨ p_rows) ∨ ("income:" ⊸ ≡¨ 7 ↑¨ {𝕩.account_key}¨ p_rows))
     planned_future_income ← cube.Sum0 (future_income_mask / {𝕩.delta}¨ p_rows)
 
-    # reserve (fixed reserve)
-    j_pids ← (j_dns_all ≤ dn) / j_pids_all
-    j_pids_clean ← (0 < ≠¨ j_pids) / j_pids
-    
-    last_act_dn ← ¯1 ⊑ ((j_dns_all ≤ dn) / j_dns_all) ∾ ⟨as_of_dn⟩
-
-    IsOpen ← {𝕊 idx:
-      p_dn ← idx ⊑ plan_dns
-      pid ← idx ⊑ plan_pids
-      in_cyc ← (p_dn ≥ dn) ∧ (p_dn < cycle_end_excl_dn)
-      in_cyc ◶ ⟨
-        0,
-        { 𝕊 ⋄
-          (0 = ≠ pid) ◶ ⟨
-            { ¬ ∨´ pid ⊸≡¨ j_pids_clean },
-            { p_dn ≥ last_act_dn }
-          ⟩ @
-        }
-      ⟩ @
-    }
-    open_mask ← IsOpen¨ ↕ ≠ planLines
-    reserve ← cube.Sum0 ((open_mask ∧ plan_to_fixed) / plan_amts)
+    # reserve (fixed reserve): checked Posting IR amount, row-local completion.
+    reserve_idx ← ⊑ trend_dns ⊐ ⟨dn⟩
+    reserve ← reserve_idx ⊑ reserve_values
 
     fund ← (liq + planned_future_income) - reserve
     days_left ← 0 ⌈ cycle_end_excl_dn - dn
@@ -188,9 +155,16 @@ Build ← {𝕊 ctx:
     ⟨0⊑r, 6⊑r, 5⊑r, 7⊑r, 8⊑r, 9⊑r⟩
   }¨ top_indices
 
+  visible_rows ← rows_with_delta
+  visible_drops ← top_drops
+  {𝕊: visible_rows ↩ ⟨⟩ ⋄ visible_drops ↩ ⟨⟩}⍟(plan_result.state ≢ "ok") @
+
   {
-    trend_rows ⇐ rows_with_delta,
-    top_drops ⇐ top_drops,
+    state ⇐ plan_result.state,
+    reason ⇐ plan_result.reason,
+    diagnostics ⇐ plan_result.diagnostics,
+    trend_rows ⇐ visible_rows,
+    top_drops ⇐ visible_drops,
     obs_days ⇐ obs_count,
     as_of ⇐ as_of,
     header_O ⇐ as_of,
@@ -203,6 +177,9 @@ Build ← {𝕊 ctx:
 BuildAt ← {𝕊 ⟨ctx, header_O⟩:
   vm ← Build ctx
   {
+    state ⇐ vm.state,
+    reason ⇐ vm.reason,
+    diagnostics ⇐ vm.diagnostics,
     trend_rows ⇐ vm.trend_rows,
     top_drops ⇐ vm.top_drops,
     obs_days ⇐ vm.obs_days,
@@ -218,6 +195,13 @@ BuildAt ← {𝕊 ⟨ctx, header_O⟩:
 
 Format ← {𝕊 vm:
   out ← "--- SrcNext Daily Trend ---" ∾ (@+10)
+  {𝕊:
+    out ↩ out ∾ "src_next_daily_trend_status: " ∾ vm.state ∾ (@+10)
+    out ↩ out ∾ "src_next_daily_trend_reason: " ∾ vm.reason ∾ (@+10)
+    {𝕊 diagnostic:
+      out ↩ out ∾ "src_next_daily_trend_diagnostic: " ∾ diagnostic.source_file ∾ (@+9) ∾ (•Fmt diagnostic.source_row) ∾ (@+9) ∾ diagnostic.status ∾ (@+9) ∾ diagnostic.date ∾ (@+9) ∾ diagnostic.message ∾ (@+10)
+    }¨ vm.diagnostics
+  }⍟(vm.state ≢ "ok") @
   {
     r ← 𝕩
     # date_str liquid reserve fund days_left daily var sav delta
@@ -233,6 +217,13 @@ FormatHuman ← {𝕊 vm:
   days_left ← 0 ⌈ (proj.DaysFromEpoch vm.cycle_end_exclusive) - proj.DaysFromEpoch vm.header_O
 
   out ← (L "daily.section_title") ∾ (@+10) ∾ (@+10)
+  {𝕊:
+    out ↩ out ∾ "ERROR: Daily Trend unavailable (" ∾ vm.reason ∾ ")" ∾ (@+10)
+    {𝕊 diagnostic:
+      out ↩ out ∾ "  " ∾ diagnostic.source_file ∾ ":" ∾ (•Fmt diagnostic.source_row) ∾ " " ∾ diagnostic.status ∾ " " ∾ diagnostic.message ∾ (@+10)
+    }¨ vm.diagnostics
+    out
+  }⍟(vm.state ≢ "ok") @
   out ↩ out ∾ (L "daily.cycle_label") ∾ vm.cycle_start ∾ " 〜 " ∾ vm.cycle_end_exclusive ∾ (L "daily.current_suffix") ∾ (•Fmt days_left) ∾ (L "daily.current_days_suffix") ∾ (@+10) ∾ (@+10)
 
   out ↩ out ∾ "date       | liquid   | fund     | daily  | Δdaily | variable | saving" ∾ (@+10)
