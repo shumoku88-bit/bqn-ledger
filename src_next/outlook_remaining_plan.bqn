@@ -106,12 +106,16 @@ ActiveIncomeAccounts ← {𝕊 ctx‿as_of:
       dn ← proj.DaysFromEpoch row.date
       idx ← row.account_key_index
       role ← idx ⊑ roles_with_sentinel
-      active ↩ (row.source_file ≡ "journal.tsv") ∧
-        (row.layer_index = proj.layer_actual) ∧
-        (row.status ≡ "ok") ∧
-        (row.side ≡ "credit") ∧
-        (role ≡ "income") ∧
-        (dn ≥ start_dn) ∧ (dn ≤ as_dn) ∧ (dn < end_dn)
+      active ↩ ∧´ ⟨
+        row.source_file ≡ "journal.tsv",
+        row.layer_index = proj.layer_actual,
+        row.status ≡ "ok",
+        row.side ≡ "credit",
+        role ≡ "income",
+        dn ≥ start_dn,
+        dn ≤ as_dn,
+        dn < end_dn
+      ⟩
     }⍟valid_date @
     active
   }
