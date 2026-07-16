@@ -4,7 +4,7 @@ Status: current index / boundary note
 Owner: report
 Canonical: yes
 Exit: keep current while `src_next` report contracts route through this index
-Date: 2026-06-29
+Date: 2026-07-16
 
 This file exists so current safety and report-policy docs have a live landing page.
 
@@ -25,7 +25,7 @@ For current `src_next` behavior, use these in order:
 7. `docs/archive/active-plans/REPORT_SECTION_STATUS_POLICY.md` — `OK / WARN / ERROR / SKIPPED / UNAVAILABLE` status vocabulary and partial implementation policy.
 8. `docs/TIME_AS_AXIS.md` — canonical temporal vocabulary and non-equivalences.
 9. `docs/DAILY_TREND_TEMPORAL_CURRENT.md` — compact current Daily Trend temporal contract.
-10. `docs/OUTLOOK_TEMPORAL_CURRENT.md` — compact current Outlook temporal contract.
+10. `docs/OUTLOOK_TEMPORAL_CURRENT.md` — compact current Outlook temporal and checked-actual contract.
 11. Fixture checks under `checks/check-src-next-*.sh` and BQN unit tests under `tests/test_src_next_*.bqn` — executable contracts.
 
 ## Current section list
@@ -63,6 +63,26 @@ Status vocabulary is `ok / unavailable / error`. A missing previous anchor or em
 Production human and machine entries capture today once through `src_next/date.bqn` and pass it explicitly. There is no Actual Comparison CLI override or report-wide `as_of` contract.
 
 Executable coverage: `tests/test_src_next_actual_comparison.bqn` and `checks/check-src-next-actual-comparison.sh`.
+
+## Outlook checked actual snapshot boundary
+
+`outlook.BuildAt ⟨ctx,O⟩` receives actual balances from `actual_snapshot.BuildAt ⟨ctx,O⟩`. The snapshot is ledger-cumulative through inclusive O and derives numeric balances from checked ledger-wide Posting IR through a local `[O,O+1)` actual-layer TBDS closing view, not an independent `journal.tsv` amount parser.
+
+Rows before O form TBDS opening, rows on O form movement, and closing is the cumulative balance through O. Pre-cycle history therefore remains part of the balance, and `cycle.end_exclusive` does not cap the snapshot when O is later.
+
+Snapshot and Outlook status vocabulary for this boundary is `ok / error`.
+
+- invalid observation -> `error / invalid_observation`;
+- invalid-date actual evidence -> applicability-unknown and `error`;
+- valid-coordinate rejected actual with `D <= O` -> `error / rejected_actual_evidence`;
+- valid-coordinate rejected actual with `D > O` -> outside that O snapshot;
+- valid empty journal -> `ok` with real zero balances.
+
+Diagnostics deduplicate checked debit/credit posting pairs by source row. On snapshot error, Outlook does not combine plan values with invalid actual balances and does not render normal daily-allowance numbers. Machine output includes `src_next_outlook_status`, `src_next_outlook_reason`, and `src_next_outlook_diagnostic`.
+
+Current remaining-plan amount parsing and anchor behavior are not migrated by this boundary. Their separately approved Slice B remains unselected.
+
+Executable coverage: `tests/test_src_next_actual_snapshot_numeric_owner.bqn` and `checks/check-src-next-actual-snapshot.sh`.
 
 ## Envelope safety note
 
@@ -116,9 +136,9 @@ Only add stable contracts here when they are true for the current `src_next` eng
 
 Good candidates:
 
-- per-section checklist applications after they have matching checks,
-- section-level status contract once the output is uniform enough to document,
-- machine-readable summary key groups that are intentionally stable,
+- per-section checklist applications after they have matching checks;
+- section-level status contract once the output is uniform enough to document;
+- machine-readable summary key groups that are intentionally stable;
 - fail-closed behavior for known invalid input classes.
 
 Do not put old-engine guarantees here unless they have been revalidated against current `src_next`.
