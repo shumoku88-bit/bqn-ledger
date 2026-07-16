@@ -74,7 +74,19 @@ Target:
 - preserve the current Outlook-only observation contract and do not infer a global report observation policy;
 - leave the separately selected pre-runtime Daily Capacity calculation contract (`docs/DAILY_CAPACITY_MINIMAL_INPUT_RESULT_CONTRACT.md`) untouched: this alignment changes numeric ownership, not asset/obligation policy, config, or output migration.
 
-The required `O`, `L`, plan-anchor, and out-of-cycle characterization is complete in `../completed-plans/OUTLOOK_ACTUAL_SNAPSHOT_CHARACTERIZATION-2026-07-16.md`. It fixes cumulative-to-O actual behavior, the differently bounded latest-date helpers, post-cycle L, and current all-included remaining-plan anchor behavior. A compatibility decision is the next candidate; no runtime migration is selected.
+The required characterization and compatibility decision are complete:
+
+- `../completed-plans/OUTLOOK_ACTUAL_SNAPSHOT_CHARACTERIZATION-2026-07-16.md`;
+- `../completed-plans/OUTLOOK_ACTUAL_SNAPSHOT_NUMERIC_OWNER_COMPATIBILITY_DECISION-2026-07-16.md`.
+
+The approved migration is split into independent runtime slices:
+
+```text
+Slice A: actual_snapshot actual-balance numeric owner
+Slice B: Outlook remaining-plan monetary owner and anchor policy
+```
+
+Slice A preserves cumulative inclusive-O actual balances, fails closed on applicable rejected actual evidence, and adds only the narrow Outlook error propagation needed to avoid deriving daily allowance from an invalid balance. Slice B later uses checked plan amounts plus existing unfinished/completed evidence and applies the approved asymmetric anchor policy: valid anchored outflows remain reserved when unmet, while valid anchored inflows require an actual matching income event at or before O within C. Invalid anchor metadata is error evidence. Neither runtime slice is selected automatically.
 
 ### 3. `daily-trend`
 
@@ -127,11 +139,12 @@ The Actual Comparison characterization and preimplementation compatibility decis
 
 They preserve pre-migration evidence and approved section-local fail-closed rejected-row behavior, explicit `O`, and removal of unreachable `insufficient_history`. The runtime migration is complete and recorded in `../completed-plans/ACTUAL_COMPARISON_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-15.md`.
 
-The Outlook / `actual_snapshot` characterization foundation is also complete:
+The Outlook / `actual_snapshot` characterization and compatibility decision are also complete:
 
 - `../completed-plans/OUTLOOK_ACTUAL_SNAPSHOT_CHARACTERIZATION-2026-07-16.md`
+- `../completed-plans/OUTLOOK_ACTUAL_SNAPSHOT_NUMERIC_OWNER_COMPATIBILITY_DECISION-2026-07-16.md`
 
-It preserves the current cumulative actual cutoff, O/L/C separation, frontier bounds, plan-anchor monetary behavior, and empty-frontier evidence. The next alignment candidate is an Outlook / `actual_snapshot` compatibility decision, but no next slice is selected.
+They preserve current evidence while approving cumulative inclusive-O checked actual ownership, section-local fail-closed behavior, migration separation, helper compatibility, unfinished-plan ownership, and asymmetric anchor safety. The next candidate is Slice A runtime migration, but no runtime slice is selected.
 
 ## Delivery order and gates
 
@@ -139,7 +152,7 @@ Work is intentionally one report slice at a time.
 
 1. **Characterization foundation** — add only the smallest fixtures needed to state existing outputs and temporal behavior for the first target. No shared abstraction yet.
 2. **Actual Comparison — completed** — local amount aggregation was replaced with checked Posting IR/local TBDS-derived values; only narrow cycle anchor identity evidence remains.
-3. **Outlook / actual snapshot — characterization completed; compatibility decision next candidate, unselected** — a later selected slice may establish the explicit `O`-cutoff accounting view and migrate actual values before changing plan-side aggregates.
+3. **Outlook / actual snapshot — characterization and compatibility decision completed; Slice A runtime next candidate, unselected** — migrate only the cumulative O-bounded actual balance and fail-closed propagation before independently selecting plan monetary/anchor Slice B.
 4. **Daily Trend** — migrate plan monetary aggregation while preserving `D`-local identity semantics.
 5. **Envelopes / Cycle** — migrate remaining Budget and remaining-plan numeric paths without changing execution-envelope policy.
 
