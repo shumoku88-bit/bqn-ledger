@@ -1,2 +1,3 @@
 2026-02-07	anchored_after_o	assets:cash	expenses:misc	60	anchor=income:after_o
-2026-02-08	anchored_outside	assets:cash	expenses:misc	70	anchor=income:outside
+2026-02-08	anchored_missing	assets:cash	expenses:misc	70	anchor=income:missing
+2026-02-09	unanchored	assets:cash	expenses:misc	80
