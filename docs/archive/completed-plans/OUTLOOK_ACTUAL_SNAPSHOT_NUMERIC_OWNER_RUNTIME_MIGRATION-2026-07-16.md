@@ -2,6 +2,8 @@
 
 Status: completed runtime slice
 Owner: report
+Canonical: no; current contracts are `docs/OUTLOOK_TEMPORAL_CURRENT.md`, `docs/REPORT_CONTRACTS.md`, runtime modules, and executable checks
+Exit: retain as the completed Slice A evidence record; do not treat it as automatic authorization for Slice B
 Decision: `OUTLOOK_ACTUAL_SNAPSHOT_NUMERIC_OWNER_COMPATIBILITY_DECISION-2026-07-16.md`
 Characterization: `OUTLOOK_ACTUAL_SNAPSHOT_CHARACTERIZATION-2026-07-16.md`
 
