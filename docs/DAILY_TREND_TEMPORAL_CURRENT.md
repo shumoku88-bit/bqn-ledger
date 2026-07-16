@@ -35,6 +35,8 @@ This is not historical knowledge replay. A past row may change when the current 
 - `L` remains record-frontier context and does not own ordinary row membership.
 - Row-local future income uses `S + D + C` rather than one shared `L` cutoff.
 - The ordinary reserve/fund/daily path is centered on `S + D + C + M`, where `M` is plan/journal identity state visible at `D`.
+- Fixed-reserve money comes from admitted plan Posting IR joined to source identity by `source_row`; source evidence owns plan ID and D-local completion.
+- Applicable rejected, duplicate, missing, or structurally unjoinable plan evidence fails the section closed with no numeric trend rows.
 - `K` is not represented, so the report must not claim “what was known at D”.
 
 ## Header clock
@@ -82,7 +84,10 @@ The explicit-empty-plan-identity product decision has completed its lifecycle an
 
 - `src_next/daily_trend.bqn`
 - `src_next/report.bqn`
+- `src_next/daily_trend_plan.bqn`
 - `tests/test_src_next_daily_trend_header_as_of_sensitivity.bqn`
+- `tests/test_src_next_daily_trend_plan_numeric_owner.bqn`
+- `checks/check-src-next-daily-trend-plan-numeric-owner.sh`
 - `checks/check-json-clock-independence.sh`
 
 ## Non-goals

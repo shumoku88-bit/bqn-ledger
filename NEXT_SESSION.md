@@ -5,59 +5,46 @@ Owner: report
 Canonical: no; current plan: `docs/archive/active-plans/REPORT_PROJECTION_ALIGNMENT_PLAN-2026-07-15.md`
 Exit: remove or replace after the next finite slice is jointly selected
 
-Outlook Report Projection Alignment Slices A and B are complete.
+Actual Comparison, Outlook Slices A/B, and Daily Trend plan monetary ownership are complete.
 
-Current records:
+Latest record and executable evidence:
 
-- `docs/archive/completed-plans/OUTLOOK_ACTUAL_SNAPSHOT_CHARACTERIZATION-2026-07-16.md`
-- `docs/archive/completed-plans/OUTLOOK_ACTUAL_SNAPSHOT_NUMERIC_OWNER_COMPATIBILITY_DECISION-2026-07-16.md`
-- `docs/archive/completed-plans/OUTLOOK_ACTUAL_SNAPSHOT_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-16.md`
-- `docs/archive/completed-plans/OUTLOOK_REMAINING_PLAN_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-16.md`
-- `fixtures/outlook-remaining-plan-numeric-owner-target/`
-- `tests/test_src_next_outlook_remaining_plan_numeric_owner.bqn`
-- `checks/check-src-next-outlook-remaining-plan.sh`
+- `docs/archive/completed-plans/DAILY_TREND_PLAN_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-16.md`
+- `src_next/daily_trend_plan.bqn`
+- `fixtures/daily-trend-plan-numeric-owner-target/`
+- `tests/test_src_next_daily_trend_plan_numeric_owner.bqn`
+- `checks/check-src-next-daily-trend-plan-numeric-owner.sh`
 
-## Completed Outlook boundary
+## Completed Daily Trend boundary
 
-`actual_snapshot.BuildAt ⟨ctx,O⟩` derives ledger-cumulative inclusive-O balances from checked actual Posting IR through a local `[O,O+1)` TBDS closing view.
-
-`outlook_remaining_plan.BuildAt ⟨ctx,O⟩` derives current remaining-plan money from admitted plan Posting IR joined to source identity, completion, and anchor evidence.
-
-The remaining horizon is:
+Daily Trend keeps current-source coordinate replay:
 
 ```text
-O <= plan date < C.end_exclusive
+S = current source snapshot
+D = rendered row coordinate
+O_row = D
+C = selected cycle
+K = unavailable / not claimed
 ```
 
-Completed plans do not contribute.
+Fixed-reserve money now comes from admitted `plan.tsv` Posting IR joined to source evidence by stable `source_row`. Source evidence continues to own plan ID and completion identity at each D. The existing future-income path already uses admitted plan projection rows.
 
-Anchor policy is asymmetric:
+Applicable invalid dates, unknown accounts, duplicate identity/completion evidence, missing required evidence, or a join other than one debit/credit Posting IR pair returns `error / rejected_plan_evidence`. Numeric trend rows are then absent; rejected inputs are not converted to zero.
 
-- valid anchored outflows remain reserved when the anchor is unmet;
-- valid anchored inflows count only after an admitted actual matching income event at or before O within C;
-- unknown, non-income, duplicate, or empty anchor metadata is `error`.
-
-Applicable actual or plan evidence failure propagates through Outlook. Monetary fields become `unavailable`, source-row diagnostics remain visible, and normal daily-allowance numbers are not rendered.
-
-The two differently bounded latest-date helpers remain compatibility surfaces and were not renamed. Cycle-end next-obligation rendering remains a separate source-evidence compatibility surface.
+The migration does not change row membership, header observation, cycle policy, completion policy, current-source replay, or the absence of historical knowledge boundary K.
 
 ## Next selectable but unselected report slice
 
-The next Report Projection Alignment candidate is **Daily Trend plan monetary ownership**.
+The next Report Projection Alignment candidate is **Envelopes / Cycle remaining-plan monetary ownership**.
 
-Before implementation, characterize the current `D`-local row-observation behavior and decide the exact checked-Posting-IR join needed to preserve source identity and historical coordinate semantics.
+Before implementation, characterize allocation compatibility and cycle remaining-plan paths independently. Do not infer:
 
-Do not infer:
-
-- a report-wide observation clock;
-- generic temporal kernel work;
-- Outlook helper renaming;
-- Daily Capacity wiring;
-- Cube shape changes;
-- source/config/metadata migration;
-- editor changes;
-- automatic advice or writes.
+- automatic selection or implementation;
+- envelope backing or cycle policy changes;
+- a report-wide observation clock or generic temporal kernel;
+- Cube shape, source/config/metadata, or editor changes;
+- Daily Capacity wiring, automatic advice, or writes.
 
 ## Daily Capacity remains parked
 
-The pure `src_next/daily_capacity.bqn` seam remains unconnected. Its assembler promotion, Candidate B O-bounded balance facts, and Candidate C pool/reservation facts remain independent unselected choices and are not implied by completed Outlook work.
+The pure `src_next/daily_capacity.bqn` seam remains unconnected. Its assembler promotion, Candidate B O-bounded balance facts, and Candidate C pool/reservation facts remain independent unselected choices.

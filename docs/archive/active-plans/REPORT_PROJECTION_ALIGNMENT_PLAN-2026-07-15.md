@@ -87,20 +87,18 @@ Current Outlook records:
 
 Cycle-end next-obligation rendering remains a separate compatibility surface. Daily Capacity remains untouched: this alignment changes numeric ownership, not asset/obligation policy or adapter selection.
 
-### 3. `daily-trend`
+### 3. `daily-trend` — completed
 
-Current issue:
+The completed runtime slice:
 
-- Actual daily cumulative balances use the Cube, but reserve and plan-completion parts reread and reparse plan/journal source rows.
+- keeps actual running values as Cube operations and the existing admitted-plan future-income path;
+- joins each applicable source plan row to exactly one admitted debit/credit Posting IR pair by stable `source_row`;
+- derives fixed reserve money only from the admitted debit posting delta;
+- retains source evidence for plan ID and completion at each row coordinate `D`;
+- retains current-source coordinate replay (`O_row = D`) with no historical knowledge claim;
+- fails closed on applicable invalid, rejected, duplicate, missing, or structurally unjoinable plan evidence.
 
-Target:
-
-- keep actual running values as Cube operations;
-- use identity evidence for plan completion at each row coordinate `D`;
-- derive plan monetary values from admitted plan Posting IR, joined to that evidence;
-- retain the current-source coordinate replay contract: `O_row = D`, with no historical knowledge claim.
-
-Do not replace row-local plan identity with a single global `L` cutoff.
+Record: `../completed-plans/DAILY_TREND_PLAN_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-16.md`.
 
 ### 4. `envelopes` and `cycle` remaining-plan calculation
 
@@ -136,8 +134,8 @@ Work is intentionally one report slice at a time.
 1. **Characterization foundation** — complete for Actual Comparison and Outlook.
 2. **Actual Comparison** — completed.
 3. **Outlook / actual snapshot Slices A and B** — completed.
-4. **Daily Trend** — next selectable but unselected report candidate.
-5. **Envelopes / Cycle** — later independent candidate.
+4. **Daily Trend** — completed.
+5. **Envelopes / Cycle** — next selectable but unselected independent candidate.
 
 A slice may proceed only when it has:
 

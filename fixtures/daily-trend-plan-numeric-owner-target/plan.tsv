@@ -1,0 +1,10 @@
+2026-02-01	same_day_inflow	income:salary	assets:cash	11
+2026-02-02	first_fixed	assets:cash	expenses:fixed	10	plan_id=first
+2026-02-03	completed_fixed	assets:cash	expenses:fixed	20	plan_id=done-same
+2026-02-05	future_fixed_a	assets:cash	expenses:fixed	30	plan_id=future-a
+2026-02-05	future_fixed_b	assets:cash	expenses:fixed	31	plan_id=future-b
+2026-02-07	completed_future	assets:cash	expenses:fixed	40	plan_id=done-future
+2026-02-08	future_inflow	income:salary	assets:cash	50	plan_id=inflow
+2026-02-09	variable_outflow	assets:cash	expenses:variable	60	plan_id=variable
+2026-02-10	last_fixed	assets:cash	expenses:fixed	70	plan_id=last
+2026-02-11	end_exclusive	assets:cash	expenses:fixed	80	plan_id=outside

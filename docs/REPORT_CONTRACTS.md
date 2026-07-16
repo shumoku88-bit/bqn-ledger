@@ -114,6 +114,28 @@ Machine output includes `src_next_outlook_status`, `src_next_outlook_reason`, an
 
 Executable coverage: `tests/test_src_next_outlook_remaining_plan_numeric_owner.bqn` and `checks/check-src-next-outlook-remaining-plan.sh`.
 
+## Daily Trend checked plan-money boundary
+
+Daily Trend remains current-source coordinate replay with `O_row = D`. Ordinary row membership, header observation, cycle boundaries, and the lack of historical knowledge boundary K are unchanged.
+
+The monetary/evidence split is:
+
+| Meaning | Owner |
+|---|---|
+| future planned-income delta | admitted plan Posting IR already present in the cycle projection |
+| fixed reserve amount | admitted `plan.tsv` debit Posting IR |
+| stable source correspondence | `source_file=plan.tsv` plus `source_row` |
+| plan ID and completion identity | source evidence using the existing `plan_rows` / overlap fallback contract |
+| reserve observation | each rendered row coordinate D |
+
+For every applicable source plan row, `src_next/daily_trend_plan.bqn` requires exactly one admitted debit/credit pair with matching date and plan layer. Fixed classification comes from the admitted debit account. Source amount text is never parsed by the helper.
+
+At D, a fixed plan contributes when `D <= plan date < C.end_exclusive` and no matching completion row exists at or before D. This preserves same-day completion exclusion, completion-before-due exclusion, multiple-day behavior, and end-exclusive cycle semantics. The separate future-income rule remains strict `plan date > D`.
+
+Invalid plan dates have unknown applicability and fail closed. Applicable unknown accounts, malformed required evidence, duplicate plan ID metadata, duplicate plan identity, duplicate completion identity, or structural join failure returns `error / rejected_plan_evidence`. Daily Trend then exposes diagnostics and no numeric trend rows; these states are not converted to zero.
+
+Executable coverage: `tests/test_src_next_daily_trend_plan_numeric_owner.bqn`, `fixtures/daily-trend-plan-numeric-owner-target/`, and `checks/check-src-next-daily-trend-plan-numeric-owner.sh`.
+
 ## Envelope safety note
 
 The `envelopes` section must not show only per-envelope balances while hiding an over-allocated budget pool. Current `src_next/envelope_computation.bqn` derives the unassigned pool from `accounts.tsv` entries with `role=budget kind=unassigned` and exposes these compact summary keys.

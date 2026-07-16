@@ -113,6 +113,7 @@ K = unavailable / not claimed
 - accepted in-cycle coordinateが空なら`cycle.start`をempty-state anchorにする
 - `L`はfrontier contextでありordinary row membershipを所有しない
 - row-local future incomeは`D`をcutoffとして使う
+- fixed reserve金額はadmitted plan Posting IR、plan IDとD-local completionはsource evidenceが所有する
 - `K`を実装していないため「D時点で知られていた状態」とは主張しない
 
 human headerはrowとは別の観察ownerを持つ。
