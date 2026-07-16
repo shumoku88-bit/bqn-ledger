@@ -1,16 +1,21 @@
 # loader.bqn
-# Read-only TSV file loader for the cycle-ledger prototype.
+# Read-only repository file loader.
 #
-# Design: minimal, inspectable, no side effects on canonical data.
+# Design: minimal, inspectable, no writes to canonical data.
+# Pure text splitting is owned by util.bqn and re-exported here to preserve the
+# existing loader API used by source readers.
 #
 # Contract (DATA_CONTRACT.md):
 #   - reads canonical TSV files
-#   - skips comment lines (#) and empty lines
+#   - skips comment lines (# / \) and empty lines
 #   - splits by TAB
 #   - does not rewrite canonical files
 
-# ReadRaw: read file content as a string.
-# Uses native •FChars resolved against working directory (•wdpath) for relative paths.
+util ← •Import "util.bqn"
+
+Split ← util.Split
+SplitKeepEmpty ← util.SplitKeepEmpty
+
 # ResolvePath: resolve relative path against working directory (•wdpath) if not absolute.
 ResolvePath ← {
   path ← 𝕩
@@ -19,6 +24,7 @@ ResolvePath ← {
 }
 
 # ReadRaw: read file content as a string.
+# Uses native •FChars resolved against working directory (•wdpath) for relative paths.
 ReadRaw ← {
   •FChars ResolvePath 𝕩
 }
@@ -53,21 +59,12 @@ SplitTsv ← { (@+9) Split 𝕩 }
 # Use this for journal-like source display rows so empty memo fields do not shift columns.
 SplitTsvKeepEmpty ← { (@+9) SplitKeepEmpty 𝕩 }
 
-# Split: split 𝕩 by separator 𝕨, dropping empty parts.
-Split ← {
-  sep ← 𝕨
-  mask ← sep = 𝕩
-  groups ← (+` mask) ⊔ 𝕩
-  parts ← { (sep ≠ 𝕩) / 𝕩 } ¨ groups
-  (0 < ≠¨ parts) / parts
+{
+  ReadRaw ⇐ ReadRaw,
+  ReadLines ⇐ ReadLines,
+  ReadLinesOptional ⇐ ReadLinesOptional,
+  SplitTsv ⇐ SplitTsv,
+  SplitTsvKeepEmpty ⇐ SplitTsvKeepEmpty,
+  Split ⇐ Split,
+  SplitKeepEmpty ⇐ SplitKeepEmpty
 }
-
-# SplitKeepEmpty: split 𝕩 by separator, preserving empty fields between/around separators.
-SplitKeepEmpty ← {
-  sep ← 𝕨
-  mask ← sep = 𝕩
-  groups ← (+` mask) ⊔ 𝕩
-  { (sep ≠ 𝕩) / 𝕩 } ¨ groups
-}
-
-{ ReadRaw ⇐ ReadRaw, ReadLines ⇐ ReadLines, ReadLinesOptional ⇐ ReadLinesOptional, SplitTsv ⇐ SplitTsv, SplitTsvKeepEmpty ⇐ SplitTsvKeepEmpty, Split ⇐ Split, SplitKeepEmpty ⇐ SplitKeepEmpty }
