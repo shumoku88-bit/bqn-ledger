@@ -11,7 +11,6 @@ proj ← •Import "projection.bqn"
 cube ← •Import "cube.bqn"
 plan_rows ← •Import "plan_rows.bqn"
 
-StartsWith ← { pref ← 𝕨 ⋄ pref ≡ (≠ pref) ↑ 𝕩 }
 IsMember ← { list ← 𝕨 ⋄ item ← 𝕩 ⋄ (⊑ list ⊐ ⟨item⟩) < ≠ list }
 
 MakeDiagnostic ← {𝕊 source_row‿status‿date‿message:
@@ -97,6 +96,7 @@ ActiveIncomeAccounts ← {𝕊 ctx‿as_of:
   end_dn ← proj.DaysFromEpoch cy.end_exclusive
   as_dn ← proj.DaysFromEpoch as_of
   roles ← ctx.resolved.roles
+  roles_with_sentinel ← roles ∾ ⟨""⟩
   accounts ← ctx.resolved.accounts
 
   IsActive ← {𝕊 row:
@@ -105,12 +105,12 @@ ActiveIncomeAccounts ← {𝕊 ctx‿as_of:
     {𝕊:
       dn ← proj.DaysFromEpoch row.date
       idx ← row.account_key_index
+      role ← idx ⊑ roles_with_sentinel
       active ↩ (row.source_file ≡ "journal.tsv") ∧
         (row.layer_index = proj.layer_actual) ∧
         (row.status ≡ "ok") ∧
         (row.side ≡ "credit") ∧
-        (idx < ≠ roles) ∧
-        ((idx ⊑ roles) ≡ "income") ∧
+        (role ≡ "income") ∧
         (dn ≥ start_dn) ∧ (dn ≤ as_dn) ∧ (dn < end_dn)
     }⍟valid_date @
     active
@@ -152,8 +152,10 @@ RowsForPlanSource ← {𝕊 rows‿source_row:
 
 PlanLiquidDelta ← {𝕊 resolved‿rows:
   types ← resolved.types
-  liquid_mask ← {𝕊 row: (row.account_key_index < ≠ types) ∧ ((row.account_key_index ⊑ types) ≡ "liquid") }¨ rows
-  cube.Sum0 (liquid_mask / {𝕩.delta}¨ rows)
+  types_with_sentinel ← types ∾ ⟨""⟩
+  deltas ← {𝕩.delta}¨ rows
+  liquid_mask ← {𝕊 row: (row.account_key_index ⊑ types_with_sentinel) ≡ "liquid" }¨ rows
+  cube.Sum0 (liquid_mask / deltas)
 }
 
 BuildFromEvidence ← {𝕊 ctx‿as_of‿evidence:
