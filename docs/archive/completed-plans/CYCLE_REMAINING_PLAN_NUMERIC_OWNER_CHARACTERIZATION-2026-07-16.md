@@ -1,9 +1,9 @@
 # Cycle Remaining-Plan Numeric-Owner Characterization
 
-Status: selected finite characterization / no runtime behavior change
+Status: completed characterization / no runtime behavior change / merged 2026-07-16
 Owner: report
-Canonical: no; parent plan: `REPORT_PROJECTION_ALIGNMENT_PLAN-2026-07-15.md`; current authorization: `TODO.md`
-Exit: move to completed plans after public synthetic characterization, executable checks, and a separate compatibility decision identify the next implementation boundary
+Canonical: yes; parent plan: `REPORT_PROJECTION_ALIGNMENT_PLAN-2026-07-15.md`
+Exit: completed; next step is a compatibility decision candidate
 
 ## Purpose
 
@@ -153,12 +153,32 @@ The characterization must provide evidence for, but must not answer automaticall
 - no automatic advice or write path;
 - no private production-data access.
 
-## Completion gate
+## Completion Record (2026-07-16)
 
-This characterization slice is complete only when:
+The characterization has been completed. The observed current behavior was verified via unit tests and check integration, and recorded as follows:
 
-- public synthetic fixture coverage exists for normal, boundary, completion, invalid/rejected, empty/fallback, and identity behavior;
-- executable tests and a dedicated check pass through `tools/check.sh`;
-- current output behavior is documented without calling rejected evidence valid zero;
-- `TODO.md`, `NEXT_SESSION.md`, and the parent Report Projection Alignment plan route to a separate compatibility decision;
-- no runtime behavior has changed.
+### Observed Current Behavior
+
+1. **Normal and Temporal Boundaries**:
+   - Only expense plans (`role=expense` on destination account) within the remaining cycle window `O <= D < C.end_exclusive` contribute to the remaining total.
+   - `O` (LatestActualDateInCycle) is derived as the maximum Gregorian date of all actual journal postings inside cycle `C`. This derivation is independent of source-row ordering in `journal.tsv`.
+2. **Completion**:
+   - A plan matching an actual completion record (i.e. having a corresponding `plan_id` posting in `journal.tsv`) **remains** in the remaining total, as the current local parser does not check completion evidence.
+3. **Invalid and Rejected Source Evidence**:
+   - **Exact decimal & Non-integer amount**: Under single-currency settings, `fixtures/currency-usd-single` registry-backed checked amount is `4999`. However, the current local parser fails `IsIntegerText("49.99")` and substitutes it with `0` (zero-substitution). Other non-integer amount strings like `"abc"` also fallback to `0`.
+   - **Unknown destination accounts**: Locally excluded from the total as their role falls back to `""` (non-expense). In contrast, the checked Posting IR path marks the row status as `"unknown_account"`, identifying `source_file="plan.tsv"` and the exact `source_row`.
+   - **Invalid dates**: Non-digit date text (e.g. `"abc"`) crashes execution on `ToNum` inside `proj.DaysFromEpoch`. This halt is observed both in-process via `⎊` exception catching and out-of-process via subprocess non-zero exit code.
+4. **Structural Join**:
+   - The current local parser does not utilize Posting IR join boundaries and directly sums the plan values. If we simulate a structural gap by dropping one side of a debit/credit pair (e.g. the credit row) in the checked posting rows, the local parser still calculates the amount correctly, whereas a future checked-owner candidate would face an unjoinable structural evidence gap.
+5. **Empty and Fallback Boundaries**:
+   - If the context has no base path, `fallback_total` (derived from checked TBDS plan totals) is retained.
+   - Empty `plan.tsv` yields `0` as the remaining plan total.
+   - If there are no actual postings in cycle `C`, `O` falls back to `cy.start`, admitting all plan postings from `cy.start` onward. Postings outside `C` do not affect `O`.
+6. **Identity & Source Order**:
+   - No duplicate `plan_id` policy is enforced by the local parser; identical IDs are accumulated in full.
+   - The sums are order-independent (verified by reversing duplicate rows).
+
+### Verification Evidence
+- **Public Fixture Family**: [fixtures/cycle-remaining-plan-characterization/](../../../fixtures/cycle-remaining-plan-characterization/)
+- **Unit Tests**: [tests/test_src_next_cycle_remaining_plan_characterization.bqn](../../../tests/test_src_next_cycle_remaining_plan_characterization.bqn) (PASSED)
+- **Check Script**: [checks/check-src-next-cycle-remaining-plan-characterization.sh](../../../checks/check-src-next-cycle-remaining-plan-characterization.sh) (PASSED, integrated into `tools/check.sh`)

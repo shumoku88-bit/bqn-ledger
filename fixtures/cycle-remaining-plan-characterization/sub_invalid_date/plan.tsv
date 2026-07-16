@@ -1,0 +1,2 @@
+2026-02-30	invalid-date	assets:cash	expenses:food	300	plan_id=invalid-date
+abc	invalid-date-format	assets:cash	expenses:food	300	plan_id=invalid-fmt

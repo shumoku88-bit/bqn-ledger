@@ -1,0 +1,3 @@
+2026-02-20	future-expense	assets:cash	expenses:food	abc	plan_id=invalid-amt
+2026-02-20	future-expense2	assets:cash	expenses:food	100.5	plan_id=decimal-amt
+2026-02-20	future-expense3	assets:cash	expenses:food	200	plan_id=valid-amt
