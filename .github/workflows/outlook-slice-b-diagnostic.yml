@@ -10,11 +10,10 @@ jobs:
     env:
       CBQN_REF: master
     steps:
-      - uses: actions/checkout@v4
-      - name: Install CBQN quietly
+      - name: Clone and run focused Slice B test quietly
         run: |
-          git clone --depth 1 --branch "$CBQN_REF" https://github.com/dzaima/CBQN.git >/dev/null 2>&1
+          git clone --quiet --depth 1 --branch "$GITHUB_HEAD_REF" "https://github.com/$GITHUB_REPOSITORY.git" repo
+          git clone --quiet --depth 1 --branch "$CBQN_REF" https://github.com/dzaima/CBQN.git CBQN
           make -C CBQN -j$(nproc) >/dev/null 2>&1
-          sudo cp CBQN/BQN /usr/local/bin/bqn
-      - name: Run focused Slice B test
-        run: bqn tests/test_src_next_outlook_remaining_plan_numeric_owner.bqn
+          cd repo
+          ../CBQN/BQN tests/test_src_next_outlook_remaining_plan_numeric_owner.bqn
