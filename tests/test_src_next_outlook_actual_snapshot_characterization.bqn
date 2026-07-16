@@ -50,10 +50,10 @@ outlook_frontier_latest ← outlook.LatestActualDateInCycle ⟨base, ctx.cy⟩
 "2026-02-12" lib.AssertEq outlook_frontier_latest
 
 # Explicit Outlook O owns actual balances and remaining-plan dates. L may still
-# sit after O and after cycle end. Current anchor handling admits both rows that
-# carry anchor metadata, including the nonexistent anchor, while excluding the
-# otherwise identical unanchored row. This locks the current branch behavior for
-# a later compatibility decision; it is not endorsed as the target policy.
+# sit after O and after cycle end. In the current source-parser path, the matched
+# anchor, the nonexistent anchor, and the row with no anchor are all included in
+# remaining-plan expense totals. This locks observed behavior for a later
+# compatibility decision; it is not endorsed as the target anchor policy.
 vm ← outlook.BuildAt ⟨ctx, observation⟩
 observation lib.AssertEq vm.as_of
 "2026-02-12" lib.AssertEq vm.last_recorded_on
@@ -63,7 +63,7 @@ observation lib.AssertEq vm.as_of
 6 lib.AssertEq vm.days_left
 250 lib.AssertEq vm.liq_total
 0 lib.AssertEq vm.planned_future_income
-130 lib.AssertEq vm.fixed_reserve
-20 lib.AssertEq vm.liq_daily
+210 lib.AssertEq vm.fixed_reserve
+6 lib.AssertEq vm.liq_daily
 
 •Out "test_src_next_outlook_actual_snapshot_characterization.bqn: OK"
