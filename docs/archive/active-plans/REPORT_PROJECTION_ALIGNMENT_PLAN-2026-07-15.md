@@ -74,7 +74,7 @@ Target:
 - preserve the current Outlook-only observation contract and do not infer a global report observation policy;
 - leave the separately selected pre-runtime Daily Capacity calculation contract (`docs/DAILY_CAPACITY_MINIMAL_INPUT_RESULT_CONTRACT.md`) untouched: this alignment changes numeric ownership, not asset/obligation policy, config, or output migration.
 
-The plan must characterize current `O`, `L`, plan-anchor, and out-of-cycle behavior before changing values.
+The required `O`, `L`, plan-anchor, and out-of-cycle characterization is complete in `../completed-plans/OUTLOOK_ACTUAL_SNAPSHOT_CHARACTERIZATION-2026-07-16.md`. It fixes cumulative-to-O actual behavior, the differently bounded latest-date helpers, post-cycle L, and current all-included remaining-plan anchor behavior. A compatibility decision is the next candidate; no runtime migration is selected.
 
 ### 3. `daily-trend`
 
@@ -118,14 +118,20 @@ No automatic adjustment, source migration, or change to envelope backing policy 
 | `issues` | separate issues-log domain, not accounting postings |
 | `check` / readiness | Cube diagnostics are the numeric owner; file counts are source inventory, not accounting totals |
 
-## Approved Actual Comparison compatibility route
+## Completed alignment evidence
 
-The docs-only characterization and preimplementation compatibility decision are complete:
+The Actual Comparison characterization and preimplementation compatibility decision are complete:
 
 - `../completed-plans/ACTUAL_COMPARISON_PROJECTION_CHARACTERIZATION-2026-07-15.md`
 - `../completed-plans/ACTUAL_COMPARISON_NUMERIC_OWNER_COMPATIBILITY_DECISION-2026-07-15.md`
 
-They preserve pre-migration evidence and approved section-local fail-closed rejected-row behavior, explicit `O`, and removal of unreachable `insufficient_history`. The runtime migration is complete and recorded in `../completed-plans/ACTUAL_COMPARISON_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-15.md`. The next alignment candidate is Outlook / `actual_snapshot` characterization foundation, but no next slice is selected.
+They preserve pre-migration evidence and approved section-local fail-closed rejected-row behavior, explicit `O`, and removal of unreachable `insufficient_history`. The runtime migration is complete and recorded in `../completed-plans/ACTUAL_COMPARISON_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-15.md`.
+
+The Outlook / `actual_snapshot` characterization foundation is also complete:
+
+- `../completed-plans/OUTLOOK_ACTUAL_SNAPSHOT_CHARACTERIZATION-2026-07-16.md`
+
+It preserves the current cumulative actual cutoff, O/L/C separation, frontier bounds, plan-anchor monetary behavior, and empty-frontier evidence. The next alignment candidate is an Outlook / `actual_snapshot` compatibility decision, but no next slice is selected.
 
 ## Delivery order and gates
 
@@ -133,7 +139,7 @@ Work is intentionally one report slice at a time.
 
 1. **Characterization foundation** — add only the smallest fixtures needed to state existing outputs and temporal behavior for the first target. No shared abstraction yet.
 2. **Actual Comparison — completed** — local amount aggregation was replaced with checked Posting IR/local TBDS-derived values; only narrow cycle anchor identity evidence remains.
-3. **Outlook / actual snapshot — next candidate, unselected** — first establish characterization of the current `O`, `L`, anchor, and out-of-cycle behavior; a later selected slice may establish the explicit `O`-cutoff accounting view and migrate actual values before changing plan-side aggregates.
+3. **Outlook / actual snapshot — characterization completed; compatibility decision next candidate, unselected** — a later selected slice may establish the explicit `O`-cutoff accounting view and migrate actual values before changing plan-side aggregates.
 4. **Daily Trend** — migrate plan monetary aggregation while preserving `D`-local identity semantics.
 5. **Envelopes / Cycle** — migrate remaining Budget and remaining-plan numeric paths without changing execution-envelope policy.
 
