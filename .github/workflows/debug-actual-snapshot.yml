@@ -16,5 +16,15 @@ jobs:
           git clone --depth 1 --branch "$CBQN_REF" https://github.com/dzaima/CBQN.git
           make -C CBQN -j$(nproc)
           sudo cp CBQN/BQN /usr/local/bin/bqn
-      - name: Run focused test
-        run: bqn tests/test_src_next_actual_snapshot_numeric_owner.bqn
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ripgrep
+          npm ci --prefix mcp-server
+      - name: Run full check with compact failure evidence
+        shell: bash
+        run: |
+          set +e
+          bash tools/check.sh > /tmp/check.log 2>&1
+          status=$?
+          tail -n 100 /tmp/check.log
+          exit "$status"
