@@ -49,21 +49,23 @@ outlook_frontier_latest ← outlook.LatestActualDateInCycle ⟨base, ctx.cy⟩
 "2026-02-06" lib.AssertEq actual_cycle_latest
 "2026-02-12" lib.AssertEq outlook_frontier_latest
 
-# Explicit Outlook O owns actual balances and remaining-plan dates. L may still
-# sit after O and after cycle end. In the current source-parser path, the matched
-# anchor, the nonexistent anchor, and the row with no anchor are all included in
-# remaining-plan expense totals. This locks observed behavior for a later
-# compatibility decision; it is not endorsed as the target anchor policy.
+# PR #266 characterized the former raw-parser path as fixed_reserve=210 because
+# it admitted matched, nonexistent, and unanchored anchors alike. The approved
+# Slice B contract intentionally replaces that behavior. The nonexistent anchor
+# is applicable invalid plan evidence, so Outlook now fails closed while keeping
+# the actual snapshot and record-frontier characterization above intact.
 vm ← outlook.BuildAt ⟨ctx, observation⟩
 observation lib.AssertEq vm.as_of
 "2026-02-12" lib.AssertEq vm.last_recorded_on
 "after_observation" lib.AssertEq vm.record_frontier_relation
 7 lib.AssertEq vm.record_frontier_distance_days
 0 lib.AssertEq vm.journal_lag
-6 lib.AssertEq vm.days_left
-250 lib.AssertEq vm.liq_total
-0 lib.AssertEq vm.planned_future_income
-210 lib.AssertEq vm.fixed_reserve
-6 lib.AssertEq vm.liq_daily
+"error" lib.AssertEq vm.state
+"rejected_plan_evidence" lib.AssertEq vm.reason
+1 lib.AssertEq ≠ vm.diagnostics
+"unknown_anchor" lib.AssertEq (⊑ vm.diagnostics).status
+"unavailable" lib.AssertEq vm.liq_total
+"unavailable" lib.AssertEq vm.fixed_reserve
+"unavailable" lib.AssertEq vm.liq_daily
 
 •Out "test_src_next_outlook_actual_snapshot_characterization.bqn: OK"
