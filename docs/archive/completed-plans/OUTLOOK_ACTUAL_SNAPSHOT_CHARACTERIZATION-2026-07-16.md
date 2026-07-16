@@ -113,6 +113,19 @@ The existing explicit-observation test continues to fix:
 
 This slice supplements those tests with cumulative actual boundaries, cycle-end/out-of-cycle evidence, and plan-anchor monetary behavior.
 
+## Verification
+
+GitHub Actions workflow `check`, run 938, completed successfully on the characterized implementation head:
+
+- all BQN unit tests, including `test_src_next_outlook_actual_snapshot_characterization.bqn`;
+- all existing src_next fixture and section checks;
+- existing Outlook explicit-observation and empty-frontier evidence;
+- editor and engine-independent checks;
+- MCP lint/tests;
+- coverage.
+
+The first focused expectation pass was intentionally allowed to fail and was used as characterization evidence. It exposed `fixed_reserve=130` rather than the assumed `60`. A second discriminating fixture added a nonexistent anchor and an unanchored row, exposing the final current value `fixed_reserve=210`. The final expectations were then verified by the focused test and the full repository suite. Runtime code was not changed to make the fixture pass.
+
 ## Next selectable but unselected slice
 
 The next finite Report Projection Alignment candidate is a compatibility decision for Outlook / `actual_snapshot` numeric ownership. It should decide separately:
