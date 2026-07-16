@@ -9,16 +9,16 @@ export NO_COLOR=1
 
 # Resolve repo root — use CWD if it looks like the root, otherwise resolve from script location
 if [ -f "src_next/report.bqn" ]; then
-  ROOT_DIR="$PWD"
+    ROOT_DIR="$PWD"
 else
-  SOURCE="${BASH_SOURCE[0]}"
-  while [ -L "$SOURCE" ]; do
-    DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
-    SOURCE="$(readlink "$SOURCE")"
-    [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
-  done
-  SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
-  ROOT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+    SOURCE="${BASH_SOURCE[0]}"
+    while [ -L "$SOURCE" ]; do
+        DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+        SOURCE="$(readlink "$SOURCE")"
+        [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+    done
+    SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+    ROOT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 fi
 cd "$ROOT_DIR"
 
@@ -160,6 +160,7 @@ bash checks/check-safe-replace-line.sh >/dev/null
 bash checks/check-bash-safety.sh >/dev/null
 bash checks/check-ui-smoke.sh >/dev/null
 bash checks/check-absolute-links.sh >/dev/null
+bash checks/check-loader-util-ownership.sh >/dev/null
 bash checks/check-loader-unreadable.sh >/dev/null
 bash checks/check-currency-usd-single.sh >/dev/null
 bash checks/audit-budget-style-explicit.sh >/dev/null
