@@ -1,0 +1,20 @@
+name: debug-actual-snapshot
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  focused:
+    runs-on: ubuntu-latest
+    env:
+      CBQN_REF: master
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install CBQN
+        run: |
+          git clone --depth 1 --branch "$CBQN_REF" https://github.com/dzaima/CBQN.git
+          make -C CBQN -j$(nproc)
+          sudo cp CBQN/BQN /usr/local/bin/bqn
+      - name: Run focused test
+        run: bqn tests/test_src_next_actual_snapshot_numeric_owner.bqn
