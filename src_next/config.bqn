@@ -3,6 +3,7 @@
 # Migrated from old src/core/config.bqn.
 
 lib ← •Import "util.bqn"
+loader ← •Import "loader.bqn"
 
 ParseLine ← {
   tab ← @+9
@@ -15,7 +16,7 @@ ParseLine ← {
 
 LoadSystemDefaults ← { 𝕩 ⋄
   file_path ← "config/system_defaults.tsv"
-  raw ← lib.LoadLines file_path
+  raw ← loader.ReadLines file_path
   parsed ← ParseLine ¨ raw
   keys ← { 0 ⊑ 𝕩 } ¨ parsed
   values ← { 1 ⊑ 𝕩 } ¨ parsed
@@ -53,12 +54,12 @@ Path ← {
 
 LoadConfig ← {
   file_path ← Path 𝕩
-  raw ← lib.LoadLines file_path
+  raw ← loader.ReadLines file_path
   parsed ← ParseLine ¨ raw
   keys ← { 0 ⊑ 𝕩 } ¨ parsed
   values ← { 1 ⊑ 𝕩 } ¨ parsed
 
-  repo_raw ← lib.LoadLines "config/default_config.tsv"
+  repo_raw ← loader.ReadLines "config/default_config.tsv"
   repo_parsed ← ParseLine ¨ repo_raw
   repo_keys ← { 0 ⊑ 𝕩 } ¨ repo_parsed
   repo_values ← { 1 ⊑ 𝕩 } ¨ repo_parsed
