@@ -1,0 +1,221 @@
+#!/usr/bin/env python3
+import os
+import sys
+
+def get_base_dir():
+    # 1. Check environment variable
+    if 'LEDGER_DATA_DIR' in os.environ:
+        return os.environ['LEDGER_DATA_DIR']
+    
+    # 2. Check command line argument
+    if len(sys.argv) > 1:
+        return sys.argv[1]
+    
+    # 3. Try standard locations
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir) # bqn-ledger
+    parent_dir = os.path.dirname(project_root) # Projects
+    
+    potential_dirs = [
+        os.path.join(parent_dir, 'ledger-data', 'data'),
+        os.path.join(project_root, 'data'),
+    ]
+    for d in potential_dirs:
+        if os.path.isdir(d):
+            return d
+            
+    return '.'
+
+def parse_config(base_dir):
+    config_path = os.path.join(base_dir, 'config.tsv')
+    default_currency = 'JPY'
+    if not os.path.exists(config_path):
+        return default_currency
+        
+    with open(config_path, 'r', encoding='utf-8') as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            parts = line.split('=')
+            if len(parts) >= 2:
+                key = parts[0].strip()
+                val = parts[1].strip()
+                if key == 'DEFAULT_CURRENCY':
+                    default_currency = val
+    return default_currency
+
+def convert_comment(line):
+    # Convert TSV comment (#) to hledger comment (;)
+    if line.startswith('#'):
+        return ';' + line[1:]
+    return line
+
+def parse_meta(meta_parts):
+    meta = {}
+    for part in meta_parts:
+        part = part.strip()
+        if not part:
+            continue
+        if '=' in part:
+            k, v = part.split('=', 1)
+            meta[k.strip()] = v.strip()
+        else:
+            meta[part] = True
+    return meta
+
+def format_tags(meta_dict, exclude_keys=None):
+    if exclude_keys is None:
+        exclude_keys = set()
+    tags = []
+    for k, v in meta_dict.items():
+        if k in exclude_keys:
+            continue
+        if v is True:
+            tags.append(f"{k}")
+        else:
+            tags.append(f"{k}: {v}")
+    if tags:
+        return "  ; " + ", ".join(tags)
+    return ""
+
+def convert_accounts(base_dir, out_dir):
+    in_path = os.path.join(base_dir, 'accounts.tsv')
+    out_path = os.path.join(out_dir, 'accounts.journal')
+    if not os.path.exists(in_path):
+        print(f"Warning: accounts.tsv not found at {in_path}")
+        return
+        
+    with open(in_path, 'r', encoding='utf-8') as f_in, open(out_path, 'w', encoding='utf-8') as f_out:
+        f_out.write("; Generated from accounts.tsv\n\n")
+        for line in f_in:
+            line_raw = line.rstrip('\n')
+            if not line_raw.strip():
+                f_out.write("\n")
+                continue
+            if line_raw.startswith('#'):
+                f_out.write(convert_comment(line_raw) + "\n")
+                continue
+                
+            parts = line_raw.split('\t')
+            account_name = parts[0].strip()
+            if not account_name:
+                continue
+                
+            meta = parse_meta(parts[1:])
+            # Map role -> type, and type -> subtype for hledger compatibility
+            hledger_meta = {}
+            for k, v in meta.items():
+                if k == 'role':
+                    role_map = {
+                        'asset': 'Asset',
+                        'liability': 'Liability',
+                        'equity': 'Equity',
+                        'income': 'Revenue',
+                        'expense': 'Expense',
+                        'budget': 'Equity'
+                    }
+                    hledger_meta['type'] = role_map.get(v, v.capitalize())
+                elif k == 'type':
+                    hledger_meta['subtype'] = v
+                else:
+                    hledger_meta[k] = v
+            tags_str = format_tags(hledger_meta)
+            f_out.write(f"account {account_name}{tags_str}\n")
+    print(f"Created {out_path}")
+
+def convert_journal_like(in_file_name, out_file_name, base_dir, out_dir, default_currency):
+    in_path = os.path.join(base_dir, in_file_name)
+    out_path = os.path.join(out_dir, out_file_name)
+    if not os.path.exists(in_path):
+        print(f"Warning: {in_file_name} not found at {in_path}")
+        return False
+        
+    with open(in_path, 'r', encoding='utf-8') as f_in, open(out_path, 'w', encoding='utf-8') as f_out:
+        f_out.write(f"; Generated from {in_file_name}\n\n")
+        line_num = 0
+        for line in f_in:
+            line_num += 1
+            line_raw = line.rstrip('\n')
+            if not line_raw.strip():
+                f_out.write("\n")
+                continue
+            if line_raw.startswith('#'):
+                f_out.write(convert_comment(line_raw) + "\n")
+                continue
+                
+            parts = line_raw.split('\t')
+            if len(parts) < 5:
+                print(f"Warning: line {line_num} in {in_file_name} has fewer than 5 columns: {line_raw}")
+                f_out.write(f"; Invalid line: {line_raw}\n")
+                continue
+                
+            date = parts[0].strip()
+            desc = parts[1].strip()
+            from_acc = parts[2].strip()
+            to_acc = parts[3].strip()
+            amount_str = parts[4].strip()
+            
+            # Metadata
+            meta = parse_meta(parts[5:])
+            currency = meta.get('currency', default_currency)
+            
+            # Format hledger transaction
+            # Format tags (excluding currency since we show it with amount)
+            tags_str = format_tags(meta, exclude_keys={'currency'})
+            
+            f_out.write(f"{date} {desc}{tags_str}\n")
+            if amount_str:
+                f_out.write(f"    {to_acc:<30} {amount_str} {currency}\n")
+            else:
+                f_out.write(f"    {to_acc}\n")
+            f_out.write(f"    {from_acc}\n\n")
+            
+    print(f"Created {out_path}")
+    return True
+
+def get_out_dir():
+    # 1. Check environment variable
+    if 'HLEDGER_DATA_DIR' in os.environ:
+        return os.environ['HLEDGER_DATA_DIR']
+    
+    # 2. Default to hledger-data directory under moko (parent of bqn-ledger)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir) # bqn-ledger
+    parent_dir = os.path.dirname(project_root) # moko
+    
+    out_dir = os.path.join(parent_dir, 'hledger-data')
+    os.makedirs(out_dir, exist_ok=True)
+    return out_dir
+
+def main():
+    base_dir = get_base_dir()
+    print(f"Using base dir: {base_dir}")
+    
+    out_dir = get_out_dir()
+    print(f"Using output dir: {out_dir}")
+    
+    default_currency = parse_config(base_dir)
+    print(f"Default currency: {default_currency}")
+    
+    convert_accounts(base_dir, out_dir)
+    
+    has_journal = convert_journal_like('journal.tsv', 'journal.journal', base_dir, out_dir, default_currency)
+    has_plan = convert_journal_like('plan.tsv', 'plan.journal', base_dir, out_dir, default_currency)
+    
+    # Create master file hledger.journal
+    master_path = os.path.join(out_dir, 'hledger.journal')
+    with open(master_path, 'w', encoding='utf-8') as f:
+        f.write("; Master hledger journal file\n")
+        f.write("; Auto-generated. Do not edit directly.\n\n")
+        f.write("include accounts.journal\n")
+        if has_journal:
+            f.write("include journal.journal\n")
+        if has_plan:
+            f.write("; include plan.journal  ; Commented out to exclude future plans from default actual reports\n")
+            
+    print(f"Created master file: {master_path}")
+    print("Done!")
+
+if __name__ == '__main__':
+    main()
