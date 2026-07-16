@@ -53,7 +53,10 @@ When adding or changing a section, record or verify the following.
 ### Labels and presentation
 
 - [ ] Human-facing labels come from `config/report_labels.tsv` via `src_next/report_labels.bqn`, unless there is a documented exception.
-- [ ] Table columns use width helpers when CJK/alignment matters.
+- [ ] Table columns use CJK-aware dynamic widths when alignment matters; fixed widths must not silently truncate source/config labels.
+- [ ] Human matrix output uses the shared plain-table convention (`header`, `-+-` separator, left-aligned labels, right-aligned numbers, no outer box) where the section is genuinely tabular.
+- [ ] Human-facing negative numbers use `-`; BQN high-minus `¯` remains acceptable only in machine/debug output where it is part of the existing contract.
+- [ ] Statement, calculation, list, error, and diagnostic sections are not forced into a matrix when that would obscure their meaning.
 - [ ] ANSI color is presentation-only and respects `--no-color` / color-filter paths.
 - [ ] Section output can stand alone when called via `tools/report --section <key>`.
 

@@ -61,6 +61,12 @@ PadV ← {
   pre ∾ (n - wpre) ⥊ " "
 }
 
+# Left-pad text to a visual width (ASCII=1, CJK=2).
+PadLV ← {
+  w ← 0⊑𝕩 ⋄ s ← 1⊑𝕩
+  ((0 ⌈ w - VWidth s) ⥊ " ") ∾ s
+}
+
 # Right-align integer in fixed width
 PadL ← {
   w ← 0⊑𝕩 ⋄ x ← 1⊑𝕩
@@ -68,10 +74,42 @@ PadL ← {
   ((0 ⌈ w - ≠ s) ⥊ " ") ∾ s
 }
 
+# Human-facing number text uses the conventional minus sign rather than BQN's
+# high-minus glyph. Machine-readable formatters continue to use •Fmt directly.
+HumanNumber ← {
+  s ← (1 = •Type 𝕩) ⊑ ⟨𝕩, •Fmt 𝕩⟩
+  {𝕩 ≡ '¯' ? '-' ; 𝕩}¨ s
+}
+
 # Format integer in 12-char right-aligned field; red if negative
 FmtAmt ← {
-  s ← PadL ⟨12, 𝕩⟩
+  s ← PadLV ⟨12, HumanNumber 𝕩⟩
   (𝕩 < 0) ⊑ ⟨s, Bad s⟩
+}
+
+# Render a plain terminal matrix with dynamic CJK-aware column widths.
+# Args: ⟨headers, rows, right_align_mask⟩. All cells are text.
+# The output intentionally has no outer box so it remains easy to copy/paste.
+RenderTable ← {𝕊 headers‿rows‿right_align:
+  column_count ← ≠ headers
+  widths ← {𝕊 column:
+    values ← {column ⊑ 𝕩}¨ rows
+    ⌈´ ⟨VWidth column ⊑ headers⟩ ∾ VWidth¨ values
+  }¨ ↕ column_count
+
+  RenderRow ← {𝕊 row:
+    cells ← {𝕊 column:
+      value ← column ⊑ row
+      width ← column ⊑ widths
+      (column ⊑ right_align) ⊑ ⟨PadV ⟨width, value⟩, PadLV ⟨width, value⟩⟩
+    }¨ ↕ column_count
+    (⊑ cells) ∾ ∾ {" | " ∾ 𝕩}¨ 1 ↓ cells
+  }
+
+  separators ← {𝕩 ⥊ "-"}¨ widths
+  separator ← (⊑ separators) ∾ ∾ {"-+-" ∾ 𝕩}¨ 1 ↓ separators
+  out ← (RenderRow headers) ∾ (@+10) ∾ separator ∾ (@+10)
+  out ∾ ∾ {(RenderRow 𝕩) ∾ (@+10)}¨ rows
 }
 
 # Range display: "start〜end"
@@ -80,7 +118,7 @@ RangeDisp ← { (0⊑𝕩) ∾ "〜" ∾ (1⊑𝕩) }
 # Section header (bold)
 Section ← { Bold 𝕩 }
 
-{ VWidth ⇐ VWidth, PadV ⇐ PadV, PadL ⇐ PadL, FmtAmt ⇐ FmtAmt, RangeDisp ⇐ RangeDisp, Section ⇐ Section,
+{ VWidth ⇐ VWidth, PadV ⇐ PadV, PadLV ⇐ PadLV, PadL ⇐ PadL, HumanNumber ⇐ HumanNumber, FmtAmt ⇐ FmtAmt, RenderTable ⇐ RenderTable, RangeDisp ⇐ RangeDisp, Section ⇐ Section,
   SetColorEnabled ⇐ SetColorEnabled, AnsiColorEnabled ⇐ AnsiColorEnabled,
   c_reset ⇐ c_reset, c_bold ⇐ c_bold, c_dim ⇐ c_dim, c_red ⇐ c_red, c_green ⇐ c_green, c_yellow ⇐ c_yellow, c_blue ⇐ c_blue, c_magenta ⇐ c_magenta, c_cyan ⇐ c_cyan,
   Bold ⇐ Bold, Dim ⇐ Dim, Red ⇐ Red, Green ⇐ Green, Yellow ⇐ Yellow, Blue ⇐ Blue, Magenta ⇐ Magenta, Cyan ⇐ Cyan,

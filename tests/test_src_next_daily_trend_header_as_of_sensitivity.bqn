@@ -23,7 +23,7 @@ after_human ← daily_trend.FormatHuman after_vm
 0 lib.AssertEq ∨´ "(現在 8 日残)" ⍷ after_human
 
 # Assert rendered table portion remains byte-for-byte identical
-header_prefix ← "date       | liquid"
+header_prefix ← "Date       | Liquid"
 before_table_idx ← ⊑ (header_prefix ⍷ before_human) / ↕ 1 + (≠before_human) - (≠header_prefix)
 after_table_idx ← ⊑ (header_prefix ⍷ after_human) / ↕ 1 + (≠after_human) - (≠header_prefix)
 

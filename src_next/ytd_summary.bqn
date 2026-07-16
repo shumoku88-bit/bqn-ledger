@@ -174,25 +174,11 @@ FmtYtdAmt ← {
 # FormatHuman: render YTD actual summary as human-readable text.
 FormatHuman ← {𝕊 summary:
   ytd_entries ← summary.ytd_entries
-  w_acc ← ⌈´ ⟨20⟩ ∾ (fmt.VWidth¨ {0⊑𝕩}¨ ytd_entries)
-  w_amt ← 10
-
-  AlignR ← {𝕊 w‿x:
-    s ← (1 = •Type x) ⊑ ⟨x, •Fmt x⟩
-    ((0 ⌈ w - ≠ s) ⥊ " ") ∾ s
-  }
+  rows ← {⟨0⊑𝕩, FmtYtdAmt 1⊑𝕩⟩}¨ ytd_entries
 
   out ← (L "ytd.section_title") ∾ (@+10) ∾ (@+10)
   out ↩ out ∾ (summary.range_start ∾ " 〜 " ∾ summary.range_end_exclusive) ∾ (@+10) ∾ (@+10)
-  out ↩ out ∾ (fmt.PadV ⟨w_acc, "account"⟩) ∾ " | " ∾ (AlignR ⟨w_amt, "YTD"⟩) ∾ (@+10)
-
-  {
-    key ← 0⊑𝕩 ⋄ amt ← 1⊑𝕩
-    padded_key ← fmt.PadV ⟨w_acc, key⟩
-    formatted_amt ← AlignR ⟨w_amt, FmtYtdAmt amt⟩
-    out ↩ out ∾ padded_key ∾ " | " ∾ formatted_amt ∾ (@+10)
-  }¨ ytd_entries
-
+  out ↩ out ∾ fmt.RenderTable ⟨⟨"Account", "YTD"⟩, rows, ⟨0, 1⟩⟩
   out
 }
 

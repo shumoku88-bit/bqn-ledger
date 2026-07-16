@@ -226,25 +226,14 @@ FormatHuman ← {𝕊 vm:
   }⍟(vm.state ≢ "ok") @
   out ↩ out ∾ (L "daily.cycle_label") ∾ vm.cycle_start ∾ " 〜 " ∾ vm.cycle_end_exclusive ∾ (L "daily.current_suffix") ∾ (•Fmt days_left) ∾ (L "daily.current_days_suffix") ∾ (@+10) ∾ (@+10)
 
-  out ↩ out ∾ "date       | liquid   | fund     | daily  | Δdaily | variable | saving" ∾ (@+10)
-
-  AlignR ← {𝕊 w‿x:
-    s ← (1 = •Type x) ⊑ ⟨x, •Fmt x⟩
-    ((0 ⌈ w - ≠ s) ⥊ " ") ∾ s
-  }
-
-  FmtDelta ← {
-    (0⊑𝕩 = 0) ? "     —" ;
-    AlignR ⟨6, 1⊑𝕩⟩
-  }
-
-  FmtRow ← {𝕊 i:
+  TableRow ← {𝕊 i:
     r ← i ⊑ rows
-    date_str ← 0⊑r ⋄ liq ← 1⊑r ⋄ fund ← 3⊑r ⋄ daily ← 5⊑r ⋄ delta ← 6⊑r ⋄ var ← 7⊑r ⋄ sav ← 8⊑r
-    date_str ∾ " | " ∾ (AlignR ⟨8, liq⟩) ∾ " | " ∾ (AlignR ⟨8, fund⟩) ∾ " | " ∾ (AlignR ⟨6, daily⟩) ∾ " | " ∾ (FmtDelta ⟨i, delta⟩) ∾ " | " ∾ (AlignR ⟨8, var⟩) ∾ " | " ∾ (AlignR ⟨6, sav⟩) ∾ (@+10)
+    delta ← (i = 0) ⊑ ⟨fmt.HumanNumber (6⊑r), "—"⟩
+    ⟨0⊑r, fmt.HumanNumber 1⊑r, fmt.HumanNumber 3⊑r, fmt.HumanNumber 5⊑r, delta, fmt.HumanNumber 7⊑r, fmt.HumanNumber 8⊑r⟩
   }
-
-  out ↩ out ∾ ∾ FmtRow¨ ↕ ≠ rows
+  table_rows ← TableRow¨ ↕ ≠ rows
+  headers ← ⟨"Date", "Liquid", "Fund", "Daily", "ΔDaily", "Variable", "Saving"⟩
+  out ↩ out ∾ fmt.RenderTable ⟨headers, table_rows, ⟨0, 1, 1, 1, 1, 1, 1⟩⟩
   out
 }
 

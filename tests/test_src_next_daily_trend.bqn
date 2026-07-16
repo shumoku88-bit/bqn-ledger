@@ -31,6 +31,7 @@ text ← daily_trend.Format vm
 
 human ← daily_trend.FormatHuman vm
 1 lib.AssertEq ∨´ "== Daily Trend =="⍷human
-1 lib.AssertEq ∨´ "liquid"⍷human
+1 lib.AssertEq ∨´ "Liquid"⍷human
+1 lib.AssertEq ∨´ "-----------+--------"⍷human
 
 •Out "test_src_next_daily_trend.bqn: OK"

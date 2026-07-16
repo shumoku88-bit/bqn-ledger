@@ -84,35 +84,12 @@ FormatHuman ← {𝕊 ctx‿n:
   out ↩ out ∾ "(newest first, last " ∾ (•Fmt n) ∾ ")" ∾ (@+10)
 
   {𝕊:
-    dates ← {𝕩.date}¨ recent
-    froms ← {𝕩.from}¨ recent
-    tos ← {𝕩.to}¨ recent
-    
     TrimMemo ← { (fmt.VWidth 𝕩) ≤ 20 ? 𝕩 ; (fmt.PadV ⟨18, 𝕩⟩) ∾ ".." }
-    memos ← TrimMemo¨ {𝕩.memo}¨ recent
-
-    date_w ← ⌈´ (fmt.VWidth¨ dates) ∾ ⟨4⟩
-    from_w ← ⌈´ (fmt.VWidth¨ froms) ∾ ⟨4⟩
-    to_w ← ⌈´ (fmt.VWidth¨ tos) ∾ ⟨2⟩
-    memo_w ← ⌈´ (fmt.VWidth¨ memos) ∾ ⟨4⟩
-
-    PadCol ← {w‿s: fmt.PadV ⟨w, s⟩}
-
-    out ↩ out ∾ (L "recent.date_header") ∾ ((date_w - 4) ⥊ " ") ∾ " | "
-    out ↩ out ∾ (L "recent.from_header") ∾ ((from_w - 4) ⥊ " ") ∾ " -> "
-    out ↩ out ∾ (L "recent.to_header") ∾ ((to_w - 2) ⥊ " ") ∾ " | "
-    out ↩ out ∾ (L "recent.memo_header") ∾ ((0⌈memo_w - 4) ⥊ " ") ∾ " |       " ∾ (L "recent.amount_header") ∾ (@+10)
-
-    {
-      idx ← 𝕩
-      r ← idx ⊑ recent
-      m_val ← idx ⊑ memos
-      d ← PadCol ⟨date_w, r.date⟩
-      f ← PadCol ⟨from_w, r.from⟩
-      t ← PadCol ⟨to_w, r.to⟩
-      m ← PadCol ⟨memo_w, m_val⟩
-      out ↩ out ∾ d ∾ " | " ∾ f ∾ " -> " ∾ t ∾ " | " ∾ m ∾ " | " ∾ (fmt.FmtAmt r.amount) ∾ (@+10)
-    }¨ ↕ ≠ recent
+    rows ← {𝕊 r:
+      ⟨r.date, r.from, r.to, TrimMemo r.memo, fmt.HumanNumber r.amount⟩
+    }¨ recent
+    headers ← ⟨L "recent.date_header", L "recent.from_header", L "recent.to_header", L "recent.memo_header", L "recent.amount_header"⟩
+    out ↩ out ∾ fmt.RenderTable ⟨headers, rows, ⟨0, 0, 0, 0, 1⟩⟩
   }⍟(0 < ≠ recent) @
   {𝕊: out ↩ out ∾ "  (none)" ∾ (@+10)}⍟(0 = ≠ recent) @
   out ↩ out ∾ (@+10)

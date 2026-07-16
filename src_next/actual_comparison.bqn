@@ -323,16 +323,12 @@ FormatHuman ← {𝕊 vm:
           keys ← {⟨LaneOrder 1⊑𝕩, ¯1×|10⊑𝕩⟩}¨table
           table ↩ (⍋keys)⊏table
           LaneLabel ← {𝕩≡"income" ? L "actual.lane_income" ; 𝕩≡"recurring_fixed" ? L "actual.lane_fixed" ; L "actual.lane_variable"}
-          units ← {(3⊑𝕩)∾LaneLabel 1⊑𝕩}¨table
-          wUnit ← ⌈´(fmt.VWidth¨units)∾⟨4⟩ ⋄ wAmt ← 10 ⋄ wRatio ← 7 ⋄ wStatus ← 10
-          AlignR ← {𝕊 w‿x: s←(1=•Type x)⊑⟨x,•Fmt x⟩ ⋄ ((0⌈w-≠s)⥊" ")∾s}
-          header ← (fmt.PadV ⟨wUnit,L "actual.table_unit"⟩)∾" | "∾(AlignR ⟨wAmt,L "actual.table_current"⟩)∾" | "∾(AlignR ⟨wAmt,L "actual.table_baseline"⟩)∾" | "∾(AlignR ⟨wAmt,L "actual.table_diff"⟩)∾" | "∾(AlignR ⟨wRatio,L "actual.table_ratio"⟩)∾" | "∾(fmt.PadV ⟨wStatus,L "actual.table_status"⟩)
-          out ↩ out ∾ header ∾ (@+10)
-          FormatRow ← {𝕊 r:
-            unit←(3⊑r)∾LaneLabel 1⊑r
-            (fmt.PadV ⟨wUnit,unit⟩)∾" | "∾(AlignR ⟨wAmt,8⊑r⟩)∾" | "∾(AlignR ⟨wAmt,9⊑r⟩)∾" | "∾(AlignR ⟨wAmt,10⊑r⟩)∾" | "∾(AlignR ⟨wRatio,14⊑r⟩)∾" | "∾(fmt.PadV ⟨wStatus,15⊑r⟩)
-          }
-          out ↩ out ∾ ∾ (FormatRow ¨ table) ∾¨ (@+10)
+          rows ← {𝕊 r:
+            unit ← (3⊑r) ∾ LaneLabel 1⊑r
+            ⟨unit, fmt.HumanNumber 8⊑r, fmt.HumanNumber 9⊑r, fmt.HumanNumber 10⊑r, 14⊑r, 15⊑r⟩
+          }¨ table
+          headers ← ⟨L "actual.table_unit", L "actual.table_current", L "actual.table_baseline", L "actual.table_diff", L "actual.table_ratio", L "actual.table_status"⟩
+          out ↩ out ∾ fmt.RenderTable ⟨headers, rows, ⟨0, 1, 1, 1, 1, 0⟩⟩
           out ↩ out ∾ (@+10)
         }
       ⟩ @

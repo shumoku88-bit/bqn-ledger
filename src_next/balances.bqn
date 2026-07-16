@@ -185,23 +185,13 @@ RenderHuman ← {𝕊 render:
   liabilities_total ← SumAmount liabilities
   net_worth ← assets_total + liabilities_total
 
-  # Amount formatter: right-align preformatted exact text.
-  FmtAmt2 ← {
-    s ← render.FormatAmount 𝕩
-    ((0 ⌈ 14 - ≠s) ⥊ ' ') ∾ s
-  }
+  # Amount formatter returns exact human text; RenderTable owns alignment.
+  FmtAmt2 ← { render.FormatAmount 𝕩 }
 
   FormatTableGroup ← {
     (0 = ≠𝕩) ? "" ;
-    hdr ← "account_key                       |        balance" ∾ (@+10)
-    div ← "----------------------------------+---------------" ∾ (@+10)
-    rows ← {
-      key ← 0⊑𝕩 ⋄ amt ← 1⊑𝕩
-      padded_key ← fmt.PadV ⟨34, key⟩
-      formatted_amt ← FmtAmt2 amt
-      padded_key ∾ "|" ∾ " " ∾ formatted_amt ∾ (@+10)
-    }¨ 𝕩
-    hdr ∾ div ∾ ∾ rows
+    rows ← {⟨0⊑𝕩, FmtAmt2 1⊑𝕩⟩}¨ 𝕩
+    fmt.RenderTable ⟨⟨"Account", "Balance"⟩, rows, ⟨0, 1⟩⟩
   }
 
   out ← (L "balances.section_title") ∾ (@+10)
@@ -223,22 +213,15 @@ RenderHuman ← {𝕊 render:
   tbl_env ← FormatTableGroup envelopes
   out ↩ out ∾ (0 < ≠tbl_env) ◶ ⟨{""}, {"[Budget / Envelopes]" ∾ (@+10) ∾ tbl_env ∾ (@+10)}⟩ @
 
-  FormatTotalRow ← {𝕊 name‿val:
-    padded_name ← fmt.PadV ⟨34, name⟩
-    formatted_val ← FmtAmt2 val
-    padded_name ∾ "|" ∾ " " ∾ formatted_val ∾ (@+10)
-  }
-  
-  tot ← "[Totals]" ∾ (@+10)
-  tot ↩ tot ∾ "name                              |        balance" ∾ (@+10)
-  tot ↩ tot ∾ "----------------------------------+---------------" ∾ (@+10)
-  tot ↩ tot ∾ FormatTotalRow ⟨"liquid_assets_total", liquid_assets_total⟩
-  tot ↩ tot ∾ FormatTotalRow ⟨"savings_total", savings_total⟩
-  tot ↩ tot ∾ FormatTotalRow ⟨"investment_total", investment_total⟩
-  tot ↩ tot ∾ FormatTotalRow ⟨"assets_total", assets_total⟩
-  tot ↩ tot ∾ FormatTotalRow ⟨"liabilities_total", liabilities_total⟩
-  tot ↩ tot ∾ FormatTotalRow ⟨"net_worth", net_worth⟩
-  
+  total_rows ← ⟨
+    ⟨"liquid_assets_total", FmtAmt2 liquid_assets_total⟩,
+    ⟨"savings_total", FmtAmt2 savings_total⟩,
+    ⟨"investment_total", FmtAmt2 investment_total⟩,
+    ⟨"assets_total", FmtAmt2 assets_total⟩,
+    ⟨"liabilities_total", FmtAmt2 liabilities_total⟩,
+    ⟨"net_worth", FmtAmt2 net_worth⟩
+  ⟩
+  tot ← "[Totals]" ∾ (@+10) ∾ fmt.RenderTable ⟨⟨"Name", "Balance"⟩, total_rows, ⟨0, 1⟩⟩
   out ↩ out ∾ tot ∾ (@+10)
   out
 }
