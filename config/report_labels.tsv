@@ -53,6 +53,7 @@ actual.lane_variable	 (変動)
 outlook.section_title	== Outlook Dashboard ==
 outlook.cycle_label	サイクル: 
 outlook.as_of_label	基準日:   
+outlook.error	ERROR: actual snapshotを信頼できないためOutlookの金額を表示できません。
 outlook.daily_title	── 日割り ──
 outlook.liquid_label	  可用資金           
 outlook.future_income_label	  予定収入(残)       
