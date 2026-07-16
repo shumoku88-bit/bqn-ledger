@@ -13,13 +13,14 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install CBQN
         run: |
-          git clone --depth 1 --branch "$CBQN_REF" https://github.com/dzaima/CBQN.git
-          make -C CBQN -j$(nproc)
+          git clone --depth 1 --branch "$CBQN_REF" https://github.com/dzaima/CBQN.git >/dev/null 2>&1
+          make -C CBQN -j$(nproc) >/dev/null 2>&1
           sudo cp CBQN/BQN /usr/local/bin/bqn
       - name: Install dependencies
         run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq ripgrep
-          npm ci --prefix mcp-server
+          sudo apt-get update -qq >/dev/null
+          sudo apt-get install -y -qq ripgrep >/dev/null
+          npm ci --prefix mcp-server >/dev/null 2>&1
       - name: Run full check with compact failure evidence
         shell: bash
         run: |
