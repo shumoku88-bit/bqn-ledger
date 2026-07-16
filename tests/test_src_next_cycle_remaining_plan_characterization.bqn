@@ -192,16 +192,48 @@ normal_rows ← root_ctx.posting_rows
 # Row 1 (today-expense, amount 200)
 row1_pair ← (("plan.tsv"⊸≡¨ {𝕩.source_file}¨ normal_rows) ∧ (1 = {𝕩.source_row}¨ normal_rows)) / normal_rows
 2 lib.AssertEq ≠ row1_pair
-row1_debit ← ⊑ ("debit"⊸≡¨ {𝕩.side}¨ row1_pair) / row1_pair
+
+row1_debits ← (("debit"⊸≡¨ {𝕩.side}¨ row1_pair)) / row1_pair
+row1_credits ← (("credit"⊸≡¨ {𝕩.side}¨ row1_pair)) / row1_pair
+1 lib.AssertEq ≠ row1_debits
+1 lib.AssertEq ≠ row1_credits
+
+row1_debit ← ⊑ row1_debits
+row1_credit ← ⊑ row1_credits
+
+"debit" lib.AssertEq row1_debit.side
 "ok" lib.AssertEq row1_debit.status
+"plan.tsv" lib.AssertEq row1_debit.source_file
+1 lib.AssertEq row1_debit.source_row
 200 lib.AssertEq row1_debit.delta
+
+"credit" lib.AssertEq row1_credit.side
+"ok" lib.AssertEq row1_credit.status
+"plan.tsv" lib.AssertEq row1_credit.source_file
+1 lib.AssertEq row1_credit.source_row
 
 # Row 2 (future-expense, amount 300)
 row2_pair ← (("plan.tsv"⊸≡¨ {𝕩.source_file}¨ normal_rows) ∧ (2 = {𝕩.source_row}¨ normal_rows)) / normal_rows
 2 lib.AssertEq ≠ row2_pair
-row2_debit ← ⊑ ("debit"⊸≡¨ {𝕩.side}¨ row2_pair) / row2_pair
+
+row2_debits ← (("debit"⊸≡¨ {𝕩.side}¨ row2_pair)) / row2_pair
+row2_credits ← (("credit"⊸≡¨ {𝕩.side}¨ row2_pair)) / row2_pair
+1 lib.AssertEq ≠ row2_debits
+1 lib.AssertEq ≠ row2_credits
+
+row2_debit ← ⊑ row2_debits
+row2_credit ← ⊑ row2_credits
+
+"debit" lib.AssertEq row2_debit.side
 "ok" lib.AssertEq row2_debit.status
+"plan.tsv" lib.AssertEq row2_debit.source_file
+2 lib.AssertEq row2_debit.source_row
 300 lib.AssertEq row2_debit.delta
+
+"credit" lib.AssertEq row2_credit.side
+"ok" lib.AssertEq row2_credit.status
+"plan.tsv" lib.AssertEq row2_credit.source_file
+2 lib.AssertEq row2_credit.source_row
 
 # Total matches current local parser result
 (row1_debit.delta + row2_debit.delta) lib.AssertEq summary.plan_expense_remaining
