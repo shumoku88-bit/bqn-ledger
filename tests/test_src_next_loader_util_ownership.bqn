@@ -7,10 +7,10 @@ loader ← •Import "../src_next/loader.bqn"
 comma ← ⊑ ","
 tab ← @+9
 
-# util owns the pure split behavior.
-sample ← "a,,b,"
+# util owns the pure split behavior, including edge empty fields.
+sample ← ",a,,b,"
 ⟨"a", "b"⟩ lib.AssertEq comma util.Split sample
-⟨"a", "", "b", ""⟩ lib.AssertEq comma util.SplitKeepEmpty sample
+⟨"", "a", "", "b", ""⟩ lib.AssertEq comma util.SplitKeepEmpty sample
 
 # loader preserves its public split API by delegating to util.
 (comma util.Split sample) lib.AssertEq comma loader.Split sample
