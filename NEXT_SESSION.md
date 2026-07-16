@@ -5,87 +5,85 @@ Owner: report
 Canonical: no; current plan: `docs/archive/active-plans/REPORT_PROJECTION_ALIGNMENT_PLAN-2026-07-15.md`
 Exit: remove or replace after the next finite slice is jointly selected
 
-The Outlook / `actual_snapshot` characterization foundation is complete.
-Evidence record:
+The Outlook / `actual_snapshot` characterization and numeric-owner compatibility decision are complete.
+
+Current records:
 
 - `docs/archive/completed-plans/OUTLOOK_ACTUAL_SNAPSHOT_CHARACTERIZATION-2026-07-16.md`
+- `docs/archive/completed-plans/OUTLOOK_ACTUAL_SNAPSHOT_NUMERIC_OWNER_COMPATIBILITY_DECISION-2026-07-16.md`
 - `fixtures/outlook-actual-snapshot-characterization/`
 - `tests/test_src_next_outlook_actual_snapshot_characterization.bqn`
 
-No BQN runtime, report output, source schema, config, metadata, editor behavior,
-Daily Capacity behavior, or private production data changed.
+No BQN runtime, report output, source schema, config, metadata, editor behavior, Daily Capacity behavior, or private production data changed in the decision slice.
 
-## Characterized current boundaries
-
-```text
-C = [2026-02-01, 2026-02-11)
-O = 2026-02-05
-L = 2026-02-12
-```
-
-`actual_snapshot.BuildAt ⟨ctx,O⟩` is ledger-cumulative through inclusive O. It
-includes pre-cycle history, excludes rows after O, and has no cycle cutoff when O
-moves past cycle end. The fixture fixes `liq_total=250` at O and `liq_total=260`
-at `O=2026-02-12` after admitting the end-exclusive and later out-of-cycle rows.
-
-The two exported latest-date helpers retain different bounds:
-
-- `actual_snapshot.LatestActualDateInCycle` applies `[C.start,C.end_exclusive)`
-  and returns `2026-02-06`;
-- Outlook's compatibility helper scans `date >= C.start` without an upper cycle
-  bound and returns `2026-02-12`.
-
-For explicit Outlook O, the later L changes frontier evidence but not the
-O-bounded actual balance:
+## Approved migration order
 
 ```text
-vm.as_of = 2026-02-05
-last_recorded_on = 2026-02-12
-record_frontier_relation = after_observation
-record_frontier_distance_days = 7
-liq_total = 250
+Slice A: actual_snapshot actual-balance numeric owner
+Slice B: Outlook remaining-plan monetary owner and anchor policy
 ```
 
-The fixture also fixes current remaining-plan anchor behavior. A matched anchor,
-a nonexistent anchor, and a row with no anchor are all included in the monetary
-aggregate:
+The slices are independent. Slice A must not absorb plan aggregation or anchor-policy runtime changes.
+
+## Slice A approved contract
+
+`actual_snapshot.BuildAt ⟨ctx,O⟩` remains ledger-cumulative through inclusive O:
 
 ```text
-fixed_reserve = 210
-liq_daily = 6
+journal actual posting
+status = ok
+D <= O
 ```
 
-This is compatibility evidence, not target policy.
+It includes pre-cycle opening history and has no cycle-end cutoff when O lies after C. Amounts must come from checked ledger-wide Posting IR / a local O-bounded TBDS-family view, not a second `journal.tsv` parser.
 
-## Next selectable but unselected report slice
+Applicable rejected actual evidence fails closed:
 
-The next Report Projection Alignment candidate is a docs-only compatibility
-decision for Outlook / `actual_snapshot` numeric ownership. It should decide:
+- valid rejected row with `D <= O` -> `error`;
+- valid rejected row with `D > O` -> outside this snapshot;
+- invalid-date actual row -> `error` because applicability is unknown;
+- invalid amount/currency may continue to stop at upstream context authorization;
+- invalid O -> `error`, not a valid-looking zero snapshot;
+- empty valid journal -> `ok` with real zero balances.
 
-1. rejected/invalid/unsupported source behavior for an O-bounded checked Posting
-   IR or TBDS actual-balance view;
-2. whether actual-balance migration proceeds before plan monetary migration;
-3. whether the two latest-date helper contracts/names remain compatibility
-   surfaces;
-4. whether the characterized all-included anchor behavior is preserved,
-   corrected, or replaced.
+Outlook must propagate snapshot error and must not combine plan values with an invalid actual balance to produce daily allowance numbers.
 
-No runtime migration is selected. Do not automatically implement a checked
-snapshot adapter, plan-side migration, generic temporal kernel, report-wide
-`--as-of`, Daily Capacity connection, Daily Trend, Envelopes, source migration,
-or automatic write.
-
-## Daily Capacity completed baseline and parked candidates
-
-The pure seam remains:
+## Temporal and helper boundaries retained
 
 ```text
-src_next/daily_capacity.bqn
-  BuildDailyCapacityFromEvidence
-    ⟨observation, horizon, arithmetic_domain, asset_scope, obligation_scope⟩
-      -> contract-shaped result
+O = explicit actual cutoff
+L = recorded-actual frontier evidence
+C = selected cycle
 ```
 
-It remains unconnected. Promotion, Candidate B O-bounded balance facts, and
-Candidate C pool/reservation facts remain three independent unselected choices.
-Do not infer policy, add config/metadata, or wire Outlook automatically.
+The two latest-date helpers remain separate compatibility surfaces. Slice A does not rename or merge them.
+
+## Later Slice B anchor policy
+
+The later plan migration will use admitted plan Posting IR for amounts and existing plan-ID completion evidence for unfinished identity.
+
+- remaining horizon: `O <= plan date < C.end_exclusive`;
+- unanchored rows are admitted normally;
+- valid anchored outflows remain reserved even when the anchor is unmet;
+- valid anchored inflows count only after an admitted actual matching income event in `[C.start,min(O+1,C.end_exclusive))`;
+- missing/unknown/non-income/duplicate/empty anchor metadata is `error`;
+- completed plans do not contribute;
+- the characterized all-included `fixed_reserve=210` is compatibility evidence, not target policy.
+
+## Next selectable but unselected slice
+
+The next Report Projection Alignment candidate is **Slice A: `actual_snapshot` checked numeric-owner runtime migration**.
+
+It may implement only:
+
+- cumulative inclusive-O actual balances from checked Posting IR / TBDS-family ownership;
+- snapshot `ok / error` evidence;
+- rejected-actual applicability and source-row diagnostics;
+- narrow Outlook propagation of snapshot failure;
+- focused fixtures/checks and stable report-contract updates needed for the visible status change.
+
+Do not automatically implement plan monetary migration, anchor runtime changes, helper renaming, a generic temporal kernel, report-wide `--as-of`, Daily Capacity wiring, Cube shape changes, source migration, or automatic writes.
+
+## Daily Capacity remains parked
+
+The pure `src_next/daily_capacity.bqn` seam remains unconnected. Its assembler promotion, Candidate B O-bounded balance facts, and Candidate C pool/reservation facts remain independent unselected choices and are not implied by Slice A.
