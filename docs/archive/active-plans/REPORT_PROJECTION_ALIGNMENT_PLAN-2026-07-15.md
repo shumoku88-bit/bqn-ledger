@@ -3,7 +3,7 @@
 Status: active plan
 Owner: report
 Canonical: yes; current implementation authorization is `TODO.md`, and current runtime behavior remains owned by `src_next/*.bqn`, `docs/REPORT_CONTRACTS.md`, and executable checks
-Exit: archive as completed after the five named report slices have independently passed their contract, fixture, and compatibility gates; archive as superseded if a narrower current plan replaces this sequence
+Exit: archive as completed after the named report slices have independently passed their contract, fixture, and compatibility gates; archive as superseded if a narrower current plan replaces this sequence
 
 ## Purpose
 
@@ -43,50 +43,40 @@ A source-evidence helper may read source text to retain identity or metadata, bu
 
 ## Candidate map
 
-### 1. `actual-comparison` — first implementation slice
+### 1. `actual-comparison` — completed
 
-Current issue:
+Current amount ownership is checked ledger-wide Posting IR through local TBDS period views. Cycle-anchor identity remains narrow source evidence. The approved compatibility and runtime records are:
 
-- `src_next/actual_comparison.bqn` rereads `cycle.tsv`, `journal.tsv`, and `plan.tsv`, then reparses and aggregates journal amounts locally.
-
-Target:
-
-- derive current and baseline accounting flows from the one checked ledger-wide Posting IR already available in `ctx`;
-- construct each comparison period as a local TBDS query/view, retaining the current comparison-period contract;
-- keep cycle-anchor discovery and history-availability evidence explicit, but do not make that evidence a second amount parser;
-- preserve lanes (`income`, `recurring_fixed`, `variable`); the approved compatibility change for rejected rows, explicit observation `O`, and `ok / unavailable / error` status is recorded in `../completed-plans/ACTUAL_COMPARISON_NUMERIC_OWNER_COMPATIBILITY_DECISION-2026-07-15.md`.
-
-This is the best first slice because it is a pure accounting comparison and has an existing fixture check.
+- `../completed-plans/ACTUAL_COMPARISON_NUMERIC_OWNER_COMPATIBILITY_DECISION-2026-07-15.md`;
+- `../completed-plans/ACTUAL_COMPARISON_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-15.md`.
 
 ### 2. `outlook` and `actual_snapshot`
 
-Current issue:
-
-- `actual_snapshot.BuildAt` reparses journal rows to create an `O`-cutoff balance view;
-- `outlook` independently reparses journal and plan rows for frontier, income activation, remaining-plan amounts, and next-cycle obligations.
-
-Target:
-
-- preserve caller-owned `O` hard-cutoff behavior for the actual balance calculation;
-- calculate actual balances from checked ledger-wide Posting IR / an `O`-bounded accounting view, not a second journal parser;
-- retain record-frontier and plan identity/anchor evidence separately;
-- migrate plan monetary aggregates only when a checked posting amount can be joined to the required plan evidence;
-- preserve the current Outlook-only observation contract and do not infer a global report observation policy;
-- leave the separately selected pre-runtime Daily Capacity calculation contract (`docs/DAILY_CAPACITY_MINIMAL_INPUT_RESULT_CONTRACT.md`) untouched: this alignment changes numeric ownership, not asset/obligation policy, config, or output migration.
-
-The required characterization and compatibility decision are complete:
-
-- `../completed-plans/OUTLOOK_ACTUAL_SNAPSHOT_CHARACTERIZATION-2026-07-16.md`;
-- `../completed-plans/OUTLOOK_ACTUAL_SNAPSHOT_NUMERIC_OWNER_COMPATIBILITY_DECISION-2026-07-16.md`.
-
-The approved migration is split into independent runtime slices:
+The sequence is split into independent runtime slices:
 
 ```text
-Slice A: actual_snapshot actual-balance numeric owner
-Slice B: Outlook remaining-plan monetary owner and anchor policy
+Slice A: actual_snapshot actual-balance numeric owner — completed
+Slice B: Outlook remaining-plan monetary owner and anchor policy — unselected
 ```
 
-Slice A preserves cumulative inclusive-O actual balances, fails closed on applicable rejected actual evidence, and adds only the narrow Outlook error propagation needed to avoid deriving daily allowance from an invalid balance. Slice B later uses checked plan amounts plus existing unfinished/completed evidence and applies the approved asymmetric anchor policy: valid anchored outflows remain reserved when unmet, while valid anchored inflows require an actual matching income event at or before O within C. Invalid anchor metadata is error evidence. Neither runtime slice is selected automatically.
+Slice A now:
+
+- preserves caller-owned explicit O and ledger-cumulative inclusive-O balances;
+- derives actual balances from checked ledger-wide Posting IR through a local `[O,O+1)` actual-layer TBDS closing view;
+- retains pre-cycle history as opening balance and does not use cycle end as an O cutoff;
+- fails closed on applicable rejected actual evidence and invalid observation;
+- propagates snapshot error through Outlook without deriving normal daily-allowance values;
+- preserves record-frontier evidence and the two differently bounded latest-date compatibility helpers.
+
+Current Slice A records:
+
+- `../completed-plans/OUTLOOK_ACTUAL_SNAPSHOT_CHARACTERIZATION-2026-07-16.md`;
+- `../completed-plans/OUTLOOK_ACTUAL_SNAPSHOT_NUMERIC_OWNER_COMPATIBILITY_DECISION-2026-07-16.md`;
+- `../completed-plans/OUTLOOK_ACTUAL_SNAPSHOT_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-16.md`.
+
+Slice B remains independently selectable. Its approved target is to use admitted plan Posting IR for money, retain plan-ID completion/source evidence, reserve valid anchored outflows when the anchor is unmet, and admit valid anchored inflows only after matching actual income is observed through O. Invalid anchor metadata is error evidence.
+
+Daily Capacity remains untouched: this alignment changes numeric ownership, not asset/obligation policy or adapter selection.
 
 ### 3. `daily-trend`
 
@@ -130,31 +120,15 @@ No automatic adjustment, source migration, or change to envelope backing policy 
 | `issues` | separate issues-log domain, not accounting postings |
 | `check` / readiness | Cube diagnostics are the numeric owner; file counts are source inventory, not accounting totals |
 
-## Completed alignment evidence
-
-The Actual Comparison characterization and preimplementation compatibility decision are complete:
-
-- `../completed-plans/ACTUAL_COMPARISON_PROJECTION_CHARACTERIZATION-2026-07-15.md`
-- `../completed-plans/ACTUAL_COMPARISON_NUMERIC_OWNER_COMPATIBILITY_DECISION-2026-07-15.md`
-
-They preserve pre-migration evidence and approved section-local fail-closed rejected-row behavior, explicit `O`, and removal of unreachable `insufficient_history`. The runtime migration is complete and recorded in `../completed-plans/ACTUAL_COMPARISON_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-15.md`.
-
-The Outlook / `actual_snapshot` characterization and compatibility decision are also complete:
-
-- `../completed-plans/OUTLOOK_ACTUAL_SNAPSHOT_CHARACTERIZATION-2026-07-16.md`
-- `../completed-plans/OUTLOOK_ACTUAL_SNAPSHOT_NUMERIC_OWNER_COMPATIBILITY_DECISION-2026-07-16.md`
-
-They preserve current evidence while approving cumulative inclusive-O checked actual ownership, section-local fail-closed behavior, migration separation, helper compatibility, unfinished-plan ownership, and asymmetric anchor safety. The next candidate is Slice A runtime migration, but no runtime slice is selected.
-
 ## Delivery order and gates
 
 Work is intentionally one report slice at a time.
 
-1. **Characterization foundation** — add only the smallest fixtures needed to state existing outputs and temporal behavior for the first target. No shared abstraction yet.
-2. **Actual Comparison — completed** — local amount aggregation was replaced with checked Posting IR/local TBDS-derived values; only narrow cycle anchor identity evidence remains.
-3. **Outlook / actual snapshot — characterization and compatibility decision completed; Slice A runtime next candidate, unselected** — migrate only the cumulative O-bounded actual balance and fail-closed propagation before independently selecting plan monetary/anchor Slice B.
-4. **Daily Trend** — migrate plan monetary aggregation while preserving `D`-local identity semantics.
-5. **Envelopes / Cycle** — migrate remaining Budget and remaining-plan numeric paths without changing execution-envelope policy.
+1. **Characterization foundation** — complete for Actual Comparison and Outlook Slice A.
+2. **Actual Comparison** — completed.
+3. **Outlook / actual snapshot Slice A** — completed; Slice B is the next selectable but unselected report candidate.
+4. **Daily Trend** — later independent candidate.
+5. **Envelopes / Cycle** — later independent candidate.
 
 A slice may proceed only when it has:
 
@@ -171,13 +145,13 @@ A slice may proceed only when it has:
 - no source TSV schema migration;
 - no automatic advice, adjustment, or writes;
 - no unselected currency, valuation, M4 expense-grouping, or broad UI work;
-- no claim that current raw-parser paths are production-invalid solely because this plan proposes a safer ownership alignment.
+- no claim that a remaining raw-parser path is production-invalid solely because this plan identifies a future owner migration.
 
 ## Completion criteria
 
 The plan is complete only when every named target has either:
 
-1. migrated its eligible numeric calculations to the stated owner with fixture/check coverage, or
+1. migrated its eligible numeric calculations to the stated owner with fixture/check coverage; or
 2. been explicitly retained as source-evidence-only with a documented reason.
 
 Each completed implementation slice moves its local design/decision record to `docs/archive/completed-plans/`. This plan itself is archived only after the final sequence review confirms there is no remaining unowned amount parsing in the named targets.
