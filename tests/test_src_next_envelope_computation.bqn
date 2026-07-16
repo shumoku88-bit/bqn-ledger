@@ -64,34 +64,35 @@ human ← env.FormatHuman summary
 1 lib.AssertEq ∨´ "[Execution envelopes]"⍷human
 1 lib.AssertEq ∨´ "[Unknown role envelopes]"⍷human
 1 lib.AssertEq ∨´ "[Unassigned]"⍷human
-1 lib.AssertEq ∨´ "食費           |      1000|    350|   650"⍷human
-1 lib.AssertEq ∨´ "日用品         |       500|       80|       420|HELD"⍷human
-1 lib.AssertEq ∨´ "謎             |       300|      0|   300|unknown_role"⍷human
+1 lib.AssertEq ∨´ "Group        | Envelope | Allocated"⍷human
+1 lib.AssertEq ∨´ "life_primary | 食費     |      1000 |   350 |     650"⍷human
+1 lib.AssertEq ∨´ "life_primary | 日用品   |  500 |       80 |       420 | HELD"⍷human
+1 lib.AssertEq ∨´ "life_primary | 謎       |       300 |     0 |     300 | unknown_role"⍷human
 1 lib.AssertEq ∨´ "unknown envelope_role は active envelope total に含めず"⍷human
 1 lib.AssertEq ∨´ "[Backing check]"⍷human
 1 lib.AssertEq ∨´ "封筒対象資金(暫定:type=liquid): 0"⍷human
 1 lib.AssertEq ∨´ "active封筒残高合計:              1070"⍷human
-1 lib.AssertEq ∨´ "現金裏付け未割当:                ¯1070"⍷human
+1 lib.AssertEq ∨´ "現金裏付け未割当:                -1070"⍷human
 1 lib.AssertEq ∨´ "[Budget ledger]"⍷human
-1 lib.AssertEq ∨´ "予算台帳未割当:                   ¯1800"⍷human
+1 lib.AssertEq ∨´ "予算台帳未割当:                   -1800"⍷human
 1 lib.AssertEq ∨´ "現金裏付け未割当 - 予算台帳未割当: 730"⍷human
 1 lib.AssertEq ∨´ "status: OVER_ALLOCATED"⍷human
 1 lib.AssertEq ∨´ "[Backing provenance]"⍷human
 1 lib.AssertEq ∨´ "funding_base sources:"⍷human
 1 lib.AssertEq ∨´ "(none)"⍷human
 1 lib.AssertEq ∨´ "active envelope remaining:"⍷human
-1 lib.AssertEq ∨´ "食費                                650"⍷human
-1 lib.AssertEq ∨´ "日用品                              420"⍷human
+1 lib.AssertEq ∨´ "食費   |    650"⍷human
+1 lib.AssertEq ∨´ "日用品 |    420"⍷human
 1 lib.AssertEq ∨´ "ledger unassigned source:"⍷human
-1 lib.AssertEq ∨´ "budget:unassigned                 ¯1800"⍷human
+1 lib.AssertEq ∨´ "budget:unassigned |  -1800"⍷human
 1 lib.AssertEq ∨´ "[Budget movement provenance]"⍷human
 1 lib.AssertEq ∨´ "ledger unassigned movements:"⍷human
-1 lib.AssertEq ∨´ "2026-01-01 #0 budget:unassigned  credit    ¯1000 alloc_food"⍷human
-1 lib.AssertEq ∨´ "2026-01-01 #1 budget:unassigned  credit     ¯500 alloc_goods"⍷human
-1 lib.AssertEq ∨´ "2026-01-01 #2 budget:unassigned  credit     ¯300 alloc_unknown"⍷human
+1 lib.AssertEq ∨´ "2026-01-01 |  #0 | budget:unassigned | credit | -1000 | alloc_food"⍷human
+1 lib.AssertEq ∨´ "2026-01-01 |  #1 | budget:unassigned | credit |  -500 | alloc_goods"⍷human
+1 lib.AssertEq ∨´ "2026-01-01 |  #2 | budget:unassigned | credit |  -300 | alloc_unknown"⍷human
 1 lib.AssertEq ∨´ "active envelope movements:"⍷human
-1 lib.AssertEq ∨´ "2026-01-01 #0 budget:食費        debit      1000 alloc_food"⍷human
-1 lib.AssertEq ∨´ "2026-01-01 #1 budget:日用品      debit       500 alloc_goods"⍷human
+1 lib.AssertEq ∨´ "2026-01-01 |  #0 | budget:食費   | debit |  1000 | alloc_food"⍷human
+1 lib.AssertEq ∨´ "2026-01-01 |  #1 | budget:日用品 | debit |   500 | alloc_goods"⍷human
 
 # Prefix-shaped accounts with missing roles remain diagnostic-only even when their
 # budget/kind metadata would otherwise make them selectable.

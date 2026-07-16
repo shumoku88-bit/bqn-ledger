@@ -37,7 +37,8 @@ grep -q '^  envelope remaining:       3330$' "$human_out"
 grep -q '^  unfinished planned total: 3330$' "$human_out"
 grep -q '^  envelope - planned:       0$' "$human_out"
 grep -q '^  status: OK$' "$human_out"
-grep -q '^    2026-01-05 fixed        wifi                     3000$' "$human_out"
-grep -q '^    2026-01-06 fixed        povo                      330$' "$human_out"
+grep -q '^Date       | Category | Memo | Amount$' "$human_out"
+grep -q '^2026-01-05 | fixed    | wifi |   3000$' "$human_out"
+grep -q '^2026-01-06 | fixed    | povo |    330$' "$human_out"
 
 echo "OK: src_next execution plan coverage fixture passed: $fixture" >&2

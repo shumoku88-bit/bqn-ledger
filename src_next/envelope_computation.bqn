@@ -652,25 +652,20 @@ FormatHuman ← {𝕊 s:
     sorted_envs ← sort_indices ⊏ s.envelopes
 
     StatusCell ← {𝕊 st:
-      raw_st ← fmt.PadV ⟨12, st⟩
-      (⟨"HELD","SAFE","SAVED","DONE","WARN","SHORT","DRAWN","unknown_role"⟩ ⊐ ⟨st⟩) ⊑ ⟨fmt.Muted raw_st, fmt.Ok raw_st, fmt.Ok raw_st, fmt.Ok raw_st, fmt.Warn raw_st, fmt.Bad raw_st, fmt.Bad raw_st, fmt.Warn raw_st⟩
+      (⟨"HELD","SAFE","SAVED","DONE","WARN","SHORT","DRAWN","unknown_role"⟩ ⊐ ⟨st⟩) ⊑ ⟨fmt.Muted st, fmt.Ok st, fmt.Ok st, fmt.Ok st, fmt.Warn st, fmt.Bad st, fmt.Bad st, fmt.Warn st⟩
     }
 
-    RenderDynamicRow ← {𝕊 e:
+    DynamicRow ← {𝕊 e:
       pct ← (e.allocated ≠ 0) × ⌊ 0.5 + 100 × e.actual_spent ÷ (1 ⌈ e.allocated)
-      row ← (" " ∾ fmt.PadV ⟨8, e.group⟩) ∾ "|" ∾ (" " ∾ fmt.PadV ⟨15, e.label⟩) ∾ "|" ∾ (" " ∾ fmt.PadL ⟨9, e.allocated⟩) ∾ "|" ∾ (" " ∾ fmt.PadL ⟨6, e.actual_spent⟩) ∾ "|" ∾ (" " ∾ fmt.PadL ⟨5, e.remaining⟩) ∾ "|" ∾ (" " ∾ fmt.PadL ⟨4, pct⟩) ∾ "|" ∾ (" " ∾ fmt.PadL ⟨8, e.avg_spend⟩) ∾ "|" ∾ StatusCell e.status
-      out ↩ out ∾ row ∾ (@+10)
+      ⟨e.group, e.label, fmt.HumanNumber e.allocated, fmt.HumanNumber e.actual_spent, fmt.HumanNumber e.remaining, fmt.HumanNumber pct, fmt.HumanNumber e.avg_spend, StatusCell e.status⟩
     }
 
-    RenderExecutionRow ← {𝕊 e:
-      executed ← e.actual_spent
-      row ← (" " ∾ fmt.PadV ⟨8, e.group⟩) ∾ "|" ∾ (" " ∾ fmt.PadV ⟨15, e.label⟩) ∾ "|" ∾ (" " ∾ fmt.PadL ⟨9, e.allocated⟩) ∾ "|" ∾ (" " ∾ fmt.PadL ⟨8, executed⟩) ∾ "|" ∾ (" " ∾ fmt.PadL ⟨9, e.remaining⟩) ∾ "|" ∾ StatusCell e.status
-      out ↩ out ∾ row ∾ (@+10)
+    ExecutionRow ← {𝕊 e:
+      ⟨e.group, e.label, fmt.HumanNumber e.allocated, fmt.HumanNumber e.actual_spent, fmt.HumanNumber e.remaining, StatusCell e.status⟩
     }
 
-    RenderUnknownRow ← {𝕊 e:
-      row ← (" " ∾ fmt.PadV ⟨8, e.group⟩) ∾ "|" ∾ (" " ∾ fmt.PadV ⟨15, e.label⟩) ∾ "|" ∾ (" " ∾ fmt.PadL ⟨9, e.allocated⟩) ∾ "|" ∾ (" " ∾ fmt.PadL ⟨6, e.actual_spent⟩) ∾ "|" ∾ (" " ∾ fmt.PadL ⟨5, e.remaining⟩) ∾ "|" ∾ StatusCell e.status
-      out ↩ out ∾ row ∾ (@+10)
+    UnknownRow ← {𝕊 e:
+      ⟨e.group, e.label, fmt.HumanNumber e.allocated, fmt.HumanNumber e.actual_spent, fmt.HumanNumber e.remaining, StatusCell e.status⟩
     }
 
     dynamic_envs ← (("dynamic"⊸≡¨ {𝕩.envelope_role}¨ sorted_envs) / sorted_envs)
@@ -678,30 +673,29 @@ FormatHuman ← {𝕊 s:
     unknown_envs ← (("unknown"⊸≡¨ {𝕩.envelope_role}¨ sorted_envs) / sorted_envs)
 
     out ↩ out ∾ "[Dynamic envelopes]" ∾ (@+10)
-    out ↩ out ∾ " group   | account        | allocated| spent |  bal |   % | avg/day | health" ∾ (@+10)
-    out ↩ out ∾ "---------+----------------+----------+-------+------+-----+---------+-------------" ∾ (@+10)
-    {𝕊: out ↩ out ∾ "  (none)" ∾ (@+10)}⍟(0 = ≠ dynamic_envs) @
-    RenderDynamicRow¨ dynamic_envs
-    out ↩ out ∾ "---------+----------------+----------+-------+------+-----+---------+-------------" ∾ (@+10) ∾ (@+10)
+    dynamic_rows ← DynamicRow¨ dynamic_envs
+    dynamic_headers ← ⟨"Group", "Envelope", "Allocated", "Spent", "Balance", "%", "Avg/day", "Health"⟩
+    out ↩ out ∾ fmt.RenderTable ⟨dynamic_headers, dynamic_rows, ⟨0, 0, 1, 1, 1, 1, 1, 0⟩⟩
+    {𝕊: out ↩ out ∾ "(none)" ∾ (@+10)}⍟(0 = ≠ dynamic_envs) @
+    out ↩ out ∾ (@+10)
 
     out ↩ out ∾ "[Execution envelopes]" ∾ (@+10)
-    out ↩ out ∾ " group   | account        | held     | executed| remaining| status" ∾ (@+10)
-    out ↩ out ∾ "---------+----------------+----------+---------+----------+-------------" ∾ (@+10)
-    {𝕊: out ↩ out ∾ "  (none)" ∾ (@+10)}⍟(0 = ≠ execution_envs) @
-    RenderExecutionRow¨ execution_envs
-    out ↩ out ∾ "---------+----------------+----------+---------+----------+-------------" ∾ (@+10) ∾ (@+10)
+    execution_rows ← ExecutionRow¨ execution_envs
+    execution_headers ← ⟨"Group", "Envelope", "Held", "Executed", "Remaining", "Status"⟩
+    out ↩ out ∾ fmt.RenderTable ⟨execution_headers, execution_rows, ⟨0, 0, 1, 1, 1, 0⟩⟩
+    {𝕊: out ↩ out ∾ "(none)" ∾ (@+10)}⍟(0 = ≠ execution_envs) @
+    out ↩ out ∾ (@+10)
 
     {𝕊:
       out ↩ out ∾ "[Unknown role envelopes]" ∾ (@+10)
-      out ↩ out ∾ " group   | account        | allocated| spent |  bal | status" ∾ (@+10)
-      out ↩ out ∾ "---------+----------------+----------+-------+------+-------------" ∾ (@+10)
-      RenderUnknownRow¨ unknown_envs
-      out ↩ out ∾ "---------+----------------+----------+-------+------+-------------" ∾ (@+10) ∾ (@+10)
+      unknown_rows ← UnknownRow¨ unknown_envs
+      unknown_headers ← ⟨"Group", "Envelope", "Allocated", "Spent", "Balance", "Status"⟩
+      out ↩ out ∾ (fmt.RenderTable ⟨unknown_headers, unknown_rows, ⟨0, 0, 1, 1, 1, 0⟩⟩) ∾ (@+10)
       out ↩ out ∾ "NOTE: unknown envelope_role は active envelope total に含めず、pace / execution advice もしません。" ∾ (@+10) ∾ (@+10)
     }⍟(0 < ≠ unknown_envs) @
 
     out ↩ out ∾ "[Unassigned]" ∾ (@+10)
-    unassigned_text ← "未割当(予算台帳): " ∾ (FmtAmount ⟨s.unassigned_status, s.unassigned_remaining⟩) ∾ " (" ∾ s.unassigned_status ∾ ")"
+    unassigned_text ← "未割当(予算台帳): " ∾ (fmt.HumanNumber FmtAmount ⟨s.unassigned_status, s.unassigned_remaining⟩) ∾ " (" ∾ s.unassigned_status ∾ ")"
     out ↩ out ∾ ((s.unassigned_status ≡ "OVER_ALLOCATED") ⊑ unassigned_text‿(fmt.Bad unassigned_text)) ∾ (@+10)
     {𝕊:
       out ↩ out ∾ (fmt.Bad "WARNING: 未割当がマイナスです。封筒合計が予算原資を超えている可能性があります。") ∾ (@+10)
@@ -712,9 +706,9 @@ FormatHuman ← {𝕊 s:
     {𝕊:
       out ↩ out ∾ "[Execution planned coverage]" ∾ (@+10)
       out ↩ out ∾ "  envelope:                 " ∾ ep.envelope_label ∾ (@+10)
-      out ↩ out ∾ "  envelope remaining:       " ∾ (•Fmt ep.envelope_remaining) ∾ (@+10)
-      out ↩ out ∾ "  unfinished planned total: " ∾ (•Fmt ep.planned_open_total) ∾ (@+10)
-      delta_text ← "  envelope - planned:       " ∾ (•Fmt ep.delta)
+      out ↩ out ∾ "  envelope remaining:       " ∾ (fmt.HumanNumber ep.envelope_remaining) ∾ (@+10)
+      out ↩ out ∾ "  unfinished planned total: " ∾ (fmt.HumanNumber ep.planned_open_total) ∾ (@+10)
+      delta_text ← "  envelope - planned:       " ∾ (fmt.HumanNumber ep.delta)
       status_text ← "  status: " ∾ ep.status
       out ↩ out ∾ ((ep.status ≡ "MISMATCH") ⊑ delta_text‿(fmt.Warn delta_text)) ∾ (@+10)
       out ↩ out ∾ ((ep.status ≡ "MISMATCH") ⊑ status_text‿(fmt.Warn status_text)) ∾ (@+10)
@@ -722,25 +716,24 @@ FormatHuman ← {𝕊 s:
         out ↩ out ∾ "  NOTE: readonly診断。固定費予定封筒と未了予定支払いが一致していません。自動補正しません。" ∾ (@+10)
       }⍟(ep.status ≡ "MISMATCH") @
       out ↩ out ∾ "  planned rows:" ∾ (@+10)
-      {𝕊: out ↩ out ∾ "    (none)" ∾ (@+10)}⍟(0 = ≠ ep.rows) @
-      {𝕊 r:
-        out ↩ out ∾ "    " ∾ r.date ∾ " " ∾ (fmt.PadV ⟨12, r.category⟩) ∾ " " ∾ (fmt.PadV ⟨20, r.memo⟩) ∾ " " ∾ (fmt.PadL ⟨8, r.amount⟩) ∾ (@+10)
-      }¨ ep.rows
+      planned_rows ← {𝕊 r: ⟨r.date, r.category, r.memo, fmt.HumanNumber r.amount⟩}¨ ep.rows
+      out ↩ out ∾ fmt.RenderTable ⟨⟨"Date", "Category", "Memo", "Amount"⟩, planned_rows, ⟨0, 0, 0, 1⟩⟩
+      {𝕊: out ↩ out ∾ "(none)" ∾ (@+10)}⍟(0 = ≠ ep.rows) @
       out ↩ out ∾ (@+10)
     }⍟(ep.status ≢ "disabled") @
 
     out ↩ out ∾ "[Backing check]" ∾ (@+10)
-    out ↩ out ∾ "  封筒対象資金(暫定:type=liquid): " ∾ (FmtAmount ⟨s.backing_status, s.funding_base⟩) ∾ (@+10)
-    out ↩ out ∾ "  active封筒残高合計:              " ∾ (FmtAmount ⟨s.backing_status, s.allocated_total⟩) ∾ (@+10)
-    out ↩ out ∾ "  現金裏付け未割当:                " ∾ (FmtAmount ⟨s.backing_status, s.cash_backed_unassigned⟩) ∾ (@+10)
+    out ↩ out ∾ "  封筒対象資金(暫定:type=liquid): " ∾ (fmt.HumanNumber FmtAmount ⟨s.backing_status, s.funding_base⟩) ∾ (@+10)
+    out ↩ out ∾ "  active封筒残高合計:              " ∾ (fmt.HumanNumber FmtAmount ⟨s.backing_status, s.allocated_total⟩) ∾ (@+10)
+    out ↩ out ∾ "  現金裏付け未割当:                " ∾ (fmt.HumanNumber FmtAmount ⟨s.backing_status, s.cash_backed_unassigned⟩) ∾ (@+10)
     out ↩ out ∾ (@+10)
 
     out ↩ out ∾ "[Budget ledger]" ∾ (@+10)
-    out ↩ out ∾ "  予算台帳未割当:                   " ∾ (FmtAmount ⟨s.unassigned_status, s.unassigned_remaining⟩) ∾ (@+10)
+    out ↩ out ∾ "  予算台帳未割当:                   " ∾ (fmt.HumanNumber FmtAmount ⟨s.unassigned_status, s.unassigned_remaining⟩) ∾ (@+10)
     out ↩ out ∾ (@+10)
 
     out ↩ out ∾ "[Delta]" ∾ (@+10)
-    delta_text ← "  現金裏付け未割当 - 予算台帳未割当: " ∾ (FmtAmount ⟨s.backing_status, s.ledger_cash_delta⟩)
+    delta_text ← "  現金裏付け未割当 - 予算台帳未割当: " ∾ (fmt.HumanNumber FmtAmount ⟨s.backing_status, s.ledger_cash_delta⟩)
     status_text ← "  status: " ∾ s.backing_status
     out ↩ out ∾ ((s.backing_status ≡ "OVER_ALLOCATED") ⊑ delta_text‿(fmt.Bad delta_text)) ∾ (@+10)
     out ↩ out ∾ ((s.backing_status ≡ "OVER_ALLOCATED") ⊑ status_text‿(fmt.Bad status_text)) ∾ (@+10)
@@ -755,11 +748,12 @@ FormatHuman ← {𝕊 s:
     RenderSources ← {𝕊 title‿sources:
       out ↩ out ∾ title ∾ (@+10)
       {𝕊:
-        out ↩ out ∾ "  (none)" ∾ (@+10)
+        out ↩ out ∾ "(none)" ∾ (@+10)
       }⍟(0 = ≠ sources) @
-      {𝕊 src:
-        out ↩ out ∾ "  " ∾ (fmt.PadV ⟨28, src.name⟩) ∾ " " ∾ (fmt.PadL ⟨10, src.amount⟩) ∾ (@+10)
-      }¨ sources
+      {𝕊:
+        source_rows ← {𝕊 src: ⟨src.name, fmt.HumanNumber src.amount⟩}¨ sources
+        out ↩ out ∾ fmt.RenderTable ⟨⟨"Source", "Amount"⟩, source_rows, ⟨0, 1⟩⟩
+      }⍟(0 < ≠ sources) @
     }
 
     out ↩ out ∾ "[Backing provenance]" ∾ (@+10)
@@ -771,11 +765,15 @@ FormatHuman ← {𝕊 s:
     RenderMovements ← {𝕊 title‿movements:
       out ↩ out ∾ title ∾ (@+10)
       {𝕊:
-        out ↩ out ∾ "  (none)" ∾ (@+10)
+        out ↩ out ∾ "(none)" ∾ (@+10)
       }⍟(0 = ≠ movements) @
-      {𝕊 m:
-        out ↩ out ∾ "  " ∾ m.date ∾ " #" ∾ (•Fmt m.source_row) ∾ " " ∾ (fmt.PadV ⟨18, m.account⟩) ∾ " " ∾ (fmt.PadV ⟨6, m.side⟩) ∾ " " ∾ (fmt.PadL ⟨8, m.delta⟩) ∾ " " ∾ m.source_id ∾ (@+10)
-      }¨ movements
+      {𝕊:
+        movement_rows ← {𝕊 m:
+          ⟨m.date, "#" ∾ (•Fmt m.source_row), m.account, m.side, fmt.HumanNumber m.delta, m.source_id⟩
+        }¨ movements
+        headers ← ⟨"Date", "Row", "Account", "Side", "Delta", "Source ID"⟩
+        out ↩ out ∾ fmt.RenderTable ⟨headers, movement_rows, ⟨0, 1, 0, 0, 1, 0⟩⟩
+      }⍟(0 < ≠ movements) @
     }
 
     out ↩ out ∾ "[Budget movement provenance]" ∾ (@+10)
