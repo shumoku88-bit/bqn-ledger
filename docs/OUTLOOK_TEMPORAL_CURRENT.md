@@ -7,7 +7,7 @@ Exit: revise when `src_next/report.bqn` or `src_next/outlook.bqn` changes Outloo
 
 This document is the short current entry point for Outlook temporal meaning.
 
-The earlier household-question, transport, frontier-relation, and production-source decisions have been consumed by runtime. They remain useful as design history, but they are not the current reading path.
+The earlier household-question, transport, frontier-relation, production-source, characterization, compatibility-decision, and Slice A runtime records remain design history. This file states the current runtime boundary.
 
 ## Household question
 
@@ -82,25 +82,42 @@ outlook.BuildAt(ctx, O)
 
 A later report-wide observation contract must not be inferred merely because two sections happen to receive equal dates.
 
+## Numeric ownership and fail-closed status
+
+`actual_snapshot.BuildAt(ctx,O)` derives ledger-cumulative inclusive-O actual balances from checked ledger-wide Posting IR through a local `[O,O+1)` actual-layer TBDS closing view.
+
+```text
+D < O  -> opening
+D = O  -> movement
+closing -> cumulative actual balance through O
+```
+
+This means pre-cycle actual history remains part of opening balance and `C.end_exclusive` is not an actual-snapshot cutoff when O is later.
+
+The snapshot and Outlook expose `ok / error` evidence.
+
+- invalid O -> `error / invalid_observation`;
+- valid-coordinate rejected actual with `D <= O` -> `error / rejected_actual_evidence`;
+- valid-coordinate rejected actual with `D > O` -> outside that snapshot;
+- invalid-date actual evidence -> applicability-unknown and `error`;
+- valid empty journal -> `ok` with real zero balances.
+
+Outlook does not combine plan values with an invalid actual balance or render normal daily-allowance numbers. Machine output includes `src_next_outlook_status`, `src_next_outlook_reason`, and source-row diagnostics.
+
+Remaining-plan amount and anchor behavior are still the pre-Slice-B runtime. Slice A does not authorize plan monetary migration or anchor-policy implementation.
+
 ## Read order
 
 1. `docs/TIME_AS_AXIS.md` for the canonical temporal principle.
-2. This document for the current Outlook temporal contract.
+2. This document for the current Outlook temporal and checked-actual contract.
 3. `docs/DAILY_CAPACITY_MINIMAL_INPUT_RESULT_CONTRACT.md` for the pure, currently unconnected policy calculation boundary.
-4. `src_next/report.bqn` and `src_next/outlook.bqn` for implementation truth.
-
-The following documents are archived implementation history after runtime consumption:
-
-- `docs/archive/completed-plans/OUTLOOK_HOUSEHOLD_QUESTION_DECISION.md`
-- `docs/archive/completed-plans/OUTLOOK_OBSERVATION_TRANSPORT_BOUNDARY.md`
-- `docs/archive/completed-plans/OUTLOOK_RECORD_FRONTIER_RELATION_DECISION.md`
-- `docs/archive/completed-plans/OUTLOOK_PRODUCTION_OBSERVATION_SOURCE_DECISION.md`
-
-They are not current entry documents and do not authorize a new runtime slice.
+4. `src_next/actual_snapshot.bqn` and `src_next/outlook.bqn` for implementation truth.
 
 ## Current evidence
 
-- `tests/test_src_next_outlook_observation_sensitivity.bqn`
+- `tests/test_src_next_outlook_observation_sensitivity.bqn`;
+- `tests/test_src_next_actual_snapshot_numeric_owner.bqn`;
+- `checks/check-src-next-actual-snapshot.sh`;
 - report CLI validation for `--outlook-as-of`;
 - explicit `outlook.BuildAt(ctx, O)` dispatch;
 - record-frontier relation and distance fields in `src_next/outlook.bqn`.
@@ -111,4 +128,5 @@ They are not current entry documents and do not authorize a new runtime slice.
 - no automatic historical replay or knowledge cutoff;
 - no change to cycle selection;
 - no claim that `L` proves completeness;
+- no remaining-plan monetary migration or anchor-policy runtime change in Slice A;
 - no Outlook runtime connection, output, or policy change from the pure Daily Capacity seam.
