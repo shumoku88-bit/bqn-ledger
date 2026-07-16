@@ -1,9 +1,11 @@
 # Report Section Descriptor Centralization Plan
 
-Status: active plan
+Status: completed
 Owner: report
-Canonical: no; evidence: docs/archive/audits/REPORT_SECTION_DESCRIPTOR_OWNERSHIP_AUDIT-2026-07-16.md
-Exit: move to docs/archive/completed-plans/ after implementation, full verification, completion review, TODO cleanup, and active-plans inventory update
+Canonical: no; completion record: docs/archive/completed-plans/REPORT_SECTION_DESCRIPTOR_CENTRALIZATION_COMPLETION-2026-07-16.md
+Exit: implemented and archived; do not use as future work authorization
+
+Implemented by commits `8ab4759` and `80bbca55a1b6a75c2bac9ffc6007cf117766f7e4`. See the completion record for final verification.
 
 ## 1. Decision
 

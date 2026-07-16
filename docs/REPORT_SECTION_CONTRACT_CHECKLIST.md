@@ -9,10 +9,11 @@ This document does not replace the implementation sources of truth:
 
 1. `tools/report --list-sections` — canonical runnable human section list.
 2. `src_next/report_sections.bqn` — static section descriptors: canonical key/order, category, owner path, and current output metadata values.
-3. `src_next/report.bqn` — implementation imports, human builders, execution/rendering, JSON dispatch, first-line markers, CLI, and cache.
-4. `src_next/report_section_metadata.bqn` — label resolution, descriptor-to-metadata projection, TSV/JSON formatting, and metadata CLI.
-5. `src_next/summary.bqn` — compact machine-readable report fields.
-6. `checks/check-src-next-*.sh` and `tests/test_src_next_*.bqn` — executable contracts.
+3. `src_next/report_builder_order.bqn` — pure builder-key validation with duplicate/missing/extra/count evidence and ordering into canonical descriptor order.
+4. `src_next/report.bqn` — implementation imports, human builders, execution/rendering, JSON dispatch, first-line markers, CLI, and cache.
+5. `src_next/report_section_metadata.bqn` — label resolution, descriptor-to-metadata projection, TSV/JSON formatting, and metadata CLI.
+6. `src_next/summary.bqn` — compact machine-readable report fields.
+7. `checks/check-src-next-*.sh` and `tests/test_src_next_*.bqn` — executable contracts.
 
 ## Section contract checklist
 
