@@ -90,9 +90,16 @@ unk_proj ← ctx_mod.BuildCheckedPostingProjectionFromSnapshot ⟨unk_snap, root
 target_rows ← (("plan.tsv"⊸≡¨ {𝕩.source_file}¨ unk_proj.posting_rows) ∧ (0 = {𝕩.source_row}¨ unk_proj.posting_rows)) / unk_proj.posting_rows
 2 lib.AssertEq ≠ target_rows # Should return debit/credit pair
 debit_row ← ⊑ ("debit"⊸≡¨ {𝕩.side}¨ target_rows) / target_rows
+"debit" lib.AssertEq debit_row.side
 "unknown_account" lib.AssertEq debit_row.status
 "plan.tsv" lib.AssertEq debit_row.source_file
 0 lib.AssertEq debit_row.source_row
+
+credit_row ← ⊑ ("credit"⊸≡¨ {𝕩.side}¨ target_rows) / target_rows
+"credit" lib.AssertEq credit_row.side
+"unknown_account" lib.AssertEq credit_row.status
+"plan.tsv" lib.AssertEq credit_row.source_file
+0 lib.AssertEq credit_row.source_row
 
 # 5b. Structurally unjoinable checked Posting IR evidence
 # We create unjoinable rows by dropping the credit row of the future-expense pair (source_row 2).
@@ -176,5 +183,27 @@ dup_sum ← cs.Build dup_ctx
 dup_rev_ctx ← MakeCustomCtx "fixtures/cycle-remaining-plan-characterization/sub_duplicate_plan_id_rev"
 dup_rev_sum ← cs.Build dup_rev_ctx
 500 lib.AssertEq dup_rev_sum.plan_expense_remaining
+
+# 13. Admitted Source Identities Characterization
+# Assert that root_ctx.posting_rows contains the checked Posting IR evidence
+# for the normal contributing plan source rows (source_row 1 and 2 of plan.tsv).
+normal_rows ← root_ctx.posting_rows
+
+# Row 1 (today-expense, amount 200)
+row1_pair ← (("plan.tsv"⊸≡¨ {𝕩.source_file}¨ normal_rows) ∧ (1 = {𝕩.source_row}¨ normal_rows)) / normal_rows
+2 lib.AssertEq ≠ row1_pair
+row1_debit ← ⊑ ("debit"⊸≡¨ {𝕩.side}¨ row1_pair) / row1_pair
+"ok" lib.AssertEq row1_debit.status
+200 lib.AssertEq row1_debit.delta
+
+# Row 2 (future-expense, amount 300)
+row2_pair ← (("plan.tsv"⊸≡¨ {𝕩.source_file}¨ normal_rows) ∧ (2 = {𝕩.source_row}¨ normal_rows)) / normal_rows
+2 lib.AssertEq ≠ row2_pair
+row2_debit ← ⊑ ("debit"⊸≡¨ {𝕩.side}¨ row2_pair) / row2_pair
+"ok" lib.AssertEq row2_debit.status
+300 lib.AssertEq row2_debit.delta
+
+# Total matches current local parser result
+(row1_debit.delta + row2_debit.delta) lib.AssertEq summary.plan_expense_remaining
 
 •Out "test_src_next_cycle_remaining_plan_characterization.bqn: OK"

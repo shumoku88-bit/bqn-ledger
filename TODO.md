@@ -9,7 +9,14 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-16 — loader/util ownership normalization, Outlook checked numeric-owner Slices A/B, and Daily Trend plan numeric-owner migration are complete. Cycle Summary remaining-plan numeric-owner characterization is the only selected finite report slice. No next configurable-ledger slice, Israel follow-on, strict-source Step 2–5, M4, or other implementation candidate is selected.
+Last hygiene pass: 2026-07-16
+- loader/util ownership normalization complete
+- Outlook checked numeric-owner Slices A/B complete
+- Daily Trend plan numeric-owner migration complete
+- Cycle Summary remaining-plan characterization complete
+- no next finite report slice is selected
+- Cycle Summary compatibility decision is an unselected candidate
+- other unrelated candidates remain unselected
 
 ---
 

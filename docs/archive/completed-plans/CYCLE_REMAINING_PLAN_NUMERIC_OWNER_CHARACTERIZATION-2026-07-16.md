@@ -1,6 +1,6 @@
 # Cycle Remaining-Plan Numeric-Owner Characterization
 
-Status: completed characterization / no runtime behavior change / merged 2026-07-16
+Status: completed characterization / no runtime behavior change
 Owner: report
 Canonical: yes; parent plan: `REPORT_PROJECTION_ALIGNMENT_PLAN-2026-07-15.md`
 Exit: completed; next step is a compatibility decision candidate
@@ -166,7 +166,7 @@ The characterization has been completed. The observed current behavior was verif
    - A plan matching an actual completion record (i.e. having a corresponding `plan_id` posting in `journal.tsv`) **remains** in the remaining total, as the current local parser does not check completion evidence.
 3. **Invalid and Rejected Source Evidence**:
    - **Exact decimal & Non-integer amount**: Under single-currency settings, `fixtures/currency-usd-single` registry-backed checked amount is `4999`. However, the current local parser fails `IsIntegerText("49.99")` and substitutes it with `0` (zero-substitution). Other non-integer amount strings like `"abc"` also fallback to `0`.
-   - **Unknown destination accounts**: Locally excluded from the total as their role falls back to `""` (non-expense). In contrast, the checked Posting IR path marks the row status as `"unknown_account"`, identifying `source_file="plan.tsv"` and the exact `source_row`.
+   - **Unknown destination accounts**: Locally excluded from the total as their role falls back to `""` (non-expense). In contrast, the checked Posting IR path yields a debit status = unknown_account and credit status = unknown_account (due to transaction-wide validation error propagation) for the same source identity (source_file = plan.tsv, source_row = 0).
    - **Invalid dates**: Non-digit date text (e.g. `"abc"`) crashes execution on `ToNum` inside `proj.DaysFromEpoch`. This halt is observed both in-process via `⎊` exception catching and out-of-process via subprocess non-zero exit code.
 4. **Structural Join**:
    - The current local parser does not utilize Posting IR join boundaries and directly sums the plan values. If we simulate a structural gap by dropping one side of a debit/credit pair (e.g. the credit row) in the checked posting rows, the local parser still calculates the amount correctly, whereas a future checked-owner candidate would face an unjoinable structural evidence gap.
@@ -177,6 +177,10 @@ The characterization has been completed. The observed current behavior was verif
 6. **Identity & Source Order**:
    - No duplicate `plan_id` policy is enforced by the local parser; identical IDs are accumulated in full.
    - The sums are order-independent (verified by reversing duplicate rows).
+7. **Admitted Source Identities**:
+   - For the contributing normal cycle remaining-plan amount, while the current local parser outputs a total of `500` through direct file parsing, the corresponding checked Posting IR admitted evidence for the contributing source identities is:
+     - `plan.tsv` source_row `1` (`amount = 200`, `memo = today-expense`): exact debit/credit pair exists, debit status is `ok`.
+     - `plan.tsv` source_row `2` (`amount = 300`, `memo = future-expense`): exact debit/credit pair exists, debit status is `ok`.
 
 ### Verification Evidence
 - **Public Fixture Family**: [fixtures/cycle-remaining-plan-characterization/](../../../fixtures/cycle-remaining-plan-characterization/)
