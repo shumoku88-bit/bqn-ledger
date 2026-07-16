@@ -29,6 +29,7 @@ trial_balance ← •Import "trial_balance.bqn"
 fmt ← •Import "format.bqn"
 labels ← •Import "report_labels.bqn"
 report_sections ← •Import "report_sections.bqn"
+report_builder_order ← •Import "report_builder_order.bqn"
 issues ← •Import "issues.bqn"
 daily_flow ← •Import "daily_flow.bqn"
 L ← labels.Text
@@ -48,21 +49,12 @@ FindSectionIndex ← {𝕊 entries‿key: ({⊑𝕩}¨ entries) ⊐ ⟨key⟩ }
 # Static descriptor keys own section identity/order. Executable builders remain
 # local and must form an exact one-to-one mapping with those keys.
 OrderBuilderEntries ← {𝕊 builder_entries:
-  descriptor_keys ← {0⊑𝕩}¨ report_sections.rows
-  builder_keys ← {0⊑𝕩}¨ builder_entries
-  sorted_builder_keys ← (⍋builder_keys) ⊏ builder_keys
-  duplicate_builder ← ∨´ 1↓sorted_builder_keys ≡ ¯1↓sorted_builder_keys
-  missing_builder ← ∨´ {¬ ∨´ 𝕩⊸≡¨ builder_keys}¨ descriptor_keys
-  extra_builder ← ∨´ {¬ ∨´ 𝕩⊸≡¨ descriptor_keys}¨ builder_keys
-  invalid ← duplicate_builder ∨ missing_builder ∨ extra_builder ∨ ((≠descriptor_keys) ≠ ≠builder_keys)
+  result ← report_builder_order.OrderBuilderEntries ⟨report_sections.rows, builder_entries⟩
   {𝕊:
-    •Out "ERROR: report section descriptor/builder mismatch"
+    •Out result.message
     •Exit 1
-  }⍟invalid @
-  {𝕊 key:
-    idx ← ⊑ (builder_keys ⊐ ⟨key⟩)
-    idx ⊑ builder_entries
-  }¨ descriptor_keys
+  }⍟(¬result.valid) @
+  result.ordered_entries
 }
 
 # FirstLine extracts the first line of text (up to first newline)

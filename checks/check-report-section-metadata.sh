@@ -2,8 +2,13 @@
 set -euo pipefail
 
 fixture="${1:-fixtures/src-next-golden}"
+expected="tests/fixtures/report_section_metadata_expected.tsv"
 if [ ! -d "$fixture" ]; then
   echo "ERROR: fixture directory not found: $fixture" >&2
+  exit 2
+fi
+if [ ! -f "$expected" ]; then
+  echo "ERROR: expected metadata contract not found: $expected" >&2
   exit 2
 fi
 
@@ -45,6 +50,15 @@ else
   fail "metadata output contains rows with unexpected field counts"
 fi
 
+# This committed fixture is an independent public-contract oracle. Production
+# descriptor and metadata code must never read it.
+if cmp -s "$expected" "$out"; then
+  pass "metadata TSV exactly matches all expected rows and values"
+else
+  fail "metadata TSV differs from the independent expected contract"
+  diff -u "$expected" "$out" >&2 || true
+fi
+
 tail -n +2 "$out" | cut -f1 >"$keys"
 cut -f1 "$list" >"$list_keys"
 
@@ -83,25 +97,32 @@ else
   fail "readiness metadata row missing"
 fi
 
-if python3 - "$json_out" >"$json_keys" <<'PY'
+if python3 - "$json_out" "$expected" >"$json_keys" <<'PY'
+import csv
 import json
 import sys
-path = sys.argv[1]
-with open(path, encoding="utf-8") as f:
-    rows = json.load(f)
+
+json_path, expected_path = sys.argv[1:]
 required = ["key", "label", "category", "owner", "human_output", "structured_output"]
+with open(json_path, encoding="utf-8") as f:
+    rows = json.load(f)
+with open(expected_path, encoding="utf-8", newline="") as f:
+    expected_rows = list(csv.DictReader(f, delimiter="\t"))
 if not isinstance(rows, list):
     raise SystemExit("top-level JSON is not an array")
-for i, row in enumerate(rows, 1):
+if len(rows) != len(expected_rows):
+    raise SystemExit(f"JSON row count {len(rows)} != expected {len(expected_rows)}")
+for i, (row, expected_row) in enumerate(zip(rows, expected_rows), 1):
     if not isinstance(row, dict):
         raise SystemExit(f"row {i} is not an object")
-    missing = [k for k in required if k not in row]
-    if missing:
-        raise SystemExit(f"row {i} missing keys: {missing}")
+    if list(row) != required:
+        raise SystemExit(f"row {i} fields {list(row)} != expected {required}")
+    if row != expected_row:
+        raise SystemExit(f"row {i} differs: actual={row!r} expected={expected_row!r}")
     print(row["key"])
 PY
 then
-  pass "json metadata output parses and exposes required fields"
+  pass "json metadata shape and all field values match the independent expected contract"
 else
   fail "json metadata output is invalid"
 fi

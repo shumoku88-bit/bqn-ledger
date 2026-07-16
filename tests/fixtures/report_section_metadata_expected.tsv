@@ -1,0 +1,16 @@
+key	label	category	owner	human_output	structured_output
+snapshot	全体サマリ (Snapshot)	overview	src_next/snapshot.bqn	yes	metadata
+issues	Issues & Decisions	operations	src_next/issues.bqn	yes	metadata
+ytd	YTD Summary	accounting	src_next/ytd_summary.bqn	yes	metadata
+balances	Account Balances	accounting	src_next/balances.bqn	yes	metadata
+cycle	Current Cycle Summary	household	src_next/cycle_summary.bqn	yes	metadata
+trial-balance	Trial Balance (actual layer)	accounting	src_next/trial_balance.bqn	yes	metadata
+envelopes	Envelope & Budget	household	src_next/envelope_computation.bqn	yes	metadata
+planned	Planned Payments	operations	src_next/planned_payments.bqn	yes	metadata
+recent	直近の取引 (Recent Journal)	operations	src_next/recent_journal.bqn	yes	metadata
+check	Readiness Check	diagnostics	src_next/readiness_check.bqn	yes	metadata
+outlook	Outlook Dashboard	household	src_next/outlook.bqn	yes	metadata
+daily-trend	Daily Trend	household	src_next/daily_trend.bqn	yes	metadata
+daily-flow	Daily Flow	household	src_next/daily_flow.bqn	yes	metadata
+actual-comparison	Actual Comparison	household	src_next/actual_comparison.bqn	yes	metadata
+debug	デバッグ・由来 (Debug & Provenance)	diagnostics	src_next/report.bqn	yes	metadata
