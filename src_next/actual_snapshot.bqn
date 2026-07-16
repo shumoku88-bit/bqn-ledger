@@ -22,7 +22,8 @@ LatestActualDateInCycle ← {𝕊 base‿cy:
   {𝕊:
     start_dn ← proj.DaysFromEpoch cy.start
     end_dn ← proj.DaysFromEpoch cy.end_exclusive
-    dates ← {⊑ loader.SplitTsvKeepEmpty 𝕩}¨ lines
+    dates0 ← {⊑ loader.SplitTsvKeepEmpty 𝕩}¨ lines
+    dates ← (proj.IsValidDateText¨ dates0) / dates0
     DateInCycle ← {𝕊 d: dn ← proj.DaysFromEpoch d ⋄ (dn ≥ start_dn) ∧ (dn < end_dn) }
     in_dates ← (DateInCycle¨ dates) / dates
     {𝕊: out ↩ ¯1 ⊑ (∧ in_dates)}⍟(0 < ≠ in_dates) @
