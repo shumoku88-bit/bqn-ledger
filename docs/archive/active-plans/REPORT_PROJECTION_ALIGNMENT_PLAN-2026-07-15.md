@@ -50,16 +50,16 @@ Current amount ownership is checked ledger-wide Posting IR through local TBDS pe
 - `../completed-plans/ACTUAL_COMPARISON_NUMERIC_OWNER_COMPATIBILITY_DECISION-2026-07-15.md`;
 - `../completed-plans/ACTUAL_COMPARISON_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-15.md`.
 
-### 2. `outlook` and `actual_snapshot`
+### 2. `outlook` and `actual_snapshot` — completed
 
-The sequence is split into independent runtime slices:
+The sequence was split into independent runtime slices:
 
 ```text
 Slice A: actual_snapshot actual-balance numeric owner — completed
-Slice B: Outlook remaining-plan monetary owner and anchor policy — unselected
+Slice B: Outlook remaining-plan monetary owner and anchor policy — completed
 ```
 
-Slice A now:
+Slice A:
 
 - preserves caller-owned explicit O and ledger-cumulative inclusive-O balances;
 - derives actual balances from checked ledger-wide Posting IR through a local `[O,O+1)` actual-layer TBDS closing view;
@@ -68,15 +68,24 @@ Slice A now:
 - propagates snapshot error through Outlook without deriving normal daily-allowance values;
 - preserves record-frontier evidence and the two differently bounded latest-date compatibility helpers.
 
-Current Slice A records:
+Slice B:
+
+- derives current remaining-plan amounts and liquid delta from admitted plan Posting IR joined by source row;
+- retains existing plan-ID completion and source metadata evidence;
+- uses `O <= plan date < C.end_exclusive` as the remaining horizon;
+- reserves valid anchored outflows even when their anchor is unmet;
+- admits valid anchored inflows only after matching actual income is observed through O within C;
+- treats unknown, non-income, duplicate, empty, or structurally unjoinable anchor/plan evidence as `error`;
+- propagates remaining-plan failure through Outlook without rendering normal money fields.
+
+Current Outlook records:
 
 - `../completed-plans/OUTLOOK_ACTUAL_SNAPSHOT_CHARACTERIZATION-2026-07-16.md`;
 - `../completed-plans/OUTLOOK_ACTUAL_SNAPSHOT_NUMERIC_OWNER_COMPATIBILITY_DECISION-2026-07-16.md`;
-- `../completed-plans/OUTLOOK_ACTUAL_SNAPSHOT_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-16.md`.
+- `../completed-plans/OUTLOOK_ACTUAL_SNAPSHOT_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-16.md`;
+- `../completed-plans/OUTLOOK_REMAINING_PLAN_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-16.md`.
 
-Slice B remains independently selectable. Its approved target is to use admitted plan Posting IR for money, retain plan-ID completion/source evidence, reserve valid anchored outflows when the anchor is unmet, and admit valid anchored inflows only after matching actual income is observed through O. Invalid anchor metadata is error evidence.
-
-Daily Capacity remains untouched: this alignment changes numeric ownership, not asset/obligation policy or adapter selection.
+Cycle-end next-obligation rendering remains a separate compatibility surface. Daily Capacity remains untouched: this alignment changes numeric ownership, not asset/obligation policy or adapter selection.
 
 ### 3. `daily-trend`
 
@@ -124,10 +133,10 @@ No automatic adjustment, source migration, or change to envelope backing policy 
 
 Work is intentionally one report slice at a time.
 
-1. **Characterization foundation** — complete for Actual Comparison and Outlook Slice A.
+1. **Characterization foundation** — complete for Actual Comparison and Outlook.
 2. **Actual Comparison** — completed.
-3. **Outlook / actual snapshot Slice A** — completed; Slice B is the next selectable but unselected report candidate.
-4. **Daily Trend** — later independent candidate.
+3. **Outlook / actual snapshot Slices A and B** — completed.
+4. **Daily Trend** — next selectable but unselected report candidate.
 5. **Envelopes / Cycle** — later independent candidate.
 
 A slice may proceed only when it has:
