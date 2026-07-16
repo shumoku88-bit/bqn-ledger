@@ -5,57 +5,79 @@ Owner: report
 Canonical: no; current plan: `docs/archive/active-plans/REPORT_PROJECTION_ALIGNMENT_PLAN-2026-07-15.md`
 Exit: remove or replace after the next finite slice is jointly selected
 
-The Actual Comparison numeric-owner runtime migration is complete. Completion
-record:
+The Outlook / `actual_snapshot` characterization foundation is complete.
+Evidence record:
 
-- `docs/archive/completed-plans/ACTUAL_COMPARISON_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-15.md`
+- `docs/archive/completed-plans/OUTLOOK_ACTUAL_SNAPSHOT_CHARACTERIZATION-2026-07-16.md`
+- `fixtures/outlook-actual-snapshot-characterization/`
+- `tests/test_src_next_outlook_actual_snapshot_characterization.bqn`
 
-Current runtime boundary:
+No BQN runtime, report output, source schema, config, metadata, editor behavior,
+Daily Capacity behavior, or private production data changed.
+
+## Characterized current boundaries
 
 ```text
-actual_comparison.BuildAt ⟨ctx, O⟩
+C = [2026-02-01, 2026-02-11)
+O = 2026-02-05
+L = 2026-02-12
 ```
 
-`O` is explicit, owns `vm.as_of`, and hard-cuts current actual events. The
-current window is `[cycle.start, min(O + 1 day, cycle.end_exclusive))`; the
-baseline starts at the previous comparable income anchor and has the same
-elapsed length. Human report and machine summary each capture today once at
-their entry and pass it explicitly. No compatibility `Build`, section CLI
-option, or report-wide `as_of` was added.
+`actual_snapshot.BuildAt ⟨ctx,O⟩` is ledger-cumulative through inclusive O. It
+includes pre-cycle history, excludes rows after O, and has no cycle cutoff when O
+moves past cycle end. The fixture fixes `liq_total=250` at O and `liq_total=260`
+at `O=2026-02-12` after admitting the end-exclusive and later out-of-cycle rows.
 
-Amounts flow from the full checked ledger-wide Posting IR through local TBDS
-half-open period views, then report-specific positive debit/credit measure
-selection. Positive semantic sides are used only for period keys/counts, with
-admitted source identity per lane/account. Anchor identity remains separate,
-uses admitted journal/plan posting dates plus the narrow `cycle.tsv`
-`income_account` evidence dependency, and is independent of amount sign; it
-parses no amount. Applicable rejected actual evidence
-is `error` with one diagnostic per source row and no numeric table. Missing
-anchor/empty current window is `unavailable`. Vocabulary is
-`ok / unavailable / error`; `insufficient_history` is removed.
+The two exported latest-date helpers retain different bounds:
 
-The PR #261 normal/history fixtures remain unchanged evidence. The normal
-fixture intentionally now returns `error` for explicit `O=2026-03-05`; new
-clean-target and invalid-date fixtures cover `ok` and fail-closed behavior.
-No private production data was accessed.
+- `actual_snapshot.LatestActualDateInCycle` applies `[C.start,C.end_exclusive)`
+  and returns `2026-02-06`;
+- Outlook's compatibility helper scans `date >= C.start` without an upper cycle
+  bound and returns `2026-02-12`.
+
+For explicit Outlook O, the later L changes frontier evidence but not the
+O-bounded actual balance:
+
+```text
+vm.as_of = 2026-02-05
+last_recorded_on = 2026-02-12
+record_frontier_relation = after_observation
+record_frontier_distance_days = 7
+liq_total = 250
+```
+
+The fixture also fixes current remaining-plan anchor behavior. A matched anchor,
+a nonexistent anchor, and a row with no anchor are all included in the monetary
+aggregate:
+
+```text
+fixed_reserve = 210
+liq_daily = 6
+```
+
+This is compatibility evidence, not target policy.
 
 ## Next selectable but unselected report slice
 
-The next Report Projection Alignment candidate is an **Outlook /
-`actual_snapshot` characterization foundation**. It should first characterize
-current `O`, `L`, plan-anchor, and out-of-cycle behavior before any numeric
-migration. No next slice is selected. Do not automatically implement Outlook,
-`actual_snapshot`, a generic temporal kernel, report-wide `--as-of`, Projection
-Workbench, Daily Trend, Envelopes, or another report lane.
+The next Report Projection Alignment candidate is a docs-only compatibility
+decision for Outlook / `actual_snapshot` numeric ownership. It should decide:
+
+1. rejected/invalid/unsupported source behavior for an O-bounded checked Posting
+   IR or TBDS actual-balance view;
+2. whether actual-balance migration proceeds before plan monetary migration;
+3. whether the two latest-date helper contracts/names remain compatibility
+   surfaces;
+4. whether the characterized all-included anchor behavior is preserved,
+   corrected, or replaced.
+
+No runtime migration is selected. Do not automatically implement a checked
+snapshot adapter, plan-side migration, generic temporal kernel, report-wide
+`--as-of`, Daily Capacity connection, Daily Trend, Envelopes, source migration,
+or automatic write.
 
 ## Daily Capacity completed baseline and parked candidates
 
-The `POLICY_RISK_STYLE` meaning decision, Daily Capacity contract, 31-case
-calculator characterization, production-available pure runtime seam,
-evidence-adapter ownership audit, and test-only assembler characterization are
-complete.
-
-The pure boundary remains:
+The pure seam remains:
 
 ```text
 src_next/daily_capacity.bqn
@@ -64,17 +86,6 @@ src_next/daily_capacity.bqn
       -> contract-shaped result
 ```
 
-It retains `ok`, `deficit`, `unavailable`, and `error`. No adapter or consumer
-imports it, and current Outlook behavior remains unchanged. The test-only
-assembler joins explicit in-memory facts and decisions by stable identity and
-returns empty input under `error > unavailable > resolved`; it remains
-unconnected.
-
-The three independent unselected choices remain:
-
-1. promote the characterized pure assembler seam;
-2. select Candidate B for O-bounded account-balance facts; or
-3. select Candidate C for pool/reservation facts.
-
-Do not promote the assembler, begin Candidate B/C, add config or metadata, wire
-Outlook/report output, or migrate compatibility behavior automatically.
+It remains unconnected. Promotion, Candidate B O-bounded balance facts, and
+Candidate C pool/reservation facts remain three independent unselected choices.
+Do not infer policy, add config/metadata, or wire Outlook automatically.
