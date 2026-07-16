@@ -127,11 +127,7 @@ outside ← SinglePlanResult ⟨outside_line, outside_line⟩
 0 lib.AssertEq outside.fixed_reserve
 0 lib.AssertEq outside.future_planned_liquid_net
 
-# Outlook propagates remaining-plan failure and suppresses every monetary field.
-error_ctx ← ContextWithRows (RowsFor ⟨⟨⟩, ⟨unknown_anchor_line⟩⟩)
-# BuildAt reads source evidence from the fixture, so exercise propagation through
-# a context-like fixture seam by calling the helper result and checking ErrorVm
-# behavior via the historical invalid-anchor fixture below.
+# Outlook propagation is exercised through the historical invalid-anchor fixture.
 characterization_ctx ← ctx_mod.BuildContext "fixtures/outlook-actual-snapshot-characterization"
 characterization_vm ← outlook.BuildAt ⟨characterization_ctx, observation⟩
 "error" lib.AssertEq characterization_vm.state
