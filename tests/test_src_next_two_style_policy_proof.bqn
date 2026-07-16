@@ -44,16 +44,20 @@ tbds_cal ← tbds.Build ⟨rows_cal, result_cal, res_cal, cy_cal_mock⟩
 sum_cal ← hh.BuildSummary ⟨base_cal, res_cal, result_cal.valid_rows⟩
 0 lib.AssertEq sum_cal.has_policy_metadata
 
-# Test outlook under simple risk style
+# Test outlook under simple risk style. Outlook now derives its explicit-O actual
+# snapshot from the checked ledger-wide posting rows, so the mock preserves that
+# normal context field rather than relying only on the cycle Cube/TBDS.
 outlook ← •Import "../src_next/outlook.bqn"
 ctx_cal_mock_out ← {
   base ⇐ base_cal,
   cy ⇐ cy_cal_mock,
   resolved ⇐ res_cal,
+  posting_rows ⇐ rows_cal,
   cube ⇐ result_cal,
   tbds ⇐ tbds_cal
 }
 vm_cal_outlook ← outlook.Build ctx_cal_mock_out
+"ok" lib.AssertEq vm_cal_outlook.state
 "unavailable/policy" lib.AssertEq vm_cal_outlook.liq_safe_daily
 
 •Out "test_src_next_two_style_policy_proof.bqn: OK"
