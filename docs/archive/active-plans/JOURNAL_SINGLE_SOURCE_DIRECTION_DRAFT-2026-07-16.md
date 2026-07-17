@@ -1,19 +1,37 @@
-# Journal single-source direction draft
+# Household journal direction draft
 
 Status: parked design exploration / docs-only / no runtime authorization
-Date: 2026-07-16
+Date: 2026-07-17
 Owner: architecture discussion
-Exit: revise, reject, or promote one finite characterization slice through `TODO.md`
+Exit: revise, reject, or later promote one finite characterization slice through `TODO.md`
 
 ## Purpose
 
-Explore whether BQN Ledger should move from several TSV source files to one human-readable hledger-compatible journal as the durable source of truth, while preserving BQN as the accounting and household-report engine.
+Explore a future durable household source written in a human-readable hledger-compatible journal form.
 
-This document does not select implementation, migration, parser work, report rewrites, editor changes, or production-data conversion.
+The journal-format direction is now the stable design preference under discussion. The implementation language, parser, writer, runtime owner, migration path, and production source-of-truth transition remain deliberately unselected.
+
+This document is background design evidence only. It does not authorize implementation.
+
+## Decisions reached so far
+
+1. Prefer journal-form durable records over the current horizontal TSV row form.
+2. Do not equate one conceptual journal with one physical file.
+3. Keep transaction postings as the authoritative accounting skeleton.
+4. Enrich transactions with optional household-event coordinates inspired by the 6D idea.
+5. Do not use a pure six-column 6D event row as the sole accounting source.
+6. Initially model four journal families:
+   - declarations
+   - actual transactions
+   - concrete planned transactions
+   - budget allocation transactions
+7. Keep cycle view configuration, report configuration, issue tracking, and development decisions outside the initial household journal.
+8. Keep implementation-language choice outside this draft.
+9. Select no next finite program slice yet.
 
 ## Current baseline
 
-Current `main` intentionally uses TSV source files and a two-account row contract:
+Current `main` intentionally uses separate TSV sources:
 
 - `accounts.tsv`
 - `journal.tsv`
@@ -22,418 +40,437 @@ Current `main` intentionally uses TSV source files and a two-account row contrac
 - `cycle.tsv`
 - `issues.tsv`
 
-The current architecture also explicitly says not to replace the TSV row form with ledger-style multi-posting blocks. Therefore this proposal is an architectural alternative, not an inferred continuation of current work.
-
-The following current assets may remain reusable if the source format changes:
-
-- validated Posting IR
-- ledger-wide accounting checks
-- Canonical Daily Cube
-- TBDS period projections
-- report-local `Build -> ViewModel -> Format` boundaries
-- BQN ownership of meaning and calculation
-- shell/gum/fzf ownership of terminal interaction
-- preview, stale-check, backup, and post-check safety patterns
-
-## Working hypothesis
-
-Use one journal file as the normal durable source:
+The current transaction-like TSV contract is a two-account row:
 
 ```text
-ledger.journal
+date | memo | from | to | amount | metadata...
 ```
 
-Do not split durable source by semantic role into `actual.journal`, `plan.journal`, `budget.journal`, `cycle.journal`, and `issues.journal`.
+That form is compact and machine-friendly, but it compresses one household event into a long horizontal record and makes multi-posting transactions awkward.
 
-If physical splitting becomes necessary later, prefer time-based archival, such as yearly files included by one root journal, rather than semantic fragmentation.
+This draft explores a different source shape. It does not modify the current contract.
+
+## Core idea: one event block, two readings
+
+A household journal transaction has two related parts:
 
 ```text
-ledger.journal
-archive/2026.journal
-archive/2027.journal
+upper part: what happened in household life
+lower part: how value moved between accounts
 ```
 
-The root journal remains the one configured entry point.
-
-## One journal, several event meanings
-
-The journal may contain:
-
-- account declarations
-- commodity declarations
-- ordinary actual transactions
-- planned transactions
-- budget declarations or events
-- cycle-boundary events
-- issue and decision events
-
-Meaning is distinguished by standard journal fields where possible and tags where BQN-specific semantics are required.
-
-### Actual transaction
+Example:
 
 ```journal
-2026-07-16 * スーパー | 食材
-    ; txn-id: txn-2026-07-16-001
-    ; layer: actual
-    expenses:food       4200 JPY
-    assets:bank        -4200 JPY
+2026-07-17 * スーパー | 食材と日用品
+    ; action: buy
+    ; destination: 自宅
+    ; receipt: receipt-2026-07-17-001
+    expenses:食費          8000 JPY
+    expenses:日用品        4000 JPY
+    assets:ゆうちょ      -12000 JPY
 ```
 
-### Planned transaction
+The header and tags preserve household meaning. The postings preserve accounting meaning.
+
+The same source block can therefore answer both:
+
+```text
+生活として: スーパーで食材と日用品を買い、自宅へ持ち帰った
+会計として: 食費 8,000円、日用品 4,000円、ゆうちょ -12,000円
+```
+
+## Relationship to the 6D event idea
+
+The original 6D idea was:
+
+```text
+when
+where / with whom
+what
+where to
+how much
+what happened
+```
+
+A pure 6D row is attractive as a life record:
+
+```text
+2026-07-17 | スーパー | 食材 | 自宅 | 3820 JPY | 買った
+```
+
+However, it does not by itself identify:
+
+- the payment account
+- split expense categories
+- liability creation or repayment
+- principal versus interest
+- transfers
+- multiple commodities
+- balanced multi-posting structure
+
+Adding all of those fields turns the six-column form into an increasingly large custom event language.
+
+The current draft therefore maps the 6D idea into a journal transaction rather than replacing postings with it.
+
+### Candidate coordinate mapping
+
+| 6D coordinate | Journal representation |
+|---|---|
+| when | transaction date |
+| where / with whom | payee or first description segment |
+| what | note or second description segment |
+| where to | optional `destination:` tag |
+| how much | authoritative posting amounts, not a duplicate metadata scalar |
+| what happened | optional controlled `action:` tag |
+
+Candidate description convention:
+
+```text
+payee | what
+```
+
+Example:
 
 ```journal
-2026-08-15 家賃
-    ; plan-id: plan-2026-08-15-rent
-    ; layer: plan
-    ; recur: cycle
-    expenses:rent      64000 JPY
-    assets:bank       -64000 JPY
+2026-07-17 * スーパー | 食材と日用品
 ```
 
-### Plan completion by appended actual evidence
+The coordinates are not all mandatory. A normal transaction should contain only the metadata that adds durable meaning.
+
+## One conceptual journal, several physical files
+
+The preferred direction is multiple journal files assembled through small root journals.
+
+Candidate layout:
+
+```text
+journal/
+├── current.journal
+├── outlook.journal
+├── declarations.journal
+├── actual/
+│   └── 2026.journal
+├── plans.journal
+└── budget/
+    └── 2026.journal
+```
+
+### Current-world entry point
 
 ```journal
-2026-08-16 * 家賃
-    ; txn-id: txn-2026-08-16-rent
-    ; layer: actual
-    ; plan-id: plan-2026-08-15-rent
-    expenses:rent      64000 JPY
-    assets:bank       -64000 JPY
+include declarations.journal
+include actual/2026.journal
+include budget/2026.journal
 ```
 
-The plan is not deleted. BQN resolves completion from matching actual evidence, preserving the current non-destructive plan lifecycle.
+`current.journal` represents completed household and budget events.
 
-### Non-posting dated event
-
-hledger journal transactions may contain no postings, so dated BQN-specific events can remain in the same chronological source without changing account balances.
+### Outlook entry point
 
 ```journal
-2026-08-15 年金サイクル開始
-    ; event: cycle-start
-    ; cycle-id: cycle-2026-08-15
+include current.journal
+include plans.journal
 ```
 
-Possible event classes include:
+`outlook.journal` overlays concrete future plans on the current world.
 
-- `cycle-start`
-- `budget-declare`
-- `issue-open`
-- `issue-close`
-- `decision`
-
-Whether all of these belong in the accounting journal remains an open design question. The proposal only establishes that a single source is technically possible.
-
-## BQN Journal Profile
-
-Do not aim for full Ledger or hledger language compatibility.
-
-Define a small supported profile that hledger can also read.
-
-### Candidate initial syntax
-
-Transactions:
-
-- `YYYY-MM-DD` date
-- optional status
-- description, including optional `payee | note`
-- transaction comments and tags
-- zero or more postings
-
-Postings:
-
-- account
-- explicit signed amount and commodity
-- at most one omitted amount per balanced transaction
-- posting comments and tags
-
-Directives:
-
-- `account`
-- `commodity`
-- comments
-- possibly a constrained `include`
-
-### Initially excluded
-
-- automated postings
-- full periodic transaction compatibility
-- virtual postings
-- complex aliases
-- lot and investment syntax
-- complete cost and valuation semantics
-- all Ledger/hledger parser edge cases
-- all non-journal input formats
-
-Unsupported syntax must fail clearly with source location evidence. It must not be silently reinterpreted.
-
-## Internal projection
-
-Parse the journal into separate transaction and posting structures.
-
-### Transaction IR candidate
+This gives two deliberate readings:
 
 ```text
-transaction_id
-date
-status
-code
-description
-payee
-note
-tags
-source_file
-source_line
+current.journal = completed actual and budget history
+outlook.journal = current world plus concrete plans
 ```
 
-### Posting IR candidate
+The exact filenames and include topology remain candidates, not contracts.
 
-```text
-transaction_id
-posting_index
-account
-amount
-commodity
-tags
-source_file
-source_line
+## Initial journal families
+
+### 1. Declarations
+
+Current account and commodity declarations may become journal directives.
+
+```journal
+commodity JPY
+
+account assets:ゆうちょ
+    ; role: asset
+    ; type: liquid
+
+account expenses:食費
+    ; role: expense
+    ; budget: daily
+
+account budget:unassigned
+    ; role: budget
+    ; kind: unassigned
+
+account budget:daily
+    ; role: budget
+    ; kind: envelope
 ```
 
-The source-facing parser and transaction balancing layer should feed the existing ledger-wide Posting IR boundary where compatible.
+Declarations are the cast list, not chronological household history, so they should live separately from daily transactions.
 
-```text
-ledger.journal
-  -> journal parser
-  -> transaction validation and amount completion
-  -> Posting IR
-  -> Cube / TBDS / report projections
+### 2. Actual transactions
+
+Actual transactions record completed household events.
+
+```journal
+2026-07-17 * スーパー | 食材
+    ; action: buy
+    ; txn-id: txn-2026-07-17-001
+    expenses:食費          3820 JPY
+    assets:ゆうちょ       -3820 JPY
 ```
-
-The journal parser must not push source-language details into every report.
-
-## hledger-like standard reports
-
-BQN Ledger should be able to produce the standard reports needed for daily comparison and validation.
-
-### First report family
-
-- `print`
-- `register`
-- account-centred register similar to `aregister`
-- `balance`
-- monthly, quarterly, and yearly balance columns
-- historical closing balances
-- income statement
-- balance sheet
-- cash flow
-- account, commodity, payee, description, and tag listings
-- basic journal statistics
-
-### Shared report engine hypothesis
-
-Avoid one independent calculator per command. Express reports as projections over validated postings.
-
-```text
-filter
-row axis
-column axis
-period partition
-measure
-accumulation mode
-account depth
-sort
-layout
-```
-
-Examples:
-
-```text
-balance --monthly
-  rows: account
-  columns: month
-  measure: movement
-```
-
-```text
-balance --monthly --historical
-  rows: account
-  columns: month
-  measure: closing balance
-```
-
-```text
-register assets:bank
-  filter: matching postings
-  rows: postings
-  accumulation: historical running balance
-```
-
-Initial compatibility target is semantic equivalence, not byte-for-byte formatting equivalence:
-
-- same accepted journal subset
-- same selected postings
-- same period boundaries
-- same movement and balance totals
-- explicit documented differences
-
-hledger should be usable as a reference implementation and comparison oracle for fixtures.
-
-## BQN-specific reports
-
-Preserve the reports that motivated BQN Ledger:
-
-- snapshot
-- cycle summary
-- plan status
-- actual comparison
-- outlook
-- daily trend
-- envelope views when enabled
-- owner-specific future views
-
-The accounting core must remain independent from household policy. Cycle, pension cadence, envelope choice, and planning policy belong above validated accounting projections.
-
-## Journal entry assistance
-
-Rebuild the daily entry path around multi-posting transactions rather than two-account TSV rows.
-
-### Candidate workflow
-
-1. choose or enter date
-2. choose or enter payee/description
-3. offer a similar recent transaction as a template
-4. edit, add, or remove postings
-5. complete accounts, commodities, and tags
-6. preview the complete journal block
-7. run parser and accounting checks
-8. append atomically
-9. run post-check
-
-### Candidate suggestions
-
-- recent similar descriptions
-- recent transactions for the same payee
-- frequently used accounts
-- previous posting structure for that payee
-- previous commodity
-- known account, commodity, payee, and tag names
-- unfinished plans as transaction templates
-- relative date words at the UI boundary
-
-### Responsibility boundary
-
-- BQN owns candidate derivation, meaning, and validation
-- gum/fzf owns search, selection, and terminal presentation
-- shell owns interaction flow and safe-write orchestration
-- shell must not infer accounting meaning independently
-
-This preserves the current `BQN = meaning`, `UI = interaction` boundary.
-
-## Single-source safety rules
-
-A single journal containing actual and plan records needs strong default views.
 
 Candidate rules:
 
-- normal accounting reports default to actual transactions only
-- plan and forecast reports opt into planned transactions explicitly
-- `--layer all` is always explicit
-- hledger comparison commands use a documented tag query profile
-- plan records must never enter actual balances accidentally
-- source tags must remain queryable and round-trippable through BQN views
+- actual records use ordinary balanced transactions
+- future-dated actuals remain invalid or fail-visible
+- `txn-id` is optional unless a durable cross-reference requires it
+- all posting amounts are explicit in the initial profile
+- JPY remains integer-valued in household use
 
-The exact hledger query profile is an open characterization task and should be verified against fixtures before adoption.
+The status marker `*` retains its hledger meaning. It must not be treated as the sole representation of household `actual` semantics without an explicit design decision.
 
-## Migration outline
+### 3. Concrete planned transactions
 
-### Stage 0: docs and fixture only
+Plans use the same transaction and posting grammar as actuals.
 
-- define the BQN Journal Profile
-- create a small synthetic journal fixture
-- verify that hledger reads it
-- specify expected Transaction IR and Posting IR
-- specify actual/plan selection semantics
-- change no current runtime path
+```journal
+2026-08-15 ! 大家 | 8月分家賃
+    ; action: planned-payment
+    ; layer: plan
+    ; plan-id: plan-2026-08-15-rent
+    ; series: rent
+    ; recur: cycle
+    expenses:家賃         64000 JPY
+    assets:ゆうちょ      -64000 JPY
+```
 
-### Stage 1: read-only parser experiment
+A completed plan is not deleted. Matching actual evidence carries the same `plan-id`.
 
-- parse the synthetic fixture
-- report source-located errors
-- balance multi-posting transactions
-- compare normalized postings with hledger output
+```journal
+2026-08-14 * 大家 | 8月分家賃
+    ; action: paid
+    ; layer: actual
+    ; plan-id: plan-2026-08-15-rent
+    expenses:家賃         64000 JPY
+    assets:ゆうちょ      -64000 JPY
+```
 
-### Stage 2: read-only standard reports
+This preserves:
 
-- `print`
-- `balance`
-- `register`
-- monthly movement and historical closing balances
+- early completion
+- late completion
+- planned versus actual amount differences
+- non-destructive plan history
+- exact plan-to-actual linkage
 
-### Stage 3: entry prototype
+The first household journal profile should prefer concrete dated plans over periodic-transaction expansion. Recurrence metadata may describe or help generate the next concrete plan, but generated plan identity and completion must remain inspectable.
 
-- multi-posting preview
-- recent-transaction suggestion
-- account and commodity completion
-- append only to a disposable fixture
+### 4. Budget allocation transactions
 
-### Stage 4: compatibility observation
+Budget allocation is represented as balanced movement within the budget namespace.
 
-- convert synthetic and public fixture TSV data
-- compare old BQN reports, new BQN reports, and hledger reports
-- document semantic losses and gains
+```journal
+2026-08-15 自分 | 生活費をdailyへ配賦
+    ; action: allocate
+    ; layer: budget
+    ; allocation-id: alloc-2026-08-daily
+    budget:daily            50000 JPY
+    budget:unassigned      -50000 JPY
+```
 
-### Stage 5: production migration decision
+This records a real household decision without pretending that bank assets moved.
 
-Only after explicit evidence:
+Budget allocation history belongs in the journal direction. The mechanism for recording budget consumption remains open.
 
-- decide whether journal becomes source truth
-- decide whether all source classes belong in one file
-- define backup and rollback
-- define archival policy
-- retire TSV writers only through a separate selected migration plan
+## Major open budget decision
 
-## Success criteria
+There are two candidate ways to represent envelope consumption.
 
-- one configured root journal is sufficient for normal use
-- hledger and BQN both read the supported transaction subset
-- multi-posting transactions balance correctly
-- standard report totals agree for characterized fixtures
-- monthly movement and historical balances are available
-- account-centred transaction reports are available
-- entry suggestions reduce repeated typing without hidden writes
-- plans remain non-destructive and linkable to actual evidence
-- BQN-specific household reports remain possible
-- the implementation remains substantially smaller and more understandable than full hledger compatibility
+### A. Explicit budget postings in the actual transaction
 
-## Non-goals
+```journal
+2026-07-17 * スーパー | 食材
+    ; action: buy
+    expenses:食費           3820 JPY
+    assets:ゆうちょ        -3820 JPY
+    budget:spent             3820 JPY
+    budget:daily            -3820 JPY
+```
 
+Advantages:
+
+- the source block visibly contains the complete accounting and envelope effect
+- no hidden category-to-envelope derivation is needed
+- exceptional envelope choice can be represented transaction by transaction
+
+Costs:
+
+- ordinary purchases become heavier
+- actual-money and budget-layer postings coexist in one transaction
+- standard accounting views require clear namespace or layer filtering
+
+### B. Derive budget consumption from account metadata
+
+```journal
+account expenses:食費
+    ; budget: daily
+```
+
+The purchase remains a small two- or three-posting actual transaction. The budget effect is derived from the expense-account declaration.
+
+Advantages:
+
+- daily source entry stays compact
+- repeated envelope metadata is not copied into each transaction
+- this resembles the current account-to-budget mapping
+
+Costs:
+
+- the complete budget effect is not visible in the transaction block
+- changing account metadata may alter interpretation of old history unless metadata is temporal or snapshotted
+- exceptional routing needs another mechanism
+- the current Envelope characterization found that implicit ownership and missing linkage can create divergent projections
+
+No choice is made in this draft.
+
+## Multi-posting examples
+
+### Split receipt
+
+```journal
+2026-07-17 * スーパー | 食材と日用品
+    ; action: buy
+    ; receipt: receipt-2026-07-17-001
+    expenses:食費          8000 JPY
+    expenses:日用品        4000 JPY
+    assets:ゆうちょ      -12000 JPY
+```
+
+One event remains one transaction even when several categories are involved.
+
+### Loan repayment with principal and interest
+
+```journal
+2026-07-20 * 友人 | 借金返済
+    ; action: repay
+    ; agreement-id: loan-friend-001
+    liabilities:友人      9000 JPY
+    expenses:利息         1000 JPY
+    assets:ゆうちょ     -10000 JPY
+```
+
+The journal block preserves both the life event and the accounting split. A pure scalar 6D amount cannot represent this distinction without an added substructure.
+
+## Candidate minimal writing rules
+
+These are design candidates, not selected source contracts.
+
+1. One household event is normally one transaction block.
+2. Postings are the authoritative representation of monetary movement.
+3. Every posting amount is explicit in the initial profile.
+4. Household JPY amounts remain integer-valued.
+5. Actual and plan records use the same transaction grammar.
+6. Concrete plans carry durable `plan-id` values.
+7. Actual completion evidence copies the matching `plan-id`.
+8. Completed plans are not deleted or rewritten into actuals.
+9. Split receipts and compound payments use multiple postings rather than duplicate event rows.
+10. Account metadata lives in account declarations.
+11. Description may use `payee | what` as a readable convention.
+12. `action`, `destination`, `receipt`, `agreement-id`, and similar coordinates are optional and added only when they preserve useful meaning.
+13. Metadata keys use stable lower-case names.
+14. Recurrence rules do not replace concrete dated plan evidence.
+15. Unsupported or ambiguous records must fail visibly rather than being silently reinterpreted.
+
+## Initially outside the household journal
+
+### Cycle configuration
+
+The current cycle model is primarily a view over time coordinates, such as an income-anchored or fixed half-open interval. It is not necessarily a durable property of each household event.
+
+Initial direction:
+
+- keep cycle-view configuration outside the journal
+- derive income-anchor boundaries from actual and planned journal transactions where useful
+- do not create synthetic `cycle-start` events merely to force view configuration into the journal
+
+### Report and UI configuration
+
+Report defaults, output selection, terminal preferences, and editor behavior are configuration, not household history.
+
+### Issues and development decisions
+
+Issue open/close records and architecture decisions should not enter the initial accounting journal merely because a zero-posting transaction could encode them.
+
+These domains may be reconsidered later, but journal unification is not valuable when it erases useful boundaries.
+
+## Safety principles
+
+- actual-only views must not accidentally include plans
+- plans must remain queryable without entering actual balances
+- budget postings must not be mistaken for real asset movement
+- account metadata must not silently rewrite historical meaning
+- source tags needed for household semantics must remain inspectable
+- invalid dates, amounts, accounts, or links must fail visibly
+- plan completion must have one shared definition across all projections
+- a root journal must assemble sources without duplicating one event in several physical files
+
+## What remains deliberately unselected
+
+- exact physical file layout
+- exact root-journal names
+- required versus optional 6D coordinates
+- final controlled vocabulary for `action`
+- whether ordinary actuals require `layer: actual`
+- whether status markers participate in household layer semantics
+- explicit versus derived budget consumption
+- parser implementation
+- writer or editor implementation
+- runtime/report owner
+- implementation language
+- hledger library or command integration
+- conversion of current fixtures or production data
+- source-of-truth migration
+- archival and rollback policy
+
+## Questions for the next design discussion
+
+1. Does the proposed transaction block remain pleasant to read after dozens of ordinary daily purchases?
+2. Which 6D coordinates are genuinely durable, and which are decorative duplication?
+3. Should `payee | what` be a convention or only a visual habit?
+4. Is `action` useful enough to standardize, or can postings and description usually express it?
+5. Should actual and budget postings coexist in one transaction?
+6. If budget consumption is derived, how is historical account-to-envelope meaning frozen?
+7. Should `plans.journal` retain completed plans indefinitely, or move them through time-based archival without deleting evidence?
+8. Which four or five real household examples are sufficient to judge readability before any parser work?
+
+## Non-goals of this draft
+
+- implementing a parser
+- selecting an implementation language
+- rewriting reports
+- changing editor behavior
+- changing current TSV source truth
+- converting production household data
+- selecting a migration stage
+- selecting a next finite program slice
 - implementing all of hledger
-- replacing hledger as a general-purpose project
-- byte-for-byte report compatibility
-- supporting every Ledger dialect
-- adding a web UI
-- bank synchronisation
-- automatic financial advice
-- automatic production migration
-- changing current source truth in this PR
+- forcing every household or project event into one journal
 
-## Open decisions
+## Possible evidence-only follow-up, still unselected
 
-1. Should budget, cycle, and issue events live in the same journal or remain external configuration/event data?
-2. Should `layer: actual` be written explicitly, or should ordinary transactions default to actual?
-3. Which tags are durable source contracts rather than temporary migration aids?
-4. Is one constrained `include` required from the beginning, or should the first profile accept one physical file only?
-5. How should BQN and hledger select actual-only data identically?
-6. Which hledger report commands define the first semantic-equivalence test matrix?
-7. How much amount inference should the BQN profile permit?
-8. Which current Cube/TBDS boundaries can be reused unchanged?
-9. Should the first experiment live inside this repository or in a separate branch/repository?
+A later finite slice could create one public synthetic paper fixture containing only:
 
-## Smallest selectable follow-up
+- declarations
+- one split receipt
+- one planned payment and early completion
+- one budget allocation
+- one loan repayment with principal and interest
 
-If this direction remains interesting, the smallest finite follow-up is a docs-and-fixture characterization only:
+That slice would judge human readability and semantic sufficiency only. It would select no parser, writer, runtime, language, or migration work.
 
-- define the minimal BQN Journal Profile
-- add one synthetic single-journal fixture
-- write expected normalized postings
-- document the exact hledger commands used for comparison
-- select no production parser, writer, or migration work
+Until such a slice is explicitly selected through `TODO.md`, this document remains parked background design evidence.
