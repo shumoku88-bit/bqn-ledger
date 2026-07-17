@@ -107,17 +107,24 @@ Current issue:
 
 - envelope calculations already use valid rows and TBDS for major values, but allocation compatibility paths and cycle remaining-plan amounts reparse source amounts.
 
-Completed first slice:
-- Cycle Summary plan_expense_remaining characterization is complete.
-- Completion record:
-  `../completed-plans/CYCLE_REMAINING_PLAN_NUMERIC_OWNER_CHARACTERIZATION-2026-07-16.md`
-- A separate compatibility decision is an unselected candidate.
-- Runtime migration remains unselected.
-- Envelope allocation compatibility and execution-envelope plan coverage
-  remain separate unselected candidates.
+Completed Cycle Summary preparation:
 
-Target:
+- `plan_expense_remaining` characterization is complete:
+  `../completed-plans/CYCLE_REMAINING_PLAN_NUMERIC_OWNER_CHARACTERIZATION-2026-07-16.md`;
+- the compatibility decision is complete:
+  `../completed-plans/CYCLE_REMAINING_PLAN_NUMERIC_OWNER_COMPATIBILITY_DECISION-2026-07-17.md`;
+- completed plans are excluded from the target remaining amount using existing cycle-local `plan_id` evidence;
+- the target window remains `O <= D < C.end_exclusive`;
+- target money comes from admitted plan Posting IR joined locally by stable source identity;
+- applicable rejected, invalid, missing, or structurally unjoinable plan evidence fails Cycle Summary closed;
+- target section output gains state/reason/diagnostics and emits no normal numeric rows on error.
 
+Cycle Summary runtime migration remains independently unselected. Envelope allocation compatibility and execution-envelope plan coverage remain separate unselected candidates.
+
+Target sequence:
+
+- first migrate Cycle Summary remaining-plan money through the approved local Posting IR join when separately selected;
+- later characterize envelope allocation and execution-plan coverage independently;
 - use Budget-layer admitted postings for allocation and budget movement totals;
 - use TBDS for closing/funding values;
 - use admitted plan postings for remaining-plan money;
@@ -147,8 +154,9 @@ Work is intentionally one report slice at a time.
 3. **Outlook / actual snapshot Slices A and B** — completed.
 4. **Daily Trend** — completed.
 5. **Cycle Summary remaining-plan characterization** — completed.
-6. **Cycle Summary remaining-plan compatibility decision** — unselected.
-7. **Envelope allocation / execution-plan coverage characterization** — unselected independent candidate.
+6. **Cycle Summary remaining-plan compatibility decision** — completed.
+7. **Cycle Summary remaining-plan runtime migration** — unselected.
+8. **Envelope allocation / execution-plan coverage characterization** — unselected independent candidate.
 
 A slice may proceed only when it has:
 

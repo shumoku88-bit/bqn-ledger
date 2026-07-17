@@ -9,13 +9,15 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-16
+Last hygiene pass: 2026-07-17
 - loader/util ownership normalization complete
 - Outlook checked numeric-owner Slices A/B complete
 - Daily Trend plan numeric-owner migration complete
 - Cycle Summary remaining-plan characterization complete
+- Cycle Summary remaining-plan compatibility decision complete
+- Cycle Summary remaining-plan runtime migration complete
 - no next finite report slice is selected
-- Cycle Summary compatibility decision is an unselected candidate
+- envelope allocation / execution-plan coverage characterization remains an unselected candidate
 - other unrelated candidates remain unselected
 
 ---
@@ -50,7 +52,7 @@ Rows 4–7 are routing candidates only and no next program slice is selected. Fe
 
 ### Report projection alignment
 
-Status: selected report-engine direction. Actual Comparison, Outlook Slices A/B, and Daily Trend plan numeric-owner runtime migrations are complete. **Cycle Summary remaining-plan and Envelope allocation/execution-plan coverage characterizations are complete.** Records: `docs/archive/completed-plans/CYCLE_REMAINING_PLAN_NUMERIC_OWNER_CHARACTERIZATION-2026-07-16.md` and `docs/archive/completed-plans/ENVELOPE_ALLOCATION_AND_EXECUTION_PLAN_COVERAGE_CHARACTERIZATION-2026-07-17.md`. **The next step is a compatibility decision candidate (unselected).**
+Status: selected report-engine direction. Actual Comparison, Outlook Slices A/B, Daily Trend, and Cycle Summary remaining-plan numeric-owner runtime migrations are complete. **Envelope allocation and execution-plan coverage characterization is also complete.** Records: `docs/archive/completed-plans/CYCLE_REMAINING_PLAN_NUMERIC_OWNER_CHARACTERIZATION-2026-07-16.md`, `docs/archive/completed-plans/CYCLE_REMAINING_PLAN_NUMERIC_OWNER_COMPATIBILITY_DECISION-2026-07-17.md`, `docs/archive/completed-plans/CYCLE_REMAINING_PLAN_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-17.md`, and `docs/archive/completed-plans/ENVELOPE_ALLOCATION_AND_EXECUTION_PLAN_COVERAGE_CHARACTERIZATION-2026-07-17.md`. **The next step is a compatibility decision candidate for envelopes (unselected).**
 
 Purpose: move eligible report numeric calculations from independent source re-parsing to checked Posting IR, Cube, or TBDS while preserving source-evidence paths for plan identity, memo, completion, and temporal semantics.
 
@@ -61,8 +63,10 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 - Outlook Slice A derives cumulative inclusive-O actual balances from checked Posting IR through a local TBDS view; applicable rejected actual evidence fails closed.
 - Outlook Slice B derives remaining-plan money from admitted plan Posting IR, retains plan-ID completion evidence, reserves valid anchored outflows when unmet, admits valid anchored inflows only after matching actual income through O, and treats applicable invalid anchor evidence as `error`.
 - Daily Trend keeps current-source coordinate replay (`O_row = D`): fixed reserve money comes from admitted `plan.tsv` Posting IR joined by `source_row`, while plan ID and row-local completion remain source evidence. Applicable rejected, missing, or structurally unjoinable plan evidence fails the section closed; existing `overlap.PlanId` fallback and exact-any-match completion behavior remain unchanged.
-- Cycle Summary plan_expense_remaining and Envelope allocation/coverage characterizations are complete; no next program slice is selected.
-- [ ] Make a compatibility decision (unselected) regarding target completion policy, error propagation on rejected plan/budget evidence, owner choice (local join, Cube view, or TBDS view), and execution envelope plan linkage/filtering before implementation.
+- Cycle Summary excludes completed plans, preserves `O <= D < C.end_exclusive`, derives remaining expense money from admitted `plan.tsv` Posting IR joined by `source_row`, and fails the whole section closed on applicable invalid, rejected, missing, or structurally unjoinable plan evidence.
+- Cycle Summary machine/human output exposes state/reason/source-row diagnostics and emits no normal numeric or breakdown rows on error; empty plan and no-actual cases remain valid `ok` results.
+- Envelope allocation and coverage characterizations are complete.
+- [ ] Make a compatibility decision (unselected) regarding target completion policy (reconciling double-counting hazard in future_planned_spent vs execution_planned), error propagation on rejected budget/plan evidence, owner choice (local join, Cube view, or TBDS view), and execution envelope plan linkage/filtering before implementation.
 - Do not infer helper renaming, generic temporal kernel, report-wide `--as-of`, source TSV migration, Daily Capacity connection, envelope/cycle policy expansion, or automatic write.
 
 ## Next candidates
