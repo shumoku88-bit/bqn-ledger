@@ -30,14 +30,19 @@ Current runtime boundary:
 
 ## Selected next finite slice
 
-No next program slice is selected.
+**Minimal BQN Journal Profile Stage 0** (docs and fixture only):
+- minimal supported journal syntax
+- one synthetic `ledger.journal`
+- expected Transaction IR
+- expected Posting IR
+- exact hledger comparison commands
+
+PR #273 is parked background design evidence only; it is not implementation authorization.
+journal parser, writer, runtime routing, production conversion, and source-of-truth migration are unselected.
 
 Candidates for future sessions:
 
-1. **Cycle Summary and Envelope compatibility decision** (unselected)
-   - Decide the target completion policy (reconciling double-counting hazard in future_planned_spent vs execution_planned).
-   - Decide on execution envelope plan linkage/filtering.
-   - Decide whether to fail closed on rejected/invalid plan or budget rows.
-   - Select the target owner implementation (local join, Cube projection, or TBDS period view).
+1. **Envelope runtime compatibility decision** (parked / unselected)
+   - Decide completion-aware Cube modification, linkage filter implementation, and fail-closed migration.
 2. **Daily Capacity connection** (parked)
 3. **Privacy-safe AI context-bundle contract** (unselected program candidate)

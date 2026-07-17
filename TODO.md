@@ -52,7 +52,7 @@ Rows 4–7 are routing candidates only and no next program slice is selected. Fe
 
 ### Report projection alignment
 
-Status: selected report-engine direction. Actual Comparison, Outlook Slices A/B, Daily Trend, and Cycle Summary remaining-plan numeric-owner runtime migrations are complete. **Envelope allocation and execution-plan coverage characterization is also complete.** Records: `docs/archive/completed-plans/CYCLE_REMAINING_PLAN_NUMERIC_OWNER_CHARACTERIZATION-2026-07-16.md`, `docs/archive/completed-plans/CYCLE_REMAINING_PLAN_NUMERIC_OWNER_COMPATIBILITY_DECISION-2026-07-17.md`, `docs/archive/completed-plans/CYCLE_REMAINING_PLAN_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-17.md`, and `docs/archive/completed-plans/ENVELOPE_ALLOCATION_AND_EXECUTION_PLAN_COVERAGE_CHARACTERIZATION-2026-07-17.md`. **The next step is a compatibility decision candidate for envelopes (unselected).**
+Status: selected report-engine direction. Actual Comparison, Outlook Slices A/B, Daily Trend, and Cycle Summary remaining-plan numeric-owner runtime migrations are complete. **Envelope allocation and execution-plan coverage characterization is also complete.** Records: `docs/archive/completed-plans/CYCLE_REMAINING_PLAN_NUMERIC_OWNER_CHARACTERIZATION-2026-07-16.md`, `docs/archive/completed-plans/CYCLE_REMAINING_PLAN_NUMERIC_OWNER_COMPATIBILITY_DECISION-2026-07-17.md`, `docs/archive/completed-plans/CYCLE_REMAINING_PLAN_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-17.md`, and `docs/archive/completed-plans/ENVELOPE_ALLOCATION_AND_EXECUTION_PLAN_COVERAGE_CHARACTERIZATION-2026-07-17.md`. **The next selected finite slice is Minimal BQN Journal Profile Stage 0 (docs and fixture only).**
 
 Purpose: move eligible report numeric calculations from independent source re-parsing to checked Posting IR, Cube, or TBDS while preserving source-evidence paths for plan identity, memo, completion, and temporal semantics.
 
@@ -66,7 +66,15 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 - Cycle Summary excludes completed plans, preserves `O <= D < C.end_exclusive`, derives remaining expense money from admitted `plan.tsv` Posting IR joined by `source_row`, and fails the whole section closed on applicable invalid, rejected, missing, or structurally unjoinable plan evidence.
 - Cycle Summary machine/human output exposes state/reason/source-row diagnostics and emits no normal numeric or breakdown rows on error; empty plan and no-actual cases remain valid `ok` results.
 - Envelope allocation and coverage characterizations are complete.
-- [ ] Make a compatibility decision (unselected) regarding target completion policy (reconciling double-counting hazard in future_planned_spent vs execution_planned), error propagation on rejected budget/plan evidence, owner choice (local join, Cube view, or TBDS view), and execution envelope plan linkage/filtering before implementation.
+- Envelope runtime compatibility decision, completion-aware Cube modification, linkage filter implementation, and fail-closed migration are parked / unselected.
+- [ ] Implement selected next finite slice: **Minimal BQN Journal Profile Stage 0** (docs and fixture only):
+  - minimal supported journal syntax
+  - one synthetic `ledger.journal`
+  - expected Transaction IR
+  - expected Posting IR
+  - exact hledger comparison commands
+- PR #273 is parked background design evidence, not implementation authorization.
+- journal parser, writer, runtime routing, production conversion, and source-of-truth migration are unselected.
 - Do not infer helper renaming, generic temporal kernel, report-wide `--as-of`, source TSV migration, Daily Capacity connection, envelope/cycle policy expansion, or automatic write.
 
 ## Next candidates
