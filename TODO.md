@@ -52,7 +52,7 @@ Rows 4–7 are routing candidates only and no next program slice is selected. Fe
 
 ### Report projection alignment
 
-Status: selected report-engine direction. Actual Comparison, Outlook Slices A/B, Daily Trend, and Cycle Summary remaining-plan numeric-owner runtime migrations are complete. Cycle Summary records: `docs/archive/completed-plans/CYCLE_REMAINING_PLAN_NUMERIC_OWNER_CHARACTERIZATION-2026-07-16.md`, `docs/archive/completed-plans/CYCLE_REMAINING_PLAN_NUMERIC_OWNER_COMPATIBILITY_DECISION-2026-07-17.md`, and `docs/archive/completed-plans/CYCLE_REMAINING_PLAN_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-17.md`. No next finite report slice is selected.
+Status: selected report-engine direction. Actual Comparison, Outlook Slices A/B, Daily Trend, and Cycle Summary remaining-plan numeric-owner runtime migrations are complete. **Envelope allocation and execution-plan coverage characterization is also complete.** Records: `docs/archive/completed-plans/CYCLE_REMAINING_PLAN_NUMERIC_OWNER_CHARACTERIZATION-2026-07-16.md`, `docs/archive/completed-plans/CYCLE_REMAINING_PLAN_NUMERIC_OWNER_COMPATIBILITY_DECISION-2026-07-17.md`, `docs/archive/completed-plans/CYCLE_REMAINING_PLAN_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-17.md`, and `docs/archive/completed-plans/ENVELOPE_ALLOCATION_AND_EXECUTION_PLAN_COVERAGE_CHARACTERIZATION-2026-07-17.md`. **No next finite slice is selected.**
 
 Purpose: move eligible report numeric calculations from independent source re-parsing to checked Posting IR, Cube, or TBDS while preserving source-evidence paths for plan identity, memo, completion, and temporal semantics.
 
@@ -65,7 +65,11 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 - Daily Trend keeps current-source coordinate replay (`O_row = D`): fixed reserve money comes from admitted `plan.tsv` Posting IR joined by `source_row`, while plan ID and row-local completion remain source evidence. Applicable rejected, missing, or structurally unjoinable plan evidence fails the section closed; existing `overlap.PlanId` fallback and exact-any-match completion behavior remain unchanged.
 - Cycle Summary excludes completed plans, preserves `O <= D < C.end_exclusive`, derives remaining expense money from admitted `plan.tsv` Posting IR joined by `source_row`, and fails the whole section closed on applicable invalid, rejected, missing, or structurally unjoinable plan evidence.
 - Cycle Summary machine/human output exposes state/reason/source-row diagnostics and emits no normal numeric or breakdown rows on error; empty plan and no-actual cases remain valid `ok` results.
-- Envelope allocation compatibility and execution-envelope plan coverage remain separate unselected candidates.
+- Envelope allocation and coverage characterizations are complete.
+- Envelope runtime compatibility decision, completion-aware Cube modification, linkage filter implementation, and fail-closed migration are parked / unselected.
+- Minimal BQN Journal Profile Stage 0 is unselected; journal single-source direction remains a parked candidate requiring plan reconsideration.
+- PR #273 is parked background design evidence, not implementation authorization.
+- journal parser, writer, runtime routing, production conversion, and source-of-truth migration are unselected.
 - Do not infer helper renaming, generic temporal kernel, report-wide `--as-of`, source TSV migration, Daily Capacity connection, envelope/cycle policy expansion, or automatic write.
 
 ## Next candidates

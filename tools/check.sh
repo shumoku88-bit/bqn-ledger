@@ -124,6 +124,7 @@ bash checks/check-src-next-compact-summary.sh fixtures/src-next-golden >/dev/nul
 bash checks/check-src-next-compact-summary.sh fixtures/empty-fields >/dev/null
 bash checks/check-src-next-compact-summary.sh fixtures/src-next-envelope-computation >/dev/null
 bash checks/check-src-next-cycle-remaining-plan-characterization.sh >/dev/null
+bash checks/check-src-next-envelope-characterization.sh >/dev/null
 
 echo "[4/5] MCP core and transport checks" >&2
 npm --prefix mcp-server run lint

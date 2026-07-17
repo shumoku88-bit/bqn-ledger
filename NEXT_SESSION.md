@@ -15,6 +15,10 @@ Latest completed records and executable evidence:
 - `fixtures/cycle-remaining-plan-characterization/`
 - `tests/test_src_next_cycle_remaining_plan_characterization.bqn`
 - `checks/check-src-next-cycle-remaining-plan-characterization.sh`
+- `docs/archive/completed-plans/ENVELOPE_ALLOCATION_AND_EXECUTION_PLAN_COVERAGE_CHARACTERIZATION-2026-07-17.md`
+- `fixtures/envelope-characterization/`
+- `tests/test_src_next_envelope_characterization.bqn`
+- `checks/check-src-next-envelope-characterization.sh`
 
 Current runtime boundary:
 
@@ -26,10 +30,13 @@ Current runtime boundary:
 
 ## Selected next finite slice
 
-No next program slice is selected.
+No next finite slice is selected.
+
+Journal single-source direction remains a parked candidate requiring plan reconsideration. Minimal BQN Journal Profile Stage 0 is unselected. PR #273 is parked background design evidence and is not implementation authorization. journal parser, writer, runtime routing, production conversion, and source-of-truth migration are unselected.
 
 Candidates for future sessions:
 
-1. **Envelope allocation and execution-plan coverage characterization** (unselected)
+1. **Envelope runtime compatibility decision** (parked / unselected)
+   - Decide completion-aware Cube modification, linkage filter implementation, and fail-closed migration.
 2. **Daily Capacity connection** (parked)
 3. **Privacy-safe AI context-bundle contract** (unselected program candidate)
