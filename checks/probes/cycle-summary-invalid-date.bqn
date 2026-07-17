@@ -3,10 +3,10 @@
 ctx_mod ← •Import "../../src_next/context.bqn"
 cs ← •Import "../../src_next/cycle_summary.bqn"
 
-# Load root context to reuse resolved mappings and tbds structure
+# Load root context to reuse resolved mappings and TBDS structure.
 root_ctx ← ctx_mod.BuildContext "fixtures/cycle-remaining-plan-characterization"
 
-# Build custom context pointing to sub_invalid_date
+# Build custom context pointing to the two-row invalid-date fixture.
 ctx ← {
   base ⇐ "fixtures/cycle-remaining-plan-characterization/sub_invalid_date",
   cy ⇐ root_ctx.cy,
@@ -18,5 +18,5 @@ ctx ← {
   issues ⇐ root_ctx.issues
 }
 
-# This call must crash during proj.DaysFromEpoch processing of invalid date text "abc"
-cs.Build ctx
+# The runtime contract is controlled fail-closed output, not a BQN crash.
+•Out cs.Format cs.Build ctx
