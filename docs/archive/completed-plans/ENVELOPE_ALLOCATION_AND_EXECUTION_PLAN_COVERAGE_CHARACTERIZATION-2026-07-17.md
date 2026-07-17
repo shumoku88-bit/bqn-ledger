@@ -2,7 +2,7 @@
 
 Status: completed characterization / no runtime behavior change
 Owner: report
-Canonical: yes
+Canonical: no
 Exit: completed; next step is a compatibility decision candidate
 
 ## Purpose
@@ -52,7 +52,7 @@ Build (or BuildCtx)
 | **unassigned budget pool** | `envelope_computation.bqn` (via `CalcUnassignedRemaining`) | Cube (Layer 2) / `budget_alloc.tsv` | checked Posting IR |
 | **funding base** | `envelope_computation.bqn` (via `CalcEnvelopeBacking`) | TBDS (closing actual Layer 0) | TBDS closing actuals |
 | **envelope planned coverage** | `envelope_computation.bqn` (via `BuildExecutionPlannedCoverage`) | Derived (`env_remaining - planned_open_total`) | Cube + direct TSV reparsing |
-| **unfinished planned total** | `plan_rows.bqn` (via `BuildBase` and `WithValues`) | `plan.tsv` and `journal.tsv` (direct parse) | direct TSV reparsing |
+| **unfinished planned total** | `envelope_computation.bqn` (via `ParsePlanRow` amount parsing) | `plan_rows.bqn` (via `BuildBase` which owns rows/completion check) | direct TSV reparsing |
 
 ## Source-Evidence Owner Table
 
@@ -67,7 +67,7 @@ Build (or BuildCtx)
 
 ## Observed Status / Error Behavior
 
-We characterized the behavior of the current BQN engine across 12 specific test cases:
+We characterized the behavior of the current BQN engine across the following test cases:
 
 1. **Normal allocation and spending**:
    - Allocation sums Layer 2 (`layer_budget`) of the Cube (from `budget_alloc.tsv`).
@@ -84,11 +84,9 @@ We characterized the behavior of the current BQN engine across 12 specific test 
    - Row is skipped (placed in `skipped_rows` of the Cube) during projection/materialization due to `"unknown_account"` status. It does not affect envelope computation (allocation is not recorded), but can cause backing mismatch warning. No engine exit.
 6. **Rejected or invalid amount**:
    - Amount parse fails (`parsed.state ≢ "ok"`), row evidence state is `"error"`, arithmetic proof state is `"unsupported"`, fails proof authorization, `context.bqn` prints `ERROR:` to stdout and exits with status 1.
-7. **Missing or structurally unjoinable Posting IR**:
-   - Missing fields that are essential (e.g. date, amount) result in `invalid_date` or `invalid_amount` and fail closed (exit 1).
-   - Missing or unknown account names result in `unknown_account` status, which is placed in `skipped_rows` but does NOT fail closed (does not exit 1).
-   - Length mismatch between evidence and normalized coefficients returns `"normalized_coefficient_length_mismatch"` diagnostic and fails closed (exit 1).
-   - Missing required `journal.tsv` source prints `ERROR: posting source missing` and exits 1.
+7. **Invalid Budget Date**:
+   - Invalid dates (like `"2026-99-99"`) in `budget_alloc.tsv` do not fail the checked projection state (they project as `invalid_date` row status).
+   - However, building the envelope report crashes BQN when recomputing allocation target fallbacks in `CalcAllocated` (`InCycle` -> `ResolveDayFromCycle`), which directly parses `budget_alloc.tsv` dates and triggers an out-of-bounds error in date conversion.
 8. **Execution envelope with no matching planned payment**:
    - If there are no planned payments, execution planned status is `"MISMATCH"` (since the envelope remaining is > 0 but unfinished planned total is 0). Rendered as warning, does not crash.
 9. **Planned payment with no configured execution envelope**:
@@ -96,22 +94,29 @@ We characterized the behavior of the current BQN engine across 12 specific test 
 10. **Over-allocation**:
     - If unassigned remaining budget is `< 0`, status is `"OVER_ALLOCATED"`. This triggers a warning: `WARNING: 未割当がマイナスです。`. No engine exit.
 11. **Insufficient funding/backing**:
-    - If `funding_base < allocated_total` (i.e. liquid assets are less than remaining active envelope balances), `cash_backed_unassigned` becomes `< 0`, and the backing status becomes `"OVER_ALLOCATED"`.
+    - If `funding_base < allocated_total` (i.e. liquid assets are less than remaining active envelope balances), `cash_backed_unassigned` becomes `< 0`, and the backing status becomes `"OVER_ALLOCATED"`. Verified via executable test.
     - If `ledger_cash_delta` (the difference between `cash_backed_unassigned` and `unassigned.remaining`) is not 0, status is `"MISMATCH"`.
     - In both cases, the report displays warnings/mismatches, but the engine does NOT fail or exit.
-12. **Duplicate or repeated plan identity where applicable**:
-    - Duplicate `plan_id` values do not cause error, but are both marked completed or both open, and accumulated in the Cube.
+12. **Duplicate or repeated plan identity**:
+    - Duplicate open `plan_id` values do not cause error, but are both included in the execution planned coverage open list, inflating `planned_open_total`.
 
 ## Compatibility Hazards for a Future Single-Journal Migration
 
 If we migrate to a future single-journal layout, the following behaviors present hazards or require design decisions:
 
-1. **Completion Semantics**:
-   - The current Cube (Layer 1) does not check plan completion evidence and sums future plan rows regardless of whether they have already been completed early. A future single-journal layout must define how completion is marked or if completed plans should be projected to a different layer (or omitted).
-2. **Direct TSV Parsing vs Checked Posting IR**:
+1. **Completion Semantics & Double Counting Hazard**:
+   - The current Cube (Layer 1) does not check plan completion evidence and sums future plan rows regardless of whether they have already been completed early.
+   - For example, if a plan is completed early by an actual transaction dated `2026-01-10` but the plan itself is dated `2026-01-15` (which is > `as_of` `2026-01-10`):
+     - `plan_rows.BuildBase` correctly matches `plan_id` and excludes it from execution planned coverage (`planned_open_total = 0`).
+     - But Cube-derived `future_planned_spent` (Layer 1 of Cube) still includes it because date > `as_of`. This double-counts the payment, reducing `days_until_empty` to 0.
+2. **Missing Execution Envelope Linkage Filter**:
+   - Current `BuildExecutionPlannedCoverage` sums every unfinished plan row in the cycle, regardless of category, envelope, or the configured execution envelope.
+   - For example, if we configure `EXECUTION_PLANNED_PAYMENTS_ENVELOPE=rent`, but `plan.tsv` contains an unrelated future unfinished plan for `expenses:food`, that plan's amount is still summed into `planned_open_total` for `rent`.
+   - In a single-journal model, source plans must carry or enforce a corresponding linkage (e.g., envelope reference metadata) to allow filtering.
+3. **Direct TSV Parsing vs Checked Posting IR**:
    - The execution planned coverage checks and fallback targets read and parse `plan.tsv` and `journal.tsv` directly using `loader.SplitTsvKeepEmpty`, duplicating the monetary interpretation and validation rules of the checked Posting IR.
    - If we migrate to a single-journal model, these components must transition to querying the checked Posting IR or the Cube.
-3. **Mismatches in Backing Checks**:
+4. **Mismatches in Backing Checks**:
    - Because `envelope_computation.bqn` performs backing checks between `funding_base` (liquid assets closing balance) and active envelopes, any mismatch in timing or double-entry mapping will result in a `"MISMATCH"` warning.
    - In a single-journal model, the relationship between actual asset accounts and budget/envelope accounts should be structurally verified (e.g. companion transactions) to prevent false warnings.
 
@@ -147,6 +152,6 @@ bash tools/check.sh
 
 ## Verification Evidence
 
-- **Public Fixture Family**: [fixtures/envelope-characterization/](file:///Users/user/Projects/moko/bqn-ledger/fixtures/envelope-characterization/)
-- **Unit Tests**: [tests/test_src_next_envelope_characterization.bqn](file:///Users/user/Projects/moko/bqn-ledger/tests/test_src_next_envelope_characterization.bqn)
-- **Check Script**: [checks/check-src-next-envelope-characterization.sh](file:///Users/user/Projects/moko/bqn-ledger/checks/check-src-next-envelope-characterization.sh) (integrated into [tools/check.sh](file:///Users/user/Projects/moko/bqn-ledger/tools/check.sh))
+- **Public Fixture Family**: [fixtures/envelope-characterization/](../../../fixtures/envelope-characterization/)
+- **Unit Tests**: [tests/test_src_next_envelope_characterization.bqn](../../../tests/test_src_next_envelope_characterization.bqn)
+- **Check Script**: [checks/check-src-next-envelope-characterization.sh](../../../checks/check-src-next-envelope-characterization.sh) (integrated into [tools/check.sh](../../../tools/check.sh))

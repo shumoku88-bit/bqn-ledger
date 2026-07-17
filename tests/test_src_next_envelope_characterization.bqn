@@ -37,6 +37,12 @@ summary ← env.Build { base ⇐ base, resolved ⇐ resolved, cy ⇐ cy, cube �
 1000 lib.AssertEq (⊑ (("rent"⊸≡¨ {𝕩.label}¨ summary.envelopes) / summary.envelopes)).actual_spent
 200 lib.AssertEq (⊑ (("rent"⊸≡¨ {𝕩.label}¨ summary.envelopes) / summary.envelopes)).remaining
 
+# ── Case 10 & Case 11: Root unassigned OVER_ALLOCATED and backing MISMATCH ──
+¯1700 lib.AssertEq summary.unassigned_remaining
+"OVER_ALLOCATED" lib.AssertEq summary.unassigned_status
+"MISMATCH" lib.AssertEq summary.backing_status
+
+
 # ── Case 4 & Case 3: Planned payments completed vs unfinished ──
 # Configured execution envelope is 'rent' (rent label)
 # Planned payments in plan.tsv:
@@ -82,20 +88,21 @@ inv_snapshot ← context.LoadPostingSourceSnapshot inv_base
 inv_proj ← context.BuildCheckedPostingProjectionFromSnapshot ⟨inv_snapshot, resolved, cy.start⟩
 "error" lib.AssertEq inv_proj.state # Invalid amount fails projection state
 
-# ── Case 7: Missing Date ──
-# sub_missing_date has date '2026-99-99'.
+# ── Case 7: Invalid Budget Date ──
+# sub_invalid_budget_date has date '2026-99-99' in budget_alloc.tsv.
 # Build checked projection.
-miss_base ← "fixtures/envelope-characterization/sub_missing_date"
+miss_base ← "fixtures/envelope-characterization/sub_invalid_budget_date"
 miss_snapshot ← context.LoadPostingSourceSnapshot miss_base
 miss_proj ← context.BuildCheckedPostingProjectionFromSnapshot ⟨miss_snapshot, resolved, cy.start⟩
 "ok" lib.AssertEq miss_proj.state # Invalid date does NOT fail projection state (it projects as invalid_date row status)
 miss_rows ← miss_proj.posting_rows
 miss_cube ← cube.Materialize ⟨miss_rows, cy.day_count, resolved.count⟩
 miss_tbds ← tbds.Build ⟨miss_rows, miss_cube, resolved, cy⟩
-HasMissDateError ← {𝕊:
+HasInvalidBudgetDateError ← {𝕊:
   ({𝕊 ⋄ env.Build { base ⇐ miss_base, resolved ⇐ resolved, cy ⇐ cy, cube ⇐ miss_cube, tbds ⇐ miss_tbds } ⋄ 0}⎊{𝕊 ⋄ 1}) @
 }
-1 lib.AssertEq HasMissDateError @ # But building the report crashes BQN when parsing the date
+1 lib.AssertEq HasInvalidBudgetDateError @ # But building the report crashes BQN when parsing the budget allocation date in CalcAllocated
+
 
 
 # ── Case 2: Empty Allocation Source ──
@@ -171,5 +178,55 @@ dup_ep ← dup_summary.execution_planned
 2 lib.AssertEq ≠ dup_ep.rows
 "rent_p2" lib.AssertEq (0⊑dup_ep.rows).plan_id
 "rent_p2" lib.AssertEq (1⊑dup_ep.rows).plan_id
+
+# ── Executable Evidence for Completed Future Plan Hazard ──
+# sub_completed_future_plan has a plan rent_p1 on 2026-01-15 (future relative to as_of=2026-01-10)
+# which is already completed in journal on 2026-01-10.
+comp_base ← "fixtures/envelope-characterization/sub_completed_future_plan"
+comp_snapshot ← context.LoadPostingSourceSnapshot comp_base
+comp_proj ← context.BuildCheckedPostingProjectionFromSnapshot ⟨comp_snapshot, resolved, cy.start⟩
+comp_rows ← comp_proj.posting_rows
+comp_cube ← cube.Materialize ⟨comp_rows, cy.day_count, resolved.count⟩
+comp_tbds ← tbds.Build ⟨comp_rows, comp_cube, resolved, cy⟩
+comp_summary ← env.Build { base ⇐ comp_base, resolved ⇐ resolved, cy ⇐ cy, cube ⇐ comp_cube, tbds ⇐ comp_tbds }
+
+# 1. execution planned coverage correctly excludes it because of completion evidence (plan_id matched)
+comp_ep ← comp_summary.execution_planned
+0 lib.AssertEq comp_ep.planned_open_total
+"MISMATCH" lib.AssertEq comp_ep.status
+
+# 2. Cube-derived future_planned_spent STILL counts it, double-counting and reducing days_until_empty to 0 (instead of 2)
+0 lib.AssertEq (⊑ (("rent"⊸≡¨ {𝕩.label}¨ comp_summary.envelopes) / comp_summary.envelopes)).days_until_empty
+
+# ── Executable Evidence for Missing execution-envelope linkage filter ──
+# sub_unrelated_unfinished_plan has an unfinished food plan food_p1.
+# Current BuildExecutionPlannedCoverage does not filter plans, so food_p1 is incorrectly summed.
+unrelated_base ← "fixtures/envelope-characterization/sub_unrelated_unfinished_plan"
+unrelated_snapshot ← context.LoadPostingSourceSnapshot unrelated_base
+unrelated_proj ← context.BuildCheckedPostingProjectionFromSnapshot ⟨unrelated_snapshot, resolved, cy.start⟩
+unrelated_rows ← unrelated_proj.posting_rows
+unrelated_cube ← cube.Materialize ⟨unrelated_rows, cy.day_count, resolved.count⟩
+unrelated_tbds ← tbds.Build ⟨unrelated_rows, unrelated_cube, resolved, cy⟩
+unrelated_summary ← env.Build { base ⇐ unrelated_base, resolved ⇐ resolved, cy ⇐ cy, cube ⇐ unrelated_cube, tbds ⇐ unrelated_tbds }
+
+unrelated_ep ← unrelated_summary.execution_planned
+350 lib.AssertEq unrelated_ep.planned_open_total  # rent_p2 (200) + food_p1 (150)
+¯150 lib.AssertEq unrelated_ep.delta
+2 lib.AssertEq ≠ unrelated_ep.rows
+
+# ── Executable Evidence for Insufficient Funding Backing OVER_ALLOCATED status ──
+# sub_insufficient_backing has actual cash closing balance = -1300, leading to backing status OVER_ALLOCATED.
+backing_base ← "fixtures/envelope-characterization/sub_insufficient_backing"
+backing_snapshot ← context.LoadPostingSourceSnapshot backing_base
+backing_proj ← context.BuildCheckedPostingProjectionFromSnapshot ⟨backing_snapshot, resolved, cy.start⟩
+backing_rows ← backing_proj.posting_rows
+backing_cube ← cube.Materialize ⟨backing_rows, cy.day_count, resolved.count⟩
+backing_tbds ← tbds.Build ⟨backing_rows, backing_cube, resolved, cy⟩
+backing_summary ← env.Build { base ⇐ backing_base, resolved ⇐ resolved, cy ⇐ cy, cube ⇐ backing_cube, tbds ⇐ backing_tbds }
+
+¯1300 lib.AssertEq backing_summary.funding_base
+400 lib.AssertEq backing_summary.allocated_total
+¯1700 lib.AssertEq backing_summary.cash_backed_unassigned
+"OVER_ALLOCATED" lib.AssertEq backing_summary.backing_status
 
 •Out "test_src_next_envelope_characterization.bqn: OK"

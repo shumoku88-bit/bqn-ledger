@@ -63,12 +63,12 @@ assert_eq "¯1700" "$unassigned_remaining" "unassigned_remaining should be ¯170
 assert_eq "OK" "$execution_planned_status" "execution_planned_status should be OK"
 assert_eq "MISMATCH" "$backing_status" "backing_status should be MISMATCH"
 
-# 3. Verify invalid-date crash via out-of-process probe
+# 3. Verify invalid budget date crash via out-of-process probe
 echo "Verifying invalid-date crash via subprocess..."
 probe_output=$(mktemp)
 probe_error=$(mktemp)
 set +e
-bqn checks/probes/envelope-invalid-date.bqn > "$probe_output" 2> "$probe_error"
+bqn checks/probes/envelope-invalid-budget-date.bqn > "$probe_output" 2> "$probe_error"
 probe_exit_code=$?
 set -e
 

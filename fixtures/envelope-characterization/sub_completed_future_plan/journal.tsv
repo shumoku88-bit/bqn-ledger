@@ -1,0 +1,3 @@
+2026-01-01	initial_cash	budget:unassigned	assets:cash	2000
+2026-01-02	spend_food	assets:cash	expenses:food	300
+2026-01-10	rent_paid	assets:cash	expenses:rent	1000	plan_id=rent_p1

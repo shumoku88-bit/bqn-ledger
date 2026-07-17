@@ -50,7 +50,7 @@ Rows 4–7 are routing candidates only and no next program slice is selected. Fe
 
 ### Report projection alignment
 
-Status: selected report-engine direction. Actual Comparison, Outlook Slices A/B, and Daily Trend plan numeric-owner runtime migrations are complete. **Cycle Summary remaining-plan numeric-owner characterization is complete.** Record: `docs/archive/completed-plans/CYCLE_REMAINING_PLAN_NUMERIC_OWNER_CHARACTERIZATION-2026-07-16.md`. **The next step is a compatibility decision candidate (unselected).**
+Status: selected report-engine direction. Actual Comparison, Outlook Slices A/B, and Daily Trend plan numeric-owner runtime migrations are complete. **Cycle Summary remaining-plan and Envelope allocation/execution-plan coverage characterizations are complete.** Records: `docs/archive/completed-plans/CYCLE_REMAINING_PLAN_NUMERIC_OWNER_CHARACTERIZATION-2026-07-16.md` and `docs/archive/completed-plans/ENVELOPE_ALLOCATION_AND_EXECUTION_PLAN_COVERAGE_CHARACTERIZATION-2026-07-17.md`. **The next step is a compatibility decision candidate (unselected).**
 
 Purpose: move eligible report numeric calculations from independent source re-parsing to checked Posting IR, Cube, or TBDS while preserving source-evidence paths for plan identity, memo, completion, and temporal semantics.
 
@@ -61,9 +61,8 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 - Outlook Slice A derives cumulative inclusive-O actual balances from checked Posting IR through a local TBDS view; applicable rejected actual evidence fails closed.
 - Outlook Slice B derives remaining-plan money from admitted plan Posting IR, retains plan-ID completion evidence, reserves valid anchored outflows when unmet, admits valid anchored inflows only after matching actual income through O, and treats applicable invalid anchor evidence as `error`.
 - Daily Trend keeps current-source coordinate replay (`O_row = D`): fixed reserve money comes from admitted `plan.tsv` Posting IR joined by `source_row`, while plan ID and row-local completion remain source evidence. Applicable rejected, missing, or structurally unjoinable plan evidence fails the section closed; existing `overlap.PlanId` fallback and exact-any-match completion behavior remain unchanged.
-- Cycle Summary `plan_expense_remaining` characterization is complete; no next program slice is selected.
-- [ ] Make a compatibility decision (unselected) regarding target completion policy, error propagation on rejected plan evidence, and owner choice (local join, Cube view, or TBDS view) before implementation.
-- Envelope allocation compatibility and execution-envelope plan coverage remain separate unselected candidates.
+- Cycle Summary plan_expense_remaining and Envelope allocation/coverage characterizations are complete; no next program slice is selected.
+- [ ] Make a compatibility decision (unselected) regarding target completion policy, error propagation on rejected plan/budget evidence, owner choice (local join, Cube view, or TBDS view), and execution envelope plan linkage/filtering before implementation.
 - Do not infer helper renaming, generic temporal kernel, report-wide `--as-of`, source TSV migration, Daily Capacity connection, envelope/cycle policy expansion, or automatic write.
 
 ## Next candidates
