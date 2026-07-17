@@ -9,13 +9,13 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-16
+Last hygiene pass: 2026-07-17
 - loader/util ownership normalization complete
 - Outlook checked numeric-owner Slices A/B complete
 - Daily Trend plan numeric-owner migration complete
 - Cycle Summary remaining-plan characterization complete
-- no next finite report slice is selected
-- Cycle Summary compatibility decision is an unselected candidate
+- Cycle Summary remaining-plan compatibility decision complete
+- Cycle Summary remaining-plan runtime migration is an unselected candidate
 - other unrelated candidates remain unselected
 
 ---
@@ -50,7 +50,7 @@ Rows 4–7 are routing candidates only and no next program slice is selected. Fe
 
 ### Report projection alignment
 
-Status: selected report-engine direction. Actual Comparison, Outlook Slices A/B, and Daily Trend plan numeric-owner runtime migrations are complete. **Cycle Summary remaining-plan numeric-owner characterization is complete.** Record: `docs/archive/completed-plans/CYCLE_REMAINING_PLAN_NUMERIC_OWNER_CHARACTERIZATION-2026-07-16.md`. **The next step is a compatibility decision candidate (unselected).**
+Status: selected report-engine direction. Actual Comparison, Outlook Slices A/B, and Daily Trend plan numeric-owner runtime migrations are complete. **Cycle Summary remaining-plan characterization and compatibility decision are complete.** Records: `docs/archive/completed-plans/CYCLE_REMAINING_PLAN_NUMERIC_OWNER_CHARACTERIZATION-2026-07-16.md` and `docs/archive/completed-plans/CYCLE_REMAINING_PLAN_NUMERIC_OWNER_COMPATIBILITY_DECISION-2026-07-17.md`. **The next runtime migration is unselected.**
 
 Purpose: move eligible report numeric calculations from independent source re-parsing to checked Posting IR, Cube, or TBDS while preserving source-evidence paths for plan identity, memo, completion, and temporal semantics.
 
@@ -61,8 +61,8 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 - Outlook Slice A derives cumulative inclusive-O actual balances from checked Posting IR through a local TBDS view; applicable rejected actual evidence fails closed.
 - Outlook Slice B derives remaining-plan money from admitted plan Posting IR, retains plan-ID completion evidence, reserves valid anchored outflows when unmet, admits valid anchored inflows only after matching actual income through O, and treats applicable invalid anchor evidence as `error`.
 - Daily Trend keeps current-source coordinate replay (`O_row = D`): fixed reserve money comes from admitted `plan.tsv` Posting IR joined by `source_row`, while plan ID and row-local completion remain source evidence. Applicable rejected, missing, or structurally unjoinable plan evidence fails the section closed; existing `overlap.PlanId` fallback and exact-any-match completion behavior remain unchanged.
-- Cycle Summary `plan_expense_remaining` characterization is complete; no next program slice is selected.
-- [ ] Make a compatibility decision (unselected) regarding target completion policy, error propagation on rejected plan evidence, and owner choice (local join, Cube view, or TBDS view) before implementation.
+- Cycle Summary target policy excludes completed plans, preserves `O <= D < C.end_exclusive`, selects a local `source_row` join to admitted plan Posting IR as numeric owner, and fails the section closed on applicable invalid, rejected, missing, or structurally unjoinable plan evidence.
+- [ ] A future runtime migration may implement only the approved Cycle Summary owner, completion, temporal, status, diagnostic, and fail-closed output contract with focused public target fixtures and checks. It remains unselected.
 - Envelope allocation compatibility and execution-envelope plan coverage remain separate unselected candidates.
 - Do not infer helper renaming, generic temporal kernel, report-wide `--as-of`, source TSV migration, Daily Capacity connection, envelope/cycle policy expansion, or automatic write.
 
