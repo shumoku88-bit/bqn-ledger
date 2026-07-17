@@ -1,0 +1,9 @@
+# Accounts for envelope characterization
+assets:cash	role=asset	type=liquid
+assets:savings	role=asset	type=savings
+income:salary	role=income
+expenses:food	role=expense	budget=food	budget_group=life	spend_class=variable
+expenses:rent	role=expense	budget=rent	budget_group=fixed	spend_class=fixed
+budget:unassigned	role=budget	kind=unassigned
+budget:food	role=budget	kind=envelope	envelope_role=dynamic	budget_group=life
+budget:rent	role=budget	kind=envelope	envelope_role=execution	budget_group=fixed
