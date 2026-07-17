@@ -3,7 +3,7 @@ set -euo pipefail
 export NO_COLOR=1
 
 # checks/check-src-next-cycle-remaining-plan-characterization.sh
-# Check: cycle-remaining-plan-characterization
+# Check: cycle-remaining-plan-runtime contract over public characterization fixtures
 
 # Resolve repo root
 SOURCE="${BASH_SOURCE[0]}"
@@ -42,6 +42,15 @@ assert_contains() {
   fi
 }
 
+assert_not_contains() {
+  local pattern="$1" text="$2" label="${3:-}"
+  if [[ "$text" != *"$pattern"* ]]; then
+    pass
+  else
+    fail "${label:-assert_not_contains}: unexpected pattern [$pattern] found in text"
+  fi
+}
+
 # ── Tests ──
 
 # 1. Run the BQN unit test
@@ -52,39 +61,26 @@ else
   fail "BQN unit test failed"
 fi
 
-# 2. Verify summary outputs on root fixture using tools/report-next-summary and tools/query
-echo "Verifying summary output via tools/query..."
-# Query fields
+# 2. Verify normal summary output through the public query path.
+echo "Verifying normal summary output via tools/query..."
 plan_expense_remaining=$(bash tools/query fixtures/cycle-remaining-plan-characterization src_next_cycle_plan_expense_remaining)
-
 assert_eq "500" "$plan_expense_remaining" "plan_expense_remaining should be 500"
 
-# 3. Verify invalid-date crash via out-of-process probe
-echo "Verifying invalid-date crash via subprocess..."
-probe_output=$(mktemp)
-probe_error=$(mktemp)
+# 3. Verify invalid dates stop the whole Cycle Summary with source-row reasons.
+echo "Verifying controlled invalid-date Cycle Summary error..."
 set +e
-bqn checks/probes/cycle-summary-invalid-date.bqn > "$probe_output" 2> "$probe_error"
+probe_output=$(bqn checks/probes/cycle-summary-invalid-date.bqn 2>&1)
 probe_exit_code=$?
 set -e
 
-# Assert non-zero exit code
-if [ "$probe_exit_code" -ne 0 ]; then
-  pass
-else
-  fail "Probe did not crash; exited with 0"
-fi
-
-# Assert combined output or stderr is non-empty and contains key error markers
-combined_output=$(cat "$probe_output" "$probe_error")
-if [ -n "$combined_output" ]; then
-  pass
-else
-  fail "Probe output was completely empty"
-fi
-
-assert_contains "indexing out-of-bounds" "$combined_output" "Probe error should contain indexing out-of-bounds"
-rm -f "$probe_output" "$probe_error"
+assert_eq "0" "$probe_exit_code" "invalid-date probe should return controlled output"
+assert_contains "src_next_cycle_state: error" "$probe_output" "probe should expose Cycle error state"
+assert_contains "src_next_cycle_reason: rejected_plan_evidence" "$probe_output" "probe should expose failure reason"
+assert_contains "src_next_cycle_diagnostic_count: 2" "$probe_output" "probe should expose both invalid rows"
+assert_contains "src_next_cycle_diagnostic_1_status: invalid_date" "$probe_output" "first invalid row should be identified"
+assert_contains "src_next_cycle_diagnostic_2_status: invalid_date" "$probe_output" "second invalid row should be identified"
+assert_not_contains "src_next_cycle_income_actual:" "$probe_output" "error output must suppress normal Cycle numbers"
+assert_not_contains "src_next_cycle_plan_expense_remaining:" "$probe_output" "error output must suppress remaining amount"
 
 # ── Summary ──
 echo "check-src-next-cycle-remaining-plan-characterization: $PASS passed, $FAIL failed" >&2
