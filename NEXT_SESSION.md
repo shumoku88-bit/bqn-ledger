@@ -30,15 +30,9 @@ Current runtime boundary:
 
 ## Selected next finite slice
 
-**Minimal BQN Journal Profile Stage 0** (docs and fixture only):
-- minimal supported journal syntax
-- one synthetic `ledger.journal`
-- expected Transaction IR
-- expected Posting IR
-- exact hledger comparison commands
+No next finite slice is selected.
 
-PR #273 is parked background design evidence only; it is not implementation authorization.
-journal parser, writer, runtime routing, production conversion, and source-of-truth migration are unselected.
+Journal single-source direction remains a parked candidate requiring plan reconsideration. Minimal BQN Journal Profile Stage 0 is unselected. PR #273 is parked background design evidence and is not implementation authorization. journal parser, writer, runtime routing, production conversion, and source-of-truth migration are unselected.
 
 Candidates for future sessions:
 
