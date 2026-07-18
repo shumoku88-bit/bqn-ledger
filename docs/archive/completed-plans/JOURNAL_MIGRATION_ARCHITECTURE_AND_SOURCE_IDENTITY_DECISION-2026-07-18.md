@@ -16,7 +16,7 @@ This decision records architecture and migration boundaries only. It changes no 
 
 ### Current production source boundary
 
-Current `main` reads these posting sources:
+Current `main` reads these source files:
 
 - `journal.tsv`
 - `plan.tsv`
