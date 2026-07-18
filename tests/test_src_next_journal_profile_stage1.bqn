@@ -47,6 +47,7 @@ HasCode ← {𝕊 code‿parseResult:
 }
 
 CheckFail ← {𝕊 source‿code:
+  •Out "red-path: " ∾ code
   failed ← parser.Parse source
   "error" lib.AssertEq failed.state
   lib.Assert HasCode ⟨code, failed⟩
