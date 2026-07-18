@@ -9,7 +9,8 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-17
+Last hygiene pass: 2026-07-18
+- journal migration architecture and source identity decision complete
 - loader/util ownership normalization complete
 - Outlook checked numeric-owner Slices A/B complete
 - Daily Trend plan numeric-owner migration complete
@@ -67,12 +68,39 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 - Cycle Summary machine/human output exposes state/reason/source-row diagnostics and emits no normal numeric or breakdown rows on error; empty plan and no-actual cases remain valid `ok` results.
 - Envelope allocation and coverage characterizations are complete.
 - Envelope runtime compatibility decision, completion-aware Cube modification, linkage filter implementation, and fail-closed migration are parked / unselected.
-- Minimal BQN Journal Profile Stage 0 is unselected; journal single-source direction remains a parked candidate requiring plan reconsideration.
-- PR #273 is parked background design evidence, not implementation authorization.
+- Journal migration architecture and source identity decision is complete; record: `docs/archive/completed-plans/JOURNAL_MIGRATION_ARCHITECTURE_AND_SOURCE_IDENTITY_DECISION-2026-07-18.md`.
+- `tools/to-hledger` remains a generated one-way compatibility projection while TSV is source truth; it is not the future parser or writer.
+- Minimal BQN Journal Profile Stage 0 remains an unselected next candidate.
+- PR #273 remains parked background design evidence, not implementation authorization.
 - journal parser, writer, runtime routing, production conversion, and source-of-truth migration are unselected.
 - Do not infer helper renaming, generic temporal kernel, report-wide `--as-of`, source TSV migration, Daily Capacity connection, envelope/cycle policy expansion, or automatic write.
 
+### Journal source migration
+
+Status: selected architecture direction. The docs-only architecture and source identity decision is complete. No parser, writer, runtime-routing, conversion, or source-of-truth implementation slice is selected.
+
+Purpose: preserve the current safe TSV daily path while defining a future native journal source that enters through Transaction IR and checked Posting IR rather than being flattened back into `from / to / amount` rows.
+
+- Current source truth remains `journal.tsv`, `plan.tsv`, `budget_alloc.tsv`, and `accounts.tsv`.
+- The owner-confirmed automatic TSV-to-journal sync and `tools/to-hledger` are compatibility projection and shadow-read evidence.
+- The future target boundary is `journal text -> Transaction IR -> checked Posting IR -> Cube / TBDS -> reports`.
+- Current A-1 `txn_id` grouping remains the TSV-era compatibility policy; it is not a permanent prohibition on native journal transaction blocks.
+- Future identity separates semantic `source_event_id` from physical source spans; posting identity is deterministic within each event.
+- Existing `source_row` joins remain legacy compatibility surfaces and must migrate consumer by consumer before cutover.
+- Migration must remain one-directional. Do not create dual daily writes, reverse sync, or an automatic conflict resolver.
+- A future cutover must freeze an immutable TSV snapshot and switch writers once, after parity and recovery gates.
+- The next coherent candidate is Minimal BQN Journal Profile Stage 0 characterization, but it remains unselected.
+
 ## Next candidates
+
+### Minimal BQN Journal Profile Stage 0 characterization
+
+Status: unselected docs/fixture-only follow-up. Architecture and source identity are decided in `docs/archive/completed-plans/JOURNAL_MIGRATION_ARCHITECTURE_AND_SOURCE_IDENTITY_DECISION-2026-07-18.md`.
+
+- [ ] Use public synthetic evidence only: declarations, one split receipt, one planned payment with early completion, one budget allocation, and one loan repayment split into principal and interest.
+- [ ] Judge human readability and semantic sufficiency, including candidate event identity, posting order, plan completion, and execution-envelope linkage.
+- [ ] Treat current `tools/to-hledger` output as compatibility evidence, not target grammar or source truth.
+- [ ] Do not implement a parser, writer, runtime route, production conversion, source cutover, reverse sync, or private-data fixture.
 
 ### Daily Capacity evidence adapter characterization
 
