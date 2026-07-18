@@ -1,0 +1,11 @@
+equity:opening	role=equity
+assets:cash	role=asset	type=liquid
+expenses:食費	role=expense	budget=食費	budget_group=daily	spend_class=variable
+expenses:日用品	role=expense	budget=日用品	budget_group=flex	spend_class=variable
+expenses:米・食料ストック	role=expense	budget=米・食料ストック	budget_group=reserve	spend_class=variable
+expenses:対象外	role=expense	budget=対象外	budget_group=other	spend_class=variable
+budget:unassigned	role=budget	kind=unassigned
+budget:食費	role=budget	kind=envelope	envelope_role=dynamic	budget_group=daily
+budget:日用品	role=budget	kind=envelope	envelope_role=dynamic	budget_group=flex
+budget:米・食料ストック	role=budget	kind=envelope	envelope_role=dynamic	budget_group=reserve
+budget:対象外	role=budget	kind=envelope	envelope_role=dynamic	budget_group=other

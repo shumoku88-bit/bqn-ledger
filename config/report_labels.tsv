@@ -60,7 +60,8 @@ outlook.future_income_label	  予定収入(残)
 outlook.future_expense_label	  予定支出(残)       
 outlook.using_liquid_label	  使える可用資金      
 outlook.safe_liquid_label	  可用資金 (安全/保守) ÷ 残日数 : 
-outlook.envelope_title	── 封筒日割り ──
+outlook.envelope_title	── 日常封筒 ──
+outlook.reserve_title	── まとめ支出の確保 ──
 outlook.future_none	+    0   (なし)
 outlook.expense_none	-    0   (なし)
 outlook.per_day_suffix	 /日

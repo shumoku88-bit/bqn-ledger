@@ -1,0 +1,9 @@
+HOUSEHOLD_GROUP_LIFE=daily,flex
+HOUSEHOLD_GROUP_RESERVE=reserve
+HOUSEHOLD_GROUP_ORDER=daily,flex,reserve
+BUDGET_PREFIX=budget:
+BUDGET_ID_OPENING=budget:opening
+BUDGET_ID_UNASSIGNED=budget:unassigned
+BUDGET_ID_SPENT=budget:spent
+POLICY_BUDGET_STYLE=envelope
+POLICY_RISK_STYLE=conservative
