@@ -1,0 +1,27 @@
+; Public synthetic bookkeeping matrix study: unearned maintenance revenue and revenue recognition.
+; This fixture is study evidence only and is not production source truth.
+
+commodity JPY
+
+account assets:bank
+    ; role: asset
+
+account liabilities:unearned-revenue
+    ; role: liability
+
+account income:maintenance
+    ; role: income
+
+2026-11-01 * Example Customer | annual maintenance service fee received in advance
+    ; event-id: event-maintenance-advance-001
+    ; action: receive-advance
+    ; agreement-id: maintenance-example-001
+    assets:bank                     12000 JPY
+    liabilities:unearned-revenue   -12000 JPY
+
+2026-11-30 * Example Customer | one month maintenance revenue recognized
+    ; event-id: event-maintenance-recognition-001
+    ; action: recognize-revenue
+    ; agreement-id: maintenance-example-001
+    liabilities:unearned-revenue     1000 JPY
+    income:maintenance              -1000 JPY

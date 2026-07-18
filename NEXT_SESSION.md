@@ -5,7 +5,7 @@ Owner: architecture
 Canonical: no
 Exit: replace when a new finite implementation or design slice is selected
 
-Journal migration architecture/source identity, Minimal BQN Journal Profile Stage 0, test-only Minimal BQN Journal parser Stage 1, the receivable bookkeeping matrix study Stage 1, the payable bookkeeping matrix study Stage 2, and the prepaid insurance bookkeeping matrix study Stage 3 are complete.
+Journal migration architecture/source identity, Minimal BQN Journal Profile Stage 0, test-only Minimal BQN Journal parser Stage 1, the receivable bookkeeping matrix study Stage 1, the payable bookkeeping matrix study Stage 2, the prepaid insurance bookkeeping matrix study Stage 3, and the unearned maintenance revenue bookkeeping matrix study Stage 4 are complete. The initial four-direction bookkeeping matrix set—receivable, payable, prepaid expense, and unearned revenue—is complete.
 
 Latest decision records and evidence:
 
@@ -15,6 +15,7 @@ Latest decision records and evidence:
 - `docs/archive/completed-plans/BOOKKEEPING_MATRIX_RECEIVABLE_STAGE1-2026-07-18.md`
 - `docs/archive/completed-plans/BOOKKEEPING_MATRIX_PAYABLE_STAGE2-2026-07-18.md`
 - `docs/archive/completed-plans/BOOKKEEPING_MATRIX_PREPAID_INSURANCE_STAGE3-2026-07-18.md`
+- `docs/archive/completed-plans/BOOKKEEPING_MATRIX_UNEARNED_REVENUE_STAGE4-2026-07-18.md`
 - `fixtures/journal-profile-stage0/profile.journal`
 - `fixtures/journal-profile-stage0/expected-posting-matrix.tsv`
 - `fixtures/bookkeeping-matrix-receivable/profile.journal`
@@ -26,11 +27,15 @@ Latest decision records and evidence:
 - `fixtures/bookkeeping-matrix-prepaid-insurance/profile.journal`
 - `fixtures/bookkeeping-matrix-prepaid-insurance/expected-event-account-matrix.tsv`
 - `fixtures/bookkeeping-matrix-prepaid-insurance/expected-running-balances.tsv`
+- `fixtures/bookkeeping-matrix-unearned-revenue/profile.journal`
+- `fixtures/bookkeeping-matrix-unearned-revenue/expected-event-account-matrix.tsv`
+- `fixtures/bookkeeping-matrix-unearned-revenue/expected-running-balances.tsv`
 - `src_next/journal_profile_stage1.bqn`
 - `tests/test_src_next_journal_profile_stage1.bqn`
 - `tests/test_bookkeeping_matrix_receivable.bqn`
 - `tests/test_bookkeeping_matrix_payable.bqn`
 - `tests/test_bookkeeping_matrix_prepaid_insurance.bqn`
+- `tests/test_bookkeeping_matrix_unearned_revenue.bqn`
 - `tools/to-hledger`
 - `docs/POSTING_IR_CONTRACT.md`
 - `docs/archive/completed-plans/DECISION_MULTI_POSTING_INVESTIGATION.md`
@@ -52,6 +57,7 @@ Current source and projection boundary:
 - Stage 1 parses only the public Stage 0 subset into a test-only Transaction IR and signed event-account matrix;
 - Stage 1 fails closed for covered invalid, ambiguous, duplicate-required, unsupported-metadata, and unbalanced evidence;
 - Stage 1 is not connected to the production loader, editor, reports, private data, conversion, or source cutover;
+- the independent receivable, payable, prepaid expense, and unearned revenue studies complete the initial four-direction bookkeeping matrix set;
 - current A-1 `txn_id` grouping remains valid for the TSV era;
 - current `source_row` joins must migrate consumer by consumer before any source cutover;
 - no dual daily write, reverse sync, automatic conflict resolver, writer, production routing, production conversion, or source-of-truth switch is selected.
