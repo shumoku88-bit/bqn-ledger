@@ -1,0 +1,3 @@
+event_key	layer	assets:bank	liabilities:other-payable	expenses:maintenance	row_total
+expense-on-account	actual	0	-2400	2400	0
+payable-payment	actual	-2400	2400	0	0
