@@ -31,7 +31,7 @@ expectedLayers lib.AssertEq actualLayers
 expectedPostingCounts ← 3‿2‿2‿2‿3
 expectedPostingCounts lib.AssertEq {≠𝕩.postings}¨ result.transactions
 
-matrixLines ← loader.ReadLines "../fixtures/journal-profile-stage0/expected-posting-matrix.tsv"
+matrixLines ← loader.ReadLines "fixtures/journal-profile-stage0/expected-posting-matrix.tsv"
 header ← loader.SplitTsvKeepEmpty ⊑ matrixLines
 accountKeys ← <¨ 2 ↓ ¯1 ↓ header
 expectedMatrix ← {
