@@ -1,0 +1,69 @@
+; Public synthetic paper fixture for Minimal BQN Journal Profile Stage 0.
+; This is characterization evidence, not an active parser contract or source truth.
+
+commodity JPY
+
+account assets:cash
+    ; role: asset
+
+account assets:bank
+    ; role: asset
+
+account liabilities:loan
+    ; role: liability
+
+account expenses:food
+    ; role: expense
+
+account expenses:household
+    ; role: expense
+
+account expenses:rent
+    ; role: expense
+
+account expenses:interest
+    ; role: expense
+
+account budget:daily
+    ; role: budget
+    ; kind: envelope
+
+account budget:unassigned
+    ; role: budget
+    ; kind: unassigned
+
+2026-08-03 * Example Market | groceries and soap
+    ; action: buy
+    ; receipt-id: receipt-example-001
+    expenses:food             800 JPY
+    expenses:household        300 JPY
+    assets:cash             -1100 JPY
+
+2026-08-15 ! Example Landlord | August rent plan
+    ; event-id: event-plan-rent-2026-08
+    ; layer: plan
+    ; plan-id: plan-rent-2026-08
+    ; execution-envelope: reserve
+    expenses:rent            5000 JPY
+    assets:bank             -5000 JPY
+
+2026-08-14 * Example Landlord | August rent paid early
+    ; action: paid
+    ; plan-id: plan-rent-2026-08
+    ; execution-envelope: reserve
+    expenses:rent            5000 JPY
+    assets:bank             -5000 JPY
+
+2026-08-01 * Household | allocate daily budget
+    ; event-id: event-budget-daily-2026-08
+    ; layer: budget
+    ; allocation-id: allocation-daily-2026-08
+    budget:daily             7000 JPY
+    budget:unassigned       -7000 JPY
+
+2026-08-20 * Example Lender | loan repayment
+    ; action: repay
+    ; agreement-id: loan-example-001
+    liabilities:loan         900 JPY
+    expenses:interest        100 JPY
+    assets:bank             -1000 JPY
