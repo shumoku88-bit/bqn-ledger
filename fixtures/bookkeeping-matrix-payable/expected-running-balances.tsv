@@ -1,3 +1,3 @@
-event_key	assets:bank	liabilities:accounts-payable	expenses:maintenance
+event_key	assets:bank	liabilities:other-payable	expenses:maintenance
 expense-on-account	0	-2400	2400
 payable-payment	-2400	0	2400
