@@ -47,10 +47,7 @@ HasCode ← {𝕊 code‿parseResult:
 }
 
 CheckFail ← {𝕊 source‿code:
-  •Out "red-path: " ∾ code
   failed ← parser.Parse source
-  •Out "state: " ∾ failed.state
-  •Out "diagnostics: " ∾ •Fmt {𝕩.code}¨ failed.diagnostics
   "error" lib.AssertEq failed.state
   lib.Assert HasCode ⟨code, failed⟩
 }
@@ -93,7 +90,13 @@ unbalanced ← ∾ ⟨
 ⟩
 CheckFail ⟨unbalanced, "event_unbalanced"⟩
 
-unsupported ← Prefix @ ∾ "include another.journal" ∾ lf
-CheckFail ⟨unsupported, "unsupported_group"⟩
+unsupportedMetadata ← ∾ ⟨
+  Prefix @,
+  "2026-08-15 * Unsupported metadata", lf,
+  "    ; include: another.journal", lf,
+  "    expenses:rent 10 JPY", lf,
+  "    assets:bank -10 JPY", lf
+⟩
+CheckFail ⟨unsupportedMetadata, "metadata_unsupported"⟩
 
 •Out "test_src_next_journal_profile_stage1.bqn: OK"
