@@ -1,0 +1,3 @@
+event_key	layer	assets:bank	liabilities:unearned-revenue	income:maintenance	row_total
+maintenance-advance-received	actual	12000	-12000	0	0
+maintenance-month-earned	actual	0	1000	-1000	0

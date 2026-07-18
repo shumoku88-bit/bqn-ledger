@@ -22,6 +22,8 @@ Last hygiene pass: 2026-07-18
 - receivable bookkeeping matrix study Stage 1 research complete (test-only research fixture; not a production feature)
 - payable bookkeeping matrix study Stage 2 research complete (test-only research fixture; not a production feature)
 - prepaid insurance bookkeeping matrix study Stage 3 research complete (test-only research fixture; not a production feature)
+- unearned maintenance revenue bookkeeping matrix study Stage 4 research complete (test-only research fixture; not a production feature)
+- the initial four-direction bookkeeping matrix set is complete: receivable, payable, prepaid expense, and unearned revenue
 - no next finite report slice or bookkeeping study topic is selected
 - envelope allocation / execution-plan coverage characterization remains an unselected candidate
 - other unrelated candidates remain unselected
@@ -96,7 +98,8 @@ Purpose: preserve the current safe TSV daily path while defining a future native
 - Stage 0 distinguishes compact human input from explicit durable source: ordinary actuals may omit `event-id`, while plans, allocations, stable editing, and durable references require explicit identity; durable postings remain explicit.
 - Stage 0 adds a public synthetic `event x account` matrix characterization so row balance, layer masks, and account-column reduction remain first-class BQN/accounting evidence.
 - Stage 1 parses only that public supported subset into a test-only Transaction IR, preserves ordered postings and links, fails closed for covered invalid evidence, and reproduces the expected signed matrix.
-- Stage 1 is not connected to production source loading, the editor, reports, private data, conversion, or cutover.
+- The first four independent bookkeeping matrix studies are complete: receivable, payable, prepaid expense, and unearned revenue.
+- Stage 1 and the bookkeeping studies are not connected to production source loading, the editor, reports, private data, conversion, or cutover.
 - Existing `source_row` joins remain legacy compatibility surfaces and must migrate consumer by consumer before cutover.
 - Migration must remain one-directional. Do not create dual daily writes, reverse sync, or an automatic conflict resolver.
 - A future cutover must freeze an immutable final TSV snapshot and switch writers once, after parity and recovery gates.
