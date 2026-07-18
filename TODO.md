@@ -34,6 +34,53 @@ Last hygiene pass: 2026-07-18
 
 The latest AI working feedback record was completed by PR #227 and is an evidence input only; it is not an automatic implementation queue.
 
+### OpenAI Build Week submission
+
+Status: selected deadline-bound active work. Submit `bqn-ledger` to OpenAI Build Week by 2026-07-22 09:00 JST. This is an existing project, so the submission must clearly distinguish pre-existing work from the meaningful extension built during the hackathon submission period.
+
+Purpose: use Codex with GPT-5.6 for one meaningful, runnable journal-migration implementation while preserving the normal pi-agent workflow for repository planning, accounting decisions, review, and unrelated development.
+
+Selected Codex-owned core slice:
+
+- Journal Posting IR adapter parity Stage 2 is selected as the Build Week implementation slice.
+- Implement a test-only `Journal Transaction IR -> normalized Posting IR` adapter.
+- Compare its output deterministically with the current TSV adapter for public synthetic transactions representable by both paths.
+- Provide a runnable parity command or entry point with a clear human-readable report, machine-detectable success/failure, focused fixtures, and tests.
+- Build the majority of this core functionality in one Codex thread using GPT-5.6 and retain its `/feedback` Session ID for the submission.
+
+Owner-controlled decisions:
+
+- Accounting meaning, scope boundaries, source-truth policy, privacy policy, production activation, and cutover decisions remain human-owned and may be developed or reviewed through the normal pi-agent workflow.
+- Work performed through pi agent must not be represented as work performed through Codex.
+- The prepaid-insurance and unearned-revenue bookkeeping studies remain separate accounting-research slices and are not the Build Week Codex implementation.
+
+Submission checklist:
+
+- [ ] Register for OpenAI Build Week as an individual entrant.
+- [ ] Record the pre-hackathon baseline and identify commits added during the submission period.
+- [ ] Create a short dated execution record defining the exact adapter, comparator, CLI/report, fixture, test, and non-goals before beginning the Codex session.
+- [ ] Build the majority of the selected core functionality in one Codex GPT-5.6 thread.
+- [ ] Retrieve and preserve the primary Codex thread’s `/feedback` Session ID.
+- [ ] Keep the implementation runnable from a documented command using public synthetic data.
+- [ ] Add focused tests and run the repository’s normal validation.
+- [ ] Document where Codex accelerated implementation and where the owner made product, accounting, architecture, and safety decisions.
+- [ ] Add English setup, testing, supported-platform, sample-data, and Build Week instructions to the submission-facing README material.
+- [ ] Prepare a public YouTube demonstration shorter than three minutes with audio explaining the project, Codex use, and GPT-5.6 use.
+- [ ] Complete and submit the Devpost entry before 2026-07-22 09:00 JST.
+- [ ] Preserve the final submission URL, demo URL, repository commit, and Codex Session ID in a completion record.
+
+Boundaries:
+
+- Do not change production source truth.
+- Do not activate production journal reads.
+- Do not read or convert private ledger data.
+- Do not implement a journal writer or source cutover.
+- Do not connect the new path to Cube, TBDS, reports, or the editor merely for the hackathon.
+- Do not add a web UI solely to make the submission look larger.
+- Do not turn the deadline into authorization for a broad journal migration.
+- Do not claim that normal pi-agent GPT-5.6 work was performed through Codex.
+- Do not submit until the runnable project, repository instructions, video, and `/feedback` Session ID are all present.
+
 ### Configurable AI-assisted household ledger and report
 
 Status: selected highest-priority development direction. The docs-only foundation synthesis, PR #219 dependency, and config ownership inventory are complete; no next program slice is selected.
@@ -79,7 +126,7 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 - Minimal BQN Journal Profile Stage 0 characterization is complete; record: `docs/archive/completed-plans/MINIMAL_BQN_JOURNAL_PROFILE_STAGE0_CHARACTERIZATION-2026-07-18.md`.
 - Test-only Minimal BQN Journal parser Stage 1 is complete; record: `docs/archive/completed-plans/MINIMAL_BQN_JOURNAL_PARSER_STAGE1-2026-07-18.md`.
 - `tools/to-hledger` remains a generated one-way compatibility projection while TSV is source truth; it is not the future parser or writer.
-- Journal Posting IR adapter parity Stage 2 remains an unselected next candidate.
+- Journal Posting IR adapter parity Stage 2 is selected only as the bounded test-only OpenAI Build Week core slice defined under Active work; this does not select production routing, writer, conversion, cutover, Cube, TBDS, or report integration.
 - PR #273 remains parked background design evidence, not implementation authorization.
 - production journal parser routing, writer, production conversion, and source-of-truth migration are unselected.
 - Do not infer helper renaming, generic temporal kernel, report-wide `--as-of`, source TSV migration, Daily Capacity connection, envelope/cycle policy expansion, or automatic write.
@@ -103,13 +150,13 @@ Purpose: preserve the current safe TSV daily path while defining a future native
 - Existing `source_row` joins remain legacy compatibility surfaces and must migrate consumer by consumer before cutover.
 - Migration must remain one-directional. Do not create dual daily writes, reverse sync, or an automatic conflict resolver.
 - A future cutover must freeze an immutable final TSV snapshot and switch writers once, after parity and recovery gates.
-- The next coherent migration candidate is Journal Posting IR adapter parity Stage 2, but it remains unselected.
+- Journal Posting IR adapter parity Stage 2 is selected as the bounded test-only OpenAI Build Week implementation slice. Production parser routing, private shadow reads, writer work, conversion, and cutover remain unselected.
 
 ## Next candidates
 
-### Journal Posting IR adapter parity Stage 2
+### Journal Posting IR adapter parity Stage 2: selected Build Week slice
 
-Status: unselected test-only follow-up. Stage 1 evidence and decisions are recorded in `docs/archive/completed-plans/MINIMAL_BQN_JOURNAL_PARSER_STAGE1-2026-07-18.md`, `src_next/journal_profile_stage1.bqn`, and `tests/test_src_next_journal_profile_stage1.bqn`.
+Status: selected under the OpenAI Build Week active-work slice as a bounded test-only implementation. The checklist below defines its technical contract; the Active work section owns the deadline, Codex evidence, and submission requirements. Stage 1 evidence and decisions are recorded in `docs/archive/completed-plans/MINIMAL_BQN_JOURNAL_PARSER_STAGE1-2026-07-18.md`, `src_next/journal_profile_stage1.bqn`, and `tests/test_src_next_journal_profile_stage1.bqn`.
 
 - [ ] Compare Stage 1 normalized postings with the current TSV adapter on public synthetic transactions representable by both.
 - [ ] Compare signed money, layers, transaction and posting identity, provenance, and fail-closed rejection behavior before Cube, TBDS, or reports.
