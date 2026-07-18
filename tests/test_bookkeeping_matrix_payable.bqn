@@ -35,12 +35,12 @@ expectedPostingCounts lib.AssertEq {≠𝕩.postings}¨ result.transactions
 t0_postings ← (0 ⊑ result.transactions).postings
 "expenses:maintenance" lib.AssertEq (0 ⊑ t0_postings).account_key
 2400 lib.AssertEq (0 ⊑ t0_postings).delta
-"liabilities:accounts-payable" lib.AssertEq (1 ⊑ t0_postings).account_key
+"liabilities:other-payable" lib.AssertEq (1 ⊑ t0_postings).account_key
 ¯2400 lib.AssertEq (1 ⊑ t0_postings).delta
 
-# Payable paid transaction postings
+# Service payable paid transaction postings
 t1_postings ← (1 ⊑ result.transactions).postings
-"liabilities:accounts-payable" lib.AssertEq (0 ⊑ t1_postings).account_key
+"liabilities:other-payable" lib.AssertEq (0 ⊑ t1_postings).account_key
 2400 lib.AssertEq (0 ⊑ t1_postings).delta
 "assets:bank" lib.AssertEq (1 ⊑ t1_postings).account_key
 ¯2400 lib.AssertEq (1 ⊑ t1_postings).delta
@@ -64,7 +64,7 @@ expectedMatrix lib.AssertEq actualMatrix
 
 # Resolve column indexes for verification
 bankIdx ← ⊑ matrixAccountKeys ⊐ ⟨ <"assets:bank" ⟩
-payableIdx ← ⊑ matrixAccountKeys ⊐ ⟨ <"liabilities:accounts-payable" ⟩
+payableIdx ← ⊑ matrixAccountKeys ⊐ ⟨ <"liabilities:other-payable" ⟩
 maintenanceIdx ← ⊑ matrixAccountKeys ⊐ ⟨ <"expenses:maintenance" ⟩
 
 # Verify 0-cells in specific events
@@ -101,7 +101,7 @@ finalBalance ← ¯1 ⊑ actualBalances
 2400 lib.AssertEq maintenanceIdx ⊑ finalBalance
 
 # Assert explicit invariants:
-# 1. Accounts payable is -2400 after expense incurrence, 0 after payment
+# 1. Other payable is -2400 after expense incurrence, 0 after payment
 # 2. Maintenance expense remains 2400 after both events
 # 3. Bank remains 0 after expense incurrence, -2400 after payment
 balanceAfterIncurrence ← 0 ⊑ actualBalances
