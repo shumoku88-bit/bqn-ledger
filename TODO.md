@@ -34,6 +34,19 @@ Last hygiene pass: 2026-07-18
 
 The latest AI working feedback record was completed by PR #227 and is an evidence input only; it is not an automatic implementation queue.
 
+### Journal Posting IR adapter parity Stage 2A
+
+Status: selected bounded test-only work. Canonical plan: `docs/archive/active-plans/JOURNAL_POSTING_IR_ADAPTER_PARITY_STAGE2A_PLAN-2026-07-18.md`.
+
+Purpose: implement only the first success path from admitted Minimal BQN Journal Stage 1 Transaction IR to the current normalized Posting IR shape, then compare its selected semantics with the existing checked TSV path.
+
+- Use one dedicated public synthetic fixture directory with exactly one actual transaction and one plan transaction.
+- Give each transaction exactly one positive and one negative posting; each must also be representable by one TSV source row.
+- Use the same account declarations and integer JPY amounts on both paths; do not include the budget layer.
+- Assert only transaction order, posting order within each transaction, `date`, `account_key`, `delta`, `side`, `layer_name`, per-transaction zero delta sum, and `ok` status on both paths.
+- Keep identity/provenance parity, rejection/red-path parity, native multi-posting parity, production routing, and cutover unselected.
+- Do not change the existing parser or TSV adapter, and do not connect production data, private data, writers, Cube, TBDS, reports, editor, CLI, or a human-facing parity report.
+
 ### Configurable AI-assisted household ledger and report
 
 Status: selected highest-priority development direction. The docs-only foundation synthesis, PR #219 dependency, and config ownership inventory are complete; no next program slice is selected.
@@ -79,7 +92,7 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 - Minimal BQN Journal Profile Stage 0 characterization is complete; record: `docs/archive/completed-plans/MINIMAL_BQN_JOURNAL_PROFILE_STAGE0_CHARACTERIZATION-2026-07-18.md`.
 - Test-only Minimal BQN Journal parser Stage 1 is complete; record: `docs/archive/completed-plans/MINIMAL_BQN_JOURNAL_PARSER_STAGE1-2026-07-18.md`.
 - `tools/to-hledger` remains a generated one-way compatibility projection while TSV is source truth; it is not the future parser or writer.
-- Journal Posting IR adapter parity Stage 2 remains an unselected next candidate.
+- Journal Posting IR adapter parity Stage 2A is selected only as the bounded test-only success-path adapter slice; identity/provenance, rejection/red-path, native multi-posting, production routing, and cutover remain unselected.
 - PR #273 remains parked background design evidence, not implementation authorization.
 - production journal parser routing, writer, production conversion, and source-of-truth migration are unselected.
 - Do not infer helper renaming, generic temporal kernel, report-wide `--as-of`, source TSV migration, Daily Capacity connection, envelope/cycle policy expansion, or automatic write.
@@ -103,19 +116,17 @@ Purpose: preserve the current safe TSV daily path while defining a future native
 - Existing `source_row` joins remain legacy compatibility surfaces and must migrate consumer by consumer before cutover.
 - Migration must remain one-directional. Do not create dual daily writes, reverse sync, or an automatic conflict resolver.
 - A future cutover must freeze an immutable final TSV snapshot and switch writers once, after parity and recovery gates.
-- The next coherent migration candidate is Journal Posting IR adapter parity Stage 2, but it remains unselected.
+- Journal Posting IR adapter parity Stage 2A success path is selected as bounded test-only work; Stage 2 as a whole is not selected.
 
 ## Next candidates
 
-### Journal Posting IR adapter parity Stage 2
+### Journal Posting IR adapter parity
 
-Status: unselected test-only follow-up. Stage 1 evidence and decisions are recorded in `docs/archive/completed-plans/MINIMAL_BQN_JOURNAL_PARSER_STAGE1-2026-07-18.md`, `src_next/journal_profile_stage1.bqn`, and `tests/test_src_next_journal_profile_stage1.bqn`.
-
-- [ ] Compare Stage 1 normalized postings with the current TSV adapter on public synthetic transactions representable by both.
-- [ ] Compare signed money, layers, transaction and posting identity, provenance, and fail-closed rejection behavior before Cube, TBDS, or reports.
-- [ ] Keep both paths test-only and do not activate production journal reads, shadow-read production data, write journals, convert private data, change source truth, or start cutover.
-- [ ] Treat native multi-posting cases not representable by one TSV row as explicit scope boundaries rather than flattening them silently.
-- [ ] Do not infer writer design, report integration, source-row consumer migration, or broad accounting-study work from this candidate.
+- Stage 2A success-path adapter: selected
+- identity/provenance parity: unselected
+- red-path/rejection parity: unselected
+- multi-posting native parity: unselected
+- production routing and cutover: unselected
 
 ### Bookkeeping matrix study extension
 
