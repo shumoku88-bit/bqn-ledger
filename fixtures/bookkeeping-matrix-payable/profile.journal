@@ -1,0 +1,27 @@
+; Public synthetic bookkeeping matrix study: payable recognition and payment.
+; This fixture is study evidence only and is not production source truth.
+
+commodity JPY
+
+account assets:bank
+    ; role: asset
+
+account liabilities:accounts-payable
+    ; role: liability
+
+account expenses:maintenance
+    ; role: expense
+
+2026-09-15 * Example Vendor | maintenance service received on account
+    ; event-id: event-maintenance-payable-001
+    ; action: incur-on-account
+    ; agreement-id: invoice-example-002
+    expenses:maintenance            2400 JPY
+    liabilities:accounts-payable   -2400 JPY
+
+2026-09-25 * Example Vendor | payable paid
+    ; event-id: event-payable-payment-001
+    ; action: pay
+    ; agreement-id: invoice-example-002
+    liabilities:accounts-payable    2400 JPY
+    assets:bank                    -2400 JPY

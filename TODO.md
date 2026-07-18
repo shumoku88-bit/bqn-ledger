@@ -20,6 +20,7 @@ Last hygiene pass: 2026-07-18
 - Cycle Summary remaining-plan compatibility decision complete
 - Cycle Summary remaining-plan runtime migration complete
 - receivable bookkeeping matrix study Stage 1 research complete (test-only research fixture; not a production feature)
+- payable bookkeeping matrix study Stage 2 research complete (test-only research fixture; not a production feature)
 - no next finite report slice or bookkeeping study topic is selected
 - envelope allocation / execution-plan coverage characterization remains an unselected candidate
 - other unrelated candidates remain unselected
