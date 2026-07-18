@@ -5,7 +5,7 @@ Owner: architecture
 Canonical: no
 Exit: replace when a new finite implementation or design slice is selected
 
-Journal migration architecture/source identity, Minimal BQN Journal Profile Stage 0, test-only Minimal BQN Journal parser Stage 1, the receivable bookkeeping matrix study Stage 1, and the payable bookkeeping matrix study Stage 2 are complete.
+Journal migration architecture/source identity, Minimal BQN Journal Profile Stage 0, test-only Minimal BQN Journal parser Stage 1, the receivable bookkeeping matrix study Stage 1, the payable bookkeeping matrix study Stage 2, and the prepaid insurance bookkeeping matrix study Stage 3 are complete.
 
 Latest decision records and evidence:
 
@@ -14,6 +14,7 @@ Latest decision records and evidence:
 - `docs/archive/completed-plans/MINIMAL_BQN_JOURNAL_PARSER_STAGE1-2026-07-18.md`
 - `docs/archive/completed-plans/BOOKKEEPING_MATRIX_RECEIVABLE_STAGE1-2026-07-18.md`
 - `docs/archive/completed-plans/BOOKKEEPING_MATRIX_PAYABLE_STAGE2-2026-07-18.md`
+- `docs/archive/completed-plans/BOOKKEEPING_MATRIX_PREPAID_INSURANCE_STAGE3-2026-07-18.md`
 - `fixtures/journal-profile-stage0/profile.journal`
 - `fixtures/journal-profile-stage0/expected-posting-matrix.tsv`
 - `fixtures/bookkeeping-matrix-receivable/profile.journal`
@@ -22,10 +23,14 @@ Latest decision records and evidence:
 - `fixtures/bookkeeping-matrix-payable/profile.journal`
 - `fixtures/bookkeeping-matrix-payable/expected-event-account-matrix.tsv`
 - `fixtures/bookkeeping-matrix-payable/expected-running-balances.tsv`
+- `fixtures/bookkeeping-matrix-prepaid-insurance/profile.journal`
+- `fixtures/bookkeeping-matrix-prepaid-insurance/expected-event-account-matrix.tsv`
+- `fixtures/bookkeeping-matrix-prepaid-insurance/expected-running-balances.tsv`
 - `src_next/journal_profile_stage1.bqn`
 - `tests/test_src_next_journal_profile_stage1.bqn`
 - `tests/test_bookkeeping_matrix_receivable.bqn`
 - `tests/test_bookkeeping_matrix_payable.bqn`
+- `tests/test_bookkeeping_matrix_prepaid_insurance.bqn`
 - `tools/to-hledger`
 - `docs/POSTING_IR_CONTRACT.md`
 - `docs/archive/completed-plans/DECISION_MULTI_POSTING_INVESTIGATION.md`

@@ -1,0 +1,3 @@
+event_key	layer	assets:bank	assets:prepaid-insurance	expenses:insurance	row_total
+insurance-prepaid	actual	-12000	12000	0	0
+insurance-month-recognized	actual	0	-1000	1000	0
