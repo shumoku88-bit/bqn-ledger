@@ -1,9 +1,9 @@
 # Journal Posting IR adapter parity Stage 2A plan
 
-Status: active plan
+Status: completed test-only implementation
 Owner: journal source migration
 Canonical: no; canonical routing remains TODO.md
-Exit: move to docs/archive/completed-plans/ after Stage 2A implementation is merged
+Exit: completed; identity/provenance, rejection, native multi-posting, production routing, and cutover require separately selected slices
 Date: 2026-07-18
 
 ## Purpose
@@ -18,7 +18,7 @@ Minimal Journal text
   -> semantic comparison with existing checked TSV Posting IR path
 ```
 
-This plan authorizes a future implementation slice only within the success path below. It does not select Stage 2 as a whole.
+This completed slice implements only the success path below. It does not select Stage 2 as a whole.
 
 ## Existing boundaries
 
@@ -31,7 +31,7 @@ The Stage 1 parser and current TSV adapter are comparison inputs. Stage 2A must 
 
 ## Selected success-path fixture
 
-The future implementation must use only public synthetic data and exactly one dedicated fixture directory. A candidate location is `fixtures/journal-posting-ir-stage2a/`; the docs-only selection does not create it.
+The implementation uses only public synthetic data in exactly one dedicated fixture directory: `fixtures/journal-posting-ir-stage2a/`.
 
 The fixture contains exactly:
 
@@ -48,7 +48,7 @@ Native Journal transactions with three or more postings are deliberately absent.
 
 ## Journal adapter Posting IR row
 
-For each admitted Journal posting, the future Stage 2A adapter emits the current normalized Posting IR shape with these fields:
+For each admitted Journal posting, the Stage 2A adapter emits the current normalized Posting IR shape with these fields:
 
 1. `source_file`
 2. `source_row`
@@ -71,7 +71,7 @@ The adapter is test-only. Emitting the complete row shape does not make every fi
 
 ## Selected parity assertions
 
-The future test compares only these semantic properties between the admitted Journal adapter result and the existing checked TSV Posting IR result:
+The focused test compares only these semantic properties between the admitted Journal adapter result and the existing checked TSV Posting IR result:
 
 - transaction order;
 - posting order within each transaction;
@@ -105,14 +105,15 @@ Stage 2A does not compare:
 
 Identity/provenance parity, rejection parity, and native multi-posting parity remain independently unselected.
 
-## Future implementation candidates
+## Implementation
 
-The expected names are candidates for the separately implemented Stage 2A slice:
+The completed Stage 2A slice adds:
 
 - adapter: `src_next/journal_posting_ir_stage2a.bqn`;
-- unit test: `tests/test_journal_posting_ir_adapter_stage2a.bqn`.
+- unit test: `tests/test_journal_posting_ir_adapter_stage2a.bqn`;
+- public fixture: `fixtures/journal-posting-ir-stage2a/`.
 
-Neither file is created by this docs-only selection. The implementation should add the dedicated public fixture and include the new pure BQN module in the normal unit-test and repository-index validation paths as required by repository policy.
+The pure adapter accepts admitted Stage 1 transactions, resolved account evidence, and an explicit cycle start. It performs no I/O and has no production consumer. The focused test supplies the same public accounts and integer JPY movements to the Journal and checked TSV paths.
 
 ## Non-goals and safety boundaries
 
@@ -133,16 +134,14 @@ Stage 2A must not:
 - auto-select Stage 2B or any later stage;
 - restore the withdrawn deadline-bound submission work.
 
-## Implementation acceptance criteria
+## Completion evidence
 
-A future Stage 2A implementation is complete only when:
+1. The one public synthetic fixture directory contains exactly the selected actual and plan success cases.
+2. The Journal path uses the existing Stage 1 parser and admits both transactions.
+3. The TSV path uses `BuildCheckedPostingProjectionFromSnapshot` and is `ok`.
+4. The Journal adapter emits the full 16-field Posting IR row shape and is `ok`.
+5. The selected semantic parity assertions pass, including transaction balance.
+6. No excluded parity area or production connection was added.
+7. The focused unit test and repository normal checks pass.
 
-1. the one public synthetic fixture directory contains exactly the selected actual and plan success cases;
-2. the Journal path uses the existing Stage 1 parser and admits both transactions;
-3. the TSV path uses `BuildCheckedPostingProjectionFromSnapshot` and is `ok`;
-4. the Journal adapter emits the full 16-field Posting IR row shape and is `ok`;
-5. the selected semantic parity assertions pass, including transaction balance;
-6. no excluded parity area or production connection is added;
-7. focused unit tests and the repository's normal checks pass.
-
-After that implementation is merged, move this plan to `docs/archive/completed-plans/` and update `TODO.md` and the active-plans inventory. Completion does not automatically select a follow-up.
+Completion does not automatically select a follow-up.
