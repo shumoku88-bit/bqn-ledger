@@ -11,6 +11,8 @@
 
 Last hygiene pass: 2026-07-18
 - journal migration architecture and source identity decision complete
+- Minimal BQN Journal Profile Stage 0 characterization complete
+- test-only Minimal BQN Journal parser Stage 1 remains unselected
 - loader/util ownership normalization complete
 - Outlook checked numeric-owner Slices A/B complete
 - Daily Trend plan numeric-owner migration complete
@@ -69,15 +71,16 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 - Envelope allocation and coverage characterizations are complete.
 - Envelope runtime compatibility decision, completion-aware Cube modification, linkage filter implementation, and fail-closed migration are parked / unselected.
 - Journal migration architecture and source identity decision is complete; record: `docs/archive/completed-plans/JOURNAL_MIGRATION_ARCHITECTURE_AND_SOURCE_IDENTITY_DECISION-2026-07-18.md`.
+- Minimal BQN Journal Profile Stage 0 characterization is complete; record: `docs/archive/completed-plans/MINIMAL_BQN_JOURNAL_PROFILE_STAGE0_CHARACTERIZATION-2026-07-18.md`.
 - `tools/to-hledger` remains a generated one-way compatibility projection while TSV is source truth; it is not the future parser or writer.
-- Minimal BQN Journal Profile Stage 0 remains an unselected next candidate.
+- Test-only Minimal BQN Journal parser Stage 1 remains an unselected next candidate.
 - PR #273 remains parked background design evidence, not implementation authorization.
-- journal parser, writer, runtime routing, production conversion, and source-of-truth migration are unselected.
+- journal parser runtime routing, writer, production conversion, and source-of-truth migration are unselected.
 - Do not infer helper renaming, generic temporal kernel, report-wide `--as-of`, source TSV migration, Daily Capacity connection, envelope/cycle policy expansion, or automatic write.
 
 ### Journal source migration
 
-Status: selected architecture direction. The docs-only architecture and source identity decision is complete. No parser, writer, runtime-routing, conversion, or source-of-truth implementation slice is selected.
+Status: selected architecture direction. The docs-only architecture/source-identity decision and Minimal BQN Journal Profile Stage 0 characterization are complete. No parser, writer, runtime-routing, conversion, or source-of-truth implementation slice is selected.
 
 Purpose: preserve the current safe TSV daily path while defining a future native journal source that enters through Transaction IR and checked Posting IR rather than being flattened back into `from / to / amount` rows.
 
@@ -86,21 +89,24 @@ Purpose: preserve the current safe TSV daily path while defining a future native
 - The future target boundary is `journal text -> Transaction IR -> checked Posting IR -> Cube / TBDS -> reports`.
 - Current A-1 `txn_id` grouping remains the TSV-era compatibility policy; it is not a permanent prohibition on native journal transaction blocks.
 - Future identity separates semantic `source_event_id` from physical source spans; posting identity is deterministic within each event.
+- Stage 0 distinguishes compact human input from explicit durable source: ordinary actuals may omit `event-id`, while plans, allocations, stable editing, and durable references require explicit identity; durable postings remain explicit.
+- Stage 0 adds a public synthetic `event x account` matrix characterization so row balance, layer masks, and account-column reduction remain first-class BQN/accounting evidence.
 - Existing `source_row` joins remain legacy compatibility surfaces and must migrate consumer by consumer before cutover.
 - Migration must remain one-directional. Do not create dual daily writes, reverse sync, or an automatic conflict resolver.
 - A future cutover must freeze an immutable TSV snapshot and switch writers once, after parity and recovery gates.
-- The next coherent candidate is Minimal BQN Journal Profile Stage 0 characterization, but it remains unselected.
+- The next coherent candidate is a test-only Minimal BQN Journal parser Stage 1, but it remains unselected.
 
 ## Next candidates
 
-### Minimal BQN Journal Profile Stage 0 characterization
+### Test-only Minimal BQN Journal parser Stage 1
 
-Status: unselected docs/fixture-only follow-up. Architecture and source identity are decided in `docs/archive/completed-plans/JOURNAL_MIGRATION_ARCHITECTURE_AND_SOURCE_IDENTITY_DECISION-2026-07-18.md`.
+Status: unselected test-only follow-up. Stage 0 evidence and decisions are recorded in `docs/archive/completed-plans/MINIMAL_BQN_JOURNAL_PROFILE_STAGE0_CHARACTERIZATION-2026-07-18.md` and `fixtures/journal-profile-stage0/`.
 
-- [ ] Use public synthetic evidence only: declarations, one split receipt, one planned payment with early completion, one budget allocation, and one loan repayment split into principal and interest.
-- [ ] Judge human readability and semantic sufficiency, including candidate event identity, posting order, plan completion, and execution-envelope linkage.
-- [ ] Treat current `tools/to-hledger` output as compatibility evidence, not target grammar or source truth.
-- [ ] Do not implement a parser, writer, runtime route, production conversion, source cutover, reverse sync, or private-data fixture.
+- [ ] Parse only the public Stage 0 supported subset and emit Transaction IR before Posting IR.
+- [ ] Compare normalized postings against `fixtures/journal-profile-stage0/expected-posting-matrix.tsv`, including event row balance, layers, posting order, plan completion links, and execution-envelope links.
+- [ ] Fail visibly on unsupported syntax, duplicate required metadata, ambiguous layers, missing explicit plan/budget identity, or unbalanced events.
+- [ ] Keep the parser test-only; do not route production reads, write journals, convert private data, change the editor, change source truth, or start source cutover.
+- [ ] Do not treat broader accounting-study fixtures, writer design, shadow read, or report integration as automatically selected by this candidate.
 
 ### Daily Capacity evidence adapter characterization
 
