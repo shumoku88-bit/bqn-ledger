@@ -1,0 +1,3 @@
+event_key	layer	assets:bank	assets:accounts-receivable	income:sales	row_total
+credit-sale	actual	0	3000	-3000	0
+receivable-collection	actual	3000	-3000	0	0

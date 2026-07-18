@@ -1,0 +1,27 @@
+; Public synthetic bookkeeping matrix study: receivable recognition and collection.
+; This fixture is study evidence only and is not production source truth.
+
+commodity JPY
+
+account assets:bank
+    ; role: asset
+
+account assets:accounts-receivable
+    ; role: asset
+
+account income:sales
+    ; role: income
+
+2026-09-01 * Example Customer | credit sale
+    ; event-id: event-credit-sale-001
+    ; action: sell-on-account
+    ; agreement-id: invoice-example-001
+    assets:accounts-receivable   3000 JPY
+    income:sales                -3000 JPY
+
+2026-09-10 * Example Customer | receivable collected
+    ; event-id: event-receivable-collection-001
+    ; action: collect
+    ; agreement-id: invoice-example-001
+    assets:bank                  3000 JPY
+    assets:accounts-receivable  -3000 JPY
