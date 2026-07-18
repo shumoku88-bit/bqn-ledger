@@ -91,7 +91,7 @@ ParseHeader ← {𝕊 group:
   description ← TrimLeft 1 ↓ tail
   diagnostics ← empty
   diagnostics ∾↩ AddIf ⟨¬ dates.IsValidDateText dateText, Diagnostic ⟨"header_date_invalid", group.start_line, "transaction header date must be a valid YYYY-MM-DD date"⟩⟩
-  diagnostics ∾↩ AddIf ⟨¬ marker ∊ "*!", Diagnostic ⟨"header_status_invalid", group.start_line, "transaction header status must be * or !"⟩⟩
+  diagnostics ∾↩ AddIf ⟨¬ (marker ∊ "*!"), Diagnostic ⟨"header_status_invalid", group.start_line, "transaction header status must be * or !"⟩⟩
   diagnostics ∾↩ AddIf ⟨0 = ≠ description, Diagnostic ⟨"header_description_missing", group.start_line, "transaction header description must be nonempty"⟩⟩
   {date⇐dateText, status_marker⇐marker, description⇐description, diagnostics⇐diagnostics}
 }
@@ -126,9 +126,10 @@ ParseDeclarations ← {𝕊 groups:
       key ← Trim (≠ "account ") ↓ first
       body ← 1 ↓ group.lines
       bodyValid ← ∧´ {𝕊 lineBox: ';' = ⊑ ((Trim >lineBox) ∾ ";") }¨ body
-      diagnostics ∾↩ AddIf ⟨(0 = ≠ key) ∨ (space ∊ key), Diagnostic ⟨"account_key_invalid", group.start_line, "account declaration must contain one nonempty account key"⟩⟩
+      hasSpace ← space ∊ key
+      diagnostics ∾↩ AddIf ⟨(0 = ≠ key) ∨ hasSpace, Diagnostic ⟨"account_key_invalid", group.start_line, "account declaration must contain one nonempty account key"⟩⟩
       diagnostics ∾↩ AddIf ⟨¬ bodyValid, Diagnostic ⟨"account_body_unsupported", group.start_line, "account declaration body may contain comment metadata only"⟩⟩
-      {𝕊: accounts ∾↩ ⟨{account_key⇐key, source_line⇐group.start_line}⟩}⍟((0 < ≠ key) ∧ ¬ space ∊ key ∧ bodyValid) @
+      {𝕊: accounts ∾↩ ⟨{account_key⇐key, source_line⇐group.start_line}⟩}⍟((0 < ≠ key) ∧ (¬ hasSpace) ∧ bodyValid) @
     }⍟isAccount @
 
     {𝕊: transactionGroups ∾↩ ⟨group⟩}⍟isTransaction @
@@ -165,7 +166,7 @@ ParseMetadata ← {𝕊 lineText‿lineNumber:
   }⍟(0 < ≠ colonPositions) @
   diagnostics ∾↩ AddIf ⟨0 = ≠ colonPositions, Diagnostic ⟨"metadata_colon_missing", lineNumber, "metadata must use '; key: value'"⟩⟩
   diagnostics ∾↩ AddIf ⟨(0 < ≠ colonPositions) ∧ ((0 = ≠ key) ∨ (0 = ≠ value)), Diagnostic ⟨"metadata_shape_invalid", lineNumber, "metadata key and value must be nonempty"⟩⟩
-  diagnostics ∾↩ AddIf ⟨(0 < ≠ key) ∧ ¬ IsOneOf ⟨key, supportedMetadata⟩, Diagnostic ⟨"metadata_unsupported", lineNumber, "unsupported Stage 1 metadata key"⟩⟩
+  diagnostics ∾↩ AddIf ⟨(0 < ≠ key) ∧ (¬ IsOneOf ⟨key, supportedMetadata⟩), Diagnostic ⟨"metadata_unsupported", lineNumber, "unsupported Stage 1 metadata key"⟩⟩
   metadata ← @
   {𝕊: metadata ↩ {key⇐key, value⇐value, source_line⇐lineNumber}}⍟(0 = ≠ diagnostics) @
   {diagnostics⇐diagnostics, metadata⇐metadata}
@@ -194,10 +195,10 @@ ParsePosting ← {𝕊 lineText‿lineNumber‿accounts‿commodities:
   delta ← 0
   {𝕊: delta ↩ (1 - 2 × isNegative) × parsed.coefficient}⍟exactInteger @
 
-  diagnostics ∾↩ AddIf ⟨validShape ∧ ¬ exactInteger, Diagnostic ⟨"posting_amount_invalid", lineNumber, "posting amount must be an explicit exact integer"⟩⟩
+  diagnostics ∾↩ AddIf ⟨validShape ∧ (¬ exactInteger), Diagnostic ⟨"posting_amount_invalid", lineNumber, "posting amount must be an explicit exact integer"⟩⟩
   diagnostics ∾↩ AddIf ⟨validShape ∧ exactInteger ∧ 0 = delta, Diagnostic ⟨"posting_amount_zero", lineNumber, "posting amount must be nonzero"⟩⟩
-  diagnostics ∾↩ AddIf ⟨validShape ∧ ¬ HasAccount ⟨accountKey, accounts⟩, Diagnostic ⟨"posting_account_unknown", lineNumber, "posting account must be declared"⟩⟩
-  diagnostics ∾↩ AddIf ⟨validShape ∧ ¬ HasCommodity ⟨commodityText, commodities⟩, Diagnostic ⟨"posting_commodity_unknown", lineNumber, "posting commodity must be declared"⟩⟩
+  diagnostics ∾↩ AddIf ⟨validShape ∧ (¬ HasAccount ⟨accountKey, accounts⟩), Diagnostic ⟨"posting_account_unknown", lineNumber, "posting account must be declared"⟩⟩
+  diagnostics ∾↩ AddIf ⟨validShape ∧ (¬ HasCommodity ⟨commodityText, commodities⟩), Diagnostic ⟨"posting_commodity_unknown", lineNumber, "posting commodity must be declared"⟩⟩
 
   posting ← @
   {𝕊:
@@ -243,7 +244,7 @@ ParseTransaction ← {𝕊 group‿accounts‿commodities:
       parsedPosting ← ParsePosting ⟨lineText, lineNumber, accounts, commodities⟩
       diagnostics ∾↩ parsedPosting.diagnostics
       {𝕊: rawPostings ∾↩ ⟨parsedPosting.posting⟩}⍟(parsedPosting.posting ≢ @) @
-    }⍟(indented ∧ ¬ isMetadata) @
+    }⍟(indented ∧ (¬ isMetadata)) @
   }¨ ↕ ≠ body
 
   metadataKeys ← {<𝕩.key}¨ metadata
