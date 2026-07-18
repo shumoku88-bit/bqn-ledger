@@ -52,7 +52,7 @@ CheckFail ← {𝕊 source‿code:
   lib.Assert HasCode ⟨code, failed⟩
 }
 
-Prefix ← {
+Prefix ← {𝕊:
   ∾ ⟨
     "commodity JPY", lf, lf,
     "account assets:bank", lf, lf,
