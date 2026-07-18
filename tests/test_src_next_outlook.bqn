@@ -32,6 +32,25 @@ human ← outlook.FormatHuman vm
 1 lib.AssertEq ∨´ "  ─────────────────────────────"⍷human
 0 lib.AssertEq ∨´ "可用資金 (安全/保守)"⍷human
 
+# Focused human Outlook purpose split. Existing group settings own membership;
+# the overall liquid arithmetic remains independent of these presentation rows.
+split_ctx ← ctx_mod.BuildContext ⟨"fixtures/outlook-envelope-purpose-split", "2026-01-04"⟩
+split_vm ← outlook.BuildAt ⟨split_ctx, "2026-01-04"⟩
+"ok" lib.AssertEq split_vm.state
+4695 lib.AssertEq split_vm.liq_total
+0 lib.AssertEq split_vm.planned_future_income
+0 lib.AssertEq split_vm.fixed_reserve
+670 lib.AssertEq split_vm.liq_daily
+135 lib.AssertEq split_vm.budget_daily_total
+⟨⟨"食費", 630, 90⟩, ⟨"日用品", 315, 45⟩⟩ lib.AssertEq split_vm.budget_breakdown
+⟨⟨"米・食料ストック", 1000⟩⟩ lib.AssertEq split_vm.reserve_breakdown
+split_human ← outlook.FormatHuman split_vm
+1 lib.AssertEq ∨´ "  食費     |       630 |    90"⍷split_human
+1 lib.AssertEq ∨´ "  日用品   |       315 |    45"⍷split_human
+1 lib.AssertEq ∨´ "  米・食料ストック |      1000"⍷split_human
+0 lib.AssertEq ∨´ "米・食料ストック |      1000 |"⍷split_human
+0 lib.AssertEq ∨´ "対象外"⍷split_human
+
 mock_vm ← {
   state ⇐ "ok",
   reason ⇐ "outlook_active",
@@ -44,11 +63,42 @@ mock_vm ← {
   planned_future_income ⇐ 0,
   fixed_reserve ⇐ 0,
   liq_daily ⇐ 166,
-  budget_breakdown ⇐ ⟨⟨"daily", 600, 100⟩⟩
+  budget_breakdown ⇐ ⟨⟨"日常食費", 600, 100⟩⟩,
+  reserve_breakdown ⇐ ⟨⟨"米・食料ストック", 12000⟩⟩
 }
 mock_human ← outlook.FormatHuman mock_vm
 1 lib.AssertEq ∨´ "サイクル: 2026-01-01 〜 2026-01-09  (残 6 日)"⍷mock_human
+1 lib.AssertEq ∨´ "── 日常封筒 ──"⍷mock_human
 1 lib.AssertEq ∨´ "  envelope | remaining | /day"⍷mock_human
+1 lib.AssertEq ∨´ "  日常食費 |       600 |   100"⍷mock_human
+1 lib.AssertEq ∨´ "── まとめ支出の確保 ──"⍷mock_human
+1 lib.AssertEq ∨´ "  米・食料ストック |     12000"⍷mock_human
+0 lib.AssertEq ∨´ "米・食料ストック |     12000 |"⍷mock_human
+
+# Empty daily and reserve groups are valid independently and omit only their
+# respective human table.
+reserve_only_vm ← {
+  state ⇐ "ok", reason ⇐ "outlook_active", diagnostics ⇐ ⟨⟩,
+  days_left ⇐ 6, cycle_start ⇐ "2026-01-01", cycle_end_exclusive ⇐ "2026-01-09",
+  as_of ⇐ "2026-01-04", liq_total ⇐ 1000, planned_future_income ⇐ 0,
+  fixed_reserve ⇐ 0, liq_daily ⇐ 166, budget_breakdown ⇐ ⟨⟩,
+  reserve_breakdown ⇐ ⟨⟨"通院", 9000⟩⟩
+}
+reserve_only_human ← outlook.FormatHuman reserve_only_vm
+0 lib.AssertEq ∨´ "── 日常封筒 ──"⍷reserve_only_human
+1 lib.AssertEq ∨´ "── まとめ支出の確保 ──"⍷reserve_only_human
+0 lib.AssertEq ∨´ "/day"⍷reserve_only_human
+
+daily_only_vm ← {
+  state ⇐ "ok", reason ⇐ "outlook_active", diagnostics ⇐ ⟨⟩,
+  days_left ⇐ 6, cycle_start ⇐ "2026-01-01", cycle_end_exclusive ⇐ "2026-01-09",
+  as_of ⇐ "2026-01-04", liq_total ⇐ 1000, planned_future_income ⇐ 0,
+  fixed_reserve ⇐ 0, liq_daily ⇐ 166, budget_breakdown ⇐ ⟨⟨"書籍以外", 600, 100⟩⟩,
+  reserve_breakdown ⇐ ⟨⟩
+}
+daily_only_human ← outlook.FormatHuman daily_only_vm
+1 lib.AssertEq ∨´ "── 日常封筒 ──"⍷daily_only_human
+0 lib.AssertEq ∨´ "── まとめ支出の確保 ──"⍷daily_only_human
 
 anchor_ctx ← ctx_mod.BuildContext "fixtures/src-next-anchor-unmet"
 anchor_vm ← outlook.Build anchor_ctx

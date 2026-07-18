@@ -114,6 +114,14 @@ Machine output includes `src_next_outlook_status`, `src_next_outlook_reason`, an
 
 Executable coverage: `tests/test_src_next_outlook_remaining_plan_numeric_owner.bqn` and `checks/check-src-next-outlook-remaining-plan.sh`.
 
+## Outlook envelope presentation boundary
+
+Human Outlook uses the existing household group settings without changing its overall liquid arithmetic. Envelopes whose `group` is in `HOUSEHOLD_GROUP_LIFE` appear in the daily-use table with `remaining` and `/day`. Envelopes whose `group` is in `HOUSEHOLD_GROUP_RESERVE` appear separately under `まとめ支出の確保` with `remaining` only. Empty groups omit their respective table. Unknown groups remain outside both Outlook tables.
+
+This is a human presentation split only. It does not change `liq_total`, planned income/expense, `liq_basis`, `liq_daily`, budget allocation, envelope backing, execution-plan linkage, or machine Outlook output.
+
+Executable coverage: `tests/test_src_next_outlook.bqn` and `fixtures/outlook-envelope-purpose-split/`.
+
 ## Daily Trend checked plan-money boundary
 
 Daily Trend remains current-source coordinate replay with `O_row = D`. Ordinary row membership, header observation, cycle boundaries, and the lack of historical knowledge boundary K are unchanged.

@@ -115,6 +115,7 @@ ErrorVm ← {𝕊 ctx‿as_of‿frontier‿legacy_default‿failure:
     next_obligations ⇐ ⟨⟩,
     next_obligation_total ⇐ "unavailable",
     budget_breakdown ⇐ ⟨⟩,
+    reserve_breakdown ⇐ ⟨⟩,
     budget_daily_total ⇐ "unavailable"
   }
 }
@@ -202,12 +203,15 @@ BuildCore ← {𝕊 ctx‿as_of‿frontier‿legacy_default‿snap‿remaining:
   # remain outside this explicit-observation slice.
   env_summary ← env_comp.Build ctx
   life_groups ← cfg.HouseholdGroupLifeLabels @
+  reserve_groups ← cfg.HouseholdGroupReserveLabels @
   daily_flex_envs ← ( { life_groups IsMember 𝕩.group }¨ env_summary.envelopes ) / env_summary.envelopes
+  reserve_envs ← ( { reserve_groups IsMember 𝕩.group }¨ env_summary.envelopes ) / env_summary.envelopes
   budget_breakdown ← {
     e ← 𝕩
     daily_val ← (days_left > 0) ⊑ 0‿(⌊ e.remaining ÷ days_left)
     ⟨e.label, e.remaining, daily_val⟩
   }¨ daily_flex_envs
+  reserve_breakdown ← {⟨𝕩.label, 𝕩.remaining⟩}¨ reserve_envs
   budget_daily_total ← cube.Sum0 ({2⊑𝕩}¨ budget_breakdown)
 
   {
@@ -239,6 +243,7 @@ BuildCore ← {𝕊 ctx‿as_of‿frontier‿legacy_default‿snap‿remaining:
     next_obligations ⇐ obligation_rows,
     next_obligation_total ⇐ next_obligation_total,
     budget_breakdown ⇐ budget_breakdown,
+    reserve_breakdown ⇐ reserve_breakdown,
     budget_daily_total ⇐ budget_daily_total
   }
 }
@@ -313,7 +318,7 @@ FormatHumanOk ← {𝕊 vm:
   liq_basis ← vm.liq_total + vm.planned_future_income - vm.fixed_reserve
   out ↩ out ∾ (L "outlook.using_liquid_label") ∾ (AlignR ⟨8, liq_basis⟩) ∾ "  ÷ " ∾ (•Fmt days_left) ∾ (L "outlook.days_suffix") ∾ (•Fmt vm.liq_daily) ∾ (L "outlook.per_day_suffix") ∾ (@+10)
 
-  # Envelope breakdown section
+  # Daily-use envelope breakdown. Only life groups receive a /day projection.
   {𝕊:
     out ↩ out ∾ (@+10) ∾ (L "outlook.envelope_title") ∾ (@+10)
     name_header ← L "outlook.envelope_name_header"
@@ -334,6 +339,26 @@ FormatHumanOk ← {𝕊 vm:
     }
     RenderEnvRow¨ vm.budget_breakdown
   }⍟(0 < ≠ vm.budget_breakdown) @
+
+  # Reserve envelopes are held for lump-sum spending, so no /day is shown.
+  {𝕊:
+    out ↩ out ∾ (@+10) ∾ (L "outlook.reserve_title") ∾ (@+10)
+    name_header ← L "outlook.envelope_name_header"
+    remaining_header ← L "outlook.envelope_remaining_header"
+    column_separator ← " " ∾ (L "outlook.envelope_column_separator") ∾ " "
+    name_header_width ← fmt.VWidth name_header
+    max_w ← ⌈´ ⟨name_header_width⟩ ∾ (fmt.VWidth¨ {0⊑𝕩}¨ vm.reserve_breakdown)
+    hdr_pad ← (max_w - name_header_width) ⥊ " "
+    out ↩ out ∾ "  " ∾ name_header ∾ hdr_pad ∾ column_separator ∾ remaining_header ∾ (@+10)
+
+    RenderReserveRow ← {
+      label ← 0⊑𝕩 ⋄ remaining ← 1⊑𝕩
+      name_cell ← fmt.PadV ⟨max_w, label⟩
+      rem_cell ← AlignR ⟨9, remaining⟩
+      out ↩ out ∾ "  " ∾ name_cell ∾ column_separator ∾ rem_cell ∾ (@+10)
+    }
+    RenderReserveRow¨ vm.reserve_breakdown
+  }⍟(0 < ≠ vm.reserve_breakdown) @
 
   out ↩ out ∾ (@+10)
   out

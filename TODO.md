@@ -16,6 +16,7 @@ Last hygiene pass: 2026-07-18
 - Journal Posting IR adapter parity Stage 2A success path complete
 - loader/util ownership normalization complete
 - Outlook checked numeric-owner Slices A/B complete
+- Outlook human envelope purpose split complete (life groups keep `/day`; reserve groups show remaining only)
 - Daily Trend plan numeric-owner migration complete
 - Cycle Summary remaining-plan characterization complete
 - Cycle Summary remaining-plan compatibility decision complete
