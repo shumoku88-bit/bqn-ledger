@@ -60,15 +60,18 @@ Prefix ← {𝕊:
   ⟩
 }
 
-missingEventId ← Prefix @ ∾
+missingEventId ← (
+  Prefix @ ∾
   "2026-08-15 ! Rent plan" ∾ lf ∾
   "    ; layer: plan" ∾ lf ∾
   "    ; plan-id: plan-1" ∾ lf ∾
   "    expenses:rent 10 JPY" ∾ lf ∾
   "    assets:bank -10 JPY" ∾ lf
+)
 CheckFail ⟨missingEventId, "plan_event_id_missing"⟩
 
-duplicateMetadata ← Prefix @ ∾
+duplicateMetadata ← (
+  Prefix @ ∾
   "2026-08-15 ! Rent plan" ∾ lf ∾
   "    ; event-id: event-1" ∾ lf ∾
   "    ; layer: plan" ∾ lf ∾
@@ -76,12 +79,15 @@ duplicateMetadata ← Prefix @ ∾
   "    ; plan-id: plan-1" ∾ lf ∾
   "    expenses:rent 10 JPY" ∾ lf ∾
   "    assets:bank -10 JPY" ∾ lf
+)
 CheckFail ⟨duplicateMetadata, "metadata_duplicate"⟩
 
-unbalanced ← Prefix @ ∾
+unbalanced ← (
+  Prefix @ ∾
   "2026-08-15 * Broken purchase" ∾ lf ∾
   "    expenses:rent 10 JPY" ∾ lf ∾
   "    assets:bank -9 JPY" ∾ lf
+)
 CheckFail ⟨unbalanced, "event_unbalanced"⟩
 
 unsupported ← Prefix @ ∾ "include another.journal" ∾ lf
