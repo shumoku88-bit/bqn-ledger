@@ -1,0 +1,27 @@
+; Public synthetic bookkeeping matrix study: prepaid insurance and expense recognition.
+; This fixture is study evidence only and is not production source truth.
+
+commodity JPY
+
+account assets:bank
+    ; role: asset
+
+account assets:prepaid-insurance
+    ; role: asset
+
+account expenses:insurance
+    ; role: expense
+
+2026-10-01 * Example Insurer | annual insurance premium prepaid
+    ; event-id: event-insurance-prepaid-001
+    ; action: prepay
+    ; agreement-id: insurance-example-001
+    assets:prepaid-insurance   12000 JPY
+    assets:bank               -12000 JPY
+
+2026-10-31 * Example Insurer | one month insurance expense recognized
+    ; event-id: event-insurance-recognition-001
+    ; action: recognize-expense
+    ; agreement-id: insurance-example-001
+    expenses:insurance          1000 JPY
+    assets:prepaid-insurance   -1000 JPY
