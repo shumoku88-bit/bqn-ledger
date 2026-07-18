@@ -12,7 +12,7 @@
 Last hygiene pass: 2026-07-18
 - journal migration architecture and source identity decision complete
 - Minimal BQN Journal Profile Stage 0 characterization complete
-- test-only Minimal BQN Journal parser Stage 1 remains unselected
+- test-only Minimal BQN Journal parser Stage 1 complete
 - loader/util ownership normalization complete
 - Outlook checked numeric-owner Slices A/B complete
 - Daily Trend plan numeric-owner migration complete
@@ -72,15 +72,16 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 - Envelope runtime compatibility decision, completion-aware Cube modification, linkage filter implementation, and fail-closed migration are parked / unselected.
 - Journal migration architecture and source identity decision is complete; record: `docs/archive/completed-plans/JOURNAL_MIGRATION_ARCHITECTURE_AND_SOURCE_IDENTITY_DECISION-2026-07-18.md`.
 - Minimal BQN Journal Profile Stage 0 characterization is complete; record: `docs/archive/completed-plans/MINIMAL_BQN_JOURNAL_PROFILE_STAGE0_CHARACTERIZATION-2026-07-18.md`.
+- Test-only Minimal BQN Journal parser Stage 1 is complete; record: `docs/archive/completed-plans/MINIMAL_BQN_JOURNAL_PARSER_STAGE1-2026-07-18.md`.
 - `tools/to-hledger` remains a generated one-way compatibility projection while TSV is source truth; it is not the future parser or writer.
-- Test-only Minimal BQN Journal parser Stage 1 remains an unselected next candidate.
+- Journal Posting IR adapter parity Stage 2 remains an unselected next candidate.
 - PR #273 remains parked background design evidence, not implementation authorization.
-- journal parser runtime routing, writer, production conversion, and source-of-truth migration are unselected.
+- production journal parser routing, writer, production conversion, and source-of-truth migration are unselected.
 - Do not infer helper renaming, generic temporal kernel, report-wide `--as-of`, source TSV migration, Daily Capacity connection, envelope/cycle policy expansion, or automatic write.
 
 ### Journal source migration
 
-Status: selected architecture direction. The docs-only architecture/source-identity decision and Minimal BQN Journal Profile Stage 0 characterization are complete. No parser, writer, runtime-routing, conversion, or source-of-truth implementation slice is selected.
+Status: selected architecture direction. The docs-only architecture/source-identity decision, Minimal BQN Journal Profile Stage 0 characterization, and test-only parser Stage 1 are complete. No production parser routing, writer, conversion, shadow-read activation, or source-of-truth implementation slice is selected.
 
 Purpose: preserve the current safe TSV daily path while defining a future native journal source that enters through Transaction IR and checked Posting IR rather than being flattened back into `from / to / amount` rows.
 
@@ -91,22 +92,32 @@ Purpose: preserve the current safe TSV daily path while defining a future native
 - Future identity separates semantic `source_event_id` from physical source spans; posting identity is deterministic within each event.
 - Stage 0 distinguishes compact human input from explicit durable source: ordinary actuals may omit `event-id`, while plans, allocations, stable editing, and durable references require explicit identity; durable postings remain explicit.
 - Stage 0 adds a public synthetic `event x account` matrix characterization so row balance, layer masks, and account-column reduction remain first-class BQN/accounting evidence.
+- Stage 1 parses only that public supported subset into a test-only Transaction IR, preserves ordered postings and links, fails closed for covered invalid evidence, and reproduces the expected signed matrix.
+- Stage 1 is not connected to production source loading, the editor, reports, private data, conversion, or cutover.
 - Existing `source_row` joins remain legacy compatibility surfaces and must migrate consumer by consumer before cutover.
 - Migration must remain one-directional. Do not create dual daily writes, reverse sync, or an automatic conflict resolver.
-- A future cutover must freeze an immutable TSV snapshot and switch writers once, after parity and recovery gates.
-- The next coherent candidate is a test-only Minimal BQN Journal parser Stage 1, but it remains unselected.
+- A future cutover must freeze an immutable final TSV snapshot and switch writers once, after parity and recovery gates.
+- The next coherent migration candidate is Journal Posting IR adapter parity Stage 2, but it remains unselected.
 
 ## Next candidates
 
-### Test-only Minimal BQN Journal parser Stage 1
+### Journal Posting IR adapter parity Stage 2
 
-Status: unselected test-only follow-up. Stage 0 evidence and decisions are recorded in `docs/archive/completed-plans/MINIMAL_BQN_JOURNAL_PROFILE_STAGE0_CHARACTERIZATION-2026-07-18.md` and `fixtures/journal-profile-stage0/`.
+Status: unselected test-only follow-up. Stage 1 evidence and decisions are recorded in `docs/archive/completed-plans/MINIMAL_BQN_JOURNAL_PARSER_STAGE1-2026-07-18.md`, `src_next/journal_profile_stage1.bqn`, and `tests/test_src_next_journal_profile_stage1.bqn`.
 
-- [ ] Parse only the public Stage 0 supported subset and emit Transaction IR before Posting IR.
-- [ ] Compare normalized postings against `fixtures/journal-profile-stage0/expected-posting-matrix.tsv`, including event row balance, layers, posting order, plan completion links, and execution-envelope links.
-- [ ] Fail visibly on unsupported syntax, duplicate required metadata, ambiguous layers, missing explicit plan/budget identity, or unbalanced events.
-- [ ] Keep the parser test-only; do not route production reads, write journals, convert private data, change the editor, change source truth, or start source cutover.
-- [ ] Do not treat broader accounting-study fixtures, writer design, shadow read, or report integration as automatically selected by this candidate.
+- [ ] Compare Stage 1 normalized postings with the current TSV adapter on public synthetic transactions representable by both.
+- [ ] Compare signed money, layers, transaction and posting identity, provenance, and fail-closed rejection behavior before Cube, TBDS, or reports.
+- [ ] Keep both paths test-only and do not activate production journal reads, shadow-read production data, write journals, convert private data, change source truth, or start cutover.
+- [ ] Treat native multi-posting cases not representable by one TSV row as explicit scope boundaries rather than flattening them silently.
+- [ ] Do not infer writer design, report integration, source-row consumer migration, or broad accounting-study work from this candidate.
+
+### Bookkeeping matrix study extension
+
+Status: unselected research direction. Use public synthetic, hand-checkable evidence only.
+
+- [ ] Select one accounting topic at a time, such as receivables/payables, accruals, depreciation, inventory, adjustments, closing, trial balance, or financial statements.
+- [ ] Keep journal evidence, expected event-account matrix, manual accounting explanation, and BQN projection together.
+- [ ] Do not turn this direction into a broad accounting-engine rewrite or production feature campaign automatically.
 
 ### Daily Capacity evidence adapter characterization
 
