@@ -5,17 +5,22 @@ Owner: architecture
 Canonical: no
 Exit: replace when a new finite implementation or design slice is selected
 
-Journal migration architecture/source identity, Minimal BQN Journal Profile Stage 0, and the test-only Minimal BQN Journal parser Stage 1 are complete.
+Journal migration architecture/source identity, Minimal BQN Journal Profile Stage 0, test-only Minimal BQN Journal parser Stage 1, and the receivable bookkeeping matrix study Stage 1 are complete.
 
 Latest decision records and evidence:
 
 - `docs/archive/completed-plans/JOURNAL_MIGRATION_ARCHITECTURE_AND_SOURCE_IDENTITY_DECISION-2026-07-18.md`
 - `docs/archive/completed-plans/MINIMAL_BQN_JOURNAL_PROFILE_STAGE0_CHARACTERIZATION-2026-07-18.md`
 - `docs/archive/completed-plans/MINIMAL_BQN_JOURNAL_PARSER_STAGE1-2026-07-18.md`
+- `docs/archive/completed-plans/BOOKKEEPING_MATRIX_RECEIVABLE_STAGE1-2026-07-18.md`
 - `fixtures/journal-profile-stage0/profile.journal`
 - `fixtures/journal-profile-stage0/expected-posting-matrix.tsv`
+- `fixtures/bookkeeping-matrix-receivable/profile.journal`
+- `fixtures/bookkeeping-matrix-receivable/expected-event-account-matrix.tsv`
+- `fixtures/bookkeeping-matrix-receivable/expected-running-balances.tsv`
 - `src_next/journal_profile_stage1.bqn`
 - `tests/test_src_next_journal_profile_stage1.bqn`
+- `tests/test_bookkeeping_matrix_receivable.bqn`
 - `tools/to-hledger`
 - `docs/POSTING_IR_CONTRACT.md`
 - `docs/archive/completed-plans/DECISION_MULTI_POSTING_INVESTIGATION.md`

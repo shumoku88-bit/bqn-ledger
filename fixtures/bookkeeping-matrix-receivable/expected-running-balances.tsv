@@ -1,0 +1,3 @@
+event_key	assets:bank	assets:accounts-receivable	income:sales
+credit-sale	0	3000	-3000
+receivable-collection	3000	0	-3000
