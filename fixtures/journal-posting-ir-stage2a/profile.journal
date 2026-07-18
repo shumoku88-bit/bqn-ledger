@@ -1,0 +1,23 @@
+; Public synthetic Stage 2A success-path fixture.
+
+commodity JPY
+
+account assets:bank
+    ; role: asset
+
+account expenses:rent
+    ; role: expense
+
+2026-08-14 * Example Landlord | rent paid
+    ; plan-id: plan-rent-2026-08
+    ; execution-envelope: reserve
+    expenses:rent 5000 JPY
+    assets:bank -5000 JPY
+
+2026-08-15 ! Example Landlord | rent plan
+    ; event-id: event-plan-rent-2026-08
+    ; layer: plan
+    ; plan-id: plan-rent-2026-08
+    ; execution-envelope: reserve
+    expenses:rent 5000 JPY
+    assets:bank -5000 JPY
