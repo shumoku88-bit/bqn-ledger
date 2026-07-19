@@ -1,0 +1,21 @@
+; Public synthetic Stage 2B identity/provenance fixture.
+
+commodity JPY
+
+account assets:cash
+    ; role: asset
+
+account expenses:service
+    ; role: expense
+
+2026-09-10 ! Anonymous service plan
+    ; event-id: event-plan-service-2026-09
+    ; layer: plan
+    ; plan-id: plan-service-2026-09
+    ; execution-envelope: reserve
+    expenses:service 2400 JPY
+    assets:cash -2400 JPY
+
+2026-09-11 * Anonymous ordinary actual
+    expenses:service 900 JPY
+    assets:cash -900 JPY

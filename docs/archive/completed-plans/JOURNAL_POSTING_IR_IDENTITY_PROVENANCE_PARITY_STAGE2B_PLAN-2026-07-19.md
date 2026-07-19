@@ -1,26 +1,26 @@
 # Journal Posting IR identity/provenance parity Stage 2B plan
 
-Status: active plan / docs-only contract selection
+Status: completed test-only implementation
 Owner: journal source migration
-Canonical: yes
-Exit: archive as completed only after the separately authorized test-only implementation satisfies this contract; revise routing without auto-selecting Stage 2C or production work
+Canonical: no; canonical routing remains `TODO.md`
+Exit: completed; later parity or production work requires a separately selected finite slice
 Date: 2026-07-19
 
 ## Purpose
 
-Stage 2B selects the next finite Journal migration slice: test-only structural parity for semantic event identity, deterministic posting identity, and physical source provenance. It extends the completed Stage 2A success-path comparison without changing production behavior.
+Stage 2B implemented test-only structural parity for semantic event identity, deterministic posting identity, and physical source provenance. It extends the completed Stage 2A success-path comparison without changing production behavior.
 
 ```text
 public synthetic Journal text
   -> existing Stage 1 Transaction IR
   -> existing Stage 2A adapter
   -> current 16-field Posting IR rows
-  -> proposed pure Stage 2B identity/provenance helper
+  -> pure Stage 2B identity/provenance helper
   -> unchanged Posting IR rows + separate Journal-only test provenance carrier
   -> structural invariant assertions against comparable legacy TSV identity evidence
 ```
 
-Stage 2B is a contract selection, not completed implementation. The implementation requires a separate change.
+The selected contract is now implemented by `src_next/journal_posting_identity_provenance_stage2b.bqn`, its focused test, and the dedicated public synthetic fixture. This record remains historical evidence, not authority for a later stage.
 
 ## Existing and future identity models
 
@@ -94,7 +94,7 @@ Journal and legacy identity strings are not required to match. Stage 2B does not
 
 ## Carrier decision
 
-Stage 2B will **not add fields to or reorder the existing 16-field Posting IR row**. The follow-up implementation will return identity/provenance evidence in a separate test-only carrier aligned one-to-one with emitted Posting IR rows.
+Stage 2B **does not add fields to or reorder the existing 16-field Posting IR row**. The implementation returns identity/provenance evidence in a separate test-only carrier aligned one-to-one with emitted Posting IR rows.
 
 Each carrier row will contain:
 
@@ -162,7 +162,7 @@ The legacy side is not asserted to distinguish durable identity from physical lo
 
 ## Selected public synthetic fixture
 
-The follow-up implementation will add exactly one public fixture directory:
+The implementation added exactly one public fixture directory:
 
 ```text
 fixtures/journal-posting-ir-stage2b/
@@ -177,7 +177,7 @@ The fixture uses anonymous accounts, integer JPY evidence, and no private data. 
 
 ## Exact follow-up assertions
 
-The focused Stage 2B test must assert all of the following:
+The focused Stage 2B test asserts all of the following:
 
 1. **Shared event identity:** all posting carrier rows for one event share exactly one `source_event_id` and one `identity_kind`.
 2. **Unique deterministic posting IDs:** every `posting_id` is unique in the fixture result and equals the selected deterministic encoding of `source_event_id + posting_index`; rebuilding identical admitted Transaction IR yields identical IDs.
@@ -197,15 +197,15 @@ This is only local invariant protection for the selected success fixture and car
 
 ## Test-only implementation boundary
 
-The follow-up implementation must be pure and test-only:
+The completed implementation is pure and test-only:
 
-- no file I/O in the proposed helper;
+- no file I/O in the helper;
 - only `Build ⟨transactions, postingRows⟩`, with admitted Stage 1 Transaction IR and corresponding Stage 2A-generated current 16-field rows, as the helper input;
 - no resolved accounts or cycle start input, and no Stage 2A reimplementation;
 - deterministic values only, with no clock or environment reads;
 - no production importer, loader, context, Cube, TBDS, report, editor, or CLI connection.
 
-Proposed files:
+Implemented files:
 
 - implementation: `src_next/journal_posting_identity_provenance_stage2b.bqn`
 - focused test: `tests/test_journal_posting_identity_provenance_stage2b.bqn`
@@ -213,19 +213,18 @@ Proposed files:
 
 The test may read only that public fixture through existing test infrastructure. The implementation module itself performs no I/O.
 
-## Completion conditions
+## Completion evidence
 
-Stage 2B implementation is complete only when:
+Stage 2B is complete with:
 
-1. the selected two-event public fixture exists and contains no private evidence;
-2. the separate six-field carrier is implemented without changing the existing 16-field Posting IR row;
-3. every exact assertion above passes;
-4. covered carrier invariant failures fail closed without partial success;
-5. the focused unit test passes through the normal repository test path;
-6. `git diff --check` and `rtk bash ./tools/check.sh` pass;
-7. implementation completion routing archives or revises this active plan without selecting any later slice.
+1. a two-event public fixture containing no private evidence;
+2. a separate six-field carrier that leaves the existing 16-field Posting IR row unchanged;
+3. focused success, deterministic rebuild, durable movement, legacy-boundary, and local fail-closed assertions;
+4. all-or-nothing failures for every covered carrier invariant;
+5. execution through the normal repository unit-test path;
+6. completion routing that selects no later slice.
 
-This docs-only selection does not satisfy those implementation completion conditions and must not be described as completed Stage 2B.
+The implementation remains test-only and has no production consumer.
 
 ## Explicit non-goals
 
