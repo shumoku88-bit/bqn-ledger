@@ -1,31 +1,38 @@
 # Next session
 
-Status: no finite-slice pointer selected
+Status: selected finite-slice pointer
 Owner: repository routing
-Canonical: no; canonical routing: `TODO.md`
-Exit: replace only when a new finite slice is explicitly selected; do not infer one from completed work
+Canonical: no; canonical contract: `docs/JOURNAL_NATIVE_THREE_POSTING_SEMANTIC_COORDINATE_PARITY_PLAN.md`; program routing: `TODO.md`
+Exit: replace after the selected fixture and focused test land; archive the plan and return routing to no finite slice selected unless a separate decision explicitly selects follow-up work
 
-## Current state
+## Selected finite slice
 
-Journal Posting IR comparable rejection parity Stage 2C is complete as public-synthetic test-only work. Completion record:
+Implement only **Journal native three-posting semantic-coordinate parity — test-only**:
 
-- `docs/archive/completed-plans/JOURNAL_POSTING_IR_COMPARABLE_REJECTION_PARITY_STAGE2C_PLAN-2026-07-19.md`
+- current contract: `docs/JOURNAL_NATIVE_THREE_POSTING_SEMANTIC_COORDINATE_PARITY_PLAN.md`;
+- one dedicated public synthetic fixture derived from the Stage 0 split receipt;
+- exactly one native actual Journal transaction with three ordered postings;
+- exactly two legacy TSV rows producing four Posting IR rows and sharing one nonempty `txn_id`;
+- primary parity boundary: `(date, account_key, layer_name) -> sum(delta)`;
+- secondary parity boundary: numeric Cube equality on the same explicit axes;
+- preserve, rather than normalize away, Journal three-row versus legacy four-row topology;
+- keep any comparison/reduction carrier inside the focused test.
 
-Stage 2A success parity and Stage 2B identity/provenance parity also remain completed. No next finite Journal, report, or bookkeeping-study slice is selected.
+Stage 2A, Stage 2B, and Stage 2C remain completed. This slice is selected but not implemented.
 
-## Still unselected
+## Non-goals
 
-- unbalanced explicit Journal postings and the broader parser red path;
-- native Journal parity for three or more postings;
-- Stage 2D or any later Journal stage;
-- production Journal loader or routing;
-- writer/editor work;
-- TSV-to-Journal conversion;
-- shadow read or private-data comparison;
-- source-of-truth cutover;
-- report, Cube, or TBDS changes;
-- `source_row` consumer migration;
-- bidirectional/reverse sync or conflict resolution;
-- TSV cleanup or production source TSV changes.
+Do not add or begin:
 
-Return to `TODO.md` and select one finite slice explicitly before implementation.
+- broader rejection/red-path parity;
+- Stage 1 parser or Stage 2A adapter specification changes;
+- a production helper, normalizer, Journal loader, or runtime route;
+- `BuildContext`, TBDS, or report connection;
+- `source_row` consumer migration or identity/provenance contract changes;
+- writer/editor work, shadow read, conversion, cutover, or source-of-truth changes;
+- TSV cleanup, private-data access, or production source changes;
+- a numbered follow-up label or any automatically selected later stage.
+
+If the selected comparison requires a production normalizer, contract change, production route, cross-source identity unification, parser/adapter specification change, or private data, stop and request a separate design decision.
+
+After implementation completes, archive the current contract and return routing to “no next finite slice selected.” Do not choose a follow-up automatically.
