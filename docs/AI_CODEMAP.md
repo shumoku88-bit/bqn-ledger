@@ -204,6 +204,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 
 - `test_src_next_*.bqn` — src_next 各モジュールのテスト。
 - `test_journal_posting_ir_adapter_stage2a.bqn` / `test_journal_posting_identity_provenance_stage2b.bqn` — Journal test-only Posting IR success parityとidentity/provenance carrierのfocused tests。
+- `test_journal_posting_ir_comparable_rejection_stage2c.bqn` — invalid date / invalid exact-integer amount / unknown accountのJournal・legacy TSV structural rejection parityを既存境界だけで観測するfocused test。
 - `test_lib.bqn` — テストフレームワーク (Assert, AssertEq)。
 - `test_find_section.bqn`, `test_simple.bqn` — 汎用テスト。
 

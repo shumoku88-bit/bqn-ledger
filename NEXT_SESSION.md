@@ -1,25 +1,17 @@
 # Next session
 
-Status: selected finite-slice pointer
+Status: no finite-slice pointer selected
 Owner: repository routing
-Canonical: no; canonical routing: `TODO.md` and `docs/JOURNAL_POSTING_IR_COMPARABLE_REJECTION_PARITY_STAGE2C_PLAN.md`
-Exit: replace after Stage 2C implementation is completed or explicitly deselected; do not infer a later stage
+Canonical: no; canonical routing: `TODO.md`
+Exit: replace only when a new finite slice is explicitly selected; do not infer one from completed work
 
-## Selected finite slice
+## Current state
 
-Implement only Journal Posting IR comparable rejection parity Stage 2C from:
+Journal Posting IR comparable rejection parity Stage 2C is complete as public-synthetic test-only work. Completion record:
 
-- `docs/JOURNAL_POSTING_IR_COMPARABLE_REJECTION_PARITY_STAGE2C_PLAN.md`
+- `docs/archive/completed-plans/JOURNAL_POSTING_IR_COMPARABLE_REJECTION_PARITY_STAGE2C_PLAN-2026-07-19.md`
 
-Stage 2A success parity and Stage 2B identity/provenance parity remain completed. Stage 2C implementation is not completed.
-
-The selected test-only slice contains exactly three public synthetic cases representable by both source paths:
-
-1. invalid date;
-2. invalid exact-integer amount;
-3. unknown account.
-
-Use the existing Stage 1 parser, Stage 2A adapter, checked TSV snapshot adapter, and legacy Cube acceptance boundary directly. Keep any comparison carrier inside the focused test. Add no `src_next` helper and require structural rejection parity, not diagnostic-code equality.
+Stage 2A success parity and Stage 2B identity/provenance parity also remain completed. No next finite Journal, report, or bookkeeping-study slice is selected.
 
 ## Still unselected
 
@@ -36,4 +28,4 @@ Use the existing Stage 1 parser, Stage 2A adapter, checked TSV snapshot adapter,
 - bidirectional/reverse sync or conflict resolution;
 - TSV cleanup or production source TSV changes.
 
-Complete only the finite contract above, then update routing without automatically selecting a follow-up.
+Return to `TODO.md` and select one finite slice explicitly before implementation.

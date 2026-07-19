@@ -1,0 +1,9 @@
+commodity JPY
+
+account assets:anonymous
+
+account expenses:anonymous
+
+2026-02-20 * Invalid exact integer amount movement
+    expenses:anonymous 12x JPY
+    assets:anonymous -12x JPY

@@ -1,14 +1,14 @@
 # Journal Posting IR comparable rejection parity Stage 2C plan
 
-Status: current contract / selected test-only implementation plan
+Status: completed test-only implementation
 Owner: journal source migration
-Canonical: yes
-Exit: archive as completed after the focused fixture and test land, or replace with a new decision if the observed result shapes cannot support this contract without production normalization
+Canonical: no; current routing remains `TODO.md` and `NEXT_SESSION.md`
+Exit: completed; any later Journal parity or production work requires a separately selected finite slice
 Date: 2026-07-19
 
 ## Purpose
 
-Stage 2C selects one finite rejection-parity slice after the completed Stage 2A success parity and Stage 2B identity/provenance parity. It compares only three input errors that can describe the same intended one-row accounting movement in both the Minimal Journal profile and legacy TSV:
+Stage 2C completed one finite rejection-parity slice after the completed Stage 2A success parity and Stage 2B identity/provenance parity. It compares only three input errors that describe the same intended one-row accounting movement in both the Minimal Journal profile and legacy TSV:
 
 1. invalid date;
 2. invalid exact-integer amount;
@@ -16,7 +16,7 @@ Stage 2C selects one finite rejection-parity slice after the completed Stage 2A 
 
 Parity here is structural rejection parity, not equality of source-specific diagnostics, line identity, row identity, or IDs. The focused test will prove that neither source path admits the invalid movement as successful Posting IR, that rejection evidence remains observable, and that no normal numeric result reaches a Cube materialization boundary.
 
-This document selects the later test-only implementation. This docs-only change adds no BQN, fixture, test, runtime connection, or production-data change.
+The implementation is public-synthetic and test-only. It adds fixture evidence and one focused test, with no runtime helper, production connection, or production-data change.
 
 ## Exact input boundary
 
@@ -79,9 +79,9 @@ Stage 2A is not changed. Its `state = ok` on an empty admitted-transaction input
 
 No report is invoked. Existing Cube behavior is observed, not modified or promoted into a Journal runtime route.
 
-## Planned fixture
+## Implemented fixture
 
-Add exactly one public directory:
+The implementation adds exactly one public directory:
 
 ```text
 fixtures/journal-posting-ir-stage2c/
@@ -96,19 +96,19 @@ fixtures/journal-posting-ir-stage2c/
 
 `accounts.tsv` declares only anonymous asset and expense accounts with the roles needed by the existing resolvers. Each `.journal` contains the minimal JPY declaration, matching account declarations, and exactly one invalid transaction block. Each `.tsv` contains exactly one journal-like data row, without a private path, real account, amount, memo, or identifier.
 
-The planned focused test is:
+The focused test is:
 
 ```text
 tests/test_journal_posting_ir_comparable_rejection_stage2c.bqn
 ```
 
-The fixture and test are not added by this docs-only slice.
+It reads only the dedicated public fixture and directly observes the existing boundaries described below.
 
 ## Helper and test-local comparison carrier decision
 
 No new `src_next` helper is needed. The existing Journal parser, Stage 2A adapter, checked TSV adapter, and Cube acceptance boundary already expose all selected evidence. Adding a production/runtime normalizer would prematurely turn asymmetric source diagnostics into a shared API.
 
-The focused test may define a test-local `ObserveCase`/carrier projection with exactly these fields:
+The focused test defines a test-local `MakeObservation` carrier with exactly these fields:
 
 1. `case_key` — `invalid_date`, `invalid_exact_integer_amount`, or `unknown_account`;
 2. `source_kind` — `journal` or `legacy_tsv`;
@@ -165,21 +165,21 @@ For Stage 2C, **fail closed** means the selected invalid source movement contrib
 
 **No partial success** means that one side of the movement, a default amount, a zero substitute, or another normal numeric fragment must not be admitted when the paired movement is invalid. It does not require the Journal parser and TSV adapter to share an aggregate state or diagnostic representation, and it does not define behavior for a larger source containing unrelated valid events.
 
-## Completion conditions
+## Completion evidence
 
-Stage 2C implementation is complete only when:
+Stage 2C is complete with:
 
-1. the one dedicated public fixture directory contains exactly the three selected paired cases and shared anonymous accounts;
-2. the focused test directly observes the existing Journal parser, Stage 2A adapter, checked TSV adapter, and legacy Cube acceptance boundary;
-3. all carrier fields and structural assertions above are implemented test-locally;
-4. all three invalid movements have zero successful Posting IR and zero downstream admission;
-5. source-specific rejection evidence is preserved and asserted without cross-source code equality;
-6. the malformed amount cannot become an `ok` zero-valued posting;
-7. no `src_next` helper, production result-shape change, runtime route, report change, or source-data change is added;
-8. focused and repository checks pass;
-9. routing records completion without automatically selecting Stage 2D or any later work.
+1. one dedicated public fixture directory containing exactly the three selected paired cases and shared anonymous accounts;
+2. `tests/test_journal_posting_ir_comparable_rejection_stage2c.bqn`, which directly observes the existing Journal parser, Stage 2A adapter, checked TSV adapter, and legacy Cube acceptance boundary;
+3. the exact eleven-field carrier and structural assertions implemented only inside that focused test;
+4. zero successful Posting IR rows and zero downstream admission for every selected invalid movement;
+5. source-specific rejection evidence preserved and asserted without cross-source code equality;
+6. explicit evidence that malformed `12x` never becomes an `ok` zero-valued posting;
+7. no `src_next` helper, production result-shape change, runtime route, report change, or source-data change;
+8. passing focused test, docs lifecycle, absolute-link, repo-index, diff, and full repository checks;
+9. completion routing with no Stage 2D or later work selected.
 
-If implementation discovers that these exact existing shapes cannot support the carrier and assertions without changing production code, it must stop. The implementation must document the mismatch and request a separate design decision rather than adding normalization or changing result shapes.
+The implementation reproduced every state, row count, diagnostic code/status, and Cube valid/skipped count recorded in the preflight audit. No contract discrepancy or production-normalization decision was required.
 
 ## Production non-connection boundary
 
