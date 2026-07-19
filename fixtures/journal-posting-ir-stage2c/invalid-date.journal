@@ -1,0 +1,9 @@
+commodity JPY
+
+account assets:anonymous
+
+account expenses:anonymous
+
+2026-02-30 * Invalid date movement
+    expenses:anonymous 100 JPY
+    assets:anonymous -100 JPY

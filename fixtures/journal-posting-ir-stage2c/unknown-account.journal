@@ -1,0 +1,9 @@
+commodity JPY
+
+account assets:anonymous
+
+account expenses:anonymous
+
+2026-02-20 * Unknown account movement
+    expenses:anonymous 100 JPY
+    assets:undeclared -100 JPY
