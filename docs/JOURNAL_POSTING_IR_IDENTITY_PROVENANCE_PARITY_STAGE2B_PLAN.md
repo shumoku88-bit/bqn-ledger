@@ -13,8 +13,10 @@ Stage 2B selects the next finite Journal migration slice: test-only structural p
 ```text
 public synthetic Journal text
   -> existing Stage 1 Transaction IR
-  -> proposed pure Stage 2B identity/provenance adapter
-  -> current 16-field Posting IR rows + separate test-only provenance carrier
+  -> existing Stage 2A adapter
+  -> current 16-field Posting IR rows
+  -> proposed pure Stage 2B identity/provenance helper
+  -> unchanged Posting IR rows + separate Journal-only test provenance carrier
   -> structural invariant assertions against comparable legacy TSV identity evidence
 ```
 
@@ -68,13 +70,25 @@ For the selected test profile, the exact encoding is `source_event_id + ":" + de
 
 ### Comparable legacy TSV identity
 
-For parity comparison, the Stage 2B test helper may derive the semantic event identity of a legacy TSV source movement as:
+The six-field provenance carrier is Journal-only and test-only in Stage 2B. Stage 2B does not add a Journal-style `identity_kind` or one-based line span to legacy TSV evidence.
+
+For parity comparison, a test helper reads the legacy path's unchanged current 16-field Posting IR rows and derives only:
 
 ```text
-legacy:<source_file>:<source_row>
+normalized legacy event label = legacy:<source_file>:<source_row>
+test-only posting ordinal = 0, 1 in current emitted order for that source movement
 ```
 
-This derived value labels the comparable TSV event. It does not replace the current `source_id` algorithm, rewrite source metadata, or require Journal and TSV ID strings to match.
+The normalized label groups the two postings from one legacy TSV source movement. The ordinal observes their emitted order. Neither value replaces or mutates the legacy rows' current `source_id`, `tx_id`, or `posting_id`, and neither becomes a production field.
+
+The exact legacy TSV assertions are:
+
+1. the two postings generated from one source movement share the same `source_file` and `source_row`;
+2. those two postings share the same normalized legacy event label;
+3. their current `posting_id` values are unique;
+4. test-only ordinals `0, 1` preserve the current emitted posting order.
+
+Journal and legacy identity strings are not required to match. Stage 2B does not claim that legacy TSV has gained a durable/physical-fallback production classification.
 
 `source_row` remains part of the current 16-field Posting IR and a legacy compatibility surface for existing TSV consumers. Stage 2B starts no consumer migration. Every `source_row` join must still be migrated consumer by consumer under separately selected work before cutover.
 
@@ -100,11 +114,51 @@ The carrier is selected because:
 
 Alignment is itself an invariant: carrier row count and order equal Posting IR row count and order, and each carrier `posting_id` equals the corresponding existing row's `posting_id`. Whether provenance later becomes optional Posting IR fields, a transaction-level table plus posting references, or another checked runtime carrier remains unresolved and requires a production consumer decision outside Stage 2B.
 
+### Pure helper input and result contract
+
+The focused test first calls the existing Stage 2A adapter to generate current 16-field Posting IR rows for admitted Stage 1 Transaction IR. It then calls the Stage 2B helper exactly as:
+
+```text
+Build ⟨transactions, postingRows⟩
+```
+
+- `transactions` is admitted Stage 1 Transaction IR.
+- `postingRows` is the corresponding current 16-field Posting IR rows returned by Stage 2A.
+- The Stage 2B helper needs no resolved accounts or cycle start. It must not reproduce account resolution, day-index calculation, kind derivation, or any other Stage 2A behavior.
+
+The result carrier has exactly these top-level fields:
+
+- `state`
+- `posting_rows`
+- `provenance_rows`
+- `diagnostics`
+
+On success:
+
+- `state = "ok"`;
+- `posting_rows` preserves the input `postingRows` unchanged;
+- `provenance_rows` has the same count and order as `posting_rows`;
+- each corresponding `posting_id` matches;
+- `diagnostics` is empty.
+
+On failure:
+
+- `state = "error"`;
+- `posting_rows` is empty;
+- `provenance_rows` is empty;
+- `diagnostics` contains at least one item;
+- no partially successful carrier is returned.
+
+Supplying both admitted transactions and their already-built Posting IR rows makes row count, emitted order, and corresponding posting-ID mismatches observable at the Stage 2B boundary. A helper receiving transactions alone could construct provenance but could not prove alignment against the actual Stage 2A output; this contract deliberately closes that gap without reimplementing Stage 2A.
+
 ## Parity meaning
 
-Parity is structural equivalence of identity and provenance invariants, not byte-for-byte equality of Journal and TSV identifier strings.
+Parity is an asymmetric structural comparison, not byte-for-byte equality of Journal and TSV identifier strings.
 
-The Journal and legacy TSV paths have different physical source models. Stage 2B therefore proves that both can identify an event, keep all postings attached to that event, order and identify postings deterministically, and distinguish durable identity from physical location. It must not assert that a Journal `event-id` equals `legacy:<source_file>:<source_row>`.
+- On the Journal side, Stage 2B proves separation of semantic event identity from physical provenance, plus deterministic posting identity and order.
+- On the legacy TSV side, Stage 2B keeps the existing row-oriented event grouping as the comparison baseline and derives only a normalized event label and test-only posting ordinal.
+
+The legacy side is not asserted to distinguish durable identity from physical location, and no Journal provenance fields are projected onto it. A Journal `event-id` must not be asserted equal to `legacy:<source_file>:<source_row>`.
 
 ## Selected public synthetic fixture
 
@@ -131,13 +185,13 @@ The focused Stage 2B test must assert all of the following:
 4. **Durable identity independent of line movement by design:** reparsing a synthetic variant in which the plan block is moved physically preserves the plan's explicit `source_event_id` and both posting IDs while its physical span changes. This may be an in-memory string variant; no fixture writer or I/O-capable adapter is permitted.
 5. **Physical span is not semantic identity:** the plan's changed `source_start_line`/`source_end_line` is observed only as provenance and is not used to generate its durable event or posting IDs; the ordinary actual is explicitly labelled `physical_fallback`, never `durable`.
 6. **Plan identity preserved:** the explicit plan event identity survives Stage 1 Transaction IR, the Stage 2B carrier, and the corresponding current 16-field rows' identity projection without substitution by source lines.
-7. **Legacy comparison identity:** each comparable TSV source movement can be labelled `legacy:<source_file>:<source_row>`, and its two postings share that derived event label without requiring string equality with the Journal ID.
-8. **Carrier alignment:** exactly four Journal Posting IR rows and four carrier rows are emitted; corresponding posting IDs match.
-9. **No current-row drift:** Stage 2B keeps the established 16 fields and does not add, remove, or reorder them.
+7. **Legacy comparison boundary:** for each comparable TSV source movement, exactly two unchanged legacy Posting IR rows share `source_file` and `source_row`, share the derived `legacy:<source_file>:<source_row>` label, retain unique current `posting_id` values, and receive test-only ordinals `0, 1` in current emitted order. No Journal ID string equality or legacy durable/fallback classification is asserted.
+8. **Carrier alignment:** exactly four Journal Posting IR rows and four provenance rows are emitted; corresponding posting IDs match.
+9. **No current-row drift:** Stage 2B keeps the established 16 fields and does not add, remove, reorder, or replace legacy identity fields.
 
 ## Fail-closed boundary
 
-The pure Stage 2B helper must not emit an `ok` identity/provenance result when admitted input violates a covered Stage 2B invariant, including duplicate posting IDs, non-contiguous or duplicate posting indices, a missing event identity, an unknown `identity_kind`, an invalid physical span, or carrier/Posting-IR misalignment. It must return an error state, diagnostics, and no successful partial carrier.
+The pure Stage 2B helper must not emit an `ok` identity/provenance result when admitted input violates a covered Stage 2B invariant, including duplicate posting IDs, non-contiguous or duplicate posting indices, a missing event identity, an unknown `identity_kind`, an invalid physical span, or transaction/Posting-IR count, order, or posting-ID misalignment. It must return `state = "error"`, empty `posting_rows`, empty `provenance_rows`, one or more diagnostics, and no successful partial carrier.
 
 This is only local invariant protection for the selected success fixture and carrier assembly. Parser rejection behavior, TSV/Journal rejected-transaction diagnostic parity, and broader red-path/rejection parity remain the next independent unselected slice. Stage 2B must not absorb them.
 
@@ -145,8 +199,9 @@ This is only local invariant protection for the selected success fixture and car
 
 The follow-up implementation must be pure and test-only:
 
-- no file I/O in the proposed adapter/helper;
-- explicit admitted Transaction IR and resolved synthetic evidence as inputs;
+- no file I/O in the proposed helper;
+- only `Build ⟨transactions, postingRows⟩`, with admitted Stage 1 Transaction IR and corresponding Stage 2A-generated current 16-field rows, as the helper input;
+- no resolved accounts or cycle start input, and no Stage 2A reimplementation;
 - deterministic values only, with no clock or environment reads;
 - no production importer, loader, context, Cube, TBDS, report, editor, or CLI connection.
 
