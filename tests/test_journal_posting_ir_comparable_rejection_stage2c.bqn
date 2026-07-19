@@ -146,6 +146,32 @@ results ← ObserveCase¨ cases
   "journal" lib.AssertEq journal.source_kind
   "legacy_tsv" lib.AssertEq legacy.source_kind
 
+  # Every carrier value remains an exact projection of its source result.
+  result.spec.case_key lib.AssertEq journal.case_key
+  result.spec.case_key lib.AssertEq legacy.case_key
+  journal.case_key lib.AssertEq legacy.case_key
+  result.parsed.state lib.AssertEq journal.source_state
+  result.legacy.state lib.AssertEq legacy.source_state
+  (≠ result.parsed.transactions) lib.AssertEq journal.admitted_transaction_count
+  0 lib.AssertEq legacy.admitted_transaction_count
+
+  journalRows ← result.journal_posting.posting_rows
+  legacyRows ← result.legacy.posting_rows
+  journalOkRows ← OkRows journalRows
+  journalRejectedRows ← RejectedRows journalRows
+  legacyOkRows ← OkRows legacyRows
+  legacyRejectedRows ← RejectedRows legacyRows
+  (≠ journalRows) lib.AssertEq journal.posting_row_count
+  (≠ legacyRows) lib.AssertEq legacy.posting_row_count
+  (≠ journalOkRows) lib.AssertEq journal.ok_posting_count
+  (≠ journalRejectedRows) lib.AssertEq journal.rejected_posting_count
+  (≠ legacyOkRows) lib.AssertEq legacy.ok_posting_count
+  (≠ legacyRejectedRows) lib.AssertEq legacy.rejected_posting_count
+  (≠ result.parsed.diagnostics) lib.AssertEq journal.diagnostic_count
+  (≠ result.legacy.diagnostics) lib.AssertEq legacy.diagnostic_count
+  (≠ journalRows) lib.AssertEq journal.downstream_admitted_count
+  (≠ result.materialized.valid_rows) lib.AssertEq legacy.downstream_admitted_count
+
   0 lib.AssertEq journal.ok_posting_count
   0 lib.AssertEq legacy.ok_posting_count
   1 lib.AssertEq journal.has_rejection_evidence
@@ -166,10 +192,9 @@ results ← ObserveCase¨ cases
   0 lib.AssertEq result.materialized.actual_expense_total
 
   # If legacy rejected rows exist, both their status and message stay visible.
-  rejected ← RejectedRows result.legacy.posting_rows
-  legacy.rejected_posting_count lib.AssertEq ≠ rejected
-  lib.Assert ∧´ {0 < ≠ 𝕩.status}¨ rejected
-  lib.Assert ∧´ {0 < ≠ 𝕩.message}¨ rejected
+  legacy.rejected_posting_count lib.AssertEq ≠ legacyRejectedRows
+  lib.Assert ∧´ {0 < ≠ 𝕩.status}¨ legacyRejectedRows
+  lib.Assert ∧´ {0 < ≠ 𝕩.message}¨ legacyRejectedRows
 }¨ results
 
 invalidDate ← 0 ⊑ results
@@ -179,6 +204,7 @@ invalidDate ← 0 ⊑ results
 "ok" lib.AssertEq invalidDate.legacy.state
 2 lib.AssertEq ≠ invalidDate.legacy.posting_rows
 ⟨<"invalid_date", <"invalid_date"⟩ lib.AssertEq {<𝕩.status}¨ invalidDate.legacy.posting_rows
+⟨<"invalid_date", <"invalid_date"⟩ lib.AssertEq invalidDate.legacy_observation.source_codes
 0 lib.AssertEq ≠ invalidDate.legacy.diagnostics
 0 lib.AssertEq ≠ invalidDate.materialized.valid_rows
 2 lib.AssertEq ≠ invalidDate.materialized.skipped_rows
@@ -208,6 +234,7 @@ unknownAccount ← 2 ⊑ results
 "ok" lib.AssertEq unknownAccount.legacy.state
 2 lib.AssertEq ≠ unknownAccount.legacy.posting_rows
 ⟨<"unknown_account", <"unknown_account"⟩ lib.AssertEq {<𝕩.status}¨ unknownAccount.legacy.posting_rows
+⟨<"unknown_account", <"unknown_account"⟩ lib.AssertEq unknownAccount.legacy_observation.source_codes
 0 lib.AssertEq ≠ unknownAccount.legacy.diagnostics
 0 lib.AssertEq ≠ unknownAccount.materialized.valid_rows
 2 lib.AssertEq ≠ unknownAccount.materialized.skipped_rows
