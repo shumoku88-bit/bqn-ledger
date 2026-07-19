@@ -74,7 +74,8 @@ Exit: keep current while this remains the pit code/data-flow entry point
 
 - `context.bqn` — BuildAllRows / BuildPeriodView / BuildContext。1つの共有 posting snapshot から B1 row evidence を構築し、pure arithmetic owner へ渡す orchestration owner。cycle は読み込み境界ではなく report query parameter。
 - `journal_profile_stage1.bqn` — public synthetic Minimal BQN Journal subsetをordered Transaction IRへ変換するtest-only parser。production source routing、writer、conversionには未接続。
-- `journal_posting_ir_stage2a.bqn` — admitted Stage 1 Transaction IRをcurrent 16-field Posting IR shapeへ変換するtest-only success-path adapter。actual 1件・plan 1件の限定semantic parityのみ検証済みで、identity/provenance、rejection、native multi-posting、production routingには未接続。
+- `journal_posting_ir_stage2a.bqn` — admitted Stage 1 Transaction IRをcurrent 16-field Posting IR shapeへ変換するtest-only success-path adapter。actual 1件・plan 1件の限定semantic parityのみを担当し、rejection、native multi-posting、production routingには未接続。
+- `journal_posting_identity_provenance_stage2b.bqn` — admitted Stage 1 Transaction IRと対応するStage 2Aの16-field rowsを受け、identity/provenance local invariantsをall-or-nothingで検査して、rowを変更せず別の6-field carrierを返すpure test-only helper。production provenance carrier、consumer、routingには未接続。
 - `exact_decimal.bqn` — source amount text の exact-decimal parse、canonical coefficient / scale、parsed coefficient exact-range 診断の owner。
 - `currency_arithmetic.bqn` — pre-built B1 row evidence だけを入力に、single-domain 検査、snapshot-wide `amount_scale`、exact normalization、normalized overflow evidence を返す pure B2 owner。source file や projection は扱わない。
 - `source_currency_admission.bqn` — supplied account lines と posting snapshot のみを検査する pure source-currency admission owner。closed strict/compatibility policy、privacy-safe diagnostics、no-partial-admission を持ち、I/Oなし・public runtime未配線。
@@ -202,6 +203,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 ### `tests/` (ユニットテスト)
 
 - `test_src_next_*.bqn` — src_next 各モジュールのテスト。
+- `test_journal_posting_ir_adapter_stage2a.bqn` / `test_journal_posting_identity_provenance_stage2b.bqn` — Journal test-only Posting IR success parityとidentity/provenance carrierのfocused tests。
 - `test_lib.bqn` — テストフレームワーク (Assert, AssertEq)。
 - `test_find_section.bqn`, `test_simple.bqn` — 汎用テスト。
 
