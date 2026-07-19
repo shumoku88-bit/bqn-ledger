@@ -102,6 +102,11 @@ lib.Assert originalPlan.source_end_line ≠ variantPlan.source_end_line
 ({<𝕩.posting_id}¨ originalPlan.postings) lib.AssertEq {<𝕩.posting_id}¨ variantPlan.postings
 variantPlanCarrier ← ({𝕩.source_event_id ≡ "event-plan-service-2026-09"}¨ variantBuilt.provenance_rows) / variantBuilt.provenance_rows
 lib.Assert ∧´ {𝕩.identity_kind ≡ "durable"}¨ variantPlanCarrier
+lib.Assert ∧´ {(𝕩.source_start_line = originalPlan.source_start_line) ∧ 𝕩.source_end_line = originalPlan.source_end_line}¨ planCarrier
+lib.Assert ∧´ {(𝕩.source_start_line = variantPlan.source_start_line) ∧ 𝕩.source_end_line = variantPlan.source_end_line}¨ variantPlanCarrier
+lib.Assert (⊑ planCarrier).source_start_line ≠ (⊑ variantPlanCarrier).source_start_line
+lib.Assert (⊑ planCarrier).source_end_line ≠ (⊑ variantPlanCarrier).source_end_line
+lib.Assert ∧´ {𝕩.source_event_id ≡ "event-plan-service-2026-09"}¨ variantPlanCarrier
 ({<𝕩.posting_id}¨ planCarrier) lib.AssertEq {<𝕩.posting_id}¨ variantPlanCarrier
 
 # Legacy comparison stays on unchanged current 16-field rows. Labels and
@@ -146,6 +151,12 @@ Rows ← {𝕊 boxedIds: {{posting_id⇐>𝕩}}¨ boxedIds}
 
 validTx ← Tx ⟨"event-a", "durable", 1, 4, ⟨P ⟨0,"event-a:0"⟩, P ⟨1,"event-a:1"⟩⟩⟩
 validRows ← Rows ⟨<"event-a:0", <"event-a:1"⟩
+
+# The Posting IR row carries the same malformed ID, so alignment still holds;
+# the deterministic event-id/index encoding is the only violated invariant.
+invalidPostingId ← Tx ⟨"event-a", "durable", 1, 4, ⟨P ⟨0,"event-a:not-zero"⟩, P ⟨1,"event-a:1"⟩⟩⟩
+invalidPostingIdRows ← Rows ⟨<"event-a:not-zero", <"event-a:1"⟩
+CheckFail ⟨⟨invalidPostingId⟩, invalidPostingIdRows, "posting_id_invalid"⟩
 
 # Duplicate posting IDs (across events with the same event identity).
 duplicateTxs ← ⟨validTx, Tx ⟨"event-a", "durable", 5, 8, ⟨P ⟨0,"event-a:0"⟩, P ⟨1,"event-a:1"⟩⟩⟩⟩
