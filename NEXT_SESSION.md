@@ -1,84 +1,72 @@
 # Next session
 
-Status: idle / temporary repository pointer
-Owner: architecture
-Canonical: no
-Exit: replace when a new finite implementation or design slice is selected
-
-Journal migration architecture/source identity, Minimal BQN Journal Profile Stage 0, test-only Minimal BQN Journal parser Stage 1, the receivable bookkeeping matrix study Stage 1, the payable bookkeeping matrix study Stage 2, the prepaid insurance bookkeeping matrix study Stage 3, and the unearned maintenance revenue bookkeeping matrix study Stage 4 are complete. The initial four-direction bookkeeping matrix set—receivable, payable, prepaid expense, and unearned revenue—is complete.
-
-Latest decision records and evidence:
-
-- `docs/archive/completed-plans/JOURNAL_MIGRATION_ARCHITECTURE_AND_SOURCE_IDENTITY_DECISION-2026-07-18.md`
-- `docs/archive/completed-plans/MINIMAL_BQN_JOURNAL_PROFILE_STAGE0_CHARACTERIZATION-2026-07-18.md`
-- `docs/archive/completed-plans/MINIMAL_BQN_JOURNAL_PARSER_STAGE1-2026-07-18.md`
-- `docs/archive/completed-plans/BOOKKEEPING_MATRIX_RECEIVABLE_STAGE1-2026-07-18.md`
-- `docs/archive/completed-plans/BOOKKEEPING_MATRIX_PAYABLE_STAGE2-2026-07-18.md`
-- `docs/archive/completed-plans/BOOKKEEPING_MATRIX_PREPAID_INSURANCE_STAGE3-2026-07-18.md`
-- `docs/archive/completed-plans/BOOKKEEPING_MATRIX_UNEARNED_REVENUE_STAGE4-2026-07-18.md`
-- `fixtures/journal-profile-stage0/profile.journal`
-- `fixtures/journal-profile-stage0/expected-posting-matrix.tsv`
-- `fixtures/bookkeeping-matrix-receivable/profile.journal`
-- `fixtures/bookkeeping-matrix-receivable/expected-event-account-matrix.tsv`
-- `fixtures/bookkeeping-matrix-receivable/expected-running-balances.tsv`
-- `fixtures/bookkeeping-matrix-payable/profile.journal`
-- `fixtures/bookkeeping-matrix-payable/expected-event-account-matrix.tsv`
-- `fixtures/bookkeeping-matrix-payable/expected-running-balances.tsv`
-- `fixtures/bookkeeping-matrix-prepaid-insurance/profile.journal`
-- `fixtures/bookkeeping-matrix-prepaid-insurance/expected-event-account-matrix.tsv`
-- `fixtures/bookkeeping-matrix-prepaid-insurance/expected-running-balances.tsv`
-- `fixtures/bookkeeping-matrix-unearned-revenue/profile.journal`
-- `fixtures/bookkeeping-matrix-unearned-revenue/expected-event-account-matrix.tsv`
-- `fixtures/bookkeeping-matrix-unearned-revenue/expected-running-balances.tsv`
-- `src_next/journal_profile_stage1.bqn`
-- `tests/test_src_next_journal_profile_stage1.bqn`
-- `tests/test_bookkeeping_matrix_receivable.bqn`
-- `tests/test_bookkeeping_matrix_payable.bqn`
-- `tests/test_bookkeeping_matrix_prepaid_insurance.bqn`
-- `tests/test_bookkeeping_matrix_unearned_revenue.bqn`
-- `tools/to-hledger`
-- `docs/POSTING_IR_CONTRACT.md`
-- `docs/archive/completed-plans/DECISION_MULTI_POSTING_INVESTIGATION.md`
-- Draft PR #273 as parked background design evidence
-
-Current source and projection boundary:
-
-- TSV remains current source truth and the current BQN editor remains the daily write path;
-- the owner-confirmed bookkeeping workflow already synchronizes TSV into a separate generated journal repository;
-- `tools/to-hledger` is a one-way compatibility projection and shadow-read asset, not the future journal parser or writer;
-- generated journal output remains non-editable while TSV is source truth;
-- the future target boundary remains `journal text -> Transaction IR -> checked Posting IR -> Cube / TBDS -> reports`;
-- Stage 0 separates compact human input from explicit durable source blocks;
-- ordinary actual events may omit explicit `event-id`, while plans, budget allocations, stable editing, and durable event references require explicit identity;
-- durable source postings remain explicit even when a future editor calculates balancing details during preview;
-- actual is the minimal default layer, while plan and budget blocks require explicit layer metadata;
-- plan completion remains non-destructive through matching `plan-id` evidence;
-- envelope-bound plans and completions carry explicit `execution-envelope` linkage;
-- Stage 1 parses only the public Stage 0 subset into a test-only Transaction IR and signed event-account matrix;
-- Stage 1 fails closed for covered invalid, ambiguous, duplicate-required, unsupported-metadata, and unbalanced evidence;
-- Stage 1 is not connected to the production loader, editor, reports, private data, conversion, or source cutover;
-- the independent receivable, payable, prepaid expense, and unearned revenue studies complete the initial four-direction bookkeeping matrix set;
-- current A-1 `txn_id` grouping remains valid for the TSV era;
-- current `source_row` joins must migrate consumer by consumer before any source cutover;
-- no dual daily write, reverse sync, automatic conflict resolver, writer, production routing, production conversion, or source-of-truth switch is selected.
+Status: selected finite-slice pointer
+Owner: journal source migration
+Canonical: no; canonical contract: `docs/JOURNAL_POSTING_IR_IDENTITY_PROVENANCE_PARITY_STAGE2B_PLAN.md`
+Exit: replace when Stage 2B is completed, deselected, or superseded; do not auto-select a later stage
 
 ## Selected next finite slice
 
-No next finite slice is selected.
+**Journal Posting IR identity/provenance parity Stage 2B is selected and not yet completed.**
 
-Candidates for future sessions:
+Read in this order:
 
-1. **Journal Posting IR adapter parity Stage 2** (unselected)
-   - Compare Stage 1 normalized postings with the current TSV adapter for public synthetic transactions representable by both.
-   - Compare money, layers, transaction/posting identity, provenance, and rejection behavior before reports.
-   - Keep the journal adapter test-only and do not start production routing, shadow read, writer work, private-data conversion, or cutover.
-2. **Bookkeeping matrix study extension** (unselected)
-   - Add one hand-checkable synthetic accounting topic at a time, such as receivables/payables, accruals, depreciation, inventory, adjustments, closing, trial balance, or financial statements.
-   - Preserve journal evidence, expected matrix, and accounting explanation together.
-   - Do not infer a broad accounting-engine rewrite.
-3. **Envelope runtime compatibility decision** (parked / unselected)
-   - Decide completion-aware Cube modification, linkage filter implementation, and fail-closed migration.
-4. **Daily Capacity connection** (parked)
-5. **Privacy-safe AI context-bundle contract** (unselected program candidate)
+1. `AGENTS.md`
+2. `docs/AI_CODEMAP.md`
+3. `TODO.md`
+4. `docs/QUALITY_BAR.md`
+5. `docs/JOURNAL_POSTING_IR_IDENTITY_PROVENANCE_PARITY_STAGE2B_PLAN.md`
+6. `docs/POSTING_IR_CONTRACT.md`
+7. `docs/archive/completed-plans/JOURNAL_MIGRATION_ARCHITECTURE_AND_SOURCE_IDENTITY_DECISION-2026-07-18.md`
+8. `docs/archive/completed-plans/MINIMAL_BQN_JOURNAL_PARSER_STAGE1-2026-07-18.md`
+9. `docs/archive/completed-plans/JOURNAL_POSTING_IR_ADAPTER_PARITY_STAGE2A_PLAN-2026-07-18.md`
+10. `src_next/journal_profile_stage1.bqn`
+11. `src_next/journal_posting_ir_stage2a.bqn`
+12. `tests/test_journal_posting_ir_adapter_stage2a.bqn`
 
-PR #273 remains parked background design evidence and is not implementation authorization.
+## Current baseline
+
+- TSV remains source truth and the current BQN editor remains the daily write path.
+- The future boundary remains `journal text -> Transaction IR -> checked Posting IR -> Cube / TBDS -> reports`.
+- Minimal Journal parser Stage 1 is complete as test-only work.
+- Posting IR adapter parity Stage 2A success path is complete.
+- Stage 2A did not compare identity or provenance.
+- Existing `source_row` joins remain legacy compatibility surfaces and are not migrated by Stage 2B.
+- No production Journal loader, routing, writer, conversion, shadow read, source switch, reverse sync, or private-data read is selected.
+
+## Stage 2B implementation handoff
+
+Implement only the contract's pure, test-only identity/provenance carrier and focused public synthetic fixture:
+
+- proposed module: `src_next/journal_posting_identity_provenance_stage2b.bqn`
+- proposed test: `tests/test_journal_posting_identity_provenance_stage2b.bqn`
+- proposed fixture: `fixtures/journal-posting-ir-stage2b/`
+
+Preserve the existing 16-field Posting IR row. Carry these fields separately and align them one-to-one with Posting IR rows:
+
+- `source_event_id`
+- `identity_kind`
+- `source_start_line`
+- `source_end_line`
+- `posting_index`
+- `posting_id`
+
+The fixture contains exactly one explicit-durable-ID plan and one physical-fallback ordinary actual, each with exactly two postings. Parity means structural identity/provenance invariant equivalence, not equality of Journal and legacy TSV ID strings.
+
+Required assertions and fail-closed conditions are canonical in `docs/JOURNAL_POSTING_IR_IDENTITY_PROVENANCE_PARITY_STAGE2B_PLAN.md`; do not broaden them by inference.
+
+## Still unselected
+
+- rejection/red-path parity as a parity campaign;
+- native Journal parity for three or more postings;
+- production Journal loader or routing;
+- writer/editor work;
+- TSV-to-Journal conversion;
+- shadow read or private-data comparison;
+- source-of-truth cutover;
+- report, Cube, or TBDS consumer changes;
+- `source_row` consumer migration;
+- bidirectional/reverse sync or conflict resolution;
+- Stage 2C or any later stage.
+
+Stage 2A remains completed. Do not mark Stage 2B completed until its separately authorized implementation satisfies the contract and normal checks.

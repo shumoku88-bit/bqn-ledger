@@ -9,7 +9,7 @@
 
 完了済みの長い履歴は `docs/archive/TODO_HISTORY-*.md` に退避します。
 
-Last hygiene pass: 2026-07-18
+Last hygiene pass: 2026-07-19
 - journal migration architecture and source identity decision complete
 - Minimal BQN Journal Profile Stage 0 characterization complete
 - test-only Minimal BQN Journal parser Stage 1 complete
@@ -26,6 +26,7 @@ Last hygiene pass: 2026-07-18
 - prepaid insurance bookkeeping matrix study Stage 3 research complete (test-only research fixture; not a production feature)
 - unearned maintenance revenue bookkeeping matrix study Stage 4 research complete (test-only research fixture; not a production feature)
 - the initial four-direction bookkeeping matrix set is complete: receivable, payable, prepaid expense, and unearned revenue
+- Journal Posting IR identity/provenance parity Stage 2B docs-only contract selected as the next finite journal slice
 - no next finite report slice or bookkeeping study topic is selected
 - envelope allocation / execution-plan coverage characterization remains an unselected candidate
 - other unrelated candidates remain unselected
@@ -81,14 +82,16 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 - Minimal BQN Journal Profile Stage 0 characterization is complete; record: `docs/archive/completed-plans/MINIMAL_BQN_JOURNAL_PROFILE_STAGE0_CHARACTERIZATION-2026-07-18.md`.
 - Test-only Minimal BQN Journal parser Stage 1 is complete; record: `docs/archive/completed-plans/MINIMAL_BQN_JOURNAL_PARSER_STAGE1-2026-07-18.md`.
 - `tools/to-hledger` remains a generated one-way compatibility projection while TSV is source truth; it is not the future parser or writer.
-- Journal Posting IR adapter parity Stage 2A success path is complete; record: `docs/archive/completed-plans/JOURNAL_POSTING_IR_ADAPTER_PARITY_STAGE2A_PLAN-2026-07-18.md`. Identity/provenance, rejection/red-path, native multi-posting, production routing, and cutover remain unselected.
+- Journal Posting IR adapter parity Stage 2A success path is complete; record: `docs/archive/completed-plans/JOURNAL_POSTING_IR_ADAPTER_PARITY_STAGE2A_PLAN-2026-07-18.md`.
+- Journal Posting IR identity/provenance parity Stage 2B is the selected next finite slice under `docs/JOURNAL_POSTING_IR_IDENTITY_PROVENANCE_PARITY_STAGE2B_PLAN.md`. This selection authorizes only the documented future test-only, pure implementation; Stage 2B is not completed.
+- Rejection/red-path parity, native multi-posting parity, production routing, writer work, and cutover remain unselected.
 - PR #273 remains parked background design evidence, not implementation authorization.
 - production journal parser routing, writer, production conversion, and source-of-truth migration are unselected.
 - Do not infer helper renaming, generic temporal kernel, report-wide `--as-of`, source TSV migration, Daily Capacity connection, envelope/cycle policy expansion, or automatic write.
 
 ### Journal source migration
 
-Status: selected architecture direction. The docs-only architecture/source-identity decision, Minimal BQN Journal Profile Stage 0 characterization, test-only parser Stage 1, and Posting IR adapter parity Stage 2A success path are complete. No next journal implementation slice, production parser routing, writer, conversion, shadow-read activation, or source-of-truth implementation slice is selected.
+Status: selected architecture direction. The docs-only architecture/source-identity decision, Minimal BQN Journal Profile Stage 0 characterization, test-only parser Stage 1, and Posting IR adapter parity Stage 2A success path are complete. **Identity/provenance parity Stage 2B is the selected next finite test-only implementation slice; its contract is `docs/JOURNAL_POSTING_IR_IDENTITY_PROVENANCE_PARITY_STAGE2B_PLAN.md`, and it is not yet completed.** Production parser routing, writer, conversion, shadow-read activation, source-of-truth implementation, rejection parity, and native multi-posting parity remain unselected.
 
 Purpose: preserve the current safe TSV daily path while defining a future native journal source that enters through Transaction IR and checked Posting IR rather than being flattened back into `from / to / amount` rows.
 
@@ -105,17 +108,18 @@ Purpose: preserve the current safe TSV daily path while defining a future native
 - Existing `source_row` joins remain legacy compatibility surfaces and must migrate consumer by consumer before cutover.
 - Migration must remain one-directional. Do not create dual daily writes, reverse sync, or an automatic conflict resolver.
 - A future cutover must freeze an immutable final TSV snapshot and switch writers once, after parity and recovery gates.
-- Journal Posting IR adapter parity Stage 2A success path is complete as bounded test-only work; Stage 2 as a whole and all follow-ups remain unselected.
+- Journal Posting IR adapter parity Stage 2A success path is complete as bounded test-only work.
+- Stage 2B selects structural identity/provenance invariant parity with a separate test-only carrier while preserving the current 16-field Posting IR row and legacy `source_row` compatibility surface. It does not select Stage 2 as a whole or any production connection.
 
 ## Next candidates
 
 ### Journal Posting IR adapter parity
 
 - Stage 2A success-path adapter: completed
-- identity/provenance parity: unselected
+- **Stage 2B identity/provenance parity: selected finite test-only slice; contract: `docs/JOURNAL_POSTING_IR_IDENTITY_PROVENANCE_PARITY_STAGE2B_PLAN.md`; not completed**
 - red-path/rejection parity: unselected
 - multi-posting native parity: unselected
-- production routing and cutover: unselected
+- production routing, writer work, and cutover: unselected
 
 ### Bookkeeping matrix study extension
 
