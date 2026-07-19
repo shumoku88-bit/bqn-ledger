@@ -1,14 +1,14 @@
 # Journal native three-posting semantic-coordinate parity — test-only
 
-Status: current contract / selected test-only implementation plan
+Status: completed test-only implementation
 Owner: journal source migration
-Canonical: yes
-Exit: archive as completed after the dedicated fixture and focused test land, or replace with a new decision if existing pure boundaries cannot support the selected comparison without production normalization
+Canonical: no; current routing remains `TODO.md` and `NEXT_SESSION.md`
+Exit: completed; any later Journal or production work requires a separately selected finite slice
 Date: 2026-07-19
 
 ## Purpose
 
-Prove, through bounded test-only evidence, that semantic accounting coordinates agree between:
+This completed slice proves, through bounded test-only evidence, that semantic accounting coordinates agree between:
 
 - exactly one native Journal actual transaction with exactly three ordered postings; and
 - exactly two legacy TSV source rows representing the same accounting effect and expanding to exactly four Posting IR rows.
@@ -17,7 +17,7 @@ The comparison is about semantic accounting coordinates, not row topology. This 
 
 ## Exact fixture boundary
 
-The implementation will add one dedicated public synthetic fixture:
+The implementation added one dedicated public synthetic fixture:
 
 ```text
 fixtures/journal-native-three-posting-parity/
@@ -26,13 +26,13 @@ fixtures/journal-native-three-posting-parity/
   journal.tsv
 ```
 
-The focused test will be:
+The focused test is:
 
 ```text
 tests/test_journal_native_three_posting_semantic_parity.bqn
 ```
 
-The fixture will be an independent derivative of the Stage 0 split receipt. It will not directly reuse the complete Stage 0 fixture.
+The fixture is an independent derivative of the Stage 0 split receipt. It does not directly reuse the complete Stage 0 fixture.
 
 The fixture is fixed to:
 
@@ -53,11 +53,11 @@ The accounting effect is:
 - first expense account: `+800`;
 - second expense account: `+300`.
 
-Exact anonymous account names will be fixed in the fixture during implementation. Production account names must not be used.
+The fixed accounts are `assets:anonymous`, `expenses:anonymous-first`, and `expenses:anonymous-second`. No production account names are used.
 
 ## Existing paths only
 
-The implementation must use only these existing paths:
+The implementation uses only these existing paths:
 
 ```text
 Journal:
@@ -203,15 +203,18 @@ Stop implementation without adding a workaround if any of these becomes necessar
 
 Record the mismatch and request a separate design decision.
 
-## Completion conditions
+## Completion evidence
 
-This slice is complete only when:
+The completed implementation records the following actual behavior:
 
-- only the dedicated public fixture is used;
-- the comparison/reduction carrier exists only in the focused test;
-- all selected assertions pass;
-- production source and runtime behavior remain unchanged;
-- focused checks and `tools/check.sh` pass;
-- this plan is archived as completed;
-- repository routing returns to “no next finite slice selected”;
-- no follow-up work is selected automatically.
+- `profile.journal` parses as one ordinary actual transaction with no `event-id`, zero diagnostics, and three ordered postings: `+800`, `+300`, and `-1100`;
+- Stage 2A preserves that posting order and emits three `ok` Posting IR rows;
+- the two physical `journal.tsv` rows share `txn_id=txn-anonymous-split-001`, and the checked legacy projection emits four `ok` Posting IR rows carrying that metadata value;
+- the Journal event, each legacy `source_row` group, and the complete legacy projection each balance to zero;
+- the explicit `(date, account_key, layer_name)` axis reduces both paths to `⟨-1100, 800, 300⟩` for asset, first expense, and second expense coordinates;
+- both paths materialize the same numeric Cube with shape `31 × 3 × 4`, account vector `⟨-1100, 800, 300⟩`, layer totals `⟨0, 0, 0, 0⟩`, and actual expense total `1100`;
+- Cube admission remains intentionally asymmetric at three Journal valid rows versus four legacy valid rows, with zero skipped rows on both paths;
+- the comparison carrier and coordinate reduction exist only in `tests/test_journal_native_three_posting_semantic_parity.bqn`;
+- no `src_next` helper, production code, runtime route, source-data path, identity unification, or topology normalization was added;
+- focused Stage 1, Stage 2A, Cube, and parity tests plus repository checks pass;
+- repository routing returns to no next finite Journal slice selected, with no follow-up selected automatically.

@@ -28,8 +28,8 @@ Last hygiene pass: 2026-07-19
 - the initial four-direction bookkeeping matrix set is complete: receivable, payable, prepaid expense, and unearned revenue
 - Journal Posting IR identity/provenance parity Stage 2B test-only implementation complete
 - Journal Posting IR comparable rejection parity Stage 2C test-only implementation complete
-- Journal native three-posting semantic-coordinate parity is selected as a docs-contracted, not-yet-implemented test-only finite slice
-- no next finite report or bookkeeping study slice is selected
+- Journal native three-posting semantic-coordinate parity test-only implementation complete
+- no next finite Journal, report, or bookkeeping study slice is selected
 - envelope allocation / execution-plan coverage characterization remains an unselected candidate
 - other unrelated candidates remain unselected
 
@@ -88,7 +88,9 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 - Journal Posting IR identity/provenance parity Stage 2B is complete as a pure test-only carrier; record: `docs/archive/completed-plans/JOURNAL_POSTING_IR_IDENTITY_PROVENANCE_PARITY_STAGE2B_PLAN-2026-07-19.md`.
 - Journal Posting IR comparable rejection parity Stage 2C is complete as public-synthetic test-only evidence; record: `docs/archive/completed-plans/JOURNAL_POSTING_IR_COMPARABLE_REJECTION_PARITY_STAGE2C_PLAN-2026-07-19.md`.
 - Stage 2C covers only invalid date, invalid exact-integer amount, and unknown account, with structural rejection parity and no diagnostic-code equality or production normalization.
-- The selected next finite Journal slice is `docs/JOURNAL_NATIVE_THREE_POSTING_SEMANTIC_COORDINATE_PARITY_PLAN.md`: one public-synthetic, test-only proof that one native three-posting actual event and two legacy TSV rows have equal semantic accounting coordinates and numeric Cube payload despite 3-versus-4 Posting IR row topology. It is selected but not implemented.
+- Journal native three-posting semantic-coordinate parity is complete as public-synthetic test-only evidence; record: `docs/archive/completed-plans/JOURNAL_NATIVE_THREE_POSTING_SEMANTIC_COORDINATE_PARITY_PLAN-2026-07-19.md`.
+- The focused proof preserves native Journal 3-row versus legacy TSV 4-row topology while matching `(date, account_key, layer_name) -> sum(delta)` and numeric Cube payload.
+- No next finite Journal slice is selected.
 - Broader rejection/red-path parity, production routing, writer work, shadow read, conversion, cutover, and any later Journal stage remain unselected.
 - PR #273 remains parked background design evidence, not implementation authorization.
 - production journal parser routing, writer, production conversion, and source-of-truth migration are unselected.
@@ -96,7 +98,7 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 
 ### Journal source migration
 
-Status: selected architecture direction. The docs-only architecture/source-identity decision, Minimal BQN Journal Profile Stage 0 characterization, test-only parser Stage 1, Posting IR adapter parity Stage 2A success path, identity/provenance parity Stage 2B, and comparable rejection parity Stage 2C are complete. **Journal native three-posting semantic-coordinate parity is selected as the next finite test-only slice and is not implemented.** Production parser routing, writer, conversion, shadow-read activation, source-of-truth implementation, and broader rejection parity remain unselected.
+Status: selected architecture direction. The docs-only architecture/source-identity decision, Minimal BQN Journal Profile Stage 0 characterization, test-only parser Stage 1, Posting IR adapter parity Stage 2A success path, identity/provenance parity Stage 2B, comparable rejection parity Stage 2C, and native three-posting semantic-coordinate parity are complete. **No next finite Journal slice is selected.** Production parser routing, writer, conversion, shadow-read activation, source-of-truth implementation, and broader rejection parity remain unselected.
 
 Purpose: preserve the current safe TSV daily path while defining a future native journal source that enters through Transaction IR and checked Posting IR rather than being flattened back into `from / to / amount` rows.
 
@@ -116,7 +118,7 @@ Purpose: preserve the current safe TSV daily path while defining a future native
 - Journal Posting IR adapter parity Stage 2A success path is complete as bounded test-only work.
 - Stage 2B completed structural identity/provenance invariant parity with a separate test-only carrier while preserving the current 16-field Posting IR row and legacy `source_row` compatibility surface. It did not select Stage 2 as a whole or any production connection.
 - Stage 2C completed test-only structural rejection parity for invalid date, invalid exact-integer amount, and unknown account without a production helper or connection. It did not select a broader parser red-path campaign.
-- The selected three-posting slice compares `(date, account_key, layer_name) -> sum(delta)` and numeric Cube coordinates while preserving Journal 3-row versus legacy 4-row topology. It adds no production normalizer, route, writer, shadow read, conversion, cutover, or consumer migration.
+- The completed three-posting slice compares `(date, account_key, layer_name) -> sum(delta)` and numeric Cube coordinates while preserving Journal 3-row versus legacy 4-row topology. It adds no production normalizer, route, writer, shadow read, conversion, cutover, or consumer migration.
 
 ## Next candidates
 
@@ -125,8 +127,9 @@ Purpose: preserve the current safe TSV daily path while defining a future native
 - Stage 2A success-path adapter: completed
 - Stage 2B identity/provenance parity: completed; record: `docs/archive/completed-plans/JOURNAL_POSTING_IR_IDENTITY_PROVENANCE_PARITY_STAGE2B_PLAN-2026-07-19.md`
 - Stage 2C comparable rejection parity: completed; record: `docs/archive/completed-plans/JOURNAL_POSTING_IR_COMPARABLE_REJECTION_PARITY_STAGE2C_PLAN-2026-07-19.md`
-- Journal native three-posting semantic-coordinate parity: selected / not implemented; contract: `docs/JOURNAL_NATIVE_THREE_POSTING_SEMANTIC_COORDINATE_PARITY_PLAN.md`
-- primary boundary: `(date, account_key, layer_name) -> sum(delta)`; secondary boundary: numeric Cube equality while preserving Journal 3-row / legacy 4-row topology
+- Journal native three-posting semantic-coordinate parity: completed test-only; record: `docs/archive/completed-plans/JOURNAL_NATIVE_THREE_POSTING_SEMANTIC_COORDINATE_PARITY_PLAN-2026-07-19.md`
+- completed primary boundary: `(date, account_key, layer_name) -> sum(delta)`; secondary boundary: numeric Cube equality while preserving Journal 3-row / legacy 4-row topology
+- no next finite Journal slice selected
 - broader red-path/rejection parity: unselected
 - production routing, writer work, shadow read, conversion, cutover, and later stages: unselected
 

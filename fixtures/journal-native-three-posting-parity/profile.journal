@@ -1,0 +1,17 @@
+; Public synthetic native three-posting parity fixture.
+
+commodity JPY
+
+account assets:anonymous
+    ; role: asset
+
+account expenses:anonymous-first
+    ; role: expense
+
+account expenses:anonymous-second
+    ; role: expense
+
+2026-08-03 * Anonymous split receipt
+    expenses:anonymous-first 800 JPY
+    expenses:anonymous-second 300 JPY
+    assets:anonymous -1100 JPY
