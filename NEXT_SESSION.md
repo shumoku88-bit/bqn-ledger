@@ -7,11 +7,12 @@ Exit: replace only when a new finite slice is explicitly selected; do not infer 
 
 ## Current state
 
-Journal read-path trial-balance rehearsal is complete as public-synthetic test-only work. Completion record:
+Journal read-path trial-balance rehearsal and report-context rehearsal are complete as public-synthetic test-only work. Completion records:
 
 - `docs/archive/completed-plans/JOURNAL_READ_PATH_TRIAL_BALANCE_REHEARSAL_PLAN-2026-07-21.md`
+- `docs/archive/completed-plans/JOURNAL_READ_PATH_REPORT_CONTEXT_REHEARSAL_PLAN-2026-07-21.md`
 
-The focused test reads the existing public native three-posting Journal fixture directly, preserves three Journal-derived Posting IR rows, passes them through `context.BuildPeriodView`, and proves the expected actual-layer Trial Balance movements and zero closing sum. Stage 2A, Stage 2B, Stage 2C, and native three-posting semantic-coordinate parity also remain completed. No next finite Journal, report, or bookkeeping-study slice is selected.
+The focused test reads the existing public native three-posting Journal fixture directly, preserves three Journal-derived Posting IR rows, passes them through `context.BuildPeriodView` (Rehearsal Context), and proves they successfully connect to `trial_balance.Build` and `balances.Build` (generating identical entries to the legacy TSV projection, as well as executing `balances.Format` and `balances.FormatHuman`). Stage 2A, Stage 2B, Stage 2C, and native three-posting semantic-coordinate parity also remain completed. No next finite Journal, report, or bookkeeping-study slice is selected.
 
 ## Still unselected
 

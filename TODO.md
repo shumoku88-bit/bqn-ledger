@@ -101,7 +101,7 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 
 ### Journal source migration
 
-Status: selected architecture direction. The docs-only architecture/source-identity decision, Minimal BQN Journal Profile Stage 0 characterization, test-only parser Stage 1, Posting IR adapter parity Stage 2A success path, identity/provenance parity Stage 2B, comparable rejection parity Stage 2C, native three-posting semantic-coordinate parity, and Journal read-path trial-balance rehearsal are complete. **No next finite Journal slice is selected.** Production parser routing, writer, conversion, shadow-read activation, source-of-truth implementation, and broader rejection parity remain unselected.
+Status: selected architecture direction. The docs-only architecture/source-identity decision, Minimal BQN Journal Profile Stage 0 characterization, test-only parser Stage 1, Posting IR adapter parity Stage 2A success path, identity/provenance parity Stage 2B, comparable rejection parity Stage 2C, native three-posting semantic-coordinate parity, Journal read-path trial-balance rehearsal, and Journal read-path report-context rehearsal are complete. **No next finite Journal slice is selected.** Production parser routing, writer, conversion, shadow-read activation, source-of-truth implementation, and broader rejection parity remain unselected.
 
 Purpose: preserve the current safe TSV daily path while defining a future native journal source that enters through Transaction IR and checked Posting IR rather than being flattened back into `from / to / amount` rows.
 
@@ -123,6 +123,7 @@ Purpose: preserve the current safe TSV daily path while defining a future native
 - Stage 2C completed test-only structural rejection parity for invalid date, invalid exact-integer amount, and unknown account without a production helper or connection. It did not select a broader parser red-path campaign.
 - The completed three-posting slice compares `(date, account_key, layer_name) -> sum(delta)` and numeric Cube coordinates while preserving Journal 3-row versus legacy TSV 4-row topology. It adds no production normalizer, route, writer, shadow read, conversion, cutover, or consumer migration.
 - The completed read-path rehearsal reuses that Journal fixture and proves the existing `BuildPeriodView` and Trial Balance builders accept the three Journal-derived rows. It changes no `BuildContext`, source loading, production report, or source truth.
+- The completed report-context rehearsal extends the read-path rehearsal by connecting the Journal-derived context to `balances.Build`, proving the generated balance entries exactly match the legacy TSV projection and successful execution of `balances.Format` and `balances.FormatHuman`, with zero production routing or source truth changes.
 
 ## Next candidates
 
@@ -135,7 +136,8 @@ Purpose: preserve the current safe TSV daily path while defining a future native
 - completed primary boundary: `(date, account_key, layer_name) -> sum(delta)`; secondary boundary: numeric Cube equality while preserving Journal 3-row / legacy 4-row topology
 - Journal read-path trial-balance rehearsal: completed test-only; record: `docs/archive/completed-plans/JOURNAL_READ_PATH_TRIAL_BALANCE_REHEARSAL_PLAN-2026-07-21.md`
 - completed path: existing public Journal fixture -> Parse -> Stage 2A -> BuildPeriodView -> actual-layer Trial Balance
-- no next finite Journal slice selected
+- Journal read-path report-context rehearsal: completed test-only; record: `docs/archive/completed-plans/JOURNAL_READ_PATH_REPORT_CONTEXT_REHEARSAL_PLAN-2026-07-21.md`
+- completed path: existing public Journal fixture -> Parse -> Stage 2A -> BuildPeriodView -> balances.Build / Format / FormatHuman
 - broader red-path/rejection parity: unselected
 - production routing, writer work, shadow read, conversion, cutover, and later stages: unselected
 
