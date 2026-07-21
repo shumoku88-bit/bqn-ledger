@@ -93,7 +93,7 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 - The focused proof preserves native Journal 3-row versus legacy TSV 4-row topology while matching `(date, account_key, layer_name) -> sum(delta)` and numeric Cube payload.
 - Journal read-path trial-balance rehearsal is complete as public-synthetic test-only evidence; record: `docs/archive/completed-plans/JOURNAL_READ_PATH_TRIAL_BALANCE_REHEARSAL_PLAN-2026-07-21.md`.
 - The focused test proves `Parse -> Stage 2A -> BuildPeriodView -> trial_balance.Build` with three Journal-derived Posting IR rows and a zero-sum actual-layer Trial Balance, without production routing.
-- No next finite Journal slice is selected.
+- Journal resolved-account registry mismatch rejection is selected as the next finite test-only slice (canonical plan: docs/JOURNAL_RESOLVED_ACCOUNT_REGISTRY_MISMATCH_REJECTION_PLAN.md; implementation has not started).
 - Broader rejection/red-path parity, production routing, writer work, shadow read, conversion, cutover, and any later Journal stage remain unselected.
 - PR #273 remains parked background design evidence, not implementation authorization.
 - production journal parser routing, writer, production conversion, and source-of-truth migration are unselected.
@@ -101,7 +101,7 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 
 ### Journal source migration
 
-Status: selected architecture direction. The docs-only architecture/source-identity decision, Minimal BQN Journal Profile Stage 0 characterization, test-only parser Stage 1, Posting IR adapter parity Stage 2A success path, identity/provenance parity Stage 2B, comparable rejection parity Stage 2C, native three-posting semantic-coordinate parity, Journal read-path trial-balance rehearsal, Journal read-path report-context rehearsal, and Journal read-only source carrier rehearsal are complete. **No next finite Journal slice is selected.** Production parser routing, writer, conversion, shadow-read activation, source-of-truth implementation, and broader rejection parity remain unselected.
+Status: finite slice selected. The docs-only architecture/source-identity decision, Minimal BQN Journal Profile Stage 0 characterization, test-only parser Stage 1, Posting IR adapter parity Stage 2A success path, identity/provenance parity Stage 2B, comparable rejection parity Stage 2C, native three-posting semantic-coordinate parity, Journal read-path trial-balance rehearsal, Journal read-path report-context rehearsal, and Journal read-only source carrier rehearsal are complete. **Journal resolved-account registry mismatch rejection is selected as the next finite test-only slice (canonical plan: docs/JOURNAL_RESOLVED_ACCOUNT_REGISTRY_MISMATCH_REJECTION_PLAN.md; implementation has not started).** Production parser routing, writer, conversion, shadow-read activation, source-of-truth implementation, cutover, and broader red-path campaign remain unselected. No next Journal stage will be automatically selected after this slice.
 
 Purpose: preserve the current safe TSV daily path while defining a future native journal source that enters through Transaction IR and checked Posting IR rather than being flattened back into `from / to / amount` rows.
 
