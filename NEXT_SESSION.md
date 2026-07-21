@@ -1,23 +1,49 @@
 # Next session
 
-Status: no finite slice selected
+Status: finite slice selected
 Owner: journal source migration
 Canonical: no; canonical routing remains `TODO.md`
-Exit: select next finite slice from `TODO.md` before starting work
+Exit: complete the focused characterization and return routing to no selected finite Journal slice
 
-## Current State
+## Selected Slice
 
-The test-only Journal resolved-account registry mismatch rejection slice has been completed:
+Journal split-purchase transaction characterization — test-only
 
-- Implemented pure validation in Stage 2A (`src_next/journal_posting_ir_stage2a.bqn`) to check if admitted posting accounts exist in `resolved.accounts` registry.
-- Added a focused unit test at `tests/test_journal_resolved_account_registry_mismatch_rejection.bqn` proving that when a mismatch occurs:
-  - Stage 1 is `"ok"`;
-  - Stage 2A returns `state = "error"`, empty `posting_rows`, and a structured diagnostic under stage `"journal_posting_ir_stage2a"` and code `"posting_account_unresolved"`;
-  - The read-only carrier propagates this rejection cleanly.
-- Verified that all existing success-path, carrier, and read-path rehearsal tests pass cleanly.
-- Updated baseline repo index.
-- No production routing, writer, or TSV-to-Journal conversion changes were made.
+## Canonical Finite Contract
 
-## Next Selected Slice
+[docs/JOURNAL_SPLIT_PURCHASE_TRANSACTION_CHARACTERIZATION_PLAN.md](docs/JOURNAL_SPLIT_PURCHASE_TRANSACTION_CHARACTERIZATION_PLAN.md)
 
-No next finite Journal slice is selected. The next slice should be explicitly selected from `TODO.md`.
+## Finite Question
+
+> Can public synthetic Journal purchase transactions preserve one real-world purchase event containing multiple expense-category postings and one payment posting through Stage 1, the read-only source carrier, Stage 2A, and numeric account reduction, while retaining posting order, transaction-local balance, and exact category totals, using tax-inclusive amounts and remaining disconnected from production routing?
+
+## Selected Public Synthetic Evidence
+
+3 transactions with explicit JPY commodity and account declarations:
+- Transaction A: Convenience store split purchase (tobacco 600, coffee 150, cash -750)
+- Transaction B: Supermarket food split (daily 1400, stock 900, bank -2300)
+- Transaction C: Supermarket mixed purchase (daily 1400, stock 900, household 500, bank -2800)
+
+## Tax-inclusive Boundary
+
+All posting amounts are tax-inclusive receipt amounts. No tax postings, splits, tax metadata, or net-price reconstruction. Category posting is tax-inclusive category subtotal.
+
+## Expected Future Implementation Invariants
+
+- Stage 1: `state = "ok"`, 3 transactions, posting counts `3, 3, 4`, delta sum is 0, distinct fallback event identities.
+- Stage 2A & Carrier: `state = "ok"`, total Posting IR row count is 10, retains orders, standard 16-field shapes, `source_file` is unmodified, no production loader.
+- Expected aggregate totals:
+  - expenses:tobacco/JPY      600
+  - expenses:coffee/JPY       150
+  - expenses:food:daily/JPY  2800
+  - expenses:food:stock/JPY  1800
+  - expenses:household/JPY    500
+  - assets:cash/JPY          -750
+  - assets:bank/JPY         -5100
+  - Delta sum: 0. Expense total: 5850. Cash/bank total: -5850.
+
+## Non-goals
+
+- No production Journal loader/routing, writer, editor, or sync.
+- No tax postings, net price re-construction, or tax rate metadata.
+- No automatic account creation, fuzzy match, inventory accounting, shadow read, conversion, or cutover.
