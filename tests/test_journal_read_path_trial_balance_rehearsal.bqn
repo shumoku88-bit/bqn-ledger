@@ -1,8 +1,7 @@
 #!/usr/bin/env bqn
 
 lib ← •Import "test_lib.bqn"
-parser ← •Import "../src_next/journal_profile_stage1.bqn"
-adapter ← •Import "../src_next/journal_posting_ir_stage2a.bqn"
+carrier_module ← •Import "../src_next/journal_read_only_source_carrier.bqn"
 context ← •Import "../src_next/context.bqn"
 trial_balance ← •Import "../src_next/trial_balance.bqn"
 balances ← •Import "../src_next/balances.bqn"
@@ -23,20 +22,22 @@ accountLines ← loader.ReadLines (base ∾ "/accounts.tsv")
 resolved ← ak.Resolve accountLines
 ⟨"assets:anonymous/JPY", "expenses:anonymous-first/JPY", "expenses:anonymous-second/JPY"⟩ lib.AssertEq resolved.account_keys
 
-# Journal text -> admitted Transaction IR.
-raw ← •FChars ("../" ∾ base ∾ "/profile.journal")
-parsed ← parser.Parse raw
-"ok" lib.AssertEq parsed.state
-0 lib.AssertEq ≠ parsed.diagnostics
-1 lib.AssertEq ≠ parsed.transactions
-transaction ← ⊑ parsed.transactions
+# Journal text -> admitted Transaction IR via carrier.
+raw ← loader.ReadRaw (base ∾ "/profile.journal")
+journalLines ← (@+10) loader.SplitKeepEmpty raw
+carrier ← {
+  source_file ⇐ "profile.journal",
+  lines ⇐ journalLines
+}
+carrierResult ← carrier_module.Build ⟨carrier, resolved, cycleStart⟩
+"ok" lib.AssertEq carrierResult.state
+0 lib.AssertEq ≠ carrierResult.diagnostics
+1 lib.AssertEq ≠ carrierResult.transactions
+transaction ← ⊑ carrierResult.transactions
 3 lib.AssertEq ≠ transaction.postings
 
-# Transaction IR -> successful current Posting IR rows.
-journalResult ← adapter.Build ⟨parsed.transactions, resolved, cycleStart⟩
-"ok" lib.AssertEq journalResult.state
-0 lib.AssertEq ≠ journalResult.diagnostics
-journalRows ← journalResult.posting_rows
+# Successful current Posting IR rows.
+journalRows ← carrierResult.posting_rows
 3 lib.AssertEq ≠ journalRows
 lib.Assert ∧´ {𝕩.status ≡ "ok"}¨ journalRows
 lib.Assert ∧´ {𝕩.source_file ≡ "profile.journal"}¨ journalRows
