@@ -97,8 +97,10 @@ balanceEntriesLegacy ← balances.Build legacyBalancesCtx
 # Verify they match
 balanceEntriesActual lib.AssertEq balanceEntriesLegacy
 
-# Verify format human and compact methods do not crash
+# Verify format human and compact methods do not crash and emit nonempty output
 humanOutput ← balances.FormatHuman balanceEntriesActual
 compactOutput ← balances.Format balanceEntriesActual
+lib.Assert 0 < ≠ humanOutput
+lib.Assert 0 < ≠ compactOutput
 
 •Out "test_journal_read_path_trial_balance_rehearsal.bqn: OK"
