@@ -22,6 +22,7 @@ accountLines ← loader.ReadLines (base ∾ "/accounts.tsv")
 resolved ← ak.Resolve accountLines
 ⟨"assets:anonymous/JPY", "expenses:anonymous-first/JPY", "expenses:anonymous-second/JPY"⟩ lib.AssertEq resolved.account_keys
 
+# Journal text -> admitted Transaction IR.
 raw ← •FChars ("../" ∾ base ∾ "/profile.journal")
 parsed ← parser.Parse raw
 "ok" lib.AssertEq parsed.state
@@ -30,6 +31,7 @@ parsed ← parser.Parse raw
 transaction ← ⊑ parsed.transactions
 3 lib.AssertEq ≠ transaction.postings
 
+# Transaction IR -> successful current Posting IR rows.
 journalResult ← adapter.Build ⟨parsed.transactions, resolved, cycleStart⟩
 "ok" lib.AssertEq journalResult.state
 0 lib.AssertEq ≠ journalResult.diagnostics
@@ -40,6 +42,7 @@ lib.Assert ∧´ {𝕩.source_file ≡ "profile.journal"}¨ journalRows
 ⟨800, 300, -1100⟩ lib.AssertEq {𝕩.delta}¨ journalRows
 0 lib.AssertEq +´ {𝕩.delta}¨ journalRows
 
+# Existing period-view boundary: Posting IR -> Cube + TBDS.
 view ← context.BuildPeriodView ⟨journalRows, resolved, cy⟩
 3 lib.AssertEq view.cube.valid_count
 0 lib.AssertEq view.cube.skipped_count
@@ -54,11 +57,19 @@ actualRows ← (cube.layer_actual = {𝕩.layer_index}¨ view.tbds) / view.tbds
 ⟨-1100, 0, 0⟩ lib.AssertEq {𝕩.credit_movement}¨ actualRows
 ⟨-1100, 800, 300⟩ lib.AssertEq {𝕩.closing}¨ actualRows
 
+# Existing Trial Balance builder over the Journal-derived period view.
 ctx ← {cy ⇐ cy, tbds ⇐ view.tbds}
 tb ← trial_balance.Build ⟨ctx, cube.layer_actual⟩
 "2026-08-01" lib.AssertEq tb.period_start
 "2026-09-01" lib.AssertEq tb.period_end_exclusive
 "actual" lib.AssertEq tb.layer_name
 ⟨"assets:anonymous/JPY", "expenses:anonymous-first/JPY", "expenses:anonymous-second/JPY"⟩ lib.AssertEq tb.accounts
+⟨0, 0, 0⟩ lib.AssertEq tb.openings
+⟨0, 800, 300⟩ lib.AssertEq tb.debits
+⟨-1100, 0, 0⟩ lib.AssertEq tb.credits
+⟨-1100, 800, 300⟩ lib.AssertEq tb.closings
+1100 lib.AssertEq +´ tb.debits
+-1100 lib.AssertEq +´ tb.credits
+0 lib.AssertEq +´ tb.closings
 
 •Out "test_journal_read_path_trial_balance_rehearsal.bqn: OK"
