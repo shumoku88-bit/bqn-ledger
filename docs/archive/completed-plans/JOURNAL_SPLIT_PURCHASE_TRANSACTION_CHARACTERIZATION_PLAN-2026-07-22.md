@@ -1,6 +1,6 @@
 # Journal split-purchase transaction characterization — test-only plan
 
-Status: selected finite implementation contract
+Status: completed
 Owner: journal source migration
 Canonical: no; canonical routing remains `TODO.md`
 Exit: focused characterization implementation, review, completion record, and explicit return to no selected finite Journal slice
@@ -231,3 +231,57 @@ focused implementationとchecksが完了した場合:
 - `TODO.md`、`NEXT_SESSION.md`、`docs/README.md`を更新する
 - routingを`no finite slice selected`へ戻す
 - production routing、writer、tax work、conversion、shadow read、cutoverを自動選定しない
+
+## Completion Record (2026-07-22)
+
+- **Status**: completed
+- **Exact Fixture Paths**:
+  - `fixtures/journal-split-purchase-characterization/profile.journal`
+  - `fixtures/journal-split-purchase-characterization/accounts.tsv`
+- **Exact Transactions**:
+  - Transaction 1: 2026-08-05 * Convenience store (posting count: 3)
+    - `expenses:tobacco` 600 JPY
+    - `expenses:coffee` 150 JPY
+    - `assets:cash` -750 JPY
+  - Transaction 2: 2026-08-06 * Supermarket food split (posting count: 3)
+    - `expenses:food:daily` 1400 JPY
+    - `expenses:food:stock` 900 JPY
+    - `assets:bank` -2300 JPY
+  - Transaction 3: 2026-08-07 * Supermarket mixed purchase (posting count: 4)
+    - `expenses:food:daily` 1400 JPY
+    - `expenses:food:stock` 900 JPY
+    - `expenses:household` 500 JPY
+    - `assets:bank` -2800 JPY
+- **Counts**:
+  - Total Transaction IR count = 3
+  - Total Posting IR row count = 10 (posting counts: `⟨3, 3, 4⟩`)
+- **Identity Kind**: `physical_fallback`
+- **3 Distinct Source Event Identities**: Confirmed that `source_event_id` is non-empty for all three transactions and they are mutually distinct by asserting that the event ID strings do not match each other.
+- **Carrier Source Identity**: `"supplied-synthetic-split.journal"`. The carrier result retains this source identity, while the individual `posting_rows` keep their original `source_file` as `"profile.journal"`.
+- **Transaction-Local Balance Results**: Verified that the sum of `delta` values for the postings of each individual transaction is exactly 0.
+- **Exact Account Totals**:
+  - `expenses:tobacco/JPY`: 600
+  - `expenses:coffee/JPY`: 150
+  - `expenses:food:daily/JPY`: 2800
+  - `expenses:food:stock/JPY`: 1800
+  - `expenses:household/JPY`: 500
+  - `assets:cash/JPY`: -750
+  - `assets:bank/JPY`: -5100
+- **Category Metrics**:
+  - Actual expense total: 5850
+  - Payment account total: -5850
+  - All-account delta sum: 0
+- **Tax-Inclusive Boundary**: All amount values are treated as tax-inclusive category subtotals. No `expenses:tax` postings, 8%/10% tax rate splits, net price reconstruction, or tax metadata were introduced.
+- **Numeric Reduction or Cube Boundary**: Materialized the 10 rows using `cube.Materialize` and verified that the actual account totals vector, valid count (10), skipped count (0), actual expense total (5850), and zero layer totals vector match expectations.
+- **Focused Test Results**:
+  - `tests/test_journal_split_purchase_transaction_characterization.bqn`: OK
+- **Related Test Results**:
+  - `tests/test_journal_native_three_posting_semantic_parity.bqn`: OK
+  - `tests/test_journal_read_only_source_carrier.bqn`: OK
+  - `tests/test_journal_resolved_account_registry_mismatch_rejection.bqn`: OK
+- **Full check results**: Passed `tools/check.sh` and related checks.
+- **Production Guard Rails**:
+  - Production routing, writer, conversion, shadow read, and cutover have not been modified.
+  - Source code (`src_next/**`) has not been modified.
+  - Private data was not used or modified.
+  - No next Journal slice was automatically selected.
