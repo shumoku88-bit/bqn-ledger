@@ -48,6 +48,11 @@ view ← context.BuildPeriodView ⟨journalRows, resolved, cy⟩
 12 lib.AssertEq ≠ view.tbds
 actualRows ← (cube.layer_actual = {𝕩.layer_index}¨ view.tbds) / view.tbds
 3 lib.AssertEq ≠ actualRows
+⟨"assets:anonymous/JPY", "expenses:anonymous-first/JPY", "expenses:anonymous-second/JPY"⟩ lib.AssertEq {𝕩.account_key}¨ actualRows
+⟨0, 0, 0⟩ lib.AssertEq {𝕩.opening}¨ actualRows
+⟨0, 800, 300⟩ lib.AssertEq {𝕩.debit_movement}¨ actualRows
+⟨-1100, 0, 0⟩ lib.AssertEq {𝕩.credit_movement}¨ actualRows
+⟨-1100, 800, 300⟩ lib.AssertEq {𝕩.closing}¨ actualRows
 
 ctx ← {cy ⇐ cy, tbds ⇐ view.tbds}
 tb ← trial_balance.Build ⟨ctx, cube.layer_actual⟩
