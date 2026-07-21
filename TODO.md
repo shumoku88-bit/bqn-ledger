@@ -32,7 +32,7 @@ Last hygiene pass: 2026-07-19
 - Journal read-path trial-balance rehearsal test-only implementation complete
 - Journal read-path report-context rehearsal test-only implementation complete
 - Journal read-only source carrier rehearsal test-only implementation complete
-- Journal resolved-account registry mismatch rejection selected as the next finite test-only slice; implementation has not started
+- Journal resolved-account registry mismatch rejection is complete as public-synthetic test-only evidence; record: `docs/archive/completed-plans/JOURNAL_RESOLVED_ACCOUNT_REGISTRY_MISMATCH_REJECTION_PLAN-2026-07-21.md`
 - envelope allocation / execution-plan coverage characterization remains an unselected candidate
 - other unrelated candidates remain unselected
 
@@ -95,15 +95,15 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 - The focused proof preserves native Journal 3-row versus legacy TSV 4-row topology while matching `(date, account_key, layer_name) -> sum(delta)` and numeric Cube payload.
 - Journal read-path trial-balance rehearsal is complete as public-synthetic test-only evidence; record: `docs/archive/completed-plans/JOURNAL_READ_PATH_TRIAL_BALANCE_REHEARSAL_PLAN-2026-07-21.md`.
 - The focused test proves `Parse -> Stage 2A -> BuildPeriodView -> trial_balance.Build` with three Journal-derived Posting IR rows and a zero-sum actual-layer Trial Balance, without production routing.
-- Journal resolved-account registry mismatch rejection is selected as the next finite test-only slice (canonical plan: docs/JOURNAL_RESOLVED_ACCOUNT_REGISTRY_MISMATCH_REJECTION_PLAN.md; implementation has not started).
-- Broader rejection/red-path parity, production routing, writer work, shadow read, conversion, cutover, and any later Journal stage remain unselected.
+- Journal resolved-account registry mismatch rejection is complete as public-synthetic test-only evidence; record: `docs/archive/completed-plans/JOURNAL_RESOLVED_ACCOUNT_REGISTRY_MISMATCH_REJECTION_PLAN-2026-07-21.md`.
+- Broader registry validation, rejection/red-path parity, production routing, writer work, shadow read, conversion, cutover, and any later Journal stage remain unselected.
 - PR #273 remains parked background design evidence, not implementation authorization.
 - production journal parser routing, writer, production conversion, and source-of-truth migration are unselected.
 - Do not infer helper renaming, generic temporal kernel, report-wide `--as-of`, source TSV migration, Daily Capacity connection, envelope/cycle policy expansion, or automatic write.
 
 ### Journal source migration
 
-Status: finite slice selected. The docs-only architecture/source-identity decision, Minimal BQN Journal Profile Stage 0 characterization, test-only parser Stage 1, Posting IR adapter parity Stage 2A success path, identity/provenance parity Stage 2B, comparable rejection parity Stage 2C, native three-posting semantic-coordinate parity, Journal read-path trial-balance rehearsal, Journal read-path report-context rehearsal, and Journal read-only source carrier rehearsal are complete. **Journal resolved-account registry mismatch rejection is selected as the next finite test-only slice (canonical plan: docs/JOURNAL_RESOLVED_ACCOUNT_REGISTRY_MISMATCH_REJECTION_PLAN.md; implementation has not started).** Production parser routing, writer, conversion, shadow-read activation, source-of-truth implementation, cutover, and broader red-path campaign remain unselected. No next Journal stage will be automatically selected after this slice.
+Status: no finite slice selected. The docs-only architecture/source-identity decision, Minimal BQN Journal Profile Stage 0 characterization, test-only parser Stage 1, Posting IR adapter parity Stage 2A success path, identity/provenance parity Stage 2B, comparable rejection parity Stage 2C, native three-posting semantic-coordinate parity, Journal read-path trial-balance rehearsal, Journal read-path report-context rehearsal, Journal read-only source carrier rehearsal, and Journal resolved-account registry mismatch rejection are complete. Production parser routing, writer, conversion, shadow-read activation, source-of-truth implementation, cutover, and broader red-path campaign remain unselected. No next Journal stage will be automatically selected.
 
 Purpose: preserve the current safe TSV daily path while defining a future native journal source that enters through Transaction IR and checked Posting IR rather than being flattened back into `from / to / amount` rows.
 
@@ -127,6 +127,7 @@ Purpose: preserve the current safe TSV daily path while defining a future native
 - The completed read-path rehearsal reuses that Journal fixture and proves the existing `BuildPeriodView` and Trial Balance builders accept the three Journal-derived rows. It changes no `BuildContext`, source loading, production report, or source truth.
 - The completed report-context rehearsal extends the read-path rehearsal by connecting the Journal-derived context to `balances.Build`, proving the generated balance entries exactly match the legacy TSV projection and successful execution of `balances.Format` and `balances.FormatHuman`, with zero production routing or source truth changes.
 - The completed read-only source carrier rehearsal groups Transaction IR and Posting IR row assembly into a single read-only source carrier, retains explicit source identity at the carrier result level, preserves Stage 2A Posting IR rows unchanged, and migrates the integration rehearsal test to route through this carrier boundary, with zero production routing or source truth changes.
+- The completed resolved-account registry mismatch rejection slice proves that Stage 2A rejects transactions containing declared posting accounts absent from the resolved account registry, returning an error state, zero posting rows, and structured diagnostics, while propagating the error through the read-only carrier boundary, with zero production routing or source truth changes.
 
 
 ## Next candidates

@@ -1,9 +1,9 @@
 # Journal resolved-account registry mismatch rejection — test-only plan
 
-Status: selected finite implementation contract
+Status: completed
 Owner: journal source migration
-Canonical: no; canonical routing remains `TODO.md`
-Exit: focused implementation, review, completion record, and explicit return to no selected finite Journal slice
+Canonical: no
+Exit: archived completed record
 Date: 2026-07-21
 
 ## Purpose
@@ -106,26 +106,23 @@ This slice does not select:
 - reverse synchronization or conflict resolution;
 - any later Journal stage.
 
-## Validation gate
+## Completion Record (2026-07-21)
 
-Before implementation completion:
-
-- run the focused BQN test;
-- run existing Stage 1, Stage 2A, carrier, Trial Balance, and report-context rehearsal tests affected by the boundary;
-- run `bash checks/check-docs-lifecycle.sh`;
-- run `bash checks/check-absolute-links.sh`;
-- run `bash checks/check-repo-index.sh`;
-- run `git diff --check`;
-- run `bash tools/check.sh`;
-- verify the branch is based on current `main` and contains only the selected finite slice;
-- verify production source TSV and private data are unchanged.
-
-## Completion routing
-
-After focused implementation and checks pass:
-
-- move this plan to `docs/archive/completed-plans/JOURNAL_RESOLVED_ACCOUNT_REGISTRY_MISMATCH_REJECTION_PLAN-2026-07-21.md`;
-- record the exact observed rejection behavior and validation evidence;
-- update `TODO.md`, `NEXT_SESSION.md`, and `docs/README.md`;
-- return routing to no next finite Journal slice selected;
-- do not automatically select broader registry validation, production routing, writer work, conversion, shadow read, or cutover.
+- **Status**: Completed.
+- **Validation Boundary**: Implemented pure validation at the start of `Stage 2A` (`Build` in `src_next/journal_posting_ir_stage2a.bqn`), executing before `KindForTransaction` or any row iteration, failing closed without resolving unresolved accounts against metadata tables.
+- **Actual Diagnostic Fields**:
+  - `severity`: "error"
+  - `stage`: "journal_posting_ir_stage2a"
+  - `code`: "posting_account_unresolved"
+  - `account_key`: "expenses:unresolved" (expected missing account)
+  - `transaction_index`: 0
+  - `posting_index`: 1
+  - `message`: human-readable description
+- **Focused Test Path**: `tests/test_journal_resolved_account_registry_mismatch_rejection.bqn`
+- **Stage 1 Success Evidence**: Synthetic Journal parser successfully admitted the transaction (`state = "ok"`, zero diagnostics, 1 transaction, 2 postings).
+- **Stage 2A Rejection Evidence**: Stage 2A correctly rejected with `state = "error"`, empty `posting_rows`, and the unresolved posting diagnostic.
+- **Carrier Propagation Evidence**: The read-only carrier successfully returned `state = "error"`, kept its `source_file = "synthetic-mismatch.journal"`, made parsed transactions observable, returned empty `posting_rows`, and propagated the diagnostic without modification.
+- **Success-path Regression Verification**: All other unit and integration tests (such as `test_journal_posting_ir_adapter_stage2a.bqn`, `test_journal_posting_identity_provenance_stage2b.bqn`, `test_journal_read_only_source_carrier.bqn`, and `test_journal_read_path_trial_balance_rehearsal.bqn`) continue to pass successfully.
+- **Full Check Results**: All checks in `tools/check.sh`, `check-docs-lifecycle.sh`, `check-repo-index.sh`, and `check-absolute-links.sh` passed.
+- **Production Routing**: Unchanged. No production loader, context, reports, or sync routes are impacted.
+- **Broader Validation**: Intentionally not implemented or selected.

@@ -21,35 +21,62 @@ KindForTransaction ← {𝕊 transaction‿resolved:
 }
 
 Build ← {𝕊 transactions‿resolved‿cycleStart:
-  rows ← ∾ {𝕊 transactionIndex:
+  diagnostics ← ∾ {𝕊 transactionIndex:
     transaction ← transactionIndex ⊑ transactions
-    layerIndex ← ⊑ layers ⊐ ⟨transaction.layer_name⟩
-    kind ← KindForTransaction ⟨transaction, resolved⟩
-
-    {𝕊 posting:
-      accountIndex ← ⊑ resolved.accounts ⊐ ⟨posting.account_key⟩
-      {
-        source_file⇐"profile.journal",
-        source_row⇐transactionIndex,
-        source_id⇐transaction.source_event_id,
-        tx_id⇐transaction.source_event_id,
-        posting_id⇐posting.posting_id,
-        date⇐transaction.date,
-        day_index⇐proj.ResolveDayFromCycle ⟨transaction.date, cycleStart⟩,
-        account_key⇐accountIndex ⊑ resolved.account_keys,
-        account_key_index⇐accountIndex,
-        layer_name⇐transaction.layer_name,
-        layer_index⇐layerIndex,
-        side⇐posting.side,
-        delta⇐posting.delta,
-        kind⇐kind,
-        status⇐"ok",
-        message⇐""
-      }
-    }¨ transaction.postings
+    postings ← transaction.postings
+    ∾ {𝕊 postingIndex:
+      posting ← postingIndex ⊑ postings
+      accountKey ← posting.account_key
+      idx ← ⊑ resolved.accounts ⊐ ⟨accountKey⟩
+      {𝕊:
+        ⟨{
+          severity⇐"error",
+          stage⇐"journal_posting_ir_stage2a",
+          code⇐"posting_account_unresolved",
+          account_key⇐accountKey,
+          transaction_index⇐transactionIndex,
+          posting_index⇐postingIndex,
+          message⇐"posting account " ∾ accountKey ∾ " is not present in resolved account registry"
+        }⟩
+      } ⍟ (idx ≡ ≠ resolved.accounts) ⟨⟩
+    }¨ ↕ ≠ postings
   }¨ ↕ ≠ transactions
 
-  {state⇐"ok", posting_rows⇐rows, diagnostics⇐⟨⟩}
+  result ← {state⇐"error", posting_rows⇐⟨⟩, diagnostics⇐diagnostics}
+
+  {𝕊:
+    rows ← ∾ {𝕊 transactionIndex:
+      transaction ← transactionIndex ⊑ transactions
+      layerIndex ← ⊑ layers ⊐ ⟨transaction.layer_name⟩
+      kind ← KindForTransaction ⟨transaction, resolved⟩
+
+      {𝕊 posting:
+        accountIndex ← ⊑ resolved.accounts ⊐ ⟨posting.account_key⟩
+        {
+          source_file⇐"profile.journal",
+          source_row⇐transactionIndex,
+          source_id⇐transaction.source_event_id,
+          tx_id⇐transaction.source_event_id,
+          posting_id⇐posting.posting_id,
+          date⇐transaction.date,
+          day_index⇐proj.ResolveDayFromCycle ⟨transaction.date, cycleStart⟩,
+          account_key⇐accountIndex ⊑ resolved.account_keys,
+          account_key_index⇐accountIndex,
+          layer_name⇐transaction.layer_name,
+          layer_index⇐layerIndex,
+          side⇐posting.side,
+          delta⇐posting.delta,
+          kind⇐kind,
+          status⇐"ok",
+          message⇐""
+        }
+      }¨ transaction.postings
+    }¨ ↕ ≠ transactions
+
+    result ↩ {state⇐"ok", posting_rows⇐rows, diagnostics⇐⟨⟩}
+  } ⍟ (0 = ≠ diagnostics) @
+
+  result
 }
 
 {Build⇐Build}
