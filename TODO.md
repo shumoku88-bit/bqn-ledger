@@ -98,7 +98,7 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 
 ### Journal source migration
 
-Status: selected architecture direction. The docs-only architecture/source-identity decision, Minimal BQN Journal Profile Stage 0 characterization, test-only parser Stage 1, Posting IR adapter parity Stage 2A success path, identity/provenance parity Stage 2B, comparable rejection parity Stage 2C, and native three-posting semantic-coordinate parity are complete. **No next finite Journal slice is selected.** Production parser routing, writer, conversion, shadow-read activation, source-of-truth implementation, and broader rejection parity remain unselected.
+Status: selected architecture direction. The docs-only architecture/source-identity decision, Minimal BQN Journal Profile Stage 0 characterization, test-only parser Stage 1, Posting IR adapter parity Stage 2A success path, identity/provenance parity Stage 2B, comparable rejection parity Stage 2C, and native three-posting semantic-coordinate parity are complete. **Journal read-path trial balance rehearsal is active (read-only rehearsal).** Production parser routing, writer, conversion, shadow-read activation, source-of-truth implementation, and broader rejection parity remain unselected.
 
 Purpose: preserve the current safe TSV daily path while defining a future native journal source that enters through Transaction IR and checked Posting IR rather than being flattened back into `from / to / amount` rows.
 
@@ -129,7 +129,7 @@ Purpose: preserve the current safe TSV daily path while defining a future native
 - Stage 2C comparable rejection parity: completed; record: `docs/archive/completed-plans/JOURNAL_POSTING_IR_COMPARABLE_REJECTION_PARITY_STAGE2C_PLAN-2026-07-19.md`
 - Journal native three-posting semantic-coordinate parity: completed test-only; record: `docs/archive/completed-plans/JOURNAL_NATIVE_THREE_POSTING_SEMANTIC_COORDINATE_PARITY_PLAN-2026-07-19.md`
 - completed primary boundary: `(date, account_key, layer_name) -> sum(delta)`; secondary boundary: numeric Cube equality while preserving Journal 3-row / legacy 4-row topology
-- no next finite Journal slice selected
+- Journal read-path trial balance rehearsal: active; record: `docs/archive/completed-plans/JOURNAL_READ_PATH_TRIAL_BALANCE_REHEARSAL_PLAN-2026-07-21.md`
 - broader red-path/rejection parity: unselected
 - production routing, writer work, shadow read, conversion, cutover, and later stages: unselected
 
