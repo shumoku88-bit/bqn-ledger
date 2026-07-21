@@ -5,6 +5,7 @@ parser ← •Import "../src_next/journal_profile_stage1.bqn"
 adapter ← •Import "../src_next/journal_posting_ir_stage2a.bqn"
 context ← •Import "../src_next/context.bqn"
 trial_balance ← •Import "../src_next/trial_balance.bqn"
+balances ← •Import "../src_next/balances.bqn"
 cube ← •Import "../src_next/cube.bqn"
 ak ← •Import "../src_next/account_key.bqn"
 loader ← •Import "../src_next/loader.bqn"
@@ -71,5 +72,33 @@ tb ← trial_balance.Build ⟨ctx, cube.layer_actual⟩
 1100 lib.AssertEq +´ tb.debits
 (-1100) lib.AssertEq +´ tb.credits
 0 lib.AssertEq +´ tb.closings
+
+# Existing Balances builder over the Journal-derived period view.
+balancesCtx ← { resolved ⇐ resolved, tbds ⇐ view.tbds }
+balanceEntriesActual ← balances.Build balancesCtx
+
+# Setup legacy TSV projection for verification
+legacyLines ← loader.ReadLines (base ∾ "/journal.tsv")
+legacySnapshot ← {
+  sources ⇐ ⟨
+    {source_file⇐"journal.tsv", required⇐1, lines⇐legacyLines},
+    {source_file⇐"plan.tsv", required⇐0, lines⇐⟨⟩},
+    {source_file⇐"budget_alloc.tsv", required⇐0, lines⇐⟨⟩}
+  ⟩
+}
+legacyProjection ← context.BuildCheckedPostingProjectionFromSnapshot ⟨legacySnapshot, resolved, cycleStart⟩
+"ok" lib.AssertEq legacyProjection.state
+legacyRows ← legacyProjection.posting_rows
+
+legacyView ← context.BuildPeriodView ⟨legacyRows, resolved, cy⟩
+legacyBalancesCtx ← { resolved ⇐ resolved, tbds ⇐ legacyView.tbds }
+balanceEntriesLegacy ← balances.Build legacyBalancesCtx
+
+# Verify they match
+balanceEntriesActual lib.AssertEq balanceEntriesLegacy
+
+# Verify format human and compact methods do not crash
+humanOutput ← balances.FormatHuman balanceEntriesActual
+compactOutput ← balances.Format balanceEntriesActual
 
 •Out "test_journal_read_path_trial_balance_rehearsal.bqn: OK"
