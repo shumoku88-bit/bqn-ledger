@@ -14,7 +14,7 @@ The test-only Journal resolved-account registry mismatch rejection slice has bee
   - Stage 1 is `"ok"`;
   - Stage 2A returns `state = "error"`, empty `posting_rows`, and a structured diagnostic under stage `"journal_posting_ir_stage2a"` and code `"posting_account_unresolved"`;
   - The read-only carrier propagates this rejection cleanly.
-- Verified that all existing success-path tests and formatting rehearse path test pass cleanly.
+- Verified that all existing success-path, carrier, and read-path rehearsal tests pass cleanly.
 - Updated baseline repo index.
 - No production routing, writer, or TSV-to-Journal conversion changes were made.
 

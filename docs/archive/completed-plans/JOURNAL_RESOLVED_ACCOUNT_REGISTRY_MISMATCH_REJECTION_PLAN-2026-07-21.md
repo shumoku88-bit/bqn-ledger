@@ -109,7 +109,7 @@ This slice does not select:
 ## Completion Record (2026-07-21)
 
 - **Status**: Completed.
-- **Validation Boundary**: Implemented pure validation at the start of `Stage 2A` (`Build` in [journal_posting_ir_stage2a.bqn](file:///Users/user/Projects/moko/bqn-ledger/src_next/journal_posting_ir_stage2a.bqn)), executing before `KindForTransaction` or any row iteration, failing closed without resolving unresolved accounts against metadata tables.
+- **Validation Boundary**: Implemented pure validation at the start of `Stage 2A` (`Build` in `src_next/journal_posting_ir_stage2a.bqn`), executing before `KindForTransaction` or any row iteration, failing closed without resolving unresolved accounts against metadata tables.
 - **Actual Diagnostic Fields**:
   - `severity`: "error"
   - `stage`: "journal_posting_ir_stage2a"
@@ -118,7 +118,7 @@ This slice does not select:
   - `transaction_index`: 0
   - `posting_index`: 1
   - `message`: human-readable description
-- **Focused Test Path**: [test_journal_resolved_account_registry_mismatch_rejection.bqn](file:///Users/user/Projects/moko/bqn-ledger/tests/test_journal_resolved_account_registry_mismatch_rejection.bqn)
+- **Focused Test Path**: `tests/test_journal_resolved_account_registry_mismatch_rejection.bqn`
 - **Stage 1 Success Evidence**: Synthetic Journal parser successfully admitted the transaction (`state = "ok"`, zero diagnostics, 1 transaction, 2 postings).
 - **Stage 2A Rejection Evidence**: Stage 2A correctly rejected with `state = "error"`, empty `posting_rows`, and the unresolved posting diagnostic.
 - **Carrier Propagation Evidence**: The read-only carrier successfully returned `state = "error"`, kept its `source_file = "synthetic-mismatch.journal"`, made parsed transactions observable, returned empty `posting_rows`, and propagated the diagnostic without modification.
