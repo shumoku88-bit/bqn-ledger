@@ -69,7 +69,7 @@ tb ← trial_balance.Build ⟨ctx, cube.layer_actual⟩
 ⟨-1100, 0, 0⟩ lib.AssertEq tb.credits
 ⟨-1100, 800, 300⟩ lib.AssertEq tb.closings
 1100 lib.AssertEq +´ tb.debits
--1100 lib.AssertEq +´ tb.credits
+(-1100) lib.AssertEq +´ tb.credits
 0 lib.AssertEq +´ tb.closings
 
 •Out "test_journal_read_path_trial_balance_rehearsal.bqn: OK"
