@@ -1,0 +1,7 @@
+assets:cash	role=asset
+assets:bank	role=asset
+expenses:tobacco	role=expense
+expenses:coffee	role=expense
+expenses:food:daily	role=expense
+expenses:food:stock	role=expense
+expenses:household	role=expense

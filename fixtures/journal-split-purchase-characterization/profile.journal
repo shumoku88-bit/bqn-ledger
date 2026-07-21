@@ -1,0 +1,40 @@
+; Public synthetic journal split-purchase characterization fixture.
+
+commodity JPY
+
+account assets:cash
+    ; role: asset
+
+account assets:bank
+    ; role: asset
+
+account expenses:tobacco
+    ; role: expense
+
+account expenses:coffee
+    ; role: expense
+
+account expenses:food:daily
+    ; role: expense
+
+account expenses:food:stock
+    ; role: expense
+
+account expenses:household
+    ; role: expense
+
+2026-08-05 * Convenience store
+    expenses:tobacco     600 JPY
+    expenses:coffee      150 JPY
+    assets:cash         -750 JPY
+
+2026-08-06 * Supermarket food split
+    expenses:food:daily    1400 JPY
+    expenses:food:stock     900 JPY
+    assets:bank           -2300 JPY
+
+2026-08-07 * Supermarket mixed purchase
+    expenses:food:daily    1400 JPY
+    expenses:food:stock     900 JPY
+    expenses:household      500 JPY
+    assets:bank           -2800 JPY
