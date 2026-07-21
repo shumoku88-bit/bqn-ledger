@@ -30,7 +30,9 @@ Last hygiene pass: 2026-07-19
 - Journal Posting IR comparable rejection parity Stage 2C test-only implementation complete
 - Journal native three-posting semantic-coordinate parity test-only implementation complete
 - Journal read-path trial-balance rehearsal test-only implementation complete
-- no next finite Journal, report, or bookkeeping study slice is selected
+- Journal read-path report-context rehearsal test-only implementation complete
+- Journal read-only source carrier rehearsal test-only implementation complete
+- Journal resolved-account registry mismatch rejection selected as the next finite test-only slice; implementation has not started
 - envelope allocation / execution-plan coverage characterization remains an unselected candidate
 - other unrelated candidates remain unselected
 
