@@ -22,7 +22,7 @@ This slice moves beyond direct Cube parity by exercising the existing Cube plus 
 
 ## Finite question
 
-> Can the existing public native three-posting Journal fixture be parsed and adapted into checked Posting IR, passed through the existing `BuildPeriodView` boundary, and consumed by the existing Trial Balance builder with the expected balanced account movements, without changing production loading or report code?
+> Can the existing public native three-posting Journal fixture be parsed and adapted into successful current Posting IR rows, passed through the existing `BuildPeriodView` boundary, and consumed by the existing Trial Balance builder with the expected balanced account movements, without changing production loading or report code?
 
 ## Existing fixture boundary
 
