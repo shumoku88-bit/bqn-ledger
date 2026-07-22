@@ -1,0 +1,29 @@
+; Public synthetic Minimal BQN Journal Profile fixture.
+; TSV remains production source truth; this file is read-only shadow evidence.
+
+commodity JPY
+
+account equity:opening
+    ; role: equity
+
+account assets:cash
+    ; role: asset
+
+account expenses:food
+    ; role: expense
+
+account expenses:household
+    ; role: expense
+
+2026-08-01 * Opening balance
+    ; event-id: event-opening-001
+    ; layer: actual
+    assets:cash       5000 JPY
+    equity:opening   -5000 JPY
+
+2026-08-03 * Split purchase
+    ; event-id: event-split-001
+    ; layer: actual
+    expenses:food        800 JPY
+    expenses:household   300 JPY
+    assets:cash        -1100 JPY

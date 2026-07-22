@@ -1,7 +1,7 @@
-Status: selected finite production-adjacent read-only plan
+Status: completed
 Owner: journal source migration
-Canonical: no; canonical routing remains TODO.md
-Exit: focused public-synthetic implementation, review, completion record, and return to no selected finite Journal slice
+Canonical: no; current routing remains TODO.md
+Exit: archived completion record; do not use as authorization for another Journal slice
 Date: 2026-07-22
 
 # Journal File-Backed Shadow Context Plan
@@ -377,26 +377,57 @@ git diff --name-only origin/main...HEAD
 
 All checks must pass cleanly.
 
-## Completion routing
+## Observed implementation answer
 
-`TODO.md` and `NEXT_SESSION.md` record:
+**Finite question:** Can an explicitly supplied Journal file be read read-only, passed through the existing Transaction IR, checked Posting IR, and `context.BuildPeriodView` boundaries, and produce actual-layer parity with the public synthetic TSV context while TSV remains the only production source and write path?
+
+**Answer: YES.** `src_next/journal_shadow_context.bqn` now owns the standalone checked file-backed builder. It reads raw Journal text without `loader.ReadLines` filtering, faithfully splits lines locally through the loader's `SplitKeepEmpty` export, invokes `journal_read_only_source_carrier.Build`, and assembles only the minimal shadow context. No production route, writer, fallback, or source switch was added.
+
+### File-I/O gate evidence
+
+A temporary CBQN experiment attempted `•FChars "/definitely/missing/bqn-ledger-shadow.journal"` inside Catch `⎊`. The handler read `•CurrentError @` and returned `state="caught"` plus `Couldn't read file ...`; the process exited 0 with no fatal error and no `•Exit`. The focused test then exercised the same builder Catch path with both a missing file and a directory supplied where a file was required. Both returned `journal_file_read_failed`. This proves deterministic missing and unresolvable-I/O handling; it does **not** claim that permission-denied behavior was tested.
+
+### Success and parity evidence
+
+The public fixture produces exactly 2 durable native Journal transactions and 5 ordered Posting IR rows. The split purchase remains one 3-posting transaction; the TSV representation remains 3 physical source rows and 6 Posting IR rows. Transaction identities, posting order, and physical source lines are retained in Transaction IR.
+
+Path A (`context.BuildContext`) and Path B (`journal_shadow_context.Build`) both produce Cube shape `31 × 4 × 4` and 16 TBDS rows. Their four actual-layer TBDS rows match field by field for account key, layer, opening, debit movement, credit movement, movement, and closing. Actual-layer Trial Balance fields and `balances.Build` entries match exactly; `balances.Format` and `balances.FormatHuman` both complete successfully.
+
+### Checked failure evidence
+
+Every case returned `state="error"`, no Posting IR rows, non-empty structured diagnostics, and `context=@`:
+
+| Case | Observed diagnostic code |
+|---|---|
+| missing Journal path | `journal_file_read_failed` |
+| directory used as deterministic unresolvable file path | `journal_file_read_failed` |
+| invalid transaction header status | `header_status_invalid` |
+| unsupported top-level group | `unsupported_group` |
+| unbalanced transaction | `event_unbalanced` |
+| unsupported layer | `layer_unsupported` |
+| declared Journal account absent from resolved TSV registry | `posting_account_unresolved` |
+| invalid date | `unsupported_group` (the current Stage 1 declaration classifier rejects it before header parsing) |
+| invalid exact-integer amount | `posting_amount_invalid` |
+
+No case fell back to TSV or exposed a partial downstream context. Existing Stage 1 and Stage 2A diagnostic namespaces and codes remain unchanged.
+
+### Changed-file boundary and exclusions
+
+Changes are limited to the standalone builder, one focused test, six public synthetic fixture files, this completion record, and routing updates in `TODO.md`, `NEXT_SESSION.md`, and `docs/README.md`; the selected plan's former current-path file is deleted by this archive move. No carrier adjustment was required.
+
+`src_next/context.bqn`, `src_next/report.bqn`, `src_next/main.bqn`, `src_next/cube.bqn`, `src_next/tbds.bqn`, `src_next/loader.bqn`, and `tools/to-hledger` are unchanged. Production Journal routing, CLI/UI, writers, conversion, fallback, dual writes, synchronization, caching, private-data trials, and Cube/TBDS axis changes remain excluded.
+
+### Validation
+
+Completed successfully:
 
 ```text
-Status: selected finite production-adjacent read-only plan
+bqn tests/test_journal_file_backed_shadow_context.bqn
+git diff --check
+bash checks/check-docs-lifecycle.sh
+bash checks/check-absolute-links.sh
+bash checks/check-repo-index.sh
+bash tools/check.sh
 ```
 
-Selected shadow path:
-
-```text
-explicit Journal path
-  -> file-backed read-only load
-  -> Journal carrier
-  -> Transaction IR
-  -> checked Posting IR
-  -> BuildPeriodView
-  -> shadow context
-  -> actual-layer TSV parity
-```
-
-`docs/README.md` routes to `docs/JOURNAL_FILE_BACKED_SHADOW_CONTEXT_PLAN.md`.
-Production routing, writer, CLI, private data, conversion, cutover, and reverse sync remain explicitly unselected.
+Completion routing returns to **no finite Journal slice selected**. No next slice is selected automatically.
