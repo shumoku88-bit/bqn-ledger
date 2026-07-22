@@ -1,9 +1,9 @@
 # Journal Legacy Metadata and Business-Link Profile Extension Plan
 
-Status: active plan
+Status: completed
 Owner: journal source migration / profile and test-only IR
-Canonical: yes; canonical path: docs/JOURNAL_LEGACY_METADATA_PROFILE_EXTENSION_PLAN.md
-Exit: archive under `docs/archive/completed-plans/` after the public synthetic profile, Stage 2A, and Stage 2B evidence is complete; return Journal routing to the still-blocked converter with no production cutover selected
+Canonical: no; current route: docs/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_PLAN.md
+Exit: archived; do not use as a current implementation route
 Date: 2026-07-22
 
 ## Finite prerequisite question
@@ -109,7 +109,11 @@ Stop and report rather than simplify if implementation would require changing Po
 
 The implementation Draft PR must run focused parser, Stage 2A, Stage 2B, and metadata tests, `git diff --check`, `checks/check-docs-lifecycle.sh`, `checks/check-absolute-links.sh`, `checks/check-repo-index.sh`, and `rtk bash ./tools/check.sh`. It must verify public-only synthetic changes, privacy-safe paths, selected-surface filenames, and a clean worktree.
 
-On successful implementation, archive this plan under `docs/archive/completed-plans/` and route the repository to:
+## Completion record
+
+The public synthetic profile, Stage 2A, Stage 2B, metadata, duplicate, unknown, malformed-value, Unicode, and absence/presence evidence is complete. The implementation commit is `dcc67026b8d793dd4666efc239711222784b1660` on the separate Draft PR branch.
+
+Routing after completion:
 
 ```text
 legacy metadata/profile prerequisite: complete
@@ -117,4 +121,4 @@ canonical TSV-to-native Journal prefix converter: still selected, implementation
 production cutover: blocked
 ```
 
-Explicit owner review is required before a converter implementation branch begins.
+Explicit owner review is required before a converter implementation branch begins. This completion performs no conversion or reconstruction and does not access private data.
