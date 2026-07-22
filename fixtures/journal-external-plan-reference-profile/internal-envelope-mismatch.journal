@@ -1,0 +1,23 @@
+commodity JPY
+
+account assets:aurora
+    ; role: asset
+
+account expenses:orchard
+    ; role: expense
+
+2026-11-10 ! Orchard mismatch plan
+    ; event-id: event-orchard-plan-003
+    ; layer: plan
+    ; plan-id: plan-orchard-internal-003
+    ; execution-envelope: north-reserve
+    expenses:orchard 410 JPY
+    assets:aurora -410 JPY
+
+2026-11-10 * Orchard mismatch actual
+    ; event-id: event-orchard-actual-003
+    ; layer: actual
+    ; plan-id: plan-orchard-internal-003
+    ; execution-envelope: south-reserve
+    expenses:orchard 410 JPY
+    assets:aurora -410 JPY

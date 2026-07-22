@@ -1,0 +1,13 @@
+commodity JPY
+
+account assets:aurora
+    ; role: asset
+
+account expenses:orchard
+    ; role: expense
+
+2026-11-18 * Orchard ordinary actual
+    ; event-id: event-orchard-actual-006
+    ; note: 明示的な予定参照なし
+    expenses:orchard 515 JPY
+    assets:aurora -515 JPY

@@ -1,0 +1,4 @@
+assets:aurora	currency=JPY	role=asset
+expenses:orchard	currency=JPY	role=expense
+budget:reserve	currency=JPY	role=budget
+budget:unassigned	currency=JPY	role=budget

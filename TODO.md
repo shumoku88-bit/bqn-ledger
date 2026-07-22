@@ -38,6 +38,7 @@ Last hygiene pass: 2026-07-19
 - Journal resolved envelope assignment persistence is complete; record: `docs/archive/completed-plans/JOURNAL_RESOLVED_ENVELOPE_ASSIGNMENT_PERSISTENCE_PLAN-2026-07-22.md`
 - Journal file-backed shadow context is complete; record: `docs/archive/completed-plans/JOURNAL_FILE_BACKED_SHADOW_CONTEXT_PLAN-2026-07-22.md`
 - Journal native multi-posting explicit-path append editor is complete; record: `docs/archive/completed-plans/JOURNAL_NATIVE_MULTI_POSTING_APPEND_EDITOR_PLAN-2026-07-22.md`
+- Journal external plan reference profile prerequisite is complete; record: `docs/archive/completed-plans/JOURNAL_EXTERNAL_PLAN_REFERENCE_PROFILE_PREREQUISITE_PLAN-2026-07-22.md`
 - other unrelated candidates remain unselected
 
 ---
@@ -107,9 +108,9 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 
 ### Journal source migration
 
-Status: **External plan reference profile prerequisite selected; the canonical TSV-to-native Journal prefix converter remains selected but blocked, and converter implementation is stopped and not started.** Prerequisite plan: `docs/JOURNAL_EXTERNAL_PLAN_REFERENCE_PROFILE_PREREQUISITE_PLAN.md`. Parent converter plan: `docs/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_PLAN.md`. Completed metadata/profile record: `docs/archive/completed-plans/JOURNAL_LEGACY_METADATA_PROFILE_EXTENSION_PLAN-2026-07-22.md`.
+Status: **External plan reference profile prerequisite complete and archived; the canonical TSV-to-native Journal prefix converter remains selected but blocked pending explicit owner review, and converter implementation was not resumed.** Completion record: `docs/archive/completed-plans/JOURNAL_EXTERNAL_PLAN_REFERENCE_PROFILE_PREREQUISITE_PLAN-2026-07-22.md`. Parent converter plan: `docs/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_PLAN.md`. Completed metadata/profile record: `docs/archive/completed-plans/JOURNAL_LEGACY_METADATA_PROFILE_EXTENSION_PLAN-2026-07-22.md`.
 
-The test-only Minimal BQN Journal profile currently preserves distinct `source_event_id`, optional business `txn_id`, and admitted legacy metadata while keeping the current 16-field Posting IR unchanged. However, strict `Parse` rejects an actual-only Journal carrying `plan-id` when its corresponding plan remains in the external legacy `plan.tsv`. The selected finite prerequisite must add an explicitly selected historical external-plan policy while preserving strict default behavior and all internal cross-link validation. It performs no conversion or reconstruction.
+The test-only Minimal BQN Journal parser now preserves strict default `Parse` and exposes explicit `ParseWithProfile` selection. `historical_external_plan` admits only an actual transaction's nonempty `plan-id` with zero matching in-document plan transactions; one internal match, duplicate targets, and unrelated cross-links retain strict validation. Transaction IR and the current 16-field Posting IR remain unchanged. This completion performs no conversion or reconstruction.
 
 Native Journal is the owner-selected future durable actual source truth. The native multi-posting explicit-path append editor is complete; record: `docs/archive/completed-plans/JOURNAL_NATIVE_MULTI_POSTING_APPEND_EDITOR_PLAN-2026-07-22.md`.
 
@@ -122,8 +123,8 @@ The cutover prerequisite review found accounting semantics equivalent, including
 - Reconstruction must create a new candidate from a verified canonical prefix plus the exact preserved suffix; it must never edit the preserved candidate in place.
 - Production cutover remains blocked until canonical conversion, reconstruction, complete parser/Posting IR validation, prefix parity, and suffix-preservation gates pass.
 - Migration remains one-directional. Dual daily writes, reverse synchronization, and automatic conflict resolution are prohibited.
-- The external plan reference profile prerequisite is selected as a separate docs-first slice; implementation requires a separate branch and Draft PR after owner review.
-- The converter implementation branch remains stopped as clean evidence and must not resume automatically after prerequisite implementation.
+- The external plan reference profile prerequisite is complete and archived.
+- The converter implementation branch remains stopped as clean evidence and must not resume without explicit owner review.
 - Future converter completion must explicitly return routing to no selected Journal slice.
 - Profile prerequisite completion does not select converter resumption, production cutover, or any later Journal slice automatically.
 

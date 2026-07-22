@@ -1,0 +1,31 @@
+commodity JPY
+
+account assets:aurora
+    ; role: asset
+
+account expenses:orchard
+    ; role: expense
+
+2026-11-12 ! Orchard duplicate plan A
+    ; event-id: event-orchard-plan-004-a
+    ; layer: plan
+    ; plan-id: plan-orchard-duplicate-004
+    ; execution-envelope: orchard-reserve
+    expenses:orchard 250 JPY
+    assets:aurora -250 JPY
+
+2026-11-13 ! Orchard duplicate plan B
+    ; event-id: event-orchard-plan-004-b
+    ; layer: plan
+    ; plan-id: plan-orchard-duplicate-004
+    ; execution-envelope: orchard-reserve
+    expenses:orchard 250 JPY
+    assets:aurora -250 JPY
+
+2026-11-12 * Orchard duplicate actual
+    ; event-id: event-orchard-actual-004
+    ; layer: actual
+    ; plan-id: plan-orchard-duplicate-004
+    ; execution-envelope: orchard-reserve
+    expenses:orchard 250 JPY
+    assets:aurora -250 JPY
