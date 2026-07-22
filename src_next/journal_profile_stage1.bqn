@@ -441,7 +441,7 @@ ResolveEnvelopeDefaults ← {𝕊 transaction‿accounts:
         diagnostics ∾↩ AddIf ⟨0 = ≠ envelope, Diagnostic ⟨"default_envelope_missing", posting.source_line, "expense account requires default-envelope when no explicit override is supplied"⟩⟩
         remainingAccount ← "budget:" ∾ envelope
         spentAccount ← "budget:spent:" ∾ envelope
-        envelopeKnown ← HasAccount ⟨remainingAccount, accounts⟩ ∧ HasAccount ⟨spentAccount, accounts⟩
+        envelopeKnown ← (HasAccount ⟨remainingAccount, accounts⟩) ∧ HasAccount ⟨spentAccount, accounts⟩
         diagnostics ∾↩ AddIf ⟨(0 < ≠ envelope) ∧ (¬ envelopeKnown), Diagnostic ⟨"default_envelope_unknown", posting.source_line, "default-envelope must resolve to declared budget remaining and spent accounts"⟩⟩
         {𝕊:
           assignments ∾↩ ⟨{
