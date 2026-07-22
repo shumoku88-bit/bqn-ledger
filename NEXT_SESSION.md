@@ -1,34 +1,37 @@
 # Next session
 
-Status: no finite Journal slice selected
-Owner: journal source migration / editor
-Canonical: no; canonical routing remains `TODO.md`
-Exit: replace only after the owner selects another finite goal; do not infer one from completed Journal work
+Status: selected finite canonical TSV-to-native Journal prefix converter
+Owner: journal source migration / conversion
+Canonical: yes; canonical plan is docs/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_PLAN.md
+Exit: implementation, synthetic validation, private read-only verification, independent review, completion archive, and explicit return to no selected Journal slice
 Date: 2026-07-22
 
-## Current baseline
+## Canonical finite question
 
-The native multi-posting explicit-path append editor is complete. Completion record: `docs/archive/completed-plans/JOURNAL_NATIVE_MULTI_POSTING_APPEND_EDITOR_PLAN-2026-07-22.md`.
+> Can the repository define a deterministic one-way converter contract that transforms an immutable legacy `journal.tsv` snapshot into a canonical native Journal historical prefix while preserving accounting movements, established description semantics, legacy physical source identity, distinct business `txn_id` linkage, supported metadata, transaction order, posting order, layer, status, and diagnostics, and can it define a fail-closed reconstruction procedure that combines that verified prefix with an existing byte-preserved Journal-only suffix without modifying production code or private data in this docs-only slice?
 
-Implemented command:
+## Owner decision and current diagnosis
 
-```bash
-tools/edit --base DIR journal-block add \
-  --journal-file FILE \
-  --date YYYY-MM-DD \
-  --description DESCRIPTION \
-  --event-id EVENT_ID \
-  --posting ACCOUNT=SIGNED_INTEGER \
-  --posting ACCOUNT=SIGNED_INTEGER \
-  [--posting ACCOUNT=SIGNED_INTEGER ...] \
-  [--dry-run] [--yes] [--post-check none|lint|full]
+Native Journal is the owner-selected future durable actual source truth. The current candidate has accounting-equivalent signed movements, posting order, layer/status, transaction grouping, and an established prefix boundary. Description, source identity, distinct business `txn_id`, and supported-metadata semantics are not yet equivalent.
+
+The candidate remains preserved evidence. Its Journal-only suffix must remain byte-for-byte unchanged and must be combined with a verified replacement prefix only through the separately gated reconstruction procedure.
+
+## Selected one-way flow
+
+```text
+immutable journal.tsv snapshot
+  -> legacy TSV source adapter semantics
+  -> canonical Journal transaction renderer
+  -> verified native Journal historical prefix
 ```
 
-## Routing boundaries
+A later reconstruction may combine that verified prefix with the exact preserved suffix into a new candidate. It must not modify the current candidate in place.
 
-- No finite Journal slice is selected.
-- `tools/edit journal add` remains the existing TSV-only `from / to / amount` writer.
-- `journal-block add` remains separate and requires an explicit existing relative `.journal` target inside `--base`.
-- Production TSV source truth, default source routing, reports, synchronization, conversion, and cutover are unchanged.
-- No production/private data trial was performed.
-- Do not select a later Journal slice automatically.
+## Scope and routing boundaries
+
+- This selection is docs-only. It performs no conversion, reconstruction, private-data change, production route change, or writer change.
+- Production source truth and reports remain on the TSV route.
+- Production cutover remains blocked until every converter, identity, metadata, reconstruction, and suffix-preservation gate passes.
+- Dual writes, reverse synchronization, and automatic conflict resolution remain prohibited.
+- Completion must explicitly return routing to no selected Journal slice.
+- Converter completion must not select cutover or any later Journal slice automatically.

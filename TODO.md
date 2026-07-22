@@ -107,41 +107,21 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 
 ### Journal source migration
 
-Status: no finite Journal slice selected. The native multi-posting explicit-path append editor is complete; record: `docs/archive/completed-plans/JOURNAL_NATIVE_MULTI_POSTING_APPEND_EDITOR_PLAN-2026-07-22.md`. No later Journal slice is selected automatically.
+Status: **Canonical TSV-to-native Journal prefix converter is the selected finite slice.** Canonical plan: `docs/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_PLAN.md`.
 
-The separate `tools/edit --base DIR journal-block add --journal-file FILE ...` path now previews, validates, and guarded-atomically appends one explicit actual-layer native Journal block. Existing `tools/edit journal add` remains the TSV-only `from / to / amount` writer.
+Native Journal is the owner-selected future durable actual source truth. The native multi-posting explicit-path append editor is complete; record: `docs/archive/completed-plans/JOURNAL_NATIVE_MULTI_POSTING_APPEND_EDITOR_PLAN-2026-07-22.md`.
 
-Purpose: preserve the current safe TSV daily path while retaining a bounded explicit native Journal writer that enters through Transaction IR and checked Posting IR rather than being flattened back into `from / to / amount` rows.
+The cutover prerequisite review found accounting semantics equivalent, including signed movements, posting order, layer/status, transaction grouping, and an established prefix boundary. Description, canonical source identity, distinct business `txn_id`, and supported-metadata semantics did not pass. A canonical one-way legacy-prefix converter is therefore required before cutover can be reconsidered.
 
-
-- Current source truth remains `journal.tsv`, `plan.tsv`, `budget_alloc.tsv`, and `accounts.tsv`; no production source switch is selected.
-- The owner-confirmed automatic TSV-to-journal sync and `tools/to-hledger` are compatibility projection and shadow-read evidence.
-- The future target boundary is `journal text -> Transaction IR -> checked Posting IR -> Cube / TBDS -> reports`.
-- Current A-1 `txn_id` grouping remains the TSV-era compatibility policy; it is not a permanent prohibition on native journal transaction blocks.
-- Future identity separates semantic `source_event_id` from physical source spans; posting identity is deterministic within each event.
-- Stage 0 distinguishes compact human input from explicit durable source: ordinary actuals may omit `event-id`, while plans, allocations, stable editing, and durable references require explicit identity; durable postings remain explicit.
-- Stage 0 adds a public synthetic `event x account` matrix characterization so row balance, layer masks, and account-column reduction remain first-class BQN/accounting evidence.
-- Stage 1 parses only that public supported subset into a test-only Transaction IR, preserves ordered postings and links, fails closed for covered invalid evidence, and reproduces the expected signed matrix.
-- The first four independent bookkeeping matrix studies are complete: receivable, payable, prepaid expense, and unearned revenue.
-- Stage 1 and the bookkeeping studies are not connected to production source loading, the editor, reports, private data, conversion, or cutover.
-- Existing `source_row` joins remain legacy compatibility surfaces and must migrate consumer by consumer before cutover.
-- Migration must remain one-directional. Do not create dual daily writes, reverse sync, or an automatic conflict resolver.
-- A future cutover must freeze an immutable final TSV snapshot and switch writers once, after parity and recovery gates.
-- Journal Posting IR adapter parity Stage 2A success path is complete as bounded test-only work.
-- Stage 2B completed structural identity/provenance invariant parity with a separate test-only carrier while preserving the current 16-field Posting IR row and legacy `source_row` compatibility surface. It did not select Stage 2 as a whole or any production connection.
-- Stage 2C completed test-only structural rejection parity for invalid date, invalid exact-integer amount, and unknown account without a production helper or connection. It did not select a broader parser red-path campaign.
-- The completed three-posting slice compares `(date, account_key, layer_name) -> sum(delta)` and numeric Cube coordinates while preserving Journal 3-row versus legacy TSV 4-row topology. It adds no production normalizer, route, writer, shadow read, conversion, cutover, or consumer migration.
-- The completed read-path rehearsal reuses that Journal fixture and proves the existing `BuildPeriodView` and Trial Balance builders accept the three Journal-derived rows. It changes no `BuildContext`, source loading, production report, or source truth.
-- The completed report-context rehearsal extends the read-path rehearsal by connecting the Journal-derived context to `balances.Build`, proving the generated balance entries exactly match the legacy TSV projection and successful execution of `balances.Format` and `balances.FormatHuman`, with zero production routing or source truth changes.
-- The completed read-only source carrier rehearsal groups Transaction IR and Posting IR row assembly into a single read-only source carrier, retains explicit source identity at the carrier result level, preserves Stage 2A Posting IR rows unchanged, and migrates the integration rehearsal test to route through this carrier boundary, with zero production routing or source truth changes.
-- The completed resolved-account registry mismatch rejection slice proves that Stage 2A rejects transactions containing declared posting accounts absent from the resolved account registry, returning an error state, zero posting rows, and structured diagnostics, while propagating the error through the read-only carrier boundary, with zero production routing or source truth changes.
-- The completed split-purchase characterization proves three purchase transactions with posting counts `⟨3, 3, 4⟩`, ten successful Posting IR rows, exact tax-inclusive account totals, and three distinct fallback event identities before report aggregation.
-- The completed report-information boundary slice keeps source-side transaction meaning separately observable while Trial Balance and Balances retain exact account-level movements and closings only.
-- The completed resolved-envelope slice retains recognized account defaults, validates exact durable actual-event linkage, rejects duplicate companions in this characterization, and fails closed for missing or unknown envelope evidence.
-- The completed file-backed shadow-context slice reads an explicit physical Journal path, catches file-I/O failures into structured diagnostics, reuses the existing carrier and `BuildPeriodView`, and matches the public synthetic TSV context at the actual-layer TBDS, Trial Balance, and Balances boundaries.
-- The completed writer slice provides preview, validation, and guarded atomic append of one explicit actual-layer multi-posting block to an existing relative `.journal` target inside `--base`; it does not authorize production routing, report or envelope runtime migration, private data, source conversion, cutover, reverse sync, per-posting layers, correction-event policy, or Cube/TBDS shape changes.
-- The focused implementation, validation, and completion archive are complete, and routing has returned to no selected Journal slice.
-- No later Journal slice may be selected automatically.
+- The current private candidate remains preserved evidence and must not be replaced or normalized by this docs-only slice.
+- A Journal-only suffix exists and must remain byte-for-byte unchanged.
+- Current production source truth and production report routing remain TSV; this selection performs no production change.
+- The selected converter must preserve one physical TSV row as one legacy Journal transaction, deterministic debit-then-credit postings, canonical physical source identity, distinct business linkage, supported metadata, and fail-closed diagnostics.
+- Reconstruction must create a new candidate from a verified canonical prefix plus the exact preserved suffix; it must never edit the preserved candidate in place.
+- Production cutover remains blocked until canonical conversion, reconstruction, complete parser/Posting IR validation, prefix parity, and suffix-preservation gates pass.
+- Migration remains one-directional. Dual daily writes, reverse synchronization, and automatic conflict resolution are prohibited.
+- Implementation completion must archive the plan and explicitly return routing to no selected Journal slice.
+- Completion must not select production cutover or any later Journal slice automatically.
 
 
 ## Next candidates
@@ -165,7 +145,7 @@ Purpose: preserve the current safe TSV daily path while retaining a bounded expl
 - broader red-path/rejection parity: unselected
 - standalone explicit-path file-backed shadow context: completed; record: `docs/archive/completed-plans/JOURNAL_FILE_BACKED_SHADOW_CONTEXT_PLAN-2026-07-22.md`
 - native multi-posting explicit-path append editor: completed; record: `docs/archive/completed-plans/JOURNAL_NATIVE_MULTI_POSTING_APPEND_EDITOR_PLAN-2026-07-22.md`
-- production routing, default writer/source switch, envelope/report runtime migration, conversion, cutover, and later stages: unselected
+- production routing remains unselected; default writer/source switch remains unselected; envelope/report runtime migration remains unselected; production cutover and later stages remain unselected; canonical legacy-prefix conversion is the selected finite slice above
 
 ### Bookkeeping matrix study extension
 
