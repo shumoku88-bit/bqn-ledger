@@ -105,21 +105,23 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 
 ### Journal source migration
 
-Status: no finite slice selected. Completed finite test-only characterization plan: `docs/archive/completed-plans/JOURNAL_BUDGET_COMPANION_PROJECTION_CHARACTERIZATION_PLAN-2026-07-22.md`.
+Status: selected finite production-adjacent read-only plan: `docs/JOURNAL_FILE_BACKED_SHADOW_CONTEXT_PLAN.md`.
 
 Purpose: preserve the current safe TSV daily path while defining a future native journal source that enters through Transaction IR and checked Posting IR rather than being flattened back into `from / to / amount` rows.
 
-The completed slice proves that account metadata may propose an entry-time default, while the accepted envelope effect is persisted as a separately balanced budget-layer companion event linked to a durable actual event. Defaults V1 resolve the selected purchase to `daily 2300 / flex 500`; Defaults V2 may resolve a new purchase to `flex 2800`; the persisted V1 event remains unchanged under V2.
-
-Completed boundary:
+Selected shadow path:
 
 ```text
-account metadata at entry time
-  -> candidate default envelope
-  -> validated accepted assignment
-  -> explicit durable budget-layer companion event
-  -> stable historical envelope evidence
+explicit Journal path
+  -> file-backed read-only load
+  -> Journal carrier
+  -> Transaction IR
+  -> checked Posting IR
+  -> BuildPeriodView
+  -> shadow context
+  -> actual-layer TSV parity
 ```
+
 
 - Current source truth remains `journal.tsv`, `plan.tsv`, `budget_alloc.tsv`, and `accounts.tsv`.
 - The owner-confirmed automatic TSV-to-journal sync and `tools/to-hledger` are compatibility projection and shadow-read evidence.
