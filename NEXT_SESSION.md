@@ -1,37 +1,29 @@
 # Next session
 
-Status: selected finite canonical TSV-to-native Journal prefix converter
-Owner: journal source migration / conversion
-Canonical: yes; canonical plan is docs/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_PLAN.md
-Exit: implementation, synthetic validation, private read-only verification, independent review, completion archive, and explicit return to no selected Journal slice
+Status: selected prerequisite; parent converter blocked
+Owner: journal source migration / profile and test-only IR
+Canonical: yes; canonical plan is `docs/JOURNAL_LEGACY_METADATA_PROFILE_EXTENSION_PLAN.md`
+Exit: complete the public synthetic profile/Stage 2A/Stage 2B evidence, archive this prerequisite, and keep the canonical converter selected but not started
 Date: 2026-07-22
 
-## Canonical finite question
+## Current selection
 
-> Can the repository define a deterministic one-way converter contract that transforms an immutable legacy `journal.tsv` snapshot into a canonical native Journal historical prefix while preserving accounting movements, established description semantics, legacy physical source identity, distinct business `txn_id` linkage, supported metadata, transaction order, posting order, layer, status, and diagnostics, and can it define a fail-closed reconstruction procedure that combines that verified prefix with an existing byte-preserved Journal-only suffix without modifying production code or private data in this docs-only slice?
+The **Canonical TSV-to-native Journal prefix converter** remains selected under `docs/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_PLAN.md`, but it cannot begin until the selected test-only Minimal BQN Journal profile extension is complete.
 
-## Owner decision and current diagnosis
+This finite prerequisite must:
 
-Native Journal is the owner-selected future durable actual source truth. The current candidate has accounting-equivalent signed movements, posting order, layer/status, transaction grouping, and an established prefix boundary. Description, source identity, distinct business `txn_id`, and supported-metadata semantics are not yet equivalent.
+- retain nonempty `source_event_id` separately from optional business `txn_id`;
+- preserve absence of `txn_id`, allow distinct transactions to share one `txn_id`, and keep posting IDs derived from source identity plus posting index;
+- represent every admitted legacy `journal.tsv` metadata field through the public mapping table in `docs/JOURNAL_LEGACY_METADATA_PROFILE_EXTENSION_PLAN.md`;
+- reject duplicate, unknown, ambiguous, empty, or malformed metadata fail closed;
+- keep the existing 16-field Posting IR shape and production TSV routing unchanged;
+- validate Stage 2B identity/provenance alignment;
+- use public synthetic values only.
 
-The candidate remains preserved evidence. Its Journal-only suffix must remain byte-for-byte unchanged and must be combined with a verified replacement prefix only through the separately gated reconstruction procedure.
+## Explicit non-goals
 
-## Selected one-way flow
+No converter, conversion, reconstruction, suffix replacement, production parser routing, production writer change, source-truth change, cutover, private-data access, dual write, reverse synchronization, or conflict resolution is selected. Completion of this prerequisite does not select the converter implementation automatically.
 
-```text
-immutable journal.tsv snapshot
-  -> legacy TSV source adapter semantics
-  -> canonical Journal transaction renderer
-  -> verified native Journal historical prefix
-```
+## Description boundary
 
-A later reconstruction may combine that verified prefix with the exact preserved suffix into a new candidate. It must not modify the current candidate in place.
-
-## Scope and routing boundaries
-
-- This selection is docs-only. It performs no conversion, reconstruction, private-data change, production route change, or writer change.
-- Production source truth and reports remain on the TSV route.
-- Production cutover remains blocked until every converter, identity, metadata, reconstruction, and suffix-preservation gate passes.
-- Dual writes, reverse synchronization, and automatic conflict resolution remain prohibited.
-- Completion must explicitly return routing to no selected Journal slice.
-- Converter completion must not select cutover or any later Journal slice automatically.
+Record but do not resolve inside this slice: TSV column 2 is source memo/description; the TSV editor preserves validated text; `tools/to-hledger` strips surrounding whitespace; the native writer requires trimmed text; and the Journal parser admits the transaction-header description. Any remaining exact-semantics ambiguity is a later converter gate.

@@ -107,7 +107,9 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 
 ### Journal source migration
 
-Status: **Canonical TSV-to-native Journal prefix converter is the selected finite slice.** Canonical plan: `docs/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_PLAN.md`.
+Status: **The canonical TSV-to-native Journal prefix converter remains selected but blocked by the legacy metadata/profile prerequisite.** Parent plan: `docs/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_PLAN.md`. Current prerequisite plan: `docs/JOURNAL_LEGACY_METADATA_PROFILE_EXTENSION_PLAN.md`.
+
+The selected finite slice is the test-only Minimal BQN Journal profile, Transaction IR, Stage 2A, and Stage 2B extension. It must preserve distinct `source_event_id` and optional business `txn_id`, represent the complete admitted legacy `journal.tsv` metadata vocabulary explicitly, and keep the current 16-field Posting IR unchanged. This prerequisite is separate from converter implementation and performs no conversion or reconstruction.
 
 Native Journal is the owner-selected future durable actual source truth. The native multi-posting explicit-path append editor is complete; record: `docs/archive/completed-plans/JOURNAL_NATIVE_MULTI_POSTING_APPEND_EDITOR_PLAN-2026-07-22.md`.
 
