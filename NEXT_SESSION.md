@@ -1,21 +1,44 @@
 # Next session
 
-Status: no finite Journal slice selected
-Owner: journal source migration
+Status: selected finite production-adjacent explicit-path writer plan
+Owner: journal source migration / editor
 Canonical: no; canonical routing remains `TODO.md`
-Exit: update only when one new finite slice is explicitly selected
+Exit: focused implementation, review, completion archive, and explicit return to no selected Journal slice; no later slice may be selected automatically
 Date: 2026-07-22
 
-## Current state
+## Selected next goal
 
-The standalone file-backed Journal shadow-context slice is complete. Completion record: `docs/archive/completed-plans/JOURNAL_FILE_BACKED_SHADOW_CONTEXT_PLAN-2026-07-22.md`.
+The owner selected native multi-posting Journal entry as the next finite Journal goal.
 
-Observed answer: **YES**. An explicit physical Journal path can be read read-only, converted through the existing carrier, Stage 1 Transaction IR, Stage 2A checked Posting IR, and `context.BuildPeriodView`, and assembled into a minimal shadow context whose public synthetic actual-layer TBDS, Trial Balance, and Balances match TSV `BuildContext`.
+Canonical plan: `docs/JOURNAL_NATIVE_MULTI_POSTING_APPEND_EDITOR_PLAN.md`.
 
-The file-I/O Catch gate passed: missing and deterministic unresolvable directory-as-file paths return structured `journal_file_read_failed` diagnostics without fatal output or `•Exit`.
+Canonical finite question:
 
-## Routing
+> TSVの既存`journal add`経路、production report routing、およびTSV source truthを変更せず、明示指定された既存のMinimal BQN Journalファイルへ、一つのactual-layer取引を複数の明示的postingを持つnative Journalブロックとしてpreview・検証・atomic appendし、stale write、重複event-id、不均衡、未知勘定、無効日付・金額、および追記後検証失敗をfail-closedで拒否できる、独立したeditor経路を定義できるか。
 
-No finite Journal slice is selected. Do not select the next slice automatically.
+Selected future command:
 
-Production Journal routing, writer/editor work, CLI/UI, envelope/report runtime migration, private data, source conversion, cutover, reverse synchronization, per-posting layers, correction-event policy, and Cube/TBDS shape changes remain unselected.
+```bash
+tools/edit --base DIR journal-block add \
+  --journal-file FILE \
+  --date YYYY-MM-DD \
+  --description DESCRIPTION \
+  --event-id EVENT_ID \
+  --posting ACCOUNT=SIGNED_INTEGER \
+  --posting ACCOUNT=SIGNED_INTEGER \
+  [--posting ACCOUNT=SIGNED_INTEGER ...] \
+  [--dry-run] [--yes] [--post-check none|lint|full]
+```
+
+## Routing boundaries
+
+- `tools/edit journal add` remains the existing TSV-only `from / to / amount` writer.
+- The selected command is separate and requires an explicit existing relative `.journal` target inside `--base`.
+- Actual layer, `*`, JPY, durable event ID, exact signed integers, at least two ordered postings, and exact zero balance are fixed for this first writer slice.
+- Existing and proposed full Journal content must pass the existing Stage 1 parser and checked Stage 2A Posting IR path against `accounts.tsv`.
+- Atomic append retains pre-preview snapshot, two stale checks, backup, temporary-file construction, atomic rename, post-write digest, mandatory native validation, and guarded rollback.
+- `src_edit/journal_source_check.bqn` remains TSV-only; future native post-check ownership belongs to `src_edit/journal_native_source_check.bqn`.
+- No production `BuildContext`/report route, default source, TSV writer, synchronization, cutover, private data, plan/budget layer, correction policy, or TUI is selected.
+- TSV remains the sole production source truth and default write path.
+
+Exit requires focused implementation, review, completion archive, deletion of the current-path plan, and return to **no selected Journal slice**. No later slice may be selected automatically.

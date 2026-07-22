@@ -106,12 +106,14 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 
 ### Journal source migration
 
-Status: no finite Journal slice selected. The standalone file-backed shadow-context implementation is complete; record: `docs/archive/completed-plans/JOURNAL_FILE_BACKED_SHADOW_CONTEXT_PLAN-2026-07-22.md`.
+Status: selected finite production-adjacent explicit-path writer plan. Canonical selected plan: `docs/JOURNAL_NATIVE_MULTI_POSTING_APPEND_EDITOR_PLAN.md`.
+
+The owner selected native multi-posting Journal entry as the next finite Journal goal. The future command is the separate `tools/edit --base DIR journal-block add --journal-file FILE ...` path; existing `tools/edit journal add` remains the TSV-only `from / to / amount` writer.
 
 Purpose: preserve the current safe TSV daily path while defining a future native journal source that enters through Transaction IR and checked Posting IR rather than being flattened back into `from / to / amount` rows.
 
 
-- Current source truth remains `journal.tsv`, `plan.tsv`, `budget_alloc.tsv`, and `accounts.tsv`.
+- Current source truth remains `journal.tsv`, `plan.tsv`, `budget_alloc.tsv`, and `accounts.tsv`; no production source switch is selected.
 - The owner-confirmed automatic TSV-to-journal sync and `tools/to-hledger` are compatibility projection and shadow-read evidence.
 - The future target boundary is `journal text -> Transaction IR -> checked Posting IR -> Cube / TBDS -> reports`.
 - Current A-1 `txn_id` grouping remains the TSV-era compatibility policy; it is not a permanent prohibition on native journal transaction blocks.
@@ -136,8 +138,9 @@ Purpose: preserve the current safe TSV daily path while defining a future native
 - The completed report-information boundary slice keeps source-side transaction meaning separately observable while Trial Balance and Balances retain exact account-level movements and closings only.
 - The completed resolved-envelope slice retains recognized account defaults, validates exact durable actual-event linkage, rejects duplicate companions in this characterization, and fails closed for missing or unknown envelope evidence.
 - The completed file-backed shadow-context slice reads an explicit physical Journal path, catches file-I/O failures into structured diagnostics, reuses the existing carrier and `BuildPeriodView`, and matches the public synthetic TSV context at the actual-layer TBDS, Trial Balance, and Balances boundaries.
-- The completed work does not authorize production routing, writer/editor work, report or envelope runtime migration, private data, source conversion, cutover, reverse sync, per-posting layers, correction-event policy, or Cube/TBDS shape changes.
-- No next Journal stage is selected automatically.
+- The selected writer slice authorizes only preview, validation, and guarded atomic append of one explicit actual-layer multi-posting block to an existing relative `.journal` target inside `--base`; it does not authorize production routing, report or envelope runtime migration, private data, source conversion, cutover, reverse sync, per-posting layers, correction-event policy, or Cube/TBDS shape changes.
+- Exit requires focused implementation, review, completion archive, deletion of the current-path plan, and return to no selected Journal slice.
+- No later Journal slice may be selected automatically.
 
 
 ## Next candidates
@@ -160,7 +163,8 @@ Purpose: preserve the current safe TSV daily path while defining a future native
 - Journal budget companion projection characterization: completed test-only; record: `docs/archive/completed-plans/JOURNAL_BUDGET_COMPANION_PROJECTION_CHARACTERIZATION_PLAN-2026-07-22.md`
 - broader red-path/rejection parity: unselected
 - standalone explicit-path file-backed shadow context: completed; record: `docs/archive/completed-plans/JOURNAL_FILE_BACKED_SHADOW_CONTEXT_PLAN-2026-07-22.md`
-- production routing, writer work, envelope/report runtime migration, conversion, cutover, and later stages: unselected
+- native multi-posting explicit-path append editor: selected finite production-adjacent plan; see `docs/JOURNAL_NATIVE_MULTI_POSTING_APPEND_EDITOR_PLAN.md`
+- production routing, default writer/source switch, envelope/report runtime migration, conversion, cutover, and later stages: unselected
 
 ### Bookkeeping matrix study extension
 
