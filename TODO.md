@@ -34,7 +34,8 @@ Last hygiene pass: 2026-07-19
 - Journal read-only source carrier rehearsal test-only implementation complete
 - Journal resolved-account registry mismatch rejection is complete as public-synthetic test-only evidence; record: `docs/archive/completed-plans/JOURNAL_RESOLVED_ACCOUNT_REGISTRY_MISMATCH_REJECTION_PLAN-2026-07-21.md`
 - Journal split-purchase transaction characterization is complete as public-synthetic test-only evidence; record: `docs/archive/completed-plans/JOURNAL_SPLIT_PURCHASE_TRANSACTION_CHARACTERIZATION_PLAN-2026-07-22.md`
-- envelope allocation / execution-plan coverage characterization remains an unselected candidate
+- Journal split-purchase report aggregation and source-information boundary is complete; record: `docs/archive/completed-plans/JOURNAL_SPLIT_PURCHASE_REPORT_INFORMATION_BOUNDARY_PLAN-2026-07-22.md`
+- Journal resolved envelope assignment persistence is the selected finite public-synthetic characterization
 - other unrelated candidates remain unselected
 
 ---
@@ -104,9 +105,21 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 
 ### Journal source migration
 
-Status: no finite slice selected. split-purchase report aggregation and source-information boundary slice is completed (completed record path: docs/archive/completed-plans/JOURNAL_SPLIT_PURCHASE_REPORT_INFORMATION_BOUNDARY_PLAN-2026-07-22.md). It successfully characterized 3 transactions (posting counts ⟨3, 3, 4⟩, 10 Posting IR rows) flowing through the read-only carrier to context.BuildPeriodView, trial_balance.Build, and balances.Build, producing exact 7 account-level report aggregates (debit/credit total 5850, closing total 0, balances format and format human renderable and exact) while demonstrating that transaction descriptions, event identities, grouping, and posting order remain observable source-side evidence and are not reconstructible from reports. Production parser routing, writer, UI, conversion, shadow read, cutover, and later Journal stages remain unselected. PR #273 remains parked background design evidence. No next Journal stage will be automatically selected.
+Status: selected finite public-synthetic characterization. Canonical plan: `docs/JOURNAL_RESOLVED_ENVELOPE_ASSIGNMENT_PERSISTENCE_PLAN.md`.
 
 Purpose: preserve the current safe TSV daily path while defining a future native journal source that enters through Transaction IR and checked Posting IR rather than being flattened back into `from / to / amount` rows.
+
+The selected question is whether account metadata can supply an entry-time default envelope while the accepted resolved assignment is persisted as an explicit balanced budget-layer companion event linked to the actual purchase. Later metadata changes must affect future resolution only and must not silently reinterpret historical envelope consumption.
+
+Selected boundary:
+
+```text
+account metadata at entry time
+  -> candidate default envelope
+  -> validated resolved assignment
+  -> explicit durable budget-layer companion event
+  -> later envelope projections
+```
 
 - Current source truth remains `journal.tsv`, `plan.tsv`, `budget_alloc.tsv`, and `accounts.tsv`.
 - The owner-confirmed automatic TSV-to-journal sync and `tools/to-hledger` are compatibility projection and shadow-read evidence.
@@ -130,7 +143,9 @@ Purpose: preserve the current safe TSV daily path while defining a future native
 - The completed read-only source carrier rehearsal groups Transaction IR and Posting IR row assembly into a single read-only source carrier, retains explicit source identity at the carrier result level, preserves Stage 2A Posting IR rows unchanged, and migrates the integration rehearsal test to route through this carrier boundary, with zero production routing or source truth changes.
 - The completed resolved-account registry mismatch rejection slice proves that Stage 2A rejects transactions containing declared posting accounts absent from the resolved account registry, returning an error state, zero posting rows, and structured diagnostics, while propagating the error through the read-only carrier boundary, with zero production routing or source truth changes.
 - The completed split-purchase characterization proves three purchase transactions with posting counts `⟨3, 3, 4⟩`, ten successful Posting IR rows, exact tax-inclusive account totals, and three distinct fallback event identities before report aggregation.
-- The selected report-information boundary slice must keep the two evidence levels separate: source-side transaction meaning remains observable before reduction, while Trial Balance and Balances retain exact account-level movements and closings only.
+- The completed report-information boundary slice keeps source-side transaction meaning separately observable while Trial Balance and Balances retain exact account-level movements and closings only.
+- The selected resolved-envelope slice treats account metadata as an entry default, requires durable identity when a budget companion refers to an actual purchase, and persists the accepted envelope effect as a separately balanced budget-layer event.
+- The selected slice does not authorize production routing, writer/editor work, report or envelope runtime migration, private data, source conversion, shadow read, cutover, reverse sync, per-posting layers, or Cube/TBDS shape changes.
 
 
 ## Next candidates
@@ -148,10 +163,11 @@ Purpose: preserve the current safe TSV daily path while defining a future native
 - completed path: existing public Journal fixture -> Parse -> Stage 2A -> BuildPeriodView -> balances.Build / Format / FormatHuman
 - Journal read-only source carrier rehearsal: completed test-only; record: `docs/archive/completed-plans/JOURNAL_READ_ONLY_SOURCE_CARRIER_REHEARSAL_PLAN-2026-07-21.md`
 - completed path: explicit synthetic Journal lines -> Parse -> Stage 2A Build via new carrier module
-- Journal split-purchase report aggregation and source-information boundary: selected finite test-only contract; plan: `docs/JOURNAL_SPLIT_PURCHASE_REPORT_INFORMATION_BOUNDARY_PLAN.md`
-- selected path: existing split-purchase fixture -> read-only carrier -> BuildPeriodView -> Trial Balance + Balances, with source-side identity/order asserted separately from seven-account aggregate reports
+- Journal split-purchase report aggregation and source-information boundary: completed test-only; record: `docs/archive/completed-plans/JOURNAL_SPLIT_PURCHASE_REPORT_INFORMATION_BOUNDARY_PLAN-2026-07-22.md`
+- Journal resolved envelope assignment persistence: selected finite test-only contract; plan: `docs/JOURNAL_RESOLVED_ENVELOPE_ASSIGNMENT_PERSISTENCE_PLAN.md`
+- selected path: account declaration defaults -> validated resolved envelope assignment -> explicit linked budget-layer companion event -> stable historical envelope projection
 - broader red-path/rejection parity: unselected
-- production routing, writer work, shadow read, conversion, cutover, and later stages: unselected
+- production routing, writer work, envelope/report runtime migration, shadow read, conversion, cutover, and later stages: unselected
 
 ### Bookkeeping matrix study extension
 
