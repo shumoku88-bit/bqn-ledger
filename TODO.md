@@ -108,25 +108,24 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 
 ### Journal source migration
 
-Status: **External plan reference profile prerequisite complete and archived; the canonical TSV-to-native Journal prefix converter remains selected but blocked pending explicit owner review, and converter implementation was not resumed.** Completion record: `docs/archive/completed-plans/JOURNAL_EXTERNAL_PLAN_REFERENCE_PROFILE_PREREQUISITE_PLAN-2026-07-22.md`. Parent converter plan: `docs/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_PLAN.md`. Completed metadata/profile record: `docs/archive/completed-plans/JOURNAL_LEGACY_METADATA_PROFILE_EXTENSION_PLAN-2026-07-22.md`.
+Status: **Canonical TSV-to-native Journal prefix converter complete; no finite Journal slice is selected.** Completion record: `docs/archive/completed-plans/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_COMPLETION-2026-07-22.md`. Archived contract and instructions: `docs/archive/completed-plans/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_PLAN-2026-07-22.md`, `docs/archive/completed-plans/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_IMPLEMENTATION_INSTRUCTIONS-2026-07-22.md`.
 
-The test-only Minimal BQN Journal parser now preserves strict default `Parse` and exposes explicit `ParseWithProfile` selection. `historical_external_plan` admits only an actual transaction's nonempty `plan-id` with zero matching in-document plan transactions; one internal match, duplicate targets, and unrelated cross-links retain strict validation. Transaction IR and the current 16-field Posting IR remain unchanged. This completion performs no conversion or reconstruction.
+The public-synthetic converter now preserves exact admitted descriptions, canonical legacy source identity, distinct business `txn_id`, mapped metadata, deterministic explicit JPY postings, and unchanged Transaction IR / 16-field Posting IR validation through the explicit `historical_external_plan` profile. Public-synthetic byte-preserving suffix reconstruction and exclusive atomic publication are proven. No private conversion or reconstruction was performed.
 
 Native Journal is the owner-selected future durable actual source truth. The native multi-posting explicit-path append editor is complete; record: `docs/archive/completed-plans/JOURNAL_NATIVE_MULTI_POSTING_APPEND_EDITOR_PLAN-2026-07-22.md`.
 
 The cutover prerequisite review found accounting semantics equivalent, including signed movements, posting order, layer/status, transaction grouping, and an established prefix boundary. Description, canonical source identity, distinct business `txn_id`, and supported-metadata semantics did not pass. A canonical one-way legacy-prefix converter is therefore required before cutover can be reconsidered.
 
-- The current private candidate remains preserved evidence and was not read, replaced, or normalized by the completed profile prerequisite.
-- A Journal-only suffix exists and must remain byte-for-byte unchanged.
-- Current production source truth and production report routing remain TSV; this selection performs no production change.
-- The selected converter must preserve one physical TSV row as one legacy Journal transaction, deterministic debit-then-credit postings, canonical physical source identity, distinct business linkage, supported metadata, and fail-closed diagnostics.
-- Reconstruction must create a new candidate from a verified canonical prefix plus the exact preserved suffix; it must never edit the preserved candidate in place.
-- Production cutover remains blocked until canonical conversion, reconstruction, complete parser/Posting IR validation, prefix parity, and suffix-preservation gates pass.
+- The current private candidate and private Journal-only suffix remain preserved evidence and were not read, replaced, normalized, converted, or reconstructed by this implementation.
+- Current production source truth and production report routing remain TSV; converter completion performs no production change.
+- The completed public converter preserves one admitted TSV row as one Journal transaction, deterministic debit-then-credit postings, canonical source identity, distinct business linkage, supported metadata, and fail-closed diagnostics.
+- The completed reconstruction proof uses only a verified public-synthetic prefix and exact public-synthetic suffix and creates only a new target.
+- Production cutover remains blocked; private operations, report-consumer migration, writer/source policy, and explicit owner approval remain separate unselected gates.
 - Migration remains one-directional. Dual daily writes, reverse synchronization, and automatic conflict resolution are prohibited.
 - The external plan reference profile prerequisite is complete and archived.
-- The converter implementation branch remains stopped as clean evidence and must not resume without explicit owner review.
-- Future converter completion must explicitly return routing to no selected Journal slice.
-- Profile prerequisite completion does not select converter resumption, production cutover, or any later Journal slice automatically.
+- The old stopped converter branch remains untouched historical evidence; the completed implementation used a replacement branch from current main.
+- Production source truth and production report routing remain TSV; cutover remains blocked.
+- No private verification, private conversion, private reconstruction, writer switch, report routing, cutover, or later Journal slice is selected automatically.
 
 
 ## Next candidates
@@ -150,7 +149,7 @@ The cutover prerequisite review found accounting semantics equivalent, including
 - broader red-path/rejection parity: unselected
 - standalone explicit-path file-backed shadow context: completed; record: `docs/archive/completed-plans/JOURNAL_FILE_BACKED_SHADOW_CONTEXT_PLAN-2026-07-22.md`
 - native multi-posting explicit-path append editor: completed; record: `docs/archive/completed-plans/JOURNAL_NATIVE_MULTI_POSTING_APPEND_EDITOR_PLAN-2026-07-22.md`
-- production routing remains unselected; default writer/source switch remains unselected; envelope/report runtime migration remains unselected; production cutover and later stages remain unselected; canonical legacy-prefix conversion is the selected finite slice above
+- production routing remains unselected; default writer/source switch remains unselected; envelope/report runtime migration remains unselected; production cutover and later stages remain unselected; no finite Journal slice is selected
 
 ### Bookkeeping matrix study extension
 

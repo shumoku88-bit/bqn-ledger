@@ -1,10 +1,10 @@
 # Journal Canonical TSV-to-Native Prefix Converter Plan
 
-Status: selected finite canonical legacy-prefix converter contract
+Status: completed
 Owner: journal source migration / conversion
-Canonical: yes for the currently selected finite Journal slice
+Canonical: no; completion route: JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_COMPLETION-2026-07-22.md and ../../../TODO.md
 Date: 2026-07-22
-Exit: implementation, synthetic validation, private read-only verification, independent review, completion archive, and explicit return to no selected Journal slice
+Exit: archived; do not use as authorization for private verification, conversion, reconstruction, cutover, or another Journal slice
 
 Native Journal remains the owner-selected future durable actual source truth. Production cutover is blocked until canonical historical-prefix reconstruction succeeds.
 

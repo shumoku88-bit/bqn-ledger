@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=tools/lib/safe-write.sh
+# shellcheck disable=SC1091
+source "$ROOT_DIR/tools/lib/safe-write.sh"
+
+usage() {
+  cat >&2 <<'EOF'
+Usage:
+  tools/journal-prefix convert ACCOUNTS_TSV SNAPSHOT_TSV SOURCE_FILE_IDENTITY CYCLE_START OUTPUT
+  tools/journal-prefix reconstruct ACCOUNTS_TSV SNAPSHOT_TSV SOURCE_FILE_IDENTITY CYCLE_START VERIFIED_PREFIX SUFFIX OUTPUT
+
+All paths are explicit. OUTPUT must be a new path in an existing directory.
+EOF
+  exit 2
+}
+
+[[ $# -ge 1 ]] || usage
+mode=$1
+shift
+case "$mode" in
+  convert) [[ $# -eq 5 ]] || usage ;;
+  reconstruct) [[ $# -eq 7 ]] || usage ;;
+  *) usage ;;
+esac
+
+accounts=$1
+snapshot=$2
+source_identity=$3
+cycle_start=$4
+if [[ $mode == convert ]]; then
+  output=$5
+  immutable_inputs=("$accounts" "$snapshot")
+else
+  verified_prefix=$5
+  suffix=$6
+  output=$7
+  immutable_inputs=("$accounts" "$snapshot" "$verified_prefix" "$suffix")
+fi
+
+for input in "${immutable_inputs[@]}"; do
+  [[ -f $input ]] || { printf 'ERROR: required input is not a regular file: %s\n' "$input" >&2; exit 1; }
+done
+[[ ! -e $output ]] || { printf 'ERROR: output already exists: %s\n' "$output" >&2; exit 1; }
+output_dir=$(dirname -- "$output")
+[[ -d $output_dir ]] || { printf 'ERROR: output directory does not exist: %s\n' "$output_dir" >&2; exit 1; }
+
+for input in "${immutable_inputs[@]}"; do
+  [[ $output != "$input" ]] || { echo "ERROR: output must differ from every input" >&2; exit 1; }
+done
+
+before_hashes=()
+for input in "${immutable_inputs[@]}"; do before_hashes+=("$(_safe_write_sha256 "$input")"); done
+
+temporary=$(mktemp "${output}.tmp-XXXXXX")
+trap 'rm -f -- "$temporary"' EXIT
+
+if [[ $mode == convert ]]; then
+  bqn "$ROOT_DIR/src_edit/journal_prefix_converter_cmd.bqn" \
+    convert "$accounts" "$snapshot" "$source_identity" "$cycle_start" "$temporary"
+else
+  bqn "$ROOT_DIR/src_edit/journal_prefix_converter_cmd.bqn" \
+    reconstruct "$accounts" "$snapshot" "$source_identity" "$cycle_start" \
+    "$verified_prefix" "$suffix" "$temporary"
+fi
+
+for i in "${!immutable_inputs[@]}"; do
+  after=$(_safe_write_sha256 "${immutable_inputs[$i]}")
+  [[ $after == "${before_hashes[$i]}" ]] || {
+    printf 'ERROR: immutable input changed during operation: %s\n' "${immutable_inputs[$i]}" >&2
+    exit 1
+  }
+done
+[[ -s $temporary ]] || { echo "ERROR: validated temporary output is empty" >&2; exit 1; }
+
+if [[ ${BQN_LEDGER_TEST_MODE:-} == 1 && -n ${JOURNAL_PREFIX_TEST_BEFORE_PUBLISH_HOOK:-} ]]; then
+  hook=$JOURNAL_PREFIX_TEST_BEFORE_PUBLISH_HOOK
+  if declare -F -- "$hook" >/dev/null; then "$hook"; fi
+fi
+
+if ! ln "$temporary" "$output" 2>/dev/null; then
+  echo "ERROR: output appeared before exclusive atomic publication" >&2
+  exit 1
+fi
+published_hash=$(_safe_write_sha256 "$output")
+staged_hash=$(_safe_write_sha256 "$temporary")
+if [[ $published_hash != "$staged_hash" ]]; then
+  echo "ERROR: published bytes differ from validated temporary bytes" >&2
+  rm -f -- "$output"
+  exit 1
+fi
+rm -f -- "$temporary"
+trap - EXIT
+printf 'Wrote: %s\n' "$output"

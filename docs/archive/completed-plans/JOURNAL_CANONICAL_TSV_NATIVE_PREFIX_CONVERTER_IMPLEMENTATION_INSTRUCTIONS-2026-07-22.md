@@ -1,10 +1,10 @@
 # Journal Canonical TSV-to-Native Prefix Converter Implementation Instructions
 
-Status: active execution instructions for the selected converter slice
+Status: completed
 Owner: journal source migration / conversion
-Canonical: no; governing plan is `docs/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_PLAN.md`
+Canonical: no; completed plan: JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_PLAN-2026-07-22.md
 Date: 2026-07-22
-Exit: archive with converter completion, return routing to no selected Journal slice, and do not select cutover automatically
+Exit: archived; current routing is `../../../TODO.md` and no finite Journal slice is selected
 
 ## 1. Finite implementation question
 
