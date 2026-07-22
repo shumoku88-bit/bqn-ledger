@@ -159,7 +159,7 @@ Not established by current repository evidence: that swapping only the productio
 
 ## Privacy and non-access confirmation
 
-The prohibited path `/Users/user/Projects/moko/ledger-data` and its descendants were not read, listed, hashed, copied, or referenced by any command. No private Journal, TSV snapshot, suffix, amount, description, event ID, plan ID, metadata, or report output was accessed. Only repository code, docs, checks, and public synthetic fixtures were used.
+The prohibited private ledger-data path and its descendants were not read, listed, hashed, copied, or referenced by any command. No private Journal, TSV snapshot, suffix, amount, description, event ID, plan ID, metadata, or report output was accessed. Only repository code, docs, checks, and public synthetic fixtures were used.
 
 ## Candidate next finite slices
 
@@ -179,7 +179,7 @@ Production report routing remains TSV for all 22 inventoried surfaces (**D not p
 
 ## Commands executed
 
-Commands were run from `/Users/user/Projects/moko/bqn-ledger`. Long-output Git/check/search commands used `rtk` as required.
+Commands were run from the repository root. Long-output Git/check/search commands used `rtk` as required.
 
 ```text
 rtk git branch --show-current
