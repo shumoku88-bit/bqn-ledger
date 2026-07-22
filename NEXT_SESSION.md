@@ -1,28 +1,26 @@
 # Next session
 
-Status: selected finite canonical TSV-to-native Journal prefix converter; implementation instructions fixed
-Owner: journal source migration / conversion
-Canonical: yes; canonical plan is `docs/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_PLAN.md`
-Execution: `docs/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_IMPLEMENTATION_INSTRUCTIONS.md`
-Exit: converter implementation, synthetic validation, private read-only verification, independent review, completion archive, and explicit return to no selected Journal slice
+Status: selected finite Journal external-plan-reference profile prerequisite; docs-only contract fixed
+Owner: journal source migration / test-only Journal profile
+Canonical: yes; current prerequisite is `docs/JOURNAL_EXTERNAL_PLAN_REFERENCE_PROFILE_PREREQUISITE_PLAN.md`
+Parent: `docs/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_PLAN.md`
+Exit: separate prerequisite implementation, public-synthetic validation, completion archive, and explicit owner review before converter work may resume
 Date: 2026-07-22
 
 ## Current routing
 
-The legacy metadata/profile prerequisite is complete and archived at `docs/archive/completed-plans/JOURNAL_LEGACY_METADATA_PROFILE_EXTENSION_PLAN-2026-07-22.md`.
+The **Journal external plan reference profile prerequisite** is selected. Current strict `journal_profile_stage1.Parse` requires every actual transaction carrying `plan-id` to match exactly one plan transaction in the same parsed Journal. Legacy `plan_id` instead links `plan.tsv` and `journal.tsv`, so an actual-only historical prefix can legitimately retain an external plan reference with zero in-document plans.
 
-The **Canonical TSV-to-native Journal prefix converter** remains selected and its public-synthetic implementation instructions are fixed. It must preserve canonical `source_event_id`, distinct optional business `txn_id`, the complete mapped legacy metadata vocabulary, transaction/posting order, and fail-closed diagnostics while keeping the current 16-field Posting IR and production TSV route unchanged.
-
-## Owner description decision
-
-The converter must not trim, normalize, rewrite, split, or reinterpret the TSV memo/description. It may render only a nonempty description with no unsafe control input and no leading or trailing ASCII space, and the complete generated Journal must parse back to the exact same Unicode code-point sequence. Otherwise it must fail closed with `description_not_canonically_representable` and publish no prefix.
+The selected prerequisite must add an explicitly selected non-production historical profile that admits only this zero-match actual `plan-id` case. Existing default `Parse` remains strict. One internal match still requires `execution-envelope` agreement; duplicate plan targets and every other cross-link invariant remain fail closed. Transaction IR and the 16-field Posting IR schema remain unchanged.
 
 ## Explicit gates
 
-- The implementation branch must start from the current `main` after the docs PR containing these instructions is merged. Local `main`, `origin/main`, and remote `main` must match; do not use a hardcoded pre-merge SHA.
-- Current `main` must contain PR #320, the canonical converter plan, and these implementation instructions.
-- Only public synthetic evidence is authorized until a separately gated private read-only verification.
-- `currency=ILS`, fractional, or incompatible commodity evidence remains fail closed; no currency-profile expansion is included.
-- Account declaration rendering must be proven against the existing registry and Journal profile before implementation proceeds. If required account semantics cannot be represented, stop and report a separate prerequisite.
-- No private conversion, reconstruction, suffix replacement, production parser routing, production writer change, source-truth change, cutover, dual write, reverse synchronization, or conflict resolution is authorized.
-- Production cutover remains blocked and is not selected automatically.
+- The docs-only selection must be reviewed and merged before implementation begins on a separate branch and Draft PR.
+- Use only public synthetic evidence.
+- Unknown profile selection must fail closed; no automatic profile detection or global fallback is allowed.
+- Do not synthesize plan transactions, add `plan.tsv` to converter input, drop `plan-id`, or change plan lifecycle semantics.
+- The canonical TSV-to-native Journal prefix converter remains selected but blocked. Its implementation is stopped and not started.
+- The stopped converter branch must not be modified or resumed automatically.
+- Production source truth and report routing remain TSV.
+- Private access, conversion, reconstruction, source switching, writer changes, and cutover remain prohibited and blocked.
+- Prerequisite implementation completion still requires explicit owner review before any converter work is selected again.
