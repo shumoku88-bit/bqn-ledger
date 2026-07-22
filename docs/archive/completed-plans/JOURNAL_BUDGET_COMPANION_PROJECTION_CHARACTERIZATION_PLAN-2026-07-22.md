@@ -1,7 +1,9 @@
 # Journal Budget Companion Projection Characterization — Completion Record
 
-- status: completed
-- date: 2026-07-22
+Status: completed test-only characterization
+Owner: journal source migration
+Canonical: no; canonical routing remains TODO.md
+Date: 2026-07-22
 - branch: `test/journal-budget-companion-projection-characterization`
 - preceding_plan: `docs/JOURNAL_BUDGET_COMPANION_PROJECTION_CHARACTERIZATION_PLAN.md`
 - preceding_selection_pr: #312
@@ -21,35 +23,58 @@ Persisted budget-layer companion events project cleanly into Stage 1 Transaction
 ## Implemented Test Path
 
 - Test script: `tests/test_journal_budget_companion_projection_characterization.bqn`
-- Helper modification: `src_next/journal_read_only_source_carrier.bqn` (deferred Stage 2A block execution with `𝕊:` to ensure adapter is not invoked when Stage 1 parser fails)
+- Helper modification: `src_next/journal_read_only_source_carrier.bqn` (test-only read-only carrier module; converted anonymous immediate block to subject function `{𝕊: ...}` so Stage 2A adapter is skipped when Stage 1 fails closed)
 
 ## Changed Files
 
-1. `tests/test_journal_budget_companion_projection_characterization.bqn` (new test-only characterization script)
-2. `src_next/journal_read_only_source_carrier.bqn` (1-line fix: deferred Stage 2A block execution)
-3. `tools/.repo-index-baseline.tsv` (updated baseline for new test file)
+```text
+NEXT_SESSION.md
+TODO.md
+docs/JOURNAL_BUDGET_COMPANION_PROJECTION_CHARACTERIZATION_PLAN.md  # deleted
+docs/README.md
+docs/archive/completed-plans/JOURNAL_BUDGET_COMPANION_PROJECTION_CHARACTERIZATION_PLAN-2026-07-22.md
+src_next/journal_read_only_source_carrier.bqn
+tests/test_journal_budget_companion_projection_characterization.bqn
+```
 
 ## Observed Transaction IR
 
-- **Parsed Events**: 3 transactions parsed from synthetic fixture (`defaults-v1.journal` + `persisted-events.journal`)
-  - Transaction 1: Actual purchase (`event-purchase-1`, 2026-08-03, layer `actual`, 2 postings)
-  - Transaction 2: Budget companion (`event-budget-companion-1`, 2026-08-03, layer `budget`, `actual-event-id`: `event-purchase-1`, 4 postings)
-  - Transaction 3: Actual purchase (`event-purchase-2`, 2026-08-04, layer `actual`, 2 postings)
-- **Zero-Sum Balance**: Verified `+´ {𝕩.delta}¨ postings ≡ 0` for all 3 transactions.
+Parsed 3 transactions from synthetic fixture (`defaults-v1.journal` + `persisted-events.journal`):
+
+1. `event-purchase-2026-08-03-001`
+   - date: `2026-08-03`
+   - layer: `actual`
+   - postings: 4 (`expenses:food:daily` +1400, `expenses:food:stock` +900, `expenses:household` +500, `assets:bank` -2800)
+   - deltas: `+1400, +900, +500, -2800`
+
+2. `event-envelope-consumption-2026-08-03-001`
+   - date: `2026-08-03`
+   - layer: `budget`
+   - `actual-event-id`: `event-purchase-2026-08-03-001`
+   - postings: 4 (`budget:spent:daily` +2300, `budget:daily` -2300, `budget:spent:flex` +500, `budget:flex` -500)
+   - deltas: `+2300, -2300, +500, -500`
+
+3. `event-purchase-2026-08-10-001`
+   - date: `2026-08-10`
+   - layer: `actual`
+   - postings: 4 (`expenses:food:daily` +1400, `expenses:food:stock` +900, `expenses:household` +500, `assets:bank` -2800)
+   - deltas: `+1400, +900, +500, -2800`
+
+All 3 transactions balance independently to zero (`+´ {𝕩.delta}¨ postings ≡ 0`).
 
 ## Observed Posting IR (Stage 2A)
 
 - **Total Posting Rows**: 12 rows generated across 3 transactions.
 - **Layer Distribution**:
-  - Actual layer (layer index 0): 8 rows (4 from Transaction 1, 4 from Transaction 3)
-  - Budget layer (layer index 2): 4 rows (from Transaction 2)
-- **Posting Attributes**: Verified `posting_id`, `layer_index`, `side`, `delta`, `status` ("ok").
+  - Actual layer (`layer_index = 0`): 8 rows (4 from Transaction 1, 4 from Transaction 3)
+  - Budget layer (`layer_index = 2`): 4 rows (from Transaction 2)
+- **Provenance & Sequence**: Durable source event identity (`source_event_id`) and posting order within each event are preserved.
 
 ## Observed Actual-Layer TBDS (`cube.layer_actual`)
 
 Period view constructed via `context.BuildPeriodView` (8 accounts × 4 layers = 32 rows):
 
-| Account Key | Opening | Debit | Credit | Net Movement | Closing |
+| Account Key | Opening | Debit | Credit | Movement | Closing |
 |---|---|---|---|---|---|
 | `assets:bank/JPY` | 0 | 0 | 5600 | -5600 | -5600 |
 | `expenses:food:daily/JPY` | 0 | 2800 | 0 | +2800 | +2800 |
@@ -65,7 +90,7 @@ Period view constructed via `context.BuildPeriodView` (8 accounts × 4 layers = 
 
 ## Observed Budget-Layer TBDS (`cube.layer_budget`)
 
-| Account Key | Opening | Debit | Credit | Net Movement | Closing |
+| Account Key | Opening | Debit | Credit | Movement | Closing |
 |---|---|---|---|---|---|
 | `assets:bank/JPY` | 0 | 0 | 0 | 0 | 0 |
 | `expenses:food:daily/JPY` | 0 | 0 | 0 | 0 | 0 |
@@ -85,11 +110,24 @@ Field-by-field equality verified between:
 - **View A**: Full period view (actual purchases + budget companion) filtered to `cube.layer_actual`
 - **View B**: Actual-only period view (actual purchases only, no companion) filtered to `cube.layer_actual`
 
-All fields (`account_key`, `layer_name`, `opening_balance`, `debit_sum`, `credit_sum`, `net_movement`, `closing_balance`) match identically across all 8 accounts.
+All fields (`account_key`, `layer_name`, `opening`, `debit_movement`, `credit_movement`, `movement`, `closing`) match identically across all 8 accounts.
 
 ## Historical Stability under Defaults V2
 
-Tested persisted companion events under `defaults-v2.journal` (where default envelope assignment for `expenses:food:stock` changed from `daily` to `flex`):
+Tested persisted companion events under `defaults-v2.journal` (where all three expense accounts `expenses:food:daily`, `expenses:food:stock`, and `expenses:household` declare `default-envelope: flex`):
+
+```text
+future candidate resolution under V2:
+  daily = 0
+  flex = 2800
+
+persisted historical budget projection:
+  budget:spent:daily = +2300
+  budget:daily = -2300
+  budget:spent:flex = +500
+  budget:flex = -500
+```
+
 - **Persisted Companion Behavior**: Preserved historical envelope assignment (`budget:spent:daily` +2300 / `budget:daily` -2300) regardless of V2 header defaults.
 - **Entry-Time Resolution Behavior**: Re-resolving entry-time assignment under V2 defaults yielded flex 2800 (`budget:spent:flex` +2800 / `budget:flex` -2800).
 - **TBDS Invariance**: TBDS coordinates from persisted companion under V2 match V1 coordinates identically.
@@ -104,12 +142,17 @@ Verified that invalid companion inputs fail safely without producing corrupt pos
 4. **Unknown budget account**: Postings reference undeclared budget account -> `posting_account_unknown`, state `"error"`, 0 posting rows.
 5. **Unsupported layer**: Transaction layer set to `unknown_layer` -> `layer_unsupported`, state `"error"`, 0 posting rows.
 
+## Helper Modification Verification
+
+- Modified `src_next/journal_read_only_source_carrier.bqn` (test-only helper module).
+- Converted anonymous immediate block `{ ... }` to subject function `{𝕊: ...}` so Stage 2A adapter is skipped when Stage 1 fails closed, returning 0 posting rows instead of partial rows.
+- Production routing remains untouched.
+
 ## Production Boundary Verification
 
 - Production parser routing: UNCHANGED.
 - Daily Cube & TBDS shapes: UNCHANGED.
 - Writers/Editors: NONE.
-- Production files edited: `src_next/journal_read_only_source_carrier.bqn` (test-only helper module).
 
 ## Validation Suite
 
