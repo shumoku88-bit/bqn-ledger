@@ -33,7 +33,9 @@ It allows verifying that actual-layer Trial Balance and Balances figures derived
 - `docs/archive/completed-plans/JOURNAL_READ_ONLY_SOURCE_CARRIER_REHEARSAL_PLAN-2026-07-21.md`: Grouped Transaction IR and Stage 2A Posting IR assembly into `src_next/journal_read_only_source_carrier.bqn`.
 - `docs/archive/completed-plans/JOURNAL_BUDGET_COMPANION_PROJECTION_CHARACTERIZATION_PLAN-2026-07-22.md`: Proved multi-posting actual purchases and budget companion events project into distinct actual and budget layers in TBDS while leaving actual-layer figures unchanged.
 
-Previous rehearsals consumed in-memory line arrays in test files. The next finite step is to read an explicit Journal file from disk via file I/O (`loader.ReadLines` or `•FChars`) through a dedicated shadow context builder.
+Previous rehearsals may load fixture text from disk in test code, but file-path resolution and file-load ownership remain outside a standalone Journal shadow-context module.
+
+The selected new step moves explicit file-backed loading into the dedicated checked shadow builder.
 
 ## Selected shadow path
 
@@ -74,11 +76,60 @@ This path is production-adjacent (uses existing BQN modules and production contr
 - Do not modify `tools/to-hledger`.
 - `tools/to-hledger` output is not automatically adopted as canonical shadow input; the supported-profile `shadow.journal` format is used explicitly.
 
+## Generated Journal compatibility boundary
+
+Record these observed differences accurately:
+
+```text
+Minimal BQN Journal Profile:
+- transaction header requires `*` or `!`
+- every posting requires explicit account, exact-integer amount, and commodity
+- account metadata is expressed as comment metadata in the account declaration body
+- transaction metadata is expressed as supported `; key: value` lines
+- `commodity JPY` declaration is required
+- unsupported top-level groups fail closed
+
+tools/to-hledger output:
+- emits `date description` without `*` or `!`
+- uses an implicit balancing posting by omitting the second amount
+- emits account metadata inline on the account declaration line
+- emits transaction tags inline/comma-separated
+- generated master uses `include`
+- does not produce the exact self-contained Minimal BQN Journal Profile selected for this shadow test
+```
+
+Conclude:
+
+```text
+tools/to-hledger remains:
+- generated hledger compatibility projection
+- human-readability surface
+- future compatibility/parity asset
+
+It is not:
+- canonical input for this finite shadow-context slice
+- proof of direct compatibility with journal_profile_stage1
+```
+
+The future public fixture must therefore use an explicit self-contained supported-profile `shadow.journal`.
+
+Generated output compatibility remains a separate finite slice.
+
 ## Expected checked-result contract
 
-The future builder module `src_next/journal_shadow_context.bqn` will provide a pure builder function:
+The future builder module `src_next/journal_shadow_context.bqn` will provide `Build`:
+
+```text
+Build
+  = standalone read-only checked I/O builder
+  = explicit path load
+  = existing Journal carrier invocation
+  = checked shadow-context assembly
+```
 
 `Build ⇐ {𝕊 ⟨base, journalPath, as_of⟩: ...}`
+
+While pure transformation helpers may be separated internally, this plan does not over-commit new public APIs.
 
 The return value is a structured checked result namespace:
 
@@ -115,6 +166,20 @@ The return value is a structured checked result namespace:
 - **Diagnostic conventions**:
   - Structured diagnostic objects with `severity`, `stage`, `code`, `line`/`message`.
   - Fatal stdout prints (`•Out "ERROR..."`) and script termination (`•Exit 1`) must **not** be used inside the shadow builder module. Failures are returned as structured checked results.
+
+## Checked file-I/O feasibility gate
+
+- Existing `loader.ReadRaw` / `loader.ReadLines` delegates to `•FChars`.
+- `loader.ReadLinesOptional` handles missing files as empty but explicitly allows unreadable files to throw.
+- The shadow builder must not present thrown file-I/O exceptions as if they were structured checked results.
+- Missing-path handling must be converted to a structured diagnostic before Journal parsing.
+- Before implementing unreadable-file handling, inspect and prove the available CBQN exception-catching mechanism.
+- If unreadable-file exceptions cannot be safely converted within the selected changed-file boundary, stop and report instead of expanding scope or silently weakening the contract.
+- Do not modify `src_next/loader.bqn` automatically.
+- Do not use fatal stdout or `•Exit` as the normal checked-result contract.
+- Do not fallback to TSV.
+
+Exact file-I/O diagnostic codes are selected during implementation after confirming ownership and mechanism, rather than invented in this docs-only PR.
 
 ## Expected context contract
 
