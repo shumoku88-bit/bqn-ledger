@@ -17,8 +17,10 @@ space ← @+32
 
 supportedMetadata ← ⟨
   <"action", <"receipt-id", <"event-id", <"layer", <"plan-id",
-  <"execution-envelope", <"allocation-id", <"agreement-id"
+  <"execution-envelope", <"allocation-id", <"agreement-id",
+  <"actual-event-id"
 ⟩
+supportedAccountMetadata ← ⟨<"role", <"kind", <"default-envelope"⟩
 supportedLayers ← ⟨<"actual", <"plan", <"budget"⟩
 
 Diagnostic ← {𝕊 codeText‿lineNumber‿messageText:
@@ -96,6 +98,35 @@ ParseHeader ← {𝕊 group:
   {date⇐dateText, status_marker⇐marker, description⇐description, diagnostics⇐diagnostics}
 }
 
+ParseAccountMetadata ← {𝕊 lineText‿lineNumber:
+  diagnostics ← empty
+  trimmed ← Trim lineText
+  content ← Trim 1 ↓ trimmed
+  colonPositions ← (':' = content) / ↕ ≠ content
+  key ← ""
+  value ← ""
+  {𝕊:
+    idx ← ⊑ colonPositions
+    key ↩ Trim idx ↑ content
+    value ↩ Trim (idx + 1) ↓ content
+  }⍟(0 < ≠ colonPositions) @
+  recognized ← (0 < ≠ key) ∧ IsOneOf ⟨key, supportedAccountMetadata⟩
+  diagnostics ∾↩ AddIf ⟨recognized ∧ (0 = ≠ value), Diagnostic ⟨"account_metadata_shape_invalid", lineNumber, "recognized account metadata value must be nonempty"⟩⟩
+  metadata ← @
+  {𝕊: metadata ↩ {key⇐key, value⇐value, source_line⇐lineNumber}}⍟(recognized ∧ (0 = ≠ diagnostics)) @
+  {diagnostics⇐diagnostics, metadata⇐metadata}
+}
+
+AccountMetaOr ← {𝕊 key‿metadata‿fallback:
+  matching ← ({key ≡ 𝕩.key}¨ metadata) / metadata
+  result ← fallback
+  {𝕊:
+    item ← ⊑ matching
+    result ↩ item.value
+  }⍟(0 < ≠ matching) @
+  result
+}
+
 ParseDeclarations ← {𝕊 groups:
   diagnostics ← empty
   accounts ← empty
@@ -129,7 +160,33 @@ ParseDeclarations ← {𝕊 groups:
       hasSpace ← space ∊ key
       diagnostics ∾↩ AddIf ⟨(0 = ≠ key) ∨ hasSpace, Diagnostic ⟨"account_key_invalid", group.start_line, "account declaration must contain one nonempty account key"⟩⟩
       diagnostics ∾↩ AddIf ⟨¬ bodyValid, Diagnostic ⟨"account_body_unsupported", group.start_line, "account declaration body may contain comment metadata only"⟩⟩
-      {𝕊: accounts ∾↩ ⟨{account_key⇐key, source_line⇐group.start_line}⟩}⍟((0 < ≠ key) ∧ (¬ hasSpace) ∧ bodyValid) @
+
+      accountMetadata ← empty
+      {𝕊 i:
+        lineText ← > i ⊑ body
+        lineNumber ← group.start_line + i + 1
+        parsedMeta ← ParseAccountMetadata ⟨lineText, lineNumber⟩
+        diagnostics ∾↩ parsedMeta.diagnostics
+        {𝕊: accountMetadata ∾↩ ⟨parsedMeta.metadata⟩}⍟(parsedMeta.metadata ≢ @) @
+      }¨ ↕ ≠ body
+
+      metadataKeys ← {<𝕩.key}¨ accountMetadata
+      diagnostics ∾↩ AddIf ⟨(≠ metadataKeys) ≠ ≠ ⍷ metadataKeys, Diagnostic ⟨"account_metadata_duplicate", group.start_line, "account metadata keys must be unique within one declaration"⟩⟩
+
+      role ← AccountMetaOr ⟨"role", accountMetadata, ""⟩
+      kind ← AccountMetaOr ⟨"kind", accountMetadata, ""⟩
+      defaultEnvelope ← AccountMetaOr ⟨"default-envelope", accountMetadata, ""⟩
+
+      {𝕊:
+        accounts ∾↩ ⟨{
+          account_key⇐key,
+          source_line⇐group.start_line,
+          role⇐role,
+          kind⇐kind,
+          default_envelope⇐defaultEnvelope,
+          metadata⇐accountMetadata
+        }⟩
+      }⍟((0 < ≠ key) ∧ (¬ hasSpace) ∧ bodyValid) @
     }⍟isAccount @
 
     {𝕊: transactionGroups ∾↩ ⟨group⟩}⍟isTransaction @
@@ -255,12 +312,16 @@ ParseTransaction ← {𝕊 group‿accounts‿commodities:
   planId ← MetaOr ⟨"plan-id", metadata, ""⟩
   allocationId ← MetaOr ⟨"allocation-id", metadata, ""⟩
   executionEnvelope ← MetaOr ⟨"execution-envelope", metadata, ""⟩
+  actualEventId ← MetaOr ⟨"actual-event-id", metadata, ""⟩
+  budgetLinkCount ← (0 < ≠ allocationId) + (0 < ≠ actualEventId)
 
   diagnostics ∾↩ AddIf ⟨¬ IsOneOf ⟨layer, supportedLayers⟩, Diagnostic ⟨"layer_unsupported", group.start_line, "layer must be actual, plan, or budget"⟩⟩
   diagnostics ∾↩ AddIf ⟨(layer ≡ "plan") ∧ (0 = ≠ eventId), Diagnostic ⟨"plan_event_id_missing", group.start_line, "plan events require explicit event-id"⟩⟩
   diagnostics ∾↩ AddIf ⟨(layer ≡ "plan") ∧ (0 = ≠ planId), Diagnostic ⟨"plan_id_missing", group.start_line, "plan events require plan-id"⟩⟩
   diagnostics ∾↩ AddIf ⟨(layer ≡ "budget") ∧ (0 = ≠ eventId), Diagnostic ⟨"budget_event_id_missing", group.start_line, "budget events require explicit event-id"⟩⟩
-  diagnostics ∾↩ AddIf ⟨(layer ≡ "budget") ∧ (0 = ≠ allocationId), Diagnostic ⟨"allocation_id_missing", group.start_line, "budget events require allocation-id"⟩⟩
+  diagnostics ∾↩ AddIf ⟨(layer ≡ "budget") ∧ (0 = budgetLinkCount), Diagnostic ⟨"budget_link_missing", group.start_line, "budget events require allocation-id or actual-event-id"⟩⟩
+  diagnostics ∾↩ AddIf ⟨(layer ≡ "budget") ∧ (1 < budgetLinkCount), Diagnostic ⟨"budget_link_ambiguous", group.start_line, "budget events must not contain both allocation-id and actual-event-id"⟩⟩
+  diagnostics ∾↩ AddIf ⟨(layer ≢ "budget") ∧ (0 < ≠ actualEventId), Diagnostic ⟨"actual_event_link_layer_invalid", group.start_line, "actual-event-id is valid only on budget events"⟩⟩
   diagnostics ∾↩ AddIf ⟨0 = ≠ rawPostings, Diagnostic ⟨"posting_missing", group.start_line, "transaction must contain at least one posting"⟩⟩
   diagnostics ∾↩ AddIf ⟨0 ≠ +´ 0 ∾ {𝕩.delta}¨ rawPostings, Diagnostic ⟨"event_unbalanced", group.start_line, "transaction posting deltas must sum to zero"⟩⟩
 
@@ -301,6 +362,7 @@ ParseTransaction ← {𝕊 group‿accounts‿commodities:
       plan_id⇐planId,
       allocation_id⇐allocationId,
       execution_envelope⇐executionEnvelope,
+      actual_event_id⇐actualEventId,
       metadata⇐metadata,
       postings⇐postings
     }
@@ -329,6 +391,15 @@ CrossLinkDiagnostics ← {𝕊 transactions:
     }⍟(1 = ≠ matching) @
   }¨ actualCompletions
 
+  companions ← ({(𝕩.layer_name ≡ "budget") ∧ 0 < ≠ 𝕩.actual_event_id}¨ transactions) / transactions
+  companionTargetIds ← {<𝕩.actual_event_id}¨ companions
+  diagnostics ∾↩ AddIf ⟨(≠ companionTargetIds) ≠ ≠ ⍷ companionTargetIds, Diagnostic ⟨"actual_event_companion_duplicate", 0, "one actual event may have at most one budget companion in this characterization"⟩⟩
+
+  {𝕊 companion:
+    matching ← ({(𝕩.layer_name ≡ "actual") ∧ (𝕩.identity_kind ≡ "durable") ∧ (𝕩.source_event_id ≡ companion.actual_event_id)}¨ transactions) / transactions
+    diagnostics ∾↩ AddIf ⟨1 ≠ ≠ matching, Diagnostic ⟨"actual_event_target_invalid", companion.source_start_line, "actual-event-id must match exactly one durable actual event"⟩⟩
+  }¨ companions
+
   diagnostics
 }
 
@@ -354,6 +425,39 @@ Parse ← {𝕊 raw:
   }
 }
 
+ResolveEnvelopeDefaults ← {𝕊 transaction‿accounts:
+  diagnostics ← empty
+  assignments ← empty
+  positivePostings ← ({0 < 𝕩.delta}¨ transaction.postings) / transaction.postings
+
+  {𝕊 posting:
+    matching ← ({posting.account_key ≡ 𝕩.account_key}¨ accounts) / accounts
+    diagnostics ∾↩ AddIf ⟨1 ≠ ≠ matching, Diagnostic ⟨"default_account_target_invalid", posting.source_line, "posting account must match exactly one declaration"⟩⟩
+
+    {𝕊:
+      account ← ⊑ matching
+      {𝕊:
+        envelope ← account.default_envelope
+        diagnostics ∾↩ AddIf ⟨0 = ≠ envelope, Diagnostic ⟨"default_envelope_missing", posting.source_line, "expense account requires default-envelope when no explicit override is supplied"⟩⟩
+        remainingAccount ← "budget:" ∾ envelope
+        spentAccount ← "budget:spent:" ∾ envelope
+        envelopeKnown ← HasAccount ⟨remainingAccount, accounts⟩ ∧ HasAccount ⟨spentAccount, accounts⟩
+        diagnostics ∾↩ AddIf ⟨(0 < ≠ envelope) ∧ (¬ envelopeKnown), Diagnostic ⟨"default_envelope_unknown", posting.source_line, "default-envelope must resolve to declared budget remaining and spent accounts"⟩⟩
+        {𝕊:
+          assignments ∾↩ ⟨{
+            account_key⇐posting.account_key,
+            envelope⇐envelope,
+            amount⇐posting.delta,
+            posting_id⇐posting.posting_id
+          }⟩
+        }⍟((0 < ≠ envelope) ∧ envelopeKnown) @
+      }⍟(account.role ≡ "expense") @
+    }⍟(1 = ≠ matching) @
+  }¨ positivePostings
+
+  {state⇐(0 = ≠ diagnostics) ⊑ "error"‿"ok", diagnostics⇐diagnostics, assignments⇐assignments}
+}
+
 BuildMatrix ← {𝕊 transactions‿boxedAccountKeys:
   {
     transaction ← 𝕩
@@ -367,5 +471,6 @@ BuildMatrix ← {𝕊 transactions‿boxedAccountKeys:
 
 {
   Parse⇐Parse,
+  ResolveEnvelopeDefaults⇐ResolveEnvelopeDefaults,
   BuildMatrix⇐BuildMatrix
 }
