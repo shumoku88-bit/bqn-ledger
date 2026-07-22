@@ -1,10 +1,91 @@
 # Journal split-purchase report aggregation and source-information boundary — test-only plan
 
-Status: selected finite implementation contract
+Status: completed
 Owner: journal source migration
 Canonical: no; canonical routing remains `TODO.md`
 Exit: focused characterization implementation, review, completion record, and explicit return to no selected finite Journal slice
 Date: 2026-07-22
+
+## Completion Record
+
+- **Status**: Completed (2026-07-22)
+- **Exact Fixture Paths**:
+  - `fixtures/journal-split-purchase-characterization/profile.journal`
+  - `fixtures/journal-split-purchase-characterization/accounts.tsv`
+- **Carrier State**: `ok`
+- **Diagnostics Count**: `0`
+- **Transaction Count**: `3`
+- **Posting Counts**: `⟨3, 3, 4⟩`
+- **Posting IR Row Count**: `10`
+- **Descriptions**:
+  - `Convenience store`
+  - `Supermarket food split`
+  - `Supermarket mixed purchase`
+- **Identity Kind**: `physical_fallback`
+- **Distinct Event IDs**: 3 distinct, mutually different fallback event IDs
+- **Cube Valid/Skipped Counts**:
+  - Valid: `10`
+  - Skipped: `0`
+  - Skipped rows: `0`
+- **Exact Seven-Account Totals**:
+  - `assets:cash/JPY`: `-750`
+  - `assets:bank/JPY`: `-5100`
+  - `expenses:tobacco/JPY`: `600`
+  - `expenses:coffee/JPY`: `150`
+  - `expenses:food:daily/JPY`: `2800`
+  - `expenses:food:stock/JPY`: `1800`
+  - `expenses:household/JPY`: `500`
+- **Trial Balance accounts/openings/debits/credits/closings**:
+  - Accounts: `assets:cash/JPY`, `assets:bank/JPY`, `expenses:tobacco/JPY`, `expenses:coffee/JPY`, `expenses:food:daily/JPY`, `expenses:food:stock/JPY`, `expenses:household/JPY`
+  - Openings: `0, 0, 0, 0, 0, 0, 0`
+  - Debits: `0, 0, 600, 150, 2800, 1800, 500`
+  - Credits: `-750, -5100, 0, 0, 0, 0, 0`
+  - Closings: `-750, -5100, 600, 150, 2800, 1800, 500`
+  - Debit total: `5850`
+  - Credit total: `-5850`
+  - Closing total: `0`
+- **Balances Entry Count**: `7`
+- **`balances.Format` Result**:
+  ```text
+  --- SrcNext Balances ---
+  src_next_balance: assets:cash/JPY ¯750
+  src_next_balance: assets:bank/JPY ¯5100
+  src_next_balance: expenses:tobacco/JPY 600
+  src_next_balance: expenses:coffee/JPY 150
+  src_next_balance: expenses:food:daily/JPY 2800
+  src_next_balance: expenses:food:stock/JPY 1800
+  src_next_balance: expenses:household/JPY 500
+  ```
+- **`balances.FormatHuman` Result**:
+  ```text
+  == Account Balances ==
+
+  [Totals]
+  Name                | Balance
+  --------------------+--------
+  liquid_assets_total |       0
+  savings_total       |       0
+  investment_total    |       0
+  assets_total        |       0
+  liabilities_total   |       0
+  net_worth           |       0
+  ```
+- **Focused Test Result**: Passed (`tests/test_journal_split_purchase_report_information_boundary.bqn: OK`)
+- **Related Test Results**:
+  - `tests/test_journal_split_purchase_transaction_characterization.bqn: OK`
+  - `tests/test_journal_read_path_trial_balance_rehearsal.bqn: OK`
+  - `tests/test_journal_read_only_source_carrier.bqn: OK`
+- **Full `tools/check.sh` Result**: Passed successfully (all checks and devtools tests clean)
+- **Production Guard Rails**: Fully verified. Strictly test-only; no modifications to production BQN modules, loaders, or actual user TSV data.
+- **Changed-File List**:
+  - `tests/test_journal_split_purchase_report_information_boundary.bqn`
+  - `docs/JOURNAL_SPLIT_PURCHASE_REPORT_INFORMATION_BOUNDARY_PLAN.md` (moved)
+  - `docs/archive/completed-plans/JOURNAL_SPLIT_PURCHASE_REPORT_INFORMATION_BOUNDARY_PLAN-2026-07-22.md`
+  - `TODO.md`
+  - `NEXT_SESSION.md`
+  - `docs/README.md`
+
+---
 
 ## Purpose
 
