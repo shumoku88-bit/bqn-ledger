@@ -76,6 +76,7 @@ Exit: keep current while this remains the pit code/data-flow entry point
 - `journal_profile_stage1.bqn` — public synthetic Minimal BQN Journal subsetをordered Transaction IRへ変換するtest-only parser。production source routing、writer、conversionには未接続。
 - `journal_posting_ir_stage2a.bqn` — admitted Stage 1 Transaction IRをcurrent 16-field Posting IR shapeへ変換するtest-only success-path adapter。actual 1件・plan 1件の限定semantic parityのみを担当し、rejection、native multi-posting、production routingには未接続。
 - `journal_posting_identity_provenance_stage2b.bqn` — admitted Stage 1 Transaction IRと対応するStage 2Aの16-field rowsを受け、identity/provenance local invariantsをall-or-nothingで検査して、rowを変更せず別の6-field carrierを返すpure test-only helper。production provenance carrier、consumer、routingには未接続。
+- `journal_canonical_prefix_converter.bqn` — immutable legacy TSV snapshotと明示account registryからdeterministic canonical Journal prefixをall-or-nothingで構築し、historical profile、Stage 2A/2B、legacy accounting/identity/metadata parityを検査するpure owner。public-synthetic verified prefix + exact suffix reconstructionも所有するが、production routing/private dataには未接続。
 - `exact_decimal.bqn` — source amount text の exact-decimal parse、canonical coefficient / scale、parsed coefficient exact-range 診断の owner。
 - `currency_arithmetic.bqn` — pre-built B1 row evidence だけを入力に、single-domain 検査、snapshot-wide `amount_scale`、exact normalization、normalized overflow evidence を返す pure B2 owner。source file や projection は扱わない。
 - `source_currency_admission.bqn` — supplied account lines と posting snapshot のみを検査する pure source-currency admission owner。closed strict/compatibility policy、privacy-safe diagnostics、no-partial-admission を持ち、I/Oなし・public runtime未配線。
@@ -131,6 +132,7 @@ Exit: keep current while this remains the pit code/data-flow entry point
 - `src_edit/account_list_cmd.bqn` — UI向け account candidate export。`accounts.tsv` の role メタ解釈を BQN 側に閉じ込める。
 - `src_edit/journal_add_cmd.bqn` — journal add / budget add 用の検証および TSV 生成。明示`income_budget=unassigned`のincome rowには安定した`txn_id`を付与する。
 - `src_edit/journal_source_integrity.bqn` / `journal_source_check.bqn` — ordinary journal `lint` のmixed-safe source integrity owner。row単位のdate/exact amount/metadata/currency/account整合性をall-or-nothingで検査し、report arithmeticを行わない。
+- `src_edit/journal_prefix_converter_cmd.bqn` — canonical prefix converter / public reconstructionの明示file adapter。caller-owned temporary siblingだけへ完全bytesを書き、production defaultやprivate pathを解決しない。
 - `src_edit/travel_friend_add_cmd.bqn` — `friend_travel_events.tsv` の既存全行検査とpending候補APPEND protocol生成。意味検査はpure source-event ownerへ委譲。
 - `src_edit/travel_exchange_add_cmd.bqn` — accountsと`travel_exchange_events.tsv`をpure exchange ownerへ渡し、固定10列候補APPEND protocolを生成。
 - `src_edit/journal_list_cmd.bqn` — journal reverse UI向け read-only journal selection export。
@@ -186,6 +188,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 - `check-disabled-features.sh` — 無効化機能の隔離チェック。
 - `check-edit-bqn-account-list.sh` — BQN account list export チェック。
 - `check-edit-bqn-journal-add.sh` — BQN journal/budget/issue add parityチェック。
+- `check-journal-canonical-prefix-converter.sh` — public synthetic prefix publication、failure no-publish、suffix byte preservation、concurrent exclusive-publishチェック。
 - `check-edit-bqn-income-budget-sync.sh` — opt-in通常収入のtxn ID、companion、除外、冪等retry、stale failure後retryを検証。
 - `check-edit-bqn-journal-post-check-recovery.sh` — mixed JPY/ILS journal source lint、post-check失敗時のexact rollback、後続writer保護チェック。
 - `check-edit-bqn-travel-friend-add.sh` — friend pending source-eventのdry-run、exclusive first-write、checked append、stale/duplicate拒否、rollback回帰チェック。
@@ -205,6 +208,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 - `test_src_next_*.bqn` — src_next 各モジュールのテスト。
 - `test_journal_posting_ir_adapter_stage2a.bqn` / `test_journal_posting_identity_provenance_stage2b.bqn` — Journal test-only Posting IR success parityとidentity/provenance carrierのfocused tests。
 - `test_journal_posting_ir_comparable_rejection_stage2c.bqn` — invalid date / invalid exact-integer amount / unknown accountのJournal・legacy TSV structural rejection parityを既存境界だけで観測するfocused test。
+- `test_journal_canonical_prefix_converter.bqn` — deterministic rendering、description/metadata/currency red paths、identity/provenance、Cube/TBDS/Trial Balance/Balances parity、historical profile、synthetic suffix reconstructionのfocused test。
 - `test_journal_native_three_posting_semantic_parity.bqn` — native Journal 3 rowsとlegacy TSV 4 rowsのtopology差を保持したまま、共通semantic coordinate reductionとnumeric Cube payloadの一致を既存境界だけで検証するfocused test。
 - `test_lib.bqn` — テストフレームワーク (Assert, AssertEq)。
 - `test_find_section.bqn`, `test_simple.bqn` — 汎用テスト。
@@ -232,6 +236,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 - `tools/main-ui.sh` — 読み込み・閲覧系UI（レポート閲覧・セクション選択、fzf/gumベース）。
 - `tools/add-ui.sh` — 書き込み・操作系UI（取引の追加・取消・予定完了処理等、BQN editor への安全な中継）。
 - `tools/plan-finish-replenish-ui.sh` — 予定実績化後に次回予定補充を案内する任意の対話補助。`tools/edit plan finish` と `tools/edit plan add` を合成するだけで、低層 TSV 契約は持たない。
+- `tools/journal-prefix` — explicit accounts/snapshot/source identity/cycle/outputだけを受けるcanonical prefix conversion / public reconstruction command。temporary sibling検証後のexclusive atomic createで、production path defaultを持たない。
 - `tools/edit` — 公開 editor コマンドの薄い shell wrapper。
 - `tools/edit-bqn` — 現行の BQN+shell editor 入口。`src_edit` の write path を実行する。
 - `tools/report` / `tools/report-next` — `src_next` を使用したコマンドラインレポートの正本入口。

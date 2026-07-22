@@ -2,7 +2,7 @@
 
 Status: completed
 Owner: journal source migration / test-only Journal profile
-Canonical: no; current route: `TODO.md` and `docs/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_PLAN.md`
+Canonical: no; current route: `../../../TODO.md` and `JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_COMPLETION-2026-07-22.md`
 Date: 2026-07-22
 Exit: archived; explicit owner review is required before converter work may be selected again
 

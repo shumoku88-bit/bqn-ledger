@@ -2,7 +2,7 @@
 
 Status: completed
 Owner: journal source migration / profile and test-only IR
-Canonical: no; current route: docs/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_PLAN.md
+Canonical: no; current route: `../../../TODO.md` and `JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_COMPLETION-2026-07-22.md`
 Exit: archived; do not use as a current implementation route
 Date: 2026-07-22
 
@@ -12,7 +12,7 @@ Date: 2026-07-22
 
 ## Selection and boundary
 
-The selected parent remains the **Canonical TSV-to-native Journal prefix converter**, whose canonical plan is `docs/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_PLAN.md`. That parent is selected but blocked: its canonical prefix cannot be implemented until the profile can retain distinct source identity, business linkage, and the supported legacy metadata vocabulary.
+The parent **Canonical TSV-to-native Journal prefix converter** later completed; see `JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_COMPLETION-2026-07-22.md`. This historical prerequisite first established that canonical conversion could not proceed until the profile retained distinct source identity, business linkage, and the supported legacy metadata vocabulary.
 
 This document selects only that finite prerequisite. It is not converter implementation, conversion, reconstruction, suffix replacement, production routing, writer work, cutover, dual writes, reverse synchronization, or conflict resolution. Completion of this prerequisite does not perform conversion or reconstruction and does not select the later converter or production cutover automatically.
 
