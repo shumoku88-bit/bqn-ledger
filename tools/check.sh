@@ -141,6 +141,7 @@ bash checks/check-src-next-lint.sh >/dev/null
 bash checks/check-report-labels.sh >/dev/null
 bash checks/check-edit-bqn-account-list.sh >/dev/null
 bash checks/check-edit-bqn-journal-add.sh >/dev/null
+bash checks/check-edit-bqn-journal-block-add.sh >/dev/null
 bash checks/check-edit-bqn-income-budget-sync.sh >/dev/null
 bash checks/check-edit-bqn-currency-m2.sh >/dev/null
 bash checks/check-edit-bqn-journal-post-check-recovery.sh >/dev/null
