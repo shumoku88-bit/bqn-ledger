@@ -1,9 +1,9 @@
 # Journal Native Multi-Posting Append Editor Plan
 
-Status: selected finite production-adjacent explicit-path writer plan
+Status: completed
 Owner: journal source migration / editor
-Canonical: no; canonical routing remains `TODO.md`
-Exit: focused implementation, review, completion archive, deletion of this current-path plan, and explicit return to no selected Journal slice; no later slice may be selected automatically
+Canonical: no; current routing remains `TODO.md`
+Exit: completed and archived; use as implementation evidence, not authorization for a later Journal slice
 Date: 2026-07-22
 
 ## Owner selection and finite question
@@ -325,7 +325,70 @@ Exit requires all of the following in one focused future implementation/review s
 
 No production source switch and no later Journal slice may be selected automatically.
 
-## Validation for this docs-only selection PR
+## Observed implementation evidence
+
+The finite question was answered **yes**. The separate command is implemented as:
+
+```bash
+tools/edit --base DIR journal-block add \
+  --journal-file FILE \
+  --date YYYY-MM-DD \
+  --description DESCRIPTION \
+  --event-id EVENT_ID \
+  --posting ACCOUNT=SIGNED_INTEGER \
+  --posting ACCOUNT=SIGNED_INTEGER \
+  [--posting ACCOUNT=SIGNED_INTEGER ...] \
+  [--dry-run] [--yes] [--post-check none|lint|full]
+```
+
+The deterministic renderer evidence is:
+
+```journal
+2026-07-22 * スーパー
+    ; event-id: purchase-20260722-001
+    ; layer: actual
+    expenses:food:daily    1200 JPY
+    expenses:household    500 JPY
+    assets:cash    -1700 JPY
+```
+
+Observed gates and checks:
+
+- Newline feasibility: sources ending with no final newline, one final newline, and an existing blank paragraph separator all produced the same proposed and actual SHA256. The transport uses one leading LF only when the helper must complete the paragraph separator; that LF is not part of the previewed block. All three exact written byte streams parsed successfully.
+- Path containment: portable Bash `cd -P` base canonicalization plus fail-closed rejection of absolute paths, every `..` component, all symlink components, wrong suffixes, missing/non-regular targets, `journal.tsv`, and canonical outside-base escapes accepts ordinary base-relative and nested regular `.journal` files without a new runtime dependency.
+- Parser/Posting IR reuse: the unchanged `journal_profile_stage1.bqn`, `journal_posting_ir_stage2a.bqn`, and `account_key.bqn` accepted the complete proposed public-synthetic Journal. No parser or Posting IR incompatibility was found.
+- Validation: exact date, safe nonempty description/event ID, posting shape/count/order, canonical nonzero integer amounts, zero sum, declarations, unique durable identity, exact-once `accounts.tsv` resolution, JPY compatibility, proposed-full-file parse, Stage 2A success, and exact candidate round-trip are covered.
+- Recovery: mandatory native validation runs in `none`, `lint`, and `full`; `full` runs the repository check only after mandatory validation. Forced native failure restored the original digest with no partial block and retained backup evidence. A simulated later writer caused digest-guarded rollback refusal and preserved later bytes.
+- Stale writes: mutation before append and at the immediate-pre-rename seam both rejected the candidate; the latter required the minimal test-only `SAFE_WRITE_TEST_BEFORE_APPEND_RENAME_HOOK` in `safe-write.sh`.
+- Existing `tools/edit journal add` TSV behavior remains covered and unchanged.
+- `tools/lib/edit-bqn-common.sh` did not change. `tools/lib/safe-write.sh` changed only for the guarded immediate-pre-rename append hook and removal of an unpublished append's misleading backup artifact after that stale gate.
+
+Implementation files:
+
+```text
+tools/edit-bqn
+tools/check.sh
+tools/lib/safe-write.sh
+src_edit/journal_block_add_cmd.bqn
+src_edit/journal_native_source_check.bqn
+checks/check-edit-bqn-journal-block-add.sh
+fixtures/journal-native-multi-posting-editor/accounts.tsv
+fixtures/journal-native-multi-posting-editor/cycle.tsv
+fixtures/journal-native-multi-posting-editor/source.journal
+```
+
+Completion routing files:
+
+```text
+docs/archive/completed-plans/JOURNAL_NATIVE_MULTI_POSTING_APPEND_EDITOR_PLAN-2026-07-22.md
+TODO.md
+NEXT_SESSION.md
+docs/README.md
+```
+
+Production TSV source truth, the default TSV writer, production report routing, source switching, synchronization, conversion, and cutover remain unchanged. Status returns to **no finite Journal slice selected**.
+
+## Validation for the original docs-only selection PR
 
 ```bash
 git diff --check

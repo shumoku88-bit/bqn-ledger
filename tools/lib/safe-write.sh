@@ -379,8 +379,21 @@ safe_append_checked() {
 
   printf '%s\n' "$row" >> "$tmp_file"
 
+  # Deterministic test-only seam for the immediate-pre-rename stale gate.
+  # Production behavior is unchanged unless explicit test mode is enabled.
+  if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && -n "${SAFE_WRITE_TEST_BEFORE_APPEND_RENAME_HOOK:-}" ]]; then
+    local hook="$SAFE_WRITE_TEST_BEFORE_APPEND_RENAME_HOOK"
+    if declare -F -- "$hook" >/dev/null; then
+      "$hook"
+    else
+      printf 'Warning: SAFE_WRITE_TEST_BEFORE_APPEND_RENAME_HOOK is set but not a declared function: %s\n' "$hook" >&2
+    fi
+  fi
+
   # Re-check immediately before rename. This closes the gap between backup and write.
   if ! _safe_write_check_expected_snapshot "$target" "$expected_size" "$expected_mtime" "$expected_sha256"; then
+    # The append never published, so do not leave a misleading backup artifact.
+    rm -f "$backup_path"
     return 1
   fi
 

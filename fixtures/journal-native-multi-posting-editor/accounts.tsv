@@ -1,0 +1,4 @@
+equity:opening	role=equity	currency=JPY
+assets:cash	role=asset	type=liquid	currency=JPY
+expenses:food:daily	role=expense	currency=JPY
+expenses:household	role=expense	currency=JPY

@@ -2,8 +2,8 @@
 # tools/edit-bqn — BQN-backed editor entry point.
 #
 # Current scope: daily commands (`account add/list`, `journal add/list/reverse`,
-# `budget add`, `issue add/list/close`, and `plan add/list/related/finish/edit`).
-# plus dedicated `travel friend add` and `travel exchange add` source-event commands.
+# `budget add`, `issue add/list/close`, and `plan add/list/related/finish/edit`),
+# the separate explicit-path `journal-block add`, and dedicated travel source-event commands.
 # `tools/edit` is the public wrapper that delegates here.
 #
 # Shared parsing/protocol/write handling is kept in one path for the
@@ -34,6 +34,7 @@ ACCOUNTS_FILE="$(get_system_default_file DEFAULT_ACCOUNTS_FILE accounts.tsv)"
 usage() {
   cat <<'USAGE' >&2
 Usage:
+  tools/edit-bqn [--base DIR] journal-block add --journal-file FILE --date YYYY-MM-DD --description DESCRIPTION --event-id EVENT_ID --posting ACCOUNT=SIGNED_INTEGER --posting ACCOUNT=SIGNED_INTEGER [--posting ACCOUNT=SIGNED_INTEGER ...] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] journal add --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount DECIMAL [--currency CODE] [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] journal income-budget-sync --id TXN_ID [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] budget add  --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount DECIMAL [--currency CODE] [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
@@ -53,7 +54,7 @@ Usage:
   tools/edit-bqn [--base DIR] travel friend add --date YYYY-MM-DD --party PARTY --item ITEM --amount DECIMAL --currency ILS --payer friend --trip-id israel-2026 --source-event-id ID [--dry-run] [--yes]
   tools/edit-bqn [--base DIR] travel exchange add --date YYYY-MM-DD --memo MEMO --source-account ACCOUNT --source-amount INT --source-currency JPY --target-account ACCOUNT --target-amount DECIMAL --target-currency ILS --exchange-id ID --trip-id israel-2026 [--dry-run] [--yes]
 
-Current scope: BQN editor daily commands (account add/list, journal/budget/plan/issue add, travel friend/exchange add, issue list/close, journal list/reverse, and plan list/related/finish/edit).
+Current scope: BQN editor daily commands (account add/list, journal/budget/plan/issue add, explicit-path journal-block add, travel friend/exchange add, issue list/close, journal list/reverse, and plan list/related/finish/edit).
 USAGE
 }
 
@@ -91,6 +92,129 @@ if [[ "$1" == "travel" && "$2" == "exchange" && "${3-}" == "add" ]]; then
   shift 3
   handle_edit_bqn_travel_exchange_add "$@"
   exit $?
+fi
+
+if [[ "$1" == "journal-block" && "$2" == "add" ]]; then
+  shift 2
+  JOURNAL_REL=""; JOURNAL_REL_SET=0; DATE=""; DESCRIPTION=""; EVENT_ID=""; EVENT_ID_SET=0
+  POSTINGS=(); DRY_RUN=0; YES=0; POST_CHECK="lint"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --journal-file) JOURNAL_REL="$(get_opt_val_allow_empty "$1" "${2-}")"; JOURNAL_REL_SET=1; shift 2 ;;
+      --date) DATE="$(get_opt_val_allow_empty "$1" "${2-}")"; shift 2 ;;
+      --description) DESCRIPTION="$(get_opt_val_allow_empty "$1" "${2-}")"; shift 2 ;;
+      --event-id) EVENT_ID="$(get_opt_val_allow_empty "$1" "${2-}")"; EVENT_ID_SET=1; shift 2 ;;
+      --posting) POSTINGS+=("$(get_opt_val_allow_empty "$1" "${2-}")"); shift 2 ;;
+      --dry-run) DRY_RUN=1; shift ;;
+      --yes) YES=1; shift ;;
+      --post-check) POST_CHECK="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      *) echo "ERROR: unknown journal-block add argument: $1" >&2; exit 2 ;;
+    esac
+  done
+  [[ "$JOURNAL_REL_SET" -eq 1 && -n "$JOURNAL_REL" ]] || { echo "ERROR: missing required option: --journal-file" >&2; exit 2; }
+  [[ -n "$DATE" ]] || { echo "ERROR: missing required option: --date" >&2; exit 2; }
+  [[ "$EVENT_ID_SET" -eq 1 ]] || { echo "ERROR: missing required option: --event-id" >&2; exit 2; }
+  edit_bqn_validate_post_check "$POST_CHECK"
+
+  # Portable fail-closed containment: canonicalize the base with cd -P and
+  # reject every symlink and '..' component rather than depending on readlink -f.
+  [[ -d "$BASE_DIR" ]] || { echo "ERROR: base directory does not exist: $BASE_DIR" >&2; exit 1; }
+  [[ "$JOURNAL_REL" != /* ]] || { echo "ERROR: --journal-file must be relative to --base" >&2; exit 1; }
+  [[ "$JOURNAL_REL" == *.journal ]] || { echo "ERROR: --journal-file must have lexical .journal suffix" >&2; exit 1; }
+  [[ "$(basename "$JOURNAL_REL")" != "journal.tsv" ]] || { echo "ERROR: journal.tsv is not a native Journal target" >&2; exit 1; }
+  CANONICAL_BASE="$(cd -P "$BASE_DIR" && pwd)"
+  TARGET_PATH="$CANONICAL_BASE"
+  IFS='/' read -r -a JOURNAL_COMPONENTS <<< "$JOURNAL_REL"
+  for component in "${JOURNAL_COMPONENTS[@]}"; do
+    [[ -z "$component" || "$component" == "." ]] && continue
+    [[ "$component" != ".." ]] || { echo "ERROR: --journal-file must not contain a '..' component" >&2; exit 1; }
+    TARGET_PATH="$TARGET_PATH/$component"
+    [[ ! -L "$TARGET_PATH" ]] || { echo "ERROR: --journal-file symlink paths are rejected" >&2; exit 1; }
+  done
+  [[ -e "$TARGET_PATH" ]] || { echo "ERROR: native Journal target does not exist: $TARGET_PATH" >&2; exit 1; }
+  [[ -f "$TARGET_PATH" ]] || { echo "ERROR: native Journal target is not a regular file: $TARGET_PATH" >&2; exit 1; }
+  case "$TARGET_PATH" in "$CANONICAL_BASE"/*) ;; *) echo "ERROR: native Journal target resolves outside --base" >&2; exit 1 ;; esac
+
+  SNAPSHOT_TOKEN="$(safe_snapshot_token "$TARGET_PATH")"
+  IFS=$'\t' read -r SNAP_SIZE SNAP_MTIME SNAP_SHA256 <<< "$SNAPSHOT_TOKEN"
+  BQN_STDERR="$(mktemp)"
+  trap 'rm -f "$BQN_STDERR"' EXIT
+  BQN_OUT=""
+  if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/journal_block_add_cmd.bqn "$CANONICAL_BASE" "$TARGET_PATH" "$DATE" "$DESCRIPTION" "$EVENT_ID" "${POSTINGS[@]}" 2>"$BQN_STDERR")"; then
+    [[ -n "$BQN_OUT" ]] && printf '%s\n' "$BQN_OUT" >&2
+    [[ -s "$BQN_STDERR" ]] && cat "$BQN_STDERR" >&2
+    exit 1
+  fi
+  if ! edit_bqn_split_protocol_output "$BQN_OUT"; then exit 1; fi
+  IFS=$'\t' read -r status op transport_prefix protocol_event posting_count extra <<< "$EDIT_BQN_PROTOCOL_FIRST_LINE"
+  if [[ -n "${extra:-}" || "$status" != "OK" || "$op" != "APPEND_BLOCK" || "$protocol_event" != "$EVENT_ID" || ! "$transport_prefix" =~ ^[01]$ || ! "$posting_count" =~ ^[0-9]+$ || "$posting_count" -ne "${#POSTINGS[@]}" ]]; then
+    echo "ERROR: invalid native Journal BQN protocol header: $EDIT_BQN_PROTOCOL_FIRST_LINE" >&2
+    exit 1
+  fi
+  CANDIDATE_BLOCK="$EDIT_BQN_PROTOCOL_PAYLOAD"
+  [[ -n "$CANDIDATE_BLOCK" ]] || { echo "ERROR: native Journal protocol returned an empty block" >&2; exit 1; }
+  if ! _safe_write_check_expected_snapshot "$TARGET_PATH" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256"; then exit 1; fi
+
+  MODE="$(edit_bqn_mode "$DRY_RUN" "$YES")"
+  printf 'Native Journal block append preview\n'
+  printf 'Target: %s\n' "$TARGET_PATH"
+  printf 'Mode: %s\n' "$MODE"
+  printf 'Post-check: %s\n' "$POST_CHECK"
+  printf 'Candidate block:\n%s\n' "$CANDIDATE_BLOCK"
+  if [[ "$DRY_RUN" -eq 1 ]]; then printf 'Dry-run only. No files were modified.\n'; exit 0; fi
+  if [[ "$YES" -eq 0 ]]; then
+    printf 'Append this transaction block? [y/N]: '
+    reply=""; read -r reply || true
+    case "$reply" in y|Y|yes|YES) ;; *) echo "Cancelled. No files were modified."; exit 0 ;; esac
+  fi
+
+  edit_bqn_run_test_hook EDIT_BQN_TEST_BEFORE_JOURNAL_BLOCK_APPEND_HOOK
+  TRANSPORT_PAYLOAD="$CANDIDATE_BLOCK"
+  [[ "$transport_prefix" -eq 0 ]] || TRANSPORT_PAYLOAD=$'\n'"$CANDIDATE_BLOCK"
+  WRITE_OUT=""
+  if ! WRITE_OUT="$(safe_append_checked "$TARGET_PATH" "$TRANSPORT_PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256")"; then exit 1; fi
+  printf '%s\n' "$WRITE_OUT"
+  BACKUP_PATH="$(awk -F': ' '$1 == "Backup" {print $2}' <<< "$WRITE_OUT")"
+  POST_WRITE_SHA="$(_safe_write_sha256 "$TARGET_PATH")"
+
+  NATIVE_OK=1
+  NATIVE_OUT=""
+  if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && "${EDIT_BQN_TEST_FORCE_NATIVE_POST_CHECK_FAIL:-}" == "1" ]]; then
+    NATIVE_OK=0; NATIVE_OUT="forced mandatory native validation failure"
+  elif ! NATIVE_OUT="$(cd "$ROOT_DIR" && bqn src_edit/journal_native_source_check.bqn "$CANONICAL_BASE" "$TARGET_PATH" "$DATE" "$DESCRIPTION" "$EVENT_ID" "${POSTINGS[@]}" 2>&1)"; then
+    NATIVE_OK=0
+  fi
+  if [[ "$NATIVE_OK" -eq 1 ]]; then
+    printf 'Mandatory native validation: OK\n'
+    printf '%s\n' "$NATIVE_OUT"
+  else
+    printf 'Mandatory native validation: FAILED\n%s\n' "$NATIVE_OUT" >&2
+  fi
+
+  OPTIONAL_OK=1
+  if [[ "$NATIVE_OK" -eq 1 && "$POST_CHECK" == "full" ]]; then
+    printf 'Additional full check: starting\n'
+    if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && -n "${EDIT_BQN_JOURNAL_BLOCK_FULL_CHECK_HOOK:-}" ]]; then
+      if ! edit_bqn_run_test_hook EDIT_BQN_JOURNAL_BLOCK_FULL_CHECK_HOOK; then OPTIONAL_OK=0; fi
+    elif ! (cd "$ROOT_DIR" && bash tools/check.sh); then
+      OPTIONAL_OK=0
+    fi
+    [[ "$OPTIONAL_OK" -eq 0 ]] || printf 'Additional full check: OK\n'
+  elif [[ "$NATIVE_OK" -eq 1 ]]; then
+    printf 'Additional check: none (%s mode)\n' "$POST_CHECK"
+  fi
+
+  if [[ "$NATIVE_OK" -eq 1 && "$OPTIONAL_OK" -eq 1 ]]; then exit 0; fi
+  edit_bqn_run_test_hook EDIT_BQN_TEST_BEFORE_POSTCHECK_ROLLBACK_HOOK
+  if safe_restore_backup_checked "$TARGET_PATH" "$BACKUP_PATH" "$POST_WRITE_SHA"; then
+    if [[ "$(_safe_write_sha256 "$TARGET_PATH")" != "$SNAP_SHA256" ]]; then
+      echo 'Rollback: restore digest mismatch; recovery required' >&2; exit 1
+    fi
+    echo 'Rollback: restored original bytes' >&2
+    exit 1
+  fi
+  echo 'Rollback: refused; target changed after append; recovery required' >&2
+  exit 1
 fi
 
 if [[ "$1" == "account" && "$2" == "add" ]]; then
