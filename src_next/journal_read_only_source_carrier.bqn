@@ -16,7 +16,7 @@ Build ← {𝕊 ⟨carrier, resolved, cycleStart⟩:
   postingRows ← ⟨⟩
   diagnostics ← parsed.diagnostics
 
-  {
+  {𝕊:
     adapterResult ← adapter.Build ⟨parsed.transactions, resolved, cycleStart⟩
     state ↩ ((parsed.state ≡ "ok") ∧ (adapterResult.state ≡ "ok")) ⊑ "error"‿"ok"
     postingRows ↩ (adapterResult.state ≡ "ok") ⊑ ⟨⟩‿adapterResult.posting_rows

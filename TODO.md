@@ -105,7 +105,7 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 
 ### Journal source migration
 
-Status: selected finite test-only characterization plan (plan: `docs/JOURNAL_BUDGET_COMPANION_PROJECTION_CHARACTERIZATION_PLAN.md`).
+Status: no finite slice selected. Completed finite test-only characterization plan: `docs/archive/completed-plans/JOURNAL_BUDGET_COMPANION_PROJECTION_CHARACTERIZATION_PLAN-2026-07-22.md`.
 
 Purpose: preserve the current safe TSV daily path while defining a future native journal source that enters through Transaction IR and checked Posting IR rather than being flattened back into `from / to / amount` rows.
 
@@ -166,8 +166,7 @@ account metadata at entry time
 - completed path: explicit synthetic Journal lines -> Parse -> Stage 2A Build via new carrier module
 - Journal split-purchase report aggregation and source-information boundary: completed test-only; record: `docs/archive/completed-plans/JOURNAL_SPLIT_PURCHASE_REPORT_INFORMATION_BOUNDARY_PLAN-2026-07-22.md`
 - Journal resolved envelope assignment persistence: completed test-only; record: `docs/archive/completed-plans/JOURNAL_RESOLVED_ENVELOPE_ASSIGNMENT_PERSISTENCE_PLAN-2026-07-22.md`
-- Journal budget companion projection characterization: selected finite test-only plan; plan: `docs/JOURNAL_BUDGET_COMPANION_PROJECTION_CHARACTERIZATION_PLAN.md`
-- selected path: persisted Journal events -> Stage 1 Transaction IR -> Stage 2A checked Posting IR -> BuildPeriodView -> TBDS layer-filtered views -> separately observable actual and budget layers
+- Journal budget companion projection characterization: completed test-only; record: `docs/archive/completed-plans/JOURNAL_BUDGET_COMPANION_PROJECTION_CHARACTERIZATION_PLAN-2026-07-22.md`
 - broader red-path/rejection parity: unselected
 - production routing, writer work, envelope/report runtime migration, shadow read, conversion, cutover, and later stages: unselected
 
