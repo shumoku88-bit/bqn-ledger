@@ -36,6 +36,7 @@ Last hygiene pass: 2026-07-19
 - Journal split-purchase transaction characterization is complete as public-synthetic test-only evidence; record: `docs/archive/completed-plans/JOURNAL_SPLIT_PURCHASE_TRANSACTION_CHARACTERIZATION_PLAN-2026-07-22.md`
 - Journal split-purchase report aggregation and source-information boundary is complete; record: `docs/archive/completed-plans/JOURNAL_SPLIT_PURCHASE_REPORT_INFORMATION_BOUNDARY_PLAN-2026-07-22.md`
 - Journal resolved envelope assignment persistence is complete; record: `docs/archive/completed-plans/JOURNAL_RESOLVED_ENVELOPE_ASSIGNMENT_PERSISTENCE_PLAN-2026-07-22.md`
+- Journal file-backed shadow context is complete; record: `docs/archive/completed-plans/JOURNAL_FILE_BACKED_SHADOW_CONTEXT_PLAN-2026-07-22.md`
 - other unrelated candidates remain unselected
 
 ---
@@ -98,29 +99,16 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 - Journal read-path trial-balance rehearsal is complete as public-synthetic test-only evidence; record: `docs/archive/completed-plans/JOURNAL_READ_PATH_TRIAL_BALANCE_REHEARSAL_PLAN-2026-07-21.md`.
 - The focused test proves `Parse -> Stage 2A -> BuildPeriodView -> trial_balance.Build` with three Journal-derived Posting IR rows and a zero-sum actual-layer Trial Balance, without production routing.
 - Journal resolved-account registry mismatch rejection is complete as public-synthetic test-only evidence; record: `docs/archive/completed-plans/JOURNAL_RESOLVED_ACCOUNT_REGISTRY_MISMATCH_REJECTION_PLAN-2026-07-21.md`.
-- Broader registry validation, rejection/red-path parity, production routing, writer work, shadow read, conversion, cutover, and any later Journal stage remain unselected.
+- The standalone file-backed shadow context is complete; broader registry validation, production routing, writer work, conversion, cutover, and any later Journal stage remain unselected.
 - PR #273 remains parked background design evidence, not implementation authorization.
 - production journal parser routing, writer, production conversion, and source-of-truth migration are unselected.
 - Do not infer helper renaming, generic temporal kernel, report-wide `--as-of`, source TSV migration, Daily Capacity connection, envelope/cycle policy expansion, or automatic write.
 
 ### Journal source migration
 
-Status: selected finite production-adjacent read-only plan: `docs/JOURNAL_FILE_BACKED_SHADOW_CONTEXT_PLAN.md`.
+Status: no finite Journal slice selected. The standalone file-backed shadow-context implementation is complete; record: `docs/archive/completed-plans/JOURNAL_FILE_BACKED_SHADOW_CONTEXT_PLAN-2026-07-22.md`.
 
 Purpose: preserve the current safe TSV daily path while defining a future native journal source that enters through Transaction IR and checked Posting IR rather than being flattened back into `from / to / amount` rows.
-
-Selected shadow path:
-
-```text
-explicit Journal path
-  -> file-backed read-only load
-  -> Journal carrier
-  -> Transaction IR
-  -> checked Posting IR
-  -> BuildPeriodView
-  -> shadow context
-  -> actual-layer TSV parity
-```
 
 
 - Current source truth remains `journal.tsv`, `plan.tsv`, `budget_alloc.tsv`, and `accounts.tsv`.
@@ -147,7 +135,8 @@ explicit Journal path
 - The completed split-purchase characterization proves three purchase transactions with posting counts `⟨3, 3, 4⟩`, ten successful Posting IR rows, exact tax-inclusive account totals, and three distinct fallback event identities before report aggregation.
 - The completed report-information boundary slice keeps source-side transaction meaning separately observable while Trial Balance and Balances retain exact account-level movements and closings only.
 - The completed resolved-envelope slice retains recognized account defaults, validates exact durable actual-event linkage, rejects duplicate companions in this characterization, and fails closed for missing or unknown envelope evidence.
-- The completed slice does not authorize production routing, writer/editor work, report or envelope runtime migration, private data, source conversion, shadow read, cutover, reverse sync, per-posting layers, correction-event policy, or Cube/TBDS shape changes.
+- The completed file-backed shadow-context slice reads an explicit physical Journal path, catches file-I/O failures into structured diagnostics, reuses the existing carrier and `BuildPeriodView`, and matches the public synthetic TSV context at the actual-layer TBDS, Trial Balance, and Balances boundaries.
+- The completed work does not authorize production routing, writer/editor work, report or envelope runtime migration, private data, source conversion, cutover, reverse sync, per-posting layers, correction-event policy, or Cube/TBDS shape changes.
 - No next Journal stage is selected automatically.
 
 
@@ -170,7 +159,8 @@ explicit Journal path
 - Journal resolved envelope assignment persistence: completed test-only; record: `docs/archive/completed-plans/JOURNAL_RESOLVED_ENVELOPE_ASSIGNMENT_PERSISTENCE_PLAN-2026-07-22.md`
 - Journal budget companion projection characterization: completed test-only; record: `docs/archive/completed-plans/JOURNAL_BUDGET_COMPANION_PROJECTION_CHARACTERIZATION_PLAN-2026-07-22.md`
 - broader red-path/rejection parity: unselected
-- production routing, writer work, envelope/report runtime migration, shadow read, conversion, cutover, and later stages: unselected
+- standalone explicit-path file-backed shadow context: completed; record: `docs/archive/completed-plans/JOURNAL_FILE_BACKED_SHADOW_CONTEXT_PLAN-2026-07-22.md`
+- production routing, writer work, envelope/report runtime migration, conversion, cutover, and later stages: unselected
 
 ### Bookkeeping matrix study extension
 
