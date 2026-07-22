@@ -33,6 +33,7 @@ Last hygiene pass: 2026-07-19
 - Journal read-path report-context rehearsal test-only implementation complete
 - Journal read-only source carrier rehearsal test-only implementation complete
 - Journal resolved-account registry mismatch rejection is complete as public-synthetic test-only evidence; record: `docs/archive/completed-plans/JOURNAL_RESOLVED_ACCOUNT_REGISTRY_MISMATCH_REJECTION_PLAN-2026-07-21.md`
+- Journal split-purchase transaction characterization is complete as public-synthetic test-only evidence; record: `docs/archive/completed-plans/JOURNAL_SPLIT_PURCHASE_TRANSACTION_CHARACTERIZATION_PLAN-2026-07-22.md`
 - envelope allocation / execution-plan coverage characterization remains an unselected candidate
 - other unrelated candidates remain unselected
 
@@ -103,7 +104,7 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 
 ### Journal source migration
 
-Status: no finite slice selected. split-purchase transaction characterization is complete as a test-only slice (completed record path: docs/archive/completed-plans/JOURNAL_SPLIT_PURCHASE_TRANSACTION_CHARACTERIZATION_PLAN-2026-07-22.md). It successfully characterized 3 public synthetic transactions (posting counts ⟨3, 3, 4⟩, 10 Posting IR rows) verifying transaction-local balance, distinct fallback event identities, and exact tax-inclusive category totals, while remaining disconnected from production. Tax posting/metadata, production routing, writer, conversion, shadow read, and cutover remain unselected. PR #273 remains parked background design evidence. No next Journal stage will be automatically selected. The docs-only architecture/source-identity decision, Minimal BQN Journal Profile Stage 0 characterization, test-only parser Stage 1, Posting IR adapter parity Stage 2A success path, identity/provenance parity Stage 2B, comparable rejection parity Stage 2C, native three-posting semantic-coordinate parity, Journal read-path trial-balance rehearsal, Journal read-path report-context rehearsal, Journal read-only source carrier rehearsal, Journal resolved-account registry mismatch rejection, and split-purchase transaction characterization are complete. Production parser routing, writer, conversion, shadow-read activation, source-of-truth implementation, cutover, and broader red-path campaign remain unselected. No next Journal stage will be automatically selected.
+Status: split-purchase report aggregation and source-information boundary is selected as a finite test-only slice. Canonical plan: `docs/JOURNAL_SPLIT_PURCHASE_REPORT_INFORMATION_BOUNDARY_PLAN.md`. The slice reuses the completed public split-purchase fixture and connects it only to existing read-only period-view, Trial Balance, and Balances builders. It must prove exact seven-account report aggregates while keeping transaction descriptions, event identities, grouping, and posting order as separately observable source-side evidence rather than adding them to Cube or TBDS. Implementation has not started. Production routing, writer, editor, UI, report redesign, conversion, shadow read, private-data comparison, tax work, source-of-truth switch, and cutover remain unselected. PR #273 remains parked background design evidence. No later Journal stage is automatically selected.
 
 Purpose: preserve the current safe TSV daily path while defining a future native journal source that enters through Transaction IR and checked Posting IR rather than being flattened back into `from / to / amount` rows.
 
@@ -128,6 +129,8 @@ Purpose: preserve the current safe TSV daily path while defining a future native
 - The completed report-context rehearsal extends the read-path rehearsal by connecting the Journal-derived context to `balances.Build`, proving the generated balance entries exactly match the legacy TSV projection and successful execution of `balances.Format` and `balances.FormatHuman`, with zero production routing or source truth changes.
 - The completed read-only source carrier rehearsal groups Transaction IR and Posting IR row assembly into a single read-only source carrier, retains explicit source identity at the carrier result level, preserves Stage 2A Posting IR rows unchanged, and migrates the integration rehearsal test to route through this carrier boundary, with zero production routing or source truth changes.
 - The completed resolved-account registry mismatch rejection slice proves that Stage 2A rejects transactions containing declared posting accounts absent from the resolved account registry, returning an error state, zero posting rows, and structured diagnostics, while propagating the error through the read-only carrier boundary, with zero production routing or source truth changes.
+- The completed split-purchase characterization proves three purchase transactions with posting counts `⟨3, 3, 4⟩`, ten successful Posting IR rows, exact tax-inclusive account totals, and three distinct fallback event identities before report aggregation.
+- The selected report-information boundary slice must keep the two evidence levels separate: source-side transaction meaning remains observable before reduction, while Trial Balance and Balances retain exact account-level movements and closings only.
 
 
 ## Next candidates
@@ -145,6 +148,8 @@ Purpose: preserve the current safe TSV daily path while defining a future native
 - completed path: existing public Journal fixture -> Parse -> Stage 2A -> BuildPeriodView -> balances.Build / Format / FormatHuman
 - Journal read-only source carrier rehearsal: completed test-only; record: `docs/archive/completed-plans/JOURNAL_READ_ONLY_SOURCE_CARRIER_REHEARSAL_PLAN-2026-07-21.md`
 - completed path: explicit synthetic Journal lines -> Parse -> Stage 2A Build via new carrier module
+- Journal split-purchase report aggregation and source-information boundary: selected finite test-only contract; plan: `docs/JOURNAL_SPLIT_PURCHASE_REPORT_INFORMATION_BOUNDARY_PLAN.md`
+- selected path: existing split-purchase fixture -> read-only carrier -> BuildPeriodView -> Trial Balance + Balances, with source-side identity/order asserted separately from seven-account aggregate reports
 - broader red-path/rejection parity: unselected
 - production routing, writer work, shadow read, conversion, cutover, and later stages: unselected
 
