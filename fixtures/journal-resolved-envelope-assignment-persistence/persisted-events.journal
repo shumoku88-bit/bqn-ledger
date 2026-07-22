@@ -1,0 +1,25 @@
+; Public synthetic persisted events.
+; The budget companion is durable historical evidence, not a report-time regeneration.
+
+2026-08-03 * Example Market | groceries and household goods
+    ; event-id: event-purchase-2026-08-03-001
+    expenses:food:daily       1400 JPY
+    expenses:food:stock        900 JPY
+    expenses:household         500 JPY
+    assets:bank              -2800 JPY
+
+2026-08-03 * Household budget | consume envelopes for purchase
+    ; event-id: event-envelope-consumption-2026-08-03-001
+    ; layer: budget
+    ; actual-event-id: event-purchase-2026-08-03-001
+    budget:spent:daily        2300 JPY
+    budget:daily             -2300 JPY
+    budget:spent:flex          500 JPY
+    budget:flex               -500 JPY
+
+2026-08-10 * Example Market | later groceries and household goods
+    ; event-id: event-purchase-2026-08-10-001
+    expenses:food:daily       1400 JPY
+    expenses:food:stock        900 JPY
+    expenses:household         500 JPY
+    assets:bank              -2800 JPY

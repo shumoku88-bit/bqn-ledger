@@ -1,0 +1,35 @@
+; Public synthetic account defaults before the persisted purchases.
+; These defaults propose entry-time envelope assignments only.
+
+commodity JPY
+
+account assets:bank
+    ; role: asset
+
+account expenses:food:daily
+    ; role: expense
+    ; default-envelope: daily
+
+account expenses:food:stock
+    ; role: expense
+    ; default-envelope: daily
+
+account expenses:household
+    ; role: expense
+    ; default-envelope: flex
+
+account budget:spent:daily
+    ; role: budget
+    ; kind: spent
+
+account budget:daily
+    ; role: budget
+    ; kind: envelope
+
+account budget:spent:flex
+    ; role: budget
+    ; kind: spent
+
+account budget:flex
+    ; role: budget
+    ; kind: envelope
