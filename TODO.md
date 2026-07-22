@@ -107,9 +107,9 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 
 ### Journal source migration
 
-Status: **Legacy metadata/profile prerequisite complete; the canonical TSV-to-native Journal prefix converter remains selected, implementation not yet started.** Parent plan: `docs/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_PLAN.md`. Completion record: `docs/archive/completed-plans/JOURNAL_LEGACY_METADATA_PROFILE_EXTENSION_PLAN-2026-07-22.md`.
+Status: **External plan reference profile prerequisite selected; the canonical TSV-to-native Journal prefix converter remains selected but blocked, and converter implementation is stopped and not started.** Prerequisite plan: `docs/JOURNAL_EXTERNAL_PLAN_REFERENCE_PROFILE_PREREQUISITE_PLAN.md`. Parent converter plan: `docs/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_PLAN.md`. Completed metadata/profile record: `docs/archive/completed-plans/JOURNAL_LEGACY_METADATA_PROFILE_EXTENSION_PLAN-2026-07-22.md`.
 
-The test-only Minimal BQN Journal profile, Transaction IR, Stage 2A, and Stage 2B now preserve distinct `source_event_id` and optional business `txn_id`, represent the admitted legacy `journal.tsv` metadata vocabulary explicitly, and keep the current 16-field Posting IR unchanged. This prerequisite performed no conversion or reconstruction.
+The test-only Minimal BQN Journal profile currently preserves distinct `source_event_id`, optional business `txn_id`, and admitted legacy metadata while keeping the current 16-field Posting IR unchanged. However, strict `Parse` rejects an actual-only Journal carrying `plan-id` when its corresponding plan remains in the external legacy `plan.tsv`. The selected finite prerequisite must add an explicitly selected historical external-plan policy while preserving strict default behavior and all internal cross-link validation. It performs no conversion or reconstruction.
 
 Native Journal is the owner-selected future durable actual source truth. The native multi-posting explicit-path append editor is complete; record: `docs/archive/completed-plans/JOURNAL_NATIVE_MULTI_POSTING_APPEND_EDITOR_PLAN-2026-07-22.md`.
 
@@ -122,8 +122,10 @@ The cutover prerequisite review found accounting semantics equivalent, including
 - Reconstruction must create a new candidate from a verified canonical prefix plus the exact preserved suffix; it must never edit the preserved candidate in place.
 - Production cutover remains blocked until canonical conversion, reconstruction, complete parser/Posting IR validation, prefix parity, and suffix-preservation gates pass.
 - Migration remains one-directional. Dual daily writes, reverse synchronization, and automatic conflict resolution are prohibited.
-- The completed profile prerequisite is archived; future converter completion must explicitly return routing to no selected Journal slice.
-- Profile prerequisite completion does not select production cutover or any later Journal slice automatically.
+- The external plan reference profile prerequisite is selected as a separate docs-first slice; implementation requires a separate branch and Draft PR after owner review.
+- The converter implementation branch remains stopped as clean evidence and must not resume automatically after prerequisite implementation.
+- Future converter completion must explicitly return routing to no selected Journal slice.
+- Profile prerequisite completion does not select converter resumption, production cutover, or any later Journal slice automatically.
 
 
 ## Next candidates
