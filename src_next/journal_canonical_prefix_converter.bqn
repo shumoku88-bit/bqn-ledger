@@ -134,6 +134,41 @@ MetadataValue ← {𝕊 inputKey‿items:
   result
 }
 
+ExpectedTransactionMetadata ← {𝕊 row‿sourceFileIdentity:
+  expected ← ⟨
+    {key⇐"event-id", value⇐"legacy:"∾sourceFileIdentity∾":"∾•Fmt row.source_row},
+    {key⇐"layer", value⇐"actual"}
+  ⟩
+  {𝕊 outKeyBox:
+    outKey ← >outKeyBox
+    matching ← ({𝕩.output_key≡outKey}¨row.metadata)/row.metadata
+    {𝕊: expected ∾↩ ⟨{key⇐outKey, value⇐(⊑matching).value}⟩}⍟(0<≠matching) @
+  }¨ metadataOutputKeys
+  expected
+}
+
+MetadataEntriesEqual ← {𝕊 expected‿actual:
+  sameCount ← (≠expected)=≠actual
+  equal ← sameCount
+  {𝕊:
+    equal ↩ equal ∧ (({𝕩.key}¨expected) ≡ {𝕩.key}¨actual)
+    equal ↩ equal ∧ (({𝕩.value}¨expected) ≡ {𝕩.value}¨actual)
+  }⍟sameCount @
+  equal
+}
+
+TransactionMetadataParity ← {𝕊 transaction‿row‿sourceFileIdentity:
+  expected ← ExpectedTransactionMetadata ⟨row,sourceFileIdentity⟩
+  expectedTxn ← MetadataValue ⟨"txn_id",row.metadata⟩
+  expectedPlan ← MetadataValue ⟨"plan_id",row.metadata⟩
+  ∧´ ⟨
+    transaction.description≡row.description,
+    transaction.txn_id≡expectedTxn,
+    transaction.plan_id≡expectedPlan,
+    MetadataEntriesEqual ⟨expected,transaction.metadata⟩
+  ⟩
+}
+
 SourceIdentityDiagnostics ← {𝕊 rows‿sourceFileIdentity:
   ids ← {<"legacy:"∾sourceFileIdentity∾":"∾•Fmt 𝕩.source_row}¨rows
   AddIf ⟨empty, (≠ids)≠≠⍷ids, "source_identity_duplicate", 0, "canonical legacy source identities must be unique"⟩
@@ -192,6 +227,29 @@ ValidateRegistry ← {𝕊 rows‿resolved:
   {state⇐(0=≠diagnostics)⊑"error"‿"ok", diagnostics⇐diagnostics}
 }
 
+DeclarationParity ← {𝕊 parsed‿resolved:
+  commodityParity ← (1=≠parsed.commodities) ∧ (∧´ {𝕩.commodity≡"JPY"}¨parsed.commodities)
+  order ← ⍋resolved.accounts
+  expectedKeys ← order⊏resolved.accounts
+  expectedRoles ← order⊏resolved.roles
+  expectedKinds ← order⊏resolved.kinds
+  expectedEnvelopes ← order⊏resolved.budgets
+  actualKeys ← {𝕩.account_key}¨parsed.accounts
+  actualRoles ← {𝕩.role}¨parsed.accounts
+  actualKinds ← {𝕩.kind}¨parsed.accounts
+  actualEnvelopes ← {𝕩.default_envelope}¨parsed.accounts
+  accountParity ← ∧´ ⟨
+    ((≠parsed.accounts)=≠resolved.accounts),
+    (actualKeys≡expectedKeys), (actualRoles≡expectedRoles),
+    (actualKinds≡expectedKinds), (actualEnvelopes≡expectedEnvelopes),
+    ((≠actualKeys)=≠⍷actualKeys)
+  ⟩
+  diagnostics ← empty
+  diagnostics ↩ AddIf ⟨diagnostics, ¬commodityParity, "commodity_declaration_parity_failed", 0, "generated declarations must contain commodity JPY exactly once"⟩
+  diagnostics ↩ AddIf ⟨diagnostics, ¬accountParity, "account_declaration_parity_failed", 0, "generated account declarations must exactly match the ordered external registry"⟩
+  {state⇐(0=≠diagnostics)⊑"error"‿"ok", diagnostics⇐diagnostics, commodity_parity⇐commodityParity, account_parity⇐accountParity}
+}
+
 ValidateJournalAccountCurrencies ← {𝕊 transactions‿resolved:
   diagnostics ← empty
   {𝕊 transaction:
@@ -216,7 +274,7 @@ ErrorResult ← {𝕊 diagnostics:
 }
 
 Convert ← {𝕊 snapshotRaw‿sourceFileIdentity‿accountLines‿cycleStart:
-  sourceIdentityOk ← (SafeValue sourceFileIdentity) ∧ ¬('/'∊sourceFileIdentity) ∧ ¬(':'∊sourceFileIdentity)
+  sourceIdentityOk ← (SafeValue sourceFileIdentity) ∧ (0=+´'/'=sourceFileIdentity) ∧ (0=+´':'=sourceFileIdentity) ∧ (0=+´(@+92)=sourceFileIdentity)
   sourceDiagnostic ← AddIf ⟨empty, ¬sourceIdentityOk, "source_file_identity_invalid", 0, "source file identity must be a relative delimiter-safe token"⟩
   parsedRows ← ParseRows snapshotRaw
   diagnostics ← sourceDiagnostic ∾ parsedRows.diagnostics
@@ -236,6 +294,8 @@ Convert ← {𝕊 snapshotRaw‿sourceFileIdentity‿accountLines‿cycleStart:
 
       parsed ← parser.ParseWithProfile ⟨prefix,"historical_external_plan"⟩
       diagnostics ∾↩ parsed.diagnostics
+      declarationParity ← DeclarationParity ⟨parsed,resolved⟩
+      diagnostics ∾↩ declarationParity.diagnostics
       stageA ← {state⇐"error", posting_rows⇐empty, diagnostics⇐empty}
       stageB ← {state⇐"error", posting_rows⇐empty, provenance_rows⇐empty, diagnostics⇐empty}
       {𝕊:
@@ -245,7 +305,7 @@ Convert ← {𝕊 snapshotRaw‿sourceFileIdentity‿accountLines‿cycleStart:
           stageB ↩ stage2b.Build ⟨parsed.transactions,stageA.posting_rows⟩
           diagnostics ∾↩ stageB.diagnostics
         }⍟(stageA.state≡"ok") @
-      }⍟(parsed.state≡"ok") @
+      }⍟((parsed.state≡"ok") ∧ (declarationParity.state≡"ok")) @
 
       snapshot ← {sources⇐⟨
         {source_file⇐"journal.tsv",required⇐1,lines⇐parsedRows.lines},
@@ -274,10 +334,7 @@ Convert ← {𝕊 snapshotRaw‿sourceFileIdentity‿accountLines‿cycleStart:
       metadataParity ← (≠parsed.transactions)=≠parsedRows.rows
       {𝕊:
         metadataParity ↩ metadataParity ∧ ∧´ {𝕊 i:
-          tx ← i⊑parsed.transactions ⋄ row ← i⊑parsedRows.rows
-          expectedTxn ← MetadataValue ⟨"txn_id",row.metadata⟩
-          expectedPlan ← MetadataValue ⟨"plan_id",row.metadata⟩
-          (tx.description≡row.description) ∧ (tx.txn_id≡expectedTxn) ∧ (tx.plan_id≡expectedPlan) ∧ ((≠tx.metadata)=2+≠row.metadata)
+          TransactionMetadataParity ⟨i⊑parsed.transactions,i⊑parsedRows.rows,sourceFileIdentity⟩
         }¨↕≠parsedRows.rows
       }⍟metadataParity @
       diagnostics ↩ AddIf ⟨diagnostics, ¬accountingParity, "accounting_parity_failed", 0, "converted Journal accounting coordinates differ from the legacy adapter"⟩
@@ -289,7 +346,7 @@ Convert ← {𝕊 snapshotRaw‿sourceFileIdentity‿accountLines‿cycleStart:
           state⇐"ok", canonical_prefix_bytes⇐prefix, diagnostics⇐empty,
           validation_summary⇐{
             source_row_count⇐≠parsedRows.rows, transaction_count⇐≠parsed.transactions,
-            posting_count⇐≠stageA.posting_rows, parser_pass⇐1, account_resolver_pass⇐1,
+            posting_count⇐≠stageA.posting_rows, parser_pass⇐1, account_resolver_pass⇐declarationParity.account_parity,
             stage2a_pass⇐1, stage2b_pass⇐1, accounting_parity_pass⇐1,
             identity_parity_pass⇐1, metadata_parity_pass⇐1
           },
@@ -321,17 +378,18 @@ Reconstruct ← {𝕊 verifiedPrefixResult‿suffixBytes‿resolved‿cycleStart
     parsedPrefix ← parser.ParseWithProfile ⟨prefix,"historical_external_plan"⟩
     parsedCandidate ← parser.ParseWithProfile ⟨candidate,"historical_external_plan"⟩
     diagnostics ∾↩ parsedPrefix.diagnostics ∾ parsedCandidate.diagnostics
+    prefixCount ← ≠parsedPrefix.transactions
+    diagnostics ↩ AddIf ⟨diagnostics, prefixCount≥≠parsedCandidate.transactions, "suffix_transaction_missing", 0, "suffix must add at least one native transaction"⟩
     {𝕊:
-      prefixCount ← ≠parsedPrefix.transactions
+      suffixTransactions ← prefixCount↓parsedCandidate.transactions
+      prefixIds ← {<𝕩.source_event_id}¨parsedPrefix.transactions
+      suffixIds ← {<𝕩.source_event_id}¨suffixTransactions
+      overlap ← ∨´0∾{IsOneOf ⟨>𝕩,prefixIds⟩}¨suffixIds
+      duplicateWithinSuffix ← (≠suffixIds)≠≠⍷suffixIds
+      diagnostics ↩ AddIf ⟨diagnostics, overlap∨duplicateWithinSuffix, "suffix_transaction_duplicate", 0, "durable source event identity must be unique across prefix and suffix"⟩
+    }⍟((parsedPrefix.state≡"ok") ∧ (prefixCount<≠parsedCandidate.transactions)) @
+    {𝕊:
       diagnostics ∾↩ ValidateJournalAccountCurrencies ⟨parsedCandidate.transactions,resolved⟩
-      diagnostics ↩ AddIf ⟨diagnostics, prefixCount≥≠parsedCandidate.transactions, "suffix_transaction_missing", 0, "suffix must add at least one native transaction"⟩
-      {𝕊:
-        suffixTransactions ← prefixCount↓parsedCandidate.transactions
-        prefixIds ← {<𝕩.source_event_id}¨parsedPrefix.transactions
-        suffixIds ← {<𝕩.source_event_id}¨suffixTransactions
-        overlap ← ∨´0∾{IsOneOf ⟨>𝕩,prefixIds⟩}¨suffixIds
-        diagnostics ↩ AddIf ⟨diagnostics, overlap, "suffix_transaction_duplicate", 0, "suffix transaction identity must not already occur in the prefix"⟩
-      }⍟(prefixCount<≠parsedCandidate.transactions) @
       {𝕊:
         stageA ← stage2a.Build ⟨parsedCandidate.transactions,resolved,cycleStart⟩
         diagnostics ∾↩ stageA.diagnostics
@@ -367,6 +425,10 @@ Reconstruct ← {𝕊 verifiedPrefixResult‿suffixBytes‿resolved‿cycleStart
   DescriptionRepresentable⇐DescriptionRepresentable,
   SplitSnapshotLines⇐SplitSnapshotLines,
   SourceIdentityDiagnostics⇐SourceIdentityDiagnostics,
+  ExpectedTransactionMetadata⇐ExpectedTransactionMetadata,
+  MetadataEntriesEqual⇐MetadataEntriesEqual,
+  TransactionMetadataParity⇐TransactionMetadataParity,
+  DeclarationParity⇐DeclarationParity,
   metadataInputKeys⇐metadataInputKeys,
   metadataOutputKeys⇐metadataOutputKeys
 }

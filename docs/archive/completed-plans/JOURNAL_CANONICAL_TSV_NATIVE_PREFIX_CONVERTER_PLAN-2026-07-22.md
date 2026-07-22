@@ -259,6 +259,8 @@ exact preserved Journal-only suffix bytes
 new reconstructed native Journal candidate
 ```
 
+Transaction non-overlap is identity-based in this finite reconstruction proof. Equality of durable `source_event_id` defines overlap. Equal date, description, and postings with distinct durable IDs remain distinct events; no content-, amount-, account-, or normalized-description heuristic is used.
+
 The procedure must:
 
 - operate on a new target file;
@@ -266,8 +268,9 @@ The procedure must:
 - establish the suffix boundary structurally;
 - copy exact suffix bytes without reparsing and re-rendering them unless that is separately proven safe;
 - prove the suffix exists exactly once;
-- prove no converted-prefix transaction appears in the suffix;
-- prove no suffix transaction appears in the frozen TSV snapshot;
+- prove no converted-prefix durable `source_event_id` appears in the suffix;
+- prove every durable `source_event_id` is unique within the suffix;
+- prove no suffix durable `source_event_id` appears in the frozen TSV snapshot;
 - parse and validate the complete reconstructed candidate;
 - compare the complete result as frozen prefix plus suffix delta;
 - retain both original and reconstructed candidates until cutover completion;

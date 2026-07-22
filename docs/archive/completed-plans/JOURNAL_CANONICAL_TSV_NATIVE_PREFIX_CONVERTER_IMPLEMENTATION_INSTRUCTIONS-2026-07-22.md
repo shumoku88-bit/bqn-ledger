@@ -307,6 +307,8 @@ exact preserved synthetic suffix bytes
 new reconstructed synthetic candidate
 ```
 
+For this finite public reconstruction, transaction non-overlap is identity-based: equality of durable `source_event_id` defines overlap. Equal date, description, and postings with distinct durable IDs are distinct events. No content or normalized-description duplicate heuristic is authorized.
+
 It must:
 
 - require a verified prefix result;
@@ -314,7 +316,7 @@ It must:
 - create a new target;
 - edit neither input;
 - prove suffix bytes occur exactly once;
-- prove no synthetic suffix transaction is duplicated into the prefix;
+- reject a durable `source_event_id` repeated across prefix and suffix or within the suffix as `suffix_transaction_duplicate`;
 - parse and validate the complete result;
 - preserve suffix bytes byte-for-byte;
 - publish nothing on failure.

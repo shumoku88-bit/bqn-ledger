@@ -12,7 +12,7 @@ parser ← •Import "../src_next/journal_profile_stage1.bqn"
 lf ← @+10 ⋄ tab ← @+9
 JoinFields ← {𝕊 fields: ∾ (((¯1↓fields) ∾¨ <tab) ∾ ¯1↑fields)}
 accounts ← ⟨
-  "assets:orchard"∾tab∾"role=asset"∾tab∾"type=liquid",
+  "assets:orchard"∾tab∾"role=asset"∾tab∾"type=liquid"∾tab∾"kind=liquid",
   "expenses:market"∾tab∾"role=expense"∾tab∾"budget=daily",
   "expenses:studio"∾tab∾"role=expense",
   "income:workshop"∾tab∾"role=income"
@@ -64,10 +64,53 @@ lib.Assert ∧´ {𝕩.status≡"ok"}¨converted.posting_rows
 lib.Assert ∧´ {𝕩.layer_name≡"actual"}¨converted.posting_rows
 lib.Assert ∧´ {0=+´{𝕩.delta}¨𝕩.postings}¨converted.transactions
 expectedMetadataKeys ← ⟨"event-id","layer","tax","biz","invoice","note","due-on","receipt","txn-id","party","plan-id","cashflow","currency","income-budget"⟩
+expectedMetadataValues ← ⟨
+  "legacy:journal.tsv:0","actual","business","1","ok","synthetic note","2042-03-20",
+  "receipt-public-7","txn-shared-public","Public Cooperative","plan-orchard-2042",
+  "fixed_obligation","JPY","exclude"
+⟩
 expectedMetadataKeys lib.AssertEq {𝕩.key}¨(⊑converted.transactions).metadata
+expectedMetadataValues lib.AssertEq {𝕩.value}¨(⊑converted.transactions).metadata
+⟨"event-id","layer"⟩ lib.AssertEq {𝕩.key}¨(2⊑converted.transactions).metadata
+⟨"legacy:journal.tsv:2","actual"⟩ lib.AssertEq {𝕩.value}¨(2⊑converted.transactions).metadata
+
+# The exact metadata parity seam rejects changed values, keys, and extras.
+actualMetadata ← (⊑converted.transactions).metadata
+valueMismatch ← ⟨⊑actualMetadata,{key⇐"layer",value⇐"plan",source_line⇐0}⟩ ∾ 2↓actualMetadata
+lib.Assert ¬converter.MetadataEntriesEqual ⟨actualMetadata,valueMismatch⟩
+keyMismatch ← ⟨⊑actualMetadata,{key⇐"action",value⇐"actual",source_line⇐0}⟩ ∾ 2↓actualMetadata
+lib.Assert ¬converter.MetadataEntriesEqual ⟨actualMetadata,keyMismatch⟩
+unexpectedMetadata ← actualMetadata ∾ ⟨{key⇐"action",value⇐"extra",source_line⇐0}⟩
+lib.Assert ¬converter.MetadataEntriesEqual ⟨actualMetadata,unexpectedMetadata⟩
+
 parsedDeclarations ← parser.ParseWithProfile ⟨prefix,"historical_external_plan"⟩
 ⟨"asset","expense","expense","income"⟩ lib.AssertEq {𝕩.role}¨parsedDeclarations.accounts
+⟨"liquid","","",""⟩ lib.AssertEq {𝕩.kind}¨parsedDeclarations.accounts
 ⟨"daily"⟩ lib.AssertEq ({𝕩.account_key≡"expenses:market"}¨parsedDeclarations.accounts)/{𝕩.default_envelope}¨parsedDeclarations.accounts
+"ok" lib.AssertEq (converter.DeclarationParity ⟨parsedDeclarations,resolved⟩).state
+
+# Declaration parity is exact and independently detects each represented field.
+Decl ← {𝕊 key‿role‿kind‿envelope: {account_key⇐key,role⇐role,kind⇐kind,default_envelope⇐envelope}}
+expectedDecls ← ⟨
+  Decl ⟨"assets:orchard","asset","liquid",""⟩,
+  Decl ⟨"expenses:market","expense","","daily"⟩,
+  Decl ⟨"expenses:studio","expense","",""⟩,
+  Decl ⟨"income:workshop","income","",""⟩
+⟩
+Commodity ← {𝕊 value: {commodity⇐value}}
+AssertDeclarationFailure ← {𝕊 decls‿commodities‿code:
+  parity ← converter.DeclarationParity ⟨{accounts⇐decls,commodities⇐commodities},resolved⟩
+  "error" lib.AssertEq parity.state
+  lib.Assert ∨´0∾{𝕩.code≡code}¨parity.diagnostics
+}
+roleMismatch ← ⟨Decl ⟨"assets:orchard","expense","liquid",""⟩⟩ ∾ 1↓expectedDecls
+AssertDeclarationFailure ⟨roleMismatch,⟨Commodity "JPY"⟩,"account_declaration_parity_failed"⟩
+kindMismatch ← ⟨Decl ⟨"assets:orchard","asset","other",""⟩⟩ ∾ 1↓expectedDecls
+AssertDeclarationFailure ⟨kindMismatch,⟨Commodity "JPY"⟩,"account_declaration_parity_failed"⟩
+envelopeMismatch ← ⟨⊑expectedDecls,Decl ⟨"expenses:market","expense","","other"⟩⟩ ∾ 2↓expectedDecls
+AssertDeclarationFailure ⟨envelopeMismatch,⟨Commodity "JPY"⟩,"account_declaration_parity_failed"⟩
+AssertDeclarationFailure ⟨⌽expectedDecls,⟨Commodity "JPY"⟩,"account_declaration_parity_failed"⟩
+AssertDeclarationFailure ⟨expectedDecls,⟨Commodity "JPY",Commodity "JPY"⟩,"commodity_declaration_parity_failed"⟩
 duplicateIdentityDiagnostics ← converter.SourceIdentityDiagnostics ⟨⟨{source_row⇐4},{source_row⇐4}⟩,"journal.tsv"⟩
 1 lib.AssertEq ≠duplicateIdentityDiagnostics
 "source_identity_duplicate" lib.AssertEq (⊑duplicateIdentityDiagnostics).code
@@ -79,6 +122,7 @@ reordered ← converter.Convert ⟨reorderedSnapshot,"journal.tsv",accounts,cycl
 "ok" lib.AssertEq reordered.state
 prefix lib.AssertEq reordered.canonical_prefix_bytes
 prefix lib.AssertEq (converter.Convert ⟨snapshot,"journal.tsv",accounts,cycleStart⟩).canonical_prefix_bytes
+prefix lib.AssertEq (converter.Convert ⟨snapshot,"journal.tsv",⌽accounts,cycleStart⟩).canonical_prefix_bytes
 
 # Existing strict behavior remains strict while converter validation uses the
 # explicit historical profile for the synthetic external plan reference.
@@ -111,6 +155,12 @@ MakeOne ← {𝕊 date‿description‿from‿to‿amount‿metas:
   (JoinFields ⟨date,description,from,to,amount⟩∾metas)∾lf
 }
 AssertFailure ⟨"broken"∾lf,"tsv_required_fields_missing"⟩
+"ok" lib.AssertEq (converter.Convert ⟨snapshot,"journal.tsv",accounts,cycleStart⟩).state
+{𝕊 identity:
+  failedIdentity ← converter.Convert ⟨snapshot,identity,accounts,cycleStart⟩
+  "error" lib.AssertEq failedIdentity.state
+  lib.Assert HasCode ⟨"source_file_identity_invalid",failedIdentity⟩
+}¨ ⟨"directory/file","C:\path","\\server\share"⟩
 AssertFailure ⟨MakeOne ⟨"2042-02-30","Bad date","assets:orchard","expenses:market","1",⟨⟩⟩,"date_invalid"⟩
 AssertFailure ⟨MakeOne ⟨"2042-03-01","Bad amount","assets:orchard","expenses:market","1.5",⟨⟩⟩,"amount_not_exact_integer_jpy"⟩
 AssertFailure ⟨MakeOne ⟨"2042-03-01","Unknown account","assets:missing","expenses:market","1",⟨⟩⟩,"account_unresolved"⟩
@@ -164,5 +214,23 @@ lib.Assert HasCode ⟨"verified_prefix_required",failedReconstruction⟩
 duplicateSuffix ← converter.Reconstruct ⟨converted,suffix∾suffix,resolved,cycleStart⟩
 "error" lib.AssertEq duplicateSuffix.state
 "" lib.AssertEq duplicateSuffix.reconstructed_candidate_bytes
+lib.Assert HasCode ⟨"suffix_transaction_duplicate",duplicateSuffix⟩
+
+SuffixTransaction ← {𝕊 eventId‿description:
+  ∾ ⟨
+    lf, "2042-03-07 * ", description, lf,
+    "    ; event-id: ", eventId, lf, "    ; layer: actual", lf,
+    "    expenses:market 1 JPY", lf, "    assets:orchard -1 JPY", lf
+  ⟩
+}
+prefixIdentitySuffix ← SuffixTransaction ⟨"legacy:journal.tsv:0","Prefix identity duplicate"⟩
+prefixIdentityDuplicate ← converter.Reconstruct ⟨converted,prefixIdentitySuffix,resolved,cycleStart⟩
+"error" lib.AssertEq prefixIdentityDuplicate.state
+lib.Assert HasCode ⟨"suffix_transaction_duplicate",prefixIdentityDuplicate⟩
+withinSuffixBlock ← SuffixTransaction ⟨"native-suffix-public-duplicate","Suffix duplicate one"⟩
+withinSuffixBlock ∾↩ SuffixTransaction ⟨"native-suffix-public-duplicate","Suffix duplicate two"⟩
+withinSuffixDuplicate ← converter.Reconstruct ⟨converted,withinSuffixBlock,resolved,cycleStart⟩
+"error" lib.AssertEq withinSuffixDuplicate.state
+lib.Assert HasCode ⟨"suffix_transaction_duplicate",withinSuffixDuplicate⟩
 
 •Out "test_journal_canonical_prefix_converter.bqn: OK"
