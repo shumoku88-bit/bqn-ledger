@@ -35,7 +35,7 @@ Last hygiene pass: 2026-07-19
 - Journal resolved-account registry mismatch rejection is complete as public-synthetic test-only evidence; record: `docs/archive/completed-plans/JOURNAL_RESOLVED_ACCOUNT_REGISTRY_MISMATCH_REJECTION_PLAN-2026-07-21.md`
 - Journal split-purchase transaction characterization is complete as public-synthetic test-only evidence; record: `docs/archive/completed-plans/JOURNAL_SPLIT_PURCHASE_TRANSACTION_CHARACTERIZATION_PLAN-2026-07-22.md`
 - Journal split-purchase report aggregation and source-information boundary is complete; record: `docs/archive/completed-plans/JOURNAL_SPLIT_PURCHASE_REPORT_INFORMATION_BOUNDARY_PLAN-2026-07-22.md`
-- Journal resolved envelope assignment persistence is the selected finite public-synthetic characterization
+- Journal resolved envelope assignment persistence is complete; record: `docs/archive/completed-plans/JOURNAL_RESOLVED_ENVELOPE_ASSIGNMENT_PERSISTENCE_PLAN-2026-07-22.md`
 - other unrelated candidates remain unselected
 
 ---
@@ -105,20 +105,20 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 
 ### Journal source migration
 
-Status: selected finite public-synthetic characterization. Canonical plan: `docs/JOURNAL_RESOLVED_ENVELOPE_ASSIGNMENT_PERSISTENCE_PLAN.md`.
+Status: no finite slice selected. Resolved envelope assignment persistence is completed as public-synthetic test-only evidence; record: `docs/archive/completed-plans/JOURNAL_RESOLVED_ENVELOPE_ASSIGNMENT_PERSISTENCE_PLAN-2026-07-22.md`.
 
 Purpose: preserve the current safe TSV daily path while defining a future native journal source that enters through Transaction IR and checked Posting IR rather than being flattened back into `from / to / amount` rows.
 
-The selected question is whether account metadata can supply an entry-time default envelope while the accepted resolved assignment is persisted as an explicit balanced budget-layer companion event linked to the actual purchase. Later metadata changes must affect future resolution only and must not silently reinterpret historical envelope consumption.
+The completed slice proves that account metadata may propose an entry-time default, while the accepted envelope effect is persisted as a separately balanced budget-layer companion event linked to a durable actual event. Defaults V1 resolve the selected purchase to `daily 2300 / flex 500`; Defaults V2 may resolve a new purchase to `flex 2800`; the persisted V1 event remains unchanged under V2.
 
-Selected boundary:
+Completed boundary:
 
 ```text
 account metadata at entry time
   -> candidate default envelope
-  -> validated resolved assignment
+  -> validated accepted assignment
   -> explicit durable budget-layer companion event
-  -> later envelope projections
+  -> stable historical envelope evidence
 ```
 
 - Current source truth remains `journal.tsv`, `plan.tsv`, `budget_alloc.tsv`, and `accounts.tsv`.
@@ -144,8 +144,9 @@ account metadata at entry time
 - The completed resolved-account registry mismatch rejection slice proves that Stage 2A rejects transactions containing declared posting accounts absent from the resolved account registry, returning an error state, zero posting rows, and structured diagnostics, while propagating the error through the read-only carrier boundary, with zero production routing or source truth changes.
 - The completed split-purchase characterization proves three purchase transactions with posting counts `⟨3, 3, 4⟩`, ten successful Posting IR rows, exact tax-inclusive account totals, and three distinct fallback event identities before report aggregation.
 - The completed report-information boundary slice keeps source-side transaction meaning separately observable while Trial Balance and Balances retain exact account-level movements and closings only.
-- The selected resolved-envelope slice treats account metadata as an entry default, requires durable identity when a budget companion refers to an actual purchase, and persists the accepted envelope effect as a separately balanced budget-layer event.
-- The selected slice does not authorize production routing, writer/editor work, report or envelope runtime migration, private data, source conversion, shadow read, cutover, reverse sync, per-posting layers, or Cube/TBDS shape changes.
+- The completed resolved-envelope slice retains recognized account defaults, validates exact durable actual-event linkage, rejects duplicate companions in this characterization, and fails closed for missing or unknown envelope evidence.
+- The completed slice does not authorize production routing, writer/editor work, report or envelope runtime migration, private data, source conversion, shadow read, cutover, reverse sync, per-posting layers, correction-event policy, or Cube/TBDS shape changes.
+- No next Journal stage is selected automatically.
 
 
 ## Next candidates
@@ -164,8 +165,8 @@ account metadata at entry time
 - Journal read-only source carrier rehearsal: completed test-only; record: `docs/archive/completed-plans/JOURNAL_READ_ONLY_SOURCE_CARRIER_REHEARSAL_PLAN-2026-07-21.md`
 - completed path: explicit synthetic Journal lines -> Parse -> Stage 2A Build via new carrier module
 - Journal split-purchase report aggregation and source-information boundary: completed test-only; record: `docs/archive/completed-plans/JOURNAL_SPLIT_PURCHASE_REPORT_INFORMATION_BOUNDARY_PLAN-2026-07-22.md`
-- Journal resolved envelope assignment persistence: selected finite test-only contract; plan: `docs/JOURNAL_RESOLVED_ENVELOPE_ASSIGNMENT_PERSISTENCE_PLAN.md`
-- selected path: account declaration defaults -> validated resolved envelope assignment -> explicit linked budget-layer companion event -> stable historical envelope projection
+- Journal resolved envelope assignment persistence: completed test-only; record: `docs/archive/completed-plans/JOURNAL_RESOLVED_ENVELOPE_ASSIGNMENT_PERSISTENCE_PLAN-2026-07-22.md`
+- no next Journal finite slice selected
 - broader red-path/rejection parity: unselected
 - production routing, writer work, envelope/report runtime migration, shadow read, conversion, cutover, and later stages: unselected
 
