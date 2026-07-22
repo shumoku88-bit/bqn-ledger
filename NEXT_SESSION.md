@@ -19,9 +19,10 @@ The converter must not trim, normalize, rewrite, split, or reinterpret the TSV m
 
 ## Explicit gates
 
-- The implementation branch must start from the post-PR-320 `main` SHA and a clean local/remote state.
+- The implementation branch must start from the current `main` after the docs PR containing these instructions is merged. Local `main`, `origin/main`, and remote `main` must match; do not use a hardcoded pre-merge SHA.
+- Current `main` must contain PR #320, the canonical converter plan, and these implementation instructions.
 - Only public synthetic evidence is authorized until a separately gated private read-only verification.
-- `currency=ILS`, fractional or incompatible commodity evidence remains fail-closed; no currency-profile expansion is included.
+- `currency=ILS`, fractional, or incompatible commodity evidence remains fail closed; no currency-profile expansion is included.
 - Account declaration rendering must be proven against the existing registry and Journal profile before implementation proceeds. If required account semantics cannot be represented, stop and report a separate prerequisite.
 - No private conversion, reconstruction, suffix replacement, production parser routing, production writer change, source-truth change, cutover, dual write, reverse synchronization, or conflict resolution is authorized.
 - Production cutover remains blocked and is not selected automatically.
