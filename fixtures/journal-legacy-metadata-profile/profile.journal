@@ -1,0 +1,37 @@
+; Public synthetic evidence for legacy journal metadata/profile extension.
+
+commodity JPY
+
+account assets:bank
+    ; role: asset
+
+account expenses:food
+    ; role: expense
+
+2026-10-01 * 東京カフェ ☕
+    ; event-id: demo-event-a
+    ; action: buy
+    ; tax: business
+    ; biz: 1
+    ; invoice: ok
+    ; note: 会議用の昼食
+    ; due-on: 2026-10-31
+    ; receipt: demo-receipt-001
+    ; txn-id: demo-business-bundle-7
+    ; party: 青空商事
+    ; cashflow: fixed_obligation
+    ; currency: JPY
+    ; income-budget: exclude
+    expenses:food 1200 JPY
+    assets:bank -1200 JPY
+
+2026-10-02 * Café 東京 second line
+    ; event-id: demo-event-b
+    ; txn-id: demo-business-bundle-7
+    ; note: 二つ目の実取引
+    expenses:food 800 JPY
+    assets:bank -800 JPY
+
+2026-10-03 * metadata absent
+    expenses:food 300 JPY
+    assets:bank -300 JPY

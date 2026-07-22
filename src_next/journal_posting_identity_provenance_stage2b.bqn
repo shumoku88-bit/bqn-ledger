@@ -24,10 +24,13 @@ Build ← {𝕊 transactions‿postingRows:
   diagnostics ← empty
   provenanceRows ← empty
   flattenedPostingIds ← empty
+  flattenedSourceIds ← empty
+  flattenedTxIds ← empty
 
   {𝕊 transaction:
     eventId ← transaction.source_event_id
     identityKind ← transaction.identity_kind
+    txId ← (0 < ≠ transaction.txn_id) ⊑ eventId‿transaction.txn_id
     startLine ← transaction.source_start_line
     endLine ← transaction.source_end_line
     postings ← transaction.postings
@@ -44,6 +47,8 @@ Build ← {𝕊 transactions‿postingRows:
       expectedPostingId ← eventId ∾ ":" ∾ •Fmt posting.posting_index
       diagnostics ↩ AddIf ⟨diagnostics, posting.posting_id ≢ expectedPostingId, "posting_id_invalid", "posting_id must encode source_event_id and posting_index"⟩
       flattenedPostingIds ∾↩ ⟨<posting.posting_id⟩
+      flattenedSourceIds ∾↩ ⟨<eventId⟩
+      flattenedTxIds ∾↩ ⟨<txId⟩
       provenanceRows ∾↩ ⟨{
         source_event_id⇐eventId,
         identity_kind⇐identityKind,
@@ -59,8 +64,14 @@ Build ← {𝕊 transactions‿postingRows:
   diagnostics ↩ AddIf ⟨diagnostics, (≠ provenanceRows) ≠ ≠ postingRows, "posting_count_mismatch", "flattened transaction posting count must equal Posting IR row count"⟩
 
   {𝕊:
-    aligned ← ∧´ {𝕊 i: (> i ⊑ flattenedPostingIds) ≡ (i ⊑ postingRows).posting_id}¨ ↕ ≠ postingRows
-    diagnostics ↩ AddIf ⟨diagnostics, ¬ aligned, "posting_id_alignment_mismatch", "Posting IR rows must preserve flattened transaction posting ID order"⟩
+    aligned ← ∧´ {𝕊 i:
+      row ← i ⊑ postingRows
+      rowOk ← (> i ⊑ flattenedPostingIds) ≡ row.posting_id
+      rowOk ↩ rowOk ∧ ((> i ⊑ flattenedSourceIds) ≡ row.source_id)
+      rowOk ↩ rowOk ∧ ((> i ⊑ flattenedTxIds) ≡ row.tx_id)
+      rowOk
+    }¨ ↕ ≠ postingRows
+    diagnostics ↩ AddIf ⟨diagnostics, ¬ aligned, "posting_id_alignment_mismatch", "Posting IR rows must preserve flattened posting ID, source identity, and business transaction linkage order"⟩
   }⍟((≠ provenanceRows) = ≠ postingRows) @
 
   failed ← 0 < ≠ diagnostics

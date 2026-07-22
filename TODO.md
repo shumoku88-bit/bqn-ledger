@@ -107,23 +107,23 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 
 ### Journal source migration
 
-Status: **The canonical TSV-to-native Journal prefix converter remains selected but blocked by the legacy metadata/profile prerequisite.** Parent plan: `docs/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_PLAN.md`. Current prerequisite plan: `docs/JOURNAL_LEGACY_METADATA_PROFILE_EXTENSION_PLAN.md`.
+Status: **Legacy metadata/profile prerequisite complete; the canonical TSV-to-native Journal prefix converter remains selected, implementation not yet started.** Parent plan: `docs/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_PLAN.md`. Completion record: `docs/archive/completed-plans/JOURNAL_LEGACY_METADATA_PROFILE_EXTENSION_PLAN-2026-07-22.md`.
 
-The selected finite slice is the test-only Minimal BQN Journal profile, Transaction IR, Stage 2A, and Stage 2B extension. It must preserve distinct `source_event_id` and optional business `txn_id`, represent the complete admitted legacy `journal.tsv` metadata vocabulary explicitly, and keep the current 16-field Posting IR unchanged. This prerequisite is separate from converter implementation and performs no conversion or reconstruction.
+The test-only Minimal BQN Journal profile, Transaction IR, Stage 2A, and Stage 2B now preserve distinct `source_event_id` and optional business `txn_id`, represent the admitted legacy `journal.tsv` metadata vocabulary explicitly, and keep the current 16-field Posting IR unchanged. This prerequisite performed no conversion or reconstruction.
 
 Native Journal is the owner-selected future durable actual source truth. The native multi-posting explicit-path append editor is complete; record: `docs/archive/completed-plans/JOURNAL_NATIVE_MULTI_POSTING_APPEND_EDITOR_PLAN-2026-07-22.md`.
 
 The cutover prerequisite review found accounting semantics equivalent, including signed movements, posting order, layer/status, transaction grouping, and an established prefix boundary. Description, canonical source identity, distinct business `txn_id`, and supported-metadata semantics did not pass. A canonical one-way legacy-prefix converter is therefore required before cutover can be reconsidered.
 
-- The current private candidate remains preserved evidence and must not be replaced or normalized by this docs-only slice.
+- The current private candidate remains preserved evidence and was not read, replaced, or normalized by the completed profile prerequisite.
 - A Journal-only suffix exists and must remain byte-for-byte unchanged.
 - Current production source truth and production report routing remain TSV; this selection performs no production change.
 - The selected converter must preserve one physical TSV row as one legacy Journal transaction, deterministic debit-then-credit postings, canonical physical source identity, distinct business linkage, supported metadata, and fail-closed diagnostics.
 - Reconstruction must create a new candidate from a verified canonical prefix plus the exact preserved suffix; it must never edit the preserved candidate in place.
 - Production cutover remains blocked until canonical conversion, reconstruction, complete parser/Posting IR validation, prefix parity, and suffix-preservation gates pass.
 - Migration remains one-directional. Dual daily writes, reverse synchronization, and automatic conflict resolution are prohibited.
-- Implementation completion must archive the plan and explicitly return routing to no selected Journal slice.
-- Completion must not select production cutover or any later Journal slice automatically.
+- The completed profile prerequisite is archived; future converter completion must explicitly return routing to no selected Journal slice.
+- Profile prerequisite completion does not select production cutover or any later Journal slice automatically.
 
 
 ## Next candidates

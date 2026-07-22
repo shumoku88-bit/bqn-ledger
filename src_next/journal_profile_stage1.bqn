@@ -18,7 +18,9 @@ space ← @+32
 supportedMetadata ← ⟨
   <"action", <"receipt-id", <"event-id", <"layer", <"plan-id",
   <"execution-envelope", <"allocation-id", <"agreement-id",
-  <"actual-event-id"
+  <"actual-event-id", <"tax", <"biz", <"invoice", <"note", <"due-on",
+  <"receipt", <"txn-id", <"party", <"cashflow", <"currency",
+  <"income-budget"
 ⟩
 supportedAccountMetadata ← ⟨<"role", <"kind", <"default-envelope"⟩
 supportedLayers ← ⟨<"actual", <"plan", <"budget"⟩
@@ -47,6 +49,32 @@ StartsWith ← {𝕊 prefix‿text:
 
 IsOneOf ← {𝕊 text‿boxedValues:
   ∨´ 0 ∾ {text ≡ >𝕩}¨ boxedValues
+}
+
+LegacyMetadataValueValid ← {𝕊 key‿value:
+  isTax ← key ≡ "tax"
+  isBiz ← key ≡ "biz"
+  isInvoice ← key ≡ "invoice"
+  isDueOn ← key ≡ "due-on"
+  isCashflow ← key ≡ "cashflow"
+  isCurrency ← key ≡ "currency"
+  isIncomeBudget ← key ≡ "income-budget"
+  taxOk ← IsOneOf ⟨value, ⟨<"private", <"business", <"mixed"⟩⟩
+  bizOk ← IsOneOf ⟨value, ⟨<"0", <"1"⟩⟩
+  invoiceOk ← IsOneOf ⟨value, ⟨<"none", <"ok"⟩⟩
+  dueOnOk ← dates.IsValidDateText value
+  cashflowOk ← value ≡ "fixed_obligation"
+  currencyOk ← value ≡ "JPY"
+  incomeBudgetOk ← IsOneOf ⟨value, ⟨<"unassigned", <"exclude"⟩⟩
+  ok ← 1
+  ok ↩ ok ∧ ((¬isTax) ∨ taxOk)
+  ok ↩ ok ∧ ((¬isBiz) ∨ bizOk)
+  ok ↩ ok ∧ ((¬isInvoice) ∨ invoiceOk)
+  ok ↩ ok ∧ ((¬isDueOn) ∨ dueOnOk)
+  ok ↩ ok ∧ ((¬isCashflow) ∨ cashflowOk)
+  ok ↩ ok ∧ ((¬isCurrency) ∨ currencyOk)
+  ok ↩ ok ∧ ((¬isIncomeBudget) ∨ incomeBudgetOk)
+  ok
 }
 
 Paragraphs ← {𝕊 raw:
@@ -223,7 +251,9 @@ ParseMetadata ← {𝕊 lineText‿lineNumber:
   }⍟(0 < ≠ colonPositions) @
   diagnostics ∾↩ AddIf ⟨0 = ≠ colonPositions, Diagnostic ⟨"metadata_colon_missing", lineNumber, "metadata must use '; key: value'"⟩⟩
   diagnostics ∾↩ AddIf ⟨(0 < ≠ colonPositions) ∧ ((0 = ≠ key) ∨ (0 = ≠ value)), Diagnostic ⟨"metadata_shape_invalid", lineNumber, "metadata key and value must be nonempty"⟩⟩
+  recognized ← (0 < ≠ key) ∧ IsOneOf ⟨key, supportedMetadata⟩
   diagnostics ∾↩ AddIf ⟨(0 < ≠ key) ∧ (¬ IsOneOf ⟨key, supportedMetadata⟩), Diagnostic ⟨"metadata_unsupported", lineNumber, "unsupported Stage 1 metadata key"⟩⟩
+  diagnostics ∾↩ AddIf ⟨recognized ∧ (0 < ≠ value) ∧ (¬ LegacyMetadataValueValid ⟨key, value⟩), Diagnostic ⟨"metadata_value_invalid", lineNumber, "unsupported or malformed value for admitted legacy metadata key"⟩⟩
   metadata ← @
   {𝕊: metadata ↩ {key⇐key, value⇐value, source_line⇐lineNumber}}⍟(0 = ≠ diagnostics) @
   {diagnostics⇐diagnostics, metadata⇐metadata}
@@ -313,6 +343,7 @@ ParseTransaction ← {𝕊 group‿accounts‿commodities:
   allocationId ← MetaOr ⟨"allocation-id", metadata, ""⟩
   executionEnvelope ← MetaOr ⟨"execution-envelope", metadata, ""⟩
   actualEventId ← MetaOr ⟨"actual-event-id", metadata, ""⟩
+  txnId ← MetaOr ⟨"txn-id", metadata, ""⟩
   budgetLinkCount ← (0 < ≠ allocationId) + (0 < ≠ actualEventId)
 
   diagnostics ∾↩ AddIf ⟨¬ IsOneOf ⟨layer, supportedLayers⟩, Diagnostic ⟨"layer_unsupported", group.start_line, "layer must be actual, plan, or budget"⟩⟩
@@ -359,6 +390,7 @@ ParseTransaction ← {𝕊 group‿accounts‿commodities:
       status_marker⇐header.status_marker,
       description⇐header.description,
       layer_name⇐layer,
+      txn_id⇐txnId,
       plan_id⇐planId,
       allocation_id⇐allocationId,
       execution_envelope⇐executionEnvelope,
@@ -471,6 +503,7 @@ BuildMatrix ← {𝕊 transactions‿boxedAccountKeys:
 
 {
   Parse⇐Parse,
+  LegacyMetadataValueValid⇐LegacyMetadataValueValid,
   ResolveEnvelopeDefaults⇐ResolveEnvelopeDefaults,
   BuildMatrix⇐BuildMatrix
 }
