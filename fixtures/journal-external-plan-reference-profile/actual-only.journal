@@ -1,0 +1,24 @@
+; Wholly invented public fixture for an external historical plan reference.
+
+commodity JPY
+
+account assets:aurora
+    ; role: asset
+
+account expenses:orchard
+    ; role: expense
+
+account budget:reserve
+    ; role: budget
+
+account budget:unassigned
+    ; role: budget
+
+2026-11-04 * 星庭カフェ | 朝食 ☕
+    ; event-id: event-orchard-actual-001
+    ; layer: actual
+    ; plan-id: plan-orchard-2042
+    ; execution-envelope: orchard-reserve
+    ; note: 創作メモ🌿
+    expenses:orchard 730 JPY
+    assets:aurora -730 JPY

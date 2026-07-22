@@ -1,0 +1,29 @@
+commodity JPY
+
+account assets:aurora
+    ; role: asset
+
+account expenses:orchard
+    ; role: expense
+
+account budget:reserve
+    ; role: budget
+
+account budget:unassigned
+    ; role: budget
+
+2026-11-08 ! Orchard reservation
+    ; event-id: event-orchard-plan-002
+    ; layer: plan
+    ; plan-id: plan-orchard-internal-002
+    ; execution-envelope: orchard-reserve
+    expenses:orchard 900 JPY
+    assets:aurora -900 JPY
+
+2026-11-07 * Orchard purchase
+    ; event-id: event-orchard-actual-002
+    ; layer: actual
+    ; plan-id: plan-orchard-internal-002
+    ; execution-envelope: orchard-reserve
+    expenses:orchard 900 JPY
+    assets:aurora -900 JPY

@@ -24,6 +24,7 @@ supportedMetadata ← ⟨
 ⟩
 supportedAccountMetadata ← ⟨<"role", <"kind", <"default-envelope"⟩
 supportedLayers ← ⟨<"actual", <"plan", <"budget"⟩
+supportedProfiles ← ⟨<"strict_self_contained", <"historical_external_plan"⟩
 
 Diagnostic ← {𝕊 codeText‿lineNumber‿messageText:
   {severity⇐"error", stage⇐"journal_profile_stage1", code⇐codeText, line⇐lineNumber, message⇐messageText}
@@ -403,7 +404,7 @@ ParseTransaction ← {𝕊 group‿accounts‿commodities:
   {state⇐(0 = ≠ diagnostics) ⊑ "error"‿"ok", diagnostics⇐diagnostics, transaction⇐transaction}
 }
 
-CrossLinkDiagnostics ← {𝕊 transactions:
+CrossLinkDiagnostics ← {𝕊 transactions‿profileName:
   diagnostics ← empty
   durableTransactions ← ({𝕩.identity_kind ≡ "durable"}¨ transactions) / transactions
   durableIds ← {<𝕩.source_event_id}¨ durableTransactions
@@ -416,7 +417,8 @@ CrossLinkDiagnostics ← {𝕊 transactions:
   actualCompletions ← ({(𝕩.layer_name ≡ "actual") ∧ 0 < ≠ 𝕩.plan_id}¨ transactions) / transactions
   {𝕊 actual:
     matching ← ({(𝕩.layer_name ≡ "plan") ∧ (𝕩.plan_id ≡ actual.plan_id)}¨ transactions) / transactions
-    diagnostics ∾↩ AddIf ⟨1 ≠ ≠ matching, Diagnostic ⟨"plan_completion_target_invalid", actual.source_start_line, "actual plan-id must match exactly one plan event"⟩⟩
+    externalHistorical ← (profileName ≡ "historical_external_plan") ∧ 0 = ≠ matching
+    diagnostics ∾↩ AddIf ⟨(1 ≠ ≠ matching) ∧ ¬ externalHistorical, Diagnostic ⟨"plan_completion_target_invalid", actual.source_start_line, "actual plan-id must match exactly one plan event"⟩⟩
     {𝕊:
       plan ← ⊑ matching
       diagnostics ∾↩ AddIf ⟨plan.execution_envelope ≢ actual.execution_envelope, Diagnostic ⟨"execution_envelope_mismatch", actual.source_start_line, "plan and completion execution-envelope values must match"⟩⟩
@@ -435,26 +437,43 @@ CrossLinkDiagnostics ← {𝕊 transactions:
   diagnostics
 }
 
-Parse ← {𝕊 raw:
-  groups ← Paragraphs raw
-  declarations ← ParseDeclarations groups
-  diagnostics ← declarations.diagnostics
-  transactions ← empty
-
-  {𝕊 group:
-    parsed ← ParseTransaction ⟨group, declarations.accounts, declarations.commodities⟩
-    diagnostics ∾↩ parsed.diagnostics
-    {𝕊: transactions ∾↩ ⟨parsed.transaction⟩}⍟(parsed.transaction ≢ @) @
-  }¨ declarations.transaction_groups
-
-  diagnostics ∾↩ CrossLinkDiagnostics transactions
-  {
-    state⇐(0 = ≠ diagnostics) ⊑ "error"‿"ok",
-    diagnostics⇐diagnostics,
-    accounts⇐declarations.accounts,
-    commodities⇐declarations.commodities,
-    transactions⇐transactions
+ParseWithProfile ← {𝕊 raw‿profileName:
+  supported ← IsOneOf ⟨profileName, supportedProfiles⟩
+  result ← {
+    state⇐"error",
+    diagnostics⇐⟨Diagnostic ⟨"parser_profile_unsupported", 0, "parser profile must be explicitly supported"⟩⟩,
+    accounts⇐empty,
+    commodities⇐empty,
+    transactions⇐empty
   }
+
+  {𝕊:
+    groups ← Paragraphs raw
+    declarations ← ParseDeclarations groups
+    diagnostics ← declarations.diagnostics
+    transactions ← empty
+
+    {𝕊 group:
+      parsed ← ParseTransaction ⟨group, declarations.accounts, declarations.commodities⟩
+      diagnostics ∾↩ parsed.diagnostics
+      {𝕊: transactions ∾↩ ⟨parsed.transaction⟩}⍟(parsed.transaction ≢ @) @
+    }¨ declarations.transaction_groups
+
+    diagnostics ∾↩ CrossLinkDiagnostics ⟨transactions, profileName⟩
+    result ↩ {
+      state⇐(0 = ≠ diagnostics) ⊑ "error"‿"ok",
+      diagnostics⇐diagnostics,
+      accounts⇐declarations.accounts,
+      commodities⇐declarations.commodities,
+      transactions⇐transactions
+    }
+  }⍟supported @
+
+  result
+}
+
+Parse ← {𝕊 raw:
+  ParseWithProfile ⟨raw, "strict_self_contained"⟩
 }
 
 ResolveEnvelopeDefaults ← {𝕊 transaction‿accounts:
@@ -503,6 +522,7 @@ BuildMatrix ← {𝕊 transactions‿boxedAccountKeys:
 
 {
   Parse⇐Parse,
+  ParseWithProfile⇐ParseWithProfile,
   LegacyMetadataValueValid⇐LegacyMetadataValueValid,
   ResolveEnvelopeDefaults⇐ResolveEnvelopeDefaults,
   BuildMatrix⇐BuildMatrix

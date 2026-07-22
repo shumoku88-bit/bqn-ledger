@@ -1,0 +1,25 @@
+commodity JPY
+
+account assets:aurora
+    ; role: asset
+
+account expenses:orchard
+    ; role: expense
+
+account budget:reserve
+    ; role: budget
+
+account budget:unassigned
+    ; role: budget
+
+2026-11-15 * Orchard actual
+    ; event-id: event-orchard-actual-005
+    expenses:orchard 125 JPY
+    assets:aurora -125 JPY
+
+2026-11-15 * Invalid synthetic companion
+    ; event-id: event-orchard-budget-005
+    ; layer: budget
+    ; actual-event-id: event-missing-005
+    budget:reserve 125 JPY
+    budget:unassigned -125 JPY

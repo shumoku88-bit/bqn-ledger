@@ -1,10 +1,10 @@
 # Journal External Plan Reference Profile Prerequisite Plan
 
-Status: selected finite prerequisite / docs-only
+Status: completed
 Owner: journal source migration / test-only Journal profile
-Canonical: yes for the currently selected Journal prerequisite; parent converter remains `docs/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_PLAN.md`
+Canonical: no; current route: `TODO.md` and `docs/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_PLAN.md`
 Date: 2026-07-22
-Exit: separate implementation, public-synthetic validation, completion archive, and explicit owner review before converter work may be selected again
+Exit: archived; explicit owner review is required before converter work may be selected again
 
 ## Finite prerequisite question
 
@@ -214,23 +214,32 @@ Stop rather than simplify if implementation requires:
 - private data access;
 - converter implementation or production cutover.
 
-## Routing after this selection
+## Completion record
+
+The test-only parser now exports `ParseWithProfile` with the explicit supported names `strict_self_contained` and `historical_external_plan`. Default `Parse` delegates to the strict profile. The historical profile admits only an actual transaction's nonempty `plan-id` with zero matching in-document plan transactions; one match still enforces execution-envelope agreement, duplicates and unrelated cross-links remain fail closed, and unsupported profiles return `parser_profile_unsupported`.
+
+Public synthetic focused evidence fixes exact metadata and Unicode retention, strict equivalence, zero/one/duplicate target behavior, Stage 2A's unchanged 16-field Posting IR, and Stage 2B provenance alignment. Transaction IR, production source/report routing, writers, converter code, private data, and cutover were not changed.
+
+## Routing after completion
 
 ```text
 external plan reference profile prerequisite:
-  selected; docs-only contract fixed, implementation not started
+  complete and archived
 
 canonical TSV-to-native Journal prefix converter:
-  remains selected but blocked
+  remains selected but blocked pending explicit owner review
 
 converter implementation:
-  stopped and not started
+  not resumed
 
 production source truth:
+  TSV
+
+production report routing:
   TSV
 
 production cutover:
   blocked
 ```
 
-The prerequisite implementation must use a separate branch and Draft PR after this docs-only PR is reviewed and merged. Completion of that implementation does not restart converter work automatically. Explicit owner review is required before the converter branch may resume or a replacement implementation branch may be selected.
+Completion does not restart converter work automatically. Explicit owner review is required before the stopped converter branch may resume or a replacement implementation branch may be selected.
