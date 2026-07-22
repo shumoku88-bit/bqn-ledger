@@ -49,6 +49,7 @@ Build ← {𝕊 transactions‿resolved‿cycleStart:
       transaction ← transactionIndex ⊑ transactions
       layerIndex ← ⊑ layers ⊐ ⟨transaction.layer_name⟩
       kind ← KindForTransaction ⟨transaction, resolved⟩
+      txId ← (0 < ≠ transaction.txn_id) ⊑ transaction.source_event_id‿transaction.txn_id
 
       {𝕊 posting:
         accountIndex ← ⊑ resolved.accounts ⊐ ⟨posting.account_key⟩
@@ -56,7 +57,7 @@ Build ← {𝕊 transactions‿resolved‿cycleStart:
           source_file⇐"profile.journal",
           source_row⇐transactionIndex,
           source_id⇐transaction.source_event_id,
-          tx_id⇐transaction.source_event_id,
+          tx_id⇐txId,
           posting_id⇐posting.posting_id,
           date⇐transaction.date,
           day_index⇐proj.ResolveDayFromCycle ⟨transaction.date, cycleStart⟩,

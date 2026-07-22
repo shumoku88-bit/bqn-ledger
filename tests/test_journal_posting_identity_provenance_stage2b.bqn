@@ -145,9 +145,10 @@ CheckFail ← {𝕊 transactions‿postingRows‿expectedCode:
 P ← {𝕊 index‿postingId: {posting_index⇐index, posting_id⇐postingId}}
 Tx ← {𝕊 eventId‿kind‿startLine‿endLine‿postings: {
   source_event_id⇐eventId, identity_kind⇐kind,
-  source_start_line⇐startLine, source_end_line⇐endLine, postings⇐postings
+  source_start_line⇐startLine, source_end_line⇐endLine,
+  txn_id⇐eventId, postings⇐postings
 }}
-Rows ← {𝕊 boxedIds: {{posting_id⇐>𝕩}}¨ boxedIds}
+Rows ← {𝕊 boxedIds: {{posting_id⇐>𝕩, source_id⇐"event-a", tx_id⇐"event-a"}}¨ boxedIds}
 
 validTx ← Tx ⟨"event-a", "durable", 1, 4, ⟨P ⟨0,"event-a:0"⟩, P ⟨1,"event-a:1"⟩⟩⟩
 validRows ← Rows ⟨<"event-a:0", <"event-a:1"⟩
