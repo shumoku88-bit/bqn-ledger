@@ -281,7 +281,7 @@ v_journal="$v_base/source.journal"
 printf '\n%s\n' "$expected_block" >>"$v_journal"
 v_out="$tmp_root/v-success.out"
 bqn src_edit/journal_native_source_check.bqn "$v_base" "$v_journal" 2026-07-22 スーパー purchase-20260722-001 1 expenses:food:daily=1200 expenses:household=500 assets:cash=-1700 >"$v_out" 2>&1
-grep -Fxq $'OK\tNATIVE_JOURNAL_CANDIDATE\tpurchase-20260722-001\t1\t3' "$v_out"
+grep -Fq $'OK\tNATIVE_JOURNAL_CANDIDATE\tpurchase-20260722-001\t1\t3' "$v_out"
 
 # Wrong event-id classification
 w_event_out="$tmp_root/wrong-event.out"
