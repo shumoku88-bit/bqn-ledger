@@ -84,6 +84,32 @@ tail -n 3 "$nested/sub/native.journal" >"$tmp_root/nested.tail"
 printf '%s\n' '    expenses:food:daily    1200 JPY' '    expenses:household    500 JPY' '    assets:cash    -1700 JPY' >"$tmp_root/nested.expected"
 cmp "$tmp_root/nested.expected" "$tmp_root/nested.tail"
 
+# Routed multi-add selects the configured native Journal without exposing file routing to the UI.
+routed=$(new_base routed)
+awk '
+  /^ACTUAL_SOURCE=/ {print "ACTUAL_SOURCE=journal"; next}
+  /^ACTUAL_JOURNAL_FILE=/ {print "ACTUAL_JOURNAL_FILE=source.journal"; next}
+  {print}
+  END {print "DEFAULT_CURRENCY=JPY"}
+' config/default_config.tsv >"$routed/config.tsv"
+routed_before=$(sha_file "$routed/source.journal")
+run_ok "$routed" "$tmp_root/routed.out" journal multi-add --date 2026-07-22 --description routed-split \
+  --posting expenses:food:daily=1200 --posting expenses:household=500 --posting assets:cash=-1700 --yes --post-check none
+[[ $(sha_file "$routed/source.journal") != "$routed_before" ]]
+grep -Fq '2026-07-22 * routed-split' "$routed/source.journal"
+tail -n 3 "$routed/source.journal" >"$tmp_root/routed.tail"
+printf '%s\n' '    expenses:food:daily    1200 JPY' '    expenses:household    500 JPY' '    assets:cash    -1700 JPY' >"$tmp_root/routed.expected"
+cmp "$tmp_root/routed.expected" "$tmp_root/routed.tail"
+grep -Fq 'Mandatory native validation: OK' "$tmp_root/routed.out"
+
+# TSV mode cannot flatten native multi-posting and must fail without writes.
+tsv_multi="$tmp_root/tsv-multi"; cp -R data "$tsv_multi"; tsv_multi_before=$(sha_file "$tsv_multi/journal.tsv")
+run_fail "$tsv_multi" "$tmp_root/tsv-multi.out" journal multi-add --date 2026-06-29 --description rejected \
+  --posting expenses:食費=123 --posting assets:bank=-123 --yes
+[[ $(sha_file "$tsv_multi/journal.tsv") == "$tsv_multi_before" ]]
+grep -Fq 'journal multi-add requires ACTUAL_SOURCE=journal; no files changed' "$tmp_root/tsv-multi.out"
+assert_no_backups "$tsv_multi" tsv-multi
+
 # Existing TSV journal add remains the from/to/amount writer.
 tsv="$tmp_root/tsv"; cp -R data "$tsv"; tsv_before=$(wc -l <"$tsv/journal.tsv")
 ./tools/edit --base "$tsv" journal add --date 2026-06-29 --memo native-boundary-regression --from assets:bank --to expenses:食費 --amount 123 --yes --post-check none >"$tmp_root/tsv.out" 2>&1

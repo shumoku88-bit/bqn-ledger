@@ -2,7 +2,7 @@
 # Read-only BQN command for experimental `tools/edit-bqn plan list`.
 #
 # Input args:
-#   <baseDir> <showAll: 0|1> <format: tsv|text>
+#   <baseDir> <showAll: 0|1> <format: tsv|text> <temporal: all|overdue|upcoming> <asOf: YYYY-MM-DD|empty>
 #
 # `--format tsv` is a UI contract used by tools/add-ui.sh plan selection.
 # Keep byte/field compatibility with the Go editor:
@@ -13,6 +13,7 @@ validate ← •Import "validate.bqn"
 plan_id ← •Import "plan_id.bqn"
 config ← •Import "../src_next/config.bqn"
 actual_source ← •Import "../src_next/actual_source.bqn"
+plan_status ← •Import "../src_next/plan_status.bqn"
 
 sys ← config.LoadSystemDefaults @
 args ← •args
@@ -23,11 +24,13 @@ Fail ← {𝕊 msg:
   •Exit 1
 }
 
-{𝕊 ⋄ Fail "usage: plan_list_cmd.bqn <baseDir> <showAll: 0|1> <format: tsv|text>"}⍟(3 ≠ ≠ args) @
+{𝕊 ⋄ Fail "usage: plan_list_cmd.bqn <baseDir> <showAll: 0|1> <format: tsv|text> <temporal: all|overdue|upcoming> <asOf>"}⍟(5 ≠ ≠ args) @
 
 baseDir ← 0 ⊑ args
 showAllArg ← 1 ⊑ args
 format ← 2 ⊑ args
+temporal ← 3 ⊑ args
+asOf ← 4 ⊑ args
 
 validShowAll ← ∨´ showAllArg ⊸ ≡¨ "0"‿"1"
 {𝕊 ⋄ Fail ("invalid showAll flag: " ∾ showAllArg)}⍟(¬ validShowAll) @
@@ -35,6 +38,15 @@ showAll ← showAllArg ≡ "1"
 
 validFormat ← ∨´ format ⊸ ≡¨ "tsv"‿"text"
 {𝕊 ⋄ Fail ("invalid format: " ∾ format ∾ " (expected 'tsv' or 'text')")}⍟(¬ validFormat) @
+validTemporal ← ∨´ temporal ⊸ ≡¨ "all"‿"overdue"‿"upcoming"
+{𝕊 ⋄ Fail ("invalid temporal filter: " ∾ temporal ∾ " (expected 'all', 'overdue', or 'upcoming')")}⍟(¬ validTemporal) @
+usesTemporal ← temporal ≢ "all"
+{𝕊 ⋄ Fail "--as-of is required for overdue/upcoming plan filtering"}⍟(usesTemporal ∧ 0=≠asOf) @
+{𝕊 ⋄ Fail "--all cannot be combined with overdue/upcoming plan filtering"}⍟(showAll ∧ usesTemporal) @
+{𝕊:
+  asOfCheck ← validate.ValidateDate asOf
+  {𝕊 ⋄ Fail (1 ⊑ asOfCheck)}⍟(¬ 0 ⊑ asOfCheck) @
+}⍟usesTemporal @
 
 ResolvePath ← { baseDir ∾ "/" ∾ 𝕩 }
 
@@ -94,7 +106,16 @@ ParsePlanRow ← {𝕊 index:
 }
 
 allPlans ← ParsePlanRow¨ ↕ ≠ planLines
-plans ← showAll ◶ ⟨ {𝕊 ⋄ (¬ {2⊑𝕩}¨ allPlans) / allPlans}, {𝕊 ⋄ allPlans} ⟩ @
+openPlans ← (¬ {2⊑𝕩}¨ allPlans) / allPlans
+TemporalMatch ← {𝕊 r:
+  fields ← > 1⊑r
+  temporalStatus ← plan_status.Classify ⟨0, 0⊑fields, asOf⟩
+  isOverdue ← temporalStatus≡"overdue"
+  isUpcoming ← (temporalStatus≡"due") ∨ temporalStatus≡"future"
+  (temporal≡"overdue") ⊑ ⟨isUpcoming, isOverdue⟩
+}
+filteredOpen ← usesTemporal ◶ ⟨{𝕊: openPlans}, {𝕊: (TemporalMatch¨openPlans)/openPlans}⟩ @
+plans ← showAll ◶ ⟨ {𝕊 ⋄ filteredOpen}, {𝕊 ⋄ allPlans} ⟩ @
 
 StatusText ← {𝕊 r:
   closed ← 2 ⊑ r

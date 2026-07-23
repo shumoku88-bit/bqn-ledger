@@ -31,6 +31,7 @@ Fuzzy transaction adder for everyday entries.
 Modes:
   account-add   アカウント追加 (writes accounts.tsv)
   expense       assets -> expenses  (writes selected actual source)
+  multi         native Journal transaction with 2+ signed postings
   move          assets -> assets    (writes selected actual source)
   income        income -> assets    (writes selected actual source)
   budget        budget -> budget    (writes budget_alloc.tsv)
@@ -103,7 +104,7 @@ ensure_ledger_report_base "$base_dir"
 mode=''
 if [[ -n "$mode_arg" ]]; then
   case "$mode_arg" in
-    account-add|expense|move|income|budget|plan-add|plan-edit|plan-finish|reverse|issue|issue-close)
+    account-add|expense|multi|move|income|budget|plan-add|plan-edit|plan-finish|reverse|issue|issue-close)
       mode="$mode_arg"
       ;;
     *)
@@ -320,12 +321,21 @@ choose_plan_date_key() {
   } | select_line 'plan date'
 }
 
+choose_plan_list_scope() {
+  cat <<'EOF' | select_line 'plan range'
+upcoming	今日以降のOPEN予定
+overdue	期限超過のOPEN予定
+all	すべてのOPEN予定
+EOF
+}
+
 # ── Mode selection ──
 
 choose_mode() {
   cat <<'EOF' | select_line 'mode'
 account-add	アカウント追加
 expense	支出 assets -> expenses
+multi	複数ポスティング (native Journal)
 move	資金移動 assets -> assets
 income	収入 income -> assets
 budget	予算配賦 budget -> budget
@@ -504,7 +514,7 @@ if [[ "$mode" == 'plan-finish' ]]; then
   exec "$ROOT_DIR/tools/plan-finish-replenish-ui.sh" --base "$base_dir"
 fi
 
-memo=''; from=''; to=''; amt=''; meta=''; plan_series=''; issue_close_args=()
+memo=''; from=''; to=''; amt=''; meta=''; plan_series=''; postings=(); issue_close_args=()
 
 case "$mode" in
   account-add)
@@ -566,6 +576,27 @@ case "$mode" in
     capture_or_cancel amt read_tty 'Amount' ''
     capture_or_cancel meta choose_meta
     ;;
+  multi)
+    capture_or_cancel memo read_tty 'Memo/Description' ''
+    capture_or_cancel meta choose_meta
+    while true; do
+      capture_or_cancel posting_account select_account '' 'posting account'
+      capture_or_cancel posting_amount read_tty 'Signed amount (+ increase / - decrease)' ''
+      if [[ -z "$posting_account" || -z "$posting_amount" ]]; then
+        shout 'Cancelled or missing posting value.'
+        exit 1
+      fi
+      postings+=("$posting_account=$posting_amount")
+      if [[ ${#postings[@]} -lt 2 ]]; then
+        continue
+      fi
+      capture_or_cancel add_more read_tty 'Add another posting? (y/N)' 'N'
+      case "$add_more" in
+        y|Y|yes|YES|Yes) ;;
+        *) break ;;
+      esac
+    done
+    ;;
   move)
     capture_or_cancel from select_account 'asset' 'from asset'
     capture_or_cancel to select_account 'asset' 'to asset'
@@ -611,8 +642,12 @@ case "$mode" in
     fi
     ;;
   plan-edit)
+    capture_or_cancel plan_scope_line choose_plan_list_scope
+    plan_scope="${plan_scope_line%%$'\t'*}"
+    plan_list_args=(--format tsv)
+    [[ "$plan_scope" != 'all' ]] && plan_list_args+=(--temporal "$plan_scope" --as-of "$today")
     plan_tsv_lines=()
-    while IFS= read -r _pl; do plan_tsv_lines+=("$_pl"); done < <("$ROOT_DIR/tools/edit" --base "$base_dir" plan list --format tsv)
+    while IFS= read -r _pl; do plan_tsv_lines+=("$_pl"); done < <("$ROOT_DIR/tools/edit" --base "$base_dir" plan list "${plan_list_args[@]}")
     if [[ ${#plan_tsv_lines[@]} -eq 0 ]]; then
       shout "No active plans found."
       exit 0
@@ -621,7 +656,7 @@ case "$mode" in
     for line in "${plan_tsv_lines[@]}"; do
       display_lines+=("$(printf '%s\n' "$line" | cut -f9)")
     done
-    select_prompt='select plan to edit'
+    select_prompt="select $plan_scope plan to edit"
     capture_or_cancel selected_display select_display_lines "$select_prompt"
     if [[ -z "$selected_display" ]]; then cancel_ui; fi
     selected_row=""
@@ -698,7 +733,11 @@ if [[ "$mode" != 'account-add' && "$mode" != 'plan-edit' && "$mode" != 'reverse'
     other) capture_or_cancel selected_date read_tty 'Date YYYY-MM-DD' "$today" ;;
     *) selected_date="$today" ;;
   esac
-  if [[ "$mode" != 'issue' ]]; then
+  if [[ "$mode" == 'multi' ]]; then
+    if [[ -z "$memo" || ${#postings[@]} -lt 2 ]]; then
+      shout 'Cancelled or missing required multi-posting value.'; exit 1
+    fi
+  elif [[ "$mode" != 'issue' ]]; then
     if [[ -z "$from" || -z "$to" || -z "$amt" ]]; then
       shout 'Cancelled or missing required value.'; exit 1
     fi
@@ -722,6 +761,15 @@ elif [[ "$mode" == 'plan-edit' ]]; then
   cmd=("$ROOT_DIR/tools/edit" --base "$base_dir" plan edit "${plan_edit_args[@]}")
 elif [[ "$mode" == 'reverse' ]]; then
   cmd=("$ROOT_DIR/tools/edit" --base "$base_dir" journal reverse "${reverse_args[@]}")
+elif [[ "$mode" == 'multi' ]]; then
+  cmd=(
+    "$ROOT_DIR/tools/edit" --base "$base_dir" journal multi-add
+    --date "$selected_date"
+    --description "$memo"
+  )
+  for posting in "${postings[@]}"; do
+    cmd+=(--posting "$posting")
+  done
 elif [[ "$mode" == 'issue-close' ]]; then
   cmd=("$ROOT_DIR/tools/edit" --base "$base_dir" issue close "${issue_close_args[@]}")
 elif [[ "$mode" == 'issue' ]]; then

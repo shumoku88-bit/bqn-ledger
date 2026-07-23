@@ -94,11 +94,22 @@ assert_plan_list_parity plan-completion-tsv-all fixtures/plan-completion --all -
 assert_plan_list_parity plan-completion-text-default fixtures/plan-completion
 assert_plan_list_parity plan-completion-text fixtures/plan-completion --format text
 assert_plan_list_parity plan-completion-text-all fixtures/plan-completion --all --format text
+assert_plan_list_parity plan-completion-overdue fixtures/plan-completion --format tsv --temporal overdue --as-of 2026-01-24
+assert_plan_list_parity plan-completion-upcoming fixtures/plan-completion --format tsv --temporal upcoming --as-of 2026-01-24
 assert_plan_list_parity data-tsv data --format tsv
 assert_tsv_shape plan-completion fixtures/plan-completion
 assert_plan_contract
 
-# Invalid CLI format should fail before touching source data or creating backups.
+temporal_base="$tmp_root/temporal-contract"
+cp -R fixtures/plan-completion "$temporal_base"
+./tools/edit-bqn --base "$temporal_base" plan list --format tsv --temporal overdue --as-of 2026-01-24 >"$tmp_root/overdue.out"
+./tools/edit-bqn --base "$temporal_base" plan list --format tsv --temporal upcoming --as-of 2026-01-24 >"$tmp_root/upcoming.out"
+[[ $(wc -l <"$tmp_root/overdue.out" | tr -d ' ') -eq 1 ]]
+awk -F '\t' '$3 != "2026-01-10" {exit 1}' "$tmp_root/overdue.out"
+[[ $(wc -l <"$tmp_root/upcoming.out" | tr -d ' ') -eq 2 ]]
+awk -F '\t' '$3 < "2026-01-24" {exit 1}' "$tmp_root/upcoming.out"
+
+# Invalid CLI format/filter combinations should fail before touching source data or creating backups.
 neg_base="$tmp_root/invalid-format"
 cp -R fixtures/plan-completion "$neg_base"
 neg_before="$(sha_file "$neg_base/plan.tsv")"
@@ -114,6 +125,24 @@ fi
 neg_after="$(sha_file "$neg_base/plan.tsv")"
 if [ "$neg_before" != "$neg_after" ]; then
   echo "FAIL: invalid plan list format modified plan.tsv" >&2
+  exit 1
+fi
+
+for bad_args in \
+  '--temporal overdue' \
+  '--temporal invalid --as-of 2026-01-24' \
+  '--temporal upcoming --as-of invalid' \
+  '--all --temporal overdue --as-of 2026-01-24'; do
+  set +e
+  # shellcheck disable=SC2086
+  ./tools/edit-bqn --base "$neg_base" plan list --format tsv $bad_args >"$tmp_root/invalid-filter.out" 2>&1
+  neg_rc=$?
+  set -e
+  [[ "$neg_rc" -ne 0 ]] || { echo "FAIL: invalid plan temporal filter unexpectedly succeeded: $bad_args" >&2; exit 1; }
+done
+[[ "$neg_before" == "$(sha_file "$neg_base/plan.tsv")" ]]
+if [ -e "$neg_base/.backup" ] && find "$neg_base/.backup" -type f | grep -q .; then
+  echo "FAIL: invalid plan temporal filter created backup" >&2
   exit 1
 fi
 

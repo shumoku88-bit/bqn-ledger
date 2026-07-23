@@ -143,7 +143,7 @@ Exit: keep current while this remains the pit code/data-flow entry point
 - `src_edit/issue_list_cmd.bqn` — issue close UI向けの open issue 候補 export。
 - `src_edit/issue_close_cmd.bqn` — issue close 用の検証および safe replace TSV 生成。
 - `src_edit/plan_add_cmd.bqn` — plan add 用の検証および TSV 生成。
-- `src_edit/plan_list_cmd.bqn` — plan list 用の BQN 実装。`tools/edit plan list --format tsv` の unfinished plan candidate export 契約は `docs/UNFINISHED_PLAN_ENTRIES_EXPORT_CONTRACT.md`。
+- `src_edit/plan_list_cmd.bqn` — plan list 用の BQN 実装。unfinished candidate exportと、明示`as-of`に対する`all / overdue / upcoming`候補絞り込みを所有する。契約は `docs/UNFINISHED_PLAN_ENTRIES_EXPORT_CONTRACT.md`。
 - `src_edit/plan_related_cmd.bqn` — plan finish replenishment UI 用の read-only 関連予定抽出。`series=` → `plan_id` series → exact fallback の順序を所有する。
 - `src_edit/plan_finish_cmd.bqn` — plan finish 用の検証、実際のジャーナルアペンド行の生成。
 - `src_edit/txn_id.bqn` / `income_budget_sync_cmd.bqn` — opt-in通常収入の安定ID生成と、income→liquid actualからopening→unassigned companionをfail closedに生成するowner。
@@ -158,7 +158,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 ### `tools/edit`
 
 - 日常の公開 editor コマンド入口。
-- `tools/edit-bqn` へそのまま委譲する薄いラッパー。
+- `tools/edit-bqn` へそのまま委譲する薄いラッパー。`journal multi-add` は選択中のnative Journalへ2件以上の符号付きpostingを1取引として渡し、TSV modeではfail closedする。
 - CLI 互換の安定点として扱う。
 - UI向け read-only export として `tools/edit account list [--role ROLE]` も提供する。
 

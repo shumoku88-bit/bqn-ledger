@@ -106,6 +106,14 @@ select_line() {
   fi
 }
 
+choose_plan_list_scope() {
+  cat <<'EOF' | select_line 'plan range'
+upcoming	今日以降のOPEN予定
+overdue	期限超過のOPEN予定
+all	すべてのOPEN予定
+EOF
+}
+
 read_tty() {
   local prompt="$1" default="${2:-}" ans
   if command -v gum >/dev/null 2>&1 && [[ -r /dev/tty ]]; then
@@ -151,7 +159,12 @@ add_months() {
 }
 
 load_plan_rows() {
-  "$ROOT_DIR/tools/edit" --base "$base_dir" plan list --format tsv
+  local scope="${1:-${plan_scope:-all}}"
+  local args=(--format tsv)
+  if [[ "$scope" != 'all' ]]; then
+    args+=(--temporal "$scope" --as-of "$today")
+  fi
+  "$ROOT_DIR/tools/edit" --base "$base_dir" plan list "${args[@]}"
 }
 
 field() {
@@ -184,6 +197,14 @@ if [[ "$preflight" -eq 1 ]]; then
   exit 1
 fi
 
+today="$(date +%Y-%m-%d)"
+plan_scope_line="$(choose_plan_list_scope || true)"
+if [[ -z "$plan_scope_line" ]]; then
+  shout 'Cancelled.'
+  exit 0
+fi
+plan_scope="${plan_scope_line%%$'\t'*}"
+
 plan_tsv_lines=()
 while IFS= read -r _pl; do plan_tsv_lines+=("$_pl"); done < <(load_plan_rows)
 if [[ ${#plan_tsv_lines[@]} -eq 0 ]]; then
@@ -196,7 +217,7 @@ for line in "${plan_tsv_lines[@]}"; do
   display_lines+=("$(field 9 "$line")")
 done
 
-selected_display="$(printf '%s\n' "${display_lines[@]}" | select_line 'select plan to finish' || true)"
+selected_display="$(printf '%s\n' "${display_lines[@]}" | select_line "select $plan_scope plan to finish" || true)"
 if [[ -z "$selected_display" ]]; then
   shout 'Cancelled.'
   exit 0
@@ -223,7 +244,6 @@ plan_to="$(field 6 "$selected_row")"
 plan_amount="$(field 7 "$selected_row")"
 plan_series=""
 
-today="$(date +%Y-%m-%d)"
 actual_date="$(read_tty 'Actual date YYYY-MM-DD' "$today")"
 actual_amount="$(read_tty 'Actual amount' "$plan_amount")"
 
@@ -263,7 +283,8 @@ if ! ask_yes_no 'Create or extend a future plan from the finished plan?' 'N'; th
 fi
 
 fresh_plan_rows=()
-while IFS= read -r _pl; do fresh_plan_rows+=("$_pl"); done < <(load_plan_rows)
+# Duplicate prevention must inspect every open plan, not only the selected picker range.
+while IFS= read -r _pl; do fresh_plan_rows+=("$_pl"); done < <(load_plan_rows all)
 
 related_lines=()
 latest_related_date=""

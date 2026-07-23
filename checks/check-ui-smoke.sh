@@ -115,10 +115,17 @@ for item in "${sections[@]}"; do
     tools/main-ui.sh --base "$fixture" "$section"
 done
 
-if tools/add-ui.sh --help >/dev/null; then
-  pass "add-ui help works"
+add_ui_help="$(tools/add-ui.sh --help)"
+if [[ "$add_ui_help" == *"multi         native Journal transaction with 2+ signed postings"* ]]; then
+  pass "add-ui help exposes native multi-posting mode"
 else
-  fail "add-ui help failed"
+  fail "add-ui help missing native multi-posting mode"
+fi
+if grep -Fq $'multi\t複数ポスティング (native Journal)' tools/add-ui.sh && \
+   grep -Fq 'journal multi-add' tools/add-ui.sh; then
+  pass "add-ui multi-posting mode routes through BQN editor"
+else
+  fail "add-ui multi-posting route missing"
 fi
 
 bad_out="$(mktemp)"

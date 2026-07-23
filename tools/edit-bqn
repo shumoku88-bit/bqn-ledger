@@ -36,6 +36,7 @@ usage() {
 Usage:
   tools/edit-bqn [--base DIR] journal-block add --journal-file FILE --date YYYY-MM-DD --description DESCRIPTION --event-id EVENT_ID --posting ACCOUNT=SIGNED_INTEGER --posting ACCOUNT=SIGNED_INTEGER [--posting ACCOUNT=SIGNED_INTEGER ...] [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] journal add --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount DECIMAL [--currency CODE] [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
+  tools/edit-bqn [--base DIR] journal multi-add --date YYYY-MM-DD --description DESCRIPTION --posting ACCOUNT=SIGNED_INTEGER --posting ACCOUNT=SIGNED_INTEGER [--posting ACCOUNT=SIGNED_INTEGER ...] [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] journal income-budget-sync --id TXN_ID [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] budget add  --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount DECIMAL [--currency CODE] [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] plan add --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount DECIMAL [--currency CODE] [--meta key=value ...] [--id plan-YYYY-MM-DD-series] [--dry-run] [--yes] [--post-check none|lint|full]
@@ -45,7 +46,7 @@ Usage:
   tools/edit-bqn [--base DIR] account add --name ACCOUNT --role asset|liability|income|expense [--type liquid|savings|invest] [--currency CODE] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] account list [--role ROLE] [--currency CODE]
   tools/edit-bqn [--base DIR] journal list [--format tsv|text]
-  tools/edit-bqn [--base DIR] plan list [--all] [--format tsv|text]
+  tools/edit-bqn [--base DIR] plan list [--all] [--format tsv|text] [--temporal all|overdue|upcoming] [--as-of YYYY-MM-DD]
   tools/edit-bqn [--base DIR] plan related [--index NUMBER] [--id PLAN_ID] --actual-date YYYY-MM-DD [--format tsv]
   tools/edit-bqn [--base DIR] plan finish [--index NUMBER] [--id PLAN_ID] --actual-date YYYY-MM-DD [--actual-amount DECIMAL] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] plan budget-sync --id PLAN_ID [--dry-run] [--yes] [--post-check none|lint|full]
@@ -54,7 +55,7 @@ Usage:
   tools/edit-bqn [--base DIR] travel friend add --date YYYY-MM-DD --party PARTY --item ITEM --amount DECIMAL --currency ILS --payer friend --trip-id israel-2026 --source-event-id ID [--dry-run] [--yes]
   tools/edit-bqn [--base DIR] travel exchange add --date YYYY-MM-DD --memo MEMO --source-account ACCOUNT --source-amount INT --source-currency JPY --target-account ACCOUNT --target-amount DECIMAL --target-currency ILS --exchange-id ID --trip-id israel-2026 [--dry-run] [--yes]
 
-Current scope: BQN editor daily commands (account add/list, journal/budget/plan/issue add, explicit-path journal-block add, travel friend/exchange add, issue list/close, journal list/reverse, and plan list/related/finish/edit).
+Current scope: BQN editor daily commands (account add/list, journal add/multi-add, budget/plan/issue add, explicit-path journal-block add, travel friend/exchange add, issue list/close, journal list/reverse, and plan list/related/finish/edit).
 USAGE
 }
 
@@ -92,6 +93,41 @@ if [[ "$1" == "travel" && "$2" == "exchange" && "${3-}" == "add" ]]; then
   shift 3
   handle_edit_bqn_travel_exchange_add "$@"
   exit $?
+fi
+
+if [[ "$1" == "journal" && "$2" == "multi-add" ]]; then
+  shift 2
+  DATE=""; DESCRIPTION=""; POSTINGS=(); BLOCK_META=(); DRY_RUN=0; YES=0; POST_CHECK="lint"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --date) DATE="$(get_opt_val_allow_empty "$1" "${2-}")"; shift 2 ;;
+      --description) DESCRIPTION="$(get_opt_val_allow_empty "$1" "${2-}")"; shift 2 ;;
+      --posting) POSTINGS+=("$(get_opt_val_allow_empty "$1" "${2-}")"); shift 2 ;;
+      --meta) BLOCK_META+=("$(get_opt_val_allow_empty "$1" "${2-}")"); shift 2 ;;
+      --dry-run) DRY_RUN=1; shift ;;
+      --yes) YES=1; shift ;;
+      --post-check) POST_CHECK="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      *) echo "ERROR: unknown journal multi-add argument: $1" >&2; exit 2 ;;
+    esac
+  done
+  [[ -n "$DATE" ]] || { echo "ERROR: missing required option: --date" >&2; exit 2; }
+  [[ -n "$DESCRIPTION" ]] || { echo "ERROR: missing required option: --description" >&2; exit 2; }
+  edit_bqn_validate_post_check "$POST_CHECK"
+
+  ACTUAL_ROUTE="$(cd "$ROOT_DIR" && bqn src_edit/actual_source_route_cmd.bqn "$BASE_DIR")"
+  IFS=$'\t' read -r ACTUAL_MODE ACTUAL_FILE ACTUAL_EXTRA <<< "$ACTUAL_ROUTE"
+  [[ -z "${ACTUAL_EXTRA:-}" ]] || { echo "ERROR: invalid actual-source route" >&2; exit 1; }
+  [[ "$ACTUAL_MODE" == "journal" ]] || { echo "ERROR: journal multi-add requires ACTUAL_SOURCE=journal; no files changed" >&2; exit 1; }
+
+  posting_seed="$(printf '%s\034' "${POSTINGS[@]}")"
+  event_seed="$DATE"$'\t'"$DESCRIPTION"$'\t'"$posting_seed"$'\t'"$(date +%Y%m%d%H%M%S)"$'\t'"$$"$'\t'"$RANDOM"
+  EVENT_ID="entry-$(printf '%s' "$event_seed" | shasum -a 256 | awk '{print substr($1,1,24)}')"
+  native_args=(--base "$BASE_DIR" journal-block add --journal-file "$ACTUAL_FILE" --date "$DATE" --description "$DESCRIPTION" --event-id "$EVENT_ID" --post-check "$POST_CHECK")
+  for posting in "${POSTINGS[@]}"; do native_args+=(--posting "$posting"); done
+  for item in "${BLOCK_META[@]}"; do native_args+=(--meta "$item"); done
+  [[ "$DRY_RUN" -eq 1 ]] && native_args+=(--dry-run)
+  [[ "$YES" -eq 1 ]] && native_args+=(--yes)
+  exec "$0" "${native_args[@]}"
 fi
 
 if [[ "$1" == "journal-block" && "$2" == "add" ]]; then
@@ -670,10 +706,14 @@ if [[ "$1" == "plan" && "$2" == "list" ]]; then
   shift 2
   SHOW_ALL=0
   FORMAT="text"
+  TEMPORAL="all"
+  AS_OF=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --all) SHOW_ALL=1; shift ;;
       --format) FORMAT="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --temporal) TEMPORAL="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --as-of) AS_OF="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
       *) echo "ERROR: unknown list argument: $1" >&2; exit 2 ;;
     esac
   done
@@ -681,7 +721,7 @@ if [[ "$1" == "plan" && "$2" == "list" ]]; then
     tsv|text) ;;
     *) echo "ERROR: invalid format: $FORMAT (expected 'tsv' or 'text')" >&2; exit 2 ;;
   esac
-  cd "$ROOT_DIR" && bqn src_edit/plan_list_cmd.bqn "$BASE_DIR" "$SHOW_ALL" "$FORMAT"
+  cd "$ROOT_DIR" && bqn src_edit/plan_list_cmd.bqn "$BASE_DIR" "$SHOW_ALL" "$FORMAT" "$TEMPORAL" "$AS_OF"
   exit $?
 fi
 
@@ -731,7 +771,7 @@ if [[ "$1" == "issue" && "$2" == "close" ]]; then
 fi
 
 if [[ "$2" != "add" ]]; then
-  echo "ERROR: tools/edit-bqn currently supports only: account list, journal add, journal list, journal reverse, budget add, issue add/list/close, plan add, plan list, plan related, plan finish, and plan edit" >&2
+  echo "ERROR: tools/edit-bqn currently supports only: account list, journal add/multi-add, journal list, journal reverse, budget add, issue add/list/close, plan add, plan list, plan related, plan finish, and plan edit" >&2
   usage
   exit 2
 fi
@@ -758,7 +798,7 @@ case "$COMMAND" in
     ROW_TITLE="Issue row"
     ;;
   *)
-    echo "ERROR: tools/edit-bqn currently supports only: account list, journal add, journal list, journal reverse, budget add, issue add/list/close, plan add, plan list, plan related, plan finish, and plan edit" >&2
+    echo "ERROR: tools/edit-bqn currently supports only: account list, journal add/multi-add, journal list, journal reverse, budget add, issue add/list/close, plan add, plan list, plan related, plan finish, and plan edit" >&2
     usage
     exit 2
     ;;

@@ -7,7 +7,12 @@ trap 'rm -rf "$tmp"' EXIT
 base="$tmp/base"
 mkdir -p "$base"
 fixture=fixtures/journal-file-backed-shadow-context
-cp "$fixture/accounts.tsv" "$fixture/cycle.tsv" "$fixture/plan.tsv" "$fixture/budget_alloc.tsv" "$base/"
+cp "$fixture/cycle.tsv" "$fixture/plan.tsv" "$fixture/budget_alloc.tsv" "$base/"
+# Registry parity must compare account values, not declaration/source row order.
+{
+  grep '^#' "$fixture/accounts.tsv"
+  grep -vE '^(#|$)' "$fixture/accounts.tsv" | LC_ALL=C sort
+} >"$base/accounts.tsv"
 cp "$fixture/shadow.journal" "$base/actual.journal"
 awk '
   /^ACTUAL_SOURCE=/ {print "ACTUAL_SOURCE=journal"; next}
@@ -18,7 +23,7 @@ awk '
 
 [[ ! -e "$base/journal.tsv" ]]
 report_out="$tmp/report.out"
-tools/report --base "$base" >"$report_out"
+tools/report "$base" >"$report_out"
 [[ -s "$report_out" && ! -e "$base/journal.tsv" ]]
 
 before=$(shasum -a 256 "$base/actual.journal" | awk '{print $1}')
@@ -31,6 +36,6 @@ tools/edit --base "$base" plan finish --id plan-2026-08-20-journal-cutover --act
 [[ ! -e "$base/journal.tsv" ]]
 tools/edit --base "$base" plan list --all --format tsv | grep -Fq $'plan-2026-08-20-journal-cutover\t2026-08-20'
 
-tools/report --base "$base" >"$report_out"
+tools/report "$base" >"$report_out"
 [[ -s "$report_out" && ! -e "$base/journal.tsv" ]]
 echo 'OK: Journal-only report, daily add, list, and plan completion passed without journal.tsv'

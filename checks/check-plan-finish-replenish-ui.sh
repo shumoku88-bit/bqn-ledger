@@ -14,6 +14,8 @@ cd "$ROOT_DIR"
 
 bash -n tools/plan-finish-replenish-ui.sh
 bash -n tools/lib/plan-finish-workflow.sh
+grep -Fq -- '--temporal "$scope" --as-of "$today"' tools/plan-finish-replenish-ui.sh
+grep -Fq 'load_plan_rows all' tools/plan-finish-replenish-ui.sh
 
 # shellcheck source=tools/lib/plan-finish-workflow.sh
 source "$ROOT_DIR/tools/lib/plan-finish-workflow.sh"

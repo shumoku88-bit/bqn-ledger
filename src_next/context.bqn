@@ -453,8 +453,9 @@ BuildContext ← {𝕊 arg:
     raw ← loader.ReadRaw (base2 ∾ "/" ∾ journal_rel)
     parsed ← journal_parser.ParseWithProfile ⟨raw,"historical_external_plan"⟩
     {𝕊: •Out "ERROR: native Journal source rejected" ⋄ •Exit 1}⍟(parsed.state≢"ok") @
-    declared ← ⍋ {𝕩.account_key}¨ parsed.accounts
-    registry ← ⍋ resolved.accounts
+    # Account registry parity is set equality; declaration/source row order is not semantic.
+    declared ← ∧ {𝕩.account_key}¨ parsed.accounts
+    registry ← ∧ resolved.accounts
     {𝕊: •Out "ERROR: native Journal account declarations differ from accounts.tsv" ⋄ •Exit 1}⍟(declared≢registry) @
     journal_checked ← journal_adapter.BuildForSource ⟨parsed.transactions,resolved,cy.start,journal_rel⟩
     {𝕊: •Out "ERROR: native Journal Posting IR rejected" ⋄ •Exit 1}⍟(journal_checked.state≢"ok") @

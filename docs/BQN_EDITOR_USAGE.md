@@ -33,14 +33,17 @@ BQN Editor は会計エンジンとしての計算（残高や封筒の残金計
 
 1.  **`account-add` (アカウント追加)**: `asset / liability / income / expense` を選び、明示的な `role=` と一致する名前空間で `accounts.tsv` に安全追記します。assetでは任意で `type=liquid|savings|invest` を選べます。
 2.  **`expense` (支出)**: 資産口座から費用口座への支出。明示選択されたActual sourceへ追記。
-3.  **`move` (資金移動)**: 資産口座間の振替。明示選択されたActual sourceへ追記。
-4.  **`income` (収入)**: 収入元から資産口座への入金。明示選択されたActual sourceへ追記。
-5.  **`budget` (予算配賦)**: 封筒への予算割り当て（例: `budget:unassigned` $\rightarrow$ `budget:daily`）。`budget_alloc.tsv` に追記。memo 候補は `config/ui_budget_memo_presets.tsv` で管理します。
-6.  **`plan-add` (予定の追加)**: 未来の支払い予定を `plan.tsv` に安全追記。必要なら `series` を入力でき、`plan_id` は自動生成。
-7.  **`plan-edit` (予定の日付・金額修正)**: 未完了予定を選び、`date` / `amount` だけを差分プレビュー付きで修正。
-8.  **`plan-finish` (予定の実績化)**: `plan.tsv` の予定を、選択Actual sourceへ `plan_id` 付き実績として追記し、必要なら次回予定も追加。
-9.  **`reverse` (仕訳取消)**: 選択Actual sourceの取引を選び、反対postingを新しい取引として安全追記。
-10.  **`issue` (Issues & Decisions の追加)**: 財務的な issue / decision（例: サブスクリプションの見直し）を `issues.tsv` に安全追記。
+3.  **`multi` (複数ポスティング)**: native Journal mode専用。勘定と符号付き整数金額を2件以上入力し、合計ゼロの1取引として選択Actual Journalへ安全追記します。TSV modeでは書き込まず拒否します。
+4.  **`move` (資金移動)**: 資産口座間の振替。明示選択されたActual sourceへ追記。
+5.  **`income` (収入)**: 収入元から資産口座への入金。明示選択されたActual sourceへ追記。
+6.  **`budget` (予算配賦)**: 封筒への予算割り当て（例: `budget:unassigned` $\rightarrow$ `budget:daily`）。`budget_alloc.tsv` に追記。memo 候補は `config/ui_budget_memo_presets.tsv` で管理します。
+7.  **`plan-add` (予定の追加)**: 未来の支払い予定を `plan.tsv` に安全追記。必要なら `series` を入力でき、`plan_id` は自動生成。
+8.  **`plan-edit` (予定の日付・金額修正)**: 未完了予定を選び、`date` / `amount` だけを差分プレビュー付きで修正。
+9.  **`plan-finish` (予定の実績化)**: `plan.tsv` の予定を、選択Actual sourceへ `plan_id` 付き実績として追記し、必要なら次回予定も追加。
+10.  **`reverse` (仕訳取消)**: 選択Actual sourceの取引を選び、反対postingを新しい取引として安全追記。
+11.  **`issue` (Issues & Decisions の追加)**: 財務的な issue / decision（例: サブスクリプションの見直し）を `issues.tsv` に安全追記。
+
+`plan-edit` と `plan-finish` の予定選択では、`今日以降 / 期限超過 / すべてのOPEN予定`を先に選びます。Shellは日付を比較せず、今日を明示 `as-of` としてBQN editorへ渡し、BQNの `overdue / due / future` 分類で候補を絞ります。
 
 ---
 
@@ -77,6 +80,10 @@ BQN Editor は会計エンジンとしての計算（残高や封筒の残金計
 ```bash
 # 支出の安全追記
 ./tools/edit journal add --date 2026-06-20 --memo "コンビニ" --from assets:cash --to expenses:food --amount 500
+
+# native Journalへ複数ポスティングを安全追記（符号付き金額の合計はゼロ）
+./tools/edit journal multi-add --date 2026-06-20 --description "まとめ買い" \
+  --posting expenses:food=800 --posting expenses:household=300 --posting assets:cash=-1100
 
 # 既存仕訳の取消（反対仕訳を安全追記）
 ./tools/edit journal reverse --index 12 --date 2026-06-21
