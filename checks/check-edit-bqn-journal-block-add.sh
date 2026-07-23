@@ -271,7 +271,7 @@ grep -Fq 'Rollback: restored original bytes' "$tmp_root/full-blocked.out"
 # Renderer protocol ordinal
 protocol_out="$tmp_root/protocol.out"
 bqn src_edit/journal_block_add_cmd.bqn "$dry" "$dry/source.journal" 2026-07-22 スーパー purchase-20260722-001 3 expenses:food:daily=1200 expenses:household=500 assets:cash=-1700 >"$protocol_out" 2>"$tmp_root/protocol.err"
-first_line=$(head -n 1 "$protocol_out")
+first_line=$(head -n 1 "$protocol_out" | tr -d '\r')
 IFS=$'\t' read -r p_status p_op p_prefix p_event p_count p_ordinal p_extra <<< "$first_line"
 [[ "$p_status" == "OK" && "$p_op" == "APPEND_BLOCK" && "$p_event" == "purchase-20260722-001" && "$p_count" == "3" && "$p_ordinal" == "1" && -z "${p_extra:-}" ]]
 
