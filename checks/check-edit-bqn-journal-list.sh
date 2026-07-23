@@ -70,12 +70,67 @@ assert_tsv_preserves_empty_memo() {
   fi
 }
 
+assert_journal_list_native_readonly() {
+  local base="$tmp_root/native-boundary"
+  local out="$tmp_root/native-boundary.out"
+  local before_sha after_sha
+
+  cp -R fixtures/journal-ordinary-actual-fallback-boundary "$base"
+  before_sha="$(sha_file "$base/actual.journal")"
+
+  ./tools/edit-bqn --base "$base" journal list --format tsv >"$out"
+
+  after_sha="$(sha_file "$base/actual.journal")"
+  if [ "$before_sha" != "$after_sha" ]; then
+    echo "FAIL: tools/edit-bqn journal list modified actual.journal" >&2
+    exit 1
+  fi
+
+  if [ -e "$base/.backup" ] && find "$base/.backup" -type f | grep -q .; then
+    echo "FAIL: tools/edit-bqn journal list created a backup" >&2
+    find "$base/.backup" -type f >&2 || true
+    exit 1
+  fi
+
+  local row_count
+  row_count="$(wc -l < "$out" | tr -d ' ')"
+  if [ "$row_count" -ne 3 ]; then
+    echo "FAIL: expected 3 rows, got $row_count" >&2
+    cat "$out" >&2
+    exit 1
+  fi
+
+  awk -F '\t' 'NF != 7 { print "bad field count on line " NR ": " $0 > "/dev/stderr"; exit 1 }' "$out"
+
+  local row2
+  row2="$(sed -n '2p' "$out")"
+  local r2_num r2_date r2_memo r2_from r2_to r2_amt
+  r2_num="$(echo "$row2" | awk -F '\t' '{print $1}')"
+  r2_date="$(echo "$row2" | awk -F '\t' '{print $2}')"
+  r2_memo="$(echo "$row2" | awk -F '\t' '{print $3}')"
+  r2_from="$(echo "$row2" | awk -F '\t' '{print $4}')"
+  r2_to="$(echo "$row2" | awk -F '\t' '{print $5}')"
+  r2_amt="$(echo "$row2" | awk -F '\t' '{print $6}')"
+
+  if [ "$r2_num" != "2" ] || [ "$r2_date" != "2026-07-23" ] || [ "$r2_memo" != "Ordinary purchase" ] || [ "$r2_from" != "assets:cash" ] || [ "$r2_to" != "expenses:food" ] || [ "$r2_amt" != "25" ]; then
+    echo "FAIL: row 2 mismatch: got '$row2'" >&2
+    exit 1
+  fi
+
+  if grep -q -E 'stage0-line-|completion-plan-household-001-20260724|opening-20260701-001' "$out"; then
+    echo "FAIL: journal list output leaked identity implementation" >&2
+    cat "$out" >&2
+    exit 1
+  fi
+}
+
 assert_journal_list_readonly data-tsv data --format tsv
 assert_journal_list_readonly data-text data --format text
 assert_journal_list_readonly empty-columns-tsv fixtures/src-next-broken-empty-columns --format tsv
 assert_tsv_shape data data
 assert_tsv_shape empty-columns fixtures/src-next-broken-empty-columns
 assert_tsv_preserves_empty_memo
+assert_journal_list_native_readonly
 
 # Invalid CLI format should fail before touching source data or creating backups.
 neg_base="$tmp_root/invalid-format"
