@@ -21,6 +21,7 @@ resolved ← ak.Resolve accounts
 cycleStart ← "2042-03-01"
 
 metaAll ← ⟨
+  "recur=synthetic-cycle", "series=synthetic-series",
   "income_budget=exclude", "currency=JPY", "cashflow=fixed_obligation",
   "plan_id=plan-orchard-2042", "party=Public Cooperative",
   "txn_id=txn-shared-public", "receipt=receipt-public-7",
@@ -56,6 +57,9 @@ lib.Assert 0 < +´ "2042-03-03 * 青空  市場, morning!" ⍷ prefix
 lib.Assert 0 < +´ "    ; event-id: legacy:journal.tsv:0" ⍷ prefix
 lib.Assert 0 < +´ "    ; event-id: legacy:journal.tsv:1" ⍷ prefix
 lib.Assert 0 < +´ "    ; event-id: legacy:journal.tsv:2" ⍷ prefix
+lib.Assert 0 < +´ "    ; recur: synthetic-cycle" ⍷ prefix
+lib.Assert 0 < +´ "    ; series: synthetic-series" ⍷ prefix
+lib.Assert ¬ ∨´0∾{𝕩.code≡"metadata_unknown"}¨converted.diagnostics
 ⟨"legacy:journal.tsv:0","legacy:journal.tsv:1","legacy:journal.tsv:2"⟩ lib.AssertEq {𝕩.source_event_id}¨converted.transactions
 ⟨"txn-shared-public","txn-shared-public",""⟩ lib.AssertEq {𝕩.txn_id}¨converted.transactions
 ⟨0,1,0,1,0,1⟩ lib.AssertEq {𝕩.posting_index}¨converted.provenance_rows
@@ -63,11 +67,11 @@ lib.Assert ∧´ {𝕩.identity_kind≡"durable"}¨converted.provenance_rows
 lib.Assert ∧´ {𝕩.status≡"ok"}¨converted.posting_rows
 lib.Assert ∧´ {𝕩.layer_name≡"actual"}¨converted.posting_rows
 lib.Assert ∧´ {0=+´{𝕩.delta}¨𝕩.postings}¨converted.transactions
-expectedMetadataKeys ← ⟨"event-id","layer","tax","biz","invoice","note","due-on","receipt","txn-id","party","plan-id","cashflow","currency","income-budget"⟩
+expectedMetadataKeys ← ⟨"event-id","layer","tax","biz","invoice","note","due-on","receipt","txn-id","party","plan-id","cashflow","currency","income-budget","recur","series"⟩
 expectedMetadataValues ← ⟨
   "legacy:journal.tsv:0","actual","business","1","ok","synthetic note","2042-03-20",
   "receipt-public-7","txn-shared-public","Public Cooperative","plan-orchard-2042",
-  "fixed_obligation","JPY","exclude"
+  "fixed_obligation","JPY","exclude","synthetic-cycle","synthetic-series"
 ⟩
 expectedMetadataKeys lib.AssertEq {𝕩.key}¨(⊑converted.transactions).metadata
 expectedMetadataValues lib.AssertEq {𝕩.value}¨(⊑converted.transactions).metadata
@@ -212,6 +216,13 @@ lib.Assert ¬converter.DescriptionRepresentable "del"∾(@+127)∾"inside"
 AssertFailure ⟨MakeOne ⟨"2042-03-01","del"∾(@+127)∾"inside","assets:orchard","expenses:market","1",⟨⟩⟩,"description_not_canonically_representable"⟩
 AssertFailure ⟨MakeOne ⟨"2042-03-01","Unknown metadata","assets:orchard","expenses:market","1",⟨"mystery=value"⟩⟩,"metadata_unknown"⟩
 AssertFailure ⟨MakeOne ⟨"2042-03-01","Duplicate metadata","assets:orchard","expenses:market","1",⟨"tax=private","tax=business"⟩⟩,"metadata_duplicate"⟩
+AssertFailure ⟨MakeOne ⟨"2042-03-01","Duplicate recur","assets:orchard","expenses:market","1",⟨"recur=first","recur=second"⟩⟩,"metadata_duplicate"⟩
+AssertFailure ⟨MakeOne ⟨"2042-03-01","Duplicate series","assets:orchard","expenses:market","1",⟨"series=first","series=second"⟩⟩,"metadata_duplicate"⟩
+AssertFailure ⟨MakeOne ⟨"2042-03-01","Empty recur","assets:orchard","expenses:market","1",⟨"recur="⟩⟩,"metadata_value_invalid"⟩
+AssertFailure ⟨MakeOne ⟨"2042-03-01","Leading recur","assets:orchard","expenses:market","1",⟨"recur= leading"⟩⟩,"metadata_value_invalid"⟩
+AssertFailure ⟨MakeOne ⟨"2042-03-01","C0 recur","assets:orchard","expenses:market","1",⟨"recur=nul"∾(@+0)∾"inside"⟩⟩,"metadata_value_invalid"⟩
+AssertFailure ⟨MakeOne ⟨"2042-03-01","Trailing series","assets:orchard","expenses:market","1",⟨"series=trailing "⟩⟩,"metadata_value_invalid"⟩
+AssertFailure ⟨MakeOne ⟨"2042-03-01","DEL series","assets:orchard","expenses:market","1",⟨"series=del"∾(@+127)∾"inside"⟩⟩,"metadata_value_invalid"⟩
 AssertFailure ⟨MakeOne ⟨"2042-03-01","Empty metadata","assets:orchard","expenses:market","1",⟨"note="⟩⟩,"metadata_value_invalid"⟩
 AssertFailure ⟨MakeOne ⟨"2042-03-01","Leading metadata remains unsafe","assets:orchard","expenses:market","1",⟨"note= leading"⟩⟩,"metadata_value_invalid"⟩
 AssertFailure ⟨MakeOne ⟨"2042-03-01","Controlled metadata","assets:orchard","expenses:market","1",⟨"biz=yes"⟩⟩,"metadata_value_invalid"⟩

@@ -19,11 +19,13 @@ space ← @+32
 
 metadataInputKeys ← ⟨
   <"tax", <"biz", <"invoice", <"note", <"due_on", <"receipt",
-  <"txn_id", <"party", <"plan_id", <"cashflow", <"currency", <"income_budget"
+  <"txn_id", <"party", <"plan_id", <"cashflow", <"currency", <"income_budget",
+  <"recur", <"series"
 ⟩
 metadataOutputKeys ← ⟨
   <"tax", <"biz", <"invoice", <"note", <"due-on", <"receipt",
-  <"txn-id", <"party", <"plan-id", <"cashflow", <"currency", <"income-budget"
+  <"txn-id", <"party", <"plan-id", <"cashflow", <"currency", <"income-budget",
+  <"recur", <"series"
 ⟩
 
 Diagnostic ← {𝕊 codeText‿rowNumber‿messageText:
