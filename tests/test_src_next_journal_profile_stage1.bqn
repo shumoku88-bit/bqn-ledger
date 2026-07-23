@@ -27,6 +27,13 @@ expectedLayers lib.AssertEq actualLayers
 "reserve" lib.AssertEq (1 ⊑ result.transactions).execution_envelope
 "reserve" lib.AssertEq (2 ⊑ result.transactions).execution_envelope
 "allocation-daily-2026-08" lib.AssertEq (3 ⊑ result.transactions).allocation_id
+⟨
+  "Example Market | groceries and soap",
+  "Example Landlord | August rent plan",
+  "Example Landlord | August rent paid early",
+  "Household | allocate daily budget",
+  "Example Lender | loan repayment"
+⟩ lib.AssertEq {𝕩.description}¨ result.transactions
 
 expectedPostingCounts ← 3‿2‿2‿2‿3
 expectedPostingCounts lib.AssertEq {≠𝕩.postings}¨ result.transactions
@@ -89,6 +96,23 @@ unbalanced ← ∾ ⟨
   "    assets:bank -9 JPY", lf
 ⟩
 CheckFail ⟨unbalanced, "event_unbalanced"⟩
+
+missingHeaderDelimiter ← ∾ ⟨
+  Prefix @,
+  "2026-08-15 *Missing delimiter", lf,
+  "    expenses:rent 10 JPY", lf,
+  "    assets:bank -10 JPY", lf
+⟩
+CheckFail ⟨missingHeaderDelimiter, "header_description_delimiter_missing"⟩
+
+emptyHeaderDescription ← ∾ ⟨
+  Prefix @,
+  "2026-08-15 * ", lf,
+  "    expenses:rent 10 JPY", lf,
+  "    assets:bank -10 JPY", lf
+⟩
+CheckFail ⟨emptyHeaderDescription, "header_description_missing"⟩
+lib.Assert ¬HasCode ⟨"header_description_delimiter_missing", parser.Parse emptyHeaderDescription⟩
 
 unsupportedMetadata ← ∾ ⟨
   Prefix @,

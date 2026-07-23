@@ -1,23 +1,19 @@
 # Next session
 
-Status: Journal leading ASCII space description characterization complete; no finite Journal slice selected
+Status: Journal header delimiter exact-consumption implementation complete; no finite Journal slice selected
 Owner: journal source migration / routing
 Canonical: yes; current route is `TODO.md`
-Completed characterization: `docs/archive/completed-plans/JOURNAL_LEADING_ASCII_SPACE_DESCRIPTION_REPRESENTATION_CHARACTERIZATION-2026-07-23.md`
+Completed implementation: `docs/archive/completed-plans/JOURNAL_HEADER_DELIMITER_EXACT_CONSUMPTION_IMPLEMENTATION-2026-07-23.md`
 Completed converter: `docs/archive/completed-plans/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_COMPLETION-2026-07-22.md`
 Exit: owner selects one new finite slice explicitly
 Date: 2026-07-23
 
 ## Current routing
 
-Public-synthetic evidence classifies a description-owned leading ASCII SPACE as `silent_normalization`. Stage 1 admits the control and target without diagnostics but collapses both to the same Transaction IR description. Stage 2A remains a 16-field Posting IR without description and cannot recover the distinction. The converter continues to reject the target description; its existing regression remains unchanged.
-
-Routing is now:
+Stage 1 now consumes exactly one required ASCII SPACE after the transaction status marker and preserves the remaining description payload exactly in Transaction IR. A missing delimiter is rejected with `header_description_delimiter_missing`; a present delimiter with an empty payload retains `header_description_missing`. Stage 2A remains the unchanged description-free 16-field Posting IR. The converter continues to reject leading-space legacy descriptions with `description_not_canonically_representable`.
 
 ```text
-leading ASCII space description representation characterization: completed
-implementation: not selected
-parser contract change: not selected
+journal header delimiter exact consumption: completed
 converter relaxation: not selected
 opaque metadata preservation: not selected
 private converter retry: not selected
@@ -31,4 +27,4 @@ No private path was accessed. No private conversion or reconstruction was perfor
 
 ## Explicit gates
 
-Do not select parser implementation, converter relaxation, opaque metadata preservation, private read-only verification, private conversion, private reconstruction, cutover, writer switching, report routing, or another Journal slice automatically. Each requires separate explicit owner selection and its own finite contract.
+Do not select converter relaxation, opaque metadata preservation, private read-only verification, private conversion, private reconstruction, cutover, writer switching, report routing, or another Journal slice automatically. Each requires separate explicit owner selection and its own finite contract.

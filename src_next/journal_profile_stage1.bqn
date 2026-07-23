@@ -115,14 +115,18 @@ IsDateHeader ← {𝕊 text:
 }
 
 ParseHeader ← {𝕊 group:
+  rawText ← > ⊑ group.lines
   text ← FirstLine group
   dateText ← 10 ↑ text
   tail ← TrimLeft 10 ↓ text
+  rawTail ← TrimLeft 10 ↓ rawText
   marker ← ⊑ (tail ∾ " ")
-  description ← TrimLeft 1 ↓ tail
+  descriptionDelimiterPresent ← space = 1 ⊑ (rawTail ∾ "  ")
+  description ← (1 + descriptionDelimiterPresent) ↓ tail
   diagnostics ← empty
   diagnostics ∾↩ AddIf ⟨¬ dates.IsValidDateText dateText, Diagnostic ⟨"header_date_invalid", group.start_line, "transaction header date must be a valid YYYY-MM-DD date"⟩⟩
   diagnostics ∾↩ AddIf ⟨¬ (marker ∊ "*!"), Diagnostic ⟨"header_status_invalid", group.start_line, "transaction header status must be * or !"⟩⟩
+  diagnostics ∾↩ AddIf ⟨¬ descriptionDelimiterPresent, Diagnostic ⟨"header_description_delimiter_missing", group.start_line, "transaction header status must be followed by one ASCII SPACE delimiter"⟩⟩
   diagnostics ∾↩ AddIf ⟨0 = ≠ description, Diagnostic ⟨"header_description_missing", group.start_line, "transaction header description must be nonempty"⟩⟩
   {date⇐dateText, status_marker⇐marker, description⇐description, diagnostics⇐diagnostics}
 }
