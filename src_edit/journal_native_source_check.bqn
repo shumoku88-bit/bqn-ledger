@@ -11,13 +11,19 @@ args ← •args
 tab ← @+9
 empty ← ⟨⟩
 Fail ← {𝕊 code‿message: •Out "ERROR"∾tab∾code∾tab∾message ⋄ •Exit 1}
-{𝕊⋄Fail ⟨"usage", "expected BASE TARGET DATE DESCRIPTION EVENT_ID and at least two postings"⟩}⍟(7 > ≠ args) @
+{𝕊⋄Fail ⟨"usage", "expected BASE TARGET DATE DESCRIPTION EVENT_ID CANDIDATE_ORDINAL and at least two postings"⟩}⍟(8 > ≠ args) @
 base ← 0⊑args
 target ← 1⊑args
 dateText ← 2⊑args
 description ← 3⊑args
 eventId ← 4⊑args
-postingArgs ← 5↓args
+candidateOrdinalText ← 5⊑args
+postingArgs ← 6↓args
+
+parsedOrdinal ← decimal.Parse candidateOrdinalText
+validOrdinal ← (parsedOrdinal.state ≡ "ok") ∧ (0 = parsedOrdinal.scale) ∧ candidateOrdinalText ≡ •Fmt parsedOrdinal.coefficient
+{𝕊⋄Fail ⟨"candidate_ordinal_invalid", "candidate ordinal must be a canonical nonnegative exact integer"⟩}⍟((¬ validOrdinal) ∨ 0 > parsedOrdinal.coefficient) @
+candidateOrdinal ← parsedOrdinal.coefficient
 
 expected ← empty
 {𝕊 text:
@@ -40,6 +46,7 @@ expected ← empty
 raw ← loader.ReadRaw target
 parsed ← parser.ParseWithProfile ⟨raw,"historical_external_plan"⟩
 {𝕊⋄Fail ⟨"native_journal_invalid", "full written native Journal failed parsing or global invariants"⟩}⍟(parsed.state≢"ok") @
+{𝕊⋄Fail ⟨"native_candidate_count_invalid", "written Journal transaction count does not match the pre-write candidate ordinal plus one"⟩}⍟((candidateOrdinal + 1) ≢ ≠ parsed.transactions) @
 
 resolved ← ak.Resolve loader.ReadLines (base∾"/accounts.tsv")
 allPostings ← ∾ {𝕩.postings}¨ parsed.transactions
@@ -54,9 +61,12 @@ allPostings ← ∾ {𝕩.postings}¨ parsed.transactions
 checked ← adapter.Build ⟨parsed.transactions, resolved, dateText⟩
 {𝕊⋄Fail ⟨"native_posting_ir_invalid", "checked Stage 2A rejected the full written Journal"⟩}⍟(checked.state≢"ok") @
 
-matching ← ({(𝕩.identity_kind≡"durable") ∧ 𝕩.source_event_id≡eventId}¨parsed.transactions)/parsed.transactions
-{𝕊⋄Fail ⟨"native_candidate_identity_invalid", "new durable event must exist exactly once"⟩}⍟(1≠≠matching) @
-candidate ← ⊑matching
+candidate ← candidateOrdinal ⊑ parsed.transactions
+
+priorTransactions ← candidateOrdinal ↑ parsed.transactions
+priorEndLine ← (0 < candidateOrdinal) ◶ ⟨0, {⌈´ {𝕩.source_end_line}¨ priorTransactions}⟩ @
+{𝕊⋄Fail ⟨"native_candidate_boundary_invalid", "candidate start line must be greater than prior end line"⟩}⍟(candidate.source_start_line ≤ priorEndLine) @
+
 expectedAccounts ← {𝕩.account_key}¨expected
 expectedAmounts ← {𝕩.delta}¨expected
 actualAccounts ← {𝕩.account_key}¨candidate.postings
@@ -66,4 +76,4 @@ postingIndexesOk ← (↕≠candidate.postings) ≡ {𝕩.posting_index}¨candid
 candidateOk ← (candidate.date≡dateText) ∧ (candidate.description≡description) ∧ (candidate.source_event_id≡eventId) ∧ (candidate.identity_kind≡"durable") ∧ (candidate.status_marker='*') ∧ (candidate.layer_name≡"actual") ∧ ((≠candidate.postings)=≠expected) ∧ postingIndexesOk ∧ (actualAccounts≡expectedAccounts) ∧ (actualAmounts≡expectedAmounts) ∧ commoditiesOk
 {𝕊⋄Fail ⟨"native_candidate_mismatch", "written candidate does not exactly equal previewed candidate"⟩}⍟(¬candidateOk) @
 
-•Out "OK"∾tab∾"NATIVE_JOURNAL_CANDIDATE"∾tab∾eventId∾tab∾(•Fmt ≠candidate.postings)
+•Out "OK"∾tab∾"NATIVE_JOURNAL_CANDIDATE"∾tab∾eventId∾tab∾(•Fmt candidateOrdinal)∾tab∾(•Fmt ≠candidate.postings)
