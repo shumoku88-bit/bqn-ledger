@@ -1,0 +1,20 @@
+commodity JPY
+
+account assets:cash
+    ; role: asset
+
+account expenses:food
+    ; role: expense
+
+account expenses:household
+    ; role: expense
+
+2026-07-23 * Duplicate purchase
+    ; event-id: historical-duplicate
+    expenses:food    25 JPY
+    assets:cash    -25 JPY
+
+2026-07-24 * Existing household purchase
+    ; event-id: historical-other
+    expenses:household    10 JPY
+    assets:cash    -10 JPY
