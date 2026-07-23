@@ -857,7 +857,7 @@ if [[ "$COMMAND" == "journal" ]]; then
     done
     event_seed="$DATE"$'\t'"$MEMO"$'\t'"$FROM"$'\t'"$TO"$'\t'"$AMOUNT"$'\t'"$(date +%Y%m%d%H%M%S)"$'\t'"$$"$'\t'"$RANDOM"
     EVENT_ID="entry-$(printf '%s' "$event_seed" | shasum -a 256 | awk '{print substr($1,1,24)}')"
-    native_args=(--base "$BASE_DIR" journal-block add --journal-file "$ACTUAL_FILE" --date "$DATE" --description "$MEMO" --event-id "$EVENT_ID" --posting "$TO=$AMOUNT" --posting "$FROM=-$AMOUNT" --meta currency=JPY --post-check "$POST_CHECK")
+    native_args=(--base "$BASE_DIR" journal-block add --journal-file "$ACTUAL_FILE" --date "$DATE" --description "$MEMO" --event-id "$EVENT_ID" --posting "$TO=$AMOUNT" --posting "$FROM=-$AMOUNT" --post-check "$POST_CHECK")
     for item in "${META[@]}"; do native_args+=(--meta "$item"); done
     [[ "$DRY_RUN" -eq 1 ]] && native_args+=(--dry-run)
     [[ "$YES" -eq 1 ]] && native_args+=(--yes)
