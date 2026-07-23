@@ -16,7 +16,12 @@ backup="$(awk -F': ' '$1=="Backup"{print $2}' <<<"$out")"
 cmp -s "$target" "$candidate" || { echo 'FAIL: candidate not published' >&2; exit 1; }
 [[ "$(sha "$backup")" == "$original_sha" ]] || { echo 'FAIL: backup differs' >&2; exit 1; }
 [[ "$(find "$base/.backup" -type f | wc -l | tr -d ' ')" == 1 ]] || { echo 'FAIL: backup count' >&2; exit 1; }
-mode="$(stat -f %Lp "$target" 2>/dev/null || stat -c %a "$target")"; [[ "$mode" == 640 ]] || { echo 'FAIL: mode changed' >&2; exit 1; }
+if stat -f %Lp "$target" >/dev/null 2>&1; then
+  mode="$(stat -f %Lp "$target")"
+else
+  mode="$(stat -c %a "$target")"
+fi
+[[ "$mode" == 640 ]] || { echo "FAIL: mode changed: $mode" >&2; exit 1; }
 
 # Stale before backup.
 base="$tmp/stale"; mkdir -p "$base"; target="$base/file"; printf old >"$target"; printf new >"$candidate"
