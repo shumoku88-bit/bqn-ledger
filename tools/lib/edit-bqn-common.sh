@@ -172,6 +172,54 @@ edit_bqn_apply_append_checked() {
   return 1
 }
 
+edit_bqn_apply_rewrite_checked() {
+  local base_dir="$1" post_check="$2" target_path="$3" candidate_file="$4"
+  local snap_size="$5" snap_mtime="$6" snap_sha256="$7"
+  local write_out backup_path post_write_sha verify_out mandatory_ok=1 post_ok=1
+
+  write_out="$(safe_rewrite_checked "$target_path" "$candidate_file" "$snap_size" "$snap_mtime" "$snap_sha256")"
+  printf '%s\n' "$write_out"
+  backup_path="$(awk -F': ' '$1 == "Backup" {print $2}' <<< "$write_out")"
+  [[ -f "$backup_path" ]] || { echo 'ERROR: checked rewrite did not report one backup' >&2; return 1; }
+  post_write_sha="$(_safe_write_sha256 "$target_path")"
+
+  if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && "${EDIT_BQN_TEST_FORCE_CLEANUP_VERIFY_FAIL:-}" == "1" ]]; then
+    mandatory_ok=0
+    verify_out="forced mandatory cleanup equivalence failure"
+  elif ! verify_out="$(cd "$ROOT_DIR" && bqn src_edit/journal_cleanup_verify_cmd.bqn "$backup_path" "$target_path" 2>&1)"; then
+    mandatory_ok=0
+  fi
+  if [[ "$mandatory_ok" -eq 1 ]]; then
+    printf 'Mandatory cleanup equivalence: OK\n%s\n' "$verify_out"
+  else
+    printf 'Mandatory cleanup equivalence: FAILED\n%s\n' "$verify_out" >&2
+  fi
+
+  if [[ "$mandatory_ok" -eq 1 ]]; then
+    if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && "${EDIT_BQN_TEST_FORCE_POST_CHECK_FAIL:-}" == "1" ]]; then
+      printf 'Post-check failed.\n' >&2
+      post_ok=0
+    elif ! run_post_check "$base_dir" "$post_check" "$target_path" "$backup_path" cleanup_journal; then
+      post_ok=0
+    fi
+  fi
+  if [[ "$mandatory_ok" -eq 1 && "$post_ok" -eq 1 ]]; then
+    return 0
+  fi
+
+  edit_bqn_run_test_hook EDIT_BQN_TEST_BEFORE_POSTCHECK_ROLLBACK_HOOK
+  if safe_restore_backup_checked "$target_path" "$backup_path" "$post_write_sha"; then
+    if [[ "$(_safe_write_sha256 "$target_path")" != "$snap_sha256" ]]; then
+      echo 'Rollback: restore digest mismatch; recovery required' >&2
+      return 1
+    fi
+    echo 'Rollback: restored original bytes' >&2
+    return 1
+  fi
+  echo 'Rollback: refused; target changed after rewrite; recovery required' >&2
+  return 1
+}
+
 edit_bqn_parse_replace_protocol() {
   local output="$1"
   local -a lines=()
