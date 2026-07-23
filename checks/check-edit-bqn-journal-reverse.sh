@@ -102,6 +102,56 @@ run_expect_fail_closed() {
   assert_no_backup "$bqn_base" "tools/edit-bqn negative case $name"
 }
 
+run_native_selector_case() {
+  local base="$tmp_root/native-selector"
+  local out="$tmp_root/native-selector.out"
+  local before_sha after_sha
+
+  cp -R fixtures/journal-ordinary-actual-fallback-boundary "$base"
+  before_sha="$(sha_file "$base/actual.journal")"
+
+  bqn src_edit/journal_native_reverse_cmd.bqn "$base" "" 2 2026-07-25 >"$out"
+
+  after_sha="$(sha_file "$base/actual.journal")"
+  if [ "$before_sha" != "$after_sha" ]; then
+    echo "FAIL: native selector case modified actual.journal" >&2
+    exit 1
+  fi
+
+  assert_no_backup "$base" "native selector case"
+
+  local status op index orig_date desc src_id count rev_date
+  local line1
+  line1="$(sed -n '1p' "$out")"
+  status="$(echo "$line1" | awk -F '\t' '{print $1}')"
+  op="$(echo "$line1" | awk -F '\t' '{print $2}')"
+  index="$(echo "$line1" | awk -F '\t' '{print $3}')"
+  orig_date="$(echo "$line1" | awk -F '\t' '{print $4}')"
+  desc="$(echo "$line1" | awk -F '\t' '{print $5}')"
+  src_id="$(echo "$line1" | awk -F '\t' '{print $6}')"
+  count="$(echo "$line1" | awk -F '\t' '{print $7}')"
+  rev_date="$(echo "$line1" | awk -F '\t' '{print $8}')"
+
+  if [ "$status" != "OK" ] || [ "$op" != "REVERSE_NATIVE" ] || [ "$index" != "2" ] || [ "$orig_date" != "2026-07-23" ] || [ "$desc" != "Ordinary purchase" ] || [ "$count" != "2" ] || [ "$rev_date" != "2026-07-25" ]; then
+    echo "FAIL: native reverse protocol line 1 mismatch: got '$line1'" >&2
+    exit 1
+  fi
+
+  if [[ "$src_id" != stage0-line-* ]]; then
+    echo "FAIL: selected source_event_id does not begin with stage0-line-: got '$src_id'" >&2
+    exit 1
+  fi
+
+  local line2 line3
+  line2="$(sed -n '2p' "$out")"
+  line3="$(sed -n '3p' "$out")"
+
+  if [ "$line2" != "expenses:food=-25" ] || [ "$line3" != "assets:cash=25" ]; then
+    echo "FAIL: native reverse posting intent mismatch: got '$line2' and '$line3'" >&2
+    exit 1
+  fi
+}
+
 # Dry-run protection.
 dry_base="$tmp_root/dry"
 prepare_fixtures "$dry_base"
@@ -135,6 +185,8 @@ run_positive_case reverse-by-index-default-date \
   --index 10 \
   --yes \
   --post-check none
+
+run_native_selector_case
 
 # Negative cases.
 run_expect_fail_closed invalid-index \

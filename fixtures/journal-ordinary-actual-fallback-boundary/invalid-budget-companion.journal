@@ -1,0 +1,42 @@
+commodity JPY
+
+account equity:opening
+    ; role: equity
+
+account assets:cash
+    ; role: asset
+
+account expenses:food
+    ; role: expense
+
+account expenses:household
+    ; role: expense
+
+account budget:daily
+    ; role: budget
+
+account budget:spent:daily
+    ; role: budget
+
+2026-07-01 * Synthetic opening
+    ; event-id: opening-20260701-001
+    assets:cash    5000 JPY
+    equity:opening    -5000 JPY
+
+2026-07-23 * Ordinary purchase
+    expenses:food    25 JPY
+    assets:cash    -25 JPY
+
+2026-07-24 * Planned household payment
+    ; event-id: completion-plan-household-001-20260724
+    ; plan-id: plan-household-001
+    ; execution-envelope: daily
+    expenses:household    40 JPY
+    assets:cash    -40 JPY
+
+2026-07-23 * Invalid identity-free companion
+    ; event-id: budget-companion-ordinary-001
+    ; layer: budget
+    ; actual-event-id: stage0-line-26
+    budget:daily    25 JPY
+    budget:spent:daily    -25 JPY
