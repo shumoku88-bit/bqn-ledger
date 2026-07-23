@@ -26,9 +26,22 @@ report_out="$tmp/report.out"
 tools/report "$base" >"$report_out"
 [[ -s "$report_out" && ! -e "$base/journal.tsv" ]]
 
-before=$(shasum -a 256 "$base/actual.journal" | awk '{print $1}')
-tools/edit --base "$base" journal add --date 2026-08-05 --memo 'Journal-only daily add' --from assets:cash --to expenses:food --amount 25 --yes
-[[ "$before" != "$(shasum -a 256 "$base/actual.journal" | awk '{print $1}')" && ! -e "$base/journal.tsv" ]]
+before_sha=$(shasum -a 256 "$base/actual.journal" | awk '{print $1}')
+before_event_count=$(grep -Fc '; event-id:' "$base/actual.journal" || true)
+before_layer_count=$(grep -Fc '; layer: actual' "$base/actual.journal" || true)
+before_currency_count=$(grep -Fc '; currency: JPY' "$base/actual.journal" || true)
+
+tools/edit --base "$base" journal add --date 2026-08-05 --memo 'Journal-only daily add' --from assets:cash --to expenses:food --amount 25 --currency JPY --yes
+
+after_sha=$(shasum -a 256 "$base/actual.journal" | awk '{print $1}')
+after_event_count=$(grep -Fc '; event-id:' "$base/actual.journal" || true)
+after_layer_count=$(grep -Fc '; layer: actual' "$base/actual.journal" || true)
+after_currency_count=$(grep -Fc '; currency: JPY' "$base/actual.journal" || true)
+
+[[ "$before_sha" != "$after_sha" && ! -e "$base/journal.tsv" ]]
+[[ "$after_event_count" -eq $((before_event_count + 1)) ]]
+[[ "$after_layer_count" -eq "$before_layer_count" ]]
+[[ "$after_currency_count" -eq "$before_currency_count" ]]
 [[ "$(tools/edit --base "$base" journal list --format tsv | wc -l | tr -d ' ')" -eq 3 ]]
 
 tools/edit --base "$base" plan add --date 2026-08-20 --memo 'Journal-only plan completion' --from assets:cash --to expenses:household --amount 40 --id plan-2026-08-20-journal-cutover --yes

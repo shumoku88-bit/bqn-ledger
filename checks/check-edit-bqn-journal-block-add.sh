@@ -35,7 +35,6 @@ Post-check: lint
 Candidate block:
 2026-07-22 * スーパー
     ; event-id: purchase-20260722-001
-    ; layer: actual
     expenses:food:daily    1200 JPY
     expenses:household    500 JPY
     assets:cash    -1700 JPY
@@ -45,10 +44,29 @@ cmp "$tmp_root/dry.expected" "$dry_out"
 [[ $(sha_file "$dry/source.journal") == "$dry_before" ]]
 assert_no_backups "$dry" dry-run
 
+# Explicit user metadata preservation case
+exp_base=$(new_base explicit-meta); exp_out="$tmp_root/explicit-meta.out"
+exp_args=(journal-block add --journal-file source.journal --date 2026-07-22 --description explicit-metadata --event-id explicit-metadata-001 --posting expenses:food:daily=1 --posting assets:cash=-1 --meta currency=JPY --meta note=explicit --dry-run)
+run_ok "$exp_base" "$exp_out" "${exp_args[@]}"
+cat >"$tmp_root/explicit-meta.expected" <<EOF
+Native Journal block append preview
+Target: $(cd -P "$exp_base" && pwd)/source.journal
+Mode: dry-run
+Post-check: lint
+Candidate block:
+2026-07-22 * explicit-metadata
+    ; event-id: explicit-metadata-001
+    ; currency: JPY
+    ; note: explicit
+    expenses:food:daily    1 JPY
+    assets:cash    -1 JPY
+Dry-run only. No files were modified.
+EOF
+cmp "$tmp_root/explicit-meta.expected" "$exp_out"
+
 # Exact bytes for all three source endings. The completed bytes must converge.
 expected_block='2026-07-22 * スーパー
     ; event-id: purchase-20260722-001
-    ; layer: actual
     expenses:food:daily    1200 JPY
     expenses:household    500 JPY
     assets:cash    -1700 JPY'
@@ -66,10 +84,16 @@ for ending in no-final-newline one-final-newline paragraph-separator; do
     one-final-newline) sep=$'\n' ;;
     paragraph-separator) sep='' ;;
   esac
+  before_layer_count=$(grep -Fc '; layer: actual' "$original" || true)
+  before_currency_count=$(grep -Fc '; currency: JPY' "$original" || true)
   { cat "$original"; printf '%s' "$sep"; printf '%s\n' "$expected_block"; } >"$tmp_root/$ending.expected"
   run_ok "$base" "$tmp_root/$ending.out" "${args[@]}" --yes --post-check none
   cmp "$tmp_root/$ending.expected" "$base/source.journal"
   grep -Fq 'Mandatory native validation: OK' "$tmp_root/$ending.out"
+  after_layer_count=$(grep -Fc '; layer: actual' "$base/source.journal" || true)
+  after_currency_count=$(grep -Fc '; currency: JPY' "$base/source.journal" || true)
+  [[ "$after_layer_count" -eq "$before_layer_count" ]]
+  [[ "$after_currency_count" -eq "$before_currency_count" ]]
   count=$(grep -Fc '; event-id: purchase-20260722-001' "$base/source.journal")
   [[ $count -eq 1 ]]
   current=$(sha_file "$base/source.journal"); [[ -z "$reference_sha" || "$reference_sha" == "$current" ]]; reference_sha=$current

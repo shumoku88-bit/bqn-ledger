@@ -97,7 +97,7 @@ resolved ← ak.Resolve loader.ReadLines (base ∾ "/accounts.tsv")
 
 postingLines ← {"    " ∾ 𝕩.account_key ∾ "    " ∾ 𝕩.amount_text ∾ " JPY"}¨ postings
 metadataLines ← {"    ; "∾𝕩.key∾": "∾𝕩.value}¨metadata
-blockLines ← ⟨dateText ∾ " * " ∾ description, "    ; event-id: " ∾ eventId, "    ; layer: actual"⟩ ∾ metadataLines ∾ postingLines
+blockLines ← ⟨dateText ∾ " * " ∾ description, "    ; event-id: " ∾ eventId⟩ ∾ metadataLines ∾ postingLines
 block ← ⊑ blockLines
 {𝕊 line: block ∾↩ lf ∾ line}¨ 1 ↓ blockLines
 
