@@ -1,0 +1,4 @@
+# Fixture: journal-append-candidate-ordinal
+assets:cash	role=asset	currency=JPY
+expenses:food	role=expense	currency=JPY
+expenses:household	role=expense	currency=JPY
