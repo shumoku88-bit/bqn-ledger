@@ -172,18 +172,48 @@ duplicateAccountMetadata ← ⟨"assets:orchard"∾tab∾"role=asset"∾tab∾"r
 duplicateRegistry ← converter.Convert ⟨MakeOne ⟨"2042-03-01","Duplicate account metadata","assets:orchard","expenses:market","1",⟨⟩⟩,"journal.tsv",duplicateAccountMetadata,cycleStart⟩
 "error" lib.AssertEq duplicateRegistry.state
 lib.Assert HasCode ⟨"account_metadata_duplicate",duplicateRegistry⟩
+# Description admission is intentionally distinct from SafeValue: leading ASCII
+# SPACE is source-owned and must survive converter rendering and Stage 1 exactly.
+AssertLeadingAdmission ← {𝕊 description‿dateText:
+  leadingSnapshot ← MakeOne ⟨dateText,description,"assets:orchard","expenses:market","1",⟨⟩⟩
+  leading ← converter.Convert ⟨leadingSnapshot,"journal.tsv",accounts,cycleStart⟩
+  "ok" lib.AssertEq leading.state
+  0 lib.AssertEq ≠leading.diagnostics
+  lib.Assert 0 < +´ (dateText∾" * "∾description∾lf) ⍷ leading.canonical_prefix_bytes
+  leadingParsed ← parser.ParseWithProfile ⟨leading.canonical_prefix_bytes,"historical_external_plan"⟩
+  "ok" lib.AssertEq leadingParsed.state
+  0 lib.AssertEq ≠leadingParsed.diagnostics
+  description lib.AssertEq (⊑leadingParsed.transactions).description
+  description lib.AssertEq (⊑leading.transactions).description
+  1 lib.AssertEq leading.validation_summary.parser_pass
+  1 lib.AssertEq leading.validation_summary.stage2a_pass
+  1 lib.AssertEq leading.validation_summary.stage2b_pass
+  1 lib.AssertEq leading.validation_summary.accounting_parity_pass
+  1 lib.AssertEq leading.validation_summary.identity_parity_pass
+  1 lib.AssertEq leading.validation_summary.metadata_parity_pass
+}
+oneLeadingSynthetic ← " Leading synthetic description"
+twoLeadingSynthetic ← "  Leading synthetic description"
+lib.Assert converter.DescriptionRepresentable oneLeadingSynthetic
+lib.Assert converter.DescriptionRepresentable twoLeadingSynthetic
+AssertLeadingAdmission ⟨oneLeadingSynthetic,"2042-03-06"⟩
+AssertLeadingAdmission ⟨twoLeadingSynthetic,"2042-03-07"⟩
+
+# Empty, trailing ASCII SPACE, C0 controls, and DEL remain rejected.
 AssertFailure ⟨MakeOne ⟨"2042-03-01","","assets:orchard","expenses:market","1",⟨⟩⟩,"description_not_canonically_representable"⟩
-AssertFailure ⟨MakeOne ⟨"2042-03-01"," leading","assets:orchard","expenses:market","1",⟨⟩⟩,"description_not_canonically_representable"⟩
 AssertFailure ⟨MakeOne ⟨"2042-03-01","trailing ","assets:orchard","expenses:market","1",⟨⟩⟩,"description_not_canonically_representable"⟩
 lib.Assert ¬converter.DescriptionRepresentable "tab"∾tab∾"inside"
 lib.Assert ¬converter.DescriptionRepresentable "line"∾lf∾"inside"
 lib.Assert ¬converter.DescriptionRepresentable "carriage"∾(@+13)∾"inside"
 AssertFailure ⟨MakeOne ⟨"2042-03-01","carriage"∾(@+13)∾"inside","assets:orchard","expenses:market","1",⟨⟩⟩,"description_not_canonically_representable"⟩
 lib.Assert ¬converter.DescriptionRepresentable "nul"∾(@+0)∾"inside"
+AssertFailure ⟨MakeOne ⟨"2042-03-01","nul"∾(@+0)∾"inside","assets:orchard","expenses:market","1",⟨⟩⟩,"description_not_canonically_representable"⟩
 lib.Assert ¬converter.DescriptionRepresentable "del"∾(@+127)∾"inside"
+AssertFailure ⟨MakeOne ⟨"2042-03-01","del"∾(@+127)∾"inside","assets:orchard","expenses:market","1",⟨⟩⟩,"description_not_canonically_representable"⟩
 AssertFailure ⟨MakeOne ⟨"2042-03-01","Unknown metadata","assets:orchard","expenses:market","1",⟨"mystery=value"⟩⟩,"metadata_unknown"⟩
 AssertFailure ⟨MakeOne ⟨"2042-03-01","Duplicate metadata","assets:orchard","expenses:market","1",⟨"tax=private","tax=business"⟩⟩,"metadata_duplicate"⟩
 AssertFailure ⟨MakeOne ⟨"2042-03-01","Empty metadata","assets:orchard","expenses:market","1",⟨"note="⟩⟩,"metadata_value_invalid"⟩
+AssertFailure ⟨MakeOne ⟨"2042-03-01","Leading metadata remains unsafe","assets:orchard","expenses:market","1",⟨"note= leading"⟩⟩,"metadata_value_invalid"⟩
 AssertFailure ⟨MakeOne ⟨"2042-03-01","Controlled metadata","assets:orchard","expenses:market","1",⟨"biz=yes"⟩⟩,"metadata_value_invalid"⟩
 AssertFailure ⟨MakeOne ⟨"2042-03-01","Foreign currency","assets:orchard","expenses:market","1",⟨"currency=ILS"⟩⟩,"metadata_value_invalid"⟩
 

@@ -36,7 +36,7 @@ grep -Fq 'output already exists' "$tmp_root/existing.out"
 
 bad_snapshot="$tmp_root/bad.tsv"
 bad_output="$tmp_root/bad-prefix.journal"
-printf '%s\n' $'2044-05-03\t leading\tassets:public-cash\texpenses:public-food\t80' >"$bad_snapshot"
+printf '%s\n' $'2044-05-03\ttrailing \tassets:public-cash\texpenses:public-food\t80' >"$bad_snapshot"
 set +e
 ./tools/journal-prefix convert "$accounts" "$bad_snapshot" journal.tsv 2044-05-01 "$bad_output" >"$tmp_root/bad.out" 2>&1
 rc=$?
