@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # tools/edit-bqn — BQN-backed editor entry point.
 #
-# Current scope: daily commands (`account add/list`, `journal add/list/reverse`,
+# Current scope: daily commands (`account add/list`, `journal add/list/cleanup-plan/reverse`,
 # `budget add`, `issue add/list/close`, and `plan add/list/related/finish/edit`),
 # the separate explicit-path `journal-block add`, and dedicated travel source-event commands.
 # `tools/edit` is the public wrapper that delegates here.
@@ -46,6 +46,7 @@ Usage:
   tools/edit-bqn [--base DIR] account add --name ACCOUNT --role asset|liability|income|expense [--type liquid|savings|invest] [--currency CODE] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] account list [--role ROLE] [--currency CODE]
   tools/edit-bqn [--base DIR] journal list [--format tsv|text]
+  tools/edit-bqn [--base DIR] journal cleanup-plan [--format tsv|text]
   tools/edit-bqn [--base DIR] plan list [--all] [--format tsv|text] [--temporal all|overdue|upcoming] [--as-of YYYY-MM-DD]
   tools/edit-bqn [--base DIR] plan related [--index NUMBER] [--id PLAN_ID] --actual-date YYYY-MM-DD [--format tsv]
   tools/edit-bqn [--base DIR] plan finish [--index NUMBER] [--id PLAN_ID] --actual-date YYYY-MM-DD [--actual-amount DECIMAL] [--dry-run] [--yes] [--post-check none|lint|full]
@@ -55,7 +56,7 @@ Usage:
   tools/edit-bqn [--base DIR] travel friend add --date YYYY-MM-DD --party PARTY --item ITEM --amount DECIMAL --currency ILS --payer friend --trip-id israel-2026 --source-event-id ID [--dry-run] [--yes]
   tools/edit-bqn [--base DIR] travel exchange add --date YYYY-MM-DD --memo MEMO --source-account ACCOUNT --source-amount INT --source-currency JPY --target-account ACCOUNT --target-amount DECIMAL --target-currency ILS --exchange-id ID --trip-id israel-2026 [--dry-run] [--yes]
 
-Current scope: BQN editor daily commands (account add/list, journal add/multi-add, budget/plan/issue add, explicit-path journal-block add, travel friend/exchange add, issue list/close, journal list/reverse, and plan list/related/finish/edit).
+Current scope: BQN editor daily commands (account add/list, journal add/multi-add, budget/plan/issue add, explicit-path journal-block add, travel friend/exchange add, issue list/close, journal list/cleanup-plan/reverse, and plan list/related/finish/edit).
 USAGE
 }
 
@@ -342,6 +343,23 @@ if [[ "$1" == "journal" && "$2" == "list" ]]; then
     *) echo "ERROR: invalid format: $FORMAT (expected 'tsv' or 'text')" >&2; exit 2 ;;
   esac
   cd "$ROOT_DIR" && bqn src_edit/journal_list_cmd.bqn "$BASE_DIR" "$FORMAT"
+  exit $?
+fi
+
+if [[ "$1" == "journal" && "$2" == "cleanup-plan" ]]; then
+  shift 2
+  FORMAT="text"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --format) FORMAT="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      *) echo "ERROR: unknown journal cleanup-plan argument: $1" >&2; exit 2 ;;
+    esac
+  done
+  case "$FORMAT" in
+    tsv|text) ;;
+    *) echo "ERROR: invalid format: $FORMAT (expected 'tsv' or 'text')" >&2; exit 2 ;;
+  esac
+  cd "$ROOT_DIR" && bqn src_edit/journal_cleanup_plan_cmd.bqn "$BASE_DIR" "$FORMAT"
   exit $?
 fi
 
