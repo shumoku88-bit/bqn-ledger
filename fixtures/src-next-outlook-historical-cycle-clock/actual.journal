@@ -1,0 +1,19 @@
+commodity JPY
+
+account assets:cash
+    ; role: asset
+
+account expenses:food
+    ; role: expense
+
+2026-07-20 * in_cycle_actual
+    ; event-id: fixture-event-0
+    ; layer: actual
+    expenses:food 100 JPY
+    assets:cash -100 JPY
+
+2026-08-02 * later_cycle_actual
+    ; event-id: fixture-event-1
+    ; layer: actual
+    expenses:food 100 JPY
+    assets:cash -100 JPY

@@ -1,0 +1,54 @@
+commodity JPY
+
+account assets:bank
+    ; role: asset
+
+account assets:オルカン積立
+    ; role: asset
+    ; default-envelope: オルカン投資
+
+account budget:daily
+    ; role: budget
+
+account budget:opening
+    ; role: budget
+
+account budget:spent
+    ; role: budget
+
+account budget:unassigned
+    ; role: budget
+
+account budget:ゆうちょ貯金
+    ; role: budget
+
+account budget:オルカン投資
+    ; role: budget
+
+account equity:opening-balances
+    ; role: equity
+
+account expenses:food
+    ; role: expense
+    ; default-envelope: daily
+
+account income:salary
+    ; role: income
+
+2026-01-01 * Opening
+    ; event-id: fixture-event-0
+    ; layer: actual
+    assets:bank 100000 JPY
+    equity:opening-balances -100000 JPY
+
+2026-01-02 * save_orukan
+    ; event-id: fixture-event-1
+    ; layer: actual
+    assets:オルカン積立 3000 JPY
+    assets:bank -3000 JPY
+
+2026-01-04 * drawn_orukan
+    ; event-id: fixture-event-2
+    ; layer: actual
+    assets:bank 1000 JPY
+    assets:オルカン積立 -1000 JPY

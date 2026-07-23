@@ -183,9 +183,10 @@ case "$cmd" in
     cache_dir="${TMPDIR:-/tmp}/bqn-ledger-cache-${sanitized_path}"
     mkdir -p "$cache_dir"
 
+    actual_journal_rel="$(bqn "$ROOT_DIR/src_edit/actual_journal_file_cmd.bqn" "$base_abs")"
     src_files=(
       "$base_abs/accounts.tsv"
-      "$base_abs/journal.tsv"
+      "$base_abs/$actual_journal_rel"
       "$base_abs/plan.tsv"
       "$base_abs/budget_alloc.tsv"
       "$base_abs/cycle.tsv"

@@ -1,6 +1,0 @@
-2026-01-31	pre_cycle	income:base	assets:cash	100
-2026-02-01	cycle_start	income:base	assets:cash	200
-2026-02-05	at_observation	assets:cash	expenses:misc	50
-2026-02-06	after_observation_income	income:after_o	assets:cash	30
-2026-02-11	at_end_exclusive	assets:cash	expenses:misc	40
-2026-02-12	outside_cycle_income	income:outside	assets:cash	20

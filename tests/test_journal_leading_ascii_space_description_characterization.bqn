@@ -3,7 +3,6 @@
 lib ← •Import "test_lib.bqn"
 parser ← •Import "../src_next/journal_profile_stage1.bqn"
 stage2a ← •Import "../src_next/journal_posting_ir_stage2a.bqn"
-converter ← •Import "../src_next/journal_canonical_prefix_converter.bqn"
 ak ← •Import "../src_next/account_key.bqn"
 
 lf ← @+10
@@ -62,38 +61,12 @@ emptyPayload ← parser.Parse JournalWithHeader "2046-04-12 * "
 lib.Assert HasCode ⟨"header_description_missing",emptyPayload⟩
 lib.Assert ¬HasCode ⟨"header_description_delimiter_missing",emptyPayload⟩
 
-# Converter description admission now matches the parser's exact-preservation
-# boundary without relaxing SafeValue for metadata or account text.
-lib.Assert converter.DescriptionRepresentable oneLeadingDescription
-lib.Assert converter.DescriptionRepresentable twoLeadingDescription
-
 accountLines ← ⟨
   "assets:synthetic-cash"∾tab∾"role=asset"∾tab∾"currency=JPY",
   "expenses:synthetic-service"∾tab∾"role=expense"∾tab∾"currency=JPY"
 ⟩
 resolved ← ak.Resolve accountLines
 cycleStart ← "2046-04-01"
-ConvertDescription ← {𝕊 description:
-  legacySnapshot ← ∾ ⟨
-    "2046-04-12",tab,description,tab,
-    "assets:synthetic-cash",tab,"expenses:synthetic-service",tab,"51",lf
-  ⟩
-  converter.Convert ⟨legacySnapshot,"journal.tsv",accountLines,cycleStart⟩
-}
-oneLeadingConversion ← ConvertDescription oneLeadingDescription
-twoLeadingConversion ← ConvertDescription twoLeadingDescription
-{𝕊 description‿conversion:
-  "ok" lib.AssertEq conversion.state
-  0 lib.AssertEq ≠conversion.diagnostics
-  lib.Assert 0 < +´ ("2046-04-12 * "∾description∾lf) ⍷ conversion.canonical_prefix_bytes
-  description lib.AssertEq (⊑conversion.transactions).description
-  1 lib.AssertEq conversion.validation_summary.parser_pass
-  1 lib.AssertEq conversion.validation_summary.stage2a_pass
-  1 lib.AssertEq conversion.validation_summary.stage2b_pass
-  1 lib.AssertEq conversion.validation_summary.accounting_parity_pass
-  1 lib.AssertEq conversion.validation_summary.identity_parity_pass
-  1 lib.AssertEq conversion.validation_summary.metadata_parity_pass
-}¨ ⟨⟨oneLeadingDescription,oneLeadingConversion⟩,⟨twoLeadingDescription,twoLeadingConversion⟩⟩
 
 controlStage2 ← stage2a.Build ⟨controlParsed.transactions,resolved,cycleStart⟩
 oneLeadingStage2 ← stage2a.Build ⟨oneLeadingParsed.transactions,resolved,cycleStart⟩

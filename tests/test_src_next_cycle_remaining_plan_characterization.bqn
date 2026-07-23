@@ -6,6 +6,8 @@ lib ← •Import "test_lib.bqn"
 ctx_mod ← •Import "../src_next/context.bqn"
 cs ← •Import "../src_next/cycle_summary.bqn"
 loader ← •Import "../src_next/loader.bqn"
+actual_source ← •Import "../src_next/actual_source.bqn"
+adapter ← •Import "../src_next/journal_posting_ir_stage2a.bqn"
 labels ← •Import "../src_next/report_labels.bqn"
 fmt ← •Import "../src_next/format.bqn"
 
@@ -17,18 +19,11 @@ root_base ← "fixtures/cycle-remaining-plan-characterization"
 root_ctx ← ctx_mod.BuildContext root_base
 
 PostingRowsForBase ← {𝕊 base:
-  journal_lines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
-  plan_lines ← loader.ReadLinesOptional (base ∾ "/plan.tsv")
-  budget_lines ← loader.ReadLinesOptional (base ∾ "/budget_alloc.tsv")
-  snapshot ← {
-    sources ⇐ ⟨
-      {source_file⇐"journal.tsv", required⇐1, lines⇐journal_lines},
-      {source_file⇐"plan.tsv", required⇐0, lines⇐plan_lines},
-      {source_file⇐"budget_alloc.tsv", required⇐0, lines⇐budget_lines}
-    ⟩
-  }
-  projection ← ctx_mod.BuildCheckedPostingProjectionFromSnapshot ⟨snapshot, root_ctx.resolved, root_ctx.cy.start⟩
-  projection.posting_rows
+  snapshot ← ctx_mod.LoadNonActualPostingSourceSnapshot base
+  projection ← ctx_mod.BuildCheckedPostingProjectionFromSnapshot ⟨snapshot,root_ctx.resolved,root_ctx.cy.start⟩
+  txs ← actual_source.LoadTransactions base
+  actual ← adapter.BuildForSource ⟨txs,root_ctx.resolved,root_ctx.cy.start,(actual_source.Resolve base).file⟩
+  actual.posting_rows∾projection.posting_rows
 }
 
 MakeCustomCtxWithRows ← {𝕊 base‿rows:
@@ -155,14 +150,7 @@ no_base_sum ← cs.Build no_base_ctx
 "no_base_compatibility" lib.AssertEq no_base_sum.reason
 no_base_sum.plan_expense lib.AssertEq no_base_sum.plan_expense_remaining
 
-# 11. Exact-decimal amount comes from admitted Posting IR, not a local integer parser.
-usd_ctx ← ctx_mod.BuildContext "fixtures/currency-usd-single"
-usd_sum ← cs.Build usd_ctx
-"ok" lib.AssertEq usd_sum.state
-4999 lib.AssertEq usd_sum.plan_expense
-4999 lib.AssertEq usd_sum.plan_expense_remaining
-
-# 12. Duplicate plan identity remains exact-any-match compatible and order-independent.
+# 11. Duplicate plan identity remains exact-any-match compatible and order-independent.
 dup_ctx ← MakeCustomCtx (root_base ∾ "/sub_duplicate_plan_id")
 dup_sum ← cs.Build dup_ctx
 "ok" lib.AssertEq dup_sum.state

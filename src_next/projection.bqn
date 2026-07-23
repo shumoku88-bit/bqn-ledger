@@ -28,7 +28,7 @@ layer_forecast ← 3
 
 # ── Layer mapping by source file ─────────────────────────────
 
-source_layer_files ← ⟨"journal.tsv", "plan.tsv", "budget_alloc.tsv"⟩
+source_layer_files ← ⟨"actual.journal", "plan.tsv", "budget_alloc.tsv"⟩
 source_layer_vals  ← ⟨layer_actual, layer_plan, layer_budget⟩
 
 SourceLayer ← {𝕊 src:

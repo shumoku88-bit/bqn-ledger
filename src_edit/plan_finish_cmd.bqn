@@ -4,9 +4,7 @@
 # Input args:
 #   <baseDir> <index: 0 or number> <planId: "" or id> <actualDate> <actualAmount: "" or amount>
 #
-# Stdout protocol on success:
-#   OK\tAPPEND\tjournal.tsv
-#   <complete TSV row>
+# Stdout protocol on success is an APPEND_NATIVE transaction intent.
 #
 # Stdout protocol on validation error (with non-zero exit):
 #   ERROR\t<message>
@@ -47,8 +45,6 @@ ResolvePath ← { baseDir ∾ "/" ∾ 𝕩 }
 
 # データの読み込み
 planPath ← ResolvePath (sys.DefaultPlanFile @)
-journalPath ← ResolvePath (sys.DefaultJournalFile @)
-
 accountsFile ← ResolvePath (sys.DefaultAccountsFile @)
 accountsLinesRaw ← loader.ReadLinesOptional accountsFile
 IsDataLine ← { (0 < ≠ 𝕩) ? ((⊑ 𝕩 ≠ '#') ∧ (⊑ 𝕩 ≠ ⊑"\\")) ; 0 }
@@ -167,27 +163,9 @@ hasPlanId ← ∨´ IsPlanId¨ metaWithoutCurrency
 metaToUse ← hasPlanId ◶ ⟨ { 𝕊 ⋄ ⟨"plan_id=" ∾ pid⟩ ∾ metaWithoutCurrency }, { 𝕊 ⋄ metaWithoutCurrency } ⟩ @
 finalMeta ← metaToUse ∾ ⟨"currency=" ∾ currency⟩
 
-# ジャーナル行のレンダリング
-row ← render.RenderJournalRow {
-  date ⇐ actualDate ⋄
-  memo ⇐ 1 ⊑ fields ⋄
-  from ⇐ 2 ⊑ fields ⋄
-  to ⇐ 3 ⊑ fields ⋄
-  amount ⇐ amountToUse ⋄
-  meta ⇐ finalMeta
-}
-
-actualRoute ← config.LoadActualSource baseDir
-actualMode ← actualRoute.mode
-{𝕊:
-  •Out "OK" ∾ tab ∾ "APPEND" ∾ tab ∾ sys.DefaultJournalFile @
-  •Out row
-}⍟(actualMode≡"tsv") @
-{𝕊:
-  journalFile ← actualRoute.file
-  eventId ← "completion-"∾pid∾"-"∾actualDate
-  •Out "OK"∾tab∾"APPEND_NATIVE"∾tab∾journalFile∾tab∾eventId∾tab∾actualDate∾tab∾(1⊑fields)∾tab∾"2"∾tab∾(•Fmt ≠finalMeta)
-  •Out "P"∾tab∾(3⊑fields)∾"="∾amountToUse
-  •Out "P"∾tab∾(2⊑fields)∾"=-"∾amountToUse
-  {𝕊 metaItem: •Out "M"∾tab∾metaItem}¨finalMeta
-}⍟(actualMode≡"journal") @
+journalFile ← (config.LoadActualJournal baseDir).file
+eventId ← "completion-"∾pid∾"-"∾actualDate
+•Out "OK"∾tab∾"APPEND_NATIVE"∾tab∾journalFile∾tab∾eventId∾tab∾actualDate∾tab∾(1⊑fields)∾tab∾"2"∾tab∾(•Fmt ≠finalMeta)
+•Out "P"∾tab∾(3⊑fields)∾"="∾amountToUse
+•Out "P"∾tab∾(2⊑fields)∾"=-"∾amountToUse
+{𝕊 metaItem: •Out "M"∾tab∾metaItem}¨finalMeta

@@ -17,9 +17,28 @@ printf '%s\n' \
 printf '%s\n' \
   $'2026-07-20\tfixed bill\tassets:bank\texpenses:fixed\t1000\tplan_id=plan-2026-07-20-fixed\tcurrency=JPY' \
   $'2026-07-20\tvariable\tassets:bank\texpenses:variable\t200\tplan_id=plan-2026-07-20-variable\tcurrency=JPY' >"$base/plan.tsv"
-printf '%s\n' \
-  $'2026-07-14\tfixed bill\tassets:bank\texpenses:fixed\t900\tplan_id=plan-2026-07-20-fixed\tcurrency=JPY' \
-  $'2026-07-14\tvariable\tassets:bank\texpenses:variable\t200\tplan_id=plan-2026-07-20-variable\tcurrency=JPY' >"$base/journal.tsv"
+cat >"$base/actual.journal" <<'JOURNAL'
+commodity JPY
+
+account assets:bank
+    ; role: asset
+
+account expenses:fixed
+    ; role: expense
+
+account expenses:variable
+    ; role: expense
+
+2026-07-14 * fixed bill
+    ; plan-id: plan-2026-07-20-fixed
+    assets:bank       -900 JPY
+    expenses:fixed     900 JPY
+
+2026-07-14 * variable
+    ; plan-id: plan-2026-07-20-variable
+    assets:bank          -200 JPY
+    expenses:variable     200 JPY
+JOURNAL
 : >"$base/budget_alloc.tsv"; printf '%s\n' $'2026-06-15\tcycle\t2026-08-15' >"$base/cycle.tsv"
 cp config/default_config.tsv "$base/config.tsv"
 python3 - "$base/config.tsv" <<'PY'
@@ -64,10 +83,10 @@ tools/edit --base "$base" plan budget-sync --id plan-2026-07-20-fixed --yes --po
 tools/edit --base "$base" plan budget-sync --id plan-2026-07-20-variable --yes --post-check none | grep -Fq 'not linked'
 [[ "$(wc -l <"$base/budget_alloc.tsv" | tr -d ' ')" == 1 ]]
 
-cp "$base/journal.tsv" "$tmp/journal"; cat "$tmp/journal" >>"$base/journal.tsv"
+awk '/^2026-07-14 \* variable$/{copy=1} copy{print}' "$base/actual.journal" >>"$base/actual.journal"
 set +e
 err="$(tools/edit --base "$base" plan budget-sync --id plan-2026-07-20-variable --dry-run 2>&1)"; rc=$?
 set -e
-[[ "$rc" -ne 0 ]]; grep -Fq 'exactly one completed journal row' <<<"$err"
+[[ "$rc" -ne 0 ]]; grep -Fq 'native Journal source rejected' <<<"$err"
 
 printf 'check-edit-bqn-plan-budget-sync: OK\n'

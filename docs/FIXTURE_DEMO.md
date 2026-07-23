@@ -1,5 +1,10 @@
 # Fixture Demo Walkthrough
 
+Status: current operational guide
+Owner: docs
+Canonical: no; canonical path: docs/DATA_DIR_SETUP.md
+Exit: revise when the public demo fixture or command path changes
+
 This document is a small public demo path for BQN Ledger.
 
 It uses fixture data only. Do not use real household data, real account names, private file paths, or screenshots with private balances when preparing public demos or application material.
@@ -41,7 +46,7 @@ Expected meaning:
 
 ```bash
 ls fixtures/src-next-golden
-cat fixtures/src-next-golden/journal.tsv
+cat fixtures/src-next-golden/actual.journal
 cat fixtures/src-next-golden/plan.tsv
 cat fixtures/src-next-golden/budget_alloc.tsv
 cat fixtures/src-next-golden/accounts.tsv

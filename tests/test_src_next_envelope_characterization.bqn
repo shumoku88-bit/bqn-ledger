@@ -4,6 +4,8 @@ lib ← •Import "test_lib.bqn"
 loader ← •Import "../src_next/loader.bqn"
 ak ← •Import "../src_next/account_key.bqn"
 context ← •Import "../src_next/context.bqn"
+actual_source ← •Import "../src_next/actual_source.bqn"
+adapter ← •Import "../src_next/journal_posting_ir_stage2a.bqn"
 cycle ← •Import "../src_next/cycle.bqn"
 cube ← •Import "../src_next/cube.bqn"
 tbds ← •Import "../src_next/tbds.bqn"
@@ -14,11 +16,17 @@ plan_rows ← •Import "../src_next/plan_rows.bqn"
 base ← "fixtures/envelope-characterization"
 resolved ← ak.Resolve loader.ReadLines (base ∾ "/accounts.tsv")
 cy ← cycle.ReadCycle base
-posting_snapshot ← context.LoadPostingSourceSnapshot base
+BuildProjection ← {𝕊 sourceBase:
+  snapshot ← context.LoadNonActualPostingSourceSnapshot sourceBase
+  nonactual ← context.BuildCheckedPostingProjectionFromSnapshot ⟨snapshot,resolved,cy.start⟩
+  txs ← actual_source.LoadTransactions sourceBase
+  actual ← adapter.BuildForSource ⟨txs,resolved,cy.start,(actual_source.Resolve sourceBase).file⟩
+  {state⇐nonactual.state,posting_rows⇐actual.posting_rows∾nonactual.posting_rows,diagnostics⇐nonactual.diagnostics}
+}
 
 # Build normally
-built_rows ← context.BuildAuthorizedRowsFromSnapshot ⟨posting_snapshot, resolved, cy.start⟩
-rows ← built_rows.rows
+built_rows ← BuildProjection base
+rows ← built_rows.posting_rows
 result ← cube.Materialize ⟨rows, cy.day_count, resolved.count⟩
 tbds_rows ← tbds.Build ⟨rows, result, resolved, cy⟩
 
@@ -71,8 +79,7 @@ ep ← summary.execution_planned
 # sub_unknown_account_alloc has 'budget:unknown_env' which is unknown.
 # We build checked projection from its snapshot.
 unk_base ← "fixtures/envelope-characterization/sub_unknown_account_alloc"
-unk_snapshot ← context.LoadPostingSourceSnapshot unk_base
-unk_proj ← context.BuildCheckedPostingProjectionFromSnapshot ⟨unk_snapshot, resolved, cy.start⟩
+unk_proj ← BuildProjection unk_base
 "ok" lib.AssertEq unk_proj.state # Unknown account does NOT fail the projection state
 
 # But it is skipped in cube materialization
@@ -84,16 +91,14 @@ unk_cube ← cube.Materialize ⟨unk_proj.posting_rows, cy.day_count, resolved.c
 # sub_invalid_amount has amount 'abc'.
 # Build checked projection from its snapshot.
 inv_base ← "fixtures/envelope-characterization/sub_invalid_amount"
-inv_snapshot ← context.LoadPostingSourceSnapshot inv_base
-inv_proj ← context.BuildCheckedPostingProjectionFromSnapshot ⟨inv_snapshot, resolved, cy.start⟩
+inv_proj ← BuildProjection inv_base
 "error" lib.AssertEq inv_proj.state # Invalid amount fails projection state
 
 # ── Case 7: Invalid Budget Date ──
 # sub_invalid_budget_date has date '2026-99-99' in budget_alloc.tsv.
 # Build checked projection.
 miss_base ← "fixtures/envelope-characterization/sub_invalid_budget_date"
-miss_snapshot ← context.LoadPostingSourceSnapshot miss_base
-miss_proj ← context.BuildCheckedPostingProjectionFromSnapshot ⟨miss_snapshot, resolved, cy.start⟩
+miss_proj ← BuildProjection miss_base
 "ok" lib.AssertEq miss_proj.state # Invalid date does NOT fail projection state (it projects as invalid_date row status)
 miss_rows ← miss_proj.posting_rows
 miss_cube ← cube.Materialize ⟨miss_rows, cy.day_count, resolved.count⟩
@@ -108,8 +113,7 @@ HasInvalidBudgetDateError ← {𝕊:
 # ── Case 2: Empty Allocation Source ──
 # sub_empty_alloc has empty budget_alloc.tsv.
 emp_base ← "fixtures/envelope-characterization/sub_empty_alloc"
-emp_snapshot ← context.LoadPostingSourceSnapshot emp_base
-emp_proj ← context.BuildCheckedPostingProjectionFromSnapshot ⟨emp_snapshot, resolved, cy.start⟩
+emp_proj ← BuildProjection emp_base
 emp_rows ← emp_proj.posting_rows
 emp_cube ← cube.Materialize ⟨emp_rows, cy.day_count, resolved.count⟩
 emp_tbds ← tbds.Build ⟨emp_rows, emp_cube, resolved, cy⟩
@@ -129,8 +133,7 @@ emp_summary ← env.Build { base ⇐ emp_base, resolved ⇐ resolved, cy ⇐ cy,
 # If we have no planned payments, execution_planned.status = MISMATCH
 # Let's verify by building execution planned coverage with empty plan rows.
 no_plan_base ← "fixtures/envelope-characterization/sub_no_planned_payment"
-no_plan_snapshot ← context.LoadPostingSourceSnapshot no_plan_base
-no_plan_proj ← context.BuildCheckedPostingProjectionFromSnapshot ⟨no_plan_snapshot, resolved, cy.start⟩
+no_plan_proj ← BuildProjection no_plan_base
 no_plan_rows ← no_plan_proj.posting_rows
 no_plan_cube ← cube.Materialize ⟨no_plan_rows, cy.day_count, resolved.count⟩
 no_plan_tbds ← tbds.Build ⟨no_plan_rows, no_plan_cube, resolved, cy⟩
@@ -144,8 +147,7 @@ empty_plan_coverage ← no_plan_summary.execution_planned
 
 # ── Case 9: Planned payment with no configured execution envelope ──
 dis_base ← "fixtures/envelope-characterization/sub_disabled_execution"
-dis_snapshot ← context.LoadPostingSourceSnapshot dis_base
-dis_proj ← context.BuildCheckedPostingProjectionFromSnapshot ⟨dis_snapshot, resolved, cy.start⟩
+dis_proj ← BuildProjection dis_base
 dis_rows ← dis_proj.posting_rows
 dis_cube ← cube.Materialize ⟨dis_rows, cy.day_count, resolved.count⟩
 dis_tbds ← tbds.Build ⟨dis_rows, dis_cube, resolved, cy⟩
@@ -153,8 +155,7 @@ dis_summary ← env.Build { base ⇐ dis_base, resolved ⇐ resolved, cy ⇐ cy,
 "disabled" lib.AssertEq dis_summary.execution_planned.status
 
 miss_env_base ← "fixtures/envelope-characterization/sub_missing_execution"
-miss_env_snapshot ← context.LoadPostingSourceSnapshot miss_env_base
-miss_env_proj ← context.BuildCheckedPostingProjectionFromSnapshot ⟨miss_env_snapshot, resolved, cy.start⟩
+miss_env_proj ← BuildProjection miss_env_base
 miss_env_rows ← miss_env_proj.posting_rows
 miss_env_cube ← cube.Materialize ⟨miss_env_rows, cy.day_count, resolved.count⟩
 miss_env_tbds ← tbds.Build ⟨miss_env_rows, miss_env_cube, resolved, cy⟩
@@ -165,8 +166,7 @@ miss_env_summary ← env.Build { base ⇐ miss_env_base, resolved ⇐ resolved, 
 # sub_duplicate_plan has two rent_p2 plans.
 # Both are open, so both are included in execution planned coverage open list.
 dup_base ← "fixtures/envelope-characterization/sub_duplicate_plan"
-dup_snapshot ← context.LoadPostingSourceSnapshot dup_base
-dup_proj ← context.BuildCheckedPostingProjectionFromSnapshot ⟨dup_snapshot, resolved, cy.start⟩
+dup_proj ← BuildProjection dup_base
 dup_rows ← dup_proj.posting_rows
 dup_cube ← cube.Materialize ⟨dup_rows, cy.day_count, resolved.count⟩
 dup_tbds ← tbds.Build ⟨dup_rows, dup_cube, resolved, cy⟩
@@ -183,8 +183,7 @@ dup_ep ← dup_summary.execution_planned
 # sub_completed_future_plan has a plan rent_p1 on 2026-01-15 (future relative to as_of=2026-01-10)
 # which is already completed in journal on 2026-01-10.
 comp_base ← "fixtures/envelope-characterization/sub_completed_future_plan"
-comp_snapshot ← context.LoadPostingSourceSnapshot comp_base
-comp_proj ← context.BuildCheckedPostingProjectionFromSnapshot ⟨comp_snapshot, resolved, cy.start⟩
+comp_proj ← BuildProjection comp_base
 comp_rows ← comp_proj.posting_rows
 comp_cube ← cube.Materialize ⟨comp_rows, cy.day_count, resolved.count⟩
 comp_tbds ← tbds.Build ⟨comp_rows, comp_cube, resolved, cy⟩
@@ -202,8 +201,7 @@ comp_ep ← comp_summary.execution_planned
 # sub_unrelated_unfinished_plan has an unfinished food plan food_p1.
 # Current BuildExecutionPlannedCoverage does not filter plans, so food_p1 is incorrectly summed.
 unrelated_base ← "fixtures/envelope-characterization/sub_unrelated_unfinished_plan"
-unrelated_snapshot ← context.LoadPostingSourceSnapshot unrelated_base
-unrelated_proj ← context.BuildCheckedPostingProjectionFromSnapshot ⟨unrelated_snapshot, resolved, cy.start⟩
+unrelated_proj ← BuildProjection unrelated_base
 unrelated_rows ← unrelated_proj.posting_rows
 unrelated_cube ← cube.Materialize ⟨unrelated_rows, cy.day_count, resolved.count⟩
 unrelated_tbds ← tbds.Build ⟨unrelated_rows, unrelated_cube, resolved, cy⟩
@@ -217,8 +215,7 @@ unrelated_ep ← unrelated_summary.execution_planned
 # ── Executable Evidence for Insufficient Funding Backing OVER_ALLOCATED status ──
 # sub_insufficient_backing has actual cash closing balance = -1300, leading to backing status OVER_ALLOCATED.
 backing_base ← "fixtures/envelope-characterization/sub_insufficient_backing"
-backing_snapshot ← context.LoadPostingSourceSnapshot backing_base
-backing_proj ← context.BuildCheckedPostingProjectionFromSnapshot ⟨backing_snapshot, resolved, cy.start⟩
+backing_proj ← BuildProjection backing_base
 backing_rows ← backing_proj.posting_rows
 backing_cube ← cube.Materialize ⟨backing_rows, cy.day_count, resolved.count⟩
 backing_tbds ← tbds.Build ⟨backing_rows, backing_cube, resolved, cy⟩

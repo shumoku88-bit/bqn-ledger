@@ -5,7 +5,7 @@ Owner: plan lifecycle
 Canonical: yes
 Exit: revise when completion evidence or editor/report lifecycle semantics change
 
-`plan_id` は、将来発生する予定（`plan.tsv`）と、明示選択されたActual sourceの取引実績を紐づけ、予定の履行状態（完了・未完了）を管理するためのセマンティック・メタデータです。TSV modeでは`plan_id=`、native Journal modeでは`plan-id:`として保持されます。
+`plan_id` は、将来発生する予定（`plan.tsv`）と、configured native Journalの取引実績を紐づけ、予定の履行状態（完了・未完了）を管理するためのセマンティック・メタデータです。`plan.tsv`では`plan_id=`、native Journalでは`plan-id:`として保持されます。
 
 このドキュメントでは、BQN editor レイヤー（入力・追記）と BQN report レイヤー（計算・レポート）の双方が従うべき `plan_id` のライフサイクルおよび仕様を定義します。旧 Go editor 前提の記述は historical として扱い、現行 daily write path は `tools/edit` / `tools/edit-bqn` です。
 
@@ -63,7 +63,7 @@ BQN エンジン（主に `src_next/planned_payments.bqn` と `src_next/plan_jou
    - `plan_id` を持たない予定行は互換用 fallback として扱い、5列一致・日付境界による判定に留める。fallback は正本運用ではなく、診断対象の互換経路である。
 
 2. **重複・曖昧一致のハンドリング (Safety Profile / Fail Closed)**
-   - `plan.tsv` と `journal.tsv` の強一致・曖昧一致・未一致は `src_next/plan_journal_overlap.bqn` と check で観察する。
+   - `plan.tsv` とnative Journal の強一致・曖昧一致・未一致は `src_next/plan_journal_overlap.bqn` と check で観察する。
    - 異常状態を検知した場合、BQNは「きれいな間違い」をサイレントに出力せず、警告・診断・fail-closed の対象として扱う。
 
 ---

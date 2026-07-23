@@ -1,0 +1,66 @@
+commodity JPY
+
+account assets:bank
+    ; role: asset
+
+account assets:cash
+    ; role: asset
+
+account expenses:fallback
+    ; role: expense
+
+account expenses:予備
+    ; role: expense
+    ; default-envelope: 予備
+
+account expenses:娯楽
+    ; role: expense
+    ; default-envelope: 娯楽
+
+account expenses:日用品
+    ; role: expense
+    ; default-envelope: 日用品
+
+account expenses:未分類
+    ; role: expense
+    ; default-envelope: 未分類
+
+account expenses:食費
+    ; role: expense
+    ; default-envelope: 食費
+
+2026-01-01 * actual_daily_food
+    ; event-id: fixture-event-0
+    ; layer: actual
+    expenses:食費 100 JPY
+    assets:bank -100 JPY
+
+2026-01-02 * actual_flex
+    ; event-id: fixture-event-1
+    ; layer: actual
+    expenses:娯楽 200 JPY
+    assets:bank -200 JPY
+
+2026-01-03 * actual_reserve
+    ; event-id: fixture-event-2
+    ; layer: actual
+    expenses:予備 300 JPY
+    assets:bank -300 JPY
+
+2026-01-04 * actual_transfer
+    ; event-id: fixture-event-3
+    ; layer: actual
+    assets:cash 50 JPY
+    assets:bank -50 JPY
+
+2026-01-05 * actual_no_group
+    ; event-id: fixture-event-4
+    ; layer: actual
+    expenses:未分類 40 JPY
+    assets:bank -40 JPY
+
+2026-01-06 * actual_fallback
+    ; event-id: fixture-event-5
+    ; layer: actual
+    expenses:fallback 30 JPY
+    assets:bank -30 JPY

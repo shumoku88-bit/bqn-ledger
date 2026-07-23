@@ -11,7 +11,7 @@ Line ← {𝕊 fields: ∾ fields ∾¨ tab}
 ProofSnapshot ← {𝕊 jlines‿plines‿blines:
   {
     sources ⇐ ⟨
-      {source_file⇐"journal.tsv", required⇐1, lines⇐jlines},
+      {source_file⇐"actual.journal", required⇐1, lines⇐jlines},
       {source_file⇐"plan.tsv", required⇐0, lines⇐plines},
       {source_file⇐"budget_alloc.tsv", required⇐0, lines⇐blines}
     ⟩
@@ -66,9 +66,9 @@ precision ← ResolveProof ProofSnapshot ⟨
 # The canonical snapshot source representation is sources. Extra legacy-looking
 # fields must not become a second projection input that can diverge from proof input.
 inconsistent ← {
-  journal ⇐ {source_file⇐"journal.tsv", required⇐1, lines⇐⟨Line ⟨"2026-06-15", "dirty", "assets:bank", "expenses:food", "999", "currency=USD"⟩⟩},
+  journal ⇐ {source_file⇐"actual.journal", required⇐1, lines⇐⟨Line ⟨"2026-06-15", "dirty", "assets:bank", "expenses:food", "999", "currency=USD"⟩⟩},
   sources ⇐ ⟨
-    {source_file⇐"journal.tsv", required⇐1, lines⇐⟨Line ⟨"2026-06-15", "clean", "assets:bank", "expenses:food", "100"⟩⟩},
+    {source_file⇐"actual.journal", required⇐1, lines⇐⟨Line ⟨"2026-06-15", "clean", "assets:bank", "expenses:food", "100"⟩⟩},
     {source_file⇐"plan.tsv", required⇐0, lines⇐⟨⟩},
     {source_file⇐"budget_alloc.tsv", required⇐0, lines⇐⟨⟩}
   ⟩

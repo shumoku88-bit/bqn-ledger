@@ -10,7 +10,7 @@ Line ← {𝕊 fields: ∾ fields ∾¨ tab}
 Snapshot ← {𝕊 jlines‿plines‿blines:
   {
     sources ⇐ ⟨
-      {source_file⇐"journal.tsv", required⇐1, lines⇐jlines},
+      {source_file⇐"actual.journal", required⇐1, lines⇐jlines},
       {source_file⇐"plan.tsv", required⇐0, lines⇐plines},
       {source_file⇐"budget_alloc.tsv", required⇐0, lines⇐blines}
     ⟩
@@ -41,7 +41,7 @@ lens_res1 ← lens.BuildRows res1
 CheckSuccessLens lens_res1
 1 lib.AssertEq ≠ lens_res1.rows
 row1 ← ⊑ lens_res1.rows
-"journal.tsv" lib.AssertEq row1.source_file
+"actual.journal" lib.AssertEq row1.source_file
 0 lib.AssertEq row1.source_row
 "normal memo" lib.AssertEq row1.source_id
 "2026-06-15" lib.AssertEq row1.when_value

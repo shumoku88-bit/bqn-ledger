@@ -1,6 +1,9 @@
 # Envelope role design
 
-状態: adopted direction / initial human report grouping implemented
+Status: current spec
+Owner: envelope
+Canonical: yes
+Exit: revise when envelope role semantics or grouping changes
 
 この文書は、bqn-ledger の封筒予算を「金額の箱」ではなく、生活判断上の役割を持つ budget layer として整理するための設計メモです。
 
@@ -416,7 +419,7 @@ src_next_envelope_row:
 - 実装を変更しない
 - `accounts.tsv` schema を変更しない
 - `budget_alloc.tsv` format を変更しない
-- `journal.tsv` format を変更しない
+- configured native Journal formatを変更しない
 - `type=liquid` を変更しない
 - `budget_pool=main` を導入しない
 - `envelope_role` を必須にしない

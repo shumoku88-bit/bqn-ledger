@@ -21,14 +21,14 @@ weather forecast snapshot ------------/
 
 Different meanings remain different.
 
-- `journal.tsv` remains actual household events.
+- The configured native Journal remains the Actual household-event source.
 - `plan.tsv` remains future expected events.
 - `budget_alloc.tsv` remains budget allocation source data.
 - issues remain unresolved/decision-tracking material.
 - weather is external context.
 - the ASCII garden is a derived presentation.
 
-Weather must never be appended to `journal.tsv`, `plan.tsv`, `budget_alloc.tsv`, `cycle.tsv`, or `accounts.tsv` merely to make the garden renderer convenient.
+Weather must never be appended to the configured native Journal, `plan.tsv`, `budget_alloc.tsv`, `cycle.tsv`, or `accounts.tsv` merely to make the garden renderer convenient.
 
 ## First materials bundle
 

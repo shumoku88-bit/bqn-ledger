@@ -115,23 +115,22 @@ BQN Ledger は、次のための個人用 accounting workbench です。
 
 ### Design principles
 
-- **TSV is the source of truth.** 正データは base directory 配下の TSV です。
+- **Source files are the source of truth.** 正データは base directory 配下のconfigured native Journalとsource TSVです。
 - **BQN derives views.** BQN は正データを書き換えず、読み取りと派生計算を担当します。
 - **Daily writes go through safety paths.** 日常入力は `tools/add-ui.sh`, `tools/edit`, または `tools/edit-bqn` から行います。
-- **Large corrections stay visible.** 削除や大きな修正は、人間が TSV を直接確認して行います。
-- **AI must not touch source data by default.** AI は、明示指示がない限り source TSV を直接編集しません。
-- **Money is exact decimal.** 対応通貨は `config/currencies.tsv` レジストリで定義され、単一通貨の exact decimal (10進表記) が journal/plan/budget で利用可能です。FXやクロス通貨の合算は未対応です。
+- **Large corrections stay visible.** 削除や大きな修正は、人間がsource fileを直接確認して行います。
+- **AI must not touch source data by default.** AI は、明示指示がない限りsource fileを直接編集しません。
+- **Actual arithmetic is currently JPY-only.** configured native Journalとproduction reportはexplicit exact-integer JPYをfail closedに扱います。通貨registryと専用travel eventsは別契約であり、FX・valuation・クロス通貨合算は未対応です。
 - **The first five TSV columns are contract.** 拡張情報は6列目以降の `key=value` メタデータで表します。
 
 ## Source data
 
-各ツールは base directory 配下の TSV を読みます。既定は `LEDGER_DATA_DIR`、未設定なら `config/system_defaults.tsv` の `DEFAULT_BASE_DIR` です。公開リポジトリでは `data/` sandbox が使われます。
+各ツールは base directory 配下のconfigured native Journalとsource TSVを読みます。既定は `LEDGER_DATA_DIR`、未設定なら `config/system_defaults.tsv` の `DEFAULT_BASE_DIR` です。公開リポジトリでは `data/` sandbox が使われます。
 
 | ファイル | 役割 |
 |---|---|
 | `<base>/accounts.tsv` | 勘定科目とメタデータ |
-| `<base>/<ACTUAL_JOURNAL_FILE>` | `ACTUAL_SOURCE=journal` の実績取引正本（native Journal） |
-| `<base>/journal.tsv` | `ACTUAL_SOURCE=tsv` compatibility mode の実績取引 |
+| `<base>/<ACTUAL_JOURNAL_FILE>` | 実績取引の唯一の正本（native Journal） |
 | `<base>/plan.tsv` | 将来予定。Plan layer の正本 |
 | `<base>/budget_alloc.tsv` | 封筒予算の配賦 |
 | `<base>/cycle.tsv` | 生活サイクル境界 |

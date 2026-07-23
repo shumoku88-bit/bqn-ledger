@@ -48,6 +48,8 @@ BuildForSource ← {𝕊 transactions‿resolved‿cycleStart‿sourceFile:
       layerIndex ← ⊑ layers ⊐ ⟨transaction.layer_name⟩
       kind ← KindForTransaction ⟨transaction, resolved⟩
       txId ← (0 < ≠ transaction.txn_id) ⊑ transaction.source_event_id‿transaction.txn_id
+      dayIndex ← 0
+      {𝕊: dayIndex↩proj.ResolveDayFromCycle ⟨transaction.date,cycleStart⟩}⍟(proj.IsValidDateText cycleStart) @
 
       {𝕊 posting:
         accountIndex ← ⊑ resolved.accounts ⊐ ⟨posting.account_key⟩
@@ -58,7 +60,7 @@ BuildForSource ← {𝕊 transactions‿resolved‿cycleStart‿sourceFile:
           tx_id⇐txId,
           posting_id⇐posting.posting_id,
           date⇐transaction.date,
-          day_index⇐proj.ResolveDayFromCycle ⟨transaction.date, cycleStart⟩,
+          day_index⇐dayIndex,
           account_key⇐accountIndex ⊑ resolved.account_keys,
           account_key_index⇐accountIndex,
           layer_name⇐transaction.layer_name,

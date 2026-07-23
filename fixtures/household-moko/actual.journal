@@ -1,0 +1,91 @@
+commodity JPY
+
+account assets:bank
+    ; role: asset
+
+account budget:opening
+    ; role: budget
+    ; kind: opening
+
+account budget:spent
+    ; role: budget
+    ; kind: spent
+
+account budget:一般生活
+    ; role: budget
+    ; kind: envelope
+
+account budget:食費
+    ; role: budget
+    ; kind: envelope
+
+account equity:opening-balances
+    ; role: equity
+
+account expenses:家賃
+    ; role: expense
+
+account expenses:日用品
+    ; role: expense
+    ; default-envelope: budget:一般生活
+
+account expenses:食費
+    ; role: expense
+    ; default-envelope: budget:食費
+
+account income:年金
+    ; role: income
+
+2026-04-15 * Opening
+    ; event-id: fixture-event-0
+    ; layer: actual
+    assets:bank 200000 JPY
+    equity:opening-balances -200000 JPY
+
+2026-04-15 * Pension
+    ; event-id: fixture-event-1
+    ; layer: actual
+    assets:bank 200000 JPY
+    income:年金 -200000 JPY
+
+2026-04-20 * Food
+    ; event-id: fixture-event-2
+    ; layer: actual
+    expenses:食費 15000 JPY
+    assets:bank -15000 JPY
+
+2026-05-01 * Rent
+    ; event-id: fixture-event-3
+    ; layer: actual
+    expenses:家賃 80000 JPY
+    assets:bank -80000 JPY
+
+2026-05-10 * Food
+    ; event-id: fixture-event-4
+    ; layer: actual
+    expenses:食費 25000 JPY
+    assets:bank -25000 JPY
+
+2026-05-20 * Supplies
+    ; event-id: fixture-event-5
+    ; layer: actual
+    expenses:日用品 10000 JPY
+    assets:bank -10000 JPY
+
+2026-06-15 * Pension
+    ; event-id: fixture-event-6
+    ; layer: actual
+    assets:bank 200000 JPY
+    income:年金 -200000 JPY
+
+2026-06-18 * Food
+    ; event-id: fixture-event-7
+    ; layer: actual
+    expenses:食費 20000 JPY
+    assets:bank -20000 JPY
+
+2026-06-25 * Food
+    ; event-id: fixture-event-8
+    ; layer: actual
+    expenses:食費 10000 JPY
+    assets:bank -10000 JPY

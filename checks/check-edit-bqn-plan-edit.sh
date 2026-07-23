@@ -52,8 +52,14 @@ prepare_fixtures() {
   echo -e "2026-08-15\tTest Plan\texpenses:食費\tassets:bank\t1000\tplan_id=plan-2026-08-15-test-edit" >> "$base/plan.tsv"
   # Valid plan to test conflict/closed
   echo -e "2026-08-15\tTest Plan Closed\texpenses:食費\tassets:bank\t2000\tplan_id=plan-2026-08-15-test-closed" >> "$base/plan.tsv"
-  # Already finished plan in journal
-  echo -e "2026-06-29\tTest Plan Closed\texpenses:食費\tassets:bank\t2000\tplan_id=plan-2026-08-15-test-closed" >> "$base/journal.tsv"
+  # Already finished plan in the native Journal.
+  cat >>"$base/actual.journal" <<'JOURNAL'
+
+2026-06-29 * Test Plan Closed
+    ; plan-id: plan-2026-08-15-test-closed
+    expenses:食費     2000 JPY
+    assets:bank      -2000 JPY
+JOURNAL
 }
 
 run_positive_parity() {

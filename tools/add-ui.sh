@@ -431,13 +431,6 @@ meta_has_key() {
   return 1
 }
 
-choose_income_budget() {
-  printf '%s\n' \
-    $'unassigned\t通常収入として未割当へ連動' \
-    $'exclude\t返金等: 未割当へ連動しない' |
-    select_line 'income budget treatment'
-}
-
 choose_meta() {
   local selected key meta_tokens custom
   local presets_file="$ROOT_DIR/config/ui_meta_presets.tsv"
@@ -610,11 +603,6 @@ case "$mode" in
     capture_or_cancel amt read_tty 'Amount' ''
     capture_or_cancel memo read_tty 'Memo/Description' 'income'
     capture_or_cancel meta choose_meta
-    if ! meta_has_key 'income_budget' "$meta"; then
-      capture_or_cancel income_budget_line choose_income_budget
-      income_budget="${income_budget_line%%$'\t'*}"
-      meta="${meta:+$meta }income_budget=$income_budget"
-    fi
     ;;
   budget)
     capture_or_cancel memo choose_budget_memo

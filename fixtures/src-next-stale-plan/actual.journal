@@ -1,0 +1,38 @@
+commodity JPY
+
+account assets:bank
+    ; role: asset
+
+account budget:food
+    ; role: budget
+
+account budget:opening
+    ; role: budget
+
+account budget:spent
+    ; role: budget
+
+account budget:unassigned
+    ; role: budget
+
+account equity:opening-balances
+    ; role: equity
+
+account expenses:food
+    ; role: expense
+    ; default-envelope: food
+
+account income:salary
+    ; role: income
+
+2026-06-16 * 給料日
+    ; event-id: fixture-event-0
+    ; layer: actual
+    assets:bank 1000 JPY
+    income:salary -1000 JPY
+
+2026-06-17 * 買い物
+    ; event-id: fixture-event-1
+    ; layer: actual
+    expenses:food 300 JPY
+    assets:bank -300 JPY

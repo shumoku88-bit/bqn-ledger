@@ -196,7 +196,7 @@ reconciliation_breaks.tsv or generated report only
 
 Rules:
 
-- never auto-edit `journal.tsv`
+- never auto-edit the configured native Journal
 - preserve raw external file
 - normalize external rows into a separate derived/import area
 - expose unmatched or suspicious rows as a report/check

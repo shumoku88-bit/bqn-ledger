@@ -1,244 +1,30 @@
 #!/usr/bin/env bash
 set -euo pipefail
-export NO_COLOR=1
+ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"; cd "$ROOT_DIR"
+tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
+sha_file(){ shasum -a 256 "$1"|awk '{print $1}'; }
+no_backup(){ [[ ! -d "$1/.backup" ]] || ! find "$1/.backup" -type f | grep -q .; }
+fixture=fixtures/journal-ordinary-actual-fallback-boundary
 
-# Verify BQN-backed `journal reverse` append path.
-# Scope:
-#   - successful BQN editor reverse append creates backup
-#   - dry-run source protection
-#   - negative cases fail closed without source/backup writes
+selector="$tmp/selector"; cp -R "$fixture" "$selector"; before="$(sha_file "$selector/actual.journal")"
+bqn src_edit/journal_native_reverse_cmd.bqn "$selector" "" 2 2026-07-25 >"$tmp/selector.out"
+[[ "$before" == "$(sha_file "$selector/actual.journal")" ]]; no_backup "$selector"
+awk -F '\t' '$1=="OK" && $2=="REVERSE_NATIVE" && $3==2 && $4=="2026-07-23" && $5=="Ordinary purchase" && $7==2 && $8=="2026-07-25" {ok=1} END{exit !ok}' "$tmp/selector.out"
+[[ "$(sed -n '2p' "$tmp/selector.out")" == 'expenses:food=-25' ]]
+[[ "$(sed -n '3p' "$tmp/selector.out")" == 'assets:cash=25' ]]
 
-if [ -f "src_next/report.bqn" ]; then
-  ROOT_DIR="$PWD"
-else
-  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-  ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-fi
-cd "$ROOT_DIR"
+dry="$tmp/dry"; cp -R "$fixture" "$dry"; before="$(sha_file "$dry/actual.journal")"
+./tools/edit --base "$dry" journal reverse --index 2 --date 2026-07-25 --dry-run --yes --post-check none >/dev/null
+[[ "$before" == "$(sha_file "$dry/actual.journal")" ]]; no_backup "$dry"
 
-tmp_root="$(mktemp -d)"
-trap 'rm -rf "$tmp_root"' EXIT
-
-sha_file() {
-  shasum -a 256 "$1" | awk '{print $1}'
-}
-
-assert_no_backup() {
-  local base="$1"
-  local label="$2"
-  if [ -e "$base/.backup" ] && find "$base/.backup" -type f | grep -q .; then
-    echo "FAIL: $label created a backup" >&2
-    find "$base/.backup" -type f >&2 || true
-    exit 1
-  fi
-}
-
-assert_unchanged() {
-  local base="$1"
-  local before_sha="$2"
-  local label="$3"
-  local after_sha
-  after_sha="$(sha_file "$base/journal.tsv")"
-  if [ "$before_sha" != "$after_sha" ]; then
-    echo "FAIL: $label modified journal.tsv" >&2
-    exit 1
-  fi
-}
-
-prepare_fixtures() {
-  local base="$1"
-  cp -R data "$base"
-  # Add some rows to reverse
-  echo -e "2026-06-25\tReversable Memo\tassets:bank\texpenses:食費\t1000" >> "$base/journal.tsv"
-  # Duplicate memo to test conflict
-  echo -e "2026-06-25\tDuplicate Memo\tassets:bank\texpenses:食費\t2000" >> "$base/journal.tsv"
-  echo -e "2026-06-26\tDuplicate Memo\tassets:bank\texpenses:日用品\t3000" >> "$base/journal.tsv"
-  # Row with same from/to
-  echo -e "2026-06-27\tInvalid Self Transfer\tassets:bank\tassets:bank\t5000" >> "$base/journal.tsv"
-}
-
-run_positive_case() {
-  local name="$1"
-  shift
-  local bqn_base="$tmp_root/pos-$name-bqn"
-  local bqn_out="$tmp_root/pos-$name-bqn.out"
-
-  prepare_fixtures "$bqn_base"
-
-
-  ./tools/edit-bqn --base "$bqn_base" "$@" >"$bqn_out" 2>&1
-
-
-  if ! find "$bqn_base/.backup" -type f -name 'journal.tsv*' | grep -q .; then
-    echo "FAIL: tools/edit-bqn journal reverse did not create a journal backup: $name" >&2
-    exit 1
-  fi
-}
-
-run_expect_fail_closed() {
-  local name="$1"
-  shift
-  local bqn_base="$tmp_root/neg-$name-bqn"
-  local bqn_out="$tmp_root/neg-$name-bqn.out"
-  local bqn_before bqn_rc
-
-  prepare_fixtures "$bqn_base"
-  bqn_before="$(sha_file "$bqn_base/journal.tsv")"
-
-  # Negative cases should be rejected before any confirmation/write path.
-
-  set +e
-  ./tools/edit-bqn --base "$bqn_base" "$@" >"$bqn_out" 2>&1
-  bqn_rc=$?
-  set -e
-
-  if [ "$bqn_rc" -eq 0 ]; then
-    echo "FAIL: tools/edit-bqn unexpectedly accepted negative case: $name" >&2
-    cat "$bqn_out" >&2
-    exit 1
-  fi
-
-  assert_unchanged "$bqn_base" "$bqn_before" "tools/edit-bqn negative case $name"
-  assert_no_backup "$bqn_base" "tools/edit-bqn negative case $name"
-}
-
-run_native_selector_case() {
-  local base="$tmp_root/native-selector"
-  local out="$tmp_root/native-selector.out"
-  local before_sha after_sha
-
-  cp -R fixtures/journal-ordinary-actual-fallback-boundary "$base"
-  before_sha="$(sha_file "$base/actual.journal")"
-
-  bqn src_edit/journal_native_reverse_cmd.bqn "$base" "" 2 2026-07-25 >"$out"
-
-  after_sha="$(sha_file "$base/actual.journal")"
-  if [ "$before_sha" != "$after_sha" ]; then
-    echo "FAIL: native selector case modified actual.journal" >&2
-    exit 1
-  fi
-
-  assert_no_backup "$base" "native selector case"
-
-  local status op index orig_date desc src_id count rev_date
-  local line1
-  line1="$(sed -n '1p' "$out")"
-  status="$(echo "$line1" | awk -F '\t' '{print $1}')"
-  op="$(echo "$line1" | awk -F '\t' '{print $2}')"
-  index="$(echo "$line1" | awk -F '\t' '{print $3}')"
-  orig_date="$(echo "$line1" | awk -F '\t' '{print $4}')"
-  desc="$(echo "$line1" | awk -F '\t' '{print $5}')"
-  src_id="$(echo "$line1" | awk -F '\t' '{print $6}')"
-  count="$(echo "$line1" | awk -F '\t' '{print $7}')"
-  rev_date="$(echo "$line1" | awk -F '\t' '{print $8}')"
-
-  if [ "$status" != "OK" ] || [ "$op" != "REVERSE_NATIVE" ] || [ "$index" != "2" ] || [ "$orig_date" != "2026-07-23" ] || [ "$desc" != "Ordinary purchase" ] || [ "$count" != "2" ] || [ "$rev_date" != "2026-07-25" ]; then
-    echo "FAIL: native reverse protocol line 1 mismatch: got '$line1'" >&2
-    exit 1
-  fi
-
-  if [[ "$src_id" != stage0-line-* ]]; then
-    echo "FAIL: selected source_event_id does not begin with stage0-line-: got '$src_id'" >&2
-    exit 1
-  fi
-
-  local line2 line3
-  line2="$(sed -n '2p' "$out")"
-  line3="$(sed -n '3p' "$out")"
-
-  if [ "$line2" != "expenses:food=-25" ] || [ "$line3" != "assets:cash=25" ]; then
-    echo "FAIL: native reverse posting intent mismatch: got '$line2' and '$line3'" >&2
-    exit 1
-  fi
-}
-
-run_native_write_case() {
-  local base="$tmp_root/native-write"
-  local out="$tmp_root/native-write.out"
-  cp -R fixtures/journal-ordinary-actual-fallback-boundary "$base"
-  local before_event_count after_event_count original_size
-  cp "$base/actual.journal" "$tmp_root/native-write.original"
-  original_size=$(wc -c <"$tmp_root/native-write.original" | tr -d ' ')
-  before_event_count=$(grep -Fc '; event-id:' "$base/actual.journal" || true)
-
-  ./tools/edit-bqn --base "$base" journal reverse --index 2 --date 2026-07-25 --yes --post-check none >"$out" 2>&1
-
-  after_event_count=$(grep -Fc '; event-id:' "$base/actual.journal" || true)
-  head -c "$original_size" "$base/actual.journal" >"$tmp_root/native-write.prefix"
-  cmp "$tmp_root/native-write.original" "$tmp_root/native-write.prefix"
-  [[ "$after_event_count" -eq $((before_event_count + 1)) ]] || { echo "FAIL: native reverse event-id count mismatch" >&2; exit 1; }
-  grep -Fq '2026-07-23 * Ordinary purchase' "$base/actual.journal"
-  [[ $(grep -Fc '2026-07-23 * Ordinary purchase' "$base/actual.journal") -eq 1 ]]
-  grep -Fq '2026-07-25 * [reverse]Ordinary purchase' "$base/actual.journal"
-  grep -Eq '^    ; event-id: reverse-' "$base/actual.journal"
-  grep -Fq 'Mandatory native validation: OK' "$out"
-  grep -Fq $'OK\tNATIVE_JOURNAL_CANDIDATE\tdurable\treverse-' "$out"
-}
-
-# Dry-run protection.
-dry_base="$tmp_root/dry"
-prepare_fixtures "$dry_base"
-dry_before="$(sha_file "$dry_base/journal.tsv")"
-./tools/edit-bqn --base "$dry_base" journal reverse \
-  --index 10 \
-  --date 2026-06-26 \
-  --dry-run \
-  --yes \
-  --post-check none >/dev/null
-assert_unchanged "$dry_base" "$dry_before" "tools/edit-bqn journal reverse dry-run"
-assert_no_backup "$dry_base" "tools/edit-bqn journal reverse dry-run"
-
-# Positive cases.
-run_positive_case reverse-by-index-date \
-  journal reverse \
-  --index 10 \
-  --date 2026-06-26 \
-  --yes \
-  --post-check none
-
-run_positive_case reverse-by-id-date \
-  journal reverse \
-  --id "Reversable Memo" \
-  --date 2026-06-26 \
-  --yes \
-  --post-check none
-
-run_positive_case reverse-by-index-default-date \
-  journal reverse \
-  --index 10 \
-  --yes \
-  --post-check none
-
-run_native_selector_case
-run_native_write_case
-
-# Negative cases.
-run_expect_fail_closed invalid-index \
-  journal reverse \
-  --index 99 \
-  --date 2026-06-26 \
-  --yes \
-  --post-check none
-
-run_expect_fail_closed memo-not-found \
-  journal reverse \
-  --id "Nonexistent Memo" \
-  --date 2026-06-26 \
-  --yes \
-  --post-check none
-
-run_expect_fail_closed duplicate-memo \
-  journal reverse \
-  --id "Duplicate Memo" \
-  --date 2026-06-26 \
-  --yes \
-  --post-check none
-
-run_expect_fail_closed same-from-to \
-  journal reverse \
-  --index 13 \
-  --date 2026-06-26 \
-  --yes \
-  --post-check none
-
-echo "check-edit-bqn-journal-reverse: OK"
+write="$tmp/write"; cp -R "$fixture" "$write"
+printf 'mode\tfixed\nstart\t2026-07-01\nend_exclusive\t2026-08-01\n' >"$write/cycle.tsv"
+cp "$write/actual.journal" "$tmp/original"
+size="$(wc -c <"$tmp/original"|tr -d ' ')"; events="$(grep -Fc '; event-id:' "$write/actual.journal"||true)"
+./tools/edit --base "$write" journal reverse --index 2 --date 2026-07-25 --yes --post-check lint >"$tmp/write.out"
+head -c "$size" "$write/actual.journal" >"$tmp/prefix"; cmp "$tmp/original" "$tmp/prefix"
+[[ "$(grep -Fc '; event-id:' "$write/actual.journal"||true)" -eq $((events+1)) ]]
+grep -Fq '2026-07-25 * [reverse]Ordinary purchase' "$write/actual.journal"
+grep -Fq 'Mandatory native validation: OK' "$tmp/write.out"
+bqn src_edit/journal_validate_cmd.bqn "$write" >/dev/null
+printf 'OK: native Journal reverse contract\n'

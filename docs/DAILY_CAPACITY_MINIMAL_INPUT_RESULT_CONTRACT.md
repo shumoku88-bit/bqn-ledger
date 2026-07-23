@@ -667,7 +667,7 @@ Independent diagnostics within a stage may be collected together. Arithmetic is 
 
 It must not:
 
-- read `journal.tsv`, `plan.tsv`, `accounts.tsv`, `budget_alloc.tsv`, `cycle.tsv`, or `issues.tsv`;
+- read the configured native Journal, `plan.tsv`, `accounts.tsv`, `budget_alloc.tsv`, `cycle.tsv`, or `issues.tsv`;
 - load config or environment variables;
 - read system time;
 - call `•Out` or `•Exit`;

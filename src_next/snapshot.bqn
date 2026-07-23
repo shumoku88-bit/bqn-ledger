@@ -66,7 +66,7 @@ StatusLabel ← {𝕊 vm:
 }
 
 # Build: construct snapshot view model from context using TBDS closing balances.
-# No longer reads journal.tsv directly (previously used actual_snapshot).
+# Reads only checked context rows; it does not parse an Actual source directly.
 Build ← {𝕊 ctx:
   rows ← ctx.tbds
   resolved ← ctx.resolved

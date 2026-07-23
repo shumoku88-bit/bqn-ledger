@@ -4,70 +4,24 @@ lib ← •Import "test_lib.bqn"
 ctx ← •Import "../src_next/context.bqn"
 proj ← •Import "../src_next/projection.bqn"
 arith ← •Import "../src_next/currency_arithmetic.bqn"
-cube ← •Import "../src_next/cube.bqn"
+ak ← •Import "../src_next/account_key.bqn"
+loader ← •Import "../src_next/loader.bqn"
 
 tab ← @+9
 Line ← {𝕊 fields: ∾ fields ∾¨ tab}
 
-ProofSnapshot ← {𝕊 jlines‿plines‿blines:
-  {
-    sources ⇐ ⟨
-      {source_file⇐"journal.tsv", required⇐1, lines⇐jlines},
-      {source_file⇐"plan.tsv", required⇐0, lines⇐plines},
-      {source_file⇐"budget_alloc.tsv", required⇐0, lines⇐blines}
-    ⟩
-  }
+ProofSnapshot ← {𝕊 planLines‿budgetLines‿moreBudgetLines:
+  {sources ⇐ ⟨
+    {source_file⇐"plan.tsv", required⇐0, lines⇐planLines},
+    {source_file⇐"budget_alloc.tsv", required⇐0, lines⇐budgetLines∾moreBudgetLines}
+  ⟩}
 }
 
-# ── Full BuildContext fixture evidence ──────────────────────
-# Fixture: 3 rows — legacy 1200, implicit decimal 42.50, explicit JPY 0.05
-# Max canonical scale = 2.  Normalized: 120000, 4250, 5
-fixtureContext ← ctx.BuildContext "fixtures/src-next-currency-b3-jpy-normalized"
-resolved     ← fixtureContext.resolved
+# Exact-decimal non-actual TSV projection remains covered independently of the
+# canonical native Journal actual source.
+resolved ← ak.Resolve loader.ReadLines "fixtures/src-next-golden/accounts.tsv"
 
-# Proof carrier
-"proven" lib.AssertEq fixtureContext.arithmetic_currency_proof.state
-"JPY" lib.AssertEq fixtureContext.arithmetic_currency_proof.domain
-"resolved_single_currency" lib.AssertEq fixtureContext.arithmetic_currency_proof.basis
-2 lib.AssertEq fixtureContext.arithmetic_currency_proof.amount_scale
-
-# Posting debit deltas (source order: j0=120000, j1=4250, j2=5)
-allRows ← fixtureContext.posting_rows
-fcDebits ← (({𝕩.side}¨ allRows) ≡¨ <"debit") / allRows
-fcCredits ← (({𝕩.side}¨ allRows) ≡¨ <"credit") / allRows
-120000 lib.AssertEq (0 ⊑ fcDebits).delta
-4250 lib.AssertEq (1 ⊑ fcDebits).delta
-5 lib.AssertEq (2 ⊑ fcDebits).delta
-
-# Corresponding negative credit deltas
-¯120000 lib.AssertEq (0 ⊑ fcCredits).delta
-¯4250 lib.AssertEq (1 ⊑ fcCredits).delta
-¯5 lib.AssertEq (2 ⊑ fcCredits).delta
-
-# Exact aggregate balance
-debitTotal ← +´ {𝕩.delta}¨ fcDebits
-creditTotal ← +´ {𝕩.delta}¨ fcCredits
-124255 lib.AssertEq debitTotal
-¯124255 lib.AssertEq creditTotal
-0 lib.AssertEq debitTotal + creditTotal
-
-# ── TBDS downstream exact aggregation ──────────────────────
-# Verify normalized deltas reach TBDS movement totals exactly.
-# All 3 rows are actual-layer, same account pair (assets:bank -> expenses:food).
-tbdsRows ← fixtureContext.tbds
-actualTbds ← ({𝕩.layer_index ≡ cube.layer_actual}¨ tbdsRows) / tbdsRows
-expenseTbds ← ({𝕩.role ≡ "expense"}¨ actualTbds) / actualTbds
-assetTbds ← ({𝕩.role ≡ "asset"}¨ actualTbds) / actualTbds
-# Expense account receives debit movement = 124255
-124255 lib.AssertEq (⊑ expenseTbds).debit_movement
-0 lib.AssertEq (⊑ expenseTbds).credit_movement
-124255 lib.AssertEq (⊑ expenseTbds).movement
-# Asset account receives credit movement = -124255
-0 lib.AssertEq (⊑ assetTbds).debit_movement
-¯124255 lib.AssertEq (⊑ assetTbds).credit_movement
-¯124255 lib.AssertEq (⊑ assetTbds).movement
-
-# ── Per-case snapshot posting tests ────────────────────────
+# ── Per-case non-actual snapshot posting tests ─────────────
 
 # 1. Legacy JPY regression (scale 0, deltas unchanged)
 legacySnap ← ProofSnapshot ⟨⟨Line ⟨"2026-06-15", "legacy", "assets:bank", "expenses:food", "1200"⟩⟩, ⟨⟩, ⟨⟩⟩
@@ -187,15 +141,14 @@ alignSnap ← ProofSnapshot ⟨
 ⟩
 alignBuilt ← ctx.BuildAuthorizedRowsFromSnapshot ⟨alignSnap, resolved, "2026-06-15"⟩
 debits5 ← (({𝕩.side}¨ alignBuilt.rows) ≡¨ <"debit") / alignBuilt.rows
-# Check output order: j1 (42.50), j2 (1200), p1 (0.05)
-# Max scale is 2
-# Expected normalized: 4250, 120000, 5
+# Check output order: two plan rows followed by one budget row.
+# Max scale is 2; expected normalized: 4250, 120000, 5.
 4250 lib.AssertEq (0 ⊑ debits5).delta
-"journal.tsv" lib.AssertEq (0 ⊑ debits5).source_file
+"plan.tsv" lib.AssertEq (0 ⊑ debits5).source_file
 120000 lib.AssertEq (1 ⊑ debits5).delta
-"journal.tsv" lib.AssertEq (1 ⊑ debits5).source_file
+"plan.tsv" lib.AssertEq (1 ⊑ debits5).source_file
 5 lib.AssertEq (2 ⊑ debits5).delta
-"plan.tsv" lib.AssertEq (2 ⊑ debits5).source_file
+"budget_alloc.tsv" lib.AssertEq (2 ⊑ debits5).source_file
 
 # 11. Proof authorizer boundary cases
 0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", basis⇐"legacy_compatibility", message⇐""} # missing scale

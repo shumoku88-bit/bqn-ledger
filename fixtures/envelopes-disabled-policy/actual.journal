@@ -1,0 +1,18 @@
+commodity JPY
+
+account assets:bank
+    ; role: asset
+
+account budget:food
+    ; role: budget
+    ; kind: envelope
+
+account budget:unassigned
+    ; role: budget
+    ; kind: unassigned
+
+account equity:opening
+    ; role: equity
+
+account expenses:food
+    ; role: expense

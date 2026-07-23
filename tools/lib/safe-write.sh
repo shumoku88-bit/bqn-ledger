@@ -627,10 +627,8 @@ run_post_check() {
   local -a cmd
   case "$mode" in
     lint)
-      if [[ "$owner" == "journal" ]]; then
-        cmd=(bqn src_edit/journal_source_check.bqn "$base_dir")
-      elif [[ "$owner" == "cleanup_journal" ]]; then
-        cmd=(bqn src_edit/journal_cleanup_plan_cmd.bqn "$base_dir" tsv)
+      if [[ "$owner" == "journal" || "$owner" == "cleanup_journal" ]]; then
+        cmd=(bqn src_edit/journal_validate_cmd.bqn "$base_dir")
       else
         cmd=(bqn src_next/report.bqn "$base_dir")
       fi

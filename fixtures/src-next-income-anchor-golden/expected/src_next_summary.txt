@@ -4,12 +4,12 @@ end_exclusive: 2026-03-10
 day_count: 59
 accounts: 5
 "source_file"	"source_row"	"source_id"	"tx_id"	"posting_id"	"date"	"side"	"day_index"	"account_key"	"account_key_index"	"layer_name"	"layer_index"	"delta"	"kind"	"status"	"message"	
-"journal.tsv"	"0"	"INC1"	"INC1"	"journal.tsv:0:debit"	"2026-01-10"	"debit"	"0"	"assets:bank/JPY"	"1"	"actual"	"0"	"100000"	"income"	"ok"	⟨⟩	
-"journal.tsv"	"0"	"INC1"	"INC1"	"journal.tsv:0:credit"	"2026-01-10"	"credit"	"0"	"income:example/JPY"	"0"	"actual"	"0"	"¯100000"	"income"	"ok"	⟨⟩	
-"journal.tsv"	"1"	"FOOD1"	"FOOD1"	"journal.tsv:1:debit"	"2026-01-11"	"debit"	"1"	"expenses:food/JPY"	"2"	"actual"	"0"	"1200"	"expense"	"ok"	⟨⟩	
-"journal.tsv"	"1"	"FOOD1"	"FOOD1"	"journal.tsv:1:credit"	"2026-01-11"	"credit"	"1"	"assets:bank/JPY"	"1"	"actual"	"0"	"¯1200"	"expense"	"ok"	⟨⟩	
-"journal.tsv"	"2"	"RENT1"	"RENT1"	"journal.tsv:2:debit"	"2026-01-20"	"debit"	"10"	"expenses:rent/JPY"	"3"	"actual"	"0"	"3000"	"expense"	"ok"	⟨⟩	
-"journal.tsv"	"2"	"RENT1"	"RENT1"	"journal.tsv:2:credit"	"2026-01-20"	"credit"	"10"	"assets:bank/JPY"	"1"	"actual"	"0"	"¯3000"	"expense"	"ok"	⟨⟩	
+"actual.journal"	"0"	"fixture-event-0"	"fixture-event-0"	"fixture-event-0:0"	"2026-01-10"	"debit"	"0"	"assets:bank/JPY"	"1"	"actual"	"0"	"100000"	"income"	"ok"	⟨⟩	
+"actual.journal"	"0"	"fixture-event-0"	"fixture-event-0"	"fixture-event-0:1"	"2026-01-10"	"credit"	"0"	"income:example/JPY"	"0"	"actual"	"0"	"¯100000"	"income"	"ok"	⟨⟩	
+"actual.journal"	"1"	"fixture-event-1"	"fixture-event-1"	"fixture-event-1:0"	"2026-01-11"	"debit"	"1"	"expenses:food/JPY"	"2"	"actual"	"0"	"1200"	"expense"	"ok"	⟨⟩	
+"actual.journal"	"1"	"fixture-event-1"	"fixture-event-1"	"fixture-event-1:1"	"2026-01-11"	"credit"	"1"	"assets:bank/JPY"	"1"	"actual"	"0"	"¯1200"	"expense"	"ok"	⟨⟩	
+"actual.journal"	"2"	"fixture-event-2"	"fixture-event-2"	"fixture-event-2:0"	"2026-01-20"	"debit"	"10"	"expenses:rent/JPY"	"3"	"actual"	"0"	"3000"	"expense"	"ok"	⟨⟩	
+"actual.journal"	"2"	"fixture-event-2"	"fixture-event-2"	"fixture-event-2:1"	"2026-01-20"	"credit"	"10"	"assets:bank/JPY"	"1"	"actual"	"0"	"¯3000"	"expense"	"ok"	⟨⟩	
 "source_file"	"source_row"	"source_id"	"tx_id"	"posting_id"	"date"	"side"	"day_index"	"account_key"	"account_key_index"	"layer_name"	"layer_index"	"delta"	"kind"	"status"	"message"	
 "plan.tsv"	"0"	"PLAN_FOOD1"	"PLAN_FOOD1"	"plan.tsv:0:debit"	"2026-01-25"	"debit"	"15"	"expenses:food/JPY"	"2"	"plan"	"1"	"2000"	"expense"	"ok"	⟨⟩	
 "plan.tsv"	"0"	"PLAN_FOOD1"	"PLAN_FOOD1"	"plan.tsv:0:credit"	"2026-01-25"	"credit"	"15"	"assets:bank/JPY"	"1"	"plan"	"1"	"¯2000"	"expense"	"ok"	⟨⟩	

@@ -1,4 +1,4 @@
-# journal.tsv / plan.tsv の拡張列（6列目以降メタ情報）
+# native Journal / source TSV のメタデータ
 
 Status: current contract
 Owner: editor / source schema
@@ -9,11 +9,11 @@ Exit: revise when journal-like metadata contracts change
 - 長期の方針: `docs/ENGINEERING_ROADMAP.md` (Phase 2)
 - 表記ルール（キーの命名など）: `docs/CONVENTIONS.md`
 
-このプロジェクトでは、取引の基本フォーマット（先頭5列）は固定しつつ、**6列目以降に任意のメタ情報を追加**できるようにしています。
+Actual取引はnative Journal transaction metadata、`plan.tsv` / `budget_alloc.tsv` は6列目以降のTSV metadataを使います。Actual取引のTSV routeはありません。
 
-## 基本フォーマット（必須: 5列）
+## source TSVの基本フォーマット（必須: 5列）
 
-TSV（TAB区切り）で以下の5列は必須です。
+`plan.tsv` / `budget_alloc.tsv` はTAB区切りで以下の5列が必須です。
 
 1. 日付 (`YYYY-MM-DD`)
 2. 摘要（メモ）
@@ -39,9 +39,9 @@ TSV（TAB区切り）で以下の5列は必須です。
 
 確定申告の設計を今すべて決めなくても運用できるように、当面は **次の最小ルール**だけ守る方針にします。
 
-- `journal.tsv` は実績のみを書く。`system_today` より未来日の行は記入ミスとしてlint/strict checkで止める
+- native Journalは実績のみを書く。`system_today` より未来日のtransactionは記入ミスとしてnative validationで止める
 - 未来の宣言・予定は `plan.tsv` に書く
-- 追加情報は **6列目以降**に置く（先頭5列は固定）
+- source TSVの追加情報は **6列目以降**に置く（先頭5列は固定）
 - 形式は **`key=value` を1列に1トークン**（TSVの追加列）
   - 例: `...\ttax=private\tbiz=0`
 - **key は英小文字**（`tax`, `biz`, `invoice` など）
@@ -63,10 +63,9 @@ TSV（TAB区切り）で以下の5列は必須です。
 - `invoice=none|ok` : インボイス関連（仮）
 - `note=...` : 補足（短文推奨）
 - `due_on=YYYY-MM-DD` : 引落予定日の例外上書き（Phase 6実験中。通常は口座メタから導出）
-- `plan_id=<id>` : `plan.tsv` の予定と、対応する `journal.tsv` 実績候補を結ぶ任意ID
+- `plan_id=<id>` : `plan.tsv` の予定と、対応するnative Journal実績候補を結ぶ任意ID（Journal内では `; plan-id: <id>`）
 - `cashflow=fixed_obligation` : 費用ではないが、生活資金から固定的に確保すべき支払い予定。例: 借金元本返済 (`assets:* -> liabilities:*`)。
 - `currency=JPY|ILS` : 通貨指定 (Stage 2 段階的導入用)
-- `income_budget=unassigned|exclude` : 通常収入を予算台帳の未割当へ連動する明示intent。`unassigned` は安定した `txn_id` と確認付き companion の対象、`exclude` は対象外。省略時も自動推測しない。費用返金や口座振替には付けない。
 
 
 ※どのキーを正式採用するかは、確定申告フローが固まった時点で更新します。`plan_id` は実データの `plan.tsv` では原則として必須（バックフィル済み・新規追加時に自動付与）としますが、BQNエンジン側は互換性・手入力の非常口としてIDなし行も許容します。
@@ -99,11 +98,11 @@ plan-2026-07-15-gpt-plus
 plan-2026-07-15-gpt-plus-02
 ```
 
-予定日と実績日がずれても、`plan_id` は予定日のまま `journal.tsv` へ引き継ぎます。
+予定日と実績日がずれても、`plan_id` は予定日のままnative Journalへ引き継ぎます。
 
 ```text
-plan.tsv   : 2026-07-15 ... plan_id=plan-2026-07-15-gpt-plus
-journal.tsv: 2026-07-16 ... plan_id=plan-2026-07-15-gpt-plus
+plan.tsv: 2026-07-15 ... plan_id=plan-2026-07-15-gpt-plus
+native Journal transaction metadata: ; plan-id: plan-2026-07-15-gpt-plus
 ```
 
 ## `plan.tsv` の繰り返し予定メタ
@@ -141,32 +140,29 @@ journal.tsv: 2026-07-16 ... plan_id=plan-2026-07-15-gpt-plus
 - 現時点の会計計算・予定表示は、先頭5列の日付と金額をそのまま使います。
 - `recur` / `months` はまず「人間が見分けるためのメモ」です。
 - `plan_id` は履行確認や Plan / Actual / Residual の対応付けに使います。
-- `plan_id` は人間が毎回手で入力する前提ではありません。将来の BQN editor が予定作成時に生成し、実績化時に `journal.tsv` へ引き継ぐ想定です。実データでは原則必須とします。
+- `plan_id` は人間が毎回手で入力する前提ではありません。BQN editor が予定作成時に生成し、実績化時にnative Journalへ引き継ぎます。実データでは原則必須とします。
 - 将来、必要になったらこのメタから翌月分の予定行を生成するツールを追加できます。
 
-## レシートを分割したいとき（複数行 + `receipt` / `txn_id`）
+## レシートを分割したいとき（native multi-posting + `receipt` / `txn_id`）
 
-普段は **1レシート=1行** のままでOKです。
+普段は1レシートを1 transaction blockとして記録します。複数カテゴリに分ける場合は、同じtransaction内に複数のexpense postingを置き、transaction metadataで証憑を束ねます。
 
-ただし、1枚のレシートに複数カテゴリ（趣味 + PC など）が混ざった場合は、**無理に1行へ押し込めず**、分類ごとに **複数行へ分割**します。
-
-このとき、各行に同じ `receipt=...` を付けることで「同一レシートの束」を作れます。
-さらに必要なら `txn_id=...` も併用できます（検索・集計・export向けの束ID）。
-
-例:
-
-```tsv
-2026-06-01	ヨドバシ	assets:smbc	expenses:趣味	3000	receipt=2026-06-01_yodobashi-0001	party=ヨドバシ
-2026-06-01	ヨドバシ	assets:smbc	expenses:PC	12000	receipt=2026-06-01_yodobashi-0001	party=ヨドバシ
+```journal
+2026-06-01 * ヨドバシ
+    ; receipt: 2026-06-01_yodobashi-0001
+    ; party: ヨドバシ
+    expenses:趣味    3000 JPY
+    expenses:PC     12000 JPY
+    assets:smbc    -15000 JPY
 ```
 
-- 分割した各行の金額合計が、レシート総額になるようにします
+- expense postingの合計が、レシート総額になるようにします
 - `receipt=` は **証憑（レシート/領収書/請求書/明細）への参照**です
 - `txn_id=` は **同一取引の束を識別するID**（レシート束ねに使ってもOK）
   - 形式は当面 `YYYY-0001` のような手動採番で十分です（自動採番は後回し）
 - `party=`（相手先）や `note=` なども同じ束で揃えておくと後で拾いやすいです
 
-現時点では、`txn_id` ごとの一覧・束表示は専用ツールの現行入口としては固定していません。必要になったら、source TSV を直接壊さない read-only helper として追加します。
+現時点では、`txn_id` ごとの一覧・束表示は専用ツールの現行入口としては固定していません。必要になったら、native Journalを直接壊さないread-only helperとして追加します。
 
 ## account metadata: `envelope_role`
 

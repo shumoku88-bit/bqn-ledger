@@ -9,9 +9,7 @@ if [ "$#" -eq 0 ]; then
     fixtures/src-next-golden
     fixtures/src-next-household-mapping-policy
     fixtures/src-next-empty-projection
-    fixtures/src-next-unknown-account
     fixtures/src-next-out-of-cycle-journal
-    fixtures/src-next-currency-accountkey
     fixtures/src-next-missing-plan
     fixtures/src-next-expense-role-metadata
     fixtures/src-next-income-anchor-golden

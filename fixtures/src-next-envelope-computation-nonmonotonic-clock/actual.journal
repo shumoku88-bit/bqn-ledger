@@ -1,0 +1,28 @@
+commodity JPY
+
+account assets:cash
+    ; role: asset
+
+account budget:unassigned
+    ; role: budget
+    ; kind: unassigned
+
+account budget:食費
+    ; role: budget
+    ; kind: envelope
+
+account expenses:食費
+    ; role: expense
+    ; default-envelope: 食費
+
+2026-01-10 * actual_food_late_coordinate
+    ; event-id: fixture-event-0
+    ; layer: actual
+    expenses:食費 100 JPY
+    assets:cash -100 JPY
+
+2026-01-03 * actual_food_backdated_append
+    ; event-id: fixture-event-1
+    ; layer: actual
+    expenses:食費 100 JPY
+    assets:cash -100 JPY

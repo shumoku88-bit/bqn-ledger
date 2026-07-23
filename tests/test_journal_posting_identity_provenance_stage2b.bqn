@@ -4,7 +4,6 @@ lib ← •Import "test_lib.bqn"
 parser ← •Import "../src_next/journal_profile_stage1.bqn"
 adapter ← •Import "../src_next/journal_posting_ir_stage2a.bqn"
 identity ← •Import "../src_next/journal_posting_identity_provenance_stage2b.bqn"
-context ← •Import "../src_next/context.bqn"
 ak ← •Import "../src_next/account_key.bqn"
 loader ← •Import "../src_next/loader.bqn"
 
@@ -108,30 +107,6 @@ lib.Assert (⊑ planCarrier).source_start_line ≠ (⊑ variantPlanCarrier).sour
 lib.Assert (⊑ planCarrier).source_end_line ≠ (⊑ variantPlanCarrier).source_end_line
 lib.Assert ∧´ {𝕩.source_event_id ≡ "event-plan-service-2026-09"}¨ variantPlanCarrier
 ({<𝕩.posting_id}¨ planCarrier) lib.AssertEq {<𝕩.posting_id}¨ variantPlanCarrier
-
-# Legacy comparison stays on unchanged current 16-field rows. Labels and
-# ordinals are test-only observations of each source movement.
-snapshot ← {sources⇐⟨
-  {source_file⇐"journal.tsv", required⇐1, lines⇐loader.ReadLines (base ∾ "/journal.tsv")},
-  {source_file⇐"plan.tsv", required⇐0, lines⇐loader.ReadLines (base ∾ "/plan.tsv")},
-  {source_file⇐"budget_alloc.tsv", required⇐0, lines⇐⟨⟩}
-⟩}
-legacy ← context.BuildCheckedPostingProjectionFromSnapshot ⟨snapshot, resolved, cycleStart⟩
-"ok" lib.AssertEq legacy.state
-4 lib.AssertEq ≠ legacy.posting_rows
-lib.Assert ∧´ {16 = ≠ Fields16 𝕩}¨ legacy.posting_rows
-
-{𝕊 sourceFile:
-  movement ← ({𝕩.source_file ≡ sourceFile}¨ legacy.posting_rows) / legacy.posting_rows
-  2 lib.AssertEq ≠ movement
-  lib.Assert ∧´ {𝕩.source_file ≡ sourceFile}¨ movement
-  lib.Assert (0 ⊑ movement).source_row = (1 ⊑ movement).source_row
-  labels ← {<("legacy:" ∾ 𝕩.source_file ∾ ":" ∾ •Fmt 𝕩.source_row)}¨ movement
-  lib.Assert (>0⊑labels) ≡ >1⊑labels
-  2 lib.AssertEq ≠ ⍷ {<𝕩.posting_id}¨ movement
-  0‿1 lib.AssertEq ↕ ≠ movement
-  lib.Assert ¬ ∨´ 0 ∾ {(>⊑labels) ≡ 𝕩.posting_id}¨ built.provenance_rows
-}¨ ⟨"journal.tsv", "plan.tsv"⟩
 
 HasCode ← {𝕊 code‿result: ∨´ 0 ∾ {code ≡ 𝕩.code}¨ result.diagnostics}
 CheckFail ← {𝕊 transactions‿postingRows‿expectedCode:

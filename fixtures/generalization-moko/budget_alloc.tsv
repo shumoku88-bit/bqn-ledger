@@ -1,6 +1,6 @@
 # budget_alloc.tsv - 予算配賦（封筒への割り当て）
 #
-# 形式は journal.tsv と同じ:
+# 形式は actual.journal と同じ:
 #   date<TAB>memo<TAB>from<TAB>to<TAB>amount
 #
 # 例）今日の時点で予算レイヤに原資を入れる（期首投入）:

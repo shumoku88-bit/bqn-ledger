@@ -1,0 +1,29 @@
+commodity JPY
+
+account assets:cash
+    ; role: asset
+
+account budget:opening
+    ; role: budget
+    ; kind: opening
+
+account budget:unassigned
+    ; role: budget
+    ; kind: unassigned
+
+account budget:固定費予定
+    ; role: budget
+    ; kind: envelope
+
+account expenses:fixed
+    ; role: expense
+
+account income:salary
+    ; role: income
+
+2026-01-02 * paid_fixed
+    ; event-id: fixture-event-0
+    ; layer: actual
+    ; plan-id: paid-fixed
+    expenses:fixed 100 JPY
+    assets:cash -100 JPY

@@ -165,10 +165,7 @@ FormatHuman ← {𝕊 ctx:
 
   # Read files to get total line counts
   actualFile ← actual_source.File ctx
-  actual_postings ← ({𝕩.source_file≡actualFile}¨ctx.posting_rows)/ctx.posting_rows
-  actual_source_rows ← {𝕩.source_row}¨actual_postings
-  tsv_actual_count ← ≠⍷actual_source_rows
-  actual_count ← ((actual_source.Mode ctx)≡"journal")⊑⟨tsv_actual_count,≠(actual_source.Transactions ctx)⟩
+  actual_count ← ≠ actual_source.Transactions ctx
   p_lines ← loader.ReadLinesOptional (base ∾ "/plan.tsv")
 
   out ← (L "readiness.section_title") ∾ (@+10)

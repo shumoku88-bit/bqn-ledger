@@ -1,0 +1,44 @@
+commodity JPY
+
+account assets:cash
+    ; role: asset
+
+account expenses:done
+    ; role: expense
+
+account expenses:later
+    ; role: expense
+
+account expenses:met
+    ; role: expense
+
+account expenses:unanchored
+    ; role: expense
+
+account expenses:unmet
+    ; role: expense
+
+account income:pension
+    ; role: income
+
+account income:salary
+    ; role: income
+
+2026-02-03 * salary_received
+    ; event-id: fixture-event-0
+    ; layer: actual
+    assets:cash 1000 JPY
+    income:salary -1000 JPY
+
+2026-02-04 * completed_plan
+    ; event-id: fixture-event-1
+    ; layer: actual
+    ; plan-id: done
+    expenses:done 80 JPY
+    assets:cash -80 JPY
+
+2026-02-06 * pension_after_observation
+    ; event-id: fixture-event-2
+    ; layer: actual
+    assets:cash 500 JPY
+    income:pension -500 JPY

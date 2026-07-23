@@ -92,7 +92,7 @@ E. unclear; ask the user
 
 For category C, explain the current semantic owner, intended files, focused tests, and non-goals before editing. For category D, stop instead of improvising a large feature.
 
-Supported currencies are defined in the repository-wide `config/currencies.tsv` registry (e.g. JPY, ILS, and USD are supported). You can add a new single currency to the registry to enable exact decimal journal/plan/budget entries. FX, market rates, valuation, and cross-currency totals are out of scope and unsupported.
+The current production Actual/report path is explicit exact-integer JPY only. `config/currencies.tsv` and dedicated travel-event contracts retain broader currency foundations, but adding a registry entry does not enable that currency for the native Journal runtime. FX, market rates, valuation, and cross-currency totals are unsupported.
 
 ### 5. Prepare a private setup draft
 
@@ -102,8 +102,9 @@ A minimal usable base contains:
 
 ```text
 accounts.tsv
-journal.tsv
+actual.journal
 cycle.tsv
+config.tsv
 ```
 
 Daily use commonly also needs:
@@ -111,7 +112,6 @@ Daily use commonly also needs:
 ```text
 plan.tsv
 budget_alloc.tsv
-config.tsv
 ```
 
 Create only what the user has chosen to use. Preserve the documented TSV shapes and metadata contracts. Prefer an empty, valid journal over fabricated transactions.

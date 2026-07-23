@@ -1,2 +1,2 @@
-assets:anonymous	role=asset
-expenses:anonymous	role=expense
+assets:anonymous	role=asset	currency=JPY
+expenses:anonymous	role=expense	currency=JPY

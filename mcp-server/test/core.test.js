@@ -21,11 +21,11 @@ async function sha(file) { return crypto.createHash('sha256').update(await fs.re
 async function tsvHashes(base) { const out = {}; for (const x of await fs.readdir(base)) if (x.endsWith('.tsv')) out[x] = await sha(path.join(base, x)); return out; }
 async function rejectsCode(promise, code) { await assert.rejects(promise, e => e instanceof LedgerError && e.code === code); }
 
-test('read tools and prepare do not modify source TSV', async t => {
+test('read tools and prepare do not modify source files', async t => {
   const s = await setup(); t.after(s.cleanup); const before = await tsvHashes(s.base);
   assert.match(await s.core.listSections(), /snapshot/); assert.match(await s.core.snapshot(), /Snapshot/); assert.match(await s.core.reportSection('recent'), /Recent Journal/);
   const accounts = await s.core.listAccounts(); assert(accounts.some(x => x.name === 'assets:bank' && x.role === 'asset'));
-  const draft = await s.core.prepareEntry(good); assert.match(draft.draft_id, /^[0-9a-f-]{36}$/); assert.equal(draft.validation.editor, 'accepted'); assert.equal(draft.tsv_row.split('\t').length, 7); assert.match(draft.tsv_row, /\tcurrency=JPY(?:\t|$)/);
+  const draft = await s.core.prepareEntry(good); assert.match(draft.draft_id, /^[0-9a-f-]{36}$/); assert.equal(draft.validation.editor, 'accepted'); assert.match(draft.journal_block, /2026-02-21 \* Anonymous shop/); assert.match(draft.journal_block, /expenses:groceries\s+321 JPY/);
   assert.deepEqual(await tsvHashes(s.base), before); assert.equal((await fs.stat(path.join(s.runtime, `${draft.draft_id}.json`))).mode & 0o777, 0o600);
 });
 
@@ -51,26 +51,26 @@ test('exact duplicate is a warning, not an automatic rejection', async t => {
   assert.equal(r.warnings[0].code, 'POSSIBLE_DUPLICATE');
 });
 
-test('commit appends exactly one prepared row and reports pass', async t => {
-  const s = await setup(); t.after(s.cleanup); const file = path.join(s.base, 'journal.tsv'); const before = (await fs.readFile(file, 'utf8')).split('\n').length;
+test('commit appends exactly one prepared Journal transaction and reports pass', async t => {
+  const s = await setup(); t.after(s.cleanup); const file = path.join(s.base, 'actual.journal'); const before = await fs.readFile(file, 'utf8');
   const draft = await s.core.prepareEntry(good); const result = await s.core.commitEntry(draft.draft_id); const text = await fs.readFile(file, 'utf8');
-  assert.equal(result.rows_appended, 1); assert.equal(text.split('\n').length, before + 1); assert.equal(text.trimEnd().split('\n').at(-1), draft.tsv_row); assert.equal(result.validation.post_write_report, 'passed');
+  assert.equal(result.rows_appended, 1); assert.equal((text.match(/2026-02-21 \* Anonymous shop/g) || []).length, 1); assert.equal(text.startsWith(before), true); assert.equal(result.validation.post_write_report, 'passed');
 });
 
 test('stale journal rejects commit without prepared row', async t => {
-  const s = await setup(); t.after(s.cleanup); const draft = await s.core.prepareEntry(good); const file = path.join(s.base, 'journal.tsv'); await fs.appendFile(file, '# concurrent change\n');
-  await rejectsCode(s.core.commitEntry(draft.draft_id), 'STALE_DRAFT'); assert(!((await fs.readFile(file, 'utf8')).includes(draft.tsv_row)));
+  const s = await setup(); t.after(s.cleanup); const draft = await s.core.prepareEntry(good); const file = path.join(s.base, 'actual.journal'); await fs.appendFile(file, '; concurrent change\n');
+  await rejectsCode(s.core.commitEntry(draft.draft_id), 'STALE_DRAFT'); assert(!((await fs.readFile(file, 'utf8')).includes(draft.journal_block)));
 });
 
 test('used, expired, malformed and traversal draft IDs are rejected', async t => {
   let now = Date.parse('2026-07-12T00:00:00Z'); const s = await setup({ now: () => now, ttlMs: 1000 }); t.after(s.cleanup);
   const used = await s.core.prepareEntry(good); await s.core.commitEntry(used.draft_id); await rejectsCode(s.core.commitEntry(used.draft_id), 'DRAFT_USED');
   const expired = await s.core.prepareEntry({ ...good, memo: 'Expiry test' }); now += 1001; await rejectsCode(s.core.commitEntry(expired.draft_id), 'DRAFT_EXPIRED');
-  for (const id of ['bad', '../journal.tsv', '00000000-0000-4000-8000-000000000000/../../x']) await rejectsCode(s.core.commitEntry(id), 'INVALID_DRAFT_ID');
+  for (const id of ['bad', '../actual.journal', '00000000-0000-4000-8000-000000000000/../../x']) await rejectsCode(s.core.commitEntry(id), 'INVALID_DRAFT_ID');
 });
 
 test('BQN/editor validation failure never appends', async t => {
-  const s = await setup(); t.after(s.cleanup); const file = path.join(s.base, 'journal.tsv'); const before = await sha(file);
+  const s = await setup(); t.after(s.cleanup); const file = path.join(s.base, 'actual.journal'); const before = await sha(file);
   const original = s.core.editorCandidate.bind(s.core); s.core.editorCandidate = async () => { throw new LedgerError('LEDGER_VALIDATION_FAILED', 'injected'); };
   await rejectsCode(s.core.prepareEntry(good), 'LEDGER_VALIDATION_FAILED'); assert.equal(await sha(file), before); s.core.editorCandidate = original;
 });

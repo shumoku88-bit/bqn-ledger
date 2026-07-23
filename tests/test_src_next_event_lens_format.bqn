@@ -12,7 +12,7 @@ header_text ← "source_file" ∾ tab_char ∾ "source_row" ∾ tab_char ∾ "so
 
 MakeRow ← {𝕊 ⟨party_val, party_st, what_val, what_st, amt_txt, coef, scale, curr, src_id⟩:
   {
-    source_file ⇐ "journal.tsv",
+    source_file ⇐ "actual.journal",
     source_row ⇐ 0,
     source_id ⇐ src_id,
     when_value ⇐ "2026-06-15",
@@ -42,26 +42,26 @@ res1 ← fmt.FormatTsv { state ⇐ "ok", rows ⇐ ⟨row1⟩ }
 "ok" lib.AssertEq res1.state
 "" lib.AssertEq res1.message
 
-expected_row1 ← "journal.tsv" ∾ tab_char ∾ "0" ∾ tab_char ∾ "normal memo" ∾ tab_char ∾ "2026-06-15" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "" ∾ tab_char ∾ "absent" ∾ tab_char ∾ "normal memo" ∾ tab_char ∾ "ambiguous" ∾ tab_char ∾ "assets:bank" ∾ tab_char ∾ "expenses:food" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "1200" ∾ tab_char ∾ "1200" ∾ tab_char ∾ "0" ∾ tab_char ∾ "JPY" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "actual:expense" ∾ tab_char ∾ "derived" ∾ tab_char ∾ "actual" ∾ tab_char ∾ "expense"
+expected_row1 ← "actual.journal" ∾ tab_char ∾ "0" ∾ tab_char ∾ "normal memo" ∾ tab_char ∾ "2026-06-15" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "" ∾ tab_char ∾ "absent" ∾ tab_char ∾ "normal memo" ∾ tab_char ∾ "ambiguous" ∾ tab_char ∾ "assets:bank" ∾ tab_char ∾ "expenses:food" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "1200" ∾ tab_char ∾ "1200" ∾ tab_char ∾ "0" ∾ tab_char ∾ "JPY" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "actual:expense" ∾ tab_char ∾ "derived" ∾ tab_char ∾ "actual" ∾ tab_char ∾ "expense"
 expected_text1 ← header_text ∾ lf_char ∾ expected_row1 ∾ lf_char
 expected_text1 lib.AssertEq res1.text
 
 # 2. Empty and ambiguous values
 row2 ← MakeRow ⟨"", "absent", "nonempty", "ambiguous", "1200", 1200, 0, "JPY", "memo"⟩
 res2 ← fmt.FormatTsv { state ⇐ "ok", rows ⇐ ⟨row2⟩ }
-expected_row2 ← "journal.tsv" ∾ tab_char ∾ "0" ∾ tab_char ∾ "memo" ∾ tab_char ∾ "2026-06-15" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "" ∾ tab_char ∾ "absent" ∾ tab_char ∾ "nonempty" ∾ tab_char ∾ "ambiguous" ∾ tab_char ∾ "assets:bank" ∾ tab_char ∾ "expenses:food" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "1200" ∾ tab_char ∾ "1200" ∾ tab_char ∾ "0" ∾ tab_char ∾ "JPY" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "actual:expense" ∾ tab_char ∾ "derived" ∾ tab_char ∾ "actual" ∾ tab_char ∾ "expense"
+expected_row2 ← "actual.journal" ∾ tab_char ∾ "0" ∾ tab_char ∾ "memo" ∾ tab_char ∾ "2026-06-15" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "" ∾ tab_char ∾ "absent" ∾ tab_char ∾ "nonempty" ∾ tab_char ∾ "ambiguous" ∾ tab_char ∾ "assets:bank" ∾ tab_char ∾ "expenses:food" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "1200" ∾ tab_char ∾ "1200" ∾ tab_char ∾ "0" ∾ tab_char ∾ "JPY" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "actual:expense" ∾ tab_char ∾ "derived" ∾ tab_char ∾ "actual" ∾ tab_char ∾ "expense"
 (header_text ∾ lf_char ∾ expected_row2 ∾ lf_char) lib.AssertEq res2.text
 
 # 3. Explicit party
 row3 ← MakeRow ⟨"StoreA", "direct", "memo text", "ambiguous", "1200", 1200, 0, "JPY", "memo"⟩
 res3 ← fmt.FormatTsv { state ⇐ "ok", rows ⇐ ⟨row3⟩ }
-expected_row3 ← "journal.tsv" ∾ tab_char ∾ "0" ∾ tab_char ∾ "memo" ∾ tab_char ∾ "2026-06-15" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "StoreA" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "memo text" ∾ tab_char ∾ "ambiguous" ∾ tab_char ∾ "assets:bank" ∾ tab_char ∾ "expenses:food" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "1200" ∾ tab_char ∾ "1200" ∾ tab_char ∾ "0" ∾ tab_char ∾ "JPY" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "actual:expense" ∾ tab_char ∾ "derived" ∾ tab_char ∾ "actual" ∾ tab_char ∾ "expense"
+expected_row3 ← "actual.journal" ∾ tab_char ∾ "0" ∾ tab_char ∾ "memo" ∾ tab_char ∾ "2026-06-15" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "StoreA" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "memo text" ∾ tab_char ∾ "ambiguous" ∾ tab_char ∾ "assets:bank" ∾ tab_char ∾ "expenses:food" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "1200" ∾ tab_char ∾ "1200" ∾ tab_char ∾ "0" ∾ tab_char ∾ "JPY" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "actual:expense" ∾ tab_char ∾ "derived" ∾ tab_char ∾ "actual" ∾ tab_char ∾ "expense"
 (header_text ∾ lf_char ∾ expected_row3 ∾ lf_char) lib.AssertEq res3.text
 
 # 4. Empty memo / absent what
 row4 ← MakeRow ⟨"", "absent", "", "absent", "1200", 1200, 0, "JPY", ""⟩
 res4 ← fmt.FormatTsv { state ⇐ "ok", rows ⇐ ⟨row4⟩ }
-expected_row4 ← "journal.tsv" ∾ tab_char ∾ "0" ∾ tab_char ∾ "" ∾ tab_char ∾ "2026-06-15" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "" ∾ tab_char ∾ "absent" ∾ tab_char ∾ "" ∾ tab_char ∾ "absent" ∾ tab_char ∾ "assets:bank" ∾ tab_char ∾ "expenses:food" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "1200" ∾ tab_char ∾ "1200" ∾ tab_char ∾ "0" ∾ tab_char ∾ "JPY" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "actual:expense" ∾ tab_char ∾ "derived" ∾ tab_char ∾ "actual" ∾ tab_char ∾ "expense"
+expected_row4 ← "actual.journal" ∾ tab_char ∾ "0" ∾ tab_char ∾ "" ∾ tab_char ∾ "2026-06-15" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "" ∾ tab_char ∾ "absent" ∾ tab_char ∾ "" ∾ tab_char ∾ "absent" ∾ tab_char ∾ "assets:bank" ∾ tab_char ∾ "expenses:food" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "1200" ∾ tab_char ∾ "1200" ∾ tab_char ∾ "0" ∾ tab_char ∾ "JPY" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "actual:expense" ∾ tab_char ∾ "derived" ∾ tab_char ∾ "actual" ∾ tab_char ∾ "expense"
 (header_text ∾ lf_char ∾ expected_row4 ∾ lf_char) lib.AssertEq res4.text
 
 # 5. Multiple rows
@@ -75,9 +75,9 @@ row_ils2 ← MakeRow ⟨"", "absent", "book", "ambiguous", "42.50", 4250, 2, "IL
 row_ils3 ← MakeRow ⟨"", "absent", "small", "ambiguous", "0.05", 5, 2, "ILS", "small"⟩
 res_ils ← fmt.FormatTsv { state ⇐ "ok", rows ⇐ ⟨row_ils1, row_ils2, row_ils3⟩ }
 
-expected_row_ils1 ← "journal.tsv" ∾ tab_char ∾ "0" ∾ tab_char ∾ "food" ∾ tab_char ∾ "2026-06-15" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "" ∾ tab_char ∾ "absent" ∾ tab_char ∾ "food" ∾ tab_char ∾ "ambiguous" ∾ tab_char ∾ "assets:bank" ∾ tab_char ∾ "expenses:food" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "1200" ∾ tab_char ∾ "120000" ∾ tab_char ∾ "2" ∾ tab_char ∾ "ILS" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "actual:expense" ∾ tab_char ∾ "derived" ∾ tab_char ∾ "actual" ∾ tab_char ∾ "expense"
-expected_row_ils2 ← "journal.tsv" ∾ tab_char ∾ "0" ∾ tab_char ∾ "book" ∾ tab_char ∾ "2026-06-15" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "" ∾ tab_char ∾ "absent" ∾ tab_char ∾ "book" ∾ tab_char ∾ "ambiguous" ∾ tab_char ∾ "assets:bank" ∾ tab_char ∾ "expenses:food" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "42.50" ∾ tab_char ∾ "4250" ∾ tab_char ∾ "2" ∾ tab_char ∾ "ILS" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "actual:expense" ∾ tab_char ∾ "derived" ∾ tab_char ∾ "actual" ∾ tab_char ∾ "expense"
-expected_row_ils3 ← "journal.tsv" ∾ tab_char ∾ "0" ∾ tab_char ∾ "small" ∾ tab_char ∾ "2026-06-15" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "" ∾ tab_char ∾ "absent" ∾ tab_char ∾ "small" ∾ tab_char ∾ "ambiguous" ∾ tab_char ∾ "assets:bank" ∾ tab_char ∾ "expenses:food" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "0.05" ∾ tab_char ∾ "5" ∾ tab_char ∾ "2" ∾ tab_char ∾ "ILS" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "actual:expense" ∾ tab_char ∾ "derived" ∾ tab_char ∾ "actual" ∾ tab_char ∾ "expense"
+expected_row_ils1 ← "actual.journal" ∾ tab_char ∾ "0" ∾ tab_char ∾ "food" ∾ tab_char ∾ "2026-06-15" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "" ∾ tab_char ∾ "absent" ∾ tab_char ∾ "food" ∾ tab_char ∾ "ambiguous" ∾ tab_char ∾ "assets:bank" ∾ tab_char ∾ "expenses:food" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "1200" ∾ tab_char ∾ "120000" ∾ tab_char ∾ "2" ∾ tab_char ∾ "ILS" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "actual:expense" ∾ tab_char ∾ "derived" ∾ tab_char ∾ "actual" ∾ tab_char ∾ "expense"
+expected_row_ils2 ← "actual.journal" ∾ tab_char ∾ "0" ∾ tab_char ∾ "book" ∾ tab_char ∾ "2026-06-15" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "" ∾ tab_char ∾ "absent" ∾ tab_char ∾ "book" ∾ tab_char ∾ "ambiguous" ∾ tab_char ∾ "assets:bank" ∾ tab_char ∾ "expenses:food" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "42.50" ∾ tab_char ∾ "4250" ∾ tab_char ∾ "2" ∾ tab_char ∾ "ILS" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "actual:expense" ∾ tab_char ∾ "derived" ∾ tab_char ∾ "actual" ∾ tab_char ∾ "expense"
+expected_row_ils3 ← "actual.journal" ∾ tab_char ∾ "0" ∾ tab_char ∾ "small" ∾ tab_char ∾ "2026-06-15" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "" ∾ tab_char ∾ "absent" ∾ tab_char ∾ "small" ∾ tab_char ∾ "ambiguous" ∾ tab_char ∾ "assets:bank" ∾ tab_char ∾ "expenses:food" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "0.05" ∾ tab_char ∾ "5" ∾ tab_char ∾ "2" ∾ tab_char ∾ "ILS" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "actual:expense" ∾ tab_char ∾ "derived" ∾ tab_char ∾ "actual" ∾ tab_char ∾ "expense"
 
 expected_text_ils ← header_text ∾ lf_char ∾ expected_row_ils1 ∾ lf_char ∾ expected_row_ils2 ∾ lf_char ∾ expected_row_ils3 ∾ lf_char
 expected_text_ils lib.AssertEq res_ils.text
@@ -97,7 +97,7 @@ esc_str ← "a" ∾ slash_char ∾ "b" ∾ tab_char ∾ "c" ∾ lf_char ∾ "d" 
 row9 ← MakeRow ⟨"", "absent", esc_str, "ambiguous", "1200", 1200, 0, "JPY", "memo"⟩
 res9 ← fmt.FormatTsv { state ⇐ "ok", rows ⇐ ⟨row9⟩ }
 expected_escaped ← "a\\b\tc\nd\re"
-expected_row9 ← "journal.tsv" ∾ tab_char ∾ "0" ∾ tab_char ∾ "memo" ∾ tab_char ∾ "2026-06-15" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "" ∾ tab_char ∾ "absent" ∾ tab_char ∾ expected_escaped ∾ tab_char ∾ "ambiguous" ∾ tab_char ∾ "assets:bank" ∾ tab_char ∾ "expenses:food" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "1200" ∾ tab_char ∾ "1200" ∾ tab_char ∾ "0" ∾ tab_char ∾ "JPY" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "actual:expense" ∾ tab_char ∾ "derived" ∾ tab_char ∾ "actual" ∾ tab_char ∾ "expense"
+expected_row9 ← "actual.journal" ∾ tab_char ∾ "0" ∾ tab_char ∾ "memo" ∾ tab_char ∾ "2026-06-15" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "" ∾ tab_char ∾ "absent" ∾ tab_char ∾ expected_escaped ∾ tab_char ∾ "ambiguous" ∾ tab_char ∾ "assets:bank" ∾ tab_char ∾ "expenses:food" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "1200" ∾ tab_char ∾ "1200" ∾ tab_char ∾ "0" ∾ tab_char ∾ "JPY" ∾ tab_char ∾ "direct" ∾ tab_char ∾ "actual:expense" ∾ tab_char ∾ "derived" ∾ tab_char ∾ "actual" ∾ tab_char ∾ "expense"
 (header_text ∾ lf_char ∾ expected_row9 ∾ lf_char) lib.AssertEq res9.text
 
 # 10. Determinism

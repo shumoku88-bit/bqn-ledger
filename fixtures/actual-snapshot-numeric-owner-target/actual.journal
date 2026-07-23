@@ -1,0 +1,52 @@
+commodity JPY
+
+account assets:cash
+    ; role: asset
+
+account expenses:misc
+    ; role: expense
+
+account income:base
+    ; role: income
+
+account income:later
+    ; role: income
+
+account income:outside
+    ; role: income
+
+2026-01-31 * pre_cycle
+    ; event-id: fixture-event-0
+    ; layer: actual
+    assets:cash 100 JPY
+    income:base -100 JPY
+
+2026-02-01 * cycle_start
+    ; event-id: fixture-event-1
+    ; layer: actual
+    assets:cash 200 JPY
+    income:base -200 JPY
+
+2026-02-05 * at_observation
+    ; event-id: fixture-event-2
+    ; layer: actual
+    expenses:misc 50 JPY
+    assets:cash -50 JPY
+
+2026-02-06 * after_observation
+    ; event-id: fixture-event-3
+    ; layer: actual
+    assets:cash 30 JPY
+    income:later -30 JPY
+
+2026-02-11 * at_end_exclusive
+    ; event-id: fixture-event-4
+    ; layer: actual
+    expenses:misc 40 JPY
+    assets:cash -40 JPY
+
+2026-02-12 * outside_cycle
+    ; event-id: fixture-event-5
+    ; layer: actual
+    assets:cash 20 JPY
+    income:outside -20 JPY

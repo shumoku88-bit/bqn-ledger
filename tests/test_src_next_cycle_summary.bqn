@@ -6,7 +6,7 @@ cs ← •Import "../src_next/cycle_summary.bqn"
 
 MakeRow ← {𝕊 layer‿delta‿side‿kind:
   {
-    source_file       ⇐ "journal.tsv",
+    source_file       ⇐ "actual.journal",
     source_row        ⇐ 0,
     source_id         ⇐ "T",
     side              ⇐ side,

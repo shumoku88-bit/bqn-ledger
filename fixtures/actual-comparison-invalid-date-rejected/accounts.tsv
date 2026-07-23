@@ -1,3 +1,0 @@
-income:salary	role=income
-assets:cash	role=asset
-expenses:food	role=expense	spend_class=variable

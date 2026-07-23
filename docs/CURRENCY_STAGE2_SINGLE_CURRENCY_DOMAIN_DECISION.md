@@ -9,6 +9,8 @@ Exit: supersede when a later current currency contract replaces the single-curre
 
 This PR selects the Stage 2 domain-proof architecture only. Current runtime remains unchanged.
 
+Source-model note (2026-07-24): references below to `journal.tsv` describe the pre-Journal-only evidence/model and are not current runtime instructions. Current Actual ingress is the configured native Journal; `plan.tsv` and `budget_alloc.tsv` remain TSV sources.
+
 ## 1. Question
 
 Where and how is one arithmetic currency domain proven, carried, and enforced before projection and aggregation create or consume naked Posting IR deltas?

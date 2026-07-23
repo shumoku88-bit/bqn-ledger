@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Verify the BQN editor append paths.
+# Verify non-actual TSV editor append paths.
 # Scope:
 #   - positive append creates expected TSV/backup effects
 #   - dry-run source protection
@@ -95,87 +95,6 @@ run_positive() {
   fi
 }
 
-# ── Positive parity and dry-run protection ──────────────────────
-
-bqn_base="$tmp_root/bqn"
-dry_base="$tmp_root/dry"
-cp -R data "$bqn_base"
-cp -R data "$dry_base"
-
-args=(
-  journal add
-  --date 2026-06-29
-  --memo "edit-bqn parity"
-  --from assets:bank
-  --to expenses:食費
-  --amount 123
-  --meta source=check-edit-bqn
-  --yes
-  --post-check none
-)
-
-before_sha="$(sha_file "$dry_base/journal.tsv")"
-./tools/edit-bqn --base "$dry_base" journal add \
-  --date 2026-06-29 \
-  --memo "edit-bqn dry-run" \
-  --from assets:bank \
-  --to expenses:食費 \
-  --amount 123 \
-  --meta source=check-edit-bqn \
-  --dry-run 
-assert_unchanged "$dry_base" "journal.tsv" "$before_sha" "tools/edit-bqn --dry-run"
-assert_no_backup "$dry_base" "tools/edit-bqn --dry-run"
-
-./tools/edit-bqn --base "$bqn_base" "${args[@]}"
-
-if ! find "$bqn_base/.backup" -type f -name 'journal.tsv*' | grep -q .; then
-  echo "FAIL: tools/edit-bqn journal add did not create a journal backup" >&2
-  exit 1
-fi
-
-run_positive empty-memo journal.tsv \
-  journal add \
-  --date 2026-06-29 \
-  --memo "" \
-  --from assets:bank \
-  --to expenses:食費 \
-  --amount 124 \
-  --yes \
-  --post-check none
-
-run_positive multiple-meta journal.tsv \
-  journal add \
-  --date 2026-06-29 \
-  --memo "edit-bqn multiple meta" \
-  --from assets:bank \
-  --to expenses:食費 \
-  --amount 125 \
-  --meta source=check-edit-bqn \
-  --meta note=multi_meta \
-  --yes \
-  --post-check none
-
-run_positive japanese-values journal.tsv \
-  journal add \
-  --date 2026-06-29 \
-  --memo "昼ごはん" \
-  --from assets:bank \
-  --to expenses:日用品 \
-  --amount 126 \
-  --meta source=確認 \
-  --yes \
-  --post-check none
-
-run_positive no-trailing-newline journal.tsv \
-  journal add \
-  --date 2026-06-29 \
-  --memo "edit-bqn no trailing newline" \
-  --from assets:bank \
-  --to expenses:食費 \
-  --amount 127 \
-  --yes \
-  --post-check none
-
 # ── Budget add positive parity and dry-run protection ───────────
 
 budget_dry_base="$tmp_root/budget-dry"
@@ -215,72 +134,6 @@ run_positive budget-no-trailing-newline budget_alloc.tsv \
   --amount 202 \
   --yes \
   --post-check none
-
-# ── Stale write protection ──────────────────────────────────────
-
-stale_base="$tmp_root/stale"
-stale_out="$tmp_root/stale.out"
-cp -R data "$stale_base"
-append_stale_marker() {
-  printf '%s\n' '# concurrent edit' >> "$EDIT_BQN_TEST_STALE_JOURNAL"
-}
-export -f append_stale_marker
-set +e
-BQN_LEDGER_TEST_MODE=1 \
-EDIT_BQN_TEST_STALE_JOURNAL="$stale_base/journal.tsv" \
-EDIT_BQN_TEST_BEFORE_APPEND_HOOK="append_stale_marker" \
-  ./tools/edit-bqn --base "$stale_base" journal add \
-    --date 2026-06-29 \
-    --memo "stale append should not land" \
-    --from assets:bank \
-    --to expenses:食費 \
-    --amount 123 \
-    --yes \
-    --post-check none >"$stale_out" 2>&1
-stale_rc=$?
-set -e
-if [ "$stale_rc" -eq 0 ]; then
-  echo "FAIL: tools/edit-bqn accepted a stale journal append" >&2
-  cat "$stale_out" >&2
-  exit 1
-fi
-if grep -Fq "stale append should not land" "$stale_base/journal.tsv"; then
-  echo "FAIL: stale tools/edit-bqn append payload landed in journal.tsv" >&2
-  exit 1
-fi
-if ! tail -n 1 "$stale_base/journal.tsv" | grep -Fxq '# concurrent edit'; then
-  echo "FAIL: stale test did not leave the simulated concurrent edit as the final line" >&2
-  tail -n 5 "$stale_base/journal.tsv" >&2
-  exit 1
-fi
-assert_no_backup "$stale_base" "tools/edit-bqn stale append"
-
-# ── Negative fail-closed parity ─────────────────────────────────
-# At this stage stdout/stderr text does not need to match exactly. The gate is:
-# both paths reject the input, leave journal.tsv byte-identical, and create no backup.
-
-run_expect_fail_closed invalid-date journal.tsv \
-  journal add --date 2026-02-30 --memo "bad date" --from assets:bank --to expenses:食費 --amount 123 --yes --post-check none
-run_expect_fail_closed unknown-from journal.tsv \
-  journal add --date 2026-06-29 --memo "unknown from" --from assets:missing --to expenses:食費 --amount 123 --yes --post-check none
-run_expect_fail_closed unknown-to journal.tsv \
-  journal add --date 2026-06-29 --memo "unknown to" --from assets:bank --to expenses:missing --amount 123 --yes --post-check none
-run_expect_fail_closed invalid-amount journal.tsv \
-  journal add --date 2026-06-29 --memo "bad amount" --from assets:bank --to expenses:食費 --amount 12x --yes --post-check none
-run_expect_fail_closed invalid-meta-missing-eq journal.tsv \
-  journal add --date 2026-06-29 --memo "bad meta" --from assets:bank --to expenses:食費 --amount 123 --meta source --yes --post-check none
-run_expect_fail_closed invalid-meta-key journal.tsv \
-  journal add --date 2026-06-29 --memo "bad meta key" --from assets:bank --to expenses:食費 --amount 123 --meta Source=test --yes --post-check none
-run_expect_fail_closed memo-tab journal.tsv \
-  journal add --date 2026-06-29 --memo $'bad\tmemo' --from assets:bank --to expenses:食費 --amount 123 --yes --post-check none
-run_expect_fail_closed memo-newline journal.tsv \
-  journal add --date 2026-06-29 --memo $'bad\nmemo' --from assets:bank --to expenses:食費 --amount 123 --yes --post-check none
-run_expect_fail_closed missing-date journal.tsv \
-  journal add --memo "missing date" --from assets:bank --to expenses:食費 --amount 123 --yes --post-check none
-run_expect_fail_closed missing-amount journal.tsv \
-  journal add --date 2026-06-29 --memo "missing amount" --from assets:bank --to expenses:食費 --yes --post-check none
-run_expect_fail_closed invalid-post-check journal.tsv \
-  journal add --date 2026-06-29 --memo "bad post check" --from assets:bank --to expenses:食費 --amount 123 --yes --post-check bad
 
 # ── Budget add negative fail-closed parity ──────────────────────
 
@@ -359,4 +212,4 @@ for issue_case in invalid-status missing-title invalid-amount title-tab memo-new
   assert_no_backup "$issue_neg_bqn" "tools/edit-bqn issue negative case $issue_case"
 done
 
-echo "OK: tools/edit-bqn journal/budget/issue add parity checks passed" >&2
+echo "OK: tools/edit-bqn budget/issue add checks passed" >&2

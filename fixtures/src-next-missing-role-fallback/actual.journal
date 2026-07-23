@@ -1,0 +1,27 @@
+commodity JPY
+
+account assets:bank
+
+account assets:cash
+
+account equity:opening
+
+account expenses:food
+
+account expenses:hobby
+
+account expenses:rent
+
+account income:salary
+
+2026-06-15 * A
+    ; event-id: fixture-event-0
+    ; layer: actual
+    assets:cash 1000 JPY
+    equity:opening -1000 JPY
+
+2026-06-16 * B
+    ; event-id: fixture-event-1
+    ; layer: actual
+    expenses:food 200 JPY
+    assets:cash -200 JPY

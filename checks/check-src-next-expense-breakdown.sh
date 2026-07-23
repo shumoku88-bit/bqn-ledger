@@ -11,7 +11,6 @@ if [ "$#" -eq 0 ]; then
     fixtures/src-next-income-anchor-golden
     fixtures/src-next-expense-role-metadata
     fixtures/src-next-household-mapping-policy
-    fixtures/src-next-currency-accountkey
     fixtures/src-next-empty-projection
     fixtures/src-next-missing-plan
   )

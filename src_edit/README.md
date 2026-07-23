@@ -48,28 +48,28 @@ tools/edit issue add ...
 BQN code here may:
 
 - validate command inputs
-- read source TSV files needed to understand an edit
-- render candidate TSV rows
+- read the configured native Journal and source TSV files needed to understand an edit
+- render candidate native Journal blocks or TSV rows
 - render machine-readable edit operations
 - reject invalid dates, amounts, accounts, metadata, and plan selectors
 
-BQN code here must not silently overwrite source TSV files. The shell write layer applies validated output through explicit safe-write helpers.
+BQN code here must not silently overwrite source files. The shell write layer applies validated output through explicit safe-write helpers.
 
 ## Command surface notes
 
 Dispatcher boundary note: see `docs/EDIT_BQN_DISPATCHER.md` for the current shell command groups and extraction rule.
 
 - `account list` is a read-only account candidate export for UI shell wrappers; account role metadata interpretation stays in BQN.
-- `journal list` is a read-only journal row export for reverse-selection UI; journal row formatting and empty-column preservation stay in BQN.
-- `journal reverse` is handled by `src_edit/journal_reverse_cmd.bqn`; reverse-row validation and APPEND protocol rendering stay in BQN.
-- Ordinary journal `--post-check lint` is owned by `journal_source_integrity.bqn` / `journal_source_check.bqn`; valid mixed JPY/ILS rows are checked independently without invoking report arithmetic.
+- `journal list` is a read-only native Journal transaction export for reverse-selection UI; formatting stays in BQN.
+- `journal reverse` is handled by `src_edit/journal_native_reverse_cmd.bqn`; reverse validation and native block rendering stay in BQN.
+- Native Journal `--post-check lint` is owned by `journal_validate_cmd.bqn`; parser, account parity, Posting IR, and integrated context fail closed.
 - `issue add` has a small dedicated parser because its CLI and new-file semantics differ; its shell handler is split into `tools/lib/edit-bqn-issue.sh`.
 - `travel friend add` validates all existing and candidate source events through `src_next/friend_travel_source_event.bqn`; shell only transports arguments and applies exclusive-create/checked-append/recovery bytes.
 - `travel exchange add` validates accounts plus all existing and candidate two-amount events through `src_next/travel_exchange_event.bqn`; shell does not interpret currency, decimals, or exchange meaning.
 - `plan add` owns plan_id generation and duplicate checks.
 - `plan list` is byte-parity checked because its TSV output is a UI selection contract.
 - `plan related` is read-only and owns recurring-plan relation-key semantics for replenishment UI.
-- `plan finish`, `plan edit`, and `journal reverse` use derived edit protocols.
+- `plan finish` and `journal reverse` generate native Journal blocks; `plan edit` uses a derived TSV replace protocol.
 - `plan edit` is handled by `src_edit/plan_edit_cmd.bqn`; line selection, closed-plan rejection, date/amount validation, and REPLACE protocol rendering stay in BQN.
 
 ## Safety rule

@@ -26,7 +26,7 @@ base="$tmp_root/plan-completion"
 cp -R fixtures/plan-completion "$base"
 
 before_plan="$(shasum -a 256 "$base/plan.tsv" | awk '{print $1}')"
-before_journal="$(shasum -a 256 "$base/journal.tsv" | awk '{print $1}')"
+before_journal="$(shasum -a 256 "$base/actual.journal" | awk '{print $1}')"
 
 run_preflight() {
   local label="$1"
@@ -43,14 +43,14 @@ run_preflight default env
 run_preflight bqn-editor env BQN_EDITOR=1
 
 after_plan="$(shasum -a 256 "$base/plan.tsv" | awk '{print $1}')"
-after_journal="$(shasum -a 256 "$base/journal.tsv" | awk '{print $1}')"
+after_journal="$(shasum -a 256 "$base/actual.journal" | awk '{print $1}')"
 
 if [ "$before_plan" != "$after_plan" ]; then
   echo "FAIL: preflight modified plan.tsv" >&2
   exit 1
 fi
 if [ "$before_journal" != "$after_journal" ]; then
-  echo "FAIL: preflight modified journal.tsv" >&2
+  echo "FAIL: preflight modified actual.journal" >&2
   exit 1
 fi
 

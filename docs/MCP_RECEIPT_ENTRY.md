@@ -29,7 +29,7 @@ Read-only tools:
 - `ledger_report_section({section})` — one section selected from that list.
 - `ledger_snapshot()` — canonical BQN snapshot.
 - `ledger_list_accounts()` — minimal `{name, role}` account candidates from the BQN account-list path.
-- `ledger_prepare_entry({date,memo,from_account,to_account,amount,metadata?})` — validates and creates a draft without modifying source TSV.
+- `ledger_prepare_entry({date,memo,from_account,to_account,amount,metadata?})` — validates and creates a draft without modifying source files.
 
 Write tool:
 
@@ -42,11 +42,11 @@ Write tool:
 `ledger_prepare_entry`:
 
 1. rejects unsafe types, non-positive/non-integer amounts, and TAB/LF/CR/NUL;
-2. delegates date, account, metadata, and row validation/rendering to `src_edit/journal_add_cmd.bqn`;
+2. delegates date, account, metadata, and native transaction-block validation/rendering to `src_edit/journal_block_add_cmd.bqn`;
 3. checks exact duplicate coordinates and returns `POSSIBLE_DUPLICATE` as a warning;
-4. fingerprints `journal.tsv`, `accounts.tsv`, and the resolved base identity;
+4. fingerprints the configured native Journal, `accounts.tsv`, and the resolved base identity;
 5. stores a single-use draft outside the source directory with mode `0600` in a mode `0700` runtime directory;
-6. returns the exact candidate, TSV row, warning list, journal fingerprint, and expiration time.
+6. returns the exact candidate, native Journal block, warning list, journal fingerprint, and expiration time.
 
 A draft expires after ten minutes by default. A human must compare the receipt and exact preview before authorizing commit.
 
@@ -55,10 +55,10 @@ A draft expires after ten minutes by default. A human must compare the receipt a
 1. accepts only a UUID `draft_id` and cannot resolve arbitrary paths;
 2. rejects missing, used, or expired drafts;
 3. rechecks base identity and journal/accounts fingerprints;
-4. asks the BQN editor to render the exact row again and compares it byte-for-byte;
-5. copies only base TSV files to a temporary private directory and runs the approved editor append plus BQN lint, recent-journal, and snapshot there;
+4. asks the BQN editor to render the exact native Journal block again and compares it byte-for-byte;
+5. copies the configured Journal and base TSV files to a temporary private directory and runs the approved editor append plus native validation, recent-journal, and snapshot there;
 6. invokes `tools/edit journal add --yes --post-check none` on the selected base, reusing its backup, stale check, and atomic append;
-7. verifies that the resulting journal is exactly the old bytes plus one prepared row;
+7. verifies that the resulting Journal is exactly the old bytes plus one prepared transaction block;
 8. runs recent-journal and snapshot reports, then marks the draft used.
 
 Validation and stale failures are fail-closed. The editor backup remains the recovery source. A process/device failure after the atomic append but before the draft is marked used is an operational ambiguity: inspect the journal/backup and prepare again; do not blindly retry commit.

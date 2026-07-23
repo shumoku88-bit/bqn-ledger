@@ -1,0 +1,58 @@
+commodity JPY
+
+account assets:cash
+    ; role: asset
+
+account budget:unassigned
+    ; role: budget
+    ; kind: unassigned
+
+account budget:日用品
+    ; role: budget
+    ; kind: envelope
+
+account budget:謎
+    ; role: budget
+    ; kind: envelope
+
+account budget:食費
+    ; role: budget
+    ; kind: envelope
+
+account expenses:missing
+    ; role: expense
+
+account expenses:日用品
+    ; role: expense
+    ; default-envelope: 日用品
+
+account expenses:食費
+    ; role: expense
+    ; default-envelope: 食費
+
+account income:salary
+    ; role: income
+
+2026-01-01 * actual_food_1
+    ; event-id: fixture-event-0
+    ; layer: actual
+    expenses:食費 300 JPY
+    assets:cash -300 JPY
+
+2026-01-02 * actual_goods
+    ; event-id: fixture-event-1
+    ; layer: actual
+    expenses:日用品 80 JPY
+    assets:cash -80 JPY
+
+2026-01-03 * actual_missing_budget
+    ; event-id: fixture-event-2
+    ; layer: actual
+    expenses:missing 90 JPY
+    assets:cash -90 JPY
+
+2026-01-04 * actual_food_2
+    ; event-id: fixture-event-3
+    ; layer: actual
+    expenses:食費 50 JPY
+    assets:cash -50 JPY

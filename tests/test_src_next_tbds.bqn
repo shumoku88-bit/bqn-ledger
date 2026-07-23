@@ -11,9 +11,10 @@ tbds ← •Import "../src_next/tbds.bqn"
 base ← "fixtures/src-next-golden"
 cy ← cycle.ReadCycle base
 resolved ← ak.Resolve (loader.ReadLines (base ∾ "/accounts.tsv"))
-rows ← context.BuildAllRows ⟨base, resolved, cy.start⟩
-result ← cube.Materialize ⟨rows, cy.day_count, resolved.count⟩
-tbdsRows ← tbds.Build ⟨rows, result, resolved, cy⟩
+ledger ← context.BuildContext base
+rows ← ledger.posting_rows
+result ← ledger.cube
+tbdsRows ← ledger.tbds
 
 # One TBDS row per AccountKey × Layer.
 (resolved.count × cube.layer_count) lib.AssertEq ≠ tbdsRows

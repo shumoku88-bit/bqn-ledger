@@ -3,7 +3,6 @@
 lib ← •Import "test_lib.bqn"
 parser ← •Import "../src_next/journal_profile_stage1.bqn"
 adapter ← •Import "../src_next/journal_posting_ir_stage2a.bqn"
-context ← •Import "../src_next/context.bqn"
 ak ← •Import "../src_next/account_key.bqn"
 loader ← •Import "../src_next/loader.bqn"
 
@@ -27,28 +26,9 @@ journalResult ← adapter.Build ⟨parsed.transactions, resolved, cycleStart⟩
 0 lib.AssertEq ≠ journalResult.diagnostics
 4 lib.AssertEq ≠ journalResult.posting_rows
 
-snapshot ← {
-  sources⇐⟨
-    {source_file⇐"journal.tsv", required⇐1, lines⇐loader.ReadLines (base ∾ "/journal.tsv")},
-    {source_file⇐"plan.tsv", required⇐0, lines⇐loader.ReadLines (base ∾ "/plan.tsv")},
-    {source_file⇐"budget_alloc.tsv", required⇐0, lines⇐⟨⟩}
-  ⟩
-}
-tsvResult ← context.BuildCheckedPostingProjectionFromSnapshot ⟨snapshot, resolved, cycleStart⟩
-"ok" lib.AssertEq tsvResult.state
-0 lib.AssertEq ≠ tsvResult.diagnostics
-4 lib.AssertEq ≠ tsvResult.posting_rows
-
 journalRows ← journalResult.posting_rows
-tsvRows ← tsvResult.posting_rows
 
-# Stage 2A compares only the selected semantic subset. Row order proves both
-# transaction order and posting order because each fixture transaction has two postings.
-({<𝕩.date}¨ tsvRows) lib.AssertEq {<𝕩.date}¨ journalRows
-({<𝕩.account_key}¨ tsvRows) lib.AssertEq {<𝕩.account_key}¨ journalRows
-({𝕩.delta}¨ tsvRows) lib.AssertEq {𝕩.delta}¨ journalRows
-({<𝕩.side}¨ tsvRows) lib.AssertEq {<𝕩.side}¨ journalRows
-({<𝕩.layer_name}¨ tsvRows) lib.AssertEq {<𝕩.layer_name}¨ journalRows
+# Row order proves both transaction order and posting order.
 
 ⟨<"2026-08-14", <"2026-08-15"⟩ lib.AssertEq {<𝕩.date}¨ 0‿2 ⊏ journalRows
 ⟨<"expenses:rent/JPY", <"assets:bank/JPY", <"expenses:rent/JPY", <"assets:bank/JPY"⟩ lib.AssertEq {<𝕩.account_key}¨ journalRows
@@ -56,7 +36,6 @@ tsvRows ← tsvResult.posting_rows
 0 lib.AssertEq +´ {𝕩.delta}¨ 0‿1 ⊏ journalRows
 0 lib.AssertEq +´ {𝕩.delta}¨ 2‿3 ⊏ journalRows
 lib.Assert ∧´ {𝕩.status ≡ "ok"}¨ journalRows
-lib.Assert ∧´ {𝕩.status ≡ "ok"}¨ tsvRows
 
 # Access and check every field in the 16-field Journal Posting IR row shape.
 first ← ⊑ journalRows

@@ -11,6 +11,8 @@ This document selects the next narrow Stage 2 meaning after a concrete consumer 
 
 This slice is docs-only. It does not authorize runtime, test, fixture, source TSV, metadata schema, editor, or report changes.
 
+Source-model note (2026-07-24): references below to `journal.tsv` describe the pre-Journal-only evidence/model and are not current runtime instructions. Current Actual ingress is the configured native Journal; `plan.tsv` and `budget_alloc.tsv` remain TSV sources.
+
 ## 1. Question
 
 How may explicit source-row currency identity such as:

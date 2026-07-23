@@ -56,7 +56,16 @@ class LedgerCore {
     await fs.mkdir(this.runtimeDir, { recursive: true, mode: 0o700 });
     await fs.chmod(this.runtimeDir, 0o700);
     this.baseReal = await fs.realpath(this.baseDir);
-    for (const file of ['accounts.tsv', 'journal.tsv', 'cycle.tsv']) await fs.access(path.join(this.baseReal, file));
+    const rel = await this.exec('bqn', ['src_edit/actual_journal_file_cmd.bqn', this.baseReal]);
+    if (!rel || path.isAbsolute(rel) || rel.split(/[\\/]/).includes('..') || !rel.endsWith('.journal')) {
+      throw new LedgerError('ACTUAL_JOURNAL_PATH', 'Configured ACTUAL_JOURNAL_FILE is unsafe.');
+    }
+    this.actualJournalFile = rel;
+    this.actualJournalPath = path.resolve(this.baseReal, rel);
+    if (!this.actualJournalPath.startsWith(`${this.baseReal}${path.sep}`)) throw new LedgerError('ACTUAL_JOURNAL_PATH', 'Configured ACTUAL_JOURNAL_FILE escapes the base directory.');
+    for (const file of ['accounts.tsv', 'cycle.tsv']) await fs.access(path.join(this.baseReal, file));
+    await fs.access(this.actualJournalPath);
+    await this.exec('bqn', ['src_edit/journal_validate_cmd.bqn', this.baseReal]);
     return this;
   }
 
@@ -114,40 +123,47 @@ class LedgerCore {
     return { date: input.date, memo: input.memo, from_account: input.from_account, to_account: input.to_account, amount: input.amount, metadata: [...metadata] };
   }
 
+  journalPathFor(base) { return path.join(base, this.actualJournalFile); }
+
   async editorCandidate(candidate, base = this.baseReal) {
-    const args = ['src_edit/journal_add_cmd.bqn', base, 'journal', candidate.date, candidate.memo, candidate.from_account, candidate.to_account, String(candidate.amount), 'JPY', ...candidate.metadata];
+    const target = this.journalPathFor(base);
+    const args = ['src_edit/journal_block_add_cmd.bqn', base, target, candidate.date, candidate.memo, 'ordinary', '', '2', `${candidate.to_account}=${candidate.amount}`, `${candidate.from_account}=-${candidate.amount}`, ...candidate.metadata];
     const out = await this.exec('bqn', args);
     const lines = out.split('\n');
-    if (lines.length !== 2 || lines[0] !== 'OK\tAPPEND\tjournal.tsv') throw new LedgerError('EDITOR_PROTOCOL', 'Unexpected editor validation response.');
-    return lines[1];
+    const header = lines.shift().split('\t');
+    if (header.length !== 7 || header[0] !== 'OK' || header[1] !== 'APPEND_BLOCK' || !/^[01]$/.test(header[2]) || header[3] !== 'ordinary' || header[4] !== '-' || header[5] !== '2') {
+      throw new LedgerError('EDITOR_PROTOCOL', 'Unexpected native Journal validation response.');
+    }
+    const block = lines.join('\n');
+    if (!block) throw new LedgerError('EDITOR_PROTOCOL', 'Native Journal candidate block is empty.');
+    return { transport_prefix: Number(header[2]), candidate_ordinal: Number(header[6]), block };
   }
 
   async fingerprints() {
-    return { journal: await hashFile(path.join(this.baseReal, 'journal.tsv')), accounts: await hashFile(path.join(this.baseReal, 'accounts.tsv')), base: crypto.createHash('sha256').update(this.baseReal).digest('hex') };
+    return { journal: await hashFile(this.actualJournalPath), accounts: await hashFile(path.join(this.baseReal, 'accounts.tsv')), base: crypto.createHash('sha256').update(this.baseReal).digest('hex') };
   }
 
   async duplicateWarnings(candidate) {
-    const text = await fs.readFile(path.join(this.baseReal, 'journal.tsv'), 'utf8');
+    const text = await this.exec(path.join(this.root, 'tools', 'edit'), ['--base', this.baseReal, 'journal', 'list', '--format', 'tsv']);
     const duplicate = text.split(/\n/).some(line => {
-      if (!line || line.startsWith('#') || line.startsWith('\\')) return false;
-      const f = line.replace(/\r$/, '').split('\t');
-      return f.length >= 5 && f[0] === candidate.date && f[1] === candidate.memo && f[2] === candidate.from_account && f[3] === candidate.to_account && f[4] === String(candidate.amount);
+      const f = line.split('\t');
+      return f.length >= 6 && f[1] === candidate.date && f[2] === candidate.memo && f[3] === candidate.from_account && f[4] === candidate.to_account && f[5] === String(candidate.amount);
     });
-    return duplicate ? [{ code: 'POSSIBLE_DUPLICATE', message: 'An exact matching journal entry already exists; confirm whether this receipt is distinct.' }] : [];
+    return duplicate ? [{ code: 'POSSIBLE_DUPLICATE', message: 'An exact matching Journal transaction already exists; confirm whether this receipt is distinct.' }] : [];
   }
 
   draftPath(id) { return path.join(this.runtimeDir, `${id}.json`); }
 
   async prepareEntry(input) {
     const candidate = this.normalizeCandidate(input);
-    const tsvRow = await this.editorCandidate(candidate);
+    const journalCandidate = await this.editorCandidate(candidate);
     const warnings = await this.duplicateWarnings(candidate);
     const fingerprint = await this.fingerprints();
     const draftId = crypto.randomUUID();
     const expiresAt = new Date(this.now() + this.ttlMs).toISOString();
-    const draft = { version: 1, draftId, candidate, tsvRow, warnings, fingerprint, expiresAt, used: false };
+    const draft = { version: 2, draftId, candidate, journalCandidate, warnings, fingerprint, expiresAt, used: false };
     await fs.writeFile(this.draftPath(draftId), JSON.stringify(draft), { mode: 0o600, flag: 'wx' });
-    return { ok: true, draft_id: draftId, candidate, tsv_row: tsvRow, warnings, validation: { editor: 'accepted', source_unchanged: true }, journal_fingerprint: fingerprint.journal, expires_at: expiresAt };
+    return { ok: true, draft_id: draftId, candidate, journal_block: journalCandidate.block, warnings, validation: { editor: 'accepted', source_unchanged: true }, journal_fingerprint: fingerprint.journal, expires_at: expiresAt };
   }
 
   async loadDraft(id) {
@@ -164,6 +180,9 @@ class LedgerCore {
     const parent = await fs.mkdtemp(path.join(os.tmpdir(), 'bqn-ledger-mcp-'));
     const base = path.join(parent, 'data'); await fs.mkdir(base);
     for (const name of await fs.readdir(this.baseReal)) if (name.endsWith('.tsv')) await fs.copyFile(path.join(this.baseReal, name), path.join(base, name));
+    const journalTarget = this.journalPathFor(base);
+    await fs.mkdir(path.dirname(journalTarget), { recursive: true });
+    await fs.copyFile(this.actualJournalPath, journalTarget);
     return { parent, base };
   }
 
@@ -182,18 +201,20 @@ class LedgerCore {
       const draft = await this.loadDraft(id);
       const current = await this.fingerprints();
       for (const key of ['journal', 'accounts', 'base']) if (current[key] !== draft.fingerprint[key]) throw new LedgerError('STALE_DRAFT', 'Ledger sources changed after prepare; prepare the entry again.');
-      if (await this.editorCandidate(draft.candidate) !== draft.tsvRow) throw new LedgerError('STALE_DRAFT', 'The editor no longer accepts the exact prepared row.');
+      if (JSON.stringify(await this.editorCandidate(draft.candidate)) !== JSON.stringify(draft.journalCandidate)) throw new LedgerError('STALE_DRAFT', 'The editor no longer accepts the exact prepared Journal transaction.');
 
       preflight = await this.makePreflightBase();
       await this.applyViaEditor(draft.candidate, preflight.base, 'lint');
       await this.report(['--section', 'recent'], preflight.base);
       await this.report(['--section', 'snapshot'], preflight.base);
 
-      const before = await fs.readFile(path.join(this.baseReal, 'journal.tsv'), 'utf8');
+      const before = await fs.readFile(this.actualJournalPath, 'utf8');
       await this.applyViaEditor(draft.candidate, this.baseReal, 'none');
-      const after = await fs.readFile(path.join(this.baseReal, 'journal.tsv'), 'utf8');
-      const expected = before + (before && !before.endsWith('\n') ? '\n' : '') + draft.tsvRow + '\n';
-      if (after !== expected) throw new LedgerError('POST_WRITE_MISMATCH', 'Post-write verification did not find exactly one prepared row.');
+      const after = await fs.readFile(this.actualJournalPath, 'utf8');
+      const separator = before && !before.endsWith('\n') ? '\n' : '';
+      const transport = draft.journalCandidate.transport_prefix ? '\n' : '';
+      const expected = before + separator + transport + draft.journalCandidate.block + '\n';
+      if (after !== expected) throw new LedgerError('POST_WRITE_MISMATCH', 'Post-write verification did not find exactly one prepared Journal transaction.');
       await this.report(['--section', 'recent']);
       await this.report(['--section', 'snapshot']);
 

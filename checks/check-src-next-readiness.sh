@@ -8,7 +8,6 @@ if [ "$#" -eq 0 ]; then
   fixtures=(
     fixtures/src-next-golden
     fixtures/src-next-empty-projection
-    fixtures/src-next-unknown-account
     fixtures/src-next-out-of-cycle-journal
   )
 fi

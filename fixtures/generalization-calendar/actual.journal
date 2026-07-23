@@ -1,0 +1,70 @@
+commodity JPY
+
+account assets:bank
+    ; role: asset
+
+account assets:cash
+    ; role: asset
+
+account equity:opening-balances
+    ; role: equity
+
+account expenses:food
+    ; role: expense
+
+account expenses:misc
+    ; role: expense
+
+account expenses:rent
+    ; role: expense
+
+account expenses:util
+    ; role: expense
+
+account income:salary
+    ; role: income
+
+account liability:credit-card
+    ; role: liability
+
+2026-01-25 * Opening Balance
+    ; event-id: fixture-event-0
+    ; layer: actual
+    assets:bank 100000 JPY
+    equity:opening-balances -100000 JPY
+
+2026-01-25 * Salary
+    ; event-id: fixture-event-1
+    ; layer: actual
+    assets:bank 200000 JPY
+    income:salary -200000 JPY
+
+2026-01-26 * Rent
+    ; event-id: fixture-event-2
+    ; layer: actual
+    expenses:rent 60000 JPY
+    assets:bank -60000 JPY
+
+2026-01-27 * Lunch
+    ; event-id: fixture-event-3
+    ; layer: actual
+    expenses:food 1200 JPY
+    assets:cash -1200 JPY
+
+2026-01-28 * Grocery
+    ; event-id: fixture-event-4
+    ; layer: actual
+    expenses:food 5000 JPY
+    liability:credit-card -5000 JPY
+
+2026-01-30 * ATM
+    ; event-id: fixture-event-5
+    ; layer: actual
+    assets:cash 10000 JPY
+    assets:bank -10000 JPY
+
+2026-02-10 * Electricity
+    ; event-id: fixture-event-6
+    ; layer: actual
+    expenses:util 8000 JPY
+    assets:bank -8000 JPY

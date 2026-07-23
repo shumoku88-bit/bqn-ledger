@@ -4,8 +4,8 @@
 #
 # mode:
 #   - fixed         : start (inclusive) 〜 end_exclusive (exclusive)
-#   - incomeAnchor  : journal.tsv で直近の income_account の入金日を start、plan.tsv の次回入金日を end_exclusive
-#   - calendarMonth : journal.tsv の最終日が属する月の 1日 〜 翌月1日
+#   - incomeAnchor  : actual.journal で直近の income_account の入金日を start、plan.tsv の次回入金日を end_exclusive
+#   - calendarMonth : actual.journal の最終日が属する月の 1日 〜 翌月1日
 #
 # --- 例1) 固定期間で指定 (4/15〜6/14 を見たいなら end_exclusive は 6/15) ---
 # mode	fixed

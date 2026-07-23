@@ -1,0 +1,43 @@
+commodity JPY
+
+account assets:cash
+    ; role: asset
+
+account assets:savings
+    ; role: asset
+
+account budget:food
+    ; role: budget
+    ; kind: envelope
+
+account budget:rent
+    ; role: budget
+    ; kind: envelope
+
+account budget:unassigned
+    ; role: budget
+    ; kind: unassigned
+
+account expenses:food
+    ; role: expense
+    ; default-envelope: food
+
+account expenses:rent
+    ; role: expense
+    ; default-envelope: rent
+
+account income:salary
+    ; role: income
+
+2026-01-02 * spend_food
+    ; event-id: fixture-event-0
+    ; layer: actual
+    expenses:food 300 JPY
+    assets:cash -300 JPY
+
+2026-01-15 * rent_paid
+    ; event-id: fixture-event-1
+    ; layer: actual
+    ; plan-id: rent_p1
+    expenses:rent 1000 JPY
+    assets:cash -1000 JPY

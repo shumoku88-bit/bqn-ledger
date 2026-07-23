@@ -8,6 +8,8 @@ Date: 2026-07-09
 
 Stage 1 update: this map remains Stage 0 observation evidence. The selected amount/currency semantics are now owned by `docs/CURRENCY_STAGE1_AMOUNT_SEMANTICS_DECISION.md`; do not read this audit snapshot's Stage 1 candidate list as the current decision.
 
+Source-model note (2026-07-24): references below to `journal.tsv` describe the pre-Journal-only evidence/model and are not current runtime instructions. Current Actual ingress is the configured native Journal; `plan.tsv` and `budget_alloc.tsv` remain TSV sources.
+
 ## 1. Purpose
 
 This Stage 0 map answers the current-state question:

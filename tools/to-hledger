@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import os
+import shutil
+import subprocess
 import sys
 
 def get_base_dir():
@@ -188,6 +190,20 @@ def get_out_dir():
     os.makedirs(out_dir, exist_ok=True)
     return out_dir
 
+def resolve_actual_journal(base_dir):
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    result = subprocess.run(
+        ['bqn', 'src_edit/actual_journal_file_cmd.bqn', base_dir],
+        cwd=project_root, check=True, text=True, capture_output=True)
+    rel = result.stdout.strip()
+    if not rel or os.path.isabs(rel) or '..' in rel.split(os.sep) or not rel.endswith('.journal'):
+        raise RuntimeError('configured ACTUAL_JOURNAL_FILE is unsafe')
+    path = os.path.realpath(os.path.join(base_dir, rel))
+    base_real = os.path.realpath(base_dir)
+    if os.path.commonpath([base_real, path]) != base_real or not os.path.isfile(path):
+        raise RuntimeError('configured ACTUAL_JOURNAL_FILE is missing or outside base')
+    return path
+
 def main():
     base_dir = get_base_dir()
     print(f"Using base dir: {base_dir}")
@@ -200,7 +216,11 @@ def main():
     
     convert_accounts(base_dir, out_dir)
     
-    has_journal = convert_journal_like('journal.tsv', 'journal.journal', base_dir, out_dir, default_currency)
+    actual_path = resolve_actual_journal(base_dir)
+    journal_out = os.path.join(out_dir, 'journal.journal')
+    shutil.copyfile(actual_path, journal_out)
+    print(f"Created {journal_out} from configured native Journal")
+    has_journal = True
     has_plan = convert_journal_like('plan.tsv', 'plan.journal', base_dir, out_dir, default_currency)
     
     # Create master file hledger.journal

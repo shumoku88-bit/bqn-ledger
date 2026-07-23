@@ -1,0 +1,4 @@
+assets:cash	type=liquid
+income:salary	role=income
+expenses:food	role=expense
+expenses:fixed	role=expense

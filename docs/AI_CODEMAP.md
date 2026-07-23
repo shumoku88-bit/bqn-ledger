@@ -30,7 +30,7 @@ Exit: keep current while this remains the pit code/data-flow entry point
 
 ## 絶対に守ること
 
-- Actual source は `<base>/config.tsv` の `ACTUAL_SOURCE=journal|tsv` で明示選択する。Journal mode は `ACTUAL_JOURNAL_FILE` のnative Journalだけを読み、`journal.tsv`へfallbackしない。`plan.tsv` / `budget_alloc.tsv` / `accounts.tsv` は引き続き正データ。公開 repo の `data/` は匿名 sandbox、実運用は `LEDGER_DATA_DIR` で外出しする。
+- Actual source は `<base>/config.tsv` の `ACTUAL_JOURNAL_FILE` で指定するnative Journalだけである。TSV actual route・fallback・dual writeはない。`plan.tsv` / `budget_alloc.tsv` / `accounts.tsv` は引き続き正データ。公開 repo の `data/` は匿名 sandbox、実運用は `LEDGER_DATA_DIR` で外出しする。
 - pit は実データ TSV を勝手に書き換えない。必要ならユーザー確認を取る。
 - journal-like TSV の先頭5列は固定: `date memo from to amount`。
 - 6列目以降は `key=value` メタ。会計計算は原則として先頭5列だけを見る。
@@ -41,7 +41,7 @@ Exit: keep current while this remains the pit code/data-flow entry point
 ## 全体像
 
 ```text
-<base>/accounts.tsv / selected actual source (`actual.journal` or compatibility `journal.tsv`) / <base>/plan.tsv / <base>/budget_alloc.tsv / <base>/cycle.tsv / <base>/issues.tsv
+<base>/accounts.tsv / <base>/<ACTUAL_JOURNAL_FILE> / <base>/plan.tsv / <base>/budget_alloc.tsv / <base>/cycle.tsv / <base>/issues.tsv
    │
    ├─ src_next/loader.bqn / actual_source.bqn (明示source読み込み)
    │    │
@@ -62,8 +62,7 @@ Exit: keep current while this remains the pit code/data-flow entry point
 - `config/meta_schema.tsv` — メタデータキーの定義
 - `config/report_labels.tsv` — src_next report の表示ラベル定義。
 - `<base>/accounts.tsv` — 勘定科目マスタ
-- `<base>/<ACTUAL_JOURNAL_FILE>` — Journal mode の実績取引正本。native transaction block / multi-posting
-- `<base>/journal.tsv` — `ACTUAL_SOURCE=tsv` compatibility mode の実績取引。Journal mode では読まない
+- `<base>/<ACTUAL_JOURNAL_FILE>` — 実績取引の唯一の正本。native transaction block / multi-posting
 - `<base>/plan.tsv` — 未来予定
 - `<base>/budget_alloc.tsv` — 封筒/予算の手動配賦
 - `<base>/cycle.tsv` — サイクル期間設定
@@ -73,18 +72,17 @@ Exit: keep current while this remains the pit code/data-flow entry point
 
 ### `src_next/` (BQN 会計エンジン)
 
-- `context.bqn` — BuildAllRows / BuildPeriodView / BuildContext。明示されたActual sourceだけを読み、Journal modeではStage 1→Stage 2Aを通したactual postingsとplan/budget TSV postingsを合成する。source間fallback/mergeはしない。
+- `context.bqn` — BuildAllRows / BuildPeriodView / BuildContext。設定されたnative JournalをStage 1→Stage 2Aへ通したactual postingsとplan/budget TSV postingsを合成する。Actual sourceのfallback/mergeはしない。
 - `journal_profile_stage1.bqn` — Minimal BQN Journal subsetをordered Transaction IRへ変換するparser。`recur` / `series` は意味解釈せずgeneric `transaction.metadata`だけにexact保持する。Journal modeのproduction read/write validationで使用する。
 - `journal_posting_ir_stage2a.bqn` — admitted Stage 1 Transaction IRをcurrent 16-field Posting IR shapeへ変換するadapter。explicit source file identityを持つnative multi-posting production routingにも使用する。
 - `journal_posting_identity_provenance_stage2b.bqn` — admitted Stage 1 Transaction IRと対応するStage 2Aの16-field rowsを受け、identity/provenance local invariantsをall-or-nothingで検査して、rowを変更せず別の6-field carrierを返すpure test-only helper。production provenance carrier、consumer、routingには未接続。
-- `journal_canonical_prefix_converter.bqn` — immutable legacy TSV snapshotと明示account registryからdeterministic canonical Journal prefixをall-or-nothingで構築し、historical profile、Stage 2A/2B、legacy accounting/identity/metadata parityを検査するpure owner。descriptionはnonempty・no trailing ASCII SPACE・no C0/DELを契約とし、leading ASCII SPACEをexactに保存する一方、metadata/account用`SafeValue`はstrict trim契約を維持する。明示allowlistのopaque legacy metadata `recur` / `series` は意味解釈せず、既存metadataの後ろに固定順でexact保存する。public-synthetic verified prefix + exact suffix reconstructionも所有するが、production routing/private dataには未接続。
 - `exact_decimal.bqn` — source amount text の exact-decimal parse、canonical coefficient / scale、parsed coefficient exact-range 診断の owner。
 - `currency_arithmetic.bqn` — pre-built B1 row evidence だけを入力に、single-domain 検査、snapshot-wide `amount_scale`、exact normalization、normalized overflow evidence を返す pure B2 owner。source file や projection は扱わない。
 - `source_currency_admission.bqn` — supplied account lines と posting snapshot のみを検査する pure source-currency admission owner。closed strict/compatibility policy、privacy-safe diagnostics、no-partial-admission を持ち、I/Oなし・public runtime未配線。
 - `friend_travel_jpy_finalization.bqn` — pending friend-travel source-event descriptor、明示 finalization date / JPY amount、既存account descriptor、既存finalization IDだけを入力にするpure validator。成功時は既存JPY liability → JPY expenseのcanonical previewを正確に1行返し、失敗時はprivacy-safe diagnosticsと0行を返す。I/O、status/index mutation、writer、public runtime配線は持たない。
 - `friend_travel_source_event.bqn` — Israel用friend-paid pending source eventの固定9列、ILS精度、固定payer/trip/status、既存全行検査、ID一意性、exact preview rowを所有するpure validator。I/Oとfinalizationを持たない。
 - `travel_exchange_event.bqn` — Israel用JPY→ILS exchangeの2観測amount、既存account descriptor、ID一意性を検査しstructured previewを返すpure owner。I/O、rate、journal row、valuationを持たない。
-- `actual_source.bqn` — explicit actual-source routing、selected-source date/completion evidence、Journal transaction loadの共有owner。silent fallbackなし。
+- `actual_source.bqn` — configured native Journal resolver、date/completion evidence、transaction loadの共有owner。silent fallbackなし。
 - `loader.bqn` — source ファイル読み込み (`•FChars` 使用)。
 - `cube.bqn` — Canonical Daily Cube (`Day × Account × Layer`) の構築。
 - `tbds.bqn` — Trial Balance Data Set (period/account/layer/opening/movement/closing)。
@@ -93,7 +91,7 @@ Exit: keep current while this remains the pit code/data-flow entry point
 - `account_key.bqn` — 勘定科目のキー解決。
 - `projection.bqn` — Posting IR 投影。
 - `snapshot.bqn` — Balance Sheet / Snapshot。TBDS closing を使用。構造化された ViewModel JSON 出力（FormatJson）もサポート。
-- `balances.bqn` — 残高表示。human `--section balances` では `DEFAULT_CURRENCY` または明示 `--currency JPY|ILS|USD` (レジストリ内の対応通貨) を解決し、checked selected-currency projection 後の単一通貨残高だけを表示する。carrierは calculation scale と presentation scale を分離し、ILSやUSDはsource precision 2桁超をfail closedして常に2桁表示する。既存JSONは非selectedのフラットリストと合計の契約を維持する。
+- `balances.bqn` — 残高表示。current native Journal production pathはJPYだけを受理し、明示された非JPY selected currencyはfail closedにする。既存JSONのフラットリストと合計契約は維持する。
 - `ytd_summary.bqn` — YTD 集計。
 - `cycle_summary.bqn` — サイクル収支 (Income Statement)。
 - `expense_breakdown.bqn` — サイクル支出内訳。
@@ -132,21 +130,21 @@ Exit: keep current while this remains the pit code/data-flow entry point
 - `src_edit/README.md` — 責務境界と実装対象の定義。
 - `src_edit/account_add_cmd.bqn` — 明示role・名前空間・重複・asset typeを検証し、accounts.tsv追記候補を生成。
 - `src_edit/account_list_cmd.bqn` — UI向け account candidate export。`accounts.tsv` の role メタ解釈を BQN 側に閉じ込める。
-- `src_edit/journal_add_cmd.bqn` — journal add / budget add 用の検証および TSV 生成。明示`income_budget=unassigned`のincome rowには安定した`txn_id`を付与する。
-- `src_edit/journal_source_integrity.bqn` / `journal_source_check.bqn` — ordinary journal `lint` のmixed-safe source integrity owner。row単位のdate/exact amount/metadata/currency/account整合性をall-or-nothingで検査し、report arithmeticを行わない。
-- `src_edit/journal_prefix_converter_cmd.bqn` — canonical prefix converter / public reconstructionの明示file adapter。caller-owned temporary siblingだけへ完全bytesを書き、production defaultやprivate pathを解決しない。
+- `src_edit/journal_add_cmd.bqn` — `budget add` のTSV候補を検証・生成する。
+- `src_edit/actual_journal_file_cmd.bqn` — BQN resolverが選んだnative Journal相対pathをUI/toolsへ出力する。
+- `src_edit/journal_validate_cmd.bqn` — configured native Journalと統合contextをfail closedに検査する書き込み後validator。
+- `src_edit/journal_block_add_cmd.bqn` — native Journal transaction blockの検証・append protocol生成。
 - `src_edit/travel_friend_add_cmd.bqn` — `friend_travel_events.tsv` の既存全行検査とpending候補APPEND protocol生成。意味検査はpure source-event ownerへ委譲。
 - `src_edit/travel_exchange_add_cmd.bqn` — accountsと`travel_exchange_events.tsv`をpure exchange ownerへ渡し、固定10列候補APPEND protocolを生成。
-- `src_edit/journal_list_cmd.bqn` — journal reverse UI向け read-only journal selection export。
-- `src_edit/journal_reverse_cmd.bqn` — journal reverse 用の検証および反対仕訳 APPEND protocol 生成。
+- `src_edit/journal_list_cmd.bqn` — journal reverse UI向け read-only native Journal selection export。
+- `src_edit/journal_native_reverse_cmd.bqn` — native Journal reverseの検証および反対仕訳block生成。
 - `src_edit/issue_add_cmd.bqn` — issue add 用の検証および TSV 生成。
 - `src_edit/issue_list_cmd.bqn` — issue close UI向けの open issue 候補 export。
 - `src_edit/issue_close_cmd.bqn` — issue close 用の検証および safe replace TSV 生成。
 - `src_edit/plan_add_cmd.bqn` — plan add 用の検証および TSV 生成。
 - `src_edit/plan_list_cmd.bqn` — plan list 用の BQN 実装。unfinished candidate exportと、明示`as-of`に対する`all / overdue / upcoming`候補絞り込みを所有する。契約は `docs/UNFINISHED_PLAN_ENTRIES_EXPORT_CONTRACT.md`。
 - `src_edit/plan_related_cmd.bqn` — plan finish replenishment UI 用の read-only 関連予定抽出。`series=` → `plan_id` series → exact fallback の順序を所有する。
-- `src_edit/plan_finish_cmd.bqn` — plan finish 用の検証、実際のジャーナルアペンド行の生成。
-- `src_edit/txn_id.bqn` / `income_budget_sync_cmd.bqn` — opt-in通常収入の安定ID生成と、income→liquid actualからopening→unassigned companionをfail closedに生成するowner。
+- `src_edit/plan_finish_cmd.bqn` — plan finishを検証し、native Journal transaction blockを生成する。
 - `src_edit/plan_budget_sync_cmd.bqn` — 完了済み固定費予定の `plan_id`、actual、設定、execution envelope、通貨、既存budget linkageを検査し、冪等なbudget companion候補を生成。曖昧な対応や通常収入は扱わない。
 - `src_edit/plan_edit_cmd.bqn` — plan edit 用の検証および exact REPLACE protocol 生成。
 - `src_edit/plan_id.bqn` — plan_id 生成補助。
@@ -191,7 +189,6 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 - `check-edit-bqn-account-list.sh` — BQN account list export チェック。
 - `check-edit-bqn-journal-add.sh` — BQN journal/budget/issue add parityチェック。
 - `check-journal-canonical-prefix-converter.sh` — public synthetic prefix publication、failure no-publish、suffix byte preservation、concurrent exclusive-publishチェック。
-- `check-edit-bqn-income-budget-sync.sh` — opt-in通常収入のtxn ID、companion、除外、冪等retry、stale failure後retryを検証。
 - `check-edit-bqn-journal-post-check-recovery.sh` — mixed JPY/ILS journal source lint、post-check失敗時のexact rollback、後続writer保護チェック。
 - `check-edit-bqn-travel-friend-add.sh` — friend pending source-eventのdry-run、exclusive first-write、checked append、stale/duplicate拒否、rollback回帰チェック。
 - `check-travel-exchange-pure.sh` — exchange structured previewのpure contractとI/O/rate/journal output不在チェック。

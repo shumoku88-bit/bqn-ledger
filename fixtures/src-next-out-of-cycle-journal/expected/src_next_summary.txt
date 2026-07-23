@@ -4,16 +4,16 @@ end_exclusive: 2026-06-22
 day_count: 7
 accounts: 6
 "source_file"	"source_row"	"source_id"	"tx_id"	"posting_id"	"date"	"side"	"day_index"	"account_key"	"account_key_index"	"layer_name"	"layer_index"	"delta"	"kind"	"status"	"message"	
-"journal.tsv"	"0"	"A"	"A"	"journal.tsv:0:debit"	"2026-06-15"	"debit"	"0"	"expenses:food/JPY"	"4"	"actual"	"0"	"100"	"expense"	"ok"	⟨⟩	
-"journal.tsv"	"0"	"A"	"A"	"journal.tsv:0:credit"	"2026-06-15"	"credit"	"0"	"equity:opening/JPY"	"0"	"actual"	"0"	"¯100"	"expense"	"ok"	⟨⟩	
-"journal.tsv"	"1"	"B"	"B"	"journal.tsv:1:debit"	"2026-06-30"	"debit"	"15"	"expenses:food/JPY"	"4"	"actual"	"0"	"50"	"expense"	"ok"	⟨⟩	
-"journal.tsv"	"1"	"B"	"B"	"journal.tsv:1:credit"	"2026-06-30"	"credit"	"15"	"equity:opening/JPY"	"0"	"actual"	"0"	"¯50"	"expense"	"ok"	⟨⟩	
+"actual.journal"	"0"	"fixture-event-0"	"fixture-event-0"	"fixture-event-0:0"	"2026-06-15"	"debit"	"0"	"expenses:food/JPY"	"4"	"actual"	"0"	"100"	"expense"	"ok"	⟨⟩	
+"actual.journal"	"0"	"fixture-event-0"	"fixture-event-0"	"fixture-event-0:1"	"2026-06-15"	"credit"	"0"	"equity:opening/JPY"	"0"	"actual"	"0"	"¯100"	"expense"	"ok"	⟨⟩	
+"actual.journal"	"1"	"fixture-event-1"	"fixture-event-1"	"fixture-event-1:0"	"2026-06-30"	"debit"	"15"	"expenses:food/JPY"	"4"	"actual"	"0"	"50"	"expense"	"ok"	⟨⟩	
+"actual.journal"	"1"	"fixture-event-1"	"fixture-event-1"	"fixture-event-1:1"	"2026-06-30"	"credit"	"15"	"equity:opening/JPY"	"0"	"actual"	"0"	"¯50"	"expense"	"ok"	⟨⟩	
 projection_balance_by_source: ok
 shape: 7 × 6 × 4
 valid projection rows: 2
 skipped projection rows: 2
-  day_index 15 >= 7  journal.tsv:1  B
-  day_index 15 >= 7  journal.tsv:1  B
+  day_index 15 >= 7  actual.journal:1  fixture-event-1
+  day_index 15 >= 7  actual.journal:1  fixture-event-1
   actual: 0
   plan: 0
   budget: 0

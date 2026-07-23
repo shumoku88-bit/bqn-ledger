@@ -1,0 +1,32 @@
+commodity JPY
+
+account assets:bank
+    ; role: asset
+
+account budget:daily
+    ; role: budget
+
+account budget:opening
+    ; role: budget
+
+account budget:spent
+    ; role: budget
+
+account budget:unassigned
+    ; role: budget
+
+account equity:opening-balances
+    ; role: equity
+
+account expenses:food
+    ; role: expense
+    ; default-envelope: daily
+
+account income:salary
+    ; role: income
+
+2999-01-01 * mistaken future actual
+    ; event-id: fixture-event-0
+    ; layer: actual
+    expenses:food 100 JPY
+    assets:bank -100 JPY

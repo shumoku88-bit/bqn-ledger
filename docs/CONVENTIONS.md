@@ -43,7 +43,14 @@ Owner: maintainer / format / validation
 - 1列目: 勘定科目名
 - 2列目以降: 任意のメタデータトークン（`key=value` 形式、タブ区切り）
 
-### ジャーナル形式ファイル (`journal.tsv`, `plan.tsv`, `budget_alloc.tsv`)
+### native Journal actual source
+
+- Actual取引は `<base>/<ACTUAL_JOURNAL_FILE>` のnative Journal transaction blockで記録します。
+- Journal parser、account declaration parity、Posting IR、日付・金額・通貨・勘定整合性はfail closedに検査されます。
+- `system_today` より未来のActual取引は入力エラーとして拒否されます。将来予定は `plan.tsv` に記述します。
+- Actual取引のTSV形式、fallback、dual writeはありません。
+
+### source TSV (`plan.tsv`, `budget_alloc.tsv`)
 
 - 必須列（1〜5列目）:
   1) 日付 (`YYYY-MM-DD`)
@@ -63,9 +70,8 @@ Owner: maintainer / format / validation
   - `amount` は exact decimal (10進表記) の数値文字列でなければならず、対象の通貨で許容される最大小数桁（レジストリで定義）を満たす必要があります。
 - `memo`（摘要）は空でも構いません。
 - ジャーナル形式の TSV パース処理は空のフィールドを維持するため、摘要列が空であっても `from` / `to` / `amount` が左にずれることはありません。
-- `journal.tsv` は実績（Actual）レコードのみを記録します。`system_today` より未来の日付の行は入力エラーとして拒否されます。将来の予定は `plan.tsv` に記述してください。
 - 観察境界 (`as_of`) の扱いは section ごとに異なるため、変更時は `docs/TIME_AS_AXIS.md` と該当 `src_next` module / check を確認します。未来日の actual journal row を許すかどうかは、便利な補正ではなく fail-visible な診断として扱います。
-- `budget:*` 口座は `budget_alloc.tsv` 内でのみ許可されます。`journal.tsv` および `plan.tsv` には予算口座の行を含めてはなりません。費用の封筒消費を投影するには、`accounts.tsv` の `budget=...` メタデータを使用します。
+- `budget:*` 口座は `budget_alloc.tsv` 内でのみ許可されます。native Journalおよび `plan.tsv` には予算口座を含めてはなりません。費用の封筒消費を投影するには、`accounts.tsv` の `budget=...` メタデータを使用します。
 
 ### 予算勘定の設定
 

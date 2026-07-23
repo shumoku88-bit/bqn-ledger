@@ -5,15 +5,27 @@ carrier_module ← •Import "../src_next/journal_read_only_source_carrier.bqn"
 ak ← •Import "../src_next/account_key.bqn"
 loader ← •Import "../src_next/loader.bqn"
 
-base ← "fixtures/journal-native-three-posting-parity"
 cycleStart ← "2026-08-01"
-
-accountLines ← loader.ReadLines (base ∾ "/accounts.tsv")
+lf ← @+10
+accountLines ← ⟨
+  "assets:anonymous-cash"∾(@+9)∾"role=asset",
+  "expenses:anonymous-first"∾(@+9)∾"role=expense",
+  "expenses:anonymous-second"∾(@+9)∾"role=expense"
+⟩
 resolved ← ak.Resolve accountLines
 
-# Success path test
-rawJournal ← loader.ReadRaw (base ∾ "/profile.journal")
-journalLines ← (@+10) loader.SplitKeepEmpty rawJournal
+# Success path test uses native Journal evidence only.
+rawJournal ← ∾⟨
+  "commodity JPY",lf,lf,
+  "account assets:anonymous-cash",lf,lf,
+  "account expenses:anonymous-first",lf,lf,
+  "account expenses:anonymous-second",lf,lf,
+  "2026-08-03 * split transaction",lf,
+  "    expenses:anonymous-first 800 JPY",lf,
+  "    expenses:anonymous-second 300 JPY",lf,
+  "    assets:anonymous-cash -1100 JPY",lf
+⟩
+journalLines ← lf loader.SplitKeepEmpty rawJournal
 carrier ← {
   source_file ⇐ "test-identity.journal",
   lines ⇐ journalLines
