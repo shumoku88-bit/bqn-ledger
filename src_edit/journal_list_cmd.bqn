@@ -12,6 +12,7 @@
 
 loader ← •Import "../src_next/loader.bqn"
 config ← •Import "../src_next/config.bqn"
+actual_source ← •Import "../src_next/actual_source.bqn"
 
 sys ← config.LoadSystemDefaults @
 args ← •args
@@ -32,17 +33,28 @@ validFormat ← ∨´ format ⊸ ≡¨ "tsv"‿"text"
 
 ResolvePath ← { baseDir ∾ "/" ∾ 𝕩 }
 
-journalPath ← ResolvePath (sys.DefaultJournalFile @)
-journalLines ← loader.ReadLinesOptional journalPath
-
-ParseJournalRow ← {𝕊 index:
-  line ← index ⊑ journalLines
-  fields ← loader.SplitTsvKeepEmpty line
-  {𝕊 ⋄ Fail ("journal.tsv row " ∾ (•Fmt (index + 1)) ∾ " has fewer than 5 tab-separated columns")}⍟(5 > ≠ fields) @
-  5 ↑ fields
-}
-
-rows ← ParseJournalRow¨ ↕ ≠ journalLines
+route ← config.LoadActualSource baseDir
+mode ← route.mode
+rows ← ⟨⟩
+{𝕊:
+  journalPath ← ResolvePath (sys.DefaultJournalFile @)
+  journalLines ← loader.ReadLinesOptional journalPath
+  ParseJournalRow ← {𝕊 index:
+    fields ← loader.SplitTsvKeepEmpty index⊑journalLines
+    {𝕊 ⋄ Fail ("journal.tsv row " ∾ (•Fmt (index + 1)) ∾ " has fewer than 5 tab-separated columns")}⍟(5 > ≠ fields) @
+    5↑fields
+  }
+  rows ↩ ParseJournalRow¨↕≠journalLines
+}⍟(mode≡"tsv") @
+{𝕊:
+  Join ← {𝕊 xs: out←"" ⋄ {out∾↩𝕩∾","}¨xs ⋄ (0<≠out) ? ¯1↓out ; ""}
+  Make ← {𝕊 tx:
+    debits←({𝕩.delta>0}¨tx.postings)/tx.postings
+    credits←({𝕩.delta<0}¨tx.postings)/tx.postings
+    ⟨tx.date,tx.description,Join {𝕩.account_key}¨credits,Join {𝕩.account_key}¨debits,•Fmt +´0∾{𝕩.delta}¨debits⟩
+  }
+  rows ↩ Make¨actual_source.LoadTransactions baseDir
+}⍟(mode≡"journal") @
 
 Display ← {𝕊 index:
   n ← index + 1

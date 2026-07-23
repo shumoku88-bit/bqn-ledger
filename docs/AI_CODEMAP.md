@@ -30,7 +30,7 @@ Exit: keep current while this remains the pit code/data-flow entry point
 
 ## 絶対に守ること
 
-- base directory 配下の `journal.tsv` / `plan.tsv` / `budget_alloc.tsv` / `accounts.tsv` が正データ。公開 repo の `data/` は匿名 sandbox、実運用は `LEDGER_DATA_DIR`（例: `/path/to/ledger-data/data`）で外出しする。正データの場所は変わり得るので、pit は `tools/doctor` と `LEDGER_DATA_DIR` で確認し、古いパスを前提にしない。
+- Actual source は `<base>/config.tsv` の `ACTUAL_SOURCE=journal|tsv` で明示選択する。Journal mode は `ACTUAL_JOURNAL_FILE` のnative Journalだけを読み、`journal.tsv`へfallbackしない。`plan.tsv` / `budget_alloc.tsv` / `accounts.tsv` は引き続き正データ。公開 repo の `data/` は匿名 sandbox、実運用は `LEDGER_DATA_DIR` で外出しする。
 - pit は実データ TSV を勝手に書き換えない。必要ならユーザー確認を取る。
 - journal-like TSV の先頭5列は固定: `date memo from to amount`。
 - 6列目以降は `key=value` メタ。会計計算は原則として先頭5列だけを見る。
@@ -41,9 +41,9 @@ Exit: keep current while this remains the pit code/data-flow entry point
 ## 全体像
 
 ```text
-<base>/accounts.tsv / <base>/journal.tsv / <base>/plan.tsv / <base>/budget_alloc.tsv / <base>/cycle.tsv / <base>/issues.tsv
+<base>/accounts.tsv / selected actual source (`actual.journal` or compatibility `journal.tsv`) / <base>/plan.tsv / <base>/budget_alloc.tsv / <base>/cycle.tsv / <base>/issues.tsv
    │
-   ├─ src_next/loader.bqn (TSV読み込み)
+   ├─ src_next/loader.bqn / actual_source.bqn (明示source読み込み)
    │    │
    │    ├─ src_next/context.bqn (BuildContext: issuesもロード)
    │    │    │
@@ -62,7 +62,8 @@ Exit: keep current while this remains the pit code/data-flow entry point
 - `config/meta_schema.tsv` — メタデータキーの定義
 - `config/report_labels.tsv` — src_next report の表示ラベル定義。
 - `<base>/accounts.tsv` — 勘定科目マスタ
-- `<base>/journal.tsv` — 実績取引
+- `<base>/<ACTUAL_JOURNAL_FILE>` — Journal mode の実績取引正本。native transaction block / multi-posting
+- `<base>/journal.tsv` — `ACTUAL_SOURCE=tsv` compatibility mode の実績取引。Journal mode では読まない
 - `<base>/plan.tsv` — 未来予定
 - `<base>/budget_alloc.tsv` — 封筒/予算の手動配賦
 - `<base>/cycle.tsv` — サイクル期間設定
@@ -72,9 +73,9 @@ Exit: keep current while this remains the pit code/data-flow entry point
 
 ### `src_next/` (BQN 会計エンジン)
 
-- `context.bqn` — BuildAllRows / BuildPeriodView / BuildContext。1つの共有 posting snapshot から B1 row evidence を構築し、pure arithmetic owner へ渡す orchestration owner。cycle は読み込み境界ではなく report query parameter。
-- `journal_profile_stage1.bqn` — public synthetic Minimal BQN Journal subsetをordered Transaction IRへ変換するtest-only parser。`recur` / `series` は意味解釈せずgeneric `transaction.metadata`だけにexact保持する。production source routing、writer、conversionには未接続。
-- `journal_posting_ir_stage2a.bqn` — admitted Stage 1 Transaction IRをcurrent 16-field Posting IR shapeへ変換するtest-only success-path adapter。actual 1件・plan 1件の限定semantic parityのみを担当し、rejection、native multi-posting、production routingには未接続。
+- `context.bqn` — BuildAllRows / BuildPeriodView / BuildContext。明示されたActual sourceだけを読み、Journal modeではStage 1→Stage 2Aを通したactual postingsとplan/budget TSV postingsを合成する。source間fallback/mergeはしない。
+- `journal_profile_stage1.bqn` — Minimal BQN Journal subsetをordered Transaction IRへ変換するparser。`recur` / `series` は意味解釈せずgeneric `transaction.metadata`だけにexact保持する。Journal modeのproduction read/write validationで使用する。
+- `journal_posting_ir_stage2a.bqn` — admitted Stage 1 Transaction IRをcurrent 16-field Posting IR shapeへ変換するadapter。explicit source file identityを持つnative multi-posting production routingにも使用する。
 - `journal_posting_identity_provenance_stage2b.bqn` — admitted Stage 1 Transaction IRと対応するStage 2Aの16-field rowsを受け、identity/provenance local invariantsをall-or-nothingで検査して、rowを変更せず別の6-field carrierを返すpure test-only helper。production provenance carrier、consumer、routingには未接続。
 - `journal_canonical_prefix_converter.bqn` — immutable legacy TSV snapshotと明示account registryからdeterministic canonical Journal prefixをall-or-nothingで構築し、historical profile、Stage 2A/2B、legacy accounting/identity/metadata parityを検査するpure owner。descriptionはnonempty・no trailing ASCII SPACE・no C0/DELを契約とし、leading ASCII SPACEをexactに保存する一方、metadata/account用`SafeValue`はstrict trim契約を維持する。明示allowlistのopaque legacy metadata `recur` / `series` は意味解釈せず、既存metadataの後ろに固定順でexact保存する。public-synthetic verified prefix + exact suffix reconstructionも所有するが、production routing/private dataには未接続。
 - `exact_decimal.bqn` — source amount text の exact-decimal parse、canonical coefficient / scale、parsed coefficient exact-range 診断の owner。
@@ -83,7 +84,8 @@ Exit: keep current while this remains the pit code/data-flow entry point
 - `friend_travel_jpy_finalization.bqn` — pending friend-travel source-event descriptor、明示 finalization date / JPY amount、既存account descriptor、既存finalization IDだけを入力にするpure validator。成功時は既存JPY liability → JPY expenseのcanonical previewを正確に1行返し、失敗時はprivacy-safe diagnosticsと0行を返す。I/O、status/index mutation、writer、public runtime配線は持たない。
 - `friend_travel_source_event.bqn` — Israel用friend-paid pending source eventの固定9列、ILS精度、固定payer/trip/status、既存全行検査、ID一意性、exact preview rowを所有するpure validator。I/Oとfinalizationを持たない。
 - `travel_exchange_event.bqn` — Israel用JPY→ILS exchangeの2観測amount、既存account descriptor、ID一意性を検査しstructured previewを返すpure owner。I/O、rate、journal row、valuationを持たない。
-- `loader.bqn` — TSV ファイル読み込み (`•FChars` 使用)。
+- `actual_source.bqn` — explicit actual-source routing、selected-source date/completion evidence、Journal transaction loadの共有owner。silent fallbackなし。
+- `loader.bqn` — source ファイル読み込み (`•FChars` 使用)。
 - `cube.bqn` — Canonical Daily Cube (`Day × Account × Layer`) の構築。
 - `tbds.bqn` — Trial Balance Data Set (period/account/layer/opening/movement/closing)。
 - `trial_balance.bqn` — 試算表エクスポート。debit/credit 符号付き。

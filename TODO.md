@@ -105,34 +105,22 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 - Journal read-path trial-balance rehearsal is complete as public-synthetic test-only evidence; record: `docs/archive/completed-plans/JOURNAL_READ_PATH_TRIAL_BALANCE_REHEARSAL_PLAN-2026-07-21.md`.
 - The focused test proves `Parse -> Stage 2A -> BuildPeriodView -> trial_balance.Build` with three Journal-derived Posting IR rows and a zero-sum actual-layer Trial Balance, without production routing.
 - Journal resolved-account registry mismatch rejection is complete as public-synthetic test-only evidence; record: `docs/archive/completed-plans/JOURNAL_RESOLVED_ACCOUNT_REGISTRY_MISMATCH_REJECTION_PLAN-2026-07-21.md`.
-- The standalone file-backed shadow context is complete; broader registry validation, production routing, writer work, conversion, cutover, and any later Journal stage remain unselected.
+- The standalone file-backed shadow context and later production Journal routing are complete.
 - PR #273 remains parked background design evidence, not implementation authorization.
-- production journal parser routing, writer, production conversion, and source-of-truth migration are unselected.
+- production Journal parser routing, writer routing, source adoption, Journal-only validation, and TSV retirement are complete.
 - Do not infer helper renaming, generic temporal kernel, report-wide `--as-of`, source TSV migration, Daily Capacity connection, envelope/cycle policy expansion, or automatic write.
 
 ### Journal source migration
 
-Status: **Journal opaque legacy metadata preservation complete; no finite Journal slice is selected.** Completion record: `docs/archive/completed-plans/JOURNAL_OPAQUE_LEGACY_METADATA_PRESERVATION-2026-07-23.md`. Leading-space completion record: `docs/archive/completed-plans/JOURNAL_CONVERTER_LEADING_SPACE_ADMISSION_RELAXATION-2026-07-23.md`. Delimiter implementation record: `docs/archive/completed-plans/JOURNAL_HEADER_DELIMITER_EXACT_CONSUMPTION_IMPLEMENTATION-2026-07-23.md`. Prior characterization: `docs/archive/completed-plans/JOURNAL_LEADING_ASCII_SPACE_DESCRIPTION_REPRESENTATION_CHARACTERIZATION-2026-07-23.md`. Converter completion record: `docs/archive/completed-plans/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_COMPLETION-2026-07-22.md`. Archived contract and instructions: `docs/archive/completed-plans/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_PLAN-2026-07-22.md`, `docs/archive/completed-plans/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_IMPLEMENTATION_INSTRUCTIONS-2026-07-22.md`.
+Status: **Journal single-source production cutover complete; no finite Journal slice is selected.**
 
-Stage 1 requires and consumes exactly one ASCII SPACE after the status marker and preserves every remaining description payload character in Transaction IR. The converter now admits one or multiple leading ASCII SPACEs in nonempty descriptions and preserves them exactly; trailing ASCII SPACE, C0 controls, DEL, and empty descriptions remain rejected. `SafeValue` for metadata, account text, and source identity is unchanged. The explicit opaque legacy keys `recur` / `series` now round-trip exactly in fixed order after existing metadata and remain only in generic Stage 1 `transaction.metadata`; they receive no semantic interpretation. Unknown-key, duplicate-key, empty-value, and unsafe-value rejection remain fail closed. Stage 2A remains the unchanged 16-field description-free accounting boundary. Private converter execution and the next finite Journal slice are not selected.
-
-The public-synthetic converter preserves exact admitted descriptions, canonical legacy source identity, distinct business `txn_id`, mapped metadata, deterministic explicit JPY postings, and unchanged Transaction IR / 16-field Posting IR validation through the explicit `historical_external_plan` profile. Public-synthetic byte-preserving suffix reconstruction and exclusive atomic publication are proven. No private conversion or reconstruction was performed.
-
-Native Journal is the owner-selected future durable actual source truth. The native multi-posting explicit-path append editor is complete; record: `docs/archive/completed-plans/JOURNAL_NATIVE_MULTI_POSTING_APPEND_EDITOR_PLAN-2026-07-22.md`.
-
-The cutover prerequisite review found accounting semantics equivalent, including signed movements, posting order, layer/status, transaction grouping, and an established prefix boundary. Description, canonical source identity, distinct business `txn_id`, and supported-metadata semantics did not pass. A canonical one-way legacy-prefix converter is therefore required before cutover can be reconsidered.
-
-- The current private candidate and private Journal-only suffix remain preserved evidence and were not read, replaced, normalized, converted, or reconstructed by this implementation.
-- Current production source truth and production report routing remain TSV; converter completion performs no production change.
-- The completed public converter preserves one admitted TSV row as one Journal transaction, deterministic debit-then-credit postings, canonical source identity, distinct business linkage, supported metadata, and fail-closed diagnostics.
-- The completed reconstruction proof uses only a verified public-synthetic prefix and exact public-synthetic suffix and creates only a new target.
-- Production cutover remains blocked; private operations, report-consumer migration, writer/source policy, and explicit owner approval remain separate unselected gates.
-- Migration remains one-directional. Dual daily writes, reverse synchronization, and automatic conflict resolution are prohibited.
-- The external plan reference profile prerequisite is complete and archived.
-- The old stopped converter branch remains untouched historical evidence; the completed implementation used a replacement branch from current main.
-- Production source truth and production report routing remain TSV; cutover remains blocked.
-- No private verification, private conversion, private reconstruction, writer switch, report routing, cutover, or later Journal slice is selected automatically.
-- Production source truth and report routing remain TSV; production cutover remains blocked.
+- The owner-approved complete native Journal is the production Actual source selected by `ACTUAL_SOURCE=journal` and `ACTUAL_JOURNAL_FILE`.
+- Report, daily add/list/reverse, plan lifecycle, and plan finish use that one source through Transaction IR and checked Posting IR.
+- Journal mode neither reads nor writes `journal.tsv`; there is no dual write, reverse synchronization, or silent fallback.
+- Public synthetic integration evidence runs report, daily recording, and plan completion with no `journal.tsv` present.
+- The final production `journal.tsv` snapshot is preserved outside the active base and retired.
+- Explicit `ACTUAL_SOURCE=tsv` remains a compatibility route for public fixtures and older ledgers; it is not a Journal-mode fallback.
+- Historical converter/profile completion records remain under `docs/archive/completed-plans/`; no new planning document was created for the owner-directed cutover.
 
 
 ## Next candidates
@@ -156,7 +144,7 @@ The cutover prerequisite review found accounting semantics equivalent, including
 - broader red-path/rejection parity: unselected
 - standalone explicit-path file-backed shadow context: completed; record: `docs/archive/completed-plans/JOURNAL_FILE_BACKED_SHADOW_CONTEXT_PLAN-2026-07-22.md`
 - native multi-posting explicit-path append editor: completed; record: `docs/archive/completed-plans/JOURNAL_NATIVE_MULTI_POSTING_APPEND_EDITOR_PLAN-2026-07-22.md`
-- production routing remains unselected; default writer/source switch remains unselected; envelope/report runtime migration remains unselected; production cutover and later stages remain unselected; no finite Journal slice is selected
+- production Journal routing and writer/source cutover are complete; no later finite Journal slice is selected
 
 ### Bookkeeping matrix study extension
 

@@ -39,7 +39,7 @@ get_system_default_file() {
 
 ledger_base_missing_required() {
   local base_dir="$1"
-  local required=(accounts.tsv journal.tsv cycle.tsv)
+  local required=(accounts.tsv cycle.tsv)
   local file missing=()
 
   for file in "${required[@]}"; do
@@ -62,7 +62,7 @@ ledger_suggest_base_dir() {
   local candidate
 
   for candidate in "${candidates[@]}"; do
-    if [[ -d "$candidate" ]] && [[ -f "$candidate/accounts.tsv" ]] && [[ -f "$candidate/journal.tsv" ]] && [[ -f "$candidate/cycle.tsv" ]]; then
+    if [[ -d "$candidate" ]] && [[ -f "$candidate/accounts.tsv" ]] && [[ -f "$candidate/cycle.tsv" ]]; then
       printf '%s\n' "$candidate"
       return 0
     fi
@@ -92,7 +92,7 @@ ensure_ledger_report_base() {
     echo "  tools/main-ui.sh" >&2
     echo "  tools/add-ui.sh" >&2
   else
-    echo "Set LEDGER_DATA_DIR to the directory containing accounts.tsv, journal.tsv, and cycle.tsv." >&2
+    echo "Set LEDGER_DATA_DIR to the directory containing accounts.tsv and cycle.tsv; BQN validates the explicitly selected actual source." >&2
   fi
 
   return 1

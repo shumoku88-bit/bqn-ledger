@@ -1,7 +1,7 @@
 # journal_profile_stage1.bqn
-# Test-only parser for the public Minimal BQN Journal Profile Stage 0 subset.
+# Parser for the supported Minimal BQN Journal Profile subset.
 #
-# This module is deliberately not connected to production source routing.
+# Production Journal mode selects the historical_external_plan profile explicitly.
 # It parses declarations and explicit journal transaction blocks into a small
 # Transaction IR, fails closed on unsupported or ambiguous evidence, and can
 # project valid transactions into a signed event x account matrix.

@@ -19,6 +19,7 @@ config ← •Import "../src_next/config.bqn"
 date ← •Import "../src_next/date.bqn"
 setup ← •Import "../src_next/currency_setup.bqn"
 ak ← •Import "../src_next/account_key.bqn"
+actual_source ← •Import "../src_next/actual_source.bqn"
 
 sys ← config.LoadSystemDefaults @
 args ← •args
@@ -58,10 +59,9 @@ accountCurrencies ← resolvedAccounts.currencies
 
 
 
-# completed plan IDs のロード
-journalLines ← loader.ReadLinesOptional journalPath
-completedIDsAll ← plan_id.ExtractPlanId¨ journalLines
-completedIDs ← (0 < ≠¨ completedIDsAll) / completedIDsAll
+# completed plan IDs are read from the one explicitly selected actual source.
+completionEvidence ← actual_source.CompletionEvidence baseDir
+completedIDs ← (0<≠¨{𝕩.plan_id}¨completionEvidence)/{𝕩.plan_id}¨completionEvidence
 
 # planLines のロード
 planLinesRaw ← loader.ReadLinesOptional planPath
@@ -177,5 +177,17 @@ row ← render.RenderJournalRow {
   meta ⇐ finalMeta
 }
 
-•Out "OK" ∾ tab ∾ "APPEND" ∾ tab ∾ sys.DefaultJournalFile @
-•Out row
+actualRoute ← config.LoadActualSource baseDir
+actualMode ← actualRoute.mode
+{𝕊:
+  •Out "OK" ∾ tab ∾ "APPEND" ∾ tab ∾ sys.DefaultJournalFile @
+  •Out row
+}⍟(actualMode≡"tsv") @
+{𝕊:
+  journalFile ← actualRoute.file
+  eventId ← "completion-"∾pid∾"-"∾actualDate
+  •Out "OK"∾tab∾"APPEND_NATIVE"∾tab∾journalFile∾tab∾eventId∾tab∾actualDate∾tab∾(1⊑fields)∾tab∾"2"∾tab∾(•Fmt ≠finalMeta)
+  •Out "P"∾tab∾(3⊑fields)∾"="∾amountToUse
+  •Out "P"∾tab∾(2⊑fields)∾"=-"∾amountToUse
+  {𝕊 metaItem: •Out "M"∾tab∾metaItem}¨finalMeta
+}⍟(actualMode≡"journal") @

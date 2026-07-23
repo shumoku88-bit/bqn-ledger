@@ -4,6 +4,7 @@
 
 conf ← •Import "config.bqn"
 loader ← •Import "loader.bqn"
+actual_source ← •Import "actual_source.bqn"
 proj ← •Import "projection.bqn"
 cube ← •Import "cube.bqn"
 actual_snapshot ← •Import "actual_snapshot.bqn"
@@ -23,13 +24,12 @@ IsMember ← { list ← 𝕨 ⋄ item ← 𝕩 ⋄ (⊑ list ⊐ ⟨item⟩) < �
 # Invalid-date source evidence is handled by actual_snapshot fail-closed status;
 # frontier discovery must not crash before that status can propagate.
 RecordedFrontierInfo ← {𝕊 base‿cy:
-  lines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
+  dates0 ← actual_source.LoadDates base
   scope_available ← (cy.start ≢ "unavailable") ∧ (cy.day_count > 0)
   found ← 0
   out ← ""
   {𝕊:
     start_dn ← proj.DaysFromEpoch cy.start
-    dates0 ← {⊑ loader.SplitTsvKeepEmpty 𝕩}¨ lines
     dates ← (proj.IsValidDateText¨ dates0) / dates0
     DateInScope ← {𝕊 d: (proj.DaysFromEpoch d) ≥ start_dn }
     in_dates ← (DateInScope¨ dates) / dates
@@ -37,7 +37,7 @@ RecordedFrontierInfo ← {𝕊 base‿cy:
       out ↩ ¯1 ⊑ (∧ in_dates)
       found ↩ 1
     }⍟(0 < ≠ in_dates) @
-  }⍟(scope_available ∧ (0 < ≠ lines)) @
+  }⍟(scope_available ∧ (0 < ≠ dates0)) @
   { available ⇐ found, date ⇐ out }
 }
 

@@ -2,6 +2,7 @@
 # Compact report readiness surface for src_next Stage 4 trial.
 
 loader ← •Import "loader.bqn"
+actual_source ← •Import "actual_source.bqn"
 proj ← •Import "projection.bqn"
 fmt ← •Import "format.bqn"
 cube ← •Import "cube.bqn"
@@ -89,8 +90,9 @@ Build ← {𝕊 ctx:
   stale_plan_rows ← is_stale_plan / skipped
   stale_plans ← { ⟨ 𝕩.date, 𝕩.message, •Fmt 𝕩.delta ⟩ }¨ stale_plan_rows
 
-  # Future journal rows: source_file is "journal.tsv" and day_index >= day_count
-  is_future_journal ← { ("journal.tsv" ≡ 𝕩.source_file) ∧ (𝕩.day_index ≥ ctx.cy.day_count) }¨ skipped
+  # Future actual-source rows at or beyond the selected period.
+  actualFile ← actual_source.File ctx
+  is_future_journal ← { (actualFile ≡ 𝕩.source_file) ∧ (𝕩.day_index ≥ ctx.cy.day_count) }¨ skipped
   future_journal_rows ← is_future_journal / skipped
   future_journals ← { ⟨ 𝕩.date, 𝕩.message, •Fmt 𝕩.delta ⟩ }¨ future_journal_rows
 
@@ -162,13 +164,17 @@ FormatHuman ← {𝕊 ctx:
   cycDisp ← fmt.RangeDisp ⟨ctx.cy.start, ctx.cy.end_exclusive⟩
 
   # Read files to get total line counts
-  j_lines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
+  actualFile ← actual_source.File ctx
+  actual_postings ← ({𝕩.source_file≡actualFile}¨ctx.posting_rows)/ctx.posting_rows
+  actual_source_rows ← {𝕩.source_row}¨actual_postings
+  tsv_actual_count ← ≠⍷actual_source_rows
+  actual_count ← ((actual_source.Mode ctx)≡"journal")⊑⟨tsv_actual_count,≠(actual_source.Transactions ctx)⟩
   p_lines ← loader.ReadLinesOptional (base ∾ "/plan.tsv")
 
   out ← (L "readiness.section_title") ∾ (@+10)
   out ↩ out ∾ (@+10)
   out ↩ out ∾ "[Input files]" ∾ (@+10)
-  out ↩ out ∾ "  journal rows      : " ∾ (•Fmt ≠ j_lines) ∾ (@+10)
+  out ↩ out ∾ "  journal rows      : " ∾ (•Fmt actual_count) ∾ (@+10)
   out ↩ out ∾ "  plan rows         : " ∾ (•Fmt ≠ p_lines) ∾ (@+10)
   out ↩ out ∾ "  accounts defined  : " ∾ (•Fmt ctx.resolved.count) ∾ (@+10)
   out ↩ out ∾ "  cycle             : " ∾ cycDisp ∾ (@+10)

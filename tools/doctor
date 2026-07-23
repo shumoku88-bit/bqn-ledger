@@ -72,9 +72,21 @@ info "base dir ($base_source): $base_dir"
 if [[ -d "$base_dir" ]]; then
   mapfile -t missing_required < <(ledger_base_missing_required "$base_dir")
   if [[ ${#missing_required[@]} -eq 0 ]]; then
-    pass "report-required TSV present: accounts.tsv journal.tsv cycle.tsv"
+    pass "report base files present: accounts.tsv cycle.tsv"
+    if actual_route="$(bqn src_edit/actual_source_route_cmd.bqn "$base_dir" 2>&1)"; then
+      IFS=$'\t' read -r actual_mode actual_file actual_extra <<< "$actual_route"
+      if [[ -z "${actual_extra:-}" && -f "$base_dir/$actual_file" ]]; then
+        pass "selected actual source present: $actual_mode ($actual_file)"
+      else
+        fail "selected actual source is missing or invalid"
+        failures=$((failures + 1)); data_ok=0
+      fi
+    else
+      fail "actual source routing failed"
+      failures=$((failures + 1)); data_ok=0
+    fi
   else
-    fail "missing report-required TSV: ${missing_required[*]}"
+    fail "missing report base file(s): ${missing_required[*]}"
     failures=$((failures + 1))
     data_ok=0
   fi

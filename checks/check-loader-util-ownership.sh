@@ -30,7 +30,7 @@ grep -Fq 'loader ← •Import "loader.bqn"' src_next/config.bqn \
 if grep -Fq 'lib.LoadLines' src_next/config.bqn; then
   fail "config.bqn must not use legacy util.LoadLines"
 fi
-[ "$(grep -Fc 'loader.ReadLines' src_next/config.bqn)" -eq 3 ] \
-  || fail "config.bqn must route its three required reads through loader.ReadLines"
+[ "$(grep -Fc 'loader.ReadLines' src_next/config.bqn)" -eq 5 ] \
+  || fail "config.bqn must route its five required reads through loader.ReadLines"
 
 echo "check-loader-util-ownership: OK" >&2

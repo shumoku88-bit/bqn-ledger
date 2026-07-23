@@ -26,13 +26,18 @@ UnsafeText ← {𝕊 text:
   controls ← ((@+0) + ↕32) ∾ ⟨@+127⟩
   ∨´ 0 ∾ text ∊ controls
 }
-{𝕊⋄Fail ⟨"usage", "expected BASE TARGET DATE DESCRIPTION EVENT_ID and at least two postings"⟩}⍟(7 > ≠ args) @
+{𝕊⋄Fail ⟨"usage", "expected BASE TARGET DATE DESCRIPTION EVENT_ID POSTING_COUNT postings and optional metadata"⟩}⍟(8 > ≠ args) @
 base ← 0 ⊑ args
 target ← 1 ⊑ args
 dateText ← 2 ⊑ args
 description ← 3 ⊑ args
 eventId ← 4 ⊑ args
-postingArgs ← 5 ↓ args
+postingCountText ← 5⊑args
+postingCount ← •BQN postingCountText
+{𝕊⋄Fail ⟨"posting_count_invalid", "posting count must be at least two"⟩}⍟((postingCount<2)∨postingCount≢⌊postingCount) @
+{𝕊⋄Fail ⟨"posting_count_invalid", "posting count exceeds supplied arguments"⟩}⍟((6+postingCount)>≠args) @
+postingArgs ← postingCount↑6↓args
+metadataArgs ← (6+postingCount)↓args
 
 {𝕊⋄Fail ⟨"date_invalid", "date must be a valid YYYY-MM-DD calendar date"⟩}⍟(¬ dates.IsValidDateText dateText) @
 {𝕊⋄Fail ⟨"description_invalid", "description must be nonempty and must not contain unsafe control input"⟩}⍟((0 = ≠ Trim description) ∨ (UnsafeText description) ∨ description ≢ Trim description) @
@@ -61,8 +66,24 @@ postings ← empty
 }¨ postingArgs
 {𝕊⋄Fail ⟨"event_unbalanced", "signed posting amounts must sum exactly to zero"⟩}⍟(0 ≠ +´ {𝕩.delta}¨ postings) @
 
+legacyKeys ← ⟨"tax","biz","invoice","note","due_on","receipt","txn_id","party","plan_id","cashflow","currency","income_budget","recur","series"⟩
+nativeKeys ← ⟨"tax","biz","invoice","note","due-on","receipt","txn-id","party","plan-id","cashflow","currency","income-budget","recur","series"⟩
+metadata ← empty
+{𝕊 text:
+  equalMask ← '='=text
+  {𝕊⋄Fail ⟨"metadata_shape_invalid", "each metadata item must contain exactly one key=value pair"⟩}⍟(1≠+´equalMask) @
+  equalIndex ← ⊑equalMask/↕≠text
+  key ← equalIndex↑text ⋄ value ← (equalIndex+1)↓text
+  keyIndex ← ⊑legacyKeys⊐⟨key⟩
+  {𝕊⋄Fail ⟨"metadata_key_invalid", "metadata key is not supported by the native Journal profile"⟩}⍟(keyIndex=≠legacyKeys) @
+  {𝕊⋄Fail ⟨"metadata_value_invalid", "metadata value must be nonempty and structurally safe"⟩}⍟((0=≠value)∨(UnsafeText value)∨(value≢Trim value)) @
+  metadata ∾↩ ⟨{key⇐keyIndex⊑nativeKeys,value⇐value}⟩
+}¨metadataArgs
+metadataKeys ← {𝕩.key}¨metadata
+{𝕊⋄Fail ⟨"metadata_duplicate", "metadata keys must be unique"⟩}⍟((≠metadataKeys)≠≠⍷metadataKeys) @
+
 raw ← loader.ReadRaw target
-existing ← parser.Parse raw
+existing ← parser.ParseWithProfile ⟨raw,"historical_external_plan"⟩
 {𝕊⋄Fail ⟨"existing_journal_invalid", "existing complete Journal does not satisfy the supported profile"⟩}⍟(existing.state ≢ "ok") @
 {𝕊⋄Fail ⟨"event_id_duplicate", "event-id already exists in the complete Journal"⟩}⍟(∨´ 0 ∾ {𝕩.source_event_id ≡ eventId}¨ existing.transactions) @
 
@@ -75,7 +96,8 @@ resolved ← ak.Resolve loader.ReadLines (base ∾ "/accounts.tsv")
 }¨ postings
 
 postingLines ← {"    " ∾ 𝕩.account_key ∾ "    " ∾ 𝕩.amount_text ∾ " JPY"}¨ postings
-blockLines ← ⟨dateText ∾ " * " ∾ description, "    ; event-id: " ∾ eventId, "    ; layer: actual"⟩ ∾ postingLines
+metadataLines ← {"    ; "∾𝕩.key∾": "∾𝕩.value}¨metadata
+blockLines ← ⟨dateText ∾ " * " ∾ description, "    ; event-id: " ∾ eventId, "    ; layer: actual"⟩ ∾ metadataLines ∾ postingLines
 block ← ⊑ blockLines
 {𝕊 line: block ∾↩ lf ∾ line}¨ 1 ↓ blockLines
 
@@ -85,7 +107,7 @@ endsTwo ← (1 < rawCount) ∧ (lf = ¯1 ⊑ raw) ∧ lf = ¯2 ⊑ raw
 semanticSeparator ← endsTwo ◶ ⟨{endsOne ◶ ⟨{lf ∾ lf}, {lf}⟩ @}, {""}⟩ @
 transportPrefixCount ← endsTwo ◶ ⟨{1}, {0}⟩ @
 proposedRaw ← raw ∾ semanticSeparator ∾ block ∾ lf
-proposed ← parser.Parse proposedRaw
+proposed ← parser.ParseWithProfile ⟨proposedRaw,"historical_external_plan"⟩
 {𝕊⋄Fail ⟨"proposed_journal_invalid", "exact proposed complete Journal does not satisfy the supported profile"⟩}⍟(proposed.state ≢ "ok") @
 
 checked ← adapter.Build ⟨proposed.transactions, resolved, dateText⟩

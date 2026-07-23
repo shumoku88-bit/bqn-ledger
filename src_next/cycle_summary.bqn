@@ -8,21 +8,21 @@ proj ← •Import "projection.bqn"
 fmt ← •Import "format.bqn"
 labels ← •Import "report_labels.bqn"
 plan_rows ← •Import "plan_rows.bqn"
+actual_source ← •Import "actual_source.bqn"
 L ← labels.Text
 cube ← •Import "cube.bqn"
 
 LatestActualDateInCycle ← {𝕊 base‿cy:
-  lines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
+  dates ← actual_source.LoadDates base
   available ← (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (cy.day_count > 0)
   out ← cy.start
   {𝕊:
     start_dn ← proj.DaysFromEpoch cy.start
     end_dn ← proj.DaysFromEpoch cy.end_exclusive
-    dates ← {⊑ loader.SplitTsvKeepEmpty 𝕩}¨ lines
     DateInCycle ← {𝕊 d: dn ← proj.DaysFromEpoch d ⋄ (dn ≥ start_dn) ∧ (dn < end_dn) }
     in_dates ← (DateInCycle¨ dates) / dates
     {𝕊: out ↩ ¯1 ⊑ (∧ in_dates)}⍟(0 < ≠ in_dates) @
-  }⍟(available ∧ (0 < ≠ lines)) @
+  }⍟(available ∧ (0 < ≠ dates)) @
   out
 }
 
@@ -67,8 +67,13 @@ BuildRemainingEvidenceFromLines ← {𝕊 plan_lines‿journal_lines‿cy:
 
 BuildRemainingEvidence ← {𝕊 base‿cy:
   plan_lines ← loader.ReadLinesOptional (base ∾ "/plan.tsv")
-  journal_lines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
-  BuildRemainingEvidenceFromLines ⟨plan_lines, journal_lines, cy⟩
+  completed_ids ← actual_source.PlanIdsInCycle ⟨base,cy⟩
+  {𝕊 i:
+    line ← i⊑plan_lines
+    flds ← loader.SplitTsvKeepEmpty line
+    pid ← plan_rows.PlanId line
+    {source_row⇐i,date⇐proj.FieldOrEmpty ⟨flds,0⟩,plan_id⇐pid,completed⇐∨´0∾pid⊸≡¨completed_ids}
+  }¨↕≠plan_lines
 }
 
 RowsForPlanSource ← {𝕊 rows‿source_row:

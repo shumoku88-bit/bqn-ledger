@@ -10,6 +10,7 @@ loader ← •Import "loader.bqn"
 proj ← •Import "projection.bqn"
 cube ← •Import "cube.bqn"
 plan_rows ← •Import "plan_rows.bqn"
+actual_source ← •Import "actual_source.bqn"
 
 IsMember ← { list ← 𝕨 ⋄ item ← 𝕩 ⋄ (⊑ list ⊐ ⟨item⟩) < ≠ list }
 
@@ -56,8 +57,11 @@ BuildEvidenceFromLines ← {𝕊 plan_lines‿journal_lines‿cy:
 
 BuildSourceEvidence ← {𝕊 base‿cy:
   plan_lines ← loader.ReadLinesOptional (base ∾ "/plan.tsv")
-  journal_lines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
-  BuildEvidenceFromLines ⟨plan_lines, journal_lines, cy⟩
+  completed_ids ← actual_source.PlanIdsInCycle ⟨base,cy⟩
+  {𝕊 i:
+    line←i⊑plan_lines ⋄ flds←loader.SplitTsvKeepEmpty line ⋄ pid←plan_rows.PlanId line
+    {source_row⇐i,line⇐line,flds⇐flds,date⇐proj.FieldOrEmpty ⟨flds,0⟩,plan_id⇐pid,completed⇐(0<≠pid)∧∨´0∾pid⊸≡¨completed_ids}
+  }¨↕≠plan_lines
 }
 
 AnchorInfo ← {𝕊 flds:
@@ -107,7 +111,7 @@ ActiveIncomeAccounts ← {𝕊 ctx‿as_of:
       idx ← row.account_key_index
       role ← idx ⊑ roles_with_sentinel
       active ↩ ∧´ ⟨
-        row.source_file ≡ "journal.tsv",
+        row.source_file ≡ actual_source.File ctx,
         row.layer_index = proj.layer_actual,
         row.status ≡ "ok",
         row.side ≡ "credit",

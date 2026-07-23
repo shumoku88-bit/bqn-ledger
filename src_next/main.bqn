@@ -47,7 +47,7 @@ PrintProjHeader ← {𝕊 𝕩:
   {•Out 𝕩∾"  "}¨ proj.proj_cols
   •Out ""
   •Out "Layer mapping:"
-  •Out "  journal.tsv      -> actual   (layer_index=0)"
+  •Out "  selected actual source -> actual (layer_index=0)"
   •Out "  plan.tsv         -> plan     (layer_index=1)"
   •Out "  budget_alloc.tsv -> budget   (layer_index=2)"
   •Out "  (forecast)       -> forecast (layer_index=3, reserved)"
@@ -70,8 +70,8 @@ PrintRowsForFile ← {𝕊 rows‿srcFile‿title:
   selected
 }
 
-PrintSampleRows ← {𝕊 rows:
-  jrows ← PrintRowsForFile ⟨rows, "journal.tsv", "journal.tsv"⟩
+PrintSampleRows ← {𝕊 rows‿actualFile:
+  jrows ← PrintRowsForFile ⟨rows, actualFile, actualFile⟩
   prows ← PrintRowsForFile ⟨rows, "plan.tsv", "plan.tsv"⟩
   jrows ∾ prows
 }
@@ -91,7 +91,7 @@ Main ← {𝕊 base:
 
   # ── Projection skeleton ────────────────────────────────────
   PrintProjHeader 0
-  rows ← PrintSampleRows ctx.posting_rows
+  rows ← PrintSampleRows ⟨ctx.posting_rows,ctx.actual_source_file⟩
   •Out ""
   •Out proj.FormatBalanceCheck rows
 

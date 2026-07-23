@@ -6,6 +6,7 @@
 loader ← •Import "loader.bqn"
 proj ← •Import "projection.bqn"
 cube ← •Import "cube.bqn"
+actual_source ← •Import "actual_source.bqn"
 
 # ── Key extraction ──────────────────────────────────────────
 Pad5 ← { 𝕩 ∾ ((5 - (5⌊≠𝕩)) ⥊ ⟨""⟩) }
@@ -46,10 +47,10 @@ Build ← {𝕊 ctx:
   planInCycle ← planInCycleMask / planLines
   planPlanIds ← PlanId¨ planInCycle
 
-  journalLines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
-  journalInCycleMask ← { InCycle ⟨cy.start, cy.day_count, 𝕩⟩ }¨ journalLines
-  journalInCycle ← journalInCycleMask / journalLines
-  journalPlanIds ← PlanId¨ journalInCycle
+  completion ← actual_source.CompletionEvidence base
+  IsCompletionInCycle ← {𝕊 ev: day←proj.ResolveDayFromCycle ⟨ev.date,cy.start⟩ ⋄ (day≥0)∧day<cy.day_count}
+  journalInCycle ← (IsCompletionInCycle¨completion)/completion
+  journalPlanIds ← {𝕩.plan_id}¨journalInCycle
 
   # Strong overlap: plan_id appears exactly once in both plan and journal
   strongMask ← {𝕊 pid:

@@ -19,6 +19,7 @@ plan_id ← •Import "plan_id.bqn"
 config ← •Import "../src_next/config.bqn"
 lib ← •Import "../src_next/util.bqn"
 dateutil ← •Import "../src_next/date.bqn"
+actual_source ← •Import "../src_next/actual_source.bqn"
 
 sys ← config.LoadSystemDefaults @
 args ← •args
@@ -106,10 +107,8 @@ KeyString ← { (0⊑𝕩) ∾ tab ∾ (1⊑𝕩) }
 
 accounts ← LoadAccounts @
 planPath ← ResolvePath (sys.DefaultPlanFile @)
-journalPath ← ResolvePath (sys.DefaultJournalFile @)
-
-journalLines ← loader.ReadLinesOptional journalPath
-completedIDsAll ← plan_id.ExtractPlanId¨ journalLines
+completionEvidence ← actual_source.CompletionEvidence baseDir
+completedIDsAll ← {𝕩.plan_id}¨completionEvidence
 completedIDs ← (0 < ≠¨ completedIDsAll) / completedIDsAll
 
 lineData ← ReadDataLinesWithNums planPath

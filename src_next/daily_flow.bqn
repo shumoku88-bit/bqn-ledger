@@ -2,7 +2,7 @@
 # Daily Flow breakdown for src_next.
 # Shows daily breakdown of income, major envelope expenses, others, and net.
 
-loader ← •Import "loader.bqn"
+actual_source ← •Import "actual_source.bqn"
 proj ← •Import "projection.bqn"
 cube ← •Import "cube.bqn"
 fmt ← •Import "format.bqn"
@@ -41,17 +41,16 @@ TrimBudgetPrefix ← {
 }
 
 LatestActualDateInCycle ← {𝕊 base‿cy:
-  lines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
+  dates ← actual_source.LoadDates base
   available ← (cy.start ≢ "unavailable") ∧ (cy.day_count > 0)
   out ← cy.start
   {𝕊:
     start_dn ← proj.DaysFromEpoch cy.start
     end_dn ← start_dn + cy.day_count
-    dates ← {⊑ loader.SplitTsvKeepEmpty 𝕩}¨ lines
     DateInCycle ← {𝕊 d: dn ← proj.DaysFromEpoch d ⋄ (dn ≥ start_dn) ∧ (dn < end_dn) }
     in_dates ← (DateInCycle¨ dates) / dates
     {𝕊: out ↩ ¯1 ⊑ (∧ in_dates)}⍟(0 < ≠ in_dates) @
-  }⍟(available ∧ (0 < ≠ lines)) @
+  }⍟(available ∧ (0 < ≠ dates)) @
   out
 }
 

@@ -14,7 +14,7 @@
 ctx_mod ← •Import "../context.bqn"
 env_comp ← •Import "../envelope_computation.bqn"
 proj ← •Import "../projection.bqn"
-loader ← •Import "../loader.bqn"
+actual_source ← •Import "../actual_source.bqn"
 calc ← •Import "envelope_calc.bqn"
 
 args ← •args
@@ -28,14 +28,13 @@ total_days ← cy.day_count
 envelopes ← (env_comp.Build ctx).envelopes
 
 LatestActualDate ← {𝕊 base‿cy:
-  lines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
+  dates ← actual_source.LoadDates base
   out ← cy.start
   {𝕊:
     start_dn ← proj.DaysFromEpoch cy.start
-    dates ← {⊑ loader.SplitTsvKeepEmpty 𝕩}¨ lines
     in_dates ← ({𝕊 d: (proj.DaysFromEpoch d) ≥ start_dn}¨ dates) / dates
     {𝕊: out ↩ ¯1 ⊑ (∧ in_dates)}⍟(0 < ≠ in_dates) @
-  }⍟(0 < ≠ lines) @
+  }⍟(0 < ≠ dates) @
   out
 }
 

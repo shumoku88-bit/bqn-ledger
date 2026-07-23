@@ -19,6 +19,7 @@ plan_id ← •Import "plan_id.bqn"
 config ← •Import "../src_next/config.bqn"
 setup ← •Import "../src_next/currency_setup.bqn"
 ak ← •Import "../src_next/account_key.bqn"
+actual_source ← •Import "../src_next/actual_source.bqn"
 
 
 sys ← config.LoadSystemDefaults @
@@ -60,11 +61,8 @@ accountCurrencies ← resolvedAccounts.currencies
 
 LoadPlansList ← { 𝕩 ⋄
   planPath ← ResolvePath (sys.DefaultPlanFile @)
-  journalPath ← ResolvePath (sys.DefaultJournalFile @)
-
-  journalLines ← loader.ReadLinesOptional journalPath
-
-  completedIDs ← plan_id.ExtractPlanId¨ journalLines
+  completionEvidence ← actual_source.CompletionEvidence baseDir
+  completedIDs ← {𝕩.plan_id}¨completionEvidence
   nonEmptyCompleted ← (0 < ≠¨ completedIDs) / completedIDs
 
   rawPlanLines ← loader.ReadRaw planPath
