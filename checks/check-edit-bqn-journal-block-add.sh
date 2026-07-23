@@ -324,7 +324,12 @@ done
 echo "Checking multiple append guard..." >&2
 m_base=$(new_base multi-append)
 m_journal="$m_base/source.journal"
-printf '\n%s\n\n%s\n' "$expected_block" "$expected_block" >>"$m_journal"
+expected_block2='2026-07-22 * スーパー
+    ; event-id: purchase-20260722-002
+    expenses:food:daily    1200 JPY
+    expenses:household    500 JPY
+    assets:cash    -1700 JPY'
+printf '\n%s\n\n%s\n' "$expected_block" "$expected_block2" >>"$m_journal"
 m_out="$tmp_root/multi-append.out"
 set +e
 bqn src_edit/journal_native_source_check.bqn "$m_base" "$m_journal" 2026-07-22 スーパー purchase-20260722-001 1 expenses:food:daily=1200 expenses:household=500 assets:cash=-1700 >"$m_out" 2>&1

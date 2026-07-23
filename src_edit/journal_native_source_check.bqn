@@ -21,8 +21,9 @@ candidateOrdinalText ← 5⊑args
 postingArgs ← 6↓args
 
 parsedOrdinal ← decimal.Parse candidateOrdinalText
-validOrdinal ← (parsedOrdinal.state ≡ "ok") ∧ (0 = parsedOrdinal.scale) ∧ candidateOrdinalText ≡ •Fmt parsedOrdinal.coefficient
-{𝕊⋄Fail ⟨"candidate_ordinal_invalid", "candidate ordinal must be a canonical nonnegative exact integer"⟩}⍟((¬ validOrdinal) ∨ 0 > parsedOrdinal.coefficient) @
+isOk ← (parsedOrdinal.state ≡ "ok") ∧ (0 ≡ parsedOrdinal.scale)
+validOrdinal ← (isOk ◶ ⟨ {0}, {(0 ≤ parsedOrdinal.coefficient) ∧ candidateOrdinalText ≡ •Fmt parsedOrdinal.coefficient} ⟩) @
+{𝕊⋄Fail ⟨"candidate_ordinal_invalid", "candidate ordinal must be a canonical nonnegative exact integer"⟩}⍟(¬ validOrdinal) @
 candidateOrdinal ← parsedOrdinal.coefficient
 
 expected ← empty
