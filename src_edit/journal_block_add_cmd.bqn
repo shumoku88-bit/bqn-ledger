@@ -85,6 +85,7 @@ metadataKeys ← {𝕩.key}¨metadata
 raw ← loader.ReadRaw target
 existing ← parser.ParseWithProfile ⟨raw,"historical_external_plan"⟩
 {𝕊⋄Fail ⟨"existing_journal_invalid", "existing complete Journal does not satisfy the supported profile"⟩}⍟(existing.state ≢ "ok") @
+candidateOrdinal ← ≠ existing.transactions
 {𝕊⋄Fail ⟨"event_id_duplicate", "event-id already exists in the complete Journal"⟩}⍟(∨´ 0 ∾ {𝕩.source_event_id ≡ eventId}¨ existing.transactions) @
 
 resolved ← ak.Resolve loader.ReadLines (base ∾ "/accounts.tsv")
@@ -109,21 +110,25 @@ transportPrefixCount ← endsTwo ◶ ⟨{1}, {0}⟩ @
 proposedRaw ← raw ∾ semanticSeparator ∾ block ∾ lf
 proposed ← parser.ParseWithProfile ⟨proposedRaw,"historical_external_plan"⟩
 {𝕊⋄Fail ⟨"proposed_journal_invalid", "exact proposed complete Journal does not satisfy the supported profile"⟩}⍟(proposed.state ≢ "ok") @
+{𝕊⋄Fail ⟨"candidate_count_invalid", "proposed Journal must contain exactly one transaction beyond the existing transaction count"⟩}⍟((candidateOrdinal + 1) ≢ ≠ proposed.transactions) @
 
 checked ← adapter.Build ⟨proposed.transactions, resolved, dateText⟩
 {𝕊⋄Fail ⟨"posting_ir_invalid", "checked Stage 2A Posting IR rejected the proposed complete Journal"⟩}⍟(checked.state ≢ "ok") @
 
-matching ← ({(𝕩.identity_kind ≡ "durable") ∧ 𝕩.source_event_id ≡ eventId}¨ proposed.transactions) / proposed.transactions
-{𝕊⋄Fail ⟨"candidate_identity_invalid", "candidate durable event must exist exactly once in proposed Journal"⟩}⍟(1 ≠ ≠ matching) @
-candidate ← ⊑ matching
+candidate ← candidateOrdinal ⊑ proposed.transactions
+
+priorTransactions ← candidateOrdinal ↑ proposed.transactions
+priorEndLine ← (0 < candidateOrdinal) ◶ ⟨0, {⌈´ {𝕩.source_end_line}¨ priorTransactions}⟩ @
+{𝕊⋄Fail ⟨"candidate_boundary_invalid", "candidate start line must be greater than prior end line"⟩}⍟(candidate.source_start_line ≤ priorEndLine) @
+
 candidateAccounts ← {𝕩.account_key}¨ candidate.postings
 candidateAmounts ← {𝕩.delta}¨ candidate.postings
 candidateCommodities ← {𝕩.commodity}¨ candidate.postings
 expectedAccounts ← {𝕩.account_key}¨ postings
 expectedAmounts ← {𝕩.delta}¨ postings
 commoditiesOk ← ∧´ {𝕩 ≡ "JPY"}¨ candidateCommodities
-candidateOk ← (candidate.date ≡ dateText) ∧ (candidate.description ≡ description) ∧ (candidate.source_event_id ≡ eventId) ∧ (candidate.layer_name ≡ "actual") ∧ (candidate.status_marker = '*') ∧ (candidateAccounts ≡ expectedAccounts) ∧ (candidateAmounts ≡ expectedAmounts) ∧ commoditiesOk
+candidateOk ← (candidate.date ≡ dateText) ∧ (candidate.description ≡ description) ∧ (candidate.source_event_id ≡ eventId) ∧ (candidate.identity_kind ≡ "durable") ∧ (candidate.layer_name ≡ "actual") ∧ (candidate.status_marker = '*') ∧ (candidateAccounts ≡ expectedAccounts) ∧ (candidateAmounts ≡ expectedAmounts) ∧ commoditiesOk
 {𝕊⋄Fail ⟨"candidate_mismatch", "parsed candidate does not exactly match the rendered candidate"⟩}⍟(¬ candidateOk) @
 
-•Out "OK" ∾ tab ∾ "APPEND_BLOCK" ∾ tab ∾ (•Fmt transportPrefixCount) ∾ tab ∾ eventId ∾ tab ∾ (•Fmt ≠ postings)
+•Out "OK" ∾ tab ∾ "APPEND_BLOCK" ∾ tab ∾ (•Fmt transportPrefixCount) ∾ tab ∾ eventId ∾ tab ∾ (•Fmt ≠ postings) ∾ tab ∾ (•Fmt candidateOrdinal)
 •Out block

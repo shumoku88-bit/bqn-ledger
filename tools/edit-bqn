@@ -183,8 +183,8 @@ if [[ "$1" == "journal-block" && "$2" == "add" ]]; then
     exit 1
   fi
   if ! edit_bqn_split_protocol_output "$BQN_OUT"; then exit 1; fi
-  IFS=$'\t' read -r status op transport_prefix protocol_event posting_count extra <<< "$EDIT_BQN_PROTOCOL_FIRST_LINE"
-  if [[ -n "${extra:-}" || "$status" != "OK" || "$op" != "APPEND_BLOCK" || "$protocol_event" != "$EVENT_ID" || ! "$transport_prefix" =~ ^[01]$ || ! "$posting_count" =~ ^[0-9]+$ || "$posting_count" -ne "${#POSTINGS[@]}" ]]; then
+  IFS=$'\t' read -r status op transport_prefix protocol_event posting_count candidate_ordinal extra <<< "$EDIT_BQN_PROTOCOL_FIRST_LINE"
+  if [[ -n "${extra:-}" || "$status" != "OK" || "$op" != "APPEND_BLOCK" || "$protocol_event" != "$EVENT_ID" || ! "$transport_prefix" =~ ^[01]$ || ! "$posting_count" =~ ^[0-9]+$ || "$posting_count" -ne "${#POSTINGS[@]}" || ! "$candidate_ordinal" =~ ^[0-9]+$ ]]; then
     echo "ERROR: invalid native Journal BQN protocol header: $EDIT_BQN_PROTOCOL_FIRST_LINE" >&2
     exit 1
   fi
@@ -218,7 +218,7 @@ if [[ "$1" == "journal-block" && "$2" == "add" ]]; then
   NATIVE_OUT=""
   if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && "${EDIT_BQN_TEST_FORCE_NATIVE_POST_CHECK_FAIL:-}" == "1" ]]; then
     NATIVE_OK=0; NATIVE_OUT="forced mandatory native validation failure"
-  elif ! NATIVE_OUT="$(cd "$ROOT_DIR" && bqn src_edit/journal_native_source_check.bqn "$CANONICAL_BASE" "$TARGET_PATH" "$DATE" "$DESCRIPTION" "$EVENT_ID" "${POSTINGS[@]}" 2>&1)"; then
+  elif ! NATIVE_OUT="$(cd "$ROOT_DIR" && bqn src_edit/journal_native_source_check.bqn "$CANONICAL_BASE" "$TARGET_PATH" "$DATE" "$DESCRIPTION" "$EVENT_ID" "$candidate_ordinal" "${POSTINGS[@]}" 2>&1)"; then
     NATIVE_OK=0
   fi
   if [[ "$NATIVE_OK" -eq 1 ]]; then
