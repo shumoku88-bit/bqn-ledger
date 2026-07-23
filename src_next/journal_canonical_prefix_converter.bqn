@@ -42,7 +42,7 @@ UnsafeText ← {𝕊 text:
 }
 
 DescriptionRepresentable ← {𝕊 text:
-  (0 < ≠ text) ∧ (text ≡ Trim text) ∧ ¬ UnsafeText text
+  (0 < ≠ text) ∧ (text ≡ TrimRight text) ∧ ¬ UnsafeText text
 }
 SafeValue ← {𝕊 text: (0 < ≠ text) ∧ (text ≡ Trim text) ∧ ¬ UnsafeText text}
 
