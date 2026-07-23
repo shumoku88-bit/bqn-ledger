@@ -489,6 +489,59 @@ safe_replace_line_checked() {
   printf 'Backup: %s\n' "$backup_path"
 }
 
+# Rewrite a whole file using a caller-owned verified candidate and snapshot.
+# Usage: safe_rewrite_checked TARGET CANDIDATE EXPECTED_SIZE EXPECTED_MTIME EXPECTED_SHA256
+safe_rewrite_checked() {
+  local target="$1" candidate_file="$2" expected_size="$3" expected_mtime="$4" expected_sha256="$5"
+  if [[ ! -f "$candidate_file" ]]; then
+    echo "ERROR: rewrite candidate not found: $candidate_file" >&2
+    return 1
+  fi
+  if cmp -s "$target" "$candidate_file"; then
+    echo "ERROR: rewrite candidate is identical to target" >&2
+    return 1
+  fi
+  if ! _safe_write_check_expected_snapshot "$target" "$expected_size" "$expected_mtime" "$expected_sha256"; then
+    return 1
+  fi
+
+  local base_dir filename backup_path mode tmp_file
+  base_dir="$(cd "$(dirname "$target")" && pwd)"
+  filename="$(basename "$target")"
+  backup_path="$(_choose_backup_path "$base_dir" "$filename")"
+  _create_backup "$target" "$backup_path"
+
+  tmp_file="$(mktemp "${target}.tmp-XXXXXX")"
+  # shellcheck disable=SC2064
+  trap "rm -f '$tmp_file'" EXIT
+  cp "$candidate_file" "$tmp_file"
+  if stat -f %Lp "$target" >/dev/null 2>&1; then
+    mode="$(stat -f %Lp "$target")"
+  else
+    mode="$(stat -c %a "$target")"
+  fi
+  chmod "$mode" "$tmp_file"
+
+  if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && -n "${SAFE_WRITE_TEST_BEFORE_REWRITE_RENAME_HOOK:-}" ]]; then
+    local hook="$SAFE_WRITE_TEST_BEFORE_REWRITE_RENAME_HOOK"
+    if declare -F -- "$hook" >/dev/null; then
+      "$hook"
+    else
+      printf 'Warning: SAFE_WRITE_TEST_BEFORE_REWRITE_RENAME_HOOK is set but not a declared function: %s\n' "$hook" >&2
+    fi
+  fi
+
+  if ! _safe_write_check_expected_snapshot "$target" "$expected_size" "$expected_mtime" "$expected_sha256"; then
+    rm -f "$backup_path"
+    rmdir "$(dirname "$backup_path")" 2>/dev/null || true
+    return 1
+  fi
+  mv "$tmp_file" "$target"
+  trap - EXIT
+  printf 'Wrote: %s\n' "$target"
+  printf 'Backup: %s\n' "$backup_path"
+}
+
 # Rewrite a file atomically (for plan edit).
 # Usage: safe_rewrite <target_file> <new_content_file> <backup_path>
 safe_rewrite() {
@@ -576,6 +629,8 @@ run_post_check() {
     lint)
       if [[ "$owner" == "journal" ]]; then
         cmd=(bqn src_edit/journal_source_check.bqn "$base_dir")
+      elif [[ "$owner" == "cleanup_journal" ]]; then
+        cmd=(bqn src_edit/journal_cleanup_plan_cmd.bqn "$base_dir" tsv)
       else
         cmd=(bqn src_next/report.bqn "$base_dir")
       fi

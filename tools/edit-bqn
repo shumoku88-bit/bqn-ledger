@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # tools/edit-bqn — BQN-backed editor entry point.
 #
-# Current scope: daily commands (`account add/list`, `journal add/list/cleanup-plan/reverse`,
+# Current scope: daily commands (`account add/list`, `journal add/list/cleanup-plan/cleanup-apply/reverse`,
 # `budget add`, `issue add/list/close`, and `plan add/list/related/finish/edit`),
 # the separate explicit-path `journal-block add`, and dedicated travel source-event commands.
 # `tools/edit` is the public wrapper that delegates here.
@@ -47,6 +47,7 @@ Usage:
   tools/edit-bqn [--base DIR] account list [--role ROLE] [--currency CODE]
   tools/edit-bqn [--base DIR] journal list [--format tsv|text]
   tools/edit-bqn [--base DIR] journal cleanup-plan [--format tsv|text]
+  tools/edit-bqn [--base DIR] journal cleanup-apply [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] plan list [--all] [--format tsv|text] [--temporal all|overdue|upcoming] [--as-of YYYY-MM-DD]
   tools/edit-bqn [--base DIR] plan related [--index NUMBER] [--id PLAN_ID] --actual-date YYYY-MM-DD [--format tsv]
   tools/edit-bqn [--base DIR] plan finish [--index NUMBER] [--id PLAN_ID] --actual-date YYYY-MM-DD [--actual-amount DECIMAL] [--dry-run] [--yes] [--post-check none|lint|full]
@@ -56,7 +57,7 @@ Usage:
   tools/edit-bqn [--base DIR] travel friend add --date YYYY-MM-DD --party PARTY --item ITEM --amount DECIMAL --currency ILS --payer friend --trip-id israel-2026 --source-event-id ID [--dry-run] [--yes]
   tools/edit-bqn [--base DIR] travel exchange add --date YYYY-MM-DD --memo MEMO --source-account ACCOUNT --source-amount INT --source-currency JPY --target-account ACCOUNT --target-amount DECIMAL --target-currency ILS --exchange-id ID --trip-id israel-2026 [--dry-run] [--yes]
 
-Current scope: BQN editor daily commands (account add/list, journal add/multi-add, budget/plan/issue add, explicit-path journal-block add, travel friend/exchange add, issue list/close, journal list/cleanup-plan/reverse, and plan list/related/finish/edit).
+Current scope: BQN editor daily commands (account add/list, journal add/multi-add, budget/plan/issue add, explicit-path journal-block add, travel friend/exchange add, issue list/close, journal list/cleanup-plan/cleanup-apply/reverse, and plan list/related/finish/edit).
 USAGE
 }
 
@@ -360,6 +361,80 @@ if [[ "$1" == "journal" && "$2" == "cleanup-plan" ]]; then
     *) echo "ERROR: invalid format: $FORMAT (expected 'tsv' or 'text')" >&2; exit 2 ;;
   esac
   cd "$ROOT_DIR" && bqn src_edit/journal_cleanup_plan_cmd.bqn "$BASE_DIR" "$FORMAT"
+  exit $?
+fi
+
+if [[ "$1" == "journal" && "$2" == "cleanup-apply" ]]; then
+  shift 2
+  DRY_RUN=0; YES=0; POST_CHECK="lint"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --dry-run) DRY_RUN=1; shift ;;
+      --yes) YES=1; shift ;;
+      --post-check) POST_CHECK="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      *) echo "ERROR: unknown journal cleanup-apply argument: $1" >&2; exit 2 ;;
+    esac
+  done
+  edit_bqn_validate_post_check "$POST_CHECK"
+
+  ACTUAL_ROUTE="$(cd "$ROOT_DIR" && bqn src_edit/actual_source_route_cmd.bqn "$BASE_DIR")"
+  IFS=$'\t' read -r ACTUAL_MODE ACTUAL_FILE ACTUAL_EXTRA <<< "$ACTUAL_ROUTE"
+  [[ -z "${ACTUAL_EXTRA:-}" ]] || { echo "ERROR: invalid actual-source route" >&2; exit 1; }
+  [[ "$ACTUAL_MODE" == "journal" ]] || { echo "ERROR: journal cleanup-apply requires ACTUAL_SOURCE=journal; no files changed" >&2; exit 1; }
+  [[ -d "$BASE_DIR" ]] || { echo "ERROR: base directory does not exist: $BASE_DIR" >&2; exit 1; }
+  [[ "$ACTUAL_FILE" != /* ]] || { echo "ERROR: configured Journal path is unsafe" >&2; exit 1; }
+  CANONICAL_BASE="$(cd -P "$BASE_DIR" && pwd)"
+  TARGET_PATH="$CANONICAL_BASE"
+  IFS='/' read -r -a CLEANUP_COMPONENTS <<< "$ACTUAL_FILE"
+  for component in "${CLEANUP_COMPONENTS[@]}"; do
+    [[ -z "$component" || "$component" == "." ]] && continue
+    [[ "$component" != ".." ]] || { echo "ERROR: configured Journal path is unsafe" >&2; exit 1; }
+    TARGET_PATH="$TARGET_PATH/$component"
+    [[ ! -L "$TARGET_PATH" ]] || { echo "ERROR: configured Journal symlink paths are rejected" >&2; exit 1; }
+  done
+  [[ -f "$TARGET_PATH" ]] || { echo "ERROR: configured Journal is not a regular file" >&2; exit 1; }
+  case "$TARGET_PATH" in "$CANONICAL_BASE"/*) ;; *) echo "ERROR: configured Journal resolves outside --base" >&2; exit 1 ;; esac
+
+  SNAPSHOT_TOKEN="$(safe_snapshot_token "$TARGET_PATH")"
+  IFS=$'\t' read -r SNAP_SIZE SNAP_MTIME SNAP_SHA256 <<< "$SNAPSHOT_TOKEN"
+  CANDIDATE_FILE="$(mktemp "${TMPDIR:-/tmp}/bqn-ledger-cleanup-candidate.XXXXXX")"
+  BQN_STDERR="$(mktemp "${TMPDIR:-/tmp}/bqn-ledger-cleanup-stderr.XXXXXX")"
+  trap 'rm -f "$CANDIDATE_FILE" "$BQN_STDERR"' EXIT
+  BQN_OUT=""
+  if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/journal_cleanup_apply_cmd.bqn "$CANONICAL_BASE" "$CANDIDATE_FILE" 2>"$BQN_STDERR")"; then
+    [[ -n "$BQN_OUT" ]] && printf '%s\n' "$BQN_OUT" >&2
+    [[ -s "$BQN_STDERR" ]] && cat "$BQN_STDERR" >&2
+    exit 1
+  fi
+  mapfile -t CLEANUP_LINES <<< "$BQN_OUT"
+  IFS=$'\t' read -r STATUS OP PROTOCOL_FILE REMOVAL_COUNT TOTAL_COUNT EXTRA <<< "${CLEANUP_LINES[0]}"
+  [[ "$STATUS" == "OK" && "$PROTOCOL_FILE" == "$ACTUAL_FILE" && -z "${EXTRA:-}" && "$REMOVAL_COUNT" =~ ^[0-9]+$ && "$TOTAL_COUNT" =~ ^[0-9]+$ ]] || { echo "ERROR: invalid cleanup prepare protocol header" >&2; exit 1; }
+  [[ "$OP" == "CLEANUP_REWRITE" || "$OP" == "CLEANUP_NOOP" ]] || { echo "ERROR: invalid cleanup prepare operation" >&2; exit 1; }
+  if [[ "$OP" == "CLEANUP_NOOP" ]]; then
+    [[ "$REMOVAL_COUNT" -eq 0 && "${#CLEANUP_LINES[@]}" -eq 1 ]] || { echo "ERROR: invalid cleanup no-op protocol" >&2; exit 1; }
+    echo "No removable legacy event IDs. No files were modified."
+    exit 0
+  fi
+  [[ "$REMOVAL_COUNT" -gt 0 && "${#CLEANUP_LINES[@]}" -eq $((REMOVAL_COUNT + 1)) && -f "$CANDIDATE_FILE" ]] || { echo "ERROR: incomplete cleanup rewrite protocol" >&2; exit 1; }
+  for ((i=1; i<${#CLEANUP_LINES[@]}; i++)); do
+    IFS=$'\t' read -r ROW_OP ROW_NUMBER EVENT_LINE ROW_DATE ROW_EVENT_ID ROW_DESCRIPTION ROW_EXTRA <<< "${CLEANUP_LINES[$i]}"
+    [[ "$ROW_OP" == "REMOVE" && "$ROW_NUMBER" =~ ^[0-9]+$ && "$EVENT_LINE" =~ ^[0-9]+$ && -n "$ROW_DATE" && -n "$ROW_EVENT_ID" && -n "$ROW_DESCRIPTION" && -z "${ROW_EXTRA:-}" ]] || { echo "ERROR: invalid cleanup removal manifest row" >&2; exit 1; }
+  done
+  _safe_write_check_expected_snapshot "$TARGET_PATH" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256" || exit 1
+
+  MODE="$(edit_bqn_mode "$DRY_RUN" "$YES")"
+  printf 'Journal legacy entry-id cleanup preview\nTarget: %s\nMode: %s\nPost-check: %s\nRemoval count: %s\n' "$TARGET_PATH" "$MODE" "$POST_CHECK" "$REMOVAL_COUNT"
+  for ((i=1; i<${#CLEANUP_LINES[@]}; i++)); do
+    IFS=$'\t' read -r _ ROW_NUMBER EVENT_LINE ROW_DATE ROW_EVENT_ID ROW_DESCRIPTION <<< "${CLEANUP_LINES[$i]}"
+    printf '#%s date=%s id=%s event-line=%s %s\n' "$ROW_NUMBER" "$ROW_DATE" "$ROW_EVENT_ID" "$EVENT_LINE" "$ROW_DESCRIPTION"
+  done
+  if [[ "$DRY_RUN" -eq 1 ]]; then echo "Dry-run only. No files were modified."; exit 0; fi
+  if [[ "$YES" -eq 0 ]]; then
+    printf 'Remove these legacy event-id lines? [y/N]: '
+    REPLY=""; read -r REPLY || true
+    case "$REPLY" in y|Y|yes|YES) ;; *) echo "Cancelled. No files were modified."; exit 0 ;; esac
+  fi
+  edit_bqn_apply_rewrite_checked "$CANONICAL_BASE" "$POST_CHECK" "$TARGET_PATH" "$CANDIDATE_FILE" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256"
   exit $?
 fi
 

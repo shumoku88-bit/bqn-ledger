@@ -154,6 +154,7 @@ bash checks/check-israel-travel-four-path-rehearsal.sh >/dev/null
 bash checks/check-edit-bqn-issue-close.sh >/dev/null
 bash checks/check-edit-bqn-journal-list.sh >/dev/null
 bash checks/check-edit-bqn-journal-cleanup-plan.sh >/dev/null
+bash checks/check-edit-bqn-journal-cleanup-apply.sh >/dev/null
 bash checks/check-edit-bqn-journal-reverse.sh >/dev/null
 bash checks/check-edit-bqn-plan-list.sh >/dev/null
 bash checks/check-edit-bqn-plan-related.sh >/dev/null
@@ -166,6 +167,7 @@ bash checks/check-workflow-drift.sh >/dev/null
 bash checks/check-docs-lifecycle.sh >/dev/null
 bash checks/check-structured-ui-boundary.sh >/dev/null
 bash checks/check-safe-replace-line.sh >/dev/null
+bash checks/check-safe-rewrite-checked.sh >/dev/null
 bash checks/check-bash-safety.sh >/dev/null
 bash checks/check-ui-smoke.sh >/dev/null
 bash checks/check-absolute-links.sh >/dev/null
