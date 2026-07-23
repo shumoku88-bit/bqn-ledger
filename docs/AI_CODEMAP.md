@@ -209,6 +209,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 - `test_journal_posting_ir_adapter_stage2a.bqn` / `test_journal_posting_identity_provenance_stage2b.bqn` — Journal test-only Posting IR success parityとidentity/provenance carrierのfocused tests。
 - `test_journal_posting_ir_comparable_rejection_stage2c.bqn` — invalid date / invalid exact-integer amount / unknown accountのJournal・legacy TSV structural rejection parityを既存境界だけで観測するfocused test。
 - `test_journal_canonical_prefix_converter.bqn` — deterministic rendering、description/metadata/currency red paths、identity/provenance、Cube/TBDS/Trial Balance/Balances parity、historical profile、synthetic suffix reconstructionのfocused test。
+- `test_journal_leading_ascii_space_description_characterization.bqn` — description-owned leading ASCII SPACEがStage 1でdiagnosticなしに失われ、異なるsource descriptionが同じTransaction IRへ収束する`silent_normalization`と、descriptionを持たない16-field Stage 2A Posting IRでは復元不能であることを固定するpublic-synthetic focused test。望ましい仕様の承認ではなく、将来parser contract sliceで意図的に更新するcharacterization。
 - `test_journal_native_three_posting_semantic_parity.bqn` — native Journal 3 rowsとlegacy TSV 4 rowsのtopology差を保持したまま、共通semantic coordinate reductionとnumeric Cube payloadの一致を既存境界だけで検証するfocused test。
 - `test_lib.bqn` — テストフレームワーク (Assert, AssertEq)。
 - `test_find_section.bqn`, `test_simple.bqn` — 汎用テスト。

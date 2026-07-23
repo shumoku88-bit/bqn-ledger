@@ -39,6 +39,7 @@ Last hygiene pass: 2026-07-19
 - Journal file-backed shadow context is complete; record: `docs/archive/completed-plans/JOURNAL_FILE_BACKED_SHADOW_CONTEXT_PLAN-2026-07-22.md`
 - Journal native multi-posting explicit-path append editor is complete; record: `docs/archive/completed-plans/JOURNAL_NATIVE_MULTI_POSTING_APPEND_EDITOR_PLAN-2026-07-22.md`
 - Journal external plan reference profile prerequisite is complete; record: `docs/archive/completed-plans/JOURNAL_EXTERNAL_PLAN_REFERENCE_PROFILE_PREREQUISITE_PLAN-2026-07-22.md`
+- Journal leading ASCII space description representation characterization is complete as public-synthetic test-only evidence; observed classification: `silent_normalization`; record: `docs/archive/completed-plans/JOURNAL_LEADING_ASCII_SPACE_DESCRIPTION_REPRESENTATION_CHARACTERIZATION-2026-07-23.md`
 - other unrelated candidates remain unselected
 
 ---
@@ -108,9 +109,11 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 
 ### Journal source migration
 
-Status: **Canonical TSV-to-native Journal prefix converter complete; no finite Journal slice is selected.** Completion record: `docs/archive/completed-plans/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_COMPLETION-2026-07-22.md`. Archived contract and instructions: `docs/archive/completed-plans/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_PLAN-2026-07-22.md`, `docs/archive/completed-plans/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_IMPLEMENTATION_INSTRUCTIONS-2026-07-22.md`.
+Status: **Leading ASCII space description representation characterization complete; no finite Journal slice is selected.** Characterization record: `docs/archive/completed-plans/JOURNAL_LEADING_ASCII_SPACE_DESCRIPTION_REPRESENTATION_CHARACTERIZATION-2026-07-23.md`. Converter completion record: `docs/archive/completed-plans/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_COMPLETION-2026-07-22.md`. Archived contract and instructions: `docs/archive/completed-plans/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_PLAN-2026-07-22.md`, `docs/archive/completed-plans/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_IMPLEMENTATION_INSTRUCTIONS-2026-07-22.md`.
 
-The public-synthetic converter now preserves exact admitted descriptions, canonical legacy source identity, distinct business `txn_id`, mapped metadata, deterministic explicit JPY postings, and unchanged Transaction IR / 16-field Posting IR validation through the explicit `historical_external_plan` profile. Public-synthetic byte-preserving suffix reconstruction and exclusive atomic publication are proven. No private conversion or reconstruction was performed.
+Public-synthetic evidence classifies a description-owned leading ASCII SPACE as `silent_normalization`: Stage 1 admits both control and target with no diagnostics but collapses them to the same Transaction IR description. Stage 2A remains a 16-field description-free accounting boundary and cannot recover the lost distinction. Parser contract implementation, converter relaxation, opaque metadata preservation, private converter retry, and the next finite Journal slice are not selected.
+
+The public-synthetic converter preserves exact admitted descriptions, canonical legacy source identity, distinct business `txn_id`, mapped metadata, deterministic explicit JPY postings, and unchanged Transaction IR / 16-field Posting IR validation through the explicit `historical_external_plan` profile. Public-synthetic byte-preserving suffix reconstruction and exclusive atomic publication are proven. No private conversion or reconstruction was performed.
 
 Native Journal is the owner-selected future durable actual source truth. The native multi-posting explicit-path append editor is complete; record: `docs/archive/completed-plans/JOURNAL_NATIVE_MULTI_POSTING_APPEND_EDITOR_PLAN-2026-07-22.md`.
 
@@ -126,6 +129,7 @@ The cutover prerequisite review found accounting semantics equivalent, including
 - The old stopped converter branch remains untouched historical evidence; the completed implementation used a replacement branch from current main.
 - Production source truth and production report routing remain TSV; cutover remains blocked.
 - No private verification, private conversion, private reconstruction, writer switch, report routing, cutover, or later Journal slice is selected automatically.
+- Production source truth and report routing remain TSV; production cutover remains blocked.
 
 
 ## Next candidates
