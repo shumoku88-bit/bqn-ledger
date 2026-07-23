@@ -152,6 +152,29 @@ run_native_selector_case() {
   fi
 }
 
+run_native_write_case() {
+  local base="$tmp_root/native-write"
+  local out="$tmp_root/native-write.out"
+  cp -R fixtures/journal-ordinary-actual-fallback-boundary "$base"
+  local before_event_count after_event_count original_size
+  cp "$base/actual.journal" "$tmp_root/native-write.original"
+  original_size=$(wc -c <"$tmp_root/native-write.original" | tr -d ' ')
+  before_event_count=$(grep -Fc '; event-id:' "$base/actual.journal" || true)
+
+  ./tools/edit-bqn --base "$base" journal reverse --index 2 --date 2026-07-25 --yes --post-check none >"$out" 2>&1
+
+  after_event_count=$(grep -Fc '; event-id:' "$base/actual.journal" || true)
+  head -c "$original_size" "$base/actual.journal" >"$tmp_root/native-write.prefix"
+  cmp "$tmp_root/native-write.original" "$tmp_root/native-write.prefix"
+  [[ "$after_event_count" -eq $((before_event_count + 1)) ]] || { echo "FAIL: native reverse event-id count mismatch" >&2; exit 1; }
+  grep -Fq '2026-07-23 * Ordinary purchase' "$base/actual.journal"
+  [[ $(grep -Fc '2026-07-23 * Ordinary purchase' "$base/actual.journal") -eq 1 ]]
+  grep -Fq '2026-07-25 * [reverse]Ordinary purchase' "$base/actual.journal"
+  grep -Eq '^    ; event-id: reverse-' "$base/actual.journal"
+  grep -Fq 'Mandatory native validation: OK' "$out"
+  grep -Fq $'OK\tNATIVE_JOURNAL_CANDIDATE\tdurable\treverse-' "$out"
+}
+
 # Dry-run protection.
 dry_base="$tmp_root/dry"
 prepare_fixtures "$dry_base"
@@ -187,6 +210,7 @@ run_positive_case reverse-by-index-default-date \
   --post-check none
 
 run_native_selector_case
+run_native_write_case
 
 # Negative cases.
 run_expect_fail_closed invalid-index \
