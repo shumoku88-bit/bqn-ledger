@@ -269,53 +269,59 @@ set -e
 grep -Fq 'Rollback: restored original bytes' "$tmp_root/full-blocked.out"
 
 # Renderer protocol ordinal
+echo "Checking renderer protocol ordinal..." >&2
 protocol_out="$tmp_root/protocol.out"
 bqn src_edit/journal_block_add_cmd.bqn "$dry" "$dry/source.journal" 2026-07-22 スーパー purchase-20260722-001 3 expenses:food:daily=1200 expenses:household=500 assets:cash=-1700 >"$protocol_out" 2>"$tmp_root/protocol.err"
 first_line=$(head -n 1 "$protocol_out" | tr -d '\r')
 IFS=$'\t' read -r p_status p_op p_prefix p_event p_count p_ordinal p_extra <<< "$first_line"
-[[ "$p_status" == "OK" && "$p_op" == "APPEND_BLOCK" && "$p_event" == "purchase-20260722-001" && "$p_count" == "3" && "$p_ordinal" == "1" && -z "${p_extra:-}" ]]
+[[ "$p_status" == "OK" && "$p_op" == "APPEND_BLOCK" && "$p_event" == "purchase-20260722-001" && "$p_count" == "3" && "$p_ordinal" == "1" && -z "${p_extra:-}" ]] || { echo "FAIL renderer protocol header: line='$first_line' p_status='$p_status' p_op='$p_op' p_prefix='$p_prefix' p_event='$p_event' p_count='$p_count' p_ordinal='$p_ordinal' p_extra='$p_extra'" >&2; exit 1; }
 
 # Direct validator success protocol
+echo "Checking direct validator success protocol..." >&2
 v_base=$(new_base validator-success)
 v_journal="$v_base/source.journal"
 printf '\n%s\n' "$expected_block" >>"$v_journal"
 v_out="$tmp_root/v-success.out"
-bqn src_edit/journal_native_source_check.bqn "$v_base" "$v_journal" 2026-07-22 スーパー purchase-20260722-001 1 expenses:food:daily=1200 expenses:household=500 assets:cash=-1700 >"$v_out" 2>&1
-grep -Fq $'OK\tNATIVE_JOURNAL_CANDIDATE\tpurchase-20260722-001\t1\t3' "$v_out"
+bqn src_edit/journal_native_source_check.bqn "$v_base" "$v_journal" 2026-07-22 スーパー purchase-20260722-001 1 expenses:food:daily=1200 expenses:household=500 assets:cash=-1700 >"$v_out" 2>&1 || { echo "FAIL validator success command rc=$? output:" >&2; cat "$v_out" >&2; exit 1; }
+grep -Fq $'OK\tNATIVE_JOURNAL_CANDIDATE\tpurchase-20260722-001\t1\t3' "$v_out" || { echo "FAIL validator success grep output:" >&2; cat "$v_out" >&2; exit 1; }
 
 # Wrong event-id classification
+echo "Checking wrong event-id classification..." >&2
 w_event_out="$tmp_root/wrong-event.out"
 set +e
 bqn src_edit/journal_native_source_check.bqn "$v_base" "$v_journal" 2026-07-22 スーパー wrong-event-id 1 expenses:food:daily=1200 expenses:household=500 assets:cash=-1700 >"$w_event_out" 2>&1
 rc=$?
 set -e
-[[ $rc -ne 0 ]]
-grep -Fq $'ERROR\tnative_candidate_mismatch' "$w_event_out"
+[[ $rc -ne 0 ]] || { echo "FAIL wrong-event expected non-zero rc" >&2; exit 1; }
+grep -Fq $'ERROR\tnative_candidate_mismatch' "$w_event_out" || { echo "FAIL wrong-event output:" >&2; cat "$w_event_out" >&2; exit 1; }
 if grep -Fq 'native_candidate_identity_invalid' "$w_event_out"; then echo "FAIL: unexpected native_candidate_identity_invalid" >&2; exit 1; fi
 
 # Wrong ordinal count guard
+echo "Checking wrong ordinal count guard..." >&2
 for w_ord in 0 2; do
   w_ord_out="$tmp_root/wrong-ord-$w_ord.out"
   set +e
   bqn src_edit/journal_native_source_check.bqn "$v_base" "$v_journal" 2026-07-22 スーパー purchase-20260722-001 "$w_ord" expenses:food:daily=1200 expenses:household=500 assets:cash=-1700 >"$w_ord_out" 2>&1
   rc=$?
   set -e
-  [[ $rc -ne 0 ]]
-  grep -Fq $'ERROR\tnative_candidate_count_invalid' "$w_ord_out"
+  [[ $rc -ne 0 ]] || { echo "FAIL wrong-ord $w_ord expected non-zero rc" >&2; exit 1; }
+  grep -Fq $'ERROR\tnative_candidate_count_invalid' "$w_ord_out" || { echo "FAIL wrong-ord $w_ord output:" >&2; cat "$w_ord_out" >&2; exit 1; }
 done
 
 # Invalid ordinal syntax
+echo "Checking invalid ordinal syntax..." >&2
 for inv_ord in -1 01 1.0 abc; do
   inv_ord_out="$tmp_root/inv-ord-${inv_ord//./_}.out"
   set +e
   bqn src_edit/journal_native_source_check.bqn "$v_base" "$v_journal" 2026-07-22 スーパー purchase-20260722-001 "$inv_ord" expenses:food:daily=1200 expenses:household=500 assets:cash=-1700 >"$inv_ord_out" 2>&1
   rc=$?
   set -e
-  [[ $rc -ne 0 ]]
-  grep -Fq $'ERROR\tcandidate_ordinal_invalid' "$inv_ord_out"
+  [[ $rc -ne 0 ]] || { echo "FAIL inv-ord $inv_ord expected non-zero rc" >&2; exit 1; }
+  grep -Fq $'ERROR\tcandidate_ordinal_invalid' "$inv_ord_out" || { echo "FAIL inv-ord $inv_ord output:" >&2; cat "$inv_ord_out" >&2; exit 1; }
 done
 
 # Multiple append guard
+echo "Checking multiple append guard..." >&2
 m_base=$(new_base multi-append)
 m_journal="$m_base/source.journal"
 printf '\n%s\n\n%s\n' "$expected_block" "$expected_block" >>"$m_journal"
@@ -324,7 +330,7 @@ set +e
 bqn src_edit/journal_native_source_check.bqn "$m_base" "$m_journal" 2026-07-22 スーパー purchase-20260722-001 1 expenses:food:daily=1200 expenses:household=500 assets:cash=-1700 >"$m_out" 2>&1
 rc=$?
 set -e
-[[ $rc -ne 0 ]]
-grep -Fq $'ERROR\tnative_candidate_count_invalid' "$m_out"
+[[ $rc -ne 0 ]] || { echo "FAIL multi-append expected non-zero rc" >&2; exit 1; }
+grep -Fq $'ERROR\tnative_candidate_count_invalid' "$m_out" || { echo "FAIL multi-append output:" >&2; cat "$m_out" >&2; exit 1; }
 
 printf 'check-edit-bqn-journal-block-add: OK\n'
