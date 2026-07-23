@@ -20,7 +20,7 @@ supportedMetadata ← ⟨
   <"execution-envelope", <"allocation-id", <"agreement-id",
   <"actual-event-id", <"tax", <"biz", <"invoice", <"note", <"due-on",
   <"receipt", <"txn-id", <"party", <"cashflow", <"currency",
-  <"income-budget"
+  <"income-budget", <"recur", <"series"
 ⟩
 supportedAccountMetadata ← ⟨<"role", <"kind", <"default-envelope"⟩
 supportedLayers ← ⟨<"actual", <"plan", <"budget"⟩

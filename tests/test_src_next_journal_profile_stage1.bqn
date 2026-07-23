@@ -123,4 +123,44 @@ unsupportedMetadata ← ∾ ⟨
 ⟩
 CheckFail ⟨unsupportedMetadata, "metadata_unsupported"⟩
 
+# recur and series are an explicit opaque allowlist: their values are preserved
+# only in generic transaction.metadata and receive no recurrence interpretation.
+opaqueMetadata ← ∾ ⟨
+  Prefix @,
+  "2026-08-15 * Opaque legacy metadata", lf,
+  "    ; recur: synthetic-cycle", lf,
+  "    ; series: synthetic-series", lf,
+  "    expenses:rent 10 JPY", lf,
+  "    assets:bank -10 JPY", lf
+⟩
+opaqueResult ← parser.Parse opaqueMetadata
+"ok" lib.AssertEq opaqueResult.state
+0 lib.AssertEq ≠opaqueResult.diagnostics
+opaqueTransaction ← ⊑opaqueResult.transactions
+⟨"recur","series"⟩ lib.AssertEq {𝕩.key}¨opaqueTransaction.metadata
+⟨"synthetic-cycle","synthetic-series"⟩ lib.AssertEq {𝕩.value}¨opaqueTransaction.metadata
+"actual" lib.AssertEq opaqueTransaction.layer_name
+"" lib.AssertEq opaqueTransaction.txn_id
+"" lib.AssertEq opaqueTransaction.plan_id
+
+recurDuplicate ← ∾ ⟨
+  Prefix @,
+  "2026-08-15 * Duplicate recur", lf,
+  "    ; recur: first", lf,
+  "    ; recur: second", lf,
+  "    expenses:rent 10 JPY", lf,
+  "    assets:bank -10 JPY", lf
+⟩
+CheckFail ⟨recurDuplicate, "metadata_duplicate"⟩
+
+seriesDuplicate ← ∾ ⟨
+  Prefix @,
+  "2026-08-15 * Duplicate series", lf,
+  "    ; series: first", lf,
+  "    ; series: second", lf,
+  "    expenses:rent 10 JPY", lf,
+  "    assets:bank -10 JPY", lf
+⟩
+CheckFail ⟨seriesDuplicate, "metadata_duplicate"⟩
+
 •Out "test_src_next_journal_profile_stage1.bqn: OK"
