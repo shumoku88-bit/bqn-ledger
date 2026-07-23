@@ -38,7 +38,7 @@ expected ← empty
 {𝕊⋄Fail ⟨"expected_posting_invalid", "expected candidate requires at least two balanced postings"⟩}⍟((2>≠expected) ∨ 0≠+´{𝕩.delta}¨expected) @
 
 raw ← loader.ReadRaw target
-parsed ← parser.Parse raw
+parsed ← parser.ParseWithProfile ⟨raw,"historical_external_plan"⟩
 {𝕊⋄Fail ⟨"native_journal_invalid", "full written native Journal failed parsing or global invariants"⟩}⍟(parsed.state≢"ok") @
 
 resolved ← ak.Resolve loader.ReadLines (base∾"/accounts.tsv")

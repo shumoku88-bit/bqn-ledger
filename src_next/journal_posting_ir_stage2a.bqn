@@ -1,8 +1,6 @@
 # journal_posting_ir_stage2a.bqn
-# Test-only success-path adapter from admitted Minimal Journal Stage 1
-# Transaction IR to the current normalized Posting IR row shape.
-#
-# This module performs no I/O and is not connected to production routing.
+# Adapter from admitted Minimal Journal Transaction IR to the current
+# normalized Posting IR row shape. This module performs no I/O.
 
 proj ← •Import "projection.bqn"
 
@@ -20,7 +18,7 @@ KindForTransaction ← {𝕊 transaction‿resolved:
   (transaction.layer_name ≡ "budget") ⊑ kind‿"budget"
 }
 
-Build ← {𝕊 transactions‿resolved‿cycleStart:
+BuildForSource ← {𝕊 transactions‿resolved‿cycleStart‿sourceFile:
   diagnostics ← ∾ {𝕊 transactionIndex:
     transaction ← transactionIndex ⊑ transactions
     postings ← transaction.postings
@@ -54,7 +52,7 @@ Build ← {𝕊 transactions‿resolved‿cycleStart:
       {𝕊 posting:
         accountIndex ← ⊑ resolved.accounts ⊐ ⟨posting.account_key⟩
         {
-          source_file⇐"profile.journal",
+          source_file⇐sourceFile,
           source_row⇐transactionIndex,
           source_id⇐transaction.source_event_id,
           tx_id⇐txId,
@@ -80,4 +78,8 @@ Build ← {𝕊 transactions‿resolved‿cycleStart:
   result
 }
 
-{Build⇐Build}
+Build ← {𝕊 transactions‿resolved‿cycleStart:
+  BuildForSource ⟨transactions,resolved,cycleStart,"profile.journal"⟩
+}
+
+{Build⇐Build, BuildForSource⇐BuildForSource}

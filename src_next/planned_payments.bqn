@@ -10,6 +10,7 @@ fmt ← •Import "format.bqn"
 labels ← •Import "report_labels.bqn"
 json ← •Import "json.bqn"
 plan_rows ← •Import "plan_rows.bqn"
+actual_source ← •Import "actual_source.bqn"
 L ← labels.Text
 
 # ── CleanName helper ──────────────────────────────────────
@@ -42,20 +43,19 @@ FormatLine ← {𝕊 line‿status:
 
 # Latest in-cycle actual journal date.
 LatestActualDateInCycle ← {𝕊 base‿cy:
-  lines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
+  dates ← actual_source.LoadDates base
   available_cycle ← (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (cy.day_count > 0)
   out ← cy.start
   {𝕊:
     start_dn ← proj.DaysFromEpoch cy.start
     end_dn ← proj.DaysFromEpoch cy.end_exclusive
-    dates ← {⊑ loader.SplitTsvKeepEmpty 𝕩}¨ lines
     DateInCycle ← {𝕊 d:
       dn ← proj.DaysFromEpoch d
       (dn ≥ start_dn) ∧ (dn < end_dn)
     }
     in_dates ← (DateInCycle¨ dates) / dates
     {𝕊: out ↩ ¯1 ⊑ (∧ in_dates)}⍟(0 < ≠ in_dates) @
-  }⍟(available_cycle ∧ (0 < ≠ lines)) @
+  }⍟(available_cycle ∧ (0 < ≠ dates)) @
   out
 }
 

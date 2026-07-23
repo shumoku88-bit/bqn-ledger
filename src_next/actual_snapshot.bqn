@@ -9,25 +9,24 @@
 # The resulting balance is ledger-cumulative through inclusive O. It is not
 # cycle-bounded movement: pre-cycle history remains opening balance evidence.
 
-loader ← •Import "loader.bqn"
+actual_source ← •Import "actual_source.bqn"
 proj ← •Import "projection.bqn"
 date ← •Import "date.bqn"
 cube ← •Import "cube.bqn"
 tbds ← •Import "tbds.bqn"
 
 LatestActualDateInCycle ← {𝕊 base‿cy:
-  lines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
+  dates0 ← actual_source.LoadDates base
   available ← (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (cy.day_count > 0)
   out ← cy.start
   {𝕊:
     start_dn ← proj.DaysFromEpoch cy.start
     end_dn ← proj.DaysFromEpoch cy.end_exclusive
-    dates0 ← {⊑ loader.SplitTsvKeepEmpty 𝕩}¨ lines
     dates ← (proj.IsValidDateText¨ dates0) / dates0
     DateInCycle ← {𝕊 d: dn ← proj.DaysFromEpoch d ⋄ (dn ≥ start_dn) ∧ (dn < end_dn) }
     in_dates ← (DateInCycle¨ dates) / dates
     {𝕊: out ↩ ¯1 ⊑ (∧ in_dates)}⍟(0 < ≠ in_dates) @
-  }⍟(available ∧ (0 < ≠ lines)) @
+  }⍟(available ∧ (0 < ≠ dates0)) @
   out
 }
 
@@ -50,7 +49,7 @@ EmptyErrorVm ← {𝕊 as_of‿reason‿diagnostics:
 }
 
 IsJournalActual ← {𝕊 row:
-  (row.source_file ≡ "journal.tsv") ∧ (row.layer_index = cube.layer_actual)
+  row.layer_index = cube.layer_actual
 }
 
 RejectedDiagnostics ← {𝕊 rows‿as_dn:
@@ -87,7 +86,7 @@ BuildAt ← {𝕊 ctx‿as_of:
     vm ↩ EmptyErrorVm ⟨as_of, "rejected_actual_evidence", diagnostics⟩
 
     {𝕊:
-      actual_rows ← (IsJournalActual¨ rows) / rows
+      actual_rows ← actual_source.Rows ctx
       local_end ← date.AddDays ⟨as_of, 1⟩
       local_cy ← {
         mode ⇐ "actual_snapshot_local",

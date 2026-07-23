@@ -7,7 +7,7 @@ Exit: revise if the production write-path ownership changes.
 
 ## Status
 
-- BQN editor production path is complete for the current daily commands.
+- BQN editor production path is complete for current daily commands in both explicit TSV compatibility mode and native Journal mode.
 - `tools/edit` is the stable public command surface and thin wrapper.
 - `tools/edit-bqn` is the active BQN write path.
 - `src_edit` is the BQN editor subsystem that validates edit intent and renders write operations.
@@ -41,6 +41,7 @@ Exit: revise if the production write-path ownership changes.
 ### `tools/edit-bqn`
 - Active BQN + shell editor entry point.
 - Applies append and replace operations through validated machine-readable protocols.
+- `journal add/list/reverse` and `plan finish` follow the BQN-resolved `ACTUAL_SOURCE`; Journal mode targets only `ACTUAL_JOURNAL_FILE` and never dual-writes or falls back to `journal.tsv`.
 - Must stay small and predictable; no ad-hoc business logic.
 
 ### `src_edit`
@@ -57,7 +58,7 @@ Exit: revise if the production write-path ownership changes.
 
 ### Append-only
 - `account add`
-- `journal add`
+- `journal add`（Journal modeではnative transaction block）
 - `travel friend add` (dedicated pending source event; no journal projection)
 - `travel exchange add` (dedicated two-amount source event; no journal projection or rate)
 - `budget add`
@@ -69,7 +70,7 @@ Exit: revise if the production write-path ownership changes.
 - `plan related`
 
 ### Derived append
-- `plan finish`
+- `plan finish`（Journal modeでは`plan-id`付きnative actual transaction）
 - `plan budget-sync`（完了済み `plan_id` に対する確認付き・冪等な execution-envelope companion）
 - `journal income-budget-sync`（明示intentと`txn_id`を持つ通常収入に対する確認付き・冪等なunassigned companion）
 - `journal reverse`

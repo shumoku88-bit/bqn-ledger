@@ -52,6 +52,22 @@ Path ← {
   } 𝕩
 }
 
+LoadActualSource ← {𝕊 base:
+  localParsed ← ParseLine¨loader.ReadLines (Path base)
+  repoParsed ← ParseLine¨loader.ReadLines "config/default_config.tsv"
+  Resolve ← {𝕊 key:
+    localMatches ← ({(0⊑𝕩)≡key}¨localParsed)/localParsed
+    repoMatches ← ({(0⊑𝕩)≡key}¨repoParsed)/repoParsed
+    {𝕊: •Out "CONFIG ERROR: duplicate value for "∾key ⋄ •Exit 1}⍟(1<≠localMatches) @
+    {𝕊: •Out "CONFIG ERROR: repository default missing or duplicate for "∾key ⋄ •Exit 1}⍟(1≠≠repoMatches) @
+    value ← 1⊑⊑repoMatches
+    {𝕊: value↩1⊑⊑localMatches}⍟(1=≠localMatches) @
+    {𝕊: •Out "CONFIG ERROR: empty value for "∾key ⋄ •Exit 1}⍟(0=≠value) @
+    value
+  }
+  {mode⇐Resolve "ACTUAL_SOURCE",file⇐Resolve "ACTUAL_JOURNAL_FILE"}
+}
+
 LoadConfig ← {
   file_path ← Path 𝕩
   raw ← loader.ReadLines file_path
@@ -185,6 +201,8 @@ LoadConfig ← {
     v
   }
 
+  ActualSource ← { 𝕊 ⋄ EffectiveDefaultable "ACTUAL_SOURCE" }
+  ActualJournalFile ← { 𝕊 ⋄ EffectiveDefaultable "ACTUAL_JOURNAL_FILE" }
   ExecutionPlannedPaymentsEnvelope ← { 𝕊 ⋄ Get "EXECUTION_PLANNED_PAYMENTS_ENVELOPE" }
 
   Warnings ← { 𝕊 ⋄
@@ -215,9 +233,11 @@ LoadConfig ← {
     PolicyBudgetStyle ⇐ PolicyBudgetStyle,
     PolicyRiskStyle ⇐ PolicyRiskStyle,
     PolicyIncomeCadence ⇐ PolicyIncomeCadence,
+    ActualSource ⇐ ActualSource,
+    ActualJournalFile ⇐ ActualJournalFile,
     ExecutionPlannedPaymentsEnvelope ⇐ ExecutionPlannedPaymentsEnvelope,
     warnings ⇐ Warnings @
   }
 }
 
-{ LoadConfig ⇐ LoadConfig, LoadSystemDefaults ⇐ LoadSystemDefaults }
+{ LoadConfig ⇐ LoadConfig, LoadActualSource⇐LoadActualSource, LoadSystemDefaults ⇐ LoadSystemDefaults }

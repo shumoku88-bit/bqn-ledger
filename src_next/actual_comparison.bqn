@@ -9,6 +9,7 @@
 #   checked posting source identity for counts, anchors, and rejected rows
 
 loader ← •Import "loader.bqn"
+actual_source ← •Import "actual_source.bqn"
 proj ← •Import "projection.bqn"
 dt ← •Import "date.bqn"
 cube ← •Import "cube.bqn"
@@ -50,6 +51,7 @@ LedgerRowValid ← {𝕊 resolved‿row:
 # ledger-wide posting set instead.
 SemanticActualRows ← {𝕊 ctx:
   resolved ← ctx.resolved
+  actualFile ← actual_source.File ctx
   IsSemantic ← {𝕊 row:
     valid ← LedgerRowValid ⟨resolved, row⟩
     semantic ← 0
@@ -59,7 +61,7 @@ SemanticActualRows ← {𝕊 ctx:
       expense ← (role ≡ "expense") ∧ (row.side ≡ "debit") ∧ (row.delta > 0)
       semantic ↩ income ∨ expense
     }⍟valid @
-    (row.source_file ≡ "journal.tsv") ∧ (row.layer_index = cube.layer_actual) ∧ semantic
+    (row.source_file ≡ actualFile) ∧ (row.layer_index = cube.layer_actual) ∧ semantic
   }
   (IsSemantic¨ctx.posting_rows) / ctx.posting_rows
 }
@@ -85,6 +87,7 @@ ResolvePreviousAnchor ← {𝕊 ctx‿currentStart:
   rows ← ctx.posting_rows
   resolved ← ctx.resolved
   incomeAccount ← IncomeAnchorAccount ctx.base
+  actualFile ← actual_source.File ctx
 
   ValidIncomeCredit ← {𝕊 row:
     valid ← LedgerRowValid ⟨resolved, row⟩
@@ -95,11 +98,11 @@ ResolvePreviousAnchor ← {𝕊 ctx‿currentStart:
     matches
   }
 
-  journalRows ← (({𝕩.source_file ≡ "journal.tsv"}¨rows) ∧ (ValidIncomeCredit¨rows)) / rows
+  journalRows ← (({𝕩.source_file ≡ actualFile}¨rows) ∧ (ValidIncomeCredit¨rows)) / rows
   journalDates0 ← {𝕩.date}¨journalRows
   journalUnique ← ((journalDates0 ⊐ journalDates0) = ↕≠journalDates0) / journalDates0
 
-  validJournalRows ← (({(𝕩.source_file ≡ "journal.tsv") ∧ LedgerRowValid ⟨resolved,𝕩⟩}¨rows)) / rows
+  validJournalRows ← (({(𝕩.source_file ≡ actualFile) ∧ LedgerRowValid ⟨resolved,𝕩⟩}¨rows)) / rows
   journalAllDates ← {𝕩.date}¨validJournalRows
   journalMaxDn ← ¯1000000000
   {𝕊: journalMaxDn ↩ ⌈´ proj.DaysFromEpoch¨journalAllDates}⍟(0<≠journalAllDates) @
@@ -169,7 +172,8 @@ AmountFor ← {𝕊 key‿periodTbds:
 }
 
 RejectedDiagnostics ← {𝕊 ctx‿currentStartDn‿currentEndDn‿baselineAvailable‿baselineStartDn‿baselineEndDn:
-  rejected ← ({(𝕩.source_file≡"journal.tsv") ∧ (𝕩.status≢"ok")}¨ctx.posting_rows) / ctx.posting_rows
+  actualFile ← actual_source.File ctx
+  rejected ← ({(𝕩.source_file≡actualFile) ∧ (𝕩.status≢"ok")}¨ctx.posting_rows) / ctx.posting_rows
   Applies ← {𝕊 row:
     validDate ← proj.IsValidDateText row.date
     applies ← ¬validDate

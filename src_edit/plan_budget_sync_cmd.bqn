@@ -7,6 +7,7 @@ config ← •Import "../src_next/config.bqn"
 planid ← •Import "plan_id.bqn"
 render ← •Import "render.bqn"
 validate ← •Import "validate.bqn"
+actual_source ← •Import "../src_next/actual_source.bqn"
 
 args ← •args ⋄ tab ← @+9
 Fail ← {𝕊 msg: •Out "ERROR" ∾ tab ∾ msg ⋄ •Exit 1}
@@ -20,12 +21,12 @@ Path ← {base ∾ "/" ∾ 𝕩}
 IsData ← {(0<≠𝕩) ∧ ((⊑𝕩)≠'#') ∧ ((⊑𝕩)≠⊑"\\")}
 Data ← {(IsData¨𝕩)/𝕩}
 plans ← Data loader.ReadLinesOptional (Path sys.DefaultPlanFile @)
-journals ← Data loader.ReadLinesOptional (Path sys.DefaultJournalFile @)
+completionEvidence ← actual_source.CompletionEvidence base
 budgets ← Data loader.ReadLinesOptional (Path sys.DefaultBudgetAllocFile @)
 accounts ← Data loader.ReadLinesOptional (Path sys.DefaultAccountsFile @)
 
 planMatches ← pid⊸≡¨ planid.ExtractPlanId¨ plans
-journalMatches ← pid⊸≡¨ planid.ExtractPlanId¨ journals
+journalMatches ← pid⊸≡¨ {𝕩.plan_id}¨completionEvidence
 budgetMatches ← pid⊸≡¨ planid.ExtractPlanId¨ budgets
 {𝕊: Fail "plan_id must identify exactly one plan row"}⍟(1≠+´planMatches) @
 {𝕊: Fail "plan_id must identify exactly one completed journal row"}⍟(1≠+´journalMatches) @
@@ -33,9 +34,10 @@ budgetMatches ← pid⊸≡¨ planid.ExtractPlanId¨ budgets
 {𝕊: Fail "duplicate budget linkage for plan_id"}⍟(1<+´budgetMatches) @
 
 pf ← loader.SplitTsvKeepEmpty ⊑planMatches/plans
-jf ← loader.SplitTsvKeepEmpty ⊑journalMatches/journals
+actual ← ⊑journalMatches/completionEvidence
+jf ← ⟨actual.date,"",actual.from_account,actual.to_account,•Fmt actual.amount,"currency="∾actual.currency⟩
 {𝕊: Fail "plan row has fewer than 5 columns"}⍟(5>≠pf) @
-{𝕊: Fail "journal row has fewer than 5 columns"}⍟(5>≠jf) @
+{𝕊: Fail "completed actual must resolve to one debit and one credit account"}⍟((0=≠actual.from_account)∨0=≠actual.to_account) @
 {𝕊: Fail "completed journal accounts do not match plan"}⍟(((2⊑pf)≢2⊑jf)∨((3⊑pf)≢3⊑jf)) @
 
 expense ← 3⊑pf

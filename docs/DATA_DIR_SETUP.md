@@ -22,8 +22,9 @@ A usable report base directory contains at least:
 
 ```text
 accounts.tsv
-journal.tsv
 cycle.tsv
+config.tsv
+<the single actual source selected by config.tsv>
 ```
 
 Daily operation normally also expects:
@@ -31,8 +32,16 @@ Daily operation normally also expects:
 ```text
 plan.tsv
 budget_alloc.tsv
-config.tsv
 ```
+
+Actual source selection is explicit:
+
+```text
+ACTUAL_SOURCE=journal
+ACTUAL_JOURNAL_FILE=actual.journal
+```
+
+`ACTUAL_SOURCE=tsv` is the compatibility route. Journal mode never reads or writes `journal.tsv` and has no silent fallback.
 
 For a new ledger, `config.tsv` must explicitly choose the budget policy instead of relying on the repository compatibility fallback:
 

@@ -4,6 +4,7 @@
 loader ← •Import "loader.bqn"
 proj ← •Import "projection.bqn"
 plan_status ← •Import "plan_status.bqn"
+actual_source ← •Import "actual_source.bqn"
 
 Pad5 ← { 𝕩 ∾ ((5 - (5⌊≠𝕩)) ⥊ ⟨""⟩) }
 ToNum ← { (0 < ≠ 𝕩) ? (•BQN 𝕩) ; 0 }
@@ -32,17 +33,22 @@ BuildBase ← {𝕊 base‿cy:
   rows ← plan_mask / plan_lines
   GetDate ← { ⊑ Pad5 loader.SplitTsvKeepEmpty 𝕩 }
   rows ↩ (⍋ GetDate¨ rows) ⊏ rows
-  journal_lines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
-  journal_mask ← { InCycle ⟨cy, 𝕩⟩ }¨ journal_lines
-  journal_rows ← journal_mask / journal_lines
-  journal_plan_ids ← PlanId¨ journal_rows
+  completion_evidence0 ← actual_source.CompletionEvidence base
+  InCycleEvidence ← {𝕊 ev:
+    ok ← proj.IsValidDateText ev.date
+    inside ← 0
+    {𝕊: day←proj.ResolveDayFromCycle ⟨ev.date,cy.start⟩ ⋄ inside↩(day≥0)∧day<cy.day_count}⍟ok @
+    inside
+  }
+  completion_evidence ← (InCycleEvidence¨completion_evidence0)/completion_evidence0
+  journal_plan_ids ← {𝕩.plan_id}¨completion_evidence
   plan_ids ← PlanId¨ rows
-  completed_mask ← { ∨´ 𝕩⊸≡¨ journal_plan_ids }¨ plan_ids
+  completed_mask ← { (0<≠𝕩) ∧ ∨´ 𝕩⊸≡¨ journal_plan_ids }¨ plan_ids
   {
     rows ⇐ rows,
     plan_ids ⇐ plan_ids,
     completed_mask ⇐ completed_mask,
-    journal_rows ⇐ journal_rows,
+    completion_evidence ⇐ completion_evidence,
     journal_plan_ids ⇐ journal_plan_ids
   }
 }
@@ -55,10 +61,9 @@ ParseRow ← {
 
 WithValues ← {𝕊 base_view:
   parsed ← ParseRow¨ base_view.rows
-  journal_parsed ← ParseRow¨ base_view.journal_rows
   ActualAmountFor ← {𝕊 pid:
     matches ← pid⊸≡¨ base_view.journal_plan_ids
-    +´ matches / {4⊑𝕩}¨ journal_parsed
+    +´ matches / {𝕩.amount}¨ base_view.completion_evidence
   }
   actuals ← ActualAmountFor¨ base_view.plan_ids
 

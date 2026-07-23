@@ -14,6 +14,7 @@
 loader ← •Import "loader.bqn"
 proj  ← •Import "projection.bqn"
 dt    ← •Import "date.bqn"
+actual_source ← •Import "actual_source.bqn"
 
 # ── Day count between two YYYY-MM-DD dates ───────────────────
 # Uses proj.DaysFromEpoch (pure BQN, no external date command).
@@ -27,9 +28,7 @@ ReadCycle ← {𝕊 arg:
   base ← is_string ⊑ ⟨ 0 ⊑ arg, arg ⟩
   
   DefaultAsOf ← {𝕊:
-    jlines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
-    SplitJ ← { (@+9) loader.Split 𝕩 }
-    jdates ← { ⊑ SplitJ 𝕩 } ¨ jlines
+    jdates ← actual_source.LoadDates base
     valid_dates ← (proj.IsValidDateText¨ jdates) / jdates
     (0 < ≠ valid_dates) ◶ ⟨ { 𝕩 ⋄ dt.Today @ }, { 𝕩 ⋄ ¯1 ⊑ (∧ valid_dates) } ⟩ @
   }
@@ -60,15 +59,9 @@ ReadCycle ← {𝕊 arg:
   ResolveIncomeAnchor ← { 𝕩 ⋄
     income_account ← Lookup "income_account"
 
-    # Read journal.tsv: extract dates and from-accounts
-    jlines ← loader.ReadLines (base ∾ "/journal.tsv")
-    SplitJ ← { (@+9) loader.Split 𝕩 }
-    jdates ← { ⊑ SplitJ 𝕩 } ¨ jlines
-    jfroms ← { 2 ⊑ SplitJ 𝕩 } ¨ jlines
-
-    # Income rows: from account == income_account
-    is_inc ← { 𝕩 ≡ income_account } ¨ jfroms
-    inc_dates ← is_inc / jdates
+    # Read the explicitly selected actual source; no TSV/Journal fallback.
+    jdates ← actual_source.LoadDates base
+    inc_dates ← actual_source.IncomeDates ⟨base,income_account⟩
 
     # Max journal date (all rows, for plan future-filter)
     jmax ← ¯1 ⊑ (∧ jdates)

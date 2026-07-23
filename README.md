@@ -130,7 +130,8 @@ BQN Ledger は、次のための個人用 accounting workbench です。
 | ファイル | 役割 |
 |---|---|
 | `<base>/accounts.tsv` | 勘定科目とメタデータ |
-| `<base>/journal.tsv` | 実績取引。Actual layer の正本 |
+| `<base>/<ACTUAL_JOURNAL_FILE>` | `ACTUAL_SOURCE=journal` の実績取引正本（native Journal） |
+| `<base>/journal.tsv` | `ACTUAL_SOURCE=tsv` compatibility mode の実績取引 |
 | `<base>/plan.tsv` | 将来予定。Plan layer の正本 |
 | `<base>/budget_alloc.tsv` | 封筒予算の配賦 |
 | `<base>/cycle.tsv` | 生活サイクル境界 |

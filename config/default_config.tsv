@@ -1,6 +1,11 @@
 # default_config.tsv - Default global configuration fallback
 # Format: key=value
 
+# --- Actual source selection ---
+# Selection is explicit. Runtime never falls back between TSV and native Journal.
+ACTUAL_SOURCE=tsv
+ACTUAL_JOURNAL_FILE=actual.journal
+
 # --- Household envelope group policy labels ---
 HOUSEHOLD_GROUP_LIFE=daily,flex
 HOUSEHOLD_GROUP_RESERVE=reserve

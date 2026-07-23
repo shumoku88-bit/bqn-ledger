@@ -6,6 +6,7 @@
 # cycle.end_exclusive. The rendered range makes that observation boundary explicit.
 
 proj ← •Import "projection.bqn"
+actual_source ← •Import "actual_source.bqn"
 cube ← •Import "cube.bqn"
 fmt ← •Import "format.bqn"
 labels ← •Import "report_labels.bqn"
@@ -26,7 +27,7 @@ GetRole ← {
 }
 
 BuildRows ← {𝕊 ctx‿rangeStart:
-  rows0 ← (({𝕩.source_file}¨ ctx.posting_rows) ≡¨ <"journal.tsv") / ctx.posting_rows
+  rows0 ← (({𝕩.source_file}¨ ctx.posting_rows) ≡¨ <actual_source.File ctx) / ctx.posting_rows
   {𝕊 r:
     day ← 0
     dateOk ← proj.IsValidDateText r.date

@@ -3,6 +3,7 @@
 
 fmt ← •Import "format.bqn"
 labels ← •Import "report_labels.bqn"
+actual_source ← •Import "actual_source.bqn"
 L ← labels.Text
 
 # Declare field names at the top-level scope for dot-notation access to projection namespaces
@@ -22,41 +23,35 @@ amount      ← 0
 # from the context posting rows.
 # Returns: array of namespaces with ⟨date, memo, from, to, amount⟩
 BuildRecentRows ← {𝕊 ctx‿n:
-  # Filter only actual journal rows
-  jrows ← ({ "journal.tsv" ≡ 𝕩.source_file }¨ ctx.posting_rows) / ctx.posting_rows
-  
-  (0 = ≠ jrows) ◶ ⟨
-    { 𝕊 ⋄
-      # Get unique source_row indices, sorted ascending
-      row_ids ← {𝕩.source_row}¨ jrows
-      uniq_rows ← ∧ ((row_ids ⊐ row_ids) = ↕ ≠ row_ids) / row_ids
-      
-      # Get last N rows
-      start ← 0 ⌈ (≠ uniq_rows) - n
-      recent_row_ids ← start ↓ uniq_rows
-      
-      # Map each row_id back to ⟨date, memo, from, to, amount⟩
-      ExtractEntry ← {𝕊 rid:
-        # Find debit and credit posting rows for this row_id
-        matches ← ({rid ≡ 𝕩.source_row}¨ jrows) / jrows
-        
-        debit_row  ← ⊑ ({"debit" ≡ 𝕩.side}¨ matches) / matches
-        credit_row ← ⊑ ({"credit" ≡ 𝕩.side}¨ matches) / matches
-        
-        {
-          date ⇐ debit_row.date
-          memo ⇐ debit_row.source_id
-          from ⇐ credit_row.account_key
-          to ⇐ debit_row.account_key
-          amount ⇐ debit_row.delta
-        }
-      }
-      
-      # Return entries, newest first (reverse order)
-      ⌽ ExtractEntry¨ recent_row_ids
-    },
-    { 𝕊 ⋄ ⟨⟩ }
-  ⟩ @
+  recent ← ⟨⟩
+  {𝕊:
+    Join ← {𝕊 xs: out←"" ⋄ {out∾↩𝕩∾","}¨xs ⋄ (0<≠out) ? ¯1↓out ; ""}
+    txs ← actual_source.Transactions ctx
+    start ← 0⌈(≠txs)-n
+    selected ← start↓txs
+    Make ← {𝕊 tx:
+      debits ← ({𝕩.delta>0}¨tx.postings)/tx.postings
+      credits ← ({𝕩.delta<0}¨tx.postings)/tx.postings
+      {date⇐tx.date,memo⇐tx.description,from⇐Join {𝕩.account_key}¨credits,to⇐Join {𝕩.account_key}¨debits,amount⇐+´0∾{𝕩.delta}¨debits}
+    }
+    recent ↩ ⌽Make¨selected
+  }⍟((actual_source.Mode ctx)≡"journal") @
+
+  {𝕊:
+    actualFile ← actual_source.File ctx
+    jrows ← ({actualFile≡𝕩.source_file}¨ctx.posting_rows)/ctx.posting_rows
+    row_ids ← {𝕩.source_row}¨jrows
+    uniq_rows ← ∧((row_ids⊐row_ids)=↕≠row_ids)/row_ids
+    start ← 0⌈(≠uniq_rows)-n
+    ExtractEntry ← {𝕊 rid:
+      matches ← ({rid≡𝕩.source_row}¨jrows)/jrows
+      debit_row ← ⊑({"debit"≡𝕩.side}¨matches)/matches
+      credit_row ← ⊑({"credit"≡𝕩.side}¨matches)/matches
+      {date⇐debit_row.date,memo⇐debit_row.source_id,from⇐credit_row.account_key,to⇐debit_row.account_key,amount⇐debit_row.delta}
+    }
+    recent ↩ ⌽ExtractEntry¨start↓uniq_rows
+  }⍟((actual_source.Mode ctx)≡"tsv") @
+  recent
 }
 
 # Format: show last N journal entries from context.

@@ -15,6 +15,7 @@ plan_id ← •Import "plan_id.bqn"
 config ← •Import "../src_next/config.bqn"
 setup ← •Import "../src_next/currency_setup.bqn"
 ak ← •Import "../src_next/account_key.bqn"
+actual_source ← •Import "../src_next/actual_source.bqn"
 
 sys ← config.LoadSystemDefaults @
 args ← •args
@@ -64,8 +65,9 @@ check ← validate.ValidateCurrencyJournalAdd {
 {𝕊 ⋄ Fail (1 ⊑ check)}⍟(¬ 0 ⊑ check) @
 
 planPath ← ResolvePath (sys.DefaultPlanFile @)
-journalPath ← ResolvePath (sys.DefaultJournalFile @)
-existingIDs ← plan_id.LoadExistingPlanIDs { plan_path ⇐ planPath ⋄ journal_path ⇐ journalPath }
+planIDs ← plan_id.ExtractPlanId¨loader.ReadLinesOptional planPath
+completionIDs ← {𝕩.plan_id}¨actual_source.CompletionEvidence baseDir
+existingIDs ← (0<≠¨planIDs∾completionIDs)/(planIDs∾completionIDs)
 
 finalPlanID ← ""
 (0 = ≠ planIdArg) ◶ ⟨

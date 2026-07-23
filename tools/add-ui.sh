@@ -30,9 +30,9 @@ Fuzzy transaction adder for everyday entries.
 
 Modes:
   account-add   アカウント追加 (writes accounts.tsv)
-  expense       assets -> expenses  (writes journal.tsv)
-  move          assets -> assets    (writes journal.tsv)
-  income        income -> assets    (writes journal.tsv)
+  expense       assets -> expenses  (writes selected actual source)
+  move          assets -> assets    (writes selected actual source)
+  income        income -> assets    (writes selected actual source)
   budget        budget -> budget    (writes budget_alloc.tsv)
   plan-add      assets -> expenses  (writes plan.tsv)
   plan-edit     date/amount         (edits plan.tsv)
@@ -136,7 +136,7 @@ run_preflight() {
   printf 'add-ui preflight\n'
   printf 'base: %s\n' "$base_dir"
 
-  for f in accounts.tsv journal.tsv cycle.tsv; do
+  for f in accounts.tsv cycle.tsv; do
     if [[ -f "$base_dir/$f" ]]; then
       ok "$f"
     else

@@ -34,7 +34,7 @@ ACCOUNTS_FILE="$(get_system_default_file DEFAULT_ACCOUNTS_FILE accounts.tsv)"
 usage() {
   cat <<'USAGE' >&2
 Usage:
-  tools/edit-bqn [--base DIR] journal-block add --journal-file FILE --date YYYY-MM-DD --description DESCRIPTION --event-id EVENT_ID --posting ACCOUNT=SIGNED_INTEGER --posting ACCOUNT=SIGNED_INTEGER [--posting ACCOUNT=SIGNED_INTEGER ...] [--dry-run] [--yes] [--post-check none|lint|full]
+  tools/edit-bqn [--base DIR] journal-block add --journal-file FILE --date YYYY-MM-DD --description DESCRIPTION --event-id EVENT_ID --posting ACCOUNT=SIGNED_INTEGER --posting ACCOUNT=SIGNED_INTEGER [--posting ACCOUNT=SIGNED_INTEGER ...] [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] journal add --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount DECIMAL [--currency CODE] [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] journal income-budget-sync --id TXN_ID [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] budget add  --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount DECIMAL [--currency CODE] [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
@@ -97,7 +97,7 @@ fi
 if [[ "$1" == "journal-block" && "$2" == "add" ]]; then
   shift 2
   JOURNAL_REL=""; JOURNAL_REL_SET=0; DATE=""; DESCRIPTION=""; EVENT_ID=""; EVENT_ID_SET=0
-  POSTINGS=(); DRY_RUN=0; YES=0; POST_CHECK="lint"
+  POSTINGS=(); BLOCK_META=(); DRY_RUN=0; YES=0; POST_CHECK="lint"
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --journal-file) JOURNAL_REL="$(get_opt_val_allow_empty "$1" "${2-}")"; JOURNAL_REL_SET=1; shift 2 ;;
@@ -105,6 +105,7 @@ if [[ "$1" == "journal-block" && "$2" == "add" ]]; then
       --description) DESCRIPTION="$(get_opt_val_allow_empty "$1" "${2-}")"; shift 2 ;;
       --event-id) EVENT_ID="$(get_opt_val_allow_empty "$1" "${2-}")"; EVENT_ID_SET=1; shift 2 ;;
       --posting) POSTINGS+=("$(get_opt_val_allow_empty "$1" "${2-}")"); shift 2 ;;
+      --meta) BLOCK_META+=("$(get_opt_val_allow_empty "$1" "${2-}")"); shift 2 ;;
       --dry-run) DRY_RUN=1; shift ;;
       --yes) YES=1; shift ;;
       --post-check) POST_CHECK="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
@@ -140,7 +141,7 @@ if [[ "$1" == "journal-block" && "$2" == "add" ]]; then
   BQN_STDERR="$(mktemp)"
   trap 'rm -f "$BQN_STDERR"' EXIT
   BQN_OUT=""
-  if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/journal_block_add_cmd.bqn "$CANONICAL_BASE" "$TARGET_PATH" "$DATE" "$DESCRIPTION" "$EVENT_ID" "${POSTINGS[@]}" 2>"$BQN_STDERR")"; then
+  if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/journal_block_add_cmd.bqn "$CANONICAL_BASE" "$TARGET_PATH" "$DATE" "$DESCRIPTION" "$EVENT_ID" "${#POSTINGS[@]}" "${POSTINGS[@]}" "${BLOCK_META[@]}" 2>"$BQN_STDERR")"; then
     [[ -n "$BQN_OUT" ]] && printf '%s\n' "$BQN_OUT" >&2
     [[ -s "$BQN_STDERR" ]] && cat "$BQN_STDERR" >&2
     exit 1
@@ -317,6 +318,8 @@ if [[ "$1" == "journal" && "$2" == "income-budget-sync" ]]; then
   done
   [[ -n "$TXN_ID" ]] || { echo "ERROR: missing required option: --id" >&2; exit 2; }
   edit_bqn_validate_post_check "$POST_CHECK"
+  ACTUAL_ROUTE="$(cd "$ROOT_DIR" && bqn src_edit/actual_source_route_cmd.bqn "$BASE_DIR")"
+  [[ "${ACTUAL_ROUTE%%$'\t'*}" == "tsv" ]] || { echo "ERROR: native Journal income budget sync is not yet supported; no files changed" >&2; exit 1; }
   TARGET_PATH="$BASE_DIR/$BUDGET_ALLOC_FILE"
   SNAPSHOT_TOKEN="$(safe_snapshot_token "$TARGET_PATH")"
   IFS=$'\t' read -r SNAP_SIZE SNAP_MTIME SNAP_SHA256 <<< "$SNAPSHOT_TOKEN"
@@ -362,6 +365,26 @@ if [[ "$1" == "journal" && "$2" == "reverse" ]]; then
     exit 2
   fi
   edit_bqn_validate_post_check "$POST_CHECK"
+
+  ACTUAL_ROUTE="$(cd "$ROOT_DIR" && bqn src_edit/actual_source_route_cmd.bqn "$BASE_DIR")"
+  IFS=$'\t' read -r ACTUAL_MODE ACTUAL_FILE ACTUAL_EXTRA <<< "$ACTUAL_ROUTE"
+  [[ -z "${ACTUAL_EXTRA:-}" ]] || { echo "ERROR: invalid actual-source route" >&2; exit 1; }
+  if [[ "$ACTUAL_MODE" == "journal" ]]; then
+    REVERSE_OUT="$(cd "$ROOT_DIR" && bqn src_edit/journal_native_reverse_cmd.bqn "$BASE_DIR" "$ID" "$INDEX" "$DATE")"
+    REVERSE_HEADER="${REVERSE_OUT%%$'\n'*}"
+    IFS=$'\t' read -r R_STATUS R_OP R_INDEX R_ORIG_DATE R_DESCRIPTION R_ORIG_EVENT R_COUNT R_DATE R_EXTRA <<< "$REVERSE_HEADER"
+    [[ "$R_STATUS" == "OK" && "$R_OP" == "REVERSE_NATIVE" && -z "${R_EXTRA:-}" && "$R_COUNT" =~ ^[0-9]+$ ]] || { echo "ERROR: invalid native reverse protocol" >&2; exit 1; }
+    REVERSE_POSTINGS=()
+    while IFS= read -r line; do [[ -n "$line" ]] && REVERSE_POSTINGS+=("$line"); done <<< "${REVERSE_OUT#*$'\n'}"
+    [[ "${#REVERSE_POSTINGS[@]}" -eq "$R_COUNT" ]] || { echo "ERROR: native reverse posting count mismatch" >&2; exit 1; }
+    event_seed="reverse"$'\t'"$R_ORIG_EVENT"$'\t'"$R_DATE"$'\t'"$(date +%Y%m%d%H%M%S)"$'\t'"$$"$'\t'"$RANDOM"
+    R_EVENT="reverse-$(printf '%s' "$event_seed" | shasum -a 256 | awk '{print substr($1,1,24)}')"
+    native_args=(--base "$BASE_DIR" journal-block add --journal-file "$ACTUAL_FILE" --date "$R_DATE" --description "[reverse]$R_DESCRIPTION" --event-id "$R_EVENT" --post-check "$POST_CHECK")
+    for posting in "${REVERSE_POSTINGS[@]}"; do native_args+=(--posting "$posting"); done
+    [[ "$DRY_RUN" -eq 1 ]] && native_args+=(--dry-run)
+    [[ "$YES" -eq 1 ]] && native_args+=(--yes)
+    exec "$0" "${native_args[@]}"
+  fi
 
   TARGET_PATH="$BASE_DIR/$JOURNAL_FILE"
   SNAPSHOT_TOKEN="$(safe_snapshot_token "$TARGET_PATH")"
@@ -585,10 +608,6 @@ if [[ "$1" == "plan" && "$2" == "finish" ]]; then
     exit 2
   fi
 
-  TARGET_PATH="$BASE_DIR/$JOURNAL_FILE"
-  SNAPSHOT_TOKEN="$(safe_snapshot_token "$TARGET_PATH")"
-  IFS=$'\t' read -r SNAP_SIZE SNAP_MTIME SNAP_SHA256 <<< "$SNAPSHOT_TOKEN"
-
   BQN_STDERR="$(mktemp)"
   trap 'rm -f "$BQN_STDERR"' EXIT
   BQN_OUT=""
@@ -602,16 +621,31 @@ if [[ "$1" == "plan" && "$2" == "finish" ]]; then
     exit 1
   fi
 
-  if ! edit_bqn_split_protocol_output "$BQN_OUT"; then
-    exit 1
-  fi
+  if ! edit_bqn_split_protocol_output "$BQN_OUT"; then exit 1; fi
   FIRST_LINE="$EDIT_BQN_PROTOCOL_FIRST_LINE"
   PAYLOAD="$EDIT_BQN_PROTOCOL_PAYLOAD"
 
-  if ! edit_bqn_require_append_protocol "$FIRST_LINE" "$JOURNAL_FILE"; then
-    exit 1
+  if [[ "$FIRST_LINE" == $'OK\tAPPEND_NATIVE\t'* ]]; then
+    IFS=$'\t' read -r N_STATUS N_OP N_FILE N_EVENT N_DATE N_DESCRIPTION N_POST_COUNT N_META_COUNT N_EXTRA <<< "$FIRST_LINE"
+    [[ -z "${N_EXTRA:-}" && "$N_POST_COUNT" =~ ^[0-9]+$ && "$N_META_COUNT" =~ ^[0-9]+$ ]] || { echo "ERROR: invalid native plan-finish protocol" >&2; exit 1; }
+    N_POSTINGS=(); N_META=()
+    while IFS=$'\t' read -r kind value extra; do
+      [[ -z "${extra:-}" ]] || { echo "ERROR: malformed native plan-finish payload" >&2; exit 1; }
+      case "$kind" in P) N_POSTINGS+=("$value") ;; M) N_META+=("$value") ;; *) echo "ERROR: unknown native plan-finish payload" >&2; exit 1 ;; esac
+    done <<< "$PAYLOAD"
+    [[ "${#N_POSTINGS[@]}" -eq "$N_POST_COUNT" && "${#N_META[@]}" -eq "$N_META_COUNT" ]] || { echo "ERROR: native plan-finish payload count mismatch" >&2; exit 1; }
+    native_args=(--base "$BASE_DIR" journal-block add --journal-file "$N_FILE" --date "$N_DATE" --description "$N_DESCRIPTION" --event-id "$N_EVENT" --post-check "$POST_CHECK")
+    for posting in "${N_POSTINGS[@]}"; do native_args+=(--posting "$posting"); done
+    for item in "${N_META[@]}"; do native_args+=(--meta "$item"); done
+    [[ "$DRY_RUN" -eq 1 ]] && native_args+=(--dry-run)
+    [[ "$YES" -eq 1 ]] && native_args+=(--yes)
+    exec "$0" "${native_args[@]}"
   fi
 
+  if ! edit_bqn_require_append_protocol "$FIRST_LINE" "$JOURNAL_FILE"; then exit 1; fi
+  TARGET_PATH="$BASE_DIR/$JOURNAL_FILE"
+  SNAPSHOT_TOKEN="$(safe_snapshot_token "$TARGET_PATH")"
+  IFS=$'\t' read -r SNAP_SIZE SNAP_MTIME SNAP_SHA256 <<< "$SNAPSHOT_TOKEN"
   MODE="$(edit_bqn_mode "$DRY_RUN" "$YES")"
 
   if [[ "$DRY_RUN" -eq 1 ]]; then
@@ -769,6 +803,27 @@ if [[ "$COMMAND" != "journal" && "$COMMAND" != "budget" && "$COMMAND" != "plan" 
   exit 2
 fi
 edit_bqn_validate_post_check "$POST_CHECK"
+
+# The stable `journal add` surface follows the explicit BQN-owned source route.
+# Journal mode delegates to the native block writer only; it never also writes TSV.
+if [[ "$COMMAND" == "journal" ]]; then
+  ACTUAL_ROUTE="$(cd "$ROOT_DIR" && bqn src_edit/actual_source_route_cmd.bqn "$BASE_DIR")"
+  IFS=$'\t' read -r ACTUAL_MODE ACTUAL_FILE ACTUAL_EXTRA <<< "$ACTUAL_ROUTE"
+  [[ -z "${ACTUAL_EXTRA:-}" ]] || { echo "ERROR: invalid actual-source route" >&2; exit 1; }
+  if [[ "$ACTUAL_MODE" == "journal" ]]; then
+    [[ -z "$CURRENCY" || "$CURRENCY" == "JPY" ]] || { echo "ERROR: native Journal daily add currently supports JPY only" >&2; exit 1; }
+    for item in "${META[@]}"; do
+      [[ "$item" != "income_budget=unassigned" ]] || { echo "ERROR: native Journal income budget companion is not yet supported; no files changed" >&2; exit 1; }
+    done
+    event_seed="$DATE"$'\t'"$MEMO"$'\t'"$FROM"$'\t'"$TO"$'\t'"$AMOUNT"$'\t'"$(date +%Y%m%d%H%M%S)"$'\t'"$$"$'\t'"$RANDOM"
+    EVENT_ID="entry-$(printf '%s' "$event_seed" | shasum -a 256 | awk '{print substr($1,1,24)}')"
+    native_args=(--base "$BASE_DIR" journal-block add --journal-file "$ACTUAL_FILE" --date "$DATE" --description "$MEMO" --event-id "$EVENT_ID" --posting "$TO=$AMOUNT" --posting "$FROM=-$AMOUNT" --meta currency=JPY --post-check "$POST_CHECK")
+    for item in "${META[@]}"; do native_args+=(--meta "$item"); done
+    [[ "$DRY_RUN" -eq 1 ]] && native_args+=(--dry-run)
+    [[ "$YES" -eq 1 ]] && native_args+=(--yes)
+    exec "$0" "${native_args[@]}"
+  fi
+fi
 
 TARGET_PATH="$BASE_DIR/$EXPECTED_TARGET_FILE"
 SNAPSHOT_TOKEN="$(safe_snapshot_token "$TARGET_PATH")"

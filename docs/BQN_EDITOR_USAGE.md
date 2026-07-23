@@ -32,14 +32,14 @@ BQN Editor は会計エンジンとしての計算（残高や封筒の残金計
 起動すると、まず以下の記帳モードを選択します。
 
 1.  **`account-add` (アカウント追加)**: `asset / liability / income / expense` を選び、明示的な `role=` と一致する名前空間で `accounts.tsv` に安全追記します。assetでは任意で `type=liquid|savings|invest` を選べます。
-2.  **`expense` (支出)**: 資産口座から費用口座への支出（例: `assets:bank` $\rightarrow$ `expenses:food`）。`journal.tsv` に追記。
-3.  **`move` (資金移動)**: 資産口座間の振替（例: `assets:bank` $\rightarrow$ `assets:cash`）。`journal.tsv` に追記。
-4.  **`income` (収入)**: 収入元から資産口座への入金（例: `income:salary` $\rightarrow$ `assets:bank`）。`journal.tsv` に追記。
+2.  **`expense` (支出)**: 資産口座から費用口座への支出。明示選択されたActual sourceへ追記。
+3.  **`move` (資金移動)**: 資産口座間の振替。明示選択されたActual sourceへ追記。
+4.  **`income` (収入)**: 収入元から資産口座への入金。明示選択されたActual sourceへ追記。
 5.  **`budget` (予算配賦)**: 封筒への予算割り当て（例: `budget:unassigned` $\rightarrow$ `budget:daily`）。`budget_alloc.tsv` に追記。memo 候補は `config/ui_budget_memo_presets.tsv` で管理します。
 6.  **`plan-add` (予定の追加)**: 未来の支払い予定を `plan.tsv` に安全追記。必要なら `series` を入力でき、`plan_id` は自動生成。
 7.  **`plan-edit` (予定の日付・金額修正)**: 未完了予定を選び、`date` / `amount` だけを差分プレビュー付きで修正。
-8.  **`plan-finish` (予定の実績化)**: `tools/plan-finish-replenish-ui.sh` に委譲し、`plan.tsv` で宣言された予定を完了させて実績化。`journal.tsv` に `plan_id` 付きで追記し、必要なら次回予定も追加。
-9.  **`reverse` (仕訳取消)**: 既存の `journal.tsv` 行を選び、from/to を入れ替えた反対仕訳を `journal.tsv` に安全追記。
+8.  **`plan-finish` (予定の実績化)**: `plan.tsv` の予定を、選択Actual sourceへ `plan_id` 付き実績として追記し、必要なら次回予定も追加。
+9.  **`reverse` (仕訳取消)**: 選択Actual sourceの取引を選び、反対postingを新しい取引として安全追記。
 10.  **`issue` (Issues & Decisions の追加)**: 財務的な issue / decision（例: サブスクリプションの見直し）を `issues.tsv` に安全追記。
 
 ---
@@ -50,7 +50,7 @@ BQN Editor は会計エンジンとしての計算（残高や封筒の残金計
 
 ### ライフサイクルと Closed 判定の仕組み
 *   **非破壊**: 予定を実績化しても、`plan.tsv` から予定行は削除されません。予実ブレ（actual-comparison / planned-payments）の履歴として残されます。
-*   **動的クローズ**: 実績 `journal.tsv` に同じ `plan_id` メタデータを持つ行が追記された時点で、BQNエンジンおよびエディタが動的に「この予定は完了（Closed）」と判定します。
+*   **動的クローズ**: 選択Actual sourceに同じ `plan_id` / `plan-id` を持つ実績が追記された時点で、BQNエンジンおよびエディタが動的に「この予定は完了（Closed）」と判定します。
 *   **自動フィルタリング**: 完了した予定は、`plan list` や `tools/add-ui.sh` の未完了予定リストから自動的に非表示になります。
 
 ### 幽霊の防止（安全ゲート）

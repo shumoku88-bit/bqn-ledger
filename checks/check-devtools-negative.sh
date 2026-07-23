@@ -127,8 +127,8 @@ else
   else
     pass
   fi
-  # BQN outputs "invalid date format"
-  if echo "$out" | grep -qE "invalid date format"; then
+  # Shell may reject a missing required option before the selected BQN source writer.
+  if echo "$out" | grep -qE "invalid date format|missing required option: --date"; then
     pass
   else
     fail "tools/edit missing arg message: expected BQN or Go error, got: $out"

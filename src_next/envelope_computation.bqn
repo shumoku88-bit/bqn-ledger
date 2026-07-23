@@ -2,6 +2,7 @@
 # Modernized envelope computation.
 
 loader ← •Import "loader.bqn"
+actual_source ← •Import "actual_source.bqn"
 proj ← •Import "projection.bqn"
 cube ← •Import "cube.bqn"
 conf ← •Import "config.bqn"
@@ -185,20 +186,19 @@ DecideStatus ← {𝕊 tgt‿selected_indices‿allocated:
 
 # ── Latest Actual Date ───────────────────────────────────────
 LatestActualDateInCycle ← {𝕊 base‿cy:
-  lines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
+  dates ← actual_source.LoadDates base
   available_cycle ← (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (cy.day_count > 0)
   out ← "unavailable/no_data"
   {𝕊:
     start_dn ← proj.DaysFromEpoch cy.start
     end_dn ← proj.DaysFromEpoch cy.end_exclusive
-    dates ← {⊑ loader.SplitTsvKeepEmpty 𝕩}¨ lines
     DateInCycle ← {𝕊 d:
       dn ← proj.DaysFromEpoch d
       (dn ≥ start_dn) ∧ (dn < end_dn)
     }
     in_dates ← (DateInCycle¨ dates) / dates
     {𝕊: out ↩ ¯1 ⊑ in_dates }⍟(0 < ≠ in_dates) @
-  }⍟(available_cycle ∧ (0 < ≠ lines)) @
+  }⍟(available_cycle ∧ (0 < ≠ dates)) @
   out ↩ (¬ available_cycle) ⊑ out‿"unavailable/no_cycle"
   out
 }

@@ -10,6 +10,7 @@ loader ← •Import "loader.bqn"
 proj ← •Import "projection.bqn"
 cube ← •Import "cube.bqn"
 overlap ← •Import "plan_journal_overlap.bqn"
+actual_source ← •Import "actual_source.bqn"
 
 MakeDiagnostic ← {𝕊 source_row‿status‿date‿message:
   {
@@ -54,8 +55,10 @@ BuildEvidenceFromLines ← {𝕊 plan_lines‿journal_lines:
 
 BuildSourceEvidence ← {𝕊 base:
   plan_lines ← loader.ReadLinesOptional (base ∾ "/plan.tsv")
-  journal_lines ← loader.ReadLinesOptional (base ∾ "/journal.tsv")
-  BuildEvidenceFromLines ⟨plan_lines, journal_lines⟩
+  plans ← (BuildEvidenceFromLines ⟨plan_lines,⟨⟩⟩).plans
+  completion ← actual_source.CompletionEvidence base
+  journals ← {𝕊 i: ev←i⊑completion ⋄ {source_row⇐i,date⇐ev.date,plan_id⇐ev.plan_id}}¨↕≠completion
+  {plans⇐plans,journals⇐journals}
 }
 
 RowsForPlanSource ← {𝕊 rows‿source_row:

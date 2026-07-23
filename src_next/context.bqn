@@ -2,7 +2,7 @@
 # Ledger context and period view construction for src_next.
 #
 # Architecture:
-#   BuildAllRows      — load all posting rows from source TSV (depends on cycleStart
+#   BuildAllRows      — load posting rows from the explicitly selected sources (depends on cycleStart
 #                       for day_index resolution, but does not filter by period)
 #   BuildPeriodView   — build cycle-bounded cube + ledger-wide TBDS from posting rows
 #   BuildContext      — convenience: read cycle.tsv, build everything at once
@@ -23,13 +23,16 @@ cycle ← •Import "cycle.bqn"
 cube ← •Import "cube.bqn"
 tbds ← •Import "tbds.bqn"
 currency_setup ← •Import "currency_setup.bqn"
+config ← •Import "config.bqn"
+journal_parser ← •Import "journal_profile_stage1.bqn"
+journal_adapter ← •Import "journal_posting_ir_stage2a.bqn"
 
 MakePostingSource ← {𝕊 srcFile‿required‿lines:
   { source_file ⇐ srcFile, required ⇐ required, lines ⇐ lines }
 }
 
-# LoadPostingSourceSnapshot: load all posting source lines once.
-# journal.tsv remains required; plan.tsv and budget_alloc.tsv remain optional.
+# LoadPostingSourceSnapshot: explicit TSV compatibility-mode snapshot.
+# journal.tsv is required only on this selected route; plan/budget remain optional.
 LoadPostingSourceSnapshot ← {𝕊 base:
   journalLines ← loader.ReadLines (base ∾ "/journal.tsv")
   planLines ← loader.ReadLinesOptional (base ∾ "/plan.tsv")
@@ -39,6 +42,17 @@ LoadPostingSourceSnapshot ← {𝕊 base:
       MakePostingSource ⟨"journal.tsv", 1, journalLines⟩,
       MakePostingSource ⟨"plan.tsv", 0, planLines⟩,
       MakePostingSource ⟨"budget_alloc.tsv", 0, budgetLines⟩
+    ⟩
+  }
+}
+
+# Native Journal mode keeps plan and budget TSV as independent non-actual sources.
+# It never reads journal.tsv and never falls back to it.
+LoadNonActualPostingSourceSnapshot ← {𝕊 base:
+  {
+    sources ⇐ ⟨
+      MakePostingSource ⟨"plan.tsv", 0, loader.ReadLinesOptional (base ∾ "/plan.tsv")⟩,
+      MakePostingSource ⟨"budget_alloc.tsv", 0, loader.ReadLinesOptional (base ∾ "/budget_alloc.tsv")⟩
     ⟩
   }
 }
@@ -418,11 +432,43 @@ BuildContext ← {𝕊 arg:
   cy           ← cycle.ReadCycle ⟨base2, as_of⟩
   accLines     ← loader.ReadLines (base2 ∾ "/accounts.tsv")
   resolved     ← ak.Resolve accLines
-  posting_snapshot ← LoadPostingSourceSnapshot base2
-  built_rows   ← BuildAuthorizedRowsFromSnapshot ⟨posting_snapshot, resolved, cy.start⟩
-  arithmetic_currency_proof ← built_rows.arithmetic_currency_proof
-  rows         ← built_rows.rows
-  view         ← BuildPeriodView ⟨rows, resolved, cy⟩
+  cfg ← config.LoadConfig base2
+  actual_source_mode ← cfg.ActualSource @
+  actual_source_file ← "journal.tsv"
+  actual_transactions ← ⟨⟩
+  arithmetic_currency_proof ← @
+  rows ← ⟨⟩
+
+  {𝕊:
+    posting_snapshot ← LoadPostingSourceSnapshot base2
+    built_rows ← BuildAuthorizedRowsFromSnapshot ⟨posting_snapshot, resolved, cy.start⟩
+    arithmetic_currency_proof ↩ built_rows.arithmetic_currency_proof
+    rows ↩ built_rows.rows
+  }⍟(actual_source_mode ≡ "tsv") @
+
+  {𝕊:
+    journal_rel ← cfg.ActualJournalFile @
+    {𝕊: •Out "CONFIG ERROR: ACTUAL_JOURNAL_FILE is required in journal mode" ⋄ •Exit 1}⍟(0=≠journal_rel) @
+    actual_source_file ↩ journal_rel
+    raw ← loader.ReadRaw (base2 ∾ "/" ∾ journal_rel)
+    parsed ← journal_parser.ParseWithProfile ⟨raw,"historical_external_plan"⟩
+    {𝕊: •Out "ERROR: native Journal source rejected" ⋄ •Exit 1}⍟(parsed.state≢"ok") @
+    declared ← ⍋ {𝕩.account_key}¨ parsed.accounts
+    registry ← ⍋ resolved.accounts
+    {𝕊: •Out "ERROR: native Journal account declarations differ from accounts.tsv" ⋄ •Exit 1}⍟(declared≢registry) @
+    journal_checked ← journal_adapter.BuildForSource ⟨parsed.transactions,resolved,cy.start,journal_rel⟩
+    {𝕊: •Out "ERROR: native Journal Posting IR rejected" ⋄ •Exit 1}⍟(journal_checked.state≢"ok") @
+    nonactual_snapshot ← LoadNonActualPostingSourceSnapshot base2
+    nonactual ← BuildAuthorizedRowsFromSnapshot ⟨nonactual_snapshot,resolved,cy.start⟩
+    {𝕊: •Out "ERROR: native Journal mode requires one JPY arithmetic domain" ⋄ •Exit 1}⍟(nonactual.arithmetic_currency_proof.domain≢"JPY") @
+    actual_transactions ↩ parsed.transactions
+    arithmetic_currency_proof ↩ nonactual.arithmetic_currency_proof
+    rows ↩ journal_checked.posting_rows ∾ nonactual.rows
+  }⍟(actual_source_mode ≡ "journal") @
+
+  valid_actual_source ← ∨´ actual_source_mode⊸≡¨ ⟨"tsv","journal"⟩
+  {𝕊: •Out "CONFIG ERROR: ACTUAL_SOURCE must be tsv or journal" ⋄ •Exit 1}⍟(¬valid_actual_source) @
+  view ← BuildPeriodView ⟨rows, resolved, cy⟩
   
   # Load and parse issues.tsv
   issueLines   ← loader.ReadLinesOptional (base2 ∾ "/issues.tsv")
@@ -446,6 +492,9 @@ BuildContext ← {𝕊 arg:
     cy           ⇐ cy,
     resolved     ⇐ resolved,
     posting_rows ⇐ rows,
+    actual_source_mode ⇐ actual_source_mode,
+    actual_source_file ⇐ actual_source_file,
+    actual_transactions ⇐ actual_transactions,
     arithmetic_currency_proof ⇐ arithmetic_currency_proof,
     cube         ⇐ view.cube,
     tbds         ⇐ view.tbds,
@@ -456,6 +505,7 @@ BuildContext ← {𝕊 arg:
 {
   BuildContext ⇐ BuildContext,
   LoadPostingSourceSnapshot ⇐ LoadPostingSourceSnapshot,
+  LoadNonActualPostingSourceSnapshot ⇐ LoadNonActualPostingSourceSnapshot,
   BuildRowEvidenceFromSnapshot ⇐ BuildRowEvidenceFromSnapshot,
   ResolveArithmeticCurrencyProof ⇐ ResolveArithmeticCurrencyProof,
   BuildCheckedPostingProjectionFromSnapshot ⇐ BuildCheckedPostingProjectionFromSnapshot,
