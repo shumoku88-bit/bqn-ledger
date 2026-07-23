@@ -1,0 +1,3 @@
+# Fixture: journal-minimal-actual-surface
+assets:bank	role=asset	currency=JPY
+expenses:food	role=expense	currency=JPY
