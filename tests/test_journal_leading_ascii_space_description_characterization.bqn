@@ -10,18 +10,17 @@ lf ← @+10
 space ← @+32
 tab ← @+9
 controlDescription ← "Synthetic description"
-targetDescription ← space ∾ controlDescription
+oneLeadingDescription ← space ∾ controlDescription
+twoLeadingDescription ← space ∾ oneLeadingDescription
 
-# The header renderer supplies exactly one grammar separator. The target payload
-# independently owns one additional leading ASCII SPACE.
-JournalFor ← {𝕊 description:
+JournalWithHeader ← {𝕊 header:
   ∾ ⟨
     "commodity JPY", lf, lf,
     "account assets:synthetic-cash", lf,
     "    ; role: asset", lf, lf,
     "account expenses:synthetic-service", lf,
     "    ; role: expense", lf, lf,
-    "2046-04-12 * ", description, lf,
+    header, lf,
     "    ; event-id: synthetic-leading-space-event", lf,
     "    ; layer: actual", lf,
     "    expenses:synthetic-service 51 JPY", lf,
@@ -29,33 +28,43 @@ JournalFor ← {𝕊 description:
   ⟩
 }
 
-controlSource ← JournalFor controlDescription
-targetSource ← JournalFor targetDescription
-lib.Assert controlDescription ≢ targetDescription
+# The header renderer supplies exactly one grammar delimiter. Any leading ASCII
+# SPACE in description is independently owned by the payload.
+JournalFor ← {𝕊 description:
+  JournalWithHeader "2046-04-12 * " ∾ description
+}
 
-controlParsed ← parser.Parse controlSource
-targetParsed ← parser.Parse targetSource
-"ok" lib.AssertEq controlParsed.state
-"ok" lib.AssertEq targetParsed.state
-0 lib.AssertEq ≠controlParsed.diagnostics
-0 lib.AssertEq ≠targetParsed.diagnostics
-1 lib.AssertEq ≠controlParsed.transactions
-1 lib.AssertEq ≠targetParsed.transactions
+controlParsed ← parser.Parse JournalFor controlDescription
+oneLeadingParsed ← parser.Parse JournalFor oneLeadingDescription
+twoLeadingParsed ← parser.Parse JournalFor twoLeadingDescription
+{𝕊 parsed:
+  "ok" lib.AssertEq parsed.state
+  0 lib.AssertEq ≠parsed.diagnostics
+  1 lib.AssertEq ≠parsed.transactions
+}¨ ⟨controlParsed,oneLeadingParsed,twoLeadingParsed⟩
 
 controlTransaction ← ⊑controlParsed.transactions
-targetTransaction ← ⊑targetParsed.transactions
+oneLeadingTransaction ← ⊑oneLeadingParsed.transactions
+twoLeadingTransaction ← ⊑twoLeadingParsed.transactions
 controlDescription lib.AssertEq controlTransaction.description
+oneLeadingDescription lib.AssertEq oneLeadingTransaction.description
+twoLeadingDescription lib.AssertEq twoLeadingTransaction.description
+lib.Assert controlTransaction.description ≢ oneLeadingTransaction.description
+lib.Assert oneLeadingTransaction.description ≢ twoLeadingTransaction.description
 
-# Characterization only: this does not approve silent normalization as the
-# desired contract. A future exact-preservation parser slice must intentionally
-# update this expectation.
-controlDescription lib.AssertEq targetTransaction.description
-controlTransaction.description lib.AssertEq targetTransaction.description
-lib.Assert targetDescription ≢ targetTransaction.description
+HasCode ← {𝕊 code‿result: ∨´0∾{𝕩.code≡code}¨result.diagnostics}
+missingDelimiter ← parser.Parse JournalWithHeader "2046-04-12 *Missing delimiter"
+"error" lib.AssertEq missingDelimiter.state
+lib.Assert HasCode ⟨"header_description_delimiter_missing",missingDelimiter⟩
+lib.Assert ¬HasCode ⟨"header_description_missing",missingDelimiter⟩
+emptyPayload ← parser.Parse JournalWithHeader "2046-04-12 * "
+"error" lib.AssertEq emptyPayload.state
+lib.Assert HasCode ⟨"header_description_missing",emptyPayload⟩
+lib.Assert ¬HasCode ⟨"header_description_delimiter_missing",emptyPayload⟩
 
-# The converter remains fail closed until a parser contract can preserve or
-# explicitly reject the payload without information loss.
-lib.Assert ¬converter.DescriptionRepresentable targetDescription
+# Parser admission changes independently from converter admission. The converter
+# remains fail closed for legacy descriptions with a leading ASCII SPACE.
+lib.Assert ¬converter.DescriptionRepresentable oneLeadingDescription
 
 accountLines ← ⟨
   "assets:synthetic-cash"∾tab∾"role=asset"∾tab∾"currency=JPY",
@@ -63,18 +72,24 @@ accountLines ← ⟨
 ⟩
 resolved ← ak.Resolve accountLines
 cycleStart ← "2046-04-01"
-controlStage2 ← stage2a.Build ⟨controlParsed.transactions,resolved,cycleStart⟩
-targetStage2 ← stage2a.Build ⟨targetParsed.transactions,resolved,cycleStart⟩
-"ok" lib.AssertEq controlStage2.state
-"ok" lib.AssertEq targetStage2.state
-0 lib.AssertEq ≠controlStage2.diagnostics
-0 lib.AssertEq ≠targetStage2.diagnostics
-2 lib.AssertEq ≠controlStage2.posting_rows
-2 lib.AssertEq ≠targetStage2.posting_rows
+legacySnapshot ← ∾ ⟨
+  "2046-04-12",tab,oneLeadingDescription,tab,
+  "assets:synthetic-cash",tab,"expenses:synthetic-service",tab,"51",lf
+⟩
+conversion ← converter.Convert ⟨legacySnapshot,"journal.tsv",accountLines,cycleStart⟩
+"error" lib.AssertEq conversion.state
+lib.Assert HasCode ⟨"description_not_canonically_representable",conversion⟩
 
-# Enumerating all current fields both fixes the 16-field shape and demonstrates
-# that Stage 2A owns no description field from which the source distinction
-# could be recovered.
+controlStage2 ← stage2a.Build ⟨controlParsed.transactions,resolved,cycleStart⟩
+oneLeadingStage2 ← stage2a.Build ⟨oneLeadingParsed.transactions,resolved,cycleStart⟩
+twoLeadingStage2 ← stage2a.Build ⟨twoLeadingParsed.transactions,resolved,cycleStart⟩
+{𝕊 result:
+  "ok" lib.AssertEq result.state
+  0 lib.AssertEq ≠result.diagnostics
+  2 lib.AssertEq ≠result.posting_rows
+}¨ ⟨controlStage2,oneLeadingStage2,twoLeadingStage2⟩
+
+# Enumerating all current fields fixes the unchanged 16-field Stage 2A shape.
 PostingFields ← {𝕊 row: ⟨
   <row.source_file, <row.source_row, <row.source_id, <row.tx_id,
   <row.posting_id, <row.date, <row.day_index, <row.account_key,
@@ -82,11 +97,13 @@ PostingFields ← {𝕊 row: ⟨
   <row.delta, <row.kind, <row.status, <row.message
 ⟩}
 16 lib.AssertEq ≠PostingFields ⊑controlStage2.posting_rows
-16 lib.AssertEq ≠PostingFields ⊑targetStage2.posting_rows
-(PostingFields¨controlStage2.posting_rows) lib.AssertEq PostingFields¨targetStage2.posting_rows
-⟨"expenses:synthetic-service/JPY","assets:synthetic-cash/JPY"⟩ lib.AssertEq {𝕩.account_key}¨targetStage2.posting_rows
-⟨1,0⟩ lib.AssertEq {𝕩.account_key_index}¨targetStage2.posting_rows
-⟨51,¯51⟩ lib.AssertEq {𝕩.delta}¨targetStage2.posting_rows
-⟨"debit","credit"⟩ lib.AssertEq {𝕩.side}¨targetStage2.posting_rows
+16 lib.AssertEq ≠PostingFields ⊑oneLeadingStage2.posting_rows
+16 lib.AssertEq ≠PostingFields ⊑twoLeadingStage2.posting_rows
+(PostingFields¨controlStage2.posting_rows) lib.AssertEq PostingFields¨oneLeadingStage2.posting_rows
+(PostingFields¨oneLeadingStage2.posting_rows) lib.AssertEq PostingFields¨twoLeadingStage2.posting_rows
+⟨"expenses:synthetic-service/JPY","assets:synthetic-cash/JPY"⟩ lib.AssertEq {𝕩.account_key}¨oneLeadingStage2.posting_rows
+⟨1,0⟩ lib.AssertEq {𝕩.account_key_index}¨oneLeadingStage2.posting_rows
+⟨51,¯51⟩ lib.AssertEq {𝕩.delta}¨oneLeadingStage2.posting_rows
+⟨"debit","credit"⟩ lib.AssertEq {𝕩.side}¨oneLeadingStage2.posting_rows
 
 •Out "test_journal_leading_ascii_space_description_characterization.bqn: OK"
