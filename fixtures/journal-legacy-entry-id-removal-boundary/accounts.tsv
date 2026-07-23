@@ -1,0 +1,7 @@
+# Fixture: journal-legacy-entry-id-removal-boundary
+equity:opening	role=equity	currency=JPY
+assets:cash	role=asset	currency=JPY
+expenses:food	role=expense	currency=JPY
+expenses:household	role=expense	currency=JPY
+budget:daily	role=budget	currency=JPY
+budget:spent:daily	role=budget	currency=JPY
