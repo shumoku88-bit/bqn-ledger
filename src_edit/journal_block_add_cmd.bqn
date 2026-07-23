@@ -26,22 +26,25 @@ UnsafeText ← {𝕊 text:
   controls ← ((@+0) + ↕32) ∾ ⟨@+127⟩
   ∨´ 0 ∾ text ∊ controls
 }
-{𝕊⋄Fail ⟨"usage", "expected BASE TARGET DATE DESCRIPTION EVENT_ID POSTING_COUNT postings and optional metadata"⟩}⍟(8 > ≠ args) @
+{𝕊⋄Fail ⟨"usage", "expected BASE TARGET DATE DESCRIPTION IDENTITY_MODE EVENT_ID POSTING_COUNT postings and optional metadata"⟩}⍟(9 > ≠ args) @
 base ← 0 ⊑ args
 target ← 1 ⊑ args
 dateText ← 2 ⊑ args
 description ← 3 ⊑ args
-eventId ← 4 ⊑ args
-postingCountText ← 5⊑args
+identityMode ← 4 ⊑ args
+eventId ← 5 ⊑ args
+postingCountText ← 6⊑args
 postingCount ← •BQN postingCountText
 {𝕊⋄Fail ⟨"posting_count_invalid", "posting count must be at least two"⟩}⍟((postingCount<2)∨postingCount≢⌊postingCount) @
-{𝕊⋄Fail ⟨"posting_count_invalid", "posting count exceeds supplied arguments"⟩}⍟((6+postingCount)>≠args) @
-postingArgs ← postingCount↑6↓args
-metadataArgs ← (6+postingCount)↓args
+{𝕊⋄Fail ⟨"posting_count_invalid", "posting count exceeds supplied arguments"⟩}⍟((7+postingCount)>≠args) @
+postingArgs ← postingCount↑7↓args
+metadataArgs ← (7+postingCount)↓args
 
 {𝕊⋄Fail ⟨"date_invalid", "date must be a valid YYYY-MM-DD calendar date"⟩}⍟(¬ dates.IsValidDateText dateText) @
 {𝕊⋄Fail ⟨"description_invalid", "description must be nonempty and must not contain unsafe control input"⟩}⍟((0 = ≠ Trim description) ∨ (UnsafeText description) ∨ description ≢ Trim description) @
-{𝕊⋄Fail ⟨"event_id_invalid", "event-id must be nonempty and must not contain unsafe control input"⟩}⍟((0 = ≠ Trim eventId) ∨ (UnsafeText eventId) ∨ eventId ≢ Trim eventId) @
+{𝕊⋄Fail ⟨"identity_mode_invalid", "identity mode must be ordinary or durable"⟩}⍟(¬ ((identityMode ≡ "ordinary") ∨ identityMode ≡ "durable")) @
+{𝕊⋄Fail ⟨"event_id_unexpected", "ordinary actual must not carry an event-id"⟩}⍟((identityMode ≡ "ordinary") ∧ 0 < ≠ eventId) @
+{𝕊⋄Fail ⟨"event_id_invalid", "event-id must be nonempty and must not contain unsafe control input"⟩}⍟((identityMode ≡ "durable") ∧ ((0 = ≠ Trim eventId) ∨ (UnsafeText eventId) ∨ eventId ≢ Trim eventId)) @
 {𝕊⋄Fail ⟨"posting_count_invalid", "at least two --posting values are required"⟩}⍟(2 > ≠ postingArgs) @
 
 postings ← empty
@@ -81,12 +84,13 @@ metadata ← empty
 }¨metadataArgs
 metadataKeys ← {𝕩.key}¨metadata
 {𝕊⋄Fail ⟨"metadata_duplicate", "metadata keys must be unique"⟩}⍟((≠metadataKeys)≠≠⍷metadataKeys) @
+{𝕊⋄Fail ⟨"ordinary_plan_link_invalid", "ordinary actual cannot carry plan-id; use a durable plan completion path"⟩}⍟((identityMode ≡ "ordinary") ∧ ∨´ 0 ∾ "plan-id"⊸≡¨ metadataKeys) @
 
 raw ← loader.ReadRaw target
 existing ← parser.ParseWithProfile ⟨raw,"historical_external_plan"⟩
 {𝕊⋄Fail ⟨"existing_journal_invalid", "existing complete Journal does not satisfy the supported profile"⟩}⍟(existing.state ≢ "ok") @
 candidateOrdinal ← ≠ existing.transactions
-{𝕊⋄Fail ⟨"event_id_duplicate", "event-id already exists in the complete Journal"⟩}⍟(∨´ 0 ∾ {𝕩.source_event_id ≡ eventId}¨ existing.transactions) @
+{𝕊⋄Fail ⟨"event_id_duplicate", "event-id already exists in the complete Journal"⟩}⍟((identityMode ≡ "durable") ∧ ∨´ 0 ∾ {𝕩.source_event_id ≡ eventId}¨ existing.transactions) @
 
 resolved ← ak.Resolve loader.ReadLines (base ∾ "/accounts.tsv")
 {𝕊 posting:
@@ -98,7 +102,8 @@ resolved ← ak.Resolve loader.ReadLines (base ∾ "/accounts.tsv")
 
 postingLines ← {"    " ∾ 𝕩.account_key ∾ "    " ∾ 𝕩.amount_text ∾ " JPY"}¨ postings
 metadataLines ← {"    ; "∾𝕩.key∾": "∾𝕩.value}¨metadata
-blockLines ← ⟨dateText ∾ " * " ∾ description, "    ; event-id: " ∾ eventId⟩ ∾ metadataLines ∾ postingLines
+headerLines ← (identityMode ≡ "durable") ◶ ⟨{⟨dateText ∾ " * " ∾ description⟩}, {⟨dateText ∾ " * " ∾ description, "    ; event-id: " ∾ eventId⟩}⟩ @
+blockLines ← headerLines ∾ metadataLines ∾ postingLines
 block ← ⊑ blockLines
 {𝕊 line: block ∾↩ lf ∾ line}¨ 1 ↓ blockLines
 
@@ -127,8 +132,14 @@ candidateCommodities ← {𝕩.commodity}¨ candidate.postings
 expectedAccounts ← {𝕩.account_key}¨ postings
 expectedAmounts ← {𝕩.delta}¨ postings
 commoditiesOk ← ∧´ {𝕩 ≡ "JPY"}¨ candidateCommodities
-candidateOk ← (candidate.date ≡ dateText) ∧ (candidate.description ≡ description) ∧ (candidate.source_event_id ≡ eventId) ∧ (candidate.identity_kind ≡ "durable") ∧ (candidate.layer_name ≡ "actual") ∧ (candidate.status_marker = '*') ∧ (candidateAccounts ≡ expectedAccounts) ∧ (candidateAmounts ≡ expectedAmounts) ∧ commoditiesOk
+eventMetadataCount ← +´ {𝕩.key ≡ "event-id"}¨ candidate.metadata
+identityOk ← (identityMode ≡ "durable") ◶ ⟨
+  {(candidate.identity_kind ≡ "physical_fallback") ∧ 0 = eventMetadataCount},
+  {(candidate.identity_kind ≡ "durable") ∧ (candidate.source_event_id ≡ eventId) ∧ 1 = eventMetadataCount}
+⟩ @
+candidateOk ← (candidate.date ≡ dateText) ∧ (candidate.description ≡ description) ∧ identityOk ∧ (candidate.layer_name ≡ "actual") ∧ (candidate.status_marker = '*') ∧ ((≠ candidate.postings) = ≠ postings) ∧ (candidateAccounts ≡ expectedAccounts) ∧ (candidateAmounts ≡ expectedAmounts) ∧ commoditiesOk
 {𝕊⋄Fail ⟨"candidate_mismatch", "parsed candidate does not exactly match the rendered candidate"⟩}⍟(¬ candidateOk) @
 
-•Out "OK" ∾ tab ∾ "APPEND_BLOCK" ∾ tab ∾ (•Fmt transportPrefixCount) ∾ tab ∾ eventId ∾ tab ∾ (•Fmt ≠ postings) ∾ tab ∾ (•Fmt candidateOrdinal)
+identityToken ← (identityMode ≡ "durable") ◶ ⟨{"-"}, {eventId}⟩ @
+•Out "OK" ∾ tab ∾ "APPEND_BLOCK" ∾ tab ∾ (•Fmt transportPrefixCount) ∾ tab ∾ identityMode ∾ tab ∾ identityToken ∾ tab ∾ (•Fmt ≠ postings) ∾ tab ∾ (•Fmt candidateOrdinal)
 •Out block

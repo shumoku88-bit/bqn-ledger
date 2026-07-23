@@ -9,16 +9,29 @@ decimal ← •Import "../src_next/exact_decimal.bqn"
 
 args ← •args
 tab ← @+9
+space ← @+32
 empty ← ⟨⟩
 Fail ← {𝕊 code‿message: •Out "ERROR"∾tab∾code∾tab∾message ⋄ •Exit 1}
-{𝕊⋄Fail ⟨"usage", "expected BASE TARGET DATE DESCRIPTION EVENT_ID CANDIDATE_ORDINAL and at least two postings"⟩}⍟(8 > ≠ args) @
+TrimLeft ← {𝕊 xs: (+´ ∧` (xs = space)) ↓ xs}
+TrimRight ← {𝕊 xs: ((≠ xs) - +´ ∧` ((⌽ xs) = space)) ↑ xs}
+Trim ← {TrimRight TrimLeft 𝕩}
+UnsafeText ← {𝕊 text:
+  controls ← ((@+0) + ↕32) ∾ ⟨@+127⟩
+  ∨´ 0 ∾ text ∊ controls
+}
+{𝕊⋄Fail ⟨"usage", "expected BASE TARGET DATE DESCRIPTION IDENTITY_MODE EVENT_ID CANDIDATE_ORDINAL and at least two postings"⟩}⍟(9 > ≠ args) @
 base ← 0⊑args
 target ← 1⊑args
 dateText ← 2⊑args
 description ← 3⊑args
-eventId ← 4⊑args
-candidateOrdinalText ← 5⊑args
-postingArgs ← 6↓args
+identityMode ← 4⊑args
+eventId ← 5⊑args
+candidateOrdinalText ← 6⊑args
+postingArgs ← 7↓args
+
+{𝕊⋄Fail ⟨"identity_mode_invalid", "identity mode must be ordinary or durable"⟩}⍟(¬ ((identityMode ≡ "ordinary") ∨ identityMode ≡ "durable")) @
+{𝕊⋄Fail ⟨"event_id_unexpected", "ordinary actual must not carry an event-id"⟩}⍟((identityMode ≡ "ordinary") ∧ 0 < ≠ eventId) @
+{𝕊⋄Fail ⟨"event_id_invalid", "event-id must be nonempty and must not contain unsafe control input"⟩}⍟((identityMode ≡ "durable") ∧ ((0 = ≠ Trim eventId) ∨ (UnsafeText eventId) ∨ eventId ≢ Trim eventId)) @
 
 parsedOrdinal ← decimal.Parse candidateOrdinalText
 isOk ← (parsedOrdinal.state ≡ "ok") ∧ (0 ≡ parsedOrdinal.scale)
@@ -74,7 +87,13 @@ actualAccounts ← {𝕩.account_key}¨candidate.postings
 actualAmounts ← {𝕩.delta}¨candidate.postings
 commoditiesOk ← ∧´ {𝕩.commodity≡"JPY"}¨candidate.postings
 postingIndexesOk ← (↕≠candidate.postings) ≡ {𝕩.posting_index}¨candidate.postings
-candidateOk ← (candidate.date≡dateText) ∧ (candidate.description≡description) ∧ (candidate.source_event_id≡eventId) ∧ (candidate.identity_kind≡"durable") ∧ (candidate.status_marker='*') ∧ (candidate.layer_name≡"actual") ∧ ((≠candidate.postings)=≠expected) ∧ postingIndexesOk ∧ (actualAccounts≡expectedAccounts) ∧ (actualAmounts≡expectedAmounts) ∧ commoditiesOk
+eventMetadataCount ← +´ {𝕩.key ≡ "event-id"}¨ candidate.metadata
+identityOk ← (identityMode ≡ "durable") ◶ ⟨
+  {(candidate.identity_kind ≡ "physical_fallback") ∧ 0 = eventMetadataCount},
+  {(candidate.identity_kind ≡ "durable") ∧ (candidate.source_event_id ≡ eventId) ∧ 1 = eventMetadataCount}
+⟩ @
+candidateOk ← (candidate.date≡dateText) ∧ (candidate.description≡description) ∧ identityOk ∧ (candidate.status_marker='*') ∧ (candidate.layer_name≡"actual") ∧ ((≠candidate.postings)=≠expected) ∧ postingIndexesOk ∧ (actualAccounts≡expectedAccounts) ∧ (actualAmounts≡expectedAmounts) ∧ commoditiesOk
 {𝕊⋄Fail ⟨"native_candidate_mismatch", "written candidate does not exactly equal previewed candidate"⟩}⍟(¬candidateOk) @
 
-•Out "OK"∾tab∾"NATIVE_JOURNAL_CANDIDATE"∾tab∾eventId∾tab∾(•Fmt candidateOrdinal)∾tab∾(•Fmt ≠candidate.postings)
+identityToken ← (identityMode ≡ "durable") ◶ ⟨{"-"}, {eventId}⟩ @
+•Out "OK"∾tab∾"NATIVE_JOURNAL_CANDIDATE"∾tab∾identityMode∾tab∾identityToken∾tab∾(•Fmt candidateOrdinal)∾tab∾(•Fmt ≠candidate.postings)

@@ -64,6 +64,40 @@ Dry-run only. No files were modified.
 EOF
 cmp "$tmp_root/explicit-meta.expected" "$exp_out"
 
+# Ordinary dry-run omits all automatic transaction metadata and preserves source bytes.
+ordinary_dry=$(new_base ordinary-dry); ordinary_dry_before=$(sha_file "$ordinary_dry/source.journal"); ordinary_dry_out="$tmp_root/ordinary-dry.out"
+ordinary_dry_args=(journal-block add --identity ordinary --journal-file source.journal --date 2026-07-22 --description ordinary-dry-run --posting expenses:food:daily=1 --posting assets:cash=-1 --dry-run)
+run_ok "$ordinary_dry" "$ordinary_dry_out" "${ordinary_dry_args[@]}"
+cat >"$tmp_root/ordinary-dry.expected" <<EOF
+Native Journal block append preview
+Target: $(cd -P "$ordinary_dry" && pwd)/source.journal
+Mode: dry-run
+Post-check: lint
+Candidate block:
+2026-07-22 * ordinary-dry-run
+    expenses:food:daily    1 JPY
+    assets:cash    -1 JPY
+Dry-run only. No files were modified.
+EOF
+cmp "$tmp_root/ordinary-dry.expected" "$ordinary_dry_out"
+[[ $(sha_file "$ordinary_dry/source.journal") == "$ordinary_dry_before" ]]
+assert_no_backups "$ordinary_dry" ordinary-dry-run
+! grep -Fq '; event-id:' "$ordinary_dry_out"
+! grep -Fq '; layer: actual' "$ordinary_dry_out"
+! grep -Fq '; currency: JPY' "$ordinary_dry_out"
+
+# Ordinary append retains explicit metadata but remains identity-free.
+ordinary=$(new_base ordinary-append); ordinary_before_events=$(grep -Fc '; event-id:' "$ordinary/source.journal" || true); ordinary_out="$tmp_root/ordinary-append.out"
+run_ok "$ordinary" "$ordinary_out" journal-block add --identity ordinary --journal-file source.journal --date 2026-07-22 --description ordinary-append \
+  --posting expenses:food:daily=1 --posting assets:cash=-1 --meta note=explicit --meta currency=JPY --yes --post-check none
+ordinary_after_events=$(grep -Fc '; event-id:' "$ordinary/source.journal" || true)
+[[ "$ordinary_after_events" -eq "$ordinary_before_events" ]]
+grep -Fq '2026-07-22 * ordinary-append' "$ordinary/source.journal"
+grep -Fq '    ; note: explicit' "$ordinary/source.journal"
+grep -Fq '    ; currency: JPY' "$ordinary/source.journal"
+grep -Fq 'Mandatory native validation: OK' "$ordinary_out"
+grep -Fq $'OK\tNATIVE_JOURNAL_CANDIDATE\tordinary\t-\t1\t2' "$ordinary_out"
+
 # Exact bytes for all three source endings. The completed bytes must converge.
 expected_block='2026-07-22 * スーパー
     ; event-id: purchase-20260722-001
@@ -117,6 +151,7 @@ awk '
   END {print "DEFAULT_CURRENCY=JPY"}
 ' config/default_config.tsv >"$routed/config.tsv"
 routed_before=$(sha_file "$routed/source.journal")
+routed_before_events=$(grep -Fc '; event-id:' "$routed/source.journal" || true)
 run_ok "$routed" "$tmp_root/routed.out" journal multi-add --date 2026-07-22 --description routed-split \
   --posting expenses:food:daily=1200 --posting expenses:household=500 --posting assets:cash=-1700 --yes --post-check none
 [[ $(sha_file "$routed/source.journal") != "$routed_before" ]]
@@ -125,6 +160,11 @@ tail -n 3 "$routed/source.journal" >"$tmp_root/routed.tail"
 printf '%s\n' '    expenses:food:daily    1200 JPY' '    expenses:household    500 JPY' '    assets:cash    -1700 JPY' >"$tmp_root/routed.expected"
 cmp "$tmp_root/routed.expected" "$tmp_root/routed.tail"
 grep -Fq 'Mandatory native validation: OK' "$tmp_root/routed.out"
+grep -Fq $'OK\tNATIVE_JOURNAL_CANDIDATE\tordinary\t-' "$tmp_root/routed.out"
+[[ $(grep -Fc '; event-id:' "$routed/source.journal" || true) -eq "$routed_before_events" ]]
+! grep -Fq 'entry-' "$tmp_root/routed.out"
+! grep -Fq 'entry-' "$routed/source.journal"
+! grep -Fq 'stage0-line-' "$tmp_root/routed.out"
 
 # TSV mode cannot flatten native multi-posting and must fail without writes.
 tsv_multi="$tmp_root/tsv-multi"; cp -R data "$tsv_multi"; tsv_multi_before=$(sha_file "$tsv_multi/journal.tsv")
@@ -163,6 +203,10 @@ run_semantic_case invalid-date noop_setup "${common_prefix[@]}" --date 2026-02-3
 run_semantic_case blank-description noop_setup "${common_prefix[@]}" --date 2026-07-22 --description '   ' --event-id new-id --posting expenses:food:daily=1 --posting assets:cash=-1
 run_semantic_case description-lf noop_setup "${common_prefix[@]}" --date 2026-07-22 --description $'bad\ninjection' --event-id new-id --posting expenses:food:daily=1 --posting assets:cash=-1
 run_semantic_case missing-event noop_setup "${common_prefix[@]}" --date 2026-07-22 --description x --posting expenses:food:daily=1 --posting assets:cash=-1
+run_semantic_case empty-event noop_setup "${common_prefix[@]}" --date 2026-07-22 --description x --event-id '' --posting expenses:food:daily=1 --posting assets:cash=-1
+run_semantic_case invalid-identity noop_setup "${common_prefix[@]}" --identity invalid --date 2026-07-22 --description x --event-id new-id --posting expenses:food:daily=1 --posting assets:cash=-1
+run_semantic_case ordinary-event noop_setup "${common_prefix[@]}" --identity ordinary --date 2026-07-22 --description x --event-id new-id --posting expenses:food:daily=1 --posting assets:cash=-1
+run_semantic_case ordinary-plan-link noop_setup "${common_prefix[@]}" --identity ordinary --date 2026-07-22 --description x --posting expenses:food:daily=1 --posting assets:cash=-1 --meta plan_id=plan-x
 run_semantic_case unsafe-event noop_setup "${common_prefix[@]}" --date 2026-07-22 --description x --event-id $'bad\rid' --posting expenses:food:daily=1 --posting assets:cash=-1
 run_semantic_case duplicate-event noop_setup "${common_prefix[@]}" --date 2026-07-22 --description x --event-id opening-20260701-001 --posting expenses:food:daily=1 --posting assets:cash=-1
 run_semantic_case one-posting noop_setup "${common_prefix[@]}" --date 2026-07-22 --description x --event-id new-id --posting assets:cash=-1
@@ -184,6 +228,11 @@ setup_incompatible_commodity() { perl -0pi -e 's/commodity JPY/commodity USD/g; 
 run_semantic_case incompatible-commodity setup_incompatible_commodity "${common_prefix[@]}" --date 2026-07-22 --description x --event-id new-id --posting expenses:food:daily=1 --posting assets:cash=-1
 setup_malformed() { printf '\ninclude unsupported.journal\n' >>"$1/source.journal"; }
 run_semantic_case malformed-existing setup_malformed "${common_prefix[@]}" --date 2026-07-22 --description x --event-id new-id --posting expenses:food:daily=1 --posting assets:cash=-1
+grep -Fq 'ERROR: --identity must be ordinary or durable' "$tmp_root/invalid-identity.out"
+grep -Fq 'ERROR: --event-id must not be supplied for ordinary Journal actuals' "$tmp_root/ordinary-event.out"
+grep -Fq 'ERROR: missing required option: --event-id' "$tmp_root/missing-event.out"
+grep -Fq 'ERROR: missing required option: --event-id' "$tmp_root/empty-event.out"
+grep -Fq $'ERROR\tordinary_plan_link_invalid' "$tmp_root/ordinary-plan-link.out"
 
 # Cancellation has no backup or write.
 cancel=$(new_base cancel); before=$(sha_file "$cancel/source.journal")
@@ -271,10 +320,15 @@ grep -Fq 'Rollback: restored original bytes' "$tmp_root/full-blocked.out"
 # Renderer protocol ordinal
 echo "Checking renderer protocol ordinal..." >&2
 protocol_out="$tmp_root/protocol.out"
-bqn src_edit/journal_block_add_cmd.bqn "$dry" "$dry/source.journal" 2026-07-22 スーパー purchase-20260722-001 3 expenses:food:daily=1200 expenses:household=500 assets:cash=-1700 >"$protocol_out" 2>"$tmp_root/protocol.err"
+bqn src_edit/journal_block_add_cmd.bqn "$dry" "$dry/source.journal" 2026-07-22 スーパー durable purchase-20260722-001 3 expenses:food:daily=1200 expenses:household=500 assets:cash=-1700 >"$protocol_out" 2>"$tmp_root/protocol.err"
 first_line=$(head -n 1 "$protocol_out" | tr -d '\r')
-IFS=$'\t' read -r p_status p_op p_prefix p_event p_count p_ordinal p_extra <<< "$first_line"
-[[ "$p_status" == "OK" && "$p_op" == "APPEND_BLOCK" && "$p_event" == "purchase-20260722-001" && "$p_count" == "3" && "$p_ordinal" == "1" && -z "${p_extra:-}" ]] || { echo "FAIL renderer protocol header: line='$first_line' p_status='$p_status' p_op='$p_op' p_prefix='$p_prefix' p_event='$p_event' p_count='$p_count' p_ordinal='$p_ordinal' p_extra='$p_extra'" >&2; exit 1; }
+IFS=$'\t' read -r p_status p_op p_prefix p_identity p_event p_count p_ordinal p_extra <<< "$first_line"
+[[ "$p_status" == "OK" && "$p_op" == "APPEND_BLOCK" && "$p_identity" == "durable" && "$p_event" == "purchase-20260722-001" && "$p_count" == "3" && "$p_ordinal" == "1" && -z "${p_extra:-}" ]] || { echo "FAIL renderer protocol header: line='$first_line'" >&2; exit 1; }
+ordinary_protocol_out="$tmp_root/ordinary-protocol.out"
+bqn src_edit/journal_block_add_cmd.bqn "$ordinary_dry" "$ordinary_dry/source.journal" 2026-07-22 ordinary-protocol ordinary '' 2 expenses:food:daily=1 assets:cash=-1 >"$ordinary_protocol_out"
+ordinary_first_line=$(head -n 1 "$ordinary_protocol_out" | tr -d '\r')
+[[ "$ordinary_first_line" == $'OK\tAPPEND_BLOCK\t1\tordinary\t-\t2\t1' ]] || { echo "FAIL ordinary renderer protocol header: line='$ordinary_first_line'" >&2; exit 1; }
+! grep -Fq 'stage0-line-' "$ordinary_protocol_out"
 
 # Direct validator success protocol
 echo "Checking direct validator success protocol..." >&2
@@ -282,14 +336,28 @@ v_base=$(new_base validator-success)
 v_journal="$v_base/source.journal"
 printf '\n%s\n' "$expected_block" >>"$v_journal"
 v_out="$tmp_root/v-success.out"
-bqn src_edit/journal_native_source_check.bqn "$v_base" "$v_journal" 2026-07-22 スーパー purchase-20260722-001 1 expenses:food:daily=1200 expenses:household=500 assets:cash=-1700 >"$v_out" 2>&1 || { echo "FAIL validator success command rc=$? output:" >&2; cat "$v_out" >&2; exit 1; }
-grep -Fq $'OK\tNATIVE_JOURNAL_CANDIDATE\tpurchase-20260722-001\t1\t3' "$v_out" || { echo "FAIL validator success grep output:" >&2; cat "$v_out" >&2; exit 1; }
+bqn src_edit/journal_native_source_check.bqn "$v_base" "$v_journal" 2026-07-22 スーパー durable purchase-20260722-001 1 expenses:food:daily=1200 expenses:household=500 assets:cash=-1700 >"$v_out" 2>&1 || { echo "FAIL validator success command rc=$? output:" >&2; cat "$v_out" >&2; exit 1; }
+grep -Fq $'OK\tNATIVE_JOURNAL_CANDIDATE\tdurable\tpurchase-20260722-001\t1\t3' "$v_out" || { echo "FAIL validator success grep output:" >&2; cat "$v_out" >&2; exit 1; }
+
+# Identity mode mismatches are classified after ordinal candidate selection.
+mode_out="$tmp_root/durable-as-ordinary.out"
+set +e
+bqn src_edit/journal_native_source_check.bqn "$v_base" "$v_journal" 2026-07-22 スーパー ordinary '' 1 expenses:food:daily=1200 expenses:household=500 assets:cash=-1700 >"$mode_out" 2>&1
+rc=$?
+set -e
+[[ $rc -ne 0 ]]; grep -Fq $'ERROR\tnative_candidate_mismatch' "$mode_out"
+mode_out="$tmp_root/ordinary-as-durable.out"
+set +e
+bqn src_edit/journal_native_source_check.bqn "$ordinary" "$ordinary/source.journal" 2026-07-22 ordinary-append durable wrong-durable-id 1 expenses:food:daily=1 assets:cash=-1 >"$mode_out" 2>&1
+rc=$?
+set -e
+[[ $rc -ne 0 ]]; grep -Fq $'ERROR\tnative_candidate_mismatch' "$mode_out"
 
 # Wrong event-id classification
 echo "Checking wrong event-id classification..." >&2
 w_event_out="$tmp_root/wrong-event.out"
 set +e
-bqn src_edit/journal_native_source_check.bqn "$v_base" "$v_journal" 2026-07-22 スーパー wrong-event-id 1 expenses:food:daily=1200 expenses:household=500 assets:cash=-1700 >"$w_event_out" 2>&1
+bqn src_edit/journal_native_source_check.bqn "$v_base" "$v_journal" 2026-07-22 スーパー durable wrong-event-id 1 expenses:food:daily=1200 expenses:household=500 assets:cash=-1700 >"$w_event_out" 2>&1
 rc=$?
 set -e
 [[ $rc -ne 0 ]] || { echo "FAIL wrong-event expected non-zero rc" >&2; exit 1; }
@@ -301,7 +369,7 @@ echo "Checking wrong ordinal count guard..." >&2
 for w_ord in 0 2; do
   w_ord_out="$tmp_root/wrong-ord-$w_ord.out"
   set +e
-  bqn src_edit/journal_native_source_check.bqn "$v_base" "$v_journal" 2026-07-22 スーパー purchase-20260722-001 "$w_ord" expenses:food:daily=1200 expenses:household=500 assets:cash=-1700 >"$w_ord_out" 2>&1
+  bqn src_edit/journal_native_source_check.bqn "$v_base" "$v_journal" 2026-07-22 スーパー durable purchase-20260722-001 "$w_ord" expenses:food:daily=1200 expenses:household=500 assets:cash=-1700 >"$w_ord_out" 2>&1
   rc=$?
   set -e
   [[ $rc -ne 0 ]] || { echo "FAIL wrong-ord $w_ord expected non-zero rc" >&2; exit 1; }
@@ -313,7 +381,7 @@ echo "Checking invalid ordinal syntax..." >&2
 for inv_ord in -1 01 1.0 abc; do
   inv_ord_out="$tmp_root/inv-ord-${inv_ord//./_}.out"
   set +e
-  bqn src_edit/journal_native_source_check.bqn "$v_base" "$v_journal" 2026-07-22 スーパー purchase-20260722-001 "$inv_ord" expenses:food:daily=1200 expenses:household=500 assets:cash=-1700 >"$inv_ord_out" 2>&1
+  bqn src_edit/journal_native_source_check.bqn "$v_base" "$v_journal" 2026-07-22 スーパー durable purchase-20260722-001 "$inv_ord" expenses:food:daily=1200 expenses:household=500 assets:cash=-1700 >"$inv_ord_out" 2>&1
   rc=$?
   set -e
   [[ $rc -ne 0 ]] || { echo "FAIL inv-ord $inv_ord expected non-zero rc" >&2; exit 1; }
@@ -332,7 +400,7 @@ expected_block2='2026-07-22 * スーパー
 printf '\n%s\n\n%s\n' "$expected_block" "$expected_block2" >>"$m_journal"
 m_out="$tmp_root/multi-append.out"
 set +e
-bqn src_edit/journal_native_source_check.bqn "$m_base" "$m_journal" 2026-07-22 スーパー purchase-20260722-001 1 expenses:food:daily=1200 expenses:household=500 assets:cash=-1700 >"$m_out" 2>&1
+bqn src_edit/journal_native_source_check.bqn "$m_base" "$m_journal" 2026-07-22 スーパー durable purchase-20260722-001 1 expenses:food:daily=1200 expenses:household=500 assets:cash=-1700 >"$m_out" 2>&1
 rc=$?
 set -e
 [[ $rc -ne 0 ]] || { echo "FAIL multi-append expected non-zero rc" >&2; exit 1; }

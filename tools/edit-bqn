@@ -34,7 +34,7 @@ ACCOUNTS_FILE="$(get_system_default_file DEFAULT_ACCOUNTS_FILE accounts.tsv)"
 usage() {
   cat <<'USAGE' >&2
 Usage:
-  tools/edit-bqn [--base DIR] journal-block add --journal-file FILE --date YYYY-MM-DD --description DESCRIPTION --event-id EVENT_ID --posting ACCOUNT=SIGNED_INTEGER --posting ACCOUNT=SIGNED_INTEGER [--posting ACCOUNT=SIGNED_INTEGER ...] [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
+  tools/edit-bqn [--base DIR] journal-block add [--identity ordinary|durable] --journal-file FILE --date YYYY-MM-DD --description DESCRIPTION [--event-id EVENT_ID] --posting ACCOUNT=SIGNED_INTEGER --posting ACCOUNT=SIGNED_INTEGER [--posting ACCOUNT=SIGNED_INTEGER ...] [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] journal add --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount DECIMAL [--currency CODE] [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] journal multi-add --date YYYY-MM-DD --description DESCRIPTION --posting ACCOUNT=SIGNED_INTEGER --posting ACCOUNT=SIGNED_INTEGER [--posting ACCOUNT=SIGNED_INTEGER ...] [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] journal income-budget-sync --id TXN_ID [--dry-run] [--yes] [--post-check none|lint|full]
@@ -119,10 +119,7 @@ if [[ "$1" == "journal" && "$2" == "multi-add" ]]; then
   [[ -z "${ACTUAL_EXTRA:-}" ]] || { echo "ERROR: invalid actual-source route" >&2; exit 1; }
   [[ "$ACTUAL_MODE" == "journal" ]] || { echo "ERROR: journal multi-add requires ACTUAL_SOURCE=journal; no files changed" >&2; exit 1; }
 
-  posting_seed="$(printf '%s\034' "${POSTINGS[@]}")"
-  event_seed="$DATE"$'\t'"$DESCRIPTION"$'\t'"$posting_seed"$'\t'"$(date +%Y%m%d%H%M%S)"$'\t'"$$"$'\t'"$RANDOM"
-  EVENT_ID="entry-$(printf '%s' "$event_seed" | shasum -a 256 | awk '{print substr($1,1,24)}')"
-  native_args=(--base "$BASE_DIR" journal-block add --journal-file "$ACTUAL_FILE" --date "$DATE" --description "$DESCRIPTION" --event-id "$EVENT_ID" --post-check "$POST_CHECK")
+  native_args=(--base "$BASE_DIR" journal-block add --identity ordinary --journal-file "$ACTUAL_FILE" --date "$DATE" --description "$DESCRIPTION" --post-check "$POST_CHECK")
   for posting in "${POSTINGS[@]}"; do native_args+=(--posting "$posting"); done
   for item in "${BLOCK_META[@]}"; do native_args+=(--meta "$item"); done
   [[ "$DRY_RUN" -eq 1 ]] && native_args+=(--dry-run)
@@ -132,13 +129,14 @@ fi
 
 if [[ "$1" == "journal-block" && "$2" == "add" ]]; then
   shift 2
-  JOURNAL_REL=""; JOURNAL_REL_SET=0; DATE=""; DESCRIPTION=""; EVENT_ID=""; EVENT_ID_SET=0
+  JOURNAL_REL=""; JOURNAL_REL_SET=0; DATE=""; DESCRIPTION=""; IDENTITY_MODE="durable"; EVENT_ID=""; EVENT_ID_SET=0
   POSTINGS=(); BLOCK_META=(); DRY_RUN=0; YES=0; POST_CHECK="lint"
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --journal-file) JOURNAL_REL="$(get_opt_val_allow_empty "$1" "${2-}")"; JOURNAL_REL_SET=1; shift 2 ;;
       --date) DATE="$(get_opt_val_allow_empty "$1" "${2-}")"; shift 2 ;;
       --description) DESCRIPTION="$(get_opt_val_allow_empty "$1" "${2-}")"; shift 2 ;;
+      --identity) IDENTITY_MODE="$(get_opt_val_allow_empty "$1" "${2-}")"; shift 2 ;;
       --event-id) EVENT_ID="$(get_opt_val_allow_empty "$1" "${2-}")"; EVENT_ID_SET=1; shift 2 ;;
       --posting) POSTINGS+=("$(get_opt_val_allow_empty "$1" "${2-}")"); shift 2 ;;
       --meta) BLOCK_META+=("$(get_opt_val_allow_empty "$1" "${2-}")"); shift 2 ;;
@@ -150,7 +148,13 @@ if [[ "$1" == "journal-block" && "$2" == "add" ]]; then
   done
   [[ "$JOURNAL_REL_SET" -eq 1 && -n "$JOURNAL_REL" ]] || { echo "ERROR: missing required option: --journal-file" >&2; exit 2; }
   [[ -n "$DATE" ]] || { echo "ERROR: missing required option: --date" >&2; exit 2; }
-  [[ "$EVENT_ID_SET" -eq 1 ]] || { echo "ERROR: missing required option: --event-id" >&2; exit 2; }
+  [[ "$IDENTITY_MODE" == "ordinary" || "$IDENTITY_MODE" == "durable" ]] || { echo "ERROR: --identity must be ordinary or durable" >&2; exit 2; }
+  if [[ "$IDENTITY_MODE" == "ordinary" ]]; then
+    [[ "$EVENT_ID_SET" -eq 0 ]] || { echo "ERROR: --event-id must not be supplied for ordinary Journal actuals" >&2; exit 2; }
+    EVENT_ID=""
+  else
+    [[ "$EVENT_ID_SET" -eq 1 && -n "$EVENT_ID" ]] || { echo "ERROR: missing required option: --event-id" >&2; exit 2; }
+  fi
   edit_bqn_validate_post_check "$POST_CHECK"
 
   # Portable fail-closed containment: canonicalize the base with cd -P and
@@ -177,14 +181,15 @@ if [[ "$1" == "journal-block" && "$2" == "add" ]]; then
   BQN_STDERR="$(mktemp)"
   trap 'rm -f "$BQN_STDERR"' EXIT
   BQN_OUT=""
-  if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/journal_block_add_cmd.bqn "$CANONICAL_BASE" "$TARGET_PATH" "$DATE" "$DESCRIPTION" "$EVENT_ID" "${#POSTINGS[@]}" "${POSTINGS[@]}" "${BLOCK_META[@]}" 2>"$BQN_STDERR")"; then
+  if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/journal_block_add_cmd.bqn "$CANONICAL_BASE" "$TARGET_PATH" "$DATE" "$DESCRIPTION" "$IDENTITY_MODE" "$EVENT_ID" "${#POSTINGS[@]}" "${POSTINGS[@]}" "${BLOCK_META[@]}" 2>"$BQN_STDERR")"; then
     [[ -n "$BQN_OUT" ]] && printf '%s\n' "$BQN_OUT" >&2
     [[ -s "$BQN_STDERR" ]] && cat "$BQN_STDERR" >&2
     exit 1
   fi
   if ! edit_bqn_split_protocol_output "$BQN_OUT"; then exit 1; fi
-  IFS=$'\t' read -r status op transport_prefix protocol_event posting_count candidate_ordinal extra <<< "$EDIT_BQN_PROTOCOL_FIRST_LINE"
-  if [[ -n "${extra:-}" || "$status" != "OK" || "$op" != "APPEND_BLOCK" || "$protocol_event" != "$EVENT_ID" || ! "$transport_prefix" =~ ^[01]$ || ! "$posting_count" =~ ^[0-9]+$ || "$posting_count" -ne "${#POSTINGS[@]}" || ! "$candidate_ordinal" =~ ^[0-9]+$ ]]; then
+  IFS=$'\t' read -r status op transport_prefix protocol_identity protocol_event posting_count candidate_ordinal extra <<< "$EDIT_BQN_PROTOCOL_FIRST_LINE"
+  expected_protocol_event="$EVENT_ID"; [[ "$IDENTITY_MODE" == "durable" ]] || expected_protocol_event="-"
+  if [[ -n "${extra:-}" || "$status" != "OK" || "$op" != "APPEND_BLOCK" || "$protocol_identity" != "$IDENTITY_MODE" || "$protocol_event" != "$expected_protocol_event" || ! "$transport_prefix" =~ ^[01]$ || ! "$posting_count" =~ ^[0-9]+$ || "$posting_count" -ne "${#POSTINGS[@]}" || ! "$candidate_ordinal" =~ ^[0-9]+$ ]]; then
     echo "ERROR: invalid native Journal BQN protocol header: $EDIT_BQN_PROTOCOL_FIRST_LINE" >&2
     exit 1
   fi
@@ -218,7 +223,7 @@ if [[ "$1" == "journal-block" && "$2" == "add" ]]; then
   NATIVE_OUT=""
   if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && "${EDIT_BQN_TEST_FORCE_NATIVE_POST_CHECK_FAIL:-}" == "1" ]]; then
     NATIVE_OK=0; NATIVE_OUT="forced mandatory native validation failure"
-  elif ! NATIVE_OUT="$(cd "$ROOT_DIR" && bqn src_edit/journal_native_source_check.bqn "$CANONICAL_BASE" "$TARGET_PATH" "$DATE" "$DESCRIPTION" "$EVENT_ID" "$candidate_ordinal" "${POSTINGS[@]}" 2>&1)"; then
+  elif ! NATIVE_OUT="$(cd "$ROOT_DIR" && bqn src_edit/journal_native_source_check.bqn "$CANONICAL_BASE" "$TARGET_PATH" "$DATE" "$DESCRIPTION" "$IDENTITY_MODE" "$EVENT_ID" "$candidate_ordinal" "${POSTINGS[@]}" 2>&1)"; then
     NATIVE_OK=0
   fi
   if [[ "$NATIVE_OK" -eq 1 ]]; then
@@ -855,9 +860,7 @@ if [[ "$COMMAND" == "journal" ]]; then
     for item in "${META[@]}"; do
       [[ "$item" != "income_budget=unassigned" ]] || { echo "ERROR: native Journal income budget companion is not yet supported; no files changed" >&2; exit 1; }
     done
-    event_seed="$DATE"$'\t'"$MEMO"$'\t'"$FROM"$'\t'"$TO"$'\t'"$AMOUNT"$'\t'"$(date +%Y%m%d%H%M%S)"$'\t'"$$"$'\t'"$RANDOM"
-    EVENT_ID="entry-$(printf '%s' "$event_seed" | shasum -a 256 | awk '{print substr($1,1,24)}')"
-    native_args=(--base "$BASE_DIR" journal-block add --journal-file "$ACTUAL_FILE" --date "$DATE" --description "$MEMO" --event-id "$EVENT_ID" --posting "$TO=$AMOUNT" --posting "$FROM=-$AMOUNT" --post-check "$POST_CHECK")
+    native_args=(--base "$BASE_DIR" journal-block add --identity ordinary --journal-file "$ACTUAL_FILE" --date "$DATE" --description "$MEMO" --posting "$TO=$AMOUNT" --posting "$FROM=-$AMOUNT" --post-check "$POST_CHECK")
     for item in "${META[@]}"; do native_args+=(--meta "$item"); done
     [[ "$DRY_RUN" -eq 1 ]] && native_args+=(--dry-run)
     [[ "$YES" -eq 1 ]] && native_args+=(--yes)
