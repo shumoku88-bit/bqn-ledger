@@ -75,7 +75,7 @@ bash checks/check-src-next-golden.sh fixtures/src-next-golden
 
 - **TSV の先頭5列は固定**: `date memo from to amount`
 - **6列目以降は `key=value` メタデータ**
-- **source TSV 保護**: base directory 配下の `journal.tsv` 等が正データ。公開 repo の `data/` は sandbox、実運用は `LEDGER_DATA_DIR` で外出し。AI/ツールの勝手な編集禁止
+- **source data 保護**: base directory 配下のconfigured native Journalとsource TSVが正データ。公開 repo の `data/` は sandbox、実運用は `LEDGER_DATA_DIR` で外出し。AI/ツールの勝手な編集禁止
 - **境界削減**: Bash は UI のみ、現行 write path は BQN editor + shell safe-write、BQN が会計意味の正本。残存 Go は legacy/helper 扱い
 - **1目的1差分**: 変更は小さく戻せる形で
 

@@ -10,7 +10,6 @@ if [ "$#" -eq 0 ]; then
     fixtures/src-next-plan-overlap
     fixtures/src-next-missing-plan
     fixtures/src-next-empty-projection
-    fixtures/src-next-unknown-account
     fixtures/src-next-out-of-cycle-journal
   )
 fi

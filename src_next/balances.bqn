@@ -9,7 +9,6 @@ loader ← •Import "loader.bqn"
 ak ← •Import "account_key.bqn"
 cycle ← •Import "cycle.bqn"
 ctx_mod ← •Import "context.bqn"
-currency_selection ← •Import "currency_selection.bqn"
 currency_setup ← •Import "currency_setup.bqn"
 L ← labels.Text
 
@@ -80,66 +79,24 @@ BuildSelected ← {𝕊 base‿explicitCurrency:
     selected_currency ⇐ "", provenance ⇐ "",
     calculation_scale ⇐ ⟨⟩, presentation_scale ⇐ ⟨⟩, entries ⇐ ⟨⟩
   }
-
   {𝕊:
-    accountLines ← loader.ReadLines (base ∾ "/accounts.tsv")
-    accountAudit ← currency_setup.AuditFile ⟨"accounts.tsv", "accounts", accountLines⟩
     {𝕊:
-      bad ← ⊑ ({𝕩.state ≢ "ok"}¨ accountAudit.rows) / accountAudit.rows
       result ↩ {
-        state ⇐ "error", message ⇐ bad.message,
+        state ⇐ "error", message ⇐ "native Journal selected-currency balances currently require JPY",
         selected_currency ⇐ selection.currency, provenance ⇐ selection.provenance,
         calculation_scale ⇐ ⟨⟩, presentation_scale ⇐ ⟨⟩, entries ⇐ ⟨⟩
       }
-    }⍟(accountAudit.state ≢ "ok") @
-
+    }⍟(selection.currency≢"JPY") @
     {𝕊:
-      resolved ← ak.Resolve accountLines
-      cy ← cycle.ReadCycle base
-      snapshot ← ctx_mod.LoadPostingSourceSnapshot base
-      selected ← currency_selection.Build ⟨snapshot, resolved, cy.start, selection.currency⟩
-
-      {𝕊:
-        diagnostic ← ⊑ selected.diagnostics
-        result ↩ {
-          state ⇐ "error", message ⇐ diagnostic.message,
-          selected_currency ⇐ selection.currency, provenance ⇐ selection.provenance,
-          calculation_scale ⇐ ⟨⟩, presentation_scale ⇐ ⟨⟩, entries ⇐ ⟨⟩
-        }
-      }⍟(selected.state ≢ "ok") @
-
-      {𝕊:
-        calculationScale ← selected.arithmetic_currency_proof.amount_scale
-        policy ← PresentationPolicy ⟨selection.currency, calculationScale⟩
-
-        {𝕊:
-          result ↩ {
-            state ⇐ "error", message ⇐ policy.message,
-            selected_currency ⇐ selection.currency, provenance ⇐ selection.provenance,
-            calculation_scale ⇐ calculationScale,
-            presentation_scale ⇐ policy.presentation_scale,
-            entries ⇐ ⟨⟩
-          }
-        }⍟(policy.state ≢ "ok") @
-
-        {𝕊:
-          view ← ctx_mod.BuildPeriodView ⟨selected.posting_rows, resolved, cy⟩
-          selectedContext ← { resolved ⇐ resolved, tbds ⇐ view.tbds }
-          balanceEntries ← Build selectedContext
-          selectedEntries ← ({((2⊑𝕩) ≡ "asset") ∨ ((2⊑𝕩) ≡ "liability")}¨ balanceEntries) / balanceEntries
-          result ↩ {
-            state ⇐ "ok", message ⇐ "",
-            selected_currency ⇐ selection.currency,
-            provenance ⇐ selection.provenance,
-            calculation_scale ⇐ calculationScale,
-            presentation_scale ⇐ policy.presentation_scale,
-            entries ⇐ selectedEntries
-          }
-        }⍟(policy.state ≡ "ok") @
-      }⍟(selected.state ≡ "ok") @
-    }⍟(accountAudit.state ≡ "ok") @
-  }⍟(selection.state ≡ "ok") @
-
+      ledger ← ctx_mod.BuildContext base
+      policy ← PresentationPolicy ⟨"JPY",0⟩
+      result ↩ {
+        state ⇐ "ok", message ⇐ "", selected_currency ⇐ "JPY", provenance ⇐ selection.provenance,
+        calculation_scale ⇐ 0, presentation_scale ⇐ policy.presentation_scale,
+        entries ⇐ Build ledger
+      }
+    }⍟(selection.currency≡"JPY") @
+  }⍟(selection.state≡"ok") @
   result
 }
 
@@ -235,8 +192,6 @@ FormatHuman ← {𝕊 entries:
   RenderHuman { entries ⇐ entries, FormatAmount ⇐ LegacyAmount, view_line ⇐ "" }
 }
 
-# FormatSelectedHuman: selected currency/provenance/scale are explicit carrier
-# fields and are never inferred from account_key text.
 FormatSelectedHuman ← {𝕊 selected:
   Amount ← {𝕊 amount:
     FormatCoefficient ⟨amount, selected.calculation_scale, selected.presentation_scale, selected.selected_currency⟩

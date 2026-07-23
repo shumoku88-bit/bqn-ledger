@@ -92,16 +92,17 @@ report	Show full report
 section	Show report sections (fzf selector)
 add	Add or cancel transaction / plan
 check	Run check.sh
-edit	Open TSV files in \$EDITOR
+edit	Open source files in \$EDITOR
 exit	Exit
 EOF
 }
 
-# TSV files list for edit command.
-# Keep this as file identity + presentation text only; TSV meaning stays in BQN/docs.
+# Source files list for edit command. Journal identity is resolved by BQN.
 tsv_list() {
+  local actual_journal
+  actual_journal="$(bqn "$ROOT_DIR/src_edit/actual_journal_file_cmd.bqn" "$base_dir")"
   cat <<EOF
-journal.tsv	Journal transactions
+${actual_journal}	Actual transactions (native Journal)
 plan.tsv	Future plans
 budget_alloc.tsv	Budget allocations
 accounts.tsv	Account master
@@ -160,9 +161,10 @@ select_tsv_file() {
 }
 
 resolve_tsv_path() {
-  local file="$1"
+  local file="$1" actual_journal
+  actual_journal="$(bqn "$ROOT_DIR/src_edit/actual_journal_file_cmd.bqn" "$base_dir")"
   case "$file" in
-    journal.tsv|plan.tsv|budget_alloc.tsv|accounts.tsv|cycle.tsv|issues.tsv)
+    "$actual_journal"|plan.tsv|budget_alloc.tsv|accounts.tsv|cycle.tsv|issues.tsv)
       printf '%s\n' "$base_dir/$file"
       ;;
     config.tsv)

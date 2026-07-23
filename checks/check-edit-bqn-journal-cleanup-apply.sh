@@ -5,9 +5,10 @@ tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
 sha() { shasum -a 256 "$1" | awk '{print $1}'; }
 files() { find "$1" -type f -print | sed "s#^$1/##" | LC_ALL=C sort; }
 make_base() {
-  local base="$1" mode="${2:-journal}"
+  local base="$1"
   mkdir -p "$base"; cp fixtures/journal-legacy-entry-id-removal-boundary/before.journal "$base/actual.journal"; cp fixtures/journal-legacy-entry-id-removal-boundary/accounts.tsv "$base/accounts.tsv"
-  awk -v mode="$mode" '/^ACTUAL_SOURCE=/{print "ACTUAL_SOURCE="mode;next}/^ACTUAL_JOURNAL_FILE=/{print "ACTUAL_JOURNAL_FILE=actual.journal";next}{print}' config/default_config.tsv >"$base/config.tsv"
+  printf 'mode\tfixed\nstart\t2026-07-01\nend_exclusive\t2026-08-01\n' >"$base/cycle.tsv"
+  awk '/^ACTUAL_JOURNAL_FILE=/{print "ACTUAL_JOURNAL_FILE=actual.journal";next}{print}' config/default_config.tsv >"$base/config.tsv"
 }
 backup_count() { if [[ -d "$1/.backup" ]]; then find "$1/.backup" -type f | wc -l | tr -d ' '; else echo 0; fi; }
 
@@ -39,10 +40,7 @@ after="$(sha "$base/actual.journal")"; count="$(backup_count "$base")"
 ./tools/edit --base "$base" journal cleanup-apply --yes >"$tmp/noop.out"
 grep -Fqx 'No removable legacy event IDs. No files were modified.' "$tmp/noop.out"; [[ "$(sha "$base/actual.journal")" == "$after" && "$(backup_count "$base")" == "$count" ]]
 
-# Source and CLI rejection remain read-only.
-tsv="$tmp/tsv"; make_base "$tsv" tsv; tsvsha="$(sha "$tsv/actual.journal")"
-if ./tools/edit --base "$tsv" journal cleanup-apply --yes >"$tmp/tsv.out" 2>&1; then echo 'FAIL: TSV accepted' >&2; exit 1; fi
-[[ "$(sha "$tsv/actual.journal")" == "$tsvsha" && "$(backup_count "$tsv")" == 0 ]]
+# Invalid source and CLI rejection remain read-only.
 invalid="$tmp/invalid"; make_base "$invalid"; printf '\nunsupported synthetic group\n' >>"$invalid/actual.journal"; invalidsha="$(sha "$invalid/actual.journal")"
 if ./tools/edit --base "$invalid" journal cleanup-apply --yes >"$tmp/invalid.out" 2>&1; then echo 'FAIL: invalid Journal accepted' >&2; exit 1; fi
 [[ "$(sha "$invalid/actual.journal")" == "$invalidsha" && "$(backup_count "$invalid")" == 0 ]]

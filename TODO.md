@@ -112,15 +112,14 @@ Purpose: move eligible report numeric calculations from independent source re-pa
 
 ### Journal source migration
 
-Status: **Journal single-source production cutover complete; no finite Journal slice is selected.**
+Status: **Journal-only Actual source migration complete; no finite Journal slice is selected.**
 
-- The owner-approved complete native Journal is the production Actual source selected by `ACTUAL_SOURCE=journal` and `ACTUAL_JOURNAL_FILE`.
+- The owner-approved complete native Journal is the only production Actual source and is selected by `ACTUAL_JOURNAL_FILE`.
 - Report, daily add/list/reverse, plan lifecycle, and plan finish use that one source through Transaction IR and checked Posting IR.
-- Journal mode neither reads nor writes `journal.tsv`; there is no dual write, reverse synchronization, or silent fallback.
-- Public synthetic integration evidence runs report, daily recording, and plan completion with no `journal.tsv` present.
-- The final production `journal.tsv` snapshot is preserved outside the active base and retired.
-- Explicit `ACTUAL_SOURCE=tsv` remains a compatibility route for public fixtures and older ledgers; it is not a Journal-mode fallback.
-- Historical converter/profile completion records remain under `docs/archive/completed-plans/`; no new planning document was created for the owner-directed cutover.
+- The actual-transaction TSV route, fallback, dual write, and reverse synchronization are retired.
+- Public synthetic integration evidence runs report, daily recording, and plan completion with only the configured native Journal.
+- Private legacy snapshots and rehearsal/recovery directories remain untouched pending separate explicit archive approval.
+- Historical converter/profile completion records remain under `docs/archive/completed-plans/`; they are evidence, not current runtime instructions.
 
 
 ## Next candidates
@@ -308,7 +307,7 @@ Recurring review prompts:
 ### Source TSV safety
 
 Recurring review prompts:
-- [ ] `journal.tsv` / `plan.tsv` / `budget_alloc.tsv` / `accounts.tsv` の実データは勝手に変更しない
+- [ ] configured native Journal / `plan.tsv` / `budget_alloc.tsv` / `accounts.tsv` の実データは勝手に変更しない
 - [ ] source TSV 契約を変える場合は docs / fixture / check を同じ単位で更新する
 - [ ] journal-like TSV の先頭5列を壊さない。拡張は6列目以降の `key=value` で行う
 - [ ] readonly projection / diagnostic / export のために source meaning を書き換えない

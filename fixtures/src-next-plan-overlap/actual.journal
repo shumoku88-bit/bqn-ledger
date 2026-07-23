@@ -1,0 +1,31 @@
+commodity JPY
+
+account assets:bank
+    ; role: asset
+
+account assets:cash
+    ; role: asset
+
+account equity:opening
+    ; role: equity
+
+account expenses:food
+    ; role: expense
+
+account expenses:rent
+    ; role: expense
+
+account income:salary
+    ; role: income
+
+2026-06-16 * Shared
+    ; event-id: fixture-event-0
+    ; layer: actual
+    expenses:rent 30 JPY
+    expenses:food -30 JPY
+
+2026-06-18 * UniqueJ
+    ; event-id: fixture-event-1
+    ; layer: actual
+    expenses:food 50 JPY
+    equity:opening -50 JPY

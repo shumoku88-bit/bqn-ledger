@@ -1,6 +1,6 @@
 # Fixture: future-journal-as-of
 
-Characterization fixture for `--as-of` behavior when `journal.tsv` contains rows after the observation date.
+Characterization fixture for `--as-of` behavior when `actual.journal` contains rows after the observation date.
 
 Run golden checks with:
 

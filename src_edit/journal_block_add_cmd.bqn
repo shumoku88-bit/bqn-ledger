@@ -69,8 +69,8 @@ postings ← empty
 }¨ postingArgs
 {𝕊⋄Fail ⟨"event_unbalanced", "signed posting amounts must sum exactly to zero"⟩}⍟(0 ≠ +´ {𝕩.delta}¨ postings) @
 
-legacyKeys ← ⟨"tax","biz","invoice","note","due_on","receipt","txn_id","party","plan_id","cashflow","currency","income_budget","recur","series"⟩
-nativeKeys ← ⟨"tax","biz","invoice","note","due-on","receipt","txn-id","party","plan-id","cashflow","currency","income-budget","recur","series"⟩
+legacyKeys ← ⟨"tax","biz","invoice","note","due_on","receipt","txn_id","party","plan_id","cashflow","currency","recur","series"⟩
+nativeKeys ← ⟨"tax","biz","invoice","note","due-on","receipt","txn-id","party","plan-id","cashflow","currency","recur","series"⟩
 metadata ← empty
 {𝕊 text:
   equalMask ← '='=text

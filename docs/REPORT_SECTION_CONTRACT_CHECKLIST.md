@@ -99,7 +99,7 @@ Required context:
 Source files read by the section:
 
 - `<base>/plan.tsv` via `loader.ReadLinesOptional`.
-- `<base>/journal.tsv` via `loader.ReadLinesOptional`.
+- configured native Journal via the shared context / Posting IR path.
 
 Both files are optional at read time for this section; missing files produce empty row sets rather than shell fallback parsing. The section is read-only and does not write source TSV.
 

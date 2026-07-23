@@ -1,7 +1,10 @@
 # Canonical Daily Cube 監査メモ
 
-最終更新日: 2026-06-26
-ステータス: **src_next Daily Cube 現行契約 / 実装・検証あり**
+Status: current contract
+Owner: report
+Canonical: yes
+Exit: revise when the Day × Account × Layer contract changes
+Updated: 2026-06-26
 
 ## 概要
 
@@ -50,7 +53,7 @@ env_history_bal ← env_idxs ⊸ ⊏ ˘ 2 ⊏ ˘ ˘ trend_mask / cube_balances
 
 | Index | Name | Source | 意味 |
 |---|---|---|---|
-| 0 | `actual` | `journal.tsv` | 現実の資産・収入・支出の動き。 |
+| 0 | `actual` | configured native Journal | 現実の資産・収入・支出の動き。 |
 | 1 | `plan` | `plan.tsv` | 予定された将来の動き。 |
 | 2 | `budget` | `budget_alloc.tsv` + journal 支出 | 封筒の配賦と消費の動き。 |
 | 3 | `forecast` | (TBD) | 予測値。 |
@@ -78,7 +81,7 @@ ResidualとScenarioは現時点でLayerへ追加しません。既存Layerと時
 
 ## 検査項目 (Invariants)
 
-- Actual レイヤーには `budget:*` 口座の動きが含まれない（`journal.tsv` 由来の budget account actual と `budget_alloc.tsv` actual をゼロ化）。
+- Actual レイヤーには `budget:*` 口座の動きが含まれない（native Journalのbudget account actualは拒否し、`budget_alloc.tsv` actualはゼロ化）。
 - Budget レイヤーには `budget_alloc.tsv` の配賦と Journal 由来の支出が投影される。
 - Plan レイヤーは Actual 残高に影響を与えない。
 - `tests/test_src_next_cube.bqn` は skipped row が cube index として使われないこと、layer totals、per-account totals、validation summary を検査する。

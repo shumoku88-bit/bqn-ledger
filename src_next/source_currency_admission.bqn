@@ -51,7 +51,7 @@ Classification ← {𝕊 tokens:
 }
 
 IsPostingSourceFile ← {𝕊 sourceFile:
-  ∨´ 0 ∾ (sourceFile⊸≡¨ ⟨"journal.tsv", "plan.tsv", "budget_alloc.tsv"⟩)
+  ∨´ 0 ∾ (sourceFile⊸≡¨ ⟨"actual.journal", "plan.tsv", "budget_alloc.tsv"⟩)
 }
 
 Diagnostic ← {𝕊 code‿sourceKind‿sourceFile‿sourceRow:

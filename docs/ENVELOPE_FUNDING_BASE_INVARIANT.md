@@ -1,6 +1,9 @@
 # Envelope funding base invariant
 
-状態: draft / design with readonly diagnostic slice
+Status: current contract
+Owner: envelope
+Canonical: yes
+Exit: revise when the envelope funding-base invariant changes
 
 この文書は、封筒予算が「実残高の何に対してバランスしているのか」を明示するための設計草案です。
 
@@ -396,7 +399,7 @@ unavailable... / error...
 - source TSV / schema / write path を変更しない
 - `accounts.tsv` の schema を変更しない
 - `budget_alloc.tsv` の形式を変更しない
-- `journal.tsv` の扱いを変更しない
+- configured native Journalの扱いを変更しない
 - `type=liquid` を変更しない
 - `type=liquid|savings|invest` の分類名・境界を決定しない
 - `liq_total` などの内部変数を変更しない

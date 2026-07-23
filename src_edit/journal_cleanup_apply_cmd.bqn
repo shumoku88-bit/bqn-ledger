@@ -12,8 +12,7 @@ Join ← {𝕊 fields: 1↓∾(tab⊸∾)¨fields}
 Fail ← {𝕊 code‿message: •Out Join ⟨"ERROR",code,message⟩ ⋄ •Exit 1}
 {𝕊: Fail ⟨"usage","expected base directory and candidate output path"⟩}⍟(2≠≠args) @
 base ← 0⊑args ⋄ candidatePath ← 1⊑args
-route ← actual.ModeAndFile base
-{𝕊: Fail ⟨"actual_source_not_journal","cleanup apply requires ACTUAL_SOURCE=journal"⟩}⍟(route.mode≢"journal") @
+route ← actual.Resolve base
 raw ← loader.ReadRaw (base∾"/"∾route.file)
 parsed ← parser.ParseWithProfile ⟨raw,"historical_external_plan"⟩
 {𝕊: Fail ⟨"journal_invalid","configured Journal did not parse"⟩}⍟(parsed.state≢"ok") @

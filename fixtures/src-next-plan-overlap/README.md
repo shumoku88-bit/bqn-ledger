@@ -6,7 +6,7 @@ Plan/journal overlap diagnostics fixture for src_next Stage 4a.
 - Row 0: `2026-06-16 Shared expenses:food expenses:rent 30` — exact match with journal row 0
 - Row 1: `2026-06-20 UniqueP expenses:rent expenses:food 40` — unmatched plan row
 
-**journal.tsv:**
+**actual.journal:**
 - Row 0: `2026-06-16 Shared expenses:food expenses:rent 30` — exact match with plan row 0
 - Row 1: `2026-06-18 UniqueJ equity:opening expenses:food 50` — journal-only row
 

@@ -6,6 +6,8 @@ Canonical: no; canonical path: `docs/ENGINEERING_ROADMAP.md`
 Exit: archive when the currency-awareness campaign closes or when a current currency contract replaces this plan
 Date: 2026-07-08
 
+Source-model note (2026-07-24): references below to `journal.tsv` describe the pre-Journal-only evidence/model and are not current runtime instructions. Current Actual ingress is the configured native Journal; `plan.tsv` and `budget_alloc.tsv` remain TSV sources.
+
 ## Purpose
 
 This document stages the path from the current JPY-only assumptions toward a currency-aware ledger without jumping directly into exchange-rate valuation.

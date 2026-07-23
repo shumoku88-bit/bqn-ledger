@@ -1,9 +1,0 @@
-# Fixture: src-next-unknown-account
-# Purpose: src_next unknown account skipped-row check
-
-equity:opening	role=equity
-assets:bank	role=asset
-assets:cash	role=asset
-income:salary	role=income
-expenses:food	role=expense
-expenses:rent	role=expense

@@ -26,7 +26,7 @@ activity log (newest first)
 ## Intended source when implemented
 
 ```text
-journal.tsv → newest N rows (all-time or cycle-bounded)
+configured native Journal → newest N rows (all-time or cycle-bounded)
 ```
 
 ## Include

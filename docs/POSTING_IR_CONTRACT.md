@@ -20,19 +20,20 @@ source TSV rows
 
 Posting IR is an internal, normalized, ledger-like row set.
 
-It is not a new source TSV format. The current source TSV contract remains valid:
+It is not a source format. Current sources are:
 
 ```text
-journal.tsv / plan.tsv: date, memo, from, to, amount, metadata...
+configured native Journal: Actual transaction blocks and postings
+plan.tsv: date, memo, from, to, amount, metadata...
 budget_alloc.tsv: current budget allocation schema
 accounts.tsv: account metadata
 ```
 
-Posting IR is allowed to be richer than source TSV, but it must be derived read-only from source files.
+Posting IR is derived read-only from these source files.
 
 ## 2. Design goals
 
-- Keep `data/*.tsv` as source of truth.
+- Keep the configured native Journal and `data/*.tsv` source files as source of truth.
 - Keep source parsing separate from accounting computation.
 - Validate account, layer, date, and balance invariants before cube materialization.
 - Make future `txn_id` / multi-row grouping support possible without changing report views.
@@ -42,14 +43,14 @@ Posting IR is allowed to be richer than source TSV, but it must be derived read-
 ## 3. Non-goals
 
 - Do not change production `data/*.tsv`.
-- Do not require a Ledger/Beancount-style source format.
+- Do not introduce another source format beside the configured native Journal and existing non-Actual TSV contracts.
 - Do not make UI/editor behavior part of the accounting kernel.
 - Do not silently repair invalid rows.
 - Do not put household advice concepts such as `daily`, `food`, or `safe` into Posting IR.
 
 ## 4. Posting row shape
 
-Each source movement expands to one or more posting rows. For the existing `from/to/amount` source shape, one source row normally expands to two posting rows:
+Each source movement expands to one or more posting rows. Native Journal transactions preserve their posting topology; a non-Actual `from/to/amount` TSV row normally expands to two posting rows:
 
 ```text
 debit:  to account,   +amount
@@ -60,7 +61,7 @@ Required fields:
 
 | field | type | meaning |
 |---|---|---|
-| `source_file` | string | Source file name, e.g. `journal.tsv` |
+| `source_file` | string | Source file name, e.g. `actual.journal` |
 | `source_row` | number | Zero-based source data row index, excluding header if applicable |
 | `source_id` | string | Stable row identifier derived from source row identity |
 | `tx_id` | string | Transaction group id; source metadata `txn_id=` if present, otherwise `source_id` |
@@ -100,7 +101,7 @@ The exact derivation may be implementation-specific at first, but it must be sta
 - A single-row transaction is valid.
 - Multi-row `txn_id` groups are validated by a separate grouping lint; they do not change per-row posting expansion.
 
-This follows `docs/archive/completed-plans/DECISION_MULTI_POSTING_INVESTIGATION.md` A-1: keep source TSV shape stable, group related source rows using metadata.
+Native Journal transactions own grouping directly. Non-Actual TSV rows retain their documented metadata identity.
 
 ### `posting_id`
 
@@ -121,7 +122,7 @@ Default mapping:
 
 | source file | layer |
 |---|---|
-| `journal.tsv` | `actual` |
+| configured `*.journal` | `actual` |
 | `plan.tsv` | `plan` |
 | `budget_alloc.tsv` | `budget` |
 

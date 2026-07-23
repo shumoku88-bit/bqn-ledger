@@ -1,7 +1,7 @@
 # plan_journal_overlap.bqn
 # Read-only plan/journal overlap diagnostics for src_next Stage 4a.
 # Plan/journal matching uses plan_id metadata (primary) with 5-field TSV fallback.
-# Does not mutate plan.tsv or journal.tsv.
+# Does not mutate plan.tsv or native Journal.
 
 loader ← •Import "loader.bqn"
 proj ← •Import "projection.bqn"

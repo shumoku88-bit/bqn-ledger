@@ -1,0 +1,48 @@
+commodity JPY
+
+account assets:cash
+    ; role: asset
+
+account assets:savings
+    ; role: asset
+
+account expenses:fixed
+    ; role: expense
+
+account expenses:variable
+    ; role: expense
+
+account income:salary
+    ; role: income
+
+2026-02-01 * opening
+    ; event-id: fixture-event-0
+    ; layer: actual
+    assets:cash 100 JPY
+    income:salary -100 JPY
+
+2026-02-03 * day_three
+    ; event-id: fixture-event-1
+    ; layer: actual
+    expenses:variable 5 JPY
+    assets:cash -5 JPY
+
+2026-02-03 * completed_same_day
+    ; event-id: fixture-event-2
+    ; layer: actual
+    ; plan-id: done-same
+    expenses:fixed 20 JPY
+    assets:cash -20 JPY
+
+2026-02-06 * completed_before_due
+    ; event-id: fixture-event-3
+    ; layer: actual
+    ; plan-id: done-future
+    expenses:fixed 40 JPY
+    assets:cash -40 JPY
+
+2026-02-09 * late_observation
+    ; event-id: fixture-event-4
+    ; layer: actual
+    expenses:variable 7 JPY
+    assets:cash -7 JPY

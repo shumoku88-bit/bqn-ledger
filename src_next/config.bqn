@@ -31,7 +31,6 @@ LoadSystemDefaults ← { 𝕩 ⋄
     Get ⇐ Get,
     DefaultBaseDir ⇐ { 𝕊 ⋄ Get "DEFAULT_BASE_DIR" },
     DefaultAccountsFile ⇐ { 𝕊 ⋄ Get "DEFAULT_ACCOUNTS_FILE" },
-    DefaultJournalFile ⇐ { 𝕊 ⋄ Get "DEFAULT_JOURNAL_FILE" },
     DefaultPlanFile ⇐ { 𝕊 ⋄ Get "DEFAULT_PLAN_FILE" },
     DefaultBudgetAllocFile ⇐ { 𝕊 ⋄ Get "DEFAULT_BUDGET_ALLOC_FILE" },
     DefaultCycleFile ⇐ { 𝕊 ⋄ Get "DEFAULT_CYCLE_FILE" },
@@ -52,20 +51,22 @@ Path ← {
   } 𝕩
 }
 
-LoadActualSource ← {𝕊 base:
+LoadActualJournal ← {𝕊 base:
   localParsed ← ParseLine¨loader.ReadLines (Path base)
   repoParsed ← ParseLine¨loader.ReadLines "config/default_config.tsv"
-  Resolve ← {𝕊 key:
-    localMatches ← ({(0⊑𝕩)≡key}¨localParsed)/localParsed
-    repoMatches ← ({(0⊑𝕩)≡key}¨repoParsed)/repoParsed
-    {𝕊: •Out "CONFIG ERROR: duplicate value for "∾key ⋄ •Exit 1}⍟(1<≠localMatches) @
-    {𝕊: •Out "CONFIG ERROR: repository default missing or duplicate for "∾key ⋄ •Exit 1}⍟(1≠≠repoMatches) @
-    value ← 1⊑⊑repoMatches
-    {𝕊: value↩1⊑⊑localMatches}⍟(1=≠localMatches) @
-    {𝕊: •Out "CONFIG ERROR: empty value for "∾key ⋄ •Exit 1}⍟(0=≠value) @
-    value
-  }
-  {mode⇐Resolve "ACTUAL_SOURCE",file⇐Resolve "ACTUAL_JOURNAL_FILE"}
+  key ← "ACTUAL_JOURNAL_FILE"
+  localMatches ← ({(0⊑𝕩)≡key}¨localParsed)/localParsed
+  repoMatches ← ({(0⊑𝕩)≡key}¨repoParsed)/repoParsed
+  {𝕊: •Out "CONFIG ERROR: duplicate value for "∾key ⋄ •Exit 1}⍟(1<≠localMatches) @
+  {𝕊: •Out "CONFIG ERROR: repository default missing or duplicate for "∾key ⋄ •Exit 1}⍟(1≠≠repoMatches) @
+  file ← 1⊑⊑repoMatches
+  {𝕊: file↩1⊑⊑localMatches}⍟(1=≠localMatches) @
+  {𝕊: •Out "CONFIG ERROR: empty value for "∾key ⋄ •Exit 1}⍟(0=≠file) @
+  hasSeparator ← ∨´ ('/'=file) ∨ ((@+92)=file)
+  hasControl ← ∨´ file∊(@+9)‿(@+13)
+  validSuffix ← (8≤≠file) ∧ ".journal"≡¯8↑file
+  {𝕊: •Out "CONFIG ERROR: "∾key∾" must be a safe .journal basename" ⋄ •Exit 1}⍟(hasSeparator ∨ hasControl ∨ ¬validSuffix) @
+  {file⇐file}
 }
 
 LoadConfig ← {
@@ -201,8 +202,7 @@ LoadConfig ← {
     v
   }
 
-  ActualSource ← { 𝕊 ⋄ EffectiveDefaultable "ACTUAL_SOURCE" }
-  ActualJournalFile ← { 𝕊 ⋄ EffectiveDefaultable "ACTUAL_JOURNAL_FILE" }
+  ActualJournalFile ← { 𝕊 ⋄ (LoadActualJournal 𝕩).file }
   ExecutionPlannedPaymentsEnvelope ← { 𝕊 ⋄ Get "EXECUTION_PLANNED_PAYMENTS_ENVELOPE" }
 
   Warnings ← { 𝕊 ⋄
@@ -233,11 +233,10 @@ LoadConfig ← {
     PolicyBudgetStyle ⇐ PolicyBudgetStyle,
     PolicyRiskStyle ⇐ PolicyRiskStyle,
     PolicyIncomeCadence ⇐ PolicyIncomeCadence,
-    ActualSource ⇐ ActualSource,
-    ActualJournalFile ⇐ ActualJournalFile,
+    ActualJournalFile ⇐ {𝕊: (LoadActualJournal file_path).file},
     ExecutionPlannedPaymentsEnvelope ⇐ ExecutionPlannedPaymentsEnvelope,
     warnings ⇐ Warnings @
   }
 }
 
-{ LoadConfig ⇐ LoadConfig, LoadActualSource⇐LoadActualSource, LoadSystemDefaults ⇐ LoadSystemDefaults }
+{ LoadConfig ⇐ LoadConfig, LoadActualJournal⇐LoadActualJournal, LoadSystemDefaults ⇐ LoadSystemDefaults }

@@ -1,0 +1,13 @@
+commodity JPY
+
+account assets:cash
+    ; role: asset
+
+account budget:unassigned
+    ; kind: unassigned
+
+account budget:食費
+    ; kind: envelope
+
+account expenses:prefix-only
+    ; default-envelope: 食費

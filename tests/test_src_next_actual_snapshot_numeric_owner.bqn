@@ -10,7 +10,7 @@ Line ← {𝕊 fields: ∾ fields ∾¨ tab}
 Snapshot ← {𝕊 jlines:
   {
     sources ⇐ ⟨
-      {source_file⇐"journal.tsv", required⇐1, lines⇐jlines},
+      {source_file⇐"actual.journal", required⇐1, lines⇐jlines},
       {source_file⇐"plan.tsv", required⇐0, lines⇐⟨⟩},
       {source_file⇐"budget_alloc.tsv", required⇐0, lines⇐⟨⟩}
     ⟩
@@ -92,7 +92,7 @@ unknown_before ← actual_snapshot.BuildAt ⟨unknown_before_ctx, observation⟩
 "rejected_actual_evidence" lib.AssertEq unknown_before.reason
 1 lib.AssertEq ≠ unknown_before.diagnostics
 bad_diag ← ⊑ unknown_before.diagnostics
-"journal.tsv" lib.AssertEq bad_diag.source_file
+"actual.journal" lib.AssertEq bad_diag.source_file
 3 lib.AssertEq bad_diag.source_row
 "unknown_account" lib.AssertEq bad_diag.status
 "unavailable" lib.AssertEq unknown_before.net_worth
@@ -134,7 +134,7 @@ error_vm ← outlook.BuildAt ⟨unknown_before_ctx, observation⟩
 machine ← outlook.Format error_vm
 1 lib.AssertEq ∨´ "src_next_outlook_status: error"⍷machine
 1 lib.AssertEq ∨´ "src_next_outlook_reason: rejected_actual_evidence"⍷machine
-1 lib.AssertEq ∨´ "src_next_outlook_diagnostic: journal.tsv"⍷machine
+1 lib.AssertEq ∨´ "src_next_outlook_diagnostic: actual.journal"⍷machine
 human ← outlook.FormatHuman error_vm
 1 lib.AssertEq ∨´ "Outlookの入力を信頼できない"⍷human
 0 lib.AssertEq ∨´ "使える可用資金"⍷human

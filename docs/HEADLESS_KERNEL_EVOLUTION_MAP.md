@@ -137,7 +137,7 @@ Every phase must preserve these unless a separate explicit decision replaces one
 
 ### 5.1 Source and daily-use safety
 
-- `journal.tsv`, `plan.tsv`, `budget_alloc.tsv`, and `accounts.tsv` remain source data.
+- The configured native Journal, `plan.tsv`, `budget_alloc.tsv`, and `accounts.tsv` remain source data.
 - The journal-like first five columns remain `date memo from to amount`.
 - Real source TSV is not migrated or rewritten as part of boundary discovery.
 - Existing editor and daily report paths remain valid.

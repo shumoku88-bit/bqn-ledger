@@ -1,0 +1,52 @@
+commodity JPY
+
+account assets:bank
+    ; role: asset
+
+account budget:opening
+    ; role: budget
+
+account budget:spent
+    ; role: budget
+
+account budget:unassigned
+    ; role: budget
+
+account equity:opening-balances
+    ; role: equity
+
+account expenses:book
+    ; role: expense
+    ; default-envelope: unassigned
+
+account expenses:computer
+    ; role: expense
+    ; default-envelope: unassigned
+
+account liabilities:card
+    ; role: liability
+
+2026-01-01 * Opening
+    ; event-id: fixture-event-0
+    ; layer: actual
+    assets:bank 100000 JPY
+    equity:opening-balances -100000 JPY
+
+2026-01-10 * Book
+    ; event-id: fixture-event-1
+    ; layer: actual
+    expenses:book 800 JPY
+    liabilities:card -800 JPY
+
+2026-01-20 * Computer
+    ; event-id: fixture-event-2
+    ; layer: actual
+    ; due-on: 2026-03-05
+    expenses:computer 1200 JPY
+    liabilities:card -1200 JPY
+
+2026-02-28 * Pay card
+    ; event-id: fixture-event-3
+    ; layer: actual
+    liabilities:card 800 JPY
+    assets:bank -800 JPY

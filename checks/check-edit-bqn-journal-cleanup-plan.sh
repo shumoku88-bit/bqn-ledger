@@ -16,12 +16,11 @@ sha_file() { shasum -a 256 "$1" | awk '{print $1}'; }
 file_list() { find "$1" -type f -print | sed "s#^$1/##" | LC_ALL=C sort; }
 
 make_base() {
-  local base="$1" journal="$2" mode="${3:-journal}"
+  local base="$1" journal="$2"
   mkdir -p "$base"
   cp fixtures/journal-legacy-entry-id-removal-boundary/accounts.tsv "$base/accounts.tsv"
   cp "$journal" "$base/actual.journal"
-  awk -v mode="$mode" '
-    /^ACTUAL_SOURCE=/ { print "ACTUAL_SOURCE=" mode; next }
+  awk '
     /^ACTUAL_JOURNAL_FILE=/ { print "ACTUAL_JOURNAL_FILE=actual.journal"; next }
     { print }
   ' config/default_config.tsv >"$base/config.tsv"
@@ -92,18 +91,6 @@ snapshot "$identity_base" "$tmp_root/identity-snapshot"
 awk -F '\t' 'NR==2 && $2=="IDENTITY_FREE" && $6=="-" && $7==0 && $8==26 && $9==0 { found=1 } END { exit found ? 0 : 1 }' "$tmp_root/identity.tsv" || { echo "FAIL: identity-free row mismatch" >&2; exit 1; }
 ! grep -q 'stage0-line-' "$tmp_root/identity.tsv" || { echo "FAIL: fallback identity leaked" >&2; exit 1; }
 assert_snapshot "$identity_base" "$tmp_root/identity-snapshot"
-
-# TSV mode must fail closed before reading or changing the selected source.
-tsv_base="$tmp_root/tsv-source"
-make_base "$tsv_base" fixtures/journal-legacy-entry-id-removal-boundary/before.journal tsv
-snapshot "$tsv_base" "$tmp_root/tsv-snapshot"
-set +e
-./tools/edit-bqn --base "$tsv_base" journal cleanup-plan --format tsv >"$tmp_root/tsv-reject.out" 2>&1
-rc=$?
-set -e
-[ "$rc" -ne 0 ] || { echo "FAIL: TSV source unexpectedly accepted" >&2; exit 1; }
-grep -Fqx $'ERROR\tactual_source_not_journal\tcleanup plan requires ACTUAL_SOURCE=journal' "$tmp_root/tsv-reject.out" || { echo "FAIL: TSV rejection protocol mismatch" >&2; exit 1; }
-assert_snapshot "$tsv_base" "$tmp_root/tsv-snapshot"
 
 # CLI-only errors are exit 2 and remain read-only.
 for args in '--format json' '--apply' '--yes' '--dry-run' '--post-check none' '--event-id entry-0123456789abcdef01234567' '--index 1'; do

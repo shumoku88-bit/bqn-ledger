@@ -5,7 +5,7 @@ cube ← •Import "../src_next/cube.bqn"
 
 MakeRow ← {𝕊 status‿day‿ak‿layer‿delta‿srcId‿side‿kind:
   {
-    source_file       ⇐ "journal.tsv",
+    source_file       ⇐ "actual.journal",
     source_row        ⇐ 0,
     source_id         ⇐ srcId,
     side              ⇐ side,

@@ -15,7 +15,7 @@ cy ← cycle.ReadCycle base
 
 # Build checked projection for sub_invalid_budget_date
 miss_base ← "fixtures/envelope-characterization/sub_invalid_budget_date"
-miss_snapshot ← context.LoadPostingSourceSnapshot miss_base
+miss_snapshot ← context.LoadNonActualPostingSourceSnapshot miss_base
 miss_proj ← context.BuildCheckedPostingProjectionFromSnapshot ⟨miss_snapshot, resolved, cy.start⟩
 miss_rows ← miss_proj.posting_rows
 miss_cube ← cube.Materialize ⟨miss_rows, cy.day_count, resolved.count⟩

@@ -126,9 +126,9 @@ find fixtures -maxdepth 1 -mindepth 1 -type d 2>/dev/null | sort | while read -r
   fi
   
   files=()
-  for tsv in journal.tsv plan.tsv budget_alloc.tsv accounts.tsv; do
-    if [ -f "${dir}/${tsv}" ]; then
-      files+=("$tsv")
+  for source in actual.journal plan.tsv budget_alloc.tsv accounts.tsv; do
+    if [ -f "${dir}/${source}" ]; then
+      files+=("$source")
     fi
   done
   

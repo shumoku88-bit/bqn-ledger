@@ -11,7 +11,7 @@ Line ← {𝕊 fields: ∾ fields ∾¨ tab}
 Snapshot ← {𝕊 journal_lines‿plan_lines:
   {
     sources ⇐ ⟨
-      {source_file⇐"journal.tsv", required⇐1, lines⇐journal_lines},
+      {source_file⇐"actual.journal", required⇐1, lines⇐journal_lines},
       {source_file⇐"plan.tsv", required⇐0, lines⇐plan_lines},
       {source_file⇐"budget_alloc.tsv", required⇐0, lines⇐⟨⟩}
     ⟩

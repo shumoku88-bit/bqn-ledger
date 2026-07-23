@@ -26,7 +26,7 @@ plan tracking (cycle-bounded)
 
 ```text
 plan.tsv → future/overdue/due entries in current cycle
-journal.tsv → completed entries matched by plan_id
+configured native Journal → completed entries matched by plan_id
 ```
 
 ## Include

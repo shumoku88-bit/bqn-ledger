@@ -6,14 +6,14 @@ Date: 2026-06-30
 `tools/edit-bqn` is the BQN-backed editor entry point behind the stable public
 `tools/edit` wrapper. It is intentionally a thin shell dispatcher: command-line
 syntax, preview/confirmation, and safe-write orchestration live in shell; ledger
-validation and TSV row/edit rendering live in `src_edit/*.bqn`.
+validation and native Journal block / TSV row rendering live in `src_edit/*.bqn`.
 
 ## Command groups
 
 | Group | Commands | Shell owner | BQN owner |
 |---|---|---|---|
 | account | `account add`, `account list` | `tools/edit-bqn` safe append / read-only dispatch | `src_edit/account_add_cmd.bqn`, `src_edit/account_list_cmd.bqn` |
-| journal | `journal add`, `journal income-budget-sync`, `journal list`, `journal reverse` | `tools/edit-bqn` | `src_edit/journal_add_cmd.bqn`, `src_edit/income_budget_sync_cmd.bqn`, `src_edit/txn_id.bqn`, `src_edit/journal_list_cmd.bqn`, `src_edit/journal_reverse_cmd.bqn` |
+| journal | `journal add`, `journal multi-add`, `journal list`, `journal reverse`, cleanup plan/apply | `tools/edit-bqn` | `src_edit/journal_block_add_cmd.bqn`, `src_edit/journal_list_cmd.bqn`, `src_edit/journal_native_reverse_cmd.bqn`, cleanup modules, `src_edit/journal_validate_cmd.bqn` |
 | budget | `budget add` | `tools/edit-bqn` shared journal-like append path | `src_edit/journal_add_cmd.bqn` |
 | plan read | `plan list`, `plan related` | `tools/edit-bqn` read-only dispatch | `src_edit/plan_list_cmd.bqn`, `src_edit/plan_related_cmd.bqn` |
 | plan write | `plan add`, `plan finish`, `plan budget-sync`, `plan edit` | `tools/edit-bqn` | `src_edit/plan_add_cmd.bqn`, `src_edit/plan_finish_cmd.bqn`, `src_edit/plan_budget_sync_cmd.bqn`, `src_edit/plan_edit_cmd.bqn` |
@@ -27,11 +27,11 @@ Shared syntax-only helpers live in `tools/lib/edit-bqn-common.sh`:
 - `--post-check` mode validation
 - preview mode naming (`confirm` / `dry-run` / `yes`)
 - BQN command capture with stderr preservation
-- BQN stdout protocol parsing for command-independent `APPEND` / `REPLACE` apply helpers
+- BQN stdout protocol parsing for command-independent `APPEND` / `APPEND_BLOCK` / `REPLACE` apply helpers
 - preview / safe-write / post-check orchestration for common append/replace paths
 - test-only hook invocation by declared shell function name
 
-These helpers must not inspect account names, source TSV business meaning, or
+These helpers must not inspect account names, native Journal / source TSV business meaning, or
 household policy. If a helper needs ledger meaning, move that decision into
 `src_edit/` first and consume a machine-readable protocol from shell.
 
@@ -52,8 +52,8 @@ Current boundary-polishing references:
 
 - `tools/add-ui.sh` account candidates use `tools/edit account list [--role ROLE]` instead of reading `accounts.tsv` directly.
 - `tools/add-ui.sh` plan selection uses `tools/edit plan list --format tsv` instead of reading `plan.tsv` directly; see `docs/UNFINISHED_PLAN_ENTRIES_EXPORT_CONTRACT.md`.
-- `tools/add-ui.sh` reverse selection uses `tools/edit journal list --format tsv` instead of reading `journal.tsv` directly.
+- `tools/add-ui.sh` reverse selection uses `tools/edit journal list --format tsv` instead of reading the configured native Journal directly.
 - `tools/add-ui.sh` issue-close selection uses `tools/edit issue list --format tsv` instead of reading `issues.tsv` directly.
-- `journal reverse` uses the narrow `src_edit/journal_reverse_cmd.bqn`.
+- `journal reverse` uses the narrow `src_edit/journal_native_reverse_cmd.bqn`.
 - `plan edit` uses the narrow `src_edit/plan_edit_cmd.bqn`.
 - The former aggregate `src_edit/editor_cmd.bqn` dispatcher has been removed after its active paths were replaced by narrow commands.

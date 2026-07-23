@@ -1,6 +1,0 @@
-assets:jpy-cash	role=asset	type=liquid	currency=JPY
-liabilities:jpy-card	role=liability	currency=JPY
-assets:ils-main	role=asset	type=liquid	currency=ILS
-liabilities:ils-main	role=liability	currency=ILS
-assets:ils-small	role=asset	type=liquid	currency=ILS
-liabilities:ils-small	role=liability	currency=ILS

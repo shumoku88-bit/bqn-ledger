@@ -1,3 +1,0 @@
-2026-06-15	explicit integer ILS	assets:bank	expenses:food	1200	currency=ILS
-2026-06-16	explicit decimal ILS	assets:bank	expenses:food	42.50	currency=ILS
-2026-06-17	explicit small ILS	assets:bank	expenses:food	0.05	currency=ILS

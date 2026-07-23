@@ -19,7 +19,7 @@ Line ← {𝕊 fields: ∾ fields ∾¨ tab}
 SnapshotForLine ← {𝕊 line:
   {
     sources ⇐ ⟨
-      {source_file⇐"journal.tsv", required⇐1, lines⇐⟨line⟩},
+      {source_file⇐"actual.journal", required⇐1, lines⇐⟨line⟩},
       {source_file⇐"plan.tsv", required⇐0, lines⇐⟨⟩},
       {source_file⇐"budget_alloc.tsv", required⇐0, lines⇐⟨⟩}
     ⟩
@@ -78,7 +78,7 @@ RowsForFields ← {𝕊 rowIdx‿fields:
 "T-001" lib.AssertEq proj.TxIdFromMeta ⟨"fallback-id", ⟨"2026-06-01", "memo", "assets:bank", "医療費", "1200", "txn_id=T-001"⟩⟩
 "fallback-id" lib.AssertEq proj.TxIdFromMeta ⟨"fallback-id", ⟨"2026-06-01", "memo", "assets:bank", "医療費", "1200"⟩⟩
 "actual" lib.AssertEq proj.LayerName proj.layer_actual
-"journal.tsv:3:debit" lib.AssertEq proj.PostingId ⟨"journal.tsv", 3, "debit"⟩
+"actual.journal:3:debit" lib.AssertEq proj.PostingId ⟨"actual.journal", 3, "debit"⟩
 1 lib.AssertEq proj.IsIntegerText "1200"
 0 lib.AssertEq proj.IsIntegerText "12x"
 1 lib.AssertEq proj.IsValidDateText "2026-06-01"
@@ -88,7 +88,7 @@ RowsForFields ← {𝕊 rowIdx‿fields:
 rows ← RowsForFields ⟨3, ⟨"2026-06-01", "memo", "assets:bank", "医療費", "1200", "txn_id=T-001"⟩⟩
 debit ← ⊑ rows
 "T-001" lib.AssertEq debit.tx_id
-"journal.tsv:3:debit" lib.AssertEq debit.posting_id
+"actual.journal:3:debit" lib.AssertEq debit.posting_id
 "2026-06-01" lib.AssertEq debit.date
 "医療費/JPY" lib.AssertEq debit.account_key
 "actual" lib.AssertEq debit.layer_name

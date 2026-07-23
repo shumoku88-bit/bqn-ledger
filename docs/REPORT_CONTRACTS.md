@@ -66,7 +66,7 @@ Executable coverage: `tests/test_src_next_actual_comparison.bqn` and `checks/che
 
 ## Outlook checked actual snapshot boundary
 
-`outlook.BuildAt ⟨ctx,O⟩` receives actual balances from `actual_snapshot.BuildAt ⟨ctx,O⟩`. The snapshot is ledger-cumulative through inclusive O and derives numeric balances from checked ledger-wide Posting IR through a local `[O,O+1)` actual-layer TBDS closing view, not an independent `journal.tsv` amount parser.
+`outlook.BuildAt ⟨ctx,O⟩` receives actual balances from `actual_snapshot.BuildAt ⟨ctx,O⟩`. The snapshot is ledger-cumulative through inclusive O and derives numeric balances from checked ledger-wide Posting IR through a local `[O,O+1)` actual-layer TBDS closing view, not an independent Actual-source amount parser.
 
 Rows before O form TBDS opening, rows on O form movement, and closing is the cumulative balance through O. Pre-cycle history therefore remains part of the balance, and `cycle.end_exclusive` does not cap the snapshot when O is later.
 

@@ -27,7 +27,7 @@ budget tracking (envelope method)
 
 ```text
 budget_alloc.tsv → allocated amounts (cycle-bounded)
-journal.tsv actual layer → spent per envelope
+configured native Journal actual layer → spent per envelope
 plan.tsv plan layer → future planned spending
 ```
 

@@ -1,6 +1,0 @@
-key	account	value	note
-account_balance	assets:bank	13800	
-liquid_assets_total		13800	sum of liquid account actual balances
-reserved_fixed_plan		0	fixed expenses planned but not yet paid
-safe_liquid_assets		13800	liquid_assets_total - reserved_fixed_plan
-seedable_budget		13800	liquid_assets_total + future_income - reserved_fixed_plan

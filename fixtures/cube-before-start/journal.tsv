@@ -1,6 +1,0 @@
-2026-01-01	Opening Balance	equity:opening-balances	assets:bank	100000
-2026-01-02	ATM	assets:bank	assets:cash	5000
-2026-01-03	Rent	assets:bank	expenses:rent	60000
-2026-01-04	Lunch	assets:cash	expenses:food	1200
-2026-01-04	Stationery	assets:cash	expenses:misc	500
-2026-01-05	Salary	income:salary	assets:bank	200000

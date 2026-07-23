@@ -1,0 +1,69 @@
+commodity JPY
+
+account assets:bank
+    ; role: asset
+
+account assets:cash
+    ; role: asset
+
+account assets:savings
+    ; role: asset
+
+account assets:wallet
+    ; role: asset
+
+account assets:zero
+    ; role: asset
+
+account budget:daily
+    ; role: budget
+    ; kind: envelope
+
+account budget:flex
+    ; role: budget
+    ; kind: envelope
+
+account budget:opening
+    ; role: budget
+    ; kind: opening
+
+account budget:reserve
+    ; role: budget
+    ; kind: envelope
+
+account budget:spent
+    ; role: budget
+    ; kind: spent
+
+account budget:unassigned
+    ; role: budget
+    ; kind: unassigned
+
+account equity:opening-balances
+    ; role: equity
+
+account expenses:food
+    ; role: expense
+    ; default-envelope: daily
+
+account expenses:misc
+    ; role: expense
+    ; default-envelope: flex
+
+account expenses:rent
+    ; role: expense
+
+account income:salary
+    ; role: income
+
+2026-01-31 * Opening Balance
+    ; event-id: fixture-event-0
+    ; layer: actual
+    assets:bank 100000 JPY
+    equity:opening-balances -100000 JPY
+
+2026-02-02 * Lunch
+    ; event-id: fixture-event-1
+    ; layer: actual
+    expenses:food 900 JPY
+    assets:bank -900 JPY

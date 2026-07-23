@@ -1,0 +1,130 @@
+commodity JPY
+
+account assets:cash
+    ; role: asset
+
+account assets:savings
+    ; role: asset
+
+account equity:opening
+    ; role: equity
+
+account expenses:food
+    ; role: expense
+
+account expenses:new
+    ; role: expense
+
+account expenses:rent
+    ; role: expense
+
+account expenses:stopped
+    ; role: expense
+
+account income:salary
+    ; role: income
+
+account liabilities:loan
+    ; role: liability
+
+2026-01-31 * OPEN
+    ; event-id: fixture-event-0
+    ; layer: actual
+    assets:cash 1000 JPY
+    equity:opening -1000 JPY
+
+2026-02-01 * BASE_INCOME
+    ; event-id: fixture-event-1
+    ; layer: actual
+    assets:cash 100 JPY
+    income:salary -100 JPY
+
+2026-02-02 * BASE_RENT
+    ; event-id: fixture-event-2
+    ; layer: actual
+    expenses:rent 100 JPY
+    assets:cash -100 JPY
+
+2026-02-03 * BASE_FOOD
+    ; event-id: fixture-event-3
+    ; layer: actual
+    expenses:food 50 JPY
+    assets:cash -50 JPY
+
+2026-02-04 * BASE_STOPPED
+    ; event-id: fixture-event-4
+    ; layer: actual
+    expenses:stopped 40 JPY
+    assets:cash -40 JPY
+
+2026-02-05 * BASE_ASSET_TRANSFER
+    ; event-id: fixture-event-5
+    ; layer: actual
+    assets:savings 25 JPY
+    assets:cash -25 JPY
+
+2026-02-05 * BASE_PRINCIPAL
+    ; event-id: fixture-event-6
+    ; layer: actual
+    liabilities:loan 15 JPY
+    assets:cash -15 JPY
+
+2026-02-08 * BASE_END_EXCLUDED
+    ; event-id: fixture-event-7
+    ; layer: actual
+    expenses:food 999 JPY
+    assets:cash -999 JPY
+
+2026-03-01 * CUR_INCOME
+    ; event-id: fixture-event-8
+    ; layer: actual
+    assets:cash 120 JPY
+    income:salary -120 JPY
+
+2026-03-03 * CUR_RENT
+    ; event-id: fixture-event-9
+    ; layer: actual
+    expenses:rent 120 JPY
+    assets:cash -120 JPY
+
+2026-03-04 * CUR_FOOD_A
+    ; event-id: fixture-event-10
+    ; layer: actual
+    expenses:food 30 JPY
+    assets:cash -30 JPY
+
+2026-03-05 * CUR_FOOD_B
+    ; event-id: fixture-event-11
+    ; layer: actual
+    expenses:food 40 JPY
+    assets:cash -40 JPY
+
+2026-03-05 * CUR_NEW
+    ; event-id: fixture-event-12
+    ; layer: actual
+    expenses:new 30 JPY
+    assets:cash -30 JPY
+
+2026-03-05 * CUR_DUAL
+    ; event-id: fixture-event-13
+    ; layer: actual
+    expenses:food 5 JPY
+    income:salary -5 JPY
+
+2026-03-05 * CUR_ASSET_TRANSFER
+    ; event-id: fixture-event-14
+    ; layer: actual
+    assets:savings 35 JPY
+    assets:cash -35 JPY
+
+2026-03-05 * CUR_PRINCIPAL
+    ; event-id: fixture-event-15
+    ; layer: actual
+    liabilities:loan 20 JPY
+    assets:cash -20 JPY
+
+2026-03-07 * AFTER_OBSERVATION
+    ; event-id: fixture-event-16
+    ; layer: actual
+    expenses:food 11 JPY
+    assets:cash -11 JPY

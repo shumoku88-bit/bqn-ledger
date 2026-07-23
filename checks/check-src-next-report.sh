@@ -611,16 +611,17 @@ rm -f "$json_snap" "$json_bal" "$json_env"
 
 actual_fixture="$(mktemp -d)"
 cp -R fixtures/plan-completion/. "$actual_fixture/"
-python3 - "$actual_fixture/journal.tsv" <<'PY'
+python3 - "$actual_fixture/actual.journal" <<'PY'
 import sys
 
 path = sys.argv[1]
 with open(path, encoding="utf-8") as f:
-    rows = [line.rstrip("\n").split("\t") for line in f]
-rows[1][4] = "65000"
+    text = f.read()
+if text.count(" 64000 JPY") != 1 or text.count(" -64000 JPY") != 1:
+    raise SystemExit("expected one balanced 64000 Journal transaction")
+text = text.replace(" 64000 JPY", " 65000 JPY").replace(" -64000 JPY", " -65000 JPY")
 with open(path, "w", encoding="utf-8", newline="") as f:
-    for row in rows:
-        f.write("\t".join(row) + "\n")
+    f.write(text)
 PY
 
 if tools/report "$actual_fixture" --section planned --format json >"$json_out" 2>/dev/null; then

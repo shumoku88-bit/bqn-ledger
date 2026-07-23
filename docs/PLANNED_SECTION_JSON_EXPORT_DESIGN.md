@@ -34,7 +34,7 @@ This design does not require or authorize:
 - parsing human report strings to produce JSON
 - source TSV schema changes
 - shell-side reimplementation of planned payment meaning
-- automatic writes to `journal.tsv`, `plan.tsv`, `budget_alloc.tsv`, or `accounts.tsv`
+- automatic writes to the configured native Journal, `plan.tsv`, `budget_alloc.tsv`, or `accounts.tsv`
 
 ## Proposed CLI boundary
 

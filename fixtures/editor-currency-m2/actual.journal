@@ -1,0 +1,32 @@
+commodity JPY
+
+account assets:bank
+    ; role: asset
+
+account assets:cash-ils
+    ; role: asset
+
+account expenses:food
+    ; role: expense
+
+account expenses:food-ils
+    ; role: expense
+
+account expenses:transit-jpy
+    ; role: expense
+
+account income:refund-ils
+    ; role: income
+
+account income:salary
+    ; role: income
+
+account liabilities:card-jpy
+    ; role: liability
+
+2026-07-01 * seed JPY
+    ; event-id: fixture-event-0
+    ; layer: actual
+    ; currency: JPY
+    expenses:food 100 JPY
+    assets:bank -100 JPY

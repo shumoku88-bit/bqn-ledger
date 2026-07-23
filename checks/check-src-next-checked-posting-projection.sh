@@ -14,7 +14,7 @@ tab ← @+9
 Line ← {𝕊 fields: ∾ fields ∾¨ tab}
 Snapshot ← {𝕊 lines:
   {sources⇐⟨
-    {source_file⇐"journal.tsv",required⇐1,lines⇐lines},
+    {source_file⇐"actual.journal",required⇐1,lines⇐lines},
     {source_file⇐"plan.tsv",required⇐0,lines⇐⟨⟩},
     {source_file⇐"budget_alloc.tsv",required⇐0,lines⇐⟨⟩}
   ⟩}
@@ -41,7 +41,7 @@ tab ← @+9
 Line ← {𝕊 fields: ∾ fields ∾¨ tab}
 Snapshot ← {𝕊 lines:
   {sources⇐⟨
-    {source_file⇐"journal.tsv",required⇐1,lines⇐lines},
+    {source_file⇐"actual.journal",required⇐1,lines⇐lines},
     {source_file⇐"plan.tsv",required⇐0,lines⇐⟨⟩},
     {source_file⇐"budget_alloc.tsv",required⇐0,lines⇐⟨⟩}
   ⟩}
@@ -56,7 +56,7 @@ set +e
 proof_out="$(bqn "$tmp/wrapper_proof_rejection.bqn" 2>"$tmp/proof.err")"
 proof_status=$?
 set -e
-expected_proof='ERROR: explicit source currency unsupported in Stage 2 minimal runtime slice: journal.tsv row 0: unsupported currency: EUR'
+expected_proof='ERROR: explicit source currency unsupported in Stage 2 minimal runtime slice: actual.journal row 0: unsupported currency: EUR'
 if [ "$proof_status" -ne 1 ]; then
   echo "FAIL: proof rejection exit code changed: $proof_status" >&2
   cat "$tmp/proof.err" >&2
@@ -76,7 +76,7 @@ tab ← @+9
 Line ← {𝕊 fields: ∾ fields ∾¨ tab}
 Snapshot ← {𝕊 lines:
   {sources⇐⟨
-    {source_file⇐"journal.tsv",required⇐1,lines⇐lines},
+    {source_file⇐"actual.journal",required⇐1,lines⇐lines},
     {source_file⇐"plan.tsv",required⇐0,lines⇐⟨⟩},
     {source_file⇐"budget_alloc.tsv",required⇐0,lines⇐⟨⟩}
   ⟩}

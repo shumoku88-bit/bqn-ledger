@@ -1,0 +1,13 @@
+commodity JPY
+
+account assets:cash
+    ; role: asset
+
+account income:salary
+    ; role: income
+
+2026-01-20 * initial
+    ; event-id: fixture-event-0
+    ; layer: actual
+    assets:cash 100 JPY
+    income:salary -100 JPY

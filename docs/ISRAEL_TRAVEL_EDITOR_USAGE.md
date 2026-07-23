@@ -9,7 +9,7 @@ This guide currently documents the completed capture paths. All examples use syn
 
 ## JPY to ILS exchange event
 
-An exchange preserves the JPY handed over and ILS received as two observations. It is not an expense or income and is not written to `journal.tsv`.
+An exchange preserves the JPY handed over and ILS received as two observations. It is not an expense or income and is not written to the configured native Journal.
 
 ```bash
 tools/edit --base "$BASE" travel exchange add \
@@ -62,7 +62,7 @@ tools/edit --base "$BASE" travel friend add \
   --dry-run
 ```
 
-After reviewing the exact preview, replace `--dry-run` with `--yes` to append. This writes only `<base>/friend_travel_events.tsv`; it does not write `journal.tsv`, create a liability or expense, convert the ILS amount, or finalize a JPY amount.
+After reviewing the exact preview, replace `--dry-run` with `--yes` to append. This writes only `<base>/friend_travel_events.tsv`; it does not write the configured native Journal, create a liability or expense, convert the ILS amount, or finalize a JPY amount.
 
 The source has no header. Blank and comment lines follow the existing loader convention and are ignored. Every data row has exactly nine columns:
 

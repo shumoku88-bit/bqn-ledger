@@ -14,9 +14,10 @@ readiness ← •Import "../src_next/readiness_check.bqn"
 base ← "fixtures/src-next-envelope-computation"
 resolved ← ak.Resolve loader.ReadLines (base ∾ "/accounts.tsv")
 cy ← cycle.ReadCycle base
-rows ← context.BuildAllRows ⟨base, resolved, cy.start⟩
-result ← cube.Materialize ⟨rows, cy.day_count, resolved.count⟩
-tbds_rows ← tbds.Build ⟨rows, result, resolved, cy⟩
+ledger ← context.BuildContext base
+rows ← ledger.posting_rows
+result ← ledger.cube
+tbds_rows ← ledger.tbds
 summary ← env.Build { base ⇐ base, resolved ⇐ resolved, cy ⇐ cy, cube ⇐ result, tbds ⇐ tbds_rows }
 
 "fixture_food_like" lib.AssertEq summary.target_id

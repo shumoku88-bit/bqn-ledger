@@ -73,16 +73,16 @@ if [[ -d "$base_dir" ]]; then
   mapfile -t missing_required < <(ledger_base_missing_required "$base_dir")
   if [[ ${#missing_required[@]} -eq 0 ]]; then
     pass "report base files present: accounts.tsv cycle.tsv"
-    if actual_route="$(bqn src_edit/actual_source_route_cmd.bqn "$base_dir" 2>&1)"; then
-      IFS=$'\t' read -r actual_mode actual_file actual_extra <<< "$actual_route"
-      if [[ -z "${actual_extra:-}" && -f "$base_dir/$actual_file" ]]; then
-        pass "selected actual source present: $actual_mode ($actual_file)"
+    if actual_file="$(bqn src_edit/actual_journal_file_cmd.bqn "$base_dir" 2>&1)" && [[ -n "$actual_file" && -f "$base_dir/$actual_file" ]]; then
+      pass "configured native Journal present: $actual_file"
+      if journal_check="$(bqn src_edit/journal_validate_cmd.bqn "$base_dir" 2>&1)"; then
+        pass "configured native Journal context is valid"
       else
-        fail "selected actual source is missing or invalid"
+        fail "configured native Journal validation failed"
         failures=$((failures + 1)); data_ok=0
       fi
     else
-      fail "actual source routing failed"
+      fail "configured native Journal is missing or invalid"
       failures=$((failures + 1)); data_ok=0
     fi
   else

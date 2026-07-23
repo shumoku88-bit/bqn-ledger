@@ -8,7 +8,7 @@ Line ← {𝕊 fields: ∾ fields ∾¨ tab }
 Snapshot ← {𝕊 journal‿plan‿budget:
   {
     sources ⇐ ⟨
-      {source_file⇐"journal.tsv", required⇐1, lines⇐journal},
+      {source_file⇐"actual.journal", required⇐1, lines⇐journal},
       {source_file⇐"plan.tsv", required⇐0, lines⇐plan},
       {source_file⇐"budget_alloc.tsv", required⇐0, lines⇐budget}
     ⟩
@@ -29,7 +29,7 @@ strict ← admission.Admit ⟨strictPolicy, accounts, explicitRows⟩
 0 lib.AssertEq ≠ strict.diagnostics
 2 lib.AssertEq ≠ strict.admitted_account_evidence
 3 lib.AssertEq ≠ strict.admitted_row_evidence
-⟨"journal.tsv", "plan.tsv", "budget_alloc.tsv"⟩ lib.AssertEq ({𝕩.source_file}¨ strict.admitted_row_evidence)
+⟨"actual.journal", "plan.tsv", "budget_alloc.tsv"⟩ lib.AssertEq ({𝕩.source_file}¨ strict.admitted_row_evidence)
 ⟨"explicit", "explicit", "explicit"⟩ lib.AssertEq ({𝕩.provenance}¨ strict.admitted_row_evidence)
 
 CheckStrictError ← {𝕊 accountLines‿snapshot‿expectedCode‿expectedFile‿expectedRow:
@@ -54,10 +54,10 @@ CheckStrictError ⟨⟨"assets:bank"∾tab∾"currency=EUR"⟩, explicitRows, "a
 
 # Journal-like missing, empty, duplicate, and unsupported are independently classified.
 baseRow ← ⟨"2026-07-01", "private memo", "assets:bank", "expenses:food", "999"⟩
-CheckStrictError ⟨accounts, Snapshot ⟨⟨Line baseRow⟩, ⟨⟩, ⟨⟩⟩, "row_currency_missing", "journal.tsv", 0⟩
-CheckStrictError ⟨accounts, Snapshot ⟨⟨Line (baseRow ∾ ⟨"currency="⟩)⟩, ⟨⟩, ⟨⟩⟩, "row_currency_empty", "journal.tsv", 0⟩
-CheckStrictError ⟨accounts, Snapshot ⟨⟨Line (baseRow ∾ ⟨"currency=JPY", "currency=ILS"⟩)⟩, ⟨⟩, ⟨⟩⟩, "row_currency_duplicate", "journal.tsv", 0⟩
-CheckStrictError ⟨accounts, Snapshot ⟨⟨Line (baseRow ∾ ⟨"currency=EUR"⟩)⟩, ⟨⟩, ⟨⟩⟩, "row_currency_unsupported", "journal.tsv", 0⟩
+CheckStrictError ⟨accounts, Snapshot ⟨⟨Line baseRow⟩, ⟨⟩, ⟨⟩⟩, "row_currency_missing", "actual.journal", 0⟩
+CheckStrictError ⟨accounts, Snapshot ⟨⟨Line (baseRow ∾ ⟨"currency="⟩)⟩, ⟨⟩, ⟨⟩⟩, "row_currency_empty", "actual.journal", 0⟩
+CheckStrictError ⟨accounts, Snapshot ⟨⟨Line (baseRow ∾ ⟨"currency=JPY", "currency=ILS"⟩)⟩, ⟨⟩, ⟨⟩⟩, "row_currency_duplicate", "actual.journal", 0⟩
+CheckStrictError ⟨accounts, Snapshot ⟨⟨Line (baseRow ∾ ⟨"currency=EUR"⟩)⟩, ⟨⟩, ⟨⟩⟩, "row_currency_unsupported", "actual.journal", 0⟩
 
 # All optional source rows are admitted and their zero-based row indices are retained.
 planBad ← Snapshot ⟨⟨⟩, ⟨"# ignored", Line baseRow⟩, ⟨⟩⟩
@@ -118,7 +118,7 @@ message ← (⊑ privacy.diagnostics).message
 "accounts.tsv row 0: account_currency_unsupported" lib.AssertEq message
 
 # An unknown or path-shaped supplied source is rejected without reflecting its value.
-privateSourceFile ← "/private/example/journal.tsv"
+privateSourceFile ← "/private/example/actual.journal"
 privateSourceSnapshot ← {
   sources ⇐ ⟨{source_file⇐privateSourceFile, required⇐1, lines⇐⟨Line (baseRow ∾ ⟨"currency=JPY"⟩)⟩}⟩
 }

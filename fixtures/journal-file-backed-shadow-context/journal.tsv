@@ -1,3 +1,0 @@
-2026-08-01	Synthetic opening	equity:opening	assets:cash	5000	txn_id=event-opening-001
-2026-08-03	Synthetic split purchase	assets:cash	expenses:food	800	txn_id=event-split-001
-2026-08-03	Synthetic split purchase	assets:cash	expenses:household	300	txn_id=event-split-001

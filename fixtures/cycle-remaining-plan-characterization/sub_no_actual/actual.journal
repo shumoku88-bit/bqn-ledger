@@ -1,0 +1,12 @@
+commodity JPY
+
+account assets:cash
+
+account expenses:fixed
+    ; role: expense
+
+account expenses:food
+    ; role: expense
+
+account income:salary
+    ; role: income

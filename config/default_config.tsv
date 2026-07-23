@@ -1,9 +1,8 @@
 # default_config.tsv - Default global configuration fallback
 # Format: key=value
 
-# --- Actual source selection ---
-# Selection is explicit. Runtime never falls back between TSV and native Journal.
-ACTUAL_SOURCE=tsv
+# --- Canonical actual Journal ---
+# This is the only actual source. Missing, duplicate, or empty values fail closed.
 ACTUAL_JOURNAL_FILE=actual.journal
 
 # --- Household envelope group policy labels ---

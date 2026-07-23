@@ -145,7 +145,6 @@ cmp "$tmp_root/nested.expected" "$tmp_root/nested.tail"
 # Routed multi-add selects the configured native Journal without exposing file routing to the UI.
 routed=$(new_base routed)
 awk '
-  /^ACTUAL_SOURCE=/ {print "ACTUAL_SOURCE=journal"; next}
   /^ACTUAL_JOURNAL_FILE=/ {print "ACTUAL_JOURNAL_FILE=source.journal"; next}
   {print}
   END {print "DEFAULT_CURRENCY=JPY"}
@@ -166,20 +165,6 @@ grep -Fq $'OK\tNATIVE_JOURNAL_CANDIDATE\tordinary\t-' "$tmp_root/routed.out"
 ! grep -Fq 'entry-' "$routed/source.journal"
 ! grep -Fq 'stage0-line-' "$tmp_root/routed.out"
 
-# TSV mode cannot flatten native multi-posting and must fail without writes.
-tsv_multi="$tmp_root/tsv-multi"; cp -R data "$tsv_multi"; tsv_multi_before=$(sha_file "$tsv_multi/journal.tsv")
-run_fail "$tsv_multi" "$tmp_root/tsv-multi.out" journal multi-add --date 2026-06-29 --description rejected \
-  --posting expenses:食費=123 --posting assets:bank=-123 --yes
-[[ $(sha_file "$tsv_multi/journal.tsv") == "$tsv_multi_before" ]]
-grep -Fq 'journal multi-add requires ACTUAL_SOURCE=journal; no files changed' "$tmp_root/tsv-multi.out"
-assert_no_backups "$tsv_multi" tsv-multi
-
-# Existing TSV journal add remains the from/to/amount writer.
-tsv="$tmp_root/tsv"; cp -R data "$tsv"; tsv_before=$(wc -l <"$tsv/journal.tsv")
-./tools/edit --base "$tsv" journal add --date 2026-06-29 --memo native-boundary-regression --from assets:bank --to expenses:食費 --amount 123 --yes --post-check none >"$tmp_root/tsv.out" 2>&1
-[[ $(wc -l <"$tsv/journal.tsv") -eq $((tsv_before + 1)) ]]
-tail -n 1 "$tsv/journal.tsv" | grep -Fq $'2026-06-29\tnative-boundary-regression\tassets:bank\texpenses:食費\t123'
-
 # Path rejection cases.
 base=$(new_base path); before=$(sha_file "$base/source.journal")
 assert_rejected_unchanged missing-journal-file "$base" "$before" "$tmp_root/missing-option.out" journal-block add --date 2026-07-22 --description x --event-id x --posting assets:cash=-1 --posting expenses:food:daily=1
@@ -189,7 +174,6 @@ assert_rejected_unchanged suffix "$base" "$before" "$tmp_root/suffix.out" journa
 assert_rejected_unchanged missing-target "$base" "$before" "$tmp_root/missing-target.out" journal-block add --journal-file missing.journal --date 2026-07-22 --description x --event-id x --posting assets:cash=-1 --posting expenses:food:daily=1
 mkdir "$base/directory.journal"
 assert_rejected_unchanged directory "$base" "$before" "$tmp_root/directory.out" journal-block add --journal-file directory.journal --date 2026-07-22 --description x --event-id x --posting assets:cash=-1 --posting expenses:food:daily=1
-assert_rejected_unchanged journal-tsv "$base" "$before" "$tmp_root/journal-tsv.out" journal-block add --journal-file journal.tsv --date 2026-07-22 --description x --event-id x --posting assets:cash=-1 --posting expenses:food:daily=1
 outside="$tmp_root/outside.journal"; cp "$base/source.journal" "$outside"; ln -s "$outside" "$base/escape.journal"
 assert_rejected_unchanged symlink "$base" "$before" "$tmp_root/symlink.out" journal-block add --journal-file escape.journal --date 2026-07-22 --description x --event-id x --posting assets:cash=-1 --posting expenses:food:daily=1
 mkdir "$base/link-target"; cp "$base/source.journal" "$base/link-target/deep.journal"; ln -s "$tmp_root" "$base/outside-link"

@@ -1,0 +1,31 @@
+commodity JPY
+
+account assets:bank
+    ; role: asset
+
+account assets:cash
+    ; role: asset
+
+account expenses:food
+    ; role: expense
+
+account 医療費
+    ; role: expense
+
+2026-06-15 * A
+    ; event-id: fixture-event-0
+    ; layer: actual
+    expenses:food 100 JPY
+    assets:bank -100 JPY
+
+2026-06-16 * B
+    ; event-id: fixture-event-1
+    ; layer: actual
+    医療費 200 JPY
+    assets:bank -200 JPY
+
+2026-06-17 * C
+    ; event-id: fixture-event-2
+    ; layer: actual
+    assets:cash 50 JPY
+    assets:bank -50 JPY

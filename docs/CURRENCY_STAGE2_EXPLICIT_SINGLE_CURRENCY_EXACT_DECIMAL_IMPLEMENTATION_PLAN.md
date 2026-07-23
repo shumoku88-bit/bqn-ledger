@@ -15,6 +15,8 @@ This document plans the smallest staged runtime path from the current integer-on
 
 This PR is docs-only. It does not implement runtime, tests, checks, fixtures, source TSV, metadata schema, editor, report, JSON, Posting IR, cube, or TBDS changes.
 
+Source-model note (2026-07-24): references below to `journal.tsv` describe the pre-Journal-only evidence/model and are not current runtime instructions. Current Actual ingress is the configured native Journal; `plan.tsv` and `budget_alloc.tsv` remain TSV sources.
+
 ## 1. Current runtime facts
 
 Current `src_next/context.bqn` amount flow is:

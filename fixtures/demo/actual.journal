@@ -1,0 +1,295 @@
+commodity JPY
+
+account assets:bank
+    ; role: asset
+
+account assets:cash
+    ; role: asset
+
+account assets:savings
+    ; role: asset
+
+account budget:daily
+    ; role: budget
+    ; kind: envelope
+
+account budget:flex
+    ; role: budget
+    ; kind: envelope
+
+account budget:opening
+    ; role: budget
+    ; kind: opening
+
+account budget:reserve
+    ; role: budget
+    ; kind: envelope
+
+account budget:spent
+    ; role: budget
+    ; kind: spent
+
+account budget:unassigned
+    ; role: budget
+    ; kind: unassigned
+
+account equity:opening-balances
+    ; role: equity
+
+account expenses:books
+    ; role: expense
+    ; default-envelope: flex
+
+account expenses:dining
+    ; role: expense
+    ; default-envelope: flex
+
+account expenses:electricity
+    ; role: expense
+
+account expenses:gas
+    ; role: expense
+
+account expenses:groceries
+    ; role: expense
+    ; default-envelope: daily
+
+account expenses:household
+    ; role: expense
+    ; default-envelope: flex
+
+account expenses:insurance
+    ; role: expense
+
+account expenses:internet
+    ; role: expense
+
+account expenses:phone
+    ; role: expense
+
+account expenses:rent
+    ; role: expense
+
+account expenses:repairs
+    ; role: expense
+    ; default-envelope: reserve
+
+account expenses:transport
+    ; role: expense
+    ; default-envelope: flex
+
+account expenses:water
+    ; role: expense
+
+account income:salary
+    ; role: income
+
+2026-01-01 * Opening balance
+    ; event-id: fixture-event-0
+    ; layer: actual
+    assets:bank 100000 JPY
+    equity:opening-balances -100000 JPY
+
+2026-01-01 * Salary
+    ; event-id: fixture-event-1
+    ; layer: actual
+    assets:bank 300000 JPY
+    income:salary -300000 JPY
+
+2026-01-02 * Rent
+    ; event-id: fixture-event-2
+    ; layer: actual
+    expenses:rent 100000 JPY
+    assets:bank -100000 JPY
+
+2026-01-03 * Internet
+    ; event-id: fixture-event-3
+    ; layer: actual
+    expenses:internet 5000 JPY
+    assets:bank -5000 JPY
+
+2026-01-03 * Phone
+    ; event-id: fixture-event-4
+    ; layer: actual
+    expenses:phone 5000 JPY
+    assets:bank -5000 JPY
+
+2026-01-04 * Cash withdrawal
+    ; event-id: fixture-event-5
+    ; layer: actual
+    assets:cash 10000 JPY
+    assets:bank -10000 JPY
+
+2026-01-05 * Groceries
+    ; event-id: fixture-event-6
+    ; layer: actual
+    expenses:groceries 12000 JPY
+    assets:bank -12000 JPY
+
+2026-01-07 * Transport
+    ; event-id: fixture-event-7
+    ; layer: actual
+    expenses:transport 4000 JPY
+    assets:cash -4000 JPY
+
+2026-01-09 * Dining
+    ; event-id: fixture-event-8
+    ; layer: actual
+    expenses:dining 6000 JPY
+    assets:bank -6000 JPY
+
+2026-01-10 * Electricity
+    ; event-id: fixture-event-9
+    ; layer: actual
+    expenses:electricity 8000 JPY
+    assets:bank -8000 JPY
+
+2026-01-10 * Gas
+    ; event-id: fixture-event-10
+    ; layer: actual
+    expenses:gas 4000 JPY
+    assets:bank -4000 JPY
+
+2026-01-12 * Household goods
+    ; event-id: fixture-event-11
+    ; layer: actual
+    expenses:household 5000 JPY
+    assets:bank -5000 JPY
+
+2026-01-14 * Groceries
+    ; event-id: fixture-event-12
+    ; layer: actual
+    expenses:groceries 13000 JPY
+    assets:bank -13000 JPY
+
+2026-01-16 * Insurance
+    ; event-id: fixture-event-13
+    ; layer: actual
+    expenses:insurance 10000 JPY
+    assets:bank -10000 JPY
+
+2026-01-18 * Books
+    ; event-id: fixture-event-14
+    ; layer: actual
+    expenses:books 4000 JPY
+    assets:bank -4000 JPY
+
+2026-01-20 * Groceries
+    ; event-id: fixture-event-15
+    ; layer: actual
+    expenses:groceries 12000 JPY
+    assets:bank -12000 JPY
+
+2026-01-24 * Water
+    ; event-id: fixture-event-16
+    ; layer: actual
+    expenses:water 3000 JPY
+    assets:bank -3000 JPY
+
+2026-01-25 * Dining
+    ; event-id: fixture-event-17
+    ; layer: actual
+    expenses:dining 8000 JPY
+    assets:bank -8000 JPY
+
+2026-01-27 * Groceries
+    ; event-id: fixture-event-18
+    ; layer: actual
+    expenses:groceries 10000 JPY
+    assets:bank -10000 JPY
+
+2026-01-28 * Monthly savings
+    ; event-id: fixture-event-19
+    ; layer: actual
+    assets:savings 40000 JPY
+    assets:bank -40000 JPY
+
+2026-02-01 * Salary
+    ; event-id: fixture-event-20
+    ; layer: actual
+    assets:bank 300000 JPY
+    income:salary -300000 JPY
+
+2026-02-02 * Rent
+    ; event-id: fixture-event-21
+    ; layer: actual
+    expenses:rent 100000 JPY
+    assets:bank -100000 JPY
+
+2026-02-03 * Internet
+    ; event-id: fixture-event-22
+    ; layer: actual
+    expenses:internet 5000 JPY
+    assets:bank -5000 JPY
+
+2026-02-03 * Phone
+    ; event-id: fixture-event-23
+    ; layer: actual
+    expenses:phone 5000 JPY
+    assets:bank -5000 JPY
+
+2026-02-04 * Cash withdrawal
+    ; event-id: fixture-event-24
+    ; layer: actual
+    assets:cash 10000 JPY
+    assets:bank -10000 JPY
+
+2026-02-05 * Groceries
+    ; event-id: fixture-event-25
+    ; layer: actual
+    expenses:groceries 10000 JPY
+    assets:bank -10000 JPY
+
+2026-02-07 * Transport
+    ; event-id: fixture-event-26
+    ; layer: actual
+    expenses:transport 4000 JPY
+    assets:cash -4000 JPY
+
+2026-02-09 * Electricity
+    ; event-id: fixture-event-27
+    ; layer: actual
+    expenses:electricity 10000 JPY
+    assets:bank -10000 JPY
+
+2026-02-09 * Gas
+    ; event-id: fixture-event-28
+    ; layer: actual
+    expenses:gas 4000 JPY
+    assets:bank -4000 JPY
+
+2026-02-10 * Household goods
+    ; event-id: fixture-event-29
+    ; layer: actual
+    expenses:household 4000 JPY
+    assets:bank -4000 JPY
+
+2026-02-12 * Dining
+    ; event-id: fixture-event-30
+    ; layer: actual
+    expenses:dining 5000 JPY
+    assets:bank -5000 JPY
+
+2026-02-14 * Groceries
+    ; event-id: fixture-event-31
+    ; layer: actual
+    expenses:groceries 12000 JPY
+    assets:bank -12000 JPY
+
+2026-02-16 * Insurance
+    ; event-id: fixture-event-32
+    ; layer: actual
+    expenses:insurance 10000 JPY
+    assets:bank -10000 JPY
+
+2026-02-18 * Bicycle repair
+    ; event-id: fixture-event-33
+    ; layer: actual
+    expenses:repairs 12000 JPY
+    assets:bank -12000 JPY
+
+2026-02-20 * Groceries
+    ; event-id: fixture-event-34
+    ; layer: actual
+    expenses:groceries 11000 JPY
+    assets:bank -11000 JPY

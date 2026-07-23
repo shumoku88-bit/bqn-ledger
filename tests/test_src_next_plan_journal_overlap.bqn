@@ -71,13 +71,6 @@ r18 ← Assert ⟨0, summary4.strong_overlap_count, "empty: strong_overlap_count
 r19 ← Assert ⟨0, summary4.ambiguous_overlap_count, "empty: ambiguous_overlap_count = 0"⟩
 r20 ← Assert ⟨0, summary4.unmatched_plan_count, "empty: unmatched_plan_count = 0"⟩
 
-# ── Build: fixture src-next-unknown-account (unknown account, no overlap) ─
-summary5 ← pjo.Build { base ⇐ "fixtures/src-next-unknown-account", cy ⇐ cy }
-
-r21 ← Assert ⟨0, summary5.plan_rows_checked, "unknown-acct: plan_rows_checked = 0"⟩
-r22 ← Assert ⟨2, summary5.journal_rows_checked, "unknown-acct: journal_rows_checked = 2"⟩
-r23 ← Assert ⟨0, summary5.strong_overlap_count, "unknown-acct: strong_overlap_count = 0"⟩
-
 # ── Build: fixture src-next-out-of-cycle-journal (out of cycle, no overlap) ─
 summary6 ← pjo.Build { base ⇐ "fixtures/src-next-out-of-cycle-journal", cy ⇐ cy }
 
@@ -94,7 +87,7 @@ r29 ← Assert ⟨1, ∨´ "src_next_plan_rows_checked"⊸⍷ text, "Format cont
 r30 ← Assert ⟨1, ∨´ "src_next_plan_journal_strong_overlap_key"⊸⍷ text, "Format contains strong_overlap_key"⟩
 
 # All results
-results ← r31‿r32‿r33‿r34‿r35‿r1‿r2‿r3‿r4‿r5‿r6‿r7‿r8‿r9‿r10‿r11‿r12‿r13‿r14‿r15‿r16‿r17‿r18‿r19‿r20‿r21‿r22‿r23‿r24‿r25‿r26‿r27‿r28‿r29‿r30
+results ← r31‿r32‿r33‿r34‿r35‿r1‿r2‿r3‿r4‿r5‿r6‿r7‿r8‿r9‿r10‿r11‿r12‿r13‿r14‿r15‿r16‿r17‿r18‿r19‿r20‿r24‿r25‿r26‿r27‿r28‿r29‿r30
 
 {𝕊:
   •Out "All tests passed (" ∾ (•Fmt (+´results)) ∾ "/" ∾ (•Fmt (≠results)) ∾ ")"

@@ -11,8 +11,9 @@ hh ← •Import "../src_next/household_policy.bqn"
 base ← "fixtures/src-next-household-mapping-policy"
 resolved ← ak.Resolve loader.ReadLines (base ∾ "/accounts.tsv")
 cy ← cycle.ReadCycle base
-rows ← context.BuildAllRows ⟨base, resolved, cy.start⟩
-result ← cube.Materialize ⟨rows, cy.day_count, resolved.count⟩
+ledger ← context.BuildContext base
+rows ← ledger.posting_rows
+result ← ledger.cube
 summary ← hh.BuildSummary ⟨base, resolved, result.valid_rows⟩
 1 lib.AssertEq summary.has_policy_metadata
 6 lib.AssertEq summary.expense_account_count
@@ -43,8 +44,9 @@ summary ← hh.BuildSummary ⟨base, resolved, result.valid_rows⟩
 negative_base ← "fixtures/src-next-envelope-computation-prefix-negative"
 negative_resolved ← ak.Resolve loader.ReadLines (negative_base ∾ "/accounts.tsv")
 negative_cy ← cycle.ReadCycle negative_base
-negative_rows ← context.BuildAllRows ⟨negative_base, negative_resolved, negative_cy.start⟩
-negative_result ← cube.Materialize ⟨negative_rows, negative_cy.day_count, negative_resolved.count⟩
+negative_ledger ← context.BuildContext negative_base
+negative_rows ← negative_ledger.posting_rows
+negative_result ← negative_ledger.cube
 negative ← hh.BuildSummary ⟨negative_base, negative_resolved, negative_result.valid_rows⟩
 1 lib.AssertEq negative.prefix_fallback_expense_account_count
 0 lib.AssertEq negative.expense_account_count

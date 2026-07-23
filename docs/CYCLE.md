@@ -1,5 +1,10 @@
 # サイクル集計の変更方法
 
+Status: current operational guide
+Owner: config
+Canonical: yes
+Exit: revise when cycle.tsv or temporal resolution changes
+
 `tools/report` (または `src_next/report.bqn`) の「今サイクル集計」と「見通し・日割り」は、`cycle.tsv` を編集するだけで期間を変更できます。コード変更は不要です。
 
 設計上、cycleはEventへ固定された属性やCubeの基本軸ではありません。時間座標上から`[start, end_exclusive)`を選ぶ区間viewです。同じEventを暦月、週、別cycleで再観察できる余地を残します。
@@ -14,7 +19,7 @@
 - `fixed` : 固定期間
 - `calendarMonth` : 月初〜月末
 
-現在の`calendarMonth`は`as_of`の月ではなく、`journal.tsv`の最終日が属する月から期間を解決します。`as_of`とcycle期間解決を統一するかは未決定です。
+現在の`calendarMonth`は`as_of`の月ではなく、configured native Journalの最終日が属する月から期間を解決します。`as_of`とcycle期間解決を統一するかは未決定です。
 
 ---
 
@@ -29,7 +34,7 @@ income_account	income:年金
 
 意味：
 
-- `journal.tsv` にある直近の `income:年金` 入金日をサイクル開始日にする
+- configured native Journal にある直近の `income:年金` 入金日をサイクル開始日にする
 - `plan.tsv` にある次回の `income:年金` 入金日をサイクル終了日にする
 - この規則は区間境界を解決するだけで、元Eventの日付を書き換えない
 - 集計範囲は内部的には **半開区間** `開始日 <= date < 終了日` になる
@@ -46,7 +51,7 @@ income_account	income:年金
 
 ### 給料が毎月25日になる場合
 
-`accounts.tsv` に `income:給料` を追加し、`journal.tsv` / `plan.tsv` に給料予定を書いたうえで、`cycle.tsv` をこうします。
+`accounts.tsv` に `income:給料` を追加し、configured native Journal / `plan.tsv` に給料予定を書いたうえで、`cycle.tsv` をこうします。
 
 ```tsv
 mode	incomeAnchor
@@ -55,7 +60,7 @@ income_account	income:給料
 
 この場合、例えば：
 
-- `journal.tsv` に `2026-05-25` の給料実績
+- configured native Journal に `2026-05-25` の給料実績
 - `plan.tsv` に `2026-06-25` の給料予定
 
 があれば、集計範囲は：
@@ -100,9 +105,9 @@ end_exclusive	2026-06-25
 mode	calendarMonth
 ```
 
-`journal.tsv` の最終日が属する月を自動で集計します。
+configured native Journal の最終日が属する月を自動で集計します。
 
-例：`journal.tsv` の最終日が `2026-05-30` なら：
+例：configured native Journal の最終日が `2026-05-30` なら：
 
 ```text
 2026-05-01〜2026-05-31

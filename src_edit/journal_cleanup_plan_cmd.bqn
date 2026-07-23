@@ -26,9 +26,7 @@ baseDir ← 0 ⊑ args
 format ← 1 ⊑ args
 {𝕊: Fail ⟨"ERROR", "invalid_format", format⟩}⍟(¬ ∨´ format⊸≡¨ "tsv"‿"text") @
 
-route ← actual_source.ModeAndFile baseDir
-{𝕊: Fail ⟨"ERROR", "actual_source_not_journal", "cleanup plan requires ACTUAL_SOURCE=journal"⟩}⍟(route.mode ≢ "journal") @
-
+route ← actual_source.Resolve baseDir
 raw ← loader.ReadRaw (baseDir ∾ "/" ∾ route.file)
 parsed ← parser.ParseWithProfile ⟨raw, "historical_external_plan"⟩
 {𝕊:

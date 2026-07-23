@@ -1,6 +1,0 @@
-# Public synthetic fixture for Journal file-backed shadow-context parity
-
-equity:opening	role=equity
-assets:cash	role=asset	type=liquid
-expenses:food	role=expense
-expenses:household	role=expense

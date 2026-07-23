@@ -81,7 +81,7 @@ ExtractPlanId ⇐ {𝕊 line:
   has ◶ ⟨ { 𝕊 ⋄ "" }, { 𝕊 ⋄ val } ⟩ @
 }
 
-# LoadExistingPlanIDs: load all plan IDs from plan.tsv and journal.tsv.
+# LoadExistingPlanIDs: load all plan IDs from plan.tsv and native Journal.
 # Args: 𝕩 is namespace with plan_path and journal_path
 # Returns: list of plan ID strings
 LoadExistingPlanIDs ⇐ {

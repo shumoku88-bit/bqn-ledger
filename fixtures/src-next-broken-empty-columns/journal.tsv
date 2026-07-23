@@ -1,5 +1,0 @@
-# Journal: entry with empty memo field (column 2 is blank)
-# This tests SplitKeepEmpty preserves empty columns
-2026-06-15	給料日	income:salary	assets:bank	100000
-2026-06-16		assets:bank	expenses:food	5000
-2026-06-17	買い物	assets:bank	expenses:food	3000	receipt=yes

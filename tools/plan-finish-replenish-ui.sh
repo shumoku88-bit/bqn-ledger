@@ -4,7 +4,7 @@ set -euo pipefail
 # tools/plan-finish-replenish-ui.sh
 #
 # Interactive helper for a common daily workflow:
-#   1. finish one open plan into journal.tsv
+#   1. finish one open plan into the configured native Journal
 #   2. optionally replenish the future plan shelf from the finished plan
 #
 # The low-level editor commands stay small:

@@ -36,41 +36,9 @@ AssertRow ← {row←RowFor 𝕩 ⋄ 𝕨 lib.AssertEq 8↓row}
 0 lib.AssertEq +´"savings"⊸≡¨{3⊑𝕩}¨vm.table
 0 lib.AssertEq +´"loan"⊸≡¨{3⊑𝕩}¨vm.table
 
-# Anchor identity is independent of amount sign. The appended configured
-# income-credit event with amount 0 is the previous anchor for this local cycle.
-zero_anchor_cycle ← {mode⇐"fixed",start⇐"2026-02-01",end_exclusive⇐"2026-03-01",day_count⇐28}
-zero_anchor_ctx ← {base⇐ctx.base,as_of⇐ctx.as_of,cy⇐zero_anchor_cycle,resolved⇐ctx.resolved,
-  posting_rows⇐ctx.posting_rows,arithmetic_currency_proof⇐ctx.arithmetic_currency_proof,
-  cube⇐ctx.cube,tbds⇐ctx.tbds,issues⇐ctx.issues}
-zero_anchor_vm ← actual_comparison.BuildAt ⟨zero_anchor_ctx,"2026-02-05"⟩
-"ok" lib.AssertEq zero_anchor_vm.observation_status
-"2026-01-01" lib.AssertEq zero_anchor_vm.baseline_start
-"2026-01-06" lib.AssertEq zero_anchor_vm.baseline_end_exclusive
-
 text ← actual_comparison.Format vm
 1 lib.AssertEq ∨´"src_next_actual_comparison_status: ok"⍷text
 1 lib.AssertEq ∨´"src_next_actual_comparison_row: food lane=variable cur=75 base=50 diff=25 ratio=150% status=increased"⍷text
-
-# PR #261 normal evidence intentionally changes: one in-window checked rejection
-# fails closed, the numeric table is empty, and explicit O owns vm.as_of.
-normal_ctx ← ctx_mod.BuildContext ⟨"fixtures/actual-comparison-projection-normal","2026-03-05"⟩
-normal_vm ← actual_comparison.BuildAt ⟨normal_ctx,"2026-03-05"⟩
-"error" lib.AssertEq normal_vm.observation_status
-"rejected_actual_evidence" lib.AssertEq normal_vm.reason
-"2026-03-05" lib.AssertEq normal_vm.as_of
-"2026-03-06" lib.AssertEq normal_vm.current_end_exclusive
-0 lib.AssertEq ≠normal_vm.table
-1 lib.AssertEq ≠normal_vm.diagnostics
-"journal.tsv" lib.AssertEq (⊑normal_vm.diagnostics).source_file
-15 lib.AssertEq (⊑normal_vm.diagnostics).source_row
-"unknown_account" lib.AssertEq (⊑normal_vm.diagnostics).status
-normal_text ← actual_comparison.Format normal_vm
-1 lib.AssertEq ∨´"src_next_actual_comparison_status: error"⍷normal_text
-1 lib.AssertEq ∨´"src_next_actual_comparison_diagnostic: journal.tsv row=15 status=unknown_account"⍷normal_text
-0 lib.AssertEq ∨´"src_next_actual_comparison_row:"⍷normal_text
-normal_human ← actual_comparison.FormatHuman normal_vm
-1 lib.AssertEq ∨´"数字を表示できません"⍷normal_human
-0 lib.AssertEq ∨´"比較可能な前サイクル履歴"⍷normal_human
 
 # No previous anchor is normal unavailability, not an error or old
 # insufficient_history state.
@@ -83,16 +51,6 @@ history_vm ← actual_comparison.BuildAt ⟨history_ctx,"2026-03-05"⟩
 history_human ← actual_comparison.FormatHuman history_vm
 1 lib.AssertEq ∨´"status: unavailable"⍷history_human
 1 lib.AssertEq ∨´"Actual比較は表示しません"⍷history_human
-
-# Invalid-date rejected evidence is applicability-unknown and diagnostic identity
-# is source-row based rather than debit/credit posting based.
-invalid_ctx ← ctx_mod.BuildContext "fixtures/actual-comparison-invalid-date-rejected"
-invalid_vm ← actual_comparison.BuildAt ⟨invalid_ctx,"2026-03-05"⟩
-"error" lib.AssertEq invalid_vm.observation_status
-"rejected_actual_evidence" lib.AssertEq invalid_vm.reason
-0 lib.AssertEq ≠invalid_vm.table
-1 lib.AssertEq ≠invalid_vm.diagnostics
-"invalid_date" lib.AssertEq (⊑invalid_vm.diagnostics).status
 
 # Explicit observation boundaries never read the real clock.
 before_vm ← actual_comparison.BuildAt ⟨ctx,"2026-02-28"⟩

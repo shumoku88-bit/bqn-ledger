@@ -111,7 +111,6 @@ ActiveIncomeAccounts ← {𝕊 ctx‿as_of:
       idx ← row.account_key_index
       role ← idx ⊑ roles_with_sentinel
       active ↩ ∧´ ⟨
-        row.source_file ≡ actual_source.File ctx,
         row.layer_index = proj.layer_actual,
         row.status ≡ "ok",
         row.side ≡ "credit",

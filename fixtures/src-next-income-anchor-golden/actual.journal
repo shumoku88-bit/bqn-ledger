@@ -1,0 +1,34 @@
+commodity JPY
+
+account assets:bank
+    ; role: asset
+
+account equity:opening
+    ; role: equity
+
+account expenses:food
+    ; role: expense
+
+account expenses:rent
+    ; role: expense
+
+account income:example
+    ; role: income
+
+2026-01-10 * INC1
+    ; event-id: fixture-event-0
+    ; layer: actual
+    assets:bank 100000 JPY
+    income:example -100000 JPY
+
+2026-01-11 * FOOD1
+    ; event-id: fixture-event-1
+    ; layer: actual
+    expenses:food 1200 JPY
+    assets:bank -1200 JPY
+
+2026-01-20 * RENT1
+    ; event-id: fixture-event-2
+    ; layer: actual
+    expenses:rent 3000 JPY
+    assets:bank -3000 JPY

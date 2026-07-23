@@ -47,7 +47,7 @@ Exit: revise when safety invariants or responsibility boundaries change
 
 ### 1. Source TSV is source of truth
 
-`journal.tsv`, `plan.tsv`, `budget_alloc.tsv`, `accounts.tsv`, `cycle.tsv`, `config.tsv` は、正データまたは設定データです。
+configured native Journal, `plan.tsv`, `budget_alloc.tsv`, `accounts.tsv`, `cycle.tsv`, `config.tsv` は、正データまたは設定データです。
 
 BQN レポートエンジンはこれらを読んで派生値を作るだけで、正データを直接変更しません。
 変更が必要な場合は、人間の確認、または専用 editor の明示操作を通します。
@@ -142,7 +142,7 @@ Event IR -> Projection IR -> Day × Account × Layer -> report / export
 
 - Canonical Daily Cube の shape は `Day × Account × Layer` に固定する。
 - 店舗、memo、カテゴリ、任意タグを Cube 軸に増やさない。
-- `actual` は `journal.tsv` 由来。
+- `actual` はconfigured native Journal由来。
 - `plan` は `plan.tsv` 由来。
 - `budget` は `budget_alloc.tsv` と journal 支出由来。
 - `forecast` は予約 Layer として扱い、未実装時は安全にゼロまたは unavailable とする。

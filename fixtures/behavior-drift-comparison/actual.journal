@@ -1,0 +1,77 @@
+commodity JPY
+
+account assets:bank
+    ; role: asset
+
+account budget:daily
+    ; role: budget
+
+account budget:flex
+    ; role: budget
+
+account budget:medical
+    ; role: budget
+
+account budget:opening
+    ; role: budget
+
+account budget:reserve
+    ; role: budget
+
+account budget:spent
+    ; role: budget
+
+account budget:unassigned
+    ; role: budget
+
+account equity:opening-balances
+    ; role: equity
+
+account expenses:food
+    ; role: expense
+    ; default-envelope: daily
+
+account expenses:learning
+    ; role: expense
+    ; default-envelope: flex
+
+account expenses:medical
+    ; role: expense
+    ; default-envelope: medical
+
+account expenses:tobacco
+    ; role: expense
+    ; default-envelope: daily
+
+account income:salary
+    ; role: income
+
+2026-01-01 * Opening
+    ; event-id: fixture-event-0
+    ; layer: actual
+    assets:bank 100000 JPY
+    equity:opening-balances -100000 JPY
+
+2026-01-02 * Groceries
+    ; event-id: fixture-event-1
+    ; layer: actual
+    expenses:food 1200 JPY
+    assets:bank -1200 JPY
+
+2026-01-03 * Tobacco
+    ; event-id: fixture-event-2
+    ; layer: actual
+    expenses:tobacco 600 JPY
+    assets:bank -600 JPY
+
+2026-01-05 * Book
+    ; event-id: fixture-event-3
+    ; layer: actual
+    expenses:learning 1500 JPY
+    assets:bank -1500 JPY
+
+2026-01-06 * Clinic
+    ; event-id: fixture-event-4
+    ; layer: actual
+    expenses:medical 3000 JPY
+    assets:bank -3000 JPY

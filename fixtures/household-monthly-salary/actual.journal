@@ -1,0 +1,82 @@
+commodity JPY
+
+account assets:bank
+    ; role: asset
+
+account equity:opening-balances
+    ; role: equity
+
+account expenses:家賃
+    ; role: expense
+
+account expenses:食費
+    ; role: expense
+
+account income:給与
+    ; role: income
+
+2026-04-25 * Opening balance
+    ; event-id: fixture-event-0
+    ; layer: actual
+    assets:bank 200000 JPY
+    equity:opening-balances -200000 JPY
+
+2026-04-25 * April salary
+    ; event-id: fixture-event-1
+    ; layer: actual
+    assets:bank 300000 JPY
+    income:給与 -300000 JPY
+
+2026-04-26 * April food
+    ; event-id: fixture-event-2
+    ; layer: actual
+    expenses:食費 10000 JPY
+    assets:bank -10000 JPY
+
+2026-04-28 * April food
+    ; event-id: fixture-event-3
+    ; layer: actual
+    expenses:食費 15000 JPY
+    assets:bank -15000 JPY
+
+2026-05-01 * Rent
+    ; event-id: fixture-event-4
+    ; layer: actual
+    expenses:家賃 80000 JPY
+    assets:bank -80000 JPY
+
+2026-05-03 * Food
+    ; event-id: fixture-event-5
+    ; layer: actual
+    expenses:食費 5000 JPY
+    assets:bank -5000 JPY
+
+2026-05-08 * Food
+    ; event-id: fixture-event-6
+    ; layer: actual
+    expenses:食費 8000 JPY
+    assets:bank -8000 JPY
+
+2026-05-15 * Food
+    ; event-id: fixture-event-7
+    ; layer: actual
+    expenses:食費 12000 JPY
+    assets:bank -12000 JPY
+
+2026-05-22 * Food
+    ; event-id: fixture-event-8
+    ; layer: actual
+    expenses:食費 7000 JPY
+    assets:bank -7000 JPY
+
+2026-05-25 * May salary
+    ; event-id: fixture-event-9
+    ; layer: actual
+    assets:bank 300000 JPY
+    income:給与 -300000 JPY
+
+2026-05-26 * Food
+    ; event-id: fixture-event-10
+    ; layer: actual
+    expenses:食費 10000 JPY
+    assets:bank -10000 JPY

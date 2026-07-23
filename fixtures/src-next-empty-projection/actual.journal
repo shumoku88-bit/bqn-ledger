@@ -1,0 +1,19 @@
+commodity JPY
+
+account assets:bank
+    ; role: asset
+
+account assets:cash
+    ; role: asset
+
+account equity:opening
+    ; role: equity
+
+account expenses:food
+    ; role: expense
+
+account expenses:rent
+    ; role: expense
+
+account income:salary
+    ; role: income

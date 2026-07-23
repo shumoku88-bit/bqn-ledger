@@ -1,0 +1,14 @@
+commodity JPY
+
+account assets:cash
+    ; role: asset
+
+account expenses:fixed
+    ; role: expense
+
+2026-01-03 * service
+    ; event-id: fixture-event-0
+    ; layer: actual
+    ; plan-id: service
+    expenses:fixed 1 JPY
+    assets:cash -1 JPY

@@ -9,7 +9,7 @@ Line ← {𝕊 fields: ∾ fields ∾¨ tab}
 Snapshot ← {𝕊 jlines‿plines‿blines:
   {
     sources ⇐ ⟨
-      {source_file⇐"journal.tsv", required⇐1, lines⇐jlines},
+      {source_file⇐"actual.journal", required⇐1, lines⇐jlines},
       {source_file⇐"plan.tsv", required⇐0, lines⇐plines},
       {source_file⇐"budget_alloc.tsv", required⇐0, lines⇐blines}
     ⟩
@@ -124,7 +124,7 @@ CheckError ⟨
   unsupportedResult,
   "authorization",
   "arithmetic_currency_proof_rejected",
-  "explicit source currency unsupported in Stage 2 minimal runtime slice: journal.tsv row 0: unsupported currency: EUR"
+  "explicit source currency unsupported in Stage 2 minimal runtime slice: actual.journal row 0: unsupported currency: EUR"
 ⟩
 
 # 7. Duplicate currency metadata rejection
@@ -138,7 +138,7 @@ CheckError ⟨
   duplicateResult,
   "authorization",
   "arithmetic_currency_proof_rejected",
-  "explicit source currency unsupported in Stage 2 minimal runtime slice: journal.tsv row 0: duplicate currency metadata"
+  "explicit source currency unsupported in Stage 2 minimal runtime slice: actual.journal row 0: duplicate currency metadata"
 ⟩
 
 # 8. Malformed amount rejection
@@ -152,7 +152,7 @@ CheckError ⟨
   malformedResult,
   "authorization",
   "arithmetic_currency_proof_rejected",
-  "explicit source currency unsupported in Stage 2 minimal runtime slice: journal.tsv row 0: invalid_decimal_syntax"
+  "explicit source currency unsupported in Stage 2 minimal runtime slice: actual.journal row 0: invalid_decimal_syntax"
 ⟩
 
 # 9. Focused structural evidence / coefficient mismatch seam

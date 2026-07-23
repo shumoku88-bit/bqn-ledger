@@ -1,0 +1,22 @@
+commodity JPY
+
+account assets:cash
+    ; role: asset
+
+account expenses:food
+    ; role: expense
+
+account income:salary
+    ; role: income
+
+2026-03-01 * ONLY_ANCHOR
+    ; event-id: fixture-event-0
+    ; layer: actual
+    assets:cash 100 JPY
+    income:salary -100 JPY
+
+2026-03-02 * FOOD
+    ; event-id: fixture-event-1
+    ; layer: actual
+    expenses:food 10 JPY
+    assets:cash -10 JPY

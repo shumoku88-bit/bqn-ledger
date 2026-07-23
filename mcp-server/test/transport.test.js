@@ -24,8 +24,8 @@ test('Streamable HTTP transport requires auth and exposes constrained tools', as
   async function rpc(body) { const r = await fetch(url, { method: 'POST', headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json', accept: 'application/json, text/event-stream' }, body: JSON.stringify(body) }); assert.equal(r.status, 200); return r.json(); }
   const listed = await rpc({ jsonrpc: '2.0', id: 1, method: 'tools/list', params: {} });
   assert.deepEqual(listed.result.tools.map(x => x.name), ['ledger_list_sections', 'ledger_report_section', 'ledger_snapshot', 'ledger_list_accounts', 'ledger_prepare_entry', 'ledger_commit_entry']);
-  const before = await fs.readFile(path.join(base, 'journal.tsv'), 'utf8');
+  const before = await fs.readFile(path.join(base, 'actual.journal'), 'utf8');
   const prepared = await rpc({ jsonrpc: '2.0', id: 2, method: 'tools/call', params: { name: 'ledger_prepare_entry', arguments: { date: '2026-02-21', memo: 'Transport fixture', from_account: 'assets:bank', to_account: 'expenses:groceries', amount: 222 } } });
-  assert.equal(prepared.result.structuredContent.ok, true); assert.equal(await fs.readFile(path.join(base, 'journal.tsv'), 'utf8'), before);
+  assert.equal(prepared.result.structuredContent.ok, true); assert.equal(await fs.readFile(path.join(base, 'actual.journal'), 'utf8'), before);
   assert(!logs.includes('Transport fixture')); assert(!logs.includes(token)); assert(!logs.includes('222')); assert(!logs.includes(base));
 });

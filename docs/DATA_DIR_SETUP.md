@@ -5,13 +5,13 @@ Date: 2026-06-27
 
 ## Purpose
 
-`bqn-ledger` treats source TSV files as the source of truth, but their directory is allowed to move.
+`bqn-ledger` treats the configured native Journal and source TSV files as the source of truth, but their directory is allowed to move.
 
 The repository `data/` directory is a public sandbox. Real household data should normally live outside this repository and be selected with `LEDGER_DATA_DIR`.
 
 ```text
 repo/data/              public sandbox / fixture-like sample
-/path/to/ledger-data/data  real source TSV base directory
+/path/to/ledger-data/data  real source-data base directory
 ```
 
 Do not hardcode one personal path into code or docs as the only supported location.
@@ -24,7 +24,7 @@ A usable report base directory contains at least:
 accounts.tsv
 cycle.tsv
 config.tsv
-<the single actual source selected by config.tsv>
+<the native Journal selected by ACTUAL_JOURNAL_FILE>
 ```
 
 Daily operation normally also expects:
@@ -34,14 +34,13 @@ plan.tsv
 budget_alloc.tsv
 ```
 
-Actual source selection is explicit:
+Actual source selection is explicit and Journal-only:
 
 ```text
-ACTUAL_SOURCE=journal
 ACTUAL_JOURNAL_FILE=actual.journal
 ```
 
-`ACTUAL_SOURCE=tsv` is the compatibility route. Journal mode never reads or writes `journal.tsv` and has no silent fallback.
+There is no actual-transaction TSV route, silent fallback, or dual write.
 
 For a new ledger, `config.tsv` must explicitly choose the budget policy instead of relying on the repository compatibility fallback:
 
@@ -83,7 +82,7 @@ tools/add-ui.sh --check
 
 Expected result:
 
-- `tools/doctor` reports the effective base directory and required TSV files.
+- `tools/doctor` reports the effective base directory, configured native Journal, and required source files.
 - `tools/main-ui.sh` displays a report.
 - `tools/add-ui.sh --check` confirms the read-only preflight for input paths.
 

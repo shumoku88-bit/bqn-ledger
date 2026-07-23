@@ -78,26 +78,6 @@ tb ← trial_balance.Build ⟨ctx, cube.layer_actual⟩
 balancesCtx ← { resolved ⇐ resolved, tbds ⇐ view.tbds }
 balanceEntriesActual ← balances.Build balancesCtx
 
-# Setup legacy TSV projection for verification
-legacyLines ← loader.ReadLines (base ∾ "/journal.tsv")
-legacySnapshot ← {
-  sources ⇐ ⟨
-    {source_file⇐"journal.tsv", required⇐1, lines⇐legacyLines},
-    {source_file⇐"plan.tsv", required⇐0, lines⇐⟨⟩},
-    {source_file⇐"budget_alloc.tsv", required⇐0, lines⇐⟨⟩}
-  ⟩
-}
-legacyProjection ← context.BuildCheckedPostingProjectionFromSnapshot ⟨legacySnapshot, resolved, cycleStart⟩
-"ok" lib.AssertEq legacyProjection.state
-legacyRows ← legacyProjection.posting_rows
-
-legacyView ← context.BuildPeriodView ⟨legacyRows, resolved, cy⟩
-legacyBalancesCtx ← { resolved ⇐ resolved, tbds ⇐ legacyView.tbds }
-balanceEntriesLegacy ← balances.Build legacyBalancesCtx
-
-# Verify they match
-balanceEntriesActual lib.AssertEq balanceEntriesLegacy
-
 # Verify format human and compact methods do not crash and emit nonempty output
 humanOutput ← balances.FormatHuman balanceEntriesActual
 compactOutput ← balances.Format balanceEntriesActual

@@ -38,14 +38,14 @@ tools/add-ui.sh --check
 
 | mode | 意味 | 書き込み先 | 内部コマンド |
 |---|---|---|---|
-| `expense` | 支出 (`assets:` → `expenses:`) | `journal.tsv` | `tools/edit journal add` |
-| `move` | 資金移動 (`assets:` → `assets:`) | `journal.tsv` | `tools/edit journal add` |
-| `income` | 収入 (`income:` → `assets:`)。通常収入→未割当連動または除外を選択 | `journal.tsv`、opt-in時`budget_alloc.tsv` | `tools/edit journal add` → `journal income-budget-sync` |
+| `expense` | 支出 (`assets:` → `expenses:`) | configured native Journal | `tools/edit journal add` |
+| `move` | 資金移動 (`assets:` → `assets:`) | configured native Journal | `tools/edit journal add` |
+| `income` | 収入 (`income:` → `assets:`) | configured native Journal | `tools/edit journal add` |
 | `budget` | 予算配賦 (`budget:` → `budget:`) | `budget_alloc.tsv` | `tools/edit budget add` |
 | `plan-add` | 予定の追加 | `plan.tsv` | `tools/edit plan add` |
 | `plan-edit` | 予定の日付・金額修正 | `plan.tsv` | `tools/edit plan edit` |
-| `plan-finish` | 予定の実績化 | `journal.tsv` | `tools/edit plan finish --apply` |
-| `reverse` | 仕訳取消（反対仕訳追記） | `journal.tsv` | `tools/edit journal reverse` |
+| `plan-finish` | 予定の実績化 | configured native Journal | `tools/edit plan finish --apply` |
+| `reverse` | 仕訳取消（反対仕訳追記） | configured native Journal | `tools/edit journal reverse` |
 | `issue` | Issues & Decisions の追加 | `issues.tsv` | `tools/edit issue add` |
 | `issue-close` | Issues & Decisions を閉じる | `issues.tsv` | `tools/edit issue close` |
 
@@ -127,7 +127,7 @@ tools/edit journal add \
 
 ## 注意
 
-- `journal.tsv` / `budget_alloc.tsv` は source-of-truth TSV です。
+- configured native Journal / `budget_alloc.tsv` は source of truth です。Actual取引のTSV routeはありません。
 - `tools/add-ui.sh --check` は read-only preflight です。入力UIが壊れていないか先に確認できます。
 - `tools/add-ui.sh <mode>` は mode selector をスキップするだけです。unknown mode は usage を表示して nonzero で終了します。
 - `tools/add-ui.sh` は承認済み範囲の single-file append だけを行います。

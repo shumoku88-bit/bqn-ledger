@@ -1,0 +1,2 @@
+# Machine-readable TSV-like summaries intentionally preserve a trailing empty field.
+fixtures/**/expected/src_next_summary.txt whitespace=-blank-at-eol

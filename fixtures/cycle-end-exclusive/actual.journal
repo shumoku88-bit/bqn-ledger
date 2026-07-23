@@ -1,0 +1,57 @@
+commodity JPY
+
+account assets:bank
+    ; role: asset
+
+account assets:cash
+    ; role: asset
+
+account assets:savings
+    ; role: asset
+
+account assets:wallet
+    ; role: asset
+
+account assets:zero
+    ; role: asset
+
+account budget:daily
+    ; role: budget
+
+account budget:flex
+    ; role: budget
+
+account budget:opening
+    ; role: budget
+
+account budget:reserve
+    ; role: budget
+
+account budget:spent
+    ; role: budget
+
+account budget:unassigned
+    ; role: budget
+
+account equity:opening-balances
+    ; role: equity
+
+account expenses:food
+    ; role: expense
+    ; default-envelope: daily
+
+account expenses:misc
+    ; role: expense
+    ; default-envelope: flex
+
+account expenses:rent
+    ; role: expense
+
+account income:salary
+    ; role: income
+
+2026-06-14 * Shopping
+    ; event-id: fixture-event-0
+    ; layer: actual
+    expenses:food 500 JPY
+    assets:cash -500 JPY

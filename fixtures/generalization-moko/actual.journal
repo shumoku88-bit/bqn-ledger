@@ -1,0 +1,1808 @@
+commodity JPY
+
+account AIサブスク
+    ; role: expense
+
+account PayPay
+    ; role: asset
+
+account ゆうちょ貯金封筒
+    ; role: budget
+    ; kind: envelope
+
+account ゆうちょ銀行
+    ; role: asset
+    ; default-envelope: ゆうちょ貯金封筒
+
+account オルカン投資封筒
+    ; role: budget
+    ; kind: envelope
+
+account オルカン積立
+    ; role: asset
+    ; default-envelope: オルカン投資封筒
+
+account クレジットカード
+    ; role: liability
+
+account タバコ
+    ; role: expense
+    ; default-envelope: タバコ封筒
+
+account タバコ封筒
+    ; role: budget
+    ; kind: envelope
+
+account ポイント収入
+    ; role: income
+
+account 一般サブスク
+    ; role: expense
+
+account 一般生活封筒
+    ; role: budget
+    ; kind: envelope
+
+account 三井住友銀行
+    ; role: asset
+
+account 予備費
+    ; role: expense
+    ; default-envelope: 一般生活封筒
+
+account 交通費
+    ; role: expense
+    ; default-envelope: 一般生活封筒
+
+account 保険料
+    ; role: expense
+
+account 借金返済
+    ; role: expense
+
+account 光熱費
+    ; role: expense
+
+account 友人への借入
+    ; role: liability
+
+account 学習費
+    ; role: expense
+    ; default-envelope: 一般生活封筒
+
+account 家賃
+    ; role: expense
+
+account 年金収入
+    ; role: income
+
+account 支援給付金
+    ; role: income
+
+account 日用品
+    ; role: expense
+    ; default-envelope: 一般生活封筒
+
+account 未割当予算
+    ; role: budget
+    ; kind: unassigned
+
+account 母への借入
+    ; role: liability
+
+account 消費済予算
+    ; role: budget
+    ; kind: spent
+
+account 缶コーヒー
+    ; role: expense
+    ; default-envelope: 食費封筒
+
+account 返金
+    ; role: income
+
+account 通信費
+    ; role: expense
+
+account 通院
+    ; role: expense
+    ; default-envelope: 通院封筒
+
+account 通院封筒
+    ; role: budget
+    ; kind: envelope
+
+account 開始時予算
+    ; role: budget
+    ; kind: opening
+
+account 開始残高
+    ; role: equity
+
+account 食費
+    ; role: expense
+    ; default-envelope: 食費封筒
+
+account 食費ストック
+    ; role: expense
+    ; default-envelope: 食費ストック封筒
+
+account 食費ストック封筒
+    ; role: budget
+    ; kind: envelope
+
+account 食費封筒
+    ; role: budget
+    ; kind: envelope
+
+2026-04-04 * Opening Balance
+    ; event-id: fixture-event-0
+    ; layer: actual
+    PayPay 192 JPY
+    開始残高 -192 JPY
+
+2026-04-04 * Opening Balance
+    ; event-id: fixture-event-1
+    ; layer: actual
+    三井住友銀行 9843 JPY
+    開始残高 -9843 JPY
+
+2026-04-04 * smbc→paypay
+    ; event-id: fixture-event-2
+    ; layer: actual
+    PayPay 1000 JPY
+    三井住友銀行 -1000 JPY
+
+2026-04-04 * タバコ
+    ; event-id: fixture-event-3
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-04-04 * 缶コーヒー
+    ; event-id: fixture-event-4
+    ; layer: actual
+    食費 170 JPY
+    PayPay -170 JPY
+
+2026-04-05 * smbc→paypay
+    ; event-id: fixture-event-5
+    ; layer: actual
+    PayPay 1000 JPY
+    三井住友銀行 -1000 JPY
+
+2026-04-05 * タバコ
+    ; event-id: fixture-event-6
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-04-05 * 缶コーヒー
+    ; event-id: fixture-event-7
+    ; layer: actual
+    食費 138 JPY
+    PayPay -138 JPY
+
+2026-04-06 * タバコ
+    ; event-id: fixture-event-8
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-04-06 * 缶コーヒー
+    ; event-id: fixture-event-9
+    ; layer: actual
+    食費 138 JPY
+    PayPay -138 JPY
+
+2026-04-06 * エアダスター
+    ; event-id: fixture-event-10
+    ; layer: actual
+    日用品 564 JPY
+    三井住友銀行 -564 JPY
+
+2026-04-07 * タバコ
+    ; event-id: fixture-event-11
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-04-07 * 缶コーヒー
+    ; event-id: fixture-event-12
+    ; layer: actual
+    食費 138 JPY
+    PayPay -138 JPY
+
+2026-04-07 * お菓子
+    ; event-id: fixture-event-13
+    ; layer: actual
+    食費 138 JPY
+    PayPay -138 JPY
+
+2026-04-07 * smbc→paypay
+    ; event-id: fixture-event-14
+    ; layer: actual
+    PayPay 2000 JPY
+    三井住友銀行 -2000 JPY
+
+2026-04-08 * タバコ
+    ; event-id: fixture-event-15
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-04-08 * 缶コーヒー
+    ; event-id: fixture-event-16
+    ; layer: actual
+    食費 138 JPY
+    PayPay -138 JPY
+
+2026-04-08 * 食品
+    ; event-id: fixture-event-17
+    ; layer: actual
+    食費 649 JPY
+    PayPay -649 JPY
+
+2026-04-09 * smbc→paypay
+    ; event-id: fixture-event-18
+    ; layer: actual
+    PayPay 1000 JPY
+    三井住友銀行 -1000 JPY
+
+2026-04-09 * タバコ
+    ; event-id: fixture-event-19
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-04-09 * 缶コーヒー
+    ; event-id: fixture-event-20
+    ; layer: actual
+    食費 138 JPY
+    PayPay -138 JPY
+
+2026-04-09 * パン
+    ; event-id: fixture-event-21
+    ; layer: actual
+    食費 119 JPY
+    PayPay -119 JPY
+
+2026-04-10 * smbc→paypay
+    ; event-id: fixture-event-22
+    ; layer: actual
+    PayPay 1000 JPY
+    三井住友銀行 -1000 JPY
+
+2026-04-10 * タバコ
+    ; event-id: fixture-event-23
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-04-10 * 缶コーヒー
+    ; event-id: fixture-event-24
+    ; layer: actual
+    食費 138 JPY
+    PayPay -138 JPY
+
+2026-04-10 * 缶コーヒー
+    ; event-id: fixture-event-25
+    ; layer: actual
+    食費 160 JPY
+    PayPay -160 JPY
+
+2026-04-10 * smbc→現金
+    ; event-id: fixture-event-26
+    ; layer: actual
+    予備費 1000 JPY
+    三井住友銀行 -1000 JPY
+
+2026-04-11 * smbc→paypay
+    ; event-id: fixture-event-27
+    ; layer: actual
+    PayPay 1000 JPY
+    三井住友銀行 -1000 JPY
+
+2026-04-11 * タバコ
+    ; event-id: fixture-event-28
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-04-11 * 缶コーヒー
+    ; event-id: fixture-event-29
+    ; layer: actual
+    食費 138 JPY
+    PayPay -138 JPY
+
+2026-04-11 * 缶コーヒー
+    ; event-id: fixture-event-30
+    ; layer: actual
+    食費 170 JPY
+    PayPay -170 JPY
+
+2026-04-11 * ポイント
+    ; event-id: fixture-event-31
+    ; layer: actual
+    PayPay 124 JPY
+    ポイント収入 -124 JPY
+
+2026-04-12 * 缶コーヒー
+    ; event-id: fixture-event-32
+    ; layer: actual
+    食費 160 JPY
+    PayPay -160 JPY
+
+2026-04-12 * タバコ
+    ; event-id: fixture-event-33
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-04-12 * 缶コーヒー
+    ; event-id: fixture-event-34
+    ; layer: actual
+    食費 138 JPY
+    PayPay -138 JPY
+
+2026-04-12 * smbc→paypay
+    ; event-id: fixture-event-35
+    ; layer: actual
+    PayPay 1000 JPY
+    三井住友銀行 -1000 JPY
+
+2026-04-13 * タバコ
+    ; event-id: fixture-event-36
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-04-13 * 缶コーヒー
+    ; event-id: fixture-event-37
+    ; layer: actual
+    食費 150 JPY
+    PayPay -150 JPY
+
+2026-04-14 * 缶コーヒー
+    ; event-id: fixture-event-38
+    ; layer: actual
+    食費 160 JPY
+    PayPay -160 JPY
+
+2026-04-15 * 缶コーヒー
+    ; event-id: fixture-event-39
+    ; layer: actual
+    食費 160 JPY
+    PayPay -160 JPY
+
+2026-04-15 * smbc→paypay
+    ; event-id: fixture-event-40
+    ; layer: actual
+    PayPay 1000 JPY
+    三井住友銀行 -1000 JPY
+
+2026-04-15 * 外食費
+    ; event-id: fixture-event-41
+    ; layer: actual
+    食費 457 JPY
+    PayPay -457 JPY
+
+2026-04-15 * タバコ
+    ; event-id: fixture-event-42
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-04-15 * 外食費
+    ; event-id: fixture-event-43
+    ; layer: actual
+    食費 685 JPY
+    PayPay -685 JPY
+
+2026-04-15 * 年金
+    ; event-id: fixture-event-44
+    ; layer: actual
+    三井住友銀行 221016 JPY
+    年金収入 -221016 JPY
+
+2026-04-15 * 支援給付金
+    ; event-id: fixture-event-45
+    ; layer: actual
+    三井住友銀行 10900 JPY
+    支援給付金 -10900 JPY
+
+2026-04-15 * OpenAI
+    ; event-id: fixture-event-46
+    ; layer: actual
+    AIサブスク 3000 JPY
+    三井住友銀行 -3000 JPY
+
+2026-04-15 * pasmoチャージ
+    ; event-id: fixture-event-47
+    ; layer: actual
+    交通費 1000 JPY
+    三井住友銀行 -1000 JPY
+
+2026-04-15 * 食料
+    ; event-id: fixture-event-48
+    ; layer: actual
+    食費 5838 JPY
+    PayPay -5838 JPY
+
+2026-04-15 * 借金返済
+    ; event-id: fixture-event-49
+    ; layer: actual
+    借金返済 10000 JPY
+    三井住友銀行 -10000 JPY
+
+2026-04-15 * 家賃
+    ; event-id: fixture-event-50
+    ; layer: actual
+    家賃 64000 JPY
+    三井住友銀行 -64000 JPY
+
+2026-04-15 * 光熱費
+    ; event-id: fixture-event-51
+    ; layer: actual
+    光熱費 24000 JPY
+    三井住友銀行 -24000 JPY
+
+2026-04-15 * 光熱費
+    ; event-id: fixture-event-52
+    ; layer: actual
+    光熱費 4500 JPY
+    三井住友銀行 -4500 JPY
+
+2026-04-15 * smbc→paypay
+    ; event-id: fixture-event-53
+    ; layer: actual
+    PayPay 6000 JPY
+    三井住友銀行 -6000 JPY
+
+2026-04-15 * インスタントコーヒー
+    ; event-id: fixture-event-54
+    ; layer: actual
+    食費ストック 2718 JPY
+    三井住友銀行 -2718 JPY
+
+2026-04-15 * WiFi
+    ; event-id: fixture-event-55
+    ; layer: actual
+    通信費 4810 JPY
+    三井住友銀行 -4810 JPY
+
+2026-04-15 * 携帯 ; povoトッピング
+    ; event-id: fixture-event-56
+    ; layer: actual
+    通信費 616 JPY
+    三井住友銀行 -616 JPY
+
+2026-04-16 * smbc→paypay
+    ; event-id: fixture-event-57
+    ; layer: actual
+    PayPay 1000 JPY
+    三井住友銀行 -1000 JPY
+
+2026-04-16 * タバコ
+    ; event-id: fixture-event-58
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-04-16 * 缶コーヒー
+    ; event-id: fixture-event-59
+    ; layer: actual
+    食費 138 JPY
+    PayPay -138 JPY
+
+2026-04-16 * smbc→貯金
+    ; event-id: fixture-event-60
+    ; layer: actual
+    ゆうちょ銀行 10000 JPY
+    三井住友銀行 -10000 JPY
+
+2026-04-17 * smbc→paypay
+    ; event-id: fixture-event-61
+    ; layer: actual
+    PayPay 4000 JPY
+    三井住友銀行 -4000 JPY
+
+2026-04-17 * 免許更新
+    ; event-id: fixture-event-62
+    ; layer: actual
+    予備費 3350 JPY
+    PayPay -3350 JPY
+
+2026-04-17 * タバコ
+    ; event-id: fixture-event-63
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-04-17 * smbc→現金
+    ; event-id: fixture-event-64
+    ; layer: actual
+    予備費 3000 JPY
+    三井住友銀行 -3000 JPY
+
+2026-04-17 * 手数料
+    ; event-id: fixture-event-65
+    ; layer: actual
+    予備費 110 JPY
+    三井住友銀行 -110 JPY
+
+2026-04-17 * おにぎり
+    ; event-id: fixture-event-66
+    ; layer: actual
+    食費 259 JPY
+    PayPay -259 JPY
+
+2026-04-18 * タバコ
+    ; event-id: fixture-event-67
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-04-18 * smbc→paypay
+    ; event-id: fixture-event-68
+    ; layer: actual
+    PayPay 1000 JPY
+    三井住友銀行 -1000 JPY
+
+2026-04-18 * 食料
+    ; event-id: fixture-event-69
+    ; layer: actual
+    食費 478 JPY
+    PayPay -478 JPY
+
+2026-04-18 * 缶コーヒー
+    ; event-id: fixture-event-70
+    ; layer: actual
+    食費 270 JPY
+    PayPay -270 JPY
+
+2026-04-19 * smbc→paypay
+    ; event-id: fixture-event-71
+    ; layer: actual
+    PayPay 1000 JPY
+    三井住友銀行 -1000 JPY
+
+2026-04-19 * claude-pro
+    ; event-id: fixture-event-72
+    ; layer: actual
+    AIサブスク 3637 JPY
+    三井住友銀行 -3637 JPY
+
+2026-04-20 * google-one
+    ; event-id: fixture-event-73
+    ; layer: actual
+    AIサブスク 600 JPY
+    三井住友銀行 -600 JPY
+
+2026-04-20 * smbc→paypay
+    ; event-id: fixture-event-74
+    ; layer: actual
+    PayPay 1000 JPY
+    三井住友銀行 -1000 JPY
+
+2026-04-20 * 食品
+    ; event-id: fixture-event-75
+    ; layer: actual
+    食費 958 JPY
+    PayPay -958 JPY
+
+2026-04-20 * タバコ
+    ; event-id: fixture-event-76
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-04-21 * smbc→paypay
+    ; event-id: fixture-event-77
+    ; layer: actual
+    PayPay 1000 JPY
+    三井住友銀行 -1000 JPY
+
+2026-04-21 * scheme書籍
+    ; event-id: fixture-event-78
+    ; layer: actual
+    学習費 2827 JPY
+    三井住友銀行 -2827 JPY
+
+2026-04-21 * 発送用ダンボール
+    ; event-id: fixture-event-79
+    ; layer: actual
+    日用品 70 JPY
+    PayPay -70 JPY
+
+2026-04-21 * smbc→paypay
+    ; event-id: fixture-event-80
+    ; layer: actual
+    PayPay 1000 JPY
+    三井住友銀行 -1000 JPY
+
+2026-04-21 * 缶コーヒー
+    ; event-id: fixture-event-81
+    ; layer: actual
+    缶コーヒー 160 JPY
+    PayPay -160 JPY
+
+2026-04-21 * タバコ
+    ; event-id: fixture-event-82
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-04-21 * 缶コーヒー
+    ; event-id: fixture-event-83
+    ; layer: actual
+    食費 138 JPY
+    PayPay -138 JPY
+
+2026-04-22 * smbc→paypay
+    ; event-id: fixture-event-84
+    ; layer: actual
+    PayPay 1000 JPY
+    三井住友銀行 -1000 JPY
+
+2026-04-22 * 食品
+    ; event-id: fixture-event-85
+    ; layer: actual
+    食費 1152 JPY
+    PayPay -1152 JPY
+
+2026-04-22 * progate
+    ; event-id: fixture-event-86
+    ; layer: actual
+    一般サブスク 1490 JPY
+    三井住友銀行 -1490 JPY
+
+2026-04-23 * smbc→paypay
+    ; event-id: fixture-event-87
+    ; layer: actual
+    PayPay 3000 JPY
+    三井住友銀行 -3000 JPY
+
+2026-04-23 * タバコ
+    ; event-id: fixture-event-88
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-04-23 * 食品
+    ; event-id: fixture-event-89
+    ; layer: actual
+    食費 1582 JPY
+    PayPay -1582 JPY
+
+2026-04-24 * 移動 smbc→paypay
+    ; event-id: fixture-event-90
+    ; layer: actual
+    PayPay 9435 JPY
+    三井住友銀行 -9435 JPY
+
+2026-04-24 * 食品
+    ; event-id: fixture-event-91
+    ; layer: actual
+    食費 319 JPY
+    PayPay -319 JPY
+
+2026-04-24 * タバコ
+    ; event-id: fixture-event-92
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-04-24 * 缶コーヒー
+    ; event-id: fixture-event-93
+    ; layer: actual
+    食費 138 JPY
+    PayPay -138 JPY
+
+2026-04-25 * タバコ
+    ; event-id: fixture-event-94
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-04-25 * 缶コーヒー
+    ; event-id: fixture-event-95
+    ; layer: actual
+    食費 138 JPY
+    PayPay -138 JPY
+
+2026-04-25 * お菓子 飴
+    ; event-id: fixture-event-96
+    ; layer: actual
+    食費 192 JPY
+    PayPay -192 JPY
+
+2026-04-25 * 返金
+    ; event-id: fixture-event-97
+    ; layer: actual
+    PayPay 520 JPY
+    返金 -520 JPY
+
+2026-04-26 * タバコ
+    ; event-id: fixture-event-98
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-04-26 * 缶コーヒー
+    ; event-id: fixture-event-99
+    ; layer: actual
+    食費 138 JPY
+    PayPay -138 JPY
+
+2026-04-26 * ソフトバンク
+    ; event-id: fixture-event-100
+    ; layer: actual
+    通信費 3890 JPY
+    三井住友銀行 -3890 JPY
+
+2026-04-27 * 食品
+    ; event-id: fixture-event-101
+    ; layer: actual
+    食費 1013 JPY
+    PayPay -1013 JPY
+
+2026-04-27 * 自動販売機
+    ; event-id: fixture-event-102
+    ; layer: actual
+    缶コーヒー 160 JPY
+    PayPay -160 JPY
+
+2026-04-27 * タバコ
+    ; event-id: fixture-event-103
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-04-27 * 缶コーヒー
+    ; event-id: fixture-event-104
+    ; layer: actual
+    食費 138 JPY
+    PayPay -138 JPY
+
+2026-04-28 * タバコ
+    ; event-id: fixture-event-105
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-04-28 * 缶コーヒー
+    ; event-id: fixture-event-106
+    ; layer: actual
+    食費 298 JPY
+    PayPay -298 JPY
+
+2026-04-28 * 食料
+    ; event-id: fixture-event-107
+    ; layer: actual
+    食費 685 JPY
+    PayPay -685 JPY
+
+2026-04-29 * amazon-prime
+    ; event-id: fixture-event-108
+    ; layer: actual
+    一般サブスク 600 JPY
+    三井住友銀行 -600 JPY
+
+2026-04-29 * 食料
+    ; event-id: fixture-event-109
+    ; layer: actual
+    食費 2455 JPY
+    PayPay -2455 JPY
+
+2026-04-29 * タバコ
+    ; event-id: fixture-event-110
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-04-29 * 缶コーヒー
+    ; event-id: fixture-event-111
+    ; layer: actual
+    食費 138 JPY
+    PayPay -138 JPY
+
+2026-04-30 * タバコ
+    ; event-id: fixture-event-112
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-04-30 * 缶コーヒー
+    ; event-id: fixture-event-113
+    ; layer: actual
+    食費 138 JPY
+    PayPay -138 JPY
+
+2026-04-30 * 食品 ; method: amazonにんにくまとめ買い
+    ; event-id: fixture-event-114
+    ; layer: actual
+    食費ストック 1290 JPY
+    PayPay -1290 JPY
+
+2026-04-30 * 健康保険料
+    ; event-id: fixture-event-115
+    ; layer: actual
+    保険料 2000 JPY
+    PayPay -2000 JPY
+
+2026-05-01 * 缶コーヒー
+    ; event-id: fixture-event-116
+    ; layer: actual
+    食費 340 JPY
+    PayPay -340 JPY
+
+2026-05-02 * 缶コーヒー
+    ; event-id: fixture-event-117
+    ; layer: actual
+    食費 170 JPY
+    PayPay -170 JPY
+
+2026-05-02 * タバコ
+    ; event-id: fixture-event-118
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-05-02 * 缶コーヒー
+    ; event-id: fixture-event-119
+    ; layer: actual
+    食費 138 JPY
+    PayPay -138 JPY
+
+2026-05-02 * pasmoチャージ
+    ; event-id: fixture-event-120
+    ; layer: actual
+    交通費 1000 JPY
+    三井住友銀行 -1000 JPY
+
+2026-05-03 * 食品
+    ; event-id: fixture-event-121
+    ; layer: actual
+    食費 1286 JPY
+    PayPay -1286 JPY
+
+2026-05-04 * 缶コーヒー
+    ; event-id: fixture-event-122
+    ; layer: actual
+    食費 160 JPY
+    PayPay -160 JPY
+
+2026-05-04 * タバコ
+    ; event-id: fixture-event-123
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-05-04 * 缶コーヒー
+    ; event-id: fixture-event-124
+    ; layer: actual
+    食費 138 JPY
+    PayPay -138 JPY
+
+2026-05-04 * お米
+    ; event-id: fixture-event-125
+    ; layer: actual
+    食費ストック 3456 JPY
+    三井住友銀行 -3456 JPY
+
+2026-05-04 * smbc→paypay
+    ; event-id: fixture-event-126
+    ; layer: actual
+    PayPay 10000 JPY
+    三井住友銀行 -10000 JPY
+
+2026-05-05 * 缶コーヒー
+    ; event-id: fixture-event-127
+    ; layer: actual
+    食費 160 JPY
+    PayPay -160 JPY
+
+2026-05-05 * 資金移動
+    ; event-id: fixture-event-128
+    ; layer: actual
+    PayPay 2785 JPY
+    三井住友銀行 -2785 JPY
+
+2026-05-05 * 調整用ポイント
+    ; event-id: fixture-event-129
+    ; layer: actual
+    PayPay 9 JPY
+    ポイント収入 -9 JPY
+
+2026-05-05 * コンビニ
+    ; event-id: fixture-event-130
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-05-05 * コンビニ
+    ; event-id: fixture-event-131
+    ; layer: actual
+    缶コーヒー 138 JPY
+    PayPay -138 JPY
+
+2026-05-06 * ゲーム課金(アークナイツ)
+    ; event-id: fixture-event-132
+    ; layer: actual
+    一般サブスク 650 JPY
+    三井住友銀行 -650 JPY
+
+2026-05-06 * コンビニ
+    ; event-id: fixture-event-133
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-05-06 * コンビニ
+    ; event-id: fixture-event-134
+    ; layer: actual
+    缶コーヒー 138 JPY
+    PayPay -138 JPY
+
+2026-05-06 * 三和
+    ; event-id: fixture-event-135
+    ; layer: actual
+    食費 1098 JPY
+    PayPay -1098 JPY
+
+2026-05-06 * 自動販売機
+    ; event-id: fixture-event-136
+    ; layer: actual
+    缶コーヒー 160 JPY
+    PayPay -160 JPY
+
+2026-05-06 * 自動販売機
+    ; event-id: fixture-event-137
+    ; layer: actual
+    缶コーヒー 100 JPY
+    PayPay -100 JPY
+
+2026-05-07 * 自動販売機
+    ; event-id: fixture-event-138
+    ; layer: actual
+    缶コーヒー 160 JPY
+    PayPay -160 JPY
+
+2026-05-07 * コンビニ
+    ; event-id: fixture-event-139
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-05-07 * コンビニ
+    ; event-id: fixture-event-140
+    ; layer: actual
+    缶コーヒー 138 JPY
+    PayPay -138 JPY
+
+2026-05-08 * 現金引き出し(1000円は子ども食堂カレー代)
+    ; event-id: fixture-event-141
+    ; layer: actual
+    予備費 2000 JPY
+    三井住友銀行 -2000 JPY
+
+2026-05-08 * 散髪代
+    ; event-id: fixture-event-142
+    ; layer: actual
+    日用品 2200 JPY
+    PayPay -2200 JPY
+
+2026-05-08 * 自動販売機
+    ; event-id: fixture-event-143
+    ; layer: actual
+    缶コーヒー 320 JPY
+    PayPay -320 JPY
+
+2026-05-08 * ATM手数料
+    ; event-id: fixture-event-144
+    ; layer: actual
+    予備費 110 JPY
+    三井住友銀行 -110 JPY
+
+2026-05-09 * コンビニ
+    ; event-id: fixture-event-145
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-05-10 * povoチャージ(利用料？)
+    ; event-id: fixture-event-146
+    ; layer: actual
+    通信費 330 JPY
+    三井住友銀行 -330 JPY
+
+2026-05-10 * コンビニ
+    ; event-id: fixture-event-147
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-05-10 * コンビニ
+    ; event-id: fixture-event-148
+    ; layer: actual
+    缶コーヒー 138 JPY
+    PayPay -138 JPY
+
+2026-05-11 * コンビニ
+    ; event-id: fixture-event-149
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-05-11 * コンビニ
+    ; event-id: fixture-event-150
+    ; layer: actual
+    缶コーヒー 116 JPY
+    PayPay -116 JPY
+
+2026-05-11 * Yahoo!フリマ_c言語書籍
+    ; event-id: fixture-event-151
+    ; layer: actual
+    学習費 500 JPY
+    PayPay -500 JPY
+
+2026-05-12 * 資金移動
+    ; event-id: fixture-event-152
+    ; layer: actual
+    PayPay 10000 JPY
+    三井住友銀行 -10000 JPY
+
+2026-05-12 * 三和
+    ; event-id: fixture-event-153
+    ; layer: actual
+    食費 1671 JPY
+    PayPay -1671 JPY
+
+2026-05-12 * コンビニ
+    ; event-id: fixture-event-154
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-05-13 * コンビニ
+    ; event-id: fixture-event-155
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-05-13 * コンビニ
+    ; event-id: fixture-event-156
+    ; layer: actual
+    缶コーヒー 138 JPY
+    PayPay -138 JPY
+
+2026-05-13 * 三和
+    ; event-id: fixture-event-157
+    ; layer: actual
+    食費 428 JPY
+    PayPay -428 JPY
+
+2026-05-14 * コンビニ
+    ; event-id: fixture-event-158
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-05-14 * コンビニ
+    ; event-id: fixture-event-159
+    ; layer: actual
+    缶コーヒー 138 JPY
+    PayPay -138 JPY
+
+2026-05-15 * gpt-plus
+    ; event-id: fixture-event-160
+    ; layer: actual
+    AIサブスク 3000 JPY
+    三井住友銀行 -3000 JPY
+
+2026-05-15 * 三和
+    ; event-id: fixture-event-161
+    ; layer: actual
+    食費 128 JPY
+    PayPay -128 JPY
+
+2026-05-15 * フリマ売り上げとsafariの差額
+    ; event-id: fixture-event-162
+    ; layer: actual
+    日用品 14 JPY
+    PayPay -14 JPY
+
+2026-05-16 * コンビニ
+    ; event-id: fixture-event-163
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-05-17 * コンビニ
+    ; event-id: fixture-event-164
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-05-17 * ハンズ文房具
+    ; event-id: fixture-event-165
+    ; layer: actual
+    日用品 1540 JPY
+    PayPay -1540 JPY
+
+2026-05-18 * コンビニ
+    ; event-id: fixture-event-166
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-05-18 * 病院代¥500のため現金引き出し
+    ; event-id: fixture-event-167
+    ; layer: actual
+    予備費 1000 JPY
+    三井住友銀行 -1000 JPY
+
+2026-05-18 * 投資信託
+    ; event-id: fixture-event-168
+    ; layer: actual
+    オルカン積立 1000 JPY
+    三井住友銀行 -1000 JPY
+
+2026-05-19 * コンビニ
+    ; event-id: fixture-event-169
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-05-20 * コンビニ
+    ; event-id: fixture-event-170
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-05-20 * 三和
+    ; event-id: fixture-event-171
+    ; layer: actual
+    食費 800 JPY
+    PayPay -800 JPY
+
+2026-05-20 * wifi
+    ; event-id: fixture-event-172
+    ; layer: actual
+    通信費 4810 JPY
+    三井住友銀行 -4810 JPY
+
+2026-05-21 * コンビニ
+    ; event-id: fixture-event-173
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-05-21 * 自動販売機
+    ; event-id: fixture-event-174
+    ; layer: actual
+    缶コーヒー 100 JPY
+    PayPay -100 JPY
+
+2026-05-22 * コンビニ
+    ; event-id: fixture-event-175
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-05-22 * progate解約漏れ
+    ; event-id: fixture-event-176
+    ; layer: actual
+    一般サブスク 1490 JPY
+    三井住友銀行 -1490 JPY
+
+2026-05-23 * コンビニ
+    ; event-id: fixture-event-177
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-05-24 * smbc→paypay
+    ; event-id: fixture-event-178
+    ; layer: actual
+    PayPay 2000 JPY
+    三井住友銀行 -2000 JPY
+
+2026-05-24 * コンビニ
+    ; event-id: fixture-event-179
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-05-24 * 三和
+    ; event-id: fixture-event-180
+    ; layer: actual
+    食費 746 JPY
+    PayPay -746 JPY
+
+2026-05-24 * google-one
+    ; event-id: fixture-event-181
+    ; layer: actual
+    AIサブスク 1450 JPY
+    三井住友銀行 -1450 JPY
+
+2026-05-25 * コンビニ
+    ; event-id: fixture-event-182
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-05-26 * smbc→paypay
+    ; event-id: fixture-event-183
+    ; layer: actual
+    PayPay 5000 JPY
+    三井住友銀行 -5000 JPY
+
+2026-05-26 * コンビニ
+    ; event-id: fixture-event-184
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-05-26 * 三和
+    ; event-id: fixture-event-185
+    ; layer: actual
+    食費 535 JPY
+    PayPay -535 JPY
+
+2026-05-26 * コンビニ
+    ; event-id: fixture-event-186
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-05-27 * コンビニ
+    ; event-id: fixture-event-187
+    ; layer: actual
+    食費 198 JPY
+    PayPay -198 JPY
+
+2026-05-27 * go書籍
+    ; event-id: fixture-event-188
+    ; layer: actual
+    学習費 550 JPY
+    PayPay -550 JPY
+
+2026-05-27 * コンビニ
+    ; event-id: fixture-event-189
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-05-28 * pasmoチャージ
+    ; event-id: fixture-event-190
+    ; layer: actual
+    交通費 500 JPY
+    三井住友銀行 -500 JPY
+
+2026-05-28 * 三和
+    ; event-id: fixture-event-191
+    ; layer: actual
+    食費 1360 JPY
+    PayPay -1360 JPY
+
+2026-05-28 * タバコ
+    ; event-id: fixture-event-192
+    ; layer: actual
+    タバコ 170 JPY
+    PayPay -170 JPY
+
+2026-05-28 * タバコ
+    ; event-id: fixture-event-193
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-05-29 * タバコ
+    ; event-id: fixture-event-194
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-05-30 * コンビニ
+    ; event-id: fixture-event-195
+    ; layer: actual
+    タバコ 638 JPY
+    三井住友銀行 -638 JPY
+
+2026-05-31 * コンビニ
+    ; event-id: fixture-event-196
+    ; layer: actual
+    タバコ 500 JPY
+    三井住友銀行 -500 JPY
+
+2026-05-31 * 自動販売機
+    ; event-id: fixture-event-197
+    ; layer: actual
+    缶コーヒー 36 JPY
+    PayPay -36 JPY
+
+2026-05-31 * ポイント
+    ; event-id: fixture-event-198
+    ; layer: actual
+    PayPay 35 JPY
+    ポイント収入 -35 JPY
+
+2026-06-01 * 移動smbc -> paypay
+    ; event-id: fixture-event-199
+    ; layer: actual
+    PayPay 3000 JPY
+    三井住友銀行 -3000 JPY
+
+2026-06-01 * 三和
+    ; event-id: fixture-event-200
+    ; layer: actual
+    食費 1522 JPY
+    PayPay -1522 JPY
+
+2026-06-01 * コンビニ
+    ; event-id: fixture-event-201
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-06-02 * コンビニ
+    ; event-id: fixture-event-202
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-06-03 * 自動販売機
+    ; event-id: fixture-event-203
+    ; layer: actual
+    缶コーヒー 160 JPY
+    PayPay -160 JPY
+
+2026-06-03 * コンビニ
+    ; event-id: fixture-event-204
+    ; layer: actual
+    タバコ 500 JPY
+    三井住友銀行 -500 JPY
+
+2026-06-03 * コンビニ
+    ; event-id: fixture-event-205
+    ; layer: actual
+    缶コーヒー 138 JPY
+    三井住友銀行 -138 JPY
+
+2026-06-03 * 本屋(簿記配列)
+    ; event-id: fixture-event-206
+    ; layer: actual
+    学習費 2310 JPY
+    三井住友銀行 -2310 JPY
+
+2026-06-04 * 移動smbc -> paypay
+    ; event-id: fixture-event-207
+    ; layer: actual
+    PayPay 2000 JPY
+    三井住友銀行 -2000 JPY
+
+2026-06-04 * 三和
+    ; event-id: fixture-event-208
+    ; layer: actual
+    食費 745 JPY
+    PayPay -745 JPY
+
+2026-06-04 * google-api
+    ; event-id: fixture-event-209
+    ; layer: actual
+    予備費 748 JPY
+    三井住友銀行 -748 JPY
+
+2026-06-04 * ゆうちょ -> smbc
+    ; event-id: fixture-event-210
+    ; layer: actual
+    三井住友銀行 8000 JPY
+    ゆうちょ銀行 -8000 JPY
+
+2026-06-04 * 自動販売機
+    ; event-id: fixture-event-211
+    ; layer: actual
+    缶コーヒー 160 JPY
+    PayPay -160 JPY
+
+2026-06-04 * コンビニ
+    ; event-id: fixture-event-212
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-06-05 * コンビニ
+    ; event-id: fixture-event-213
+    ; layer: actual
+    タバコ 500 JPY
+    PayPay -500 JPY
+
+2026-06-05 * 三和
+    ; event-id: fixture-event-214
+    ; layer: actual
+    食費 341 JPY
+    PayPay -341 JPY
+
+2026-06-06 * ゆうちょ -> smbc
+    ; event-id: fixture-event-215
+    ; layer: actual
+    三井住友銀行 2016 JPY
+    ゆうちょ銀行 -2016 JPY
+
+2026-06-06 * 移動
+    ; event-id: fixture-event-216
+    ; layer: actual
+    オルカン積立 2000 JPY
+    三井住友銀行 -2000 JPY
+
+2026-06-06 * コンビニ
+    ; event-id: fixture-event-217
+    ; layer: actual
+    タバコ 500 JPY
+    三井住友銀行 -500 JPY
+
+2026-06-07 * コンビニ
+    ; event-id: fixture-event-218
+    ; layer: actual
+    タバコ 500 JPY
+    三井住友銀行 -500 JPY
+
+2026-06-07 * コンビニパン
+    ; event-id: fixture-event-219
+    ; layer: actual
+    食費 265 JPY
+    三井住友銀行 -265 JPY
+
+2026-06-07 * ゆうちょ残高調整
+    ; event-id: fixture-event-220
+    ; layer: actual
+    ゆうちょ銀行 16 JPY
+    開始残高 -16 JPY
+
+2026-06-07 * 三和
+    ; event-id: fixture-event-221
+    ; layer: actual
+    食費 1066 JPY
+    三井住友銀行 -1066 JPY
+
+2026-06-08 * 三和
+    ; event-id: fixture-event-222
+    ; layer: actual
+    食費 533 JPY
+    三井住友銀行 -533 JPY
+
+2026-06-08 * 三和
+    ; event-id: fixture-event-223
+    ; layer: actual
+    食費ストック 238 JPY
+    三井住友銀行 -238 JPY
+
+2026-06-08 * コンビニ
+    ; event-id: fixture-event-224
+    ; layer: actual
+    タバコ 500 JPY
+    三井住友銀行 -500 JPY
+
+2026-06-09 * コンビニ
+    ; event-id: fixture-event-225
+    ; layer: actual
+    タバコ 500 JPY
+    三井住友銀行 -500 JPY
+
+2026-06-10 * コンビニ
+    ; event-id: fixture-event-226
+    ; layer: actual
+    食費 308 JPY
+    三井住友銀行 -308 JPY
+
+2026-06-10 * 自動販売機
+    ; event-id: fixture-event-227
+    ; layer: actual
+    缶コーヒー 100 JPY
+    PayPay -100 JPY
+
+2026-06-10 * コンビニ
+    ; event-id: fixture-event-228
+    ; layer: actual
+    タバコ 500 JPY
+    三井住友銀行 -500 JPY
+
+2026-06-10 * コンビニ
+    ; event-id: fixture-event-229
+    ; layer: actual
+    缶コーヒー 138 JPY
+    三井住友銀行 -138 JPY
+
+2026-06-10 * povo
+    ; event-id: fixture-event-230
+    ; layer: actual
+    通信費 286 JPY
+    三井住友銀行 -286 JPY
+
+2026-06-11 * コンビニ
+    ; event-id: fixture-event-231
+    ; layer: actual
+    タバコ 500 JPY
+    三井住友銀行 -500 JPY
+
+2026-06-11 * コンビニ
+    ; event-id: fixture-event-232
+    ; layer: actual
+    缶コーヒー 138 JPY
+    三井住友銀行 -138 JPY
+
+2026-06-12 * pasomoチャージ
+    ; event-id: fixture-event-233
+    ; layer: actual
+    交通費 500 JPY
+    三井住友銀行 -500 JPY
+
+2026-06-12 * コンビニ
+    ; event-id: fixture-event-234
+    ; layer: actual
+    タバコ 500 JPY
+    三井住友銀行 -500 JPY
+
+2026-06-12 * 現金ひきだし600は子供カレー食堂
+    ; event-id: fixture-event-235
+    ; layer: actual
+    予備費 1000 JPY
+    三井住友銀行 -1000 JPY
+
+2026-06-13 * コンビニ
+    ; event-id: fixture-event-236
+    ; layer: actual
+    タバコ 500 JPY
+    三井住友銀行 -500 JPY
+
+2026-06-14 * タバコ(母から借入)
+    ; event-id: fixture-event-237
+    ; layer: actual
+    タバコ 500 JPY
+    母への借入 -500 JPY
+
+2026-06-15 * 年金
+    ; event-id: fixture-event-238
+    ; layer: actual
+    三井住友銀行 225276 JPY
+    年金収入 -225276 JPY
+
+2026-06-15 * 支援給付金
+    ; event-id: fixture-event-239
+    ; layer: actual
+    三井住友銀行 11240 JPY
+    支援給付金 -11240 JPY
+
+2026-06-15 * 光熱費(電気10439+ガス4678+水道5885)
+    ; event-id: fixture-event-240
+    ; layer: actual
+    光熱費 21002 JPY
+    三井住友銀行 -21002 JPY
+
+2026-06-15 * 家賃
+    ; event-id: fixture-event-241
+    ; layer: actual
+    家賃 64000 JPY
+    三井住友銀行 -64000 JPY
+
+2026-06-15 * 母へのwifi返済
+    ; event-id: fixture-event-242
+    ; layer: actual
+    予備費 2000 JPY
+    三井住友銀行 -2000 JPY
+
+2026-06-15 * タバコ代母返済
+    ; event-id: fixture-event-243
+    ; layer: actual
+    母への借入 500 JPY
+    三井住友銀行 -500 JPY
+
+2026-06-15 * 海津さんに返済
+    ; event-id: fixture-event-244
+    ; layer: actual
+    借金返済 10000 JPY
+    三井住友銀行 -10000 JPY
+
+2026-06-15 * コンビニ
+    ; event-id: fixture-event-245
+    ; layer: actual
+    タバコ 500 JPY
+    三井住友銀行 -500 JPY
+
+2026-06-15 * コンビニ(138缶コーヒー+ドーナツ)
+    ; event-id: fixture-event-246
+    ; layer: actual
+    食費 492 JPY
+    三井住友銀行 -492 JPY
+
+2026-06-15 * 書籍(社会の中の数理3350+線形代数新しい学び)
+    ; event-id: fixture-event-247
+    ; layer: actual
+    学習費 7700 JPY
+    三井住友銀行 -7700 JPY
+
+2026-06-15 * gpt-plus
+    ; event-id: fixture-event-248
+    ; layer: actual
+    AIサブスク 3000 JPY
+    三井住友銀行 -3000 JPY
+
+2026-06-15 * 三和
+    ; event-id: fixture-event-249
+    ; layer: actual
+    食費 957 JPY
+    三井住友銀行 -957 JPY
+
+2026-06-15 * 書籍アマゾン差額(藤井恵)
+    ; event-id: fixture-event-250
+    ; layer: actual
+    日用品 546 JPY
+    三井住友銀行 -546 JPY
+
+2026-06-15 * 移動smbc->ゆうちょ
+    ; event-id: fixture-event-251
+    ; layer: actual
+    ゆうちょ銀行 5000 JPY
+    三井住友銀行 -5000 JPY
+
+2026-06-15 * 移動smbc->オルカン
+    ; event-id: fixture-event-252
+    ; layer: actual
+    オルカン積立 2600 JPY
+    三井住友銀行 -2600 JPY
+
+2026-06-15 * wifi
+    ; event-id: fixture-event-253
+    ; layer: actual
+    通信費 4810 JPY
+    三井住友銀行 -4810 JPY
+
+2026-06-16 * コンビニ
+    ; event-id: fixture-event-254
+    ; layer: actual
+    タバコ 500 JPY
+    三井住友銀行 -500 JPY
+
+2026-06-16 * コンビニ
+    ; event-id: fixture-event-255
+    ; layer: actual
+    缶コーヒー 138 JPY
+    三井住友銀行 -138 JPY
+
+2026-06-16 * ダイソー、マイクロファイバー
+    ; event-id: fixture-event-256
+    ; layer: actual
+    日用品 110 JPY
+    三井住友銀行 -110 JPY
+
+2026-06-16 * 現金引き出し(500病院代)
+    ; event-id: fixture-event-257
+    ; layer: actual
+    予備費 2000 JPY
+    三井住友銀行 -2000 JPY
+
+2026-06-16 * ローゼン昼ごはん
+    ; event-id: fixture-event-258
+    ; layer: actual
+    食費 322 JPY
+    三井住友銀行 -322 JPY
+
+2026-06-17 * コンビニ
+    ; event-id: fixture-event-259
+    ; layer: actual
+    タバコ 500 JPY
+    三井住友銀行 -500 JPY
+
+2026-06-17 * コンビニ
+    ; event-id: fixture-event-260
+    ; layer: actual
+    缶コーヒー 138 JPY
+    三井住友銀行 -138 JPY
+
+2026-06-17 * コンビニ
+    ; event-id: fixture-event-261
+    ; layer: actual
+    食費 330 JPY
+    三井住友銀行 -330 JPY
+
+2026-06-17 * pasmo
+    ; event-id: fixture-event-262
+    ; layer: actual
+    交通費 500 JPY
+    三井住友銀行 -500 JPY
+
+2026-06-17 * 三和
+    ; event-id: fixture-event-263
+    ; layer: actual
+    食費 2613 JPY
+    三井住友銀行 -2613 JPY
+
+2026-06-18 * コンビニ
+    ; event-id: fixture-event-264
+    ; layer: actual
+    タバコ 500 JPY
+    三井住友銀行 -500 JPY
+
+2026-06-18 * assets:smbc→assets:paypay
+    ; event-id: fixture-event-265
+    ; layer: actual
+    PayPay 3800 JPY
+    三井住友銀行 -3800 JPY
+
+2026-06-18 * 健康保険料(6月分)
+    ; event-id: fixture-event-266
+    ; layer: actual
+    ; plan-id: plan-2026-06-18-health-insurance-regular
+    ; series: health-insurance
+    保険料 2760 JPY
+    PayPay -2760 JPY
+
+2026-06-18 * 健康保険料(滞納分)
+    ; event-id: fixture-event-267
+    ; layer: actual
+    ; plan-id: plan-2026-06-18-health-insurance-arrears
+    ; series: health-insurance
+    保険料 1000 JPY
+    PayPay -1000 JPY
+
+2026-06-18 * PayPay残高調整(ポイント還元分)
+    ; event-id: fixture-event-268
+    ; layer: actual
+    PayPay 57 JPY
+    ポイント収入 -57 JPY
+
+2026-06-19 * コンビニ
+    ; event-id: fixture-event-269
+    ; layer: actual
+    タバコ 500 JPY
+    三井住友銀行 -500 JPY
+
+2026-06-19 * pasmoチャージ
+    ; event-id: fixture-event-270
+    ; layer: actual
+    交通費 500 JPY
+    三井住友銀行 -500 JPY
+
+2026-06-19 * 東急ストア朝ごはんパン
+    ; event-id: fixture-event-271
+    ; layer: actual
+    食費 382 JPY
+    三井住友銀行 -382 JPY
+
+2026-06-19 * コンビニ
+    ; event-id: fixture-event-272
+    ; layer: actual
+    缶コーヒー 121 JPY
+    三井住友銀行 -121 JPY
+
+2026-06-19 * 三和
+    ; event-id: fixture-event-273
+    ; layer: actual
+    食費 706 JPY
+    三井住友銀行 -706 JPY
+
+2026-06-19 * 借金残高登録
+    ; event-id: fixture-event-274
+    ; layer: actual
+    開始残高 197706 JPY
+    友人への借入 -197706 JPY
+
+2026-06-20 * コンビニ
+    ; event-id: fixture-event-275
+    ; layer: actual
+    タバコ 500 JPY
+    三井住友銀行 -500 JPY
+
+2026-06-21 * コンビニ
+    ; event-id: fixture-event-276
+    ; layer: actual
+    タバコ 500 JPY
+    三井住友銀行 -500 JPY
+
+2026-06-21 * コンビニ
+    ; event-id: fixture-event-277
+    ; layer: actual
+    缶コーヒー 138 JPY
+    三井住友銀行 -138 JPY

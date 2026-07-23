@@ -41,7 +41,7 @@ Exit: revise if the production write-path ownership changes.
 ### `tools/edit-bqn`
 - Active BQN + shell editor entry point.
 - Applies append and replace operations through validated machine-readable protocols.
-- `journal add/multi-add/list/reverse` and `plan finish` follow the BQN-resolved `ACTUAL_SOURCE`; `multi-add` is Journal-only, and Journal mode targets only `ACTUAL_JOURNAL_FILE` without dual-write or `journal.tsv` fallback.
+- `journal add/multi-add/list/reverse` and `plan finish` target the BQN-resolved `ACTUAL_JOURNAL_FILE`; there is no Actual TSV route, dual write, or fallback.
 - Must stay small and predictable; no ad-hoc business logic.
 
 ### `src_edit`
@@ -72,7 +72,6 @@ Exit: revise if the production write-path ownership changes.
 ### Derived append
 - `plan finish`（Journal modeでは`plan-id`付きnative actual transaction）
 - `plan budget-sync`（完了済み `plan_id` に対する確認付き・冪等な execution-envelope companion）
-- `journal income-budget-sync`（明示intentと`txn_id`を持つ通常収入に対する確認付き・冪等なunassigned companion）
 - `journal reverse`
 
 ### Interactive orchestration

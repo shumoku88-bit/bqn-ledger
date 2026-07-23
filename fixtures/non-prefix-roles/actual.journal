@@ -1,0 +1,51 @@
+commodity JPY
+
+account 家賃
+    ; role: expense
+
+account 日用品
+    ; role: expense
+    ; default-envelope: 生活費
+
+account 生活費
+    ; role: budget
+
+account 給料
+    ; role: income
+
+account 財布
+    ; role: asset
+
+account 銀行
+    ; role: asset
+
+account 開始残高
+    ; role: equity
+
+account 食費
+    ; role: expense
+    ; default-envelope: 生活費
+
+2026-06-01 * 開始残高
+    ; event-id: fixture-event-0
+    ; layer: actual
+    銀行 100000 JPY
+    開始残高 -100000 JPY
+
+2026-06-01 * 給料
+    ; event-id: fixture-event-1
+    ; layer: actual
+    銀行 200000 JPY
+    給料 -200000 JPY
+
+2026-06-05 * スーパー
+    ; event-id: fixture-event-2
+    ; layer: actual
+    食費 5000 JPY
+    銀行 -5000 JPY
+
+2026-06-10 * ドラッグストア
+    ; event-id: fixture-event-3
+    ; layer: actual
+    日用品 2000 JPY
+    財布 -2000 JPY

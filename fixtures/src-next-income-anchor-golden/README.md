@@ -10,7 +10,7 @@ Public fixture for `src_next` incomeAnchor cycle mode.
 
 ## Cycle semantics
 
-- Cycle start (resolved): **2026-01-10** (most recent `income:example` in `journal.tsv`).
+- Cycle start (resolved): **2026-01-10** (most recent `income:example` in `actual.journal`).
 - Cycle end_exclusive (resolved): **2026-03-10** (next `income:example` in `plan.tsv` after journal max date).
 - Resolved day_count: **59**.
 - The interval is half-open: `[start, end_exclusive)`.

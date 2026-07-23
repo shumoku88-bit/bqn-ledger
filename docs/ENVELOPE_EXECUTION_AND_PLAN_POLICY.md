@@ -169,9 +169,9 @@ budget:固定費予定 -> budget:spent  330
 
 または、既存の投影規則で支出が `budget:固定費予定` を消費するように account metadata を整えることを検討します。
 
-通常収入も、journal rowに`income_budget=unassigned`という明示intentがあり、BQN editorが一意な`txn_id`を付与した場合だけ、`budget:opening -> role=budget kind=unassigned`の確認付きcompanion対象になります。`exclude`・intentなし・expense refund・asset transferは対象外です。任意のbacking差分からは生成しません。
+通常収入から未割当budget companionを自動生成する経路はありません。任意のbacking差分から調整行を生成せず、必要なbudget allocationは人間が明示します。
 
-これらの連動は journal append と budget append を不可分と偽装しません。journal 実績化後に budget append が取消・失敗した場合は `BUDGET_SYNC_PENDING` とし、予定は `tools/edit plan budget-sync --id ...`、通常収入は `tools/edit journal income-budget-sync --id ...` で再試行します。
+plan連動はJournal appendとbudget appendを不可分と偽装しません。Journal実績化後にbudget appendが取消・失敗した場合は `BUDGET_SYNC_PENDING` とし、`tools/edit plan budget-sync --id ...` で再試行します。
 
 ## fail-closed policy
 

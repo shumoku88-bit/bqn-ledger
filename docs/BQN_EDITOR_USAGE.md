@@ -5,7 +5,7 @@ Owner: editor
 Canonical: yes
 Exit: keep current while `tools/edit` and `tools/add-ui.sh` remain the daily write paths.
 
-BQN-Ledgerにおける base directory 配下の元データTSV（`journal.tsv`, `plan.tsv` など）を安全に表示・編集・完了処理するための、BQN製エディタ（`tools/edit` / `tools/edit-bqn`）および日常記帳UI（`tools/add-ui.sh`）の使い方説明書です。
+BQN-Ledgerにおける base directory 配下のconfigured native Journalとsource TSV（`plan.tsv` など）を安全に表示・編集・完了処理するための、BQN製エディタ（`tools/edit` / `tools/edit-bqn`）および日常記帳UI（`tools/add-ui.sh`）の使い方説明書です。
 
 ## 1. 基本コンセプト：秤（はかり）と手袋
 
@@ -95,11 +95,7 @@ BQN Editor は会計エンジンとしての計算（残高や封筒の残金計
 # 予定の安全追記（plan_id は未指定なら自動生成）
 ./tools/edit plan add --date 2026-06-24 --memo "google-one" --from assets:smbc --to expenses:AIサブスク --amount 1450 --meta series=google-one
 
-# 小数金額と通貨の明示指定（USDなどの exact decimal 対応通貨）
-./tools/edit journal add --date 2026-06-20 --memo "lunch" --from assets:checking --to expenses:food --amount 12.34 --currency USD
-./tools/edit budget add --date 2026-06-20 --memo "alloc" --from budget:opening --to budget:food --amount 100.00 --currency USD
-./tools/edit plan add --date 2026-06-24 --memo "sub" --from assets:checking --to expenses:food --amount 49.99 --currency USD
-
+# current native Journal production pathはexplicit exact-integer JPYのみ
 ```
 *   **オプション**:
     *   `--meta key=value`: 拡張列用のメタデータを指定します。
@@ -170,20 +166,6 @@ Israel旅行中に友人がILSで立て替えた観測事実は、ordinary journ
 *   重複時は `-02`, `-03` のように枝番を付けます。
 *   明示したい場合は `--id <plan_id>` を使います。`--meta plan_id=...` は拒否します。
 
-### 通常収入と未割当の同期 (`journal income-budget-sync`)
-
-日常UIの収入モードでは、通常収入として未割当へ連動するか、返金等として除外するかを明示的に選びます。通常収入を選ぶと `income_budget=unassigned` と安定した `txn_id` がjournal行に付き、journal追記後に未割当へのbudget companionを確認します。
-
-```bash
-./tools/edit journal income-budget-sync --id txn-2026-07-14-salary --dry-run
-./tools/edit journal income-budget-sync --id txn-2026-07-14-salary
-```
-
-- 同じ`txn_id`は冪等な適用済みとなり、重複追記しません。
-- 取消・失敗時はjournal factを保持して`BUDGET_SYNC_PENDING`を表示し、上記コマンドで再試行できます。
-- `income_budget=exclude`またはintentなしの行、費用返金、資産振替は自動連動しません。
-- 任意のbacking差分から調整行を生成しません。
-
 ### 完了済み予定と固定費封筒の同期 (`plan budget-sync`)
 
 `plan finish` で実績化した固定費予定は、設定された execution envelope の消化候補を確認付きで同期できます。
@@ -253,13 +235,13 @@ Israel旅行中に友人がILSで立て替えた観測事実は、ordinary journ
 
 ## 5. BQN Editorが保証する安全書き込み機能
 
-書き込みを伴うコマンド（`account add`、`journal add`、`journal reverse`、`travel friend add`、`travel exchange add`、`budget add`、`plan add`、`plan finish --apply`、`plan budget-sync`、`journal income-budget-sync`、`plan edit`、`issue add`）を実行する際、BQN Editorは以下の安全機構を自動で走らせます。
+書き込みを伴うコマンド（`account add`、`journal add`、`journal multi-add`、`journal reverse`、`travel friend add`、`travel exchange add`、`budget add`、`plan add`、`plan finish --apply`、`plan budget-sync`、`plan edit`、`issue add`）を実行する際、BQN Editorは以下の安全機構を自動で走らせます。
 
 1.  **事前バリデーション**: 日付フォーマット、金額が整数か、アカウント名が `<base>/accounts.tsv` に存在するか、メタデータ形式に問題がないかを書き込み前に構造検査します。
 2.  **プレビューと確認**: 追記または編集される正確なTSV行を画面に出力し、ユーザーが明示的に `y` または `yes` と入力しない限り書き込みません（`--yes` 指定時を除く）。
 3.  **自動バックアップ**: 置き換えを実行する直前に、対象ディレクトリ内の `.backup/YYYYMMDD-HHMMSS/<ファイル名>` にオリジナルデータを退避します。
 4.  **安全な置き換え**: 追記や編集はBashスクリプト連携で安全に行い、編集中にデータが破損しないように努めます。
-5.  **事後チェック (Post-write check)**: 書き込み直後に自動で確認を実行します。ordinary journalの既定 `--post-check lint` はmixed JPY/ILSを合算せず、`src_edit/journal_source_check.bqn`で各source rowの日付、exact amount、metadata、currency、account整合性を検査します。正常なmixed-currency sourceは許容しますが、full reportのsingle-currency consumer contractは変更しません。その他の既存lint ownerは従来どおりで、`--post-check full` は別の広い検証modeとして `./tools/check.sh` を実行します。journal post-check失敗時は、post-write digestが一致する場合だけbackupからoriginal bytesへ自動rollbackし、後続writerが変更した場合はrollbackを拒否してrecovery-requiredを表示します。
+5.  **事後チェック (Post-write check)**: 書き込み直後に自動で確認を実行します。native Journalの既定 `--post-check lint` は `src_edit/journal_validate_cmd.bqn` でconfigured Journal parse、account registry parity、Posting IR、統合contextをfail closedに検査します。`--post-check full` は別の広い検証modeとして `./tools/check.sh` を実行します。Journal post-check失敗時は、post-write digestが一致する場合だけbackupからoriginal bytesへ自動rollbackし、後続writerが変更した場合はrollbackを拒否してrecovery-requiredを表示します。
 
 ---
 
@@ -277,7 +259,7 @@ cp fixtures/plan-completion/*.tsv sandbox/
 
 # 3. sandbox 内のデータが正しくアトミック更新され、Closedになったか確認する
 ./tools/edit --base sandbox plan list
-cat sandbox/journal.tsv
+cat sandbox/actual.journal
 ```
 
 検証後の sandbox ディレクトリは、内容を確認してから手元で片付けます。

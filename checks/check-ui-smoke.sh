@@ -154,8 +154,8 @@ fi
 
 bl_edit_out="$(mktemp)"
 bl_edit_err="$(mktemp)"
-if EDITOR=true tools/bl --base "$fixture" edit journal.tsv >"$bl_edit_out" 2>"$bl_edit_err"; then
-  if grep -qF -- "Opening $fixture/journal.tsv" "$bl_edit_out"; then
+if EDITOR=true tools/bl --base "$fixture" edit actual.journal >"$bl_edit_out" 2>"$bl_edit_err"; then
+  if grep -qF -- "Opening $fixture/actual.journal" "$bl_edit_out"; then
     pass "bl direct edit opens requested TSV"
   else
     fail "bl direct edit did not show requested TSV path"
@@ -167,8 +167,8 @@ rm -f "$bl_edit_out" "$bl_edit_err"
 
 bl_edit_out="$(mktemp)"
 bl_edit_err="$(mktemp)"
-if printf 'journal.tsv\nback\n' | EDITOR=true tools/bl --base "$fixture" edit >"$bl_edit_out" 2>"$bl_edit_err"; then
-  if grep -qF -- "Back to main menu" "$bl_edit_err" && grep -qF -- "Opening $fixture/journal.tsv" "$bl_edit_out"; then
+if printf 'actual.journal\nback\n' | EDITOR=true tools/bl --base "$fixture" edit >"$bl_edit_out" 2>"$bl_edit_err"; then
+  if grep -qF -- "Back to main menu" "$bl_edit_err" && grep -qF -- "Opening $fixture/actual.journal" "$bl_edit_out"; then
     pass "bl edit submenu returns after editing and accepts back"
   else
     fail "bl edit submenu did not show edit menu/back flow"

@@ -8,13 +8,13 @@ tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
 sha() { shasum -a 256 "$1" | awk '{print $1}'; }
 mkdir "$tmp/base"
 printf '%s\n' $'assets:bank-jpy\trole=asset\tcurrency=JPY' $'assets:cash-ils\trole=asset\tcurrency=ILS' > "$tmp/base/accounts.tsv"
-printf 'sentinel journal bytes\n' > "$tmp/base/journal.tsv"
-journal_before="$(sha "$tmp/base/journal.tsv")"
+printf 'sentinel journal bytes\n' > "$tmp/base/actual.journal"
+journal_before="$(sha "$tmp/base/actual.journal")"
 common=(--date 2026-07-20 --memo 'airport exchange' --source-account assets:bank-jpy --source-amount 10000 --source-currency JPY --target-account assets:cash-ils --target-amount 250.00 --target-currency ILS --exchange-id israel-2026-exchange-0001 --trip-id israel-2026)
 
 # Dry-run preserves every source byte and creates no exchange source.
 tools/edit --base "$tmp/base" travel exchange add "${common[@]}" --dry-run >"$tmp/dry.out"
-[[ ! -e "$tmp/base/travel_exchange_events.tsv" && "$journal_before" == "$(sha "$tmp/base/journal.tsv")" ]]
+[[ ! -e "$tmp/base/travel_exchange_events.tsv" && "$journal_before" == "$(sha "$tmp/base/actual.journal")" ]]
 grep -Fq $'10000\tJPY\tassets:cash-ils\t250.00\tILS' "$tmp/dry.out"
 
 # Exclusive first-write keeps both observed amounts and no journal projection.
@@ -22,7 +22,7 @@ tools/edit --base "$tmp/base" travel exchange add "${common[@]}" --yes >"$tmp/fi
 target="$tmp/base/travel_exchange_events.tsv"
 row=$'2026-07-20\tairport exchange\tassets:bank-jpy\t10000\tJPY\tassets:cash-ils\t250.00\tILS\tisrael-2026-exchange-0001\tisrael-2026'
 grep -Fxq "$row" "$target"
-[[ "$(wc -l < "$target" | tr -d ' ')" == 1 && "$journal_before" == "$(sha "$tmp/base/journal.tsv")" ]]
+[[ "$(wc -l < "$target" | tr -d ' ')" == 1 && "$journal_before" == "$(sha "$tmp/base/actual.journal")" ]]
 grep -Fq 'Exchange ID: israel-2026-exchange-0001' "$tmp/first.out"
 
 # Second exact append creates backup evidence.
@@ -82,5 +82,5 @@ BQN_LEDGER_TEST_MODE=1 SAFE_WRITE_TEST_BEFORE_EXCLUSIVE_CREATE_HOOK=interrupt_ho
 set -e
 [[ "$rc" -ne 0 && ! -e "$interrupted/travel_exchange_events.tsv" ]]; ! find "$interrupted" -name '*.tmp-*' -print -quit | grep -q .
 
-[[ "$journal_before" == "$(sha "$tmp/base/journal.tsv")" ]]
+[[ "$journal_before" == "$(sha "$tmp/base/actual.journal")" ]]
 printf 'OK: Israel exchange source-event safe append checks passed\n'
