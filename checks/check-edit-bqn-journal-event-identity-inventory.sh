@@ -18,23 +18,71 @@ pass "unit test"
 
 echo "=== CLI summary format ==="
 SUMMARY="$("$ROOT/tools/edit" --base "$ROOT/data" journal identity-inventory --format summary)"
-echo "$SUMMARY" | grep -q "Journal Event Identity Inventory 002 Summary" && pass "summary header" || fail "summary header"
-echo "$SUMMARY" | grep -q "total_transactions=9" && pass "total=9" || fail "total=9"
-echo "$SUMMARY" | grep -q "explicit_event_id=9" && pass "explicit=9" || fail "explicit=9"
-echo "$SUMMARY" | grep -q "family_prefixed_other=9" && pass "family_prefixed_other=9" || fail "family_prefixed_other=9"
+if echo "$SUMMARY" | grep -q "Journal Event Identity Inventory 002 Summary"; then
+  pass "summary header"
+else
+  fail "summary header"
+fi
+if echo "$SUMMARY" | grep -q "total_transactions=9"; then
+  pass "total=9"
+else
+  fail "total=9"
+fi
+if echo "$SUMMARY" | grep -q "explicit_event_id=9"; then
+  pass "explicit=9"
+else
+  fail "explicit=9"
+fi
+if echo "$SUMMARY" | grep -q "family_prefixed_other=9"; then
+  pass "family_prefixed_other=9"
+else
+  fail "family_prefixed_other=9"
+fi
 # Verify SEMANTIC_TEXT is no longer used (renamed to TEXTUAL_OTHER)
-echo "$SUMMARY" | grep -q "family_textual_other=" && pass "textual_other field present" || fail "textual_other field present"
+if echo "$SUMMARY" | grep -q "family_textual_other="; then
+  pass "textual_other field present"
+else
+  fail "textual_other field present"
+fi
 if echo "$SUMMARY" | grep -q "family_semantic_text"; then fail "semantic_text still present"; else pass "semantic_text removed"; fi
 # Verify provenance confidence section exists
-echo "$SUMMARY" | grep -q "confidence_not_verified=" && pass "provenance confidence present" || fail "provenance confidence present"
+if echo "$SUMMARY" | grep -q "confidence_not_verified="; then
+  pass "provenance confidence present"
+else
+  fail "provenance confidence present"
+fi
 # Verify duplicate/dangling/self-reference tracking
-echo "$SUMMARY" | grep -q "duplicate_identity_definitions=" && pass "duplicate count present" || fail "duplicate count present"
-echo "$SUMMARY" | grep -q "dangling_references=" && pass "dangling count present" || fail "dangling count present"
-echo "$SUMMARY" | grep -q "self_references=" && pass "self-ref count present" || fail "self-ref count present"
+if echo "$SUMMARY" | grep -q "duplicate_identity_definitions="; then
+  pass "duplicate count present"
+else
+  fail "duplicate count present"
+fi
+if echo "$SUMMARY" | grep -q "dangling_references="; then
+  pass "dangling count present"
+else
+  fail "dangling count present"
+fi
+if echo "$SUMMARY" | grep -q "self_references="; then
+  pass "self-ref count present"
+else
+  fail "self-ref count present"
+fi
 # Sandbox has no duplicates, dangling refs, or self-refs
-echo "$SUMMARY" | grep -q "duplicate_identity_definitions=0" && pass "duplicate=0" || fail "duplicate=0"
-echo "$SUMMARY" | grep -q "dangling_references=0" && pass "dangling=0" || fail "dangling=0"
-echo "$SUMMARY" | grep -q "self_references=0" && pass "self-ref=0" || fail "self-ref=0"
+if echo "$SUMMARY" | grep -q "duplicate_identity_definitions=0"; then
+  pass "duplicate=0"
+else
+  fail "duplicate=0"
+fi
+if echo "$SUMMARY" | grep -q "dangling_references=0"; then
+  pass "dangling=0"
+else
+  fail "dangling=0"
+fi
+if echo "$SUMMARY" | grep -q "self_references=0"; then
+  pass "self-ref=0"
+else
+  fail "self-ref=0"
+fi
 
 echo "=== Summary privacy canaries ==="
 # Summary must not contain private event IDs from sandbox
@@ -45,14 +93,42 @@ done
 echo "=== CLI tsv format ==="
 TSV="$("$ROOT/tools/edit" --base "$ROOT/data" journal identity-inventory --format tsv)"
 HEADER="$(echo "$TSV" | head -n 1)"
-echo "$HEADER" | grep -q "ordinal" && pass "tsv ordinal header" || fail "tsv ordinal header"
-echo "$HEADER" | grep -q "presence" && pass "tsv presence header" || fail "tsv presence header"
-echo "$HEADER" | grep -q "lexical_family" && pass "tsv lexical_family header" || fail "tsv lexical_family header"
-echo "$HEADER" | grep -q "disposition" && pass "tsv disposition header" || fail "tsv disposition header"
-echo "$HEADER" | grep -q "provenance_class" && pass "tsv provenance_class header" || fail "tsv provenance_class header"
-echo "$HEADER" | grep -q "provenance_confidence" && pass "tsv provenance_confidence header" || fail "tsv provenance_confidence header"
+if echo "$HEADER" | grep -q "ordinal"; then
+  pass "tsv ordinal header"
+else
+  fail "tsv ordinal header"
+fi
+if echo "$HEADER" | grep -q "presence"; then
+  pass "tsv presence header"
+else
+  fail "tsv presence header"
+fi
+if echo "$HEADER" | grep -q "lexical_family"; then
+  pass "tsv lexical_family header"
+else
+  fail "tsv lexical_family header"
+fi
+if echo "$HEADER" | grep -q "disposition"; then
+  pass "tsv disposition header"
+else
+  fail "tsv disposition header"
+fi
+if echo "$HEADER" | grep -q "provenance_class"; then
+  pass "tsv provenance_class header"
+else
+  fail "tsv provenance_class header"
+fi
+if echo "$HEADER" | grep -q "provenance_confidence"; then
+  pass "tsv provenance_confidence header"
+else
+  fail "tsv provenance_confidence header"
+fi
 LINE_COUNT="$(echo "$TSV" | wc -l | tr -d ' ')"
-test "$LINE_COUNT" -eq 10 && pass "tsv line count=10" || fail "tsv line count=$LINE_COUNT (expected 10)"
+if test "$LINE_COUNT" -eq 10; then
+  pass "tsv line count=10"
+else
+  fail "tsv line count=$LINE_COUNT (expected 10)"
+fi
 
 echo "=== TSV privacy canaries ==="
 # Redacted TSV must not contain private event IDs, descriptions, account names, amounts
@@ -79,13 +155,21 @@ SOURCE_FILE="$ROOT/data/actual.journal"
 BEFORE_SHA="$(shasum -a 256 "$SOURCE_FILE" | awk '{print $1}')"
 "$ROOT/tools/edit" --base "$ROOT/data" journal identity-inventory --format summary >/dev/null
 AFTER_SHA="$(shasum -a 256 "$SOURCE_FILE" | awk '{print $1}')"
-test "$BEFORE_SHA" = "$AFTER_SHA" && pass "source SHA unchanged" || fail "source SHA changed"
+if test "$BEFORE_SHA" = "$AFTER_SHA"; then
+  pass "source SHA unchanged"
+else
+  fail "source SHA changed"
+fi
 
 echo "=== no backup or candidate created ==="
 BACKUP_DIR="$ROOT/data/.backup"
 if [ -d "$BACKUP_DIR" ]; then
   BACKUP_COUNT="$(find "$BACKUP_DIR" -name '*.bak' -newer "$SOURCE_FILE" 2>/dev/null | wc -l | tr -d ' ')"
-  test "$BACKUP_COUNT" -eq 0 && pass "no new backups" || fail "backups created: $BACKUP_COUNT"
+  if test "$BACKUP_COUNT" -eq 0; then
+    pass "no new backups"
+  else
+    fail "backups created: $BACKUP_COUNT"
+  fi
 else
   pass "no backup dir"
 fi

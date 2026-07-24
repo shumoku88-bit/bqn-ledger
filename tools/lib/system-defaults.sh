@@ -2,7 +2,7 @@
 
 # Load local environment variables from .env if present
 if [[ -f ".env" ]]; then
-  # shellcheck disable=SC1090
+  # shellcheck disable=SC1090,SC1091
   source ".env"
 fi
 
