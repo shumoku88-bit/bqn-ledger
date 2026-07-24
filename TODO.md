@@ -43,6 +43,7 @@ Last hygiene pass: 2026-07-19
 - Journal header delimiter exact-consumption implementation is complete; Stage 1 now preserves description-owned leading ASCII SPACE exactly; record: `docs/archive/completed-plans/JOURNAL_HEADER_DELIMITER_EXACT_CONSUMPTION_IMPLEMENTATION-2026-07-23.md`
 - Journal converter leading-space admission relaxation is complete; one or multiple leading ASCII SPACEs round-trip exactly while trailing ASCII SPACE, C0 controls, DEL, empty descriptions, and unchanged `SafeValue` boundaries remain rejected; record: `docs/archive/completed-plans/JOURNAL_CONVERTER_LEADING_SPACE_ADMISSION_RELAXATION-2026-07-23.md`
 - Journal opaque legacy metadata preservation is complete; `recur` / `series` round-trip exactly through the public-synthetic converter and generic Stage 1 transaction metadata without semantic interpretation; record: `docs/archive/completed-plans/JOURNAL_OPAQUE_LEGACY_METADATA_PRESERVATION-2026-07-23.md`
+- Journal reconstructible identity cleanup 001 implementation, public verification, and documentation complete; record: `docs/JOURNAL_RECONSTRUCTIBLE_IDENTITY_CLEANUP_001.md`
 - other unrelated candidates remain unselected
 
 ---
