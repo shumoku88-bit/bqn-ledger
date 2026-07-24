@@ -416,6 +416,7 @@ BuildContext ← {𝕊 arg:
   accLines     ← loader.ReadLines (base2 ∾ "/accounts.tsv")
   resolved     ← ak.Resolve accLines
   journal_rel ← (config.LoadActualJournal base2).file
+  {𝕊: journal_rel ↩ "data/" ∾ (config.LoadActualJournal base2).file}⍟(0 = ⊑ •SH ⟨"test", "-f", base2 ∾ "/data/" ∾ (config.LoadActualJournal base2).file⟩) @
   raw ← loader.ReadRaw (base2 ∾ "/" ∾ journal_rel)
   parsed ← journal_parser.ParseWithProfile ⟨raw,"historical_external_plan"⟩
   {𝕊: •Out "ERROR: native Journal source rejected" ⋄ •Exit 1}⍟(parsed.state≢"ok") @

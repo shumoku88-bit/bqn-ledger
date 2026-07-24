@@ -293,3 +293,44 @@ edit_bqn_apply_replace_checked() {
   backup_path="$(awk -F': ' '$1 == "Backup" {print $2}' <<< "$write_out")"
   run_post_check "$base_dir" "$post_check" "$target_path" "$backup_path"
 }
+
+edit_bqn_apply_canonical_surface_rewrite_checked() {
+  local base_dir="$1" post_check="$2" target_path="$3" candidate_file="$4"
+  local snap_size="$5" snap_mtime="$6" snap_sha256="$7"
+  local write_out backup_path post_write_sha post_ok=1
+
+  write_out="$(safe_rewrite_checked "$target_path" "$candidate_file" "$snap_size" "$snap_mtime" "$snap_sha256")"
+  printf '%s\n' "$write_out"
+  backup_path="$(awk -F': ' '$1 == "Backup" {print $2}' <<< "$write_out")"
+  [[ -f "$backup_path" ]] || { echo 'ERROR: checked rewrite did not report one backup' >&2; return 1; }
+  post_write_sha="$(_safe_write_sha256 "$target_path")"
+
+  if ! (cd "$ROOT_DIR" && bqn -e '
+    rewrite ← •Import "src_edit/journal_canonical_surface_rewrite.bqn"
+    loader ← •Import "src_next/loader.bqn"
+    before ← loader.ReadRaw "'"$backup_path"'"
+    after ← loader.ReadRaw "'"$target_path"'"
+    res ← rewrite.VerifyEquivalent ⟨before, after⟩
+    {FB: •Exit 0}⍟(res.state ≡ "ok") @
+    •Exit 1
+  ') 2>/dev/null; then
+    printf 'Mandatory canonical surface equivalence: FAILED\n' >&2
+    safe_restore_backup_checked "$target_path" "$backup_path" "$post_write_sha"
+    return 1
+  fi
+  printf 'Mandatory canonical surface equivalence: OK\n'
+
+  if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && "${EDIT_BQN_TEST_FORCE_NATIVE_POST_CHECK_FAIL:-}" == "1" ]]; then
+    printf 'Post-check failed.\n' >&2
+    post_ok=0
+  elif ! run_post_check "$base_dir" "$post_check" "$target_path" "$backup_path" cleanup_journal; then
+    post_ok=0
+  fi
+
+  if [[ "$post_ok" -eq 1 ]]; then
+    return 0
+  fi
+
+  safe_restore_backup_checked "$target_path" "$backup_path" "$post_write_sha"
+  return 1
+}

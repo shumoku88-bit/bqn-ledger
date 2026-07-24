@@ -12,7 +12,9 @@ Resolve ← {𝕊 base: config.LoadActualJournal base}
 
 LoadTransactions ← {𝕊 base:
   selected ← Resolve base
-  raw ← loader.ReadRaw (base∾"/"∾selected.file)
+  relPath ← selected.file
+  {𝕊: relPath ↩ "data/" ∾ selected.file}⍟(0 = ⊑ •SH ⟨"test", "-f", base ∾ "/data/" ∾ selected.file⟩) @
+  raw ← loader.ReadRaw (base∾"/"∾relPath)
   parsed ← parser.ParseWithProfile ⟨raw,"historical_external_plan"⟩
   {𝕊: •Out "ERROR: native Journal source rejected" ⋄ •Exit 1}⍟(parsed.state≢"ok") @
   parsed.transactions
