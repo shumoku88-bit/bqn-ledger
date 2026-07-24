@@ -582,7 +582,7 @@ if [[ "$1" == "journal" && "$2" == "reverse" ]]; then
   [[ -n "$ACTUAL_FILE" ]] || { echo "ERROR: invalid configured Journal file" >&2; exit 1; }
   REVERSE_OUT="$(cd "$ROOT_DIR" && bqn src_edit/journal_native_reverse_cmd.bqn "$BASE_DIR" "$ID" "$INDEX" "$DATE")"
   REVERSE_HEADER="${REVERSE_OUT%%$'\n'*}"
-  IFS=$'\t' read -r R_STATUS R_OP R_INDEX R_ORIG_DATE R_DESCRIPTION R_ORIG_EVENT R_COUNT R_DATE R_EXTRA <<< "$REVERSE_HEADER"
+  IFS=$'\t' read -r R_STATUS R_OP _ _ R_DESCRIPTION R_ORIG_EVENT R_COUNT R_DATE R_EXTRA <<< "$REVERSE_HEADER"
   [[ "$R_STATUS" == "OK" && "$R_OP" == "REVERSE_NATIVE" && -z "${R_EXTRA:-}" && "$R_COUNT" =~ ^[0-9]+$ ]] || { echo "ERROR: invalid native reverse protocol" >&2; exit 1; }
   REVERSE_POSTINGS=()
   while IFS= read -r line; do [[ -n "$line" ]] && REVERSE_POSTINGS+=("$line"); done <<< "${REVERSE_OUT#*$'\n'}"
@@ -772,7 +772,7 @@ if [[ "$1" == "plan" && "$2" == "finish" ]]; then
   PAYLOAD="$EDIT_BQN_PROTOCOL_PAYLOAD"
 
   [[ "$FIRST_LINE" == $'OK\tAPPEND_NATIVE\t'* ]] || { echo "ERROR: expected native plan-finish protocol" >&2; exit 1; }
-  IFS=$'\t' read -r N_STATUS N_OP N_FILE N_EVENT N_DATE N_DESCRIPTION N_POST_COUNT N_META_COUNT N_EXTRA <<< "$FIRST_LINE"
+  IFS=$'\t' read -r _ _ N_FILE N_EVENT N_DATE N_DESCRIPTION N_POST_COUNT N_META_COUNT N_EXTRA <<< "$FIRST_LINE"
   [[ -z "${N_EXTRA:-}" && "$N_POST_COUNT" =~ ^[0-9]+$ && "$N_META_COUNT" =~ ^[0-9]+$ ]] || { echo "ERROR: invalid native plan-finish protocol" >&2; exit 1; }
   N_POSTINGS=(); N_META=()
   while IFS=$'\t' read -r kind value extra; do
