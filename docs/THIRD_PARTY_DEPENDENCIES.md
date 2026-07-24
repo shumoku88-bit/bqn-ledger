@@ -18,9 +18,6 @@ It is not a full SBOM. It exists so maintainers and reviewers can see the main r
 | ripgrep | Repository checks | Installed in CI for check tooling. |
 | fzf | Optional interactive UI | Presentation/selection helper only. |
 | gum | Optional interactive UI | Presentation/selection helper only. |
-| Node.js | Optional MCP adapter runtime and tests | Termux-compatible; not required by the canonical BQN report/editor path. |
-| `@modelcontextprotocol/sdk` | Optional Streamable HTTP MCP protocol | npm lockfile-pinned transitive graph under `mcp-server/`; legacy SSE is not used. |
-| Express / Zod | Optional MCP HTTP boundary and input schema | npm lockfile-pinned; request parsing remains bounded and core tests are transport-independent. |
 
 ## Legacy / archived implementation notes
 
@@ -31,7 +28,6 @@ All Go source code has been completely retired and removed from the active tree.
 - The public repo should keep runtime requirements in README, CONTRIBUTING, and CI aligned.
 - If CBQN is pinned in CI, update README at the same time.
 - Removed or archived experiments should not be listed as current dependency paths.
-- MCP dependencies are installed reproducibly with `npm ci --prefix mcp-server`; `npm audit --omit=dev` is part of dependency review.
 
 ## Data safety note
 

@@ -40,7 +40,6 @@ Exit: revise when safety invariants or responsibility boundaries change
 | BQN report engine | 読み取り、検査、派生ビュー、レポート生成を担当する。 |
 | BQN editor | 明示操作に基づく安全な TSV 追記・編集経路を担当する。 |
 | shell / gum / fzf | 表示、選択、検索、入力補助に徹する。 |
-| MCP adapter | 構造化候補、短命draft、人間承認を既存BQN editorへ中継する。画像認識・会計計算・任意書き込みは担当しない。 |
 | docs / fixtures / tests | 契約と回帰確認を固定する。 |
 
 ## 基本原則
