@@ -10,10 +10,17 @@ cube ← •Import "cube.bqn"
 
 Resolve ← {𝕊 base: config.LoadActualJournal base}
 
-LoadTransactions ← {𝕊 base:
+ResolveRelativePath ← {𝕊 base:
   selected ← Resolve base
   relPath ← selected.file
-  {𝕊: relPath ↩ "data/" ∾ selected.file}⍟(0 = ⊑ •SH ⟨"test", "-f", base ∾ "/data/" ∾ selected.file⟩) @
+  directExists ← 0 = ⊑ •SH ⟨"test", "-f", base ∾ "/" ∾ relPath⟩
+  dataSubdirExists ← 0 = ⊑ •SH ⟨"test", "-f", base ∾ "/data/" ∾ relPath⟩
+  {𝕊: relPath ↩ "data/" ∾ selected.file}⍟((¬directExists) ∧ dataSubdirExists) @
+  relPath
+}
+
+LoadTransactions ← {𝕊 base:
+  relPath ← ResolveRelativePath base
   raw ← loader.ReadRaw (base∾"/"∾relPath)
   parsed ← parser.ParseWithProfile ⟨raw,"historical_external_plan"⟩
   {𝕊: •Out "ERROR: native Journal source rejected" ⋄ •Exit 1}⍟(parsed.state≢"ok") @
@@ -62,4 +69,4 @@ PlanIdsInCycle ← {𝕊 base‿cy:
   {𝕩.plan_id}¨(InCycle¨evidence)/evidence
 }
 
-{Resolve⇐Resolve,LoadTransactions⇐LoadTransactions,LoadDates⇐LoadDates,IncomeDates⇐IncomeDates,File⇐File,Transactions⇐Transactions,Rows⇐Rows,CompletionEvidence⇐CompletionEvidence,PlanIdsInCycle⇐PlanIdsInCycle}
+{Resolve⇐Resolve,ResolveRelativePath⇐ResolveRelativePath,LoadTransactions⇐LoadTransactions,LoadDates⇐LoadDates,IncomeDates⇐IncomeDates,File⇐File,Transactions⇐Transactions,Rows⇐Rows,CompletionEvidence⇐CompletionEvidence,PlanIdsInCycle⇐PlanIdsInCycle}

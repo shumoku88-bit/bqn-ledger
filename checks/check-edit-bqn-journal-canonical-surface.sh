@@ -200,4 +200,34 @@ unset BQN_LEDGER_TEST_MODE
 unset EDIT_BQN_TEST_FORCE_NATIVE_POST_CHECK_FAIL
 echo "Test 8 PASS"
 
+echo "=== Test 9: Option Combinations & Interactive Boundaries ==="
+BASE_9="$TMP_DIR/base_9"
+setup_fixture_a "$BASE_9"
+
+# 9a: --yes without --apply must fail closed
+if "$ROOT_DIR/tools/edit-bqn" --base "$BASE_9" journal canonical-surface-apply --yes 2>/dev/null; then
+  echo "Test 9a failed: --yes without --apply was not rejected"
+  exit 1
+fi
+
+# 9b: --apply and --dry-run together must fail closed
+if "$ROOT_DIR/tools/edit-bqn" --base "$BASE_9" journal canonical-surface-apply --apply --dry-run 2>/dev/null; then
+  echo "Test 9b failed: --apply --dry-run together was not rejected"
+  exit 1
+fi
+
+# 9c: unknown option must fail closed
+if "$ROOT_DIR/tools/edit-bqn" --base "$BASE_9" journal canonical-surface-apply --unknown 2>/dev/null; then
+  echo "Test 9c failed: unknown option was not rejected"
+  exit 1
+fi
+
+# 9d: --apply without --yes in non-interactive environment (EOF) must cancel without writing
+SHA_9_BEFORE="$(_safe_write_sha256 "$BASE_9/data/actual.journal")"
+APPLY_EOF_OUT="$("$ROOT_DIR/tools/edit-bqn" --base "$BASE_9" journal canonical-surface-apply --apply </dev/null)"
+echo "$APPLY_EOF_OUT" | grep -q "Cancelled. No files were modified." || { echo "Test 9d failed: cancellation message missing"; exit 1; }
+SHA_9_AFTER="$(_safe_write_sha256 "$BASE_9/data/actual.journal")"
+[[ "$SHA_9_BEFORE" == "$SHA_9_AFTER" ]] || { echo "Test 9d failed: file was modified on non-interactive apply"; exit 1; }
+echo "Test 9 PASS"
+
 echo "ALL CANONICAL SURFACE CHECKS PASSED!"

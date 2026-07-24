@@ -23,20 +23,20 @@ AnalyzePostingLine ← {𝕊 line:
   indentCount ← parsed.indent_count
   trimmed ← parsed.trimmed
   isPosting ← (indentCount > 0) ∧ (0 < ≠trimmed) ∧ (';' ≠ ⊑ (trimmed ∾ " "))
-  
+
   spaceIndices ← (space = trimmed) / ↕≠trimmed
   hasSpace ← isPosting ∧ (0 < ≠spaceIndices)
-  
+
   p1 ← 0
   {𝕊: p1 ↩ ⊑ spaceIndices}⍟hasSpace @
   rem ← p1 ↓ trimmed
   spaceLen ← 0
   {𝕊: spaceLen ↩ +´ ∧` (space = rem)}⍟hasSpace @
-  
+
   isSingleSpace ← isPosting ∧ (1 = spaceLen)
   isMultiSpace ← isPosting ∧ (1 < spaceLen)
   isCanonical ← isPosting ∧ (4 = indentCount) ∧ (4 = spaceLen)
-  
+
   {
     is_posting⇐isPosting,
     indent_count⇐indentCount,
@@ -69,7 +69,7 @@ ClassifyTransaction ← {
   len ← 1 + (endLine - startLine)
   offset ← startLine - 1
   txLines ← len ↑ (offset ↓ rawLines)
-  
+
   pInfos ← AnalyzePostingLine¨ txLines
   mInfos ← AnalyzeMetaLine¨ txLines
 
@@ -82,7 +82,7 @@ ClassifyTransaction ← {
   singleSpaceCount ← +´ 0 ∾ isSingleList
   multiSpaceCount ← +´ 0 ∾ isMultiList
   spacingFixCount ← +´ 0 ∾ (isPostingList ∧ ¬isCanonList)
-  
+
   isLayerActualList ← {𝕩.is_layer_actual}¨ mInfos
   isCurrencyJpyList ← {𝕩.is_currency_jpy}¨ mInfos
   isRedundantList ← {𝕩.is_redundant}¨ mInfos
@@ -120,19 +120,19 @@ Build ← {𝕊 raw:
   cleaned ← (cr ≠ raw) / raw
   rawLines ← lf util.SplitKeepEmpty cleaned
   parsed ← parser.ParseWithProfile ⟨raw, "historical_external_plan"⟩
-  
+
   diagnostics ← parsed.diagnostics
   transactions ← parsed.transactions
-  
+
   txResults ← {ClassifyTransaction ⟨rawLines, 𝕩⟩}¨ transactions
-  
+
   txCount ← ≠ transactions
   postingCount ← +´ 0 ∾ {𝕩.posting_count}¨ txResults
   singleSpaceCount ← +´ 0 ∾ {𝕩.single_space_count}¨ txResults
   multiSpaceCount ← +´ 0 ∾ {𝕩.multi_space_count}¨ txResults
   layerActualCount ← +´ 0 ∾ {𝕩.layer_actual_count}¨ txResults
   currencyJpyCount ← +´ 0 ∾ {𝕩.currency_jpy_count}¨ txResults
-  
+
   canonicalCount ← +´ 0 ∾ {𝕩.classification ≡ "canonical"}¨ txResults
   spacingOnlyCount ← +´ 0 ∾ {𝕩.classification ≡ "spacing_only"}¨ txResults
   redundantMetaOnlyCount ← +´ 0 ∾ {𝕩.classification ≡ "redundant_metadata_only"}¨ txResults

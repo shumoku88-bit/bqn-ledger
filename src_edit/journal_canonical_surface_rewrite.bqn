@@ -71,23 +71,23 @@ PostingRowEquivalent ← {
 VerifyEquivalent ← {𝕊 beforeRaw‿afterRaw:
   diagnostics ← empty
   Add ← {𝕊 code‿message: diagnostics ∾↩ ⟨Diagnostic ⟨code, message⟩⟩}
-  
+
   beforeParsed ← parser.ParseWithProfile ⟨beforeRaw, "historical_external_plan"⟩
   afterParsed ← parser.ParseWithProfile ⟨afterRaw, "historical_external_plan"⟩
-  
+
   {FB: Add ⟨"before_parse_failed", "before Journal parse failed"⟩}⍟(beforeParsed.state ≢ "ok") @
   {FB: Add ⟨"after_parse_failed", "after Journal parse failed"⟩}⍟(afterParsed.state ≢ "ok") @
-  
+
   {FB:
     beforeTx ← beforeParsed.transactions
     afterTx ← afterParsed.transactions
-    
+
     {FB2: Add ⟨"transaction_count_changed", "transaction count changed"⟩}⍟((≠beforeTx) ≠ ≠afterTx) @
-    
+
     {𝕊 i:
       b ← i ⊑ beforeTx
       a ← i ⊑ afterTx
-      
+
       common ← ∧´ ⟨
         b.date ≡ a.date,
         b.status_marker ≡ a.status_marker,
@@ -102,85 +102,85 @@ VerifyEquivalent ← {𝕊 beforeRaw‿afterRaw:
         b.execution_envelope ≡ a.execution_envelope,
         (≠b.postings) = ≠a.postings
       ⟩
-      
+
       {FB3: Add ⟨"transaction_header_mismatch", "transaction fields changed"⟩}⍟(¬common) @
-      
+
       {FB4:
         postingsMatch ← ∧´ 1 ∾ b.postings {PostingEquivalent ⟨𝕨, 𝕩⟩}¨ a.postings
         {FB5: Add ⟨"posting_semantics_mismatch", "posting semantics changed"⟩}⍟(¬postingsMatch) @
       }⍟((≠b.postings) = ≠a.postings) @
-      
+
       bFilteredMeta ← WithoutRedundantMeta b.metadata
       aMeta ← a.metadata
       metaMatch ← (MetaPairs bFilteredMeta) ≡ (MetaPairs aMeta)
       {FB6: Add ⟨"metadata_semantics_mismatch", "non-redundant metadata changed"⟩}⍟(¬metaMatch) @
-      
+
     }¨ ↕ ⌊´ ⟨≠beforeTx, ≠afterTx⟩
-    
+
     # Stage 2A Posting IR comparison
     accLines ← { 𝕩.account_key ∾ tab ∾ "role=" ∾ 𝕩.role }¨ beforeParsed.accounts
     resolved ← ak.Resolve accLines
     beforeIr ← stage2a.BuildForSource ⟨beforeTx, resolved, "", "data/actual.journal"⟩
     afterIr ← stage2a.BuildForSource ⟨afterTx, resolved, "", "data/actual.journal"⟩
-    
+
     countMatch ← (≠beforeIr.posting_rows) = ≠afterIr.posting_rows
     rowsMatch ← ∧´ 1 ∾ beforeIr.posting_rows PostingRowEquivalent¨ afterIr.posting_rows
     irMatch ← countMatch ∧ rowsMatch
     {FB7: Add ⟨"stage2a_ir_mismatch", "Stage 2A Posting IR changed"⟩}⍟(¬irMatch) @
 
   }⍟((beforeParsed.state ≡ "ok") ∧ (afterParsed.state ≡ "ok")) @
-  
+
   {state⇐(0 = ≠ diagnostics) ⊑ "error"‿"ok", diagnostics⇐diagnostics}
 }
 
 RewriteSingleLine ← {𝕊 line:
   pInfo ← plan.AnalyzePostingLine line
   mInfo ← plan.AnalyzeMetaLine line
-  
+
   isRemove ← mInfo.is_redundant
   newLine ← line
-  
+
   {FB:
     hasCr ← (0 < ≠line) ∧ (cr = ¯1⊑(line ∾ " "))
     l ← line
     {FB2: l ↩ ¯1↓l}⍟hasCr @
     parsed ← plan.TrimIndent l
     trimmed ← parsed.trimmed
-    
+
     spaceIndices ← (space = trimmed) / ↕≠trimmed
     p1 ← 0
     {FB3: p1 ↩ ⊑ spaceIndices}⍟(0 < ≠spaceIndices) @
     rem ← p1 ↓ trimmed
     spaceLen ← 0
     {FB4: spaceLen ↩ +´ ∧` (space = rem)}⍟(0 < ≠spaceIndices) @
-    
+
     account ← p1 ↑ trimmed
     amountPart ← (p1 + spaceLen) ↓ trimmed
-    
+
     newLine ↩ "    " ∾ account ∾ "    " ∾ amountPart
     {FB5: newLine ∾↩ cr}⍟hasCr @
   }⍟(pInfo.is_posting) @
-  
+
   {is_remove⇐isRemove, line⇐newLine}
 }
 
 BuildCandidate ← {𝕊 raw:
   diagnostics ← empty
   Add ← {𝕊 code‿message: diagnostics ∾↩ ⟨Diagnostic ⟨code, message⟩⟩}
-  
+
   planResult ← plan.Build raw
   {FB: Add ⟨"source_parse_failed", "source Journal failed to parse"⟩}⍟(planResult.state ≢ "ok") @
   {FB: Add ⟨"unsupported_transactions_present", "source contains unsupported transactions"⟩}⍟(0 < planResult.unsupported_transactions) @
-  
+
   cleaned ← (cr ≠ raw) / raw
   lines ← lf util.SplitKeepEmpty cleaned
-  
+
   newLines ← empty
   {𝕊 line:
     res ← RewriteSingleLine line
     {FB: newLines ∾↩ ⟨res.line⟩}⍟(¬ res.is_remove) @
   }¨ lines
-  
+
   candidateRaw ← JoinLines newLines
   hasFinalLf ← (0 < ≠raw) ∧ (lf = ¯1⊑raw)
   {FB:
@@ -189,12 +189,12 @@ BuildCandidate ← {𝕊 raw:
   {FB:
     {FB2: candidateRaw ↩ ¯1↓candidateRaw}⍟((0 < ≠candidateRaw) ∧ (lf = ¯1⊑candidateRaw)) @
   }⍟(¬hasFinalLf) @
-  
+
   eqResult ← VerifyEquivalent ⟨raw, candidateRaw⟩
   diagnostics ∾↩ eqResult.diagnostics
-  
+
   candPlanResult ← plan.Build candidateRaw
-  
+
   {
     state⇐(0 = ≠ diagnostics) ⊑ "error"‿"ok",
     candidate_raw⇐candidateRaw,

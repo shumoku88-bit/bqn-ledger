@@ -24,6 +24,7 @@ cube ← •Import "cube.bqn"
 tbds ← •Import "tbds.bqn"
 currency_setup ← •Import "currency_setup.bqn"
 config ← •Import "config.bqn"
+actual_source ← •Import "actual_source.bqn"
 journal_parser ← •Import "journal_profile_stage1.bqn"
 journal_adapter ← •Import "journal_posting_ir_stage2a.bqn"
 
@@ -105,7 +106,7 @@ BuildRowEvidenceFromSnapshot ← {𝕊 snapshot:
 
 ResolveArithmeticCurrencyProof ← {𝕊 evidence‿arithmeticEvidence:
   has_error ← ∨´ { 𝕩.state ≢ "ok" } ¨ evidence
-  
+
   proof ← {
     state ⇐ "unsupported",
     domain ⇐ "",
@@ -155,10 +156,10 @@ ResolveArithmeticCurrencyProof ← {𝕊 evidence‿arithmeticEvidence:
       {𝕊:
         domain ← arithmeticEvidence.domain
         amount_scale ← arithmeticEvidence.amount_scale
-        
+
         has_explicit ← ∨´ { 𝕩.provenance ≢ "legacy_compatibility" } ¨ evidence
         basis ← has_explicit ⊑ "legacy_compatibility"‿"resolved_single_currency"
-        
+
         proof ↩ {
           state ⇐ "proven",
           domain ⇐ domain,
@@ -407,16 +408,15 @@ BuildContext ← {𝕊 arg:
   is_string ← (0 = ≠ arg) ∨ (2 = •Type 0 ⊑ arg ∾ ⟨' '⟩)
   base ← is_string ⊑ ⟨ 0 ⊑ arg, arg ⟩
   base2 ← (0 < ≠ base) ⊑ ⟨ ".", base ⟩
-  
+
   # Resolve default as_of: read cycle to find its start date
   cy_default ← cycle.ReadCycle base2
   as_of ← is_string ◶ ⟨ { 1 ⊑ arg }, { cy_default.start } ⟩ @
-  
+
   cy           ← cycle.ReadCycle ⟨base2, as_of⟩
   accLines     ← loader.ReadLines (base2 ∾ "/accounts.tsv")
   resolved     ← ak.Resolve accLines
-  journal_rel ← (config.LoadActualJournal base2).file
-  {𝕊: journal_rel ↩ "data/" ∾ (config.LoadActualJournal base2).file}⍟(0 = ⊑ •SH ⟨"test", "-f", base2 ∾ "/data/" ∾ (config.LoadActualJournal base2).file⟩) @
+  journal_rel  ← actual_source.ResolveRelativePath base2
   raw ← loader.ReadRaw (base2 ∾ "/" ∾ journal_rel)
   parsed ← journal_parser.ParseWithProfile ⟨raw,"historical_external_plan"⟩
   {𝕊: •Out "ERROR: native Journal source rejected" ⋄ •Exit 1}⍟(parsed.state≢"ok") @
@@ -433,7 +433,7 @@ BuildContext ← {𝕊 arg:
   arithmetic_currency_proof ← nonactual.arithmetic_currency_proof
   rows ← journal_checked.posting_rows ∾ nonactual.rows
   view ← BuildPeriodView ⟨rows, resolved, cy⟩
-  
+
   # Load and parse issues.tsv
   issueLines   ← loader.ReadLinesOptional (base2 ∾ "/issues.tsv")
   MakeIssueRow ← {𝕊 flds:

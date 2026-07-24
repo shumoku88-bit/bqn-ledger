@@ -378,16 +378,20 @@ fi
 
 if [[ "$1" == "journal" && "$2" == "canonical-surface-apply" ]]; then
   shift 2
-  DRY_RUN=1; APPLY=0; YES=0; POST_CHECK="lint"
+  HAS_DRY_RUN=0; HAS_APPLY=0; YES=0; POST_CHECK="lint"
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --dry-run) DRY_RUN=1; shift ;;
-      --apply) APPLY=1; DRY_RUN=0; shift ;;
+      --dry-run) HAS_DRY_RUN=1; shift ;;
+      --apply) HAS_APPLY=1; shift ;;
       --yes) YES=1; shift ;;
       --post-check) POST_CHECK="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
       *) echo "ERROR: unknown journal canonical-surface-apply argument: $1" >&2; exit 2 ;;
     esac
   done
+  [[ ! ("$HAS_DRY_RUN" -eq 1 && "$HAS_APPLY" -eq 1) ]] || { echo "ERROR: cannot specify both --dry-run and --apply" >&2; exit 2; }
+  [[ ! ("$YES" -eq 1 && "$HAS_APPLY" -eq 0) ]] || { echo "ERROR: --yes requires --apply" >&2; exit 2; }
+  DRY_RUN=1
+  [[ "$HAS_APPLY" -eq 1 ]] && DRY_RUN=0
   edit_bqn_validate_post_check "$POST_CHECK"
 
   ACTUAL_FILE="$(cd "$ROOT_DIR" && bqn src_edit/actual_journal_file_cmd.bqn "$BASE_DIR")"

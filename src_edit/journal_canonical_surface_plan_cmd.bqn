@@ -37,7 +37,7 @@ NumStr ← •Fmt
     out ∾↩ lf ∾ "unsupported_transactions" ∾ tab ∾ NumStr res.unsupported_transactions
     •Out out
   }⍟(format ≡ "tsv") @
-  
+
   {𝕊:
     out ← "Canonical Journal Surface 001 Plan"
     out ∾↩ lf ∾ "Source: " ∾ relPath
