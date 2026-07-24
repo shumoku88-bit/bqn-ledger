@@ -147,6 +147,8 @@ Exit: keep current while this remains the pit code/data-flow entry point
 - `src_edit/plan_finish_cmd.bqn` — plan finishを検証し、native Journal transaction blockを生成する。
 - `src_edit/plan_budget_sync_cmd.bqn` — 完了済み固定費予定の `plan_id`、actual、設定、execution envelope、通貨、既存budget linkageを検査し、冪等なbudget companion候補を生成。曖昧な対応や通常収入は扱わない。
 - `src_edit/plan_edit_cmd.bqn` — plan edit 用の検証および exact REPLACE protocol 生成。
+- `src_edit/journal_reconstructible_identity_cleanup.bqn` — 再構築可能で機能的に参照されていない migration 由来 event-id 削除の純粋 semantic owner & バイト保存 transformer。
+- `src_edit/journal_reconstructible_identity_cleanup_cmd.bqn` — reconstructible Journal identity cleanup の CLI command adapter (inspect / candidate / apply)。
 - `src_edit/plan_id.bqn` — plan_id 生成補助。
 - `src_edit/render.bqn` / `src_edit/validate.bqn` — 共通レンダリング / バリデーション。
 
@@ -237,6 +239,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 - `tools/add-ui.sh` — 書き込み・操作系UI（取引の追加・取消・予定完了処理等、BQN editor への安全な中継）。
 - `tools/plan-finish-replenish-ui.sh` — 予定実績化後に次回予定補充を案内する任意の対話補助。`tools/edit plan finish` と `tools/edit plan add` を合成するだけで、低層 TSV 契約は持たない。
 - `tools/journal-prefix` — explicit accounts/snapshot/source identity/cycle/outputだけを受けるcanonical prefix conversion / public reconstruction command。temporary sibling検証後のexclusive atomic createで、production path defaultを持たない。
+- `tools/journal-identity-cleanup` — 再構築可能で機能的に参照されていない migration 由来 event-id 削除の safe cleanup CLI (inspect / candidate / apply)。
 - `tools/edit` — 公開 editor コマンドの薄い shell wrapper。
 - `tools/edit-bqn` — 現行の BQN+shell editor 入口。`src_edit` の write path を実行する。
 - `tools/report` / `tools/report-next` — `src_next` を使用したコマンドラインレポートの正本入口。
