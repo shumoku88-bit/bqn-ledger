@@ -1,7 +1,7 @@
 # active-plans inventory
 
 Status: directory inventory / docs hygiene
-Date: 2026-07-06
+Date: 2026-07-24
 
 This directory is an archive staging area, not a guarantee that every file is currently active.
 Some files are active plans or backlogs; others are completed decisions, historical handoffs, or superseded sketches kept here until references are cleaned up.
@@ -27,6 +27,7 @@ When choosing work, prefer `TODO.md` first. Use this inventory to avoid treating
 | `AI_REVIEW_BQN_EVAL_TASK.md` | parked | Review request for devtool work; not a standing TODO by itself. |
 | `AI_WORKING_FEEDBACK_LOG.md` | active | Intake log for pit workflow/tooling observations. Feedback remains evidence and never auto-authorizes TODO work. |
 | `CONFIGURABLE_AI_ASSISTED_LEDGER_FOUNDATION-2026-07-13.md` | active routing map | Selected highest-priority development direction and completed docs-only synthesis map. PR #219 currency-policy integration and the config ownership inventory are complete; the privacy-safe AI context-bundle contract is the next routed candidate but remains unselected; PR #211 Observatory stays last. Only finite work explicitly selected in `TODO.md` is authorized. |
+| `GENERIC_PROJECTION_AND_VALUATION_FOUNDATION_DESIGN_INTAKE-2026-07-24.md` | active backlog | Docs-only architecture intake for composing the Canonical Daily Cube from small projection modules and separating commodity quantity from evidenced valuation. It selects no runtime work; the first eligible candidate is a separate generic projection ownership inventory. |
 | `../completed-plans/CONFIG_POLICY_CONTINUATION_HANDOFF-2026-07-14.md` | historical | Completed temporary handoff. Its `POLICY_RISK_STYLE` discussion is resolved by `../completed-plans/POLICY_RISK_STYLE_DAILY_CAPACITY_DECISION-2026-07-15.md`; it authorizes no runtime or migration work. |
 | `../completed-plans/POLICY_RISK_STYLE_DAILY_CAPACITY_DECISION-2026-07-15.md` | historical | Completed docs-only decision: replace the durable risk-style concept with owner-selected asset scope, obligation scope, and horizon; current `simple`, `conservative`, and fallback behavior remain compatibility-only until separate audit and migration slices are selected. |
 | `../audits/DAILY_CAPACITY_CURRENT_CONSUMER_INPUT_EVIDENCE_AUDIT-2026-07-15.md` | historical audit | Completed current-main audit: Outlook is the one direct behavioral consumer found, the current switch controls secondary `liq_safe_daily`, and owner asset admission, obligation admission, and per-obligation reservation provenance remain unresolved. The minimal input/result contract is only an unselected next candidate. |
