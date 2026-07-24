@@ -16,7 +16,7 @@ Exit: revise when a finite slice is selected, completed, declined, or rerouted
 
 ## Current baseline
 
-Last hygiene pass: 2026-07-24
+Last hygiene pass: 2026-07-25
 
 - Native Journal is the only production Actual source selected by `ACTUAL_JOURNAL_FILE`.
 - `plan.tsv`, `budget_alloc.tsv`, `accounts.tsv`, `cycle.tsv`, and `issues.tsv` remain companion/configuration source files.
@@ -24,16 +24,55 @@ Last hygiene pass: 2026-07-24
 - The selected report-projection alignment sequence is complete; no next finite report slice is selected.
 - The selected Journal parser, Posting IR, read-path, cutover, canonical-surface, and reconstructible-identity cleanup sequence is complete; no next finite Journal slice is selected.
 - The unused MCP adapter is retired. Its pre-removal implementation remains recoverable from Git tag `checkpoint-pre-mcp-removal`.
-- The generic projection and valuation foundation is recorded as an active backlog, not implementation authorization.
-- Detailed completion history through this checkpoint is in `docs/archive/TODO_HISTORY-2026-07-24.md`.
+- The generic projection and valuation foundation remains recorded as an active backlog, but Draft PR #354 is paused behind the selected Israel cash-lifecycle and document-governance sequence.
+- Detailed completion history through the previous checkpoint is in `docs/archive/TODO_HISTORY-2026-07-24.md`.
 
 ---
 
 ## Active work
 
-**No finite implementation slice is currently selected.**
+**A three-stage priority sequence is selected. Only the first unfinished gate may advance.**
 
-The latest AI working feedback remains evidence only. The generic projection and valuation intake merged through PR #352 is a design boundary only. Neither source authorizes runtime work without a separately selected finite slice in this file.
+Canonical routing gate:
+
+- `docs/archive/active-plans/PRIORITY_SEQUENCE_AND_GENERIC_PROJECTION_RESUMPTION_GATE-2026-07-25.md`
+
+### 1. Israel 2026 physical ILS cash lifecycle
+
+Status: first priority / first characterization slice selected.
+
+Canonical plan:
+
+- `docs/archive/active-plans/ISRAEL_ILS_CASH_LIFECYCLE_PLAN-2026-07-25.md`
+
+Current finite slice:
+
+- characterize the existing exchange validator, writer, storage shape, and JPY-to-ILS directional assumptions;
+- decide whether one bidirectional exchange contract or a distinct return-exchange kind is supported by current evidence;
+- use synthetic public facts only;
+- perform no runtime write, Journal projection, report output, or private-data access.
+
+The broader minimum outcome must eventually cover explicit ILS-to-JPY return exchange and an ILS-only cash-position read model across exchange events and native Journal spending. Each implementation step requires a separate PR and selection.
+
+### 2. Document governance decision
+
+Status: second priority / blocked until the Israel plan and first characterization outcome are reviewed.
+
+Canonical intake:
+
+- `docs/archive/active-plans/DOCUMENT_GOVERNANCE_OKF_BQN_ARCHIVE_DECISION-2026-07-25.md`
+
+The first eligible slice is a docs-only current-authority inventory. It may measure routing roots, lifecycle coverage, authority claims, and reachability. It must not migrate frontmatter, add BQN runtime, create a permanent CI failure, move files, or create an external archive repository.
+
+### 3. Generic projection ownership resumption review
+
+Status: third priority / blocked behind the first two outcomes.
+
+- Draft PR #354 remains paused evidence only.
+- Do not continue A1, runtime primitives, module extraction, Cube/TBDS refactors, valuation, or a projection DSL.
+- After the first two gates record outcomes, recheck PR #354 against current `main` and choose merge, docs-only revision, or explicit supersession.
+
+The latest AI working feedback remains evidence only. None of the three active routing documents authorizes work outside its selected finite slice.
 
 ---
 
@@ -41,22 +80,22 @@ The latest AI working feedback remains evidence only. The generic projection and
 
 ### Generic projection and valuation foundation
 
-Status: unselected docs-only follow-up.
+Status: paused docs-only follow-up behind the selected priority sequence.
 
 Canonical intake:
 
 - `docs/archive/active-plans/GENERIC_PROJECTION_AND_VALUATION_FOUNDATION_DESIGN_INTAKE-2026-07-24.md`
 
-Eligible finite candidates:
+Recorded candidate inventories:
 
-1. **Generic projection ownership inventory** — document the current owners of admission, axes, coordinates, exact grouping, dense materialization, provenance, rejection, Cube totals, and TBDS overlap.
-2. **Commodity and valuation ownership inventory** — document the current owners of currency code, source quantity, precision, arithmetic authorization, formatting, mixed-currency rejection, and reporting selection.
+1. **Generic projection ownership inventory** — currently represented by paused Draft PR #354; do not advance until the resumption gate is satisfied.
+2. **Commodity and valuation ownership inventory** — remains independently unselected.
 
-Selection rules:
+Selection rules remain:
 
 - select at most one inventory first;
 - keep the first slice docs-only;
-- do not refactor `cube.bqn` during the inventory;
+- do not refactor `cube.bqn` during an inventory;
 - do not add a universal Cube, Currency axis, FX, valuation, mixed-currency aggregation, source-schema migration, or report output;
 - keep the Canonical Daily Cube contract `Day × Account × Layer` unchanged;
 - require a separate decision before any test-only primitive or runtime composition work.
@@ -111,9 +150,10 @@ Status: unselected / parked candidate.
 
 ### Mixed-ledger daily-use continuation
 
-Status: candidate only.
+Status: Israel cash-lifecycle continuation selected separately; other residual candidates remain unselected.
 
-- Current plan: `docs/archive/active-plans/CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md`.
+- Current broad plan: `docs/archive/active-plans/CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md`.
+- Israel cash lifecycle: `docs/archive/active-plans/ISRAEL_ILS_CASH_LIFECYCLE_PLAN-2026-07-25.md`.
 - M3 and strict-source Step 1 are complete.
 - strict-source Steps 2–5 and M4 remain unselected and do not auto-start.
 
