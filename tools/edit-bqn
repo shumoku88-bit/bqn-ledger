@@ -49,6 +49,7 @@ Usage:
   tools/edit-bqn [--base DIR] journal canonical-surface-apply [--dry-run] [--apply] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] journal cleanup-plan [--format tsv|text]
   tools/edit-bqn [--base DIR] journal cleanup-apply [--dry-run] [--yes] [--post-check none|lint|full]
+  tools/edit-bqn [--base DIR] journal identity-inventory [--format summary|tsv|private-tsv]
   tools/edit-bqn [--base DIR] plan list [--all] [--format tsv|text] [--temporal all|overdue|upcoming] [--as-of YYYY-MM-DD]
   tools/edit-bqn [--base DIR] plan related [--index NUMBER] [--id PLAN_ID] --actual-date YYYY-MM-DD [--format tsv]
   tools/edit-bqn [--base DIR] plan finish [--index NUMBER] [--id PLAN_ID] --actual-date YYYY-MM-DD [--actual-amount DECIMAL] [--dry-run] [--yes] [--post-check none|lint|full]
@@ -459,6 +460,23 @@ if [[ "$1" == "journal" && "$2" == "cleanup-plan" ]]; then
     *) echo "ERROR: invalid format: $FORMAT (expected 'tsv' or 'text')" >&2; exit 2 ;;
   esac
   cd "$ROOT_DIR" && bqn src_edit/journal_cleanup_plan_cmd.bqn "$BASE_DIR" "$FORMAT"
+  exit $?
+fi
+
+if [[ "$1" == "journal" && "$2" == "identity-inventory" ]]; then
+  shift 2
+  FORMAT="summary"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --format) FORMAT="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      *) echo "ERROR: unknown journal identity-inventory argument: $1" >&2; exit 2 ;;
+    esac
+  done
+  case "$FORMAT" in
+    summary|tsv|private-tsv) ;;
+    *) echo "ERROR: invalid format: $FORMAT (expected 'summary', 'tsv', or 'private-tsv')" >&2; exit 2 ;;
+  esac
+  cd "$ROOT_DIR" && bqn src_edit/journal_identity_inventory_cmd.bqn "$BASE_DIR" "$FORMAT"
   exit $?
 fi
 

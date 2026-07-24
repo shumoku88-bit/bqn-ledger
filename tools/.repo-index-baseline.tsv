@@ -1,0 +1,2346 @@
+path	kind	name	target	note
+src_next/actual_comparison.bqn	bqn-import	loader	loader.bqn	from •Import
+src_next/actual_comparison.bqn	bqn-import	actual_source	actual_source.bqn	from •Import
+src_next/actual_comparison.bqn	bqn-import	proj	projection.bqn	from •Import
+src_next/actual_comparison.bqn	bqn-import	dt	date.bqn	from •Import
+src_next/actual_comparison.bqn	bqn-import	cube	cube.bqn	from •Import
+src_next/actual_comparison.bqn	bqn-import	tbds	tbds.bqn	from •Import
+src_next/actual_comparison.bqn	bqn-import	fmt	format.bqn	from •Import
+src_next/actual_comparison.bqn	bqn-import	labels	report_labels.bqn	from •Import
+src_next/actual_snapshot.bqn	bqn-import	actual_source	actual_source.bqn	from •Import
+src_next/actual_snapshot.bqn	bqn-import	proj	projection.bqn	from •Import
+src_next/actual_snapshot.bqn	bqn-import	date	date.bqn	from •Import
+src_next/actual_snapshot.bqn	bqn-import	cube	cube.bqn	from •Import
+src_next/actual_snapshot.bqn	bqn-import	tbds	tbds.bqn	from •Import
+src_next/actual_source.bqn	bqn-import	config	config.bqn	from •Import
+src_next/actual_source.bqn	bqn-import	loader	loader.bqn	from •Import
+src_next/actual_source.bqn	bqn-import	parser	journal_profile_stage1.bqn	from •Import
+src_next/actual_source.bqn	bqn-import	proj	projection.bqn	from •Import
+src_next/actual_source.bqn	bqn-import	cube	cube.bqn	from •Import
+src_next/balances.bqn	bqn-import	tbds	tbds.bqn	from •Import
+src_next/balances.bqn	bqn-import	fmt	format.bqn	from •Import
+src_next/balances.bqn	bqn-import	labels	report_labels.bqn	from •Import
+src_next/balances.bqn	bqn-import	json	json.bqn	from •Import
+src_next/balances.bqn	bqn-import	loader	loader.bqn	from •Import
+src_next/balances.bqn	bqn-import	ak	account_key.bqn	from •Import
+src_next/balances.bqn	bqn-import	cycle	cycle.bqn	from •Import
+src_next/balances.bqn	bqn-import	ctx_mod	context.bqn	from •Import
+src_next/balances.bqn	bqn-import	currency_setup	currency_setup.bqn	from •Import
+src_next/calc/envelope_calc.bqn	bqn-import	labels	../report_labels.bqn	from •Import
+src_next/calc/main.bqn	bqn-import	ctx_mod	../context.bqn	from •Import
+src_next/calc/main.bqn	bqn-import	env_comp	../envelope_computation.bqn	from •Import
+src_next/calc/main.bqn	bqn-import	proj	../projection.bqn	from •Import
+src_next/calc/main.bqn	bqn-import	actual_source	../actual_source.bqn	from •Import
+src_next/calc/main.bqn	bqn-import	calc	envelope_calc.bqn	from •Import
+src_next/config.bqn	bqn-import	lib	util.bqn	from •Import
+src_next/config.bqn	bqn-import	loader	loader.bqn	from •Import
+src_next/context.bqn	bqn-import	loader	loader.bqn	from •Import
+src_next/context.bqn	bqn-import	dec	exact_decimal.bqn	from •Import
+src_next/context.bqn	bqn-import	arith	currency_arithmetic.bqn	from •Import
+src_next/context.bqn	bqn-import	ak	account_key.bqn	from •Import
+src_next/context.bqn	bqn-import	proj	projection.bqn	from •Import
+src_next/context.bqn	bqn-import	cycle	cycle.bqn	from •Import
+src_next/context.bqn	bqn-import	cube	cube.bqn	from •Import
+src_next/context.bqn	bqn-import	tbds	tbds.bqn	from •Import
+src_next/context.bqn	bqn-import	currency_setup	currency_setup.bqn	from •Import
+src_next/context.bqn	bqn-import	config	config.bqn	from •Import
+src_next/context.bqn	bqn-import	actual_source	actual_source.bqn	from •Import
+src_next/context.bqn	bqn-import	journal_parser	journal_profile_stage1.bqn	from •Import
+src_next/context.bqn	bqn-import	journal_adapter	journal_posting_ir_stage2a.bqn	from •Import
+src_next/currency_arithmetic.bqn	bqn-import	dec	exact_decimal.bqn	from •Import
+src_next/currency_arithmetic.bqn	bqn-import	setup	currency_setup.bqn	from •Import
+src_next/currency_registry.bqn	bqn-import	util	util.bqn	from •Import
+src_next/currency_setup.bqn	bqn-import	util	util.bqn	from •Import
+src_next/currency_setup.bqn	bqn-import	loader	loader.bqn	from •Import
+src_next/currency_setup.bqn	bqn-import	registry_core	currency_registry.bqn	from •Import
+src_next/cycle_summary.bqn	bqn-import	tbds	tbds.bqn	from •Import
+src_next/cycle_summary.bqn	bqn-import	loader	loader.bqn	from •Import
+src_next/cycle_summary.bqn	bqn-import	proj	projection.bqn	from •Import
+src_next/cycle_summary.bqn	bqn-import	fmt	format.bqn	from •Import
+src_next/cycle_summary.bqn	bqn-import	labels	report_labels.bqn	from •Import
+src_next/cycle_summary.bqn	bqn-import	plan_rows	plan_rows.bqn	from •Import
+src_next/cycle_summary.bqn	bqn-import	actual_source	actual_source.bqn	from •Import
+src_next/cycle_summary.bqn	bqn-import	cube	cube.bqn	from •Import
+src_next/cycle.bqn	bqn-import	loader	loader.bqn	from •Import
+src_next/cycle.bqn	bqn-import	proj	projection.bqn	from •Import
+src_next/cycle.bqn	bqn-import	dt	date.bqn	from •Import
+src_next/cycle.bqn	bqn-import	actual_source	actual_source.bqn	from •Import
+src_next/daily_capacity.bqn	bqn-import	date	date.bqn	from •Import
+src_next/daily_flow.bqn	bqn-import	actual_source	actual_source.bqn	from •Import
+src_next/daily_flow.bqn	bqn-import	proj	projection.bqn	from •Import
+src_next/daily_flow.bqn	bqn-import	cube	cube.bqn	from •Import
+src_next/daily_flow.bqn	bqn-import	fmt	format.bqn	from •Import
+src_next/daily_flow.bqn	bqn-import	labels	report_labels.bqn	from •Import
+src_next/daily_flow.bqn	bqn-import	overlap	plan_journal_overlap.bqn	from •Import
+src_next/daily_flow.bqn	bqn-import	unav	unavailable.bqn	from •Import
+src_next/daily_flow.bqn	bqn-import	env_comp	envelope_computation.bqn	from •Import
+src_next/daily_trend_plan.bqn	bqn-import	loader	loader.bqn	from •Import
+src_next/daily_trend_plan.bqn	bqn-import	proj	projection.bqn	from •Import
+src_next/daily_trend_plan.bqn	bqn-import	cube	cube.bqn	from •Import
+src_next/daily_trend_plan.bqn	bqn-import	overlap	plan_journal_overlap.bqn	from •Import
+src_next/daily_trend_plan.bqn	bqn-import	actual_source	actual_source.bqn	from •Import
+src_next/daily_trend.bqn	bqn-import	actual_source	actual_source.bqn	from •Import
+src_next/daily_trend.bqn	bqn-import	proj	projection.bqn	from •Import
+src_next/daily_trend.bqn	bqn-import	cube	cube.bqn	from •Import
+src_next/daily_trend.bqn	bqn-import	fmt	format.bqn	from •Import
+src_next/daily_trend.bqn	bqn-import	labels	report_labels.bqn	from •Import
+src_next/daily_trend.bqn	bqn-import	trend_plan	daily_trend_plan.bqn	from •Import
+src_next/date.bqn	bqn-import	lib	util.bqn	from •Import
+src_next/envelope_computation.bqn	bqn-import	loader	loader.bqn	from •Import
+src_next/envelope_computation.bqn	bqn-import	actual_source	actual_source.bqn	from •Import
+src_next/envelope_computation.bqn	bqn-import	proj	projection.bqn	from •Import
+src_next/envelope_computation.bqn	bqn-import	cube	cube.bqn	from •Import
+src_next/envelope_computation.bqn	bqn-import	conf	config.bqn	from •Import
+src_next/envelope_computation.bqn	bqn-import	fmt	format.bqn	from •Import
+src_next/envelope_computation.bqn	bqn-import	labels	report_labels.bqn	from •Import
+src_next/envelope_computation.bqn	bqn-import	unav	unavailable.bqn	from •Import
+src_next/envelope_computation.bqn	bqn-import	json	json.bqn	from •Import
+src_next/envelope_computation.bqn	bqn-import	plan_rows	plan_rows.bqn	from •Import
+src_next/event_lens.bqn	bqn-import	proj	projection.bqn	from •Import
+src_next/expense_breakdown.bqn	bqn-import	tbds	tbds.bqn	from •Import
+src_next/expense_breakdown.bqn	bqn-import	cube	cube.bqn	from •Import
+src_next/friend_travel_jpy_finalization.bqn	bqn-import	dates	date.bqn	from •Import
+src_next/friend_travel_jpy_finalization.bqn	bqn-import	decimal	exact_decimal.bqn	from •Import
+src_next/friend_travel_source_event.bqn	bqn-import	dates	date.bqn	from •Import
+src_next/friend_travel_source_event.bqn	bqn-import	decimal	exact_decimal.bqn	from •Import
+src_next/friend_travel_source_event.bqn	bqn-import	util	util.bqn	from •Import
+src_next/household_policy.bqn	bqn-import	conf	config.bqn	from •Import
+src_next/issues.bqn	bqn-import	fmt	format.bqn	from •Import
+src_next/issues.bqn	bqn-import	labels	report_labels.bqn	from •Import
+src_next/journal_posting_ir_stage2a.bqn	bqn-import	proj	projection.bqn	from •Import
+src_next/journal_profile_stage1.bqn	bqn-import	util	util.bqn	from •Import
+src_next/journal_profile_stage1.bqn	bqn-import	decimal	exact_decimal.bqn	from •Import
+src_next/journal_profile_stage1.bqn	bqn-import	dates	date.bqn	from •Import
+src_next/journal_read_only_source_carrier.bqn	bqn-import	parser	journal_profile_stage1.bqn	from •Import
+src_next/journal_read_only_source_carrier.bqn	bqn-import	adapter	journal_posting_ir_stage2a.bqn	from •Import
+src_next/journal_shadow_context.bqn	bqn-import	loader	loader.bqn	from •Import
+src_next/journal_shadow_context.bqn	bqn-import	cycle	cycle.bqn	from •Import
+src_next/journal_shadow_context.bqn	bqn-import	ak	account_key.bqn	from •Import
+src_next/journal_shadow_context.bqn	bqn-import	carrier_module	journal_read_only_source_carrier.bqn	from •Import
+src_next/journal_shadow_context.bqn	bqn-import	context_module	context.bqn	from •Import
+src_next/loader.bqn	bqn-import	util	util.bqn	from •Import
+src_next/main.bqn	bqn-import	loader	loader.bqn	from •Import
+src_next/main.bqn	bqn-import	ak	account_key.bqn	from •Import
+src_next/main.bqn	bqn-import	proj	projection.bqn	from •Import
+src_next/main.bqn	bqn-import	context	context.bqn	from •Import
+src_next/main.bqn	bqn-import	cycle	cycle.bqn	from •Import
+src_next/main.bqn	bqn-import	cube	cube.bqn	from •Import
+src_next/main.bqn	bqn-import	household_policy	household_policy.bqn	from •Import
+src_next/main.bqn	bqn-import	household_metadata	household_metadata.bqn	from •Import
+src_next/outlook_remaining_plan.bqn	bqn-import	loader	loader.bqn	from •Import
+src_next/outlook_remaining_plan.bqn	bqn-import	proj	projection.bqn	from •Import
+src_next/outlook_remaining_plan.bqn	bqn-import	cube	cube.bqn	from •Import
+src_next/outlook_remaining_plan.bqn	bqn-import	plan_rows	plan_rows.bqn	from •Import
+src_next/outlook_remaining_plan.bqn	bqn-import	actual_source	actual_source.bqn	from •Import
+src_next/outlook.bqn	bqn-import	conf	config.bqn	from •Import
+src_next/outlook.bqn	bqn-import	loader	loader.bqn	from •Import
+src_next/outlook.bqn	bqn-import	actual_source	actual_source.bqn	from •Import
+src_next/outlook.bqn	bqn-import	proj	projection.bqn	from •Import
+src_next/outlook.bqn	bqn-import	cube	cube.bqn	from •Import
+src_next/outlook.bqn	bqn-import	actual_snapshot	actual_snapshot.bqn	from •Import
+src_next/outlook.bqn	bqn-import	remaining_plan	outlook_remaining_plan.bqn	from •Import
+src_next/outlook.bqn	bqn-import	fmt	format.bqn	from •Import
+src_next/outlook.bqn	bqn-import	labels	report_labels.bqn	from •Import
+src_next/outlook.bqn	bqn-import	env_comp	envelope_computation.bqn	from •Import
+src_next/plan_journal_overlap.bqn	bqn-import	loader	loader.bqn	from •Import
+src_next/plan_journal_overlap.bqn	bqn-import	proj	projection.bqn	from •Import
+src_next/plan_journal_overlap.bqn	bqn-import	cube	cube.bqn	from •Import
+src_next/plan_journal_overlap.bqn	bqn-import	actual_source	actual_source.bqn	from •Import
+src_next/plan_rows.bqn	bqn-import	loader	loader.bqn	from •Import
+src_next/plan_rows.bqn	bqn-import	proj	projection.bqn	from •Import
+src_next/plan_rows.bqn	bqn-import	plan_status	plan_status.bqn	from •Import
+src_next/plan_rows.bqn	bqn-import	actual_source	actual_source.bqn	from •Import
+src_next/plan_status.bqn	bqn-import	date	date.bqn	from •Import
+src_next/planned_payments.bqn	bqn-import	loader	loader.bqn	from •Import
+src_next/planned_payments.bqn	bqn-import	proj	projection.bqn	from •Import
+src_next/planned_payments.bqn	bqn-import	cube	cube.bqn	from •Import
+src_next/planned_payments.bqn	bqn-import	fmt	format.bqn	from •Import
+src_next/planned_payments.bqn	bqn-import	labels	report_labels.bqn	from •Import
+src_next/planned_payments.bqn	bqn-import	json	json.bqn	from •Import
+src_next/planned_payments.bqn	bqn-import	plan_rows	plan_rows.bqn	from •Import
+src_next/planned_payments.bqn	bqn-import	actual_source	actual_source.bqn	from •Import
+src_next/projection.bqn	bqn-import	dt	date.bqn	from •Import
+src_next/projection.bqn	bqn-import	setup	currency_setup.bqn	from •Import
+src_next/readiness_check.bqn	bqn-import	loader	loader.bqn	from •Import
+src_next/readiness_check.bqn	bqn-import	actual_source	actual_source.bqn	from •Import
+src_next/readiness_check.bqn	bqn-import	proj	projection.bqn	from •Import
+src_next/readiness_check.bqn	bqn-import	fmt	format.bqn	from •Import
+src_next/readiness_check.bqn	bqn-import	cube	cube.bqn	from •Import
+src_next/readiness_check.bqn	bqn-import	labels	report_labels.bqn	from •Import
+src_next/readiness_check.bqn	bqn-import	overlap_mod	plan_journal_overlap.bqn	from •Import
+src_next/recent_journal.bqn	bqn-import	fmt	format.bqn	from •Import
+src_next/recent_journal.bqn	bqn-import	labels	report_labels.bqn	from •Import
+src_next/recent_journal.bqn	bqn-import	actual_source	actual_source.bqn	from •Import
+src_next/report_labels.bqn	bqn-import	loader	loader.bqn	from •Import
+src_next/report_section_metadata.bqn	bqn-import	labels	report_labels.bqn	from •Import
+src_next/report_section_metadata.bqn	bqn-import	report_sections	report_sections.bqn	from •Import
+src_next/report.bqn	bqn-import	ctx_mod	context.bqn	from •Import
+src_next/report.bqn	bqn-import	date	date.bqn	from •Import
+src_next/report.bqn	bqn-import	snapshot	snapshot.bqn	from •Import
+src_next/report.bqn	bqn-import	ytd_summary	ytd_summary.bqn	from •Import
+src_next/report.bqn	bqn-import	balances	balances.bqn	from •Import
+src_next/report.bqn	bqn-import	cycle_summary	cycle_summary.bqn	from •Import
+src_next/report.bqn	bqn-import	expense_breakdown	expense_breakdown.bqn	from •Import
+src_next/report.bqn	bqn-import	envelope_computation	envelope_computation.bqn	from •Import
+src_next/report.bqn	bqn-import	planned_payments	planned_payments.bqn	from •Import
+src_next/report.bqn	bqn-import	recent_journal	recent_journal.bqn	from •Import
+src_next/report.bqn	bqn-import	readiness_check	readiness_check.bqn	from •Import
+src_next/report.bqn	bqn-import	outlook	outlook.bqn	from •Import
+src_next/report.bqn	bqn-import	daily_trend	daily_trend.bqn	from •Import
+src_next/report.bqn	bqn-import	actual_comparison	actual_comparison.bqn	from •Import
+src_next/report.bqn	bqn-import	cube	cube.bqn	from •Import
+src_next/report.bqn	bqn-import	trial_balance	trial_balance.bqn	from •Import
+src_next/report.bqn	bqn-import	fmt	format.bqn	from •Import
+src_next/report.bqn	bqn-import	labels	report_labels.bqn	from •Import
+src_next/report.bqn	bqn-import	report_sections	report_sections.bqn	from •Import
+src_next/report.bqn	bqn-import	report_builder_order	report_builder_order.bqn	from •Import
+src_next/report.bqn	bqn-import	issues	issues.bqn	from •Import
+src_next/report.bqn	bqn-import	daily_flow	daily_flow.bqn	from •Import
+src_next/snapshot.bqn	bqn-import	actual_source	actual_source.bqn	from •Import
+src_next/snapshot.bqn	bqn-import	proj	projection.bqn	from •Import
+src_next/snapshot.bqn	bqn-import	tbds	tbds.bqn	from •Import
+src_next/snapshot.bqn	bqn-import	cube	cube.bqn	from •Import
+src_next/snapshot.bqn	bqn-import	fmt	format.bqn	from •Import
+src_next/snapshot.bqn	bqn-import	labels	report_labels.bqn	from •Import
+src_next/snapshot.bqn	bqn-import	unav	unavailable.bqn	from •Import
+src_next/snapshot.bqn	bqn-import	json	json.bqn	from •Import
+src_next/source_currency_admission.bqn	bqn-import	setup	currency_setup.bqn	from •Import
+src_next/summary.bqn	bqn-import	ctx_mod	context.bqn	from •Import
+src_next/summary.bqn	bqn-import	date	date.bqn	from •Import
+src_next/summary.bqn	bqn-import	cube	cube.bqn	from •Import
+src_next/summary.bqn	bqn-import	cycle	cycle.bqn	from •Import
+src_next/summary.bqn	bqn-import	cycle_summary	cycle_summary.bqn	from •Import
+src_next/summary.bqn	bqn-import	ytd_summary	ytd_summary.bqn	from •Import
+src_next/summary.bqn	bqn-import	expense_breakdown	expense_breakdown.bqn	from •Import
+src_next/summary.bqn	bqn-import	recent_journal	recent_journal.bqn	from •Import
+src_next/summary.bqn	bqn-import	planned_payments	planned_payments.bqn	from •Import
+src_next/summary.bqn	bqn-import	balances	balances.bqn	from •Import
+src_next/summary.bqn	bqn-import	readiness_check	readiness_check.bqn	from •Import
+src_next/summary.bqn	bqn-import	actual_comparison	actual_comparison.bqn	from •Import
+src_next/summary.bqn	bqn-import	household_metadata	household_metadata.bqn	from •Import
+src_next/summary.bqn	bqn-import	household_policy	household_policy.bqn	from •Import
+src_next/summary.bqn	bqn-import	plan_journal_overlap	plan_journal_overlap.bqn	from •Import
+src_next/summary.bqn	bqn-import	envelope_computation	envelope_computation.bqn	from •Import
+src_next/summary.bqn	bqn-import	snapshot	snapshot.bqn	from •Import
+src_next/summary.bqn	bqn-import	tbds	tbds.bqn	from •Import
+src_next/summary.bqn	bqn-import	trial_balance	trial_balance.bqn	from •Import
+src_next/summary.bqn	bqn-import	outlook	outlook.bqn	from •Import
+src_next/summary.bqn	bqn-import	daily_trend	daily_trend.bqn	from •Import
+src_next/tbds.bqn	bqn-import	cube	cube.bqn	from •Import
+src_next/tbds.bqn	bqn-import	proj	projection.bqn	from •Import
+src_next/travel_exchange_event.bqn	bqn-import	dates	date.bqn	from •Import
+src_next/travel_exchange_event.bqn	bqn-import	decimal	exact_decimal.bqn	from •Import
+src_next/travel_exchange_event.bqn	bqn-import	util	util.bqn	from •Import
+src_next/trial_balance.bqn	bqn-import	tbds_mod	tbds.bqn	from •Import
+src_next/trial_balance.bqn	bqn-import	cube_mod	cube.bqn	from •Import
+src_next/trial_balance.bqn	bqn-import	fmt	format.bqn	from •Import
+src_next/trial_balance.bqn	bqn-import	labels	report_labels.bqn	from •Import
+src_next/ytd_summary.bqn	bqn-import	proj	projection.bqn	from •Import
+src_next/ytd_summary.bqn	bqn-import	actual_source	actual_source.bqn	from •Import
+src_next/ytd_summary.bqn	bqn-import	cube	cube.bqn	from •Import
+src_next/ytd_summary.bqn	bqn-import	fmt	format.bqn	from •Import
+src_next/ytd_summary.bqn	bqn-import	labels	report_labels.bqn	from •Import
+tests/config_budget_style_probe.bqn	bqn-import	conf	../src_next/config.bqn	from •Import
+tests/config_household_group_life_probe.bqn	bqn-import	conf	../src_next/config.bqn	from •Import
+tests/config_household_group_reserve_probe.bqn	bqn-import	conf	../src_next/config.bqn	from •Import
+tests/config_policy_second_probe.bqn	bqn-import	conf	../src_next/config.bqn	from •Import
+tests/config_required_probe.bqn	bqn-import	conf	../src_next/config.bqn	from •Import
+tests/test_bookkeeping_matrix_payable.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_bookkeeping_matrix_payable.bqn	bqn-import	parser	../src_next/journal_profile_stage1.bqn	from •Import
+tests/test_bookkeeping_matrix_payable.bqn	bqn-import	loader	../src_next/loader.bqn	from •Import
+tests/test_bookkeeping_matrix_payable.bqn	bqn-import	util	../src_next/util.bqn	from •Import
+tests/test_bookkeeping_matrix_prepaid_insurance.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_bookkeeping_matrix_prepaid_insurance.bqn	bqn-import	parser	../src_next/journal_profile_stage1.bqn	from •Import
+tests/test_bookkeeping_matrix_prepaid_insurance.bqn	bqn-import	loader	../src_next/loader.bqn	from •Import
+tests/test_bookkeeping_matrix_prepaid_insurance.bqn	bqn-import	util	../src_next/util.bqn	from •Import
+tests/test_bookkeeping_matrix_receivable.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_bookkeeping_matrix_receivable.bqn	bqn-import	parser	../src_next/journal_profile_stage1.bqn	from •Import
+tests/test_bookkeeping_matrix_receivable.bqn	bqn-import	loader	../src_next/loader.bqn	from •Import
+tests/test_bookkeeping_matrix_receivable.bqn	bqn-import	util	../src_next/util.bqn	from •Import
+tests/test_bookkeeping_matrix_unearned_revenue.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_bookkeeping_matrix_unearned_revenue.bqn	bqn-import	parser	../src_next/journal_profile_stage1.bqn	from •Import
+tests/test_bookkeeping_matrix_unearned_revenue.bqn	bqn-import	loader	../src_next/loader.bqn	from •Import
+tests/test_bookkeeping_matrix_unearned_revenue.bqn	bqn-import	util	../src_next/util.bqn	from •Import
+tests/test_bqn_dump.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_bqn_dump.bqn	bqn-import	dump	../tools/bqn-dump.bqn	from •Import
+tests/test_daily_capacity_evidence_assembler_characterization.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_daily_capacity_evidence_assembler_characterization.bqn	bqn-import	assembler	daily_capacity_evidence_assembler_reference.bqn	from •Import
+tests/test_edit_validate.bqn	bqn-import	t	test_lib.bqn	from •Import
+tests/test_edit_validate.bqn	bqn-import	validate	../src_edit/validate.bqn	from •Import
+tests/test_edit_validate.bqn	bqn-import	plan_id	../src_edit/plan_id.bqn	from •Import
+tests/test_edit_validate.bqn	bqn-import	render	../src_edit/render.bqn	from •Import
+tests/test_journal_append_candidate_ordinal_characterization.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_journal_append_candidate_ordinal_characterization.bqn	bqn-import	parser	../src_next/journal_profile_stage1.bqn	from •Import
+tests/test_journal_append_candidate_ordinal_characterization.bqn	bqn-import	adapter	../src_next/journal_posting_ir_stage2a.bqn	from •Import
+tests/test_journal_append_candidate_ordinal_characterization.bqn	bqn-import	ak	../src_next/account_key.bqn	from •Import
+tests/test_journal_append_candidate_ordinal_characterization.bqn	bqn-import	loader	../src_next/loader.bqn	from •Import
+tests/test_journal_budget_companion_projection_characterization.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_journal_budget_companion_projection_characterization.bqn	bqn-import	parser	../src_next/journal_profile_stage1.bqn	from •Import
+tests/test_journal_budget_companion_projection_characterization.bqn	bqn-import	adapter	../src_next/journal_posting_ir_stage2a.bqn	from •Import
+tests/test_journal_budget_companion_projection_characterization.bqn	bqn-import	carrier_module	../src_next/journal_read_only_source_carrier.bqn	from •Import
+tests/test_journal_budget_companion_projection_characterization.bqn	bqn-import	context	../src_next/context.bqn	from •Import
+tests/test_journal_budget_companion_projection_characterization.bqn	bqn-import	cube	../src_next/cube.bqn	from •Import
+tests/test_journal_budget_companion_projection_characterization.bqn	bqn-import	tbds	../src_next/tbds.bqn	from •Import
+tests/test_journal_budget_companion_projection_characterization.bqn	bqn-import	ak	../src_next/account_key.bqn	from •Import
+tests/test_journal_budget_companion_projection_characterization.bqn	bqn-import	loader	../src_next/loader.bqn	from •Import
+tests/test_journal_canonical_surface_plan.bqn	bqn-import	assert	test_lib.bqn	from •Import
+tests/test_journal_canonical_surface_plan.bqn	bqn-import	plan	../src_edit/journal_canonical_surface_plan.bqn	from •Import
+tests/test_journal_canonical_surface_rewrite.bqn	bqn-import	assert	test_lib.bqn	from •Import
+tests/test_journal_canonical_surface_rewrite.bqn	bqn-import	rewrite	../src_edit/journal_canonical_surface_rewrite.bqn	from •Import
+tests/test_journal_canonical_surface_rewrite.bqn	bqn-import	plan	../src_edit/journal_canonical_surface_plan.bqn	from •Import
+tests/test_journal_cleanup_plan.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_journal_cleanup_plan.bqn	bqn-import	loader	../src_next/loader.bqn	from •Import
+tests/test_journal_cleanup_plan.bqn	bqn-import	parser	../src_next/journal_profile_stage1.bqn	from •Import
+tests/test_journal_cleanup_plan.bqn	bqn-import	cleanup	../src_edit/journal_cleanup_plan.bqn	from •Import
+tests/test_journal_cleanup_rewrite.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_journal_cleanup_rewrite.bqn	bqn-import	loader	../src_next/loader.bqn	from •Import
+tests/test_journal_cleanup_rewrite.bqn	bqn-import	parser	../src_next/journal_profile_stage1.bqn	from •Import
+tests/test_journal_cleanup_rewrite.bqn	bqn-import	cleanup	../src_edit/journal_cleanup_plan.bqn	from •Import
+tests/test_journal_cleanup_rewrite.bqn	bqn-import	rewrite	../src_edit/journal_cleanup_rewrite.bqn	from •Import
+tests/test_journal_event_identity_inventory.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_journal_event_identity_inventory.bqn	bqn-import	inventory	../src_edit/journal_identity_inventory.bqn	from •Import
+tests/test_journal_external_plan_reference_profile_prerequisite.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_journal_external_plan_reference_profile_prerequisite.bqn	bqn-import	parser	../src_next/journal_profile_stage1.bqn	from •Import
+tests/test_journal_external_plan_reference_profile_prerequisite.bqn	bqn-import	adapter	../src_next/journal_posting_ir_stage2a.bqn	from •Import
+tests/test_journal_external_plan_reference_profile_prerequisite.bqn	bqn-import	identity	../src_next/journal_posting_identity_provenance_stage2b.bqn	from •Import
+tests/test_journal_external_plan_reference_profile_prerequisite.bqn	bqn-import	ak	../src_next/account_key.bqn	from •Import
+tests/test_journal_external_plan_reference_profile_prerequisite.bqn	bqn-import	loader	../src_next/loader.bqn	from •Import
+tests/test_journal_leading_ascii_space_description_characterization.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_journal_leading_ascii_space_description_characterization.bqn	bqn-import	parser	../src_next/journal_profile_stage1.bqn	from •Import
+tests/test_journal_leading_ascii_space_description_characterization.bqn	bqn-import	stage2a	../src_next/journal_posting_ir_stage2a.bqn	from •Import
+tests/test_journal_leading_ascii_space_description_characterization.bqn	bqn-import	ak	../src_next/account_key.bqn	from •Import
+tests/test_journal_legacy_entry_id_removal_boundary.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_journal_legacy_entry_id_removal_boundary.bqn	bqn-import	parser	../src_next/journal_profile_stage1.bqn	from •Import
+tests/test_journal_legacy_entry_id_removal_boundary.bqn	bqn-import	adapter	../src_next/journal_posting_ir_stage2a.bqn	from •Import
+tests/test_journal_legacy_entry_id_removal_boundary.bqn	bqn-import	ak	../src_next/account_key.bqn	from •Import
+tests/test_journal_legacy_entry_id_removal_boundary.bqn	bqn-import	loader	../src_next/loader.bqn	from •Import
+tests/test_journal_legacy_entry_id_removal_boundary.bqn	bqn-import	cube	../src_next/cube.bqn	from •Import
+tests/test_journal_legacy_entry_id_removal_boundary.bqn	bqn-import	tbds	../src_next/tbds.bqn	from •Import
+tests/test_journal_legacy_metadata_profile_extension.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_journal_legacy_metadata_profile_extension.bqn	bqn-import	parser	../src_next/journal_profile_stage1.bqn	from •Import
+tests/test_journal_legacy_metadata_profile_extension.bqn	bqn-import	adapter	../src_next/journal_posting_ir_stage2a.bqn	from •Import
+tests/test_journal_legacy_metadata_profile_extension.bqn	bqn-import	identity	../src_next/journal_posting_identity_provenance_stage2b.bqn	from •Import
+tests/test_journal_legacy_metadata_profile_extension.bqn	bqn-import	ak	../src_next/account_key.bqn	from •Import
+tests/test_journal_legacy_metadata_profile_extension.bqn	bqn-import	loader	../src_next/loader.bqn	from •Import
+tests/test_journal_minimal_actual_surface_characterization.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_journal_minimal_actual_surface_characterization.bqn	bqn-import	parser	../src_next/journal_profile_stage1.bqn	from •Import
+tests/test_journal_minimal_actual_surface_characterization.bqn	bqn-import	adapter	../src_next/journal_posting_ir_stage2a.bqn	from •Import
+tests/test_journal_minimal_actual_surface_characterization.bqn	bqn-import	ak	../src_next/account_key.bqn	from •Import
+tests/test_journal_minimal_actual_surface_characterization.bqn	bqn-import	loader	../src_next/loader.bqn	from •Import
+tests/test_journal_minimal_actual_surface_characterization.bqn	bqn-import	cube	../src_next/cube.bqn	from •Import
+tests/test_journal_minimal_actual_surface_characterization.bqn	bqn-import	tbds	../src_next/tbds.bqn	from •Import
+tests/test_journal_ordinary_actual_fallback_boundary.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_journal_ordinary_actual_fallback_boundary.bqn	bqn-import	parser	../src_next/journal_profile_stage1.bqn	from •Import
+tests/test_journal_ordinary_actual_fallback_boundary.bqn	bqn-import	adapter	../src_next/journal_posting_ir_stage2a.bqn	from •Import
+tests/test_journal_ordinary_actual_fallback_boundary.bqn	bqn-import	ak	../src_next/account_key.bqn	from •Import
+tests/test_journal_ordinary_actual_fallback_boundary.bqn	bqn-import	loader	../src_next/loader.bqn	from •Import
+tests/test_journal_posting_identity_provenance_stage2b.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_journal_posting_identity_provenance_stage2b.bqn	bqn-import	parser	../src_next/journal_profile_stage1.bqn	from •Import
+tests/test_journal_posting_identity_provenance_stage2b.bqn	bqn-import	adapter	../src_next/journal_posting_ir_stage2a.bqn	from •Import
+tests/test_journal_posting_identity_provenance_stage2b.bqn	bqn-import	identity	../src_next/journal_posting_identity_provenance_stage2b.bqn	from •Import
+tests/test_journal_posting_identity_provenance_stage2b.bqn	bqn-import	ak	../src_next/account_key.bqn	from •Import
+tests/test_journal_posting_identity_provenance_stage2b.bqn	bqn-import	loader	../src_next/loader.bqn	from •Import
+tests/test_journal_posting_ir_adapter_stage2a.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_journal_posting_ir_adapter_stage2a.bqn	bqn-import	parser	../src_next/journal_profile_stage1.bqn	from •Import
+tests/test_journal_posting_ir_adapter_stage2a.bqn	bqn-import	adapter	../src_next/journal_posting_ir_stage2a.bqn	from •Import
+tests/test_journal_posting_ir_adapter_stage2a.bqn	bqn-import	ak	../src_next/account_key.bqn	from •Import
+tests/test_journal_posting_ir_adapter_stage2a.bqn	bqn-import	loader	../src_next/loader.bqn	from •Import
+tests/test_journal_posting_ir_comparable_rejection_stage2c.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_journal_posting_ir_comparable_rejection_stage2c.bqn	bqn-import	parser	../src_next/journal_profile_stage1.bqn	from •Import
+tests/test_journal_posting_ir_comparable_rejection_stage2c.bqn	bqn-import	ak	../src_next/account_key.bqn	from •Import
+tests/test_journal_posting_ir_comparable_rejection_stage2c.bqn	bqn-import	loader	../src_next/loader.bqn	from •Import
+tests/test_journal_read_only_source_carrier.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_journal_read_only_source_carrier.bqn	bqn-import	carrier_module	../src_next/journal_read_only_source_carrier.bqn	from •Import
+tests/test_journal_read_only_source_carrier.bqn	bqn-import	ak	../src_next/account_key.bqn	from •Import
+tests/test_journal_read_only_source_carrier.bqn	bqn-import	loader	../src_next/loader.bqn	from •Import
+tests/test_journal_read_path_trial_balance_rehearsal.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_journal_read_path_trial_balance_rehearsal.bqn	bqn-import	carrier_module	../src_next/journal_read_only_source_carrier.bqn	from •Import
+tests/test_journal_read_path_trial_balance_rehearsal.bqn	bqn-import	context	../src_next/context.bqn	from •Import
+tests/test_journal_read_path_trial_balance_rehearsal.bqn	bqn-import	trial_balance	../src_next/trial_balance.bqn	from •Import
+tests/test_journal_read_path_trial_balance_rehearsal.bqn	bqn-import	balances	../src_next/balances.bqn	from •Import
+tests/test_journal_read_path_trial_balance_rehearsal.bqn	bqn-import	cube	../src_next/cube.bqn	from •Import
+tests/test_journal_read_path_trial_balance_rehearsal.bqn	bqn-import	ak	../src_next/account_key.bqn	from •Import
+tests/test_journal_read_path_trial_balance_rehearsal.bqn	bqn-import	loader	../src_next/loader.bqn	from •Import
+tests/test_journal_resolved_account_registry_mismatch_rejection.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_journal_resolved_account_registry_mismatch_rejection.bqn	bqn-import	parser	../src_next/journal_profile_stage1.bqn	from •Import
+tests/test_journal_resolved_account_registry_mismatch_rejection.bqn	bqn-import	adapter	../src_next/journal_posting_ir_stage2a.bqn	from •Import
+tests/test_journal_resolved_account_registry_mismatch_rejection.bqn	bqn-import	carrier_module	../src_next/journal_read_only_source_carrier.bqn	from •Import
+tests/test_journal_resolved_account_registry_mismatch_rejection.bqn	bqn-import	ak	../src_next/account_key.bqn	from •Import
+tests/test_journal_resolved_envelope_assignment_persistence.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_journal_resolved_envelope_assignment_persistence.bqn	bqn-import	parser	../src_next/journal_profile_stage1.bqn	from •Import
+tests/test_journal_split_purchase_report_information_boundary.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_journal_split_purchase_report_information_boundary.bqn	bqn-import	carrier_module	../src_next/journal_read_only_source_carrier.bqn	from •Import
+tests/test_journal_split_purchase_report_information_boundary.bqn	bqn-import	context	../src_next/context.bqn	from •Import
+tests/test_journal_split_purchase_report_information_boundary.bqn	bqn-import	trial_balance	../src_next/trial_balance.bqn	from •Import
+tests/test_journal_split_purchase_report_information_boundary.bqn	bqn-import	balances	../src_next/balances.bqn	from •Import
+tests/test_journal_split_purchase_report_information_boundary.bqn	bqn-import	cube	../src_next/cube.bqn	from •Import
+tests/test_journal_split_purchase_report_information_boundary.bqn	bqn-import	ak	../src_next/account_key.bqn	from •Import
+tests/test_journal_split_purchase_report_information_boundary.bqn	bqn-import	loader	../src_next/loader.bqn	from •Import
+tests/test_journal_split_purchase_transaction_characterization.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_journal_split_purchase_transaction_characterization.bqn	bqn-import	parser	../src_next/journal_profile_stage1.bqn	from •Import
+tests/test_journal_split_purchase_transaction_characterization.bqn	bqn-import	adapter	../src_next/journal_posting_ir_stage2a.bqn	from •Import
+tests/test_journal_split_purchase_transaction_characterization.bqn	bqn-import	carrier_module	../src_next/journal_read_only_source_carrier.bqn	from •Import
+tests/test_journal_split_purchase_transaction_characterization.bqn	bqn-import	ak	../src_next/account_key.bqn	from •Import
+tests/test_journal_split_purchase_transaction_characterization.bqn	bqn-import	cube	../src_next/cube.bqn	from •Import
+tests/test_journal_split_purchase_transaction_characterization.bqn	bqn-import	loader	../src_next/loader.bqn	from •Import
+tests/test_src_next_account_key.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_account_key.bqn	bqn-import	ak	../src_next/account_key.bqn	from •Import
+tests/test_src_next_account_key.bqn	bqn-import	proj	../src_next/projection.bqn	from •Import
+tests/test_src_next_account_key.bqn	bqn-import	ctx	../src_next/context.bqn	from •Import
+tests/test_src_next_actual_comparison.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_actual_comparison.bqn	bqn-import	ctx_mod	../src_next/context.bqn	from •Import
+tests/test_src_next_actual_comparison.bqn	bqn-import	actual_comparison	../src_next/actual_comparison.bqn	from •Import
+tests/test_src_next_actual_snapshot_numeric_owner.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_actual_snapshot_numeric_owner.bqn	bqn-import	ctx_mod	../src_next/context.bqn	from •Import
+tests/test_src_next_actual_snapshot_numeric_owner.bqn	bqn-import	actual_snapshot	../src_next/actual_snapshot.bqn	from •Import
+tests/test_src_next_actual_snapshot_numeric_owner.bqn	bqn-import	outlook	../src_next/outlook.bqn	from •Import
+tests/test_src_next_actual_snapshot_observation_paths.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_actual_snapshot_observation_paths.bqn	bqn-import	ctx_mod	../src_next/context.bqn	from •Import
+tests/test_src_next_actual_snapshot_observation_paths.bqn	bqn-import	actual_snapshot	../src_next/actual_snapshot.bqn	from •Import
+tests/test_src_next_actual_snapshot.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_actual_snapshot.bqn	bqn-import	ctx_mod	../src_next/context.bqn	from •Import
+tests/test_src_next_actual_snapshot.bqn	bqn-import	actual_snapshot	../src_next/actual_snapshot.bqn	from •Import
+tests/test_src_next_balances.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_balances.bqn	bqn-import	cube	../src_next/cube.bqn	from •Import
+tests/test_src_next_balances.bqn	bqn-import	tbds_mod	../src_next/tbds.bqn	from •Import
+tests/test_src_next_balances.bqn	bqn-import	balances	../src_next/balances.bqn	from •Import
+tests/test_src_next_calc_envelope_calc.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_calc_envelope_calc.bqn	bqn-import	calc	../src_next/calc/envelope_calc.bqn	from •Import
+tests/test_src_next_checked_posting_projection.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_checked_posting_projection.bqn	bqn-import	ctx	../src_next/context.bqn	from •Import
+tests/test_src_next_checked_posting_projection.bqn	bqn-import	ak	../src_next/account_key.bqn	from •Import
+tests/test_src_next_config_required_negative.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_config.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_config.bqn	bqn-import	conf	../src_next/config.bqn	from •Import
+tests/test_src_next_context_as_of_cycle_semantics.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_context_as_of_cycle_semantics.bqn	bqn-import	ctx_mod	../src_next/context.bqn	from •Import
+tests/test_src_next_cube.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_cube.bqn	bqn-import	cube	../src_next/cube.bqn	from •Import
+tests/test_src_next_currency_arithmetic.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_currency_arithmetic.bqn	bqn-import	arith	../src_next/currency_arithmetic.bqn	from •Import
+tests/test_src_next_currency_arithmetic.bqn	bqn-import	dec	../src_next/exact_decimal.bqn	from •Import
+tests/test_src_next_currency_b3.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_currency_b3.bqn	bqn-import	ctx	../src_next/context.bqn	from •Import
+tests/test_src_next_currency_b3.bqn	bqn-import	proj	../src_next/projection.bqn	from •Import
+tests/test_src_next_currency_b3.bqn	bqn-import	arith	../src_next/currency_arithmetic.bqn	from •Import
+tests/test_src_next_currency_b3.bqn	bqn-import	ak	../src_next/account_key.bqn	from •Import
+tests/test_src_next_currency_b3.bqn	bqn-import	loader	../src_next/loader.bqn	from •Import
+tests/test_src_next_currency_domain_proof.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_currency_domain_proof.bqn	bqn-import	ctx	../src_next/context.bqn	from •Import
+tests/test_src_next_currency_domain_proof.bqn	bqn-import	proj	../src_next/projection.bqn	from •Import
+tests/test_src_next_currency_domain_proof.bqn	bqn-import	arith	../src_next/currency_arithmetic.bqn	from •Import
+tests/test_src_next_currency_setup.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_currency_setup.bqn	bqn-import	setup	../src_next/currency_setup.bqn	from •Import
+tests/test_src_next_currency_setup.bqn	bqn-import	registry_core	../src_next/currency_registry.bqn	from •Import
+tests/test_src_next_currency_setup.bqn	bqn-import	loader	../src_next/loader.bqn	from •Import
+tests/test_src_next_currency_setup.bqn	bqn-import	util	../src_next/util.bqn	from •Import
+tests/test_src_next_cycle_remaining_plan_characterization.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_cycle_remaining_plan_characterization.bqn	bqn-import	ctx_mod	../src_next/context.bqn	from •Import
+tests/test_src_next_cycle_remaining_plan_characterization.bqn	bqn-import	cs	../src_next/cycle_summary.bqn	from •Import
+tests/test_src_next_cycle_remaining_plan_characterization.bqn	bqn-import	loader	../src_next/loader.bqn	from •Import
+tests/test_src_next_cycle_remaining_plan_characterization.bqn	bqn-import	actual_source	../src_next/actual_source.bqn	from •Import
+tests/test_src_next_cycle_remaining_plan_characterization.bqn	bqn-import	adapter	../src_next/journal_posting_ir_stage2a.bqn	from •Import
+tests/test_src_next_cycle_remaining_plan_characterization.bqn	bqn-import	labels	../src_next/report_labels.bqn	from •Import
+tests/test_src_next_cycle_remaining_plan_characterization.bqn	bqn-import	fmt	../src_next/format.bqn	from •Import
+tests/test_src_next_cycle_summary.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_cycle_summary.bqn	bqn-import	cube	../src_next/cube.bqn	from •Import
+tests/test_src_next_cycle_summary.bqn	bqn-import	cs	../src_next/cycle_summary.bqn	from •Import
+tests/test_src_next_daily_capacity.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_daily_capacity.bqn	bqn-import	dailyCapacity	../src_next/daily_capacity.bqn	from •Import
+tests/test_src_next_daily_capacity.bqn	bqn-import	ctx_mod	../src_next/context.bqn	from •Import
+tests/test_src_next_daily_capacity.bqn	bqn-import	outlook	../src_next/outlook.bqn	from •Import
+tests/test_src_next_daily_trend_backdated_source_drift.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_daily_trend_backdated_source_drift.bqn	bqn-import	ctx_mod	../src_next/context.bqn	from •Import
+tests/test_src_next_daily_trend_backdated_source_drift.bqn	bqn-import	daily_trend	../src_next/daily_trend.bqn	from •Import
+tests/test_src_next_daily_trend_empty_frontier_fallback_row.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_daily_trend_empty_frontier_fallback_row.bqn	bqn-import	ctx_mod	../src_next/context.bqn	from •Import
+tests/test_src_next_daily_trend_empty_frontier_fallback_row.bqn	bqn-import	daily_trend	../src_next/daily_trend.bqn	from •Import
+tests/test_src_next_daily_trend_empty_frontier_fallback_row.bqn	bqn-import	proj	../src_next/projection.bqn	from •Import
+tests/test_src_next_daily_trend_explicit_observation_disconnected.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_daily_trend_explicit_observation_disconnected.bqn	bqn-import	ctx_mod	../src_next/context.bqn	from •Import
+tests/test_src_next_daily_trend_explicit_observation_disconnected.bqn	bqn-import	daily_trend	../src_next/daily_trend.bqn	from •Import
+tests/test_src_next_daily_trend_header_as_of_sensitivity.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_daily_trend_header_as_of_sensitivity.bqn	bqn-import	ctx_mod	../src_next/context.bqn	from •Import
+tests/test_src_next_daily_trend_header_as_of_sensitivity.bqn	bqn-import	daily_trend	../src_next/daily_trend.bqn	from •Import
+tests/test_src_next_daily_trend_header_as_of_sensitivity.bqn	bqn-import	proj	../src_next/projection.bqn	from •Import
+tests/test_src_next_daily_trend_historical_stability.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_daily_trend_historical_stability.bqn	bqn-import	ctx_mod	../src_next/context.bqn	from •Import
+tests/test_src_next_daily_trend_historical_stability.bqn	bqn-import	daily_trend	../src_next/daily_trend.bqn	from •Import
+tests/test_src_next_daily_trend_local_clock_row_independence.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_daily_trend_local_clock_row_independence.bqn	bqn-import	ctx_mod	../src_next/context.bqn	from •Import
+tests/test_src_next_daily_trend_local_clock_row_independence.bqn	bqn-import	daily_trend	../src_next/daily_trend.bqn	from •Import
+tests/test_src_next_daily_trend_plan_numeric_owner.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_daily_trend_plan_numeric_owner.bqn	bqn-import	ctx_mod	../src_next/context.bqn	from •Import
+tests/test_src_next_daily_trend_plan_numeric_owner.bqn	bqn-import	trend_plan	../src_next/daily_trend_plan.bqn	from •Import
+tests/test_src_next_daily_trend_plan_numeric_owner.bqn	bqn-import	daily_trend	../src_next/daily_trend.bqn	from •Import
+tests/test_src_next_daily_trend_reserve_clock_dependency.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_daily_trend_reserve_clock_dependency.bqn	bqn-import	ctx_mod	../src_next/context.bqn	from •Import
+tests/test_src_next_daily_trend_reserve_clock_dependency.bqn	bqn-import	daily_trend	../src_next/daily_trend.bqn	from •Import
+tests/test_src_next_daily_trend_row_local_future_income.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_daily_trend_row_local_future_income.bqn	bqn-import	ctx_mod	../src_next/context.bqn	from •Import
+tests/test_src_next_daily_trend_row_local_future_income.bqn	bqn-import	daily_trend	../src_next/daily_trend.bqn	from •Import
+tests/test_src_next_daily_trend_row_set_frontier_redundancy.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_daily_trend_row_set_frontier_redundancy.bqn	bqn-import	ctx_mod	../src_next/context.bqn	from •Import
+tests/test_src_next_daily_trend_row_set_frontier_redundancy.bqn	bqn-import	daily_trend	../src_next/daily_trend.bqn	from •Import
+tests/test_src_next_daily_trend_row_set_frontier_redundancy.bqn	bqn-import	proj	../src_next/projection.bqn	from •Import
+tests/test_src_next_daily_trend.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_daily_trend.bqn	bqn-import	ctx_mod	../src_next/context.bqn	from •Import
+tests/test_src_next_daily_trend.bqn	bqn-import	daily_trend	../src_next/daily_trend.bqn	from •Import
+tests/test_src_next_date.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_date.bqn	bqn-import	dt	../src_next/date.bqn	from •Import
+tests/test_src_next_date.bqn	bqn-import	proj	../src_next/projection.bqn	from •Import
+tests/test_src_next_date.bqn	bqn-import	validate	../src_edit/validate.bqn	from •Import
+tests/test_src_next_envelope_characterization.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_envelope_characterization.bqn	bqn-import	loader	../src_next/loader.bqn	from •Import
+tests/test_src_next_envelope_characterization.bqn	bqn-import	ak	../src_next/account_key.bqn	from •Import
+tests/test_src_next_envelope_characterization.bqn	bqn-import	context	../src_next/context.bqn	from •Import
+tests/test_src_next_envelope_characterization.bqn	bqn-import	actual_source	../src_next/actual_source.bqn	from •Import
+tests/test_src_next_envelope_characterization.bqn	bqn-import	adapter	../src_next/journal_posting_ir_stage2a.bqn	from •Import
+tests/test_src_next_envelope_characterization.bqn	bqn-import	cycle	../src_next/cycle.bqn	from •Import
+tests/test_src_next_envelope_characterization.bqn	bqn-import	cube	../src_next/cube.bqn	from •Import
+tests/test_src_next_envelope_characterization.bqn	bqn-import	tbds	../src_next/tbds.bqn	from •Import
+tests/test_src_next_envelope_characterization.bqn	bqn-import	env	../src_next/envelope_computation.bqn	from •Import
+tests/test_src_next_envelope_characterization.bqn	bqn-import	plan_rows	../src_next/plan_rows.bqn	from •Import
+tests/test_src_next_envelope_computation.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_envelope_computation.bqn	bqn-import	loader	../src_next/loader.bqn	from •Import
+tests/test_src_next_envelope_computation.bqn	bqn-import	ak	../src_next/account_key.bqn	from •Import
+tests/test_src_next_envelope_computation.bqn	bqn-import	context	../src_next/context.bqn	from •Import
+tests/test_src_next_envelope_computation.bqn	bqn-import	cycle	../src_next/cycle.bqn	from •Import
+tests/test_src_next_envelope_computation.bqn	bqn-import	cube	../src_next/cube.bqn	from •Import
+tests/test_src_next_envelope_computation.bqn	bqn-import	tbds	../src_next/tbds.bqn	from •Import
+tests/test_src_next_envelope_computation.bqn	bqn-import	env	../src_next/envelope_computation.bqn	from •Import
+tests/test_src_next_envelope_computation.bqn	bqn-import	hm	../src_next/household_metadata.bqn	from •Import
+tests/test_src_next_envelope_computation.bqn	bqn-import	readiness	../src_next/readiness_check.bqn	from •Import
+tests/test_src_next_event_lens_format.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_event_lens_format.bqn	bqn-import	fmt	../src_next/event_lens_format.bqn	from •Import
+tests/test_src_next_event_lens.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_event_lens.bqn	bqn-import	ctx	../src_next/context.bqn	from •Import
+tests/test_src_next_event_lens.bqn	bqn-import	ak	../src_next/account_key.bqn	from •Import
+tests/test_src_next_event_lens.bqn	bqn-import	lens	../src_next/event_lens.bqn	from •Import
+tests/test_src_next_exact_decimal.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_exact_decimal.bqn	bqn-import	dec	../src_next/exact_decimal.bqn	from •Import
+tests/test_src_next_expense_breakdown.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_expense_breakdown.bqn	bqn-import	cube	../src_next/cube.bqn	from •Import
+tests/test_src_next_expense_breakdown.bqn	bqn-import	tbds_mod	../src_next/tbds.bqn	from •Import
+tests/test_src_next_expense_breakdown.bqn	bqn-import	eb	../src_next/expense_breakdown.bqn	from •Import
+tests/test_src_next_format.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_format.bqn	bqn-import	fmt	../src_next/format.bqn	from •Import
+tests/test_src_next_friend_travel_jpy_finalization.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_friend_travel_jpy_finalization.bqn	bqn-import	finalization	../src_next/friend_travel_jpy_finalization.bqn	from •Import
+tests/test_src_next_friend_travel_source_event.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_friend_travel_source_event.bqn	bqn-import	source	../src_next/friend_travel_source_event.bqn	from •Import
+tests/test_src_next_household_metadata.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_household_metadata.bqn	bqn-import	loader	../src_next/loader.bqn	from •Import
+tests/test_src_next_household_metadata.bqn	bqn-import	ak	../src_next/account_key.bqn	from •Import
+tests/test_src_next_household_metadata.bqn	bqn-import	hm	../src_next/household_metadata.bqn	from •Import
+tests/test_src_next_household_policy.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_household_policy.bqn	bqn-import	loader	../src_next/loader.bqn	from •Import
+tests/test_src_next_household_policy.bqn	bqn-import	ak	../src_next/account_key.bqn	from •Import
+tests/test_src_next_household_policy.bqn	bqn-import	context	../src_next/context.bqn	from •Import
+tests/test_src_next_household_policy.bqn	bqn-import	cycle	../src_next/cycle.bqn	from •Import
+tests/test_src_next_household_policy.bqn	bqn-import	cube	../src_next/cube.bqn	from •Import
+tests/test_src_next_household_policy.bqn	bqn-import	hh	../src_next/household_policy.bqn	from •Import
+tests/test_src_next_journal_profile_stage1.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_journal_profile_stage1.bqn	bqn-import	parser	../src_next/journal_profile_stage1.bqn	from •Import
+tests/test_src_next_journal_profile_stage1.bqn	bqn-import	loader	../src_next/loader.bqn	from •Import
+tests/test_src_next_journal_profile_stage1.bqn	bqn-import	util	../src_next/util.bqn	from •Import
+tests/test_src_next_json.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_json.bqn	bqn-import	json	../src_next/json.bqn	from •Import
+tests/test_src_next_loader_util_ownership.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_loader_util_ownership.bqn	bqn-import	util	../src_next/util.bqn	from •Import
+tests/test_src_next_loader_util_ownership.bqn	bqn-import	loader	../src_next/loader.bqn	from •Import
+tests/test_src_next_outlook_actual_snapshot_characterization.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_outlook_actual_snapshot_characterization.bqn	bqn-import	ctx_mod	../src_next/context.bqn	from •Import
+tests/test_src_next_outlook_actual_snapshot_characterization.bqn	bqn-import	actual_snapshot	../src_next/actual_snapshot.bqn	from •Import
+tests/test_src_next_outlook_actual_snapshot_characterization.bqn	bqn-import	outlook	../src_next/outlook.bqn	from •Import
+tests/test_src_next_outlook_explicit_observation_path.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_outlook_explicit_observation_path.bqn	bqn-import	ctx_mod	../src_next/context.bqn	from •Import
+tests/test_src_next_outlook_explicit_observation_path.bqn	bqn-import	outlook	../src_next/outlook.bqn	from •Import
+tests/test_src_next_outlook_observation_sensitivity.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_outlook_observation_sensitivity.bqn	bqn-import	ctx_mod	../src_next/context.bqn	from •Import
+tests/test_src_next_outlook_observation_sensitivity.bqn	bqn-import	outlook	../src_next/outlook.bqn	from •Import
+tests/test_src_next_outlook_remaining_plan_numeric_owner.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_outlook_remaining_plan_numeric_owner.bqn	bqn-import	loader	../src_next/loader.bqn	from •Import
+tests/test_src_next_outlook_remaining_plan_numeric_owner.bqn	bqn-import	ctx_mod	../src_next/context.bqn	from •Import
+tests/test_src_next_outlook_remaining_plan_numeric_owner.bqn	bqn-import	remaining_plan	../src_next/outlook_remaining_plan.bqn	from •Import
+tests/test_src_next_outlook_remaining_plan_numeric_owner.bqn	bqn-import	outlook	../src_next/outlook.bqn	from •Import
+tests/test_src_next_outlook.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_outlook.bqn	bqn-import	ctx_mod	../src_next/context.bqn	from •Import
+tests/test_src_next_outlook.bqn	bqn-import	outlook	../src_next/outlook.bqn	from •Import
+tests/test_src_next_plan_journal_overlap.bqn	bqn-import	pjo	../src_next/plan_journal_overlap.bqn	from •Import
+tests/test_src_next_plan_rows_base_boundary.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_plan_rows_base_boundary.bqn	bqn-import	plan_rows	../src_next/plan_rows.bqn	from •Import
+tests/test_src_next_plan_rows.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_plan_rows.bqn	bqn-import	cycle	../src_next/cycle.bqn	from •Import
+tests/test_src_next_plan_rows.bqn	bqn-import	plan_rows	../src_next/plan_rows.bqn	from •Import
+tests/test_src_next_plan_status.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_plan_status.bqn	bqn-import	plan_status	../src_next/plan_status.bqn	from •Import
+tests/test_src_next_planned_payments.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_planned_payments.bqn	bqn-import	context	../src_next/context.bqn	from •Import
+tests/test_src_next_planned_payments.bqn	bqn-import	planned	../src_next/planned_payments.bqn	from •Import
+tests/test_src_next_readiness.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_readiness.bqn	bqn-import	context	../src_next/context.bqn	from •Import
+tests/test_src_next_readiness.bqn	bqn-import	readiness	../src_next/readiness_check.bqn	from •Import
+tests/test_src_next_report_builder_order.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_report_builder_order.bqn	bqn-import	sections	../src_next/report_sections.bqn	from •Import
+tests/test_src_next_report_builder_order.bqn	bqn-import	builder_order	../src_next/report_builder_order.bqn	from •Import
+tests/test_src_next_report_labels.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_report_labels.bqn	bqn-import	labels	../src_next/report_labels.bqn	from •Import
+tests/test_src_next_report_sections.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_report_sections.bqn	bqn-import	report_sections	../src_next/report_sections.bqn	from •Import
+tests/test_src_next_snapshot_tbds.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_snapshot_tbds.bqn	bqn-import	cube	../src_next/cube.bqn	from •Import
+tests/test_src_next_snapshot_tbds.bqn	bqn-import	tbds	../src_next/tbds.bqn	from •Import
+tests/test_src_next_snapshot_tbds.bqn	bqn-import	snapshot	../src_next/snapshot.bqn	from •Import
+tests/test_src_next_snapshot.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_snapshot.bqn	bqn-import	snapshot	../src_next/snapshot.bqn	from •Import
+tests/test_src_next_snapshot.bqn	bqn-import	cube_mod	../src_next/cube.bqn	from •Import
+tests/test_src_next_source_currency_admission.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_source_currency_admission.bqn	bqn-import	admission	../src_next/source_currency_admission.bqn	from •Import
+tests/test_src_next_tbds_opening_before_cycle.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_tbds_opening_before_cycle.bqn	bqn-import	ctx_mod	../src_next/context.bqn	from •Import
+tests/test_src_next_tbds_opening_before_cycle.bqn	bqn-import	cube	../src_next/cube.bqn	from •Import
+tests/test_src_next_tbds_opening_before_cycle.bqn	bqn-import	balances	../src_next/balances.bqn	from •Import
+tests/test_src_next_tbds.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_tbds.bqn	bqn-import	loader	../src_next/loader.bqn	from •Import
+tests/test_src_next_tbds.bqn	bqn-import	ak	../src_next/account_key.bqn	from •Import
+tests/test_src_next_tbds.bqn	bqn-import	context	../src_next/context.bqn	from •Import
+tests/test_src_next_tbds.bqn	bqn-import	cycle	../src_next/cycle.bqn	from •Import
+tests/test_src_next_tbds.bqn	bqn-import	cube	../src_next/cube.bqn	from •Import
+tests/test_src_next_tbds.bqn	bqn-import	tbds	../src_next/tbds.bqn	from •Import
+tests/test_src_next_temporal_clock_characterization.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_temporal_clock_characterization.bqn	bqn-import	context	../src_next/context.bqn	from •Import
+tests/test_src_next_temporal_clock_characterization.bqn	bqn-import	cycle	../src_next/cycle.bqn	from •Import
+tests/test_src_next_temporal_clock_characterization.bqn	bqn-import	env	../src_next/envelope_computation.bqn	from •Import
+tests/test_src_next_temporal_clock_characterization.bqn	bqn-import	outlook	../src_next/outlook.bqn	from •Import
+tests/test_src_next_travel_exchange_event.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_travel_exchange_event.bqn	bqn-import	exchange	../src_next/travel_exchange_event.bqn	from •Import
+tests/test_src_next_trial_balance.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_trial_balance.bqn	bqn-import	ctx_mod	../src_next/context.bqn	from •Import
+tests/test_src_next_trial_balance.bqn	bqn-import	cube_mod	../src_next/cube.bqn	from •Import
+tests/test_src_next_trial_balance.bqn	bqn-import	trial_balance	../src_next/trial_balance.bqn	from •Import
+tests/test_src_next_two_style_policy_proof.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_two_style_policy_proof.bqn	bqn-import	loader	../src_next/loader.bqn	from •Import
+tests/test_src_next_two_style_policy_proof.bqn	bqn-import	ak	../src_next/account_key.bqn	from •Import
+tests/test_src_next_two_style_policy_proof.bqn	bqn-import	context	../src_next/context.bqn	from •Import
+tests/test_src_next_two_style_policy_proof.bqn	bqn-import	cycle	../src_next/cycle.bqn	from •Import
+tests/test_src_next_two_style_policy_proof.bqn	bqn-import	cube	../src_next/cube.bqn	from •Import
+tests/test_src_next_two_style_policy_proof.bqn	bqn-import	tbds	../src_next/tbds.bqn	from •Import
+tests/test_src_next_two_style_policy_proof.bqn	bqn-import	hh	../src_next/household_policy.bqn	from •Import
+tests/test_src_next_two_style_policy_proof.bqn	bqn-import	outlook	../src_next/outlook.bqn	from •Import
+tests/test_src_next_ytd_summary.bqn	bqn-import	lib	test_lib.bqn	from •Import
+tests/test_src_next_ytd_summary.bqn	bqn-import	context	../src_next/context.bqn	from •Import
+tests/test_src_next_ytd_summary.bqn	bqn-import	ytd	../src_next/ytd_summary.bqn	from •Import
+tests/test_test_lib_subprocess_visibility.bqn	bqn-import	lib	test_lib.bqn	from •Import
+src_next/account_key.bqn	bqn-def	MetaValue		exported
+src_next/account_key.bqn	bqn-def	RoleFromMeta		exported
+src_next/account_key.bqn	bqn-def	CurrencyFromMeta		exported
+src_next/account_key.bqn	bqn-def	TypeFromMeta		
+src_next/account_key.bqn	bqn-def	BudgetFromMeta		exported
+src_next/account_key.bqn	bqn-def	BudgetGroupFromMeta		exported
+src_next/account_key.bqn	bqn-def	KindFromMeta		exported
+src_next/account_key.bqn	bqn-def	SpendClassFromMeta		exported
+src_next/account_key.bqn	bqn-def	EnvelopeRoleFromMeta		exported
+src_next/account_key.bqn	bqn-def	Resolve		exported
+src_next/account_key.bqn	bqn-def	Split		
+src_next/account_key.bqn	bqn-def	FormatTable		exported
+src_next/account_key.bqn	bqn-def	FmtRow		
+src_next/account_key.bqn	bqn-def	RoleFromMeta		exported
+src_next/account_key.bqn	bqn-def	CurrencyFromMeta		exported
+src_next/account_key.bqn	bqn-def	BudgetFromMeta		exported
+src_next/account_key.bqn	bqn-def	BudgetGroupFromMeta		exported
+src_next/account_key.bqn	bqn-def	KindFromMeta		exported
+src_next/account_key.bqn	bqn-def	SpendClassFromMeta		exported
+src_next/account_key.bqn	bqn-def	EnvelopeRoleFromMeta		exported
+src_next/account_key.bqn	bqn-def	Resolve		exported
+src_next/account_key.bqn	bqn-def	FormatTable		exported
+src_next/actual_comparison.bqn	bqn-def	L		
+src_next/actual_comparison.bqn	bqn-def	StartsWith		
+src_next/actual_comparison.bqn	bqn-def	CleanName		
+src_next/actual_comparison.bqn	bqn-def	IncomeAnchorAccount		
+src_next/actual_comparison.bqn	bqn-def	AccountName		
+src_next/actual_comparison.bqn	bqn-def	AccountRole		
+src_next/actual_comparison.bqn	bqn-def	AccountSpendClass		
+src_next/actual_comparison.bqn	bqn-def	LedgerRowValid		
+src_next/actual_comparison.bqn	bqn-def	SemanticActualRows		
+src_next/actual_comparison.bqn	bqn-def	IsSemantic		
+src_next/actual_comparison.bqn	bqn-def	LaneForRow		
+src_next/actual_comparison.bqn	bqn-def	IsExpenseLane		
+src_next/actual_comparison.bqn	bqn-def	KeyForRow		
+src_next/actual_comparison.bqn	bqn-def	InPeriod		
+src_next/actual_comparison.bqn	bqn-def	ResolvePreviousAnchor		
+src_next/actual_comparison.bqn	bqn-def	ValidIncomeCredit		
+src_next/actual_comparison.bqn	bqn-def	MakePeriodCycle		
+src_next/actual_comparison.bqn	bqn-def	BuildPeriodTbds		
+src_next/actual_comparison.bqn	bqn-def	PeriodEvidence		
+src_next/actual_comparison.bqn	bqn-def	Make		
+src_next/actual_comparison.bqn	bqn-def	CountFor		
+src_next/actual_comparison.bqn	bqn-def	AmountFor		
+src_next/actual_comparison.bqn	bqn-def	RejectedDiagnostics		
+src_next/actual_comparison.bqn	bqn-def	Applies		
+src_next/actual_comparison.bqn	bqn-def	EmptyVm		
+src_next/actual_comparison.bqn	bqn-def	BuildAt		exported
+src_next/actual_comparison.bqn	bqn-def	MakeRow		
+src_next/actual_comparison.bqn	bqn-def	Format		exported
+src_next/actual_comparison.bqn	bqn-def	FormatHuman		exported
+src_next/actual_comparison.bqn	bqn-def	LaneOrder		
+src_next/actual_comparison.bqn	bqn-def	LaneLabel		
+src_next/actual_snapshot.bqn	bqn-def	LatestActualDateInCycle		exported
+src_next/actual_snapshot.bqn	bqn-def	DateInCycle		
+src_next/actual_snapshot.bqn	bqn-def	EmptyErrorVm		
+src_next/actual_snapshot.bqn	bqn-def	IsJournalActual		
+src_next/actual_snapshot.bqn	bqn-def	RejectedDiagnostics		
+src_next/actual_snapshot.bqn	bqn-def	Applies		
+src_next/actual_snapshot.bqn	bqn-def	BuildAt		exported
+src_next/actual_snapshot.bqn	bqn-def	Build		exported
+src_next/actual_source.bqn	bqn-def	Resolve		exported
+src_next/actual_source.bqn	bqn-def	ResolveRelativePath		exported
+src_next/actual_source.bqn	bqn-def	LoadTransactions		exported
+src_next/actual_source.bqn	bqn-def	LoadDates		exported
+src_next/actual_source.bqn	bqn-def	IncomeDates		exported
+src_next/actual_source.bqn	bqn-def	HasIncomeCredit		
+src_next/actual_source.bqn	bqn-def	File		exported
+src_next/actual_source.bqn	bqn-def	Transactions		exported
+src_next/actual_source.bqn	bqn-def	Rows		exported
+src_next/actual_source.bqn	bqn-def	CompletionEvidence		exported
+src_next/actual_source.bqn	bqn-def	Make		
+src_next/actual_source.bqn	bqn-def	PlanIdsInCycle		exported
+src_next/actual_source.bqn	bqn-def	InCycle		
+src_next/balances.bqn	bqn-def	L		
+src_next/balances.bqn	bqn-def	Filter		
+src_next/balances.bqn	bqn-def	FilterRole		
+src_next/balances.bqn	bqn-def	SumAmount		
+src_next/balances.bqn	bqn-def	Build		exported
+src_next/balances.bqn	bqn-def	GetInfo		
+src_next/balances.bqn	bqn-def	Format		exported
+src_next/balances.bqn	bqn-def	PresentationPolicy		exported
+src_next/balances.bqn	bqn-def	BuildSelected		exported
+src_next/balances.bqn	bqn-def	FormatCoefficient		exported
+src_next/balances.bqn	bqn-def	ProvenanceLabel		exported
+src_next/balances.bqn	bqn-def	RenderHuman		
+src_next/balances.bqn	bqn-def	FmtAmt2		
+src_next/balances.bqn	bqn-def	FormatTableGroup		
+src_next/balances.bqn	bqn-def	FormatHuman		exported
+src_next/balances.bqn	bqn-def	LegacyAmount		
+src_next/balances.bqn	bqn-def	FormatSelectedHuman		exported
+src_next/balances.bqn	bqn-def	Amount		
+src_next/balances.bqn	bqn-def	FormatJson		exported
+src_next/balances.bqn	bqn-def	BuildAccountObj		
+src_next/balances.bqn	bqn-def	Build		exported
+src_next/balances.bqn	bqn-def	BuildSelected		exported
+src_next/balances.bqn	bqn-def	Format		exported
+src_next/balances.bqn	bqn-def	PresentationPolicy		exported
+src_next/balances.bqn	bqn-def	FormatCoefficient		exported
+src_next/balances.bqn	bqn-def	ProvenanceLabel		exported
+src_next/balances.bqn	bqn-def	FormatHuman		exported
+src_next/balances.bqn	bqn-def	FormatSelectedHuman		exported
+src_next/balances.bqn	bqn-def	FormatJson		exported
+src_next/calc/envelope_calc.bqn	bqn-def	Floor		
+src_next/calc/envelope_calc.bqn	bqn-def	Ceil		
+src_next/calc/envelope_calc.bqn	bqn-def	L		
+src_next/calc/envelope_calc.bqn	bqn-def	EnvelopePace		exported
+src_next/calc/envelope_calc.bqn	bqn-def	DaysToRecover		exported
+src_next/calc/envelope_calc.bqn	bqn-def	RequiredDailyLimit		exported
+src_next/calc/envelope_calc.bqn	bqn-def	EnvelopeDepletion		exported
+src_next/calc/envelope_calc.bqn	bqn-def	FormatPace		exported
+src_next/calc/envelope_calc.bqn	bqn-def	FormatRecovery		exported
+src_next/calc/envelope_calc.bqn	bqn-def	FormatRecoveryTarget		exported
+src_next/calc/envelope_calc.bqn	bqn-def	FormatDepletion		exported
+src_next/calc/envelope_calc.bqn	bqn-def	FormatPaceMachine		exported
+src_next/calc/envelope_calc.bqn	bqn-def	FormatRecoveryMachine		exported
+src_next/calc/envelope_calc.bqn	bqn-def	FormatRecoveryTargetMachine		exported
+src_next/calc/envelope_calc.bqn	bqn-def	FormatDepletionMachine		exported
+src_next/calc/envelope_calc.bqn	bqn-def	FormatListMachine		exported
+src_next/calc/envelope_calc.bqn	bqn-def	EnvelopePace		exported
+src_next/calc/envelope_calc.bqn	bqn-def	DaysToRecover		exported
+src_next/calc/envelope_calc.bqn	bqn-def	RequiredDailyLimit		exported
+src_next/calc/envelope_calc.bqn	bqn-def	EnvelopeDepletion		exported
+src_next/calc/envelope_calc.bqn	bqn-def	FormatPace		exported
+src_next/calc/envelope_calc.bqn	bqn-def	FormatRecovery		exported
+src_next/calc/envelope_calc.bqn	bqn-def	FormatRecoveryTarget		exported
+src_next/calc/envelope_calc.bqn	bqn-def	FormatDepletion		exported
+src_next/calc/envelope_calc.bqn	bqn-def	FormatPaceMachine		exported
+src_next/calc/envelope_calc.bqn	bqn-def	FormatRecoveryMachine		exported
+src_next/calc/envelope_calc.bqn	bqn-def	FormatRecoveryTargetMachine		exported
+src_next/calc/envelope_calc.bqn	bqn-def	FormatDepletionMachine		exported
+src_next/calc/envelope_calc.bqn	bqn-def	FormatListMachine		exported
+src_next/calc/main.bqn	bqn-def	LatestActualDate		
+src_next/calc/main.bqn	bqn-def	FindEnvelope		
+src_next/calc/main.bqn	bqn-def	DoList		
+src_next/calc/main.bqn	bqn-def	DoPace		
+src_next/calc/main.bqn	bqn-def	DoRecover		
+src_next/calc/main.bqn	bqn-def	DoRecoverTarget		
+src_next/calc/main.bqn	bqn-def	DoDeplete		
+src_next/calc/main.bqn	bqn-def	DoPaceMachine		
+src_next/calc/main.bqn	bqn-def	DoRecoverMachine		
+src_next/calc/main.bqn	bqn-def	DoRecoverTargetMachine		
+src_next/calc/main.bqn	bqn-def	DoDepleteMachine		
+src_next/calc/main.bqn	bqn-def	DoListMachine		
+src_next/calc/main.bqn	bqn-def	DoMain		
+src_next/config.bqn	bqn-def	ParseLine		
+src_next/config.bqn	bqn-def	LoadSystemDefaults		exported
+src_next/config.bqn	bqn-def	Get		exported
+src_next/config.bqn	bqn-def	Get		exported
+src_next/config.bqn	bqn-def	DefaultBaseDir		exported
+src_next/config.bqn	bqn-def	DefaultAccountsFile		exported
+src_next/config.bqn	bqn-def	DefaultPlanFile		exported
+src_next/config.bqn	bqn-def	DefaultBudgetAllocFile		exported
+src_next/config.bqn	bqn-def	DefaultCycleFile		exported
+src_next/config.bqn	bqn-def	DefaultConfigFile		exported
+src_next/config.bqn	bqn-def	Path		
+src_next/config.bqn	bqn-def	LoadActualJournal		exported
+src_next/config.bqn	bqn-def	LoadConfig		exported
+src_next/config.bqn	bqn-def	Lookup		exported
+src_next/config.bqn	bqn-def	Get		exported
+src_next/config.bqn	bqn-def	Required		
+src_next/config.bqn	bqn-def	RepositoryLookup		
+src_next/config.bqn	bqn-def	EffectiveDefaultable		
+src_next/config.bqn	bqn-def	CsvList		exported
+src_next/config.bqn	bqn-def	BudgetPrefix		exported
+src_next/config.bqn	bqn-def	BudgetOpening		exported
+src_next/config.bqn	bqn-def	BudgetUnassigned		exported
+src_next/config.bqn	bqn-def	BudgetSpent		exported
+src_next/config.bqn	bqn-def	HouseholdGroupLifeLabels		exported
+src_next/config.bqn	bqn-def	HouseholdGroupReserveLabels		exported
+src_next/config.bqn	bqn-def	HouseholdGroupOrderLabels		exported
+src_next/config.bqn	bqn-def	PolicyBudgetStyle		exported
+src_next/config.bqn	bqn-def	PolicyRiskStyle		exported
+src_next/config.bqn	bqn-def	PolicyIncomeCadence		exported
+src_next/config.bqn	bqn-def	ActualJournalFile		exported
+src_next/config.bqn	bqn-def	ExecutionPlannedPaymentsEnvelope		exported
+src_next/config.bqn	bqn-def	Warnings		
+src_next/config.bqn	bqn-def	Lookup		exported
+src_next/config.bqn	bqn-def	Get		exported
+src_next/config.bqn	bqn-def	CsvList		exported
+src_next/config.bqn	bqn-def	BudgetPrefix		exported
+src_next/config.bqn	bqn-def	BudgetOpening		exported
+src_next/config.bqn	bqn-def	BudgetUnassigned		exported
+src_next/config.bqn	bqn-def	BudgetSpent		exported
+src_next/config.bqn	bqn-def	HouseholdGroupLifeLabels		exported
+src_next/config.bqn	bqn-def	HouseholdGroupReserveLabels		exported
+src_next/config.bqn	bqn-def	HouseholdGroupOrderLabels		exported
+src_next/config.bqn	bqn-def	PolicyBudgetStyle		exported
+src_next/config.bqn	bqn-def	PolicyRiskStyle		exported
+src_next/config.bqn	bqn-def	PolicyIncomeCadence		exported
+src_next/config.bqn	bqn-def	ActualJournalFile		exported
+src_next/config.bqn	bqn-def	ExecutionPlannedPaymentsEnvelope		exported
+src_next/context.bqn	bqn-def	MakePostingSource		
+src_next/context.bqn	bqn-def	LoadNonActualPostingSourceSnapshot		exported
+src_next/context.bqn	bqn-def	BuildRowEvidenceForLine		
+src_next/context.bqn	bqn-def	BuildRowEvidenceFromSnapshot		exported
+src_next/context.bqn	bqn-def	ResolveArithmeticCurrencyProof		exported
+src_next/context.bqn	bqn-def	BuildProjectionRowsForEvidence		
+src_next/context.bqn	bqn-def	MakeSideRow		
+src_next/context.bqn	bqn-def	SourceFromSnapshot		
+src_next/context.bqn	bqn-def	BuildRowsForFile		exported
+src_next/context.bqn	bqn-def	BuildRowsForFileOptional		exported
+src_next/context.bqn	bqn-def	MakeCheckedDiagnostic		
+src_next/context.bqn	bqn-def	BuildCheckedPostingProjectionFromPrepared		
+src_next/context.bqn	bqn-def	BuildCheckedPostingProjectionFromSnapshot		exported
+src_next/context.bqn	bqn-def	AuthorizedRowsFromCheckedResult		
+src_next/context.bqn	bqn-def	BuildAuthorizedRowsFromPreparedForTest		exported
+src_next/context.bqn	bqn-def	BuildAuthorizedRowsFromSnapshot		exported
+src_next/context.bqn	bqn-def	BuildAllRowsFromSnapshot		exported
+src_next/context.bqn	bqn-def	BuildAllRows		exported
+src_next/context.bqn	bqn-def	BuildPeriodView		exported
+src_next/context.bqn	bqn-def	BuildContext		exported
+src_next/context.bqn	bqn-def	MakeIssueRow		
+src_next/context.bqn	bqn-def	BuildContext		exported
+src_next/context.bqn	bqn-def	LoadNonActualPostingSourceSnapshot		exported
+src_next/context.bqn	bqn-def	BuildRowEvidenceFromSnapshot		exported
+src_next/context.bqn	bqn-def	ResolveArithmeticCurrencyProof		exported
+src_next/context.bqn	bqn-def	BuildCheckedPostingProjectionFromSnapshot		exported
+src_next/context.bqn	bqn-def	BuildCheckedPostingProjectionFromPreparedForTest		exported
+src_next/context.bqn	bqn-def	BuildAuthorizedRowsFromPreparedForTest		exported
+src_next/context.bqn	bqn-def	BuildAuthorizedRowsFromSnapshot		exported
+src_next/context.bqn	bqn-def	BuildAllRowsFromSnapshot		exported
+src_next/context.bqn	bqn-def	BuildAllRows		exported
+src_next/context.bqn	bqn-def	BuildPeriodView		exported
+src_next/context.bqn	bqn-def	BuildRowsForFile		exported
+src_next/context.bqn	bqn-def	BuildRowsForFileOptional		exported
+src_next/cube.bqn	bqn-def	Sum0		exported
+src_next/cube.bqn	bqn-def	RowStatusOk		
+src_next/cube.bqn	bqn-def	RowDayInRange		
+src_next/cube.bqn	bqn-def	RowAccountInRange		
+src_next/cube.bqn	bqn-def	RowLayerInRange		
+src_next/cube.bqn	bqn-def	IsValidRow		exported
+src_next/cube.bqn	bqn-def	RowSkipCategory		exported
+src_next/cube.bqn	bqn-def	RowSkipReason		exported
+src_next/cube.bqn	bqn-def	BuildSkippedSummary		exported
+src_next/cube.bqn	bqn-def	CountCat		
+src_next/cube.bqn	bqn-def	PartitionRows		exported
+src_next/cube.bqn	bqn-def	MakeValidationSummary		exported
+src_next/cube.bqn	bqn-def	Materialize		exported
+src_next/cube.bqn	bqn-def	FlatIdx		
+src_next/cube.bqn	bqn-def	LayerAkTotals		
+src_next/cube.bqn	bqn-def	ExpenseTotal		
+src_next/cube.bqn	bqn-def	FormatMinimalReportSummary		exported
+src_next/cube.bqn	bqn-def	FmtAccountTotals		
+src_next/cube.bqn	bqn-def	FormatCubeSanity		exported
+src_next/cube.bqn	bqn-def	FmtSkip		
+src_next/cube.bqn	bqn-def	VerifyNumeric		exported
+src_next/cube.bqn	bqn-def	Materialize		exported
+src_next/cube.bqn	bqn-def	PartitionRows		exported
+src_next/cube.bqn	bqn-def	IsValidRow		exported
+src_next/cube.bqn	bqn-def	RowSkipCategory		exported
+src_next/cube.bqn	bqn-def	RowSkipReason		exported
+src_next/cube.bqn	bqn-def	BuildSkippedSummary		exported
+src_next/cube.bqn	bqn-def	MakeValidationSummary		exported
+src_next/cube.bqn	bqn-def	FormatMinimalReportSummary		exported
+src_next/cube.bqn	bqn-def	FormatCubeSanity		exported
+src_next/cube.bqn	bqn-def	VerifyNumeric		exported
+src_next/cube.bqn	bqn-def	Sum0		exported
+src_next/currency_arithmetic.bqn	bqn-def	Success		
+src_next/currency_arithmetic.bqn	bqn-def	Failure		
+src_next/currency_arithmetic.bqn	bqn-def	Normalize		
+src_next/currency_arithmetic.bqn	bqn-def	Build		exported
+src_next/currency_registry.bqn	bqn-def	IsIgnored		
+src_next/currency_registry.bqn	bqn-def	IsFractionDigits		
+src_next/currency_registry.bqn	bqn-def	ParseLine		
+src_next/currency_registry.bqn	bqn-def	Failure		
+src_next/currency_registry.bqn	bqn-def	Build		exported
+src_next/currency_registry.bqn	bqn-def	Policy		exported
+src_next/currency_registry.bqn	bqn-def	IsSupportedCurrency		exported
+src_next/currency_setup.bqn	bqn-def	Policy		exported
+src_next/currency_setup.bqn	bqn-def	IsSupportedCurrency		exported
+src_next/currency_setup.bqn	bqn-def	IsIgnoredLine		
+src_next/currency_setup.bqn	bqn-def	HasPrefix		
+src_next/currency_setup.bqn	bqn-def	ParseConfigLine		
+src_next/currency_setup.bqn	bqn-def	DefaultFailure		
+src_next/currency_setup.bqn	bqn-def	DefaultSuccess		
+src_next/currency_setup.bqn	bqn-def	ResolveDefault		exported
+src_next/currency_setup.bqn	bqn-def	SelectionFailure		
+src_next/currency_setup.bqn	bqn-def	SelectionSuccess		
+src_next/currency_setup.bqn	bqn-def	ResolveSelection		exported
+src_next/currency_setup.bqn	bqn-def	AuditLine		exported
+src_next/currency_setup.bqn	bqn-def	AuditFile		exported
+src_next/currency_setup.bqn	bqn-def	Policy		exported
+src_next/currency_setup.bqn	bqn-def	IsSupportedCurrency		exported
+src_next/currency_setup.bqn	bqn-def	ResolveDefault		exported
+src_next/currency_setup.bqn	bqn-def	ResolveSelection		exported
+src_next/currency_setup.bqn	bqn-def	AuditLine		exported
+src_next/currency_setup.bqn	bqn-def	AuditFile		exported
+src_next/cycle_summary.bqn	bqn-def	L		
+src_next/cycle_summary.bqn	bqn-def	LatestActualDateInCycle		
+src_next/cycle_summary.bqn	bqn-def	DateInCycle		
+src_next/cycle_summary.bqn	bqn-def	MakeDiagnostic		
+src_next/cycle_summary.bqn	bqn-def	BuildRemainingEvidenceFromLines		
+src_next/cycle_summary.bqn	bqn-def	JournalInCycle		
+src_next/cycle_summary.bqn	bqn-def	BuildRemainingEvidence		
+src_next/cycle_summary.bqn	bqn-def	RowsForPlanSource		
+src_next/cycle_summary.bqn	bqn-def	PairStructureOk		
+src_next/cycle_summary.bqn	bqn-def	ExpenseDebitRows		
+src_next/cycle_summary.bqn	bqn-def	IsExpenseDebit		
+src_next/cycle_summary.bqn	bqn-def	BuildRemainingFromEvidence		
+src_next/cycle_summary.bqn	bqn-def	PlanExpenseRemainingAt		
+src_next/cycle_summary.bqn	bqn-def	Build		exported
+src_next/cycle_summary.bqn	bqn-def	IsIncome		
+src_next/cycle_summary.bqn	bqn-def	FormatDiagnostic		
+src_next/cycle_summary.bqn	bqn-def	Format		exported
+src_next/cycle_summary.bqn	bqn-def	FormatHumanDiagnostic		
+src_next/cycle_summary.bqn	bqn-def	FormatHuman		exported
+src_next/cycle_summary.bqn	bqn-def	FmtAmt2		
+src_next/cycle_summary.bqn	bqn-def	FormatTableGroup		
+src_next/cycle_summary.bqn	bqn-def	Build		exported
+src_next/cycle_summary.bqn	bqn-def	Format		exported
+src_next/cycle_summary.bqn	bqn-def	FormatHuman		exported
+src_next/cycle_summary.bqn	bqn-def	BuildRemainingEvidenceFromLinesForTest		exported
+src_next/cycle_summary.bqn	bqn-def	BuildRemainingFromEvidenceForTest		exported
+src_next/cycle.bqn	bqn-def	DayCount		exported
+src_next/cycle.bqn	bqn-def	ReadCycle		exported
+src_next/cycle.bqn	bqn-def	DefaultAsOf		
+src_next/cycle.bqn	bqn-def	SplitEq		
+src_next/cycle.bqn	bqn-def	Lookup		
+src_next/cycle.bqn	bqn-def	ResolveIncomeAnchor		
+src_next/cycle.bqn	bqn-def	SplitP		
+src_next/cycle.bqn	bqn-def	IncIdx		
+src_next/cycle.bqn	bqn-def	ResolveCalendarMonth		
+src_next/cycle.bqn	bqn-def	Pad2		
+src_next/cycle.bqn	bqn-def	FormatCycleInfo		exported
+src_next/daily_capacity.bqn	bqn-def	Sum		
+src_next/daily_capacity.bqn	bqn-def	AnyEq		
+src_next/daily_capacity.bqn	bqn-def	HasDuplicates		
+src_next/daily_capacity.bqn	bqn-def	Diagnostic		
+src_next/daily_capacity.bqn	bqn-def	NormalizeObligation		
+src_next/daily_capacity.bqn	bqn-def	BuildDailyCapacityFromEvidence		exported
+src_next/daily_capacity.bqn	bqn-def	Add		
+src_next/daily_capacity.bqn	bqn-def	BuildDailyCapacityFromEvidence		exported
+src_next/daily_flow.bqn	bqn-def	L		
+src_next/daily_flow.bqn	bqn-def	IsMember		
+src_next/daily_flow.bqn	bqn-def	CharWidth		
+src_next/daily_flow.bqn	bqn-def	StringWidth		
+src_next/daily_flow.bqn	bqn-def	Unbox		
+src_next/daily_flow.bqn	bqn-def	TrimBudgetPrefix		
+src_next/daily_flow.bqn	bqn-def	LatestActualDateInCycle		
+src_next/daily_flow.bqn	bqn-def	DateInCycle		
+src_next/daily_flow.bqn	bqn-def	Build		exported
+src_next/daily_flow.bqn	bqn-def	Format		exported
+src_next/daily_flow.bqn	bqn-def	FormatHuman		exported
+src_next/daily_flow.bqn	bqn-def	AlignR		
+src_next/daily_flow.bqn	bqn-def	FmtNum		
+src_next/daily_flow.bqn	bqn-def	FmtIncome		
+src_next/daily_flow.bqn	bqn-def	FmtNet		
+src_next/daily_flow.bqn	bqn-def	FmtRow		
+src_next/daily_trend_plan.bqn	bqn-def	MakeDiagnostic		
+src_next/daily_trend_plan.bqn	bqn-def	BuildEvidenceFromLines		
+src_next/daily_trend_plan.bqn	bqn-def	BuildSourceEvidence		
+src_next/daily_trend_plan.bqn	bqn-def	RowsForPlanSource		
+src_next/daily_trend_plan.bqn	bqn-def	BuildFromEvidence		
+src_next/daily_trend_plan.bqn	bqn-def	ReserveAt		
+src_next/daily_trend_plan.bqn	bqn-def	BuildAt		exported
+src_next/daily_trend_plan.bqn	bqn-def	BuildAt		exported
+src_next/daily_trend_plan.bqn	bqn-def	BuildEvidenceFromLinesForTest		exported
+src_next/daily_trend_plan.bqn	bqn-def	BuildFromEvidenceForTest		exported
+src_next/daily_trend.bqn	bqn-def	L		
+src_next/daily_trend.bqn	bqn-def	LatestActualDateInCycle		
+src_next/daily_trend.bqn	bqn-def	DateInCycle		
+src_next/daily_trend.bqn	bqn-def	Build		exported
+src_next/daily_trend.bqn	bqn-def	BuildAt		exported
+src_next/daily_trend.bqn	bqn-def	Format		exported
+src_next/daily_trend.bqn	bqn-def	FormatHuman		exported
+src_next/daily_trend.bqn	bqn-def	TableRow		
+src_next/date.bqn	bqn-def	IsDigits		exported
+src_next/date.bqn	bqn-def	IsLeap		exported
+src_next/date.bqn	bqn-def	ShOut		
+src_next/date.bqn	bqn-def	Today		exported
+src_next/date.bqn	bqn-def	Parts		exported
+src_next/date.bqn	bqn-def	IsValidDateText		exported
+src_next/date.bqn	bqn-def	Ordinal		exported
+src_next/date.bqn	bqn-def	DaysBetween		exported
+src_next/date.bqn	bqn-def	DaysFromEpoch		exported
+src_next/date.bqn	bqn-def	FromDaysFromEpoch		exported
+src_next/date.bqn	bqn-def	YearLen		
+src_next/date.bqn	bqn-def	Leaps		
+src_next/date.bqn	bqn-def	Pad2		
+src_next/date.bqn	bqn-def	AddDays		exported
+src_next/date.bqn	bqn-def	FromOrdinal		exported
+src_next/date.bqn	bqn-def	Pad		
+src_next/envelope_computation.bqn	bqn-def	L		
+src_next/envelope_computation.bqn	bqn-def	Sum0		
+src_next/envelope_computation.bqn	bqn-def	NonEmpty		
+src_next/envelope_computation.bqn	bqn-def	Contains		
+src_next/envelope_computation.bqn	bqn-def	IsMember		
+src_next/envelope_computation.bqn	bqn-def	NoPolicyTarget		exported
+src_next/envelope_computation.bqn	bqn-def	FixtureFoodLikeTarget		exported
+src_next/envelope_computation.bqn	bqn-def	PolicyForBase		exported
+src_next/envelope_computation.bqn	bqn-def	ExpenseAccountMask		
+src_next/envelope_computation.bqn	bqn-def	SelectedExpenseIndices		exported
+src_next/envelope_computation.bqn	bqn-def	BudgetAccountMask		
+src_next/envelope_computation.bqn	bqn-def	BudgetLabel		
+src_next/envelope_computation.bqn	bqn-def	EnvelopeRoleForIndex		exported
+src_next/envelope_computation.bqn	bqn-def	IsActiveEnvelopeRole		exported
+src_next/envelope_computation.bqn	bqn-def	ExecutionStatus		exported
+src_next/envelope_computation.bqn	bqn-def	UnassignedBudgetAccountIndices		exported
+src_next/envelope_computation.bqn	bqn-def	UnassignedStatus		
+src_next/envelope_computation.bqn	bqn-def	CalcUnassignedRemaining		exported
+src_next/envelope_computation.bqn	bqn-def	SourceFor		
+src_next/envelope_computation.bqn	bqn-def	TargetBudgetAccountIndices		exported
+src_next/envelope_computation.bqn	bqn-def	Pad5		
+src_next/envelope_computation.bqn	bqn-def	InCycle		
+src_next/envelope_computation.bqn	bqn-def	CalcAllocated		exported
+src_next/envelope_computation.bqn	bqn-def	RowAmountIfTarget		
+src_next/envelope_computation.bqn	bqn-def	CalcActualSpent		exported
+src_next/envelope_computation.bqn	bqn-def	CalcRemaining		exported
+src_next/envelope_computation.bqn	bqn-def	DecideStatus		exported
+src_next/envelope_computation.bqn	bqn-def	LatestActualDateInCycle		
+src_next/envelope_computation.bqn	bqn-def	DateInCycle		
+src_next/envelope_computation.bqn	bqn-def	CleanName		
+src_next/envelope_computation.bqn	bqn-def	BuildExecutionPlannedCoverage		
+src_next/envelope_computation.bqn	bqn-def	ParsePlanRow		
+src_next/envelope_computation.bqn	bqn-def	BuildEnvelopes		
+src_next/envelope_computation.bqn	bqn-def	CalcOne		
+src_next/envelope_computation.bqn	bqn-def	ActualClosingVecFromTbds		exported
+src_next/envelope_computation.bqn	bqn-def	CalcEnvelopeBacking		exported
+src_next/envelope_computation.bqn	bqn-def	BudgetMovement		
+src_next/envelope_computation.bqn	bqn-def	BuildFromInputs		exported
+src_next/envelope_computation.bqn	bqn-def	BuildCtx		
+src_next/envelope_computation.bqn	bqn-def	Build		exported
+src_next/envelope_computation.bqn	bqn-def	FmtAmount		
+src_next/envelope_computation.bqn	bqn-def	Format		exported
+src_next/envelope_computation.bqn	bqn-def	MovementLine		
+src_next/envelope_computation.bqn	bqn-def	FormatHuman		exported
+src_next/envelope_computation.bqn	bqn-def	GetPri		
+src_next/envelope_computation.bqn	bqn-def	StatusCell		
+src_next/envelope_computation.bqn	bqn-def	DynamicRow		
+src_next/envelope_computation.bqn	bqn-def	ExecutionRow		
+src_next/envelope_computation.bqn	bqn-def	UnknownRow		
+src_next/envelope_computation.bqn	bqn-def	RenderSources		
+src_next/envelope_computation.bqn	bqn-def	RenderMovements		
+src_next/envelope_computation.bqn	bqn-def	FormatJson		exported
+src_next/envelope_computation.bqn	bqn-def	ToEnvJson		
+src_next/envelope_computation.bqn	bqn-def	ToRowJson		
+src_next/envelope_computation.bqn	bqn-def	Build		exported
+src_next/envelope_computation.bqn	bqn-def	BuildFromTuple		exported
+src_next/envelope_computation.bqn	bqn-def	BuildFromInputs		exported
+src_next/envelope_computation.bqn	bqn-def	PolicyForBase		exported
+src_next/envelope_computation.bqn	bqn-def	NoPolicyTarget		exported
+src_next/envelope_computation.bqn	bqn-def	FixtureFoodLikeTarget		exported
+src_next/envelope_computation.bqn	bqn-def	SelectedExpenseIndices		exported
+src_next/envelope_computation.bqn	bqn-def	TargetBudgetAccountIndices		exported
+src_next/envelope_computation.bqn	bqn-def	CalcAllocated		exported
+src_next/envelope_computation.bqn	bqn-def	CalcActualSpent		exported
+src_next/envelope_computation.bqn	bqn-def	CalcRemaining		exported
+src_next/envelope_computation.bqn	bqn-def	DecideStatus		exported
+src_next/envelope_computation.bqn	bqn-def	UnassignedBudgetAccountIndices		exported
+src_next/envelope_computation.bqn	bqn-def	CalcUnassignedRemaining		exported
+src_next/envelope_computation.bqn	bqn-def	ActualClosingVecFromTbds		exported
+src_next/envelope_computation.bqn	bqn-def	CalcEnvelopeBacking		exported
+src_next/envelope_computation.bqn	bqn-def	Format		exported
+src_next/envelope_computation.bqn	bqn-def	FormatHuman		exported
+src_next/envelope_computation.bqn	bqn-def	FormatJson		exported
+src_next/envelope_computation.bqn	bqn-def	EnvelopeRoleForIndex		exported
+src_next/envelope_computation.bqn	bqn-def	IsActiveEnvelopeRole		exported
+src_next/envelope_computation.bqn	bqn-def	ExecutionStatus		exported
+src_next/event_lens_format.bqn	bqn-def	Escape		
+src_next/event_lens_format.bqn	bqn-def	FormatFields		
+src_next/event_lens_format.bqn	bqn-def	FormatInt		
+src_next/event_lens_format.bqn	bqn-def	FormatRow		
+src_next/event_lens_format.bqn	bqn-def	FormatTsv		exported
+src_next/event_lens_format.bqn	bqn-def	FormatTsv		exported
+src_next/event_lens.bqn	bqn-def	BuildRows		exported
+src_next/event_lens.bqn	bqn-def	MakeLensRow		
+src_next/event_lens.bqn	bqn-def	BuildRows		exported
+src_next/exact_decimal.bqn	bqn-def	IsDigits		
+src_next/exact_decimal.bqn	bqn-def	TrimLeadingZeros		
+src_next/exact_decimal.bqn	bqn-def	TrimTrailingZeros		
+src_next/exact_decimal.bqn	bqn-def	Failure		
+src_next/exact_decimal.bqn	bqn-def	TryInteger		
+src_next/exact_decimal.bqn	bqn-def	ConvertExactInteger		
+src_next/exact_decimal.bqn	bqn-def	InvalidSyntax		
+src_next/exact_decimal.bqn	bqn-def	OutOfRangeResult		
+src_next/exact_decimal.bqn	bqn-def	SuccessResult		
+src_next/exact_decimal.bqn	bqn-def	ParseValid		
+src_next/exact_decimal.bqn	bqn-def	Parse		exported
+src_next/exact_decimal.bqn	bqn-def	Parse		exported
+src_next/expense_breakdown.bqn	bqn-def	Build		exported
+src_next/expense_breakdown.bqn	bqn-def	StartsWith		
+src_next/expense_breakdown.bqn	bqn-def	IsRepayment		
+src_next/expense_breakdown.bqn	bqn-def	Format		exported
+src_next/format.bqn	bqn-def	SetColorEnabled		exported
+src_next/format.bqn	bqn-def	AnsiColorEnabled		exported
+src_next/format.bqn	bqn-def	Wrap		
+src_next/format.bqn	bqn-def	Bold		exported
+src_next/format.bqn	bqn-def	Dim		exported
+src_next/format.bqn	bqn-def	Red		exported
+src_next/format.bqn	bqn-def	Green		exported
+src_next/format.bqn	bqn-def	Yellow		exported
+src_next/format.bqn	bqn-def	Blue		exported
+src_next/format.bqn	bqn-def	Magenta		exported
+src_next/format.bqn	bqn-def	Cyan		exported
+src_next/format.bqn	bqn-def	Ok		exported
+src_next/format.bqn	bqn-def	Warn		exported
+src_next/format.bqn	bqn-def	Bad		exported
+src_next/format.bqn	bqn-def	Info		exported
+src_next/format.bqn	bqn-def	Muted		exported
+src_next/format.bqn	bqn-def	Accent		exported
+src_next/format.bqn	bqn-def	Future		exported
+src_next/format.bqn	bqn-def	VWidth		exported
+src_next/format.bqn	bqn-def	PadV		exported
+src_next/format.bqn	bqn-def	PadLV		exported
+src_next/format.bqn	bqn-def	PadL		exported
+src_next/format.bqn	bqn-def	HumanNumber		exported
+src_next/format.bqn	bqn-def	FmtAmt		exported
+src_next/format.bqn	bqn-def	RenderTable		exported
+src_next/format.bqn	bqn-def	RenderRow		
+src_next/format.bqn	bqn-def	RangeDisp		exported
+src_next/format.bqn	bqn-def	Section		exported
+src_next/format.bqn	bqn-def	SetColorEnabled		exported
+src_next/format.bqn	bqn-def	Bold		exported
+src_next/format.bqn	bqn-def	Ok		exported
+src_next/friend_travel_jpy_finalization.bqn	bqn-def	Diagnostic		
+src_next/friend_travel_jpy_finalization.bqn	bqn-def	AddIf		
+src_next/friend_travel_jpy_finalization.bqn	bqn-def	IsSafeText		
+src_next/friend_travel_jpy_finalization.bqn	bqn-def	IsSafeToken		
+src_next/friend_travel_jpy_finalization.bqn	bqn-def	IsCurrencyToken		
+src_next/friend_travel_jpy_finalization.bqn	bqn-def	IsPositiveDecimal		
+src_next/friend_travel_jpy_finalization.bqn	bqn-def	IsPositiveJpyInteger		
+src_next/friend_travel_jpy_finalization.bqn	bqn-def	AccountDiagnostics		
+src_next/friend_travel_jpy_finalization.bqn	bqn-def	ExtractRequest		
+src_next/friend_travel_jpy_finalization.bqn	bqn-def	PreviewRow		
+src_next/friend_travel_jpy_finalization.bqn	bqn-def	ValidateExtractedRequest		
+src_next/friend_travel_jpy_finalization.bqn	bqn-def	ValidateAndPreview		exported
+src_next/friend_travel_jpy_finalization.bqn	bqn-def	ValidateAndPreview		exported
+src_next/friend_travel_source_event.bqn	bqn-def	Diagnostic		
+src_next/friend_travel_source_event.bqn	bqn-def	AddIf		
+src_next/friend_travel_source_event.bqn	bqn-def	IsSafeText		
+src_next/friend_travel_source_event.bqn	bqn-def	IsPositive		
+src_next/friend_travel_source_event.bqn	bqn-def	FractionDigits		
+src_next/friend_travel_source_event.bqn	bqn-def	Event		
+src_next/friend_travel_source_event.bqn	bqn-def	Fields		
+src_next/friend_travel_source_event.bqn	bqn-def	Render		exported
+src_next/friend_travel_source_event.bqn	bqn-def	ValidateEvent		
+src_next/friend_travel_source_event.bqn	bqn-def	ParseExisting		
+src_next/friend_travel_source_event.bqn	bqn-def	ValidateExisting		exported
+src_next/friend_travel_source_event.bqn	bqn-def	ValidateAndPreview		exported
+src_next/household_metadata.bqn	bqn-def	StartsWith		
+src_next/household_metadata.bqn	bqn-def	Sum0		exported
+src_next/household_metadata.bqn	bqn-def	NonEmpty		
+src_next/household_metadata.bqn	bqn-def	Build		exported
+src_next/household_metadata.bqn	bqn-def	Dedup		
+src_next/household_metadata.bqn	bqn-def	Join		
+src_next/household_metadata.bqn	bqn-def	Format		exported
+src_next/household_policy.bqn	bqn-def	Sum0		exported
+src_next/household_policy.bqn	bqn-def	StartsWith		
+src_next/household_policy.bqn	bqn-def	NonEmpty		
+src_next/household_policy.bqn	bqn-def	IsMember		
+src_next/household_policy.bqn	bqn-def	GroupLabelMatch		
+src_next/household_policy.bqn	bqn-def	KnownSpendClass		
+src_next/household_policy.bqn	bqn-def	HasPolicyMetadata		exported
+src_next/household_policy.bqn	bqn-def	BuildSummary		exported
+src_next/household_policy.bqn	bqn-def	ExpenseDebitTotal		
+src_next/household_policy.bqn	bqn-def	ExpenseDebitMissingTotal		
+src_next/household_policy.bqn	bqn-def	ExpenseDebitOtherTotal		
+src_next/household_policy.bqn	bqn-def	FormatSummary		exported
+src_next/household_policy.bqn	bqn-def	FormatSummary		exported
+src_next/household_policy.bqn	bqn-def	HasPolicyMetadata		exported
+src_next/household_policy.bqn	bqn-def	Sum0		exported
+src_next/issues.bqn	bqn-def	L		
+src_next/issues.bqn	bqn-def	FormatHuman		exported
+src_next/issues.bqn	bqn-def	IsOpen		
+src_next/issues.bqn	bqn-def	FormatItem		
+src_next/journal_posting_identity_provenance_stage2b.bqn	bqn-def	Diagnostic		
+src_next/journal_posting_identity_provenance_stage2b.bqn	bqn-def	AddIf		
+src_next/journal_posting_identity_provenance_stage2b.bqn	bqn-def	IsOneOf		
+src_next/journal_posting_identity_provenance_stage2b.bqn	bqn-def	Build		exported
+src_next/journal_posting_ir_stage2a.bqn	bqn-def	RoleForPosting		
+src_next/journal_posting_ir_stage2a.bqn	bqn-def	KindForTransaction		
+src_next/journal_posting_ir_stage2a.bqn	bqn-def	BuildForSource		exported
+src_next/journal_posting_ir_stage2a.bqn	bqn-def	Build		exported
+src_next/journal_profile_stage1.bqn	bqn-def	Diagnostic		
+src_next/journal_profile_stage1.bqn	bqn-def	AddIf		
+src_next/journal_profile_stage1.bqn	bqn-def	TrimLeft		
+src_next/journal_profile_stage1.bqn	bqn-def	TrimRight		
+src_next/journal_profile_stage1.bqn	bqn-def	Trim		
+src_next/journal_profile_stage1.bqn	bqn-def	StartsWith		
+src_next/journal_profile_stage1.bqn	bqn-def	IsOneOf		
+src_next/journal_profile_stage1.bqn	bqn-def	LegacyMetadataValueValid		exported
+src_next/journal_profile_stage1.bqn	bqn-def	Paragraphs		
+src_next/journal_profile_stage1.bqn	bqn-def	Flush		
+src_next/journal_profile_stage1.bqn	bqn-def	FirstLine		
+src_next/journal_profile_stage1.bqn	bqn-def	IsDateHeader		
+src_next/journal_profile_stage1.bqn	bqn-def	ParseHeader		
+src_next/journal_profile_stage1.bqn	bqn-def	ParseAccountMetadata		
+src_next/journal_profile_stage1.bqn	bqn-def	AccountMetaOr		
+src_next/journal_profile_stage1.bqn	bqn-def	ParseDeclarations		
+src_next/journal_profile_stage1.bqn	bqn-def	HasAccount		
+src_next/journal_profile_stage1.bqn	bqn-def	HasCommodity		
+src_next/journal_profile_stage1.bqn	bqn-def	ParseMetadata		
+src_next/journal_profile_stage1.bqn	bqn-def	ParsePosting		
+src_next/journal_profile_stage1.bqn	bqn-def	MetaValues		
+src_next/journal_profile_stage1.bqn	bqn-def	MetaOr		
+src_next/journal_profile_stage1.bqn	bqn-def	ParseTransaction		
+src_next/journal_profile_stage1.bqn	bqn-def	CrossLinkDiagnostics		
+src_next/journal_profile_stage1.bqn	bqn-def	ParseWithProfile		exported
+src_next/journal_profile_stage1.bqn	bqn-def	Parse		exported
+src_next/journal_profile_stage1.bqn	bqn-def	ResolveEnvelopeDefaults		exported
+src_next/journal_profile_stage1.bqn	bqn-def	BuildMatrix		exported
+src_next/journal_profile_stage1.bqn	bqn-def	Parse		exported
+src_next/journal_profile_stage1.bqn	bqn-def	ParseWithProfile		exported
+src_next/journal_profile_stage1.bqn	bqn-def	LegacyMetadataValueValid		exported
+src_next/journal_profile_stage1.bqn	bqn-def	ResolveEnvelopeDefaults		exported
+src_next/journal_profile_stage1.bqn	bqn-def	BuildMatrix		exported
+src_next/journal_read_only_source_carrier.bqn	bqn-def	Build		exported
+src_next/journal_shadow_context.bqn	bqn-def	IoDiagnostic		
+src_next/journal_shadow_context.bqn	bqn-def	Build		exported
+src_next/json.bqn	bqn-def	Fail		
+src_next/json.bqn	bqn-def	EscapeChar		
+src_next/json.bqn	bqn-def	String		
+src_next/json.bqn	bqn-def	Number		
+src_next/json.bqn	bqn-def	IsString		
+src_next/json.bqn	bqn-def	IsScalarArray		
+src_next/json.bqn	bqn-def	DiscloseIfScalar		
+src_next/json.bqn	bqn-def	IsKvPair		
+src_next/json.bqn	bqn-def	Serialize_inner		
+src_next/json.bqn	bqn-def	Serialize		exported
+src_next/loader.bqn	bqn-def	Split		exported
+src_next/loader.bqn	bqn-def	SplitKeepEmpty		exported
+src_next/loader.bqn	bqn-def	ResolvePath		
+src_next/loader.bqn	bqn-def	ReadRaw		exported
+src_next/loader.bqn	bqn-def	ReadLines		exported
+src_next/loader.bqn	bqn-def	IsData		
+src_next/loader.bqn	bqn-def	ReadLinesOptional		exported
+src_next/loader.bqn	bqn-def	SplitTsv		exported
+src_next/loader.bqn	bqn-def	SplitTsvKeepEmpty		exported
+src_next/loader.bqn	bqn-def	ReadRaw		exported
+src_next/loader.bqn	bqn-def	ReadLines		exported
+src_next/loader.bqn	bqn-def	ReadLinesOptional		exported
+src_next/loader.bqn	bqn-def	SplitTsv		exported
+src_next/loader.bqn	bqn-def	SplitTsvKeepEmpty		exported
+src_next/loader.bqn	bqn-def	Split		exported
+src_next/loader.bqn	bqn-def	SplitKeepEmpty		exported
+src_next/main.bqn	bqn-def	PrintAccountKey		
+src_next/main.bqn	bqn-def	PrintProjHeader		
+src_next/main.bqn	bqn-def	RowsForSourceFile		
+src_next/main.bqn	bqn-def	PrintRowsForFile		
+src_next/main.bqn	bqn-def	PrintSampleRows		
+src_next/main.bqn	bqn-def	Main		
+src_next/outlook_remaining_plan.bqn	bqn-def	IsMember		
+src_next/outlook_remaining_plan.bqn	bqn-def	MakeDiagnostic		
+src_next/outlook_remaining_plan.bqn	bqn-def	BuildEvidenceFromLines		
+src_next/outlook_remaining_plan.bqn	bqn-def	JournalInCycle		
+src_next/outlook_remaining_plan.bqn	bqn-def	BuildSourceEvidence		
+src_next/outlook_remaining_plan.bqn	bqn-def	AnchorInfo		
+src_next/outlook_remaining_plan.bqn	bqn-def	ActiveIncomeAccounts		
+src_next/outlook_remaining_plan.bqn	bqn-def	IsActive		
+src_next/outlook_remaining_plan.bqn	bqn-def	AnchorValidity		
+src_next/outlook_remaining_plan.bqn	bqn-def	RowsForPlanSource		
+src_next/outlook_remaining_plan.bqn	bqn-def	PlanLiquidDelta		
+src_next/outlook_remaining_plan.bqn	bqn-def	BuildFromEvidence		
+src_next/outlook_remaining_plan.bqn	bqn-def	BuildAt		exported
+src_next/outlook_remaining_plan.bqn	bqn-def	BuildAt		exported
+src_next/outlook_remaining_plan.bqn	bqn-def	BuildEvidenceFromLinesForTest		exported
+src_next/outlook_remaining_plan.bqn	bqn-def	BuildFromEvidenceForTest		exported
+src_next/outlook.bqn	bqn-def	L		
+src_next/outlook.bqn	bqn-def	IsMember		
+src_next/outlook.bqn	bqn-def	RecordedFrontierInfo		
+src_next/outlook.bqn	bqn-def	DateInScope		
+src_next/outlook.bqn	bqn-def	LatestActualDateInCycle		exported
+src_next/outlook.bqn	bqn-def	ClassifyRecordFrontier		
+src_next/outlook.bqn	bqn-def	ErrorVm		
+src_next/outlook.bqn	bqn-def	BuildCore		
+src_next/outlook.bqn	bqn-def	ObligationFor		
+src_next/outlook.bqn	bqn-def	BuildWithSnapshot		
+src_next/outlook.bqn	bqn-def	BuildAt		exported
+src_next/outlook.bqn	bqn-def	Build		exported
+src_next/outlook.bqn	bqn-def	Format		exported
+src_next/outlook.bqn	bqn-def	FmtVal		
+src_next/outlook.bqn	bqn-def	FormatHumanOk		
+src_next/outlook.bqn	bqn-def	AlignR		
+src_next/outlook.bqn	bqn-def	RenderEnvRow		
+src_next/outlook.bqn	bqn-def	RenderReserveRow		
+src_next/outlook.bqn	bqn-def	FormatHumanError		
+src_next/outlook.bqn	bqn-def	FormatHuman		exported
+src_next/plan_journal_overlap.bqn	bqn-def	Pad5		
+src_next/plan_journal_overlap.bqn	bqn-def	PlanId		exported
+src_next/plan_journal_overlap.bqn	bqn-def	IsPlanId		
+src_next/plan_journal_overlap.bqn	bqn-def	Key		exported
+src_next/plan_journal_overlap.bqn	bqn-def	InCycle		exported
+src_next/plan_journal_overlap.bqn	bqn-def	Build		exported
+src_next/plan_journal_overlap.bqn	bqn-def	IsCompletionInCycle		
+src_next/plan_journal_overlap.bqn	bqn-def	Format		exported
+src_next/plan_journal_overlap.bqn	bqn-def	Join5		
+src_next/plan_journal_overlap.bqn	bqn-def	Join5		
+src_next/plan_rows.bqn	bqn-def	Pad5		
+src_next/plan_rows.bqn	bqn-def	ToNum		
+src_next/plan_rows.bqn	bqn-def	PlanId		exported
+src_next/plan_rows.bqn	bqn-def	IsPlanId		
+src_next/plan_rows.bqn	bqn-def	InCycle		exported
+src_next/plan_rows.bqn	bqn-def	BuildBase		exported
+src_next/plan_rows.bqn	bqn-def	GetDate		
+src_next/plan_rows.bqn	bqn-def	InCycleEvidence		
+src_next/plan_rows.bqn	bqn-def	ParseRow		
+src_next/plan_rows.bqn	bqn-def	WithValues		exported
+src_next/plan_rows.bqn	bqn-def	ActualAmountFor		
+src_next/plan_rows.bqn	bqn-def	WithTemporal		exported
+src_next/plan_rows.bqn	bqn-def	Build		exported
+src_next/plan_rows.bqn	bqn-def	PlanId		exported
+src_next/plan_rows.bqn	bqn-def	InCycle		exported
+src_next/plan_rows.bqn	bqn-def	BuildBase		exported
+src_next/plan_rows.bqn	bqn-def	WithValues		exported
+src_next/plan_rows.bqn	bqn-def	WithTemporal		exported
+src_next/plan_rows.bqn	bqn-def	Build		exported
+src_next/plan_status.bqn	bqn-def	Classify		exported
+src_next/planned_payments.bqn	bqn-def	L		
+src_next/planned_payments.bqn	bqn-def	StartsWith		
+src_next/planned_payments.bqn	bqn-def	CleanName		
+src_next/planned_payments.bqn	bqn-def	Pad5		
+src_next/planned_payments.bqn	bqn-def	PlanId		exported
+src_next/planned_payments.bqn	bqn-def	StatusFor		exported
+src_next/planned_payments.bqn	bqn-def	FormatLine		
+src_next/planned_payments.bqn	bqn-def	LatestActualDateInCycle		exported
+src_next/planned_payments.bqn	bqn-def	DateInCycle		
+src_next/planned_payments.bqn	bqn-def	BuildViewModel		exported
+src_next/planned_payments.bqn	bqn-def	CatFor		
+src_next/planned_payments.bqn	bqn-def	Format		exported
+src_next/planned_payments.bqn	bqn-def	FormatHuman		exported
+src_next/planned_payments.bqn	bqn-def	OpenRow		
+src_next/planned_payments.bqn	bqn-def	CompletedRow		
+src_next/planned_payments.bqn	bqn-def	FormatJson		exported
+src_next/planned_payments.bqn	bqn-def	BuildOpenItem		
+src_next/planned_payments.bqn	bqn-def	BuildCompletedItem		
+src_next/projection.bqn	bqn-def	SourceLayer		exported
+src_next/projection.bqn	bqn-def	InferKind		exported
+src_next/projection.bqn	bqn-def	IsDigits		exported
+src_next/projection.bqn	bqn-def	IsIntegerText		exported
+src_next/projection.bqn	bqn-def	FieldOrEmpty		exported
+src_next/projection.bqn	bqn-def	IsValidDateText		exported
+src_next/projection.bqn	bqn-def	DaysFromEpoch		exported
+src_next/projection.bqn	bqn-def	ResolveDayFromCycle		exported
+src_next/projection.bqn	bqn-def	ResolveDay		exported
+src_next/projection.bqn	bqn-def	MetaValue		exported
+src_next/projection.bqn	bqn-def	TxIdFromMeta		exported
+src_next/projection.bqn	bqn-def	LayerName		exported
+src_next/projection.bqn	bqn-def	PostingId		exported
+src_next/projection.bqn	bqn-def	IsAllowedProofBasis		
+src_next/projection.bqn	bqn-def	IsAllowedProofDomainBasis		
+src_next/projection.bqn	bqn-def	ProofState		
+src_next/projection.bqn	bqn-def	ProofDomain		
+src_next/projection.bqn	bqn-def	ProofBasis		
+src_next/projection.bqn	bqn-def	ProofScale		
+src_next/projection.bqn	bqn-def	ProofMessage		
+src_next/projection.bqn	bqn-def	IsNonNegativeInteger		
+src_next/projection.bqn	bqn-def	AuthorizeArithmeticCurrencyProof		exported
+src_next/projection.bqn	bqn-def	ArithmeticCurrencyAuthorizationMessage		exported
+src_next/projection.bqn	bqn-def	RequireArithmeticCurrencyProof		exported
+src_next/projection.bqn	bqn-def	Sum0		
+src_next/projection.bqn	bqn-def	BalanceBySourceOk		exported
+src_next/projection.bqn	bqn-def	SumForId		
+src_next/projection.bqn	bqn-def	FormatBalanceCheck		exported
+src_next/projection.bqn	bqn-def	FormatProjTable		exported
+src_next/projection.bqn	bqn-def	FmtOne		
+src_next/projection.bqn	bqn-def	ToRow		
+src_next/projection.bqn	bqn-def	SourceLayer		exported
+src_next/projection.bqn	bqn-def	InferKind		exported
+src_next/projection.bqn	bqn-def	MetaValue		exported
+src_next/projection.bqn	bqn-def	TxIdFromMeta		exported
+src_next/projection.bqn	bqn-def	LayerName		exported
+src_next/projection.bqn	bqn-def	PostingId		exported
+src_next/projection.bqn	bqn-def	IsDigits		exported
+src_next/projection.bqn	bqn-def	IsIntegerText		exported
+src_next/projection.bqn	bqn-def	IsValidDateText		exported
+src_next/projection.bqn	bqn-def	FieldOrEmpty		exported
+src_next/projection.bqn	bqn-def	DaysFromEpoch		exported
+src_next/projection.bqn	bqn-def	ResolveDay		exported
+src_next/projection.bqn	bqn-def	ResolveDayFromCycle		exported
+src_next/projection.bqn	bqn-def	AuthorizeArithmeticCurrencyProof		exported
+src_next/projection.bqn	bqn-def	ArithmeticCurrencyAuthorizationMessage		exported
+src_next/projection.bqn	bqn-def	RequireArithmeticCurrencyProof		exported
+src_next/projection.bqn	bqn-def	BalanceBySourceOk		exported
+src_next/projection.bqn	bqn-def	FormatBalanceCheck		exported
+src_next/projection.bqn	bqn-def	FormatProjTable		exported
+src_next/readiness_check.bqn	bqn-def	L		
+src_next/readiness_check.bqn	bqn-def	Build		exported
+src_next/readiness_check.bqn	bqn-def	DupKeys		
+src_next/readiness_check.bqn	bqn-def	Format		exported
+src_next/readiness_check.bqn	bqn-def	FormatHuman		exported
+src_next/readiness_check.bqn	bqn-def	OutIndented		
+src_next/recent_journal.bqn	bqn-def	L		
+src_next/recent_journal.bqn	bqn-def	BuildRecentRows		
+src_next/recent_journal.bqn	bqn-def	Join		
+src_next/recent_journal.bqn	bqn-def	Make		
+src_next/recent_journal.bqn	bqn-def	Format		exported
+src_next/recent_journal.bqn	bqn-def	FormatRow		
+src_next/recent_journal.bqn	bqn-def	FormatHuman		exported
+src_next/recent_journal.bqn	bqn-def	TrimMemo		
+src_next/report_builder_order.bqn	bqn-def	Unique		
+src_next/report_builder_order.bqn	bqn-def	DuplicateKeys		exported
+src_next/report_builder_order.bqn	bqn-def	JoinComma		
+src_next/report_builder_order.bqn	bqn-def	OrderBuilderEntries		exported
+src_next/report_labels.bqn	bqn-def	ParseLine		
+src_next/report_labels.bqn	bqn-def	Get		
+src_next/report_section_metadata.bqn	bqn-def	L		
+src_next/report_section_metadata.bqn	bqn-def	HasArg		
+src_next/report_section_metadata.bqn	bqn-def	ArgValue		
+src_next/report_section_metadata.bqn	bqn-def	EscapeJsonChar		
+src_next/report_section_metadata.bqn	bqn-def	JsonString		
+src_next/report_section_metadata.bqn	bqn-def	JsonField		
+src_next/report_section_metadata.bqn	bqn-def	TrimReportHeading		
+src_next/report_section_metadata.bqn	bqn-def	TrimLeadingOrdinal		
+src_next/report_section_metadata.bqn	bqn-def	DisplayLabel		
+src_next/report_section_metadata.bqn	bqn-def	FormatRow		
+src_next/report_section_metadata.bqn	bqn-def	FormatJsonRow		
+src_next/report_section_metadata.bqn	bqn-def	ResolveLabel		
+src_next/report_section_metadata.bqn	bqn-def	ResolveDescriptor		
+src_next/report_section_metadata.bqn	bqn-def	PrintTsv		
+src_next/report_section_metadata.bqn	bqn-def	PrintJson		
+src_next/report_section_metadata.bqn	bqn-def	Main		
+src_next/report.bqn	bqn-def	L		
+src_next/report.bqn	bqn-def	PrintSection		
+src_next/report.bqn	bqn-def	HasArg		
+src_next/report.bqn	bqn-def	ArgValue		
+src_next/report.bqn	bqn-def	FindSectionIndex		
+src_next/report.bqn	bqn-def	OrderBuilderEntries		
+src_next/report.bqn	bqn-def	FirstLine		
+src_next/report.bqn	bqn-def	BuildSectionEntries		
+src_next/report.bqn	bqn-def	Main		
+src_next/snapshot.bqn	bqn-def	L		
+src_next/snapshot.bqn	bqn-def	LatestActualDateInCycle		exported
+src_next/snapshot.bqn	bqn-def	DateInCycle		
+src_next/snapshot.bqn	bqn-def	RemainingDaysText		exported
+src_next/snapshot.bqn	bqn-def	DaysElapsed		exported
+src_next/snapshot.bqn	bqn-def	StatusLabel		exported
+src_next/snapshot.bqn	bqn-def	Build		exported
+src_next/snapshot.bqn	bqn-def	SelectArt		exported
+src_next/snapshot.bqn	bqn-def	FormatAccountTotalsFromEntries		exported
+src_next/snapshot.bqn	bqn-def	FormatAccountTotals		
+src_next/snapshot.bqn	bqn-def	Format		exported
+src_next/snapshot.bqn	bqn-def	FormatHuman		exported
+src_next/snapshot.bqn	bqn-def	FormatJson		exported
+src_next/snapshot.bqn	bqn-def	ToNumOrNull		
+src_next/source_currency_admission.bqn	bqn-def	IsSupportedCurrency		
+src_next/source_currency_admission.bqn	bqn-def	IsIgnoredLine		
+src_next/source_currency_admission.bqn	bqn-def	SplitKeepEmpty		
+src_next/source_currency_admission.bqn	bqn-def	HasPrefix		
+src_next/source_currency_admission.bqn	bqn-def	CurrencyTokens		
+src_next/source_currency_admission.bqn	bqn-def	Classification		
+src_next/source_currency_admission.bqn	bqn-def	IsPostingSourceFile		
+src_next/source_currency_admission.bqn	bqn-def	Diagnostic		
+src_next/source_currency_admission.bqn	bqn-def	NoSourceDiagnostic		
+src_next/source_currency_admission.bqn	bqn-def	Evidence		
+src_next/source_currency_admission.bqn	bqn-def	AdmissionForLine		
+src_next/source_currency_admission.bqn	bqn-def	AdmitAccounts		
+src_next/source_currency_admission.bqn	bqn-def	AdmitRowsForSource		
+src_next/source_currency_admission.bqn	bqn-def	AdmitRows		
+src_next/source_currency_admission.bqn	bqn-def	Admit		exported
+src_next/source_currency_admission.bqn	bqn-def	Admit		exported
+src_next/summary.bqn	bqn-def	Main		
+src_next/tbds.bqn	bqn-def	IsExpenseAccount		
+src_next/tbds.bqn	bqn-def	IsIncomeAccount		
+src_next/tbds.bqn	bqn-def	MovementByLayerSide		exported
+src_next/tbds.bqn	bqn-def	LayerTotals		
+src_next/tbds.bqn	bqn-def	MovementByLayer		exported
+src_next/tbds.bqn	bqn-def	Build		exported
+src_next/tbds.bqn	bqn-def	LedgerValid		
+src_next/tbds.bqn	bqn-def	OpeningByLayer		
+src_next/tbds.bqn	bqn-def	RowsForLayer		exported
+src_next/tbds.bqn	bqn-def	ExpenseRows		exported
+src_next/tbds.bqn	bqn-def	IncomeRows		exported
+src_next/tbds.bqn	bqn-def	NonzeroActualBalances		exported
+src_next/tbds.bqn	bqn-def	ActualIncomeAmount		exported
+src_next/tbds.bqn	bqn-def	ActualExpenseAmount		exported
+src_next/tbds.bqn	bqn-def	PlanExpenseAmount		exported
+src_next/tbds.bqn	bqn-def	ActualExpenseBreakdown		exported
+src_next/tbds.bqn	bqn-def	Format		exported
+src_next/tbds.bqn	bqn-def	MovementByLayerSide		exported
+src_next/tbds.bqn	bqn-def	Build		exported
+src_next/tbds.bqn	bqn-def	RowsForLayer		exported
+src_next/tbds.bqn	bqn-def	ExpenseRows		exported
+src_next/tbds.bqn	bqn-def	IncomeRows		exported
+src_next/tbds.bqn	bqn-def	NonzeroActualBalances		exported
+src_next/tbds.bqn	bqn-def	ActualIncomeAmount		exported
+src_next/tbds.bqn	bqn-def	ActualExpenseAmount		exported
+src_next/tbds.bqn	bqn-def	PlanExpenseAmount		exported
+src_next/tbds.bqn	bqn-def	ActualExpenseBreakdown		exported
+src_next/tbds.bqn	bqn-def	Format		exported
+src_next/travel_exchange_event.bqn	bqn-def	Diagnostic		
+src_next/travel_exchange_event.bqn	bqn-def	AddIf		
+src_next/travel_exchange_event.bqn	bqn-def	IsSafeText		
+src_next/travel_exchange_event.bqn	bqn-def	IsPositive		
+src_next/travel_exchange_event.bqn	bqn-def	FractionDigits		
+src_next/travel_exchange_event.bqn	bqn-def	AccountDiagnostics		
+src_next/travel_exchange_event.bqn	bqn-def	Preview		
+src_next/travel_exchange_event.bqn	bqn-def	ValidateExtracted		
+src_next/travel_exchange_event.bqn	bqn-def	ExtractRequest		
+src_next/travel_exchange_event.bqn	bqn-def	ValidateAndPreview		exported
+src_next/travel_exchange_event.bqn	bqn-def	Fields		
+src_next/travel_exchange_event.bqn	bqn-def	Render		exported
+src_next/travel_exchange_event.bqn	bqn-def	ResolveAccount		
+src_next/travel_exchange_event.bqn	bqn-def	RequestFromFields		
+src_next/travel_exchange_event.bqn	bqn-def	ParseExisting		
+src_next/travel_exchange_event.bqn	bqn-def	ValidateExisting		exported
+src_next/travel_exchange_event.bqn	bqn-def	ValidateSourceAndPreview		exported
+src_next/trial_balance.bqn	bqn-def	L		
+src_next/trial_balance.bqn	bqn-def	Build		exported
+src_next/trial_balance.bqn	bqn-def	FormatTSV		exported
+src_next/trial_balance.bqn	bqn-def	Format		exported
+src_next/trial_balance.bqn	bqn-def	FormatHuman		exported
+src_next/unavailable.bqn	bqn-def	StartsWith		exported
+src_next/unavailable.bqn	bqn-def	IsUnavailable		exported
+src_next/util.bqn	bqn-def	Split		exported
+src_next/util.bqn	bqn-def	SplitKeepEmpty		exported
+src_next/util.bqn	bqn-def	ToNum		exported
+src_next/ytd_summary.bqn	bqn-def	L		
+src_next/ytd_summary.bqn	bqn-def	YearStartForEnd		
+src_next/ytd_summary.bqn	bqn-def	StartsWith		
+src_next/ytd_summary.bqn	bqn-def	GetRole		
+src_next/ytd_summary.bqn	bqn-def	BuildRows		
+src_next/ytd_summary.bqn	bqn-def	Build		exported
+src_next/ytd_summary.bqn	bqn-def	SortAbsDesc		
+src_next/ytd_summary.bqn	bqn-def	Format		exported
+src_next/ytd_summary.bqn	bqn-def	FmtYtdAmt		
+src_next/ytd_summary.bqn	bqn-def	FormatHuman		exported
+tests/daily_capacity_evidence_assembler_reference.bqn	bqn-def	AnyEq		
+tests/daily_capacity_evidence_assembler_reference.bqn	bqn-def	HasDuplicates		
+tests/daily_capacity_evidence_assembler_reference.bqn	bqn-def	Nonempty		
+tests/daily_capacity_evidence_assembler_reference.bqn	bqn-def	Diagnostic		
+tests/daily_capacity_evidence_assembler_reference.bqn	bqn-def	Build		
+tests/daily_capacity_evidence_assembler_reference.bqn	bqn-def	Add		
+tests/daily_capacity_evidence_assembler_reference.bqn	bqn-def	AssetDecisionFor		
+tests/daily_capacity_evidence_assembler_reference.bqn	bqn-def	AssetRow		
+tests/daily_capacity_evidence_assembler_reference.bqn	bqn-def	SettlementFor		
+tests/daily_capacity_evidence_assembler_reference.bqn	bqn-def	ObligationDecisionFor		
+tests/daily_capacity_evidence_assembler_reference.bqn	bqn-def	ReservationFor		
+tests/daily_capacity_evidence_assembler_reference.bqn	bqn-def	ObligationRow		
+tests/test_daily_capacity_evidence_assembler_characterization.bqn	bqn-def	Observation		
+tests/test_daily_capacity_evidence_assembler_characterization.bqn	bqn-def	Horizon		
+tests/test_daily_capacity_evidence_assembler_characterization.bqn	bqn-def	Proof		
+tests/test_daily_capacity_evidence_assembler_characterization.bqn	bqn-def	AssetCandidate		
+tests/test_daily_capacity_evidence_assembler_characterization.bqn	bqn-def	AssetBasis		
+tests/test_daily_capacity_evidence_assembler_characterization.bqn	bqn-def	AssetDecision		
+tests/test_daily_capacity_evidence_assembler_characterization.bqn	bqn-def	ObligationCandidate		
+tests/test_daily_capacity_evidence_assembler_characterization.bqn	bqn-def	Settlement		
+tests/test_daily_capacity_evidence_assembler_characterization.bqn	bqn-def	ObligationDecision		
+tests/test_daily_capacity_evidence_assembler_characterization.bqn	bqn-def	Reservation		
+tests/test_daily_capacity_evidence_assembler_characterization.bqn	bqn-def	Request		
+tests/test_daily_capacity_evidence_assembler_characterization.bqn	bqn-def	BaseRequest		
+tests/test_daily_capacity_evidence_assembler_characterization.bqn	bqn-def	Codes		
+tests/test_daily_capacity_evidence_assembler_characterization.bqn	bqn-def	CheckDiagnostic		
+tests/test_find_section.bqn	bqn-def	ToNum		exported
+tests/test_find_section.bqn	bqn-def	FindSectionIdx		
+tests/test_find_section.bqn	bqn-def	Numeric		
+tests/test_find_section.bqn	bqn-def	NonNumeric		
+tests/test_journal_append_candidate_ordinal_characterization.bqn	bqn-def	MakePostingCarrier		
+tests/test_journal_append_candidate_ordinal_characterization.bqn	bqn-def	MakeMetadataCarrier		
+tests/test_journal_append_candidate_ordinal_characterization.bqn	bqn-def	MakeTxCarrier		
+tests/test_journal_append_candidate_ordinal_characterization.bqn	bqn-def	MakeSemanticPostingCarrier		
+tests/test_journal_append_candidate_ordinal_characterization.bqn	bqn-def	MakeSemanticTxCarrier		
+tests/test_journal_append_candidate_ordinal_characterization.bqn	bqn-def	CountSemanticMatches		
+tests/test_journal_budget_companion_projection_characterization.bqn	bqn-def	HasCode		
+tests/test_journal_budget_companion_projection_characterization.bqn	bqn-def	Intersect		
+tests/test_journal_budget_companion_projection_characterization.bqn	bqn-def	Join		
+tests/test_journal_budget_companion_projection_characterization.bqn	bqn-def	GetMovement		
+tests/test_journal_budget_companion_projection_characterization.bqn	bqn-def	ActualBlock		
+tests/test_journal_budget_companion_projection_characterization.bqn	bqn-def	BudgetBlock		
+tests/test_journal_budget_companion_projection_characterization.bqn	bqn-def	BuildCarrierInput		
+tests/test_journal_cleanup_plan.bqn	bqn-def	Expected		
+tests/test_journal_cleanup_plan.bqn	bqn-def	Count		
+tests/test_journal_cleanup_plan.bqn	bqn-def	MakeTx		
+tests/test_journal_cleanup_rewrite.bqn	bqn-def	MakeRaw		
+tests/test_journal_cleanup_rewrite.bqn	bqn-def	MakeRow		
+tests/test_journal_cleanup_rewrite.bqn	bqn-def	Join		
+tests/test_journal_external_plan_reference_profile_prerequisite.bqn	bqn-def	Load		
+tests/test_journal_external_plan_reference_profile_prerequisite.bqn	bqn-def	Codes		
+tests/test_journal_external_plan_reference_profile_prerequisite.bqn	bqn-def	HasCode		
+tests/test_journal_external_plan_reference_profile_prerequisite.bqn	bqn-def	MetadataValue		
+tests/test_journal_external_plan_reference_profile_prerequisite.bqn	bqn-def	Fields16		
+tests/test_journal_external_plan_reference_profile_prerequisite.bqn	bqn-def	MetadataEvidence		
+tests/test_journal_external_plan_reference_profile_prerequisite.bqn	bqn-def	AccountEvidence		
+tests/test_journal_external_plan_reference_profile_prerequisite.bqn	bqn-def	CommodityEvidence		
+tests/test_journal_external_plan_reference_profile_prerequisite.bqn	bqn-def	PostingEvidence		
+tests/test_journal_external_plan_reference_profile_prerequisite.bqn	bqn-def	TransactionEvidence		
+tests/test_journal_external_plan_reference_profile_prerequisite.bqn	bqn-def	AssertEquivalent		
+tests/test_journal_leading_ascii_space_description_characterization.bqn	bqn-def	JournalWithHeader		
+tests/test_journal_leading_ascii_space_description_characterization.bqn	bqn-def	JournalFor		
+tests/test_journal_leading_ascii_space_description_characterization.bqn	bqn-def	HasCode		
+tests/test_journal_leading_ascii_space_description_characterization.bqn	bqn-def	PostingFields		
+tests/test_journal_legacy_entry_id_removal_boundary.bqn	bqn-def	IsLegacyEntryId		
+tests/test_journal_legacy_entry_id_removal_boundary.bqn	bqn-def	MetaValues		
+tests/test_journal_legacy_entry_id_removal_boundary.bqn	bqn-def	IsCandidate		
+tests/test_journal_legacy_entry_id_removal_boundary.bqn	bqn-def	FindDescription		
+tests/test_journal_legacy_entry_id_removal_boundary.bqn	bqn-def	AssertOneLineRemoval		
+tests/test_journal_legacy_metadata_profile_extension.bqn	bqn-def	MetadataValue		
+tests/test_journal_legacy_metadata_profile_extension.bqn	bqn-def	CheckFail		
+tests/test_journal_legacy_metadata_profile_extension.bqn	bqn-def	Prefix		
+tests/test_journal_minimal_actual_surface_characterization.bqn	bqn-def	MakeStage2aCarrier		
+tests/test_journal_minimal_actual_surface_characterization.bqn	bqn-def	MakeTbdsCarrier		
+tests/test_journal_posting_identity_provenance_stage2b.bqn	bqn-def	Fields16		
+tests/test_journal_posting_identity_provenance_stage2b.bqn	bqn-def	HasCode		
+tests/test_journal_posting_identity_provenance_stage2b.bqn	bqn-def	CheckFail		
+tests/test_journal_posting_identity_provenance_stage2b.bqn	bqn-def	P		
+tests/test_journal_posting_identity_provenance_stage2b.bqn	bqn-def	Tx		
+tests/test_journal_posting_identity_provenance_stage2b.bqn	bqn-def	Rows		
+tests/test_journal_posting_ir_comparable_rejection_stage2c.bqn	bqn-def	CheckRejected		
+tests/test_journal_resolved_envelope_assignment_persistence.bqn	bqn-def	Join		
+tests/test_journal_resolved_envelope_assignment_persistence.bqn	bqn-def	HasCode		
+tests/test_journal_resolved_envelope_assignment_persistence.bqn	bqn-def	GetDefault		
+tests/test_journal_resolved_envelope_assignment_persistence.bqn	bqn-def	TotalForEnvelope		
+tests/test_journal_resolved_envelope_assignment_persistence.bqn	bqn-def	ActualBlock		
+tests/test_journal_resolved_envelope_assignment_persistence.bqn	bqn-def	BudgetBlock		
+tests/test_journal_resolved_envelope_assignment_persistence.bqn	bqn-def	UnknownDefaultDeclarations		
+tests/test_journal_resolved_envelope_assignment_persistence.bqn	bqn-def	MissingDefaultDeclarations		
+tests/test_journal_split_purchase_transaction_characterization.bqn	bqn-def	Assert16Fields		
+tests/test_journal_split_purchase_transaction_characterization.bqn	bqn-def	GetTotalForAccount		
+tests/test_journal_split_purchase_transaction_characterization.bqn	bqn-def	GetRoleForAccountKey		
+tests/test_lib.bqn	bqn-def	Assert		exported
+tests/test_lib.bqn	bqn-def	AssertEq		exported
+tests/test_lib.bqn	bqn-def	AssertSH		exported
+tests/test_simple.bqn	bqn-def	F		
+tests/test_src_next_account_key.bqn	bqn-def	Line		
+tests/test_src_next_account_key.bqn	bqn-def	SnapshotForLine		
+tests/test_src_next_account_key.bqn	bqn-def	RowsForFields		
+tests/test_src_next_actual_comparison.bqn	bqn-def	RowFor		
+tests/test_src_next_actual_comparison.bqn	bqn-def	AssertRow		
+tests/test_src_next_actual_snapshot_numeric_owner.bqn	bqn-def	Line		
+tests/test_src_next_actual_snapshot_numeric_owner.bqn	bqn-def	Snapshot		
+tests/test_src_next_actual_snapshot_numeric_owner.bqn	bqn-def	ContextWithRows		
+tests/test_src_next_actual_snapshot_numeric_owner.bqn	bqn-def	RowsFor		
+tests/test_src_next_checked_posting_projection.bqn	bqn-def	Line		
+tests/test_src_next_checked_posting_projection.bqn	bqn-def	Snapshot		
+tests/test_src_next_checked_posting_projection.bqn	bqn-def	CheckSuccess		
+tests/test_src_next_checked_posting_projection.bqn	bqn-def	CheckError		
+tests/test_src_next_checked_posting_projection.bqn	bqn-def	CheckWrapperParity		
+tests/test_src_next_config_required_negative.bqn	bqn-def	Contains		
+tests/test_src_next_config_required_negative.bqn	bqn-def	CheckFailure		
+tests/test_src_next_config.bqn	bqn-def	HasKey		
+tests/test_src_next_config.bqn	bqn-def	Contains		
+tests/test_src_next_cube.bqn	bqn-def	MakeRow		
+tests/test_src_next_currency_arithmetic.bqn	bqn-def	Row		
+tests/test_src_next_currency_arithmetic.bqn	bqn-def	AssertErrorEmpty		
+tests/test_src_next_currency_b3.bqn	bqn-def	Line		
+tests/test_src_next_currency_b3.bqn	bqn-def	ProofSnapshot		
+tests/test_src_next_currency_domain_proof.bqn	bqn-def	Line		
+tests/test_src_next_currency_domain_proof.bqn	bqn-def	ProofSnapshot		
+tests/test_src_next_currency_domain_proof.bqn	bqn-def	ResolveProof		
+tests/test_src_next_currency_domain_proof.bqn	bqn-def	CheckRowEvidence		
+tests/test_src_next_currency_domain_proof.bqn	bqn-def	CheckProofGateFail		
+tests/test_src_next_currency_domain_proof.bqn	bqn-def	CheckProofGateSuccess		
+tests/test_src_next_cycle_remaining_plan_characterization.bqn	bqn-def	L		
+tests/test_src_next_cycle_remaining_plan_characterization.bqn	bqn-def	Contains		
+tests/test_src_next_cycle_remaining_plan_characterization.bqn	bqn-def	PostingRowsForBase		
+tests/test_src_next_cycle_remaining_plan_characterization.bqn	bqn-def	MakeCustomCtxWithRows		
+tests/test_src_next_cycle_remaining_plan_characterization.bqn	bqn-def	MakeCustomCtx		
+tests/test_src_next_cycle_remaining_plan_characterization.bqn	bqn-def	IsTargetCredit		
+tests/test_src_next_cycle_summary.bqn	bqn-def	MakeRow		
+tests/test_src_next_daily_capacity.bqn	bqn-def	Observation		
+tests/test_src_next_daily_capacity.bqn	bqn-def	MakeHorizon		
+tests/test_src_next_daily_capacity.bqn	bqn-def	MakeDomain		
+tests/test_src_next_daily_capacity.bqn	bqn-def	AssetRow		
+tests/test_src_next_daily_capacity.bqn	bqn-def	AssetScope		
+tests/test_src_next_daily_capacity.bqn	bqn-def	ObligationRow		
+tests/test_src_next_daily_capacity.bqn	bqn-def	ObligationScope		
+tests/test_src_next_daily_capacity.bqn	bqn-def	Input		
+tests/test_src_next_daily_capacity.bqn	bqn-def	CheckCalculation		
+tests/test_src_next_daily_capacity.bqn	bqn-def	CheckDiagnostic		
+tests/test_src_next_daily_trend_backdated_source_drift.bqn	bqn-def	RowForDate		
+tests/test_src_next_daily_trend_empty_frontier_fallback_row.bqn	bqn-def	UniqueSortedDates		
+tests/test_src_next_daily_trend_empty_frontier_fallback_row.bqn	bqn-def	ActualCoordinateSet		
+tests/test_src_next_daily_trend_explicit_observation_disconnected.bqn	bqn-def	RowForDate		
+tests/test_src_next_daily_trend_historical_stability.bqn	bqn-def	RowForDate		
+tests/test_src_next_daily_trend_local_clock_row_independence.bqn	bqn-def	RowForDate		
+tests/test_src_next_daily_trend_plan_numeric_owner.bqn	bqn-def	Line		
+tests/test_src_next_daily_trend_plan_numeric_owner.bqn	bqn-def	Snapshot		
+tests/test_src_next_daily_trend_plan_numeric_owner.bqn	bqn-def	ContextWithRows		
+tests/test_src_next_daily_trend_plan_numeric_owner.bqn	bqn-def	RowsFor		
+tests/test_src_next_daily_trend_plan_numeric_owner.bqn	bqn-def	EvidenceFor		
+tests/test_src_next_daily_trend_plan_numeric_owner.bqn	bqn-def	SingleResult		
+tests/test_src_next_daily_trend_reserve_clock_dependency.bqn	bqn-def	RowForDate		
+tests/test_src_next_daily_trend_row_local_future_income.bqn	bqn-def	RowForDate		
+tests/test_src_next_daily_trend_row_local_future_income.bqn	bqn-def	FutureContribution		
+tests/test_src_next_daily_trend_row_set_frontier_redundancy.bqn	bqn-def	Sum0		
+tests/test_src_next_daily_trend_row_set_frontier_redundancy.bqn	bqn-def	CountDate		
+tests/test_src_next_daily_trend_row_set_frontier_redundancy.bqn	bqn-def	UniqueSortedDates		
+tests/test_src_next_daily_trend_row_set_frontier_redundancy.bqn	bqn-def	ActualCoordinateSet		
+tests/test_src_next_envelope_characterization.bqn	bqn-def	BuildProjection		
+tests/test_src_next_envelope_characterization.bqn	bqn-def	HasInvalidBudgetDateError		
+tests/test_src_next_event_lens_format.bqn	bqn-def	MakeRow		
+tests/test_src_next_event_lens.bqn	bqn-def	Line		
+tests/test_src_next_event_lens.bqn	bqn-def	Snapshot		
+tests/test_src_next_event_lens.bqn	bqn-def	CheckSuccessLens		
+tests/test_src_next_exact_decimal.bqn	bqn-def	CheckOk		
+tests/test_src_next_exact_decimal.bqn	bqn-def	CheckFail		
+tests/test_src_next_friend_travel_jpy_finalization.bqn	bqn-def	Event		
+tests/test_src_next_friend_travel_jpy_finalization.bqn	bqn-def	Account		
+tests/test_src_next_friend_travel_jpy_finalization.bqn	bqn-def	Request		
+tests/test_src_next_friend_travel_jpy_finalization.bqn	bqn-def	ValidEvent		
+tests/test_src_next_friend_travel_jpy_finalization.bqn	bqn-def	ValidLiability		
+tests/test_src_next_friend_travel_jpy_finalization.bqn	bqn-def	ValidExpense		
+tests/test_src_next_friend_travel_jpy_finalization.bqn	bqn-def	ValidRequest		
+tests/test_src_next_friend_travel_jpy_finalization.bqn	bqn-def	CheckRejected		
+tests/test_src_next_friend_travel_jpy_finalization.bqn	bqn-def	CheckShapeRejected		
+tests/test_src_next_friend_travel_source_event.bqn	bqn-def	Event		
+tests/test_src_next_friend_travel_source_event.bqn	bqn-def	Valid		
+tests/test_src_next_friend_travel_source_event.bqn	bqn-def	Request		
+tests/test_src_next_friend_travel_source_event.bqn	bqn-def	CheckRejected		
+tests/test_src_next_journal_profile_stage1.bqn	bqn-def	HasCode		
+tests/test_src_next_journal_profile_stage1.bqn	bqn-def	CheckFail		
+tests/test_src_next_journal_profile_stage1.bqn	bqn-def	Prefix		
+tests/test_src_next_outlook_remaining_plan_numeric_owner.bqn	bqn-def	Line		
+tests/test_src_next_outlook_remaining_plan_numeric_owner.bqn	bqn-def	Snapshot		
+tests/test_src_next_outlook_remaining_plan_numeric_owner.bqn	bqn-def	ContextWithRows		
+tests/test_src_next_outlook_remaining_plan_numeric_owner.bqn	bqn-def	RowsFor		
+tests/test_src_next_outlook_remaining_plan_numeric_owner.bqn	bqn-def	EvidenceFor		
+tests/test_src_next_outlook_remaining_plan_numeric_owner.bqn	bqn-def	SinglePlanResult		
+tests/test_src_next_plan_journal_overlap.bqn	bqn-def	Assert		
+tests/test_src_next_plan_journal_overlap.bqn	bqn-def	AllOk		
+tests/test_src_next_report_builder_order.bqn	bqn-def	Contains		
+tests/test_src_next_report_builder_order.bqn	bqn-def	MkEntry		
+tests/test_src_next_snapshot.bqn	bqn-def	MakeVm		
+tests/test_src_next_source_currency_admission.bqn	bqn-def	Line		
+tests/test_src_next_source_currency_admission.bqn	bqn-def	Snapshot		
+tests/test_src_next_source_currency_admission.bqn	bqn-def	CheckStrictError		
+tests/test_src_next_tbds_opening_before_cycle.bqn	bqn-def	RowByKey		
+tests/test_src_next_tbds_opening_before_cycle.bqn	bqn-def	EntByKey		
+tests/test_src_next_tbds.bqn	bqn-def	LayerMovement		
+tests/test_src_next_travel_exchange_event.bqn	bqn-def	Account		
+tests/test_src_next_travel_exchange_event.bqn	bqn-def	Request		
+tests/test_src_next_travel_exchange_event.bqn	bqn-def	Source		
+tests/test_src_next_travel_exchange_event.bqn	bqn-def	Target		
+tests/test_src_next_travel_exchange_event.bqn	bqn-def	Valid		
+tests/test_src_next_travel_exchange_event.bqn	bqn-def	CheckRejected		
+tests/test_src_next_trial_balance.bqn	bqn-def	FindRow		
+tests/test_test_lib_subprocess_visibility.bqn	bqn-def	Contains		
+tests/test_test_lib_subprocess_visibility.bqn	bqn-def	Probe		
+tests/test_test_lib_subprocess_visibility.bqn	bqn-def	Test		
+tools/bqn-dump.bqn	bqn-def	IsNum		exported
+tools/bqn-dump.bqn	bqn-def	IsChar		exported
+tools/bqn-dump.bqn	bqn-def	IsArr		exported
+tools/bqn-dump.bqn	bqn-def	IsScalarNum		exported
+tools/bqn-dump.bqn	bqn-def	IsBoxedScalar		exported
+tools/bqn-dump.bqn	bqn-def	IsStr		exported
+tools/bqn-dump.bqn	bqn-def	HasBoxedEls		exported
+tools/bqn-dump.bqn	bqn-def	Kind		exported
+tools/bqn-dump.bqn	bqn-def	Dump		exported
+checks/check-absolute-links.sh	check	check-absolute-links	shell	
+checks/check-bash-safety.sh	check	check-bash-safety	shell	
+checks/check-bqn-eval.sh	check	check-bqn-eval	shell	
+checks/check-devtools-negative.sh	check	check-devtools-negative	shell	
+checks/check-devtools.sh	check	check-devtools	shell	
+checks/check-docs-lifecycle.sh	check	check-docs-lifecycle	shell	
+checks/check-edit-bqn-account-list.sh	check	check-edit-bqn-account-list	shell	
+checks/check-edit-bqn-currency-m2.sh	check	check-edit-bqn-currency-m2	shell	
+checks/check-edit-bqn-issue-close.sh	check	check-edit-bqn-issue-close	shell	
+checks/check-edit-bqn-journal-add.sh	check	check-edit-bqn-journal-add	shell	
+checks/check-edit-bqn-journal-block-add.sh	check	check-edit-bqn-journal-block-add	shell	
+checks/check-edit-bqn-journal-canonical-surface.sh	check	check-edit-bqn-journal-canonical-surface	shell	
+checks/check-edit-bqn-journal-cleanup-apply.sh	check	check-edit-bqn-journal-cleanup-apply	shell	
+checks/check-edit-bqn-journal-cleanup-plan.sh	check	check-edit-bqn-journal-cleanup-plan	shell	
+checks/check-edit-bqn-journal-event-identity-inventory.sh	check	check-edit-bqn-journal-event-identity-inventory	shell	
+checks/check-edit-bqn-journal-list.sh	check	check-edit-bqn-journal-list	shell	
+checks/check-edit-bqn-journal-reverse.sh	check	check-edit-bqn-journal-reverse	shell	
+checks/check-edit-bqn-plan-add.sh	check	check-edit-bqn-plan-add	shell	
+checks/check-edit-bqn-plan-budget-sync.sh	check	check-edit-bqn-plan-budget-sync	shell	
+checks/check-edit-bqn-plan-edit.sh	check	check-edit-bqn-plan-edit	shell	
+checks/check-edit-bqn-plan-list.sh	check	check-edit-bqn-plan-list	shell	
+checks/check-edit-bqn-plan-related.sh	check	check-edit-bqn-plan-related	shell	
+checks/check-edit-bqn-travel-exchange-add.sh	check	check-edit-bqn-travel-exchange-add	shell	
+checks/check-edit-bqn-travel-friend-add.sh	check	check-edit-bqn-travel-friend-add	shell	
+checks/check-journal-single-source-cutover.sh	check	check-journal-single-source-cutover	shell	
+checks/check-json-clock-independence.sh	check	check-json-clock-independence	shell	
+checks/check-loader-unreadable.sh	check	check-loader-unreadable	shell	
+checks/check-loader-util-ownership.sh	check	check-loader-util-ownership	shell	
+checks/check-missing-role-fallback.sh	check	check-missing-role-fallback	shell	
+checks/check-plan-finish-replenish-ui.sh	check	check-plan-finish-replenish-ui	shell	
+checks/check-repo-index.sh	check	check-repo-index	shell	
+checks/check-report-labels.sh	check	check-report-labels	shell	
+checks/check-report-section-metadata.sh	check	check-report-section-metadata	shell	
+checks/check-safe-replace-line.sh	check	check-safe-replace-line	shell	
+checks/check-safe-rewrite-checked.sh	check	check-safe-rewrite-checked	shell	
+checks/check-src-next-actual-comparison.sh	check	check-src-next-actual-comparison	shell	
+checks/check-src-next-actual-snapshot.sh	check	check-src-next-actual-snapshot	shell	
+checks/check-src-next-balances.sh	check	check-src-next-balances	shell	
+checks/check-src-next-budget-actual-zero.sh	check	check-src-next-budget-actual-zero	shell	
+checks/check-src-next-checked-posting-projection.sh	check	check-src-next-checked-posting-projection	shell	
+checks/check-src-next-clock-boundary.sh	check	check-src-next-clock-boundary	shell	
+checks/check-src-next-compact-summary.sh	check	check-src-next-compact-summary	shell	
+checks/check-src-next-currency-domain-proof.sh	check	check-src-next-currency-domain-proof	shell	
+checks/check-src-next-cycle-remaining-plan-characterization.sh	check	check-src-next-cycle-remaining-plan-characterization	shell	
+checks/check-src-next-cycle-summary.sh	check	check-src-next-cycle-summary	shell	
+checks/check-src-next-daily-trend-plan-numeric-owner.sh	check	check-src-next-daily-trend-plan-numeric-owner	shell	
+checks/check-src-next-envelope-characterization.sh	check	check-src-next-envelope-characterization	shell	
+checks/check-src-next-envelope-computation.sh	check	check-src-next-envelope-computation	shell	
+checks/check-src-next-envelope-production-guard.sh	check	check-src-next-envelope-production-guard	shell	
+checks/check-src-next-execution-plan-coverage.sh	check	check-src-next-execution-plan-coverage	shell	
+checks/check-src-next-expense-breakdown.sh	check	check-src-next-expense-breakdown	shell	
+checks/check-src-next-golden.sh	check	check-src-next-golden	shell	
+checks/check-src-next-household-metadata.sh	check	check-src-next-household-metadata	shell	
+checks/check-src-next-minimal-summary.sh	check	check-src-next-minimal-summary	shell	
+checks/check-src-next-outlook-observation-source.sh	check	check-src-next-outlook-observation-source	shell	
+checks/check-src-next-outlook-remaining-plan.sh	check	check-src-next-outlook-remaining-plan	shell	
+checks/check-src-next-plan-journal-overlap.sh	check	check-src-next-plan-journal-overlap	shell	
+checks/check-src-next-planned-payments.sh	check	check-src-next-planned-payments	shell	
+checks/check-src-next-readiness.sh	check	check-src-next-readiness	shell	
+checks/check-src-next-recent-journal.sh	check	check-src-next-recent-journal	shell	
+checks/check-src-next-report.sh	check	check-src-next-report	shell	
+checks/check-src-next-snapshot.sh	check	check-src-next-snapshot	shell	
+checks/check-src-next-stage4-fields.sh	check	check-src-next-stage4-fields	shell	
+checks/check-src-next-ytd-summary.sh	check	check-src-next-ytd-summary	shell	
+checks/check-structured-ui-boundary.sh	check	check-structured-ui-boundary	shell	
+checks/check-travel-exchange-pure.sh	check	check-travel-exchange-pure	shell	
+checks/check-ui-smoke.sh	check	check-ui-smoke	shell	
+checks/check-workflow-drift.sh	check	check-workflow-drift	shell	
+fixtures/actual-comparison-history-boundary	fixture	actual-comparison-history-boundary		Actual Comparison history-boundary fixture [has: actual.journal,plan.tsv,accounts.tsv]
+fixtures/actual-comparison-min	fixture	actual-comparison-min		
+fixtures/actual-comparison-numeric-owner-target	fixture	actual-comparison-numeric-owner-target		Actual Comparison numeric-owner target fixture [has: actual.journal,plan.tsv,accounts.tsv]
+fixtures/actual-snapshot-numeric-owner-target	fixture	actual-snapshot-numeric-owner-target		Actual Snapshot Numeric-Owner Target Fixture [has: actual.journal,accounts.tsv]
+fixtures/basic	fixture	basic		fixtures/basic [has: actual.journal,plan.tsv,budget_alloc.tsv,accounts.tsv]
+fixtures/behavior-drift-comparison	fixture	behavior-drift-comparison		Fixture: behavior-drift-comparison [has: actual.journal,plan.tsv,budget_alloc.tsv,accounts.tsv]
+fixtures/bookkeeping-matrix-payable	fixture	bookkeeping-matrix-payable		Bookkeeping Matrix Study: Service Payable Recognition and Payment
+fixtures/bookkeeping-matrix-prepaid-insurance	fixture	bookkeeping-matrix-prepaid-insurance		Bookkeeping Matrix Study: Prepaid Insurance and Expense Recognition
+fixtures/bookkeeping-matrix-receivable	fixture	bookkeeping-matrix-receivable		Receivable Bookkeeping Matrix Study (Stage 1)
+fixtures/bookkeeping-matrix-unearned-revenue	fixture	bookkeeping-matrix-unearned-revenue		Bookkeeping Matrix Study: Unearned Maintenance Revenue
+fixtures/budget-row-boundary	fixture	budget-row-boundary		Fixture: budget-row-boundary [has: actual.journal,plan.tsv,budget_alloc.tsv,accounts.tsv]
+fixtures/cube-before-start	fixture	cube-before-start		Fixture: cube-before-start [has: actual.journal,plan.tsv,budget_alloc.tsv,accounts.tsv]
+fixtures/currency-registry	fixture	currency-registry		
+fixtures/currency-registry-invalid	fixture	currency-registry-invalid		
+fixtures/currency-usd-single	fixture	currency-usd-single		[has: plan.tsv,budget_alloc.tsv,accounts.tsv]
+fixtures/cycle-end-exclusive	fixture	cycle-end-exclusive		Fixture: cycle-end-exclusive [has: actual.journal,plan.tsv,budget_alloc.tsv,accounts.tsv]
+fixtures/cycle-remaining-plan-characterization	fixture	cycle-remaining-plan-characterization		[has: actual.journal,plan.tsv,accounts.tsv]
+fixtures/daily-trend-plan-numeric-owner-target	fixture	daily-trend-plan-numeric-owner-target		Daily Trend Plan Numeric-Owner Target Fixture [has: actual.journal,plan.tsv,accounts.tsv]
+fixtures/demo	fixture	demo		[has: actual.journal,plan.tsv,budget_alloc.tsv,accounts.tsv]
+fixtures/editor-currency-m2	fixture	editor-currency-m2		[has: actual.journal,accounts.tsv]
+fixtures/empty-journal	fixture	empty-journal		Fixture: empty-journal [has: actual.journal,plan.tsv,budget_alloc.tsv,accounts.tsv]
+fixtures/envelope-bootstrap	fixture	envelope-bootstrap		Fixture: envelope-bootstrap [has: actual.journal,plan.tsv,budget_alloc.tsv,accounts.tsv]
+fixtures/envelope-characterization	fixture	envelope-characterization		[has: actual.journal,plan.tsv,budget_alloc.tsv,accounts.tsv]
+fixtures/envelope-month-boundary	fixture	envelope-month-boundary		Fixture: envelope-month-boundary [has: actual.journal,plan.tsv,budget_alloc.tsv,accounts.tsv]
+fixtures/envelope-plan	fixture	envelope-plan		Fixture: envelope-plan [has: actual.journal,plan.tsv,budget_alloc.tsv,accounts.tsv]
+fixtures/envelope-reserve	fixture	envelope-reserve		Fixture for Reserve Envelope tests [has: actual.journal,plan.tsv,budget_alloc.tsv,accounts.tsv]
+fixtures/envelopes-disabled-policy	fixture	envelopes-disabled-policy		[has: actual.journal,plan.tsv,accounts.tsv]
+fixtures/envelopes-no-cycle-planned	fixture	envelopes-no-cycle-planned		[has: actual.journal,plan.tsv,accounts.tsv]
+fixtures/envelopes-valid-no-data	fixture	envelopes-valid-no-data		[has: actual.journal,plan.tsv,accounts.tsv]
+fixtures/forecast-zero	fixture	forecast-zero		Fixture: layer3-budget-alloc-sum (historical name: forecast-zero) [has: actual.journal,plan.tsv,budget_alloc.tsv,accounts.tsv]
+fixtures/future-journal-as-of	fixture	future-journal-as-of		Fixture: future-journal-as-of [has: actual.journal,plan.tsv,budget_alloc.tsv,accounts.tsv]
+fixtures/future-journal-hard-error	fixture	future-journal-hard-error		Fixture: future-journal-hard-error [has: actual.journal,plan.tsv,budget_alloc.tsv,accounts.tsv]
+fixtures/generalization-calendar	fixture	generalization-calendar		[has: actual.journal,plan.tsv,accounts.tsv]
+fixtures/generalization-moko	fixture	generalization-moko		[has: actual.journal,plan.tsv,budget_alloc.tsv,accounts.tsv]
+fixtures/historical-cycle	fixture	historical-cycle		[has: plan.tsv,budget_alloc.tsv,accounts.tsv]
+fixtures/household-moko	fixture	household-moko		[has: actual.journal,plan.tsv,budget_alloc.tsv,accounts.tsv]
+fixtures/household-monthly-salary	fixture	household-monthly-salary		[has: actual.journal,plan.tsv,budget_alloc.tsv,accounts.tsv]
+fixtures/journal-append-candidate-ordinal	fixture	journal-append-candidate-ordinal		[has: accounts.tsv]
+fixtures/journal-external-plan-reference-profile	fixture	journal-external-plan-reference-profile		[has: accounts.tsv]
+fixtures/journal-legacy-entry-id-removal-boundary	fixture	journal-legacy-entry-id-removal-boundary		[has: accounts.tsv]
+fixtures/journal-legacy-metadata-profile	fixture	journal-legacy-metadata-profile		[has: accounts.tsv]
+fixtures/journal-minimal-actual-surface	fixture	journal-minimal-actual-surface		[has: accounts.tsv]
+fixtures/journal-native-multi-posting-editor	fixture	journal-native-multi-posting-editor		[has: accounts.tsv]
+fixtures/journal-native-three-posting-parity	fixture	journal-native-three-posting-parity		[has: accounts.tsv]
+fixtures/journal-ordinary-actual-fallback-boundary	fixture	journal-ordinary-actual-fallback-boundary		[has: actual.journal,accounts.tsv]
+fixtures/journal-posting-ir-stage2a	fixture	journal-posting-ir-stage2a		[has: accounts.tsv]
+fixtures/journal-posting-ir-stage2b	fixture	journal-posting-ir-stage2b		[has: accounts.tsv]
+fixtures/journal-posting-ir-stage2c	fixture	journal-posting-ir-stage2c		[has: accounts.tsv]
+fixtures/journal-profile-stage0	fixture	journal-profile-stage0		Minimal BQN Journal Profile Stage 0 fixture
+fixtures/journal-resolved-envelope-assignment-persistence	fixture	journal-resolved-envelope-assignment-persistence		Journal resolved envelope assignment persistence fixture
+fixtures/journal-split-purchase-characterization	fixture	journal-split-purchase-characterization		[has: accounts.tsv]
+fixtures/liability	fixture	liability		fixtures/liability [has: actual.journal,plan.tsv,budget_alloc.tsv,accounts.tsv]
+fixtures/loader-util-ownership	fixture	loader-util-ownership		
+fixtures/missing-budget-mapping	fixture	missing-budget-mapping		missing-budget-mapping negative fixture [has: actual.journal,plan.tsv,budget_alloc.tsv,accounts.tsv]
+fixtures/multi-time-card	fixture	multi-time-card		Fixture: multi-time-card [has: actual.journal,plan.tsv,budget_alloc.tsv,accounts.tsv]
+fixtures/non-prefix-roles	fixture	non-prefix-roles		[has: actual.journal,plan.tsv,budget_alloc.tsv,accounts.tsv]
+fixtures/outlook-actual-snapshot-characterization	fixture	outlook-actual-snapshot-characterization		[has: actual.journal,plan.tsv,accounts.tsv]
+fixtures/outlook-envelope-purpose-split	fixture	outlook-envelope-purpose-split		[has: actual.journal,budget_alloc.tsv,accounts.tsv]
+fixtures/outlook-remaining-plan-numeric-owner-target	fixture	outlook-remaining-plan-numeric-owner-target		Outlook Remaining-Plan Numeric-Owner Target Fixture [has: actual.journal,plan.tsv,accounts.tsv]
+fixtures/plan-completion	fixture	plan-completion		Fixture: plan-completion [has: actual.journal,plan.tsv,budget_alloc.tsv,accounts.tsv]
+fixtures/snapshot-no-cycle	fixture	snapshot-no-cycle		[has: actual.journal,accounts.tsv]
+fixtures/src-next-anchor-unmet	fixture	src-next-anchor-unmet		Anchor Unmet Failure Fixture [has: actual.journal,plan.tsv,accounts.tsv]
+fixtures/src-next-budget-group-rename	fixture	src-next-budget-group-rename		Fixture: Budget Group Rename [has: actual.journal,plan.tsv,accounts.tsv]
+fixtures/src-next-config-effective-life-empty	fixture	src-next-config-effective-life-empty		
+fixtures/src-next-config-effective-life-override	fixture	src-next-config-effective-life-override		
+fixtures/src-next-config-effective-reserve-empty	fixture	src-next-config-effective-reserve-empty		
+fixtures/src-next-config-effective-reserve-override	fixture	src-next-config-effective-reserve-override		
+fixtures/src-next-config-eligible-empty	fixture	src-next-config-eligible-empty		
+fixtures/src-next-config-eligible-missing	fixture	src-next-config-eligible-missing		
+fixtures/src-next-context-as-of-calendar-month	fixture	src-next-context-as-of-calendar-month		[has: actual.journal,accounts.tsv]
+fixtures/src-next-currency-mixed-selected	fixture	src-next-currency-mixed-selected		[has: accounts.tsv]
+fixtures/src-next-daily-trend-backdated-source-after	fixture	src-next-daily-trend-backdated-source-after		[has: actual.journal,plan.tsv,accounts.tsv]
+fixtures/src-next-daily-trend-reserve-after	fixture	src-next-daily-trend-reserve-after		[has: actual.journal,plan.tsv,accounts.tsv]
+fixtures/src-next-daily-trend-reserve-before	fixture	src-next-daily-trend-reserve-before		[has: actual.journal,plan.tsv,accounts.tsv]
+fixtures/src-next-daily-trend-stability-after	fixture	src-next-daily-trend-stability-after		[has: actual.journal,plan.tsv,accounts.tsv]
+fixtures/src-next-daily-trend-stability-before	fixture	src-next-daily-trend-stability-before		[has: actual.journal,plan.tsv,accounts.tsv]
+fixtures/src-next-empty-projection	fixture	src-next-empty-projection		[has: actual.journal,plan.tsv,accounts.tsv]
+fixtures/src-next-envelope-computation	fixture	src-next-envelope-computation		src-next-envelope-computation [has: actual.journal,plan.tsv,budget_alloc.tsv,accounts.tsv]
+fixtures/src-next-envelope-computation-nonmonotonic-clock	fixture	src-next-envelope-computation-nonmonotonic-clock		[has: actual.journal,budget_alloc.tsv,accounts.tsv]
+fixtures/src-next-envelope-computation-prefix-negative	fixture	src-next-envelope-computation-prefix-negative		[has: actual.journal,accounts.tsv]
+fixtures/src-next-execution-plan-coverage	fixture	src-next-execution-plan-coverage		[has: actual.journal,plan.tsv,budget_alloc.tsv,accounts.tsv]
+fixtures/src-next-expense-role-metadata	fixture	src-next-expense-role-metadata		[has: actual.journal,plan.tsv,accounts.tsv]
+fixtures/src-next-golden	fixture	src-next-golden		src-next-golden [has: actual.journal,plan.tsv,accounts.tsv]
+fixtures/src-next-household-mapping-policy	fixture	src-next-household-mapping-policy		src-next-household-mapping-policy [has: actual.journal,plan.tsv,accounts.tsv]
+fixtures/src-next-income-anchor-golden	fixture	src-next-income-anchor-golden		src-next-income-anchor-golden [has: actual.journal,plan.tsv,accounts.tsv]
+fixtures/src-next-invalid-posting	fixture	src-next-invalid-posting		src-next-invalid-posting [has: plan.tsv,accounts.tsv]
+fixtures/src-next-missing-budget-mapping	fixture	src-next-missing-budget-mapping		Missing Budget Mapping Failure Fixture [has: actual.journal,plan.tsv,accounts.tsv]
+fixtures/src-next-missing-plan	fixture	src-next-missing-plan		[has: actual.journal,accounts.tsv]
+fixtures/src-next-missing-role-fallback	fixture	src-next-missing-role-fallback		src-next-golden [has: actual.journal,plan.tsv,accounts.tsv]
+fixtures/src-next-opening-before-cycle	fixture	src-next-opening-before-cycle		src-next-opening-before-cycle [has: actual.journal,plan.tsv,budget_alloc.tsv,accounts.tsv]
+fixtures/src-next-out-of-cycle-journal	fixture	src-next-out-of-cycle-journal		[has: actual.journal,plan.tsv,accounts.tsv]
+fixtures/src-next-outlook-historical-cycle-clock	fixture	src-next-outlook-historical-cycle-clock		[has: actual.journal,accounts.tsv]
+fixtures/src-next-plan-evidence-boundary	fixture	src-next-plan-evidence-boundary		[has: actual.journal,plan.tsv,accounts.tsv]
+fixtures/src-next-plan-overlap	fixture	src-next-plan-overlap		src-next-plan-overlap fixture [has: actual.journal,plan.tsv,accounts.tsv]
+fixtures/src-next-stale-plan	fixture	src-next-stale-plan		Stale Plan Failure Fixture [has: actual.journal,plan.tsv,accounts.tsv]
+fixtures/src-next-zero-vs-unavailable	fixture	src-next-zero-vs-unavailable		Zero vs Unavailable Failure Fixture [has: actual.journal,plan.tsv,accounts.tsv]
+fixtures/unknown-account	fixture	unknown-account		Unknown Account Failure Fixture [has: plan.tsv,budget_alloc.tsv,accounts.tsv]
+docs/ADD_UI_USAGE.md	doc	ADD_UI_USAGE		
+docs/AI_ASSISTED_ADOPTION_GUIDE.md	doc	AI-Assisted Adoption Guide		
+docs/AI_CODEMAP.md	doc	AI_CODEMAP: pit向けコード地図		
+docs/AI_WORKING_FEEDBACK_PROCESS.md	doc	AI Working Feedback Process		
+docs/ARCHITECTURE.md	doc	アーキテクチャ (bqn-ledger)		
+docs/archive/active-plans/AI_AGENT_EFFICIENCY_PLAN.md	plan-doc	AI Agent Efficiency Plan		
+docs/archive/active-plans/AI_BUDGET_CALCULATOR_DESIGN.md	design-doc	AI Budget Calculator Design		
+docs/archive/active-plans/AI_REVIEW_BQN_EVAL_TASK.md	task-doc	AI Review Task: tools/bqn-eval		
+docs/archive/active-plans/AI_WORKING_FEEDBACK_LOG.md	archive-doc	AI Working Feedback Log		
+docs/archive/active-plans/AUDIT_IMPROVEMENT_BACKLOG-2026-06-30.md	archive-doc	Audit improvement backlog 2026-06-30		
+docs/archive/active-plans/BASH_SAFETY_ANALYSIS.md	archive-doc	Bash Safety & Crash Prevention Analysis		
+docs/archive/active-plans/CONFIG_EFFECTIVE_RESOLUTION_ENTRY_CHECKPOINT-2026-07-05.md	archive-doc	Config Effective Resolution Entry Checkpoint		
+docs/archive/active-plans/CONFIG_EFFECTIVE_RESOLUTION_RUNTIME_CHECKPOINT-2026-07-05.md	archive-doc	Config Effective Resolution Runtime Checkpoint		
+docs/archive/active-plans/CONFIG_KEY_CLASSIFICATION_DECISION-2026-07-05.md	archive-doc	Config Key Classification Decision		
+docs/archive/active-plans/CONFIG_MINIMAL_EFFECTIVE_DEFAULTABLE_SLICE_PROPOSAL-2026-07-05.md	archive-doc	Config Minimal Effective Defaultable Slice Proposal		
+docs/archive/active-plans/CONFIG_RESOLUTION_A4_COMPLETION_DECISION-2026-07-05.md	archive-doc	Config Resolution A4 Completion Decision		
+docs/archive/active-plans/CONFIG_RESOLUTION_SEMANTICS_PLAN-2026-07-05.md	archive-doc	Config Resolution Semantics Plan		
+docs/archive/active-plans/CONFIG_TYPED_POLICY_CHECKPOINT-2026-07-05.md	archive-doc	Config Typed Policy Checkpoint		
+docs/archive/active-plans/CONFIGURABLE_AI_ASSISTED_LEDGER_FOUNDATION-2026-07-13.md	archive-doc	Configurable AI-assisted Ledger Foundation — 2026-07-13		
+docs/archive/active-plans/CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md	archive-doc	Currency Mixed JPY / ILS Daily-Use Plan — 2026-07-12		
+docs/archive/active-plans/DEBUG_PROVENANCE_DESIGN.md	design-doc	Design: Debug / Provenance Section		
+docs/archive/active-plans/DECISION_TERMINAL_COLOR_CONFIG.md	archive-doc	DECISION_TERMINAL_COLOR_CONFIG		
+docs/archive/active-plans/EDIT_BQN_HANDOFF.md	handoff-doc	Edit BQN Handoff		
+docs/archive/active-plans/ENVELOPE_TARGET_POLICY_SKETCH.md	archive-doc	Envelope Target Policy Sketch		
+docs/archive/active-plans/FINTECH_ENGINEERING_REVIEW_BACKLOG-2026-07-01.md	archive-doc	Fintech engineering review backlog pointer		
+docs/archive/active-plans/FRIEND_FOREIGN_LIABILITY_JPY_SETTLEMENT_PLAN-2026-07-13.md	archive-doc	Friend foreign-liability → JPY-liability settlement		
+docs/archive/active-plans/FRIEND_TRAVEL_ATOMIC_FINALIZATION_WRITE_DESIGN-2026-07-13.md	archive-doc	Friend travel atomic finalization write design		
+docs/archive/active-plans/FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md	archive-doc	Friend travel source-event → JPY finalization		
+docs/archive/active-plans/GO_BQN_GAP_ALIGNMENT_PLAN.md	plan-doc	Go/BQN Editor Gap Alignment Plan		
+docs/archive/active-plans/GO_EDITOR_NEXT_PLAN.md	plan-doc	Go Editor Next Plan		
+docs/archive/active-plans/GOLDEN_ASSERTION_OWNERSHIP_PLAN-2026-07-04.md	archive-doc	Golden Assertion Ownership Plan — 2026-07-04		
+docs/archive/active-plans/GUM_FZF_COLOR_LAYER_PLAN.md	plan-doc	Gum/Fzf Color Layer Plan		
+docs/archive/active-plans/HOUSEHOLD_POLICY_LAYER_PLAN.md	plan-doc	Household Policy Layer Plan		
+docs/archive/active-plans/LEDGER_ENGINE_IDEA_CATALOG.md	archive-doc	Ledger Engine Idea Catalog		
+docs/archive/active-plans/LEDGER_OBSERVATORY_LONG_TERM_PLAN-2026-07-13.md	archive-doc	Ledger Observatory long-term plan		
+docs/archive/active-plans/LEGACY_FINISH_GO_RETIREMENT_PLAN.md	plan-doc	Legacy finish.go Retirement Plan		
+docs/archive/active-plans/PLAN_COMPLETION_WORKFLOW_DESIGN_INTAKE-2026-07-08.md	archive-doc	Plan Completion Workflow Design Intake		
+docs/archive/active-plans/PLAN_TEMPORAL_EXECUTION_COVERAGE_JOIN-2026-07-06.md	archive-doc	Plan Temporal × Execution Envelope Coverage Join - 2026-07-06		
+docs/archive/active-plans/PLAN_TEMPORAL_STATUS_PROJECTION_PLAN-2026-07-05.md	archive-doc	Plan Temporal Status Projection Plan - 2026-07-05		
+docs/archive/active-plans/POLICY_INCOME_CADENCE_OWNERSHIP_DECISION-2026-07-05.md	archive-doc	POLICY_INCOME_CADENCE Ownership Decision		
+docs/archive/active-plans/POLICY_INCOME_CADENCE_OWNERSHIP_INVESTIGATION-2026-07-05.md	archive-doc	POLICY_INCOME_CADENCE Ownership Investigation		
+docs/archive/active-plans/QUERY_CONTEXT_TRACK.md	archive-doc	Query / Context Track		
+docs/archive/active-plans/README.md	archive-doc	active-plans inventory		
+docs/archive/active-plans/REPORT_DESIGN.md	design-doc	レポート設計方針（main.bqn を育てる）		
+docs/archive/active-plans/REPORT_POLICY_EXTERNALIZATION_PLAN.md	plan-doc	Report Policy Externalization Plan		
+docs/archive/active-plans/REPORT_PROJECTION_ALIGNMENT_PLAN-2026-07-15.md	archive-doc	Report Projection Alignment Plan		
+docs/archive/active-plans/REPORT_SECTION_STATUS_POLICY.md	policy-doc	Report Section Status Policy		
+docs/archive/active-plans/SEAM_REDUCTION_PLAN.md	plan-doc	Seam Reduction Plan (Go/Bash/BQN 境界削減計画)		
+docs/archive/active-plans/SHELL_MEANING_INVENTORY-2026-07-01.md	archive-doc	Shell Meaning Inventory		
+docs/archive/active-plans/STRICT_PRODUCTION_SOURCE_CURRENCY_ENFORCEMENT_DECISION-2026-07-13.md	archive-doc	Strict Production Source Currency Enforcement Boundary Decision — 2026-07-13		
+docs/archive/active-plans/STRUCTURED_UI_EXPORT_CONTRACT-2026-07-01.md	archive-doc	Structured UI Export Contract Plan		
+docs/archive/active-plans/SUBPROCESS_DEBUG_VISIBILITY_PLAN-2026-07-05.md	archive-doc	Subprocess Debug Visibility Plan — 2026-07-05		
+docs/archive/active-plans/TRAVEL_MULTI_CURRENCY_SETTLEMENT_DESIGN_INTAKE-2026-07-12.md	archive-doc	Travel Multi-Currency Settlement Design Intake — 2026-07-12		
+docs/archive/active-plans/WIDE_REPORT_PAGER_PLAN.md	plan-doc	Wide report pager plan		
+docs/archive/AUDIT_REPORT-2026-06-08.md	archive-doc	shumoku88-bit/bqn-ledger 監査報告 (2026-06-08)		
+docs/archive/AUDIT_REPORT-2026-06-09.md	archive-doc	bqn-ledger 監査報告 (2026-06-09)		
+docs/archive/audits/ACTUAL_SNAPSHOT_CUTOFF_OWNERSHIP_OBSERVATION-2026-07-07.md	archive-doc	Actual Snapshot Cutoff Ownership Observation - 2026-07-07		
+docs/archive/audits/AI_WORKING_FEEDBACK_CLASSIFICATION-2026-07-04.md	archive-doc	AI Working Feedback Classification Review — 2026-07-04		
+docs/archive/audits/AI_WORKING_FEEDBACK_CLASSIFICATION-2026-07-05.md	archive-doc	AI Working Feedback Classification Review — 2026-07-05		
+docs/archive/audits/AS_OF_SECTION_AUDIT.md	archive-doc	as_of section audit		
+docs/archive/audits/BQN_MODULE_GRANULARITY_AUDIT-2026-07-16.md	archive-doc	BQN Module Granularity Audit		
+docs/archive/audits/CURRENCY_MIXED_LEDGER_M1_POST_IMPLEMENTATION_VERIFICATION-2026-07-13.md	archive-doc	Currency Mixed-Ledger M1 Post-implementation Verification — 2026-07-13		
+docs/archive/audits/CURRENCY_MIXED_LEDGER_M15_POST_IMPLEMENTATION_VERIFICATION-2026-07-13.md	archive-doc	Currency Mixed-Ledger M1.5 Post-implementation Verification — 2026-07-13		
+docs/archive/audits/CURRENCY_MIXED_LEDGER_M2_POST_IMPLEMENTATION_VERIFICATION-2026-07-13.md	archive-doc	Currency Mixed-Ledger M2 Post-Implementation Verification		
+docs/archive/audits/CURRENCY_MIXED_LEDGER_M25_APPLY_TOOL_VERIFICATION-2026-07-13.md	archive-doc	Currency Mixed-Ledger M2.5 Apply Tool Verification		
+docs/archive/audits/CURRENCY_MIXED_LEDGER_M25_PRODUCTION_MIGRATION_VERIFICATION-2026-07-13.md	archive-doc	Currency Mixed-Ledger M2.5 Production Migration Verification		
+docs/archive/audits/CURRENCY_MIXED_LEDGER_M3_POST_IMPLEMENTATION_VERIFICATION-2026-07-13.md	archive-doc	Currency Mixed-Ledger M3 Post-Implementation Verification — 2026-07-13		
+docs/archive/audits/CURRENCY_STAGE2_POST_IMPLEMENTATION_CONTRACT_VERIFICATION-2026-07-09.md	archive-doc	Currency Stage 2 Post-Implementation Contract Verification — 2026-07-09		
+docs/archive/audits/CURRENCY_STAGE2_SLICE_A_EXACT_DECIMAL_VERIFICATION-2026-07-10.md	archive-doc	Currency Stage 2 Slice A Exact-Decimal Verification — 2026-07-10		
+docs/archive/audits/CURRENCY_STAGE2_SLICE_B1_POST_IMPLEMENTATION_VERIFICATION-2026-07-10.md	archive-doc	Currency Stage 2 Slice B1 Post-implementation Verification — 2026-07-10		
+docs/archive/audits/CURRENCY_STAGE2_SLICE_B2_POST_IMPLEMENTATION_VERIFICATION-2026-07-11.md	archive-doc	Currency Stage 2 Slice B2 Post-implementation Verification — 2026-07-11		
+docs/archive/audits/CURRENCY_STAGE2_SLICE_B3_POST_IMPLEMENTATION_VERIFICATION-2026-07-11.md	archive-doc	Currency Stage 2 Slice B3 Post-implementation Verification — 2026-07-11		
+docs/archive/audits/CURRENCY_STAGE2_SLICE_C_POST_IMPLEMENTATION_VERIFICATION-2026-07-11.md	archive-doc	Currency Stage 2 Slice C Post-implementation Verification — 2026-07-11		
+docs/archive/audits/DAILY_CAPACITY_CURRENT_CONSUMER_INPUT_EVIDENCE_AUDIT-2026-07-15.md	archive-doc	Daily capacity current consumer and input-evidence audit — 2026-07-15		
+docs/archive/audits/DAILY_CAPACITY_EVIDENCE_ADAPTER_PREIMPLEMENTATION_AUDIT-2026-07-15.md	archive-doc	Daily Capacity evidence adapter pre-implementation audit — 2026-07-15		
+docs/archive/audits/DAILY_TREND_TEMPORAL_CAMPAIGN_CLOSURE_REVIEW-2026-07-08.md	archive-doc	Daily Trend Temporal Campaign Closure Review - 2026-07-08		
+docs/archive/audits/DRIFT_AUDIT_TODO-2026-06-26.md	archive-doc	Docs / Implementation Drift Audit TODO 2026-06-26		
+docs/archive/audits/DRIFT_AUDIT-2026-06-26.md	archive-doc	Docs / Implementation Drift Audit 2026-06-26		
+docs/archive/audits/DRIFT_FIX_PLAN-2026-06-26.md	archive-doc	Docs / Implementation Drift Fix Plan 2026-06-26		
+docs/archive/audits/DRIFT_FOLLOWUP_TODO-2026-06-26.md	archive-doc	Docs / Implementation Drift Follow-up TODO 2026-06-26		
+docs/archive/audits/EXTERNAL_AUDIT-2026-06-27.md	archive-doc	外部監査: 改善提案と優先実施計画		
+docs/archive/audits/EXTERNAL_STATIC_AUDIT_REASSESSMENT_SOURCE-2026-07-11.md	archive-doc	External Static Audit Reassessment and Repository Shelf Review		
+docs/archive/audits/FINTECH_F1_MULTI_TIME_FIT_REVIEW-2026-07-11.md	archive-doc	Fintech F1 Multi-time Transaction Semantics — Fit Review		
+docs/archive/audits/FRIEND_TRAVEL_JPY_FINALIZATION_POST_IMPLEMENTATION_VERIFICATION-2026-07-13.md	archive-doc	Friend travel JPY finalization post-implementation verification		
+docs/archive/audits/HEADLESS_KERNEL_AND_EVENT_PROJECTION_BOUNDARY_AUDIT-2026-07-11.md	archive-doc	Headless Kernel and Event Projection Boundary Audit — 2026-07-11		
+docs/archive/audits/HEADLESS_KERNEL_PHASE_D_6D_FEASIBILITY-2026-07-11.md	archive-doc	Headless Kernel Phase D: Read-only 6D Feasibility Evidence		
+docs/archive/audits/HOUSEHOLD_POLICY_ASSUMPTION_AUDIT.md	archive-doc	Household Policy Assumption Audit		
+docs/archive/audits/JOURNAL_REPORT_COVERAGE_INVENTORY-2026-07-22.md	archive-doc	Journal report coverage inventory		
+docs/archive/audits/LEGACY_COMPAT_CLEANUP_AUDIT.md	archive-doc	Legacy compatibility cleanup audit		
+docs/archive/audits/PREFIX_FALLBACK_CURRENT_MAIN_RECONCILIATION-2026-07-11.md	archive-doc	Prefix Fallback Current-Main Reconciliation		
+docs/archive/audits/PREFIX_FALLBACK_DEBT_INVENTORY-2026-06-29.md	archive-doc	Prefix Fallback Debt Inventory 2026-06-29		
+docs/archive/audits/PREFIX_FALLBACK_PRODUCT_SELECTION_POST_IMPLEMENTATION_VERIFICATION-2026-07-11.md	archive-doc	Prefix Fallback Product-Selection Post-Implementation Verification		
+docs/archive/audits/READ_ONLY_EVENT_LENS_REPRESENTATIVE_OBSERVATION-2026-07-11.md	archive-doc	Read-only Event Lens Representative Observation		
+docs/archive/audits/REPORT_ASSUMPTION_AUDIT.md	archive-doc	Report Assumption Audit		
+docs/archive/audits/REPORT_SECTION_DESCRIPTOR_OWNERSHIP_AUDIT-2026-07-16.md	archive-doc	Report Section Descriptor Ownership Audit		
+docs/archive/audits/SHELL_BQN_BOUNDARY_AUDIT-2026-06-30.md	archive-doc	Shell/BQN Boundary Audit — 2026-06-30		
+docs/archive/audits/SHELLCHECK_WARNING_INVENTORY-2026-06-29.md	archive-doc	Shellcheck Warning Inventory 2026-06-29		
+docs/archive/audits/SRC_NEXT_DOCS_INVENTORY-2026-06-29.md	archive-doc	src_next docs inventory 2026-06-29		
+docs/archive/audits/TEMPORAL_CONSUMER_SENSITIVITY_OBSERVATION-2026-07-06.md	archive-doc	Temporal Consumer Sensitivity Observation - 2026-07-06		
+docs/archive/audits/TEMPORAL_EXTERNAL_MODEL_COMPARISON-2026-07-07.md	archive-doc	Temporal External Model Comparison - 2026-07-07		
+docs/archive/audits/TEMPORAL_HISTORY_AND_FUTURE_FOUNDATION-2026-07-07.md	archive-doc	Temporal History and Future Foundation - 2026-07-07		
+docs/archive/audits/TEMPORAL_LEGACY_EVIDENCE_CORRECTION-2026-07-07.md	archive-doc	Temporal Legacy Evidence Correction - 2026-07-07		
+docs/archive/audits/TEMPORAL_SEMANTICS_CLASSIFICATION-2026-07-06.md	archive-doc	Temporal Semantics Classification - 2026-07-06		
+docs/archive/audits/TEMPORAL_SEMANTICS_OBSERVATION-2026-07-06.md	archive-doc	Temporal Semantics Observation - 2026-07-06		
+docs/archive/audits/UNREFERENCED_DOCS_ROUTING_AUDIT-2026-07-14.md	archive-doc	Unreferenced Docs Routing Audit		
+docs/archive/completed-plans/ACCOUNT_ROLE_CONTRACT.md	archive-doc	ACCOUNT_ROLE_CONTRACT		
+docs/archive/completed-plans/ACCOUNTING_CAPABILITIES.md	archive-doc	Accounting Capabilities Roadmap		
+docs/archive/completed-plans/ACCOUNTING_ENGINE_QUALITY_PLAN.md	plan-doc	Accounting Engine Quality Plan		
+docs/archive/completed-plans/ACTUAL_COMPARISON_NUMERIC_OWNER_COMPATIBILITY_DECISION-2026-07-15.md	archive-doc	Actual Comparison Numeric-Owner Compatibility Decision		
+docs/archive/completed-plans/ACTUAL_COMPARISON_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-15.md	archive-doc	Actual Comparison Numeric-Owner Runtime Migration		
+docs/archive/completed-plans/ACTUAL_COMPARISON_PROJECTION_CHARACTERIZATION-2026-07-15.md	archive-doc	Actual Comparison Projection Characterization		
+docs/archive/completed-plans/ACTUAL_COMPARISON_REPORT_PLAN.md	plan-doc	Actual Comparison Report Plan		
+docs/archive/completed-plans/AI_DIFF_SELF_REVIEW_PILOT_PLAN-2026-07-10.md	archive-doc	AI Diff Self-review Pilot Plan		
+docs/archive/completed-plans/AI_FRIENDLY_REFACTOR_TODO.md	archive-doc	BQN家計簿 AIフレンドリー化リファクタリング計画 (TODOリスト)		
+docs/archive/completed-plans/AI_TASK_PACKET_TEMPLATE.md	archive-doc	AI Task Packet Template		
+docs/archive/completed-plans/AI_WORKING_IMPROVEMENT_PLAN-2026-07-09.md	archive-doc	AI Working Improvement Plan		
+docs/archive/completed-plans/ARCHITECTURE_NEXT.md	archive-doc	Architecture Next: cycle-ledger-core		
+docs/archive/completed-plans/AXIS_CONTRACT.md	archive-doc	Axis Contract		
+docs/archive/completed-plans/BEHAVIOR_DRIFT_REPORT_DECISIONS.md	archive-doc	Behavior Drift Report Decisions		
+docs/archive/completed-plans/BEHAVIOR_DRIFT_REPORT_PLAN.md	plan-doc	行動ブレ観察レポート 検討ポイント (Historical Stub)		
+docs/archive/completed-plans/BEHAVIOR_DRIFT_REPORT_PLAN.status.md	archive-doc	BEHAVIOR_DRIFT_REPORT_PLAN status		
+docs/archive/completed-plans/BOOKKEEPING_MATRIX_PAYABLE_STAGE2-2026-07-18.md	archive-doc	Bookkeeping Matrix Study: Service Payable Recognition and Payment Stage 2		
+docs/archive/completed-plans/BOOKKEEPING_MATRIX_PREPAID_INSURANCE_STAGE3-2026-07-18.md	archive-doc	Bookkeeping Matrix Study: Prepaid Insurance Payment and One-Month Expense Recognition Stage 3		
+docs/archive/completed-plans/BOOKKEEPING_MATRIX_RECEIVABLE_STAGE1-2026-07-18.md	archive-doc	BOOKKEEPING_MATRIX_RECEIVABLE_STAGE1-2026-07-18		
+docs/archive/completed-plans/BOOKKEEPING_MATRIX_UNEARNED_REVENUE_STAGE4-2026-07-18.md	archive-doc	Bookkeeping Matrix Study: Unearned Maintenance Revenue Receipt and One-Month Revenue Recognition Stage 4		
+docs/archive/completed-plans/BQN_CONVENTIONS_FOR_AI.md	archive-doc	BQN Conventions for AI		
+docs/archive/completed-plans/BQN_PROGRAMMER_ACCEPTANCE_NOTES.md	archive-doc	BQN Programmer Acceptance Notes		
+docs/archive/completed-plans/BQN_REPL_AND_DUMPER_DESIGN.md	design-doc	BQN REPL and Dumper Design		
+docs/archive/completed-plans/CANONICAL_ENGINE_HARDENING_COMPLETED_PHASES.md	archive-doc	Canonical Engine Hardening Completed Phases		
+docs/archive/completed-plans/CANONICAL_ENGINE_HARDENING_TODO.md	archive-doc	CANONICAL_ENGINE_HARDENING_TODO		
+docs/archive/completed-plans/CANONICAL_ENGINE_HARDENING_TODO.status.md	archive-doc	CANONICAL_ENGINE_HARDENING_TODO status		
+docs/archive/completed-plans/CANONICAL_FORMULAS.md	archive-doc	CANONICAL_FORMULAS		
+docs/archive/completed-plans/CODEX_GEMINI_CYCLE_END_CONSULTATION_REVIEW.md	archive-doc	Codex / Gemini Instruction: Cycle-end Consultation Review		
+docs/archive/completed-plans/COMMAND_HUB_DESIGN.md	design-doc	Command Hub Design		
+docs/archive/completed-plans/CONFIG_OWNERSHIP_INVENTORY-2026-07-14.md	archive-doc	Config ownership inventory — 2026-07-14		
+docs/archive/completed-plans/CONFIG_POLICY_CONTINUATION_HANDOFF-2026-07-14.md	archive-doc	Config policy continuation handoff — 2026-07-14		
+docs/archive/completed-plans/CUBE_EVOLUTION_POLICY.md	policy-doc	Cube Evolution Policy		
+docs/archive/completed-plans/CUBE_SHAPE_INVARIANT_PLAN.md	plan-doc	Cube Shape Invariant Plan		
+docs/archive/completed-plans/CUBIFICATION_TODO.md	archive-doc	BQN Cubification TODO List		
+docs/archive/completed-plans/CURRENCY_STAGE2_B2_ARITHMETIC_OWNERSHIP_RECHECK-2026-07-11.md	archive-doc	Currency Stage 2 B2 Arithmetic Ownership Recheck		
+docs/archive/completed-plans/CURRENT_STATE_REFERENCE.md	archive-doc	Current State Reference: 現行エンジン比較基準		
+docs/archive/completed-plans/CYCLE_END_ENVELOPE_CONSULTATION_TASK.md	task-doc	Cycle-end Envelope Consultation Task		
+docs/archive/completed-plans/CYCLE_LEDGER_DECISIONS.md	archive-doc	Cycle Ledger Design Decisions		
+docs/archive/completed-plans/CYCLE_REMAINING_PLAN_NUMERIC_OWNER_CHARACTERIZATION-2026-07-16.md	archive-doc	Cycle Remaining-Plan Numeric-Owner Characterization		
+docs/archive/completed-plans/CYCLE_REMAINING_PLAN_NUMERIC_OWNER_COMPATIBILITY_DECISION-2026-07-17.md	archive-doc	Cycle Remaining-Plan Numeric-Owner Compatibility Decision		
+docs/archive/completed-plans/CYCLE_REMAINING_PLAN_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-17.md	archive-doc	Cycle Remaining-Plan Numeric-Owner Runtime Migration		
+docs/archive/completed-plans/DAILY_CAPACITY_CONTRACT_CHARACTERIZATION-2026-07-15.md	archive-doc	Daily Capacity contract characterization — 2026-07-15		
+docs/archive/completed-plans/DAILY_CAPACITY_EVIDENCE_ASSEMBLER_CHARACTERIZATION-2026-07-15.md	archive-doc	Daily Capacity evidence assembler characterization — 2026-07-15		
+docs/archive/completed-plans/DAILY_CAPACITY_PURE_RUNTIME_SEAM-2026-07-15.md	archive-doc	Daily Capacity pure runtime seam — 2026-07-15		
+docs/archive/completed-plans/DAILY_TREND_CURRENT_SOURCE_COORDINATE_REPLAY_DECISION.md	archive-doc	Daily Trend Current-Source Coordinate Replay Decision		
+docs/archive/completed-plans/DAILY_TREND_EXPLICIT_EMPTY_PLAN_IDENTITY_MEANING_DECISION.md	archive-doc	Daily Trend Explicit Empty Plan Identity Meaning Decision		
+docs/archive/completed-plans/DAILY_TREND_EXPLICIT_EMPTY_PLAN_IDENTITY_SEMANTICS.md	archive-doc	Daily Trend Explicit Empty Plan Identity Semantics		
+docs/archive/completed-plans/DAILY_TREND_HEADER_CONCRETE_TIME_CARRIER_DECISION.md	archive-doc	Daily Trend Header Concrete Time Carrier Decision		
+docs/archive/completed-plans/DAILY_TREND_HEADER_TIME_OWNER_DECISION.md	archive-doc	Daily Trend Header Time Owner Decision		
+docs/archive/completed-plans/DAILY_TREND_KNOWLEDGE_BOUNDARY_DECISION.md	archive-doc	Daily Trend Knowledge Boundary Decision		
+docs/archive/completed-plans/DAILY_TREND_OBSERVATION_CONSISTENCY_DECISION.md	archive-doc	Daily Trend Observation Consistency Decision		
+docs/archive/completed-plans/DAILY_TREND_PLAN_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-16.md	archive-doc	Daily Trend Plan Numeric-Owner Runtime Migration — 2026-07-16		
+docs/archive/completed-plans/DAILY_TREND_ROW_MEMBERSHIP_PRODUCER_DECISION.md	archive-doc	Daily Trend Row Membership Producer Decision		
+docs/archive/completed-plans/DAILY_TREND_TEMPORAL_DEPENDENCY_MAP_DETAILED_HISTORY.md	archive-doc	Daily Trend Temporal Dependency Map		
+docs/archive/completed-plans/DAILY_TREND_TEMPORAL_SEMANTICS.md	archive-doc	Daily Trend Temporal Semantics		
+docs/archive/completed-plans/DATA_CONTRACT.md	archive-doc	Data Contract		
+docs/archive/completed-plans/DECISION_AI_DEVELOPMENT_EFFICIENCY_PROPOSALS.md	archive-doc	AI開発効率向上およびトークン最適化ツールの提案（2026-06-21）		
+docs/archive/completed-plans/DECISION_MULTI_POSTING_INVESTIGATION.md	archive-doc	Decision: Multi-Posting Support Policy		
+docs/archive/completed-plans/DESIGN_NO_ENVELOPE_SUPPORT.md	archive-doc	設計ノート: 封筒予算なし運用のサポート		
+docs/archive/completed-plans/DOCS_HYGIENE_AUDIT-2026-06-22.md	archive-doc	Docs Hygiene Audit 2026-06-22		
+docs/archive/completed-plans/EDITOR_GO_REMOVAL_PLAN.md	plan-doc	Editor Go Removal Plan		
+docs/archive/completed-plans/ENGINE_DESIGN_COMPARISON.md	archive-doc	新エンジン設計案 総合比較評価書 (Engine Design Comparison)		
+docs/archive/completed-plans/ENGINE_DESIGN_PERSPECTIVE.md	archive-doc	エンジンの設計評価と発展の方向性		
+docs/archive/completed-plans/ENVELOPE_ALLOCATION_AND_EXECUTION_PLAN_COVERAGE_CHARACTERIZATION-2026-07-17.md	archive-doc	Envelope Allocation and Execution-Plan Coverage Characterization		
+docs/archive/completed-plans/ENVELOPE_EVENT_LINKAGE_AUTOMATION_PLAN-2026-07-14.md	archive-doc	Envelope event linkage automation plan		
+docs/archive/completed-plans/EVENT_FIRST_PROJECTION_DRAFT_V3.md	archive-doc	bqn-ledger: Event-first Projection 設計調査 指示書ドラフト v3		
+docs/archive/completed-plans/EVENT_PROJECTION_PLAN.md	plan-doc	Event Projection Engine 移行計画		
+docs/archive/completed-plans/EXTERNAL_REASONING_BOUNDARY.md	archive-doc	External Reasoning Boundary		
+docs/archive/completed-plans/EXTERNAL_REASONING_NEUTRAL_LANGUAGE_POLICY.md	policy-doc	External Reasoning Neutral Language Policy		
+docs/archive/completed-plans/GENERALIZATION_COMPLETED_PHASES.md	archive-doc	Generalization Completed Phases		
+docs/archive/completed-plans/GENERALIZATION_TODO.md	archive-doc	bqn-ledger: lifestyle configuration boundary decision		
+docs/archive/completed-plans/GO_EDITOR_FIRST_IMPLEMENTATION_ACCEPTANCE.md	archive-doc	Go Editor: First Implementation Acceptance Criteria		
+docs/archive/completed-plans/GO_EDITOR_SINGLE_FILE_APPEND_ACCEPTANCE.md	archive-doc	Go Editor: Single-file Append Acceptance Criteria		
+docs/archive/completed-plans/GO_EDITOR_WRITE_SCOPE_INVENTORY.md	archive-doc	Go Editor Write Scope Inventory		
+docs/archive/completed-plans/GO_SOURCE_TSV_EDITOR_APPEND_ONLY_DECISIONS.md	archive-doc	Go Source TSV Editor: Append-only Plan / Cycle Decision Note		
+docs/archive/completed-plans/GO_SOURCE_TSV_EDITOR_DESIGN_DECISIONS.md	archive-doc	Go Source TSV Editor Design Decisions		
+docs/archive/completed-plans/GO_SOURCE_TSV_EDITOR_DESIGN.md	design-doc	Go Source TSV Editor Design Draft (Historical Stub)		
+docs/archive/completed-plans/HOUSEHOLD_POLICY_PHASE3_PROOF.md	archive-doc	Phase 3: Contrasting Fixture Proof		
+docs/archive/completed-plans/HOUSEHOLD_POLICY_PROFILE_SCHEMA.md	archive-doc	Household Policy Profile Schema		
+docs/archive/completed-plans/INCOME_BUDGET_LINKAGE_COMPLETION-2026-07-14.md	archive-doc	Ordinary income to unassigned linkage completion		
+docs/archive/completed-plans/ISRAEL_PREDEPARTURE_EDITOR_CAPTURE_COMPLETION-2026-07-13.md	archive-doc	Israel Predeparture Editor Capture Completion — 2026-07-13		
+docs/archive/completed-plans/ISRAEL_TRAVEL_DAILY_CAPTURE_PLAN-2026-07-13.md	archive-doc	Israel Travel Daily Capture Plan — 2026-07-13		
+docs/archive/completed-plans/ISSUE_TRACKER_PLAN.md	plan-doc	Issue & Decision Tracker Plan		
+docs/archive/completed-plans/JOURNAL_BUDGET_COMPANION_PROJECTION_CHARACTERIZATION_PLAN-2026-07-22.md	archive-doc	Journal Budget Companion Projection Characterization — Completion Record		
+docs/archive/completed-plans/JOURNAL_CANONICAL_SURFACE_001_PLAN-2026-07-24.md	archive-doc	Canonical Journal Surface 001 Plan		
+docs/archive/completed-plans/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_COMPLETION-2026-07-22.md	archive-doc	Journal canonical TSV-to-native prefix converter completion		
+docs/archive/completed-plans/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_IMPLEMENTATION_INSTRUCTIONS-2026-07-22.md	archive-doc	Journal Canonical TSV-to-Native Prefix Converter Implementation Instructions		
+docs/archive/completed-plans/JOURNAL_CANONICAL_TSV_NATIVE_PREFIX_CONVERTER_PLAN-2026-07-22.md	archive-doc	Journal Canonical TSV-to-Native Prefix Converter Plan		
+docs/archive/completed-plans/JOURNAL_CONVERTER_LEADING_SPACE_ADMISSION_RELAXATION-2026-07-23.md	archive-doc	Journal converter leading-space admission relaxation		
+docs/archive/completed-plans/JOURNAL_EXTERNAL_PLAN_REFERENCE_PROFILE_PREREQUISITE_PLAN-2026-07-22.md	archive-doc	Journal External Plan Reference Profile Prerequisite Plan		
+docs/archive/completed-plans/JOURNAL_FILE_BACKED_SHADOW_CONTEXT_PLAN-2026-07-22.md	archive-doc	Journal File-Backed Shadow Context Plan		
+docs/archive/completed-plans/JOURNAL_HEADER_DELIMITER_EXACT_CONSUMPTION_IMPLEMENTATION-2026-07-23.md	archive-doc	Journal header delimiter exact-consumption implementation		
+docs/archive/completed-plans/JOURNAL_LEADING_ASCII_SPACE_DESCRIPTION_REPRESENTATION_CHARACTERIZATION-2026-07-23.md	archive-doc	Journal leading ASCII space description representation characterization		
+docs/archive/completed-plans/JOURNAL_LEGACY_METADATA_PROFILE_EXTENSION_PLAN-2026-07-22.md	archive-doc	Journal Legacy Metadata and Business-Link Profile Extension Plan		
+docs/archive/completed-plans/JOURNAL_MIGRATION_ARCHITECTURE_AND_SOURCE_IDENTITY_DECISION-2026-07-18.md	archive-doc	Journal migration architecture and source identity decision		
+docs/archive/completed-plans/JOURNAL_NATIVE_MULTI_POSTING_APPEND_EDITOR_PLAN-2026-07-22.md	archive-doc	Journal Native Multi-Posting Append Editor Plan		
+docs/archive/completed-plans/JOURNAL_NATIVE_THREE_POSTING_SEMANTIC_COORDINATE_PARITY_PLAN-2026-07-19.md	archive-doc	Journal native three-posting semantic-coordinate parity — test-only		
+docs/archive/completed-plans/JOURNAL_OPAQUE_LEGACY_METADATA_PRESERVATION-2026-07-23.md	archive-doc	Journal opaque legacy metadata preservation		
+docs/archive/completed-plans/JOURNAL_POSTING_IR_ADAPTER_PARITY_STAGE2A_PLAN-2026-07-18.md	archive-doc	Journal Posting IR adapter parity Stage 2A plan		
+docs/archive/completed-plans/JOURNAL_POSTING_IR_COMPARABLE_REJECTION_PARITY_STAGE2C_PLAN-2026-07-19.md	archive-doc	Journal Posting IR comparable rejection parity Stage 2C plan		
+docs/archive/completed-plans/JOURNAL_POSTING_IR_IDENTITY_PROVENANCE_PARITY_STAGE2B_PLAN-2026-07-19.md	archive-doc	Journal Posting IR identity/provenance parity Stage 2B plan		
+docs/archive/completed-plans/JOURNAL_READ_ONLY_SOURCE_CARRIER_REHEARSAL_PLAN-2026-07-21.md	archive-doc	Journal read-only source carrier rehearsal — test-only		
+docs/archive/completed-plans/JOURNAL_READ_PATH_REPORT_CONTEXT_REHEARSAL_PLAN-2026-07-21.md	archive-doc	Journal read-path report-context rehearsal — test-only		
+docs/archive/completed-plans/JOURNAL_READ_PATH_TRIAL_BALANCE_REHEARSAL_PLAN-2026-07-21.md	archive-doc	Journal read-path trial-balance rehearsal — test-only		
+docs/archive/completed-plans/JOURNAL_RESOLVED_ACCOUNT_REGISTRY_MISMATCH_REJECTION_PLAN-2026-07-21.md	archive-doc	Journal resolved-account registry mismatch rejection — test-only plan		
+docs/archive/completed-plans/JOURNAL_RESOLVED_ENVELOPE_ASSIGNMENT_PERSISTENCE_PLAN-2026-07-22.md	archive-doc	Journal resolved envelope assignment persistence — completed test-only characterization		
+docs/archive/completed-plans/JOURNAL_SPLIT_PURCHASE_REPORT_INFORMATION_BOUNDARY_PLAN-2026-07-22.md	archive-doc	Journal split-purchase report aggregation and source-information boundary — test-only plan		
+docs/archive/completed-plans/JOURNAL_SPLIT_PURCHASE_TRANSACTION_CHARACTERIZATION_PLAN-2026-07-22.md	archive-doc	Journal split-purchase transaction characterization — test-only plan		
+docs/archive/completed-plans/LIQUID_ASSETS_TERMINOLOGY_RENAME_PLAN.md	plan-doc	流動資産 terminology rename plan		
+docs/archive/completed-plans/LOADER_UTIL_OWNERSHIP_NORMALIZATION-2026-07-16.md	archive-doc	Loader / Util Text and I/O Ownership Normalization Completion		
+docs/archive/completed-plans/MAIN_SECTIONS.md	archive-doc	MAIN_SECTIONS: `main.bqn` section IO map		
+docs/archive/completed-plans/MAIN_UI_COMMAND_HUB_PLAN.md	plan-doc	Main UI / Command Hub Plan		
+docs/archive/completed-plans/MAIN_UI_SECTION_PREVIEW_CACHE_ISSUE-2026-06-27.md	archive-doc	Restore fzf section preview using temporary section cache		
+docs/archive/completed-plans/MAINTENANCE_TODO.md	archive-doc	BQN家計簿 保守性強化計画 (TODOリスト)		
+docs/archive/completed-plans/MIGRATION_PLAN.md	plan-doc	Migration Plan		
+docs/archive/completed-plans/MINIMAL_BQN_JOURNAL_PARSER_STAGE1-2026-07-18.md	archive-doc	Minimal BQN Journal parser Stage 1		
+docs/archive/completed-plans/MINIMAL_BQN_JOURNAL_PROFILE_STAGE0_CHARACTERIZATION-2026-07-18.md	archive-doc	Minimal BQN Journal Profile Stage 0 characterization		
+docs/archive/completed-plans/NEXT_CYCLE_AI_REPORT_REQUIREMENTS.md	archive-doc	Next Cycle AI Consultation Report Requirements		
+docs/archive/completed-plans/OLD_ENGINE_REMOVAL_PLAN.md	plan-doc	Old Engine Removal Plan		
+docs/archive/completed-plans/OPENING_TECHNIQUE.md	archive-doc	A Technique for Opening from One Person to the World		
+docs/archive/completed-plans/OUTLOOK_ACTUAL_SNAPSHOT_CHARACTERIZATION-2026-07-16.md	archive-doc	Outlook / Actual Snapshot Characterization		
+docs/archive/completed-plans/OUTLOOK_ACTUAL_SNAPSHOT_NUMERIC_OWNER_COMPATIBILITY_DECISION-2026-07-16.md	archive-doc	Outlook / Actual Snapshot Numeric-Owner Compatibility Decision		
+docs/archive/completed-plans/OUTLOOK_ACTUAL_SNAPSHOT_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-16.md	archive-doc	Outlook / Actual Snapshot Numeric-Owner Runtime Migration		
+docs/archive/completed-plans/OUTLOOK_HOUSEHOLD_QUESTION_DECISION.md	archive-doc	Outlook Household Question Decision		
+docs/archive/completed-plans/OUTLOOK_OBSERVATION_TRANSPORT_BOUNDARY.md	archive-doc	Outlook Observation Transport Boundary		
+docs/archive/completed-plans/OUTLOOK_PRODUCTION_OBSERVATION_SOURCE_DECISION.md	archive-doc	Outlook Production Observation Source Decision		
+docs/archive/completed-plans/OUTLOOK_RECORD_FRONTIER_RELATION_DECISION.md	archive-doc	Outlook Record Frontier Relation Decision		
+docs/archive/completed-plans/OUTLOOK_REMAINING_PLAN_NUMERIC_OWNER_RUNTIME_MIGRATION-2026-07-16.md	archive-doc	Outlook Remaining-Plan Numeric-Owner Runtime Migration		
+docs/archive/completed-plans/OUTPUT_SQUEEZER_DESIGN.md	design-doc	Output Squeezer Design		
+docs/archive/completed-plans/PERSONAL_HARDCODE_INVENTORY-2026-07-14.md	archive-doc	Personal hardcode inventory — 2026-07-14		
+docs/archive/completed-plans/PLAN_ID_BACKFILL_PREVIEW.md	archive-doc	plan_id backfill record		
+docs/archive/completed-plans/PLAN.md	archive-doc	予算（封筒/箱分け）導入プラン		
+docs/archive/completed-plans/POLICY_BUDGET_STYLE_COMPATIBILITY_AUDIT-2026-07-14.md	archive-doc	POLICY_BUDGET_STYLE compatibility audit — 2026-07-14		
+docs/archive/completed-plans/POLICY_BUDGET_STYLE_EXPLICIT_CHOICE_DECISION-2026-07-14.md	archive-doc	POLICY_BUDGET_STYLE explicit-choice decision — 2026-07-14		
+docs/archive/completed-plans/POLICY_RISK_STYLE_DAILY_CAPACITY_DECISION-2026-07-15.md	archive-doc	POLICY_RISK_STYLE daily-capacity decision — 2026-07-15		
+docs/archive/completed-plans/PREFIX_FALLBACK_PRODUCT_SELECTION_REMOVAL_PLAN-2026-07-11.md	archive-doc	Prefix Fallback Product-Selection Removal Plan		
+docs/archive/completed-plans/PROJECTION_CONTRACT.md	archive-doc	Projection Contract		
+docs/archive/completed-plans/PUBLIC_SYNC_BOUNDARY.md	archive-doc	Public Sync Boundary		
+docs/archive/completed-plans/REPO_HOUSEHOLD_DATA_HANDLING_RULE.md	archive-doc	Repository Household Data Handling Rule		
+docs/archive/completed-plans/REPO_INDEX_DESIGN.md	design-doc	Repo Index Design		
+docs/archive/completed-plans/REPO_INDEX_IMPLEMENTATION_HANDOFF.md	handoff-doc	Repo Index Implementation Handoff		
+docs/archive/completed-plans/REPORT_CONTRACT.md	archive-doc	Report Contract		
+docs/archive/completed-plans/REPORT_CONTRACTS.md	archive-doc	REPORT_CONTRACTS		
+docs/archive/completed-plans/REPORT_FIELD_MAP.md	archive-doc	REPORT_FIELD_MAP: `report_engine.Build` return fields		
+docs/archive/completed-plans/REPORT_POLICY_EXTERNALIZATION_PHASE1_COMPLETED.md	archive-doc	Completed: Report Policy Externalization (Phase 1)		
+docs/archive/completed-plans/REPORT_SCREEN_CANDIDATES.md	archive-doc	Report Screen Candidates		
+docs/archive/completed-plans/REPORT_SCREEN_REVIEW_LOOP.md	archive-doc	Report Screen Review Loop		
+docs/archive/completed-plans/REPORT_SECTION_DESCRIPTOR_CENTRALIZATION_COMPLETION-2026-07-16.md	archive-doc	Report Section Descriptor Centralization Completion		
+docs/archive/completed-plans/REPORT_SECTION_DESCRIPTOR_CENTRALIZATION_PLAN-2026-07-16.md	archive-doc	Report Section Descriptor Centralization Plan		
+docs/archive/completed-plans/REPORT_VALUE_CONTRACT.md	archive-doc	Report Value Contract		
+docs/archive/completed-plans/ROADMAP.md	archive-doc	ROADMAP: BQN家計簿を壊さず育てる		
+docs/archive/completed-plans/SAFE_WORKFLOW_REDESIGN.md	archive-doc	Safe Workflow Redesign		
+docs/archive/completed-plans/SAFETY_DOCS_ALIGNMENT_PLAN-2026-06-29.md	archive-doc	Safety / Docs Alignment Plan 2026-06-29		
+docs/archive/completed-plans/SPEND_CLASS.md	archive-doc	Spend class: 日割り分析用の支出分類		
+docs/archive/completed-plans/SRC_NEXT_EXPENSE_ACCOUNT_MAPPING.md	archive-doc	SRC_NEXT_EXPENSE_ACCOUNT_MAPPING		
+docs/archive/completed-plans/SRC_NEXT_HOUSEHOLD_REPORT_POLICY_CONTRACT.md	archive-doc	src_next household report policy contract		
+docs/archive/completed-plans/STALE_DOCS_STATUS-2026-06-22.md	archive-doc	Stale Docs Status 2026-06-22		
+docs/archive/completed-plans/SUBPROCESS_DEBUG_VISIBILITY_REVIEW-2026-07-05.md	archive-doc	Subprocess Debug Visibility Review / Learning — 2026-07-05		
+docs/archive/completed-plans/TIME_AS_AXIS_DETAILED_POLICY_HISTORY.md	archive-doc	時間を座標軸として扱う設計原則		
+docs/archive/completed-plans/TODO_DEVTOOLS.md	archive-doc	TODO — devtools improvement (2026-06-27)		
+docs/archive/completed-plans/TRANSACTION_VECTOR_IDEAS.md	archive-doc	BQN家計簿における取引表現アイデア整理		
+docs/archive/completed-plans/VIEW_CONTRACTS.md	archive-doc	VIEW_CONTRACTS.md		
+docs/archive/HANDOFF-2026-06-01.md	archive-doc	引き継ぎ (予算レイヤ導入 / bqn-ledger)		
+docs/archive/HANDOFF-2026-06-08.md	archive-doc	AI Handoff: 2026-06-08 (Envelope trend & Ledger export)		
+docs/archive/handoffs/AI_TERMINAL_HANDOFF.md	handoff-doc	AI_TERMINAL_HANDOFF.md		
+docs/archive/handoffs/CUBE_SHAPE_INVARIANT_IMPLEMENTATION_HANDOFF.md	handoff-doc	Cube Shape Invariant Implementation Handoff		
+docs/archive/handoffs/HANDOFF-2026-06-18.md	archive-doc	Handoff: as_of report semantics hardening		
+docs/archive/handoffs/PHASE4_BASE_AWARE_CONTEXT_HANDOFF.md	handoff-doc	Phase 4 handoff: base-aware Context と Go 前の境界整理		
+docs/archive/handoffs/SECTION_STATUS_IMPLEMENTATION_HANDOFF.md	handoff-doc	Section Status Implementation Handoff		
+docs/archive/MEAL_LOG_EXPERIMENT_DRAFT.md	archive-doc	Meal log experiment draft		
+docs/archive/refactor-2026-06/AI_REPORT_IDEAS.md	archive-doc	AI向けレポート案		
+docs/archive/refactor-2026-06/ARRAY_AUDIT.md	archive-doc	ARRAY_AUDIT: 256×2 配列核の現状監査		
+docs/archive/refactor-2026-06/BUDGET_ENVELOPE_REDESIGN.md	archive-doc	Budget envelope redesign plan		
+docs/archive/refactor-2026-06/CYCLE_CONSULTATION_REPORT_PLAN.md	plan-doc	サイクル相談レポート機能案		
+docs/archive/refactor-2026-06/DEAD_CODE_REPORT.md	archive-doc	Dead Code / Low-Frequency Tools Inventory (2026-06)		
+docs/archive/refactor-2026-06/GEMINI_ARRAY_FOLLOWUP_BRIEF.md	archive-doc	Gemini向け追加相談: tx_updates実装後レビュー		
+docs/archive/refactor-2026-06/GEMINI_ARRAY_FOLLOWUP_FEEDBACK.md	archive-doc	GEMINI_ARRAY_FOLLOWUP_FEEDBACK: tx_updates 実装後レビュー結果		
+docs/archive/refactor-2026-06/GEMINI_ARRAY_REVIEW_BRIEF.md	archive-doc	Gemini向け指示書: 配列ビュー強化レビュー		
+docs/archive/refactor-2026-06/GEMINI_ARRAY_REVIEW_FEEDBACK.md	archive-doc	GEMINI_ARRAY_REVIEW_FEEDBACK: 配列ビュー強化の設計レビュー結果		
+docs/archive/refactor-2026-06/GEMINI_ARRAY_STAGE3_FEEDBACK.md	archive-doc	GEMINI_ARRAY_STAGE3_FEEDBACK: 配列基盤完成と統合への設計指針		
+docs/archive/refactor-2026-06/GEMINI_ARRAY_STAGE3_REVIEW_BRIEF.md	archive-doc	Gemini向け追加相談: Stage 3 配列ビュー実装レビュー		
+docs/archive/refactor-2026-06/HANDOFF.md	archive-doc	HANDOFF (archived)		
+docs/archive/refactor-2026-06/NEXT_STEPS.md	archive-doc	次にやること（検討メモ）		
+docs/archive/refactor-2026-06/PLAN_REPORT.md	archive-doc	家計簿システム・レポート方針メモ		
+docs/archive/refactor-2026-06/README.md	archive-doc	refactor-2026-06 archive		
+docs/archive/refactor-2026-06/REPORT_ENGINE_SPLIT_PLAN.md	plan-doc	report_engine.bqn split plan		
+docs/archive/src-next-migration/PHASE4_BASE_AWARE_CONTEXT_INVESTIGATION.md	archive-doc	Phase 4 Base-aware Context Investigation		
+docs/archive/src-next-migration/README.md	archive-doc	src_next migration archive		
+docs/archive/src-next-migration/SRC_NEXT_ARCHITECTURE_DESIGN.md	design-doc	src_next アーキテクチャ設計		
+docs/archive/src-next-migration/SRC_NEXT_COMPARISON_RECORD_TEMPLATE.md	archive-doc	src_next Comparison Record Template		
+docs/archive/src-next-migration/SRC_NEXT_CURRENT_ENGINE_COMPARISON.md	archive-doc	src_next / current engine comparison notes		
+docs/archive/src-next-migration/SRC_NEXT_ENVELOPE_COMPUTATION_CONTRACT.md	archive-doc	src_next envelope computation contract		
+docs/archive/src-next-migration/SRC_NEXT_GOLDEN_CHECK.md	archive-doc	src_next golden check		
+docs/archive/src-next-migration/SRC_NEXT_INCOME_ANCHOR_CYCLE_CONTRACT.md	archive-doc	src_next incomeAnchor cycle contract		
+docs/archive/src-next-migration/SRC_NEXT_MANUAL_COMPARISON_PROCEDURE.md	archive-doc	src_next Manual Comparison Procedure		
+docs/archive/src-next-migration/SRC_NEXT_REPLACEMENT_READINESS.md	archive-doc	src_next 置き換え準備チェックリスト		
+docs/archive/src-next-migration/SRC_NEXT_REPORT_SECTION_PARITY.md	archive-doc	src_next レポート section parity		
+docs/archive/src-next-migration/SRC_NEXT_SNAPSHOT_EQUIVALENCE_CRITERIA.md	archive-doc	src_next Snapshot Equivalence Criteria		
+docs/archive/src-next-migration/SRC_NEXT_SNAPSHOT_OBSERVATION_SCREEN.md	archive-doc	src_next Snapshot 観測画面デザイン		
+docs/archive/src-next-migration/SRC_NEXT_STAGE3_ENTRYPOINT_CONTRACT.md	archive-doc	src_next Stage 3 Entrypoint Contract		
+docs/archive/src-next-migration/SRC_NEXT_STAGE4_TRIAL_LOG.md	archive-doc	src_next Stage 4 観察ログ		
+docs/archive/src-next-migration/SRC_NEXT_STAGE4A_OBSERVATION_INVENTORY.md	archive-doc	src_next Stage 4a 観測面棚卸し (Stage 4a Observation Inventory)		
+docs/archive/src-next-migration/SRC_NEXT_STAGE4B_DAILY_USE_TRIAL_LOG_POLICY.md	policy-doc	src_next Stage 4b Daily-Use Trial Log Policy		
+docs/archive/src-next-migration/SRC_NEXT_STAGE4B_ENTRY_DECISION_RECORD.md	archive-doc	src_next Stage 4b Entry Decision Record		
+docs/archive/src-next-migration/SRC_NEXT_STAGE4B_IMPLEMENTATION_TODO.md	archive-doc	src_next Ledger Engine Implementation TODO		
+docs/archive/src-next-migration/SRC_NEXT_STAGE4B_PRETRIAL_BACKLOG.md	archive-doc	src_next Stage 4b Pretrial Backlog		
+docs/archive/src-next-migration/SRC_NEXT_STAGE4B_READINESS_GATE.md	archive-doc	src_next Stage 4b Readiness Gate		
+docs/archive/src-next-migration/SRC_NEXT_STAGE4B_START_DECISION_CHECKLIST.md	archive-doc	src_next Stage 4b Start Decision Checklist		
+docs/archive/src-next-migration/SRC_NEXT_STAGE4B_THIRD_DRY_RUN_PLAN.md	plan-doc	src_next Stage 4b Third Dry Run Plan		
+docs/archive/src-next-migration/SRC_NEXT_STAGE4B_THIRD_DRY_RUN_SUMMARY.md	archive-doc	src_next Stage 4b Third Dry Run Public-Safe Summary		
+docs/archive/src-next-migration/SRC_NEXT_STAGE4B_TRIAL_SCOPE.md	archive-doc	src_next Stage 4b Trial Scope		
+docs/archive/src-next-migration/SRC_NEXT_STATUS_JA.md	archive-doc	src_next 現在地メモ		
+docs/archive/TODO_HISTORY-2026-06-16.md	archive-doc	TODO		
+docs/archive/TODO_HISTORY-2026-06-23.md	archive-doc	TODO History 2026-06-23		
+docs/archive/TODO_HISTORY-2026-06-27.md	archive-doc	TODO History (2026-06-27)		
+docs/archive/TODO_HISTORY-2026-07-01.md	archive-doc	TODO History (2026-07-01)		
+docs/archive/TODO_HISTORY-2026-07-06.md	archive-doc	TODO History - 2026-07-06		
+docs/archive/TODO_HISTORY-2026-07-08.md	archive-doc	TODO History - 2026-07-08		
+docs/archive/TODO_HISTORY-2026-07-13.md	archive-doc	TODO History — 2026-07-13		
+docs/archive/TODO_HISTORY-2026-07-16.md	archive-doc	TODO History — 2026-07-16		
+docs/ASCII_GARDEN_REPORT.md	doc	ASCII Garden Report Materials		
+docs/AUDIT_IMPROVEMENT_BACKLOG.md	doc	Audit improvement backlog		
+docs/BQN_EDITOR_USAGE.md	doc	BQN Editor & Add-UI Usage Manual		
+docs/CANONICAL_DAILY_CUBE.md	doc	Canonical Daily Cube 監査メモ		
+docs/CBQN_REPRODUCIBILITY.md	doc	CBQN Reproducibility Policy		
+docs/CONVENTIONS.md	doc	Conventions (bqn-ledger 規約)		
+docs/CURRENCY_AWARENESS_CAMPAIGN_MAP.md	doc	Currency Awareness Campaign Map		
+docs/CURRENCY_STAGE1_AMOUNT_SEMANTICS_DECISION.md	doc	Currency Stage 1 Amount Semantics Decision		
+docs/CURRENCY_STAGE2_BUILDPERIODVIEW_DOWNSTREAM_BOUNDARY_DECISION.md	doc	Currency Stage 2 BuildPeriodView Downstream Boundary Decision		
+docs/CURRENCY_STAGE2_EXPLICIT_SINGLE_CURRENCY_ADMISSION_DECISION.md	doc	Currency Stage 2 Explicit Single-Currency Admission Decision		
+docs/CURRENCY_STAGE2_EXPLICIT_SINGLE_CURRENCY_EXACT_DECIMAL_IMPLEMENTATION_PLAN.md	plan-doc	Currency Stage 2 Explicit Single-Currency Exact-Decimal Implementation Plan		
+docs/CURRENCY_STAGE2_MINIMAL_DOMAIN_PROOF_IMPLEMENTATION_PLAN.md	plan-doc	Currency Stage 2 Minimal Domain-Proof Implementation Plan		
+docs/CURRENCY_STAGE2_SINGLE_CURRENCY_DOMAIN_DECISION.md	doc	Currency Stage 2 Single-Currency Domain Decision		
+docs/CURRENCY_STAGE2_SLICE_B_SPLIT_DECISION.md	doc	Currency Stage 2 Slice B Split Decision		
+docs/CURRENT_CURRENCY_ASSUMPTION_MAP.md	doc	Current Currency Assumption Map		
+docs/CYCLE.md	doc	サイクル集計の変更方法		
+docs/DAILY_CAPACITY_CHARACTERIZATION_AMENDMENT.md	doc	Daily Capacity Characterization Amendment		
+docs/DAILY_CAPACITY_EVIDENCE_ASSEMBLER_CHARACTERIZATION_CONTRACT.md	doc	Daily Capacity evidence assembler characterization contract		
+docs/DAILY_CAPACITY_MINIMAL_INPUT_RESULT_CONTRACT.md	doc	Daily Capacity Minimal Input / Result Contract		
+docs/DAILY_TREND_TEMPORAL_CURRENT.md	doc	Daily Trend Temporal Current Path		
+docs/DAILY_TREND_TEMPORAL_DEPENDENCY_MAP.md	doc	Daily Trend Temporal Dependency Map		
+docs/DATA_DIR_SETUP.md	doc	Data Directory Setup		
+docs/DOCS_LIFECYCLE_CONTRACT.md	doc	Docs Lifecycle Contract		
+docs/EDIT_BQN_DISPATCHER.md	doc	edit-bqn dispatcher boundary		
+docs/ENGINEERING_ROADMAP.md	doc	ENGINEERING_ROADMAP: historical implementation summary		
+docs/ENVELOPE_ADJUSTMENT_ROW_POLICY.md	policy-doc	Envelope adjustment row policy		
+docs/ENVELOPE_BUDGET_POOL_METADATA_POLICY.md	policy-doc	Envelope budget_pool metadata policy		
+docs/ENVELOPE_CYCLE_SEED_POLICY.md	policy-doc	Envelope cycle seed policy		
+docs/ENVELOPE_EXECUTION_AND_PLAN_POLICY.md	policy-doc	Envelope execution and plan policy		
+docs/ENVELOPE_FUNDING_BASE_INVARIANT.md	doc	Envelope funding base invariant		
+docs/ENVELOPE_ROLE_DESIGN.md	design-doc	Envelope role design		
+docs/ENVELOPES_SECTION_JSON_EXPORT_DESIGN.md	design-doc	Design: Envelopes Section JSON Export Slice		
+docs/EXTENSION_BOUNDARY.md	doc	Extension Boundary		
+docs/FINTECH_ENGINEERING_REVIEW_BACKLOG.md	doc	Fintech engineering review backlog		
+docs/FIXTURE_DEMO.md	doc	Fixture Demo Walkthrough		
+docs/HEADLESS_KERNEL_EVOLUTION_MAP.md	doc	Headless Kernel Evolution Map		
+docs/ISRAEL_TRAVEL_EDITOR_USAGE.md	doc	Israel Travel Editor Usage		
+docs/JOURNAL_CANONICAL_SURFACE_001.md	doc	Canonical Journal Surface 001		
+docs/JOURNAL_META.md	doc	native Journal / source TSV のメタデータ		
+docs/MAINTENANCE.md	doc	Maintenance guide (bqn-ledger)		
+docs/MCP_RECEIPT_ENTRY.md	doc	MCP Receipt Entry		
+docs/OUTLOOK_TEMPORAL_CURRENT.md	doc	Outlook Temporal Current Contract		
+docs/PLAN_ID_LIFECYCLE.md	doc	plan_id ライフサイクル契約 (BQN editor / BQN report 共通契約)		
+docs/PLANNED_SECTION_JSON_EXPORT_DESIGN.md	design-doc	Planned Section JSON Export Design		
+docs/POSTING_IR_CONTRACT.md	doc	Posting IR Contract		
+docs/PRODUCTION_EDITOR_DIRECTION.md	doc	Production Editor Direction		
+docs/PUBLIC_PRODUCTIZATION_REVIEW_FILTER.md	doc	Public Productization Review Filter		
+docs/PURE_CHECKED_POSTING_PROJECTION_RESULT_CONTRACT.md	doc	Pure Checked Posting Projection Result Contract		
+docs/QUALITY_BAR.md	doc	Quality Bar		
+docs/README.md	doc	docs README		
+docs/REAL_DATA_TRIAL_SAFETY.md	doc	Real Data Trial Safety Guide		
+docs/RELEASE_CHECKLIST.md	doc	Release / Maintenance Checklist		
+docs/REPORT_CONTRACTS.md	doc	Report Contracts		
+docs/REPORT_MOCK_SANITIZATION.md	doc	Sanitized report mock contract		
+docs/REPORT_SECTION_CONTRACT_CHECKLIST.md	doc	Report Section Contract Checklist		
+docs/report-mocks/ACCOUNT_BALANCES.notes.md	doc	Account Balances Mock Notes		
+docs/report-mocks/ACTUAL_COMPARISON.notes.md	doc	Actual Comparison Mock Notes		
+docs/report-mocks/ASCII_GARDEN_REPORT.notes.md	doc	ASCII Garden Report mock notes		
+docs/report-mocks/CURRENT_CYCLE_SUMMARY.notes.md	doc	Current Cycle Summary Mock Notes		
+docs/report-mocks/DAILY_TREND.notes.md	doc	Daily Trend Mock Notes		
+docs/report-mocks/ENVELOPE_BUDGET.notes.md	doc	Envelope / Budget Mock Notes		
+docs/report-mocks/OUTLOOK_DAILY_AMOUNT.notes.md	doc	Outlook Dashboard Mock Notes		
+docs/report-mocks/PLANNED_PAYMENTS.notes.md	doc	Planned Payments Mock Notes		
+docs/report-mocks/READINESS_CHECK.notes.md	doc	Readiness Check Mock Notes		
+docs/report-mocks/README.md	doc	report-mocks		
+docs/report-mocks/RECENT_JOURNAL.notes.md	doc	Recent Journal Mock Notes		
+docs/report-mocks/TRIAL_BALANCE.notes.md	doc	Trial Balance Mock Notes		
+docs/report-mocks/YTD_SUMMARY.notes.md	doc	YTD Summary Mock Notes		
+docs/SAFETY_PROFILE_INVARIANT_MAP.md	doc	Safety Profile Invariant Map		
+docs/SAFETY_PROFILE.md	doc	Safety Profile		
+docs/SNAPSHOT_SECTION_JSON_EXPORT_DESIGN.md	design-doc	Snapshot Section JSON Export Design		
+docs/SRC_NEXT_CURRENT.md	doc	src_next current usage		
+docs/STRUCTURED_UI_EXPORT_CONTRACT.md	doc	Structured UI Export Contract		
+docs/TBDS_CONTRACT.md	doc	TBDS Contract		
+docs/templates/ASCII_GARDEN_REPORT_PROMPT.md	doc	ASCII Garden Renderer Prompt		
+docs/THIRD_PARTY_DEPENDENCIES.md	doc	Third-Party Dependencies		
+docs/TIME_AS_AXIS.md	doc	時間を座標軸として扱う設計原則		
+docs/UNAVAILABLE_SENTINEL_CONTRACT.md	doc	UNAVAILABLE_SENTINEL_CONTRACT		
+docs/UNFINISHED_PLAN_ENTRIES_EXPORT_CONTRACT.md	doc	Unfinished Plan Entries Export Contract		
+docs/variable-catalog/001_core.bqn__GetTxUpd__L121-L147.md	doc	変数名目録: core.bqn / GetTxUpd / L121-L147		
+docs/variable-catalog/README.md	doc	変数名目録		
+docs/WHY_SHARE.md	doc	Why Share?		
+TODO.md	doc	TODO		
+AGENTS.md	doc	AGENTS.md		
