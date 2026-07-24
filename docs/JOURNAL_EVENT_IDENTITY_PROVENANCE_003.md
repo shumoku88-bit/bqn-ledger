@@ -191,7 +191,7 @@ The two purchase-shaped identities are not assigned to a known generator. They a
 A private, read-only replay used the historical admitted TSV rows and the public converter formula:
 
 ```text
-source identity token: journal.tsv
+source identity token: retained historical token (value withheld)
 row numbering: zero-based admitted-row order
 formula: legacy:<source identity>:<admitted row>
 ```
