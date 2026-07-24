@@ -1,5 +1,11 @@
 # src_edit/journal_identity_inventory.bqn
-# Pure inventory, reference index, generator analysis, and classification owner for Journal event identities.
+# Pure inventory, reference index, and classification owner for Journal event identities.
+#
+# Lexical family is a syntax observation. It does not prove semantic meaning,
+# provenance, reconstructibility, or deletion safety.
+#
+# Provenance may be verified, inferred, or unknown.
+# Reconstructibility is not deletion authorization.
 
 util ← •Import "../src_next/util.bqn"
 
@@ -26,6 +32,9 @@ IsHex ← {𝕊 text:
 
 HasPrefix ← { 𝕨 ≡ (≠ 𝕨) ↑ 𝕩 }
 
+# Lexical family is a syntax observation only.
+# TEXTUAL_OTHER means the ID contains alphabetic characters and no dashes;
+# it does not prove the ID carries human-readable or business-meaningful content.
 ClassifyLexicalFamily ← {𝕊 id:
   (0 = ≠ id) ◶ ⟨
     {𝕊:
@@ -39,7 +48,7 @@ ClassifyLexicalFamily ← {𝕊 id:
               isOpaque ◶ ⟨
                 {𝕊:
                   hasAlpha ← 0 < +´ 0 ∾ id ∊ "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                  hasAlpha ◶ ⟨{𝕊:"OTHER"}, {𝕊:"SEMANTIC_TEXT"}⟩ @
+                  hasAlpha ◶ ⟨{𝕊:"OTHER"}, {𝕊:"TEXTUAL_OTHER"}⟩ @
                 },
                 {𝕊:"OPAQUE_HEX"}
               ⟩ @
@@ -97,6 +106,12 @@ BuildReferenceIndex ← {𝕊 transactions:
   refs
 }
 
+# Provenance classification.
+# Provenance confidence is always one of:
+#   "not_applicable"    — identity-free transaction
+#   "not_verified"      — no evidence of generation pipeline
+#   "inferred_from_prefix" — ID prefix matches a known generator pattern
+#   "inferred_from_plan_link" — plan-id presence suggests plan completion pipeline
 ClassifyProvenance ← {𝕊 tx‿lexFamily:
   id ← tx.source_event_id
   (tx.identity_kind ≡ "physical_fallback") ◶ ⟨
@@ -110,34 +125,43 @@ ClassifyProvenance ← {𝕊 tx‿lexFamily:
                   ("reverse-" HasPrefix id) ◶ ⟨
                     {𝕊:
                       (("plan-" HasPrefix id) ∨ (0 < ≠ tx.plan_id)) ◶ ⟨
-                        {𝕊:"manual or unknown"},
-                        {𝕊:"plan completion"}
+                        {𝕊:⟨"UNKNOWN", "not_verified"⟩},
+                        {𝕊:⟨"PLAN_COMPLETION_CANDIDATE", "inferred_from_plan_link"⟩}
                       ⟩ @
                     },
-                    {𝕊:"reverse command"}
+                    {𝕊:⟨"REVERSE_COMMAND_CANDIDATE", "inferred_from_prefix"⟩}
                   ⟩ @
                 },
-                {𝕊:"travel editor"}
+                {𝕊:⟨"TRAVEL_EDITOR_CANDIDATE", "inferred_from_prefix"⟩}
               ⟩ @
             },
-            {𝕊:"native durable editor"}
+            {𝕊:⟨"NATIVE_EDITOR_CANDIDATE", "inferred_from_prefix"⟩}
           ⟩ @
         },
-        {𝕊:"TSV-to-Journal migration"}
+        {𝕊:⟨"TSV_MIGRATION_CANDIDATE", "inferred_from_prefix"⟩}
       ⟩ @
     },
-    {𝕊:"IDENTITY_FREE"}
+    {𝕊:⟨"IDENTITY_FREE", "not_applicable"⟩}
   ⟩ @
 }
 
-ClassifyReconstructibility ← {𝕊 tx‿provenance‿lexFamily:
+# Reconstructibility classification.
+# This classification does not authorize deletion.
+# It means only that a possible reconstruction path has been identified.
+# Exact deterministic regeneration has not been verified.
+#
+# PROVEN_RECONSTRUCTIBLE requires:
+#   same inputs produce the same ID,
+#   the generating algorithm is identified,
+#   all required inputs remain available.
+ClassifyReconstructibility ← {𝕊 tx‿provenanceClass‿lexFamily:
   (tx.identity_kind ≡ "physical_fallback") ◶ ⟨
     {𝕊:
-      (provenance ≡ "reverse command") ◶ ⟨
+      (provenanceClass ≡ "REVERSE_COMMAND_CANDIDATE") ◶ ⟨
         {𝕊:
           (lexFamily ≡ "LEGACY_ENTRY_24HEX") ◶ ⟨
             {𝕊:
-              ((provenance ≡ "plan completion") ∨ (provenance ≡ "native durable editor") ∨ (provenance ≡ "travel editor")) ◶ ⟨
+              ((provenanceClass ≡ "PLAN_COMPLETION_CANDIDATE") ∨ (provenanceClass ≡ "NATIVE_EDITOR_CANDIDATE") ∨ (provenanceClass ≡ "TRAVEL_EDITOR_CANDIDATE")) ◶ ⟨
                 {𝕊:"UNKNOWN"},
                 {𝕊:"LIKELY_RECONSTRUCTIBLE"}
               ⟩ @
@@ -181,20 +205,48 @@ ClassifyDisposition ← {𝕊 tx‿incomingCount‿hasFunctionalLink‿reconstru
 
 BuildInventory ← {𝕊 transactions:
   refIndex ← BuildReferenceIndex transactions
-  
+
+  # Compute duplicate identity definitions:
+  # Count event IDs that appear on more than one durable transaction
+  durableIds ← ⟨⟩
   {𝕊 idx:
+    tx ← idx ⊑ transactions
+    isDurable ← tx.identity_kind ≡ "durable"
+    {𝕊: durableIds ∾↩ ⟨tx.source_event_id⟩}⍟isDurable @
+  }¨ ↕ ≠ transactions
+  # Count unique IDs that appear more than once
+  dupCount ← 0
+  {𝕊 i:
+    thisId ← i ⊑ durableIds
+    # Only count on first occurrence to avoid double-counting
+    isFirst ← i = ⊑ (thisId⊸≡¨ durableIds) / ↕ ≠ durableIds
+    occurrences ← +´ 0 ∾ thisId⊸≡¨ durableIds
+    {𝕊: dupCount +↩ 1}⍟(isFirst ∧ (occurrences > 1)) @
+  }¨ ↕ ≠ durableIds
+
+  # Compute dangling references: references targeting IDs not defined as any durable event-id
+  danglingCount ← +´ 0 ∾ {¬ ∨´ (𝕩.target_id)⊸≡¨ durableIds}¨ refIndex
+
+  # Compute self-references: references where source_ordinal's event-id equals target_id
+  selfRefCount ← +´ 0 ∾ {
+    srcIdx ← 𝕩.source_ordinal - 1
+    srcTx ← srcIdx ⊑ transactions
+    (srcTx.identity_kind ≡ "durable") ∧ (srcTx.source_event_id ≡ 𝕩.target_id)
+  }¨ refIndex
+
+  rows ← {𝕊 idx:
     tx ← idx ⊑ transactions
     isDurable ← tx.identity_kind ≡ "durable"
     eventId ← isDurable ◶ ⟨{𝕊:""}, {𝕊:tx.source_event_id}⟩ @
     presence ← isDurable ⊑ "IDENTITY_FREE" ‿ "EXPLICIT_EVENT_ID"
     lexFamily ← isDurable ◶ ⟨{𝕊:"NONE"}, {𝕊:ClassifyLexicalFamily eventId}⟩ @
-    
+
     # Incoming references targeting this tx's eventId
     incomingCount ← isDurable ◶ ⟨
       {𝕊:0},
       {𝕊:+´ 0 ∾ { (𝕩.target_id ≡ eventId) ∧ (𝕩.source_ordinal ≠ (idx + 1)) }¨ refIndex}
     ⟩ @
-    
+
     # Outgoing functional links
     hasPlanId ← (0 < ≠ tx.plan_id) ∨ ("plan-id" HasMetaKey tx.metadata)
     hasTxnId ← (0 < ≠ tx.txn_id) ∨ ("txn-id" HasMetaKey tx.metadata)
@@ -204,13 +256,15 @@ BuildInventory ← {𝕊 transactions:
     hasSeries ← "series" HasMetaKey tx.metadata
     hasRecur ← "recur" HasMetaKey tx.metadata
     hasIncomeBudget ← "income-budget" HasMetaKey tx.metadata
-    
+
     hasFunctionalLink ← hasPlanId ∨ hasTxnId ∨ hasAllocId ∨ hasActualEventId ∨ hasExecEnv ∨ hasSeries ∨ hasRecur ∨ hasIncomeBudget
-    
-    provenance ← ClassifyProvenance ⟨tx, lexFamily⟩
-    reconstructibility ← ClassifyReconstructibility ⟨tx, provenance, lexFamily⟩
+
+    provResult ← ClassifyProvenance ⟨tx, lexFamily⟩
+    provenanceClass ← 0 ⊑ provResult
+    provenanceConfidence ← 1 ⊑ provResult
+    reconstructibility ← ClassifyReconstructibility ⟨tx, provenanceClass, lexFamily⟩
     disposition ← ClassifyDisposition ⟨tx, incomingCount, hasFunctionalLink, reconstructibility⟩
-    
+
     {
       ordinal⇐idx + 1,
       presence⇐presence,
@@ -226,19 +280,29 @@ BuildInventory ← {𝕊 transactions:
       has_recur⇐hasRecur,
       has_income_budget⇐hasIncomeBudget,
       has_functional_link⇐hasFunctionalLink,
-      provenance⇐provenance,
+      provenance_class⇐provenanceClass,
+      provenance_confidence⇐provenanceConfidence,
       reconstructibility⇐reconstructibility,
       disposition⇐disposition,
       date⇐tx.date,
       description⇐tx.description
     }
   }¨ ↕ ≠ transactions
+
+  {
+    rows⇐rows,
+    duplicate_identity_definitions⇐dupCount,
+    dangling_references⇐danglingCount,
+    self_references⇐selfRefCount
+  }
 }
 
-Summarize ← {𝕊 rows:
+Summarize ← {𝕊 inv:
+  rows ← inv.rows
   CountPresence ← { val ← 𝕨 ⋄ +´ 0 ∾ {𝕩.presence ≡ val}¨ rows }
   CountFamily ← { val ← 𝕨 ⋄ +´ 0 ∾ {𝕩.lexical_family ≡ val}¨ rows }
-  CountProvenance ← { val ← 𝕨 ⋄ +´ 0 ∾ {𝕩.provenance ≡ val}¨ rows }
+  CountProvenance ← { val ← 𝕨 ⋄ +´ 0 ∾ {𝕩.provenance_class ≡ val}¨ rows }
+  CountConfidence ← { val ← 𝕨 ⋄ +´ 0 ∾ {𝕩.provenance_confidence ≡ val}¨ rows }
   CountReconstructibility ← { val ← 𝕨 ⋄ +´ 0 ∾ {𝕩.reconstructibility ≡ val}¨ rows }
   CountDisposition ← { val ← 𝕨 ⋄ +´ 0 ∾ {𝕩.disposition ≡ val}¨ rows }
 
@@ -246,18 +310,21 @@ Summarize ← {𝕊 rows:
     total_transactions⇐≠rows,
     identity_free⇐"IDENTITY_FREE" CountPresence rows,
     explicit_event_id⇐"EXPLICIT_EVENT_ID" CountPresence rows,
-    
+
     family_none⇐"NONE" CountFamily rows,
     family_legacy_entry_24hex⇐"LEGACY_ENTRY_24HEX" CountFamily rows,
     family_prefixed_hex⇐"PREFIXED_HEX" CountFamily rows,
     family_prefixed_other⇐"PREFIXED_OTHER" CountFamily rows,
     family_opaque_hex⇐"OPAQUE_HEX" CountFamily rows,
-    family_semantic_text⇐"SEMANTIC_TEXT" CountFamily rows,
+    family_textual_other⇐"TEXTUAL_OTHER" CountFamily rows,
     family_other⇐"OTHER" CountFamily rows,
-    
+
     total_incoming_references⇐+´ 0 ∾ {𝕩.incoming_reference_count}¨ rows,
     transactions_with_references⇐+´ 0 ∾ {𝕩.incoming_reference_count > 0}¨ rows,
-    
+    duplicate_identity_definitions⇐inv.duplicate_identity_definitions,
+    dangling_references⇐inv.dangling_references,
+    self_references⇐inv.self_references,
+
     has_plan_id_count⇐+´ 0 ∾ {𝕩.has_plan_id}¨ rows,
     has_txn_id_count⇐+´ 0 ∾ {𝕩.has_txn_id}¨ rows,
     has_allocation_id_count⇐+´ 0 ∾ {𝕩.has_allocation_id}¨ rows,
@@ -266,21 +333,26 @@ Summarize ← {𝕊 rows:
     has_series_count⇐+´ 0 ∾ {𝕩.has_series}¨ rows,
     has_recur_count⇐+´ 0 ∾ {𝕩.has_recur}¨ rows,
     has_income_budget_count⇐+´ 0 ∾ {𝕩.has_income_budget}¨ rows,
-    
+
     prov_identity_free⇐"IDENTITY_FREE" CountProvenance rows,
-    prov_tsv_migration⇐"TSV-to-Journal migration" CountProvenance rows,
-    prov_native_editor⇐"native durable editor" CountProvenance rows,
-    prov_travel_editor⇐"travel editor" CountProvenance rows,
-    prov_reverse_cmd⇐"reverse command" CountProvenance rows,
-    prov_plan_completion⇐"plan completion" CountProvenance rows,
-    prov_manual_unknown⇐"manual or unknown" CountProvenance rows,
-    
+    prov_tsv_migration_candidate⇐"TSV_MIGRATION_CANDIDATE" CountProvenance rows,
+    prov_native_editor_candidate⇐"NATIVE_EDITOR_CANDIDATE" CountProvenance rows,
+    prov_travel_editor_candidate⇐"TRAVEL_EDITOR_CANDIDATE" CountProvenance rows,
+    prov_reverse_cmd_candidate⇐"REVERSE_COMMAND_CANDIDATE" CountProvenance rows,
+    prov_plan_completion_candidate⇐"PLAN_COMPLETION_CANDIDATE" CountProvenance rows,
+    prov_unknown⇐"UNKNOWN" CountProvenance rows,
+
+    confidence_not_applicable⇐"not_applicable" CountConfidence rows,
+    confidence_not_verified⇐"not_verified" CountConfidence rows,
+    confidence_inferred_from_prefix⇐"inferred_from_prefix" CountConfidence rows,
+    confidence_inferred_from_plan_link⇐"inferred_from_plan_link" CountConfidence rows,
+
     recon_identity_free⇐"IDENTITY_FREE" CountReconstructibility rows,
     recon_proven⇐"PROVEN_RECONSTRUCTIBLE" CountReconstructibility rows,
     recon_likely⇐"LIKELY_RECONSTRUCTIBLE" CountReconstructibility rows,
     recon_not⇐"NOT_RECONSTRUCTIBLE" CountReconstructibility rows,
     recon_unknown⇐"UNKNOWN" CountReconstructibility rows,
-    
+
     disp_identity_free⇐"IDENTITY_FREE" CountDisposition rows,
     disp_keep_referenced⇐"KEEP_REFERENCED" CountDisposition rows,
     disp_keep_functional⇐"KEEP_FUNCTIONAL" CountDisposition rows,
@@ -303,12 +375,15 @@ FormatSummary ← {𝕊 s:
     "family_prefixed_hex=" ∾ •Fmt s.family_prefixed_hex,
     "family_prefixed_other=" ∾ •Fmt s.family_prefixed_other,
     "family_opaque_hex=" ∾ •Fmt s.family_opaque_hex,
-    "family_semantic_text=" ∾ •Fmt s.family_semantic_text,
+    "family_textual_other=" ∾ •Fmt s.family_textual_other,
     "family_other=" ∾ •Fmt s.family_other,
     "",
     "[Incoming References]",
     "total_incoming_references=" ∾ •Fmt s.total_incoming_references,
     "transactions_with_references=" ∾ •Fmt s.transactions_with_references,
+    "duplicate_identity_definitions=" ∾ •Fmt s.duplicate_identity_definitions,
+    "dangling_references=" ∾ •Fmt s.dangling_references,
+    "self_references=" ∾ •Fmt s.self_references,
     "",
     "[Outgoing Functional Links]",
     "has_plan_id=" ∾ •Fmt s.has_plan_id_count,
@@ -322,12 +397,18 @@ FormatSummary ← {𝕊 s:
     "",
     "[Provenance]",
     "prov_identity_free=" ∾ •Fmt s.prov_identity_free,
-    "prov_tsv_migration=" ∾ •Fmt s.prov_tsv_migration,
-    "prov_native_editor=" ∾ •Fmt s.prov_native_editor,
-    "prov_travel_editor=" ∾ •Fmt s.prov_travel_editor,
-    "prov_reverse_cmd=" ∾ •Fmt s.prov_reverse_cmd,
-    "prov_plan_completion=" ∾ •Fmt s.prov_plan_completion,
-    "prov_manual_unknown=" ∾ •Fmt s.prov_manual_unknown,
+    "prov_tsv_migration_candidate=" ∾ •Fmt s.prov_tsv_migration_candidate,
+    "prov_native_editor_candidate=" ∾ •Fmt s.prov_native_editor_candidate,
+    "prov_travel_editor_candidate=" ∾ •Fmt s.prov_travel_editor_candidate,
+    "prov_reverse_cmd_candidate=" ∾ •Fmt s.prov_reverse_cmd_candidate,
+    "prov_plan_completion_candidate=" ∾ •Fmt s.prov_plan_completion_candidate,
+    "prov_unknown=" ∾ •Fmt s.prov_unknown,
+    "",
+    "[Provenance Confidence]",
+    "confidence_not_applicable=" ∾ •Fmt s.confidence_not_applicable,
+    "confidence_not_verified=" ∾ •Fmt s.confidence_not_verified,
+    "confidence_inferred_from_prefix=" ∾ •Fmt s.confidence_inferred_from_prefix,
+    "confidence_inferred_from_plan_link=" ∾ •Fmt s.confidence_inferred_from_plan_link,
     "",
     "[Reconstructibility]",
     "recon_identity_free=" ∾ •Fmt s.recon_identity_free,
@@ -347,10 +428,11 @@ FormatSummary ← {𝕊 s:
   JoinLines lines
 }
 
-FormatTsv ← {𝕊 rows:
-  header ← tab Join ⟨ "ordinal", "presence", "lexical_family", "incoming_reference_count", "has_plan_id", "has_txn_id", "has_allocation_id", "has_actual_event_id", "has_execution_envelope", "has_series", "has_recur", "has_income_budget", "provenance", "reconstructibility", "disposition" ⟩
+FormatTsv ← {𝕊 inv:
+  rows ← inv.rows
+  header ← tab Join ⟨ "ordinal", "presence", "lexical_family", "incoming_reference_count", "has_plan_id", "has_txn_id", "has_allocation_id", "has_actual_event_id", "has_execution_envelope", "has_series", "has_recur", "has_income_budget", "provenance_class", "provenance_confidence", "reconstructibility", "disposition" ⟩
   formattedRows ← {
-    tab Join ⟨ •Fmt 𝕩.ordinal, 𝕩.presence, 𝕩.lexical_family, •Fmt 𝕩.incoming_reference_count, •Fmt 𝕩.has_plan_id, •Fmt 𝕩.has_txn_id, •Fmt 𝕩.has_allocation_id, •Fmt 𝕩.has_actual_event_id, •Fmt 𝕩.has_execution_envelope, •Fmt 𝕩.has_series, •Fmt 𝕩.has_recur, •Fmt 𝕩.has_income_budget, 𝕩.provenance, 𝕩.reconstructibility, 𝕩.disposition ⟩
+    tab Join ⟨ •Fmt 𝕩.ordinal, 𝕩.presence, 𝕩.lexical_family, •Fmt 𝕩.incoming_reference_count, •Fmt 𝕩.has_plan_id, •Fmt 𝕩.has_txn_id, •Fmt 𝕩.has_allocation_id, •Fmt 𝕩.has_actual_event_id, •Fmt 𝕩.has_execution_envelope, •Fmt 𝕩.has_series, •Fmt 𝕩.has_recur, •Fmt 𝕩.has_income_budget, 𝕩.provenance_class, 𝕩.provenance_confidence, 𝕩.reconstructibility, 𝕩.disposition ⟩
   }¨ rows
   JoinLines (⟨header⟩ ∾ formattedRows)
 }
@@ -359,6 +441,7 @@ FormatTsv ← {𝕊 rows:
   IsLegacyEntryId⇐IsLegacyEntryId,
   ClassifyLexicalFamily⇐ClassifyLexicalFamily,
   BuildReferenceIndex⇐BuildReferenceIndex,
+  ClassifyProvenance⇐ClassifyProvenance,
   BuildInventory⇐BuildInventory,
   Summarize⇐Summarize,
   FormatSummary⇐FormatSummary,
