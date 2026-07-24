@@ -5,7 +5,7 @@ cd "$ROOT_DIR"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
-if git grep -n -E 'ACTUAL_SOURCE|DEFAULT_JOURNAL_FILE|journal_source_(integrity|check)' -- src_edit src_next tools mcp-server config data >"$tmp/retired-symbols"; then
+if git grep -n -E 'ACTUAL_SOURCE|DEFAULT_JOURNAL_FILE|journal_source_(integrity|check)' -- src_edit src_next tools config data >"$tmp/retired-symbols"; then
   echo 'FAIL: retired Actual TSV routing symbol remains in runtime/config' >&2
   cat "$tmp/retired-symbols" >&2
   exit 1
