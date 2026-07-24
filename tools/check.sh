@@ -141,6 +141,7 @@ bash checks/check-edit-bqn-issue-close.sh >/dev/null
 bash checks/check-edit-bqn-journal-list.sh >/dev/null
 bash checks/check-edit-bqn-journal-cleanup-plan.sh >/dev/null
 bash checks/check-edit-bqn-journal-cleanup-apply.sh >/dev/null
+bash checks/check-edit-bqn-journal-canonical-surface.sh >/dev/null
 bash checks/check-edit-bqn-journal-reverse.sh >/dev/null
 bash checks/check-edit-bqn-plan-list.sh >/dev/null
 bash checks/check-edit-bqn-plan-related.sh >/dev/null
