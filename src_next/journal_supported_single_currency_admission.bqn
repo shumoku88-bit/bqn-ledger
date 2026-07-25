@@ -255,7 +255,7 @@ Admit ← {𝕊 raw‿resolved:
       diagnostics ∾↩ BalanceDiagnostics ⟨normalizedPostings, transactionStarts⟩
       {𝕊:
         structuralRaw ← BuildStructuralRaw ⟨raw, domainInfo, normalizedPostings⟩
-        structural ← stage1.ParseWithProfile ⟨structuralRaw, "strict_self_contained"⟩
+        structural ← stage1.ParseWithProfile ⟨structuralRaw, "historical_external_plan"⟩
         diagnostics ∾↩ structural.diagnostics
         {𝕊:
           transactionCountOk ← (≠ structural.transactions) = ≠ transactionStarts

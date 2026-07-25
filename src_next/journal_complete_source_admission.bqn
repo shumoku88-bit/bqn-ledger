@@ -130,9 +130,9 @@ MapDiagnostic ← {𝕊 diagnostic‿lineMap:
   }
 }
 
-MapPosting ← {𝕊 posting‿lineMap:
+MapPosting ← {𝕊 posting‿lineMap‿sourceEventId:
   {
-    posting_id⇐posting.posting_id,
+    posting_id⇐sourceEventId ∾ ":" ∾ •Fmt posting.posting_index,
     posting_index⇐posting.posting_index,
     side⇐posting.side,
     source_line⇐MapLine ⟨posting.source_line, lineMap⟩,
@@ -147,10 +147,13 @@ MapPosting ← {𝕊 posting‿lineMap:
 }
 
 MapTransaction ← {𝕊 transaction‿lineMap:
+  mappedStart ← MapLine ⟨transaction.source_start_line, lineMap⟩
+  mappedSourceEventId ← transaction.source_event_id
+  {𝕊: mappedSourceEventId ↩ "stage0-line-" ∾ •Fmt mappedStart}⍟(transaction.identity_kind ≡ "physical_fallback") @
   {
-    source_event_id⇐transaction.source_event_id,
+    source_event_id⇐mappedSourceEventId,
     identity_kind⇐transaction.identity_kind,
-    source_start_line⇐MapLine ⟨transaction.source_start_line, lineMap⟩,
+    source_start_line⇐mappedStart,
     source_end_line⇐MapLine ⟨transaction.source_end_line, lineMap⟩,
     date⇐transaction.date,
     status_marker⇐transaction.status_marker,
@@ -164,7 +167,7 @@ MapTransaction ← {𝕊 transaction‿lineMap:
     domain⇐transaction.domain,
     calculation_scale⇐transaction.calculation_scale,
     metadata⇐transaction.metadata,
-    postings⇐{MapPosting ⟨𝕩, lineMap⟩}¨ transaction.postings
+    postings⇐{MapPosting ⟨𝕩, lineMap, mappedSourceEventId⟩}¨ transaction.postings
   }
 }
 

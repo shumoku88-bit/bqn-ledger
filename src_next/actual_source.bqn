@@ -5,6 +5,8 @@
 config ← •Import "config.bqn"
 loader ← •Import "loader.bqn"
 parser ← •Import "journal_profile_stage1.bqn"
+admission ← •Import "journal_complete_source_admission.bqn"
+ak ← •Import "account_key.bqn"
 proj ← •Import "projection.bqn"
 cube ← •Import "cube.bqn"
 
@@ -27,12 +29,48 @@ LoadTransactions ← {𝕊 base:
   parsed.transactions
 }
 
-LoadDates ← {𝕊 base: {𝕩.date}¨LoadTransactions base}
+LoadCompleteTransactions ← {𝕊 base:
+  relPath ← ResolveRelativePath base
+  raw ← loader.ReadRaw (base∾"/"∾relPath)
+  resolved ← ak.Resolve loader.ReadLines (base∾"/accounts.tsv")
+  admitted ← admission.Admit ⟨raw, resolved⟩
+  {𝕊: •Out "ERROR: native Journal source rejected" ⋄ •Exit 1}⍟(admitted.state≢"ok") @
+  admitted.transactions
+}
+
+LoadCycleTransactions ← {𝕊 base:
+  relPath ← ResolveRelativePath base
+  raw ← loader.ReadRaw (base∾"/"∾relPath)
+  result ← {state⇐"error", complete⇐0, transactions⇐⟨⟩}
+  accountsPath ← base∾"/accounts.tsv"
+  accountsExist ← 0 = ⊑ •SH ⟨"test", "-f", accountsPath⟩
+  {𝕊:
+    resolved ← ak.Resolve loader.ReadLines accountsPath
+    admitted ← admission.Admit ⟨raw, resolved⟩
+    {𝕊: result ↩ {state⇐"ok", complete⇐1, transactions⇐admitted.transactions}}⍟(admitted.state≡"ok") @
+  }⍟accountsExist @
+  {𝕊:
+    parsed ← parser.ParseWithProfile ⟨raw,"historical_external_plan"⟩
+    {𝕊: result ↩ {state⇐"ok", complete⇐0, transactions⇐parsed.transactions}}⍟(parsed.state≡"ok") @
+  }⍟(result.state≢"ok") @
+  {𝕊: •Out "ERROR: native Journal source rejected" ⋄ •Exit 1}⍟(result.state≢"ok") @
+  result
+}
+
+LoadDates ← {𝕊 base: {𝕩.date}¨(LoadCycleTransactions base).transactions}
 
 IncomeDates ← {𝕊 base‿incomeAccount:
-  txs ← LoadTransactions base
-  HasIncomeCredit ← {𝕊 tx: ∨´0∾{(𝕩.account_key≡incomeAccount)∧𝕩.delta<0}¨tx.postings}
-  {𝕩.date}¨(HasIncomeCredit¨txs)/txs
+  loaded ← LoadCycleTransactions base
+  matches ← ⟨⟩
+  {𝕊:
+    HasIncomeCredit ← {𝕊 tx: ∨´0∾{(𝕩.account_key≡incomeAccount)∧𝕩.normalized_coefficient<0}¨tx.postings}
+    matches ↩ (HasIncomeCredit¨loaded.transactions)/loaded.transactions
+  }⍟loaded.complete @
+  {𝕊:
+    HasIncomeCredit ← {𝕊 tx: ∨´0∾{(𝕩.account_key≡incomeAccount)∧𝕩.delta<0}¨tx.postings}
+    matches ↩ (HasIncomeCredit¨loaded.transactions)/loaded.transactions
+  }⍟(¬loaded.complete) @
+  {𝕩.date}¨matches
 }
 
 File ← {𝕊 ctx: 𝕩.actual_source_file}
@@ -69,4 +107,4 @@ PlanIdsInCycle ← {𝕊 base‿cy:
   {𝕩.plan_id}¨(InCycle¨evidence)/evidence
 }
 
-{Resolve⇐Resolve,ResolveRelativePath⇐ResolveRelativePath,LoadTransactions⇐LoadTransactions,LoadDates⇐LoadDates,IncomeDates⇐IncomeDates,File⇐File,Transactions⇐Transactions,Rows⇐Rows,CompletionEvidence⇐CompletionEvidence,PlanIdsInCycle⇐PlanIdsInCycle}
+{Resolve⇐Resolve,ResolveRelativePath⇐ResolveRelativePath,LoadTransactions⇐LoadTransactions,LoadCompleteTransactions⇐LoadCompleteTransactions,LoadDates⇐LoadDates,IncomeDates⇐IncomeDates,File⇐File,Transactions⇐Transactions,Rows⇐Rows,CompletionEvidence⇐CompletionEvidence,PlanIdsInCycle⇐PlanIdsInCycle}

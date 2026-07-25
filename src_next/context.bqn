@@ -472,6 +472,7 @@ BuildContext ← {𝕊 arg:
   ResolveArithmeticCurrencyProof ⇐ ResolveArithmeticCurrencyProof,
   BuildCheckedPostingProjectionFromSnapshot ⇐ BuildCheckedPostingProjectionFromSnapshot,
   BuildCheckedPostingProjectionFromPreparedForTest ⇐ BuildCheckedPostingProjectionFromPrepared,
+  BuildProjectionRowsForEvidence ⇐ BuildProjectionRowsForEvidence,
   BuildAuthorizedRowsFromPreparedForTest ⇐ BuildAuthorizedRowsFromPreparedForTest,
   BuildAuthorizedRowsFromSnapshot ⇐ BuildAuthorizedRowsFromSnapshot,
   BuildAllRowsFromSnapshot ⇐ BuildAllRowsFromSnapshot,

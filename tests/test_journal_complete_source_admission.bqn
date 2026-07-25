@@ -344,6 +344,23 @@ lib.Assert HasCode ⟨"event_unbalanced", unbalanced⟩
 7 lib.AssertEq (⊑ unbalanced.diagnostics).line
 0 lib.AssertEq ≠ unbalanced.transactions
 
+# Physical-fallback identities and posting identities are reconstructed from
+# complete-source line coordinates rather than colliding at partition-local lines.
+physicalRaw ← MakeRaw ⟨
+  "commodity JPY", "", "commodity ILS", "",
+  "account assets:bank-jpy", "", "account expenses:food-jpy", "",
+  "account assets:cash-ils", "", "account expenses:food-ils", "",
+  "2026-07-25 * physical JPY", "  assets:bank-jpy  -1 JPY", "  expenses:food-jpy  1 JPY", "",
+  "2026-07-26 * physical ILS", "  assets:cash-ils  -1 ILS", "  expenses:food-ils  1 ILS"
+⟩
+physical ← admission.Admit ⟨physicalRaw, resolved⟩
+"ok" lib.AssertEq physical.state
+2 lib.AssertEq ≠ physical.transactions
+physicalIds ← {𝕩.source_event_id}¨ physical.transactions
+2 lib.AssertEq ≠ ⍷ <¨ physicalIds
+physicalPostingIds ← ∾ {{<𝕩.posting_id}¨𝕩.postings}¨physical.transactions
+4 lib.AssertEq ≠ ⍷ physicalPostingIds
+
 # Existing profiles are not widened by this production owner.
 strictMulti ← stage1.ParseWithProfile ⟨jpyIlsRaw, "strict_self_contained"⟩
 "error" lib.AssertEq strictMulti.state
