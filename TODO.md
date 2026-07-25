@@ -24,7 +24,9 @@ Last hygiene pass: 2026-07-25
 - The selected report-projection alignment sequence is complete; no next finite report slice is selected.
 - The selected Journal parser, Posting IR, read-path, cutover, canonical-surface, and reconstructible-identity cleanup sequence is complete; no next finite Journal slice is selected.
 - The unused MCP adapter is retired. Its pre-removal implementation remains recoverable from Git tag `checkpoint-pre-mcp-removal`.
-- The Israel 2026 travel funding and settlement lifecycle plan is merged; its first docs-only ownership characterization is selected below.
+- The Israel 2026 travel funding and settlement ownership characterization is complete; no continuation slice is selected.
+- JPY→ILS exchange safe append and friend-paid pending safe append already exist.
+- Native Journal ordinary Actual writing, parsing, and selected balances remain JPY-only; ordinary ILS travel spending is not currently admitted.
 - The generic projection and valuation foundation remains an active backlog, not implementation authorization.
 - Detailed completion history through the previous checkpoint is in `docs/archive/TODO_HISTORY-2026-07-24.md`.
 
@@ -32,28 +34,13 @@ Last hygiene pass: 2026-07-25
 
 ## Active work
 
-### Israel 2026 travel funding and settlement ownership characterization
+**No finite implementation slice is currently selected.**
 
-Status: selected docs-only finite slice.
+Completed current characterization:
 
-Canonical plan:
+- `docs/archive/audits/ISRAEL_TRAVEL_RAIL_OWNERSHIP_CHARACTERIZATION-2026-07-25.md`
 
-- `docs/archive/active-plans/ISRAEL_ILS_CASH_LIFECYCLE_PLAN-2026-07-25.md`
-
-Finite question:
-
-- inventory current ownership for exchange validation and preview, ordinary Journal spending and repayment, friend pending/finalization semantics, proposed safe writers, and current read consumers;
-- distinguish physical ILS cash, Wise ILS balance, ordinary Japanese card, and friend settlement without inferring account meaning from names;
-- identify every path that could double-count exchange, expense, finalization, or repayment;
-- characterize only available public-synthetic Wise evidence, leaving purchase-time automatic conversion unresolved when evidence is insufficient;
-- state the smallest separately selectable implementation slice supported by the inventory.
-
-Boundaries:
-
-- public synthetic repository evidence only;
-- docs and test-boundary characterization only;
-- no runtime, storage, source mutation, report output, private-data access, account creation, FX valuation, Currency axis, generic projection extraction, strict-source continuation, or M4 work;
-- completing this characterization does not automatically select bidirectional exchange, persistence, friend-event storage, finalization writing, Wise integration, or read-model implementation.
+The characterization corrects the prior assumption that exchange/friend source storage was missing. It also records that the current operational guide overstated ILS Journal and travel-metadata readiness. Completion does not authorize any continuation candidate below.
 
 The latest AI working feedback remains evidence only and does not authorize additional work.
 
@@ -61,9 +48,42 @@ The latest AI working feedback remains evidence only and does not authorize addi
 
 ## Next candidates
 
+### Israel 2026 travel funding and settlement continuation
+
+Status: characterization complete / all continuation slices independently unselected.
+
+Canonical lifecycle plan:
+
+- `docs/archive/active-plans/ISRAEL_ILS_CASH_LIFECYCLE_PLAN-2026-07-25.md`
+
+Current ownership audit:
+
+- `docs/archive/audits/ISRAEL_TRAVEL_RAIL_OWNERSHIP_CHARACTERIZATION-2026-07-25.md`
+
+Recommended candidate order:
+
+1. **Native Journal ILS single-currency admission characterization** — public-synthetic, test-only proof of the exact commodity, decimal amount, account-currency, Stage 1, Stage 2A, complete-source validation, and downstream boundaries required for one balanced ILS transaction.
+2. **Native Journal ILS ordinary-add implementation** — only after candidate 1 supports a finite safe contract.
+3. **Travel metadata admission** — separately decide and test `trip-id` and `payment`; do not infer support from the old TSV metadata path.
+4. **Bidirectional account-explicit exchange** — widen the existing safe JPY→ILS event rail to admit ILS→JPY without inferring physical cash versus Wise from account names.
+5. **Friend atomic JPY finalization writer** — durable finalization/status/index ownership plus exactly one Journal expense/liability append and recovery.
+6. **Wise card evidence characterization** — distinguish existing-ILS-balance spending from purchase-time automatic conversion using public synthetic or user-supplied redacted statement shapes.
+7. **Narrow per-account position and obligation read models** — physical ILS cash, Wise ILS balance, friend JPY liability, and confirmed own-card JPY spending kept separate.
+8. **Synthetic whole-trip rehearsal** — prove no duplicated expense and zero-or-explained balances.
+9. **Human-controlled production readiness checkpoint**.
+
+Selection rules:
+
+- select at most one candidate;
+- do not bundle ILS Journal admission with metadata, reverse exchange, friend finalization, Wise semantics, or reports;
+- never add JPY and ILS;
+- do not use private production data to determine policy;
+- do not create accounts automatically;
+- do not treat exchange as expense or friend repayment as another expense.
+
 ### Generic projection and valuation foundation
 
-Status: paused while the selected Israel travel characterization is active.
+Status: unselected docs-only follow-up.
 
 Canonical intake:
 
@@ -125,19 +145,20 @@ A future slice must choose exactly one of pure seam promotion, O-bounded account
 
 ### Friend travel atomic finalization writer
 
-Status: unselected / parked candidate under the selected Israel lifecycle.
+Status: unselected / parked Israel continuation candidate.
 
 - Current source-event semantics: `docs/archive/active-plans/FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md`.
 - Reusable atomic-write proposal: `docs/archive/active-plans/FRIEND_TRAVEL_ATOMIC_FINALIZATION_WRITE_DESIGN-2026-07-13.md`.
-- Source-event storage, safe append, production use, strict-source Steps 2–5, and M4 remain independently unselected.
+- Pending source-event storage and safe append are already implemented.
+- Finalization status/index persistence, atomic Journal append, production use, strict-source Steps 2–5, and M4 remain independently unselected.
 
 ### Mixed-ledger daily-use continuation
 
-Status: Israel integrated ownership characterization selected separately; other residual candidates remain unselected.
+Status: Israel characterization complete; residual candidates remain unselected.
 
 - Current broad plan: `docs/archive/active-plans/CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md`.
 - Israel lifecycle plan: `docs/archive/active-plans/ISRAEL_ILS_CASH_LIFECYCLE_PLAN-2026-07-25.md`.
-- M3 and strict-source Step 1 are complete.
+- M3 and strict-source Step 1 are complete historically, but the native Journal cutover leaves current ordinary Actual writing/parsing JPY-only.
 - strict-source Steps 2–5 and M4 remain unselected and do not auto-start.
 
 ### Ledger Observatory long-term program
