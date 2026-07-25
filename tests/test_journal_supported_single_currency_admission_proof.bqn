@@ -52,7 +52,7 @@ ils ← admission.Admit ⟨ilsRaw, resolved⟩
 # The production Stage 1 profile remains unchanged and still rejects the ILS witness.
 productionIls ← stage1.ParseWithProfile ⟨ilsRaw, "strict_self_contained"⟩
 "error" lib.AssertEq productionIls.state
-1 lib.Assert ⟨"commodity_unsupported", productionIls⟩ HasCode
+lib.Assert HasCode ⟨"commodity_unsupported", productionIls⟩
 
 usdRaw ← Raw ⟨
   "commodity USD",
@@ -88,7 +88,7 @@ unsupportedRaw ← Raw ⟨
 ⟩
 unsupported ← admission.Admit ⟨unsupportedRaw, resolved⟩
 "error" lib.AssertEq unsupported.state
-1 lib.Assert ⟨"commodity_unsupported", unsupported⟩ HasCode
+lib.Assert HasCode ⟨"commodity_unsupported", unsupported⟩
 
 precisionRaw ← Raw ⟨
   "commodity ILS",
@@ -103,7 +103,7 @@ precisionRaw ← Raw ⟨
 ⟩
 precision ← admission.Admit ⟨precisionRaw, resolved⟩
 "error" lib.AssertEq precision.state
-1 lib.Assert ⟨"posting_precision_exceeded", precision⟩ HasCode
+lib.Assert HasCode ⟨"posting_precision_exceeded", precision⟩
 
 accountMismatchRaw ← Raw ⟨
   "commodity ILS",
@@ -118,7 +118,7 @@ accountMismatchRaw ← Raw ⟨
 ⟩
 accountMismatch ← admission.Admit ⟨accountMismatchRaw, resolved⟩
 "error" lib.AssertEq accountMismatch.state
-1 lib.Assert ⟨"posting_account_currency_mismatch", accountMismatch⟩ HasCode
+lib.Assert HasCode ⟨"posting_account_currency_mismatch", accountMismatch⟩
 
 postingDomainMismatchRaw ← Raw ⟨
   "commodity ILS",
@@ -133,7 +133,7 @@ postingDomainMismatchRaw ← Raw ⟨
 ⟩
 postingDomainMismatch ← admission.Admit ⟨postingDomainMismatchRaw, resolved⟩
 "error" lib.AssertEq postingDomainMismatch.state
-1 lib.Assert ⟨"posting_domain_mismatch", postingDomainMismatch⟩ HasCode
+lib.Assert HasCode ⟨"posting_domain_mismatch", postingDomainMismatch⟩
 
 unbalancedRaw ← Raw ⟨
   "commodity ILS",
@@ -148,7 +148,7 @@ unbalancedRaw ← Raw ⟨
 ⟩
 unbalanced ← admission.Admit ⟨unbalancedRaw, resolved⟩
 "error" lib.AssertEq unbalanced.state
-1 lib.Assert ⟨"event_unbalanced", unbalanced⟩ HasCode
+lib.Assert HasCode ⟨"event_unbalanced", unbalanced⟩
 
 # Structural validation is still delegated to the unchanged Stage 1 parser.
 undeclaredAccountRaw ← Raw ⟨
@@ -162,6 +162,6 @@ undeclaredAccountRaw ← Raw ⟨
 ⟩
 undeclaredAccount ← admission.Admit ⟨undeclaredAccountRaw, resolved⟩
 "error" lib.AssertEq undeclaredAccount.state
-1 lib.Assert ⟨"posting_account_unknown", undeclaredAccount⟩ HasCode
+lib.Assert HasCode ⟨"posting_account_unknown", undeclaredAccount⟩
 
 •Out "test_journal_supported_single_currency_admission_proof.bqn: OK"
