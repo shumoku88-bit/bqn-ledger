@@ -47,6 +47,7 @@ Declarations ← {𝕊 lines:
   domains ← empty
   domainLines ← empty
   accounts ← empty
+  commodityCount ← 0
   {𝕊 lineIndex:
     text ← Trim lineIndex ⊑ lines
     {𝕊:
@@ -63,11 +64,12 @@ Declarations ← {𝕊 lines:
         }⍟(policy.state ≡ "ok") @
       }⍟valid @
     }⍟(StartsWith ⟨"commodity ", text⟩) @
+    commodityCount +↩ StartsWith ⟨"commodity ", text⟩
     {𝕊: accounts ∾↩ ⟨{text⇐text, source_line⇐lineIndex + 1}⟩}⍟(StartsWith ⟨"account ", text⟩) @
   }¨ ↕ ≠ lines
   duplicate ← (≠ domains) ≠ ≠ Unique domains
   diagnostics ∾↩ AddIf ⟨duplicate, Diagnostic ⟨"commodity_domain_duplicate", 0, "each declared commodity domain must appear once"⟩⟩
-  diagnostics ∾↩ AddIf ⟨0 = ≠ domains, Diagnostic ⟨"commodity_domain_missing", 0, "proof Journal must declare at least one supported commodity"⟩⟩
+  diagnostics ∾↩ AddIf ⟨0 = commodityCount, Diagnostic ⟨"commodity_domain_missing", 0, "proof Journal must declare at least one supported commodity"⟩⟩
   {domains⇐domains, domain_lines⇐domainLines, accounts⇐accounts, diagnostics⇐diagnostics}
 }
 
@@ -171,33 +173,37 @@ Admit ← {𝕊 raw‿resolved:
   transactions ← empty
   starts ← (IsDateHeader¨ Trim¨ lines) / ↕ ≠ lines
 
-  {𝕊 transactionIndex:
-    start ← transactionIndex ⊑ starts
-    end ← (transactionIndex + 1 < ≠ starts) ⊑ ⟨≠ lines, (transactionIndex + 1) ⊑ (starts ∾ ≠ lines)⟩
-    blockLines ← (end - start) ↑ start ↓ lines
-    domainEvidence ← PostingDomains blockLines
-    localDiagnostics ← {𝕊 diagnostic:
-      {severity⇐diagnostic.severity, stage⇐diagnostic.stage, code⇐diagnostic.code, line⇐start + diagnostic.line, message⇐diagnostic.message}
-    }¨ domainEvidence.diagnostics
-    domainCountOk ← 1 = ≠ domainEvidence.domains
-    localDiagnostics ∾↩ AddIf ⟨¬ domainCountOk, Diagnostic ⟨"transaction_domain_count_invalid", start + 1, "ordinary transaction must contain exactly one posting currency domain"⟩⟩
-    {𝕊:
-      domain ← ⊑ domainEvidence.domains
-      declared ← Contains ⟨domain, declarations.domains⟩
-      localDiagnostics ∾↩ AddIf ⟨¬ declared, Diagnostic ⟨"transaction_domain_undeclared", start + 1, "ordinary transaction currency must be declared by the Journal"⟩⟩
+  {𝕊:
+    {𝕊 transactionIndex:
+      start ← transactionIndex ⊑ starts
+      end ← ≠ lines
+      {𝕊: end ↩ (transactionIndex + 1) ⊑ starts}⍟((transactionIndex + 1) < ≠ starts) @
+      blockLines ← (end - start) ↑ start ↓ lines
+      domainEvidence ← PostingDomains blockLines
+      localDiagnostics ← {𝕊 diagnostic:
+        {severity⇐diagnostic.severity, stage⇐diagnostic.stage, code⇐diagnostic.code, line⇐start + diagnostic.line, message⇐diagnostic.message}
+      }¨ domainEvidence.diagnostics
+      shapeOk ← 0 = ≠ localDiagnostics
+      domainCountOk ← 1 = ≠ domainEvidence.domains
+      localDiagnostics ∾↩ AddIf ⟨shapeOk ∧ (¬ domainCountOk), Diagnostic ⟨"transaction_domain_count_invalid", start + 1, "ordinary transaction must contain exactly one posting currency domain"⟩⟩
       {𝕊:
-        domainLine ← DomainSourceLine ⟨domain, declarations⟩
-        mini ← BuildMini ⟨domain, domainLine, declarations.accounts, blockLines, start⟩
-        admitted ← single.Admit ⟨mini.raw, resolved⟩
-        localDiagnostics ∾↩ {MapDiagnostic ⟨𝕩, mini.line_map⟩}¨ admitted.diagnostics
+        domain ← ⊑ domainEvidence.domains
+        declared ← Contains ⟨domain, declarations.domains⟩
+        localDiagnostics ∾↩ AddIf ⟨¬ declared, Diagnostic ⟨"transaction_domain_undeclared", start + 1, "ordinary transaction currency must be declared by the Journal"⟩⟩
         {𝕊:
-          transaction ← MapTransaction ⟨⊑ admitted.transactions, mini.line_map⟩
-          transactions ∾↩ ⟨transaction⟩
-        }⍟((admitted.state ≡ "ok") ∧ (1 = ≠ admitted.transactions)) @
-      }⍟declared @
-    }⍟domainCountOk @
-    diagnostics ∾↩ localDiagnostics
-  }¨ ↕ ≠ starts
+          domainLine ← DomainSourceLine ⟨domain, declarations⟩
+          mini ← BuildMini ⟨domain, domainLine, declarations.accounts, blockLines, start⟩
+          admitted ← single.Admit ⟨mini.raw, resolved⟩
+          localDiagnostics ∾↩ {MapDiagnostic ⟨𝕩, mini.line_map⟩}¨ admitted.diagnostics
+          {𝕊:
+            transaction ← MapTransaction ⟨⊑ admitted.transactions, mini.line_map⟩
+            transactions ∾↩ ⟨transaction⟩
+          }⍟((admitted.state ≡ "ok") ∧ (1 = ≠ admitted.transactions)) @
+        }⍟declared @
+      }⍟(shapeOk ∧ domainCountOk) @
+      diagnostics ∾↩ localDiagnostics
+    }¨ ↕ ≠ starts
+  }⍟(0 = ≠ declarations.diagnostics) @
 
   diagnostics ∾↩ AddIf ⟨0 = ≠ starts, Diagnostic ⟨"transaction_missing", 0, "proof Journal must contain at least one dated transaction"⟩⟩
   {
