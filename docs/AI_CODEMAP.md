@@ -82,7 +82,7 @@ Exit: keep current while this remains the pit code/data-flow entry point
 - `friend_travel_jpy_finalization.bqn` — pending friend-travel source-event descriptor、明示 finalization date / JPY amount、既存account descriptor、既存finalization IDだけを入力にするpure validator。成功時は既存JPY liability → JPY expenseのcanonical previewを正確に1行返し、失敗時はprivacy-safe diagnosticsと0行を返す。I/O、status/index mutation、writer、public runtime配線は持たない。
 - `friend_travel_source_event.bqn` — Israel用friend-paid pending source eventの固定9列、ILS精度、固定payer/trip/status、既存全行検査、ID一意性、exact preview rowを所有するpure validator。I/Oとfinalizationを持たない。
 - `travel_exchange_event.bqn` — Israel用JPY→ILS exchangeの2観測amount、既存account descriptor、ID一意性を検査しstructured previewを返すpure owner。I/O、rate、journal row、valuationを持たない。
-- `actual_source.bqn` — configured native Journal resolver、date/completion evidence、transaction loadの共有owner。silent fallbackなし。
+- `actual_source.bqn` — configured native Journal resolver、date/completion evidence、transaction loadの共有owner。cycle date/income-date evidenceはcomplete-source admissionを優先し、historical empty-JPY compatibilityだけ既存parserへ明示fallbackする。Actual source file fallbackはない。
 - `loader.bqn` — source ファイル読み込み (`•FChars` 使用)。
 - `cube.bqn` — Canonical Daily Cube (`Day × Account × Layer`) の構築。
 - `tbds.bqn` — Trial Balance Data Set (period/account/layer/opening/movement/closing)。
@@ -91,7 +91,8 @@ Exit: keep current while this remains the pit code/data-flow entry point
 - `account_key.bqn` — 勘定科目のキー解決。
 - `projection.bqn` — Posting IR 投影。
 - `snapshot.bqn` — Balance Sheet / Snapshot。TBDS closing を使用。構造化された ViewModel JSON 出力（FormatJson）もサポート。
-- `balances.bqn` — 残高表示。current native Journal production pathはJPYだけを受理し、明示された非JPY selected currencyはfail closedにする。既存JSONのフラットリストと合計契約は維持する。
+- `selected_domain_context.bqn` — 明示されたregistry-supportedな1通貨について、complete-source Actual carrier rowsと同通貨を証明したplan/budget rowsだけをcontext-local exact scaleへ正規化し、Cube/TBDS viewを構成する。異通貨、部分context、Currency axis、FX、valuationは扱わない。
+- `balances.bqn` — 残高表示。human `--section balances --currency CODE`はselected-domain contextを使い、対象通貨のaccount残高だけを表示する。ILS等の非JPY selected viewは累計expenseも表示し、既存JPY presentationとJSON契約は維持する。
 - `ytd_summary.bqn` — YTD 集計。
 - `cycle_summary.bqn` — サイクル収支 (Income Statement)。
 - `expense_breakdown.bqn` — サイクル支出内訳。
@@ -133,7 +134,7 @@ Exit: keep current while this remains the pit code/data-flow entry point
 - `src_edit/journal_add_cmd.bqn` — `budget add` のTSV候補を検証・生成する。
 - `src_edit/actual_journal_file_cmd.bqn` — BQN resolverが選んだnative Journal相対pathをUI/toolsへ出力する。
 - `src_edit/journal_validate_cmd.bqn` — configured native Journalと統合contextをfail closedに検査する書き込み後validator。
-- `src_edit/journal_block_add_cmd.bqn` — native Journal transaction blockの検証・append protocol生成。
+- `src_edit/journal_block_add_cmd.bqn` — native Journal transaction blockの検証・append protocol生成。ordinary appendは明示supported currencyを受け、complete-source admissionとStage 2A currency-proof carrierを再利用する。省略時JPY互換、single-domain、account-currency、exact precision、balanceをfail closedに検査する。
 - `src_edit/travel_friend_add_cmd.bqn` — `friend_travel_events.tsv` の既存全行検査とpending候補APPEND protocol生成。意味検査はpure source-event ownerへ委譲。
 - `src_edit/travel_exchange_add_cmd.bqn` — accountsと`travel_exchange_events.tsv`をpure exchange ownerへ渡し、固定10列候補APPEND protocolを生成。
 - `src_edit/journal_list_cmd.bqn` — journal reverse UI向け read-only native Journal selection export。
@@ -189,6 +190,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 - `check-travel-exchange-pure.sh` — exchange structured previewのpure contractとI/O/rate/journal output不在チェック。
 - `check-edit-bqn-travel-exchange-add.sh` — exchange sourceのexclusive first-write、全行検査、checked append、stale/duplicate拒否、rollback回帰チェック。
 - `check-israel-travel-four-path-rehearsal.sh` — exchange → ILS cash journal → confirmed-JPY card journal → friend pendingを一つのsynthetic baseで公開入口から実行する統合回帰。
+- `check-israel-ils-usable-vertical-slice.sh` — supported-currency ordinary append、mandatory admission/carrier validation、ILS selected Actual+plan+budget context、ILS balance、JPY compatibility、USD registry witness、失敗時no-writeを公開synthetic baseで検証。
 - `check-edit-bqn-issue-close.sh` — BQN issue list/close の履歴保持・dry-run・fail-closed チェック。
 - `check-edit-bqn-journal-list.sh` — BQN journal list read-only selection exportチェック。
 - `check-edit-bqn-plan-list.sh` — BQN plan list parity / unfinished plan candidate export 契約チェック。
@@ -205,6 +207,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 - `test_journal_canonical_prefix_converter.bqn` — deterministic rendering、description/metadata/currency red paths、identity/provenance、Cube/TBDS/Trial Balance/Balances parity、historical profile、synthetic suffix reconstructionのfocused test。
 - `test_journal_leading_ascii_space_description_characterization.bqn` — status marker後の必須ASCII SPACEを一文字だけdelimiterとして消費し、残るdescription-owned leading ASCII SPACEをTransaction IRへexactに保存する回帰test。delimiter欠落とempty payloadを区別してrejectし、converterによる一文字・二文字のleading-space exact round-tripとStage 2Aの16-field shape不変も固定する。
 - `test_journal_native_three_posting_semantic_parity.bqn` — native Journal 3 rowsとlegacy TSV 4 rowsのtopology差を保持したまま、共通semantic coordinate reductionとnumeric Cube payloadの一致を既存境界だけで検証するfocused test。
+- `test_src_next_selected_domain_context.bqn` — JPY+ILS Journalとmixed plan/budget evidenceから1通貨だけを構成し、domain/scale isolation、fail-closed mismatch、JPY互換座標、同名accountのcurrency coordinate分離を検証。
 - `test_lib.bqn` — テストフレームワーク (Assert, AssertEq)。
 - `test_find_section.bqn`, `test_simple.bqn` — 汎用テスト。
 

@@ -54,6 +54,12 @@ debug
 
 Do not edit this list by hand as a contract change. If section behavior changes, update the implementation/checks first, then refresh this note if it is useful.
 
+## Selected balances boundary
+
+Human `tools/report <base> --section balances --currency CODE` constructs exactly one registry-supported currency domain through `src_next/selected_domain_context.bqn`. Actual uses production complete-source admission and Stage 2A `currency_proof_rows`; selected plan and budget rows must prove the same source currency and account currency. All selected rows normalize exactly to one context-local scale before TBDS balance calculation. Any invalid Actual, plan, budget, domain, account-currency, precision, or normalization evidence rejects the complete selected context.
+
+The selected output names the currency and emits only that currency's AccountKey coordinates. It never emits a combined Journal-wide money total, FX conversion, valuation, reporting currency, or Currency axis. The established JPY selected presentation remains compatible. Non-JPY selected human balances additionally expose cumulative expense accounts needed by the narrow travel read model. Full report, JSON balances, and unrelated sections retain their existing contracts.
+
 ## Actual Comparison boundary
 
 `actual-comparison` receives an explicit observation through `actual_comparison.BuildAt ⟨ctx,O⟩`. Its current window is `[cycle.start, min(O + 1 day, cycle.end_exclusive))`; `O` is a hard cutoff and owns `vm.as_of`. Amounts come from actual-layer local TBDS period views over checked ledger-wide Posting IR. Counts use admitted posting source identity per lane/account; rejected-row diagnostics deduplicate separately per source row.

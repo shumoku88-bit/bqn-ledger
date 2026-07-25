@@ -26,7 +26,7 @@ Last hygiene pass: 2026-07-25
 - The unused MCP adapter is retired. Its pre-removal implementation remains recoverable from Git tag `checkpoint-pre-mcp-removal`.
 - The Israel 2026 travel funding and settlement ownership characterization is complete.
 - JPY→ILS exchange safe append and friend-paid pending safe append already exist.
-- Native Journal ordinary Actual writing, selected read-path wiring, and selected balances remain JPY-only; ordinary ILS travel spending is not currently admitted by the runtime route.
+- The usable Israel ILS vertical slice is complete: ordinary supported-currency Journal append, one explicitly selected Actual + plan + budget context, and selected-domain balances work for public-synthetic ILS while omitted-currency JPY behavior remains compatible.
 - The non-JPY single-currency characterization and test-only admission proof are complete. Public-synthetic ILS and USD witnesses share one registry-driven domain, precision, account-currency, normalization, balance, and structural-trace boundary while production Journal routes remain unchanged.
 - The multi-currency Journal container contract and test-only proof are complete. One public-synthetic Journal admits separate JPY and ILS ordinary transactions, a JPY and USD witness proves generality, every transaction retains its own domain and scale, and mixed-domain ordinary transactions fail closed.
 - The production complete-source admission boundary is complete. It returns per-transaction domains, scales, normalized posting evidence, account-currency proof, identity, metadata, and source provenance without a Journal-wide money domain or total.
@@ -42,13 +42,17 @@ Last hygiene pass: 2026-07-25
 
 Completed current finite work:
 
-- `src_next/journal_complete_source_admission.bqn`
-- `src_next/journal_currency_proof_carrier_stage2a.bqn`
-- `tests/test_journal_currency_proof_carrier_stage2a.bqn`
+- `src_next/selected_domain_context.bqn`
+- supported-currency `src_edit/journal_block_add_cmd.bqn` / `tools/edit journal add --currency CODE`
+- selected-domain `src_next/balances.bqn` read model
+- `tests/test_src_next_selected_domain_context.bqn`
+- `checks/check-israel-ils-usable-vertical-slice.sh`
 
-The Stage 2A carrier preserves transaction and posting order, source identities, posting identities, source ranges, account resolution, transaction domain, calculation scale, account currency, commodity, exact source amount evidence, and normalized coefficients. It validates registry support, domain equality, account-currency equality, normalization consistency, source provenance, durable event identity uniqueness, posting identity uniqueness, and per-transaction balance. Any invalid proof suppresses all carrier rows.
+The selected-domain boundary reuses production complete-source admission and Stage 2A `currency_proof_rows`, validates all Actual and non-Actual evidence before selecting one registry-supported currency, normalizes only that domain to one context-local exact scale, and returns no partial context on failure. It does not alter the existing 16-field untyped `delta` contract or add a Currency axis.
 
-The carrier deliberately exposes `currency_proof_rows` rather than the current untyped `posting_rows.delta` contract. It performs no I/O and is not connected to `actual_source`, context, Cube, TBDS, reports, balances, writers, editors, FX, valuation, exchange semantics, metadata admission, or travel routes.
+The ordinary-add writer now accepts one explicit registry-supported transaction currency, preserves omitted-currency JPY behavior, and rejects unsupported currency, excessive precision, account mismatch, mixed-domain, zero, malformed, missing, and unbalanced postings before safe append. The synthetic rehearsal writes an ILS expense, passes production admission and currency-proof carriage, composes ILS Actual + plan + budget, and displays only ILS account balances and cumulative expense. JPY compatibility is checked, and USD uses the same registry-driven writer boundary.
+
+Mixed-currency aggregation, FX, valuation, reporting currency, travel metadata, reverse exchange, friend finalization, and Wise semantics remain unimplemented.
 
 The latest AI working feedback remains evidence only and does not authorize additional work.
 
@@ -58,7 +62,7 @@ The latest AI working feedback remains evidence only and does not authorize addi
 
 ### Multi-currency native Journal container continuation
 
-Status: contract, test-only container proof, production complete-source admission, and Stage 2A currency-proof carrier complete / all later continuation slices independently unselected.
+Status: admission, Stage 2A carriage, selected-domain composition, ordinary-add widening, and selected balances complete / remaining continuation slices independently unselected.
 
 Current evidence and contract:
 
@@ -73,15 +77,16 @@ Current evidence and contract:
 - `tests/test_journal_complete_source_admission.bqn`
 - `src_next/journal_currency_proof_carrier_stage2a.bqn`
 - `tests/test_journal_currency_proof_carrier_stage2a.bqn`
+- `src_next/selected_domain_context.bqn`
+- `tests/test_src_next_selected_domain_context.bqn`
+- `checks/check-israel-ils-usable-vertical-slice.sh`
 
 Recommended candidate order:
 
-1. **Selected-domain context composition** — compose Actual + plan + budget for exactly one explicitly selected supported currency at a time, or return explicit partitions; do not add a Currency axis automatically.
-2. **Native ordinary-add writer widening** — accept one explicit supported transaction currency while preserving existing JPY behavior.
-3. **Per-domain consumer and formatting verification** — selected balances and immediate consumers never produce combined multi-currency totals.
-4. **Explicit exchange-in-Journal design** — independently decide whether a typed cross-currency exchange transaction should join the current separate exchange event rail.
+1. **Per-domain consumer and formatting verification beyond selected balances** — review one immediate consumer at a time; never produce combined multi-currency totals.
+2. **Explicit exchange-in-Journal design** — independently decide whether a typed cross-currency exchange transaction should join the current separate exchange event rail.
 
-Candidate 1 is the first candidate only. It remains unselected and must not be implemented automatically. Actual-source routing, current context, writer, reports, FX, valuation, exchange, and travel work remain unselected.
+Both candidates remain unselected. Full-report routing, FX, valuation, exchange, and later travel work remain unselected.
 
 Selection rules:
 
@@ -89,7 +94,7 @@ Selection rules:
 - treat completed admission and carrier rows as production evidence, not authorization to feed unlike currencies into current context or Cube;
 - ILS and USD are witnesses, not generic module branch conditions;
 - the Journal container may be multi-currency while every ordinary transaction remains single-domain;
-- do not bundle selected-domain composition with current context routing, writer work, travel metadata, reverse exchange, friend finalization, Wise semantics, or reports;
+- do not bundle a future consumer with travel metadata, reverse exchange, friend finalization, Wise semantics, or broad report conversion;
 - never add amounts from different currency domains;
 - reject mixed-domain ordinary transactions until an explicit typed exchange contract is selected;
 - do not use private production data to determine policy;
@@ -98,7 +103,7 @@ Selection rules:
 
 ### Israel 2026 travel funding and settlement continuation
 
-Status: production complete-source admission and Stage 2A currency-proof carriage complete; selected-domain context and travel continuation slices remain independently unselected.
+Status: usable ordinary ILS expense → selected ILS context → selected ILS balance vertical slice complete; later travel continuation slices remain independently unselected.
 
 Canonical lifecycle plan:
 
@@ -108,16 +113,15 @@ Current ownership audit:
 
 - `docs/archive/audits/ISRAEL_TRAVEL_RAIL_OWNERSHIP_CHARACTERIZATION-2026-07-25.md`
 
-Recommended travel order after multi-currency Journal prerequisites:
+Recommended travel order after the completed minimal vertical slice:
 
-1. **Native Journal ILS ordinary-add implementation** — depends on selected-domain context composition in addition to completed admission and Stage 2A carriage.
-2. **Travel metadata admission** — separately decide and test `trip-id` and `payment`; do not infer support from the old TSV metadata path.
-3. **Bidirectional account-explicit exchange** — widen the existing safe JPY→ILS event rail to admit ILS→JPY without inferring physical cash versus Wise from account names.
-4. **Friend atomic JPY finalization writer** — durable finalization/status/index ownership plus exactly one Journal expense/liability append and recovery.
-5. **Wise card evidence characterization** — distinguish existing-ILS-balance spending from purchase-time automatic conversion using public synthetic or user-supplied redacted statement shapes.
-6. **Narrow per-account position and obligation read models** — physical ILS cash, Wise ILS balance, friend JPY liability, and confirmed own-card JPY spending kept separate.
-7. **Synthetic whole-trip rehearsal** — prove no duplicated expense and zero-or-explained balances.
-8. **Human-controlled production readiness checkpoint**.
+1. **Travel metadata admission** — separately decide and test `trip-id` and `payment`; do not infer support from the old TSV metadata path.
+2. **Bidirectional account-explicit exchange** — widen the existing safe JPY→ILS event rail to admit ILS→JPY without inferring physical cash versus Wise from account names.
+3. **Friend atomic JPY finalization writer** — durable finalization/status/index ownership plus exactly one Journal expense/liability append and recovery.
+4. **Wise card evidence characterization** — distinguish existing-ILS-balance spending from purchase-time automatic conversion using public synthetic or user-supplied redacted statement shapes.
+5. **Narrow semantic position and obligation read models beyond currency-selected account balances** — physical ILS cash, Wise ILS balance, friend JPY liability, and confirmed own-card JPY spending kept separate.
+6. **Synthetic whole-trip rehearsal** — prove no duplicated expense and zero-or-explained balances.
+7. **Human-controlled production readiness checkpoint**.
 
 Selection rules:
 
@@ -201,14 +205,14 @@ Status: unselected / parked Israel continuation candidate.
 
 ### Mixed-ledger daily-use continuation
 
-Status: production complete-source admission and Stage 2A currency-proof carriage complete; residual routing and consumer candidates remain unselected.
+Status: usable ordinary supported-currency append and selected-domain context/balance slice complete; broader consumers remain unselected.
 
 - Current broad plan: `docs/archive/active-plans/CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md`.
 - Israel lifecycle plan: `docs/archive/active-plans/ISRAEL_ILS_CASH_LIFECYCLE_PLAN-2026-07-25.md`.
-- M3 and strict-source Step 1 are complete historically, but the native Journal runtime route still leaves ordinary Actual writing, context, and selected balances JPY-only.
-- The production admission and Stage 2A carrier can preserve separate JPY and ILS evidence without mixed arithmetic, but current Actual loading and context do not yet consume those boundaries.
-- strict-source Steps 2–5 and M4 remain unselected and do not auto-start.
-- multi-currency container work does not authorize mixed-currency arithmetic, valuation, or totals.
+- The public synthetic path now appends ordinary ILS spending, composes ILS Actual + plan + budget only, and displays ILS account balances and cumulative expense without admitting JPY or USD into that context.
+- Omitted-currency ordinary append and explicitly selected JPY balance compatibility remain checked; USD proves the writer is registry-driven.
+- strict-source Steps 2–5 beyond this narrow selected route and M4 remain unselected and do not auto-start.
+- mixed-currency aggregation, FX, valuation, metadata, reverse exchange, friend finalization, and Wise semantics remain unavailable.
 
 ### Ledger Observatory long-term program
 

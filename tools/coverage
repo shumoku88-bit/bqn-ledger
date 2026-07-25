@@ -53,6 +53,9 @@ for mod in src_edit/*.bqn; do
     journal_add_cmd)
       coverage=(checks/check-edit-bqn-journal-add.sh)
       ;;
+    journal_block_add_cmd|journal_native_source_check)
+      coverage=(checks/check-edit-bqn-journal-block-add.sh checks/check-israel-ils-usable-vertical-slice.sh)
+      ;;
     issue_add_cmd)
       coverage=(checks/check-edit-bqn-journal-add.sh)
       ;;
