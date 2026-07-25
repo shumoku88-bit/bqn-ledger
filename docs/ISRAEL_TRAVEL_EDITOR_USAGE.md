@@ -1,11 +1,28 @@
 # Israel Travel Editor Usage
 
-Status: current operational guide / predeparture ready
+Status: current operational guide / partial readiness only
 Owner: editor / travel capture
 Canonical: yes
-Exit: keep current while these travel capture commands are in use.
+Exit: revise after native Journal ILS admission, travel metadata admission, return exchange, or friend finalization writing changes the usable paths
 
-This guide currently documents the completed capture paths. All examples use synthetic names and amounts; verify that required real accounts already exist before travel use. The editor does not create accounts.
+This guide records what the current public editor can actually do. All examples use synthetic names and amounts. The editor never creates accounts, and no command here authorizes private-data inspection.
+
+## Current readiness summary
+
+| Path | Current status |
+|---|---|
+| JPY→ILS exchange event | available through dedicated source-event editor |
+| Friend-paid ILS pending event | available through dedicated source-event editor |
+| Ordinary confirmed-JPY card/debit expense | available through native Journal, JPY only |
+| Ordinary physical ILS cash expense | blocked by JPY-only native Journal writer/parser |
+| Ordinary Wise ILS balance expense | blocked by JPY-only native Journal writer/parser |
+| `trip_id` / `payment` Journal metadata | not admitted by current native Journal profile |
+| ILS→JPY return exchange | not admitted by current exchange validator |
+| Friend JPY finalization write | pure preview exists; writer is not implemented |
+| ILS/Wise remaining-balance view | not implemented |
+| Wise purchase-time automatic conversion | unresolved pending statement evidence |
+
+The dedicated exchange and friend sources do not affect the configured native Journal, Posting IR, Cube, TBDS, balances, or reports.
 
 ## JPY to ILS exchange event
 
@@ -26,7 +43,7 @@ tools/edit --base "$BASE" travel exchange add \
   --dry-run
 ```
 
-Review both amounts and account names, then replace `--dry-run` with `--yes`. Both accounts must already exist with the selected currency. JPY source amounts use zero fractional digits; ILS target amounts permit at most two. The editor does not calculate or save a rate, call a market API, value one amount in the other currency, change balances, or create accounts.
+Review both amounts and account names, then replace `--dry-run` with `--yes`. Both accounts must already exist with the selected currency. JPY source amounts use zero fractional digits; ILS target amounts permit at most two.
 
 The headerless `<base>/travel_exchange_events.tsv` source uses ten fixed columns:
 
@@ -43,11 +60,13 @@ exchange_id
 trip_id
 ```
 
-Blank/comment lines follow the existing loader convention. Every data row and exchange ID is validated before append. Duplicate IDs and malformed existing data fail closed.
+Every data row and exchange ID is validated before append. Duplicate IDs, malformed existing data, stale writes, and post-check failure fail closed. The writer preserves backups or removes a failed first creation as appropriate.
+
+Current limitation: the pure validator and public check intentionally reject ILS→JPY. Do not reverse the fields and assume that return exchange works.
 
 ## Friend-paid pending event
 
-When a friend pays in ILS, record a pending source event rather than an ordinary journal expense:
+When a friend pays in ILS, record a pending source event rather than an ordinary Journal expense:
 
 ```bash
 tools/edit --base "$BASE" travel friend add \
@@ -62,9 +81,9 @@ tools/edit --base "$BASE" travel friend add \
   --dry-run
 ```
 
-After reviewing the exact preview, replace `--dry-run` with `--yes` to append. This writes only `<base>/friend_travel_events.tsv`; it does not write the configured native Journal, create a liability or expense, convert the ILS amount, or finalize a JPY amount.
+After reviewing the exact preview, replace `--dry-run` with `--yes`. This writes only `<base>/friend_travel_events.tsv`; it does not write the configured native Journal, create a liability or expense, convert the ILS amount, or finalize a JPY amount.
 
-The source has no header. Blank and comment lines follow the existing loader convention and are ignored. Every data row has exactly nine columns:
+The source has no header and exactly nine columns:
 
 ```text
 date
@@ -80,41 +99,58 @@ status
 
 For this command, `original_currency=ILS`, `payer=friend`, `trip_id=israel-2026`, and `status=pending` are fixed contracts. IDs must be file-wide unique. Existing malformed or duplicate data causes the whole append to fail closed.
 
-The return-home JPY finalization writer is not implemented. Correction/reversal is also not yet selected; do not edit or reinterpret an event through the ordinary journal.
+The pure return-home JPY preview exists, but the atomic writer, durable finalization index/status transition, and Journal append integration are not implemented. Do not manually reinterpret a pending event as already finalized.
 
-## Ordinary cash, Wise, and debit capture
+## Ordinary confirmed-JPY card or debit expense
 
-ILS cash and Wise balance expenses each use the ordinary journal once. They may share one ILS expense account; the `from` account and `payment` metadata distinguish the payment path:
-
-```bash
-# ILS cash
-tools/edit --base "$BASE" journal add \
-  --date 2026-07-20 --memo "synthetic meal paid in cash" \
-  --from "assets:wallet-ils" --to "expenses:trip-ils" \
-  --amount "42.50" --currency ILS \
-  --meta trip_id=israel-2026 --meta payment=cash \
-  --yes --post-check lint
-
-# Wise ILS balance
-tools/edit --base "$BASE" journal add \
-  --date 2026-07-20 --memo "synthetic meal paid by Wise" \
-  --from "assets:prepaid-ils" --to "expenses:trip-ils" \
-  --amount "42.50" --currency ILS \
-  --meta trip_id=israel-2026 --meta payment=card \
-  --yes --post-check lint
-```
-
-SMBC is a debit path, not a credit-card liability. Record only the JPY amount confirmed by the bank, from an existing JPY asset to a JPY expense. Do not also record the displayed ILS amount. A trip-specific JPY expense may keep food or transit detail in the memo until `trip_id` reporting is sufficient to return to ordinary expense accounts:
+The current stable `journal add` surface supports the configured native Journal only in JPY. A confirmed JPY card/debit expense can be recorded with explicit existing JPY accounts:
 
 ```bash
 tools/edit --base "$BASE" journal add \
-  --date 2026-07-20 --memo "synthetic transit paid by debit" \
-  --from "assets:bank-jpy" --to "expenses:trip-jpy" \
-  --amount "1800" --currency JPY \
-  --meta trip_id=israel-2026 --meta payment=debit \
-  --yes --post-check lint
+  --date 2026-07-20 \
+  --memo "synthetic transit paid by Japanese debit card" \
+  --from "assets:bank-jpy" \
+  --to "expenses:trip-jpy" \
+  --amount "1800" \
+  --currency JPY \
+  --yes \
+  --post-check lint
 ```
 
-These paths preserve `trip_id=israel-2026` and `payment=cash|card|debit` through the existing generic metadata path. Journal `lint` is a mixed-currency-safe source-integrity check; it does not add currencies or broaden the full report. If it fails, the editor restores exact pre-append bytes only when no later writer changed the target. `--post-check none` is not the standard travel solution.
+Record the bank/card issuer's confirmed JPY amount exactly once. The merchant-displayed ILS amount may remain in receipt evidence or memo, but it must not be entered as another expense.
 
-Before real use, confirm that every account shown in the command exists with the expected role and currency. All account names above are synthetic examples; do not copy private account names into public documentation. Accounts are never created automatically by travel capture. Friend pending events are not projected into the ordinary journal. Return-home friend finalization is not implemented. Correction/reversal for friend and exchange source events remains unselected and must not be improvised through the ordinary journal.
+Current native Journal metadata does not admit `trip_id`, `trip-id`, or `payment`. Do not add those options until a separate metadata contract is implemented and verified.
+
+## Physical ILS cash and Wise ILS spending
+
+These paths are required by the travel lifecycle but are not currently available through `tools/edit journal add`.
+
+The public command rejects non-JPY currency, while the native Journal writer/parser require JPY commodity declarations and exact-integer postings. Commands such as the following are therefore illustrative intent only and must not be run as operating instructions:
+
+```text
+assets:<physical ILS cash> -> expenses:<category>-ILS
+assets:<Wise ILS balance>  -> expenses:<category>-ILS
+```
+
+Do not convert an ILS purchase to an invented JPY amount, place it in the exchange source, or use the friend source as a substitute. Native Journal ILS admission requires a separately selected implementation.
+
+## Wise exchanges and Wise card behavior
+
+A pre-purchase JPY→ILS conversion inside Wise may be recorded by the existing exchange command using explicit Wise JPY and Wise ILS accounts, provided both accounts exist and the observed amounts satisfy the current JPY→ILS contract. This still does not update Journal balances or reports.
+
+Spending from an already-held Wise ILS balance is currently blocked by the native Journal ILS limitation.
+
+Purchase-time automatic conversion remains unresolved. Do not create both a conversion and an expense unless actual Wise evidence supports one linked lifecycle without double counting.
+
+## Current operational boundary
+
+Before real use:
+
+- verify every selected account exists with the expected currency;
+- dry-run each dedicated source-event command first;
+- keep exchange and friend-event sources backed up with the rest of the ledger data;
+- record only confirmed JPY ordinary transactions in the native Journal;
+- do not assume dedicated travel sources affect balances;
+- do not improvise ILS Journal blocks, return exchange, friend finalization, correction/reversal, or Wise automatic-conversion semantics.
+
+The current ownership characterization is recorded in `docs/archive/audits/ISRAEL_TRAVEL_RAIL_OWNERSHIP_CHARACTERIZATION-2026-07-25.md`.

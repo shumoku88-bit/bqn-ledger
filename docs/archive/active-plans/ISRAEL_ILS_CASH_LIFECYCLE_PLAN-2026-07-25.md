@@ -1,392 +1,269 @@
 # Israel 2026 Travel Funding and Settlement Lifecycle — 2026-07-25
 
-Status: active plan / first finite characterization slice selected
-Owner: currency / travel capture / settlement / balances
-Canonical: yes for the Israel 2026 travel funding and settlement lifecycle; broader currency policy remains elsewhere
-Exit: archive after physical cash, own-card, friend-paid, and Wise paths can be captured and settled without double counting, with synthetic end-to-end verification and a separate production-readiness checkpoint
+Status: active lifecycle plan / ownership characterization complete / no continuation slice selected
+Owner: currency / travel capture / settlement / editor / balances
+Canonical: yes for the Israel 2026 travel funding and settlement lifecycle
+Exit: archive after the required travel paths are implemented, synthetically rehearsed without double counting, and separately approved for human-controlled production use
 
 ## Purpose
 
-Represent the complete Israel 2026 travel money lifecycle without collapsing different economic meanings into one ambiguous journal path.
+Represent the complete Israel 2026 travel money lifecycle without collapsing asset exchange, ordinary spending, friend-paid source facts, JPY settlement, Wise balances, or reporting conversion into one ambiguous path.
 
-The required user journeys are:
+Required user journeys:
 
-1. exchange JPY in Japan for physical ILS cash, spend part of it in Israel, exchange the remainder back to JPY after returning, and explain any retained or lost remainder;
-2. record the user's ordinary card purchases once at the issuer-confirmed JPY amount;
-3. retain a friend's ILS payments as pending source facts, finalize them after return at a human-confirmed JPY amount, create the JPY liability and expense once, and later record repayment;
-4. record Wise balance exchanges while preserving both observed currency amounts and the accounts that held each currency;
-5. record Wise card spending without counting the currency exchange and the purchase as two expenses.
+1. exchange JPY in Japan for physical ILS cash, spend it, and later exchange or explicitly retain/explain the remainder;
+2. record ordinary Japanese-card or debit spending once at the confirmed JPY amount;
+3. capture friend-paid ILS purchases as pending source facts, finalize them once in JPY after return, and later repay the liability;
+4. record JPY↔ILS exchanges between explicit Wise balance accounts;
+5. record Wise-card spending without counting both exchange and purchase as independent expenses;
+6. view physical ILS cash, Wise ILS balance, JPY card spending, and friend JPY obligations without adding JPY and ILS.
 
-The lifecycle is not one universal cross-currency journal. It is a composition of separately owned rails:
+## Current authority
 
-```text
-asset exchange
-  physical cash exchange or Wise balance exchange
+The current repository ownership and readiness snapshot is:
 
-ordinary spending
-  physical ILS cash, Wise ILS balance, or confirmed-JPY own-card expense
+- `docs/archive/audits/ISRAEL_TRAVEL_RAIL_OWNERSHIP_CHARACTERIZATION-2026-07-25.md`
 
-pending source fact
-  friend-paid purchase before JPY finalization
+The executable operating guide is:
 
-settlement
-  friend JPY finalization and later repayment
+- `docs/ISRAEL_TRAVEL_EDITOR_USAGE.md`
 
-read models
-  per-currency asset positions and JPY obligations, never one mixed-currency total
-```
+This plan records lifecycle meaning and candidate order. It does not override observed runtime boundaries in the characterization or select a continuation automatically.
 
 ## Whole-trip topology
 
 ```text
 Japan before departure
   JPY cash/account
-    -> observed JPY-to-ILS exchange
+    -> observed JPY-to-ILS exchange event
   physical ILS cash
 
-  JPY bank/Wise balance
-    -> observed JPY-to-ILS Wise exchange
+  Wise JPY balance
+    -> observed JPY-to-ILS exchange event
   Wise ILS balance
 
 During travel
   physical ILS cash
-    -> ordinary ILS expenses
+    -> ordinary ILS expense
 
   Wise ILS balance
-    -> ordinary ILS expenses paid by Wise card
+    -> ordinary ILS expense paid by Wise card
 
-  Japanese card
-    -> ordinary JPY expense at issuer-confirmed JPY amount
+  Japanese card/debit
+    -> one confirmed JPY expense
 
   friend pays in ILS
-    -> pending friend-travel source event
+    -> pending friend source event
 
 After return
-  remaining physical ILS cash
-    -> observed ILS-to-JPY exchange or explicit explained remainder
+  remaining physical or Wise ILS
+    -> observed ILS-to-JPY exchange, retained ILS asset, or explicit explanation
 
-  remaining Wise ILS balance
-    -> observed ILS-to-JPY Wise exchange, retained ILS asset, or another explicit later action
-
-  pending friend events
-    -> human-confirmed JPY expense and friend liability
-    -> later ordinary JPY repayment
+  pending friend event
+    -> one human-confirmed JPY expense and friend liability
+    -> later JPY repayment clears liability
 ```
 
-## Current verified foundation
+This is a composition of separate rails, not a universal cross-currency Journal.
 
-The repository already has public-synthetic foundations for:
+## Current verified reality
 
-- ordinary ILS spending through the native Journal;
-- ordinary JPY own-card spending through the native Journal;
-- a pure friend-travel JPY finalization validator and one-row preview;
-- a pure JPY-to-ILS exchange validator and structured preview;
-- currency-aware account and exact-decimal validation;
+### Implemented
+
+- JPY→ILS exchange pure validation and structured preview;
+- durable `travel_exchange_events.tsv` creation/append through the public editor;
+- duplicate, malformed-source, stale-write, post-check, rollback, and interrupted-first-write protection for exchange events;
+- friend-paid ILS pending-event pure validation and preview;
+- durable `friend_travel_events.tsv` creation/append through the public editor with equivalent safety boundaries;
+- pure one-row JPY friend-finalization validation/preview;
+- ordinary native Journal writing for balanced JPY exact-integer transactions;
 - native Journal as the only production Actual source.
 
-The current gaps are concrete:
+### Not implemented or not admitted
 
-1. the exchange validator is directionally fixed to JPY source and ILS target;
-2. the exchange contract does not yet explicitly distinguish physical-cash accounts from Wise balance accounts while preserving the same asset-exchange meaning;
-3. return-home ILS-to-JPY exchange is not admitted;
-4. exchange events are not safely persisted or included in a selected balance consumer;
-5. pending friend-event storage and atomic JPY finalization writing remain unselected;
-6. Wise card behavior has not been characterized for pre-converted ILS spending versus purchase-time automatic conversion;
-7. there is no narrow whole-trip view showing separate ILS holdings and JPY obligations with contributor provenance.
+- ordinary ILS native Journal transactions;
+- ILS exact-decimal native Journal postings;
+- `trip-id` and `payment` native Journal metadata;
+- ILS→JPY return exchange;
+- atomic friend finalization/status/index/Journal writing;
+- exchange/friend source consumption by Posting IR, Cube, TBDS, balances, or a travel read model;
+- ILS selected balances;
+- Wise purchase-time automatic-conversion semantics;
+- a complete synthetic whole-trip rehearsal.
 
-## Selected accounting meanings
+## Accounting meanings
 
-### A. Physical cash exchange
+### Asset exchange
 
-An outbound cash exchange records two primary observations:
-
-```text
-source_account  = explicit JPY cash or JPY account
-source_currency = JPY
-source_amount   = actual JPY handed over
-
-target_account  = explicit physical ILS cash account
-target_currency = ILS
-target_amount   = actual ILS received
-```
-
-A return exchange records the opposite observed asset movement:
+Every physical-cash or Wise balance exchange preserves:
 
 ```text
-source_account  = explicit physical ILS cash account
-source_currency = ILS
-source_amount   = actual ILS handed over
-
-target_account  = explicit JPY cash or JPY account
-target_currency = JPY
-target_amount   = actual JPY received
+source_account
+source_amount
+source_currency
+target_account
+target_amount
+target_currency
+exchange_id
+trip_id
 ```
 
-Neither direction is an expense, income, market valuation, or one-amount Journal row. Both observed amounts remain primary facts. A derived rate must never replace them.
+Both observed amounts are primary facts. A derived rate must not replace them. Exchange is neither expense nor income.
 
-### B. Physical ILS cash spending
+Physical cash and Wise balances remain distinct accounts even when both use ILS.
 
-Ordinary spending from physical ILS cash remains owned by the native Journal:
+### Physical ILS cash spending
+
+Intended meaning:
 
 ```text
 assets:<physical ILS cash> -> expenses:<category>-ILS
-currency=ILS
-trip_id=israel-2026
-payment=cash
 ```
 
-The expense is counted exactly once in ILS. The preceding exchange is not another expense.
+This is one ILS expense. The preceding exchange is not another expense.
 
-### C. User's ordinary Japanese card
+Current status: blocked because the native Journal parser/writer is JPY-only.
 
-A purchase charged by the user's ordinary Japanese card is recorded once through the native JPY Journal at the issuer-confirmed JPY amount:
+### Wise ILS balance spending
 
-```text
-liabilities:<card-JPY> -> expenses:<category>-JPY
-currency=JPY
-trip_id=israel-2026
-payment=card
-```
-
-The merchant's displayed ILS amount may remain receipt or memo evidence, but it is not a second canonical expense and does not create a second ILS posting lifecycle in this selected operating path.
-
-### D. Friend-paid local purchase
-
-At purchase time, the friend's payment remains a pending source event:
-
-```text
-date
-party
-item_or_category
-original_amount
-original_currency=ILS
-payer=friend
-trip_id=israel-2026
-source_event_id
-status=pending
-```
-
-After return, the user and friend confirm one final JPY amount. The existing pure finalization contract previews exactly one canonical JPY expense/liability row:
-
-```text
-liabilities:<friend-JPY> -> expenses:<travel category>-JPY
-currency=JPY
-source_event_id=<source event>
-trip_id=israel-2026
-```
-
-Later repayment uses the ordinary Journal:
-
-```text
-assets:<JPY account> -> liabilities:<friend-JPY>
-currency=JPY
-trip_id=israel-2026
-payment=friend-settlement
-```
-
-The pending ILS amount is preserved as source evidence. It must not also enter expense totals. Finalization creates the sole canonical expense for this path, and repayment clears the liability without creating another expense.
-
-### E. Wise balance exchange
-
-A Wise exchange has the same asset-exchange meaning as a cash exchange, but the account location is different and must remain explicit:
-
-```text
-source_account  = assets:<Wise JPY balance>
-source_currency = JPY
-source_amount   = actual JPY debited by Wise
-
-target_account  = assets:<Wise ILS balance>
-target_currency = ILS
-target_amount   = actual ILS credited by Wise
-```
-
-The reverse direction uses the actual ILS debited and JPY credited. Fees, when separately observed, require an explicit later decision; they must not be silently invented from the difference between a market rate and the observed amounts.
-
-### F. Wise card spending from an existing ILS balance
-
-When Wise spends from an already-held ILS balance, the purchase is an ordinary single-currency ILS Journal transaction:
+Intended meaning:
 
 ```text
 assets:<Wise ILS balance> -> expenses:<category>-ILS
-currency=ILS
-trip_id=israel-2026
-payment=wise-card
 ```
 
-The earlier JPY-to-ILS Wise exchange is an asset exchange, not another expense.
+This is one ILS expense when Wise spends from an already-held ILS balance.
 
-### G. Wise purchase-time automatic conversion
+Current status: blocked by the same native Journal ILS boundary.
 
-Wise may convert currency at purchase time instead of spending an already-held ILS balance. The repository does not yet have enough observed statement evidence to select one source contract for this case.
+### Ordinary Japanese card or debit
 
-A later characterization must determine whether Wise exposes enough evidence to represent:
+Record one transaction at the issuer/bank-confirmed JPY amount. Merchant-displayed ILS may remain receipt or memo evidence but must not become a second expense.
+
+Current status: basic JPY transaction is available. `trip-id` and `payment` metadata are not admitted.
+
+### Friend-paid purchase
+
+At purchase time, preserve one pending ILS source fact. After return, a human confirms one JPY amount and explicit JPY liability/expense accounts.
+
+The finalized JPY transaction is the sole canonical expense for this rail. The pending ILS amount remains evidence. Later repayment clears the liability and is not another expense.
+
+Current status: pending capture is durable; finalization is pure preview only.
+
+### Wise purchase-time automatic conversion
+
+No representation is selected. A later characterization must use actual redacted or synthetic Wise statement evidence and must prevent one conversion plus one purchase from becoming two expenses.
+
+## Current source ownership
+
+| Source | Owner | Meaning | Journal effect |
+|---|---|---|---|
+| configured native Journal | Stage 1 parser, Stage 2A, editor | production Actual transactions | yes, currently JPY-only |
+| `travel_exchange_events.tsv` | exchange pure owner plus dedicated editor | two-currency asset-exchange observations | none currently |
+| `friend_travel_events.tsv` | friend pending pure owner plus dedicated editor | pending friend-paid source facts | none currently |
+| supplied friend finalization request | pure finalization owner | proposed one-row JPY expense/liability | preview only |
+
+No generic unified event log is selected.
+
+## Read-model requirement
+
+A future narrow consumer should show separate domains:
 
 ```text
-one observed JPY-to-ILS exchange
-linked to
-one ordinary ILS purchase
-```
-
-or whether the safest operating choice is a single confirmed funding-currency expense with the foreign amount retained only as source evidence.
-
-The design must never count both representations as independent expenses. It must use actual Wise evidence rather than infer a conversion from market rates.
-
-## Account-location boundary
-
-Currency and location are independent facts. These balances must not collapse merely because they use ILS:
-
-```text
-physical ILS cash
-Wise ILS balance
-```
-
-Likewise, JPY cash, a Japanese bank account, a Wise JPY balance, a card liability, and a friend liability have different operational meanings.
-
-The selected account for every exchange, spending, finalization, and repayment action must be explicit and already existing. No account may be inferred from prefixes, currency alone, payment method, or trip identifier.
-
-## Required read models
-
-The first useful trip consumer is a narrow read-only position and obligation result, not a universal mixed-currency travel total:
-
-```text
-Israel 2026
-
 ILS assets
-  Physical cash acquired       +₪...
-  Physical cash spending       -₪...
-  Physical cash exchanged back -₪...
-  Physical cash explained      -₪...
-  Physical cash remaining       ₪...
+  physical cash acquired / spent / returned / remaining
+  Wise ILS acquired / spent / returned / remaining
 
-  Wise ILS acquired            +₪...
-  Wise ILS card spending       -₪...
-  Wise ILS exchanged back      -₪...
-  Wise ILS remaining            ₪...
-
-JPY obligations and settlement
-  Friend expenses finalized    +¥...
-  Friend repayments            -¥...
-  Friend liability remaining    ¥...
-
-  Confirmed own-card spending   ¥...
+JPY obligations and spending
+  friend finalized / repaid / remaining liability
+  confirmed own-card or debit spending
 ```
 
-This output must not add ILS and JPY. Each subtotal must retain contributor provenance to admitted exchange events, pending/finalized friend events, or native Journal transactions/postings. Dense totals must not become the only evidence surface.
+It must preserve contributor provenance and must never add ILS and JPY.
 
-## Source ownership boundary
+## Completed characterization result
 
-| User action | Semantic owner | Canonical expense timing |
-|---|---|---|
-| Exchange JPY for physical ILS cash | exchange-event source | no expense |
-| Exchange balances inside Wise | exchange-event source | no expense |
-| Spend physical ILS cash | native Journal | once in ILS |
-| Spend an existing Wise ILS balance | native Journal | once in ILS |
-| Use ordinary Japanese card | native Journal | once at confirmed JPY amount |
-| Friend pays in ILS | pending friend-event source | no expense yet |
-| Finalize friend amount in JPY | friend finalization plus native Journal append | once in JPY |
-| Repay friend | native Journal | no new expense |
-| Explain retained/lost ILS | separately selected explicit event or operating rule | only according to its selected meaning |
+The ownership characterization established:
 
-No generic unified event log, Currency axis, valuation layer, or automatic source projection is selected by this plan.
+1. exchange and friend pending safe append already exist;
+2. the current exchange contract is fixed to JPY→ILS but its explicit ten-column shape can support a single bidirectional contract in principle;
+3. no evidence requires a separate return-exchange event kind;
+4. ordinary ILS spending is the first practical blocker because the production Actual parser/writer admits only JPY exact integers;
+5. `trip-id` and `payment` are not current native Journal metadata;
+6. exchange/friend sources have no selected accounting consumer;
+7. Wise automatic conversion lacks sufficient source evidence.
 
-## Ordered finite slices
+## Independently selectable continuation candidates
 
-Each slice requires a separate PR, exact scope review, checks, and merge. Completion of one does not authorize the next.
+No candidate below is currently selected.
 
-1. **Integrated travel-rail ownership characterization**
-   - inventory the current exchange validator, writer proposal, storage assumptions, and directional constraints;
-   - inventory the existing friend pending/finalization ownership and the ordinary Journal paths used for own-card, ILS cash, Wise ILS spending, and friend repayment;
-   - characterize the minimum metadata and account-location facts needed to distinguish physical cash, Wise balances, ordinary card, and friend settlement;
-   - identify every possible double-counting boundary;
-   - characterize the available public-synthetic Wise evidence and leave purchase-time automatic conversion unresolved if evidence is insufficient;
-   - use public synthetic facts only;
-   - perform no runtime write, source mutation, report output, or private-data access.
+1. **Native Journal ILS single-currency admission characterization**
+   - public synthetic and test-only;
+   - trace the minimum commodity, exact-decimal, account-currency, Stage 1, Stage 2A, source-validation, and downstream boundaries for one balanced ILS transaction;
+   - no runtime write or report change.
 
-2. **Bidirectional account-explicit exchange pure contract**
-   - admit JPY-to-ILS and ILS-to-JPY directions;
-   - support explicitly supplied physical-cash or Wise balance accounts without inferring account type from names;
-   - preserve both observed amount texts and exact precision rules;
-   - expose structured preview and diagnostics only;
-   - perform no storage or balance mutation.
+2. **Native Journal ILS ordinary-add implementation**
+   - only after candidate 1 supports a finite contract;
+   - one explicit single-currency ILS transaction path;
+   - no exchange projection, mixed totals, metadata expansion, or reports.
 
-3. **Exchange-event safe append**
-   - select one storage contract;
-   - add duplicate identity, stale-write, backup or equivalent recovery, post-check, and rollback boundaries;
-   - do not automatically project exchange legs into the native Journal.
+3. **Travel metadata admission**
+   - separately decide `trip-id` and `payment` spelling, value contract, parser/writer ownership, round-trip, and consumer need;
+   - do not infer support from historical TSV metadata validation.
 
-4. **Friend-paid pending source-event safe append**
-   - select storage for the already-defined pending friend-event contract;
-   - preserve immutable source identity, original ILS facts, and pending status;
-   - perform no JPY finalization in the same slice.
+4. **Bidirectional account-explicit exchange**
+   - admit JPY→ILS and ILS→JPY;
+   - choose precision from explicit currencies;
+   - preserve current source safety and no-Journal-projection boundary;
+   - never infer cash versus Wise from names.
 
-5. **Return-home atomic friend finalization writer**
-   - atomically finalize one pending event, persist duplicate-prevention evidence, and append exactly one JPY expense/liability transaction;
-   - preserve the existing pure validation contract;
-   - leave later repayment on the ordinary Journal path.
+5. **Friend atomic JPY finalization writer**
+   - durable status/finalization index plus exactly one native Journal append;
+   - all-or-nothing recovery and retry;
+   - repayment remains ordinary Journal work.
 
 6. **Wise card evidence characterization**
-   - distinguish spending from an existing ILS balance from purchase-time automatic conversion;
-   - inspect only public synthetic statement shapes or user-supplied redacted examples;
-   - select no general card subsystem, market-rate logic, or automatic conversion without evidence.
+   - use public synthetic or user-supplied redacted statement shapes;
+   - distinguish existing-ILS-balance spending from purchase-time conversion.
 
 7. **Narrow per-account position and obligation read models**
-   - calculate physical ILS cash, Wise ILS balance, and friend JPY liability separately;
-   - retain contributor provenance and fail closed on malformed or mismatched evidence;
-   - expose confirmed own-card JPY spending without converting ILS expenses.
+   - physical cash, Wise balance, and friend liability separately;
+   - confirmed JPY card spending visible without converting ILS expenses.
 
 8. **Synthetic whole-trip rehearsal**
-   - acquire physical ILS cash;
-   - acquire Wise ILS balance;
-   - make physical-cash and Wise-card ILS purchases;
-   - record confirmed-JPY ordinary-card purchases;
-   - capture friend-paid pending events, finalize them in JPY, and repay the liability;
-   - exchange remaining physical and Wise ILS back to JPY or explicitly retain/explain the remainder;
-   - prove no expense is duplicated and all balances are zero or explicitly explained.
+   - acquire physical and Wise ILS;
+   - spend through both paths;
+   - record confirmed JPY card/debit spending;
+   - capture, finalize, and repay friend events;
+   - return or explain remaining ILS;
+   - prove no duplicate expenses and zero-or-explained positions.
 
-9. **Production readiness checkpoint**
-   - provide commands and a human-run checklist for the actual private ledger;
-   - do not read, copy, print, or modify private `LEDGER_DATA_DIR` inside an implementation PR;
-   - any real account creation or data edit requires explicit user-controlled operation and backup.
+9. **Human-controlled production readiness checkpoint**
+   - commands, backup, dry-run, account checks, and rollback checklist;
+   - no private-data read or write inside implementation PRs.
 
 ## Invariants
 
 - Never add JPY and ILS.
-- Never classify either exchange direction as expense or income.
-- Preserve both observed amounts for every physical-cash or Wise exchange.
+- Never classify exchange as expense or income.
+- Preserve both observed amounts for every exchange.
 - Do not save only a derived rate.
 - Do not fetch market rates or perform valuation.
-- Keep physical cash and Wise balances separate even when both are ILS.
-- Count physical-cash spending exactly once in ILS.
-- Count Wise card spending exactly once under the selected evidence contract.
-- Count ordinary Japanese-card spending exactly once at the issuer-confirmed JPY amount.
-- Never count a friend's pending ILS source fact and finalized JPY expense as two expenses.
+- Keep physical ILS cash and Wise ILS balances separate.
+- Count each purchase exactly once under its selected rail.
+- Never count a friend pending ILS fact and finalized JPY expense as two expenses.
 - Never count friend finalization and repayment as two expenses.
-- Do not retroactively rewrite foreign-currency facts after JPY settlement.
+- Do not retroactively rewrite foreign-currency evidence after JPY settlement.
 - Do not auto-create accounts.
-- Do not infer trip, currency, account location, payer, or payment method from account names or prefixes.
+- Do not infer account location, payer, trip, payment path, or currency from account names.
 - Do not use private paths or values to select policy.
-- Do not combine this work with strict-source Steps 2–5, M4, generic projection extraction, a Currency axis, valuation, or document-governance implementation.
+- Do not combine this lifecycle with strict-source Steps 2–5, M4, generic projection extraction, a Currency axis, valuation, or document-governance runtime work.
 
-## Current selected slice
+## Relation to existing records
 
-Only Slice 1, the docs/test-boundary integrated travel-rail ownership characterization, is selected by the routing PR that introduces this plan. Runtime implementation remains unselected until that characterization is reviewed and merged.
-
-The characterization must end with explicit answers to these finite questions:
-
-1. Can the existing exchange source contract safely become bidirectional and account-explicit for both physical cash and Wise balances?
-2. Which existing module owns each validation, preview, write, and read responsibility?
-3. Which metadata is already preserved by the native Journal for `trip_id` and payment-path evidence?
-4. What durable source is still missing for pending friend events and exchange events?
-5. What Wise statement evidence is needed before purchase-time automatic conversion can be represented without double counting?
-6. Which smallest next implementation slice is supported by the evidence?
-
-## Relation to existing plans
-
-- `ISRAEL_PREDEPARTURE_EDITOR_CAPTURE_COMPLETION-2026-07-13.md` remains the completed evidence for existing synthetic capture paths.
-- `ISRAEL_TRAVEL_DAILY_CAPTURE_PLAN-2026-07-13.md` remains the completed semantic decision record for physical cash, confirmed-JPY own-card, friend-paid pending events, and ordinary ILS spending; this plan extends it with return exchange, Wise balances, and whole-trip settlement integration.
-- `FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md` remains canonical for the friend pending-event and one-row JPY finalization meaning.
-- `FRIEND_TRAVEL_ATOMIC_FINALIZATION_WRITE_DESIGN-2026-07-13.md` remains a parked implementation proposal until Slice 5 is separately selected.
-- `TRAVEL_MULTI_CURRENCY_SETTLEMENT_DESIGN_INTAKE-2026-07-12.md` remains broader background evidence, especially for separating exchange, spending, settlement, and valuation.
-- `CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md` remains the broader mixed-ledger foundation.
-- strict-source Steps 2–5 remain independently unselected.
-- PR #354 remains paused and does not supply implementation authority for this lifecycle.
+- `ISRAEL_TRAVEL_DAILY_CAPTURE_PLAN-2026-07-13.md` remains the historical semantic decision record, but its claims about current ILS Journal readiness are superseded by the current characterization.
+- `FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md` remains canonical for one-row JPY finalization meaning.
+- `FRIEND_TRAVEL_ATOMIC_FINALIZATION_WRITE_DESIGN-2026-07-13.md` remains a parked implementation proposal.
+- `TRAVEL_MULTI_CURRENCY_SETTLEMENT_DESIGN_INTAKE-2026-07-12.md` remains broader background on separating exchange, spending, settlement, and valuation.
+- `CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md` remains historical mixed-ledger evidence; current native Journal Actual admission is JPY-only.
+- PR #354 remains paused and supplies no implementation authority for this lifecycle.
