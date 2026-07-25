@@ -202,7 +202,7 @@ CollectPostingEvidence ← {𝕊 groups‿resolved‿domainInfo:
         }⍟(¬ isMetadata) @
       }¨ ↕ ≠ body
       transactionIndex ↩ transactionIndex + 1
-    }⍟IsDateHeader first @
+    }⍟(IsDateHeader first) @
   }¨ groups
 
   {
@@ -266,10 +266,10 @@ BuildShadowRaw ← {𝕊 raw‿domainInfo‿normalized:
     output ← original
     postingMatches ← ({lineNumber = 𝕩.source_line}¨ normalized) / normalized
     {𝕊: output ↩ "commodity JPY"}⍟(lineNumber = domainInfo.source_line) @
-    {𝕊: output ↩ RenderShadowPosting ⊑ postingMatches}⍟(1 = ≠ postingMatches) @
+    {𝕊: output ↩ RenderShadowPosting (⊑ postingMatches)}⍟(1 = ≠ postingMatches) @
     <output
   }¨ ↕ ≠ lines
-  ∾ (>¨ transformed) ∾¨ lf
+  ∾ ((>¨ transformed) ∾¨ lf)
 }
 
 BuildTransactions ← {𝕊 parsedTransactions‿normalized‿domain‿calculationScale:
