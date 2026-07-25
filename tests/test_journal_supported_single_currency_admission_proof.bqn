@@ -11,6 +11,18 @@ resolved ← ak.Resolve ⟨
   "assets:cash-ils" ∾ tab ∾ "role=asset" ∾ tab ∾ "currency=ILS",
   "expenses:food-ils" ∾ tab ∾ "role=expense" ∾ tab ∾ "currency=ILS"
 ⟩
-ils ← admission.Admit ⟨Raw ⟨"commodity ILS"⟩, resolved⟩
+ilsRaw ← Raw ⟨
+  "commodity ILS",
+  "",
+  "account assets:cash-ils",
+  "",
+  "account expenses:food-ils",
+  "",
+  "2026-07-20 * synthetic ILS meal",
+  "  ; event-id: proof-ils-1",
+  "  assets:cash-ils  -12.34 ILS",
+  "  expenses:food-ils  12.34 ILS"
+⟩
+ils ← admission.Admit ⟨ilsRaw, resolved⟩
 
-•Out "test_journal_supported_single_currency_admission_proof.bqn: DOMAIN CALL OK"
+•Out "test_journal_supported_single_currency_admission_proof.bqn: ILS COLLECT OK"
