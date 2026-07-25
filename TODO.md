@@ -16,7 +16,7 @@ Exit: revise when a finite slice is selected, completed, declined, or rerouted
 
 ## Current baseline
 
-Last hygiene pass: 2026-07-24
+Last hygiene pass: 2026-07-25
 
 - Native Journal is the only production Actual source selected by `ACTUAL_JOURNAL_FILE`.
 - `plan.tsv`, `budget_alloc.tsv`, `accounts.tsv`, `cycle.tsv`, and `issues.tsv` remain companion/configuration source files.
@@ -24,16 +24,38 @@ Last hygiene pass: 2026-07-24
 - The selected report-projection alignment sequence is complete; no next finite report slice is selected.
 - The selected Journal parser, Posting IR, read-path, cutover, canonical-surface, and reconstructible-identity cleanup sequence is complete; no next finite Journal slice is selected.
 - The unused MCP adapter is retired. Its pre-removal implementation remains recoverable from Git tag `checkpoint-pre-mcp-removal`.
-- The generic projection and valuation foundation is recorded as an active backlog, not implementation authorization.
-- Detailed completion history through this checkpoint is in `docs/archive/TODO_HISTORY-2026-07-24.md`.
+- The Israel 2026 travel funding and settlement lifecycle plan is merged; its first docs-only ownership characterization is selected below.
+- The generic projection and valuation foundation remains an active backlog, not implementation authorization.
+- Detailed completion history through the previous checkpoint is in `docs/archive/TODO_HISTORY-2026-07-24.md`.
 
 ---
 
 ## Active work
 
-**No finite implementation slice is currently selected.**
+### Israel 2026 travel funding and settlement ownership characterization
 
-The latest AI working feedback remains evidence only. The generic projection and valuation intake merged through PR #352 is a design boundary only. Neither source authorizes runtime work without a separately selected finite slice in this file.
+Status: selected docs-only finite slice.
+
+Canonical plan:
+
+- `docs/archive/active-plans/ISRAEL_ILS_CASH_LIFECYCLE_PLAN-2026-07-25.md`
+
+Finite question:
+
+- inventory current ownership for exchange validation and preview, ordinary Journal spending and repayment, friend pending/finalization semantics, proposed safe writers, and current read consumers;
+- distinguish physical ILS cash, Wise ILS balance, ordinary Japanese card, and friend settlement without inferring account meaning from names;
+- identify every path that could double-count exchange, expense, finalization, or repayment;
+- characterize only available public-synthetic Wise evidence, leaving purchase-time automatic conversion unresolved when evidence is insufficient;
+- state the smallest separately selectable implementation slice supported by the inventory.
+
+Boundaries:
+
+- public synthetic repository evidence only;
+- docs and test-boundary characterization only;
+- no runtime, storage, source mutation, report output, private-data access, account creation, FX valuation, Currency axis, generic projection extraction, strict-source continuation, or M4 work;
+- completing this characterization does not automatically select bidirectional exchange, persistence, friend-event storage, finalization writing, Wise integration, or read-model implementation.
+
+The latest AI working feedback remains evidence only and does not authorize additional work.
 
 ---
 
@@ -41,7 +63,7 @@ The latest AI working feedback remains evidence only. The generic projection and
 
 ### Generic projection and valuation foundation
 
-Status: unselected docs-only follow-up.
+Status: paused while the selected Israel travel characterization is active.
 
 Canonical intake:
 
@@ -103,7 +125,7 @@ A future slice must choose exactly one of pure seam promotion, O-bounded account
 
 ### Friend travel atomic finalization writer
 
-Status: unselected / parked candidate.
+Status: unselected / parked candidate under the selected Israel lifecycle.
 
 - Current source-event semantics: `docs/archive/active-plans/FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md`.
 - Reusable atomic-write proposal: `docs/archive/active-plans/FRIEND_TRAVEL_ATOMIC_FINALIZATION_WRITE_DESIGN-2026-07-13.md`.
@@ -111,9 +133,10 @@ Status: unselected / parked candidate.
 
 ### Mixed-ledger daily-use continuation
 
-Status: candidate only.
+Status: Israel integrated ownership characterization selected separately; other residual candidates remain unselected.
 
-- Current plan: `docs/archive/active-plans/CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md`.
+- Current broad plan: `docs/archive/active-plans/CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md`.
+- Israel lifecycle plan: `docs/archive/active-plans/ISRAEL_ILS_CASH_LIFECYCLE_PLAN-2026-07-25.md`.
 - M3 and strict-source Step 1 are complete.
 - strict-source Steps 2–5 and M4 remain unselected and do not auto-start.
 
