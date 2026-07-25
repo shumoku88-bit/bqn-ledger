@@ -125,4 +125,25 @@ ilsTooPrecise ← balances.PresentationPolicy ⟨"ILS", 3⟩
 "ledger default" lib.AssertEq balances.ProvenanceLabel "ledger_default"
 "explicit selection" lib.AssertEq balances.ProvenanceLabel "explicit_selection"
 
+# Selected-domain section structure is currency-independent. Every supported
+# currency displays cumulative expenses; only amount policy changes the text.
+MakeSelected ← {𝕊 currency‿calculationScale‿presentationScale‿amount:
+  {
+    selected_currency⇐currency, provenance⇐"explicit_selection",
+    calculation_scale⇐calculationScale, presentation_scale⇐presentationScale,
+    entries⇐⟨⟨"expenses:food/"∾currency, amount, "expense", ""⟩⟩
+  }
+}
+jpySelectedText ← balances.FormatSelectedHuman MakeSelected ⟨"JPY", 0, 0, 1200⟩
+ilsSelectedText ← balances.FormatSelectedHuman MakeSelected ⟨"ILS", 2, 2, 1234⟩
+usdSelectedText ← balances.FormatSelectedHuman MakeSelected ⟨"USD", 2, 2, 1234⟩
+{𝕊 text:
+  lib.Assert ∨´ "[Expenses / Cumulative]" ⍷ text
+  lib.Assert ∨´ "[Totals]" ⍷ text
+}¨ ⟨jpySelectedText, ilsSelectedText, usdSelectedText⟩
+lib.Assert ∨´ "expenses:food/JPY" ⍷ jpySelectedText
+lib.Assert ∨´ "1200" ⍷ jpySelectedText
+lib.Assert ∨´ "₪12.34" ⍷ ilsSelectedText
+lib.Assert ∨´ "$12.34" ⍷ usdSelectedText
+
 •Out "test_src_next_balances.bqn: OK"

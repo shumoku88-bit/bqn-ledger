@@ -305,10 +305,10 @@ emptyRaw ← MakeRaw ⟨
   "account assets:bank-jpy"
 ⟩
 emptyResult ← admission.Admit ⟨emptyRaw, resolved⟩
-"error" lib.AssertEq emptyResult.state
-1 lib.AssertEq ≠ emptyResult.diagnostics
-lib.Assert HasCode ⟨"transaction_missing", emptyResult⟩
+"ok" lib.AssertEq emptyResult.state
+0 lib.AssertEq ≠ emptyResult.diagnostics
 0 lib.AssertEq ≠ emptyResult.transactions
+⟨"JPY"⟩ lib.AssertEq emptyResult.declared_domains
 
 zeroRaw ← MakeRaw ⟨
   "commodity ILS",

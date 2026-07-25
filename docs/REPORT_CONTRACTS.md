@@ -58,7 +58,9 @@ Do not edit this list by hand as a contract change. If section behavior changes,
 
 Human `tools/report <base> --section balances --currency CODE` constructs exactly one registry-supported currency domain through `src_next/selected_domain_context.bqn`. Actual uses production complete-source admission and Stage 2A `currency_proof_rows`; selected plan and budget rows must prove the same source currency and account currency. All selected rows normalize exactly to one context-local scale before TBDS balance calculation. Any invalid Actual, plan, budget, domain, account-currency, precision, or normalization evidence rejects the complete selected context.
 
-The selected output names the currency and emits only that currency's AccountKey coordinates. It never emits a combined Journal-wide money total, FX conversion, valuation, reporting currency, or Currency axis. The established JPY selected presentation remains compatible. Non-JPY selected human balances additionally expose cumulative expense accounts needed by the narrow travel read model. Full report, JSON balances, and unrelated sections retain their existing contracts.
+The selected output names the currency and emits only that currency's AccountKey coordinates. It never emits a combined Journal-wide money total, FX conversion, valuation, reporting currency, or Currency axis. JPY, ILS, and USD use the same selected-domain context and human section structure, including `[Expenses / Cumulative]`; only exact amount formatting follows the selected currency policy. There is no currency-literal implementation branch.
+
+A declaration-only Journal is a valid empty Actual source. If the selected currency has no Actual transactions, valid selected plan and budget rows still construct the context; Actual contributes zero rows. If Actual, plan, and budget are all empty for the selected currency, the result is a normal empty context. This rule is identical when the Journal contains only other-currency Actual. Invalid evidence still rejects the complete context without partial rows. Full report, JSON balances, and unrelated sections retain their existing contracts.
 
 ## Actual Comparison boundary
 

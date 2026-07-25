@@ -3,7 +3,8 @@
 #
 # One raw Journal may declare several registry-supported currency domains while
 # every ordinary transaction remains single-domain and balances within its own
-# exact calculation scale. No Journal-wide money domain, scale, or total exists.
+# exact calculation scale. A declaration-only Journal is a valid empty Actual
+# source. No Journal-wide money domain, scale, or total exists.
 
 util ← •Import "util.bqn"
 dates ← •Import "date.bqn"
@@ -221,7 +222,9 @@ Admit ← {𝕊 raw‿resolved:
     }¨ ↕ ≠ starts
   }⍟(0 = ≠ declarations.diagnostics) @
 
-  diagnostics ∾↩ AddIf ⟨0 = ≠ starts, Diagnostic ⟨"transaction_missing", 0, "Journal must contain at least one dated transaction"⟩⟩
+  # Zero transactions is a valid complete-source snapshot. Declarations are
+  # still checked above; consumers receive an empty transaction carrier and
+  # apply the same empty-domain rule for every selected currency.
   diagnostics ∾↩ CrossTransactionDiagnostics transactions
   {𝕊: transactions ↩ empty}⍟(0 < ≠ diagnostics) @
   {

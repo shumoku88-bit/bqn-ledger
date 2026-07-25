@@ -174,8 +174,14 @@ Build ← {𝕊 base‿selectedCurrency:
   preliminary ← admission.Admit ⟨raw, resolved⟩
   result ← Failure ⟨selectedCurrency, "actual_admission_failed", "complete Journal admission failed", preliminary.diagnostics⟩
   {𝕊:
-    asOf ← ¯1 ⊑ ∧ {𝕩.date}¨ preliminary.transactions
-    cy ← cycle.ReadCycle ⟨base, asOf⟩
+    # Preserve the existing latest-Actual observation when Actual exists. A
+    # declaration-only Journal delegates to the common cycle resolver, which
+    # supplies its normal no-Actual rule without inspecting the currency.
+    cy ← cycle.ReadCycle base
+    {𝕊:
+      asOf ← ¯1 ⊑ ∧ {𝕩.date}¨ preliminary.transactions
+      cy ↩ cycle.ReadCycle ⟨base, asOf⟩
+    }⍟(0 < ≠ preliminary.transactions) @
     snapshot ← context.LoadNonActualPostingSourceSnapshot base
     result ↩ BuildFromPrepared ⟨selectedCurrency, raw, resolved, cy, sourceFile, snapshot⟩
   }⍟(preliminary.state ≡ "ok") @

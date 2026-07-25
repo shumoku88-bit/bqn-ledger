@@ -8,7 +8,6 @@ json ← •Import "json.bqn"
 loader ← •Import "loader.bqn"
 ak ← •Import "account_key.bqn"
 cycle ← •Import "cycle.bqn"
-ctx_mod ← •Import "context.bqn"
 selected_context ← •Import "selected_domain_context.bqn"
 currency_setup ← •Import "currency_setup.bqn"
 L ← labels.Text
@@ -87,14 +86,6 @@ BuildSelected ← {𝕊 base‿explicitCurrency:
       selected_currency ⇐ selection.currency, provenance ⇐ selection.provenance,
       calculation_scale ⇐ ⟨⟩, presentation_scale ⇐ ⟨⟩, entries ⇐ ⟨⟩
     }
-    emptyActualCompatibility ← (selection.currency ≡ "JPY") ∧ (ledger.state ≢ "ok") ∧ (∨´ 0 ∾ {𝕩.code ≡ "transaction_missing"}¨ ledger.diagnostics)
-    {𝕊:
-      legacy ← ctx_mod.BuildContext base
-      result ↩ {
-        state ⇐ "ok", message ⇐ "", selected_currency ⇐ "JPY", provenance ⇐ selection.provenance,
-        calculation_scale ⇐ 0, presentation_scale ⇐ 0, entries ⇐ Build legacy
-      }
-    }⍟emptyActualCompatibility @
     {𝕊:
       policy ← PresentationPolicy ⟨selection.currency, ledger.calculation_scale⟩
       result ↩ {
@@ -209,8 +200,7 @@ FormatSelectedHuman ← {𝕊 selected:
     FormatCoefficient ⟨amount, selected.calculation_scale, selected.presentation_scale, selected.selected_currency⟩
   }
   viewLine ← "Currency view: " ∾ selected.selected_currency ∾ " (" ∾ (ProvenanceLabel selected.provenance) ∾ ")"
-  includeExpenses ← selected.selected_currency ≢ "JPY" # preserve the established JPY selected-balance presentation
-  RenderHuman { entries ⇐ selected.entries, FormatAmount ⇐ Amount, view_line ⇐ viewLine, include_expenses ⇐ includeExpenses }
+  RenderHuman { entries ⇐ selected.entries, FormatAmount ⇐ Amount, view_line ⇐ viewLine, include_expenses ⇐ 1 }
 }
 
 # FormatJson: render balance entries as structured JSON.
