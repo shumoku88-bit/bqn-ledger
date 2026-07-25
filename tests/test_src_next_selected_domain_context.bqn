@@ -12,6 +12,7 @@ MakeRaw ← {𝕊 lines: ∾ lines ∾¨ lf}
 Source ← {𝕊 file‿lines: {source_file⇐file, required⇐0, lines⇐lines}}
 MakeSnapshot ← {𝕊 plan‿budget: {sources⇐⟨Source ⟨"plan.tsv", plan⟩, Source ⟨"budget_alloc.tsv", budget⟩⟩}}
 HasCode ← {𝕊 code‿result: ∨´ 0 ∾ {code≡𝕩.code}¨result.diagnostics}
+Codes ← {{𝕩.code}¨𝕩.diagnostics}
 
 resolved ← ak.Resolve ⟨
   "assets:bank-jpy"∾tab∾"role=asset"∾tab∾"type=liquid"∾tab∾"currency=JPY",
@@ -131,6 +132,8 @@ badPlan ← ⟨"2026-07-10"∾tab∾"bad domain"∾tab∾"assets:bank-jpy"∾tab
 badDomain ← selected.BuildFromPrepared ⟨"ILS", raw, resolved, cy, "synthetic.journal", MakeSnapshot ⟨badPlan, empty⟩⟩
 "error" lib.AssertEq badDomain.state
 lib.Assert HasCode ⟨"nonactual_account_currency_mismatch", badDomain⟩
+lib.Assert HasCode ⟨"nonactual_proof_failed", badDomain⟩
+lib.Assert ¬HasCode ⟨"selected_scale_invalid", badDomain⟩
 0 lib.AssertEq ≠badDomain.posting_rows
 
 # Excess precision is rejected by production admission; no valid transaction or
@@ -139,6 +142,22 @@ badRaw ← MakeRaw ⟨
   "commodity ILS", "", "account assets:cash-ils", "", "account expenses:food-ils", "",
   "2026-07-03 * excessive precision", "  assets:cash-ils  -1.001 ILS", "  expenses:food-ils  1.001 ILS"
 ⟩
+
+# The flat stage sequence preserves first-failure ownership. Unsupported policy
+# suppresses source work; Actual admission suppresses non-Actual preparation.
+unsupportedPriority ← selected.BuildFromPrepared ⟨"ZZZ", badRaw, resolved, cy, "bad.journal", MakeSnapshot ⟨badPlan, empty⟩⟩
+"error" lib.AssertEq unsupportedPriority.state
+⟨"selected_currency_unsupported"⟩ lib.AssertEq Codes unsupportedPriority
+0 lib.AssertEq ≠unsupportedPriority.posting_rows
+
+actualPriority ← selected.BuildFromPrepared ⟨"ILS", badRaw, resolved, cy, "bad.journal", MakeSnapshot ⟨badPlan, empty⟩⟩
+"error" lib.AssertEq actualPriority.state
+lib.Assert HasCode ⟨"posting_precision_exceeded", actualPriority⟩
+lib.Assert HasCode ⟨"actual_admission_failed", actualPriority⟩
+lib.Assert ¬HasCode ⟨"nonactual_account_currency_mismatch", actualPriority⟩
+lib.Assert ¬HasCode ⟨"nonactual_proof_failed", actualPriority⟩
+0 lib.AssertEq ≠actualPriority.posting_rows
+
 badScale ← selected.BuildFromPrepared ⟨"ILS", badRaw, resolved, cy, "bad.journal", MakeSnapshot ⟨empty,empty⟩⟩
 "error" lib.AssertEq badScale.state
 lib.Assert HasCode ⟨"posting_precision_exceeded", badScale⟩
