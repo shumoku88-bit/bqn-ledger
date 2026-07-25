@@ -53,12 +53,8 @@ FindTransactionRanges ← {𝕊 lines:
   ranges ← empty
   {𝕊 i:
     startIndex ← i ⊑ starts
-    candidateEnd ← ≠ lines
-    {𝕊: candidateEnd ↩ (i + 1) ⊑ starts}⍟(i + 1 < ≠ starts) @
-    segmentLength ← candidateEnd - startIndex
-    segment ← segmentLength ↑ startIndex ↓ lines
-    nonemptyOffsets ← ({0 < ≠ Trim 𝕩}¨ segment) / ↕ ≠ segment
-    endExclusive ← startIndex + 1 + ⊑⌽nonemptyOffsets
+    endExclusive ← ≠ lines
+    {𝕊: endExclusive ↩ (i + 1) ⊑ starts}⍟(i + 1 < ≠ starts) @
     ranges ∾↩ ⟨{start_index⇐startIndex, end_exclusive⇐endExclusive}⟩
   }¨ ↕ ≠ starts
   ranges
@@ -96,32 +92,25 @@ ResolveDeclarations ← {𝕊 lines:
 }
 
 ResolveTransactionDomain ← {𝕊 lines‿range‿declaredDomainBoxes:
-  diagnostics ← empty
-  postingDomainBoxes ← empty
-  candidateCount ← 0
   blockLength ← range.end_exclusive - range.start_index
-  indexes ← range.start_index + ↕ blockLength
+  blockLines ← blockLength ↑ range.start_index ↓ lines
+  blockLineNumbers ← 1 + range.start_index + ↕ blockLength
+  trimmedLines ← Trim¨ blockLines
+  indented ← {space = ⊑ (𝕩 ∾ " ")}¨ blockLines
+  metadata ← {';' = ⊑ (𝕩 ∾ ";")}¨ trimmedLines
+  candidateMask ← indented ∧ (0 < ≠¨ trimmedLines) ∧ (¬ metadata)
+  candidateLines ← candidateMask / trimmedLines
+  candidateLineNumbers ← candidateMask / blockLineNumbers
+  fields ← {space util.Split 𝕩}¨ candidateLines
+  validMask ← 3 = ≠¨ fields
+  badLineNumbers ← (¬ validMask) / candidateLineNumbers
+  validFields ← validMask / fields
+  postingDomainBoxes ← {< 2 ⊑ 𝕩}¨ validFields
 
-  {𝕊 lineIndex:
-    original ← lineIndex ⊑ lines
-    trimmed ← Trim original
-    indented ← space = ⊑ (original ∾ " ")
-    metadata ← ';' = ⊑ (trimmed ∾ ";")
-    candidate ← indented ∧ (0 < ≠ trimmed) ∧ (¬ metadata)
-    {𝕊:
-      candidateCount ↩ candidateCount + 1
-      fields ← space util.Split trimmed
-      valid ← 3 = ≠ fields
-      diagnostics ∾↩ AddIf ⟨¬ valid, Diagnostic ⟨"posting_shape_invalid", lineIndex + 1, "posting must contain account, explicit amount, and commodity"⟩⟩
-      {𝕊:
-        commodity ← 2 ⊑ fields
-        postingDomainBoxes ∾↩ ⟨<commodity⟩
-      }⍟valid @
-    }⍟candidate @
-  }¨ indexes
-
+  diagnostics ← {Diagnostic ⟨"posting_shape_invalid", 𝕩, "posting must contain account, explicit amount, and commodity"⟩}¨ badLineNumbers
   domain ← ""
-  diagnostics ∾↩ AddIf ⟨0 = candidateCount, Diagnostic ⟨"posting_missing", range.start_index + 1, "ordinary transaction must contain postings"⟩⟩
+  diagnostics ∾↩ AddIf ⟨0 = ≠ candidateLines, Diagnostic ⟨"posting_missing", range.start_index + 1, "ordinary transaction must contain postings"⟩⟩
+
   {𝕊:
     domain ↩ >⊑postingDomainBoxes
     mixed ← ∨´ 0 ∾ {𝕩 ≢ (<domain)}¨ postingDomainBoxes
