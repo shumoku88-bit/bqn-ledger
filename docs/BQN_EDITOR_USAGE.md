@@ -111,9 +111,9 @@ ordinary supported-currency appendはcomplete-source admissionとStage 2A curren
     *   `--dry-run`: 追記プレビューのみを行い、ファイルには書き込みません。
     *   `--yes`: 追記時の確認プロンプト（`y/N`）をスキップします。
 
-### JPY→ILS exchange eventの安全追記 (`travel exchange add`)
+### JPY↔ILS exchange eventの安全追記 (`travel exchange add`)
 
-JPYを渡してILSを受け取った事実は、expense/incomeやordinary journalではなく専用sourceへ記録します。
+JPY/ILS間で両側の観測amountを持つ交換事実は、expense/incomeやordinary journalではなく専用sourceへ記録します。source/target accountとcurrencyを明示し、口座名から方向やcash/Wiseを推測しません。
 
 ```bash
 ./tools/edit travel exchange add \
@@ -123,7 +123,7 @@ JPYを渡してILSを受け取った事実は、expense/incomeやordinary journa
   --exchange-id israel-2026-exchange-0001 --trip-id israel-2026 --dry-run
 ```
 
-確認後は`--dry-run`を`--yes`へ替えます。両amountを保持する固定10列契約は [ISRAEL_TRAVEL_EDITOR_USAGE.md](ISRAEL_TRAVEL_EDITOR_USAGE.md) を参照してください。rate計算、journal projection、account作成は行いません。
+確認後は`--dry-run`を`--yes`へ替えます。ILS→JPYではsource/target account・amount・currencyを明示的に逆向きで指定します。両amountを保持する共通の固定10列契約は [ISRAEL_TRAVEL_EDITOR_USAGE.md](ISRAEL_TRAVEL_EDITOR_USAGE.md) を参照してください。rate計算、journal projection、account作成は行いません。
 
 ### 友人立替pending eventの安全追記 (`travel friend add`)
 

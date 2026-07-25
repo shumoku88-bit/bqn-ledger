@@ -52,7 +52,7 @@ The selected-domain boundary reuses production complete-source admission and Sta
 
 The ordinary-add writer now accepts one explicit registry-supported transaction currency, preserves omitted-currency JPY behavior, and rejects unsupported currency, excessive precision, account mismatch, mixed-domain, zero, malformed, missing, and unbalanced postings before safe append. The synthetic rehearsal writes JPY, ILS, and USD expenses through the registry-driven writer and selected-domain read boundaries, verifies domain isolation, and displays cumulative expense with the same section structure for all three currencies. JPY append, selected balances, and full-report compatibility remain checked.
 
-Travel metadata admission is complete as a separate finite slice: CLI `trip_id` renders to native `trip-id`, `payment` admits only `cash|card|debit`, both round-trip exactly through generic Transaction IR metadata, and neither changes account selection, currency, arithmetic, or reports. Mixed-currency aggregation, FX, valuation, reporting currency, reverse exchange, friend finalization, and Wise automatic-conversion semantics remain unimplemented.
+Travel metadata admission is complete as a separate finite slice: CLI `trip_id` renders to native `trip-id`, `payment` admits only `cash|card|debit`, both round-trip exactly through generic Transaction IR metadata, and neither changes account selection, currency, arithmetic, or reports. The dedicated exchange source now admits JPY→ILS and ILS→JPY through one account-explicit ten-column contract, with precision selected from each explicit currency leg and no account-name inference. Mixed-currency aggregation, FX, valuation, reporting currency, friend finalization, and Wise automatic-conversion semantics remain unimplemented.
 
 The latest AI working feedback remains evidence only and does not authorize additional work.
 
@@ -103,7 +103,7 @@ Selection rules:
 
 ### Israel 2026 travel funding and settlement continuation
 
-Status: usable ordinary ILS expense → selected ILS context → selected ILS balance vertical slice complete; later travel continuation slices remain independently unselected.
+Status: usable ordinary ILS expense, selected ILS balance, travel metadata, and bidirectional account-explicit exchange slices complete; later travel continuation slices remain independently unselected.
 
 Canonical lifecycle plan:
 
@@ -115,17 +115,16 @@ Current ownership audit:
 
 Recommended travel order after the completed minimal vertical slice:
 
-1. **Bidirectional account-explicit exchange** — widen the existing safe JPY→ILS event rail to admit ILS→JPY without inferring physical cash versus Wise from account names.
-2. **Friend atomic JPY finalization writer** — durable finalization/status/index ownership plus exactly one Journal expense/liability append and recovery.
-3. **Wise card evidence characterization** — distinguish existing-ILS-balance spending from purchase-time automatic conversion using public synthetic or user-supplied redacted statement shapes.
-4. **Narrow semantic position and obligation read models beyond currency-selected account balances** — physical ILS cash, Wise ILS balance, friend JPY liability, and confirmed own-card JPY spending kept separate.
-5. **Synthetic whole-trip rehearsal** — prove no duplicated expense and zero-or-explained balances.
-6. **Human-controlled production readiness checkpoint**.
+1. **Friend atomic JPY finalization writer** — durable finalization/status/index ownership plus exactly one Journal expense/liability append and recovery.
+2. **Wise card evidence characterization** — distinguish existing-ILS-balance spending from purchase-time automatic conversion using public synthetic or user-supplied redacted statement shapes.
+3. **Narrow semantic position and obligation read models beyond currency-selected account balances** — physical ILS cash, Wise ILS balance, friend JPY liability, and confirmed own-card JPY spending kept separate.
+4. **Synthetic whole-trip rehearsal** — prove no duplicated expense and zero-or-explained balances.
+5. **Human-controlled production readiness checkpoint**.
 
 Selection rules:
 
 - select at most one candidate;
-- do not bundle supported-currency Journal work with metadata, reverse exchange, friend finalization, Wise semantics, or reports;
+- do not bundle supported-currency Journal work or the completed metadata/exchange rails with friend finalization, Wise semantics, or reports;
 - never add JPY and ILS;
 - do not use private production data to determine policy;
 - do not create accounts automatically;
@@ -211,7 +210,7 @@ Status: usable ordinary supported-currency append and selected-domain context/ba
 - The public synthetic path now appends ordinary ILS spending, composes ILS Actual + plan + budget only, and displays ILS account balances and cumulative expense without admitting JPY or USD into that context.
 - Omitted-currency ordinary append and explicitly selected JPY balance compatibility remain checked; USD proves the writer is registry-driven.
 - strict-source Steps 2–5 beyond this narrow selected route and M4 remain unselected and do not auto-start.
-- mixed-currency aggregation, FX, valuation, metadata, reverse exchange, friend finalization, and Wise semantics remain unavailable.
+- mixed-currency aggregation, FX, valuation, friend finalization, and Wise automatic-conversion semantics remain unavailable; travel metadata and bidirectional dedicated exchange capture are available.
 
 ### Ledger Observatory long-term program
 

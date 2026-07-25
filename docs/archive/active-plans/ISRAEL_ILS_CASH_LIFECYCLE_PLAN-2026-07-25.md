@@ -1,6 +1,6 @@
 # Israel 2026 Travel Funding and Settlement Lifecycle — 2026-07-25
 
-Status: active lifecycle plan / usable ILS slice and travel metadata admission complete / no next continuation slice selected
+Status: active lifecycle plan / usable ILS, travel metadata, and bidirectional exchange slices complete / no next continuation slice selected
 Owner: currency / travel capture / settlement / editor / balances
 Canonical: yes for the Israel 2026 travel funding and settlement lifecycle
 Exit: archive after the required travel paths are implemented, synthetically rehearsed without double counting, and separately approved for human-controlled production use
@@ -70,8 +70,8 @@ This is a composition of separate rails, not a universal cross-currency Journal.
 
 ### Implemented
 
-- JPY→ILS exchange pure validation and structured preview;
-- durable `travel_exchange_events.tsv` creation/append through the public editor;
+- bidirectional JPY↔ILS account-explicit exchange pure validation and structured preview;
+- durable bidirectional `travel_exchange_events.tsv` creation/append through the public editor;
 - duplicate, malformed-source, stale-write, post-check, rollback, and interrupted-first-write protection for exchange events;
 - friend-paid ILS pending-event pure validation and preview;
 - durable `friend_travel_events.tsv` creation/append through the public editor with equivalent safety boundaries;
@@ -84,10 +84,8 @@ This is a composition of separate rails, not a universal cross-currency Journal.
 
 ### Not implemented or not admitted
 
-- ILS→JPY return exchange;
 - atomic friend finalization/status/index/Journal writing;
 - exchange/friend source consumption by Posting IR, Cube, TBDS, balances, or a travel read model;
-- ILS selected balances;
 - Wise purchase-time automatic-conversion semantics;
 - a complete synthetic whole-trip rehearsal.
 
@@ -186,8 +184,8 @@ It must preserve contributor provenance and must never add ILS and JPY.
 The ownership characterization originally established the pre-vertical-slice facts below. Items 4 and 5 are now completed; the remaining findings still route future work:
 
 1. exchange and friend pending safe append already exist;
-2. the current exchange contract is fixed to JPY→ILS but its explicit ten-column shape can support a single bidirectional contract in principle;
-3. no evidence requires a separate return-exchange event kind;
+2. the explicit ten-column exchange shape now admits JPY→ILS and ILS→JPY through one account-explicit contract;
+3. no separate return-exchange event kind was required;
 4. ordinary ILS spending was the first practical blocker — resolved by the supported-currency Journal vertical slice;
 5. `trip-id` and `payment` were absent — resolved by the travel metadata admission slice;
 6. exchange/friend sources have no selected accounting consumer;
@@ -213,11 +211,11 @@ No incomplete candidate below is currently selected.
    - `trip-id` is a nonempty safe opaque ID; `payment` is `cash|card|debit`;
    - parser/writer round-trip is checked; no consumer, inference, FX, or report grouping was added.
 
-4. **Bidirectional account-explicit exchange**
-   - admit JPY→ILS and ILS→JPY;
-   - choose precision from explicit currencies;
-   - preserve current source safety and no-Journal-projection boundary;
-   - never infer cash versus Wise from names.
+4. **Bidirectional account-explicit exchange — completed**
+   - admits JPY→ILS and ILS→JPY through the same ten-column contract;
+   - chooses precision from each explicit currency leg;
+   - preserves source safety and the no-Journal-projection boundary;
+   - never infers cash versus Wise from names.
 
 5. **Friend atomic JPY finalization writer**
    - durable status/finalization index plus exactly one native Journal append;

@@ -7,7 +7,7 @@ unset LEDGER_DATA_DIR
 tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
 sha() { shasum -a 256 "$1" | awk '{print $1}'; }
 mkdir "$tmp/base"
-printf '%s\n' $'assets:bank-jpy\trole=asset\tcurrency=JPY' $'assets:cash-ils\trole=asset\tcurrency=ILS' > "$tmp/base/accounts.tsv"
+printf '%s\n' $'assets:bank-jpy\trole=asset\tcurrency=JPY' $'assets:cash-ils\trole=asset\tcurrency=ILS' $'assets:wise-ils\trole=asset\tcurrency=ILS' $'assets:usd\trole=asset\tcurrency=USD' > "$tmp/base/accounts.tsv"
 printf 'sentinel journal bytes\n' > "$tmp/base/actual.journal"
 journal_before="$(sha "$tmp/base/actual.journal")"
 common=(--date 2026-07-20 --memo 'airport exchange' --source-account assets:bank-jpy --source-amount 10000 --source-currency JPY --target-account assets:cash-ils --target-amount 250.00 --target-currency ILS --exchange-id israel-2026-exchange-0001 --trip-id israel-2026)
@@ -31,6 +31,14 @@ tools/edit --base "$tmp/base" travel exchange add "${second[@]}" --yes >"$tmp/se
 [[ "$(wc -l < "$target" | tr -d ' ')" == 2 ]]
 [[ -f "$(awk -F': ' '$1=="Backup" {print $2}' "$tmp/second.out")" ]]
 
+# The same account-explicit ten-column contract safely appends ILS→JPY.
+reverse=(--date 2026-07-22 --memo 'return exchange' --source-account assets:cash-ils --source-amount 125.50 --source-currency ILS --target-account assets:bank-jpy --target-amount 4800 --target-currency JPY --exchange-id israel-2026-exchange-return-0001 --trip-id israel-2026)
+tools/edit --base "$tmp/base" travel exchange add "${reverse[@]}" --yes >"$tmp/reverse.out"
+reverse_row=$'2026-07-22\treturn exchange\tassets:cash-ils\t125.50\tILS\tassets:bank-jpy\t4800\tJPY\tisrael-2026-exchange-return-0001\tisrael-2026'
+grep -Fxq "$reverse_row" "$target"
+[[ "$(wc -l < "$target" | tr -d ' ')" == 3 ]]
+grep -Fq 'Exchange ID: israel-2026-exchange-return-0001' "$tmp/reverse.out"
+
 expect_fail_unchanged() {
   local label="$1" base="$2"; shift 2
   local file="$base/travel_exchange_events.tsv" before rc
@@ -40,7 +48,10 @@ expect_fail_unchanged() {
   [[ "$rc" -ne 0 && "$before" == "$(sha "$file")" ]] || { echo "FAIL: $label changed source or succeeded" >&2; exit 1; }
 }
 expect_fail_unchanged duplicate "$tmp/base" "${common[@]}"
-expect_fail_unchanged reversed "$tmp/base" --date 2026-07-22 --memo bad --source-account assets:cash-ils --source-amount 1 --source-currency ILS --target-account assets:bank-jpy --target-amount 1 --target-currency JPY --exchange-id reversed --trip-id israel-2026
+expect_fail_unchanged same-direction "$tmp/base" --date 2026-07-23 --memo bad --source-account assets:cash-ils --source-amount 1 --source-currency ILS --target-account assets:wise-ils --target-amount 1 --target-currency ILS --exchange-id same-direction --trip-id israel-2026
+expect_fail_unchanged unsupported-direction "$tmp/base" --date 2026-07-23 --memo bad --source-account assets:usd --source-amount 1.00 --source-currency USD --target-account assets:bank-jpy --target-amount 1 --target-currency JPY --exchange-id unsupported-direction --trip-id israel-2026
+expect_fail_unchanged reverse-ils-precision "$tmp/base" --date 2026-07-23 --memo bad --source-account assets:cash-ils --source-amount 1.001 --source-currency ILS --target-account assets:bank-jpy --target-amount 1 --target-currency JPY --exchange-id reverse-ils-precision --trip-id israel-2026
+expect_fail_unchanged reverse-jpy-precision "$tmp/base" --date 2026-07-23 --memo bad --source-account assets:cash-ils --source-amount 1.00 --source-currency ILS --target-account assets:bank-jpy --target-amount 1.5 --target-currency JPY --exchange-id reverse-jpy-precision --trip-id israel-2026
 expect_fail_unchanged unknown "$tmp/base" --date 2026-07-22 --memo bad --source-account unknown --source-amount 1 --source-currency JPY --target-account assets:cash-ils --target-amount 1 --target-currency ILS --exchange-id unknown --trip-id israel-2026
 expect_fail_unchanged zero "$tmp/base" --date 2026-07-22 --memo bad --source-account assets:bank-jpy --source-amount 0 --source-currency JPY --target-account assets:cash-ils --target-amount 1 --target-currency ILS --exchange-id zero --trip-id israel-2026
 expect_fail_unchanged jpy-precision "$tmp/base" --date 2026-07-22 --memo bad --source-account assets:bank-jpy --source-amount 1.5 --source-currency JPY --target-account assets:cash-ils --target-amount 1 --target-currency ILS --exchange-id jpy-precision --trip-id israel-2026
