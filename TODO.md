@@ -11,7 +11,8 @@ This file is a lightweight notebook for the current state of `bqn-ledger`. It re
 - Plan completion keeps currency selection and validation in `plan.tsv` while avoiding redundant `currency` metadata in the Actual Journal.
 - Journal metadata categories and cleanup evidence are recorded in `docs/JOURNAL_METADATA_INVENTORY.md`.
 - Canonical Daily Cube and TBDS are purpose-specific views over checked posting facts, not competing source truths.
-- `src_next/exact_sparse_grouping.bqn` now characterizes a small deterministic exact grouping kernel with Cube reconstruction, TBDS-like reuse, conservation, and provenance-sidecar tests.
+- `src_next/exact_sparse_grouping.bqn` provides a small deterministic exact grouping kernel with Cube reconstruction, TBDS-like reuse, conservation, and provenance-sidecar evidence.
+- `src_next/actual_expense_ranking.bqn` is the first real consumer built directly from checked posting facts: selected-period Actual expense filter, semantic AccountKey construction, exact grouping, ranking, and contributor lookup without Cube or TBDS ownership.
 - Historical plans, audits, and handoffs remain available under `docs/archive/` and in Git history.
 
 ## Things worth exploring
@@ -20,7 +21,8 @@ This file is a lightweight notebook for the current state of `bqn-ledger`. It re
 - stop copying plan-only `recur` and `series` metadata into completed Actual transactions;
 - test whether explicit `layer: actual` can disappear from an Actual-only Journal without changing behavior;
 - simplify the parser allowlist after occurrence evidence distinguishes active keys from historical vocabulary;
-- decide whether exact sparse grouping should remain an experiment or replace one production accumulation path after a second real consumer and complete result-contract parity are demonstrated;
+- run a second independent real query over checked posting facts before extracting broader filter/key/order vocabulary or replacing a production Cube/TBDS accumulation path;
+- preserve complete result-contract and diagnostic parity when considering any production materializer replacement;
 - separate the remaining JPY compatibility seams in `account_key.bqn`, arithmetic-proof authorization, and the legacy `context.BuildContext` path from registry-generic selected-domain behavior;
 - decide whether travel exchange should consume registry precision while keeping allowed currency pairs and trip policy in its own adapter; in particular, make the registry JPY `-1` policy and travel JPY scale `0` relationship explicit;
 - continue improving selected-currency daily use, travel recording, editor ergonomics, and reports from actual experience;
