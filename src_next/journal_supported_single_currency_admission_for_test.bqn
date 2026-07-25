@@ -124,13 +124,7 @@ Admit ← {𝕊 raw‿resolved:
   lines ← lf util.SplitKeepEmpty ((cr ≠ raw) / raw)
   domainInfo ← ResolveDomain lines
   diagnostics ← domainInfo.diagnostics
-  postings ← empty
-  {𝕊:
-    collected ← Collect ⟨lines, resolved, domainInfo⟩
-    diagnostics ∾↩ collected.diagnostics
-    postings ↩ collected.postings
-  }⍟(0 = ≠ diagnostics) @
-  {state⇐(0 = ≠ diagnostics) ⊑ "error"‿"ok", domain⇐domainInfo.domain, calculation_scale⇐0, normalized_postings⇐postings, transactions⇐empty, diagnostics⇐diagnostics}
+  {state⇐(0 = ≠ diagnostics) ⊑ "error"‿"ok", domain⇐domainInfo.domain, calculation_scale⇐0, normalized_postings⇐empty, transactions⇐empty, diagnostics⇐diagnostics}
 }
 
 {Admit⇐Admit}
