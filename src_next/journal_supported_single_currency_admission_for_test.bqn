@@ -57,9 +57,9 @@ LookupAccount ← {𝕊 accountKey‿resolved:
   result
 }
 
-Collect ← {𝕊 lines‿resolved:
+Collect ← {𝕊 lines‿resolved‿domainInfo:
   diagnostics ← empty
-  currencies ← empty
+  coefficients ← empty
   {𝕊 lineIndex:
     original ← lineIndex ⊑ lines
     trimmed ← Trim original
@@ -74,21 +74,29 @@ Collect ← {𝕊 lines‿resolved:
         amountText ← 1 ⊑ fields
         negative ← '-' = ⊑ (amountText ∾ "0")
         parsed ← decimal.Parse (negative ↓ amountText)
-        diagnostics ∾↩ AddIf ⟨parsed.state ≢ "ok", Diagnostic ⟨"posting_amount_invalid", lineIndex + 1, "posting amount must parse"⟩⟩
+        amountOk ← parsed.state ≡ "ok"
+        coefficient ← 0
+        {𝕊: coefficient ↩ (1 - 2 × negative) × parsed.coefficient}⍟amountOk @
+        finite ← 0 ≤ domainInfo.policy.max_fraction_digits
+        precisionOk ← amountOk ∧ ((¬ finite) ∨ parsed.scale ≤ domainInfo.policy.max_fraction_digits)
         account ← LookupAccount ⟨0 ⊑ fields, resolved⟩
+        diagnostics ∾↩ AddIf ⟨¬ amountOk, Diagnostic ⟨"posting_amount_invalid", lineIndex + 1, "posting amount must parse"⟩⟩
+        diagnostics ∾↩ AddIf ⟨amountOk ∧ (¬ precisionOk), Diagnostic ⟨"posting_precision_exceeded", lineIndex + 1, "posting precision exceeds policy"⟩⟩
+        diagnostics ∾↩ AddIf ⟨2 ⊑ fields ≢ domainInfo.domain, Diagnostic ⟨"posting_domain_mismatch", lineIndex + 1, "posting commodity differs from domain"⟩⟩
         diagnostics ∾↩ AddIf ⟨account.state ≢ "ok", Diagnostic ⟨"posting_account_unresolved", lineIndex + 1, "posting account must resolve"⟩⟩
-        {𝕊: currencies ∾↩ ⟨account.currency⟩}⍟(account.state ≡ "ok") @
+        diagnostics ∾↩ AddIf ⟨account.state ≡ "ok" ∧ account.currency ≢ domainInfo.domain, Diagnostic ⟨"posting_account_currency_mismatch", lineIndex + 1, "account currency differs from domain"⟩⟩
+        {𝕊: coefficients ∾↩ ⟨coefficient⟩}⍟(amountOk ∧ precisionOk) @
       }⍟valid @
     }⍟candidate @
   }¨ ↕ ≠ lines
-  {diagnostics⇐diagnostics, currencies⇐currencies}
+  {diagnostics⇐diagnostics, coefficients⇐coefficients}
 }
 
 Admit ← {𝕊 raw‿resolved:
   lines ← lf util.SplitKeepEmpty ((cr ≠ raw) / raw)
   domainInfo ← ResolveDomain lines
   diagnostics ← domainInfo.diagnostics
-  {𝕊: Collect ⟨lines, resolved⟩}⍟(0 = ≠ diagnostics) @
+  {𝕊: Collect ⟨lines, resolved, domainInfo⟩}⍟(0 = ≠ diagnostics) @
   {state⇐(0 = ≠ diagnostics) ⊑ "error"‿"ok", domain⇐domainInfo.domain, calculation_scale⇐0, normalized_postings⇐empty, transactions⇐empty, diagnostics⇐diagnostics}
 }
 
