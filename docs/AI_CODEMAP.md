@@ -40,6 +40,7 @@ Updated: 2026-07-26
 - TODOを進める際は、まず `TODO.md` と該当する active plan を参照する。
 - 大きめの相談が来たら、通常TODO/active planを進める話か、BQN editor トラックか、先にmokoへ確認する。
 - transaction-level `kind` とposting-level AccountKey partitionを混同しない。multi-posting transactionでは一つのtransaction kindの中に異なるaccount coordinateが共存する。
+- flatなstage列へ整理するときも、first-failure ownership、diagnostic code、no-partial-resultを変えない。後段stageは前段成功時だけ実行する。
 
 ## 作業完了ゲート
 
@@ -115,7 +116,7 @@ Updated: 2026-07-26
 - `account_key.bqn` — 勘定科目のキー解決。
 - `projection.bqn` — Posting IR 投影。
 - `snapshot.bqn` — Balance Sheet / Snapshot。TBDS closing を使用。構造化された ViewModel JSON 出力（FormatJson）もサポート。
-- `selected_domain_context.bqn` — 明示されたregistry-supportedな1通貨について、complete-source Actual carrier rowsと同通貨を証明したplan/budget rowsだけをcontext-local exact scaleへ正規化し、checked posting rows、resolved metadata、Cube/TBDS viewを構成する。異通貨、部分context、Currency axis、FX、valuationは扱わない。consumerは同domainのposting rowsをdirect sparse projectionへ渡せる。
+- `selected_domain_context.bqn` — 明示されたregistry-supportedな1通貨を、policy → complete Actual admission → Actual currency-proof carriage → non-Actual evidence/projection preparation → context-scale selection → exact normalization → Cube/TBDS period viewsのflatなstage列で構成する。`PrepareNonActualRows`と`NormalizeSelectedRows`はmodule内部のsemantic stageで、public exportは増やさない。各stageは前段成功時だけ実行し、failure code/diagnosticsを保持して部分contextを返さない。成功時はchecked posting rows、resolved metadata、Cube/TBDS viewを返し、同domainのposting rowsをdirect sparse projectionへ渡せる。Currency axis、FX、valuationは扱わない。
 - `balances.bqn` — 残高表示。human `--section balances --currency CODE`は常にselected-domain contextを使い、対象通貨のaccount残高と累計expenseを全supported currencyで同じsection構造により表示する。数値書式だけcurrency policyに従い、既存JSON契約は維持する。
 - `ytd_summary.bqn` — YTD 集計。
 - `cycle_summary.bqn` — サイクル収支 (Income Statement)。
@@ -233,7 +234,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 - `test_journal_canonical_prefix_converter.bqn` — deterministic rendering、description/metadata/currency red paths、identity/provenance、Cube/TBDS/Trial Balance/Balances parity、historical profile、synthetic suffix reconstructionのfocused test。
 - `test_journal_leading_ascii_space_description_characterization.bqn` — status marker後の必須ASCII SPACEを一文字だけdelimiterとして消費し、残るdescription-owned leading ASCII SPACEをTransaction IRへexactに保存する回帰test。delimiter欠落とempty payloadを区別してrejectし、converterによる一文字・二文字のleading-space exact round-tripとStage 2Aの16-field shape不変も固定する。
 - `test_journal_native_three_posting_semantic_parity.bqn` — native Journal 3 rowsとlegacy TSV 4 rowsのtopology差を保持したまま、共通semantic coordinate reductionとnumeric Cube payloadの一致を既存境界だけで検証するfocused test。
-- `test_src_next_selected_domain_context.bqn` — mixed Journalとplan/budget evidenceからJPY/ILS/USDを同じ経路で1通貨だけ構成し、empty/other-currency Actual、domain/scale isolation、fail-closed mismatch、同名accountのcurrency coordinate分離を検証。
+- `test_src_next_selected_domain_context.bqn` — mixed Journalとplan/budget evidenceからJPY/ILS/USDを同じ経路で1通貨だけ構成し、empty/other-currency Actual、domain/scale isolation、fail-closed mismatch、同名accountのcurrency coordinate分離に加え、unsupported policyがsource workを止め、Actual admission failureがnon-Actual preparationを止めるfirst-failure stage priorityを検証する。
 - `test_lib.bqn` — テストフレームワーク (Assert, AssertEq)。
 - `test_find_section.bqn`, `test_simple.bqn` — 汎用テスト。
 
