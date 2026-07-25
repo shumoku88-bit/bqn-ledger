@@ -65,7 +65,10 @@ ResolveDeclarations ← {𝕊 lines‿ranges:
   diagnostics ← empty
   domainBoxes ← empty
   firstTransaction ← ≠ lines
-  {𝕊: firstTransaction ↩ (⊑ ranges).start_index}⍟(0 < ≠ ranges) @
+  {𝕊:
+    firstRange ← ⊑ ranges
+    firstTransaction ↩ firstRange.start_index
+  }⍟(0 < ≠ ranges) @
 
   diagnostics ∾↩ AddIf ⟨0 = ≠ indexes, Diagnostic ⟨"commodity_declaration_missing", 0, "container Journal must declare at least one commodity domain"⟩⟩
 
