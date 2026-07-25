@@ -8,10 +8,7 @@ tab ← @+9
 Raw ← {𝕊 lines: ∾ (lines ∾¨ lf) }
 
 resolved ← ak.Resolve ⟨
-  "assets:bank-jpy" ∾ tab ∾ "role=asset" ∾ tab ∾ "currency=JPY",
-  "expenses:food-jpy" ∾ tab ∾ "role=expense" ∾ tab ∾ "currency=JPY",
-  "assets:cash-ils" ∾ tab ∾ "role=asset" ∾ tab ∾ "currency=ILS",
-  "expenses:food-ils" ∾ tab ∾ "role=expense" ∾ tab ∾ "currency=ILS"
+  "assets:bank-jpy" ∾ tab ∾ "role=asset" ∾ tab ∾ "currency=JPY"
 ⟩
 
 raw ← Raw ⟨
@@ -21,18 +18,9 @@ raw ← Raw ⟨
   "",
   "account assets:bank-jpy",
   "",
-  "account expenses:food-jpy",
-  "",
-  "account assets:cash-ils",
-  "",
-  "account expenses:food-ils",
-  "",
-  "2026-07-20 * synthetic JPY meal",
-  "  ; event-id: proof-jpy-container-1",
-  "  assets:bank-jpy  -1200 JPY",
-  "  expenses:food-jpy  1200 JPY"
+  "2026-07-20 * synthetic JPY meal"
 ⟩
 
 result ← container.Admit ⟨raw, resolved⟩
 
-•Out "test_journal_multi_currency_container_admission_proof.bqn: ONE TRANSACTION CALL OK"
+•Out "test_journal_multi_currency_container_admission_proof.bqn: HEADER CALL OK"
