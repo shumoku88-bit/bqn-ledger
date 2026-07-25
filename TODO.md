@@ -28,7 +28,7 @@ Last hygiene pass: 2026-07-25
 - JPY→ILS exchange safe append and friend-paid pending safe append already exist.
 - Native Journal ordinary Actual writing, parsing, and selected balances remain JPY-only; ordinary ILS travel spending is not currently admitted.
 - The non-JPY single-currency characterization and test-only admission proof are complete. Public-synthetic ILS and USD witnesses share one registry-driven domain, precision, account-currency, normalization, balance, and structural-trace boundary while production Journal routes remain unchanged.
-- The selected contract direction is now one multi-currency Journal container with single-domain ordinary transactions and no unlike-currency aggregation.
+- The multi-currency Journal container contract decision is complete: one Journal may contain multiple supported currencies while every ordinary transaction remains single-domain and unlike currencies are never aggregated.
 - The generic projection and valuation foundation remains an active backlog, not implementation authorization.
 - Detailed completion history through the previous checkpoint is in `docs/archive/TODO_HISTORY-2026-07-24.md`.
 
@@ -36,15 +36,13 @@ Last hygiene pass: 2026-07-25
 
 ## Active work
 
-### Multi-currency Journal container contract decision
+**No finite implementation slice is currently selected.**
 
-Status: selected docs-only finite work.
-
-Canonical contract:
+Completed current finite work:
 
 - `docs/archive/active-plans/MULTI_CURRENCY_JOURNAL_CONTAINER_CONTRACT-2026-07-25.md`
 
-Selected decision:
+Recorded decision:
 
 - one native Journal file may contain ordinary transactions from multiple registry-supported currencies;
 - every ordinary transaction has exactly one currency domain and balances within that domain;
@@ -52,7 +50,7 @@ Selected decision:
 - an ordinary transaction containing more than one currency fails closed;
 - cross-currency exchange remains a separately typed rail until an explicit exchange-in-Journal contract is independently selected.
 
-This slice is documentation only. It does not authorize production parser, writer, Stage 2A, context, Cube, TBDS, reports, metadata, FX, valuation, source-data, account, or travel changes.
+The completed contract does not authorize production parser, writer, Stage 2A, context, Cube, TBDS, reports, metadata, FX, valuation, source-data, account, or travel changes.
 
 The latest AI working feedback remains evidence only and does not authorize additional work.
 
@@ -62,7 +60,7 @@ The latest AI working feedback remains evidence only and does not authorize addi
 
 ### Multi-currency native Journal container continuation
 
-Status: contract direction selected / all implementation continuation slices independently unselected.
+Status: contract decision complete / all implementation continuation slices independently unselected.
 
 Current evidence and contract:
 
@@ -96,7 +94,7 @@ Selection rules:
 
 ### Israel 2026 travel funding and settlement continuation
 
-Status: non-JPY characterization and test-only proof complete; multi-currency Journal container contract selected; travel continuation slices remain independently unselected.
+Status: non-JPY characterization and test-only proof complete; multi-currency Journal container contract complete; travel continuation slices remain independently unselected.
 
 Canonical lifecycle plan:
 
@@ -199,7 +197,7 @@ Status: unselected / parked Israel continuation candidate.
 
 ### Mixed-ledger daily-use continuation
 
-Status: single-currency characterization and proof complete; multi-currency Journal container contract selected; residual runtime candidates remain unselected.
+Status: single-currency characterization and proof complete; multi-currency Journal container contract complete; residual runtime candidates remain unselected.
 
 - Current broad plan: `docs/archive/active-plans/CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md`.
 - Israel lifecycle plan: `docs/archive/active-plans/ISRAEL_ILS_CASH_LIFECYCLE_PLAN-2026-07-25.md`.
