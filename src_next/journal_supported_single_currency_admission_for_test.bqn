@@ -25,7 +25,7 @@ Trim ← { TrimRight TrimLeft 𝕩 }
 StartsWith ← {𝕊 prefix‿text: prefix ≡ (≠ prefix) ↑ text }
 IsDateHeader ← {𝕊 text:
   enough ← 10 < ≠ text
-  separator ← space = 10 ⊑ (text ∾ " ")
+  separator ← space = 10 ⊑ (text ∾ 11 ⥊ space)
   enough ∧ separator ∧ dates.IsValidDateText 10 ↑ text
 }
 
