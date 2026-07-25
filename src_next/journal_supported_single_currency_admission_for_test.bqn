@@ -129,23 +129,67 @@ Collect ← {𝕊 lines‿resolved‿domainInfo:
   {diagnostics⇐diagnostics, postings⇐postings, transaction_starts⇐transactionStarts}
 }
 
+Normalize ← {𝕊 postings:
+  calculationScale ← 0
+  {𝕊: calculationScale ↩ ⌈´ {𝕩.source_scale}¨ postings}⍟(0 < ≠ postings) @
+  normalized ← {𝕊 posting:
+    zeroCount ← calculationScale - posting.source_scale
+    magnitudeText ← (•Fmt | posting.source_coefficient) ∾ zeroCount ⥊ '0'
+    magnitude ← decimal.Parse magnitudeText
+    sign ← 1 - 2 × (posting.source_coefficient < 0)
+    {
+      transaction_index⇐posting.transaction_index,
+      posting_index⇐posting.posting_index,
+      source_line⇐posting.source_line,
+      account_key⇐posting.account_key,
+      account_currency⇐posting.account_currency,
+      commodity⇐posting.commodity,
+      amount_text⇐posting.amount_text,
+      source_coefficient⇐posting.source_coefficient,
+      source_scale⇐posting.source_scale,
+      normalized_coefficient⇐sign × magnitude.coefficient
+    }
+  }¨ postings
+  {calculation_scale⇐calculationScale, postings⇐normalized}
+}
+
+BalanceDiagnostics ← {𝕊 postings‿transactionStarts:
+  diagnostics ← empty
+  {𝕊 transactionIndex:
+    selected ← ({transactionIndex = 𝕩.transaction_index}¨ postings) / postings
+    sourceLine ← transactionIndex ⊑ transactionStarts
+    total ← +´ 0 ∾ {𝕩.normalized_coefficient}¨ selected
+    diagnostics ∾↩ AddIf ⟨0 = ≠ selected, Diagnostic ⟨"posting_missing", sourceLine, "transaction must contain postings"⟩⟩
+    diagnostics ∾↩ AddIf ⟨0 ≠ total, Diagnostic ⟨"event_unbalanced", sourceLine, "normalized posting coefficients must sum to zero"⟩⟩
+  }¨ ↕ ≠ transactionStarts
+  diagnostics
+}
+
 Admit ← {𝕊 raw‿resolved:
   lines ← lf util.SplitKeepEmpty ((cr ≠ raw) / raw)
   domainInfo ← ResolveDomain lines
   diagnostics ← domainInfo.diagnostics
-  postings ← empty
+  collectedPostings ← empty
   transactionStarts ← empty
+  calculationScale ← 0
+  normalizedPostings ← empty
   {𝕊:
     collected ← Collect ⟨lines, resolved, domainInfo⟩
     diagnostics ∾↩ collected.diagnostics
-    postings ↩ collected.postings
+    collectedPostings ↩ collected.postings
     transactionStarts ↩ collected.transaction_starts
+    {𝕊:
+      normalized ← Normalize collectedPostings
+      calculationScale ↩ normalized.calculation_scale
+      normalizedPostings ↩ normalized.postings
+      diagnostics ∾↩ BalanceDiagnostics ⟨normalizedPostings, transactionStarts⟩
+    }⍟(0 = ≠ diagnostics) @
   }⍟(0 = ≠ diagnostics) @
   {
     state⇐(0 = ≠ diagnostics) ⊑ "error"‿"ok",
     domain⇐domainInfo.domain,
-    calculation_scale⇐0,
-    normalized_postings⇐postings,
+    calculation_scale⇐calculationScale,
+    normalized_postings⇐normalizedPostings,
     transaction_starts⇐transactionStarts,
     transactions⇐empty,
     diagnostics⇐diagnostics
