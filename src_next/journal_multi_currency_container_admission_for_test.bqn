@@ -1,0 +1,231 @@
+# journal_multi_currency_container_admission_for_test.bqn
+# Pure test-only proof boundary. Production Journal routes do not import this module.
+#
+# One raw Journal may contain multiple declared currency domains, while every
+# ordinary transaction is projected through the existing single-currency proof.
+# No Journal-wide arithmetic domain, scale, or money total is produced.
+
+util ← •Import "util.bqn"
+dates ← •Import "date.bqn"
+setup ← •Import "currency_setup.bqn"
+single ← •Import "journal_supported_single_currency_admission_for_test.bqn"
+
+lf ← @+10
+cr ← @+13
+space ← @+32
+empty ← ⟨⟩
+
+TrimLeft ← {𝕊 xs:
+  prefix ← ∧` (xs = space)
+  (+´ prefix) ↓ xs
+}
+
+TrimRight ← {𝕊 xs:
+  suffix ← ∧` ((⌽ xs) = space)
+  ((≠ xs) - +´ suffix) ↑ xs
+}
+
+Trim ← { TrimRight TrimLeft 𝕩 }
+StartsWith ← {𝕊 prefix‿text: prefix ≡ (≠ prefix) ↑ text }
+IsCommodityLine ← {𝕊 line: StartsWith ⟨"commodity ", Trim line⟩ }
+
+IsDateHeader ← {𝕊 text:
+  enough ← 10 < ≠ text
+  separator ← space = 10 ⊑ (text ∾ 11 ⥊ space)
+  enough ∧ separator ∧ dates.IsValidDateText 10 ↑ text
+}
+
+Diagnostic ← {𝕊 codeText‿lineNumber‿messageText:
+  {
+    severity⇐"error",
+    stage⇐"journal_multi_currency_container_admission_for_test",
+    code⇐codeText,
+    line⇐lineNumber,
+    message⇐messageText
+  }
+}
+
+AddIf ← {𝕊 invalid‿diagnostic: invalid / ⟨diagnostic⟩ }
+Contains ← {𝕊 value‿values: ∨´ 0 ∾ {value ≡ 𝕩}¨ values }
+
+FindTransactionRanges ← {𝕊 lines:
+  starts ← ({IsDateHeader Trim 𝕩}¨ lines) / ↕ ≠ lines
+  ranges ← empty
+  {𝕊 i:
+    startIndex ← i ⊑ starts
+    endExclusive ← ≠ lines
+    {𝕊: endExclusive ↩ (i + 1) ⊑ starts}⍟(i + 1 < ≠ starts) @
+    ranges ∾↩ ⟨{start_index⇐startIndex, end_exclusive⇐endExclusive}⟩
+  }¨ ↕ ≠ starts
+  ranges
+}
+
+ResolveDeclarations ← {𝕊 lines‿ranges:
+  indexes ← (IsCommodityLine¨ lines) / ↕ ≠ lines
+  diagnostics ← empty
+  domains ← empty
+  firstTransaction ← ≠ lines
+  {𝕊: firstTransaction ↩ (⊑ ranges).start_index}⍟(0 < ≠ ranges) @
+
+  diagnostics ∾↩ AddIf ⟨0 = ≠ indexes, Diagnostic ⟨"commodity_declaration_missing", 0, "container Journal must declare at least one commodity domain"⟩⟩
+
+  {𝕊 lineIndex:
+    lineNumber ← lineIndex + 1
+    fields ← space util.Split Trim lineIndex ⊑ lines
+    valid ← 2 = ≠ fields
+    localDiagnostics ← empty
+    localDiagnostics ∾↩ AddIf ⟨lineIndex ≥ firstTransaction, Diagnostic ⟨"commodity_declaration_after_transaction", lineNumber, "commodity declarations must precede ordinary transactions"⟩⟩
+    localDiagnostics ∾↩ AddIf ⟨¬ valid, Diagnostic ⟨"commodity_shape_invalid", lineNumber, "commodity declaration must contain exactly one code"⟩⟩
+    {𝕊:
+      domain ← 1 ⊑ fields
+      policy ← setup.Policy domain
+      duplicate ← Contains ⟨domain, domains⟩
+      localDiagnostics ∾↩ AddIf ⟨policy.state ≢ "ok", Diagnostic ⟨"commodity_unsupported", lineNumber, "commodity must be admitted by the repository currency registry"⟩⟩
+      localDiagnostics ∾↩ AddIf ⟨duplicate, Diagnostic ⟨"commodity_declaration_duplicate", lineNumber, "commodity domain must be declared once"⟩⟩
+      {𝕊: domains ∾↩ ⟨domain⟩}⍟((policy.state ≡ "ok") ∧ (¬ duplicate) ∧ (lineIndex < firstTransaction)) @
+    }⍟valid @
+    diagnostics ∾↩ localDiagnostics
+  }¨ indexes
+
+  {declared_domains⇐domains, diagnostics⇐diagnostics}
+}
+
+ResolveTransactionDomain ← {𝕊 lines‿range‿declaredDomains:
+  diagnostics ← empty
+  postingDomains ← empty
+  candidateCount ← 0
+  blockLength ← range.end_exclusive - range.start_index
+  indexes ← range.start_index + ↕ blockLength
+
+  {𝕊 lineIndex:
+    original ← lineIndex ⊑ lines
+    trimmed ← Trim original
+    indented ← space = ⊑ (original ∾ " ")
+    metadata ← ';' = ⊑ (trimmed ∾ ";")
+    candidate ← indented ∧ (0 < ≠ trimmed) ∧ (¬ metadata)
+    {𝕊:
+      candidateCount ↩ candidateCount + 1
+      fields ← space util.Split trimmed
+      valid ← 3 = ≠ fields
+      diagnostics ∾↩ AddIf ⟨¬ valid, Diagnostic ⟨"posting_shape_invalid", lineIndex + 1, "posting must contain account, explicit amount, and commodity"⟩⟩
+      {𝕊: postingDomains ∾↩ ⟨2 ⊑ fields⟩}⍟valid @
+    }⍟candidate @
+  }¨ indexes
+
+  domain ← ""
+  diagnostics ∾↩ AddIf ⟨0 = candidateCount, Diagnostic ⟨"posting_missing", range.start_index + 1, "ordinary transaction must contain postings"⟩⟩
+  {𝕊:
+    domain ↩ ⊑ postingDomains
+    mixed ← ∨´ 0 ∾ {𝕩 ≢ domain}¨ postingDomains
+    declared ← Contains ⟨domain, declaredDomains⟩
+    diagnostics ∾↩ AddIf ⟨mixed, Diagnostic ⟨"mixed_domain_ordinary_transaction", range.start_index + 1, "ordinary transaction postings must share exactly one currency domain"⟩⟩
+    diagnostics ∾↩ AddIf ⟨(¬ mixed) ∧ (¬ declared), Diagnostic ⟨"transaction_domain_undeclared", range.start_index + 1, "ordinary transaction domain must be declared by the Journal"⟩⟩
+  }⍟(0 < ≠ postingDomains) @
+
+  {domain⇐domain, diagnostics⇐diagnostics}
+}
+
+BuildProjection ← {𝕊 lines‿range‿domain:
+  prefix ← range.start_index ↑ lines
+  keep ← ¬ IsCommodityLine¨ prefix
+  prefixLines ← keep / prefix
+  prefixMap ← keep / (1 + ↕ range.start_index)
+
+  blockLength ← range.end_exclusive - range.start_index
+  blockLines ← blockLength ↑ range.start_index ↓ lines
+  blockMap ← 1 + range.start_index + ↕ blockLength
+
+  projectedLines ← ⟨"commodity " ∾ domain⟩ ∾ prefixLines ∾ blockLines
+  lineMap ← ⟨0⟩ ∾ prefixMap ∾ blockMap
+  projectedRaw ← ∾ (projectedLines ∾¨ lf)
+  {raw⇐projectedRaw, line_map⇐lineMap}
+}
+
+RemapDiagnostic ← {𝕊 diagnostic‿lineMap:
+  mappedLine ← diagnostic.line
+  inRange ← (0 < mappedLine) ∧ (mappedLine ≤ ≠ lineMap)
+  {𝕊: mappedLine ↩ (mappedLine - 1) ⊑ lineMap}⍟inRange @
+  {
+    severity⇐diagnostic.severity,
+    stage⇐diagnostic.stage,
+    code⇐diagnostic.code,
+    line⇐mappedLine,
+    message⇐diagnostic.message
+  }
+}
+
+RemapPosting ← {𝕊 posting‿lineMap:
+  originalLine ← (posting.source_line - 1) ⊑ lineMap
+  {
+    posting_id⇐posting.posting_id,
+    posting_index⇐posting.posting_index,
+    side⇐posting.side,
+    source_line⇐originalLine,
+    account_key⇐posting.account_key,
+    account_currency⇐posting.account_currency,
+    commodity⇐posting.commodity,
+    amount_text⇐posting.amount_text,
+    source_coefficient⇐posting.source_coefficient,
+    source_scale⇐posting.source_scale,
+    normalized_coefficient⇐posting.normalized_coefficient
+  }
+}
+
+RemapTransaction ← {𝕊 transaction‿lineMap‿range‿containerIndex:
+  postings ← {RemapPosting ⟨𝕩, lineMap⟩}¨ transaction.postings
+  {
+    transaction_index⇐containerIndex,
+    source_event_id⇐transaction.source_event_id,
+    identity_kind⇐transaction.identity_kind,
+    source_start_line⇐range.start_index + 1,
+    source_end_line⇐range.end_exclusive,
+    date⇐transaction.date,
+    status_marker⇐transaction.status_marker,
+    description⇐transaction.description,
+    layer_name⇐transaction.layer_name,
+    domain⇐transaction.domain,
+    calculation_scale⇐transaction.calculation_scale,
+    metadata⇐transaction.metadata,
+    postings⇐postings
+  }
+}
+
+Admit ← {𝕊 raw‿resolved:
+  lines ← lf util.SplitKeepEmpty ((cr ≠ raw) / raw)
+  ranges ← FindTransactionRanges lines
+  declarations ← ResolveDeclarations ⟨lines, ranges⟩
+  diagnostics ← declarations.diagnostics
+  transactions ← empty
+
+  diagnostics ∾↩ AddIf ⟨0 = ≠ ranges, Diagnostic ⟨"transaction_missing", 0, "container Journal must contain at least one ordinary transaction"⟩⟩
+
+  {𝕊 transactionIndex:
+    range ← transactionIndex ⊑ ranges
+    domainInfo ← ResolveTransactionDomain ⟨lines, range, declarations.declared_domains⟩
+    localDiagnostics ← domainInfo.diagnostics
+    {𝕊:
+      projection ← BuildProjection ⟨lines, range, domainInfo.domain⟩
+      proof ← single.Admit ⟨projection.raw, resolved⟩
+      remapped ← {RemapDiagnostic ⟨𝕩, projection.line_map⟩}¨ proof.diagnostics
+      localDiagnostics ∾↩ remapped
+      {𝕊:
+        oneTransaction ← 1 = ≠ proof.transactions
+        localDiagnostics ∾↩ AddIf ⟨¬ oneTransaction, Diagnostic ⟨"transaction_trace_count_mismatch", range.start_index + 1, "projected single-domain proof must return exactly one transaction"⟩⟩
+        {𝕊:
+          transaction ← RemapTransaction ⟨⊑ proof.transactions, projection.line_map, range, transactionIndex⟩
+          transactions ∾↩ ⟨transaction⟩
+        }⍟oneTransaction @
+      }⍟(proof.state ≡ "ok") @
+    }⍟(0 = ≠ localDiagnostics) @
+    diagnostics ∾↩ localDiagnostics
+  }¨ ↕ ≠ ranges
+
+  {
+    state⇐(0 = ≠ diagnostics) ⊑ "error"‿"ok",
+    declared_domains⇐declarations.declared_domains,
+    transactions⇐transactions,
+    diagnostics⇐diagnostics
+  }
+}
+
+{Admit⇐Admit}
