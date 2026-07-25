@@ -124,10 +124,13 @@ expect_fail_unchanged() {
 ./tools/edit --base "$base" journal add \
   --date 2026-07-25 --memo 'synthetic ILS meal' \
   --from assets:cash-ils --to expenses:food-ils --amount 12.34 --currency ILS \
+  --meta trip_id=trip-synthetic-2026 --meta payment=cash \
   --yes --post-check lint >"$tmp/ils-add.out"
 grep -q 'Mandatory native validation: OK' "$tmp/ils-add.out"
 grep -q $'OK\tNATIVE_JOURNAL_CANDIDATE\tordinary' "$tmp/ils-add.out"
 grep -q 'expenses:food-ils    12.34 ILS' "$base/source.journal"
+grep -q '    ; trip-id: trip-synthetic-2026' "$base/source.journal"
+grep -q '    ; payment: cash' "$base/source.journal"
 
 # Existing omitted-currency behavior remains JPY.
 ./tools/edit --base "$base" journal add \
