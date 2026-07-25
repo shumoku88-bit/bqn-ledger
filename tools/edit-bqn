@@ -33,9 +33,9 @@ ACCOUNTS_FILE="$(get_system_default_file DEFAULT_ACCOUNTS_FILE accounts.tsv)"
 usage() {
   cat <<'USAGE' >&2
 Usage:
-  tools/edit-bqn [--base DIR] journal-block add [--identity ordinary|durable] --journal-file FILE --date YYYY-MM-DD --description DESCRIPTION [--event-id EVENT_ID] --posting ACCOUNT=SIGNED_INTEGER --posting ACCOUNT=SIGNED_INTEGER [--posting ACCOUNT=SIGNED_INTEGER ...] [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
+  tools/edit-bqn [--base DIR] journal-block add [--identity ordinary|durable] --journal-file FILE --date YYYY-MM-DD --description DESCRIPTION [--event-id EVENT_ID] [--currency CODE] --posting ACCOUNT=SIGNED_DECIMAL --posting ACCOUNT=SIGNED_DECIMAL [--posting ACCOUNT=SIGNED_DECIMAL ...] [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] journal add --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount DECIMAL [--currency CODE] [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
-  tools/edit-bqn [--base DIR] journal multi-add --date YYYY-MM-DD --description DESCRIPTION --posting ACCOUNT=SIGNED_INTEGER --posting ACCOUNT=SIGNED_INTEGER [--posting ACCOUNT=SIGNED_INTEGER ...] [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
+  tools/edit-bqn [--base DIR] journal multi-add --date YYYY-MM-DD --description DESCRIPTION [--currency CODE] --posting ACCOUNT=SIGNED_DECIMAL --posting ACCOUNT=SIGNED_DECIMAL [--posting ACCOUNT=SIGNED_DECIMAL ...] [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] budget add  --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount DECIMAL [--currency CODE] [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] plan add --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount DECIMAL [--currency CODE] [--meta key=value ...] [--id plan-YYYY-MM-DD-series] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] issue add [--date YYYY-MM-DD] [--status open|resolved|dropped] --title TITLE [--amount INT] [--memo MEMO] [--dry-run] [--yes] [--post-check none|lint|full]
@@ -101,11 +101,12 @@ fi
 
 if [[ "$1" == "journal" && "$2" == "multi-add" ]]; then
   shift 2
-  DATE=""; DESCRIPTION=""; POSTINGS=(); BLOCK_META=(); DRY_RUN=0; YES=0; POST_CHECK="lint"
+  DATE=""; DESCRIPTION=""; CURRENCY="JPY"; POSTINGS=(); BLOCK_META=(); DRY_RUN=0; YES=0; POST_CHECK="lint"
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --date) DATE="$(get_opt_val_allow_empty "$1" "${2-}")"; shift 2 ;;
       --description) DESCRIPTION="$(get_opt_val_allow_empty "$1" "${2-}")"; shift 2 ;;
+      --currency) CURRENCY="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
       --posting) POSTINGS+=("$(get_opt_val_allow_empty "$1" "${2-}")"); shift 2 ;;
       --meta) BLOCK_META+=("$(get_opt_val_allow_empty "$1" "${2-}")"); shift 2 ;;
       --dry-run) DRY_RUN=1; shift ;;
@@ -121,7 +122,7 @@ if [[ "$1" == "journal" && "$2" == "multi-add" ]]; then
   ACTUAL_FILE="$(cd "$ROOT_DIR" && bqn src_edit/actual_journal_file_cmd.bqn "$BASE_DIR")"
   [[ -n "$ACTUAL_FILE" ]] || { echo "ERROR: invalid configured Journal file" >&2; exit 1; }
 
-  native_args=(--base "$BASE_DIR" journal-block add --identity ordinary --journal-file "$ACTUAL_FILE" --date "$DATE" --description "$DESCRIPTION" --post-check "$POST_CHECK")
+  native_args=(--base "$BASE_DIR" journal-block add --identity ordinary --journal-file "$ACTUAL_FILE" --date "$DATE" --description "$DESCRIPTION" --currency "$CURRENCY" --post-check "$POST_CHECK")
   for posting in "${POSTINGS[@]}"; do native_args+=(--posting "$posting"); done
   for item in "${BLOCK_META[@]}"; do native_args+=(--meta "$item"); done
   [[ "$DRY_RUN" -eq 1 ]] && native_args+=(--dry-run)
@@ -131,7 +132,7 @@ fi
 
 if [[ "$1" == "journal-block" && "$2" == "add" ]]; then
   shift 2
-  JOURNAL_REL=""; JOURNAL_REL_SET=0; DATE=""; DESCRIPTION=""; IDENTITY_MODE="durable"; EVENT_ID=""; EVENT_ID_SET=0
+  JOURNAL_REL=""; JOURNAL_REL_SET=0; DATE=""; DESCRIPTION=""; IDENTITY_MODE="durable"; EVENT_ID=""; EVENT_ID_SET=0; CURRENCY="JPY"
   POSTINGS=(); BLOCK_META=(); DRY_RUN=0; YES=0; POST_CHECK="lint"
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -140,6 +141,7 @@ if [[ "$1" == "journal-block" && "$2" == "add" ]]; then
       --description) DESCRIPTION="$(get_opt_val_allow_empty "$1" "${2-}")"; shift 2 ;;
       --identity) IDENTITY_MODE="$(get_opt_val_allow_empty "$1" "${2-}")"; shift 2 ;;
       --event-id) EVENT_ID="$(get_opt_val_allow_empty "$1" "${2-}")"; EVENT_ID_SET=1; shift 2 ;;
+      --currency) CURRENCY="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
       --posting) POSTINGS+=("$(get_opt_val_allow_empty "$1" "${2-}")"); shift 2 ;;
       --meta) BLOCK_META+=("$(get_opt_val_allow_empty "$1" "${2-}")"); shift 2 ;;
       --dry-run) DRY_RUN=1; shift ;;
@@ -182,7 +184,7 @@ if [[ "$1" == "journal-block" && "$2" == "add" ]]; then
   BQN_STDERR="$(mktemp)"
   trap 'rm -f "$BQN_STDERR"' EXIT
   BQN_OUT=""
-  if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/journal_block_add_cmd.bqn "$CANONICAL_BASE" "$TARGET_PATH" "$DATE" "$DESCRIPTION" "$IDENTITY_MODE" "$EVENT_ID" "${#POSTINGS[@]}" "${POSTINGS[@]}" "${BLOCK_META[@]}" 2>"$BQN_STDERR")"; then
+  if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/journal_block_add_cmd.bqn "$CANONICAL_BASE" "$TARGET_PATH" "$DATE" "$DESCRIPTION" "$IDENTITY_MODE" "$EVENT_ID" "currency=$CURRENCY" "${#POSTINGS[@]}" "${POSTINGS[@]}" "${BLOCK_META[@]}" 2>"$BQN_STDERR")"; then
     [[ -n "$BQN_OUT" ]] && printf '%s\n' "$BQN_OUT" >&2
     [[ -s "$BQN_STDERR" ]] && cat "$BQN_STDERR" >&2
     exit 1
@@ -224,7 +226,7 @@ if [[ "$1" == "journal-block" && "$2" == "add" ]]; then
   NATIVE_OUT=""
   if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && "${EDIT_BQN_TEST_FORCE_NATIVE_POST_CHECK_FAIL:-}" == "1" ]]; then
     NATIVE_OK=0; NATIVE_OUT="forced mandatory native validation failure"
-  elif ! NATIVE_OUT="$(cd "$ROOT_DIR" && bqn src_edit/journal_native_source_check.bqn "$CANONICAL_BASE" "$TARGET_PATH" "$DATE" "$DESCRIPTION" "$IDENTITY_MODE" "$EVENT_ID" "$candidate_ordinal" "${POSTINGS[@]}" 2>&1)"; then
+  elif ! NATIVE_OUT="$(cd "$ROOT_DIR" && bqn src_edit/journal_native_source_check.bqn "$CANONICAL_BASE" "$TARGET_PATH" "$DATE" "$DESCRIPTION" "$IDENTITY_MODE" "$EVENT_ID" "$candidate_ordinal" "currency=$CURRENCY" "${POSTINGS[@]}" 2>&1)"; then
     NATIVE_OK=0
   fi
   if [[ "$NATIVE_OK" -eq 1 ]]; then
@@ -933,8 +935,8 @@ edit_bqn_validate_post_check "$POST_CHECK"
 if [[ "$COMMAND" == "journal" ]]; then
   ACTUAL_FILE="$(cd "$ROOT_DIR" && bqn src_edit/actual_journal_file_cmd.bqn "$BASE_DIR")"
   [[ -n "$ACTUAL_FILE" ]] || { echo "ERROR: invalid configured Journal file" >&2; exit 1; }
-  [[ -z "$CURRENCY" || "$CURRENCY" == "JPY" ]] || { echo "ERROR: native Journal daily add currently supports JPY only" >&2; exit 1; }
-  native_args=(--base "$BASE_DIR" journal-block add --identity ordinary --journal-file "$ACTUAL_FILE" --date "$DATE" --description "$MEMO" --posting "$TO=$AMOUNT" --posting "$FROM=-$AMOUNT" --post-check "$POST_CHECK")
+  [[ -n "$CURRENCY" ]] || CURRENCY="JPY"
+  native_args=(--base "$BASE_DIR" journal-block add --identity ordinary --journal-file "$ACTUAL_FILE" --date "$DATE" --description "$MEMO" --currency "$CURRENCY" --posting "$TO=$AMOUNT" --posting "$FROM=-$AMOUNT" --post-check "$POST_CHECK")
   for item in "${META[@]}"; do native_args+=(--meta "$item"); done
   [[ "$DRY_RUN" -eq 1 ]] && native_args+=(--dry-run)
   [[ "$YES" -eq 1 ]] && native_args+=(--yes)
