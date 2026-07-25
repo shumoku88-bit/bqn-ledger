@@ -7,6 +7,7 @@ This file is a lightweight notebook for the current state of `bqn-ledger`. It re
 - Native Journal is the production source for Actual transactions.
 - `plan.tsv`, `budget_alloc.tsv`, `accounts.tsv`, `cycle.tsv`, and `issues.tsv` remain companion and configuration sources.
 - Journal parsing, Posting IR, complete-source admission, selected-domain JPY/ILS/USD context, and native multi-currency writing are present.
+- `src_next/selected_domain_context.bqn` composes one selected currency through a flat fail-closed stage sequence: policy, Actual admission, Actual currency proof, non-Actual preparation, context scale, exact normalization, and period views.
 - Travel metadata (`trip-id`, `payment`) and bidirectional JPY/ILS exchange events are supported on their explicit source paths.
 - Plan completion keeps currency selection and validation in `plan.tsv` while avoiding redundant `currency` metadata in the Actual Journal.
 - Journal metadata categories and cleanup evidence are recorded in `docs/JOURNAL_METADATA_INVENTORY.md`.
@@ -18,6 +19,7 @@ This file is a lightweight notebook for the current state of `bqn-ledger`. It re
 
 ## Things worth exploring
 
+- audit `src_next/projection.bqn` next: remove obsolete compatibility where evidence permits, separate formatting from semantic vocabulary, and re-check arithmetic-proof ownership without fragmenting the module mechanically;
 - add a privacy-safe read-only count of metadata keys in the selected Journal;
 - stop copying plan-only `recur` and `series` metadata into completed Actual transactions;
 - test whether explicit `layer: actual` can disappear from an Actual-only Journal without changing behavior;
@@ -36,6 +38,8 @@ These are prompts, not a queue. A new discovery may be more valuable than an ite
 For whole-Journal or cross-view grouping, arithmetic domain is a partition/key requirement, not an implicit property of the numeric kernel. Valuation remains separate from source quantity.
 
 The first direct consumer exposed an important boundary: transaction-level `kind` describes a transaction, while expense membership for a posting comes from the posting's AccountKey partition. A multi-posting expense transaction may contain non-expense debit coordinates, so those meanings must not be collapsed.
+
+A flat pipeline is useful only when it preserves first-failure ownership. Later stages must not run after policy, source admission, currency proof, or non-Actual validation fails, and no partial selected context may escape.
 
 Add observations, questions, promising experiments, and unfinished threads when that helps the next person understand the landscape. Remove or summarize completed notes during the same task. Git retains the longer history.
 
