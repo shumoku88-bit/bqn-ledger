@@ -19,8 +19,9 @@ ilsRaw ← Raw ⟨
   "account expenses:food-ils",
   "",
   "2026-07-20 * synthetic ILS meal",
-  "  ; event-id: proof-ils-1"
+  "  ; event-id: proof-ils-1",
+  "  assets:cash-ils  -12.34 ILS"
 ⟩
 ils ← admission.Admit ⟨ilsRaw, resolved⟩
 
-•Out "test_journal_supported_single_currency_admission_proof.bqn: HEADER COLLECT OK"
+•Out "test_journal_supported_single_currency_admission_proof.bqn: ONE POSTING OK"
