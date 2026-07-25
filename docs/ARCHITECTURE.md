@@ -4,6 +4,7 @@ Status: current architecture
 Owner: architecture
 Canonical: yes
 Exit: revise when source or accounting boundaries change
+Updated: 2026-07-26
 
 ## この文書の位置づけ
 
@@ -13,6 +14,7 @@ Exit: revise when source or accounting boundaries change
 - 時間モデル: `docs/TIME_AS_AXIS.md`
 - 記法・運用規約: `docs/CONVENTIONS.md`
 - 保守手順: `docs/MAINTENANCE.md`
+- purpose-specific projection方向: `docs/archive/active-plans/PURPOSE_SPECIFIC_PROJECTION_COMPOSITION_DIRECTION-2026-07-25.md`
 
 この文書は、**データがシステム内をどう流れるか**、各モジュールが何を担当するかを説明します。
 
@@ -25,11 +27,13 @@ Exit: revise when source or accounting boundaries change
 - **会計計算は配列中心** にする。BQN の強みであるベクトル・行列演算を使う。
 - 日常操作の入口は **`tools/bl`（Command Hub）** とし、非対話のレポート入口は **`tools/report`** として保つ。
 - 記録 → 検査 → 集計 → 表示の流れを毎日使えるようにする。
+- checked posting factsから、Cube、TBDS、または具体的な問いに対応するpurpose-specific sparse resultを構成できるようにする。
 
 ### やらないこと
 
 - core の中に「本格的な会計ソフト」や税制度判断を実装しない。
 - Native Journal transactionをTSVの一対一行へ再flattenしない。
+- 一つの巨大なuniversal Cubeや、証拠なしのgeneric query DSLを先に作らない。
 
 ## モノリス化の防止（旧 bqn-kakeibo の教訓）
 
@@ -41,6 +45,9 @@ Exit: revise when source or accounting boundaries change
    - その場しのぎのパッチではなく、疎結合を最優先に設計する。
 3. **言語境界の厳守**
    - BQN editor / Bash / UI 側に会計・生活ロジックを実装しない。旧 Go editor 関連コード・文書は historical として扱う。
+4. **purpose-specific viewの独立性**
+   - Cube、TBDS、direct sparse consumerを一つの万能resultへ潰さない。
+   - 共有するのは、意味を失わないchecked facts、明示partition、exact groupingなど、複数の実consumerが証明した小さな材料に限る。
 
 ## 二大目的
 
@@ -121,9 +128,29 @@ Cube は密な日付軸を使い、Ordinal 番号で $O(1)$ 参照可能。
 
 Accounting-grade の試算表データセット。opening は期間開始前残高、movement は期間内変動、closing は opening + movement。
 
+### Purpose-specific sparse projection
+
+CubeやTBDSを経由せず、checked posting factsから具体的な問いへ直接作るviewも許されます。最初の実consumerは `src_next/actual_expense_ranking.bqn` です。
+
+```text
+checked selected-domain posting facts
+  + selected period
+  + explicit expense AccountKey partition
+  + Actual / debit admission
+  -> exact sparse grouping
+  -> amount-descending expense ranking
+  -> contributor posting IDs
+```
+
+`src_next/exact_sparse_grouping.bqn` は、明示されたkeysとalready-admitted exact valuesだけをgroupする小さなI/O-free kernelです。arithmetic domain、account role、期間、side、layerなどの意味はconsumer側が先に決めます。
+
+`actual_expense_ranking.bqn`では、transaction-level `kind="expense"` を各postingのexpense分類として使いません。multi-posting expense transactionには `assets:prepaid` のような非expense debit coordinateも含み得るため、resolved account metadataから作ったexpense AccountKey partitionへのmembershipで選択します。
+
+このconsumerは現在、public report sectionやproduction Cube/TBDS accumulationを置き換えていません。public synthetic fixtureとfocused testにより、selected-domain producer integration、TBDS expense relation parity、JPY/ILS scale、domain/scale fail-closed、deterministic ranking、contributor lookupをcharacterizeしています。
+
 ## Dataflow
 
-```
+```text
 <base>/accounts.tsv / selected actual source / <base>/plan.tsv / <base>/budget_alloc.tsv / <base>/cycle.tsv
    │
    └─ src_next/loader.bqn / actual_source.bqn (明示source読み込み)
@@ -131,8 +158,12 @@ Accounting-grade の試算表データセット。opening は期間開始前残�
         ├─ src_next/context.bqn (full report / non-selected compatibility context)
         └─ src_next/selected_domain_context.bqn (JPY/ILS/USD共通の明示1通貨Actual + plan + budget)
              │
-             ├─ src_next/cube.bqn ──── Canonical Daily Cube (Day × Account × Layer)
-             ├─ src_next/tbds.bqn ──── Trial Balance Data Set (opening/movement/closing)
+             ├─ checked selected-domain posting facts + resolved AccountKey metadata
+             │    ├─ src_next/cube.bqn ──── Canonical Daily Cube (Day × Account × Layer)
+             │    ├─ src_next/tbds.bqn ──── Trial Balance Data Set (opening/movement/closing)
+             │    └─ expense AccountKey partition
+             │         └─ src_next/exact_sparse_grouping.bqn
+             │              └─ src_next/actual_expense_ranking.bqn (direct sparse consumer)
              │
              ├─ 各セクション Build(ctx) → ViewModel → Format / FormatHuman
              │
@@ -140,7 +171,7 @@ Accounting-grade の試算表データセット。opening は期間開始前残�
                   src_next/summary.bqn ──── 機械向けコンパクト出力
 ```
 
-`selected_domain_context.bqn` は complete-source admission と Stage 2A `currency_proof_rows` を再利用し、呼び出し側が明示したregistry-supportedな1通貨だけをcontext-local exact scaleへ射影する。JPY・ILS・USDはすべてこの同じ境界を通り、通貨literalによるcontext分岐は持たない。plan / budgetも同じ通貨をsource metadataとaccount currencyで証明し、証明失敗時は部分contextを返さない。declaration-only Journalや選択通貨Actualが0件のときも、validな選択plan / budgetからcontextを構成し、全source layerが空なら正常なempty contextを返す。これはCurrency axisや一般的な多通貨Cubeではなく、各呼び出しで1通貨だけを既存 `Day × Account × Layer` viewへ渡す境界である。
+`selected_domain_context.bqn` は complete-source admission と Stage 2A `currency_proof_rows` を再利用し、呼び出し側が明示したregistry-supportedな1通貨だけをcontext-local exact scaleへ射影する。JPY・ILS・USDはすべてこの同じ境界を通り、通貨literalによるcontext分岐は持たない。plan / budgetも同じ通貨をsource metadataとaccount currencyで証明し、証明失敗時は部分contextを返さない。declaration-only Journalや選択通貨Actualが0件のときも、validな選択plan / budgetからcontextを構成し、全source layerが空なら正常なempty contextを返す。これはCurrency axisや一般的な多通貨Cubeではなく、各呼び出しで1通貨だけを既存 `Day × Account × Layer` viewまたは同domainのpurpose-specific consumerへ渡す境界である。
 
 ## Presentation boundary
 
@@ -163,6 +194,8 @@ BQN が出してはいけないもの:
 
 色、太字、枠、カード、preview、対話的な見せ方は presentation layer の責務である。現在の置き場は `tools/bl`、`tools/lib/color-filter`、`tools/main-ui.sh`、`tools/add-ui.sh` の表示補助とする。将来 viewer を追加する場合も、この境界を越えない。
 
+この境界の詳細は `docs/archive/active-plans/DECISION_TERMINAL_COLOR_CONFIG.md` に置く。
+
 Shell は UI・選択・wrapper・safe-write orchestration だけを担当する。actual Journal / `accounts.tsv` / `plan.tsv` / `budget_alloc.tsv` の会計意味や生活ルールは shell に持たせず、source route・候補・検査結果は BQN export / BQN editor protocol / config 由来のものを使う。
 
 ```text
@@ -170,18 +203,19 @@ BQN: meaning, calculation, plain output
 UI: color, layout, interaction
 ```
 
-この境界の詳細は `docs/archive/active-plans/DECISION_TERMINAL_COLOR_CONFIG.md` に置く。
-
 ### Layer model
 
 ```text
-Source TSV
-  → Posting IR
-  → Ledger-wide validated postings
-  → TBDS(period, as_of)
-  → Accounting reports (Trial Balance, Balance Sheet, Income Statement)
-  → Household policy layer
-  → Household views
+Source evidence
+  → checked posting facts
+  ├─ Canonical Daily Cube
+  ├─ TBDS(period, as_of)
+  └─ purpose-specific sparse projections
+       → consumer-specific validation / report / export
+
+Accounting reports
+  → household policy layer
+  → household views
 ```
 
 Accounting core は生活ルールを知らない。年金・月給・封筒派などの生活スタイルは policy layer で扱う。
