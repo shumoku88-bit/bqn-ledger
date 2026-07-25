@@ -11,11 +11,10 @@ resolved ← ak.Resolve ⟨
 ⟩
 
 raw ← Raw ⟨
-  "commodity EUR",
   "",
   "2026-07-20 * synthetic header"
 ⟩
 
 result ← container.Admit ⟨raw, resolved⟩
 
-•Out "test_journal_multi_currency_container_admission_proof.bqn: UNSUPPORTED DECLARATION HEADER OK"
+•Out "test_journal_multi_currency_container_admission_proof.bqn: NONZERO RANGE OK"
