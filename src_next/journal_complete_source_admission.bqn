@@ -168,6 +168,14 @@ MapTransaction ← {𝕊 transaction‿lineMap:
   }
 }
 
+CrossTransactionDiagnostics ← {𝕊 transactions:
+  diagnostics ← empty
+  durableTransactions ← ({𝕩.identity_kind ≡ "durable"}¨ transactions) / transactions
+  durableIds ← {<𝕩.source_event_id}¨ durableTransactions
+  diagnostics ∾↩ AddIf ⟨(≠ durableIds) ≠ ≠ ⍷ durableIds, Diagnostic ⟨"event_id_duplicate", 0, "durable event-id values must be unique across the complete Journal source"⟩⟩
+  diagnostics
+}
+
 Admit ← {𝕊 raw‿resolved:
   normalizedRaw ← (cr ≠ raw) / raw
   hasTerminalLf ← (0 < ≠ normalizedRaw) ∧ (lf = ⊑⌽normalizedRaw)
@@ -211,6 +219,8 @@ Admit ← {𝕊 raw‿resolved:
   }⍟(0 = ≠ declarations.diagnostics) @
 
   diagnostics ∾↩ AddIf ⟨0 = ≠ starts, Diagnostic ⟨"transaction_missing", 0, "Journal must contain at least one dated transaction"⟩⟩
+  diagnostics ∾↩ CrossTransactionDiagnostics transactions
+  {𝕊: transactions ↩ empty}⍟(0 < ≠ diagnostics) @
   {
     state⇐(0 = ≠ diagnostics) ⊑ "error"‿"ok",
     declared_domains⇐declarations.domains,
