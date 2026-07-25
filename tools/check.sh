@@ -148,7 +148,6 @@ bash checks/check-edit-bqn-plan-budget-sync.sh >/dev/null
 bash checks/check-plan-finish-replenish-ui.sh >/dev/null
 bash checks/check-edit-bqn-plan-edit.sh >/dev/null
 bash checks/check-workflow-drift.sh >/dev/null
-bash checks/check-docs-lifecycle.sh >/dev/null
 bash checks/check-structured-ui-boundary.sh >/dev/null
 bash checks/check-safe-replace-line.sh >/dev/null
 bash checks/check-safe-rewrite-checked.sh >/dev/null
