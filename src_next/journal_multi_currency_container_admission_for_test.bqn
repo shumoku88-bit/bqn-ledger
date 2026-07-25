@@ -46,7 +46,7 @@ Diagnostic ← {𝕊 codeText‿lineNumber‿messageText:
 }
 
 AddIf ← {𝕊 invalid‿diagnostic: invalid / ⟨diagnostic⟩ }
-Contains ← {𝕊 value‿values: ∨´ 0 ∾ {value ≡ 𝕩}¨ values }
+ContainsBoxed ← {𝕊 value‿boxedValues: ∨´ 0 ∾ {(<value) ≡ 𝕩}¨ boxedValues }
 
 FindTransactionRanges ← {𝕊 lines:
   starts ← ({IsDateHeader Trim 𝕩}¨ lines) / ↕ ≠ lines
@@ -63,7 +63,7 @@ FindTransactionRanges ← {𝕊 lines:
 ResolveDeclarations ← {𝕊 lines‿ranges:
   indexes ← (IsCommodityLine¨ lines) / ↕ ≠ lines
   diagnostics ← empty
-  domains ← empty
+  domainBoxes ← empty
   firstTransaction ← ≠ lines
   {𝕊: firstTransaction ↩ (⊑ ranges).start_index}⍟(0 < ≠ ranges) @
 
@@ -79,20 +79,24 @@ ResolveDeclarations ← {𝕊 lines‿ranges:
     {𝕊:
       domain ← 1 ⊑ fields
       policy ← setup.Policy domain
-      duplicate ← Contains ⟨domain, domains⟩
+      duplicate ← ContainsBoxed ⟨domain, domainBoxes⟩
       localDiagnostics ∾↩ AddIf ⟨policy.state ≢ "ok", Diagnostic ⟨"commodity_unsupported", lineNumber, "commodity must be admitted by the repository currency registry"⟩⟩
       localDiagnostics ∾↩ AddIf ⟨duplicate, Diagnostic ⟨"commodity_declaration_duplicate", lineNumber, "commodity domain must be declared once"⟩⟩
-      {𝕊: domains ∾↩ ⟨domain⟩}⍟((policy.state ≡ "ok") ∧ (¬ duplicate) ∧ (lineIndex < firstTransaction)) @
+      {𝕊: domainBoxes ∾↩ ⟨<domain⟩}⍟((policy.state ≡ "ok") ∧ (¬ duplicate) ∧ (lineIndex < firstTransaction)) @
     }⍟valid @
     diagnostics ∾↩ localDiagnostics
   }¨ indexes
 
-  {declared_domains⇐domains, diagnostics⇐diagnostics}
+  {
+    declared_domains⇐>¨domainBoxes,
+    declared_domain_boxes⇐domainBoxes,
+    diagnostics⇐diagnostics
+  }
 }
 
-ResolveTransactionDomain ← {𝕊 lines‿range‿declaredDomains:
+ResolveTransactionDomain ← {𝕊 lines‿range‿declaredDomainBoxes:
   diagnostics ← empty
-  postingDomains ← empty
+  postingDomainBoxes ← empty
   candidateCount ← 0
   blockLength ← range.end_exclusive - range.start_index
   indexes ← range.start_index + ↕ blockLength
@@ -108,19 +112,22 @@ ResolveTransactionDomain ← {𝕊 lines‿range‿declaredDomains:
       fields ← space util.Split trimmed
       valid ← 3 = ≠ fields
       diagnostics ∾↩ AddIf ⟨¬ valid, Diagnostic ⟨"posting_shape_invalid", lineIndex + 1, "posting must contain account, explicit amount, and commodity"⟩⟩
-      {𝕊: postingDomains ∾↩ ⟨2 ⊑ fields⟩}⍟valid @
+      {𝕊:
+        commodity ← 2 ⊑ fields
+        postingDomainBoxes ∾↩ ⟨<commodity⟩
+      }⍟valid @
     }⍟candidate @
   }¨ indexes
 
   domain ← ""
   diagnostics ∾↩ AddIf ⟨0 = candidateCount, Diagnostic ⟨"posting_missing", range.start_index + 1, "ordinary transaction must contain postings"⟩⟩
   {𝕊:
-    domain ↩ ⊑ postingDomains
-    mixed ← ∨´ 0 ∾ {𝕩 ≢ domain}¨ postingDomains
-    declared ← Contains ⟨domain, declaredDomains⟩
+    domain ↩ >⊑postingDomainBoxes
+    mixed ← ∨´ 0 ∾ {𝕩 ≢ (<domain)}¨ postingDomainBoxes
+    declared ← ContainsBoxed ⟨domain, declaredDomainBoxes⟩
     diagnostics ∾↩ AddIf ⟨mixed, Diagnostic ⟨"mixed_domain_ordinary_transaction", range.start_index + 1, "ordinary transaction postings must share exactly one currency domain"⟩⟩
     diagnostics ∾↩ AddIf ⟨(¬ mixed) ∧ (¬ declared), Diagnostic ⟨"transaction_domain_undeclared", range.start_index + 1, "ordinary transaction domain must be declared by the Journal"⟩⟩
-  }⍟(0 < ≠ postingDomains) @
+  }⍟(0 < ≠ postingDomainBoxes) @
 
   {domain⇐domain, diagnostics⇐diagnostics}
 }
@@ -201,7 +208,7 @@ Admit ← {𝕊 raw‿resolved:
 
   {𝕊 transactionIndex:
     range ← transactionIndex ⊑ ranges
-    domainInfo ← ResolveTransactionDomain ⟨lines, range, declarations.declared_domains⟩
+    domainInfo ← ResolveTransactionDomain ⟨lines, range, declarations.declared_domain_boxes⟩
     localDiagnostics ← domainInfo.diagnostics
     {𝕊:
       projection ← BuildProjection ⟨lines, range, domainInfo.domain⟩
