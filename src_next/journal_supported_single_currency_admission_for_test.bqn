@@ -84,7 +84,7 @@ Collect ← {𝕊 lines‿resolved‿domainInfo:
         diagnostics ∾↩ AddIf ⟨amountOk ∧ (¬ precisionOk), Diagnostic ⟨"posting_precision_exceeded", lineIndex + 1, "posting precision exceeds policy"⟩⟩
         diagnostics ∾↩ AddIf ⟨(2 ⊑ fields) ≢ domainInfo.domain, Diagnostic ⟨"posting_domain_mismatch", lineIndex + 1, "posting commodity differs from domain"⟩⟩
         diagnostics ∾↩ AddIf ⟨account.state ≢ "ok", Diagnostic ⟨"posting_account_unresolved", lineIndex + 1, "posting account must resolve"⟩⟩
-        diagnostics ∾↩ AddIf ⟨account.state ≡ "ok" ∧ account.currency ≢ domainInfo.domain, Diagnostic ⟨"posting_account_currency_mismatch", lineIndex + 1, "account currency differs from domain"⟩⟩
+        diagnostics ∾↩ AddIf ⟨(account.state ≡ "ok") ∧ (account.currency ≢ domainInfo.domain), Diagnostic ⟨"posting_account_currency_mismatch", lineIndex + 1, "account currency differs from domain"⟩⟩
         {𝕊: coefficients ∾↩ ⟨coefficient⟩}⍟(amountOk ∧ precisionOk) @
       }⍟valid @
     }⍟candidate @
