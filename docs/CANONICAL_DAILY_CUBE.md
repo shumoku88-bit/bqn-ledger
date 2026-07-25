@@ -1,88 +1,102 @@
 # Canonical Daily Cube 監査メモ
 
-Status: current contract
-Owner: report
-Canonical: yes
-Exit: revise when the Day × Account × Layer contract changes
-Updated: 2026-06-26
+Status: current purpose-specific view contract
+Owner: report / projection
+Canonical: yes for the `Day × AccountKey × Layer` view, not for every future projection
+Exit: revise when this view contract or its production consumers change
+Updated: 2026-07-25
 
 ## 概要
 
-現行レポートの主要 materialized view は、**Canonical Daily Cube**（`Day × Account × Layer`）です。
-`src_next/projection.bqn` で作った ledger-like projection rows を `src_next/cube.bqn` が dense cube に materialize します。
-イベントログ（TSV）の柔軟性を保ちつつ、レポート計算の効率化とロジックの共通化を実現しています。
-
-Phase 6では、同じEvent IRからDaily Cubeとは別にcashflow due long viewを生成できることを確認しました。Cubeは正データや唯一の時間モデルではなく、会計日次projectionをmaterializeしたviewです。
-
-設計上の合言葉は次の通りです。
+現行レポートの主要 materialized view の一つは、**Canonical Daily Cube**（`Day × AccountKey × Layer`）です。
+checked Posting IR を `src_next/cube.bqn` が選択periodへ admissionし、dense cube に materializeします。
 
 ```text
-時間はラベルではなく、座標軸である。
+checked posting facts
+  -> selected-period admission
+  -> Day / AccountKey / Layer coordinates
+  -> signed exact delta
+  -> exact accumulation
+  -> dense Day × AccountKey × Layer
+  -> current report consumers and validation
 ```
 
-Cubeの`Day`はEventを配置したcoordinate axisです。`as_of`はCubeの軸ではなく、どの時点からsnapshotを観察するかを表す外側のobservation timeです。cycle、月、週は`Day`軸上の区間viewであり、Cubeの基本軸には追加しません。詳細は`docs/TIME_AS_AXIS.md`を参照してください。
+Canonical Daily Cubeは正データでも唯一の最終表現でもありません。TBDS、direct posting-evidence calculations、selected-domain viewsと並ぶ、日次座標replayに適した標準compositionです。Source truthはhuman-readable native Journalとcompanion/configuration TSVに残ります。
 
-## 群論的構造 (Group-theoretic Properties)
+Cubeの`Day`はEventを配置したcoordinate axisです。`as_of`はCubeの軸ではなく、どの時点からsnapshotを観察するかを表す外側のobservation timeです。cycle、月、週は`Day`軸上の区間viewです。詳細は`docs/TIME_AS_AXIS.md`を参照してください。
 
-- **加法群の独立性**: レイヤー 0 (Actual), レイヤー 1 (Plan), レイヤー 2 (Budget) は、それぞれ独立した加法群として振る舞います。
-- **不変量 (Invariant)**: `budget:*` 勘定の Actual レイヤーは常にゼロです。これは、予算管理が「現実の資産移動」とは別の座標系（レイヤー）で動いていることを意味します。
-- **逆元**: ジャーナルに削除操作はなく、符号を反転させた新しい元の追記によって表現されます。
+## 現在のcomposition
 
-## スライス効率 (Slice Efficiency)
+### 軸
 
-`report_envelope_trend.bqn` 等のレポートにおいて、従来の日付ごとのループは配列スライスに置き換えられました。
-`Day` 軸は `cube_ordinals` と完全に同期しているため、`trend_mask` による一括抽出（O(1) インデックス相当）が可能です。
+この**特定のCanonical view**の軸と順序は固定です。
 
-```bqn
-# 例: 封筒（Layer 2）の残高推移を一括取得
-env_history_bal ← env_idxs ⊸ ⊏ ˘ 2 ⊏ ˘ ˘ trend_mask / cube_balances
-```
+- **Day（第0軸）**: 選択period内の連続日付。`cycle.bqn`がdomain sizeを供給する。
+- **AccountKey（第1軸）**: `accounts.tsv`から解決される`(Account, Currency)`。異なるcommodityの残高を同じcellへ入れない。
+- **Layer（第2軸）**: `actual / plan / budget / forecast`の4層。
 
-## 構造
+店舗、party、project、trip、lifecycleなどをこのCubeへ自動追加しません。ただし、それらを別のpurpose-specific sparse projectionやdense viewのcoordinateとして使うことまで禁止する契約ではありません。
 
-### 1. 軸 (Axes)
-
-**重要制約**: Cubeの軸は以下の3次元に厳格に限定されます。**店舗・メモ・任意カテゴリなどを軸として拡張してはいけません。** これらはあくまでTSVのメタデータ（6列目以降など）として保持し、BQNのコア配列エンジンには乗せません。
-
-- **Day (第0軸)**: カレンダー上の連続した日付（Dense Axis）。`date.bqn` の Ordinal に基づく。
-- **Account (第1軸)**: `accounts.tsv` から動的に決定される勘定科目空間。スロット数は `≠accounts`。
-- **Layer (第2軸)**: 4つの情報レイヤー。
-
-
-### 2. レイヤー (Layers)
+### レイヤー
 
 | Index | Name | Source | 意味 |
 |---|---|---|---|
 | 0 | `actual` | configured native Journal | 現実の資産・収入・支出の動き。 |
 | 1 | `plan` | `plan.tsv` | 予定された将来の動き。 |
-| 2 | `budget` | `budget_alloc.tsv` + journal 支出 | 封筒の配賦と消費の動き。 |
-| 3 | `forecast` | (TBD) | 予測値。 |
+| 2 | `budget` | `budget_alloc.tsv` + admitted Journal projection | 配賦と消費の動き。 |
+| 3 | `forecast` | current reserved shape | 予測用に予約された層。 |
 
-Layerは同じdaily coordinate上に並びますが、確定度や責務が同じという意味ではありません。Actualは閉じた会計値、Planは明示予定、Budgetは配賦と消費です。現行Plan Layerには通常のPlan deltaに加え、envelope対応費目の`plan_envelope` deltaも含まれます。
+Layerは同じdaily coordinate上に並びますが、確定度や責務が同じという意味ではありません。
 
-ResidualとScenarioは現時点でLayerへ追加しません。既存Layerと時間windowから作る派生観察viewとして検討します。
+## 実装境界
 
-## 実装の詳細
+- **Posting facts**: Journal routeとnon-Actual routeが、source identity、date、account coordinate、layer、exact delta、statusなどを持つchecked rowsを作る。
+- **Period orchestration**: `src_next/context.bqn`の`BuildPeriodView`が同じledger-wide rowsからCubeとTBDSを構成する。
+- **View admission**: `cube.PartitionRows`がstatus、day bounds、AccountKey bounds、Layer boundsを検査する。out-of-periodはこのviewからの除外であり、source-level semantic rejectionと同義ではない。
+- **Dense materialization**: `cube.Materialize ⟨rows, day_count, ak_count⟩`がvalid rowsだけを`day_count × ak_count × 4`へ配置する。
+- **Evidence**: valid/skipped rowsとdiagnosticsはdense cellとは別に残る。dense cell単体はcontributor posting identityを所有しない。
+- **Validation**: current result contractはlayer totals、per-account totals、expense totals、conservation comparisonsなどのcompatibility fieldsも返す。
 
-- **場所**: `src_next/cube.bqn` の `Materialize`。
-- **入力**: `src_next/projection.bqn` が作る projection row。各行は `source_file / source_row / source_id / day_index / account_key_index / layer_index / delta / kind / status / message` などを持つ。
-- **Context**: `src_next/context.bqn` が accounts / config / source TSV を読み、cycle view と projection rows を組み立て、`cube.Materialize ⟨rows, day_count, ak_count⟩` を呼ぶ。
-- **Dense Axis**: 現行 `src_next` では選択された period/cycle の `day_count` と、`accounts.tsv` 由来の動的 `ak_count` と、固定 `layer_count=4` で cube を作る。
-- **Row acceptance boundary**: projection row は `status`, `day_index`, `account_key_index`, `layer_index` を検査し、valid rows だけを cube index として使う。skipped rows は `skipped_summary` / readiness / golden output の診断材料として残す。
-- **Validation summary**: `actual_total_match`, `plan_total_match`, `actual_per_account_totals_match` を出し、`tools/check.sh` 配下の `check-src-next-*` と unit test が検証する。
-- **Snapshot / TBDS**: 残高系の accounting state は `src_next/tbds.bqn` / `src_next/snapshot.bqn` が `opening / movement / closing` として扱う。cycle は source loading boundary ではなく report query boundary とする方針は `docs/TBDS_CONTRACT.md` を参照。
+## Exact sparse grouping experiment
 
-## 成果
+`src_next/exact_sparse_grouping.bqn`は、明示されたexact keysとalready-admitted exact valuesをfirst-occurrence orderでgroupingするI/O-free experimentです。
 
-1. **予定の統合**: `plan.tsv` が他のデータと同じ配列構造に乗ったため、将来の「固定費予約（Fixed Reserve）」などの計算が極めて単純化された。
-2. **日付計算の簡素化**: 取引日を探すループが不要になり、`Ordinal` の差分によるインデックスアクセスに一本化された。
-3. **安全側予測の統一**: `liq_safe_daily`（保守的な日割り額）を導入。将来の予定収入をあてにせず、予定支出だけを差し引いた「今日使えるお金」を明確にした。
-4. **拡張性**: `forecast` 用のshapeは予約され、全ゼロでも安全に扱える。projection規則は未実装。
+`tests/test_src_next_exact_sparse_grouping.bqn`は次を観察します。
 
-## 検査項目 (Invariants)
+- 空入力;
+- duplicate keyの正確な加算;
+- 負値;
+- input totalとgrouped totalの保存;
+- 決定的なfirst-occurrence順;
+- contributor indexを数値groupとは別sidecarとして保持できること;
+- current `cube.Materialize`のdense numeric payloadを同じgrouped factsから再構成できること;
+- TBDS風のlayer/account/side movementにも同じprimitiveを再利用できること;
+- commodityをpartitionまたはkeyへ含めれば、異なるdomainを直接加算しないこと。
 
-- Actual レイヤーには `budget:*` 口座の動きが含まれない（native Journalのbudget account actualは拒否し、`budget_alloc.tsv` actualはゼロ化）。
-- Budget レイヤーには `budget_alloc.tsv` の配賦と Journal 由来の支出が投影される。
-- Plan レイヤーは Actual 残高に影響を与えない。
-- `tests/test_src_next_cube.bqn` は skipped row が cube index として使われないこと、layer totals、per-account totals、validation summary を検査する。
-- `checks/check-src-next-golden.sh` は `shape: <day_count> × <ak_count> × 4`、layer totals、projection balance、skipped rows、validation summary を golden fixture で検査する。
+このexperimentはまだ`cube.Materialize`のproduction accumulationを置き換えていません。Current result contractにはdense array以外のevidence、diagnostics、report-like compatibility fieldsが含まれるため、数値payload parityだけで移行完了とはみなしません。
+
+## 多通貨との関係
+
+Canonical Daily CubeへCurrency軸を追加することが多通貨対応の前提ではありません。
+
+- `AccountKey = (Account, Currency)`がaccount balanceのcommodity separationを保つ。
+- `journal_complete_source_admission.bqn`はmulti-currency Journal container全体をadmitするが、各ordinary transactionはsingle-domainでbalanceする。
+- `journal_currency_proof_carrier_stage2a.bqn`はsource coefficient、commodity、domain、calculation scaleをuntyped deltaへ落とさず保持する。
+- `selected_domain_context.bqn`は一つのselected currencyを選び、そのdomain内でexact scaleをそろえてからcurrent `BuildPeriodView`へ渡す。
+- exact sparse grouping kernel自体はcurrency-awareではない。measure ownerが先にcompatible arithmetic domainを決め、domainをpartitionまたはkeyとして保持する。
+- valuation、FX gain/loss、tax、rate derivationはsource quantity groupingとは別のreport-specific concernである。
+
+## TBDSとの関係
+
+TBDSは同じchecked Posting IRから、pre-period rowsをopening evidenceとして使い、selected periodのdebit/credit movementとclosing stateを作ります。Cubeのout-of-period admissionとTBDSのperiod splitは意味が異なるため、共通grouping primitiveを使えても共通admission policyへ潰してはいけません。詳細は`docs/TBDS_CONTRACT.md`を参照してください。
+
+## 現在のinvariants
+
+- rejected factsはordinary numeric outputへ入らない。
+- PlanはActual balanceへ影響しない。
+- 異なるcommodityは直接加算しない。
+- exact amount evidenceはauthorized domain内でexactにgroupされる。
+- sparse grouped totalとadmitted input totalは一致する。
+- dense outputを作る場合、対応するsparse grouped valuesと一致する。
+- source transaction / posting evidenceはdense numeric resultの外側から到達可能である。
+- `tests/test_src_next_cube.bqn`と`checks/check-src-next-*`はcurrent Canonical result contractを継続検査する。
