@@ -41,7 +41,17 @@ Failure ← {𝕊 currency‿scale‿code‿message:
   }
 }
 
-Build ← {𝕊 rows‿dayCount‿selectedCurrency‿calculationScale:
+expPf ← "expenses:"
+
+ExpenseAccountKeys ← {𝕊 𝕩:
+  (6 = •Type 𝕩) ◶ ⟨
+    {𝕩},
+    { isExp ← ("expense"⊸≡¨ 𝕩.roles) ∨ (expPf⊸≡¨ (≠expPf)↑¨ 𝕩.accounts) ⋄ isExp / 𝕩.account_keys }
+  ⟩ 𝕩
+}
+
+Build ← {𝕊 rows‿expenseAccountKeys‿dayCount‿selectedCurrency‿calculationScale:
+  expKeys ← ExpenseAccountKeys expenseAccountKeys
   domains ← {𝕩.domain}¨ rows
   scales ← {𝕩.calculation_scale}¨ rows
   domainMismatch ← ∨´ 0 ∾ ¬ selectedCurrency⊸≡¨ domains
@@ -55,7 +65,8 @@ Build ← {𝕊 rows‿dayCount‿selectedCurrency‿calculationScale:
 
   {𝕊:
     days ← {𝕩.day_index}¨ rows
-    selectedMask ← ("ok"⊸≡¨ {𝕩.status}¨ rows) ∧ ("actual"⊸≡¨ {𝕩.layer_name}¨ rows) ∧ (days ≥ 0) ∧ (days < dayCount) ∧ ("expense"⊸≡¨ {𝕩.kind}¨ rows) ∧ ("debit"⊸≡¨ {𝕩.side}¨ rows)
+    isExpenseKey ← { ∨´ 0 ∾ 𝕩.account_key ⊸≡¨ expKeys }¨ rows
+    selectedMask ← ("ok"⊸≡¨ {𝕩.status}¨ rows) ∧ ("actual"⊸≡¨ {𝕩.layer_name}¨ rows) ∧ (days ≥ 0) ∧ (days < dayCount) ∧ ("debit"⊸≡¨ {𝕩.side}¨ rows) ∧ isExpenseKey
 
     selectedRows ← selectedMask / rows
     keys ← {𝕩.account_key}¨ selectedRows
@@ -69,17 +80,23 @@ Build ← {𝕊 rows‿dayCount‿selectedCurrency‿calculationScale:
       contributors ← sparse.ContributorIndices ⟨keys, grouped.keys⟩
       contributorPostingIds ← {𝕩 ⊏ postingIds}¨ contributors
 
+      nonZeroMask ← grouped.values ≠ 0
+      visibleKeys ← nonZeroMask / grouped.keys
+      visibleValues ← nonZeroMask / grouped.values
+      visibleContributors ← nonZeroMask / contributors
+      visibleContributorPostingIds ← nonZeroMask / contributorPostingIds
+
       # Stable two-stage ordering: semantic key ascending, then amount descending.
       # Equal amounts therefore retain AccountKey ascending order.
-      keyOrder ← ⍋ grouped.keys
-      keySortedValues ← keyOrder ⊏ grouped.values
+      keyOrder ← ⍋ visibleKeys
+      keySortedValues ← keyOrder ⊏ visibleValues
       amountOrder ← ⍋ (- keySortedValues)
       rankingOrder ← amountOrder ⊏ keyOrder
 
-      rankedKeys ← rankingOrder ⊏ grouped.keys
-      rankedValues ← rankingOrder ⊏ grouped.values
-      rankedContributors ← rankingOrder ⊏ contributors
-      rankedContributorPostingIds ← rankingOrder ⊏ contributorPostingIds
+      rankedKeys ← rankingOrder ⊏ visibleKeys
+      rankedValues ← rankingOrder ⊏ visibleValues
+      rankedContributors ← rankingOrder ⊏ visibleContributors
+      rankedContributorPostingIds ← rankingOrder ⊏ visibleContributorPostingIds
 
       result ↩ {
         state                       ⇐ "ok",
@@ -109,4 +126,4 @@ Build ← {𝕊 rows‿dayCount‿selectedCurrency‿calculationScale:
   result
 }
 
-{Build⇐Build}
+{Build ⇐ Build, ExpenseAccountKeys ⇐ ExpenseAccountKeys}
