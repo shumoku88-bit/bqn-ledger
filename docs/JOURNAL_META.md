@@ -67,8 +67,9 @@ Actual取引はnative Journal transaction metadata、`plan.tsv` / `budget_alloc.
 - `cashflow=fixed_obligation` : 費用ではないが、生活資金から固定的に確保すべき支払い予定。例: 借金元本返済 (`assets:* -> liabilities:*`)。
 - `trip_id=<id>` : 旅行単位を明示するopaque ID。native Journalでは `; trip-id: <id>` として保存する。口座名や通貨から推測しない。
 - `payment=cash|card|debit` : 実際に選択した支払経路。native Journalでも同じ `payment` keyを使う。Wise等のサービス名やFX意味はこの値から推測しない。
-- `currency=JPY|ILS` : 通貨指定 (Stage 2 段階的導入用)
+- `currency=JPY|ILS` : source TSVで通貨を選択するメタデータ
 
+native Journalでは、取引通貨は各posting末尾のcommodity（例: `1200 JPY`）が会計上の正本です。現在のordinary Actual writerとplan completion writerは、同じ情報を `; currency: JPY` として重複保存しません。既存のJournalに残る`currency` metadataは互換性のためparserが引き続き受け入れます。
 
 ※どのキーを正式採用するかは、確定申告フローが固まった時点で更新します。`plan_id` は実データの `plan.tsv` では原則として必須（バックフィル済み・新規追加時に自動付与）としますが、BQNエンジン側は互換性・手入力の非常口としてIDなし行も許容します。
 
