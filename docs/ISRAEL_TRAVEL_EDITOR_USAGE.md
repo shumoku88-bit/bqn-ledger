@@ -11,22 +11,21 @@ This guide records what the current public editor can actually do. All examples 
 
 | Path | Current status |
 |---|---|
-| JPY→ILS exchange event | available through dedicated source-event editor |
+| JPY↔ILS exchange event | available bidirectionally through the account-explicit dedicated source-event editor |
 | Friend-paid ILS pending event | available through dedicated source-event editor |
 | Ordinary confirmed-JPY card/debit expense | available through native Journal |
 | Ordinary physical ILS cash expense | available through supported-currency native Journal append when explicit ILS accounts exist |
 | Ordinary Wise ILS balance expense | available through the same ILS path when spending an already-held ILS balance |
 | `trip_id` / `payment` Journal metadata | admitted as native `trip-id` and `payment=cash|card|debit` |
-| ILS→JPY return exchange | not admitted by current exchange validator |
 | Friend JPY finalization write | pure preview exists; writer is not implemented |
 | ILS/Wise remaining-balance view | not implemented |
 | Wise purchase-time automatic conversion | unresolved pending statement evidence |
 
 The dedicated exchange and friend sources do not affect the configured native Journal, Posting IR, Cube, TBDS, balances, or reports.
 
-## JPY to ILS exchange event
+## Bidirectional JPY / ILS exchange event
 
-An exchange preserves the JPY handed over and ILS received as two observations. It is not an expense or income and is not written to the configured native Journal.
+An exchange preserves both explicitly observed source and target amounts. It is not an expense or income and is not written to the configured native Journal.
 
 ```bash
 tools/edit --base "$BASE" travel exchange add \
@@ -62,7 +61,24 @@ trip_id
 
 Every data row and exchange ID is validated before append. Duplicate IDs, malformed existing data, stale writes, and post-check failure fail closed. The writer preserves backups or removes a failed first creation as appropriate.
 
-Current limitation: the pure validator and public check intentionally reject ILS→JPY. Do not reverse the fields and assume that return exchange works.
+The same command supports return exchange by explicitly reversing the account/currency legs:
+
+```bash
+tools/edit --base "$BASE" travel exchange add \
+  --date 2026-07-30 \
+  --memo "synthetic return exchange" \
+  --source-account "assets:cash-ils" \
+  --source-amount "125.50" \
+  --source-currency ILS \
+  --target-account "assets:bank-jpy" \
+  --target-amount "4800" \
+  --target-currency JPY \
+  --exchange-id israel-2026-exchange-return-0001 \
+  --trip-id israel-2026 \
+  --dry-run
+```
+
+Both directions use the same ten-column source contract. Precision follows each explicit leg: JPY has zero fractional digits and ILS permits at most two. The validator accepts only JPY→ILS or ILS→JPY, requires existing accounts whose currencies match the explicit legs, and never infers physical cash or Wise from account names.
 
 ## Friend-paid pending event
 
@@ -136,7 +152,7 @@ Do not convert an ILS purchase to an invented JPY amount, place it in the exchan
 
 ## Wise exchanges and Wise card behavior
 
-A pre-purchase JPY→ILS conversion inside Wise may be recorded by the existing exchange command using explicit Wise JPY and Wise ILS accounts, provided both accounts exist and the observed amounts satisfy the current JPY→ILS contract. This still does not update Journal balances or reports.
+A JPY↔ILS conversion inside Wise may be recorded by the exchange command using explicit Wise JPY and Wise ILS accounts, provided both accounts exist and both observed amounts satisfy their explicit currency precision. This still does not update Journal balances or reports.
 
 Spending from an already-held Wise ILS balance can use an ordinary ILS Journal expense with explicit Wise ILS and expense accounts. This does not define purchase-time automatic conversion semantics.
 
@@ -152,6 +168,7 @@ Before real use:
 - use ordinary Journal append only with one explicit supported currency and matching existing accounts;
 - treat `trip-id` and `payment` as evidence, not account/currency/FX inference;
 - do not assume dedicated travel sources affect balances;
-- do not improvise return exchange, friend finalization, correction/reversal, or Wise automatic-conversion semantics.
+- use explicit source/target accounts and observed amounts for return exchange; do not infer direction or Wise semantics from names;
+- do not improvise friend finalization, correction/reversal, or Wise automatic-conversion semantics.
 
 The current ownership characterization is recorded in `docs/archive/audits/ISRAEL_TRAVEL_RAIL_OWNERSHIP_CHARACTERIZATION-2026-07-25.md`.

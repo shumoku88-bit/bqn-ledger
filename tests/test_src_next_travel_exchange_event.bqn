@@ -14,6 +14,7 @@ Request ← {𝕊 date‿memo‿sourceAccount‿sourceAmount‿sourceCurrency‿
 Source ← {𝕊: Account ⟨"assets:bank-jpy", 1, "JPY"⟩ }
 Target ← {𝕊: Account ⟨"assets:cash-ils", 1, "ILS"⟩ }
 Valid ← {𝕊: Request ⟨"2026-07-20", "airport exchange", Source @, "10000", "JPY", Target @, "250.00", "ILS", "israel-2026-exchange-0001", "israel-2026", ⟨⟩⟩ }
+ReverseValid ← {𝕊: Request ⟨"2026-07-30", "return exchange", Target @, "125.50", "ILS", Source @, "4800", "JPY", "israel-2026-exchange-return-0001", "israel-2026", ⟨⟩⟩ }
 
 accepted ← exchange.ValidateAndPreview Valid @
 "ok" lib.AssertEq accepted.state
@@ -27,6 +28,15 @@ preview ← ⊑accepted.preview_events
 "ILS" lib.AssertEq preview.target_currency
 "israel-2026-exchange-0001" lib.AssertEq preview.exchange_id
 "israel-2026" lib.AssertEq preview.trip_id
+
+reverseAccepted ← exchange.ValidateAndPreview ReverseValid @
+"ok" lib.AssertEq reverseAccepted.state
+0 lib.AssertEq ≠reverseAccepted.diagnostics
+reversePreview ← ⊑reverseAccepted.preview_events
+"125.50" lib.AssertEq reversePreview.source_amount
+"ILS" lib.AssertEq reversePreview.source_currency
+"4800" lib.AssertEq reversePreview.target_amount
+"JPY" lib.AssertEq reversePreview.target_currency
 
 CheckRejected ← {𝕊 request:
   result ← exchange.ValidateAndPreview request
@@ -48,6 +58,10 @@ CheckRejected Request ⟨"2026-07-20", "memo", Source @, "100", "JPY", Account �
 CheckRejected Request ⟨"2026-07-20", "memo", Source @, "100", "JPY", Account ⟨"assets:bank-jpy", 1, "ILS"⟩, "2", "ILS", "id", "israel-2026", ⟨⟩⟩
 {𝕩 ⋄ CheckRejected Request ⟨"2026-07-20", "memo", Source @, 𝕩, "JPY", Target @, "2", "ILS", "id", "israel-2026", ⟨⟩⟩}¨ ⟨"0", "-1", "12x", "1.5"⟩
 {𝕩 ⋄ CheckRejected Request ⟨"2026-07-20", "memo", Source @, "100", "JPY", Target @, 𝕩, "ILS", "id", "israel-2026", ⟨⟩⟩}¨ ⟨"0", "-1", "12x", "1.001"⟩
+# Precision follows each explicit leg in both directions.
+CheckRejected Request ⟨"2026-07-30", "memo", Target @, "1.001", "ILS", Source @, "1", "JPY", "reverse-ils-precision", "israel-2026", ⟨⟩⟩
+CheckRejected Request ⟨"2026-07-30", "memo", Target @, "1.00", "ILS", Source @, "1.5", "JPY", "reverse-jpy-precision", "israel-2026", ⟨⟩⟩
+CheckRejected Request ⟨"2026-07-30", "memo", Account ⟨"assets:usd", 1, "USD"⟩, "1.00", "USD", Source @, "1", "JPY", "unsupported-direction", "israel-2026", ⟨⟩⟩
 CheckRejected Request ⟨"2026-07-20", "memo", Source @, "100", "JPY", Target @, "2", "ILS", "", "israel-2026", ⟨⟩⟩
 CheckRejected Request ⟨"2026-07-20", "memo", Source @, "100", "JPY", Target @, "2", "ILS", "id"∾lf∾"bad", "israel-2026", ⟨⟩⟩
 duplicate ← CheckRejected Request ⟨"2026-07-20", "memo", Source @, "100", "JPY", Target @, "2", "ILS", "id", "israel-2026", ⟨"other", "id"⟩⟩
@@ -62,6 +76,11 @@ sourceAccepted ← exchange.ValidateSourceAndPreview {candidate_fields⇐fields,
 1 lib.AssertEq ≠sourceAccepted.preview_rows
 ("2026-07-20"∾tab∾"airport exchange"∾tab∾"assets:bank-jpy"∾tab∾"10000"∾tab∾"JPY"∾tab∾"assets:cash-ils"∾tab∾"250.00"∾tab∾"ILS"∾tab∾"israel-2026-exchange-0001"∾tab∾"israel-2026") lib.AssertEq ⊑sourceAccepted.preview_rows
 existingLine ← ⊑sourceAccepted.preview_rows
+reverseFields ← ⟨"2026-07-30", "return exchange", "assets:cash-ils", "125.50", "ILS", "assets:bank-jpy", "4800", "JPY", "israel-2026-exchange-return-0001", "israel-2026"⟩
+reverseSourceAccepted ← exchange.ValidateSourceAndPreview {candidate_fields⇐reverseFields, existing_lines⇐⟨existingLine⟩, accounts⇐accounts}
+"ok" lib.AssertEq reverseSourceAccepted.state
+1 lib.AssertEq ≠reverseSourceAccepted.preview_rows
+("2026-07-30"∾tab∾"return exchange"∾tab∾"assets:cash-ils"∾tab∾"125.50"∾tab∾"ILS"∾tab∾"assets:bank-jpy"∾tab∾"4800"∾tab∾"JPY"∾tab∾"israel-2026-exchange-return-0001"∾tab∾"israel-2026") lib.AssertEq ⊑reverseSourceAccepted.preview_rows
 "error" lib.AssertEq (exchange.ValidateSourceAndPreview {candidate_fields⇐fields, existing_lines⇐⟨existingLine⟩, accounts⇐accounts}).state
 "error" lib.AssertEq (exchange.ValidateExisting ⟨⟨"malformed"∾tab∾"row"⟩, accounts⟩).state
 "error" lib.AssertEq (exchange.ValidateExisting ⟨⟨existingLine, existingLine⟩, accounts⟩).state
