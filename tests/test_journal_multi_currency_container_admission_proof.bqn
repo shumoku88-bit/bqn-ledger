@@ -10,11 +10,7 @@ resolved ← ak.Resolve ⟨
   "assets:bank-jpy" ∾ tab ∾ "role=asset" ∾ tab ∾ "currency=JPY"
 ⟩
 
-raw ← Raw ⟨
-  "",
-  "2026-07-20 * synthetic header"
-⟩
-
+raw ← Raw ⟨"2026-07-20 * synthetic header"⟩
 result ← container.Admit ⟨raw, resolved⟩
 
-•Out "test_journal_multi_currency_container_admission_proof.bqn: NONZERO RANGE OK"
+•Out "test_journal_multi_currency_container_admission_proof.bqn: TRAILING EMPTY RANGE OK"
