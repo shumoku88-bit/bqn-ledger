@@ -89,6 +89,20 @@ badScale ← selected.BuildFromPrepared ⟨"ILS", badRaw, resolved, cy, "bad.jou
 "error" lib.AssertEq badScale.state
 lib.Assert HasCode ⟨"posting_precision_exceeded", badScale⟩
 0 lib.AssertEq ≠badScale.posting_rows
+badNormalization ← selected.NormalizeCoefficient ⟨123, 2, 1⟩
+lib.Assert ¬badNormalization.valid
+
+# One invalid transaction suppresses an otherwise valid selected transaction.
+partialRaw ← MakeRaw ⟨
+  "commodity JPY", "", "commodity ILS", "",
+  "account assets:bank-jpy", "", "account expenses:food-jpy", "",
+  "account assets:cash-ils", "", "account expenses:food-ils", "",
+  "2026-07-02 * valid JPY", "  assets:bank-jpy  -1 JPY", "  expenses:food-jpy  1 JPY", "",
+  "2026-07-03 * invalid ILS", "  assets:cash-ils  -1.001 ILS", "  expenses:food-ils  1.001 ILS"
+⟩
+partial ← selected.BuildFromPrepared ⟨"JPY",partialRaw,resolved,cy,"partial.journal",MakeSnapshot ⟨empty,empty⟩⟩
+"error" lib.AssertEq partial.state
+0 lib.AssertEq ≠partial.posting_rows
 
 # Identical account text in independent currency coordinates remains distinct;
 # no selected context can manufacture a shared amount coordinate.

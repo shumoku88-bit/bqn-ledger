@@ -109,6 +109,8 @@ grep -q 'expenses:food-usd    7.50 USD' "$base/source.journal"
 
 expect_fail_unchanged unsupported journal add --date 2026-07-26 --memo bad --from assets:cash-ils --to expenses:food-ils --amount 1 --currency EUR --yes
 expect_fail_unchanged precision journal add --date 2026-07-26 --memo bad --from assets:cash-ils --to expenses:food-ils --amount 1.001 --currency ILS --yes
+expect_fail_unchanged malformed journal add --date 2026-07-26 --memo bad --from assets:cash-ils --to expenses:food-ils --amount 1x --currency ILS --yes
+expect_fail_unchanged missing-posting journal multi-add --date 2026-07-26 --description bad --currency ILS --posting assets:cash-ils=-1 --yes
 expect_fail_unchanged account-mismatch journal add --date 2026-07-26 --memo bad --from assets:bank-jpy --to expenses:food-ils --amount 1 --currency ILS --yes
 expect_fail_unchanged mixed-domain journal multi-add --date 2026-07-26 --description bad --currency ILS --posting assets:cash-ils=-1 --posting assets:bank-jpy=1 --yes
 expect_fail_unchanged zero journal add --date 2026-07-26 --memo bad --from assets:cash-ils --to expenses:food-ils --amount 0 --currency ILS --yes
