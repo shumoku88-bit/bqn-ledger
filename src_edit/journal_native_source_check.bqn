@@ -1,11 +1,12 @@
 # journal_native_source_check.bqn
-# Mandatory post-write validator for an explicit native Journal candidate.
+# Mandatory post-write validator for one explicit supported-currency Journal candidate.
 
-parser ← •Import "../src_next/journal_profile_stage1.bqn"
-adapter ← •Import "../src_next/journal_posting_ir_stage2a.bqn"
+admission ← •Import "../src_next/journal_complete_source_admission.bqn"
+carrier ← •Import "../src_next/journal_currency_proof_carrier_stage2a.bqn"
 ak ← •Import "../src_next/account_key.bqn"
 loader ← •Import "../src_next/loader.bqn"
 decimal ← •Import "../src_next/exact_decimal.bqn"
+setup ← •Import "../src_next/currency_setup.bqn"
 
 args ← •args
 tab ← @+9
@@ -19,7 +20,7 @@ UnsafeText ← {𝕊 text:
   controls ← ((@+0) + ↕32) ∾ ⟨@+127⟩
   ∨´ 0 ∾ text ∊ controls
 }
-{𝕊⋄Fail ⟨"usage", "expected BASE TARGET DATE DESCRIPTION IDENTITY_MODE EVENT_ID CANDIDATE_ORDINAL and at least two postings"⟩}⍟(9 > ≠ args) @
+{𝕊⋄Fail ⟨"usage", "expected BASE TARGET DATE DESCRIPTION IDENTITY_MODE EVENT_ID CANDIDATE_ORDINAL [currency=CODE] and at least two postings"⟩}⍟(9 > ≠ args) @
 base ← 0⊑args
 target ← 1⊑args
 dateText ← 2⊑args
@@ -27,7 +28,13 @@ description ← 3⊑args
 identityMode ← 4⊑args
 eventId ← 5⊑args
 candidateOrdinalText ← 6⊑args
-postingArgs ← 7↓args
+argIndex ← 7
+currency ← "JPY"
+currencyMarker ← argIndex ⊑ args
+{𝕊: currency ↩ 9 ↓ currencyMarker ⋄ argIndex +↩ 1}⍟("currency=" ≡ 9 ↑ currencyMarker) @
+postingArgs ← argIndex↓args
+policy ← setup.Policy currency
+{𝕊⋄Fail ⟨"currency_unsupported", "transaction currency must be admitted by registry"⟩}⍟(policy.state≢"ok") @
 
 {𝕊⋄Fail ⟨"identity_mode_invalid", "identity mode must be ordinary or durable"⟩}⍟(¬ ((identityMode ≡ "ordinary") ∨ identityMode ≡ "durable")) @
 {𝕊⋄Fail ⟨"event_id_unexpected", "ordinary actual must not carry an event-id"⟩}⍟((identityMode ≡ "ordinary") ∧ 0 < ≠ eventId) @
@@ -49,50 +56,51 @@ expected ← empty
   negative ← '-' = ⊑ (amountText∾"0")
   unsigned ← negative↓amountText
   parsedAmount ← decimal.Parse unsigned
-  valid ← (parsedAmount.state≡"ok") ∧ (0=parsedAmount.scale) ∧ unsigned≡•Fmt parsedAmount.coefficient
+  valid ← parsedAmount.state≡"ok"
   {𝕊⋄Fail ⟨"expected_posting_invalid", "expected posting amount is invalid"⟩}⍟(¬valid) @
-  delta ← (1-2×negative) × parsedAmount.coefficient
-  {𝕊⋄Fail ⟨"expected_posting_invalid", "expected posting amount is zero"⟩}⍟(0=delta) @
-  expected ∾↩ ⟨{account_key⇐account, delta⇐delta, commodity⇐"JPY"}⟩
+  {𝕊⋄Fail ⟨"expected_posting_invalid", "expected posting precision exceeds currency policy"⟩}⍟((0≤policy.max_fraction_digits) ∧ parsedAmount.scale>policy.max_fraction_digits) @
+  coefficient ← (1-2×negative) × parsedAmount.coefficient
+  {𝕊⋄Fail ⟨"expected_posting_invalid", "expected posting amount is zero"⟩}⍟(0=coefficient) @
+  expected ∾↩ ⟨{account_key⇐account, amount_text⇐amountText, source_coefficient⇐coefficient, source_scale⇐parsedAmount.scale, normalized_coefficient⇐0, commodity⇐currency}⟩
 }¨postingArgs
-{𝕊⋄Fail ⟨"expected_posting_invalid", "expected candidate requires at least two balanced postings"⟩}⍟((2>≠expected) ∨ 0≠+´{𝕩.delta}¨expected) @
-
-raw ← loader.ReadRaw target
-parsed ← parser.ParseWithProfile ⟨raw,"historical_external_plan"⟩
-{𝕊⋄Fail ⟨"native_journal_invalid", "full written native Journal failed parsing or global invariants"⟩}⍟(parsed.state≢"ok") @
-{𝕊⋄Fail ⟨"native_candidate_count_invalid", "written Journal transaction count does not match the pre-write candidate ordinal plus one"⟩}⍟((candidateOrdinal + 1) ≢ ≠ parsed.transactions) @
+{𝕊⋄Fail ⟨"expected_posting_invalid", "expected candidate requires at least two postings"⟩}⍟(2>≠expected) @
+calculationScale ← ⌈´ {𝕩.source_scale}¨ expected
+Normalize ← {𝕊 posting:
+  zeros ← calculationScale-posting.source_scale
+  magnitude ← decimal.Parse ((•Fmt |posting.source_coefficient)∾zeros⥊'0')
+  {𝕊⋄Fail ⟨"expected_posting_invalid", "expected posting cannot normalize exactly"⟩}⍟(magnitude.state≢"ok") @
+  normalized ← (1-2×posting.source_coefficient<0)×magnitude.coefficient
+  {account_key⇐posting.account_key, amount_text⇐posting.amount_text, source_coefficient⇐posting.source_coefficient, source_scale⇐posting.source_scale, normalized_coefficient⇐normalized, commodity⇐posting.commodity}
+}
+expected ↩ Normalize¨expected
+{𝕊⋄Fail ⟨"expected_posting_invalid", "expected candidate requires balanced postings"⟩}⍟(0≠+´{𝕩.normalized_coefficient}¨expected) @
 
 resolved ← ak.Resolve loader.ReadLines (base∾"/accounts.tsv")
-allPostings ← ∾ {𝕩.postings}¨ parsed.transactions
-{𝕊 posting:
-  mask ← posting.account_key⊸≡¨ resolved.accounts
-  {𝕊⋄Fail ⟨"native_account_unresolved", "every native posting account must resolve exactly once"⟩}⍟(1≠+´mask) @
-  idx ← ⊑ mask/↕≠mask
-  {𝕊⋄Fail ⟨"native_account_currency_invalid", "every native posting account must resolve to JPY"⟩}⍟("JPY"≢idx⊑resolved.currencies) @
-  {𝕊⋄Fail ⟨"native_posting_invalid", "every native posting must be explicit nonzero JPY exact integer evidence"⟩}⍟((0=posting.delta) ∨ posting.commodity≢"JPY") @
-}¨allPostings
+raw ← loader.ReadRaw target
+admitted ← admission.Admit ⟨raw, resolved⟩
+{𝕊⋄Fail ⟨"native_journal_invalid", "full written native Journal failed complete-source admission"⟩}⍟(admitted.state≢"ok") @
+{𝕊⋄Fail ⟨"native_candidate_count_invalid", "written Journal transaction count does not match the pre-write candidate ordinal plus one"⟩}⍟((candidateOrdinal + 1) ≢ ≠ admitted.transactions) @
 
-checked ← adapter.Build ⟨parsed.transactions, resolved, dateText⟩
-{𝕊⋄Fail ⟨"native_posting_ir_invalid", "checked Stage 2A rejected the full written Journal"⟩}⍟(checked.state≢"ok") @
+checked ← carrier.Build ⟨admitted.transactions, resolved, dateText⟩
+{𝕊⋄Fail ⟨"native_currency_proof_invalid", "Stage 2A currency-proof carrier rejected the full written Journal"⟩}⍟(checked.state≢"ok") @
 
-candidate ← candidateOrdinal ⊑ parsed.transactions
-
-priorTransactions ← candidateOrdinal ↑ parsed.transactions
+candidate ← candidateOrdinal ⊑ admitted.transactions
+priorTransactions ← candidateOrdinal ↑ admitted.transactions
 priorEndLine ← (0 < candidateOrdinal) ◶ ⟨0, {⌈´ {𝕩.source_end_line}¨ priorTransactions}⟩ @
 {𝕊⋄Fail ⟨"native_candidate_boundary_invalid", "candidate start line must be greater than prior end line"⟩}⍟(candidate.source_start_line ≤ priorEndLine) @
 
 expectedAccounts ← {𝕩.account_key}¨expected
-expectedAmounts ← {𝕩.delta}¨expected
+expectedAmounts ← {𝕩.normalized_coefficient}¨expected
 actualAccounts ← {𝕩.account_key}¨candidate.postings
-actualAmounts ← {𝕩.delta}¨candidate.postings
-commoditiesOk ← ∧´ {𝕩.commodity≡"JPY"}¨candidate.postings
+actualAmounts ← {𝕩.normalized_coefficient}¨candidate.postings
+commoditiesOk ← ∧´ {𝕩.commodity≡currency}¨candidate.postings
 postingIndexesOk ← (↕≠candidate.postings) ≡ {𝕩.posting_index}¨candidate.postings
 eventMetadataCount ← +´ {𝕩.key ≡ "event-id"}¨ candidate.metadata
 identityOk ← (identityMode ≡ "durable") ◶ ⟨
   {(candidate.identity_kind ≡ "physical_fallback") ∧ 0 = eventMetadataCount},
   {(candidate.identity_kind ≡ "durable") ∧ (candidate.source_event_id ≡ eventId) ∧ 1 = eventMetadataCount}
 ⟩ @
-candidateOk ← (candidate.date≡dateText) ∧ (candidate.description≡description) ∧ identityOk ∧ (candidate.status_marker='*') ∧ (candidate.layer_name≡"actual") ∧ ((≠candidate.postings)=≠expected) ∧ postingIndexesOk ∧ (actualAccounts≡expectedAccounts) ∧ (actualAmounts≡expectedAmounts) ∧ commoditiesOk
+candidateOk ← (candidate.date≡dateText) ∧ (candidate.description≡description) ∧ identityOk ∧ (candidate.status_marker='*') ∧ (candidate.layer_name≡"actual") ∧ (candidate.domain≡currency) ∧ (candidate.calculation_scale=calculationScale) ∧ ((≠candidate.postings)=≠expected) ∧ postingIndexesOk ∧ (actualAccounts≡expectedAccounts) ∧ (actualAmounts≡expectedAmounts) ∧ commoditiesOk
 {𝕊⋄Fail ⟨"native_candidate_mismatch", "written candidate does not exactly equal previewed candidate"⟩}⍟(¬candidateOk) @
 
 identityToken ← (identityMode ≡ "durable") ◶ ⟨{"-"}, {eventId}⟩ @

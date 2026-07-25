@@ -1,11 +1,12 @@
 # journal_block_add_cmd.bqn
 # Semantic owner for one explicit native actual-layer Journal transaction append.
 
-parser ← •Import "../src_next/journal_profile_stage1.bqn"
-adapter ← •Import "../src_next/journal_posting_ir_stage2a.bqn"
+admission ← •Import "../src_next/journal_complete_source_admission.bqn"
+carrier ← •Import "../src_next/journal_currency_proof_carrier_stage2a.bqn"
 ak ← •Import "../src_next/account_key.bqn"
 loader ← •Import "../src_next/loader.bqn"
 decimal ← •Import "../src_next/exact_decimal.bqn"
+setup ← •Import "../src_next/currency_setup.bqn"
 dates ← •Import "../src_next/date.bqn"
 
 args ← •args
@@ -26,19 +27,25 @@ UnsafeText ← {𝕊 text:
   controls ← ((@+0) + ↕32) ∾ ⟨@+127⟩
   ∨´ 0 ∾ text ∊ controls
 }
-{𝕊⋄Fail ⟨"usage", "expected BASE TARGET DATE DESCRIPTION IDENTITY_MODE EVENT_ID POSTING_COUNT postings and optional metadata"⟩}⍟(9 > ≠ args) @
+{𝕊⋄Fail ⟨"usage", "expected BASE TARGET DATE DESCRIPTION IDENTITY_MODE EVENT_ID [currency=CODE] POSTING_COUNT postings and optional metadata"⟩}⍟(9 > ≠ args) @
 base ← 0 ⊑ args
 target ← 1 ⊑ args
 dateText ← 2 ⊑ args
 description ← 3 ⊑ args
 identityMode ← 4 ⊑ args
 eventId ← 5 ⊑ args
-postingCountText ← 6⊑args
+argIndex ← 6
+currency ← "JPY"
+currencyMarker ← argIndex ⊑ args
+{𝕊: currency ↩ 9 ↓ currencyMarker ⋄ argIndex +↩ 1}⍟("currency=" ≡ 9 ↑ currencyMarker) @
+policy ← setup.Policy currency
+{𝕊⋄Fail ⟨"currency_unsupported", "transaction currency must be admitted by registry"⟩}⍟(policy.state ≢ "ok") @
+postingCountText ← argIndex⊑args
 postingCount ← •BQN postingCountText
 {𝕊⋄Fail ⟨"posting_count_invalid", "posting count must be at least two"⟩}⍟((postingCount<2)∨postingCount≢⌊postingCount) @
-{𝕊⋄Fail ⟨"posting_count_invalid", "posting count exceeds supplied arguments"⟩}⍟((7+postingCount)>≠args) @
-postingArgs ← postingCount↑7↓args
-metadataArgs ← (7+postingCount)↓args
+{𝕊⋄Fail ⟨"posting_count_invalid", "posting count exceeds supplied arguments"⟩}⍟((argIndex+1+postingCount)>≠args) @
+postingArgs ← postingCount↑(argIndex+1)↓args
+metadataArgs ← (argIndex+1+postingCount)↓args
 
 {𝕊⋄Fail ⟨"date_invalid", "date must be a valid YYYY-MM-DD calendar date"⟩}⍟(¬ dates.IsValidDateText dateText) @
 {𝕊⋄Fail ⟨"description_invalid", "description must be nonempty and must not contain unsafe control input"⟩}⍟((0 = ≠ Trim description) ∨ (UnsafeText description) ∨ description ≢ Trim description) @
@@ -50,7 +57,7 @@ metadataArgs ← (7+postingCount)↓args
 postings ← empty
 {𝕊 text:
   equalMask ← '=' = text
-  {𝕊⋄Fail ⟨"posting_shape_invalid", "each posting must contain exactly one ACCOUNT=SIGNED_INTEGER pair"⟩}⍟(1 ≠ +´ equalMask) @
+  {𝕊⋄Fail ⟨"posting_shape_invalid", "each posting must contain exactly one ACCOUNT=SIGNED_DECIMAL pair"⟩}⍟(1 ≠ +´ equalMask) @
   equalIndex ← ⊑ equalMask / ↕ ≠ text
   account ← equalIndex ↑ text
   amountText ← (equalIndex + 1) ↓ text
@@ -59,15 +66,25 @@ postings ← empty
   negative ← '-' = ⊑ (amountText ∾ "0")
   unsigned ← negative ↓ amountText
   parsedAmount ← decimal.Parse unsigned
-  exactInteger ← (parsedAmount.state ≡ "ok") ∧ (0 = parsedAmount.scale) ∧ unsigned ≡ •Fmt parsedAmount.coefficient
-  {𝕊⋄Fail ⟨"posting_amount_invalid", "posting amount must be a canonical nonzero exact integer"⟩}⍟(¬ exactInteger) @
-  delta ← (1 - 2 × negative) × parsedAmount.coefficient
-  {𝕊⋄Fail ⟨"posting_amount_zero", "posting amount must be nonzero"⟩}⍟(0 = delta) @
-  canonical ← negative ◶ ⟨{•Fmt parsedAmount.coefficient}, {"-" ∾ •Fmt parsedAmount.coefficient}⟩ @
-  {𝕊⋄Fail ⟨"posting_amount_invalid", "posting amount must be a canonical signed integer"⟩}⍟(amountText ≢ canonical) @
-  postings ∾↩ ⟨{account_key⇐account, amount_text⇐amountText, delta⇐delta, commodity⇐"JPY"}⟩
+  validAmount ← parsedAmount.state ≡ "ok"
+  {𝕊⋄Fail ⟨"posting_amount_invalid", "posting amount must be an explicit canonical signed exact decimal"⟩}⍟(¬ validAmount) @
+  {𝕊⋄Fail ⟨"posting_precision_exceeded", "posting precision exceeds transaction currency policy"⟩}⍟((0 ≤ policy.max_fraction_digits) ∧ parsedAmount.scale > policy.max_fraction_digits) @
+  coefficient ← (1 - 2 × negative) × parsedAmount.coefficient
+  {𝕊⋄Fail ⟨"posting_amount_zero", "posting amount must be nonzero"⟩}⍟(0 = coefficient) @
+  leadingZero ← (1 < ≠ unsigned) ∧ ('0' = ⊑ unsigned) ∧ ('.' ≠ 1 ⊑ unsigned ∾ " ")
+  {𝕊⋄Fail ⟨"posting_amount_invalid", "posting amount must not contain a leading zero or explicit plus sign"⟩}⍟leadingZero @
+  postings ∾↩ ⟨{account_key⇐account, amount_text⇐amountText, source_coefficient⇐coefficient, source_scale⇐parsedAmount.scale, normalized_coefficient⇐0, commodity⇐currency}⟩
 }¨ postingArgs
-{𝕊⋄Fail ⟨"event_unbalanced", "signed posting amounts must sum exactly to zero"⟩}⍟(0 ≠ +´ {𝕩.delta}¨ postings) @
+calculationScale ← ⌈´ {𝕩.source_scale}¨ postings
+NormalizePosting ← {𝕊 posting:
+  zeros ← calculationScale - posting.source_scale
+  magnitude ← decimal.Parse ((•Fmt | posting.source_coefficient) ∾ zeros ⥊ '0')
+  {𝕊⋄Fail ⟨"posting_amount_invalid", "posting amount cannot normalize exactly"⟩}⍟(magnitude.state ≢ "ok") @
+  normalized ← (1 - 2 × posting.source_coefficient < 0) × magnitude.coefficient
+  {account_key⇐posting.account_key, amount_text⇐posting.amount_text, source_coefficient⇐posting.source_coefficient, source_scale⇐posting.source_scale, normalized_coefficient⇐normalized, commodity⇐posting.commodity}
+}
+postings ↩ NormalizePosting¨ postings
+{𝕊⋄Fail ⟨"event_unbalanced", "normalized posting amounts must sum exactly to zero"⟩}⍟(0 ≠ +´ {𝕩.normalized_coefficient}¨ postings) @
 
 legacyKeys ← ⟨"tax","biz","invoice","note","due_on","receipt","txn_id","party","plan_id","cashflow","currency","recur","series"⟩
 nativeKeys ← ⟨"tax","biz","invoice","note","due-on","receipt","txn-id","party","plan-id","cashflow","currency","recur","series"⟩
@@ -86,21 +103,21 @@ metadataKeys ← {𝕩.key}¨metadata
 {𝕊⋄Fail ⟨"metadata_duplicate", "metadata keys must be unique"⟩}⍟((≠metadataKeys)≠≠⍷metadataKeys) @
 {𝕊⋄Fail ⟨"ordinary_plan_link_invalid", "ordinary actual cannot carry plan-id; use a durable plan completion path"⟩}⍟((identityMode ≡ "ordinary") ∧ ∨´ 0 ∾ "plan-id"⊸≡¨ metadataKeys) @
 
+resolved ← ak.Resolve loader.ReadLines (base ∾ "/accounts.tsv")
 raw ← loader.ReadRaw target
-existing ← parser.ParseWithProfile ⟨raw,"historical_external_plan"⟩
-{𝕊⋄Fail ⟨"existing_journal_invalid", "existing complete Journal does not satisfy the supported profile"⟩}⍟(existing.state ≢ "ok") @
+existing ← admission.Admit ⟨raw, resolved⟩
+{𝕊⋄Fail ⟨"existing_journal_invalid", "existing complete Journal does not satisfy supported-currency admission"⟩}⍟(existing.state ≢ "ok") @
 candidateOrdinal ← ≠ existing.transactions
 {𝕊⋄Fail ⟨"event_id_duplicate", "event-id already exists in the complete Journal"⟩}⍟((identityMode ≡ "durable") ∧ ∨´ 0 ∾ {𝕩.source_event_id ≡ eventId}¨ existing.transactions) @
 
-resolved ← ak.Resolve loader.ReadLines (base ∾ "/accounts.tsv")
 {𝕊 posting:
   registryMask ← posting.account_key⊸≡¨ resolved.accounts
   {𝕊⋄Fail ⟨"posting_account_unresolved", "posting account must resolve exactly once in accounts.tsv"⟩}⍟(1 ≠ +´ registryMask) @
   idx ← ⊑ registryMask / ↕ ≠ registryMask
-  {𝕊⋄Fail ⟨"posting_currency_invalid", "every resolved posting account must use JPY"⟩}⍟("JPY" ≢ idx ⊑ resolved.currencies) @
+  {𝕊⋄Fail ⟨"posting_currency_invalid", "resolved posting account currency must equal transaction currency"⟩}⍟(currency ≢ idx ⊑ resolved.currencies) @
 }¨ postings
 
-postingLines ← {"    " ∾ 𝕩.account_key ∾ "    " ∾ 𝕩.amount_text ∾ " JPY"}¨ postings
+postingLines ← {"    " ∾ 𝕩.account_key ∾ "    " ∾ 𝕩.amount_text ∾ " " ∾ currency}¨ postings
 metadataLines ← {"    ; "∾𝕩.key∾": "∾𝕩.value}¨metadata
 headerLines ← (identityMode ≡ "durable") ◶ ⟨{⟨dateText ∾ " * " ∾ description⟩}, {⟨dateText ∾ " * " ∾ description, "    ; event-id: " ∾ eventId⟩}⟩ @
 blockLines ← headerLines ∾ metadataLines ∾ postingLines
@@ -113,12 +130,12 @@ endsTwo ← (1 < rawCount) ∧ (lf = ¯1 ⊑ raw) ∧ lf = ¯2 ⊑ raw
 semanticSeparator ← endsTwo ◶ ⟨{endsOne ◶ ⟨{lf ∾ lf}, {lf}⟩ @}, {""}⟩ @
 transportPrefixCount ← endsTwo ◶ ⟨{1}, {0}⟩ @
 proposedRaw ← raw ∾ semanticSeparator ∾ block ∾ lf
-proposed ← parser.ParseWithProfile ⟨proposedRaw,"historical_external_plan"⟩
-{𝕊⋄Fail ⟨"proposed_journal_invalid", "exact proposed complete Journal does not satisfy the supported profile"⟩}⍟(proposed.state ≢ "ok") @
+proposed ← admission.Admit ⟨proposedRaw, resolved⟩
+{𝕊⋄diagnostic←⊑proposed.diagnostics ⋄ Fail ⟨"proposed_journal_invalid", "exact proposed complete Journal rejected: " ∾ diagnostic.code ∾ " at line " ∾ •Fmt diagnostic.line⟩}⍟(proposed.state ≢ "ok") @
 {𝕊⋄Fail ⟨"candidate_count_invalid", "proposed Journal must contain exactly one transaction beyond the existing transaction count"⟩}⍟((candidateOrdinal + 1) ≢ ≠ proposed.transactions) @
 
-checked ← adapter.Build ⟨proposed.transactions, resolved, dateText⟩
-{𝕊⋄Fail ⟨"posting_ir_invalid", "checked Stage 2A Posting IR rejected the proposed complete Journal"⟩}⍟(checked.state ≢ "ok") @
+checked ← carrier.Build ⟨proposed.transactions, resolved, dateText⟩
+{𝕊⋄Fail ⟨"posting_ir_invalid", "Stage 2A currency-proof carrier rejected the proposed complete Journal"⟩}⍟(checked.state ≢ "ok") @
 
 candidate ← candidateOrdinal ⊑ proposed.transactions
 
@@ -127,11 +144,11 @@ priorEndLine ← (0 < candidateOrdinal) ◶ ⟨0, {⌈´ {𝕩.source_end_line}�
 {𝕊⋄Fail ⟨"candidate_boundary_invalid", "candidate start line must be greater than prior end line"⟩}⍟(candidate.source_start_line ≤ priorEndLine) @
 
 candidateAccounts ← {𝕩.account_key}¨ candidate.postings
-candidateAmounts ← {𝕩.delta}¨ candidate.postings
+candidateAmounts ← {𝕩.normalized_coefficient}¨ candidate.postings
 candidateCommodities ← {𝕩.commodity}¨ candidate.postings
 expectedAccounts ← {𝕩.account_key}¨ postings
-expectedAmounts ← {𝕩.delta}¨ postings
-commoditiesOk ← ∧´ {𝕩 ≡ "JPY"}¨ candidateCommodities
+expectedAmounts ← {𝕩.normalized_coefficient}¨ postings
+commoditiesOk ← ∧´ {𝕩 ≡ currency}¨ candidateCommodities
 eventMetadataCount ← +´ {𝕩.key ≡ "event-id"}¨ candidate.metadata
 identityOk ← (identityMode ≡ "durable") ◶ ⟨
   {(candidate.identity_kind ≡ "physical_fallback") ∧ 0 = eventMetadataCount},

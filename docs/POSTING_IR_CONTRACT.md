@@ -80,6 +80,18 @@ Required fields:
 
 Optional fields may be added for provenance, but report views must not depend on optional fields until their contract is documented.
 
+### Selected-domain projection supplement
+
+The existing 16-field untyped Posting IR above remains unchanged. Multi-currency complete-source admission does not feed unlike currency coefficients into that contract. `journal_currency_proof_carrier_stage2a.bqn` first retains each coefficient with `domain`, transaction `calculation_scale`, exact source amount evidence, account-currency proof, identity, and provenance.
+
+`selected_domain_context.bqn` may then produce a conventional projection row only after the caller selects exactly one registry-supported currency and every selected Actual/plan/budget row has normalized exactly to one context-local scale. Those selected rows retain the normal fields and additionally expose:
+
+- `domain` — exactly the explicitly selected currency;
+- `calculation_scale` — the context-local exact scale shared by every row;
+- `normalized_coefficient` — identical to that row's selected-domain `delta`.
+
+This supplement does not authorize mixing domains, a Journal-wide money total, Currency axis, FX, valuation, or changing the meaning of the existing `delta` contract outside an explicitly selected one-domain context.
+
 ## 5. Identity rules
 
 ### `source_id`

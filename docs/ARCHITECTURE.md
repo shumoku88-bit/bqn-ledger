@@ -128,7 +128,8 @@ Accounting-grade の試算表データセット。opening は期間開始前残�
    │
    └─ src_next/loader.bqn / actual_source.bqn (明示source読み込み)
         │
-        └─ src_next/context.bqn (BuildContext)
+        ├─ src_next/context.bqn (full report / non-selected compatibility context)
+        └─ src_next/selected_domain_context.bqn (JPY/ILS/USD共通の明示1通貨Actual + plan + budget)
              │
              ├─ src_next/cube.bqn ──── Canonical Daily Cube (Day × Account × Layer)
              ├─ src_next/tbds.bqn ──── Trial Balance Data Set (opening/movement/closing)
@@ -138,6 +139,8 @@ Accounting-grade の試算表データセット。opening は期間開始前残�
              └─ src_next/report.bqn ────── 人間向けレポート入口
                   src_next/summary.bqn ──── 機械向けコンパクト出力
 ```
+
+`selected_domain_context.bqn` は complete-source admission と Stage 2A `currency_proof_rows` を再利用し、呼び出し側が明示したregistry-supportedな1通貨だけをcontext-local exact scaleへ射影する。JPY・ILS・USDはすべてこの同じ境界を通り、通貨literalによるcontext分岐は持たない。plan / budgetも同じ通貨をsource metadataとaccount currencyで証明し、証明失敗時は部分contextを返さない。declaration-only Journalや選択通貨Actualが0件のときも、validな選択plan / budgetからcontextを構成し、全source layerが空なら正常なempty contextを返す。これはCurrency axisや一般的な多通貨Cubeではなく、各呼び出しで1通貨だけを既存 `Day × Account × Layer` viewへ渡す境界である。
 
 ## Presentation boundary
 

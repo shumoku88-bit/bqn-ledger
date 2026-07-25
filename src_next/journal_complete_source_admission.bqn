@@ -3,7 +3,8 @@
 #
 # One raw Journal may declare several registry-supported currency domains while
 # every ordinary transaction remains single-domain and balances within its own
-# exact calculation scale. No Journal-wide money domain, scale, or total exists.
+# exact calculation scale. A declaration-only Journal is a valid empty Actual
+# source. No Journal-wide money domain, scale, or total exists.
 
 util ← •Import "util.bqn"
 dates ← •Import "date.bqn"
@@ -130,9 +131,9 @@ MapDiagnostic ← {𝕊 diagnostic‿lineMap:
   }
 }
 
-MapPosting ← {𝕊 posting‿lineMap:
+MapPosting ← {𝕊 posting‿lineMap‿sourceEventId:
   {
-    posting_id⇐posting.posting_id,
+    posting_id⇐sourceEventId ∾ ":" ∾ •Fmt posting.posting_index,
     posting_index⇐posting.posting_index,
     side⇐posting.side,
     source_line⇐MapLine ⟨posting.source_line, lineMap⟩,
@@ -147,10 +148,13 @@ MapPosting ← {𝕊 posting‿lineMap:
 }
 
 MapTransaction ← {𝕊 transaction‿lineMap:
+  mappedStart ← MapLine ⟨transaction.source_start_line, lineMap⟩
+  mappedSourceEventId ← transaction.source_event_id
+  {𝕊: mappedSourceEventId ↩ "stage0-line-" ∾ •Fmt mappedStart}⍟(transaction.identity_kind ≡ "physical_fallback") @
   {
-    source_event_id⇐transaction.source_event_id,
+    source_event_id⇐mappedSourceEventId,
     identity_kind⇐transaction.identity_kind,
-    source_start_line⇐MapLine ⟨transaction.source_start_line, lineMap⟩,
+    source_start_line⇐mappedStart,
     source_end_line⇐MapLine ⟨transaction.source_end_line, lineMap⟩,
     date⇐transaction.date,
     status_marker⇐transaction.status_marker,
@@ -164,7 +168,7 @@ MapTransaction ← {𝕊 transaction‿lineMap:
     domain⇐transaction.domain,
     calculation_scale⇐transaction.calculation_scale,
     metadata⇐transaction.metadata,
-    postings⇐{MapPosting ⟨𝕩, lineMap⟩}¨ transaction.postings
+    postings⇐{MapPosting ⟨𝕩, lineMap, mappedSourceEventId⟩}¨ transaction.postings
   }
 }
 
@@ -218,7 +222,9 @@ Admit ← {𝕊 raw‿resolved:
     }¨ ↕ ≠ starts
   }⍟(0 = ≠ declarations.diagnostics) @
 
-  diagnostics ∾↩ AddIf ⟨0 = ≠ starts, Diagnostic ⟨"transaction_missing", 0, "Journal must contain at least one dated transaction"⟩⟩
+  # Zero transactions is a valid complete-source snapshot. Declarations are
+  # still checked above; consumers receive an empty transaction carrier and
+  # apply the same empty-domain rule for every selected currency.
   diagnostics ∾↩ CrossTransactionDiagnostics transactions
   {𝕊: transactions ↩ empty}⍟(0 < ≠ diagnostics) @
   {

@@ -215,7 +215,11 @@ calculation scale separate from presentation scale: ILS presentation is always
 scale 2, calculation coefficients at scale 0 or 1 are exactly scaled up for
 display, and ILS source/calculation scale above 2 fails closed without rounding.
 `--currency` with full report, another section, cache/list routing, or JSON fails
-closed.
+closed. JPY, ILS, and USD all use `selected_domain_context.Build`; a declaration-only
+Journal or a Journal with no selected-currency Actual produces the same valid
+empty-Actual context rule for every currency. Selected human balances always include
+`[Expenses / Cumulative]` when nonzero expense balances exist. Currency policy changes
+amount formatting only, not section structure.
 
 ### Structured JSON output
 `tools/report --section balances --format json` calls `balances.FormatJson ctx` and outputs the existing non-selected ViewModel JSON. M3 does not widen this schema and does not permit `--currency` with JSON:

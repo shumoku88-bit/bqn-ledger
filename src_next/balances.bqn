@@ -8,7 +8,7 @@ json ← •Import "json.bqn"
 loader ← •Import "loader.bqn"
 ak ← •Import "account_key.bqn"
 cycle ← •Import "cycle.bqn"
-ctx_mod ← •Import "context.bqn"
+selected_context ← •Import "selected_domain_context.bqn"
 currency_setup ← •Import "currency_setup.bqn"
 L ← labels.Text
 
@@ -68,9 +68,9 @@ PresentationPolicy ← {𝕊 selectedCurrency‿calculationScale:
   }
 }
 
-# BuildSelected: balances-only M3 orchestration over one checked currency projection.
-# DEFAULT_CURRENCY selects the view only; source currency evidence remains owned by
-# the existing row/account validation seams.
+# BuildSelected: construct and display exactly one explicitly selected currency
+# domain. The selected context owns normalization; this view never combines
+# unlike currency domains or creates a Journal-wide total.
 BuildSelected ← {𝕊 base‿explicitCurrency:
   defaultResult ← currency_setup.ResolveDefault loader.ReadLinesOptional (base ∾ "/config.tsv")
   selection ← currency_setup.ResolveSelection ⟨defaultResult, explicitCurrency⟩
@@ -80,22 +80,21 @@ BuildSelected ← {𝕊 base‿explicitCurrency:
     calculation_scale ⇐ ⟨⟩, presentation_scale ⇐ ⟨⟩, entries ⇐ ⟨⟩
   }
   {𝕊:
+    ledger ← selected_context.Build ⟨base, selection.currency⟩
+    result ↩ {
+      state ⇐ "error", message ⇐ ledger.message,
+      selected_currency ⇐ selection.currency, provenance ⇐ selection.provenance,
+      calculation_scale ⇐ ⟨⟩, presentation_scale ⇐ ⟨⟩, entries ⇐ ⟨⟩
+    }
     {𝕊:
+      policy ← PresentationPolicy ⟨selection.currency, ledger.calculation_scale⟩
       result ↩ {
-        state ⇐ "error", message ⇐ "native Journal selected-currency balances currently require JPY",
+        state ⇐ policy.state, message ⇐ policy.message,
         selected_currency ⇐ selection.currency, provenance ⇐ selection.provenance,
-        calculation_scale ⇐ ⟨⟩, presentation_scale ⇐ ⟨⟩, entries ⇐ ⟨⟩
+        calculation_scale ⇐ ledger.calculation_scale, presentation_scale ⇐ policy.presentation_scale,
+        entries ⇐ (policy.state ≡ "ok") / Build ledger
       }
-    }⍟(selection.currency≢"JPY") @
-    {𝕊:
-      ledger ← ctx_mod.BuildContext base
-      policy ← PresentationPolicy ⟨"JPY",0⟩
-      result ↩ {
-        state ⇐ "ok", message ⇐ "", selected_currency ⇐ "JPY", provenance ⇐ selection.provenance,
-        calculation_scale ⇐ 0, presentation_scale ⇐ policy.presentation_scale,
-        entries ⇐ Build ledger
-      }
-    }⍟(selection.currency≡"JPY") @
+    }⍟(ledger.state ≡ "ok") @
   }⍟(selection.state≡"ok") @
   result
 }
@@ -133,6 +132,7 @@ RenderHuman ← {𝕊 render:
   savings ← Filter ⟨entries, "asset", "savings"⟩
   investment ← Filter ⟨entries, "asset", "invest"⟩
   liabilities ← FilterRole ⟨entries, "liability"⟩
+  expenses ← FilterRole ⟨entries, "expense"⟩
   envelopes ← FilterRole ⟨entries, "budget"⟩
 
   liquid_assets_total ← SumAmount liquid
@@ -166,6 +166,9 @@ RenderHuman ← {𝕊 render:
  
   tbl_lia ← FormatTableGroup liabilities
   out ↩ out ∾ (0 < ≠tbl_lia) ◶ ⟨{""}, {"[Liabilities]" ∾ (@+10) ∾ tbl_lia ∾ (@+10)}⟩ @
+
+  tbl_exp ← FormatTableGroup expenses
+  {𝕊: out ↩ out ∾ (0 < ≠tbl_exp) ◶ ⟨{""}, {"[Expenses / Cumulative]" ∾ (@+10) ∾ tbl_exp ∾ (@+10)}⟩ @}⍟render.include_expenses @
  
   tbl_env ← FormatTableGroup envelopes
   out ↩ out ∾ (0 < ≠tbl_env) ◶ ⟨{""}, {"[Budget / Envelopes]" ∾ (@+10) ∾ tbl_env ∾ (@+10)}⟩ @
@@ -189,7 +192,7 @@ FormatHuman ← {𝕊 entries:
     s ← •Fmt amount
     { 𝕩 ≡ '¯' ? '-' ; 𝕩 }¨ s
   }
-  RenderHuman { entries ⇐ entries, FormatAmount ⇐ LegacyAmount, view_line ⇐ "" }
+  RenderHuman { entries ⇐ entries, FormatAmount ⇐ LegacyAmount, view_line ⇐ "", include_expenses ⇐ 0 }
 }
 
 FormatSelectedHuman ← {𝕊 selected:
@@ -197,7 +200,7 @@ FormatSelectedHuman ← {𝕊 selected:
     FormatCoefficient ⟨amount, selected.calculation_scale, selected.presentation_scale, selected.selected_currency⟩
   }
   viewLine ← "Currency view: " ∾ selected.selected_currency ∾ " (" ∾ (ProvenanceLabel selected.provenance) ∾ ")"
-  RenderHuman { entries ⇐ selected.entries, FormatAmount ⇐ Amount, view_line ⇐ viewLine }
+  RenderHuman { entries ⇐ selected.entries, FormatAmount ⇐ Amount, view_line ⇐ viewLine, include_expenses ⇐ 1 }
 }
 
 # FormatJson: render balance entries as structured JSON.
