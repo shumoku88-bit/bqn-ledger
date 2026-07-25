@@ -26,9 +26,10 @@ Last hygiene pass: 2026-07-25
 - The unused MCP adapter is retired. Its pre-removal implementation remains recoverable from Git tag `checkpoint-pre-mcp-removal`.
 - The Israel 2026 travel funding and settlement ownership characterization is complete.
 - JPY→ILS exchange safe append and friend-paid pending safe append already exist.
-- Native Journal ordinary Actual writing, parsing, and selected balances remain JPY-only; ordinary ILS travel spending is not currently admitted.
+- Native Journal ordinary Actual writing, selected read-path wiring, and selected balances remain JPY-only; ordinary ILS travel spending is not currently admitted by the runtime route.
 - The non-JPY single-currency characterization and test-only admission proof are complete. Public-synthetic ILS and USD witnesses share one registry-driven domain, precision, account-currency, normalization, balance, and structural-trace boundary while production Journal routes remain unchanged.
 - The multi-currency Journal container contract and test-only proof are complete. One public-synthetic Journal admits separate JPY and ILS ordinary transactions, a JPY and USD witness proves generality, every transaction retains its own domain and scale, and mixed-domain ordinary transactions fail closed.
+- The production complete-source admission boundary is complete. It returns per-transaction domains, scales, normalized posting evidence, account-currency proof, identity, metadata, and source provenance without a Journal-wide money domain or total, but it is not yet wired into Actual loading or Stage 2A.
 - The generic projection and valuation foundation remains an active backlog, not implementation authorization.
 - Detailed completion history through the previous checkpoint is in `docs/archive/TODO_HISTORY-2026-07-24.md`.
 
@@ -36,30 +37,18 @@ Last hygiene pass: 2026-07-25
 
 ## Active work
 
-### Production complete-source admission implementation
+**No finite implementation slice is currently selected.**
 
-Status: selected finite production parser-boundary implementation.
+Completed current finite work:
 
-Canonical contract and evidence:
-
-- `docs/archive/audits/NATIVE_JOURNAL_NON_JPY_SINGLE_CURRENCY_ADMISSION_CHARACTERIZATION-2026-07-25.md`
 - `docs/archive/active-plans/MULTI_CURRENCY_JOURNAL_CONTAINER_CONTRACT-2026-07-25.md`
-- `src_next/journal_supported_single_currency_admission_for_test.bqn`
-- `tests/test_journal_supported_single_currency_admission_proof.bqn`
-- `src_next/journal_multi_currency_container_admission_for_test.bqn`
-- `tests/test_journal_multi_currency_container_admission_proof.bqn`
+- `src_next/journal_supported_single_currency_admission.bqn`
+- `src_next/journal_complete_source_admission.bqn`
+- `tests/test_journal_complete_source_admission.bqn`
 
-Selected implementation boundary:
+The production complete-source owner admits separate balanced JPY and ILS ordinary transactions from one public-synthetic Journal and proves the same registry-driven boundary with USD. Each transaction retains its own currency domain, calculation scale, exact normalized coefficients, account-currency proof, identity, metadata, and original source-line provenance. Mixed-domain transactions, unsupported or undeclared commodities, precision overflow, account-currency mismatch, malformed postings, missing transactions, zero amounts, unbalanced coefficients, and duplicate durable event identities fail closed. Any source error suppresses all partially admitted transactions.
 
-- introduce an explicitly named production complete-source admission owner for a multi-currency Journal container;
-- preserve `strict_self_contained` and `historical_external_plan` behavior unchanged;
-- return declared supported domains plus transactions carrying their own domain, calculation scale, normalized postings, account-currency proof, identity, metadata, and source provenance;
-- admit separate balanced JPY and ILS ordinary transactions in one public-synthetic Journal and prove the same boundary with USD;
-- reject mixed-domain ordinary transactions, unsupported or undeclared commodities, account-currency mismatch, precision overflow, malformed postings, missing transactions, zero amounts, and unbalanced normalized coefficients;
-- do not expose one Journal-wide money domain, scale, coefficient total, or mixed-currency arithmetic result;
-- do not import a test-only module or expose a synthetic JPY shadow as production result evidence.
-
-This slice must not wire the new result into `actual_source`, Stage 2A, context, Cube, TBDS, reports, balances, writer/editor routes, source data, accounts, metadata widening, exchange semantics, FX, valuation, or travel features.
+This completion does not wire the new admission result into `actual_source`, Stage 2A, context, Cube, TBDS, reports, balances, writer/editor routes, source data, accounts, metadata widening, exchange semantics, FX, valuation, or travel features. Existing `strict_self_contained` and `historical_external_plan` profile behavior remains unchanged.
 
 The latest AI working feedback remains evidence only and does not authorize additional work.
 
@@ -69,7 +58,7 @@ The latest AI working feedback remains evidence only and does not authorize addi
 
 ### Multi-currency native Journal container continuation
 
-Status: contract decision and test-only container proof complete / candidate 1 selected / all later production continuation slices independently unselected.
+Status: contract, test-only container proof, and production complete-source admission complete / all later continuation slices independently unselected.
 
 Current evidence and contract:
 
@@ -79,25 +68,27 @@ Current evidence and contract:
 - `docs/archive/active-plans/MULTI_CURRENCY_JOURNAL_CONTAINER_CONTRACT-2026-07-25.md`
 - `src_next/journal_multi_currency_container_admission_for_test.bqn`
 - `tests/test_journal_multi_currency_container_admission_proof.bqn`
+- `src_next/journal_supported_single_currency_admission.bqn`
+- `src_next/journal_complete_source_admission.bqn`
+- `tests/test_journal_complete_source_admission.bqn`
 
 Recommended candidate order:
 
-1. **Production complete-source admission implementation** — selected above; return transaction-domain and calculation-scale evidence without silently widening `historical_external_plan` or manufacturing one Journal-wide domain.
-2. **Stage 2A currency-proof carrier decision and implementation** — retain posting domain, scale, normalized coefficient, account-currency proof, and provenance.
-3. **Selected-domain context composition** — compose Actual + plan + budget for exactly one selected currency at a time or explicitly separate partitions; do not add a Currency axis automatically.
-4. **Native ordinary-add writer widening** — accept one explicit supported transaction currency while preserving existing JPY behavior.
-5. **Per-domain consumer and formatting verification** — selected balances and immediate consumers never produce combined multi-currency totals.
-6. **Explicit exchange-in-Journal design** — independently decide whether a typed cross-currency exchange transaction should join the current separate exchange event rail.
+1. **Stage 2A currency-proof carrier decision and implementation** — retain posting domain, calculation scale, normalized coefficient, source amount evidence, account-currency proof, and provenance without changing current consumers automatically.
+2. **Selected-domain context composition** — compose Actual + plan + budget for exactly one selected currency at a time or explicitly separate partitions; do not add a Currency axis automatically.
+3. **Native ordinary-add writer widening** — accept one explicit supported transaction currency while preserving existing JPY behavior.
+4. **Per-domain consumer and formatting verification** — selected balances and immediate consumers never produce combined multi-currency totals.
+5. **Explicit exchange-in-Journal design** — independently decide whether a typed cross-currency exchange transaction should join the current separate exchange event rail.
 
-Candidate 1 is selected above. Production routing, writer, Stage 2A, context, reports, FX, valuation, exchange, and travel work remain unselected.
+Candidate 1 is the first candidate only. It remains unselected and must not be implemented automatically. Actual-source routing, context, writer, reports, FX, valuation, exchange, and travel work all remain unselected.
 
 Selection rules:
 
 - select at most one candidate;
-- treat the merged single-currency and multi-currency proofs as evidence, not production authorization beyond the selected parser-boundary slice;
+- treat the completed admission owner as production evidence, not authorization to feed mixed-domain rows into current Stage 2A or context;
 - ILS and USD are witnesses, not generic module branch conditions;
 - the Journal container may be multi-currency while every ordinary transaction remains single-domain;
-- do not bundle parser work with writer work, travel metadata, reverse exchange, friend finalization, Wise semantics, or reports;
+- do not bundle Stage 2A carrier work with context, writer work, travel metadata, reverse exchange, friend finalization, Wise semantics, or reports;
 - never add amounts from different currency domains;
 - reject mixed-domain ordinary transactions until an explicit typed exchange contract is selected;
 - do not use private production data to determine policy;
@@ -106,7 +97,7 @@ Selection rules:
 
 ### Israel 2026 travel funding and settlement continuation
 
-Status: non-JPY characterization, single-currency proof, multi-currency Journal contract, and test-only container proof complete; travel continuation slices remain independently unselected.
+Status: non-JPY characterization, single-currency proof, multi-currency Journal contract, test-only container proof, and production complete-source admission complete; travel continuation slices remain independently unselected.
 
 Canonical lifecycle plan:
 
@@ -118,7 +109,7 @@ Current ownership audit:
 
 Recommended travel order after multi-currency Journal prerequisites:
 
-1. **Native Journal ILS ordinary-add implementation** — depends on production complete-source admission, Stage 2A currency-proof carriage, and selected-domain context composition.
+1. **Native Journal ILS ordinary-add implementation** — depends on Stage 2A currency-proof carriage and selected-domain context composition in addition to the completed production admission boundary.
 2. **Travel metadata admission** — separately decide and test `trip-id` and `payment`; do not infer support from the old TSV metadata path.
 3. **Bidirectional account-explicit exchange** — widen the existing safe JPY→ILS event rail to admit ILS→JPY without inferring physical cash versus Wise from account names.
 4. **Friend atomic JPY finalization writer** — durable finalization/status/index ownership plus exactly one Journal expense/liability append and recovery.
@@ -209,12 +200,12 @@ Status: unselected / parked Israel continuation candidate.
 
 ### Mixed-ledger daily-use continuation
 
-Status: single-currency characterization and proof, multi-currency Journal contract, and test-only container proof complete; residual production candidates remain unselected.
+Status: production complete-source admission complete; residual routing and consumer candidates remain unselected.
 
 - Current broad plan: `docs/archive/active-plans/CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md`.
 - Israel lifecycle plan: `docs/archive/active-plans/ISRAEL_ILS_CASH_LIFECYCLE_PLAN-2026-07-25.md`.
-- M3 and strict-source Step 1 are complete historically, but the native Journal cutover leaves current ordinary Actual writing/parsing JPY-only.
-- The test-only seam proves that one Journal can contain separate JPY and ILS ordinary transactions, but current production parsing and context do not yet admit them.
+- M3 and strict-source Step 1 are complete historically, but the native Journal runtime route still leaves ordinary Actual writing, Stage 2A carriage, context, and selected balances JPY-only.
+- The production admission boundary can admit separate JPY and ILS ordinary transactions without mixed arithmetic, but current Actual loading and context do not yet consume that result.
 - strict-source Steps 2–5 and M4 remain unselected and do not auto-start.
 - multi-currency container work does not authorize mixed-currency arithmetic, valuation, or totals.
 
