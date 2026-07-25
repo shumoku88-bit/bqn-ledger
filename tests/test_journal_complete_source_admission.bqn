@@ -141,6 +141,65 @@ usd ← 1 ⊑ jpyUsd.transactions
 "USD" lib.AssertEq (1 ⊑ usd.postings).account_currency
 "USD" lib.AssertEq (1 ⊑ usd.postings).commodity
 
+# One later invalid transaction closes the complete source without returning a
+# previously admitted transaction as partial success.
+partialRaw ← MakeRaw ⟨
+  "commodity JPY",
+  "",
+  "commodity ILS",
+  "",
+  "account assets:bank-jpy",
+  "",
+  "account expenses:food-jpy",
+  "",
+  "account expenses:food-ils",
+  "",
+  "2026-07-25 * valid first transaction",
+  "  ; event-id: partial-valid-1",
+  "  assets:bank-jpy  -100 JPY",
+  "  expenses:food-jpy  100 JPY",
+  "",
+  "2026-07-26 * invalid later transaction",
+  "  ; event-id: partial-invalid-1",
+  "  assets:bank-jpy  -50 JPY",
+  "  expenses:food-ils  50 ILS"
+⟩
+partial ← admission.Admit ⟨partialRaw, resolved⟩
+"error" lib.AssertEq partial.state
+lib.Assert HasCode ⟨"transaction_domain_count_invalid", partial⟩
+0 lib.AssertEq ≠ partial.transactions
+
+# Durable identity uniqueness is owned by the complete source, not by one
+# currency partition.
+duplicateIdentityRaw ← MakeRaw ⟨
+  "commodity JPY",
+  "",
+  "commodity ILS",
+  "",
+  "account assets:bank-jpy",
+  "",
+  "account expenses:food-jpy",
+  "",
+  "account assets:cash-ils",
+  "",
+  "account expenses:food-ils",
+  "",
+  "2026-07-25 * first durable identity",
+  "  ; event-id: duplicate-source-id",
+  "  assets:bank-jpy  -100 JPY",
+  "  expenses:food-jpy  100 JPY",
+  "",
+  "2026-07-26 * second durable identity",
+  "  ; event-id: duplicate-source-id",
+  "  assets:cash-ils  -1.00 ILS",
+  "  expenses:food-ils  1.00 ILS"
+⟩
+duplicateIdentity ← admission.Admit ⟨duplicateIdentityRaw, resolved⟩
+"error" lib.AssertEq duplicateIdentity.state
+1 lib.AssertEq ≠ duplicateIdentity.diagnostics
+lib.Assert HasCode ⟨"event_id_duplicate", duplicateIdentity⟩
+0 lib.AssertEq ≠ duplicateIdentity.transactions
+
 mixedRaw ← MakeRaw ⟨
   "commodity JPY",
   "",
