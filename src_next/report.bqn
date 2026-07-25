@@ -2,7 +2,7 @@
 # Usage: bqn src_next/report.bqn <baseDir>
 #        bqn src_next/report.bqn <baseDir> --list-sections
 #        bqn src_next/report.bqn <baseDir> --section <key>
-#        bqn src_next/report.bqn <baseDir> --section balances [--currency JPY|ILS]
+#        bqn src_next/report.bqn <baseDir> --section balances [--currency CODE]
 #        bqn src_next/report.bqn <baseDir> --outlook-as-of YYYY-MM-DD
 #
 # --list-sections outputs tab-separated section-key and first-line marker
@@ -170,7 +170,7 @@ Main ← {𝕊 args:
   }⍟(outlook_as_of_flag ∧ (¬ outlook_as_of_missing) ∧ ¬ date.IsValidDateText outlook_as_of_val) @
 
   {𝕊:
-    •Out "ERROR: --currency requires JPY or ILS"
+    •Out "ERROR: --currency requires a registry-supported code"
     •Exit 1
   }⍟currency_missing @
 
