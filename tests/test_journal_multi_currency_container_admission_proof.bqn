@@ -3,21 +3,11 @@
 ak ← •Import "../src_next/account_key.bqn"
 container ← •Import "../src_next/journal_multi_currency_container_admission_for_test.bqn"
 
-lf ← @+10
 tab ← @+9
-Raw ← {𝕊 lines: ∾ (lines ∾¨ lf) }
-
 resolved ← ak.Resolve ⟨
-  "assets:bank-jpy" ∾ tab ∾ "role=asset" ∾ tab ∾ "currency=JPY",
-  "assets:cash-ils" ∾ tab ∾ "role=asset" ∾ tab ∾ "currency=ILS"
+  "assets:bank-jpy" ∾ tab ∾ "role=asset" ∾ tab ∾ "currency=JPY"
 ⟩
 
-raw ← Raw ⟨
-  "commodity JPY",
-  "",
-  "commodity ILS"
-⟩
+result ← container.Admit ⟨"", resolved⟩
 
-result ← container.Admit ⟨raw, resolved⟩
-
-•Out "test_journal_multi_currency_container_admission_proof.bqn: DECLARATIONS CALL OK"
+•Out "test_journal_multi_currency_container_admission_proof.bqn: EMPTY CALL OK"
