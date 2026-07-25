@@ -13,10 +13,10 @@ This guide records what the current public editor can actually do. All examples 
 |---|---|
 | JPY→ILS exchange event | available through dedicated source-event editor |
 | Friend-paid ILS pending event | available through dedicated source-event editor |
-| Ordinary confirmed-JPY card/debit expense | available through native Journal, JPY only |
-| Ordinary physical ILS cash expense | blocked by JPY-only native Journal writer/parser |
-| Ordinary Wise ILS balance expense | blocked by JPY-only native Journal writer/parser |
-| `trip_id` / `payment` Journal metadata | not admitted by current native Journal profile |
+| Ordinary confirmed-JPY card/debit expense | available through native Journal |
+| Ordinary physical ILS cash expense | available through supported-currency native Journal append when explicit ILS accounts exist |
+| Ordinary Wise ILS balance expense | available through the same ILS path when spending an already-held ILS balance |
+| `trip_id` / `payment` Journal metadata | admitted as native `trip-id` and `payment=cash|card|debit` |
 | ILS→JPY return exchange | not admitted by current exchange validator |
 | Friend JPY finalization write | pure preview exists; writer is not implemented |
 | ILS/Wise remaining-balance view | not implemented |
@@ -103,7 +103,7 @@ The pure return-home JPY preview exists, but the atomic writer, durable finaliza
 
 ## Ordinary confirmed-JPY card or debit expense
 
-The current stable `journal add` surface supports the configured native Journal only in JPY. A confirmed JPY card/debit expense can be recorded with explicit existing JPY accounts:
+The stable `journal add` surface accepts one explicit registry-supported currency and matching existing accounts. A confirmed JPY card/debit expense can be recorded with explicit JPY accounts and travel metadata:
 
 ```bash
 tools/edit --base "$BASE" journal add \
@@ -113,32 +113,32 @@ tools/edit --base "$BASE" journal add \
   --to "expenses:trip-jpy" \
   --amount "1800" \
   --currency JPY \
+  --meta trip_id=israel-2026 \
+  --meta payment=debit \
   --yes \
   --post-check lint
 ```
 
 Record the bank/card issuer's confirmed JPY amount exactly once. The merchant-displayed ILS amount may remain in receipt evidence or memo, but it must not be entered as another expense.
 
-Current native Journal metadata does not admit `trip_id`, `trip-id`, or `payment`. Do not add those options until a separate metadata contract is implemented and verified.
+`trip_id` is rendered as native `; trip-id: ...`; `payment` is restricted to `cash|card|debit`. Both remain generic Transaction IR metadata. They do not select accounts, infer currency, identify Wise semantics, create exchange events, or change report aggregation.
 
 ## Physical ILS cash and Wise ILS spending
 
-These paths are required by the travel lifecycle but are not currently available through `tools/edit journal add`.
-
-The public command rejects non-JPY currency, while the native Journal writer/parser require JPY commodity declarations and exact-integer postings. Commands such as the following are therefore illustrative intent only and must not be run as operating instructions:
+Ordinary ILS spending uses the same native Journal path with explicit matching ILS accounts. For example, physical cash spending may use `--meta payment=cash`; spending from an already-held Wise ILS balance may use `--meta payment=card`. Account identity—not the payment metadata—distinguishes those assets.
 
 ```text
 assets:<physical ILS cash> -> expenses:<category>-ILS
 assets:<Wise ILS balance>  -> expenses:<category>-ILS
 ```
 
-Do not convert an ILS purchase to an invented JPY amount, place it in the exchange source, or use the friend source as a substitute. Native Journal ILS admission requires a separately selected implementation.
+Do not convert an ILS purchase to an invented JPY amount, place it in the exchange source, or use the friend source as a substitute.
 
 ## Wise exchanges and Wise card behavior
 
 A pre-purchase JPY→ILS conversion inside Wise may be recorded by the existing exchange command using explicit Wise JPY and Wise ILS accounts, provided both accounts exist and the observed amounts satisfy the current JPY→ILS contract. This still does not update Journal balances or reports.
 
-Spending from an already-held Wise ILS balance is currently blocked by the native Journal ILS limitation.
+Spending from an already-held Wise ILS balance can use an ordinary ILS Journal expense with explicit Wise ILS and expense accounts. This does not define purchase-time automatic conversion semantics.
 
 Purchase-time automatic conversion remains unresolved. Do not create both a conversion and an expense unless actual Wise evidence supports one linked lifecycle without double counting.
 
@@ -149,8 +149,9 @@ Before real use:
 - verify every selected account exists with the expected currency;
 - dry-run each dedicated source-event command first;
 - keep exchange and friend-event sources backed up with the rest of the ledger data;
-- record only confirmed JPY ordinary transactions in the native Journal;
+- use ordinary Journal append only with one explicit supported currency and matching existing accounts;
+- treat `trip-id` and `payment` as evidence, not account/currency/FX inference;
 - do not assume dedicated travel sources affect balances;
-- do not improvise ILS Journal blocks, return exchange, friend finalization, correction/reversal, or Wise automatic-conversion semantics.
+- do not improvise return exchange, friend finalization, correction/reversal, or Wise automatic-conversion semantics.
 
 The current ownership characterization is recorded in `docs/archive/audits/ISRAEL_TRAVEL_RAIL_OWNERSHIP_CHARACTERIZATION-2026-07-25.md`.

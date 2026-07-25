@@ -86,8 +86,8 @@ NormalizePosting ← {𝕊 posting:
 postings ↩ NormalizePosting¨ postings
 {𝕊⋄Fail ⟨"event_unbalanced", "normalized posting amounts must sum exactly to zero"⟩}⍟(0 ≠ +´ {𝕩.normalized_coefficient}¨ postings) @
 
-legacyKeys ← ⟨"tax","biz","invoice","note","due_on","receipt","txn_id","party","plan_id","cashflow","currency","recur","series"⟩
-nativeKeys ← ⟨"tax","biz","invoice","note","due-on","receipt","txn-id","party","plan-id","cashflow","currency","recur","series"⟩
+legacyKeys ← ⟨"tax","biz","invoice","note","due_on","receipt","txn_id","party","plan_id","trip_id","payment","cashflow","currency","recur","series"⟩
+nativeKeys ← ⟨"tax","biz","invoice","note","due-on","receipt","txn-id","party","plan-id","trip-id","payment","cashflow","currency","recur","series"⟩
 metadata ← empty
 {𝕊 text:
   equalMask ← '='=text
@@ -101,6 +101,7 @@ metadata ← empty
 }¨metadataArgs
 metadataKeys ← {𝕩.key}¨metadata
 {𝕊⋄Fail ⟨"metadata_duplicate", "metadata keys must be unique"⟩}⍟((≠metadataKeys)≠≠⍷metadataKeys) @
+{𝕊⋄Fail ⟨"metadata_payment_invalid", "payment metadata must be cash, card, or debit"⟩}⍟(∨´ 0 ∾ {(𝕩.key ≡ "payment") ∧ ¬ ∨´ 𝕩.value⊸≡¨ "cash"‿"card"‿"debit"}¨ metadata) @
 {𝕊⋄Fail ⟨"ordinary_plan_link_invalid", "ordinary actual cannot carry plan-id; use a durable plan completion path"⟩}⍟((identityMode ≡ "ordinary") ∧ ∨´ 0 ∾ "plan-id"⊸≡¨ metadataKeys) @
 
 resolved ← ak.Resolve loader.ReadLines (base ∾ "/accounts.tsv")
@@ -150,11 +151,16 @@ expectedAccounts ← {𝕩.account_key}¨ postings
 expectedAmounts ← {𝕩.normalized_coefficient}¨ postings
 commoditiesOk ← ∧´ {𝕩 ≡ currency}¨ candidateCommodities
 eventMetadataCount ← +´ {𝕩.key ≡ "event-id"}¨ candidate.metadata
+MetadataPreserved ← {𝕊 item:
+  matches ← ({(𝕩.key ≡ item.key) ∧ 𝕩.value ≡ item.value}¨ candidate.metadata) / candidate.metadata
+  1 = ≠ matches
+}
+metadataOk ← ∧´ 1 ∾ MetadataPreserved¨ metadata
 identityOk ← (identityMode ≡ "durable") ◶ ⟨
   {(candidate.identity_kind ≡ "physical_fallback") ∧ 0 = eventMetadataCount},
   {(candidate.identity_kind ≡ "durable") ∧ (candidate.source_event_id ≡ eventId) ∧ 1 = eventMetadataCount}
 ⟩ @
-candidateOk ← (candidate.date ≡ dateText) ∧ (candidate.description ≡ description) ∧ identityOk ∧ (candidate.layer_name ≡ "actual") ∧ (candidate.status_marker = '*') ∧ ((≠ candidate.postings) = ≠ postings) ∧ (candidateAccounts ≡ expectedAccounts) ∧ (candidateAmounts ≡ expectedAmounts) ∧ commoditiesOk
+candidateOk ← (candidate.date ≡ dateText) ∧ (candidate.description ≡ description) ∧ identityOk ∧ metadataOk ∧ (candidate.layer_name ≡ "actual") ∧ (candidate.status_marker = '*') ∧ ((≠ candidate.postings) = ≠ postings) ∧ (candidateAccounts ≡ expectedAccounts) ∧ (candidateAmounts ≡ expectedAmounts) ∧ commoditiesOk
 {𝕊⋄Fail ⟨"candidate_mismatch", "parsed candidate does not exactly match the rendered candidate"⟩}⍟(¬ candidateOk) @
 
 identityToken ← (identityMode ≡ "durable") ◶ ⟨{"-"}, {eventId}⟩ @

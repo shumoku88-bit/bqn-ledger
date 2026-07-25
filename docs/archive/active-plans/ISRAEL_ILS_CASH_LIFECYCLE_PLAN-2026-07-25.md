@@ -1,6 +1,6 @@
 # Israel 2026 Travel Funding and Settlement Lifecycle — 2026-07-25
 
-Status: active lifecycle plan / ownership characterization complete / no continuation slice selected
+Status: active lifecycle plan / usable ILS slice and travel metadata admission complete / no next continuation slice selected
 Owner: currency / travel capture / settlement / editor / balances
 Canonical: yes for the Israel 2026 travel funding and settlement lifecycle
 Exit: archive after the required travel paths are implemented, synthetically rehearsed without double counting, and separately approved for human-controlled production use
@@ -76,14 +76,14 @@ This is a composition of separate rails, not a universal cross-currency Journal.
 - friend-paid ILS pending-event pure validation and preview;
 - durable `friend_travel_events.tsv` creation/append through the public editor with equivalent safety boundaries;
 - pure one-row JPY friend-finalization validation/preview;
-- ordinary native Journal writing for balanced JPY exact-integer transactions;
+- ordinary native Journal writing for one explicit registry-supported currency;
+- exact ILS and USD ordinary append through the same admission/carrier boundary;
+- selected-domain JPY/ILS/USD balances without cross-currency totals;
+- native Journal `trip-id` and `payment=cash|card|debit` metadata admission and exact generic Transaction IR preservation;
 - native Journal as the only production Actual source.
 
 ### Not implemented or not admitted
 
-- ordinary ILS native Journal transactions;
-- ILS exact-decimal native Journal postings;
-- `trip-id` and `payment` native Journal metadata;
 - ILS→JPY return exchange;
 - atomic friend finalization/status/index/Journal writing;
 - exchange/friend source consumption by Posting IR, Cube, TBDS, balances, or a travel read model;
@@ -122,7 +122,7 @@ assets:<physical ILS cash> -> expenses:<category>-ILS
 
 This is one ILS expense. The preceding exchange is not another expense.
 
-Current status: blocked because the native Journal parser/writer is JPY-only.
+Current status: available through ordinary supported-currency Journal append with explicit matching ILS accounts. Optional `payment=cash` and `trip-id` remain evidence only.
 
 ### Wise ILS balance spending
 
@@ -134,13 +134,13 @@ assets:<Wise ILS balance> -> expenses:<category>-ILS
 
 This is one ILS expense when Wise spends from an already-held ILS balance.
 
-Current status: blocked by the same native Journal ILS boundary.
+Current status: available when spending an already-held explicit Wise ILS asset account. This does not define purchase-time automatic conversion.
 
 ### Ordinary Japanese card or debit
 
 Record one transaction at the issuer/bank-confirmed JPY amount. Merchant-displayed ILS may remain receipt or memo evidence but must not become a second expense.
 
-Current status: basic JPY transaction is available. `trip-id` and `payment` metadata are not admitted.
+Current status: ordinary supported-currency transactions are available. Optional `trip_id=<id>` and `payment=cash|card|debit` CLI metadata render as native `trip-id` / `payment` and remain generic evidence without report interpretation.
 
 ### Friend-paid purchase
 
@@ -158,7 +158,7 @@ No representation is selected. A later characterization must use actual redacted
 
 | Source | Owner | Meaning | Journal effect |
 |---|---|---|---|
-| configured native Journal | Stage 1 parser, Stage 2A, editor | production Actual transactions | yes, currently JPY-only |
+| configured native Journal | complete-source admission, Stage 1 partition parser, Stage 2A carrier, editor | production Actual transactions | yes, one supported currency per ordinary transaction |
 | `travel_exchange_events.tsv` | exchange pure owner plus dedicated editor | two-currency asset-exchange observations | none currently |
 | `friend_travel_events.tsv` | friend pending pure owner plus dedicated editor | pending friend-paid source facts | none currently |
 | supplied friend finalization request | pure finalization owner | proposed one-row JPY expense/liability | preview only |
@@ -183,33 +183,35 @@ It must preserve contributor provenance and must never add ILS and JPY.
 
 ## Completed characterization result
 
-The ownership characterization established:
+The ownership characterization originally established the pre-vertical-slice facts below. Items 4 and 5 are now completed; the remaining findings still route future work:
 
 1. exchange and friend pending safe append already exist;
 2. the current exchange contract is fixed to JPY→ILS but its explicit ten-column shape can support a single bidirectional contract in principle;
 3. no evidence requires a separate return-exchange event kind;
-4. ordinary ILS spending is the first practical blocker because the production Actual parser/writer admits only JPY exact integers;
-5. `trip-id` and `payment` are not current native Journal metadata;
+4. ordinary ILS spending was the first practical blocker — resolved by the supported-currency Journal vertical slice;
+5. `trip-id` and `payment` were absent — resolved by the travel metadata admission slice;
 6. exchange/friend sources have no selected accounting consumer;
 7. Wise automatic conversion lacks sufficient source evidence.
 
-## Independently selectable continuation candidates
+## Continuation slices and completion status
 
-No candidate below is currently selected.
+No incomplete candidate below is currently selected.
 
-1. **Native Journal ILS single-currency admission characterization**
+1. **Native Journal ILS single-currency admission characterization — completed**
    - public synthetic and test-only;
    - trace the minimum commodity, exact-decimal, account-currency, Stage 1, Stage 2A, source-validation, and downstream boundaries for one balanced ILS transaction;
    - no runtime write or report change.
 
-2. **Native Journal ILS ordinary-add implementation**
-   - only after candidate 1 supports a finite contract;
+2. **Native Journal ILS ordinary-add implementation — completed**
+   - followed candidate 1's finite contract;
    - one explicit single-currency ILS transaction path;
    - no exchange projection, mixed totals, metadata expansion, or reports.
 
-3. **Travel metadata admission**
-   - separately decide `trip-id` and `payment` spelling, value contract, parser/writer ownership, round-trip, and consumer need;
-   - do not infer support from historical TSV metadata validation.
+3. **Travel metadata admission — completed**
+   - canonical native spelling is `trip-id` and `payment`;
+   - CLI compatibility spelling is `trip_id` and `payment`;
+   - `trip-id` is a nonempty safe opaque ID; `payment` is `cash|card|debit`;
+   - parser/writer round-trip is checked; no consumer, inference, FX, or report grouping was added.
 
 4. **Bidirectional account-explicit exchange**
    - admit JPY→ILS and ILS→JPY;
@@ -265,5 +267,5 @@ No candidate below is currently selected.
 - `FRIEND_TRAVEL_SOURCE_EVENT_JPY_FINALIZATION_PLAN-2026-07-13.md` remains canonical for one-row JPY finalization meaning.
 - `FRIEND_TRAVEL_ATOMIC_FINALIZATION_WRITE_DESIGN-2026-07-13.md` remains a parked implementation proposal.
 - `TRAVEL_MULTI_CURRENCY_SETTLEMENT_DESIGN_INTAKE-2026-07-12.md` remains broader background on separating exchange, spending, settlement, and valuation.
-- `CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md` remains historical mixed-ledger evidence; current native Journal Actual admission is JPY-only.
+- `CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md` remains historical mixed-ledger evidence; current ordinary Journal append and selected-domain balances use the supported-currency boundary.
 - PR #354 remains paused and supplies no implementation authority for this lifecycle.

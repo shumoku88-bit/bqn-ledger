@@ -65,6 +65,8 @@ Actual取引はnative Journal transaction metadata、`plan.tsv` / `budget_alloc.
 - `due_on=YYYY-MM-DD` : 引落予定日の例外上書き（Phase 6実験中。通常は口座メタから導出）
 - `plan_id=<id>` : `plan.tsv` の予定と、対応するnative Journal実績候補を結ぶ任意ID（Journal内では `; plan-id: <id>`）
 - `cashflow=fixed_obligation` : 費用ではないが、生活資金から固定的に確保すべき支払い予定。例: 借金元本返済 (`assets:* -> liabilities:*`)。
+- `trip_id=<id>` : 旅行単位を明示するopaque ID。native Journalでは `; trip-id: <id>` として保存する。口座名や通貨から推測しない。
+- `payment=cash|card|debit` : 実際に選択した支払経路。native Journalでも同じ `payment` keyを使う。Wise等のサービス名やFX意味はこの値から推測しない。
 - `currency=JPY|ILS` : 通貨指定 (Stage 2 段階的導入用)
 
 
@@ -184,5 +186,6 @@ envelope_role=dynamic|execution|unassigned
 
 - 日常入力は `tools/add-ui.sh` または `tools/edit` を使います。
 - CLI で明示する場合は `tools/edit journal add ... --meta tax=private --meta biz=0` のように、`--meta key=value` を追加します。
+- 旅行中のordinary Journal取引では、必要な場合だけ `--meta trip_id=<id> --meta payment=cash|card|debit` を指定します。parserはnative `trip-id` / `payment`をTransaction IRのgeneric metadataへexact保持しますが、このmetadataだけから集計、通貨換算、cash/Wise判定は行いません。
 - `tools/add-ui.sh` のメタ候補プリセットは `config/ui_meta_presets.tsv` に置きます。Shell は候補を表示するだけで、メタキーの意味解釈や検証は BQN editor / `config/meta_schema.tsv` 側に寄せます。
 - 書き込みは BQN editor の preview / confirm / backup / stale check 経路を通します。

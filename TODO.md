@@ -52,7 +52,7 @@ The selected-domain boundary reuses production complete-source admission and Sta
 
 The ordinary-add writer now accepts one explicit registry-supported transaction currency, preserves omitted-currency JPY behavior, and rejects unsupported currency, excessive precision, account mismatch, mixed-domain, zero, malformed, missing, and unbalanced postings before safe append. The synthetic rehearsal writes JPY, ILS, and USD expenses through the registry-driven writer and selected-domain read boundaries, verifies domain isolation, and displays cumulative expense with the same section structure for all three currencies. JPY append, selected balances, and full-report compatibility remain checked.
 
-Mixed-currency aggregation, FX, valuation, reporting currency, travel metadata, reverse exchange, friend finalization, and Wise semantics remain unimplemented.
+Travel metadata admission is complete as a separate finite slice: CLI `trip_id` renders to native `trip-id`, `payment` admits only `cash|card|debit`, both round-trip exactly through generic Transaction IR metadata, and neither changes account selection, currency, arithmetic, or reports. Mixed-currency aggregation, FX, valuation, reporting currency, reverse exchange, friend finalization, and Wise automatic-conversion semantics remain unimplemented.
 
 The latest AI working feedback remains evidence only and does not authorize additional work.
 
@@ -115,13 +115,12 @@ Current ownership audit:
 
 Recommended travel order after the completed minimal vertical slice:
 
-1. **Travel metadata admission** — separately decide and test `trip-id` and `payment`; do not infer support from the old TSV metadata path.
-2. **Bidirectional account-explicit exchange** — widen the existing safe JPY→ILS event rail to admit ILS→JPY without inferring physical cash versus Wise from account names.
-3. **Friend atomic JPY finalization writer** — durable finalization/status/index ownership plus exactly one Journal expense/liability append and recovery.
-4. **Wise card evidence characterization** — distinguish existing-ILS-balance spending from purchase-time automatic conversion using public synthetic or user-supplied redacted statement shapes.
-5. **Narrow semantic position and obligation read models beyond currency-selected account balances** — physical ILS cash, Wise ILS balance, friend JPY liability, and confirmed own-card JPY spending kept separate.
-6. **Synthetic whole-trip rehearsal** — prove no duplicated expense and zero-or-explained balances.
-7. **Human-controlled production readiness checkpoint**.
+1. **Bidirectional account-explicit exchange** — widen the existing safe JPY→ILS event rail to admit ILS→JPY without inferring physical cash versus Wise from account names.
+2. **Friend atomic JPY finalization writer** — durable finalization/status/index ownership plus exactly one Journal expense/liability append and recovery.
+3. **Wise card evidence characterization** — distinguish existing-ILS-balance spending from purchase-time automatic conversion using public synthetic or user-supplied redacted statement shapes.
+4. **Narrow semantic position and obligation read models beyond currency-selected account balances** — physical ILS cash, Wise ILS balance, friend JPY liability, and confirmed own-card JPY spending kept separate.
+5. **Synthetic whole-trip rehearsal** — prove no duplicated expense and zero-or-explained balances.
+6. **Human-controlled production readiness checkpoint**.
 
 Selection rules:
 

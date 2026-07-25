@@ -107,6 +107,8 @@ Owner: maintainer / format / validation
   - `expenses:予備` はこの家計簿では `variable`（変動費）として扱われます。
 - `tax=private|business`（ジャーナル形式）: 個人用 vs 事業用（ドラフト）
 - `biz=0|1`（ジャーナル形式）: 事業按分フラグ（ドラフト）
+- `trip_id=<id>`（editor/TSV表記）/ `trip-id`（native Journal表記）: 旅行単位のopaque ID。口座・通貨・支払経路を推測する根拠にはしない。
+- `payment=cash|card|debit`（native Journal）: 明示された支払経路。サービス名、FX、会計分類を推測しない。
 - `recur=once|monthly|cycle` (`plan.tsv`): 予定行の繰り返しマーカー。省略時は単発または未指定として扱われます。
 - `months=all|even|odd` (`plan.tsv`): 毎月の予定行に対する対象月フィルター。省略時は `all`（全月）として扱われます。
 - `anchor=<account>` (`plan.tsv`): サイクルベースの予定行に対するアンカー勘定科目。例: `anchor=income:年金`

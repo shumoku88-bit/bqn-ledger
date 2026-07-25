@@ -73,7 +73,7 @@ Exit: keep current while this remains the pit code/data-flow entry point
 ### `src_next/` (BQN 会計エンジン)
 
 - `context.bqn` — BuildAllRows / BuildPeriodView / BuildContext。設定されたnative JournalをStage 1→Stage 2Aへ通したactual postingsとplan/budget TSV postingsを合成する。Actual sourceのfallback/mergeはしない。
-- `journal_profile_stage1.bqn` — Minimal BQN Journal subsetをordered Transaction IRへ変換するparser。`recur` / `series` は意味解釈せずgeneric `transaction.metadata`だけにexact保持する。Journal modeのproduction read/write validationで使用する。
+- `journal_profile_stage1.bqn` — Minimal BQN Journal subsetをordered Transaction IRへ変換するparser。`recur` / `series` / `trip-id`とclosed enumの`payment`は会計意味を解釈せずgeneric `transaction.metadata`へexact保持する。Journal modeのproduction read/write validationで使用する。
 - `journal_posting_ir_stage2a.bqn` — admitted Stage 1 Transaction IRをcurrent 16-field Posting IR shapeへ変換するadapter。explicit source file identityを持つnative multi-posting production routingにも使用する。
 - `journal_posting_identity_provenance_stage2b.bqn` — admitted Stage 1 Transaction IRと対応するStage 2Aの16-field rowsを受け、identity/provenance local invariantsをall-or-nothingで検査して、rowを変更せず別の6-field carrierを返すpure test-only helper。production provenance carrier、consumer、routingには未接続。
 - `exact_decimal.bqn` — source amount text の exact-decimal parse、canonical coefficient / scale、parsed coefficient exact-range 診断の owner。
@@ -134,7 +134,7 @@ Exit: keep current while this remains the pit code/data-flow entry point
 - `src_edit/journal_add_cmd.bqn` — `budget add` のTSV候補を検証・生成する。
 - `src_edit/actual_journal_file_cmd.bqn` — BQN resolverが選んだnative Journal相対pathをUI/toolsへ出力する。
 - `src_edit/journal_validate_cmd.bqn` — configured native Journalと統合contextをfail closedに検査する書き込み後validator。
-- `src_edit/journal_block_add_cmd.bqn` — native Journal transaction blockの検証・append protocol生成。ordinary appendは明示supported currencyを受け、complete-source admissionとStage 2A currency-proof carrierを再利用する。省略時JPY互換、single-domain、account-currency、exact precision、balanceをfail closedに検査する。
+- `src_edit/journal_block_add_cmd.bqn` — native Journal transaction blockの検証・append protocol生成。ordinary appendは明示supported currencyを受け、complete-source admissionとStage 2A currency-proof carrierを再利用する。省略時JPY互換、single-domain、account-currency、exact precision、balanceをfail closedに検査する。CLI `trip_id`→native `trip-id`と`payment=cash|card|debit`を含む明示metadataのparse round-tripも検査する。
 - `src_edit/travel_friend_add_cmd.bqn` — `friend_travel_events.tsv` の既存全行検査とpending候補APPEND protocol生成。意味検査はpure source-event ownerへ委譲。
 - `src_edit/travel_exchange_add_cmd.bqn` — accountsと`travel_exchange_events.tsv`をpure exchange ownerへ渡し、固定10列候補APPEND protocolを生成。
 - `src_edit/journal_list_cmd.bqn` — journal reverse UI向け read-only native Journal selection export。

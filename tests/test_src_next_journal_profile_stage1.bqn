@@ -123,13 +123,16 @@ unsupportedMetadata ← ∾ ⟨
 ⟩
 CheckFail ⟨unsupportedMetadata, "metadata_unsupported"⟩
 
-# recur and series are an explicit opaque allowlist: their values are preserved
-# only in generic transaction.metadata and receive no recurrence interpretation.
+# recur, series, and trip-id are explicit opaque metadata. payment has a closed
+# value contract. All are preserved in generic transaction.metadata without
+# recurrence, travel grouping, payment inference, or report interpretation.
 opaqueMetadata ← ∾ ⟨
   Prefix @,
   "2026-08-15 * Opaque legacy metadata", lf,
   "    ; recur: synthetic-cycle", lf,
   "    ; series: synthetic-series", lf,
+  "    ; trip-id: trip-synthetic-2026", lf,
+  "    ; payment: cash", lf,
   "    expenses:rent 10 JPY", lf,
   "    assets:bank -10 JPY", lf
 ⟩
@@ -137,8 +140,8 @@ opaqueResult ← parser.Parse opaqueMetadata
 "ok" lib.AssertEq opaqueResult.state
 0 lib.AssertEq ≠opaqueResult.diagnostics
 opaqueTransaction ← ⊑opaqueResult.transactions
-⟨"recur","series"⟩ lib.AssertEq {𝕩.key}¨opaqueTransaction.metadata
-⟨"synthetic-cycle","synthetic-series"⟩ lib.AssertEq {𝕩.value}¨opaqueTransaction.metadata
+⟨"recur","series","trip-id","payment"⟩ lib.AssertEq {𝕩.key}¨opaqueTransaction.metadata
+⟨"synthetic-cycle","synthetic-series","trip-synthetic-2026","cash"⟩ lib.AssertEq {𝕩.value}¨opaqueTransaction.metadata
 "actual" lib.AssertEq opaqueTransaction.layer_name
 "" lib.AssertEq opaqueTransaction.txn_id
 "" lib.AssertEq opaqueTransaction.plan_id
@@ -162,5 +165,15 @@ seriesDuplicate ← ∾ ⟨
   "    assets:bank -10 JPY", lf
 ⟩
 CheckFail ⟨seriesDuplicate, "metadata_duplicate"⟩
+
+invalidPayment ← ∾ ⟨
+  Prefix @,
+  "2026-08-15 * Invalid payment", lf,
+  "    ; trip-id: trip-synthetic-2026", lf,
+  "    ; payment: transfer", lf,
+  "    expenses:rent 10 JPY", lf,
+  "    assets:bank -10 JPY", lf
+⟩
+CheckFail ⟨invalidPayment, "metadata_value_invalid"⟩
 
 •Out "test_src_next_journal_profile_stage1.bqn: OK"
