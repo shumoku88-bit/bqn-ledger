@@ -138,6 +138,22 @@ CopyPosting ← {𝕊 posting‿commodity‿accountCurrency‿normalizedCoeffici
   }
 }
 
+CopyPostingTrace ← {𝕊 posting‿postingId‿sourceLine:
+  {
+    posting_id⇐postingId,
+    posting_index⇐posting.posting_index,
+    side⇐posting.side,
+    source_line⇐sourceLine,
+    account_key⇐posting.account_key,
+    account_currency⇐posting.account_currency,
+    commodity⇐posting.commodity,
+    amount_text⇐posting.amount_text,
+    source_coefficient⇐posting.source_coefficient,
+    source_scale⇐posting.source_scale,
+    normalized_coefficient⇐posting.normalized_coefficient
+  }
+}
+
 CopyTransaction ← {𝕊 transaction‿sourceEventId‿domain‿postings:
   {
     source_event_id⇐sourceEventId,
@@ -187,6 +203,20 @@ badCommodity ← carrier.Build ⟨⟨jpyTransaction, badCommodityTransaction⟩,
 "error" lib.AssertEq badCommodity.state
 lib.Assert HasCode ⟨"posting_domain_mismatch", badCommodity⟩
 0 lib.AssertEq ≠ badCommodity.currency_proof_rows
+
+badSourcePosting ← CopyPostingTrace ⟨ilsPosting0, ilsPosting0.posting_id, 1⟩
+badSourceTransaction ← CopyTransaction ⟨ilsTransaction, ilsTransaction.source_event_id, ilsTransaction.domain, ⟨badSourcePosting, ilsPosting1⟩⟩
+badSource ← carrier.Build ⟨⟨jpyTransaction, badSourceTransaction⟩, resolved, "2026-07-01"⟩
+"error" lib.AssertEq badSource.state
+lib.Assert HasCode ⟨"posting_source_range_mismatch", badSource⟩
+0 lib.AssertEq ≠ badSource.currency_proof_rows
+
+duplicatePosting1 ← CopyPostingTrace ⟨ilsPosting1, ilsPosting0.posting_id, ilsPosting1.source_line⟩
+duplicatePostingTransaction ← CopyTransaction ⟨ilsTransaction, ilsTransaction.source_event_id, ilsTransaction.domain, ⟨ilsPosting0, duplicatePosting1⟩⟩
+duplicatePosting ← carrier.Build ⟨⟨jpyTransaction, duplicatePostingTransaction⟩, resolved, "2026-07-01"⟩
+"error" lib.AssertEq duplicatePosting.state
+lib.Assert HasCode ⟨"posting_id_duplicate", duplicatePosting⟩
+0 lib.AssertEq ≠ duplicatePosting.currency_proof_rows
 
 duplicateIdentityTransaction ← CopyTransaction ⟨ilsTransaction, jpyTransaction.source_event_id, ilsTransaction.domain, ilsTransaction.postings⟩
 duplicateIdentity ← carrier.Build ⟨⟨jpyTransaction, duplicateIdentityTransaction⟩, resolved, "2026-07-01"⟩
