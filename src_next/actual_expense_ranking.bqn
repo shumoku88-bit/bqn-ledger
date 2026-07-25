@@ -55,12 +55,7 @@ Build ← {𝕊 rows‿dayCount‿selectedCurrency‿calculationScale:
 
   {𝕊:
     days ← {𝕩.day_index}¨ rows
-    selectedMask ←
-      ("ok"⊸≡¨ {𝕩.status}¨ rows) ∧
-      ("actual"⊸≡¨ {𝕩.layer_name}¨ rows) ∧
-      (days ≥ 0) ∧ (days < dayCount) ∧
-      ("expense"⊸≡¨ {𝕩.kind}¨ rows) ∧
-      ("debit"⊸≡¨ {𝕩.side}¨ rows)
+    selectedMask ← ("ok"⊸≡¨ {𝕩.status}¨ rows) ∧ ("actual"⊸≡¨ {𝕩.layer_name}¨ rows) ∧ (days ≥ 0) ∧ (days < dayCount) ∧ ("expense"⊸≡¨ {𝕩.kind}¨ rows) ∧ ("debit"⊸≡¨ {𝕩.side}¨ rows)
 
     selectedRows ← selectedMask / rows
     keys ← {𝕩.account_key}¨ selectedRows
