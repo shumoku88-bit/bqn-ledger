@@ -1,5 +1,5 @@
 # travel_exchange_event.bqn
-# I/O-free Israel JPY-to-ILS exchange validation and structured preview.
+# I/O-free bidirectional JPY/ILS exchange validation and structured preview.
 
 dates ← •Import "date.bqn"
 decimal ← •Import "exact_decimal.bqn"
@@ -16,6 +16,17 @@ Diagnostic ← {𝕊 codeText‿fieldText‿messageText:
 AddIf ← {𝕊 invalid‿diagnostic: invalid / ⟨diagnostic⟩ }
 IsSafeText ← {𝕊 text: (0<≠text) ∧ ¬∨´text∊tab‿lf‿cr }
 IsPositive ← {𝕊 parsed: (parsed.state≡"ok") ∧ 0<parsed.coefficient }
+exchangeCurrencies ← ⟨"JPY", "ILS"⟩
+exchangePrecision ← 0‿2
+CurrencyIndex ← {𝕊 currency: ⊑ exchangeCurrencies ⊐ ⟨currency⟩ }
+CurrencySupported ← {𝕊 currency: (CurrencyIndex currency) < ≠ exchangeCurrencies }
+DirectionSupported ← {𝕊 sourceCurrency‿targetCurrency:
+  (CurrencySupported sourceCurrency) ∧ (CurrencySupported targetCurrency) ∧ sourceCurrency ≢ targetCurrency
+}
+PrecisionFor ← {𝕊 currency:
+  index ← CurrencyIndex currency
+  index ⊑ exchangePrecision ∾ ⟨¯1⟩
+}
 FractionDigits ← {𝕊 text:
   positions ← ('.'=text)/↕≠text
   (1=≠positions) ◶ ⟨{𝕩⋄0}, {𝕩⋄((≠text)-1)-⊑positions}⟩ text
@@ -41,16 +52,19 @@ ValidateExtracted ← {𝕊 request:
   diagnostics ← empty
   diagnostics ∾↩ AddIf ⟨¬dates.IsValidDateText request.date, Diagnostic ⟨"date_invalid", "date", "date must be a valid YYYY-MM-DD calendar date"⟩⟩
   diagnostics ∾↩ AddIf ⟨¬IsSafeText request.memo, Diagnostic ⟨"memo_invalid", "memo", "memo must be nonempty and TSV-field safe"⟩⟩
-  diagnostics ∾↩ AccountDiagnostics ⟨request.source_account, "source_account", "JPY"⟩
-  diagnostics ∾↩ AccountDiagnostics ⟨request.target_account, "target_account", "ILS"⟩
+  directionOk ← DirectionSupported ⟨request.source_currency, request.target_currency⟩
+  sourcePrecision ← PrecisionFor request.source_currency
+  targetPrecision ← PrecisionFor request.target_currency
+  diagnostics ∾↩ AccountDiagnostics ⟨request.source_account, "source_account", request.source_currency⟩
+  diagnostics ∾↩ AccountDiagnostics ⟨request.target_account, "target_account", request.target_currency⟩
   diagnostics ∾↩ AddIf ⟨request.source_account.name≡request.target_account.name, Diagnostic ⟨"accounts_same", "accounts", "source and target accounts must differ"⟩⟩
-  diagnostics ∾↩ AddIf ⟨request.source_currency≢"JPY", Diagnostic ⟨"source_currency_invalid", "source_currency", "source currency must be JPY"⟩⟩
-  diagnostics ∾↩ AddIf ⟨request.target_currency≢"ILS", Diagnostic ⟨"target_currency_invalid", "target_currency", "target currency must be ILS"⟩⟩
-  diagnostics ∾↩ AddIf ⟨request.source_currency≡request.target_currency, Diagnostic ⟨"currencies_same", "currencies", "source and target currencies must differ"⟩⟩
+  diagnostics ∾↩ AddIf ⟨¬CurrencySupported request.source_currency, Diagnostic ⟨"source_currency_invalid", "source_currency", "source currency must be JPY or ILS"⟩⟩
+  diagnostics ∾↩ AddIf ⟨¬CurrencySupported request.target_currency, Diagnostic ⟨"target_currency_invalid", "target_currency", "target currency must be JPY or ILS"⟩⟩
+  diagnostics ∾↩ AddIf ⟨¬directionOk, Diagnostic ⟨"exchange_direction_invalid", "currencies", "exchange direction must be JPY-to-ILS or ILS-to-JPY"⟩⟩
   diagnostics ∾↩ AddIf ⟨¬IsPositive sourceParsed, Diagnostic ⟨"source_amount_invalid", "source_amount", "source amount must be a positive exact decimal"⟩⟩
-  diagnostics ∾↩ AddIf ⟨0<FractionDigits request.source_amount, Diagnostic ⟨"source_amount_precision_invalid", "source_amount", "JPY source amount must have zero fractional digits"⟩⟩
+  diagnostics ∾↩ AddIf ⟨directionOk ∧ sourcePrecision<FractionDigits request.source_amount, Diagnostic ⟨"source_amount_precision_invalid", "source_amount", "source amount exceeds its explicit currency precision"⟩⟩
   diagnostics ∾↩ AddIf ⟨¬IsPositive targetParsed, Diagnostic ⟨"target_amount_invalid", "target_amount", "target amount must be a positive exact decimal"⟩⟩
-  diagnostics ∾↩ AddIf ⟨2<FractionDigits request.target_amount, Diagnostic ⟨"target_amount_precision_invalid", "target_amount", "ILS target amount must have at most two fractional digits"⟩⟩
+  diagnostics ∾↩ AddIf ⟨directionOk ∧ targetPrecision<FractionDigits request.target_amount, Diagnostic ⟨"target_amount_precision_invalid", "target_amount", "target amount exceeds its explicit currency precision"⟩⟩
   diagnostics ∾↩ AddIf ⟨¬IsSafeText request.exchange_id, Diagnostic ⟨"exchange_id_invalid", "exchange_id", "exchange id must be nonempty and TSV-field safe"⟩⟩
   unsafeExisting ← ∨´0∾(¬IsSafeText¨request.existing_exchange_ids)
   diagnostics ∾↩ AddIf ⟨unsafeExisting, Diagnostic ⟨"existing_exchange_id_invalid", "existing_exchange_ids", "existing exchange ids must be nonempty and TSV-field safe"⟩⟩

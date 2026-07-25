@@ -81,7 +81,7 @@ Exit: keep current while this remains the pit code/data-flow entry point
 - `source_currency_admission.bqn` — supplied account lines と posting snapshot のみを検査する pure source-currency admission owner。closed strict/compatibility policy、privacy-safe diagnostics、no-partial-admission を持ち、I/Oなし・public runtime未配線。
 - `friend_travel_jpy_finalization.bqn` — pending friend-travel source-event descriptor、明示 finalization date / JPY amount、既存account descriptor、既存finalization IDだけを入力にするpure validator。成功時は既存JPY liability → JPY expenseのcanonical previewを正確に1行返し、失敗時はprivacy-safe diagnosticsと0行を返す。I/O、status/index mutation、writer、public runtime配線は持たない。
 - `friend_travel_source_event.bqn` — Israel用friend-paid pending source eventの固定9列、ILS精度、固定payer/trip/status、既存全行検査、ID一意性、exact preview rowを所有するpure validator。I/Oとfinalizationを持たない。
-- `travel_exchange_event.bqn` — Israel用JPY→ILS exchangeの2観測amount、既存account descriptor、ID一意性を検査しstructured previewを返すpure owner。I/O、rate、journal row、valuationを持たない。
+- `travel_exchange_event.bqn` — Israel用JPY↔ILS bidirectional exchangeの2観測amount、明示source/target currencyごとのprecision、既存account descriptor、ID一意性を検査しstructured previewを返すpure owner。I/O、rate、journal row、valuation、account-name inferenceを持たない。
 - `actual_source.bqn` — configured native Journal resolver、date/completion evidence、transaction loadの共有owner。cycle date/income-date evidenceはcomplete-source admissionを優先する。declaration-only Journalは通貨共通の正常なempty Actualとしてadmitされる。Actual source file fallbackはない。
 - `loader.bqn` — source ファイル読み込み (`•FChars` 使用)。
 - `cube.bqn` — Canonical Daily Cube (`Day × Account × Layer`) の構築。

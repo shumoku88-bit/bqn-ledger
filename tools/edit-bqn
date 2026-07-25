@@ -57,7 +57,7 @@ Usage:
   tools/edit-bqn [--base DIR] plan edit [--index NUMBER] [--id PLAN_ID] [--date YYYY-MM-DD] [--amount DECIMAL] [--all] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] journal reverse [--index NUMBER] [--id TXN_ID] [--date YYYY-MM-DD] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] travel friend add --date YYYY-MM-DD --party PARTY --item ITEM --amount DECIMAL --currency ILS --payer friend --trip-id israel-2026 --source-event-id ID [--dry-run] [--yes]
-  tools/edit-bqn [--base DIR] travel exchange add --date YYYY-MM-DD --memo MEMO --source-account ACCOUNT --source-amount INT --source-currency JPY --target-account ACCOUNT --target-amount DECIMAL --target-currency ILS --exchange-id ID --trip-id israel-2026 [--dry-run] [--yes]
+  tools/edit-bqn [--base DIR] travel exchange add --date YYYY-MM-DD --memo MEMO --source-account ACCOUNT --source-amount AMOUNT --source-currency JPY|ILS --target-account ACCOUNT --target-amount AMOUNT --target-currency ILS|JPY --exchange-id ID --trip-id israel-2026 [--dry-run] [--yes]
 
 Current scope: BQN editor daily commands (account add/list, journal add/multi-add, budget/plan/issue add, explicit-path journal-block add, travel friend/exchange add, issue list/close, journal list/cleanup-plan/cleanup-apply/reverse, and plan list/related/finish/edit).
 USAGE
