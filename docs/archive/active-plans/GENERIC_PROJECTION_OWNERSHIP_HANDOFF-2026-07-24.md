@@ -1,15 +1,13 @@
 # Generic projection ownership handoff — 2026-07-24
 
-Status: paused handoff / Draft PR in review
+Status: historical checkpoint / PR #354 merged
 Owner: architecture / projection / workflow
-Canonical: no; current route remains `TODO.md`
-Exit: replace this checkpoint after PR #354 is merged, closed, or materially revised
+Canonical: no
+Exit: keep as historical evidence or delete when no longer useful
 
 ## Purpose
 
-This document records the exact stopping point after the docs-only Generic projection ownership inventory so another session or contributor can resume without reconstructing the conversation.
-
-No runtime implementation is authorized by this handoff.
+This document preserves the stopping point before PR #354 was merged. The resume sequence, selection language, and authorization language below are historical workflow evidence and do not direct current work.
 
 ## Repository checkpoint
 

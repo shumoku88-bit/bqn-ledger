@@ -1,11 +1,13 @@
 # Purpose-Specific Projection Composition Direction
 
-Status: accepted architectural direction / docs-only / no runtime authorization
+Status: architectural reference / open to revision
 Owner: architecture / projection
 Canonical: no; complements `docs/CANONICAL_DAILY_CUBE.md` and `GENERIC_PROJECTION_AND_VALUATION_FOUNDATION_DESIGN_INTAKE-2026-07-24.md`
-Exit: replace with separately selected finite characterization and implementation plans, or archive if evidence rejects the direction
+Exit: revise, replace, or delete when experiments provide better evidence
 
 Date: 2026-07-25
+
+> This document records one promising architectural direction. It may guide, inspire, or be contradicted by reversible experiments. It does not grant or withhold permission for current work.
 
 ## 1. Decision
 
@@ -27,7 +29,7 @@ human-readable source evidence
   -> consumer-specific validation and presentation
 ```
 
-No runtime refactor is authorized by this document. `TODO.md` remains the gate for every finite slice.
+This direction is evidence to explore rather than a permission boundary. Small experiments may test, refine, combine, or reject it.
 
 ## 2. Source truth, facts, and views
 
@@ -163,7 +165,7 @@ selected admissible fact partition
   + canonical validation
 ```
 
-The current consumer-visible contract remains unchanged until a separately approved equivalence and migration sequence proves otherwise.
+The current consumer-visible contract remains unchanged until an equivalence and migration sequence demonstrates a coherent replacement.
 
 ### 5.2 Selected-domain balances
 
@@ -171,7 +173,7 @@ A selected-domain balance view is another purpose-specific composition. It shoul
 
 ### 5.3 Possible future views
 
-None are selected automatically, but examples include:
+Examples include:
 
 ```text
 Month × Account × Layer movement
@@ -182,11 +184,11 @@ Event × Account sparse matrix
 Commodity-separated account balance view
 ```
 
-Each view must state its partition, axes, measure, aggregation, validation, and materialization policy.
+Each view should state its partition, axes, measure, aggregation, validation, and materialization policy.
 
 ## 6. Safety and semantic invariants
 
-Any future projection composition must preserve these invariants:
+Experiments in this area should preserve these invariants or explain clearly why an alternative is better:
 
 - rejected facts never enter ordinary numeric output;
 - exact amount evidence remains exact;
@@ -206,11 +208,11 @@ A book need not be a separate copy of source data.
 
 A future multi-book design may treat a book as a named projection policy over shared evidence, for example by selecting an economic entity, ownership boundary, arithmetic domain, time policy, and consumer-specific coordinates.
 
-This direction must not assume in advance that every book can share all facts or that all ownership semantics are already represented. Economic entity and ownership require separate characterization before implementation.
+This direction should not assume in advance that every book can share all facts or that all ownership semantics are already represented. Economic entity and ownership need observation before implementation.
 
-## 8. Non-goals
+## 8. Ideas not implied by this direction
 
-This direction does not authorize:
+Purpose-specific projection composition does not require:
 
 - one giant universal cube;
 - automatic addition of every field as a dimension;
@@ -227,11 +229,13 @@ This direction does not authorize:
 - broad report rewrites;
 - private production-data experiments.
 
-## 9. Migration posture
+These remain separate questions rather than forbidden ideas.
+
+## 9. Possible evidence-first sequence
 
 The existing Canonical Daily Cube and current reports remain operational.
 
-The safe migration sequence is evidence-first:
+One useful sequence for learning is:
 
 1. inventory current owners of facts, axes, measures, grouping, dense materialization, validation, diagnostics, provenance, TBDS overlap, and consumers;
 2. characterize one exact sparse grouping primitive with public synthetic facts;
@@ -239,10 +243,10 @@ The safe migration sequence is evidence-first:
 4. prove one genuinely independent second consumer;
 5. choose whether to adopt only the primitive, adopt a small projection kernel, or reject the abstraction.
 
+Other reversible sequences are welcome when they provide clearer evidence.
+
 The purpose is not maximum abstraction. The purpose is the smallest reusable projection algebra that can reproduce the current cube and support genuinely different views without erasing accounting meaning.
 
-## 10. Immediate routing consequence
+## 10. Possible next evidence
 
-This document records architectural intent only.
-
-The first eligible finite slice remains a docs-only ownership inventory. It should inspect the current implementation without assuming that extraction is already justified and without changing `cube.bqn`, TBDS, reports, source formats, or runtime routing.
+A small next experiment could inspect the current implementation or characterize exact sparse grouping with public synthetic facts. It may change course when a more useful report question, representation, or implementation idea appears.

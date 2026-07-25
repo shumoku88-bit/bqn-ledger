@@ -1,9 +1,11 @@
 # Document Governance: OKF, BQN Audit, and Archive Separation — 2026-07-25
 
-Status: decision intake / blocked until Israel ILS cash lifecycle plan review
+Status: reference / historical option analysis
 Owner: docs / workflow
-Canonical: yes for the three-option document-governance decision
-Exit: replace with one selected pilot plan, or archive after the options are explicitly combined, rejected, or deferred
+Canonical: no
+Exit: keep as historical evidence or delete when no longer useful
+
+> Reference note: This file preserves a past option analysis. Its sequencing, selected-slice, authorization, and non-goal language describe that proposal only. It does not grant or withhold permission for current work.
 
 ## Question
 
