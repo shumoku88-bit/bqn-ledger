@@ -53,8 +53,12 @@ FindTransactionRanges ← {𝕊 lines:
   ranges ← empty
   {𝕊 i:
     startIndex ← i ⊑ starts
-    endExclusive ← ≠ lines
-    {𝕊: endExclusive ↩ (i + 1) ⊑ starts}⍟(i + 1 < ≠ starts) @
+    candidateEnd ← ≠ lines
+    {𝕊: candidateEnd ↩ (i + 1) ⊑ starts}⍟(i + 1 < ≠ starts) @
+    segmentLength ← candidateEnd - startIndex
+    segment ← segmentLength ↑ startIndex ↓ lines
+    nonemptyOffsets ← ({0 < ≠ Trim 𝕩}¨ segment) / ↕ ≠ segment
+    endExclusive ← startIndex + 1 + ⊑⌽nonemptyOffsets
     ranges ∾↩ ⟨{start_index⇐startIndex, end_exclusive⇐endExclusive}⟩
   }¨ ↕ ≠ starts
   ranges
