@@ -101,13 +101,18 @@ ResolveTransactionDomain ← {𝕊 lines‿range‿declaredDomainBoxes:
   candidateMask ← indented ∧ (0 < ≠¨ trimmedLines) ∧ (¬ metadata)
   candidateLines ← candidateMask / trimmedLines
   candidateLineNumbers ← candidateMask / blockLineNumbers
-  fields ← {space util.Split 𝕩}¨ candidateLines
-  validMask ← 3 = ≠¨ fields
-  badLineNumbers ← (¬ validMask) / candidateLineNumbers
-  validFields ← validMask / fields
-  postingDomainBoxes ← {< 2 ⊑ 𝕩}¨ validFields
 
-  diagnostics ← {Diagnostic ⟨"posting_shape_invalid", 𝕩, "posting must contain account, explicit amount, and commodity"⟩}¨ badLineNumbers
+  diagnostics ← empty
+  postingDomainBoxes ← empty
+  {𝕊:
+    fields ← {space util.Split 𝕩}¨ candidateLines
+    validMask ← 3 = ≠¨ fields
+    badLineNumbers ← (¬ validMask) / candidateLineNumbers
+    validFields ← validMask / fields
+    diagnostics ∾↩ {Diagnostic ⟨"posting_shape_invalid", 𝕩, "posting must contain account, explicit amount, and commodity"⟩}¨ badLineNumbers
+    postingDomainBoxes ↩ {< 2 ⊑ 𝕩}¨ validFields
+  }⍟(0 < ≠ candidateLines) @
+
   domain ← ""
   diagnostics ∾↩ AddIf ⟨0 = ≠ candidateLines, Diagnostic ⟨"posting_missing", range.start_index + 1, "ordinary transaction must contain postings"⟩⟩
 
