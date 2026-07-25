@@ -574,7 +574,7 @@ case "$mode" in
     capture_or_cancel meta choose_meta
     while true; do
       capture_or_cancel posting_account select_account '' 'posting account'
-      capture_or_cancel posting_amount read_tty 'Signed amount (+ increase / - decrease)' ''
+      capture_or_cancel posting_amount read_tty 'Amount (500 or -500)' ''
       if [[ -z "$posting_account" || -z "$posting_amount" ]]; then
         shout 'Cancelled or missing posting value.'
         exit 1

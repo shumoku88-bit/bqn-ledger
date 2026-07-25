@@ -127,6 +127,12 @@ if grep -Fq $'multi\t複数ポスティング (native Journal)' tools/add-ui.sh 
 else
   fail "add-ui multi-posting route missing"
 fi
+if grep -Fq "read_tty 'Amount (500 or -500)'" tools/add-ui.sh && \
+   ! grep -Fq 'Signed amount (+ increase / - decrease)' tools/add-ui.sh; then
+  pass "add-ui multi-posting amount prompt stays within gum input width"
+else
+  fail "add-ui multi-posting amount prompt may trigger narrow gum input panic"
+fi
 
 bad_out="$(mktemp)"
 bad_err="$(mktemp)"
