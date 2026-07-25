@@ -46,7 +46,7 @@ assert_no_backups "$dry" dry-run
 
 # Explicit user metadata preservation case
 exp_base=$(new_base explicit-meta); exp_out="$tmp_root/explicit-meta.out"
-exp_args=(journal-block add --journal-file source.journal --date 2026-07-22 --description explicit-metadata --event-id explicit-metadata-001 --posting expenses:food:daily=1 --posting assets:cash=-1 --meta currency=JPY --meta note=explicit --dry-run)
+exp_args=(journal-block add --journal-file source.journal --date 2026-07-22 --description explicit-metadata --event-id explicit-metadata-001 --posting expenses:food:daily=1 --posting assets:cash=-1 --meta currency=JPY --meta note=explicit --meta trip_id=trip-synthetic-2026 --meta payment=card --dry-run)
 run_ok "$exp_base" "$exp_out" "${exp_args[@]}"
 cat >"$tmp_root/explicit-meta.expected" <<EOF
 Native Journal block append preview
@@ -58,6 +58,8 @@ Candidate block:
     ; event-id: explicit-metadata-001
     ; currency: JPY
     ; note: explicit
+    ; trip-id: trip-synthetic-2026
+    ; payment: card
     expenses:food:daily    1 JPY
     assets:cash    -1 JPY
 Dry-run only. No files were modified.
@@ -191,6 +193,7 @@ run_semantic_case empty-event noop_setup "${common_prefix[@]}" --date 2026-07-22
 run_semantic_case invalid-identity noop_setup "${common_prefix[@]}" --identity invalid --date 2026-07-22 --description x --event-id new-id --posting expenses:food:daily=1 --posting assets:cash=-1
 run_semantic_case ordinary-event noop_setup "${common_prefix[@]}" --identity ordinary --date 2026-07-22 --description x --event-id new-id --posting expenses:food:daily=1 --posting assets:cash=-1
 run_semantic_case ordinary-plan-link noop_setup "${common_prefix[@]}" --identity ordinary --date 2026-07-22 --description x --posting expenses:food:daily=1 --posting assets:cash=-1 --meta plan_id=plan-x
+run_semantic_case invalid-payment noop_setup "${common_prefix[@]}" --identity ordinary --date 2026-07-22 --description x --posting expenses:food:daily=1 --posting assets:cash=-1 --meta trip_id=trip-synthetic-2026 --meta payment=transfer
 run_semantic_case unsafe-event noop_setup "${common_prefix[@]}" --date 2026-07-22 --description x --event-id $'bad\rid' --posting expenses:food:daily=1 --posting assets:cash=-1
 run_semantic_case duplicate-event noop_setup "${common_prefix[@]}" --date 2026-07-22 --description x --event-id opening-20260701-001 --posting expenses:food:daily=1 --posting assets:cash=-1
 run_semantic_case one-posting noop_setup "${common_prefix[@]}" --date 2026-07-22 --description x --event-id new-id --posting assets:cash=-1
@@ -217,6 +220,7 @@ grep -Fq 'ERROR: --event-id must not be supplied for ordinary Journal actuals' "
 grep -Fq 'ERROR: missing required option: --event-id' "$tmp_root/missing-event.out"
 grep -Fq 'ERROR: missing required option: --event-id' "$tmp_root/empty-event.out"
 grep -Fq $'ERROR\tordinary_plan_link_invalid' "$tmp_root/ordinary-plan-link.out"
+grep -Fq $'ERROR\tmetadata_payment_invalid' "$tmp_root/invalid-payment.out"
 
 # Cancellation has no backup or write.
 cancel=$(new_base cancel); before=$(sha_file "$cancel/source.journal")

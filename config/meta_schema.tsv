@@ -24,6 +24,8 @@ receipt	string
 txn_id	string	
 party	string	
 plan_id	string	
+trip_id	string	
+payment	enum	cash|card|debit
 cashflow	enum	fixed_obligation
 currency	enum	JPY|ILS	
 

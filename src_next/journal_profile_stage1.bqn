@@ -19,8 +19,8 @@ supportedMetadata ← ⟨
   <"action", <"receipt-id", <"event-id", <"layer", <"plan-id",
   <"execution-envelope", <"allocation-id", <"agreement-id",
   <"actual-event-id", <"tax", <"biz", <"invoice", <"note", <"due-on",
-  <"receipt", <"txn-id", <"party", <"cashflow", <"currency",
-  <"income-budget", <"recur", <"series"
+  <"receipt", <"txn-id", <"party", <"trip-id", <"payment",
+  <"cashflow", <"currency", <"income-budget", <"recur", <"series"
 ⟩
 supportedAccountMetadata ← ⟨<"role", <"kind", <"default-envelope"⟩
 supportedLayers ← ⟨<"actual", <"plan", <"budget"⟩
@@ -57,6 +57,7 @@ LegacyMetadataValueValid ← {𝕊 key‿value:
   isBiz ← key ≡ "biz"
   isInvoice ← key ≡ "invoice"
   isDueOn ← key ≡ "due-on"
+  isPayment ← key ≡ "payment"
   isCashflow ← key ≡ "cashflow"
   isCurrency ← key ≡ "currency"
   isIncomeBudget ← key ≡ "income-budget"
@@ -64,6 +65,7 @@ LegacyMetadataValueValid ← {𝕊 key‿value:
   bizOk ← IsOneOf ⟨value, ⟨<"0", <"1"⟩⟩
   invoiceOk ← IsOneOf ⟨value, ⟨<"none", <"ok"⟩⟩
   dueOnOk ← dates.IsValidDateText value
+  paymentOk ← IsOneOf ⟨value, ⟨<"cash", <"card", <"debit"⟩⟩
   cashflowOk ← value ≡ "fixed_obligation"
   currencyOk ← value ≡ "JPY"
   incomeBudgetOk ← IsOneOf ⟨value, ⟨<"unassigned", <"exclude"⟩⟩
@@ -72,6 +74,7 @@ LegacyMetadataValueValid ← {𝕊 key‿value:
   ok ↩ ok ∧ ((¬isBiz) ∨ bizOk)
   ok ↩ ok ∧ ((¬isInvoice) ∨ invoiceOk)
   ok ↩ ok ∧ ((¬isDueOn) ∨ dueOnOk)
+  ok ↩ ok ∧ ((¬isPayment) ∨ paymentOk)
   ok ↩ ok ∧ ((¬isCashflow) ∨ cashflowOk)
   ok ↩ ok ∧ ((¬isCurrency) ∨ currencyOk)
   ok ↩ ok ∧ ((¬isIncomeBudget) ∨ incomeBudgetOk)
