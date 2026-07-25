@@ -2,6 +2,7 @@
 # Pure test-only proof boundary. Production Journal routes do not import this module.
 
 util ← •Import "util.bqn"
+decimal ← •Import "exact_decimal.bqn"
 dates ← •Import "date.bqn"
 setup ← •Import "currency_setup.bqn"
 
@@ -52,7 +53,7 @@ ResolveDomain ← {𝕊 lines:
 
 Collect ← {𝕊 lines:
   diagnostics ← empty
-  fieldCounts ← empty
+  parsedScales ← empty
   {𝕊 lineIndex:
     original ← lineIndex ⊑ lines
     trimmed ← Trim original
@@ -61,11 +62,19 @@ Collect ← {𝕊 lines:
     candidate ← indented ∧ (0 < ≠ trimmed) ∧ (¬ metadata)
     {𝕊:
       fields ← space util.Split trimmed
-      fieldCounts ∾↩ ⟨≠ fields⟩
-      diagnostics ∾↩ AddIf ⟨3 ≠ ≠ fields, Diagnostic ⟨"posting_shape_invalid", lineIndex + 1, "posting must contain three fields"⟩⟩
+      valid ← 3 = ≠ fields
+      diagnostics ∾↩ AddIf ⟨¬ valid, Diagnostic ⟨"posting_shape_invalid", lineIndex + 1, "posting must contain three fields"⟩⟩
+      {𝕊:
+        amountText ← 1 ⊑ fields
+        negative ← '-' = ⊑ (amountText ∾ "0")
+        unsigned ← negative ↓ amountText
+        parsed ← decimal.Parse unsigned
+        diagnostics ∾↩ AddIf ⟨parsed.state ≢ "ok", Diagnostic ⟨"posting_amount_invalid", lineIndex + 1, "posting amount must be an explicit exact decimal"⟩⟩
+        {𝕊: parsedScales ∾↩ ⟨parsed.scale⟩}⍟(parsed.state ≡ "ok") @
+      }⍟valid @
     }⍟candidate @
   }¨ ↕ ≠ lines
-  {diagnostics⇐diagnostics, field_counts⇐fieldCounts}
+  {diagnostics⇐diagnostics, parsed_scales⇐parsedScales}
 }
 
 Admit ← {𝕊 raw‿resolved:
