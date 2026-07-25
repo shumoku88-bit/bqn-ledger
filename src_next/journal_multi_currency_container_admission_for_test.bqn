@@ -199,7 +199,10 @@ RemapTransaction ← {𝕊 transaction‿lineMap‿range‿containerIndex:
 }
 
 Admit ← {𝕊 raw‿resolved:
-  lines ← lf util.SplitKeepEmpty ((cr ≠ raw) / raw)
+  normalizedRaw ← (cr ≠ raw) / raw
+  hasTerminalLf ← (0 < ≠ normalizedRaw) ∧ (lf = ⊑⌽normalizedRaw)
+  {𝕊: normalizedRaw ↩ ¯1 ↓ normalizedRaw}⍟hasTerminalLf @
+  lines ← lf util.SplitKeepEmpty normalizedRaw
   ranges ← FindTransactionRanges lines
   declarations ← ResolveDeclarations lines
   diagnostics ← declarations.diagnostics
