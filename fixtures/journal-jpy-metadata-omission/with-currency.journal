@@ -1,0 +1,14 @@
+commodity JPY
+
+account assets:bank
+    ; role: asset
+
+account expenses:food
+    ; role: expense
+
+2026-07-23 * Plan completion example
+    ; event-id: completion-plan-example-2026-07-23
+    ; plan-id: plan-example
+    ; currency: JPY
+    expenses:food 1200 JPY
+    assets:bank -1200 JPY
