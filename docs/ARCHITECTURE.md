@@ -48,6 +48,9 @@ Updated: 2026-07-26
 4. **purpose-specific viewの独立性**
    - Cube、TBDS、direct sparse consumerを一つの万能resultへ潰さない。
    - 共有するのは、意味を失わないchecked facts、明示partition、exact groupingなど、複数の実consumerが証明した小さな材料に限る。
+5. **flat stage flowとfirst-failure ownership**
+   - 長いcompositionは、意味のあるstage名で一方向に読める形を優先する。
+   - ただし一般的なpipeline frameworkへ先走らず、各stageのfailure code、diagnostics、no-partial-result契約を保つ。
 
 ## 二大目的
 
@@ -170,6 +173,24 @@ checked selected-domain posting facts
              └─ src_next/report.bqn ────── 人間向けレポート入口
                   src_next/summary.bqn ──── 機械向けコンパクト出力
 ```
+
+### Selected-domain composition stages
+
+`selected_domain_context.BuildFromPrepared`は、次の順序を持つflatなcompositionです。
+
+```text
+selected-currency policy
+  -> complete Actual admission
+  -> Actual currency-proof carriage
+  -> selected non-Actual evidence/projection preparation
+  -> combined context-scale selection
+  -> exact Actual/non-Actual normalization
+  -> Cube/TBDS period views
+```
+
+各stageは前段が成功した場合だけ実行されます。policy failureの後にsourceを検査したり、Actual admission failureの後にplan/budgetを処理したりしません。失敗時はそのstageのcodeとdiagnosticsを保持し、`posting_rows`と`actual_transactions`を空にして部分contextを返しません。
+
+`PrepareNonActualRows`はplan/budgetのsource-evidence validation、selected-domain arithmetic proof、checked Posting IR projectionを所有します。`NormalizeSelectedRows`はActualとnon-Actualの二つのadmitted row集合を一つのcontext-local exact scaleへそろえることだけを所有します。これらはmodule内部のsemantic stageであり、generic pipeline frameworkや新しいpublic APIではありません。
 
 `selected_domain_context.bqn` は complete-source admission と Stage 2A `currency_proof_rows` を再利用し、呼び出し側が明示したregistry-supportedな1通貨だけをcontext-local exact scaleへ射影する。JPY・ILS・USDはすべてこの同じ境界を通り、通貨literalによるcontext分岐は持たない。plan / budgetも同じ通貨をsource metadataとaccount currencyで証明し、証明失敗時は部分contextを返さない。declaration-only Journalや選択通貨Actualが0件のときも、validな選択plan / budgetからcontextを構成し、全source layerが空なら正常なempty contextを返す。これはCurrency axisや一般的な多通貨Cubeではなく、各呼び出しで1通貨だけを既存 `Day × Account × Layer` viewまたは同domainのpurpose-specific consumerへ渡す境界である。
 
