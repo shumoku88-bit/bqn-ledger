@@ -37,18 +37,32 @@ Last hygiene pass: 2026-07-25
 
 ## Active work
 
-**No finite implementation slice is currently selected.**
+### Stage 2A currency-proof carrier
 
-Completed current finite work:
+Status: selected finite production carrier implementation.
 
-- `docs/archive/active-plans/MULTI_CURRENCY_JOURNAL_CONTAINER_CONTRACT-2026-07-25.md`
-- `src_next/journal_supported_single_currency_admission.bqn`
+Canonical evidence:
+
 - `src_next/journal_complete_source_admission.bqn`
 - `tests/test_journal_complete_source_admission.bqn`
+- `src_next/journal_posting_ir_stage2a.bqn`
+- `tests/test_journal_posting_ir_adapter_stage2a.bqn`
+- `docs/POSTING_IR_CONTRACT.md`
+- `docs/archive/active-plans/MULTI_CURRENCY_JOURNAL_CONTAINER_CONTRACT-2026-07-25.md`
 
-The production complete-source owner admits separate balanced JPY and ILS ordinary transactions from one public-synthetic Journal and proves the same registry-driven boundary with USD. Each transaction retains its own currency domain, calculation scale, exact normalized coefficients, account-currency proof, identity, metadata, and original source-line provenance. Mixed-domain transactions, unsupported or undeclared commodities, precision overflow, account-currency mismatch, malformed postings, missing transactions, zero amounts, unbalanced coefficients, and duplicate durable event identities fail closed. Any source error suppresses all partially admitted transactions.
+Selected implementation boundary:
 
-This completion does not wire the new admission result into `actual_source`, Stage 2A, context, Cube, TBDS, reports, balances, writer/editor routes, source data, accounts, metadata widening, exchange semantics, FX, valuation, or travel features. Existing `strict_self_contained` and `historical_external_plan` profile behavior remains unchanged.
+- add an explicitly named Stage 2A currency-proof carrier that consumes admitted complete-source transactions and resolved account evidence;
+- preserve the existing `journal_posting_ir_stage2a.bqn` module and its current 16-field `delta` row contract unchanged;
+- emit a separate row shape carrying source identity and provenance, transaction domain, calculation scale, account currency, commodity, source amount text, source coefficient, source scale, and normalized coefficient;
+- do not emit an untyped money `delta` from multi-currency evidence and do not present normalized coefficients as one Journal-wide arithmetic vector;
+- preserve transaction order and posting order while retaining source start/end lines and posting source lines;
+- validate registry-supported domains, transaction/posting domain equality, resolved account-currency equality, normalization consistency, posting identity, and per-transaction normalized balance;
+- fail closed for the complete carrier result and return no partially admitted rows when any transaction or posting proof is invalid;
+- prove separate JPY and ILS rows from one source plus USD as a second registry-driven witness;
+- perform no I/O and remain disconnected from `actual_source`, context, Cube, TBDS, reports, balances, writers, editors, and private data.
+
+This slice must not change Stage 1 admission, the existing Stage 2A adapter, current Posting IR consumers, context composition, a Currency axis, FX, valuation, exchange semantics, metadata admission, or travel routes.
 
 The latest AI working feedback remains evidence only and does not authorize additional work.
 
@@ -58,7 +72,7 @@ The latest AI working feedback remains evidence only and does not authorize addi
 
 ### Multi-currency native Journal container continuation
 
-Status: contract, test-only container proof, and production complete-source admission complete / all later continuation slices independently unselected.
+Status: contract, test-only container proof, and production complete-source admission complete / candidate 1 selected / all later continuation slices independently unselected.
 
 Current evidence and contract:
 
@@ -74,13 +88,13 @@ Current evidence and contract:
 
 Recommended candidate order:
 
-1. **Stage 2A currency-proof carrier decision and implementation** — retain posting domain, calculation scale, normalized coefficient, source amount evidence, account-currency proof, and provenance without changing current consumers automatically.
+1. **Stage 2A currency-proof carrier decision and implementation** — selected above; retain posting domain, calculation scale, normalized coefficient, source amount evidence, account-currency proof, and provenance without changing current consumers automatically.
 2. **Selected-domain context composition** — compose Actual + plan + budget for exactly one selected currency at a time or explicitly separate partitions; do not add a Currency axis automatically.
 3. **Native ordinary-add writer widening** — accept one explicit supported transaction currency while preserving existing JPY behavior.
 4. **Per-domain consumer and formatting verification** — selected balances and immediate consumers never produce combined multi-currency totals.
 5. **Explicit exchange-in-Journal design** — independently decide whether a typed cross-currency exchange transaction should join the current separate exchange event rail.
 
-Candidate 1 is the first candidate only. It remains unselected and must not be implemented automatically. Actual-source routing, context, writer, reports, FX, valuation, exchange, and travel work all remain unselected.
+Candidate 1 is selected above. Actual-source routing, context, writer, reports, FX, valuation, exchange, and travel work remain unselected.
 
 Selection rules:
 
