@@ -108,6 +108,7 @@ BuildForSource ← {𝕊 transactions‿resolved‿cycleStart‿sourceFile:
       postingDiagnostics ∾↩ AddIf ⟨0 = ≠ posting.posting_id, Diagnostic ⟨"posting_id_missing", transactionIndex, postingIndex, "posting identity must be present"⟩⟩
       postingDiagnostics ∾↩ AddIf ⟨posting.posting_index ≠ postingIndex, Diagnostic ⟨"posting_index_mismatch", transactionIndex, postingIndex, "posting index must match source order"⟩⟩
       postingDiagnostics ∾↩ AddIf ⟨posting.source_line ≤ 0, Diagnostic ⟨"posting_source_line_invalid", transactionIndex, postingIndex, "posting source line must be positive"⟩⟩
+      postingDiagnostics ∾↩ AddIf ⟨(posting.source_line < transaction.source_start_line) ∨ (transaction.source_end_line < posting.source_line), Diagnostic ⟨"posting_source_range_mismatch", transactionIndex, postingIndex, "posting source line must remain within its transaction source range"⟩⟩
       postingDiagnostics ∾↩ AddIf ⟨posting.commodity ≢ transaction.domain, Diagnostic ⟨"posting_domain_mismatch", transactionIndex, postingIndex, "posting commodity differs from transaction domain"⟩⟩
       postingDiagnostics ∾↩ AddIf ⟨posting.account_currency ≢ transaction.domain, Diagnostic ⟨"posting_account_currency_mismatch", transactionIndex, postingIndex, "posting account currency differs from transaction domain"⟩⟩
       postingDiagnostics ∾↩ AddIf ⟨lookup.count ≠ 1, Diagnostic ⟨"posting_account_unresolved", transactionIndex, postingIndex, "posting account must resolve exactly once"⟩⟩
@@ -159,7 +160,9 @@ BuildForSource ← {𝕊 transactions‿resolved‿cycleStart‿sourceFile:
 
   durable ← ({𝕩.identity_kind ≡ "durable"}¨ transactions) / transactions
   durableIds ← {<𝕩.source_event_id}¨ durable
+  postingIds ← ∾ { {<𝕩.posting_id}¨ 𝕩.postings }¨ transactions
   diagnostics ∾↩ AddIf ⟨(≠ durableIds) ≠ ≠ ⍷ durableIds, Diagnostic ⟨"event_id_duplicate", ¯1, ¯1, "durable source identities must be unique across the carrier input"⟩⟩
+  diagnostics ∾↩ AddIf ⟨(≠ postingIds) ≠ ≠ ⍷ postingIds, Diagnostic ⟨"posting_id_duplicate", ¯1, ¯1, "posting identities must be unique across the carrier input"⟩⟩
   {𝕊: rows ↩ empty}⍟(0 < ≠ diagnostics) @
 
   {
