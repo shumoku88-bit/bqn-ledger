@@ -60,15 +60,10 @@ FindTransactionRanges ← {𝕊 lines:
   ranges
 }
 
-ResolveDeclarations ← {𝕊 lines‿ranges:
+ResolveDeclarations ← {𝕊 lines:
   indexes ← (IsCommodityLine¨ lines) / ↕ ≠ lines
   diagnostics ← empty
   domainBoxes ← empty
-  firstTransaction ← ≠ lines
-  {𝕊:
-    firstRange ← ⊑ ranges
-    firstTransaction ↩ firstRange.start_index
-  }⍟(0 < ≠ ranges) @
 
   diagnostics ∾↩ AddIf ⟨0 = ≠ indexes, Diagnostic ⟨"commodity_declaration_missing", 0, "container Journal must declare at least one commodity domain"⟩⟩
 
@@ -77,7 +72,6 @@ ResolveDeclarations ← {𝕊 lines‿ranges:
     fields ← space util.Split Trim lineIndex ⊑ lines
     valid ← 2 = ≠ fields
     localDiagnostics ← empty
-    localDiagnostics ∾↩ AddIf ⟨lineIndex ≥ firstTransaction, Diagnostic ⟨"commodity_declaration_after_transaction", lineNumber, "commodity declarations must precede ordinary transactions"⟩⟩
     localDiagnostics ∾↩ AddIf ⟨¬ valid, Diagnostic ⟨"commodity_shape_invalid", lineNumber, "commodity declaration must contain exactly one code"⟩⟩
     {𝕊:
       domain ← 1 ⊑ fields
@@ -85,7 +79,7 @@ ResolveDeclarations ← {𝕊 lines‿ranges:
       duplicate ← ContainsBoxed ⟨domain, domainBoxes⟩
       localDiagnostics ∾↩ AddIf ⟨policy.state ≢ "ok", Diagnostic ⟨"commodity_unsupported", lineNumber, "commodity must be admitted by the repository currency registry"⟩⟩
       localDiagnostics ∾↩ AddIf ⟨duplicate, Diagnostic ⟨"commodity_declaration_duplicate", lineNumber, "commodity domain must be declared once"⟩⟩
-      {𝕊: domainBoxes ∾↩ ⟨<domain⟩}⍟((policy.state ≡ "ok") ∧ (¬ duplicate) ∧ (lineIndex < firstTransaction)) @
+      {𝕊: domainBoxes ∾↩ ⟨<domain⟩}⍟((policy.state ≡ "ok") ∧ (¬ duplicate)) @
     }⍟valid @
     diagnostics ∾↩ localDiagnostics
   }¨ indexes
@@ -203,7 +197,7 @@ RemapTransaction ← {𝕊 transaction‿lineMap‿range‿containerIndex:
 Admit ← {𝕊 raw‿resolved:
   lines ← lf util.SplitKeepEmpty ((cr ≠ raw) / raw)
   ranges ← FindTransactionRanges lines
-  declarations ← ResolveDeclarations ⟨lines, ranges⟩
+  declarations ← ResolveDeclarations lines
   diagnostics ← declarations.diagnostics
   transactions ← empty
 
