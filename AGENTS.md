@@ -19,6 +19,19 @@ Prefer changes that are understandable, reviewable, and reversible. Use tests, f
 
 Git preserves earlier versions. A reversible experiment is often more informative than a long permission process.
 
+## Finish the work
+
+Documentation cleanup is part of completing every task.
+
+Before finishing:
+
+- update descriptions that became stale because of the change;
+- remove or shorten completed plans, obsolete instructions, and finished TODO notes;
+- repair nearby links and examples when the work changes their meaning;
+- leave the repository easier to understand than it was at the start.
+
+Prefer deleting or summarizing stale material over adding another process document. Git history retains the longer story.
+
 ## Household data
 
 Canonical household data and private user data belong to the user. Work with them under explicit human direction and keep private details out of public commits, issues, fixtures, and reports.
