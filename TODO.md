@@ -36,21 +36,24 @@ Last hygiene pass: 2026-07-25
 
 ## Active work
 
-**No finite implementation slice is currently selected.**
+### Test-only multi-currency Journal container proof
 
-Completed current finite work:
+Status: selected finite test-only implementation.
+
+Canonical contract:
 
 - `docs/archive/active-plans/MULTI_CURRENCY_JOURNAL_CONTAINER_CONTRACT-2026-07-25.md`
 
-Recorded decision:
+Selected proof boundary:
 
-- one native Journal file may contain ordinary transactions from multiple registry-supported currencies;
-- every ordinary transaction has exactly one currency domain and balances within that domain;
-- no Journal-wide money total or arithmetic domain is implied;
-- an ordinary transaction containing more than one currency fails closed;
-- cross-currency exchange remains a separately typed rail until an explicit exchange-in-Journal contract is independently selected.
+- one public-synthetic raw Journal contains separate balanced JPY and ILS ordinary transactions;
+- every successful transaction retains its own currency domain and calculation scale;
+- an equivalent USD transaction proves that ILS is not a generic branch condition;
+- a mixed-domain ordinary transaction fails closed;
+- no Journal-wide money domain, scale, normalized total, FX, valuation, Currency axis, or reporting currency is created;
+- the merged single-currency test seam is reused where safe and production Journal routes remain unchanged.
 
-The completed contract does not authorize production parser, writer, Stage 2A, context, Cube, TBDS, reports, metadata, FX, valuation, source-data, account, or travel changes.
+This slice must not modify production parser, writer, Stage 2A, context, Cube, TBDS, reports, metadata, source data, accounts, exchange semantics, or travel routes.
 
 The latest AI working feedback remains evidence only and does not authorize additional work.
 
@@ -60,7 +63,7 @@ The latest AI working feedback remains evidence only and does not authorize addi
 
 ### Multi-currency native Journal container continuation
 
-Status: contract decision complete / all implementation continuation slices independently unselected.
+Status: contract decision complete / candidate 1 selected / all later continuation slices independently unselected.
 
 Current evidence and contract:
 
@@ -71,7 +74,7 @@ Current evidence and contract:
 
 Recommended candidate order:
 
-1. **Test-only multi-currency Journal container proof** — one public-synthetic raw Journal containing separate balanced JPY and ILS ordinary transactions, plus USD as a second generality witness; mixed-domain ordinary transactions fail closed.
+1. **Test-only multi-currency Journal container proof** — selected above; one public-synthetic raw Journal containing separate balanced JPY and ILS ordinary transactions, plus USD as a second generality witness; mixed-domain ordinary transactions fail closed.
 2. **Production complete-source admission implementation** — return transaction-domain and calculation-scale evidence without silently widening `historical_external_plan` or manufacturing one Journal-wide domain.
 3. **Stage 2A currency-proof carrier decision and implementation** — retain posting domain, scale, normalized coefficient, account-currency proof, and provenance.
 4. **Selected-domain context composition** — compose Actual + plan + budget for exactly one selected currency at a time or explicitly separate partitions; do not add a Currency axis automatically.
