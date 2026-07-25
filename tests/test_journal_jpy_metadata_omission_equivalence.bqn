@@ -62,6 +62,13 @@ withoutStage2a ← adapter.Build ⟨withoutParsed.transactions, resolved, "2026-
 "ok" lib.AssertEq withoutStage2a.state
 0 lib.AssertEq ≠ withStage2a.diagnostics
 0 lib.AssertEq ≠ withoutStage2a.diagnostics
-withStage2a.posting_rows lib.AssertEq withoutStage2a.posting_rows
+
+PostingFields ← {𝕊 row: ⟨
+  <row.source_file, <row.source_row, <row.source_id, <row.tx_id,
+  <row.posting_id, <row.date, <row.day_index, <row.account_key,
+  <row.account_key_index, <row.layer_name, <row.layer_index, <row.side,
+  <row.delta, <row.kind, <row.status, <row.message
+⟩}
+(PostingFields¨ withStage2a.posting_rows) lib.AssertEq PostingFields¨ withoutStage2a.posting_rows
 
 •Out "test_journal_jpy_metadata_omission_equivalence.bqn: OK"
