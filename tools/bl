@@ -88,7 +88,6 @@ print_header() {
 # Main menu items
 menu_list() {
   cat <<EOF
-report	Show full report
 section	Show report sections (fzf selector)
 add	Add or cancel transaction / plan
 check	Run check.sh

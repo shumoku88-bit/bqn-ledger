@@ -7,7 +7,6 @@ COMMAND HUB SURFACE
 
 BQN-Ledger Command Hub (demo:sanitized-public)
 
-  report   Show full report
   section  Show report sections (fzf selector)
   add      Add or cancel transaction / plan
   check    Run check.sh

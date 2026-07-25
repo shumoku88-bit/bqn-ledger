@@ -104,7 +104,6 @@ show_full_report() {
 
 section_list() {
   "$ROOT_DIR/tools/report-section-metadata" | awk -F'\t' 'NR > 1 { print $1 "\t" $2 }'
-  printf 'all\t全セクション\n'
   printf 'actions\t→ 仕訳追加・取消\n'
 }
 
