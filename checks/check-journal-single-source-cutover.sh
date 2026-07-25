@@ -66,12 +66,15 @@ grep -Fq $'OK\tNATIVE_JOURNAL_CANDIDATE\tordinary\t-' "$daily_out"
 [[ "$(tools/edit --base "$base" journal list --format tsv | wc -l | tr -d ' ')" -eq $((before_transaction_count + 1)) ]]
 
 daily_event_count="$after_event_count"
+daily_currency_count="$after_currency_count"
 tools/edit --base "$base" plan add --date 2026-08-20 --memo 'Journal-only plan completion' --from assets:cash --to expenses:rent --amount 40 --id plan-2026-08-20-journal-cutover --yes --post-check none
 plan_finish_out="$tmp/plan-finish.out"
 tools/edit --base "$base" plan finish --id plan-2026-08-20-journal-cutover --actual-date 2026-07-23 --apply --yes >"$plan_finish_out"
 [[ ! -e "$base/journal.tsv" ]]
 plan_event_count=$(grep -Fc '; event-id:' "$base/actual.journal" || true)
+plan_currency_count=$(grep -Fc '; currency: JPY' "$base/actual.journal" || true)
 [[ "$plan_event_count" -eq $((daily_event_count + 1)) ]]
+[[ "$plan_currency_count" -eq "$daily_currency_count" ]]
 grep -Fq '    ; event-id: completion-plan-2026-08-20-journal-cutover-2026-07-23' "$base/actual.journal"
 grep -Fq '    ; plan-id: plan-2026-08-20-journal-cutover' "$base/actual.journal"
 grep -Fq $'OK\tNATIVE_JOURNAL_CANDIDATE\tdurable\tcompletion-plan-2026-08-20-journal-cutover-2026-07-23' "$plan_finish_out"
@@ -79,4 +82,4 @@ tools/edit --base "$base" plan list --all --format tsv | grep -Fq $'plan-2026-08
 
 tools/report "$base" >"$report_out"
 [[ -s "$report_out" && ! -e "$base/journal.tsv" ]]
-echo 'OK: Journal-only report, daily add, list, and plan completion passed without journal.tsv'
+echo 'OK: Journal-only report, daily add, list, and plan completion passed without journal.tsv or redundant JPY metadata'

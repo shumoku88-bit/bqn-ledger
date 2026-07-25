@@ -80,7 +80,9 @@ It writes `event-id` separately only for durable transactions. Ordinary actual t
 completion-<plan-id>-<actual-date>
 ```
 
-It copies the selected plan row's metadata into the actual completion, removes the old `currency=` token, and appends the resolved currency again. This means plan-oriented metadata such as `recur` and `series` can be copied into an Actual transaction even though the Journal runtime gives them no recurrence semantics.
+It uses the selected plan row's `currency=` token to resolve and validate the transaction domain, then leaves that token in `plan.tsv`. The completed Actual carries currency in its posting commodities and no longer duplicates it as `; currency: JPY` metadata.
+
+The command still copies the remaining plan metadata broadly. This means plan-oriented metadata such as `recur` and `series` can be copied into an Actual transaction even though the Journal runtime gives them no recurrence semantics.
 
 No current production writer was found for `action`, `receipt-id`, `layer`, `execution-envelope`, `allocation-id`, `agreement-id`, `actual-event-id`, or `income-budget`. Their current presence in the parser comes from historical migration compatibility, public synthetic characterization, or test-only event forms.
 
@@ -104,7 +106,7 @@ These keys currently affect identity, layer selection, cross-event validation, o
 
 | Key | Generation source | Current readers | Regeneration | Removal assessment |
 |---|---|---|---|---|
-| `currency` | Ordinary append metadata; plan finish always appends it; historical conversion | Parser validates the marker; complete-source admission obtains the accounting domain from posting commodities and resolved account currencies | For a valid single-domain transaction, the posting commodity reconstructs the transaction currency exactly | Strong candidate to stop persisting in native Journal Actual transactions after focused tests confirm no remaining consumer depends on the metadata marker. Posting commodity should remain the accounting authority. |
+| `currency` | Historical conversion, existing source, or explicitly supplied metadata; current ordinary and plan-completion writers omit it | Parser validates an existing marker; complete-source admission obtains the accounting domain from posting commodities and resolved account currencies | For a valid single-domain transaction, the posting commodity reconstructs the transaction currency exactly | Stop-writing is complete for current ordinary and plan-completion Actual paths. Existing markers remain accepted for compatibility and may later be removed through a previewed source cleanup. |
 
 ### Tier C: human or policy evidence preserved generically
 
@@ -147,27 +149,27 @@ The parser admits 22 keys, while the ordinary native append path accepts 13 meta
 
 Most metadata survives because migration work chose lossless preservation. That was valuable during TSV-to-Journal conversion, but it does not make every preserved key a permanent Journal concept.
 
-### 3. `currency` is the clearest likely redundancy
+### 3. `currency` stop-writing is complete for current Actual writers
 
-Native Journal postings already contain an explicit commodity. Complete-source admission also verifies account currency against that commodity. The separate `currency` metadata marker duplicates stronger structural evidence for valid single-domain transactions.
+Public fixtures already proved that a minimal Actual without `currency: JPY` has the same accounting, Cube, and TBDS results as a metadata-bearing form. A focused durable-completion fixture now keeps `event-id` and `plan-id` fixed while removing only `currency: JPY`; parser and Stage 2A outputs remain equal. Ordinary add and plan finish both leave the marker out, while posting commodities remain explicit.
 
-### 4. Plan metadata leaks into completed Actuals
+### 4. Plan metadata still leaks into completed Actuals
 
-The plan finish command copies plan metadata broadly. `plan-id` is the durable relationship that the Actual needs. `recur` and `series` describe the plan source and currently have no Actual-runtime meaning. The writer should probably select metadata intentionally rather than copy almost everything.
+The plan finish command still copies plan metadata broadly. `plan-id` is the durable relationship that the Actual needs. `recur` and `series` describe the plan source and currently have no Actual-runtime meaning. The writer should select metadata intentionally rather than copy almost everything.
 
 ### 5. Human evidence and computed metadata require different cleanup rules
 
-A field being unused by reports does not make it disposable. `receipt`, `party`, `note`, tax markers, and similar values may be the only surviving human evidence. In contrast, `layer: actual` and `currency: JPY` duplicate structural facts and are better cleanup candidates.
+A field being unused by reports does not make it disposable. `receipt`, `party`, `note`, tax markers, and similar values may be the only surviving human evidence. In contrast, `layer: actual` and legacy `currency: JPY` markers duplicate structural facts and are better cleanup candidates.
 
-## Recommended next experiments
+## Open experiments
 
 These are independent, reversible experiments rather than a fixed queue.
 
 1. Add a read-only metadata occurrence command that reports key counts and example-free structural statistics for the selected Journal. This would reveal which parser-only keys actually exist in production without exposing values.
-2. Prove that removing `currency: JPY` metadata from public synthetic Actual transactions leaves complete-source admission, Posting IR, reports, and editor checks unchanged.
-3. Change plan completion rendering in a public fixture so it copies `plan-id` and explicitly selected Actual evidence, while leaving `recur` and `series` in `plan.tsv`.
-4. Prove that removing explicit `layer: actual` from an Actual-only Journal leaves behavior unchanged.
-5. After occurrence evidence, shrink the parser allowlist by retiring unused parser-only keys or move them to a separate compatibility profile.
+2. Change plan completion rendering in a public fixture so it copies `plan-id` and explicitly selected Actual evidence, while leaving `recur` and `series` in `plan.tsv`.
+3. Prove that removing explicit `layer: actual` from an Actual-only Journal leaves behavior unchanged, then stop writing it wherever a current writer still does.
+4. After occurrence evidence, shrink the parser allowlist by retiring unused parser-only keys or move them to a separate compatibility profile.
+5. Add a previewed cleanup for existing reconstructible metadata markers after occurrence counts and source-level parity are available.
 
 ## Current conclusion
 

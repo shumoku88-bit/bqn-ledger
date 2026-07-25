@@ -157,11 +157,12 @@ actualAmountCheck ← validate.ValidateExactAmountForCurrency currency‿amountT
 {𝕊 ⋄ Fail (1 ⊑ actualAmountCheck)}⍟(¬ 0 ⊑ actualAmountCheck) @
 
 # ジャーナル用メタデータの構築
+# Transaction currency is already carried by each native Journal posting commodity.
+# Keep currency in plan.tsv for selection and validation, but do not duplicate it as Actual metadata.
 metaWithoutCurrency ← (¬ IsCurrencyMeta¨ meta) / meta
 IsPlanId ← { (8 ≤ ≠ 𝕩) ? "plan_id=" plan_id.StartsWith 𝕩 ; 0 }
 hasPlanId ← ∨´ IsPlanId¨ metaWithoutCurrency
-metaToUse ← hasPlanId ◶ ⟨ { 𝕊 ⋄ ⟨"plan_id=" ∾ pid⟩ ∾ metaWithoutCurrency }, { 𝕊 ⋄ metaWithoutCurrency } ⟩ @
-finalMeta ← metaToUse ∾ ⟨"currency=" ∾ currency⟩
+finalMeta ← hasPlanId ◶ ⟨ { 𝕊 ⋄ ⟨"plan_id=" ∾ pid⟩ ∾ metaWithoutCurrency }, { 𝕊 ⋄ metaWithoutCurrency } ⟩ @
 
 journalFile ← (config.LoadActualJournal baseDir).file
 eventId ← "completion-"∾pid∾"-"∾actualDate
