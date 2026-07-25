@@ -81,22 +81,24 @@ Build ← {𝕊 rows‿expenseAccountKeys‿dayCount‿selectedCurrency‿calcul
       contributorPostingIds ← {𝕩 ⊏ postingIds}¨ contributors
 
       nonZeroMask ← grouped.values ≠ 0
+      visibleGroupIndices ← nonZeroMask / ↕ ≠ grouped.keys
+
       visibleKeys ← nonZeroMask / grouped.keys
       visibleValues ← nonZeroMask / grouped.values
-      visibleContributors ← nonZeroMask / contributors
-      visibleContributorPostingIds ← nonZeroMask / contributorPostingIds
 
       # Stable two-stage ordering: semantic key ascending, then amount descending.
       # Equal amounts therefore retain AccountKey ascending order.
       keyOrder ← ⍋ visibleKeys
       keySortedValues ← keyOrder ⊏ visibleValues
       amountOrder ← ⍋ (- keySortedValues)
-      rankingOrder ← amountOrder ⊏ keyOrder
+      visibleRankingOrder ← amountOrder ⊏ keyOrder
 
-      rankedKeys ← rankingOrder ⊏ visibleKeys
-      rankedValues ← rankingOrder ⊏ visibleValues
-      rankedContributors ← rankingOrder ⊏ visibleContributors
-      rankedContributorPostingIds ← rankingOrder ⊏ visibleContributorPostingIds
+      rankingOrder ← visibleRankingOrder ⊏ visibleGroupIndices
+
+      rankedKeys ← rankingOrder ⊏ grouped.keys
+      rankedValues ← rankingOrder ⊏ grouped.values
+      rankedContributors ← rankingOrder ⊏ contributors
+      rankedContributorPostingIds ← rankingOrder ⊏ contributorPostingIds
 
       result ↩ {
         state                       ⇐ "ok",

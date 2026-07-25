@@ -105,6 +105,12 @@ result ← ranking.Build ⟨rows, expKeys, dayCount, "JPY", 0⟩
 2000‿2000‿500 lib.AssertEq result.ranked_values
 ⟨⟨"p-books"⟩, ⟨"p-food-1", "p-food-2"⟩, ⟨"p-transport"⟩⟩ lib.AssertEq result.ranked_contributor_posting_ids
 
+# ranking_order contract verification on normal success case:
+# ranking_order indexes into grouped_keys / grouped_values / contributor_posting_ids
+result.ranked_keys lib.AssertEq result.ranking_order ⊏ result.grouped_keys
+result.ranked_values lib.AssertEq result.ranking_order ⊏ result.grouped_values
+result.ranked_contributor_posting_ids lib.AssertEq result.ranking_order ⊏ result.contributor_posting_ids
+
 # Repeat evaluation is deterministic.
 repeat ← ranking.Build ⟨rows, expKeys, dayCount, "JPY", 0⟩
 result.ranked_keys lib.AssertEq repeat.ranked_keys
@@ -132,7 +138,12 @@ splitResult ← ranking.Build ⟨splitTxRows, expKeys, dayCount, "JPY", 0⟩
 ⟨"expenses:food/JPY"⟩ lib.AssertEq splitResult.ranked_keys
 800 lib.AssertEq ⊑ splitResult.ranked_values
 
-# 11.5 Zero-net expense account
+# 11.5 Defensive synthetic zero-net expense account test
+# Defensive synthetic case only.
+# A negative debit is not admitted by the normal Posting IR contract.
+# This test characterizes zero-group visibility and ranking-order coordinates,
+# not producer admission.
+# Characterization target: unexpected but arithmetically valid grouped zero does not enter visible ranking
 zeroNetRows ← ⟨
   MakeRow ⟨0, 1, "expenses:food/JPY", "actual", 0,  1000, "p-z-1", "debit", "expense", "ok", "JPY", 0⟩,
   MakeRow ⟨0, 1, "expenses:food/JPY", "actual", 0, ¯1000, "p-z-2", "debit", "expense", "ok", "JPY", 0⟩,
@@ -146,6 +157,12 @@ zeroNetResult ← ranking.Build ⟨zeroNetRows, expKeys, dayCount, "JPY", 0⟩
 # Visible ranking excludes the 0-amount group (expenses:food/JPY)
 ⟨"expenses:books/JPY"⟩ lib.AssertEq zeroNetResult.ranked_keys
 2000 lib.AssertEq ⊑ zeroNetResult.ranked_values
+
+# ranking_order contract verification on zero-net defensive case:
+# ranking_order indexes into grouped_keys / grouped_values / contributor_posting_ids
+zeroNetResult.ranked_keys lib.AssertEq zeroNetResult.ranking_order ⊏ zeroNetResult.grouped_keys
+zeroNetResult.ranked_values lib.AssertEq zeroNetResult.ranking_order ⊏ zeroNetResult.grouped_values
+zeroNetResult.ranked_contributor_posting_ids lib.AssertEq zeroNetResult.ranking_order ⊏ zeroNetResult.contributor_posting_ids
 
 # 11.7 TBDS relation parity
 resolvedSample ← {
