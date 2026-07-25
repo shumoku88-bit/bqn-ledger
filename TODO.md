@@ -12,7 +12,8 @@ This file is a lightweight notebook for the current state of `bqn-ledger`. It re
 - Journal metadata categories and cleanup evidence are recorded in `docs/JOURNAL_METADATA_INVENTORY.md`.
 - Canonical Daily Cube and TBDS are purpose-specific views over checked posting facts, not competing source truths.
 - `src_next/exact_sparse_grouping.bqn` provides a small deterministic exact grouping kernel with Cube reconstruction, TBDS-like reuse, conservation, and provenance-sidecar evidence.
-- `src_next/actual_expense_ranking.bqn` is the first real consumer built directly from checked posting facts: selected-period Actual expense filter, semantic AccountKey construction, exact grouping, ranking, and contributor lookup without Cube or TBDS ownership.
+- `src_next/actual_expense_ranking.bqn` is the first real consumer built directly from checked posting facts: selected-period Actual/debit admission, an explicit expense AccountKey partition derived from resolved account metadata, exact grouping, deterministic ranking, and contributor lookup without Cube or TBDS production ownership.
+- Current architecture and code-map documents include the direct checked-facts → sparse grouping → purpose-specific consumer branch alongside Cube and TBDS.
 - Historical plans, audits, and handoffs remain available under `docs/archive/` and in Git history.
 
 ## Things worth exploring
@@ -33,6 +34,8 @@ These are prompts, not a queue. A new discovery may be more valuable than an ite
 ## Working notes
 
 For whole-Journal or cross-view grouping, arithmetic domain is a partition/key requirement, not an implicit property of the numeric kernel. Valuation remains separate from source quantity.
+
+The first direct consumer exposed an important boundary: transaction-level `kind` describes a transaction, while expense membership for a posting comes from the posting's AccountKey partition. A multi-posting expense transaction may contain non-expense debit coordinates, so those meanings must not be collapsed.
 
 Add observations, questions, promising experiments, and unfinished threads when that helps the next person understand the landscape. Remove or summarize completed notes during the same task. Git retains the longer history.
 

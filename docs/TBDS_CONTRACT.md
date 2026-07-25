@@ -2,7 +2,7 @@
 
 Status: current purpose-specific accounting-state contract
 Owner: accounting projection / report
-Updated: 2026-07-25
+Updated: 2026-07-26
 
 TBDS means **Trial Balance Dataset**. It is a period-aware accounting-state view built from checked ledger-wide Posting IR alongside, not underneath, the Canonical Daily Cube.
 
@@ -23,7 +23,7 @@ A period or cycle is a report query boundary, not a source loading boundary.
 
 TBDS gives report consumers one structured account-state relation instead of requiring each report to recompute opening, movement, and closing semantics.
 
-TBDS owns accounting-state meaning. It does not own source parsing, editor behavior, report text layout, advice, valuation, FX, or country-specific tax rules.
+TBDS owns accounting-state meaning. It does not own source parsing, editor behavior, report text layout, advice, valuation, FX, country-specific tax rules, or every purpose-specific query over checked posting facts.
 
 ## Input and admission
 
@@ -97,7 +97,7 @@ Numeric zero means zero. It must not stand in for missing, invalid, or unavailab
 
 Current TBDS rows summarize contributor identity away. Source-level provenance remains reachable through checked posting rows. A report requiring posting IDs, source lines, rejection evidence, or transaction linkage must retain or join that evidence explicitly rather than treating TBDS as its owner.
 
-## Exact sparse grouping experiment
+## Exact sparse grouping and direct consumer evidence
 
 `src_next/exact_sparse_grouping.bqn` can reproduce TBDS-like layer/account/side movement grouping from explicit exact keys and values. This is evidence that Cube and TBDS share a small accumulation pattern.
 
@@ -109,22 +109,34 @@ It does **not** make their semantics identical:
 - commodity compatibility must be decided before grouping or included in the key;
 - contributor identity remains a separate sidecar.
 
-No production `tbds.Build` replacement is made by the experiment.
+The same kernel is now used by `src_next/actual_expense_ranking.bqn`, the first direct purpose-specific consumer over checked selected-domain posting facts. Its focused test compares the complete visible expense relation `⟨account_key, amount⟩` with `tbds.ActualExpenseBreakdown`, after sorting both relations by AccountKey.
+
+That parity establishes the current Actual expense meaning for the tested period and account partition. It does not make the ranking consumer a TBDS replacement:
+
+- the ranking owns selected-period Actual/debit filtering and output order;
+- expense membership is supplied as an explicit AccountKey partition derived from resolved account metadata;
+- transaction-level `kind` is not used as posting account classification;
+- zero-net groups are hidden only from the visible ranking while grouped conservation evidence remains available;
+- contributor posting IDs remain reachable in the direct consumer;
+- TBDS continues to own opening, movement, closing, and broader accounting-state rows.
+
+No production `tbds.Build` replacement is made by the grouping kernel or the ranking consumer.
 
 ## Relationship to Canonical Daily Cube
 
-The Canonical Daily Cube is a dense selected-period `Day × AccountKey × Layer` view useful for daily replay and trend consumers. TBDS is a long accounting-state relation useful for balances and period reports.
+The Canonical Daily Cube is a dense selected-period `Day × AccountKey × Layer` view useful for daily replay and trend consumers. TBDS is a long accounting-state relation useful for balances and period reports. Direct sparse consumers answer narrower questions when they need a different partition, order, or provenance surface.
 
-Both are purpose-specific projections from checked posting facts:
+All are purpose-specific projections from checked posting facts:
 
 ```text
 checked Posting IR
   -> dense Day Cube
   -> TBDS period state
   -> direct evidence-sensitive calculations
+  -> purpose-specific sparse grouped results
 ```
 
-A cycle-bounded dense Cube cannot by itself reconstruct opening balances after pre-period facts have been discarded.
+A cycle-bounded dense Cube cannot by itself reconstruct opening balances after pre-period facts have been discarded. A direct sparse ranking also cannot replace TBDS accounting-state meaning merely because one relation agrees.
 
 ## Report use
 

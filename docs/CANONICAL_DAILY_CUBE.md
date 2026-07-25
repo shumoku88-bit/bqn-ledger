@@ -4,7 +4,7 @@ Status: current purpose-specific view contract
 Owner: report / projection
 Canonical: yes for the `Day × AccountKey × Layer` view, not for every future projection
 Exit: revise when this view contract or its production consumers change
-Updated: 2026-07-25
+Updated: 2026-07-26
 
 ## 概要
 
@@ -21,7 +21,7 @@ checked posting facts
   -> current report consumers and validation
 ```
 
-Canonical Daily Cubeは正データでも唯一の最終表現でもありません。TBDS、direct posting-evidence calculations、selected-domain viewsと並ぶ、日次座標replayに適した標準compositionです。Source truthはhuman-readable native Journalとcompanion/configuration TSVに残ります。
+Canonical Daily Cubeは正データでも唯一の最終表現でもありません。TBDS、direct posting-evidence calculations、selected-domain views、purpose-specific sparse projectionsと並ぶ、日次座標replayに適した標準compositionです。Source truthはhuman-readable native Journalとcompanion/configuration TSVに残ります。
 
 Cubeの`Day`はEventを配置したcoordinate axisです。`as_of`はCubeの軸ではなく、どの時点からsnapshotを観察するかを表す外側のobservation timeです。cycle、月、週は`Day`軸上の区間viewです。詳細は`docs/TIME_AS_AXIS.md`を参照してください。
 
@@ -57,9 +57,9 @@ Layerは同じdaily coordinate上に並びますが、確定度や責務が同�
 - **Evidence**: valid/skipped rowsとdiagnosticsはdense cellとは別に残る。dense cell単体はcontributor posting identityを所有しない。
 - **Validation**: current result contractはlayer totals、per-account totals、expense totals、conservation comparisonsなどのcompatibility fieldsも返す。
 
-## Exact sparse grouping experiment
+## Exact sparse groupingとdirect consumer
 
-`src_next/exact_sparse_grouping.bqn`は、明示されたexact keysとalready-admitted exact valuesをfirst-occurrence orderでgroupingするI/O-free experimentです。
+`src_next/exact_sparse_grouping.bqn`は、明示されたexact keysとalready-admitted exact valuesをfirst-occurrence orderでgroupingするI/O-free kernelです。
 
 `tests/test_src_next_exact_sparse_grouping.bqn`は次を観察します。
 
@@ -73,7 +73,11 @@ Layerは同じdaily coordinate上に並びますが、確定度や責務が同�
 - TBDS風のlayer/account/side movementにも同じprimitiveを再利用できること;
 - commodityをpartitionまたはkeyへ含めれば、異なるdomainを直接加算しないこと。
 
-このexperimentはまだ`cube.Materialize`のproduction accumulationを置き換えていません。Current result contractにはdense array以外のevidence、diagnostics、report-like compatibility fieldsが含まれるため、数値payload parityだけで移行完了とはみなしません。
+このkernelは現在、`src_next/actual_expense_ranking.bqn`という最初の実consumerから再利用されています。consumerはchecked selected-domain posting factsに対して、selected period、Actual、debit、明示的なexpense AccountKey partitionを適用し、exact sparse grouping、deterministic ranking、contributor posting IDsを返します。
+
+この再利用は、checked factsからCubeを経由せずpurpose-specific sparse resultを作れる証拠です。一方で、`cube.Materialize`のproduction accumulationを置き換える証拠ではありません。Current Cube result contractにはdense array以外のadmission evidence、diagnostics、skipped rows、report-like compatibility fieldsが含まれるため、数値payload parityと一つのdirect consumerだけで移行完了とはみなしません。
+
+transaction-level `kind`はposting account classificationではありません。multi-posting expense transactionには非expense debit coordinateも含み得るため、direct expense consumerはresolved account metadataから作ったexpense AccountKey partitionを使用します。この境界をCubeのaxisやglobal fact fieldへ自動昇格させません。
 
 ## 多通貨との関係
 
@@ -82,7 +86,7 @@ Canonical Daily CubeへCurrency軸を追加することが多通貨対応の前�
 - `AccountKey = (Account, Currency)`がaccount balanceのcommodity separationを保つ。
 - `journal_complete_source_admission.bqn`はmulti-currency Journal container全体をadmitするが、各ordinary transactionはsingle-domainでbalanceする。
 - `journal_currency_proof_carrier_stage2a.bqn`はsource coefficient、commodity、domain、calculation scaleをuntyped deltaへ落とさず保持する。
-- `selected_domain_context.bqn`は一つのselected currencyを選び、そのdomain内でexact scaleをそろえてからcurrent `BuildPeriodView`へ渡す。
+- `selected_domain_context.bqn`は一つのselected currencyを選び、そのdomain内でexact scaleをそろえてからcurrent `BuildPeriodView`や同domainのpurpose-specific consumerへ渡す。
 - exact sparse grouping kernel自体はcurrency-awareではない。measure ownerが先にcompatible arithmetic domainを決め、domainをpartitionまたはkeyとして保持する。
 - valuation、FX gain/loss、tax、rate derivationはsource quantity groupingとは別のreport-specific concernである。
 
@@ -99,4 +103,5 @@ TBDSは同じchecked Posting IRから、pre-period rowsをopening evidenceとし
 - sparse grouped totalとadmitted input totalは一致する。
 - dense outputを作る場合、対応するsparse grouped valuesと一致する。
 - source transaction / posting evidenceはdense numeric resultの外側から到達可能である。
+- purpose-specific consumerのpartition、filter、measure、orderは、そのconsumerが明示して所有する。
 - `tests/test_src_next_cube.bqn`と`checks/check-src-next-*`はcurrent Canonical result contractを継続検査する。

@@ -4,6 +4,7 @@ Status: current operational guide
 Owner: docs
 Canonical: yes
 Exit: keep current while this remains the pit code/data-flow entry point
+Updated: 2026-07-26
 
 この文書は、pit（AI作業相棒）が `bqn-ledger` を触る前に読むための地図です。
 人間が読む場合も、コードの入口・データフロー・どのファイルが正本かを短時間で確認するための索引として使えます。外部向けの最初の入口は `docs/README.md` と `CONTRIBUTING.md` です。
@@ -17,12 +18,13 @@ Exit: keep current while this remains the pit code/data-flow entry point
 5. `docs/ARCHITECTURE.md`（データフロー・モジュール責務）
 6. `docs/CANONICAL_DAILY_CUBE.md`（固定するDaily Cube契約）
 7. `docs/TIME_AS_AXIS.md`（時間座標・観察時点・区間view）
-8. レポート変更なら `src_next/report.bqn` と該当する `src_next/*` モジュール、`docs/REPORT_CONTRACTS.md` / `docs/REPORT_SECTION_CONTRACT_CHECKLIST.md`、および現行の report 関連 check
-9. エディタ作業なら `docs/PRODUCTION_EDITOR_DIRECTION.md` / `docs/BQN_EDITOR_USAGE.md` / `src_edit/README.md`
-10. 複数ポスティング導入検討なら `docs/archive/completed-plans/DECISION_MULTI_POSTING_INVESTIGATION.md`
-11. 変更内容に応じて `docs/CONVENTIONS.md` / `docs/JOURNAL_META.md` / `docs/MAINTENANCE.md`
-12. 履歴・背景（非アクティブな計画書、旧エンジン移行期資料、完了済みの計画書など）が必要な場合のみ `docs/archive/` を読む
-13. AIによる家計相談計算の設計なら `docs/archive/active-plans/AI_BUDGET_CALCULATOR_DESIGN.md`
+8. projection変更なら `docs/archive/active-plans/PURPOSE_SPECIFIC_PROJECTION_COMPOSITION_DIRECTION-2026-07-25.md` と該当する `src_next/*` consumer
+9. レポート変更なら `src_next/report.bqn` と該当する `src_next/*` モジュール、`docs/REPORT_CONTRACTS.md` / `docs/REPORT_SECTION_CONTRACT_CHECKLIST.md`、および現行の report 関連 check
+10. エディタ作業なら `docs/PRODUCTION_EDITOR_DIRECTION.md` / `docs/BQN_EDITOR_USAGE.md` / `src_edit/README.md`
+11. 複数ポスティング導入検討なら `docs/archive/completed-plans/DECISION_MULTI_POSTING_INVESTIGATION.md`
+12. 変更内容に応じて `docs/CONVENTIONS.md` / `docs/JOURNAL_META.md` / `docs/MAINTENANCE.md`
+13. 履歴・背景（非アクティブな計画書、旧エンジン移行期資料、完了済みの計画書など）が必要な場合のみ `docs/archive/` を読む
+14. AIによる家計相談計算の設計なら `docs/archive/active-plans/AI_BUDGET_CALCULATOR_DESIGN.md`
 
 `docs/archive/completed-plans/REPORT_FIELD_MAP.md` と `docs/archive/completed-plans/MAIN_SECTIONS.md` は旧エンジンの historical / superseded docs です。現行レポート変更の正本導線としては読まず、旧 `main.bqn` / `report_engine.Build` の履歴確認が必要な場合だけ参照します。
 
@@ -37,6 +39,21 @@ Exit: keep current while this remains the pit code/data-flow entry point
 - 大改造しない。1段階・1目的・小さい差分で進める。
 - TODOを進める際は、まず `TODO.md` と該当する active plan を参照する。
 - 大きめの相談が来たら、通常TODO/active planを進める話か、BQN editor トラックか、先にmokoへ確認する。
+- transaction-level `kind` とposting-level AccountKey partitionを混同しない。multi-posting transactionでは一つのtransaction kindの中に異なるaccount coordinateが共存する。
+
+## 作業完了ゲート
+
+実装や調査の作業は、codeだけがmergeされた時点では完了としない。関連する範囲について次を同じ作業単位で閉じる。
+
+1. focused testと必要なintegration evidenceを追加する。
+2. `tools/check.sh`、`tools/coverage`、差分検査、GitHub Actionsを成功させる。
+3. `TODO.md`、`docs/ARCHITECTURE.md`、このcode mapを現在地へ同期する。
+4. 関連するcurrent contract、active plan、README/docs indexへの影響を確認し、必要な文書を同期する。
+5. 実施前の表現、旧module名、古い次工程、誤ったownership説明が残っていないかrepository検索する。
+6. PR descriptionとfinal head SHAを同期する。
+7. Ready化・merge後にmain SHAとmain上のファイルを確認する。
+
+変更対象が大きくdocs-only follow-upへ分ける場合も、そのfollow-upのmergeまでを同じ作業単位として扱う。
 
 ## 全体像
 
@@ -45,15 +62,20 @@ Exit: keep current while this remains the pit code/data-flow entry point
    │
    ├─ src_next/loader.bqn / actual_source.bqn (明示source読み込み)
    │    │
-   │    ├─ src_next/context.bqn (BuildContext: issuesもロード)
+   │    ├─ src_next/context.bqn / selected_domain_context.bqn
    │    │    │
-   │    │    ├─ src_next/cube.bqn (Canonical Daily Cube: Day × Account × Layer)
-   │    │    ├─ src_next/tbds.bqn (Trial Balance Data Set: opening/movement/closing)
+   │    │    ├─ checked posting facts
+   │    │    │    ├─ src_next/cube.bqn (Canonical Daily Cube: Day × Account × Layer)
+   │    │    │    ├─ src_next/tbds.bqn (Trial Balance Data Set: opening/movement/closing)
+   │    │    │    └─ explicit semantic partition + src_next/exact_sparse_grouping.bqn
+   │    │    │         └─ src_next/actual_expense_ranking.bqn (first direct sparse consumer)
    │    │    │
    │    │    └─ src_next/report.bqn (人間向けレポート)
    │    │         ├─ src_next/issues.bqn (Issues & Decisions 表示)
    │    │         └─ src_next/summary.bqn (機械向けコンパクト出力)
 ```
+
+`actual_expense_ranking.bqn`は現時点でpublic report sectionへ配線されていない。checked selected-domain posting factsを使うpurpose-specific consumerとして、public synthetic fixtureとfocused testでcharacterizeされている。
 
 ## 正データファイル
 
@@ -86,12 +108,14 @@ Exit: keep current while this remains the pit code/data-flow entry point
 - `loader.bqn` — source ファイル読み込み (`•FChars` 使用)。
 - `cube.bqn` — Canonical Daily Cube (`Day × Account × Layer`) の構築。
 - `tbds.bqn` — Trial Balance Data Set (period/account/layer/opening/movement/closing)。
+- `exact_sparse_grouping.bqn` — explicit keysとalready-admitted exact valuesをfirst-occurrence順でdeterministicにgroupするI/O-free kernel。accounting axes、domain、admission、valuation、provenance ownershipを持たず、contributor indexはsidecar helperで返す。
+- `actual_expense_ranking.bqn` — checked selected-domain posting factsから、Actual / selected period / debit / explicit expense AccountKey partitionを選び、exact grouping、zero-net visibility、amount-descending ranking、contributor posting IDsを返す最初のdirect sparse consumer。Cube/TBDSをimportせず、public report wiringはまだ持たない。
 - `trial_balance.bqn` — 試算表エクスポート。debit/credit 符号付き。
 - `cycle.bqn` — サイクル期間の解決。date.bqn を使用。
 - `account_key.bqn` — 勘定科目のキー解決。
 - `projection.bqn` — Posting IR 投影。
 - `snapshot.bqn` — Balance Sheet / Snapshot。TBDS closing を使用。構造化された ViewModel JSON 出力（FormatJson）もサポート。
-- `selected_domain_context.bqn` — 明示されたregistry-supportedな1通貨について、complete-source Actual carrier rowsと同通貨を証明したplan/budget rowsだけをcontext-local exact scaleへ正規化し、Cube/TBDS viewを構成する。異通貨、部分context、Currency axis、FX、valuationは扱わない。
+- `selected_domain_context.bqn` — 明示されたregistry-supportedな1通貨について、complete-source Actual carrier rowsと同通貨を証明したplan/budget rowsだけをcontext-local exact scaleへ正規化し、checked posting rows、resolved metadata、Cube/TBDS viewを構成する。異通貨、部分context、Currency axis、FX、valuationは扱わない。consumerは同domainのposting rowsをdirect sparse projectionへ渡せる。
 - `balances.bqn` — 残高表示。human `--section balances --currency CODE`は常にselected-domain contextを使い、対象通貨のaccount残高と累計expenseを全supported currencyで同じsection構造により表示する。数値書式だけcurrency policyに従い、既存JSON契約は維持する。
 - `ytd_summary.bqn` — YTD 集計。
 - `cycle_summary.bqn` — サイクル収支 (Income Statement)。
@@ -202,6 +226,8 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 ### `tests/` (ユニットテスト)
 
 - `test_src_next_*.bqn` — src_next 各モジュールのテスト。
+- `test_src_next_exact_sparse_grouping.bqn` — empty input、duplicate accumulation、negative values、conservation、first-occurrence order、contributor sidecar、Cube numeric reconstruction、TBDS-like reuse、domain-separated groupingをcharacterizeする。
+- `test_src_next_actual_expense_ranking.bqn` — explicit expense AccountKey partition、multi-posting内の非expense debit除外、TBDS relation parity、selected-domain producer integration、JPY/ILS scale、domain/scale fail-closed、deterministic ranking、ranking-order coordinates、contributor posting IDsを検証する。zero-net caseのnegative debitはproducer admissionではなくdefensive synthetic characterizationである。
 - `test_journal_posting_ir_adapter_stage2a.bqn` / `test_journal_posting_identity_provenance_stage2b.bqn` — Journal test-only Posting IR success parityとidentity/provenance carrierのfocused tests。
 - `test_journal_posting_ir_comparable_rejection_stage2c.bqn` — invalid date / invalid exact-integer amount / unknown accountのJournal・legacy TSV structural rejection parityを既存境界だけで観測するfocused test。
 - `test_journal_canonical_prefix_converter.bqn` — deterministic rendering、description/metadata/currency red paths、identity/provenance、Cube/TBDS/Trial Balance/Balances parity、historical profile、synthetic suffix reconstructionのfocused test。
@@ -242,4 +268,3 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 - `tools/report-next-summary` — `src_next` データの機械向け要約出力。
 - `tools/report-section-metadata` — source TSV を読まない report section metadata export（TSV default / JSON）。UI は human report 文字列を parse せず、このような structured export を使う。
 - `tools/bl` — 日常操作 Command Hub。report / section / add / check / edit をまとめ、読み取り表示と安全な書き込み導線へルーティングする。`edit` の対話モードは TSV 選択サブメニューを持ち、編集後は同じサブメニューへ戻り、`back` / cancel / Ctrl-C で hub 上位へ戻る。
-
