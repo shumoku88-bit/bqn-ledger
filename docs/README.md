@@ -15,7 +15,8 @@ They are maps, not gates. Read the files that help with the question in front of
 
 - [`DATA_DIR_SETUP.md`](DATA_DIR_SETUP.md) — data directory layout
 - [`CONVENTIONS.md`](CONVENTIONS.md) — source conventions
-- [`JOURNAL_META.md`](JOURNAL_META.md) — Journal and companion metadata
+- [`JOURNAL_META.md`](JOURNAL_META.md) — Journal and companion metadata syntax
+- [`JOURNAL_METADATA_INVENTORY.md`](JOURNAL_METADATA_INVENTORY.md) — which Journal metadata is written, consumed, reconstructible, or a cleanup candidate
 - [`BQN_EDITOR_USAGE.md`](BQN_EDITOR_USAGE.md) — editor usage
 - [`PRODUCTION_EDITOR_DIRECTION.md`](PRODUCTION_EDITOR_DIRECTION.md) — current editor structure
 
