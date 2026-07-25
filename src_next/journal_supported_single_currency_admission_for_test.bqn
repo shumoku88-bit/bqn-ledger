@@ -1,10 +1,14 @@
 # journal_supported_single_currency_admission_for_test.bqn
 # Pure test-only proof boundary. Production Journal routes do not import this module.
+#
+# Non-JPY meaning is validated and normalized first. Only then is a synthetic
+# integer-JPY structural shadow passed to the unchanged production Stage 1 parser.
 
 util ← •Import "util.bqn"
 decimal ← •Import "exact_decimal.bqn"
 dates ← •Import "date.bqn"
 setup ← •Import "currency_setup.bqn"
+stage1 ← •Import "journal_profile_stage1.bqn"
 
 lf ← @+10
 cr ← @+13
@@ -36,6 +40,7 @@ ResolveDomain ← {𝕊 lines:
   indexes ← ({StartsWith ⟨"commodity ", Trim 𝕩⟩}¨ lines) / ↕ ≠ lines
   diagnostics ← empty
   domain ← ""
+  sourceLine ← 0
   policy ← setup.Policy ""
   diagnostics ∾↩ AddIf ⟨1 ≠ ≠ indexes, Diagnostic ⟨"commodity_domain_count_invalid", 0, "proof Journal must declare exactly one commodity domain"⟩⟩
   {𝕊:
@@ -45,11 +50,12 @@ ResolveDomain ← {𝕊 lines:
     diagnostics ∾↩ AddIf ⟨¬ valid, Diagnostic ⟨"commodity_shape_invalid", i + 1, "commodity declaration must contain exactly one code"⟩⟩
     {𝕊:
       domain ↩ 1 ⊑ fields
+      sourceLine ↩ i + 1
       policy ↩ setup.Policy domain
       diagnostics ∾↩ AddIf ⟨policy.state ≢ "ok", Diagnostic ⟨"commodity_unsupported", i + 1, "commodity must be admitted by registry"⟩⟩
     }⍟valid @
   }⍟(1 = ≠ indexes) @
-  {domain⇐domain, policy⇐policy, diagnostics⇐diagnostics}
+  {domain⇐domain, source_line⇐sourceLine, policy⇐policy, diagnostics⇐diagnostics}
 }
 
 LookupAccount ← {𝕊 accountKey‿resolved:
@@ -165,24 +171,95 @@ BalanceDiagnostics ← {𝕊 postings‿transactionStarts:
   diagnostics
 }
 
+RenderShadowPosting ← {𝕊 posting:
+  coefficient ← posting.normalized_coefficient
+  signText ← (coefficient < 0) ⊑ ⟨"", "-"⟩
+  "  " ∾ posting.account_key ∾ "  " ∾ signText ∾ (•Fmt | coefficient) ∾ " JPY"
+}
+
+BuildShadowRaw ← {𝕊 raw‿domainInfo‿postings:
+  lines ← lf util.SplitKeepEmpty ((cr ≠ raw) / raw)
+  transformed ← {𝕊 lineIndex:
+    lineNumber ← lineIndex + 1
+    output ← lineIndex ⊑ lines
+    matches ← ({lineNumber = 𝕩.source_line}¨ postings) / postings
+    {𝕊: output ↩ "commodity JPY"}⍟(lineNumber = domainInfo.source_line) @
+    {𝕊: output ↩ RenderShadowPosting (⊑ matches)}⍟(1 = ≠ matches) @
+    output
+  }¨ ↕ ≠ lines
+  ∾ (transformed ∾¨ lf)
+}
+
+BuildTransactions ← {𝕊 parsedTransactions‿postings‿domain‿calculationScale:
+  {𝕊 transactionIndex:
+    parsed ← transactionIndex ⊑ parsedTransactions
+    evidence ← ({transactionIndex = 𝕩.transaction_index}¨ postings) / postings
+    combined ← {𝕊 postingIndex:
+      semantic ← postingIndex ⊑ evidence
+      structural ← postingIndex ⊑ parsed.postings
+      {
+        posting_id⇐structural.posting_id,
+        posting_index⇐postingIndex,
+        side⇐structural.side,
+        source_line⇐semantic.source_line,
+        account_key⇐semantic.account_key,
+        account_currency⇐semantic.account_currency,
+        commodity⇐domain,
+        amount_text⇐semantic.amount_text,
+        source_coefficient⇐semantic.source_coefficient,
+        source_scale⇐semantic.source_scale,
+        normalized_coefficient⇐semantic.normalized_coefficient
+      }
+    }¨ ↕ ≠ evidence
+    {
+      source_event_id⇐parsed.source_event_id,
+      identity_kind⇐parsed.identity_kind,
+      source_start_line⇐parsed.source_start_line,
+      source_end_line⇐parsed.source_end_line,
+      date⇐parsed.date,
+      status_marker⇐parsed.status_marker,
+      description⇐parsed.description,
+      layer_name⇐parsed.layer_name,
+      domain⇐domain,
+      calculation_scale⇐calculationScale,
+      metadata⇐parsed.metadata,
+      postings⇐combined
+    }
+  }¨ ↕ ≠ parsedTransactions
+}
+
 Admit ← {𝕊 raw‿resolved:
   lines ← lf util.SplitKeepEmpty ((cr ≠ raw) / raw)
   domainInfo ← ResolveDomain lines
   diagnostics ← domainInfo.diagnostics
-  collectedPostings ← empty
   transactionStarts ← empty
   calculationScale ← 0
   normalizedPostings ← empty
+  transactions ← empty
   {𝕊:
     collected ← Collect ⟨lines, resolved, domainInfo⟩
     diagnostics ∾↩ collected.diagnostics
-    collectedPostings ↩ collected.postings
     transactionStarts ↩ collected.transaction_starts
     {𝕊:
-      normalized ← Normalize collectedPostings
+      normalized ← Normalize collected.postings
       calculationScale ↩ normalized.calculation_scale
       normalizedPostings ↩ normalized.postings
       diagnostics ∾↩ BalanceDiagnostics ⟨normalizedPostings, transactionStarts⟩
+      {𝕊:
+        shadowRaw ← BuildShadowRaw ⟨raw, domainInfo, normalizedPostings⟩
+        structural ← stage1.ParseWithProfile ⟨shadowRaw, "strict_self_contained"⟩
+        diagnostics ∾↩ structural.diagnostics
+        {𝕊:
+          transactionCountOk ← (≠ structural.transactions) = ≠ transactionStarts
+          postingCount ← +´ {≠ 𝕩.postings}¨ structural.transactions
+          postingCountOk ← postingCount = ≠ normalizedPostings
+          diagnostics ∾↩ AddIf ⟨¬ transactionCountOk, Diagnostic ⟨"transaction_trace_count_mismatch", 0, "structural and semantic transaction counts differ"⟩⟩
+          diagnostics ∾↩ AddIf ⟨¬ postingCountOk, Diagnostic ⟨"posting_trace_count_mismatch", 0, "structural and semantic posting counts differ"⟩⟩
+          {𝕊:
+            transactions ↩ BuildTransactions ⟨structural.transactions, normalizedPostings, domainInfo.domain, calculationScale⟩
+          }⍟(0 = ≠ diagnostics) @
+        }⍟(structural.state ≡ "ok") @
+      }⍟(0 = ≠ diagnostics) @
     }⍟(0 = ≠ diagnostics) @
   }⍟(0 = ≠ diagnostics) @
   {
@@ -191,7 +268,7 @@ Admit ← {𝕊 raw‿resolved:
     calculation_scale⇐calculationScale,
     normalized_postings⇐normalizedPostings,
     transaction_starts⇐transactionStarts,
-    transactions⇐empty,
+    transactions⇐transactions,
     diagnostics⇐diagnostics
   }
 }
