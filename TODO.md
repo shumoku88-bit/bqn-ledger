@@ -27,7 +27,7 @@ Last hygiene pass: 2026-07-25
 - The Israel 2026 travel funding and settlement ownership characterization is complete.
 - JPY→ILS exchange safe append and friend-paid pending safe append already exist.
 - Native Journal ordinary Actual writing, parsing, and selected balances remain JPY-only; ordinary ILS travel spending is not currently admitted.
-- A non-JPY single-currency admission characterization is selected below. ILS is the first concrete witness, not a permanent special case.
+- The non-JPY single-currency admission characterization is complete. It confirms reusable registry, exact-decimal, AccountKey, and single-domain arithmetic foundations while identifying JPY-only native Journal and context gates.
 - The generic projection and valuation foundation remains an active backlog, not implementation authorization.
 - Detailed completion history through the previous checkpoint is in `docs/archive/TODO_HISTORY-2026-07-24.md`.
 
@@ -35,40 +35,13 @@ Last hygiene pass: 2026-07-25
 
 ## Active work
 
-### Native Journal non-JPY single-currency admission characterization
+**No finite implementation slice is currently selected.**
 
-Status: selected docs/test-boundary finite slice.
+Completed current characterization:
 
-Concrete witness:
+- `docs/archive/audits/NATIVE_JOURNAL_NON_JPY_SINGLE_CURRENCY_ADMISSION_CHARACTERIZATION-2026-07-25.md`
 
-- one public-synthetic, balanced ILS Actual transaction between two existing ILS accounts;
-- exact decimal source amounts with the existing ILS precision policy;
-- no JPY posting in the same transaction or arithmetic domain.
-
-Finite question:
-
-- identify every current JPY-specific owner across commodity declaration, amount parsing, account-currency admission, native rendering, Stage 1 parsing, Stage 2A adaptation, complete-source validation, post-check, and immediate downstream consumers;
-- determine which assumptions are genuinely currency-parameterized already and which are hard-coded to JPY;
-- distinguish changes required for any supported non-JPY single-currency Journal from changes required only for ILS;
-- prove the smallest test-only contract for one non-JPY transaction without selecting production writing;
-- state the smallest separately selectable implementation slice supported by the evidence.
-
-Required generality:
-
-- use ILS as the first witness because it is an immediate travel need;
-- do not encode Israel, travel, cash, Wise, or account-name meaning into the generic Journal admission boundary;
-- a successful contract should be reusable in principle for another configured supported currency with its own precision policy;
-- do not claim universal currency support until a second currency witness or equivalent parameterized proof exists.
-
-Boundaries:
-
-- public synthetic repository evidence only;
-- docs and focused test-boundary characterization only;
-- no production writer, parser widening, source mutation, account creation, report output, balance view, FX, valuation, Currency axis, or mixed-currency arithmetic;
-- no `trip-id` / `payment` metadata work;
-- no reverse exchange, friend finalization, Wise semantics, strict-source continuation, M4, or generic projection refactor;
-- JPY and ILS must never be added or balanced against each other;
-- completing this characterization does not automatically select implementation.
+The characterization uses ILS as the immediate witness and USD as the required second generality witness for a future test-only proof. It does not authorize production parser/writer widening, mixed-currency arithmetic, FX, valuation, reports, metadata, or travel continuation.
 
 The latest AI working feedback remains evidence only and does not authorize additional work.
 
@@ -76,9 +49,36 @@ The latest AI working feedback remains evidence only and does not authorize addi
 
 ## Next candidates
 
+### Supported single-currency native Journal continuation
+
+Status: characterization complete / all continuation slices independently unselected.
+
+Current characterization:
+
+- `docs/archive/audits/NATIVE_JOURNAL_NON_JPY_SINGLE_CURRENCY_ADMISSION_CHARACTERIZATION-2026-07-25.md`
+
+Recommended candidate order:
+
+1. **Test-only supported-single-currency native Journal admission proof** — raw public-synthetic ILS and USD witnesses to domain, calculation scale, normalized balanced posting evidence, and privacy-safe diagnostics; no production routing.
+2. **Production Stage 1 / complete-source contract decision** — choose explicit parameterization or a separately selected supported-single-currency profile without silently widening `historical_external_plan`.
+3. **Stage 2A/context currency-proof carrier decision** — retain domain and scale, prove account-currency equality, and compose Actual + plan + budget into exactly one supported domain without adding a Currency axis automatically.
+4. **Native Journal ILS ordinary-add implementation** — only after candidates 1–3 support a finite safe contract; preserve existing JPY behavior.
+5. **Single-domain consumer and formatting verification** — selected balances and immediate consumers use context domain/scale and never produce mixed-currency totals.
+
+Selection rules:
+
+- select at most one candidate;
+- ILS is a witness, not a generic module branch condition;
+- require an equivalent USD success before claiming reusable supported non-JPY admission;
+- do not bundle parser/writer work with travel metadata, reverse exchange, friend finalization, Wise semantics, or reports;
+- never add amounts from different currency domains;
+- do not use private production data to determine policy;
+- do not create accounts automatically;
+- do not add FX, valuation, a Currency axis, or mixed-currency aggregation automatically.
+
 ### Israel 2026 travel funding and settlement continuation
 
-Status: candidate 1 selected above; all later continuation slices independently unselected.
+Status: non-JPY characterization complete; travel continuation slices remain independently unselected.
 
 Canonical lifecycle plan:
 
@@ -88,22 +88,21 @@ Current ownership audit:
 
 - `docs/archive/audits/ISRAEL_TRAVEL_RAIL_OWNERSHIP_CHARACTERIZATION-2026-07-25.md`
 
-Recommended candidate order:
+Recommended travel order after supported single-currency prerequisites:
 
-1. **Native Journal non-JPY single-currency admission characterization** — selected above, using ILS as the first concrete witness while separating reusable currency admission from ILS-only evidence.
-2. **Native Journal ILS ordinary-add implementation** — only after candidate 1 supports a finite safe contract.
-3. **Travel metadata admission** — separately decide and test `trip-id` and `payment`; do not infer support from the old TSV metadata path.
-4. **Bidirectional account-explicit exchange** — widen the existing safe JPY→ILS event rail to admit ILS→JPY without inferring physical cash versus Wise from account names.
-5. **Friend atomic JPY finalization writer** — durable finalization/status/index ownership plus exactly one Journal expense/liability append and recovery.
-6. **Wise card evidence characterization** — distinguish existing-ILS-balance spending from purchase-time automatic conversion using public synthetic or user-supplied redacted statement shapes.
-7. **Narrow per-account position and obligation read models** — physical ILS cash, Wise ILS balance, friend JPY liability, and confirmed own-card JPY spending kept separate.
-8. **Synthetic whole-trip rehearsal** — prove no duplicated expense and zero-or-explained balances.
-9. **Human-controlled production readiness checkpoint**.
+1. **Native Journal ILS ordinary-add implementation** — depends on the generic supported-single-currency proof, production profile decision, and Stage 2A/context carrier decision above.
+2. **Travel metadata admission** — separately decide and test `trip-id` and `payment`; do not infer support from the old TSV metadata path.
+3. **Bidirectional account-explicit exchange** — widen the existing safe JPY→ILS event rail to admit ILS→JPY without inferring physical cash versus Wise from account names.
+4. **Friend atomic JPY finalization writer** — durable finalization/status/index ownership plus exactly one Journal expense/liability append and recovery.
+5. **Wise card evidence characterization** — distinguish existing-ILS-balance spending from purchase-time automatic conversion using public synthetic or user-supplied redacted statement shapes.
+6. **Narrow per-account position and obligation read models** — physical ILS cash, Wise ILS balance, friend JPY liability, and confirmed own-card JPY spending kept separate.
+7. **Synthetic whole-trip rehearsal** — prove no duplicated expense and zero-or-explained balances.
+8. **Human-controlled production readiness checkpoint**.
 
 Selection rules:
 
 - select at most one candidate;
-- do not bundle non-JPY Journal admission with metadata, reverse exchange, friend finalization, Wise semantics, or reports;
+- do not bundle supported-currency Journal work with metadata, reverse exchange, friend finalization, Wise semantics, or reports;
 - never add JPY and ILS;
 - do not use private production data to determine policy;
 - do not create accounts automatically;
@@ -111,7 +110,7 @@ Selection rules:
 
 ### Generic projection and valuation foundation
 
-Status: paused while the selected non-JPY admission characterization is active.
+Status: unselected docs-only follow-up.
 
 Canonical intake:
 
@@ -182,12 +181,13 @@ Status: unselected / parked Israel continuation candidate.
 
 ### Mixed-ledger daily-use continuation
 
-Status: non-JPY single-currency admission characterization selected separately; residual candidates remain unselected.
+Status: supported single-currency characterization complete; residual mixed-ledger candidates remain unselected.
 
 - Current broad plan: `docs/archive/active-plans/CURRENCY_MIXED_JPY_ILS_DAILY_USE_PLAN-2026-07-12.md`.
 - Israel lifecycle plan: `docs/archive/active-plans/ISRAEL_ILS_CASH_LIFECYCLE_PLAN-2026-07-25.md`.
 - M3 and strict-source Step 1 are complete historically, but the native Journal cutover leaves current ordinary Actual writing/parsing JPY-only.
 - strict-source Steps 2–5 and M4 remain unselected and do not auto-start.
+- supported single-currency work does not authorize mixed-currency context materialization or totals.
 
 ### Ledger Observatory long-term program
 
