@@ -45,6 +45,16 @@ ils ← admission.Admit ⟨ilsRaw, resolved⟩
 2 lib.AssertEq (1 ⊑ ils.normalized_postings).source_scale
 "ILS" lib.AssertEq (0 ⊑ ils.normalized_postings).commodity
 "ILS" lib.AssertEq (1 ⊑ ils.normalized_postings).account_currency
+1 lib.AssertEq ≠ ils.transactions
+"proof-ils-1" lib.AssertEq (0 ⊑ ils.transactions).source_event_id
+"durable" lib.AssertEq (0 ⊑ ils.transactions).identity_kind
+"2026-07-20" lib.AssertEq (0 ⊑ ils.transactions).date
+"synthetic ILS meal" lib.AssertEq (0 ⊑ ils.transactions).description
+"actual" lib.AssertEq (0 ⊑ ils.transactions).layer_name
+"ILS" lib.AssertEq (0 ⊑ ils.transactions).domain
+2 lib.AssertEq (0 ⊑ ils.transactions).calculation_scale
+2 lib.AssertEq ≠ (0 ⊑ ils.transactions).postings
+"-12.34" lib.AssertEq (0 ⊑ (0 ⊑ ils.transactions).postings).amount_text
 
 usdRaw ← Raw ⟨
   "commodity USD",
@@ -67,6 +77,9 @@ usd ← admission.Admit ⟨usdRaw, resolved⟩
 2 lib.AssertEq ≠ usd.normalized_postings
 ¯75 lib.AssertEq (0 ⊑ usd.normalized_postings).normalized_coefficient
 75 lib.AssertEq (1 ⊑ usd.normalized_postings).normalized_coefficient
+1 lib.AssertEq ≠ usd.transactions
+"proof-usd-1" lib.AssertEq (0 ⊑ usd.transactions).source_event_id
+"USD" lib.AssertEq (0 ⊑ usd.transactions).domain
 
 # The unchanged production profile still rejects raw non-JPY evidence.
 productionIls ← stage1.ParseWithProfile ⟨ilsRaw, "strict_self_contained"⟩
@@ -156,5 +169,20 @@ multipleCommodityRaw ← Raw ⟨
 multipleCommodity ← admission.Admit ⟨multipleCommodityRaw, resolved⟩
 "error" lib.AssertEq multipleCommodity.state
 lib.Assert HasCode ⟨"commodity_domain_count_invalid", multipleCommodity⟩
+
+# The semantic account registry knows both accounts, but the Journal declaration
+# surface omits one. The unchanged Stage 1 structural parser must reject it.
+undeclaredRaw ← Raw ⟨
+  "commodity ILS",
+  "",
+  "account assets:cash-ils",
+  "",
+  "2026-07-22 * undeclared account",
+  "  assets:cash-ils  -1.00 ILS",
+  "  expenses:food-ils  1.00 ILS"
+⟩
+undeclared ← admission.Admit ⟨undeclaredRaw, resolved⟩
+"error" lib.AssertEq undeclared.state
+lib.Assert HasCode ⟨"posting_account_unknown", undeclared⟩
 
 •Out "test_journal_supported_single_currency_admission_proof.bqn: OK"
