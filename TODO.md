@@ -8,6 +8,7 @@ This file is a lightweight notebook for the current state of `bqn-ledger`. It re
 - `plan.tsv`, `budget_alloc.tsv`, `accounts.tsv`, `cycle.tsv`, and `issues.tsv` remain companion and configuration sources.
 - Journal parsing, Posting IR, complete-source admission, selected-domain JPY/ILS/USD context, and native multi-currency writing are present.
 - `src_next/selected_domain_context.bqn` composes one selected currency through a flat fail-closed stage sequence: policy, Actual admission, Actual currency proof, non-Actual preparation, context scale, exact normalization, and period views.
+- `src_next/projection.bqn` ownership is inventoried in `docs/archive/audits/PROJECTION_BQN_OWNERSHIP_AUDIT-2026-07-26.md`; it is a mixed Posting IR vocabulary shelf rather than a generic projection engine.
 - Travel metadata (`trip-id`, `payment`) and bidirectional JPY/ILS exchange events are supported on their explicit source paths.
 - Plan completion keeps currency selection and validation in `plan.tsv` while avoiding redundant `currency` metadata in the Actual Journal.
 - Journal metadata categories and cleanup evidence are recorded in `docs/JOURNAL_METADATA_INVENTORY.md`.
@@ -19,7 +20,8 @@ This file is a lightweight notebook for the current state of `bqn-ledger`. It re
 
 ## Things worth exploring
 
-- audit `src_next/projection.bqn` next: remove obsolete compatibility where evidence permits, separate formatting from semantic vocabulary, and re-check arithmetic-proof ownership without fragmenting the module mechanically;
+- first, move the diagnostic projection table and source-balance display used only by `src_next/main.bqn` out of `src_next/projection.bqn`, preserve public-fixture output exactly, and correct the stale prototype/contract comments without changing production reports;
+- after that slice, separately characterize dead compatibility exports (`ResolveDay`, `RequireArithmeticCurrencyProof`, exported scalar helpers), direct date ownership, arithmetic-proof ownership, and shared Layer ownership rather than combining them into one broad refactor;
 - add a privacy-safe read-only count of metadata keys in the selected Journal;
 - stop copying plan-only `recur` and `series` metadata into completed Actual transactions;
 - test whether explicit `layer: actual` can disappear from an Actual-only Journal without changing behavior;
@@ -40,6 +42,8 @@ For whole-Journal or cross-view grouping, arithmetic domain is a partition/key r
 The first direct consumer exposed an important boundary: transaction-level `kind` describes a transaction, while expense membership for a posting comes from the posting's AccountKey partition. A multi-posting expense transaction may contain non-expense debit coordinates, so those meanings must not be collapsed.
 
 A flat pipeline is useful only when it preserves first-failure ownership. Later stages must not run after policy, source admission, currency proof, or non-Actual validation fails, and no partial selected context may escape.
+
+Code beauty here means truthful ownership, not maximum file count. Remove the clearest foreign responsibility, run the full evidence gate, then re-observe the remaining module before extracting another seam.
 
 Add observations, questions, promising experiments, and unfinished threads when that helps the next person understand the landscape. Remove or summarize completed notes during the same task. Git retains the longer history.
 
