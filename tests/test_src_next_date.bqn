@@ -30,6 +30,13 @@ validate ← •Import "../src_edit/validate.bqn"
 1 lib.AssertEq dt.DaysBetween ⟨"2026-06-30", "2026-07-01"⟩
 2 lib.AssertEq dt.DaysBetween ⟨"2024-02-28", "2024-03-01"⟩
 
+# Legacy epoch coordinates must retain their existing invalid-month failure
+# boundary rather than silently normalizing malformed source dates.
+InvalidEpochMonthErrors ← {𝕊:
+  ({𝕊 ⋄ dt.DaysFromEpoch "2026-99-99" ⋄ 0}⎊{𝕊 ⋄ 1}) @
+}
+1 lib.AssertEq InvalidEpochMonthErrors @
+
 # Legacy epoch coordinates must remain a one-day lattice across leap, year,
 # and Gregorian century boundaries.
 1 lib.AssertEq (dt.DaysFromEpoch "2024-01-01") - (dt.DaysFromEpoch "2023-12-31")
