@@ -12,7 +12,7 @@
 # current engine section 1.
 
 actual_source ← •Import "actual_source.bqn"
-proj ← •Import "projection.bqn"
+dt ← •Import "date.bqn"
 tbds ← •Import "tbds.bqn"
 cube ← •Import "cube.bqn"
 fmt ← •Import "format.bqn"
@@ -30,10 +30,10 @@ LatestActualDateInCycle ← {𝕊 base‿cy:
   available_cycle ← (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (cy.day_count > 0)
   out ← "unavailable/no_data"
   {𝕊:
-    start_dn ← proj.DaysFromEpoch cy.start
-    end_dn ← proj.DaysFromEpoch cy.end_exclusive
+    start_dn ← dt.DaysFromEpoch cy.start
+    end_dn ← dt.DaysFromEpoch cy.end_exclusive
     DateInCycle ← {𝕊 d:
-      dn ← proj.DaysFromEpoch d
+      dn ← dt.DaysFromEpoch d
       (dn ≥ start_dn) ∧ (dn < end_dn)
     }
     in_dates ← (DateInCycle¨ dates) / dates
@@ -46,14 +46,14 @@ LatestActualDateInCycle ← {𝕊 base‿cy:
 RemainingDaysText ← {𝕊 asOf‿cy:
   unavail ← (unav.IsUnavailable asOf) ∨ (unav.IsUnavailable cy.end_exclusive)
   out ← asOf
-  {𝕊: out ↩ •Fmt ((proj.DaysFromEpoch cy.end_exclusive) - proj.DaysFromEpoch asOf) }⍟(¬unavail) @
+  {𝕊: out ↩ •Fmt ((dt.DaysFromEpoch cy.end_exclusive) - dt.DaysFromEpoch asOf) }⍟(¬unavail) @
   out
 }
 
 DaysElapsed ← {𝕊 asOf‿cy:
   unavail ← (unav.IsUnavailable asOf) ∨ (unav.IsUnavailable cy.start)
   out ← ¯1
-  {𝕊: out ↩ (proj.DaysFromEpoch asOf) - proj.DaysFromEpoch cy.start }⍟(¬unavail) @
+  {𝕊: out ↩ (dt.DaysFromEpoch asOf) - dt.DaysFromEpoch cy.start }⍟(¬unavail) @
   out
 }
 
