@@ -14,6 +14,7 @@ DAILY_FLOW="$ROOT_DIR/src_next/daily_flow.bqn"
 DAILY_TREND="$ROOT_DIR/src_next/daily_trend.bqn"
 SNAPSHOT="$ROOT_DIR/src_next/snapshot.bqn"
 CALC_MAIN="$ROOT_DIR/src_next/calc/main.bqn"
+OUTLOOK="$ROOT_DIR/src_next/outlook.bqn"
 DATE_TEST="$ROOT_DIR/tests/test_src_next_date.bqn"
 
 fail() {
@@ -65,8 +66,8 @@ if grep -REn '[.]ResolveDay([^A-Za-z0-9_]|$)|[.](IsDigits|IsIntegerText|MetaValu
     fail 'qualified caller of a removed projection compatibility field remains'
 fi
 
-# P3a-P3i restore direct date ownership in date-only projection consumers.
-for file in "$CYCLE" "$ACTUAL_SNAPSHOT" "$ACTUAL_COMPARISON" "$YTD_SUMMARY" "$PLANNED_PAYMENTS" "$ACTUAL_SOURCE" "$TBDS" "$DAILY_FLOW" "$DAILY_TREND" "$SNAPSHOT" "$CALC_MAIN"; do
+# P3a-P3j restore direct date ownership in date-only projection consumers.
+for file in "$CYCLE" "$ACTUAL_SNAPSHOT" "$ACTUAL_COMPARISON" "$YTD_SUMMARY" "$PLANNED_PAYMENTS" "$ACTUAL_SOURCE" "$TBDS" "$DAILY_FLOW" "$DAILY_TREND" "$SNAPSHOT" "$CALC_MAIN" "$OUTLOOK"; do
     require_file_match "$file" '•Import "([.][.]/)?date[.]bqn"' "direct date import is missing from ${file#$ROOT_DIR/}"
     reject_file_match "$file" '•Import "([.][.]/)?projection[.]bqn"' "date-only projection dependency returned in ${file#$ROOT_DIR/}"
     reject_file_match "$file" 'proj[.](IsValidDateText|DaysFromEpoch)' "forwarded projection date call remains in ${file#$ROOT_DIR/}"
@@ -86,4 +87,4 @@ require_match '^[[:space:]]*ArithmeticCurrencyAuthorizationMessage[[:space:]]*�
 require_match '^[[:space:]]*IsValidDateText[[:space:]]*⇐' 'temporary date validation compatibility export disappeared before P3 completion'
 require_match '^[[:space:]]*DaysFromEpoch[[:space:]]*⇐' 'temporary day-coordinate compatibility export disappeared before P3 completion'
 
-echo "OK: projection P2 and date-ownership P3a-P3i boundaries"
+echo "OK: projection P2 and date-ownership P3a-P3j boundaries"
