@@ -18,7 +18,7 @@ failures=0
 fail() { echo "FAIL: $*" >&2; failures=$((failures + 1)); }
 pass() { echo "PASS: $*"; }
 
-bqn src_next/main.bqn "$base" > "$output" 2>/dev/null
+bqn src_next/developer_inspection.bqn "$base" > "$output" 2>/dev/null
 
 # Section: nonzero actual account totals
 # If any budget:* account appears here, it carries nonzero actual totals — invariant broken.
