@@ -6,6 +6,7 @@ tbds ← •Import "tbds.bqn"
 loader ← •Import "loader.bqn"
 dt ← •Import "date.bqn"
 proj ← •Import "projection.bqn"
+layer ← •Import "layer.bqn"
 fmt ← •Import "format.bqn"
 labels ← •Import "report_labels.bqn"
 plan_rows ← •Import "plan_rows.bqn"
@@ -85,7 +86,7 @@ RowsForPlanSource ← {𝕊 rows‿source_row:
 PairStructureOk ← {𝕊 ev‿rows:
   debit_count ← +´ ("debit"⊸≡¨ {𝕩.side}¨ rows)
   credit_count ← +´ ("credit"⊸≡¨ {𝕩.side}¨ rows)
-  plan_layers ← {𝕩.layer_index = proj.layer_plan}¨ rows
+  plan_layers ← {𝕩.layer_index = layer.layer_plan}¨ rows
   matching_dates ← ev.date⊸≡¨ {𝕩.date}¨ rows
   (2 = ≠ rows) ∧ (1 = debit_count) ∧ (1 = credit_count) ∧ (∧´ plan_layers) ∧ (∧´ matching_dates)
 }
@@ -222,7 +223,7 @@ Build ← {𝕊 ctx:
 
   {𝕊:
     # Extract nonzero actual income entries for breakdown.
-    all_actual ← tbds.RowsForLayer ⟨cube.layer_actual, ctx.tbds⟩
+    all_actual ← tbds.RowsForLayer ⟨layer.layer_actual, ctx.tbds⟩
     IsIncome ← { (𝕩.role ≡ "income") ∧ (𝕩.credit_movement ≠ 0) }
     income_rows ← (IsIncome¨ all_actual) / all_actual
     income_entries ← {⟨𝕩.account_key, -𝕩.credit_movement⟩}¨ income_rows
