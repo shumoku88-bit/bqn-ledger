@@ -4,7 +4,7 @@
 # Plan/journal matching uses plan_id metadata (primary) with 5-field TSV fallback.
 
 loader ← •Import "loader.bqn"
-proj ← •Import "projection.bqn"
+date ← •Import "date.bqn"
 cube ← •Import "cube.bqn"
 fmt ← •Import "format.bqn"
 labels ← •Import "report_labels.bqn"
@@ -47,10 +47,10 @@ LatestActualDateInCycle ← {𝕊 base‿cy:
   available_cycle ← (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (cy.day_count > 0)
   out ← cy.start
   {𝕊:
-    start_dn ← proj.DaysFromEpoch cy.start
-    end_dn ← proj.DaysFromEpoch cy.end_exclusive
+    start_dn ← date.DaysFromEpoch cy.start
+    end_dn ← date.DaysFromEpoch cy.end_exclusive
     DateInCycle ← {𝕊 d:
-      dn ← proj.DaysFromEpoch d
+      dn ← date.DaysFromEpoch d
       (dn ≥ start_dn) ∧ (dn < end_dn)
     }
     in_dates ← (DateInCycle¨ dates) / dates

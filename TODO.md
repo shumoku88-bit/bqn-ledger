@@ -15,7 +15,8 @@ This file is a lightweight notebook for the current state of `bqn-ledger`. It re
 - Projection-cleanup P2b is complete: the unused effectful `RequireArithmeticCurrencyProof` wrapper and export are gone; `AuthorizeArithmeticCurrencyProof` and `ArithmeticCurrencyAuthorizationMessage` remain the data-only proof boundary; fatal stdout and exit behavior remain in the outer `context.bqn` compatibility wrapper; and the checked-result contract now describes the implemented runtime rather than the earlier design phase.
 - Projection-cleanup P3a is complete: `cycle.bqn` and `actual_snapshot.bqn` now call their existing direct `date.bqn` imports for validation and epoch coordinates, no longer import `projection.bqn`, and the focused date test no longer treats projection forwarding aliases as part of the date contract. Evidence is recorded in `docs/archive/audits/PROJECTION_DATE_OWNERSHIP_P3A-2026-07-26.md`.
 - Projection-cleanup P3b is complete: `actual_comparison.bqn` now uses its existing `date.bqn` import for all validation and epoch coordinates and no longer imports `projection.bqn`. Comparison windows, previous-anchor selection, rejected-evidence applicability, TBDS inputs, and report formatting are unchanged. Evidence is recorded in `docs/archive/audits/PROJECTION_DATE_OWNERSHIP_P3B-2026-07-26.md`.
-- `checks/check-projection-compatibility-exports.sh` guards the completed P2 boundary and the completed P3a/P3b direct-date groups against regression.
+- Projection-cleanup P3c is complete: `ytd_summary.bqn` and `planned_payments.bqn` now import `date.bqn` directly and no longer import `projection.bqn`; YTD range construction, Cube inputs, planned-payment observation boundaries, and compact/human/JSON outputs are unchanged. Evidence is recorded in `docs/archive/audits/PROJECTION_DATE_OWNERSHIP_P3C-2026-07-26.md`.
+- `checks/check-projection-compatibility-exports.sh` guards the completed P2 boundary and the completed P3a-P3c direct-date groups against regression.
 - `src_next/main.bqn` is no longer the implementation owner. It is a temporary compatibility wrapper that imports `developer_inspection.bqn`; current tools and checks use the named entrypoint directly and verify byte-equivalent wrapper behavior.
 - `src_next` module topology is recorded in `docs/archive/audits/SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md`: 71 BQN modules, 69 at root, 276 direct imports, no missing direct target, and no import cycle.
 - `tools/src-next-import-graph` and `checks/check-src-next-import-graph.sh` provide repeatable direct-import evidence for future directory migrations.
@@ -32,8 +33,9 @@ This file is a lightweight notebook for the current state of `bqn-ledger`. It re
 
 ## Things worth exploring
 
-- inventory the remaining `projection.IsValidDateText` and `projection.DaysFromEpoch` callers by responsibility and distinguish date-only projection dependencies from modules that also consume Posting IR, Layer, or proof vocabulary;
-- select the next coherent P3 caller group from that inventory before adding new direct `date.bqn` imports; do not perform a blind repository-wide replacement;
+- continue inventorying remaining forwarded-date callers by ownership group: low-level state/materialization, Actual source/admission, CLI/query views, and mixed projection-vocabulary modules;
+- select the next coherent P3 group before adding direct `date.bqn` imports; keep high-fan-in `tbds.bqn` and `actual_source.bqn` as separate explicit slices rather than hiding them inside report cleanup;
+- keep mixed modules that also consume `FieldOrEmpty`, Layer constants, proof helpers, or `ResolveDayFromCycle` separate from date-only imports;
 - remove the temporary `projection.IsValidDateText` and `projection.DaysFromEpoch` exports only after executable callers and focused tests have migrated;
 - reassess the live arithmetic-proof predicate/message ownership after the dead effectful wrapper removal;
 - inventory shared Layer ownership as its own slice rather than combining it with date or proof cleanup;
@@ -59,7 +61,7 @@ The first direct consumer exposed an important boundary: transaction-level `kind
 
 A flat pipeline is useful only when it preserves first-failure ownership. Later stages must not run after policy, source admission, currency proof, or non-Actual validation fails, and no partial selected context may escape.
 
-Code beauty here means truthful ownership, not maximum file count. P1 moved only the clearest foreign responsibility; P2 then removed compatibility surfaces only after caller and contract evidence. P3 is restoring direct date ownership in coherent caller groups rather than through one mass path rewrite. The already-importing callers are now complete; later groups require explicit dependency and responsibility evidence.
+Code beauty here means truthful ownership, not maximum file count. P1 moved only the clearest foreign responsibility; P2 then removed compatibility surfaces only after caller and contract evidence. P3 is restoring direct date ownership in coherent caller groups rather than through one mass path rewrite. Already-importing callers and the first report-facing date-only pair are now complete; shared hubs and mixed-vocabulary modules remain deliberately separate.
 
 A compatibility wrapper is not an implementation owner. New code, checks, and docs should name `developer_inspection.bqn`; `main.bqn` may be removed only through an explicit compatibility decision rather than by accidentally letting it grow again.
 
