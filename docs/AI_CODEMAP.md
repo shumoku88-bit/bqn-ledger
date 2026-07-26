@@ -18,7 +18,7 @@ Updated: 2026-07-26
 5. `docs/ARCHITECTURE.md`（データフロー・モジュール責務）
 6. `docs/CANONICAL_DAILY_CUBE.md`（固定するDaily Cube契約）
 7. `docs/TIME_AS_AXIS.md`（時間座標・観察時点・区間view）
-8. projection変更なら `docs/archive/active-plans/PURPOSE_SPECIFIC_PROJECTION_COMPOSITION_DIRECTION-2026-07-25.md` と該当する `src_next/*` consumer
+8. projection変更なら `docs/archive/active-plans/PURPOSE_SPECIFIC_PROJECTION_COMPOSITION_DIRECTION-2026-07-25.md`、`docs/archive/audits/PROJECTION_BQN_OWNERSHIP_AUDIT-2026-07-26.md`、該当する `src_next/*` consumer
 9. レポート変更なら `src_next/report.bqn` と該当する `src_next/*` モジュール、`docs/REPORT_CONTRACTS.md` / `docs/REPORT_SECTION_CONTRACT_CHECKLIST.md`、および現行の report 関連 check
 10. エディタ作業なら `docs/PRODUCTION_EDITOR_DIRECTION.md` / `docs/BQN_EDITOR_USAGE.md` / `src_edit/README.md`
 11. 複数ポスティング導入検討なら `docs/archive/completed-plans/DECISION_MULTI_POSTING_INVESTIGATION.md`
@@ -41,6 +41,7 @@ Updated: 2026-07-26
 - 大きめの相談が来たら、通常TODO/active planを進める話か、BQN editor トラックか、先にmokoへ確認する。
 - transaction-level `kind` とposting-level AccountKey partitionを混同しない。multi-posting transactionでは一つのtransaction kindの中に異なるaccount coordinateが共存する。
 - flatなstage列へ整理するときも、first-failure ownership、diagnostic code、no-partial-resultを変えない。後段stageは前段成功時だけ実行する。
+- `src_next/main.bqn` はdeveloper inspection入口であり、production report ownerではない。projection tableやsource-balance表示を`projection.bqn`へ戻さず、productionは `tools/report` → `src_next/report.bqn` の境界を保つ。
 
 ## 作業完了ゲート
 
@@ -71,9 +72,11 @@ Updated: 2026-07-26
    │    │    │    └─ explicit semantic partition + src_next/exact_sparse_grouping.bqn
    │    │    │         └─ src_next/actual_expense_ranking.bqn (first direct sparse consumer)
    │    │    │
-   │    │    └─ src_next/report.bqn (人間向けレポート)
+   │    │    └─ src_next/report.bqn (人間向けproduction report)
    │    │         ├─ src_next/issues.bqn (Issues & Decisions 表示)
    │    │         └─ src_next/summary.bqn (機械向けコンパクト出力)
+   │    │
+   │    └─ src_next/main.bqn (developer inspection only: AccountKey / Posting IR table / Cube sanity)
 ```
 
 `actual_expense_ranking.bqn`は現時点でpublic report sectionへ配線されていない。checked selected-domain posting factsを使うpurpose-specific consumerとして、public synthetic fixtureとfocused testでcharacterizeされている。
@@ -114,7 +117,8 @@ Updated: 2026-07-26
 - `trial_balance.bqn` — 試算表エクスポート。debit/credit 符号付き。
 - `cycle.bqn` — サイクル期間の解決。date.bqn を使用。
 - `account_key.bqn` — 勘定科目のキー解決。
-- `projection.bqn` — Posting IR 投影。
+- `projection.bqn` — non-Actual TSV routeのPosting IR construction vocabularyと、現行のLayer / day-coordinate / arithmetic-proof compatibility seamsを共有する。P1後はprojection column list、table formatting、source-balance presentationを所有・exportしない。
+- `main.bqn` — 非productionのdeveloper inspection入口。AccountKey、checked Posting IR table、source-balance表示、Cube sanity、policy diagnosticを出す。diagnostic presentationはこのsole consumerへlocalizeされ、production `report.bqn`から参照されない。
 - `snapshot.bqn` — Balance Sheet / Snapshot。TBDS closing を使用。構造化された ViewModel JSON 出力（FormatJson）もサポート。
 - `selected_domain_context.bqn` — 明示されたregistry-supportedな1通貨を、policy → complete Actual admission → Actual currency-proof carriage → non-Actual evidence/projection preparation → context-scale selection → exact normalization → Cube/TBDS period viewsのflatなstage列で構成する。`PrepareNonActualRows`と`NormalizeSelectedRows`はmodule内部のsemantic stageで、public exportは増やさない。各stageは前段成功時だけ実行し、failure code/diagnosticsを保持して部分contextを返さない。成功時はchecked posting rows、resolved metadata、Cube/TBDS viewを返し、同domainのposting rowsをdirect sparse projectionへ渡せる。Currency axis、FX、valuationは扱わない。
 - `balances.bqn` — 残高表示。human `--section balances --currency CODE`は常にselected-domain contextを使い、対象通貨のaccount残高と累計expenseを全supported currencyで同じsection構造により表示する。数値書式だけcurrency policyに従い、既存JSON契約は維持する。
@@ -198,7 +202,8 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 
 ### `checks/` (検証スクリプト)
 
-- `check-src-next-golden.sh` — src_next golden fixture チェック。
+- `check-src-next-golden.sh` — src_next developer inspection golden fixture チェック。projection header、tabular rows、source-balance表示も固定する。
+- `check-projection-diagnostic-presentation.sh` — diagnostic presentationが`src_next/main.bqn`へlocalizeされ、`projection.bqn`やproduction reportへ戻らないことを検証する。
 - `check-src-next-minimal-summary.sh` — 最小サマリチェック。
 - `check-src-next-cycle-summary.sh` — サイクルサマリチェック。
 - `check-src-next-ytd-summary.sh` — YTD サマリチェック。

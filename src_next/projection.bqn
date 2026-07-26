@@ -1,25 +1,20 @@
 # projection.bqn
-# Projection row skeleton for the cycle-ledger prototype.
+# Shared Posting IR construction vocabulary for the non-Actual TSV route,
+# plus current Layer, day-coordinate, and arithmetic-proof compatibility seams.
 #
-# Contract (PROJECTION_CONTRACT.md):
-#   source record
-#     -> account resolution
-#     -> currency resolution
-#     -> AccountKey resolution
-#     -> day/cycle resolution
-#     -> layer assignment
-#     -> delta output
+# Current contracts:
+#   - docs/POSTING_IR_CONTRACT.md
+#   - docs/CANONICAL_DAILY_CUBE.md
+#   - docs/PURE_CHECKED_POSTING_PROJECTION_RESULT_CONTRACT.md
 #
-# Non-goals for this skeleton:
-#   - does not materialize a cube
-#   - does not produce report sections
-#   - does not perform currency conversion
+# This module does not materialize Cube/TBDS, render diagnostic tables, or
+# produce report sections. Developer inspection presentation lives in main.bqn.
 
 dt ← •Import "date.bqn"
 setup ← •Import "currency_setup.bqn"
 
 
-# ── Layer constants (AXIS_CONTRACT.md) ───────────────────────
+# ── Layer constants (docs/CANONICAL_DAILY_CUBE.md) ────────────
 
 layer_actual   ← 0
 layer_plan     ← 1
@@ -36,47 +31,27 @@ SourceLayer ← {𝕊 src:
   i ⊑ source_layer_vals
 }
 
-# ── ProjectionRow conceptual shape (PROJECTION_CONTRACT.md §3)
-#   source_file       source TSV file name               (String)
-#   source_row        line number in source file          (Number)
-#   source_id         identifier from source record       (String)
-#   tx_id             transaction group id                (String)
-#   posting_id        stable posting row id               (String)
-#   date              source date YYYY-MM-DD              (String)
-#   side              "debit" / "credit"                 (String)
-#   day_index         day offset within loaded range      (Number)
-#   account_key       canonical AccountKey string          (String)
-#   account_key_index index into AccountKey table         (Number)
-#   layer_name        layer name                          (String)
-#   layer_index       layer (0=actual, 1=plan, 2=budget, 3=forecast)
-#   delta             signed integer amount; debit positive, credit negative (Number)
-#   kind              "income" / "expense" / "transfer" / "budget"
-#   status            "ok" / "warning" / "unknown_account" / ...
-#   message           human-readable note                 (String)
-
-# ── Column header (ordered) ──────────────────────────────────
-
-proj_cols ← ⟨
-  "source_file",
-  "source_row",
-  "source_id",
-  "tx_id",
-  "posting_id",
-  "date",
-  "side",
-  "day_index",
-  "account_key",
-  "account_key_index",
-  "layer_name",
-  "layer_index",
-  "delta",
-  "kind",
-  "status",
-  "message"
-⟩
+# ── Current Posting IR conceptual shape ──────────────────────
+# See docs/POSTING_IR_CONTRACT.md for the canonical field contract.
+#   source_file       source file identity                    (String)
+#   source_row        row / transaction ordinal               (Number)
+#   source_id         source event identity                    (String)
+#   tx_id             transaction group id                     (String)
+#   posting_id        stable posting row id                    (String)
+#   date              source date YYYY-MM-DD                   (String)
+#   side              "debit" / "credit"                     (String)
+#   day_index         day offset from supplied cycle start     (Number)
+#   account_key       canonical AccountKey string              (String)
+#   account_key_index index into AccountKey table              (Number)
+#   layer_name        layer name                               (String)
+#   layer_index       layer (actual / plan / budget / forecast)
+#   delta             signed exact amount                      (Number)
+#   kind              transaction-level classification         (String)
+#   status            row status                               (String)
+#   message           diagnostic note                          (String)
 
 # ── Kind inference ───────────────────────────────────────────
-# Infer kind from source from/to account metadata.
+# Infer transaction kind from source from/to account metadata.
 # - explicit role=income on from account → income
 # - explicit role=expense on to account  → expense
 # - otherwise                           → transfer
@@ -99,13 +74,12 @@ FieldOrEmpty ← {𝕊 flds‿i:
 }
 
 # Date validation is owned by src_next/date.bqn so edit and report paths share
-# one Gregorian YYYY-MM-DD contract.
+# one Gregorian YYYY-MM-DD contract. This alias remains for compatibility and
+# will be reassessed separately from the diagnostic presentation cleanup.
 IsValidDateText ← dt.IsValidDateText
 
-# ── Pure BQN date-to-absolute-days (proleptic Gregorian) ────
-# Returns days since year 0-01-01.
-# No external date command; no external library.
-
+# Legacy absolute day coordinate forwarded from date.bqn. Differences are used
+# by the current Posting IR day-index seam.
 DaysFromEpoch ← dt.DaysFromEpoch
 
 # ── Day index resolution (cycle-start-based) ────────────────
@@ -115,8 +89,9 @@ ResolveDayFromCycle ← {𝕊 date‿cycleStart:
   (DaysFromEpoch date) - DaysFromEpoch cycleStart
 }
 
-# ── Legacy ResolveDay (hardcoded base, kept for backward compat) ──
-# TODO: remove after all callers migrate to ResolveDayFromCycle.
+# ── Legacy ResolveDay (hardcoded base, kept for compatibility) ──
+# No current repository caller was observed in the 2026-07-26 ownership audit.
+# Removal requires its own external-compatibility characterization slice.
 ResolveDay ← {𝕊 date:
   ResolveDayFromCycle ⟨date, "2026-01-01"⟩
 }
@@ -164,7 +139,7 @@ AuthorizeArithmeticCurrencyProof ← {𝕊 proof:
   domain ← ProofDomain proof
   basis ← ProofBasis proof
   scale ← ProofScale proof
-  
+
   ok ← (state ≡ "proven") ∧ (IsAllowedProofDomainBasis ⟨domain, basis⟩) ∧ (IsAllowedProofBasis basis) ∧ (IsNonNegativeInteger scale)
   ok ↩ ok ∧ (basis ≢ "empty_source_compatibility") ∨ scale ≡ 0
   ok
@@ -177,9 +152,9 @@ ArithmeticCurrencyAuthorizationMessage ← {𝕊 proof:
   scale ← ProofScale proof
   message ← ProofMessage proof
   msg ← ""
-  
+
   is_valid_scale ← IsNonNegativeInteger scale
-  
+
   msg ↩ (¬ is_valid_scale) ⊑ msg‿"invalid amount_scale in proof"
   {𝕊:
     msg ↩ (scale ≢ 0) ⊑ msg‿"empty_source_compatibility requires amount_scale = 0"
@@ -201,43 +176,6 @@ RequireArithmeticCurrencyProof ← {𝕊 proof:
   ok
 }
 
-# ── Balance validation by source_id ──────────────────────────
-
-Sum0 ← { 0 < ≠𝕩 ? +´𝕩 ; 0 }
-
-BalanceBySourceOk ← {𝕊 rows:
-  ok ← 1
-  {𝕊:
-    ids ← {𝕩.source_id}¨ rows
-    deltas ← {𝕩.delta}¨ rows
-    SumForId ← {𝕊 id: Sum0 ((id⊸≡¨ ids) / deltas)}
-    sums ← SumForId¨ ids
-    ok ↩ ∧´ sums = 0
-  }⍟(0 < ≠ rows) @
-  ok
-}
-
-FormatBalanceCheck ← {𝕊 rows:
-  ok ← BalanceBySourceOk rows
-  "projection_balance_by_source: " ∾ (ok ⊑ "FAIL"‿"ok")
-}
-
-# ── Format table ─────────────────────────────────────────────
-
-FormatProjTable ← {𝕊 rows:
-  FmtOne ← {𝕊 xs: ∾ (•Fmt¨xs) ∾¨ (@+9)}
-  hdr ← FmtOne proj_cols
-
-  ToRow ← {𝕊 r:
-    ⟨ r.source_file, •Fmt r.source_row, r.source_id, r.tx_id, r.posting_id, r.date, r.side,
-      •Fmt r.day_index, r.account_key, •Fmt r.account_key_index, r.layer_name, •Fmt r.layer_index,
-      •Fmt r.delta, r.kind, r.status, r.message ⟩
-  }
-
-  data ← FmtOne¨ (ToRow¨ rows)
-  hdr ∾ (@+10) ∾ ∾ (data ∾¨ (@+10))
-}
-
 # ── Export ───────────────────────────────────────────────────
 {
   layer_actual    ⇐ layer_actual,
@@ -245,7 +183,6 @@ FormatProjTable ← {𝕊 rows:
   layer_budget    ⇐ layer_budget,
   layer_forecast  ⇐ layer_forecast,
   SourceLayer     ⇐ SourceLayer,
-  proj_cols       ⇐ proj_cols,
   InferKind       ⇐ InferKind,
   MetaValue             ⇐ MetaValue,
   TxIdFromMeta          ⇐ TxIdFromMeta,
@@ -260,8 +197,5 @@ FormatProjTable ← {𝕊 rows:
   ResolveDayFromCycle   ⇐ ResolveDayFromCycle,
   AuthorizeArithmeticCurrencyProof ⇐ AuthorizeArithmeticCurrencyProof,
   ArithmeticCurrencyAuthorizationMessage ⇐ ArithmeticCurrencyAuthorizationMessage,
-  RequireArithmeticCurrencyProof ⇐ RequireArithmeticCurrencyProof,
-  BalanceBySourceOk     ⇐ BalanceBySourceOk,
-  FormatBalanceCheck    ⇐ FormatBalanceCheck,
-  FormatProjTable       ⇐ FormatProjTable
+  RequireArithmeticCurrencyProof ⇐ RequireArithmeticCurrencyProof
 }
