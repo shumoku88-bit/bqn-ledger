@@ -27,6 +27,7 @@ They are maps, not gates. Read the files that help with the question in front of
 - [`TBDS_CONTRACT.md`](TBDS_CONTRACT.md) — trial-balance dataset boundary
 - [`REPORT_CONTRACTS.md`](REPORT_CONTRACTS.md) — report sections and values
 - [`TIME_AS_AXIS.md`](TIME_AS_AXIS.md) — temporal concepts
+- [`archive/audits/PROJECTION_BQN_OWNERSHIP_AUDIT-2026-07-26.md`](archive/audits/PROJECTION_BQN_OWNERSHIP_AUDIT-2026-07-26.md) — current ownership inventory and bounded cleanup sequence for `src_next/projection.bqn`
 
 ## Reliability
 
