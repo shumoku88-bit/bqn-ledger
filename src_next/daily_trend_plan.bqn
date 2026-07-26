@@ -8,7 +8,7 @@
 
 loader ← •Import "loader.bqn"
 dt ← •Import "date.bqn"
-proj ← •Import "projection.bqn"
+source_fields ← •Import "source_fields.bqn"
 layer ← •Import "layer.bqn"
 cube ← •Import "cube.bqn"
 overlap ← •Import "plan_journal_overlap.bqn"
@@ -34,7 +34,7 @@ BuildEvidenceFromLines ← {𝕊 plan_lines‿journal_lines:
       source_row ⇐ i,
       line ⇐ line,
       flds ⇐ flds,
-      date ⇐ proj.FieldOrEmpty ⟨flds, 0⟩,
+      date ⇐ source_fields.FieldOrEmpty ⟨flds, 0⟩,
       plan_id ⇐ pid,
       required_ok ⇐ 5 ≤ ≠ flds
     }
@@ -47,7 +47,7 @@ BuildEvidenceFromLines ← {𝕊 plan_lines‿journal_lines:
     {𝕊: pid ↩ overlap.PlanId line}⍟(5 ≤ ≠ flds) @
     {
       source_row ⇐ i,
-      date ⇐ proj.FieldOrEmpty ⟨flds, 0⟩,
+      date ⇐ source_fields.FieldOrEmpty ⟨flds, 0⟩,
       plan_id ⇐ pid
     }
   }¨ ↕ ≠ journal_lines
