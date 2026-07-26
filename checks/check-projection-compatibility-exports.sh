@@ -12,6 +12,7 @@ ACTUAL_SOURCE="$ROOT_DIR/src_next/actual_source.bqn"
 TBDS="$ROOT_DIR/src_next/tbds.bqn"
 DAILY_FLOW="$ROOT_DIR/src_next/daily_flow.bqn"
 DAILY_TREND="$ROOT_DIR/src_next/daily_trend.bqn"
+DAILY_TREND_PLAN="$ROOT_DIR/src_next/daily_trend_plan.bqn"
 SNAPSHOT="$ROOT_DIR/src_next/snapshot.bqn"
 CALC_MAIN="$ROOT_DIR/src_next/calc/main.bqn"
 OUTLOOK="$ROOT_DIR/src_next/outlook.bqn"
@@ -75,6 +76,13 @@ done
 reject_file_match "$DATE_TEST" '•Import "[.][.]/src_next/projection[.]bqn"' 'focused date test imports projection again'
 reject_file_match "$DATE_TEST" 'proj[.](IsValidDateText|DaysFromEpoch)' 'focused date test treats projection aliases as contract again'
 
+# P3k restores direct date ownership in a mixed projection consumer.
+require_file_match "$DAILY_TREND_PLAN" '•Import "([.][.]/)?date[.]bqn"' 'direct date import is missing from src_next/daily_trend_plan.bqn'
+require_file_match "$DAILY_TREND_PLAN" '•Import "([.][.]/)?projection[.]bqn"' 'live non-date projection dependency disappeared from src_next/daily_trend_plan.bqn'
+reject_file_match "$DAILY_TREND_PLAN" 'proj[.](IsValidDateText|DaysFromEpoch)' 'forwarded projection date call remains in src_next/daily_trend_plan.bqn'
+require_file_match "$DAILY_TREND_PLAN" 'proj[.]FieldOrEmpty' 'live FieldOrEmpty dependency disappeared from src_next/daily_trend_plan.bqn'
+require_file_match "$DAILY_TREND_PLAN" 'proj[.]layer_plan' 'live layer_plan dependency disappeared from src_next/daily_trend_plan.bqn'
+
 # P2 preserves these neighboring live boundaries until later P3 groups finish.
 require_match '^[[:space:]]*MetaValue[[:space:]]*←' 'local MetaValue helper is missing'
 require_match '^[[:space:]]*MetaValue[[:space:]]+⟨"txn_id", sourceId, metas⟩' 'TxIdFromMeta no longer uses local MetaValue'
@@ -87,4 +95,4 @@ require_match '^[[:space:]]*ArithmeticCurrencyAuthorizationMessage[[:space:]]*�
 require_match '^[[:space:]]*IsValidDateText[[:space:]]*⇐' 'temporary date validation compatibility export disappeared before P3 completion'
 require_match '^[[:space:]]*DaysFromEpoch[[:space:]]*⇐' 'temporary day-coordinate compatibility export disappeared before P3 completion'
 
-echo "OK: projection P2 and date-ownership P3a-P3j boundaries"
+echo "OK: projection P2 and date-ownership P3a-P3k boundaries"
