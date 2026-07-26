@@ -18,6 +18,7 @@ CALC_MAIN="$ROOT_DIR/src_next/calc/main.bqn"
 OUTLOOK="$ROOT_DIR/src_next/outlook.bqn"
 OUTLOOK_REMAINING_PLAN="$ROOT_DIR/src_next/outlook_remaining_plan.bqn"
 CYCLE_SUMMARY="$ROOT_DIR/src_next/cycle_summary.bqn"
+ENVELOPE_COMPUTATION="$ROOT_DIR/src_next/envelope_computation.bqn"
 DATE_TEST="$ROOT_DIR/tests/test_src_next_date.bqn"
 
 fail() {
@@ -99,6 +100,12 @@ reject_file_match "$CYCLE_SUMMARY" 'proj[.](IsValidDateText|DaysFromEpoch)' 'for
 require_file_match "$CYCLE_SUMMARY" 'proj[.]FieldOrEmpty' 'live FieldOrEmpty dependency disappeared from src_next/cycle_summary.bqn'
 require_file_match "$CYCLE_SUMMARY" 'proj[.]layer_plan' 'live layer_plan dependency disappeared from src_next/cycle_summary.bqn'
 
+# P3n restores direct date ownership while preserving the live cycle-relative helper.
+require_file_match "$ENVELOPE_COMPUTATION" '•Import "([.][.]/)?date[.]bqn"' 'direct date import is missing from src_next/envelope_computation.bqn'
+require_file_match "$ENVELOPE_COMPUTATION" '•Import "([.][.]/)?projection[.]bqn"' 'live cycle-relative projection dependency disappeared from src_next/envelope_computation.bqn'
+reject_file_match "$ENVELOPE_COMPUTATION" 'proj[.](IsValidDateText|DaysFromEpoch)' 'forwarded projection date call remains in src_next/envelope_computation.bqn'
+require_file_match "$ENVELOPE_COMPUTATION" 'proj[.]ResolveDayFromCycle' 'live ResolveDayFromCycle dependency disappeared from src_next/envelope_computation.bqn'
+
 # P2 preserves these neighboring live boundaries until later P3 groups finish.
 require_match '^[[:space:]]*MetaValue[[:space:]]*←' 'local MetaValue helper is missing'
 require_match '^[[:space:]]*MetaValue[[:space:]]+⟨"txn_id", sourceId, metas⟩' 'TxIdFromMeta no longer uses local MetaValue'
@@ -111,4 +118,4 @@ require_match '^[[:space:]]*ArithmeticCurrencyAuthorizationMessage[[:space:]]*�
 require_match '^[[:space:]]*IsValidDateText[[:space:]]*⇐' 'temporary date validation compatibility export disappeared before P3 completion'
 require_match '^[[:space:]]*DaysFromEpoch[[:space:]]*⇐' 'temporary day-coordinate compatibility export disappeared before P3 completion'
 
-echo "OK: projection P2 and date-ownership P3a-P3m boundaries"
+echo "OK: projection P2 and date-ownership P3a-P3n boundaries"
