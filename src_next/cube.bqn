@@ -259,6 +259,8 @@ FormatMinimalReportSummary ← {𝕊 ⟨result, ak_keys, cycle_start, cycle_end�
   out ↩ out ∾ "src_next_cycle_range: " ∾ cycle_start ∾ ".." ∾ cycle_end ∾ (@+10)
   out ↩ out ∾ "src_next_valid_projection_rows: " ∾ (•Fmt result.valid_count) ∾ (@+10)
   out ↩ out ∾ "src_next_skipped_projection_rows: " ∾ (•Fmt result.skipped_count) ∾ (@+10)
+  out ↩ out ∾ "src_next_actual_total: " ∾ (•Fmt (layer_actual ⊑ result.layer_totals_vec)) ∾ (@+10)
+  out ↩ out ∾ "src_next_plan_total: " ∾ (•Fmt (layer_plan ⊑ result.layer_totals_vec)) ∾ (@+10)
   out ↩ out ∾ "src_next_actual_expense_total: " ∾ (•Fmt result.actual_expense_total) ∾ (@+10)
   out ↩ out ∾ "src_next_plan_expense_total: " ∾ (•Fmt result.plan_expense_total) ∾ (@+10)
 
