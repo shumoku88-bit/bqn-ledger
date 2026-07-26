@@ -10,7 +10,6 @@
 # cycle-bounded movement: pre-cycle history remains opening balance evidence.
 
 actual_source ← •Import "actual_source.bqn"
-proj ← •Import "projection.bqn"
 date ← •Import "date.bqn"
 cube ← •Import "cube.bqn"
 tbds ← •Import "tbds.bqn"
@@ -20,10 +19,10 @@ LatestActualDateInCycle ← {𝕊 base‿cy:
   available ← (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (cy.day_count > 0)
   out ← cy.start
   {𝕊:
-    start_dn ← proj.DaysFromEpoch cy.start
-    end_dn ← proj.DaysFromEpoch cy.end_exclusive
-    dates ← (proj.IsValidDateText¨ dates0) / dates0
-    DateInCycle ← {𝕊 d: dn ← proj.DaysFromEpoch d ⋄ (dn ≥ start_dn) ∧ (dn < end_dn) }
+    start_dn ← date.DaysFromEpoch cy.start
+    end_dn ← date.DaysFromEpoch cy.end_exclusive
+    dates ← (date.IsValidDateText¨ dates0) / dates0
+    DateInCycle ← {𝕊 d: dn ← date.DaysFromEpoch d ⋄ (dn ≥ start_dn) ∧ (dn < end_dn) }
     in_dates ← (DateInCycle¨ dates) / dates
     {𝕊: out ↩ ¯1 ⊑ (∧ in_dates)}⍟(0 < ≠ in_dates) @
   }⍟(available ∧ (0 < ≠ dates0)) @
@@ -55,9 +54,9 @@ IsJournalActual ← {𝕊 row:
 RejectedDiagnostics ← {𝕊 rows‿as_dn:
   rejected ← ((IsJournalActual¨ rows) ∧ ({𝕩.status ≢ "ok"}¨ rows)) / rows
   Applies ← {𝕊 row:
-    valid_date ← proj.IsValidDateText row.date
+    valid_date ← date.IsValidDateText row.date
     applies ← ¬ valid_date
-    {𝕊: applies ↩ (proj.DaysFromEpoch row.date) ≤ as_dn}⍟valid_date @
+    {𝕊: applies ↩ (date.DaysFromEpoch row.date) ≤ as_dn}⍟valid_date @
     applies
   }
   applicable ← (Applies¨ rejected) / rejected
@@ -76,12 +75,12 @@ RejectedDiagnostics ← {𝕊 rows‿as_dn:
 
 BuildAt ← {𝕊 ctx‿as_of:
   vm ← EmptyErrorVm ⟨as_of, "invalid_observation", ⟨⟩⟩
-  as_ok ← proj.IsValidDateText as_of
+  as_ok ← date.IsValidDateText as_of
 
   {𝕊:
     resolved ← ctx.resolved
     rows ← ctx.posting_rows
-    as_dn ← proj.DaysFromEpoch as_of
+    as_dn ← date.DaysFromEpoch as_of
     diagnostics ← RejectedDiagnostics ⟨rows, as_dn⟩
     vm ↩ EmptyErrorVm ⟨as_of, "rejected_actual_evidence", diagnostics⟩
 
