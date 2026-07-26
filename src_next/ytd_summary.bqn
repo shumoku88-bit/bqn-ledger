@@ -5,7 +5,7 @@
 # journal rows in the calendar year containing the loaded cycle end and before
 # cycle.end_exclusive. The rendered range makes that observation boundary explicit.
 
-proj ← •Import "projection.bqn"
+date ← •Import "date.bqn"
 actual_source ← •Import "actual_source.bqn"
 cube ← •Import "cube.bqn"
 fmt ← •Import "format.bqn"
@@ -30,8 +30,8 @@ BuildRows ← {𝕊 ctx‿rangeStart:
   rows0 ← (({𝕩.source_file}¨ ctx.posting_rows) ≡¨ <actual_source.File ctx) / ctx.posting_rows
   {𝕊 r:
     day ← 0
-    dateOk ← proj.IsValidDateText r.date
-    {𝕊: day ↩ (proj.DaysFromEpoch r.date) - proj.DaysFromEpoch rangeStart}⍟dateOk @
+    dateOk ← date.IsValidDateText r.date
+    {𝕊: day ↩ (date.DaysFromEpoch r.date) - date.DaysFromEpoch rangeStart}⍟dateOk @
     {
       source_file       ⇐ r.source_file,
       source_row        ⇐ r.source_row,
@@ -59,7 +59,7 @@ Build ← {𝕊 ctx:
   resolved ← ctx.resolved
   cy ← ctx.cy
   rangeStart ← YearStartForEnd cy.end_exclusive
-  dayCount ← (proj.DaysFromEpoch cy.end_exclusive) - proj.DaysFromEpoch rangeStart
+  dayCount ← (date.DaysFromEpoch cy.end_exclusive) - date.DaysFromEpoch rangeStart
   rows ← BuildRows ⟨ctx, rangeStart⟩
   result ← cube.Materialize ⟨rows, dayCount, resolved.count⟩
 
