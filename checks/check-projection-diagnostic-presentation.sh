@@ -15,7 +15,7 @@ for name in proj_cols BalanceBySourceOk FormatBalanceCheck FormatProjTable; do
   fi
 done
 
-for name in ProjCols BalanceBySourceOk FormatBalanceCheck FormatProjTable; do
+for name in proj_cols BalanceBySourceOk FormatBalanceCheck FormatProjTable; do
   if ! grep -Eq "^[[:space:]]*${name}[[:space:]]*←" src_next/main.bqn; then
     echo "FAIL: developer inspection entrypoint does not own $name" >&2
     exit 1
