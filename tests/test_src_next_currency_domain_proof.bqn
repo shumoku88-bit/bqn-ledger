@@ -2,7 +2,7 @@
 
 lib ← •Import "test_lib.bqn"
 ctx ← •Import "../src_next/context.bqn"
-proj ← •Import "../src_next/projection.bqn"
+proof_policy ← •Import "../src_next/arithmetic_currency_proof.bqn"
 arith ← •Import "../src_next/currency_arithmetic.bqn"
 
 tab ← @+9
@@ -24,21 +24,21 @@ legacy ← ctx.BuildContext "fixtures/src-next-golden"
 "proven" lib.AssertEq legacy.arithmetic_currency_proof.state
 "JPY" lib.AssertEq legacy.arithmetic_currency_proof.domain
 "legacy_compatibility" lib.AssertEq legacy.arithmetic_currency_proof.basis
-1 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof legacy.arithmetic_currency_proof
+1 lib.AssertEq proof_policy.AuthorizeArithmeticCurrencyProof legacy.arithmetic_currency_proof
 1 lib.AssertEq 0 < ≠ legacy.posting_rows
 
 empty ← ctx.BuildContext "fixtures/src-next-empty-projection"
 "proven" lib.AssertEq empty.arithmetic_currency_proof.state
 "JPY" lib.AssertEq empty.arithmetic_currency_proof.domain
 "empty_source_compatibility" lib.AssertEq empty.arithmetic_currency_proof.basis
-1 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof empty.arithmetic_currency_proof
+1 lib.AssertEq proof_policy.AuthorizeArithmeticCurrencyProof empty.arithmetic_currency_proof
 0 lib.AssertEq ≠ empty.posting_rows
 
 explicitJournal ← ResolveProof ProofSnapshot ⟨⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "100", "currency=JPY"⟩⟩, ⟨⟩, ⟨⟩⟩
 "proven" lib.AssertEq explicitJournal.state
 "resolved_single_currency" lib.AssertEq explicitJournal.basis
 0 lib.AssertEq explicitJournal.amount_scale
-1 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof explicitJournal
+1 lib.AssertEq proof_policy.AuthorizeArithmeticCurrencyProof explicitJournal
 
 explicitPlan ← ResolveProof ProofSnapshot ⟨⟨Line ⟨"2026-06-15", "memo", "assets:bank", "expenses:food", "100"⟩⟩, ⟨Line ⟨"2026-06-16", "plan", "assets:bank", "expenses:food", "20", "currency=EUR"⟩⟩, ⟨⟩⟩
 "unsupported" lib.AssertEq explicitPlan.state
@@ -61,7 +61,7 @@ precision ← ResolveProof ProofSnapshot ⟨
 "proven" lib.AssertEq precision.state
 "JPY" lib.AssertEq precision.domain
 "legacy_compatibility" lib.AssertEq precision.basis
-1 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof precision
+1 lib.AssertEq proof_policy.AuthorizeArithmeticCurrencyProof precision
 
 # The canonical snapshot source representation is sources. Extra legacy-looking
 # fields must not become a second projection input that can diverge from proof input.
@@ -80,30 +80,30 @@ debits ← (({𝕩.side}¨ inconsistentBuilt.rows) ≡¨ <"debit") / inconsisten
 
 # Negative evidence: each case isolates the field it claims to test
 # State rejection (otherwise valid)
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"unsupported", domain⇐"JPY", basis⇐"legacy_compatibility", amount_scale⇐0, message⇐"x"}
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"unresolved", domain⇐"JPY", basis⇐"legacy_compatibility", amount_scale⇐0, message⇐"x"}
+0 lib.AssertEq proof_policy.AuthorizeArithmeticCurrencyProof {state⇐"unsupported", domain⇐"JPY", basis⇐"legacy_compatibility", amount_scale⇐0, message⇐"x"}
+0 lib.AssertEq proof_policy.AuthorizeArithmeticCurrencyProof {state⇐"unresolved", domain⇐"JPY", basis⇐"legacy_compatibility", amount_scale⇐0, message⇐"x"}
 # Domain rejection (otherwise valid)
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"", basis⇐"legacy_compatibility", amount_scale⇐0, message⇐""}
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"USD", basis⇐"legacy_compatibility", amount_scale⇐0, message⇐""}
+0 lib.AssertEq proof_policy.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"", basis⇐"legacy_compatibility", amount_scale⇐0, message⇐""}
+0 lib.AssertEq proof_policy.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"USD", basis⇐"legacy_compatibility", amount_scale⇐0, message⇐""}
 # Basis rejection (otherwise valid)
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", basis⇐"forged_basis", amount_scale⇐0, message⇐""}
+0 lib.AssertEq proof_policy.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", basis⇐"forged_basis", amount_scale⇐0, message⇐""}
 # Missing-field cases: independently omit exactly one field
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {domain⇐"JPY", basis⇐"legacy_compatibility", amount_scale⇐0, message⇐""} # missing state
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", basis⇐"legacy_compatibility", amount_scale⇐0, message⇐""} # missing domain
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", amount_scale⇐0, message⇐""} # missing basis
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", basis⇐"legacy_compatibility", message⇐""} # missing amount_scale
+0 lib.AssertEq proof_policy.AuthorizeArithmeticCurrencyProof {domain⇐"JPY", basis⇐"legacy_compatibility", amount_scale⇐0, message⇐""} # missing state
+0 lib.AssertEq proof_policy.AuthorizeArithmeticCurrencyProof {state⇐"proven", basis⇐"legacy_compatibility", amount_scale⇐0, message⇐""} # missing domain
+0 lib.AssertEq proof_policy.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", amount_scale⇐0, message⇐""} # missing basis
+0 lib.AssertEq proof_policy.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", basis⇐"legacy_compatibility", message⇐""} # missing amount_scale
 # Non-proof input
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof "not-a-proof"
+0 lib.AssertEq proof_policy.AuthorizeArithmeticCurrencyProof "not-a-proof"
 
 # USD focused tests
-1 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"USD", basis⇐"resolved_single_currency", amount_scale⇐2, message⇐""}
-"" lib.AssertEq proj.ArithmeticCurrencyAuthorizationMessage {state⇐"proven", domain⇐"USD", basis⇐"resolved_single_currency", amount_scale⇐2, message⇐""}
+1 lib.AssertEq proof_policy.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"USD", basis⇐"resolved_single_currency", amount_scale⇐2, message⇐""}
+"" lib.AssertEq proof_policy.ArithmeticCurrencyAuthorizationMessage {state⇐"proven", domain⇐"USD", basis⇐"resolved_single_currency", amount_scale⇐2, message⇐""}
 
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"USD", basis⇐"legacy_compatibility", amount_scale⇐2, message⇐""}
-"USD requires resolved_single_currency proof basis" lib.AssertEq proj.ArithmeticCurrencyAuthorizationMessage {state⇐"proven", domain⇐"USD", basis⇐"legacy_compatibility", amount_scale⇐2, message⇐""}
+0 lib.AssertEq proof_policy.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"USD", basis⇐"legacy_compatibility", amount_scale⇐2, message⇐""}
+"USD requires resolved_single_currency proof basis" lib.AssertEq proof_policy.ArithmeticCurrencyAuthorizationMessage {state⇐"proven", domain⇐"USD", basis⇐"legacy_compatibility", amount_scale⇐2, message⇐""}
 
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"unsupported", domain⇐"USD", basis⇐"resolved_single_currency", amount_scale⇐2, message⇐"x"}
-"x" lib.AssertEq proj.ArithmeticCurrencyAuthorizationMessage {state⇐"unsupported", domain⇐"USD", basis⇐"resolved_single_currency", amount_scale⇐2, message⇐"x"}
+0 lib.AssertEq proof_policy.AuthorizeArithmeticCurrencyProof {state⇐"unsupported", domain⇐"USD", basis⇐"resolved_single_currency", amount_scale⇐2, message⇐"x"}
+"x" lib.AssertEq proof_policy.ArithmeticCurrencyAuthorizationMessage {state⇐"unsupported", domain⇐"USD", basis⇐"resolved_single_currency", amount_scale⇐2, message⇐"x"}
 
 # Slice B1 Row Ingestion and Pre-Gate Row Evidence tests
 CheckRowEvidence ← {𝕊 args:
@@ -198,4 +198,3 @@ untaggedRangeProof ← ResolveProof ProofSnapshot ⟨⟨Line ⟨"2026-06-15", "m
 "unsupported_row_evidence" lib.AssertEq untaggedRangeProof.basis
 
 •Out "test_src_next_currency_domain_proof.bqn: OK"
-
