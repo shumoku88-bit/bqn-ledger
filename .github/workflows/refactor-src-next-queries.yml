@@ -1,0 +1,158 @@
+name: temporary src_next queries migration
+
+on:
+  push:
+    branches: [refactor/src-next-queries]
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Tokyo
+      CBQN_REF: master
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install CBQN
+        run: |
+          git clone --depth 1 --branch "$CBQN_REF" https://github.com/dzaima/CBQN.git
+          make -C CBQN -j$(nproc)
+          sudo cp CBQN/BQN /usr/local/bin/bqn
+
+      - name: Install tools
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ripgrep
+
+      - name: Apply bounded migration
+        run: |
+          set -euo pipefail
+
+          cmp src_next/actual_expense_ranking.bqn src_next/queries/actual_expense_ranking.bqn
+          cmp src_next/exact_sparse_grouping.bqn src_next/queries/exact_sparse_grouping.bqn
+          rm src_next/queries/actual_expense_ranking.bqn src_next/queries/exact_sparse_grouping.bqn
+          git mv src_next/actual_expense_ranking.bqn src_next/queries/actual_expense_ranking.bqn
+          git mv src_next/exact_sparse_grouping.bqn src_next/queries/exact_sparse_grouping.bqn
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          current_files = [
+              Path('TODO.md'),
+              Path('docs/ARCHITECTURE.md'),
+              Path('docs/AI_CODEMAP.md'),
+              Path('docs/CANONICAL_DAILY_CUBE.md'),
+              Path('docs/TBDS_CONTRACT.md'),
+              Path('docs/archive/active-plans/PURPOSE_SPECIFIC_PROJECTION_COMPOSITION_DIRECTION-2026-07-25.md'),
+              Path('tests/test_src_next_actual_expense_ranking.bqn'),
+              Path('tests/test_src_next_exact_sparse_grouping.bqn'),
+          ]
+          replacements = {
+              'src_next/actual_expense_ranking.bqn': 'src_next/queries/actual_expense_ranking.bqn',
+              'src_next/exact_sparse_grouping.bqn': 'src_next/queries/exact_sparse_grouping.bqn',
+          }
+          for path in current_files:
+              text = path.read_text()
+              for old, new in replacements.items():
+                  text = text.replace(old, new)
+              path.write_text(text)
+
+          todo = Path('TODO.md')
+          text = todo.read_text()
+          text = text.replace(
+              '- The first bounded directory migration is selected but not yet executed: move the ranking and grouping pair together to `src_next/queries/`, with no permanent root wrappers.',
+              '- The first bounded directory migration is complete: the ranking and grouping pair now live together under `src_next/queries/`, with no permanent root wrappers.'
+          )
+          text = text.replace(
+              '- next, execute the bounded `src_next/queries/` migration for `actual_expense_ranking.bqn` and `exact_sparse_grouping.bqn`, updating focused tests, current docs, import evidence, and full CI without moving production hubs;',
+              '- next, characterize repository callers, focused-test dependence, documentation promises, and external-clone compatibility for apparently dead `projection.bqn` exports (`ResolveDay`, `RequireArithmeticCurrencyProof`, exported scalar helpers) before removing anything;'
+          )
+          duplicate = '- then characterize repository callers, focused-test dependence, documentation promises, and external-clone compatibility for apparently dead `projection.bqn` exports (`ResolveDay`, `RequireArithmeticCurrencyProof`, exported scalar helpers) before removing anything;\n'
+          text = text.replace(duplicate, '')
+          anchor = '- `tools/src-next-import-graph` and `checks/check-src-next-import-graph.sh` provide repeatable direct-import evidence for future directory migrations.\n'
+          current = '- After the first migration, `src_next` still has 71 BQN modules: 67 at root and 4 nested under `calc/` or `queries/`; the direct graph remains 276 edges with no missing target or cycle.\n'
+          if current not in text:
+              text = text.replace(anchor, anchor + current)
+          todo.write_text(text)
+
+          architecture = Path('docs/ARCHITECTURE.md')
+          text = architecture.read_text()
+          text = text.replace(
+              '`src_next`は現在71個のBQN moduleを持ち、そのうち69個がroot直下、2個が`src_next/calc/`にあります。source-levelのdirect `•Import` graphには276 edgeがあり、欠損targetとimport cycleはありません。つまり現在のtreeは循環して分割不能なのではなく、acyclicな依存をほぼ一階層へ並べた状態です。',
+              '`src_next`は現在71個のBQN moduleを持ち、そのうち67個がroot直下、4個が`src_next/calc/`または`src_next/queries/`にあります。source-levelのdirect `•Import` graphには276 edgeがあり、欠損targetとimport cycleはありません。最初の低blast-radius migrationによりpurpose-specific query pairだけがnestedになり、production hubとentrypointはrootに残っています。'
+          )
+          text = text.replace(
+              '最初のdirectory migration候補は、production hubから切り離されたpurpose-specific query pairです。',
+              '最初のdirectory migrationとして、production hubから切り離されたpurpose-specific query pairを移動しました。'
+          )
+          text = text.replace(
+              'この移動はまだ実施していません。current source pathは引き続き`src_next/queries/actual_expense_ranking.bqn`と`src_next/queries/exact_sparse_grouping.bqn`です。次のfinite sliceで二つを同時に移し、focused tests、current contracts、import graph、full CIを同期します。完全なdirectory skeletonを先に作らず、各neighborhoodの意味が証拠で確かめられた時点で育てます。',
+              'この移動は二つを同時に実施し、root wrapperを残していません。focused tests、current contracts、import graph、full CIを新pathへ同期しました。完全なdirectory skeletonを先に作らず、各neighborhoodの意味が証拠で確かめられた時点で育てる方針は維持します。'
+          )
+          architecture.write_text(text)
+
+          codemap = Path('docs/AI_CODEMAP.md')
+          text = codemap.read_text()
+          text = text.replace(
+              '`actual_expense_ranking.bqn`は現時点でpublic report sectionへ配線されていない。checked selected-domain posting factsを使うpurpose-specific consumerとして、public synthetic fixtureとfocused testでcharacterizeされている。',
+              '`src_next/queries/actual_expense_ranking.bqn`は現時点でpublic report sectionへ配線されていない。checked selected-domain posting factsを使うpurpose-specific consumerとして、public synthetic fixtureとfocused testでcharacterizeされている。'
+          )
+          text = text.replace(
+              '現在の`src_next`は71 BQN module中69 moduleがroot直下にあり、direct import graphは276 edge、欠損target 0、cycle 0です。point-in-time evidenceと移動順序は`docs/archive/audits/SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md`を正とします。最初の候補は`actual_expense_ranking.bqn`と`exact_sparse_grouping.bqn`を一緒に`src_next/queries/`へ移すfinite sliceですが、このaudit PRではまだcurrent pathを変更しません。',
+              '現在の`src_next`は71 BQN module中67 moduleがroot直下、4 moduleがnestedで、direct import graphは276 edge、欠損target 0、cycle 0です。最初のfinite sliceとして`src_next/queries/actual_expense_ranking.bqn`と`src_next/queries/exact_sparse_grouping.bqn`を同時に移動済みで、root wrapperはありません。移動前のpoint-in-time evidenceは`docs/archive/audits/SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md`に保持します。'
+          )
+          codemap.write_text(text)
+          PY
+
+          rm .github/workflows/refactor-src-next-queries.yml
+
+      - name: Verify paths and import graph
+        run: |
+          set -euo pipefail
+          test ! -e src_next/actual_expense_ranking.bqn
+          test ! -e src_next/exact_sparse_grouping.bqn
+          test -f src_next/queries/actual_expense_ranking.bqn
+          test -f src_next/queries/exact_sparse_grouping.bqn
+          grep -F 'sparse ← •Import "exact_sparse_grouping.bqn"' src_next/queries/actual_expense_ranking.bqn
+
+          matches="$(rg -n 'src_next/(actual_expense_ranking|exact_sparse_grouping)\.bqn' || true)"
+          disallowed="$(printf '%s\n' "$matches" | grep -v '^docs/archive/audits/SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md:' || true)"
+          if [ -n "$disallowed" ]; then
+            printf 'Old current paths remain:\n%s\n' "$disallowed" >&2
+            exit 1
+          fi
+
+          summary="$(python3 tools/src-next-import-graph --summary --validate)"
+          printf '%s\n' "$summary"
+          test "$(awk -F '\t' '$1=="modules" {print $2}' <<<"$summary")" = 71
+          test "$(awk -F '\t' '$1=="root_modules" {print $2}' <<<"$summary")" = 67
+          test "$(awk -F '\t' '$1=="nested_modules" {print $2}' <<<"$summary")" = 4
+          test "$(awk -F '\t' '$1=="edges" {print $2}' <<<"$summary")" = 276
+          test "$(awk -F '\t' '$1=="missing_targets" {print $2}' <<<"$summary")" = 0
+          test "$(awk -F '\t' '$1=="cycles" {print $2}' <<<"$summary")" = 0
+          python3 tools/src-next-import-graph --cycles --validate
+
+      - name: Run focused tests
+        run: |
+          bqn tests/test_src_next_actual_expense_ranking.bqn
+          bqn tests/test_src_next_exact_sparse_grouping.bqn
+
+      - name: Run full checks
+        run: |
+          bash tools/check.sh
+          bash tools/coverage
+
+      - name: Commit migration
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git diff --cached --check
+          git commit -m 'refactor: move purpose-specific queries'
+          git push origin HEAD:refactor/src-next-queries
