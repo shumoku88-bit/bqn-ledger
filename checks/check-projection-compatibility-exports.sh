@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 PROJECTION="$ROOT_DIR/src_next/projection.bqn"
+ARITHMETIC_PROOF="$ROOT_DIR/src_next/arithmetic_currency_proof.bqn"
 LAYER="$ROOT_DIR/src_next/layer.bqn"
 CUBE="$ROOT_DIR/src_next/cube.bqn"
 CYCLE="$ROOT_DIR/src_next/cycle.bqn"
@@ -29,6 +30,7 @@ JOURNAL_CURRENCY_CARRIER="$ROOT_DIR/src_next/journal_currency_proof_carrier_stag
 DATE_TEST="$ROOT_DIR/tests/test_src_next_date.bqn"
 LAYER_TEST="$ROOT_DIR/tests/test_src_next_layer.bqn"
 ACCOUNT_KEY_TEST="$ROOT_DIR/tests/test_src_next_account_key.bqn"
+CURRENCY_DOMAIN_PROOF_TEST="$ROOT_DIR/tests/test_src_next_currency_domain_proof.bqn"
 DAILY_TREND_EMPTY_TEST="$ROOT_DIR/tests/test_src_next_daily_trend_empty_frontier_fallback_row.bqn"
 DAILY_TREND_FRONTIER_TEST="$ROOT_DIR/tests/test_src_next_daily_trend_row_set_frontier_redundancy.bqn"
 
@@ -103,6 +105,35 @@ require_file_match "$CYCLE_SUMMARY" 'layer[.]layer_plan' 'cycle summary no longe
 require_file_match "$CYCLE_SUMMARY" 'layer[.]layer_actual' 'cycle summary no longer uses the direct actual Layer owner'
 reject_file_match "$CYCLE_SUMMARY" 'cube[.]layer_actual' 'cycle summary returned to the Cube Layer compatibility surface'
 require_file_match "$CYCLE_SUMMARY" 'cube[.]Sum0' 'live Cube Sum0 dependency disappeared from cycle summary'
+
+# P5b establishes one pure arithmetic-currency proof policy owner while keeping
+# projection.bqn as a temporary compatibility surface for its two public names.
+require_file_match "$ARITHMETIC_PROOF" '^[[:space:]]*setup[[:space:]]*←[[:space:]]*•Import "currency_setup[.]bqn"' 'arithmetic proof owner does not import currency policy directly'
+reject_file_match "$ARITHMETIC_PROOF" '•Import "(projection|context)[.]bqn"' 'arithmetic proof owner acquired a projection/context dependency'
+require_file_match "$ARITHMETIC_PROOF" '^[[:space:]]*AuthorizeArithmeticCurrencyProof[[:space:]]*←[[:space:]]*\{' 'arithmetic proof owner predicate definition is missing'
+require_file_match "$ARITHMETIC_PROOF" '^[[:space:]]*ArithmeticCurrencyAuthorizationMessage[[:space:]]*←[[:space:]]*\{' 'arithmetic proof owner message definition is missing'
+require_file_match "$ARITHMETIC_PROOF" '^[[:space:]]*AuthorizeArithmeticCurrencyProof[[:space:]]*⇐' 'arithmetic proof owner predicate export is missing'
+require_file_match "$ARITHMETIC_PROOF" '^[[:space:]]*ArithmeticCurrencyAuthorizationMessage[[:space:]]*⇐' 'arithmetic proof owner message export is missing'
+
+require_file_match "$CONTEXT" '^[[:space:]]*proof_policy[[:space:]]*←[[:space:]]*•Import "arithmetic_currency_proof[.]bqn"' 'context does not import the arithmetic proof owner directly'
+require_file_match "$CONTEXT" 'proof_policy[.]AuthorizeArithmeticCurrencyProof' 'context does not call the direct proof predicate owner'
+require_file_match "$CONTEXT" 'proof_policy[.]ArithmeticCurrencyAuthorizationMessage' 'context does not call the direct proof message owner'
+reject_file_match "$CONTEXT" 'proj[.](AuthorizeArithmeticCurrencyProof|ArithmeticCurrencyAuthorizationMessage)' 'context returned to projection proof compatibility calls'
+require_file_match "$CONTEXT" '•Import "projection[.]bqn"' 'live non-proof projection dependency disappeared from context'
+
+require_file_match "$PROJECTION" '^[[:space:]]*proof[[:space:]]*←[[:space:]]*•Import "arithmetic_currency_proof[.]bqn"' 'projection does not import the arithmetic proof owner'
+require_file_match "$PROJECTION" '^[[:space:]]*AuthorizeArithmeticCurrencyProof[[:space:]]*←[[:space:]]*proof[.]AuthorizeArithmeticCurrencyProof[[:space:]]*$' 'projection proof predicate compatibility delegate is missing'
+require_file_match "$PROJECTION" '^[[:space:]]*ArithmeticCurrencyAuthorizationMessage[[:space:]]*←[[:space:]]*proof[.]ArithmeticCurrencyAuthorizationMessage[[:space:]]*$' 'projection proof message compatibility delegate is missing'
+reject_file_match "$PROJECTION" '•Import "currency_setup[.]bqn"' 'projection still imports currency policy for proof authorization'
+reject_file_match "$PROJECTION" '^[[:space:]]*(allowed_proof_basis|IsAllowedProofBasis|IsAllowedProofDomainBasis|ProofState|ProofDomain|ProofBasis|ProofScale|ProofMessage|IsNonNegativeInteger)[[:space:]]*←' 'projection independently retains arithmetic proof policy internals'
+reject_file_match "$PROJECTION" '^[[:space:]]*AuthorizeArithmeticCurrencyProof[[:space:]]*←[[:space:]]*\{' 'projection independently defines the proof predicate'
+reject_file_match "$PROJECTION" '^[[:space:]]*ArithmeticCurrencyAuthorizationMessage[[:space:]]*←[[:space:]]*\{' 'projection independently defines the proof message builder'
+
+require_file_match "$CURRENCY_DOMAIN_PROOF_TEST" '•Import "[.][.]/src_next/arithmetic_currency_proof[.]bqn"' 'focused proof test does not import the owner directly'
+reject_file_match "$CURRENCY_DOMAIN_PROOF_TEST" '•Import "[.][.]/src_next/projection[.]bqn"' 'focused proof test still imports projection as the proof contract'
+reject_file_match "$CURRENCY_DOMAIN_PROOF_TEST" 'proj[.](AuthorizeArithmeticCurrencyProof|ArithmeticCurrencyAuthorizationMessage)' 'focused proof test retains projection-qualified proof calls'
+require_file_match "$CURRENCY_DOMAIN_PROOF_TEST" 'proof_policy[.]AuthorizeArithmeticCurrencyProof' 'focused proof predicate assertions disappeared'
+require_file_match "$CURRENCY_DOMAIN_PROOF_TEST" 'proof_policy[.]ArithmeticCurrencyAuthorizationMessage' 'focused proof message assertions disappeared'
 
 # P2a removals must not reappear as definitions or public fields.
 reject_match '^[[:space:]]*ResolveDay[[:space:]]*←' 'legacy ResolveDay definition returned'
@@ -195,7 +226,7 @@ require_match '^[[:space:]]*MetaValue[[:space:]]*←' 'local MetaValue helper is
 require_match '^[[:space:]]*MetaValue[[:space:]]+⟨"txn_id", sourceId, metas⟩' 'TxIdFromMeta no longer uses local MetaValue'
 require_match '^[[:space:]]*ResolveDayFromCycle[[:space:]]*←' 'ResolveDayFromCycle definition is missing'
 require_match '^[[:space:]]*ResolveDayFromCycle[[:space:]]*⇐' 'ResolveDayFromCycle export is missing'
-require_match '^[[:space:]]*AuthorizeArithmeticCurrencyProof[[:space:]]*⇐' 'live proof predicate export is missing'
-require_match '^[[:space:]]*ArithmeticCurrencyAuthorizationMessage[[:space:]]*⇐' 'live proof message export is missing'
+require_match '^[[:space:]]*AuthorizeArithmeticCurrencyProof[[:space:]]*⇐' 'live proof predicate compatibility export is missing'
+require_match '^[[:space:]]*ArithmeticCurrencyAuthorizationMessage[[:space:]]*⇐' 'live proof message compatibility export is missing'
 
-echo "OK: projection P2, date-ownership P3a-P3o, and Layer ownership P4b-P4c boundaries"
+echo "OK: projection P2, date ownership P3a-P3o, Layer ownership P4b-P4c, and arithmetic proof ownership P5b boundaries"

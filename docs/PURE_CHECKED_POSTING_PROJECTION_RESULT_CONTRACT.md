@@ -2,7 +2,7 @@
 
 Status: current contract  
 Runtime owner: `src_next/context.bqn`  
-Proof predicate/message owner: `src_next/projection.bqn`  
+Proof predicate/message owner: `src_next/arithmetic_currency_proof.bqn`  
 Implementation state: implemented and in use
 
 ## Purpose
@@ -32,7 +32,7 @@ snapshot
   -> currency_arithmetic.Build
   -> ResolveArithmeticCurrencyProof
   -> BuildCheckedPostingProjectionFromPrepared
-       -> AuthorizeArithmeticCurrencyProof
+       -> arithmetic_currency_proof.AuthorizeArithmeticCurrencyProof
        -> arithmetic proof diagnostic when rejected
        -> normalized coefficient length check
        -> structural diagnostic when mismatched
@@ -212,7 +212,7 @@ A proof rejection must not be hidden by a later structural mismatch.
 When:
 
 ```text
-projection.AuthorizeArithmeticCurrencyProof proof = 0
+arithmetic_currency_proof.AuthorizeArithmeticCurrencyProof proof = 0
 ```
 
 the result contains:
@@ -225,7 +225,7 @@ diagnostics = ⟨
     severity = "error"
     stage = "authorization"
     code = "arithmetic_currency_proof_rejected"
-    message = projection.ArithmeticCurrencyAuthorizationMessage proof
+    message = arithmetic_currency_proof.ArithmeticCurrencyAuthorizationMessage proof
   }
 ⟩
 ```
@@ -276,14 +276,16 @@ The wrapper preserves:
 
 ## Arithmetic-proof ownership
 
-The live public proof API in `src_next/projection.bqn` is:
+The live proof API is owned by `src_next/arithmetic_currency_proof.bqn`:
 
 ```text
 AuthorizeArithmeticCurrencyProof
 ArithmeticCurrencyAuthorizationMessage
 ```
 
-The first returns the admission decision. The second returns data-only diagnostic text.
+The first returns the admission decision. The second returns data-only diagnostic text. `src_next/context.bqn` imports this owner directly for checked-result admission.
+
+`src_next/projection.bqn` temporarily preserves the same two public names as compatibility delegates. It does not independently define the accepted basis/domain/scale policy or rejection messages.
 
 The former effectful `RequireArithmeticCurrencyProof` wrapper was removed after repository characterization found no runtime or focused-test caller. It is not part of the current contract. Process output and exit behavior remain preserved by the outer compatibility wrapper in `context.bqn`.
 
@@ -340,6 +342,7 @@ This contract does not change Cube acceptance, skipped-row handling, source-bala
 Current direct and compatibility evidence includes:
 
 - `tests/test_src_next_checked_posting_projection.bqn`;
+- `tests/test_src_next_currency_domain_proof.bqn`;
 - `checks/check-src-next-checked-posting-projection.sh`;
 - `checks/check-projection-compatibility-exports.sh`;
 - the complete repository gate `tools/check.sh`;
