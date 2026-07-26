@@ -17,6 +17,7 @@ SNAPSHOT="$ROOT_DIR/src_next/snapshot.bqn"
 CALC_MAIN="$ROOT_DIR/src_next/calc/main.bqn"
 OUTLOOK="$ROOT_DIR/src_next/outlook.bqn"
 OUTLOOK_REMAINING_PLAN="$ROOT_DIR/src_next/outlook_remaining_plan.bqn"
+CYCLE_SUMMARY="$ROOT_DIR/src_next/cycle_summary.bqn"
 DATE_TEST="$ROOT_DIR/tests/test_src_next_date.bqn"
 
 fail() {
@@ -91,6 +92,13 @@ reject_file_match "$OUTLOOK_REMAINING_PLAN" 'proj[.](IsValidDateText|DaysFromEpo
 require_file_match "$OUTLOOK_REMAINING_PLAN" 'proj[.]FieldOrEmpty' 'live FieldOrEmpty dependency disappeared from src_next/outlook_remaining_plan.bqn'
 require_file_match "$OUTLOOK_REMAINING_PLAN" 'proj[.]layer_actual' 'live layer_actual dependency disappeared from src_next/outlook_remaining_plan.bqn'
 
+# P3m restores direct date ownership in a third mixed projection consumer.
+require_file_match "$CYCLE_SUMMARY" '•Import "([.][.]/)?date[.]bqn"' 'direct date import is missing from src_next/cycle_summary.bqn'
+require_file_match "$CYCLE_SUMMARY" '•Import "([.][.]/)?projection[.]bqn"' 'live non-date projection dependency disappeared from src_next/cycle_summary.bqn'
+reject_file_match "$CYCLE_SUMMARY" 'proj[.](IsValidDateText|DaysFromEpoch)' 'forwarded projection date call remains in src_next/cycle_summary.bqn'
+require_file_match "$CYCLE_SUMMARY" 'proj[.]FieldOrEmpty' 'live FieldOrEmpty dependency disappeared from src_next/cycle_summary.bqn'
+require_file_match "$CYCLE_SUMMARY" 'proj[.]layer_plan' 'live layer_plan dependency disappeared from src_next/cycle_summary.bqn'
+
 # P2 preserves these neighboring live boundaries until later P3 groups finish.
 require_match '^[[:space:]]*MetaValue[[:space:]]*←' 'local MetaValue helper is missing'
 require_match '^[[:space:]]*MetaValue[[:space:]]+⟨"txn_id", sourceId, metas⟩' 'TxIdFromMeta no longer uses local MetaValue'
@@ -103,4 +111,4 @@ require_match '^[[:space:]]*ArithmeticCurrencyAuthorizationMessage[[:space:]]*�
 require_match '^[[:space:]]*IsValidDateText[[:space:]]*⇐' 'temporary date validation compatibility export disappeared before P3 completion'
 require_match '^[[:space:]]*DaysFromEpoch[[:space:]]*⇐' 'temporary day-coordinate compatibility export disappeared before P3 completion'
 
-echo "OK: projection P2 and date-ownership P3a-P3l boundaries"
+echo "OK: projection P2 and date-ownership P3a-P3m boundaries"
