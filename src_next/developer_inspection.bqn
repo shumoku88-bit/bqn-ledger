@@ -169,5 +169,5 @@ Run ← {𝕊 base:
   •Out cube.VerifyNumeric ⟨result, resolved.account_keys⟩
 }
 
-Run ⊑•args
+{𝕊: Run ⊑•args}⍟(0 < ≠•args) @
 { Run ⇐ Run }
