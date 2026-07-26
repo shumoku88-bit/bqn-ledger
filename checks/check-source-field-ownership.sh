@@ -6,6 +6,7 @@ SOURCE_FIELDS="$ROOT_DIR/src_next/source_fields.bqn"
 PROJECTION="$ROOT_DIR/src_next/projection.bqn"
 EVENT_LENS="$ROOT_DIR/src_next/event_lens.bqn"
 SELECTED_DOMAIN_CONTEXT="$ROOT_DIR/src_next/selected_domain_context.bqn"
+DAILY_TREND_PLAN="$ROOT_DIR/src_next/daily_trend_plan.bqn"
 SOURCE_FIELDS_TEST="$ROOT_DIR/tests/test_src_next_source_fields.bqn"
 
 fail() {
@@ -50,7 +51,14 @@ require_match "$SELECTED_DOMAIN_CONTEXT" 'source_fields[.]FieldOrEmpty' 'selecte
 reject_match "$SELECTED_DOMAIN_CONTEXT" '•Import "projection[.]bqn"' 'selected domain context returned to the projection compatibility shelf'
 reject_match "$SELECTED_DOMAIN_CONTEXT" 'proj[.]FieldOrEmpty' 'selected domain context retains a projection-qualified field access call'
 
+# P6c moves Daily Trend plan evidence reads to the direct source-field owner.
+# Date, Layer, Cube, completion, diagnostic, and reserve semantics stay local.
+require_match "$DAILY_TREND_PLAN" '^[[:space:]]*source_fields[[:space:]]*←[[:space:]]*•Import "source_fields[.]bqn"' 'daily trend plan does not import the source field owner directly'
+require_match "$DAILY_TREND_PLAN" 'source_fields[.]FieldOrEmpty' 'daily trend plan does not call the direct source field owner'
+reject_match "$DAILY_TREND_PLAN" '•Import "projection[.]bqn"' 'daily trend plan returned to the projection compatibility shelf'
+reject_match "$DAILY_TREND_PLAN" 'proj[.]FieldOrEmpty' 'daily trend plan retains a projection-qualified field access call'
+
 require_match "$SOURCE_FIELDS_TEST" '•Import "[.][.]/src_next/source_fields[.]bqn"' 'focused source field test does not import the owner directly'
 require_match "$SOURCE_FIELDS_TEST" 'source_fields[.]FieldOrEmpty' 'focused source field assertions disappeared'
 
-printf '%s\n' 'OK: source field ownership P6a-P6b boundaries'
+printf '%s\n' 'OK: source field ownership P6a-P6c boundaries'
