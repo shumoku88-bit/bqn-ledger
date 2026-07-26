@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: write
+
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -14,6 +17,23 @@ jobs:
       CBQN_REF: master
     steps:
       - uses: actions/checkout@v4
+
+      - name: Synchronize topology code map on branch
+        if: github.event_name == 'pull_request'
+        env:
+          HEAD_BRANCH: ${{ github.head_ref }}
+        run: |
+          if grep -q 'SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md' docs/AI_CODEMAP.md; then
+            exit 0
+          fi
+          git fetch origin "$HEAD_BRANCH"
+          git checkout -B "$HEAD_BRANCH" "origin/$HEAD_BRANCH"
+          python3 tools/apply-src-next-topology-codemap.py
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add docs/AI_CODEMAP.md
+          git commit -m 'docs: align code map with src_next topology audit'
+          git push origin HEAD:"$HEAD_BRANCH"
 
       - name: Install CBQN
         run: |
