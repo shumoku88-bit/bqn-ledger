@@ -7,4 +7,5 @@
 # continue to receive byte-equivalent diagnostic output. It is not the
 # production report entrypoint; daily use remains `tools/report`.
 
-•Import "developer_inspection.bqn"
+inspection ← •Import "developer_inspection.bqn"
+inspection.Run ⊑•args
