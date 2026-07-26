@@ -19,7 +19,15 @@ OUTLOOK="$ROOT_DIR/src_next/outlook.bqn"
 OUTLOOK_REMAINING_PLAN="$ROOT_DIR/src_next/outlook_remaining_plan.bqn"
 CYCLE_SUMMARY="$ROOT_DIR/src_next/cycle_summary.bqn"
 ENVELOPE_COMPUTATION="$ROOT_DIR/src_next/envelope_computation.bqn"
+PLAN_ROWS="$ROOT_DIR/src_next/plan_rows.bqn"
+EVENT_LENS="$ROOT_DIR/src_next/event_lens.bqn"
+JOURNAL_POSTING_IR="$ROOT_DIR/src_next/journal_posting_ir_stage2a.bqn"
+CONTEXT="$ROOT_DIR/src_next/context.bqn"
+JOURNAL_CURRENCY_CARRIER="$ROOT_DIR/src_next/journal_currency_proof_carrier_stage2a.bqn"
 DATE_TEST="$ROOT_DIR/tests/test_src_next_date.bqn"
+ACCOUNT_KEY_TEST="$ROOT_DIR/tests/test_src_next_account_key.bqn"
+DAILY_TREND_EMPTY_TEST="$ROOT_DIR/tests/test_src_next_daily_trend_empty_frontier_fallback_row.bqn"
+DAILY_TREND_FRONTIER_TEST="$ROOT_DIR/tests/test_src_next_daily_trend_row_set_frontier_redundancy.bqn"
 
 fail() {
     echo "FAIL: $*" >&2
@@ -106,7 +114,40 @@ require_file_match "$ENVELOPE_COMPUTATION" '•Import "([.][.]/)?projection[.]bq
 reject_file_match "$ENVELOPE_COMPUTATION" 'proj[.](IsValidDateText|DaysFromEpoch)' 'forwarded projection date call remains in src_next/envelope_computation.bqn'
 require_file_match "$ENVELOPE_COMPUTATION" 'proj[.]ResolveDayFromCycle' 'live ResolveDayFromCycle dependency disappeared from src_next/envelope_computation.bqn'
 
-# P2 preserves these neighboring live boundaries until later P3 groups finish.
+# P3o closes the remaining date compatibility shelf in mixed consumers.
+for file in "$PLAN_ROWS" "$EVENT_LENS" "$JOURNAL_POSTING_IR" "$CONTEXT" "$JOURNAL_CURRENCY_CARRIER"; do
+    require_file_match "$file" '•Import "([.][.]/)?date[.]bqn"' "direct date import is missing from ${file#$ROOT_DIR/}"
+    require_file_match "$file" '•Import "([.][.]/)?projection[.]bqn"' "live non-date projection dependency disappeared from ${file#$ROOT_DIR/}"
+    reject_file_match "$file" 'proj[.](IsValidDateText|DaysFromEpoch)' "forwarded projection date call remains in ${file#$ROOT_DIR/}"
+done
+require_file_match "$PLAN_ROWS" 'proj[.]ResolveDayFromCycle' 'live ResolveDayFromCycle dependency disappeared from src_next/plan_rows.bqn'
+require_file_match "$EVENT_LENS" 'proj[.]FieldOrEmpty' 'live FieldOrEmpty dependency disappeared from src_next/event_lens.bqn'
+require_file_match "$JOURNAL_POSTING_IR" 'proj[.]ResolveDayFromCycle' 'live ResolveDayFromCycle dependency disappeared from src_next/journal_posting_ir_stage2a.bqn'
+require_file_match "$CONTEXT" 'proj[.]FieldOrEmpty' 'live FieldOrEmpty dependency disappeared from src_next/context.bqn'
+require_file_match "$CONTEXT" 'proj[.]ResolveDayFromCycle' 'live ResolveDayFromCycle dependency disappeared from src_next/context.bqn'
+require_file_match "$JOURNAL_CURRENCY_CARRIER" 'proj[.]ResolveDayFromCycle' 'live ResolveDayFromCycle dependency disappeared from src_next/journal_currency_proof_carrier_stage2a.bqn'
+
+require_file_match "$ACCOUNT_KEY_TEST" '•Import "[.][.]/src_next/date[.]bqn"' 'direct date import is missing from tests/test_src_next_account_key.bqn'
+require_file_match "$ACCOUNT_KEY_TEST" '•Import "[.][.]/src_next/projection[.]bqn"' 'live projection test dependency disappeared from tests/test_src_next_account_key.bqn'
+reject_file_match "$ACCOUNT_KEY_TEST" 'proj[.](IsValidDateText|DaysFromEpoch)' 'projection date compatibility assertion remains in tests/test_src_next_account_key.bqn'
+require_file_match "$ACCOUNT_KEY_TEST" 'proj[.]PostingId' 'live PostingId test dependency disappeared from tests/test_src_next_account_key.bqn'
+
+for file in "$DAILY_TREND_EMPTY_TEST" "$DAILY_TREND_FRONTIER_TEST"; do
+    require_file_match "$file" '•Import "[.][.]/src_next/date[.]bqn"' "direct date import is missing from ${file#$ROOT_DIR/}"
+    reject_file_match "$file" '•Import "[.][.]/src_next/projection[.]bqn"' "date-only projection dependency returned in ${file#$ROOT_DIR/}"
+    reject_file_match "$file" 'proj[.](IsValidDateText|DaysFromEpoch)' "forwarded projection date call remains in ${file#$ROOT_DIR/}"
+done
+
+# The date compatibility aliases are now removed and may not return.
+reject_match '^[[:space:]]*IsValidDateText[[:space:]]*←' 'date validation compatibility definition returned'
+reject_match '^[[:space:]]*IsValidDateText[[:space:]]*⇐' 'date validation compatibility export returned'
+reject_match '^[[:space:]]*DaysFromEpoch[[:space:]]*←' 'absolute day-coordinate compatibility definition returned'
+reject_match '^[[:space:]]*DaysFromEpoch[[:space:]]*⇐' 'absolute day-coordinate compatibility export returned'
+if grep -REn 'proj[.](IsValidDateText|DaysFromEpoch)' "$ROOT_DIR/src_next" "$ROOT_DIR/tests"; then
+    fail 'qualified caller of a removed projection date compatibility field remains'
+fi
+
+# P2 preserves these neighboring live boundaries.
 require_match '^[[:space:]]*MetaValue[[:space:]]*←' 'local MetaValue helper is missing'
 require_match '^[[:space:]]*MetaValue[[:space:]]+⟨"txn_id", sourceId, metas⟩' 'TxIdFromMeta no longer uses local MetaValue'
 require_match '^[[:space:]]*ResolveDayFromCycle[[:space:]]*←' 'ResolveDayFromCycle definition is missing'
@@ -114,8 +155,4 @@ require_match '^[[:space:]]*ResolveDayFromCycle[[:space:]]*⇐' 'ResolveDayFromC
 require_match '^[[:space:]]*AuthorizeArithmeticCurrencyProof[[:space:]]*⇐' 'live proof predicate export is missing'
 require_match '^[[:space:]]*ArithmeticCurrencyAuthorizationMessage[[:space:]]*⇐' 'live proof message export is missing'
 
-# Date aliases remain temporarily exported while later P3 caller groups migrate.
-require_match '^[[:space:]]*IsValidDateText[[:space:]]*⇐' 'temporary date validation compatibility export disappeared before P3 completion'
-require_match '^[[:space:]]*DaysFromEpoch[[:space:]]*⇐' 'temporary day-coordinate compatibility export disappeared before P3 completion'
-
-echo "OK: projection P2 and date-ownership P3a-P3n boundaries"
+echo "OK: projection P2 and date-ownership P3a-P3o boundaries"
