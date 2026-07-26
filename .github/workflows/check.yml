@@ -28,11 +28,14 @@ jobs:
 
       - name: Src next topology summary
         run: |
-          mkdir -p topology-audit
+          mkdir -p topology-audit/current-docs
           python3 tools/src-next-import-graph --summary --validate | tee topology-audit/summary.tsv
           python3 tools/src-next-import-graph --modules --validate > topology-audit/modules.tsv
           python3 tools/src-next-import-graph --cycles --validate > topology-audit/cycles.tsv
           python3 tools/src-next-import-graph --validate > topology-audit/edges.tsv
+          cp docs/ARCHITECTURE.md topology-audit/current-docs/ARCHITECTURE.md
+          cp docs/AI_CODEMAP.md topology-audit/current-docs/AI_CODEMAP.md
+          cp docs/README.md topology-audit/current-docs/README.md
 
       - name: Upload topology evidence
         uses: actions/upload-artifact@v4
