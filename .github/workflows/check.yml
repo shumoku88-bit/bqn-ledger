@@ -68,6 +68,9 @@ jobs:
           new = "matches=\"$(rg -n 'src_next/(actual_expense_ranking|exact_sparse_grouping)\\.bqn' --glob '!.github/workflows/refactor-src-next-queries.yml' --glob '!tools/tmp-src-next-queries-migration.sh' || true)\""
           if old not in text:
               raise SystemExit("temporary migration search command not found")
-          path.write_text(text.replace(old, new))
+          text = text.replace(old, new)
+          text = text.replace('$1=="edges"', '$1=="direct_imports"')
+          text = text.replace('$1=="missing_targets"', '$1=="scan_errors"')
+          path.write_text(text)
           PY
           bash tools/tmp-src-next-queries-migration.sh
