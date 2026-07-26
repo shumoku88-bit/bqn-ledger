@@ -22,7 +22,7 @@ household_metadata ← •Import "household_metadata.bqn"
 # These helpers intentionally live beside their sole runtime consumer. They do
 # not define Posting IR semantics and are not exported by projection.bqn.
 
-ProjCols ← ⟨
+proj_cols ← ⟨
   "source_file",
   "source_row",
   "source_id",
@@ -62,7 +62,7 @@ FormatBalanceCheck ← {𝕊 rows:
 
 FormatProjTable ← {𝕊 rows:
   FmtOne ← {𝕊 xs: ∾ (•Fmt¨xs) ∾¨ (@+9)}
-  hdr ← FmtOne ProjCols
+  hdr ← FmtOne proj_cols
 
   ToRow ← {𝕊 r:
     ⟨ r.source_file, •Fmt r.source_row, r.source_id, r.tx_id, r.posting_id, r.date, r.side,
@@ -104,7 +104,7 @@ PrintProjHeader ← {𝕊 𝕩:
   # fixture contract. The canonical row contract is docs/POSTING_IR_CONTRACT.md.
   •Out "Concept (PROJECTION_CONTRACT.md §3):"
   •Out ""
-  {•Out 𝕩∾"  "}¨ ProjCols
+  {•Out 𝕩∾"  "}¨ proj_cols
   •Out ""
   •Out "Layer mapping:"
   •Out "  selected actual source -> actual (layer_index=0)"
