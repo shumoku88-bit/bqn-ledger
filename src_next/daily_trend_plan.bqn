@@ -7,6 +7,7 @@
 #   source date and plan-ID completion identity
 
 loader ← •Import "loader.bqn"
+dt ← •Import "date.bqn"
 proj ← •Import "projection.bqn"
 cube ← •Import "cube.bqn"
 overlap ← •Import "plan_journal_overlap.bqn"
@@ -74,23 +75,23 @@ BuildFromEvidence ← {𝕊 ctx‿trend_dates‿evidence:
     reserves ⇐ ⟨⟩
   }
 
-  dates_ok ← (0 < ≠ trend_dates) ∧ ∧´ 1 ∾ proj.IsValidDateText¨ trend_dates
-  cycle_ok ← proj.IsValidDateText ctx.cy.start
-  cycle_ok ↩ cycle_ok ∧ proj.IsValidDateText ctx.cy.end_exclusive
+  dates_ok ← (0 < ≠ trend_dates) ∧ ∧´ 1 ∾ dt.IsValidDateText¨ trend_dates
+  cycle_ok ← dt.IsValidDateText ctx.cy.start
+  cycle_ok ↩ cycle_ok ∧ dt.IsValidDateText ctx.cy.end_exclusive
 
   {𝕊:
-    trend_dns ← proj.DaysFromEpoch¨ trend_dates
-    end_dn ← proj.DaysFromEpoch ctx.cy.end_exclusive
+    trend_dns ← dt.DaysFromEpoch¨ trend_dates
+    end_dn ← dt.DaysFromEpoch ctx.cy.end_exclusive
     diagnostics ← ⟨⟩
 
     {𝕊 ev:
-      date_ok ← proj.IsValidDateText ev.date
+      date_ok ← dt.IsValidDateText ev.date
       {𝕊:
         diagnostics ↩ diagnostics ∾ ⟨MakeDiagnostic ⟨ev.source_row, "invalid_date", ev.date, "invalid plan date: " ∾ ev.date⟩⟩
       }⍟(¬ date_ok) @
 
       {𝕊:
-        p_dn ← proj.DaysFromEpoch ev.date
+        p_dn ← dt.DaysFromEpoch ev.date
         applicable_rows ← (trend_dns ≤ p_dn) ∧ (p_dn < end_dn)
         applicable ← ∨´ 0 ∾ applicable_rows
 
@@ -122,7 +123,7 @@ BuildFromEvidence ← {𝕊 ctx‿trend_dates‿evidence:
 
             {𝕊:
               matching_journals ← (ev.plan_id⊸≡¨ {𝕩.plan_id}¨ evidence.journals) / evidence.journals
-              invalid_journals ← (¬ proj.IsValidDateText¨ {𝕩.date}¨ matching_journals) / matching_journals
+              invalid_journals ← (¬ dt.IsValidDateText¨ {𝕩.date}¨ matching_journals) / matching_journals
               {𝕊:
                 badj ← ⊑ invalid_journals
                 diagnostics ↩ diagnostics ∾ ⟨MakeDiagnostic ⟨ev.source_row, "invalid_completion_date", badj.date, "matching completion evidence has invalid date"⟩⟩
@@ -142,14 +143,14 @@ BuildFromEvidence ← {𝕊 ctx‿trend_dates‿evidence:
     {𝕊:
       classes ← ctx.resolved.spend_classes ∾ ⟨""⟩
       min_dn ← ⌊´ trend_dns
-      active_plans ← ({𝕊 ev: p ← proj.DaysFromEpoch ev.date ⋄ (p ≥ min_dn) ∧ (p < end_dn)}¨ evidence.plans) / evidence.plans
+      active_plans ← ({𝕊 ev: p ← dt.DaysFromEpoch ev.date ⋄ (p ≥ min_dn) ∧ (p < end_dn)}¨ evidence.plans) / evidence.plans
       ReserveAt ← {𝕊 d_dn:
         values ← {𝕊 ev:
-          p_dn ← proj.DaysFromEpoch ev.date
+          p_dn ← dt.DaysFromEpoch ev.date
           joined ← RowsForPlanSource ⟨ctx.posting_rows, ev.source_row⟩
           debit ← ⊑ ("debit"⊸≡¨ {𝕩.side}¨ joined) / joined
           matching ← (ev.plan_id⊸≡¨ {𝕩.plan_id}¨ evidence.journals) / evidence.journals
-          completed ← ∨´ 0 ∾ {𝕊 j: (proj.DaysFromEpoch j.date) ≤ d_dn}¨ matching
+          completed ← ∨´ 0 ∾ {𝕊 j: (dt.DaysFromEpoch j.date) ≤ d_dn}¨ matching
           is_fixed ← (debit.account_key_index ⊑ classes) ≡ "fixed"
           open ← (d_dn ≤ p_dn) ∧ (p_dn < end_dn) ∧ ¬ completed
           (open ∧ is_fixed) × debit.delta
