@@ -19,15 +19,16 @@
 #   - does not export derived TSV
 #   - does not implement trial balance / multi-posting / generated entries
 
-# ── Layer constants ──────────────────────────────────────────
+layer ← •Import "layer.bqn"
 
-layer_actual   ← 0
-layer_plan     ← 1
-layer_budget   ← 2
-layer_forecast ← 3
+# ── Layer compatibility delegates ─────────────────────────────
 
-layer_names ← ⟨"actual", "plan", "budget", "forecast"⟩
-layer_count ← 4
+layer_actual   ← layer.layer_actual
+layer_plan     ← layer.layer_plan
+layer_budget   ← layer.layer_budget
+layer_forecast ← layer.layer_forecast
+layer_names    ← layer.layer_names
+layer_count    ← layer.layer_count
 
 # ── Safe sum helper ────────────────────────────────────────
 # Returns 0 for empty vector; identical to +´ otherwise.
@@ -258,8 +259,6 @@ FormatMinimalReportSummary ← {𝕊 ⟨result, ak_keys, cycle_start, cycle_end�
   out ↩ out ∾ "src_next_cycle_range: " ∾ cycle_start ∾ ".." ∾ cycle_end ∾ (@+10)
   out ↩ out ∾ "src_next_valid_projection_rows: " ∾ (•Fmt result.valid_count) ∾ (@+10)
   out ↩ out ∾ "src_next_skipped_projection_rows: " ∾ (•Fmt result.skipped_count) ∾ (@+10)
-  out ↩ out ∾ "src_next_actual_total: " ∾ (•Fmt (layer_actual ⊑ result.layer_totals_vec)) ∾ (@+10)
-  out ↩ out ∾ "src_next_plan_total: " ∾ (•Fmt (layer_plan ⊑ result.layer_totals_vec)) ∾ (@+10)
   out ↩ out ∾ "src_next_actual_expense_total: " ∾ (•Fmt result.actual_expense_total) ∾ (@+10)
   out ↩ out ∾ "src_next_plan_expense_total: " ∾ (•Fmt result.plan_expense_total) ∾ (@+10)
 
