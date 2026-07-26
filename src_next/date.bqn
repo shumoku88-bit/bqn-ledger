@@ -56,9 +56,28 @@ DaysBetween ← {
   (Ordinal e) - Ordinal s
 }
 
+# Convert proleptic Gregorian ordinal number back to YYYY-MM-DD.
+# Explicit grouping preserves the standard 400-year formula under BQN's
+# right-to-left evaluation.
+FromOrdinal ← {
+  z ← 𝕩
+  z ↩ z - 0
+  era ← ⌊ (z - (z < 0)) ÷ 146097
+  doe ← z - era × 146097
+  yoe ← ⌊ (((((doe - (⌊ doe ÷ 1460)) + (⌊ doe ÷ 36524)) - (⌊ doe ÷ 146096))) ÷ 365)
+  y ← yoe + (era × 400)
+  doy ← doe - ((365 × yoe) + (⌊ yoe ÷ 4) - (⌊ yoe ÷ 100))
+  mp ← ⌊ (((5 × doy) + 2) ÷ 153)
+  d ← (doy - (⌊ (((153 × mp) + 2) ÷ 5))) + 1
+  m ← mp + ((mp < 10) ⊑ ⟨ ¯9, 3 ⟩)
+  y ↩ y + (m ≤ 2)
+  
+  Pad ← { s ← •Fmt 𝕩 ⋄ ((0 ⌈ 2-≠s)⥊'0') ∾ s }
+  (•Fmt y) ∾ "-" ∾ (Pad m) ∾ "-" ∾ (Pad d)
+}
+
 # Number of leap days represented before January 1 of year y in the legacy
-# epoch coordinate. Explicit grouping is required under BQN's right-to-left
-# evaluation so the 400-year term remains additive.
+# epoch coordinate. Explicit grouping keeps the 400-year term additive.
 LeapsBeforeYear ← {𝕊 y:
   (((⌊y÷4) - (⌊y÷100)) + (⌊y÷400)) - ((0 < y) ∧ IsLeap y)
 }
@@ -74,51 +93,17 @@ DaysFromEpoch ← {𝕊 s:
   yearDays + moDays + leapCorr + d - 1
 }
 
-# Inverse of DaysFromEpoch using the same corrected year-start coordinate.
+# Inverse of DaysFromEpoch. Positive years use the stable offset between the
+# corrected legacy epoch coordinate and the Gregorian ordinal coordinate.
 FromDaysFromEpoch ← {𝕊 tdn:
-  YearLen ← {𝕊 yy: (IsLeap yy) ⊑ 365‿366 }
-  y0 ← ⌊ tdn ÷ 365
-  days_to_y0 ← (y0 × 365) + (LeapsBeforeYear y0)
-  y ← y0 - (days_to_y0 > tdn)
-  cum ← (y × 365) + (LeapsBeforeYear y)
-  {𝕊:
-    yl ← YearLen y
-    cum2 ← cum + yl
-    {𝕊: y ↩ y + 1 ⋄ cum ↩ cum2 }⍟(cum2 ≤ tdn) @
-  }⍟((cum + (YearLen y)) ≤ tdn) @
-  rem ← tdn - cum
-  mdays ← ⟨31, 28 + IsLeap y, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31⟩
-  cum_m ← +` (0 ∾ mdays)
-  m_idx ← ⊑ (cum_m > rem) ⊐ ⟨1⟩
-  m ← m_idx
-  r ← rem - (m_idx - 1) ⊑ cum_m
-  d ← r + 1
-  Pad2 ← { ss ← •Fmt 𝕩 ⋄ ((0 ⌈ 2 - ≠ ss) ⥊ "0") ∾ ss }
-  (•Fmt y) ∾ "-" ∾ (Pad2 m) ∾ "-" ∾ (Pad2 d)
+  offset ← (tdn < 365) ⊑ 59‿60
+  FromOrdinal (tdn - offset)
 }
 
 AddDays ← {𝕊 date‿n:
   result ← "unavailable"
   {𝕊: result ↩ FromDaysFromEpoch (n + DaysFromEpoch date) }⍟(date ≢ "unavailable") @
   result
-}
-
-# Convert proleptic Gregorian ordinal number back to YYYY-MM-DD
-FromOrdinal ← {
-  z ← 𝕩
-  z ↩ z - 0
-  era ← ⌊ (z - (z < 0)) ÷ 146097
-  doe ← z - era × 146097
-  yoe ← ⌊ ((doe - (⌊ doe ÷ 1460) + (⌊ doe ÷ 36524) - (⌊ doe ÷ 146096)) ÷ 365)
-  y ← yoe + (era × 400)
-  doy ← doe - ((365 × yoe) + (⌊ yoe ÷ 4) - (⌊ yoe ÷ 100))
-  mp ← ⌊ (((5 × doy) + 2) ÷ 153)
-  d ← (doy - (⌊ (((153 × mp) + 2) ÷ 5))) + 1
-  m ← mp + ((mp < 10) ⊑ ⟨ ¯9, 3 ⟩)
-  y ↩ y + (m ≤ 2)
-  
-  Pad ← { s ← •Fmt 𝕩 ⋄ ((0 ⌈ 2-≠s)⥊'0') ∾ s }
-  (•Fmt y) ∾ "-" ∾ (Pad m) ∾ "-" ∾ (Pad d)
 }
 
 { Today ⇐ Today, Parts ⇐ Parts, IsDigits ⇐ IsDigits, IsLeap ⇐ IsLeap, IsValidDateText ⇐ IsValidDateText, Ordinal ⇐ Ordinal, DaysBetween ⇐ DaysBetween, DaysFromEpoch ⇐ DaysFromEpoch, FromDaysFromEpoch ⇐ FromDaysFromEpoch, AddDays ⇐ AddDays, FromOrdinal ⇐ FromOrdinal }
