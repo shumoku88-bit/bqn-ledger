@@ -1,6 +1,6 @@
 # projection.bqn
 # Shared Posting IR construction vocabulary for the non-Actual TSV route,
-# plus current Layer, source-field, day-coordinate, and arithmetic-proof compatibility seams.
+# plus current Layer, day-coordinate, and arithmetic-proof compatibility seams.
 #
 # Current contracts:
 #   - docs/POSTING_IR_CONTRACT.md
@@ -14,7 +14,6 @@
 dt ← •Import "date.bqn"
 layer ← •Import "layer.bqn"
 proof ← •Import "arithmetic_currency_proof.bqn"
-source_fields ← •Import "source_fields.bqn"
 
 
 # ── Layer compatibility delegates ─────────────────────────────
@@ -66,10 +65,6 @@ InferKind ← {𝕊 ⟨fromRole, toRole, fromAcc, toAcc⟩:
   isExp ⊑ (isInc ⊑ "transfer"‿"income")‿"expense"
 }
 
-# ── Source-field compatibility delegate ──────────────────────
-
-FieldOrEmpty ← source_fields.FieldOrEmpty
-
 # ── Day index resolution (cycle-start-based) ────────────────
 # Returns day offset from cycle start (0 = cycle start date).
 # Negative for dates before cycle start.
@@ -114,7 +109,6 @@ ArithmeticCurrencyAuthorizationMessage ← proof.ArithmeticCurrencyAuthorization
   TxIdFromMeta          ⇐ TxIdFromMeta,
   LayerName             ⇐ LayerName,
   PostingId             ⇐ PostingId,
-  FieldOrEmpty         ⇐ FieldOrEmpty,
   ResolveDayFromCycle   ⇐ ResolveDayFromCycle,
   AuthorizeArithmeticCurrencyProof ⇐ AuthorizeArithmeticCurrencyProof,
   ArithmeticCurrencyAuthorizationMessage ⇐ ArithmeticCurrencyAuthorizationMessage
