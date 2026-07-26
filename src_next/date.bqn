@@ -56,6 +56,20 @@ DaysBetween ← {
   (Ordinal e) - Ordinal s
 }
 
+# Legacy projection day number: days since year 0-01-01.
+# Preserve the existing source-shape failure behavior while removing the
+# current leap year's premature contribution at January 1.
+DaysFromEpoch ← {𝕊 s:
+  y‿m‿d ← Parts s
+  leaps ← (⌊y÷4) - (⌊y÷100) + (⌊y÷400)
+  yearDays ← (y × 365) + leaps
+  moOffs ← ⟨0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334⟩
+  moDays ← (m-1) ⊑ moOffs
+  leapCorr ← ((IsLeap y) ∧ m > 2) ⊑ ⟨0, 1⟩
+  currentLeapIncluded ← (0 < y) ∧ IsLeap y
+  yearDays + moDays + leapCorr + d - 1 - currentLeapIncluded
+}
+
 # Convert proleptic Gregorian ordinal number back to YYYY-MM-DD
 FromOrdinal ← {
   z ← 𝕩
@@ -74,16 +88,8 @@ FromOrdinal ← {
   (•Fmt y) ∾ "-" ∾ (Pad m) ∾ "-" ∾ (Pad d)
 }
 
-# Legacy projection day number. Keep the established positive-year absolute
-# coordinate while deriving continuity and uniqueness from the Ordinal pair.
-DaysFromEpoch ← {𝕊 s:
-  y ← ⊑ Parts s
-  offset ← (0 = y) ⊑ 59‿60
-  offset + Ordinal s
-}
-
-# Inverse of DaysFromEpoch. Coordinate 365 is the historical year-zero overlap;
-# preserve the existing inverse choice of 0001-01-01 at that coordinate.
+# Inverse of the corrected positive-year DaysFromEpoch coordinate.
+# The year-zero prefix retains its historical offset.
 FromDaysFromEpoch ← {𝕊 tdn:
   offset ← (tdn < 365) ⊑ 59‿60
   FromOrdinal (tdn - offset)
