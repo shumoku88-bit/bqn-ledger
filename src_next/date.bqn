@@ -57,9 +57,10 @@ DaysBetween ← {
 }
 
 # Number of leap days represented before January 1 of year y in the legacy
-# epoch coordinate. The earlier formula included the current leap year itself.
+# epoch coordinate. Explicit grouping is required under BQN's right-to-left
+# evaluation so the 400-year term remains additive.
 LeapsBeforeYear ← {𝕊 y:
-  ((⌊y÷4) - (⌊y÷100) + (⌊y÷400)) - ((0 < y) ∧ IsLeap y)
+  (((⌊y÷4) - (⌊y÷100)) + (⌊y÷400)) - ((0 < y) ∧ IsLeap y)
 }
 
 # Legacy projection day number: days since year 0-01-01.
