@@ -18,6 +18,7 @@ loader ← •Import "loader.bqn"
 dec ← •Import "exact_decimal.bqn"
 arith ← •Import "currency_arithmetic.bqn"
 ak ← •Import "account_key.bqn"
+dt ← •Import "date.bqn"
 proj ← •Import "projection.bqn"
 cycle ← •Import "cycle.bqn"
 cube ← •Import "cube.bqn"
@@ -189,7 +190,7 @@ BuildProjectionRowsForEvidence ← {𝕊 ⟨row, coef, resolved, cycleStart⟩:
   toAcc      ← proj.FieldOrEmpty ⟨flds, 3⟩
   amountText ← proj.FieldOrEmpty ⟨flds, 4⟩
 
-  dateOk   ← proj.IsValidDateText date
+  dateOk   ← dt.IsValidDateText date
   amountOk   ← row.parsed.state ≡ "ok"
   amount   ← 0
   {𝕊: amount ↩ coef }⍟amountOk @
@@ -224,7 +225,7 @@ BuildProjectionRowsForEvidence ← {𝕊 ⟨row, coef, resolved, cycleStart⟩:
   toRole   ← toAkOut ⊑ roleWithSentinel
 
   day ← 0
-  cycleStartOk ← proj.IsValidDateText cycleStart
+  cycleStartOk ← dt.IsValidDateText cycleStart
   {𝕊: day ↩ proj.ResolveDayFromCycle ⟨date, cycleStart⟩ }⍟(dateOk ∧ cycleStartOk) @
 
   layer ← proj.SourceLayer srcFile
