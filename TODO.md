@@ -13,7 +13,8 @@ This file is a lightweight notebook for the current state of `bqn-ledger`. It re
 - Projection-cleanup P2 characterization is complete in `docs/archive/audits/PROJECTION_COMPATIBILITY_EXPORTS_CHARACTERIZATION-2026-07-26.md`: five compatibility candidates had no repository runtime callers; the implementation slices then separated low-pressure helpers from the proof-wrapper contract seam.
 - Projection-cleanup P2a is complete: the dead `ResolveDay`, `IsDigits`, and `IsIntegerText` definitions/exports are gone; `MetaValue` remains private for `TxIdFromMeta`; live cycle-date and arithmetic-proof boundaries are preserved.
 - Projection-cleanup P2b is complete: the unused effectful `RequireArithmeticCurrencyProof` wrapper and export are gone; `AuthorizeArithmeticCurrencyProof` and `ArithmeticCurrencyAuthorizationMessage` remain the data-only proof boundary; fatal stdout and exit behavior remain in the outer `context.bqn` compatibility wrapper; and the checked-result contract now describes the implemented runtime rather than the earlier design phase.
-- `checks/check-projection-compatibility-exports.sh` guards the completed P2 boundary against restored dead exports or executable callers.
+- Projection-cleanup P3a is complete: `cycle.bqn` and `actual_snapshot.bqn` now call their existing direct `date.bqn` imports for validation and epoch coordinates, no longer import `projection.bqn`, and the focused date test no longer treats projection forwarding aliases as part of the date contract. Evidence is recorded in `docs/archive/audits/PROJECTION_DATE_OWNERSHIP_P3A-2026-07-26.md`.
+- `checks/check-projection-compatibility-exports.sh` guards the completed P2 boundary and the first P3 direct-date group against regression.
 - `src_next/main.bqn` is no longer the implementation owner. It is a temporary compatibility wrapper that imports `developer_inspection.bqn`; current tools and checks use the named entrypoint directly and verify byte-equivalent wrapper behavior.
 - `src_next` module topology is recorded in `docs/archive/audits/SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md`: 71 BQN modules, 69 at root, 276 direct imports, no missing direct target, and no import cycle.
 - `tools/src-next-import-graph` and `checks/check-src-next-import-graph.sh` provide repeatable direct-import evidence for future directory migrations.
@@ -30,7 +31,9 @@ This file is a lightweight notebook for the current state of `bqn-ledger`. It re
 
 ## Things worth exploring
 
-- restore direct `date.bqn` ownership instead of forwarding `IsValidDateText` and `DaysFromEpoch` through `projection.bqn`;
+- continue P3 with `actual_comparison.bqn`, the remaining already-direct `date.bqn` consumer that still reaches epoch and validation functions through `projection.bqn`;
+- after that, group the remaining forwarded-date callers by coherent ownership before adding direct imports; do not perform a blind repository-wide replacement;
+- remove the temporary `projection.IsValidDateText` and `projection.DaysFromEpoch` exports only after executable callers and focused tests have migrated;
 - reassess the live arithmetic-proof predicate/message ownership after the dead effectful wrapper removal;
 - inventory shared Layer ownership as its own slice rather than combining it with date or proof cleanup;
 - decide at a later stability boundary whether the thin `src_next/main.bqn` compatibility wrapper should be deprecated for a release and then removed; do not restore implementation to it;
@@ -55,7 +58,7 @@ The first direct consumer exposed an important boundary: transaction-level `kind
 
 A flat pipeline is useful only when it preserves first-failure ownership. Later stages must not run after policy, source admission, currency proof, or non-Actual validation fails, and no partial selected context may escape.
 
-Code beauty here means truthful ownership, not maximum file count. P1 moved only the clearest foreign responsibility; P2 then removed compatibility surfaces only after caller and contract evidence. Later cleanup slices must preserve their own compatibility evidence and must not use the smaller file as permission for a mechanical split.
+Code beauty here means truthful ownership, not maximum file count. P1 moved only the clearest foreign responsibility; P2 then removed compatibility surfaces only after caller and contract evidence. P3 is restoring direct date ownership in coherent caller groups rather than through one mass path rewrite.
 
 A compatibility wrapper is not an implementation owner. New code, checks, and docs should name `developer_inspection.bqn`; `main.bqn` may be removed only through an explicit compatibility decision rather than by accidentally letting it grow again.
 
