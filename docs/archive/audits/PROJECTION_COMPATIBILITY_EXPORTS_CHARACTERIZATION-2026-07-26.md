@@ -1,6 +1,6 @@
 # `projection.bqn` compatibility-export characterization — 2026-07-26
 
-Status: completed P2 characterization
+Status: completed P2 characterization; P2a test-evidence correction recorded
 Owner: architecture / posting projection
 Canonical: no; current runtime modules and current contracts remain authoritative
 Baseline main: `17d1d32f441c0ab7d121fd49995797bd7b45e839`
@@ -37,6 +37,8 @@ The audit inspected:
 
 Public code search cannot observe private repositories, unindexed forks, local clones, deleted branches, or dynamic/aliased access. Therefore external absence is evidence, not proof.
 
+P2a correction: the first full repository gate exposed two legacy `proj.IsIntegerText` assertions in `tests/test_src_next_account_key.bqn`. They were test-only calls rather than runtime consumers, and the current parser contract is already exercised by `tests/test_src_next_exact_decimal.bqn`. The original zero-focused-caller statement was therefore inaccurate and is corrected below rather than hidden by merely deleting the assertions.
+
 ## Result summary
 
 | Candidate | Repository runtime caller | Focused-test caller | Current documentation pressure | Remaining coherent owner | Selected treatment |
@@ -45,7 +47,7 @@ Public code search cannot observe private repositories, unindexed forks, local c
 | `RequireArithmeticCurrencyProof` | 0 | 0 | Named by a stale current-contract implementation description; historical docs also record its former role | none; outer fatal behavior now lives in `context.AuthorizedRowsFromCheckedResult` | keep through P2a, then remove with contract correction and parity evidence in P2b |
 | exported `MetaValue` | 0 | 0 | No current public promise found | private helper for `TxIdFromMeta` | remove export only in P2a; keep local definition |
 | exported `IsDigits` | 0 | 0 | No current runtime contract; historical currency documents mention the old integer parser path | only used by dead `IsIntegerText` | remove definition and export in P2a |
-| exported `IsIntegerText` | 0 | 0 | One active implementation-plan document still describes the pre-exact-decimal path as current | none; current amount parsing is owned by `exact_decimal.bqn` | remove definition and export in P2a and correct the stale plan wording |
+| exported `IsIntegerText` | 0 | 2 legacy assertions in `test_src_next_account_key.bqn` | One active implementation-plan document still describes the pre-exact-decimal path as current | none; current amount parsing is owned by `exact_decimal.bqn` | remove obsolete assertions, definition, and export in P2a; correct the stale plan wording |
 
 ## Candidate evidence
 
@@ -118,14 +120,21 @@ Conclusion: keep the local helper while `TxIdFromMeta` remains here, but remove 
 
 ### exported `IsDigits` and `IsIntegerText`
 
-The only current relationship in `projection.bqn` is:
+The only runtime relationship in `projection.bqn` is:
 
 ```text
 IsIntegerText
   -> IsDigits
 ```
 
-No current runtime or focused test calls either export. The non-Actual amount path now uses:
+No current runtime calls either export. The first characterization pass overlooked two direct assertions in the broad account-key test:
+
+```text
+proj.IsIntegerText "1200"
+proj.IsIntegerText "12x"
+```
+
+Those assertions preserve no account-key, Posting IR, or current exact-decimal ownership boundary. The active amount path and its focused parser tests now use:
 
 ```text
 context.BuildRowEvidenceForLine
@@ -135,7 +144,7 @@ context.BuildRowEvidenceForLine
 
 The current active document `docs/CURRENCY_STAGE2_EXPLICIT_SINGLE_CURRENCY_EXACT_DECIMAL_IMPLEMENTATION_PLAN.md` still describes `projection.IsIntegerText` as the current amount flow. That is pre-B1 baseline wording, not current runtime truth. The older `docs/CURRENT_CURRENCY_ASSUMPTION_MAP.md` is explicitly a non-canonical Stage 0 snapshot and may retain its historical observation.
 
-Conclusion: remove both definitions and exports together in P2a, and correct the active plan's implementation-state wording in that same slice.
+Conclusion: remove the two obsolete assertions and both definitions/exports together in P2a, preserve the focused `exact_decimal.bqn` contract tests, and correct the active plan's implementation-state wording in that same slice.
 
 ## Focused-test dependence
 
@@ -146,7 +155,7 @@ The focused proof tests establish live pressure on:
 - `context.BuildAuthorizedRowsFromSnapshot`;
 - the pure checked-result and compatibility-wrapper paths.
 
-They do not call any of the five candidates. Therefore candidate removal must preserve neighboring live names and existing proof/result/fatal-wrapper behavior rather than invent replacement tests for dead functions.
+The first full P2a gate additionally found two legacy `IsIntegerText` assertions in `tests/test_src_next_account_key.bqn`. They test the superseded parser surface rather than a current account-key or amount contract, so P2a removes them instead of retaining a wrapper. No focused test calls the other four candidates. Candidate removal must preserve neighboring live names and existing proof/result/fatal-wrapper behavior.
 
 ## External-clone compatibility
 
@@ -169,7 +178,7 @@ Remove in one bounded implementation slice:
 
 - `ResolveDay` definition and export;
 - `IsDigits` definition and export;
-- `IsIntegerText` definition and export;
+- the two obsolete `test_src_next_account_key.bqn` assertions plus the `IsIntegerText` definition and export;
 - `MetaValue` export only.
 
 Preserve:
@@ -177,6 +186,7 @@ Preserve:
 - local `MetaValue` behavior used by `TxIdFromMeta`;
 - `ResolveDayFromCycle`;
 - `IsValidDateText` and `DaysFromEpoch` until the separate direct-date-ownership slice;
+- focused `exact_decimal.bqn` parser evidence;
 - all live proof predicate/message behavior;
 - Posting IR, source admission, report, Cube, and TBDS contracts.
 
@@ -208,4 +218,4 @@ This characterization does not authorize:
 
 ## Next finite slice
 
-> P2a: remove `ResolveDay`, `IsDigits`, and `IsIntegerText`; stop exporting `MetaValue`; correct the stale exact-decimal-plan runtime note; add a focused boundary check; and preserve every live accounting contract.
+> P2a: remove `ResolveDay`, `IsDigits`, and `IsIntegerText`; remove the two obsolete `IsIntegerText` assertions; stop exporting `MetaValue`; correct the stale exact-decimal-plan runtime note; add a focused boundary check; and preserve every live accounting contract.

@@ -62,13 +62,8 @@ InferKind ← {𝕊 ⟨fromRole, toRole, fromAcc, toAcc⟩:
   isExp ⊑ (isInc ⊑ "transfer"‿"income")‿"expense"
 }
 
-# ── Scalar validation helpers ───────────────────────────────
+# ── Scalar field helper ──────────────────────────────────────
 
-digits ← "0123456789"
-IsDigits ← { (0 < ≠ 𝕩) ∧ ∧´ (𝕩 ∊ digits) }
-IsIntegerText ← {𝕊 s:
-  (0 < ≠ s) ∧ IsDigits(s)
-}
 FieldOrEmpty ← {𝕊 flds‿i:
   (i < ≠ flds) ? (i ⊑ flds) ; ""
 }
@@ -87,13 +82,6 @@ DaysFromEpoch ← dt.DaysFromEpoch
 # Negative for dates before cycle start.
 ResolveDayFromCycle ← {𝕊 date‿cycleStart:
   (DaysFromEpoch date) - DaysFromEpoch cycleStart
-}
-
-# ── Legacy ResolveDay (hardcoded base, kept for compatibility) ──
-# No current repository caller was observed in the 2026-07-26 ownership audit.
-# Removal requires its own external-compatibility characterization slice.
-ResolveDay ← {𝕊 date:
-  ResolveDayFromCycle ⟨date, "2026-01-01"⟩
 }
 
 # ── Source metadata helpers ─────────────────────────────────
@@ -184,16 +172,12 @@ RequireArithmeticCurrencyProof ← {𝕊 proof:
   layer_forecast  ⇐ layer_forecast,
   SourceLayer     ⇐ SourceLayer,
   InferKind       ⇐ InferKind,
-  MetaValue             ⇐ MetaValue,
   TxIdFromMeta          ⇐ TxIdFromMeta,
   LayerName             ⇐ LayerName,
   PostingId             ⇐ PostingId,
-  IsDigits             ⇐ IsDigits,
-  IsIntegerText        ⇐ IsIntegerText,
   IsValidDateText      ⇐ IsValidDateText,
   FieldOrEmpty         ⇐ FieldOrEmpty,
   DaysFromEpoch         ⇐ DaysFromEpoch,
-  ResolveDay            ⇐ ResolveDay,
   ResolveDayFromCycle   ⇐ ResolveDayFromCycle,
   AuthorizeArithmeticCurrencyProof ⇐ AuthorizeArithmeticCurrencyProof,
   ArithmeticCurrencyAuthorizationMessage ⇐ ArithmeticCurrencyAuthorizationMessage,

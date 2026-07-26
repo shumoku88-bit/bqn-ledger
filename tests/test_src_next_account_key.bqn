@@ -74,13 +74,11 @@ RowsForFields ← {𝕊 rowIdx‿fields:
 "transfer" lib.AssertEq proj.InferKind ⟨"asset", "asset", "assets:bank", "assets:cash"⟩
 "transfer" lib.AssertEq proj.InferKind ⟨"", "", "income:salary", "expenses:food"⟩
 
-# Posting IR identity helpers.
+# Posting IR identity and date helpers.
 "T-001" lib.AssertEq proj.TxIdFromMeta ⟨"fallback-id", ⟨"2026-06-01", "memo", "assets:bank", "医療費", "1200", "txn_id=T-001"⟩⟩
 "fallback-id" lib.AssertEq proj.TxIdFromMeta ⟨"fallback-id", ⟨"2026-06-01", "memo", "assets:bank", "医療費", "1200"⟩⟩
 "actual" lib.AssertEq proj.LayerName proj.layer_actual
 "actual.journal:3:debit" lib.AssertEq proj.PostingId ⟨"actual.journal", 3, "debit"⟩
-1 lib.AssertEq proj.IsIntegerText "1200"
-0 lib.AssertEq proj.IsIntegerText "12x"
 1 lib.AssertEq proj.IsValidDateText "2026-06-01"
 0 lib.AssertEq proj.IsValidDateText "2026-02-31"
 0 lib.AssertEq proj.IsValidDateText "20260601"

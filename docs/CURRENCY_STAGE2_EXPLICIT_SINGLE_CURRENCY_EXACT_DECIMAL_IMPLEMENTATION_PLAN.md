@@ -13,13 +13,25 @@ This document plans the smallest staged runtime path from the current integer-on
 42.50 currency=ILS
 ```
 
-This PR is docs-only. It does not implement runtime, tests, checks, fixtures, source TSV, metadata schema, editor, report, JSON, Posting IR, cube, or TBDS changes.
+The original planning PR was docs-only. It did not implement runtime, tests, checks, fixtures, source TSV, metadata schema, editor, report, JSON, Posting IR, cube, or TBDS changes.
 
 Source-model note (2026-07-24): references below to `journal.tsv` describe the pre-Journal-only evidence/model and are not current runtime instructions. Current Actual ingress is the configured native Journal; `plan.tsv` and `budget_alloc.tsv` remain TSV sources.
 
-## 1. Current runtime facts
+Implementation-state correction (2026-07-26): the staged exact-decimal path described by this plan is now implemented. The pre-implementation baseline below is retained for design history and must not be read as current runtime truth. Current non-Actual amount handling is:
 
-Current `src_next/context.bqn` amount flow is:
+```text
+context.BuildRowEvidenceForLine
+  -> exact_decimal.Parse
+  -> currency_arithmetic.Build
+  -> exact normalized integer coefficient at the selected context amount_scale
+  -> signed posting delta
+```
+
+In particular, current runtime does not call `projection.IsIntegerText`; that dead compatibility helper was removed in projection-cleanup P2a.
+
+## 1. Original runtime baseline
+
+The pre-implementation `src_next/context.bqn` amount flow was:
 
 ```text
 amountText
@@ -36,14 +48,14 @@ Therefore:
   -> invalid_amount
 ```
 
-Current currency proof behavior is also narrower than the selected decision:
+Currency proof behavior at that baseline was also narrower than the selected decision:
 
 ```text
 any explicit currency= token
   -> unsupported
 ```
 
-Current projection authorization requires:
+Projection authorization at that baseline required:
 
 ```text
 proof.state = proven
@@ -54,7 +66,7 @@ proof.basis in {
 }
 ```
 
-Current cube and TBDS consumers sum scalar `delta` values with ordinary numeric reductions.
+Cube and TBDS consumers at that baseline summed scalar `delta` values with ordinary numeric reductions.
 
 Consequence:
 
@@ -63,7 +75,7 @@ admit currency=ILS only
   != honest ILS support
 ```
 
-The amount path and arithmetic carrier must be made exact first.
+The amount path and arithmetic carrier had to be made exact first.
 
 ## 2. Selected exact-decimal parse carrier
 
