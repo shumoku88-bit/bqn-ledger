@@ -20,7 +20,7 @@ decimal ← •Import "exact_decimal.bqn"
 admission ← •Import "journal_complete_source_admission.bqn"
 carrier ← •Import "journal_currency_proof_carrier_stage2a.bqn"
 context ← •Import "context.bqn"
-proj ← •Import "projection.bqn"
+source_fields ← •Import "source_fields.bqn"
 
 empty ← ⟨⟩
 
@@ -50,8 +50,8 @@ ValidateNonActualEvidence ← {𝕊 evidence‿resolved:
       diagnostics ∾↩ ⟨Diagnostic ⟨"nonactual_evidence_invalid", row.source_file ∾ " row " ∾ (•Fmt row.source_row) ∾ ": " ∾ row.message⟩⟩
     }⍟(row.state ≢ "ok") @
     {𝕊:
-      from ← proj.FieldOrEmpty ⟨row.flds, 2⟩
-      to ← proj.FieldOrEmpty ⟨row.flds, 3⟩
+      from ← source_fields.FieldOrEmpty ⟨row.flds, 2⟩
+      to ← source_fields.FieldOrEmpty ⟨row.flds, 3⟩
       {𝕊 accountName:
         found ← LookupAccount ⟨accountName, resolved⟩
         diagnostics ∾↩ (found.count ≠ 1) / ⟨Diagnostic ⟨"nonactual_account_unresolved", row.source_file ∾ " row " ∾ (•Fmt row.source_row) ∾ ": account must resolve exactly once"⟩⟩
