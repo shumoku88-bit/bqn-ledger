@@ -10,8 +10,10 @@ This file is a lightweight notebook for the current state of `bqn-ledger`. It re
 - `src_next/selected_domain_context.bqn` composes one selected currency through a flat fail-closed stage sequence: policy, Actual admission, Actual currency proof, non-Actual preparation, context scale, exact normalization, and period views.
 - `src_next/projection.bqn` ownership is inventoried in `docs/archive/audits/PROJECTION_BQN_OWNERSHIP_AUDIT-2026-07-26.md`; it is a mixed Posting IR vocabulary shelf rather than a generic projection engine.
 - Projection-cleanup P1 is complete: developer-only Posting IR columns, table formatting, and source-balance presentation live in `src_next/developer_inspection.bqn`; `projection.bqn` no longer exports presentation helpers, and the production `tools/report` path is unchanged.
-- Projection-cleanup P2 characterization is complete in `docs/archive/audits/PROJECTION_COMPATIBILITY_EXPORTS_CHARACTERIZATION-2026-07-26.md`: the five candidates have no repository runtime callers; P2a corrected two overlooked legacy `IsIntegerText` test assertions, while `RequireArithmeticCurrencyProof` retains the stronger documentation seam selected for separate removal.
-- Projection-cleanup P2a is complete: the dead `ResolveDay`, `IsDigits`, and `IsIntegerText` definitions/exports are gone; `MetaValue` remains private for `TxIdFromMeta`; live cycle-date and arithmetic-proof boundaries are preserved; and `checks/check-projection-compatibility-exports.sh` guards that boundary.
+- Projection-cleanup P2 characterization is complete in `docs/archive/audits/PROJECTION_COMPATIBILITY_EXPORTS_CHARACTERIZATION-2026-07-26.md`: five compatibility candidates had no repository runtime callers; the implementation slices then separated low-pressure helpers from the proof-wrapper contract seam.
+- Projection-cleanup P2a is complete: the dead `ResolveDay`, `IsDigits`, and `IsIntegerText` definitions/exports are gone; `MetaValue` remains private for `TxIdFromMeta`; live cycle-date and arithmetic-proof boundaries are preserved.
+- Projection-cleanup P2b is complete: the unused effectful `RequireArithmeticCurrencyProof` wrapper and export are gone; `AuthorizeArithmeticCurrencyProof` and `ArithmeticCurrencyAuthorizationMessage` remain the data-only proof boundary; fatal stdout and exit behavior remain in the outer `context.bqn` compatibility wrapper; and the checked-result contract now describes the implemented runtime rather than the earlier design phase.
+- `checks/check-projection-compatibility-exports.sh` guards the completed P2 boundary against restored dead exports or executable callers.
 - `src_next/main.bqn` is no longer the implementation owner. It is a temporary compatibility wrapper that imports `developer_inspection.bqn`; current tools and checks use the named entrypoint directly and verify byte-equivalent wrapper behavior.
 - `src_next` module topology is recorded in `docs/archive/audits/SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md`: 71 BQN modules, 69 at root, 276 direct imports, no missing direct target, and no import cycle.
 - `tools/src-next-import-graph` and `checks/check-src-next-import-graph.sh` provide repeatable direct-import evidence for future directory migrations.
@@ -28,9 +30,10 @@ This file is a lightweight notebook for the current state of `bqn-ledger`. It re
 
 ## Things worth exploring
 
-- next, execute P2b separately: correct the current pure checked-result contract wording and remove the dead effectful `RequireArithmeticCurrencyProof` wrapper while preserving the live predicate/message pair and outer fatal-output parity;
+- restore direct `date.bqn` ownership instead of forwarding `IsValidDateText` and `DaysFromEpoch` through `projection.bqn`;
+- reassess the live arithmetic-proof predicate/message ownership after the dead effectful wrapper removal;
+- inventory shared Layer ownership as its own slice rather than combining it with date or proof cleanup;
 - decide at a later stability boundary whether the thin `src_next/main.bqn` compatibility wrapper should be deprecated for a release and then removed; do not restore implementation to it;
-- after projection P2, restore direct `date.bqn` ownership, reassess live arithmetic-proof authorization ownership, and inventory shared Layer ownership as separate slices rather than one broad refactor;
 - add a privacy-safe read-only count of metadata keys in the selected Journal;
 - stop copying plan-only `recur` and `series` metadata into completed Actual transactions;
 - test whether explicit `layer: actual` can disappear from an Actual-only Journal without changing behavior;
@@ -52,7 +55,7 @@ The first direct consumer exposed an important boundary: transaction-level `kind
 
 A flat pipeline is useful only when it preserves first-failure ownership. Later stages must not run after policy, source admission, currency proof, or non-Actual validation fails, and no partial selected context may escape.
 
-Code beauty here means truthful ownership, not maximum file count. P1 moved only the clearest foreign responsibility; later cleanup slices must preserve their own compatibility evidence and must not use the smaller file as permission for a mechanical split.
+Code beauty here means truthful ownership, not maximum file count. P1 moved only the clearest foreign responsibility; P2 then removed compatibility surfaces only after caller and contract evidence. Later cleanup slices must preserve their own compatibility evidence and must not use the smaller file as permission for a mechanical split.
 
 A compatibility wrapper is not an implementation owner. New code, checks, and docs should name `developer_inspection.bqn`; `main.bqn` may be removed only through an explicit compatibility decision rather than by accidentally letting it grow again.
 
