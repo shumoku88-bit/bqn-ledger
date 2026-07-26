@@ -3,12 +3,12 @@
 lib ← •Import "test_lib.bqn"
 ctx_mod ← •Import "../src_next/context.bqn"
 daily_trend ← •Import "../src_next/daily_trend.bqn"
-proj ← •Import "../src_next/projection.bqn"
+dt ← •Import "../src_next/date.bqn"
 
 Sum0 ← { 0 < ≠𝕩 ? +´𝕩 ; 0 }
 CountDate ← {𝕊 dates‿date: Sum0 (date⊸≡¨ dates) }
 UniqueSortedDates ← {𝕊 dates:
-  dns ← proj.DaysFromEpoch¨ dates
+  dns ← dt.DaysFromEpoch¨ dates
   ord ← ⍋ dns
   sorted_dates ← ord ⊏ dates
   sorted_dns ← ord ⊏ dns
