@@ -7,6 +7,7 @@ PROJECTION="$ROOT_DIR/src_next/projection.bqn"
 EVENT_LENS="$ROOT_DIR/src_next/event_lens.bqn"
 SELECTED_DOMAIN_CONTEXT="$ROOT_DIR/src_next/selected_domain_context.bqn"
 DAILY_TREND_PLAN="$ROOT_DIR/src_next/daily_trend_plan.bqn"
+OUTLOOK_REMAINING_PLAN="$ROOT_DIR/src_next/outlook_remaining_plan.bqn"
 SOURCE_FIELDS_TEST="$ROOT_DIR/tests/test_src_next_source_fields.bqn"
 
 fail() {
@@ -58,7 +59,14 @@ require_match "$DAILY_TREND_PLAN" 'source_fields[.]FieldOrEmpty' 'daily trend pl
 reject_match "$DAILY_TREND_PLAN" '•Import "projection[.]bqn"' 'daily trend plan returned to the projection compatibility shelf'
 reject_match "$DAILY_TREND_PLAN" 'proj[.]FieldOrEmpty' 'daily trend plan retains a projection-qualified field access call'
 
+# P6d moves Outlook remaining-plan evidence reads to the same direct owner while
+# preserving completion, anchor, Posting IR join, and fail-closed report behavior.
+require_match "$OUTLOOK_REMAINING_PLAN" '^[[:space:]]*source_fields[[:space:]]*←[[:space:]]*•Import "source_fields[.]bqn"' 'outlook remaining plan does not import the source field owner directly'
+require_match "$OUTLOOK_REMAINING_PLAN" 'source_fields[.]FieldOrEmpty' 'outlook remaining plan does not call the direct source field owner'
+reject_match "$OUTLOOK_REMAINING_PLAN" '•Import "projection[.]bqn"' 'outlook remaining plan returned to the projection compatibility shelf'
+reject_match "$OUTLOOK_REMAINING_PLAN" 'proj[.]FieldOrEmpty' 'outlook remaining plan retains a projection-qualified field access call'
+
 require_match "$SOURCE_FIELDS_TEST" '•Import "[.][.]/src_next/source_fields[.]bqn"' 'focused source field test does not import the owner directly'
 require_match "$SOURCE_FIELDS_TEST" 'source_fields[.]FieldOrEmpty' 'focused source field assertions disappeared'
 
-printf '%s\n' 'OK: source field ownership P6a-P6c boundaries'
+printf '%s\n' 'OK: source field ownership P6a-P6d boundaries'
