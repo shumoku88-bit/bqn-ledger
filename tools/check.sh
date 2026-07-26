@@ -114,6 +114,7 @@ bash checks/check-src-next-currency-domain-proof.sh >/dev/null
 bash checks/check-src-next-checked-posting-projection.sh >/dev/null
 bash checks/check-projection-diagnostic-presentation.sh >/dev/null
 bash checks/check-projection-compatibility-exports.sh >/dev/null
+bash checks/check-source-field-ownership.sh >/dev/null
 bash checks/check-developer-inspection-entrypoint.sh fixtures/src-next-golden >/dev/null
 bash checks/check-src-next-compact-summary.sh fixtures/src-next-golden >/dev/null
 bash checks/check-src-next-compact-summary.sh fixtures/src-next-envelope-computation >/dev/null
