@@ -57,14 +57,16 @@ DaysBetween ← {
 }
 
 # Convert proleptic Gregorian ordinal number back to YYYY-MM-DD.
-# Explicit grouping preserves the standard 400-year formula under BQN's
-# right-to-left evaluation.
+# Intermediate assignments make the standard 400-year formula explicit under
+# BQN's right-to-left evaluation.
 FromOrdinal ← {
   z ← 𝕩
   z ↩ z - 0
   era ← ⌊ (z - (z < 0)) ÷ 146097
   doe ← z - era × 146097
-  yoe ← ⌊ (((((doe - (⌊ doe ÷ 1460)) + (⌊ doe ÷ 36524)) - (⌊ doe ÷ 146096))) ÷ 365)
+  yoeNumerator ← (doe - (⌊ doe ÷ 1460)) + (⌊ doe ÷ 36524)
+  yoeNumerator ↩ yoeNumerator - (⌊ doe ÷ 146096)
+  yoe ← ⌊ yoeNumerator ÷ 365
   y ← yoe + (era × 400)
   doy ← doe - ((365 × yoe) + (⌊ yoe ÷ 4) - (⌊ yoe ÷ 100))
   mp ← ⌊ (((5 × doy) + 2) ÷ 153)
