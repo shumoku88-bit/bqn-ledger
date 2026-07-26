@@ -169,11 +169,10 @@ require_file_match "$DAILY_TREND_PLAN" '•Import "([.][.]/)?date[.]bqn"' 'direc
 reject_file_match "$DAILY_TREND_PLAN" '•Import "([.][.]/)?projection[.]bqn"' 'projection dependency returned in src_next/daily_trend_plan.bqn'
 reject_file_match "$DAILY_TREND_PLAN" 'proj[.](IsValidDateText|DaysFromEpoch|FieldOrEmpty)' 'projection-qualified helper call remains in src_next/daily_trend_plan.bqn'
 
-# P3l restores direct date ownership in a second mixed projection consumer.
+# P3l restores direct date ownership; P6d removes the final non-date projection dependency.
 require_file_match "$OUTLOOK_REMAINING_PLAN" '•Import "([.][.]/)?date[.]bqn"' 'direct date import is missing from src_next/outlook_remaining_plan.bqn'
-require_file_match "$OUTLOOK_REMAINING_PLAN" '•Import "([.][.]/)?projection[.]bqn"' 'live non-date projection dependency disappeared from src_next/outlook_remaining_plan.bqn'
-reject_file_match "$OUTLOOK_REMAINING_PLAN" 'proj[.](IsValidDateText|DaysFromEpoch)' 'forwarded projection date call remains in src_next/outlook_remaining_plan.bqn'
-require_file_match "$OUTLOOK_REMAINING_PLAN" 'proj[.]FieldOrEmpty' 'live FieldOrEmpty dependency disappeared from src_next/outlook_remaining_plan.bqn'
+reject_file_match "$OUTLOOK_REMAINING_PLAN" '•Import "([.][.]/)?projection[.]bqn"' 'projection dependency returned in src_next/outlook_remaining_plan.bqn'
+reject_file_match "$OUTLOOK_REMAINING_PLAN" 'proj[.](IsValidDateText|DaysFromEpoch|FieldOrEmpty)' 'projection-qualified helper call remains in src_next/outlook_remaining_plan.bqn'
 
 # P3m restores direct date ownership in a third mixed projection consumer.
 require_file_match "$CYCLE_SUMMARY" '•Import "([.][.]/)?date[.]bqn"' 'direct date import is missing from src_next/cycle_summary.bqn'
