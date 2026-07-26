@@ -15,6 +15,7 @@ Updated: 2026-07-26
 - 記法・運用規約: `docs/CONVENTIONS.md`
 - 保守手順: `docs/MAINTENANCE.md`
 - purpose-specific projection方向: `docs/archive/active-plans/PURPOSE_SPECIFIC_PROJECTION_COMPOSITION_DIRECTION-2026-07-25.md`
+- `src_next` module topology: `docs/archive/audits/SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md`
 
 この文書は、**データがシステム内をどう流れるか**、各モジュールが何を担当するかを説明します。
 
@@ -51,6 +52,10 @@ Updated: 2026-07-26
 5. **flat stage flowとfirst-failure ownership**
    - 長いcompositionは、意味のあるstage名で一方向に読める形を優先する。
    - ただし一般的なpipeline frameworkへ先走らず、各stageのfailure code、diagnostics、no-partial-result契約を保つ。
+6. **module directoryはownership evidenceから育てる**
+   - `src_next`を一度に分類し直さず、direct-import graphとcaller evidenceから見えるcoherent neighborhoodを一群ずつ移す。
+   - high fan-in hubやentrypointを最初の実験に使わず、移動ごとにimport target、focused test、full CI、current docsを同期する。
+   - folder数ではなく、一覧から意味の区域が読めることを目的にする。
 
 ## 二大目的
 
@@ -150,6 +155,22 @@ checked selected-domain posting facts
 `actual_expense_ranking.bqn`では、transaction-level `kind="expense"` を各postingのexpense分類として使いません。multi-posting expense transactionには `assets:prepaid` のような非expense debit coordinateも含み得るため、resolved account metadataから作ったexpense AccountKey partitionへのmembershipで選択します。
 
 このconsumerは現在、public report sectionやproduction Cube/TBDS accumulationを置き換えていません。public synthetic fixtureとfocused testにより、selected-domain producer integration、TBDS expense relation parity、JPY/ILS scale、domain/scale fail-closed、deterministic ranking、contributor lookupをcharacterizeしています。
+
+### Module topology
+
+`src_next`は現在71個のBQN moduleを持ち、そのうち69個がroot直下、2個が`src_next/calc/`にあります。source-levelのdirect `•Import` graphには276 edgeがあり、欠損targetとimport cycleはありません。つまり現在のtreeは循環して分割不能なのではなく、acyclicな依存をほぼ一階層へ並べた状態です。
+
+`tools/src-next-import-graph`がdirect import edge、module degree、cycle、欠損targetを機械的に観察します。詳細なpoint-in-time evidenceとmigration順序は`docs/archive/audits/SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md`にあります。
+
+最初のdirectory migration候補は、production hubから切り離されたpurpose-specific query pairです。
+
+```text
+src_next/queries/
+  actual_expense_ranking.bqn
+  exact_sparse_grouping.bqn
+```
+
+この移動はまだ実施していません。current source pathは引き続き`src_next/actual_expense_ranking.bqn`と`src_next/exact_sparse_grouping.bqn`です。次のfinite sliceで二つを同時に移し、focused tests、current contracts、import graph、full CIを同期します。完全なdirectory skeletonを先に作らず、各neighborhoodの意味が証拠で確かめられた時点で育てます。
 
 ## Dataflow
 
