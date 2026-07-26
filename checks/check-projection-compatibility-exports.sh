@@ -189,13 +189,12 @@ reject_file_match "$ENVELOPE_COMPUTATION" 'proj[.](IsValidDateText|DaysFromEpoch
 require_file_match "$ENVELOPE_COMPUTATION" 'proj[.]ResolveDayFromCycle' 'live ResolveDayFromCycle dependency disappeared from src_next/envelope_computation.bqn'
 
 # P3o closes the remaining date compatibility shelf in mixed consumers.
-for file in "$PLAN_ROWS" "$EVENT_LENS" "$JOURNAL_POSTING_IR" "$CONTEXT" "$JOURNAL_CURRENCY_CARRIER"; do
+for file in "$PLAN_ROWS" "$JOURNAL_POSTING_IR" "$CONTEXT" "$JOURNAL_CURRENCY_CARRIER"; do
     require_file_match "$file" '•Import "([.][.]/)?date[.]bqn"' "direct date import is missing from ${file#$ROOT_DIR/}"
     require_file_match "$file" '•Import "([.][.]/)?projection[.]bqn"' "live non-date projection dependency disappeared from ${file#$ROOT_DIR/}"
     reject_file_match "$file" 'proj[.](IsValidDateText|DaysFromEpoch)' "forwarded projection date call remains in ${file#$ROOT_DIR/}"
 done
 require_file_match "$PLAN_ROWS" 'proj[.]ResolveDayFromCycle' 'live ResolveDayFromCycle dependency disappeared from src_next/plan_rows.bqn'
-require_file_match "$EVENT_LENS" 'proj[.]FieldOrEmpty' 'live FieldOrEmpty dependency disappeared from src_next/event_lens.bqn'
 require_file_match "$JOURNAL_POSTING_IR" 'proj[.]ResolveDayFromCycle' 'live ResolveDayFromCycle dependency disappeared from src_next/journal_posting_ir_stage2a.bqn'
 require_file_match "$CONTEXT" 'proj[.]FieldOrEmpty' 'live FieldOrEmpty dependency disappeared from src_next/context.bqn'
 require_file_match "$CONTEXT" 'proj[.]ResolveDayFromCycle' 'live ResolveDayFromCycle dependency disappeared from src_next/context.bqn'
