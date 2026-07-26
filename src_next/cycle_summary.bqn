@@ -4,6 +4,7 @@
 
 tbds ← •Import "tbds.bqn"
 loader ← •Import "loader.bqn"
+dt ← •Import "date.bqn"
 proj ← •Import "projection.bqn"
 fmt ← •Import "format.bqn"
 labels ← •Import "report_labels.bqn"
@@ -17,9 +18,9 @@ LatestActualDateInCycle ← {𝕊 base‿cy:
   available ← (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (cy.day_count > 0)
   out ← cy.start
   {𝕊:
-    start_dn ← proj.DaysFromEpoch cy.start
-    end_dn ← proj.DaysFromEpoch cy.end_exclusive
-    DateInCycle ← {𝕊 d: dn ← proj.DaysFromEpoch d ⋄ (dn ≥ start_dn) ∧ (dn < end_dn) }
+    start_dn ← dt.DaysFromEpoch cy.start
+    end_dn ← dt.DaysFromEpoch cy.end_exclusive
+    DateInCycle ← {𝕊 d: dn ← dt.DaysFromEpoch d ⋄ (dn ≥ start_dn) ∧ (dn < end_dn) }
     in_dates ← (DateInCycle¨ dates) / dates
     {𝕊: out ↩ ¯1 ⊑ (∧ in_dates)}⍟(0 < ≠ in_dates) @
   }⍟(available ∧ (0 < ≠ dates)) @
@@ -40,11 +41,11 @@ BuildRemainingEvidenceFromLines ← {𝕊 plan_lines‿journal_lines‿cy:
   JournalInCycle ← {𝕊 line:
     flds ← loader.SplitTsvKeepEmpty line
     d ← proj.FieldOrEmpty ⟨flds, 0⟩
-    ok ← proj.IsValidDateText d
+    ok ← dt.IsValidDateText d
     r ← 0
     {𝕊:
-      dn ← proj.DaysFromEpoch d
-      r ↩ (dn ≥ proj.DaysFromEpoch cy.start) ∧ (dn < proj.DaysFromEpoch cy.end_exclusive)
+      dn ← dt.DaysFromEpoch d
+      r ↩ (dn ≥ dt.DaysFromEpoch cy.start) ∧ (dn < dt.DaysFromEpoch cy.end_exclusive)
     }⍟ok @
     r
   }
@@ -108,21 +109,21 @@ BuildRemainingFromEvidence ← {𝕊 ctx‿as_of‿evidence:
 
   {𝕊:
     cy ← ctx.cy
-    as_dn ← proj.DaysFromEpoch as_of
-    end_dn ← proj.DaysFromEpoch cy.end_exclusive
+    as_dn ← dt.DaysFromEpoch as_of
+    end_dn ← dt.DaysFromEpoch cy.end_exclusive
     diagnostics ← ⟨⟩
     amounts ← ⟨⟩
 
     {𝕊 ev:
       d ← ev.date
-      date_ok ← proj.IsValidDateText d
+      date_ok ← dt.IsValidDateText d
 
       {𝕊:
         diagnostics ↩ diagnostics ∾ ⟨MakeDiagnostic ⟨ev.source_row, "invalid_date", d, "invalid date: " ∾ d⟩⟩
       }⍟(¬ date_ok) @
 
       {𝕊:
-        dn ← proj.DaysFromEpoch d
+        dn ← dt.DaysFromEpoch d
         applicable ← (dn ≥ as_dn) ∧ (dn < end_dn) ∧ (¬ ev.completed)
 
         {𝕊:
@@ -164,7 +165,7 @@ BuildRemainingFromEvidence ← {𝕊 ctx‿as_of‿evidence:
         amount ⇐ cube.Sum0 amounts
       }
     }⍟(0 = ≠ diagnostics) @
-  }⍟(proj.IsValidDateText as_of) @
+  }⍟(dt.IsValidDateText as_of) @
 
   result
 }
@@ -196,8 +197,8 @@ Build ← {𝕊 ctx:
   base ← ({𝕊: ctx.base}⎊{𝕊: ""}) @
   as_of ← { (0 < ≠ base) ? (LatestActualDateInCycle ⟨base, ctx.cy⟩) ; "unavailable" }
   days_remaining ← ((as_of ≡ "unavailable") ∨ (ctx.cy.end_exclusive ≡ "unavailable")) ◶ ⟨ { 𝕩 ⋄
-    as_dn ← proj.DaysFromEpoch as_of
-    end_dn ← proj.DaysFromEpoch ctx.cy.end_exclusive
+    as_dn ← dt.DaysFromEpoch as_of
+    end_dn ← dt.DaysFromEpoch ctx.cy.end_exclusive
     0 ⌈ (end_dn - as_dn)
   }, { 𝕩 ⋄ 0 } ⟩ @
 
