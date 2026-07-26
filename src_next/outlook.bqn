@@ -5,7 +5,7 @@
 conf ← •Import "config.bqn"
 loader ← •Import "loader.bqn"
 actual_source ← •Import "actual_source.bqn"
-proj ← •Import "projection.bqn"
+dt ← •Import "date.bqn"
 cube ← •Import "cube.bqn"
 actual_snapshot ← •Import "actual_snapshot.bqn"
 remaining_plan ← •Import "outlook_remaining_plan.bqn"
@@ -29,9 +29,9 @@ RecordedFrontierInfo ← {𝕊 base‿cy:
   found ← 0
   out ← ""
   {𝕊:
-    start_dn ← proj.DaysFromEpoch cy.start
-    dates ← (proj.IsValidDateText¨ dates0) / dates0
-    DateInScope ← {𝕊 d: (proj.DaysFromEpoch d) ≥ start_dn }
+    start_dn ← dt.DaysFromEpoch cy.start
+    dates ← (dt.IsValidDateText¨ dates0) / dates0
+    DateInScope ← {𝕊 d: (dt.DaysFromEpoch d) ≥ start_dn }
     in_dates ← (DateInScope¨ dates) / dates
     {𝕊:
       out ↩ ¯1 ⊑ (∧ in_dates)
@@ -55,8 +55,8 @@ ClassifyRecordFrontier ← {𝕊 as_of‿frontier:
   distance_days ← "unavailable"
   lag_days ← "unavailable"
   {𝕊:
-    o_dn ← proj.DaysFromEpoch as_of
-    l_dn ← proj.DaysFromEpoch frontier.date
+    o_dn ← dt.DaysFromEpoch as_of
+    l_dn ← dt.DaysFromEpoch frontier.date
     delta ← o_dn - l_dn
     relation ↩ "at_observation"
     {𝕊: relation ↩ "before_observation"}⍟(l_dn < o_dn) @
@@ -64,7 +64,7 @@ ClassifyRecordFrontier ← {𝕊 as_of‿frontier:
     distance_days ↩ delta
     {𝕊: distance_days ↩ - delta}⍟(delta < 0) @
     lag_days ↩ 0⌈ delta
-  }⍟(frontier.available ∧ proj.IsValidDateText as_of) @
+  }⍟(frontier.available ∧ dt.IsValidDateText as_of) @
   {
     relation ⇐ relation,
     distance_days ⇐ distance_days,
@@ -129,9 +129,9 @@ BuildCore ← {𝕊 ctx‿as_of‿frontier‿legacy_default‿snap‿remaining:
   is_simple ← risk_style ≡ "simple"
 
   # Dates
-  as_of_dn ← proj.DaysFromEpoch as_of
-  end_dn ← proj.DaysFromEpoch cy.end_exclusive
-  start_dn ← proj.DaysFromEpoch cy.start
+  as_of_dn ← dt.DaysFromEpoch as_of
+  end_dn ← dt.DaysFromEpoch cy.end_exclusive
+  start_dn ← dt.DaysFromEpoch cy.start
   days_left ← 0⌈ (end_dn - as_of_dn)
   days_elapsed ← 0⌈ (as_of_dn - start_dn) + 1
 
@@ -169,13 +169,13 @@ BuildCore ← {𝕊 ctx‿as_of‿frontier‿legacy_default‿snap‿remaining:
   # Next cycle obligations remain a separate compatibility surface: plan entries
   # on cycle end_exclusive. This is not the current remaining-plan aggregate.
   plan_lines ← loader.ReadLinesOptional (base ∾ "/plan.tsv")
-  end_dn_obl ← proj.DaysFromEpoch cy.end_exclusive
+  end_dn_obl ← dt.DaysFromEpoch cy.end_exclusive
   ObligationFor ← {𝕊 line:
     flds ← loader.SplitTsvKeepEmpty line
     result ← ⟨⟩
     {𝕊:
       pdate ← 0⊑flds
-      pdate_dn ← proj.DaysFromEpoch pdate
+      pdate_dn ← dt.DaysFromEpoch pdate
       is_end ← pdate_dn = end_dn_obl
       toAcc ← 3⊑flds
       is_obl ← "liabilities:" ≡ 12 ↑ toAcc
