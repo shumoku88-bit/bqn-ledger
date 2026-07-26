@@ -9,6 +9,7 @@ This file is a lightweight notebook for the current state of `bqn-ledger`. It re
 - Journal parsing, Posting IR, complete-source admission, selected-domain JPY/ILS/USD context, and native multi-currency writing are present.
 - `src_next/selected_domain_context.bqn` composes one selected currency through a flat fail-closed stage sequence: policy, Actual admission, Actual currency proof, non-Actual preparation, context scale, exact normalization, and period views.
 - `src_next/projection.bqn` ownership is inventoried in `docs/archive/audits/PROJECTION_BQN_OWNERSHIP_AUDIT-2026-07-26.md`; it is a mixed Posting IR vocabulary shelf rather than a generic projection engine.
+- Projection-cleanup P1 is complete: developer-only Posting IR columns, table formatting, and source-balance presentation now live beside their sole runtime consumer in `src_next/main.bqn`; `projection.bqn` no longer exports presentation helpers, and the production `tools/report` path is unchanged.
 - Travel metadata (`trip-id`, `payment`) and bidirectional JPY/ILS exchange events are supported on their explicit source paths.
 - Plan completion keeps currency selection and validation in `plan.tsv` while avoiding redundant `currency` metadata in the Actual Journal.
 - Journal metadata categories and cleanup evidence are recorded in `docs/JOURNAL_METADATA_INVENTORY.md`.
@@ -20,8 +21,8 @@ This file is a lightweight notebook for the current state of `bqn-ledger`. It re
 
 ## Things worth exploring
 
-- first, move the diagnostic projection table and source-balance display used only by `src_next/main.bqn` out of `src_next/projection.bqn`, preserve public-fixture output exactly, and correct the stale prototype/contract comments without changing production reports;
-- after that slice, separately characterize dead compatibility exports (`ResolveDay`, `RequireArithmeticCurrencyProof`, exported scalar helpers), direct date ownership, arithmetic-proof ownership, and shared Layer ownership rather than combining them into one broad refactor;
+- next, characterize repository callers, focused-test dependence, documentation promises, and external-clone compatibility for apparently dead `projection.bqn` exports (`ResolveDay`, `RequireArithmeticCurrencyProof`, exported scalar helpers) before removing anything;
+- after that, restore direct `date.bqn` ownership, reassess arithmetic-proof authorization, and inventory shared Layer ownership as separate slices rather than one broad refactor;
 - add a privacy-safe read-only count of metadata keys in the selected Journal;
 - stop copying plan-only `recur` and `series` metadata into completed Actual transactions;
 - test whether explicit `layer: actual` can disappear from an Actual-only Journal without changing behavior;
@@ -43,7 +44,7 @@ The first direct consumer exposed an important boundary: transaction-level `kind
 
 A flat pipeline is useful only when it preserves first-failure ownership. Later stages must not run after policy, source admission, currency proof, or non-Actual validation fails, and no partial selected context may escape.
 
-Code beauty here means truthful ownership, not maximum file count. Remove the clearest foreign responsibility, run the full evidence gate, then re-observe the remaining module before extracting another seam.
+Code beauty here means truthful ownership, not maximum file count. P1 moved only the clearest foreign responsibility; later cleanup slices must preserve their own compatibility evidence and must not use the smaller file as permission for a mechanical split.
 
 Add observations, questions, promising experiments, and unfinished threads when that helps the next person understand the landscape. Remove or summarize completed notes during the same task. Git retains the longer history.
 
