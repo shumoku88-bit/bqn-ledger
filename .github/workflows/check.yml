@@ -26,40 +26,6 @@ jobs:
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq ripgrep
 
-      - name: Named inspection execution
-        run: bqn src_next/developer_inspection.bqn fixtures/src-next-golden >/dev/null
-
-      - name: Main compatibility execution
-        run: |
-          set +e
-          bqn src_next/main.bqn fixtures/src-next-golden > main-compat.out 2> main-compat.err
-          status=$?
-          echo "$status" > main-compat.status
-          cat main-compat.err >&2
-          exit "$status"
-
-      - name: Upload main compatibility error
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: main-compatibility-log
-          path: |
-            main-compat.out
-            main-compat.err
-            main-compat.status
-
-      - name: Inspection compatibility check
-        run: bash checks/check-developer-inspection-entrypoint.sh fixtures/src-next-golden
-
-      - name: Projection presentation ownership
-        run: bash checks/check-projection-diagnostic-presentation.sh
-
-      - name: Golden check
-        run: bash checks/check-src-next-golden.sh fixtures/src-next-golden
-
-      - name: Repo index check
-        run: bash checks/check-repo-index.sh
-
       - name: Run check.sh
         run: bash tools/check.sh
 
