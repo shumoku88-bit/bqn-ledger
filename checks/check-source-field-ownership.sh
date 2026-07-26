@@ -8,6 +8,7 @@ EVENT_LENS="$ROOT_DIR/src_next/event_lens.bqn"
 SELECTED_DOMAIN_CONTEXT="$ROOT_DIR/src_next/selected_domain_context.bqn"
 DAILY_TREND_PLAN="$ROOT_DIR/src_next/daily_trend_plan.bqn"
 OUTLOOK_REMAINING_PLAN="$ROOT_DIR/src_next/outlook_remaining_plan.bqn"
+CYCLE_SUMMARY="$ROOT_DIR/src_next/cycle_summary.bqn"
 SOURCE_FIELDS_TEST="$ROOT_DIR/tests/test_src_next_source_fields.bqn"
 
 fail() {
@@ -66,7 +67,14 @@ require_match "$OUTLOOK_REMAINING_PLAN" 'source_fields[.]FieldOrEmpty' 'outlook 
 reject_match "$OUTLOOK_REMAINING_PLAN" '•Import "projection[.]bqn"' 'outlook remaining plan returned to the projection compatibility shelf'
 reject_match "$OUTLOOK_REMAINING_PLAN" 'proj[.]FieldOrEmpty' 'outlook remaining plan retains a projection-qualified field access call'
 
+# P6e moves Cycle Summary remaining-plan evidence reads to the direct owner while
+# preserving TBDS totals, pair validation, diagnostics, and both report formats.
+require_match "$CYCLE_SUMMARY" '^[[:space:]]*source_fields[[:space:]]*←[[:space:]]*•Import "source_fields[.]bqn"' 'cycle summary does not import the source field owner directly'
+require_match "$CYCLE_SUMMARY" 'source_fields[.]FieldOrEmpty' 'cycle summary does not call the direct source field owner'
+reject_match "$CYCLE_SUMMARY" '•Import "projection[.]bqn"' 'cycle summary returned to the projection compatibility shelf'
+reject_match "$CYCLE_SUMMARY" 'proj[.]FieldOrEmpty' 'cycle summary retains a projection-qualified field access call'
+
 require_match "$SOURCE_FIELDS_TEST" '•Import "[.][.]/src_next/source_fields[.]bqn"' 'focused source field test does not import the owner directly'
 require_match "$SOURCE_FIELDS_TEST" 'source_fields[.]FieldOrEmpty' 'focused source field assertions disappeared'
 
-printf '%s\n' 'OK: source field ownership P6a-P6d boundaries'
+printf '%s\n' 'OK: source field ownership P6a-P6e boundaries'

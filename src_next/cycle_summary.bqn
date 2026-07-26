@@ -5,7 +5,7 @@
 tbds ← •Import "tbds.bqn"
 loader ← •Import "loader.bqn"
 dt ← •Import "date.bqn"
-proj ← •Import "projection.bqn"
+source_fields ← •Import "source_fields.bqn"
 layer ← •Import "layer.bqn"
 fmt ← •Import "format.bqn"
 labels ← •Import "report_labels.bqn"
@@ -41,7 +41,7 @@ MakeDiagnostic ← {𝕊 source_row‿status‿date‿message:
 BuildRemainingEvidenceFromLines ← {𝕊 plan_lines‿journal_lines‿cy:
   JournalInCycle ← {𝕊 line:
     flds ← loader.SplitTsvKeepEmpty line
-    d ← proj.FieldOrEmpty ⟨flds, 0⟩
+    d ← source_fields.FieldOrEmpty ⟨flds, 0⟩
     ok ← dt.IsValidDateText d
     r ← 0
     {𝕊:
@@ -60,7 +60,7 @@ BuildRemainingEvidenceFromLines ← {𝕊 plan_lines‿journal_lines‿cy:
     completed ← ∨´ 0 ∾ (pid⊸≡¨ journal_plan_ids)
     {
       source_row ⇐ i,
-      date ⇐ proj.FieldOrEmpty ⟨flds, 0⟩,
+      date ⇐ source_fields.FieldOrEmpty ⟨flds, 0⟩,
       plan_id ⇐ pid,
       completed ⇐ completed
     }
@@ -74,7 +74,7 @@ BuildRemainingEvidence ← {𝕊 base‿cy:
     line ← i⊑plan_lines
     flds ← loader.SplitTsvKeepEmpty line
     pid ← plan_rows.PlanId line
-    {source_row⇐i,date⇐proj.FieldOrEmpty ⟨flds,0⟩,plan_id⇐pid,completed⇐∨´0∾pid⊸≡¨completed_ids}
+    {source_row⇐i,date⇐source_fields.FieldOrEmpty ⟨flds,0⟩,plan_id⇐pid,completed⇐∨´0∾pid⊸≡¨completed_ids}
   }¨↕≠plan_lines
 }
 
