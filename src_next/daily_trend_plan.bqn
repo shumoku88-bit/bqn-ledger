@@ -9,6 +9,7 @@
 loader ← •Import "loader.bqn"
 dt ← •Import "date.bqn"
 proj ← •Import "projection.bqn"
+layer ← •Import "layer.bqn"
 cube ← •Import "cube.bqn"
 overlap ← •Import "plan_journal_overlap.bqn"
 actual_source ← •Import "actual_source.bqn"
@@ -115,7 +116,7 @@ BuildFromEvidence ← {𝕊 ctx‿trend_dates‿evidence:
 
             sides_ok ← (1 = +´ "debit"⊸≡¨ {𝕩.side}¨ joined) ∧ (1 = +´ "credit"⊸≡¨ {𝕩.side}¨ joined)
             dates_match ← ∧´ ev.date⊸≡¨ {𝕩.date}¨ joined
-            layers_ok ← ∧´ proj.layer_plan = {𝕩.layer_index}¨ joined
+            layers_ok ← ∧´ layer.layer_plan = {𝕩.layer_index}¨ joined
             structure_ok ← sides_ok ∧ dates_match ∧ layers_ok
             {𝕊:
               diagnostics ↩ diagnostics ∾ ⟨MakeDiagnostic ⟨ev.source_row, "structural_join", ev.date, "joined Posting IR pair has inconsistent side, date, or layer evidence"⟩⟩

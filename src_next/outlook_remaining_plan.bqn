@@ -9,6 +9,7 @@
 loader ← •Import "loader.bqn"
 dt ← •Import "date.bqn"
 proj ← •Import "projection.bqn"
+layer ← •Import "layer.bqn"
 cube ← •Import "cube.bqn"
 plan_rows ← •Import "plan_rows.bqn"
 actual_source ← •Import "actual_source.bqn"
@@ -112,7 +113,7 @@ ActiveIncomeAccounts ← {𝕊 ctx‿as_of:
       idx ← row.account_key_index
       role ← idx ⊑ roles_with_sentinel
       active ↩ ∧´ ⟨
-        row.layer_index = proj.layer_actual,
+        row.layer_index = layer.layer_actual,
         row.status ≡ "ok",
         row.side ≡ "credit",
         role ≡ "income",

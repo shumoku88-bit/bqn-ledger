@@ -91,6 +91,19 @@ reject_file_match "$CUBE" '^[[:space:]]*layer_names[[:space:]]*←[[:space:]]*�
 reject_file_match "$CUBE" '^[[:space:]]*layer_count[[:space:]]*←[[:space:]]*[0-9]' 'cube independently defines Layer count'
 require_file_match "$LAYER_TEST" '•Import "[.][.]/src_next/layer[.]bqn"' 'focused Layer owner test does not import the owner directly'
 
+# P4c gives three mixed consumers direct ownership of the Layer constants they
+# use while preserving their live projection and Cube helper dependencies.
+for file in "$DAILY_TREND_PLAN" "$OUTLOOK_REMAINING_PLAN" "$CYCLE_SUMMARY"; do
+    require_file_match "$file" '•Import "([.][.]/)?layer[.]bqn"' "direct Layer import is missing from ${file#$ROOT_DIR/}"
+    reject_file_match "$file" 'proj[.]layer_(actual|plan|budget|forecast)' "projection Layer compatibility call remains in ${file#$ROOT_DIR/}"
+done
+require_file_match "$DAILY_TREND_PLAN" 'layer[.]layer_plan' 'daily trend plan no longer uses the direct plan Layer owner'
+require_file_match "$OUTLOOK_REMAINING_PLAN" 'layer[.]layer_actual' 'remaining plan no longer uses the direct actual Layer owner'
+require_file_match "$CYCLE_SUMMARY" 'layer[.]layer_plan' 'cycle summary no longer uses the direct plan Layer owner'
+require_file_match "$CYCLE_SUMMARY" 'layer[.]layer_actual' 'cycle summary no longer uses the direct actual Layer owner'
+reject_file_match "$CYCLE_SUMMARY" 'cube[.]layer_actual' 'cycle summary returned to the Cube Layer compatibility surface'
+require_file_match "$CYCLE_SUMMARY" 'cube[.]Sum0' 'live Cube Sum0 dependency disappeared from cycle summary'
+
 # P2a removals must not reappear as definitions or public fields.
 reject_match '^[[:space:]]*ResolveDay[[:space:]]*←' 'legacy ResolveDay definition returned'
 reject_match '^[[:space:]]*ResolveDay[[:space:]]*⇐' 'legacy ResolveDay export returned'
@@ -125,21 +138,18 @@ require_file_match "$DAILY_TREND_PLAN" '•Import "([.][.]/)?date[.]bqn"' 'direc
 require_file_match "$DAILY_TREND_PLAN" '•Import "([.][.]/)?projection[.]bqn"' 'live non-date projection dependency disappeared from src_next/daily_trend_plan.bqn'
 reject_file_match "$DAILY_TREND_PLAN" 'proj[.](IsValidDateText|DaysFromEpoch)' 'forwarded projection date call remains in src_next/daily_trend_plan.bqn'
 require_file_match "$DAILY_TREND_PLAN" 'proj[.]FieldOrEmpty' 'live FieldOrEmpty dependency disappeared from src_next/daily_trend_plan.bqn'
-require_file_match "$DAILY_TREND_PLAN" 'proj[.]layer_plan' 'live layer_plan dependency disappeared from src_next/daily_trend_plan.bqn'
 
 # P3l restores direct date ownership in a second mixed projection consumer.
 require_file_match "$OUTLOOK_REMAINING_PLAN" '•Import "([.][.]/)?date[.]bqn"' 'direct date import is missing from src_next/outlook_remaining_plan.bqn'
 require_file_match "$OUTLOOK_REMAINING_PLAN" '•Import "([.][.]/)?projection[.]bqn"' 'live non-date projection dependency disappeared from src_next/outlook_remaining_plan.bqn'
 reject_file_match "$OUTLOOK_REMAINING_PLAN" 'proj[.](IsValidDateText|DaysFromEpoch)' 'forwarded projection date call remains in src_next/outlook_remaining_plan.bqn'
 require_file_match "$OUTLOOK_REMAINING_PLAN" 'proj[.]FieldOrEmpty' 'live FieldOrEmpty dependency disappeared from src_next/outlook_remaining_plan.bqn'
-require_file_match "$OUTLOOK_REMAINING_PLAN" 'proj[.]layer_actual' 'live layer_actual dependency disappeared from src_next/outlook_remaining_plan.bqn'
 
 # P3m restores direct date ownership in a third mixed projection consumer.
 require_file_match "$CYCLE_SUMMARY" '•Import "([.][.]/)?date[.]bqn"' 'direct date import is missing from src_next/cycle_summary.bqn'
 require_file_match "$CYCLE_SUMMARY" '•Import "([.][.]/)?projection[.]bqn"' 'live non-date projection dependency disappeared from src_next/cycle_summary.bqn'
 reject_file_match "$CYCLE_SUMMARY" 'proj[.](IsValidDateText|DaysFromEpoch)' 'forwarded projection date call remains in src_next/cycle_summary.bqn'
 require_file_match "$CYCLE_SUMMARY" 'proj[.]FieldOrEmpty' 'live FieldOrEmpty dependency disappeared from src_next/cycle_summary.bqn'
-require_file_match "$CYCLE_SUMMARY" 'proj[.]layer_plan' 'live layer_plan dependency disappeared from src_next/cycle_summary.bqn'
 
 # P3n restores direct date ownership while preserving the live cycle-relative helper.
 require_file_match "$ENVELOPE_COMPUTATION" '•Import "([.][.]/)?date[.]bqn"' 'direct date import is missing from src_next/envelope_computation.bqn'
@@ -188,4 +198,4 @@ require_match '^[[:space:]]*ResolveDayFromCycle[[:space:]]*⇐' 'ResolveDayFromC
 require_match '^[[:space:]]*AuthorizeArithmeticCurrencyProof[[:space:]]*⇐' 'live proof predicate export is missing'
 require_match '^[[:space:]]*ArithmeticCurrencyAuthorizationMessage[[:space:]]*⇐' 'live proof message export is missing'
 
-echo "OK: projection P2, date-ownership P3a-P3o, and Layer owner P4b boundaries"
+echo "OK: projection P2, date-ownership P3a-P3o, and Layer ownership P4b-P4c boundaries"
