@@ -6,7 +6,7 @@
 # household advice, and no source TSV parsing.
 
 cube ← •Import "cube.bqn"
-proj ← •Import "projection.bqn"
+dt ← •Import "date.bqn"
 
 # ── Account classification helpers ──────────────────────────
 # Prefer explicit account metadata (row.role), then prefix fallback.
@@ -63,17 +63,17 @@ MovementByLayer ← {𝕊 rows‿ak_count:
 #   movement = valid postings inside [period_start, period_end_exclusive)
 #   closing  = opening + movement
 Build ← {𝕊 postingRows‿result‿resolved‿cy:
-  cycleOk ← (proj.IsValidDateText cy.start) ∧ (proj.IsValidDateText cy.end_exclusive)
+  cycleOk ← (dt.IsValidDateText cy.start) ∧ (dt.IsValidDateText cy.end_exclusive)
   # When cycle is unavailable, use sentinel bounds that place all rows into "opening"
   # and none into "period movement", producing correct zero-movement TBDS output.
-  startDn ← { cycleOk ? proj.DaysFromEpoch cy.start ; 999999 }
-  endDn ← { cycleOk ? proj.DaysFromEpoch cy.end_exclusive ; 999999 }
+  startDn ← { cycleOk ? dt.DaysFromEpoch cy.start ; 999999 }
+  endDn ← { cycleOk ? dt.DaysFromEpoch cy.end_exclusive ; 999999 }
 
   LedgerValid ← {𝕊 row:
     (row.status ≡ "ok") ∧ (row.account_key_index ≥ 0) ∧ (row.account_key_index < resolved.count) ∧ (row.layer_index ≥ 0) ∧ (row.layer_index < cube.layer_count)
   }
   ledgerRows ← (LedgerValid¨ postingRows) / postingRows
-  rowDns ← {proj.DaysFromEpoch 𝕩.date}¨ ledgerRows
+  rowDns ← {dt.DaysFromEpoch 𝕩.date}¨ ledgerRows
 
   beforeRows ← (rowDns < startDn) / ledgerRows
   periodRows ← ((rowDns ≥ startDn) ∧ (rowDns < endDn)) / ledgerRows
