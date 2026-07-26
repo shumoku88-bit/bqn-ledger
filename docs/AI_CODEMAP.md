@@ -72,8 +72,8 @@ Updated: 2026-07-26
    │    │    ├─ checked posting facts
    │    │    │    ├─ src_next/cube.bqn (Canonical Daily Cube: Day × Account × Layer)
    │    │    │    ├─ src_next/tbds.bqn (Trial Balance Data Set: opening/movement/closing)
-   │    │    │    └─ explicit semantic partition + src_next/exact_sparse_grouping.bqn
-   │    │    │         └─ src_next/actual_expense_ranking.bqn (first direct sparse consumer)
+   │    │    │    └─ explicit semantic partition + src_next/queries/exact_sparse_grouping.bqn
+   │    │    │         └─ src_next/queries/actual_expense_ranking.bqn (first direct sparse consumer)
    │    │    │
    │    │    └─ src_next/report.bqn (人間向けproduction report)
    │    │         ├─ src_next/issues.bqn (Issues & Decisions 表示)
@@ -83,9 +83,9 @@ Updated: 2026-07-26
    │         └─ src_next/main.bqn (temporary compatibility wrapper)
 ```
 
-`actual_expense_ranking.bqn`は現時点でpublic report sectionへ配線されていない。checked selected-domain posting factsを使うpurpose-specific consumerとして、public synthetic fixtureとfocused testでcharacterizeされている。
+`src_next/queries/actual_expense_ranking.bqn`は現時点でpublic report sectionへ配線されていない。checked selected-domain posting factsを使うpurpose-specific consumerとして、public synthetic fixtureとfocused testでcharacterizeされている。
 
-現在の`src_next`は71 BQN module中69 moduleがroot直下にあり、direct import graphは276 edge、欠損target 0、cycle 0です。point-in-time evidenceと移動順序は`docs/archive/audits/SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md`を正とします。最初の候補は`actual_expense_ranking.bqn`と`exact_sparse_grouping.bqn`を一緒に`src_next/queries/`へ移すfinite sliceですが、このaudit PRではまだcurrent pathを変更しません。
+現在の`src_next`は71 BQN module中67 moduleがroot直下、4 moduleがnestedで、direct import graphは276 edge、欠損target 0、cycle 0です。最初のfinite sliceとして`src_next/queries/actual_expense_ranking.bqn`と`src_next/queries/exact_sparse_grouping.bqn`を同時に移動済みで、root wrapperはありません。移動前のpoint-in-time evidenceは`docs/archive/audits/SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md`に保持します。
 
 ## 正データファイル
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bqn
 
 lib ← •Import "test_lib.bqn"
-ranking ← •Import "../src_next/actual_expense_ranking.bqn"
+ranking ← •Import "../src_next/queries/actual_expense_ranking.bqn"
 cube ← •Import "../src_next/cube.bqn"
 tbds ← •Import "../src_next/tbds.bqn"
 ak ← •Import "../src_next/account_key.bqn"
