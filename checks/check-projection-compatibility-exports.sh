@@ -5,6 +5,7 @@ ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 PROJECTION="$ROOT_DIR/src_next/projection.bqn"
 CYCLE="$ROOT_DIR/src_next/cycle.bqn"
 ACTUAL_SNAPSHOT="$ROOT_DIR/src_next/actual_snapshot.bqn"
+ACTUAL_COMPARISON="$ROOT_DIR/src_next/actual_comparison.bqn"
 DATE_TEST="$ROOT_DIR/tests/test_src_next_date.bqn"
 
 fail() {
@@ -56,8 +57,8 @@ if grep -REn '[.]ResolveDay([^A-Za-z0-9_]|$)|[.](IsDigits|IsIntegerText|MetaValu
     fail 'qualified caller of a removed projection compatibility field remains'
 fi
 
-# P3a restores direct date ownership in the first already-importing callers.
-for file in "$CYCLE" "$ACTUAL_SNAPSHOT"; do
+# P3a/P3b restore direct date ownership in callers that already imported date.bqn.
+for file in "$CYCLE" "$ACTUAL_SNAPSHOT" "$ACTUAL_COMPARISON"; do
     require_file_match "$file" '•Import "date[.]bqn"' "direct date import is missing from ${file#$ROOT_DIR/}"
     reject_file_match "$file" '•Import "projection[.]bqn"' "date-only projection dependency returned in ${file#$ROOT_DIR/}"
     reject_file_match "$file" 'proj[.](IsValidDateText|DaysFromEpoch)' "forwarded projection date call remains in ${file#$ROOT_DIR/}"
@@ -77,4 +78,4 @@ require_match '^[[:space:]]*ArithmeticCurrencyAuthorizationMessage[[:space:]]*�
 require_match '^[[:space:]]*IsValidDateText[[:space:]]*⇐' 'temporary date validation compatibility export disappeared before P3 completion'
 require_match '^[[:space:]]*DaysFromEpoch[[:space:]]*⇐' 'temporary day-coordinate compatibility export disappeared before P3 completion'
 
-echo "OK: projection P2 and date-ownership P3a boundaries"
+echo "OK: projection P2 and date-ownership P3a/P3b boundaries"
