@@ -30,7 +30,23 @@ jobs:
         run: bqn src_next/developer_inspection.bqn fixtures/src-next-golden >/dev/null
 
       - name: Main compatibility execution
-        run: bqn src_next/main.bqn fixtures/src-next-golden >/dev/null
+        run: |
+          set +e
+          bqn src_next/main.bqn fixtures/src-next-golden > main-compat.out 2> main-compat.err
+          status=$?
+          echo "$status" > main-compat.status
+          cat main-compat.err >&2
+          exit "$status"
+
+      - name: Upload main compatibility error
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: main-compatibility-log
+          path: |
+            main-compat.out
+            main-compat.err
+            main-compat.status
 
       - name: Inspection compatibility check
         run: bash checks/check-developer-inspection-entrypoint.sh fixtures/src-next-golden
