@@ -7,6 +7,7 @@
 #   plan source metadata and plan_rows plan-ID completion identity
 
 loader ← •Import "loader.bqn"
+dt ← •Import "date.bqn"
 proj ← •Import "projection.bqn"
 cube ← •Import "cube.bqn"
 plan_rows ← •Import "plan_rows.bqn"
@@ -28,11 +29,11 @@ BuildEvidenceFromLines ← {𝕊 plan_lines‿journal_lines‿cy:
   JournalInCycle ← {𝕊 line:
     flds ← loader.SplitTsvKeepEmpty line
     d ← proj.FieldOrEmpty ⟨flds, 0⟩
-    ok ← proj.IsValidDateText d
+    ok ← dt.IsValidDateText d
     r ← 0
     {𝕊:
-      dn ← proj.DaysFromEpoch d
-      r ↩ (dn ≥ proj.DaysFromEpoch cy.start) ∧ (dn < proj.DaysFromEpoch cy.end_exclusive)
+      dn ← dt.DaysFromEpoch d
+      r ↩ (dn ≥ dt.DaysFromEpoch cy.start) ∧ (dn < dt.DaysFromEpoch cy.end_exclusive)
     }⍟ok @
     r
   }
@@ -96,18 +97,18 @@ AnchorInfo ← {𝕊 flds:
 ActiveIncomeAccounts ← {𝕊 ctx‿as_of:
   rows ← ctx.posting_rows
   cy ← ctx.cy
-  start_dn ← proj.DaysFromEpoch cy.start
-  end_dn ← proj.DaysFromEpoch cy.end_exclusive
-  as_dn ← proj.DaysFromEpoch as_of
+  start_dn ← dt.DaysFromEpoch cy.start
+  end_dn ← dt.DaysFromEpoch cy.end_exclusive
+  as_dn ← dt.DaysFromEpoch as_of
   roles ← ctx.resolved.roles
   roles_with_sentinel ← roles ∾ ⟨""⟩
   accounts ← ctx.resolved.accounts
 
   IsActive ← {𝕊 row:
-    valid_date ← proj.IsValidDateText row.date
+    valid_date ← dt.IsValidDateText row.date
     active ← 0
     {𝕊:
-      dn ← proj.DaysFromEpoch row.date
+      dn ← dt.DaysFromEpoch row.date
       idx ← row.account_key_index
       role ← idx ⊑ roles_with_sentinel
       active ↩ ∧´ ⟨
@@ -177,22 +178,22 @@ BuildFromEvidence ← {𝕊 ctx‿as_of‿evidence:
 
   {𝕊:
     cy ← ctx.cy
-    as_dn ← proj.DaysFromEpoch as_of
-    end_dn ← proj.DaysFromEpoch cy.end_exclusive
+    as_dn ← dt.DaysFromEpoch as_of
+    end_dn ← dt.DaysFromEpoch cy.end_exclusive
     active_incomes ← ActiveIncomeAccounts ⟨ctx, as_of⟩
     diagnostics ← ⟨⟩
     deltas ← ⟨⟩
 
     {𝕊 ev:
       d ← ev.date
-      date_ok ← proj.IsValidDateText d
+      date_ok ← dt.IsValidDateText d
 
       {𝕊:
         diagnostics ↩ diagnostics ∾ ⟨MakeDiagnostic ⟨ev.source_row, "invalid_date", d, "invalid date: " ∾ d⟩⟩
       }⍟(¬ date_ok) @
 
       {𝕊:
-        dn ← proj.DaysFromEpoch d
+        dn ← dt.DaysFromEpoch d
         in_horizon ← (dn ≥ as_dn) ∧ (dn < end_dn)
         applicable ← in_horizon ∧ (¬ ev.completed)
 
@@ -264,7 +265,7 @@ BuildFromEvidence ← {𝕊 ctx‿as_of‿evidence:
         fixed_reserve ⇐ ¯1 × expenses
       }
     }⍟(0 = ≠ diagnostics) @
-  }⍟(proj.IsValidDateText as_of) @
+  }⍟(dt.IsValidDateText as_of) @
 
   result
 }
