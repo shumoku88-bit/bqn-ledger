@@ -193,7 +193,7 @@ for file in "$PLAN_ROWS" "$JOURNAL_POSTING_IR" "$CONTEXT" "$JOURNAL_CURRENCY_CAR
 done
 require_file_match "$PLAN_ROWS" 'proj[.]ResolveDayFromCycle' 'live ResolveDayFromCycle dependency disappeared from src_next/plan_rows.bqn'
 require_file_match "$JOURNAL_POSTING_IR" 'proj[.]ResolveDayFromCycle' 'live ResolveDayFromCycle dependency disappeared from src_next/journal_posting_ir_stage2a.bqn'
-require_file_match "$CONTEXT" 'proj[.]FieldOrEmpty' 'live FieldOrEmpty dependency disappeared from src_next/context.bqn'
+reject_file_match "$CONTEXT" 'proj[.]FieldOrEmpty' 'Context returned to the projection source-field compatibility seam'
 require_file_match "$CONTEXT" 'proj[.]ResolveDayFromCycle' 'live ResolveDayFromCycle dependency disappeared from src_next/context.bqn'
 require_file_match "$JOURNAL_CURRENCY_CARRIER" 'proj[.]ResolveDayFromCycle' 'live ResolveDayFromCycle dependency disappeared from src_next/journal_currency_proof_carrier_stage2a.bqn'
 

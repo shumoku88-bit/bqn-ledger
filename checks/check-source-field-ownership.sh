@@ -9,6 +9,7 @@ SELECTED_DOMAIN_CONTEXT="$ROOT_DIR/src_next/selected_domain_context.bqn"
 DAILY_TREND_PLAN="$ROOT_DIR/src_next/daily_trend_plan.bqn"
 OUTLOOK_REMAINING_PLAN="$ROOT_DIR/src_next/outlook_remaining_plan.bqn"
 CYCLE_SUMMARY="$ROOT_DIR/src_next/cycle_summary.bqn"
+CONTEXT="$ROOT_DIR/src_next/context.bqn"
 SOURCE_FIELDS_TEST="$ROOT_DIR/tests/test_src_next_source_fields.bqn"
 
 fail() {
@@ -74,7 +75,17 @@ require_match "$CYCLE_SUMMARY" 'source_fields[.]FieldOrEmpty' 'cycle summary doe
 reject_match "$CYCLE_SUMMARY" '•Import "projection[.]bqn"' 'cycle summary returned to the projection compatibility shelf'
 reject_match "$CYCLE_SUMMARY" 'proj[.]FieldOrEmpty' 'cycle summary retains a projection-qualified field access call'
 
+# P6f gives Context direct ownership of all bounded non-Actual field reads while
+# preserving its remaining identity, day, Layer, and classification projection seams.
+require_match "$CONTEXT" '^[[:space:]]*source_fields[[:space:]]*←[[:space:]]*•Import "source_fields[.]bqn"' 'context does not import the source field owner directly'
+require_match "$CONTEXT" 'source_fields[.]FieldOrEmpty' 'context does not call the direct source field owner'
+reject_match "$CONTEXT" 'proj[.]FieldOrEmpty' 'context retains a projection-qualified field access call'
+require_match "$CONTEXT" '•Import "projection[.]bqn"' 'context lost its remaining projection dependency prematurely'
+for symbol in TxIdFromMeta ResolveDayFromCycle SourceLayer LayerName InferKind PostingId; do
+    require_match "$CONTEXT" "proj[.]${symbol}" "context projection seam disappeared prematurely: ${symbol}"
+done
+
 require_match "$SOURCE_FIELDS_TEST" '•Import "[.][.]/src_next/source_fields[.]bqn"' 'focused source field test does not import the owner directly'
 require_match "$SOURCE_FIELDS_TEST" 'source_fields[.]FieldOrEmpty' 'focused source field assertions disappeared'
 
-printf '%s\n' 'OK: source field ownership P6a-P6e boundaries'
+printf '%s\n' 'OK: source field ownership P6a-P6f boundaries'
