@@ -3,6 +3,7 @@
 
 loader ← •Import "loader.bqn"
 actual_source ← •Import "actual_source.bqn"
+dt ← •Import "date.bqn"
 proj ← •Import "projection.bqn"
 cube ← •Import "cube.bqn"
 conf ← •Import "config.bqn"
@@ -190,10 +191,10 @@ LatestActualDateInCycle ← {𝕊 base‿cy:
   available_cycle ← (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (cy.day_count > 0)
   out ← "unavailable/no_data"
   {𝕊:
-    start_dn ← proj.DaysFromEpoch cy.start
-    end_dn ← proj.DaysFromEpoch cy.end_exclusive
+    start_dn ← dt.DaysFromEpoch cy.start
+    end_dn ← dt.DaysFromEpoch cy.end_exclusive
     DateInCycle ← {𝕊 d:
-      dn ← proj.DaysFromEpoch d
+      dn ← dt.DaysFromEpoch d
       (dn ≥ start_dn) ∧ (dn < end_dn)
     }
     in_dates ← (DateInCycle¨ dates) / dates
@@ -280,14 +281,14 @@ BuildEnvelopes ← {𝕊 base‿resolved‿cy‿valid_rows:
   days_left ← 0
   elapsed ← 0
   {𝕊:
-    total_days ↩ 1 ⌈ (proj.DaysFromEpoch cy.end_exclusive) - proj.DaysFromEpoch cy.start
+    total_days ↩ 1 ⌈ (dt.DaysFromEpoch cy.end_exclusive) - dt.DaysFromEpoch cy.start
     days_left ↩ has_as_of ◶ ⟨
       {𝕊: total_days},
-      {𝕊: 0 ⌈ (proj.DaysFromEpoch cy.end_exclusive) - proj.DaysFromEpoch as_of}
+      {𝕊: 0 ⌈ (dt.DaysFromEpoch cy.end_exclusive) - dt.DaysFromEpoch as_of}
     ⟩ @
     elapsed ↩ has_as_of ◶ ⟨
       {𝕊: 0},
-      {𝕊: 0 ⌈ 1 + (proj.DaysFromEpoch as_of) - proj.DaysFromEpoch cy.start}
+      {𝕊: 0 ⌈ 1 + (dt.DaysFromEpoch as_of) - dt.DaysFromEpoch cy.start}
     ⟩ @
   }⍟cycleAvail @
 
@@ -325,10 +326,10 @@ BuildEnvelopes ← {𝕊 base‿resolved‿cy‿valid_rows:
     # future_planned_spent (layer = 1, debit, date > as_of)
     plan_mask ← (row_layer = 1) ∧ (budget_match_indices⊸IsMember¨ row_ak) ∧ ("debit"⊸≡¨ row_side)
     {𝕊:
-      is_valid_date ← (proj.IsValidDateText as_of) ∧ (∧ proj.IsValidDateText¨ row_date)
+      is_valid_date ← (dt.IsValidDateText as_of) ∧ (∧ dt.IsValidDateText¨ row_date)
       {𝕊:
-        as_of_dn ← proj.DaysFromEpoch as_of
-        date_dns ← proj.DaysFromEpoch¨ row_date
+        as_of_dn ← dt.DaysFromEpoch as_of
+        date_dns ← dt.DaysFromEpoch¨ row_date
         plan_mask ↩ plan_mask ∧ (date_dns > as_of_dn)
       }⍟is_valid_date @
     }⍟(has_as_of ∧ (as_of ≢ "unavailable")) @
