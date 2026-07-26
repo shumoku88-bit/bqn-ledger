@@ -1,7 +1,7 @@
 #!/usr/bin/env bqn
 
 lib ← •Import "test_lib.bqn"
-sparse ← •Import "../src_next/exact_sparse_grouping.bqn"
+sparse ← •Import "../src_next/queries/exact_sparse_grouping.bqn"
 cube ← •Import "../src_next/cube.bqn"
 
 # Empty input is a successful empty grouped relation.

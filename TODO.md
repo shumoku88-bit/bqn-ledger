@@ -13,20 +13,20 @@ This file is a lightweight notebook for the current state of `bqn-ledger`. It re
 - `src_next/main.bqn` is no longer the implementation owner. It is a temporary compatibility wrapper that imports `developer_inspection.bqn`; current tools and checks use the named entrypoint directly and verify byte-equivalent wrapper behavior.
 - `src_next` module topology is recorded in `docs/archive/audits/SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md`: 71 BQN modules, 69 at root, 276 direct imports, no missing direct target, and no import cycle.
 - `tools/src-next-import-graph` and `checks/check-src-next-import-graph.sh` provide repeatable direct-import evidence for future directory migrations.
+- After the first migration, `src_next` still has 71 BQN modules: 67 at root and 4 nested under `calc/` or `queries/`; the direct graph remains 276 edges with no missing target or cycle.
 - Travel metadata (`trip-id`, `payment`) and bidirectional JPY/ILS exchange events are supported on their explicit source paths.
 - Plan completion keeps currency selection and validation in `plan.tsv` while avoiding redundant `currency` metadata in the Actual Journal.
 - Journal metadata categories and cleanup evidence are recorded in `docs/JOURNAL_METADATA_INVENTORY.md`.
 - Canonical Daily Cube and TBDS are purpose-specific views over checked posting facts, not competing source truths.
-- `src_next/exact_sparse_grouping.bqn` provides a small deterministic exact grouping kernel with Cube reconstruction, TBDS-like reuse, conservation, and provenance-sidecar evidence.
-- `src_next/actual_expense_ranking.bqn` is the first real consumer built directly from checked posting facts: selected-period Actual/debit admission, an explicit expense AccountKey partition derived from resolved account metadata, exact grouping, deterministic ranking, and contributor lookup without Cube or TBDS production ownership.
-- The first bounded directory migration is selected but not yet executed: move the ranking and grouping pair together to `src_next/queries/`, with no permanent root wrappers.
+- `src_next/queries/exact_sparse_grouping.bqn` provides a small deterministic exact grouping kernel with Cube reconstruction, TBDS-like reuse, conservation, and provenance-sidecar evidence.
+- `src_next/queries/actual_expense_ranking.bqn` is the first real consumer built directly from checked posting facts: selected-period Actual/debit admission, an explicit expense AccountKey partition derived from resolved account metadata, exact grouping, deterministic ranking, and contributor lookup without Cube or TBDS production ownership.
+- The first bounded directory migration is complete: the ranking and grouping pair now live together under `src_next/queries/`, with no permanent root wrappers.
 - Current architecture and code-map documents include the direct checked-facts → sparse grouping → purpose-specific consumer branch alongside Cube and TBDS.
 - Historical plans, audits, and handoffs remain available under `docs/archive/` and in Git history.
 
 ## Things worth exploring
 
-- next, execute the bounded `src_next/queries/` migration for `actual_expense_ranking.bqn` and `exact_sparse_grouping.bqn`, updating focused tests, current docs, import evidence, and full CI without moving production hubs;
-- then characterize repository callers, focused-test dependence, documentation promises, and external-clone compatibility for apparently dead `projection.bqn` exports (`ResolveDay`, `RequireArithmeticCurrencyProof`, exported scalar helpers) before removing anything;
+- next, characterize repository callers, focused-test dependence, documentation promises, and external-clone compatibility for apparently dead `projection.bqn` exports (`ResolveDay`, `RequireArithmeticCurrencyProof`, exported scalar helpers) before removing anything;
 - decide at a later stability boundary whether the thin `src_next/main.bqn` compatibility wrapper should be deprecated for a release and then removed; do not restore implementation to it;
 - after projection P2, restore direct `date.bqn` ownership, reassess arithmetic-proof authorization, and inventory shared Layer ownership as separate slices rather than one broad refactor;
 - add a privacy-safe read-only count of metadata keys in the selected Journal;

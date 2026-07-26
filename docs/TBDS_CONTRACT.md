@@ -99,7 +99,7 @@ Current TBDS rows summarize contributor identity away. Source-level provenance r
 
 ## Exact sparse grouping and direct consumer evidence
 
-`src_next/exact_sparse_grouping.bqn` can reproduce TBDS-like layer/account/side movement grouping from explicit exact keys and values. This is evidence that Cube and TBDS share a small accumulation pattern.
+`src_next/queries/exact_sparse_grouping.bqn` can reproduce TBDS-like layer/account/side movement grouping from explicit exact keys and values. This is evidence that Cube and TBDS share a small accumulation pattern.
 
 It does **not** make their semantics identical:
 
@@ -109,7 +109,7 @@ It does **not** make their semantics identical:
 - commodity compatibility must be decided before grouping or included in the key;
 - contributor identity remains a separate sidecar.
 
-The same kernel is now used by `src_next/actual_expense_ranking.bqn`, the first direct purpose-specific consumer over checked selected-domain posting facts. Its focused test compares the complete visible expense relation `⟨account_key, amount⟩` with `tbds.ActualExpenseBreakdown`, after sorting both relations by AccountKey.
+The same kernel is now used by `src_next/queries/actual_expense_ranking.bqn`, the first direct purpose-specific consumer over checked selected-domain posting facts. Its focused test compares the complete visible expense relation `⟨account_key, amount⟩` with `tbds.ActualExpenseBreakdown`, after sorting both relations by AccountKey.
 
 That parity establishes the current Actual expense meaning for the tested period and account partition. It does not make the ranking consumer a TBDS replacement:
 

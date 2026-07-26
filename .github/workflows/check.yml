@@ -6,9 +6,6 @@ on:
   pull_request:
     branches: [main]
 
-permissions:
-  contents: write
-
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -34,43 +31,3 @@ jobs:
 
       - name: Coverage
         run: bash tools/coverage
-
-  migrate-src-next-queries:
-    if: github.event_name == 'pull_request' && github.head_ref == 'refactor/src-next-queries' && github.actor != 'github-actions[bot]'
-    runs-on: ubuntu-latest
-    env:
-      TZ: Asia/Tokyo
-      CBQN_REF: master
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: refactor/src-next-queries
-          fetch-depth: 0
-
-      - name: Install CBQN
-        run: |
-          git clone --depth 1 --branch "$CBQN_REF" https://github.com/dzaima/CBQN.git
-          make -C CBQN -j$(nproc)
-          sudo cp CBQN/BQN /usr/local/bin/bqn
-
-      - name: Install tools
-        run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq ripgrep
-
-      - name: Apply, verify, and commit migration
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-
-          path = Path("tools/tmp-src-next-queries-migration.sh")
-          text = path.read_text()
-          old = "matches=\"$(rg -n 'src_next/(actual_expense_ranking|exact_sparse_grouping)\\.bqn' || true)\""
-          new = "matches=\"$(rg -n 'src_next/(actual_expense_ranking|exact_sparse_grouping)\\.bqn' --glob '!.github/workflows/refactor-src-next-queries.yml' --glob '!tools/tmp-src-next-queries-migration.sh' || true)\""
-          if old not in text:
-              raise SystemExit("temporary migration search command not found")
-          text = text.replace(old, new)
-          text = text.replace('$1=="edges"', '$1=="direct_imports"')
-          text = text.replace('$1=="missing_targets"', '$1=="scan_errors"')
-          path.write_text(text)
-          PY
-          bash tools/tmp-src-next-queries-migration.sh

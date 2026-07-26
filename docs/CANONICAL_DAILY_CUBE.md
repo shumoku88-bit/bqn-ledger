@@ -59,7 +59,7 @@ Layerは同じdaily coordinate上に並びますが、確定度や責務が同�
 
 ## Exact sparse groupingとdirect consumer
 
-`src_next/exact_sparse_grouping.bqn`は、明示されたexact keysとalready-admitted exact valuesをfirst-occurrence orderでgroupingするI/O-free kernelです。
+`src_next/queries/exact_sparse_grouping.bqn`は、明示されたexact keysとalready-admitted exact valuesをfirst-occurrence orderでgroupingするI/O-free kernelです。
 
 `tests/test_src_next_exact_sparse_grouping.bqn`は次を観察します。
 
@@ -73,7 +73,7 @@ Layerは同じdaily coordinate上に並びますが、確定度や責務が同�
 - TBDS風のlayer/account/side movementにも同じprimitiveを再利用できること;
 - commodityをpartitionまたはkeyへ含めれば、異なるdomainを直接加算しないこと。
 
-このkernelは現在、`src_next/actual_expense_ranking.bqn`という最初の実consumerから再利用されています。consumerはchecked selected-domain posting factsに対して、selected period、Actual、debit、明示的なexpense AccountKey partitionを適用し、exact sparse grouping、deterministic ranking、contributor posting IDsを返します。
+このkernelは現在、`src_next/queries/actual_expense_ranking.bqn`という最初の実consumerから再利用されています。consumerはchecked selected-domain posting factsに対して、selected period、Actual、debit、明示的なexpense AccountKey partitionを適用し、exact sparse grouping、deterministic ranking、contributor posting IDsを返します。
 
 この再利用は、checked factsからCubeを経由せずpurpose-specific sparse resultを作れる証拠です。一方で、`cube.Materialize`のproduction accumulationを置き換える証拠ではありません。Current Cube result contractにはdense array以外のadmission evidence、diagnostics、skipped rows、report-like compatibility fieldsが含まれるため、数値payload parityと一つのdirect consumerだけで移行完了とはみなしません。
 

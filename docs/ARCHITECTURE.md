@@ -138,7 +138,7 @@ Accounting-grade の試算表データセット。opening は期間開始前残�
 
 ### Purpose-specific sparse projection
 
-CubeやTBDSを経由せず、checked posting factsから具体的な問いへ直接作るviewも許されます。最初の実consumerは `src_next/actual_expense_ranking.bqn` です。
+CubeやTBDSを経由せず、checked posting factsから具体的な問いへ直接作るviewも許されます。最初の実consumerは `src_next/queries/actual_expense_ranking.bqn` です。
 
 ```text
 checked selected-domain posting facts
@@ -150,7 +150,7 @@ checked selected-domain posting facts
   -> contributor posting IDs
 ```
 
-`src_next/exact_sparse_grouping.bqn` は、明示されたkeysとalready-admitted exact valuesだけをgroupする小さなI/O-free kernelです。arithmetic domain、account role、期間、side、layerなどの意味はconsumer側が先に決めます。
+`src_next/queries/exact_sparse_grouping.bqn` は、明示されたkeysとalready-admitted exact valuesだけをgroupする小さなI/O-free kernelです。arithmetic domain、account role、期間、side、layerなどの意味はconsumer側が先に決めます。
 
 `actual_expense_ranking.bqn`では、transaction-level `kind="expense"` を各postingのexpense分類として使いません。multi-posting expense transactionには `assets:prepaid` のような非expense debit coordinateも含み得るため、resolved account metadataから作ったexpense AccountKey partitionへのmembershipで選択します。
 
@@ -158,11 +158,11 @@ checked selected-domain posting facts
 
 ### Module topology
 
-`src_next`は現在71個のBQN moduleを持ち、そのうち69個がroot直下、2個が`src_next/calc/`にあります。source-levelのdirect `•Import` graphには276 edgeがあり、欠損targetとimport cycleはありません。つまり現在のtreeは循環して分割不能なのではなく、acyclicな依存をほぼ一階層へ並べた状態です。
+`src_next`は現在71個のBQN moduleを持ち、そのうち67個がroot直下、4個が`src_next/calc/`または`src_next/queries/`にあります。source-levelのdirect `•Import` graphには276 edgeがあり、欠損targetとimport cycleはありません。最初の低blast-radius migrationによりpurpose-specific query pairだけがnestedになり、production hubとentrypointはrootに残っています。
 
 `tools/src-next-import-graph`がdirect import edge、module degree、cycle、欠損targetを機械的に観察します。詳細なpoint-in-time evidenceとmigration順序は`docs/archive/audits/SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md`にあります。
 
-最初のdirectory migration候補は、production hubから切り離されたpurpose-specific query pairです。
+最初のdirectory migrationとして、production hubから切り離されたpurpose-specific query pairを移動しました。
 
 ```text
 src_next/queries/
@@ -170,7 +170,7 @@ src_next/queries/
   exact_sparse_grouping.bqn
 ```
 
-この移動はまだ実施していません。current source pathは引き続き`src_next/actual_expense_ranking.bqn`と`src_next/exact_sparse_grouping.bqn`です。次のfinite sliceで二つを同時に移し、focused tests、current contracts、import graph、full CIを同期します。完全なdirectory skeletonを先に作らず、各neighborhoodの意味が証拠で確かめられた時点で育てます。
+この移動は二つを同時に実施し、root wrapperを残していません。focused tests、current contracts、import graph、full CIを新pathへ同期しました。完全なdirectory skeletonを先に作らず、各neighborhoodの意味が証拠で確かめられた時点で育てる方針は維持します。
 
 ## Dataflow
 
@@ -186,8 +186,8 @@ src_next/queries/
              │    ├─ src_next/cube.bqn ──── Canonical Daily Cube (Day × Account × Layer)
              │    ├─ src_next/tbds.bqn ──── Trial Balance Data Set (opening/movement/closing)
              │    └─ expense AccountKey partition
-             │         └─ src_next/exact_sparse_grouping.bqn
-             │              └─ src_next/actual_expense_ranking.bqn (direct sparse consumer)
+             │         └─ src_next/queries/exact_sparse_grouping.bqn
+             │              └─ src_next/queries/actual_expense_ranking.bqn (direct sparse consumer)
              │
              ├─ 各セクション Build(ctx) → ViewModel → Format / FormatHuman
              │

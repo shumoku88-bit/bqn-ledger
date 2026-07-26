@@ -120,7 +120,7 @@ A reusable grouping boundary may accept explicit coordinate keys and exact value
 
 It must define empty input, duplicate coordinates, additive identity, rejected evidence, and provenance behavior explicitly.
 
-`src_next/exact_sparse_grouping.bqn` now provides the characterized minimal boundary:
+`src_next/queries/exact_sparse_grouping.bqn` now provides the characterized minimal boundary:
 
 ```text
 explicit keys + already-admitted exact values
