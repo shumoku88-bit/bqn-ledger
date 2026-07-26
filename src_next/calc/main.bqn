@@ -13,7 +13,7 @@
 
 ctx_mod ← •Import "../context.bqn"
 env_comp ← •Import "../envelope_computation.bqn"
-proj ← •Import "../projection.bqn"
+dt ← •Import "../date.bqn"
 actual_source ← •Import "../actual_source.bqn"
 calc ← •Import "envelope_calc.bqn"
 
@@ -31,15 +31,15 @@ LatestActualDate ← {𝕊 base‿cy:
   dates ← actual_source.LoadDates base
   out ← cy.start
   {𝕊:
-    start_dn ← proj.DaysFromEpoch cy.start
-    in_dates ← ({𝕊 d: (proj.DaysFromEpoch d) ≥ start_dn}¨ dates) / dates
+    start_dn ← dt.DaysFromEpoch cy.start
+    in_dates ← ({𝕊 d: (dt.DaysFromEpoch d) ≥ start_dn}¨ dates) / dates
     {𝕊: out ↩ ¯1 ⊑ (∧ in_dates)}⍟(0 < ≠ in_dates) @
   }⍟(0 < ≠ dates) @
   out
 }
 
 as_of ← LatestActualDate ⟨base, cy⟩
-elapsed ← (as_of ≢ cy.start) ⊑ 0‿(1 + (proj.DaysFromEpoch as_of) - proj.DaysFromEpoch cy.start)
+elapsed ← (as_of ≢ cy.start) ⊑ 0‿(1 + (dt.DaysFromEpoch as_of) - dt.DaysFromEpoch cy.start)
 
 FindEnvelope ← {𝕊 label:
   labels ← {𝕩.label}¨ envelopes
