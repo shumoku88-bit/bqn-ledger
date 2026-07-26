@@ -30,6 +30,7 @@ They are maps, not gates. Read the files that help with the question in front of
 - [`REPORT_CONTRACTS.md`](REPORT_CONTRACTS.md) — report sections and values
 - [`TIME_AS_AXIS.md`](TIME_AS_AXIS.md) — temporal concepts
 - [`archive/audits/PROJECTION_BQN_OWNERSHIP_AUDIT-2026-07-26.md`](archive/audits/PROJECTION_BQN_OWNERSHIP_AUDIT-2026-07-26.md) — current ownership inventory and bounded cleanup sequence for `src_next/projection.bqn`
+- [`archive/audits/SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md`](archive/audits/SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md) — direct-import topology and the first bounded directory migration for `src_next`
 
 ## Reliability
 
