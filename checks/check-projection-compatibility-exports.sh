@@ -3,6 +3,8 @@ set -euo pipefail
 
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 PROJECTION="$ROOT_DIR/src_next/projection.bqn"
+LAYER="$ROOT_DIR/src_next/layer.bqn"
+CUBE="$ROOT_DIR/src_next/cube.bqn"
 CYCLE="$ROOT_DIR/src_next/cycle.bqn"
 ACTUAL_SNAPSHOT="$ROOT_DIR/src_next/actual_snapshot.bqn"
 ACTUAL_COMPARISON="$ROOT_DIR/src_next/actual_comparison.bqn"
@@ -25,6 +27,7 @@ JOURNAL_POSTING_IR="$ROOT_DIR/src_next/journal_posting_ir_stage2a.bqn"
 CONTEXT="$ROOT_DIR/src_next/context.bqn"
 JOURNAL_CURRENCY_CARRIER="$ROOT_DIR/src_next/journal_currency_proof_carrier_stage2a.bqn"
 DATE_TEST="$ROOT_DIR/tests/test_src_next_date.bqn"
+LAYER_TEST="$ROOT_DIR/tests/test_src_next_layer.bqn"
 ACCOUNT_KEY_TEST="$ROOT_DIR/tests/test_src_next_account_key.bqn"
 DAILY_TREND_EMPTY_TEST="$ROOT_DIR/tests/test_src_next_daily_trend_empty_frontier_fallback_row.bqn"
 DAILY_TREND_FRONTIER_TEST="$ROOT_DIR/tests/test_src_next_daily_trend_row_set_frontier_redundancy.bqn"
@@ -57,6 +60,36 @@ reject_file_match() {
         fail "$description"
     fi
 }
+
+# P4b establishes one low-dependency Layer vocabulary owner while preserving
+# projection.bqn and cube.bqn as compatibility surfaces for current callers.
+reject_file_match "$LAYER" '•Import' 'pure Layer vocabulary owner acquired a dependency'
+require_file_match "$LAYER" '^[[:space:]]*layer_actual[[:space:]]*←[[:space:]]*0[[:space:]]*$' 'Layer owner actual index changed'
+require_file_match "$LAYER" '^[[:space:]]*layer_plan[[:space:]]*←[[:space:]]*1[[:space:]]*$' 'Layer owner plan index changed'
+require_file_match "$LAYER" '^[[:space:]]*layer_budget[[:space:]]*←[[:space:]]*2[[:space:]]*$' 'Layer owner budget index changed'
+require_file_match "$LAYER" '^[[:space:]]*layer_forecast[[:space:]]*←[[:space:]]*3[[:space:]]*$' 'Layer owner forecast index changed'
+require_file_match "$LAYER" '^[[:space:]]*layer_names[[:space:]]*←[[:space:]]*⟨"actual", "plan", "budget", "forecast"⟩[[:space:]]*$' 'Layer owner vocabulary/order changed'
+require_file_match "$LAYER" '^[[:space:]]*layer_count[[:space:]]*←[[:space:]]*≠[[:space:]]*layer_names[[:space:]]*$' 'Layer count is not derived from the owned vocabulary'
+require_file_match "$LAYER" '^[[:space:]]*LayerName[[:space:]]*←' 'Layer owner index-to-name representation is missing'
+reject_file_match "$LAYER" 'SourceLayer' 'source routing leaked into the pure Layer vocabulary owner'
+
+require_file_match "$PROJECTION" '^[[:space:]]*layer[[:space:]]*←[[:space:]]*•Import "layer[.]bqn"' 'projection does not import the Layer owner'
+for symbol in actual plan budget forecast; do
+    require_file_match "$PROJECTION" "^[[:space:]]*layer_${symbol}[[:space:]]*←[[:space:]]*layer[.]layer_${symbol}[[:space:]]*$" "projection layer_${symbol} compatibility delegate is missing"
+    reject_file_match "$PROJECTION" "^[[:space:]]*layer_${symbol}[[:space:]]*←[[:space:]]*[0-9]" "projection independently defines layer_${symbol}"
+    require_file_match "$CUBE" "^[[:space:]]*layer_${symbol}[[:space:]]*←[[:space:]]*layer[.]layer_${symbol}[[:space:]]*$" "cube layer_${symbol} compatibility delegate is missing"
+    reject_file_match "$CUBE" "^[[:space:]]*layer_${symbol}[[:space:]]*←[[:space:]]*[0-9]" "cube independently defines layer_${symbol}"
+done
+require_file_match "$PROJECTION" '^[[:space:]]*LayerName[[:space:]]*←[[:space:]]*layer[.]LayerName[[:space:]]*$' 'projection LayerName compatibility delegate is missing'
+reject_file_match "$PROJECTION" '^[[:space:]]*LayerName[[:space:]]*←[[:space:]]*\{' 'projection independently defines LayerName'
+require_match '^[[:space:]]*SourceLayer[[:space:]]*←' 'source routing boundary disappeared from projection'
+
+require_file_match "$CUBE" '^[[:space:]]*layer[[:space:]]*←[[:space:]]*•Import "layer[.]bqn"' 'cube does not import the Layer owner'
+require_file_match "$CUBE" '^[[:space:]]*layer_names[[:space:]]*←[[:space:]]*layer[.]layer_names[[:space:]]*$' 'cube layer_names compatibility delegate is missing'
+require_file_match "$CUBE" '^[[:space:]]*layer_count[[:space:]]*←[[:space:]]*layer[.]layer_count[[:space:]]*$' 'cube layer_count compatibility delegate is missing'
+reject_file_match "$CUBE" '^[[:space:]]*layer_names[[:space:]]*←[[:space:]]*⟨' 'cube independently defines Layer names'
+reject_file_match "$CUBE" '^[[:space:]]*layer_count[[:space:]]*←[[:space:]]*[0-9]' 'cube independently defines Layer count'
+require_file_match "$LAYER_TEST" '•Import "[.][.]/src_next/layer[.]bqn"' 'focused Layer owner test does not import the owner directly'
 
 # P2a removals must not reappear as definitions or public fields.
 reject_match '^[[:space:]]*ResolveDay[[:space:]]*←' 'legacy ResolveDay definition returned'
@@ -155,4 +188,4 @@ require_match '^[[:space:]]*ResolveDayFromCycle[[:space:]]*⇐' 'ResolveDayFromC
 require_match '^[[:space:]]*AuthorizeArithmeticCurrencyProof[[:space:]]*⇐' 'live proof predicate export is missing'
 require_match '^[[:space:]]*ArithmeticCurrencyAuthorizationMessage[[:space:]]*⇐' 'live proof message export is missing'
 
-echo "OK: projection P2 and date-ownership P3a-P3o boundaries"
+echo "OK: projection P2, date-ownership P3a-P3o, and Layer owner P4b boundaries"

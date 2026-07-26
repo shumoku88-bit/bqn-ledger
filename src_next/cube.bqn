@@ -19,15 +19,16 @@
 #   - does not export derived TSV
 #   - does not implement trial balance / multi-posting / generated entries
 
-# ── Layer constants ──────────────────────────────────────────
+layer ← •Import "layer.bqn"
 
-layer_actual   ← 0
-layer_plan     ← 1
-layer_budget   ← 2
-layer_forecast ← 3
+# ── Layer compatibility delegates ─────────────────────────────
 
-layer_names ← ⟨"actual", "plan", "budget", "forecast"⟩
-layer_count ← 4
+layer_actual   ← layer.layer_actual
+layer_plan     ← layer.layer_plan
+layer_budget   ← layer.layer_budget
+layer_forecast ← layer.layer_forecast
+layer_names    ← layer.layer_names
+layer_count    ← layer.layer_count
 
 # ── Safe sum helper ────────────────────────────────────────
 # Returns 0 for empty vector; identical to +´ otherwise.
