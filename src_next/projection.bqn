@@ -1,6 +1,6 @@
 # projection.bqn
 # Shared Posting IR construction vocabulary for the non-Actual TSV route,
-# plus current Layer, day-coordinate, and arithmetic-proof predicate/message seams.
+# plus current Layer compatibility, day-coordinate, and arithmetic-proof predicate/message seams.
 #
 # Current contracts:
 #   - docs/POSTING_IR_CONTRACT.md
@@ -13,14 +13,16 @@
 
 dt ← •Import "date.bqn"
 setup ← •Import "currency_setup.bqn"
+layer ← •Import "layer.bqn"
 
 
-# ── Layer constants (docs/CANONICAL_DAILY_CUBE.md) ────────────
+# ── Layer compatibility delegates ─────────────────────────────
 
-layer_actual   ← 0
-layer_plan     ← 1
-layer_budget   ← 2
-layer_forecast ← 3
+layer_actual   ← layer.layer_actual
+layer_plan     ← layer.layer_plan
+layer_budget   ← layer.layer_budget
+layer_forecast ← layer.layer_forecast
+LayerName      ← layer.LayerName
 
 # ── Layer mapping by source file ─────────────────────────────
 
@@ -92,8 +94,6 @@ TxIdFromMeta ← {𝕊 sourceId‿flds:
   metas ← 5 ↓ flds
   MetaValue ⟨"txn_id", sourceId, metas⟩
 }
-
-LayerName ← {𝕊 layerIdx: layerIdx ⊑ ⟨"actual", "plan", "budget", "forecast"⟩ }
 
 PostingId ← {𝕊 srcFile‿rowIdx‿side:
   srcFile ∾ ":" ∾ (•Fmt rowIdx) ∾ ":" ∾ side
