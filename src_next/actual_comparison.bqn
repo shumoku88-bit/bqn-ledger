@@ -10,7 +10,6 @@
 
 loader ← •Import "loader.bqn"
 actual_source ← •Import "actual_source.bqn"
-proj ← •Import "projection.bqn"
 dt ← •Import "date.bqn"
 cube ← •Import "cube.bqn"
 tbds ← •Import "tbds.bqn"
@@ -77,7 +76,7 @@ KeyForRow ← {𝕊 resolved‿row:
 }
 
 InPeriod ← {𝕊 startDn‿endDn‿row:
-  dn ← proj.DaysFromEpoch row.date
+  dn ← dt.DaysFromEpoch row.date
   (startDn ≤ dn) ∧ (dn < endDn)
 }
 
@@ -105,15 +104,15 @@ ResolvePreviousAnchor ← {𝕊 ctx‿currentStart:
   validJournalRows ← (({(𝕩.source_file ≡ actualFile) ∧ LedgerRowValid ⟨resolved,𝕩⟩}¨rows)) / rows
   journalAllDates ← {𝕩.date}¨validJournalRows
   journalMaxDn ← ¯1000000000
-  {𝕊: journalMaxDn ↩ ⌈´ proj.DaysFromEpoch¨journalAllDates}⍟(0<≠journalAllDates) @
+  {𝕊: journalMaxDn ↩ ⌈´ dt.DaysFromEpoch¨journalAllDates}⍟(0<≠journalAllDates) @
 
   planRows0 ← (({𝕩.source_file ≡ "plan.tsv"}¨rows) ∧ (ValidIncomeCredit¨rows)) / rows
-  planRows ← ({(proj.DaysFromEpoch 𝕩.date) > journalMaxDn}¨planRows0) / planRows0
+  planRows ← ({(dt.DaysFromEpoch 𝕩.date) > journalMaxDn}¨planRows0) / planRows0
   planDates0 ← {𝕩.date}¨planRows
   planUnique ← ((planDates0 ⊐ planDates0) = ↕≠planDates0) / planDates0
 
   allDates0 ← journalUnique ∾ planUnique
-  allDns0 ← proj.DaysFromEpoch¨allDates0
+  allDns0 ← dt.DaysFromEpoch¨allDates0
   uniqMask ← (allDns0 ⊐ allDns0) = ↕≠allDns0
   allDates ← uniqMask / allDates0
   allDns ← uniqMask / allDns0
@@ -122,7 +121,7 @@ ResolvePreviousAnchor ← {𝕊 ctx‿currentStart:
 
   result ← { state ⇐ "unavailable", start ⇐ "unavailable", start_dn ⇐ 0 }
   {𝕊:
-    currentDn ← proj.DaysFromEpoch currentStart
+    currentDn ← dt.DaysFromEpoch currentStart
     currentIdx ← ⊑ (sortedDns ≥ currentDn) ⊐ ⟨1⟩
     previousIdx ← currentIdx - 1
     available ← (previousIdx ≥ 0) ∧ (currentIdx < ≠sortedDns)
@@ -133,7 +132,7 @@ ResolvePreviousAnchor ← {𝕊 ctx‿currentStart:
 
 MakePeriodCycle ← {𝕊 start‿endExclusive:
   { mode ⇐ "actual_comparison_local", start ⇐ start, end_exclusive ⇐ endExclusive,
-    day_count ⇐ (proj.DaysFromEpoch endExclusive) - proj.DaysFromEpoch start }
+    day_count ⇐ (dt.DaysFromEpoch endExclusive) - dt.DaysFromEpoch start }
 }
 
 BuildPeriodTbds ← {𝕊 ctx‿start‿endExclusive:
@@ -175,10 +174,10 @@ RejectedDiagnostics ← {𝕊 ctx‿currentStartDn‿currentEndDn‿baselineAvai
   actualFile ← actual_source.File ctx
   rejected ← ({(𝕩.source_file≡actualFile) ∧ (𝕩.status≢"ok")}¨ctx.posting_rows) / ctx.posting_rows
   Applies ← {𝕊 row:
-    validDate ← proj.IsValidDateText row.date
+    validDate ← dt.IsValidDateText row.date
     applies ← ¬validDate
     {𝕊:
-      dn ← proj.DaysFromEpoch row.date
+      dn ← dt.DaysFromEpoch row.date
       inCurrent ← (currentStartDn≤dn) ∧ (dn<currentEndDn)
       inBaseline ← baselineAvailable ∧ (baselineStartDn≤dn) ∧ (dn<baselineEndDn)
       applies ↩ inCurrent ∨ inBaseline
@@ -209,8 +208,8 @@ BuildAt ← {𝕊 ctx‿observation:
     cycleDatesValid ← (dt.IsValidDateText cy.start) ∧ (dt.IsValidDateText cy.end_exclusive)
     cycleValid ← 0
     {𝕊:
-      startDn ← proj.DaysFromEpoch cy.start
-      cycleEndDn ← proj.DaysFromEpoch cy.end_exclusive
+      startDn ← dt.DaysFromEpoch cy.start
+      cycleEndDn ← dt.DaysFromEpoch cy.end_exclusive
       cycleValid ↩ (startDn < cycleEndDn) ∧ (cy.day_count = cycleEndDn-startDn)
     }⍟cycleDatesValid @
 
@@ -220,9 +219,9 @@ BuildAt ← {𝕊 ctx‿observation:
       baseline_start⇐"unavailable", baseline_end_exclusive⇐"unavailable", elapsed_days⇐0}
 
     {𝕊:
-      startDn ← proj.DaysFromEpoch cy.start
-      cycleEndDn ← proj.DaysFromEpoch cy.end_exclusive
-      oEndDn ← 1 + proj.DaysFromEpoch observation
+      startDn ← dt.DaysFromEpoch cy.start
+      cycleEndDn ← dt.DaysFromEpoch cy.end_exclusive
+      oEndDn ← 1 + dt.DaysFromEpoch observation
       currentEndDn ← oEndDn ⌊ cycleEndDn
       currentEndDn ↩ startDn ⌈ currentEndDn
       currentEnd ← dt.FromDaysFromEpoch currentEndDn
