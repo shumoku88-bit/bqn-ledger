@@ -15,16 +15,17 @@ Updated: 2026-07-26
 2. `TODO.md`（現在進行中・次に着手する作業だけ）
 3. `docs/QUALITY_BAR.md`（品質基準）
 4. `docs/SRC_NEXT_CURRENT.md`（`src_next` が現在の普段使い report engine であること、旧 migration docs の扱い）
-5. `docs/ARCHITECTURE.md`（データフロー・モジュール責務）
-6. `docs/CANONICAL_DAILY_CUBE.md`（固定するDaily Cube契約）
-7. `docs/TIME_AS_AXIS.md`（時間座標・観察時点・区間view）
-8. projection変更なら `docs/archive/active-plans/PURPOSE_SPECIFIC_PROJECTION_COMPOSITION_DIRECTION-2026-07-25.md`、`docs/archive/audits/PROJECTION_BQN_OWNERSHIP_AUDIT-2026-07-26.md`、該当する `src_next/*` consumer
-9. レポート変更なら `src_next/report.bqn` と該当する `src_next/*` モジュール、`docs/REPORT_CONTRACTS.md` / `docs/REPORT_SECTION_CONTRACT_CHECKLIST.md`、および現行の report 関連 check
-10. エディタ作業なら `docs/PRODUCTION_EDITOR_DIRECTION.md` / `docs/BQN_EDITOR_USAGE.md` / `src_edit/README.md`
-11. 複数ポスティング導入検討なら `docs/archive/completed-plans/DECISION_MULTI_POSTING_INVESTIGATION.md`
-12. 変更内容に応じて `docs/CONVENTIONS.md` / `docs/JOURNAL_META.md` / `docs/MAINTENANCE.md`
-13. 履歴・背景（非アクティブな計画書、旧エンジン移行期資料、完了済みの計画書など）が必要な場合のみ `docs/archive/` を読む
-14. AIによる家計相談計算の設計なら `docs/archive/active-plans/AI_BUDGET_CALCULATOR_DESIGN.md`
+5. `docs/DEVELOPER_INSPECTION_ENTRYPOINT.md`（低層診断入口と `main.bqn` 互換wrapper）
+6. `docs/ARCHITECTURE.md`（データフロー・モジュール責務）
+7. `docs/CANONICAL_DAILY_CUBE.md`（固定するDaily Cube契約）
+8. `docs/TIME_AS_AXIS.md`（時間座標・観察時点・区間view）
+9. projection変更なら `docs/archive/active-plans/PURPOSE_SPECIFIC_PROJECTION_COMPOSITION_DIRECTION-2026-07-25.md`、`docs/archive/audits/PROJECTION_BQN_OWNERSHIP_AUDIT-2026-07-26.md`、該当する `src_next/*` consumer
+10. レポート変更なら `src_next/report.bqn` と該当する `src_next/*` モジュール、`docs/REPORT_CONTRACTS.md` / `docs/REPORT_SECTION_CONTRACT_CHECKLIST.md`、および現行の report 関連 check
+11. エディタ作業なら `docs/PRODUCTION_EDITOR_DIRECTION.md` / `docs/BQN_EDITOR_USAGE.md` / `src_edit/README.md`
+12. 複数ポスティング導入検討なら `docs/archive/completed-plans/DECISION_MULTI_POSTING_INVESTIGATION.md`
+13. 変更内容に応じて `docs/CONVENTIONS.md` / `docs/JOURNAL_META.md` / `docs/MAINTENANCE.md`
+14. 履歴・背景（非アクティブな計画書、旧エンジン移行期資料、完了済みの計画書など）が必要な場合のみ `docs/archive/` を読む
+15. AIによる家計相談計算の設計なら `docs/archive/active-plans/AI_BUDGET_CALCULATOR_DESIGN.md`
 
 `docs/archive/completed-plans/REPORT_FIELD_MAP.md` と `docs/archive/completed-plans/MAIN_SECTIONS.md` は旧エンジンの historical / superseded docs です。現行レポート変更の正本導線としては読まず、旧 `main.bqn` / `report_engine.Build` の履歴確認が必要な場合だけ参照します。
 
@@ -41,7 +42,7 @@ Updated: 2026-07-26
 - 大きめの相談が来たら、通常TODO/active planを進める話か、BQN editor トラックか、先にmokoへ確認する。
 - transaction-level `kind` とposting-level AccountKey partitionを混同しない。multi-posting transactionでは一つのtransaction kindの中に異なるaccount coordinateが共存する。
 - flatなstage列へ整理するときも、first-failure ownership、diagnostic code、no-partial-resultを変えない。後段stageは前段成功時だけ実行する。
-- `src_next/main.bqn` はdeveloper inspection入口であり、production report ownerではない。projection tableやsource-balance表示を`projection.bqn`へ戻さず、productionは `tools/report` → `src_next/report.bqn` の境界を保つ。
+- `src_next/developer_inspection.bqn` が低層diagnostic implementationのownerである。`src_next/main.bqn`は一時的な互換wrapperに限定し、実装を戻さない。productionは `tools/report` → `src_next/report.bqn` の境界を保つ。
 
 ## 作業完了ゲート
 
@@ -76,7 +77,8 @@ Updated: 2026-07-26
    │    │         ├─ src_next/issues.bqn (Issues & Decisions 表示)
    │    │         └─ src_next/summary.bqn (機械向けコンパクト出力)
    │    │
-   │    └─ src_next/main.bqn (developer inspection only: AccountKey / Posting IR table / Cube sanity)
+   │    └─ src_next/developer_inspection.bqn (developer inspection implementation)
+   │         └─ src_next/main.bqn (temporary compatibility wrapper)
 ```
 
 `actual_expense_ranking.bqn`は現時点でpublic report sectionへ配線されていない。checked selected-domain posting factsを使うpurpose-specific consumerとして、public synthetic fixtureとfocused testでcharacterizeされている。
@@ -118,7 +120,8 @@ Updated: 2026-07-26
 - `cycle.bqn` — サイクル期間の解決。date.bqn を使用。
 - `account_key.bqn` — 勘定科目のキー解決。
 - `projection.bqn` — non-Actual TSV routeのPosting IR construction vocabularyと、現行のLayer / day-coordinate / arithmetic-proof compatibility seamsを共有する。P1後はprojection column list、table formatting、source-balance presentationを所有・exportしない。
-- `main.bqn` — 非productionのdeveloper inspection入口。AccountKey、checked Posting IR table、source-balance表示、Cube sanity、policy diagnosticを出す。diagnostic presentationはこのsole consumerへlocalizeされ、production `report.bqn`から参照されない。
+- `developer_inspection.bqn` — 非productionの低層診断実装。AccountKey、checked Posting IR table、source-balance表示、Cube sanity、policy diagnosticを出し、直接実行と互換wrapperからの`Run`呼出しの両方を支える。
+- `main.bqn` — `developer_inspection.bqn`をimportし、引数を`Run`へ渡すだけの一時的な互換wrapper。診断実装やproduction ownershipを持たない。
 - `snapshot.bqn` — Balance Sheet / Snapshot。TBDS closing を使用。構造化された ViewModel JSON 出力（FormatJson）もサポート。
 - `selected_domain_context.bqn` — 明示されたregistry-supportedな1通貨を、policy → complete Actual admission → Actual currency-proof carriage → non-Actual evidence/projection preparation → context-scale selection → exact normalization → Cube/TBDS period viewsのflatなstage列で構成する。`PrepareNonActualRows`と`NormalizeSelectedRows`はmodule内部のsemantic stageで、public exportは増やさない。各stageは前段成功時だけ実行し、failure code/diagnosticsを保持して部分contextを返さない。成功時はchecked posting rows、resolved metadata、Cube/TBDS viewを返し、同domainのposting rowsをdirect sparse projectionへ渡せる。Currency axis、FX、valuationは扱わない。
 - `balances.bqn` — 残高表示。human `--section balances --currency CODE`は常にselected-domain contextを使い、対象通貨のaccount残高と累計expenseを全supported currencyで同じsection構造により表示する。数値書式だけcurrency policyに従い、既存JSON契約は維持する。
@@ -202,8 +205,9 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 
 ### `checks/` (検証スクリプト)
 
-- `check-src-next-golden.sh` — src_next developer inspection golden fixture チェック。projection header、tabular rows、source-balance表示も固定する。
-- `check-projection-diagnostic-presentation.sh` — diagnostic presentationが`src_next/main.bqn`へlocalizeされ、`projection.bqn`やproduction reportへ戻らないことを検証する。
+- `check-src-next-golden.sh` — `developer_inspection.bqn`のpublic fixture goldenチェック。projection header、tabular rows、source-balance表示も固定する。
+- `check-developer-inspection-entrypoint.sh` — named entrypointと`main.bqn` wrapperの終了status・stdout・stderr一致、thin-wrapper source shape、`tools/report-next` routingを検証する。
+- `check-projection-diagnostic-presentation.sh` — diagnostic presentationが`developer_inspection.bqn`へlocalizeされ、`main.bqn`、`projection.bqn`、production reportへ戻らないことを検証する。
 - `check-src-next-minimal-summary.sh` — 最小サマリチェック。
 - `check-src-next-cycle-summary.sh` — サイクルサマリチェック。
 - `check-src-next-ytd-summary.sh` — YTD サマリチェック。
@@ -270,7 +274,8 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 - `tools/journal-identity-cleanup` — 再構築可能で機能的に参照されていない migration 由来 event-id 削除の safe cleanup CLI (inspect / candidate / apply)。
 - `tools/edit` — 公開 editor コマンドの薄い shell wrapper。
 - `tools/edit-bqn` — 現行の BQN+shell editor 入口。`src_edit` の write path を実行する。
-- `tools/report` / `tools/report-next` — `src_next` を使用したコマンドラインレポートの正本入口。
+- `tools/report` — `src_next/report.bqn`を使う人間向けproduction report入口。
+- `tools/report-next` — `src_next/developer_inspection.bqn`を使うread-only diagnostic wrapper。名前はhistorical compatibilityでありproduction reportではない。
 - `tools/report-next-summary` — `src_next` データの機械向け要約出力。
 - `tools/report-section-metadata` — source TSV を読まない report section metadata export（TSV default / JSON）。UI は human report 文字列を parse せず、このような structured export を使う。
 - `tools/bl` — 日常操作 Command Hub。report / section / add / check / edit をまとめ、読み取り表示と安全な書き込み導線へルーティングする。`edit` の対話モードは TSV 選択サブメニューを持ち、編集後は同じサブメニューへ戻り、`back` / cancel / Ctrl-C で hub 上位へ戻る。

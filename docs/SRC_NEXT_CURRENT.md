@@ -1,7 +1,7 @@
 # src_next current usage
 
 Status: **current production report engine**
-Date: 2026-06-29
+Date: 2026-07-26
 
 `src_next/` is no longer a future-only migration candidate. It is the engine used by the daily report path.
 
@@ -20,10 +20,13 @@ Date: 2026-06-29
   - runs `src_next/summary.bqn`
   - retained name is historical
 - Low-level diagnostic wrapper: `tools/report-next`
-  - runs `src_next/main.bqn`
+  - runs `src_next/developer_inspection.bqn`
   - use only for diagnostics or historical comparison, not as the normal report path
+- Direct diagnostic compatibility: `src_next/main.bqn`
+  - temporarily imports `developer_inspection.bqn` for callers using the historical filename
+  - contains no diagnostic implementation and is not the canonical developer entrypoint
 
-There is no root `main.bqn` production engine in the current tree. Old docs that say daily production is `bqn main.bqn` are historical migration notes.
+There is no root `main.bqn` production engine in the current tree. Old docs that say daily production is `bqn main.bqn` are historical migration notes. The remaining `src_next/main.bqn` filename is a compatibility wrapper, not the system's main module.
 
 ## Current dataflow
 
@@ -31,8 +34,9 @@ There is no root `main.bqn` production engine in the current tree. Old docs that
 <base>/*.tsv + config/*.tsv
   -> src_next/loader.bqn / src_next/context.bqn
   -> Posting IR / Canonical Daily Cube / TBDS
-  -> src_next/report.bqn      (human report)
-  -> src_next/summary.bqn     (machine summary)
+  -> src_next/report.bqn                 (human production report)
+  -> src_next/summary.bqn                (machine summary)
+  -> src_next/developer_inspection.bqn   (developer inspection only)
 ```
 
 `<base>` means `LEDGER_DATA_DIR` when set, otherwise the configured default base directory. Public `data/` is sandbox data.
@@ -51,4 +55,4 @@ Treat `docs/archive/src-next-migration/` as migration history unless a current d
 
 ## Safety boundary
 
-`src_next/` report and summary paths are read-only. Source TSV writes still go through approved editor paths such as `tools/edit` and `tools/add-ui.sh`.
+`src_next/` report, summary, and developer-inspection paths are read-only. Source TSV writes still go through approved editor paths such as `tools/edit` and `tools/add-ui.sh`.

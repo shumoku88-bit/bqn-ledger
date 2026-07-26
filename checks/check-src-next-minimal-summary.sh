@@ -8,8 +8,8 @@ set -euo pipefail
 # WITHOUT baking in specific household amounts. This complements the
 # exact golden diff in check-src-next-golden.sh.
 #
-# Stage 4 daily-trial comparison surface: the Minimal Report Summary is
-# now mechanically checkable. Production remains bqn main.bqn.
+# This is a developer-inspection surface. Daily production reports run through
+# tools/report -> src_next/report.bqn.
 #
 # Usage:
 #   bash checks/check-src-next-minimal-summary.sh [fixture-dir]
@@ -23,7 +23,7 @@ fi
 output="$(mktemp)"
 trap 'rm -f "$output"' EXIT
 
-bqn src_next/main.bqn "$fixture" > "$output"
+bqn src_next/developer_inspection.bqn "$fixture" > "$output"
 
 # ── Helpers ──────────────────────────────────────────────────
 
@@ -147,10 +147,10 @@ done
 
 # ── 9. No production readiness claims ────────────────────────
 
-# The Minimal Report Summary is a Stage 4 trial surface only.
-# It must not claim production readiness or Stage 5 default switch.
+# The Minimal Report Summary is a developer inspection surface.
+# It must not claim production readiness or replace the production report path.
 if grep -qiE -- 'production.ready|production.default|default.switch|stage.5|production.replace|replaces.main' "$output"; then
-  fail "output contains production readiness language (Stage 4 trial surface only)"
+  fail "output contains production readiness language"
 else
   pass "no production readiness claims"
 fi
@@ -162,7 +162,7 @@ fi
 while IFS= read -r line; do
   # Expected: "src_next_actual_account_total: 4 expenses:food/JPY 80"
   rest="${line#src_next_actual_account_total: }"
-  if [ "$rest" = "$line" ]; then continue; fi  # not this field
+  if [ "$rest" = "$line" ]; then continue; fi
   if [[ "$rest" =~ ^[0-9]+\ .+\ ((-|$'\302\257')?[0-9]+)$ ]]; then
     :
   else
