@@ -3,7 +3,7 @@
 # Shows per-day liquid/fund/daily/variable tracking across the cycle.
 
 actual_source ← •Import "actual_source.bqn"
-proj ← •Import "projection.bqn"
+dt ← •Import "date.bqn"
 cube ← •Import "cube.bqn"
 fmt ← •Import "format.bqn"
 labels ← •Import "report_labels.bqn"
@@ -17,9 +17,9 @@ LatestActualDateInCycle ← {𝕊 base‿cy:
   available ← (cy.start ≢ "unavailable") ∧ (cy.day_count > 0)
   out ← cy.start
   {𝕊:
-    start_dn ← proj.DaysFromEpoch cy.start
+    start_dn ← dt.DaysFromEpoch cy.start
     end_dn ← start_dn + cy.day_count
-    DateInCycle ← {𝕊 d: dn ← proj.DaysFromEpoch d ⋄ (dn ≥ start_dn) ∧ (dn < end_dn) }
+    DateInCycle ← {𝕊 d: dn ← dt.DaysFromEpoch d ⋄ (dn ≥ start_dn) ∧ (dn < end_dn) }
     in_dates ← (DateInCycle¨ dates) / dates
     {𝕊: out ↩ ¯1 ⊑ (∧ in_dates)}⍟(0 < ≠ in_dates) @
   }⍟(available ∧ (0 < ≠ dates)) @
@@ -63,7 +63,7 @@ Build ← {𝕊 ctx:
   trend_dates_all ← j_dates
 
   # Sort and deduplicate
-  dns ← proj.DaysFromEpoch¨ trend_dates_all
+  dns ← dt.DaysFromEpoch¨ trend_dates_all
   ord ← ⍋ dns
   sorted_dates ← ord ⊏ trend_dates_all
   sorted_dns ← ord ⊏ dns
@@ -71,8 +71,8 @@ Build ← {𝕊 ctx:
   trend_dates_uniq ← keep / sorted_dates
   trend_dns_uniq ← keep / sorted_dns
   
-  cycle_start_dn ← proj.DaysFromEpoch cy.start
-  cycle_end_excl_dn ← proj.DaysFromEpoch cy.end_exclusive
+  cycle_start_dn ← dt.DaysFromEpoch cy.start
+  cycle_end_excl_dn ← dt.DaysFromEpoch cy.end_exclusive
 
   # Restrict to dates within the cycle, then anchor empty state explicitly.
   valid_mask ← (trend_dns_uniq ≥ cycle_start_dn) ∧ (trend_dns_uniq < cycle_end_excl_dn)
@@ -93,7 +93,7 @@ Build ← {𝕊 ctx:
   # 3. Prepare planned-income projection rows. The date cutoff is selected
   # inside each trend row from that row coordinate D, not from report-local L.
   p_rows ← (1 = {𝕩.layer_index}¨ valid_rows) / valid_rows
-  p_dns_valid ← {proj.DaysFromEpoch 𝕩.date}¨ p_rows
+  p_dns_valid ← {dt.DaysFromEpoch 𝕩.date}¨ p_rows
 
   # 4. Compute each trend date (absolute day dn)
   trend_rows ← {𝕊 dn:
@@ -213,7 +213,7 @@ Format ← {𝕊 vm:
 
 FormatHuman ← {𝕊 vm:
   rows ← vm.trend_rows
-  days_left ← 0 ⌈ (proj.DaysFromEpoch vm.cycle_end_exclusive) - proj.DaysFromEpoch vm.header_O
+  days_left ← 0 ⌈ (dt.DaysFromEpoch vm.cycle_end_exclusive) - dt.DaysFromEpoch vm.header_O
 
   out ← (L "daily.section_title") ∾ (@+10) ∾ (@+10)
   {𝕊:

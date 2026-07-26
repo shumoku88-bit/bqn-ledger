@@ -3,7 +3,7 @@
 # Shows daily breakdown of income, major envelope expenses, others, and net.
 
 actual_source ← •Import "actual_source.bqn"
-proj ← •Import "projection.bqn"
+dt ← •Import "date.bqn"
 cube ← •Import "cube.bqn"
 fmt ← •Import "format.bqn"
 labels ← •Import "report_labels.bqn"
@@ -45,9 +45,9 @@ LatestActualDateInCycle ← {𝕊 base‿cy:
   available ← (cy.start ≢ "unavailable") ∧ (cy.day_count > 0)
   out ← cy.start
   {𝕊:
-    start_dn ← proj.DaysFromEpoch cy.start
+    start_dn ← dt.DaysFromEpoch cy.start
     end_dn ← start_dn + cy.day_count
-    DateInCycle ← {𝕊 d: dn ← proj.DaysFromEpoch d ⋄ (dn ≥ start_dn) ∧ (dn < end_dn) }
+    DateInCycle ← {𝕊 d: dn ← dt.DaysFromEpoch d ⋄ (dn ≥ start_dn) ∧ (dn < end_dn) }
     in_dates ← (DateInCycle¨ dates) / dates
     {𝕊: out ↩ ¯1 ⊑ (∧ in_dates)}⍟(0 < ≠ in_dates) @
   }⍟(available ∧ (0 < ≠ dates)) @
@@ -100,7 +100,7 @@ Build ← {𝕊 ctx:
 
   as_of ← LatestActualDateInCycle ⟨base, cy⟩
   trend_dates_all ← j_dates ∾ ⟨as_of⟩
-  dns ← proj.DaysFromEpoch¨ trend_dates_all
+  dns ← dt.DaysFromEpoch¨ trend_dates_all
   ord ← ⍋ dns
   sorted_dates ← ord ⊏ trend_dates_all
   sorted_dns ← ord ⊏ dns
@@ -108,8 +108,8 @@ Build ← {𝕊 ctx:
   trend_dates_uniq ← keep / sorted_dates
   trend_dns_uniq ← keep / sorted_dns
   
-  cycle_start_dn ← proj.DaysFromEpoch cy.start
-  cycle_end_excl_dn ← proj.DaysFromEpoch cy.end_exclusive
+  cycle_start_dn ← dt.DaysFromEpoch cy.start
+  cycle_end_excl_dn ← dt.DaysFromEpoch cy.end_exclusive
   valid_mask ← (trend_dns_uniq ≥ cycle_start_dn) ∧ (trend_dns_uniq < cycle_end_excl_dn)
   trend_dates ← valid_mask / trend_dates_uniq
   trend_dns ← valid_mask / trend_dns_uniq
@@ -171,7 +171,7 @@ Format ← {𝕊 vm:
 
 FormatHuman ← {𝕊 vm:
   rows ← vm.trend_rows
-  days_left ← 0 ⌈ (proj.DaysFromEpoch vm.cycle_end_exclusive) - proj.DaysFromEpoch vm.as_of
+  days_left ← 0 ⌈ (dt.DaysFromEpoch vm.cycle_end_exclusive) - dt.DaysFromEpoch vm.as_of
 
   out ← "== Daily Flow ==" ∾ (@+10) ∾ (@+10)
   out ↩ out ∾ "cycle: " ∾ vm.cycle_start ∾ " 〜 " ∾ vm.cycle_end_exclusive ∾ " (as of " ∾ vm.as_of ∾ "; " ∾ (•Fmt days_left) ∾ " days left)" ∾ (@+10) ∾ (@+10)
