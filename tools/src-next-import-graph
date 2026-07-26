@@ -1,0 +1,201 @@
+#!/usr/bin/env python3
+"""Inspect direct BQN imports under src_next without executing project code."""
+
+from __future__ import annotations
+
+import argparse
+import re
+import sys
+from collections import defaultdict
+from pathlib import Path
+
+IMPORT_RE = re.compile(r'•Import\s+"([^"]+)"')
+
+
+def repository_root() -> Path:
+    return Path(__file__).resolve().parent.parent
+
+
+def relative(root: Path, path: Path) -> str:
+    try:
+        return path.relative_to(root).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
+def scan(root: Path) -> tuple[list[Path], list[tuple[Path, Path, str]], list[str]]:
+    modules = sorted((root / "src_next").rglob("*.bqn"))
+    edges: list[tuple[Path, Path, str]] = []
+    errors: list[str] = []
+
+    for source in modules:
+        try:
+            lines = source.read_text(encoding="utf-8").splitlines()
+        except OSError as exc:
+            errors.append(f"unreadable\t{relative(root, source)}\t{exc}")
+            continue
+
+        for line_number, line in enumerate(lines, start=1):
+            if line.lstrip().startswith("#"):
+                continue
+            for match in IMPORT_RE.finditer(line):
+                raw_target = match.group(1)
+                target = (source.parent / raw_target).resolve()
+                edges.append((source.resolve(), target, raw_target))
+                if not target.is_file():
+                    errors.append(
+                        "missing\t"
+                        f"{relative(root, source)}:{line_number}\t"
+                        f"{raw_target}\t{relative(root, target)}"
+                    )
+
+    return modules, edges, errors
+
+
+def strongly_connected_components(
+    nodes: list[str], adjacency: dict[str, list[str]]
+) -> list[list[str]]:
+    index = 0
+    indices: dict[str, int] = {}
+    lowlinks: dict[str, int] = {}
+    stack: list[str] = []
+    on_stack: set[str] = set()
+    components: list[list[str]] = []
+
+    def visit(node: str) -> None:
+        nonlocal index
+        indices[node] = index
+        lowlinks[node] = index
+        index += 1
+        stack.append(node)
+        on_stack.add(node)
+
+        for target in adjacency.get(node, []):
+            if target not in indices:
+                visit(target)
+                lowlinks[node] = min(lowlinks[node], lowlinks[target])
+            elif target in on_stack:
+                lowlinks[node] = min(lowlinks[node], indices[target])
+
+        if lowlinks[node] == indices[node]:
+            component: list[str] = []
+            while True:
+                item = stack.pop()
+                on_stack.remove(item)
+                component.append(item)
+                if item == node:
+                    break
+            components.append(sorted(component))
+
+    for node in sorted(nodes):
+        if node not in indices:
+            visit(node)
+
+    return sorted(components, key=lambda group: (len(group), group), reverse=True)
+
+
+def build_graph(
+    root: Path,
+    modules: list[Path],
+    edges: list[tuple[Path, Path, str]],
+) -> tuple[list[str], dict[str, list[str]], dict[str, int], dict[str, int]]:
+    nodes = [relative(root, module.resolve()) for module in modules]
+    node_set = set(nodes)
+    adjacency: dict[str, list[str]] = defaultdict(list)
+    incoming: dict[str, int] = defaultdict(int)
+    outgoing: dict[str, int] = defaultdict(int)
+
+    for source, target, _ in edges:
+        source_name = relative(root, source)
+        target_name = relative(root, target)
+        if source_name in node_set and target_name in node_set:
+            adjacency[source_name].append(target_name)
+            outgoing[source_name] += 1
+            incoming[target_name] += 1
+
+    for node in nodes:
+        adjacency[node] = sorted(set(adjacency.get(node, [])))
+        incoming.setdefault(node, 0)
+        outgoing.setdefault(node, 0)
+
+    return nodes, adjacency, incoming, outgoing
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Inspect direct •Import edges under src_next."
+    )
+    modes = parser.add_mutually_exclusive_group()
+    modes.add_argument("--summary", action="store_true", help="print graph counts")
+    modes.add_argument("--modules", action="store_true", help="print module degree table")
+    modes.add_argument("--cycles", action="store_true", help="print import cycles")
+    modes.add_argument("--dot", action="store_true", help="print Graphviz DOT")
+    parser.add_argument(
+        "--validate",
+        action="store_true",
+        help="exit nonzero when an import target is missing or unreadable",
+    )
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = parse_args()
+    root = repository_root()
+    modules, edges, errors = scan(root)
+    nodes, adjacency, incoming, outgoing = build_graph(root, modules, edges)
+    components = strongly_connected_components(nodes, adjacency)
+    cycles = [
+        component
+        for component in components
+        if len(component) > 1
+        or (len(component) == 1 and component[0] in adjacency[component[0]])
+    ]
+
+    if args.modules:
+        print("module\tdirect_imports\tincoming_imports\tlocation")
+        for node in sorted(nodes):
+            location = "nested" if node.count("/") > 1 else "root"
+            print(f"{node}\t{outgoing[node]}\t{incoming[node]}\t{location}")
+    elif args.cycles:
+        print("cycle\tmodules")
+        for number, component in enumerate(cycles, start=1):
+            print(f"{number}\t{','.join(component)}")
+    elif args.dot:
+        print("digraph src_next_imports {")
+        for node in sorted(nodes):
+            print(f'  "{node}";')
+        for source in sorted(adjacency):
+            for target in adjacency[source]:
+                print(f'  "{source}" -> "{target}";')
+        print("}")
+    elif args.summary:
+        root_modules = sum(node.count("/") == 1 for node in nodes)
+        nested_modules = len(nodes) - root_modules
+        internal_edges = sum(len(targets) for targets in adjacency.values())
+        print("metric\tvalue")
+        print(f"modules\t{len(nodes)}")
+        print(f"root_modules\t{root_modules}")
+        print(f"nested_modules\t{nested_modules}")
+        print(f"direct_imports\t{len(edges)}")
+        print(f"internal_edges\t{internal_edges}")
+        print(f"cycles\t{len(cycles)}")
+        print(f"scan_errors\t{len(errors)}")
+    else:
+        print("source\ttarget\traw_target\ttarget_exists")
+        for source, target, raw_target in sorted(
+            edges, key=lambda edge: (relative(root, edge[0]), relative(root, edge[1]))
+        ):
+            print(
+                f"{relative(root, source)}\t{relative(root, target)}\t"
+                f"{raw_target}\t{str(target.is_file()).lower()}"
+            )
+
+    if errors:
+        for error in errors:
+            print(error, file=sys.stderr)
+
+    return 1 if args.validate and errors else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
