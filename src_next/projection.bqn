@@ -1,6 +1,6 @@
 # projection.bqn
 # Shared Posting IR construction vocabulary for the non-Actual TSV route,
-# plus current Layer, day-coordinate, and arithmetic-proof compatibility seams.
+# plus current Layer, day-coordinate, and arithmetic-proof predicate/message seams.
 #
 # Current contracts:
 #   - docs/POSTING_IR_CONTRACT.md
@@ -8,7 +8,8 @@
 #   - docs/PURE_CHECKED_POSTING_PROJECTION_RESULT_CONTRACT.md
 #
 # This module does not materialize Cube/TBDS, render diagnostic tables, or
-# produce report sections. Developer inspection presentation lives in main.bqn.
+# produce report sections. Developer inspection presentation lives in
+# developer_inspection.bqn.
 
 dt ← •Import "date.bqn"
 setup ← •Import "currency_setup.bqn"
@@ -155,15 +156,6 @@ ArithmeticCurrencyAuthorizationMessage ← {𝕊 proof:
   msg
 }
 
-RequireArithmeticCurrencyProof ← {𝕊 proof:
-  ok ← AuthorizeArithmeticCurrencyProof proof
-  {𝕊:
-    •Out "ERROR: " ∾ ArithmeticCurrencyAuthorizationMessage proof
-    •Exit 1
-  }⍟(¬ok) @
-  ok
-}
-
 # ── Export ───────────────────────────────────────────────────
 {
   layer_actual    ⇐ layer_actual,
@@ -180,6 +172,5 @@ RequireArithmeticCurrencyProof ← {𝕊 proof:
   DaysFromEpoch         ⇐ DaysFromEpoch,
   ResolveDayFromCycle   ⇐ ResolveDayFromCycle,
   AuthorizeArithmeticCurrencyProof ⇐ AuthorizeArithmeticCurrencyProof,
-  ArithmeticCurrencyAuthorizationMessage ⇐ ArithmeticCurrencyAuthorizationMessage,
-  RequireArithmeticCurrencyProof ⇐ RequireArithmeticCurrencyProof
+  ArithmeticCurrencyAuthorizationMessage ⇐ ArithmeticCurrencyAuthorizationMessage
 }

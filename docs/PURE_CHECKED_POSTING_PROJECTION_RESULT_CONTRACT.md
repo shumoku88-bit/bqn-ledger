@@ -1,126 +1,89 @@
 # Pure Checked Posting Projection Result Contract
 
-Status: current contract
-Owner: other
-Canonical: yes; canonical for Headless Kernel Evolution Phase B
-Exit: retain as the current boundary contract after implementation; supersede only through an explicit replacement decision
+Status: current contract  
+Runtime owner: `src_next/context.bqn`  
+Proof predicate/message owner: `src_next/projection.bqn`  
+Implementation state: implemented and in use
 
-Implementation state: selected design; runtime not yet implemented. This document does not authorize Phase C by itself.
+## Purpose
 
-## 1. Purpose
+This document records the current data-only boundary for checked construction of non-Actual Posting IR rows.
 
-This contract selects the smallest data-only boundary that can remove inner `•Out` / `•Exit` from the current posting projection path without changing the behavior of existing commands, reports, Cube materialization, TBDS construction, source TSV, or accounting semantics.
-
-The selected boundary is accounting-specific. It is not a universal event model.
+The boundary separates deterministic accounting calculation from terminal behavior:
 
 ```text
 posting source snapshot
 + resolved account metadata
-+ explicit cycle start coordinate
++ explicit cycle-start coordinate
   -> pure checked posting projection result
-  -> existing compatibility wrapper
+  -> compatibility wrapper
   -> existing stdout / process exit behavior
 ```
 
-The contract is the Phase B answer to one question:
+It is an accounting-specific contract. It is not a universal event carrier, query language, report model, Cube replacement, or TBDS replacement.
 
-> What data result can represent the current checked Posting IR construction before CLI rendering and process termination?
+## Current runtime flow
 
-It does not authorize runtime implementation by itself. Runtime extraction remains a separate Phase C decision.
-
-## 2. Current runtime seam
-
-Current `main` performs the following inside `BuildAuthorizedRowsFromSnapshot`:
+The implemented flow is:
 
 ```text
 snapshot
   -> BuildRowEvidenceFromSnapshot
   -> currency_arithmetic.Build
   -> ResolveArithmeticCurrencyProof
-  -> RequireArithmeticCurrencyProof
-  -> normalized coefficient length check
-  -> BuildProjectionRowsForEvidence
-  -> { rows, arithmetic_currency_proof }
+  -> BuildCheckedPostingProjectionFromPrepared
+       -> AuthorizeArithmeticCurrencyProof
+       -> arithmetic proof diagnostic when rejected
+       -> normalized coefficient length check
+       -> structural diagnostic when mismatched
+       -> BuildProjectionRowsForEvidence when admitted
+  -> checked result
 ```
 
-Two failure paths currently terminate the process inside this inner path:
-
-1. arithmetic-currency proof authorization failure;
-2. row-evidence / normalized-coefficient length mismatch.
-
-The selected extraction replaces those inner process effects with a returned result. Existing outer callers remain responsible for reproducing the current terminal behavior.
-
-## 3. Selected pure builder
-
-The selected public calculation boundary for Phase C is:
+Normal callers use:
 
 ```text
 BuildCheckedPostingProjectionFromSnapshot
   ⟨snapshot, resolved, cycleStart⟩
 ```
 
-The name is selected for this workstream. Phase C may adjust local helper names, but it must not silently widen the public meaning.
+Compatibility callers use:
 
-### 3.1 Inputs
+```text
+BuildAuthorizedRowsFromSnapshot
+  ⟨snapshot, resolved, cycleStart⟩
+```
 
-#### `snapshot`
+`BuildAuthorizedRowsFromSnapshot` delegates calculation to the pure checked boundary and preserves the historical success shape and fatal terminal behavior.
 
-The exact in-memory posting source snapshot already produced by `LoadPostingSourceSnapshot`.
+## Inputs
 
-Required meaning:
+### `snapshot`
 
-- contains the journal-like posting sources used by the current path;
-- is reused for row evidence, arithmetic evidence, proof, and Posting IR construction;
-- is not reloaded or replaced during the calculation;
-- preserves the one-snapshot invariant.
+The exact in-memory posting source snapshot used for all evidence, arithmetic, proof, and Posting IR construction in one invocation.
 
-The pure builder must not read source files.
+The pure builder does not reload files and does not accept a separately supplied proof. This preserves the one-snapshot invariant.
 
-#### `resolved`
+### `resolved`
 
-The current result of `account_key.Resolve`.
-
-It remains an explicit input because Posting IR construction needs:
+The current resolved account namespace used by Posting IR construction, including:
 
 - account identities;
 - account roles;
-- canonical account keys;
-- account-key indices.
+- canonical AccountKeys;
+- AccountKey indices.
 
-The pure builder must not read `accounts.tsv` or perform account-file loading. Account resolution remains an upstream adapter responsibility.
+Account-file loading and account resolution remain upstream responsibilities.
 
-#### `cycleStart`
+### `cycleStart`
 
-An explicit date coordinate used by the current Posting IR path to derive `day_index`.
+An explicit date coordinate used to derive `day_index`.
 
-Required meaning:
+It is not a clock read and not a period filter. Posting rows remain ledger-wide; report-period selection belongs to later consumers.
 
-- supplied by the caller;
-- not read from system time;
-- not resolved from environment state;
-- not a period filter;
-- preserves ledger-wide row construction.
+## Pure result carrier
 
-The pure builder does not own cycle-file loading or report-period selection.
-
-### 3.2 Inputs not selected
-
-The pure builder does not accept:
-
-- a base directory;
-- source filenames to load;
-- `as_of` as an implicit clock value;
-- a report section;
-- Cube dimensions;
-- TBDS period state;
-- household policy;
-- a separately supplied arithmetic proof.
-
-A proof supplied independently from the snapshot would weaken the current same-snapshot authorization invariant and is therefore not selected.
-
-## 4. Selected result carrier
-
-The builder returns one namespace with these fields:
+The builder returns one namespace with exactly these fields:
 
 ```text
 {
@@ -133,7 +96,7 @@ The builder returns one namespace with these fields:
 }
 ```
 
-### 4.1 `state`
+### `state`
 
 Allowed values:
 
@@ -144,39 +107,36 @@ Allowed values:
 
 `state = "ok"` means:
 
-- row evidence and arithmetic evidence were derived from the same snapshot;
+- row evidence and arithmetic evidence came from the supplied snapshot;
 - the arithmetic-currency proof was authorized;
-- the row-evidence count equals the normalized-coefficient count;
-- Posting IR rows were constructed.
+- row-evidence and normalized-coefficient lengths agree;
+- complete Posting IR rows were constructed.
 
-It does **not** mean that every Posting IR row has `status = "ok"`.
+It does not mean every row has `status = "ok"`. Row-level statuses such as `unknown_account`, `invalid_amount`, and `invalid_date` remain Posting IR meanings.
 
-Current row-level accounting validation remains separate. For example, `unknown_account` and `invalid_date` remain Posting IR row statuses rather than being promoted automatically to aggregate builder failure.
+`state = "error"` means aggregate admission failed. In that state:
 
-`state = "error"` means the checked posting projection was not admitted. In that state, `posting_rows` must be empty.
+```text
+posting_rows = ⟨⟩
+```
 
-### 4.2 `row_evidence`
+Partial posting rows must not escape with an error result.
+
+### `row_evidence`
 
 The complete result of `BuildRowEvidenceFromSnapshot snapshot`.
 
-It remains available on both success and error so a headless caller can inspect source-local evidence without scraping terminal text.
+It remains present on success and error so callers can inspect source-local evidence without reading terminal output.
 
-### 4.3 `arithmetic_evidence`
+### `arithmetic_evidence`
 
-The complete result of `currency_arithmetic.Build row_evidence`.
+The complete result of `currency_arithmetic.Build row_evidence`, including normalized coefficients and arithmetic-domain evidence.
 
-It remains available on both success and error. This includes the normalized-coefficient carrier owned by the current currency arithmetic path.
+It remains present on success and error.
 
-### 4.4 `arithmetic_currency_proof`
+### `arithmetic_currency_proof`
 
-The complete result of:
-
-```text
-ResolveArithmeticCurrencyProof
-  ⟨row_evidence, arithmetic_evidence⟩
-```
-
-This field retains the current five-field proof meaning:
+The complete five-field proof constructed by `ResolveArithmeticCurrencyProof`:
 
 ```text
 state
@@ -186,25 +146,17 @@ amount_scale
 message
 ```
 
-It is an arithmetic-currency proof only. It is not renamed to a generic projection proof.
+This is specifically an arithmetic-currency proof. It does not replace account, date, layer, balance, or row-status validation.
 
-### 4.5 `posting_rows`
+### `posting_rows`
 
-On success, the complete ledger-wide Posting IR rows generated from the admitted evidence and normalized coefficients.
+On success, the complete Posting IR rows generated in source order, with debit then credit rows for each admitted non-Actual source row.
 
-On error:
+On error, it is empty.
 
-```text
-posting_rows = ⟨⟩
-```
+### `diagnostics`
 
-The pure builder must never return partial posting rows together with `state = "error"`.
-
-### 4.6 `diagnostics`
-
-An ordered list of structured diagnostic namespaces.
-
-For the selected Phase C slice, each diagnostic has exactly these fields:
+An ordered list of structured diagnostics with these fields:
 
 ```text
 {
@@ -215,19 +167,19 @@ For the selected Phase C slice, each diagnostic has exactly these fields:
 }
 ```
 
-Allowed values in the selected slice:
+The current fatal diagnostics are:
 
 ```text
 severity = "error"
 
 stage = "authorization"
-      | "structure"
+code  = "arithmetic_currency_proof_rejected"
 
-code = "arithmetic_currency_proof_rejected"
-     | "normalized_coefficient_length_mismatch"
+stage = "structure"
+code  = "normalized_coefficient_length_mismatch"
 ```
 
-The diagnostic `message` does not include the terminal prefix `ERROR: `.
+Diagnostic messages do not contain the terminal prefix `ERROR: `.
 
 Success requires:
 
@@ -235,27 +187,27 @@ Success requires:
 diagnostics = ⟨⟩
 ```
 
-The current slice returns at most one diagnostic because the existing runtime exits at the first fatal boundary. A future multi-diagnostic design requires a separate contract change.
+The current boundary returns at most one fatal diagnostic because it preserves first-failure behavior.
 
-## 5. Evaluation and failure order
+## Evaluation and failure order
 
-The builder must preserve the current fail-closed order:
+The pure builder preserves this fail-closed order:
 
 ```text
 1. build row evidence
 2. build arithmetic evidence
 3. resolve arithmetic-currency proof
 4. authorize proof
-5. if rejected, return authorization error
+5. if rejected, return authorization error with no posting rows
 6. compare evidence and normalized-coefficient lengths
-7. if mismatched, return structure error
+7. if mismatched, return structure error with no posting rows
 8. build posting rows
 9. return success
 ```
 
-This order matters. A proof rejection must not be hidden by a later structural diagnostic.
+A proof rejection must not be hidden by a later structural mismatch.
 
-### 5.1 Proof rejection
+### Proof rejection
 
 When:
 
@@ -263,7 +215,7 @@ When:
 projection.AuthorizeArithmeticCurrencyProof proof = 0
 ```
 
-the result is:
+the result contains:
 
 ```text
 state = "error"
@@ -278,17 +230,9 @@ diagnostics = ⟨
 ⟩
 ```
 
-### 5.2 Structural mismatch
+### Structural mismatch
 
-When the proof is authorized but:
-
-```text
-≠row_evidence
-  ≢
-≠arithmetic_evidence.normalized_coefficients
-```
-
-the result is:
+When authorization succeeds but evidence length differs from normalized-coefficient length, the result contains:
 
 ```text
 state = "error"
@@ -303,101 +247,65 @@ diagnostics = ⟨
 ⟩
 ```
 
-### 5.3 Success
+## Compatibility wrapper
 
-When authorization and structural admission pass:
-
-```text
-state = "ok"
-diagnostics = ⟨⟩
-posting_rows = complete constructed Posting IR
-```
-
-Posting rows preserve the existing source order and debit-then-credit order for each evidence row.
-
-## 6. Compatibility wrapper contract
-
-`BuildAuthorizedRowsFromSnapshot` remains the compatibility boundary used by current callers.
-
-After Phase C extraction, its observable contract remains:
+`BuildAuthorizedRowsFromSnapshot` preserves the externally visible compatibility contract:
 
 ```text
-BuildAuthorizedRowsFromSnapshot
-  ⟨snapshot, resolved, cycleStart⟩
-  -> { rows, arithmetic_currency_proof }
-```
-
-Its selected behavior is:
-
-```text
-result ← BuildCheckedPostingProjectionFromSnapshot
-  ⟨snapshot, resolved, cycleStart⟩
-
-result.state = "ok"
-  -> return {
+success
+  -> {
        rows = result.posting_rows
        arithmetic_currency_proof = result.arithmetic_currency_proof
      }
 
-result.state = "error"
+error
   -> print "ERROR: " + first diagnostic.message
   -> exit 1
 ```
 
-The wrapper must preserve the current stdout text and exit code for existing failure cases.
+Terminal ownership is local to `src_next/context.bqn` through `AuthorizedRowsFromCheckedResult`.
 
-### 6.1 Existing callers preserved
+The wrapper preserves:
 
-Phase C must preserve the signatures and externally visible behavior of:
+- the success return shape;
+- exact fatal message content after the `ERROR: ` prefix;
+- exit code `1` for checked-result failure;
+- no additional stdout on success.
 
-- `BuildAuthorizedRowsFromSnapshot`;
-- `BuildAllRowsFromSnapshot`;
-- `BuildAllRows`;
-- `BuildRowsForFile`;
-- `BuildRowsForFileOptional`;
-- `BuildContext`;
-- `tools/report`;
-- `tools/report-next-summary`;
-- current section JSON entry points.
+`SourceFromSnapshot` remains a separate compatibility guard for unsupported or missing selected source files. Its terminal effects are not part of the pure checked projection.
 
-### 6.2 Existing proof API preserved
+## Arithmetic-proof ownership
 
-The selected extraction does not delete or rename:
+The live public proof API in `src_next/projection.bqn` is:
 
-- `AuthorizeArithmeticCurrencyProof`;
-- `ArithmeticCurrencyAuthorizationMessage`;
-- `RequireArithmeticCurrencyProof`.
+```text
+AuthorizeArithmeticCurrencyProof
+ArithmeticCurrencyAuthorizationMessage
+```
 
-The pure builder uses the pure authorization predicate and message builder. Existing direct callers and tests of `RequireArithmeticCurrencyProof` remain valid unless a separate later cleanup is selected.
+The first returns the admission decision. The second returns data-only diagnostic text.
 
-### 6.3 Source-file compatibility guard preserved
+The former effectful `RequireArithmeticCurrencyProof` wrapper was removed after repository characterization found no runtime or focused-test caller. It is not part of the current contract. Process output and exit behavior remain preserved by the outer compatibility wrapper in `context.bqn`.
 
-`SourceFromSnapshot` remains outside the selected pure builder.
+## Purity boundary
 
-Its unsupported-source and missing-source `•Out` / `•Exit` behavior belongs to the compatibility file-selection wrapper, not to snapshot-wide checked Posting IR construction.
+`BuildCheckedPostingProjectionFromSnapshot` and its prepared helper must not:
 
-## 7. Purity and ownership rules
-
-`BuildCheckedPostingProjectionFromSnapshot` must be deterministic for the same inputs.
-
-It must not:
-
-- call `loader.ReadLines` or `loader.ReadLinesOptional`;
+- read source files;
 - call `•Out`;
 - call `•Exit`;
-- read system time;
-- inspect environment variables;
+- read system time or environment state;
+- accept a proof detached from the supplied evidence;
 - construct Cube or TBDS;
 - render reports or JSON;
-- apply household advice or envelope policy;
-- mutate source TSV;
-- accept a proof detached from the snapshot.
+- apply household or envelope policy;
+- mutate Journal or TSV sources.
 
-The selected ownership remains:
+Current ownership is:
 
 ```text
 I/O adapters
-  -> load source snapshot, cycle, accounts
+  -> load source snapshots, cycle data, and accounts
 
 pure checked posting builder
   -> evidence, arithmetic, proof, admission, Posting IR, diagnostics
@@ -406,157 +314,51 @@ compatibility wrappers
   -> terminal rendering and process exit
 
 projection consumers
-  -> Cube, TBDS, reports, policy, exports
+  -> Cube, TBDS, reports, queries, policy, and exports
 ```
 
-## 8. Row-level status boundary
+## Row-level boundary
 
-The aggregate result must not blur proof admission with Posting IR row acceptance.
-
-Current distinctions remain:
+Aggregate checked-result failure and Posting IR row status remain distinct:
 
 ```text
 arithmetic-currency proof rejected
-  -> aggregate result error, no posting rows
+  -> aggregate error, no posting rows
 
 normalized coefficient length mismatch
-  -> aggregate result error, no posting rows
+  -> aggregate error, no posting rows
 
-unknown account / invalid date in constructed Posting IR
-  -> row status under existing Posting IR semantics
-  -> not automatically aggregate result error
+unknown account / invalid amount / invalid date
+  -> Posting IR row status
+  -> not automatically an aggregate error
 ```
 
-This contract does not change Cube acceptance, skipped-row handling, balance validation, or report policy.
+This contract does not change Cube acceptance, skipped-row handling, source-balance validation, report policy, or selected-domain behavior.
 
-## 9. Required Phase C verification
+## Verification surfaces
 
-Phase C is not complete unless all applicable checks below pass.
+Current direct and compatibility evidence includes:
 
-### 9.1 Direct pure-result tests
+- `tests/test_src_next_checked_posting_projection.bqn`;
+- `checks/check-src-next-checked-posting-projection.sh`;
+- `checks/check-projection-compatibility-exports.sh`;
+- the complete repository gate `tools/check.sh`;
+- Coverage and GitHub Actions.
 
-Verify at least:
+The focused checked-result tests cover success, proof rejection, malformed or unsupported evidence, mixed-domain rejection, structural mismatch, and Posting IR row-status parity. The compatibility check preserves stdout and exit behavior at the outer wrapper.
 
-1. legacy-compatible all-JPY success;
-2. explicit all-JPY success;
-3. proven all-ILS success with `resolved_single_currency`;
-4. empty posting sources using current compatibility proof semantics;
-5. mixed JPY / ILS rejection;
-6. unsupported currency metadata rejection;
-7. duplicate currency metadata rejection;
-8. malformed amount rejection;
-9. structural evidence / coefficient mismatch rejection;
-10. unknown-account row parity;
-11. invalid-date row parity.
+## Non-goals
 
-For every error case, verify:
+This boundary does not introduce:
 
-```text
-state = "error"
-posting_rows = ⟨⟩
-exact diagnostic stage
-exact diagnostic code
-exact diagnostic message
-```
+- a generic projection framework;
+- a universal event type;
+- a Currency axis;
+- currency conversion, valuation, or rounding policy;
+- a source-format migration;
+- changed Posting IR fields or status meanings;
+- changed Cube or TBDS axes;
+- changed report or JSON schemas;
+- broad decomposition of `context.bqn`.
 
-For every success case, verify:
-
-```text
-state = "ok"
-diagnostics = ⟨⟩
-proof parity
-posting-row parity
-```
-
-The structural mismatch branch must have a focused test seam. Phase C may choose a private helper or another narrow test arrangement, but it must not add a generic public projection framework merely to make the branch injectable.
-
-### 9.2 Compatibility-wrapper tests
-
-Verify that current wrapper behavior is unchanged:
-
-- exact success return shape `{rows, arithmetic_currency_proof}`;
-- exact stdout for proof rejection;
-- exact stdout for length mismatch;
-- exit code `1` on both fatal paths;
-- no additional stdout on success.
-
-### 9.3 Downstream parity
-
-Verify unchanged results for:
-
-- current JPY fixtures;
-- the checked all-ILS fixture;
-- mixed-domain fail-closed behavior;
-- Cube materialization;
-- TBDS construction;
-- report golden output;
-- machine summary / structured output checks that already cover this path.
-
-### 9.4 Repository validation
-
-Run the repository-prescribed checks, including:
-
-```text
-tools/check.sh
-```
-
-and confirm GitHub Actions is green.
-
-## 10. Phase C implementation limits
-
-The smallest authorized implementation candidate after a separate Phase C selection is:
-
-```text
-add BuildCheckedPostingProjectionFromSnapshot
-adapt BuildAuthorizedRowsFromSnapshot as compatibility wrapper
-add focused result and parity tests
-```
-
-The implementation slice must not also:
-
-- change source TSV or metadata schema;
-- change proof domain or basis rules;
-- add currency conversion, valuation, rounding, or mixed aggregation;
-- alter Posting IR fields or status meanings;
-- change Cube or TBDS axes;
-- change report output or JSON schemas;
-- implement 6D;
-- add `CanonicalEvent`;
-- introduce `Project(events, spec)`;
-- migrate journal, plan, budget, or issues to event sourcing;
-- split the entire `context.bqn` module;
-- create a new repository or numbered Stage.
-
-## 11. Decisions and non-decisions
-
-Selected now:
-
-- the pure builder accepts `snapshot`, `resolved`, and `cycleStart`;
-- the proof is derived internally from the same snapshot;
-- the result carrier has six fields;
-- fatal result errors produce no Posting IR rows;
-- diagnostics are structured data without terminal prefixes;
-- existing wrappers retain terminal output and exit behavior;
-- row-level Posting IR validation remains distinct from aggregate admission.
-
-Not selected now:
-
-- a universal event carrier;
-- a generic projection combinator;
-- a new error framework for the whole repository;
-- multiple accumulated fatal diagnostics;
-- source-level 6D;
-- strict event sourcing;
-- broad module decomposition.
-
-## 12. Phase transition rule
-
-This document completes the design question owned by Phase B only after it is merged with:
-
-- `HEADLESS_KERNEL_EVOLUTION_MAP.md` updated to show Phase A complete and Phase B active/completed as appropriate;
-- `TODO.md` routing exactly one finite Phase B slice;
-- docs routing to this contract;
-- green repository checks;
-- actual-diff confirmation that no runtime path changed.
-
-After Phase B merges, Phase C becomes eligible for explicit selection. It does not start automatically.
+Git history and the archived headless-kernel records retain the earlier design-phase sequence. This file describes the implemented current boundary.
