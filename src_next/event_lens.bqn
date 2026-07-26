@@ -3,7 +3,7 @@
 # Converts checked result to source-row-level readonly event records.
 
 dt ← •Import "date.bqn"
-proj ← •Import "projection.bqn"
+source_fields ← •Import "source_fields.bqn"
 
 BuildRows ← {
   (𝕩.state ≢ "ok") ?
@@ -20,10 +20,10 @@ BuildRows ← {
         flds ← row.flds
         
         # 1. source dimensions
-        srcId ← proj.FieldOrEmpty ⟨flds, 1⟩
+        srcId ← source_fields.FieldOrEmpty ⟨flds, 1⟩
         
         # 2. when
-        date ← proj.FieldOrEmpty ⟨flds, 0⟩
+        date ← source_fields.FieldOrEmpty ⟨flds, 0⟩
         dateOk ← dt.IsValidDateText date
         when_state ← dateOk ⊑ ((0 = ≠ date) ⊑ "ambiguous"‿"absent")‿"direct"
         
@@ -46,16 +46,16 @@ BuildRows ← {
         } ⍟ (1 < ≠ party_tokens) @
 
         # 4. what
-        memo ← proj.FieldOrEmpty ⟨flds, 1⟩
+        memo ← source_fields.FieldOrEmpty ⟨flds, 1⟩
         what_state ← (0 = ≠ memo) ⊑ "ambiguous"‿"absent"
 
         # 5. where-to
-        from_account ← proj.FieldOrEmpty ⟨flds, 2⟩
-        where_to_value ← proj.FieldOrEmpty ⟨flds, 3⟩
+        from_account ← source_fields.FieldOrEmpty ⟨flds, 2⟩
+        where_to_value ← source_fields.FieldOrEmpty ⟨flds, 3⟩
         where_to_state ← (0 = ≠ where_to_value) ⊑ "direct"‿"absent"
 
         # 6. amount
-        amount_text ← proj.FieldOrEmpty ⟨flds, 4⟩
+        amount_text ← source_fields.FieldOrEmpty ⟨flds, 4⟩
         amount_coefficient ← coef
         amount_scale ← proof.amount_scale
         currency ← proof.domain
