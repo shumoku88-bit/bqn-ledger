@@ -12,14 +12,13 @@
 #   calendarMonth  not yet resolved (Phase 4+)
 
 loader ← •Import "loader.bqn"
-proj  ← •Import "projection.bqn"
 dt    ← •Import "date.bqn"
 actual_source ← •Import "actual_source.bqn"
 
 # ── Day count between two YYYY-MM-DD dates ───────────────────
-# Uses proj.DaysFromEpoch (pure BQN, no external date command).
+# Uses dt.DaysFromEpoch (pure BQN, no external date command).
 DayCount ← {
-  (proj.DaysFromEpoch (1⊑𝕩)) - proj.DaysFromEpoch (0⊑𝕩)
+  (dt.DaysFromEpoch (1⊑𝕩)) - dt.DaysFromEpoch (0⊑𝕩)
 }
 
 # ── Parse cycle.tsv into key→value map ──────────────────────
@@ -29,7 +28,7 @@ ReadCycle ← {𝕊 arg:
   
   DefaultAsOf ← {𝕊:
     jdates ← actual_source.LoadDates base
-    valid_dates ← (proj.IsValidDateText¨ jdates) / jdates
+    valid_dates ← (dt.IsValidDateText¨ jdates) / jdates
     (0 < ≠ valid_dates) ◶ ⟨ { 𝕩 ⋄ dt.Today @ }, { 𝕩 ⋄ ¯1 ⊑ (∧ valid_dates) } ⟩ @
   }
   as_of ← is_string ◶ ⟨ { 1 ⊑ arg }, { DefaultAsOf @ } ⟩ @
@@ -73,10 +72,10 @@ ReadCycle ← {𝕊 arg:
     pfroms ← { 2 ⊑ SplitP 𝕩 } ¨ plines
 
     # Plan income rows after journal max date
-    jmax_dn ← proj.DaysFromEpoch jmax
+    jmax_dn ← dt.DaysFromEpoch jmax
     IncIdx ← {𝕊 idx:
       d ← idx ⊑ pdates
-      ((idx ⊑ pfroms) ≡ income_account) ∧ ((proj.DaysFromEpoch d) > jmax_dn)
+      ((idx ⊑ pfroms) ≡ income_account) ∧ ((dt.DaysFromEpoch d) > jmax_dn)
     }
     inc_indices ← IncIdx ¨ ↕ (≠ plines)
     future_dates ← inc_indices / pdates
