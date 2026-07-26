@@ -35,10 +35,10 @@ reject_match "$SOURCE_FIELDS" '•Import' 'source field owner acquired a depende
 require_match "$SOURCE_FIELDS" '^[[:space:]]*FieldOrEmpty[[:space:]]*←[[:space:]]*\{' 'source field owner definition is missing'
 require_match "$SOURCE_FIELDS" '^[[:space:]]*FieldOrEmpty[[:space:]]*⇐[[:space:]]*FieldOrEmpty' 'source field owner export is missing'
 
-# projection.bqn remains a compatibility surface, not a second definition.
-require_match "$PROJECTION" '^[[:space:]]*source_fields[[:space:]]*←[[:space:]]*•Import "source_fields[.]bqn"' 'projection does not import the source field owner'
-require_match "$PROJECTION" '^[[:space:]]*FieldOrEmpty[[:space:]]*←[[:space:]]*source_fields[.]FieldOrEmpty[[:space:]]*$' 'projection source field compatibility delegate is missing'
-reject_match "$PROJECTION" '^[[:space:]]*FieldOrEmpty[[:space:]]*←[[:space:]]*\{' 'projection independently defines FieldOrEmpty'
+# P6g closes the projection compatibility seam after all runtime consumers moved.
+reject_match "$PROJECTION" '•Import "source_fields[.]bqn"' 'projection reacquired the source field owner dependency'
+reject_match "$PROJECTION" '^[[:space:]]*FieldOrEmpty[[:space:]]*←' 'projection FieldOrEmpty compatibility definition returned'
+reject_match "$PROJECTION" '^[[:space:]]*FieldOrEmpty[[:space:]]*⇐' 'projection FieldOrEmpty compatibility export returned'
 
 # Event Lens is the first independent projection consumer to import the owner
 # directly. Its only former projection dependency must not return.
@@ -87,5 +87,11 @@ done
 
 require_match "$SOURCE_FIELDS_TEST" '•Import "[.][.]/src_next/source_fields[.]bqn"' 'focused source field test does not import the owner directly'
 require_match "$SOURCE_FIELDS_TEST" 'source_fields[.]FieldOrEmpty' 'focused source field assertions disappeared'
+reject_match "$SOURCE_FIELDS_TEST" '•Import "[.][.]/src_next/projection[.]bqn"' 'focused source field test returned to projection compatibility'
+reject_match "$SOURCE_FIELDS_TEST" 'proj[.]FieldOrEmpty' 'focused source field test retains a projection compatibility assertion'
 
-printf '%s\n' 'OK: source field ownership P6a-P6f boundaries'
+if grep -REn 'proj[.]FieldOrEmpty' "$ROOT_DIR/src_next" "$ROOT_DIR/tests"; then
+    fail 'qualified runtime or test caller of removed projection FieldOrEmpty remains'
+fi
+
+printf '%s\n' 'OK: source field ownership P6a-P6g boundaries'
