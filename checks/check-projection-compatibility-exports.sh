@@ -30,6 +30,12 @@ reject_match '^[[:space:]]*IsIntegerText[[:space:]]*←' 'dead IsIntegerText def
 reject_match '^[[:space:]]*IsIntegerText[[:space:]]*⇐' 'dead IsIntegerText export returned'
 reject_match '^[[:space:]]*MetaValue[[:space:]]*⇐' 'private MetaValue helper became public again'
 
+# No executable BQN source or test may retain a qualified call to a removed field.
+if grep -REn '[.]ResolveDay([^A-Za-z0-9_]|$)|[.](IsDigits|IsIntegerText|MetaValue)([^A-Za-z0-9_]|$)' \
+    "$ROOT_DIR/src_next" "$ROOT_DIR/tests"; then
+    fail 'qualified caller of a removed projection compatibility field remains'
+fi
+
 # P2a preserves these neighboring boundaries. P2b owns the proof-wrapper change.
 require_match '^[[:space:]]*MetaValue[[:space:]]*←' 'local MetaValue helper is missing'
 require_match '^[[:space:]]*MetaValue[[:space:]]+⟨"txn_id", sourceId, metas⟩' 'TxIdFromMeta no longer uses local MetaValue'
