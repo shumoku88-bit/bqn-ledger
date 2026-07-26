@@ -1,0 +1,60 @@
+name: refactor daily date ownership
+
+on:
+  push:
+    branches: [refactor/daily-date-ownership]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refactor/daily-date-ownership
+      - name: Apply finite ownership slice
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          for name in ("src_next/daily_flow.bqn", "src_next/daily_trend.bqn"):
+              path = Path(name)
+              text = path.read_text()
+              old_import = 'proj ← •Import "projection.bqn"'
+              new_import = 'dt ← •Import "date.bqn"'
+              if text.count(old_import) != 1:
+                  raise SystemExit(f"unexpected projection import count in {name}")
+              text = text.replace(old_import, new_import)
+              if "proj.DaysFromEpoch" not in text:
+                  raise SystemExit(f"no forwarded date calls found in {name}")
+              text = text.replace("proj.DaysFromEpoch", "dt.DaysFromEpoch")
+              if '•Import "projection.bqn"' in text or "proj.DaysFromEpoch" in text:
+                  raise SystemExit(f"projection date dependency remains in {name}")
+              path.write_text(text)
+
+          path = Path("checks/check-projection-compatibility-exports.sh")
+          text = path.read_text()
+          anchor = 'TBDS="$ROOT_DIR/src_next/tbds.bqn"\n'
+          addition = anchor + 'DAILY_FLOW="$ROOT_DIR/src_next/daily_flow.bqn"\nDAILY_TREND="$ROOT_DIR/src_next/daily_trend.bqn"\n'
+          if text.count(anchor) != 1:
+              raise SystemExit("unexpected TBDS declaration count")
+          text = text.replace(anchor, addition)
+          old_loop = 'for file in "$CYCLE" "$ACTUAL_SNAPSHOT" "$ACTUAL_COMPARISON" "$YTD_SUMMARY" "$PLANNED_PAYMENTS" "$ACTUAL_SOURCE" "$TBDS"; do'
+          new_loop = 'for file in "$CYCLE" "$ACTUAL_SNAPSHOT" "$ACTUAL_COMPARISON" "$YTD_SUMMARY" "$PLANNED_PAYMENTS" "$ACTUAL_SOURCE" "$TBDS" "$DAILY_FLOW" "$DAILY_TREND"; do'
+          if text.count(old_loop) != 1:
+              raise SystemExit("unexpected date-owner loop count")
+          text = text.replace(old_loop, new_loop)
+          text = text.replace('# P3a-P3e restore direct date ownership in date-only projection consumers.', '# P3a-P3g restore direct date ownership in date-only projection consumers.')
+          text = text.replace('echo "OK: projection P2 and date-ownership P3a-P3e boundaries"', 'echo "OK: projection P2 and date-ownership P3a-P3g boundaries"')
+          path.write_text(text)
+          PY
+
+          git rm .github/workflows/refactor-daily-date-ownership.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src_next/daily_flow.bqn src_next/daily_trend.bqn checks/check-projection-compatibility-exports.sh
+          git commit -m "refactor: give daily views direct date ownership"
+          git push origin HEAD:refactor/daily-date-ownership
