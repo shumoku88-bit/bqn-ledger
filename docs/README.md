@@ -9,6 +9,8 @@ They are maps, not gates. Read the files that help with the question in front of
 - [`../README.md`](../README.md) — what the project is and how to run it
 - [`ARCHITECTURE.md`](ARCHITECTURE.md) — current data flow and major components
 - [`AI_CODEMAP.md`](AI_CODEMAP.md) — code-oriented map of the repository
+- [`SRC_NEXT_CURRENT.md`](SRC_NEXT_CURRENT.md) — current production and diagnostic entrypoints
+- [`DEVELOPER_INSPECTION_ENTRYPOINT.md`](DEVELOPER_INSPECTION_ENTRYPOINT.md) — named low-level inspection entrypoint and the temporary `main.bqn` compatibility wrapper
 - [`../TODO.md`](../TODO.md) — current notes and open directions
 
 ## Data and editing
