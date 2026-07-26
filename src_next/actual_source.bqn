@@ -7,7 +7,7 @@ loader ← •Import "loader.bqn"
 parser ← •Import "journal_profile_stage1.bqn"
 admission ← •Import "journal_complete_source_admission.bqn"
 ak ← •Import "account_key.bqn"
-proj ← •Import "projection.bqn"
+dt ← •Import "date.bqn"
 cube ← •Import "cube.bqn"
 
 Resolve ← {𝕊 base: config.LoadActualJournal base}
@@ -99,9 +99,9 @@ CompletionEvidence ← {𝕊 base:
 PlanIdsInCycle ← {𝕊 base‿cy:
   evidence ← CompletionEvidence base
   InCycle ← {𝕊 ev:
-    ok ← proj.IsValidDateText ev.date
+    ok ← dt.IsValidDateText ev.date
     inside ← 0
-    {𝕊: dn←proj.DaysFromEpoch ev.date ⋄ inside↩(dn≥proj.DaysFromEpoch cy.start)∧dn<proj.DaysFromEpoch cy.end_exclusive}⍟ok @
+    {𝕊: dn←dt.DaysFromEpoch ev.date ⋄ inside↩(dn≥dt.DaysFromEpoch cy.start)∧dn<dt.DaysFromEpoch cy.end_exclusive}⍟ok @
     inside
   }
   {𝕩.plan_id}¨(InCycle¨evidence)/evidence
