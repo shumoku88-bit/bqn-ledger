@@ -17,7 +17,7 @@
 loader ← •Import "loader.bqn"
 dec ← •Import "exact_decimal.bqn"
 arith ← •Import "currency_arithmetic.bqn"
-proof ← •Import "arithmetic_currency_proof.bqn"
+proof_policy ← •Import "arithmetic_currency_proof.bqn"
 ak ← •Import "account_key.bqn"
 dt ← •Import "date.bqn"
 proj ← •Import "projection.bqn"
@@ -300,7 +300,7 @@ MakeCheckedDiagnostic ← {𝕊 stage‿code‿message:
 # a narrow structural-mismatch seam; normal callers use the snapshot boundary.
 BuildCheckedPostingProjectionFromPrepared ← {𝕊 evidence‿arithmeticEvidence‿resolved‿cycleStart:
   proof ← ResolveArithmeticCurrencyProof ⟨evidence, arithmeticEvidence⟩
-  authorizationMessage ← proof.ArithmeticCurrencyAuthorizationMessage proof
+  authorizationMessage ← proof_policy.ArithmeticCurrencyAuthorizationMessage proof
   result ← {
     state ⇐ "error",
     row_evidence ⇐ evidence,
@@ -310,7 +310,7 @@ BuildCheckedPostingProjectionFromPrepared ← {𝕊 evidence‿arithmeticEvidenc
     diagnostics ⇐ ⟨MakeCheckedDiagnostic ⟨"authorization", "arithmetic_currency_proof_rejected", authorizationMessage⟩⟩
   }
 
-  authorized ← proof.AuthorizeArithmeticCurrencyProof proof
+  authorized ← proof_policy.AuthorizeArithmeticCurrencyProof proof
   {𝕊:
     lengthMismatch ← (≠evidence) ≢ (≠arithmeticEvidence.normalized_coefficients)
     {𝕊:
