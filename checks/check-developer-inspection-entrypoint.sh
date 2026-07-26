@@ -26,6 +26,7 @@ fi
 
 if [ "$old_status" -ne "$new_status" ]; then
   echo "FAIL: main compatibility status differs: new=$new_status old=$old_status" >&2
+  cat "$old_err" >&2
   exit 1
 fi
 
@@ -41,8 +42,13 @@ if ! cmp -s "$new_err" "$old_err"; then
   exit 1
 fi
 
-if ! grep -Eq '^[[:space:]]*•Import[[:space:]]+"developer_inspection\.bqn"[[:space:]]*$' src_next/main.bqn; then
-  echo "FAIL: src_next/main.bqn is not a direct compatibility import" >&2
+if ! grep -Eq '^[[:space:]]*inspection[[:space:]]*←[[:space:]]*•Import[[:space:]]+"developer_inspection\.bqn"[[:space:]]*$' src_next/main.bqn; then
+  echo "FAIL: src_next/main.bqn does not import the named inspection module" >&2
+  exit 1
+fi
+
+if ! grep -Eq '^[[:space:]]*inspection\.Run[[:space:]]+⊑•args[[:space:]]*$' src_next/main.bqn; then
+  echo "FAIL: src_next/main.bqn does not delegate its argument to inspection.Run" >&2
   exit 1
 fi
 
