@@ -5,6 +5,7 @@
 # Every money coefficient remains attached to its transaction domain and exact
 # calculation scale. No I/O, aggregation, valuation, or consumer wiring occurs.
 
+dt ← •Import "date.bqn"
 proj ← •Import "projection.bqn"
 decimal ← •Import "exact_decimal.bqn"
 setup ← •Import "currency_setup.bqn"
@@ -88,7 +89,7 @@ BuildForSource ← {𝕊 transactions‿resolved‿cycleStart‿sourceFile:
 
     transactionDomains ∾↩ ⟨transaction.domain⟩
     dayIndex ← 0
-    {𝕊: dayIndex ↩ proj.ResolveDayFromCycle ⟨transaction.date, cycleStart⟩}⍟(proj.IsValidDateText cycleStart) @
+    {𝕊: dayIndex ↩ proj.ResolveDayFromCycle ⟨transaction.date, cycleStart⟩}⍟(dt.IsValidDateText cycleStart) @
     kind ← KindForTransaction ⟨transaction, resolved⟩
     txId ← (0 < ≠ transaction.txn_id) ⊑ transaction.source_event_id‿transaction.txn_id
     txRows ← empty

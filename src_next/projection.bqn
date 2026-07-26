@@ -69,20 +69,11 @@ FieldOrEmpty ← {𝕊 flds‿i:
   (i < ≠ flds) ? (i ⊑ flds) ; ""
 }
 
-# Date validation is owned by src_next/date.bqn so edit and report paths share
-# one Gregorian YYYY-MM-DD contract. This alias remains for compatibility and
-# will be reassessed separately from the diagnostic presentation cleanup.
-IsValidDateText ← dt.IsValidDateText
-
-# Legacy absolute day coordinate forwarded from date.bqn. Differences are used
-# by the current Posting IR day-index seam.
-DaysFromEpoch ← dt.DaysFromEpoch
-
 # ── Day index resolution (cycle-start-based) ────────────────
 # Returns day offset from cycle start (0 = cycle start date).
 # Negative for dates before cycle start.
 ResolveDayFromCycle ← {𝕊 date‿cycleStart:
-  (DaysFromEpoch date) - DaysFromEpoch cycleStart
+  (dt.DaysFromEpoch date) - dt.DaysFromEpoch cycleStart
 }
 
 # ── Source metadata helpers ─────────────────────────────────
@@ -167,9 +158,7 @@ ArithmeticCurrencyAuthorizationMessage ← {𝕊 proof:
   TxIdFromMeta          ⇐ TxIdFromMeta,
   LayerName             ⇐ LayerName,
   PostingId             ⇐ PostingId,
-  IsValidDateText      ⇐ IsValidDateText,
   FieldOrEmpty         ⇐ FieldOrEmpty,
-  DaysFromEpoch         ⇐ DaysFromEpoch,
   ResolveDayFromCycle   ⇐ ResolveDayFromCycle,
   AuthorizeArithmeticCurrencyProof ⇐ AuthorizeArithmeticCurrencyProof,
   ArithmeticCurrencyAuthorizationMessage ⇐ ArithmeticCurrencyAuthorizationMessage

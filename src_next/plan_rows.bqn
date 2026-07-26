@@ -2,6 +2,7 @@
 # Shared source evidence with planned-value and temporal attachment.
 
 loader ← •Import "loader.bqn"
+dt ← •Import "date.bqn"
 proj ← •Import "projection.bqn"
 plan_status ← •Import "plan_status.bqn"
 actual_source ← •Import "actual_source.bqn"
@@ -35,7 +36,7 @@ BuildBase ← {𝕊 base‿cy:
   rows ↩ (⍋ GetDate¨ rows) ⊏ rows
   completion_evidence0 ← actual_source.CompletionEvidence base
   InCycleEvidence ← {𝕊 ev:
-    ok ← proj.IsValidDateText ev.date
+    ok ← dt.IsValidDateText ev.date
     inside ← 0
     {𝕊: day←proj.ResolveDayFromCycle ⟨ev.date,cy.start⟩ ⋄ inside↩(day≥0)∧day<cy.day_count}⍟ok @
     inside

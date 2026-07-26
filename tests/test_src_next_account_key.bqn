@@ -2,6 +2,7 @@
 
 lib ← •Import "test_lib.bqn"
 ak ← •Import "../src_next/account_key.bqn"
+dt ← •Import "../src_next/date.bqn"
 proj ← •Import "../src_next/projection.bqn"
 ctx ← •Import "../src_next/context.bqn"
 
@@ -79,9 +80,9 @@ RowsForFields ← {𝕊 rowIdx‿fields:
 "fallback-id" lib.AssertEq proj.TxIdFromMeta ⟨"fallback-id", ⟨"2026-06-01", "memo", "assets:bank", "医療費", "1200"⟩⟩
 "actual" lib.AssertEq proj.LayerName proj.layer_actual
 "actual.journal:3:debit" lib.AssertEq proj.PostingId ⟨"actual.journal", 3, "debit"⟩
-1 lib.AssertEq proj.IsValidDateText "2026-06-01"
-0 lib.AssertEq proj.IsValidDateText "2026-02-31"
-0 lib.AssertEq proj.IsValidDateText "20260601"
+1 lib.AssertEq dt.IsValidDateText "2026-06-01"
+0 lib.AssertEq dt.IsValidDateText "2026-02-31"
+0 lib.AssertEq dt.IsValidDateText "20260601"
 
 rows ← RowsForFields ⟨3, ⟨"2026-06-01", "memo", "assets:bank", "医療費", "1200", "txn_id=T-001"⟩⟩
 debit ← ⊑ rows

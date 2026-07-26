@@ -2,6 +2,7 @@
 # Read-only Event Lens for Headless Kernel Evolution Phase D (Slice 1).
 # Converts checked result to source-row-level readonly event records.
 
+dt ← •Import "date.bqn"
 proj ← •Import "projection.bqn"
 
 BuildRows ← {
@@ -23,7 +24,7 @@ BuildRows ← {
         
         # 2. when
         date ← proj.FieldOrEmpty ⟨flds, 0⟩
-        dateOk ← proj.IsValidDateText date
+        dateOk ← dt.IsValidDateText date
         when_state ← dateOk ⊑ ((0 = ≠ date) ⊑ "ambiguous"‿"absent")‿"direct"
         
         # 3. party

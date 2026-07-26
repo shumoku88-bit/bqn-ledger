@@ -2,6 +2,7 @@
 # Adapter from admitted Minimal Journal Transaction IR to the current
 # normalized Posting IR row shape. This module performs no I/O.
 
+dt ← •Import "date.bqn"
 proj ← •Import "projection.bqn"
 
 layers ← ⟨"actual", "plan", "budget", "forecast"⟩
@@ -49,7 +50,7 @@ BuildForSource ← {𝕊 transactions‿resolved‿cycleStart‿sourceFile:
       kind ← KindForTransaction ⟨transaction, resolved⟩
       txId ← (0 < ≠ transaction.txn_id) ⊑ transaction.source_event_id‿transaction.txn_id
       dayIndex ← 0
-      {𝕊: dayIndex↩proj.ResolveDayFromCycle ⟨transaction.date,cycleStart⟩}⍟(proj.IsValidDateText cycleStart) @
+      {𝕊: dayIndex↩proj.ResolveDayFromCycle ⟨transaction.date,cycleStart⟩}⍟(dt.IsValidDateText cycleStart) @
 
       {𝕊 posting:
         accountIndex ← ⊑ resolved.accounts ⊐ ⟨posting.account_key⟩
