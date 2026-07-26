@@ -28,11 +28,17 @@ jobs:
 
       - name: Src next topology summary
         run: |
-          python3 tools/src-next-import-graph --summary --validate
-          echo "--- modules ---"
-          python3 tools/src-next-import-graph --modules --validate
-          echo "--- cycles ---"
-          python3 tools/src-next-import-graph --cycles --validate
+          mkdir -p topology-audit
+          python3 tools/src-next-import-graph --summary --validate | tee topology-audit/summary.tsv
+          python3 tools/src-next-import-graph --modules --validate > topology-audit/modules.tsv
+          python3 tools/src-next-import-graph --cycles --validate > topology-audit/cycles.tsv
+          python3 tools/src-next-import-graph --validate > topology-audit/edges.tsv
+
+      - name: Upload topology evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: src-next-topology-audit
+          path: topology-audit/
 
       - name: Run check.sh
         run: bash tools/check.sh
