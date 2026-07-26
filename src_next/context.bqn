@@ -20,6 +20,7 @@ arith ← •Import "currency_arithmetic.bqn"
 proof_policy ← •Import "arithmetic_currency_proof.bqn"
 ak ← •Import "account_key.bqn"
 dt ← •Import "date.bqn"
+source_fields ← •Import "source_fields.bqn"
 proj ← •Import "projection.bqn"
 cycle ← •Import "cycle.bqn"
 cube ← •Import "cube.bqn"
@@ -46,7 +47,7 @@ LoadNonActualPostingSourceSnapshot ← {𝕊 base:
 
 
 BuildRowEvidenceForLine ← {𝕊 ⟨srcFile, rowIdx, flds⟩:
-  amountText ← proj.FieldOrEmpty ⟨flds, 4⟩
+  amountText ← source_fields.FieldOrEmpty ⟨flds, 4⟩
   parsed ← dec.Parse amountText
 
   metas ← 5 ↓ flds
@@ -184,12 +185,12 @@ BuildProjectionRowsForEvidence ← {𝕊 ⟨row, coef, resolved, cycleStart⟩:
   accountRoles ← resolved.roles
   accountKeys  ← resolved.account_keys
 
-  date       ← proj.FieldOrEmpty ⟨flds, 0⟩
-  srcId      ← proj.FieldOrEmpty ⟨flds, 1⟩
+  date       ← source_fields.FieldOrEmpty ⟨flds, 0⟩
+  srcId      ← source_fields.FieldOrEmpty ⟨flds, 1⟩
   txId       ← proj.TxIdFromMeta ⟨srcId, flds⟩
-  fromAcc    ← proj.FieldOrEmpty ⟨flds, 2⟩
-  toAcc      ← proj.FieldOrEmpty ⟨flds, 3⟩
-  amountText ← proj.FieldOrEmpty ⟨flds, 4⟩
+  fromAcc    ← source_fields.FieldOrEmpty ⟨flds, 2⟩
+  toAcc      ← source_fields.FieldOrEmpty ⟨flds, 3⟩
+  amountText ← source_fields.FieldOrEmpty ⟨flds, 4⟩
 
   dateOk   ← dt.IsValidDateText date
   amountOk   ← row.parsed.state ≡ "ok"
