@@ -31,7 +31,7 @@ Fuzzy transaction adder for everyday entries.
 Modes:
   account-add   アカウント追加 (writes accounts.tsv)
   expense       assets -> expenses  (writes selected actual source)
-  multi         native Journal transaction with 2+ signed postings
+  multi         native Journal transaction with 3+ signed postings
   move          assets -> assets    (writes selected actual source)
   income        income -> assets    (writes selected actual source)
   budget        budget -> budget    (writes budget_alloc.tsv)
@@ -580,7 +580,7 @@ case "$mode" in
         exit 1
       fi
       postings+=("$posting_account=$posting_amount")
-      if [[ ${#postings[@]} -lt 2 ]]; then
+      if [[ ${#postings[@]} -lt 3 ]]; then
         continue
       fi
       capture_or_cancel add_more read_tty 'Add another posting? (y/N)' 'N'
@@ -722,7 +722,7 @@ if [[ "$mode" != 'account-add' && "$mode" != 'plan-edit' && "$mode" != 'reverse'
     *) selected_date="$today" ;;
   esac
   if [[ "$mode" == 'multi' ]]; then
-    if [[ -z "$memo" || ${#postings[@]} -lt 2 ]]; then
+    if [[ -z "$memo" || ${#postings[@]} -lt 3 ]]; then
       shout 'Cancelled or missing required multi-posting value.'; exit 1
     fi
   elif [[ "$mode" != 'issue' ]]; then

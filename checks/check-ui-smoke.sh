@@ -116,7 +116,7 @@ for item in "${sections[@]}"; do
 done
 
 add_ui_help="$(tools/add-ui.sh --help)"
-if [[ "$add_ui_help" == *"multi         native Journal transaction with 2+ signed postings"* ]]; then
+if [[ "$add_ui_help" == *"multi         native Journal transaction with 3+ signed postings"* ]]; then
   pass "add-ui help exposes native multi-posting mode"
 else
   fail "add-ui help missing native multi-posting mode"
