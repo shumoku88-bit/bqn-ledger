@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Build the command-hub preview cache away from live preview files, then publish
+# complete files atomically. Callers may run this synchronously or in the
+# background; an exclusive lock prevents duplicate refreshes.
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -L "$SOURCE" ]; do
+  DIR="$(cd -P "$(dirname "$SOURCE")" >/dev/null 2>&1 && pwd)"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ "$SOURCE" != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+SCRIPT_DIR="$(cd -P "$(dirname "$SOURCE")" >/dev/null 2>&1 && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$ROOT_DIR"
+
+if [[ $# -ne 3 ]]; then
+  echo "Usage: tools/command-hub-cache-refresh <base> <cache-dir> <source-mtime>" >&2
+  exit 2
+fi
+
+base_abs="$1"
+cache_dir="$2"
+source_mtime="$3"
+[[ "$source_mtime" =~ ^[0-9]+$ ]] || { echo "Error: source mtime must be a non-negative integer" >&2; exit 2; }
+[[ -d "$base_abs" ]] || { echo "Error: base directory does not exist" >&2; exit 2; }
+mkdir -p "$cache_dir"
+
+lock_dir="$cache_dir/.refresh-lock"
+if ! mkdir "$lock_dir" 2>/dev/null; then
+  lock_pid="$(cat "$lock_dir/pid" 2>/dev/null || true)"
+  if [[ "$lock_pid" =~ ^[0-9]+$ ]] && kill -0 "$lock_pid" 2>/dev/null; then
+    exit 0
+  fi
+  rm -rf "$lock_dir"
+  mkdir "$lock_dir" 2>/dev/null || exit 0
+fi
+printf '%s\n' "$$" >"$lock_dir/pid"
+
+refreshing_file="$cache_dir/.cache-refreshing"
+error_file="$cache_dir/.cache-error"
+touch "$refreshing_file"
+rm -f "$error_file"
+stage_dir="$(mktemp -d "$cache_dir/.refresh-stage.XXXXXX")"
+full_stage="$stage_dir/full"
+mkdir "$full_stage"
+direct_balances="$stage_dir/direct-balances"
+direct_balances_err="$stage_dir/direct-balances.err"
+success=0
+
+cleanup() {
+  status=$?
+  rm -rf "$stage_dir"
+  if [[ "$success" -ne 1 ]]; then
+    printf 'Preview cache generation failed. Run tools/report directly for current data.\n' >"$error_file"
+  else
+    rm -f "$cache_dir/.refresh.log"
+  fi
+  rm -f "$refreshing_file"
+  rm -rf "$lock_dir"
+  return "$status"
+}
+trap cleanup EXIT
+
+if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && -n "${COMMAND_HUB_CACHE_TEST_BEFORE_BUILD_HOOK:-}" ]]; then
+  "$COMMAND_HUB_CACHE_TEST_BEFORE_BUILD_HOOK"
+fi
+
+# Full cache and selected-currency balances have independent report contexts.
+# Build them concurrently so background readiness takes the slower duration,
+# not the sum of both durations.
+set +e
+"$ROOT_DIR/tools/report" "$base_abs" --write-section-cache "$full_stage" --no-color >/dev/null 2>"$stage_dir/full.err" &
+full_pid=$!
+"$ROOT_DIR/tools/report" "$base_abs" --section balances --no-color >"$direct_balances" 2>"$direct_balances_err" &
+balances_pid=$!
+wait "$full_pid"
+full_status=$?
+wait "$balances_pid"
+balances_status=$?
+set -e
+[[ "$full_status" -eq 0 ]] || exit "$full_status"
+
+# Preserve the direct selected-currency balances contract when available. A
+# ledger without a resolvable default currency keeps the full-report body.
+if [[ "$balances_status" -eq 0 ]]; then
+  python3 - "$direct_balances" "$full_stage/balances.txt" <<'PY'
+from pathlib import Path
+import sys
+
+source = Path(sys.argv[1]).read_bytes()
+if not source.endswith(b"\n\n"):
+    raise SystemExit("selected balances output does not end with two newlines")
+Path(sys.argv[2]).write_bytes(source[:-2])
+PY
+fi
+
+section_keys=(
+  snapshot issues ytd balances cycle trial-balance envelopes planned recent
+  check outlook daily-trend daily-flow actual-comparison debug all
+)
+for key in "${section_keys[@]}"; do
+  [[ -f "$full_stage/$key.txt" ]] || { echo "Error: incomplete preview cache: $key" >&2; exit 1; }
+done
+
+# Each visible file is published by atomic rename. The timestamp is published
+# last and is the validity commit marker for the complete generation.
+for key in "${section_keys[@]}"; do
+  mv -f "$full_stage/$key.txt" "$cache_dir/$key.txt"
+done
+timestamp_tmp="$(mktemp "$cache_dir/.cache-timestamp.XXXXXX")"
+printf '%s\n' "$source_mtime" >"$timestamp_tmp"
+mv -f "$timestamp_tmp" "$cache_dir/.cache-timestamp"
+rm -f "$error_file"
+success=1

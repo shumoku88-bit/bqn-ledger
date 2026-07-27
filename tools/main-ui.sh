@@ -8,7 +8,7 @@ set -euo pipefail
 # Full report output remains available through `report` / `all`.
 #
 # Selector-based browsing uses structured report-section metadata for menu labels.
-# Section previews and display lazily materialize only the requested section.
+# Section display uses section keys / cache files, not human heading parsing.
 
 SOURCE="${BASH_SOURCE[0]}"
 while [ -L "$SOURCE" ]; do
@@ -122,24 +122,8 @@ show_section_direct() {
   fi
 }
 
-show_section_cached() {
-  local base_abs="$1" cache_dir="$2" source_mtime="$3" key="$4"
-  local out err status
-  out="$(mktemp)"
-  err="$(mktemp)"
-  trap 'rm -f "$out" "$err"' RETURN
-  if bash "$ROOT_DIR/tools/report-section-cache" "$base_abs" "$cache_dir" "$source_mtime" "$key" >"$out" 2>"$err"; then
-    cat "$out" | "$ROOT_DIR/tools/lib/color-filter" | pager_display
-  else
-    status=$?
-    if [[ -s "$out" ]]; then cat "$out" >&2; fi
-    if [[ -s "$err" ]]; then cat "$err" >&2; fi
-    return "$status"
-  fi
-}
-
 select_section() {
-  local base_abs="$1" cache_dir="$2" source_mtime="$3"
+  local cache_dir="${1:-}"
   if command -v fzf >/dev/null 2>&1 && [[ "$IS_TTY" -eq 1 ]]; then
     local preview_win="${FZF_PREVIEW_WINDOW:-}"
     if [[ -z "$preview_win" && -f "$base_dir/config.tsv" ]]; then
@@ -152,20 +136,26 @@ select_section() {
     fi
     preview_win="${preview_win:-right:60%}"
 
-    local preview_cmd
-    printf -v preview_cmd '%q %q %q %q %q {1} 2>/dev/null | %q || echo %q' \
-      bash "$ROOT_DIR/tools/report-section-cache" "$base_abs" "$cache_dir" "$source_mtime" \
-      "$ROOT_DIR/tools/lib/color-filter" '(No preview available)'
-    section_list | fzf \
-      --prompt='section> ' \
-      --delimiter=$'\t' \
-      --with-nth=2.. \
-      --height=80% \
-      --reverse \
-      --exit-0 \
-      --ansi \
-      --preview "$preview_cmd" \
-      --preview-window "$preview_win"
+    if [[ -n "$cache_dir" ]]; then
+      section_list | fzf \
+        --prompt='section> ' \
+        --delimiter=$'\t' \
+        --with-nth=2.. \
+        --height=80% \
+        --reverse \
+        --exit-0 \
+        --ansi \
+        --preview "'$ROOT_DIR/tools/command-hub-preview' '$cache_dir' {1} | '$ROOT_DIR/tools/lib/color-filter'" \
+        --preview-window "$preview_win"
+    else
+      section_list | fzf \
+        --prompt='section> ' \
+        --delimiter=$'\t' \
+        --with-nth=2.. \
+        --height=80% \
+        --reverse \
+        --exit-0
+    fi
   elif command -v gum >/dev/null 2>&1 && [[ "$IS_TTY" -eq 1 ]]; then
     section_list | gum filter "${GUM_FILTER_ARGS[@]}" --placeholder='section / category'
   else
@@ -185,10 +175,8 @@ case "$cmd" in
     ;;
   select|--select|'')
     ensure_ledger_report_base "$base_dir"
-
-    # The selector opens without synchronously constructing every report section.
-    # Each preview/display is materialized independently and reused until any
-    # report input or src_next module becomes newer than that section's stamp.
+    
+    # Create a stable cache directory based on the absolute path of base_dir
     base_abs="$(cd "$base_dir" && pwd)"
     sanitized_path="${base_abs//\//_}"
     cache_dir="${TMPDIR:-/tmp}/bqn-ledger-cache-${sanitized_path}"
@@ -202,6 +190,7 @@ case "$cmd" in
       "$base_abs/budget_alloc.tsv"
       "$base_abs/cycle.tsv"
     )
+    # Automatically invalidate cache when report engine code changes
     while IFS= read -r -d '' f; do
       src_files+=("$f")
     done < <(find "$ROOT_DIR/src_next" -name "*.bqn" -print0)
@@ -215,6 +204,7 @@ case "$cmd" in
       src_files+=("$ROOT_DIR/config/report_labels.tsv")
     fi
 
+    # Find the maximum modification time among source files
     max_src_mtime=0
     for f in "${src_files[@]}"; do
       if [[ -f "$f" ]]; then
@@ -229,13 +219,77 @@ case "$cmd" in
       fi
     done
 
-    selection="$(select_section "$base_abs" "$cache_dir" "$max_src_mtime" || true)"
+    # Check if the complete cache generation is still valid.
+    cache_ok=0
+    timestamp_file="$cache_dir/.cache-timestamp"
+    cache_keys=(
+      snapshot issues ytd balances cycle trial-balance envelopes planned recent
+      check outlook daily-trend daily-flow actual-comparison debug all
+    )
+    if [[ -f "$timestamp_file" \
+       && ! -f "$cache_dir/.cache-refreshing" \
+       && ! -f "$cache_dir/.cache-error" ]]; then
+      cache_mtime=$(cat "$timestamp_file" 2>/dev/null || echo 0)
+      if (( cache_mtime >= max_src_mtime )); then
+        cache_ok=1
+        for key in "${cache_keys[@]}"; do
+          [[ -f "$cache_dir/$key.txt" ]] || { cache_ok=0; break; }
+        done
+      fi
+    fi
+
+    # A TTY selector opens immediately while a stale or missing cache refreshes
+    # in the background. Non-interactive callers remain synchronous so scripts
+    # receive deterministic output. The test-only override characterizes the
+    # background boundary without requiring terminal automation.
+    if [[ "$cache_ok" -ne 1 ]]; then
+      refresh_mode="${COMMAND_HUB_CACHE_REFRESH_MODE:-}"
+      if [[ -z "$refresh_mode" ]]; then
+        if [[ "$IS_TTY" -eq 1 ]]; then refresh_mode="background"; else refresh_mode="synchronous"; fi
+      fi
+      case "$refresh_mode" in
+        background)
+          (
+            trap '' HUP
+            exec "$ROOT_DIR/tools/command-hub-cache-refresh" "$base_abs" "$cache_dir" "$max_src_mtime"
+          ) </dev/null >"$cache_dir/.refresh.log" 2>&1 &
+          # Let the child publish its status marker before fzf asks for the
+          # first preview. Never wait for report computation here.
+          for _ in 1 2 3 4 5 6 7 8 9 10; do
+            [[ -f "$cache_dir/.cache-refreshing" || -f "$cache_dir/.cache-error" ]] && break
+            sleep 0.01
+          done
+          ;;
+        synchronous)
+          if ! "$ROOT_DIR/tools/command-hub-cache-refresh" "$base_abs" "$cache_dir" "$max_src_mtime"; then
+            echo "Failed to generate report cache" >&2
+            exit 1
+          fi
+          ;;
+        *)
+          echo "Error: invalid COMMAND_HUB_CACHE_REFRESH_MODE: $refresh_mode" >&2
+          exit 2
+          ;;
+      esac
+    fi
+
+    selection="$(select_section "$cache_dir" || true)"
     [[ -z "$selection" ]] && echo "Cancelled." >&2 && exit 0
     key="${selection%%$'\t'*}"
     case "$key" in
       actions) exec "$ROOT_DIR/tools/add-ui.sh" --base "$base_dir" ;;
       all) show_full_report ;;
-      *) show_section_cached "$base_abs" "$cache_dir" "$max_src_mtime" "$key" ;;
+      *)
+        if [[ ! -f "$cache_dir/.cache-refreshing" \
+           && ! -f "$cache_dir/.cache-error" \
+           && -f "$cache_dir/$key.txt" ]]; then
+          cat "$cache_dir/$key.txt" | "$ROOT_DIR/tools/lib/color-filter" | pager_display
+        else
+          # Selection remains correct even when the user chooses a row before
+          # the background cache is ready.
+          show_section_direct "$key"
+        fi
+        ;;
     esac
     ;;
   *)

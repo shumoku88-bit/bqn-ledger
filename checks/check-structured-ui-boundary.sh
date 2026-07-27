@@ -25,7 +25,7 @@ fail() { FAIL=$((FAIL + 1)); echo "  FAIL: $1" >&2; }
 
 # UI may pipe human report to color-filter/pager for display. It must not pipe
 # human report output into grep/sed/awk/cut to recover section or semantic data.
-if rg -n 'tools/report("|[[:space:]])[^|]*\|[^#]*(grep|sed|awk|cut)' tools/main-ui.sh tools/bl tools/report-section-cache >"$matches_file" 2>/dev/null; then
+if rg -n 'tools/report("|[[:space:]])[^|]*\|[^#]*(grep|sed|awk|cut)' tools/main-ui.sh tools/bl >"$matches_file" 2>/dev/null; then
   cat "$matches_file" >&2
   fail "UI appears to parse tools/report human output"
 else
@@ -41,24 +41,25 @@ else
 fi
 
 # Direct section display should address sections by stable section key.
-if rg -q -- '--section "\$key"' tools/main-ui.sh tools/report-section-cache; then
+if rg -q -- '--section "\$key"' tools/main-ui.sh; then
   pass
 else
-  fail "selected section display should call tools/report --section by key"
+  fail "tools/main-ui.sh direct section display should call tools/report --section by key"
 fi
 
-# Selector previews and final display use the report-owned lazy section helper.
-# The command hub must not synchronously request the all-section cache before
-# accepting a selection.
-if rg -q 'tools/report-section-cache' tools/main-ui.sh \
-  && ! rg -q -- '--write-section-cache' tools/main-ui.sh; then
+# Selector previews use only the cache/status reader, so browsing across rows
+# never starts the report engine. Cache generation is a separate refresh path.
+if rg -q 'tools/command-hub-cache-refresh' tools/main-ui.sh \
+  && rg -q -- '--preview .*tools/command-hub-preview' tools/main-ui.sh \
+  && ! rg -q 'tools/report-section-cache' tools/main-ui.sh \
+  && ! rg -q 'tools/report' tools/command-hub-preview; then
   pass
 else
-  fail "tools/main-ui.sh should use lazy section cache without all-section generation"
+  fail "tools/main-ui.sh selector should refresh separately and use file/status-only previews"
 fi
 
 # Keep old marker/list-section scraping from returning as a UI dependency.
-if rg -n -- '--list-sections|marker mapping|section header parsing|section headers' tools/main-ui.sh tools/bl tools/report-section-cache; then
+if rg -n -- '--list-sections|marker mapping|section header parsing|section headers' tools/main-ui.sh tools/bl; then
   fail "UI should not depend on human section headers or marker mapping"
 else
   pass

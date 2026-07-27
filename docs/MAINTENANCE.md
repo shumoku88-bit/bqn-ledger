@@ -12,6 +12,8 @@
   - Full human report via hub: `tools/bl report`
   - Direct full human report: `tools/report`
   - Lower-level section selector (fzf/gum): `tools/main-ui.sh select`
+    - TTYのcold/stale cacheはbackground更新され、selector自体は先に開く
+    - 生成中previewは最新値の代わりに明示的な更新中statusを表示する
 - Machine summary: `tools/report-next-summary`
 - Current src_next usage map: `docs/SRC_NEXT_CURRENT.md`
 - Add a transaction (BQN editor):

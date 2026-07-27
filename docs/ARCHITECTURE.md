@@ -236,6 +236,8 @@ BQN が出してはいけないもの:
 
 色、太字、枠、カード、preview、対話的な見せ方は presentation layer の責務である。現在の置き場は `tools/bl`、`tools/lib/color-filter`、`tools/main-ui.sh`、`tools/add-ui.sh` の表示補助とする。将来 viewer を追加する場合も、この境界を越えない。
 
+TTYのsection selectorは、cacheがcoldまたはstaleでもreport計算を待たずに開く。生成中は古い金額を黙って表示せず明示的な更新中statusだけを表示し、`tools/command-hub-cache-refresh`が別stageでfull cacheとselected-currency balancesを並行生成する。各preview fileをatomic renameし、最後にtimestampをpublishする。highlight時の`tools/command-hub-preview`はfile/statusだけを読み、report engineを起動しない。非対話呼び出しはdeterministicな同期refreshを維持する。
+
 この境界の詳細は `docs/archive/active-plans/DECISION_TERMINAL_COLOR_CONFIG.md` に置く。
 
 Shell は UI・選択・wrapper・safe-write orchestration だけを担当する。actual Journal / `accounts.tsv` / `plan.tsv` / `budget_alloc.tsv` の会計意味や生活ルールは shell に持たせず、source route・候補・検査結果は BQN export / BQN editor protocol / config 由来のものを使う。

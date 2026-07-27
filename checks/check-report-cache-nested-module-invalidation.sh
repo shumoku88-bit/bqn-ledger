@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# checks/check-report-cache-nested-module-invalidation.sh — verify lazy section-cache invalidation
+# checks/check-report-cache-nested-module-invalidation.sh — verify section cache invalidation for root and nested BQN modules
 #
-# Asserts that modifying the mtime of any BQN module under src_next (root or
-# nested subdirectories) invalidates a materialized command-hub section.
+# Asserts that modifying mtime of any BQN module under src_next (root or nested subdirectories)
+# invalidates tools/main-ui.sh section cache.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
@@ -33,44 +33,39 @@ cleanup() {
 }
 trap cleanup EXIT
 
-run_snapshot_selection() {
-  printf 'snapshot\n' | TMPDIR="$tmp_dir" "$ROOT_DIR/tools/main-ui.sh" --base "$fixture" select >/dev/null 2>&1
-}
+# Step 1: Initial cache generation
+TMPDIR="$tmp_dir" "$ROOT_DIR/tools/main-ui.sh" --base "$fixture" select <<< "" >/dev/null 2>&1
+cache_dir=$(ls -d "$tmp_dir"/bqn-ledger-cache-* 2>/dev/null | head -1)
 
-# Step 1: Initial lazy snapshot materialization
-run_snapshot_selection
-cache_dir=$(find "$tmp_dir" -maxdepth 1 -type d -name 'bqn-ledger-cache-*' -print -quit)
-stamp_file="$cache_dir/snapshot.timestamp"
-
-if [[ -z "$cache_dir" || ! -f "$stamp_file" || ! -f "$cache_dir/snapshot.txt" ]]; then
-  fail "Initial lazy snapshot cache did not produce snapshot body and timestamp"
+if [[ -z "$cache_dir" || ! -f "$cache_dir/.cache-timestamp" ]]; then
+  fail "Initial section cache generation failed to produce .cache-timestamp"
   exit 1
 fi
 
-t1=$(cat "$stamp_file")
+t1=$(cat "$cache_dir/.cache-timestamp")
 
-# Step 2: Test root module modification invalidates only when selected again
+# Step 2: Test root module modification invalidates cache
 sleep 1
 touch "$root_file"
-run_snapshot_selection
-t2=$(cat "$stamp_file")
+TMPDIR="$tmp_dir" "$ROOT_DIR/tools/main-ui.sh" --base "$fixture" select <<< "" >/dev/null 2>&1
+t2=$(cat "$cache_dir/.cache-timestamp")
 
 if (( t2 > t1 )); then
-  pass "Root BQN module modification invalidates lazy snapshot cache"
+  pass "Root BQN module modification invalidates section cache"
 else
-  fail "Root BQN module modification failed to invalidate lazy snapshot cache (t1=$t1, t2=$t2)"
+  fail "Root BQN module modification failed to invalidate section cache (t1=$t1, t2=$t2)"
 fi
 
-# Step 3: Test nested BQN module modification invalidates selected cache
+# Step 3: Test nested BQN module modification invalidates cache
 sleep 1
 touch "$nested_file"
-run_snapshot_selection
-t3=$(cat "$stamp_file")
+TMPDIR="$tmp_dir" "$ROOT_DIR/tools/main-ui.sh" --base "$fixture" select <<< "" >/dev/null 2>&1
+t3=$(cat "$cache_dir/.cache-timestamp")
 
 if (( t3 > t2 )); then
-  pass "Nested BQN module modification invalidates lazy snapshot cache"
+  pass "Nested BQN module modification invalidates section cache"
 else
-  fail "Nested BQN module modification failed to invalidate lazy snapshot cache (t2=$t2, t3=$t3)"
+  fail "Nested BQN module modification failed to invalidate section cache (t2=$t2, t3=$t3)"
 fi
 
 if (( failures > 0 )); then
