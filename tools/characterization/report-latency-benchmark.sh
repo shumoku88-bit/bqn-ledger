@@ -43,6 +43,9 @@ run_time_ms() {
   perl -MTime::HiRes=time -e '
     my $t0 = time();
     my $pid = fork();
+    if (!defined $pid) {
+      die "fork failed: $!\n";
+    }
     if ($pid == 0) {
       open(STDOUT, ">", "/dev/null");
       open(STDERR, ">", "/dev/null");
@@ -50,6 +53,10 @@ run_time_ms() {
       exit(127);
     }
     waitpid($pid, 0);
+    my $status = $?;
+    if ($status != 0) {
+      die "command execution failed with status $status: @ARGV\n";
+    }
     my $dt = (time() - $t0) * 1000;
     printf "%.2f\n", $dt;
   ' -- "$@"
@@ -58,8 +65,8 @@ run_time_ms() {
 benchmark_cmd() {
   local label="$1"
   shift
-  # 1 warmup run (discarded)
-  "$@" >/dev/null 2>&1 || true
+  # 1 warmup run (discarded; fails closed on command error)
+  "$@" >/dev/null 2>&1
 
   local runs=()
   for i in {1..5}; do
@@ -90,7 +97,8 @@ echo ""
 echo "--- 1. Subprocess & Process Baselines ---"
 benchmark_cmd "Command Hub help CLI route (bl --help)" "$ROOT_DIR/tools/bl" --base "$base_dir" help
 benchmark_cmd "BQN engine startup (bqn -e 1+1)" bqn -e '1+1'
-benchmark_cmd "BQN report.bqn import baseline" bqn -e '•Import "src_next/report.bqn"'
+benchmark_cmd "BQN report_sections.bqn import baseline" bqn -e '•Import "src_next/report_sections.bqn"'
+benchmark_cmd "BQN report.bqn --list-sections baseline" bqn src_next/report.bqn "$base_dir" --list-sections
 echo "Note: Interactive TTY main menu (bl without args) opens fzf/gum menu upon TTY input."
 echo ""
 
@@ -119,7 +127,7 @@ benchmark_cmd "Full report (all sections)" "$ROOT_DIR/tools/report" "$base_dir" 
 echo ""
 
 echo "--- 6. Detailed BQN Internal Probe (Harness Sequence) ---"
-probe_tmp_dir="$(mktemp -d)"
+probe_tmp_dir="$tmp_bench_dir/probe_tmp"
+mkdir -p "$probe_tmp_dir"
 bqn "$ROOT_DIR/tools/characterization/report_latency_probe.bqn" "$base_dir" "$probe_tmp_dir"
-rm -rf "$probe_tmp_dir"
 echo ""

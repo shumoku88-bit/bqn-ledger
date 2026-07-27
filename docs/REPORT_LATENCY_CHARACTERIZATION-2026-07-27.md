@@ -13,14 +13,14 @@ PR Branch: `docs/report-latency-characterization-instructions`
 - **Current Branch**: `docs/report-latency-characterization-instructions` (PR #429)
 - **Environment**: macOS (Apple Silicon), CBQN v0.1.0, Bash 3.2 / Zsh
 - **Measurement Tooling**:
-  - `tools/characterization/report-latency-benchmark.sh` (Perl `Time::HiRes` single-process wall-clock timing harness, 1 warmup + 5 timed runs).
+  - `tools/characterization/report-latency-benchmark.sh` (Perl `Time::HiRes` process wall-clock timing harness with one Perl timing process per measured run, failing closed on non-zero status).
   - `tools/characterization/report_latency_probe.bqn` (`•MonoTime` BQN harness timing probe).
 
 ---
 
 ## 2. Standalone Harness Notice
 
-The BQN probe (`tools/characterization/report_latency_probe.bqn`) lives outside the production `src_next/` source tree. It is a **standalone characterization harness** that reproduces the current section construction sequence of `BuildSectionEntries`, not an internal production hook inside `src_next/report.bqn`. All test outputs generated during probe execution are written to a caller-supplied temporary directory and deleted immediately upon exit.
+The BQN probe (`tools/characterization/report_latency_probe.bqn`) lives outside the production `src_next/` source tree. It is a **standalone characterization harness** that reproduces the current section construction sequence of `BuildSectionEntries`, not an internal production hook inside `src_next/report.bqn`. All test outputs generated during probe execution are written to a dedicated temporary directory (`probe_tmp`) inside the benchmark script's root temporary directory (`tmp_bench_dir`), and are guaranteed to be cleaned up on exit by the script's `EXIT` trap even if execution or a command fails mid-run.
 
 ---
 
