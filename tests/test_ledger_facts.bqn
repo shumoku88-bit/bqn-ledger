@@ -4,15 +4,21 @@ lib ← •Import "test_lib.bqn"
 account_key ← •Import "../src_next/account_key.bqn"
 admission ← •Import "../src_next/journal_complete_source_admission.bqn"
 loader ← •Import "../src_next/loader.bqn"
+registry_core ← •Import "../src/ledger/currency_registry.bqn"
+account_admission ← •Import "../src/ledger/account_admission.bqn"
 facts ← •Import "../src/ledger/facts.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 
 base ← "fixtures/ledger-facts-phase1-proof/"
-resolved ← account_key.Resolve loader.ReadLines base∾"accounts.tsv"
+accountLines ← loader.ReadLines base∾"accounts.tsv"
+resolved ← account_key.Resolve accountLines
+registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
+strictAccounts ← account_admission.Admit ⟨accountLines,registry⟩
 admitted ← admission.Admit ⟨•FChars "../"∾base∾"actual.journal", resolved⟩
-admittedAccounts ← {key⇐resolved.accounts,currency⇐resolved.currencies,role⇐resolved.roles}
+admittedAccounts ← strictAccounts.accounts
 result ← facts.Project ⟨admitted,admittedAccounts⟩
 
+"ok" lib.AssertEq strictAccounts.state
 "ok" lib.AssertEq admitted.state
 "ok" lib.AssertEq result.state
 0 lib.AssertEq ≠result.diagnostics
@@ -22,6 +28,9 @@ result ← facts.Project ⟨admitted,admittedAccounts⟩
 resolved.accounts lib.AssertEq result.accounts.key
 resolved.currencies lib.AssertEq result.accounts.currency
 resolved.roles lib.AssertEq result.accounts.role
+strictAccounts.accounts.type lib.AssertEq result.accounts.type
+strictAccounts.accounts.metadata lib.AssertEq result.accounts.metadata
+strictAccounts.accounts.source_row lib.AssertEq result.accounts.source_row
 
 3 lib.AssertEq result.transactions.count
 ⟨0,1,2⟩ lib.AssertEq result.transactions.index
@@ -76,14 +85,25 @@ lib.Assert ¬dates.IsValid "1900-02-29"
 lib.Assert ¬dates.IsValid "2026-02-30"
 1 lib.AssertEq (dates.Ordinal "2026-01-02") - dates.Ordinal "2026-01-01"
 
-errorResult ← facts.Project ⟨{state⇐"error"},{key⇐⟨⟩,currency⇐⟨⟩,role⇐⟨⟩}⟩
+emptyAccountTable ← {
+  key⇐⟨⟩,currency⇐⟨⟩,role⇐⟨⟩,type⇐⟨⟩,budget⇐⟨⟩,budget_group⇐⟨⟩,
+  spend_class⇐⟨⟩,kind⇐⟨⟩,envelope_role⇐⟨⟩,metadata⇐⟨⟩,source_row⇐⟨⟩
+}
+errorResult ← facts.Project ⟨{state⇐"error"},emptyAccountTable⟩
 "error" lib.AssertEq errorResult.state
 1 lib.AssertEq ≠errorResult.diagnostics
 "admission_not_ok" lib.AssertEq (⊑errorResult.diagnostics).code
 0 lib.AssertEq errorResult.transactions.count
 0 lib.AssertEq errorResult.postings.count
 
-misaligned ← facts.Project ⟨admitted,{key⇐resolved.accounts,currency⇐⟨⟩,role⇐resolved.roles}⟩
+misalignedAccounts ← {
+  key⇐admittedAccounts.key,currency⇐⟨⟩,role⇐admittedAccounts.role,type⇐admittedAccounts.type,
+  budget⇐admittedAccounts.budget,budget_group⇐admittedAccounts.budget_group,
+  spend_class⇐admittedAccounts.spend_class,kind⇐admittedAccounts.kind,
+  envelope_role⇐admittedAccounts.envelope_role,metadata⇐admittedAccounts.metadata,
+  source_row⇐admittedAccounts.source_row
+}
+misaligned ← facts.Project ⟨admitted,misalignedAccounts⟩
 "error" lib.AssertEq misaligned.state
 lib.Assert ∨´ {𝕩.code ≡ "account_columns_misaligned"}¨ misaligned.diagnostics
 0 lib.AssertEq misaligned.transactions.count

@@ -13,7 +13,7 @@ Public evidence: `fixtures/ledger-facts-phase1-proof/`
 
 It does not accept a report context, source path, raw Journal text, historical transaction carrier, Plan/Budget rows, Cube, TBDS, or section ViewModel. It performs no I/O and reads no clock.
 
-The Phase 1A test uses current complete admission as an external comparison harness. Destination code does not import `src_next`. Phase 1B moved normalized transaction grammar/metadata/side/identity ownership to `src/ledger/journal_transaction_structure.bqn`; current single-currency semantic admission now calls that owner instead of `journal_profile_stage1` with `historical_external_plan`. Exact-decimal ownership and every runtime/editor/test caller also moved to `src/ledger/exact_decimal.bqn` without an old-path wrapper. Currency/account proof, complete-source partitioning, and final admission ownership still move in later Phase 1B slices. The test bridge is not a runtime adapter.
+The Phase 1A test uses current complete admission as an external comparison harness. Destination code does not import `src_next`. Phase 1B moved normalized transaction grammar/metadata/side/identity ownership to `src/ledger/journal_transaction_structure.bqn`; current single-currency semantic admission now calls that owner instead of `journal_profile_stage1` with `historical_external_plan`. Exact-decimal and pure currency-registry ownership moved with all callers and no old-path wrappers. `src/ledger/account_admission.bqn` now proves required supported account currency, aligned metadata, unique keys, and missing-role diagnostics before Account Facts reach this projector. Complete-source domain partitioning and final Journal admission ownership still move in later Phase 1B slices. The test bridge is not a runtime adapter.
 
 ## Canonical transaction structure boundary
 
@@ -100,9 +100,9 @@ A numeric amount is the pair `(coefficient, scale)`. Consumers never combine row
 
 ### Account table
 
-`index`, `key`, `currency`, `role`; order follows admitted account evidence, including accounts with no postings. Posting accounts must resolve exactly and match the transaction domain.
+`src/ledger/account_admission.bqn` admits account evidence before fact projection. Currency is explicit and registry-supported; account keys and metadata keys are unique; malformed or unsupported metadata fails without partial accounts. Missing role remains an `account_role_unclassified` warning with an empty role, never prefix inference.
 
-Phase 1A intentionally admits only fields needed by the first proof. Account type, budget/group, spend class, and envelope policy join later from strict account admission rather than being added as report fields to Posting Facts.
+The table exposes aligned `index`, `key`, `currency`, `role`, `type`, `budget`, `budget_group`, `spend_class`, `kind`, `envelope_role`, metadata, and source-row columns in source order, including accounts with no postings. Posting Facts join by Account index and require account currency to match transaction domain.
 
 ### Layer table
 

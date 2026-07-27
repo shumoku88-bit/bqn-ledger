@@ -9,7 +9,7 @@
 
 util ← •Import "util.bqn"
 loader ← •Import "loader.bqn"
-registry_core ← •Import "currency_registry.bqn"
+registry_core ← •Import "../src/ledger/currency_registry.bqn"
 
 tab ← @+9
 defaultKey ← "DEFAULT_CURRENCY"

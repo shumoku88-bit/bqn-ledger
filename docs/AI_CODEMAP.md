@@ -85,7 +85,7 @@ Updated: 2026-07-26
 
 `src_next/queries/actual_expense_ranking.bqn`は現時点でpublic report sectionへ配線されていない。checked selected-domain posting factsを使うpurpose-specific consumerとして、public synthetic fixtureとfocused testでcharacterizeされている。
 
-現在の`src_next`は74 BQN module中70 moduleがroot直下、4 moduleがnestedで、direct importは286（internal 275）、欠損target 0、cycle 0です。`exact_decimal.bqn`は全callerと`src/ledger`へ移動し、旧path wrapperはありません。移動前のpoint-in-time evidenceは`docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`と`docs/archive/audits/SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md`に保持します。
+現在の`src_next`は73 BQN module中69 moduleがroot直下、4 moduleがnestedで、direct importは285（internal 273）、欠損target 0、cycle 0です。`exact_decimal.bqn`と`currency_registry.bqn`は全callerと`src/ledger`へ移動し、旧path wrapperはありません。移動前のpoint-in-time evidenceは`docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`と`docs/archive/audits/SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md`に保持します。
 
 ## 正データファイル
 
@@ -107,6 +107,8 @@ Updated: 2026-07-26
 - `facts.bqn` — successful complete Actual admissionとminimal admitted account tableだけを受け、aligned Transaction/Posting factsとDomain/Account/Layer tableへall-or-nothing projectionするread-only owner。source path、I/O、clock、context、Cube、report fieldを受けない。
 - `date_ordinal.bqn` — fact date用のstrict ISO Gregorian validation/ordinalだけを持つpure coordinate owner。clockや表示を持たない。
 - `exact_decimal.bqn` — source amount textのexact parse、canonical coefficient/scale、exact-range diagnosticsを所有するpure kernel。全runtime/editor/test callerを同時移動し、旧path wrapperはない。
+- `currency_registry.bqn` — repository currency policy行をI/Oなしで検査し、Policy/IsSupportedCurrencyを返すpure owner。旧path wrapperはない。
+- `account_admission.bqn` — accounts.tsv行とregistryだけを受け、explicit currency、unique key/metadata、known metadata、unclassified roleをall-or-nothingのaligned Account tableへadmitする。
 - `journal_transaction_structure.bqn` — complete admissionがdomain-normalizeした1 transaction partitionのheader、metadata、declared account、posting side/zero-sum、identity、source lineをall-or-nothingでadmitするpure owner。旧`historical_external_plan` profileをimportしない。
 - 現行productionはまだ`src_next`であり、Phase 1A testだけがcurrent complete admissionを外部harnessとして新factsと比較する。`src/ledger`から`src_next`をimportしてはならない。
 

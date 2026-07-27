@@ -208,7 +208,7 @@ successful complete Actual admission + minimal admitted Account table
        -> Domain / Account / Layer tables
 ```
 
-新facts ownerはsource path、I/O、clock、旧context、Cube/TBDS、report fieldを受け取らない。Phase 1Bで、complete single-currency admissionのnormalized transaction構造検査は`src/ledger/journal_transaction_structure.bqn`へ移り、`historical_external_plan` parser profileへの依存を除去した。exact-decimal kernelと全callerも`src/ledger/exact_decimal.bqn`へ移動済みである。domain partition、account-currency proof orchestration、complete admission本体はまだ現行ownerにある。test harnessだけがそのcomplete resultを新factsへ外から供給する。schemaとinvariantは`docs/LEDGER_FACT_SCHEMA.md`を正とする。
+新facts ownerはsource path、I/O、clock、旧context、Cube/TBDS、report fieldを受け取らない。Phase 1Bで、complete single-currency admissionのnormalized transaction構造検査は`src/ledger/journal_transaction_structure.bqn`へ移り、`historical_external_plan` parser profileへの依存を除去した。exact-decimal kernelとpure currency registryも全callerと`src/ledger`へ移動済みである。`account_admission.bqn`はexplicit supported currencyとaligned account metadataをstrictに証明し、そのAccount tableをPhase 1 facts proofが使う。domain partitionとcomplete Journal admission本体はまだ現行ownerにある。schemaとinvariantは`docs/LEDGER_FACT_SCHEMA.md`を正とする。
 
 ### Selected-domain composition stages
 

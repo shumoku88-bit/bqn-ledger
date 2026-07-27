@@ -51,9 +51,17 @@ Project ← {𝕊 admitted‿admittedAccounts:
   accountKeys ← admittedAccounts.key
   accountCurrencies ← admittedAccounts.currency
   accountRoles ← admittedAccounts.role
-  accountColumnsAligned ← ((≠accountKeys) = ≠accountCurrencies) ∧ (≠accountKeys) = ≠accountRoles
-  diagnostics ∾↩ AddIf ⟨(≠accountKeys) ≠ ≠accountCurrencies, Diagnostic ⟨"account_columns_misaligned","account key and currency columns must align"⟩⟩
-  diagnostics ∾↩ AddIf ⟨(≠accountKeys) ≠ ≠accountRoles, Diagnostic ⟨"account_columns_misaligned","account key and role columns must align"⟩⟩
+  accountTypes ← admittedAccounts.type
+  accountBudgets ← admittedAccounts.budget
+  accountBudgetGroups ← admittedAccounts.budget_group
+  accountSpendClasses ← admittedAccounts.spend_class
+  accountKinds ← admittedAccounts.kind
+  accountEnvelopeRoles ← admittedAccounts.envelope_role
+  accountMetadata ← admittedAccounts.metadata
+  accountSourceRows ← admittedAccounts.source_row
+  accountColumnLengths ← ≠¨⟨accountCurrencies,accountRoles,accountTypes,accountBudgets,accountBudgetGroups,accountSpendClasses,accountKinds,accountEnvelopeRoles,accountMetadata,accountSourceRows⟩
+  accountColumnsAligned ← ∧´(≠accountKeys)=accountColumnLengths
+  diagnostics ∾↩ AddIf ⟨¬accountColumnsAligned, Diagnostic ⟨"account_columns_misaligned","all account columns must align with account keys"⟩⟩
   diagnostics ∾↩ AddIf ⟨(≠accountKeys) ≠ ≠Unique accountKeys, Diagnostic ⟨"account_key_duplicate","account keys must be unique"⟩⟩
 
   {𝕊 transaction:
@@ -146,7 +154,12 @@ Project ← {𝕊 admitted‿admittedAccounts:
     transactions⇐transactionFacts,
     postings⇐postingFacts,
     domains⇐{count⇐≠declaredDomains,index⇐↕≠declaredDomains,code⇐declaredDomains},
-    accounts⇐{count⇐≠accountKeys,index⇐↕≠accountKeys,key⇐accountKeys,currency⇐accountCurrencies,role⇐accountRoles},
+    accounts⇐{
+      count⇐≠accountKeys,index⇐↕≠accountKeys,key⇐accountKeys,currency⇐accountCurrencies,
+      role⇐accountRoles,type⇐accountTypes,budget⇐accountBudgets,budget_group⇐accountBudgetGroups,
+      spend_class⇐accountSpendClasses,kind⇐accountKinds,envelope_role⇐accountEnvelopeRoles,
+      metadata⇐accountMetadata,source_row⇐accountSourceRows
+    },
     layers⇐{count⇐≠layerNames,index⇐↕≠layerNames,name⇐layerNames},
     diagnostics⇐diagnostics
   }

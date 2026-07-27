@@ -2,9 +2,11 @@
 # Pure parser and validator for the repository-owned currency registry.
 # I/O is intentionally owned by currency_setup.bqn.
 
-util ← •Import "util.bqn"
-
 tab ← @+9
+SplitKeepEmpty ← {𝕊 sep‿text:
+  groups ← (+`sep=text)⊔text
+  {(sep≠𝕩)/𝕩}¨groups
+}
 empty ← ⟨⟩
 
 IsIgnored ← {𝕊 line:
@@ -18,7 +20,7 @@ IsFractionDigits ← {𝕊 text:
 }
 
 ParseLine ← {𝕊 line:
-  fields ← tab util.SplitKeepEmpty line
+  fields ← SplitKeepEmpty ⟨tab,line⟩
   currency ← (0<≠fields) ⊑ ⟨"", 0⊑fields⟩
   fraction ← (1<≠fields) ⊑ ⟨"", 1⊑fields⟩
   symbol ← (2<≠fields) ⊑ ⟨"", 2⊑fields⟩
