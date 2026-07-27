@@ -104,6 +104,7 @@ bash checks/check-src-next-actual-comparison.sh fixtures/actual-comparison-numer
 bash checks/check-src-next-actual-comparison.sh fixtures/actual-comparison-history-boundary unavailable >/dev/null
 bash checks/check-src-next-snapshot.sh fixtures/src-next-golden >/dev/null
 bash checks/check-src-next-report.sh fixtures/src-next-golden >/dev/null
+bash checks/check-src-next-selected-section.sh fixtures/src-next-golden >/dev/null
 bash checks/check-src-next-outlook-observation-source.sh >/dev/null
 bash checks/check-src-next-actual-snapshot.sh >/dev/null
 bash checks/check-src-next-outlook-remaining-plan.sh >/dev/null
