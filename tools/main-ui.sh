@@ -122,6 +122,42 @@ show_section_direct() {
   fi
 }
 
+write_command_hub_balances_cache() {
+  local base_abs="$1" cache_dir="$2"
+  local direct_out direct_err body_tmp status
+  direct_out="$(mktemp "$cache_dir/.balances-direct.XXXXXX")"
+  direct_err="$(mktemp "$cache_dir/.balances-direct.err.XXXXXX")"
+  body_tmp="$(mktemp "$cache_dir/.balances-body.XXXXXX")"
+
+  set +e
+  "$ROOT_DIR/tools/report" "$base_abs" --section balances --no-color >"$direct_out" 2>"$direct_err"
+  status=$?
+  set -e
+  if [[ "$status" -ne 0 ]]; then
+    if [[ -s "$direct_out" ]]; then cat "$direct_out" >&2; fi
+    if [[ -s "$direct_err" ]]; then cat "$direct_err" >&2; fi
+    rm -f "$direct_out" "$direct_err" "$body_tmp"
+    return "$status"
+  fi
+
+  if ! python3 - "$direct_out" "$body_tmp" <<'PY'
+from pathlib import Path
+import sys
+
+source = Path(sys.argv[1]).read_bytes()
+if not source.endswith(b"\n\n"):
+    raise SystemExit("selected balances output does not end with two newlines")
+Path(sys.argv[2]).write_bytes(source[:-2])
+PY
+  then
+    rm -f "$direct_out" "$direct_err" "$body_tmp"
+    return 1
+  fi
+
+  mv -f "$body_tmp" "$cache_dir/balances.txt"
+  rm -f "$direct_out" "$direct_err"
+}
+
 select_section() {
   local cache_dir="${1:-}"
   if command -v fzf >/dev/null 2>&1 && [[ "$IS_TTY" -eq 1 ]]; then
@@ -222,17 +258,23 @@ case "$cmd" in
     # Check if the cache is still valid
     cache_ok=0
     timestamp_file="$cache_dir/.cache-timestamp"
-    if [[ -f "$timestamp_file" && -f "$cache_dir/snapshot.txt" ]]; then
+    if [[ -f "$timestamp_file" && -f "$cache_dir/snapshot.txt" && -f "$cache_dir/balances.txt" ]]; then
       cache_mtime=$(cat "$timestamp_file" 2>/dev/null || echo 0)
       if (( cache_mtime >= max_src_mtime )); then
         cache_ok=1
       fi
     fi
 
-    # Regenerate cache if it is stale or missing
+    # Regenerate the complete browsing cache if it is stale or missing. The
+    # balances preview then uses the same selected-currency route as direct
+    # `--section balances`, preserving the command-hub display contract.
     if [[ "$cache_ok" -ne 1 ]]; then
       if ! "$ROOT_DIR/tools/report" "$base_dir" --write-section-cache "$cache_dir" --no-color >/dev/null; then
         echo "Failed to generate report cache" >&2
+        exit 1
+      fi
+      if ! write_command_hub_balances_cache "$base_abs" "$cache_dir"; then
+        echo "Failed to generate selected balances cache" >&2
         exit 1
       fi
       echo "$max_src_mtime" > "$timestamp_file"
