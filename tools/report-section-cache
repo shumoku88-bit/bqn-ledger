@@ -78,8 +78,11 @@ cleanup() {
 }
 trap cleanup EXIT
 
-if ! "$ROOT_DIR/tools/report" "$base_dir" --section "$key" --no-color >"$direct_out" 2>"$direct_err"; then
-  status=$?
+set +e
+"$ROOT_DIR/tools/report" "$base_dir" --section "$key" --no-color >"$direct_out" 2>"$direct_err"
+status=$?
+set -e
+if [[ "$status" -ne 0 ]]; then
   if [[ -s "$direct_out" ]]; then cat "$direct_out" >&2; fi
   if [[ -s "$direct_err" ]]; then cat "$direct_err" >&2; fi
   exit "$status"
