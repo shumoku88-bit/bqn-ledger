@@ -32,11 +32,12 @@ This file is a lightweight notebook for the current state of `bqn-ledger`. It re
 - The first bounded directory migration is complete: the ranking and grouping pair now live together under `src_next/queries/`, with no permanent root wrappers.
 - Current architecture and code-map documents include the direct checked-facts → sparse grouping → purpose-specific consumer branch alongside Cube and TBDS.
 - Historical plans, audits, and handoffs remain available under `docs/archive/` and in Git history.
+- YTD unavailable-cycle defect (PR in draft): when `cycle.tsv` contains an unresolvable mode (e.g. `monthly`), `cycle.bqn` resolves `start` and `end_exclusive` to `"unavailable"`. `ytd_summary.Build` now detects this sentinel before calling `date.DaysFromEpoch` and returns an explicit unavailable summary. Adjacent sections (`actual_source`, `outlook_remaining_plan`, `daily_trend`, `daily_flow`) receive parallel guards against low-level date indexing on `"unavailable"` string input. `checks/check-src-next-ytd-unavailable-cycle.sh` locks the regression.
 
 ## Things worth exploring
 
 - continue inventorying remaining forwarded-date callers by ownership group: CLI/query views, plan/report computations, and mixed projection-vocabulary modules;
-- select a coherent date-only CLI or query-view group before adding direct `date.bqn` imports; `calc/main.bqn`, `snapshot.bqn`, `daily_flow.bqn`, and `daily_trend.bqn` should be compared by responsibility rather than mass-rewritten;
+- select a coherent date-only CLI or query-view group before adding direct `date.bqn` imports; `calc/main.bqn` and `snapshot.bqn` should be compared by responsibility rather than mass-rewritten; `daily_flow.bqn` and `daily_trend.bqn` already import `date.bqn` directly and have unavailable-cycle guards as of the ytd unavailable-cycle fix;
 - keep mixed modules that also consume `FieldOrEmpty`, Layer constants, proof helpers, or `ResolveDayFromCycle` separate from date-only imports;
 - remove the temporary `projection.IsValidDateText` and `projection.DaysFromEpoch` exports only after executable callers and focused tests have migrated;
 - reassess the live arithmetic-proof predicate/message ownership after the dead effectful wrapper removal;

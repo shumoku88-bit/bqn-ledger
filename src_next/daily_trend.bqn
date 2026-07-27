@@ -36,10 +36,28 @@ Build ← {𝕊 ctx:
   day_count ← cy.day_count
   ak_count ← resolved.count
 
-  roles ← resolved.roles
-  accounts ← resolved.accounts
-  types ← resolved.types
-  classes ← resolved.spend_classes
+  cyAvail ← (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (dt.IsValidDateText cy.start) ∧ (dt.IsValidDateText cy.end_exclusive)
+  (cyAvail) ◶ ⟨
+    { 𝕩 ⋄
+      {
+        state ⇐ "unavailable",
+        reason ⇐ "cycle_unavailable",
+        diagnostics ⇐ ⟨⟩,
+        trend_rows ⇐ ⟨⟩,
+        top_drops ⇐ ⟨⟩,
+        obs_days ⇐ 0,
+        as_of ⇐ "unavailable",
+        header_O ⇐ "unavailable",
+        cycle_start ⇐ cy.start,
+        cycle_end_exclusive ⇐ cy.end_exclusive,
+        cycle_mode ⇐ cy.mode
+      }
+    },
+    { 𝕩 ⋄
+      roles ← resolved.roles
+      accounts ← resolved.accounts
+      types ← resolved.types
+      classes ← resolved.spend_classes
 
   # Account masks (indices into ak axis)
   assets_mask ← ("asset"⊸≡¨ roles) ∨ ("assets:" ⊸ ≡¨ 7 ↑¨ accounts)
@@ -158,19 +176,21 @@ Build ← {𝕊 ctx:
   visible_drops ← top_drops
   {𝕊: visible_rows ↩ ⟨⟩ ⋄ visible_drops ↩ ⟨⟩}⍟(plan_result.state ≢ "ok") @
 
-  {
-    state ⇐ plan_result.state,
-    reason ⇐ plan_result.reason,
-    diagnostics ⇐ plan_result.diagnostics,
-    trend_rows ⇐ visible_rows,
-    top_drops ⇐ visible_drops,
-    obs_days ⇐ obs_count,
-    as_of ⇐ as_of,
-    header_O ⇐ as_of,
-    cycle_start ⇐ cy.start,
-    cycle_end_exclusive ⇐ cy.end_exclusive,
-    cycle_mode ⇐ cy.mode
-  }
+      {
+        state ⇐ plan_result.state,
+        reason ⇐ plan_result.reason,
+        diagnostics ⇐ plan_result.diagnostics,
+        trend_rows ⇐ visible_rows,
+        top_drops ⇐ visible_drops,
+        obs_days ⇐ obs_count,
+        as_of ⇐ as_of,
+        header_O ⇐ as_of,
+        cycle_start ⇐ cy.start,
+        cycle_end_exclusive ⇐ cy.end_exclusive,
+        cycle_mode ⇐ cy.mode
+      }
+    }
+  ⟩ @
 }
 
 BuildAt ← {𝕊 ⟨ctx, header_O⟩:
@@ -213,7 +233,8 @@ Format ← {𝕊 vm:
 
 FormatHuman ← {𝕊 vm:
   rows ← vm.trend_rows
-  days_left ← 0 ⌈ (dt.DaysFromEpoch vm.cycle_end_exclusive) - dt.DaysFromEpoch vm.header_O
+  days_left ← 0
+  {𝕊: days_left ↩ 0 ⌈ (dt.DaysFromEpoch vm.cycle_end_exclusive) - dt.DaysFromEpoch vm.header_O }⍟(vm.state ≡ "ok") @
 
   out ← (L "daily.section_title") ∾ (@+10) ∾ (@+10)
   {𝕊:

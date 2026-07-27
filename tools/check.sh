@@ -85,6 +85,7 @@ bash checks/check-src-next-minimal-summary.sh fixtures/src-next-household-mappin
 bash checks/check-src-next-minimal-summary.sh fixtures/src-next-income-anchor-golden >/dev/null
 bash checks/check-src-next-cycle-summary.sh >/dev/null
 bash checks/check-src-next-ytd-summary.sh >/dev/null
+bash checks/check-src-next-ytd-unavailable-cycle.sh >/dev/null
 bash checks/check-src-next-expense-breakdown.sh >/dev/null
 bash checks/check-src-next-recent-journal.sh fixtures/src-next-golden >/dev/null
 bash checks/check-src-next-recent-journal.sh fixtures/src-next-empty-projection >/dev/null

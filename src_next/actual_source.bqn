@@ -99,7 +99,8 @@ CompletionEvidence ← {𝕊 base:
 PlanIdsInCycle ← {𝕊 base‿cy:
   evidence ← CompletionEvidence base
   InCycle ← {𝕊 ev:
-    ok ← dt.IsValidDateText ev.date
+    cyOk ← (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (dt.IsValidDateText cy.start) ∧ (dt.IsValidDateText cy.end_exclusive)
+    ok ← cyOk ∧ dt.IsValidDateText ev.date
     inside ← 0
     {𝕊: dn←dt.DaysFromEpoch ev.date ⋄ inside↩(dn≥dt.DaysFromEpoch cy.start)∧dn<dt.DaysFromEpoch cy.end_exclusive}⍟ok @
     inside

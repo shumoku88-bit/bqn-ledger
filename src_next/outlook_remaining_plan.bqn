@@ -266,7 +266,7 @@ BuildFromEvidence ← {𝕊 ctx‿as_of‿evidence:
         fixed_reserve ⇐ ¯1 × expenses
       }
     }⍟(0 = ≠ diagnostics) @
-  }⍟(dt.IsValidDateText as_of) @
+  }⍟((dt.IsValidDateText as_of) ∧ (ctx.cy.end_exclusive ≢ "unavailable") ∧ dt.IsValidDateText ctx.cy.end_exclusive) @
 
   result
 }
