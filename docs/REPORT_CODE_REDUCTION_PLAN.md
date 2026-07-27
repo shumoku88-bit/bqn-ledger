@@ -1,10 +1,10 @@
 # Report code reduction plan
 
-Status: current implementation plan
+Status: completed implementation record
 Owner: report / context boundaries
-Canonical queue: `TODO.md`
+Canonical queue: superseded by `TODO.md` and `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 Updated: 2026-07-27
-Exit: archive or shorten after the retained report path is smaller, compatibility callers are resolved, and the remaining boundaries are documented as current architecture
+Exit: retain as the compact record of the completed 13,056 → 13,027 line reduction track
 
 ## Purpose
 
@@ -148,28 +148,8 @@ Inventory result: exports fell from 20 to 13. `LoadCycleEvidence` and its income
 
 Historical parser fallback remains required by compatibility `BuildContext`, which intentionally constructs its posting IR from the `historical_external_plan` shape. Removing that fallback requires a separate context/admission decision, not an API cleanup.
 
-## hledger comparison checkpoint
+## Completion
 
-Before considering a rewrite or dependency switch:
+The track completed at 13,027 `src_next` lines, 29 below its 13,056-line baseline, while preserving all report capabilities. It removed real source/API duplication but intentionally left supported compatibility routes with real callers.
 
-- [ ] Compare equivalent capabilities: parsing, multi-posting preservation, exact amount policy, validation, cycle/envelope household policy, report output, editor safety, and diagnostics.
-- [ ] Separate code hledger could replace from code that expresses household-specific behavior.
-- [ ] Build one read-only synthetic experiment if the replacement boundary is still unclear.
-- [ ] Record operational dependency and migration costs, not only source lines.
-- [ ] Make an explicit keep-BQN, hybrid, or migration decision; do not let the code-reduction track silently become a rewrite.
-
-## Per-slice completion record
-
-For each completed slice, add a short entry to `TODO.md` while it is current, then rely on Git history after completion:
-
-```text
-slice:
-behavior preserved:
-prepared boundary:
-removed code/API/check:
-src_next line delta:
-remaining compatibility caller:
-checks:
-```
-
-The objective is not maximum layering. The objective is a smaller truthful implementation whose safety contracts remain visible.
+The next selected work does not continue local prepared-wrapper growth. The ledger-facts migration roadmap uses complete admitted transaction/posting evidence as the destination root, preserves section-specific results, forbids a giant all-report record, and requires final physical deletion of the old compatibility runtime.

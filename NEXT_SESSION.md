@@ -1,19 +1,19 @@
 # Next session
 
-Status: Journal reconstructible identity cleanup 001 complete
-Owner: journal source migration / routing
-Canonical: yes; current route is `TODO.md`
-Completed implementation: `docs/JOURNAL_RECONSTRUCTIBLE_IDENTITY_CLEANUP_001.md`
-Date: 2026-07-24
+Status: ledger-facts report engine migration selected
+Owner: ledger kernel / report
+Canonical queue: `TODO.md`
+Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
-## Current routing
+## Current finite slice
 
-Journal reconstructible identity cleanup 001 is implemented, verified with public synthetic evidence, and ready for production application after main merge. It removes only the 390 non-functional migration event-id lines while preserving all 12 functional identities, 2 purchase-shaped identities, and 6 identity-free transactions.
+Phase 0B: inventory observable output contracts and every compatibility path before creating new runtime code. Phase 0A report construction classification is complete in `docs/REPORT_CONSTRUCTION_INVENTORY.md`.
 
 ```text
-reconstructible identity cleanup 001: completed
-production application: ready (gated by main merge)
-next finite Journal slice: not selected
+current daily production: tools/report -> src_next/report.bqn
+current migration work: output contract + caller + compatibility inventory
+new src/ tree: not authorized until Phase 0 review
+private source migration: explicit human direction required
 ```
 
-No further provenance investigation or wider metadata cleanup is selected.
+Do not add a new context, copy section modules, or introduce compatibility adapters in the destination design during this slice.

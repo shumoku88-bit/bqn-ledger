@@ -1,211 +1,86 @@
 # Notes and open directions
 
-This is a lightweight notebook for current work. Completed implementation history belongs in `docs/archive/` and Git history.
+This is the lightweight queue for current work. Completed implementation history belongs in Git and `docs/archive/`.
 
 ## Current state
 
-- Native Journal is the sole production Actual source; companion sources remain `plan.tsv`, `budget_alloc.tsv`, `accounts.tsv`, `cycle.tsv`, and `issues.tsv`.
-- `src_next/selected_domain_context.bqn` constructs one registry-supported currency through a flat fail-closed sequence: policy, complete Actual admission, currency-proof carriage, non-Actual preparation, exact normalization, and Cube/TBDS period views.
-- Canonical Daily Cube, TBDS, and purpose-specific sparse consumers are views over checked posting facts, not competing source truths.
-- `src_next/queries/actual_expense_ranking.bqn` is the first direct sparse consumer. A second independent real consumer is still required before extracting broader query vocabulary or replacing production Cube/TBDS accumulation.
-- Human balances for ledgers with `DEFAULT_CURRENCY` have one BQN-owned selected-domain body across direct, full, and cache output. BQN owns section descriptors and the cache key manifest; preview does not run report calculation.
-- `src_next/projection.bqn` is now a small compatibility shelf for non-Actual Posting IR vocabulary, `ResolveDayFromCycle`, Layer delegates, and arithmetic-proof delegates. Diagnostic presentation and dead date/scalar exports have already been removed.
-- `src_next` directory migration is evidence-led. The first query neighborhood is under `src_next/queries/`; high-fan-in hubs remain at root.
+- Native Journal is the sole production Actual source; companion sources are `plan.tsv`, `budget_alloc.tsv`, `accounts.tsv`, `cycle.tsv`, and `issues.tsv`.
+- Daily human reporting runs through `tools/report` → `src_next/report.bqn`; compact output uses `tools/report-next-summary` → `src_next/summary.bqn`.
+- The current engine has 75 BQN modules and 13,027 physical lines. The completed prepared-boundary reduction track ended 29 lines below its 13,056-line baseline while preserving all report sections.
+- Canonical Daily Cube, TBDS, and purpose-specific sparse consumers remain views over checked posting facts, not competing source truths.
+- The current runtime still contains dual context/admission routes, historical transaction/proof fallbacks, compatibility exports, test seams, and historical entrypoint names.
+- Current reporting remains production until a separately verified ledger-facts engine passes the cutover gate.
 
-## Selected work: reduce report code after prepared-boundary migration
+## Selected work: ledger-facts report engine migration
 
-The current implementation plan is [`docs/REPORT_CODE_REDUCTION_PLAN.md`](docs/REPORT_CODE_REDUCTION_PLAN.md). The objective is not to apply the same architecture template to every section. Preserve daily report behavior, introduce only a useful prepared seam, migrate real callers, then remove superseded adapters, source-shape checks, and duplicate preparation.
+The active roadmap is [`docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`](docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md).
 
-Point-in-time baseline: `src_next` has 75 BQN modules and 13,056 physical lines (approximately 10,407 nonblank, non-comment lines). This is characterization, not a minification target. Tests and fail-closed diagnostics must not be weakened to reduce the count.
-
-### Completed finite slice: Actual Snapshot
-
-- [x] Added the narrow I/O-free `BuildFromPrepared` calculation boundary.
-- [x] Preserved inclusive cumulative cutoff, pre-cycle opening evidence, rejected-row applicability, invalid-date failure, valid-empty zero, and Outlook failure propagation.
-- [x] Added a direct prepared-core test and replaced `BuildAt` source-shape grep assertions with behavioral evidence.
-- [x] Initially kept broad compatibility adapters, then removed `BuildAt` and the source-loading latest-date API in the Outlook caller-migration slice; the prepared date policy remains explicit.
-- [x] Passed focused checks, `tools/check.sh`, coverage, and diff validation.
-
-Completion record:
+Goal:
 
 ```text
-slice: Actual Snapshot
-behavior preserved: cumulative cutoff, rejected/invalid/empty semantics, Outlook propagation
-prepared boundary: BuildFromPrepared(postingRows, cubeView, resolved, as_of)
-removed code/API/check: removed BuildAt source-shape awk/grep assertions
-src_next line delta: +9 (13,056 -> 13,065); exports +1 (3 -> 4)
-remaining compatibility caller: resolved later; Outlook and tests now call BuildFromPrepared, while default observation uses Build
-checks: focused prepared/numeric tests, actual-snapshot check, full tools/check.sh, coverage
+strict source snapshot and admission
+  -> canonical transaction/posting facts
+  -> narrow accounting capabilities
+  -> all 15 existing report sections
+  -> human / compact / JSON
+  -> atomic cutover
+  -> complete deletion of old compatibility runtime
 ```
 
-The Outlook caller-migration checkpoint repaid 8 of these lines: Actual Snapshot is now 155 lines versus its 154-line baseline, and its export count returned to three without broad `BuildAt` or a source-loading latest-date API.
+This is not a section-reduction campaign and must not recreate the old giant all-report record. Shared records are bounded by source/accounting facts; section-specific results remain local. The destination also includes an array-oriented Select/Join/Group/Pivot layer so current report definitions are disposable and new matrix/list reports do not require ledger-kernel changes.
 
-### Completed finite slice: Daily Flow
+### Completed finite slice: Phase 0A report construction inventory
 
-- [x] Inventoried the sole production caller, required `ctx` fields, and unused imports.
-- [x] Moved Actual date acquisition and compatibility fallback into `Build(ctx)`.
-- [x] Added `BuildFromPrepared(cubeView, resolved, cy, actualDates)` and preserved Daily Flow's explicit `as_of` anchor independently from Daily Trend.
-- [x] Added no-base/invalid-cycle prepared behavioral evidence and direct adapter parity.
-- [x] Removed five unused module imports, the unused label binding, and the dead source-loading `LatestActualDateInCycle` helper.
-- [x] Passed focused checks, section rendering, full `tools/check.sh`, and coverage.
+[`docs/REPORT_CONSTRUCTION_INVENTORY.md`](docs/REPORT_CONSTRUCTION_INVENTORY.md) classifies all 15 sections by facts, filters, axes, measures, joins, time/currency policy, result shape, output surface, and compatibility pressure.
 
-Completion record:
+- [x] Classified every section as Matrix, List, Card, hybrid, or custom semantic Build.
+- [x] Selected Trial Balance and Daily Flow as materially different real Matrix/Pivot proofs.
+- [x] Selected a monthly expense matrix with contributor posting IDs as the novel extensibility gate.
+- [x] Confirmed that transaction facts must remain first-class and that Outlook/Envelope/Trend/Comparison must not be forced into a universal Pivot spec.
 
-```text
-slice: Daily Flow
-behavior preserved: day-count observation window, explicit as_of row anchor, account partitions, compact/human output
-prepared boundary: BuildFromPrepared(cubeView, resolved, cy, actualDates)
-removed code/API/check: five unused imports, unused label binding, dead source-loading helper
-src_next line delta: +10 (13,065 -> 13,075); exports +1 (3 -> 4)
-remaining compatibility caller: report uses Build(ctx); DatesFromContext retains focused base fallback
-checks: prepared test, section rendering, context/projection checks, full tools/check.sh, coverage
-```
+### Current finite slice: Phase 0B contract and compatibility inventory
 
-The adapter remains the truthful production boundary. Its compatibility deletion checkpoint is removal of the `DatesFromContext` base fallback after all supported contexts carry Actual transactions; the final track must still repay temporary prepared-boundary growth overall.
+- [ ] Capture all human, compact, JSON, metadata, cache, CLI, diagnostic, and exit-status contracts.
+- [ ] Decide byte parity versus semantic/schema parity for each surface.
+- [ ] Inventory all `src_next` exports and repository callers, including `src_edit`, tools, checks, and tests.
+- [ ] Inventory every runtime fallback, alias, wrapper, alternate transaction shape, test seam, and historical entrypoint.
+- [ ] Classify each candidate as runtime compatibility to delete, source-data migration prerequisite, canonical behavior, offline migration tooling, or archive-only history.
+- [ ] Decide strict requirements for default currency, source currency evidence, plan identity, cycle, and valid empty sources.
+- [ ] Give every compatibility path an explicit deletion phase.
+- [ ] Record public synthetic parity evidence without using private household data.
+- [ ] Do not create `src/`, a new context, or copied section modules before review of this inventory.
 
-### Completed finite slice: Daily Trend
+Phase 0 exit:
 
-- [x] Preserved the characterized contract that `BuildAt(ctx, header_O)` changes header coordinates, not replay calculation.
-- [x] Kept `daily_trend_plan.BuildAt` in the context adapter and passed its checked/fail-closed reserve result into the numeric core.
-- [x] Added `BuildFromPrepared(cubeView, resolved, cy, as_of, trend_dates, plan_result)` without broad `ctx` or source access.
-- [x] Preserved row-local future-income replay, empty-cycle-start anchoring, reserve completion timing, and error propagation.
-- [x] Added adapter parity, no-base, invalid-cycle, and prepared plan-failure evidence.
-- [x] Removed the dead source-loading latest-date helper and replaced the helper-connection source grep with behavioral evidence.
-- [x] Passed all focused Daily Trend tests, section checks, full `tools/check.sh`, and coverage.
+- every current report capability has an observable contract and owner;
+- every compatibility path has a deletion gate;
+- no undecided fallback is permitted in the destination fact schema.
 
-Completion record:
+## Migration rules
 
-```text
-slice: Daily Trend
-behavior preserved: header-only BuildAt, row-local replay, empty anchor, checked reserve fail-closed semantics
-prepared boundary: BuildFromPrepared(cubeView, resolved, cy, as_of, trend_dates, plan_result)
-removed code/API/check: dead source-loading helper; trend_plan.BuildAt connection grep
-src_next line delta: +19 (13,075 -> 13,094); exports +1 (4 -> 5)
-remaining compatibility caller: report uses BuildAt; summary uses Build; plan adapter retains source/context evidence preparation
-checks: prepared test, all focused trend tests, numeric-owner check, full tools/check.sh, coverage
-```
+- Keep the current daily report usable at every merged checkpoint.
+- New code must never accept an old context or historical transaction shape.
+- New code may not import old report code.
+- Move modules with all callers and leave no forwarding wrapper at the old path.
+- Replace a section across human, compact, JSON, cache, query, tests, and docs in one slice, then delete its old implementation.
+- Migrate source data rather than carrying a fallback into the destination runtime.
+- Apply private-data migration only under explicit human direction, with preview, backup, and stale checks.
+- Final cutover deletes `src_next`, old entrypoints, fallback parsers/proofs, compatibility delegates, `ForTest` aliases, and `_for_test` production modules.
+- Git is rollback; compatibility wrappers are not rollback.
 
-`BuildAt` remains because the production human report explicitly supplies a header coordinate, while compact summary uses internal replay observation. The later report/Outlook observation review is the deletion or rename checkpoint; the plan-evidence adapter joins the `actual_source` compatibility checkpoint.
+## Standing work outside the selected migration
 
-### Completed finite slice: Outlook
-
-- [x] Inventoried `BuildCore`, Actual Snapshot, remaining-plan, frontier, Envelope, next-obligation, and Daily Capacity boundaries.
-- [x] Replaced effectful `BuildCore(ctx, ...)` with I/O-free `BuildFromPrepared(input)`; config, plan-line, envelope, snapshot, and remaining-plan preparation stays in the adapter.
-- [x] Preserved open-ended frontier, explicit no-Actual unavailable, invalid-date, and snapshot/remaining-plan failure propagation.
-- [x] Retained `daily_capacity.bqn` as an independent evidence-first experiment; it is not wired into compatibility Outlook because its arithmetic-domain, asset-scope, obligation, and reservation contracts are materially different.
-- [x] Added full VM and renderer parity from a no-base prepared input.
-- [x] Migrated Outlook and focused tests to Actual Snapshot's prepared core, removing broad `actual_snapshot.BuildAt`.
-- [x] Replaced Outlook/Actual Snapshot source-loading frontier/date APIs with prepared-date policy APIs.
-- [x] Replaced the remaining-plan helper-connection grep with prepared behavioral evidence.
-- [x] Passed focused Outlook/Snapshot checks, full `tools/check.sh`, and coverage.
-
-Completion record:
-
-```text
-slice: Outlook
-behavior preserved: explicit/default observation, open-ended frontier, snapshot/plan errors, envelope and obligation output
-prepared boundary: BuildFromPrepared(section-specific prepared input)
-removed code/API/check: three exported broad/source APIs, one private source wrapper, helper-connection grep
-src_next line delta: +11 (13,094 -> 13,105); Outlook +19, Actual Snapshot -8
-export delta across both modules: 0; broad APIs replaced by prepared core/policy exports
-remaining compatibility caller: Outlook Build/BuildAt adapters; next obligations still interpret plan lines
-checks: prepared parity, all focused Outlook/Snapshot checks, full tools/check.sh, coverage
-```
-
-The slice contains a real deletion but the overall track remains above baseline by 49 lines. Envelope work must not add a generic framework; it must remove or replace one existing responsibility at a time.
-
-### Completed finite slice: Envelope inventory and compatibility shelf cleanup
-
-- [x] Mapped envelope balances, fixture policy target, unassigned pool, backing diagnostics, execution planned coverage, orchestration, and three renderers.
-- [x] Confirmed `CalcEnvelopeBacking` and unassigned calculation are already I/O-free and should not be moved merely because the file is large.
-- [x] Removed the uncalled source-loading tuple builder and dead source-loading latest-date helper.
-- [x] Reduced the module export surface from 22 fields to the 11 fields with repository callers or focused contract use.
-- [x] Removed dead config loading from `BuildEnvelopes`; envelope balance calculation now receives only resolved/cycle/rows/prepared dates.
-- [x] Reused `plan_rows.WithValues` for execution planned rows instead of maintaining another local value parser.
-- [x] Preserved Envelope's source-order latest-date and invalid-date crash characterization rather than importing another section's policy.
-- [x] Passed focused Envelope checks, full `tools/check.sh`, and coverage.
-
-Completion record:
-
-```text
-slice: Envelope inventory and compatibility shelf cleanup
-behavior preserved: envelope balances, source-order clock, invalid-date characterization, backing and execution diagnostics, all renderers
-removed code/API/check: BuildFromTuple, dead latest-date loader, 11 unused exports, dead BuildEnvelopes config read
-src_next line delta: -25 (13,105 -> 13,080); module 914 -> 889
-export delta: -11 (22 -> 11)
-remaining effectful responsibility: BuildWithPreparedActual still owns config/allocation/execution source preparation
-checks: focused computation/characterization checks, full tools/check.sh, coverage
-```
-
-This is the first net-reduction slice. The overall track is now 24 lines above the original 13,056-line baseline.
-
-### Completed finite slice: Execution planned coverage
-
-- [x] Split lazy source/value preparation from the I/O-free execution-envelope comparison.
-- [x] Passed only the configured envelope label rather than broad config into the coverage adapter.
-- [x] Preserved disabled/missing-envelope laziness, completion identity, duplicates, date ordering, and characterized unrelated-plan inclusion.
-- [x] Kept execution coverage as a readonly diagnostic distinct from balance and backing calculations.
-- [x] Removed duplicate `budget_alloc.tsv` reads and duplicate target allocation calculation in the surrounding orchestration.
-- [x] Passed focused Envelope checks and full `tools/check.sh` with a negative source delta.
-
-Completion record:
-
-```text
-slice: Execution planned coverage
-behavior preserved: disabled/missing laziness, completion/duplicate/order policy, readonly comparison output
-prepared boundary: internal ExecutionCoverageFromPrepared(envLabel, envRemaining, valued plan evidence)
-removed duplication: second fallback allocation read/calculation and local comparison dependence on source/config
-src_next line delta: -3 (13,080 -> 13,077); module 889 -> 886
-exports/modules added: 0
-checks: focused computation/characterization checks and full tools/check.sh
-```
-
-The reduction removes repeated source work and narrows semantic inputs; it is not formatting compression. The overall track is now 21 lines above the original baseline.
-
-### Completed finite slice: `actual_source` compatibility reduction
-
-- [x] Inventoried every export and production/test caller by transaction shape and I/O ownership.
-- [x] Removed the dead complete loader, plan-ID source wrapper, Actual-row helper, and adjacent report-only source adapters.
-- [x] Migrated focused plan-row tests to context/prepared completion evidence; retained source APIs for editor and source-characterization callers.
-- [x] Kept complete-admission cycle evidence separate from historical `delta`-based completion evidence.
-- [x] Reduced `actual_source` exports from 20 to 13 without adding a module boundary; retained three base-oriented APIs used by journal/plan editor commands.
-
-Completion record:
-
-```text
-slice: actual_source compatibility reduction
-behavior preserved: configured source resolution, complete-or-historical cycle admission, context date/completion evidence, section-specific clocks
-prepared boundary: context transactions for reports; explicit completion evidence for focused plan-row tests
-removed code/API/check: 7 actual_source exports, 4 adjacent compatibility exports, dead complete loader/Actual row helper/source adapters
-src_next line delta: -50 (13,077 -> 13,027); track total 13,056 -> 13,027
-remaining compatibility caller: cycle/base entrypoints retain LoadDates and IncomeDates; editor commands retain Resolve, LoadTransactions, and CompletionEvidence; focused missing-field contexts retain fallback loading
-checks: focused prepared/characterization checks and full tools/check.sh
-```
-
-The track is now 29 lines below its original baseline. This is an API and source-path reduction, not formatting compression.
-
-Later Envelope responsibilities remain unselected until caller evidence identifies another real duplication. Do not start a broad module split.
-
-The completed context-reuse characterization remains in:
-
-- `docs/REPORT_CONTEXT_DUPLICATION_CHARACTERIZATION-2026-07-27.md`
-- `tools/characterization/report_context_duplication_probe.bqn`
-
-Do not collapse ordinary and selected-domain contexts into one universal context or reuse compatibility posting rows as selected-domain rows without contract evidence. Current performance no longer justifies that risk.
-
-## Other useful directions
-
-- Continue projection cleanup by coherent caller responsibility: mixed `ResolveDayFromCycle` users, Layer ownership, and arithmetic-proof ownership are separate decisions.
-- Separate remaining JPY compatibility seams in `account_key.bqn`, arithmetic-proof authorization, and `context.BuildContext` from registry-generic selected-domain behavior.
-- Keep improving selected-currency daily use, travel recording, editor ergonomics, and reports from actual experience.
-- Reassess the temporary `src_next/main.bqn` compatibility wrapper only through an explicit deprecation decision.
-- Move another `src_next` module neighborhood only after import-graph and caller evidence identify a low-blast-radius group.
-- Consolidate Command Hub freshness policy only if a read-only cache-state owner reduces responsibility rather than merely moving shell lines.
+- Keep improving daily editor safety and ergonomics from actual use.
+- Treat migration/cleanup tools for historical source data separately from production runtime compatibility.
+- Do not add FX conversion, mixed-domain totals, a universal Cube, or a generic query DSL without a separate concrete decision.
+- Do not modify or publish canonical private household data without explicit human direction.
 
 ## Working principles
 
-- Arithmetic domain is an explicit partition/key requirement, not an implicit property of a numeric grouping kernel.
-- Transaction `kind` is not posting-level account classification.
-- Flat stage composition must preserve first-failure ownership and never expose a partial selected context.
+- Arithmetic domain is an explicit partition/key requirement, not an implicit property of numeric grouping.
+- Transaction metadata is not posting-level account classification.
+- Native multi-posting transactions are never flattened back into a two-account source row.
+- Share admitted evidence and proven accounting capabilities, not all-report semantic results.
+- A section core receives narrow prepared evidence and an explicit observation; it does not read source files or the system clock.
+- Flat stages preserve first-failure ownership and return no partial admitted result.
 - Code and directory beauty mean truthful ownership, not maximum splitting or nesting.
-- Private household data remains under explicit human direction.
