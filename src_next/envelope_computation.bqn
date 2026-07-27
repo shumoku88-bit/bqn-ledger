@@ -203,10 +203,6 @@ LatestActualDateInCycleFromDates ← {𝕊 dates‿cy:
   out
 }
 
-LatestActualDateInCycle ← {𝕊 base‿cy:
-  LatestActualDateInCycleFromDates ⟨actual_source.LoadDates base, cy⟩
-}
-
 # ── Execution planned coverage diagnostic ────────────────────
 CleanName ← {
   ( "expenses:" unav.StartsWith 𝕩 ) ? 9 ↓ 𝕩 ;
@@ -235,18 +231,18 @@ BuildExecutionPlannedCoverage ← {𝕊 base‿cy‿envelopes‿cfg‿completion
       env ← env_idx ⊑ envelopes
       env_remaining ↩ env.remaining
 
-      shared ← plan_rows.BuildBaseFromCompletionEvidence ⟨base, cy, completionEvidence⟩
+      baseView ← plan_rows.BuildBaseFromCompletionEvidence ⟨base, cy, completionEvidence⟩
+      shared ← plan_rows.WithValues baseView
       open_indices ← (¬ shared.completed_mask) / ↕ ≠ shared.rows
 
-      ParsePlanRow ← {𝕊 idx:
-        line ← idx ⊑ shared.rows
-        f ← Pad5 loader.SplitTsvKeepEmpty line
-        from ← 2⊑f ⋄ to ← 3⊑f
+      PreparedPlanRow ← {𝕊 idx:
+        row ← idx ⊑ shared.parsed
+        from ← 2⊑row ⋄ to ← 3⊑row
         is_inc ← "income:" unav.StartsWith from
         cat ← CleanName (is_inc ⊑ to‿from)
-        { date ⇐ 0⊑f, memo ⇐ 1⊑f, category ⇐ cat, amount ⇐ •BQN 4⊑f, plan_id ⇐ idx ⊑ shared.plan_ids }
+        {date⇐0⊑row,memo⇐1⊑row,category⇐cat,amount⇐4⊑row,plan_id⇐idx⊑shared.plan_ids}
       }
-      rows_out ↩ ParsePlanRow¨ open_indices
+      rows_out ↩ PreparedPlanRow¨ open_indices
       rows_out ↩ (⍋ {𝕩.date}¨ rows_out) ⊏ rows_out
       planned_total ↩ Sum0 ({𝕩.amount}¨ rows_out)
       delta ↩ env_remaining - planned_total
@@ -267,11 +263,7 @@ BuildExecutionPlannedCoverage ← {𝕊 base‿cy‿envelopes‿cfg‿completion
 }
 
 # ── Multi-envelope calculation ───────────────────────────────
-BuildEnvelopes ← {𝕊 base‿resolved‿cy‿valid_rows‿actualDates:
-  cfg ← conf.LoadConfig base
-  life_groups ← cfg.HouseholdGroupLifeLabels @
-  reserve_groups ← cfg.HouseholdGroupReserveLabels @
-
+BuildEnvelopes ← {𝕊 resolved‿cy‿valid_rows‿actualDates:
   as_of ← LatestActualDateInCycleFromDates ⟨actualDates, cy⟩
   has_as_of ← ¬ unav.IsUnavailable as_of
 
@@ -488,12 +480,6 @@ BuildCtx ← {𝕊 ctx:
   BuildWithPreparedActual ⟨ctx.base, ctx.resolved, ctx.cy, ctx.cube.valid_rows, ctx.tbds, dates, completion⟩
 }
 
-Build ← {𝕊 base‿resolved‿cy‿valid_rows‿tbds_rows:
-  dates ← actual_source.LoadDates base
-  completion ← actual_source.CompletionEvidence base
-  BuildWithPreparedActual ⟨base, resolved, cy, valid_rows, tbds_rows, dates, completion⟩
-}
-
 BuildWithPreparedActual ← {𝕊 base‿resolved‿cy‿valid_rows‿tbds_rows‿actualDates‿completionEvidence:
   cfg ← conf.LoadConfig base
   is_none ← "none" ≡ cfg.PolicyBudgetStyle @
@@ -502,7 +488,7 @@ BuildWithPreparedActual ← {𝕊 base‿resolved‿cy‿valid_rows‿tbds_rows�
     { 𝕊 ⋄
       tgt ← PolicyForBase base
 
-      envelopes ← BuildEnvelopes ⟨base, resolved, cy, valid_rows, actualDates⟩
+      envelopes ← BuildEnvelopes ⟨resolved, cy, valid_rows, actualDates⟩
 
       matching_idx ← ({𝕩.label}¨ envelopes) ⊐ ⟨tgt.label⟩
       has_match ← matching_idx < ≠ envelopes
@@ -890,25 +876,14 @@ FormatJson ← {𝕊 ctx:
 
 {
   Build ⇐ BuildCtx,
-  BuildFromTuple ⇐ Build,
   BuildFromInputs ⇐ BuildFromInputs,
-  PolicyForBase ⇐ PolicyForBase,
   NoPolicyTarget ⇐ NoPolicyTarget,
   FixtureFoodLikeTarget ⇐ FixtureFoodLikeTarget,
   SelectedExpenseIndices ⇐ SelectedExpenseIndices,
   TargetBudgetAccountIndices ⇐ TargetBudgetAccountIndices,
-  CalcAllocated ⇐ CalcAllocated,
-  CalcActualSpent ⇐ CalcActualSpent,
-  CalcRemaining ⇐ CalcRemaining,
-  DecideStatus ⇐ DecideStatus,
   UnassignedBudgetAccountIndices ⇐ UnassignedBudgetAccountIndices,
-  CalcUnassignedRemaining ⇐ CalcUnassignedRemaining,
-  ActualClosingVecFromTbds ⇐ ActualClosingVecFromTbds,
-  CalcEnvelopeBacking ⇐ CalcEnvelopeBacking,
   Format ⇐ Format,
   FormatHuman ⇐ FormatHuman,
   FormatJson ⇐ FormatJson,
-  EnvelopeRoleForIndex ⇐ EnvelopeRoleForIndex,
-  IsActiveEnvelopeRole ⇐ IsActiveEnvelopeRole,
   ExecutionStatus ⇐ ExecutionStatus
 }
