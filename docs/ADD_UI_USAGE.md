@@ -50,6 +50,12 @@ tools/add-ui.sh --check
 | `issue` | Issues & Decisions の追加 | `issues.tsv` | `tools/edit issue add` |
 | `issue-close` | Issues & Decisions を閉じる | `issues.tsv` | `tools/edit issue close` |
 
+### 予定の実績化
+
+`plan-finish`では最初にupcoming / overdue / allを選びます。予定候補は狭いselectorでも内容を識別しやすいよう、`内容（memo） → 予定日 → 金額 → 振替元/先`の順で表示します。
+
+候補を選んだ後、実績日・実績金額を入力する前に、選択した予定の内容、予定日、予定金額、振替、`plan_id`、行状態、選択範囲を再表示します。期限超過予定を実績化するときも、何を選択したか確認してから入力できます。
+
 ### 複数ポスティングの金額
 
 `multi` では各勘定の増減を符号付きで入力し、取引全体の合計を `0` にします。

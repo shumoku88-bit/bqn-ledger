@@ -16,6 +16,8 @@ bash -n tools/plan-finish-replenish-ui.sh
 bash -n tools/lib/plan-finish-workflow.sh
 grep -Fq -- '--temporal "$scope" --as-of "$today"' tools/plan-finish-replenish-ui.sh
 grep -Fq 'load_plan_rows all' tools/plan-finish-replenish-ui.sh
+grep -Fq 'display_lines+=("$(plan_candidate_display "$line")")' tools/plan-finish-replenish-ui.sh
+grep -Fq "printf '  内容: %s\\n' \"\$plan_memo\"" tools/plan-finish-replenish-ui.sh
 
 # shellcheck source=tools/lib/plan-finish-workflow.sh
 source "$ROOT_DIR/tools/lib/plan-finish-workflow.sh"
@@ -96,6 +98,14 @@ query_status=$?
 set -e
 if [ "$query_status" -ne 2 ]; then
   echo "FAIL: plan-list query failure should report verification error status 2, got $query_status" >&2
+  exit 1
+fi
+
+# The selected plan summary must be visible before asking for actual values.
+summary_line="$(grep -nF 'show_selected_plan' tools/plan-finish-replenish-ui.sh | tail -n1 | cut -d: -f1)"
+actual_date_line="$(grep -nF "actual_date=\"\$(read_tty 'Actual date YYYY-MM-DD'" tools/plan-finish-replenish-ui.sh | head -n1 | cut -d: -f1)"
+if [ -z "$summary_line" ] || [ -z "$actual_date_line" ] || [ "$summary_line" -ge "$actual_date_line" ]; then
+  echo "FAIL: selected plan details must be shown before actual date/amount prompts" >&2
   exit 1
 fi
 

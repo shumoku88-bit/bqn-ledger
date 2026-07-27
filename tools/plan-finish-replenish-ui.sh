@@ -172,6 +172,31 @@ field() {
   printf '%s\n' "$line" | cut -f"$n"
 }
 
+plan_candidate_display() {
+  local line="$1" status status_suffix=""
+  status="$(field 8 "$line")"
+  if [[ -n "$status" ]]; then status_suffix=" [$status]"; fi
+  printf '%s: %s  |  予定日 %s  |  金額 %s  |  %s -> %s%s\n' \
+    "$(field 1 "$line")" \
+    "$(field 4 "$line")" \
+    "$(field 3 "$line")" \
+    "$(field 7 "$line")" \
+    "$(field 5 "$line")" \
+    "$(field 6 "$line")" \
+    "$status_suffix"
+}
+
+show_selected_plan() {
+  printf '\n選択した予定\n' >&2
+  printf '  内容: %s\n' "$plan_memo" >&2
+  printf '  予定日: %s\n' "$plan_date" >&2
+  printf '  予定金額: %s\n' "$plan_amount" >&2
+  printf '  振替: %s -> %s\n' "$plan_from" "$plan_to" >&2
+  printf '  plan_id: %s\n' "${plan_id:-(なし)}" >&2
+  printf '  行状態: %s\n' "${plan_status:-(OPEN)}" >&2
+  printf '  選択範囲: %s\n\n' "$plan_scope" >&2
+}
+
 load_related_rows() {
   local selector=(--index "$plan_number")
   if [[ -n "$plan_id" ]]; then
@@ -214,7 +239,7 @@ fi
 
 display_lines=()
 for line in "${plan_tsv_lines[@]}"; do
-  display_lines+=("$(field 9 "$line")")
+  display_lines+=("$(plan_candidate_display "$line")")
 done
 
 selected_display="$(printf '%s\n' "${display_lines[@]}" | select_line "select $plan_scope plan to finish" || true)"
@@ -225,7 +250,7 @@ fi
 
 selected_row=""
 for line in "${plan_tsv_lines[@]}"; do
-  if [[ "$(field 9 "$line")" == "$selected_display" ]]; then
+  if [[ "$(plan_candidate_display "$line")" == "$selected_display" ]]; then
     selected_row="$line"
     break
   fi
@@ -242,8 +267,10 @@ plan_memo="$(field 4 "$selected_row")"
 plan_from="$(field 5 "$selected_row")"
 plan_to="$(field 6 "$selected_row")"
 plan_amount="$(field 7 "$selected_row")"
+plan_status="$(field 8 "$selected_row")"
 plan_series=""
 
+show_selected_plan
 actual_date="$(read_tty 'Actual date YYYY-MM-DD' "$today")"
 actual_amount="$(read_tty 'Actual amount' "$plan_amount")"
 
