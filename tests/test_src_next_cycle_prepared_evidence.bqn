@@ -5,7 +5,8 @@ cycle ← •Import "../src_next/cycle.bqn"
 loader ← •Import "../src_next/loader.bqn"
 ak ← •Import "../src_next/account_key.bqn"
 actual_source ← •Import "../src_next/actual_source.bqn"
-admission ← •Import "../src_next/journal_complete_source_admission.bqn"
+admission ← •Import "../src/ledger/journal_complete_admission.bqn"
+setup ← •Import "../src_next/currency_setup.bqn"
 
 # The prepared-evidence fixture deliberately has no config, accounts, or Actual
 # Journal. Success proves this adapter does not fall back to source reloading.
@@ -57,7 +58,8 @@ base ← "fixtures/src-next-income-anchor-golden"
 resolved ← ak.Resolve loader.ReadLines (base ∾ "/accounts.tsv")
 sourceFile ← actual_source.ResolveRelativePath base
 raw ← loader.ReadRaw (base ∾ "/" ∾ sourceFile)
-admitted ← admission.Admit ⟨raw, resolved⟩
+admittedAccounts ← {key⇐resolved.accounts,currency⇐resolved.currencies}
+admitted ← admission.Admit ⟨raw,admittedAccounts,setup.registry_value⟩
 "ok" lib.AssertEq admitted.state
 
 loadedCycle ← cycle.ReadCycle base

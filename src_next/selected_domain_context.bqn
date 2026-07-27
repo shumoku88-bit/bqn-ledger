@@ -17,12 +17,13 @@ actual_source ← •Import "actual_source.bqn"
 setup ← •Import "currency_setup.bqn"
 arith ← •Import "currency_arithmetic.bqn"
 decimal ← •Import "../src/ledger/exact_decimal.bqn"
-admission ← •Import "journal_complete_source_admission.bqn"
+admission ← •Import "../src/ledger/journal_complete_admission.bqn"
 carrier ← •Import "journal_currency_proof_carrier_stage2a.bqn"
 context ← •Import "context.bqn"
 source_fields ← •Import "source_fields.bqn"
 
 empty ← ⟨⟩
+AdmissionAccounts ← {𝕊 resolved: {key⇐resolved.accounts,currency⇐resolved.currencies} }
 
 Diagnostic ← {𝕊 codeText‿messageText:
   {severity⇐"error", stage⇐"selected_domain_context", code⇐codeText, message⇐messageText}
@@ -176,7 +177,7 @@ BuildFromPreparedCore ← {𝕊 selectedCurrency‿raw‿resolved‿cy‿sourceF
   admitted ← {state⇐"not_run", transactions⇐empty, diagnostics⇐empty}
   {𝕊:
     admitted ↩ hasAdmitted ◶ ⟨
-      {𝕊: admission.Admit ⟨raw, resolved⟩},
+      {𝕊: admission.Admit ⟨raw,AdmissionAccounts resolved,setup.registry_value⟩},
       {𝕊: suppliedAdmitted}
     ⟩ @
     {𝕊:
@@ -253,7 +254,7 @@ Build ← {𝕊 base‿selectedCurrency:
   resolved ← ak.Resolve loader.ReadLines (base ∾ "/accounts.tsv")
   sourceFile ← actual_source.ResolveRelativePath base
   raw ← loader.ReadRaw (base ∾ "/" ∾ sourceFile)
-  preliminary ← admission.Admit ⟨raw, resolved⟩
+  preliminary ← admission.Admit ⟨raw,AdmissionAccounts resolved,setup.registry_value⟩
   result ← Failure ⟨selectedCurrency, "actual_admission_failed", "complete Journal admission failed", preliminary.diagnostics⟩
   {𝕊:
     # Complete admission already owns the Actual transaction evidence needed by

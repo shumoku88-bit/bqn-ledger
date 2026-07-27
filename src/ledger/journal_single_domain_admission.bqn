@@ -1,4 +1,4 @@
-# journal_supported_single_currency_admission.bqn
+# journal_single_domain_admission.bqn
 # Production semantic admission for one supported currency domain.
 #
 # Original source amounts, commodities, account-currency proof, identities, and
@@ -6,16 +6,22 @@
 # only to reuse the unchanged Stage 1 structure checks; it is never returned or
 # persisted as production evidence.
 
-util ← •Import "util.bqn"
-decimal ← •Import "../src/ledger/exact_decimal.bqn"
-dates ← •Import "date.bqn"
-setup ← •Import "currency_setup.bqn"
-structure ← •Import "../src/ledger/journal_transaction_structure.bqn"
+decimal ← •Import "exact_decimal.bqn"
+dates ← •Import "date_ordinal.bqn"
+structure ← •Import "journal_transaction_structure.bqn"
 
 lf ← @+10
 cr ← @+13
 space ← @+32
 empty ← ⟨⟩
+SplitKeepEmpty ← {𝕊 sep‿text:
+  groups ← (+`sep=text)⊔text
+  {(sep≠𝕩)/𝕩}¨groups
+}
+Split ← {𝕊 sep‿text:
+  parts ← SplitKeepEmpty ⟨sep,text⟩
+  (0<≠¨parts)/parts
+}
 
 TrimLeft ← {𝕊 xs:
   prefix ← ∧` (xs = space)
@@ -30,7 +36,7 @@ StartsWith ← {𝕊 prefix‿text: prefix ≡ (≠ prefix) ↑ text }
 IsDateHeader ← {𝕊 text:
   enough ← 10 < ≠ text
   separator ← space = 10 ⊑ (text ∾ 11 ⥊ space)
-  enough ∧ separator ∧ dates.IsValidDateText 10 ↑ text
+  enough ∧ separator ∧ dates.IsValid 10 ↑ text
 }
 
 Diagnostic ← {𝕊 codeText‿lineNumber‿messageText:
@@ -38,40 +44,40 @@ Diagnostic ← {𝕊 codeText‿lineNumber‿messageText:
 }
 AddIf ← {𝕊 invalid‿diagnostic: invalid / ⟨diagnostic⟩ }
 
-ResolveDomain ← {𝕊 lines:
+ResolveDomain ← {𝕊 lines‿registry:
   indexes ← ({StartsWith ⟨"commodity ", Trim 𝕩⟩}¨ lines) / ↕ ≠ lines
   diagnostics ← empty
   domain ← ""
   sourceLine ← 0
-  policy ← setup.Policy ""
+  policy ← registry.Policy ""
   diagnostics ∾↩ AddIf ⟨1 ≠ ≠ indexes, Diagnostic ⟨"commodity_domain_count_invalid", 0, "Journal partition must declare exactly one commodity domain"⟩⟩
   {𝕊:
     i ← ⊑ indexes
-    fields ← space util.Split Trim i ⊑ lines
+    fields ← Split ⟨space,Trim i⊑lines⟩
     valid ← 2 = ≠ fields
     diagnostics ∾↩ AddIf ⟨¬ valid, Diagnostic ⟨"commodity_shape_invalid", i + 1, "commodity declaration must contain exactly one code"⟩⟩
     {𝕊:
       domain ↩ 1 ⊑ fields
       sourceLine ↩ i + 1
-      policy ↩ setup.Policy domain
+      policy ↩ registry.Policy domain
       diagnostics ∾↩ AddIf ⟨policy.state ≢ "ok", Diagnostic ⟨"commodity_unsupported", i + 1, "commodity must be admitted by registry"⟩⟩
     }⍟valid @
   }⍟(1 = ≠ indexes) @
   {domain⇐domain, source_line⇐sourceLine, policy⇐policy, diagnostics⇐diagnostics}
 }
 
-LookupAccount ← {𝕊 accountKey‿resolved:
-  mask ← accountKey⊸≡¨ resolved.accounts
+LookupAccount ← {𝕊 accountKey‿accounts:
+  mask ← accountKey⊸≡¨ accounts.key
   count ← +´ mask
   result ← {state⇐"error", currency⇐""}
   {𝕊:
     i ← ⊑ mask / ↕ ≠ mask
-    result ↩ {state⇐"ok", currency⇐i ⊑ resolved.currencies}
+    result ↩ {state⇐"ok", currency⇐i⊑accounts.currency}
   }⍟(1 = count) @
   result
 }
 
-Collect ← {𝕊 lines‿resolved‿domainInfo:
+Collect ← {𝕊 lines‿accounts‿domainInfo:
   diagnostics ← empty
   postings ← empty
   transactionStarts ← empty
@@ -92,7 +98,7 @@ Collect ← {𝕊 lines‿resolved‿domainInfo:
     candidate ← indented ∧ (0 < ≠ trimmed) ∧ (¬ metadata)
     {𝕊:
       lineNumber ← lineIndex + 1
-      fields ← space util.Split trimmed
+      fields ← Split ⟨space,trimmed⟩
       valid ← 3 = ≠ fields
       diagnostics ∾↩ AddIf ⟨¬ valid, Diagnostic ⟨"posting_shape_invalid", lineNumber, "posting must contain account, explicit amount, and commodity"⟩⟩
       {𝕊:
@@ -106,7 +112,7 @@ Collect ← {𝕊 lines‿resolved‿domainInfo:
         {𝕊: coefficient ↩ (1 - 2 × negative) × parsed.coefficient}⍟amountOk @
         finite ← 0 ≤ domainInfo.policy.max_fraction_digits
         precisionOk ← amountOk ∧ ((¬ finite) ∨ parsed.scale ≤ domainInfo.policy.max_fraction_digits)
-        account ← LookupAccount ⟨accountKey, resolved⟩
+        account ← LookupAccount ⟨accountKey,accounts⟩
         localDiagnostics ← empty
         localDiagnostics ∾↩ AddIf ⟨transactionIndex < 0, Diagnostic ⟨"posting_outside_transaction", lineNumber, "posting must belong to a dated transaction"⟩⟩
         localDiagnostics ∾↩ AddIf ⟨¬ amountOk, Diagnostic ⟨"posting_amount_invalid", lineNumber, "posting amount must parse exactly"⟩⟩
@@ -180,7 +186,7 @@ RenderStructuralPosting ← {𝕊 posting:
 }
 
 BuildStructuralRaw ← {𝕊 raw‿domainInfo‿postings:
-  lines ← lf util.SplitKeepEmpty ((cr ≠ raw) / raw)
+  lines ← SplitKeepEmpty ⟨lf,(cr≠raw)/raw⟩
   transformed ← {𝕊 lineIndex:
     lineNumber ← lineIndex + 1
     output ← lineIndex ⊑ lines
@@ -235,16 +241,16 @@ BuildTransactions ← {𝕊 parsedTransactions‿postings‿domain‿calculation
   }¨ ↕ ≠ parsedTransactions
 }
 
-Admit ← {𝕊 raw‿resolved:
-  lines ← lf util.SplitKeepEmpty ((cr ≠ raw) / raw)
-  domainInfo ← ResolveDomain lines
+Admit ← {𝕊 raw‿accounts‿registry:
+  lines ← SplitKeepEmpty ⟨lf,(cr≠raw)/raw⟩
+  domainInfo ← ResolveDomain ⟨lines,registry⟩
   diagnostics ← domainInfo.diagnostics
   transactionStarts ← empty
   calculationScale ← 0
   normalizedPostings ← empty
   transactions ← empty
   {𝕊:
-    collected ← Collect ⟨lines, resolved, domainInfo⟩
+    collected ← Collect ⟨lines,accounts,domainInfo⟩
     diagnostics ∾↩ collected.diagnostics
     transactionStarts ↩ collected.transaction_starts
     diagnostics ∾↩ AddIf ⟨0 = ≠ transactionStarts, Diagnostic ⟨"transaction_missing", 0, "Journal partition must contain at least one dated transaction"⟩⟩

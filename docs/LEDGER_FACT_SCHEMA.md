@@ -1,7 +1,7 @@
 # Canonical ledger fact schema
 
-Status: Phase 1A readonly proof
-Owner: `src/ledger/facts.bqn`
+Status: Phase 1B canonical admission and facts
+Owner: `src/ledger/snapshot.bqn` / `src/ledger/facts.bqn`
 Public evidence: `fixtures/ledger-facts-phase1-proof/`
 
 ## Boundary
@@ -9,11 +9,22 @@ Public evidence: `fixtures/ledger-facts-phase1-proof/`
 `facts.Project ⟨completeAdmission, admittedAccounts⟩` accepts only:
 
 - a successful complete Actual admission result;
-- a minimal aligned admitted account table with `key`, `currency`, and `role`.
+- a strict aligned admitted Account table.
 
 It does not accept a report context, source path, raw Journal text, historical transaction carrier, Plan/Budget rows, Cube, TBDS, or section ViewModel. It performs no I/O and reads no clock.
 
-The Phase 1A test uses current complete admission as an external comparison harness. Destination code does not import `src_next`. Phase 1B moved normalized transaction grammar/metadata/side/identity ownership to `src/ledger/journal_transaction_structure.bqn`; current single-currency semantic admission now calls that owner instead of `journal_profile_stage1` with `historical_external_plan`. Exact-decimal and pure currency-registry ownership moved with all callers and no old-path wrappers. `src/ledger/account_admission.bqn` now proves required supported account currency, aligned metadata, unique keys, and missing-role diagnostics before Account Facts reach this projector. Complete-source domain partitioning and final Journal admission ownership still move in later Phase 1B slices. The test bridge is not a runtime adapter.
+Destination code does not import `src_next`. Phase 1B moved transaction grammar, exact decimal, currency registry, strict Account admission, single-domain admission, complete multi-domain admission, and fact projection into `src/ledger`. Runtime/editor/tool/test callers now import the canonical admission owners directly; old module paths were physically deleted without wrappers. Compatibility callers may still construct the minimal Account key/currency carrier from their existing resolver, while the canonical snapshot proof uses strict Account admission.
+
+`src/ledger/snapshot.bqn` is the pure composition boundary:
+
+```text
+already-read accounts.tsv lines + raw Journal + currency registry
+  -> strict Account admission
+  -> complete Journal admission
+  -> canonical Transaction/Posting facts
+```
+
+It returns no partial facts after account, Journal, or projection failure and performs no source I/O.
 
 ## Canonical transaction structure boundary
 

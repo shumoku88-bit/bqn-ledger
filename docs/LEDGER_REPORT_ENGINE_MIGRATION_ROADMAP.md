@@ -313,8 +313,8 @@ Exit:
 ### Phase 1 — Prove the canonical complete-admission schema
 
 - [x] Define transaction and posting fact schemas with exact domain, scale, identity, and source provenance (`docs/LEDGER_FACT_SCHEMA.md`).
-- [ ] Project complete admitted Actual transactions into those facts without a historical parser.
-- [ ] Prove multi-posting, declaration-only, JPY/ILS/USD single-domain, metadata, plan completion, and source-line behavior.
+- [x] Project complete admitted Actual transactions into those facts without a historical parser.
+- [x] Prove multi-posting, declaration-only, JPY/ILS/USD single-domain, metadata, plan completion, and source-line behavior.
 - [ ] Prove that every report-required fact can be derived from complete admission or name the missing canonical field.
 - [ ] Extend complete admission only for real canonical evidence; do not add report fields.
 - [ ] Make editor read commands consume the same admitted transaction facts where applicable.

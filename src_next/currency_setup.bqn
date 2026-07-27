@@ -223,6 +223,7 @@ AuditFile ← {𝕊 fileName‿kind‿lines:
 }
 
 {
+  registry_value ⇐ registry,
   supported_currencies ⇐ currencyCodes,
   Policy ⇐ Policy,
   IsSupportedCurrency ⇐ IsSupportedCurrency,

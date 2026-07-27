@@ -84,7 +84,7 @@ transaction-level `kind`はposting account classificationではありません�
 Canonical Daily CubeへCurrency軸を追加することが多通貨対応の前提ではありません。
 
 - `AccountKey = (Account, Currency)`がaccount balanceのcommodity separationを保つ。
-- `journal_complete_source_admission.bqn`はmulti-currency Journal container全体をadmitするが、各ordinary transactionはsingle-domainでbalanceする。
+- `src/ledger/journal_complete_admission.bqn`はmulti-currency Journal container全体をadmitするが、各ordinary transactionはsingle-domainでbalanceする。
 - `journal_currency_proof_carrier_stage2a.bqn`はsource coefficient、commodity、domain、calculation scaleをuntyped deltaへ落とさず保持する。
 - `selected_domain_context.bqn`は一つのselected currencyを選び、そのdomain内でexact scaleをそろえてからcurrent `BuildPeriodView`や同domainのpurpose-specific consumerへ渡す。
 - exact sparse grouping kernel自体はcurrency-awareではない。measure ownerが先にcompatible arithmetic domainを決め、domainをpartitionまたはkeyとして保持する。

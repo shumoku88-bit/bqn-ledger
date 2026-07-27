@@ -5,9 +5,11 @@
 config ← •Import "config.bqn"
 loader ← •Import "loader.bqn"
 parser ← •Import "journal_profile_stage1.bqn"
-admission ← •Import "journal_complete_source_admission.bqn"
+admission ← •Import "../src/ledger/journal_complete_admission.bqn"
 ak ← •Import "account_key.bqn"
 dt ← •Import "date.bqn"
+setup ← •Import "currency_setup.bqn"
+AdmissionAccounts ← {𝕊 resolved: {key⇐resolved.accounts,currency⇐resolved.currencies} }
 
 Resolve ← {𝕊 base: config.LoadActualJournal base}
 
@@ -36,7 +38,7 @@ LoadCycleEvidence ← {𝕊 base:
   accountsExist ← 0 = ⊑ •SH ⟨"test", "-f", accountsPath⟩
   {𝕊:
     resolved ← ak.Resolve loader.ReadLines accountsPath
-    admitted ← admission.Admit ⟨raw, resolved⟩
+    admitted ← admission.Admit ⟨raw,AdmissionAccounts resolved,setup.registry_value⟩
     {𝕊: result ↩ {state⇐"ok", complete⇐1, transactions⇐admitted.transactions}}⍟(admitted.state≡"ok") @
   }⍟accountsExist @
   {𝕊:

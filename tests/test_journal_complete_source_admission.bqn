@@ -2,8 +2,9 @@
 
 lib ← •Import "test_lib.bqn"
 ak ← •Import "../src_next/account_key.bqn"
-admission ← •Import "../src_next/journal_complete_source_admission.bqn"
+admission ← •Import "../src/ledger/journal_complete_admission.bqn"
 stage1 ← •Import "../src_next/journal_profile_stage1.bqn"
+setup ← •Import "../src_next/currency_setup.bqn"
 
 lf ← @+10
 tab ← @+9
@@ -18,6 +19,8 @@ resolved ← ak.Resolve ⟨
   "assets:cash-usd" ∾ tab ∾ "role=asset" ∾ tab ∾ "currency=USD",
   "expenses:food-usd" ∾ tab ∾ "role=expense" ∾ tab ∾ "currency=USD"
 ⟩
+admittedAccounts ← {key⇐resolved.accounts,currency⇐resolved.currencies}
+Admit ← {𝕊 raw: admission.Admit ⟨raw,admittedAccounts,setup.registry_value⟩ }
 
 # One production complete-source result contains separate JPY and ILS ordinary
 # transactions without manufacturing a Journal-wide arithmetic domain.
@@ -46,7 +49,7 @@ jpyIlsRaw ← MakeRaw ⟨
   "  assets:cash-ils  -12.34 ILS",
   "  expenses:food-ils  12.34 ILS"
 ⟩
-jpyIls ← admission.Admit ⟨jpyIlsRaw, resolved⟩
+jpyIls ← Admit jpyIlsRaw
 
 "ok" lib.AssertEq jpyIls.state
 0 lib.AssertEq ≠ jpyIls.diagnostics
@@ -123,7 +126,7 @@ jpyUsdRaw ← MakeRaw ⟨
   "  assets:cash-usd  -7.5 USD",
   "  expenses:food-usd  7.5 USD"
 ⟩
-jpyUsd ← admission.Admit ⟨jpyUsdRaw, resolved⟩
+jpyUsd ← Admit jpyUsdRaw
 
 "ok" lib.AssertEq jpyUsd.state
 0 lib.AssertEq ≠ jpyUsd.diagnostics
@@ -164,7 +167,7 @@ partialRaw ← MakeRaw ⟨
   "  assets:bank-jpy  -50 JPY",
   "  expenses:food-ils  50 ILS"
 ⟩
-partial ← admission.Admit ⟨partialRaw, resolved⟩
+partial ← Admit partialRaw
 "error" lib.AssertEq partial.state
 lib.Assert HasCode ⟨"transaction_domain_count_invalid", partial⟩
 0 lib.AssertEq ≠ partial.transactions
@@ -194,7 +197,7 @@ duplicateIdentityRaw ← MakeRaw ⟨
   "  assets:cash-ils  -1.00 ILS",
   "  expenses:food-ils  1.00 ILS"
 ⟩
-duplicateIdentity ← admission.Admit ⟨duplicateIdentityRaw, resolved⟩
+duplicateIdentity ← Admit duplicateIdentityRaw
 "error" lib.AssertEq duplicateIdentity.state
 1 lib.AssertEq ≠ duplicateIdentity.diagnostics
 lib.Assert HasCode ⟨"event_id_duplicate", duplicateIdentity⟩
@@ -213,7 +216,7 @@ mixedRaw ← MakeRaw ⟨
   "  assets:bank-jpy  -100 JPY",
   "  expenses:food-ils  100 ILS"
 ⟩
-mixed ← admission.Admit ⟨mixedRaw, resolved⟩
+mixed ← Admit mixedRaw
 "error" lib.AssertEq mixed.state
 1 lib.AssertEq ≠ mixed.diagnostics
 lib.Assert HasCode ⟨"transaction_domain_count_invalid", mixed⟩
@@ -230,7 +233,7 @@ undeclaredRaw ← MakeRaw ⟨
   "  assets:cash-ils  -1.00 ILS",
   "  expenses:food-ils  1.00 ILS"
 ⟩
-undeclared ← admission.Admit ⟨undeclaredRaw, resolved⟩
+undeclared ← Admit undeclaredRaw
 "error" lib.AssertEq undeclared.state
 1 lib.AssertEq ≠ undeclared.diagnostics
 lib.Assert HasCode ⟨"transaction_domain_undeclared", undeclared⟩
@@ -247,7 +250,7 @@ unsupportedRaw ← MakeRaw ⟨
   "  assets:bank-jpy  -1.00 EUR",
   "  expenses:food-jpy  1.00 EUR"
 ⟩
-unsupported ← admission.Admit ⟨unsupportedRaw, resolved⟩
+unsupported ← Admit unsupportedRaw
 "error" lib.AssertEq unsupported.state
 1 lib.AssertEq ≠ unsupported.diagnostics
 lib.Assert HasCode ⟨"commodity_unsupported", unsupported⟩
@@ -264,7 +267,7 @@ precisionRaw ← MakeRaw ⟨
   "  assets:cash-ils  -1.234 ILS",
   "  expenses:food-ils  1.234 ILS"
 ⟩
-precision ← admission.Admit ⟨precisionRaw, resolved⟩
+precision ← Admit precisionRaw
 "error" lib.AssertEq precision.state
 lib.Assert HasCode ⟨"posting_precision_exceeded", precision⟩
 0 lib.AssertEq ≠ precision.transactions
@@ -280,7 +283,7 @@ accountMismatchRaw ← MakeRaw ⟨
   "  assets:cash-usd  -1.00 ILS",
   "  expenses:food-ils  1.00 ILS"
 ⟩
-accountMismatch ← admission.Admit ⟨accountMismatchRaw, resolved⟩
+accountMismatch ← Admit accountMismatchRaw
 "error" lib.AssertEq accountMismatch.state
 lib.Assert HasCode ⟨"posting_account_currency_mismatch", accountMismatch⟩
 0 lib.AssertEq ≠ accountMismatch.transactions
@@ -293,7 +296,7 @@ malformedRaw ← MakeRaw ⟨
   "2026-07-25 * malformed posting",
   "  assets:bank-jpy  -100"
 ⟩
-malformed ← admission.Admit ⟨malformedRaw, resolved⟩
+malformed ← Admit malformedRaw
 "error" lib.AssertEq malformed.state
 1 lib.AssertEq ≠ malformed.diagnostics
 lib.Assert HasCode ⟨"posting_shape_invalid", malformed⟩
@@ -304,7 +307,7 @@ emptyRaw ← MakeRaw ⟨
   "",
   "account assets:bank-jpy"
 ⟩
-emptyResult ← admission.Admit ⟨emptyRaw, resolved⟩
+emptyResult ← Admit emptyRaw
 "ok" lib.AssertEq emptyResult.state
 0 lib.AssertEq ≠ emptyResult.diagnostics
 0 lib.AssertEq ≠ emptyResult.transactions
@@ -321,7 +324,7 @@ zeroRaw ← MakeRaw ⟨
   "  assets:cash-ils  0.00 ILS",
   "  expenses:food-ils  0.00 ILS"
 ⟩
-zero ← admission.Admit ⟨zeroRaw, resolved⟩
+zero ← Admit zeroRaw
 "error" lib.AssertEq zero.state
 lib.Assert HasCode ⟨"posting_amount_zero", zero⟩
 0 lib.AssertEq ≠ zero.transactions
@@ -337,7 +340,7 @@ unbalancedRaw ← MakeRaw ⟨
   "  assets:cash-ils  -1.00 ILS",
   "  expenses:food-ils  0.99 ILS"
 ⟩
-unbalanced ← admission.Admit ⟨unbalancedRaw, resolved⟩
+unbalanced ← Admit unbalancedRaw
 "error" lib.AssertEq unbalanced.state
 1 lib.AssertEq ≠ unbalanced.diagnostics
 lib.Assert HasCode ⟨"event_unbalanced", unbalanced⟩
@@ -353,7 +356,7 @@ physicalRaw ← MakeRaw ⟨
   "2026-07-25 * physical JPY", "  assets:bank-jpy  -1 JPY", "  expenses:food-jpy  1 JPY", "",
   "2026-07-26 * physical ILS", "  assets:cash-ils  -1 ILS", "  expenses:food-ils  1 ILS"
 ⟩
-physical ← admission.Admit ⟨physicalRaw, resolved⟩
+physical ← Admit physicalRaw
 "ok" lib.AssertEq physical.state
 2 lib.AssertEq ≠ physical.transactions
 physicalIds ← {𝕩.source_event_id}¨ physical.transactions

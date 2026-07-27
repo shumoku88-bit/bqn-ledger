@@ -1,7 +1,7 @@
 # journal_block_add_cmd.bqn
 # Semantic owner for one explicit native actual-layer Journal transaction append.
 
-admission ← •Import "../src_next/journal_complete_source_admission.bqn"
+admission ← •Import "../src/ledger/journal_complete_admission.bqn"
 carrier ← •Import "../src_next/journal_currency_proof_carrier_stage2a.bqn"
 ak ← •Import "../src_next/account_key.bqn"
 loader ← •Import "../src_next/loader.bqn"
@@ -14,6 +14,7 @@ tab ← @+9
 lf ← @+10
 space ← @+32
 empty ← ⟨⟩
+AdmissionAccounts ← {𝕊 resolved: {key⇐resolved.accounts,currency⇐resolved.currencies} }
 
 Fail ← {𝕊 code‿message:
   •Out "ERROR" ∾ tab ∾ code ∾ tab ∾ message
@@ -106,7 +107,7 @@ metadataKeys ← {𝕩.key}¨metadata
 
 resolved ← ak.Resolve loader.ReadLines (base ∾ "/accounts.tsv")
 raw ← loader.ReadRaw target
-existing ← admission.Admit ⟨raw, resolved⟩
+existing ← admission.Admit ⟨raw,AdmissionAccounts resolved,setup.registry_value⟩
 {𝕊⋄Fail ⟨"existing_journal_invalid", "existing complete Journal does not satisfy supported-currency admission"⟩}⍟(existing.state ≢ "ok") @
 candidateOrdinal ← ≠ existing.transactions
 {𝕊⋄Fail ⟨"event_id_duplicate", "event-id already exists in the complete Journal"⟩}⍟((identityMode ≡ "durable") ∧ ∨´ 0 ∾ {𝕩.source_event_id ≡ eventId}¨ existing.transactions) @
@@ -131,7 +132,7 @@ endsTwo ← (1 < rawCount) ∧ (lf = ¯1 ⊑ raw) ∧ lf = ¯2 ⊑ raw
 semanticSeparator ← endsTwo ◶ ⟨{endsOne ◶ ⟨{lf ∾ lf}, {lf}⟩ @}, {""}⟩ @
 transportPrefixCount ← endsTwo ◶ ⟨{1}, {0}⟩ @
 proposedRaw ← raw ∾ semanticSeparator ∾ block ∾ lf
-proposed ← admission.Admit ⟨proposedRaw, resolved⟩
+proposed ← admission.Admit ⟨proposedRaw,AdmissionAccounts resolved,setup.registry_value⟩
 {𝕊⋄diagnostic←⊑proposed.diagnostics ⋄ Fail ⟨"proposed_journal_invalid", "exact proposed complete Journal rejected: " ∾ diagnostic.code ∾ " at line " ∾ •Fmt diagnostic.line⟩}⍟(proposed.state ≢ "ok") @
 {𝕊⋄Fail ⟨"candidate_count_invalid", "proposed Journal must contain exactly one transaction beyond the existing transaction count"⟩}⍟((candidateOrdinal + 1) ≢ ≠ proposed.transactions) @
 

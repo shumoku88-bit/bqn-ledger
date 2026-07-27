@@ -2,11 +2,12 @@
 
 lib ← •Import "test_lib.bqn"
 account_key ← •Import "../src_next/account_key.bqn"
-admission ← •Import "../src_next/journal_complete_source_admission.bqn"
+admission ← •Import "../src/ledger/journal_complete_admission.bqn"
 loader ← •Import "../src_next/loader.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
 account_admission ← •Import "../src/ledger/account_admission.bqn"
 facts ← •Import "../src/ledger/facts.bqn"
+snapshot ← •Import "../src/ledger/snapshot.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 
 base ← "fixtures/ledger-facts-phase1-proof/"
@@ -14,7 +15,8 @@ accountLines ← loader.ReadLines base∾"accounts.tsv"
 resolved ← account_key.Resolve accountLines
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
 strictAccounts ← account_admission.Admit ⟨accountLines,registry⟩
-admitted ← admission.Admit ⟨•FChars "../"∾base∾"actual.journal", resolved⟩
+rawJournal ← •FChars "../"∾base∾"actual.journal"
+admitted ← admission.Admit ⟨rawJournal,strictAccounts.accounts,registry⟩
 admittedAccounts ← strictAccounts.accounts
 result ← facts.Project ⟨admitted,admittedAccounts⟩
 
@@ -22,6 +24,17 @@ result ← facts.Project ⟨admitted,admittedAccounts⟩
 "ok" lib.AssertEq admitted.state
 "ok" lib.AssertEq result.state
 0 lib.AssertEq ≠result.diagnostics
+canonicalSnapshot ← snapshot.Build ⟨accountLines,rawJournal,registry⟩
+"ok" lib.AssertEq canonicalSnapshot.state
+0 lib.AssertEq ≠canonicalSnapshot.diagnostics
+result.transactions.transaction_id lib.AssertEq canonicalSnapshot.facts.transactions.transaction_id
+result.postings.posting_id lib.AssertEq canonicalSnapshot.facts.postings.posting_id
+result.postings.coefficient lib.AssertEq canonicalSnapshot.facts.postings.coefficient
+invalidAccountSnapshot ← snapshot.Build ⟨⟨"assets:cash"∾(@+9)∾"role=asset"⟩,rawJournal,registry⟩
+"error" lib.AssertEq invalidAccountSnapshot.state
+0 lib.AssertEq invalidAccountSnapshot.facts.transactions.count
+0 lib.AssertEq invalidAccountSnapshot.facts.postings.count
+lib.Assert ∨´{𝕩.code≡"account_currency_missing"}¨invalidAccountSnapshot.diagnostics
 ⟨"JPY"⟩ lib.AssertEq result.domains.code
 ⟨"actual"⟩ lib.AssertEq result.layers.name
 8 lib.AssertEq result.accounts.count
@@ -119,13 +132,18 @@ currencyMismatchRaw ← ∾⟨
   "    expenses:food 1 JPY"∾lf,
   "    assets:cash -1 JPY"∾lf
 ⟩
-currencyMismatch ← admission.Admit ⟨currencyMismatchRaw,resolved⟩
+currencyMismatch ← admission.Admit ⟨currencyMismatchRaw,strictAccounts.accounts,registry⟩
 "error" lib.AssertEq currencyMismatch.state
 lib.Assert ∨´{𝕩.code≡"transaction_currency_mismatch"}¨currencyMismatch.diagnostics
 0 lib.AssertEq ≠currencyMismatch.transactions
+invalidJournalSnapshot ← snapshot.Build ⟨accountLines,currencyMismatchRaw,registry⟩
+"error" lib.AssertEq invalidJournalSnapshot.state
+0 lib.AssertEq invalidJournalSnapshot.facts.transactions.count
+0 lib.AssertEq invalidJournalSnapshot.facts.postings.count
+lib.Assert ∨´{𝕩.code≡"transaction_currency_mismatch"}¨invalidJournalSnapshot.diagnostics
 
 emptyRaw ← ∾ ⟨"commodity JPY"∾lf,""∾lf,"account assets:cash"∾lf⟩
-emptyAdmitted ← admission.Admit ⟨emptyRaw,resolved⟩
+emptyAdmitted ← admission.Admit ⟨emptyRaw,strictAccounts.accounts,registry⟩
 emptyResult ← facts.Project ⟨emptyAdmitted,admittedAccounts⟩
 "ok" lib.AssertEq emptyResult.state
 ⟨"JPY"⟩ lib.AssertEq emptyResult.domains.code

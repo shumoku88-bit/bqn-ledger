@@ -6,7 +6,7 @@ This is the lightweight queue for current work. Completed implementation history
 
 - Native Journal is the sole production Actual source; companion sources are `plan.tsv`, `budget_alloc.tsv`, `accounts.tsv`, `cycle.tsv`, and `issues.tsv`.
 - Daily human reporting runs through `tools/report` → `src_next/report.bqn`; compact output uses `tools/report-next-summary` → `src_next/summary.bqn`.
-- Production routing remains `src_next`, now 73 BQN modules and 12,867 physical lines after exact-decimal, currency-registry, transaction-structure, and strict account-admission ownership moved to `src/ledger` without old-path wrappers. All report sections remain available.
+- Production routing remains `src_next`, now 71 BQN modules and 12,343 physical lines after canonical complete/single-domain Journal admission and supporting fact kernels moved to `src/ledger` without old-path wrappers. All report sections remain available.
 - Canonical Daily Cube, TBDS, and purpose-specific sparse consumers remain views over checked posting facts, not competing source truths.
 - The current runtime still contains dual context/admission routes, historical transaction/proof fallbacks, compatibility exports, test seams, and historical entrypoint names.
 - Current reporting remains production until a separately verified ledger-facts engine passes the cutover gate.
@@ -65,15 +65,23 @@ This is not a section-reduction campaign and must not recreate the old giant all
 - [x] Compared canonical facts with the public fixture's current Trial Balance/Recent/Daily Flow/Balances/Plan evidence.
 - [x] Did not copy a section, create a universal context, or add a textual query DSL.
 
-### Current finite slice: Phase 1B strict admission ownership
+### Completed finite slice: Phase 1B strict admission ownership
 
 - [x] Replace complete admission's transient `historical_external_plan` structural parser dependency with `src/ledger/journal_transaction_structure.bqn`.
 - [x] Preserve first-failure diagnostics, no-partial-result behavior, exact decimals, posting side, metadata, physical/durable identity, declared-account proof, and source lines.
 - [x] Prove declaration-only and JPY/ILS/USD single-domain transactions, including multi-posting and precision rejection, through the canonical structure owner.
 - [x] Move exact-decimal parsing/range ownership and all runtime/editor/test callers to `src/ledger/exact_decimal.bqn`; leave no old path.
 - [x] Move the pure currency registry and prove strict aligned account admission with required supported currency and unclassified-role diagnostics.
-- [ ] Connect canonical complete Journal admission to strict Account Facts and `src/ledger/facts.bqn` without importing `src_next` from destination code.
-- [ ] Move coherent admission ownership and all callers together; leave no old-path forwarding wrapper.
+- [x] Connect raw Journal plus strict Account admission to `src/ledger/facts.bqn` through pure `src/ledger/snapshot.bqn`, with no destination import of `src_next`.
+- [x] Move complete/single-domain admission ownership and all runtime/editor/tool callers together; physically delete old paths and leave no forwarding wrapper.
+
+### Current finite slice: Phase 1C fact sufficiency and reader migration
+
+- [ ] Map every existing report/editor Actual requirement to Transaction Facts, Posting Facts, Account/Domain/Layer tables, or an explicitly missing canonical field.
+- [ ] Add narrow canonical transaction/posting selectors needed by the first real consumers; do not add section-named fields.
+- [ ] Migrate editor Actual list/reverse/check readers from `actual_source.LoadTransactions` historical `delta` shape to canonical snapshot facts.
+- [ ] Migrate cycle/completion evidence to canonical facts where their semantics are already proved, then delete the corresponding historical fallback branch.
+- [ ] Keep Plan/Budget admission, Pivot, and Trial Balance section replacement out of this reader-focused slice.
 
 Phase 0 exit evidence is `docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`: every observable report capability has an owner, every compatibility path has a deletion gate, and no undecided fallback is permitted in the destination fact schema.
 

@@ -1,7 +1,7 @@
 # journal_native_source_check.bqn
 # Mandatory post-write validator for one explicit supported-currency Journal candidate.
 
-admission ← •Import "../src_next/journal_complete_source_admission.bqn"
+admission ← •Import "../src/ledger/journal_complete_admission.bqn"
 carrier ← •Import "../src_next/journal_currency_proof_carrier_stage2a.bqn"
 ak ← •Import "../src_next/account_key.bqn"
 loader ← •Import "../src_next/loader.bqn"
@@ -12,6 +12,7 @@ args ← •args
 tab ← @+9
 space ← @+32
 empty ← ⟨⟩
+AdmissionAccounts ← {𝕊 resolved: {key⇐resolved.accounts,currency⇐resolved.currencies} }
 Fail ← {𝕊 code‿message: •Out "ERROR"∾tab∾code∾tab∾message ⋄ •Exit 1}
 TrimLeft ← {𝕊 xs: (+´ ∧` (xs = space)) ↓ xs}
 TrimRight ← {𝕊 xs: ((≠ xs) - +´ ∧` ((⌽ xs) = space)) ↑ xs}
@@ -77,7 +78,7 @@ expected ↩ Normalize¨expected
 
 resolved ← ak.Resolve loader.ReadLines (base∾"/accounts.tsv")
 raw ← loader.ReadRaw target
-admitted ← admission.Admit ⟨raw, resolved⟩
+admitted ← admission.Admit ⟨raw,AdmissionAccounts resolved,setup.registry_value⟩
 {𝕊⋄Fail ⟨"native_journal_invalid", "full written native Journal failed complete-source admission"⟩}⍟(admitted.state≢"ok") @
 {𝕊⋄Fail ⟨"native_candidate_count_invalid", "written Journal transaction count does not match the pre-write candidate ordinal plus one"⟩}⍟((candidateOrdinal + 1) ≢ ≠ admitted.transactions) @
 

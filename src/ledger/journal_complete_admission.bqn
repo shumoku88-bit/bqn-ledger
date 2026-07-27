@@ -1,4 +1,4 @@
-# journal_complete_source_admission.bqn
+# journal_complete_admission.bqn
 # Production complete-source admission for a multi-currency Journal container.
 #
 # One raw Journal may declare several registry-supported currency domains while
@@ -6,15 +6,21 @@
 # exact calculation scale. A declaration-only Journal is a valid empty Actual
 # source. No Journal-wide money domain, scale, or total exists.
 
-util ← •Import "util.bqn"
-dates ← •Import "date.bqn"
-setup ← •Import "currency_setup.bqn"
-single ← •Import "journal_supported_single_currency_admission.bqn"
+dates ← •Import "date_ordinal.bqn"
+single ← •Import "journal_single_domain_admission.bqn"
 
 lf ← @+10
 cr ← @+13
 space ← @+32
 empty ← ⟨⟩
+SplitKeepEmpty ← {𝕊 sep‿text:
+  groups ← (+`sep=text)⊔text
+  {(sep≠𝕩)/𝕩}¨groups
+}
+Split ← {𝕊 sep‿text:
+  parts ← SplitKeepEmpty ⟨sep,text⟩
+  (0<≠¨parts)/parts
+}
 
 TrimLeft ← {𝕊 xs:
   prefix ← ∧` (xs = space)
@@ -35,7 +41,7 @@ Unique ← {𝕊 items:
 IsDateHeader ← {𝕊 text:
   enough ← 10 < ≠ text
   separator ← space = 10 ⊑ (text ∾ 11 ⥊ space)
-  enough ∧ separator ∧ dates.IsValidDateText 10 ↑ text
+  enough ∧ separator ∧ dates.IsValid 10 ↑ text
 }
 
 Diagnostic ← {𝕊 codeText‿lineNumber‿messageText:
@@ -43,7 +49,7 @@ Diagnostic ← {𝕊 codeText‿lineNumber‿messageText:
 }
 AddIf ← {𝕊 invalid‿diagnostic: invalid / ⟨diagnostic⟩ }
 
-Declarations ← {𝕊 lines:
+Declarations ← {𝕊 lines‿registry:
   diagnostics ← empty
   domains ← empty
   domainLines ← empty
@@ -52,12 +58,12 @@ Declarations ← {𝕊 lines:
   {𝕊 lineIndex:
     text ← Trim lineIndex ⊑ lines
     {𝕊:
-      fields ← space util.Split text
+      fields ← Split ⟨space,text⟩
       valid ← 2 = ≠ fields
       diagnostics ∾↩ AddIf ⟨¬ valid, Diagnostic ⟨"commodity_shape_invalid", lineIndex + 1, "commodity declaration must contain exactly one code"⟩⟩
       {𝕊:
         domain ← 1 ⊑ fields
-        policy ← setup.Policy domain
+        policy ← registry.Policy domain
         diagnostics ∾↩ AddIf ⟨policy.state ≢ "ok", Diagnostic ⟨"commodity_unsupported", lineIndex + 1, "commodity must be admitted by registry"⟩⟩
         {𝕊:
           domains ∾↩ ⟨domain⟩
@@ -91,7 +97,7 @@ PostingDomains ← {𝕊 blockLines:
     metadata ← ';' = ⊑ (trimmed ∾ ";")
     candidate ← indented ∧ (0 < ≠ trimmed) ∧ (¬ metadata)
     {𝕊:
-      fields ← space util.Split trimmed
+      fields ← Split ⟨space,trimmed⟩
       valid ← 3 = ≠ fields
       diagnostics ∾↩ AddIf ⟨¬ valid, Diagnostic ⟨"posting_shape_invalid", offset + 1, "posting must contain account, explicit amount, and commodity"⟩⟩
       {𝕊: domains ∾↩ ⟨2 ⊑ fields⟩}⍟valid @
@@ -180,12 +186,12 @@ CrossTransactionDiagnostics ← {𝕊 transactions:
   diagnostics
 }
 
-Admit ← {𝕊 raw‿resolved:
+Admit ← {𝕊 raw‿accounts‿registry:
   normalizedRaw ← (cr ≠ raw) / raw
   hasTerminalLf ← (0 < ≠ normalizedRaw) ∧ (lf = ⊑⌽normalizedRaw)
   {𝕊: normalizedRaw ↩ ¯1 ↓ normalizedRaw}⍟hasTerminalLf @
-  lines ← lf util.SplitKeepEmpty normalizedRaw
-  declarations ← Declarations lines
+  lines ← SplitKeepEmpty ⟨lf,normalizedRaw⟩
+  declarations ← Declarations ⟨lines,registry⟩
   diagnostics ← declarations.diagnostics
   transactions ← empty
   starts ← (IsDateHeader¨ Trim¨ lines) / ↕ ≠ lines
@@ -210,7 +216,7 @@ Admit ← {𝕊 raw‿resolved:
         {𝕊:
           domainLine ← DomainSourceLine ⟨domain, declarations⟩
           partition ← BuildPartition ⟨domain, domainLine, declarations.accounts, blockLines, start⟩
-          admitted ← single.Admit ⟨partition.raw, resolved⟩
+          admitted ← single.Admit ⟨partition.raw,accounts,registry⟩
           localDiagnostics ∾↩ {MapDiagnostic ⟨𝕩, partition.line_map⟩}¨ admitted.diagnostics
           {𝕊:
             transaction ← MapTransaction ⟨⊑ admitted.transactions, partition.line_map⟩

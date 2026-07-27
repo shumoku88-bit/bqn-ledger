@@ -256,7 +256,7 @@ These counts are characterization. Final deletion is proved by absence and calle
 - Current behavior: plan IDs, allocation IDs, event IDs, receipt/tax/business metadata and other admitted relationships are preserved.
 - Compatibility to delete: the profile name/branch `historical_external_plan` and its use as a weaker report transaction shape.
 - Destination: one strict canonical metadata grammar with each retained key justified by current writer/consumer inventory.
-- Progress: complete single-currency admission now delegates normalized transaction structure to `src/ledger/journal_transaction_structure.bqn` and no longer invokes this profile; ordinary compatibility context, `actual_source`, editor maintenance commands, and their tests still use it.
+- Progress: complete/single-domain admission now lives under `src/ledger`, delegates normalized structure without this profile, and is consumed directly by runtime/editor/tool/tests. Ordinary compatibility context, `actual_source.LoadTransactions`/fallback, editor maintenance commands that intentionally inspect old cleanup shape, and their focused tests still use the profile.
 - Delete profile mechanism: Phase 1; retain justified metadata semantics.
 
 ### C22 — offline legacy event-ID cleanup commands

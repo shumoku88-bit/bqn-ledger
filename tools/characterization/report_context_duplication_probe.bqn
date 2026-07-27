@@ -13,10 +13,11 @@ loader ← •Import "../../src_next/loader.bqn"
 ak ← •Import "../../src_next/account_key.bqn"
 cycle ← •Import "../../src_next/cycle.bqn"
 actual_source ← •Import "../../src_next/actual_source.bqn"
-admission ← •Import "../../src_next/journal_complete_source_admission.bqn"
+admission ← •Import "../../src/ledger/journal_complete_admission.bqn"
 setup ← •Import "../../src_next/currency_setup.bqn"
 
 Ms ← {𝕊 sec: •Fmt (⌊ 0.5 + 1000000 × sec) ÷ 1000 }
+AdmissionAccounts ← {𝕊 resolved: {key⇐resolved.accounts,currency⇐resolved.currencies} }
 
 Main ← {𝕊 args:
   {𝕊: •Out "Usage: report_context_duplication_probe.bqn <baseDir> [currency]" ⋄ •Exit 2}⍟(1 > ≠args) @
@@ -54,7 +55,7 @@ Main ← {𝕊 args:
   tActualRead1 ← •MonoTime @
 
   tPreAdmission0 ← •MonoTime @
-  preliminary ← admission.Admit ⟨raw, resolved⟩
+  preliminary ← admission.Admit ⟨raw,AdmissionAccounts resolved,setup.registry_value⟩
   tPreAdmission1 ← •MonoTime @
   {𝕊: •Out "ERROR: preliminary selected admission failed" ⋄ •Exit 1}⍟(preliminary.state ≢ "ok") @
 

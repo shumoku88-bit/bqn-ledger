@@ -2,7 +2,8 @@
 
 lib ← •Import "test_lib.bqn"
 ak ← •Import "../src_next/account_key.bqn"
-admission ← •Import "../src_next/journal_complete_source_admission.bqn"
+admission ← •Import "../src/ledger/journal_complete_admission.bqn"
+setup ← •Import "../src_next/currency_setup.bqn"
 carrier ← •Import "../src_next/journal_currency_proof_carrier_stage2a.bqn"
 
 lf ← @+10
@@ -18,6 +19,8 @@ resolved ← ak.Resolve ⟨
   "assets:cash-usd" ∾ tab ∾ "role=asset" ∾ tab ∾ "currency=USD",
   "expenses:food-usd" ∾ tab ∾ "role=expense" ∾ tab ∾ "currency=USD"
 ⟩
+admittedAccounts ← {key⇐resolved.accounts,currency⇐resolved.currencies}
+Admit ← {𝕊 raw: admission.Admit ⟨raw,admittedAccounts,setup.registry_value⟩ }
 
 jpyIlsRaw ← MakeRaw ⟨
   "commodity JPY",
@@ -42,7 +45,7 @@ jpyIlsRaw ← MakeRaw ⟨
   "  assets:cash-ils  -12.34 ILS",
   "  expenses:food-ils  12.34 ILS"
 ⟩
-admitted ← admission.Admit ⟨jpyIlsRaw, resolved⟩
+admitted ← Admit jpyIlsRaw
 "ok" lib.AssertEq admitted.state
 
 result ← carrier.BuildForSource ⟨admitted.transactions, resolved, "2026-07-01", "synthetic-multi.journal"⟩
@@ -111,7 +114,7 @@ jpyUsdRaw ← MakeRaw ⟨
   "  assets:cash-usd  -7.5 USD",
   "  expenses:food-usd  7.5 USD"
 ⟩
-admittedUsd ← admission.Admit ⟨jpyUsdRaw, resolved⟩
+admittedUsd ← Admit jpyUsdRaw
 "ok" lib.AssertEq admittedUsd.state
 usdResult ← carrier.Build ⟨admittedUsd.transactions, resolved, "2026-07-01"⟩
 "ok" lib.AssertEq usdResult.state
