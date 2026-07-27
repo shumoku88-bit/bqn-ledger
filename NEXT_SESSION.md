@@ -7,14 +7,14 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Phase 1A: prove the minimal canonical Transaction/Posting fact schema from complete admitted Actual evidence using `fixtures/ledger-facts-phase1-proof/`. Phase 0 exited with approved strict-source/output contracts and characterization in `docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`.
+Phase 1B: remove the complete admission path's transient `historical_external_plan` structural parser dependency and establish canonical strict admission ownership before wiring raw Actual to the Phase 1A facts. The aligned fact schema and public proof are complete in `src/ledger/facts.bqn`, `docs/LEDGER_FACT_SCHEMA.md`, and `tests/test_ledger_facts.bqn`.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn
-new proof: strict complete Actual admission -> canonical aligned facts
-first evidence: 3 transactions, 7 Actual postings, split transaction, event/source provenance
+completed proof: admitted Actual -> aligned Transaction/Posting facts
+next boundary: raw strict Journal -> canonical complete admission -> facts
+must preserve: diagnostics, no partial facts, exact scale, side, metadata, identity, source lines
 not in this slice: Plan/Budget admission, Pivot, copied section, universal context
-private audit or migration: separate explicit human direction required
 ```
 
-Destination code must not import old context, historical parser, report modules, or compatibility shapes. Keep `tools/report` unchanged while the readonly proof develops.
+Destination code must not import old context, historical parser, report modules, or compatibility shapes. Move coherent ownership with callers and leave no forwarding wrapper. Private audit or migration still requires separate explicit direction.

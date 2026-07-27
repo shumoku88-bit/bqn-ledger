@@ -26,7 +26,7 @@ Updated: 2026-07-26
 
 ### 目的
 
-- **正データは人間可読source** に置く。Actualは明示設定されたnative JournalまたはTSV compatibility source、plan/budget/accountsはTSVとする。
+- **正データは人間可読source** に置く。Actualは明示設定されたnative Journalだけ、plan/budget/accountsはTSVとする。
 - **読み込み時に厳しく検査** する。typo や壊れた行は早めに失敗させる。
 - **会計計算は配列中心** にする。BQN の強みであるベクトル・行列演算を使う。
 - 日常操作の入口は **`tools/bl`（Command Hub）** とし、非対話のレポート入口は **`tools/report`** として保つ。
@@ -197,6 +197,18 @@ src_next/queries/
              └─ src_next/report.bqn ────── 人間向けレポート入口
                   src_next/summary.bqn ──── 機械向けコンパクト出力
 ```
+
+Phase 1Aでは現行productionと切り離した次のreadonly proofも存在する。
+
+```text
+successful complete Actual admission + minimal admitted Account table
+  -> src/ledger/facts.bqn
+       -> aligned Transaction Facts
+       -> aligned Posting Facts
+       -> Domain / Account / Layer tables
+```
+
+新facts ownerはsource path、I/O、clock、旧context、Cube/TBDS、report fieldを受け取らない。現時点ではtest harnessだけが現行complete admissionを外から供給し、production routeはまだ変更しない。schemaとinvariantは`docs/LEDGER_FACT_SCHEMA.md`を正とする。
 
 ### Selected-domain composition stages
 

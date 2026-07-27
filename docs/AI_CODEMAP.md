@@ -21,7 +21,7 @@ Updated: 2026-07-26
 8. `docs/TIME_AS_AXIS.md`（時間座標・観察時点・区間view）
 9. `src_next`のfile moveなら `docs/archive/audits/SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md` と `tools/src-next-import-graph`
 10. projection変更なら `docs/archive/active-plans/PURPOSE_SPECIFIC_PROJECTION_COMPOSITION_DIRECTION-2026-07-25.md`、`docs/archive/audits/PROJECTION_BQN_OWNERSHIP_AUDIT-2026-07-26.md`、該当する `src_next/*` consumer
-11. レポート変更なら `src_next/report.bqn` と該当する `src_next/*` モジュール、`docs/REPORT_CONTRACTS.md` / `docs/REPORT_SECTION_CONTRACT_CHECKLIST.md`。prepared-boundary移行と削減trackは `docs/REPORT_CODE_REDUCTION_PLAN.md`、context共有は `docs/REPORT_CONTEXT_DUPLICATION_CHARACTERIZATION-2026-07-27.md` を先に読み、現行のreport関連checkを確認する
+11. レポート変更ならactive migrationの`docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md` / `docs/LEDGER_FACT_SCHEMA.md`を先に読み、現行productionは `src_next/report.bqn` と `docs/REPORT_CONTRACTS.md` / `docs/REPORT_SECTION_CONTRACT_CHECKLIST.md`で確認する
 12. エディタ作業なら `docs/PRODUCTION_EDITOR_DIRECTION.md` / `docs/BQN_EDITOR_USAGE.md` / `src_edit/README.md`
 13. 複数ポスティング導入検討なら `docs/archive/completed-plans/DECISION_MULTI_POSTING_INVESTIGATION.md`
 14. 変更内容に応じて `docs/CONVENTIONS.md` / `docs/JOURNAL_META.md` / `docs/MAINTENANCE.md`
@@ -85,7 +85,7 @@ Updated: 2026-07-26
 
 `src_next/queries/actual_expense_ranking.bqn`は現時点でpublic report sectionへ配線されていない。checked selected-domain posting factsを使うpurpose-specific consumerとして、public synthetic fixtureとfocused testでcharacterizeされている。
 
-現在の`src_next`は75 BQN module中71 moduleがroot直下、4 moduleがnestedで、direct import graphは293 edge、欠損target 0、cycle 0です。最初のfinite sliceとして`src_next/queries/actual_expense_ranking.bqn`と`src_next/queries/exact_sparse_grouping.bqn`を同時に移動済みで、root wrapperはありません。移動前のpoint-in-time evidenceは`docs/archive/audits/SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md`に保持します。
+現在の`src_next`は75 BQN module中71 moduleがroot直下、4 moduleがnestedで、direct import graphは286 edge、欠損target 0、cycle 0です。最初のfinite sliceとして`src_next/queries/actual_expense_ranking.bqn`と`src_next/queries/exact_sparse_grouping.bqn`を同時に移動済みで、root wrapperはありません。移動前のpoint-in-time evidenceは`docs/archive/audits/SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md`に保持します。
 
 ## 正データファイル
 
@@ -102,7 +102,13 @@ Updated: 2026-07-26
 
 ## コード地図
 
-### `src_next/` (BQN 会計エンジン)
+### `src/ledger/` (移行中のcanonical ledger facts)
+
+- `facts.bqn` — successful complete Actual admissionとminimal admitted account tableだけを受け、aligned Transaction/Posting factsとDomain/Account/Layer tableへall-or-nothing projectionするread-only owner。source path、I/O、clock、context、Cube、report fieldを受けない。
+- `date_ordinal.bqn` — fact date用のstrict ISO Gregorian validation/ordinalだけを持つpure coordinate owner。clockや表示を持たない。
+- 現行productionはまだ`src_next`であり、Phase 1A testだけがcurrent complete admissionを外部harnessとして新factsと比較する。`src/ledger`から`src_next`をimportしてはならない。
+
+### `src_next/` (現行production BQN 会計エンジン)
 
 - `context.bqn` — BuildAllRows / BuildPeriodView / BuildContext。設定されたnative JournalをStage 1→Stage 2Aへ通したactual postingsとplan/budget TSV postingsを合成する。BuildContextのdefault/explicit cycle解決は一つのsource-owned complete-or-historical-fallback evidenceを再利用する。Actual source fileのfallback/mergeはしない。
 - `journal_profile_stage1.bqn` — Minimal BQN Journal subsetをordered Transaction IRへ変換するparser。`recur` / `series` / `trip-id`とclosed enumの`payment`は会計意味を解釈せずgeneric `transaction.metadata`へexact保持する。Journal modeのproduction read/write validationで使用する。
@@ -213,6 +219,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 
 - `check-src-next-golden.sh` — `developer_inspection.bqn`のpublic fixture goldenチェック。projection header、tabular rows、source-balance表示も固定する。
 - `check-ledger-facts-phase1-proof-fixture.sh` — strict public fixtureでTrial Balance、Recent split transaction、Daily Flow dynamic axis、selected Balances、durable Plan JSON、15 section routingの現行semantic baselineを固定する。
+- `check-ledger-facts.sh` — canonical fact columns、identity/source provenance、multi-posting zero-sum、empty admission、strict date coordinateと、destinationから旧runtime/I/Oへの依存禁止を検証する。
 - `check-src-next-import-graph.sh` — `src_next/**/*.bqn`のdirect `•Import` target、root/nested module観測、required entrypoint、cycle report生成を検証する。`check-repo-index.sh`経由でfull checkに入る。
 - `check-developer-inspection-entrypoint.sh` — named entrypointと`main.bqn` wrapperの終了status・stdout・stderr一致、thin-wrapper source shape、`tools/report-next` routingを検証する。
 - `check-projection-diagnostic-presentation.sh` — diagnostic presentationが`developer_inspection.bqn`へlocalizeされ、`main.bqn`、`projection.bqn`、production reportへ戻らないことを検証する。

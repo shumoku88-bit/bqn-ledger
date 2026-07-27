@@ -56,14 +56,22 @@ This is not a section-reduction campaign and must not recreate the old giant all
 - [x] Added the strict public synthetic Phase 1 proof fixture and recorded topology/size/source-read/timing characterization (`docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`).
 - [x] Completed Phase 0 without creating `src/`, a new context, or copied section modules.
 
-### Current finite slice: Phase 1A canonical fact schema proof
+### Completed finite slice: Phase 1A canonical fact schema proof
 
-- [ ] Define minimal Transaction Facts, Posting Facts, account/domain tables, and admission diagnostics required by the public proof fixture.
-- [ ] Project complete admitted Actual transactions without importing historical parser/context/report modules.
-- [ ] Prove aligned posting columns, multi-posting transaction identity, exact JPY coefficients/scale, event metadata, source lines, and zero-sum transaction boundaries.
-- [ ] Keep the destination readonly and independent from Plan/Budget/report construction during this first proof.
-- [ ] Compare canonical facts with `fixtures/ledger-facts-phase1-proof/` and current observable Trial Balance/Recent evidence.
-- [ ] Do not copy a section, create a universal context, or add a textual query DSL.
+- [x] Defined minimal Transaction Facts, Posting Facts, Account/Domain/Layer tables, and projection diagnostics (`docs/LEDGER_FACT_SCHEMA.md`).
+- [x] Projected successful complete admission without destination imports of historical parser, context, report, source I/O, or clock.
+- [x] Proved aligned columns, split transaction identity, exact JPY coefficients/scale, event metadata, source lines, account/domain joins, per-transaction zero sum, and declaration-only empty Actual.
+- [x] Kept the proof readonly and independent from Plan/Budget/report construction.
+- [x] Compared canonical facts with the public fixture's current Trial Balance/Recent/Daily Flow/Balances/Plan evidence.
+- [x] Did not copy a section, create a universal context, or add a textual query DSL.
+
+### Current finite slice: Phase 1B strict admission ownership
+
+- [ ] Replace the transient `historical_external_plan` structural parser dependency in complete admission with one canonical strict transaction admission path.
+- [ ] Preserve first-failure diagnostics, no-partial-result behavior, exact decimals, posting side, metadata, physical/durable identity, and source lines.
+- [ ] Prove declaration-only and JPY/ILS/USD single-domain transactions, including multi-posting and precision rejection.
+- [ ] Connect canonical admission to `src/ledger/facts.bqn` without importing `src_next` from destination code.
+- [ ] Move coherent admission ownership and all callers together; leave no old-path forwarding wrapper.
 
 Phase 0 exit evidence is `docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`: every observable report capability has an owner, every compatibility path has a deletion gate, and no undecided fallback is permitted in the destination fact schema.
 

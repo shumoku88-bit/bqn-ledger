@@ -105,6 +105,7 @@ bash checks/check-src-next-actual-comparison.sh fixtures/actual-comparison-histo
 bash checks/check-src-next-snapshot.sh fixtures/src-next-golden >/dev/null
 bash checks/check-src-next-report.sh fixtures/src-next-golden >/dev/null
 bash checks/check-ledger-facts-phase1-proof-fixture.sh >/dev/null
+bash checks/check-ledger-facts.sh >/dev/null
 bash checks/check-src-next-selected-section.sh fixtures/src-next-golden >/dev/null
 bash checks/check-src-next-outlook-observation-source.sh >/dev/null
 bash checks/check-src-next-actual-snapshot.sh >/dev/null
