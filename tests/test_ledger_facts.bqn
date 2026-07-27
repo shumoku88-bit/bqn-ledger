@@ -8,6 +8,8 @@ registry_core ← •Import "../src/ledger/currency_registry.bqn"
 account_admission ← •Import "../src/ledger/account_admission.bqn"
 facts ← •Import "../src/ledger/facts.bqn"
 snapshot ← •Import "../src/ledger/snapshot.bqn"
+transaction_rows ← •Import "../src/ledger/transaction_rows.bqn"
+amount_text ← •Import "../src/ledger/amount_text.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 
 base ← "fixtures/ledger-facts-phase1-proof/"
@@ -30,6 +32,17 @@ canonicalSnapshot ← snapshot.Build ⟨accountLines,rawJournal,registry⟩
 result.transactions.transaction_id lib.AssertEq canonicalSnapshot.facts.transactions.transaction_id
 result.postings.posting_id lib.AssertEq canonicalSnapshot.facts.postings.posting_id
 result.postings.coefficient lib.AssertEq canonicalSnapshot.facts.postings.coefficient
+transactionView ← transaction_rows.Build canonicalSnapshot.facts
+"ok" lib.AssertEq transactionView.state
+3 lib.AssertEq ≠transactionView.rows
+splitView ← 2⊑transactionView.rows
+"proof-split-1" lib.AssertEq splitView.transaction_id
+"split purchase" lib.AssertEq splitView.description
+"actual" lib.AssertEq splitView.layer
+"JPY" lib.AssertEq splitView.domain
+⟨"expenses:food","expenses:transport","assets:cash"⟩ lib.AssertEq {𝕩.account_key}¨splitView.postings
+⟨10,5,¯15⟩ lib.AssertEq {𝕩.source_coefficient}¨splitView.postings
+⟨"debit","debit","credit"⟩ lib.AssertEq {𝕩.side}¨splitView.postings
 invalidAccountSnapshot ← snapshot.Build ⟨⟨"assets:cash"∾(@+9)∾"role=asset"⟩,rawJournal,registry⟩
 "error" lib.AssertEq invalidAccountSnapshot.state
 0 lib.AssertEq invalidAccountSnapshot.facts.transactions.count
@@ -52,6 +65,8 @@ strictAccounts.accounts.source_row lib.AssertEq result.accounts.source_row
 ⟨27,34,42⟩ lib.AssertEq result.transactions.source_start_line
 ⟨32,40,48⟩ lib.AssertEq result.transactions.source_end_line
 ⟨"2026-01-02","2026-01-10","2026-01-12"⟩ lib.AssertEq result.transactions.date_text
+"***" lib.AssertEq result.transactions.status_marker
+⟨"event-id","layer","currency"⟩ lib.AssertEq {𝕩.key}¨0⊑result.transactions.metadata
 ⟨0,0,0⟩ lib.AssertEq result.transactions.layer_index
 ⟨0,0,0⟩ lib.AssertEq result.transactions.domain_index
 ⟨0,0,0⟩ lib.AssertEq result.transactions.calculation_scale
@@ -75,7 +90,8 @@ strictAccounts.accounts.source_row lib.AssertEq result.accounts.source_row
 {result.transactions.count lib.AssertEq ≠𝕩}¨ ⟨
   result.transactions.index,result.transactions.transaction_id,result.transactions.identity_kind,
   result.transactions.source_start_line,result.transactions.source_end_line,result.transactions.date_text,
-  result.transactions.date_ordinal,result.transactions.description,result.transactions.layer_index,
+  result.transactions.date_ordinal,result.transactions.description,result.transactions.status_marker,
+  result.transactions.metadata,result.transactions.layer_index,
   result.transactions.domain_index,result.transactions.calculation_scale,result.transactions.txn_id,
   result.transactions.plan_id,result.transactions.allocation_id,result.transactions.execution_envelope,
   result.transactions.actual_event_id
@@ -93,6 +109,9 @@ strictAccounts.accounts.source_row lib.AssertEq result.accounts.source_row
   0 lib.AssertEq +´selected
 }¨ ↕result.transactions.count
 
+"0" lib.AssertEq amount_text.Format ⟨0,0⟩
+"12.34" lib.AssertEq amount_text.Format ⟨1234,2⟩
+"-0.05" lib.AssertEq amount_text.Format ⟨¯5,2⟩
 lib.Assert dates.IsValid "2000-02-29"
 lib.Assert ¬dates.IsValid "1900-02-29"
 lib.Assert ¬dates.IsValid "2026-02-30"

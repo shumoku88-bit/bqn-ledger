@@ -1,6 +1,6 @@
 # Canonical ledger fact schema
 
-Status: Phase 1B canonical admission and facts
+Status: Phase 1 complete; canonical Actual admission and facts
 Owner: `src/ledger/snapshot.bqn` / `src/ledger/facts.bqn`
 Public evidence: `fixtures/ledger-facts-phase1-proof/`
 
@@ -24,7 +24,7 @@ already-read accounts.tsv lines + raw Journal + currency registry
   -> canonical Transaction/Posting facts
 ```
 
-It returns no partial facts after account, Journal, or projection failure and performs no source I/O.
+It returns no partial facts after account, Journal, or projection failure and performs no source I/O. `transaction_rows.bqn` provides the first narrow source-ordered Transaction→Posting join for editor/recent consumers; `amount_text.bqn` formats exact coefficient/scale pairs without currency or report policy.
 
 ## Canonical transaction structure boundary
 

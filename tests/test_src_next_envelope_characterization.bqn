@@ -5,6 +5,7 @@ loader ← •Import "../src_next/loader.bqn"
 ak ← •Import "../src_next/account_key.bqn"
 context ← •Import "../src_next/context.bqn"
 actual_source ← •Import "../src_next/actual_source.bqn"
+legacy_parser ← •Import "../src_next/journal_profile_stage1.bqn"
 adapter ← •Import "../src_next/journal_posting_ir_stage2a.bqn"
 cycle ← •Import "../src_next/cycle.bqn"
 cube ← •Import "../src_next/cube.bqn"
@@ -19,9 +20,10 @@ cy ← cycle.ReadCycle base
 BuildProjection ← {𝕊 sourceBase:
   snapshot ← context.LoadNonActualPostingSourceSnapshot sourceBase
   nonactual ← context.BuildCheckedPostingProjectionFromSnapshot ⟨snapshot,resolved,cy.start⟩
-  txs ← actual_source.LoadTransactions sourceBase
+  raw ← loader.ReadRaw (sourceBase∾"/"∾actual_source.ResolveRelativePath sourceBase)
+  txs ← (legacy_parser.ParseWithProfile ⟨raw,"historical_external_plan"⟩).transactions
   actual ← adapter.BuildForSource ⟨txs,resolved,cy.start,(actual_source.Resolve sourceBase).file⟩
-  {state⇐nonactual.state,posting_rows⇐actual.posting_rows∾nonactual.posting_rows,diagnostics⇐nonactual.diagnostics}
+  {state⇐nonactual.state,posting_rows⇐actual.posting_rows∾nonactual.posting_rows,actual_transactions⇐txs,diagnostics⇐nonactual.diagnostics}
 }
 
 # Build normally
@@ -30,7 +32,7 @@ rows ← built_rows.posting_rows
 result ← cube.Materialize ⟨rows, cy.day_count, resolved.count⟩
 tbds_rows ← tbds.Build ⟨rows, result, resolved, cy⟩
 
-summary ← env.Build { base ⇐ base, resolved ⇐ resolved, cy ⇐ cy, cube ⇐ result, tbds ⇐ tbds_rows }
+summary ← env.Build { base ⇐ base, resolved ⇐ resolved, cy ⇐ cy, cube ⇐ result, tbds ⇐ tbds_rows, actual_transactions⇐built_rows.actual_transactions }
 
 # ── Case 1: Normal Allocation and Spending ──
 # food envelope: allocated = 500, spent - drawn = 300, remaining = 200
@@ -104,7 +106,7 @@ miss_rows ← miss_proj.posting_rows
 miss_cube ← cube.Materialize ⟨miss_rows, cy.day_count, resolved.count⟩
 miss_tbds ← tbds.Build ⟨miss_rows, miss_cube, resolved, cy⟩
 HasInvalidBudgetDateError ← {𝕊:
-  ({𝕊 ⋄ env.Build { base ⇐ miss_base, resolved ⇐ resolved, cy ⇐ cy, cube ⇐ miss_cube, tbds ⇐ miss_tbds } ⋄ 0}⎊{𝕊 ⋄ 1}) @
+  ({𝕊 ⋄ env.Build { base ⇐ miss_base, resolved ⇐ resolved, cy ⇐ cy, cube ⇐ miss_cube, tbds ⇐ miss_tbds, actual_transactions⇐miss_proj.actual_transactions } ⋄ 0}⎊{𝕊 ⋄ 1}) @
 }
 1 lib.AssertEq HasInvalidBudgetDateError @ # But building the report crashes BQN when parsing the budget allocation date in CalcAllocated
 
@@ -117,7 +119,7 @@ emp_proj ← BuildProjection emp_base
 emp_rows ← emp_proj.posting_rows
 emp_cube ← cube.Materialize ⟨emp_rows, cy.day_count, resolved.count⟩
 emp_tbds ← tbds.Build ⟨emp_rows, emp_cube, resolved, cy⟩
-emp_summary ← env.Build { base ⇐ emp_base, resolved ⇐ resolved, cy ⇐ cy, cube ⇐ emp_cube, tbds ⇐ emp_tbds }
+emp_summary ← env.Build { base ⇐ emp_base, resolved ⇐ resolved, cy ⇐ cy, cube ⇐ emp_cube, tbds ⇐ emp_tbds, actual_transactions⇐emp_proj.actual_transactions }
 
 # Envelopes allocations are 0
 0 lib.AssertEq (⊑ (("food"⊸≡¨ {𝕩.label}¨ emp_summary.envelopes) / emp_summary.envelopes)).allocated
@@ -137,7 +139,7 @@ no_plan_proj ← BuildProjection no_plan_base
 no_plan_rows ← no_plan_proj.posting_rows
 no_plan_cube ← cube.Materialize ⟨no_plan_rows, cy.day_count, resolved.count⟩
 no_plan_tbds ← tbds.Build ⟨no_plan_rows, no_plan_cube, resolved, cy⟩
-no_plan_summary ← env.Build { base ⇐ no_plan_base, resolved ⇐ resolved, cy ⇐ cy, cube ⇐ no_plan_cube, tbds ⇐ no_plan_tbds }
+no_plan_summary ← env.Build { base ⇐ no_plan_base, resolved ⇐ resolved, cy ⇐ cy, cube ⇐ no_plan_cube, tbds ⇐ no_plan_tbds, actual_transactions⇐no_plan_proj.actual_transactions }
 
 empty_plan_coverage ← no_plan_summary.execution_planned
 200 lib.AssertEq empty_plan_coverage.envelope_remaining
@@ -151,7 +153,7 @@ dis_proj ← BuildProjection dis_base
 dis_rows ← dis_proj.posting_rows
 dis_cube ← cube.Materialize ⟨dis_rows, cy.day_count, resolved.count⟩
 dis_tbds ← tbds.Build ⟨dis_rows, dis_cube, resolved, cy⟩
-dis_summary ← env.Build { base ⇐ dis_base, resolved ⇐ resolved, cy ⇐ cy, cube ⇐ dis_cube, tbds ⇐ dis_tbds }
+dis_summary ← env.Build { base ⇐ dis_base, resolved ⇐ resolved, cy ⇐ cy, cube ⇐ dis_cube, tbds ⇐ dis_tbds, actual_transactions⇐dis_proj.actual_transactions }
 "disabled" lib.AssertEq dis_summary.execution_planned.status
 
 miss_env_base ← "fixtures/envelope-characterization/sub_missing_execution"
@@ -159,7 +161,7 @@ miss_env_proj ← BuildProjection miss_env_base
 miss_env_rows ← miss_env_proj.posting_rows
 miss_env_cube ← cube.Materialize ⟨miss_env_rows, cy.day_count, resolved.count⟩
 miss_env_tbds ← tbds.Build ⟨miss_env_rows, miss_env_cube, resolved, cy⟩
-miss_env_summary ← env.Build { base ⇐ miss_env_base, resolved ⇐ resolved, cy ⇐ cy, cube ⇐ miss_env_cube, tbds ⇐ miss_env_tbds }
+miss_env_summary ← env.Build { base ⇐ miss_env_base, resolved ⇐ resolved, cy ⇐ cy, cube ⇐ miss_env_cube, tbds ⇐ miss_env_tbds, actual_transactions⇐miss_env_proj.actual_transactions }
 "unavailable/missing_execution_envelope" lib.AssertEq miss_env_summary.execution_planned.status
 
 # ── Case 12: Duplicate/repeated plan identity ──
@@ -170,7 +172,7 @@ dup_proj ← BuildProjection dup_base
 dup_rows ← dup_proj.posting_rows
 dup_cube ← cube.Materialize ⟨dup_rows, cy.day_count, resolved.count⟩
 dup_tbds ← tbds.Build ⟨dup_rows, dup_cube, resolved, cy⟩
-dup_summary ← env.Build { base ⇐ dup_base, resolved ⇐ resolved, cy ⇐ cy, cube ⇐ dup_cube, tbds ⇐ dup_tbds }
+dup_summary ← env.Build { base ⇐ dup_base, resolved ⇐ resolved, cy ⇐ cy, cube ⇐ dup_cube, tbds ⇐ dup_tbds, actual_transactions⇐dup_proj.actual_transactions }
 
 # execution planned coverage should have 2 rent_p2 rows
 dup_ep ← dup_summary.execution_planned
@@ -187,7 +189,7 @@ comp_proj ← BuildProjection comp_base
 comp_rows ← comp_proj.posting_rows
 comp_cube ← cube.Materialize ⟨comp_rows, cy.day_count, resolved.count⟩
 comp_tbds ← tbds.Build ⟨comp_rows, comp_cube, resolved, cy⟩
-comp_summary ← env.Build { base ⇐ comp_base, resolved ⇐ resolved, cy ⇐ cy, cube ⇐ comp_cube, tbds ⇐ comp_tbds }
+comp_summary ← env.Build { base ⇐ comp_base, resolved ⇐ resolved, cy ⇐ cy, cube ⇐ comp_cube, tbds ⇐ comp_tbds, actual_transactions⇐comp_proj.actual_transactions }
 
 # 1. execution planned coverage correctly excludes it because of completion evidence (plan_id matched)
 comp_ep ← comp_summary.execution_planned
@@ -205,7 +207,7 @@ unrelated_proj ← BuildProjection unrelated_base
 unrelated_rows ← unrelated_proj.posting_rows
 unrelated_cube ← cube.Materialize ⟨unrelated_rows, cy.day_count, resolved.count⟩
 unrelated_tbds ← tbds.Build ⟨unrelated_rows, unrelated_cube, resolved, cy⟩
-unrelated_summary ← env.Build { base ⇐ unrelated_base, resolved ⇐ resolved, cy ⇐ cy, cube ⇐ unrelated_cube, tbds ⇐ unrelated_tbds }
+unrelated_summary ← env.Build { base ⇐ unrelated_base, resolved ⇐ resolved, cy ⇐ cy, cube ⇐ unrelated_cube, tbds ⇐ unrelated_tbds, actual_transactions⇐unrelated_proj.actual_transactions }
 
 unrelated_ep ← unrelated_summary.execution_planned
 350 lib.AssertEq unrelated_ep.planned_open_total  # rent_p2 (200) + food_p1 (150)
@@ -219,7 +221,7 @@ backing_proj ← BuildProjection backing_base
 backing_rows ← backing_proj.posting_rows
 backing_cube ← cube.Materialize ⟨backing_rows, cy.day_count, resolved.count⟩
 backing_tbds ← tbds.Build ⟨backing_rows, backing_cube, resolved, cy⟩
-backing_summary ← env.Build { base ⇐ backing_base, resolved ⇐ resolved, cy ⇐ cy, cube ⇐ backing_cube, tbds ⇐ backing_tbds }
+backing_summary ← env.Build { base ⇐ backing_base, resolved ⇐ resolved, cy ⇐ cy, cube ⇐ backing_cube, tbds ⇐ backing_tbds, actual_transactions⇐backing_proj.actual_transactions }
 
 ¯1300 lib.AssertEq backing_summary.funding_base
 400 lib.AssertEq backing_summary.allocated_total

@@ -4,12 +4,22 @@
 
 config ← •Import "config.bqn"
 loader ← •Import "loader.bqn"
-parser ← •Import "journal_profile_stage1.bqn"
 admission ← •Import "../src/ledger/journal_complete_admission.bqn"
+facts ← •Import "../src/ledger/facts.bqn"
+transaction_rows ← •Import "../src/ledger/transaction_rows.bqn"
 ak ← •Import "account_key.bqn"
 dt ← •Import "date.bqn"
 setup ← •Import "currency_setup.bqn"
 AdmissionAccounts ← {𝕊 resolved: {key⇐resolved.accounts,currency⇐resolved.currencies} }
+FactAccounts ← {𝕊 resolved:
+  {
+    key⇐resolved.accounts,currency⇐resolved.currencies,role⇐resolved.roles,type⇐resolved.types,
+    budget⇐resolved.budgets,budget_group⇐resolved.budget_groups,
+    spend_class⇐resolved.spend_classes,kind⇐resolved.kinds,
+    envelope_role⇐resolved.envelope_roles,metadata⇐resolved.raw_metadata,
+    source_row⇐↕resolved.count
+  }
+}
 
 Resolve ← {𝕊 base: config.LoadActualJournal base}
 
@@ -22,29 +32,34 @@ ResolveRelativePath ← {𝕊 base:
   relPath
 }
 
-LoadTransactions ← {𝕊 base:
+LoadFacts ← {𝕊 base:
   relPath ← ResolveRelativePath base
   raw ← loader.ReadRaw (base∾"/"∾relPath)
-  parsed ← parser.ParseWithProfile ⟨raw,"historical_external_plan"⟩
-  {𝕊: •Out "ERROR: native Journal source rejected" ⋄ •Exit 1}⍟(parsed.state≢"ok") @
-  parsed.transactions
+  resolved ← ak.Resolve loader.ReadLines (base∾"/accounts.tsv")
+  admitted ← admission.Admit ⟨raw,AdmissionAccounts resolved,setup.registry_value⟩
+  {𝕊: •Out "ERROR: native Journal source rejected" ⋄ •Exit 1}⍟(admitted.state≢"ok") @
+  result ← facts.Project ⟨admitted,FactAccounts resolved⟩
+  {𝕊: •Out "ERROR: native Journal facts rejected" ⋄ •Exit 1}⍟(result.state≢"ok") @
+  result
+}
+
+LoadTransactionRows ← {𝕊 base:
+  view ← transaction_rows.Build LoadFacts base
+  {𝕊: •Out "ERROR: native Journal transaction view rejected" ⋄ •Exit 1}⍟(view.state≢"ok") @
+  view.rows
 }
 
 LoadCycleEvidence ← {𝕊 base:
   relPath ← ResolveRelativePath base
   raw ← loader.ReadRaw (base∾"/"∾relPath)
-  result ← {state⇐"error", complete⇐0, transactions⇐⟨⟩}
+  result ← {state⇐"error",complete⇐0,transactions⇐⟨⟩,declared_accounts⇐⟨⟩}
   accountsPath ← base∾"/accounts.tsv"
   accountsExist ← 0 = ⊑ •SH ⟨"test", "-f", accountsPath⟩
   {𝕊:
     resolved ← ak.Resolve loader.ReadLines accountsPath
     admitted ← admission.Admit ⟨raw,AdmissionAccounts resolved,setup.registry_value⟩
-    {𝕊: result ↩ {state⇐"ok", complete⇐1, transactions⇐admitted.transactions}}⍟(admitted.state≡"ok") @
+    {𝕊: result↩{state⇐"ok",complete⇐1,transactions⇐admitted.transactions,declared_accounts⇐admitted.declared_accounts}}⍟(admitted.state≡"ok") @
   }⍟accountsExist @
-  {𝕊:
-    parsed ← parser.ParseWithProfile ⟨raw,"historical_external_plan"⟩
-    {𝕊: result ↩ {state⇐"ok", complete⇐0, transactions⇐parsed.transactions}}⍟(parsed.state≡"ok") @
-  }⍟(result.state≢"ok") @
   {𝕊: •Out "ERROR: native Journal source rejected" ⋄ •Exit 1}⍟(result.state≢"ok") @
   result
 }
@@ -102,11 +117,49 @@ CompletionEvidenceFromTransactions ← {𝕊 transactions:
   Make¨transactions
 }
 
-CompletionEvidence ← {𝕊 base: CompletionEvidenceFromTransactions (LoadTransactions base)}
+CompletionEvidenceFromCompleteTransactions ← {𝕊 transactions:
+  Make ← {𝕊 tx:
+    debitPostings ← ({𝕩.side≡"debit"}¨tx.postings)/tx.postings
+    creditPostings ← ({𝕩.side≡"credit"}¨tx.postings)/tx.postings
+    amountCoefficient ← +´0∾{𝕩.normalized_coefficient}¨debitPostings
+    amount ← amountCoefficient ÷ 10⋆tx.calculation_scale
+    fromAccount ← (1=≠creditPostings)◶⟨{𝕊:""},{𝕊:(⊑creditPostings).account_key}⟩ @
+    toAccount ← (1=≠debitPostings)◶⟨{𝕊:""},{𝕊:(⊑debitPostings).account_key}⟩ @
+    fallbackId ← tx.date∾tx.description∾fromAccount∾toAccount∾•Fmt amount
+    pid ← fallbackId
+    {𝕊: pid↩tx.plan_id}⍟(0<≠tx.plan_id) @
+    {date⇐tx.date,plan_id⇐pid,amount⇐amount,from_account⇐fromAccount,to_account⇐toAccount,currency⇐tx.domain}
+  }
+  Make¨transactions
+}
+
+CompletionEvidenceFromFactRows ← {𝕊 rows:
+  Make ← {𝕊 tx:
+    debitPostings ← ({𝕩.side≡"debit"}¨tx.postings)/tx.postings
+    creditPostings ← ({𝕩.side≡"credit"}¨tx.postings)/tx.postings
+    amountCoefficient ← +´0∾{𝕩.coefficient}¨debitPostings
+    amount ← amountCoefficient ÷ 10⋆tx.calculation_scale
+    fromAccount ← (1=≠creditPostings)◶⟨{𝕊:""},{𝕊:(⊑creditPostings).account_key}⟩ @
+    toAccount ← (1=≠debitPostings)◶⟨{𝕊:""},{𝕊:(⊑debitPostings).account_key}⟩ @
+    fallbackId ← tx.date_text∾tx.description∾fromAccount∾toAccount∾•Fmt amount
+    pid ← fallbackId
+    {𝕊: pid↩tx.plan_id}⍟(0<≠tx.plan_id) @
+    {date⇐tx.date_text,plan_id⇐pid,amount⇐amount,from_account⇐fromAccount,to_account⇐toAccount,currency⇐tx.domain}
+  }
+  Make¨rows
+}
+
+CompletionEvidence ← {𝕊 base: CompletionEvidenceFromFactRows LoadTransactionRows base}
 
 CompletionEvidenceFromContext ← {𝕊 ctx:
-  transactions ← ({𝕊: ctx.actual_transactions}⎊{𝕊: LoadTransactions ctx.base}) @
-  CompletionEvidenceFromTransactions transactions
+  complete ← ({𝕊: ctx.actual_transactions_complete}⎊{𝕊:0}) @
+  transactionsPresent ← 1
+  transactions ← ({𝕊: ctx.actual_transactions}⎊{𝕊: transactionsPresent↩0 ⋄ ⟨⟩}) @
+  result ← ⟨⟩
+  {𝕊: result↩CompletionEvidenceFromCompleteTransactions transactions}⍟(transactionsPresent ∧ complete) @
+  {𝕊: result↩CompletionEvidenceFromTransactions transactions}⍟(transactionsPresent ∧ ¬complete) @
+  {𝕊: result↩CompletionEvidence ctx.base}⍟(¬transactionsPresent) @
+  result
 }
 
 PlanIdsInCycleFromEvidence ← {𝕊 evidence‿cy:
@@ -127,7 +180,7 @@ PlanIdsInCycleFromContext ← {𝕊 ctx:
 {
   Resolve⇐Resolve,
   ResolveRelativePath⇐ResolveRelativePath,
-  LoadTransactions⇐LoadTransactions,
+  LoadTransactionRows⇐LoadTransactionRows,
   LoadCycleEvidence⇐LoadCycleEvidence,
   DatesFromContext⇐DatesFromContext,
   LoadDates⇐LoadDates,

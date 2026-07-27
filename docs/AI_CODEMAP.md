@@ -85,7 +85,7 @@ Updated: 2026-07-26
 
 `src_next/queries/actual_expense_ranking.bqn`は現時点でpublic report sectionへ配線されていない。checked selected-domain posting factsを使うpurpose-specific consumerとして、public synthetic fixtureとfocused testでcharacterizeされている。
 
-現在の`src_next`は71 BQN module中67 moduleがroot直下、4 moduleがnestedで、direct importは277（internal 265）、欠損target 0、cycle 0です。exact decimal、currency registry、complete/single-domain Journal admissionは全callerと`src/ledger`へ移動し、旧path wrapperはありません。移動前のpoint-in-time evidenceは`docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`と`docs/archive/audits/SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md`に保持します。
+現在の`src_next`は71 BQN module中67 moduleがroot直下、4 moduleがnestedで、direct importは278（internal 263）、欠損target 0、cycle 0です。exact decimal、currency registry、complete/single-domain Journal admissionは全callerと`src/ledger`へ移動し、旧path wrapperはありません。移動前のpoint-in-time evidenceは`docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`と`docs/archive/audits/SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md`に保持します。
 
 ## 正データファイル
 
@@ -113,11 +113,13 @@ Updated: 2026-07-26
 - `journal_single_domain_admission.bqn` — 1 transaction domainのexact decimal、registry precision、Account currency、balance、normalized structureをadmitする。
 - `journal_complete_admission.bqn` — declaration-onlyを含むraw Journal全体をdomain partitionし、各ordinary transactionをsingle-domain ownerへ渡してcomplete no-partial transaction evidenceを返す。
 - `snapshot.bqn` — already-read account lines、raw Journal、registryをstrict Account→complete Journal→factsへcomposeするpure bounded root。
+- `transaction_rows.bqn` — canonical factsからsource-order Transactionとordered Postingをtyped joinするJournal list/reverse/Recent向けnarrow capability。source loadやreport formattingを持たない。
+- `amount_text.bqn` — exact coefficient/scaleをroundingなしでplain decimal textへ変換するpure capability。
 - 現行production routingはまだ`src_next`だが、runtime/editorのcomplete admission callerは`src/ledger`を直接importする。`src/ledger`から`src_next`をimportしてはならない。
 
 ### `src_next/` (現行production BQN 会計エンジン)
 
-- `context.bqn` — BuildAllRows / BuildPeriodView / BuildContext。設定されたnative JournalをStage 1→Stage 2Aへ通したactual postingsとplan/budget TSV postingsを合成する。BuildContextのdefault/explicit cycle解決は一つのsource-owned complete-or-historical-fallback evidenceを再利用する。Actual source fileのfallback/mergeはしない。
+- `context.bqn` — BuildAllRows / BuildPeriodView / BuildContext。Actualはcanonical complete admissionを使い、既存Cube/TBDS向けに一時的な`delta` rowへ変換してplan/budget TSV rowsと合成する。default/explicit cycle解決も同じcomplete transactionsを再利用し、production historical parser fallbackはない。
 - `journal_profile_stage1.bqn` — Minimal BQN Journal subsetをordered Transaction IRへ変換するparser。`recur` / `series` / `trip-id`とclosed enumの`payment`は会計意味を解釈せずgeneric `transaction.metadata`へexact保持する。Journal modeのproduction read/write validationで使用する。
 - `journal_posting_ir_stage2a.bqn` — admitted Stage 1 Transaction IRをcurrent 16-field Posting IR shapeへ変換するadapter。explicit source file identityを持つnative multi-posting production routingにも使用する。
 - `journal_posting_identity_provenance_stage2b.bqn` — admitted Stage 1 Transaction IRと対応するStage 2Aの16-field rowsを受け、identity/provenance local invariantsをall-or-nothingで検査して、rowを変更せず別の6-field carrierを返すpure test-only helper。production provenance carrier、consumer、routingには未接続。
@@ -127,7 +129,7 @@ Updated: 2026-07-26
 - `friend_travel_source_event.bqn` — Israel用friend-paid pending source eventの固定9列、ILS精度、固定payer/trip/status、既存全行検査、ID一意性、exact preview rowを所有するpure validator。I/Oとfinalizationを持たない。
 - `travel_exchange_event.bqn` — Israel用JPY↔ILS bidirectional exchangeの2観測amount、明示source/target currencyごとのprecision、既存account descriptor、ID一意性を検査しstructured previewを返すpure owner。I/O、rate、journal row、valuation、account-name inferenceを持たない。
 - `actual_observation.bqn` — prepared Actual datesからreport-local observation coordinateを導くI/O-free policy owner。Daily Flow/Trendの`start + day_count` windowと、Planned Payments/Cycle Summaryのexplicit half-open cycle windowという、consumer間でexact parityが確認された2 policyだけを共有する。invalid-date filtering、source-order、explicit absence、open-ended frontierは統合しない。
-- `actual_source.bqn` — configured native Journal resolver、date/completion evidence、transaction loadの共有owner。public surfaceはbase-oriented cycle/editor compatibilityとcontext/prepared evidenceに限定し、pure interpretation helperはmodule-private。`LoadCycleEvidence`はcomplete admissionを優先し、失敗時は既存historical parser fallback shapeを明示carrierで返す。income interpretationはcompleteの`normalized_coefficient`とhistoricalの`delta`をcarrierで分岐する。`DatesFromContext`はcontext-carried Actual transactionsを再利用し、focused mock向けbase fallbackだけを残す。`CompletionEvidenceFromContext` / `PlanIdsInCycleFromContext`はcompatibility contextのhistorical transaction shapeからdelta-based completion identityを再構成し、selected complete shapeとは混ぜない。declaration-only Journalは通貨共通の正常なempty Actualとしてadmitされる。Actual source file fallbackはない。
+- `actual_source.bqn` — configured native Journal resolverとtransitional source-loading adapter。`LoadTransactionRows`とbase-oriented completionはcanonical complete admission→Facts→typed transaction rowsを使う。production `LoadCycleEvidence`はcanonical complete admissionでfail-closedし、historical parser fallbackを持たない。focused legacy contextsだけは明示`actual_transactions_complete`不在時の旧completion interpretationを保持し、Phase 3で削除する。declaration-only Journalは正常なempty Actualとしてadmitされる。
 - `loader.bqn` — source ファイル読み込み (`•FChars` 使用)。
 - `cube.bqn` — Canonical Daily Cube (`Day × Account × Layer`) の構築。
 - `tbds.bqn` — Trial Balance Data Set (period/account/layer/opening/movement/closing)。

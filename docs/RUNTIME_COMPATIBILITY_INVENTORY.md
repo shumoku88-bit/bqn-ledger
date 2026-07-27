@@ -37,8 +37,9 @@ BuildContext:                 77 references / 47 files
 ForTest symbols:              60 references / 14 files
 projection.bqn direct import:  7 runtime modules
 report-next-summary name:     42 references / 26 files
-actual_source.LoadTransactions: editor + 2 characterization callers
-actual_source.CompletionEvidence: 6 plan editor commands
+actual_source.LoadTransactions: 0 (symbol deleted)
+actual_source.LoadTransactionRows: 2 editor callers + completion adapter
+actual_source.CompletionEvidence: 6 plan editor commands on canonical facts
 ```
 
 These counts are characterization. Final deletion is proved by absence and caller migration, not by preserving the counts.
@@ -92,34 +93,26 @@ These counts are characterization. Final deletion is proved by absence and calle
 - Source prerequisite: C16 (`DEFAULT_CURRENCY`) complete.
 - Delete: Balances migration in Phase 4.
 
-### C05 — `actual_source.LoadTransactions` historical parser route
+### C05 — `actual_source.LoadTransactions` historical parser route — closed
 
 - Classification: `DELETE_RUNTIME_COMPATIBILITY`
-- Current callers:
-  - `src_edit/journal_list_cmd.bqn`;
-  - `src_edit/journal_native_reverse_cmd.bqn`;
-  - Envelope and cycle-remaining characterization tests;
-  - completion wrappers transitively.
-- Current behavior: parses `historical_external_plan` transactions with `delta` postings.
-- Destination: editor/report reads consume canonical complete-admission transaction/posting facts.
-- Prerequisite: Phase 1 proves complete facts preserve description, IDs, metadata, source order, domains, and multi-posting behavior.
-- Delete: Phase 1 for new code; old symbol/module path removed by Phase 7.
+- Closed in Phase 1C: the symbol and historical parser route were deleted.
+- Replacement: Journal list/reverse and base-oriented completion readers consume `LoadTransactionRows`, derived from canonical complete admission and Transaction/Posting Facts.
+- Characterization tests that intentionally exercise the retired Posting IR adapter import the archived-shape parser explicitly; production `actual_source` does not.
 
-### C06 — `actual_source.LoadCycleEvidence` complete-or-historical carrier
+### C06 — `actual_source.LoadCycleEvidence` complete-or-historical carrier — runtime fallback closed
 
 - Classification: `DELETE_RUNTIME_COMPATIBILITY`
-- Current callers: ordinary `BuildContext` plus characterization check.
-- Current behavior: tries complete admission, falls back to `historical_external_plan`, and exposes `{complete,transactions}` so consumers branch between `normalized_coefficient` and `delta`.
+- Phase 1C: production `LoadCycleEvidence` now fails closed on canonical complete admission and never invokes `historical_external_plan`; ordinary `BuildContext` also carries complete transactions.
+- Remaining cleanup: remove the `complete` discriminator and legacy interpretation branch after focused cycle characterization is rewritten around canonical facts in Phase 3.
 - Destination: cycle always consumes canonical complete admitted facts.
-- Prerequisite: Phase 1 complete-facts proof and strict failure policy.
-- Delete: Phase 1/3; no dual-shape carrier in destination.
 
 ### C07 — context-field fallback loaders in `actual_source`
 
 - Classification: `DELETE_RUNTIME_COMPATIBILITY`
 - Current paths:
   - `DatesFromContext` falls back to base loading;
-  - `CompletionEvidenceFromContext` falls back to historical `LoadTransactions`;
+  - `CompletionEvidenceFromContext` falls back to canonical base-oriented completion when prepared transactions are absent;
   - report helpers accept focused mock contexts with missing fields.
 - Destination: explicit transaction/date/completion arguments; tests construct canonical facts directly.
 - Prerequisite: section and editor callers migrated to narrow inputs.
@@ -256,7 +249,7 @@ These counts are characterization. Final deletion is proved by absence and calle
 - Current behavior: plan IDs, allocation IDs, event IDs, receipt/tax/business metadata and other admitted relationships are preserved.
 - Compatibility to delete: the profile name/branch `historical_external_plan` and its use as a weaker report transaction shape.
 - Destination: one strict canonical metadata grammar with each retained key justified by current writer/consumer inventory.
-- Progress: complete/single-domain admission now lives under `src/ledger`, delegates normalized structure without this profile, and is consumed directly by runtime/editor/tool/tests. Ordinary compatibility context, `actual_source.LoadTransactions`/fallback, editor maintenance commands that intentionally inspect old cleanup shape, and their focused tests still use the profile.
+- Progress: complete/single-domain admission now lives under `src/ledger`; production report/context/editor readers no longer invoke this profile. Offline editor maintenance commands that intentionally inspect old cleanup shape and focused characterization tests still use it.
 - Delete profile mechanism: Phase 1; retain justified metadata semantics.
 
 ### C22 — offline legacy event-ID cleanup commands

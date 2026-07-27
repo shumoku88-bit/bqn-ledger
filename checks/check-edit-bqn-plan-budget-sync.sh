@@ -87,6 +87,6 @@ awk '/^2026-07-14 \* variable$/{copy=1} copy{print}' "$base/actual.journal" >>"$
 set +e
 err="$(tools/edit --base "$base" plan budget-sync --id plan-2026-07-20-variable --dry-run 2>&1)"; rc=$?
 set -e
-[[ "$rc" -ne 0 ]]; grep -Fq 'native Journal source rejected' <<<"$err"
+[[ "$rc" -ne 0 ]]; grep -Fq 'plan_id must identify exactly one completed journal row' <<<"$err"
 
 printf 'check-edit-bqn-plan-budget-sync: OK\n'

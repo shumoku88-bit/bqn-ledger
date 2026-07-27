@@ -6,7 +6,7 @@ This is the lightweight queue for current work. Completed implementation history
 
 - Native Journal is the sole production Actual source; companion sources are `plan.tsv`, `budget_alloc.tsv`, `accounts.tsv`, `cycle.tsv`, and `issues.tsv`.
 - Daily human reporting runs through `tools/report` → `src_next/report.bqn`; compact output uses `tools/report-next-summary` → `src_next/summary.bqn`.
-- Production routing remains `src_next`, now 71 BQN modules and 12,343 physical lines after canonical complete/single-domain Journal admission and supporting fact kernels moved to `src/ledger` without old-path wrappers. All report sections remain available.
+- Production routing remains `src_next`, now 71 BQN modules and 12,412 physical lines; canonical admission/fact ownership is under `src/ledger`, while temporary context row adapters remain until report consumers migrate. All report sections remain available.
 - Canonical Daily Cube, TBDS, and purpose-specific sparse consumers remain views over checked posting facts, not competing source truths.
 - The current runtime still contains dual context/admission routes, historical transaction/proof fallbacks, compatibility exports, test seams, and historical entrypoint names.
 - Current reporting remains production until a separately verified ledger-facts engine passes the cutover gate.
@@ -75,13 +75,22 @@ This is not a section-reduction campaign and must not recreate the old giant all
 - [x] Connect raw Journal plus strict Account admission to `src/ledger/facts.bqn` through pure `src/ledger/snapshot.bqn`, with no destination import of `src_next`.
 - [x] Move complete/single-domain admission ownership and all runtime/editor/tool callers together; physically delete old paths and leave no forwarding wrapper.
 
-### Current finite slice: Phase 1C fact sufficiency and reader migration
+### Completed finite slice: Phase 1C fact sufficiency and reader migration
 
-- [ ] Map every existing report/editor Actual requirement to Transaction Facts, Posting Facts, Account/Domain/Layer tables, or an explicitly missing canonical field.
-- [ ] Add narrow canonical transaction/posting selectors needed by the first real consumers; do not add section-named fields.
-- [ ] Migrate editor Actual list/reverse/check readers from `actual_source.LoadTransactions` historical `delta` shape to canonical snapshot facts.
-- [ ] Migrate cycle/completion evidence to canonical facts where their semantics are already proved, then delete the corresponding historical fallback branch.
-- [ ] Keep Plan/Budget admission, Pivot, and Trial Balance section replacement out of this reader-focused slice.
+- [x] Mapped every existing report/editor Actual requirement to canonical facts, diagnostics, another source family, or a narrow capability (`docs/ACTUAL_FACT_SUFFICIENCY.md`).
+- [x] Added source-ordered typed transaction rows and exact coefficient/scale formatting without section-named fields.
+- [x] Migrated Journal list/reverse and base-oriented completion readers from historical `delta` parsing to canonical Facts.
+- [x] Migrated ordinary context/cycle production evidence to complete admission and deleted the runtime historical fallback; only explicit offline/test characterization users remain.
+- [x] Kept Plan/Budget admission, Pivot, and Trial Balance replacement out of the reader-focused slice.
+
+### Current finite slice: Phase 2A strict companion admission
+
+- [ ] Define aligned Plan and Budget transaction/posting facts from the strict public proof fixture.
+- [ ] Require explicit supported row currency and exact Account currency agreement.
+- [ ] Require durable `plan_id` for completion-capable Plan relationships; add no five-field fallback.
+- [ ] Preserve source row, exact coefficient/scale, date, memo/category, and relationship metadata with no partial result.
+- [ ] Add a logical Source table/index only when Actual/Plan/Budget facts first share a query consumer.
+- [ ] Do not inspect or migrate private sources without a separate explicit instruction.
 
 Phase 0 exit evidence is `docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`: every observable report capability has an owner, every compatibility path has a deletion gate, and no undecided fallback is permitted in the destination fact schema.
 

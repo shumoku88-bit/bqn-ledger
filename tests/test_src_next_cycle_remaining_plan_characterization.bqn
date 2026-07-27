@@ -7,6 +7,7 @@ ctx_mod ← •Import "../src_next/context.bqn"
 cs ← •Import "../src_next/cycle_summary.bqn"
 loader ← •Import "../src_next/loader.bqn"
 actual_source ← •Import "../src_next/actual_source.bqn"
+legacy_parser ← •Import "../src_next/journal_profile_stage1.bqn"
 adapter ← •Import "../src_next/journal_posting_ir_stage2a.bqn"
 labels ← •Import "../src_next/report_labels.bqn"
 fmt ← •Import "../src_next/format.bqn"
@@ -21,7 +22,8 @@ root_ctx ← ctx_mod.BuildContext root_base
 PostingRowsForBase ← {𝕊 base:
   snapshot ← ctx_mod.LoadNonActualPostingSourceSnapshot base
   projection ← ctx_mod.BuildCheckedPostingProjectionFromSnapshot ⟨snapshot,root_ctx.resolved,root_ctx.cy.start⟩
-  txs ← actual_source.LoadTransactions base
+  raw ← loader.ReadRaw (base∾"/"∾(actual_source.ResolveRelativePath base))
+  txs ← (legacy_parser.ParseWithProfile ⟨raw,"historical_external_plan"⟩).transactions
   actual ← adapter.BuildForSource ⟨txs,root_ctx.resolved,root_ctx.cy.start,(actual_source.Resolve base).file⟩
   actual.posting_rows∾projection.posting_rows
 }

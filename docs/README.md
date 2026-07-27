@@ -36,7 +36,8 @@ They are maps, not gates. Read the files that help with the question in front of
 - [`REPORT_OUTPUT_MIGRATION_CONTRACT.md`](REPORT_OUTPUT_MIGRATION_CONTRACT.md) — byte/schema/semantic parity decisions across human, compact, JSON, metadata, cache, CLI, and diagnostics
 - [`PRIVATE_SOURCE_READINESS_PROTOCOL.md`](PRIVATE_SOURCE_READINESS_PROTOCOL.md) — explicit-authorization boundary for readonly private audits and separately approved stale-safe migrations
 - [`PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`](PHASE0_REPORT_ENGINE_CHARACTERIZATION.md) — Phase 0 exit baseline for topology, exports, source-read pressure, timing, and the strict public proof fixture
-- [`LEDGER_FACT_SCHEMA.md`](LEDGER_FACT_SCHEMA.md) — Phase 1A canonical aligned Transaction/Posting facts, side tables, provenance, and all-or-nothing invariants
+- [`LEDGER_FACT_SCHEMA.md`](LEDGER_FACT_SCHEMA.md) — canonical aligned Transaction/Posting facts, side tables, provenance, and all-or-nothing invariants
+- [`ACTUAL_FACT_SUFFICIENCY.md`](ACTUAL_FACT_SUFFICIENCY.md) — mapping from all report/editor Actual requirements to facts, diagnostics, narrow capabilities, or later source families
 - [`REPORT_CODE_REDUCTION_PLAN.md`](REPORT_CODE_REDUCTION_PLAN.md) — completed prepared-boundary and code-reduction track retained as recent implementation context
 - [`TIME_AS_AXIS.md`](TIME_AS_AXIS.md) — temporal concepts
 - [`archive/audits/PROJECTION_BQN_OWNERSHIP_AUDIT-2026-07-26.md`](archive/audits/PROJECTION_BQN_OWNERSHIP_AUDIT-2026-07-26.md) — ownership inventory and bounded cleanup sequence for `src_next/projection.bqn`

@@ -28,9 +28,10 @@ BuildRecentRows ← {𝕊 ctx‿n:
   start ← 0⌈(≠txs)-n
   selected ← start↓txs
   Make ← {𝕊 tx:
-    debits ← ({𝕩.delta>0}¨tx.postings)/tx.postings
-    credits ← ({𝕩.delta<0}¨tx.postings)/tx.postings
-    {date⇐tx.date,memo⇐tx.description,from⇐Join {𝕩.account_key}¨credits,to⇐Join {𝕩.account_key}¨debits,amount⇐+´0∾{𝕩.delta}¨debits}
+    debits ← ({𝕩.side≡"debit"}¨tx.postings)/tx.postings
+    credits ← ({𝕩.side≡"credit"}¨tx.postings)/tx.postings
+    coefficient ← +´0∾{𝕩.normalized_coefficient}¨debits
+    {date⇐tx.date,memo⇐tx.description,from⇐Join {𝕩.account_key}¨credits,to⇐Join {𝕩.account_key}¨debits,amount⇐coefficient÷10⋆tx.calculation_scale}
   }
   ⌽Make¨selected
 }

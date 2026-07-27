@@ -72,7 +72,7 @@ Declarations ← {𝕊 lines‿registry:
       }⍟valid @
     }⍟(StartsWith ⟨"commodity ", text⟩) @
     commodityCount +↩ StartsWith ⟨"commodity ", text⟩
-    {𝕊: accounts ∾↩ ⟨{text⇐text, source_line⇐lineIndex + 1}⟩}⍟(StartsWith ⟨"account ", text⟩) @
+    {𝕊: accounts ∾↩ ⟨{text⇐text,account_key⇐8↓text,source_line⇐lineIndex+1}⟩}⍟(StartsWith ⟨"account ",text⟩) @
   }¨ ↕ ≠ lines
   duplicate ← (≠ domains) ≠ ≠ Unique domains
   diagnostics ∾↩ AddIf ⟨duplicate, Diagnostic ⟨"commodity_domain_duplicate", 0, "each declared commodity domain must appear once"⟩⟩
@@ -236,6 +236,7 @@ Admit ← {𝕊 raw‿accounts‿registry:
   {
     state⇐(0 = ≠ diagnostics) ⊑ "error"‿"ok",
     declared_domains⇐declarations.domains,
+    declared_accounts⇐{𝕩.account_key}¨declarations.accounts,
     transactions⇐transactions,
     diagnostics⇐diagnostics
   }

@@ -146,7 +146,7 @@ Inventory result: `CalcUnassignedRemaining` and `CalcEnvelopeBacking` are alread
 
 Inventory result: exports fell from 20 to 13. `LoadCycleEvidence` and its income interpretation preserve an explicit `complete` carrier because admitted postings use `normalized_coefficient` while historical compatibility postings use `delta`. Cycle-local plan-ID interpretation remains historical-context-only and is not reused for selected-domain admitted transactions. `LoadDates` / `IncomeDates` remain for base-oriented cycle compatibility; `Resolve`, `LoadTransactions`, and `CompletionEvidence` remain for journal/plan editor commands that genuinely start from a base rather than a report context. Report and calculation contexts use carried transactions. The slice removed 50 `src_next` lines (13,077 to 13,027), taking the track 29 lines below baseline.
 
-Historical parser fallback remains required by compatibility `BuildContext`, which intentionally constructs its posting IR from the `historical_external_plan` shape. Removing that fallback requires a separate context/admission decision, not an API cleanup.
+At this track's completion, historical parser fallback remained required by compatibility `BuildContext`; removing it required a separate context/admission decision rather than local API cleanup. Phase 1C of the later ledger-facts migration made that decision, moved production context/cycle/editor readers to canonical admission/facts, and deleted `LoadTransactions` plus the runtime fallback. The paragraph above remains the point-in-time inventory for this completed track.
 
 ## Completion
 

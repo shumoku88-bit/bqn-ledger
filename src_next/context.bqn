@@ -28,8 +28,19 @@ tbds ← •Import "tbds.bqn"
 currency_setup ← •Import "currency_setup.bqn"
 config ← •Import "config.bqn"
 actual_source ← •Import "actual_source.bqn"
-journal_parser ← •Import "journal_profile_stage1.bqn"
-journal_adapter ← •Import "journal_posting_ir_stage2a.bqn"
+journal_carrier ← •Import "journal_currency_proof_carrier_stage2a.bqn"
+
+CompatibilityRows ← {𝕊 rows:
+  {𝕊 row:
+    {
+      source_file⇐row.source_file,source_row⇐row.source_row,source_id⇐row.source_id,
+      tx_id⇐row.tx_id,posting_id⇐row.posting_id,date⇐row.date,day_index⇐row.day_index,
+      account_key⇐row.account_key,account_key_index⇐row.account_key_index,
+      layer_name⇐row.layer_name,layer_index⇐row.layer_index,side⇐row.side,
+      delta⇐row.normalized_coefficient,kind⇐row.kind,status⇐row.status,message⇐row.message
+    }
+  }¨rows
+}
 
 MakePostingSource ← {𝕊 srcFile‿required‿lines:
   { source_file ⇐ srcFile, required ⇐ required, lines ⇐ lines }
@@ -423,21 +434,19 @@ BuildContext ← {𝕊 arg:
   accLines     ← loader.ReadLines (base2 ∾ "/accounts.tsv")
   resolved     ← ak.Resolve accLines
   journal_rel  ← actual_source.ResolveRelativePath base2
-  raw ← loader.ReadRaw (base2 ∾ "/" ∾ journal_rel)
-  parsed ← journal_parser.ParseWithProfile ⟨raw,"historical_external_plan"⟩
-  {𝕊: •Out "ERROR: native Journal source rejected" ⋄ •Exit 1}⍟(parsed.state≢"ok") @
   # Account registry parity is set equality; declaration/source row order is not semantic.
-  declared ← ∧ {𝕩.account_key}¨ parsed.accounts
+  declared ← ∧ cycleEvidence.declared_accounts
   registry ← ∧ resolved.accounts
   {𝕊: •Out "ERROR: native Journal account declarations differ from accounts.tsv" ⋄ •Exit 1}⍟(declared≢registry) @
-  journal_checked ← journal_adapter.BuildForSource ⟨parsed.transactions,resolved,cy.start,journal_rel⟩
+  journal_checked ← journal_carrier.BuildForSource ⟨cycleEvidence.transactions,resolved,cy.start,journal_rel⟩
   {𝕊: •Out "ERROR: native Journal Posting IR rejected" ⋄ •Exit 1}⍟(journal_checked.state≢"ok") @
+  actual_rows ← CompatibilityRows journal_checked.currency_proof_rows
   nonactual_snapshot ← LoadNonActualPostingSourceSnapshot base2
   nonactual ← BuildAuthorizedRowsFromSnapshot ⟨nonactual_snapshot,resolved,cy.start⟩
   {𝕊: •Out "ERROR: native Journal requires one JPY non-actual arithmetic domain" ⋄ •Exit 1}⍟(nonactual.arithmetic_currency_proof.domain≢"JPY") @
-  actual_transactions ← parsed.transactions
+  actual_transactions ← cycleEvidence.transactions
   arithmetic_currency_proof ← nonactual.arithmetic_currency_proof
-  rows ← journal_checked.posting_rows ∾ nonactual.rows
+  rows ← actual_rows ∾ nonactual.rows
   view ← BuildPeriodView ⟨rows, resolved, cy⟩
 
   # Load and parse issues.tsv
@@ -464,6 +473,7 @@ BuildContext ← {𝕊 arg:
     posting_rows ⇐ rows,
     actual_source_file ⇐ journal_rel,
     actual_transactions ⇐ actual_transactions,
+    actual_transactions_complete ⇐ 1,
     arithmetic_currency_proof ⇐ arithmetic_currency_proof,
     cube         ⇐ view.cube,
     tbds         ⇐ view.tbds,

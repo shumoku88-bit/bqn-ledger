@@ -54,6 +54,7 @@ jpyIls ← Admit jpyIlsRaw
 "ok" lib.AssertEq jpyIls.state
 0 lib.AssertEq ≠ jpyIls.diagnostics
 ⟨"JPY", "ILS"⟩ lib.AssertEq jpyIls.declared_domains
+⟨"assets:bank-jpy","expenses:food-jpy","assets:cash-ils","expenses:food-ils"⟩ lib.AssertEq jpyIls.declared_accounts
 2 lib.AssertEq ≠ jpyIls.transactions
 
 jpy ← 0 ⊑ jpyIls.transactions

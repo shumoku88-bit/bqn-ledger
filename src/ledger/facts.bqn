@@ -22,7 +22,8 @@ EmptyTransactionFacts ← {𝕊:
   {
     count⇐0,index⇐empty,transaction_id⇐empty,identity_kind⇐empty,
     source_start_line⇐empty,source_end_line⇐empty,date_text⇐empty,date_ordinal⇐empty,
-    description⇐empty,layer_index⇐empty,domain_index⇐empty,calculation_scale⇐empty,
+    description⇐empty,status_marker⇐empty,metadata⇐empty,
+    layer_index⇐empty,domain_index⇐empty,calculation_scale⇐empty,
     txn_id⇐empty,plan_id⇐empty,allocation_id⇐empty,execution_envelope⇐empty,
     actual_event_id⇐empty
   }
@@ -99,6 +100,8 @@ Project ← {𝕊 admitted‿admittedAccounts:
       date_text⇐{𝕩.date}¨ transactions,
       date_ordinal⇐{dates.Ordinal 𝕩.date}¨ transactions,
       description⇐{𝕩.description}¨ transactions,
+      status_marker⇐{𝕩.status_marker}¨ transactions,
+      metadata⇐{𝕩.metadata}¨ transactions,
       layer_index⇐{IndexOf ⟨𝕩.layer_name,layerNames⟩}¨ transactions,
       domain_index⇐{IndexOf ⟨𝕩.domain,declaredDomains⟩}¨ transactions,
       calculation_scale⇐{𝕩.calculation_scale}¨ transactions,
