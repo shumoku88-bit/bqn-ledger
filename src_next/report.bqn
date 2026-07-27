@@ -44,7 +44,7 @@ ArgValue ← {𝕊 args‿flag:
   (next_idx < ≠args) ? (next_idx ⊑ args) ; ""
 }
 
-FindSectionIndex ← {𝕊 entries‿key: ({⊑𝕩}¨ entries) ⊐ ⟨key⟩ }
+FindSectionIndex ← { ⊑ ({0⊑𝕩}¨ (0⊑𝕩)) ⊐ ⟨1⊑𝕩⟩ }
 
 # Static descriptor keys own section identity/order. Executable builders remain
 # local and must form an exact one-to-one mapping with those keys.
@@ -64,42 +64,105 @@ FirstLine ← {𝕊 text:
   idx ↑ text
 }
 
+# Per-section entry builders
+BuildSnapshotEntry ← { ⟨"snapshot", snapshot.FormatHuman snapshot.Build 𝕩⟩ }
+BuildIssuesEntry ← { ⟨"issues", issues.FormatHuman 𝕩⟩ }
+BuildYtdEntry ← { ⟨"ytd", ytd_summary.FormatHuman ytd_summary.Build 𝕩⟩ }
+BuildBalancesEntry ← { ⟨"balances", balances.FormatHuman balances.Build 𝕩⟩ }
+BuildCycleEntry ← { ⟨"cycle", cycle_summary.FormatHuman ⟨cycle_summary.Build (0⊑𝕩), (1⊑𝕩).entries⟩⟩ }
+BuildTrialBalanceEntry ← { ⟨"trial-balance", trial_balance.FormatHuman (1⊑𝕩)⟩ }
+BuildEnvelopesEntry ← {
+  vm ← 1⊑𝕩
+  txt ← (vm.status ≡ "disabled")◶⟨{
+    raw_txt ← envelope_computation.FormatHuman vm
+    (0=≠raw_txt)◶⟨{raw_txt},{
+      hdr ← L "report.envelope_section_title"
+      hdr∾(@+10)∾"status: "∾vm.status∾(@+10)∾(L "report.envelope_guard_note")∾(@+10)
+    }⟩ @
+  },{""}⟩ @
+  ⟨"envelopes", txt⟩
+}
+BuildPlannedEntry ← { ⟨"planned", planned_payments.FormatHuman 𝕩⟩ }
+BuildRecentEntry ← { ⟨"recent", recent_journal.FormatHuman ⟨𝕩, 10⟩⟩ }
+BuildCheckEntry ← { ⟨"check", readiness_check.FormatHuman 𝕩⟩ }
+BuildOutlookEntry ← { ⟨"outlook", outlook.FormatHuman outlook.BuildAt ⟨0⊑𝕩, 1⊑𝕩⟩⟩ }
+BuildDailyTrendEntry ← { ⟨"daily-trend", daily_trend.FormatHuman daily_trend.BuildAt ⟨0⊑𝕩, 1⊑𝕩⟩⟩ }
+BuildDailyFlowEntry ← { ⟨"daily-flow", daily_flow.FormatHuman daily_flow.Build 𝕩⟩ }
+BuildActualComparisonEntry ← { ⟨"actual-comparison", actual_comparison.FormatHuman actual_comparison.BuildAt ⟨0⊑𝕩, 1⊑𝕩⟩⟩ }
+BuildDebugEntry ← {
+  ctx ← 𝕩
+  hdr ← fmt.Section (L "report.debug_title")
+  txt ← hdr∾(@+10)∾"status: partial/src_next"∾(@+10)∾cube.VerifyNumeric ⟨ctx.cube, ctx.resolved.account_keys⟩
+  ⟨"debug", txt⟩
+}
+
 # BuildSectionEntries returns ⟨⟨key,full_text⟩,...⟩ for all report sections.
 # The key is the canonical section name used by UI tools.
 # The full_text is what would be printed for that section.
 # Outlook O is supplied explicitly and does not redefine other consumers.
-BuildSectionEntries ← {𝕊 ctx‿outlook_as_of‿report_today:
+BuildSectionEntries ← {
+  ctx ← 0 ⊑ 𝕩
+  outlook_as_of ← 1 ⊑ 𝕩
+  report_today ← 2 ⊑ 𝕩
   exp ← expense_breakdown.Build ctx
   tb ← trial_balance.Build ⟨ctx, cube.layer_actual⟩
   vm ← envelope_computation.Build ctx
 
   builder_entries ← ⟨
-    ⟨"snapshot", snapshot.FormatHuman snapshot.Build ctx⟩
-    ⟨"issues", issues.FormatHuman ctx⟩
-    ⟨"ytd", ytd_summary.FormatHuman ytd_summary.Build ctx⟩
-    ⟨"balances", balances.FormatHuman balances.Build ctx⟩
-    ⟨"cycle", cycle_summary.FormatHuman ⟨cycle_summary.Build ctx, exp.entries⟩⟩
-    ⟨"trial-balance", trial_balance.FormatHuman tb⟩
-    ⟨"envelopes", {
-      txt ← envelope_computation.FormatHuman vm
-      (0=≠txt)◶⟨{𝕊: txt},{
-        hdr ← L "report.envelope_section_title"
-        hdr∾(@+10)∾"status: "∾vm.status∾(@+10)∾(L "report.envelope_guard_note")∾(@+10)
-      }⟩ @
-    }⍟(vm.status ≢ "disabled") ""⟩
-    ⟨"planned", planned_payments.FormatHuman ctx⟩
-    ⟨"recent", recent_journal.FormatHuman ⟨ctx, 10⟩⟩
-    ⟨"check", readiness_check.FormatHuman ctx⟩
-    ⟨"outlook", outlook.FormatHuman outlook.BuildAt ⟨ctx, outlook_as_of⟩⟩
-    ⟨"daily-trend", daily_trend.FormatHuman daily_trend.BuildAt ⟨ctx, report_today⟩⟩
-    ⟨"daily-flow", daily_flow.FormatHuman daily_flow.Build ctx⟩
-    ⟨"actual-comparison", actual_comparison.FormatHuman actual_comparison.BuildAt ⟨ctx, report_today⟩⟩
-    ⟨"debug", {
-      hdr ← fmt.Section (L "report.debug_title")
-      hdr∾(@+10)∾"status: partial/src_next"∾(@+10)∾cube.VerifyNumeric ⟨ctx.cube, ctx.resolved.account_keys⟩
-    }⟩
+    BuildSnapshotEntry ctx
+    BuildIssuesEntry ctx
+    BuildYtdEntry ctx
+    BuildBalancesEntry ctx
+    BuildCycleEntry ⟨ctx, exp⟩
+    BuildTrialBalanceEntry ⟨ctx, tb⟩
+    BuildEnvelopesEntry ⟨ctx, vm⟩
+    BuildPlannedEntry ctx
+    BuildRecentEntry ctx
+    BuildCheckEntry ctx
+    BuildOutlookEntry ⟨ctx, outlook_as_of⟩
+    BuildDailyTrendEntry ⟨ctx, report_today⟩
+    BuildDailyFlowEntry ctx
+    BuildActualComparisonEntry ⟨ctx, report_today⟩
+    BuildDebugEntry ctx
   ⟩
   OrderBuilderEntries builder_entries
+}
+
+# BuildSelectedHumanSection evaluates only the single requested human section
+# and its required precomputations. Returns ⟨1, ⟨key, text⟩⟩ if found, or ⟨0, ⟨"", ""⟩⟩ if unknown key.
+BuildSelectedHumanSection ← {
+  ctx ← 0 ⊑ 𝕩
+  section_key ← 1 ⊑ 𝕩
+  outlook_as_of ← 2 ⊑ 𝕩
+  report_today ← 3 ⊑ 𝕩
+
+  selected_builder_entries ← ⟨
+    ⟨"snapshot", { 𝕩: BuildSnapshotEntry ctx }⟩
+    ⟨"issues", { 𝕩: BuildIssuesEntry ctx }⟩
+    ⟨"ytd", { 𝕩: BuildYtdEntry ctx }⟩
+    ⟨"balances", { 𝕩:
+      •Out "ERROR: unreachable balances selected handler reached"
+      •Exit 1
+    }⟩
+    ⟨"cycle", { 𝕩: BuildCycleEntry ⟨ctx, expense_breakdown.Build ctx⟩ }⟩
+    ⟨"trial-balance", { 𝕩: BuildTrialBalanceEntry ⟨ctx, trial_balance.Build ⟨ctx, cube.layer_actual⟩⟩ }⟩
+    ⟨"envelopes", { 𝕩: BuildEnvelopesEntry ⟨ctx, envelope_computation.Build ctx⟩ }⟩
+    ⟨"planned", { 𝕩: BuildPlannedEntry ctx }⟩
+    ⟨"recent", { 𝕩: BuildRecentEntry ctx }⟩
+    ⟨"check", { 𝕩: BuildCheckEntry ctx }⟩
+    ⟨"outlook", { 𝕩: BuildOutlookEntry ⟨ctx, outlook_as_of⟩ }⟩
+    ⟨"daily-trend", { 𝕩: BuildDailyTrendEntry ⟨ctx, report_today⟩ }⟩
+    ⟨"daily-flow", { 𝕩: BuildDailyFlowEntry ctx }⟩
+    ⟨"actual-comparison", { 𝕩: BuildActualComparisonEntry ⟨ctx, report_today⟩ }⟩
+    ⟨"debug", { 𝕩: BuildDebugEntry ctx }⟩
+  ⟩
+  ordered_entries ← OrderBuilderEntries selected_builder_entries
+
+  idx ← FindSectionIndex ⟨ordered_entries, section_key⟩
+  (idx ≥ ≠ordered_entries) ◶ ⟨
+    { 𝕊: ⟨1, (0 ◶ ⟨ 1 ⊑ (idx ⊑ ordered_entries) ⟩) @⟩ },
+    { 𝕊: ⟨0, ⟨"", ""⟩⟩ }
+  ⟩ @
 }
 
 Main ← {𝕊 args:
@@ -228,6 +291,19 @@ Main ← {𝕊 args:
   {𝕊: outlook_as_of ↩ outlook_as_of_val}⍟outlook_as_of_flag @
   {𝕊: outlook_as_of ↩ report_today}⍟(¬ outlook_as_of_flag) @
 
+  {𝕊:
+    res ← BuildSelectedHumanSection ⟨ctx, section_key, outlook_as_of, report_today⟩
+    found ← 0 ⊑ res
+    {𝕊:
+      entry ← 1 ⊑ res
+      text ← 1 ⊑ entry
+      PrintSection text
+      •Exit 0
+    }⍟found @
+    •Out "ERROR: unknown section key: "∾section_key
+    •Exit 1
+  }⍟(section_flag) @
+
   entries ← BuildSectionEntries ⟨ctx, outlook_as_of, report_today⟩
 
   {𝕊:
@@ -248,19 +324,10 @@ Main ← {𝕊 args:
   }⍟(list_sections) @
 
   {𝕊:
-    idx ← FindSectionIndex ⟨entries, section_key⟩
-    {𝕊: PrintSection (1⊑ idx ⊑ entries)}⍟(idx < ≠entries) @
-    {𝕊:
-      •Out "ERROR: unknown section key: "∾section_key
-      •Exit 1
-    }⍟(idx ≥ ≠entries) @
-  }⍟(section_flag) @
-
-  {𝕊:
     {𝕊 entry:
       PrintSection (1⊑entry)
     }¨ entries
-  }⍟((¬ list_sections) ∧ (¬ section_flag)) @
+  }⍟((¬ list_sections) ∧ (¬ section_flag) ∧ (¬ write_cache_flag)) @
 }
 
 Main •args

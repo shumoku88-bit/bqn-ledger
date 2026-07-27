@@ -25,7 +25,7 @@ fail() { FAIL=$((FAIL + 1)); echo "  FAIL: $1" >&2; }
 
 # UI may pipe human report to color-filter/pager for display. It must not pipe
 # human report output into grep/sed/awk/cut to recover section or semantic data.
-if rg -n 'tools/report("|[[:space:]])[^|]*\|[^#]*(grep|sed|awk|cut)' tools/main-ui.sh tools/bl >"$matches_file" 2>/dev/null; then
+if rg -n 'tools/report("|[[:space:]])[^|]*\|[^#]*(grep|sed|awk|cut)' tools/main-ui.sh tools/bl tools/report-section-cache >"$matches_file" 2>/dev/null; then
   cat "$matches_file" >&2
   fail "UI appears to parse tools/report human output"
 else
@@ -41,21 +41,24 @@ else
 fi
 
 # Direct section display should address sections by stable section key.
-if rg -q -- '--section "\$key"' tools/main-ui.sh; then
+if rg -q -- '--section "\$key"' tools/main-ui.sh tools/report-section-cache; then
   pass
 else
-  fail "tools/main-ui.sh direct section display should call tools/report --section by key"
+  fail "selected section display should call tools/report --section by key"
 fi
 
-# Selector previews may use a cache produced by BQN/report using section keys.
-if rg -q -- '--write-section-cache' tools/main-ui.sh; then
+# Selector previews and final display use the report-owned lazy section helper.
+# The command hub must not synchronously request the all-section cache before
+# accepting a selection.
+if rg -q 'tools/report-section-cache' tools/main-ui.sh \
+  && ! rg -q -- '--write-section-cache' tools/main-ui.sh; then
   pass
 else
-  fail "tools/main-ui.sh selector should use report-owned section cache instead of parsing report text"
+  fail "tools/main-ui.sh should use lazy section cache without all-section generation"
 fi
 
 # Keep old marker/list-section scraping from returning as a UI dependency.
-if rg -n -- '--list-sections|marker mapping|section header parsing|section headers' tools/main-ui.sh tools/bl; then
+if rg -n -- '--list-sections|marker mapping|section header parsing|section headers' tools/main-ui.sh tools/bl tools/report-section-cache; then
   fail "UI should not depend on human section headers or marker mapping"
 else
   pass
