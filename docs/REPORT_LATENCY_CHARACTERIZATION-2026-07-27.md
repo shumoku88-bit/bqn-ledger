@@ -12,33 +12,46 @@ PR Branch: `docs/report-latency-characterization-instructions`
 - **Target Base SHA**: `a826a833799a0e75328ae7aeb794fe44c9018cf2`
 - **Current Branch**: `docs/report-latency-characterization-instructions` (PR #429)
 - **Environment**: macOS (Apple Silicon), CBQN v0.1.0, Bash 3.2 / Zsh
-- **Measurement Tooling**: `tools/report-latency-benchmark.sh` (5 runs per benchmark following 1 untimed warmup run) and `src_next/report_latency_probe.bqn` (`•MonoTime` microsecond precision).
+- **Measurement Tooling**:
+  - `tools/characterization/report-latency-benchmark.sh` (Perl `Time::HiRes` single-process wall-clock timing harness, 1 warmup + 5 timed runs).
+  - `tools/characterization/report_latency_probe.bqn` (`•MonoTime` BQN harness timing probe).
 
 ---
 
-## 2. Confirmed Call Graph
+## 2. Standalone Harness Notice
 
-### 2.1 Interactive Section Selector Route (`tools/bl` / `tools/main-ui.sh select`)
+The BQN probe (`tools/characterization/report_latency_probe.bqn`) lives outside the production `src_next/` source tree. It is a **standalone characterization harness** that reproduces the current section construction sequence of `BuildSectionEntries`, not an internal production hook inside `src_next/report.bqn`. All test outputs generated during probe execution are written to a caller-supplied temporary directory and deleted immediately upon exit.
+
+---
+
+## 3. Confirmed Call Graph & Problem Separation
+
+Static inspection and execution tracing confirm two distinct performance issues in the current code path:
+
+- **Problem A (Direct Section Latency)**: Invoking `tools/report --section <key>` synchronously and sequentially evaluates all 15 section builders inside `BuildSectionEntries` before discarding 14 outputs and returning the single requested section text.
+- **Problem B (Interactive Selector Cold-Start Block)**: Entering `tools/bl section` / `tools/main-ui.sh select` when the cache is missing or stale synchronously blocks opening the selector until `tools/report --write-section-cache` finishes generating all 15 section text files.
+
+### 3.1 Interactive Section Selector Route (`tools/bl` / `tools/main-ui.sh select`)
 
 ```text
 tools/bl
   -> tools/main-ui.sh --base <base> select
-       ├── 1. bqn src_edit/actual_journal_file_cmd.bqn <base> (~76 ms)
+       ├── 1. bqn src_edit/actual_journal_file_cmd.bqn <base> (~19 ms)
        ├── 2. stat scan of source mtimes (accounts, journal, plan, budget_alloc, cycle, issues, config, src_next/*.bqn, report_labels) (~10 ms)
        ├── 3. Cache validity check (.cache-timestamp >= max_src_mtime)
-       │    └── IF STALE OR MISSING:
+       │    └── IF STALE OR MISSING (Problem B):
        │         tools/report <base> --write-section-cache <dir> --no-color
        │           -> bqn src_next/report.bqn <base> --write-section-cache <dir> --no-color
        │                -> ctx_mod.BuildContext <base>
-       │                -> BuildSectionEntries (builds all 15 human section texts)
+       │                -> BuildSectionEntries (synchronously evaluates all 15 section builders & formats)
        │                -> write all 15 section text files + all.txt
        ├── 4. select_section <cache_dir>
-       │    -> tools/report-section-metadata (bqn src_next/report_section_metadata.bqn) (~95 ms)
-       │    -> fzf with preview (`cat <cache_dir>/{1}.txt`)
-       └── 5. Output selected cached section or launch direct command
+       │    -> tools/report-section-metadata (bqn src_next/report_section_metadata.bqn) (~34 ms command time)
+       │    -> fzf / gum TTY menu rendering with preview (`cat <cache_dir>/{1}.txt`)
+       └── 5. Output selected cached section text or launch sub-action
 ```
 
-### 2.2 Direct Section Output Route (`tools/main-ui.sh --base <base> <key>`)
+### 3.2 Direct Section Output Route (`tools/main-ui.sh --base <base> <key>`)
 
 ```text
 tools/main-ui.sh --base <base> <key>
@@ -48,87 +61,93 @@ tools/main-ui.sh --base <base> <key>
        │    balances.BuildSelected ⟨base, currency_val⟩ -> FormatSelectedHuman -> exit 0
        ├── IF format == "json":
        │    BuildContext <base> -> FormatJson for section -> exit 0
-       └── ELSE (all other direct human sections):
+       └── ELSE (all other direct human sections) (Problem A):
             -> BuildContext <base> (loads all posting rows, parses Journal, builds TBDS & Cube)
-            -> BuildSectionEntries (constructs ALL 15 human section texts)
+            -> BuildSectionEntries (synchronously and sequentially evaluates ALL 15 section builders & formats)
             -> FindSectionIndex & output only requested section text
 ```
 
 ---
 
-## 3. Measurements Across Datasets
+## 4. Measurements Across Dataset Scales
 
-Measurements present **Min / Median / Max** elapsed wall-clock time in milliseconds across 5 timed runs.
+Measurements below present **Min / Median / Max** process wall-clock elapsed time in milliseconds across 5 timed runs (using single-process Perl `Time::HiRes` timer).
 
-| Dataset / Environment | Posting Rows | Transactions | Accounts |
+| Dataset Sample | Posting Rows | Transactions | Accounts |
 | :--- | :--- | :--- | :--- |
-| **`fixtures/src-next-golden`** | 10 | 2 | 5 |
+| **`fixtures/src-next-golden`** | 8-10 | 2 | 5-6 |
 | **`data` (sandbox)** | 24 | 9 | 10 |
 | **`LEDGER_DATA_DIR` (daily use)** | 536 | 247 | 36 |
 
-### 3.1 Baselines & Process Startup
+### 4.1 Subprocess Baselines & Metadata Command Execution
 
 | Benchmark | `fixtures/src-next-golden` | `data` (sandbox) | Daily-Use Data |
 | :--- | :--- | :--- | :--- |
-| `tools/bl --help` | 89 / 98 / 109 ms | 77 / 80 / 85 ms | 80 / 84 / 87 ms |
-| BQN engine startup (`bqn -e 1+1`) | 70 / 75 / 76 ms | 65 / 68 / 69 ms | 67 / 69 / 71 ms |
-| BQN `report.bqn` import baseline | 123 / 127 / 135 ms | 118 / 120 / 123 ms | 121 / 126 / 127 ms |
-| Journal path resolution (`actual_journal`) | 77 / 85 / 89 ms | 73 / 79 / 82 ms | 74 / 76 / 84 ms |
-| `report-section-metadata` export | 89 / 97 / 105 ms | 89 / 94 / 95 ms | 91 / 95 / 100 ms |
+| Command Hub `--help` CLI route (`bl help`) | 26.1 / 28.1 / 31.6 ms | 25.5 / 30.9 / 37.6 ms | 26.6 / 29.9 / 32.9 ms |
+| BQN engine startup (`bqn -e 1+1`) | 12.9 / 13.6 / 14.8 ms | 12.3 / 13.4 / 13.6 ms | 12.4 / 13.0 / 14.2 ms |
+| BQN `report.bqn` import baseline | 60.7 / 65.4 / 70.2 ms | 59.5 / 65.5 / 73.8 ms | 56.5 / 62.0 / 66.7 ms |
+| Journal path resolution (`actual_journal`) | 20.4 / 20.8 / 24.2 ms | 18.1 / 18.9 / 21.9 ms | 18.5 / 19.3 / 21.3 ms |
+| `report-section-metadata` command execution | 33.4 / 38.5 / 42.5 ms | 31.8 / 33.7 / 35.6 ms | 32.2 / 34.4 / 40.1 ms |
 
-### 3.2 Cold vs Warm Cache Generation
+*Note: The non-interactive `--help` CLI route (`tools/bl help`) measures CLI parsing and help display. Interactive TTY menu rendering (`tools/bl` without args) opens `fzf`/`gum` upon terminal TTY input.*
+
+### 4.2 Cold Section Cache Generation vs Warm Metadata Command Execution
 
 | Benchmark | `fixtures/src-next-golden` | `data` (sandbox) | Daily-Use Data |
 | :--- | :--- | :--- | :--- |
-| **Cold section cache generation** | 445 / 448 / 473 ms | 639 / 642 / 654 ms | **1268 / 1340 / 1391 ms** |
-| **Warm selector section-metadata** | 97 / 99 / 111 ms | 88 / 90 / 100 ms | **93 / 98 / 101 ms** |
+| **Cold section cache generation** | 384.1 / 387.9 / 408.0 ms | 574.9 / 581.4 / 585.0 ms | **1268.4 / 1298.5 / 1334.6 ms** |
+| **Warm selector metadata command** | 33.4 / 37.7 / 42.1 ms | 32.8 / 34.7 / 35.1 ms | **33.8 / 37.1 / 40.4 ms** |
 
-### 3.3 Representative Direct Section Execution
+*Note: Warm selector measurement captures `tools/report-section-metadata` process execution, not full TTY `fzf`/`gum` rendering or end-to-end user interaction availability.*
+
+### 4.3 Representative Direct Section Execution
 
 | Direct Section Key | `fixtures/src-next-golden` | `data` (sandbox) | Daily-Use Data |
 | :--- | :--- | :--- | :--- |
-| `--section snapshot` | 448 / 463 / 481 ms | 647 / 687 / 1374 ms | **1279 / 1300 / 1381 ms** |
-| `--section cycle` | 463 / 776 / 1095 ms | 668 / 687 / 702 ms | **1269 / 1311 / 1351 ms** |
-| `--section outlook` | 454 / 483 / 538 ms | 680 / 685 / 706 ms | **1262 / 1300 / 1334 ms** |
-| `--section daily-trend` | 509 / 520 / 537 ms | 697 / 754 / 1484 ms | **1332 / 1369 / 1421 ms** |
-| `--section balances` (human) | 151 / 175 / 177 ms | 388 / 408 / 437 ms | **927 / 957 / 977 ms** |
+| `--section snapshot` | 382.6 / 385.1 / 401.8 ms | 577.0 / 579.8 / 586.0 ms | **1291.6 / 1311.2 / 1345.9 ms** |
+| `--section cycle` | 383.4 / 416.1 / 424.7 ms | 577.4 / 587.0 / 614.7 ms | **1282.7 / 1307.8 / 1340.6 ms** |
+| `--section outlook` | 351.0 / 358.7 / 382.8 ms | 577.5 / 586.2 / 617.7 ms | **1283.4 / 1305.2 / 1351.9 ms** |
+| `--section daily-trend` | 356.1 / 781.4 / 804.4 ms | 620.3 / 627.3 / 677.5 ms | **1342.1 / 1368.5 / 1402.1 ms** |
+| `--section balances` (selected human) | 74.0 / 77.2 / 82.5 ms | 313.5 / 313.7 / 324.5 ms | **868.5 / 902.6 / 937.1 ms** |
 
-### 3.4 Full Report Execution
+### 4.4 Full Report Execution
 
 | Benchmark | `fixtures/src-next-golden` | `data` (sandbox) | Daily-Use Data |
 | :--- | :--- | :--- | :--- |
-| `tools/report` (full report) | 440 / 449 / 458 ms | 787 / 792 / 808 ms | **1323 / 1369 / 1397 ms** |
+| `tools/report` (full report) | 357.4 / 359.8 / 363.5 ms | 634.3 / 637.6 / 683.2 ms | **1328.7 / 1356.4 / 1408.2 ms** |
 
 ---
 
-## 4. Internal Timing Decomposition (`•MonoTime` Probe)
+## 5. Internal Harness Timing Decomposition (`•MonoTime` Probe)
 
-The breakdown below measures exact internal execution phases inside BQN via `src_next/report_latency_probe.bqn` (times in milliseconds).
+The breakdown below measures execution phases inside the characterization harness (`tools/characterization/report_latency_probe.bqn`) (times in milliseconds).
 
 | Execution Phase | `fixtures/src-next-golden` | `data` (sandbox) | Daily-Use Data (536 rows) |
 | :--- | :--- | :--- | :--- |
-| Top-level `•Import` evaluation | 57.5 ms | 60.8 ms | 60.4 ms |
-| **`BuildContext`** | **54.4 ms** | **213.3 ms** | **818.7 ms** (62%) |
-| Precompute `expense_breakdown` | 0.04 ms | 0.05 ms | 0.18 ms |
-| Precompute `trial_balance` | 0.02 ms | 0.02 ms | 0.02 ms |
-| Precompute `envelope_computation` | 34.4 ms | 44.2 ms | 65.7 ms |
-| **All 15 Section Builders Total** | **206.4 ms** | **320.6 ms** | **367.7 ms** (28%) |
-| Section cache disk writes (`•FChars`) | 3.2 ms | 2.5 ms | 3.3 ms |
-| **Total BQN Internal Elapsed** | **360.3 ms** | **646.4 ms** | **1320.2 ms** |
+| Top-level `•Import` evaluation | 42.9 ms | 60.1 ms | 54.2 ms |
+| **`BuildContext`** | **53.7 ms** | **209.3 ms** | **816.2 ms** |
+| Precompute `expense_breakdown` | 0.05 ms | 0.04 ms | 0.19 ms |
+| Precompute `trial_balance` | 0.02 ms | 0.01 ms | 0.02 ms |
+| Precompute `envelope_computation` | 32.9 ms | 47.8 ms | 66.1 ms |
+| **All Section Builders & Formatting Total** | **191.8 ms** | **286.6 ms** | **363.9 ms** |
+| Section cache disk writes (`•FChars`) | 2.4 ms | 2.3 ms | 3.2 ms |
+| **Total Harness Execution Time** | **328.1 ms** | **611.0 ms** | **1308.3 ms** |
 
-### 4.1 Per-Section Builder Breakdown (Daily-Use Data)
+### 5.1 Section Builder & Format Evaluation Time Breakdown (Daily-Use Data)
 
-| Section Builder Key | Time (ms) | Share of Builder Phase |
+*Note: Timings below measure evaluating both the section builder model logic and its human text formatting (`FormatHuman`) call for each section.*
+
+| Section Key | Builder & Format Eval Time (ms) | Share of Section Eval Phase |
 | :--- | :--- | :--- |
-| `outlook` | **119.54 ms** | 32.5% |
-| `cycle` | **71.70 ms** | 19.5% |
-| `daily-trend` | **61.27 ms** | 16.7% |
-| `planned` | **55.44 ms** | 15.1% |
-| `daily-flow` | **38.32 ms** | 10.4% |
-| `check` | **17.58 ms** | 4.8% |
-| `ytd` | 1.64 ms | 0.4% |
-| `actual-comparison` | 1.00 ms | 0.3% |
-| `recent` | 0.45 ms | 0.1% |
+| `outlook` | **118.29 ms** | 32.5% |
+| `cycle` | **71.22 ms** | 19.6% |
+| `daily-trend` | **60.85 ms** | 16.7% |
+| `planned` | **54.90 ms** | 15.1% |
+| `daily-flow` | **37.89 ms** | 10.4% |
+| `check` | **17.48 ms** | 4.8% |
+| `ytd` | 1.63 ms | 0.4% |
+| `actual-comparison` | 0.99 ms | 0.3% |
+| `recent` | 0.44 ms | 0.1% |
 | `balances` | 0.26 ms | 0.1% |
 | `snapshot` | 0.20 ms | 0.1% |
 | `trial-balance` | 0.13 ms | < 0.1% |
@@ -136,66 +155,67 @@ The breakdown below measures exact internal execution phases inside BQN via `src
 | `envelopes` | 0.001 ms | < 0.1% |
 | `debug` | 0.00 ms | 0.0% |
 
+*Observation*: The top 6 section builders (`outlook`, `cycle`, `daily-trend`, `planned`, `daily-flow`, `check`) account for **approximately 99%** (361.05 ms out of 363.90 ms = 99.2%) of total section evaluation time.
+
 ---
 
-## 5. Cache Invalidation Mechanics
+## 6. Cache Invalidation Scan Observations
 
 - **Inputs Scanned**: `accounts.tsv`, resolved native journal, `plan.tsv`, `budget_alloc.tsv`, `cycle.tsv`, `issues.tsv`, `config.tsv`, `report_labels.tsv`, and root `src_next/*.bqn`.
-- **Observation**: `tools/main-ui.sh` uses `find "$ROOT_DIR/src_next" -maxdepth 1 -name "*.bqn"`. Nested BQN files (e.g. `src_next/queries/*.bqn`) are currently omitted from the mtime scan.
-- **Cache Check Overhead**: Scanning mtimes in bash takes ~10 ms; BQN journal path resolution takes ~76 ms. Total cache validity check is ~86 ms.
+- **Cache Check Duration**: File mtime scan in bash takes ~10 ms; BQN journal path resolution takes ~19 ms.
+- **Nested Module Omission**: `tools/main-ui.sh` currently uses `find "$ROOT_DIR/src_next" -maxdepth 1 -name "*.bqn"`. BQN files located in subdirectories (such as `src_next/queries/*.bqn`) are omitted from the cache mtime scan. This is categorized separately as a **Correctness Characterization Candidate** rather than a performance optimization.
 
 ---
 
-## 6. Key Findings
+## 7. Findings & Categorization
 
-### 6.1 Directly Observed
+### 7.1 Directly Observed
 
-1. **Direct section dispatch constructs all 15 sections**: Requesting a single section like `tools/report --section snapshot` takes ~1300 ms on daily-use data. Formatting `snapshot` itself takes only **0.20 ms**, but `src_next/report.bqn` executes `BuildSectionEntries` for all 15 sections (including `outlook` 120ms, `cycle` 72ms, `daily-trend` 61ms, `planned` 55ms) before filtering to the requested key.
-2. **`BuildContext` scales with transaction volume**: `BuildContext` time grows from 54 ms (10 rows) to 213 ms (24 rows) to **818.7 ms** (536 rows). It constitutes 62% of cold execution time on daily-use data.
-3. **Builder time is heavily concentrated**: 6 out of 15 section builders account for >99% of total section builder time (361 ms out of 368 ms). The remaining 9 builders (including `snapshot`, `balances`, `issues`, `recent`) take < 0.5 ms each.
-4. **Stale cache regeneration blocks selector entrance**: On cold/stale cache, opening `tools/bl section` blocks for 1.34+ seconds while generating all section previews via `tools/report --write-section-cache`. On warm cache, selector entrance takes ~98 ms.
-5. **Human balances has a specialized dispatch**: `--section balances` dispatches before `BuildContext` using `balances.BuildSelected`, taking 957 ms on 536 rows.
+1. **Direct section execution synchronously evaluates all 15 sections**: Requesting a single section like `tools/report --section snapshot` takes ~1311 ms on daily-use data. Evaluating `snapshot` itself takes only **0.20 ms**, but `src_next/report.bqn` executes `BuildSectionEntries` for all 15 human sections (including `outlook` 118ms, `cycle` 71ms, `daily-trend` 61ms, `planned` 55ms) before filtering to the requested key.
+2. **`BuildContext` execution time across sample datasets**: Across the three sample datasets measured (8-10 rows, 24 rows, 536 rows), `BuildContext` execution time was observed at 53.7 ms, 209.3 ms, and **816.2 ms** respectively.
+3. **Section evaluation time is concentrated**: 6 out of 15 section evaluation calls account for approximately 99% (99.2%) of section evaluation time (361 ms out of 364 ms).
+4. **Cold/stale cache blocks selector entrance**: When cache is missing or stale, `tools/bl section` blocks for **1.30+ seconds** while generating all section text files via `tools/report --write-section-cache`.
+5. **Human balances has a specialized dispatch**: `--section balances` dispatches before `BuildContext` using `balances.BuildSelected`, taking 902.6 ms on 536 rows.
 
-### 6.2 Inferred
+### 7.2 Inferred
 
-1. Single-section requests pay a ~368 ms penalty for constructing 14 unused report sections.
-2. `BuildContext` performs full ledger loading, posting IR adaptation, TBDS construction, and Daily Cube materialization for all historical postings, which is required for period balance continuity but represents the majority of execution time as transaction history grows.
+1. Single-section requests pay a ~364 ms overhead for evaluating 14 unused report sections.
+2. Cold cache generation spends >60% of execution time in `BuildContext` and ~28% in section evaluation.
 
-### 6.3 Not Yet Determined
+### 7.3 Not Yet Determined
 
 1. Whether `BuildContext` can be lazily or partially evaluated for sections that only require posting rows or TBDS without full Daily Cube materialization.
 2. Whether section selector UI can display existing warm previews immediately while refreshing stale cache in the background or on demand.
 
 ---
 
-## 7. Ranked Candidate Implementation Slices
+## 8. Ranked Candidate Implementation Slices
 
-### Slice 1 (Recommended): Selected-section-only construction for `--section <key>`
-- **Description**: Modify `src_next/report.bqn` so that when `--section <key>` is specified, only the requested section builder is executed instead of building all 15 sections.
-- **Expected Impact**: Reduces direct single-section latency for light sections (`snapshot`, `balances`, `issues`, `recent`, `trial-balance`, `ytd`, `actual-comparison`) by ~368 ms (from ~1300 ms to ~930 ms on daily-use data).
-- **Scope & Safety**: Very small BQN change in `report.bqn`. Zero changes to report text, contracts, accounting core, or CLI flags.
+### Slice 1: Selected-Section-Only Construction for Direct `--section <key>` (Outcome B)
+- **Problem Targeted**: Problem A (Direct Section Latency).
+- **Scope Limitation**: Slice 1 targets direct section latency (`tools/report --section <key>`). It does **NOT** directly resolve Problem B (cold/stale cache block when opening interactive selector).
+- **Description**: Modify `src_next/report.bqn` so that when `--section <key>` is specified, only the requested section builder is evaluated instead of evaluating all 15 sections.
+- **Expected Impact**: Reduces direct single-section latency for light sections (`snapshot`, `balances`, `issues`, `recent`, `trial-balance`, `ytd`, `actual-comparison`) by ~364 ms (from ~1311 ms to ~947 ms on daily-use data).
 
-### Slice 2: Selector-first preview display for interactive navigation
+### Slice 2: Selector-First Preview Display for Interactive Navigation (Outcome A)
+- **Problem Targeted**: Problem B (Interactive Selector Cold-Start Block).
 - **Description**: Open `fzf`/`gum` selector in `tools/main-ui.sh` using available warm previews or section metadata immediately without blocking on cold cache generation.
-- **Expected Impact**: Eliminates the 1.34s cold-start block when entering `tools/bl section`.
+- **Expected Impact**: Eliminates the 1.30s cold-start block when entering `tools/bl section`.
 
-### Slice 3: Cache invalidation glob fix for nested modules
+### Slice 3: Nested Module Cache Invalidation Scan Fix (Correctness Candidate)
+- **Problem Targeted**: Correctness / cache freshness for nested BQN modules.
 - **Description**: Update `tools/main-ui.sh` find command to include nested BQN modules (`src_next/**/*.bqn`).
 - **Expected Impact**: Correctness fix preventing stale cache when files under `src_next/queries/` or future subdirectories change.
 
-### Slice 4: Decompose `BuildContext` for lightweight consumers
-- **Description**: Allow sections that do not need Daily Cube (e.g. `recent`, `issues`, `check`) to consume posting rows directly without full Cube materialization.
-- **Expected Impact**: Reduces `BuildContext` time for lightweight section queries.
-
 ---
 
-## 8. Recommendation & Next Steps
+## 9. Slice 1 Prerequisites & Implementation Checklist
 
-**Recommendation**: Proceed next with **Slice 1 (Selected-section-only construction for `--section <key>`)**.
+If Slice 1 is selected for implementation in a future PR, the following prerequisites and edge cases must be preserved:
 
-### Invariants for Slice 1 Implementation:
-- Preserve exact output text for all section keys (`--section <key>`).
-- Preserve full report (`tools/report`) output and section ordering.
-- Preserve `--write-section-cache` behavior (writing all section files).
-- Preserve `--list-sections` output and section metadata.
-- Preserve JSON export behavior (`--format json`).
+1. **Shared Precomputations**: Dependent sections (`cycle` requires `exp.entries`, `trial-balance` requires `tb`, `envelopes` requires `vm`) must still evaluate their required shared precomputations.
+2. **Unknown Section Key Handling**: Invalid keys must preserve `ERROR: unknown section key: <key>` output and exit status 1.
+3. **`--outlook-as-of` Option**: `--outlook-as-of` date override must remain functional when `--section outlook` is selected.
+4. **`envelopes` Disabled Policy Guard**: The `vm.status ≢ "disabled"` check and title header formatting for `envelopes` must remain identical.
+5. **Section Ordering & `--list-sections`**: Full report order and `--list-sections` descriptor order must remain unchanged.
+6. **Human `balances` Specialized Pre-Dispatch**: Human `--section balances` must maintain its specialized `balances.BuildSelected` pre-dispatch route.

@@ -1,36 +1,42 @@
-# report_latency_probe.bqn — timing probe for latency characterization
-# Usage: bqn src_next/report_latency_probe.bqn <baseDir>
+# report_latency_probe.bqn — characterization harness for report latency
+#
+# NOTICE: This is a standalone characterization harness that reproduces the current
+# section construction sequence of src_next/report.bqn. It is not an internal
+# production instrumentation hook inside BuildSectionEntries.
+#
+# Usage: bqn tools/characterization/report_latency_probe.bqn <baseDir> <tempDir>
 
 t_start ← •MonoTime @
 
-ctx_mod ← •Import "context.bqn"
-date ← •Import "date.bqn"
-snapshot ← •Import "snapshot.bqn"
-ytd_summary ← •Import "ytd_summary.bqn"
-balances ← •Import "balances.bqn"
-cycle_summary ← •Import "cycle_summary.bqn"
-expense_breakdown ← •Import "expense_breakdown.bqn"
-envelope_computation ← •Import "envelope_computation.bqn"
-planned_payments ← •Import "planned_payments.bqn"
-recent_journal ← •Import "recent_journal.bqn"
-readiness_check ← •Import "readiness_check.bqn"
-outlook ← •Import "outlook.bqn"
-daily_trend ← •Import "daily_trend.bqn"
-actual_comparison ← •Import "actual_comparison.bqn"
-cube ← •Import "cube.bqn"
-trial_balance ← •Import "trial_balance.bqn"
-fmt ← •Import "format.bqn"
-labels ← •Import "report_labels.bqn"
-report_sections ← •Import "report_sections.bqn"
-report_builder_order ← •Import "report_builder_order.bqn"
-issues ← •Import "issues.bqn"
-daily_flow ← •Import "daily_flow.bqn"
+ctx_mod ← •Import "../../src_next/context.bqn"
+date ← •Import "../../src_next/date.bqn"
+snapshot ← •Import "../../src_next/snapshot.bqn"
+ytd_summary ← •Import "../../src_next/ytd_summary.bqn"
+balances ← •Import "../../src_next/balances.bqn"
+cycle_summary ← •Import "../../src_next/cycle_summary.bqn"
+expense_breakdown ← •Import "../../src_next/expense_breakdown.bqn"
+envelope_computation ← •Import "../../src_next/envelope_computation.bqn"
+planned_payments ← •Import "../../src_next/planned_payments.bqn"
+recent_journal ← •Import "../../src_next/recent_journal.bqn"
+readiness_check ← •Import "../../src_next/readiness_check.bqn"
+outlook ← •Import "../../src_next/outlook.bqn"
+daily_trend ← •Import "../../src_next/daily_trend.bqn"
+actual_comparison ← •Import "../../src_next/actual_comparison.bqn"
+cube ← •Import "../../src_next/cube.bqn"
+trial_balance ← •Import "../../src_next/trial_balance.bqn"
+fmt ← •Import "../../src_next/format.bqn"
+labels ← •Import "../../src_next/report_labels.bqn"
+report_sections ← •Import "../../src_next/report_sections.bqn"
+report_builder_order ← •Import "../../src_next/report_builder_order.bqn"
+issues ← •Import "../../src_next/issues.bqn"
+daily_flow ← •Import "../../src_next/daily_flow.bqn"
 L ← labels.Text
 
 t_imports ← •MonoTime @
 
 Main ← {𝕊 args:
   base ← ⊑ args
+  tmp_dir ← 1 ⊑ args
   fmt.SetColorEnabled 0
 
   t_ctx0 ← •MonoTime @
@@ -53,7 +59,7 @@ Main ← {𝕊 args:
   vm ← envelope_computation.Build ctx
   t_vm1 ← •MonoTime @
 
-  # Helper to time a section builder
+  # 1-modifier helper to time a section builder and human format evaluation
   _TimeFn ← {
     t0 ← •MonoTime @
     res ← 𝔽 @
@@ -100,12 +106,11 @@ Main ← {𝕊 args:
     ⟨"debug", res_debug, 0⟩
   ⟩
 
-  # Time cache writes
-  tmp_dir ← "/tmp/probe_cache_test"
+  # Write test cache outputs strictly to the caller-supplied temporary directory
   t_w0 ← •MonoTime @
   {𝕊 item:
     key ← 0⊑item ⋄ text ← 1⊑item
-    (tmp_dir ∾ "_" ∾ key ∾ ".txt") •FChars text
+    (tmp_dir ∾ "/" ∾ key ∾ ".txt") •FChars text
   }¨ sec_list
   t_w1 ← •MonoTime @
 
@@ -123,7 +128,7 @@ Main ← {𝕊 args:
   •Out "All_section_builders_total_ms: " ∾ Ms (t_builders1 - t_builders0)
   •Out "Section_write_cache_ms: " ∾ Ms (t_w1 - t_w0)
   •Out "Total_probe_ms: " ∾ Ms (t_end - t_start)
-  •Out "--- SECTION BUILDER TIMINGS (ms) ---"
+  •Out "--- SECTION BUILDER & FORMAT EVALUATION TIMINGS (ms) ---"
   {𝕊 item:
     key ← 0⊑item ⋄ ms ← Ms (2⊑item)
     •Out key ∾ ": " ∾ ms

@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# tools/report-latency-benchmark.sh — latency benchmark script for report characterization
-# Runs 1 untimed warmup run followed by 5 timed runs for each command.
-# Reports min, median, max elapsed time (in ms).
+# tools/characterization/report-latency-benchmark.sh — latency benchmark script for report characterization
+#
+# Runs 1 untimed warmup run followed by 5 timed runs for each benchmark command.
+# Uses Perl Time::HiRes to measure process wall-clock elapsed time without per-loop Python invocation.
 
 SOURCE="${BASH_SOURCE[0]}"
 while [ -L "$SOURCE" ]; do
@@ -12,7 +13,7 @@ while [ -L "$SOURCE" ]; do
   [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
 done
 SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
-ROOT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+ROOT_DIR="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
 cd "$ROOT_DIR"
 
 source "$ROOT_DIR/tools/lib/system-defaults.sh"
@@ -34,19 +35,30 @@ done
 
 ensure_ledger_report_base "$base_dir"
 
+# Clean temporary directory for benchmark cache testing and probe output
+tmp_bench_dir="$(mktemp -d)"
+trap 'rm -rf "$tmp_bench_dir"' EXIT
+
 run_time_ms() {
-  local start end elapsed
-  start=$(python3 -c 'import time; print(int(time.time() * 1000000))')
-  "$@" >/dev/null 2>&1
-  end=$(python3 -c 'import time; print(int(time.time() * 1000000))')
-  elapsed=$(( (end - start) / 1000 ))
-  echo "$elapsed"
+  perl -MTime::HiRes=time -e '
+    my $t0 = time();
+    my $pid = fork();
+    if ($pid == 0) {
+      open(STDOUT, ">", "/dev/null");
+      open(STDERR, ">", "/dev/null");
+      exec(@ARGV);
+      exit(127);
+    }
+    waitpid($pid, 0);
+    my $dt = (time() - $t0) * 1000;
+    printf "%.2f\n", $dt;
+  ' -- "$@"
 }
 
 benchmark_cmd() {
   local label="$1"
   shift
-  # 1 warmup run
+  # 1 warmup run (discarded)
   "$@" >/dev/null 2>&1 || true
 
   local runs=()
@@ -56,16 +68,16 @@ benchmark_cmd() {
     runs+=("$t")
   done
 
-  # Sort runs to compute min, median, max
-  IFS=$'\n' sorted=($(sort -n <<<"${runs[*]}"))
+  # Sort runs numerically to compute min, median, max
+  IFS=$'\n' sorted=($(sort -g <<<"${runs[*]}"))
   unset IFS
 
   local min="${sorted[0]}"
   local median="${sorted[2]}"
   local max="${sorted[4]}"
 
-  printf "%-40s | Min: %5d ms | Median: %5d ms | Max: %5d ms | Runs: %s\n" \
-    "$label" "$min" "$median" "$max" "${runs[*]}"
+  printf "%-45s | Min: %7.1f ms | Median: %7.1f ms | Max: %7.1f ms\n" \
+    "$label" "$min" "$median" "$max"
 }
 
 echo "=========================================================================="
@@ -75,23 +87,23 @@ echo "Date: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
 echo "=========================================================================="
 echo ""
 
-echo "--- 1. Baseline & Command Hub Entrance ---"
-benchmark_cmd "Command Hub entrance (bl --help)" "$ROOT_DIR/tools/bl" --base "$base_dir" help
+echo "--- 1. Subprocess & Process Baselines ---"
+benchmark_cmd "Command Hub help CLI route (bl --help)" "$ROOT_DIR/tools/bl" --base "$base_dir" help
 benchmark_cmd "BQN engine startup (bqn -e 1+1)" bqn -e '1+1'
 benchmark_cmd "BQN report.bqn import baseline" bqn -e '•Import "src_next/report.bqn"'
+echo "Note: Interactive TTY main menu (bl without args) opens fzf/gum menu upon TTY input."
 echo ""
 
 echo "--- 2. Cache Invalidation Scan Components ---"
 benchmark_cmd "Journal path resolution (actual_journal)" bqn "$ROOT_DIR/src_edit/actual_journal_file_cmd.bqn" "$base_dir"
-benchmark_cmd "report-section-metadata export" "$ROOT_DIR/tools/report-section-metadata"
+benchmark_cmd "report-section-metadata command execution" "$ROOT_DIR/tools/report-section-metadata"
 echo ""
 
-echo "--- 3. Cold vs Warm Section Cache ---"
-tmp_cache_dir="$(mktemp -d)"
-trap 'rm -rf "$tmp_cache_dir"' EXIT
-
-benchmark_cmd "Cold section cache generation" "$ROOT_DIR/tools/report" "$base_dir" --write-section-cache "$tmp_cache_dir" --no-color
-benchmark_cmd "Warm selector section-metadata" "$ROOT_DIR/tools/report-section-metadata"
+echo "--- 3. Cold Section Cache vs Warm Metadata Export ---"
+benchmark_cmd "Cold section cache generation" "$ROOT_DIR/tools/report" "$base_dir" --write-section-cache "$tmp_bench_dir" --no-color
+benchmark_cmd "Warm selector section-metadata command" "$ROOT_DIR/tools/report-section-metadata"
+echo "Note: Warm selector measurement captures tools/report-section-metadata execution,"
+echo "      not full TTY fzf/gum rendering or user interaction availability."
 echo ""
 
 echo "--- 4. Direct Selected Sections ---"
@@ -99,13 +111,15 @@ benchmark_cmd "Direct section: snapshot" "$ROOT_DIR/tools/report" "$base_dir" --
 benchmark_cmd "Direct section: cycle" "$ROOT_DIR/tools/report" "$base_dir" --section cycle --no-color
 benchmark_cmd "Direct section: outlook" "$ROOT_DIR/tools/report" "$base_dir" --section outlook --no-color
 benchmark_cmd "Direct section: daily-trend" "$ROOT_DIR/tools/report" "$base_dir" --section daily-trend --no-color
-benchmark_cmd "Direct section: balances (selected)" "$ROOT_DIR/tools/report" "$base_dir" --section balances --no-color
+benchmark_cmd "Direct section: balances (selected human)" "$ROOT_DIR/tools/report" "$base_dir" --section balances --no-color
 echo ""
 
 echo "--- 5. Full Report ---"
 benchmark_cmd "Full report (all sections)" "$ROOT_DIR/tools/report" "$base_dir" --no-color
 echo ""
 
-echo "--- 6. Detailed BQN Internal Probe ---"
-bqn "$ROOT_DIR/src_next/report_latency_probe.bqn" "$base_dir"
+echo "--- 6. Detailed BQN Internal Probe (Harness Sequence) ---"
+probe_tmp_dir="$(mktemp -d)"
+bqn "$ROOT_DIR/tools/characterization/report_latency_probe.bqn" "$base_dir" "$probe_tmp_dir"
+rm -rf "$probe_tmp_dir"
 echo ""
