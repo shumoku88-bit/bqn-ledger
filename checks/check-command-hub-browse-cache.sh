@@ -14,8 +14,13 @@ cd "$ROOT_DIR"
 
 export NO_COLOR=1
 fixture="${1:-fixtures/src-next-golden}"
+selected_fixture="${2:-fixtures/demo}"
 if [[ ! -d "$fixture" ]]; then
   echo "ERROR: fixture directory not found: $fixture" >&2
+  exit 2
+fi
+if [[ ! -d "$selected_fixture" ]]; then
+  echo "ERROR: selected-currency fixture directory not found: $selected_fixture" >&2
   exit 2
 fi
 
@@ -120,13 +125,9 @@ else
   fail "warm selector unexpectedly rebuilt complete preview cache"
 fi
 
-# Add a controlled default currency and prove the command-hub balances body is
-# byte-identical to the specialized direct selected-currency route.
-selected_fixture="$work_dir/selected-fixture"
-mkdir -p "$selected_fixture"
-cp -R "$fixture"/. "$selected_fixture"/
-printf 'DEFAULT_CURRENCY=JPY\n' >"$selected_fixture/config.tsv"
-
+# Use a canonical fixture with DEFAULT_CURRENCY and the complete production
+# policy surface. Prove command-hub balances is byte-identical to the
+# specialized direct selected-currency route.
 run_selection "$selected_fixture" balances selected-cold-balances
 assert_code 0 selected-cold-balances
 if grep -qF 'Currency view: JPY' "$work_dir/selected-cold-balances.out"; then
