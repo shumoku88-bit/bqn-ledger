@@ -85,7 +85,7 @@ A later report-wide observation contract must not be inferred merely because two
 
 ## Checked actual ownership
 
-`actual_snapshot.BuildAt(ctx,O)` derives ledger-cumulative inclusive-O actual balances from checked ledger-wide Posting IR through a local `[O,O+1)` actual-layer TBDS closing view.
+`actual_snapshot.BuildFromPrepared(postingRows,cubeView,resolved,O)` derives ledger-cumulative inclusive-O actual balances from checked ledger-wide Posting IR through a local `[O,O+1)` actual-layer TBDS closing view. Outlook's context adapter supplies those prepared inputs; Actual Snapshot no longer exposes a broad `BuildAt(ctx,O)` compatibility API.
 
 ```text
 D < O  -> opening

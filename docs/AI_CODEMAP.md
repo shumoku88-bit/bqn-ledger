@@ -137,13 +137,13 @@ Updated: 2026-07-26
 - `planned_payments.bqn` — current-cycle予定支払いsection。context adapterはprepared datesと`plan_rows` evidenceを取得し、I/O-free `BuildViewModelFromPrepared`へ渡す。compactとhuman/JSONは別prepared VMを持ち、pure rendererの外側に既存context entrypointを残す。
 - `recent_journal.bqn` — 最近の仕訳表示。
 - `readiness_check.bqn` — データ品質チェック。
-- `outlook.bqn` — 見通し・日割り計算。
-- `daily_capacity.bqn` — 明示された観察日、cycle horizon、単一算術domain、owner-resolved asset / obligation evidenceだけを受ける純粋Daily Capacity計算seam。`BuildDailyCapacityFromEvidence`をexportするが、Outlook・config・source adapter・出力には未接続。
+- `outlook.bqn` — 見通し・日割り計算。adapterがconfig、plan-line next obligations、Envelope summary、Actual Snapshot、remaining-plan、open-ended frontierを準備し、I/O-free `BuildFromPrepared`がOutlook arithmeticとVM assemblyを所有する。default/explicit absence semanticsは分けたまま。frontier policyはprepared dates APIを公開し、source-loading compatibility helperは持たない。
+- `daily_capacity.bqn` — 明示された観察日、cycle horizon、単一算術domain、owner-resolved asset / obligation evidenceだけを受ける純粋Daily Capacity計算seam。Outlook compatibility arithmeticとはasset/obligation/reservation契約が異なるため、独立experimentとして保持し、config・source adapter・出力には未接続。
 - `daily_flow.bqn` — 日別income/envelope/other/net。context adapterがActual datesを取得し、I/O-free `BuildFromPrepared`は既存Cube view、resolved metadata、cycle、prepared datesだけからVMを作る。Daily Flow固有の明示as_of row anchorを維持する。
 - `daily_trend.bqn` — 日次トレンド。context adapterがActual dates、row coordinates、checked plan reserve resultを準備し、I/O-free `BuildFromPrepared`は既存Cube/resolved/cycle、明示coordinates、plan resultだけからVMを作る。current-source coordinate replayとempty cycle-start anchorを維持する。`BuildAt`の引数は計算Oではなくhuman header coordinateである。
 - `daily_trend_plan.bqn` — admitted `plan.tsv` Posting IRを`source_row`でplan ID/completion source evidenceへjoinし、D-local fixed reserveを計算するnumeric owner。raw amountは再解析しない。
 - `actual_comparison.bqn` — 明示Observation `BuildAt ⟨ctx,O⟩`で前期比較を作る。current/baseline金額はchecked Posting IRからlocal TBDS period viewへ流し、count/anchor/rejected-row診断はposting source identity evidenceを使う。statusは`ok / unavailable / error`。
-- `actual_snapshot.bqn` — as_of時点のledger-cumulative Actual snapshot。`BuildFromPrepared`はchecked posting rows、既存Cube view、resolved metadata、明示as_ofだけを受けるI/O-free coreで、`BuildAt` / `Build`はOutlookとdefault-observation互換adapterとして残る。
+- `actual_snapshot.bqn` — as_of時点のledger-cumulative Actual snapshot。`BuildFromPrepared`はchecked posting rows、既存Cube view、resolved metadata、明示as_ofだけを受けるI/O-free core。Outlookはこのprepared coreを直接使い、moduleにはdefault-observation `Build`とprepared date policyだけが残る。
 - `household_policy.bqn` — 家計ポリシーレイヤ。
 - `household_metadata.bqn` — 家計メタデータ診断。
 - `plan_rows.bqn` — 予定行の source evidence（`PlanId` / `InCycle` / `BuildBase`）、actual value、temporal status の共有 owner。

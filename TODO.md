@@ -23,7 +23,7 @@ Point-in-time baseline: `src_next` has 75 BQN modules and 13,056 physical lines 
 - [x] Added the narrow I/O-free `BuildFromPrepared` calculation boundary.
 - [x] Preserved inclusive cumulative cutoff, pre-cycle opening evidence, rejected-row applicability, invalid-date failure, valid-empty zero, and Outlook failure propagation.
 - [x] Added a direct prepared-core test and replaced `BuildAt` source-shape grep assertions with behavioral evidence.
-- [x] Kept `BuildAt` for the production Outlook caller and focused compatibility tests; kept `Build` / `LatestActualDateInCycle` for the existing default-observation characterization.
+- [x] Initially kept broad compatibility adapters, then removed `BuildAt` and the source-loading latest-date API in the Outlook caller-migration slice; the prepared date policy remains explicit.
 - [x] Passed focused checks, `tools/check.sh`, coverage, and diff validation.
 
 Completion record:
@@ -34,11 +34,11 @@ behavior preserved: cumulative cutoff, rejected/invalid/empty semantics, Outlook
 prepared boundary: BuildFromPrepared(postingRows, cubeView, resolved, as_of)
 removed code/API/check: removed BuildAt source-shape awk/grep assertions
 src_next line delta: +9 (13,056 -> 13,065); exports +1 (3 -> 4)
-remaining compatibility caller: Outlook uses BuildAt; default observation tests use Build
+remaining compatibility caller: resolved later; Outlook and tests now call BuildFromPrepared, while default observation uses Build
 checks: focused prepared/numeric tests, actual-snapshot check, full tools/check.sh, coverage
 ```
 
-The temporary source increase is assigned to the Outlook/caller-migration deletion checkpoint; do not repay it by compressing the semantic core.
+The Outlook caller-migration checkpoint repaid 8 of these lines: Actual Snapshot is now 155 lines versus its 154-line baseline, and its export count returned to three without broad `BuildAt` or a source-loading latest-date API.
 
 ### Completed finite slice: Daily Flow
 
@@ -87,16 +87,42 @@ checks: prepared test, all focused trend tests, numeric-owner check, full tools/
 
 `BuildAt` remains because the production human report explicitly supplies a header coordinate, while compact summary uses internal replay observation. The later report/Outlook observation review is the deletion or rename checkpoint; the plan-evidence adapter joins the `actual_source` compatibility checkpoint.
 
-### Current finite slice: Outlook
+### Completed finite slice: Outlook
 
-- [ ] Inventory existing `BuildCore`, Actual Snapshot, remaining-plan, frontier, Envelope, and Daily Capacity boundaries before editing.
-- [ ] Separate source/context preparation from the already-partly-pure calculation without introducing another duplicate VM.
-- [ ] Preserve explicit open-ended frontier, no-Actual unavailable, invalid-date, and snapshot/remaining-plan failure propagation.
-- [ ] Decide with caller evidence whether `daily_capacity.bqn` is connected, retained experimental surface, or removable.
-- [ ] Add prepared adapter parity and no-base evidence only for a boundary that replaces existing assembly.
-- [ ] Record source/API delta and require a concrete deletion in this or the immediately following slice.
+- [x] Inventoried `BuildCore`, Actual Snapshot, remaining-plan, frontier, Envelope, next-obligation, and Daily Capacity boundaries.
+- [x] Replaced effectful `BuildCore(ctx, ...)` with I/O-free `BuildFromPrepared(input)`; config, plan-line, envelope, snapshot, and remaining-plan preparation stays in the adapter.
+- [x] Preserved open-ended frontier, explicit no-Actual unavailable, invalid-date, and snapshot/remaining-plan failure propagation.
+- [x] Retained `daily_capacity.bqn` as an independent evidence-first experiment; it is not wired into compatibility Outlook because its arithmetic-domain, asset-scope, obligation, and reservation contracts are materially different.
+- [x] Added full VM and renderer parity from a no-base prepared input.
+- [x] Migrated Outlook and focused tests to Actual Snapshot's prepared core, removing broad `actual_snapshot.BuildAt`.
+- [x] Replaced Outlook/Actual Snapshot source-loading frontier/date APIs with prepared-date policy APIs.
+- [x] Replaced the remaining-plan helper-connection grep with prepared behavioral evidence.
+- [x] Passed focused Outlook/Snapshot checks, full `tools/check.sh`, and coverage.
 
-Later slices remain ordered but unselected: bounded Envelope responsibilities, then `actual_source` compatibility reduction. Do not start them together.
+Completion record:
+
+```text
+slice: Outlook
+behavior preserved: explicit/default observation, open-ended frontier, snapshot/plan errors, envelope and obligation output
+prepared boundary: BuildFromPrepared(section-specific prepared input)
+removed code/API/check: three exported broad/source APIs, one private source wrapper, helper-connection grep
+src_next line delta: +11 (13,094 -> 13,105); Outlook +19, Actual Snapshot -8
+export delta across both modules: 0; broad APIs replaced by prepared core/policy exports
+remaining compatibility caller: Outlook Build/BuildAt adapters; next obligations still interpret plan lines
+checks: prepared parity, all focused Outlook/Snapshot checks, full tools/check.sh, coverage
+```
+
+The slice contains a real deletion but the overall track remains above baseline by 49 lines. Envelope work must not add a generic framework; it must remove or replace one existing responsibility at a time.
+
+### Current finite slice: Envelope responsibility inventory
+
+- [ ] Map callers and internal ownership for envelope balances, unassigned pool, backing diagnostics, planned-payment coverage, policy target, and rendering.
+- [ ] Select exactly one low-coupling responsibility with existing fixture evidence.
+- [ ] Define the existing code that the seam will replace before adding an export.
+- [ ] Keep source-order and invalid-date policy local; do not reuse Daily Flow/Trend observation semantics.
+- [ ] Require the first implementation slice to have a same-slice or immediately-following net deletion.
+
+Later work remains unselected: other bounded Envelope responsibilities, then `actual_source` compatibility reduction. Do not start them together.
 
 The completed context-reuse characterization remains in:
 

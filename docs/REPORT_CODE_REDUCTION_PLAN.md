@@ -87,7 +87,7 @@ The former `actual_snapshot.BuildAt` core was I/O-free but still received broad 
 - [x] Run focused checks, `tools/check.sh`, coverage, and diff review.
 - [x] Record physical-line and export-count deltas in `TODO.md`; explain any temporary increase and name the deletion that will repay it.
 
-Completion result: `src_next` increased by 9 physical lines and the module added one real export. The structural `BuildAt` awk/grep check was removed. Outlook remains the production `BuildAt` caller, so its later migration is the named deletion checkpoint for the temporary adapter cost.
+Initial completion result: `src_next` increased by 9 physical lines and the module added one real export. The structural `BuildAt` awk/grep check was removed. The later Outlook slice migrated production and focused callers, removed broad `BuildAt` and the source-loading latest-date API, and left Actual Snapshot at only one line above its original baseline with the original export count.
 
 ## Later slices
 
@@ -116,10 +116,13 @@ Completion result: `BuildFromPrepared` receives existing Cube/resolution evidenc
 
 ### Outlook
 
-- [ ] Inventory the existing `BuildCore`, Actual Snapshot, remaining-plan, frontier, and Daily Capacity seams before adding another layer.
-- [ ] Preserve open-ended frontier and explicit unavailable semantics.
-- [ ] Remove duplicate assembly only where the same observation contract is proven.
-- [ ] Decide whether `daily_capacity.bqn` becomes a real consumer seam or remains removable experimental surface.
+- [x] Inventory the existing `BuildCore`, Actual Snapshot, remaining-plan, frontier, Envelope, next-obligation, and Daily Capacity seams before adding another layer.
+- [x] Preserve open-ended frontier and explicit unavailable semantics.
+- [x] Replace effectful `BuildCore` with one section-specific prepared input instead of adding a duplicate VM.
+- [x] Retain `daily_capacity.bqn` as an independent evidence-first experiment; do not connect it to compatibility Outlook without arithmetic-domain, asset-scope, obligation, and reservation contract alignment.
+- [x] Migrate Actual Snapshot callers and remove broad/source-loading compatibility APIs in the same slice.
+
+Completion result: Outlook gained an I/O-free semantic boundary while config, plan-line, Envelope, snapshot, and remaining-plan preparation stayed in its adapter. Outlook grew by 19 lines, but caller migration removed 8 lines from Actual Snapshot and removed broad/source APIs; the combined `src_next` delta was +11 with no net export increase across the two modules. Open-ended frontier and default/explicit absence semantics remain distinct.
 
 ### Envelope computation
 
