@@ -25,4 +25,20 @@ jobs:
           sudo apt-get install -y -qq ripgrep >/dev/null
 
       - name: Run browse-cache check
-        run: bash checks/check-command-hub-browse-cache.sh
+        run: |
+          set +e
+          bash checks/check-command-hub-browse-cache.sh >browse-cache.log 2>&1
+          status=$?
+          printf '%s\n' "$status" >browse-cache.status
+          cat browse-cache.log
+          exit "$status"
+
+      - name: Upload browse-cache diagnostic
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browse-cache-diagnostic
+          path: |
+            browse-cache.log
+            browse-cache.status
+          if-no-files-found: error
