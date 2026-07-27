@@ -16,11 +16,15 @@ json_out="$(mktemp)"
 bad_out="$(mktemp)"
 bad_err="$(mktemp)"
 actual_fixture=""
+demo_none_fixture=""
 
 cleanup() {
   rm -f "$out" "$section_out" "$json_out" "$bad_out" "$bad_err"
   if [[ -n "$actual_fixture" ]]; then
     rm -rf "$actual_fixture"
+  fi
+  if [[ -n "$demo_none_fixture" ]]; then
+    rm -rf "$demo_none_fixture"
   fi
 }
 trap cleanup EXIT
@@ -684,6 +688,84 @@ else
     fail "report JSON-without-section fails with unexpected error message"
   fi
 fi
+
+# Disabled-policy envelopes human byte-exact contract check using temp copy of fixtures/demo with POLICY_BUDGET_STYLE=none
+demo_none_fixture="$(mktemp -d)"
+cp -R fixtures/demo/. "$demo_none_fixture/"
+python3 - "$demo_none_fixture/config.tsv" <<'PY'
+import sys
+
+path = sys.argv[1]
+with open(path, encoding="utf-8") as f:
+    lines = f.readlines()
+
+matching_indices = [
+    i for i, line in enumerate(lines)
+    if line.strip() == "POLICY_BUDGET_STYLE=envelope"
+]
+if len(matching_indices) != 1:
+    raise SystemExit(f"expected exactly 1 line matching POLICY_BUDGET_STYLE=envelope, found {len(matching_indices)}")
+
+idx = matching_indices[0]
+lines[idx] = lines[idx].replace("POLICY_BUDGET_STYLE=envelope", "POLICY_BUDGET_STYLE=none")
+
+with open(path, "w", encoding="utf-8", newline="") as f:
+    f.writelines(lines)
+PY
+
+dis_direct_out="$(mktemp)"
+dis_direct_err="$(mktemp)"
+dis_code=0
+tools/report "$demo_none_fixture" --section envelopes --no-color >"$dis_direct_out" 2>"$dis_direct_err" || dis_code=$?
+if [ "$dis_code" -eq 0 ]; then
+  pass "disabled policy envelopes direct section returns exit status 0"
+else
+  fail "disabled policy envelopes direct section exit status was $dis_code, expected 0"
+fi
+if python3 -c "import sys; d = open(sys.argv[1], 'rb').read(); sys.exit(0 if d == b'\n\n' else 1)" "$dis_direct_out"; then
+  pass "disabled policy envelopes direct section stdout matches exact byte contract (b'\\n\\n')"
+else
+  fail "disabled policy envelopes direct section stdout byte contract mismatch"
+fi
+if [ ! -s "$dis_direct_err" ]; then
+  pass "disabled policy envelopes direct section stderr is empty"
+else
+  fail "disabled policy envelopes direct section stderr unexpectedly non-empty"
+fi
+rm -f "$dis_direct_out" "$dis_direct_err"
+
+dis_cache_dir="$(mktemp -d)"
+if tools/report "$demo_none_fixture" --write-section-cache "$dis_cache_dir" --no-color >/dev/null 2>&1; then
+  if [ -f "$dis_cache_dir/envelopes.txt" ] && [ ! -s "$dis_cache_dir/envelopes.txt" ]; then
+    pass "disabled policy write-section-cache generates 0-byte envelopes.txt"
+  else
+    fail "disabled policy write-section-cache envelopes.txt is not 0-byte"
+  fi
+else
+  fail "disabled policy write-section-cache failed"
+fi
+rm -rf "$dis_cache_dir"
+
+dis_full_out="$(mktemp)"
+if tools/report "$demo_none_fixture" --no-color >"$dis_full_out" 2>/dev/null; then
+  tb_line="$(grep -nF -- '== Trial Balance (actual layer) ==' "$dis_full_out" | cut -d: -f1)"
+  plan_line="$(grep -nF -- '== Planned Payments ==' "$dis_full_out" | cut -d: -f1)"
+  if [ -n "$tb_line" ] && [ -n "$plan_line" ] && [ "$tb_line" -lt "$plan_line" ]; then
+    pass "disabled policy full human report contains Trial Balance before Planned Payments (line $tb_line < $plan_line)"
+  else
+    fail "disabled policy full human report section ordering contract mismatch (tb_line=$tb_line, plan_line=$plan_line)"
+  fi
+  if ! grep -qiE '(envelope & budget|== envelope)' "$dis_full_out"; then
+    pass "disabled policy full human report does not output envelope section header"
+  else
+    fail "disabled policy full human report unexpectedly contains envelope header"
+  fi
+else
+  fail "disabled policy full human report failed"
+fi
+rm -f "$dis_full_out"
+rm -rf "$demo_none_fixture"
+demo_none_fixture=""
 
 if grep -qiE '(production.ready|default switch|replacement ready)' "$out"; then
   fail "human report appears to claim production readiness"
