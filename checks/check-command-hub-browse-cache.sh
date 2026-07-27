@@ -5,7 +5,8 @@ set -euo pipefail
 #
 # A cold selector prepares the complete report-owned section cache once before
 # navigation. fzf previews then read files only, so moving quickly across rows
-# never starts one expensive report process per highlighted section.
+# never starts one expensive report process per highlighted section. The
+# balances preview preserves the selected-currency direct-section contract.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
@@ -87,8 +88,25 @@ else
   fail "cold selector built $text_count report cache files, expected $expected_count"
 fi
 
+# Command-hub balances must retain the selected-currency direct route rather
+# than the mixed full-report balances body produced by --write-section-cache.
+tools/report "$fixture" --section balances --no-color >"$work_dir/direct-balances.out" 2>"$work_dir/direct-balances.err"
+cat "$cache_dir/balances.txt" >"$work_dir/cached-balances.out"
+printf '\n\n' >>"$work_dir/cached-balances.out"
+if cmp -s "$work_dir/direct-balances.out" "$work_dir/cached-balances.out"; then
+  pass "command-hub balances cache preserves selected-currency direct bytes"
+else
+  fail "command-hub balances cache differs from selected-currency direct bytes"
+fi
+if [[ ! -s "$work_dir/direct-balances.err" ]]; then
+  pass "direct balances comparison stderr is empty"
+else
+  fail "direct balances comparison stderr is not empty"
+fi
+
 # A warm selector reuses the complete cache rather than rebuilding it.
 snapshot_mtime_before=$(stat -c %Y "$cache_dir/snapshot.txt" 2>/dev/null || stat -f %m "$cache_dir/snapshot.txt")
+balances_mtime_before=$(stat -c %Y "$cache_dir/balances.txt" 2>/dev/null || stat -f %m "$cache_dir/balances.txt")
 timestamp_before=$(cat "$cache_dir/.cache-timestamp")
 sleep 1
 run_selection ytd warm-ytd
@@ -99,8 +117,11 @@ else
   fail "warm command-hub selection did not render YTD"
 fi
 snapshot_mtime_after=$(stat -c %Y "$cache_dir/snapshot.txt" 2>/dev/null || stat -f %m "$cache_dir/snapshot.txt")
+balances_mtime_after=$(stat -c %Y "$cache_dir/balances.txt" 2>/dev/null || stat -f %m "$cache_dir/balances.txt")
 timestamp_after=$(cat "$cache_dir/.cache-timestamp")
-if [[ "$snapshot_mtime_after" = "$snapshot_mtime_before" && "$timestamp_after" = "$timestamp_before" ]]; then
+if [[ "$snapshot_mtime_after" = "$snapshot_mtime_before" \
+   && "$balances_mtime_after" = "$balances_mtime_before" \
+   && "$timestamp_after" = "$timestamp_before" ]]; then
   pass "warm selector reuses complete preview cache"
 else
   fail "warm selector unexpectedly rebuilt complete preview cache"
