@@ -134,10 +134,11 @@ write_command_hub_balances_cache() {
   status=$?
   set -e
   if [[ "$status" -ne 0 ]]; then
-    if [[ -s "$direct_out" ]]; then cat "$direct_out" >&2; fi
-    if [[ -s "$direct_err" ]]; then cat "$direct_err" >&2; fi
+    # A ledger without a resolvable DEFAULT_CURRENCY cannot use the specialized
+    # selected balances route. Keep the full-report balances body already
+    # written by --write-section-cache rather than blocking the whole selector.
     rm -f "$direct_out" "$direct_err" "$body_tmp"
-    return "$status"
+    return 0
   fi
 
   if ! python3 - "$direct_out" "$body_tmp" <<'PY'
@@ -265,9 +266,9 @@ case "$cmd" in
       fi
     fi
 
-    # Regenerate the complete browsing cache if it is stale or missing. The
-    # balances preview then uses the same selected-currency route as direct
-    # `--section balances`, preserving the command-hub display contract.
+    # Regenerate the complete browsing cache if it is stale or missing. When a
+    # default currency is resolvable, balances uses the same selected-currency
+    # route as direct `--section balances`; otherwise the full-report body stays.
     if [[ "$cache_ok" -ne 1 ]]; then
       if ! "$ROOT_DIR/tools/report" "$base_dir" --write-section-cache "$cache_dir" --no-color >/dev/null; then
         echo "Failed to generate report cache" >&2
