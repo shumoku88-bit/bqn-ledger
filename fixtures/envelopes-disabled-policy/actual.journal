@@ -16,8 +16,3 @@ account equity:opening
 
 account expenses:food
     ; role: expense
-
-2026-06-15 * Opening
-    assets:bank         100 JPY
-    equity:opening     -100 JPY
-
