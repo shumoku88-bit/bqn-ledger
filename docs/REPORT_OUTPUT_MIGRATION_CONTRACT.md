@@ -1,6 +1,6 @@
 # Report output migration contract
 
-Status: Phase 0C proposed destination contract; pending moko output-surface review
+Status: Phase 0C approved destination contract
 Owner: ledger-facts report migration
 Current implementation: `tools/report` → `src_next/report.bqn`
 Compact implementation: `tools/report-next-summary` → `src_next/summary.bqn`
@@ -8,7 +8,7 @@ Section inventory: `docs/REPORT_CONSTRUCTION_INVENTORY.md`
 
 ## Purpose
 
-Preserve every useful observable report capability while allowing implementation-generation names, compatibility-only behavior, and old entrypoints to disappear at cutover. This document decides where parity means identical bytes, identical schema, or identical accounting meaning.
+Moko approved this output-surface contract after review. Preserve every useful observable report capability while allowing implementation-generation names, compatibility-only behavior, and old entrypoints to disappear at cutover. This document decides where parity means identical bytes, identical schema, or identical accounting meaning.
 
 Strict-source rejection differences approved in `docs/RUNTIME_COMPATIBILITY_INVENTORY.md` are intentional contract changes, not parity failures.
 

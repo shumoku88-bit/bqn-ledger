@@ -212,6 +212,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 ### `checks/` (検証スクリプト)
 
 - `check-src-next-golden.sh` — `developer_inspection.bqn`のpublic fixture goldenチェック。projection header、tabular rows、source-balance表示も固定する。
+- `check-ledger-facts-phase1-proof-fixture.sh` — strict public fixtureでTrial Balance、Recent split transaction、Daily Flow dynamic axis、selected Balances、durable Plan JSON、15 section routingの現行semantic baselineを固定する。
 - `check-src-next-import-graph.sh` — `src_next/**/*.bqn`のdirect `•Import` target、root/nested module観測、required entrypoint、cycle report生成を検証する。`check-repo-index.sh`経由でfull checkに入る。
 - `check-developer-inspection-entrypoint.sh` — named entrypointと`main.bqn` wrapperの終了status・stdout・stderr一致、thin-wrapper source shape、`tools/report-next` routingを検証する。
 - `check-projection-diagnostic-presentation.sh` — diagnostic presentationが`developer_inspection.bqn`へlocalizeされ、`main.bqn`、`projection.bqn`、production reportへ戻らないことを検証する。

@@ -301,8 +301,8 @@ No production architecture changes begin before this phase is complete.
 - [x] Classify each compatibility candidate using the five categories in section 6.
 - [x] Decide strict source requirements: `DEFAULT_CURRENCY`, source currency metadata, plan identity, cycle requirements, and empty-source behavior.
 - [x] Record required one-time source migrations before removing each fallback.
-- [ ] Add public synthetic parity fixtures without copying private household values.
-- [ ] Record current import graph, module/export count, source reads, and report timings as characterization, not pass thresholds.
+- [x] Add public synthetic parity fixtures without copying private household values (`fixtures/ledger-facts-phase1-proof/`).
+- [x] Record current import graph, module/export count, source reads, and report timings as characterization, not pass thresholds (`docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`).
 
 Exit:
 

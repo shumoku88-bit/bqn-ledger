@@ -1,0 +1,48 @@
+commodity JPY
+
+account assets:cash
+    ; role: asset
+
+account income:salary
+    ; role: income
+
+account expenses:food
+    ; role: expense
+
+account expenses:transport
+    ; role: expense
+
+account budget:opening
+    ; role: budget
+
+account budget:unassigned
+    ; role: budget
+
+account budget:food
+    ; role: budget
+
+account budget:spent
+    ; role: budget
+
+2026-01-02 * salary
+    ; event-id: proof-salary-1
+    ; layer: actual
+    ; currency: JPY
+    assets:cash 1000 JPY
+    income:salary -1000 JPY
+
+2026-01-10 * completed food plan
+    ; event-id: proof-food-1
+    ; layer: actual
+    ; currency: JPY
+    ; plan-id: plan-food-2026-01
+    expenses:food 20 JPY
+    assets:cash -20 JPY
+
+2026-01-12 * split purchase
+    ; event-id: proof-split-1
+    ; layer: actual
+    ; currency: JPY
+    expenses:food 10 JPY
+    expenses:transport 5 JPY
+    assets:cash -15 JPY

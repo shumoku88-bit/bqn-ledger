@@ -1,0 +1,12 @@
+# Public synthetic strict-source proof fixture.
+DEFAULT_CURRENCY=JPY
+POLICY_BUDGET_STYLE=envelope
+POLICY_RISK_STYLE=conservative
+POLICY_INCOME_CADENCE=monthly
+HOUSEHOLD_GROUP_LIFE=daily
+HOUSEHOLD_GROUP_RESERVE=reserve
+HOUSEHOLD_GROUP_ORDER=daily,reserve
+BUDGET_PREFIX=budget:
+BUDGET_ID_OPENING=budget:opening
+BUDGET_ID_UNASSIGNED=budget:unassigned
+BUDGET_ID_SPENT=budget:spent

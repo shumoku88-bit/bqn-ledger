@@ -7,14 +7,14 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Phase 0C review: strict-source requirements are approved; output contracts, export/caller inventory, public readiness counts, and the private-audit protocol are recorded. Review `docs/REPORT_OUTPUT_MIGRATION_CONTRACT.md`, especially the atomic `src_next_` → `ledger_` compact-key rename and deletion of historical report-next entrypoints. The remaining Phase 0 roadmap items are a deliberately selected public synthetic parity cohort and final characterization/exit review before runtime code.
+Phase 1A: prove the minimal canonical Transaction/Posting fact schema from complete admitted Actual evidence using `fixtures/ledger-facts-phase1-proof/`. Phase 0 exited with approved strict-source/output contracts and characterization in `docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn
-approved source policy: strict currency/identity/role/path/empty-source requirements
-proposed output cutover: semantic parity + destination route byte identity; no dual compact keys
-new src/ tree: not authorized until Phase 0 exit review
+new proof: strict complete Actual admission -> canonical aligned facts
+first evidence: 3 transactions, 7 Actual postings, split transaction, event/source provenance
+not in this slice: Plan/Budget admission, Pivot, copied section, universal context
 private audit or migration: separate explicit human direction required
 ```
 
-Do not add a new context, copy section modules, inspect private sources, or introduce compatibility adapters during this review slice.
+Destination code must not import old context, historical parser, report modules, or compatibility shapes. Keep `tools/report` unchanged while the readonly proof develops.

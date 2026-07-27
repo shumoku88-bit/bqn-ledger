@@ -47,22 +47,25 @@ This is not a section-reduction campaign and must not recreate the old giant all
 - [x] Assigned every known compatibility candidate to Phase 1, 2, 3, 4, 5, or final Phase 7 eradication.
 - [x] Proposed strict decisions for report/account/row currency, Plan identity, role metadata, source path, event identity, empty source, and cycle observation.
 
-### Current finite slice: Phase 0C contract, export, and source-readiness decisions
+### Completed finite slice: Phase 0C contract and readiness review
 
-- [x] Capture all human, compact, JSON, metadata, cache, CLI, diagnostic, and exit-status contracts (`docs/REPORT_OUTPUT_MIGRATION_CONTRACT.md`).
-- [x] Decide byte parity versus semantic/schema parity for each surface, including intentional generation-name breaks.
-- [x] Inventory every `src_next` export and qualified repository caller, including `src_edit`, tools, checks, and tests (`docs/SRC_NEXT_EXPORT_CALLER_INVENTORY.md`).
-- [x] Review and approve the strict-source decision table in the compatibility inventory; moko approved all eight source requirements after plain-language review.
-- [x] Audit public fixtures for required default currency, account/row currency, Plan identity, role metadata, and canonical source layout (`docs/PUBLIC_SOURCE_READINESS_AUDIT.md`).
-- [x] Define readonly private-source audits without reading or changing private data absent explicit direction (`docs/PRIVATE_SOURCE_READINESS_PROTOCOL.md`); no private audit has run.
-- [x] Record current public synthetic parity evidence and per-slice old/new evidence requirements without using private household data.
-- [ ] Do not create `src/`, a new context, or copied section modules before Phase 0 review.
+- [x] Captured and approved human, compact, JSON, metadata, cache, CLI, diagnostic, and exit-status parity (`docs/REPORT_OUTPUT_MIGRATION_CONTRACT.md`).
+- [x] Inventoried every recognized `src_next` export/caller and 37 compatibility candidates with deletion gates.
+- [x] Approved all strict-source requirements and audited public fixture readiness.
+- [x] Defined private audit/write authorization without reading private data.
+- [x] Added the strict public synthetic Phase 1 proof fixture and recorded topology/size/source-read/timing characterization (`docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`).
+- [x] Completed Phase 0 without creating `src/`, a new context, or copied section modules.
 
-Phase 0 exit:
+### Current finite slice: Phase 1A canonical fact schema proof
 
-- every current report capability has an observable contract and owner;
-- every compatibility path has a deletion gate;
-- no undecided fallback is permitted in the destination fact schema.
+- [ ] Define minimal Transaction Facts, Posting Facts, account/domain tables, and admission diagnostics required by the public proof fixture.
+- [ ] Project complete admitted Actual transactions without importing historical parser/context/report modules.
+- [ ] Prove aligned posting columns, multi-posting transaction identity, exact JPY coefficients/scale, event metadata, source lines, and zero-sum transaction boundaries.
+- [ ] Keep the destination readonly and independent from Plan/Budget/report construction during this first proof.
+- [ ] Compare canonical facts with `fixtures/ledger-facts-phase1-proof/` and current observable Trial Balance/Recent evidence.
+- [ ] Do not copy a section, create a universal context, or add a textual query DSL.
+
+Phase 0 exit evidence is `docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`: every observable report capability has an owner, every compatibility path has a deletion gate, and no undecided fallback is permitted in the destination fact schema.
 
 ## Migration rules
 
