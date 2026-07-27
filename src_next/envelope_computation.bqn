@@ -211,55 +211,58 @@ CleanName ← {
   𝕩
 }
 
-BuildExecutionPlannedCoverage ← {𝕊 base‿cy‿envelopes‿cfg‿completionEvidence:
-  env_label ← cfg.ExecutionPlannedPaymentsEnvelope @
-  cycleAvail ← (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (cy.day_count > 0)
-  disabled ← (0 = ≠ env_label) ∨ (¬ cycleAvail)
+EmptyExecutionCoverage ← {𝕊 envLabel‿status:
+  {
+    envelope_label ⇐ envLabel,
+    envelope_remaining ⇐ @,
+    planned_open_total ⇐ @,
+    delta ⇐ @,
+    status ⇐ status,
+    rows ⇐ ⟨⟩
+  }
+}
 
-  status ← "disabled"
-  env_remaining ← @
-  planned_total ← @
-  delta ← @
-  rows_out ← ⟨⟩
+ExecutionCoverageFromPrepared ← {𝕊 envLabel‿envRemaining‿shared:
+  openIndices ← (¬ shared.completed_mask) / ↕ ≠ shared.rows
+  PreparedPlanRow ← {𝕊 idx:
+    row ← idx ⊑ shared.parsed
+    from ← 2⊑row ⋄ to ← 3⊑row
+    isIncome ← "income:" unav.StartsWith from
+    category ← CleanName (isIncome ⊑ to‿from)
+    {date⇐0⊑row,memo⇐1⊑row,category⇐category,amount⇐4⊑row,plan_id⇐idx⊑shared.plan_ids}
+  }
+  rows ← PreparedPlanRow¨ openIndices
+  rows ↩ (⍋ {𝕩.date}¨ rows) ⊏ rows
+  plannedTotal ← Sum0 ({𝕩.amount}¨ rows)
+  delta ← envRemaining - plannedTotal
+  {
+    envelope_label ⇐ envLabel,
+    envelope_remaining ⇐ envRemaining,
+    planned_open_total ⇐ plannedTotal,
+    delta ⇐ delta,
+    status ⇐ (delta = 0) ⊑ "MISMATCH"‿"OK",
+    rows ⇐ rows
+  }
+}
 
+# Effectful adapter. Plan source/value preparation remains lazy for disabled or
+# missing-envelope states; comparison below consumes only prepared values.
+BuildExecutionPlannedCoverage ← {𝕊 base‿cy‿envelopes‿envLabel‿completionEvidence:
+  cycleAvailable ← (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (cy.day_count > 0)
+  disabled ← (0 = ≠ envLabel) ∨ (¬ cycleAvailable)
+  result ← EmptyExecutionCoverage ⟨envLabel, "disabled"⟩
   {𝕊:
-    labels ← {𝕩.label}¨ envelopes
-    env_idx ← labels ⊐ ⟨env_label⟩
-    has_env ← env_idx < ≠ envelopes
-
+    envelopeIndex ← ({𝕩.label}¨ envelopes) ⊐ ⟨envLabel⟩
+    hasEnvelope ← envelopeIndex < ≠ envelopes
     {𝕊:
-      env ← env_idx ⊑ envelopes
-      env_remaining ↩ env.remaining
-
+      envRemaining ← (envelopeIndex ⊑ envelopes).remaining
       baseView ← plan_rows.BuildBaseFromCompletionEvidence ⟨base, cy, completionEvidence⟩
       shared ← plan_rows.WithValues baseView
-      open_indices ← (¬ shared.completed_mask) / ↕ ≠ shared.rows
-
-      PreparedPlanRow ← {𝕊 idx:
-        row ← idx ⊑ shared.parsed
-        from ← 2⊑row ⋄ to ← 3⊑row
-        is_inc ← "income:" unav.StartsWith from
-        cat ← CleanName (is_inc ⊑ to‿from)
-        {date⇐0⊑row,memo⇐1⊑row,category⇐cat,amount⇐4⊑row,plan_id⇐idx⊑shared.plan_ids}
-      }
-      rows_out ↩ PreparedPlanRow¨ open_indices
-      rows_out ↩ (⍋ {𝕩.date}¨ rows_out) ⊏ rows_out
-      planned_total ↩ Sum0 ({𝕩.amount}¨ rows_out)
-      delta ↩ env_remaining - planned_total
-      status ↩ (delta = 0) ⊑ "MISMATCH"‿"OK"
-    }⍟has_env @
-
-    {𝕊: status ↩ "unavailable/missing_execution_envelope"}⍟(¬ has_env) @
+      result ↩ ExecutionCoverageFromPrepared ⟨envLabel, envRemaining, shared⟩
+    }⍟hasEnvelope @
+    {𝕊: result ↩ EmptyExecutionCoverage ⟨envLabel, "unavailable/missing_execution_envelope"⟩}⍟(¬ hasEnvelope) @
   }⍟(¬ disabled) @
-
-  {
-    envelope_label ⇐ env_label,
-    envelope_remaining ⇐ env_remaining,
-    planned_open_total ⇐ planned_total,
-    delta ⇐ delta,
-    status ⇐ status,
-    rows ⇐ rows_out
-  }
+  result
 }
 
 # ── Multi-envelope calculation ───────────────────────────────
@@ -492,6 +495,9 @@ BuildWithPreparedActual ← {𝕊 base‿resolved‿cy‿valid_rows‿tbds_rows�
 
       matching_idx ← ({𝕩.label}¨ envelopes) ⊐ ⟨tgt.label⟩
       has_match ← matching_idx < ≠ envelopes
+      selected_indices_tgt ← SelectedExpenseIndices ⟨tgt, resolved⟩
+      alloc_lines_tgt ← loader.ReadLinesOptional (base ∾ "/budget_alloc.tsv")
+      allocated_info_tgt ← CalcAllocated ⟨tgt, resolved, cy, alloc_lines_tgt⟩
 
       allocated_val ← 0
       spent_val ← 0
@@ -507,32 +513,23 @@ BuildWithPreparedActual ← {𝕊 base‿resolved‿cy‿valid_rows‿tbds_rows�
       }⍟has_match @
 
       {𝕊:
-        alloc_lines ← loader.ReadLinesOptional (base ∾ "/budget_alloc.tsv")
-        selected_indices ← SelectedExpenseIndices ⟨tgt, resolved⟩
-        allocated ← CalcAllocated ⟨tgt, resolved, cy, alloc_lines⟩
-        actual_spent ← CalcActualSpent ⟨selected_indices, valid_rows⟩
-        remaining ← CalcRemaining ⟨allocated.amount, actual_spent⟩
-
-        allocated_val ↩ allocated.amount
+        actual_spent ← CalcActualSpent ⟨selected_indices_tgt, valid_rows⟩
+        allocated_val ↩ allocated_info_tgt.amount
         spent_val ↩ actual_spent
-        remaining_val ↩ remaining
-        status_val ↩ DecideStatus ⟨tgt, selected_indices, allocated⟩
+        remaining_val ↩ CalcRemaining ⟨allocated_info_tgt.amount, actual_spent⟩
+        status_val ↩ DecideStatus ⟨tgt, selected_indices_tgt, allocated_info_tgt⟩
       }⍟((¬has_match) ∧ tgt.has_policy) @
 
       selector ← tgt.has_policy ⊑ "unavailable/no_policy"‿(tgt.selector_key ∾ "=" ∾ tgt.selector_value)
 
       # Compute compatibility fields for existing test assertions
-      selected_indices_tgt ← SelectedExpenseIndices ⟨tgt, resolved⟩
       selected_expense_account_count ← ≠ selected_indices_tgt
-
-      alloc_lines_tgt ← loader.ReadLinesOptional (base ∾ "/budget_alloc.tsv")
-      allocated_info_tgt ← CalcAllocated ⟨tgt, resolved, cy, alloc_lines_tgt⟩
       allocation_row_count ← allocated_info_tgt.row_count
       target_budget_account_count ← allocated_info_tgt.target_budget_account_count
 
       unassigned ← CalcUnassignedRemaining ⟨resolved, valid_rows⟩
       backing ← CalcEnvelopeBacking ⟨resolved, tbds_rows, valid_rows, envelopes, unassigned⟩
-      execution_planned ← BuildExecutionPlannedCoverage ⟨base, cy, envelopes, cfg, completionEvidence⟩
+      execution_planned ← BuildExecutionPlannedCoverage ⟨base, cy, envelopes, cfg.ExecutionPlannedPaymentsEnvelope @, completionEvidence⟩
 
       {
         target_id ⇐ tgt.target_id,
