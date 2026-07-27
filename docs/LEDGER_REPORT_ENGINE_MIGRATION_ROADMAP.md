@@ -294,13 +294,13 @@ ARCHIVE_ONLY
 
 No production architecture changes begin before this phase is complete.
 
-- [ ] Capture all 15 human sections, order, first-line markers, full-report boundaries, cache keys, compact blocks, JSON schemas, exit codes, and supported CLI options.
-- [ ] Identify which outputs require byte parity and which require semantic/schema parity.
-- [ ] Inventory every `src_next` export and all callers across `src_next`, `src_edit`, `tools`, `checks`, and `tests`.
-- [ ] Inventory every runtime fallback, alias, wrapper, alternate transaction shape, test seam, and historical entrypoint.
-- [ ] Classify each compatibility candidate using the five categories in section 6.
-- [ ] Decide strict source requirements: `DEFAULT_CURRENCY`, source currency metadata, plan identity, cycle requirements, and empty-source behavior.
-- [ ] Record required one-time source migrations before removing each fallback.
+- [x] Capture all 15 human sections, order, first-line markers, full-report boundaries, cache keys, compact blocks, JSON schemas, exit codes, and supported CLI options.
+- [x] Identify which outputs require byte parity and which require semantic/schema parity.
+- [x] Inventory every `src_next` export and all callers across `src_next`, `src_edit`, `tools`, `checks`, and `tests`.
+- [x] Inventory every runtime fallback, alias, wrapper, alternate transaction shape, test seam, and historical entrypoint.
+- [x] Classify each compatibility candidate using the five categories in section 6.
+- [x] Decide strict source requirements: `DEFAULT_CURRENCY`, source currency metadata, plan identity, cycle requirements, and empty-source behavior.
+- [x] Record required one-time source migrations before removing each fallback.
 - [ ] Add public synthetic parity fixtures without copying private household values.
 - [ ] Record current import graph, module/export count, source reads, and report timings as characterization, not pass thresholds.
 

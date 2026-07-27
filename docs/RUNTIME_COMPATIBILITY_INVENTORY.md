@@ -406,7 +406,7 @@ These counts are characterization. Final deletion is proved by absence and calle
 
 ## D. Strict-source decision table
 
-These decisions are required before destination code is created.
+Decision status: approved by moko after plain-language review. These are binding destination requirements, not compatibility options.
 
 | coordinate | current behavior | destination decision | data prerequisite | deletion ID |
 |---|---|---|---|---|
@@ -453,7 +453,7 @@ This inventory closes the known compatibility classification pass, but Phase 0 i
 - every export has a repository-wide caller classification, not only compatibility candidates;
 - human/compact/JSON/metadata/cache/CLI/diagnostic output contracts are recorded with byte-versus-semantic parity decisions;
 - public fixtures and private sources have readonly audits for C09/C12/C13/C14/C15/C16;
-- moko reviews and approves the strict-source decisions in section D;
+- the approved strict-source decisions in section D are reflected in source migration checks;
 - each approved source migration has a preview/backup/stale-safe implementation plan.
 
 No `src/` code or Pivot API is authorized before those decisions.

@@ -33,6 +33,8 @@ They are maps, not gates. Read the files that help with the question in front of
 - [`RUNTIME_COMPATIBILITY_INVENTORY.md`](RUNTIME_COMPATIBILITY_INVENTORY.md) — current fallback/wrapper/test-seam/source-data classifications and mandatory deletion gates
 - [`PUBLIC_SOURCE_READINESS_AUDIT.md`](PUBLIC_SOURCE_READINESS_AUDIT.md) — readonly public-fixture readiness counts for strict currency, Plan identity, role metadata, and source layout
 - [`SRC_NEXT_EXPORT_CALLER_INVENTORY.md`](SRC_NEXT_EXPORT_CALLER_INVENTORY.md) — reproducible classification of all current exports by runtime/test/check/tool caller pressure
+- [`REPORT_OUTPUT_MIGRATION_CONTRACT.md`](REPORT_OUTPUT_MIGRATION_CONTRACT.md) — byte/schema/semantic parity decisions across human, compact, JSON, metadata, cache, CLI, and diagnostics
+- [`PRIVATE_SOURCE_READINESS_PROTOCOL.md`](PRIVATE_SOURCE_READINESS_PROTOCOL.md) — explicit-authorization boundary for readonly private audits and separately approved stale-safe migrations
 - [`REPORT_CODE_REDUCTION_PLAN.md`](REPORT_CODE_REDUCTION_PLAN.md) — completed prepared-boundary and code-reduction track retained as recent implementation context
 - [`TIME_AS_AXIS.md`](TIME_AS_AXIS.md) — temporal concepts
 - [`archive/audits/PROJECTION_BQN_OWNERSHIP_AUDIT-2026-07-26.md`](archive/audits/PROJECTION_BQN_OWNERSHIP_AUDIT-2026-07-26.md) — ownership inventory and bounded cleanup sequence for `src_next/projection.bqn`

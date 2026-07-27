@@ -93,17 +93,20 @@ Do not add metadata blindly to all 99 directories. Classify each fixture first:
 4. **historical rehearsal fixture** — archive/delete when its old implementation disappears;
 5. **editor fixture** — migrate with the corresponding final editor read/write contract.
 
-## Required next decisions
+## Approved destination requirements and next actions
 
-Before Phase 2 source migration:
+Moko approved the strict-source requirements after plain-language review:
 
-- approve required `DEFAULT_CURRENCY` for full report bases;
-- approve explicit account currency for arithmetic accounts;
-- approve explicit Plan/Budget row currency;
-- define exactly which Plan rows require durable `plan_id=`;
+- require `DEFAULT_CURRENCY` for full report bases;
+- require explicit account currency for arithmetic accounts;
+- require explicit Plan/Budget row currency;
+- require durable `plan_id=` where a Plan relationship is used;
 - permit missing role only as unclassified diagnostic evidence, never semantic prefix inference;
-- explicitly inspect private base layout/readiness under human direction;
-- select the first small public fixture cohort rather than bulk-editing the corpus.
+- use one configured safe Actual basename under one base;
+- allow physical snapshot identity, but require durable identity for durable relationships;
+- accept an empty source only with explicit admitted domain/source policy.
+
+Before Phase 2 migration, select the first small public fixture cohort rather than bulk-editing the corpus. Private base layout/readiness is inspected only under explicit human direction.
 
 ## Safety
 

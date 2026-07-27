@@ -49,13 +49,13 @@ This is not a section-reduction campaign and must not recreate the old giant all
 
 ### Current finite slice: Phase 0C contract, export, and source-readiness decisions
 
-- [ ] Capture all human, compact, JSON, metadata, cache, CLI, diagnostic, and exit-status contracts.
-- [ ] Decide byte parity versus semantic/schema parity for each surface.
+- [x] Capture all human, compact, JSON, metadata, cache, CLI, diagnostic, and exit-status contracts (`docs/REPORT_OUTPUT_MIGRATION_CONTRACT.md`).
+- [x] Decide byte parity versus semantic/schema parity for each surface, including intentional generation-name breaks.
 - [x] Inventory every `src_next` export and qualified repository caller, including `src_edit`, tools, checks, and tests (`docs/SRC_NEXT_EXPORT_CALLER_INVENTORY.md`).
-- [ ] Review and approve the strict-source decision table in the compatibility inventory.
+- [x] Review and approve the strict-source decision table in the compatibility inventory; moko approved all eight source requirements after plain-language review.
 - [x] Audit public fixtures for required default currency, account/row currency, Plan identity, role metadata, and canonical source layout (`docs/PUBLIC_SOURCE_READINESS_AUDIT.md`).
-- [ ] Define readonly private-source audits without reading or changing private data absent explicit direction.
-- [ ] Record public synthetic parity evidence without using private household data.
+- [x] Define readonly private-source audits without reading or changing private data absent explicit direction (`docs/PRIVATE_SOURCE_READINESS_PROTOCOL.md`); no private audit has run.
+- [x] Record current public synthetic parity evidence and per-slice old/new evidence requirements without using private household data.
 - [ ] Do not create `src/`, a new context, or copied section modules before Phase 0 review.
 
 Phase 0 exit:

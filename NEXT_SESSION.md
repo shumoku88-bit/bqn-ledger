@@ -7,13 +7,14 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Phase 0C: inventory observable output contracts and all exports/callers, review strict-source decisions, and audit public source readiness before creating new runtime code. Phase 0A construction classification and Phase 0B compatibility inventory are complete in `docs/REPORT_CONSTRUCTION_INVENTORY.md` and `docs/RUNTIME_COMPATIBILITY_INVENTORY.md`.
+Phase 0C review: strict-source requirements are approved; output contracts, export/caller inventory, public readiness counts, and the private-audit protocol are recorded. Review `docs/REPORT_OUTPUT_MIGRATION_CONTRACT.md`, especially the atomic `src_next_` → `ledger_` compact-key rename and deletion of historical report-next entrypoints. The remaining Phase 0 roadmap items are a deliberately selected public synthetic parity cohort and final characterization/exit review before runtime code.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn
-current migration work: output contract + export/caller + source-readiness decisions
-new src/ tree: not authorized until Phase 0 review
-private source migration: explicit human direction required
+approved source policy: strict currency/identity/role/path/empty-source requirements
+proposed output cutover: semantic parity + destination route byte identity; no dual compact keys
+new src/ tree: not authorized until Phase 0 exit review
+private audit or migration: separate explicit human direction required
 ```
 
-Do not add a new context, copy section modules, or introduce compatibility adapters in the destination design during this slice.
+Do not add a new context, copy section modules, inspect private sources, or introduce compatibility adapters during this review slice.
