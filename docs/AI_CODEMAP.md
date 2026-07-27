@@ -221,6 +221,8 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 - `check-src-next-*.sh` — 各セクションの fixture チェック。
 - `check-src-next-daily-trend-plan-numeric-owner.sh` — Daily Trend plan金額owner、source join、D-local completion、fail-closed fixtureを検証。
 - `check-report-section-metadata.sh` — report section metadata TSV export の契約チェック。
+- `check-report-source-readiness-audit.sh` — strict-source readiness auditのreadonly性、missing metadata集計、invalid path failureをsynthetic temp baseで検証する。
+- `check-src-next-export-caller-inventory.sh` — export caller inventoryのruntime/test/check scope、ForTest/zero-caller分類、invalid root failureをsynthetic source treeで検証する。
 - `check-repo-index.sh` — repo-index ツールのチェック。
 - `check-disabled-features.sh` — 無効化機能の隔離チェック。
 - `check-edit-bqn-account-list.sh` — BQN account list export チェック。
@@ -272,6 +274,8 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 - `tools/repo-index` — リポジトリの BQN ファイルやチェックスクリプトの索引を管理。ファイル追加・削除時は `--baseline` で更新する。
 - `tools/src-next-import-graph` — `src_next/**/*.bqn`のrelative direct importをread-onlyに列挙し、summary、module degree、cycle、Graphviz DOT、missing-target validationを出す。directory migration前後のtopology evidenceに使う。
 - `tools/characterization/report_context_duplication_probe.bqn` — ordinary `BuildContext`、selected adapter、明示prepared-input routeをpublic base上で比較するread-only harness。timing thresholdは契約にせず、direct/prepared selected shape parityをfocused checkで固定する。
+- `tools/characterization/report_source_readiness_audit.py` — 明示pathだけをread-only監査し、DEFAULT_CURRENCY、account/Plan/Budget currency、Plan ID、role、Actual layoutのstrict-source readinessをTSVまたは集計で返す。private outputは明示指示なしに公開しない。
+- `tools/characterization/src_next_export_callers.py` — final export recordとqualified import aliasをsource-levelに走査し、runtime/editor/test/check/tool caller数、ForTest seam、zero-caller exportをTSVまたは集計で返す。
 - `tools/doctor` — 設定とデータディレクトリの整合性診断。
 - `tools/bqn-eval` — BQN式の簡易評価用。
 - `tools/bqn-dump` — BQN値の型とshape診断用。

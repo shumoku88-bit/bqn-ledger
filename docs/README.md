@@ -31,6 +31,8 @@ They are maps, not gates. Read the files that help with the question in front of
 - [`LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`](LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md) — active canonical-facts report migration and final compatibility-eradication roadmap
 - [`REPORT_CONSTRUCTION_INVENTORY.md`](REPORT_CONSTRUCTION_INVENTORY.md) — current 15-section facts/filter/axis/measure/result-shape inventory and first Matrix/Pivot proof selection
 - [`RUNTIME_COMPATIBILITY_INVENTORY.md`](RUNTIME_COMPATIBILITY_INVENTORY.md) — current fallback/wrapper/test-seam/source-data classifications and mandatory deletion gates
+- [`PUBLIC_SOURCE_READINESS_AUDIT.md`](PUBLIC_SOURCE_READINESS_AUDIT.md) — readonly public-fixture readiness counts for strict currency, Plan identity, role metadata, and source layout
+- [`SRC_NEXT_EXPORT_CALLER_INVENTORY.md`](SRC_NEXT_EXPORT_CALLER_INVENTORY.md) — reproducible classification of all current exports by runtime/test/check/tool caller pressure
 - [`REPORT_CODE_REDUCTION_PLAN.md`](REPORT_CODE_REDUCTION_PLAN.md) — completed prepared-boundary and code-reduction track retained as recent implementation context
 - [`TIME_AS_AXIS.md`](TIME_AS_AXIS.md) — temporal concepts
 - [`archive/audits/PROJECTION_BQN_OWNERSHIP_AUDIT-2026-07-26.md`](archive/audits/PROJECTION_BQN_OWNERSHIP_AUDIT-2026-07-26.md) — ownership inventory and bounded cleanup sequence for `src_next/projection.bqn`
