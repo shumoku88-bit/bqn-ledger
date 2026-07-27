@@ -38,7 +38,7 @@ LoadCompleteTransactions ← {𝕊 base:
   admitted.transactions
 }
 
-LoadCycleTransactions ← {𝕊 base:
+LoadCycleEvidence ← {𝕊 base:
   relPath ← ResolveRelativePath base
   raw ← loader.ReadRaw (base∾"/"∾relPath)
   result ← {state⇐"error", complete⇐0, transactions⇐⟨⟩}
@@ -57,20 +57,28 @@ LoadCycleTransactions ← {𝕊 base:
   result
 }
 
-LoadDates ← {𝕊 base: {𝕩.date}¨(LoadCycleTransactions base).transactions}
+LoadDates ← {𝕊 base: {𝕩.date}¨(LoadCycleEvidence base).transactions}
 
-IncomeDates ← {𝕊 base‿incomeAccount:
-  loaded ← LoadCycleTransactions base
-  matches ← ⟨⟩
+IncomeDatesFromCompleteTransactions ← {𝕊 incomeAccount‿transactions:
+  HasIncomeCredit ← {𝕊 tx: ∨´0∾{(𝕩.account_key≡incomeAccount)∧𝕩.normalized_coefficient<0}¨tx.postings}
+  {𝕩.date}¨(HasIncomeCredit¨transactions)/transactions
+}
+
+IncomeDatesFromCycleEvidence ← {𝕊 incomeAccount‿evidence:
+  dates ← ⟨⟩
   {𝕊:
-    HasIncomeCredit ← {𝕊 tx: ∨´0∾{(𝕩.account_key≡incomeAccount)∧𝕩.normalized_coefficient<0}¨tx.postings}
-    matches ↩ (HasIncomeCredit¨loaded.transactions)/loaded.transactions
-  }⍟loaded.complete @
+    dates ↩ IncomeDatesFromCompleteTransactions ⟨incomeAccount, evidence.transactions⟩
+  }⍟evidence.complete @
   {𝕊:
     HasIncomeCredit ← {𝕊 tx: ∨´0∾{(𝕩.account_key≡incomeAccount)∧𝕩.delta<0}¨tx.postings}
-    matches ↩ (HasIncomeCredit¨loaded.transactions)/loaded.transactions
-  }⍟(¬loaded.complete) @
-  {𝕩.date}¨matches
+    matches ← (HasIncomeCredit¨evidence.transactions)/evidence.transactions
+    dates ↩ {𝕩.date}¨matches
+  }⍟(¬evidence.complete) @
+  dates
+}
+
+IncomeDates ← {𝕊 base‿incomeAccount:
+  IncomeDatesFromCycleEvidence ⟨incomeAccount, LoadCycleEvidence base⟩
 }
 
 File ← {𝕊 ctx: 𝕩.actual_source_file}
@@ -108,4 +116,4 @@ PlanIdsInCycle ← {𝕊 base‿cy:
   {𝕩.plan_id}¨(InCycle¨evidence)/evidence
 }
 
-{Resolve⇐Resolve,ResolveRelativePath⇐ResolveRelativePath,LoadTransactions⇐LoadTransactions,LoadCompleteTransactions⇐LoadCompleteTransactions,LoadDates⇐LoadDates,IncomeDates⇐IncomeDates,File⇐File,Transactions⇐Transactions,Rows⇐Rows,CompletionEvidence⇐CompletionEvidence,PlanIdsInCycle⇐PlanIdsInCycle}
+{Resolve⇐Resolve,ResolveRelativePath⇐ResolveRelativePath,LoadTransactions⇐LoadTransactions,LoadCompleteTransactions⇐LoadCompleteTransactions,LoadCycleEvidence⇐LoadCycleEvidence,LoadDates⇐LoadDates,IncomeDates⇐IncomeDates,IncomeDatesFromCompleteTransactions⇐IncomeDatesFromCompleteTransactions,IncomeDatesFromCycleEvidence⇐IncomeDatesFromCycleEvidence,File⇐File,Transactions⇐Transactions,Rows⇐Rows,CompletionEvidence⇐CompletionEvidence,PlanIdsInCycle⇐PlanIdsInCycle}

@@ -9,7 +9,7 @@
 # Supported modes:
 #   fixed          start (inclusive) .. end_exclusive (exclusive)
 #   incomeAnchor   resolved from nearest income dates in journal/plan
-#   calendarMonth  not yet resolved (Phase 4+)
+#   calendarMonth  recurring start_day resolved around observation as_of
 
 loader ← •Import "loader.bqn"
 dt    ← •Import "date.bqn"
@@ -22,16 +22,29 @@ DayCount ← {
 }
 
 # ── Parse cycle.tsv into key→value map ──────────────────────
-ReadCycle ← {𝕊 arg:
-  is_string ← (0 = ≠ arg) ∨ (2 = •Type 0 ⊑ arg ∾ ⟨' '⟩)
-  base ← is_string ⊑ ⟨ 0 ⊑ arg, arg ⟩
-  
+# The internal resolver can consume complete admitted transactions supplied by
+# an outer source adapter. That path preserves cycle ownership while avoiding a
+# second Journal read/admission solely to recover dates and income evidence.
+ReadCycleWithEvidence ← {𝕊 base‿asOfInput‿useDefaultAsOf‿hasEvidence‿actualEvidence:
+  JournalDates ← {𝕊:
+    hasEvidence ◶ ⟨
+      {𝕊: actual_source.LoadDates base},
+      {𝕊: {𝕩.date}¨ actualEvidence.transactions}
+    ⟩ @
+  }
+  IncomeDates ← {𝕊 incomeAccount:
+    hasEvidence ◶ ⟨
+      {𝕊: actual_source.IncomeDates ⟨base, incomeAccount⟩},
+      {𝕊: actual_source.IncomeDatesFromCycleEvidence ⟨incomeAccount, actualEvidence⟩}
+    ⟩ @
+  }
   DefaultAsOf ← {𝕊:
-    jdates ← actual_source.LoadDates base
+    jdates ← JournalDates @
     valid_dates ← (dt.IsValidDateText¨ jdates) / jdates
     (0 < ≠ valid_dates) ◶ ⟨ { 𝕩 ⋄ dt.Today @ }, { 𝕩 ⋄ ¯1 ⊑ (∧ valid_dates) } ⟩ @
   }
-  as_of ← is_string ◶ ⟨ { 1 ⊑ arg }, { DefaultAsOf @ } ⟩ @
+  as_of ← asOfInput
+  {𝕊: as_of ↩ DefaultAsOf @}⍟useDefaultAsOf @
   path ← base ∾ "/cycle.tsv"
   lines ← loader.ReadLines path
 
@@ -58,9 +71,10 @@ ReadCycle ← {𝕊 arg:
   ResolveIncomeAnchor ← { 𝕩 ⋄
     income_account ← Lookup "income_account"
 
-    # Read the explicitly selected actual source; no TSV/Journal fallback.
-    jdates ← actual_source.LoadDates base
-    inc_dates ← actual_source.IncomeDates ⟨base,income_account⟩
+    # Read the explicitly selected Actual evidence. A prepared caller supplies
+    # already-admitted transactions; the compatibility adapter loads them.
+    jdates ← JournalDates @
+    inc_dates ← IncomeDates income_account
 
     # Max journal date (all rows, for plan future-filter)
     jmax ← ¯1 ⊑ (∧ jdates)
@@ -141,6 +155,34 @@ ReadCycle ← {𝕊 arg:
   ⟩ @
 }
 
+# Compatibility adapter: preserve the existing string / ⟨base,as_of⟩ API and
+# its source-loading behavior.
+ReadCycle ← {𝕊 arg:
+  is_string ← (0 = ≠ arg) ∨ (2 = •Type 0 ⊑ arg ∾ ⟨' '⟩)
+  base ← is_string ⊑ ⟨0 ⊑ arg, arg⟩
+  asOfInput ← ""
+  {𝕊: asOfInput ↩ 1 ⊑ arg}⍟(¬is_string) @
+  emptyEvidence ← {complete⇐0, transactions⇐⟨⟩}
+  ReadCycleWithEvidence ⟨base, asOfInput, is_string, 0, emptyEvidence⟩
+}
+
+# Reuse one source-owned cycle evidence result while preserving its complete or
+# historical-fallback transaction shape.
+ReadCycleFromActualEvidence ← {𝕊 base‿evidence:
+  ReadCycleWithEvidence ⟨base, "", 1, 1, evidence⟩
+}
+ReadCycleFromActualEvidenceAt ← {𝕊 base‿asOf‿evidence:
+  ReadCycleWithEvidence ⟨base, asOf, 0, 1, evidence⟩
+}
+
+# Selected-domain adapter: complete admission has already established the
+# transaction/posting shape. Cycle still owns date selection, income-account
+# interpretation, plan evidence, and period construction.
+ReadCycleFromAdmittedTransactions ← {𝕊 base‿transactions:
+  evidence ← {complete⇐1, transactions⇐transactions}
+  ReadCycleFromActualEvidence ⟨base, evidence⟩
+}
+
 # ── Format cycle info for sanity display ─────────────────────
 FormatCycleInfo ← {
   cycle ← 𝕩
@@ -154,4 +196,4 @@ FormatCycleInfo ← {
   ∾ (lines ∾¨ (@+10))
 }
 
-{ ReadCycle ⇐ ReadCycle, FormatCycleInfo ⇐ FormatCycleInfo, DayCount ⇐ DayCount }
+{ ReadCycle ⇐ ReadCycle, ReadCycleFromActualEvidence ⇐ ReadCycleFromActualEvidence, ReadCycleFromActualEvidenceAt ⇐ ReadCycleFromActualEvidenceAt, ReadCycleFromAdmittedTransactions ⇐ ReadCycleFromAdmittedTransactions, FormatCycleInfo ⇐ FormatCycleInfo, DayCount ⇐ DayCount }

@@ -15,6 +15,7 @@ Updated: 2026-07-26
 - 記法・運用規約: `docs/CONVENTIONS.md`
 - 保守手順: `docs/MAINTENANCE.md`
 - purpose-specific projection方向: `docs/archive/active-plans/PURPOSE_SPECIFIC_PROJECTION_COMPOSITION_DIRECTION-2026-07-25.md`
+- report context重複の現行観察: `docs/REPORT_CONTEXT_DUPLICATION_CHARACTERIZATION-2026-07-27.md`
 - `src_next` module topology: `docs/archive/audits/SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md`
 
 この文書は、**データがシステム内をどう流れるか**、各モジュールが何を担当するかを説明します。
@@ -214,6 +215,8 @@ selected-currency policy
 `PrepareNonActualRows`はplan/budgetのsource-evidence validation、selected-domain arithmetic proof、checked Posting IR projectionを所有します。`NormalizeSelectedRows`はActualとnon-Actualの二つのadmitted row集合を一つのcontext-local exact scaleへそろえることだけを所有します。これらはmodule内部のsemantic stageであり、generic pipeline frameworkや新しいpublic APIではありません。
 
 `selected_domain_context.bqn` は complete-source admission と Stage 2A `currency_proof_rows` を再利用し、呼び出し側が明示したregistry-supportedな1通貨だけをcontext-local exact scaleへ射影する。JPY・ILS・USDはすべてこの同じ境界を通り、通貨literalによるcontext分岐は持たない。plan / budgetも同じ通貨をsource metadataとaccount currencyで証明し、証明失敗時は部分contextを返さない。declaration-only Journalや選択通貨Actualが0件のときも、validな選択plan / budgetからcontextを構成し、全source layerが空なら正常なempty contextを返す。これはCurrency axisや一般的な多通貨Cubeではなく、各呼び出しで1通貨だけを既存 `Day × Account × Layer` viewまたは同domainのpurpose-specific consumerへ渡す境界である。
+
+default currency付きfull/cache reportは現在、通常section用の`context.BuildContext`に加えてbalances用selected-domain contextも構築する移行状態にある。両routeのadmission、currency proof、period selectionの契約は同一ではないため、checked rowsや巨大contextへ先に統合しない。selected adapterはcomplete admission済みtransactionsを`cycle.ReadCycleFromAdmittedTransactions`と内部`BuildFromPreparedCore`へ渡し、cycle evidenceと後続compositionの再admissionを除去した。public `BuildFromPrepared`はpolicy-first admissionとfocused first-failure契約を維持する。compatibility `BuildContext`は`actual_source.LoadCycleEvidence`のcomplete-or-historical-fallback evidenceを一度だけ取得し、default/explicit period解決へ再利用する。cycleはlatest-Actual/no-Actual observation、income account、plan evidence、period constructionを引き続き所有する。
 
 ## Presentation boundary
 

@@ -21,7 +21,7 @@ Updated: 2026-07-26
 8. `docs/TIME_AS_AXIS.md`（時間座標・観察時点・区間view）
 9. `src_next`のfile moveなら `docs/archive/audits/SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md` と `tools/src-next-import-graph`
 10. projection変更なら `docs/archive/active-plans/PURPOSE_SPECIFIC_PROJECTION_COMPOSITION_DIRECTION-2026-07-25.md`、`docs/archive/audits/PROJECTION_BQN_OWNERSHIP_AUDIT-2026-07-26.md`、該当する `src_next/*` consumer
-11. レポート変更なら `src_next/report.bqn` と該当する `src_next/*` モジュール、`docs/REPORT_CONTRACTS.md` / `docs/REPORT_SECTION_CONTRACT_CHECKLIST.md`、および現行の report 関連 check
+11. レポート変更なら `src_next/report.bqn` と該当する `src_next/*` モジュール、`docs/REPORT_CONTRACTS.md` / `docs/REPORT_SECTION_CONTRACT_CHECKLIST.md`。context共有なら先に `docs/REPORT_CONTEXT_DUPLICATION_CHARACTERIZATION-2026-07-27.md` を読み、現行のreport関連checkを確認する
 12. エディタ作業なら `docs/PRODUCTION_EDITOR_DIRECTION.md` / `docs/BQN_EDITOR_USAGE.md` / `src_edit/README.md`
 13. 複数ポスティング導入検討なら `docs/archive/completed-plans/DECISION_MULTI_POSTING_INVESTIGATION.md`
 14. 変更内容に応じて `docs/CONVENTIONS.md` / `docs/JOURNAL_META.md` / `docs/MAINTENANCE.md`
@@ -104,7 +104,7 @@ Updated: 2026-07-26
 
 ### `src_next/` (BQN 会計エンジン)
 
-- `context.bqn` — BuildAllRows / BuildPeriodView / BuildContext。設定されたnative JournalをStage 1→Stage 2Aへ通したactual postingsとplan/budget TSV postingsを合成する。Actual sourceのfallback/mergeはしない。
+- `context.bqn` — BuildAllRows / BuildPeriodView / BuildContext。設定されたnative JournalをStage 1→Stage 2Aへ通したactual postingsとplan/budget TSV postingsを合成する。BuildContextのdefault/explicit cycle解決は一つのsource-owned complete-or-historical-fallback evidenceを再利用する。Actual source fileのfallback/mergeはしない。
 - `journal_profile_stage1.bqn` — Minimal BQN Journal subsetをordered Transaction IRへ変換するparser。`recur` / `series` / `trip-id`とclosed enumの`payment`は会計意味を解釈せずgeneric `transaction.metadata`へexact保持する。Journal modeのproduction read/write validationで使用する。
 - `journal_posting_ir_stage2a.bqn` — admitted Stage 1 Transaction IRをcurrent 16-field Posting IR shapeへ変換するadapter。explicit source file identityを持つnative multi-posting production routingにも使用する。
 - `journal_posting_identity_provenance_stage2b.bqn` — admitted Stage 1 Transaction IRと対応するStage 2Aの16-field rowsを受け、identity/provenance local invariantsをall-or-nothingで検査して、rowを変更せず別の6-field carrierを返すpure test-only helper。production provenance carrier、consumer、routingには未接続。
@@ -114,20 +114,20 @@ Updated: 2026-07-26
 - `friend_travel_jpy_finalization.bqn` — pending friend-travel source-event descriptor、明示 finalization date / JPY amount、既存account descriptor、既存finalization IDだけを入力にするpure validator。成功時は既存JPY liability → JPY expenseのcanonical previewを正確に1行返し、失敗時はprivacy-safe diagnosticsと0行を返す。I/O、status/index mutation、writer、public runtime配線は持たない。
 - `friend_travel_source_event.bqn` — Israel用friend-paid pending source eventの固定9列、ILS精度、固定payer/trip/status、既存全行検査、ID一意性、exact preview rowを所有するpure validator。I/Oとfinalizationを持たない。
 - `travel_exchange_event.bqn` — Israel用JPY↔ILS bidirectional exchangeの2観測amount、明示source/target currencyごとのprecision、既存account descriptor、ID一意性を検査しstructured previewを返すpure owner。I/O、rate、journal row、valuation、account-name inferenceを持たない。
-- `actual_source.bqn` — configured native Journal resolver、date/completion evidence、transaction loadの共有owner。cycle date/income-date evidenceはcomplete-source admissionを優先する。declaration-only Journalは通貨共通の正常なempty Actualとしてadmitされる。Actual source file fallbackはない。
+- `actual_source.bqn` — configured native Journal resolver、date/completion evidence、transaction loadの共有owner。`LoadCycleEvidence`はcomplete admissionを優先し、失敗時は既存historical parser fallback shapeを明示carrierで返す。`IncomeDatesFromCompleteTransactions` / `IncomeDatesFromCycleEvidence`はI/Oなしで各shapeのincome dateを抽出する。declaration-only Journalは通貨共通の正常なempty Actualとしてadmitされる。Actual source file fallbackはない。
 - `loader.bqn` — source ファイル読み込み (`•FChars` 使用)。
 - `cube.bqn` — Canonical Daily Cube (`Day × Account × Layer`) の構築。
 - `tbds.bqn` — Trial Balance Data Set (period/account/layer/opening/movement/closing)。
 - `exact_sparse_grouping.bqn` — explicit keysとalready-admitted exact valuesをfirst-occurrence順でdeterministicにgroupするI/O-free kernel。accounting axes、domain、admission、valuation、provenance ownershipを持たず、contributor indexはsidecar helperで返す。
 - `actual_expense_ranking.bqn` — checked selected-domain posting factsから、Actual / selected period / debit / explicit expense AccountKey partitionを選び、exact grouping、zero-net visibility、amount-descending ranking、contributor posting IDsを返す最初のdirect sparse consumer。Cube/TBDSをimportせず、public report wiringはまだ持たない。
 - `trial_balance.bqn` — 試算表エクスポート。debit/credit 符号付き。
-- `cycle.bqn` — サイクル期間の解決。date.bqn を使用。
+- `cycle.bqn` — サイクル期間の解決。compatibility `ReadCycle`は単独caller向けsource-loading adapterとして残る。`ReadCycleFromActualEvidence` / `At`はBuildContextのcomplete-or-fallback evidenceを、`ReadCycleFromAdmittedTransactions`はselected adapterのcomplete evidenceを使い、Journalを再読込しない。cycle definition、latest-Actual/no-Actual observation、income account、plan evidence、period constructionはこのmoduleが所有する。
 - `account_key.bqn` — 勘定科目のキー解決。
 - `projection.bqn` — non-Actual TSV routeのPosting IR construction vocabularyと、現行のLayer / day-coordinate / arithmetic-proof compatibility seamsを共有する。P1後はprojection column list、table formatting、source-balance presentationを所有・exportしない。
 - `developer_inspection.bqn` — 非productionの低層診断実装。AccountKey、checked Posting IR table、source-balance表示、Cube sanity、policy diagnosticを出し、直接実行と互換wrapperからの`Run`呼出しの両方を支える。
 - `main.bqn` — `developer_inspection.bqn`をimportし、引数を`Run`へ渡すだけの一時的な互換wrapper。診断実装やproduction ownershipを持たない。
 - `snapshot.bqn` — Balance Sheet / Snapshot。TBDS closing を使用。構造化された ViewModel JSON 出力（FormatJson）もサポート。
-- `selected_domain_context.bqn` — 明示されたregistry-supportedな1通貨を、policy → complete Actual admission → Actual currency-proof carriage → non-Actual evidence/projection preparation → context-scale selection → exact normalization → Cube/TBDS period viewsのflatなstage列で構成する。`PrepareNonActualRows`と`NormalizeSelectedRows`はmodule内部のsemantic stageで、public exportは増やさない。各stageは前段成功時だけ実行し、failure code/diagnosticsを保持して部分contextを返さない。成功時はchecked posting rows、resolved metadata、Cube/TBDS viewを返し、同domainのposting rowsをdirect sparse projectionへ渡せる。Currency axis、FX、valuationは扱わない。
+- `selected_domain_context.bqn` — 明示されたregistry-supportedな1通貨を、policy → complete Actual admission → Actual currency-proof carriage → non-Actual evidence/projection preparation → context-scale selection → exact normalization → Cube/TBDS period viewsのflatなstage列で構成する。production source adapterはpreliminary complete admissionをcycleと内部`BuildFromPreparedCore`へ再利用し、date/income evidenceや後続compositionのためにJournalを再admitしない。public `BuildFromPrepared`はpolicy-first admissionとfocused first-failure契約を維持する。`PrepareNonActualRows`と`NormalizeSelectedRows`はmodule内部のsemantic stageで、public exportは増やさない。各stageは前段成功時だけ実行し、failure code/diagnosticsを保持して部分contextを返さない。成功時はchecked posting rows、resolved metadata、Cube/TBDS viewを返し、同domainのposting rowsをdirect sparse projectionへ渡せる。Currency axis、FX、valuationは扱わない。
 - `balances.bqn` — 残高表示。human `--section balances --currency CODE`は常にselected-domain contextを使い、対象通貨のaccount残高と累計expenseを全supported currencyで同じsection構造により表示する。default currencyを宣言したledgerではfull/cacheも同じselected-domain bodyを使う。数値書式だけcurrency policyに従い、既存JSON契約は維持する。
 - `ytd_summary.bqn` — YTD 集計。
 - `cycle_summary.bqn` — サイクル収支 (Income Statement)。
@@ -249,6 +249,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 - `test_journal_leading_ascii_space_description_characterization.bqn` — status marker後の必須ASCII SPACEを一文字だけdelimiterとして消費し、残るdescription-owned leading ASCII SPACEをTransaction IRへexactに保存する回帰test。delimiter欠落とempty payloadを区別してrejectし、converterによる一文字・二文字のleading-space exact round-tripとStage 2Aの16-field shape不変も固定する。
 - `test_journal_native_three_posting_semantic_parity.bqn` — native Journal 3 rowsとlegacy TSV 4 rowsのtopology差を保持したまま、共通semantic coordinate reductionとnumeric Cube payloadの一致を既存境界だけで検証するfocused test。
 - `test_src_next_selected_domain_context.bqn` — mixed Journalとplan/budget evidenceからJPY/ILS/USDを同じ経路で1通貨だけ構成し、empty/other-currency Actual、domain/scale isolation、fail-closed mismatch、同名accountのcurrency coordinate分離に加え、unsupported policyがsource workを止め、Actual admission failureがnon-Actual preparationを止めるfirst-failure stage priorityを検証する。
+- `test_src_next_cycle_prepared_evidence.bqn` — Actual source fileを持たないfixtureでalready-admitted income evidenceからincome-anchor cycleを解決し、完全production fixtureではsource-loaded routeとmode/start/end/day_countが一致することを検証する。
 - `test_lib.bqn` — テストフレームワーク (Assert, AssertEq)。
 - `test_find_section.bqn`, `test_simple.bqn` — 汎用テスト。
 
@@ -265,6 +266,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 
 - `tools/repo-index` — リポジトリの BQN ファイルやチェックスクリプトの索引を管理。ファイル追加・削除時は `--baseline` で更新する。
 - `tools/src-next-import-graph` — `src_next/**/*.bqn`のrelative direct importをread-onlyに列挙し、summary、module degree、cycle、Graphviz DOT、missing-target validationを出す。directory migration前後のtopology evidenceに使う。
+- `tools/characterization/report_context_duplication_probe.bqn` — ordinary `BuildContext`、selected adapter、明示prepared-input routeをpublic base上で比較するread-only harness。timing thresholdは契約にせず、direct/prepared selected shape parityをfocused checkで固定する。
 - `tools/doctor` — 設定とデータディレクトリの整合性診断。
 - `tools/bqn-eval` — BQN式の簡易評価用。
 - `tools/bqn-dump` — BQN値の型とshape診断用。

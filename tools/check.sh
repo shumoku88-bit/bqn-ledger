@@ -161,6 +161,7 @@ bash checks/check-bash-safety.sh >/dev/null
 bash checks/check-ui-smoke.sh >/dev/null
 bash checks/check-command-hub-browse-cache.sh >/dev/null
 bash checks/check-report-cache-nested-module-invalidation.sh >/dev/null
+bash checks/check-report-context-duplication-characterization.sh
 bash checks/check-absolute-links.sh >/dev/null
 bash checks/check-loader-util-ownership.sh >/dev/null
 bash checks/check-loader-unreadable.sh >/dev/null

@@ -168,14 +168,17 @@ NormalizeSelectedRows ← {𝕊 actualRows‿nonactualRows‿nonactualScale‿co
   {state⇐valid ⊑ "error"‿"ok", rows⇐rows}
 }
 
-BuildFromPrepared ← {𝕊 selectedCurrency‿raw‿resolved‿cy‿sourceFile‿nonactualSnapshot:
+BuildFromPreparedCore ← {𝕊 selectedCurrency‿raw‿resolved‿cy‿sourceFile‿nonactualSnapshot‿hasAdmitted‿suppliedAdmitted:
   policy ← setup.Policy selectedCurrency
   result ← Failure ⟨selectedCurrency, "selected_currency_unsupported", "selected currency must be admitted by registry", empty⟩
   stageOk ← policy.state ≡ "ok"
 
   admitted ← {state⇐"not_run", transactions⇐empty, diagnostics⇐empty}
   {𝕊:
-    admitted ↩ admission.Admit ⟨raw, resolved⟩
+    admitted ↩ hasAdmitted ◶ ⟨
+      {𝕊: admission.Admit ⟨raw, resolved⟩},
+      {𝕊: suppliedAdmitted}
+    ⟩ @
     {𝕊:
       result ↩ Failure ⟨selectedCurrency, "actual_admission_failed", "complete Journal admission failed", admitted.diagnostics⟩
     }⍟(admitted.state ≢ "ok") @
@@ -238,6 +241,14 @@ BuildFromPrepared ← {𝕊 selectedCurrency‿raw‿resolved‿cy‿sourceFile�
   result
 }
 
+# Public prepared-source seam preserves policy-first admission and its focused
+# first-failure contract. Production Build reuses admission it already needed
+# for cycle evidence through the internal core.
+BuildFromPrepared ← {𝕊 selectedCurrency‿raw‿resolved‿cy‿sourceFile‿nonactualSnapshot:
+  notAdmitted ← {state⇐"not_run", transactions⇐empty, diagnostics⇐empty}
+  BuildFromPreparedCore ⟨selectedCurrency, raw, resolved, cy, sourceFile, nonactualSnapshot, 0, notAdmitted⟩
+}
+
 Build ← {𝕊 base‿selectedCurrency:
   resolved ← ak.Resolve loader.ReadLines (base ∾ "/accounts.tsv")
   sourceFile ← actual_source.ResolveRelativePath base
@@ -245,16 +256,12 @@ Build ← {𝕊 base‿selectedCurrency:
   preliminary ← admission.Admit ⟨raw, resolved⟩
   result ← Failure ⟨selectedCurrency, "actual_admission_failed", "complete Journal admission failed", preliminary.diagnostics⟩
   {𝕊:
-    # Preserve the existing latest-Actual observation when Actual exists. A
-    # declaration-only Journal delegates to the common cycle resolver, which
-    # supplies its normal no-Actual rule without inspecting the currency.
-    cy ← cycle.ReadCycle base
-    {𝕊:
-      asOf ← ¯1 ⊑ ∧ {𝕩.date}¨ preliminary.transactions
-      cy ↩ cycle.ReadCycle ⟨base, asOf⟩
-    }⍟(0 < ≠ preliminary.transactions) @
+    # Complete admission already owns the Actual transaction evidence needed by
+    # cycle resolution. Reuse it without changing cycle's latest-Actual/no-Actual
+    # observation rules or asking cycle to read and admit the Journal again.
+    cy ← cycle.ReadCycleFromAdmittedTransactions ⟨base, preliminary.transactions⟩
     snapshot ← context.LoadNonActualPostingSourceSnapshot base
-    result ↩ BuildFromPrepared ⟨selectedCurrency, raw, resolved, cy, sourceFile, snapshot⟩
+    result ↩ BuildFromPreparedCore ⟨selectedCurrency, raw, resolved, cy, sourceFile, snapshot, 1, preliminary⟩
   }⍟(preliminary.state ≡ "ok") @
   result
 }

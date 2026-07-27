@@ -412,11 +412,14 @@ BuildContext ← {𝕊 arg:
   base ← is_string ⊑ ⟨ 0 ⊑ arg, arg ⟩
   base2 ← (0 < ≠ base) ⊑ ⟨ ".", base ⟩
 
-  # Resolve default as_of: read cycle to find its start date
-  cy_default ← cycle.ReadCycle base2
+  # Resolve default as_of from one source-owned Actual evidence load. The
+  # evidence preserves complete-admission or historical-fallback shape while
+  # avoiding repeated Journal reads inside income-anchor cycle resolution.
+  cycleEvidence ← actual_source.LoadCycleEvidence base2
+  cy_default ← cycle.ReadCycleFromActualEvidence ⟨base2, cycleEvidence⟩
   as_of ← is_string ◶ ⟨ { 1 ⊑ arg }, { cy_default.start } ⟩ @
 
-  cy           ← cycle.ReadCycle ⟨base2, as_of⟩
+  cy           ← cycle.ReadCycleFromActualEvidenceAt ⟨base2, as_of, cycleEvidence⟩
   accLines     ← loader.ReadLines (base2 ∾ "/accounts.tsv")
   resolved     ← ak.Resolve accLines
   journal_rel  ← actual_source.ResolveRelativePath base2

@@ -190,6 +190,8 @@ The breakdown below measures execution phases inside the characterization harnes
 
 The former selector question is resolved by the current selector-first background refresh path. It does not display stale financial content silently: while refresh is active, preview rows show an explicit updating status.
 
+The later full-report context follow-up is recorded in `docs/REPORT_CONTEXT_DUPLICATION_CHARACTERIZATION-2026-07-27.md`. Its baseline found repeated cycle/Actual evidence resolution rather than raw source reads alone. Follow-up slices now reuse complete admitted transactions across selected cycle/composition and one complete-or-historical-fallback evidence carrier across compatibility default/explicit cycle resolution. Compatibility and selected checked rows remain distinct contracts rather than a proven sharing boundary.
+
 ---
 
 ## 8. Ranked Candidate Implementation Slices at the Baseline

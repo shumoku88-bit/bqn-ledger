@@ -131,3 +131,7 @@ probe_tmp_dir="$tmp_bench_dir/probe_tmp"
 mkdir -p "$probe_tmp_dir"
 bqn "$ROOT_DIR/tools/characterization/report_latency_probe.bqn" "$base_dir" "$probe_tmp_dir"
 echo ""
+
+echo "--- 7. Full-Report Context Duplication Probe ---"
+bqn "$ROOT_DIR/tools/characterization/report_context_duplication_probe.bqn" "$base_dir"
+echo ""
