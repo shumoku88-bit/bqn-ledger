@@ -16,11 +16,15 @@ json_out="$(mktemp)"
 bad_out="$(mktemp)"
 bad_err="$(mktemp)"
 actual_fixture=""
+demo_none_fixture=""
 
 cleanup() {
   rm -f "$out" "$section_out" "$json_out" "$bad_out" "$bad_err"
   if [[ -n "$actual_fixture" ]]; then
     rm -rf "$actual_fixture"
+  fi
+  if [[ -n "$demo_none_fixture" ]]; then
+    rm -rf "$demo_none_fixture"
   fi
 }
 trap cleanup EXIT
@@ -685,11 +689,34 @@ else
   fi
 fi
 
-# Disabled-policy envelopes human byte-exact contract check using fixtures/envelopes-disabled-policy
+# Disabled-policy envelopes human byte-exact contract check using temp copy of fixtures/demo with POLICY_BUDGET_STYLE=none
+demo_none_fixture="$(mktemp -d)"
+cp -R fixtures/demo/. "$demo_none_fixture/"
+python3 - "$demo_none_fixture/config.tsv" <<'PY'
+import sys
+
+path = sys.argv[1]
+with open(path, encoding="utf-8") as f:
+    lines = f.readlines()
+
+matching_indices = [
+    i for i, line in enumerate(lines)
+    if line.strip() == "POLICY_BUDGET_STYLE=envelope"
+]
+if len(matching_indices) != 1:
+    raise SystemExit(f"expected exactly 1 line matching POLICY_BUDGET_STYLE=envelope, found {len(matching_indices)}")
+
+idx = matching_indices[0]
+lines[idx] = lines[idx].replace("POLICY_BUDGET_STYLE=envelope", "POLICY_BUDGET_STYLE=none")
+
+with open(path, "w", encoding="utf-8", newline="") as f:
+    f.writelines(lines)
+PY
+
 dis_direct_out="$(mktemp)"
 dis_direct_err="$(mktemp)"
 dis_code=0
-tools/report fixtures/envelopes-disabled-policy --section envelopes --no-color >"$dis_direct_out" 2>"$dis_direct_err" || dis_code=$?
+tools/report "$demo_none_fixture" --section envelopes --no-color >"$dis_direct_out" 2>"$dis_direct_err" || dis_code=$?
 if [ "$dis_code" -eq 0 ]; then
   pass "disabled policy envelopes direct section returns exit status 0"
 else
@@ -708,7 +735,7 @@ fi
 rm -f "$dis_direct_out" "$dis_direct_err"
 
 dis_cache_dir="$(mktemp -d)"
-if tools/report fixtures/envelopes-disabled-policy --write-section-cache "$dis_cache_dir" --no-color >/dev/null 2>&1; then
+if tools/report "$demo_none_fixture" --write-section-cache "$dis_cache_dir" --no-color >/dev/null 2>&1; then
   if [ -f "$dis_cache_dir/envelopes.txt" ] && [ ! -s "$dis_cache_dir/envelopes.txt" ]; then
     pass "disabled policy write-section-cache generates 0-byte envelopes.txt"
   else
@@ -720,7 +747,7 @@ fi
 rm -rf "$dis_cache_dir"
 
 dis_full_out="$(mktemp)"
-if tools/report fixtures/envelopes-disabled-policy --no-color >"$dis_full_out" 2>/dev/null; then
+if tools/report "$demo_none_fixture" --no-color >"$dis_full_out" 2>/dev/null; then
   tb_line="$(grep -nF -- '== Trial Balance (actual layer) ==' "$dis_full_out" | cut -d: -f1)"
   plan_line="$(grep -nF -- '== Planned Payments ==' "$dis_full_out" | cut -d: -f1)"
   if [ -n "$tb_line" ] && [ -n "$plan_line" ] && [ "$tb_line" -lt "$plan_line" ]; then
@@ -737,6 +764,8 @@ else
   fail "disabled policy full human report failed"
 fi
 rm -f "$dis_full_out"
+rm -rf "$demo_none_fixture"
+demo_none_fixture=""
 
 if grep -qiE '(production.ready|default switch|replacement ready)' "$out"; then
   fail "human report appears to claim production readiness"
