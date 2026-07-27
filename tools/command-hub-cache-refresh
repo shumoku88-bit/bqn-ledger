@@ -45,8 +45,6 @@ rm -f "$error_file"
 stage_dir="$(mktemp -d "$cache_dir/.refresh-stage.XXXXXX")"
 full_stage="$stage_dir/full"
 mkdir "$full_stage"
-direct_balances="$stage_dir/direct-balances"
-direct_balances_err="$stage_dir/direct-balances.err"
 success=0
 
 cleanup() {
@@ -67,48 +65,33 @@ if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && -n "${COMMAND_HUB_CACHE_TEST_BEFORE_
   "$COMMAND_HUB_CACHE_TEST_BEFORE_BUILD_HOOK"
 fi
 
-# Full cache and selected-currency balances have independent report contexts.
-# Build them concurrently so background readiness takes the slower duration,
-# not the sum of both durations.
-set +e
-"$ROOT_DIR/tools/report" "$base_abs" --write-section-cache "$full_stage" --no-color >/dev/null 2>"$stage_dir/full.err" &
-full_pid=$!
-"$ROOT_DIR/tools/report" "$base_abs" --section balances --no-color >"$direct_balances" 2>"$direct_balances_err" &
-balances_pid=$!
-wait "$full_pid"
-full_status=$?
-wait "$balances_pid"
-balances_status=$?
-set -e
-[[ "$full_status" -eq 0 ]] || exit "$full_status"
+# BQN owns every cached section body, including selected-currency balances.
+# This shell boundary only stages, validates, and atomically publishes files.
+"$ROOT_DIR/tools/report" "$base_abs" --write-section-cache "$full_stage" --no-color \
+  >/dev/null 2>"$stage_dir/full.err"
 
-# Preserve the direct selected-currency balances contract when available. A
-# ledger without a resolvable default currency keeps the full-report body.
-if [[ "$balances_status" -eq 0 ]]; then
-  python3 - "$direct_balances" "$full_stage/balances.txt" <<'PY'
-from pathlib import Path
-import sys
-
-source = Path(sys.argv[1]).read_bytes()
-if not source.endswith(b"\n\n"):
-    raise SystemExit("selected balances output does not end with two newlines")
-Path(sys.argv[2]).write_bytes(source[:-2])
-PY
+key_manifest="$full_stage/.section-keys"
+[[ -s "$key_manifest" ]] || { echo "Error: report cache key manifest is missing or empty" >&2; exit 1; }
+if [[ -n "$(LC_ALL=C sort "$key_manifest" | uniq -d)" ]]; then
+  echo "Error: report cache key manifest contains duplicate keys" >&2
+  exit 1
 fi
-
-section_keys=(
-  snapshot issues ytd balances cycle trial-balance envelopes planned recent
-  check outlook daily-trend daily-flow actual-comparison debug all
-)
-for key in "${section_keys[@]}"; do
+key_count=0
+has_all=0
+while IFS= read -r key; do
+  key_count=$((key_count + 1))
+  [[ "$key" =~ ^[a-z0-9][a-z0-9-]*$ ]] || { echo "Error: invalid report cache key: $key" >&2; exit 1; }
+  [[ "$key" == "all" ]] && has_all=1
   [[ -f "$full_stage/$key.txt" ]] || { echo "Error: incomplete preview cache: $key" >&2; exit 1; }
-done
+done <"$key_manifest"
+[[ "$key_count" -gt 0 && "$has_all" -eq 1 ]] || { echo "Error: incomplete report cache key manifest" >&2; exit 1; }
 
-# Each visible file is published by atomic rename. The timestamp is published
-# last and is the validity commit marker for the complete generation.
-for key in "${section_keys[@]}"; do
+# Each visible file and then its canonical key manifest is published by atomic
+# rename. The timestamp is published last as the complete-generation commit.
+while IFS= read -r key; do
   mv -f "$full_stage/$key.txt" "$cache_dir/$key.txt"
-done
+done <"$key_manifest"
+mv -f "$key_manifest" "$cache_dir/.section-keys"
 timestamp_tmp="$(mktemp "$cache_dir/.cache-timestamp.XXXXXX")"
 printf '%s\n' "$source_mtime" >"$timestamp_tmp"
 mv -f "$timestamp_tmp" "$cache_dir/.cache-timestamp"

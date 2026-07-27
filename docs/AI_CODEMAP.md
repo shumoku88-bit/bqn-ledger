@@ -128,7 +128,7 @@ Updated: 2026-07-26
 - `main.bqn` — `developer_inspection.bqn`をimportし、引数を`Run`へ渡すだけの一時的な互換wrapper。診断実装やproduction ownershipを持たない。
 - `snapshot.bqn` — Balance Sheet / Snapshot。TBDS closing を使用。構造化された ViewModel JSON 出力（FormatJson）もサポート。
 - `selected_domain_context.bqn` — 明示されたregistry-supportedな1通貨を、policy → complete Actual admission → Actual currency-proof carriage → non-Actual evidence/projection preparation → context-scale selection → exact normalization → Cube/TBDS period viewsのflatなstage列で構成する。`PrepareNonActualRows`と`NormalizeSelectedRows`はmodule内部のsemantic stageで、public exportは増やさない。各stageは前段成功時だけ実行し、failure code/diagnosticsを保持して部分contextを返さない。成功時はchecked posting rows、resolved metadata、Cube/TBDS viewを返し、同domainのposting rowsをdirect sparse projectionへ渡せる。Currency axis、FX、valuationは扱わない。
-- `balances.bqn` — 残高表示。human `--section balances --currency CODE`は常にselected-domain contextを使い、対象通貨のaccount残高と累計expenseを全supported currencyで同じsection構造により表示する。数値書式だけcurrency policyに従い、既存JSON契約は維持する。
+- `balances.bqn` — 残高表示。human `--section balances --currency CODE`は常にselected-domain contextを使い、対象通貨のaccount残高と累計expenseを全supported currencyで同じsection構造により表示する。default currencyを宣言したledgerではfull/cacheも同じselected-domain bodyを使う。数値書式だけcurrency policyに従い、既存JSON契約は維持する。
 - `ytd_summary.bqn` — YTD 集計。
 - `cycle_summary.bqn` — サイクル収支 (Income Statement)。
 - `expense_breakdown.bqn` — サイクル支出内訳。
@@ -156,7 +156,7 @@ Updated: 2026-07-26
 - `unavailable.bqn` — unavailable sentinel の正本定義と helper (`IsUnavailable`, `StartsWith`)。
 - `config.bqn` — config.tsv 読み込み。
 - `report_sections.bqn` — report sectionの静的descriptor（key、canonical order、metadata label spec、category、owner path、現行output metadata値）を所有するpure data module。builder、I/O、config、clock、CLIは持たない。
-- `report.bqn` — 人間向けレポートの正本入口。`report_sections.bqn`のkey/orderに、localなhuman builderを一対一で対応させ、`--list-sections` / `--section <key>` / full report / cacheを構築する。builder実行、first-line marker、JSON dispatch、CLIは引き続きこのmoduleが所有する。M3の`--currency`はhuman `balances`専用で、full report・他section・cache・JSONとの組合せはfail closed。
+- `report.bqn` — 人間向けレポートの正本入口。`report_sections.bqn`のkey/orderに、localなhuman builderを一対一で対応させ、`--list-sections` / `--section <key>` / full report / cacheを構築する。cache生成時は同じdescriptor orderから`.section-keys` manifestも出力する。builder実行、first-line marker、JSON dispatch、CLIは引き続きこのmoduleが所有する。default currencyを宣言したledgerではhuman `balances`のdirect/full/cache bodyをselected-domain経路へ統一する。明示`--currency`はhuman direct `balances`専用で、full report・他section・cache・JSONとの組合せはfail closed。
 - `report_section_metadata.bqn` — `report_sections.bqn`から静的rowを受け、label解決とUI向けstructured metadata export（TSV default / JSON）を所有する。source TSVは読まず、serializerは今回のdescriptor移行では既存実装を維持する。
 - `summary.bqn` — 機械向けコンパクト出力。
 
@@ -274,8 +274,8 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 ### ユーザーインターフェース (UI)
 
 - `tools/main-ui.sh` — 読み込み・閲覧系UI（レポート閲覧・セクション選択、fzf/gumベース）。TTYではcold/stale cacheを待たずselectorを開き、非対話では同期refreshを使う。
-- `tools/command-hub-cache-refresh` — command-hub preview cacheをexclusive refreshするshell owner。full cacheとselected-currency balancesを別stageで並行生成し、preview fileをatomic renameした後、timestampを最後にpublishする。
-- `tools/command-hub-preview` — highlightごとのfile/status-only reader。生成中・失敗・readyを表示し、report engineを起動しない。
+- `tools/command-hub-cache-refresh` — command-hub preview cacheをexclusive refreshするshell owner。BQNの単一canonical cache生成をstageし、`.section-keys`由来のpreview fileとmanifestをatomic renameした後、timestampを最後にpublishする。section key配列、本文生成、差し替えは持たない。
+- `tools/command-hub-preview` — highlightごとのmanifest/file/status-only reader。生成中・失敗・readyを表示し、report engineを起動しない。section key whitelistは重複保持しない。
 - `tools/add-ui.sh` — 書き込み・操作系UI（取引の追加・取消・予定完了処理等、BQN editor への安全な中継）。
 - `tools/plan-finish-replenish-ui.sh` — 予定実績化後に次回予定補充を案内する任意の対話補助。`tools/edit plan finish` と `tools/edit plan add` を合成するだけで、低層 TSV 契約は持たない。
 - `tools/journal-prefix` — explicit accounts/snapshot/source identity/cycle/outputだけを受けるcanonical prefix conversion / public reconstruction command。temporary sibling検証後のexclusive atomic createで、production path defaultを持たない。

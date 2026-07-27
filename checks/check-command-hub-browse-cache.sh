@@ -59,10 +59,10 @@ cache_dir_for() {
   printf '%s/bqn-ledger-cache-%s\n' "$work_dir" "$sanitized"
 }
 
-section_keys=(
-  snapshot issues ytd balances cycle trial-balance envelopes planned recent
-  check outlook daily-trend daily-flow actual-comparison debug
-)
+section_keys=()
+while IFS= read -r key; do
+  section_keys+=("$key")
+done < <(tools/report-section-metadata | awk -F'\t' 'NR > 1 { print $1 }')
 
 # A non-interactive cold selection prepares every preview body before accepting
 # a choice. It must still work when selected balances is unavailable.
@@ -79,6 +79,12 @@ if [[ -f "$cache_dir/.cache-timestamp" ]]; then
   pass "cold selector writes global cache timestamp"
 else
   fail "cold selector did not write global cache timestamp"
+fi
+if [[ -f "$cache_dir/.section-keys" ]] \
+  && diff -u <(printf '%s\n' "${section_keys[@]}" all) "$cache_dir/.section-keys" >/dev/null; then
+  pass "cache key manifest follows structured report metadata order"
+else
+  fail "cache key manifest differs from structured report metadata"
 fi
 
 for key in "${section_keys[@]}"; do
@@ -149,6 +155,53 @@ if [[ ! -s "$work_dir/direct-balances.err" ]]; then
   pass "direct balances comparison stderr is empty"
 else
   fail "direct balances comparison stderr is not empty"
+fi
+
+tools/report "$selected_fixture" --no-color >"$work_dir/direct-full.out" 2>"$work_dir/direct-full.err"
+if cmp -s "$work_dir/direct-full.out" "$selected_cache_dir/all.txt"; then
+  pass "command-hub all cache is byte-identical to the direct full report"
+else
+  fail "command-hub all cache differs from the direct full report"
+fi
+if python3 - "$selected_cache_dir/balances.txt" "$selected_cache_dir/all.txt" <<'PY'
+from pathlib import Path
+import sys
+
+section = Path(sys.argv[1]).read_bytes()
+full = Path(sys.argv[2]).read_bytes()
+if section + b"\n\n" not in full:
+    raise SystemExit(1)
+PY
+then
+  pass "full report embeds the canonical selected-currency balances body"
+else
+  fail "full report does not embed the canonical selected-currency balances body"
+fi
+report_call_count=$(grep -c '"$ROOT_DIR/tools/report"' tools/command-hub-cache-refresh || true)
+if [[ "$report_call_count" -eq 1 ]] && ! grep -q -- '--section balances' tools/command-hub-cache-refresh; then
+  pass "cache refresh delegates all section generation to one BQN report route"
+else
+  fail "cache refresh retains a specialized balances generation route"
+fi
+
+invalid_default_base="$work_dir/invalid-default"
+cp -R "$selected_fixture" "$invalid_default_base"
+python3 - "$invalid_default_base/config.tsv" <<'PY'
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+if text.count("DEFAULT_CURRENCY=JPY") != 1:
+    raise SystemExit("expected one demo DEFAULT_CURRENCY declaration")
+path.write_text(text.replace("DEFAULT_CURRENCY=JPY", "DEFAULT_CURRENCY=XYZ"), encoding="utf-8")
+PY
+if tools/report "$invalid_default_base" --no-color >"$work_dir/invalid-default.out" 2>"$work_dir/invalid-default.err"; then
+  fail "full report silently fell back from an invalid declared currency"
+elif grep -qF 'ERROR: unsupported default currency: XYZ' "$work_dir/invalid-default.out"; then
+  pass "full report fails closed for an invalid declared currency"
+else
+  fail "full report invalid-currency failure changed unexpectedly"
 fi
 
 selected_balances_mtime_before=$(stat -c %Y "$selected_cache_dir/balances.txt" 2>/dev/null || stat -f %m "$selected_cache_dir/balances.txt")

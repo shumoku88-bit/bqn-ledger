@@ -5,7 +5,7 @@ Repository: `shumoku88-bit/bqn-ledger`
 Base SHA: `a826a833799a0e75328ae7aeb794fe44c9018cf2` (`main`)  
 PR Branch: `docs/report-latency-characterization-instructions`  
 
-Follow-up status: the measurements below remain the point-in-time baseline. Selector-first Slice 2 and recursive invalidation Slice 3 are now implemented in the current command-hub path. A TTY opens before cold/stale report computation, shows an explicit non-stale updating status, and refreshes a staged cache in the background; non-interactive callers remain synchronous. Full-cache and selected-currency balances generation run concurrently, preview files publish by atomic rename, and the validity timestamp publishes last.
+Follow-up status: the measurements and call graphs below are a point-in-time baseline, not the current route. Selected-section-only construction, selector-first Slice 2, and recursive invalidation Slice 3 are now implemented. A TTY opens before cold/stale report computation, shows an explicit non-stale updating status, and refreshes a staged cache in the background; non-interactive callers remain synchronous. BQN now generates the complete canonical cache in one route, including selected-domain balances when `DEFAULT_CURRENCY` is declared; preview files publish by atomic rename, and the validity timestamp publishes last.
 
 ---
 
@@ -26,9 +26,9 @@ The BQN probe (`tools/characterization/report_latency_probe.bqn`) lives outside 
 
 ---
 
-## 3. Confirmed Call Graph & Problem Separation
+## 3. Baseline Call Graph & Problem Separation
 
-Static inspection and execution tracing confirm two distinct performance issues in the current code path:
+At the recorded base SHA, static inspection and execution tracing confirmed two distinct performance issues. Both have since been addressed; this section is retained as measurement history:
 
 - **Problem A (Direct Section Latency)**: Invoking `tools/report --section <key>` synchronously and sequentially evaluates all 15 section builders inside `BuildSectionEntries` before discarding 14 outputs and returning the single requested section text.
 - **Problem B (Interactive Selector Cold-Start Block)**: Entering `tools/bl section` / `tools/main-ui.sh select` when the cache is missing or stale synchronously blocks opening the selector until `tools/report --write-section-cache` finishes generating all 15 section text files.
@@ -192,7 +192,7 @@ The former selector question is resolved by the current selector-first backgroun
 
 ---
 
-## 8. Ranked Candidate Implementation Slices
+## 8. Ranked Candidate Implementation Slices at the Baseline
 
 ### Slice 1: Selected-Section-Only Construction for Direct `--section <key>` (Outcome B)
 - **Problem Targeted**: Problem A (Direct Section Latency).

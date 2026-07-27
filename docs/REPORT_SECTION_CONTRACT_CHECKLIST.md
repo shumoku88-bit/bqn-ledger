@@ -214,10 +214,15 @@ arithmetic and displays `Currency view:`. Its carrier keeps the checked
 calculation scale separate from presentation scale: ILS presentation is always
 scale 2, calculation coefficients at scale 0 or 1 are exactly scaled up for
 display, and ILS source/calculation scale above 2 fails closed without rounding.
-`--currency` with full report, another section, cache/list routing, or JSON fails
+An explicit `--currency` with full report, another section, cache/list routing, or JSON fails
 closed. JPY, ILS, and USD all use `selected_domain_context.Build`; a declaration-only
 Journal or a Journal with no selected-currency Actual produces the same valid
-empty-Actual context rule for every currency. Selected human balances always include
+empty-Actual context rule for every currency. When the ledger declares a valid
+`DEFAULT_CURRENCY`, direct, full, and cache human routes use the same selected-domain
+balances body; `all.txt` is the direct full-report byte stream, and shell refresh does
+not replace the BQN-produced section. Fixtures without that declaration retain the
+legacy full/cache body for compatibility, while direct selection remains fail-closed
+without an explicit currency. Selected human balances always include
 `[Expenses / Cumulative]` when nonzero expense balances exist. Currency policy changes
 amount formatting only, not section structure.
 

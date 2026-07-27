@@ -236,7 +236,7 @@ BQN が出してはいけないもの:
 
 色、太字、枠、カード、preview、対話的な見せ方は presentation layer の責務である。現在の置き場は `tools/bl`、`tools/lib/color-filter`、`tools/main-ui.sh`、`tools/add-ui.sh` の表示補助とする。将来 viewer を追加する場合も、この境界を越えない。
 
-TTYのsection selectorは、cacheがcoldまたはstaleでもreport計算を待たずに開く。生成中は古い金額を黙って表示せず明示的な更新中statusだけを表示し、`tools/command-hub-cache-refresh`が別stageでfull cacheとselected-currency balancesを並行生成する。各preview fileをatomic renameし、最後にtimestampをpublishする。highlight時の`tools/command-hub-preview`はfile/statusだけを読み、report engineを起動しない。非対話呼び出しはdeterministicな同期refreshを維持する。
+TTYのsection selectorは、cacheがcoldまたはstaleでもreport計算を待たずに開く。生成中は古い金額を黙って表示せず明示的な更新中statusだけを表示する。`tools/command-hub-cache-refresh`はBQNが一度に生成したcanonical section cacheと`.section-keys` manifestをstagingし、manifest由来の各preview fileをatomic renameした後、最後にtimestampをpublishする。section identity/orderの正本は`src_next/report_sections.bqn`であり、UIとrefreshはsection名の配列を重複保持しない。default currencyを宣言したledgerでは、human `balances`のdirect / full / cacheが同じselected-domain section bodyを使い、shellによる差し替えは行わない。highlight時の`tools/command-hub-preview`はmanifest/file/statusだけを読み、report engineを起動しない。非対話呼び出しはdeterministicな同期refreshを維持する。
 
 この境界の詳細は `docs/archive/active-plans/DECISION_TERMINAL_COLOR_CONFIG.md` に置く。
 

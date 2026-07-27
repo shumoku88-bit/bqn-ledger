@@ -68,7 +68,25 @@ FirstLine ← {𝕊 text:
 BuildSnapshotEntry ← { ⟨"snapshot", snapshot.FormatHuman snapshot.Build 𝕩⟩ }
 BuildIssuesEntry ← { ⟨"issues", issues.FormatHuman 𝕩⟩ }
 BuildYtdEntry ← { ⟨"ytd", ytd_summary.FormatHuman ytd_summary.Build 𝕩⟩ }
-BuildBalancesEntry ← { ⟨"balances", balances.FormatHuman balances.Build 𝕩⟩ }
+# Human balances has one canonical body for direct, full, and cache routes when
+# the ledger declares DEFAULT_CURRENCY. Older fixtures without that declaration
+# retain the legacy full-report body; any declared-but-invalid selected route
+# fails closed rather than silently falling back to a mixed-domain body.
+BuildBalancesEntry ← {𝕊 base‿ctx:
+  selected ← balances.BuildSelected ⟨base, ""⟩
+  missingDefault ← selected.default_code ≡ "missing_default_currency"
+  {𝕊:
+    •Out "ERROR: " ∾ selected.message
+    •Exit 1
+  }⍟((selected.state ≢ "ok") ∧ ¬missingDefault) @
+  text ← balances.FormatHuman balances.Build ctx
+  {𝕊:
+    # Normalize the renderer's extra trailing linefeed to the same cached body
+    # convention used by the former direct-balances cache adapter.
+    text ↩ ¯1 ↓ balances.FormatSelectedHuman selected
+  }⍟(selected.state ≡ "ok") @
+  ⟨"balances", text⟩
+}
 BuildCycleEntry ← { ⟨"cycle", cycle_summary.FormatHuman ⟨cycle_summary.Build (0⊑𝕩), (1⊑𝕩).entries⟩⟩ }
 BuildTrialBalanceEntry ← { ⟨"trial-balance", trial_balance.FormatHuman (1⊑𝕩)⟩ }
 BuildEnvelopesEntry ← {
@@ -104,6 +122,7 @@ BuildSectionEntries ← {
   ctx ← 0 ⊑ 𝕩
   outlook_as_of ← 1 ⊑ 𝕩
   report_today ← 2 ⊑ 𝕩
+  base ← 3 ⊑ 𝕩
   exp ← expense_breakdown.Build ctx
   tb ← trial_balance.Build ⟨ctx, cube.layer_actual⟩
   vm ← envelope_computation.Build ctx
@@ -112,7 +131,7 @@ BuildSectionEntries ← {
     BuildSnapshotEntry ctx
     BuildIssuesEntry ctx
     BuildYtdEntry ctx
-    BuildBalancesEntry ctx
+    BuildBalancesEntry ⟨base, ctx⟩
     BuildCycleEntry ⟨ctx, exp⟩
     BuildTrialBalanceEntry ⟨ctx, tb⟩
     BuildEnvelopesEntry ⟨ctx, vm⟩
@@ -304,15 +323,17 @@ Main ← {𝕊 args:
     •Exit 1
   }⍟(section_flag) @
 
-  entries ← BuildSectionEntries ⟨ctx, outlook_as_of, report_today⟩
+  entries ← BuildSectionEntries ⟨ctx, outlook_as_of, report_today, base⟩
 
   {𝕊:
     {𝕊 entry:
       key ← ⊑entry ⋄ text ← 1⊑entry
       (write_cache_dir ∾ "/" ∾ key ∾ ".txt") •FChars text
     }¨ entries
-    all_text ← ∾ { (1⊑𝕩) ∾ "\n\n" }¨ entries
+    all_text ← ∾ { (1⊑𝕩) ∾ (@+10) ∾ (@+10) }¨ entries
     (write_cache_dir ∾ "/all.txt") •FChars all_text
+    key_manifest ← (∾ { (0⊑𝕩) ∾ (@+10) }¨ entries) ∾ "all" ∾ (@+10)
+    (write_cache_dir ∾ "/.section-keys") •FChars key_manifest
     •Exit 0
   }⍟(write_cache_flag) @
 

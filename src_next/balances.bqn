@@ -75,21 +75,21 @@ BuildSelected ← {𝕊 base‿explicitCurrency:
   defaultResult ← currency_setup.ResolveDefault loader.ReadLinesOptional (base ∾ "/config.tsv")
   selection ← currency_setup.ResolveSelection ⟨defaultResult, explicitCurrency⟩
   result ← {
-    state ⇐ "error", message ⇐ selection.message,
+    state ⇐ "error", code ⇐ selection.code, default_code ⇐ defaultResult.code, message ⇐ selection.message,
     selected_currency ⇐ "", provenance ⇐ "",
     calculation_scale ⇐ ⟨⟩, presentation_scale ⇐ ⟨⟩, entries ⇐ ⟨⟩
   }
   {𝕊:
     ledger ← selected_context.Build ⟨base, selection.currency⟩
     result ↩ {
-      state ⇐ "error", message ⇐ ledger.message,
+      state ⇐ "error", code ⇐ "selected_context_failed", default_code ⇐ defaultResult.code, message ⇐ ledger.message,
       selected_currency ⇐ selection.currency, provenance ⇐ selection.provenance,
       calculation_scale ⇐ ⟨⟩, presentation_scale ⇐ ⟨⟩, entries ⇐ ⟨⟩
     }
     {𝕊:
       policy ← PresentationPolicy ⟨selection.currency, ledger.calculation_scale⟩
       result ↩ {
-        state ⇐ policy.state, message ⇐ policy.message,
+        state ⇐ policy.state, code ⇐ (policy.state ≡ "ok") ⊑ "presentation_policy_failed"‿"", default_code ⇐ defaultResult.code, message ⇐ policy.message,
         selected_currency ⇐ selection.currency, provenance ⇐ selection.provenance,
         calculation_scale ⇐ ledger.calculation_scale, presentation_scale ⇐ policy.presentation_scale,
         entries ⇐ (policy.state ≡ "ok") / Build ledger

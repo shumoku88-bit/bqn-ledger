@@ -10,25 +10,24 @@ fi
 
 cache_dir="$1"
 key="$2"
-case "$key" in
-  snapshot|issues|ytd|balances|cycle|trial-balance|envelopes|planned|recent|check|outlook|daily-trend|daily-flow|actual-comparison|debug|all) ;;
-  actions)
-    printf '仕訳追加・取消は選択後に開きます。\n'
-    exit 0
-    ;;
-  *)
-    printf 'Preview unavailable for this item.\n'
-    exit 0
-    ;;
-esac
+if [[ "$key" == "actions" ]]; then
+  printf '仕訳追加・取消は選択後に開きます。\n'
+  exit 0
+fi
+if [[ ! "$key" =~ ^[a-z0-9][a-z0-9-]*$ ]]; then
+  printf 'Preview unavailable for this item.\n'
+  exit 0
+fi
 
 if [[ -f "$cache_dir/.cache-refreshing" ]]; then
   printf 'Previewを更新中です。\n'
   printf 'selectorはそのまま操作できます。生成後に項目へ戻ると最新previewを表示します。\n'
 elif [[ -f "$cache_dir/.cache-error" ]]; then
   printf 'Previewの更新に失敗しました。選択すると最新reportを直接表示します。\n'
-elif [[ -f "$cache_dir/$key.txt" ]]; then
+elif [[ -f "$cache_dir/.section-keys" ]] \
+  && grep -Fxq -- "$key" "$cache_dir/.section-keys" \
+  && [[ -f "$cache_dir/$key.txt" ]]; then
   cat "$cache_dir/$key.txt"
 else
-  printf 'Previewを準備中です。選択すると最新reportを直接表示します。\n'
+  printf 'Preview unavailable for this item.\n'
 fi

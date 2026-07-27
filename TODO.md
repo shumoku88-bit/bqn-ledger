@@ -30,6 +30,7 @@ This file is a lightweight notebook for the current state of `bqn-ledger`. It re
 - `src_next/queries/exact_sparse_grouping.bqn` provides a small deterministic exact grouping kernel with Cube reconstruction, TBDS-like reuse, conservation, and provenance-sidecar evidence.
 - `src_next/queries/actual_expense_ranking.bqn` is the first real consumer built directly from checked posting facts: selected-period Actual/debit admission, an explicit expense AccountKey partition derived from resolved account metadata, exact grouping, deterministic ranking, and contributor lookup without Cube or TBDS production ownership.
 - The first bounded directory migration is complete: the ranking and grouping pair now live together under `src_next/queries/`, with no permanent root wrappers.
+- Human report routing now gives ledgers with `DEFAULT_CURRENCY` one BQN-owned selected-domain `balances` body across direct, full, and cache output; command-hub refresh no longer runs and splices a second balances report, cached `all.txt` is the direct full-report byte stream, and BQN's `.section-keys` cache manifest removes runtime section arrays from UI/refresh/preview.
 - Current architecture and code-map documents include the direct checked-facts → sparse grouping → purpose-specific consumer branch alongside Cube and TBDS.
 - Historical plans, audits, and handoffs remain available under `docs/archive/` and in Git history.
 

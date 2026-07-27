@@ -219,22 +219,29 @@ case "$cmd" in
       fi
     done
 
-    # Check if the complete cache generation is still valid.
+    # Check if the complete cache generation is still valid. BQN publishes the
+    # canonical key manifest; UI code does not duplicate report section names.
     cache_ok=0
     timestamp_file="$cache_dir/.cache-timestamp"
-    cache_keys=(
-      snapshot issues ytd balances cycle trial-balance envelopes planned recent
-      check outlook daily-trend daily-flow actual-comparison debug all
-    )
+    key_manifest="$cache_dir/.section-keys"
     if [[ -f "$timestamp_file" \
+       && -f "$key_manifest" \
        && ! -f "$cache_dir/.cache-refreshing" \
        && ! -f "$cache_dir/.cache-error" ]]; then
       cache_mtime=$(cat "$timestamp_file" 2>/dev/null || echo 0)
       if (( cache_mtime >= max_src_mtime )); then
         cache_ok=1
-        for key in "${cache_keys[@]}"; do
+        cache_key_count=0
+        cache_has_all=0
+        while IFS= read -r key; do
+          cache_key_count=$((cache_key_count + 1))
+          [[ "$key" =~ ^[a-z0-9][a-z0-9-]*$ ]] || { cache_ok=0; break; }
+          [[ "$key" == "all" ]] && cache_has_all=1
           [[ -f "$cache_dir/$key.txt" ]] || { cache_ok=0; break; }
-        done
+        done <"$key_manifest"
+        if [[ "$cache_key_count" -eq 0 || "$cache_has_all" -ne 1 ]]; then
+          cache_ok=0
+        fi
       fi
     fi
 
