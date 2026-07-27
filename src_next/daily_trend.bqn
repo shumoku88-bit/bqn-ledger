@@ -28,7 +28,7 @@ LatestActualDateInCycle ← {𝕊 base‿cy:
 
 # ── Build ──────────────────────────────────────────────────
 
-Build ← {𝕊 ctx:
+BuildAvailable ← {𝕊 ctx:
   c3d ← ctx.cube.cube
   resolved ← ctx.resolved
   cy ← ctx.cy
@@ -173,6 +173,26 @@ Build ← {𝕊 ctx:
   }
 }
 
+Build ← {𝕊 ctx:
+  cy ← ctx.cy
+  cycle_valid ← (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (dt.IsValidDateText cy.start) ∧ (dt.IsValidDateText cy.end_exclusive)
+  result ← {
+    state ⇐ "error",
+    reason ⇐ "invalid_trend_coordinate",
+    diagnostics ⇐ ⟨⟩,
+    trend_rows ⇐ ⟨⟩,
+    top_drops ⇐ ⟨⟩,
+    obs_days ⇐ 0,
+    as_of ⇐ "unavailable",
+    header_O ⇐ "unavailable",
+    cycle_start ⇐ cy.start,
+    cycle_end_exclusive ⇐ cy.end_exclusive,
+    cycle_mode ⇐ cy.mode
+  }
+  {𝕊: result ↩ BuildAvailable ctx}⍟cycle_valid @
+  result
+}
+
 BuildAt ← {𝕊 ⟨ctx, header_O⟩:
   vm ← Build ctx
   {
@@ -213,7 +233,9 @@ Format ← {𝕊 vm:
 
 FormatHuman ← {𝕊 vm:
   rows ← vm.trend_rows
-  days_left ← 0 ⌈ (dt.DaysFromEpoch vm.cycle_end_exclusive) - dt.DaysFromEpoch vm.header_O
+  days_left ← 0
+  coords_ok ← (vm.cycle_end_exclusive ≢ "unavailable") ∧ (vm.header_O ≢ "unavailable") ∧ (dt.IsValidDateText vm.cycle_end_exclusive) ∧ (dt.IsValidDateText vm.header_O)
+  {𝕊: days_left ↩ 0 ⌈ (dt.DaysFromEpoch vm.cycle_end_exclusive) - dt.DaysFromEpoch vm.header_O}⍟coords_ok @
 
   out ← (L "daily.section_title") ∾ (@+10) ∾ (@+10)
   {𝕊:

@@ -41,4 +41,29 @@ human ← ytd.FormatHuman summary
 1 lib.AssertEq ∨´ "expenses:rent/JPY"⍷human
 1 lib.AssertEq ∨´ "-20"⍷human
 
+# Unavailable cycle: sentinel string values, empty ytd_entries, no index errors
+# fixture: envelopes-disabled-policy has mode=monthly (unresolvable → unavailable cycle)
+ctx_unav ← context.BuildContext "fixtures/envelopes-disabled-policy"
+s_unav ← ytd.Build ctx_unav
+"unavailable" lib.AssertEq s_unav.range_start
+"unavailable" lib.AssertEq s_unav.range_end_exclusive
+"unavailable" lib.AssertEq s_unav.income_actual
+"unavailable" lib.AssertEq s_unav.expense_actual
+"unavailable" lib.AssertEq s_unav.net_actual
+"unavailable" lib.AssertEq s_unav.fixed_total
+"unavailable" lib.AssertEq s_unav.var_total
+0 lib.AssertEq ≠ s_unav.ytd_entries
+# FormatHuman must not crash on unavailable cycle
+human_unav ← ytd.FormatHuman s_unav
+1 lib.AssertEq ∨´ "unavailable"⍷human_unav
+
+# Valid cycle + zero actual rows: numeric zeros, not "unavailable"
+# fixture: empty-journal has mode=fixed cycle and no actual transactions
+ctx_zero ← context.BuildContext "fixtures/empty-journal"
+s_zero ← ytd.Build ctx_zero
+1 lib.AssertEq s_zero.range_start ≢ "unavailable"  # has a real date
+0 lib.AssertEq s_zero.income_actual   # numeric 0
+0 lib.AssertEq s_zero.expense_actual  # numeric 0
+0 lib.AssertEq s_zero.net_actual      # numeric 0
+
 •Out "test_src_next_ytd_summary.bqn: OK"

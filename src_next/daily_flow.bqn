@@ -54,7 +54,7 @@ LatestActualDateInCycle ← {𝕊 base‿cy:
   out
 }
 
-Build ← {𝕊 ctx:
+BuildAvailable ← {𝕊 ctx:
   c3d ← ctx.cube.cube
   resolved ← ctx.resolved
   cy ← ctx.cy
@@ -157,6 +157,20 @@ Build ← {𝕊 ctx:
   }
 }
 
+Build ← {𝕊 ctx:
+  cy ← ctx.cy
+  cycle_valid ← (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (dt.IsValidDateText cy.start) ∧ (dt.IsValidDateText cy.end_exclusive)
+  result ← {
+    trend_rows ⇐ ⟨⟩,
+    env_labels ⇐ ⟨⟩,
+    as_of ⇐ "unavailable",
+    cycle_start ⇐ cy.start,
+    cycle_end_exclusive ⇐ cy.end_exclusive
+  }
+  {𝕊: result ↩ BuildAvailable ctx}⍟cycle_valid @
+  result
+}
+
 Format ← {𝕊 vm:
   out ← "--- SrcNext Daily Flow ---" ∾ (@+10)
   # Flat output of rows for diagnostics
@@ -171,7 +185,9 @@ Format ← {𝕊 vm:
 
 FormatHuman ← {𝕊 vm:
   rows ← vm.trend_rows
-  days_left ← 0 ⌈ (dt.DaysFromEpoch vm.cycle_end_exclusive) - dt.DaysFromEpoch vm.as_of
+  days_left ← 0
+  coords_ok ← (vm.cycle_end_exclusive ≢ "unavailable") ∧ (vm.as_of ≢ "unavailable") ∧ (dt.IsValidDateText vm.cycle_end_exclusive) ∧ (dt.IsValidDateText vm.as_of)
+  {𝕊: days_left ↩ 0 ⌈ (dt.DaysFromEpoch vm.cycle_end_exclusive) - dt.DaysFromEpoch vm.as_of}⍟coords_ok @
 
   out ← "== Daily Flow ==" ∾ (@+10) ∾ (@+10)
   out ↩ out ∾ "cycle: " ∾ vm.cycle_start ∾ " 〜 " ∾ vm.cycle_end_exclusive ∾ " (as of " ∾ vm.as_of ∾ "; " ∾ (•Fmt days_left) ∾ " days left)" ∾ (@+10) ∾ (@+10)

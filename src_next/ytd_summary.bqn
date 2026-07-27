@@ -53,9 +53,7 @@ BuildRows ← {𝕊 ctx‿rangeStart:
   }¨ rows0
 }
 
-# Build: build YTD summary from context.
-# Args: ctx (context namespace)
-Build ← {𝕊 ctx:
+BuildAvailable ← {𝕊 ctx:
   resolved ← ctx.resolved
   cy ← ctx.cy
   rangeStart ← YearStartForEnd cy.end_exclusive
@@ -156,14 +154,39 @@ Build ← {𝕊 ctx:
   }
 }
 
+# Build: build YTD summary from context.
+# Args: ctx (context namespace)
+Build ← {𝕊 ctx:
+  cy ← ctx.cy
+  cycle_valid ← (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (date.IsValidDateText cy.start) ∧ (date.IsValidDateText cy.end_exclusive)
+  result ← {
+    range_start ⇐ "unavailable",
+    range_end_exclusive ⇐ "unavailable",
+    valid_rows ⇐ 0,
+    skipped_rows ⇐ 0,
+    income_actual ⇐ "unavailable",
+    expense_actual ⇐ "unavailable",
+    net_actual ⇐ "unavailable",
+    fixed_total ⇐ "unavailable",
+    var_total ⇐ "unavailable",
+    fixed_breakdown ⇐ ⟨⟩,
+    var_breakdown ⇐ ⟨⟩,
+    ytd_entries ⇐ ⟨⟩
+  }
+  {𝕊: result ↩ BuildAvailable ctx}⍟cycle_valid @
+  result
+}
+
+FmtVal ← { (2 = •Type 𝕩) ? 𝕩 ; •Fmt 𝕩 }
+
 Format ← {𝕊 summary:
   out ← "--- SrcNext YTD Summary ---" ∾ (@+10)
   out ↩ out ∾ "src_next_ytd_range: " ∾ summary.range_start ∾ ".." ∾ summary.range_end_exclusive ∾ (@+10)
   out ↩ out ∾ "src_next_ytd_valid_projection_rows: " ∾ (•Fmt summary.valid_rows) ∾ (@+10)
   out ↩ out ∾ "src_next_ytd_skipped_projection_rows: " ∾ (•Fmt summary.skipped_rows) ∾ (@+10)
-  out ↩ out ∾ "src_next_ytd_income_actual: " ∾ (•Fmt summary.income_actual) ∾ (@+10)
-  out ↩ out ∾ "src_next_ytd_expense_actual: " ∾ (•Fmt summary.expense_actual) ∾ (@+10)
-  out ↩ out ∾ "src_next_ytd_net_actual: " ∾ (•Fmt summary.net_actual) ∾ (@+10)
+  out ↩ out ∾ "src_next_ytd_income_actual: " ∾ (FmtVal summary.income_actual) ∾ (@+10)
+  out ↩ out ∾ "src_next_ytd_expense_actual: " ∾ (FmtVal summary.expense_actual) ∾ (@+10)
+  out ↩ out ∾ "src_next_ytd_net_actual: " ∾ (FmtVal summary.net_actual) ∾ (@+10)
   out
 }
 
