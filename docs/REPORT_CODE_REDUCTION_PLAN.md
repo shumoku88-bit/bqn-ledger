@@ -126,10 +126,15 @@ Completion result: Outlook gained an I/O-free semantic boundary while config, pl
 
 ### Envelope computation
 
-- [ ] Do not refactor the 914-line module as one change.
-- [ ] Characterize independent responsibilities: envelope balances, unassigned pool, backing diagnostics, and planned-payment coverage.
-- [ ] Extract only a responsibility with a behavioral fixture and a named caller.
-- [ ] Delete superseded local joins or render assembly in the same or immediately following slice.
+- [x] Do not refactor the 914-line module as one change.
+- [x] Characterize independent responsibilities: fixture policy target, envelope balances/pace, unassigned pool, backing diagnostics, execution planned coverage, orchestration, and rendering.
+- [x] Remove the dead source-loading tuple/latest-date shelf and exports without repository callers before adding another seam.
+- [x] Remove dead config access from the existing I/O-free envelope-balance calculation.
+- [x] Reuse `plan_rows.WithValues` instead of retaining a second local execution-plan value parser.
+- [ ] Separate execution planned source preparation from its readonly comparison while preserving lazy disabled/missing behavior and characterized duplicate/unrelated rows.
+- [ ] Delete superseded local joins or render assembly in the same slice; the next Envelope slice may not increase `src_next` lines.
+
+Inventory result: `CalcUnassignedRemaining` and `CalcEnvelopeBacking` are already I/O-free and have real internal callers, so moving them would only add topology. The first cleanup reduced `envelope_computation.bqn` from 914 to 889 lines and exports from 22 to 11, lowering `src_next` by 25 lines without changing report output.
 
 ### Actual source and compatibility reduction
 

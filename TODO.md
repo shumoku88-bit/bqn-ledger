@@ -114,13 +114,38 @@ checks: prepared parity, all focused Outlook/Snapshot checks, full tools/check.s
 
 The slice contains a real deletion but the overall track remains above baseline by 49 lines. Envelope work must not add a generic framework; it must remove or replace one existing responsibility at a time.
 
-### Current finite slice: Envelope responsibility inventory
+### Completed finite slice: Envelope inventory and compatibility shelf cleanup
 
-- [ ] Map callers and internal ownership for envelope balances, unassigned pool, backing diagnostics, planned-payment coverage, policy target, and rendering.
-- [ ] Select exactly one low-coupling responsibility with existing fixture evidence.
-- [ ] Define the existing code that the seam will replace before adding an export.
-- [ ] Keep source-order and invalid-date policy local; do not reuse Daily Flow/Trend observation semantics.
-- [ ] Require the first implementation slice to have a same-slice or immediately-following net deletion.
+- [x] Mapped envelope balances, fixture policy target, unassigned pool, backing diagnostics, execution planned coverage, orchestration, and three renderers.
+- [x] Confirmed `CalcEnvelopeBacking` and unassigned calculation are already I/O-free and should not be moved merely because the file is large.
+- [x] Removed the uncalled source-loading tuple builder and dead source-loading latest-date helper.
+- [x] Reduced the module export surface from 22 fields to the 11 fields with repository callers or focused contract use.
+- [x] Removed dead config loading from `BuildEnvelopes`; envelope balance calculation now receives only resolved/cycle/rows/prepared dates.
+- [x] Reused `plan_rows.WithValues` for execution planned rows instead of maintaining another local value parser.
+- [x] Preserved Envelope's source-order latest-date and invalid-date crash characterization rather than importing another section's policy.
+- [x] Passed focused Envelope checks, full `tools/check.sh`, and coverage.
+
+Completion record:
+
+```text
+slice: Envelope inventory and compatibility shelf cleanup
+behavior preserved: envelope balances, source-order clock, invalid-date characterization, backing and execution diagnostics, all renderers
+removed code/API/check: BuildFromTuple, dead latest-date loader, 11 unused exports, dead BuildEnvelopes config read
+src_next line delta: -25 (13,105 -> 13,080); module 914 -> 889
+export delta: -11 (22 -> 11)
+remaining effectful responsibility: BuildWithPreparedActual still owns config/allocation/execution source preparation
+checks: focused computation/characterization checks, full tools/check.sh, coverage
+```
+
+This is the first net-reduction slice. The overall track is now 24 lines above the original 13,056-line baseline.
+
+### Current finite slice: Execution planned coverage
+
+- [ ] Separate plan source/value preparation from execution-envelope comparison without changing lazy disabled/missing-envelope behavior.
+- [ ] Preserve completion identity, duplicate rows, date ordering, and the characterized unrelated-plan inclusion behavior.
+- [ ] Remove the remaining local source/value assembly that the prepared input replaces.
+- [ ] Keep this readonly diagnostic distinct from envelope balance and backing calculations.
+- [ ] Require non-positive `src_next` line delta for the slice; do not add a framework or new module.
 
 Later work remains unselected: other bounded Envelope responsibilities, then `actual_source` compatibility reduction. Do not start them together.
 

@@ -133,7 +133,7 @@ Updated: 2026-07-26
 - `ytd_summary.bqn` — YTD 集計。
 - `cycle_summary.bqn` — サイクル収支。context adapterがprepared Actual dates、plan completion evidence、section inputを揃え、I/O-free `BuildFromPrepared`がTBDS interpretation、remaining-plan join、result VMを所有する。Format / FormatHumanはVMだけを描画する。
 - `expense_breakdown.bqn` — サイクル支出内訳。
-- `envelope_computation.bqn` — 封筒予算計算。封筒ごとの allocated/spent/remaining に加え、`accounts.tsv` の `role=budget kind=unassigned` から未割当 budget pool 残高と OVER_ALLOCATED status を出す。human section は `envelope_role=dynamic|execution`（未指定 `kind=envelope` は dynamic fallback）で Dynamic / Execution / Unassigned / Backing diagnostic に分ける。さらに readonly 診断として、暫定 `type=liquid` ベースの `envelope_funding_base` と active 封筒残高合計との差分（現金裏付け未割当 / backing_status）を出す。`EXECUTION_PLANNED_PAYMENTS_ENVELOPE` 設定時は、指定 execution envelope と未了 planned payments の coverage 差分も readonly で出す。
+- `envelope_computation.bqn` — 封筒予算計算。封筒balance/pace、unassigned pool、TBDS backing、execution planned coverage、orchestration、rendererを一ファイルに持つが、一括分割しない。`BuildEnvelopes(resolved,cy,rows,preparedDates)`、unassigned、backingはI/O-free内部責務で、source-order observation policyはsection local。source-loading tuple/latest-date compatibility APIとcallerのないhelper exportsは削除済み。execution coverageは`plan_rows.WithValues`を通すが、source preparation分離は次の有限slice。
 - `planned_payments.bqn` — current-cycle予定支払いsection。context adapterはprepared datesと`plan_rows` evidenceを取得し、I/O-free `BuildViewModelFromPrepared`へ渡す。compactとhuman/JSONは別prepared VMを持ち、pure rendererの外側に既存context entrypointを残す。
 - `recent_journal.bqn` — 最近の仕訳表示。
 - `readiness_check.bqn` — データ品質チェック。
