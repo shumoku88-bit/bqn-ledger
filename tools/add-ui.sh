@@ -31,7 +31,7 @@ Fuzzy transaction adder for everyday entries.
 Modes:
   account-add   アカウント追加 (writes accounts.tsv)
   expense       assets -> expenses  (writes selected actual source)
-  multi         native Journal transaction with 3+ signed postings
+  multi         native Journal transaction with 3+ signed postings (total = 0)
   move          assets -> assets    (writes selected actual source)
   income        income -> assets    (writes selected actual source)
   budget        budget -> budget    (writes budget_alloc.tsv)
@@ -572,6 +572,8 @@ case "$mode" in
   multi)
     capture_or_cancel memo read_tty 'Memo/Description' ''
     capture_or_cancel meta choose_meta
+    shout '金額は符号付きです。費用などの増加は正、支払口座の減少は負で入力します。'
+    shout '全ポスティングの合計を0にしてください（例: 費用600、費用150、支払口座-750）。'
     while true; do
       capture_or_cancel posting_account select_account '' 'posting account'
       capture_or_cancel posting_amount read_tty 'Amount (500 or -500)' ''

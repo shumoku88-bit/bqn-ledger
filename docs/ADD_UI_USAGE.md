@@ -39,6 +39,7 @@ tools/add-ui.sh --check
 | mode | 意味 | 書き込み先 | 内部コマンド |
 |---|---|---|---|
 | `expense` | 支出 (`assets:` → `expenses:`) | configured native Journal | `tools/edit journal add` |
+| `multi` | 1取引に3件以上のポスティングを入力 | configured native Journal | `tools/edit journal multi-add` |
 | `move` | 資金移動 (`assets:` → `assets:`) | configured native Journal | `tools/edit journal add` |
 | `income` | 収入 (`income:` → `assets:`) | configured native Journal | `tools/edit journal add` |
 | `budget` | 予算配賦 (`budget:` → `budget:`) | `budget_alloc.tsv` | `tools/edit budget add` |
@@ -48,6 +49,15 @@ tools/add-ui.sh --check
 | `reverse` | 仕訳取消（反対仕訳追記） | configured native Journal | `tools/edit journal reverse` |
 | `issue` | Issues & Decisions の追加 | `issues.tsv` | `tools/edit issue add` |
 | `issue-close` | Issues & Decisions を閉じる | `issues.tsv` | `tools/edit issue close` |
+
+### 複数ポスティングの金額
+
+`multi` では各勘定の増減を符号付きで入力し、取引全体の合計を `0` にします。
+
+- 費用など、残高を増やす勘定は正の金額
+- SMBCや現金など、支払いによって残高が減る勘定は負の金額
+
+たとえば費用600円と費用150円をSMBCでまとめて支払った場合は、`600`、`150`、`-750` と入力します。
 
 ## BQN editor + shell safe-write で行われること
 
