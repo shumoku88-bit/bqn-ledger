@@ -18,6 +18,10 @@ grep -Fq -- '--temporal "$scope" --as-of "$today"' tools/plan-finish-replenish-u
 grep -Fq 'load_plan_rows all' tools/plan-finish-replenish-ui.sh
 grep -Fq 'display_lines+=("$(plan_candidate_display "$line")")' tools/plan-finish-replenish-ui.sh
 grep -Fq "printf '  内容: %s\\n' \"\$plan_memo\"" tools/plan-finish-replenish-ui.sh
+grep -Fq 'trap handle_interrupt INT' tools/plan-finish-replenish-ui.sh
+grep -Fq '0) finish_applied=1 ;;' tools/plan-finish-replenish-ui.sh
+grep -Fq '130)' tools/add-ui.sh
+grep -Fq 'exec "$ROOT_DIR/tools/add-ui.sh" --base "$base_dir"' tools/add-ui.sh
 
 # shellcheck source=tools/lib/plan-finish-workflow.sh
 source "$ROOT_DIR/tools/lib/plan-finish-workflow.sh"
@@ -98,6 +102,16 @@ query_status=$?
 set -e
 if [ "$query_status" -ne 2 ]; then
   echo "FAIL: plan-list query failure should report verification error status 2, got $query_status" >&2
+  exit 1
+fi
+
+# Before append, cancellation must return through status 130. After append,
+# interruption may only cancel replenishment, not describe the finish as undone.
+return_line="$(grep -nF 'return_to_add_menu' tools/plan-finish-replenish-ui.sh | head -n1 | cut -d: -f1)"
+finish_applied_line="$(grep -nF '0) finish_applied=1 ;;' tools/plan-finish-replenish-ui.sh | head -n1 | cut -d: -f1)"
+replenish_prompt_line="$(grep -nF "Create or extend a future plan from the finished plan?" tools/plan-finish-replenish-ui.sh | head -n1 | cut -d: -f1)"
+if [ -z "$return_line" ] || [ -z "$finish_applied_line" ] || [ -z "$replenish_prompt_line" ] || [ "$finish_applied_line" -ge "$replenish_prompt_line" ]; then
+  echo "FAIL: Ctrl+C navigation must distinguish pre-apply return from post-apply replenishment cancellation" >&2
   exit 1
 fi
 

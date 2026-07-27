@@ -504,7 +504,20 @@ if [[ -z "$mode" ]]; then
 fi
 
 if [[ "$mode" == 'plan-finish' ]]; then
-  exec "$ROOT_DIR/tools/plan-finish-replenish-ui.sh" --base "$base_dir"
+  plan_finish_status=0
+  # Both shells receive terminal SIGINT. Keep this parent alive while the child
+  # translates pre-apply Ctrl+C into status 130.
+  trap ':' INT
+  "$ROOT_DIR/tools/plan-finish-replenish-ui.sh" --base "$base_dir" || plan_finish_status=$?
+  trap - INT
+  case "$plan_finish_status" in
+    0) return 0 ;;
+    130)
+      shout '入力メニューに戻ります。'
+      exec "$ROOT_DIR/tools/add-ui.sh" --base "$base_dir"
+      ;;
+    *) return "$plan_finish_status" ;;
+  esac
 fi
 
 memo=''; from=''; to=''; amt=''; meta=''; plan_series=''; postings=(); issue_close_args=()

@@ -73,6 +73,21 @@ done
 
 ensure_ledger_report_base "$base_dir"
 
+finish_applied=0
+return_to_add_menu() {
+  shout '予定の実績化を中止してメニューに戻ります。'
+  exit 130
+}
+handle_interrupt() {
+  printf '\n' >&2
+  if [[ "$finish_applied" -eq 1 ]]; then
+    shout '実績化は完了済みです。次回予定の補充だけを中止します。'
+    exit 0
+  fi
+  return_to_add_menu
+}
+trap handle_interrupt INT
+
 select_line() {
   local prompt="$1"
   local -a lines=()
@@ -118,9 +133,9 @@ read_tty() {
   local prompt="$1" default="${2:-}" ans
   if command -v gum >/dev/null 2>&1 && [[ -r /dev/tty ]]; then
     if [[ -n "$default" ]]; then
-      ans="$(gum input --prompt "${prompt}: " --value "$default" </dev/tty || true)"
+      if ! ans="$(gum input --prompt "${prompt}: " --value "$default" </dev/tty)"; then return 130; fi
     else
-      ans="$(gum input --prompt "${prompt}: " </dev/tty || true)"
+      if ! ans="$(gum input --prompt "${prompt}: " </dev/tty)"; then return 130; fi
     fi
   else
     if [[ -n "$default" ]]; then
@@ -128,7 +143,7 @@ read_tty() {
     else
       printf '%s: ' "$prompt" >&2
     fi
-    read -r ans </dev/tty
+    if ! read -r ans </dev/tty; then return 130; fi
   fi
 
   if [[ -z "$ans" && -n "$default" ]]; then
@@ -223,10 +238,11 @@ if [[ "$preflight" -eq 1 ]]; then
 fi
 
 today="$(date +%Y-%m-%d)"
-plan_scope_line="$(choose_plan_list_scope || true)"
+if ! plan_scope_line="$(choose_plan_list_scope)"; then
+  return_to_add_menu
+fi
 if [[ -z "$plan_scope_line" ]]; then
-  shout 'Cancelled.'
-  exit 0
+  return_to_add_menu
 fi
 plan_scope="${plan_scope_line%%$'\t'*}"
 
@@ -242,10 +258,11 @@ for line in "${plan_tsv_lines[@]}"; do
   display_lines+=("$(plan_candidate_display "$line")")
 done
 
-selected_display="$(printf '%s\n' "${display_lines[@]}" | select_line "select $plan_scope plan to finish" || true)"
+if ! selected_display="$(printf '%s\n' "${display_lines[@]}" | select_line "select $plan_scope plan to finish")"; then
+  return_to_add_menu
+fi
 if [[ -z "$selected_display" ]]; then
-  shout 'Cancelled.'
-  exit 0
+  return_to_add_menu
 fi
 
 selected_row=""
@@ -271,8 +288,8 @@ plan_status="$(field 8 "$selected_row")"
 plan_series=""
 
 show_selected_plan
-actual_date="$(read_tty 'Actual date YYYY-MM-DD' "$today")"
-actual_amount="$(read_tty 'Actual amount' "$plan_amount")"
+if ! actual_date="$(read_tty 'Actual date YYYY-MM-DD' "$today")"; then return_to_add_menu; fi
+if ! actual_amount="$(read_tty 'Actual amount' "$plan_amount")"; then return_to_add_menu; fi
 
 selector_args=()
 if [[ -n "$plan_id" ]]; then
@@ -288,7 +305,7 @@ printf 'Running plan finish...\n' >&2
 finish_verify_status=0
 plan_finish_require_applied "$ROOT_DIR/tools/edit" "$base_dir" "$plan_id" || finish_verify_status=$?
 case "$finish_verify_status" in
-  0) ;;
+  0) finish_applied=1 ;;
   130)
     shout 'Plan finish was not applied; skipping follow-up replenishment.'
     exit 130

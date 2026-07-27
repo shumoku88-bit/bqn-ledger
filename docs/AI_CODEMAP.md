@@ -283,7 +283,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 - `tools/command-hub-cache-refresh` — command-hub preview cacheをexclusive refreshするshell owner。BQNの単一canonical cache生成をstageし、`.section-keys`由来のpreview fileとmanifestをatomic renameした後、timestampを最後にpublishする。section key配列、本文生成、差し替えは持たない。
 - `tools/command-hub-preview` — highlightごとのmanifest/file/status-only reader。生成中・失敗・readyを表示し、report engineを起動しない。section key whitelistは重複保持しない。
 - `tools/add-ui.sh` — 書き込み・操作系UI（取引の追加・取消・予定完了処理等、BQN editor への安全な中継）。
-- `tools/plan-finish-replenish-ui.sh` — 予定候補をmemo-firstの内容表示で選択し、実績日/金額入力前に内容・予定日・金額・振替・plan IDを再確認させる。実績化後は次回予定補充を案内する。`tools/edit plan finish` と `tools/edit plan add` を合成するだけで、低層 TSV 契約は持たない。
+- `tools/plan-finish-replenish-ui.sh` — 予定候補をmemo-firstの内容表示で選択し、実績日/金額入力前に内容・予定日・金額・振替・plan IDを再確認させる。pre-apply `Ctrl+C`はstatus 130で`add-ui` mode選択へ戻し、post-apply `Ctrl+C`は完了済み実績を否定せず補充だけを中止する。実績化後は次回予定補充を案内し、`tools/edit plan finish` と`plan add`を合成するだけで低層TSV契約は持たない。
 - `tools/journal-prefix` — explicit accounts/snapshot/source identity/cycle/outputだけを受けるcanonical prefix conversion / public reconstruction command。temporary sibling検証後のexclusive atomic createで、production path defaultを持たない。
 - `tools/journal-identity-cleanup` — 再構築可能で機能的に参照されていない migration 由来 event-id 削除の safe cleanup CLI (inspect / candidate / apply)。
 - `tools/edit` — 公開 editor コマンドの薄い shell wrapper。
