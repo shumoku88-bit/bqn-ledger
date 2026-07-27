@@ -34,7 +34,7 @@ cleanup() {
 trap cleanup EXIT
 
 # Step 1: Initial cache generation
-TMPDIR="$tmp_dir" "$ROOT_DIR/tools/main-ui.sh" --base "$fixture" select <<< "" >/dev/null 2>&1 || true
+TMPDIR="$tmp_dir" "$ROOT_DIR/tools/main-ui.sh" --base "$fixture" select <<< "" >/dev/null 2>&1
 cache_dir=$(ls -d "$tmp_dir"/bqn-ledger-cache-* 2>/dev/null | head -1)
 
 if [[ -z "$cache_dir" || ! -f "$cache_dir/.cache-timestamp" ]]; then
@@ -47,7 +47,7 @@ t1=$(cat "$cache_dir/.cache-timestamp")
 # Step 2: Test root module modification invalidates cache
 sleep 1
 touch "$root_file"
-TMPDIR="$tmp_dir" "$ROOT_DIR/tools/main-ui.sh" --base "$fixture" select <<< "" >/dev/null 2>&1 || true
+TMPDIR="$tmp_dir" "$ROOT_DIR/tools/main-ui.sh" --base "$fixture" select <<< "" >/dev/null 2>&1
 t2=$(cat "$cache_dir/.cache-timestamp")
 
 if (( t2 > t1 )); then
@@ -59,7 +59,7 @@ fi
 # Step 3: Test nested BQN module modification invalidates cache
 sleep 1
 touch "$nested_file"
-TMPDIR="$tmp_dir" "$ROOT_DIR/tools/main-ui.sh" --base "$fixture" select <<< "" >/dev/null 2>&1 || true
+TMPDIR="$tmp_dir" "$ROOT_DIR/tools/main-ui.sh" --base "$fixture" select <<< "" >/dev/null 2>&1
 t3=$(cat "$cache_dir/.cache-timestamp")
 
 if (( t3 > t2 )); then
