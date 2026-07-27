@@ -1,13 +1,13 @@
 #!/usr/bin/env bqn
 
 lib ← •Import "test_lib.bqn"
-cycle ← •Import "../src_next/cycle.bqn"
+context ← •Import "../src_next/context.bqn"
 plan_rows ← •Import "../src_next/plan_rows.bqn"
 
 base ← "fixtures/src-next-execution-plan-coverage"
-cy ← cycle.ReadCycle base
+ctx ← context.BuildContext base
 
-shared ← plan_rows.BuildBase ⟨base, cy⟩
+shared ← plan_rows.BuildBaseFromContext ctx
 
 3 lib.AssertEq ≠ shared.rows
 "paid-fixed" lib.AssertEq 0⊑shared.plan_ids

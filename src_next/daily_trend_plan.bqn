@@ -62,10 +62,6 @@ BuildSourceEvidenceFromCompletion ← {𝕊 base‿completion:
   {plans⇐plans,journals⇐journals}
 }
 
-BuildSourceEvidence ← {𝕊 base:
-  BuildSourceEvidenceFromCompletion ⟨base, actual_source.CompletionEvidence base⟩
-}
-
 BuildSourceEvidenceFromContext ← {𝕊 ctx:
   BuildSourceEvidenceFromCompletion ⟨ctx.base, actual_source.CompletionEvidenceFromContext ctx⟩
 }

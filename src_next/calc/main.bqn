@@ -27,8 +27,8 @@ cy ← ctx.cy
 total_days ← cy.day_count
 envelopes ← (env_comp.Build ctx).envelopes
 
-LatestActualDate ← {𝕊 base‿cy:
-  dates ← actual_source.LoadDates base
+LatestActualDate ← {𝕊 ctx‿cy:
+  dates ← actual_source.DatesFromContext ctx
   out ← cy.start
   {𝕊:
     start_dn ← dt.DaysFromEpoch cy.start
@@ -38,7 +38,7 @@ LatestActualDate ← {𝕊 base‿cy:
   out
 }
 
-as_of ← LatestActualDate ⟨base, cy⟩
+as_of ← LatestActualDate ⟨ctx, cy⟩
 elapsed ← (as_of ≢ cy.start) ⊑ 0‿(1 + (dt.DaysFromEpoch as_of) - dt.DaysFromEpoch cy.start)
 
 FindEnvelope ← {𝕊 label:

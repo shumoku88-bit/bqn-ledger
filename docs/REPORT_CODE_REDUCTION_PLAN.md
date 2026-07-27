@@ -138,11 +138,15 @@ Inventory result: `CalcUnassignedRemaining` and `CalcEnvelopeBacking` are alread
 
 ### Actual source and compatibility reduction
 
-- [ ] Inventory every `actual_source.bqn` export and repository caller.
-- [ ] Classify exports as production prepared path, source-loading compatibility path, or removable test seam.
-- [ ] Remove `LoadDates`, completion, and plan-ID source wrappers after the final non-context callers migrate.
-- [ ] Separate source loading from pure evidence interpretation only when the remaining caller graph demonstrates a stable module boundary.
-- [ ] Recheck whether historical parser fallback is still required by a real supported entrypoint.
+- [x] Inventoried every `actual_source.bqn` export and repository caller by effect and transaction shape.
+- [x] Removed repository-unused complete loading and Actual-row helpers; made internal-only resolver/evidence helpers private.
+- [x] Moved report completion consumers and focused plan-row tests to context/prepared evidence, removed the plan-ID source wrapper, and retained source completion for editor commands.
+- [x] Removed adjacent dead source adapters from plan rows, Daily Trend plan evidence, Outlook remaining plan, Snapshot, and Planned Payments.
+- [x] Kept one module: the remaining graph still couples configured resolution, compatibility fallback, and context evidence closely enough that a split would add topology.
+
+Inventory result: exports fell from 20 to 13. `LoadCycleEvidence` and its income interpretation preserve an explicit `complete` carrier because admitted postings use `normalized_coefficient` while historical compatibility postings use `delta`. Cycle-local plan-ID interpretation remains historical-context-only and is not reused for selected-domain admitted transactions. `LoadDates` / `IncomeDates` remain for base-oriented cycle compatibility; `Resolve`, `LoadTransactions`, and `CompletionEvidence` remain for journal/plan editor commands that genuinely start from a base rather than a report context. Report and calculation contexts use carried transactions. The slice removed 50 `src_next` lines (13,077 to 13,027), taking the track 29 lines below baseline.
+
+Historical parser fallback remains required by compatibility `BuildContext`, which intentionally constructs its posting IR from the `historical_external_plan` shape. Removing that fallback requires a separate context/admission decision, not an API cleanup.
 
 ## hledger comparison checkpoint
 

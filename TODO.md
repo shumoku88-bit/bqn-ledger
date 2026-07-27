@@ -162,13 +162,27 @@ checks: focused computation/characterization checks and full tools/check.sh
 
 The reduction removes repeated source work and narrows semantic inputs; it is not formatting compression. The overall track is now 21 lines above the original baseline.
 
-### Current finite slice: `actual_source` compatibility reduction
+### Completed finite slice: `actual_source` compatibility reduction
 
-- [ ] Inventory every export and all production/test callers by transaction shape.
-- [ ] Remove source-loading wrappers whose callers already carry context transactions or prepared evidence.
-- [ ] Keep complete-admission and historical compatibility shapes explicit; never reinterpret one as the other.
-- [ ] Migrate focused tests to prepared APIs before deleting wrappers.
-- [ ] Require a net source/API reduction and update current contracts in the same slice.
+- [x] Inventoried every export and production/test caller by transaction shape and I/O ownership.
+- [x] Removed the dead complete loader, plan-ID source wrapper, Actual-row helper, and adjacent report-only source adapters.
+- [x] Migrated focused plan-row tests to context/prepared completion evidence; retained source APIs for editor and source-characterization callers.
+- [x] Kept complete-admission cycle evidence separate from historical `delta`-based completion evidence.
+- [x] Reduced `actual_source` exports from 20 to 13 without adding a module boundary; retained three base-oriented APIs used by journal/plan editor commands.
+
+Completion record:
+
+```text
+slice: actual_source compatibility reduction
+behavior preserved: configured source resolution, complete-or-historical cycle admission, context date/completion evidence, section-specific clocks
+prepared boundary: context transactions for reports; explicit completion evidence for focused plan-row tests
+removed code/API/check: 7 actual_source exports, 4 adjacent compatibility exports, dead complete loader/Actual row helper/source adapters
+src_next line delta: -50 (13,077 -> 13,027); track total 13,056 -> 13,027
+remaining compatibility caller: cycle/base entrypoints retain LoadDates and IncomeDates; editor commands retain Resolve, LoadTransactions, and CompletionEvidence; focused missing-field contexts retain fallback loading
+checks: focused prepared/characterization checks and full tools/check.sh
+```
+
+The track is now 29 lines below its original baseline. This is an API and source-path reduction, not formatting compression.
 
 Later Envelope responsibilities remain unselected until caller evidence identifies another real duplication. Do not start a broad module split.
 

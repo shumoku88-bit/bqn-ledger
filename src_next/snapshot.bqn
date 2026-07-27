@@ -11,7 +11,6 @@
 # This is an opt-in observation surface, not a production replacement for
 # current engine section 1.
 
-actual_source ← •Import "actual_source.bqn"
 dt ← •Import "date.bqn"
 tbds ← •Import "tbds.bqn"
 cube ← •Import "cube.bqn"
@@ -22,26 +21,6 @@ unav ← •Import "unavailable.bqn"
 json ← •Import "json.bqn"
 
 fallback_current ← "fallback/current-engine"
-
-# Latest in-cycle actual journal date. src_next has no CLI --as-of yet, so this
-# is a conservative observation date derived from source journal rows.
-LatestActualDateInCycle ← {𝕊 base‿cy:
-  dates ← actual_source.LoadDates base
-  available_cycle ← (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (cy.day_count > 0)
-  out ← "unavailable/no_data"
-  {𝕊:
-    start_dn ← dt.DaysFromEpoch cy.start
-    end_dn ← dt.DaysFromEpoch cy.end_exclusive
-    DateInCycle ← {𝕊 d:
-      dn ← dt.DaysFromEpoch d
-      (dn ≥ start_dn) ∧ (dn < end_dn)
-    }
-    in_dates ← (DateInCycle¨ dates) / dates
-    {𝕊: out ↩ ¯1 ⊑ (∧ in_dates)}⍟(0 < ≠ in_dates) @
-  }⍟(available_cycle ∧ (0 < ≠ dates)) @
-  out ↩ (¬ available_cycle) ⊑ out‿"unavailable/no_cycle"
-  out
-}
 
 RemainingDaysText ← {𝕊 asOf‿cy:
   unavail ← (unav.IsUnavailable asOf) ∨ (unav.IsUnavailable cy.end_exclusive)
@@ -337,4 +316,4 @@ FormatJson ← {𝕊 ctx:
   json.Serialize root
 }
 
-{ Build ⇐ Build, StatusLabel ⇐ StatusLabel, SelectArt ⇐ SelectArt, Format ⇐ Format, FormatHuman ⇐ FormatHuman, FormatJson ⇐ FormatJson, FormatAccountTotalsFromEntries ⇐ FormatAccountTotalsFromEntries, LatestActualDateInCycle ⇐ LatestActualDateInCycle, RemainingDaysText ⇐ RemainingDaysText, DaysElapsed ⇐ DaysElapsed }
+{ Build ⇐ Build, StatusLabel ⇐ StatusLabel, SelectArt ⇐ SelectArt, Format ⇐ Format, FormatHuman ⇐ FormatHuman, FormatJson ⇐ FormatJson, FormatAccountTotalsFromEntries ⇐ FormatAccountTotalsFromEntries, RemainingDaysText ⇐ RemainingDaysText, DaysElapsed ⇐ DaysElapsed }

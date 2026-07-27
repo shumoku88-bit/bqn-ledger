@@ -53,11 +53,6 @@ BuildBaseFromCompletionEvidence ← {𝕊 base‿cy‿completion_evidence0:
   }
 }
 
-BuildBase ← {𝕊 base‿cy:
-  completion ← actual_source.CompletionEvidence base
-  BuildBaseFromCompletionEvidence ⟨base, cy, completion⟩
-}
-
 BuildBaseFromContext ← {𝕊 ctx:
   completion ← actual_source.CompletionEvidenceFromContext ctx
   BuildBaseFromCompletionEvidence ⟨ctx.base, ctx.cy, completion⟩
@@ -105,12 +100,6 @@ WithTemporal ← {𝕊 valued_view‿as_of:
   }
 }
 
-Build ← {𝕊 base‿cy‿as_of:
-  base_view ← BuildBase ⟨base, cy⟩
-  valued_view ← WithValues base_view
-  WithTemporal ⟨valued_view, as_of⟩
-}
-
 BuildFromContext ← {𝕊 ctx‿as_of:
   base_view ← BuildBaseFromContext ctx
   valued_view ← WithValues base_view
@@ -121,11 +110,9 @@ BuildFromContext ← {𝕊 ctx‿as_of:
 {
   PlanId ⇐ PlanId,
   InCycle ⇐ InCycle,
-  BuildBase ⇐ BuildBase,
   BuildBaseFromCompletionEvidence ⇐ BuildBaseFromCompletionEvidence,
   BuildBaseFromContext ⇐ BuildBaseFromContext,
   WithValues ⇐ WithValues,
   WithTemporal ⇐ WithTemporal,
-  Build ⇐ Build,
   BuildFromContext ⇐ BuildFromContext
 }

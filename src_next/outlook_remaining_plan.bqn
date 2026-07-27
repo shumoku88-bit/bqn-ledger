@@ -65,10 +65,6 @@ BuildSourceEvidenceFromPlanIds ← {𝕊 base‿completed_ids:
   }¨↕≠plan_lines
 }
 
-BuildSourceEvidence ← {𝕊 base‿cy:
-  BuildSourceEvidenceFromPlanIds ⟨base, actual_source.PlanIdsInCycle ⟨base, cy⟩⟩
-}
-
 BuildSourceEvidenceFromContext ← {𝕊 ctx:
   BuildSourceEvidenceFromPlanIds ⟨ctx.base, actual_source.PlanIdsInCycleFromContext ctx⟩
 }

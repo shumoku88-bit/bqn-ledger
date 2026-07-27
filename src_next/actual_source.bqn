@@ -8,7 +8,6 @@ parser ← •Import "journal_profile_stage1.bqn"
 admission ← •Import "journal_complete_source_admission.bqn"
 ak ← •Import "account_key.bqn"
 dt ← •Import "date.bqn"
-cube ← •Import "cube.bqn"
 
 Resolve ← {𝕊 base: config.LoadActualJournal base}
 
@@ -27,15 +26,6 @@ LoadTransactions ← {𝕊 base:
   parsed ← parser.ParseWithProfile ⟨raw,"historical_external_plan"⟩
   {𝕊: •Out "ERROR: native Journal source rejected" ⋄ •Exit 1}⍟(parsed.state≢"ok") @
   parsed.transactions
-}
-
-LoadCompleteTransactions ← {𝕊 base:
-  relPath ← ResolveRelativePath base
-  raw ← loader.ReadRaw (base∾"/"∾relPath)
-  resolved ← ak.Resolve loader.ReadLines (base∾"/accounts.tsv")
-  admitted ← admission.Admit ⟨raw, resolved⟩
-  {𝕊: •Out "ERROR: native Journal source rejected" ⋄ •Exit 1}⍟(admitted.state≢"ok") @
-  admitted.transactions
 }
 
 LoadCycleEvidence ← {𝕊 base:
@@ -94,10 +84,6 @@ IncomeDates ← {𝕊 base‿incomeAccount:
 File ← {𝕊 ctx: 𝕩.actual_source_file}
 Transactions ← {𝕊 ctx: 𝕩.actual_transactions}
 
-Rows ← {𝕊 ctx:
-  (cube.layer_actual={𝕩.layer_index}¨ctx.posting_rows) / ctx.posting_rows
-}
-
 CompletionEvidenceFromTransactions ← {𝕊 transactions:
   Make ← {𝕊 tx:
     debitPostings ← ({𝕩.delta>0}¨tx.postings)/tx.postings
@@ -132,10 +118,22 @@ PlanIdsInCycleFromEvidence ← {𝕊 evidence‿cy:
   {𝕩.plan_id}¨(InCycle¨evidence)/evidence
 }
 
-PlanIdsInCycle ← {𝕊 base‿cy: PlanIdsInCycleFromEvidence ⟨CompletionEvidence base, cy⟩}
-
 PlanIdsInCycleFromContext ← {𝕊 ctx:
   PlanIdsInCycleFromEvidence ⟨CompletionEvidenceFromContext ctx, ctx.cy⟩
 }
 
-{Resolve⇐Resolve,ResolveRelativePath⇐ResolveRelativePath,LoadTransactions⇐LoadTransactions,LoadCompleteTransactions⇐LoadCompleteTransactions,LoadCycleEvidence⇐LoadCycleEvidence,DatesFromTransactions⇐DatesFromTransactions,DatesFromContext⇐DatesFromContext,LoadDates⇐LoadDates,IncomeDates⇐IncomeDates,IncomeDatesFromCompleteTransactions⇐IncomeDatesFromCompleteTransactions,IncomeDatesFromCycleEvidence⇐IncomeDatesFromCycleEvidence,File⇐File,Transactions⇐Transactions,Rows⇐Rows,CompletionEvidence⇐CompletionEvidence,CompletionEvidenceFromTransactions⇐CompletionEvidenceFromTransactions,CompletionEvidenceFromContext⇐CompletionEvidenceFromContext,PlanIdsInCycle⇐PlanIdsInCycle,PlanIdsInCycleFromEvidence⇐PlanIdsInCycleFromEvidence,PlanIdsInCycleFromContext⇐PlanIdsInCycleFromContext}
+{
+  Resolve⇐Resolve,
+  ResolveRelativePath⇐ResolveRelativePath,
+  LoadTransactions⇐LoadTransactions,
+  LoadCycleEvidence⇐LoadCycleEvidence,
+  DatesFromContext⇐DatesFromContext,
+  LoadDates⇐LoadDates,
+  IncomeDates⇐IncomeDates,
+  IncomeDatesFromCycleEvidence⇐IncomeDatesFromCycleEvidence,
+  File⇐File,
+  Transactions⇐Transactions,
+  CompletionEvidence⇐CompletionEvidence,
+  CompletionEvidenceFromContext⇐CompletionEvidenceFromContext,
+  PlanIdsInCycleFromContext⇐PlanIdsInCycleFromContext
+}

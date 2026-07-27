@@ -40,11 +40,6 @@ FormatLine ← {𝕊 line‿status:
   "src_next_planned_payment: " ∾ date ∾ " " ∾ status ∾ " " ∾ memo ∾ " " ∾ fromAcc ∾ " " ∾ toAcc ∾ " " ∾ amount ∾ (@+10)
 }
 
-# Latest in-cycle actual journal date.
-LatestActualDateInCycle ← {𝕊 base‿cy:
-  actual_observation.LatestInCycleOrStart ⟨actual_source.LoadDates base, cy⟩
-}
-
 # Pure semantic core. Current-cycle source selection, completion identity, and
 # temporal attachment are prepared by plan_rows before entering this boundary.
 BuildViewModelFromPrepared ← {𝕊 shared:
@@ -225,6 +220,5 @@ FormatJson ← {𝕊 ctx: FormatJsonViewModel (BuildViewModel ctx)}
   FormatJsonViewModelForTest ⇐ FormatJsonViewModel,
   FormatHuman ⇐ FormatHuman,
   FormatJson ⇐ FormatJson,
-  LatestActualDateInCycle ⇐ LatestActualDateInCycle,
   PlanId ⇐ PlanId
 }

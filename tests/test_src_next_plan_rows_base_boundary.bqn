@@ -5,7 +5,8 @@ plan_rows ← •Import "../src_next/plan_rows.bqn"
 
 base ← "fixtures/src-next-plan-evidence-boundary"
 cy ← { start ⇐ "2026-01-01", day_count ⇐ 7 }
-view ← plan_rows.BuildBase ⟨base, cy⟩
+completion ← ⟨{date⇐"2026-01-03",plan_id⇐"service",amount⇐1,from_account⇐"assets:cash",to_account⇐"expenses:fixed",currency⇐"JPY"}⟩
+view ← plan_rows.BuildBaseFromCompletionEvidence ⟨base, cy, completion⟩
 
 1 lib.AssertEq ≠ view.rows
 1 lib.AssertEq 0⊑view.completed_mask
