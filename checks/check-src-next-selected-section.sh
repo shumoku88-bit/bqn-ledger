@@ -115,7 +115,7 @@ old = '''BuildDebugEntry ← {
   ⟨"debug", txt⟩
 }
 '''
-new = '''BuildDebugEntry ← {
+new = '''BuildDebugEntry ← {𝕊 ignored:
   •Out "ERROR: selected-section poison debug builder evaluated"
   •Exit 97
 }
