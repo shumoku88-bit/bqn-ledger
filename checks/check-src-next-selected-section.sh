@@ -31,7 +31,12 @@ fail() { echo "FAIL: $*" >&2; failures=$((failures + 1)); }
 pass() { echo "PASS: $*"; }
 
 work_dir="$(mktemp -d)"
-trap 'rm -rf "$work_dir"' EXIT
+poison_report=""
+cleanup() {
+  rm -rf "$work_dir"
+  if [[ -n "$poison_report" ]]; then rm -f "$poison_report"; fi
+}
+trap cleanup EXIT
 
 run_capture() {
   local name="$1"
@@ -134,12 +139,12 @@ else
 fi
 
 # Runtime isolation proof: poison the unselected debug builder in a temporary
-# src_next copy. Selected snapshot and unknown-key routes must not touch it,
-# while the ordinary full report must hit it. This distinguishes true selected
-# construction from eager all-section construction without production hooks.
-poison_src="$work_dir/poison-src-next"
-cp -R src_next "$poison_src"
-python3 - "$poison_src/report.bqn" <<'PY'
+# report file kept beside the production modules, so relative imports remain
+# identical. Selected snapshot and unknown-key routes must not touch it, while
+# the ordinary full report must hit it.
+poison_report="$(mktemp src_next/.report-poison.XXXXXX)"
+cp src_next/report.bqn "$poison_report"
+python3 - "$poison_report" <<'PY'
 from pathlib import Path
 import sys
 
@@ -162,7 +167,7 @@ if text.count(old) != 1:
 path.write_text(text.replace(old, new), encoding="utf-8", newline="")
 PY
 
-run_capture poison-snapshot bqn "$poison_src/report.bqn" "$fixture_abs" --section snapshot --no-color
+run_capture poison-snapshot bqn "$poison_report" "$fixture_abs" --section snapshot --no-color
 assert_code 0 poison-snapshot
 assert_empty "$work_dir/poison-snapshot.err" "poison-snapshot stderr"
 if cmp -s "$work_dir/direct-snapshot.out" "$work_dir/poison-snapshot.out"; then
@@ -171,7 +176,7 @@ else
   fail "selected snapshot changed under unrelated poisoned builder"
 fi
 
-run_capture poison-unknown bqn "$poison_src/report.bqn" "$fixture_abs" --section does-not-exist --no-color
+run_capture poison-unknown bqn "$poison_report" "$fixture_abs" --section does-not-exist --no-color
 assert_code 1 poison-unknown
 assert_empty "$work_dir/poison-unknown.err" "poison-unknown stderr"
 if cmp -s "$work_dir/unknown.expected" "$work_dir/poison-unknown.out"; then
@@ -180,7 +185,7 @@ else
   fail "unknown key reached or changed under poisoned debug builder"
 fi
 
-run_capture poison-full bqn "$poison_src/report.bqn" "$fixture_abs" --no-color
+run_capture poison-full bqn "$poison_report" "$fixture_abs" --no-color
 assert_code 97 poison-full
 assert_empty "$work_dir/poison-full.err" "poison-full stderr"
 printf 'ERROR: selected-section poison debug builder evaluated\n' >"$work_dir/poison.expected"
