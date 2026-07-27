@@ -3,11 +3,11 @@ set -euo pipefail
 
 # Command-hub browsing latency boundary.
 #
-# A cold selector prepares the complete report-owned section cache once before
-# navigation. fzf previews then read files only, so moving quickly across rows
-# never starts one expensive report process per highlighted section. When a
-# default currency is available, balances preserves the selected-currency
-# direct-section contract without making other ledgers unable to open the hub.
+# Non-interactive selection prepares the complete report-owned cache
+# synchronously for deterministic scripts. Interactive selection opens first
+# and refreshes that same cache in the background. Highlight movement only reads
+# cache/status files and never starts the report engine. When a default currency
+# is available, balances preserves the selected-currency direct-section contract.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
@@ -64,8 +64,8 @@ section_keys=(
   check outlook daily-trend daily-flow actual-comparison debug
 )
 
-# A cold selector prepares every preview body before accepting a choice. It must
-# still open when the specialized selected balances route is unavailable.
+# A non-interactive cold selection prepares every preview body before accepting
+# a choice. It must still work when selected balances is unavailable.
 run_selection "$fixture" snapshot cold-snapshot
 assert_code 0 cold-snapshot
 if grep -qF '1. 全体サマリ (Snapshot)' "$work_dir/cold-snapshot.out"; then
@@ -163,6 +163,52 @@ if [[ "$selected_balances_mtime_after" = "$selected_balances_mtime_before" \
   pass "warm selected-currency balances preview reuses the complete cache"
 else
   fail "warm selected-currency balances preview unexpectedly rebuilt the cache"
+fi
+
+# Characterize the interactive boundary without terminal automation. A delayed
+# test hook proves forced-background mode returns while generation is still in
+# progress, exposes an explicit updating preview instead of stale amounts, and
+# eventually publishes the complete cache after the caller exits.
+async_work="$work_dir/async"
+mkdir "$async_work"
+async_cache=""
+command_hub_slow_refresh() { sleep 2; }
+export -f command_hub_slow_refresh
+set +e
+printf '\n' | \
+  BQN_LEDGER_TEST_MODE=1 \
+  COMMAND_HUB_CACHE_TEST_BEFORE_BUILD_HOOK=command_hub_slow_refresh \
+  COMMAND_HUB_CACHE_REFRESH_MODE=background \
+  TMPDIR="$async_work" \
+  tools/main-ui.sh --base "$selected_fixture" select \
+  >"$work_dir/async.out" 2>"$work_dir/async.err"
+async_status=$?
+set -e
+if [[ "$async_status" -eq 0 ]]; then
+  pass "background cold selector returns without waiting for cache generation"
+else
+  fail "background cold selector exited with status $async_status"
+fi
+async_cache="$(find "$async_work" -maxdepth 1 -type d -name 'bqn-ledger-cache-*' -print -quit)"
+if [[ -n "$async_cache" && -f "$async_cache/.cache-refreshing" && ! -f "$async_cache/.cache-timestamp" ]]; then
+  pass "background cold selector leaves refresh running after selector closes"
+else
+  fail "background cold selector did not expose in-progress cache state"
+fi
+if [[ -n "$async_cache" ]] \
+  && tools/command-hub-preview "$async_cache" snapshot | grep -qF 'Previewを更新中です。'; then
+  pass "in-progress preview is explicit and non-stale"
+else
+  fail "in-progress preview did not report refresh state"
+fi
+for _ in $(seq 1 200); do
+  [[ -n "$async_cache" && -f "$async_cache/.cache-timestamp" && ! -f "$async_cache/.cache-refreshing" ]] && break
+  sleep 0.1
+done
+if [[ -n "$async_cache" && -f "$async_cache/.cache-timestamp" && -f "$async_cache/balances.txt" && ! -f "$async_cache/.cache-refreshing" ]]; then
+  pass "background refresh eventually publishes the complete cache"
+else
+  fail "background refresh did not publish the complete cache"
 fi
 
 if [[ "$failures" -eq 0 ]]; then

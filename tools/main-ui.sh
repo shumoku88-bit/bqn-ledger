@@ -122,43 +122,6 @@ show_section_direct() {
   fi
 }
 
-write_command_hub_balances_cache() {
-  local base_abs="$1" cache_dir="$2"
-  local direct_out direct_err body_tmp status
-  direct_out="$(mktemp "$cache_dir/.balances-direct.XXXXXX")"
-  direct_err="$(mktemp "$cache_dir/.balances-direct.err.XXXXXX")"
-  body_tmp="$(mktemp "$cache_dir/.balances-body.XXXXXX")"
-
-  set +e
-  "$ROOT_DIR/tools/report" "$base_abs" --section balances --no-color >"$direct_out" 2>"$direct_err"
-  status=$?
-  set -e
-  if [[ "$status" -ne 0 ]]; then
-    # A ledger without a resolvable DEFAULT_CURRENCY cannot use the specialized
-    # selected balances route. Keep the full-report balances body already
-    # written by --write-section-cache rather than blocking the whole selector.
-    rm -f "$direct_out" "$direct_err" "$body_tmp"
-    return 0
-  fi
-
-  if ! python3 - "$direct_out" "$body_tmp" <<'PY'
-from pathlib import Path
-import sys
-
-source = Path(sys.argv[1]).read_bytes()
-if not source.endswith(b"\n\n"):
-    raise SystemExit("selected balances output does not end with two newlines")
-Path(sys.argv[2]).write_bytes(source[:-2])
-PY
-  then
-    rm -f "$direct_out" "$direct_err" "$body_tmp"
-    return 1
-  fi
-
-  mv -f "$body_tmp" "$cache_dir/balances.txt"
-  rm -f "$direct_out" "$direct_err"
-}
-
 select_section() {
   local cache_dir="${1:-}"
   if command -v fzf >/dev/null 2>&1 && [[ "$IS_TTY" -eq 1 ]]; then
@@ -182,7 +145,7 @@ select_section() {
         --reverse \
         --exit-0 \
         --ansi \
-        --preview "cat '$cache_dir'/{1}.txt 2>/dev/null | '$ROOT_DIR/tools/lib/color-filter' || echo '(No preview available)'" \
+        --preview "'$ROOT_DIR/tools/command-hub-preview' '$cache_dir' {1} | '$ROOT_DIR/tools/lib/color-filter'" \
         --preview-window "$preview_win"
     else
       section_list | fzf \
@@ -256,29 +219,58 @@ case "$cmd" in
       fi
     done
 
-    # Check if the cache is still valid
+    # Check if the complete cache generation is still valid.
     cache_ok=0
     timestamp_file="$cache_dir/.cache-timestamp"
-    if [[ -f "$timestamp_file" && -f "$cache_dir/snapshot.txt" && -f "$cache_dir/balances.txt" ]]; then
+    cache_keys=(
+      snapshot issues ytd balances cycle trial-balance envelopes planned recent
+      check outlook daily-trend daily-flow actual-comparison debug all
+    )
+    if [[ -f "$timestamp_file" \
+       && ! -f "$cache_dir/.cache-refreshing" \
+       && ! -f "$cache_dir/.cache-error" ]]; then
       cache_mtime=$(cat "$timestamp_file" 2>/dev/null || echo 0)
       if (( cache_mtime >= max_src_mtime )); then
         cache_ok=1
+        for key in "${cache_keys[@]}"; do
+          [[ -f "$cache_dir/$key.txt" ]] || { cache_ok=0; break; }
+        done
       fi
     fi
 
-    # Regenerate the complete browsing cache if it is stale or missing. When a
-    # default currency is resolvable, balances uses the same selected-currency
-    # route as direct `--section balances`; otherwise the full-report body stays.
+    # A TTY selector opens immediately while a stale or missing cache refreshes
+    # in the background. Non-interactive callers remain synchronous so scripts
+    # receive deterministic output. The test-only override characterizes the
+    # background boundary without requiring terminal automation.
     if [[ "$cache_ok" -ne 1 ]]; then
-      if ! "$ROOT_DIR/tools/report" "$base_dir" --write-section-cache "$cache_dir" --no-color >/dev/null; then
-        echo "Failed to generate report cache" >&2
-        exit 1
+      refresh_mode="${COMMAND_HUB_CACHE_REFRESH_MODE:-}"
+      if [[ -z "$refresh_mode" ]]; then
+        if [[ "$IS_TTY" -eq 1 ]]; then refresh_mode="background"; else refresh_mode="synchronous"; fi
       fi
-      if ! write_command_hub_balances_cache "$base_abs" "$cache_dir"; then
-        echo "Failed to generate selected balances cache" >&2
-        exit 1
-      fi
-      echo "$max_src_mtime" > "$timestamp_file"
+      case "$refresh_mode" in
+        background)
+          (
+            trap '' HUP
+            exec "$ROOT_DIR/tools/command-hub-cache-refresh" "$base_abs" "$cache_dir" "$max_src_mtime"
+          ) </dev/null >"$cache_dir/.refresh.log" 2>&1 &
+          # Let the child publish its status marker before fzf asks for the
+          # first preview. Never wait for report computation here.
+          for _ in 1 2 3 4 5 6 7 8 9 10; do
+            [[ -f "$cache_dir/.cache-refreshing" || -f "$cache_dir/.cache-error" ]] && break
+            sleep 0.01
+          done
+          ;;
+        synchronous)
+          if ! "$ROOT_DIR/tools/command-hub-cache-refresh" "$base_abs" "$cache_dir" "$max_src_mtime"; then
+            echo "Failed to generate report cache" >&2
+            exit 1
+          fi
+          ;;
+        *)
+          echo "Error: invalid COMMAND_HUB_CACHE_REFRESH_MODE: $refresh_mode" >&2
+          exit 2
+          ;;
+      esac
     fi
 
     selection="$(select_section "$cache_dir" || true)"
@@ -288,11 +280,14 @@ case "$cmd" in
       actions) exec "$ROOT_DIR/tools/add-ui.sh" --base "$base_dir" ;;
       all) show_full_report ;;
       *)
-        if [[ -f "$cache_dir/$key.txt" ]]; then
+        if [[ ! -f "$cache_dir/.cache-refreshing" \
+           && ! -f "$cache_dir/.cache-error" \
+           && -f "$cache_dir/$key.txt" ]]; then
           cat "$cache_dir/$key.txt" | "$ROOT_DIR/tools/lib/color-filter" | pager_display
         else
-          echo "Error: cached file not found for $key" >&2
-          exit 1
+          # Selection remains correct even when the user chooses a row before
+          # the background cache is ready.
+          show_section_direct "$key"
         fi
         ;;
     esac

@@ -5,6 +5,8 @@ Repository: `shumoku88-bit/bqn-ledger`
 Base SHA: `a826a833799a0e75328ae7aeb794fe44c9018cf2` (`main`)  
 PR Branch: `docs/report-latency-characterization-instructions`  
 
+Follow-up status: the measurements below remain the point-in-time baseline. Selector-first Slice 2 and recursive invalidation Slice 3 are now implemented in the current command-hub path. A TTY opens before cold/stale report computation, shows an explicit non-stale updating status, and refreshes a staged cache in the background; non-interactive callers remain synchronous. Full-cache and selected-currency balances generation run concurrently, preview files publish by atomic rename, and the validity timestamp publishes last.
+
 ---
 
 ## 1. Baseline SHA and Environment
@@ -182,10 +184,11 @@ The breakdown below measures execution phases inside the characterization harnes
 1. Single-section requests pay a ~364 ms overhead for evaluating 14 unused report sections.
 2. Cold cache generation spends >60% of execution time in `BuildContext` and ~28% in section evaluation.
 
-### 7.3 Not Yet Determined
+### 7.3 Remaining question
 
 1. Whether `BuildContext` can be lazily or partially evaluated for sections that only require posting rows or TBDS without full Daily Cube materialization.
-2. Whether section selector UI can display existing warm previews immediately while refreshing stale cache in the background or on demand.
+
+The former selector question is resolved by the current selector-first background refresh path. It does not display stale financial content silently: while refresh is active, preview rows show an explicit updating status.
 
 ---
 
@@ -197,15 +200,15 @@ The breakdown below measures execution phases inside the characterization harnes
 - **Description**: Modify `src_next/report.bqn` so that when `--section <key>` is specified, only the requested section builder is evaluated instead of evaluating all 15 sections.
 - **Expected Impact**: Reduces direct single-section latency for light sections (`snapshot`, `balances`, `issues`, `recent`, `trial-balance`, `ytd`, `actual-comparison`) by ~364 ms (from ~1311 ms to ~947 ms on daily-use data).
 
-### Slice 2: Selector-First Preview Display for Interactive Navigation (Outcome A)
+### Slice 2: Selector-First Preview Display for Interactive Navigation (Outcome A) — implemented
 - **Problem Targeted**: Problem B (Interactive Selector Cold-Start Block).
-- **Description**: Open `fzf`/`gum` selector in `tools/main-ui.sh` using available warm previews or section metadata immediately without blocking on cold cache generation.
-- **Expected Impact**: Eliminates the 1.30s cold-start block when entering `tools/bl section`.
+- **Current behavior**: TTY selectors open before cold/stale generation, show explicit updating status, and start one exclusive staged background refresh. Non-interactive selection remains synchronous.
+- **Observed outcome**: selector entrance no longer waits for complete report generation; file-only navigation resumes when the background generation publishes.
 
-### Slice 3: Nested Module Cache Invalidation Scan Fix (Correctness Candidate)
+### Slice 3: Nested Module Cache Invalidation Scan Fix — implemented
 - **Problem Targeted**: Correctness / cache freshness for nested BQN modules.
-- **Description**: Update `tools/main-ui.sh` find command to include nested BQN modules (`src_next/**/*.bqn`).
-- **Expected Impact**: Correctness fix preventing stale cache when files under `src_next/queries/` or future subdirectories change.
+- **Current behavior**: `tools/main-ui.sh` recursively includes `src_next/**/*.bqn` in the source mtime set.
+- **Outcome**: root and nested module changes both invalidate the preview cache.
 
 ---
 

@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# File/status-only fzf preview reader. It never starts the report engine.
+
+if [[ $# -ne 2 ]]; then
+  echo "Usage: tools/command-hub-preview <cache-dir> <section-key>" >&2
+  exit 2
+fi
+
+cache_dir="$1"
+key="$2"
+case "$key" in
+  snapshot|issues|ytd|balances|cycle|trial-balance|envelopes|planned|recent|check|outlook|daily-trend|daily-flow|actual-comparison|debug|all) ;;
+  actions)
+    printf '仕訳追加・取消は選択後に開きます。\n'
+    exit 0
+    ;;
+  *)
+    printf 'Preview unavailable for this item.\n'
+    exit 0
+    ;;
+esac
+
+if [[ -f "$cache_dir/.cache-refreshing" ]]; then
+  printf 'Previewを更新中です。\n'
+  printf 'selectorはそのまま操作できます。生成後に項目へ戻ると最新previewを表示します。\n'
+elif [[ -f "$cache_dir/.cache-error" ]]; then
+  printf 'Previewの更新に失敗しました。選択すると最新reportを直接表示します。\n'
+elif [[ -f "$cache_dir/$key.txt" ]]; then
+  cat "$cache_dir/$key.txt"
+else
+  printf 'Previewを準備中です。選択すると最新reportを直接表示します。\n'
+fi

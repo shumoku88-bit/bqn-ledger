@@ -47,14 +47,15 @@ else
   fail "tools/main-ui.sh direct section display should call tools/report --section by key"
 fi
 
-# Selector previews use the complete report-owned cache, so browsing across
-# rows only reads files instead of starting a report process per highlight.
-if rg -q -- '--write-section-cache' tools/main-ui.sh \
-  && rg -q -- '--preview "cat .*\.txt' tools/main-ui.sh \
-  && ! rg -q 'tools/report-section-cache' tools/main-ui.sh; then
+# Selector previews use only the cache/status reader, so browsing across rows
+# never starts the report engine. Cache generation is a separate refresh path.
+if rg -q 'tools/command-hub-cache-refresh' tools/main-ui.sh \
+  && rg -q -- '--preview .*tools/command-hub-preview' tools/main-ui.sh \
+  && ! rg -q 'tools/report-section-cache' tools/main-ui.sh \
+  && ! rg -q 'tools/report' tools/command-hub-preview; then
   pass
 else
-  fail "tools/main-ui.sh selector should prepare one complete cache and use file-only previews"
+  fail "tools/main-ui.sh selector should refresh separately and use file/status-only previews"
 fi
 
 # Keep old marker/list-section scraping from returning as a UI dependency.
