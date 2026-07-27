@@ -1,0 +1,35 @@
+name: diagnose-command-hub-browse
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Tokyo
+      CBQN_REF: master
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install CBQN
+        run: |
+          git clone --depth 1 --branch "$CBQN_REF" https://github.com/dzaima/CBQN.git
+          make -C CBQN -j$(nproc)
+          sudo cp CBQN/BQN /usr/local/bin/bqn
+
+      - name: Install tools
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ripgrep
+
+      - name: Run browse-cache check with trace
+        run: bash -x checks/check-command-hub-browse-cache.sh
+
+      - name: Run structured UI boundary
+        if: always()
+        run: bash -x checks/check-structured-ui-boundary.sh
+
+      - name: Run bash safety boundary
+        if: always()
+        run: bash -x checks/check-bash-safety.sh
