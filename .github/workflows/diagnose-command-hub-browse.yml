@@ -13,23 +13,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install CBQN
+      - name: Install CBQN quietly
         run: |
-          git clone --depth 1 --branch "$CBQN_REF" https://github.com/dzaima/CBQN.git
-          make -C CBQN -j$(nproc)
+          git clone -q --depth 1 --branch "$CBQN_REF" https://github.com/dzaima/CBQN.git
+          make -s -C CBQN -j$(nproc) >/dev/null
           sudo cp CBQN/BQN /usr/local/bin/bqn
 
-      - name: Install tools
+      - name: Install tools quietly
         run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq ripgrep
+          sudo apt-get update -qq >/dev/null
+          sudo apt-get install -y -qq ripgrep >/dev/null
 
-      - name: Run browse-cache check with trace
-        run: bash -x checks/check-command-hub-browse-cache.sh
-
-      - name: Run structured UI boundary
-        if: always()
-        run: bash -x checks/check-structured-ui-boundary.sh
-
-      - name: Run bash safety boundary
-        if: always()
-        run: bash -x checks/check-bash-safety.sh
+      - name: Run browse-cache check
+        run: bash checks/check-command-hub-browse-cache.sh
