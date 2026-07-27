@@ -5,7 +5,7 @@ set -euo pipefail
 #
 # This check distinguishes:
 #   - unknown cycle mode;
-#   - supported incomeAnchor mode that cannot resolve;
+#   - supported fixed mode that cannot resolve because boundaries are absent;
 #   - valid fixed cycle with zero actual rows;
 #   - valid fixed cycle with ordinary actual rows.
 #
@@ -34,9 +34,8 @@ trap 'rm -rf "$work_dir"' EXIT
 UNKNOWN_FIXTURE="fixtures/envelopes-disabled-policy"
 ZERO_FIXTURE="fixtures/empty-journal"
 GOLDEN_FIXTURE="fixtures/src-next-golden"
-ANCHOR_SOURCE_FIXTURE="fixtures/src-next-income-anchor-golden"
 
-for fixture in "$UNKNOWN_FIXTURE" "$ZERO_FIXTURE" "$GOLDEN_FIXTURE" "$ANCHOR_SOURCE_FIXTURE"; do
+for fixture in "$UNKNOWN_FIXTURE" "$ZERO_FIXTURE" "$GOLDEN_FIXTURE"; do
   if [ ! -d "$fixture" ]; then
     echo "ERROR: fixture not found: $fixture" >&2
     exit 2
@@ -176,10 +175,10 @@ else
   fail "unknown-full is missing YTD or a later section"
 fi
 
-# 4. Supported but unresolved incomeAnchor mode has the same YTD unavailable contract.
-unresolved_fixture="$work_dir/income-anchor-unresolved"
-cp -R "$ANCHOR_SOURCE_FIXTURE" "$unresolved_fixture"
-printf 'mode\tincomeAnchor\nincome_account\tincome:missing-anchor\n' >"$unresolved_fixture/cycle.tsv"
+# 4. Supported but unresolved fixed mode has the same YTD unavailable contract.
+unresolved_fixture="$work_dir/fixed-unresolved"
+cp -R "$UNKNOWN_FIXTURE" "$unresolved_fixture"
+printf 'mode\tfixed\n' >"$unresolved_fixture/cycle.tsv"
 run_capture unresolved-direct tools/report "$unresolved_fixture" --section ytd --no-color
 assert_code 0 unresolved-direct
 assert_empty "$work_dir/unresolved-direct.err" "unresolved-direct stderr"
