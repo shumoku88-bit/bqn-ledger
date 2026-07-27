@@ -55,12 +55,19 @@ BuildEvidenceFromLines ← {𝕊 plan_lines‿journal_lines:
   { plans ⇐ plans, journals ⇐ journals }
 }
 
-BuildSourceEvidence ← {𝕊 base:
+BuildSourceEvidenceFromCompletion ← {𝕊 base‿completion:
   plan_lines ← loader.ReadLinesOptional (base ∾ "/plan.tsv")
   plans ← (BuildEvidenceFromLines ⟨plan_lines,⟨⟩⟩).plans
-  completion ← actual_source.CompletionEvidence base
   journals ← {𝕊 i: ev←i⊑completion ⋄ {source_row⇐i,date⇐ev.date,plan_id⇐ev.plan_id}}¨↕≠completion
   {plans⇐plans,journals⇐journals}
+}
+
+BuildSourceEvidence ← {𝕊 base:
+  BuildSourceEvidenceFromCompletion ⟨base, actual_source.CompletionEvidence base⟩
+}
+
+BuildSourceEvidenceFromContext ← {𝕊 ctx:
+  BuildSourceEvidenceFromCompletion ⟨ctx.base, actual_source.CompletionEvidenceFromContext ctx⟩
 }
 
 RowsForPlanSource ← {𝕊 rows‿source_row:
@@ -171,7 +178,7 @@ BuildFromEvidence ← {𝕊 ctx‿trend_dates‿evidence:
 }
 
 BuildAt ← {𝕊 ctx‿trend_dates:
-  evidence ← BuildSourceEvidence ctx.base
+  evidence ← BuildSourceEvidenceFromContext ctx
   BuildFromEvidence ⟨ctx, trend_dates, evidence⟩
 }
 

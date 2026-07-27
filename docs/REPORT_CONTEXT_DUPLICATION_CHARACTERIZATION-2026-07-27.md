@@ -1,6 +1,6 @@
 # Report context duplication characterization — 2026-07-27
 
-Status: characterized; selected and compatibility cycle-evidence reuse implemented
+Status: characterized; cycle, date, and completion-evidence reuse implemented
 Owner: report / context boundaries
 Canonical: no; runtime modules and current contracts remain authoritative
 Exit: archive or shorten after the duplicate source-preparation route is removed
@@ -142,6 +142,14 @@ compatibility actual_source.LoadCycleEvidence
 `actual_source.IncomeDatesFromCompleteTransactions` and `IncomeDatesFromCycleEvidence` own income-date extraction for complete and compatibility evidence shapes. `cycle.bqn` continues to own cycle definition and period selection. The public `BuildFromPrepared` wrapper remains independently admitting and policy-first; only the production adapter uses the trusted admitted carrier.
 
 Both full-report contexts still exist. Do not merge them or reuse compatibility posting rows as selected-domain rows. Remaining duplication includes account/raw source reads between the two contexts, non-Actual preparation, and the second Cube/TBDS view. At roughly 30 ms selected overhead on the public sandbox, a risky universal-context merge is not justified by current performance evidence.
+
+A subsequent consumer slice removed production `LoadDates` reloads from context-based outlook, daily flow/trend, planned-payment, cycle-summary, actual-snapshot, and envelope paths. `actual_source.DatesFromContext` derives dates from the context-carried transactions; each consumer keeps its existing cycle scope, no-data fallback, and observation semantics. Source-loading compatibility helpers and tuple APIs remain available for focused callers that do not carry a context.
+
+Completion and plan-ID evidence were handled as a separate slice because they carry parser and identity semantics. Compatibility `BuildContext.actual_transactions` is the same `historical_external_plan` transaction shape previously reloaded by `CompletionEvidence`, so `CompletionEvidenceFromTransactions` can preserve delta-based amount, explicit `plan_id`, five-field fallback identity, and cycle filtering without source I/O. Context-based plan rows, daily trend, envelope coverage, Outlook remaining plan, cycle summary, and overlap diagnostics now use that prepared historical evidence. Selected-domain complete transactions are not treated as this compatibility shape.
+
+The date slice also exposed repeated observation interpretation. Only exact duplicate policies were extracted to `actual_observation.bqn`: the Daily Flow/Trend pair uses its historical `start + day_count` window, while Planned Payments/Cycle Summary uses explicit half-open cycle bounds. Actual Snapshot, Snapshot, Envelope, and Outlook retain their distinct invalid-date, absence, source-order, and open-ended-frontier semantics.
+
+Planned Payments now consumes these prepared date/completion seams through an explicit section-local pipeline: context adapter → prepared semantic VM → pure human/JSON renderer. Its compact output keeps a smaller completion-only prepared VM, so introducing the clean boundary does not silently add temporal/as-of dependencies to the compact contract.
 
 ## Evidence
 

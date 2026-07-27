@@ -153,7 +153,16 @@ PlanとEnvelopeへ同じ意思額を習慣的に二重入力し始めた場合�
 
 ResidualをEventへ書き戻さない。ScenarioでActualを増減させない。
 
-## 7. 現在まだ共通化しないもの
+## 7. Actual observation policyの共有境界
+
+`src_next/actual_observation.bqn`は、複数consumerでexact parityが確認された2つのI/O-free policyだけを共有する。
+
+- Daily Flow / Daily Trend: `cycle.start + day_count`のwindow内で最大のActual coordinate。空なら`cycle.start`
+- Planned Payments / Cycle Summary: explicit `[start, end_exclusive)`内で最大のActual coordinate。空なら`cycle.start`
+
+この2つはsyntheticな不整合cycleで異なる結果を返すため、単一policyへ畳み込まない。また、Actual Snapshotのinvalid-date filtering、Snapshot/Envelopeのexplicit absence、Envelopeのsource-order、Outlookのupper-boundなしfrontierもsection ownerに残す。これは全report共通の`as_of`導入ではなく、既存policyのexact duplicateだけをpure ownerへ移した境界である。
+
+## 8. 現在まだ共通化しないもの
 
 次は必要なconsumerとfixtureが現れるまで、report-wideの共通契約へ昇格しない。
 
@@ -167,7 +176,7 @@ ResidualをEventへ書き戻さない。ScenarioでActualを増減させない�
 
 sectionごとの観察境界は、該当module、`docs/REPORT_CONTRACTS.md`、fixture/checkを正とする。
 
-## 8. 時間変更前の確認
+## 9. 時間変更前の確認
 
 1. その日付はEvent coordinate、observation time、period boundary、generation timeのどれか。
 2. 同じEventを別時間へ投影してActualを二重計上しないか。
@@ -179,7 +188,7 @@ sectionごとの観察境界は、該当module、`docs/REPORT_CONTRACTS.md`、fi
 8. OS時計をconsumerが直接読まず、入口から値を渡せるか。
 9. input frontier、data cutoff、future horizon、knowledge boundaryを混ぜていないか。
 
-## 9. 禁止する近道
+## 10. 禁止する近道
 
 - `date`、`as_of`、cycle終端、生成時刻を同じ意味で使う
 - `today`をEvent coordinate、observation、generationのすべてに使う

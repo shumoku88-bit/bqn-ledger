@@ -57,7 +57,17 @@ LoadCycleEvidence ← {𝕊 base:
   result
 }
 
-LoadDates ← {𝕊 base: {𝕩.date}¨(LoadCycleEvidence base).transactions}
+DatesFromTransactions ← {𝕊 transactions: {𝕩.date}¨transactions}
+
+# Report consumers already receive the admitted/parsed Actual transactions on
+# their context. Prefer that prepared evidence; the fallback preserves focused
+# mock/compatibility contexts that only carry base.
+DatesFromContext ← {𝕊 ctx:
+  transactions ← ({𝕊: ctx.actual_transactions}⎊{𝕊: (LoadCycleEvidence ctx.base).transactions}) @
+  DatesFromTransactions transactions
+}
+
+LoadDates ← {𝕊 base: DatesFromTransactions (LoadCycleEvidence base).transactions}
 
 IncomeDatesFromCompleteTransactions ← {𝕊 incomeAccount‿transactions:
   HasIncomeCredit ← {𝕊 tx: ∨´0∾{(𝕩.account_key≡incomeAccount)∧𝕩.normalized_coefficient<0}¨tx.postings}
@@ -88,7 +98,7 @@ Rows ← {𝕊 ctx:
   (cube.layer_actual={𝕩.layer_index}¨ctx.posting_rows) / ctx.posting_rows
 }
 
-CompletionEvidence ← {𝕊 base:
+CompletionEvidenceFromTransactions ← {𝕊 transactions:
   Make ← {𝕊 tx:
     debitPostings ← ({𝕩.delta>0}¨tx.postings)/tx.postings
     creditPostings ← ({𝕩.delta<0}¨tx.postings)/tx.postings
@@ -101,11 +111,17 @@ CompletionEvidence ← {𝕊 base:
     {𝕊: pid↩tx.plan_id}⍟(0<≠tx.plan_id) @
     {date⇐tx.date,plan_id⇐pid,amount⇐amount,from_account⇐fromAccount,to_account⇐toAccount,currency⇐"JPY"}
   }
-  Make¨LoadTransactions base
+  Make¨transactions
 }
 
-PlanIdsInCycle ← {𝕊 base‿cy:
-  evidence ← CompletionEvidence base
+CompletionEvidence ← {𝕊 base: CompletionEvidenceFromTransactions (LoadTransactions base)}
+
+CompletionEvidenceFromContext ← {𝕊 ctx:
+  transactions ← ({𝕊: ctx.actual_transactions}⎊{𝕊: LoadTransactions ctx.base}) @
+  CompletionEvidenceFromTransactions transactions
+}
+
+PlanIdsInCycleFromEvidence ← {𝕊 evidence‿cy:
   InCycle ← {𝕊 ev:
     cyOk ← (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (dt.IsValidDateText cy.start) ∧ (dt.IsValidDateText cy.end_exclusive)
     ok ← cyOk ∧ dt.IsValidDateText ev.date
@@ -116,4 +132,10 @@ PlanIdsInCycle ← {𝕊 base‿cy:
   {𝕩.plan_id}¨(InCycle¨evidence)/evidence
 }
 
-{Resolve⇐Resolve,ResolveRelativePath⇐ResolveRelativePath,LoadTransactions⇐LoadTransactions,LoadCompleteTransactions⇐LoadCompleteTransactions,LoadCycleEvidence⇐LoadCycleEvidence,LoadDates⇐LoadDates,IncomeDates⇐IncomeDates,IncomeDatesFromCompleteTransactions⇐IncomeDatesFromCompleteTransactions,IncomeDatesFromCycleEvidence⇐IncomeDatesFromCycleEvidence,File⇐File,Transactions⇐Transactions,Rows⇐Rows,CompletionEvidence⇐CompletionEvidence,PlanIdsInCycle⇐PlanIdsInCycle}
+PlanIdsInCycle ← {𝕊 base‿cy: PlanIdsInCycleFromEvidence ⟨CompletionEvidence base, cy⟩}
+
+PlanIdsInCycleFromContext ← {𝕊 ctx:
+  PlanIdsInCycleFromEvidence ⟨CompletionEvidenceFromContext ctx, ctx.cy⟩
+}
+
+{Resolve⇐Resolve,ResolveRelativePath⇐ResolveRelativePath,LoadTransactions⇐LoadTransactions,LoadCompleteTransactions⇐LoadCompleteTransactions,LoadCycleEvidence⇐LoadCycleEvidence,DatesFromTransactions⇐DatesFromTransactions,DatesFromContext⇐DatesFromContext,LoadDates⇐LoadDates,IncomeDates⇐IncomeDates,IncomeDatesFromCompleteTransactions⇐IncomeDatesFromCompleteTransactions,IncomeDatesFromCycleEvidence⇐IncomeDatesFromCycleEvidence,File⇐File,Transactions⇐Transactions,Rows⇐Rows,CompletionEvidence⇐CompletionEvidence,CompletionEvidenceFromTransactions⇐CompletionEvidenceFromTransactions,CompletionEvidenceFromContext⇐CompletionEvidenceFromContext,PlanIdsInCycle⇐PlanIdsInCycle,PlanIdsInCycleFromEvidence⇐PlanIdsInCycleFromEvidence,PlanIdsInCycleFromContext⇐PlanIdsInCycleFromContext}

@@ -16,6 +16,11 @@ transactions ← ⟨
   Transaction ⟨"2026-06-20", ⟨Posting ⟨"assets:bank", ¯5⟩, Posting ⟨"expenses:food", 5⟩⟩⟩
 ⟩
 
+# Report consumers can derive dates from their context without touching base.
+# The deliberately missing base makes any accidental source fallback fail.
+preparedContext ← {base⇐"fixtures/does-not-exist", actual_transactions⇐transactions}
+⟨"2026-06-15", "2026-06-20"⟩ lib.AssertEq actual_source.DatesFromContext preparedContext
+
 preparedOnly ← cycle.ReadCycleFromAdmittedTransactions ⟨"fixtures/cycle-prepared-evidence", transactions⟩
 "incomeAnchor" lib.AssertEq preparedOnly.mode
 "2026-06-15" lib.AssertEq preparedOnly.start
@@ -25,7 +30,7 @@ preparedOnly ← cycle.ReadCycleFromAdmittedTransactions ⟨"fixtures/cycle-prep
 # The compatibility evidence carrier may contain the historical fallback shape;
 # cycle interpretation preserves its delta-based income semantics without I/O.
 LegacyPosting ← {𝕊 account‿delta: {account_key⇐account, delta⇐delta} }
-LegacyTransaction ← {𝕊 dateText‿postings: {date⇐dateText, postings⇐postings} }
+LegacyTransaction ← {𝕊 dateText‿postings: {date⇐dateText,description⇐"prepared completion",plan_id⇐"pid-"∾dateText,postings⇐postings} }
 legacyTransactions ← ⟨
   LegacyTransaction ⟨"2026-06-15", ⟨LegacyPosting ⟨"income:salary", ¯100⟩, LegacyPosting ⟨"assets:bank", 100⟩⟩⟩,
   LegacyTransaction ⟨"2026-06-20", ⟨LegacyPosting ⟨"assets:bank", ¯5⟩, LegacyPosting ⟨"expenses:food", 5⟩⟩⟩
@@ -36,6 +41,15 @@ preparedOnly.mode lib.AssertEq legacyPrepared.mode
 preparedOnly.start lib.AssertEq legacyPrepared.start
 preparedOnly.end_exclusive lib.AssertEq legacyPrepared.end_exclusive
 preparedOnly.day_count lib.AssertEq legacyPrepared.day_count
+
+# Completion and plan-ID consumers reuse the same historical transaction shape
+# from context without touching the deliberately missing base.
+legacyContext ← {base⇐"fixtures/does-not-exist",cy⇐preparedOnly,actual_transactions⇐legacyTransactions}
+completion ← actual_source.CompletionEvidenceFromContext legacyContext
+2 lib.AssertEq ≠ completion
+⟨"pid-2026-06-15", "pid-2026-06-20"⟩ lib.AssertEq {𝕩.plan_id}¨completion
+⟨100, 5⟩ lib.AssertEq {𝕩.amount}¨completion
+⟨"pid-2026-06-15", "pid-2026-06-20"⟩ lib.AssertEq actual_source.PlanIdsInCycleFromContext legacyContext
 
 # On a complete production fixture, source-loaded and already-admitted evidence
 # resolve the same cycle contract.

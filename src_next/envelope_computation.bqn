@@ -186,8 +186,7 @@ DecideStatus ← {𝕊 tgt‿selected_indices‿allocated:
 }
 
 # ── Latest Actual Date ───────────────────────────────────────
-LatestActualDateInCycle ← {𝕊 base‿cy:
-  dates ← actual_source.LoadDates base
+LatestActualDateInCycleFromDates ← {𝕊 dates‿cy:
   available_cycle ← (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (cy.day_count > 0)
   out ← "unavailable/no_data"
   {𝕊:
@@ -204,6 +203,10 @@ LatestActualDateInCycle ← {𝕊 base‿cy:
   out
 }
 
+LatestActualDateInCycle ← {𝕊 base‿cy:
+  LatestActualDateInCycleFromDates ⟨actual_source.LoadDates base, cy⟩
+}
+
 # ── Execution planned coverage diagnostic ────────────────────
 CleanName ← {
   ( "expenses:" unav.StartsWith 𝕩 ) ? 9 ↓ 𝕩 ;
@@ -212,7 +215,7 @@ CleanName ← {
   𝕩
 }
 
-BuildExecutionPlannedCoverage ← {𝕊 base‿cy‿envelopes‿cfg:
+BuildExecutionPlannedCoverage ← {𝕊 base‿cy‿envelopes‿cfg‿completionEvidence:
   env_label ← cfg.ExecutionPlannedPaymentsEnvelope @
   cycleAvail ← (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (cy.day_count > 0)
   disabled ← (0 = ≠ env_label) ∨ (¬ cycleAvail)
@@ -232,7 +235,7 @@ BuildExecutionPlannedCoverage ← {𝕊 base‿cy‿envelopes‿cfg:
       env ← env_idx ⊑ envelopes
       env_remaining ↩ env.remaining
 
-      shared ← plan_rows.BuildBase ⟨base, cy⟩
+      shared ← plan_rows.BuildBaseFromCompletionEvidence ⟨base, cy, completionEvidence⟩
       open_indices ← (¬ shared.completed_mask) / ↕ ≠ shared.rows
 
       ParsePlanRow ← {𝕊 idx:
@@ -264,12 +267,12 @@ BuildExecutionPlannedCoverage ← {𝕊 base‿cy‿envelopes‿cfg:
 }
 
 # ── Multi-envelope calculation ───────────────────────────────
-BuildEnvelopes ← {𝕊 base‿resolved‿cy‿valid_rows:
+BuildEnvelopes ← {𝕊 base‿resolved‿cy‿valid_rows‿actualDates:
   cfg ← conf.LoadConfig base
   life_groups ← cfg.HouseholdGroupLifeLabels @
   reserve_groups ← cfg.HouseholdGroupReserveLabels @
 
-  as_of ← LatestActualDateInCycle ⟨base, cy⟩
+  as_of ← LatestActualDateInCycleFromDates ⟨actualDates, cy⟩
   has_as_of ← ¬ unav.IsUnavailable as_of
 
   budget_mask ← BudgetAccountMask resolved
@@ -480,10 +483,18 @@ BuildFromInputs ← {𝕊 tgt‿resolved‿cy‿valid_rows‿alloc_lines:
 # Build: compute envelope balances from context.
 # Args: ctx (context namespace)
 BuildCtx ← {𝕊 ctx:
-  Build ⟨ctx.base, ctx.resolved, ctx.cy, ctx.cube.valid_rows, ctx.tbds⟩
+  dates ← actual_source.DatesFromContext ctx
+  completion ← actual_source.CompletionEvidenceFromContext ctx
+  BuildWithPreparedActual ⟨ctx.base, ctx.resolved, ctx.cy, ctx.cube.valid_rows, ctx.tbds, dates, completion⟩
 }
 
 Build ← {𝕊 base‿resolved‿cy‿valid_rows‿tbds_rows:
+  dates ← actual_source.LoadDates base
+  completion ← actual_source.CompletionEvidence base
+  BuildWithPreparedActual ⟨base, resolved, cy, valid_rows, tbds_rows, dates, completion⟩
+}
+
+BuildWithPreparedActual ← {𝕊 base‿resolved‿cy‿valid_rows‿tbds_rows‿actualDates‿completionEvidence:
   cfg ← conf.LoadConfig base
   is_none ← "none" ≡ cfg.PolicyBudgetStyle @
 
@@ -491,7 +502,7 @@ Build ← {𝕊 base‿resolved‿cy‿valid_rows‿tbds_rows:
     { 𝕊 ⋄
       tgt ← PolicyForBase base
 
-      envelopes ← BuildEnvelopes ⟨base, resolved, cy, valid_rows⟩
+      envelopes ← BuildEnvelopes ⟨base, resolved, cy, valid_rows, actualDates⟩
 
       matching_idx ← ({𝕩.label}¨ envelopes) ⊐ ⟨tgt.label⟩
       has_match ← matching_idx < ≠ envelopes
@@ -535,7 +546,7 @@ Build ← {𝕊 base‿resolved‿cy‿valid_rows‿tbds_rows:
 
       unassigned ← CalcUnassignedRemaining ⟨resolved, valid_rows⟩
       backing ← CalcEnvelopeBacking ⟨resolved, tbds_rows, valid_rows, envelopes, unassigned⟩
-      execution_planned ← BuildExecutionPlannedCoverage ⟨base, cy, envelopes, cfg⟩
+      execution_planned ← BuildExecutionPlannedCoverage ⟨base, cy, envelopes, cfg, completionEvidence⟩
 
       {
         target_id ⇐ tgt.target_id,

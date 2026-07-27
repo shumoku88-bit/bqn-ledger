@@ -47,7 +47,7 @@ Build ← {𝕊 ctx:
   planInCycle ← planInCycleMask / planLines
   planPlanIds ← PlanId¨ planInCycle
 
-  completion ← actual_source.CompletionEvidence base
+  completion ← actual_source.CompletionEvidenceFromContext ctx
   IsCompletionInCycle ← {𝕊 ev: day←proj.ResolveDayFromCycle ⟨ev.date,cy.start⟩ ⋄ (day≥0)∧day<cy.day_count}
   journalInCycle ← (IsCompletionInCycle¨completion)/completion
   journalPlanIds ← {𝕩.plan_id}¨journalInCycle

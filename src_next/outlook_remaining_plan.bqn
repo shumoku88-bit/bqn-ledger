@@ -57,13 +57,20 @@ BuildEvidenceFromLines ← {𝕊 plan_lines‿journal_lines‿cy:
   }¨ ↕ ≠ plan_lines
 }
 
-BuildSourceEvidence ← {𝕊 base‿cy:
+BuildSourceEvidenceFromPlanIds ← {𝕊 base‿completed_ids:
   plan_lines ← loader.ReadLinesOptional (base ∾ "/plan.tsv")
-  completed_ids ← actual_source.PlanIdsInCycle ⟨base,cy⟩
   {𝕊 i:
     line←i⊑plan_lines ⋄ flds←loader.SplitTsvKeepEmpty line ⋄ pid←plan_rows.PlanId line
     {source_row⇐i,line⇐line,flds⇐flds,date⇐source_fields.FieldOrEmpty ⟨flds,0⟩,plan_id⇐pid,completed⇐(0<≠pid)∧∨´0∾pid⊸≡¨completed_ids}
   }¨↕≠plan_lines
+}
+
+BuildSourceEvidence ← {𝕊 base‿cy:
+  BuildSourceEvidenceFromPlanIds ⟨base, actual_source.PlanIdsInCycle ⟨base, cy⟩⟩
+}
+
+BuildSourceEvidenceFromContext ← {𝕊 ctx:
+  BuildSourceEvidenceFromPlanIds ⟨ctx.base, actual_source.PlanIdsInCycleFromContext ctx⟩
 }
 
 AnchorInfo ← {𝕊 flds:
@@ -272,7 +279,7 @@ BuildFromEvidence ← {𝕊 ctx‿as_of‿evidence:
 }
 
 BuildAt ← {𝕊 ctx‿as_of:
-  evidence ← BuildSourceEvidence ⟨ctx.base, ctx.cy⟩
+  evidence ← BuildSourceEvidenceFromContext ctx
   BuildFromEvidence ⟨ctx, as_of, evidence⟩
 }
 

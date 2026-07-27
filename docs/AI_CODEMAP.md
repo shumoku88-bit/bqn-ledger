@@ -114,7 +114,8 @@ Updated: 2026-07-26
 - `friend_travel_jpy_finalization.bqn` — pending friend-travel source-event descriptor、明示 finalization date / JPY amount、既存account descriptor、既存finalization IDだけを入力にするpure validator。成功時は既存JPY liability → JPY expenseのcanonical previewを正確に1行返し、失敗時はprivacy-safe diagnosticsと0行を返す。I/O、status/index mutation、writer、public runtime配線は持たない。
 - `friend_travel_source_event.bqn` — Israel用friend-paid pending source eventの固定9列、ILS精度、固定payer/trip/status、既存全行検査、ID一意性、exact preview rowを所有するpure validator。I/Oとfinalizationを持たない。
 - `travel_exchange_event.bqn` — Israel用JPY↔ILS bidirectional exchangeの2観測amount、明示source/target currencyごとのprecision、既存account descriptor、ID一意性を検査しstructured previewを返すpure owner。I/O、rate、journal row、valuation、account-name inferenceを持たない。
-- `actual_source.bqn` — configured native Journal resolver、date/completion evidence、transaction loadの共有owner。`LoadCycleEvidence`はcomplete admissionを優先し、失敗時は既存historical parser fallback shapeを明示carrierで返す。`IncomeDatesFromCompleteTransactions` / `IncomeDatesFromCycleEvidence`はI/Oなしで各shapeのincome dateを抽出する。declaration-only Journalは通貨共通の正常なempty Actualとしてadmitされる。Actual source file fallbackはない。
+- `actual_observation.bqn` — prepared Actual datesからreport-local observation coordinateを導くI/O-free policy owner。Daily Flow/Trendの`start + day_count` windowと、Planned Payments/Cycle Summaryのexplicit half-open cycle windowという、consumer間でexact parityが確認された2 policyだけを共有する。invalid-date filtering、source-order、explicit absence、open-ended frontierは統合しない。
+- `actual_source.bqn` — configured native Journal resolver、date/completion evidence、transaction loadの共有owner。`LoadCycleEvidence`はcomplete admissionを優先し、失敗時は既存historical parser fallback shapeを明示carrierで返す。`IncomeDatesFromCompleteTransactions` / `IncomeDatesFromCycleEvidence`はI/Oなしで各shapeのincome dateを抽出する。`DatesFromTransactions` / `DatesFromContext`はreport consumerがcontext-carried Actual transactionsを再利用するprepared date境界で、focused mock向けbase fallbackだけを残す。`CompletionEvidenceFromTransactions` / `FromContext`と`PlanIdsInCycleFromEvidence` / `FromContext`はcompatibility contextのhistorical transaction shapeからdelta-based completion identityを再構成し、selected complete shapeとは混ぜない。declaration-only Journalは通貨共通の正常なempty Actualとしてadmitされる。Actual source file fallbackはない。
 - `loader.bqn` — source ファイル読み込み (`•FChars` 使用)。
 - `cube.bqn` — Canonical Daily Cube (`Day × Account × Layer`) の構築。
 - `tbds.bqn` — Trial Balance Data Set (period/account/layer/opening/movement/closing)。
@@ -133,7 +134,7 @@ Updated: 2026-07-26
 - `cycle_summary.bqn` — サイクル収支 (Income Statement)。
 - `expense_breakdown.bqn` — サイクル支出内訳。
 - `envelope_computation.bqn` — 封筒予算計算。封筒ごとの allocated/spent/remaining に加え、`accounts.tsv` の `role=budget kind=unassigned` から未割当 budget pool 残高と OVER_ALLOCATED status を出す。human section は `envelope_role=dynamic|execution`（未指定 `kind=envelope` は dynamic fallback）で Dynamic / Execution / Unassigned / Backing diagnostic に分ける。さらに readonly 診断として、暫定 `type=liquid` ベースの `envelope_funding_base` と active 封筒残高合計との差分（現金裏付け未割当 / backing_status）を出す。`EXECUTION_PLANNED_PAYMENTS_ENVELOPE` 設定時は、指定 execution envelope と未了 planned payments の coverage 差分も readonly で出す。
-- `planned_payments.bqn` — 予定支払い表示。
+- `planned_payments.bqn` — current-cycle予定支払いsection。context adapterはprepared datesと`plan_rows` evidenceを取得し、I/O-free `BuildViewModelFromPrepared`へ渡す。compactとhuman/JSONは別prepared VMを持ち、pure rendererの外側に既存context entrypointを残す。
 - `recent_journal.bqn` — 最近の仕訳表示。
 - `readiness_check.bqn` — データ品質チェック。
 - `outlook.bqn` — 見通し・日割り計算。
@@ -249,7 +250,9 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 - `test_journal_leading_ascii_space_description_characterization.bqn` — status marker後の必須ASCII SPACEを一文字だけdelimiterとして消費し、残るdescription-owned leading ASCII SPACEをTransaction IRへexactに保存する回帰test。delimiter欠落とempty payloadを区別してrejectし、converterによる一文字・二文字のleading-space exact round-tripとStage 2Aの16-field shape不変も固定する。
 - `test_journal_native_three_posting_semantic_parity.bqn` — native Journal 3 rowsとlegacy TSV 4 rowsのtopology差を保持したまま、共通semantic coordinate reductionとnumeric Cube payloadの一致を既存境界だけで検証するfocused test。
 - `test_src_next_selected_domain_context.bqn` — mixed Journalとplan/budget evidenceからJPY/ILS/USDを同じ経路で1通貨だけ構成し、empty/other-currency Actual、domain/scale isolation、fail-closed mismatch、同名accountのcurrency coordinate分離に加え、unsupported policyがsource workを止め、Actual admission failureがnon-Actual preparationを止めるfirst-failure stage priorityを検証する。
-- `test_src_next_cycle_prepared_evidence.bqn` — Actual source fileを持たないfixtureでalready-admitted income evidenceからincome-anchor cycleを解決し、完全production fixtureではsource-loaded routeとmode/start/end/day_countが一致することを検証する。
+- `test_src_next_planned_payments.bqn` — production fixtureのhuman contractに加え、base/contextを持たないprepared evidenceからsemantic/compact VMとcompact/JSON renderingを構成できることを固定する。
+- `test_src_next_actual_observation.bqn` — 共有された2つのActual observation policyについて、unsorted dates、half-open終端、empty fallback、unavailable cycle、および不整合なsynthetic cycleで両policyのwindow ownershipが異なることを固定する。
+- `test_src_next_cycle_prepared_evidence.bqn` — Actual source fileを持たないfixtureでalready-admitted income evidenceからincome-anchor cycleを解決し、完全production fixtureではsource-loaded routeとmode/start/end/day_countが一致することを検証する。存在しないbaseを持つprepared contextからActual dates、completion amount/identity、cycle-local plan IDsをI/Oなしで抽出できることも固定する。
 - `test_lib.bqn` — テストフレームワーク (Assert, AssertEq)。
 - `test_find_section.bqn`, `test_simple.bqn` — 汎用テスト。
 

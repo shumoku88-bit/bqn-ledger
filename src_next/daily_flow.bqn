@@ -3,6 +3,7 @@
 # Shows daily breakdown of income, major envelope expenses, others, and net.
 
 actual_source ← •Import "actual_source.bqn"
+actual_observation ← •Import "actual_observation.bqn"
 dt ← •Import "date.bqn"
 cube ← •Import "cube.bqn"
 fmt ← •Import "format.bqn"
@@ -41,17 +42,7 @@ TrimBudgetPrefix ← {
 }
 
 LatestActualDateInCycle ← {𝕊 base‿cy:
-  dates ← actual_source.LoadDates base
-  available ← (cy.start ≢ "unavailable") ∧ (cy.day_count > 0)
-  out ← cy.start
-  {𝕊:
-    start_dn ← dt.DaysFromEpoch cy.start
-    end_dn ← start_dn + cy.day_count
-    DateInCycle ← {𝕊 d: dn ← dt.DaysFromEpoch d ⋄ (dn ≥ start_dn) ∧ (dn < end_dn) }
-    in_dates ← (DateInCycle¨ dates) / dates
-    {𝕊: out ↩ ¯1 ⊑ (∧ in_dates)}⍟(0 < ≠ in_dates) @
-  }⍟(available ∧ (0 < ≠ dates)) @
-  out
+  actual_observation.LatestInDayCountWindowOrStart ⟨actual_source.LoadDates base, cy⟩
 }
 
 BuildAvailable ← {𝕊 ctx:
@@ -98,7 +89,7 @@ BuildAvailable ← {𝕊 ctx:
   j_projs ← (0 = {𝕩.layer_index}¨ valid_rows) / valid_rows
   j_dates ← {𝕩.date}¨ j_projs
 
-  as_of ← LatestActualDateInCycle ⟨base, cy⟩
+  as_of ← actual_observation.LatestInDayCountWindowOrStart ⟨actual_source.DatesFromContext ctx, cy⟩
   trend_dates_all ← j_dates ∾ ⟨as_of⟩
   dns ← dt.DaysFromEpoch¨ trend_dates_all
   ord ← ⍋ dns

@@ -156,13 +156,19 @@ if grep -REn '[.]ResolveDay([^A-Za-z0-9_]|$)|[.](IsDigits|IsIntegerText|MetaValu
 fi
 
 # P3a-P3j restore direct date ownership in date-only projection consumers.
-for file in "$CYCLE" "$ACTUAL_SNAPSHOT" "$ACTUAL_COMPARISON" "$YTD_SUMMARY" "$PLANNED_PAYMENTS" "$ACTUAL_SOURCE" "$TBDS" "$DAILY_FLOW" "$DAILY_TREND" "$SNAPSHOT" "$CALC_MAIN" "$OUTLOOK"; do
+for file in "$CYCLE" "$ACTUAL_SNAPSHOT" "$ACTUAL_COMPARISON" "$YTD_SUMMARY" "$ACTUAL_SOURCE" "$TBDS" "$DAILY_FLOW" "$DAILY_TREND" "$SNAPSHOT" "$CALC_MAIN" "$OUTLOOK"; do
     require_file_match "$file" '•Import "([.][.]/)?date[.]bqn"' "direct date import is missing from ${file#$ROOT_DIR/}"
     reject_file_match "$file" '•Import "([.][.]/)?projection[.]bqn"' "date-only projection dependency returned in ${file#$ROOT_DIR/}"
     reject_file_match "$file" 'proj[.](IsValidDateText|DaysFromEpoch)' "forwarded projection date call remains in ${file#$ROOT_DIR/}"
 done
 reject_file_match "$DATE_TEST" '•Import "[.][.]/src_next/projection[.]bqn"' 'focused date test imports projection again'
 reject_file_match "$DATE_TEST" 'proj[.](IsValidDateText|DaysFromEpoch)' 'focused date test treats projection aliases as contract again'
+
+# Planned Payments no longer interprets dates directly; its exact shared
+# observation policy is owned by actual_observation.bqn.
+require_file_match "$PLANNED_PAYMENTS" '•Import "actual_observation[.]bqn"' 'prepared observation owner is missing from src_next/planned_payments.bqn'
+reject_file_match "$PLANNED_PAYMENTS" '•Import "date[.]bqn"' 'obsolete direct date ownership returned in src_next/planned_payments.bqn'
+reject_file_match "$PLANNED_PAYMENTS" '•Import "([.][.]/)?projection[.]bqn"' 'date-only projection dependency returned in src_next/planned_payments.bqn'
 
 # P3k restores direct date ownership; P6c removes the final non-date projection dependency.
 require_file_match "$DAILY_TREND_PLAN" '•Import "([.][.]/)?date[.]bqn"' 'direct date import is missing from src_next/daily_trend_plan.bqn'

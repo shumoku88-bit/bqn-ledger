@@ -28,13 +28,12 @@ InCycle ← {𝕊 cy‿line:
   (day ≥ 0) ∧ (day < cy.day_count)
 }
 
-BuildBase ← {𝕊 base‿cy:
+BuildBaseFromCompletionEvidence ← {𝕊 base‿cy‿completion_evidence0:
   plan_lines ← loader.ReadLinesOptional (base ∾ "/plan.tsv")
   plan_mask ← { InCycle ⟨cy, 𝕩⟩ }¨ plan_lines
   rows ← plan_mask / plan_lines
   GetDate ← { ⊑ Pad5 loader.SplitTsvKeepEmpty 𝕩 }
   rows ↩ (⍋ GetDate¨ rows) ⊏ rows
-  completion_evidence0 ← actual_source.CompletionEvidence base
   InCycleEvidence ← {𝕊 ev:
     ok ← dt.IsValidDateText ev.date
     inside ← 0
@@ -52,6 +51,16 @@ BuildBase ← {𝕊 base‿cy:
     completion_evidence ⇐ completion_evidence,
     journal_plan_ids ⇐ journal_plan_ids
   }
+}
+
+BuildBase ← {𝕊 base‿cy:
+  completion ← actual_source.CompletionEvidence base
+  BuildBaseFromCompletionEvidence ⟨base, cy, completion⟩
+}
+
+BuildBaseFromContext ← {𝕊 ctx:
+  completion ← actual_source.CompletionEvidenceFromContext ctx
+  BuildBaseFromCompletionEvidence ⟨ctx.base, ctx.cy, completion⟩
 }
 
 # Value attachment
@@ -102,12 +111,21 @@ Build ← {𝕊 base‿cy‿as_of:
   WithTemporal ⟨valued_view, as_of⟩
 }
 
+BuildFromContext ← {𝕊 ctx‿as_of:
+  base_view ← BuildBaseFromContext ctx
+  valued_view ← WithValues base_view
+  WithTemporal ⟨valued_view, as_of⟩
+}
+
 # Public exports
 {
   PlanId ⇐ PlanId,
   InCycle ⇐ InCycle,
   BuildBase ⇐ BuildBase,
+  BuildBaseFromCompletionEvidence ⇐ BuildBaseFromCompletionEvidence,
+  BuildBaseFromContext ⇐ BuildBaseFromContext,
   WithValues ⇐ WithValues,
   WithTemporal ⇐ WithTemporal,
-  Build ⇐ Build
+  Build ⇐ Build,
+  BuildFromContext ⇐ BuildFromContext
 }

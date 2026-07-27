@@ -23,8 +23,7 @@ IsMember ← { list ← 𝕨 ⋄ item ← 𝕩 ⋄ (⊑ list ⊐ ⟨item⟩) < �
 # this helper keeps absence explicit instead of falling back to cycle.start.
 # Invalid-date source evidence is handled by actual_snapshot fail-closed status;
 # frontier discovery must not crash before that status can propagate.
-RecordedFrontierInfo ← {𝕊 base‿cy:
-  dates0 ← actual_source.LoadDates base
+RecordedFrontierInfoFromDates ← {𝕊 dates0‿cy:
   scope_available ← (cy.start ≢ "unavailable") ∧ (cy.day_count > 0)
   found ← 0
   out ← ""
@@ -39,6 +38,10 @@ RecordedFrontierInfo ← {𝕊 base‿cy:
     }⍟(0 < ≠ in_dates) @
   }⍟(scope_available ∧ (0 < ≠ dates0)) @
   { available ⇐ found, date ⇐ out }
+}
+
+RecordedFrontierInfo ← {𝕊 base‿cy:
+  RecordedFrontierInfoFromDates ⟨actual_source.LoadDates base, cy⟩
 }
 
 # Compatibility helper. Current callers historically receive cycle.start when
@@ -263,14 +266,17 @@ BuildWithSnapshot ← {𝕊 ctx‿as_of‿frontier‿legacy_default:
 
 # Caller-owned explicit Outlook observation path.
 BuildAt ← {𝕊 ctx‿as_of:
-  frontier ← RecordedFrontierInfo ⟨ctx.base, ctx.cy⟩
+  dates ← actual_source.DatesFromContext ctx
+  frontier ← RecordedFrontierInfoFromDates ⟨dates, ctx.cy⟩
   BuildWithSnapshot ⟨ctx, as_of, frontier, 0⟩
 }
 
 # Compatibility default: preserve current local-L observation policy.
 Build ← {𝕊 ctx:
-  frontier ← RecordedFrontierInfo ⟨ctx.base, ctx.cy⟩
-  as_of ← LatestActualDateInCycle ⟨ctx.base, ctx.cy⟩
+  dates ← actual_source.DatesFromContext ctx
+  frontier ← RecordedFrontierInfoFromDates ⟨dates, ctx.cy⟩
+  as_of ← ctx.cy.start
+  {𝕊: as_of ↩ frontier.date}⍟frontier.available @
   BuildWithSnapshot ⟨ctx, as_of, frontier, 1⟩
 }
 

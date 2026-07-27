@@ -11,21 +11,12 @@ fmt ← •Import "format.bqn"
 labels ← •Import "report_labels.bqn"
 plan_rows ← •Import "plan_rows.bqn"
 actual_source ← •Import "actual_source.bqn"
+actual_observation ← •Import "actual_observation.bqn"
 L ← labels.Text
 cube ← •Import "cube.bqn"
 
 LatestActualDateInCycle ← {𝕊 base‿cy:
-  dates ← actual_source.LoadDates base
-  available ← (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (cy.day_count > 0)
-  out ← cy.start
-  {𝕊:
-    start_dn ← dt.DaysFromEpoch cy.start
-    end_dn ← dt.DaysFromEpoch cy.end_exclusive
-    DateInCycle ← {𝕊 d: dn ← dt.DaysFromEpoch d ⋄ (dn ≥ start_dn) ∧ (dn < end_dn) }
-    in_dates ← (DateInCycle¨ dates) / dates
-    {𝕊: out ↩ ¯1 ⊑ (∧ in_dates)}⍟(0 < ≠ in_dates) @
-  }⍟(available ∧ (0 < ≠ dates)) @
-  out
+  actual_observation.LatestInCycleOrStart ⟨actual_source.LoadDates base, cy⟩
 }
 
 MakeDiagnostic ← {𝕊 source_row‿status‿date‿message:
@@ -67,9 +58,11 @@ BuildRemainingEvidenceFromLines ← {𝕊 plan_lines‿journal_lines‿cy:
   }¨ ↕ ≠ plan_lines
 }
 
-BuildRemainingEvidence ← {𝕊 base‿cy:
+BuildRemainingEvidence ← {𝕊 ctx:
+  base ← ctx.base
+  cy ← ctx.cy
   plan_lines ← loader.ReadLinesOptional (base ∾ "/plan.tsv")
-  completed_ids ← actual_source.PlanIdsInCycle ⟨base,cy⟩
+  completed_ids ← actual_source.PlanIdsInCycleFromContext ctx
   {𝕊 i:
     line ← i⊑plan_lines
     flds ← loader.SplitTsvKeepEmpty line
@@ -180,7 +173,7 @@ PlanExpenseRemainingAt ← {𝕊 ctx‿as_of‿fallback_total:
     amount ⇐ fallback_total
   }
   {𝕊:
-    evidence ← BuildRemainingEvidence ⟨base, ctx.cy⟩
+    evidence ← BuildRemainingEvidence ctx
     result ↩ BuildRemainingFromEvidence ⟨ctx, as_of, evidence⟩
   }⍟(0 < ≠ base) @
   result
@@ -196,7 +189,7 @@ Build ← {𝕊 ctx:
 
   # Calculate the Cycle Summary observation boundary and days remaining.
   base ← ({𝕊: ctx.base}⎊{𝕊: ""}) @
-  as_of ← { (0 < ≠ base) ? (LatestActualDateInCycle ⟨base, ctx.cy⟩) ; "unavailable" }
+  as_of ← { (0 < ≠ base) ? (actual_observation.LatestInCycleOrStart ⟨actual_source.DatesFromContext ctx, ctx.cy⟩) ; "unavailable" }
   days_remaining ← ((as_of ≡ "unavailable") ∨ (ctx.cy.end_exclusive ≡ "unavailable")) ◶ ⟨ { 𝕩 ⋄
     as_dn ← dt.DaysFromEpoch as_of
     end_dn ← dt.DaysFromEpoch ctx.cy.end_exclusive

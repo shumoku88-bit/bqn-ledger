@@ -14,14 +14,14 @@ This is a lightweight notebook for current work. Completed implementation histor
 
 ## Current investigation
 
-Full report/cache generation still constructs the ordinary compatibility `BuildContext` and a second selected-domain context for balances. Selected cycle/composition reuse complete admission, while compatibility `BuildContext` reuses one source-owned complete-or-fallback cycle evidence result across default and explicit period resolution. On the public sandbox, sequential context median time fell from about 400 ms to 80 ms; selected overhead is now about 30 ms. Timings are observations, not gates.
+Full report/cache generation still constructs the ordinary compatibility `BuildContext` and a second selected-domain context for balances. Selected cycle/composition reuse complete admission, while compatibility `BuildContext` reuses one source-owned complete-or-fallback cycle evidence result across default and explicit period resolution. Context-based report consumers now derive Actual dates and compatibility completion/plan-ID evidence from `ctx.actual_transactions` instead of reloading the Journal; their distinct no-data, identity, cycle-scope, and observation policies remain local. On the public sandbox, sequential context median time fell from about 400 ms to 80 ms before this consumer slice; timings are observations, not gates.
 
 Evidence is recorded in:
 
 - `docs/REPORT_CONTEXT_DUPLICATION_CHARACTERIZATION-2026-07-27.md`
 - `tools/characterization/report_context_duplication_probe.bqn`
 
-Do not collapse the routes into one universal context or reuse compatibility posting rows as selected-domain rows without contract evidence. Remaining duplication includes account/raw source reads between contexts, non-Actual preparation, and the second Cube/TBDS view. Current performance no longer justifies a risky universal-context merge; characterize report-consumer source reloads before choosing another context-sharing seam.
+Do not collapse the routes into one universal context or reuse compatibility posting rows as selected-domain rows without contract evidence. Remaining duplication includes account/raw source reads between contexts, non-Actual preparation, and the second Cube/TBDS view. Current performance no longer justifies a risky universal-context merge. Completion evidence and plan-ID matching were migrated as a separate historical-shape slice after preserving their delta, fallback-identity, and cycle-filter contracts. Exact duplicate Actual-observation logic now has a narrow pure owner for the Daily Flow/Trend and Planned Payments/Cycle Summary pairs; section-specific invalid-date, source-order, absence, and open-ended frontier policies remain local. Planned Payments is the first section explicitly shaped as context adapter → prepared semantic VM → pure renderer, while its compact path remains independent from human/JSON temporal attachment. Remaining plan/non-Actual reads should only be shared when measurements justify a prepared snapshot boundary.
 
 ## Other useful directions
 

@@ -4,13 +4,12 @@
 # Plan/journal matching uses plan_id metadata (primary) with 5-field TSV fallback.
 
 loader ← •Import "loader.bqn"
-date ← •Import "date.bqn"
-cube ← •Import "cube.bqn"
 fmt ← •Import "format.bqn"
 labels ← •Import "report_labels.bqn"
 json ← •Import "json.bqn"
 plan_rows ← •Import "plan_rows.bqn"
 actual_source ← •Import "actual_source.bqn"
+actual_observation ← •Import "actual_observation.bqn"
 L ← labels.Text
 
 # ── CleanName helper ──────────────────────────────────────
@@ -43,32 +42,12 @@ FormatLine ← {𝕊 line‿status:
 
 # Latest in-cycle actual journal date.
 LatestActualDateInCycle ← {𝕊 base‿cy:
-  dates ← actual_source.LoadDates base
-  available_cycle ← (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (cy.day_count > 0)
-  out ← cy.start
-  {𝕊:
-    start_dn ← date.DaysFromEpoch cy.start
-    end_dn ← date.DaysFromEpoch cy.end_exclusive
-    DateInCycle ← {𝕊 d:
-      dn ← date.DaysFromEpoch d
-      (dn ≥ start_dn) ∧ (dn < end_dn)
-    }
-    in_dates ← (DateInCycle¨ dates) / dates
-    {𝕊: out ↩ ¯1 ⊑ (∧ in_dates)}⍟(0 < ≠ in_dates) @
-  }⍟(available_cycle ∧ (0 < ≠ dates)) @
-  out
+  actual_observation.LatestInCycleOrStart ⟨actual_source.LoadDates base, cy⟩
 }
 
-# BuildViewModel: compute planned-payment meaning once for human and
-# structured JSON renderers.
-# Current-cycle row selection, identity and completion evidence are shared
-# with envelope coverage through plan_rows.bqn.
-BuildViewModel ← {𝕊 ctx:
-  base ← ctx.base
-  cy ← ctx.cy
-  as_of ← LatestActualDateInCycle ⟨base, cy⟩
-
-  shared ← plan_rows.Build ⟨base, cy, as_of⟩
+# Pure semantic core. Current-cycle source selection, completion identity, and
+# temporal attachment are prepared by plan_rows before entering this boundary.
+BuildViewModelFromPrepared ← {𝕊 shared:
   rows ← shared.rows
   parsed ← shared.parsed
   planIds ← shared.plan_ids
@@ -107,23 +86,39 @@ BuildViewModel ← {𝕊 ctx:
   }
 }
 
-# Format: show plan entries with status from context.
-# Keep the compact path narrow: it does not depend on human/JSON as-of logic.
-Format ← {𝕊 ctx:
-  shared ← plan_rows.BuildBase ⟨ctx.base, ctx.cy⟩
-  rows ← shared.rows
-  statuses ← { 𝕩 ⊑ ⟨"planned", "paid"⟩ }¨ shared.completed_mask
+# Context adapter for the human/JSON semantic view.
+BuildViewModel ← {𝕊 ctx:
+  as_of ← actual_observation.LatestInCycleOrStart ⟨actual_source.DatesFromContext ctx, ctx.cy⟩
+  BuildViewModelFromPrepared (plan_rows.BuildFromContext ⟨ctx, as_of⟩)
+}
 
+# Compact output intentionally uses only cycle selection and completion state;
+# it does not acquire the human/JSON observation or temporal projection.
+BuildCompactViewModelFromPrepared ← {𝕊 shared:
+  {
+    rows ⇐ shared.rows,
+    statuses ⇐ { 𝕩 ⊑ ⟨"planned", "paid"⟩ }¨ shared.completed_mask
+  }
+}
+
+BuildCompactViewModel ← {𝕊 ctx:
+  BuildCompactViewModelFromPrepared (plan_rows.BuildBaseFromContext ctx)
+}
+
+FormatCompactViewModel ← {𝕊 vm:
+  rows ← vm.rows
+  statuses ← vm.statuses
   out ← "--- SrcNext Planned Payments ---" ∾ (@+10)
   { out ↩ out ∾ ∾ ({ FormatLine ⟨𝕩⊑rows, 𝕩⊑statuses⟩ }¨ ↕ ≠ rows) }⍟(0 < ≠ rows) @
   {𝕊: out ↩ out ∾ "src_next_planned_payment: (none)" ∾ (@+10)}⍟(0 = ≠ rows) @
   out
 }
 
-# FormatHuman: render planned payments as human-readable tables.
-FormatHuman ← {𝕊 ctx:
-  vm ← BuildViewModel ctx
+# Compatibility entrypoint: adapt context, then render only the compact VM.
+Format ← {𝕊 ctx: FormatCompactViewModel (BuildCompactViewModel ctx)}
 
+# Pure human renderer.
+FormatHumanViewModel ← {𝕊 vm:
   parsed ← vm.parsed
   cats ← vm.cats
   hstatuses ← vm.human_statuses
@@ -171,10 +166,11 @@ FormatHuman ← {𝕊 ctx:
   out
 }
 
-# FormatJson: render the same planned-payment view model as structured JSON.
-FormatJson ← {𝕊 ctx:
-  vm ← BuildViewModel ctx
+# Compatibility entrypoint: adapt context, then render only the semantic VM.
+FormatHuman ← {𝕊 ctx: FormatHumanViewModel (BuildViewModel ctx)}
 
+# Pure JSON renderer over the same semantic view model.
+FormatJsonViewModel ← {𝕊 vm:
   BuildOpenItem ← {
     idx ← 𝕩
     r ← idx⊑vm.parsed
@@ -215,4 +211,20 @@ FormatJson ← {𝕊 ctx:
   json.Serialize root
 }
 
-{ Format ⇐ Format, StatusFor ⇐ StatusFor, BuildViewModel ⇐ BuildViewModel, FormatHuman ⇐ FormatHuman, FormatJson ⇐ FormatJson, LatestActualDateInCycle ⇐ LatestActualDateInCycle, PlanId ⇐ PlanId }
+# Compatibility entrypoint: adapt context, then render only the semantic VM.
+FormatJson ← {𝕊 ctx: FormatJsonViewModel (BuildViewModel ctx)}
+
+{
+  Format ⇐ Format,
+  StatusFor ⇐ StatusFor,
+  BuildViewModel ⇐ BuildViewModel,
+  BuildViewModelFromPreparedForTest ⇐ BuildViewModelFromPrepared,
+  BuildCompactViewModelFromPreparedForTest ⇐ BuildCompactViewModelFromPrepared,
+  FormatCompactViewModelForTest ⇐ FormatCompactViewModel,
+  FormatHumanViewModelForTest ⇐ FormatHumanViewModel,
+  FormatJsonViewModelForTest ⇐ FormatJsonViewModel,
+  FormatHuman ⇐ FormatHuman,
+  FormatJson ⇐ FormatJson,
+  LatestActualDateInCycle ⇐ LatestActualDateInCycle,
+  PlanId ⇐ PlanId
+}

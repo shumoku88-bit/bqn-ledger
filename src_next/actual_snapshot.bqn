@@ -14,8 +14,7 @@ date ← •Import "date.bqn"
 cube ← •Import "cube.bqn"
 tbds ← •Import "tbds.bqn"
 
-LatestActualDateInCycle ← {𝕊 base‿cy:
-  dates0 ← actual_source.LoadDates base
+LatestActualDateInCycleFromDates ← {𝕊 dates0‿cy:
   available ← (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (cy.day_count > 0)
   out ← cy.start
   {𝕊:
@@ -27,6 +26,10 @@ LatestActualDateInCycle ← {𝕊 base‿cy:
     {𝕊: out ↩ ¯1 ⊑ (∧ in_dates)}⍟(0 < ≠ in_dates) @
   }⍟(available ∧ (0 < ≠ dates0)) @
   out
+}
+
+LatestActualDateInCycle ← {𝕊 base‿cy:
+  LatestActualDateInCycleFromDates ⟨actual_source.LoadDates base, cy⟩
 }
 
 EmptyErrorVm ← {𝕊 as_of‿reason‿diagnostics:
@@ -144,7 +147,8 @@ BuildAt ← {𝕊 ctx‿as_of:
 }
 
 Build ← {𝕊 ctx:
-  BuildAt ⟨ctx, LatestActualDateInCycle ⟨ctx.base, ctx.cy⟩⟩
+  dates ← actual_source.DatesFromContext ctx
+  BuildAt ⟨ctx, LatestActualDateInCycleFromDates ⟨dates, ctx.cy⟩⟩
 }
 
 { Build ⇐ Build, BuildAt ⇐ BuildAt, LatestActualDateInCycle ⇐ LatestActualDateInCycle }
