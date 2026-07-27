@@ -17,5 +17,19 @@ jobs:
           git clone --depth 1 --branch "$CBQN_REF" https://github.com/dzaima/CBQN.git
           make -C CBQN -j$(nproc)
           sudo cp CBQN/BQN /usr/local/bin/bqn
-      - name: Run focused selected-section check
-        run: bash -x checks/check-src-next-selected-section.sh fixtures/src-next-golden
+      - name: Capture focused selected-section check
+        id: focused
+        shell: bash
+        run: |
+          set +e
+          bash -x checks/check-src-next-selected-section.sh fixtures/src-next-golden >selected-section.out 2>selected-section.err
+          code=$?
+          printf '%s\n' "$code" >selected-section.code
+          exit 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: selected-section-diagnostic
+          path: |
+            selected-section.out
+            selected-section.err
+            selected-section.code
