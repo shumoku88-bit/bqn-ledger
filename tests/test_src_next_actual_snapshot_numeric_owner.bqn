@@ -4,6 +4,7 @@ lib ← •Import "test_lib.bqn"
 ctx_mod ← •Import "../src_next/context.bqn"
 actual_snapshot ← •Import "../src_next/actual_snapshot.bqn"
 outlook ← •Import "../src_next/outlook.bqn"
+SnapshotAt ← {𝕊 ctx‿asOf: actual_snapshot.BuildFromPrepared ⟨ctx.posting_rows, ctx.cube, ctx.resolved, asOf⟩}
 
 tab ← @+9
 Line ← {𝕊 fields: ∾ fields ∾¨ tab}
@@ -43,7 +44,7 @@ RowsFor ← {𝕊 lines:
 
 # Target fixture: checked Posting IR -> local [O,O+1) TBDS closing. Pre-cycle
 # history and the O-day row are included; later rows are excluded.
-at_o ← actual_snapshot.BuildAt ⟨ctx, observation⟩
+at_o ← SnapshotAt ⟨ctx, observation⟩
 "ok" lib.AssertEq at_o.state
 "snapshot_active" lib.AssertEq at_o.reason
 0 lib.AssertEq ≠ at_o.diagnostics
@@ -59,7 +60,7 @@ observation lib.AssertEq at_o.as_of
 
 # O remains the only cutoff. Moving it beyond cycle end admits the end-exclusive
 # and later out-of-cycle actual rows.
-after_cycle ← actual_snapshot.BuildAt ⟨ctx, "2026-02-12"⟩
+after_cycle ← SnapshotAt ⟨ctx, "2026-02-12"⟩
 "ok" lib.AssertEq after_cycle.state
 260 lib.AssertEq after_cycle.liq_total
 ⟨
@@ -71,7 +72,7 @@ after_cycle ← actual_snapshot.BuildAt ⟨ctx, "2026-02-12"⟩
 ⟩ lib.AssertEq after_cycle.entries
 
 # Invalid O fails closed rather than resembling a valid zero snapshot.
-invalid_o ← actual_snapshot.BuildAt ⟨ctx, "not-a-date"⟩
+invalid_o ← SnapshotAt ⟨ctx, "not-a-date"⟩
 "error" lib.AssertEq invalid_o.state
 "invalid_observation" lib.AssertEq invalid_o.reason
 "unavailable" lib.AssertEq invalid_o.liq_total
@@ -87,7 +88,7 @@ valid_lines ← ⟨
 # coordinate at or before O fails the cumulative snapshot closed.
 unknown_before_rows ← RowsFor valid_lines ∾ ⟨Line ⟨"2026-02-05", "bad", "assets:missing", "expenses:misc", "7"⟩⟩
 unknown_before_ctx ← ContextWithRows unknown_before_rows
-unknown_before ← actual_snapshot.BuildAt ⟨unknown_before_ctx, observation⟩
+unknown_before ← SnapshotAt ⟨unknown_before_ctx, observation⟩
 "error" lib.AssertEq unknown_before.state
 "rejected_actual_evidence" lib.AssertEq unknown_before.reason
 1 lib.AssertEq ≠ unknown_before.diagnostics
@@ -100,7 +101,7 @@ bad_diag ← ⊑ unknown_before.diagnostics
 # A rejected row after O is outside this snapshot. Valid rows through O still
 # produce the expected balance.
 unknown_after_rows ← RowsFor valid_lines ∾ ⟨Line ⟨"2026-02-06", "bad-later", "assets:missing", "expenses:misc", "7"⟩⟩
-unknown_after ← actual_snapshot.BuildAt ⟨ContextWithRows unknown_after_rows, observation⟩
+unknown_after ← SnapshotAt ⟨ContextWithRows unknown_after_rows, observation⟩
 "ok" lib.AssertEq unknown_after.state
 250 lib.AssertEq unknown_after.liq_total
 0 lib.AssertEq ≠ unknown_after.diagnostics
@@ -108,7 +109,7 @@ unknown_after ← actual_snapshot.BuildAt ⟨ContextWithRows unknown_after_rows,
 # Invalid-date actual evidence has no trustworthy coordinate and is therefore
 # applicability-unknown.
 invalid_date_rows ← RowsFor valid_lines ∾ ⟨Line ⟨"2026-02-30", "bad-date", "assets:cash", "expenses:misc", "7"⟩⟩
-invalid_date ← actual_snapshot.BuildAt ⟨ContextWithRows invalid_date_rows, observation⟩
+invalid_date ← SnapshotAt ⟨ContextWithRows invalid_date_rows, observation⟩
 "error" lib.AssertEq invalid_date.state
 "rejected_actual_evidence" lib.AssertEq invalid_date.reason
 1 lib.AssertEq ≠ invalid_date.diagnostics
@@ -116,7 +117,7 @@ invalid_date ← actual_snapshot.BuildAt ⟨ContextWithRows invalid_date_rows, o
 
 # A valid empty journal is a real zero snapshot, not unavailable/error.
 empty_rows ← RowsFor ⟨⟩
-empty_snapshot ← actual_snapshot.BuildAt ⟨ContextWithRows empty_rows, observation⟩
+empty_snapshot ← SnapshotAt ⟨ContextWithRows empty_rows, observation⟩
 "ok" lib.AssertEq empty_snapshot.state
 0 lib.AssertEq +´ empty_snapshot.amounts
 0 lib.AssertEq ≠ empty_snapshot.entries

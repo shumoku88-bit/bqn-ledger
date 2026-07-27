@@ -2,7 +2,7 @@
 
 lib ← •Import "test_lib.bqn"
 context ← •Import "../src_next/context.bqn"
-cycle ← •Import "../src_next/cycle.bqn"
+actual_source ← •Import "../src_next/actual_source.bqn"
 env ← •Import "../src_next/envelope_computation.bqn"
 outlook ← •Import "../src_next/outlook.bqn"
 
@@ -22,14 +22,17 @@ food_env ← ⊑ env_summary.envelopes
 200 lib.AssertEq food_env.actual_spent
 66 lib.AssertEq food_env.avg_spend
 
-# Characterization B: outlook LatestActualDateInCycle currently applies only
-# the lower cycle bound. For the historical July cycle, a 2026-08-02 journal
-# row is therefore selected even though end_exclusive is 2026-08-01.
+# Characterization B: Outlook's prepared frontier policy applies only the lower
+# cycle bound. For the historical July cycle, a 2026-08-02 journal row is
+# therefore selected even though end_exclusive is 2026-08-01.
 out_base ← "fixtures/src-next-outlook-historical-cycle-clock"
-out_cy ← cycle.ReadCycle out_base
+out_ctx ← context.BuildContext out_base
+out_cy ← out_ctx.cy
+frontier ← outlook.RecordedFrontierInfoFromDates ⟨actual_source.DatesFromContext out_ctx, out_cy⟩
 
 "2026-07-01" lib.AssertEq out_cy.start
 "2026-08-01" lib.AssertEq out_cy.end_exclusive
-"2026-08-02" lib.AssertEq outlook.LatestActualDateInCycle ⟨out_base, out_cy⟩
+1 lib.AssertEq frontier.available
+"2026-08-02" lib.AssertEq frontier.date
 
 •Out "test_src_next_temporal_clock_characterization.bqn: OK"

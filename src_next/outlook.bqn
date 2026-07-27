@@ -16,6 +16,29 @@ env_comp ← •Import "envelope_computation.bqn"
 
 IsMember ← { list ← 𝕨 ⋄ item ← 𝕩 ⋄ (⊑ list ⊐ ⟨item⟩) < ≠ list }
 
+# Compatibility source interpretation for obligations exactly on the next
+# cycle boundary. I/O stays in the adapter; this helper only interprets lines.
+NextObligationsFromLines ← {𝕊 planLines‿endExclusive:
+  endDn ← dt.DaysFromEpoch endExclusive
+  ObligationFor ← {𝕊 line:
+    flds ← loader.SplitTsvKeepEmpty line
+    result ← ⟨⟩
+    {𝕊:
+      pdate ← 0⊑flds
+      pdateDn ← dt.DaysFromEpoch pdate
+      isEnd ← pdateDn = endDn
+      toAcc ← 3⊑flds
+      isObligation ← "liabilities:" ≡ 12 ↑ toAcc
+      {𝕊:
+        amount ← (0 < ≠ 4⊑flds) ⊑ 0‿(•BQN (4⊑flds))
+        result ↩ ⟨⟨pdate, 1⊑flds, toAcc, amount⟩⟩
+      }⍟(isEnd ∧ isObligation) @
+    }⍟(0 < ≠ flds) @
+    result
+  }
+  ∾ ObligationFor¨ planLines
+}
+
 # ── Recorded actual frontier ─────────────────────────────────
 
 # Preserves the current Outlook producer scope: valid journal coordinates at or
@@ -38,19 +61,6 @@ RecordedFrontierInfoFromDates ← {𝕊 dates0‿cy:
     }⍟(0 < ≠ in_dates) @
   }⍟(scope_available ∧ (0 < ≠ dates0)) @
   { available ⇐ found, date ⇐ out }
-}
-
-RecordedFrontierInfo ← {𝕊 base‿cy:
-  RecordedFrontierInfoFromDates ⟨actual_source.LoadDates base, cy⟩
-}
-
-# Compatibility helper. Current callers historically receive cycle.start when
-# no frontier row exists.
-LatestActualDateInCycle ← {𝕊 base‿cy:
-  frontier ← RecordedFrontierInfo ⟨base, cy⟩
-  out ← cy.start
-  {𝕊: out ↩ frontier.date}⍟frontier.available @
-  out
 }
 
 ClassifyRecordFrontier ← {𝕊 as_of‿frontier:
@@ -77,8 +87,7 @@ ClassifyRecordFrontier ← {𝕊 as_of‿frontier:
 
 # ── Build ──────────────────────────────────────────────────
 
-ErrorVm ← {𝕊 ctx‿as_of‿frontier‿legacy_default‿failure:
-  cy ← ctx.cy
+ErrorVm ← {𝕊 cy‿as_of‿frontier‿legacy_default‿failure:
   frontier_relation ← ClassifyRecordFrontier ⟨as_of, frontier⟩
   last_recorded_on ← "unavailable"
   {𝕊: last_recorded_on ↩ frontier.date}⍟frontier.available @
@@ -123,12 +132,20 @@ ErrorVm ← {𝕊 ctx‿as_of‿frontier‿legacy_default‿failure:
   }
 }
 
-BuildCore ← {𝕊 ctx‿as_of‿frontier‿legacy_default‿snap‿remaining:
-  base ← ctx.base
-  cy ← ctx.cy
-
-  cfg ← conf.LoadConfig base
-  risk_style ← cfg.PolicyRiskStyle @
+# I/O-free semantic core. Source/config/envelope adapters prepare every input
+# before this boundary; the core owns Outlook arithmetic and VM assembly.
+BuildFromPrepared ← {𝕊 input:
+  cy ← input.cy
+  as_of ← input.as_of
+  frontier ← input.frontier
+  legacy_default ← input.legacy_default
+  snap ← input.snapshot
+  remaining ← input.remaining_plan
+  risk_style ← input.risk_style
+  obligation_rows ← input.next_obligations
+  env_summary ← input.envelope_summary
+  life_groups ← input.life_groups
+  reserve_groups ← input.reserve_groups
   is_simple ← risk_style ≡ "simple"
 
   # Dates
@@ -153,7 +170,7 @@ BuildCore ← {𝕊 ctx‿as_of‿frontier‿legacy_default‿snap‿remaining:
   }⍟((¬ frontier.available) ∧ legacy_default) @
 
   # Explicit observation cutoff for actual balances is authorized and
-  # materialized by actual_snapshot before BuildCore is entered.
+  # materialized by actual_snapshot before BuildFromPrepared is entered.
   liq_total ← snap.liq_total
   sav_total ← snap.sav_total
   inv_total ← snap.inv_total
@@ -169,27 +186,8 @@ BuildCore ← {𝕊 ctx‿as_of‿frontier‿legacy_default‿snap‿remaining:
   fixed_reserve ← remaining.fixed_reserve
   future_planned_liquid_expenses ← ¯1 × fixed_reserve
 
-  # Next cycle obligations remain a separate compatibility surface: plan entries
-  # on cycle end_exclusive. This is not the current remaining-plan aggregate.
-  plan_lines ← loader.ReadLinesOptional (base ∾ "/plan.tsv")
-  end_dn_obl ← dt.DaysFromEpoch cy.end_exclusive
-  ObligationFor ← {𝕊 line:
-    flds ← loader.SplitTsvKeepEmpty line
-    result ← ⟨⟩
-    {𝕊:
-      pdate ← 0⊑flds
-      pdate_dn ← dt.DaysFromEpoch pdate
-      is_end ← pdate_dn = end_dn_obl
-      toAcc ← 3⊑flds
-      is_obl ← "liabilities:" ≡ 12 ↑ toAcc
-      {𝕊:
-        amt ← (0 < ≠ 4⊑flds) ⊑ 0‿(•BQN (4⊑flds))
-        result ↩ ⟨ ⟨pdate, 1⊑flds, toAcc, amt⟩ ⟩
-      }⍟(is_end ∧ is_obl) @
-    }⍟(0 < ≠ flds) @
-    result
-  }
-  obligation_rows ← ∾ ObligationFor¨ plan_lines
+  # Next cycle obligations remain a separate compatibility surface from the
+  # admitted current remaining-plan aggregate.
   next_obligation_total ← (0 < ≠ obligation_rows) ⊑ 0‿(cube.Sum0 ({3⊑𝕩}¨ obligation_rows))
 
   # Daily amounts. liq_daily uses projected liquid balance after admitted
@@ -202,11 +200,7 @@ BuildCore ← {𝕊 ctx‿as_of‿frontier‿legacy_default‿snap‿remaining:
     { 𝕊 ⋄ "unavailable/policy" }
   ⟩ @
 
-  # Build budget breakdown using envelope_computation. Envelope temporal semantics
-  # remain outside this explicit-observation slice.
-  env_summary ← env_comp.Build ctx
-  life_groups ← cfg.HouseholdGroupLifeLabels @
-  reserve_groups ← cfg.HouseholdGroupReserveLabels @
+  # Envelope temporal semantics remain outside this explicit-observation core.
   daily_flex_envs ← ( { life_groups IsMember 𝕩.group }¨ env_summary.envelopes ) / env_summary.envelopes
   reserve_envs ← ( { reserve_groups IsMember 𝕩.group }¨ env_summary.envelopes ) / env_summary.envelopes
   budget_breakdown ← {
@@ -252,13 +246,31 @@ BuildCore ← {𝕊 ctx‿as_of‿frontier‿legacy_default‿snap‿remaining:
 }
 
 BuildWithSnapshot ← {𝕊 ctx‿as_of‿frontier‿legacy_default:
-  snap ← actual_snapshot.BuildAt ⟨ctx, as_of⟩
-  vm ← ErrorVm ⟨ctx, as_of, frontier, legacy_default, snap⟩
+  cy ← ctx.cy
+  snap ← actual_snapshot.BuildFromPrepared ⟨ctx.posting_rows, ctx.cube, ctx.resolved, as_of⟩
+  vm ← ErrorVm ⟨cy, as_of, frontier, legacy_default, snap⟩
   {𝕊:
     remaining ← remaining_plan.BuildAt ⟨ctx, as_of⟩
-    vm ↩ ErrorVm ⟨ctx, as_of, frontier, legacy_default, remaining⟩
+    vm ↩ ErrorVm ⟨cy, as_of, frontier, legacy_default, remaining⟩
     {𝕊:
-      vm ↩ BuildCore ⟨ctx, as_of, frontier, legacy_default, snap, remaining⟩
+      cfg ← conf.LoadConfig ctx.base
+      planLines ← loader.ReadLinesOptional (ctx.base ∾ "/plan.tsv")
+      obligations ← NextObligationsFromLines ⟨planLines, cy.end_exclusive⟩
+      envelopeSummary ← env_comp.Build ctx
+      input ← {
+        cy ⇐ cy,
+        as_of ⇐ as_of,
+        frontier ⇐ frontier,
+        legacy_default ⇐ legacy_default,
+        snapshot ⇐ snap,
+        remaining_plan ⇐ remaining,
+        risk_style ⇐ cfg.PolicyRiskStyle @,
+        next_obligations ⇐ obligations,
+        envelope_summary ⇐ envelopeSummary,
+        life_groups ⇐ cfg.HouseholdGroupLifeLabels @,
+        reserve_groups ⇐ cfg.HouseholdGroupReserveLabels @
+      }
+      vm ↩ BuildFromPrepared input
     }⍟(remaining.state ≡ "ok") @
   }⍟(snap.state ≡ "ok") @
   vm
@@ -388,4 +400,11 @@ FormatHuman ← {𝕊 vm:
   out
 }
 
-{ Build ⇐ Build, BuildAt ⇐ BuildAt, Format ⇐ Format, FormatHuman ⇐ FormatHuman, LatestActualDateInCycle ⇐ LatestActualDateInCycle }
+{
+  Build ⇐ Build,
+  BuildAt ⇐ BuildAt,
+  BuildFromPrepared ⇐ BuildFromPrepared,
+  Format ⇐ Format,
+  FormatHuman ⇐ FormatHuman,
+  RecordedFrontierInfoFromDates ⇐ RecordedFrontierInfoFromDates
+}

@@ -28,10 +28,6 @@ LatestActualDateInCycleFromDates ← {𝕊 dates0‿cy:
   out
 }
 
-LatestActualDateInCycle ← {𝕊 base‿cy:
-  LatestActualDateInCycleFromDates ⟨actual_source.LoadDates base, cy⟩
-}
-
 EmptyErrorVm ← {𝕊 as_of‿reason‿diagnostics:
   {
     state ⇐ "error",
@@ -146,18 +142,14 @@ BuildFromPrepared ← {𝕊 postingRows‿cubeView‿resolved‿as_of:
   vm
 }
 
-BuildAt ← {𝕊 ctx‿as_of:
-  BuildFromPrepared ⟨ctx.posting_rows, ctx.cube, ctx.resolved, as_of⟩
-}
-
 Build ← {𝕊 ctx:
   dates ← actual_source.DatesFromContext ctx
-  BuildAt ⟨ctx, LatestActualDateInCycleFromDates ⟨dates, ctx.cy⟩⟩
+  as_of ← LatestActualDateInCycleFromDates ⟨dates, ctx.cy⟩
+  BuildFromPrepared ⟨ctx.posting_rows, ctx.cube, ctx.resolved, as_of⟩
 }
 
 {
   Build ⇐ Build,
-  BuildAt ⇐ BuildAt,
   BuildFromPrepared ⇐ BuildFromPrepared,
-  LatestActualDateInCycle ⇐ LatestActualDateInCycle
+  LatestActualDateInCycleFromDates ⇐ LatestActualDateInCycleFromDates
 }

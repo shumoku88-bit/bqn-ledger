@@ -9,8 +9,9 @@ fail() { echo "FAIL: $*" >&2; failures=$((failures + 1)); }
 pass() { echo "PASS: $*"; }
 
 focused="$(mktemp)"
+prepared="$(mktemp)"
 summary="$(mktemp)"
-trap 'rm -f "$focused" "$summary"' EXIT
+trap 'rm -f "$focused" "$prepared" "$summary"' EXIT
 
 if bqn tests/test_src_next_outlook_remaining_plan_numeric_owner.bqn >"$focused" 2>&1; then
   pass "focused checked remaining-plan behavior"
@@ -38,10 +39,17 @@ else
   pass "remaining-plan helper has no source amount parser"
 fi
 
-if grep -qF 'remaining_plan.BuildAt' src_next/outlook.bqn; then
-  pass "Outlook connects the checked remaining-plan helper"
+if bqn tests/test_src_next_outlook_prepared.bqn >"$prepared" 2>&1; then
+  pass "Outlook prepared semantic boundary"
 else
-  fail "Outlook checked remaining-plan connection missing"
+  cat "$prepared" >&2
+  fail "Outlook prepared semantic boundary"
+fi
+
+if grep -qF 'test_src_next_outlook_prepared.bqn: OK' "$prepared"; then
+  pass "prepared boundary completion marker"
+else
+  fail "prepared boundary completion marker missing"
 fi
 
 for legacy in 'InRemaining ←' 'PlanLiquidDelta ←' 'GetMetaVal ←'; do

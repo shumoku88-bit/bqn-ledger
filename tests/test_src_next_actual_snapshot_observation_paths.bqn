@@ -3,6 +3,7 @@
 lib ← •Import "test_lib.bqn"
 ctx_mod ← •Import "../src_next/context.bqn"
 actual_snapshot ← •Import "../src_next/actual_snapshot.bqn"
+SnapshotAt ← {𝕊 ctx‿asOf: actual_snapshot.BuildFromPrepared ⟨ctx.posting_rows, ctx.cube, ctx.resolved, asOf⟩}
 
 base ← "fixtures/src-next-daily-trend-stability-after"
 
@@ -17,9 +18,9 @@ late_ctx ← ctx_mod.BuildContext ⟨base, "2026-01-06"⟩
 "2026-01-11" lib.AssertEq early_ctx.cy.end_exclusive
 "2026-01-11" lib.AssertEq late_ctx.cy.end_exclusive
 
-# Explicit BuildAt obeys its supplied hard cutoff.
-early_explicit ← actual_snapshot.BuildAt ⟨early_ctx, early_ctx.as_of⟩
-late_explicit ← actual_snapshot.BuildAt ⟨late_ctx, late_ctx.as_of⟩
+# The prepared boundary obeys its supplied hard cutoff.
+early_explicit ← SnapshotAt ⟨early_ctx, early_ctx.as_of⟩
+late_explicit ← SnapshotAt ⟨late_ctx, late_ctx.as_of⟩
 
 "2026-01-03" lib.AssertEq early_explicit.as_of
 "2026-01-06" lib.AssertEq late_explicit.as_of
