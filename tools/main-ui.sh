@@ -193,7 +193,7 @@ case "$cmd" in
     # Automatically invalidate cache when report engine code changes
     while IFS= read -r -d '' f; do
       src_files+=("$f")
-    done < <(find "$ROOT_DIR/src_next" -maxdepth 1 -name "*.bqn" -print0)
+    done < <(find "$ROOT_DIR/src_next" -name "*.bqn" -print0)
     if [[ -f "$base_abs/issues.tsv" ]]; then
       src_files+=("$base_abs/issues.tsv")
     fi
