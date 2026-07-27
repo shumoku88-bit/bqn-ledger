@@ -8,8 +8,9 @@ fail() { echo "FAIL: $*" >&2; failures=$((failures + 1)); }
 pass() { echo "PASS: $*"; }
 
 focused="$(mktemp)"
+prepared="$(mktemp)"
 summary="$(mktemp)"
-trap 'rm -f "$focused" "$summary"' EXIT
+trap 'rm -f "$focused" "$prepared" "$summary"' EXIT
 
 if bqn tests/test_src_next_daily_trend_plan_numeric_owner.bqn >"$focused" 2>&1; then
   pass "focused Daily Trend plan numeric-owner behavior"
@@ -46,10 +47,17 @@ for legacy in 'plan_amts ←' 'amt_str ←' 'open_mask ← IsOpen'; do
   fi
 done
 
-if grep -qF 'trend_plan.BuildAt' src_next/daily_trend.bqn; then
-  pass "Daily Trend connects the checked plan helper"
+if bqn tests/test_src_next_daily_trend_prepared.bqn >"$prepared" 2>&1; then
+  pass "Daily Trend prepared numeric boundary"
 else
-  fail "Daily Trend checked plan helper connection missing"
+  cat "$prepared" >&2
+  fail "Daily Trend prepared numeric boundary"
+fi
+
+if grep -qF 'test_src_next_daily_trend_prepared.bqn: OK' "$prepared"; then
+  pass "prepared boundary completion marker"
+else
+  fail "prepared boundary completion marker missing"
 fi
 
 if tools/report-next-summary fixtures/daily-trend-plan-numeric-owner-target >"$summary" 2>&1; then

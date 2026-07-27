@@ -11,19 +11,38 @@ labels ← •Import "report_labels.bqn"
 L ← labels.Text
 trend_plan ← •Import "daily_trend_plan.bqn"
 
-# ── Latest actual journal date ─────────────────────────────
-
-LatestActualDateInCycle ← {𝕊 base‿cy:
-  actual_observation.LatestInDayCountWindowOrStart ⟨actual_source.LoadDates base, cy⟩
-}
-
 # ── Build ──────────────────────────────────────────────────
 
-BuildAvailable ← {𝕊 ctx:
-  c3d ← ctx.cube.cube
-  resolved ← ctx.resolved
-  cy ← ctx.cy
-  base ← ctx.base
+# Pure coordinate preparation. Daily Trend intentionally does not add as_of to
+# a nonempty row set; an empty accepted-Actual frontier anchors at cycle.start.
+PrepareCoordinates ← {𝕊 cubeView‿cy‿actualDates:
+  valid_rows ← cubeView.valid_rows
+  j_projs ← (0 = {𝕩.layer_index}¨ valid_rows) / valid_rows
+  j_dates ← {𝕩.date}¨ j_projs
+  as_of ← actual_observation.LatestInDayCountWindowOrStart ⟨actualDates, cy⟩
+
+  dns ← dt.DaysFromEpoch¨ j_dates
+  ord ← ⍋ dns
+  sorted_dates ← ord ⊏ j_dates
+  sorted_dns ← ord ⊏ dns
+  keep ← (sorted_dns ⊐ sorted_dns) = ↕ ≠ sorted_dns
+  trend_dates_uniq ← keep / sorted_dates
+  trend_dns_uniq ← keep / sorted_dns
+
+  cycle_start_dn ← dt.DaysFromEpoch cy.start
+  cycle_end_excl_dn ← dt.DaysFromEpoch cy.end_exclusive
+  valid_mask ← (trend_dns_uniq ≥ cycle_start_dn) ∧ (trend_dns_uniq < cycle_end_excl_dn)
+  trend_dates_pre ← valid_mask / trend_dates_uniq
+  has_trend_dates ← 0 < ≠ trend_dates_pre
+  trend_dates ← has_trend_dates ◶ ⟨{ ⟨cy.start⟩ }, { trend_dates_pre }⟩ @
+
+  {as_of⇐as_of,trend_dates⇐trend_dates}
+}
+
+# I/O-free numeric core. Date/source preparation and checked plan reserve
+# evidence are complete before this boundary.
+BuildAvailableFromPrepared ← {𝕊 cubeView‿resolved‿cy‿as_of‿trend_dates‿plan_result:
+  c3d ← cubeView.cube
   day_count ← cy.day_count
   ak_count ← resolved.count
 
@@ -44,40 +63,13 @@ BuildAvailable ← {𝕊 ctx:
   actual_slice ← {𝕊 day: {(day‿𝕩‿0) ⊑ c3d}¨ ↕ ak_count}¨ ↕ day_count
   cum_mat ← +` actual_slice  # shape: day_count × ak_count
 
-  # 1. Build trend_dates & trend_dns
-  # Collect dates from accepted actual projection coordinates (layer = 0).
-  valid_rows ← ctx.cube.valid_rows
-  j_projs ← (0 = {𝕩.layer_index}¨ valid_rows) / valid_rows
-  j_dates ← {𝕩.date}¨ j_projs
-
-  as_of ← actual_observation.LatestInDayCountWindowOrStart ⟨actual_source.DatesFromContext ctx, cy⟩
-  trend_dates_all ← j_dates
-
-  # Sort and deduplicate
-  dns ← dt.DaysFromEpoch¨ trend_dates_all
-  ord ← ⍋ dns
-  sorted_dates ← ord ⊏ trend_dates_all
-  sorted_dns ← ord ⊏ dns
-  keep ← (sorted_dns ⊐ sorted_dns) = ↕ ≠ sorted_dns
-  trend_dates_uniq ← keep / sorted_dates
-  trend_dns_uniq ← keep / sorted_dns
-  
+  valid_rows ← cubeView.valid_rows
   cycle_start_dn ← dt.DaysFromEpoch cy.start
   cycle_end_excl_dn ← dt.DaysFromEpoch cy.end_exclusive
-
-  # Restrict to dates within the cycle, then anchor empty state explicitly.
-  valid_mask ← (trend_dns_uniq ≥ cycle_start_dn) ∧ (trend_dns_uniq < cycle_end_excl_dn)
-  trend_dates_pre ← valid_mask / trend_dates_uniq
-  trend_dns_pre ← valid_mask / trend_dns_uniq
-  has_trend_dates ← 0 < ≠ trend_dates_pre
-  trend_dates ← has_trend_dates ◶ ⟨{ ⟨cy.start⟩ }, { trend_dates_pre }⟩ @
-  trend_dns ← has_trend_dates ◶ ⟨{ ⟨cycle_start_dn⟩ }, { trend_dns_pre }⟩ @
+  trend_dns ← dt.DaysFromEpoch¨ trend_dates
   obs_count ← ≠ trend_dates
 
-  # 2. Join source identity/completion evidence to admitted plan Posting IR.
-  # The helper owns row-local reserve money and fails the section closed when
-  # applicable evidence cannot be trusted.
-  plan_result ← trend_plan.BuildAt ⟨ctx, trend_dates⟩
+  # Checked row-local reserve evidence is prepared by the context adapter.
   reserve_values ← obs_count ⥊ 0
   {𝕊: reserve_values ↩ plan_result.reserves}⍟(plan_result.state ≡ "ok") @
 
@@ -164,10 +156,8 @@ BuildAvailable ← {𝕊 ctx:
   }
 }
 
-Build ← {𝕊 ctx:
-  cy ← ctx.cy
-  cycle_valid ← (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (dt.IsValidDateText cy.start) ∧ (dt.IsValidDateText cy.end_exclusive)
-  result ← {
+ErrorViewModel ← {𝕊 cy:
+  {
     state ⇐ "error",
     reason ⇐ "invalid_trend_coordinate",
     diagnostics ⇐ ⟨⟩,
@@ -180,7 +170,30 @@ Build ← {𝕊 ctx:
     cycle_end_exclusive ⇐ cy.end_exclusive,
     cycle_mode ⇐ cy.mode
   }
-  {𝕊: result ↩ BuildAvailable ctx}⍟cycle_valid @
+}
+
+CycleValid ← {𝕊 cy:
+  (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (dt.IsValidDateText cy.start) ∧ (dt.IsValidDateText cy.end_exclusive)
+}
+
+BuildFromPrepared ← {𝕊 cubeView‿resolved‿cy‿as_of‿trend_dates‿plan_result:
+  result ← ErrorViewModel cy
+  {𝕊:
+    coords_ok ← (dt.IsValidDateText as_of) ∧ (0 < ≠ trend_dates) ∧ ∧´ 1 ∾ dt.IsValidDateText¨ trend_dates
+    {𝕊: result ↩ BuildAvailableFromPrepared ⟨cubeView, resolved, cy, as_of, trend_dates, plan_result⟩}⍟coords_ok @
+  }⍟(CycleValid cy) @
+  result
+}
+
+Build ← {𝕊 ctx:
+  cy ← ctx.cy
+  result ← ErrorViewModel cy
+  {𝕊:
+    dates ← actual_source.DatesFromContext ctx
+    coordinates ← PrepareCoordinates ⟨ctx.cube, cy, dates⟩
+    plan_result ← trend_plan.BuildAt ⟨ctx, coordinates.trend_dates⟩
+    result ↩ BuildFromPrepared ⟨ctx.cube, ctx.resolved, cy, coordinates.as_of, coordinates.trend_dates, plan_result⟩
+  }⍟(CycleValid cy) @
   result
 }
 
@@ -249,4 +262,10 @@ FormatHuman ← {𝕊 vm:
   out
 }
 
-{ Build ⇐ Build, BuildAt ⇐ BuildAt, Format ⇐ Format, FormatHuman ⇐ FormatHuman }
+{
+  Build ⇐ Build,
+  BuildAt ⇐ BuildAt,
+  BuildFromPrepared ⇐ BuildFromPrepared,
+  Format ⇐ Format,
+  FormatHuman ⇐ FormatHuman
+}
