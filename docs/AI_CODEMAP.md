@@ -106,6 +106,7 @@ Updated: 2026-07-26
 
 - `facts.bqn` — successful complete Actual admissionとminimal admitted account tableだけを受け、aligned Transaction/Posting factsとDomain/Account/Layer tableへall-or-nothing projectionするread-only owner。source path、I/O、clock、context、Cube、report fieldを受けない。
 - `date_ordinal.bqn` — fact date用のstrict ISO Gregorian validation/ordinalだけを持つpure coordinate owner。clockや表示を持たない。
+- `journal_transaction_structure.bqn` — complete admissionがdomain-normalizeした1 transaction partitionのheader、metadata、declared account、posting side/zero-sum、identity、source lineをall-or-nothingでadmitするpure owner。旧`historical_external_plan` profileをimportしない。
 - 現行productionはまだ`src_next`であり、Phase 1A testだけがcurrent complete admissionを外部harnessとして新factsと比較する。`src/ledger`から`src_next`をimportしてはならない。
 
 ### `src_next/` (現行production BQN 会計エンジン)

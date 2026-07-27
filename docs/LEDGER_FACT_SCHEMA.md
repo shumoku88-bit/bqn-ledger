@@ -13,7 +13,22 @@ Public evidence: `fixtures/ledger-facts-phase1-proof/`
 
 It does not accept a report context, source path, raw Journal text, historical transaction carrier, Plan/Budget rows, Cube, TBDS, or section ViewModel. It performs no I/O and reads no clock.
 
-The Phase 1A test uses current complete admission as an external comparison harness. Destination code does not import `src_next`. A later Phase 1 slice moves/replaces strict admission ownership; the test bridge is not a runtime adapter.
+The Phase 1A test uses current complete admission as an external comparison harness. Destination code does not import `src_next`. The first Phase 1B slice moved normalized transaction grammar/metadata/side/identity ownership to `src/ledger/journal_transaction_structure.bqn`; current single-currency semantic admission now calls that owner instead of `journal_profile_stage1` with `historical_external_plan`. Exact decimal, currency/account proof, complete-source partitioning, and final admission ownership still move in later Phase 1B slices. The test bridge is not a runtime adapter.
+
+## Canonical transaction structure boundary
+
+`journal_transaction_structure.Parse(normalizedPartition)` is pure and admits exactly one already domain-normalized transaction partition. It owns:
+
+- strict header/status/description grammar;
+- supported, nonempty, unique transaction metadata;
+- declared-account membership;
+- normalized structural posting shape and zero sum;
+- debit/credit side;
+- durable or physical transaction identity and posting IDs;
+- source transaction/posting lines;
+- all-or-nothing transaction output.
+
+It does not own source paths, account currency lookup, decimal normalization, domain partitioning, or cross-source Plan resolution. In particular, an Actual `plan-id` may refer to separately admitted `plan.tsv`; accepting that reference is canonical cross-source behavior, not the old historical parser profile.
 
 ## Result
 

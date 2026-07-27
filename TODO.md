@@ -67,9 +67,9 @@ This is not a section-reduction campaign and must not recreate the old giant all
 
 ### Current finite slice: Phase 1B strict admission ownership
 
-- [ ] Replace the transient `historical_external_plan` structural parser dependency in complete admission with one canonical strict transaction admission path.
-- [ ] Preserve first-failure diagnostics, no-partial-result behavior, exact decimals, posting side, metadata, physical/durable identity, and source lines.
-- [ ] Prove declaration-only and JPY/ILS/USD single-domain transactions, including multi-posting and precision rejection.
+- [x] Replace complete admission's transient `historical_external_plan` structural parser dependency with `src/ledger/journal_transaction_structure.bqn`.
+- [x] Preserve first-failure diagnostics, no-partial-result behavior, exact decimals, posting side, metadata, physical/durable identity, declared-account proof, and source lines.
+- [x] Prove declaration-only and JPY/ILS/USD single-domain transactions, including multi-posting and precision rejection, through the canonical structure owner.
 - [ ] Connect canonical admission to `src/ledger/facts.bqn` without importing `src_next` from destination code.
 - [ ] Move coherent admission ownership and all callers together; leave no old-path forwarding wrapper.
 

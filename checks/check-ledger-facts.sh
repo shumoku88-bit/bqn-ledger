@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$ROOT_DIR"
 
+bqn tests/test_ledger_journal_transaction_structure.bqn >/dev/null
 bqn tests/test_ledger_facts.bqn >/dev/null
 
 if rg -n '•Import ".*(src_next|src_edit|context\.bqn|report\.bqn|journal_profile)' src/ledger; then

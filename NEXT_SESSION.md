@@ -7,13 +7,13 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Phase 1B: remove the complete admission path's transient `historical_external_plan` structural parser dependency and establish canonical strict admission ownership before wiring raw Actual to the Phase 1A facts. The aligned fact schema and public proof are complete in `src/ledger/facts.bqn`, `docs/LEDGER_FACT_SCHEMA.md`, and `tests/test_ledger_facts.bqn`.
+Phase 1B continuation: normalized transaction structure is now owned by `src/ledger/journal_transaction_structure.bqn`, and complete admission no longer calls the `historical_external_plan` parser profile. Next move exact decimal, domain partition, account-currency proof, and complete-source admission ownership so raw strict Journal can reach `src/ledger/facts.bqn` without a `src_next` bridge.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn
-completed proof: admitted Actual -> aligned Transaction/Posting facts
-next boundary: raw strict Journal -> canonical complete admission -> facts
-must preserve: diagnostics, no partial facts, exact scale, side, metadata, identity, source lines
+completed: normalized transaction grammar/metadata/side/identity -> canonical structure owner
+next boundary: strict domain/account/decimal complete admission -> facts
+must preserve: diagnostics, no partial facts, JPY/ILS/USD scale, declaration-only source, source lines
 not in this slice: Plan/Budget admission, Pivot, copied section, universal context
 ```
 

@@ -90,6 +90,20 @@ lib.Assert ∨´ {𝕩.code ≡ "account_columns_misaligned"}¨ misaligned.diagn
 0 lib.AssertEq misaligned.postings.count
 
 lf ← @+10
+currencyMismatchRaw ← ∾⟨
+  "commodity JPY"∾lf,""∾lf,
+  "account assets:cash"∾lf,""∾lf,
+  "account expenses:food"∾lf,""∾lf,
+  "2026-01-15 * currency mismatch"∾lf,
+  "    ; currency: USD"∾lf,
+  "    expenses:food 1 JPY"∾lf,
+  "    assets:cash -1 JPY"∾lf
+⟩
+currencyMismatch ← admission.Admit ⟨currencyMismatchRaw,resolved⟩
+"error" lib.AssertEq currencyMismatch.state
+lib.Assert ∨´{𝕩.code≡"transaction_currency_mismatch"}¨currencyMismatch.diagnostics
+0 lib.AssertEq ≠currencyMismatch.transactions
+
 emptyRaw ← ∾ ⟨"commodity JPY"∾lf,""∾lf,"account assets:cash"∾lf⟩
 emptyAdmitted ← admission.Admit ⟨emptyRaw,resolved⟩
 emptyResult ← facts.Project ⟨emptyAdmitted,admittedAccounts⟩

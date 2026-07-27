@@ -10,7 +10,7 @@ util ← •Import "util.bqn"
 decimal ← •Import "exact_decimal.bqn"
 dates ← •Import "date.bqn"
 setup ← •Import "currency_setup.bqn"
-stage1 ← •Import "journal_profile_stage1.bqn"
+structure ← •Import "../src/ledger/journal_transaction_structure.bqn"
 
 lf ← @+10
 cr ← @+13
@@ -255,8 +255,14 @@ Admit ← {𝕊 raw‿resolved:
       diagnostics ∾↩ BalanceDiagnostics ⟨normalizedPostings, transactionStarts⟩
       {𝕊:
         structuralRaw ← BuildStructuralRaw ⟨raw, domainInfo, normalizedPostings⟩
-        structural ← stage1.ParseWithProfile ⟨structuralRaw, "historical_external_plan"⟩
+        structural ← structure.Parse structuralRaw
         diagnostics ∾↩ structural.diagnostics
+        {𝕊 transaction:
+          currencyValues ← {𝕩.value}¨({𝕩.key ≡ "currency"}¨transaction.metadata)/transaction.metadata
+          currencyMismatch ← 0
+          {𝕊: currencyMismatch ↩ (⊑currencyValues) ≢ domainInfo.domain}⍟(1=≠currencyValues) @
+          diagnostics ∾↩ AddIf ⟨currencyMismatch, Diagnostic ⟨"transaction_currency_mismatch", transaction.source_start_line, "transaction currency metadata must match posting domain"⟩⟩
+        }¨ structural.transactions
         {𝕊:
           transactionCountOk ← (≠ structural.transactions) = ≠ transactionStarts
           postingCount ← +´ {≠ 𝕩.postings}¨ structural.transactions
