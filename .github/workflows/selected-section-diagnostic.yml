@@ -1,0 +1,21 @@
+name: selected-section-diagnostic
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  focused:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Tokyo
+      CBQN_REF: master
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install CBQN
+        run: |
+          git clone --depth 1 --branch "$CBQN_REF" https://github.com/dzaima/CBQN.git
+          make -C CBQN -j$(nproc)
+          sudo cp CBQN/BQN /usr/local/bin/bqn
+      - name: Run focused selected-section check
+        run: bash -x checks/check-src-next-selected-section.sh fixtures/src-next-golden
