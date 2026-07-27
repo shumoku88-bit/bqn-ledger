@@ -9,8 +9,9 @@ fail() { echo "FAIL: $*" >&2; failures=$((failures + 1)); }
 pass() { echo "PASS: $*"; }
 
 focused="$(mktemp)"
+prepared="$(mktemp)"
 summary="$(mktemp)"
-trap 'rm -f "$focused" "$summary"' EXIT
+trap 'rm -f "$focused" "$prepared" "$summary"' EXIT
 
 if bqn tests/test_src_next_actual_snapshot_numeric_owner.bqn >"$focused" 2>&1; then
   pass "focused checked actual snapshot behavior"
@@ -25,18 +26,17 @@ else
   fail "focused test completion marker missing"
 fi
 
-build_at_body="$(awk '/^BuildAt ←/{capture=1} /^Build ←/{capture=0} capture{print}' src_next/actual_snapshot.bqn)"
-
-if grep -qF 'ctx.posting_rows' <<<"$build_at_body" && grep -qF 'tbds.Build' <<<"$build_at_body"; then
-  pass "BuildAt uses checked postings and TBDS"
+if bqn tests/test_src_next_actual_snapshot_prepared.bqn >"$prepared" 2>&1; then
+  pass "prepared actual snapshot boundary"
 else
-  fail "BuildAt checked posting/TBDS owner missing"
+  cat "$prepared" >&2
+  fail "prepared actual snapshot boundary"
 fi
 
-if grep -Eq 'ReadLines|•BQN' <<<"$build_at_body"; then
-  fail "BuildAt still reads or reparses source amounts"
+if grep -qF 'test_src_next_actual_snapshot_prepared.bqn: OK' "$prepared"; then
+  pass "prepared boundary completion marker"
 else
-  pass "BuildAt has no source read or amount parser"
+  fail "prepared boundary completion marker missing"
 fi
 
 if tools/report-next-summary fixtures/actual-snapshot-numeric-owner-target >"$summary" 2>&1; then

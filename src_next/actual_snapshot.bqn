@@ -76,19 +76,19 @@ RejectedDiagnostics ← {𝕊 rows‿as_dn:
   }¨ unique
 }
 
-BuildAt ← {𝕊 ctx‿as_of:
+# I/O-free semantic core. The adapter supplies checked posting evidence, the
+# already-built cube view, resolved account metadata, and explicit observation.
+BuildFromPrepared ← {𝕊 postingRows‿cubeView‿resolved‿as_of:
   vm ← EmptyErrorVm ⟨as_of, "invalid_observation", ⟨⟩⟩
   as_ok ← date.IsValidDateText as_of
 
   {𝕊:
-    resolved ← ctx.resolved
-    rows ← ctx.posting_rows
     as_dn ← date.DaysFromEpoch as_of
-    diagnostics ← RejectedDiagnostics ⟨rows, as_dn⟩
+    diagnostics ← RejectedDiagnostics ⟨postingRows, as_dn⟩
     vm ↩ EmptyErrorVm ⟨as_of, "rejected_actual_evidence", diagnostics⟩
 
     {𝕊:
-      actual_rows ← actual_source.Rows ctx
+      actual_rows ← (IsJournalActual¨ postingRows) / postingRows
       local_end ← date.AddDays ⟨as_of, 1⟩
       local_cy ← {
         mode ⇐ "actual_snapshot_local",
@@ -96,7 +96,7 @@ BuildAt ← {𝕊 ctx‿as_of:
         end_exclusive ⇐ local_end,
         day_count ⇐ 1
       }
-      local_tbds ← tbds.Build ⟨actual_rows, ctx.cube, resolved, local_cy⟩
+      local_tbds ← tbds.Build ⟨actual_rows, cubeView, resolved, local_cy⟩
       actual_tbds ← tbds.RowsForLayer ⟨cube.layer_actual, local_tbds⟩
       amounts ← {𝕩.closing}¨ actual_tbds
 
@@ -146,9 +146,18 @@ BuildAt ← {𝕊 ctx‿as_of:
   vm
 }
 
+BuildAt ← {𝕊 ctx‿as_of:
+  BuildFromPrepared ⟨ctx.posting_rows, ctx.cube, ctx.resolved, as_of⟩
+}
+
 Build ← {𝕊 ctx:
   dates ← actual_source.DatesFromContext ctx
   BuildAt ⟨ctx, LatestActualDateInCycleFromDates ⟨dates, ctx.cy⟩⟩
 }
 
-{ Build ⇐ Build, BuildAt ⇐ BuildAt, LatestActualDateInCycle ⇐ LatestActualDateInCycle }
+{
+  Build ⇐ Build,
+  BuildAt ⇐ BuildAt,
+  BuildFromPrepared ⇐ BuildFromPrepared,
+  LatestActualDateInCycle ⇐ LatestActualDateInCycle
+}
