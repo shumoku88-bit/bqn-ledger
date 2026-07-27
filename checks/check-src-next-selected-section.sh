@@ -18,10 +18,12 @@ fail() { echo "FAIL: $*" >&2; failures=$((failures + 1)); }
 pass() { echo "PASS: $*"; }
 
 work_dir="$(mktemp -d)"
-poison_report=""
+report_backup=""
 cleanup() {
+  if [[ -n "$report_backup" && -f "$report_backup" ]]; then
+    cp "$report_backup" src_next/report.bqn
+  fi
   rm -rf "$work_dir"
-  [[ -z "$poison_report" ]] || rm -f "$poison_report"
 }
 trap cleanup EXIT
 
@@ -95,11 +97,12 @@ cmp -s "$work_dir/unknown.expected" "$work_dir/unknown.out" \
   && pass "unknown key preserves exact error bytes" \
   || fail "unknown key error bytes changed"
 
-# Keep the probe beside production modules with a normal .bqn suffix so CBQN
-# resolves relative imports exactly as it does for src_next/report.bqn.
-poison_report="src_next/.report-poison-$$-${RANDOM}.bqn"
-cp src_next/report.bqn "$poison_report"
-python3 - "$poison_report" <<'PY'
+# Runtime isolation proof. Temporarily poison the production entry file itself,
+# then restore it unconditionally through the EXIT trap. This preserves CBQN's
+# exact import identity while proving selected and all-section evaluation paths.
+report_backup="$work_dir/report.bqn.original"
+cp src_next/report.bqn "$report_backup"
+python3 - src_next/report.bqn <<'PY'
 from pathlib import Path
 import sys
 
@@ -122,24 +125,28 @@ if text.count(old) != 1:
 path.write_text(text.replace(old, new), encoding="utf-8", newline="")
 PY
 
-run_capture poison-snapshot bqn "$poison_report" "$fixture_abs" --section snapshot --no-color
+run_capture poison-snapshot bqn src_next/report.bqn "$fixture_abs" --section snapshot --no-color
 assert_result 0 poison-snapshot
 cmp -s "$work_dir/direct-snapshot.out" "$work_dir/poison-snapshot.out" \
   && pass "selected snapshot skips poisoned debug builder" \
   || fail "selected snapshot reached unrelated poisoned builder"
 
-run_capture poison-unknown bqn "$poison_report" "$fixture_abs" --section does-not-exist --no-color
+run_capture poison-unknown bqn src_next/report.bqn "$fixture_abs" --section does-not-exist --no-color
 assert_result 1 poison-unknown
 cmp -s "$work_dir/unknown.expected" "$work_dir/poison-unknown.out" \
   && pass "unknown key skips poisoned debug builder" \
   || fail "unknown key reached unrelated poisoned builder"
 
-run_capture poison-full bqn "$poison_report" "$fixture_abs" --no-color
+run_capture poison-full bqn src_next/report.bqn "$fixture_abs" --no-color
 assert_result 97 poison-full
 printf 'ERROR: selected-section poison debug builder evaluated\n' >"$work_dir/poison.expected"
 cmp -s "$work_dir/poison.expected" "$work_dir/poison-full.out" \
   && pass "ordinary full report still constructs all sections" \
   || fail "ordinary full report did not activate poison"
+
+# Restore before reporting so subsequent checks see the repository unchanged.
+cp "$report_backup" src_next/report.bqn
+report_backup=""
 
 if [[ "$failures" -eq 0 ]]; then
   echo "OK: selected-section construction checks passed" >&2
