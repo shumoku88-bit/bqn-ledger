@@ -139,15 +139,38 @@ checks: focused computation/characterization checks, full tools/check.sh, covera
 
 This is the first net-reduction slice. The overall track is now 24 lines above the original 13,056-line baseline.
 
-### Current finite slice: Execution planned coverage
+### Completed finite slice: Execution planned coverage
 
-- [ ] Separate plan source/value preparation from execution-envelope comparison without changing lazy disabled/missing-envelope behavior.
-- [ ] Preserve completion identity, duplicate rows, date ordering, and the characterized unrelated-plan inclusion behavior.
-- [ ] Remove the remaining local source/value assembly that the prepared input replaces.
-- [ ] Keep this readonly diagnostic distinct from envelope balance and backing calculations.
-- [ ] Require non-positive `src_next` line delta for the slice; do not add a framework or new module.
+- [x] Split lazy source/value preparation from the I/O-free execution-envelope comparison.
+- [x] Passed only the configured envelope label rather than broad config into the coverage adapter.
+- [x] Preserved disabled/missing-envelope laziness, completion identity, duplicates, date ordering, and characterized unrelated-plan inclusion.
+- [x] Kept execution coverage as a readonly diagnostic distinct from balance and backing calculations.
+- [x] Removed duplicate `budget_alloc.tsv` reads and duplicate target allocation calculation in the surrounding orchestration.
+- [x] Passed focused Envelope checks and full `tools/check.sh` with a negative source delta.
 
-Later work remains unselected: other bounded Envelope responsibilities, then `actual_source` compatibility reduction. Do not start them together.
+Completion record:
+
+```text
+slice: Execution planned coverage
+behavior preserved: disabled/missing laziness, completion/duplicate/order policy, readonly comparison output
+prepared boundary: internal ExecutionCoverageFromPrepared(envLabel, envRemaining, valued plan evidence)
+removed duplication: second fallback allocation read/calculation and local comparison dependence on source/config
+src_next line delta: -3 (13,080 -> 13,077); module 889 -> 886
+exports/modules added: 0
+checks: focused computation/characterization checks and full tools/check.sh
+```
+
+The reduction removes repeated source work and narrows semantic inputs; it is not formatting compression. The overall track is now 21 lines above the original baseline.
+
+### Current finite slice: `actual_source` compatibility reduction
+
+- [ ] Inventory every export and all production/test callers by transaction shape.
+- [ ] Remove source-loading wrappers whose callers already carry context transactions or prepared evidence.
+- [ ] Keep complete-admission and historical compatibility shapes explicit; never reinterpret one as the other.
+- [ ] Migrate focused tests to prepared APIs before deleting wrappers.
+- [ ] Require a net source/API reduction and update current contracts in the same slice.
+
+Later Envelope responsibilities remain unselected until caller evidence identifies another real duplication. Do not start a broad module split.
 
 The completed context-reuse characterization remains in:
 

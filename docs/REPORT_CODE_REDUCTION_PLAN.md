@@ -131,10 +131,10 @@ Completion result: Outlook gained an I/O-free semantic boundary while config, pl
 - [x] Remove the dead source-loading tuple/latest-date shelf and exports without repository callers before adding another seam.
 - [x] Remove dead config access from the existing I/O-free envelope-balance calculation.
 - [x] Reuse `plan_rows.WithValues` instead of retaining a second local execution-plan value parser.
-- [ ] Separate execution planned source preparation from its readonly comparison while preserving lazy disabled/missing behavior and characterized duplicate/unrelated rows.
-- [ ] Delete superseded local joins or render assembly in the same slice; the next Envelope slice may not increase `src_next` lines.
+- [x] Separate execution planned source/value preparation from its readonly comparison while preserving lazy disabled/missing behavior and characterized duplicate/unrelated rows.
+- [x] Delete duplicate allocation source reads/calculation in the same slice without adding an export or module.
 
-Inventory result: `CalcUnassignedRemaining` and `CalcEnvelopeBacking` are already I/O-free and have real internal callers, so moving them would only add topology. The first cleanup reduced `envelope_computation.bqn` from 914 to 889 lines and exports from 22 to 11, lowering `src_next` by 25 lines without changing report output.
+Inventory result: `CalcUnassignedRemaining` and `CalcEnvelopeBacking` are already I/O-free and have real internal callers, so moving them would only add topology. The first cleanup reduced `envelope_computation.bqn` from 914 to 889 lines and exports from 22 to 11. The execution-coverage slice then introduced an internal prepared comparison, retained lazy source preparation, removed duplicate allocation work, and reduced the module to 886 lines. Combined Envelope reduction is 28 `src_next` lines without report behavior changes.
 
 ### Actual source and compatibility reduction
 
