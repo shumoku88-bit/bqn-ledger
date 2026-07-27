@@ -116,10 +116,10 @@ for item in "${sections[@]}"; do
 done
 
 add_ui_help="$(tools/add-ui.sh --help)"
-if [[ "$add_ui_help" == *"multi         native Journal transaction with 3+ signed postings"* ]]; then
-  pass "add-ui help exposes native multi-posting mode"
+if [[ "$add_ui_help" == *"multi         native Journal transaction with 3+ signed postings (total = 0)"* ]]; then
+  pass "add-ui help explains native multi-posting balance requirement"
 else
-  fail "add-ui help missing native multi-posting mode"
+  fail "add-ui help missing native multi-posting balance requirement"
 fi
 if grep -Fq $'multi\t複数ポスティング (native Journal)' tools/add-ui.sh && \
    grep -Fq 'journal multi-add' tools/add-ui.sh; then
@@ -132,6 +132,12 @@ if grep -Fq "read_tty 'Amount (500 or -500)'" tools/add-ui.sh && \
   pass "add-ui multi-posting amount prompt stays within gum input width"
 else
   fail "add-ui multi-posting amount prompt may trigger narrow gum input panic"
+fi
+if grep -Fq '費用などの増加は正、支払口座の減少は負' tools/add-ui.sh && \
+   grep -Fq '全ポスティングの合計を0にしてください' tools/add-ui.sh; then
+  pass "add-ui explains multi-posting signs and zero-sum requirement"
+else
+  fail "add-ui missing multi-posting sign or zero-sum guidance"
 fi
 
 bad_out="$(mktemp)"

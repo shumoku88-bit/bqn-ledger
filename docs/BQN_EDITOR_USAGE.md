@@ -33,7 +33,7 @@ BQN Editor は会計エンジンとしての計算（残高や封筒の残金計
 
 1.  **`account-add` (アカウント追加)**: `asset / liability / income / expense` を選び、明示的な `role=` と一致する名前空間で `accounts.tsv` に安全追記します。assetでは任意で `type=liquid|savings|invest` を選べます。
 2.  **`expense` (支出)**: 資産口座から費用口座への支出。明示選択されたActual sourceへ追記。
-3.  **`multi` (複数ポスティング)**: native Journal mode専用。1つの明示transaction currencyについて勘定と符号付きexact decimalを2件以上入力し、同一scaleへ正規化した合計がゼロの1取引として選択Actual Journalへ安全追記します。省略時はJPY互換です。TSV modeでは書き込まず拒否します。
+3.  **`multi` (複数ポスティング)**: native Journal mode専用。UIでは1取引につき3件以上の勘定と符号付き金額を入力します。費用などの増加は正、支払口座の減少は負とし、全ポスティングの合計をゼロにします（例: 費用600、費用150、支払口座-750）。選択Actual Journalへ安全追記し、TSV modeでは書き込まず拒否します。CLIの`journal multi-add`はnative transaction一般の下限として2件以上を受け付けます。
 4.  **`move` (資金移動)**: 資産口座間の振替。明示選択されたActual sourceへ追記。
 5.  **`income` (収入)**: 収入元から資産口座への入金。明示選択されたActual sourceへ追記。
 6.  **`budget` (予算配賦)**: 封筒への予算割り当て（例: `budget:unassigned` $\rightarrow$ `budget:daily`）。`budget_alloc.tsv` に追記。memo 候補は `config/ui_budget_memo_presets.tsv` で管理します。
