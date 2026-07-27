@@ -54,7 +54,7 @@ LatestActualDateInCycle ← {𝕊 base‿cy:
   out
 }
 
-Build ← {𝕊 ctx:
+BuildAvailable ← {𝕊 ctx:
   c3d ← ctx.cube.cube
   resolved ← ctx.resolved
   cy ← ctx.cy
@@ -62,20 +62,7 @@ Build ← {𝕊 ctx:
   day_count ← cy.day_count
   ak_count ← resolved.count
 
-  cyAvail ← (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (dt.IsValidDateText cy.start) ∧ (dt.IsValidDateText cy.end_exclusive)
-  (cyAvail) ◶ ⟨
-    { 𝕩 ⋄
-      {
-        available ⇐ 0,
-        cycle_start ⇐ cy.start,
-        cycle_end_exclusive ⇐ cy.end_exclusive,
-        as_of ⇐ "unavailable",
-        trend_rows ⇐ ⟨⟩,
-        env_labels ⇐ ⟨⟩
-      }
-    },
-    { 𝕩 ⋄
-      roles ← Unbox¨ resolved.roles
+  roles ← Unbox¨ resolved.roles
   accounts ← Unbox¨ resolved.accounts
   budgets ← Unbox¨ resolved.budgets
   kinds ← Unbox¨ resolved.kinds
@@ -161,15 +148,27 @@ Build ← {𝕊 ctx:
     TrimBudgetPrefix name
   }¨ budget_indices
 
-      {
-        trend_rows ⇐ trend_rows,
-        env_labels ⇐ env_labels,
-        as_of ⇐ as_of,
-        cycle_start ⇐ cy.start,
-        cycle_end_exclusive ⇐ cy.end_exclusive
-      }
-    }
-  ⟩ @
+  {
+    trend_rows ⇐ trend_rows,
+    env_labels ⇐ env_labels,
+    as_of ⇐ as_of,
+    cycle_start ⇐ cy.start,
+    cycle_end_exclusive ⇐ cy.end_exclusive
+  }
+}
+
+Build ← {𝕊 ctx:
+  cy ← ctx.cy
+  cycle_valid ← (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (dt.IsValidDateText cy.start) ∧ (dt.IsValidDateText cy.end_exclusive)
+  result ← {
+    trend_rows ⇐ ⟨⟩,
+    env_labels ⇐ ⟨⟩,
+    as_of ⇐ "unavailable",
+    cycle_start ⇐ cy.start,
+    cycle_end_exclusive ⇐ cy.end_exclusive
+  }
+  {𝕊: result ↩ BuildAvailable ctx}⍟cycle_valid @
+  result
 }
 
 Format ← {𝕊 vm:
@@ -187,8 +186,8 @@ Format ← {𝕊 vm:
 FormatHuman ← {𝕊 vm:
   rows ← vm.trend_rows
   days_left ← 0
-  cyOk ← (vm.cycle_end_exclusive ≢ "unavailable") ∧ (vm.as_of ≢ "unavailable") ∧ (dt.IsValidDateText vm.cycle_end_exclusive) ∧ (dt.IsValidDateText vm.as_of)
-  {𝕊: days_left ↩ 0 ⌈ (dt.DaysFromEpoch vm.cycle_end_exclusive) - dt.DaysFromEpoch vm.as_of }⍟cyOk @
+  coords_ok ← (vm.cycle_end_exclusive ≢ "unavailable") ∧ (vm.as_of ≢ "unavailable") ∧ (dt.IsValidDateText vm.cycle_end_exclusive) ∧ (dt.IsValidDateText vm.as_of)
+  {𝕊: days_left ↩ 0 ⌈ (dt.DaysFromEpoch vm.cycle_end_exclusive) - dt.DaysFromEpoch vm.as_of}⍟coords_ok @
 
   out ← "== Daily Flow ==" ∾ (@+10) ∾ (@+10)
   out ↩ out ∾ "cycle: " ∾ vm.cycle_start ∾ " 〜 " ∾ vm.cycle_end_exclusive ∾ " (as of " ∾ vm.as_of ∾ "; " ∾ (•Fmt days_left) ∾ " days left)" ∾ (@+10) ∾ (@+10)
