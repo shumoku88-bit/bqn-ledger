@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# tools/report-section-cache — lazily materialize one human report section
+#
+# Usage:
+#   tools/report-section-cache <base> <cache-dir> <source-mtime> <section-key>
+#
+# Direct report output is the canonical section body plus PrintSection's two
+# trailing newlines. This helper removes exactly those two bytes and stores the
+# body atomically for command-hub preview/display reuse.
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -L "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+ROOT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+cd "$ROOT_DIR"
+
+if [[ $# -ne 4 ]]; then
+  echo "Usage: tools/report-section-cache <base> <cache-dir> <source-mtime> <section-key>" >&2
+  exit 2
+fi
+
+base_dir="$1"
+cache_dir="$2"
+source_mtime="$3"
+key="$4"
+
+if [[ ! "$source_mtime" =~ ^[0-9]+$ ]]; then
+  echo "Error: source mtime must be a non-negative integer" >&2
+  exit 2
+fi
+
+case "$key" in
+  snapshot|issues|ytd|balances|cycle|trial-balance|envelopes|planned|recent|check|outlook|daily-trend|daily-flow|actual-comparison|debug)
+    ;;
+  actions)
+    printf '仕訳追加・取消は選択後に開きます。\n'
+    exit 0
+    ;;
+  all)
+    printf '全レポートは選択後に表示します。\n'
+    exit 0
+    ;;
+  *)
+    echo "Error: unsupported report section key: $key" >&2
+    exit 1
+    ;;
+esac
+
+mkdir -p "$cache_dir"
+cache_file="$cache_dir/$key.txt"
+stamp_file="$cache_dir/$key.timestamp"
+
+cached_mtime=0
+if [[ -f "$stamp_file" ]]; then
+  cached_mtime="$(cat "$stamp_file" 2>/dev/null || echo 0)"
+fi
+if [[ ! "$cached_mtime" =~ ^[0-9]+$ ]]; then
+  cached_mtime=0
+fi
+
+if [[ -f "$cache_file" ]] && (( cached_mtime >= source_mtime )); then
+  cat "$cache_file"
+  exit 0
+fi
+
+direct_out="$(mktemp "$cache_dir/.direct-${key}.XXXXXX")"
+direct_err="$(mktemp "$cache_dir/.direct-${key}.err.XXXXXX")"
+body_tmp="$(mktemp "$cache_dir/.body-${key}.XXXXXX")"
+stamp_tmp="$(mktemp "$cache_dir/.stamp-${key}.XXXXXX")"
+cleanup() {
+  rm -f "$direct_out" "$direct_err" "$body_tmp" "$stamp_tmp"
+}
+trap cleanup EXIT
+
+if ! "$ROOT_DIR/tools/report" "$base_dir" --section "$key" --no-color >"$direct_out" 2>"$direct_err"; then
+  status=$?
+  if [[ -s "$direct_out" ]]; then cat "$direct_out" >&2; fi
+  if [[ -s "$direct_err" ]]; then cat "$direct_err" >&2; fi
+  exit "$status"
+fi
+
+python3 - "$direct_out" "$body_tmp" <<'PY'
+from pathlib import Path
+import sys
+
+source = Path(sys.argv[1]).read_bytes()
+if not source.endswith(b"\n\n"):
+    raise SystemExit("selected report output does not end with PrintSection newlines")
+Path(sys.argv[2]).write_bytes(source[:-2])
+PY
+
+printf '%s\n' "$source_mtime" >"$stamp_tmp"
+mv -f "$body_tmp" "$cache_file"
+mv -f "$stamp_tmp" "$stamp_file"
+cat "$cache_file"
