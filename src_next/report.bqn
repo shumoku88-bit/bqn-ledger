@@ -86,7 +86,7 @@ BuildSectionEntries ← {𝕊 ctx‿outlook_as_of‿report_today:
         hdr ← L "report.envelope_section_title"
         hdr∾(@+10)∾"status: "∾vm.status∾(@+10)∾(L "report.envelope_guard_note")∾(@+10)
       }⟩ @
-    }⍟(vm.status ≢ "disabled") @⟩
+    }⍟(vm.status ≢ "disabled") ""⟩
     ⟨"planned", planned_payments.FormatHuman ctx⟩
     ⟨"recent", recent_journal.FormatHuman ⟨ctx, 10⟩⟩
     ⟨"check", readiness_check.FormatHuman ctx⟩

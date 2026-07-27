@@ -685,6 +685,62 @@ else
   fi
 fi
 
+# Disabled-policy envelopes human byte-exact contract check
+dis_fixture="$(mktemp -d)"
+cp -R "$fixture/." "$dis_fixture/"
+printf "\nPOLICY_BUDGET_STYLE\tnone\nPOLICY_RISK_STYLE\tconservative\n" >> "$dis_fixture/config.tsv"
+
+dis_direct_out="$(mktemp)"
+dis_direct_err="$(mktemp)"
+dis_code=0
+tools/report "$dis_fixture" --section envelopes --no-color >"$dis_direct_out" 2>"$dis_direct_err" || dis_code=$?
+if [ "$dis_code" -eq 0 ]; then
+  pass "disabled policy envelopes direct section returns exit status 0"
+else
+  fail "disabled policy envelopes direct section exit status was $dis_code, expected 0"
+fi
+if python3 -c "import sys; d = open(sys.argv[1], 'rb').read(); sys.exit(0 if d == b'\n\n' else 1)" "$dis_direct_out"; then
+  pass "disabled policy envelopes direct section stdout matches exact byte contract (b'\\n\\n')"
+else
+  fail "disabled policy envelopes direct section stdout byte contract mismatch"
+fi
+if [ ! -s "$dis_direct_err" ]; then
+  pass "disabled policy envelopes direct section stderr is empty"
+else
+  fail "disabled policy envelopes direct section stderr unexpectedly non-empty"
+fi
+rm -f "$dis_direct_out" "$dis_direct_err"
+
+dis_cache_dir="$(mktemp -d)"
+if tools/report "$dis_fixture" --write-section-cache "$dis_cache_dir" --no-color >/dev/null 2>&1; then
+  if [ -f "$dis_cache_dir/envelopes.txt" ] && [ ! -s "$dis_cache_dir/envelopes.txt" ]; then
+    pass "disabled policy write-section-cache generates 0-byte envelopes.txt"
+  else
+    fail "disabled policy write-section-cache envelopes.txt is not 0-byte"
+  fi
+else
+  fail "disabled policy write-section-cache failed"
+fi
+rm -rf "$dis_cache_dir"
+
+dis_full_out="$(mktemp)"
+if tools/report "$dis_fixture" --no-color >"$dis_full_out" 2>/dev/null; then
+  if grep -qF -- '== Trial Balance (actual layer) ==' "$dis_full_out" && grep -qF -- '== Planned Payments ==' "$dis_full_out"; then
+    pass "disabled policy full human report succeeds and preserves section order"
+  else
+    fail "disabled policy full human report section content mismatch"
+  fi
+  if ! grep -qiE '(envelope & budget|== envelope)' "$dis_full_out"; then
+    pass "disabled policy full human report does not output envelope section header"
+  else
+    fail "disabled policy full human report unexpectedly contains envelope header"
+  fi
+else
+  fail "disabled policy full human report failed"
+fi
+rm -f "$dis_full_out"
+rm -rf "$dis_fixture"
+
 if grep -qiE '(production.ready|default switch|replacement ready)' "$out"; then
   fail "human report appears to claim production readiness"
 else
