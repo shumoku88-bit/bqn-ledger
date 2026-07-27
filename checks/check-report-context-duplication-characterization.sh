@@ -46,6 +46,8 @@ grep -q 'BuildViewModelFromPrepared ←' src_next/planned_payments.bqn
 grep -q 'BuildCompactViewModelFromPrepared ←' src_next/planned_payments.bqn
 grep -q 'FormatHumanViewModel ←' src_next/planned_payments.bqn
 grep -q 'FormatJsonViewModel ←' src_next/planned_payments.bqn
+grep -q 'BuildFromPrepared ←' src_next/cycle_summary.bqn
+grep -q 'BuildFromPreparedForTest ⇐ BuildFromPrepared' src_next/cycle_summary.bqn
 
 grep -q 'BuildFromPreparedCore ⟨selectedCurrency, raw, resolved, cy, sourceFile, snapshot, 1, preliminary⟩' src_next/selected_domain_context.bqn
 if grep -q 'result ↩ BuildFromPrepared ⟨selectedCurrency, raw, resolved, cy, sourceFile, snapshot⟩' src_next/selected_domain_context.bqn; then

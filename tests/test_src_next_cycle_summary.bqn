@@ -38,6 +38,14 @@ tbdsRows ← ⟨
 ⟩
 
 cy ← { start ⇐ "2026-01-10", end_exclusive ⇐ "2026-03-10", day_count ⇐ 59 }
+# The semantic core accepts only prepared calculation evidence; no base,
+# filesystem adapter, or broad context namespace is required.
+preparedSummary ← cs.BuildFromPreparedForTest ⟨tbdsRows, cy, ⟨⟩, {roles⇐⟨⟩}, "unavailable", 0, ⟨⟩⟩
+"no_base_compatibility" lib.AssertEq preparedSummary.reason
+100000 lib.AssertEq preparedSummary.income_actual
+4200 lib.AssertEq preparedSummary.expense_actual
+2000 lib.AssertEq preparedSummary.plan_expense_remaining
+
 ctx ← { cy ⇐ cy, tbds ⇐ tbdsRows }
 summary ← cs.Build ctx
 

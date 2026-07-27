@@ -15,10 +15,6 @@ actual_observation ← •Import "actual_observation.bqn"
 L ← labels.Text
 cube ← •Import "cube.bqn"
 
-LatestActualDateInCycle ← {𝕊 base‿cy:
-  actual_observation.LatestInCycleOrStart ⟨actual_source.LoadDates base, cy⟩
-}
-
 MakeDiagnostic ← {𝕊 source_row‿status‿date‿message:
   {
     source_file ⇐ "plan.tsv",
@@ -164,47 +160,38 @@ BuildRemainingFromEvidence ← {𝕊 ctx‿as_of‿evidence:
   result
 }
 
-PlanExpenseRemainingAt ← {𝕊 ctx‿as_of‿fallback_total:
-  base ← ({𝕊: ctx.base}⎊{𝕊: ""}) @
-  result ← {
-    state ⇐ "ok",
-    reason ⇐ "no_base_compatibility",
-    diagnostics ⇐ ⟨⟩,
-    amount ⇐ fallback_total
-  }
-  {𝕊:
-    evidence ← BuildRemainingEvidence ctx
-    result ↩ BuildRemainingFromEvidence ⟨ctx, as_of, evidence⟩
-  }⍟(0 < ≠ base) @
-  result
-}
-
-# Build: build a minimal cycle summary namespace from context.
-# Uses TBDS query helpers for income/expense/net.
-Build ← {𝕊 ctx:
-  income_actual ← tbds.ActualIncomeAmount ctx.tbds
-  expense_actual ← tbds.ActualExpenseAmount ctx.tbds
+# I/O-free semantic core. The adapter supplies observation and plan completion
+# evidence; this boundary owns TBDS interpretation and the section result VM.
+BuildFromPrepared ← {𝕊 tbdsRows‿cy‿postingRows‿resolved‿as_of‿useRemainingEvidence‿remainingEvidence:
+  income_actual ← tbds.ActualIncomeAmount tbdsRows
+  expense_actual ← tbds.ActualExpenseAmount tbdsRows
   net_actual ← income_actual - expense_actual
-  plan_expense ← tbds.PlanExpenseAmount ctx.tbds
+  plan_expense ← tbds.PlanExpenseAmount tbdsRows
 
-  # Calculate the Cycle Summary observation boundary and days remaining.
-  base ← ({𝕊: ctx.base}⎊{𝕊: ""}) @
-  as_of ← { (0 < ≠ base) ? (actual_observation.LatestInCycleOrStart ⟨actual_source.DatesFromContext ctx, ctx.cy⟩) ; "unavailable" }
-  days_remaining ← ((as_of ≡ "unavailable") ∨ (ctx.cy.end_exclusive ≡ "unavailable")) ◶ ⟨ { 𝕩 ⋄
+  days_remaining ← ((as_of ≡ "unavailable") ∨ (cy.end_exclusive ≡ "unavailable")) ◶ ⟨ { 𝕩 ⋄
     as_dn ← dt.DaysFromEpoch as_of
-    end_dn ← dt.DaysFromEpoch ctx.cy.end_exclusive
+    end_dn ← dt.DaysFromEpoch cy.end_exclusive
     0 ⌈ (end_dn - as_dn)
   }, { 𝕩 ⋄ 0 } ⟩ @
 
-  remaining ← PlanExpenseRemainingAt ⟨ctx, as_of, plan_expense⟩
+  remaining ← {
+    state ⇐ "ok",
+    reason ⇐ "no_base_compatibility",
+    diagnostics ⇐ ⟨⟩,
+    amount ⇐ plan_expense
+  }
+  {𝕊:
+    calculationContext ← {cy⇐cy,posting_rows⇐postingRows,resolved⇐resolved}
+    remaining ↩ BuildRemainingFromEvidence ⟨calculationContext, as_of, remainingEvidence⟩
+  }⍟useRemainingEvidence @
 
   result ← {
     state                  ⇐ remaining.state,
     reason                 ⇐ remaining.reason,
     diagnostics            ⇐ remaining.diagnostics,
-    start                  ⇐ ctx.cy.start,
-    end_exclusive          ⇐ ctx.cy.end_exclusive,
-    day_count              ⇐ ctx.cy.day_count,
+    start                  ⇐ cy.start,
+    end_exclusive          ⇐ cy.end_exclusive,
+    day_count              ⇐ cy.day_count,
     days_remaining         ⇐ "unavailable",
     income_actual          ⇐ "unavailable",
     expense_actual         ⇐ "unavailable",
@@ -215,8 +202,7 @@ Build ← {𝕊 ctx:
   }
 
   {𝕊:
-    # Extract nonzero actual income entries for breakdown.
-    all_actual ← tbds.RowsForLayer ⟨layer.layer_actual, ctx.tbds⟩
+    all_actual ← tbds.RowsForLayer ⟨layer.layer_actual, tbdsRows⟩
     IsIncome ← { (𝕩.role ≡ "income") ∧ (𝕩.credit_movement ≠ 0) }
     income_rows ← (IsIncome¨ all_actual) / all_actual
     income_entries ← {⟨𝕩.account_key, -𝕩.credit_movement⟩}¨ income_rows
@@ -225,9 +211,9 @@ Build ← {𝕊 ctx:
       state                  ⇐ remaining.state,
       reason                 ⇐ remaining.reason,
       diagnostics            ⇐ remaining.diagnostics,
-      start                  ⇐ ctx.cy.start,
-      end_exclusive          ⇐ ctx.cy.end_exclusive,
-      day_count              ⇐ ctx.cy.day_count,
+      start                  ⇐ cy.start,
+      end_exclusive          ⇐ cy.end_exclusive,
+      day_count              ⇐ cy.day_count,
       days_remaining         ⇐ days_remaining,
       income_actual          ⇐ income_actual,
       expense_actual         ⇐ expense_actual,
@@ -239,6 +225,21 @@ Build ← {𝕊 ctx:
   }⍟(remaining.state ≡ "ok") @
 
   result
+}
+
+# Context/source adapter. All filesystem and prepared-Actual access stops here.
+Build ← {𝕊 ctx:
+  base ← ({𝕊: ctx.base}⎊{𝕊: ""}) @
+  hasBase ← 0 < ≠ base
+  as_of ← "unavailable"
+  evidence ← ⟨⟩
+  {𝕊:
+    as_of ↩ actual_observation.LatestInCycleOrStart ⟨actual_source.DatesFromContext ctx, ctx.cy⟩
+    evidence ↩ BuildRemainingEvidence ctx
+  }⍟hasBase @
+  postingRows ← ({𝕊: ctx.posting_rows}⎊{𝕊: ⟨⟩}) @
+  resolved ← ({𝕊: ctx.resolved}⎊{𝕊: {roles⇐⟨⟩}}) @
+  BuildFromPrepared ⟨ctx.tbds, ctx.cy, postingRows, resolved, as_of, hasBase, evidence⟩
 }
 
 FormatDiagnostic ← {𝕊 i‿diagnostic:
@@ -354,6 +355,7 @@ FormatHuman ← {𝕊 summary‿expenseEntries:
 
 {
   Build ⇐ Build,
+  BuildFromPreparedForTest ⇐ BuildFromPrepared,
   Format ⇐ Format,
   FormatHuman ⇐ FormatHuman,
   BuildRemainingEvidenceFromLinesForTest ⇐ BuildRemainingEvidenceFromLines,

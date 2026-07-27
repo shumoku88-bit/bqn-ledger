@@ -222,7 +222,7 @@ default currency付きfull/cache reportは現在、通常section用の`context.B
 
 BQN は terminal styling を出力しない。BQN の責務は、source TSV の検査、意味解釈、計算、plain text report、machine-readable export、semantic status word までである。
 
-Report sectionの内部境界は一括framework化せず、適用可能なmoduleから`context/source adapter → I/O-free semantic VM → renderer`へ寄せる。`planned_payments.bqn`が最初の明示例で、compact pathはcycle/completionだけのprepared VM、human/JSON pathはtemporal attachment済みprepared VMを使う。既存public entrypointはadapter wrapperとして維持し、rendererはcontextやbaseを読まない。
+Report sectionの内部境界は一括framework化せず、適用可能なmoduleから`context/source adapter → I/O-free semantic VM → renderer`へ寄せる。`planned_payments.bqn`が最初の明示例で、compact pathはcycle/completionだけのprepared VM、human/JSON pathはtemporal attachment済みprepared VMを使う。`cycle_summary.bqn`もcontext adapterでdates/completionを準備し、I/O-free coreがTBDS interpretationとremaining-plan joinを行う。既存public entrypointはadapter wrapperとして維持し、rendererはcontextやbaseを読まない。
 
 BQN が出してよいもの:
 
