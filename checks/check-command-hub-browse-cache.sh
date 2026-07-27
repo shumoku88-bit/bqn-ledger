@@ -5,8 +5,9 @@ set -euo pipefail
 #
 # A cold selector prepares the complete report-owned section cache once before
 # navigation. fzf previews then read files only, so moving quickly across rows
-# never starts one expensive report process per highlighted section. The
-# balances preview preserves the selected-currency direct-section contract.
+# never starts one expensive report process per highlighted section. When a
+# default currency is available, balances preserves the selected-currency
+# direct-section contract without making other ledgers unable to open the hub.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
@@ -26,9 +27,9 @@ work_dir="$(mktemp -d)"
 trap 'rm -rf "$work_dir"' EXIT
 
 run_selection() {
-  local key="$1" name="$2"
+  local base="$1" key="$2" name="$3"
   set +e
-  printf '%s\n' "$key" | TMPDIR="$work_dir" tools/main-ui.sh --base "$fixture" select \
+  printf '%s\n' "$key" | TMPDIR="$work_dir" tools/main-ui.sh --base "$base" select \
     >"$work_dir/$name.out" 2>"$work_dir/$name.err"
   local code=$?
   set -e
@@ -46,13 +47,21 @@ assert_code() {
   fi
 }
 
+cache_dir_for() {
+  local base_abs sanitized
+  base_abs="$(cd "$1" && pwd)"
+  sanitized="${base_abs//\//_}"
+  printf '%s/bqn-ledger-cache-%s\n' "$work_dir" "$sanitized"
+}
+
 section_keys=(
   snapshot issues ytd balances cycle trial-balance envelopes planned recent
   check outlook daily-trend daily-flow actual-comparison debug
 )
 
-# A cold selector prepares every preview body before accepting a choice.
-run_selection snapshot cold-snapshot
+# A cold selector prepares every preview body before accepting a choice. It must
+# still open when the specialized selected balances route is unavailable.
+run_selection "$fixture" snapshot cold-snapshot
 assert_code 0 cold-snapshot
 if grep -qF '1. 全体サマリ (Snapshot)' "$work_dir/cold-snapshot.out"; then
   pass "cold command-hub selection renders snapshot"
@@ -60,8 +69,8 @@ else
   fail "cold command-hub selection did not render snapshot"
 fi
 
-cache_dir=$(find "$work_dir" -maxdepth 1 -type d -name 'bqn-ledger-cache-*' -print -quit)
-if [[ -n "$cache_dir" && -f "$cache_dir/.cache-timestamp" ]]; then
+cache_dir="$(cache_dir_for "$fixture")"
+if [[ -f "$cache_dir/.cache-timestamp" ]]; then
   pass "cold selector writes global cache timestamp"
 else
   fail "cold selector did not write global cache timestamp"
@@ -88,28 +97,12 @@ else
   fail "cold selector built $text_count report cache files, expected $expected_count"
 fi
 
-# Command-hub balances must retain the selected-currency direct route rather
-# than the mixed full-report balances body produced by --write-section-cache.
-tools/report "$fixture" --section balances --no-color >"$work_dir/direct-balances.out" 2>"$work_dir/direct-balances.err"
-cat "$cache_dir/balances.txt" >"$work_dir/cached-balances.out"
-printf '\n\n' >>"$work_dir/cached-balances.out"
-if cmp -s "$work_dir/direct-balances.out" "$work_dir/cached-balances.out"; then
-  pass "command-hub balances cache preserves selected-currency direct bytes"
-else
-  fail "command-hub balances cache differs from selected-currency direct bytes"
-fi
-if [[ ! -s "$work_dir/direct-balances.err" ]]; then
-  pass "direct balances comparison stderr is empty"
-else
-  fail "direct balances comparison stderr is not empty"
-fi
-
 # A warm selector reuses the complete cache rather than rebuilding it.
 snapshot_mtime_before=$(stat -c %Y "$cache_dir/snapshot.txt" 2>/dev/null || stat -f %m "$cache_dir/snapshot.txt")
 balances_mtime_before=$(stat -c %Y "$cache_dir/balances.txt" 2>/dev/null || stat -f %m "$cache_dir/balances.txt")
 timestamp_before=$(cat "$cache_dir/.cache-timestamp")
 sleep 1
-run_selection ytd warm-ytd
+run_selection "$fixture" ytd warm-ytd
 assert_code 0 warm-ytd
 if grep -qF '== YTD Summary ==' "$work_dir/warm-ytd.out"; then
   pass "warm command-hub selection renders YTD"
@@ -125,6 +118,50 @@ if [[ "$snapshot_mtime_after" = "$snapshot_mtime_before" \
   pass "warm selector reuses complete preview cache"
 else
   fail "warm selector unexpectedly rebuilt complete preview cache"
+fi
+
+# Add a controlled default currency and prove the command-hub balances body is
+# byte-identical to the specialized direct selected-currency route.
+selected_fixture="$work_dir/selected-fixture"
+mkdir -p "$selected_fixture"
+cp -R "$fixture"/. "$selected_fixture"/
+printf 'DEFAULT_CURRENCY=JPY\n' >"$selected_fixture/config.tsv"
+
+run_selection "$selected_fixture" balances selected-cold-balances
+assert_code 0 selected-cold-balances
+if grep -qF 'Currency view: JPY' "$work_dir/selected-cold-balances.out"; then
+  pass "selected-currency command-hub balances renders the default currency view"
+else
+  fail "selected-currency command-hub balances did not render the default currency view"
+fi
+
+selected_cache_dir="$(cache_dir_for "$selected_fixture")"
+tools/report "$selected_fixture" --section balances --no-color >"$work_dir/direct-balances.out" 2>"$work_dir/direct-balances.err"
+cat "$selected_cache_dir/balances.txt" >"$work_dir/cached-balances.out"
+printf '\n\n' >>"$work_dir/cached-balances.out"
+if cmp -s "$work_dir/direct-balances.out" "$work_dir/cached-balances.out"; then
+  pass "command-hub balances cache preserves selected-currency direct bytes"
+else
+  fail "command-hub balances cache differs from selected-currency direct bytes"
+fi
+if [[ ! -s "$work_dir/direct-balances.err" ]]; then
+  pass "direct balances comparison stderr is empty"
+else
+  fail "direct balances comparison stderr is not empty"
+fi
+
+selected_balances_mtime_before=$(stat -c %Y "$selected_cache_dir/balances.txt" 2>/dev/null || stat -f %m "$selected_cache_dir/balances.txt")
+selected_timestamp_before=$(cat "$selected_cache_dir/.cache-timestamp")
+sleep 1
+run_selection "$selected_fixture" balances selected-warm-balances
+assert_code 0 selected-warm-balances
+selected_balances_mtime_after=$(stat -c %Y "$selected_cache_dir/balances.txt" 2>/dev/null || stat -f %m "$selected_cache_dir/balances.txt")
+selected_timestamp_after=$(cat "$selected_cache_dir/.cache-timestamp")
+if [[ "$selected_balances_mtime_after" = "$selected_balances_mtime_before" \
+   && "$selected_timestamp_after" = "$selected_timestamp_before" ]]; then
+  pass "warm selected-currency balances preview reuses the complete cache"
+else
+  fail "warm selected-currency balances preview unexpectedly rebuilt the cache"
 fi
 
 if [[ "$failures" -eq 0 ]]; then
