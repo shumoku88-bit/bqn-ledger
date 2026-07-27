@@ -5,7 +5,7 @@
 # This module has no side effects and does not read files.
 
 date ← •Import "../src_next/date.bqn"
-dec ← •Import "../src_next/exact_decimal.bqn"
+dec ← •Import "../src/ledger/exact_decimal.bqn"
 setup ← •Import "../src_next/currency_setup.bqn"
 
 # ── Date validation ─────────────────────────────────────────────

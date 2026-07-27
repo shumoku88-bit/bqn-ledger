@@ -7,7 +7,7 @@
 # project valid transactions into a signed event x account matrix.
 
 util ← •Import "util.bqn"
-decimal ← •Import "exact_decimal.bqn"
+decimal ← •Import "../src/ledger/exact_decimal.bqn"
 dates ← •Import "date.bqn"
 
 empty ← ⟨⟩

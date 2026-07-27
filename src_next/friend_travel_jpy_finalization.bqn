@@ -2,7 +2,7 @@
 # I/O-free validation and all-or-nothing one-row JPY journal preview.
 
 dates ← •Import "date.bqn"
-decimal ← •Import "exact_decimal.bqn"
+decimal ← •Import "../src/ledger/exact_decimal.bqn"
 
 empty ← ⟨⟩
 tab ← @+9

@@ -5,7 +5,7 @@
 # integer-JPY structural shadow passed to the unchanged production Stage 1 parser.
 
 util ← •Import "util.bqn"
-decimal ← •Import "exact_decimal.bqn"
+decimal ← •Import "../src/ledger/exact_decimal.bqn"
 dates ← •Import "date.bqn"
 setup ← •Import "currency_setup.bqn"
 stage1 ← •Import "journal_profile_stage1.bqn"

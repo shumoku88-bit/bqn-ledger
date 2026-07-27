@@ -5,7 +5,7 @@ admission ← •Import "../src_next/journal_complete_source_admission.bqn"
 carrier ← •Import "../src_next/journal_currency_proof_carrier_stage2a.bqn"
 ak ← •Import "../src_next/account_key.bqn"
 loader ← •Import "../src_next/loader.bqn"
-decimal ← •Import "../src_next/exact_decimal.bqn"
+decimal ← •Import "../src/ledger/exact_decimal.bqn"
 setup ← •Import "../src_next/currency_setup.bqn"
 
 args ← •args

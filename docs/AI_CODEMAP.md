@@ -85,7 +85,7 @@ Updated: 2026-07-26
 
 `src_next/queries/actual_expense_ranking.bqn`は現時点でpublic report sectionへ配線されていない。checked selected-domain posting factsを使うpurpose-specific consumerとして、public synthetic fixtureとfocused testでcharacterizeされている。
 
-現在の`src_next`は75 BQN module中71 moduleがroot直下、4 moduleがnestedで、direct import graphは286 edge、欠損target 0、cycle 0です。最初のfinite sliceとして`src_next/queries/actual_expense_ranking.bqn`と`src_next/queries/exact_sparse_grouping.bqn`を同時に移動済みで、root wrapperはありません。移動前のpoint-in-time evidenceは`docs/archive/audits/SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md`に保持します。
+現在の`src_next`は74 BQN module中70 moduleがroot直下、4 moduleがnestedで、direct importは286（internal 275）、欠損target 0、cycle 0です。`exact_decimal.bqn`は全callerと`src/ledger`へ移動し、旧path wrapperはありません。移動前のpoint-in-time evidenceは`docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`と`docs/archive/audits/SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md`に保持します。
 
 ## 正データファイル
 
@@ -106,6 +106,7 @@ Updated: 2026-07-26
 
 - `facts.bqn` — successful complete Actual admissionとminimal admitted account tableだけを受け、aligned Transaction/Posting factsとDomain/Account/Layer tableへall-or-nothing projectionするread-only owner。source path、I/O、clock、context、Cube、report fieldを受けない。
 - `date_ordinal.bqn` — fact date用のstrict ISO Gregorian validation/ordinalだけを持つpure coordinate owner。clockや表示を持たない。
+- `exact_decimal.bqn` — source amount textのexact parse、canonical coefficient/scale、exact-range diagnosticsを所有するpure kernel。全runtime/editor/test callerを同時移動し、旧path wrapperはない。
 - `journal_transaction_structure.bqn` — complete admissionがdomain-normalizeした1 transaction partitionのheader、metadata、declared account、posting side/zero-sum、identity、source lineをall-or-nothingでadmitするpure owner。旧`historical_external_plan` profileをimportしない。
 - 現行productionはまだ`src_next`であり、Phase 1A testだけがcurrent complete admissionを外部harnessとして新factsと比較する。`src/ledger`から`src_next`をimportしてはならない。
 
@@ -115,7 +116,6 @@ Updated: 2026-07-26
 - `journal_profile_stage1.bqn` — Minimal BQN Journal subsetをordered Transaction IRへ変換するparser。`recur` / `series` / `trip-id`とclosed enumの`payment`は会計意味を解釈せずgeneric `transaction.metadata`へexact保持する。Journal modeのproduction read/write validationで使用する。
 - `journal_posting_ir_stage2a.bqn` — admitted Stage 1 Transaction IRをcurrent 16-field Posting IR shapeへ変換するadapter。explicit source file identityを持つnative multi-posting production routingにも使用する。
 - `journal_posting_identity_provenance_stage2b.bqn` — admitted Stage 1 Transaction IRと対応するStage 2Aの16-field rowsを受け、identity/provenance local invariantsをall-or-nothingで検査して、rowを変更せず別の6-field carrierを返すpure test-only helper。production provenance carrier、consumer、routingには未接続。
-- `exact_decimal.bqn` — source amount text の exact-decimal parse、canonical coefficient / scale、parsed coefficient exact-range 診断の owner。
 - `currency_arithmetic.bqn` — pre-built B1 row evidence だけを入力に、single-domain 検査、snapshot-wide `amount_scale`、exact normalization、normalized overflow evidence を返す pure B2 owner。source file や projection は扱わない。
 - `source_currency_admission.bqn` — supplied account lines と posting snapshot のみを検査する pure source-currency admission owner。closed strict/compatibility policy、privacy-safe diagnostics、no-partial-admission を持ち、I/Oなし・public runtime未配線。
 - `friend_travel_jpy_finalization.bqn` — pending friend-travel source-event descriptor、明示 finalization date / JPY amount、既存account descriptor、既存finalization IDだけを入力にするpure validator。成功時は既存JPY liability → JPY expenseのcanonical previewを正確に1行返し、失敗時はprivacy-safe diagnosticsと0行を返す。I/O、status/index mutation、writer、public runtime配線は持たない。

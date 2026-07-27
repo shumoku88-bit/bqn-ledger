@@ -7,7 +7,7 @@
 # persisted as production evidence.
 
 util ← •Import "util.bqn"
-decimal ← •Import "exact_decimal.bqn"
+decimal ← •Import "../src/ledger/exact_decimal.bqn"
 dates ← •Import "date.bqn"
 setup ← •Import "currency_setup.bqn"
 structure ← •Import "../src/ledger/journal_transaction_structure.bqn"

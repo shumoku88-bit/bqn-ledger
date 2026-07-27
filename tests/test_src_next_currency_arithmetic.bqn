@@ -2,7 +2,7 @@
 
 lib ← •Import "test_lib.bqn"
 arith ← •Import "../src_next/currency_arithmetic.bqn"
-dec ← •Import "../src_next/exact_decimal.bqn"
+dec ← •Import "../src/ledger/exact_decimal.bqn"
 
 Row ← {𝕊 currency‿coefficient‿scale:
   {

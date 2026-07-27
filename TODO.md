@@ -6,7 +6,7 @@ This is the lightweight queue for current work. Completed implementation history
 
 - Native Journal is the sole production Actual source; companion sources are `plan.tsv`, `budget_alloc.tsv`, `accounts.tsv`, `cycle.tsv`, and `issues.tsv`.
 - Daily human reporting runs through `tools/report` → `src_next/report.bqn`; compact output uses `tools/report-next-summary` → `src_next/summary.bqn`.
-- The current engine has 75 BQN modules and 13,027 physical lines. The completed prepared-boundary reduction track ended 29 lines below its 13,056-line baseline while preserving all report sections.
+- Production routing remains `src_next`, now 74 BQN modules and 12,933 physical lines after exact-decimal and transaction-structure ownership moved to `src/ledger` with all callers and no old-path wrappers. All report sections remain available.
 - Canonical Daily Cube, TBDS, and purpose-specific sparse consumers remain views over checked posting facts, not competing source truths.
 - The current runtime still contains dual context/admission routes, historical transaction/proof fallbacks, compatibility exports, test seams, and historical entrypoint names.
 - Current reporting remains production until a separately verified ledger-facts engine passes the cutover gate.
@@ -70,7 +70,8 @@ This is not a section-reduction campaign and must not recreate the old giant all
 - [x] Replace complete admission's transient `historical_external_plan` structural parser dependency with `src/ledger/journal_transaction_structure.bqn`.
 - [x] Preserve first-failure diagnostics, no-partial-result behavior, exact decimals, posting side, metadata, physical/durable identity, declared-account proof, and source lines.
 - [x] Prove declaration-only and JPY/ILS/USD single-domain transactions, including multi-posting and precision rejection, through the canonical structure owner.
-- [ ] Connect canonical admission to `src/ledger/facts.bqn` without importing `src_next` from destination code.
+- [x] Move exact-decimal parsing/range ownership and all runtime/editor/test callers to `src/ledger/exact_decimal.bqn`; leave no old path.
+- [ ] Connect canonical complete admission to `src/ledger/facts.bqn` without importing `src_next` from destination code.
 - [ ] Move coherent admission ownership and all callers together; leave no old-path forwarding wrapper.
 
 Phase 0 exit evidence is `docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`: every observable report capability has an owner, every compatibility path has a deletion gate, and no undecided fallback is permitted in the destination fact schema.

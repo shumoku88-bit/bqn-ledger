@@ -2,7 +2,7 @@
 # I/O-free validation for Israel friend-paid pending source events.
 
 dates ← •Import "date.bqn"
-decimal ← •Import "exact_decimal.bqn"
+decimal ← •Import "../src/ledger/exact_decimal.bqn"
 util ← •Import "util.bqn"
 
 empty ← ⟨⟩

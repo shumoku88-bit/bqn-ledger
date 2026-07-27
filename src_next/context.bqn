@@ -15,7 +15,7 @@
 #   Context is read-only within sections. Sections must not mutate ctx.
 
 loader ← •Import "loader.bqn"
-dec ← •Import "exact_decimal.bqn"
+dec ← •Import "../src/ledger/exact_decimal.bqn"
 arith ← •Import "currency_arithmetic.bqn"
 proof_policy ← •Import "arithmetic_currency_proof.bqn"
 ak ← •Import "account_key.bqn"

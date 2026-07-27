@@ -1,7 +1,7 @@
 #!/usr/bin/env bqn
 
 lib ← •Import "test_lib.bqn"
-dec ← •Import "../src_next/exact_decimal.bqn"
+dec ← •Import "../src/ledger/exact_decimal.bqn"
 
 CheckOk ← {𝕊 text‿expectedCoefficient‿expectedScale:
   result ← dec.Parse text
@@ -36,4 +36,4 @@ invalid ← ⟨"", "+1", "-1", ".5", "5.", "1e3", "1E3", "1,000", "42 50", "1.2.
 # parser must expose range failure rather than admitting a rounded coefficient.
 CheckFail ⟨"9007199254740993", "out_of_exact_range", "amount_out_of_exact_range"⟩
 
-•Out "test_src_next_exact_decimal.bqn: OK"
+•Out "test_ledger_exact_decimal.bqn: OK"

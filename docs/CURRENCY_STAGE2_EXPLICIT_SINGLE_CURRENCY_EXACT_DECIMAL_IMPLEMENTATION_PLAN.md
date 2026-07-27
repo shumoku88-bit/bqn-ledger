@@ -677,7 +677,7 @@ These later cases are planned, not authorized by Slice A.
 ## 15. Preferred ownership
 
 ```text
-src_next/exact_decimal.bqn
+src/ledger/exact_decimal.bqn
   -> exact decimal grammar
   -> canonical coefficient + scale
   -> exactness/range diagnostic

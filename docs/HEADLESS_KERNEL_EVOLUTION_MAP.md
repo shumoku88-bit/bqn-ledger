@@ -108,7 +108,7 @@ Current ownership:
 | Boundary | Current owner | Current character |
 |---|---|---|
 | Read source files | `src_next/loader.bqn`, `src_next/context.bqn` | I/O and orchestration |
-| Exact decimal parse | `src_next/exact_decimal.bqn` | Pure calculation kernel |
+| Exact decimal parse | `src/ledger/exact_decimal.bqn` | Pure calculation kernel |
 | Snapshot currency arithmetic | `src_next/currency_arithmetic.bqn` | Pure calculation kernel |
 | Row evidence construction | `src_next/context.bqn` | Source adapter plus validation orchestration |
 | Arithmetic proof construction | `src_next/context.bqn` | Checked-claim orchestration |

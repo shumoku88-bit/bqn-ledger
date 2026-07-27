@@ -14,7 +14,7 @@ Decide how the remaining selected Currency Stage 2 Slice B semantics should be d
 
 ## Reviewed Current Owners
 
-*   [exact_decimal.bqn](../src_next/exact_decimal.bqn) - Pure exact-decimal source parser module (Slice A kernel).
+*   [exact_decimal.bqn](../src/ledger/exact_decimal.bqn) - Pure exact-decimal source parser module (Slice A kernel).
 *   [context.bqn](../src_next/context.bqn) - Ingestion orchestration, proof resolution, and projection coordination.
 *   [projection.bqn](../src_next/projection.bqn) - Proof authorization and posting row projection.
 
@@ -164,7 +164,7 @@ The one-shared-snapshot invariant is preserved across the split as follows:
 
 ## Exact-Decimal Ownership Preservation
 
-The pure exact-decimal grammar, canonicalization, and coefficient exactness diagnostics are owned exclusively by `src_next/exact_decimal.bqn`. `src_next/context.bqn` orchestrates and consumes `exact_decimal.Parse` as a black box and does not reimplement parser or exact-range validation logic.
+The pure exact-decimal grammar, canonicalization, and coefficient exactness diagnostics are owned exclusively by `src/ledger/exact_decimal.bqn`. `src_next/context.bqn` orchestrates and consumes `exact_decimal.Parse` as a black box and does not reimplement parser or exact-range validation logic.
 
 ---
 

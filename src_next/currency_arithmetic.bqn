@@ -3,7 +3,7 @@
 # This module does not load source data, parse source rows, authorize projection,
 # or build posting rows. Exact normalization is admitted through exact_decimal.
 
-dec ← •Import "exact_decimal.bqn"
+dec ← •Import "../src/ledger/exact_decimal.bqn"
 setup ← •Import "currency_setup.bqn"
 
 empty ← ⟨⟩

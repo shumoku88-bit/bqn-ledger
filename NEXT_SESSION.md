@@ -7,12 +7,12 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Phase 1B continuation: normalized transaction structure is now owned by `src/ledger/journal_transaction_structure.bqn`, and complete admission no longer calls the `historical_external_plan` parser profile. Next move exact decimal, domain partition, account-currency proof, and complete-source admission ownership so raw strict Journal can reach `src/ledger/facts.bqn` without a `src_next` bridge.
+Phase 1B continuation: normalized transaction structure and exact-decimal parsing are now owned by `src/ledger`, with all exact-decimal callers moved and no old wrapper. Next move domain partition, account-currency proof, and complete-source admission ownership so raw strict Journal can reach `src/ledger/facts.bqn` without a `src_next` bridge.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn
 completed: normalized transaction grammar/metadata/side/identity -> canonical structure owner
-next boundary: strict domain/account/decimal complete admission -> facts
+next boundary: strict domain/account complete admission -> facts
 must preserve: diagnostics, no partial facts, JPY/ILS/USD scale, declaration-only source, source lines
 not in this slice: Plan/Budget admission, Pivot, copied section, universal context
 ```
