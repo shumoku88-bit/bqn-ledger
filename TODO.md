@@ -12,16 +12,98 @@ This is a lightweight notebook for current work. Completed implementation histor
 - `src_next/projection.bqn` is now a small compatibility shelf for non-Actual Posting IR vocabulary, `ResolveDayFromCycle`, Layer delegates, and arithmetic-proof delegates. Diagnostic presentation and dead date/scalar exports have already been removed.
 - `src_next` directory migration is evidence-led. The first query neighborhood is under `src_next/queries/`; high-fan-in hubs remain at root.
 
-## Current investigation
+## Selected work: reduce report code after prepared-boundary migration
 
-Full report/cache generation still constructs the ordinary compatibility `BuildContext` and a second selected-domain context for balances. Selected cycle/composition reuse complete admission, while compatibility `BuildContext` reuses one source-owned complete-or-fallback cycle evidence result across default and explicit period resolution. Context-based report consumers now derive Actual dates and compatibility completion/plan-ID evidence from `ctx.actual_transactions` instead of reloading the Journal; their distinct no-data, identity, cycle-scope, and observation policies remain local. On the public sandbox, sequential context median time fell from about 400 ms to 80 ms before this consumer slice; timings are observations, not gates.
+The current implementation plan is [`docs/REPORT_CODE_REDUCTION_PLAN.md`](docs/REPORT_CODE_REDUCTION_PLAN.md). The objective is not to apply the same architecture template to every section. Preserve daily report behavior, introduce only a useful prepared seam, migrate real callers, then remove superseded adapters, source-shape checks, and duplicate preparation.
 
-Evidence is recorded in:
+Point-in-time baseline: `src_next` has 75 BQN modules and 13,056 physical lines (approximately 10,407 nonblank, non-comment lines). This is characterization, not a minification target. Tests and fail-closed diagnostics must not be weakened to reduce the count.
+
+### Completed finite slice: Actual Snapshot
+
+- [x] Added the narrow I/O-free `BuildFromPrepared` calculation boundary.
+- [x] Preserved inclusive cumulative cutoff, pre-cycle opening evidence, rejected-row applicability, invalid-date failure, valid-empty zero, and Outlook failure propagation.
+- [x] Added a direct prepared-core test and replaced `BuildAt` source-shape grep assertions with behavioral evidence.
+- [x] Kept `BuildAt` for the production Outlook caller and focused compatibility tests; kept `Build` / `LatestActualDateInCycle` for the existing default-observation characterization.
+- [x] Passed focused checks, `tools/check.sh`, coverage, and diff validation.
+
+Completion record:
+
+```text
+slice: Actual Snapshot
+behavior preserved: cumulative cutoff, rejected/invalid/empty semantics, Outlook propagation
+prepared boundary: BuildFromPrepared(postingRows, cubeView, resolved, as_of)
+removed code/API/check: removed BuildAt source-shape awk/grep assertions
+src_next line delta: +9 (13,056 -> 13,065); exports +1 (3 -> 4)
+remaining compatibility caller: Outlook uses BuildAt; default observation tests use Build
+checks: focused prepared/numeric tests, actual-snapshot check, full tools/check.sh, coverage
+```
+
+The temporary source increase is assigned to the Outlook/caller-migration deletion checkpoint; do not repay it by compressing the semantic core.
+
+### Completed finite slice: Daily Flow
+
+- [x] Inventoried the sole production caller, required `ctx` fields, and unused imports.
+- [x] Moved Actual date acquisition and compatibility fallback into `Build(ctx)`.
+- [x] Added `BuildFromPrepared(cubeView, resolved, cy, actualDates)` and preserved Daily Flow's explicit `as_of` anchor independently from Daily Trend.
+- [x] Added no-base/invalid-cycle prepared behavioral evidence and direct adapter parity.
+- [x] Removed five unused module imports, the unused label binding, and the dead source-loading `LatestActualDateInCycle` helper.
+- [x] Passed focused checks, section rendering, full `tools/check.sh`, and coverage.
+
+Completion record:
+
+```text
+slice: Daily Flow
+behavior preserved: day-count observation window, explicit as_of row anchor, account partitions, compact/human output
+prepared boundary: BuildFromPrepared(cubeView, resolved, cy, actualDates)
+removed code/API/check: five unused imports, unused label binding, dead source-loading helper
+src_next line delta: +10 (13,065 -> 13,075); exports +1 (3 -> 4)
+remaining compatibility caller: report uses Build(ctx); DatesFromContext retains focused base fallback
+checks: prepared test, section rendering, context/projection checks, full tools/check.sh, coverage
+```
+
+The adapter remains the truthful production boundary. Its compatibility deletion checkpoint is removal of the `DatesFromContext` base fallback after all supported contexts carry Actual transactions; the final track must still repay temporary prepared-boundary growth overall.
+
+### Completed finite slice: Daily Trend
+
+- [x] Preserved the characterized contract that `BuildAt(ctx, header_O)` changes header coordinates, not replay calculation.
+- [x] Kept `daily_trend_plan.BuildAt` in the context adapter and passed its checked/fail-closed reserve result into the numeric core.
+- [x] Added `BuildFromPrepared(cubeView, resolved, cy, as_of, trend_dates, plan_result)` without broad `ctx` or source access.
+- [x] Preserved row-local future-income replay, empty-cycle-start anchoring, reserve completion timing, and error propagation.
+- [x] Added adapter parity, no-base, invalid-cycle, and prepared plan-failure evidence.
+- [x] Removed the dead source-loading latest-date helper and replaced the helper-connection source grep with behavioral evidence.
+- [x] Passed all focused Daily Trend tests, section checks, full `tools/check.sh`, and coverage.
+
+Completion record:
+
+```text
+slice: Daily Trend
+behavior preserved: header-only BuildAt, row-local replay, empty anchor, checked reserve fail-closed semantics
+prepared boundary: BuildFromPrepared(cubeView, resolved, cy, as_of, trend_dates, plan_result)
+removed code/API/check: dead source-loading helper; trend_plan.BuildAt connection grep
+src_next line delta: +19 (13,075 -> 13,094); exports +1 (4 -> 5)
+remaining compatibility caller: report uses BuildAt; summary uses Build; plan adapter retains source/context evidence preparation
+checks: prepared test, all focused trend tests, numeric-owner check, full tools/check.sh, coverage
+```
+
+`BuildAt` remains because the production human report explicitly supplies a header coordinate, while compact summary uses internal replay observation. The later report/Outlook observation review is the deletion or rename checkpoint; the plan-evidence adapter joins the `actual_source` compatibility checkpoint.
+
+### Current finite slice: Outlook
+
+- [ ] Inventory existing `BuildCore`, Actual Snapshot, remaining-plan, frontier, Envelope, and Daily Capacity boundaries before editing.
+- [ ] Separate source/context preparation from the already-partly-pure calculation without introducing another duplicate VM.
+- [ ] Preserve explicit open-ended frontier, no-Actual unavailable, invalid-date, and snapshot/remaining-plan failure propagation.
+- [ ] Decide with caller evidence whether `daily_capacity.bqn` is connected, retained experimental surface, or removable.
+- [ ] Add prepared adapter parity and no-base evidence only for a boundary that replaces existing assembly.
+- [ ] Record source/API delta and require a concrete deletion in this or the immediately following slice.
+
+Later slices remain ordered but unselected: bounded Envelope responsibilities, then `actual_source` compatibility reduction. Do not start them together.
+
+The completed context-reuse characterization remains in:
 
 - `docs/REPORT_CONTEXT_DUPLICATION_CHARACTERIZATION-2026-07-27.md`
 - `tools/characterization/report_context_duplication_probe.bqn`
 
-Do not collapse the routes into one universal context or reuse compatibility posting rows as selected-domain rows without contract evidence. Remaining duplication includes account/raw source reads between contexts, non-Actual preparation, and the second Cube/TBDS view. Current performance no longer justifies a risky universal-context merge. Completion evidence and plan-ID matching were migrated as a separate historical-shape slice after preserving their delta, fallback-identity, and cycle-filter contracts. Exact duplicate Actual-observation logic now has a narrow pure owner for the Daily Flow/Trend and Planned Payments/Cycle Summary pairs; section-specific invalid-date, source-order, absence, and open-ended frontier policies remain local. Planned Payments and Cycle Summary now explicitly follow context adapter → prepared semantic VM → pure renderer. Planned compact output remains independent from human/JSON temporal attachment; Cycle Summary keeps TBDS interpretation and remaining-plan joins inside its I/O-free core. Remaining plan/non-Actual reads should only be shared when measurements justify a prepared snapshot boundary.
+Do not collapse ordinary and selected-domain contexts into one universal context or reuse compatibility posting rows as selected-domain rows without contract evidence. Current performance no longer justifies that risk.
 
 ## Other useful directions
 

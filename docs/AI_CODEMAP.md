@@ -21,7 +21,7 @@ Updated: 2026-07-26
 8. `docs/TIME_AS_AXIS.md`（時間座標・観察時点・区間view）
 9. `src_next`のfile moveなら `docs/archive/audits/SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md` と `tools/src-next-import-graph`
 10. projection変更なら `docs/archive/active-plans/PURPOSE_SPECIFIC_PROJECTION_COMPOSITION_DIRECTION-2026-07-25.md`、`docs/archive/audits/PROJECTION_BQN_OWNERSHIP_AUDIT-2026-07-26.md`、該当する `src_next/*` consumer
-11. レポート変更なら `src_next/report.bqn` と該当する `src_next/*` モジュール、`docs/REPORT_CONTRACTS.md` / `docs/REPORT_SECTION_CONTRACT_CHECKLIST.md`。context共有なら先に `docs/REPORT_CONTEXT_DUPLICATION_CHARACTERIZATION-2026-07-27.md` を読み、現行のreport関連checkを確認する
+11. レポート変更なら `src_next/report.bqn` と該当する `src_next/*` モジュール、`docs/REPORT_CONTRACTS.md` / `docs/REPORT_SECTION_CONTRACT_CHECKLIST.md`。prepared-boundary移行と削減trackは `docs/REPORT_CODE_REDUCTION_PLAN.md`、context共有は `docs/REPORT_CONTEXT_DUPLICATION_CHARACTERIZATION-2026-07-27.md` を先に読み、現行のreport関連checkを確認する
 12. エディタ作業なら `docs/PRODUCTION_EDITOR_DIRECTION.md` / `docs/BQN_EDITOR_USAGE.md` / `src_edit/README.md`
 13. 複数ポスティング導入検討なら `docs/archive/completed-plans/DECISION_MULTI_POSTING_INVESTIGATION.md`
 14. 変更内容に応じて `docs/CONVENTIONS.md` / `docs/JOURNAL_META.md` / `docs/MAINTENANCE.md`
@@ -85,7 +85,7 @@ Updated: 2026-07-26
 
 `src_next/queries/actual_expense_ranking.bqn`は現時点でpublic report sectionへ配線されていない。checked selected-domain posting factsを使うpurpose-specific consumerとして、public synthetic fixtureとfocused testでcharacterizeされている。
 
-現在の`src_next`は71 BQN module中67 moduleがroot直下、4 moduleがnestedで、direct import graphは276 edge、欠損target 0、cycle 0です。最初のfinite sliceとして`src_next/queries/actual_expense_ranking.bqn`と`src_next/queries/exact_sparse_grouping.bqn`を同時に移動済みで、root wrapperはありません。移動前のpoint-in-time evidenceは`docs/archive/audits/SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md`に保持します。
+現在の`src_next`は75 BQN module中71 moduleがroot直下、4 moduleがnestedで、direct import graphは293 edge、欠損target 0、cycle 0です。最初のfinite sliceとして`src_next/queries/actual_expense_ranking.bqn`と`src_next/queries/exact_sparse_grouping.bqn`を同時に移動済みで、root wrapperはありません。移動前のpoint-in-time evidenceは`docs/archive/audits/SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md`に保持します。
 
 ## 正データファイル
 
@@ -139,10 +139,11 @@ Updated: 2026-07-26
 - `readiness_check.bqn` — データ品質チェック。
 - `outlook.bqn` — 見通し・日割り計算。
 - `daily_capacity.bqn` — 明示された観察日、cycle horizon、単一算術domain、owner-resolved asset / obligation evidenceだけを受ける純粋Daily Capacity計算seam。`BuildDailyCapacityFromEvidence`をexportするが、Outlook・config・source adapter・出力には未接続。
-- `daily_trend.bqn` — 日次トレンド。current-source coordinate replayを維持し、plan reserveはchecked helperのfail-closed結果を使う。
+- `daily_flow.bqn` — 日別income/envelope/other/net。context adapterがActual datesを取得し、I/O-free `BuildFromPrepared`は既存Cube view、resolved metadata、cycle、prepared datesだけからVMを作る。Daily Flow固有の明示as_of row anchorを維持する。
+- `daily_trend.bqn` — 日次トレンド。context adapterがActual dates、row coordinates、checked plan reserve resultを準備し、I/O-free `BuildFromPrepared`は既存Cube/resolved/cycle、明示coordinates、plan resultだけからVMを作る。current-source coordinate replayとempty cycle-start anchorを維持する。`BuildAt`の引数は計算Oではなくhuman header coordinateである。
 - `daily_trend_plan.bqn` — admitted `plan.tsv` Posting IRを`source_row`でplan ID/completion source evidenceへjoinし、D-local fixed reserveを計算するnumeric owner。raw amountは再解析しない。
 - `actual_comparison.bqn` — 明示Observation `BuildAt ⟨ctx,O⟩`で前期比較を作る。current/baseline金額はchecked Posting IRからlocal TBDS period viewへ流し、count/anchor/rejected-row診断はposting source identity evidenceを使う。statusは`ok / unavailable / error`。
-- `actual_snapshot.bqn` — as_of 時点スナップショット。
+- `actual_snapshot.bqn` — as_of時点のledger-cumulative Actual snapshot。`BuildFromPrepared`はchecked posting rows、既存Cube view、resolved metadata、明示as_ofだけを受けるI/O-free coreで、`BuildAt` / `Build`はOutlookとdefault-observation互換adapterとして残る。
 - `household_policy.bqn` — 家計ポリシーレイヤ。
 - `household_metadata.bqn` — 家計メタデータ診断。
 - `plan_rows.bqn` — 予定行の source evidence（`PlanId` / `InCycle` / `BuildBase`）、actual value、temporal status の共有 owner。

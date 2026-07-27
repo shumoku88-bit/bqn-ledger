@@ -16,6 +16,7 @@ Updated: 2026-07-26
 - 保守手順: `docs/MAINTENANCE.md`
 - purpose-specific projection方向: `docs/archive/active-plans/PURPOSE_SPECIFIC_PROJECTION_COMPOSITION_DIRECTION-2026-07-25.md`
 - report context重複の現行観察: `docs/REPORT_CONTEXT_DUPLICATION_CHARACTERIZATION-2026-07-27.md`
+- report prepared-boundary移行と削減計画: `docs/REPORT_CODE_REDUCTION_PLAN.md`
 - `src_next` module topology: `docs/archive/audits/SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md`
 
 この文書は、**データがシステム内をどう流れるか**、各モジュールが何を担当するかを説明します。
@@ -159,7 +160,7 @@ checked selected-domain posting facts
 
 ### Module topology
 
-`src_next`は現在71個のBQN moduleを持ち、そのうち67個がroot直下、4個が`src_next/calc/`または`src_next/queries/`にあります。source-levelのdirect `•Import` graphには276 edgeがあり、欠損targetとimport cycleはありません。最初の低blast-radius migrationによりpurpose-specific query pairだけがnestedになり、production hubとentrypointはrootに残っています。
+`src_next`は現在75個のBQN moduleを持ち、そのうち71個がroot直下、4個が`src_next/calc/`または`src_next/queries/`にあります。source-levelのdirect `•Import` graphには293 edgeがあり、欠損targetとimport cycleはありません。最初の低blast-radius migrationによりpurpose-specific query pairだけがnestedになり、production hubとentrypointはrootに残っています。
 
 `tools/src-next-import-graph`がdirect import edge、module degree、cycle、欠損targetを機械的に観察します。詳細なpoint-in-time evidenceとmigration順序は`docs/archive/audits/SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md`にあります。
 
@@ -223,6 +224,8 @@ default currency付きfull/cache reportは現在、通常section用の`context.B
 BQN は terminal styling を出力しない。BQN の責務は、source TSV の検査、意味解釈、計算、plain text report、machine-readable export、semantic status word までである。
 
 Report sectionの内部境界は一括framework化せず、適用可能なmoduleから`context/source adapter → I/O-free semantic VM → renderer`へ寄せる。`planned_payments.bqn`が最初の明示例で、compact pathはcycle/completionだけのprepared VM、human/JSON pathはtemporal attachment済みprepared VMを使う。`cycle_summary.bqn`もcontext adapterでdates/completionを準備し、I/O-free coreがTBDS interpretationとremaining-plan joinを行う。既存public entrypointはadapter wrapperとして維持し、rendererはcontextやbaseを読まない。
+
+ただし境界分離そのものを完成条件にしない。新しいprepared seamにはcaller移行と削除候補を対応させ、移行後は不要なsource-loading wrapper、compatibility API、重複assembly、source-shape checkを縮小する。rendererを持たないconsumer helperへ形式的な三層構造を強制せず、短さのためにdiagnosticsや可読性を弱めない。`actual_snapshot.bqn`はrendererなしの例で、checked posting rows、既存Cube view、resolved metadata、明示as_ofだけを受けるI/O-free coreと、Outlook/default observation用adapterを分離する。`daily_flow.bqn`もActual date取得をcontext adapterへ止め、prepared coreはCube/resolved/cycle/date evidenceだけを受ける一方、section固有の明示as_of row anchorは保持する。`daily_trend.bqn`ではActual coordinatesとchecked plan reserve resultをadapterで準備し、numeric coreはrow-local future-income replayとreserve計算結果を組み立てる。`BuildAt`の明示値は計算観察点ではなくhuman header coordinateという既存契約を変えない。現行順序と完了条件は`docs/REPORT_CODE_REDUCTION_PLAN.md`を参照する。
 
 BQN が出してよいもの:
 

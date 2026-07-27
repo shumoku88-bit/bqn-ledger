@@ -28,6 +28,7 @@ They are maps, not gates. Read the files that help with the question in front of
 - [`CANONICAL_DAILY_CUBE.md`](CANONICAL_DAILY_CUBE.md) — the existing Day × Account × Layer view
 - [`TBDS_CONTRACT.md`](TBDS_CONTRACT.md) — trial-balance dataset boundary
 - [`REPORT_CONTRACTS.md`](REPORT_CONTRACTS.md) — report sections and values
+- [`REPORT_CODE_REDUCTION_PLAN.md`](REPORT_CODE_REDUCTION_PLAN.md) — current prepared-boundary, caller-migration, and compatibility-deletion sequence
 - [`TIME_AS_AXIS.md`](TIME_AS_AXIS.md) — temporal concepts
 - [`archive/audits/PROJECTION_BQN_OWNERSHIP_AUDIT-2026-07-26.md`](archive/audits/PROJECTION_BQN_OWNERSHIP_AUDIT-2026-07-26.md) — ownership inventory and bounded cleanup sequence for `src_next/projection.bqn`
 - [`archive/audits/PROJECTION_COMPATIBILITY_EXPORTS_CHARACTERIZATION-2026-07-26.md`](archive/audits/PROJECTION_COMPATIBILITY_EXPORTS_CHARACTERIZATION-2026-07-26.md) — repository callers, test pressure, documentation promises, external-search limits, and the selected P2a/P2b compatibility-export sequence
