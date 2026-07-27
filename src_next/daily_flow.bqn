@@ -6,12 +6,6 @@ actual_source ← •Import "actual_source.bqn"
 actual_observation ← •Import "actual_observation.bqn"
 dt ← •Import "date.bqn"
 cube ← •Import "cube.bqn"
-fmt ← •Import "format.bqn"
-labels ← •Import "report_labels.bqn"
-L ← labels.Text
-overlap ← •Import "plan_journal_overlap.bqn"
-unav ← •Import "unavailable.bqn"
-env_comp ← •Import "envelope_computation.bqn"
 
 IsMember ← { list ← 𝕨 ⋄ item ← 𝕩 ⋄ (⊑ list ⊐ ⟨item⟩) < ≠ list }
 
@@ -41,15 +35,10 @@ TrimBudgetPrefix ← {
   ⟩ @
 }
 
-LatestActualDateInCycle ← {𝕊 base‿cy:
-  actual_observation.LatestInDayCountWindowOrStart ⟨actual_source.LoadDates base, cy⟩
-}
-
-BuildAvailable ← {𝕊 ctx:
-  c3d ← ctx.cube.cube
-  resolved ← ctx.resolved
-  cy ← ctx.cy
-  base ← ctx.base
+# I/O-free semantic core for an available cycle. Source loading and context
+# compatibility stop before this boundary.
+BuildAvailableFromPrepared ← {𝕊 cubeView‿resolved‿cy‿actualDates:
+  c3d ← cubeView.cube
   day_count ← cy.day_count
   ak_count ← resolved.count
 
@@ -85,11 +74,11 @@ BuildAvailable ← {𝕊 ctx:
   actual_slice ← {𝕊 day: {(day‿𝕩‿0) ⊑ c3d}¨ ↕ ak_count}¨ ↕ day_count
 
   # Collect trend dates (same as daily_trend)
-  valid_rows ← ctx.cube.valid_rows
+  valid_rows ← cubeView.valid_rows
   j_projs ← (0 = {𝕩.layer_index}¨ valid_rows) / valid_rows
   j_dates ← {𝕩.date}¨ j_projs
 
-  as_of ← actual_observation.LatestInDayCountWindowOrStart ⟨actual_source.DatesFromContext ctx, cy⟩
+  as_of ← actual_observation.LatestInDayCountWindowOrStart ⟨actualDates, cy⟩
   trend_dates_all ← j_dates ∾ ⟨as_of⟩
   dns ← dt.DaysFromEpoch¨ trend_dates_all
   ord ← ⍋ dns
@@ -148,17 +137,33 @@ BuildAvailable ← {𝕊 ctx:
   }
 }
 
-Build ← {𝕊 ctx:
-  cy ← ctx.cy
-  cycle_valid ← (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (dt.IsValidDateText cy.start) ∧ (dt.IsValidDateText cy.end_exclusive)
-  result ← {
+EmptyViewModel ← {𝕊 cy:
+  {
     trend_rows ⇐ ⟨⟩,
     env_labels ⇐ ⟨⟩,
     as_of ⇐ "unavailable",
     cycle_start ⇐ cy.start,
     cycle_end_exclusive ⇐ cy.end_exclusive
   }
-  {𝕊: result ↩ BuildAvailable ctx}⍟cycle_valid @
+}
+
+CycleValid ← {𝕊 cy:
+  (cy.start ≢ "unavailable") ∧ (cy.end_exclusive ≢ "unavailable") ∧ (dt.IsValidDateText cy.start) ∧ (dt.IsValidDateText cy.end_exclusive)
+}
+
+BuildFromPrepared ← {𝕊 cubeView‿resolved‿cy‿actualDates:
+  result ← EmptyViewModel cy
+  {𝕊: result ↩ BuildAvailableFromPrepared ⟨cubeView, resolved, cy, actualDates⟩}⍟(CycleValid cy) @
+  result
+}
+
+Build ← {𝕊 ctx:
+  cy ← ctx.cy
+  result ← EmptyViewModel cy
+  {𝕊:
+    dates ← actual_source.DatesFromContext ctx
+    result ↩ BuildFromPrepared ⟨ctx.cube, ctx.resolved, cy, dates⟩
+  }⍟(CycleValid cy) @
   result
 }
 
@@ -257,4 +262,9 @@ FormatHuman ← {𝕊 vm:
   out
 }
 
-{ Build ⇐ Build, Format ⇐ Format, FormatHuman ⇐ FormatHuman }
+{
+  Build ⇐ Build,
+  BuildFromPrepared ⇐ BuildFromPrepared,
+  Format ⇐ Format,
+  FormatHuman ⇐ FormatHuman
+}
