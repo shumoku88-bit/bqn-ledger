@@ -17,14 +17,21 @@ jobs:
           git clone --depth 1 --branch "$CBQN_REF" https://github.com/dzaima/CBQN.git
           make -C CBQN -j$(nproc)
           sudo cp CBQN/BQN /usr/local/bin/bqn
-      - name: Capture focused selected-section check
-        id: focused
+      - name: Capture focused report and command-hub checks
         shell: bash
         run: |
           set +e
-          bash -x checks/check-src-next-selected-section.sh fixtures/src-next-golden >selected-section.out 2>selected-section.err
-          code=$?
-          printf '%s\n' "$code" >selected-section.code
+          for check in \
+            selected-section:checks/check-src-next-selected-section.sh \
+            command-hub:checks/check-command-hub-lazy-section.sh \
+            cache-invalidation:checks/check-report-cache-nested-module-invalidation.sh \
+            ui-smoke:checks/check-ui-smoke.sh
+          do
+            name="${check%%:*}"
+            path="${check#*:}"
+            bash -x "$path" fixtures/src-next-golden >"$name.out" 2>"$name.err"
+            printf '%s\n' "$?" >"$name.code"
+          done
           exit 0
       - uses: actions/upload-artifact@v4
         with:
@@ -33,3 +40,12 @@ jobs:
             selected-section.out
             selected-section.err
             selected-section.code
+            command-hub.out
+            command-hub.err
+            command-hub.code
+            cache-invalidation.out
+            cache-invalidation.err
+            cache-invalidation.code
+            ui-smoke.out
+            ui-smoke.err
+            ui-smoke.code
