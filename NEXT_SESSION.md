@@ -7,11 +7,11 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Phase 0B: inventory observable output contracts and every compatibility path before creating new runtime code. Phase 0A report construction classification is complete in `docs/REPORT_CONSTRUCTION_INVENTORY.md`.
+Phase 0C: inventory observable output contracts and all exports/callers, review strict-source decisions, and audit public source readiness before creating new runtime code. Phase 0A construction classification and Phase 0B compatibility inventory are complete in `docs/REPORT_CONSTRUCTION_INVENTORY.md` and `docs/RUNTIME_COMPATIBILITY_INVENTORY.md`.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn
-current migration work: output contract + caller + compatibility inventory
+current migration work: output contract + export/caller + source-readiness decisions
 new src/ tree: not authorized until Phase 0 review
 private source migration: explicit human direction required
 ```

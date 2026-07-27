@@ -38,17 +38,25 @@ This is not a section-reduction campaign and must not recreate the old giant all
 - [x] Selected a monthly expense matrix with contributor posting IDs as the novel extensibility gate.
 - [x] Confirmed that transaction facts must remain first-class and that Outlook/Envelope/Trend/Comparison must not be forced into a universal Pivot spec.
 
-### Current finite slice: Phase 0B contract and compatibility inventory
+### Completed finite slice: Phase 0B runtime compatibility inventory
+
+[`docs/RUNTIME_COMPATIBILITY_INVENTORY.md`](docs/RUNTIME_COMPATIBILITY_INVENTORY.md) classifies 37 known runtime/source/API candidates and assigns prerequisites, canonical replacements, and deletion phases.
+
+- [x] Inventoried dual contexts, alternate transaction carriers, source-loading fallback, projection/API shelves, test seams, historical entrypoints, and report compatibility fields.
+- [x] Distinguished runtime compatibility from canonical empty-source, physical identity, diagnostics, config defaults, and offline migration behavior.
+- [x] Assigned every known compatibility candidate to Phase 1, 2, 3, 4, 5, or final Phase 7 eradication.
+- [x] Proposed strict decisions for report/account/row currency, Plan identity, role metadata, source path, event identity, empty source, and cycle observation.
+
+### Current finite slice: Phase 0C contract, export, and source-readiness decisions
 
 - [ ] Capture all human, compact, JSON, metadata, cache, CLI, diagnostic, and exit-status contracts.
 - [ ] Decide byte parity versus semantic/schema parity for each surface.
-- [ ] Inventory all `src_next` exports and repository callers, including `src_edit`, tools, checks, and tests.
-- [ ] Inventory every runtime fallback, alias, wrapper, alternate transaction shape, test seam, and historical entrypoint.
-- [ ] Classify each candidate as runtime compatibility to delete, source-data migration prerequisite, canonical behavior, offline migration tooling, or archive-only history.
-- [ ] Decide strict requirements for default currency, source currency evidence, plan identity, cycle, and valid empty sources.
-- [ ] Give every compatibility path an explicit deletion phase.
+- [ ] Inventory every `src_next` export and repository caller, including `src_edit`, tools, checks, and tests.
+- [ ] Review and approve the strict-source decision table in the compatibility inventory.
+- [ ] Audit public fixtures for required default currency, account/row currency, Plan identity, role metadata, and canonical source layout.
+- [ ] Define readonly private-source audits without reading or changing private data absent explicit direction.
 - [ ] Record public synthetic parity evidence without using private household data.
-- [ ] Do not create `src/`, a new context, or copied section modules before review of this inventory.
+- [ ] Do not create `src/`, a new context, or copied section modules before Phase 0 review.
 
 Phase 0 exit:
 
