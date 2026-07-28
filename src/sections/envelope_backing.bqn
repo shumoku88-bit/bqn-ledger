@@ -85,7 +85,7 @@ FormatHuman ← {𝕊 result:
   out ← "== Envelope & Backing =="∾(@+10)
   out ∾↩ "Horizon: "∾result.start∾".."∾result.end_exclusive∾(@+10)
   out ∾↩ "Observed through: "∾result.observation∾(@+10)∾(@+10)
-  out ∾↩ text.RenderTable ⟨⟨"Envelope","Entitlement","Consumption","Refunds","Remaining","Plan reserve","Headroom"⟩,rows,⟨1,2,3,4,5,6⟩⟩
+  out ∾↩ text.RenderTable ⟨⟨"Envelope","Entitlement","Consumption","Credits/refunds","Remaining","Plan reserve","Headroom"⟩,rows,⟨1,2,3,4,5,6⟩⟩
   out ∾↩ (@+10)∾"Backing evidence"∾(@+10)
   backingRows ← ⟨
     ⟨"Funding balance",AmountText ⟨result.totals.funding_balance,result.scale⟩⟩,

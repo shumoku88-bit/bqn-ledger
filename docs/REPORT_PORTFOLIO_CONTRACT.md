@@ -188,8 +188,8 @@ For envelope `e`:
 
 ```text
 entitlement(e)          = signed exact Budget allocation movement mapped to e in the full horizon [S,E)
-actual_consumption(e)   = positive projected Actual expense consumption mapped to e in [S,O+1)
-actual_refunds(e)       = positive projected Actual refund evidence mapped to e in [S,O+1)
+actual_consumption(e)   = positive projection of mapped Actual expense-debit evidence in [S,O+1)
+actual_refunds(e)       = positive projection of mapped Actual expense-credit evidence in [S,O+1)
 ledger_remaining(e)     = entitlement - actual_consumption + actual_refunds
 open_plan_reserve(e)    = exact open Plan outflows mapped to e with O <= due < E
 post_plan_headroom(e)   = ledger_remaining - open_plan_reserve
@@ -198,6 +198,8 @@ post_plan_headroom(e)   = ledger_remaining - open_plan_reserve
 P1 includes a same-day Plan when it remains open after completion evidence through O. A same-day completed Plan is excluded by the durable completion Join, so it is not reserved twice.
 
 P1 entitlement deliberately uses the full admitted horizon allocation while consumption is observation-bounded. Budget evidence before `S` is not silently carried into this horizon; a future carry-forward policy requires explicit source semantics. Negative `ledger_remaining` remains visible as overspent and is not clamped to zero.
+
+P1 uses `refunds` as the display name for the exact expense-credit projection. It does not yet claim that every credit is an externally sourced cash refund: an expense reclassification can also credit an expense Account. Posting and Transaction provenance is retained so a later concrete question can split `external_refund / reclassification / other_credit` without reparsing source text. That split requires an explicit transaction-counterpart or admitted classification contract; it must not be inferred from Account names. Until such a consumer is selected, the accounting definition above remains deterministic and the renderer must not describe the coordinate more strongly than “expense credits / refunds”.
 
 ### Backing terms
 
