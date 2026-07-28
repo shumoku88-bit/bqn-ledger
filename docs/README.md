@@ -40,6 +40,7 @@ They are maps, not gates. Read the files that help with the question in front of
 - [`ACTUAL_FACT_SUFFICIENCY.md`](ACTUAL_FACT_SUFFICIENCY.md) — mapping from all report/editor Actual requirements to facts, diagnostics, narrow capabilities, or later source families
 - [`CONFIG_CYCLE_ADMISSION.md`](CONFIG_CYCLE_ADMISSION.md) — strict pure config/cycle definitions and the boundary between source coordinates, report policy, and later period resolution
 - [`ACCOUNT_PERIOD_CAPABILITY.md`](ACCOUNT_PERIOD_CAPABILITY.md) — pure selected-domain/layer opening, movement, closing, exact scale, and contributor Posting indices
+- [`DATE_CATEGORY_FLOW_CAPABILITY.md`](DATE_CATEGORY_FLOW_CAPABILITY.md) — pure date × dynamic Account-metadata category sparse groups, income/net measures, and contributor Posting indices
 - [`REPORT_CODE_REDUCTION_PLAN.md`](REPORT_CODE_REDUCTION_PLAN.md) — completed prepared-boundary and code-reduction track retained as recent implementation context
 - [`TIME_AS_AXIS.md`](TIME_AS_AXIS.md) — temporal concepts
 - [`archive/audits/PROJECTION_BQN_OWNERSHIP_AUDIT-2026-07-26.md`](archive/audits/PROJECTION_BQN_OWNERSHIP_AUDIT-2026-07-26.md) — ownership inventory and bounded cleanup sequence for `src_next/projection.bqn`

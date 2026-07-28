@@ -211,7 +211,7 @@ already-read Plan/Budget TSV + admitted Account
 
 新ledger ownerはsource path、I/O、clock、旧context、Cube/TBDS、report fieldを受け取らない。`config_admission.bqn`はledger source座標とreport policyを分離し、`cycle_admission.bqn`はfacts/as-ofを参照しないunresolved cycle definitionだけをadmitする。period resolutionは後続accounting capabilityでありsource parserへ戻さない。現行runtime/editor callerもcanonical Actual admission pathを直接importし、旧module pathはwrapperなしで削除済みである。schemaとinvariantは`docs/LEDGER_FACT_SCHEMA.md`、config/cycle境界は`docs/CONFIG_CYCLE_ADMISSION.md`を正とする。
 
-最初の`src/accounting/account_period.bqn` capabilityはexplicit Facts/domain/layer/start/end ordinalsからAccount別opening/movement/closingとcontributor Posting indicesを構築する。exact scale normalizationは`src/ledger/exact_scale.bqn`が所有し、異なるDomainは加算しない。このcapabilityはTrial Balanceというsection名やformatを知らず、Cube/TBDSもimportしない。
+`src/accounting/account_period.bqn`はexplicit Facts/domain/layer/start/end ordinalsからAccount別opening/movement/closingとcontributor Posting indicesを構築する。`date_category_flow.bqn`は同じFactsからstrict date × Account-metadata-derived categoryのsparse expense groupsとincome/netを構築する。exact scale normalizationは`src/ledger/exact_scale.bqn`が所有し、異なるDomainは加算しない。どちらもsection名やformatを知らず、Cube/TBDSをimportしない。Account stateとdate/category flowのgroup policy差は意図的に保持し、month/categoryの第三proof前にgeneric Pivotへ統合しない。
 
 ### Selected-domain composition stages
 

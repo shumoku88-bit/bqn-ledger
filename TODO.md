@@ -107,12 +107,19 @@ This is not a section-reduction campaign and must not recreate the old giant all
 - [x] Proved full-period and nonzero-opening public Trial Balance values without Cube, TBDS, context, or a section module.
 - [x] Kept formatting, runtime routing, shared Source table, and private source work out of the capability slice.
 
-### Current finite slice: Phase 3B date/category grouping proof
+### Completed finite slice: Phase 3B date/category grouping proof
 
-- [ ] Derive selected-domain period expense postings by strict date ordinal and explicit Account role/metadata.
-- [ ] Produce deterministic sparse date/category groups with exact totals and contributor Posting indices.
-- [ ] Prove the public Daily Flow dynamic `food`/`other` axes without importing Cube, context, or section formatting.
-- [ ] Compare Account-period and date/category grouping implementations before extracting any shared Select/Group vocabulary.
+- [x] Derived selected-domain period income/expense postings by strict date ordinal and explicit Account role/metadata.
+- [x] Produced deterministic sparse date/category groups with exact totals and contributor Posting indices.
+- [x] Proved the public Daily Flow dynamic `food`/`other` axes without Cube, context, or section formatting.
+- [x] Compared Account-period and date/category grouping; shared only exact arithmetic because grouping policies still differ materially.
+
+### Current finite slice: Phase 3C month/category extensibility gate
+
+- [ ] Reuse the admitted expense/category evidence to group by calendar month × dynamic expense category.
+- [ ] Preserve exact totals and contributor Posting indices for every sparse month/category coordinate.
+- [ ] Prove at least two months and multiple categories with public synthetic facts.
+- [ ] Extract only the Select/Group coordinates demonstrated identically by date/category and month/category consumers; do not introduce section names or formatting.
 
 Phase 0 exit evidence is `docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`: every observable report capability has an owner, every compatibility path has a deletion gate, and no undecided fallback is permitted in the destination fact schema.
 

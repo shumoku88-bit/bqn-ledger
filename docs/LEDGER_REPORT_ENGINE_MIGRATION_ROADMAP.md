@@ -350,13 +350,13 @@ Implement only capabilities required by the report migration:
 - [x] selected-domain/layer posting partition (`src/accounting/account_period.bqn`);
 - [ ] ledger-wide and reusable period views;
 - [x] opening/movement/closing with exact totals and contributor indices;
-- [ ] exact account/date grouping (Account grouping proved once; date grouping remains);
+- [x] exact Account and date/category grouping with explicit metadata semantics;
 - [ ] cycle resolution from admitted facts;
 - [ ] completion and transaction metadata joins;
 - [ ] Cube/TBDS construction where they remain useful;
 - [x] source-order/provenance access for reports that require it (Transaction rows and Account-period Posting contributors);
 - [ ] composable selection masks over typed fact columns;
-- [ ] deterministic sparse grouping with contributor indices;
+- [ ] generic deterministic sparse grouping with contributor indices (proved in the date/category consumer; extraction waits for month/category);
 - [ ] row-axis/column-axis pivot construction;
 - [ ] MatrixResult, ListResult, and CardResult presentation-neutral shapes.
 

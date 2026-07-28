@@ -7,13 +7,13 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Phase 3B: `src/accounting/account_period.bqn` now proves selected-domain/layer opening, debit/credit movement, closing, exact totals, and contributor Posting indices directly from canonical Facts. Next prove the materially different date × dynamic expense-category grouping needed by Daily Flow before extracting shared query vocabulary.
+Phase 3C: `date_category_flow.bqn` now proves dynamic `food`/`other` axes, sparse exact groups, income/net, and contributor Posting indices directly from Facts. Comparison with Account-period grouping found only exact arithmetic safely shared so far. Next prove month × category before extracting narrow Select/Group coordinates.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn
-completed capability: Account period state without Cube/TBDS/context/section fields
-next capability: strict period expense postings -> sparse date/category groups
-only after comparison: extract narrow shared Select/Group primitives
+completed capabilities: Account period state + date/category flow
+next extensibility gate: at least two months × multiple dynamic categories
+then: extract only identical selection/group mechanics, not report policy
 private source audit/migration: still requires separate explicit instruction
 ```
 

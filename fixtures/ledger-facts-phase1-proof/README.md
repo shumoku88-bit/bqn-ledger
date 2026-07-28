@@ -29,4 +29,4 @@ Current semantic baseline:
 - Recent preserves the split destination list;
 - Planned JSON reports the durable Plan as completed with planned `25` and actual `20`.
 
-`checks/check-ledger-facts-phase1-proof-fixture.sh` fixes observable report behavior. Canonical tests prove aligned facts, strict source/policy/period definitions, all-or-nothing rejection, and Account-period opening/movement/closing with contributor Posting indices (`tests/test_accounting_account_period.bqn`).
+`checks/check-ledger-facts-phase1-proof-fixture.sh` fixes observable report behavior. Canonical tests prove aligned facts, strict source/policy/period definitions, all-or-nothing rejection, Account-period state, and date × dynamic category flow with contributor Posting indices.
