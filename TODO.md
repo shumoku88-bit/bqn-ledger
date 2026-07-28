@@ -187,14 +187,23 @@ The approved portfolio reset is [`docs/REPORT_PORTFOLIO_DECISION.md`](docs/REPOR
 - [x] Mapped every old section plus shared catalog/cache/compact/query/JSON/UI/check consumer families to migration or atomic removal.
 - [x] Selected retained implementation order without resuming old-section parity work.
 
-### Current finite slice: Portfolio P2 Account Balances
+### Completed finite slice: Portfolio P2 Account Balances
 
-- [ ] Derive exact Actual closing through explicit observation for every Account in one selected domain, including zero-posting Accounts.
-- [ ] Preserve source-qualified Posting contributors and reject mixed/unknown domain, invalid observation, Fact error, or exact overflow without partial rows.
-- [ ] Build the retained `balances` Matrix/List result and one human/compact/JSON semantic owner.
-- [ ] Prove JPY, ILS, USD, valid empty Actual, nonzero history, mixed scales, and deterministic Account order on public synthetic evidence.
-- [ ] Compare retained current Balances semantics while excluding implicit-domain compatibility behavior.
-- [ ] Leave production routing, compact key replacement, old-owner deletion, filesystem composition, and private sources outside this proof slice.
+- [x] Derived exact Actual closing through explicit observation for every Account in one selected domain, including zero-posting Accounts.
+- [x] Preserved source-qualified Posting contributors and rejected unknown domain, invalid observation, wrong Facts, normalization failure, or exact overflow without partial rows.
+- [x] Built the retained `balances` one-column Matrix/List result and one human/compact/JSON semantic owner.
+- [x] Proved JPY history, ILS mixed scales, USD valid empty Actual, deterministic Account order, zero-sum, and observation sensitivity on public synthetic evidence.
+- [x] Extracted JSON text construction only after Planned Payments and Account Balances agreed on the operation; Planned JSON bytes remain stable.
+- [x] Compared retained nonzero Balance semantics while intentionally showing zero Accounts and excluding implicit-domain compatibility.
+- [x] Left production routing, compact key replacement, old-owner deletion, filesystem composition, and private sources outside this proof slice.
+
+### Current finite slice: Portfolio P3 Recent Journal
+
+- [ ] Build a source-ordered Actual Transaction List directly from canonical Transaction/Posting Facts with explicit positive limit.
+- [ ] Preserve multi-posting debit/credit Account arrays, exact transaction debit total, domain, durable Transaction reference, and Posting contributors.
+- [ ] Return valid empty List for empty Actual and fail closed on wrong source, invalid limit, malformed joins, or exact overflow.
+- [ ] Implement retained `recent` human/compact result with `ledger_recent_journal` only; JSON remains unsupported.
+- [ ] Compare strict public newest-first semantics, including the split transaction, without importing old transaction/context/report owners.
 
 Phase 0 exit evidence is `docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`: every observable report capability has an owner, every compatibility path has a deletion gate, and no undecided fallback is permitted in the destination fact schema.
 

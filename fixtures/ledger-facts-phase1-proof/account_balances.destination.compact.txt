@@ -1,0 +1,9 @@
+--- Ledger Account Balances ---
+ledger_balance: assets:cash/JPY 965
+ledger_balance: income:salary/JPY -1000
+ledger_balance: expenses:food/JPY 30
+ledger_balance: expenses:transport/JPY 5
+ledger_balance: budget:opening/JPY 0
+ledger_balance: budget:unassigned/JPY 0
+ledger_balance: budget:food/JPY 0
+ledger_balance: budget:spent/JPY 0

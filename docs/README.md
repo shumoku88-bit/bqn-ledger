@@ -45,6 +45,7 @@ They are maps, not gates. Read the files that help with the question in front of
 - [`CYCLE_RESOLUTION.md`](CYCLE_RESOLUTION.md) — mode-specific pure fixed/calendarMonth/incomeAnchor resolution, explicit unavailable/error states, and source-qualified anchor provenance
 - [`PLAN_COMPLETION_JOIN.md`](PLAN_COMPLETION_JOIN.md) — durable Plan/Actual relationship Join with exact amounts, Account directions, and explicit duplicate/ambiguous states
 - [`PLANNED_PAYMENTS_SECTION.md`](PLANNED_PAYMENTS_SECTION.md) — destination List result composing cycle selection, completion, temporal state, exact totals, and human/compact/JSON rendering
+- [`ACCOUNT_BALANCES_REPORT.md`](ACCOUNT_BALANCES_REPORT.md) — retained exact Account closing Matrix/List with explicit observation, zero Accounts, source-qualified provenance, and human/compact/JSON
 - [`ACCOUNT_PERIOD_CAPABILITY.md`](ACCOUNT_PERIOD_CAPABILITY.md) — pure selected-domain/layer opening, movement, closing, exact scale, and contributor Posting indices
 - [`DATE_CATEGORY_FLOW_CAPABILITY.md`](DATE_CATEGORY_FLOW_CAPABILITY.md) — pure date × dynamic Account-metadata category sparse groups, income/net measures, and contributor Posting indices
 - [`MONTH_CATEGORY_GROUPING.md`](MONTH_CATEGORY_GROUPING.md) — two-month extensibility proof and the narrow deterministic sparse Group operation shared by date/month consumers

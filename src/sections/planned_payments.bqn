@@ -7,6 +7,7 @@ scale ← •Import "../ledger/exact_scale.bqn"
 dates ← •Import "../ledger/date_ordinal.bqn"
 amount ← •Import "../ledger/amount_text.bqn"
 text ← •Import "../report/text.bqn"
+json ← •Import "../report/json_text.bqn"
 empty ← ⟨⟩
 
 Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
@@ -227,52 +228,34 @@ FormatCompact ← {𝕊 result:
   out
 }
 
-JsonString ← {𝕊 value:
-  quote←@+34 ⋄ slash←@+92
-  Escape ← {
-    (𝕩=quote) ? slash∾quote ;
-    (𝕩=slash) ? slash∾slash ;
-    (𝕩=@+8) ? slash∾"b" ;
-    (𝕩=@+9) ? slash∾"t" ;
-    (𝕩=@+10) ? slash∾"n" ;
-    (𝕩=@+12) ? slash∾"f" ;
-    (𝕩=@+13) ? slash∾"r" ;
-    (𝕩<@+32) ? slash∾"u00"∾((⌊(𝕩-@)÷16)⊑"0123456789abcdef")∾((16|𝕩-@)⊑"0123456789abcdef") ;
-    ⟨𝕩⟩
-  }
-  quote∾(∾Escape¨value)∾quote
-}
-JsonArray ← {𝕊 values: "["∾(∾{𝕊 i: ((i>0)/", ")∾i⊑values}¨↕≠values)∾"]"}
-JsonPair ← {𝕊 key‿valueText: (JsonString key)∾": "∾valueText}
-JsonObject ← {𝕊 pairs: "{"∾(∾{𝕊 i: ((i>0)/", ")∾i⊑pairs}¨↕≠pairs)∾"}"}
 FormatJson ← {𝕊 result:
   OpenItem ← {𝕊 index:
-    JsonObject ⟨
-      JsonPair ⟨"date",(JsonString index⊑result.rows.date)⟩,
-      JsonPair ⟨"category",(JsonString index⊑result.rows.category)⟩,
-      JsonPair ⟨"memo",(JsonString index⊑result.rows.memo)⟩,
-      JsonPair ⟨"amount",(AmountText ⟨index⊑result.rows.planned_coefficient,index⊑result.rows.planned_scale⟩)⟩,
-      JsonPair ⟨"status",(JsonString index⊑result.rows.status)⟩,
-      JsonPair ⟨"plan_id",(JsonString index⊑result.rows.plan_id)⟩
+    json.Object ⟨
+      json.Pair ⟨"date",json.String index⊑result.rows.date⟩,
+      json.Pair ⟨"category",json.String index⊑result.rows.category⟩,
+      json.Pair ⟨"memo",json.String index⊑result.rows.memo⟩,
+      json.Pair ⟨"amount",json.ExactNumber ⟨index⊑result.rows.planned_coefficient,index⊑result.rows.planned_scale⟩⟩,
+      json.Pair ⟨"status",json.String index⊑result.rows.status⟩,
+      json.Pair ⟨"plan_id",json.String index⊑result.rows.plan_id⟩
     ⟩
   }
   CompletedItem ← {𝕊 index:
-    JsonObject ⟨
-      JsonPair ⟨"date",(JsonString index⊑result.rows.date)⟩,
-      JsonPair ⟨"category",(JsonString index⊑result.rows.category)⟩,
-      JsonPair ⟨"memo",(JsonString index⊑result.rows.memo)⟩,
-      JsonPair ⟨"amount",(AmountText ⟨index⊑result.rows.planned_coefficient,index⊑result.rows.planned_scale⟩)⟩,
-      JsonPair ⟨"actual_amount",(AmountText ⟨index⊑result.rows.actual_coefficient,index⊑result.rows.actual_scale⟩)⟩,
-      JsonPair ⟨"status",(JsonString "completed")⟩,
-      JsonPair ⟨"plan_id",(JsonString index⊑result.rows.plan_id)⟩
+    json.Object ⟨
+      json.Pair ⟨"date",json.String index⊑result.rows.date⟩,
+      json.Pair ⟨"category",json.String index⊑result.rows.category⟩,
+      json.Pair ⟨"memo",json.String index⊑result.rows.memo⟩,
+      json.Pair ⟨"amount",json.ExactNumber ⟨index⊑result.rows.planned_coefficient,index⊑result.rows.planned_scale⟩⟩,
+      json.Pair ⟨"actual_amount",json.ExactNumber ⟨index⊑result.rows.actual_coefficient,index⊑result.rows.actual_scale⟩⟩,
+      json.Pair ⟨"status",json.String "completed"⟩,
+      json.Pair ⟨"plan_id",json.String index⊑result.rows.plan_id⟩
     ⟩
   }
   openItems ← OpenItem¨result.open_indices
   completedItems ← CompletedItem¨result.completed_indices
-  JsonObject ⟨
-    JsonPair ⟨"open_items",(JsonArray openItems)⟩,
-    JsonPair ⟨"open_total",(AmountText ⟨result.open_total_coefficient,result.open_total_scale⟩)⟩,
-    JsonPair ⟨"completed_items",(JsonArray completedItems)⟩
+  json.Object ⟨
+    json.Pair ⟨"open_items",json.Array openItems⟩,
+    json.Pair ⟨"open_total",json.ExactNumber ⟨result.open_total_coefficient,result.open_total_scale⟩⟩,
+    json.Pair ⟨"completed_items",json.Array completedItems⟩
   ⟩
 }
 

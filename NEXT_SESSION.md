@@ -7,13 +7,13 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Portfolio P2: the nine-key destination catalog, all three Account Matrix contracts, Envelope & Backing terms, conservative Daily Target arithmetic, and old-surface retirement map are selected. Next implement retained Account Balances over explicit Actual Facts/domain/observation.
+Portfolio P3: retained Account Balances now derives exact source-qualified closing for every Account through explicit observation and renders one result as human/compact/JSON across JPY/ILS/USD/empty evidence. Next implement retained Recent Journal directly from canonical Transaction/Posting Facts.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn (unchanged)
-authorities: REPORT_PORTFOLIO_DECISION.md + REPORT_PORTFOLIO_CONTRACT.md + REPORT_SURFACE_RETIREMENT_MAP.md
-next proof: exact Account closing Matrix/List + human/compact/JSON for JPY/ILS/USD/empty
-exclude: implicit domain, old balance ViewModel, production routing/key cutover, filesystem/private work
+completed retained proofs: Planned Payments + Account Balances
+next proof: newest-first bounded Transaction List with multi-posting lanes and ledger_recent_journal compact key
+exclude: old context/transaction rows, one-from/one-to fabrication, production routing/key cutover, private work
 forbid: mechanical 15-section migration, giant all-report record, dual aliases/keys
 private source audit/migration: still requires separate explicit instruction
 ```

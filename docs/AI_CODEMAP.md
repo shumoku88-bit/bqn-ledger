@@ -124,6 +124,7 @@ Updated: 2026-07-28
 
 ### `src/accounting/` (canonical facts上のpure accounting capabilities)
 
+- `account_balance.bqn` — Actual Facts/domain/explicit observationから全Account（zero含む）のexact closingとsource-qualified Posting contributorsを導出する retained Balances capability。mixed/unknown domainやoverflowはpartial tableを返さない。
 - `account_period.bqn` — explicit Facts/domain/layer/start/endだけを受け、Account-orderのopening/debit/credit/movement/closing、exact totals、contributor Posting indicesを返す。Cube/TBDS、context、section、format、clockを持たない。
 - `cycle_result.bqn` — fixed/calendarMonth/incomeAnchor resolverが共有するok/unavailable/error period shape。unavailable/errorはdate/ordinal/day_countを空にし、sentinelやzeroへ潰さない。
 - `cycle_fixed_resolution.bqn` — admitted fixed definitionだけを解決し、不要なobservation/Factsを受けない。
@@ -142,10 +143,12 @@ Updated: 2026-07-28
 - `trial_balance.bqn` — successful Account-period resultのdense values/contributorsをcanonical MatrixResult constructorへ直接渡し、同じresultをhuman/compactへrenderする最初のvertical proof。不要なsparse往復、会計formula、source I/O、context、Cube/TBDS、JSONを持たず、production routingにはまだ未接続。
 - `daily_flow.bqn` — date/category accounting evidenceのgenuine sparse expense Pivotとincome/netを一つのMatrixResultへcomposeする第二proof。explicit latest-or-period-start observation、empty zero row、derived net contributors、human-only contractを所有し、clock/compact/JSONを持たない。
 - `planned_payments.bqn` — resolved cycleとexplicit observationからPlan/Actual selection、durable completion Join、temporal state、single-domain exact open totalをcomposeするdestination List section。同じresultからhuman/compact/JSONを描画し、duplicate/ambiguous completionを拒否する。
+- `account_balances.bqn` — retained `balances` one-column Matrix/List result。explicit date/ordinal一致を検査し、全Accountをhuman/`ledger_balance` compact/JSONへ同一resultから描画する。
 
 ### `src/report/` (destination report-level presentation/composition primitives)
 
-- `text.bqn` — Trial Balance、Daily Flow、Planned Paymentsで一致したvisual widthとleft/right paddingだけを所有する。accounting、section label、color、terminal stateを持たない。
+- `text.bqn` — 複数Matrix/List rendererで一致したvisual widthとleft/right paddingだけを所有する。accounting、section label、color、terminal stateを持たない。
+- `json_text.bqn` — Planned PaymentsとAccount Balancesの2 consumerで一致したexplicit JSON String/ExactNumber/Boolean/Pair/Array/Object text constructor。arbitrary value coercionやbinary-float変換を持たない。
 
 ### `src_next/` (現行production BQN 会計エンジン)
 

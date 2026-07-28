@@ -1,0 +1,17 @@
+== Account Balances ==
+Currency: JPY
+As of: 2026-01-12
+
+Account                |      Balance
+-----------------------+--------------
+assets:cash/JPY        |          965
+income:salary/JPY      |        -1000
+expenses:food/JPY      |           30
+expenses:transport/JPY |            5
+budget:opening/JPY     |            0
+budget:unassigned/JPY  |            0
+budget:food/JPY        |            0
+budget:spent/JPY       |            0
+-----------------------+--------------
+Balanced: YES
+
