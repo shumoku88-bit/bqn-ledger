@@ -1,0 +1,12 @@
+--- Ledger Trial Balance ---
+ledger_trial_balance_period: 2026-01-01..2026-02-01
+ledger_trial_balance_layer: actual
+ledger_trial_balance_rows: 8
+ledger_trial_balance_row: assets:cash/JPY opening=0 debit=1000 credit=-35 closing=965
+ledger_trial_balance_row: income:salary/JPY opening=0 debit=0 credit=-1000 closing=-1000
+ledger_trial_balance_row: expenses:food/JPY opening=0 debit=30 credit=0 closing=30
+ledger_trial_balance_row: expenses:transport/JPY opening=0 debit=5 credit=0 closing=5
+ledger_trial_balance_row: budget:opening/JPY opening=0 debit=0 credit=0 closing=0
+ledger_trial_balance_row: budget:unassigned/JPY opening=0 debit=0 credit=0 closing=0
+ledger_trial_balance_row: budget:food/JPY opening=0 debit=0 credit=0 closing=0
+ledger_trial_balance_row: budget:spent/JPY opening=0 debit=0 credit=0 closing=0

@@ -1,0 +1,19 @@
+== Trial Balance (actual layer) ==
+Period: 2026-01-01〜2026-02-01
+As of : 2026-02-01
+
+                       |      Opening |        Debit |       Credit |      Closing 
+-----------------------+--------------+--------------+--------------+--------------
+assets:cash/JPY        |            0 |         1000 |          -35 |          965 
+income:salary/JPY      |            0 |            0 |        -1000 |        -1000 
+expenses:food/JPY      |            0 |           30 |            0 |           30 
+expenses:transport/JPY |            0 |            5 |            0 |            5 
+budget:opening/JPY     |            0 |            0 |            0 |            0 
+budget:unassigned/JPY  |            0 |            0 |            0 |            0 
+budget:food/JPY        |            0 |            0 |            0 |            0 
+budget:spent/JPY       |            0 |            0 |            0 |            0 
+-----------------------+--------------+--------------+--------------+--------------
+Total                  |            0 |         1035 |        -1035 |            0 
+
+Zero-sum check (debit=credit): OK
+

@@ -128,12 +128,19 @@ This is not a section-reduction campaign and must not recreate the old giant all
 - [x] Defined the narrow presentation-neutral MatrixResult coordinates used by both consumers.
 - [x] Kept labels, signs, observation/as-of policy, formatting, runtime routing, and private sources outside Pivot.
 
-### Current finite slice: Phase 4A Trial Balance Matrix report proof
+### Completed finite slice: Phase 3E Trial Balance Matrix report proof
 
-- [ ] Compose Account-period state into a section-local MatrixResult without copying accounting formulas.
-- [ ] Compare all Account rows, opening/debit/credit/closing values, totals, period coordinates, and zero-sum status with the public current report.
-- [ ] Add human/compact/JSON formatting only at the report boundary and prove direct output determinism.
-- [ ] Do not route production or introduce a broad all-report context in this proof slice.
+- [x] Composed Account-period state into a section-local MatrixResult without copying accounting formulas.
+- [x] Compared every Account row, opening/debit/credit/closing value, total, period coordinate, zero-sum status, and normalized human bytes with the public current report.
+- [x] Added deterministic human/compact formatting from one result; correctly omitted unsupported Trial Balance JSON.
+- [x] Kept production routing, cache/full composition, and broad all-report context out of the proof slice.
+
+### Current finite slice: Phase 3F Daily Flow Matrix report proof
+
+- [ ] Compose date/category accounting evidence and Pivot output into one section-local MatrixResult including income, dynamic expenses, other, and net.
+- [ ] Preserve contributor Posting indices for income, expense, and derived net cells without moving observation policy into Group/Pivot.
+- [ ] Match the public current Daily Flow body and its section-specific as-of/empty behavior where evidence is sufficient.
+- [ ] Add only the human renderer required by the approved contract; do not add compact/JSON or production routing.
 
 Phase 0 exit evidence is `docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`: every observable report capability has an owner, every compatibility path has a deletion gate, and no undecided fallback is permitted in the destination fact schema.
 

@@ -9,6 +9,8 @@ audit=$(python3 tools/characterization/report_source_readiness_audit.py "$base")
 grep -Fq $'\texplicit\t8\t0\t0\t1\t0\t0\t2\t0\tdirect' <<<"$audit"
 
 trial=$(tools/report "$base" --section trial-balance --no-color)
+destination_trial=$(cat "$base/trial_balance.destination.human.txt")
+[[ "$trial" == "$destination_trial" ]]
 grep -Eq '^assets:cash/JPY +\| +0 +\| +1000 +\| +-35 +\| +965 ' <<<"$trial"
 grep -Eq '^income:salary/JPY +\| +0 +\| +0 +\| +-1000 +\| +-1000 ' <<<"$trial"
 grep -Eq '^expenses:food/JPY +\| +0 +\| +30 +\| +0 +\| +30 ' <<<"$trial"

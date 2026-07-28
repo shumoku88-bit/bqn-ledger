@@ -130,6 +130,10 @@ Updated: 2026-07-26
 - `sparse_group.bqn` — date/month両consumerで同一と証明されたexplicit row axis × bounded columnのdeterministic sparse Group。exact sum、zero-sum contributor保持、all-or-nothing diagnosticsだけを所有し、date/month/category policyを持たない。
 - `sparse_pivot.bqn` — shared sparse Groupをopaque row/column coordinatesのdense MatrixResultへ変換するpolicy-free Pivot。absent cellはzero/empty contributors、explicit zero groupはcontributorsを保持する。label/sign/format/totalsを持たない。
 
+### `src/sections/` (destination section-local result/render owners)
+
+- `trial_balance.bqn` — successful Account-period resultとmatching period textだけから4-measure MatrixResultをcomposeし、同じresultをhuman/compactへrenderする最初のvertical proof。会計formula、source I/O、context、Cube/TBDS、JSONを持たず、production routingにはまだ未接続。
+
 ### `src_next/` (現行production BQN 会計エンジン)
 
 - `context.bqn` — BuildAllRows / BuildPeriodView / BuildContext。Actualはcanonical complete admissionを使い、既存Cube/TBDS向けに一時的な`delta` rowへ変換してplan/budget TSV rowsと合成する。default/explicit cycle解決も同じcomplete transactionsを再利用し、production historical parser fallbackはない。

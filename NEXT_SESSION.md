@@ -7,13 +7,13 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Phase 4A: date/month consumers now share generic sparse Group coordinates and `sparse_pivot.bqn` dense MatrixResult with contributor-preserving zero semantics. Next compose the first section-local Trial Balance Matrix report from Account-period state without copying accounting formulas or routing production.
+Phase 3F: `src/sections/trial_balance.bqn` now proves the first section-local MatrixResult and deterministic human/compact output from Account-period state, with no copied formulas or production route. Next prove the materially different Daily Flow Matrix section using date/category evidence and section-local observation policy.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn
-completed capabilities: Account period + date/month Group + policy-free Pivot/MatrixResult
-next report proof: Trial Balance Matrix + totals + human/compact/JSON boundary
-exclude: broad report context, production routing, private source work
+completed report proof: Trial Balance Matrix + totals + human/compact (JSON unsupported by contract)
+next report proof: Daily Flow income + dynamic expenses + other + net Matrix
+exclude: compact/JSON for Daily Flow, broad context, production routing, private sources
 private source audit/migration: still requires separate explicit instruction
 ```
 

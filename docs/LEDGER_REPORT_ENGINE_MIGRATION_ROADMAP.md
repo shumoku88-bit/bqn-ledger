@@ -372,7 +372,7 @@ For each capability:
 
 Report-construction proof:
 
-- [ ] implement two materially different real matrix/list reports through the same Select/Group/Pivot vocabulary;
+- [ ] implement two materially different real matrix/list reports through the same Select/Group/Pivot vocabulary (Trial Balance destination proof complete; second report remains);
 - [ ] implement one report that retains contributor posting indices;
 - [ ] implement one synthetic report not present in the current 15-section catalog without changing admission, fact schema, or accounting kernel;
 - [ ] prove selected-domain exactness and deterministic row/column ordering;
