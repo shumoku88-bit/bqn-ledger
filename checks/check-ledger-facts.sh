@@ -31,6 +31,7 @@ bqn tests/test_section_planned_payments.bqn >/dev/null
 bqn tests/test_section_recent_journal.bqn >/dev/null
 bqn tests/test_section_cycle_accounts.bqn >/dev/null
 bqn tests/test_section_cycle_comparison.bqn >/dev/null
+bqn tests/test_section_envelope_backing.bqn >/dev/null
 bqn tests/test_section_monthly_accounts.bqn >/dev/null
 
 if rg -n '•Import ".*(src_next|src_edit|context\.bqn|report\.bqn|journal_profile)' src/ledger src/accounting src/sections src/report; then

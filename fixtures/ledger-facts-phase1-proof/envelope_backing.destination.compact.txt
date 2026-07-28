@@ -1,0 +1,9 @@
+--- Ledger Envelope & Backing ---
+ledger_envelope_item: food entitlement=60 consumption=30 refunds=0 remaining=30 reserve=0 headroom=30
+ledger_envelope_funding_balance: 965
+ledger_envelope_signed_total: 30
+ledger_envelope_backing_required: 30
+ledger_envelope_backing_surplus: 935
+ledger_envelope_ledger_unassigned: 40
+ledger_envelope_reconciliation_delta: 895
+ledger_envelope_status: backed

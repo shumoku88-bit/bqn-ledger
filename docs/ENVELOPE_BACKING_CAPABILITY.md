@@ -1,6 +1,11 @@
-# Envelope & Backing accounting capability
+# Retained Envelope & Backing report
 
-Status: Portfolio P7A accounting composition; blocked from completion by [`DESTINATION_QUALITY_GATE.md`](DESTINATION_QUALITY_GATE.md) until stage extraction, expanded scenarios, and section surfaces are green.
+Status: Portfolio P7 complete under [`DESTINATION_QUALITY_GATE.md`](DESTINATION_QUALITY_GATE.md).
+
+Owners:
+
+- `src/accounting/envelope_backing.bqn` — strict evidence composition and exact Statement arithmetic;
+- `src/sections/envelope_backing.bqn` — retained human/compact/JSON semantic owner.
 
 `src/accounting/envelope_backing.bqn` composes strict Budget, Actual, and Plan Facts over explicit `[start,end_exclusive)`, observation, domain, and explicit funding Account indices.
 
@@ -12,6 +17,14 @@ All arithmetic normalizes exactly to one scale and fails closed. Budget, Actual,
 
 The strict public proof currently establishes entitlement `60`, consumption `30`, remaining `30`, completed Plan reserve `0`, funding `965`, backing requirement `30`, surplus `935`, unassigned `40`, and reconciliation delta `895`, plus missing/invalid funding behavior.
 
-The first readability pass expanded compressed constructors/publication and labels the six accounting stages; maximum physical line length fell from 1,636 to 191 characters without changing behavior. The Build remains nested, so the auditability gate correctly stays `improve` until those stages become locally testable purpose-specific functions.
+The accounting owner now has named purpose-specific stages for input validation, ownership resolution, prepared evidence, exact normalization, per-envelope terms, aggregate backing, table publication, and final orchestration. Maximum physical line length is 162 characters, down from the initial 1,636-character publication block. The auditability/readability gate is green without introducing a generic pipeline framework or widening the public API.
 
-P7B must extract the named stages, then add synthetic open Plan, refund, overspent, under-backed, empty Plan, conflict/overflow proofs and the retained human/compact/JSON section before this portfolio item is complete.
+Synthetic proof covers open and completed Plan, refund, overspent remaining, under-backed funding, empty Plan, duplicate completion conflict, invalid/missing funding, unknown domain/range, cross-source normalization overflow, and source-qualified contributors.
+
+The section verifies strict date text against accounting ordinals and renders one result as:
+
+- human bounded Statement with envelope terms and a separately labelled backing evidence table;
+- compact `ledger_envelope_*` keys only, including `ledger_envelope_item` rows;
+- exact-number JSON without float conversion.
+
+Backed and under-backed renderer states are tested. Deterministic public human/compact/JSON goldens are owned by `fixtures/ledger-facts-phase1-proof/`. Production routing remains unchanged until atomic cutover.

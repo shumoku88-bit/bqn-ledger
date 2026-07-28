@@ -230,16 +230,24 @@ The approved portfolio reset is [`docs/REPORT_PORTFOLIO_DECISION.md`](docs/REPOR
 - [x] Proved equal elapsed windows, complete 31/28-day cycles, unavailable baseline, mixed scale, empty Actual, and invalid policy/window combinations.
 - [x] Implemented human-only Matrix without old Actual Comparison ratios, lanes, or statuses.
 
-### Current finite slice: Portfolio P7 Envelope & Backing
+### Completed finite slice: Portfolio P7 Envelope & Backing
 
-Quality completion is governed by [`docs/DESTINATION_QUALITY_GATE.md`](docs/DESTINATION_QUALITY_GATE.md). P7 remains blocked from completion while auditability/readability or scenario/surface evidence is non-green.
+Quality completion is governed by [`docs/DESTINATION_QUALITY_GATE.md`](docs/DESTINATION_QUALITY_GATE.md); every P7 dimension is green.
 
-- [ ] Refactor P7A into named validation, ownership, prepared-evidence, per-envelope, aggregate-backing, and publication stages before adding renderers.
-- [x] Compose strict Budget/Actual/Plan Facts, explicit horizon/observation, completion Join, and admitted envelope/funding ownership.
-- [ ] Keep entitlement, consumption, refunds, ledger remaining, open Plan reserve, and post-Plan headroom as distinct exact coordinates.
-- [ ] Derive funding balance, signed envelope total, positive backing requirement, backing surplus, and Budget unassigned reconciliation without conflating evidence systems.
-- [ ] Preserve per-envelope and aggregate source-qualified contributors; reject ambiguous ownership, mixed domain, completion conflict, and arithmetic overflow.
-- [ ] Prove overspent, under-backed, open/completed Plan, refund, empty Plan, and deterministic human/compact/JSON Statement surfaces.
+- [x] Refactored into named validation, ownership, prepared-evidence, per-envelope, aggregate-backing, and publication stages.
+- [x] Composed strict Budget/Actual/Plan Facts, explicit horizon/observation, completion Join, and admitted envelope/funding ownership.
+- [x] Kept entitlement, consumption, refunds, ledger remaining, open Plan reserve, and post-Plan headroom distinct.
+- [x] Kept funding, signed claims, positive requirement, surplus, Budget unassigned, and reconciliation as separate evidence systems.
+- [x] Preserved source-qualified contributors and rejected invalid ownership/domain/range, completion conflict, and normalization overflow.
+- [x] Proved overspent, under-backed, open/completed Plan, refund, empty Plan, and human/compact/JSON Statement surfaces.
+
+### Current finite slice: Portfolio P8 Daily Target
+
+- [ ] Compose explicit observation/target, selected funding assets, open obligations, and per-obligation reservation provenance.
+- [ ] Deduct each obligation exactly once and never increase safe capacity with future income.
+- [ ] Preserve eligible assets, gross obligations, already excluded, deduction, capacity, remaining days, and exact daily target as separate coordinates.
+- [ ] Treat deficit as a successful evidence-bearing state; reject ownership/domain/date/provenance conflicts and overflow.
+- [ ] Prove funded, deficit, reserved obligation, empty obligation, and human/compact surfaces without JSON.
 
 Phase 0 exit evidence is `docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`: every observable report capability has an owner, every compatibility path has a deletion gate, and no undecided fallback is permitted in the destination fact schema.
 

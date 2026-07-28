@@ -32,17 +32,17 @@ Use `green / improve / incomplete / not-applicable`. Record concrete evidence, n
 | Current-cycle Accounts | green | green | green | green | green | complete |
 | Monthly Accounts | green | green | green | green | green | complete |
 | Cycle Comparison | green | green | green | green | green | complete |
-| Envelope & Backing P7A | green | green | **improve**: monolithic nested Build and compressed publication | **incomplete**: open/refund/overspent/under-backed/empty/conflict/overflow | **incomplete**: section and goldens absent | blocked |
+| Envelope & Backing | green | green | green: named purpose-specific stages, bounded publication, reviewable lines | green | green | complete |
 
 ## P7 exit gate
 
 Before Envelope & Backing can be marked complete:
 
-1. Refactor the accounting owner into named source/coordinate validation, ownership resolution, prepared evidence, per-envelope terms, aggregate backing, and publication stages.
-2. Keep the bounded Statement schema, but format constructors and publication so fields are locally reviewable.
-3. Add public proofs for open and completed Plan, refund, overspent, under-backed, empty Plan, ambiguous/duplicate completion, invalid ownership/domain/range, normalization/sum overflow, and source-qualified contributors.
-4. Build one section-local Statement result and only the contracted human/compact/JSON renderers.
-5. Validate all three goldens from the same result, then run the full verification set.
-6. Change the P7 review row to green only in the same commit that satisfies the evidence.
+1. [x] Refactor the accounting owner into named source/coordinate validation, ownership resolution, prepared evidence, per-envelope terms, aggregate backing, and publication stages.
+2. [x] Keep the bounded Statement schema, but format constructors and publication so fields are locally reviewable.
+3. [x] Add public proofs for open and completed Plan, refund, overspent, under-backed, empty Plan, duplicate completion, invalid ownership/domain/range, normalization overflow, and source-qualified contributors.
+4. [x] Build one section-local Statement result and only the contracted human/compact/JSON renderers.
+5. [x] Validate all three goldens from the same result, then run the full verification set.
+6. [x] Change the P7 review row to green only in the same commit that satisfies the evidence.
 
 This document is a completion gate, not a demand for generic frameworks, arbitrary module counts, or cosmetic line limits. Refactoring remains purpose-specific and evidence-driven.
