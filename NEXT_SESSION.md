@@ -7,7 +7,7 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Phase 3F: `src/sections/trial_balance.bqn` now proves the first section-local MatrixResult and deterministic human/compact output from Account-period state, with no copied formulas or production route. Next prove the materially different Daily Flow Matrix section using date/category evidence and section-local observation policy.
+Phase 3F: `matrix_result.bqn` now owns the sole dense MatrixResult shape; sparse Pivot delegates to it while Trial Balance passes dense Account-period arrays directly, removing the artificial dense→sparse→dense round-trip. Next prove Daily Flow Matrix using genuine sparse date/category evidence and section-local observation policy.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn

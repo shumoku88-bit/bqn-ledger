@@ -1,11 +1,14 @@
 # Sparse Pivot and MatrixResult
 
-Status: Phase 3D capability proof
-Owner: `src/accounting/sparse_pivot.bqn`
+Status: Phase 3D capability proof; dense-constructor cleanup complete
+Matrix owner: `src/accounting/matrix_result.bqn`
+Pivot owner: `src/accounting/sparse_pivot.bqn`
 
 ## Boundary
 
-`sparse_pivot.Build ⟨rowCoordinates,columnCoordinates,valueScale,sparseGroups⟩` converts one deterministic sparse Group table into a dense presentation-neutral matrix.
+`matrix_result.Build ⟨rowCoordinates,columnCoordinates,valueScale,values,contributors⟩` is the canonical dense presentation-neutral MatrixResult constructor. Dense consumers call it directly.
+
+`sparse_pivot.Build ⟨rowCoordinates,columnCoordinates,valueScale,sparseGroups⟩` owns only sparse-coordinate validation and zero/contributor materialization, then delegates the resulting dense arrays to `matrix_result.Build`. It does not define a second MatrixResult shape.
 
 It does not know:
 
@@ -32,7 +35,7 @@ contributors[row][column]
 
 Absent sparse coordinates become exact coefficient `0` with empty contributors. An explicitly grouped zero remains value `0` but retains its contributor Posting indices. This distinction is required for accounting provenance.
 
-The Pivot validates unique axes, nonnegative integer scale, aligned sparse columns, bounded integer coordinates, and at most one sparse item per cell. Invalid input returns an empty MatrixResult and diagnostics.
+The Matrix constructor validates unique axes, nonnegative integer scale, and dense value/contributor alignment. Pivot additionally validates aligned sparse columns, bounded integer coordinates, and at most one sparse item per cell. Invalid input returns an empty MatrixResult and diagnostics.
 
 ## Two-consumer proof
 
@@ -52,7 +55,7 @@ columns: [food, other]
 values:  [[100,50], [225,70]] at scale 1
 ```
 
-Both preserve contributor indices in every dense cell and use the same Pivot without forwarding wrappers or report-specific fields.
+Both preserve contributor indices in every dense cell and use the same Pivot and canonical Matrix constructor without forwarding wrappers or report-specific fields. Dense Account-period consumers bypass Pivot and call the same Matrix constructor directly.
 
 ## Deliberate limits
 
@@ -62,6 +65,7 @@ This keeps `Group` and `Pivot` composable while preventing a universal report co
 
 ## Proof
 
+- `tests/test_accounting_matrix_result.bqn`
 - `tests/test_accounting_sparse_pivot.bqn`
 - Pivot assertions in `tests/test_accounting_date_category_flow.bqn`
 - Pivot assertions in `tests/test_accounting_month_category_flow.bqn`

@@ -3,7 +3,7 @@
 Status: Phase 4A first destination section proof
 Owner: `src/sections/trial_balance.bqn`
 Accounting owner: `src/accounting/account_period.bqn`
-Matrix owner: `src/accounting/sparse_pivot.bqn`
+Matrix owner: `src/accounting/matrix_result.bqn`
 
 ## Vertical slice
 
@@ -13,14 +13,16 @@ The first destination section is composed as:
 canonical Actual Facts
 + explicit admitted fixed period
 → Account-period accounting state
-→ section-local sparse measure coordinates
-→ policy-free MatrixResult
+→ section-local dense measure arrays
+→ canonical MatrixResult constructor
 → human or compact rendering
 ```
 
 The section accepts only one successful Account-period result and matching strict period date text. It performs no source I/O, source admission, clock read, context construction, Cube/TBDS access, or other-section build.
 
-Accounting formulas are not copied into the section. Opening, debit/credit movement, closing, totals, exact scale, balance status, and Posting contributors come from `account_period.bqn`. The section only chooses the four Trial Balance measure columns and composes their MatrixResult.
+Accounting formulas are not copied into the section. Opening, debit/credit movement, closing, totals, exact scale, balance status, and Posting contributors come from `account_period.bqn`. The section only chooses the four Trial Balance measure columns and passes their already-dense values/contributors directly to `matrix_result.bqn`.
+
+Trial Balance does not route dense Account state through sparse Group/Pivot. Sparse Pivot is reserved for genuinely sparse/dynamic axes such as date/category and month/category; both paths converge only at the canonical MatrixResult constructor.
 
 ## Section result
 

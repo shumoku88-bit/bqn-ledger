@@ -28,9 +28,9 @@ CheckRejected ← {𝕊 rows‿columns‿valueScale‿sourceGroups‿code:
   0 lib.AssertEq rejected.matrix.cell_count
   1 lib.AssertEq HasCode ⟨code,rejected.diagnostics⟩
 }
-CheckRejected ⟨⟨"r","r"⟩,⟨"c"⟩,0,emptyGroups,"pivot_row_axis_duplicate"⟩
-CheckRejected ⟨⟨"r"⟩,⟨"c","c"⟩,0,emptyGroups,"pivot_column_axis_duplicate"⟩
-CheckRejected ⟨⟨"r"⟩,⟨"c"⟩,0.5,emptyGroups,"pivot_scale_invalid"⟩
+CheckRejected ⟨⟨"r","r"⟩,⟨"c"⟩,0,emptyGroups,"matrix_row_axis_duplicate"⟩
+CheckRejected ⟨⟨"r"⟩,⟨"c","c"⟩,0,emptyGroups,"matrix_column_axis_duplicate"⟩
+CheckRejected ⟨⟨"r"⟩,⟨"c"⟩,0.5,emptyGroups,"matrix_scale_invalid"⟩
 misaligned ← {count⇐1,index⇐⟨0⟩,row_index⇐⟨0⟩,column_index⇐⟨0,0⟩,coefficient⇐⟨1⟩,contributors⇐⟨⟨0⟩⟩}
 CheckRejected ⟨⟨"r"⟩,⟨"c"⟩,0,misaligned,"pivot_group_columns_misaligned"⟩
 CheckRejected ⟨⟨"r"⟩,⟨"c"⟩,0,MakeGroups ⟨⟨1⟩,⟨0⟩,⟨1⟩,⟨⟨0⟩⟩⟩,"pivot_row_index_invalid"⟩

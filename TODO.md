@@ -130,7 +130,7 @@ This is not a section-reduction campaign and must not recreate the old giant all
 
 ### Completed finite slice: Phase 3E Trial Balance Matrix report proof
 
-- [x] Composed Account-period state into a section-local MatrixResult without copying accounting formulas.
+- [x] Composed dense Account-period state directly through the canonical MatrixResult constructor without copying formulas or forcing a sparse Pivot round-trip.
 - [x] Compared every Account row, opening/debit/credit/closing value, total, period coordinate, zero-sum status, and normalized human bytes with the public current report.
 - [x] Added deterministic human/compact formatting from one result; correctly omitted unsupported Trial Balance JSON.
 - [x] Kept production routing, cache/full composition, and broad all-report context out of the proof slice.

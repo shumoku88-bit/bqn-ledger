@@ -13,6 +13,7 @@ bqn tests/test_accounting_account_period.bqn >/dev/null
 bqn tests/test_accounting_date_category_flow.bqn >/dev/null
 bqn tests/test_accounting_month_category_flow.bqn >/dev/null
 bqn tests/test_accounting_sparse_group.bqn >/dev/null
+bqn tests/test_accounting_matrix_result.bqn >/dev/null
 bqn tests/test_accounting_sparse_pivot.bqn >/dev/null
 bqn tests/test_section_trial_balance.bqn >/dev/null
 

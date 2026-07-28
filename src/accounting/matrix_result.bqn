@@ -1,0 +1,56 @@
+# Canonical presentation-neutral dense MatrixResult constructor.
+# Coordinates are opaque; accounting, label, sign, and formatting policy stay outside.
+
+empty ← ⟨⟩
+
+Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
+Unique ← {𝕊 items:
+  result ← empty
+  {𝕊 item: {𝕊: result∾↩⟨item⟩}⍟(¬Contains ⟨item,result⟩) @}¨items
+  result
+}
+Diagnostic ← {𝕊 codeText‿messageText:
+  {severity⇐"error",stage⇐"accounting_matrix_result",code⇐codeText,message⇐messageText}
+}
+AddIf ← {𝕊 invalid‿diagnostic: invalid/⟨diagnostic⟩}
+EmptyMatrix ← {𝕊:
+  {
+    row_count⇐0,column_count⇐0,cell_count⇐0,
+    row_index⇐empty,column_index⇐empty,row_coordinates⇐empty,column_coordinates⇐empty,
+    scale⇐0,values⇐empty,contributors⇐empty
+  }
+}
+
+# Input: row coordinates, column coordinates, exact value scale,
+# dense value rows, dense contributor-index-array rows.
+Build ← {𝕊 rowCoordinates‿columnCoordinates‿valueScale‿values‿contributors:
+  diagnostics ← empty
+  rowCount ← ≠rowCoordinates
+  columnCount ← ≠columnCoordinates
+  diagnostics ∾↩ AddIf ⟨rowCount≠≠Unique rowCoordinates,Diagnostic ⟨"matrix_row_axis_duplicate","row axis coordinates must be unique"⟩⟩
+  diagnostics ∾↩ AddIf ⟨columnCount≠≠Unique columnCoordinates,Diagnostic ⟨"matrix_column_axis_duplicate","column axis coordinates must be unique"⟩⟩
+  scaleInvalid ← (valueScale<0) ∨ valueScale≠⌊valueScale
+  diagnostics ∾↩ AddIf ⟨scaleInvalid,Diagnostic ⟨"matrix_scale_invalid","value scale must be a nonnegative integer"⟩⟩
+  rowsAligned ← (rowCount=≠values) ∧ rowCount=≠contributors
+  diagnostics ∾↩ AddIf ⟨¬rowsAligned,Diagnostic ⟨"matrix_rows_misaligned","value and contributor rows must align with row axis"⟩⟩
+  {𝕊:
+    valueColumnsAligned ← ∧´1∾{(≠𝕩)=columnCount}¨values
+    contributorColumnsAligned ← ∧´1∾{(≠𝕩)=columnCount}¨contributors
+    diagnostics ∾↩ AddIf ⟨¬valueColumnsAligned,Diagnostic ⟨"matrix_value_columns_misaligned","every value row must align with column axis"⟩⟩
+    diagnostics ∾↩ AddIf ⟨¬contributorColumnsAligned,Diagnostic ⟨"matrix_contributor_columns_misaligned","every contributor row must align with column axis"⟩⟩
+  }⍟rowsAligned @
+
+  matrix ← EmptyMatrix @
+  {𝕊:
+    matrix↩{
+      row_count⇐rowCount,column_count⇐columnCount,cell_count⇐rowCount×columnCount,
+      row_index⇐↕rowCount,column_index⇐↕columnCount,
+      row_coordinates⇐rowCoordinates,column_coordinates⇐columnCoordinates,
+      scale⇐valueScale,values⇐values,contributors⇐contributors
+    }
+  }⍟(0=≠diagnostics) @
+  state ← (0=≠diagnostics)⊑"error"‿"ok"
+  {state⇐state,matrix⇐matrix,diagnostics⇐diagnostics}
+}
+
+{Build⇐Build}

@@ -1,7 +1,7 @@
 # First section-local destination report proof.
 # Accounting formulas stay in account_period; this owner composes MatrixResult and text.
 
-pivot ← •Import "../accounting/sparse_pivot.bqn"
+matrixResult ← •Import "../accounting/matrix_result.bqn"
 dates ← •Import "../ledger/date_ordinal.bqn"
 amount ← •Import "../ledger/amount_text.bqn"
 empty ← ⟨⟩
@@ -39,37 +39,28 @@ Build ← {𝕊 accountPeriod‿periodStartText‿periodEndText:
   result ← EmptyResult empty
   {𝕊:
     accounts ← accountPeriod.accounts
-    candidate ← empty
-    {𝕊 rowIndex:
-      values ← ⟨rowIndex⊑accounts.opening,rowIndex⊑accounts.debit_movement,rowIndex⊑accounts.credit_movement,rowIndex⊑accounts.closing⟩
+    values ← {𝕊 rowIndex:
+      ⟨rowIndex⊑accounts.opening,rowIndex⊑accounts.debit_movement,rowIndex⊑accounts.credit_movement,rowIndex⊑accounts.closing⟩
+    }¨accounts.index
+    contributors ← {𝕊 rowIndex:
       openingContributors ← rowIndex⊑accounts.opening_contributors
       periodContributors ← rowIndex⊑accounts.period_contributors
-      contributors ← ⟨
+      ⟨
         openingContributors,
         rowIndex⊑accounts.debit_contributors,
         rowIndex⊑accounts.credit_contributors,
         openingContributors∾periodContributors
       ⟩
-      {𝕊 columnIndex:
-        value ← columnIndex⊑values
-        cellContributors ← columnIndex⊑contributors
-        {𝕊: candidate∾↩⟨{row_index⇐rowIndex,column_index⇐columnIndex,coefficient⇐value,contributors⇐cellContributors}⟩}⍟((value≠0) ∨ 0<≠cellContributors) @
-      }¨↕≠columnCoordinates
     }¨accounts.index
-    sparseGroups ← {
-      count⇐≠candidate,index⇐↕≠candidate,
-      row_index⇐{𝕩.row_index}¨candidate,column_index⇐{𝕩.column_index}¨candidate,
-      coefficient⇐{𝕩.coefficient}¨candidate,contributors⇐{𝕩.contributors}¨candidate
-    }
-    pivoted ← pivot.Build ⟨accounts.account_index,columnCoordinates,accountPeriod.scale,sparseGroups⟩
-    diagnostics ∾↩ pivoted.diagnostics
+    builtMatrix ← matrixResult.Build ⟨accounts.account_index,columnCoordinates,accountPeriod.scale,values,contributors⟩
+    diagnostics ∾↩ builtMatrix.diagnostics
     {𝕊:
       result↩{
         state⇐"ok",domain⇐accountPeriod.domain,layer⇐accountPeriod.layer,
         period_start⇐periodStartText,period_end_exclusive⇐periodEndText,as_of⇐periodEndText,
         account_keys⇐accounts.account_key,
         account_labels⇐{𝕩∾"/"∾accountPeriod.domain}¨accounts.account_key,
-        matrix⇐pivoted.matrix,
+        matrix⇐builtMatrix.matrix,
         totals⇐{
           opening⇐accountPeriod.totals.opening,
           debit_movement⇐accountPeriod.totals.debit_movement,
@@ -79,7 +70,7 @@ Build ← {𝕊 accountPeriod‿periodStartText‿periodEndText:
         },
         diagnostics⇐empty
       }
-    }⍟(pivoted.state≡"ok") @
+    }⍟(builtMatrix.state≡"ok") @
   }⍟(0=≠diagnostics) @
   {𝕊: result↩EmptyResult diagnostics}⍟(0<≠diagnostics) @
   result

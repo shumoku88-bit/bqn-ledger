@@ -128,11 +128,12 @@ Updated: 2026-07-26
 - `date_category_flow.bqn` — strict date period内のexplicit income/expense Account postingsを、Account metadata由来dynamic envelope categoryと`other`へsparse groupingする。date income/net、exact scale、contributor Posting indicesを返し、prefix inferenceやDaily Flow section fieldを持たない。
 - `month_category_flow.bqn` — presentation-neutral date/category evidenceをcalendar month × categoryへrollupし、exact scaleと元Posting contributorsを保持するextensibility proof。
 - `sparse_group.bqn` — date/month両consumerで同一と証明されたexplicit row axis × bounded columnのdeterministic sparse Group。exact sum、zero-sum contributor保持、all-or-nothing diagnosticsだけを所有し、date/month/category policyを持たない。
-- `sparse_pivot.bqn` — shared sparse Groupをopaque row/column coordinatesのdense MatrixResultへ変換するpolicy-free Pivot。absent cellはzero/empty contributors、explicit zero groupはcontributorsを保持する。label/sign/format/totalsを持たない。
+- `matrix_result.bqn` — opaque row/column coordinates、exact scale、dense values/contributorsを検査して唯一のpresentation-neutral MatrixResult shapeを構築する。dense consumerは直接使う。
+- `sparse_pivot.bqn` — shared sparse Groupをzero/contributor semantics付きdense arraysへmaterializeし、`matrix_result.bqn`へ委譲するpolicy-free Pivot。Matrix shapeを重複所有せず、label/sign/format/totalsを持たない。
 
 ### `src/sections/` (destination section-local result/render owners)
 
-- `trial_balance.bqn` — successful Account-period resultとmatching period textだけから4-measure MatrixResultをcomposeし、同じresultをhuman/compactへrenderする最初のvertical proof。会計formula、source I/O、context、Cube/TBDS、JSONを持たず、production routingにはまだ未接続。
+- `trial_balance.bqn` — successful Account-period resultのdense values/contributorsをcanonical MatrixResult constructorへ直接渡し、同じresultをhuman/compactへrenderする最初のvertical proof。不要なsparse往復、会計formula、source I/O、context、Cube/TBDS、JSONを持たず、production routingにはまだ未接続。
 
 ### `src_next/` (現行production BQN 会計エンジン)
 
