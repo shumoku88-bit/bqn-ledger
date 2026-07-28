@@ -347,14 +347,14 @@ Exit:
 
 Implement only capabilities required by the report migration:
 
-- [ ] selected-domain posting partition;
-- [ ] ledger-wide and period views;
-- [ ] opening/movement/closing;
-- [ ] exact account/date grouping;
+- [x] selected-domain/layer posting partition (`src/accounting/account_period.bqn`);
+- [ ] ledger-wide and reusable period views;
+- [x] opening/movement/closing with exact totals and contributor indices;
+- [ ] exact account/date grouping (Account grouping proved once; date grouping remains);
 - [ ] cycle resolution from admitted facts;
 - [ ] completion and transaction metadata joins;
 - [ ] Cube/TBDS construction where they remain useful;
-- [ ] source-order/provenance access for reports that require it;
+- [x] source-order/provenance access for reports that require it (Transaction rows and Account-period Posting contributors);
 - [ ] composable selection masks over typed fact columns;
 - [ ] deterministic sparse grouping with contributor indices;
 - [ ] row-axis/column-axis pivot construction;

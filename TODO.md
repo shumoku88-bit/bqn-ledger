@@ -100,12 +100,19 @@ This is not a section-reduction campaign and must not recreate the old giant all
 - [x] Moved empty-domain policy back to source admission; generic fact projection now requires Domain only when transactions exist.
 - [x] Kept broad public-fixture migration and all private source inspection out of this slice.
 
-### Current finite slice: Phase 3A selected-domain period capability
+### Completed finite slice: Phase 3A selected-domain period capability
 
-- [ ] Define a pure selected-domain Posting Facts partition over one canonical fact result.
-- [ ] Derive opening, period debit/credit movement, and closing per Account with exact scale and contributor posting indices.
-- [ ] Prove the public Trial Balance values without importing Cube, TBDS, context, or a section module.
-- [ ] Keep formatting, runtime routing, shared Source table, and private source work out of this capability slice.
+- [x] Defined a pure selected-domain/layer Posting Facts partition over one canonical fact result.
+- [x] Derived opening, period debit/credit movement, movement, and closing per Account with exact scale and contributor Posting indices.
+- [x] Proved full-period and nonzero-opening public Trial Balance values without Cube, TBDS, context, or a section module.
+- [x] Kept formatting, runtime routing, shared Source table, and private source work out of the capability slice.
+
+### Current finite slice: Phase 3B date/category grouping proof
+
+- [ ] Derive selected-domain period expense postings by strict date ordinal and explicit Account role/metadata.
+- [ ] Produce deterministic sparse date/category groups with exact totals and contributor Posting indices.
+- [ ] Prove the public Daily Flow dynamic `food`/`other` axes without importing Cube, context, or section formatting.
+- [ ] Compare Account-period and date/category grouping implementations before extracting any shared Select/Group vocabulary.
 
 Phase 0 exit evidence is `docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`: every observable report capability has an owner, every compatibility path has a deletion gate, and no undecided fallback is permitted in the destination fact schema.
 

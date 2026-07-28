@@ -7,13 +7,13 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Phase 3A: strict config/cycle admission now separates default-domain selection, report policy, and unresolved period definition; generic Facts no longer reads an optional source-policy field. Next prove selected-domain opening/movement/closing directly from canonical Posting Facts on the public fixture.
+Phase 3B: `src/accounting/account_period.bqn` now proves selected-domain/layer opening, debit/credit movement, closing, exact totals, and contributor Posting indices directly from canonical Facts. Next prove the materially different date × dynamic expense-category grouping needed by Daily Flow before extracting shared query vocabulary.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn
-completed: strict Actual/Plan/Budget/config/cycle pure destination boundaries
-next capability: selected Domain + period + exact Account Trial Balance rows
-exclude: formatting, Cube/TBDS/context imports, runtime routing, private sources
+completed capability: Account period state without Cube/TBDS/context/section fields
+next capability: strict period expense postings -> sparse date/category groups
+only after comparison: extract narrow shared Select/Group primitives
 private source audit/migration: still requires separate explicit instruction
 ```
 

@@ -119,7 +119,13 @@ Updated: 2026-07-26
 - `cycle_admission.bqn` — fixed/incomeAnchor/calendarMonthのalready-read定義をstrict date/range/day、explicit income Account roleへall-or-nothing admissionする。facts/as-of/clockからのperiod resolutionを持たない。
 - `transaction_rows.bqn` — canonical factsからsource-order Transactionとordered Postingをtyped joinするJournal list/reverse/Recent向けnarrow capability。source loadやreport formattingを持たない。
 - `amount_text.bqn` — exact coefficient/scaleをroundingなしでplain decimal textへ変換するpure capability。
+- `exact_scale.bqn` — admitted signed coefficientをselected scaleへdecimal text経由でexact normalizationし、checked sumするpure arithmetic owner。
 - 現行production routingはまだ`src_next`だが、runtime/editorのcomplete admission callerは`src/ledger`を直接importする。`src/ledger`から`src_next`をimportしてはならない。
+
+### `src/accounting/` (canonical facts上のpure accounting capabilities)
+
+- `account_period.bqn` — explicit Facts/domain/layer/start/endだけを受け、Account-orderのopening/debit/credit/movement/closing、exact totals、contributor Posting indicesを返す。Cube/TBDS、context、section、format、clockを持たない。
+- capabilityは実consumerから狭く証明し、二つの異なるgrouping consumerが揃う前にgeneric query DSLへ抽出しない。
 
 ### `src_next/` (現行production BQN 会計エンジン)
 
