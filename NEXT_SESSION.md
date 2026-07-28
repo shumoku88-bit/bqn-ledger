@@ -7,13 +7,13 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Portfolio P5: retained Current-cycle Accounts now composes resolved cycle and explicit observation into an all-Account exact five-column Matrix with signed credit and source-qualified provenance. Next implement Monthly Accounts as Month × Account movement only.
+Portfolio P6: retained Monthly Accounts now builds a dense explicit Month × all-Account signed movement Matrix with empty months/cells, source-qualified evidence, and cross-axis reconciliation. Next implement Cycle Comparison over two explicit resolved windows.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn (unchanged)
-completed retained proofs: Planned Payments + Account Balances + Recent Journal + Current-cycle Accounts
-next proof: explicit month range × all Accounts signed movement with zero cells and contributor reconciliation
-exclude: month-end balance/YTD Card, old Cycle Summary/Trial Balance routes, production cutover, private work
+completed retained proofs: Planned + Balances + Recent + Current-cycle Accounts + Monthly Accounts
+next proof: Account × current/baseline/difference under aligned_elapsed | complete_cycles
+exclude: inferred similar periods, ratios/status lanes, production cutover, private work
 forbid: mechanical 15-section migration, giant all-report record, dual aliases/keys
 private source audit/migration: still requires separate explicit instruction
 ```

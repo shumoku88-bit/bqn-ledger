@@ -134,6 +134,7 @@ Updated: 2026-07-28
 - `plan_completion_join.bqn` — explicitに選択済みのPlan/Actual Transaction Factsをdurable `plan_id`だけでJoinする。各sourceのexact amount、Account direction、Posting contributorを保持し、open/completed/duplicate/ambiguousを区別する。five-field fallbackやduplicate amount加算を持たない。
 - `recent_transactions.bqn` — Actual Factsとpositive limitからphysical source末尾N件をnewest-firstに選び、multi-posting debit/credit arrays、exact debit total、Transaction/Posting provenanceを返す retained List capability。
 - `cycle_account_period.bqn` — resolved cycle、explicit observation、Actual Factsを`account_period`へcomposeし、observed end-exclusiveを確定する。全cell contributorをsource-qualified Posting referenceへ変換し、cycle boundary evidenceを別保持する。
+- `month_account_movement.bqn` — strict `[first_month,last_month_exclusive)`とActual Factsからempty month/zero Accountを含むdense Month × Account signed movementを構築し、両axis totalsをexact reconciliationする。
 - `date_category_flow.bqn` — strict date period内のexplicit income/expense Account postingsを、Account metadata由来dynamic envelope categoryと`other`へsparse groupingする。date income/net、exact scale、contributor Posting indicesを返し、prefix inferenceやDaily Flow section fieldを持たない。
 - `month_category_flow.bqn` — presentation-neutral date/category evidenceをcalendar month × categoryへrollupし、exact scaleと元Posting contributorsを保持するextensibility proof。
 - `sparse_group.bqn` — date/month両consumerで同一と証明されたexplicit row axis × bounded columnのdeterministic sparse Group。exact sum、zero-sum contributor保持、all-or-nothing diagnosticsだけを所有し、date/month/category policyを持たない。
@@ -148,6 +149,7 @@ Updated: 2026-07-28
 - `account_balances.bqn` — retained `balances` one-column Matrix/List result。explicit date/ordinal一致を検査し、全Accountをhuman/`ledger_balance` compact/JSONへ同一resultから描画する。
 - `recent_journal.bqn` — retained `recent` List result。Account lane arraysをsemantic resultで維持し、human tableとtab-delimited `ledger_recent_journal` compactだけを描画する。
 - `cycle_accounts.bqn` — retained `cycle-accounts` Account × opening/debit/signed credit/movement/closing Matrix。human-onlyで、compact/JSONや旧Trial Balance routeを所有しない。
+- `monthly_accounts.bqn` — retained `monthly-accounts` Month × Account movement Matrix。human-onlyで、month-end balance、YTD、role summaryを混在させない。
 
 ### `src/report/` (destination report-level presentation/composition primitives)
 

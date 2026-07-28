@@ -1,0 +1,10 @@
+== Monthly Accounts ==
+Range: 2026-01..2026-03
+
+Month       | assets:cash/JPY | income:salary/JPY | expenses:food/JPY | expenses:transport/JPY | budget:opening/JPY | budget:unassigned/JPY | budget:food/JPY | budget:spent/JPY | Total
+------------+-----------------+-------------------+-------------------+------------------------+--------------------+-----------------------+-----------------+------------------+------
+2026-01     |             965 |             -1000 |                30 |                      5 |                  0 |                     0 |               0 |                0 |     0
+2026-02     |               0 |                 0 |                 0 |                      0 |                  0 |                     0 |               0 |                0 |     0
+Range total |             965 |             -1000 |                30 |                      5 |                  0 |                     0 |               0 |                0 |     0
+Balanced by month: YES
+

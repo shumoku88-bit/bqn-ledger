@@ -214,13 +214,21 @@ The approved portfolio reset is [`docs/REPORT_PORTFOLIO_DECISION.md`](docs/REPOR
 - [x] Proved partial/full cycle, empty Actual, JPY/ILS/USD, invalid/outside/mismatched observation, unavailable cycle, and deterministic order.
 - [x] Implemented human-only retained Matrix without reviving Cycle Summary or Trial Balance routes.
 
-### Current finite slice: Portfolio P5 Monthly Accounts
+### Completed finite slice: Portfolio P5 Monthly Accounts
 
-- [ ] Compose canonical month grouping and dense MatrixResult into Month × Account signed movement.
-- [ ] Require one explicit domain and explicit half-open month range; include every month and every admitted Account, including zero cells.
-- [ ] Preserve source-qualified Posting contributors per cell and exact cross-row/cross-column reconciliation.
-- [ ] Prove multi-month, empty month, empty Actual, JPY/ILS/USD, mixed scale, invalid range/domain, and deterministic axes.
-- [ ] Implement human-only `monthly-accounts` without adding month-end balance or YTD Card measures.
+- [x] Built dense Month × Account signed Actual movement over strict explicit month coordinates.
+- [x] Included every requested month and admitted Account, preserving empty rows and zero cells.
+- [x] Preserved source-qualified cell contributors and independently reconciled month/Account/grand totals.
+- [x] Proved JPY/ILS/USD, mixed scale, empty month/Actual, invalid range/domain, and deterministic axes.
+- [x] Implemented human-only output without month-end balance, debit/credit submatrices, or YTD Cards.
+
+### Current finite slice: Portfolio P6 Cycle Comparison
+
+- [ ] Compare two explicit already-resolved windows with `aligned_elapsed | complete_cycles` policy.
+- [ ] Derive per-Account current movement, baseline movement, and exact difference without searching for a similar period.
+- [ ] Preserve distinct source-qualified contributors for both windows and difference provenance.
+- [ ] Prove equal elapsed windows, complete unequal-length cycles, unavailable baseline, mixed scale, empty Actual, and invalid policy/window combinations.
+- [ ] Implement human-only `cycle-comparison` Matrix without importing old Actual Comparison lanes or statuses.
 
 Phase 0 exit evidence is `docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`: every observable report capability has an owner, every compatibility path has a deletion gate, and no undecided fallback is permitted in the destination fact schema.
 

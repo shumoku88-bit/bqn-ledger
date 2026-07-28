@@ -48,6 +48,7 @@ They are maps, not gates. Read the files that help with the question in front of
 - [`ACCOUNT_BALANCES_REPORT.md`](ACCOUNT_BALANCES_REPORT.md) — retained exact Account closing Matrix/List with explicit observation, zero Accounts, source-qualified provenance, and human/compact/JSON
 - [`RECENT_JOURNAL_REPORT.md`](RECENT_JOURNAL_REPORT.md) — retained newest-first Transaction List with explicit limit, multi-posting lanes, exact amount, provenance, and human/compact output
 - [`CYCLE_ACCOUNTS_REPORT.md`](CYCLE_ACCOUNTS_REPORT.md) — retained resolved-cycle Account Matrix with explicit observation, signed five-measure arithmetic, and source-qualified cells
+- [`MONTHLY_ACCOUNTS_REPORT.md`](MONTHLY_ACCOUNTS_REPORT.md) — retained dense Month × Account movement with explicit month range, zero cells, provenance, and reconciliation
 - [`ACCOUNT_PERIOD_CAPABILITY.md`](ACCOUNT_PERIOD_CAPABILITY.md) — pure selected-domain/layer opening, movement, closing, exact scale, and contributor Posting indices
 - [`DATE_CATEGORY_FLOW_CAPABILITY.md`](DATE_CATEGORY_FLOW_CAPABILITY.md) — pure date × dynamic Account-metadata category sparse groups, income/net measures, and contributor Posting indices
 - [`MONTH_CATEGORY_GROUPING.md`](MONTH_CATEGORY_GROUPING.md) — two-month extensibility proof and the narrow deterministic sparse Group operation shared by date/month consumers

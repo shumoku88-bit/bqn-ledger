@@ -18,6 +18,7 @@ bqn tests/test_accounting_plan_completion_join.bqn >/dev/null
 bqn tests/test_accounting_recent_transactions.bqn >/dev/null
 bqn tests/test_accounting_date_category_flow.bqn >/dev/null
 bqn tests/test_accounting_month_category_flow.bqn >/dev/null
+bqn tests/test_accounting_month_account_movement.bqn >/dev/null
 bqn tests/test_accounting_sparse_group.bqn >/dev/null
 bqn tests/test_accounting_matrix_result.bqn >/dev/null
 bqn tests/test_accounting_sparse_pivot.bqn >/dev/null
@@ -27,6 +28,7 @@ bqn tests/test_section_account_balances.bqn >/dev/null
 bqn tests/test_section_planned_payments.bqn >/dev/null
 bqn tests/test_section_recent_journal.bqn >/dev/null
 bqn tests/test_section_cycle_accounts.bqn >/dev/null
+bqn tests/test_section_monthly_accounts.bqn >/dev/null
 
 if rg -n '•Import ".*(src_next|src_edit|context\.bqn|report\.bqn|journal_profile)' src/ledger src/accounting src/sections src/report; then
   echo "FAIL: destination ledger facts import an old runtime/shape" >&2
