@@ -7,14 +7,14 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Portfolio contract P1: on 2026-07-28 moko approved replacing 15-section parity with a smaller portfolio centered on Envelope & Backing, Account Balances, Recent Journal, Planned Payments, Issues, Account matrices, and Daily Target. Before more report code, define exact contracts and an old-surface retirement map.
+Portfolio P2: the nine-key destination catalog, all three Account Matrix contracts, Envelope & Backing terms, conservative Daily Target arithmetic, and old-surface retirement map are selected. Next implement retained Account Balances over explicit Actual Facts/domain/observation.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn (unchanged)
-decision authority: docs/REPORT_PORTFOLIO_DECISION.md
-completed proofs: canonical Facts/capabilities + Trial Balance + Daily Flow + Planned Payments
-next work: portfolio keys/surfaces, Matrix contracts, Envelope/Backing, Daily Target, consumer removal map
-forbid: mechanical 15-section migration, giant all-report record, dual aliases/keys, private work
+authorities: REPORT_PORTFOLIO_DECISION.md + REPORT_PORTFOLIO_CONTRACT.md + REPORT_SURFACE_RETIREMENT_MAP.md
+next proof: exact Account closing Matrix/List + human/compact/JSON for JPY/ILS/USD/empty
+exclude: implicit domain, old balance ViewModel, production routing/key cutover, filesystem/private work
+forbid: mechanical 15-section migration, giant all-report record, dual aliases/keys
 private source audit/migration: still requires separate explicit instruction
 ```
 

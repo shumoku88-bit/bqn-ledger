@@ -215,7 +215,7 @@ already-read Plan/Budget TSV + admitted Account
 
 最初の`src/sections/trial_balance.bqn` proofはdense Account-period stateをsparse化せず、section-localなopening/debit/credit/closing arraysからcanonical MatrixResultへcomposeし、同一resultをhuman/compactへrenderする。第二の`daily_flow.bqn` proofはgenuine sparse date/category expense Pivotへincome/netを加え、explicit latest-or-period-start observationとempty zero rowをsection-localに保つ。`planned_payments.bqn`はMatrixでないList resultのproofで、resolved cycle、explicit observation、Plan/Actual Factsからselection→completion Join→temporal state/exact totalをcomposeし、同一resultをhuman/compact/JSONへrenderする。複数rendererで一致したvisual width/paddingだけを`src/report/text.bqn`へ抽出し、accounting formulaを複製しない。
 
-2026-07-28の`REPORT_PORTFOLIO_DECISION.md`により、destinationは旧15 section parityを要求しない。Envelope & Backing、Account Balances、Recent Journal、Planned Payments、Issues、Current-cycle/Cycle Comparison/Monthly Account matrices、Daily Targetをminimum portfolioとする。Trial BalanceとDaily Flowは有用なcapability/proofとして残るが、旧routeを自動的に維持する根拠にはならない。production routingと旧surface削除はrevised portfolio contractとsupported-source readiness後のatomic cutoverまで行わない。
+2026-07-28の`REPORT_PORTFOLIO_DECISION.md`により、destinationは旧15 section parityを要求しない。`REPORT_PORTFOLIO_CONTRACT.md`は`envelopes / balances / recent / planned / cycle-accounts / cycle-comparison / monthly-accounts / daily-target / issues`の静的catalog、axes/measures/time/currency/provenance、supported surfacesを選択する。`REPORT_SURFACE_RETIREMENT_MAP.md`は旧route/key/cache/metadata/query/checkを移行またはatomic削除へ割り当てる。Trial BalanceとDaily Flowは有用なcapability/proofとして残るが、旧routeを自動的に維持する根拠にはならない。production routingと旧surface削除はretained report proofsとsupported-source readiness後のatomic cutoverまで行わない。
 
 ### Selected-domain composition stages
 

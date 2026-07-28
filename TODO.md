@@ -178,14 +178,23 @@ The approved portfolio reset is [`docs/REPORT_PORTFOLIO_DECISION.md`](docs/REPOR
 - [x] Kept canonical Facts/accounting capabilities durable while treating Trial Balance and Daily Flow as reusable proofs rather than mandatory final routes.
 - [x] Kept current production unchanged and retained atomic deletion/no-alias/private-data boundaries.
 
-### Current finite slice: Portfolio contract P1
+### Completed finite slice: Portfolio contract P1
 
-- [ ] Assign final destination keys and human/compact/JSON surfaces to each retained report.
-- [ ] Define exact axes, measures, signs, observation, period, currency, totals, and provenance for Current-cycle, Cycle Comparison, and Monthly Account matrices.
-- [ ] Define Envelope & Backing terms and invariants without importing old envelope ViewModels.
-- [ ] Define Daily Target inputs, target-date semantics, reserves, unavailable states, and evidence.
-- [ ] Map every old route/key/cache/metadata/query consumer to retain, migrate, or atomic removal.
-- [ ] Select the first retained implementation slice only after these contracts are reviewable.
+- [x] Selected the nine final destination keys, order, and human/compact/JSON support.
+- [x] Defined exact axes, measures, signs, windows, observation, currency, empty/error, and provenance for Current-cycle, Cycle Comparison, and Monthly Account matrices.
+- [x] Defined Envelope entitlement/consumption/refund/Plan reserve, signed total, positive backing requirement, funding surplus, and separate Budget reconciliation.
+- [x] Selected conservative Daily Target arithmetic with explicit target date and per-obligation reservation provenance; future income does not inflate P1 safe capacity.
+- [x] Mapped every old section plus shared catalog/cache/compact/query/JSON/UI/check consumer families to migration or atomic removal.
+- [x] Selected retained implementation order without resuming old-section parity work.
+
+### Current finite slice: Portfolio P2 Account Balances
+
+- [ ] Derive exact Actual closing through explicit observation for every Account in one selected domain, including zero-posting Accounts.
+- [ ] Preserve source-qualified Posting contributors and reject mixed/unknown domain, invalid observation, Fact error, or exact overflow without partial rows.
+- [ ] Build the retained `balances` Matrix/List result and one human/compact/JSON semantic owner.
+- [ ] Prove JPY, ILS, USD, valid empty Actual, nonzero history, mixed scales, and deterministic Account order on public synthetic evidence.
+- [ ] Compare retained current Balances semantics while excluding implicit-domain compatibility behavior.
+- [ ] Leave production routing, compact key replacement, old-owner deletion, filesystem composition, and private sources outside this proof slice.
 
 Phase 0 exit evidence is `docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`: every observable report capability has an owner, every compatibility path has a deletion gate, and no undecided fallback is permitted in the destination fact schema.
 

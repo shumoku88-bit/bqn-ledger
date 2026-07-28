@@ -44,7 +44,7 @@ Semantic parity always distinguishes zero, unavailable, rejected/error, and not-
 
 ## Current section catalog and destination disposition
 
-The following keys/order describe current production and remain characterization evidence until cutover. They are not the destination catalog:
+The destination catalog and supported surfaces are fixed by `REPORT_PORTFOLIO_CONTRACT.md`. The following keys/order describe current production and remain characterization evidence until cutover; they are not the destination catalog:
 
 ```text
 snapshot

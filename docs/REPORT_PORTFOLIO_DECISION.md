@@ -91,14 +91,14 @@ Deleting a report does not imply deleting a generally useful proved capability. 
 - Unsupported old JSON or compact surfaces may disappear when their owning report is removed.
 - Production remains `tools/report -> src_next/report.bqn` until the revised portfolio and source-readiness cutover gate pass.
 
-## Required contract work before implementation continues
+## Contract checkpoint completed
 
-1. Assign final destination keys and supported human/compact/JSON surfaces.
-2. Define exact axes, measures, signs, observation, period, currency, totals, and provenance for the three Account matrices.
-3. Define Envelope & Backing invariants and distinguish balance, backing, allocation, reserve, and availability.
-4. Define Daily Target inputs, target-date semantics, reserve treatment, unavailable states, and contributor evidence.
-5. Inventory repository consumers of every old section/key/cache file and attach an atomic removal or migration action.
-6. Select implementation order from the retained portfolio; do not resume mechanical 15-section migration.
+Portfolio Contract P1 is recorded in:
+
+- `REPORT_PORTFOLIO_CONTRACT.md` — final keys/surfaces, three Account Matrix contracts, Envelope & Backing terms, Daily Target semantics, and implementation order;
+- `REPORT_SURFACE_RETIREMENT_MAP.md` — tracked consumer families and per-old-section atomic migration/removal actions.
+
+Implementation proceeds by retained question and dependency order. It does not resume mechanical 15-section migration.
 
 ## Private-data boundary
 

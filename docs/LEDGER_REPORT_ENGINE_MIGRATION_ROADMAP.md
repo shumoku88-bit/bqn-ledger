@@ -4,6 +4,7 @@ Status: active implementation roadmap; destination portfolio reset approved 2026
 Owner: ledger kernel / report
 Canonical queue: `TODO.md`
 Portfolio authority: `docs/REPORT_PORTFOLIO_DECISION.md`
+Selected contracts: `docs/REPORT_PORTFOLIO_CONTRACT.md`, `docs/REPORT_SURFACE_RETIREMENT_MAP.md`
 Current production remains: `tools/report` → `src_next/report.bqn` until the cutover gate passes
 
 ## 1. Goal

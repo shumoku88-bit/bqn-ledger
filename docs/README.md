@@ -29,6 +29,8 @@ They are maps, not gates. Read the files that help with the question in front of
 - [`TBDS_CONTRACT.md`](TBDS_CONTRACT.md) — trial-balance dataset boundary
 - [`REPORT_CONTRACTS.md`](REPORT_CONTRACTS.md) — report sections and values
 - [`REPORT_PORTFOLIO_DECISION.md`](REPORT_PORTFOLIO_DECISION.md) — approved 2026-07-28 reset from 15-section parity to the retained Matrix/List/Card/Statement portfolio
+- [`REPORT_PORTFOLIO_CONTRACT.md`](REPORT_PORTFOLIO_CONTRACT.md) — nine-key destination catalog and exact Account Matrix, Envelope & Backing, Daily Target, List, time, currency, and surface contracts
+- [`REPORT_SURFACE_RETIREMENT_MAP.md`](REPORT_SURFACE_RETIREMENT_MAP.md) — per-old-section route/key/cache/metadata/query/test migration or atomic removal map
 - [`LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`](LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md) — active canonical-facts report migration and final compatibility-eradication roadmap under the portfolio decision
 - [`REPORT_CONSTRUCTION_INVENTORY.md`](REPORT_CONSTRUCTION_INVENTORY.md) — current 15-section facts/filter/axis/measure/result-shape inventory and first Matrix/Pivot proof selection
 - [`RUNTIME_COMPATIBILITY_INVENTORY.md`](RUNTIME_COMPATIBILITY_INVENTORY.md) — current fallback/wrapper/test-seam/source-data classifications and mandatory deletion gates

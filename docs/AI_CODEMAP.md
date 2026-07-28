@@ -21,7 +21,7 @@ Updated: 2026-07-28
 8. `docs/TIME_AS_AXIS.md`（時間座標・観察時点・区間view）
 9. `src_next`のfile moveなら `docs/archive/audits/SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md` と `tools/src-next-import-graph`
 10. projection変更なら `docs/archive/active-plans/PURPOSE_SPECIFIC_PROJECTION_COMPOSITION_DIRECTION-2026-07-25.md`、`docs/archive/audits/PROJECTION_BQN_OWNERSHIP_AUDIT-2026-07-26.md`、該当する `src_next/*` consumer
-11. レポート変更なら`docs/REPORT_PORTFOLIO_DECISION.md`、active migrationの`docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`、`docs/LEDGER_FACT_SCHEMA.md`を先に読む。旧15 sectionはcurrent inventoryでありdestination requirementではない。現行production behaviorは `src_next/report.bqn` と `docs/REPORT_CONTRACTS.md` / `docs/REPORT_SECTION_CONTRACT_CHECKLIST.md`で確認する
+11. レポート変更なら`docs/REPORT_PORTFOLIO_DECISION.md`、`docs/REPORT_PORTFOLIO_CONTRACT.md`、`docs/REPORT_SURFACE_RETIREMENT_MAP.md`、active roadmap、`docs/LEDGER_FACT_SCHEMA.md`を先に読む。旧15 sectionはcurrent inventoryでありdestination requirementではない。現行production behaviorは `src_next/report.bqn` と current contractsで確認する
 12. エディタ作業なら `docs/PRODUCTION_EDITOR_DIRECTION.md` / `docs/BQN_EDITOR_USAGE.md` / `src_edit/README.md`
 13. 複数ポスティング導入検討なら `docs/archive/completed-plans/DECISION_MULTI_POSTING_INVESTIGATION.md`
 14. 変更内容に応じて `docs/CONVENTIONS.md` / `docs/JOURNAL_META.md` / `docs/MAINTENANCE.md`
