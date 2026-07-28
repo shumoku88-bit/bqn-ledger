@@ -331,6 +331,7 @@ Exit:
 - [x] Require explicit source/account currency according to the Phase 0 decision.
 - [x] Resolve plan completion with one canonical durable `plan_id` rule and no five-field fallback in the destination.
 - [x] Resolve accounts and closed source metadata once per strict companion snapshot.
+- [x] Admit strict config and unresolved cycle definitions without mixing source coordinates, report policy, fact resolution, path I/O, or clock.
 - [ ] Keep issues as non-accounting facts rather than forcing them into Posting IR.
 - [x] Build readonly audit tools for source rows that require migration (`report_source_readiness_audit.py`).
 - [ ] Migrate public fixtures.

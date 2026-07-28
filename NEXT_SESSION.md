@@ -7,13 +7,13 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Phase 2B: strict Plan/Budget companion admission now produces common aligned Facts with explicit currency, Account agreement, exact scale, and durable unique Plan ID; either source failure publishes neither source. Next isolate strict config/cycle admission using public fixtures only.
+Phase 3A: strict config/cycle admission now separates default-domain selection, report policy, and unresolved period definition; generic Facts no longer reads an optional source-policy field. Next prove selected-domain opening/movement/closing directly from canonical Posting Facts on the public fixture.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn
-completed: Actual + strict Plan/Budget canonical facts as separate pure roots
-next boundary: strict config/cycle source coordinates versus report policy
-intentionally deferred: shared Source table until a cross-source query consumer exists
+completed: strict Actual/Plan/Budget/config/cycle pure destination boundaries
+next capability: selected Domain + period + exact Account Trial Balance rows
+exclude: formatting, Cube/TBDS/context imports, runtime routing, private sources
 private source audit/migration: still requires separate explicit instruction
 ```
 

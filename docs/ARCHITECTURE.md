@@ -209,7 +209,7 @@ already-read Plan/Budget TSV + admitted Account
 
 両rootは共通の`facts.bqn`からaligned Transaction/Posting FactsとDomain/Account/Layer tablesを得る。Plan/Budgetはexplicit currency、Account currency一致、exact scaleを要求し、Planはdurable `plan_id`なしではadmitしない。どちらか一方のcompanion sourceがinvalidなら両方のfactsを空にする。空のoptional companion sourceは正常で、架空Domainを作らない。Source tableは複数source familyを実際に組み合わせるqueryまで導入しない。
 
-新ledger ownerはsource path、I/O、clock、旧context、Cube/TBDS、report fieldを受け取らない。現行runtime/editor callerもcanonical Actual admission pathを直接importし、旧module pathはwrapperなしで削除済みである。schemaとinvariantは`docs/LEDGER_FACT_SCHEMA.md`を正とする。
+新ledger ownerはsource path、I/O、clock、旧context、Cube/TBDS、report fieldを受け取らない。`config_admission.bqn`はledger source座標とreport policyを分離し、`cycle_admission.bqn`はfacts/as-ofを参照しないunresolved cycle definitionだけをadmitする。period resolutionは後続accounting capabilityでありsource parserへ戻さない。現行runtime/editor callerもcanonical Actual admission pathを直接importし、旧module pathはwrapperなしで削除済みである。schemaとinvariantは`docs/LEDGER_FACT_SCHEMA.md`、config/cycle境界は`docs/CONFIG_CYCLE_ADMISSION.md`を正とする。
 
 ### Selected-domain composition stages
 

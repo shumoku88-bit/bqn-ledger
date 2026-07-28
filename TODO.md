@@ -92,12 +92,20 @@ This is not a section-reduction campaign and must not recreate the old giant all
 - [x] Deferred a logical Source table/index until Actual/Plan/Budget facts first share a query consumer.
 - [x] Did not inspect or migrate private sources.
 
-### Current finite slice: Phase 2B strict cycle/config boundary
+### Completed finite slice: Phase 2B strict cycle/config boundary
 
-- [ ] Inventory only public fixture fields consumed from config.tsv and cycle.tsv; separate source admission from report policy.
-- [ ] Define pure strict config/cycle admission with explicit currency and valid date/range coordinates.
-- [ ] Prove valid empty Actual plus explicit cycle/config without fabricated transaction evidence.
-- [ ] Keep broad public-fixture migration and all private source inspection out of this slice.
+- [x] Inventoried public fixture fields consumed from config.tsv and cycle.tsv; separated source coordinates, report policy, and unresolved cycle definition.
+- [x] Defined pure strict config/cycle admission with mandatory supported default currency and valid date/range/account/day coordinates.
+- [x] Proved valid empty optional facts independently from explicit config/cycle definitions without fabricated transaction evidence.
+- [x] Moved empty-domain policy back to source admission; generic fact projection now requires Domain only when transactions exist.
+- [x] Kept broad public-fixture migration and all private source inspection out of this slice.
+
+### Current finite slice: Phase 3A selected-domain period capability
+
+- [ ] Define a pure selected-domain Posting Facts partition over one canonical fact result.
+- [ ] Derive opening, period debit/credit movement, and closing per Account with exact scale and contributor posting indices.
+- [ ] Prove the public Trial Balance values without importing Cube, TBDS, context, or a section module.
+- [ ] Keep formatting, runtime routing, shared Source table, and private source work out of this capability slice.
 
 Phase 0 exit evidence is `docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`: every observable report capability has an owner, every compatibility path has a deletion gate, and no undecided fallback is permitted in the destination fact schema.
 

@@ -104,7 +104,7 @@ Updated: 2026-07-26
 
 ### `src/ledger/` (移行中のcanonical ledger facts)
 
-- `facts.bqn` — successful canonical Actual/companion admissionとstrict aligned Account tableを受け、aligned Transaction/Posting factsとDomain/Account/Layer tableへall-or-nothing projectionするread-only owner。Actualはemptyでもexplicit Domain必須、optional companionはempty Domainを許す。
+- `facts.bqn` — successful canonical Actual/companion admissionとstrict aligned Account tableを受け、aligned Transaction/Posting factsとDomain/Account/Layer tableへall-or-nothing projectionするread-only owner。transactionがあればDomain必須だけをgenericに検査し、Actual emptyのexplicit Domain要件はActual admission、optional companion emptyのzero Domainはcompanion admissionが所有する。
 - `date_ordinal.bqn` — fact date用のstrict ISO Gregorian validation/ordinalだけを持つpure coordinate owner。clockや表示を持たない。
 - `exact_decimal.bqn` — source amount textのexact parse、canonical coefficient/scale、exact-range diagnosticsを所有するpure kernel。全runtime/editor/test callerを同時移動し、旧path wrapperはない。
 - `currency_registry.bqn` — repository currency policy行をI/Oなしで検査し、Policy/IsSupportedCurrencyを返すpure owner。旧path wrapperはない。
@@ -115,6 +115,8 @@ Updated: 2026-07-26
 - `snapshot.bqn` — already-read account lines、raw Journal、registryをstrict Account→complete Journal→factsへcomposeするpure bounded root。
 - `companion_admission.bqn` — already-read Plan/Budget TSVの固定5座標、closed metadata、strict date、positive exact amount、explicit currency、Account currency、durable Plan IDをsource policyごとにall-or-nothing admissionする。
 - `companion_snapshot.bqn` — Plan/Budget両admissionをcommon factsへcomposeし、一方でもinvalidなら両source factsをpublishしないpure bounded root。shared Source tableはまだ作らない。
+- `config_admission.bqn` — already-read config行をclosed/unique key、mandatory registry-supported `DEFAULT_CURRENCY`、typed source座標とreport policyへall-or-nothing admissionする。repository defaultやpath I/Oを持たない。
+- `cycle_admission.bqn` — fixed/incomeAnchor/calendarMonthのalready-read定義をstrict date/range/day、explicit income Account roleへall-or-nothing admissionする。facts/as-of/clockからのperiod resolutionを持たない。
 - `transaction_rows.bqn` — canonical factsからsource-order Transactionとordered Postingをtyped joinするJournal list/reverse/Recent向けnarrow capability。source loadやreport formattingを持たない。
 - `amount_text.bqn` — exact coefficient/scaleをroundingなしでplain decimal textへ変換するpure capability。
 - 現行production routingはまだ`src_next`だが、runtime/editorのcomplete admission callerは`src/ledger`を直接importする。`src/ledger`から`src_next`をimportしてはならない。

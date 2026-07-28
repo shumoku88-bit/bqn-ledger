@@ -38,6 +38,7 @@ They are maps, not gates. Read the files that help with the question in front of
 - [`PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`](PHASE0_REPORT_ENGINE_CHARACTERIZATION.md) — Phase 0 exit baseline for topology, exports, source-read pressure, timing, and the strict public proof fixture
 - [`LEDGER_FACT_SCHEMA.md`](LEDGER_FACT_SCHEMA.md) — canonical Actual and strict Plan/Budget aligned Transaction/Posting facts, side tables, provenance, and all-or-nothing invariants
 - [`ACTUAL_FACT_SUFFICIENCY.md`](ACTUAL_FACT_SUFFICIENCY.md) — mapping from all report/editor Actual requirements to facts, diagnostics, narrow capabilities, or later source families
+- [`CONFIG_CYCLE_ADMISSION.md`](CONFIG_CYCLE_ADMISSION.md) — strict pure config/cycle definitions and the boundary between source coordinates, report policy, and later period resolution
 - [`REPORT_CODE_REDUCTION_PLAN.md`](REPORT_CODE_REDUCTION_PLAN.md) — completed prepared-boundary and code-reduction track retained as recent implementation context
 - [`TIME_AS_AXIS.md`](TIME_AS_AXIS.md) — temporal concepts
 - [`archive/audits/PROJECTION_BQN_OWNERSHIP_AUDIT-2026-07-26.md`](archive/audits/PROJECTION_BQN_OWNERSHIP_AUDIT-2026-07-26.md) — ownership inventory and bounded cleanup sequence for `src_next/projection.bqn`

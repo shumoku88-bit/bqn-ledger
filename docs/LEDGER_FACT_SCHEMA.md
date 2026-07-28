@@ -24,7 +24,7 @@ already-read accounts.tsv lines + raw Journal + currency registry
   -> canonical Transaction/Posting facts
 ```
 
-It returns no partial facts after account, Journal, or projection failure and performs no source I/O. `transaction_rows.bqn` provides the first narrow source-ordered Transaction→Posting join for editor/recent consumers; `amount_text.bqn` formats exact coefficient/scale pairs without currency or report policy.
+It returns no partial facts after account, Journal, or projection failure and performs no source I/O. `transaction_rows.bqn` provides the first narrow source-ordered Transaction→Posting join for editor/recent consumers; `amount_text.bqn` formats exact coefficient/scale pairs without currency or report policy. Strict config and unresolved cycle definitions are separate non-fact admission results documented in `CONFIG_CYCLE_ADMISSION.md`.
 
 ## Canonical transaction structure boundary
 
@@ -138,7 +138,7 @@ Successful companion facts use the same aligned Transaction/Posting schema. Each
 - normalized posting coefficients sum to zero per transaction;
 - dates are strict valid Gregorian text before ordinal conversion;
 - transaction IDs are nonempty and unique;
-- domains are explicit and declared;
+- every transaction domain is explicit and declared; source-specific empty-domain requirements stay in source admission;
 - account keys are unique and account columns align;
 - every posting account exists and its currency equals the transaction domain;
 - posting/transaction/account/domain/layer joins use bounded dense indices;
