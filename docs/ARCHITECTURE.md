@@ -217,7 +217,7 @@ already-read Plan/Budget TSV + admitted Account
 
 2026-07-28の`REPORT_PORTFOLIO_DECISION.md`により、destinationは旧15 section parityを要求しない。`REPORT_PORTFOLIO_CONTRACT.md`は`envelopes / balances / recent / planned / cycle-accounts / cycle-comparison / monthly-accounts / daily-target / issues`の静的catalog、axes/measures/time/currency/provenance、supported surfacesを選択する。`REPORT_SURFACE_RETIREMENT_MAP.md`は旧route/key/cache/metadata/query/checkを移行またはatomic削除へ割り当てる。
 
-最初のretained P2実装は`account_balance.bqn`がActual Facts/domain/explicit observationからzeroを含む全Account closingとsource-qualified contributorsを導出し、`sections/account_balances.bqn`が一列MatrixResultをhuman/compact/JSONへ描画する。二つ目のdestination JSON consumer成立時に、explicit JSON text constructorsだけを`report/json_text.bqn`へ抽出した。Trial BalanceとDaily Flowは有用なcapability/proofとして残るが、旧routeを自動的に維持する根拠にはならない。production routingと旧surface削除はretained report proofsとsupported-source readiness後のatomic cutoverまで行わない。
+最初のretained P2実装は`account_balance.bqn`がActual Facts/domain/explicit observationからzeroを含む全Account closingとsource-qualified contributorsを導出し、`sections/account_balances.bqn`が一列MatrixResultをhuman/compact/JSONへ描画する。二つ目のdestination JSON consumer成立時にexplicit JSON text constructorsだけを`report/json_text.bqn`へ抽出した。P3 `recent_transactions.bqn`はActual末尾N Transactionをnewest-firstに選び、multi-posting lane arraysとexact total/provenanceを保持する。`sections/recent_journal.bqn`はarraysをrender時だけcomma joinし、human/tab-delimited compactへ描画する。二つのList rendererが一致した時点でplain table renderingを`report/text.bqn`へ追加した。Trial BalanceとDaily Flowは有用なcapability/proofとして残るが、旧routeを自動的に維持する根拠にはならない。production routingと旧surface削除はretained report proofsとsupported-source readiness後のatomic cutoverまで行わない。
 
 ### Selected-domain composition stages
 

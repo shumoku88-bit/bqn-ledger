@@ -132,6 +132,7 @@ Updated: 2026-07-28
 - `cycle_income_anchor_resolution.bqn` — explicit as-of、Actual Facts、Plan Facts、income Account evidenceからanchor periodとsource-qualified durable contributorsを解決する。I/O、clock、cross-source amount加算を持たない。
 - `fact_reference.bqn` — 2つのcross-source consumerで一致したSource validationとdurable Transaction/Posting reference構築だけを共有する。
 - `plan_completion_join.bqn` — explicitに選択済みのPlan/Actual Transaction Factsをdurable `plan_id`だけでJoinする。各sourceのexact amount、Account direction、Posting contributorを保持し、open/completed/duplicate/ambiguousを区別する。five-field fallbackやduplicate amount加算を持たない。
+- `recent_transactions.bqn` — Actual Factsとpositive limitからphysical source末尾N件をnewest-firstに選び、multi-posting debit/credit arrays、exact debit total、Transaction/Posting provenanceを返す retained List capability。
 - `date_category_flow.bqn` — strict date period内のexplicit income/expense Account postingsを、Account metadata由来dynamic envelope categoryと`other`へsparse groupingする。date income/net、exact scale、contributor Posting indicesを返し、prefix inferenceやDaily Flow section fieldを持たない。
 - `month_category_flow.bqn` — presentation-neutral date/category evidenceをcalendar month × categoryへrollupし、exact scaleと元Posting contributorsを保持するextensibility proof。
 - `sparse_group.bqn` — date/month両consumerで同一と証明されたexplicit row axis × bounded columnのdeterministic sparse Group。exact sum、zero-sum contributor保持、all-or-nothing diagnosticsだけを所有し、date/month/category policyを持たない。
@@ -144,10 +145,11 @@ Updated: 2026-07-28
 - `daily_flow.bqn` — date/category accounting evidenceのgenuine sparse expense Pivotとincome/netを一つのMatrixResultへcomposeする第二proof。explicit latest-or-period-start observation、empty zero row、derived net contributors、human-only contractを所有し、clock/compact/JSONを持たない。
 - `planned_payments.bqn` — resolved cycleとexplicit observationからPlan/Actual selection、durable completion Join、temporal state、single-domain exact open totalをcomposeするdestination List section。同じresultからhuman/compact/JSONを描画し、duplicate/ambiguous completionを拒否する。
 - `account_balances.bqn` — retained `balances` one-column Matrix/List result。explicit date/ordinal一致を検査し、全Accountをhuman/`ledger_balance` compact/JSONへ同一resultから描画する。
+- `recent_journal.bqn` — retained `recent` List result。Account lane arraysをsemantic resultで維持し、human tableとtab-delimited `ledger_recent_journal` compactだけを描画する。
 
 ### `src/report/` (destination report-level presentation/composition primitives)
 
-- `text.bqn` — 複数Matrix/List rendererで一致したvisual widthとleft/right paddingだけを所有する。accounting、section label、color、terminal stateを持たない。
+- `text.bqn` — 複数Matrix/List rendererで一致したvisual width、padding、既format済みcellのplain deterministic tableだけを所有する。accounting、section label、color、terminal stateを持たない。
 - `json_text.bqn` — Planned PaymentsとAccount Balancesの2 consumerで一致したexplicit JSON String/ExactNumber/Boolean/Pair/Array/Object text constructor。arbitrary value coercionやbinary-float変換を持たない。
 
 ### `src_next/` (現行production BQN 会計エンジン)

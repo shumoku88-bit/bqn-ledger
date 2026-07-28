@@ -259,7 +259,11 @@ fields    = date, description, credit Account keys, debit Account keys,
 
 `N` is an explicit positive bounded input. Multi-posting lanes remain arrays; they are not collapsed into a fabricated single from/to Account. Each Transaction must stay one domain. A valid empty Actual source returns an empty List, not an unavailable report.
 
-Final key is `recent`; compact prefix is `ledger_recent_journal`.
+Final key is `recent`. Compact payload is explicitly tab-delimited:
+
+```text
+ledger_recent_journal: DATE<TAB>CURRENCY<TAB>AMOUNT<TAB>CREDIT_ACCOUNTS<TAB>DEBIT_ACCOUNTS<TAB>DESCRIPTION
+```
 
 ## 10. Issues
 

@@ -1,0 +1,4 @@
+--- Ledger Recent Journal ---
+ledger_recent_journal: 2026-01-12	JPY	15	assets:cash	expenses:food,expenses:transport	split purchase
+ledger_recent_journal: 2026-01-10	JPY	20	assets:cash	expenses:food	completed food plan
+ledger_recent_journal: 2026-01-02	JPY	1000	income:salary	assets:cash	salary

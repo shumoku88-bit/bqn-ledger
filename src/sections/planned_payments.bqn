@@ -173,24 +173,6 @@ Build ← {𝕊 planFacts‿actualFacts‿cycle‿asOfText:
 }
 
 AmountText ← {𝕊 coefficient‿scaleValue: amount.Format ⟨coefficient,scaleValue⟩}
-Table ← {𝕊 headers‿rows‿rightAligned:
-  columnCount ← ≠headers
-  widths ← {𝕊 column:
-    ⌈´⟨text.VWidth column⊑headers⟩∾{text.VWidth column⊑𝕩}¨rows
-  }¨↕columnCount
-  RenderRow ← {𝕊 row:
-    cells ← {𝕊 column:
-      width ← column⊑widths ⋄ value ← column⊑row
-      cell ← text.PadRight ⟨width,value⟩
-      {𝕊: cell↩text.PadLeft ⟨width,value⟩}⍟(column∊rightAligned) @
-      cell
-    }¨↕columnCount
-    ∾{𝕊 column: ((column>0)/" | ")∾column⊑cells}¨↕columnCount
-  }
-  separator ← ∾{𝕊 column: ((column>0)/"-+-")∾((column⊑widths)⥊'-')}¨↕columnCount
-  (RenderRow headers)∾(@+10)∾separator∾(@+10)∾∾{(RenderRow 𝕩)∾(@+10)}¨rows
-}
-
 FormatHuman ← {𝕊 result:
   openRows ← {𝕊 index:
     ⟨index⊑result.rows.date,index⊑result.rows.category,index⊑result.rows.memo,
@@ -204,10 +186,10 @@ FormatHuman ← {𝕊 result:
   }¨result.completed_indices
   out ← "== Planned Payments =="∾(@+10)∾(@+10)
   out ∾↩ "── 未了 ──"∾(@+10)
-  out ∾↩ Table ⟨⟨"Date","Category","Memo","Amount","Status"⟩,openRows,⟨3⟩⟩
+  out ∾↩ text.RenderTable ⟨⟨"Date","Category","Memo","Amount","Status"⟩,openRows,⟨3⟩⟩
   out ∾↩ (@+10)∾"未了合計: "∾(AmountText ⟨result.open_total_coefficient,result.open_total_scale⟩)∾(@+10)∾(@+10)
   out ∾↩ "── 完了 ──"∾(@+10)
-  out ∾↩ Table ⟨⟨"Date","Category","Memo","Planned","Actual"⟩,completedRows,⟨3,4⟩⟩
+  out ∾↩ text.RenderTable ⟨⟨"Date","Category","Memo","Planned","Actual"⟩,completedRows,⟨3,4⟩⟩
   out ∾↩ (@+10)∾"[Status]"∾(@+10)
   out ∾↩ "future  : これから"∾(@+10)
   out ∾↩ "due     : 今日が期限"∾(@+10)

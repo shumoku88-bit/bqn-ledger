@@ -197,13 +197,22 @@ The approved portfolio reset is [`docs/REPORT_PORTFOLIO_DECISION.md`](docs/REPOR
 - [x] Compared retained nonzero Balance semantics while intentionally showing zero Accounts and excluding implicit-domain compatibility.
 - [x] Left production routing, compact key replacement, old-owner deletion, filesystem composition, and private sources outside this proof slice.
 
-### Current finite slice: Portfolio P3 Recent Journal
+### Completed finite slice: Portfolio P3 Recent Journal
 
-- [ ] Build a source-ordered Actual Transaction List directly from canonical Transaction/Posting Facts with explicit positive limit.
-- [ ] Preserve multi-posting debit/credit Account arrays, exact transaction debit total, domain, durable Transaction reference, and Posting contributors.
-- [ ] Return valid empty List for empty Actual and fail closed on wrong source, invalid limit, malformed joins, or exact overflow.
-- [ ] Implement retained `recent` human/compact result with `ledger_recent_journal` only; JSON remains unsupported.
-- [ ] Compare strict public newest-first semantics, including the split transaction, without importing old transaction/context/report owners.
+- [x] Built a newest-first source-ordered Actual Transaction List directly from canonical Facts with explicit positive limit.
+- [x] Preserved multi-posting debit/credit Account arrays, exact debit total, domain, durable Transaction reference, and separate Posting contributors.
+- [x] Returned valid empty List for empty Actual and failed closed on wrong source, invalid limit, lane/scale inconsistency, or exact overflow.
+- [x] Implemented retained `recent` human/compact result with tab-delimited `ledger_recent_journal`; JSON remains unsupported.
+- [x] Matched strict public newest-first semantics including the split Transaction without old context/transaction/report owners.
+- [x] Extracted plain table rendering only after Planned Payments and Recent Journal agreed; existing Planned bytes remain stable.
+
+### Current finite slice: Portfolio P4 Current-cycle Accounts
+
+- [ ] Compose resolved cycle, explicit observation, and canonical Account-period capability into the retained `cycle-accounts` Matrix.
+- [ ] Include every selected-domain Account with opening/debit/credit/movement/closing and contributor provenance.
+- [ ] Keep credit signed negative in the semantic result and validate closing/opening arithmetic and zero-sum totals.
+- [ ] Prove partial-cycle observation, full-cycle, empty Actual, JPY/ILS/USD, invalid observation/cycle, and deterministic Matrix order.
+- [ ] Implement human-only retained surface without reviving old Cycle Summary or Trial Balance production routes.
 
 Phase 0 exit evidence is `docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`: every observable report capability has an owner, every compatibility path has a deletion gate, and no undecided fallback is permitted in the destination fact schema.
 

@@ -1,0 +1,8 @@
+== Recent Journal ==
+(newest first, last 10)
+Date       | From          | To                               | Memo                | Amount | Currency
+-----------+---------------+----------------------------------+---------------------+--------+---------
+2026-01-12 | assets:cash   | expenses:food,expenses:transport | split purchase      |     15 | JPY     
+2026-01-10 | assets:cash   | expenses:food                    | completed food plan |     20 | JPY     
+2026-01-02 | income:salary | assets:cash                      | salary              |   1000 | JPY     
+

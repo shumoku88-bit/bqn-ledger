@@ -9,6 +9,7 @@ base="fixtures/ledger-facts-phase1-proof"
 bqn tests/test_accounting_plan_completion_join.bqn >/dev/null
 bqn tests/test_section_planned_payments.bqn >/dev/null
 bqn tests/test_section_account_balances.bqn >/dev/null
+bqn tests/test_section_recent_journal.bqn >/dev/null
 
 audit=$(python3 tools/characterization/report_source_readiness_audit.py "$base")
 grep -Fq $'\texplicit\t8\t0\t0\t1\t0\t0\t2\t0\tdirect' <<<"$audit"
