@@ -1,0 +1,18 @@
+== Cycle Comparison ==
+Policy: aligned_elapsed
+Current : 2026-01-01 through 2026-01-10 (10 days)
+Baseline: 2025-12-22 through 2025-12-31 (10 days)
+
+Account                | Current movement | Baseline movement | Difference
+-----------------------+------------------+-------------------+-----------
+assets:cash/JPY        |              980 |                 0 |        980
+income:salary/JPY      |            -1000 |                 0 |      -1000
+expenses:food/JPY      |               20 |                 0 |         20
+expenses:transport/JPY |                0 |                 0 |          0
+budget:opening/JPY     |                0 |                 0 |          0
+budget:unassigned/JPY  |                0 |                 0 |          0
+budget:food/JPY        |                0 |                 0 |          0
+budget:spent/JPY       |                0 |                 0 |          0
+Total                  |                0 |                 0 |          0
+Balanced: YES
+

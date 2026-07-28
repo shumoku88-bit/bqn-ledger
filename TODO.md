@@ -222,13 +222,21 @@ The approved portfolio reset is [`docs/REPORT_PORTFOLIO_DECISION.md`](docs/REPOR
 - [x] Proved JPY/ILS/USD, mixed scale, empty month/Actual, invalid range/domain, and deterministic axes.
 - [x] Implemented human-only output without month-end balance, debit/credit submatrices, or YTD Cards.
 
-### Current finite slice: Portfolio P6 Cycle Comparison
+### Completed finite slice: Portfolio P6 Cycle Comparison
 
-- [ ] Compare two explicit already-resolved windows with `aligned_elapsed | complete_cycles` policy.
-- [ ] Derive per-Account current movement, baseline movement, and exact difference without searching for a similar period.
-- [ ] Preserve distinct source-qualified contributors for both windows and difference provenance.
-- [ ] Prove equal elapsed windows, complete unequal-length cycles, unavailable baseline, mixed scale, empty Actual, and invalid policy/window combinations.
-- [ ] Implement human-only `cycle-comparison` Matrix without importing old Actual Comparison lanes or statuses.
+- [x] Compared two explicit accounted windows under `aligned_elapsed | complete_cycles` without period search.
+- [x] Derived all-Account current movement, baseline movement, and exact difference with scale normalization.
+- [x] Preserved separate source-qualified window evidence plus difference union/evidence coordinates.
+- [x] Proved equal elapsed windows, complete 31/28-day cycles, unavailable baseline, mixed scale, empty Actual, and invalid policy/window combinations.
+- [x] Implemented human-only Matrix without old Actual Comparison ratios, lanes, or statuses.
+
+### Current finite slice: Portfolio P7 Envelope & Backing
+
+- [ ] Compose strict Budget/Actual/Plan Facts, explicit horizon/observation, completion Join, and admitted envelope/funding ownership.
+- [ ] Keep entitlement, consumption, refunds, ledger remaining, open Plan reserve, and post-Plan headroom as distinct exact coordinates.
+- [ ] Derive funding balance, signed envelope total, positive backing requirement, backing surplus, and Budget unassigned reconciliation without conflating evidence systems.
+- [ ] Preserve per-envelope and aggregate source-qualified contributors; reject ambiguous ownership, mixed domain, completion conflict, and arithmetic overflow.
+- [ ] Prove overspent, under-backed, open/completed Plan, refund, empty Plan, and deterministic human/compact/JSON Statement surfaces.
 
 Phase 0 exit evidence is `docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`: every observable report capability has an owner, every compatibility path has a deletion gate, and no undecided fallback is permitted in the destination fact schema.
 

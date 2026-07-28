@@ -7,14 +7,14 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Portfolio P6: retained Monthly Accounts now builds a dense explicit Month × all-Account signed movement Matrix with empty months/cells, source-qualified evidence, and cross-axis reconciliation. Next implement Cycle Comparison over two explicit resolved windows.
+Portfolio P7: retained Cycle Comparison now compares two explicit accounted windows under aligned-elapsed or complete-cycle policy, retaining distinct exact coefficients and provenance. Next implement Envelope & Backing as a bounded evidence-bearing Statement.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn (unchanged)
-completed retained proofs: Planned + Balances + Recent + Current-cycle Accounts + Monthly Accounts
-next proof: Account × current/baseline/difference under aligned_elapsed | complete_cycles
-exclude: inferred similar periods, ratios/status lanes, production cutover, private work
-forbid: mechanical 15-section migration, giant all-report record, dual aliases/keys
+completed retained proofs: Planned + Balances + Recent + Current-cycle + Monthly + Cycle Comparison
+next proof: entitlement/consumption/refund/reserve/headroom plus distinct funding/backing/reconciliation coordinates
+exclude: implicit envelope/funding prefixes, double Plan deduction, production cutover, private work
+forbid: conflating Budget ledger with funding assets, giant all-report record, dual aliases/keys
 private source audit/migration: still requires separate explicit instruction
 ```
 
