@@ -1,6 +1,6 @@
 # Envelope & Backing accounting capability
 
-Status: Portfolio P7A accounting composition; section surfaces and expanded scenario proof remain in progress.
+Status: Portfolio P7A accounting composition; blocked from completion by [`DESTINATION_QUALITY_GATE.md`](DESTINATION_QUALITY_GATE.md) until stage extraction, expanded scenarios, and section surfaces are green.
 
 `src/accounting/envelope_backing.bqn` composes strict Budget, Actual, and Plan Facts over explicit `[start,end_exclusive)`, observation, domain, and explicit funding Account indices.
 
@@ -12,4 +12,6 @@ All arithmetic normalizes exactly to one scale and fails closed. Budget, Actual,
 
 The strict public proof currently establishes entitlement `60`, consumption `30`, remaining `30`, completed Plan reserve `0`, funding `965`, backing requirement `30`, surplus `935`, unassigned `40`, and reconciliation delta `895`, plus missing/invalid funding behavior.
 
-P7B must add synthetic open Plan, refund, overspent, under-backed, empty Plan, conflict/overflow proofs and the retained human/compact/JSON section before this portfolio item is complete.
+The first readability pass expanded compressed constructors/publication and labels the six accounting stages; maximum physical line length fell from 1,636 to 191 characters without changing behavior. The Build remains nested, so the auditability gate correctly stays `improve` until those stages become locally testable purpose-specific functions.
+
+P7B must extract the named stages, then add synthetic open Plan, refund, overspent, under-backed, empty Plan, conflict/overflow proofs and the retained human/compact/JSON section before this portfolio item is complete.

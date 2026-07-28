@@ -232,7 +232,10 @@ The approved portfolio reset is [`docs/REPORT_PORTFOLIO_DECISION.md`](docs/REPOR
 
 ### Current finite slice: Portfolio P7 Envelope & Backing
 
-- [ ] Compose strict Budget/Actual/Plan Facts, explicit horizon/observation, completion Join, and admitted envelope/funding ownership.
+Quality completion is governed by [`docs/DESTINATION_QUALITY_GATE.md`](docs/DESTINATION_QUALITY_GATE.md). P7 remains blocked from completion while auditability/readability or scenario/surface evidence is non-green.
+
+- [ ] Refactor P7A into named validation, ownership, prepared-evidence, per-envelope, aggregate-backing, and publication stages before adding renderers.
+- [x] Compose strict Budget/Actual/Plan Facts, explicit horizon/observation, completion Join, and admitted envelope/funding ownership.
 - [ ] Keep entitlement, consumption, refunds, ledger remaining, open Plan reserve, and post-Plan headroom as distinct exact coordinates.
 - [ ] Derive funding balance, signed envelope total, positive backing requirement, backing surplus, and Budget unassigned reconciliation without conflating evidence systems.
 - [ ] Preserve per-envelope and aggregate source-qualified contributors; reject ambiguous ownership, mixed domain, completion conflict, and arithmetic overflow.
