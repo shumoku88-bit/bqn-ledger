@@ -8,6 +8,7 @@ companion_snapshot ← •Import "../src/ledger/companion_snapshot.bqn"
 snapshot ← •Import "../src/ledger/snapshot.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 monthly ← •Import "../src/accounting/month_category_flow.bqn"
+pivot ← •Import "../src/accounting/sparse_pivot.bqn"
 
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
 base ← "fixtures/ledger-facts-phase1-proof/"
@@ -45,10 +46,14 @@ result ← monthly.Build ⟨planFacts,"JPY","plan",jan,mar⟩
 ⟨"2026-01","2026-02"⟩ lib.AssertEq result.months.label
 ⟨"food","other"⟩ lib.AssertEq result.categories.label
 4 lib.AssertEq result.expense_groups.count
-⟨0,0,1,1⟩ lib.AssertEq result.expense_groups.month_index
-⟨0,1,0,1⟩ lib.AssertEq result.expense_groups.category_index
+⟨0,0,1,1⟩ lib.AssertEq result.expense_groups.row_index
+⟨0,1,0,1⟩ lib.AssertEq result.expense_groups.column_index
 ⟨100,50,225,70⟩ lib.AssertEq result.expense_groups.coefficient
 ⟨⟨0⟩,⟨2⟩,⟨4,6⟩,⟨8⟩⟩ lib.AssertEq result.expense_groups.contributors
+matrix ← pivot.Build ⟨result.months.label,result.categories.label,result.scale,result.expense_groups⟩
+"ok" lib.AssertEq matrix.state
+⟨⟨100,50⟩,⟨225,70⟩⟩ lib.AssertEq matrix.matrix.values
+⟨⟨⟨0⟩,⟨2⟩⟩,⟨⟨4,6⟩,⟨8⟩⟩⟩ lib.AssertEq matrix.matrix.contributors
 
 CheckRejected ← {𝕊 domain‿layer‿s‿e:
   rejected ← monthly.Build ⟨planFacts,domain,layer,s,e⟩

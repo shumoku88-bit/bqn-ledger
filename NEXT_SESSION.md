@@ -7,13 +7,13 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Phase 3D: month × category now proves two-month/multi-category/mixed-scale rollup, and date/month consumers both use `sparse_group.bqn` for the identical explicit-axis exact Group operation. Next materialize those sparse results through one policy-free Pivot/MatrixResult boundary.
+Phase 4A: date/month consumers now share generic sparse Group coordinates and `sparse_pivot.bqn` dense MatrixResult with contributor-preserving zero semantics. Next compose the first section-local Trial Balance Matrix report from Account-period state without copying accounting formulas or routing production.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn
-completed capabilities: Account period + date/category + month/category + sparse Group
-next capability: sparse coordinates -> dense values/contributors MatrixResult
-exclude: category policy, labels/signs, observation/as-of, formatting, runtime/private sources
+completed capabilities: Account period + date/month Group + policy-free Pivot/MatrixResult
+next report proof: Trial Balance Matrix + totals + human/compact/JSON boundary
+exclude: broad report context, production routing, private source work
 private source audit/migration: still requires separate explicit instruction
 ```
 

@@ -357,8 +357,9 @@ Implement only capabilities required by the report migration:
 - [x] source-order/provenance access for reports that require it (Transaction rows and Account-period Posting contributors);
 - [ ] composable selection masks over typed fact columns;
 - [x] generic deterministic sparse grouping with contributor indices (`sparse_group.bqn`, used by date/category and month/category);
-- [ ] row-axis/column-axis pivot construction;
-- [ ] MatrixResult, ListResult, and CardResult presentation-neutral shapes.
+- [x] row-axis/column-axis pivot construction with dense values and contributor cells (`sparse_pivot.bqn`);
+- [x] presentation-neutral MatrixResult shape;
+- [ ] presentation-neutral ListResult and CardResult shapes when real consumers require them.
 
 For each capability:
 

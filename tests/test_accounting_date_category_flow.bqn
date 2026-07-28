@@ -9,6 +9,7 @@ companion_snapshot ← •Import "../src/ledger/companion_snapshot.bqn"
 cycle_admission ← •Import "../src/ledger/cycle_admission.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 flow ← •Import "../src/accounting/date_category_flow.bqn"
+pivot ← •Import "../src/accounting/sparse_pivot.bqn"
 
 base ← "fixtures/ledger-facts-phase1-proof/"
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
@@ -29,10 +30,14 @@ result ← flow.Build ⟨facts,"JPY","actual",start,end⟩
 ⟨1000,¯20,¯15⟩ lib.AssertEq result.dates.net
 ⟨⟨1⟩,⟨⟩,⟨⟩⟩ lib.AssertEq result.dates.income_contributors
 3 lib.AssertEq result.expense_groups.count
-⟨1,2,2⟩ lib.AssertEq result.expense_groups.date_index
-⟨0,0,1⟩ lib.AssertEq result.expense_groups.category_index
+⟨1,2,2⟩ lib.AssertEq result.expense_groups.row_index
+⟨0,0,1⟩ lib.AssertEq result.expense_groups.column_index
 ⟨20,10,5⟩ lib.AssertEq result.expense_groups.coefficient
 ⟨⟨2⟩,⟨4⟩,⟨5⟩⟩ lib.AssertEq result.expense_groups.contributors
+matrix ← pivot.Build ⟨result.dates.date_ordinal,result.categories.label,result.scale,result.expense_groups⟩
+"ok" lib.AssertEq matrix.state
+⟨⟨0,0⟩,⟨20,0⟩,⟨10,5⟩⟩ lib.AssertEq matrix.matrix.values
+⟨⟨⟨⟩,⟨⟩⟩,⟨⟨2⟩,⟨⟩⟩,⟨⟨4⟩,⟨5⟩⟩⟩ lib.AssertEq matrix.matrix.contributors
 
 late ← flow.Build ⟨facts,"JPY","actual",dates.Ordinal "2026-01-11",end⟩
 "ok" lib.AssertEq late.state

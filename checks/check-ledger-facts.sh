@@ -13,6 +13,7 @@ bqn tests/test_accounting_account_period.bqn >/dev/null
 bqn tests/test_accounting_date_category_flow.bqn >/dev/null
 bqn tests/test_accounting_month_category_flow.bqn >/dev/null
 bqn tests/test_accounting_sparse_group.bqn >/dev/null
+bqn tests/test_accounting_sparse_pivot.bqn >/dev/null
 
 if rg -n '•Import ".*(src_next|src_edit|context\.bqn|report\.bqn|journal_profile)' src/ledger src/accounting; then
   echo "FAIL: destination ledger facts import an old runtime/shape" >&2

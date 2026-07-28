@@ -12,7 +12,7 @@ Unique ← {𝕊 items:
 }
 EmptyMonths ← {𝕊: {count⇐0,index⇐empty,label⇐empty} }
 EmptyCategories ← {𝕊: {count⇐0,index⇐empty,label⇐empty,kind⇐empty,envelope_account_index⇐empty} }
-EmptyGroups ← {𝕊: {count⇐0,index⇐empty,month_index⇐empty,category_index⇐empty,coefficient⇐empty,contributors⇐empty} }
+EmptyGroups ← {𝕊: {count⇐0,index⇐empty,row_index⇐empty,column_index⇐empty,coefficient⇐empty,contributors⇐empty} }
 
 # Input is the same explicit query accepted by date_category_flow.Build.
 Build ← {𝕊 factSet‿domainCode‿layerName‿startOrdinal‿endOrdinal:
@@ -26,21 +26,17 @@ Build ← {𝕊 factSet‿domainCode‿layerName‿startOrdinal‿endOrdinal:
   {𝕊:
     dateMonths ← {7↑𝕩}¨daily.dates.date_text
     monthLabels ← Unique dateMonths
-    sourceMonths ← {𝕩⊑dateMonths}¨daily.expense_groups.date_index
+    sourceMonths ← {𝕩⊑dateMonths}¨daily.expense_groups.row_index
     grouped ← sparse.Build ⟨
       monthLabels,daily.categories.count,
-      sourceMonths,daily.expense_groups.category_index,daily.expense_groups.coefficient,
+      sourceMonths,daily.expense_groups.column_index,daily.expense_groups.coefficient,
       daily.expense_groups.contributors
     ⟩
     diagnostics ∾↩ grouped.diagnostics
 
     {𝕊:
       monthTable↩{count⇐≠monthLabels,index⇐↕≠monthLabels,label⇐monthLabels}
-      groupTable↩{
-        count⇐grouped.groups.count,index⇐grouped.groups.index,
-        month_index⇐grouped.groups.row_index,category_index⇐grouped.groups.column_index,
-        coefficient⇐grouped.groups.coefficient,contributors⇐grouped.groups.contributors
-      }
+      groupTable↩grouped.groups
     }⍟(0=≠diagnostics) @
   }⍟(daily.state≡"ok") @
 

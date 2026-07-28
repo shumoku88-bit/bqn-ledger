@@ -128,6 +128,7 @@ Updated: 2026-07-26
 - `date_category_flow.bqn` — strict date period内のexplicit income/expense Account postingsを、Account metadata由来dynamic envelope categoryと`other`へsparse groupingする。date income/net、exact scale、contributor Posting indicesを返し、prefix inferenceやDaily Flow section fieldを持たない。
 - `month_category_flow.bqn` — presentation-neutral date/category evidenceをcalendar month × categoryへrollupし、exact scaleと元Posting contributorsを保持するextensibility proof。
 - `sparse_group.bqn` — date/month両consumerで同一と証明されたexplicit row axis × bounded columnのdeterministic sparse Group。exact sum、zero-sum contributor保持、all-or-nothing diagnosticsだけを所有し、date/month/category policyを持たない。
+- `sparse_pivot.bqn` — shared sparse Groupをopaque row/column coordinatesのdense MatrixResultへ変換するpolicy-free Pivot。absent cellはzero/empty contributors、explicit zero groupはcontributorsを保持する。label/sign/format/totalsを持たない。
 
 ### `src_next/` (現行production BQN 会計エンジン)
 

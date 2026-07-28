@@ -42,6 +42,7 @@ They are maps, not gates. Read the files that help with the question in front of
 - [`ACCOUNT_PERIOD_CAPABILITY.md`](ACCOUNT_PERIOD_CAPABILITY.md) — pure selected-domain/layer opening, movement, closing, exact scale, and contributor Posting indices
 - [`DATE_CATEGORY_FLOW_CAPABILITY.md`](DATE_CATEGORY_FLOW_CAPABILITY.md) — pure date × dynamic Account-metadata category sparse groups, income/net measures, and contributor Posting indices
 - [`MONTH_CATEGORY_GROUPING.md`](MONTH_CATEGORY_GROUPING.md) — two-month extensibility proof and the narrow deterministic sparse Group operation shared by date/month consumers
+- [`SPARSE_PIVOT_MATRIX.md`](SPARSE_PIVOT_MATRIX.md) — policy-free sparse-to-dense Pivot and contributor-preserving MatrixResult used by date/month consumers
 - [`REPORT_CODE_REDUCTION_PLAN.md`](REPORT_CODE_REDUCTION_PLAN.md) — completed prepared-boundary and code-reduction track retained as recent implementation context
 - [`TIME_AS_AXIS.md`](TIME_AS_AXIS.md) — temporal concepts
 - [`archive/audits/PROJECTION_BQN_OWNERSHIP_AUDIT-2026-07-26.md`](archive/audits/PROJECTION_BQN_OWNERSHIP_AUDIT-2026-07-26.md) — ownership inventory and bounded cleanup sequence for `src_next/projection.bqn`

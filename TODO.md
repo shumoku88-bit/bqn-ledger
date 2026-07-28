@@ -121,12 +121,19 @@ This is not a section-reduction campaign and must not recreate the old giant all
 - [x] Proved two months, multiple categories, multiple contributors, and mixed scales with public synthetic facts.
 - [x] Extracted only explicit row-axis × bounded-column deterministic sparse Group, demonstrated identically by date/month consumers.
 
-### Current finite slice: Phase 3D sparse Pivot and MatrixResult
+### Completed finite slice: Phase 3D sparse Pivot and MatrixResult
 
-- [ ] Materialize date/category and month/category sparse groups into one deterministic dense Pivot without category policy.
-- [ ] Preserve contributor Posting indices per dense cell and explicit zero fill for absent coordinates.
-- [ ] Define the narrow presentation-neutral MatrixResult coordinates needed by both consumers.
-- [ ] Keep labels, signs, observation/as-of policy, human formatting, runtime routing, and private sources outside Pivot.
+- [x] Materialized date/category and month/category sparse groups through one deterministic dense Pivot without category policy.
+- [x] Preserved contributor Posting indices per dense cell and distinguished absent zero cells from explicit zero groups.
+- [x] Defined the narrow presentation-neutral MatrixResult coordinates used by both consumers.
+- [x] Kept labels, signs, observation/as-of policy, formatting, runtime routing, and private sources outside Pivot.
+
+### Current finite slice: Phase 4A Trial Balance Matrix report proof
+
+- [ ] Compose Account-period state into a section-local MatrixResult without copying accounting formulas.
+- [ ] Compare all Account rows, opening/debit/credit/closing values, totals, period coordinates, and zero-sum status with the public current report.
+- [ ] Add human/compact/JSON formatting only at the report boundary and prove direct output determinism.
+- [ ] Do not route production or introduce a broad all-report context in this proof slice.
 
 Phase 0 exit evidence is `docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`: every observable report capability has an owner, every compatibility path has a deletion gate, and no undecided fallback is permitted in the destination fact schema.
 

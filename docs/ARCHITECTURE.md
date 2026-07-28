@@ -211,7 +211,7 @@ already-read Plan/Budget TSV + admitted Account
 
 新ledger ownerはsource path、I/O、clock、旧context、Cube/TBDS、report fieldを受け取らない。`config_admission.bqn`はledger source座標とreport policyを分離し、`cycle_admission.bqn`はfacts/as-ofを参照しないunresolved cycle definitionだけをadmitする。period resolutionは後続accounting capabilityでありsource parserへ戻さない。現行runtime/editor callerもcanonical Actual admission pathを直接importし、旧module pathはwrapperなしで削除済みである。schemaとinvariantは`docs/LEDGER_FACT_SCHEMA.md`、config/cycle境界は`docs/CONFIG_CYCLE_ADMISSION.md`を正とする。
 
-`src/accounting/account_period.bqn`はexplicit Facts/domain/layer/start/end ordinalsからAccount別opening/movement/closingとcontributor Posting indicesを構築する。`date_category_flow.bqn`は同じFactsからstrict date × Account-metadata-derived categoryのsparse expense groupsとincome/netを構築し、`month_category_flow.bqn`はそのevidenceをmonth × categoryへrollupする。date/month両方で同一になったexplicit row-axis × bounded columnのexact groupingだけを`sparse_group.bqn`へ抽出した。category classification、date/month axis、income/net、opening policyは統合していない。全capabilityはsection名やformatを知らず、Cube/TBDSをimportしない。
+`src/accounting/account_period.bqn`はexplicit Facts/domain/layer/start/end ordinalsからAccount別opening/movement/closingとcontributor Posting indicesを構築する。`date_category_flow.bqn`は同じFactsからstrict date × Account-metadata-derived categoryのsparse expense groupsとincome/netを構築し、`month_category_flow.bqn`はそのevidenceをmonth × categoryへrollupする。date/month両方で同一になったexplicit row-axis × bounded columnのexact groupingだけを`sparse_group.bqn`へ抽出し、`sparse_pivot.bqn`が同じsparse schemaをdense values/contributors MatrixResultへ変換する。category classification、date/month axis、income/net、opening policy、label/sign/formatは統合していない。全capabilityはsection名を知らず、Cube/TBDSをimportしない。
 
 ### Selected-domain composition stages
 

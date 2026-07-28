@@ -23,7 +23,7 @@ EmptyCategories ← {𝕊:
   {count⇐0,index⇐empty,label⇐empty,kind⇐empty,envelope_account_index⇐empty}
 }
 EmptyGroups ← {𝕊:
-  {count⇐0,index⇐empty,date_index⇐empty,category_index⇐empty,coefficient⇐empty,contributors⇐empty}
+  {count⇐0,index⇐empty,row_index⇐empty,column_index⇐empty,coefficient⇐empty,contributors⇐empty}
 }
 
 # Input: facts, domain code, layer name, start ordinal, end-exclusive ordinal.
@@ -136,11 +136,7 @@ Build ← {𝕊 factSet‿domainCode‿layerName‿startOrdinal‿endOrdinal:
             income⇐{𝕩.income}¨candidateDates,net⇐{𝕩.net}¨candidateDates,
             income_contributors⇐{𝕩.income_contributors}¨candidateDates
           }
-          groupTable↩{
-            count⇐grouped.groups.count,index⇐grouped.groups.index,
-            date_index⇐grouped.groups.row_index,category_index⇐grouped.groups.column_index,
-            coefficient⇐grouped.groups.coefficient,contributors⇐grouped.groups.contributors
-          }
+          groupTable↩grouped.groups
         }⍟(0=≠diagnostics) @
       }⍟normalizationOk @
     }⍟(0=≠diagnostics) @
