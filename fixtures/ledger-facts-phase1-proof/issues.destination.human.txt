@@ -1,0 +1,8 @@
+== Issues ==
+Selection: open (source order)
+
+Date       | Category      | Title                      |   Amount | Details                                                  
+-----------+---------------+----------------------------+----------+----------------------------------------------------------
+2026-01-18 | subscription  | Review public demo service | 12.3 ILS | Decide whether the synthetic annual plan is still useful.
+—         | documentation | Attach synthetic receipt   |       — | No monetary estimate is admitted.                        
+

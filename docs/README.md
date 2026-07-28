@@ -52,6 +52,7 @@ They are maps, not gates. Read the files that help with the question in front of
 - [`CYCLE_COMPARISON_REPORT.md`](CYCLE_COMPARISON_REPORT.md) — retained explicit-window comparison with aligned/complete policy, exact differences, and distinct provenance
 - [`ENVELOPE_BACKING_CAPABILITY.md`](ENVELOPE_BACKING_CAPABILITY.md) — retained strict Envelope/Backing Statement with separated evidence systems and human/compact/JSON
 - [`DAILY_TARGET_REPORT.md`](DAILY_TARGET_REPORT.md) — conservative exact asset/obligation capacity with once-only reservations, deficit state, and human/compact output
+- [`ISSUES_REPORT.md`](ISSUES_REPORT.md) — strict durable non-accounting Issue admission and retained source-ordered open human List
 - [`MONTHLY_ACCOUNTS_REPORT.md`](MONTHLY_ACCOUNTS_REPORT.md) — retained dense Month × Account movement with explicit month range, zero cells, provenance, and reconciliation
 - [`ACCOUNT_PERIOD_CAPABILITY.md`](ACCOUNT_PERIOD_CAPABILITY.md) — pure selected-domain/layer opening, movement, closing, exact scale, and contributor Posting indices
 - [`DATE_CATEGORY_FLOW_CAPABILITY.md`](DATE_CATEGORY_FLOW_CAPABILITY.md) — pure date × dynamic Account-metadata category sparse groups, income/net measures, and contributor Posting indices

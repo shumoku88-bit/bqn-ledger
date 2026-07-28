@@ -249,13 +249,22 @@ Quality completion is governed by [`docs/DESTINATION_QUALITY_GATE.md`](docs/DEST
 - [x] Treated deficit as successful evidence and rejected ownership/date/provenance/range conflicts and overflow.
 - [x] Proved funded, deficit, reservation, empty/overdue obligations, mixed scales, and human/compact surfaces without JSON.
 
-### Current finite slice: Portfolio P9 Issues
+### Completed finite slice: Portfolio P9 Issues
 
-- [ ] Define strict source-ordered issue admission with stable identity, status, optional strict date, category/title, optional exact amount/currency, and details.
-- [ ] Keep issue rows outside accounting Facts while sharing admission semantics with editor commands.
-- [ ] Build retained open-by-default List; valid empty source is an empty List and invalid admission publishes no partial rows.
-- [ ] Implement human-only `issues` with deterministic public proof and no report-text parsing by editor workflows.
-- [ ] Pass the destination quality gate, then prepare composition/routing and atomic retirement work.
+- [x] Defined strict source-ordered admission with durable identity, status, optional date, category/title, optional exact amount/currency, details, and source reference.
+- [x] Kept Issues outside accounting Facts and documented atomic editor migration to the same admission owner without a fallback parser.
+- [x] Built an open-by-default List; absent/header-only evidence is valid empty and invalid admission publishes no partial rows.
+- [x] Implemented human-only output with deterministic public proof and no report-text parsing contract.
+- [x] Passed the destination quality gate; all nine retained report proofs are now complete.
+
+### Current finite slice: Portfolio P10 Composition and cutover preparation
+
+- [ ] Build pure one-request-at-a-time destination composition over already-read source snapshots, explicit time/domain/limit/ownership coordinates, and the static nine-key catalog.
+- [ ] Add destination CLI routing and explicit unsupported-surface errors without changing production `tools/report` yet.
+- [ ] Prove full/catalog/individual public fixture behavior, deterministic clock injection, cache manifest, and import boundaries.
+- [ ] Reconcile operational `check`/`debug` ownership with `tools/ledger-check` and `tools/ledger-inspect` before old routes are removed.
+- [ ] Inventory external compact/query/cache consumers with moko before deleting old keys, then prepare one atomic cutover diff.
+- [ ] Keep private-source readiness under separate explicit authorization; do not inspect or rewrite user data in this public composition slice.
 
 Phase 0 exit evidence is `docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`: every observable report capability has an owner, every compatibility path has a deletion gate, and no undecided fallback is permitted in the destination fact schema.
 

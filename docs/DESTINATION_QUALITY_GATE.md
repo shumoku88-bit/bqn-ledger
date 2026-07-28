@@ -34,6 +34,7 @@ Use `green / improve / incomplete / not-applicable`. Record concrete evidence, n
 | Cycle Comparison | green | green | green | green | green | complete |
 | Envelope & Backing | green | green | green: named purpose-specific stages, bounded publication, reviewable lines | green | green | complete |
 | Daily Target | green | green | green: named validation/normalization/calculation stages | green | green | complete |
+| Issues | green | green | green: strict admission then bounded source-order selection | green | green | complete |
 
 ## P7 exit gate
 

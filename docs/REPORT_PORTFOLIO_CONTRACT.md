@@ -271,7 +271,13 @@ ledger_recent_journal: DATE<TAB>CURRENCY<TAB>AMOUNT<TAB>CREDIT_ACCOUNTS<TAB>DEBI
 
 Issues is a source-ordered List over admitted issue rows. It does not become an accounting Fact or monetary obligation.
 
-Required fields are stable issue identity, source row/reference, status, date when valid/applicable, title/category, optional exact amount with explicit currency, and memo/details. Default human selection is open issues only. Invalid issue admission is `error`; no valid-looking partial List is returned.
+Destination admission uses the exact header and field order:
+
+```text
+issue_id | status | date | category | title | amount | currency | details
+```
+
+(tab-separated in the source). Required evidence is durable unique issue identity, source row/reference, `open | resolved | dropped` status, optional strict date, required category/title, optional exact amount paired with explicit currency, and optional details. Default human selection is open issues only. Absent/header-only source is valid empty evidence. Invalid issue admission is `error`; no valid-looking partial List is returned.
 
 Editor issue list/close/add workflows remain separate source commands and must share admission semantics rather than parse report text.
 

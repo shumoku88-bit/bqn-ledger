@@ -7,14 +7,14 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Portfolio P9: retained Daily Target now computes exact conservative capacity from explicit assets and once-only obligations, with proven reservation linkage and successful deficit state. Next implement strict source-ordered Issues.
+Portfolio P10: all nine retained destination report proofs now pass the quality gate. Issues uses strict durable eight-column admission and an open source-ordered human List; editor migration remains atomic/private-protocol work. Next build destination composition and cutover preparation without changing production yet.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn (unchanged)
-completed retained proofs: Planned + Balances + Recent + Current-cycle + Monthly + Comparison + Envelopes + Daily Target
-next proof: strict issue admission and open-by-default human List
-exclude: issue rows from accounting Facts, report-text parsing by editors, production cutover, private work
-forbid: inferred issue identity/status, partial invalid Lists, giant all-report record, dual aliases/keys
+completed retained proofs: envelopes + balances + recent + planned + cycle-accounts + cycle-comparison + monthly-accounts + daily-target + issues
+next proof: static catalog, explicit coordinates, one-request composition, CLI surface errors, public full/individual behavior
+exclude: production route switch, private source inspection/migration, old-key deletion before external consumer confirmation
+forbid: universal all-report record, dual aliases/keys, five-column Issues fallback, hidden clock in core
 private source audit/migration: still requires separate explicit instruction
 ```
 

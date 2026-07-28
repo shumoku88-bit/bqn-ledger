@@ -6,6 +6,7 @@ cd "$ROOT_DIR"
 
 bqn tests/test_ledger_account_admission.bqn >/dev/null
 bqn tests/test_ledger_journal_transaction_structure.bqn >/dev/null
+bqn tests/test_ledger_issue_admission.bqn >/dev/null
 bqn tests/test_ledger_facts.bqn >/dev/null
 bqn tests/test_report_json_text.bqn >/dev/null
 bqn tests/test_ledger_companion_facts.bqn >/dev/null
@@ -34,6 +35,7 @@ bqn tests/test_section_cycle_accounts.bqn >/dev/null
 bqn tests/test_section_cycle_comparison.bqn >/dev/null
 bqn tests/test_section_envelope_backing.bqn >/dev/null
 bqn tests/test_section_daily_target.bqn >/dev/null
+bqn tests/test_section_issues.bqn >/dev/null
 bqn tests/test_section_monthly_accounts.bqn >/dev/null
 
 if rg -n '•Import ".*(src_next|src_edit|context\.bqn|report\.bqn|journal_profile)' src/ledger src/accounting src/sections src/report; then

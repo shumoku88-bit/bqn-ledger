@@ -118,6 +118,7 @@ Updated: 2026-07-28
 - `config_admission.bqn` — already-read config行をclosed/unique key、mandatory registry-supported `DEFAULT_CURRENCY`、typed source座標とreport policyへall-or-nothing admissionする。repository defaultやpath I/Oを持たない。
 - `cycle_admission.bqn` — fixed/incomeAnchor/calendarMonthのalready-read定義をstrict date/range/day、explicit income Account roleへall-or-nothing admissionする。facts/as-of/clockからのperiod resolutionを持たない。
 - `transaction_rows.bqn` — canonical factsからsource-order Transactionとordered Postingをtyped joinするJournal list/reverse/Recent向けnarrow capability。source loadやreport formattingを持たない。
+- `issue_admission.bqn` — non-accounting `issues.tsv`のstrict eight-column admission。durable identity、status、optional date/amount+currency、source row/refをall-or-nothingで保持し、Transaction/Posting Factsへ混入させない。
 - `amount_text.bqn` — exact coefficient/scaleをroundingなしでplain decimal textへ変換するpure capability。
 - `exact_scale.bqn` — admitted signed coefficientをselected scaleへdecimal text経由でexact normalizationし、checked sumするpure arithmetic owner。
 - 現行production routingはまだ`src_next`だが、runtime/editorのcomplete admission callerは`src/ledger`を直接importする。`src/ledger`から`src_next`をimportしてはならない。
@@ -155,6 +156,7 @@ Updated: 2026-07-28
 - `cycle_comparison.bqn` — retained `cycle-comparison` Account × current/baseline/difference Matrix。human-onlyで、ratio/status laneを所有しない。
 - `envelope_backing.bqn` — retained `envelopes` bounded Statement。同一resultからhuman、`ledger_envelope*` compact、exact-number JSONを描画し、Budget claimとfunding evidenceを別table/coordinateとして表示する。
 - `daily_target.bqn` — retained `daily-target` evidence-bearing Card/Projection。asset/obligation/calculationをhuman表示し、`ledger_daily_target_*` compactを描画する。JSONはunsupported。
+- `issues.bqn` — retained `issues` source-order open List。human-onlyで、sentinel date/zero amount、accounting obligation化、editor report-text parsingを持たない。
 - `monthly_accounts.bqn` — retained `monthly-accounts` Month × Account movement Matrix。human-onlyで、month-end balance、YTD、role summaryを混在させない。
 
 ### `src/report/` (destination report-level presentation/composition primitives)
