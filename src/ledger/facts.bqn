@@ -43,13 +43,17 @@ Project ← {𝕊 admitted‿admittedAccounts:
   diagnostics ∾↩ AddIf ⟨admitted.state ≢ "ok", Diagnostic ⟨"admission_not_ok","complete admission must be ok before fact projection"⟩⟩
   transactions ← empty
   declaredDomains ← empty
+  declaredLayers ← empty
   {𝕊:
     transactions ↩ admitted.transactions
     declaredDomains ↩ admitted.declared_domains
+    declaredLayers ↩ admitted.declared_layers
     diagnostics ∾↩ AddIf ⟨(0<≠transactions) ∧ 0=≠declaredDomains, Diagnostic ⟨"domain_missing","transactions require an admitted domain"⟩⟩
+    diagnostics ∾↩ AddIf ⟨0=≠declaredLayers, Diagnostic ⟨"layer_missing","canonical admission must declare its source layer"⟩⟩
+    diagnostics ∾↩ AddIf ⟨(≠declaredLayers)≠≠Unique declaredLayers, Diagnostic ⟨"layer_duplicate","declared source layers must be unique"⟩⟩
   }⍟(admitted.state ≡ "ok") @
 
-  layerNames ← Unique {𝕩.layer_name}¨ transactions
+  layerNames ← declaredLayers
   accountKeys ← admittedAccounts.key
   accountCurrencies ← admittedAccounts.currency
   accountRoles ← admittedAccounts.role
@@ -70,6 +74,7 @@ Project ← {𝕊 admitted‿admittedAccounts:
     diagnostics ∾↩ AddIf ⟨¬dates.IsValid transaction.date, Diagnostic ⟨"transaction_date_invalid","admitted transaction date must be strict ISO Gregorian text"⟩⟩
     diagnostics ∾↩ AddIf ⟨¬Contains ⟨transaction.domain,declaredDomains⟩, Diagnostic ⟨"transaction_domain_undeclared","transaction domain must occur in the admitted domain table"⟩⟩
     diagnostics ∾↩ AddIf ⟨0 = ≠transaction.layer_name, Diagnostic ⟨"transaction_layer_missing","transaction layer must be explicit"⟩⟩
+    diagnostics ∾↩ AddIf ⟨¬Contains ⟨transaction.layer_name,declaredLayers⟩, Diagnostic ⟨"transaction_layer_undeclared","transaction layer must occur in declared source layers"⟩⟩
     diagnostics ∾↩ AddIf ⟨0 = ≠transaction.source_event_id, Diagnostic ⟨"transaction_identity_missing","transaction identity must be explicit after complete admission"⟩⟩
     {𝕊 posting:
       accountKnown ← Contains ⟨posting.account_key,accountKeys⟩

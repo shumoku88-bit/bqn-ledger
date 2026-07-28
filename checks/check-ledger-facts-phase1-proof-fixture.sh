@@ -23,6 +23,8 @@ grep -Fq 'expenses:food,expenses:transport | split purchase' <<<"$recent"
 [[ $(grep -Ec '^2026-01-(02|10|12) ' <<<"$recent") -eq 3 ]]
 
 daily=$(tools/report "$base" --section daily-flow --no-color)
+destination_daily=$(cat "$base/daily_flow.destination.human.txt")
+[[ "${daily//¯/-}" == "$destination_daily" ]]
 grep -Fq 'date       |     income |       food |      other |        net' <<<"$daily"
 grep -Fq $'2026-01-12 |          0 |        ¯10 |         ¯5 |        ¯15' <<<"$daily"
 

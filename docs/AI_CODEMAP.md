@@ -134,6 +134,11 @@ Updated: 2026-07-26
 ### `src/sections/` (destination section-local result/render owners)
 
 - `trial_balance.bqn` — successful Account-period resultのdense values/contributorsをcanonical MatrixResult constructorへ直接渡し、同じresultをhuman/compactへrenderする最初のvertical proof。不要なsparse往復、会計formula、source I/O、context、Cube/TBDS、JSONを持たず、production routingにはまだ未接続。
+- `daily_flow.bqn` — date/category accounting evidenceのgenuine sparse expense Pivotとincome/netを一つのMatrixResultへcomposeする第二proof。explicit latest-or-period-start observation、empty zero row、derived net contributors、human-only contractを所有し、clock/compact/JSONを持たない。
+
+### `src/report/` (destination report-level presentation/composition primitives)
+
+- `text.bqn` — Trial BalanceとDaily Flowの二つで一致したvisual widthとleft/right paddingだけを所有する。accounting、section label、color、terminal stateを持たない。
 
 ### `src_next/` (現行production BQN 会計エンジン)
 

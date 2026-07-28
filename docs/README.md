@@ -44,6 +44,7 @@ They are maps, not gates. Read the files that help with the question in front of
 - [`MONTH_CATEGORY_GROUPING.md`](MONTH_CATEGORY_GROUPING.md) — two-month extensibility proof and the narrow deterministic sparse Group operation shared by date/month consumers
 - [`SPARSE_PIVOT_MATRIX.md`](SPARSE_PIVOT_MATRIX.md) — canonical dense MatrixResult constructor plus policy-free sparse Pivot used by date/month and direct dense consumers
 - [`TRIAL_BALANCE_MATRIX_REPORT.md`](TRIAL_BALANCE_MATRIX_REPORT.md) — first section-local destination vertical proof from Account-period state through MatrixResult to human/compact output
+- [`DAILY_FLOW_MATRIX_REPORT.md`](DAILY_FLOW_MATRIX_REPORT.md) — second Matrix section proof with dynamic categories, explicit observation/empty policy, contributors, and human-only output
 - [`REPORT_CODE_REDUCTION_PLAN.md`](REPORT_CODE_REDUCTION_PLAN.md) — completed prepared-boundary and code-reduction track retained as recent implementation context
 - [`TIME_AS_AXIS.md`](TIME_AS_AXIS.md) — temporal concepts
 - [`archive/audits/PROJECTION_BQN_OWNERSHIP_AUDIT-2026-07-26.md`](archive/audits/PROJECTION_BQN_OWNERSHIP_AUDIT-2026-07-26.md) — ownership inventory and bounded cleanup sequence for `src_next/projection.bqn`

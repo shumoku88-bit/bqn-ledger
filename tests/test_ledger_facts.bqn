@@ -168,5 +168,6 @@ emptyResult ← facts.Project ⟨emptyAdmitted,admittedAccounts⟩
 ⟨"JPY"⟩ lib.AssertEq emptyResult.domains.code
 0 lib.AssertEq emptyResult.transactions.count
 0 lib.AssertEq emptyResult.postings.count
+⟨"actual"⟩ lib.AssertEq emptyResult.layers.name
 
 •Out "test_ledger_facts: ok"

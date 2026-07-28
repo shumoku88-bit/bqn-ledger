@@ -40,6 +40,8 @@ emptyResult ← companion_snapshot.Build ⟨⟨⟩,⟨⟩,accounts,registry⟩
 0 lib.AssertEq emptyResult.budget.transactions.count
 0 lib.AssertEq emptyResult.plan.domains.count
 0 lib.AssertEq emptyResult.budget.domains.count
+⟨"plan"⟩ lib.AssertEq emptyResult.plan.layers.name
+⟨"budget"⟩ lib.AssertEq emptyResult.budget.layers.name
 
 multiAccountLines ← ⟨
   "assets:jpy	role=asset	currency=JPY",

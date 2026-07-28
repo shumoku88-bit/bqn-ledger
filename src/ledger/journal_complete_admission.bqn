@@ -236,6 +236,7 @@ Admit ← {𝕊 raw‿accounts‿registry:
   {
     state⇐(0 = ≠ diagnostics) ⊑ "error"‿"ok",
     declared_domains⇐declarations.domains,
+    declared_layers⇐Unique ⟨"actual"⟩∾{𝕩.layer_name}¨transactions,
     declared_accounts⇐{𝕩.account_key}¨declarations.accounts,
     transactions⇐transactions,
     diagnostics⇐diagnostics

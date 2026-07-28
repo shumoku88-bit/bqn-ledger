@@ -140,7 +140,7 @@ Admit ← {𝕊 lines‿policy‿accounts‿registry:
   admittedDomains ← hasError⊑domains‿empty
   {
     state⇐hasError⊑"ok"‿"error",transactions⇐admittedTransactions,
-    declared_domains⇐admittedDomains,
+    declared_domains⇐admittedDomains,declared_layers⇐⟨policy.layer_name⟩,
     source_name⇐policy.source_name,layer_name⇐policy.layer_name,diagnostics⇐diagnostics
   }
 }

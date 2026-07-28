@@ -7,13 +7,13 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Phase 3F: `matrix_result.bqn` now owns the sole dense MatrixResult shape; sparse Pivot delegates to it while Trial Balance passes dense Account-period arrays directly, removing the artificial dense→sparse→dense round-trip. Next prove Daily Flow Matrix using genuine sparse date/category evidence and section-local observation policy.
+Phase 3G: Daily Flow now proves the second materially different Matrix section with genuine sparse Pivot, explicit latest-or-period-start observation, valid empty Actual, and contributor-preserving income/expense/net cells. Next move fixed/calendarMonth/incomeAnchor resolution into one pure capability over admitted definitions/facts.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn
-completed report proof: Trial Balance Matrix + totals + human/compact (JSON unsupported by contract)
-next report proof: Daily Flow income + dynamic expenses + other + net Matrix
-exclude: compact/JSON for Daily Flow, broad context, production routing, private sources
+completed report proofs: dense Trial Balance + sparse/dynamic Daily Flow
+next capability: admitted cycle definition + explicit facts/as-of -> resolved period state
+exclude: source I/O, hidden clock, report context/formatting, production/private work
 private source audit/migration: still requires separate explicit instruction
 ```
 

@@ -213,7 +213,7 @@ already-read Plan/Budget TSV + admitted Account
 
 `src/accounting/account_period.bqn`はexplicit Facts/domain/layer/start/end ordinalsからAccount別opening/movement/closingとcontributor Posting indicesを構築する。`date_category_flow.bqn`は同じFactsからstrict date × Account-metadata-derived categoryのsparse expense groupsとincome/netを構築し、`month_category_flow.bqn`はそのevidenceをmonth × categoryへrollupする。date/month両方で同一になったexplicit row-axis × bounded columnのexact groupingだけを`sparse_group.bqn`へ抽出し、`sparse_pivot.bqn`が同じsparse schemaをdense values/contributorsへmaterializeしてcanonical `matrix_result.bqn` constructorへ渡す。category classification、date/month axis、income/net、opening policy、label/sign/formatは統合していない。全capabilityはsection名を知らず、Cube/TBDSをimportしない。
 
-最初の`src/sections/trial_balance.bqn` proofはdense Account-period stateをsparse化せず、section-localなopening/debit/credit/closing arraysからcanonical MatrixResultへcomposeし、同一resultをhuman/compactへrenderする。accounting formulaを複製せず、current public bodyとsemantic/normalized-byte parityを固定する。production routingと旧section削除はsupported-source readiness後のatomic cutoverまで行わない。
+最初の`src/sections/trial_balance.bqn` proofはdense Account-period stateをsparse化せず、section-localなopening/debit/credit/closing arraysからcanonical MatrixResultへcomposeし、同一resultをhuman/compactへrenderする。第二の`daily_flow.bqn` proofはgenuine sparse date/category expense Pivotへincome/netを加え、explicit latest-or-period-start observationとempty zero rowをsection-localに保つ。両rendererで一致したvisual width/paddingだけを`src/report/text.bqn`へ抽出した。accounting formulaを複製せず、current public bodyとsemantic/normalized-byte parityを固定する。production routingと旧section削除はsupported-source readiness後のatomic cutoverまで行わない。
 
 ### Selected-domain composition stages
 

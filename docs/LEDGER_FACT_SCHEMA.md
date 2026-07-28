@@ -1,6 +1,6 @@
 # Canonical ledger fact schema
 
-Status: Phase 2A; canonical Actual plus strict Plan/Budget companion facts
+Status: Phase 3F; canonical Actual/Plan/Budget facts with explicit empty Domain/Layer semantics
 Owner: `src/ledger/snapshot.bqn` / `src/ledger/companion_snapshot.bqn` / `src/ledger/facts.bqn`
 Public evidence: `fixtures/ledger-facts-phase1-proof/`
 
@@ -119,7 +119,7 @@ The table exposes aligned `index`, `key`, `currency`, `role`, `type`, `budget`, 
 
 ### Layer table
 
-`index`, `name`; order is first admitted transaction occurrence. Empty Actual has an empty Layer table.
+`index`, `name`; order follows canonical admission's explicit `declared_layers`. Transaction layers must occur in that table. A valid empty source still declares its source layer (`actual`, `plan`, or `budget`) without fabricating a transaction or posting, so layer-selected empty queries remain explicit and type-safe.
 
 ## Strict Plan/Budget companion boundary
 
@@ -138,7 +138,7 @@ Successful companion facts use the same aligned Transaction/Posting schema. Each
 - normalized posting coefficients sum to zero per transaction;
 - dates are strict valid Gregorian text before ordinal conversion;
 - transaction IDs are nonempty and unique;
-- every transaction domain is explicit and declared; source-specific empty-domain requirements stay in source admission;
+- every transaction domain and layer is explicit and declared; source-specific empty Domain/Layer requirements stay in source admission;
 - account keys are unique and account columns align;
 - every posting account exists and its currency equals the transaction domain;
 - posting/transaction/account/domain/layer joins use bounded dense indices;

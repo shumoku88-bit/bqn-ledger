@@ -372,11 +372,11 @@ For each capability:
 
 Report-construction proof:
 
-- [ ] implement two materially different real matrix/list reports through the same Select/Group/Pivot vocabulary (Trial Balance destination proof complete; second report remains);
-- [ ] implement one report that retains contributor posting indices;
+- [x] implement two materially different real Matrix reports through canonical accounting/Matrix vocabulary (dense Trial Balance and sparse/dynamic Daily Flow);
+- [x] implement reports that retain contributor Posting indices, including derived net/closing cells;
 - [ ] implement one synthetic report not present in the current 15-section catalog without changing admission, fact schema, or accounting kernel;
-- [ ] prove selected-domain exactness and deterministic row/column ordering;
-- [ ] prove unavailable/rejected cells cannot silently become numeric zero.
+- [x] prove selected-domain exactness and deterministic row/column ordering;
+- [x] prove rejected Matrix evidence returns an empty result rather than numeric zero; explicit absent/zero contributor semantics remain distinct.
 
 Exit:
 

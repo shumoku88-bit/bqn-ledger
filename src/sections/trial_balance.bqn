@@ -4,6 +4,7 @@
 matrixResult ← •Import "../accounting/matrix_result.bqn"
 dates ← •Import "../ledger/date_ordinal.bqn"
 amount ← •Import "../ledger/amount_text.bqn"
+text ← •Import "../report/text.bqn"
 empty ← ⟨⟩
 
 columnCoordinates ← ⟨"opening","debit_movement","credit_movement","closing"⟩
@@ -76,14 +77,11 @@ Build ← {𝕊 accountPeriod‿periodStartText‿periodEndText:
   result
 }
 
-VWidth ← {+´⥊1+127<𝕩-@}
-PadRight ← {𝕊 width‿text: text∾(0⌈width-VWidth text)⥊' '}
-PadLeft ← {𝕊 width‿text: ((0⌈width-VWidth text)⥊' ')∾text}
 CellText ← {𝕊 coefficient‿scale: amount.Format ⟨coefficient,scale⟩}
-AmountCell ← {𝕊 coefficient‿scale: PadLeft ⟨12,CellText ⟨coefficient,scale⟩⟩}
+AmountCell ← {𝕊 coefficient‿scale: text.PadLeft ⟨12,CellText ⟨coefficient,scale⟩⟩}
 
 FormatHuman ← {𝕊 result:
-  maxName ← ⌈´⟨7⟩∾VWidth¨result.account_labels
+  maxName ← ⌈´⟨7⟩∾text.VWidth¨result.account_labels
   divider ← (maxName⥊'-')∾"-+--------------+--------------+--------------+--------------"
   out ← "== Trial Balance ("∾result.layer∾" layer) =="∾(@+10)
   out ∾↩ "Period: "∾result.period_start∾"〜"∾result.period_end_exclusive∾(@+10)
@@ -92,14 +90,14 @@ FormatHuman ← {𝕊 result:
   out ∾↩ divider∾(@+10)
   {𝕊 rowIndex:
     values ← rowIndex⊑result.matrix.values
-    out ∾↩ (PadRight ⟨maxName,rowIndex⊑result.account_labels⟩)∾" | "
+    out ∾↩ (text.PadRight ⟨maxName,rowIndex⊑result.account_labels⟩)∾" | "
     out ∾↩ (AmountCell ⟨0⊑values,result.matrix.scale⟩)∾" | "
     out ∾↩ (AmountCell ⟨1⊑values,result.matrix.scale⟩)∾" | "
     out ∾↩ (AmountCell ⟨2⊑values,result.matrix.scale⟩)∾" | "
     out ∾↩ (AmountCell ⟨3⊑values,result.matrix.scale⟩)∾" "∾(@+10)
   }¨result.matrix.row_index
   out ∾↩ divider∾(@+10)
-  out ∾↩ (PadRight ⟨maxName,"Total"⟩)∾" | "
+  out ∾↩ (text.PadRight ⟨maxName,"Total"⟩)∾" | "
   out ∾↩ (AmountCell ⟨result.totals.opening,result.matrix.scale⟩)∾" | "
   out ∾↩ (AmountCell ⟨result.totals.debit_movement,result.matrix.scale⟩)∾" | "
   out ∾↩ (AmountCell ⟨result.totals.credit_movement,result.matrix.scale⟩)∾" | "

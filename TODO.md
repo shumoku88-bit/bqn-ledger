@@ -135,12 +135,21 @@ This is not a section-reduction campaign and must not recreate the old giant all
 - [x] Added deterministic human/compact formatting from one result; correctly omitted unsupported Trial Balance JSON.
 - [x] Kept production routing, cache/full composition, and broad all-report context out of the proof slice.
 
-### Current finite slice: Phase 3F Daily Flow Matrix report proof
+### Completed finite slice: Phase 3F Daily Flow Matrix report proof
 
-- [ ] Compose date/category accounting evidence and Pivot output into one section-local MatrixResult including income, dynamic expenses, other, and net.
-- [ ] Preserve contributor Posting indices for income, expense, and derived net cells without moving observation policy into Group/Pivot.
-- [ ] Match the public current Daily Flow body and its section-specific as-of/empty behavior where evidence is sufficient.
-- [ ] Add only the human renderer required by the approved contract; do not add compact/JSON or production routing.
+- [x] Composed date/category accounting evidence and genuine sparse Pivot output into one MatrixResult with income, dynamic expenses, other, and net.
+- [x] Preserved contributor Posting indices for income, expense, and derived net cells without moving observation policy into Group/Pivot.
+- [x] Matched public Daily Flow semantics, deterministic destination bytes, explicit latest observation, and valid empty Actual period-start zero behavior.
+- [x] Added only the human renderer required by contract; no compact/JSON or production routing.
+- [x] Made empty source layers explicit in canonical admission/Facts for Actual, Plan, and Budget rather than patching Daily Flow.
+
+### Current finite slice: Phase 3G pure cycle resolution
+
+- [ ] Resolve admitted fixed definitions without source reload or hidden clock.
+- [ ] Resolve calendarMonth from an explicit valid as-of coordinate with month-safe admitted start_day.
+- [ ] Resolve incomeAnchor only from admitted Actual/Plan facts, explicit income Account, and durable evidence.
+- [ ] Return unavailable/rejected states explicitly; do not map them to a fabricated period or numeric zero.
+- [ ] Keep source I/O, report context, formatting, production routing, and private source work outside the resolver.
 
 Phase 0 exit evidence is `docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`: every observable report capability has an owner, every compatibility path has a deletion gate, and no undecided fallback is permitted in the destination fact schema.
 
