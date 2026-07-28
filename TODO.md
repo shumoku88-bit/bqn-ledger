@@ -153,13 +153,22 @@ This is not a section-reduction campaign and must not recreate the old giant all
 - [x] Added the deferred Source table/index only when the first Actual+Plan consumer required it.
 - [x] Rejected nonzero historical offset rather than silently ignoring or speculating about unsupported semantics.
 
-### Current finite slice: Phase 3H canonical Plan completion Join
+### Completed finite slice: Phase 3H canonical Plan completion Join
 
-- [ ] Join Plan and Actual Transaction Facts only by durable `plan_id`, with source-qualified contributors.
-- [ ] Preserve planned/actual exact amounts and Account directions without five-field identity fallback.
-- [ ] Distinguish open, completed, duplicate, ambiguous, and invalid evidence without partial rows.
-- [ ] Compare current Planned Payments semantics on strict public fixtures before building the destination section.
-- [ ] Keep source I/O, formatting, production routing, and private source work outside the Join.
+- [x] Joined explicitly selected Plan and Actual Transaction Facts only by durable `plan_id`, with source-qualified Transaction/Posting contributors.
+- [x] Preserved each source's exact coefficients/scales, currencies, and Account directions without five-field identity fallback or cross-source addition.
+- [x] Distinguished open, completed, identical duplicate, conflicting ambiguous, unmatched, and invalid evidence; invalid results publish no partial rows.
+- [x] Compared planned `25` / actual `20` / completed semantics with current Planned JSON on the strict public fixture.
+- [x] Shared only Source validation and durable Fact references after two real cross-source consumers agreed.
+- [x] Kept selection policy, source I/O, formatting, production routing, and private source work outside the Join.
+
+### Current finite slice: Phase 3I destination Planned Payments section
+
+- [ ] Compose admitted cycle result, explicit Plan/Actual period selections, completion Join, and explicit observation without a broad report context.
+- [ ] Derive future/due/overdue/completed display state while refusing duplicate or ambiguous completion evidence.
+- [ ] Preserve current human/compact/JSON contracts on the strict public fixture with deterministic destination goldens.
+- [ ] Keep labels, totals, and rendering section-local; do not move them into Join or Facts.
+- [ ] Leave production routing unchanged until the atomic section/runtime cutover.
 
 Phase 0 exit evidence is `docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`: every observable report capability has an owner, every compatibility path has a deletion gate, and no undecided fallback is permitted in the destination fact schema.
 

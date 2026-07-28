@@ -191,8 +191,9 @@ These counts are characterization. Final deletion is proved by absence and calle
 - Current owners: `plan_rows.PlanId`, overlap helpers, completion evidence.
 - Current behavior: absent or explicit-empty `plan_id=` becomes concatenated date/memo/from/to/amount identity; duplicate metadata follows first-token precedence.
 - Destination: explicit durable `plan_id=` for every Plan row participating in completion, remaining-plan, trend reserve, overlap, or editor workflows.
-- Prerequisite: audit Plan rows and matching Actual metadata; deterministic migration preview and stale-safe write.
-- Delete: Phase 2. Missing/empty/duplicate plan identity becomes explicit validation state.
+- Progress: strict companion admission rejects missing/empty/duplicate Plan identity; canonical completion Join uses only `plan_id` and exposes duplicate/conflicting Actual evidence without fallback or summation.
+- Remaining prerequisite: audit/migrate non-strict public and private Plan rows and move all runtime consumers.
+- Delete: with final completion/remaining/trend/overlap callers. Missing/empty/duplicate identity remains explicit validation state.
 
 ### C15 — YTD semantic role prefix fallback
 

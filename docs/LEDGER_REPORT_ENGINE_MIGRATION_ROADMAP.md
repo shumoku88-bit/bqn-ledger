@@ -352,7 +352,8 @@ Implement only capabilities required by the report migration:
 - [x] opening/movement/closing with exact totals and contributor indices;
 - [x] exact Account and date/category grouping with explicit metadata semantics;
 - [x] mode-specific cycle resolution from admitted definitions, explicit observation, and canonical Facts with no universal evidence context;
-- [ ] completion and transaction metadata joins;
+- [x] durable Plan completion Join with explicit selection, exact per-source evidence, and duplicate/ambiguous states;
+- [ ] remaining transaction metadata joins;
 - [ ] Cube/TBDS construction where they remain useful;
 - [x] source-order/provenance access for reports that require it (Transaction rows and Account-period Posting contributors);
 - [ ] composable selection masks over typed fact columns;

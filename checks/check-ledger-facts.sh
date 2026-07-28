@@ -11,6 +11,7 @@ bqn tests/test_ledger_companion_facts.bqn >/dev/null
 bqn tests/test_ledger_config_cycle_admission.bqn >/dev/null
 bqn tests/test_accounting_account_period.bqn >/dev/null
 bqn tests/test_accounting_cycle_resolution.bqn >/dev/null
+bqn tests/test_accounting_plan_completion_join.bqn >/dev/null
 bqn tests/test_accounting_date_category_flow.bqn >/dev/null
 bqn tests/test_accounting_month_category_flow.bqn >/dev/null
 bqn tests/test_accounting_sparse_group.bqn >/dev/null

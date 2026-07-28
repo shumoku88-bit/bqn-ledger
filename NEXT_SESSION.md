@@ -7,13 +7,13 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Phase 3H: fixed/calendarMonth/incomeAnchor now use mode-specific pure resolvers and one explicit ok/unavailable/error result shape. IncomeAnchor is the first Actual+Plan consumer, so Facts now carry the deferred Source table/index and resolver contributors are source-qualified durable references. Next build canonical Plan completion Join by durable plan_id only.
+Phase 3I: canonical Plan completion now joins explicit Plan/Actual selections by durable plan_id only, preserves each source's exact amount/direction/provenance, and distinguishes open/completed/duplicate/ambiguous without summing duplicate evidence. Next compose the destination Planned Payments section over cycle result, observation, selection, and Join.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn
-completed capabilities: two Matrix reports + mode-specific pure cycle resolution
-next capability: Plan Facts × Actual Facts durable completion Join
-forbid: five-field fallback, universal cycle/context input, source I/O/format/private work
+completed capabilities: two Matrix reports + cycle resolution + Plan completion Join
+next section proof: Planned Payments human/compact/JSON over strict public Facts
+forbid: five-field fallback, exact-any-match duplicate collapse, broad context, private work
 private source audit/migration: still requires separate explicit instruction
 ```
 

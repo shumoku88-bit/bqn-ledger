@@ -129,6 +129,8 @@ Updated: 2026-07-26
 - `cycle_fixed_resolution.bqn` — admitted fixed definitionだけを解決し、不要なobservation/Factsを受けない。
 - `cycle_calendar_month_resolution.bqn` — admitted start_dayとexplicit as-ofだけからmonth-safe half-open periodを解決する。
 - `cycle_income_anchor_resolution.bqn` — explicit as-of、Actual Facts、Plan Facts、income Account evidenceからanchor periodとsource-qualified durable contributorsを解決する。I/O、clock、cross-source amount加算を持たない。
+- `fact_reference.bqn` — 2つのcross-source consumerで一致したSource validationとdurable Transaction/Posting reference構築だけを共有する。
+- `plan_completion_join.bqn` — explicitに選択済みのPlan/Actual Transaction Factsをdurable `plan_id`だけでJoinする。各sourceのexact amount、Account direction、Posting contributorを保持し、open/completed/duplicate/ambiguousを区別する。five-field fallbackやduplicate amount加算を持たない。
 - `date_category_flow.bqn` — strict date period内のexplicit income/expense Account postingsを、Account metadata由来dynamic envelope categoryと`other`へsparse groupingする。date income/net、exact scale、contributor Posting indicesを返し、prefix inferenceやDaily Flow section fieldを持たない。
 - `month_category_flow.bqn` — presentation-neutral date/category evidenceをcalendar month × categoryへrollupし、exact scaleと元Posting contributorsを保持するextensibility proof。
 - `sparse_group.bqn` — date/month両consumerで同一と証明されたexplicit row axis × bounded columnのdeterministic sparse Group。exact sum、zero-sum contributor保持、all-or-nothing diagnosticsだけを所有し、date/month/category policyを持たない。

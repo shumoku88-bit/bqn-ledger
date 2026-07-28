@@ -5,6 +5,9 @@ ROOT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$ROOT_DIR"
 base="fixtures/ledger-facts-phase1-proof"
 
+# Canonical Join and current Planned JSON share this strict public evidence.
+bqn tests/test_accounting_plan_completion_join.bqn >/dev/null
+
 audit=$(python3 tools/characterization/report_source_readiness_audit.py "$base")
 grep -Fq $'\texplicit\t8\t0\t0\t1\t0\t0\t2\t0\tdirect' <<<"$audit"
 

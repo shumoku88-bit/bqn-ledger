@@ -2,6 +2,7 @@
 # Source-qualified contributors remain separate; no cross-source amount is added.
 
 result ← •Import "cycle_result.bqn"
+reference ← •Import "fact_reference.bqn"
 dates ← •Import "../ledger/date_ordinal.bqn"
 empty ← ⟨⟩
 
@@ -12,15 +13,7 @@ Unique ← {𝕊 items:
   output
 }
 IndexOf ← {𝕊 item‿items: ⊑(item⊸≡¨items)⊐1}
-SourceOk ← {𝕊 facts‿sourceName:
-  ok ← 0
-  {𝕊: ok↩(⊑facts.sources.name)≡sourceName}⍟((facts.state≡"ok") ∧ facts.sources.count=1) @
-  ok
-}
-Reference ← {𝕊 facts‿transactionIndex:
-  {source⇐⊑facts.sources.name,transaction_id⇐transactionIndex⊑facts.transactions.transaction_id}
-}
-References ← {𝕊 facts‿indices: {Reference ⟨facts,𝕩⟩}¨Unique indices}
+References ← {𝕊 facts‿indices: {reference.Transaction ⟨facts,𝕩⟩}¨Unique indices}
 
 Resolve ← {𝕊 admittedCycle‿asOfText‿actualFacts‿planFacts:
   resolved ← result.Error ⟨"incomeAnchor",asOfText,"cycle_admission_not_ok","cycle definition must be admitted"⟩
@@ -102,8 +95,8 @@ Resolve ← {𝕊 admittedCycle‿asOfText‿actualFacts‿planFacts:
                 }⍟evidenceCompatible @
               }⍟(actualKnown ∧ planKnown) @
             }⍟(definition.offset=0) @
-          }⍟(SourceOk ⟨planFacts,"plan.tsv"⟩) @
-        }⍟(SourceOk ⟨actualFacts,"actual.journal"⟩) @
+          }⍟(reference.SourceIs ⟨planFacts,"plan.tsv"⟩) @
+        }⍟(reference.SourceIs ⟨actualFacts,"actual.journal"⟩) @
       }⍟(dates.IsValid asOfText) @
     }⍟(definition.mode≡"incomeAnchor") @
   }⍟(admittedCycle.state≡"ok") @

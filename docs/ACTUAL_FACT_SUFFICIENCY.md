@@ -1,6 +1,6 @@
 # Actual fact sufficiency map
 
-Status: Phase 1C current evidence
+Status: canonical evidence map through Phase 3H
 Canonical schema: `docs/LEDGER_FACT_SCHEMA.md`
 Current report inventory: `docs/REPORT_CONSTRUCTION_INVENTORY.md`
 
@@ -12,9 +12,9 @@ Remaining gaps are capabilities or other source families, not missing Actual mon
 
 - rejected-source diagnostics stay on `snapshot.diagnostics`, outside successful fact columns;
 - cycle and observation coordinates are explicit capability inputs;
-- Plan/Budget facts are not admitted yet;
-- a logical Source table/index is added when Actual, Plan, and Budget facts share one query surface;
-- report grouping, period, completion, transaction-list, and provenance views are derived capabilities.
+- strict Plan/Budget companions are independently admitted and projected through the same Fact schema;
+- Source table/index is present now that incomeAnchor and completion are real cross-source consumers;
+- remaining report grouping, selection, and presentation views are derived capabilities rather than Fact columns.
 
 ## Canonical evidence available
 
@@ -37,6 +37,7 @@ Remaining gaps are capabilities or other source families, not missing Actual mon
 
 ### Side tables
 
+- explicit one-row Source identity and aligned `source_index` provenance;
 - explicit Domain declarations;
 - strict Account metadata, including zero-posting accounts;
 - admitted Layers;
@@ -77,32 +78,23 @@ Remaining gaps are capabilities or other source families, not missing Actual mon
 
 These are consumers over facts, not additions to the fact schema:
 
-1. `SelectPostings` by explicit date/domain/layer/account/side masks;
-2. transaction-to-posting join by `transaction_index`;
-3. exact amount formatting from coefficient/scale;
-4. source-ordered transaction list rows;
-5. completion evidence from explicit `plan_id` and debit/credit lanes;
-6. income-event date selection;
-7. opening/movement/closing Period view;
-8. exact grouping with contributor Posting indices.
+1. explicit Posting selection by date/domain/layer/account/side masks (implemented in bounded consumers rather than a textual DSL);
+2. transaction-to-posting join by `transaction_index` (implemented);
+3. exact amount formatting from coefficient/scale (implemented);
+4. source-ordered transaction list rows (implemented);
+5. completion Join from explicit `plan_id`, exact debit/credit lanes, and source-qualified contributors (implemented);
+6. income-event date selection and mode-specific cycle resolution (implemented);
+7. opening/movement/closing Period view (implemented);
+8. exact grouping with contributor Posting indices (implemented).
 
 Implement a capability only with a real migrating consumer. Do not create a universal query record or textual DSL.
 
 ## Source identity decision
 
-Actual currently has one configured Journal source, so posting ID plus source line is sufficient inside the Actual fact set. Combined Actual/Plan/Budget queries will require an explicit logical Source table and `source_index`; add it with companion-source admission rather than embedding filenames in every current Actual row.
+Every independently admitted fact result has one explicit Source row and aligned Transaction/Posting `source_index`. Cross-source consumers retain `{source, transaction_id}` or `{source, posting_id}` references through `src/accounting/fact_reference.bqn`; snapshot-local indices from different sources are never merged.
 
 ## Migration progress from this evidence
 
-Completed in Phase 1C:
+Completed destination capabilities now include strict Actual/Plan/Budget Facts, Account periods, date/month category grouping and Pivot, Trial Balance and Daily Flow Matrix sections, pure cycle resolution, and durable Plan completion Join. Legacy base-oriented completion remains only with current runtime callers until section cutover.
 
-1. Journal list/reverse transaction readers;
-2. base-oriented completion and income-date evidence;
-3. ordinary context/cycle production historical fallback deletion.
-
-Next roadmap boundaries:
-
-4. strict Plan/Budget source admission and the first shared Source table;
-5. first Trial Balance Period/Group consumer.
-
-The current human report remains production until each consumer and its output contract move atomically.
+The current report remains production until each consumer and its output contract move atomically.

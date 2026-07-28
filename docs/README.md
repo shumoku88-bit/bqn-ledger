@@ -40,6 +40,7 @@ They are maps, not gates. Read the files that help with the question in front of
 - [`ACTUAL_FACT_SUFFICIENCY.md`](ACTUAL_FACT_SUFFICIENCY.md) — mapping from all report/editor Actual requirements to facts, diagnostics, narrow capabilities, or later source families
 - [`CONFIG_CYCLE_ADMISSION.md`](CONFIG_CYCLE_ADMISSION.md) — strict pure config/cycle definitions and the boundary between source coordinates and report policy
 - [`CYCLE_RESOLUTION.md`](CYCLE_RESOLUTION.md) — mode-specific pure fixed/calendarMonth/incomeAnchor resolution, explicit unavailable/error states, and source-qualified anchor provenance
+- [`PLAN_COMPLETION_JOIN.md`](PLAN_COMPLETION_JOIN.md) — durable Plan/Actual relationship Join with exact amounts, Account directions, and explicit duplicate/ambiguous states
 - [`ACCOUNT_PERIOD_CAPABILITY.md`](ACCOUNT_PERIOD_CAPABILITY.md) — pure selected-domain/layer opening, movement, closing, exact scale, and contributor Posting indices
 - [`DATE_CATEGORY_FLOW_CAPABILITY.md`](DATE_CATEGORY_FLOW_CAPABILITY.md) — pure date × dynamic Account-metadata category sparse groups, income/net measures, and contributor Posting indices
 - [`MONTH_CATEGORY_GROUPING.md`](MONTH_CATEGORY_GROUPING.md) — two-month extensibility proof and the narrow deterministic sparse Group operation shared by date/month consumers
