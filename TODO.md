@@ -206,13 +206,21 @@ The approved portfolio reset is [`docs/REPORT_PORTFOLIO_DECISION.md`](docs/REPOR
 - [x] Matched strict public newest-first semantics including the split Transaction without old context/transaction/report owners.
 - [x] Extracted plain table rendering only after Planned Payments and Recent Journal agreed; existing Planned bytes remain stable.
 
-### Current finite slice: Portfolio P4 Current-cycle Accounts
+### Completed finite slice: Portfolio P4 Current-cycle Accounts
 
-- [ ] Compose resolved cycle, explicit observation, and canonical Account-period capability into the retained `cycle-accounts` Matrix.
-- [ ] Include every selected-domain Account with opening/debit/credit/movement/closing and contributor provenance.
-- [ ] Keep credit signed negative in the semantic result and validate closing/opening arithmetic and zero-sum totals.
-- [ ] Prove partial-cycle observation, full-cycle, empty Actual, JPY/ILS/USD, invalid observation/cycle, and deterministic Matrix order.
-- [ ] Implement human-only retained surface without reviving old Cycle Summary or Trial Balance production routes.
+- [x] Composed resolved cycle, explicit observation, and canonical Account-period capability into retained `cycle-accounts`.
+- [x] Included every selected-domain Account with opening/debit/credit/movement/closing and source-qualified provenance.
+- [x] Kept credit signed negative and validated movement/closing arithmetic plus exact zero-sum totals.
+- [x] Proved partial/full cycle, empty Actual, JPY/ILS/USD, invalid/outside/mismatched observation, unavailable cycle, and deterministic order.
+- [x] Implemented human-only retained Matrix without reviving Cycle Summary or Trial Balance routes.
+
+### Current finite slice: Portfolio P5 Monthly Accounts
+
+- [ ] Compose canonical month grouping and dense MatrixResult into Month × Account signed movement.
+- [ ] Require one explicit domain and explicit half-open month range; include every month and every admitted Account, including zero cells.
+- [ ] Preserve source-qualified Posting contributors per cell and exact cross-row/cross-column reconciliation.
+- [ ] Prove multi-month, empty month, empty Actual, JPY/ILS/USD, mixed scale, invalid range/domain, and deterministic axes.
+- [ ] Implement human-only `monthly-accounts` without adding month-end balance or YTD Card measures.
 
 Phase 0 exit evidence is `docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`: every observable report capability has an owner, every compatibility path has a deletion gate, and no undecided fallback is permitted in the destination fact schema.
 
