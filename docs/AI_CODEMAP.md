@@ -136,6 +136,7 @@ Updated: 2026-07-28
 - `cycle_account_period.bqn` — resolved cycle、explicit observation、Actual Factsを`account_period`へcomposeし、observed end-exclusiveを確定する。全cell contributorをsource-qualified Posting referenceへ変換し、cycle boundary evidenceを別保持する。
 - `cycle_comparison.bqn` — 2つのexplicit accounted cycle windowsを`aligned_elapsed | complete_cycles`で比較し、current/baseline/differenceとwindow別・union provenanceを返す。similar period探索を持たない。
 - `envelope_backing.bqn` — strict Budget/Actual/Plan、horizon/observation、explicit funding scopeからEnvelope termsと別証拠系のbacking/reconciliationを構築する。named stages、durable completion、exact fail-closed、source-qualified provenanceを所有する。
+- `daily_target.bqn` — explicit observation/target、owner-resolved account-balance assets、open obligations、per-obligation reservationからexact capacity/target/shortfallを計算する。future incomeやaggregate reservation inferenceを入力に持たない。
 - `month_account_movement.bqn` — strict `[first_month,last_month_exclusive)`とActual Factsからempty month/zero Accountを含むdense Month × Account signed movementを構築し、両axis totalsをexact reconciliationする。
 - `date_category_flow.bqn` — strict date period内のexplicit income/expense Account postingsを、Account metadata由来dynamic envelope categoryと`other`へsparse groupingする。date income/net、exact scale、contributor Posting indicesを返し、prefix inferenceやDaily Flow section fieldを持たない。
 - `month_category_flow.bqn` — presentation-neutral date/category evidenceをcalendar month × categoryへrollupし、exact scaleと元Posting contributorsを保持するextensibility proof。
@@ -153,6 +154,7 @@ Updated: 2026-07-28
 - `cycle_accounts.bqn` — retained `cycle-accounts` Account × opening/debit/signed credit/movement/closing Matrix。human-onlyで、compact/JSONや旧Trial Balance routeを所有しない。
 - `cycle_comparison.bqn` — retained `cycle-comparison` Account × current/baseline/difference Matrix。human-onlyで、ratio/status laneを所有しない。
 - `envelope_backing.bqn` — retained `envelopes` bounded Statement。同一resultからhuman、`ledger_envelope*` compact、exact-number JSONを描画し、Budget claimとfunding evidenceを別table/coordinateとして表示する。
+- `daily_target.bqn` — retained `daily-target` evidence-bearing Card/Projection。asset/obligation/calculationをhuman表示し、`ledger_daily_target_*` compactを描画する。JSONはunsupported。
 - `monthly_accounts.bqn` — retained `monthly-accounts` Month × Account movement Matrix。human-onlyで、month-end balance、YTD、role summaryを混在させない。
 
 ### `src/report/` (destination report-level presentation/composition primitives)

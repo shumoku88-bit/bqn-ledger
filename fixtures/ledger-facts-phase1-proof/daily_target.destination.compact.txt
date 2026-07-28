@@ -1,0 +1,10 @@
+--- Ledger Daily Target ---
+ledger_daily_target_status: ok
+ledger_daily_target_eligible_assets: 1000
+ledger_daily_target_gross_obligations: 200
+ledger_daily_target_already_excluded: 50
+ledger_daily_target_obligation_deduction: 150
+ledger_daily_target_capacity_balance: 850
+ledger_daily_target_remaining_days: 10
+ledger_daily_target_amount: 85
+ledger_daily_target_shortfall: 0

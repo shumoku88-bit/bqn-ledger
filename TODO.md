@@ -241,13 +241,21 @@ Quality completion is governed by [`docs/DESTINATION_QUALITY_GATE.md`](docs/DEST
 - [x] Preserved source-qualified contributors and rejected invalid ownership/domain/range, completion conflict, and normalization overflow.
 - [x] Proved overspent, under-backed, open/completed Plan, refund, empty Plan, and human/compact/JSON Statement surfaces.
 
-### Current finite slice: Portfolio P8 Daily Target
+### Completed finite slice: Portfolio P8 Daily Target
 
-- [ ] Compose explicit observation/target, selected funding assets, open obligations, and per-obligation reservation provenance.
-- [ ] Deduct each obligation exactly once and never increase safe capacity with future income.
-- [ ] Preserve eligible assets, gross obligations, already excluded, deduction, capacity, remaining days, and exact daily target as separate coordinates.
-- [ ] Treat deficit as a successful evidence-bearing state; reject ownership/domain/date/provenance conflicts and overflow.
-- [ ] Prove funded, deficit, reserved obligation, empty obligation, and human/compact surfaces without JSON.
+- [x] Composed explicit observation/target, selected assets, open obligations, and per-obligation reservation provenance.
+- [x] Deducted each obligation exactly once and excluded future income from the accepted input boundary.
+- [x] Preserved assets, gross obligations, already excluded, deduction, capacity, remaining days, target, and shortfall as separate exact coordinates.
+- [x] Treated deficit as successful evidence and rejected ownership/date/provenance/range conflicts and overflow.
+- [x] Proved funded, deficit, reservation, empty/overdue obligations, mixed scales, and human/compact surfaces without JSON.
+
+### Current finite slice: Portfolio P9 Issues
+
+- [ ] Define strict source-ordered issue admission with stable identity, status, optional strict date, category/title, optional exact amount/currency, and details.
+- [ ] Keep issue rows outside accounting Facts while sharing admission semantics with editor commands.
+- [ ] Build retained open-by-default List; valid empty source is an empty List and invalid admission publishes no partial rows.
+- [ ] Implement human-only `issues` with deterministic public proof and no report-text parsing by editor workflows.
+- [ ] Pass the destination quality gate, then prepare composition/routing and atomic retirement work.
 
 Phase 0 exit evidence is `docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`: every observable report capability has an owner, every compatibility path has a deletion gate, and no undecided fallback is permitted in the destination fact schema.
 

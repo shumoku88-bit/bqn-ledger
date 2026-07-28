@@ -7,14 +7,14 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Portfolio P8: retained Envelope & Backing now passes the destination quality gate with named accounting stages, separated Budget/funding/Plan evidence, broad scenarios, and human/compact/JSON Statement surfaces. Next implement conservative Daily Target.
+Portfolio P9: retained Daily Target now computes exact conservative capacity from explicit assets and once-only obligations, with proven reservation linkage and successful deficit state. Next implement strict source-ordered Issues.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn (unchanged)
-completed retained proofs: Planned + Balances + Recent + Current-cycle + Monthly + Comparison + Envelopes
-next proof: explicit assets minus once-only open obligations over [observation,target), including deficit
-exclude: future income in safe capacity, aggregate reservation inference, production cutover, private work
-forbid: double obligation deduction, fabricated reservation provenance, giant all-report record, dual aliases/keys
+completed retained proofs: Planned + Balances + Recent + Current-cycle + Monthly + Comparison + Envelopes + Daily Target
+next proof: strict issue admission and open-by-default human List
+exclude: issue rows from accounting Facts, report-text parsing by editors, production cutover, private work
+forbid: inferred issue identity/status, partial invalid Lists, giant all-report record, dual aliases/keys
 private source audit/migration: still requires separate explicit instruction
 ```
 

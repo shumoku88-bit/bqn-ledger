@@ -1,0 +1,26 @@
+== Daily Target ==
+Observation: 2026-01-10
+Target date: 2026-01-20 (10 days)
+
+Eligible asset evidence
+Asset | Amount
+------+-------
+cash  |   1000
+
+Open obligation evidence
+Obligation | Gross | Already excluded | Deduction | Reservation            
+-----------+-------+------------------+-----------+------------------------
+rent       |   200 |               50 |       150 | proven:reservation:rent
+
+Calculation
+Coordinate           | Amount
+---------------------+-------
+Eligible assets      |   1000
+Gross obligations    |    200
+Already excluded     |     50
+Obligation deduction |    150
+Capacity balance     |    850
+Daily target         |     85
+Daily shortfall      |      0
+Status: ok
+

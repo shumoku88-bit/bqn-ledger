@@ -13,6 +13,7 @@ bqn tests/test_section_recent_journal.bqn >/dev/null
 bqn tests/test_section_cycle_accounts.bqn >/dev/null
 bqn tests/test_section_cycle_comparison.bqn >/dev/null
 bqn tests/test_section_envelope_backing.bqn >/dev/null
+bqn tests/test_section_daily_target.bqn >/dev/null
 bqn tests/test_section_monthly_accounts.bqn >/dev/null
 
 audit=$(python3 tools/characterization/report_source_readiness_audit.py "$base")
