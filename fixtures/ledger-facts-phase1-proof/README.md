@@ -1,6 +1,6 @@
-# Ledger-facts Phase 1 proof fixture
+# Ledger-facts public proof fixture
 
-Public synthetic fixture for the first canonical Actual fact and Trial Balance proof. It contains no household data.
+Public synthetic fixture for canonical Actual, strict Plan/Budget companion facts, and report parity. It contains no household data. The historical directory name is retained to keep fixture paths stable.
 
 The fixture deliberately provides all approved strict-source coordinates:
 
@@ -11,12 +11,14 @@ The fixture deliberately provides all approved strict-source coordinates:
 - durable Plan identity and matching Actual `plan-id`;
 - fixed explicit cycle.
 
-Actual evidence includes:
+Canonical evidence includes:
 
 - three transactions and seven postings;
 - one three-posting split transaction;
 - stable event IDs;
 - one completed Plan relationship;
+- one strict Plan transaction and two strict Budget transactions;
+- explicit row currency and durable Plan identity;
 - exact source lines suitable for provenance checks.
 
 Current semantic baseline:
@@ -27,4 +29,4 @@ Current semantic baseline:
 - Recent preserves the split destination list;
 - Planned JSON reports the durable Plan as completed with planned `25` and actual `20`.
 
-`checks/check-ledger-facts-phase1-proof-fixture.sh` fixes these observable facts against the current production report. During Phase 1 it becomes an old/new canonical-fact comparison before the old owner is deleted.
+`checks/check-ledger-facts-phase1-proof-fixture.sh` fixes observable report behavior, while `tests/test_ledger_facts.bqn` and `tests/test_ledger_companion_facts.bqn` prove canonical aligned facts and all-or-nothing strict rejection.

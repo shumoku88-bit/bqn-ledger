@@ -198,17 +198,18 @@ src_next/queries/
                   src_next/summary.bqn ──── 機械向けコンパクト出力
 ```
 
-Phase 1Aでは現行productionと切り離した次のreadonly proofも存在する。
+現行productionと切り離したpure canonical proofが存在する。
 
 ```text
-successful complete Actual admission + minimal admitted Account table
-  -> src/ledger/facts.bqn
-       -> aligned Transaction Facts
-       -> aligned Posting Facts
-       -> Domain / Account / Layer tables
+already-read Account + raw Actual -> snapshot.bqn -> Actual Facts
+already-read Plan/Budget TSV + admitted Account
+  -> companion_snapshot.bqn
+  -> strict Plan Facts + Budget Facts
 ```
 
-新ledger ownerはsource path、I/O、clock、旧context、Cube/TBDS、report fieldを受け取らない。Phase 1Bでtransaction structure、exact decimal、currency registry、strict Account admission、single-domain/complete multi-domain Journal admission、Transaction/Posting fact projectionを`src/ledger`へ移した。`snapshot.bqn`はalready-read account lines、raw Journal、registryだけをall-or-nothingでfactsへcomposeする。現行runtime/editor callerもcanonical admission pathを直接importし、旧module pathはwrapperなしで削除済みである。schemaとinvariantは`docs/LEDGER_FACT_SCHEMA.md`を正とする。
+両rootは共通の`facts.bqn`からaligned Transaction/Posting FactsとDomain/Account/Layer tablesを得る。Plan/Budgetはexplicit currency、Account currency一致、exact scaleを要求し、Planはdurable `plan_id`なしではadmitしない。どちらか一方のcompanion sourceがinvalidなら両方のfactsを空にする。空のoptional companion sourceは正常で、架空Domainを作らない。Source tableは複数source familyを実際に組み合わせるqueryまで導入しない。
+
+新ledger ownerはsource path、I/O、clock、旧context、Cube/TBDS、report fieldを受け取らない。現行runtime/editor callerもcanonical Actual admission pathを直接importし、旧module pathはwrapperなしで削除済みである。schemaとinvariantは`docs/LEDGER_FACT_SCHEMA.md`を正とする。
 
 ### Selected-domain composition stages
 

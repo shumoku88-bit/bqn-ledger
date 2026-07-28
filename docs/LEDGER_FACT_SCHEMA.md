@@ -1,17 +1,17 @@
 # Canonical ledger fact schema
 
-Status: Phase 1 complete; canonical Actual admission and facts
-Owner: `src/ledger/snapshot.bqn` / `src/ledger/facts.bqn`
+Status: Phase 2A; canonical Actual plus strict Plan/Budget companion facts
+Owner: `src/ledger/snapshot.bqn` / `src/ledger/companion_snapshot.bqn` / `src/ledger/facts.bqn`
 Public evidence: `fixtures/ledger-facts-phase1-proof/`
 
 ## Boundary
 
-`facts.Project ⟨completeAdmission, admittedAccounts⟩` accepts only:
+`facts.Project ⟨canonicalAdmission, admittedAccounts⟩` accepts only:
 
-- a successful complete Actual admission result;
+- a successful canonical Actual or strict companion admission result;
 - a strict aligned admitted Account table.
 
-It does not accept a report context, source path, raw Journal text, historical transaction carrier, Plan/Budget rows, Cube, TBDS, or section ViewModel. It performs no I/O and reads no clock.
+It does not accept a report context, source path, raw Journal/TSV text, historical transaction carrier, Cube, TBDS, or section ViewModel. It performs no I/O and reads no clock.
 
 Destination code does not import `src_next`. Phase 1B moved transaction grammar, exact decimal, currency registry, strict Account admission, single-domain admission, complete multi-domain admission, and fact projection into `src/ledger`. Runtime/editor/tool/test callers now import the canonical admission owners directly; old module paths were physically deleted without wrappers. Compatibility callers may still construct the minimal Account key/currency carrier from their existing resolver, while the canonical snapshot proof uses strict Account admission.
 
@@ -69,7 +69,9 @@ All columns have length `transactions.count`.
 | `source_start_line`, `source_end_line` | original Journal transaction range |
 | `date_text` | admitted strict ISO date |
 | `date_ordinal` | proleptic Gregorian arithmetic coordinate |
-| `description` | admitted transaction description |
+| `description` | admitted transaction description/memo |
+| `status_marker` | admitted source status marker, empty for TSV companions |
+| `metadata` | closed admitted source metadata retained as key/value evidence |
 | `layer_index` | index into Layer table |
 | `domain_index` | index into Domain table |
 | `calculation_scale` | exact normalized coefficient scale for that transaction domain |
@@ -119,6 +121,16 @@ The table exposes aligned `index`, `key`, `currency`, `role`, `type`, `budget`, 
 
 `index`, `name`; order is first admitted transaction occurrence. Empty Actual has an empty Layer table.
 
+## Strict Plan/Budget companion boundary
+
+`companion_snapshot.Build ⟨planLines,budgetLines,admittedAccounts,registry⟩` is the pure all-or-nothing companion root. It admits the two already-read optional TSV sources independently but publishes neither source's facts if either source fails.
+
+Both sources require exactly the five positional coordinates `date`, `memo`, `from account`, `to account`, and positive exact `amount`, followed by closed `key=value` metadata. Every row requires explicit registry-supported `currency`; both accounts must exist and have that currency. Dates are strict Gregorian text and finite currency precision is enforced.
+
+Plan additionally requires a nonempty, snapshot-unique `plan_id`, which becomes a `durable_relation` transaction identity. There is no five-field completion identity fallback. Budget rows use an explicit `physical_snapshot` source-row identity because no durable cross-source relationship currently consumes them. Empty optional Plan/Budget sources are valid and have zero Domain rows; unlike Actual, no domain is fabricated.
+
+Successful companion facts use the same aligned Transaction/Posting schema. Each TSV row becomes one transaction with debit-to and credit-from postings. Original amount text and exact coefficient/scale are retained; source rows are one-based. Source-family identity remains explicit in each transaction ID. A shared Source table is intentionally deferred until a query actually combines source families.
+
 ## Required invariants
 
 - every fact family is column-aligned;
@@ -133,13 +145,15 @@ The table exposes aligned `index`, `key`, `currency`, `role`, `type`, `budget`, 
 - invalid admission never becomes partial facts;
 - declaration-only Actual is valid when domain/account evidence is explicit.
 
-## Phase 1A proof
+## Public proof
 
 The public fixture proves:
 
 ```text
 3 transactions
 7 Actual postings
+1 Plan transaction / 2 postings
+2 Budget transactions / 4 postings
 1 three-posting split transaction
 8 admitted accounts (including zero-posting Budget accounts)
 1 JPY domain
@@ -155,7 +169,6 @@ Trial Balance and Recent remain current-engine outputs in this slice. Their obse
 ## Not in this schema
 
 - no all-report context or section fields;
-- no Plan/Budget fact admission yet;
 - no Cube/TBDS materialization;
 - no Select/Join/Group/Pivot API yet;
 - no human/compact/JSON formatting;

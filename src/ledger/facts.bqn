@@ -1,6 +1,7 @@
 # Canonical readonly Transaction/Posting facts projected from complete admission.
-# Input is the production complete-admission result, never a context, source path,
-# historical transaction carrier, Plan/Budget row, Cube, or report ViewModel.
+# Input is a canonical transaction admission result, never a context, source path,
+# raw Plan/Budget row, historical carrier, Cube, or report ViewModel. Actual requires
+# an explicit domain even when empty; admitted optional companion sources may allow none.
 
 dates ← •Import "date_ordinal.bqn"
 empty ← ⟨⟩
@@ -45,7 +46,8 @@ Project ← {𝕊 admitted‿admittedAccounts:
   {𝕊:
     transactions ↩ admitted.transactions
     declaredDomains ↩ admitted.declared_domains
-    diagnostics ∾↩ AddIf ⟨0 = ≠declaredDomains, Diagnostic ⟨"domain_missing","complete admission must retain at least one explicit domain"⟩⟩
+    allowEmptyDomains ← ({𝕊: admitted.allow_empty_domains}⎊{𝕊:0}) @
+    diagnostics ∾↩ AddIf ⟨(0=≠declaredDomains) ∧ ¬allowEmptyDomains, Diagnostic ⟨"domain_missing","Actual admission must retain at least one explicit domain"⟩⟩
   }⍟(admitted.state ≡ "ok") @
 
   layerNames ← Unique {𝕩.layer_name}¨ transactions

@@ -7,13 +7,13 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Phase 2A: Actual fact sufficiency is mapped, Journal list/reverse/completion readers use canonical facts, and production cycle/context no longer falls back to `historical_external_plan`. Next admit strict Plan/Budget companion rows from the public proof fixture without five-field identity or implicit currency.
+Phase 2B: strict Plan/Budget companion admission now produces common aligned Facts with explicit currency, Account agreement, exact scale, and durable unique Plan ID; either source failure publishes neither source. Next isolate strict config/cycle admission using public fixtures only.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn
-completed: raw Actual + Account evidence -> facts; production historical fallback removed
-next boundary: strict Plan/Budget transaction/posting facts
-must preserve: source row, exact scale, date, memo/category, plan identity, diagnostics
+completed: Actual + strict Plan/Budget canonical facts as separate pure roots
+next boundary: strict config/cycle source coordinates versus report policy
+intentionally deferred: shared Source table until a cross-source query consumer exists
 private source audit/migration: still requires separate explicit instruction
 ```
 

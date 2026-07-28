@@ -85,7 +85,7 @@ Updated: 2026-07-26
 
 `src_next/queries/actual_expense_ranking.bqn`は現時点でpublic report sectionへ配線されていない。checked selected-domain posting factsを使うpurpose-specific consumerとして、public synthetic fixtureとfocused testでcharacterizeされている。
 
-現在の`src_next`は71 BQN module中67 moduleがroot直下、4 moduleがnestedで、direct importは278（internal 263）、欠損target 0、cycle 0です。exact decimal、currency registry、complete/single-domain Journal admissionは全callerと`src/ledger`へ移動し、旧path wrapperはありません。移動前のpoint-in-time evidenceは`docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`と`docs/archive/audits/SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md`に保持します。
+現在の`src_next`は71 BQN module中67 moduleがroot直下、4 moduleがnestedで、direct importは277（internal 263）、欠損target 0、cycle 0です。exact decimal、currency registry、complete/single-domain Journal admissionは全callerと`src/ledger`へ移動し、旧path wrapperはありません。移動前のpoint-in-time evidenceは`docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`と`docs/archive/audits/SRC_NEXT_MODULE_TOPOLOGY_AUDIT-2026-07-26.md`に保持します。
 
 ## 正データファイル
 
@@ -104,7 +104,7 @@ Updated: 2026-07-26
 
 ### `src/ledger/` (移行中のcanonical ledger facts)
 
-- `facts.bqn` — successful complete Actual admissionとstrict aligned Account tableを受け、aligned Transaction/Posting factsとDomain/Account/Layer tableへall-or-nothing projectionするread-only owner。source path、I/O、clock、context、Cube、report fieldを受けない。
+- `facts.bqn` — successful canonical Actual/companion admissionとstrict aligned Account tableを受け、aligned Transaction/Posting factsとDomain/Account/Layer tableへall-or-nothing projectionするread-only owner。Actualはemptyでもexplicit Domain必須、optional companionはempty Domainを許す。
 - `date_ordinal.bqn` — fact date用のstrict ISO Gregorian validation/ordinalだけを持つpure coordinate owner。clockや表示を持たない。
 - `exact_decimal.bqn` — source amount textのexact parse、canonical coefficient/scale、exact-range diagnosticsを所有するpure kernel。全runtime/editor/test callerを同時移動し、旧path wrapperはない。
 - `currency_registry.bqn` — repository currency policy行をI/Oなしで検査し、Policy/IsSupportedCurrencyを返すpure owner。旧path wrapperはない。
@@ -113,6 +113,8 @@ Updated: 2026-07-26
 - `journal_single_domain_admission.bqn` — 1 transaction domainのexact decimal、registry precision、Account currency、balance、normalized structureをadmitする。
 - `journal_complete_admission.bqn` — declaration-onlyを含むraw Journal全体をdomain partitionし、各ordinary transactionをsingle-domain ownerへ渡してcomplete no-partial transaction evidenceを返す。
 - `snapshot.bqn` — already-read account lines、raw Journal、registryをstrict Account→complete Journal→factsへcomposeするpure bounded root。
+- `companion_admission.bqn` — already-read Plan/Budget TSVの固定5座標、closed metadata、strict date、positive exact amount、explicit currency、Account currency、durable Plan IDをsource policyごとにall-or-nothing admissionする。
+- `companion_snapshot.bqn` — Plan/Budget両admissionをcommon factsへcomposeし、一方でもinvalidなら両source factsをpublishしないpure bounded root。shared Source tableはまだ作らない。
 - `transaction_rows.bqn` — canonical factsからsource-order Transactionとordered Postingをtyped joinするJournal list/reverse/Recent向けnarrow capability。source loadやreport formattingを持たない。
 - `amount_text.bqn` — exact coefficient/scaleをroundingなしでplain decimal textへ変換するpure capability。
 - 現行production routingはまだ`src_next`だが、runtime/editorのcomplete admission callerは`src/ledger`を直接importする。`src/ledger`から`src_next`をimportしてはならない。

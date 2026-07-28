@@ -318,7 +318,7 @@ Exit:
 - [x] Prove that every report-required fact can be derived from complete admission or name the missing canonical field (`docs/ACTUAL_FACT_SUFFICIENCY.md`).
 - [x] Extend complete admission only for real canonical evidence; do not add report fields.
 - [x] Make editor read commands consume the same admitted transaction facts where applicable.
-- [ ] Add fail-closed tests for invalid, mixed, unsupported, duplicate, and empty evidence.
+- [x] Add fail-closed tests for invalid, mixed, unsupported, duplicate, and empty evidence.
 
 Exit:
 
@@ -327,12 +327,12 @@ Exit:
 
 ### Phase 2 — Make companion sources strict
 
-- [ ] Admit plan and budget sources into exact, domain-proven posting evidence.
-- [ ] Require explicit source/account currency according to the Phase 0 decision.
-- [ ] Resolve plan completion with one canonical identity rule.
-- [ ] Resolve accounts and source metadata once per source snapshot.
+- [x] Admit plan and budget sources into exact, domain-proven posting evidence.
+- [x] Require explicit source/account currency according to the Phase 0 decision.
+- [x] Resolve plan completion with one canonical durable `plan_id` rule and no five-field fallback in the destination.
+- [x] Resolve accounts and closed source metadata once per strict companion snapshot.
 - [ ] Keep issues as non-accounting facts rather than forcing them into Posting IR.
-- [ ] Build readonly audit tools for source rows that require migration.
+- [x] Build readonly audit tools for source rows that require migration (`report_source_readiness_audit.py`).
 - [ ] Migrate public fixtures.
 - [ ] Preview and apply private source migration only under explicit human direction.
 - [ ] Delete each fallback immediately after all supported sources satisfy its replacement contract.

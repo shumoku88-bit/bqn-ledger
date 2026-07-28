@@ -6,7 +6,7 @@ This is the lightweight queue for current work. Completed implementation history
 
 - Native Journal is the sole production Actual source; companion sources are `plan.tsv`, `budget_alloc.tsv`, `accounts.tsv`, `cycle.tsv`, and `issues.tsv`.
 - Daily human reporting runs through `tools/report` → `src_next/report.bqn`; compact output uses `tools/report-next-summary` → `src_next/summary.bqn`.
-- Production routing remains `src_next`, now 71 BQN modules and 12,412 physical lines; canonical admission/fact ownership is under `src/ledger`, while temporary context row adapters remain until report consumers migrate. All report sections remain available.
+- Production routing remains `src_next`, now 71 BQN modules and 12,407 physical lines; canonical admission/fact ownership is under `src/ledger`, while temporary context row adapters remain until report consumers migrate. All report sections remain available.
 - Canonical Daily Cube, TBDS, and purpose-specific sparse consumers remain views over checked posting facts, not competing source truths.
 - The current runtime still contains dual context/admission routes, historical transaction/proof fallbacks, compatibility exports, test seams, and historical entrypoint names.
 - Current reporting remains production until a separately verified ledger-facts engine passes the cutover gate.
@@ -83,14 +83,21 @@ This is not a section-reduction campaign and must not recreate the old giant all
 - [x] Migrated ordinary context/cycle production evidence to complete admission and deleted the runtime historical fallback; only explicit offline/test characterization users remain.
 - [x] Kept Plan/Budget admission, Pivot, and Trial Balance replacement out of the reader-focused slice.
 
-### Current finite slice: Phase 2A strict companion admission
+### Completed finite slice: Phase 2A strict companion admission
 
-- [ ] Define aligned Plan and Budget transaction/posting facts from the strict public proof fixture.
-- [ ] Require explicit supported row currency and exact Account currency agreement.
-- [ ] Require durable `plan_id` for completion-capable Plan relationships; add no five-field fallback.
-- [ ] Preserve source row, exact coefficient/scale, date, memo/category, and relationship metadata with no partial result.
-- [ ] Add a logical Source table/index only when Actual/Plan/Budget facts first share a query consumer.
-- [ ] Do not inspect or migrate private sources without a separate explicit instruction.
+- [x] Defined aligned Plan and Budget transaction/posting facts from the strict public proof fixture.
+- [x] Required explicit supported row currency and exact Account currency agreement.
+- [x] Required durable, unique `plan_id` for Plan relationships; added no five-field fallback.
+- [x] Preserved one-based source row, exact coefficient/scale/text, strict date, memo, closed metadata, and relationship identity with no partial result.
+- [x] Deferred a logical Source table/index until Actual/Plan/Budget facts first share a query consumer.
+- [x] Did not inspect or migrate private sources.
+
+### Current finite slice: Phase 2B strict cycle/config boundary
+
+- [ ] Inventory only public fixture fields consumed from config.tsv and cycle.tsv; separate source admission from report policy.
+- [ ] Define pure strict config/cycle admission with explicit currency and valid date/range coordinates.
+- [ ] Prove valid empty Actual plus explicit cycle/config without fabricated transaction evidence.
+- [ ] Keep broad public-fixture migration and all private source inspection out of this slice.
 
 Phase 0 exit evidence is `docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`: every observable report capability has an owner, every compatibility path has a deletion gate, and no undecided fallback is permitted in the destination fact schema.
 
