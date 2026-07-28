@@ -126,7 +126,8 @@ Updated: 2026-07-26
 
 - `account_period.bqn` — explicit Facts/domain/layer/start/endだけを受け、Account-orderのopening/debit/credit/movement/closing、exact totals、contributor Posting indicesを返す。Cube/TBDS、context、section、format、clockを持たない。
 - `date_category_flow.bqn` — strict date period内のexplicit income/expense Account postingsを、Account metadata由来dynamic envelope categoryと`other`へsparse groupingする。date income/net、exact scale、contributor Posting indicesを返し、prefix inferenceやDaily Flow section fieldを持たない。
-- 二つのgrouping consumerは比較済みだがpolicy差が大きいため、`month × expense category` extension proof前にgeneric Select/Group/Pivotへ抽出しない。
+- `month_category_flow.bqn` — presentation-neutral date/category evidenceをcalendar month × categoryへrollupし、exact scaleと元Posting contributorsを保持するextensibility proof。
+- `sparse_group.bqn` — date/month両consumerで同一と証明されたexplicit row axis × bounded columnのdeterministic sparse Group。exact sum、zero-sum contributor保持、all-or-nothing diagnosticsだけを所有し、date/month/category policyを持たない。
 
 ### `src_next/` (現行production BQN 会計エンジン)
 

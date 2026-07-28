@@ -114,12 +114,19 @@ This is not a section-reduction campaign and must not recreate the old giant all
 - [x] Proved the public Daily Flow dynamic `food`/`other` axes without Cube, context, or section formatting.
 - [x] Compared Account-period and date/category grouping; shared only exact arithmetic because grouping policies still differ materially.
 
-### Current finite slice: Phase 3C month/category extensibility gate
+### Completed finite slice: Phase 3C month/category extensibility gate
 
-- [ ] Reuse the admitted expense/category evidence to group by calendar month × dynamic expense category.
-- [ ] Preserve exact totals and contributor Posting indices for every sparse month/category coordinate.
-- [ ] Prove at least two months and multiple categories with public synthetic facts.
-- [ ] Extract only the Select/Group coordinates demonstrated identically by date/category and month/category consumers; do not introduce section names or formatting.
+- [x] Reused presentation-neutral date/category evidence to group by calendar month × dynamic expense category.
+- [x] Preserved exact totals and original contributor Posting indices for every sparse month/category coordinate.
+- [x] Proved two months, multiple categories, multiple contributors, and mixed scales with public synthetic facts.
+- [x] Extracted only explicit row-axis × bounded-column deterministic sparse Group, demonstrated identically by date/month consumers.
+
+### Current finite slice: Phase 3D sparse Pivot and MatrixResult
+
+- [ ] Materialize date/category and month/category sparse groups into one deterministic dense Pivot without category policy.
+- [ ] Preserve contributor Posting indices per dense cell and explicit zero fill for absent coordinates.
+- [ ] Define the narrow presentation-neutral MatrixResult coordinates needed by both consumers.
+- [ ] Keep labels, signs, observation/as-of policy, human formatting, runtime routing, and private sources outside Pivot.
 
 Phase 0 exit evidence is `docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`: every observable report capability has an owner, every compatibility path has a deletion gate, and no undecided fallback is permitted in the destination fact schema.
 

@@ -2,6 +2,7 @@
 # Category identity comes only from admitted Account role/budget/kind metadata.
 
 scale ← •Import "../ledger/exact_scale.bqn"
+sparse ← •Import "sparse_group.bqn"
 empty ← ⟨⟩
 
 Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
@@ -100,29 +101,22 @@ Build ← {𝕊 factSet‿domainCode‿layerName‿startOrdinal‿endOrdinal:
 
       {𝕊:
         normalized ← {𝕩.coefficient}¨normalizedResults
+        expenseMask ← "expense"⊸≡¨selectedRoles
+        grouped ← sparse.Build ⟨
+          dateOrdinals,categoryTable.count,
+          expenseMask/selectedDates,expenseMask/selectedCategories,expenseMask/normalized,
+          {⟨𝕩⟩}¨(expenseMask/selectedFactIndices)
+        ⟩
+        diagnostics ∾↩ grouped.diagnostics
         candidateDates ← empty
-        candidateGroups ← empty
         {𝕊 dateIndex:
           ordinal ← dateIndex⊑dateOrdinals
           dateMask ← ordinal=selectedDates
           incomeMask ← dateMask ∧ "income"⊸≡¨selectedRoles
-          incomeValues ← -(incomeMask/normalized)
-          incomeResult ← scale.Sum incomeValues
+          incomeResult ← scale.Sum (-(incomeMask/normalized))
           diagnostics ∾↩ AddIf ⟨incomeResult.state≢"ok",Diagnostic ⟨"coefficient_sum_failed","daily income exceeds exact range"⟩⟩
-          expenseValues ← empty
-          {𝕊 categoryIndex:
-            categoryMask ← dateMask ∧ ("expense"⊸≡¨selectedRoles) ∧ categoryIndex=selectedCategories
-            contributors ← categoryMask/selectedFactIndices
-            {𝕊:
-              expenseResult ← scale.Sum (categoryMask/normalized)
-              diagnostics ∾↩ AddIf ⟨expenseResult.state≢"ok",Diagnostic ⟨"coefficient_sum_failed","daily category expense exceeds exact range"⟩⟩
-              {𝕊:
-                expenseValues∾↩⟨expenseResult.coefficient⟩
-                candidateGroups∾↩⟨{date_index⇐dateIndex,category_index⇐categoryIndex,coefficient⇐expenseResult.coefficient,contributors⇐contributors}⟩
-              }⍟(expenseResult.state≡"ok") @
-            }⍟(0<≠contributors) @
-          }¨categoryTable.index
-          expenseTotal ← scale.Sum expenseValues
+          dateGroupMask ← dateIndex=grouped.groups.row_index
+          expenseTotal ← scale.Sum (dateGroupMask/grouped.groups.coefficient)
           netResult ← {state⇐"error",coefficient⇐empty}
           {𝕊: netResult↩scale.Sum ⟨incomeResult.coefficient,-expenseTotal.coefficient⟩}⍟((incomeResult.state≡"ok") ∧ expenseTotal.state≡"ok") @
           diagnostics ∾↩ AddIf ⟨netResult.state≢"ok",Diagnostic ⟨"coefficient_sum_failed","daily net exceeds exact range"⟩⟩
@@ -143,9 +137,9 @@ Build ← {𝕊 factSet‿domainCode‿layerName‿startOrdinal‿endOrdinal:
             income_contributors⇐{𝕩.income_contributors}¨candidateDates
           }
           groupTable↩{
-            count⇐≠candidateGroups,index⇐↕≠candidateGroups,
-            date_index⇐{𝕩.date_index}¨candidateGroups,category_index⇐{𝕩.category_index}¨candidateGroups,
-            coefficient⇐{𝕩.coefficient}¨candidateGroups,contributors⇐{𝕩.contributors}¨candidateGroups
+            count⇐grouped.groups.count,index⇐grouped.groups.index,
+            date_index⇐grouped.groups.row_index,category_index⇐grouped.groups.column_index,
+            coefficient⇐grouped.groups.coefficient,contributors⇐grouped.groups.contributors
           }
         }⍟(0=≠diagnostics) @
       }⍟normalizationOk @

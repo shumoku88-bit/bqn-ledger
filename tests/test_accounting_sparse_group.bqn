@@ -1,0 +1,36 @@
+#!/usr/bin/env bqn
+
+lib ← •Import "test_lib.bqn"
+group ← •Import "../src/accounting/sparse_group.bqn"
+
+result ← group.Build ⟨
+  ⟨"a","b"⟩,2,
+  ⟨"a","a","b"⟩,⟨0,0,1⟩,⟨10,¯10,5⟩,⟨⟨0⟩,⟨1,2⟩,⟨3⟩⟩
+⟩
+"ok" lib.AssertEq result.state
+2 lib.AssertEq result.groups.count
+⟨0,1⟩ lib.AssertEq result.groups.row_index
+⟨0,1⟩ lib.AssertEq result.groups.column_index
+⟨0,5⟩ lib.AssertEq result.groups.coefficient
+⟨⟨0,1,2⟩,⟨3⟩⟩ lib.AssertEq result.groups.contributors
+
+emptyResult ← group.Build ⟨⟨"a"⟩,2,⟨⟩,⟨⟩,⟨⟩,⟨⟩⟩
+"ok" lib.AssertEq emptyResult.state
+0 lib.AssertEq emptyResult.groups.count
+
+HasCode ← {𝕊 code‿diagnostics: ∨´0∾code⊸≡¨{𝕩.code}¨diagnostics}
+CheckRejected ← {𝕊 input‿code:
+  rejected ← group.Build input
+  "error" lib.AssertEq rejected.state
+  0 lib.AssertEq rejected.groups.count
+  1 lib.AssertEq HasCode ⟨code,rejected.diagnostics⟩
+}
+CheckRejected ⟨⟨⟨"a"⟩,1,⟨"a"⟩,⟨0,0⟩,⟨1⟩,⟨⟨0⟩⟩⟩,"group_columns_misaligned"⟩
+CheckRejected ⟨⟨⟨"a","a"⟩,1,⟨⟩,⟨⟩,⟨⟩,⟨⟩⟩,"group_row_axis_duplicate"⟩
+CheckRejected ⟨⟨⟨"a"⟩,1,⟨"b"⟩,⟨0⟩,⟨1⟩,⟨⟨0⟩⟩⟩,"group_row_coordinate_unknown"⟩
+CheckRejected ⟨⟨⟨"a"⟩,1,⟨"a"⟩,⟨1⟩,⟨1⟩,⟨⟨0⟩⟩⟩,"group_column_index_invalid"⟩
+CheckRejected ⟨⟨⟨"a"⟩,1,⟨"a"⟩,⟨0.5⟩,⟨1⟩,⟨⟨0⟩⟩⟩,"group_column_index_invalid"⟩
+CheckRejected ⟨⟨⟨"a"⟩,1,⟨"a"⟩,⟨0⟩,⟨1⟩,⟨⟨⟩⟩⟩,"group_contributors_missing"⟩
+CheckRejected ⟨⟨⟨"a"⟩,1,⟨"a","a"⟩,⟨0,0⟩,⟨9007199254740991,2⟩,⟨⟨0⟩,⟨1⟩⟩⟩,"group_sum_failed"⟩
+
+•Out "test_accounting_sparse_group: ok"

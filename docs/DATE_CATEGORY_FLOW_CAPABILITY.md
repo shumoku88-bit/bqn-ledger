@@ -65,4 +65,4 @@ The group policies are still materially different:
 - Account-period state includes all domain Accounts, zero rows, and pre-period opening evidence;
 - date/category flow uses transaction-date axes, metadata-derived dynamic categories, transformed income, sparse expense coordinates, and no opening state.
 
-Therefore only exact arithmetic is shared today. Selection/group vocabulary will be extracted after the planned `month × expense category` extension proves which coordinates are genuinely reusable. This avoids turning one report's policy into a misleading universal Pivot abstraction.
+The subsequent `month × expense category` proof demonstrated that explicit row-axis plus bounded category coordinate, exact sum, and contributor flattening are identical. That operation now lives in `sparse_group.bqn` and is used by both date and month consumers. Category classification, transaction-date selection, month derivation, income/net, and opening state remain outside the generic Group owner. See `MONTH_CATEGORY_GROUPING.md`.

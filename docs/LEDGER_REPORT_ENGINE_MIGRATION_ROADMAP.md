@@ -356,7 +356,7 @@ Implement only capabilities required by the report migration:
 - [ ] Cube/TBDS construction where they remain useful;
 - [x] source-order/provenance access for reports that require it (Transaction rows and Account-period Posting contributors);
 - [ ] composable selection masks over typed fact columns;
-- [ ] generic deterministic sparse grouping with contributor indices (proved in the date/category consumer; extraction waits for month/category);
+- [x] generic deterministic sparse grouping with contributor indices (`sparse_group.bqn`, used by date/category and month/category);
 - [ ] row-axis/column-axis pivot construction;
 - [ ] MatrixResult, ListResult, and CardResult presentation-neutral shapes.
 
