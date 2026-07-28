@@ -7,13 +7,13 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Phase 3I: canonical Plan completion now joins explicit Plan/Actual selections by durable plan_id only, preserves each source's exact amount/direction/provenance, and distinguishes open/completed/duplicate/ambiguous without summing duplicate evidence. Next compose the destination Planned Payments section over cycle result, observation, selection, and Join.
+Phase 3J: destination Planned Payments now composes cycle selection, explicit observation, durable completion Join, temporal state, exact single-domain total, and one List result rendered as human/compact/JSON. Next prove narrow requested-section use-case composition for the three destination sections without building an all-report context.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn
-completed capabilities: two Matrix reports + cycle resolution + Plan completion Join
-next section proof: Planned Payments human/compact/JSON over strict public Facts
-forbid: five-field fallback, exact-any-match duplicate collapse, broad context, private work
+completed section proofs: Trial Balance + Daily Flow + Planned Payments
+next boundary: already-read strict evidence -> one requested destination section result
+forbid: giant all-section record, source reload/clock in sections, dual compact keys, private work
 private source audit/migration: still requires separate explicit instruction
 ```
 

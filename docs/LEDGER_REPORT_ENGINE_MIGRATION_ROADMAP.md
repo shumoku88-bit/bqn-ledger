@@ -374,6 +374,7 @@ For each capability:
 Report-construction proof:
 
 - [x] implement two materially different real Matrix reports through canonical accounting/Matrix vocabulary (dense Trial Balance and sparse/dynamic Daily Flow);
+- [x] implement one policy-heavy List report (Planned Payments) by composing explicit selection, durable Join, temporal state, exact total, and one human/compact/JSON result;
 - [x] implement reports that retain contributor Posting indices, including derived net/closing cells;
 - [ ] implement one synthetic report not present in the current 15-section catalog without changing admission, fact schema, or accounting kernel;
 - [x] prove selected-domain exactness and deterministic row/column ordering;

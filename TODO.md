@@ -162,13 +162,22 @@ This is not a section-reduction campaign and must not recreate the old giant all
 - [x] Shared only Source validation and durable Fact references after two real cross-source consumers agreed.
 - [x] Kept selection policy, source I/O, formatting, production routing, and private source work outside the Join.
 
-### Current finite slice: Phase 3I destination Planned Payments section
+### Completed finite slice: Phase 3I destination Planned Payments section
 
-- [ ] Compose admitted cycle result, explicit Plan/Actual period selections, completion Join, and explicit observation without a broad report context.
-- [ ] Derive future/due/overdue/completed display state while refusing duplicate or ambiguous completion evidence.
-- [ ] Preserve current human/compact/JSON contracts on the strict public fixture with deterministic destination goldens.
-- [ ] Keep labels, totals, and rendering section-local; do not move them into Join or Facts.
-- [ ] Leave production routing unchanged until the atomic section/runtime cutover.
+- [x] Composed resolved cycle, explicit Plan/Actual period selections, completion Join, and explicit latest-or-start observation without a report context.
+- [x] Derived future/due/overdue/completed display state and refused duplicate, ambiguous, currency-mismatched, or direction-mismatched completion evidence.
+- [x] Preserved current strict-fixture human/JSON semantics and added deterministic human/compact/JSON destination goldens.
+- [x] Kept category labels, exact single-domain open total, temporal policy, and rendering section-local.
+- [x] Emitted only the approved destination compact `ledger_planned_payment` name; no dual key or forwarding renderer.
+- [x] Left production routing unchanged.
+
+### Current finite slice: Phase 3J narrow requested-section composition
+
+- [ ] Compose already-read strict account/config/cycle/Actual/Plan/Budget evidence into only the requested destination section.
+- [ ] Provide separate narrow Trial Balance, Daily Flow, and Planned Payments use cases rather than a giant all-section record.
+- [ ] Resolve cycle mode and explicit observation once at the use-case boundary without clock or source reload inside accounting/sections.
+- [ ] Prove invalid admission/cycle/section results remain unavailable/error and publish no valid-looking body.
+- [ ] Keep filesystem I/O, production routing, private sources, and unsupported sections outside this finite slice.
 
 Phase 0 exit evidence is `docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`: every observable report capability has an owner, every compatibility path has a deletion gate, and no undecided fallback is permitted in the destination fact schema.
 

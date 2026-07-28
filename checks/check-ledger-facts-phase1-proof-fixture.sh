@@ -5,8 +5,9 @@ ROOT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$ROOT_DIR"
 base="fixtures/ledger-facts-phase1-proof"
 
-# Canonical Join and current Planned JSON share this strict public evidence.
+# Canonical Join/section and current Planned outputs share this strict public evidence.
 bqn tests/test_accounting_plan_completion_join.bqn >/dev/null
+bqn tests/test_section_planned_payments.bqn >/dev/null
 
 audit=$(python3 tools/characterization/report_source_readiness_audit.py "$base")
 grep -Fq $'\texplicit\t8\t0\t0\t1\t0\t0\t2\t0\tdirect' <<<"$audit"
@@ -35,7 +36,13 @@ balances=$(tools/report "$base" --section balances --no-color)
 grep -Fq 'Currency view: JPY (ledger default)' <<<"$balances"
 grep -Eq '^assets:cash/JPY +\| +965$' <<<"$balances"
 
+planned_human=$(tools/report "$base" --section planned --no-color)
+destination_planned_human=$(cat "$base/planned_payments.destination.human.txt")
+[[ "$planned_human" == "$destination_planned_human" ]]
+
 planned=$(tools/report "$base" --section planned --format json --no-color)
+destination_planned_json=$(cat "$base/planned_payments.destination.json")
+[[ "$planned" == "$destination_planned_json" ]]
 python3 -c '
 import json, sys
 value = json.load(sys.stdin)
