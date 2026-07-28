@@ -143,13 +143,23 @@ This is not a section-reduction campaign and must not recreate the old giant all
 - [x] Added only the human renderer required by contract; no compact/JSON or production routing.
 - [x] Made empty source layers explicit in canonical admission/Facts for Actual, Plan, and Budget rather than patching Daily Flow.
 
-### Current finite slice: Phase 3G pure cycle resolution
+### Completed finite slice: Phase 3G pure cycle resolution
 
-- [ ] Resolve admitted fixed definitions without source reload or hidden clock.
-- [ ] Resolve calendarMonth from an explicit valid as-of coordinate with month-safe admitted start_day.
-- [ ] Resolve incomeAnchor only from admitted Actual/Plan facts, explicit income Account, and durable evidence.
-- [ ] Return unavailable/rejected states explicitly; do not map them to a fabricated period or numeric zero.
-- [ ] Keep source I/O, report context, formatting, production routing, and private source work outside the resolver.
+- [x] Resolved admitted fixed definitions without source reload, observation, or hidden clock.
+- [x] Resolved calendarMonth from explicit valid as-of with month-safe admitted start_day.
+- [x] Resolved incomeAnchor from admitted Actual/Plan facts, explicit income Account, observation frontier, and durable source-qualified contributors.
+- [x] Returned unavailable/error states without fabricated period, sentinel date, or numeric zero.
+- [x] Split modes by their actual evidence requirements instead of introducing a universal cycle context.
+- [x] Added the deferred Source table/index only when the first Actual+Plan consumer required it.
+- [x] Rejected nonzero historical offset rather than silently ignoring or speculating about unsupported semantics.
+
+### Current finite slice: Phase 3H canonical Plan completion Join
+
+- [ ] Join Plan and Actual Transaction Facts only by durable `plan_id`, with source-qualified contributors.
+- [ ] Preserve planned/actual exact amounts and Account directions without five-field identity fallback.
+- [ ] Distinguish open, completed, duplicate, ambiguous, and invalid evidence without partial rows.
+- [ ] Compare current Planned Payments semantics on strict public fixtures before building the destination section.
+- [ ] Keep source I/O, formatting, production routing, and private source work outside the Join.
 
 Phase 0 exit evidence is `docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`: every observable report capability has an owner, every compatibility path has a deletion gate, and no undecided fallback is permitted in the destination fact schema.
 

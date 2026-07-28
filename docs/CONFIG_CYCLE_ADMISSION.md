@@ -49,10 +49,10 @@ The result separates `source` from `report_policy` while retaining an aligned ke
 Supported unresolved definitions are:
 
 - `fixed`: strict valid `start` and `end_exclusive`, with `start < end_exclusive`;
-- `incomeAnchor`: explicit admitted Account with role `income`, plus optional integer `offset`;
+- `incomeAnchor`: explicit admitted Account with role `income`; optional `offset` is admitted only when `0` so unsupported historical semantics cannot be silently ignored;
 - `calendarMonth`: `start_day` from 1 through 28 so the recurring coordinate exists in every month.
 
-Mode-specific fields are closed. A fixed cycle may retain an optional validated `income_account`, but resolution does not infer boundaries from it. Cycle admission does not inspect transactions, choose an as-of date, read today's date, or read Plan. Those operations belong to a later accounting capability with explicit fact inputs.
+Mode-specific fields are closed. A fixed cycle may retain an optional validated `income_account`, but resolution does not infer boundaries from it. Cycle admission does not inspect transactions, choose an as-of date, read today's date, or read Plan. Pure mode-specific resolution over explicit inputs is documented in `CYCLE_RESOLUTION.md`.
 
 ## Proof
 

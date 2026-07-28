@@ -13,7 +13,7 @@ EmptyFacts ← {𝕊:
     state⇐"error",
     transactions⇐{count⇐0,index⇐empty},
     postings⇐{count⇐0,index⇐empty},
-    domains⇐emptyTable,accounts⇐emptyTable,layers⇐emptyTable,
+    sources⇐emptyTable,domains⇐emptyTable,accounts⇐emptyTable,layers⇐emptyTable,
     diagnostics⇐empty
   }
 }

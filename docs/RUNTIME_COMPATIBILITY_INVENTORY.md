@@ -127,9 +127,10 @@ These counts are characterization. Final deletion is proved by absence and calle
   - `ReadCycleFromAdmittedTransactions`.
 - Current callers: ordinary context, selected context, TBDS/tests/characterization, shadow context.
 - Canonical behavior to keep: fixed, incomeAnchor, and calendarMonth period semantics with explicit observation and admitted evidence.
-- Destination: one pure cycle resolver over parsed cycle policy, admitted facts, Plan facts, and explicit observation.
-- Prerequisite: strict source snapshot and complete transaction facts.
-- Delete: old adapters in Phase 3; one canonical resolver remains.
+- Destination: one shared resolved-period shape with mode-specific pure resolvers, so fixed/calendar modes do not accept unused Facts and incomeAnchor accepts explicit Actual/Plan evidence only.
+- Progress: destination fixed/calendarMonth/incomeAnchor proof is complete under `src/accounting`; unavailable/error never becomes a sentinel period, and nonzero ignored offset is rejected.
+- Remaining prerequisite: move runtime callers to strict source/use-case composition.
+- Delete: old source-loading/carrier adapters with their final runtime callers; no forwarding resolver remains.
 
 ### C09 — `actual_source.ResolveRelativePath` `base/data/` path fallback
 

@@ -50,10 +50,10 @@ cycleResult ← cycle_admission.Admit ⟨loader.ReadLines base∾"cycle.tsv",acc
 "2026-02-01" lib.AssertEq cycleResult.definition.end_exclusive
 "income:salary" lib.AssertEq cycleResult.definition.income_account
 
-incomeCycle ← cycle_admission.Admit ⟨⟨"mode	incomeAnchor","income_account	income:salary","offset	-1"⟩,accounts⟩
+incomeCycle ← cycle_admission.Admit ⟨⟨"mode	incomeAnchor","income_account	income:salary","offset	0"⟩,accounts⟩
 "ok" lib.AssertEq incomeCycle.state
 "incomeAnchor" lib.AssertEq incomeCycle.definition.mode
-¯1 lib.AssertEq incomeCycle.definition.offset
+0 lib.AssertEq incomeCycle.definition.offset
 calendarCycle ← cycle_admission.Admit ⟨⟨"mode	calendarMonth","start_day	15"⟩,accounts⟩
 "ok" lib.AssertEq calendarCycle.state
 15 lib.AssertEq calendarCycle.definition.start_day
@@ -70,6 +70,7 @@ CheckCycleRejected ⟨⟨"mode	monthly"⟩,"cycle_mode_invalid"⟩
 CheckCycleRejected ⟨⟨"mode	fixed","start	2026-99-01","end_exclusive	2026-02-01"⟩,"fixed_cycle_start_invalid"⟩
 CheckCycleRejected ⟨⟨"mode	fixed","start	2026-02-01","end_exclusive	2026-01-01"⟩,"fixed_cycle_range_invalid"⟩
 CheckCycleRejected ⟨⟨"mode	incomeAnchor"⟩,"income_anchor_account_missing"⟩
+CheckCycleRejected ⟨⟨"mode	incomeAnchor","income_account	income:salary","offset	-1"⟩,"income_anchor_offset_unsupported"⟩
 CheckCycleRejected ⟨⟨"mode	incomeAnchor","income_account	assets:cash"⟩,"cycle_income_account_role_invalid"⟩
 CheckCycleRejected ⟨⟨"mode	incomeAnchor","income_account	income:missing"⟩,"cycle_income_account_unknown"⟩
 CheckCycleRejected ⟨⟨"mode	calendarMonth","start_day	29"⟩,"calendar_start_day_invalid"⟩

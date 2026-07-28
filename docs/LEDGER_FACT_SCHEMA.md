@@ -48,6 +48,7 @@ It does not own source paths, account currency lookup, decimal normalization, do
   state,
   transactions,
   postings,
+  sources,
   domains,
   accounts,
   layers,
@@ -64,6 +65,7 @@ All columns have length `transactions.count`.
 | column | meaning |
 |---|---|
 | `index` | dense snapshot-local transaction index |
+| `source_index` | join to the Source table |
 | `transaction_id` | admitted durable event ID or admitted physical snapshot identity |
 | `identity_kind` | provenance of that identity |
 | `source_start_line`, `source_end_line` | original Journal transaction range |
@@ -90,6 +92,7 @@ All columns have length `postings.count`.
 | column | meaning |
 |---|---|
 | `index` | dense snapshot-local posting index and contributor coordinate |
+| `source_index` | join to the Source table |
 | `posting_id` | admitted transaction identity plus transaction-local posting index |
 | `transaction_index` | join to Transaction Facts |
 | `transaction_posting_index` | position inside the source transaction |
@@ -106,6 +109,12 @@ All columns have length `postings.count`.
 A numeric amount is the pair `(coefficient, scale)`. Consumers never combine rows with different domains or scales without an explicit exact normalization/partition rule.
 
 ## Side tables
+
+### Source table
+
+`index`, `name`; one independently admitted fact result currently has one explicit physical source even when it is empty: `actual.journal`, `plan.tsv`, or `budget_alloc.tsv`. Transaction and Posting Facts carry `source_index=0`. Cross-source consumers retain source-qualified durable references rather than treating snapshot-local indices from different fact results as interchangeable.
+
+The Source table was introduced only when incomeAnchor became the first real Actual+Plan query consumer. It is not a report section axis or permission to merge currency domains.
 
 ### Domain table
 
@@ -129,7 +138,7 @@ Both sources require exactly the five positional coordinates `date`, `memo`, `fr
 
 Plan additionally requires a nonempty, snapshot-unique `plan_id`, which becomes a `durable_relation` transaction identity. There is no five-field completion identity fallback. Budget rows use an explicit `physical_snapshot` source-row identity because no durable cross-source relationship currently consumes them. Empty optional Plan/Budget sources are valid and have zero Domain rows; unlike Actual, no domain is fabricated.
 
-Successful companion facts use the same aligned Transaction/Posting schema. Each TSV row becomes one transaction with debit-to and credit-from postings. Original amount text and exact coefficient/scale are retained; source rows are one-based. Source-family identity remains explicit in each transaction ID. A shared Source table is intentionally deferred until a query actually combines source families.
+Successful companion facts use the same aligned Transaction/Posting schema. Each TSV row becomes one transaction with debit-to and credit-from postings. Original amount text and exact coefficient/scale are retained; source rows are one-based. Source-family identity is explicit in the Source table and durable transaction identity.
 
 ## Required invariants
 
@@ -138,6 +147,7 @@ Successful companion facts use the same aligned Transaction/Posting schema. Each
 - normalized posting coefficients sum to zero per transaction;
 - dates are strict valid Gregorian text before ordinal conversion;
 - transaction IDs are nonempty and unique;
+- every transaction and posting joins one explicit admitted Source; cross-source local indices are never silently combined;
 - every transaction domain and layer is explicit and declared; source-specific empty Domain/Layer requirements stay in source admission;
 - account keys are unique and account columns align;
 - every posting account exists and its currency equals the transaction domain;

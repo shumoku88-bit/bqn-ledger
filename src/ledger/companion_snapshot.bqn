@@ -19,7 +19,7 @@ EmptyFacts ← {𝕊:
   table ← {count⇐0,index⇐empty}
   {
     state⇐"error",transactions⇐table,postings⇐table,
-    domains⇐table,accounts⇐table,layers⇐table,diagnostics⇐empty
+    sources⇐table,domains⇐table,accounts⇐table,layers⇐table,diagnostics⇐empty
   }
 }
 

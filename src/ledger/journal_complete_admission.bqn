@@ -234,7 +234,7 @@ Admit ← {𝕊 raw‿accounts‿registry:
   diagnostics ∾↩ CrossTransactionDiagnostics transactions
   {𝕊: transactions ↩ empty}⍟(0 < ≠ diagnostics) @
   {
-    state⇐(0 = ≠ diagnostics) ⊑ "error"‿"ok",
+    state⇐(0 = ≠ diagnostics) ⊑ "error"‿"ok",source_name⇐"actual.journal",
     declared_domains⇐declarations.domains,
     declared_layers⇐Unique ⟨"actual"⟩∾{𝕩.layer_name}¨transactions,
     declared_accounts⇐{𝕩.account_key}¨declarations.accounts,

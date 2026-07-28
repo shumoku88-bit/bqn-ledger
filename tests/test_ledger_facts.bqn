@@ -26,6 +26,9 @@ result ← facts.Project ⟨admitted,admittedAccounts⟩
 "ok" lib.AssertEq admitted.state
 "ok" lib.AssertEq result.state
 0 lib.AssertEq ≠result.diagnostics
+⟨"actual.journal"⟩ lib.AssertEq result.sources.name
+⟨0,0,0⟩ lib.AssertEq result.transactions.source_index
+⟨0,0,0,0,0,0,0⟩ lib.AssertEq result.postings.source_index
 canonicalSnapshot ← snapshot.Build ⟨accountLines,rawJournal,registry⟩
 "ok" lib.AssertEq canonicalSnapshot.state
 0 lib.AssertEq ≠canonicalSnapshot.diagnostics
@@ -88,7 +91,7 @@ strictAccounts.accounts.source_row lib.AssertEq result.accounts.source_row
 ⟨"proof-salary-1:0","proof-salary-1:1","proof-food-1:0","proof-food-1:1","proof-split-1:0","proof-split-1:1","proof-split-1:2"⟩ lib.AssertEq result.postings.posting_id
 
 {result.transactions.count lib.AssertEq ≠𝕩}¨ ⟨
-  result.transactions.index,result.transactions.transaction_id,result.transactions.identity_kind,
+  result.transactions.index,result.transactions.source_index,result.transactions.transaction_id,result.transactions.identity_kind,
   result.transactions.source_start_line,result.transactions.source_end_line,result.transactions.date_text,
   result.transactions.date_ordinal,result.transactions.description,result.transactions.status_marker,
   result.transactions.metadata,result.transactions.layer_index,
@@ -97,7 +100,7 @@ strictAccounts.accounts.source_row lib.AssertEq result.accounts.source_row
   result.transactions.actual_event_id
 ⟩
 {result.postings.count lib.AssertEq ≠𝕩}¨ ⟨
-  result.postings.index,result.postings.posting_id,result.postings.transaction_index,
+  result.postings.index,result.postings.source_index,result.postings.posting_id,result.postings.transaction_index,
   result.postings.transaction_posting_index,result.postings.date_ordinal,result.postings.account_index,
   result.postings.layer_index,result.postings.domain_index,result.postings.coefficient,result.postings.scale,
   result.postings.side,result.postings.source_line,result.postings.source_coefficient,

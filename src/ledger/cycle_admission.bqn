@@ -90,7 +90,9 @@ Admit ← {𝕊 lines‿accounts:
     diagnostics ∾↩ AddIf ⟨0=≠incomeAccount,Diagnostic ⟨"income_anchor_account_missing",0,"incomeAnchor requires income_account"⟩⟩
     extraField ← (Present ⟨"start",keys⟩) ∨ (Present ⟨"end_exclusive",keys⟩) ∨ Present ⟨"start_day",keys⟩
     diagnostics ∾↩ AddIf ⟨extraField,Diagnostic ⟨"income_anchor_field_invalid",0,"incomeAnchor does not accept fixed/calendar boundaries"⟩⟩
-    diagnostics ∾↩ AddIf ⟨(0<≠offsetText) ∧ ¬IsInteger offsetText,Diagnostic ⟨"income_anchor_offset_invalid",0,"incomeAnchor offset must be an integer"⟩⟩
+    offsetValid ← 0=≠offsetText
+    {𝕊: offsetValid↩0=•BQN offsetText}⍟(IsInteger offsetText) @
+    diagnostics ∾↩ AddIf ⟨¬offsetValid,Diagnostic ⟨"income_anchor_offset_unsupported",0,"strict incomeAnchor currently admits only offset 0"⟩⟩
   }⍟isIncome @
 
   startDay ← 0

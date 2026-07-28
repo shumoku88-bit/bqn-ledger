@@ -25,6 +25,11 @@ IsValid ← {𝕊 text:
   valid
 }
 
+FromParts ← {𝕊 y‿m‿d:
+  Pad2 ← {𝕊 value: text←•Fmt value ⋄ ((0⌈2-≠text)⥊'0')∾text}
+  (•Fmt y)∾"-"∾(Pad2 m)∾"-"∾Pad2 d
+}
+
 Ordinal ← {𝕊 text:
   y‿m‿d ← Parts text
   y2 ← y - m ≤ 2
@@ -36,4 +41,4 @@ Ordinal ← {𝕊 text:
   doe + 146097 × era
 }
 
-{IsValid⇐IsValid, Ordinal⇐Ordinal}
+{IsValid⇐IsValid,Ordinal⇐Ordinal,Parts⇐Parts,FromParts⇐FromParts}

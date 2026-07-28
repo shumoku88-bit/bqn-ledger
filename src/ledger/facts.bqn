@@ -21,7 +21,7 @@ Sum0 ← { +´ 0 ∾ 𝕩 }
 
 EmptyTransactionFacts ← {𝕊:
   {
-    count⇐0,index⇐empty,transaction_id⇐empty,identity_kind⇐empty,
+    count⇐0,index⇐empty,source_index⇐empty,transaction_id⇐empty,identity_kind⇐empty,
     source_start_line⇐empty,source_end_line⇐empty,date_text⇐empty,date_ordinal⇐empty,
     description⇐empty,status_marker⇐empty,metadata⇐empty,
     layer_index⇐empty,domain_index⇐empty,calculation_scale⇐empty,
@@ -31,7 +31,7 @@ EmptyTransactionFacts ← {𝕊:
 }
 EmptyPostingFacts ← {𝕊:
   {
-    count⇐0,index⇐empty,posting_id⇐empty,transaction_index⇐empty,
+    count⇐0,index⇐empty,source_index⇐empty,posting_id⇐empty,transaction_index⇐empty,
     transaction_posting_index⇐empty,date_ordinal⇐empty,account_index⇐empty,
     layer_index⇐empty,domain_index⇐empty,coefficient⇐empty,scale⇐empty,side⇐empty,
     source_line⇐empty,source_coefficient⇐empty,source_scale⇐empty,amount_text⇐empty
@@ -44,10 +44,13 @@ Project ← {𝕊 admitted‿admittedAccounts:
   transactions ← empty
   declaredDomains ← empty
   declaredLayers ← empty
+  sourceName ← ""
   {𝕊:
     transactions ↩ admitted.transactions
     declaredDomains ↩ admitted.declared_domains
     declaredLayers ↩ admitted.declared_layers
+    sourceName ↩ admitted.source_name
+    diagnostics ∾↩ AddIf ⟨0=≠sourceName, Diagnostic ⟨"source_name_missing","canonical admission must declare one source name"⟩⟩
     diagnostics ∾↩ AddIf ⟨(0<≠transactions) ∧ 0=≠declaredDomains, Diagnostic ⟨"domain_missing","transactions require an admitted domain"⟩⟩
     diagnostics ∾↩ AddIf ⟨0=≠declaredLayers, Diagnostic ⟨"layer_missing","canonical admission must declare its source layer"⟩⟩
     diagnostics ∾↩ AddIf ⟨(≠declaredLayers)≠≠Unique declaredLayers, Diagnostic ⟨"layer_duplicate","declared source layers must be unique"⟩⟩
@@ -98,7 +101,7 @@ Project ← {𝕊 admitted‿admittedAccounts:
     transactionIndex ← ↕≠transactions
     transactionFacts ↩ {
       count⇐≠transactions,
-      index⇐transactionIndex,
+      index⇐transactionIndex,source_index⇐(≠transactions)⥊0,
       transaction_id⇐{𝕩.source_event_id}¨ transactions,
       identity_kind⇐{𝕩.identity_kind}¨ transactions,
       source_start_line⇐{𝕩.source_start_line}¨ transactions,
@@ -122,7 +125,7 @@ Project ← {𝕊 admitted‿admittedAccounts:
       transaction ← ti⊑transactions
       {𝕊 posting:
         {
-          posting_id⇐posting.posting_id,
+          source_index⇐0,posting_id⇐posting.posting_id,
           transaction_index⇐ti,
           transaction_posting_index⇐posting.posting_index,
           date_ordinal⇐dates.Ordinal transaction.date,
@@ -141,7 +144,7 @@ Project ← {𝕊 admitted‿admittedAccounts:
     }¨ transactionIndex
     postingFacts ↩ {
       count⇐≠postingRows,index⇐↕≠postingRows,
-      posting_id⇐{𝕩.posting_id}¨ postingRows,
+      source_index⇐{𝕩.source_index}¨postingRows,posting_id⇐{𝕩.posting_id}¨ postingRows,
       transaction_index⇐{𝕩.transaction_index}¨ postingRows,
       transaction_posting_index⇐{𝕩.transaction_posting_index}¨ postingRows,
       date_ordinal⇐{𝕩.date_ordinal}¨ postingRows,
@@ -162,6 +165,7 @@ Project ← {𝕊 admitted‿admittedAccounts:
     state⇐(0=≠diagnostics)⊑"error"‿"ok",
     transactions⇐transactionFacts,
     postings⇐postingFacts,
+    sources⇐{count⇐(0<≠sourceName),index⇐(0<≠sourceName)/⟨0⟩,name⇐(0<≠sourceName)/⟨sourceName⟩},
     domains⇐{count⇐≠declaredDomains,index⇐↕≠declaredDomains,code⇐declaredDomains},
     accounts⇐{
       count⇐≠accountKeys,index⇐↕≠accountKeys,key⇐accountKeys,currency⇐accountCurrencies,

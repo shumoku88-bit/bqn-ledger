@@ -20,6 +20,10 @@ result ← companion_snapshot.Build ⟨planLines,budgetLines,accounts,registry�
 2 lib.AssertEq result.plan.postings.count
 2 lib.AssertEq result.budget.transactions.count
 4 lib.AssertEq result.budget.postings.count
+⟨"plan.tsv"⟩ lib.AssertEq result.plan.sources.name
+⟨"budget_alloc.tsv"⟩ lib.AssertEq result.budget.sources.name
+⟨0⟩ lib.AssertEq result.plan.transactions.source_index
+⟨0,0⟩ lib.AssertEq result.plan.postings.source_index
 ⟨25,¯25⟩ lib.AssertEq result.plan.postings.coefficient
 ⟨100,¯100,60,¯60⟩ lib.AssertEq result.budget.postings.coefficient
 ⟨"debit","credit"⟩ lib.AssertEq result.plan.postings.side
