@@ -1,15 +1,16 @@
 # Current report construction inventory
 
-Status: Phase 0A current evidence
+Status: Phase 0A current-production evidence; not the destination portfolio
 Owner: ledger-facts report migration
 Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
+Destination decision: `docs/REPORT_PORTFOLIO_DECISION.md`
 Scope: current production report code at `6f5b68d`
 
 ## Purpose
 
 Classify every current human section by result shape, required facts, selection, axes, measures, joins, time policy, currency policy, and output surfaces before designing the new array-oriented report-construction API.
 
-This is a description of current behavior, not the destination module design. It deliberately separates:
+This is a description of current behavior, not the destination module design. The 2026-07-28 portfolio reset explicitly permits rebuilding, merging, operationally relocating, or deleting these sections. This inventory remains useful for consumer removal and retained-semantic comparison. It deliberately separates:
 
 - **result shape** — Matrix, List, Card, or Custom composite;
 - **construction fit** — declarative Select/Group/Pivot, hybrid, or custom semantic Build;

@@ -1,16 +1,17 @@
 # Report output migration contract
 
-Status: Phase 0C approved destination contract
+Status: current-surface baseline; destination 15-section preservation superseded 2026-07-28
 Owner: ledger-facts report migration
+Portfolio authority: `docs/REPORT_PORTFOLIO_DECISION.md`
 Current implementation: `tools/report` → `src_next/report.bqn`
 Compact implementation: `tools/report-next-summary` → `src_next/summary.bqn`
 Section inventory: `docs/REPORT_CONSTRUCTION_INVENTORY.md`
 
 ## Purpose
 
-Moko approved this output-surface contract after review. Preserve every useful observable report capability while allowing implementation-generation names, compatibility-only behavior, and old entrypoints to disappear at cutover. This document decides where parity means identical bytes, identical schema, or identical accounting meaning.
+This document remains the baseline for current output surfaces and for parity vocabulary. The 2026-07-28 portfolio decision supersedes requirements to preserve all 15 keys, their order, or every old human/compact/JSON surface. Retained destination reports receive explicit contracts; merged/removed surfaces are intentional breaks and must be deleted coherently at cutover.
 
-Strict-source rejection differences approved in `docs/RUNTIME_COMPATIBILITY_INVENTORY.md` are intentional contract changes, not parity failures.
+Strict-source rejection differences and approved portfolio removals are intentional contract changes, not parity failures.
 
 ## Parity vocabulary
 
@@ -27,23 +28,23 @@ Semantic parity always distinguishes zero, unavailable, rejected/error, and not-
 
 | surface | current owner/consumer | destination parity | decision |
 |---|---|---|---|
-| direct human section | `tools/report --section KEY` | Semantic; Byte within destination routes | preserve all 15 keys and section meanings; direct section builds only its required result |
-| full human report | `tools/report` | Semantic; canonical order; Byte within destination/cache | preserve the 15-section order; do not build a giant all-section semantic record |
+| direct human section | `tools/report --section KEY` | Semantic for retained questions; Byte within destination routes | expose only retained portfolio keys; direct section builds only its required result |
+| full human report | `tools/report` | retained portfolio order; Byte within destination/cache | iterate the retained static portfolio; do not build a giant all-section semantic record |
 | selected balances | `--section balances [--currency CODE]` | Semantic and domain-exact | one admitted currency only; approved strict default replaces implicit-JPY body |
 | compact summary | `tools/report-next-summary`, `tools/query`, checks | Schema+Semantic for values; Intentional break for generation names | replace `src_next_` keys/headings atomically with stable `ledger_` names; emit no dual keys |
 | section JSON | planned, balances, snapshot, envelopes | Schema+Semantic | preserve JSON field names/types/arrays/status behavior; strict invalid input may newly reject |
-| section metadata TSV/JSON | `tools/report-section-metadata`, UI | Schema and canonical order | preserve six fields and 15 keys; `owner` path changes to the real destination owner and is not byte parity |
+| section metadata TSV/JSON | `tools/report-section-metadata`, UI | six-field schema and retained order | remove retired keys and point each retained `owner` to its destination path atomically |
 | section cache | `--write-section-cache DIR`, command hub | Byte within destination | `KEY.txt` equals direct destination body; `all.txt` equals destination full report; manifest order remains canonical plus `all` |
 | cache publication | `tools/command-hub-cache-refresh` | Semantic+atomicity | stage, validate, atomically rename, remove stale no-longer-declared section files |
 | query CLI | `tools/query` | Semantic; Intentional break for key prefix/summary command | migrate to canonical summary and `ledger_` keys in the same slice; no old-key fallback |
 | report CLI errors | wrapper and BQN dispatcher | exit/stream class and Semantic message | preserve success 0 and usage/runtime failure class; messages may name strict evidence and new canonical paths |
 | color | `--no-color`, `--color=never`, `--color=always`, `NO_COLOR`, TTY | Semantic | ANSI is presentation only; no-color is the parity/golden comparison mode |
-| explicit observation | Outlook override and captured report clock | Semantic | capture CLI clock once; pass explicit observation to time-sensitive builds; no hidden section clock |
+| explicit observation | current Outlook/Trend/Comparison behavior | Semantic for retained time questions | pass explicit observation/target coordinates to Account Matrix and Daily Target use cases; no hidden section clock |
 | developer diagnostics | `tools/report-next`, debug and probes | capability only; Intentional break for entrypoint/name | diagnostics remain available where useful but are not production report schema; old `report-next` name is deleted |
 
-## Canonical section contract
+## Current section catalog and destination disposition
 
-The section keys and order remain:
+The following keys/order describe current production and remain characterization evidence until cutover. They are not the destination catalog:
 
 ```text
 snapshot
@@ -81,7 +82,7 @@ debug
 | `actual-comparison` | explicit-observation current/baseline comparison | human, compact |
 | `debug` | non-authoritative numeric/provenance diagnostics | human diagnostic |
 
-Compact output is ordered as Snapshot, Cycle Info, minimal Cube summary, TBDS, Trial Balance, Cycle Summary, YTD, Expense Breakdown, Recent, Planned, Balances, Readiness, Plan/Journal Overlap, Envelopes, optional Household Metadata, Household Policy, Outlook, Daily Trend, and Actual Comparison. `issues` and `daily-flow` currently have no compact block. Shared Cube/TBDS/overlap/metadata/policy diagnostics migrate as narrow diagnostic capabilities, not as hidden report sections.
+Current compact output is ordered as Snapshot, Cycle Info, minimal Cube summary, TBDS, Trial Balance, Cycle Summary, YTD, Expense Breakdown, Recent, Planned, Balances, Readiness, Plan/Journal Overlap, Envelopes, optional Household Metadata, Household Policy, Outlook, Daily Trend, and Actual Comparison. This is deletion/migration inventory, not destination order. Retained compact keys are specified per portfolio report; removed diagnostics move to operational inspection rather than hidden report blocks.
 
 ## List and first-line marker contract
 
@@ -91,7 +92,7 @@ Compact output is ordered as Snapshot, Cycle Info, minimal Cube summary, TBDS, T
 KEY<TAB>FIRST_LINE_OF_HUMAN_BODY
 ```
 
-The key and TSV shape are schema-stable. The marker must equal the actual destination body's first line, so generation-name cleanup or configured label changes may intentionally change marker text. UI consumers select by key and must not hard-code marker strings.
+For retained destination reports, the key/TSV shape is stable and the marker equals the actual body’s first line. Retired keys disappear atomically from listing, metadata, cache, and UI consumers. UI consumers select by key and must not hard-code marker strings.
 
 ## Human output rules
 
@@ -126,16 +127,7 @@ This is a controlled breaking rename, not a compatibility period.
 
 ## JSON contracts
 
-JSON remains supported only for:
-
-```text
-snapshot
-balances
-envelopes
-planned
-```
-
-For admitted equivalent evidence, preserve current object keys, arrays, scalar types, and status/empty behavior. JSON continues to be generated from the same presentation-neutral section result as human/compact output. It must not build an alternate context or parse human text.
+Current JSON exists for `snapshot`, `balances`, `envelopes`, and `planned`. Destination JSON support is decided per retained report. Planned Payments already preserves its approved schema; other old JSON surfaces may be rebuilt or removed with their old report. JSON always comes from the same presentation-neutral result as human/compact output and never parses human text or builds an alternate context.
 
 Unsupported section JSON remains a nonzero CLI error. `--currency` remains valid only for human selected balances unless a future explicit schema adds a Currency axis; migration does not silently widen JSON.
 
@@ -164,7 +156,7 @@ For one destination evidence snapshot and observation:
 
 ## CLI and exit contract
 
-Supported daily report inputs are:
+Current production inputs are listed below for compatibility inventory. Destination options are reduced/renamed with the retained portfolio and all consumers at cutover:
 
 | input | meaning / combination rule |
 |---|---|
@@ -192,7 +184,7 @@ The destination keeps `tools/report` as the daily production command. Historical
 
 ## Time and deterministic parity
 
-A parity run supplies an explicit observation wherever the section meaning depends on today. The composition root captures the system date at most once per command and passes it explicitly. Outlook's current override behavior remains. Daily Trend and Actual Comparison receive the captured report date without reading the clock inside section code.
+A retained-question parity run supplies explicit observation/target coordinates wherever meaning depends on time. The composition root captures any requested system date at most once and passes it explicitly. Outlook, Daily Trend, and Actual Comparison option semantics are current characterization; destination Account Matrix and Daily Target contracts decide their replacement without hidden clocks.
 
 Tests compare identical source snapshot, observation, selected domain, and config. A run with different observations is not a parity comparison.
 

@@ -1,13 +1,14 @@
 # Ledger-facts report engine migration roadmap
 
-Status: active implementation roadmap
+Status: active implementation roadmap; destination portfolio reset approved 2026-07-28
 Owner: ledger kernel / report
 Canonical queue: `TODO.md`
+Portfolio authority: `docs/REPORT_PORTFOLIO_DECISION.md`
 Current production remains: `tools/report` → `src_next/report.bqn` until the cutover gate passes
 
 ## 1. Goal
 
-Keep every current report capability while replacing the current report engine with one based on canonical admitted ledger facts and narrow report queries. Report definitions must remain disposable: after migration, all 15 current sections can be removed without changing ledger admission, accounting facts, or the report-construction kernel, and new reports can be assembled from array-oriented query parts.
+Replace the current report engine with a smaller retained portfolio based on canonical admitted ledger facts and narrow report questions. Preserve useful accounting decisions, not section count or legacy presentation. Current reports may be rebuilt, merged, moved to operational diagnostics, or deleted under `REPORT_PORTFOLIO_DECISION.md`. Report definitions remain disposable without changing admission, Facts, or accounting capabilities.
 
 The destination is not another all-report hub:
 
@@ -25,7 +26,7 @@ The migration is complete only when the old runtime, old import paths, fallback 
 
 ## 2. Scope
 
-All current human section keys remain capabilities:
+The current human section keys remain migration/deletion inventory until cutover; they are not all destination requirements:
 
 ```text
 snapshot
@@ -45,6 +46,8 @@ actual-comparison
 debug
 ```
 
+The retained destination portfolio is Envelope & Backing, Account Balances, Recent Journal, Planned Payments, Issues, Current-cycle Accounts, Cycle Comparison, Monthly Accounts, and Daily Target. Final keys and output surfaces are contract work, not inferred from old names.
+
 The migration also covers:
 
 - the full human report;
@@ -61,7 +64,7 @@ This roadmap does not authorize changing canonical household data without explic
 
 ## 3. Non-goals
 
-- Do not reduce the report list to make migration easier.
+- Do not preserve or remove a report merely to make migration metrics look easier; retain explicit user questions and remove obsolete surfaces coherently.
 - Do not create a universal 100-field report record.
 - Do not make Cube or TBDS the sole representation of every accounting question.
 - Do not invent a generic query DSL before concrete report queries demonstrate common vocabulary.
@@ -387,63 +390,51 @@ Exit:
 - policy-heavy reports can compose custom pure Build functions without extending a global record;
 - no universal report result or premature textual query DSL has been introduced.
 
-### Phase 4 — Migrate report sections by dependency cohort
+### Phase 4 — Implement the retained report portfolio
 
-Each section slice must replace all of its public surfaces and delete the superseded implementation in the same slice.
-
-#### Cohort A: direct evidence and diagnostics
+`REPORT_PORTFOLIO_DECISION.md` supersedes migration by old-section cohort. Implementation follows the retained question/capability graph:
 
 ```text
-issues
-recent
-check
-debug
-trial-balance
+Core Lists/statement
+  Planned Payments (destination proof complete)
+  Recent Journal
+  Issues
+  Envelope & Backing
+
+Account Matrix family
+  Account Balances
+  Current-cycle Accounts
+  Cycle Comparison
+  Monthly Accounts
+
+Special projection
+  Daily Target
+
+Operational, not normal reports
+  readiness/check
+  developer debug/inspection
 ```
 
-#### Cohort B: balances and periods
+Trial Balance and Daily Flow remain valid architecture proofs. They become retained presets/tools only if a portfolio contract needs them; old section parity alone is not a reason to route them.
 
-```text
-balances
-snapshot
-ytd
-cycle
-actual-comparison
-```
+Per-retained-report checklist:
 
-#### Cohort C: plan and budget
-
-```text
-planned
-envelopes
-```
-
-#### Cohort D: temporal composite reports
-
-```text
-daily-flow
-daily-trend
-outlook
-```
-
-The order inside a cohort follows the actual dependency graph. A shared capability migrates before its consumers; a renderer never becomes a shared capability.
-
-Per-section checklist:
-
-- [ ] classify the section as declarative Matrix/List/Card or custom semantic Build;
-- [ ] list exact canonical fact/capability inputs;
-- [ ] define one pure semantic result;
-- [ ] implement human, compact, and JSON renderers from that result as applicable;
-- [ ] preserve section-local observation and absence policy;
-- [ ] compare retained output contracts on positive, empty, and invalid fixtures;
-- [ ] switch direct, full, cache, compact, JSON, and query consumers together;
-- [ ] delete the old module, adapters, focused compatibility checks, and stale docs;
-- [ ] verify no other section imports the migrated section's ViewModel or renderer.
+- [ ] state the user question and classify Matrix/List/Card or bounded custom Statement;
+- [ ] list exact canonical Fact/capability inputs;
+- [ ] define axes/fields, measures, signs, period, observation, currency, totals, and provenance;
+- [ ] define one pure semantic result and explicit unavailable/error behavior;
+- [ ] implement only approved human, compact, and JSON renderers from that result;
+- [ ] compare retained semantics on positive, empty, and invalid public fixtures;
+- [ ] switch direct, full, cache, compact, JSON, metadata, and query consumers coherently;
+- [ ] delete merged/removed old routes, modules, adapters, focused compatibility checks, and stale docs;
+- [ ] verify no report imports another report's ViewModel or renderer.
 
 Exit:
 
-- all 15 sections are built from canonical facts and narrow capabilities;
-- no section reads source files or an old context.
+- every retained portfolio question is built from canonical Facts and narrow capabilities;
+- every old section is mapped to retain/rebuild/merge/operational/remove and its consumers are resolved;
+- no report reads source files or an old context;
+- no 15-section parity requirement remains in destination routing.
 
 ### Phase 5 — Replace report composition and entrypoints
 
@@ -453,7 +444,7 @@ Exit:
 - [ ] Iterate all sections for full report and cache without constructing an all-section semantic record.
 - [ ] Generate compact output from registered compact renderers in canonical order.
 - [ ] Capture system today once and pass explicit section observations.
-- [ ] Preserve Outlook's explicit override as a section option, not a report-wide implicit clock.
+- [ ] Pass explicit target/observation coordinates to Daily Target and Account Matrix use cases; do not preserve Outlook-specific clock behavior implicitly.
 - [ ] Make cache publication delete retired/unmanifested files and publish the manifest/timestamp atomically.
 - [ ] Introduce canonical entrypoint names (`tools/report`, `tools/report-summary`, and a plainly named inspection tool).
 - [ ] Update Command Hub, `tools/query`, editor diagnostics, and maintenance scripts.
@@ -465,8 +456,8 @@ Exit:
 
 ### Phase 6 — Shadow verification and operational cutover
 
-- [ ] Run old and new engines independently on every public report fixture.
-- [ ] Compare byte-contract outputs, structured schemas, diagnostics, and exit status.
+- [ ] Run old and new engines independently on public fixtures for every retained semantic question.
+- [ ] Compare retained byte/schema contracts, accounting semantics, diagnostics, and exit status; verify intentionally removed surfaces are absent.
 - [ ] Explain every approved difference in the current contract, not a compatibility adapter.
 - [ ] Verify source read counts and selected-section execution behavior.
 - [ ] Add and remove a temporary novel report definition without changing source admission, canonical facts, accounting capabilities, or unrelated section modules.

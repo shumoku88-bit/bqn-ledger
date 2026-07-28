@@ -7,13 +7,14 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Phase 3J: destination Planned Payments now composes cycle selection, explicit observation, durable completion Join, temporal state, exact single-domain total, and one List result rendered as human/compact/JSON. Next prove narrow requested-section use-case composition for the three destination sections without building an all-report context.
+Portfolio contract P1: on 2026-07-28 moko approved replacing 15-section parity with a smaller portfolio centered on Envelope & Backing, Account Balances, Recent Journal, Planned Payments, Issues, Account matrices, and Daily Target. Before more report code, define exact contracts and an old-surface retirement map.
 
 ```text
-current daily production: tools/report -> src_next/report.bqn
-completed section proofs: Trial Balance + Daily Flow + Planned Payments
-next boundary: already-read strict evidence -> one requested destination section result
-forbid: giant all-section record, source reload/clock in sections, dual compact keys, private work
+current daily production: tools/report -> src_next/report.bqn (unchanged)
+decision authority: docs/REPORT_PORTFOLIO_DECISION.md
+completed proofs: canonical Facts/capabilities + Trial Balance + Daily Flow + Planned Payments
+next work: portfolio keys/surfaces, Matrix contracts, Envelope/Backing, Daily Target, consumer removal map
+forbid: mechanical 15-section migration, giant all-report record, dual aliases/keys, private work
 private source audit/migration: still requires separate explicit instruction
 ```
 

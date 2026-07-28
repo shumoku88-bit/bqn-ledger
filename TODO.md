@@ -21,13 +21,13 @@ Goal:
 strict source snapshot and admission
   -> canonical transaction/posting facts
   -> narrow accounting capabilities
-  -> all 15 existing report sections
-  -> human / compact / JSON
+  -> retained report portfolio (Matrix / List / Card / Statement)
+  -> approved human / compact / JSON surfaces
   -> atomic cutover
-  -> complete deletion of old compatibility runtime
+  -> complete deletion of retired reports and old compatibility runtime
 ```
 
-This is not a section-reduction campaign and must not recreate the old giant all-report record. Shared records are bounded by source/accounting facts; section-specific results remain local. The destination also includes an array-oriented Select/Join/Group/Pivot layer so current report definitions are disposable and new matrix/list reports do not require ledger-kernel changes.
+The approved portfolio reset is [`docs/REPORT_PORTFOLIO_DECISION.md`](docs/REPORT_PORTFOLIO_DECISION.md). Useful accounting questions are retained; old section count, names, order, and every output surface are not. Shared records remain bounded by source/accounting facts, section-specific results remain local, and no giant all-report record or premature query DSL is introduced.
 
 ### Completed finite slice: Phase 0A report construction inventory
 
@@ -171,13 +171,21 @@ This is not a section-reduction campaign and must not recreate the old giant all
 - [x] Emitted only the approved destination compact `ledger_planned_payment` name; no dual key or forwarding renderer.
 - [x] Left production routing unchanged.
 
-### Current finite slice: Phase 3J narrow requested-section composition
+### Decision checkpoint: destination report portfolio reset
 
-- [ ] Compose already-read strict account/config/cycle/Actual/Plan/Budget evidence into only the requested destination section.
-- [ ] Provide separate narrow Trial Balance, Daily Flow, and Planned Payments use cases rather than a giant all-section record.
-- [ ] Resolve cycle mode and explicit observation once at the use-case boundary without clock or source reload inside accounting/sections.
-- [ ] Prove invalid admission/cycle/section results remain unavailable/error and publish no valid-looking body.
-- [ ] Keep filesystem I/O, production routing, private sources, and unsupported sections outside this finite slice.
+- [x] Replaced the requirement to preserve all 15 sections with a minimum portfolio of Envelope & Backing, Account Balances, Recent Journal, Planned Payments, Issues, three Account matrices, and Daily Target.
+- [x] Classified current sections as retain/rebuild, merge/replace, operational diagnostic, or removable.
+- [x] Kept canonical Facts/accounting capabilities durable while treating Trial Balance and Daily Flow as reusable proofs rather than mandatory final routes.
+- [x] Kept current production unchanged and retained atomic deletion/no-alias/private-data boundaries.
+
+### Current finite slice: Portfolio contract P1
+
+- [ ] Assign final destination keys and human/compact/JSON surfaces to each retained report.
+- [ ] Define exact axes, measures, signs, observation, period, currency, totals, and provenance for Current-cycle, Cycle Comparison, and Monthly Account matrices.
+- [ ] Define Envelope & Backing terms and invariants without importing old envelope ViewModels.
+- [ ] Define Daily Target inputs, target-date semantics, reserves, unavailable states, and evidence.
+- [ ] Map every old route/key/cache/metadata/query consumer to retain, migrate, or atomic removal.
+- [ ] Select the first retained implementation slice only after these contracts are reviewable.
 
 Phase 0 exit evidence is `docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`: every observable report capability has an owner, every compatibility path has a deletion gate, and no undecided fallback is permitted in the destination fact schema.
 

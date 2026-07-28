@@ -28,12 +28,13 @@ They are maps, not gates. Read the files that help with the question in front of
 - [`CANONICAL_DAILY_CUBE.md`](CANONICAL_DAILY_CUBE.md) — the existing Day × Account × Layer view
 - [`TBDS_CONTRACT.md`](TBDS_CONTRACT.md) — trial-balance dataset boundary
 - [`REPORT_CONTRACTS.md`](REPORT_CONTRACTS.md) — report sections and values
-- [`LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`](LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md) — active canonical-facts report migration and final compatibility-eradication roadmap
+- [`REPORT_PORTFOLIO_DECISION.md`](REPORT_PORTFOLIO_DECISION.md) — approved 2026-07-28 reset from 15-section parity to the retained Matrix/List/Card/Statement portfolio
+- [`LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`](LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md) — active canonical-facts report migration and final compatibility-eradication roadmap under the portfolio decision
 - [`REPORT_CONSTRUCTION_INVENTORY.md`](REPORT_CONSTRUCTION_INVENTORY.md) — current 15-section facts/filter/axis/measure/result-shape inventory and first Matrix/Pivot proof selection
 - [`RUNTIME_COMPATIBILITY_INVENTORY.md`](RUNTIME_COMPATIBILITY_INVENTORY.md) — current fallback/wrapper/test-seam/source-data classifications and mandatory deletion gates
 - [`PUBLIC_SOURCE_READINESS_AUDIT.md`](PUBLIC_SOURCE_READINESS_AUDIT.md) — readonly public-fixture readiness counts for strict currency, Plan identity, role metadata, and source layout
 - [`SRC_NEXT_EXPORT_CALLER_INVENTORY.md`](SRC_NEXT_EXPORT_CALLER_INVENTORY.md) — reproducible classification of all current exports by runtime/test/check/tool caller pressure
-- [`REPORT_OUTPUT_MIGRATION_CONTRACT.md`](REPORT_OUTPUT_MIGRATION_CONTRACT.md) — byte/schema/semantic parity decisions across human, compact, JSON, metadata, cache, CLI, and diagnostics
+- [`REPORT_OUTPUT_MIGRATION_CONTRACT.md`](REPORT_OUTPUT_MIGRATION_CONTRACT.md) — current-surface baseline and retained-output parity vocabulary; 15-section preservation is superseded by the portfolio decision
 - [`PRIVATE_SOURCE_READINESS_PROTOCOL.md`](PRIVATE_SOURCE_READINESS_PROTOCOL.md) — explicit-authorization boundary for readonly private audits and separately approved stale-safe migrations
 - [`PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`](PHASE0_REPORT_ENGINE_CHARACTERIZATION.md) — Phase 0 exit baseline for topology, exports, source-read pressure, timing, and the strict public proof fixture
 - [`LEDGER_FACT_SCHEMA.md`](LEDGER_FACT_SCHEMA.md) — canonical Actual and strict Plan/Budget aligned Transaction/Posting facts, side tables, provenance, and all-or-nothing invariants
