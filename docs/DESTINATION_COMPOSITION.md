@@ -1,6 +1,6 @@
 # Destination composition and cutover preparation
 
-Status: P10F static catalog, all nine key-first individual routes, and fail-closed human/compact `all` complete; cache, operational separation, and cutover remain in progress.
+Status: P10G static catalog, all routes, and atomic destination cache proof complete; operational separation and cutover remain in progress.
 
 ## Static catalog owner
 
@@ -109,6 +109,29 @@ Consequences:
 The shell wrapper first runs pure request admission, resolves relative base against caller cwd, validates safe basenames, and returns stable `source_unreadable` diagnostics before BQN source I/O. Its former duplicate implemented-key whitelist has been removed; the static catalog remains authoritative.
 
 No Account-name inference or fabricated default fills ownership. All coordinates remain explicit, so no clock is currently injected. Public CLI proof remains parallel to production until cutover.
+
+## Destination cache publication
+
+`tools/report-destination-cache` accepts explicit base, cache directory, decimal generation token, and the human all-request manifest. It derives the nine section keys from the catalog selection, admits the complete manifest before source reads, and writes each body by invoking the same individual route once. `all.txt` is the byte concatenation of those staged bodies.
+
+The staged manifest is exactly:
+
+```text
+envelopes
+balances
+recent
+planned
+cycle-accounts
+cycle-comparison
+monthly-accounts
+daily-target
+issues
+all
+```
+
+An exclusive PID lock rejects concurrent publication and recovers an abandoned lock. Publication atomically renames the ten bodies and canonical `.section-keys`, removes stale `.txt` files absent from the new manifest, and renames `.cache-timestamp` last as the generation commit marker. Failure before publication leaves the prior generation untouched; malformed manifest and invalid generation-token proofs preserve prior timestamp/all bytes. Non-cache files are not removed.
+
+This is a parallel cache proof. `tools/command-hub-cache-refresh` continues to use production `tools/report` until atomic cutover.
 
 ## Cutover boundary
 

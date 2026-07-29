@@ -267,7 +267,7 @@ Quality completion is governed by [`docs/DESTINATION_QUALITY_GATE.md`](docs/DEST
 - [x] Wired Daily Target through strict asset Account / durable Plan obligation / exact per-obligation reservation linkage admission and canonical balance/completion evidence.
 - [x] Proved fail-closed public human/compact `all` from a strict catalog-ordered per-key argv manifest; it invokes the same individual routes and publishes no partial output.
 - [x] Removed the redundant CLI key whitelist, stabilized missing-source diagnostics, and fixed relative base paths against caller cwd.
-- [ ] Define the final cache manifest/atomic publication and remaining import boundaries; no clock injection is needed while every coordinate remains explicit.
+- [x] Proved the exact nine-key-plus-all cache manifest, byte-identical direct bodies, fail-closed staging, timestamp-last publication, and stale retired `.txt` deletion.
 - [ ] Reconcile operational `check`/`debug` ownership with `tools/ledger-check` and `tools/ledger-inspect` before old routes are removed.
 - [ ] Inventory external compact/query/cache consumers with moko before deleting old keys, then prepare one atomic cutover diff.
 - [ ] Keep private-source readiness under separate explicit authorization; do not inspect or rewrite user data in this public composition slice.

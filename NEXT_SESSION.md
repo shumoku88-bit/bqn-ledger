@@ -7,16 +7,16 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Portfolio P10G: all nine individual routes and fail-closed catalog-ordered human/compact `all` now pass public proof. CLI request/source hardening is complete. Next define atomic cache publication and operational route separation.
+Portfolio P10H: destination individual/all routes and the exact nine-key-plus-all cache now pass direct-byte, fail-closed staging, stale deletion, and timestamp-last publication proofs. Next separate operational check/debug ownership.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn (unchanged)
-parallel proof: tools/report-destination; individual and per-key-manifest all
-all semantics: same individual argv routes, buffered output, no partial publication, no aggregate JSON
-hardening: catalog authority only; stable missing-source diagnostics; relative base uses caller cwd
-next proof: final nine-key/all cache manifest and atomic publication, then ledger-check/ledger-inspect ownership
+parallel cache: tools/report-destination-cache; same individual routes, canonical manifest, all bytes
+failure semantics: bad manifest/token preserves prior timestamp and all.txt; stale retired txt removed only on success
+next proof: source-facing tools/ledger-check and non-authoritative tools/ledger-inspect, neither in report catalog/cache
+then: final tracked cutover inventory and external consumer/private readiness gates
 exclude: production switch, private source inspection/migration, old-key deletion before external consumer confirmation
-forbid: universal context, alternate all calculations, hidden clock, stale partial cache
+forbid: report check/debug sections, diagnostic compact keys, stale partial cache
 private source audit/migration: still requires separate explicit instruction
 ```
 
