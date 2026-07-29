@@ -4,7 +4,7 @@ Status: boundedなBQN refactorのためのproposed review gate
 
 ## 目的
 
-このガイドは、BQN refactorを毎回同じ方法で確認するためのものです。code golfの規則ではなく、repository全体を一人の書き方へ統一するものでもありません。
+このガイドは、BQN refactorを毎回同じ方法で確認するためのものです。code golfの規則ではなく、repository全体を一つの書き方へ統一するものでもありません。
 
 目標は次です。
 
@@ -28,9 +28,9 @@ Status: boundedなBQN refactorのためのproposed review gate
 
 ## Review lenses
 
-該当するlensごとに `green`、`improve`、`blocked`、`not-applicable` を記録します。人物への評価ではなく、変更内容の具体的なevidenceを書きます。
+該当するlensごとに `green`、`improve`、`blocked`、`not-applicable` を記録します。具体的な変更内容とevidenceだけを書きます。
 
-### Marshall Lochbaum: array transformationを露出させる
+### 配列変換: array transformationを露出させる
 
 確認すること:
 
@@ -43,7 +43,7 @@ Status: boundedなBQN refactorのためのproposed review gate
 
 diagnostic stepが反復して見えるという理由だけでstrict admissionを圧縮しません。
 
-### Roger Hui: semantic edgeを証明する
+### 境界意味論: semantic edgeを証明する
 
 確認すること:
 
@@ -55,7 +55,7 @@ diagnostic stepが反復して見えるという理由だけでstrict admission�
 
 primitive置換は、edge semanticsがtestされるまで未完了です。
 
-### John Scholes: declarationを読める形に保つ
+### 読める境界: declarationを読める形に保つ
 
 確認すること:
 
@@ -66,7 +66,7 @@ primitive置換は、edge semanticsがtestされるまで未完了です。
 
 accountingまたはapplication上の意味を持つ名前は残し、そのnamed boundary内のkernelを短くします。
 
-### Adám Brudzewsky: derivation pathを残す
+### 導出経路: derivation pathを残す
 
 確認すること:
 
@@ -77,7 +77,7 @@ accountingまたはapplication上の意味を持つ名前は残し、そのnamed
 
 final codeはcompactで構いません。review evidenceには、そこへ到達した階段を残します。
 
-### Aaron Hsu: whole-array dataflowを検討する
+### 全体配列データフロー: whole-array dataflowを検討する
 
 大きなpure kernelにだけ適用します。
 
@@ -90,7 +90,7 @@ final codeはcompactで構いません。review evidenceには、そこへ到達
 
 小さなadmission function、I/O boundary、editor safety orchestrationでは通常 `not-applicable` です。
 
-### Kenneth Iverson: notationが構造を見せるか判定する
+### 記法の明瞭さ: notationが構造を見せるか判定する
 
 確認すること:
 
@@ -101,7 +101,7 @@ final codeはcompactで構いません。review evidenceには、そこへ到達
 
 最終判断は「巧妙か」ではなく「問題が前より明瞭になったか」です。
 
-### Arthur Whitney: extreme brevityをprobeとして使う
+### 圧縮の限界: extreme brevityをprobeとして使う
 
 確認すること:
 
@@ -155,13 +155,13 @@ input cells / columns
 ```markdown
 ## BQN refactor lenses
 
-- Marshall: green — <visible array transformation>
-- Hui: green — <edge semantics and tests>
-- Scholes: green — <names and boundaries retained>
-- Adám: green — <derivation/comment/test evidence>
-- Aaron: not-applicable — <why>
-- Iverson: green — <problem structure made clearer>
-- Whitney: green — <compression considered without deleting contracts>
+- 配列変換: green — <visible array transformation>
+- 境界意味論: green — <edge semantics and tests>
+- 読める境界: green — <names and boundaries retained>
+- 導出経路: green — <derivation/comment/test evidence>
+- 全体配列データフロー: not-applicable — <why>
+- 記法の明瞭さ: green — <problem structure made clearer>
+- 圧縮の限界: green — <compression considered without deleting contracts>
 ```
 
 ### 7. Decisionを出す
@@ -202,13 +202,13 @@ Can ...?
 
 ## BQN refactor lenses
 
-- Marshall: ...
-- Hui: ...
-- Scholes: ...
-- Adám: ...
-- Aaron: ...
-- Iverson: ...
-- Whitney: ...
+- 配列変換: ...
+- 境界意味論: ...
+- 読める境界: ...
+- 導出経路: ...
+- 全体配列データフロー: ...
+- 記法の明瞭さ: ...
+- 圧縮の限界: ...
 
 ## Verification
 
@@ -223,10 +223,10 @@ Can ...?
 
 | PR | Kernel | Primary lenses | Important evidence |
 |---|---|---|---|
-| #437 | catalog exact lookup | Marshall, Hui | index-ofのabsent bound。success branchだけをconditional execution |
-| #438 | request surface support | Marshall, Scholes | surface coordinateとcatalog coordinateを再利用。diagnostic contractを維持 |
-| #439 | renderer dispatch | Marshall, Hui, Adám | formatterを値として選択。subject/function role failureを記録して修正。17 routeをgolden test |
-| #440 | MatrixResult axis uniqueness | Marshall, Hui, Iverson | native major-cell Deduplicate。emptyとnested non-adjacent duplicateのevidence |
+| #437 | catalog exact lookup | 配列変換、境界意味論 | index-ofのabsent bound。success branchだけをconditional execution |
+| #438 | request surface support | 配列変換、読める境界 | surface coordinateとcatalog coordinateを再利用。diagnostic contractを維持 |
+| #439 | renderer dispatch | 配列変換、境界意味論、導出経路 | formatterを値として選択。subject/function role failureを記録して修正。17 routeをgolden test |
+| #440 | MatrixResult axis uniqueness | 配列変換、境界意味論、記法の明瞭さ | native major-cell Deduplicate。emptyとnested non-adjacent duplicateのevidence |
 
 これらは永久的なpreferred syntaxではなく、review methodの実例です。
 
