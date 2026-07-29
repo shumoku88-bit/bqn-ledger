@@ -18,6 +18,7 @@ bash checks/check-report-destination-cache.sh >/dev/null
 bash checks/check-ledger-operations.sh >/dev/null
 bash checks/check-final-cutover-inventory.sh >/dev/null
 bash checks/check-report-destination-metadata.sh >/dev/null
+bash checks/check-report-destination-summary-query.sh >/dev/null
 bqn tests/test_ledger_companion_facts.bqn >/dev/null
 bqn tests/test_ledger_plan_snapshot.bqn >/dev/null
 bqn tests/test_ledger_config_cycle_admission.bqn >/dev/null

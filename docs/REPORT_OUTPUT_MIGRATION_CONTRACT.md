@@ -120,7 +120,7 @@ Rules:
 - update `tools/query`, checks, fixtures, and documented examples in the same commit;
 - never emit old and new keys together;
 - never make `tools/query` silently translate old keys;
-- delete `tools/report-next-summary`; the canonical replacement is `tools/report-summary` at composition cutover;
+- `tools/report-summary` is proven in parallel over the compact all manifest; delete `tools/report-next-summary` and replace `tools/query` atomically at composition cutover;
 - headings become implementation-neutral; consumers parse keys, not headings.
 
 This is a controlled breaking rename, not a compatibility period.

@@ -111,13 +111,13 @@ ledger_planned_payment
 ledger_daily_target_*
 ```
 
-Remaining work:
+Parallel destination proof is complete:
 
-- introduce final `tools/report-summary` over the compact all manifest;
-- change `tools/query` to exact `ledger_*` lookup;
-- update only approved consumers;
-- delete all old `src_next_*` keys and generation-named summary route atomically;
-- do not translate old keys or dual-emit.
+- final `tools/report-summary` runs the admitted compact all manifest through the same individual route;
+- `tools/query-destination` proves exact repeated-value `ledger_*` lookup, exact listing, and unique key enumeration;
+- old names are neither translated nor dual-emitted; regex/prefix lookup is absent.
+
+At atomic cutover, replace `tools/query` with the proven implementation, update approved tracked consumers, and delete `tools/report-next-summary`, old `src_next_*` output, checks, and fixtures together. Do not leave `tools/query-destination` as a second final query route.
 
 The external-consumer gate is green: under explicit user direction, executable/script/config/automation locations, launch agents, cron, and running processes were searched for `tools/query`, `report-next-summary`, and `src_next_*`. No untracked runtime consumer was found. Matches were limited to tracked current code, an independent legacy repository, and non-executable historical logs/docs. Shell history and private ledger contents were intentionally not inspected. Alias-free deletion remains approved.
 
@@ -196,9 +196,8 @@ Aliases, dual keys, dual catalogs, fallback parsers, and forwarding wrappers are
 
 Before requesting cutover approval:
 
-1. destination compact summary and exact-key query proof;
-2. editor dependency extraction from `src_next`;
-3. retained non-src-next test helper migration;
-4. tracked old test/check/fixture/docs deletion rehearsal;
-5. separately authorized private readiness;
-6. one reviewed atomic production/cutover diff.
+1. editor dependency extraction from `src_next`;
+2. retained non-src-next test helper migration;
+3. tracked old test/check/fixture/docs deletion rehearsal;
+4. separately authorized private readiness;
+5. one reviewed atomic production/cutover diff.

@@ -110,6 +110,12 @@ The shell wrapper first runs pure request admission, resolves relative base agai
 
 No Account-name inference or fabricated default fills ownership. All coordinates remain explicit, so no clock is currently injected. Public CLI proof remains parallel to production until cutover.
 
+## Compact summary and exact query
+
+`tools/report-summary BASE COMPACT_MANIFEST` runs the compact subset through the same fail-closed catalog-order `all` route. Its stdout is exactly the concatenation of the five compact-owning section renderers; it has no alternate calculation or universal summary result.
+
+`tools/query-destination` is the parallel proof for the final query contract. It recognizes only exact `ledger_[a-z0-9_]+` keys, returns every repeated value in summary order, and offers exact `--list`/unique `--keys` enumeration. It does not expose regex filtering, old-key translation, or human-heading parsing. At atomic cutover this implementation replaces `tools/query`; the old production query and generation-named summary are not forwarding targets.
+
 ## Source-independent metadata
 
 `src/report/section_metadata.bqn` derives the retained six-field metadata directly from `catalog.bqn`:

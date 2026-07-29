@@ -364,7 +364,9 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 - `tools/doctor` — 設定とデータディレクトリの整合性診断。
 - `tools/bqn-eval` — BQN式の簡易評価用。
 - `tools/bqn-dump` — BQN値の型とshape診断用。
-- `tools/query` — `report-next-summary` 出力の機械可読検索・抽出フィルタ。
+- `tools/query` — cutover前productionの`report-next-summary`検索。atomic cutoverで削除・置換するold owner。
+- `tools/report-summary` — final compact catalog owner 5件をexplicit manifest順にfail-closed反復するdestination summary。
+- `tools/query-destination` — exact `ledger_*` repeated-value lookupのparallel cutover proof。最終的に`tools/query`へ置換し、第二routeとして残さない。
 - `tools/envelope-calc` — 封筒予算の対話的計算（P1〜P4 プリミティブ実行）。
 
 ### ユーザーインターフェース (UI)

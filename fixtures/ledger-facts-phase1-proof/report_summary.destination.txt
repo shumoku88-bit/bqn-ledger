@@ -1,0 +1,34 @@
+--- Ledger Envelope & Backing ---
+ledger_envelope_item: food entitlement=60 consumption=30 refunds=0 remaining=30 reserve=0 headroom=30
+ledger_envelope_funding_balance: 965
+ledger_envelope_signed_total: 30
+ledger_envelope_backing_required: 30
+ledger_envelope_backing_surplus: 935
+ledger_envelope_ledger_unassigned: 40
+ledger_envelope_reconciliation_delta: 895
+ledger_envelope_status: backed
+--- Ledger Account Balances ---
+ledger_balance: assets:cash/JPY 965
+ledger_balance: income:salary/JPY -1000
+ledger_balance: expenses:food/JPY 30
+ledger_balance: expenses:transport/JPY 5
+ledger_balance: budget:opening/JPY 0
+ledger_balance: budget:unassigned/JPY 0
+ledger_balance: budget:food/JPY 0
+ledger_balance: budget:spent/JPY 0
+--- Ledger Recent Journal ---
+ledger_recent_journal: 2026-01-12	JPY	15	assets:cash	expenses:food,expenses:transport	split purchase
+ledger_recent_journal: 2026-01-10	JPY	20	assets:cash	expenses:food	completed food plan
+ledger_recent_journal: 2026-01-02	JPY	1000	income:salary	assets:cash	salary
+--- Ledger Planned Payments ---
+ledger_planned_payment: 2026-01-20 paid food-plan assets:cash expenses:food 25
+--- Ledger Daily Target ---
+ledger_daily_target_status: ok
+ledger_daily_target_eligible_assets: 965
+ledger_daily_target_gross_obligations: 200
+ledger_daily_target_already_excluded: 50
+ledger_daily_target_obligation_deduction: 150
+ledger_daily_target_capacity_balance: 815
+ledger_daily_target_remaining_days: 10
+ledger_daily_target_amount: 81
+ledger_daily_target_shortfall: 0
