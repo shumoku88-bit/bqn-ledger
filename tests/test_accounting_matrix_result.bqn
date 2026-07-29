@@ -28,6 +28,11 @@ CheckRejected ← {𝕊 input‿code:
   1 lib.AssertEq HasCode ⟨code,rejected.diagnostics⟩
 }
 CheckRejected ⟨⟨⟨"r","r"⟩,⟨"c"⟩,0,⟨⟨0⟩,⟨0⟩⟩,⟨⟨⟨⟩⟩,⟨⟨⟩⟩⟩⟩,"matrix_row_axis_duplicate"⟩
+nestedDuplicate ← ⟨
+  ⟨⟨"r",0⟩,⟨"s",1⟩,⟨"r",0⟩⟩,⟨⟨"c",0⟩⟩,0,
+  ⟨⟨0⟩,⟨0⟩,⟨0⟩⟩,⟨⟨⟨⟩⟩,⟨⟨⟩⟩,⟨⟨⟩⟩⟩
+⟩
+CheckRejected ⟨nestedDuplicate,"matrix_row_axis_duplicate"⟩
 CheckRejected ⟨⟨⟨"r"⟩,⟨"c","c"⟩,0,⟨⟨0,0⟩⟩,⟨⟨⟨⟩,⟨⟩⟩⟩⟩,"matrix_column_axis_duplicate"⟩
 CheckRejected ⟨⟨⟨"r"⟩,⟨"c"⟩,0.5,⟨⟨0⟩⟩,⟨⟨⟨⟩⟩⟩⟩,"matrix_scale_invalid"⟩
 CheckRejected ⟨⟨⟨"r"⟩,⟨"c"⟩,0,⟨⟩,⟨⟩⟩,"matrix_rows_misaligned"⟩
