@@ -30,9 +30,14 @@ CheckGolden ← {𝕊 composition‿key‿surface‿file:
 
 balances ← compose.Balances ⟨actual,"JPY","2026-01-12"⟩
 CheckGolden ⟨balances,"balances","human","account_balances.destination.human.txt"⟩
+CheckGolden ⟨balances,"balances","compact","account_balances.destination.compact.txt"⟩
+CheckGolden ⟨balances,"balances","json","account_balances.destination.json"⟩
 recent ← compose.Recent ⟨actual,10⟩
+CheckGolden ⟨recent,"recent","human","recent_journal.destination.human.txt"⟩
 CheckGolden ⟨recent,"recent","compact","recent_journal.destination.compact.txt"⟩
 planned ← compose.Planned ⟨companions.plan,actual,cycle,"2026-01-12"⟩
+CheckGolden ⟨planned,"planned","human","planned_payments.destination.human.txt"⟩
+CheckGolden ⟨planned,"planned","compact","planned_payments.destination.compact.txt"⟩
 CheckGolden ⟨planned,"planned","json","planned_payments.destination.json"⟩
 cycleAccounts ← compose.CycleAccounts ⟨actual,"JPY",cycle,"2026-01-10"⟩
 CheckGolden ⟨cycleAccounts,"cycle-accounts","human","cycle_accounts.destination.human.txt"⟩
@@ -44,7 +49,9 @@ CheckGolden ⟨comparison,"cycle-comparison","human","cycle_comparison.destinati
 monthly ← compose.MonthlyAccounts ⟨actual,"JPY","2026-01","2026-03"⟩
 CheckGolden ⟨monthly,"monthly-accounts","human","monthly_accounts.destination.human.txt"⟩
 envelopes ← compose.Envelopes ⟨companions.budget,actual,companions.plan,"JPY","2026-01-01","2026-02-01","2026-01-12",⟨0⟩⟩
+CheckGolden ⟨envelopes,"envelopes","human","envelope_backing.destination.human.txt"⟩
 CheckGolden ⟨envelopes,"envelopes","compact","envelope_backing.destination.compact.txt"⟩
+CheckGolden ⟨envelopes,"envelopes","json","envelope_backing.destination.json"⟩
 
 Ref ← {𝕊 id:{source⇐"synthetic",transaction_id⇐id,posting_id⇐id}}
 asset ← {asset_id⇐"cash",currency⇐"JPY",coefficient⇐1000,scale⇐0,decision⇐"include",reference⇐Ref "cash",contributors⇐⟨Ref "cash"⟩}
@@ -53,6 +60,7 @@ assetScope ← {state⇐"resolved",scope_id⇐"assets",basis_kind⇐"account_bal
 obligationScope ← {state⇐"resolved",scope_id⇐"obligations",rows⇐⟨obligation⟩}
 dailyTarget ← compose.DailyTarget ⟨"2026-01-10","2026-01-20","JPY",assetScope,obligationScope⟩
 CheckGolden ⟨dailyTarget,"daily-target","human","daily_target.destination.human.txt"⟩
+CheckGolden ⟨dailyTarget,"daily-target","compact","daily_target.destination.compact.txt"⟩
 issues ← compose.Issues ⟨loader.ReadLines base∾"issues.destination.tsv",registry⟩
 CheckGolden ⟨issues,"issues","human","issues.destination.human.txt"⟩
 
