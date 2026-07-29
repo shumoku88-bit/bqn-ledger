@@ -13,7 +13,9 @@ pivot ← •Import "../src/accounting/sparse_pivot.bqn"
 
 base ← "fixtures/ledger-facts-phase1-proof/"
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
-facts ← (snapshot.Build ⟨loader.ReadLines base∾"accounts.tsv",•FChars "../"∾base∾"actual.journal",registry⟩).facts
+accountLines ← loader.ReadLines base∾"accounts.tsv"
+rawJournal ← •FChars "../"∾base∾"actual.journal"
+facts ← (snapshot.Build ⟨accountLines,rawJournal,registry⟩).facts
 cycle ← cycle_admission.Admit ⟨loader.ReadLines base∾"cycle.tsv",facts.accounts⟩
 start ← dates.Ordinal cycle.definition.start
 end ← dates.Ordinal cycle.definition.end_exclusive
@@ -31,6 +33,8 @@ result ← flow.Build ⟨facts,"JPY","actual",start,end⟩
 ⟨⟨1⟩,⟨⟩,⟨⟩⟩ lib.AssertEq result.dates.income_contributors
 3 lib.AssertEq result.expense_groups.count
 ⟨1,2,2⟩ lib.AssertEq result.expense_groups.row_index
+# Known food expenses map to category 0, unmatched expenses to trailing "other" category 1.
+# Income and balancing asset postings remain outside the expense-category coordinate space.
 ⟨0,0,1⟩ lib.AssertEq result.expense_groups.column_index
 ⟨20,10,5⟩ lib.AssertEq result.expense_groups.coefficient
 ⟨⟨2⟩,⟨4⟩,⟨5⟩⟩ lib.AssertEq result.expense_groups.contributors
@@ -38,6 +42,23 @@ matrix ← pivot.Build ⟨result.dates.date_ordinal,result.categories.label,resu
 "ok" lib.AssertEq matrix.state
 ⟨⟨0,0⟩,⟨20,0⟩,⟨10,5⟩⟩ lib.AssertEq matrix.matrix.values
 ⟨⟨⟨⟩,⟨⟩⟩,⟨⟨2⟩,⟨⟩⟩,⟨⟨4⟩,⟨5⟩⟩⟩ lib.AssertEq matrix.matrix.contributors
+
+# Append one aligned Account coordinate without changing any existing Posting account index.
+duplicateAccounts ← {
+  count⇐facts.accounts.count+1,index⇐facts.accounts.index∾⟨facts.accounts.count⟩,
+  currency⇐facts.accounts.currency∾⟨"JPY"⟩,role⇐facts.accounts.role∾⟨"budget"⟩,
+  budget⇐facts.accounts.budget∾⟨"food"⟩,kind⇐facts.accounts.kind∾⟨"envelope"⟩
+}
+duplicateCategoryFacts ← {
+  state⇐"ok",domains⇐facts.domains,layers⇐facts.layers,accounts⇐duplicateAccounts,
+  transactions⇐facts.transactions,postings⇐facts.postings
+}
+duplicateCategory ← flow.Build ⟨duplicateCategoryFacts,"JPY","actual",start,end⟩
+"error" lib.AssertEq duplicateCategory.state
+lib.Assert ∨´ {𝕩.code≡"envelope_category_duplicate"}¨duplicateCategory.diagnostics
+0 lib.AssertEq duplicateCategory.dates.count
+0 lib.AssertEq duplicateCategory.categories.count
+0 lib.AssertEq duplicateCategory.expense_groups.count
 
 late ← flow.Build ⟨facts,"JPY","actual",dates.Ordinal "2026-01-11",end⟩
 "ok" lib.AssertEq late.state
