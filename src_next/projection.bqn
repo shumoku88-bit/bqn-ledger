@@ -1,6 +1,6 @@
 # projection.bqn
 # Shared Posting IR construction vocabulary for the non-Actual TSV route,
-# plus current Layer, day-coordinate, and arithmetic-proof compatibility seams.
+# plus current Layer and day-coordinate compatibility seams.
 #
 # Current contracts:
 #   - docs/POSTING_IR_CONTRACT.md
@@ -13,7 +13,6 @@
 
 dt ← •Import "date.bqn"
 layer ← •Import "layer.bqn"
-proof ← •Import "arithmetic_currency_proof.bqn"
 
 
 # ── Layer compatibility delegates ─────────────────────────────
@@ -93,11 +92,6 @@ PostingId ← {𝕊 srcFile‿rowIdx‿side:
   srcFile ∾ ":" ∾ (•Fmt rowIdx) ∾ ":" ∾ side
 }
 
-# ── Arithmetic currency proof compatibility delegates ───────
-
-AuthorizeArithmeticCurrencyProof ← proof.AuthorizeArithmeticCurrencyProof
-ArithmeticCurrencyAuthorizationMessage ← proof.ArithmeticCurrencyAuthorizationMessage
-
 # ── Export ───────────────────────────────────────────────────
 {
   layer_actual    ⇐ layer_actual,
@@ -109,7 +103,5 @@ ArithmeticCurrencyAuthorizationMessage ← proof.ArithmeticCurrencyAuthorization
   TxIdFromMeta          ⇐ TxIdFromMeta,
   LayerName             ⇐ LayerName,
   PostingId             ⇐ PostingId,
-  ResolveDayFromCycle   ⇐ ResolveDayFromCycle,
-  AuthorizeArithmeticCurrencyProof ⇐ AuthorizeArithmeticCurrencyProof,
-  ArithmeticCurrencyAuthorizationMessage ⇐ ArithmeticCurrencyAuthorizationMessage
+  ResolveDayFromCycle   ⇐ ResolveDayFromCycle
 }

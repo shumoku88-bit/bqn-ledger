@@ -2,7 +2,7 @@
 
 lib ← •Import "test_lib.bqn"
 ctx ← •Import "../src_next/context.bqn"
-proj ← •Import "../src_next/projection.bqn"
+proof_policy ← •Import "../src_next/arithmetic_currency_proof.bqn"
 arith ← •Import "../src_next/currency_arithmetic.bqn"
 ak ← •Import "../src_next/account_key.bqn"
 loader ← •Import "../src/application/source_io.bqn"
@@ -88,7 +88,7 @@ ilsProof ← ctx.ResolveArithmeticCurrencyProof ⟨ilsEv, arith.Build ilsEv⟩
 "ILS" lib.AssertEq ilsProof.domain
 "resolved_single_currency" lib.AssertEq ilsProof.basis
 1 lib.AssertEq ilsProof.amount_scale
-1 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof ilsProof
+1 lib.AssertEq proof_policy.AuthorizeArithmeticCurrencyProof ilsProof
 
 # 7. Mixed JPY/ILS fails closed
 mixedCurrencySnap ← ProofSnapshot ⟨
@@ -151,14 +151,14 @@ debits5 ← (({𝕩.side}¨ alignBuilt.rows) ≡¨ <"debit") / alignBuilt.rows
 "budget_alloc.tsv" lib.AssertEq (2 ⊑ debits5).source_file
 
 # 11. Proof authorizer boundary cases
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", basis⇐"legacy_compatibility", message⇐""} # missing scale
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", basis⇐"legacy_compatibility", amount_scale⇐¯1, message⇐""} # negative scale
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", basis⇐"legacy_compatibility", amount_scale⇐1.5, message⇐""} # fractional scale
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", basis⇐"legacy_compatibility", amount_scale⇐"2", message⇐""} # string scale
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", basis⇐"empty_source_compatibility", amount_scale⇐1, message⇐""} # wrong empty-source scale
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", basis⇐"forged_basis", amount_scale⇐0, message⇐""} # forged basis
-1 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"ILS", basis⇐"resolved_single_currency", amount_scale⇐0, message⇐""} # checked ILS domain
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"ILS", basis⇐"legacy_compatibility", amount_scale⇐0, message⇐""} # impossible ILS legacy basis
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"ILS", basis⇐"empty_source_compatibility", amount_scale⇐0, message⇐""} # impossible ILS empty basis
+0 lib.AssertEq proof_policy.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", basis⇐"legacy_compatibility", message⇐""} # missing scale
+0 lib.AssertEq proof_policy.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", basis⇐"legacy_compatibility", amount_scale⇐¯1, message⇐""} # negative scale
+0 lib.AssertEq proof_policy.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", basis⇐"legacy_compatibility", amount_scale⇐1.5, message⇐""} # fractional scale
+0 lib.AssertEq proof_policy.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", basis⇐"legacy_compatibility", amount_scale⇐"2", message⇐""} # string scale
+0 lib.AssertEq proof_policy.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", basis⇐"empty_source_compatibility", amount_scale⇐1, message⇐""} # wrong empty-source scale
+0 lib.AssertEq proof_policy.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", basis⇐"forged_basis", amount_scale⇐0, message⇐""} # forged basis
+1 lib.AssertEq proof_policy.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"ILS", basis⇐"resolved_single_currency", amount_scale⇐0, message⇐""} # checked ILS domain
+0 lib.AssertEq proof_policy.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"ILS", basis⇐"legacy_compatibility", amount_scale⇐0, message⇐""} # impossible ILS legacy basis
+0 lib.AssertEq proof_policy.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"ILS", basis⇐"empty_source_compatibility", amount_scale⇐0, message⇐""} # impossible ILS empty basis
 
 •Out "test_src_next_currency_b3.bqn: OK"
