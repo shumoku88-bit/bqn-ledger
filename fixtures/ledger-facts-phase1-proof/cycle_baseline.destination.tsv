@@ -1,0 +1,4 @@
+mode	fixed
+start	2025-12-22
+end_exclusive	2026-01-22
+income_account	income:salary

@@ -4,12 +4,9 @@
 
 admission ← •Import "companion_admission.bqn"
 facts ← •Import "facts.bqn"
+planSnapshot ← •Import "plan_snapshot.bqn"
 empty ← ⟨⟩
 
-planPolicy ← {
-  source_name⇐"plan.tsv",layer_name⇐"plan",require_plan_id⇐1,
-  known_metadata⇐⟨"currency","plan_id","recur","series","anchor","offset","cashflow"⟩
-}
 budgetPolicy ← {
   source_name⇐"budget_alloc.tsv",layer_name⇐"budget",require_plan_id⇐0,
   known_metadata⇐⟨"currency"⟩
@@ -24,17 +21,16 @@ EmptyFacts ← {𝕊:
 }
 
 Build ← {𝕊 planLines‿budgetLines‿accounts‿registry:
-  planAdmission ← admission.Admit ⟨planLines,planPolicy,accounts,registry⟩
+  planResult ← planSnapshot.Build ⟨planLines,accounts,registry⟩
   budgetAdmission ← admission.Admit ⟨budgetLines,budgetPolicy,accounts,registry⟩
-  diagnostics ← planAdmission.diagnostics∾budgetAdmission.diagnostics
+  diagnostics ← planResult.diagnostics∾budgetAdmission.diagnostics
   planFacts ← EmptyFacts @
   budgetFacts ← EmptyFacts @
-  admissionsOk ← (planAdmission.state≡"ok") ∧ budgetAdmission.state≡"ok"
+  admissionsOk ← (planResult.state≡"ok") ∧ budgetAdmission.state≡"ok"
   {𝕊:
-    projectedPlan ← facts.Project ⟨planAdmission,accounts⟩
     projectedBudget ← facts.Project ⟨budgetAdmission,accounts⟩
-    diagnostics ∾↩ projectedPlan.diagnostics∾projectedBudget.diagnostics
-    {𝕊: planFacts↩projectedPlan ⋄ budgetFacts↩projectedBudget}⍟((projectedPlan.state≡"ok") ∧ projectedBudget.state≡"ok") @
+    diagnostics ∾↩ projectedBudget.diagnostics
+    {𝕊:planFacts↩planResult.facts ⋄ budgetFacts↩projectedBudget}⍟(projectedBudget.state≡"ok") @
   }⍟admissionsOk @
   state ← ((planFacts.state≡"ok") ∧ budgetFacts.state≡"ok")⊑"error"‿"ok"
   {state⇐state,plan⇐planFacts,budget⇐budgetFacts,diagnostics⇐diagnostics}

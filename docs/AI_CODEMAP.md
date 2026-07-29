@@ -114,7 +114,8 @@ Updated: 2026-07-28
 - `journal_complete_admission.bqn` — declaration-onlyを含むraw Journal全体をdomain partitionし、各ordinary transactionをsingle-domain ownerへ渡してcomplete no-partial transaction evidenceを返す。
 - `snapshot.bqn` — already-read account lines、raw Journal、registryをstrict Account→complete Journal→factsへcomposeするpure bounded root。
 - `companion_admission.bqn` — already-read Plan/Budget TSVの固定5座標、closed metadata、strict date、positive exact amount、explicit currency、Account currency、durable Plan IDをsource policyごとにall-or-nothing admissionする。
-- `companion_snapshot.bqn` — Plan/Budget両admissionをcommon factsへcomposeし、一方でもinvalidなら両source factsをpublishしないpure bounded root。
+- `plan_snapshot.bqn` — Planだけを必要とするconsumer向けstrict Plan Fact snapshot。Budget evidenceを要求・構築しない。
+- `companion_snapshot.bqn` — Plan/Budget両admissionをcommon factsへcomposeし、一方でもinvalidなら両source factsをpublishしないpure bounded root。Plan admissionは`plan_snapshot.bqn`を再利用する。
 - `config_admission.bqn` — already-read config行をclosed/unique key、mandatory registry-supported `DEFAULT_CURRENCY`、typed source座標とreport policyへall-or-nothing admissionする。repository defaultやpath I/Oを持たない。
 - `cycle_admission.bqn` — fixed/incomeAnchor/calendarMonthのalready-read定義をstrict date/range/day、explicit income Account roleへall-or-nothing admissionする。facts/as-of/clockからのperiod resolutionを持たない。
 - `transaction_rows.bqn` — canonical factsからsource-order Transactionとordered Postingをtyped joinするJournal list/reverse/Recent向けnarrow capability。source loadやreport formattingを持たない。
@@ -172,8 +173,8 @@ Updated: 2026-07-28
 ### `src/application/` (destination I/O and CLI boundary)
 
 - `source_io.bqn` — application-only read-only raw/line I/O。core moduleからimportされない。
-- `report_source_adapter.bqn` — explicit base/basenameからRegistry、Actual snapshot、Issue linesだけをkey-specificに読む。
-- `report_destination_cli.bqn` — request admission後にselected adapter/composer/rendererを呼ぶparallel CLI owner。現在4 keyだけを配線し、production routeではない。
+- `report_source_adapter.bqn` — explicit base/basenameからRegistry、Actual snapshot、Plan facts、Cycle/Issue linesをkey-specificに読む。
+- `report_destination_cli.bqn` — request admission後にselected adapter/composer/rendererを呼ぶparallel CLI owner。7 keyを配線し、Cycle modeに応じてPlan readを省略/要求する。production routeではない。
 
 ### `src_next/` (現行production BQN 会計エンジン)
 

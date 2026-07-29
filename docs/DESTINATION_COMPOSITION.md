@@ -1,6 +1,6 @@
 # Destination composition and cutover preparation
 
-Status: P10C static catalog, one-result composition/rendering, and four key-first parallel CLI adapters complete; five source-policy adapters and `all` remain in progress.
+Status: P10D static catalog, one-result composition/rendering, and seven key-first parallel CLI adapters complete; ownership-backed Envelope/Daily Target and `all` remain in progress.
 
 ## Static catalog owner
 
@@ -65,15 +65,17 @@ Application-only `source_io.bqn` and `report_source_adapter.bqn` own read-only f
 ```text
 balances          accounts.tsv + explicit Journal basename
 recent            accounts.tsv + explicit Journal basename
-monthly-accounts  accounts.tsv + explicit Journal basename
+planned           Accounts/Actual + explicit Plan and Cycle basenames
+cycle-accounts     Accounts/Actual + explicit Cycle; Plan only for incomeAnchor
+cycle-comparison   Accounts/Actual + two explicit Cycle definitions; Plan only for incomeAnchor
+monthly-accounts   accounts.tsv + explicit Journal basename
 issues             explicit strict Issue TSV basename
 ```
 
-All coordinates and basenames are explicit. Safe Journal/TSV basenames reject separators; there is no path fallback. Selective-source tests prove Recent works in a directory containing only Accounts/Actual, Issues works without Accounts/Actual, and unknown/unsupported requests fail even when the base path does not exist.
+All coordinates and basenames are explicit. Safe Journal/TSV basenames reject separators; there is no path fallback. Cycle definitions are strictly admitted before mode-specific resolution. Fixed/calendarMonth requests do not read Plan; incomeAnchor requires it. Comparison admits separate current/baseline definitions and rejects differing modes. Selective-source tests prove Recent works with Accounts/Actual only, fixed Cycle Accounts adds only Cycle, Planned does not require Budget, incomeAnchor fails without Plan, Issues works without Accounts/Actual, and unknown/unsupported requests fail even when the base path does not exist.
 
 This parallel CLI is deliberately incomplete and does not replace production. The remaining adapters require semantic preparation rather than a wider context:
 
-- Planned and both Cycle reports need strict cycle admission and mode-specific resolution;
 - Envelopes needs explicit funding Account ownership;
 - Daily Target needs owner-produced asset/obligation/reservation scopes;
 - `all` must iterate these one-result adapters after all nine are available.

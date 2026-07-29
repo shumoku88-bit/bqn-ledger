@@ -7,11 +7,14 @@ usage() {
 Usage:
   tools/report-destination BASE balances SURFACE DOMAIN AS_OF JOURNAL_BASENAME
   tools/report-destination BASE recent SURFACE LIMIT JOURNAL_BASENAME
+  tools/report-destination BASE planned SURFACE OBSERVATION JOURNAL PLAN CYCLE
+  tools/report-destination BASE cycle-accounts human DOMAIN OBSERVATION JOURNAL CYCLE [PLAN]
+  tools/report-destination BASE cycle-comparison human DOMAIN CURRENT_OBS BASELINE_OBS POLICY JOURNAL CURRENT_CYCLE BASELINE_CYCLE [PLAN]
   tools/report-destination BASE monthly-accounts human DOMAIN FIRST_MONTH LAST_MONTH_EXCLUSIVE JOURNAL_BASENAME
   tools/report-destination BASE issues human ISSUE_BASENAME
 
 SURFACE is human, compact, or json as admitted by the final catalog.
-Only the four listed P10C source adapters are wired in this parallel proof.
+Seven retained keys are wired; Envelope, Daily Target, and all remain pending.
 Production remains tools/report.
 USAGE
 }
@@ -25,22 +28,44 @@ key=$2
 surface=$3
 shift 3
 
+safe_basename() { [[ $1 != */* && $1 != *\\* && -n $1 ]]; }
+require_journal() { safe_basename "$1" && [[ $1 == *.journal ]]; }
+require_tsv() { safe_basename "$1" && [[ $1 == *.tsv ]]; }
+source_name_error() { echo -e "ERROR\tsource_basename_invalid\t$1" >&2; exit 1; }
+
 case "$key" in
   balances)
     [[ $# -eq 3 ]] || { usage >&2; exit 2; }
-    [[ $3 != */* && $3 != *\\* && $3 == *.journal ]] || { echo -e 'ERROR\tjournal_basename_invalid\tjournal must be a safe .journal basename' >&2; exit 1; }
+    require_journal "$3" || source_name_error 'journal must be a safe .journal basename'
     ;;
   recent)
     [[ $# -eq 2 ]] || { usage >&2; exit 2; }
-    [[ $2 != */* && $2 != *\\* && $2 == *.journal ]] || { echo -e 'ERROR\tjournal_basename_invalid\tjournal must be a safe .journal basename' >&2; exit 1; }
+    require_journal "$2" || source_name_error 'journal must be a safe .journal basename'
+    ;;
+  planned)
+    [[ $# -eq 4 ]] || { usage >&2; exit 2; }
+    require_journal "$2" || source_name_error 'journal must be a safe .journal basename'
+    require_tsv "$3" && require_tsv "$4" || source_name_error 'Plan and Cycle must be safe .tsv basenames'
+    ;;
+  cycle-accounts)
+    [[ $# -eq 4 || $# -eq 5 ]] || { usage >&2; exit 2; }
+    require_journal "$3" || source_name_error 'journal must be a safe .journal basename'
+    require_tsv "$4" || source_name_error 'Cycle must be a safe .tsv basename'
+    [[ $# -eq 4 ]] || require_tsv "$5" || source_name_error 'Plan must be a safe .tsv basename'
+    ;;
+  cycle-comparison)
+    [[ $# -eq 7 || $# -eq 8 ]] || { usage >&2; exit 2; }
+    require_journal "$5" || source_name_error 'journal must be a safe .journal basename'
+    require_tsv "$6" && require_tsv "$7" || source_name_error 'Cycle files must be safe .tsv basenames'
+    [[ $# -eq 7 ]] || require_tsv "$8" || source_name_error 'Plan must be a safe .tsv basename'
     ;;
   monthly-accounts)
     [[ $# -eq 4 ]] || { usage >&2; exit 2; }
-    [[ $4 != */* && $4 != *\\* && $4 == *.journal ]] || { echo -e 'ERROR\tjournal_basename_invalid\tjournal must be a safe .journal basename' >&2; exit 1; }
+    require_journal "$4" || source_name_error 'journal must be a safe .journal basename'
     ;;
   issues)
     [[ $# -eq 1 ]] || { usage >&2; exit 2; }
-    [[ $1 != */* && $1 != *\\* && $1 == *.tsv ]] || { echo -e 'ERROR\tissue_basename_invalid\tissues must be a safe .tsv basename' >&2; exit 1; }
+    require_tsv "$1" || source_name_error 'issues must be a safe .tsv basename'
     ;;
 esac
 

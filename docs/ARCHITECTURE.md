@@ -202,12 +202,13 @@ src_next/queries/
 
 ```text
 already-read Account + raw Actual -> snapshot.bqn -> Actual Facts
+already-read Plan TSV + admitted Account -> plan_snapshot.bqn -> strict Plan Facts
 already-read Plan/Budget TSV + admitted Account
   -> companion_snapshot.bqn
   -> strict Plan Facts + Budget Facts
 ```
 
-両rootは共通の`facts.bqn`からaligned Transaction/Posting FactsとSource/Domain/Account/Layer tablesを得る。Plan/Budgetはexplicit currency、Account currency一致、exact scaleを要求し、Planはdurable `plan_id`なしではadmitしない。どちらか一方のcompanion sourceがinvalidなら両方のfactsを空にする。空のoptional companion sourceは正常で、架空Domainを作らない。Source table/indexは最初のActual+Plan consumerであるincomeAnchor resolutionで導入し、source-qualified durable contributorを保持するが、巨大なmerged snapshotやcross-domain arithmeticは作らない。
+各rootは共通の`facts.bqn`からaligned Transaction/Posting FactsとSource/Domain/Account/Layer tablesを得る。Plan/Budgetはexplicit currency、Account currency一致、exact scaleを要求し、Planはdurable `plan_id`なしではadmitしない。Plan-only consumerはBudgetを構築せず、Plan/Budget rootではどちらか一方がinvalidなら両方のfactsを空にする。空のoptional companion sourceは正常で、架空Domainを作らない。Source table/indexは最初のActual+Plan consumerであるincomeAnchor resolutionで導入し、source-qualified durable contributorを保持するが、巨大なmerged snapshotやcross-domain arithmeticは作らない。
 
 新ledger ownerはsource path、I/O、clock、旧context、Cube/TBDS、report fieldを受け取らない。`config_admission.bqn`はledger source座標とreport policyを分離し、`cycle_admission.bqn`はfacts/as-ofを参照しないunresolved cycle definitionだけをadmitする。fixed/calendarMonth/incomeAnchorは必要 evidenceが異なるため3つのnarrow resolverに分け、共通`cycle_result.bqn` shapeへ返す。period resolutionをsource parserやuniversal cycle contextへ戻さない。Plan completionは`plan_completion_join.bqn`がexplicitに選択されたPlan/Actual Transaction indexをdurable `plan_id`だけでJoinする。各sourceのcurrency、exact coefficient/scale、Account direction、source-qualified Posting contributorを別々に保持し、複数Actualを加算しない。同一signatureの複数completionは`duplicate`、競合signatureは`ambiguous`であり、どちらも`completed`へ潰さない。period selection、temporal label、formatは後続use-case/section責務である。現行runtime/editor callerもcanonical Actual admission pathを直接importし、旧module pathはwrapperなしで削除済みである。schemaとinvariantは`docs/LEDGER_FACT_SCHEMA.md`、config/cycle境界は`docs/CONFIG_CYCLE_ADMISSION.md`を正とする。
 

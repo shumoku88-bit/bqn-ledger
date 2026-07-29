@@ -1,7 +1,7 @@
 # Canonical ledger fact schema
 
 Status: Phase 3F; canonical Actual/Plan/Budget facts with explicit empty Domain/Layer semantics
-Owner: `src/ledger/snapshot.bqn` / `src/ledger/companion_snapshot.bqn` / `src/ledger/facts.bqn`
+Owner: `src/ledger/snapshot.bqn` / `src/ledger/plan_snapshot.bqn` / `src/ledger/companion_snapshot.bqn` / `src/ledger/facts.bqn`
 Public evidence: `fixtures/ledger-facts-phase1-proof/`
 
 ## Boundary
@@ -132,7 +132,7 @@ The table exposes aligned `index`, `key`, `currency`, `role`, `type`, `budget`, 
 
 ## Strict Plan/Budget companion boundary
 
-`companion_snapshot.Build ⟨planLines,budgetLines,admittedAccounts,registry⟩` is the pure all-or-nothing companion root. It admits the two already-read optional TSV sources independently but publishes neither source's facts if either source fails.
+`plan_snapshot.Build ⟨planLines,admittedAccounts,registry⟩` is the narrow pure Plan-only root for consumers that do not need Budget. `companion_snapshot.Build ⟨planLines,budgetLines,admittedAccounts,registry⟩` reuses that Plan root and remains the all-or-nothing two-source root: it publishes neither source's facts if either source fails.
 
 Both sources require exactly the five positional coordinates `date`, `memo`, `from account`, `to account`, and positive exact `amount`, followed by closed `key=value` metadata. Every row requires explicit registry-supported `currency`; both accounts must exist and have that currency. Dates are strict Gregorian text and finite currency precision is enforced.
 
