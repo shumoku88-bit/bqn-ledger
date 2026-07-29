@@ -28,11 +28,14 @@ Table ← {𝕊:
     compact⇐{𝕩.compact}¨entries,json⇐{𝕩.json}¨entries
   }
 }
+
+# Index-of returns ≠entries when the key is absent; that bound selects the result.
 Find ← {𝕊 keyValue:
-  matches ← keyValue⊸≡¨{𝕩.key}¨entries
-  result ← {state⇐"unknown",entry⇐empty}
-  {𝕊:result↩{state⇐"ok",entry⇐(⊑matches/↕≠entries)⊑entries}}⍟(1=+´matches) @
-  result
+  i ← ({𝕩.key}¨entries) ⊐ ⟨keyValue⟩
+  (i<≠entries) ⊑ ⟨
+    {state⇐"unknown",entry⇐empty},
+    {state⇐"ok",entry⇐i⊑entries}
+  ⟩
 }
 
 {Table⇐Table,Find⇐Find}
