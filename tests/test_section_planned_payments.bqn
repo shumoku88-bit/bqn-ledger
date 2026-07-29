@@ -53,15 +53,18 @@ lib.Assert ∨´"[]"⍷section.FormatJson emptyResult
 lib.Assert ∨´"ledger_planned_payment: (none)"⍷section.FormatCompact emptyResult
 
 # Temporal state is section-local and uses the latest selected Actual observation.
+# Source order intentionally differs from date order. Presentation must dereference
+# the joined canonical Plan transaction index, not the joined row ordinal.
 openPlanLines ← ⟨
+  "2026-01-20	future	assets:cash	expenses:food	3	currency=JPY	plan_id=future",
   "2026-01-05	past	assets:cash	expenses:food	1	currency=JPY	plan_id=past",
-  "2026-01-12	today	assets:cash	expenses:food	2	currency=JPY	plan_id=today",
-  "2026-01-20	future	assets:cash	expenses:food	3	currency=JPY	plan_id=future"
+  "2026-01-12	today	assets:cash	expenses:food	2	currency=JPY	plan_id=today"
 ⟩
 openPlanFacts ← (companion.Build ⟨openPlanLines,⟨⟩,accounts,registry⟩).plan
 openResult ← section.Build ⟨openPlanFacts,actualFacts,cycle,"2026-01-12"⟩
 "ok" lib.AssertEq openResult.state
 ⟨"overdue","due","future"⟩ lib.AssertEq openResult.rows.status
+⟨"past","today","future"⟩ lib.AssertEq openResult.rows.memo
 6 lib.AssertEq openResult.open_total_coefficient
 ⟨0,1,2⟩ lib.AssertEq openResult.open_indices
 ⟨⟩ lib.AssertEq openResult.completed_indices

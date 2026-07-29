@@ -94,6 +94,7 @@ Build ← {𝕊 planFacts‿actualFacts‿cycle‿asOfText:
         diagnostics ∾↩ AddIf ⟨completed ∧ ¬currencyMatch,Diagnostic ⟨"completion_currency_mismatch","completed Plan and Actual currency must agree"⟩⟩
         diagnostics ∾↩ AddIf ⟨completed ∧ ¬directionMatch,Diagnostic ⟨"completion_direction_mismatch","completed Plan and Actual Account directions must agree"⟩⟩
         {𝕊:
+          planTransactionIndex ← rowIndex⊑joined.rows.plan_transaction_index
           planDate ← rowIndex⊑joined.rows.plan_date
           temporalStatus ← "completed"
           {𝕊:
@@ -118,7 +119,7 @@ Build ← {𝕊 planFacts‿actualFacts‿cycle‿asOfText:
           candidateRows∾↩⟨{
             status⇐temporalStatus,date⇐planDate,
             category⇐CategoryLabel ⟨categoryAccount,categoryIndex⊑planFacts.accounts.role⟩,
-            memo⇐rowIndex⊑planFacts.transactions.description,
+            memo⇐planTransactionIndex⊑planFacts.transactions.description,
             plan_id⇐rowIndex⊑joined.rows.plan_id,currency⇐rowIndex⊑joined.rows.currency,
             planned_coefficient⇐rowIndex⊑joined.rows.planned_coefficient,
             planned_scale⇐rowIndex⊑joined.rows.planned_scale,
