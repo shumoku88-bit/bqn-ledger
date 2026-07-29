@@ -19,23 +19,21 @@ entries ← ⟨
   Entry ⟨"daily-target","Daily Target","household","src/sections/daily_target.bqn","card_projection",1,1,0⟩,
   Entry ⟨"issues","Issues","operations","src/sections/issues.bqn","list",1,0,0⟩
 ⟩
+keys ← {𝕩.key}¨entries
 
 Table ← {𝕊:
   {
-    count⇐≠entries,index⇐↕≠entries,key⇐{𝕩.key}¨entries,label⇐{𝕩.label}¨entries,
+    count⇐≠entries,index⇐↕≠entries,key⇐keys,label⇐{𝕩.label}¨entries,
     category⇐{𝕩.category}¨entries,owner⇐{𝕩.owner}¨entries,shape⇐{𝕩.shape}¨entries,
     human⇐{𝕩.human}¨entries,
     compact⇐{𝕩.compact}¨entries,json⇐{𝕩.json}¨entries
   }
 }
 
-# Index-of returns ≠entries when the key is absent; that bound selects the result.
+# Index-of returns ≠entries when the key is absent; only a found coordinate is selected.
 Find ← {𝕊 keyValue:
-  i ← ({𝕩.key}¨entries) ⊐ ⟨keyValue⟩
-  (i<≠entries) ⊑ ⟨
-    {state⇐"unknown",entry⇐empty},
-    {state⇐"ok",entry⇐i⊑entries}
-  ⟩
+  i ← ⊑ keys ⊐ ⟨keyValue⟩
+  {𝕊: {state⇐"ok",entry⇐i⊑entries}}⍟(i<≠entries) {state⇐"unknown",entry⇐empty}
 }
 
 {Table⇐Table,Find⇐Find}
