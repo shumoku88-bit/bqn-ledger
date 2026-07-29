@@ -3,12 +3,6 @@
 
 empty ← ⟨⟩
 
-Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
-Unique ← {𝕊 items:
-  result ← empty
-  {𝕊 item: {𝕊: result∾↩⟨item⟩}⍟(¬Contains ⟨item,result⟩) @}¨items
-  result
-}
 Diagnostic ← {𝕊 codeText‿messageText:
   {severity⇐"error",stage⇐"accounting_matrix_result",code⇐codeText,message⇐messageText}
 }
@@ -27,8 +21,9 @@ Build ← {𝕊 rowCoordinates‿columnCoordinates‿valueScale‿values‿contr
   diagnostics ← empty
   rowCount ← ≠rowCoordinates
   columnCount ← ≠columnCoordinates
-  diagnostics ∾↩ AddIf ⟨rowCount≠≠Unique rowCoordinates,Diagnostic ⟨"matrix_row_axis_duplicate","row axis coordinates must be unique"⟩⟩
-  diagnostics ∾↩ AddIf ⟨columnCount≠≠Unique columnCoordinates,Diagnostic ⟨"matrix_column_axis_duplicate","column axis coordinates must be unique"⟩⟩
+  # Deduplicate compares opaque major cells and preserves first-occurrence order.
+  diagnostics ∾↩ AddIf ⟨rowCount≠≠⍷rowCoordinates,Diagnostic ⟨"matrix_row_axis_duplicate","row axis coordinates must be unique"⟩⟩
+  diagnostics ∾↩ AddIf ⟨columnCount≠≠⍷columnCoordinates,Diagnostic ⟨"matrix_column_axis_duplicate","column axis coordinates must be unique"⟩⟩
   scaleInvalid ← (valueScale<0) ∨ valueScale≠⌊valueScale
   diagnostics ∾↩ AddIf ⟨scaleInvalid,Diagnostic ⟨"matrix_scale_invalid","value scale must be a nonnegative integer"⟩⟩
   rowsAligned ← (rowCount=≠values) ∧ rowCount=≠contributors
