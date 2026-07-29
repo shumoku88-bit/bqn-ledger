@@ -7,14 +7,14 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Portfolio P11: final compact tools/report-summary now repeats the five compact owners through the admitted all manifest; exact ledger_* query proof preserves repeated values and has no regex, prefix, old-key translation, or dual emission. Next extract live editor runtime from src_next dependencies.
+Portfolio P11B: the first editor extraction moved pure Split/SplitKeepEmpty/ToNum to src/text/parse.bqn, repointed every consumer, and physically deleted src_next/util.bqn without a wrapper. Live editor blockers fell from 35 files/14 modules to 33 files/13 modules.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn (unchanged)
-completed parallel surfaces: 9-key metadata, human all/cache, five-owner compact summary, exact destination query
-cutover rule: replace tools/query with proven query and delete query-destination/report-next-summary/old keys atomically
-next slice: choose one coherent src_edit dependency cluster, move implementation-neutral owners without forwarding wrappers
-remaining gates: editor extraction, retained helper migration, deletion rehearsal, separately authorized private readiness
+removed owner: src_next/util.bqn; neutral owner: src/text/parse.bqn
+migrated: 12 editor imports plus current-engine/test callers; two editor files now fully src_next-free
+next slice: extract loader.bqn I/O/path/line parsing (24 editor consumers) to a bounded application support owner
+remaining gates: other editor dependencies, retained helper migration, deletion rehearsal, separately authorized private readiness
 exclude: production switch, old-key deletion, private ledger inspection
 ```
 

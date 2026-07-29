@@ -4,7 +4,7 @@
 # Non-JPY meaning is validated and normalized first. Only then is a synthetic
 # integer-JPY structural shadow passed to the unchanged production Stage 1 parser.
 
-util ← •Import "util.bqn"
+util ← •Import "../src/text/parse.bqn"
 decimal ← •Import "../src/ledger/exact_decimal.bqn"
 dates ← •Import "date.bqn"
 setup ← •Import "currency_setup.bqn"

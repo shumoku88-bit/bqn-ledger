@@ -12,7 +12,7 @@
 # Stdout protocol on validation error (with non-zero exit):
 #   ERROR\t<message>
 
-lib ← •Import "../src_next/util.bqn"
+lib ← •Import "../src/text/parse.bqn"
 loader ← •Import "../src_next/loader.bqn"
 validate ← •Import "validate.bqn"
 plan_id ← •Import "plan_id.bqn"

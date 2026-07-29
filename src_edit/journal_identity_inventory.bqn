@@ -7,7 +7,7 @@
 # Provenance may be verified, inferred, or unknown.
 # Reconstructibility is not deletion authorization.
 
-util ← •Import "../src_next/util.bqn"
+util ← •Import "../src/text/parse.bqn"
 
 lf ← @+10
 tab ← @+9

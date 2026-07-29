@@ -185,6 +185,10 @@ Updated: 2026-07-28
 - `ledger_check_cli.bqn` / `tools/ledger-check` — Config/Accounts/Actual/Plan/Budget/Cycle/Issues/Daily Scopeのstrict source-facing operational admission。report/catalog ownerではない。
 - `ledger_inspect_cli.bqn` / `tools/ledger-inspect` — canonical Actual Transaction/Posting identity、Account、exact coefficient/scaleのnon-authoritative provenance inspection。
 
+### `src/text/` (implementation-neutral bounded text primitives)
+
+- `parse.bqn` — pure `Split` / `SplitKeepEmpty` / integer `ToNum` owner。editorと旧current engineの実consumerが共有し、file/path/shell/clock/process I/Oを持たない。旧`src_next/util.bqn`はforwardingなしで削除済み。
+
 ### `src_next/` (現行production BQN 会計エンジン)
 
 - `context.bqn` — BuildAllRows / BuildPeriodView / BuildContext。Actualはcanonical complete admissionを使い、既存Cube/TBDS向けに一時的な`delta` rowへ変換してplan/budget TSV rowsと合成する。default/explicit cycle解決も同じcomplete transactionsを再利用し、production historical parser fallbackはない。
@@ -234,7 +238,6 @@ Updated: 2026-07-28
 - `format.bqn` — テキスト整形、ANSI color helper、semantic color/no-color制御。
 - `report_labels.bqn` — report presentation labels の正本ローダー (`config/report_labels.tsv`)。
 - `issues.bqn` — Issues & Decisions ログの表示フォーマット。
-- `util.bqn` — 基本ユーティリティ (Split, ToNum, LoadLines)。
 - `json.bqn` — 汎用 BQN JSON シリアライザ（数値、文字列、エスケープ、リスト、オブジェクトのネストに対応）。
 - `date.bqn` — 日付操作 (Today, Parts, Ordinal, DaysBetween)。
 - `unavailable.bqn` — unavailable sentinel の正本定義と helper (`IsUnavailable`, `StartsWith`)。

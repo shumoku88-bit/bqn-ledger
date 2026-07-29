@@ -1,7 +1,7 @@
 # journal_canonical_surface_plan.bqn
 # Pure classification and plan builder for Canonical Journal Surface 001.
 
-util ← •Import "../src_next/util.bqn"
+util ← •Import "../src/text/parse.bqn"
 parser ← •Import "../src_next/journal_profile_stage1.bqn"
 
 lf ← @+10

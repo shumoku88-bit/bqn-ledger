@@ -6,7 +6,7 @@
 # Transaction IR, fails closed on unsupported or ambiguous evidence, and can
 # project valid transactions into a signed event x account matrix.
 
-util ← •Import "util.bqn"
+util ← •Import "../src/text/parse.bqn"
 decimal ← •Import "../src/ledger/exact_decimal.bqn"
 dates ← •Import "date.bqn"
 

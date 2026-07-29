@@ -3,7 +3,7 @@
 
 dates ← •Import "date.bqn"
 decimal ← •Import "../src/ledger/exact_decimal.bqn"
-util ← •Import "util.bqn"
+util ← •Import "../src/text/parse.bqn"
 
 empty ← ⟨⟩
 tab ← @+9

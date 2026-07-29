@@ -9,7 +9,7 @@
 loader ← •Import "../src_next/loader.bqn"
 actual_source ← •Import "../src_next/actual_source.bqn"
 cleanup ← •Import "journal_reconstructible_identity_cleanup.bqn"
-util ← •Import "../src_next/util.bqn"
+util ← •Import "../src/text/parse.bqn"
 
 args ← •args
 tab ← @+9

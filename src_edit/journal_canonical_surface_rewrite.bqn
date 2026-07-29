@@ -1,7 +1,7 @@
 # journal_canonical_surface_rewrite.bqn
 # Pure whole-Journal candidate builder and semantic equivalence verifier for Canonical Surface 001.
 
-util ← •Import "../src_next/util.bqn"
+util ← •Import "../src/text/parse.bqn"
 parser ← •Import "../src_next/journal_profile_stage1.bqn"
 stage2a ← •Import "../src_next/journal_posting_ir_stage2a.bqn"
 ak ← •Import "../src_next/account_key.bqn"

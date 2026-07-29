@@ -37,7 +37,7 @@ actualDate ← 3 ⊑ args
 actualAmount ← 4 ⊑ args
 
 # パース処理
-lib ← •Import "../src_next/util.bqn"
+lib ← •Import "../src/text/parse.bqn"
 index ← lib.ToNum indexStr
 
 # パス解決

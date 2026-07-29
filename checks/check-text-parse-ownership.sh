@@ -10,15 +10,18 @@ fail() {
   exit 1
 }
 
-# util is a pure helper owner. File/process I/O must not creep back in.
-if grep -Eq '•SH|•FChars|•file\.|•Out|•Exit|LoadChars|LoadLines' src_next/util.bqn; then
-  grep -En '•SH|•FChars|•file\.|•Out|•Exit|LoadChars|LoadLines' src_next/util.bqn >&2 || true
-  fail "src_next/util.bqn must remain free of file, shell, and process I/O"
+# The implementation-neutral parser is a pure bounded owner.
+if grep -Eq '•SH|•FChars|•file\.|•Out|•Exit|LoadChars|LoadLines' src/text/parse.bqn; then
+  grep -En '•SH|•FChars|•file\.|•Out|•Exit|LoadChars|LoadLines' src/text/parse.bqn >&2 || true
+  fail "src/text/parse.bqn must remain free of file, shell, and process I/O"
+fi
+if rg -n 'src_next/util\.bqn|Import "util\.bqn"' src_edit src_next tests --glob '*.bqn' >/dev/null; then
+  fail "removed src_next util owner is still imported"
 fi
 
-# loader preserves the established public API through one pure split owner.
-grep -Fq 'util ← •Import "util.bqn"' src_next/loader.bqn \
-  || fail "loader.bqn must import util.bqn"
+# Loader preserves its established split API through the neutral owner.
+grep -Fq 'util ← •Import "../src/text/parse.bqn"' src_next/loader.bqn \
+  || fail "loader.bqn must import src/text/parse.bqn"
 grep -Fq 'Split ← util.Split' src_next/loader.bqn \
   || fail "loader.bqn must delegate Split to util"
 grep -Fq 'SplitKeepEmpty ← util.SplitKeepEmpty' src_next/loader.bqn \
@@ -33,4 +36,4 @@ fi
 [ "$(grep -Fc 'loader.ReadLines' src_next/config.bqn)" -eq 5 ] \
   || fail "config.bqn must route its five required reads through loader.ReadLines"
 
-echo "check-loader-util-ownership: OK" >&2
+echo "check-text-parse-ownership: OK" >&2

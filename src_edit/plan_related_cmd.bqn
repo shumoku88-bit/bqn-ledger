@@ -17,7 +17,7 @@ loader ← •Import "../src_next/loader.bqn"
 validate ← •Import "validate.bqn"
 plan_id ← •Import "plan_id.bqn"
 config ← •Import "../src_next/config.bqn"
-lib ← •Import "../src_next/util.bqn"
+lib ← •Import "../src/text/parse.bqn"
 dateutil ← •Import "../src_next/date.bqn"
 actual_source ← •Import "../src_next/actual_source.bqn"
 

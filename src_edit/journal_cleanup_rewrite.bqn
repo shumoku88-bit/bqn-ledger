@@ -2,7 +2,7 @@
 
 cleanup ← •Import "journal_cleanup_plan.bqn"
 parser ← •Import "../src_next/journal_profile_stage1.bqn"
-util ← •Import "../src_next/util.bqn"
+util ← •Import "../src/text/parse.bqn"
 
 lf ← @+10
 cr ← @+13

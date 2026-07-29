@@ -7,7 +7,7 @@
 # - Built-in currency policy owns admission and lexical precision metadata.
 # - This module reads the registry file on import but performs no writes to source TSVs.
 
-util ← •Import "util.bqn"
+util ← •Import "../src/text/parse.bqn"
 loader ← •Import "loader.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
 

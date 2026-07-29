@@ -1,6 +1,6 @@
 # Final report-engine cutover inventory
 
-Status: P10I tracked repository inventory complete; cutover is **blocked** and production remains unchanged.
+Status: P11 editor extraction in progress; cutover is **blocked** and production remains unchanged.
 Date: 2026-07-28
 Authority: `REPORT_PORTFOLIO_CONTRACT.md`, `REPORT_SURFACE_RETIREMENT_MAP.md`, `DESTINATION_COMPOSITION.md`
 
@@ -11,19 +11,19 @@ The destination report side is complete through nine individual routes, human/co
 Measured tracked blockers:
 
 ```text
-src_next BQN modules                                  71
-BQN files outside src_next with direct src_next import 180
-  src_edit files                                      35
-  test files                                          141
+src_next BQN modules                                  70
+BQN files outside src_next with direct src_next import 179
+  src_edit files                                      33
+  test files                                          142
   check/tool characterization BQN files                 4
-named tests/test_src_next_*.bqn                       79
-other test files with direct src_next import          63
+named tests/test_src_next_*.bqn                       78
+other test files with direct src_next import          64
 checks/check-src-next-*.sh                            33
 fixture directories named fixtures/src-next-*         35
 tracked files under fixtures/src-next-*              153
 ```
 
-The 180 direct-import files are not all retained runtime. Most tests/checks/fixtures disappear with the old owner, but the 35 editor files are live and must be migrated before physical deletion. Destination runtime under `src/` has no `src_next` import.
+The 179 direct-import files are not all retained runtime. Most tests/checks/fixtures disappear with the old owner, but the 33 editor files are live and must be migrated before physical deletion. Destination runtime under `src/` has no `src_next` import.
 
 The reproducible tracked inventory is:
 
@@ -123,12 +123,11 @@ The external-consumer gate is green: under explicit user direction, executable/s
 
 ## Gate D: editor runtime extraction
 
-Thirty-five `src_edit/*.bqn` files directly import 14 `src_next` modules. Import frequency:
+Thirty-three `src_edit/*.bqn` files directly import 13 `src_next` modules. Import frequency:
 
 ```text
 24 loader.bqn
 13 config.bqn
-12 util.bqn
 12 actual_source.bqn
  9 account_key.bqn
  8 journal_profile_stage1.bqn
@@ -139,7 +138,9 @@ Thirty-five `src_edit/*.bqn` files directly import 14 `src_next` modules. Import
          travel_exchange_event, friend_travel_source_event, context
 ```
 
-This is the largest live runtime blocker. Required action is ownership migration, not copying all of `src_next`:
+The first extraction moved bounded `Split`, `SplitKeepEmpty`, and `ToNum` ownership from `src_next/util.bqn` to `src/text/parse.bqn`, repointed all editor/current-engine/test consumers, and physically removed the old module without a forwarding wrapper. Twelve editor imports moved; `render.bqn` and `journal_identity_inventory.bqn` now have no `src_next` dependency.
+
+This remains the largest live runtime blocker. Required action is ownership migration, not copying all of `src_next`:
 
 - move generic I/O/text/date/config operations to implementation-neutral owners;
 - make editor Journal validation use canonical ledger admission where semantics match;

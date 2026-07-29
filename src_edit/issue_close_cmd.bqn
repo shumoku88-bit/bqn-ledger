@@ -9,7 +9,7 @@
 #   <old TSV row>
 #   <new TSV row>
 
-lib ← •Import "../src_next/util.bqn"
+lib ← •Import "../src/text/parse.bqn"
 loader ← •Import "../src_next/loader.bqn"
 validate ← •Import "validate.bqn"
 

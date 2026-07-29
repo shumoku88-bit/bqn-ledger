@@ -2,8 +2,8 @@
 # Read-only repository file loader.
 #
 # Design: minimal, inspectable, no writes to canonical data.
-# Pure text splitting is owned by util.bqn and re-exported here to preserve the
-# existing loader API used by source readers.
+# Pure text splitting is owned by src/text/parse.bqn and re-exported here while
+# this old loader API remains in use by source readers.
 #
 # Contract (DATA_CONTRACT.md):
 #   - reads canonical TSV files
@@ -11,7 +11,7 @@
 #   - splits by TAB
 #   - does not rewrite canonical files
 
-util ← •Import "util.bqn"
+util ← •Import "../src/text/parse.bqn"
 
 Split ← util.Split
 SplitKeepEmpty ← util.SplitKeepEmpty

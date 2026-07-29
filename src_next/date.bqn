@@ -2,7 +2,7 @@
 # Shared Gregorian date text, validation, arithmetic, and clock helpers.
 # Migrated from old src/core/date.bqn.
 
-lib ← •Import "util.bqn"
+lib ← •Import "../src/text/parse.bqn"
 
 digits ← "0123456789"
 IsDigits ← { (0 < ≠ 𝕩) ∧ ∧´ (𝕩 ∊ digits) }

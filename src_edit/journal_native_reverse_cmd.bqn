@@ -2,7 +2,7 @@
 actual_source ← •Import "../src_next/actual_source.bqn"
 date ← •Import "../src_next/date.bqn"
 validate ← •Import "validate.bqn"
-lib ← •Import "../src_next/util.bqn"
+lib ← •Import "../src/text/parse.bqn"
 args ← •args ⋄ tab←@+9
 Fail ← {𝕊 msg: •Out "ERROR"∾tab∾msg ⋄ •Exit 1}
 {𝕊: Fail "usage: base id index reverseDate"}⍟(4≠≠args) @

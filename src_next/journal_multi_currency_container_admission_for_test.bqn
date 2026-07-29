@@ -5,7 +5,7 @@
 # ordinary transaction is admitted independently through the existing
 # single-currency proof seam. No Journal-wide arithmetic domain is produced.
 
-util ← •Import "util.bqn"
+util ← •Import "../src/text/parse.bqn"
 dates ← •Import "date.bqn"
 setup ← •Import "currency_setup.bqn"
 single ← •Import "journal_supported_single_currency_admission_for_test.bqn"

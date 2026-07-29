@@ -3,7 +3,7 @@
 #
 # This module only produces string output. It does not write files.
 
-lib ← •Import "../src_next/util.bqn"
+lib ← •Import "../src/text/parse.bqn"
 
 # Join list of strings with a separator.
 Join ← {

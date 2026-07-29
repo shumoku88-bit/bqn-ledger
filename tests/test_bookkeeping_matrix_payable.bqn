@@ -3,7 +3,7 @@
 lib ← •Import "test_lib.bqn"
 parser ← •Import "../src_next/journal_profile_stage1.bqn"
 loader ← •Import "../src_next/loader.bqn"
-util ← •Import "../src_next/util.bqn"
+util ← •Import "../src/text/parse.bqn"
 
 # 1. Load and parse the payable study journal profile
 raw ← •FChars "../fixtures/bookkeeping-matrix-payable/profile.journal"

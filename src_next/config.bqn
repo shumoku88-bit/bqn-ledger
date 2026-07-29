@@ -2,7 +2,7 @@
 # Reads config.tsv and exposes it as a namespace.
 # Migrated from old src/core/config.bqn.
 
-lib ← •Import "util.bqn"
+lib ← •Import "../src/text/parse.bqn"
 loader ← •Import "loader.bqn"
 
 ParseLine ← {
