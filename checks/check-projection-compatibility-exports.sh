@@ -88,7 +88,7 @@ require_match '^[[:space:]]*SourceLayer[[:space:]]*←' 'source routing boundary
 
 require_file_match "$CUBE" '^[[:space:]]*layer[[:space:]]*←[[:space:]]*•Import "layer[.]bqn"' 'cube does not import the Layer owner'
 require_file_match "$CUBE" '^[[:space:]]*layer_names[[:space:]]*←[[:space:]]*layer[.]layer_names[[:space:]]*$' 'cube layer_names compatibility delegate is missing'
-require_file_match "$CUBE" '^[[:space:]]*layer_count[[:space:]]*←[[:space:]]*layer[.]layer_count[[:space:]]*$' 'cube layer_count is not derived from the Layer owner'
+require_file_match "$CUBE" '^[[:space:]]*layer_count[[:space:]]*←[[:space:]]*layer[.]layer_count[[:space:]]*$' 'cube layer_count compatibility delegate is missing'
 reject_file_match "$CUBE" '^[[:space:]]*layer_names[[:space:]]*←[[:space:]]*⟨' 'cube independently defines Layer names'
 reject_file_match "$CUBE" '^[[:space:]]*layer_count[[:space:]]*←[[:space:]]*[0-9]' 'cube independently defines Layer count'
 require_file_match "$LAYER_TEST" '•Import "[.][.]/src_next/layer[.]bqn"' 'focused Layer owner test does not import the owner directly'
