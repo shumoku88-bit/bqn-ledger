@@ -35,7 +35,7 @@ Use `green / improve / incomplete / not-applicable`. Record concrete evidence, n
 | Envelope & Backing | green | green | green: named purpose-specific stages, bounded publication, reviewable lines | green | green | complete |
 | Daily Target | green | green | green: named validation/normalization/calculation stages | green | green | complete |
 | Issues | green | green | green: strict admission then bounded source-order selection | green | green | complete |
-| P10 composition | green | green: core pure; I/O/cache/operations isolated in application boundary | green: nine composers; repeated all/cache; check/inspect outside catalog | green: direct/all/cache/operations failure proofs | **incomplete**: final cutover inventory/readiness | in progress |
+| P10 composition | green | green: core pure; I/O/cache/operations isolated in application boundary | green: nine composers; repeated all/cache; check/inspect outside catalog | green: direct/all/cache/operations and reproducible cutover inventory | **incomplete**: metadata/query/editor/private/external gates | in progress |
 
 ## P7 exit gate
 

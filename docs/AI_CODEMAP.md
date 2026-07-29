@@ -359,6 +359,7 @@ shell safe-write (`tools/lib/`) が実際のファイル書き込みを担当す
 - `tools/characterization/report_context_duplication_probe.bqn` — ordinary `BuildContext`、selected adapter、明示prepared-input routeをpublic base上で比較するread-only harness。timing thresholdは契約にせず、direct/prepared selected shape parityをfocused checkで固定する。
 - `tools/characterization/report_source_readiness_audit.py` — 明示pathだけをread-only監査し、DEFAULT_CURRENCY、account/Plan/Budget currency、Plan ID、role、Actual layoutのstrict-source readinessをTSVまたは集計で返す。private outputは明示指示なしに公開しない。
 - `tools/characterization/src_next_export_callers.py` — final export recordとqualified import aliasをsource-levelに走査し、runtime/editor/test/check/tool caller数、ForTest seam、zero-caller exportをTSVまたは集計で返す。
+- `tools/characterization/final_cutover_inventory.py` — tracked `src_next` modules/editor imports/tests/checks/fixture families/routesを再現可能に集計し、destination import zeroをassertするcutover blocker inventory。
 - `tools/doctor` — 設定とデータディレクトリの整合性診断。
 - `tools/bqn-eval` — BQN式の簡易評価用。
 - `tools/bqn-dump` — BQN値の型とshape診断用。

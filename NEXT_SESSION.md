@@ -7,16 +7,16 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Portfolio P10I: destination routes/cache are complete and operational readiness/inspection now live outside the report catalog as `ledger-check`/`ledger-inspect`. Next perform final tracked cutover inventory and readiness gating without switching production.
+Portfolio P10J: tracked cutover inventory is reproducible and confirms cutover remains blocked by metadata/query/UI and 35 live editor files importing 14 src_next modules. Next build destination six-field metadata and source-independent UI listing proof.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn (unchanged)
-operations: ledger-check admits strict sources; ledger-inspect shows canonical Fact provenance; neither enters all/cache
-next proof: tracked route/key/cache/metadata/label/query caller inventory mapped to atomic deletion/replacement diff
-human gates: ask moko about external compact/query scripts; private Issues/Daily Scope/source migration still separately authorized
-exclude: production switch or private inspection in inventory slice
-forbid: forwarding check/debug wrappers, diagnostic compact keys, dual catalogs/routes
-cutover only after: inventory green + external consumer answer + private readiness instruction
+measured blockers: 71 modules, 35 editor imports, 79 named tests, 33 named checks, 35 fixture families, 7 route/consumers
+clean boundary: destination src_next imports = 0
+next proof: catalog-derived key/label/category/owner/human_output/structured_output TSV+JSON, then parallel UI listing
+later: final report-summary/query; editor dependency extraction; deletion rehearsal
+human gates: external query/script answer and separately authorized private readiness
+exclude: production switch, old-key deletion, private inspection
 ```
 
 Destination code must not import old context, historical parser, report modules, or compatibility shapes. Move coherent ownership with callers and leave no forwarding wrapper. Private audit or migration still requires separate explicit direction.

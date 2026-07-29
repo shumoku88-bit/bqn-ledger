@@ -269,7 +269,10 @@ Quality completion is governed by [`docs/DESTINATION_QUALITY_GATE.md`](docs/DEST
 - [x] Removed the redundant CLI key whitelist, stabilized missing-source diagnostics, and fixed relative base paths against caller cwd.
 - [x] Proved the exact nine-key-plus-all cache manifest, byte-identical direct bodies, fail-closed staging, timestamp-last publication, and stale retired `.txt` deletion.
 - [x] Separated strict source readiness into `tools/ledger-check` and canonical Fact/provenance inspection into non-authoritative `tools/ledger-inspect`; neither is a report/catalog/cache owner.
-- [ ] Inventory external compact/query/cache consumers with moko before deleting old keys, then prepare one atomic cutover diff.
+- [x] Completed reproducible tracked final-cutover inventory: 71 modules, 35 live editor imports, 79 named tests, 33 named checks, 35 fixture families, and seven route/consumer owners remain blocked.
+- [ ] Build destination six-field metadata and migrate source-independent UI listing proof.
+- [ ] Build final compact `tools/report-summary`/exact `ledger_*` query proof, then ask moko about external `tools/query`/`report-next-summary`/`src_next_*` consumers before deletion.
+- [ ] Extract the 35 live editor files from 14 `src_next` dependencies without forwarding wrappers.
 - [ ] Keep private-source readiness under separate explicit authorization; do not inspect or rewrite user data in this public composition slice.
 
 Phase 0 exit evidence is `docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`: every observable report capability has an owner, every compatibility path has a deletion gate, and no undecided fallback is permitted in the destination fact schema.
