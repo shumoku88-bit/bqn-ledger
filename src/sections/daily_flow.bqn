@@ -8,14 +8,7 @@ amount ← •Import "../ledger/amount_text.bqn"
 text ← •Import "../report/text.bqn"
 empty ← ⟨⟩
 
-Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
-Unique ← {𝕊 items:
-  result ← empty
-  {𝕊 item: {𝕊: result∾↩⟨item⟩}⍟(¬Contains ⟨item,result⟩) @}¨items
-  result
-}
-IndexOf ← {𝕊 item‿items: ⊑(item⊸≡¨items)⊐1}
-SortedUnique ← {𝕊 items: sorted←(⍋items)⊏items ⋄ Unique sorted}
+SortedUnique ← {𝕊 items: ⍷ ((⍋items)⊏items)}
 Diagnostic ← {𝕊 codeText‿messageText:
   {severity⇐"error",stage⇐"section_daily_flow",code⇐codeText,message⇐messageText}
 }
@@ -55,15 +48,12 @@ Build ← {𝕊 flow‿periodStartText‿periodEndText‿asOfText:
   result ← EmptyResult diagnostics
   {𝕊:
     rowOrdinals ← SortedUnique flow.dates.date_ordinal∾⟨asOfOrdinal⟩
-    rowTexts ← {𝕊 ordinal:
-      value ← asOfText
-      matches ← (ordinal=flow.dates.date_ordinal)/↕flow.dates.count
-      {𝕊: value↩(⊑matches)⊑flow.dates.date_text}⍟(1=≠matches) @
-      value
-    }¨rowOrdinals
+    # Index-of's absent bound selects the appended text/zero/empty fallback cells.
+    sourceRowCoordinates ← flow.dates.date_ordinal ⊐ rowOrdinals
+    rowTexts ← sourceRowCoordinates ⊏ (flow.dates.date_text∾⟨asOfText⟩)
     remappedGroups ← {
       count⇐flow.expense_groups.count,index⇐flow.expense_groups.index,
-      row_index⇐{𝕊 oldIndex: IndexOf ⟨oldIndex⊑flow.dates.date_ordinal,rowOrdinals⟩}¨flow.expense_groups.row_index,
+      row_index⇐rowOrdinals ⊐ (flow.expense_groups.row_index⊏flow.dates.date_ordinal),
       column_index⇐flow.expense_groups.column_index,
       coefficient⇐flow.expense_groups.coefficient,
       contributors⇐flow.expense_groups.contributors
@@ -71,22 +61,17 @@ Build ← {𝕊 flow‿periodStartText‿periodEndText‿asOfText:
     expenseMatrix ← pivot.Build ⟨rowOrdinals,flow.categories.index,flow.scale,remappedGroups⟩
     diagnostics ∾↩ expenseMatrix.diagnostics
     {𝕊:
-      values ← empty ⋄ contributors ← empty
-      {𝕊 rowIndex:
-        ordinal ← rowIndex⊑rowOrdinals
-        oldMatches ← (ordinal=flow.dates.date_ordinal)/↕flow.dates.count
-        income ← 0 ⋄ net ← 0 ⋄ incomeContributors ← empty
-        {𝕊:
-          oldIndex ← ⊑oldMatches
-          income↩oldIndex⊑flow.dates.income
-          net↩oldIndex⊑flow.dates.net
-          incomeContributors↩oldIndex⊑flow.dates.income_contributors
-        }⍟(1=≠oldMatches) @
-        expenses ← rowIndex⊑expenseMatrix.matrix.values
+      alignedIncome ← sourceRowCoordinates ⊏ (flow.dates.income∾⟨0⟩)
+      alignedNet ← sourceRowCoordinates ⊏ (flow.dates.net∾⟨0⟩)
+      alignedIncomeContributors ← sourceRowCoordinates ⊏ (flow.dates.income_contributors∾⟨empty⟩)
+      values ← {𝕊 rowIndex:
+        ⟨rowIndex⊑alignedIncome⟩∾(rowIndex⊑expenseMatrix.matrix.values)∾⟨rowIndex⊑alignedNet⟩
+      }¨↕≠rowOrdinals
+      contributors ← {𝕊 rowIndex:
+        incomeContributors ← rowIndex⊑alignedIncomeContributors
         expenseContributors ← rowIndex⊑expenseMatrix.matrix.contributors
         netContributors ← SortedUnique incomeContributors∾∾expenseContributors
-        values∾↩⟨⟨income⟩∾expenses∾⟨net⟩⟩
-        contributors∾↩⟨⟨incomeContributors⟩∾expenseContributors∾⟨netContributors⟩⟩
+        ⟨incomeContributors⟩∾expenseContributors∾⟨netContributors⟩
       }¨↕≠rowOrdinals
       columnCoordinates ← ⟨"measure:income"⟩∾({"expense:"∾•Fmt 𝕩}¨flow.categories.index)∾⟨"measure:net"⟩
       builtMatrix ← matrixResult.Build ⟨rowOrdinals,columnCoordinates,flow.scale,values,contributors⟩
