@@ -9,7 +9,7 @@
 
 ctx_mod ← •Import "../../src_next/context.bqn"
 selected ← •Import "../../src_next/selected_domain_context.bqn"
-loader ← •Import "../../src_next/loader.bqn"
+loader ← •Import "../../src/application/source_io.bqn"
 ak ← •Import "../../src_next/account_key.bqn"
 cycle ← •Import "../../src_next/cycle.bqn"
 actual_source ← •Import "../../src_next/actual_source.bqn"

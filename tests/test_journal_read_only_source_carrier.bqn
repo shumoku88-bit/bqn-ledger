@@ -3,7 +3,7 @@
 lib ← •Import "test_lib.bqn"
 carrier_module ← •Import "../src_next/journal_read_only_source_carrier.bqn"
 ak ← •Import "../src_next/account_key.bqn"
-loader ← •Import "../src_next/loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 
 cycleStart ← "2026-08-01"
 lf ← @+10

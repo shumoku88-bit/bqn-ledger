@@ -9,7 +9,7 @@
 #   bqn src_next/developer_inspection.bqn fixtures/generalization-moko
 #   bqn src_next/developer_inspection.bqn data
 
-loader ← •Import "loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 ak ← •Import "account_key.bqn"
 context ← •Import "context.bqn"
 cycle ← •Import "cycle.bqn"

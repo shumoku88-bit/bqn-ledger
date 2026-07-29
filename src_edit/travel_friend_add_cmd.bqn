@@ -1,7 +1,7 @@
 # travel_friend_add_cmd.bqn
 # I/O boundary for friend_travel_events.tsv validation and APPEND protocol.
 
-loader ← •Import "../src_next/loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 source ← •Import "../src_next/friend_travel_source_event.bqn"
 
 args ← •args

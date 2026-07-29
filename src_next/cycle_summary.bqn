@@ -3,7 +3,7 @@
 # Machine Format for checks; FormatHuman for human-readable output.
 
 tbds ← •Import "tbds.bqn"
-loader ← •Import "loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 dt ← •Import "date.bqn"
 source_fields ← •Import "source_fields.bqn"
 layer ← •Import "layer.bqn"

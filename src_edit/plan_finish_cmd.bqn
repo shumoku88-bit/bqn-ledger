@@ -9,7 +9,7 @@
 # Stdout protocol on validation error (with non-zero exit):
 #   ERROR\t<message>
 
-loader ← •Import "../src_next/loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 validate ← •Import "validate.bqn"
 render ← •Import "render.bqn"
 plan_id ← •Import "plan_id.bqn"

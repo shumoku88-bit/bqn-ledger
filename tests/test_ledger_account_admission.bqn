@@ -3,7 +3,7 @@
 lib ← •Import "test_lib.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
 accounts ← •Import "../src/ledger/account_admission.bqn"
-loader ← •Import "../src_next/loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 
 tab ← @+9
 registryResult ← registry_core.Build loader.ReadLines "config/currencies.tsv"

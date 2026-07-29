@@ -7,7 +7,7 @@
 #   2: currency filter, or empty string for all currencies
 # Output: one account name per line.
 
-loader ← •Import "../src_next/loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 ak ← •Import "../src_next/account_key.bqn"
 validate ← •Import "validate.bqn"
 

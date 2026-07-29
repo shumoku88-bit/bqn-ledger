@@ -8,7 +8,7 @@
 # - This module reads the registry file on import but performs no writes to source TSVs.
 
 util ← •Import "../src/text/parse.bqn"
-loader ← •Import "loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
 
 tab ← @+9

@@ -1,7 +1,7 @@
 #!/usr/bin/env bqn
 
 lib ← •Import "test_lib.bqn"
-loader ← •Import "../src_next/loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 ctx_mod ← •Import "../src_next/context.bqn"
 remaining_plan ← •Import "../src_next/outlook_remaining_plan.bqn"
 outlook ← •Import "../src_next/outlook.bqn"

@@ -1,7 +1,7 @@
 # src_edit/plan_id.bqn
 # Plan ID generation and validation logic.
 
-loader ← •Import "../src_next/loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 validate ← •Import "validate.bqn"
 
 # ToLower: convert characters A-Z to a-z.

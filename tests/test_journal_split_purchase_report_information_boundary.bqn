@@ -12,7 +12,7 @@ trial_balance ← •Import "../src_next/trial_balance.bqn"
 balances ← •Import "../src_next/balances.bqn"
 cube ← •Import "../src_next/cube.bqn"
 ak ← •Import "../src_next/account_key.bqn"
-loader ← •Import "../src_next/loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 
 base ← "fixtures/journal-split-purchase-characterization"
 

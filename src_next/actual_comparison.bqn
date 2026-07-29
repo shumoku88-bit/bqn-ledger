@@ -8,7 +8,7 @@
 # Evidence ownership:
 #   checked posting source identity for counts, anchors, and rejected rows
 
-loader ← •Import "loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 actual_source ← •Import "actual_source.bqn"
 dt ← •Import "date.bqn"
 cube ← •Import "cube.bqn"

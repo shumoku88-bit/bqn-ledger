@@ -6,7 +6,7 @@ adapter ← •Import "../src_next/journal_posting_ir_stage2a.bqn"
 carrier_module ← •Import "../src_next/journal_read_only_source_carrier.bqn"
 ak ← •Import "../src_next/account_key.bqn"
 cube ← •Import "../src_next/cube.bqn"
-loader ← •Import "../src_next/loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 
 base ← "fixtures/journal-split-purchase-characterization"
 cycleStart ← "2026-08-01"

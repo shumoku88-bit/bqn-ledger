@@ -5,7 +5,7 @@ ranking ← •Import "../src_next/queries/actual_expense_ranking.bqn"
 cube ← •Import "../src_next/cube.bqn"
 tbds ← •Import "../src_next/tbds.bqn"
 ak ← •Import "../src_next/account_key.bqn"
-loader ← •Import "../src_next/loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 context ← •Import "../src_next/context.bqn"
 sel ← •Import "../src_next/selected_domain_context.bqn"
 

@@ -2,7 +2,7 @@
 # Standalone, read-only file-backed Minimal Journal shadow-context builder.
 # TSV remains the production source of truth and the sole write path.
 
-loader ← •Import "loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 cycle ← •Import "cycle.bqn"
 ak ← •Import "account_key.bqn"
 carrier_module ← •Import "journal_read_only_source_carrier.bqn"

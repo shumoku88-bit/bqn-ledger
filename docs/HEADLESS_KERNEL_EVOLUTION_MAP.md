@@ -107,7 +107,7 @@ Current ownership:
 
 | Boundary | Current owner | Current character |
 |---|---|---|
-| Read source files | `src_next/loader.bqn`, `src_next/context.bqn` | I/O and orchestration |
+| Read source files | `src/application/source_io.bqn`, `src_next/context.bqn` | bounded read-only I/O and current orchestration |
 | Exact decimal parse | `src/ledger/exact_decimal.bqn` | Pure calculation kernel |
 | Snapshot currency arithmetic | `src_next/currency_arithmetic.bqn` | Pure calculation kernel |
 | Row evidence construction | `src_next/context.bqn` | Source adapter plus validation orchestration |

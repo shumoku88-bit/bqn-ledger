@@ -307,7 +307,7 @@ edit_bqn_apply_canonical_surface_rewrite_checked() {
 
   if ! (cd "$ROOT_DIR" && bqn -e '
     rewrite ← •Import "src_edit/journal_canonical_surface_rewrite.bqn"
-    loader ← •Import "src_next/loader.bqn"
+    loader ← •Import "src/application/source_io.bqn"
     before ← loader.ReadRaw "'"$backup_path"'"
     after ← loader.ReadRaw "'"$target_path"'"
     res ← rewrite.VerifyEquivalent ⟨before, after⟩

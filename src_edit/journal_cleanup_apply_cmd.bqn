@@ -1,7 +1,7 @@
 #!/usr/bin/env bqn
 # Prepare a verified cleanup candidate at a caller-owned temporary path.
 
-loader ← •Import "../src_next/loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 actual ← •Import "../src_next/actual_source.bqn"
 parser ← •Import "../src_next/journal_profile_stage1.bqn"
 cleanup ← •Import "journal_cleanup_plan.bqn"

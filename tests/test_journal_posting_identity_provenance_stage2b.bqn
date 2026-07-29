@@ -5,7 +5,7 @@ parser ← •Import "../src_next/journal_profile_stage1.bqn"
 adapter ← •Import "../src_next/journal_posting_ir_stage2a.bqn"
 identity ← •Import "../src_next/journal_posting_identity_provenance_stage2b.bqn"
 ak ← •Import "../src_next/account_key.bqn"
-loader ← •Import "../src_next/loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 
 lf ← @+10
 base ← "fixtures/journal-posting-ir-stage2b"

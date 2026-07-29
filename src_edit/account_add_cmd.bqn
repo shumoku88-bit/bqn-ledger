@@ -3,7 +3,7 @@
 # Args: <baseDir> <name> <role> <type-or-empty> <currency-or-empty>
 # Success protocol: OK\tAPPEND\taccounts.tsv, followed by the complete row.
 
-loader ← •Import "../src_next/loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 validate ← •Import "validate.bqn"
 render ← •Import "render.bqn"
 config ← •Import "../src_next/config.bqn"

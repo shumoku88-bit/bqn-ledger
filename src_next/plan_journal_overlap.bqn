@@ -3,7 +3,7 @@
 # Plan/journal matching uses plan_id metadata (primary) with 5-field TSV fallback.
 # Does not mutate plan.tsv or native Journal.
 
-loader ← •Import "loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 proj ← •Import "projection.bqn"
 cube ← •Import "cube.bqn"
 actual_source ← •Import "actual_source.bqn"

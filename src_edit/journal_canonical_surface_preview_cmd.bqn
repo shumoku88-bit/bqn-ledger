@@ -6,7 +6,7 @@ baseDir ← ⊑ args
 outputPath ← 1 ⊑ args
 
 rewrite ← •Import "journal_canonical_surface_rewrite.bqn"
-loader ← •Import "../src_next/loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 config ← •Import "../src_next/config.bqn"
 
 resolved ← config.LoadActualJournal baseDir

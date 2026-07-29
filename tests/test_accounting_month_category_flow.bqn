@@ -1,7 +1,7 @@
 #!/usr/bin/env bqn
 
 lib ← •Import "test_lib.bqn"
-loader ← •Import "../src_next/loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
 account_admission ← •Import "../src/ledger/account_admission.bqn"
 companion_snapshot ← •Import "../src/ledger/companion_snapshot.bqn"

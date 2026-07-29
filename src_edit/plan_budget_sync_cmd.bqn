@@ -2,7 +2,7 @@
 # Args: <baseDir> <planId>
 # Output: OK APPEND budget_alloc.tsv + row, or OK APPLIED/NOT_LINKED.
 
-loader ← •Import "../src_next/loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 config ← •Import "../src_next/config.bqn"
 planid ← •Import "plan_id.bqn"
 render ← •Import "render.bqn"

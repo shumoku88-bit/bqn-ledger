@@ -1,7 +1,7 @@
 #!/usr/bin/env bqn
 
 lib ← •Import "test_lib.bqn"
-loader ← •Import "../src_next/loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 ak ← •Import "../src_next/account_key.bqn"
 hm ← •Import "../src_next/household_metadata.bqn"
 

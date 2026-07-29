@@ -6,7 +6,7 @@
 # Evidence ownership:
 #   source date and plan-ID completion identity
 
-loader ← •Import "loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 dt ← •Import "date.bqn"
 source_fields ← •Import "source_fields.bqn"
 layer ← •Import "layer.bqn"

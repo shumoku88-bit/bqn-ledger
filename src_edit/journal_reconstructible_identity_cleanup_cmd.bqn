@@ -6,7 +6,7 @@
 #   candidate INPUT OUTPUT [EXPECTED_REMOVAL_COUNT]
 #   apply INPUT EXPECTED_SHA256 EXPECTED_REMOVAL_COUNT
 
-loader ← •Import "../src_next/loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 actual_source ← •Import "../src_next/actual_source.bqn"
 cleanup ← •Import "journal_reconstructible_identity_cleanup.bqn"
 util ← •Import "../src/text/parse.bqn"

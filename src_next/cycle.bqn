@@ -11,7 +11,7 @@
 #   incomeAnchor   resolved from nearest income dates in journal/plan
 #   calendarMonth  recurring start_day resolved around observation as_of
 
-loader ← •Import "loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 dt    ← •Import "date.bqn"
 actual_source ← •Import "actual_source.bqn"
 

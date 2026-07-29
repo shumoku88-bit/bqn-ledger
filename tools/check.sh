@@ -167,8 +167,8 @@ bash checks/check-report-context-duplication-characterization.sh
 bash checks/check-report-source-readiness-audit.sh >/dev/null
 bash checks/check-src-next-export-caller-inventory.sh >/dev/null
 bash checks/check-absolute-links.sh >/dev/null
-bash checks/check-text-parse-ownership.sh >/dev/null
-bash checks/check-loader-unreadable.sh >/dev/null
+bash checks/check-source-io-ownership.sh >/dev/null
+bash checks/check-source-io-unreadable.sh >/dev/null
 bash checks/audit-budget-style-explicit.sh >/dev/null
 check_bqn_presentation_boundary
 

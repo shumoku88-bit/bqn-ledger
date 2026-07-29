@@ -180,7 +180,7 @@ src_next/queries/
 ```text
 <base>/accounts.tsv / selected actual source / <base>/plan.tsv / <base>/budget_alloc.tsv / <base>/cycle.tsv
    │
-   └─ src_next/loader.bqn / actual_source.bqn (明示source読み込み)
+   └─ src/application/source_io.bqn / src_next/actual_source.bqn (明示source読み込み)
         │
         ├─ src_next/context.bqn (full report / non-selected compatibility context)
         └─ src_next/selected_domain_context.bqn (JPY/ILS/USD共通の明示1通貨Actual + plan + budget)
@@ -224,7 +224,7 @@ P4 `cycle_account_period.bqn`はalready-resolved cycleとexplicit observationか
 
 P10 `report/catalog.bqn`はsource-independentなfinal nine-key identity/order/surface ownerで、`request.bqn`はfinal keyとsurfaceだけをadmitする。`all`はcatalog entryではなくhuman/compact ownerを順に選ぶcomposition selectorで、aggregate JSONは存在しない。`compose.bqn`は9つの異なるnarrow signatureでaccounting→sectionを一件だけ構築し、`render.bqn`はadmitted surfaceだけを描画する。all-report result/contextやunrelated coordinatesを作らない。I/Oは`src/application/`だけに置き、parallel CLIはkey/surface admission後にselected sourceだけを読む。9 keyのindividual public proofがあり、Envelope fundingはexplicit asset Account key、Daily Targetはstrict Account/Plan/reservation linkageからowner scopeを構築する。six-field UI metadataは同じcatalogのkey/label/category/destination ownerからsource-independentにTSV/JSONを構築する。`all`はcatalog順のper-key argv manifestを全行admit後、同じindividual routeを反復して全成功時だけbufferをpublishする。destination cacheも同じrowsからsection bodyとallをstageし、canonical manifest、stale削除、timestamp-last commit markerでpublishする。name inference、universal coordinates、alternate all/cache calculationはなく、production routeでもない。source readinessは`ledger-check`、Fact provenance inspectionは`ledger-inspect`がapplication operationとして所有し、report catalog/cache/compact schemaへ入らない。全slice completionは`DESTINATION_QUALITY_GATE.md`でarchitectureだけでなくauditability/scenario evidenceまで判定する。Trial BalanceとDaily Flowは有用なcapability/proofとして残るが、旧routeを自動的に維持する根拠にはならない。production routingと旧surface削除はretained report proofsとsupported-source readiness後のatomic cutoverまで行わない。
 
-Editor runtime extractionでは、複数の実consumerで一致する狭いprimitiveだけをimplementation-neutral ownerへ移す。最初のsliceはpure text split/integer parseを`src/text/parse.bqn`へ移し、editor/current engine/testsを同じownerへrepointして旧`src_next/util.bqn`を物理削除した。`src/text`はI/O、path、clock、会計policyを持たず、汎用utility bagへ拡張しない。
+Editor runtime extractionでは、複数の実consumerで一致する狭いprimitiveだけをimplementation-neutral ownerへ移す。最初のsliceはpure text split/integer parseを`src/text/parse.bqn`へ移し、editor/current engine/testsを同じownerへrepointして旧`src_next/util.bqn`を物理削除した。次にread-only raw/line/optional/TSV source I/Oを既存`src/application/source_io.bqn`へ統合し、全consumerをrepointして旧`src_next/loader.bqn`も物理削除した。`src/text`はI/O、path、clock、会計policyを持たず、`source_io`はschema admission、write、shell、clockを持たない。どちらも汎用utility bagへ拡張しない。
 
 ### Selected-domain composition stages
 

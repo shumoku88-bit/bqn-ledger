@@ -8,7 +8,7 @@ context ← •Import "../src_next/context.bqn"
 cube ← •Import "../src_next/cube.bqn"
 tbds ← •Import "../src_next/tbds.bqn"
 ak ← •Import "../src_next/account_key.bqn"
-loader ← •Import "../src_next/loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 
 lf ← @+10
 tab ← @+9

@@ -1,7 +1,7 @@
 # envelope_computation.bqn
 # Modernized envelope computation.
 
-loader ← •Import "loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 actual_source ← •Import "actual_source.bqn"
 dt ← •Import "date.bqn"
 proj ← •Import "projection.bqn"

@@ -1,4 +1,4 @@
-loader ← •Import "loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 
 ParseLine ← {𝕊 line:
   tab ← @+9

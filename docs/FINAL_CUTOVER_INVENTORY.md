@@ -11,19 +11,19 @@ The destination report side is complete through nine individual routes, human/co
 Measured tracked blockers:
 
 ```text
-src_next BQN modules                                  70
-BQN files outside src_next with direct src_next import 179
-  src_edit files                                      33
-  test files                                          142
+src_next BQN modules                                  69
+BQN files outside src_next with direct src_next import 146
+  src_edit files                                      30
+  test files                                          112
   check/tool characterization BQN files                 4
 named tests/test_src_next_*.bqn                       78
-other test files with direct src_next import          64
+other test files with direct src_next import          34
 checks/check-src-next-*.sh                            33
 fixture directories named fixtures/src-next-*         35
 tracked files under fixtures/src-next-*              153
 ```
 
-The 179 direct-import files are not all retained runtime. Most tests/checks/fixtures disappear with the old owner, but the 33 editor files are live and must be migrated before physical deletion. Destination runtime under `src/` has no `src_next` import.
+The 146 direct-import files are not all retained runtime. Most tests/checks/fixtures disappear with the old owner, but the 30 editor files are live and must be migrated before physical deletion. Destination runtime under `src/` has no `src_next` import.
 
 The reproducible tracked inventory is:
 
@@ -123,10 +123,9 @@ The external-consumer gate is green: under explicit user direction, executable/s
 
 ## Gate D: editor runtime extraction
 
-Thirty-three `src_edit/*.bqn` files directly import 13 `src_next` modules. Import frequency:
+Thirty `src_edit/*.bqn` files directly import 12 `src_next` modules. Import frequency:
 
 ```text
-24 loader.bqn
 13 config.bqn
 12 actual_source.bqn
  9 account_key.bqn
@@ -138,7 +137,7 @@ Thirty-three `src_edit/*.bqn` files directly import 13 `src_next` modules. Impor
          travel_exchange_event, friend_travel_source_event, context
 ```
 
-The first extraction moved bounded `Split`, `SplitKeepEmpty`, and `ToNum` ownership from `src_next/util.bqn` to `src/text/parse.bqn`, repointed all editor/current-engine/test consumers, and physically removed the old module without a forwarding wrapper. Twelve editor imports moved; `render.bqn` and `journal_identity_inventory.bqn` now have no `src_next` dependency.
+The first extraction moved bounded `Split`, `SplitKeepEmpty`, and `ToNum` ownership from `src_next/util.bqn` to `src/text/parse.bqn`, repointed all editor/current-engine/test consumers, and physically removed the old module without a forwarding wrapper. The second consolidated read-only raw/filtered/optional/TSV operations in the existing `src/application/source_io.bqn`, repointed all 115 import sites, renamed its focused fixtures/checks, and physically removed `src_next/loader.bqn`. Twenty-four editor imports moved; `issue_close_cmd.bqn`, `issue_list_cmd.bqn`, and `plan_id.bqn` became fully `src_next`-free in this slice.
 
 This remains the largest live runtime blocker. Required action is ownership migration, not copying all of `src_next`:
 
@@ -153,12 +152,12 @@ No forwarding modules may remain under `src_next`.
 
 ## Gate E: tests, checks, fixtures, and characterization
 
-The 79 named src-next tests, 33 named checks, and four direct-import probe/characterization BQN files are deletion inventory, not a migration target. The four are the two `checks/probes/*` old-report probes and two `tools/characterization/*` context/report probes. For each file:
+The 78 named src-next tests, 33 named checks, and four direct-import probe/characterization BQN files are deletion inventory, not a migration target. The four are the two `checks/probes/*` old-report probes and two `tools/characterization/*` context/report probes. For each file:
 
 - retain only semantics still owned by ledger/accounting/sections/application;
 - move retained assertions to destination tests;
 - delete compatibility, old report, Cube/TBDS-only, fallback, and removed-section tests;
-- migrate non-src-next destination tests off `src_next/loader.bqn` to an implementation-neutral test/application reader;
+- retain the tests already migrated to `src/application/source_io.bqn` only where their destination/editor semantics remain useful;
 - delete old characterization probes after their replacement evidence is recorded;
 - delete obsolete `fixtures/src-next-*` directories unless a retained editor/source case still uses one, in which case rename and narrow it.
 

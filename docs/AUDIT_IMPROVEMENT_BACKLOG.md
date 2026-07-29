@@ -140,48 +140,11 @@ Suggested sequence:
 
 ### 3. Make optional file loading distinguish missing from unreadable
 
-Status: candidate
-Files:
+Status: completed
+Owner: `src/application/source_io.bqn`
+Evidence: `checks/check-source-io-unreadable.sh`
 
-- `src_next/loader.bqn`
-- callers of `ReadLinesOptional`
-- checks/fixtures for missing optional sources
-
-Observation:
-
-`ReadLinesOptional` currently returns an empty list for any exception raised by `ReadLines`. The comment says it returns empty when a file is missing or unreadable. That makes two different states look identical:
-
-- the optional file is intentionally absent
-- the file exists but cannot be read or parsed as expected
-
-For a ledger, silent collapse into empty input is dangerous because absence and failure have different meanings.
-
-Recommended design:
-
-- keep a missing-ok helper for truly optional files
-- add a stricter helper for files that may be absent but must fail if present and unreadable
-- document which source files are required and which are optional
-
-Possible API shape:
-
-```bqn
-ReadLinesIfPresent ← {
-  # missing -> ⟨⟩
-  # present but unreadable -> fail
-}
-```
-
-Caution:
-
-BQN file-existence detection may need to be handled carefully. Do not replace one broad catch with another broad catch hidden under a new name.
-
-Acceptance criteria:
-
-- tests cover missing optional file
-- tests cover present-but-unreadable file where feasible on the target platform
-- existing fixture behavior for genuinely missing optional files is unchanged
-
-Suggested PR size: medium, because call sites need review.
+`ReadLinesOptional` now tests existence explicitly: a missing optional file returns an empty list, while a present but unreadable file propagates failure. All callers use the neutral source I/O owner, and `src_next/loader.bqn` was physically removed without a forwarding module.
 
 ### 4. Centralize date logic
 

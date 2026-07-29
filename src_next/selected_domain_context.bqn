@@ -10,7 +10,7 @@
 # policy -> Actual admission -> Actual currency proof -> non-Actual preparation
 # -> selected scale -> exact normalization -> period views.
 
-loader ← •Import "loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 ak ← •Import "account_key.bqn"
 cycle ← •Import "cycle.bqn"
 actual_source ← •Import "actual_source.bqn"

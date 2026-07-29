@@ -2,7 +2,7 @@
 
 lib ← •Import "test_lib.bqn"
 parser ← •Import "../src_next/journal_profile_stage1.bqn"
-loader ← •Import "../src_next/loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 util ← •Import "../src/text/parse.bqn"
 
 lf ← @+10

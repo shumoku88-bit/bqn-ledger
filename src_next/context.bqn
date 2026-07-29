@@ -14,7 +14,7 @@
 #   TBDS uses all posting rows for opening balances, period-bounded for movement.
 #   Context is read-only within sections. Sections must not mutate ctx.
 
-loader ← •Import "loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 dec ← •Import "../src/ledger/exact_decimal.bqn"
 arith ← •Import "currency_arithmetic.bqn"
 proof_policy ← •Import "arithmetic_currency_proof.bqn"

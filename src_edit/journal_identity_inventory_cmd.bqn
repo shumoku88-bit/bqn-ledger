@@ -2,7 +2,7 @@
 # Read-only Journal identity inventory CLI command.
 # Args: base directory, format (summary|tsv)
 
-loader ← •Import "../src_next/loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 actual_source ← •Import "../src_next/actual_source.bqn"
 parser ← •Import "../src_next/journal_profile_stage1.bqn"
 inv ← •Import "journal_identity_inventory.bqn"

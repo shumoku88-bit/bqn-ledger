@@ -8,7 +8,7 @@
 #   number date title amount memo display
 # number is the 1-based ordinal within current open issues, matching issue close --index.
 
-loader ← •Import "../src_next/loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 
 args ← •args
 tab ← @+9

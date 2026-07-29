@@ -1,7 +1,7 @@
 # travel_exchange_add_cmd.bqn
 # I/O boundary for travel_exchange_events.tsv validation and APPEND protocol.
 
-loader ← •Import "../src_next/loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 exchange ← •Import "../src_next/travel_exchange_event.bqn"
 ak ← •Import "../src_next/account_key.bqn"
 config ← •Import "../src_next/config.bqn"

@@ -1,7 +1,7 @@
 # readiness_check.bqn
 # Compact report readiness surface for src_next Stage 4 trial.
 
-loader ← •Import "loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 actual_source ← •Import "actual_source.bqn"
 proj ← •Import "projection.bqn"
 fmt ← •Import "format.bqn"

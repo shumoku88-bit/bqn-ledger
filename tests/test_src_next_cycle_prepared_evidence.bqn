@@ -2,7 +2,7 @@
 
 lib ← •Import "test_lib.bqn"
 cycle ← •Import "../src_next/cycle.bqn"
-loader ← •Import "../src_next/loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 ak ← •Import "../src_next/account_key.bqn"
 actual_source ← •Import "../src_next/actual_source.bqn"
 admission ← •Import "../src/ledger/journal_complete_admission.bqn"

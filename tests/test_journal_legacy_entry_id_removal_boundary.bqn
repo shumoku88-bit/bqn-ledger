@@ -20,7 +20,7 @@ lib ← •Import "test_lib.bqn"
 parser ← •Import "../src_next/journal_profile_stage1.bqn"
 adapter ← •Import "../src_next/journal_posting_ir_stage2a.bqn"
 ak ← •Import "../src_next/account_key.bqn"
-loader ← •Import "../src_next/loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 cube ← •Import "../src_next/cube.bqn"
 tbds ← •Import "../src_next/tbds.bqn"
 

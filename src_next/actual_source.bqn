@@ -3,7 +3,7 @@
 # Actual transactions have exactly one source: configured ACTUAL_JOURNAL_FILE.
 
 config ← •Import "config.bqn"
-loader ← •Import "loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 admission ← •Import "../src/ledger/journal_complete_admission.bqn"
 facts ← •Import "../src/ledger/facts.bqn"
 transaction_rows ← •Import "../src/ledger/transaction_rows.bqn"

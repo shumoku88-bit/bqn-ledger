@@ -3,7 +3,7 @@
 lib ← •Import "test_lib.bqn"
 setup ← •Import "../src_next/currency_setup.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
-loader ← •Import "../src_next/loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 util ← •Import "../src/text/parse.bqn"
 
 tab ← @+9

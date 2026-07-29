@@ -1,7 +1,7 @@
 # plan_rows.bqn
 # Shared source evidence with planned-value and temporal attachment.
 
-loader ← •Import "loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 dt ← •Import "date.bqn"
 proj ← •Import "projection.bqn"
 plan_status ← •Import "plan_status.bqn"

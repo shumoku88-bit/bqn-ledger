@@ -65,7 +65,7 @@ Updated: 2026-07-28
 ```text
 <base>/accounts.tsv / <base>/<ACTUAL_JOURNAL_FILE> / <base>/plan.tsv / <base>/budget_alloc.tsv / <base>/cycle.tsv / <base>/issues.tsv
    │
-   ├─ src_next/loader.bqn / actual_source.bqn (明示source読み込み)
+   ├─ src/application/source_io.bqn / src_next/actual_source.bqn (明示source読み込み)
    │    │
    │    ├─ src_next/context.bqn / selected_domain_context.bqn
    │    │    │
@@ -173,7 +173,7 @@ Updated: 2026-07-28
 
 ### `src/application/` (destination I/O and CLI boundary)
 
-- `source_io.bqn` — application-only read-only raw/line I/O。core moduleからimportされない。
+- `source_io.bqn` — implementation-neutralなread-only raw/filtered/optional line I/OとTSV split adapter。report application、editor、旧current engine、testsが共有し、schema/accounting/write/shell/clockを持たない。旧`src_next/loader.bqn`はforwardingなしで削除済み。
 - `report_source_adapter.bqn` — explicit base/basenameからRegistry、Actual、Plan/companions、Cycle/Daily Scope/Issue linesをkey-specificに読む。
 - `funding_scope.bqn` — explicit Envelope funding Account keyをunique/same-domain/asset-roleでadmitしてindicesへ解決する。name inferenceなし。
 - `daily_scope_admission.bqn` — asset Account、durable Plan obligation、optional exact reservation linkageのstrict seven-column application admission。

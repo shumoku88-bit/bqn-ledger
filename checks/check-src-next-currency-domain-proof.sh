@@ -45,7 +45,7 @@ expect_fail_context "$budget_bad" budget 'unsupported currency: '
 cat >"$tmp/same_snapshot.bqn" <<BQN
 ctx ← •Import "$ROOT_DIR/src_next/context.bqn"
 ak ← •Import "$ROOT_DIR/src_next/account_key.bqn"
-loader ← •Import "$ROOT_DIR/src_next/loader.bqn"
+loader ← •Import "$ROOT_DIR/src/application/source_io.bqn"
 base ← 0⊑•args
 snapshot ← ctx.LoadNonActualPostingSourceSnapshot base
 (base∾"/plan.tsv") •file.Chars "2026-06-16\tmutated\tassets:bank\texpenses:food\t999\tcurrency=JPY\n"
@@ -63,7 +63,7 @@ set -e
 [[ "$cross_status" -ne 0 ]] || { echo 'FAIL: removed independent-proof API unexpectedly succeeded' >&2; exit 1; }
 
 set +e
-alias_out="$(bqn -e 'ctx←•Import "src_next/context.bqn" ⋄ loader←•Import "src_next/loader.bqn" ⋄ ak←•Import "src_next/account_key.bqn" ⋄ base←"fixtures/src-next-golden" ⋄ resolved←ak.Resolve loader.ReadLines (base∾"/accounts.tsv") ⋄ ctx.BuildRowsForFile ⟨base,resolved,"2026-06-15","unknown.tsv"⟩' 2>&1)"; alias_status=$?
+alias_out="$(bqn -e 'ctx←•Import "src_next/context.bqn" ⋄ loader←•Import "src/application/source_io.bqn" ⋄ ak←•Import "src_next/account_key.bqn" ⋄ base←"fixtures/src-next-golden" ⋄ resolved←ak.Resolve loader.ReadLines (base∾"/accounts.tsv") ⋄ ctx.BuildRowsForFile ⟨base,resolved,"2026-06-15","unknown.tsv"⟩' 2>&1)"; alias_status=$?
 set -e
 [[ "$alias_status" -ne 0 && "$alias_out" == *'unsupported posting source file'* ]] || { echo 'FAIL: unknown non-actual source was not rejected' >&2; exit 1; }
 

@@ -8,7 +8,7 @@
 # Keep byte/field compatibility with the Go editor:
 #   number plan_id date memo from to amount status display
 
-loader ← •Import "../src_next/loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 validate ← •Import "validate.bqn"
 plan_id ← •Import "plan_id.bqn"
 config ← •Import "../src_next/config.bqn"

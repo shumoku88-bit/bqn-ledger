@@ -42,9 +42,9 @@ bash tools/doctor
 ```text
 <base>/*.tsv (source of truth; public data/ is sandbox)
   │
-  └─ src_next/loader.bqn (TSV読み込み)
+  └─ src/application/source_io.bqn (read-only source I/O)
        │
-       └─ src_next/context.bqn (BuildContext)
+       └─ src_next/context.bqn (current compatibility BuildContext)
             │
             ├─ src_next/cube.bqn (Canonical Daily Cube)
             ├─ src_next/tbds.bqn (Trial Balance Data Set)

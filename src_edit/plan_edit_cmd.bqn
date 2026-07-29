@@ -13,7 +13,7 @@
 #   ERROR\t<message>
 
 lib ← •Import "../src/text/parse.bqn"
-loader ← •Import "../src_next/loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 validate ← •Import "validate.bqn"
 plan_id ← •Import "plan_id.bqn"
 config ← •Import "../src_next/config.bqn"

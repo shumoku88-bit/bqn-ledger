@@ -53,7 +53,7 @@ tools/edit-bqn
 
 | area | status | current guard summary |
 |---|---|---|
-| Source TSV shape / required fields | `PARTIAL` | `src_next/loader.bqn` and `projection.bqn` produce skipped/invalid projection diagnostics; golden fixtures cover malformed / missing data classes. No standalone current lint map exists after old-engine removal. |
+| Source TSV shape / required fields | `PARTIAL` | `src/application/source_io.bqn` preserves rows while `projection.bqn` produces skipped/invalid diagnostics; golden fixtures cover malformed / missing data classes. No standalone current lint map exists after old-engine removal. |
 | Empty column preservation | `GUARDED` | `src_next` uses `SplitTsvKeepEmpty`; `fixtures/src-next-broken-empty-columns` and `fixtures/empty-fields` are connected to current checks. |
 | Unknown account rejection / diagnosis | `GUARDED` | `fixtures/src-next-unknown-account`, readiness/minimal-summary checks, and cube row acceptance keep unknown accounts out of cube indices. |
 | Integer amount | `PARTIAL` | Projection/readiness paths diagnose invalid posting data; explicit current standalone amount lint inventory is not yet mapped here. |
@@ -80,7 +80,7 @@ Status: `PARTIAL`
 Current guards:
 
 - Source TSV contract is documented in `docs/ARCHITECTURE.md`, `docs/CONVENTIONS.md`, and `docs/JOURNAL_META.md`.
-- `src_next/loader.bqn` exposes `SplitTsvKeepEmpty` for journal-like rows.
+- `src/application/source_io.bqn` exposes `SplitTsvKeepEmpty` for journal-like rows.
 - `fixtures/src-next-broken-empty-columns` is connected to `check-src-next-golden.sh` through `tools/check.sh`.
 - BQN editor tests cover safe append/edit behavior for approved writer commands.
 
@@ -94,7 +94,7 @@ Status: `GUARDED`
 
 Current guards:
 
-- `src_next/loader.bqn` uses keep-empty TSV splitting.
+- `src/application/source_io.bqn` delegates keep-empty TSV splitting to `src/text/parse.bqn`.
 - `fixtures/src-next-broken-empty-columns` and `fixtures/empty-fields` are included in current check paths.
 - `tests/test_src_next_cube.bqn` verifies invalid/sentinel projection rows are skipped rather than indexed.
 

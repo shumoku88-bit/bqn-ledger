@@ -1,25 +1,34 @@
-# Application-boundary read-only source I/O. Core ledger/accounting/sections/report stay pure.
+# Application-boundary read-only source I/O shared by report and editor adapters.
+# It preserves source bytes/rows; schema admission and accounting stay downstream.
 
-empty ← ⟨⟩
-Split ← {
-  separator ← 𝕨
-  groups ← (+`separator=𝕩)⊔𝕩
-  parts ← {(separator≠𝕩)/𝕩}¨groups
-  (0<≠¨parts)/parts
-}
-Resolve ← {𝕊 path:
-  absolute ← (0<≠path) ∧ ('/'=⊑path)
+parse ← •Import "../text/parse.bqn"
+Split ← parse.Split
+SplitKeepEmpty ← parse.SplitKeepEmpty
+
+ResolvePath ← {𝕊 path:
+  absolute ← (0<≠path) ∧ (("/"≡1↑path) ∨ ("~"≡1↑path))
   absolute⊑⟨•wdpath∾"/"∾path,path⟩
 }
-ReadRaw ← {𝕊 path: •FChars Resolve path}
+ReadRaw ← {𝕊 path: •FChars ResolvePath path}
 ReadLines ← {𝕊 path:
   raw ← ReadRaw path
-  raw ↩ ((@+13)≠raw)/raw
-  lines ← (@+10) Split raw
+  stripped ← ((@+13)≠raw)/raw
+  lines ← (@+10) Split stripped
   IsData ← {𝕊 line:
     (0<≠line) ? ((⊑line≠'#') ∧ (⊑line≠⊑"\\")) ; 0
   }
   (IsData¨lines)/lines
 }
+# Missing is optional; an existing but unreadable path still raises.
+ReadLinesOptional ← {𝕊 path:
+  resolved ← ResolvePath path
+  (•file.Exists resolved) ? ReadLines resolved ; ⟨⟩
+}
+SplitTsv ← {𝕊 line: (@+9) Split line}
+SplitTsvKeepEmpty ← {𝕊 line: (@+9) SplitKeepEmpty line}
 
-{ReadRaw⇐ReadRaw,ReadLines⇐ReadLines}
+{
+  ResolvePath⇐ResolvePath,ReadRaw⇐ReadRaw,ReadLines⇐ReadLines,
+  ReadLinesOptional⇐ReadLinesOptional,SplitTsv⇐SplitTsv,
+  SplitTsvKeepEmpty⇐SplitTsvKeepEmpty,Split⇐Split,SplitKeepEmpty⇐SplitKeepEmpty
+}

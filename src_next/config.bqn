@@ -3,7 +3,7 @@
 # Migrated from old src/core/config.bqn.
 
 lib ← •Import "../src/text/parse.bqn"
-loader ← •Import "loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 
 ParseLine ← {
   tab ← @+9

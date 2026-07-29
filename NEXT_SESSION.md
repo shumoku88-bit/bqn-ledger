@@ -7,14 +7,15 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Portfolio P11B: the first editor extraction moved pure Split/SplitKeepEmpty/ToNum to src/text/parse.bqn, repointed every consumer, and physically deleted src_next/util.bqn without a wrapper. Live editor blockers fell from 35 files/14 modules to 33 files/13 modules.
+Portfolio P11C: read-only raw/filtered/optional/TSV operations now live in src/application/source_io.bqn; all 115 importer sites moved and src_next/loader.bqn was physically deleted without a wrapper. Live editor blockers are now 30 files/12 modules.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn (unchanged)
-removed owner: src_next/util.bqn; neutral owner: src/text/parse.bqn
-migrated: 12 editor imports plus current-engine/test callers; two editor files now fully src_next-free
-next slice: extract loader.bqn I/O/path/line parsing (24 editor consumers) to a bounded application support owner
-remaining gates: other editor dependencies, retained helper migration, deletion rehearsal, separately authorized private readiness
+removed owners: src_next/util.bqn, src_next/loader.bqn
+neutral owners: src/text/parse.bqn, src/application/source_io.bqn
+latest migration: 24 editor imports; issue_close, issue_list, plan_id became fully src_next-free
+next slice: inspect 13 config.bqn editor consumers and separate source/config admission from old report policy
+remaining gates: other editor dependencies, retained helper deletion decisions, rehearsal, separately authorized private readiness
 exclude: production switch, old-key deletion, private ledger inspection
 ```
 

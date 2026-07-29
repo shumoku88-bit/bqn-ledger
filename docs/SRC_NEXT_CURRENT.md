@@ -32,7 +32,7 @@ There is no root `main.bqn` production engine in the current tree. Old docs that
 
 ```text
 <base>/*.tsv + config/*.tsv
-  -> src_next/loader.bqn / src_next/context.bqn
+  -> src/application/source_io.bqn / src_next/context.bqn
   -> Posting IR / Canonical Daily Cube / TBDS
   -> src_next/report.bqn                 (human production report)
   -> src_next/summary.bqn                (machine summary)

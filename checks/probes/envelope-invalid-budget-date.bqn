@@ -1,6 +1,6 @@
 #!/usr/bin/env bqn
 
-loader ← •Import "../../src_next/loader.bqn"
+loader ← •Import "../../src/application/source_io.bqn"
 ak ← •Import "../../src_next/account_key.bqn"
 context ← •Import "../../src_next/context.bqn"
 cycle ← •Import "../../src_next/cycle.bqn"

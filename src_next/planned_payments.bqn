@@ -3,7 +3,7 @@
 # Read-only: displays plan rows in source order; no mutation.
 # Plan/journal matching uses plan_id metadata (primary) with 5-field TSV fallback.
 
-loader ← •Import "loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 fmt ← •Import "format.bqn"
 labels ← •Import "report_labels.bqn"
 json ← •Import "json.bqn"

@@ -10,7 +10,7 @@
 #   <new TSV row>
 
 lib ← •Import "../src/text/parse.bqn"
-loader ← •Import "../src_next/loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 validate ← •Import "validate.bqn"
 
 args ← •args

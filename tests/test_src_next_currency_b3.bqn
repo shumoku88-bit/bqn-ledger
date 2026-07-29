@@ -5,7 +5,7 @@ ctx ← •Import "../src_next/context.bqn"
 proj ← •Import "../src_next/projection.bqn"
 arith ← •Import "../src_next/currency_arithmetic.bqn"
 ak ← •Import "../src_next/account_key.bqn"
-loader ← •Import "../src_next/loader.bqn"
+loader ← •Import "../src/application/source_io.bqn"
 
 tab ← @+9
 Line ← {𝕊 fields: ∾ fields ∾¨ tab}
