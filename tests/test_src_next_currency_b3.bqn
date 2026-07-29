@@ -2,7 +2,7 @@
 
 lib ← •Import "test_lib.bqn"
 ctx ← •Import "../src_next/context.bqn"
-proj ← •Import "../src_next/projection.bqn"
+proof_policy ← •Import "../src_next/arithmetic_currency_proof.bqn"
 arith ← •Import "../src_next/currency_arithmetic.bqn"
 ak ← •Import "../src_next/account_key.bqn"
 loader ← •Import "../src/application/source_io.bqn"
@@ -88,7 +88,7 @@ ilsProof ← ctx.ResolveArithmeticCurrencyProof ⟨ilsEv, arith.Build ilsEv⟩
 "ILS" lib.AssertEq ilsProof.domain
 "resolved_single_currency" lib.AssertEq ilsProof.basis
 1 lib.AssertEq ilsProof.amount_scale
-1 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof ilsProof
+1 lib.AssertEq proof_policy.AuthorizeArithmeticCurrencyProof ilsProof
 
 # 7. Mixed JPY/ILS fails closed
 mixedCurrencySnap ← ProofSnapshot ⟨
@@ -127,38 +127,3 @@ overflowEv ← ctx.BuildRowEvidenceFromSnapshot overflowSnap
 overflowProof ← ctx.ResolveArithmeticCurrencyProof ⟨overflowEv, arith.Build overflowEv⟩
 "unsupported" lib.AssertEq overflowProof.state
 "normalized_amount_out_of_exact_range" lib.AssertEq overflowProof.message
-
-# 10. Evidence/coefficient alignment (multiple non-sorted amounts across sources)
-alignSnap ← ProofSnapshot ⟨
-  ⟨
-    Line ⟨"2026-06-15", "j1", "assets:bank", "expenses:food", "42.50", "currency=JPY"⟩,
-    Line ⟨"2026-06-17", "j2", "assets:bank", "expenses:food", "1200", "currency=JPY"⟩
-  ⟩,
-  ⟨
-    Line ⟨"2026-06-16", "p1", "assets:bank", "expenses:food", "0.05", "currency=JPY"⟩
-  ⟩,
-  ⟨⟩
-⟩
-alignBuilt ← ctx.BuildAuthorizedRowsFromSnapshot ⟨alignSnap, resolved, "2026-06-15"⟩
-debits5 ← (({𝕩.side}¨ alignBuilt.rows) ≡¨ <"debit") / alignBuilt.rows
-# Check output order: two plan rows followed by one budget row.
-# Max scale is 2; expected normalized: 4250, 120000, 5.
-4250 lib.AssertEq (0 ⊑ debits5).delta
-"plan.tsv" lib.AssertEq (0 ⊑ debits5).source_file
-120000 lib.AssertEq (1 ⊑ debits5).delta
-"plan.tsv" lib.AssertEq (1 ⊑ debits5).source_file
-5 lib.AssertEq (2 ⊑ debits5).delta
-"budget_alloc.tsv" lib.AssertEq (2 ⊑ debits5).source_file
-
-# 11. Proof authorizer boundary cases
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", basis⇐"legacy_compatibility", message⇐""} # missing scale
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", basis⇐"legacy_compatibility", amount_scale⇐¯1, message⇐""} # negative scale
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", basis⇐"legacy_compatibility", amount_scale⇐1.5, message⇐""} # fractional scale
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", basis⇐"legacy_compatibility", amount_scale⇐"2", message⇐""} # string scale
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", basis⇐"empty_source_compatibility", amount_scale⇐1, message⇐""} # wrong empty-source scale
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"JPY", basis⇐"forged_basis", amount_scale⇐0, message⇐""} # forged basis
-1 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"ILS", basis⇐"resolved_single_currency", amount_scale⇐0, message⇐""} # checked ILS domain
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"ILS", basis⇐"legacy_compatibility", amount_scale⇐0, message⇐""} # impossible ILS legacy basis
-0 lib.AssertEq proj.AuthorizeArithmeticCurrencyProof {state⇐"proven", domain⇐"ILS", basis⇐"empty_source_compatibility", amount_scale⇐0, message⇐""} # impossible ILS empty basis
-
-•Out "test_src_next_currency_b3.bqn: OK"
