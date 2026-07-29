@@ -48,6 +48,17 @@ tools/report-section-metadata --format json
 
 The retained keys are `envelopes`, `balances`, `recent`, `planned`, `cycle-accounts`, `cycle-comparison`, `monthly-accounts`, `daily-target`, and `issues`.
 
+### Local terminal UI preferences
+
+UI preferences belong in the ignored `.env`, not household `data/config.tsv`:
+
+```sh
+BL_SELECTOR=auto                 # auto | fzf | gum | plain
+BL_FZF_PREVIEW_WINDOW=right:75%  # right|left|up|down and 1–100%
+```
+
+`auto` prefers fzf, then gum. Only fzf has a report preview pane; gum is a filter-only fallback. Invalid explicit values fail with a configuration error instead of silently changing behavior. See [`.env.example`](.env.example).
+
 Operational diagnostics are separate from reports:
 
 ```sh

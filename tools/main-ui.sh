@@ -22,6 +22,7 @@ cd "$ROOT_DIR"
 
 source "$ROOT_DIR/tools/lib/system-defaults.sh"
 source "$ROOT_DIR/tools/lib/theme.sh"
+source "$ROOT_DIR/tools/lib/ui-preferences.sh"
 
 usage() {
   cat <<'EOF'
@@ -128,17 +129,20 @@ show_section_direct() {
 
 select_section() {
   local cache_dir="${1:-}"
-  if command -v fzf >/dev/null 2>&1 && [[ "$IS_TTY" -eq 1 ]]; then
-    local preview_win="${FZF_PREVIEW_WINDOW:-}"
-    if [[ -z "$preview_win" && -f "$base_dir/config.tsv" ]]; then
-      local custom_win
-      custom_win=$(awk -F'=' 'tolower($1) == "fzf_preview_window" { print $2 }' "$base_dir/config.tsv" 2>/dev/null || true)
-      custom_win=$(echo "${custom_win:-}" | xargs)
-      if [[ -n "$custom_win" ]]; then
-        preview_win="$custom_win"
-      fi
+  local selector
+  selector="$(bl_selector_preference)" || return
+  if [[ "$IS_TTY" -eq 1 && "$selector" == "auto" ]]; then
+    if command -v fzf >/dev/null 2>&1; then selector="fzf"
+    elif command -v gum >/dev/null 2>&1; then selector="gum"
+    else selector="plain"
     fi
-    preview_win="${preview_win:-right:60%}"
+  fi
+
+  if [[ "$IS_TTY" -eq 1 && "$selector" == "fzf" ]]; then
+    command -v fzf >/dev/null 2>&1 \
+      || { echo "Error: BL_SELECTOR=fzf but fzf is not installed" >&2; return 2; }
+    local preview_win
+    preview_win="$(bl_fzf_preview_window)" || return
 
     if [[ -n "$cache_dir" ]]; then
       section_list | fzf \
@@ -160,7 +164,9 @@ select_section() {
         --reverse \
         --exit-0
     fi
-  elif command -v gum >/dev/null 2>&1 && [[ "$IS_TTY" -eq 1 ]]; then
+  elif [[ "$IS_TTY" -eq 1 && "$selector" == "gum" ]]; then
+    command -v gum >/dev/null 2>&1 \
+      || { echo "Error: BL_SELECTOR=gum but gum is not installed" >&2; return 2; }
     section_list | gum filter "${GUM_FILTER_ARGS[@]}" --placeholder='section / category'
   else
     section_list >&2

@@ -41,10 +41,10 @@ else
 fi
 
 # Direct section display should address sections by stable section key.
-if rg -q -- '--section "\$key"' tools/main-ui.sh; then
+if rg -q 'tools/report.*"\$key" human --manifest "\$human_manifest"' tools/main-ui.sh; then
   pass
 else
-  fail "tools/main-ui.sh direct section display should call tools/report --section by key"
+  fail "tools/main-ui.sh direct display should route a stable key through the admitted human manifest"
 fi
 
 # Selector previews use only the cache/status reader, so browsing across rows
