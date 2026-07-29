@@ -33,7 +33,7 @@ Table ← {𝕊:
 # Index-of returns ≠entries when the key is absent; only a found coordinate is selected.
 Find ← {𝕊 keyValue:
   i ← ⊑ keys ⊐ ⟨keyValue⟩
-  {𝕊: {state⇐"ok",entry⇐i⊑entries}}⍟(i<≠entries) {state⇐"unknown",entry⇐empty}
+  {𝕊: {state⇐"ok",index⇐i,entry⇐i⊑entries}}⍟(i<≠entries) {state⇐"unknown",index⇐empty,entry⇐empty}
 }
 
 {Table⇐Table,Find⇐Find}
