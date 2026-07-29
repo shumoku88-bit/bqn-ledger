@@ -9,6 +9,9 @@ fixedCycle ← •Import "../accounting/cycle_fixed_resolution.bqn"
 calendarCycle ← •Import "../accounting/cycle_calendar_month_resolution.bqn"
 incomeCycle ← •Import "../accounting/cycle_income_anchor_resolution.bqn"
 cycleResult ← •Import "../accounting/cycle_result.bqn"
+fundingScope ← •Import "funding_scope.bqn"
+dailyScopeAdmission ← •Import "daily_scope_admission.bqn"
+dailyScopeAdapter ← •Import "daily_scope_adapter.bqn"
 empty ← ⟨⟩ ⋄ tab ← @+9
 args ← •args
 Fail ← {𝕊 code‿message: •Out "ERROR"∾tab∾code∾tab∾message ⋄ •Exit 1}
@@ -63,6 +66,20 @@ composition ← {state⇐"error",key⇐key,result⇐empty,diagnostics⇐empty}
   {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
   composition↩compose.Recent ⟨actual.facts,ToNatural limitText⟩
 }⍟(key≡"recent") @
+{𝕊:
+  usageMessage ← "envelopes requires DOMAIN START END_EXCLUSIVE OBSERVATION JOURNAL PLAN BUDGET and one or more FUNDING_ACCOUNT_KEY"
+  {𝕊:Fail ⟨"usage_envelopes",usageMessage⟩}⍟(8>≠coordinates) @
+  domain‿start‿finish‿observation‿journal‿planName‿budgetName ← 7↑coordinates
+  actual ← sources.Actual ⟨base,journal,registry⟩
+  {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
+  companions ← sources.Companions ⟨base,planName,budgetName,actual.facts.accounts,registry⟩
+  {𝕊:PrintDiagnostics companions.diagnostics}⍟(companions.state≢"ok") @
+  funding ← fundingScope.Build ⟨actual.facts.accounts,domain,7↓coordinates⟩
+  {𝕊:PrintDiagnostics funding.diagnostics}⍟(funding.state≢"ok") @
+  composition↩compose.Envelopes ⟨
+    companions.budget,actual.facts,companions.plan,domain,start,finish,observation,funding.account_indices
+  ⟩
+}⍟(key≡"envelopes") @
 {𝕊:
   {𝕊:Fail ⟨"usage_planned","planned requires OBSERVATION JOURNAL_BASENAME PLAN_BASENAME CYCLE_BASENAME"⟩}⍟(4≠≠coordinates) @
   observation‿journal‿planName‿cycleName ← coordinates
@@ -125,11 +142,25 @@ composition ← {state⇐"error",key⇐key,result⇐empty,diagnostics⇐empty}
   composition↩compose.MonthlyAccounts ⟨actual.facts,domain,firstMonth,lastMonth⟩
 }⍟(key≡"monthly-accounts") @
 {𝕊:
+  usageMessage ← "daily-target requires DOMAIN OBSERVATION TARGET JOURNAL PLAN DAILY_SCOPE"
+  {𝕊:Fail ⟨"usage_daily_target",usageMessage⟩}⍟(6≠≠coordinates) @
+  domain‿observation‿target‿journal‿planName‿scopeName ← coordinates
+  actual ← sources.Actual ⟨base,journal,registry⟩
+  {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
+  plan ← sources.Plan ⟨base,planName,actual.facts.accounts,registry⟩
+  {𝕊:PrintDiagnostics plan.diagnostics}⍟(plan.state≢"ok") @
+  scopeAdmission ← dailyScopeAdmission.Admit ⟨sources.DailyScopeLines ⟨base,scopeName⟩,registry⟩
+  {𝕊:PrintDiagnostics scopeAdmission.diagnostics}⍟(scopeAdmission.state≢"ok") @
+  scopes ← dailyScopeAdapter.Build ⟨scopeAdmission,actual.facts,plan.facts,domain,observation,target⟩
+  {𝕊:PrintDiagnostics scopes.diagnostics}⍟(scopes.state≢"ok") @
+  composition↩compose.DailyTarget ⟨observation,target,domain,scopes.asset_scope,scopes.obligation_scope⟩
+}⍟(key≡"daily-target") @
+{𝕊:
   {𝕊:Fail ⟨"usage_issues","issues requires ISSUE_BASENAME"⟩}⍟(1≠≠coordinates) @
   composition↩compose.Issues ⟨sources.IssueLines ⟨base,⊑coordinates⟩,registry⟩
 }⍟(key≡"issues") @
 
-implemented ← ∨´key⊸≡¨⟨"balances","recent","planned","cycle-accounts","cycle-comparison","monthly-accounts","issues"⟩
+implemented ← ∨´key⊸≡¨⟨"envelopes","balances","recent","planned","cycle-accounts","cycle-comparison","monthly-accounts","daily-target","issues"⟩
 {𝕊:Fail ⟨"composition_not_implemented","retained key is not yet wired to the parallel source adapter"⟩}⍟(¬implemented) @
 {𝕊:PrintDiagnostics composition.diagnostics}⍟(composition.state≢"ok") @
 rendered ← render.Render ⟨key,surface,composition⟩

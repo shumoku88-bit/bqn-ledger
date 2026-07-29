@@ -1,0 +1,69 @@
+#!/usr/bin/env bqn
+lib ← •Import "test_lib.bqn"
+loader ← •Import "../src_next/loader.bqn"
+registryBuilder ← •Import "../src/ledger/currency_registry.bqn"
+snapshot ← •Import "../src/ledger/snapshot.bqn"
+planSnapshot ← •Import "../src/ledger/plan_snapshot.bqn"
+admission ← •Import "../src/application/daily_scope_admission.bqn"
+adapter ← •Import "../src/application/daily_scope_adapter.bqn"
+compose ← •Import "../src/report/compose.bqn"
+tab ← @+9
+Join ← {𝕊 fields:
+  out ← ⊑fields
+  {𝕊 field:out∾↩tab∾field}¨1↓fields
+  out
+}
+
+base ← "fixtures/ledger-facts-phase1-proof/"
+registry ← (registryBuilder.Build loader.ReadLines "config/currencies.tsv").registry
+accountLines ← loader.ReadLines base∾"accounts.tsv"
+actual ← (snapshot.Build ⟨accountLines,•FChars "../"∾base∾"actual.journal",registry⟩).facts
+plan ← (planSnapshot.Build ⟨loader.ReadLines base∾"daily_target_plan.destination.tsv",actual.accounts,registry⟩).facts
+admitted ← admission.Admit ⟨loader.ReadLines base∾"daily_target_scope.destination.tsv",registry⟩
+"ok" lib.AssertEq admitted.state
+2 lib.AssertEq admitted.rows.count
+scope ← adapter.Build ⟨admitted,actual,plan,"JPY","2026-01-12","2026-01-22"⟩
+"ok" lib.AssertEq scope.state
+1 lib.AssertEq ≠scope.asset_scope.rows
+1 lib.AssertEq ≠scope.obligation_scope.rows
+965 lib.AssertEq (⊑scope.asset_scope.rows).coefficient
+200 lib.AssertEq (⊑scope.obligation_scope.rows).coefficient
+50 lib.AssertEq (⊑scope.obligation_scope.rows).excluded_coefficient
+"proven" lib.AssertEq (⊑scope.obligation_scope.rows).reservation_state
+result ← compose.DailyTarget ⟨"2026-01-12","2026-01-22","JPY",scope.asset_scope,scope.obligation_scope⟩
+"ok" lib.AssertEq result.state
+815 lib.AssertEq result.result.calculation.capacity_balance
+81 lib.AssertEq result.result.calculation.daily_target
+
+missing ← admission.Admit ⟨⟨⟩,registry⟩
+"error" lib.AssertEq missing.state
+"daily_scope_header_missing" lib.AssertEq (⊑missing.diagnostics).code
+headerOnly ← admission.Admit ⟨⟨admission.header⟩,registry⟩
+"ok" lib.AssertEq headerOnly.state
+emptyScope ← adapter.Build ⟨headerOnly,actual,plan,"JPY","2026-01-12","2026-01-22"⟩
+"ok" lib.AssertEq emptyScope.state
+invalidLines ← ⟨admission.header,"obligation"∾(@+9)∾"rent"∾(@+9)∾""∾(@+9)∾"plan-rent-daily-target"∾(@+9)∾"50"∾(@+9)∾""∾(@+9)∾"reservation:rent"⟩
+invalid ← admission.Admit ⟨invalidLines,registry⟩
+"error" lib.AssertEq invalid.state
+0 lib.AssertEq invalid.rows.count
+"daily_reservation_currency_pair_invalid" lib.AssertEq (⊑invalid.diagnostics).code
+
+validLines ← loader.ReadLines base∾"daily_target_scope.destination.tsv"
+duplicate ← admission.Admit ⟨validLines∾⟨¯1⊑validLines⟩,registry⟩
+"error" lib.AssertEq duplicate.state
+0 lib.AssertEq duplicate.rows.count
+unknownAccountLines ← ⟨admission.header,Join ⟨"asset","missing","assets:missing","","","",""⟩⟩
+unknownAccount ← admission.Admit ⟨unknownAccountLines,registry⟩
+unknownAccountScope ← adapter.Build ⟨unknownAccount,actual,plan,"JPY","2026-01-12","2026-01-22"⟩
+"error" lib.AssertEq unknownAccountScope.state
+"daily_asset_account_unknown" lib.AssertEq (⊑unknownAccountScope.diagnostics).code
+unknownPlanLines ← ⟨admission.header,Join ⟨"obligation","missing","","plan-missing","","",""⟩⟩
+unknownPlan ← admission.Admit ⟨unknownPlanLines,registry⟩
+unknownPlanScope ← adapter.Build ⟨unknownPlan,actual,plan,"JPY","2026-01-12","2026-01-22"⟩
+"error" lib.AssertEq unknownPlanScope.state
+"daily_obligation_plan_unknown" lib.AssertEq (⊑unknownPlanScope.diagnostics).code
+outsideScope ← adapter.Build ⟨admitted,actual,plan,"JPY","2026-01-12","2026-01-14"⟩
+"exclude" lib.AssertEq (⊑outsideScope.obligation_scope.rows).decision
+outside ← compose.DailyTarget ⟨"2026-01-12","2026-01-14","JPY",outsideScope.asset_scope,outsideScope.obligation_scope⟩
+0 lib.AssertEq outside.result.calculation.gross_obligations
+•Out "test_application_daily_scope: ok"

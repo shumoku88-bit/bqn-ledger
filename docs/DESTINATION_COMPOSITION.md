@@ -1,6 +1,6 @@
 # Destination composition and cutover preparation
 
-Status: P10D static catalog, one-result composition/rendering, and seven key-first parallel CLI adapters complete; ownership-backed Envelope/Daily Target and `all` remain in progress.
+Status: P10E static catalog, one-result composition/rendering, and all nine key-first individual CLI adapters complete; `all`, cache, operational separation, and cutover remain in progress.
 
 ## Static catalog owner
 
@@ -63,24 +63,30 @@ Public composition tests invoke every named composer and compare its rendering w
 Application-only `source_io.bqn` and `report_source_adapter.bqn` own read-only file access. Core ledger/accounting/sections/report modules do not import them. `tools/report-destination` admits key and surface before its BQN entry reads household evidence and currently wires:
 
 ```text
+envelopes         Accounts/Actual + explicit Plan/Budget + funding Account keys
 balances          accounts.tsv + explicit Journal basename
 recent            accounts.tsv + explicit Journal basename
 planned           Accounts/Actual + explicit Plan and Cycle basenames
 cycle-accounts     Accounts/Actual + explicit Cycle; Plan only for incomeAnchor
 cycle-comparison   Accounts/Actual + two explicit Cycle definitions; Plan only for incomeAnchor
 monthly-accounts   accounts.tsv + explicit Journal basename
+daily-target       Accounts/Actual + explicit Plan + strict ownership/linkage TSV
 issues             explicit strict Issue TSV basename
 ```
 
-All coordinates and basenames are explicit. Safe Journal/TSV basenames reject separators; there is no path fallback. Cycle definitions are strictly admitted before mode-specific resolution. Fixed/calendarMonth requests do not read Plan; incomeAnchor requires it. Comparison admits separate current/baseline definitions and rejects differing modes. Selective-source tests prove Recent works with Accounts/Actual only, fixed Cycle Accounts adds only Cycle, Planned does not require Budget, incomeAnchor fails without Plan, Issues works without Accounts/Actual, and unknown/unsupported requests fail even when the base path does not exist.
+All coordinates and basenames are explicit. Safe Journal/TSV basenames reject separators; there is no path fallback. Cycle definitions are strictly admitted before mode-specific resolution. Fixed/calendarMonth requests do not read Plan; incomeAnchor requires it. Comparison admits separate current/baseline definitions and rejects differing modes. Selective-source tests prove Recent works with Accounts/Actual only, fixed Cycle Accounts adds only Cycle, Planned does not require Budget, incomeAnchor fails without Plan, Envelope rejects non-asset funding, Daily Target needs no Budget/Cycle source, Issues works without Accounts/Actual, and unknown/unsupported requests fail even when the base path does not exist.
 
-This parallel CLI is deliberately incomplete and does not replace production. The remaining adapters require semantic preparation rather than a wider context:
+Envelope funding ownership is admitted from one or more explicit Account keys. Keys must be unique, admitted, same-domain, and `role=asset`; names/prefixes never classify funding.
 
-- Envelopes needs explicit funding Account ownership;
-- Daily Target needs owner-produced asset/obligation/reservation scopes;
-- `all` must iterate these one-result adapters after all nine are available.
+Daily Target uses the exact seven-column application source:
 
-No Account-name inference or fabricated default will fill those gaps. Any future interactive clock default must be captured once outside core and converted to explicit coordinates. Public CLI proof remains parallel to production until cutover.
+```text
+kind | scope_id | account_key | plan_id | excluded_amount | currency | reservation_ref
+```
+
+Asset rows link durable scope identity to an admitted asset Account. Obligation rows link durable scope identity to a canonical Plan `plan_id`; amount/date/currency and completion status come from Plan/Actual evidence rather than the policy row. Positive exclusion requires exact currency and unique reservation reference. The adapter builds assets from observed Account balances and obligations from durable completion Join, preserving contributors. Completed or outside-horizon obligations remain evidenced but are excluded from calculation; overdue open obligations remain included.
+
+The parallel CLI now supports all nine keys individually but still does not replace production. `all` must iterate one-result adapters without creating a universal coordinate record. No Account-name inference or fabricated default fills ownership. Any future interactive clock default must be captured once outside core and converted to explicit coordinates. Public CLI proof remains parallel to production until cutover.
 
 ## Cutover boundary
 

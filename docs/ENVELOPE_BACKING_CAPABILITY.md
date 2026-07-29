@@ -7,7 +7,7 @@ Owners:
 - `src/accounting/envelope_backing.bqn` — strict evidence composition and exact Statement arithmetic;
 - `src/sections/envelope_backing.bqn` — retained human/compact/JSON semantic owner.
 
-`src/accounting/envelope_backing.bqn` composes strict Budget, Actual, and Plan Facts over explicit `[start,end_exclusive)`, observation, domain, and explicit funding Account indices.
+`src/accounting/envelope_backing.bqn` composes strict Budget, Actual, and Plan Facts over explicit `[start,end_exclusive)`, observation, domain, and explicit funding Account indices. The parallel application route resolves those indices only from explicit unique same-domain `role=asset` Account keys through `src/application/funding_scope.bqn`; Account names/prefixes never imply funding ownership.
 
 Envelope ownership requires admitted `role=budget kind=envelope budget=...`; unassigned requires exactly one admitted `role=budget kind=unassigned`. Funding ownership is supplied explicitly and validated as selected-domain asset Accounts. Account names are never interpreted.
 

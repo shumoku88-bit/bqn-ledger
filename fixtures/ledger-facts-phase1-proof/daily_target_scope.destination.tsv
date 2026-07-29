@@ -1,0 +1,3 @@
+kind	scope_id	account_key	plan_id	excluded_amount	currency	reservation_ref
+asset	cash	assets:cash				
+obligation	rent		plan-rent-daily-target	50	JPY	reservation:rent

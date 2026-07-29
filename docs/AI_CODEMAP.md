@@ -173,8 +173,11 @@ Updated: 2026-07-28
 ### `src/application/` (destination I/O and CLI boundary)
 
 - `source_io.bqn` — application-only read-only raw/line I/O。core moduleからimportされない。
-- `report_source_adapter.bqn` — explicit base/basenameからRegistry、Actual snapshot、Plan facts、Cycle/Issue linesをkey-specificに読む。
-- `report_destination_cli.bqn` — request admission後にselected adapter/composer/rendererを呼ぶparallel CLI owner。7 keyを配線し、Cycle modeに応じてPlan readを省略/要求する。production routeではない。
+- `report_source_adapter.bqn` — explicit base/basenameからRegistry、Actual、Plan/companions、Cycle/Daily Scope/Issue linesをkey-specificに読む。
+- `funding_scope.bqn` — explicit Envelope funding Account keyをunique/same-domain/asset-roleでadmitしてindicesへ解決する。name inferenceなし。
+- `daily_scope_admission.bqn` — asset Account、durable Plan obligation、optional exact reservation linkageのstrict seven-column application admission。
+- `daily_scope_adapter.bqn` — admitted linksをobserved Account BalanceとPlan completion Joinへ結び、source-qualified Daily Target scopesを作るpure owner。
+- `report_destination_cli.bqn` — request admission後にselected adapter/composer/rendererを呼ぶparallel CLI owner。9 keyを個別配線しproduction routeではない。
 
 ### `src_next/` (現行production BQN 会計エンジン)
 

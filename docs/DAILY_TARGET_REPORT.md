@@ -5,11 +5,15 @@ Status: Portfolio P8 destination proof
 Owners:
 
 - `src/accounting/daily_target.bqn` — conservative exact capacity calculation;
-- `src/sections/daily_target.bqn` — retained evidence-bearing human/compact Card.
+- `src/sections/daily_target.bqn` — retained evidence-bearing human/compact Card;
+- `src/application/daily_scope_admission.bqn` — strict Account/Plan/reservation linkage admission;
+- `src/application/daily_scope_adapter.bqn` — observed Balance and completion-evidence scope construction for the parallel route.
 
 ## Boundary
 
 Input is explicit observation `O`, exclusive target `T`, one domain, one owner-resolved `account_balance` asset scope, and one owner-resolved obligation scope. No clock, source loading, Account-name policy, future-income input, or mixed asset basis is accepted.
+
+The application policy identifies assets by exact Account key and obligations by durable `plan_id`; obligation amount/date/currency come only from admitted Plan Facts. Positive exclusions require exact currency and unique per-obligation reservation reference. The adapter derives asset values from Account Balance and settlement from the durable completion Join.
 
 ```text
 remaining_days       = T - O

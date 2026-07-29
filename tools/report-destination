@@ -5,16 +5,18 @@ set -euo pipefail
 usage() {
   cat <<'USAGE'
 Usage:
+  tools/report-destination BASE envelopes SURFACE DOMAIN START END_EXCLUSIVE OBSERVATION JOURNAL PLAN BUDGET FUNDING_ACCOUNT...
   tools/report-destination BASE balances SURFACE DOMAIN AS_OF JOURNAL_BASENAME
   tools/report-destination BASE recent SURFACE LIMIT JOURNAL_BASENAME
   tools/report-destination BASE planned SURFACE OBSERVATION JOURNAL PLAN CYCLE
   tools/report-destination BASE cycle-accounts human DOMAIN OBSERVATION JOURNAL CYCLE [PLAN]
   tools/report-destination BASE cycle-comparison human DOMAIN CURRENT_OBS BASELINE_OBS POLICY JOURNAL CURRENT_CYCLE BASELINE_CYCLE [PLAN]
   tools/report-destination BASE monthly-accounts human DOMAIN FIRST_MONTH LAST_MONTH_EXCLUSIVE JOURNAL_BASENAME
+  tools/report-destination BASE daily-target SURFACE DOMAIN OBSERVATION TARGET JOURNAL PLAN DAILY_SCOPE
   tools/report-destination BASE issues human ISSUE_BASENAME
 
 SURFACE is human, compact, or json as admitted by the final catalog.
-Seven retained keys are wired; Envelope, Daily Target, and all remain pending.
+All nine retained keys are wired individually; all remains pending.
 Production remains tools/report.
 USAGE
 }
@@ -34,6 +36,11 @@ require_tsv() { safe_basename "$1" && [[ $1 == *.tsv ]]; }
 source_name_error() { echo -e "ERROR\tsource_basename_invalid\t$1" >&2; exit 1; }
 
 case "$key" in
+  envelopes)
+    [[ $# -ge 8 ]] || { usage >&2; exit 2; }
+    require_journal "$5" || source_name_error 'journal must be a safe .journal basename'
+    require_tsv "$6" && require_tsv "$7" || source_name_error 'Plan and Budget must be safe .tsv basenames'
+    ;;
   balances)
     [[ $# -eq 3 ]] || { usage >&2; exit 2; }
     require_journal "$3" || source_name_error 'journal must be a safe .journal basename'
@@ -62,6 +69,11 @@ case "$key" in
   monthly-accounts)
     [[ $# -eq 4 ]] || { usage >&2; exit 2; }
     require_journal "$4" || source_name_error 'journal must be a safe .journal basename'
+    ;;
+  daily-target)
+    [[ $# -eq 6 ]] || { usage >&2; exit 2; }
+    require_journal "$4" || source_name_error 'journal must be a safe .journal basename'
+    require_tsv "$5" && require_tsv "$6" || source_name_error 'Plan and Daily Scope must be safe .tsv basenames'
     ;;
   issues)
     [[ $# -eq 1 ]] || { usage >&2; exit 2; }
