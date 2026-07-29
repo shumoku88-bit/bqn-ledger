@@ -174,6 +174,10 @@ Updated: 2026-07-28
 ### `src/application/` (destination I/O and CLI boundary)
 
 - `source_io.bqn` — implementation-neutralなread-only raw/filtered/optional line I/OとTSV split adapter。report application、editor、旧current engine、testsが共有し、schema/accounting/write/shell/clockを持たない。旧`src_next/loader.bqn`はforwardingなしで削除済み。
+- `config_rows.bqn` / `editor_config_path.bqn` — pure key/value row viewとfallbackなしのexplicit editor config path admission。policy keyの意味を持たない。
+- `system_defaults.bqn` — editor/application routing用のrepository system filenamesだけを読む。
+- `actual_journal_config.bqn` — `ACTUAL_JOURNAL_FILE`のunique/safe `.journal` basenameをfail-closed resolveする。
+- `editor_plan_budget_config.bqn` — Plan budget同期が実際に使うprefix/spent/execution-envelopeの三fieldだけを所有し、household/report policyを構築しない。
 - `report_source_adapter.bqn` — explicit base/basenameからRegistry、Actual、Plan/companions、Cycle/Daily Scope/Issue linesをkey-specificに読む。
 - `funding_scope.bqn` — explicit Envelope funding Account keyをunique/same-domain/asset-roleでadmitしてindicesへ解決する。name inferenceなし。
 - `daily_scope_admission.bqn` — asset Account、durable Plan obligation、optional exact reservation linkageのstrict seven-column application admission。
@@ -241,7 +245,7 @@ Updated: 2026-07-28
 - `json.bqn` — 汎用 BQN JSON シリアライザ（数値、文字列、エスケープ、リスト、オブジェクトのネストに対応）。
 - `date.bqn` — 日付操作 (Today, Parts, Ordinal, DaysBetween)。
 - `unavailable.bqn` — unavailable sentinel の正本定義と helper (`IsUnavailable`, `StartsWith`)。
-- `config.bqn` — config.tsv 読み込み。
+- `config.bqn` — cutover前reportだけが使うhousehold group/risk/budget policyとlocal-or-repository-default config path compatibility owner。Actual Journal basename、system defaults、editor configは所有せず、final cutoverで削除する。
 - `report_sections.bqn` — report sectionの静的descriptor（key、canonical order、metadata label spec、category、owner path、現行output metadata値）を所有するpure data module。builder、I/O、config、clock、CLIは持たない。
 - `report.bqn` — 人間向けレポートの正本入口。`report_sections.bqn`のkey/orderに、localなhuman builderを一対一で対応させ、`--list-sections` / `--section <key>` / full report / cacheを構築する。cache生成時は同じdescriptor orderから`.section-keys` manifestも出力する。builder実行、first-line marker、JSON dispatch、CLIは引き続きこのmoduleが所有する。default currencyを宣言したledgerではhuman `balances`のdirect/full/cache bodyをselected-domain経路へ統一する。明示`--currency`はhuman direct `balances`専用で、full report・他section・cache・JSONとの組合せはfail closed。
 - `report_section_metadata.bqn` — `report_sections.bqn`から静的rowを受け、label解決とUI向けstructured metadata export（TSV default / JSON）を所有する。source TSVは読まず、serializerは今回のdescriptor移行では既存実装を維持する。

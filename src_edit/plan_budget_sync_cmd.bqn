@@ -3,7 +3,8 @@
 # Output: OK APPEND budget_alloc.tsv + row, or OK APPLIED/NOT_LINKED.
 
 loader ← •Import "../src/application/source_io.bqn"
-config ← •Import "../src_next/config.bqn"
+defaults ← •Import "../src/application/system_defaults.bqn"
+budgetConfig ← •Import "../src/application/editor_plan_budget_config.bqn"
 planid ← •Import "plan_id.bqn"
 render ← •Import "render.bqn"
 validate ← •Import "validate.bqn"
@@ -16,7 +17,7 @@ base ← 0⊑args ⋄ pid ← 1⊑args
 pidCheck ← planid.ValidatePlanIDFormat pid
 {𝕊: Fail (1⊑pidCheck)}⍟(¬0⊑pidCheck) @
 
-sys ← config.LoadSystemDefaults @ ⋄ cfg ← config.LoadConfig base
+sys ← defaults.Load @ ⋄ cfg ← budgetConfig.Load base
 Path ← {base ∾ "/" ∾ 𝕩}
 IsData ← {(0<≠𝕩) ∧ ((⊑𝕩)≠'#') ∧ ((⊑𝕩)≠⊑"\\")}
 Data ← {(IsData¨𝕩)/𝕩}

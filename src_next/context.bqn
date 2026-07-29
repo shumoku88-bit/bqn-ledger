@@ -26,7 +26,6 @@ cycle ← •Import "cycle.bqn"
 cube ← •Import "cube.bqn"
 tbds ← •Import "tbds.bqn"
 currency_setup ← •Import "currency_setup.bqn"
-config ← •Import "config.bqn"
 actual_source ← •Import "actual_source.bqn"
 journal_carrier ← •Import "journal_currency_proof_carrier_stage2a.bqn"
 

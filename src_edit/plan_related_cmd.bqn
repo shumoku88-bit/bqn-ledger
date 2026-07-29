@@ -16,12 +16,12 @@
 loader ← •Import "../src/application/source_io.bqn"
 validate ← •Import "validate.bqn"
 plan_id ← •Import "plan_id.bqn"
-config ← •Import "../src_next/config.bqn"
+defaults ← •Import "../src/application/system_defaults.bqn"
 lib ← •Import "../src/text/parse.bqn"
 dateutil ← •Import "../src_next/date.bqn"
 actual_source ← •Import "../src_next/actual_source.bqn"
 
-sys ← config.LoadSystemDefaults @
+sys ← defaults.Load @
 args ← •args
 tab ← @+9
 

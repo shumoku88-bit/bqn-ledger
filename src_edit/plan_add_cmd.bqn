@@ -12,12 +12,12 @@ loader ← •Import "../src/application/source_io.bqn"
 validate ← •Import "validate.bqn"
 render ← •Import "render.bqn"
 plan_id ← •Import "plan_id.bqn"
-config ← •Import "../src_next/config.bqn"
+defaults ← •Import "../src/application/system_defaults.bqn"
 setup ← •Import "../src_next/currency_setup.bqn"
 ak ← •Import "../src_next/account_key.bqn"
 actual_source ← •Import "../src_next/actual_source.bqn"
 
-sys ← config.LoadSystemDefaults @
+sys ← defaults.Load @
 args ← •args
 tab ← @+9
 

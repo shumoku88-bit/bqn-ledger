@@ -3,6 +3,7 @@
 # Actual transactions have exactly one source: configured ACTUAL_JOURNAL_FILE.
 
 config ← •Import "config.bqn"
+actualConfig ← •Import "../src/application/actual_journal_config.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 admission ← •Import "../src/ledger/journal_complete_admission.bqn"
 facts ← •Import "../src/ledger/facts.bqn"
@@ -21,7 +22,7 @@ FactAccounts ← {𝕊 resolved:
   }
 }
 
-Resolve ← {𝕊 base: config.LoadActualJournal base}
+Resolve ← {𝕊 base: actualConfig.Resolve config.ReportConfigPath base}
 
 ResolveRelativePath ← {𝕊 base:
   selected ← Resolve base

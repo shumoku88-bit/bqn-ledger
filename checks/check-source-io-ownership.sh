@@ -22,10 +22,13 @@ if rg -n 'src_next/(util|loader)\.bqn|Import "(util|loader)\.bqn"' src src_edit 
   fail 'removed src_next helper owner is still imported'
 fi
 
-# Existing source readers now use the implementation-neutral application owner.
-grep -Fq 'loader ← •Import "../src/application/source_io.bqn"' src_next/config.bqn \
-  || fail 'config must import src/application/source_io.bqn'
-[[ $(grep -Fc 'loader.ReadLines' src_next/config.bqn) -eq 5 ]] \
-  || fail 'config must route its five required reads through source_io.ReadLines'
+# The remaining old report-policy config delegates rows/path and contains no shell fallback.
+grep -Fq 'configRows ← •Import "../src/application/config_rows.bqn"' src_next/config.bqn \
+  || fail 'report config must delegate row representation'
+grep -Fq 'ReportConfigPath ←' src_next/config.bqn \
+  || fail 'current report config path compatibility must remain explicit'
+if grep -Eq '•SH|LoadActualJournal|LoadSystemDefaults' src_next/config.bqn; then
+  fail 'report config retained source/editor ownership'
+fi
 
 echo 'check-source-io-ownership: OK'

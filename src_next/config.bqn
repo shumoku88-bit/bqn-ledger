@@ -1,85 +1,32 @@
 # config.bqn
-# Reads config.tsv and exposes it as a namespace.
-# Migrated from old src/core/config.bqn.
+# Current-report household policy config owner.
+# Source path, Actual Journal, system defaults, and editor config live in src/application.
 
 lib ← •Import "../src/text/parse.bqn"
 loader ← •Import "../src/application/source_io.bqn"
-
-ParseLine ← {
-  tab ← @+9
-  sep ← (⊑ tab ∊ 𝕩) ◶ ⟨ { '=' }, { tab } ⟩ @
-  parts ← sep lib.SplitKeepEmpty 𝕩
-  key ← 0 ⊑ parts
-  val ← (1 < ≠ parts) ◶ ⟨ { "" }, { 1 ⊑ parts } ⟩ @
-  ⟨ key, val ⟩
-}
-
-LoadSystemDefaults ← { 𝕩 ⋄
-  file_path ← "config/system_defaults.tsv"
-  raw ← loader.ReadLines file_path
-  parsed ← ParseLine ¨ raw
-  keys ← { 0 ⊑ 𝕩 } ¨ parsed
-  values ← { 1 ⊑ 𝕩 } ¨ parsed
-
-  Get ← {
-    k ← 𝕩
-    idx ← ⊑ (keys ⊐ ⟨k⟩) ∾ ⟨≠keys⟩
-    (idx < ≠ keys) ? (idx ⊑ values) ; ""
-  }
-
-  {
-    Get ⇐ Get,
-    DefaultBaseDir ⇐ { 𝕊 ⋄ Get "DEFAULT_BASE_DIR" },
-    DefaultAccountsFile ⇐ { 𝕊 ⋄ Get "DEFAULT_ACCOUNTS_FILE" },
-    DefaultPlanFile ⇐ { 𝕊 ⋄ Get "DEFAULT_PLAN_FILE" },
-    DefaultBudgetAllocFile ⇐ { 𝕊 ⋄ Get "DEFAULT_BUDGET_ALLOC_FILE" },
-    DefaultCycleFile ⇐ { 𝕊 ⋄ Get "DEFAULT_CYCLE_FILE" },
-    DefaultConfigFile ⇐ { 𝕊 ⋄ Get "DEFAULT_CONFIG_FILE" }
-  }
-}
-
-Path ← {
-  (0 = ≠ 𝕩) ? "config/default_config.tsv" ; {
-    sys ← LoadSystemDefaults @
-    def_cfg ← sys.DefaultConfigFile @
-    def_path ← "config/default_config.tsv"
-    is_long ← 4 ≤ ≠ 𝕩
-    is_tsv ← is_long ∧ (".tsv" ≡ ¯4 ↑ 𝕩)
-    target ← is_tsv ⊑ ⟨ 𝕩 ∾ "/" ∾ def_cfg, 𝕩 ⟩
-    exists ← 0 = ⊑ •SH ⟨"test", "-f", target⟩
-    exists ⊑ ⟨ def_path, target ⟩
-  } 𝕩
-}
-
-LoadActualJournal ← {𝕊 base:
-  localParsed ← ParseLine¨loader.ReadLines (Path base)
-  repoParsed ← ParseLine¨loader.ReadLines "config/default_config.tsv"
-  key ← "ACTUAL_JOURNAL_FILE"
-  localMatches ← ({(0⊑𝕩)≡key}¨localParsed)/localParsed
-  repoMatches ← ({(0⊑𝕩)≡key}¨repoParsed)/repoParsed
-  {𝕊: •Out "CONFIG ERROR: duplicate value for "∾key ⋄ •Exit 1}⍟(1<≠localMatches) @
-  {𝕊: •Out "CONFIG ERROR: repository default missing or duplicate for "∾key ⋄ •Exit 1}⍟(1≠≠repoMatches) @
-  file ← 1⊑⊑repoMatches
-  {𝕊: file↩1⊑⊑localMatches}⍟(1=≠localMatches) @
-  {𝕊: •Out "CONFIG ERROR: empty value for "∾key ⋄ •Exit 1}⍟(0=≠file) @
-  hasSeparator ← ∨´ ('/'=file) ∨ ((@+92)=file)
-  hasControl ← ∨´ file∊(@+9)‿(@+13)
-  validSuffix ← (8≤≠file) ∧ ".journal"≡¯8↑file
-  {𝕊: •Out "CONFIG ERROR: "∾key∾" must be a safe .journal basename" ⋄ •Exit 1}⍟(hasSeparator ∨ hasControl ∨ ¬validSuffix) @
-  {file⇐file}
+configRows ← •Import "../src/application/config_rows.bqn"
+defaults ← •Import "../src/application/system_defaults.bqn"
+repositoryDefault ← "config/default_config.tsv"
+ReportConfigPath ← {𝕊 baseOrPath:
+  out ← repositoryDefault
+  {𝕊:
+    system ← defaults.Load @
+    isTsv ← (4≤≠baseOrPath) ∧ (".tsv"≡¯4↑baseOrPath)
+    candidate ← isTsv⊑⟨baseOrPath∾"/"∾system.DefaultConfigFile @, baseOrPath⟩
+    {𝕊:out↩candidate}⍟(•file.Exists loader.ResolvePath candidate) @
+  }⍟(0<≠baseOrPath) @
+  out
 }
 
 LoadConfig ← {
-  file_path ← Path 𝕩
-  raw ← loader.ReadLines file_path
-  parsed ← ParseLine ¨ raw
-  keys ← { 0 ⊑ 𝕩 } ¨ parsed
-  values ← { 1 ⊑ 𝕩 } ¨ parsed
+  file_path ← ReportConfigPath 𝕩
+  localTable ← configRows.Build loader.ReadLines file_path
+  keys ← localTable.keys
+  values ← localTable.values
 
-  repo_raw ← loader.ReadLines "config/default_config.tsv"
-  repo_parsed ← ParseLine ¨ repo_raw
-  repo_keys ← { 0 ⊑ 𝕩 } ¨ repo_parsed
-  repo_values ← { 1 ⊑ 𝕩 } ¨ repo_parsed
+  repoTable ← configRows.Build loader.ReadLines repositoryDefault
+  repo_keys ← repoTable.keys
+  repo_values ← repoTable.values
 
   Lookup ← {
     k ← 𝕩
@@ -202,7 +149,6 @@ LoadConfig ← {
     v
   }
 
-  ActualJournalFile ← { 𝕊 ⋄ (LoadActualJournal 𝕩).file }
   ExecutionPlannedPaymentsEnvelope ← { 𝕊 ⋄ Get "EXECUTION_PLANNED_PAYMENTS_ENVELOPE" }
 
   Warnings ← { 𝕊 ⋄
@@ -233,10 +179,9 @@ LoadConfig ← {
     PolicyBudgetStyle ⇐ PolicyBudgetStyle,
     PolicyRiskStyle ⇐ PolicyRiskStyle,
     PolicyIncomeCadence ⇐ PolicyIncomeCadence,
-    ActualJournalFile ⇐ {𝕊: (LoadActualJournal file_path).file},
     ExecutionPlannedPaymentsEnvelope ⇐ ExecutionPlannedPaymentsEnvelope,
     warnings ⇐ Warnings @
   }
 }
 
-{ LoadConfig ⇐ LoadConfig, LoadActualJournal⇐LoadActualJournal, LoadSystemDefaults ⇐ LoadSystemDefaults }
+{LoadConfig⇐LoadConfig,ReportConfigPath⇐ReportConfigPath}

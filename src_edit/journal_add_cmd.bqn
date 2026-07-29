@@ -2,10 +2,10 @@
 loader ← •Import "../src/application/source_io.bqn"
 validate ← •Import "validate.bqn"
 render ← •Import "render.bqn"
-config ← •Import "../src_next/config.bqn"
+defaults ← •Import "../src/application/system_defaults.bqn"
 setup ← •Import "../src_next/currency_setup.bqn"
 ak ← •Import "../src_next/account_key.bqn"
-sys ← config.LoadSystemDefaults @
+sys ← defaults.Load @
 args ← •args ⋄ tab ← @+9
 Fail ← {𝕊 msg: •Out "ERROR"∾tab∾msg ⋄ •Exit 1}
 {𝕊: Fail "usage: journal_add_cmd.bqn <baseDir> budget <date> <memo> <from> <to> <amount> <currency-or-empty> [meta...]"}⍟(8>≠args) @

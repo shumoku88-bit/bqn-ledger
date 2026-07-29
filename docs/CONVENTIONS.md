@@ -82,7 +82,7 @@ Owner: maintainer / format / validation
 - `BUDGET_ID_UNASSIGNED`
 - `BUDGET_ID_SPENT`
 
-コードではこれらの名前を直接書かず、`src_next/config.bqn` のアクセサが返す設定値を使います。本文中の `budget:*` は既定設定を使った概念表記です。
+コードではこれらの名前を直接書かず、current reportは`src_next/config.bqn`、Plan budget editorは狭い`src/application/editor_plan_budget_config.bqn`のアクセサを使います。本文中の`budget:*`は既定設定を使った概念表記です。
 
 ## メタデータ規約 (Metadata conventions)
 

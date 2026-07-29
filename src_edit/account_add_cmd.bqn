@@ -6,10 +6,10 @@
 loader ← •Import "../src/application/source_io.bqn"
 validate ← •Import "validate.bqn"
 render ← •Import "render.bqn"
-config ← •Import "../src_next/config.bqn"
+defaults ← •Import "../src/application/system_defaults.bqn"
 setup ← •Import "../src_next/currency_setup.bqn"
 
-sys ← config.LoadSystemDefaults @
+sys ← defaults.Load @
 args ← •args
 tab ← @+9
 

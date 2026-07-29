@@ -4,12 +4,12 @@
 loader ← •Import "../src/application/source_io.bqn"
 exchange ← •Import "../src_next/travel_exchange_event.bqn"
 ak ← •Import "../src_next/account_key.bqn"
-config ← •Import "../src_next/config.bqn"
+defaults ← •Import "../src/application/system_defaults.bqn"
 
 args ← •args
 tab ← @+9
 file ← "travel_exchange_events.tsv"
-sys ← config.LoadSystemDefaults @
+sys ← defaults.Load @
 FailDiagnostics ← {𝕊 diagnostics:
   {•Out "ERROR"∾tab∾𝕩.code∾tab∾𝕩.field∾tab∾𝕩.message}¨diagnostics
   •Exit 1

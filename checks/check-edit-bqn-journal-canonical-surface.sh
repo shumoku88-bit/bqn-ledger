@@ -24,6 +24,9 @@ EOF
 # year	month	start_day
 2026	07	25
 EOF
+  cat <<'EOF' > "$base/config.tsv"
+ACTUAL_JOURNAL_FILE=actual.journal
+EOF
 }
 
 setup_fixture_a() {

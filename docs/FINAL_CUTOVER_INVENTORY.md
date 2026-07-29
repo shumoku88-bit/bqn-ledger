@@ -12,8 +12,8 @@ Measured tracked blockers:
 
 ```text
 src_next BQN modules                                  69
-BQN files outside src_next with direct src_next import 146
-  src_edit files                                      30
+BQN files outside src_next with direct src_next import 142
+  src_edit files                                      26
   test files                                          112
   check/tool characterization BQN files                 4
 named tests/test_src_next_*.bqn                       78
@@ -23,7 +23,7 @@ fixture directories named fixtures/src-next-*         35
 tracked files under fixtures/src-next-*              153
 ```
 
-The 146 direct-import files are not all retained runtime. Most tests/checks/fixtures disappear with the old owner, but the 30 editor files are live and must be migrated before physical deletion. Destination runtime under `src/` has no `src_next` import.
+The 142 direct-import files are not all retained runtime. Most tests/checks/fixtures disappear with the old owner, but the 26 editor files are live and must be migrated before physical deletion. Destination runtime under `src/` has no `src_next` import.
 
 The reproducible tracked inventory is:
 
@@ -123,10 +123,9 @@ The external-consumer gate is green: under explicit user direction, executable/s
 
 ## Gate D: editor runtime extraction
 
-Thirty `src_edit/*.bqn` files directly import 12 `src_next` modules. Import frequency:
+Twenty-six `src_edit/*.bqn` files directly import 11 `src_next` modules. Import frequency:
 
 ```text
-13 config.bqn
 12 actual_source.bqn
  9 account_key.bqn
  8 journal_profile_stage1.bqn
@@ -137,7 +136,7 @@ Thirty `src_edit/*.bqn` files directly import 12 `src_next` modules. Import freq
          travel_exchange_event, friend_travel_source_event, context
 ```
 
-The first extraction moved bounded `Split`, `SplitKeepEmpty`, and `ToNum` ownership from `src_next/util.bqn` to `src/text/parse.bqn`, repointed all editor/current-engine/test consumers, and physically removed the old module without a forwarding wrapper. The second consolidated read-only raw/filtered/optional/TSV operations in the existing `src/application/source_io.bqn`, repointed all 115 import sites, renamed its focused fixtures/checks, and physically removed `src_next/loader.bqn`. Twenty-four editor imports moved; `issue_close_cmd.bqn`, `issue_list_cmd.bqn`, and `plan_id.bqn` became fully `src_next`-free in this slice.
+The first extraction moved bounded text parsing to `src/text/parse.bqn`; the second consolidated read-only source operations in `src/application/source_io.bqn`. Both old helper modules were physically removed without wrappers. The third split 13 editor consumers from old report policy: system filenames, config row/path handling, strict Actual Journal basename resolution, and the three-field Plan budget editor config now have bounded `src/application` owners. `src_next/config.bqn` retains only current-report household policy and its old config-path fallback. Four editor command files became fully `src_next`-free in this slice.
 
 This remains the largest live runtime blocker. Required action is ownership migration, not copying all of `src_next`:
 

@@ -169,6 +169,7 @@ bash checks/check-src-next-export-caller-inventory.sh >/dev/null
 bash checks/check-absolute-links.sh >/dev/null
 bash checks/check-source-io-ownership.sh >/dev/null
 bash checks/check-source-io-unreadable.sh >/dev/null
+bash checks/check-editor-config-ownership.sh >/dev/null
 bash checks/audit-budget-style-explicit.sh >/dev/null
 check_bqn_presentation_boundary
 
