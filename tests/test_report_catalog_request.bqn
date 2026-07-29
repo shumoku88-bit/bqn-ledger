@@ -17,23 +17,29 @@ table ← catalog.Table @
 (•FChars "../fixtures/ledger-facts-phase1-proof/report_metadata.destination.json") lib.AssertEq metadata.FormatJson @
 found ← catalog.Find "balances"
 "ok" lib.AssertEq found.state
+1 lib.AssertEq found.index
 "balances" lib.AssertEq found.entry.key
 unknown ← catalog.Find "snapshot"
 "unknown" lib.AssertEq unknown.state
+0 lib.AssertEq ≠unknown.index
 0 lib.AssertEq ≠unknown.entry
 
 balancesJson ← request.Validate ⟨"balances","json"⟩
 "ok" lib.AssertEq balancesJson.state
+⟨1⟩ lib.AssertEq balancesJson.section_indices
 ⟨"balances"⟩ lib.AssertEq balancesJson.section_keys
 allHuman ← request.Validate ⟨"all","human"⟩
 "ok" lib.AssertEq allHuman.state
+table.index lib.AssertEq allHuman.section_indices
 table.key lib.AssertEq allHuman.section_keys
 allCompact ← request.Validate ⟨"all","compact"⟩
+⟨0,1,2,3,7⟩ lib.AssertEq allCompact.section_indices
 ⟨"envelopes","balances","recent","planned","daily-target"⟩ lib.AssertEq allCompact.section_keys
 
 CheckError ← {𝕊 key‿surface‿code:
   result ← request.Validate ⟨key,surface⟩
   "error" lib.AssertEq result.state
+  0 lib.AssertEq ≠result.section_indices
   0 lib.AssertEq ≠result.section_keys
   code lib.AssertEq (⊑result.diagnostics).code
 }
