@@ -1,6 +1,6 @@
 # Destination composition and cutover preparation
 
-Status: P10E static catalog, one-result composition/rendering, and all nine key-first individual CLI adapters complete; `all`, cache, operational separation, and cutover remain in progress.
+Status: P10F static catalog, all nine key-first individual routes, and fail-closed human/compact `all` complete; cache, operational separation, and cutover remain in progress.
 
 ## Static catalog owner
 
@@ -86,7 +86,29 @@ kind | scope_id | account_key | plan_id | excluded_amount | currency | reservati
 
 Asset rows link durable scope identity to an admitted asset Account. Obligation rows link durable scope identity to a canonical Plan `plan_id`; amount/date/currency and completion status come from Plan/Actual evidence rather than the policy row. Positive exclusion requires exact currency and unique reservation reference. The adapter builds assets from observed Account balances and obligations from durable completion Join, preserving contributors. Completed or outside-horizon obligations remain evidenced but are excluded from calculation; overdue open obligations remain included.
 
-The parallel CLI now supports all nine keys individually but still does not replace production. `all` must iterate one-result adapters without creating a universal coordinate record. No Account-name inference or fabricated default fills ownership. Any future interactive clock default must be captured once outside core and converted to explicit coordinates. Public CLI proof remains parallel to production until cutover.
+The parallel CLI supports all nine keys individually and still does not replace production.
+
+## Fail-closed `all`
+
+`all` accepts one explicit TSV command manifest:
+
+```text
+key | surface | arguments
+```
+
+Each row contains the argv for one existing individual route; there is no cross-report coordinate schema. `report_selection_cli.bqn` derives the expected keys from `request.Validate ⟨"all",surface⟩`. The runner requires exact count, catalog order, and one shared admitted surface, then invokes `tools/report-destination` for every row. Output is buffered and published only after all rows succeed.
+
+Consequences:
+
+- human iterates all nine keys;
+- compact iterates the five registered compact owners;
+- aggregate JSON remains explicitly unsupported;
+- malformed, missing, reordered, or failing rows publish no partial report;
+- `all` cannot introduce alternate accounting or rendering behavior.
+
+The shell wrapper first runs pure request admission, resolves relative base against caller cwd, validates safe basenames, and returns stable `source_unreadable` diagnostics before BQN source I/O. Its former duplicate implemented-key whitelist has been removed; the static catalog remains authoritative.
+
+No Account-name inference or fabricated default fills ownership. All coordinates remain explicit, so no clock is currently injected. Public CLI proof remains parallel to production until cutover.
 
 ## Cutover boundary
 

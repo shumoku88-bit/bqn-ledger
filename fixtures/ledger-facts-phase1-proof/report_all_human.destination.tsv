@@ -1,0 +1,10 @@
+key	surface	arguments
+envelopes	human	JPY	2026-01-01	2026-02-01	2026-01-12	actual.journal	plan.tsv	budget_alloc.tsv	assets:cash
+balances	human	JPY	2026-01-12	actual.journal
+recent	human	10	actual.journal
+planned	human	2026-01-12	actual.journal	plan.tsv	cycle.tsv
+cycle-accounts	human	JPY	2026-01-10	actual.journal	cycle.tsv
+cycle-comparison	human	JPY	2026-01-10	2025-12-31	aligned_elapsed	actual.journal	cycle.tsv	cycle_baseline.destination.tsv
+monthly-accounts	human	JPY	2026-01	2026-03	actual.journal
+daily-target	human	JPY	2026-01-12	2026-01-22	actual.journal	daily_target_plan.destination.tsv	daily_target_scope.destination.tsv
+issues	human	issues.destination.tsv

@@ -7,16 +7,16 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Portfolio P10F: all nine retained keys now have key-first individual parallel CLI routes. Envelope uses explicit asset Account ownership; Daily Target links strict asset/Plan/reservation policy to canonical balance/completion evidence. Next prove `all` without universal coordinates.
+Portfolio P10G: all nine individual routes and fail-closed catalog-ordered human/compact `all` now pass public proof. CLI request/source hardening is complete. Next define atomic cache publication and operational route separation.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn (unchanged)
-parallel proof: tools/report-destination; all nine individual keys
-ownership: exact Account keys and durable plan_id; positive exclusion requires unique exact reservation reference
-next proof: an explicit per-key request manifest whose all runner invokes the same one-result route in catalog order
-then: cache manifest, operational check/debug separation, cutover inventory
+parallel proof: tools/report-destination; individual and per-key-manifest all
+all semantics: same individual argv routes, buffered output, no partial publication, no aggregate JSON
+hardening: catalog authority only; stable missing-source diagnostics; relative base uses caller cwd
+next proof: final nine-key/all cache manifest and atomic publication, then ledger-check/ledger-inspect ownership
 exclude: production switch, private source inspection/migration, old-key deletion before external consumer confirmation
-forbid: universal context, Account-name inference, hidden clock, aggregate reservation inference
+forbid: universal context, alternate all calculations, hidden clock, stale partial cache
 private source audit/migration: still requires separate explicit instruction
 ```
 

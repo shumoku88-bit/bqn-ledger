@@ -160,8 +160,6 @@ composition ← {state⇐"error",key⇐key,result⇐empty,diagnostics⇐empty}
   composition↩compose.Issues ⟨sources.IssueLines ⟨base,⊑coordinates⟩,registry⟩
 }⍟(key≡"issues") @
 
-implemented ← ∨´key⊸≡¨⟨"envelopes","balances","recent","planned","cycle-accounts","cycle-comparison","monthly-accounts","daily-target","issues"⟩
-{𝕊:Fail ⟨"composition_not_implemented","retained key is not yet wired to the parallel source adapter"⟩}⍟(¬implemented) @
 {𝕊:PrintDiagnostics composition.diagnostics}⍟(composition.state≢"ok") @
 rendered ← render.Render ⟨key,surface,composition⟩
 {𝕊:PrintDiagnostics rendered.diagnostics}⍟(rendered.state≢"ok") @
