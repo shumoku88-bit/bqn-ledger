@@ -15,8 +15,12 @@ table ← catalog.Table @
 (•FChars "../fixtures/ledger-facts-phase1-proof/report_catalog.destination.tsv") lib.AssertEq catalogText.FormatTsv @
 (•FChars "../fixtures/ledger-facts-phase1-proof/report_metadata.destination.tsv") lib.AssertEq metadata.FormatTsv @
 (•FChars "../fixtures/ledger-facts-phase1-proof/report_metadata.destination.json") lib.AssertEq metadata.FormatJson @
-"ok" lib.AssertEq (catalog.Find "balances").state
-"unknown" lib.AssertEq (catalog.Find "snapshot").state
+found ← catalog.Find "balances"
+"ok" lib.AssertEq found.state
+"balances" lib.AssertEq found.entry.key
+unknown ← catalog.Find "snapshot"
+"unknown" lib.AssertEq unknown.state
+0 lib.AssertEq ≠unknown.entry
 
 balancesJson ← request.Validate ⟨"balances","json"⟩
 "ok" lib.AssertEq balancesJson.state
