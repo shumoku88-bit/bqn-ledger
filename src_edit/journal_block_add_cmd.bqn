@@ -2,8 +2,7 @@
 # Semantic owner for one explicit native actual-layer Journal transaction append.
 
 admission ← •Import "../src/ledger/journal_complete_admission.bqn"
-carrier ← •Import "../src_next/journal_currency_proof_carrier_stage2a.bqn"
-ak ← •Import "../src_next/account_key.bqn"
+editorAccounts ← •Import "../src/application/editor_accounts.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 decimal ← •Import "../src/ledger/exact_decimal.bqn"
 setup ← •Import "../src_next/currency_setup.bqn"
@@ -14,7 +13,6 @@ tab ← @+9
 lf ← @+10
 space ← @+32
 empty ← ⟨⟩
-AdmissionAccounts ← {𝕊 resolved: {key⇐resolved.accounts,currency⇐resolved.currencies} }
 
 Fail ← {𝕊 code‿message:
   •Out "ERROR" ∾ tab ∾ code ∾ tab ∾ message
@@ -105,18 +103,18 @@ metadataKeys ← {𝕩.key}¨metadata
 {𝕊⋄Fail ⟨"metadata_payment_invalid", "payment metadata must be cash, card, or debit"⟩}⍟(∨´ 0 ∾ {(𝕩.key ≡ "payment") ∧ ¬ ∨´ 𝕩.value⊸≡¨ "cash"‿"card"‿"debit"}¨ metadata) @
 {𝕊⋄Fail ⟨"ordinary_plan_link_invalid", "ordinary actual cannot carry plan-id; use a durable plan completion path"⟩}⍟((identityMode ≡ "ordinary") ∧ ∨´ 0 ∾ "plan-id"⊸≡¨ metadataKeys) @
 
-resolved ← ak.Resolve loader.ReadLines (base ∾ "/accounts.tsv")
+resolved ← editorAccounts.Require loader.ReadLines (base ∾ "/accounts.tsv")
 raw ← loader.ReadRaw target
-existing ← admission.Admit ⟨raw,AdmissionAccounts resolved,setup.registry_value⟩
+existing ← admission.Admit ⟨raw,resolved,setup.registry_value⟩
 {𝕊⋄Fail ⟨"existing_journal_invalid", "existing complete Journal does not satisfy supported-currency admission"⟩}⍟(existing.state ≢ "ok") @
 candidateOrdinal ← ≠ existing.transactions
 {𝕊⋄Fail ⟨"event_id_duplicate", "event-id already exists in the complete Journal"⟩}⍟((identityMode ≡ "durable") ∧ ∨´ 0 ∾ {𝕩.source_event_id ≡ eventId}¨ existing.transactions) @
 
 {𝕊 posting:
-  registryMask ← posting.account_key⊸≡¨ resolved.accounts
+  registryMask ← posting.account_key⊸≡¨ resolved.key
   {𝕊⋄Fail ⟨"posting_account_unresolved", "posting account must resolve exactly once in accounts.tsv"⟩}⍟(1 ≠ +´ registryMask) @
   idx ← ⊑ registryMask / ↕ ≠ registryMask
-  {𝕊⋄Fail ⟨"posting_currency_invalid", "resolved posting account currency must equal transaction currency"⟩}⍟(currency ≢ idx ⊑ resolved.currencies) @
+  {𝕊⋄Fail ⟨"posting_currency_invalid", "resolved posting account currency must equal transaction currency"⟩}⍟(currency ≢ idx ⊑ resolved.currency) @
 }¨ postings
 
 postingLines ← {"    " ∾ 𝕩.account_key ∾ "    " ∾ 𝕩.amount_text ∾ " " ∾ currency}¨ postings
@@ -132,12 +130,9 @@ endsTwo ← (1 < rawCount) ∧ (lf = ¯1 ⊑ raw) ∧ lf = ¯2 ⊑ raw
 semanticSeparator ← endsTwo ◶ ⟨{endsOne ◶ ⟨{lf ∾ lf}, {lf}⟩ @}, {""}⟩ @
 transportPrefixCount ← endsTwo ◶ ⟨{1}, {0}⟩ @
 proposedRaw ← raw ∾ semanticSeparator ∾ block ∾ lf
-proposed ← admission.Admit ⟨proposedRaw,AdmissionAccounts resolved,setup.registry_value⟩
+proposed ← admission.Admit ⟨proposedRaw,resolved,setup.registry_value⟩
 {𝕊⋄diagnostic←⊑proposed.diagnostics ⋄ Fail ⟨"proposed_journal_invalid", "exact proposed complete Journal rejected: " ∾ diagnostic.code ∾ " at line " ∾ •Fmt diagnostic.line⟩}⍟(proposed.state ≢ "ok") @
 {𝕊⋄Fail ⟨"candidate_count_invalid", "proposed Journal must contain exactly one transaction beyond the existing transaction count"⟩}⍟((candidateOrdinal + 1) ≢ ≠ proposed.transactions) @
-
-checked ← carrier.Build ⟨proposed.transactions, resolved, dateText⟩
-{𝕊⋄Fail ⟨"posting_ir_invalid", "Stage 2A currency-proof carrier rejected the proposed complete Journal"⟩}⍟(checked.state ≢ "ok") @
 
 candidate ← candidateOrdinal ⊑ proposed.transactions
 

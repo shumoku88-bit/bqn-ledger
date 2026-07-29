@@ -179,6 +179,7 @@ Updated: 2026-07-28
 - `actual_journal_admission.bqn` / `actual_journal_config.bqn` — pure explicit/old-report-default admissionを分け、editorでは`ACTUAL_JOURNAL_FILE`のunique/safe `.journal` basenameをexplicit configからだけfail-closed resolveする。
 - `editor_plan_budget_config.bqn` — Plan budget同期が実際に使うprefix/spent/execution-envelopeの三fieldだけを所有し、household/report policyを構築しない。
 - `editor_actual.bqn` — explicit editor config、strict Account admission、configured native Journalからcanonical Transaction rowsを構築する。Plan completion evidenceはnon-empty durable `plan_id`だけで、date/memo/account/amount fallback IDを作らない。
+- `editor_accounts.bqn` — operational editor用のcanonical Account table。currencyとroleを必須にし、registry外domain、JPY default、prefix inferenceを拒否する。
 - `report_source_adapter.bqn` — explicit base/basenameからRegistry、Actual、Plan/companions、Cycle/Daily Scope/Issue linesをkey-specificに読む。
 - `funding_scope.bqn` — explicit Envelope funding Account keyをunique/same-domain/asset-roleでadmitしてindicesへ解決する。name inferenceなし。
 - `daily_scope_admission.bqn` — asset Account、durable Plan obligation、optional exact reservation linkageのstrict seven-column application admission。

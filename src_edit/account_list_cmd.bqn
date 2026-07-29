@@ -8,7 +8,7 @@
 # Output: one account name per line.
 
 loader ← •Import "../src/application/source_io.bqn"
-ak ← •Import "../src_next/account_key.bqn"
+editorAccounts ← •Import "../src/application/editor_accounts.bqn"
 validate ← •Import "validate.bqn"
 
 tab ← @+9
@@ -28,10 +28,10 @@ currency ← 2⊑args
 lines ← loader.ReadLines (base ∾ "/accounts.tsv")
 IsDataLine ← { (0 < ≠𝕩) ? ((⊑𝕩 ≠ '#') ∧ (⊑𝕩 ≠ ⊑"\\")) ; 0 }
 dataLines ← (IsDataLine¨ lines) / lines
-resolved ← ak.Resolve dataLines
-accounts ← resolved.accounts
-roles ← resolved.roles
-currencies ← resolved.currencies
+resolved ← editorAccounts.Require dataLines
+accounts ← resolved.key
+roles ← resolved.role
+currencies ← resolved.currency
 
 roleMask ← (0 = ≠ role) ◶ ⟨ {𝕊: role ⊸ ≡¨ roles}, {𝕊: 1 + 0 × ↕≠accounts} ⟩ @
 currencyMask ← (0 = ≠ currency) ◶ ⟨ {𝕊: currency ⊸ ≡¨ currencies}, {𝕊: 1 + 0 × ↕≠accounts} ⟩ @

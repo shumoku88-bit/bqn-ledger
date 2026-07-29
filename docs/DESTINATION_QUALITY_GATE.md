@@ -36,7 +36,7 @@ Use `green / improve / incomplete / not-applicable`. Record concrete evidence, n
 | Daily Target | green | green | green: named validation/normalization/calculation stages | green | green | complete |
 | Issues | green | green | green: strict admission then bounded source-order selection | green | green | complete |
 | P10 composition | green | green: core pure; I/O/cache/operations isolated in application boundary | green: catalog metadata; nine composers; all/cache/compact reuse individual routes | green: direct/all/cache/metadata/summary/exact-query/operations proofs | **incomplete**: editor/private gates | in progress |
-| P11 editor extraction | green: helpers removed; config/Actual split | green: canonical strict editor Facts; no wrappers/fallback identity | green: durable plan completion only | green: public source readiness + editor/full checks; blockers 35→23 | **incomplete**: 10 old modules remain live | in progress |
+| P11 editor extraction | green: helpers removed; config/Actual/Account split | green: canonical strict editor Facts/Accounts; no wrappers/fallback identity | green: durable completion; redundant carrier removed | green: strict negatives + editor/full checks; blockers 35→22 | **incomplete**: nine old modules remain live | in progress |
 
 ## P7 exit gate
 

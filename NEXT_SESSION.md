@@ -7,15 +7,15 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Portfolio P11E: all 12 editor Actual consumers now use explicit config routing and canonical strict Account/Journal Facts in src/application/editor_actual.bqn. Completion evidence is durable plan_id-only; no transaction-field fallback identity. Live editor blockers are 23 files/10 modules.
+Portfolio P11F: eight operational AccountKey consumers now use strict canonical Account tables with explicit role/currency; redundant Stage 2A carrier checks were removed after complete Journal admission. Live editor blockers are 22 files/nine modules.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn (unchanged)
-strict editor Actual: explicit readable config, explicit Account currency/role, one admitted Journal domain
-public readiness updates: sandbox/demo/golden/plan fixtures declare Actual source/currency; no private source was inspected
-newly src_next-free: journal_list, journal_reconstructible_identity_cleanup_cmd, plan_budget_sync
-next slice: inspect 9 account_key.bqn editor consumers and replace compatibility Account resolution with canonical admitted Accounts
-remaining gates: 10 editor dependencies, retained helper decisions, rehearsal, separately authorized private readiness
+strict editor Accounts: canonical keys/currency/role, registry-supported domain, no JPY/default/prefix inference
+one deferred AccountKey caller: journal_canonical_surface_rewrite, coupled to old profile/Posting IR and moved with that cluster
+newly src_next-free: account_list_cmd
+next slice: replace eight currency_setup.bqn editor consumers with canonical registry/selection/scale admission
+remaining gates: nine editor dependencies, retained helper decisions, rehearsal, separately authorized private readiness
 exclude: production switch, old-key deletion, private ledger inspection
 ```
 

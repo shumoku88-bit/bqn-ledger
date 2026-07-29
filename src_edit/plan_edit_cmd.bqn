@@ -18,7 +18,7 @@ validate ← •Import "validate.bqn"
 plan_id ← •Import "plan_id.bqn"
 defaults ← •Import "../src/application/system_defaults.bqn"
 setup ← •Import "../src_next/currency_setup.bqn"
-ak ← •Import "../src_next/account_key.bqn"
+editorAccounts ← •Import "../src/application/editor_accounts.bqn"
 actual_source ← •Import "../src/application/editor_actual.bqn"
 
 
@@ -46,9 +46,9 @@ accountsFile ← ResolvePath (sys.DefaultAccountsFile @)
 accountsLinesRaw ← loader.ReadLinesOptional accountsFile
 IsDataLine ← { (0 < ≠ 𝕩) ? ((⊑ 𝕩 ≠ '#') ∧ (⊑ 𝕩 ≠ ⊑"\\")) ; 0 }
 accountsLines ← (IsDataLine¨ accountsLinesRaw) / accountsLinesRaw
-resolvedAccounts ← ak.Resolve accountsLines
-accounts ← resolvedAccounts.accounts
-accountCurrencies ← resolvedAccounts.currencies
+resolvedAccounts ← editorAccounts.Require accountsLines
+accounts ← resolvedAccounts.key
+accountCurrencies ← resolvedAccounts.currency
 
 
 { 𝕊 ⋄

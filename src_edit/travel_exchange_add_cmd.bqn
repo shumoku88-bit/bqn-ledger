@@ -3,7 +3,7 @@
 
 loader ← •Import "../src/application/source_io.bqn"
 exchange ← •Import "../src_next/travel_exchange_event.bqn"
-ak ← •Import "../src_next/account_key.bqn"
+editorAccounts ← •Import "../src/application/editor_accounts.bqn"
 defaults ← •Import "../src/application/system_defaults.bqn"
 
 args ← •args
@@ -18,8 +18,8 @@ FailDiagnostics ← {𝕊 diagnostics:
 base ← 0⊑args
 mode ← 1⊑args
 accountLines ← loader.ReadLinesOptional (base∾"/"∾sys.DefaultAccountsFile @)
-resolved ← ak.Resolve accountLines
-accounts ← {𝕊 i: {name⇐i⊑resolved.accounts, exists⇐1, currency⇐i⊑resolved.currencies}}¨ ↕≠resolved.accounts
+resolved ← editorAccounts.Require accountLines
+accounts ← {𝕊 i: {name⇐i⊑resolved.key, exists⇐1, currency⇐i⊑resolved.currency}}¨ resolved.index
 lines ← loader.ReadLinesOptional (base∾"/"∾file)
 
 {𝕊:

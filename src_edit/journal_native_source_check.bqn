@@ -2,8 +2,7 @@
 # Mandatory post-write validator for one explicit supported-currency Journal candidate.
 
 admission ← •Import "../src/ledger/journal_complete_admission.bqn"
-carrier ← •Import "../src_next/journal_currency_proof_carrier_stage2a.bqn"
-ak ← •Import "../src_next/account_key.bqn"
+editorAccounts ← •Import "../src/application/editor_accounts.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 decimal ← •Import "../src/ledger/exact_decimal.bqn"
 setup ← •Import "../src_next/currency_setup.bqn"
@@ -12,7 +11,6 @@ args ← •args
 tab ← @+9
 space ← @+32
 empty ← ⟨⟩
-AdmissionAccounts ← {𝕊 resolved: {key⇐resolved.accounts,currency⇐resolved.currencies} }
 Fail ← {𝕊 code‿message: •Out "ERROR"∾tab∾code∾tab∾message ⋄ •Exit 1}
 TrimLeft ← {𝕊 xs: (+´ ∧` (xs = space)) ↓ xs}
 TrimRight ← {𝕊 xs: ((≠ xs) - +´ ∧` ((⌽ xs) = space)) ↑ xs}
@@ -76,14 +74,11 @@ Normalize ← {𝕊 posting:
 expected ↩ Normalize¨expected
 {𝕊⋄Fail ⟨"expected_posting_invalid", "expected candidate requires balanced postings"⟩}⍟(0≠+´{𝕩.normalized_coefficient}¨expected) @
 
-resolved ← ak.Resolve loader.ReadLines (base∾"/accounts.tsv")
+resolved ← editorAccounts.Require loader.ReadLines (base∾"/accounts.tsv")
 raw ← loader.ReadRaw target
-admitted ← admission.Admit ⟨raw,AdmissionAccounts resolved,setup.registry_value⟩
+admitted ← admission.Admit ⟨raw,resolved,setup.registry_value⟩
 {𝕊⋄Fail ⟨"native_journal_invalid", "full written native Journal failed complete-source admission"⟩}⍟(admitted.state≢"ok") @
 {𝕊⋄Fail ⟨"native_candidate_count_invalid", "written Journal transaction count does not match the pre-write candidate ordinal plus one"⟩}⍟((candidateOrdinal + 1) ≢ ≠ admitted.transactions) @
-
-checked ← carrier.Build ⟨admitted.transactions, resolved, dateText⟩
-{𝕊⋄Fail ⟨"native_currency_proof_invalid", "Stage 2A currency-proof carrier rejected the full written Journal"⟩}⍟(checked.state≢"ok") @
 
 candidate ← candidateOrdinal ⊑ admitted.transactions
 priorTransactions ← candidateOrdinal ↑ admitted.transactions

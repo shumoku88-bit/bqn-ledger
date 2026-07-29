@@ -14,7 +14,7 @@ render ← •Import "render.bqn"
 plan_id ← •Import "plan_id.bqn"
 defaults ← •Import "../src/application/system_defaults.bqn"
 setup ← •Import "../src_next/currency_setup.bqn"
-ak ← •Import "../src_next/account_key.bqn"
+editorAccounts ← •Import "../src/application/editor_accounts.bqn"
 actual_source ← •Import "../src/application/editor_actual.bqn"
 
 sys ← defaults.Load @
@@ -47,9 +47,9 @@ accountsPath ← ResolvePath (sys.DefaultAccountsFile @)
 accountLines ← loader.ReadLinesOptional accountsPath
 IsDataLine ← { (0 < ≠𝕩) ? ((⊑𝕩 ≠ '#') ∧ (⊑𝕩 ≠ ⊑"\\")) ; 0 }
 accountDataLines ← (IsDataLine¨ accountLines) / accountLines
-resolved ← ak.Resolve accountDataLines
-accounts ← resolved.accounts
-accountCurrencies ← resolved.currencies
+resolved ← editorAccounts.Require accountDataLines
+accounts ← resolved.key
+accountCurrencies ← resolved.currency
 
 configLines ← loader.ReadLinesOptional (baseDir ∾ "/config.tsv")
 defaultResult ← setup.ResolveDefault configLines
