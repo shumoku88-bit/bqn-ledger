@@ -35,6 +35,7 @@ Build ← {𝕊 rowCoordinates‿columnCoordinates‿valueScale‿values‿contr
     diagnostics ∾↩ AddIf ⟨¬contributorColumnsAligned,Diagnostic ⟨"matrix_contributor_columns_misaligned","every contributor row must align with column axis"⟩⟩
   }⍟rowsAligned @
 
+  # A successful matrix is constructed only after all admission diagnostics are absent.
   ok ← 0=≠diagnostics
   matrix ← {𝕊:
     {
