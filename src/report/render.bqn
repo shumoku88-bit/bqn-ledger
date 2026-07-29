@@ -13,6 +13,7 @@ issues ← •Import "../sections/issues.bqn"
 empty ← ⟨⟩
 surfaces ← ⟨"human","compact","json"⟩
 
+# Each route aligns report keys and formatter functions at the same coordinates.
 Route ← {𝕊 keysValue‿formattersValue: {keys⇐keysValue,formatters⇐formattersValue}}
 routes ← ⟨
   Route ⟨
