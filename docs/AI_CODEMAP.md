@@ -163,6 +163,9 @@ Updated: 2026-07-28
 
 - `text.bqn` — 複数Matrix/List rendererで一致したvisual width、padding、既format済みcellのplain deterministic tableだけを所有する。accounting、section label、color、terminal stateを持たない。
 - `json_text.bqn` — Planned PaymentsとAccount Balancesの2 consumerで一致したexplicit JSON String/ExactNumber/Boolean/Pair/Array/Object text constructor。arbitrary value coercionやbinary-float変換を持たない。
+- `catalog.bqn` — source-independentなfinal nine-key catalog。key/order/label/shape/supported surfacesの唯一のdestination owner。
+- `request.bqn` — final key/surfaceと`all` selectorをpure admissionし、legacy keyやunsupported surfaceを明示errorにする。aliasを持たない。
+- `catalog_text.bqn` — household sourceを読まずcatalog metadataをdeterministic TSVへ描画する。
 
 ### `src_next/` (現行production BQN 会計エンジン)
 

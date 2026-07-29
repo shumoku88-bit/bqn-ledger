@@ -7,12 +7,13 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Portfolio P10: all nine retained destination report proofs now pass the quality gate. Issues uses strict durable eight-column admission and an open source-ordered human List; editor migration remains atomic/private-protocol work. Next build destination composition and cutover preparation without changing production yet.
+Portfolio P10B: all nine report proofs are complete, and the source-independent final catalog/request admission now selects exact supported surfaces with no aliases. Next build purpose-specific one-request composition over already-read evidence.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn (unchanged)
-completed retained proofs: envelopes + balances + recent + planned + cycle-accounts + cycle-comparison + monthly-accounts + daily-target + issues
-next proof: static catalog, explicit coordinates, one-request composition, CLI surface errors, public full/individual behavior
+static catalog: nine final keys; all is a selector, not a tenth entry
+request behavior: unknown legacy key and unsupported surface are explicit errors; all JSON unsupported
+next proof: section-specific explicit coordinates/evidence adapters and one-result composition, then parallel destination CLI
 exclude: production route switch, private source inspection/migration, old-key deletion before external consumer confirmation
 forbid: universal all-report record, dual aliases/keys, five-column Issues fallback, hidden clock in core
 private source audit/migration: still requires separate explicit instruction

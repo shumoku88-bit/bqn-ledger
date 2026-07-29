@@ -1,0 +1,10 @@
+key	label	shape	human	compact	json
+envelopes	Envelope & Backing	statement	yes	yes	yes
+balances	Account Balances	matrix	yes	yes	yes
+recent	Recent Journal	list	yes	yes	no
+planned	Planned Payments	list_card	yes	yes	yes
+cycle-accounts	Current-cycle Accounts	matrix	yes	no	no
+cycle-comparison	Cycle Comparison	matrix	yes	no	no
+monthly-accounts	Monthly Accounts	matrix	yes	no	no
+daily-target	Daily Target	card_projection	yes	yes	no
+issues	Issues	list	yes	no	no

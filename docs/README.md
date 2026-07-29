@@ -31,6 +31,7 @@ They are maps, not gates. Read the files that help with the question in front of
 - [`REPORT_PORTFOLIO_DECISION.md`](REPORT_PORTFOLIO_DECISION.md) — approved 2026-07-28 reset from 15-section parity to the retained Matrix/List/Card/Statement portfolio
 - [`REPORT_PORTFOLIO_CONTRACT.md`](REPORT_PORTFOLIO_CONTRACT.md) — nine-key destination catalog and exact Account Matrix, Envelope & Backing, Daily Target, List, time, currency, and surface contracts
 - [`DESTINATION_QUALITY_GATE.md`](DESTINATION_QUALITY_GATE.md) — completion gate for architecture, exact/evidence/failure semantics, auditability, readability, scenario proof, docs, and verification
+- [`DESTINATION_COMPOSITION.md`](DESTINATION_COMPOSITION.md) — static final catalog/request admission and in-progress one-request composition/cutover boundary
 - [`REPORT_SURFACE_RETIREMENT_MAP.md`](REPORT_SURFACE_RETIREMENT_MAP.md) — per-old-section route/key/cache/metadata/query/test migration or atomic removal map
 - [`LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`](LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md) — active canonical-facts report migration and final compatibility-eradication roadmap under the portfolio decision
 - [`REPORT_CONSTRUCTION_INVENTORY.md`](REPORT_CONSTRUCTION_INVENTORY.md) — current 15-section facts/filter/axis/measure/result-shape inventory and first Matrix/Pivot proof selection
