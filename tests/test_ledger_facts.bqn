@@ -129,6 +129,12 @@ errorResult ← facts.Project ⟨{state⇐"error"},emptyAccountTable⟩
 0 lib.AssertEq errorResult.transactions.count
 0 lib.AssertEq errorResult.postings.count
 
+unknownAccountResult ← facts.Project ⟨admitted,emptyAccountTable⟩
+"error" lib.AssertEq unknownAccountResult.state
+lib.Assert ∨´ {𝕩.code ≡ "posting_account_unknown"}¨ unknownAccountResult.diagnostics
+0 lib.AssertEq unknownAccountResult.transactions.count
+0 lib.AssertEq unknownAccountResult.postings.count
+
 misalignedAccounts ← {
   key⇐admittedAccounts.key,currency⇐⟨⟩,role⇐admittedAccounts.role,type⇐admittedAccounts.type,
   budget⇐admittedAccounts.budget,budget_group⇐admittedAccounts.budget_group,
@@ -141,6 +147,46 @@ misaligned ← facts.Project ⟨admitted,misalignedAccounts⟩
 lib.Assert ∨´ {𝕩.code ≡ "account_columns_misaligned"}¨ misaligned.diagnostics
 0 lib.AssertEq misaligned.transactions.count
 0 lib.AssertEq misaligned.postings.count
+
+duplicateLayerAdmission ← {
+  state⇐"ok",transactions⇐admitted.transactions,declared_domains⇐admitted.declared_domains,
+  declared_layers⇐⟨"actual","plan","actual"⟩,source_name⇐admitted.source_name
+}
+duplicateLayerResult ← facts.Project ⟨duplicateLayerAdmission,admittedAccounts⟩
+"error" lib.AssertEq duplicateLayerResult.state
+lib.Assert ∨´ {𝕩.code ≡ "layer_duplicate"}¨ duplicateLayerResult.diagnostics
+0 lib.AssertEq duplicateLayerResult.transactions.count
+0 lib.AssertEq duplicateLayerResult.postings.count
+
+duplicateTransactionAdmission ← {
+  state⇐"ok",transactions⇐admitted.transactions∾⟨⊑admitted.transactions⟩,
+  declared_domains⇐admitted.declared_domains,declared_layers⇐admitted.declared_layers,
+  source_name⇐admitted.source_name
+}
+duplicateTransactionResult ← facts.Project ⟨duplicateTransactionAdmission,admittedAccounts⟩
+"error" lib.AssertEq duplicateTransactionResult.state
+lib.Assert ∨´ {𝕩.code ≡ "transaction_identity_duplicate"}¨ duplicateTransactionResult.diagnostics
+0 lib.AssertEq duplicateTransactionResult.transactions.count
+0 lib.AssertEq duplicateTransactionResult.postings.count
+
+duplicateAccounts ← {
+  key⇐admittedAccounts.key∾⟨⊑admittedAccounts.key⟩,
+  currency⇐admittedAccounts.currency∾⟨⊑admittedAccounts.currency⟩,
+  role⇐admittedAccounts.role∾⟨⊑admittedAccounts.role⟩,
+  type⇐admittedAccounts.type∾⟨⊑admittedAccounts.type⟩,
+  budget⇐admittedAccounts.budget∾⟨⊑admittedAccounts.budget⟩,
+  budget_group⇐admittedAccounts.budget_group∾⟨⊑admittedAccounts.budget_group⟩,
+  spend_class⇐admittedAccounts.spend_class∾⟨⊑admittedAccounts.spend_class⟩,
+  kind⇐admittedAccounts.kind∾⟨⊑admittedAccounts.kind⟩,
+  envelope_role⇐admittedAccounts.envelope_role∾⟨⊑admittedAccounts.envelope_role⟩,
+  metadata⇐admittedAccounts.metadata∾⟨⊑admittedAccounts.metadata⟩,
+  source_row⇐admittedAccounts.source_row∾⟨⊑admittedAccounts.source_row⟩
+}
+duplicateAccountResult ← facts.Project ⟨admitted,duplicateAccounts⟩
+"error" lib.AssertEq duplicateAccountResult.state
+lib.Assert ∨´ {𝕩.code ≡ "account_key_duplicate"}¨ duplicateAccountResult.diagnostics
+0 lib.AssertEq duplicateAccountResult.transactions.count
+0 lib.AssertEq duplicateAccountResult.postings.count
 
 lf ← @+10
 currencyMismatchRaw ← ∾⟨

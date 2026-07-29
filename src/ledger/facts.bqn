@@ -6,13 +6,8 @@
 dates ← •Import "date_ordinal.bqn"
 empty ← ⟨⟩
 
-Contains ← {𝕊 item‿items: ∨´ 0 ∾ item⊸≡¨ items }
-Unique ← {𝕊 items:
-  result ← empty
-  {𝕊 item: {𝕊: result ∾↩ ⟨item⟩}⍟(¬Contains ⟨item,result⟩) @}¨ items
-  result
-}
-IndexOf ← {𝕊 item‿items: ⊑ (item⊸≡¨ items) ⊐ 1 }
+IndexOf ← {𝕊 item‿items: ⊑ items ⊐ ⟨item⟩ }
+Contains ← {𝕊 item‿items: (IndexOf ⟨item,items⟩) < ≠items }
 Diagnostic ← {𝕊 codeText‿messageText:
   {severity⇐"error",stage⇐"ledger_facts",code⇐codeText,message⇐messageText}
 }
@@ -53,7 +48,7 @@ Project ← {𝕊 admitted‿admittedAccounts:
     diagnostics ∾↩ AddIf ⟨0=≠sourceName, Diagnostic ⟨"source_name_missing","canonical admission must declare one source name"⟩⟩
     diagnostics ∾↩ AddIf ⟨(0<≠transactions) ∧ 0=≠declaredDomains, Diagnostic ⟨"domain_missing","transactions require an admitted domain"⟩⟩
     diagnostics ∾↩ AddIf ⟨0=≠declaredLayers, Diagnostic ⟨"layer_missing","canonical admission must declare its source layer"⟩⟩
-    diagnostics ∾↩ AddIf ⟨(≠declaredLayers)≠≠Unique declaredLayers, Diagnostic ⟨"layer_duplicate","declared source layers must be unique"⟩⟩
+    diagnostics ∾↩ AddIf ⟨(≠declaredLayers)≠≠⍷declaredLayers, Diagnostic ⟨"layer_duplicate","declared source layers must be unique"⟩⟩
   }⍟(admitted.state ≡ "ok") @
 
   layerNames ← declaredLayers
@@ -71,7 +66,7 @@ Project ← {𝕊 admitted‿admittedAccounts:
   accountColumnLengths ← ≠¨⟨accountCurrencies,accountRoles,accountTypes,accountBudgets,accountBudgetGroups,accountSpendClasses,accountKinds,accountEnvelopeRoles,accountMetadata,accountSourceRows⟩
   accountColumnsAligned ← ∧´(≠accountKeys)=accountColumnLengths
   diagnostics ∾↩ AddIf ⟨¬accountColumnsAligned, Diagnostic ⟨"account_columns_misaligned","all account columns must align with account keys"⟩⟩
-  diagnostics ∾↩ AddIf ⟨(≠accountKeys) ≠ ≠Unique accountKeys, Diagnostic ⟨"account_key_duplicate","account keys must be unique"⟩⟩
+  diagnostics ∾↩ AddIf ⟨(≠accountKeys) ≠ ≠⍷accountKeys, Diagnostic ⟨"account_key_duplicate","account keys must be unique"⟩⟩
 
   {𝕊 transaction:
     diagnostics ∾↩ AddIf ⟨¬dates.IsValid transaction.date, Diagnostic ⟨"transaction_date_invalid","admitted transaction date must be strict ISO Gregorian text"⟩⟩
@@ -93,7 +88,7 @@ Project ← {𝕊 admitted‿admittedAccounts:
   }¨ transactions
 
   transactionIds ← {𝕩.source_event_id}¨ transactions
-  diagnostics ∾↩ AddIf ⟨(≠transactionIds) ≠ ≠Unique transactionIds, Diagnostic ⟨"transaction_identity_duplicate","canonical transaction identities must be unique"⟩⟩
+  diagnostics ∾↩ AddIf ⟨(≠transactionIds) ≠ ≠⍷transactionIds, Diagnostic ⟨"transaction_identity_duplicate","canonical transaction identities must be unique"⟩⟩
 
   transactionFacts ← EmptyTransactionFacts @
   postingFacts ← EmptyPostingFacts @
