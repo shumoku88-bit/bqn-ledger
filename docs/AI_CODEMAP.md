@@ -169,6 +169,12 @@ Updated: 2026-07-28
 - `compose.bqn` — all nine retained reportsのpurpose-specific one-result composition。各関数は必要なFacts/coordinates/ownershipだけを受け、accounting→sectionをcomposeする。I/O、clock、path、all-report recordを持たない。
 - `render.bqn` — admitted key/surfaceとsuccessful composition resultだけをsection formatterへdispatchする。unsupported surfaceでformatterを呼ばない。
 
+### `src/application/` (destination I/O and CLI boundary)
+
+- `source_io.bqn` — application-only read-only raw/line I/O。core moduleからimportされない。
+- `report_source_adapter.bqn` — explicit base/basenameからRegistry、Actual snapshot、Issue linesだけをkey-specificに読む。
+- `report_destination_cli.bqn` — request admission後にselected adapter/composer/rendererを呼ぶparallel CLI owner。現在4 keyだけを配線し、production routeではない。
+
 ### `src_next/` (現行production BQN 会計エンジン)
 
 - `context.bqn` — BuildAllRows / BuildPeriodView / BuildContext。Actualはcanonical complete admissionを使い、既存Cube/TBDS向けに一時的な`delta` rowへ変換してplan/budget TSV rowsと合成する。default/explicit cycle解決も同じcomplete transactionsを再利用し、production historical parser fallbackはない。

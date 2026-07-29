@@ -1,6 +1,6 @@
 # Destination composition and cutover preparation
 
-Status: P10B static catalog, request admission, purpose-specific one-result composition, and rendering dispatch complete; source I/O adapter and CLI remain in progress.
+Status: P10C static catalog, one-result composition/rendering, and four key-first parallel CLI adapters complete; five source-policy adapters and `all` remain in progress.
 
 ## Static catalog owner
 
@@ -58,9 +58,27 @@ Public composition tests invoke every named composer and compare its rendering w
 
 `all` iteration will repeatedly invoke this same one-result boundary and concatenate supported renderings; it will not widen an individual result or construct an all-report record.
 
-## Next I/O and CLI boundary
+## Key-first I/O and parallel CLI
 
-The next slice may read sources only after request key/surface admission, then prepare the selected composer's exact arguments. It must capture any interactive clock value once outside core and pass explicit coordinates. Public CLI proof remains parallel to production until cutover.
+Application-only `source_io.bqn` and `report_source_adapter.bqn` own read-only file access. Core ledger/accounting/sections/report modules do not import them. `tools/report-destination` admits key and surface before its BQN entry reads household evidence and currently wires:
+
+```text
+balances          accounts.tsv + explicit Journal basename
+recent            accounts.tsv + explicit Journal basename
+monthly-accounts  accounts.tsv + explicit Journal basename
+issues             explicit strict Issue TSV basename
+```
+
+All coordinates and basenames are explicit. Safe Journal/TSV basenames reject separators; there is no path fallback. Selective-source tests prove Recent works in a directory containing only Accounts/Actual, Issues works without Accounts/Actual, and unknown/unsupported requests fail even when the base path does not exist.
+
+This parallel CLI is deliberately incomplete and does not replace production. The remaining adapters require semantic preparation rather than a wider context:
+
+- Planned and both Cycle reports need strict cycle admission and mode-specific resolution;
+- Envelopes needs explicit funding Account ownership;
+- Daily Target needs owner-produced asset/obligation/reservation scopes;
+- `all` must iterate these one-result adapters after all nine are available.
+
+No Account-name inference or fabricated default will fill those gaps. Any future interactive clock default must be captured once outside core and converted to explicit coordinates. Public CLI proof remains parallel to production until cutover.
 
 ## Cutover boundary
 

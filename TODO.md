@@ -261,8 +261,10 @@ Quality completion is governed by [`docs/DESTINATION_QUALITY_GATE.md`](docs/DEST
 
 - [x] Built the source-independent static nine-key catalog, deterministic metadata TSV, final-key admission, `all` selection, and explicit unsupported-surface errors with no aliases.
 - [x] Built pure one-request-at-a-time destination composition over already-read evidence with separate narrow signatures for all nine reports and one-result rendering dispatch.
-- [ ] Add destination CLI routing without changing production `tools/report` yet.
-- [ ] Prove full/catalog/individual public fixture behavior, deterministic clock injection, cache manifest, and import boundaries.
+- [x] Added key-first parallel CLI routing for Balances, Recent, Monthly Accounts, and Issues; unknown/unsupported requests fail before household source reads.
+- [ ] Wire Planned/Cycle Accounts/Cycle Comparison through strict cycle source admission/resolution.
+- [ ] Define explicit Envelope funding ownership and Daily Target asset/obligation/reservation application adapters before wiring those keys; never infer ownership from Account names.
+- [ ] Prove public `all` behavior, deterministic clock injection if interactive defaults are offered, cache manifest, and remaining import boundaries.
 - [ ] Reconcile operational `check`/`debug` ownership with `tools/ledger-check` and `tools/ledger-inspect` before old routes are removed.
 - [ ] Inventory external compact/query/cache consumers with moko before deleting old keys, then prepare one atomic cutover diff.
 - [ ] Keep private-source readiness under separate explicit authorization; do not inspect or rewrite user data in this public composition slice.

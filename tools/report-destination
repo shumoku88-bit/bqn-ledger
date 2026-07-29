@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# Parallel public destination composition proof. Does not replace tools/report.
+set -euo pipefail
+
+usage() {
+  cat <<'USAGE'
+Usage:
+  tools/report-destination BASE balances SURFACE DOMAIN AS_OF JOURNAL_BASENAME
+  tools/report-destination BASE recent SURFACE LIMIT JOURNAL_BASENAME
+  tools/report-destination BASE monthly-accounts human DOMAIN FIRST_MONTH LAST_MONTH_EXCLUSIVE JOURNAL_BASENAME
+  tools/report-destination BASE issues human ISSUE_BASENAME
+
+SURFACE is human, compact, or json as admitted by the final catalog.
+Only the four listed P10C source adapters are wired in this parallel proof.
+Production remains tools/report.
+USAGE
+}
+
+if [[ ${1:-} == --help || ${1:-} == -h ]]; then usage; exit 0; fi
+if [[ $# -lt 3 ]]; then usage >&2; exit 2; fi
+
+root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+base=$1
+key=$2
+surface=$3
+shift 3
+
+case "$key" in
+  balances)
+    [[ $# -eq 3 ]] || { usage >&2; exit 2; }
+    [[ $3 != */* && $3 != *\\* && $3 == *.journal ]] || { echo -e 'ERROR\tjournal_basename_invalid\tjournal must be a safe .journal basename' >&2; exit 1; }
+    ;;
+  recent)
+    [[ $# -eq 2 ]] || { usage >&2; exit 2; }
+    [[ $2 != */* && $2 != *\\* && $2 == *.journal ]] || { echo -e 'ERROR\tjournal_basename_invalid\tjournal must be a safe .journal basename' >&2; exit 1; }
+    ;;
+  monthly-accounts)
+    [[ $# -eq 4 ]] || { usage >&2; exit 2; }
+    [[ $4 != */* && $4 != *\\* && $4 == *.journal ]] || { echo -e 'ERROR\tjournal_basename_invalid\tjournal must be a safe .journal basename' >&2; exit 1; }
+    ;;
+  issues)
+    [[ $# -eq 1 ]] || { usage >&2; exit 2; }
+    [[ $1 != */* && $1 != *\\* && $1 == *.tsv ]] || { echo -e 'ERROR\tissue_basename_invalid\tissues must be a safe .tsv basename' >&2; exit 1; }
+    ;;
+esac
+
+cd "$root"
+exec bqn src/application/report_destination_cli.bqn "$base" "$key" "$surface" "$@"

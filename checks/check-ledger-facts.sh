@@ -11,6 +11,7 @@ bqn tests/test_ledger_facts.bqn >/dev/null
 bqn tests/test_report_json_text.bqn >/dev/null
 bqn tests/test_report_catalog_request.bqn >/dev/null
 bqn tests/test_report_composition.bqn >/dev/null
+bash checks/check-report-destination-composition.sh >/dev/null
 bqn tests/test_ledger_companion_facts.bqn >/dev/null
 bqn tests/test_ledger_config_cycle_admission.bqn >/dev/null
 bqn tests/test_accounting_account_period.bqn >/dev/null

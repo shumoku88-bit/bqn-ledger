@@ -7,15 +7,16 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Portfolio P10C: final catalog/request admission and all nine narrow one-result composers now reuse the exact destination section goldens; rendering dispatch calls only admitted surfaces. Next build key-first source I/O adapters and a parallel destination CLI.
+Portfolio P10D: the parallel destination CLI now admits key/surface before source reads and selectively wires Balances, Recent, Monthly Accounts, and Issues. Next wire strict cycle-backed keys, then explicit ownership-backed Envelope/Daily Target without widening context.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn (unchanged)
-composition: nine purpose-specific signatures; no universal context or all-report record
-all behavior: future adapter iterates one-result composition; aggregate JSON remains unsupported
-next proof: admit key/surface first, read only required public sources, pass explicit coordinates, render parallel CLI
+parallel proof: tools/report-destination; four keys only, explicit coordinates/basenames
+selective evidence: Recent needs only Accounts/Actual; Issues needs only strict Issue TSV; unknown requests read no base
+next proof: strict cycle admission/resolution for Planned, Cycle Accounts, Cycle Comparison
+then: explicit funding ownership and asset/obligation/reservation application adapters, then all iteration
 exclude: production route switch, private source inspection/migration, old-key deletion before external consumer confirmation
-forbid: read-all-before-key, dual aliases/keys, five-column Issues fallback, hidden clock in core
+forbid: read-all-before-key, Account-name ownership inference, universal context, hidden clock
 private source audit/migration: still requires separate explicit instruction
 ```
 
