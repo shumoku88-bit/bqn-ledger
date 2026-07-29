@@ -23,6 +23,8 @@ result ← section.Build ⟨accounting,cycle.definition.start,cycle.definition.e
 0 lib.AssertEq ≠result.diagnostics
 ⟨"income","food","other","net"⟩ lib.AssertEq result.column_labels
 ⟨"2026-01-02","2026-01-10","2026-01-12"⟩ lib.AssertEq result.date_text
+# As-of is already the final accounting date, so row-axis dedup retains three rows.
+3 lib.AssertEq result.matrix.row_count
 ⟨
   ⟨1000,0,0,1000⟩,
   ⟨0,20,0,¯20⟩,
@@ -49,7 +51,10 @@ emptyAccounting ← flow.Build ⟨emptyFacts,"JPY","actual",start,end⟩
 emptyResult ← section.Build ⟨emptyAccounting,cycle.definition.start,cycle.definition.end_exclusive,cycle.definition.start⟩
 "ok" lib.AssertEq emptyResult.state
 ⟨"2026-01-01"⟩ lib.AssertEq emptyResult.date_text
+1 lib.AssertEq emptyResult.matrix.row_count
 ⟨⟨0,0,0,0⟩⟩ lib.AssertEq emptyResult.matrix.values
+# The not-found source-row coordinate selects appended zero and empty contributor cells.
+⟨⟨⟨⟩,⟨⟩,⟨⟩,⟨⟩⟩⟩ lib.AssertEq emptyResult.matrix.contributors
 
 rejected ← section.Build ⟨accounting,cycle.definition.start,cycle.definition.end_exclusive,"2026-01-11"⟩
 "error" lib.AssertEq rejected.state
