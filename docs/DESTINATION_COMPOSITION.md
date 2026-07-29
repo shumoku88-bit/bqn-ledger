@@ -1,6 +1,6 @@
 # Destination composition and cutover preparation
 
-Status: P10A static catalog and request admission complete; source composition and routing remain in progress.
+Status: P10B static catalog, request admission, purpose-specific one-result composition, and rendering dispatch complete; source I/O adapter and CLI remain in progress.
 
 ## Static catalog owner
 
@@ -34,19 +34,33 @@ planned
 daily-target
 ```
 
-## Next composition boundary
+## One-result composition
 
-Composition must build one requested result at a time. It must not construct an all-report record or pass coordinates irrelevant to the selected report. The next slice will define purpose-specific request carriers/adapters for:
+`src/report/compose.bqn` exports nine named functions rather than one universal request context:
 
-- domain and observation;
-- Recent limit;
-- resolved cycle/current and baseline windows;
-- explicit month range;
-- Envelope horizon/funding ownership;
-- Daily Target observation/target/assets/obligations/reservation evidence;
-- strict Issues source.
+```text
+Balances          Actual Facts, domain, observation
+Recent            Actual Facts, limit
+Planned           Plan Facts, Actual Facts, resolved cycle, observation
+CycleAccounts     Actual Facts, domain, resolved cycle, observation
+CycleComparison   Actual Facts, domain, two explicit cycle windows/observations, policy
+MonthlyAccounts   Actual Facts, domain, first month, last exclusive month
+Envelopes         Budget/Actual/Plan Facts, domain, horizon, observation, funding indices
+DailyTarget       observation, target, domain, owner asset scope, obligation scope
+Issues            already-read issue lines, currency registry
+```
 
-`all` iteration repeatedly invokes the same one-result boundary and concatenates supported renderings; it does not widen an individual result.
+Each function composes existing accounting and section owners and publishes exactly one bounded result. Error/unavailable results contain no partial report; unavailable reason is preserved. No function accepts paths, clock, CLI arguments, unrelated report coordinates, or another report's result.
+
+`src/report/render.bqn` dispatches only a successful one-result composition through the surface already admitted by `request.bqn`. Unsupported surfaces fail before a formatter is called. The dispatcher imports all static section owners but does not build them.
+
+Public composition tests invoke every named composer and compare its rendering with the existing destination golden, proving that composition adds no second semantic owner.
+
+`all` iteration will repeatedly invoke this same one-result boundary and concatenate supported renderings; it will not widen an individual result or construct an all-report record.
+
+## Next I/O and CLI boundary
+
+The next slice may read sources only after request key/surface admission, then prepare the selected composer's exact arguments. It must capture any interactive clock value once outside core and pass explicit coordinates. Public CLI proof remains parallel to production until cutover.
 
 ## Cutover boundary
 

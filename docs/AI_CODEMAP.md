@@ -166,6 +166,8 @@ Updated: 2026-07-28
 - `catalog.bqn` — source-independentなfinal nine-key catalog。key/order/label/shape/supported surfacesの唯一のdestination owner。
 - `request.bqn` — final key/surfaceと`all` selectorをpure admissionし、legacy keyやunsupported surfaceを明示errorにする。aliasを持たない。
 - `catalog_text.bqn` — household sourceを読まずcatalog metadataをdeterministic TSVへ描画する。
+- `compose.bqn` — all nine retained reportsのpurpose-specific one-result composition。各関数は必要なFacts/coordinates/ownershipだけを受け、accounting→sectionをcomposeする。I/O、clock、path、all-report recordを持たない。
+- `render.bqn` — admitted key/surfaceとsuccessful composition resultだけをsection formatterへdispatchする。unsupported surfaceでformatterを呼ばない。
 
 ### `src_next/` (現行production BQN 会計エンジン)
 

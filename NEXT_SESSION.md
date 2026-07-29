@@ -7,15 +7,15 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Portfolio P10B: all nine report proofs are complete, and the source-independent final catalog/request admission now selects exact supported surfaces with no aliases. Next build purpose-specific one-request composition over already-read evidence.
+Portfolio P10C: final catalog/request admission and all nine narrow one-result composers now reuse the exact destination section goldens; rendering dispatch calls only admitted surfaces. Next build key-first source I/O adapters and a parallel destination CLI.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn (unchanged)
-static catalog: nine final keys; all is a selector, not a tenth entry
-request behavior: unknown legacy key and unsupported surface are explicit errors; all JSON unsupported
-next proof: section-specific explicit coordinates/evidence adapters and one-result composition, then parallel destination CLI
+composition: nine purpose-specific signatures; no universal context or all-report record
+all behavior: future adapter iterates one-result composition; aggregate JSON remains unsupported
+next proof: admit key/surface first, read only required public sources, pass explicit coordinates, render parallel CLI
 exclude: production route switch, private source inspection/migration, old-key deletion before external consumer confirmation
-forbid: universal all-report record, dual aliases/keys, five-column Issues fallback, hidden clock in core
+forbid: read-all-before-key, dual aliases/keys, five-column Issues fallback, hidden clock in core
 private source audit/migration: still requires separate explicit instruction
 ```
 

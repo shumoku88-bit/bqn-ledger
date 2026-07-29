@@ -260,7 +260,7 @@ Quality completion is governed by [`docs/DESTINATION_QUALITY_GATE.md`](docs/DEST
 ### Current finite slice: Portfolio P10 Composition and cutover preparation
 
 - [x] Built the source-independent static nine-key catalog, deterministic metadata TSV, final-key admission, `all` selection, and explicit unsupported-surface errors with no aliases.
-- [ ] Build pure one-request-at-a-time destination composition over already-read source snapshots and purpose-specific explicit time/domain/limit/ownership coordinates.
+- [x] Built pure one-request-at-a-time destination composition over already-read evidence with separate narrow signatures for all nine reports and one-result rendering dispatch.
 - [ ] Add destination CLI routing without changing production `tools/report` yet.
 - [ ] Prove full/catalog/individual public fixture behavior, deterministic clock injection, cache manifest, and import boundaries.
 - [ ] Reconcile operational `check`/`debug` ownership with `tools/ledger-check` and `tools/ledger-inspect` before old routes are removed.
