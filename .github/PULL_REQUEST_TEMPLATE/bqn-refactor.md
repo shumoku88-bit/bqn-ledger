@@ -47,13 +47,13 @@ Can `<current procedural form>` become `<array-native form>` while preserving `<
 
 [`docs/BQN_REFACTORING_REVIEW_GUIDE.md`](https://github.com/shumoku88-bit/bqn-ledger/blob/main/docs/BQN_REFACTORING_REVIEW_GUIDE.md) に沿って確認する。
 
-- Marshall: `green / improve / blocked / not-applicable` —
-- Hui: `green / improve / blocked / not-applicable` —
-- Scholes: `green / improve / blocked / not-applicable` —
-- Adám: `green / improve / blocked / not-applicable` —
-- Aaron: `green / improve / blocked / not-applicable` —
-- Iverson: `green / improve / blocked / not-applicable` —
-- Whitney: `green / improve / blocked / not-applicable` —
+- 配列変換: `green / improve / blocked / not-applicable` —
+- 境界意味論: `green / improve / blocked / not-applicable` —
+- 読める境界: `green / improve / blocked / not-applicable` —
+- 導出経路: `green / improve / blocked / not-applicable` —
+- 全体配列データフロー: `green / improve / blocked / not-applicable` —
+- 記法の明瞭さ: `green / improve / blocked / not-applicable` —
+- 圧縮の限界: `green / improve / blocked / not-applicable` —
 
 ## Ownership and scope
 
