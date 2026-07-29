@@ -10,6 +10,8 @@ trap 'rm -rf "$tmp"' EXIT
 cmp "$tmp/envelopes" "$fixture/envelope_backing.destination.compact.txt"
 ./tools/report-destination "$fixture" balances human JPY 2026-01-12 actual.journal >"$tmp/balances"
 cmp "$tmp/balances" "$fixture/account_balances.destination.human.txt"
+./tools/report-destination "$fixture" balances human --manifest report_all_human.destination.tsv >"$tmp/balances-manifest"
+cmp "$tmp/balances-manifest" "$tmp/balances"
 ./tools/report-destination "$fixture" recent compact 10 actual.journal >"$tmp/recent"
 cmp "$tmp/recent" "$fixture/recent_journal.destination.compact.txt"
 ./tools/report-destination "$fixture" planned human 2026-01-12 actual.journal plan.tsv cycle.tsv >"$tmp/planned"
@@ -105,5 +107,19 @@ if ./tools/report-destination "$tmp" all human bad-order.tsv >"$tmp/partial" 2>"
 fi
 [[ ! -s $tmp/partial ]] || { echo 'FAIL: failed all request published partial output' >&2; exit 1; }
 grep -F $'all_manifest_order_mismatch' "$tmp/bad-order-error" >/dev/null
+if ./tools/report-destination "$fixture" balances compact --manifest report_all_human.destination.tsv \
+  >"$tmp/manifest-surface" 2>&1; then
+  echo 'FAIL: manifest surface mismatch succeeded' >&2; exit 1
+fi
+grep -F $'request_manifest_surface_mismatch' "$tmp/manifest-surface" >/dev/null
+{
+  printf 'key\tsurface\targuments\n'
+  sed -n '3p' "$fixture/report_all_human.destination.tsv"
+  sed -n '3p' "$fixture/report_all_human.destination.tsv"
+} >"$tmp/duplicate.tsv"
+if ./tools/report-destination "$tmp" balances human --manifest duplicate.tsv >"$tmp/manifest-duplicate" 2>&1; then
+  echo 'FAIL: duplicate selected manifest row succeeded' >&2; exit 1
+fi
+grep -F $'request_manifest_duplicate' "$tmp/manifest-duplicate" >/dev/null
 
 echo 'check-report-destination-composition: OK'

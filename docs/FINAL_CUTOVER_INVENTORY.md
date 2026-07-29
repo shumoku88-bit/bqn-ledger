@@ -21,7 +21,7 @@ other test files with direct src_next import          26
 checks/check-src-next-*.sh                            33
 fixture directories named fixtures/src-next-*         34
 tracked files under fixtures/src-next-*              146
-classified residual runtime references                14
+classified residual runtime references                13
 current documentation references                      58
   migrate                                              19
   delete                                               39
@@ -141,11 +141,11 @@ No forwarding module remains under `src_next`; editor extraction is no longer a 
 
 The 74 named src-next tests, 26 other compatibility tests, 33 named checks, and four direct-import probe/characterization BQN files are exact deletion inventory. `tests/test_ledger_facts.bqn` is retained and has no old import. The public strict editor fixture was renamed to `fixtures/editor-golden`; the remaining 34 `fixtures/src-next-*` families are deletion inventory.
 
-The inventory additionally classifies 14 residual executable references as two migrations and 12 deletions. Current documentation references are exactly 19 migrations and 39 deletions. Any unrecognized reference fails `check-final-cutover-inventory.sh`; no action may use `or`/`classify`. Historical `docs/archive` references are non-runtime and excluded.
+The inventory additionally classifies 13 residual executable references as one migration and 12 deletions. Current documentation references are exactly 19 migrations and 39 deletions. Any unrecognized reference fails `check-final-cutover-inventory.sh`; no action may use `or`/`classify`. Historical `docs/archive` references are non-runtime and excluded.
 
-Repository-root discovery in retained editor checks no longer uses the old report file as a sentinel. Redundant per-module old-path assertions were removed in favor of the central editor boundary, Source I/O ownership now checks only its final owners, devtools query coverage uses the exact destination summary/query, and `tools/coverage` inventories final module/test families. This preparation reduced residual runtime references from 35 to 14 without switching production.
+Repository-root discovery in retained editor checks no longer uses the old report file as a sentinel. Redundant per-module old-path assertions were removed in favor of the central editor boundary, Source I/O ownership now checks only its final owners, devtools query coverage uses the exact destination summary/query, and `tools/coverage` inventories final module/test families. This preparation reduced residual runtime references from 35 to 13 without switching production.
 
-`tools/check.sh`, doctor/safe-write routing, repo index, docs indexes, and workflow inventories must be updated in the same atomic deletion so no removed check remains invoked.
+`tools/check.sh`, safe-write routing, repo index, docs indexes, and workflow inventories must be updated in the same atomic deletion so no removed check remains invoked.
 
 `tools/characterization/final_cutover_rehearsal.py` applies the disposition to a tracked-path simulation without touching the worktree. The current rehearsal removes 402 tracked paths, leaves zero old BQN imports and zero old named path families, preserves final proof fixtures/checks/tools, and verifies all three replacement targets have destination proof owners. Its state is `ready_for_atomic_diff`, not permission to inspect private data or switch production.
 

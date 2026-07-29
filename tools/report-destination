@@ -14,6 +14,7 @@ Usage:
   tools/report-destination BASE monthly-accounts human DOMAIN FIRST_MONTH LAST_MONTH_EXCLUSIVE JOURNAL
   tools/report-destination BASE daily-target SURFACE DOMAIN OBSERVATION TARGET JOURNAL PLAN DAILY_SCOPE
   tools/report-destination BASE issues human ISSUE_SOURCE
+  tools/report-destination BASE KEY SURFACE --manifest REQUEST_MANIFEST
   tools/report-destination BASE all human|compact REQUEST_MANIFEST
 
 All coordinates and source basenames are explicit. Production remains tools/report.
@@ -49,6 +50,33 @@ if [[ $key == all ]]; then
     exit 1
   fi
   exec "$root/tools/report-destination-all" "$root" "$base" "$surface" "$base/$1"
+fi
+
+if [[ ${1:-} == --manifest ]]; then
+  [[ $# -eq 2 ]] || { printf 'ERROR\tmanifest_request_invalid\texpected --manifest and one basename\n' >&2; exit 1; }
+  require_tsv "$2" || source_name_error 'request manifest must be a safe .tsv basename'
+  manifest="$base/$2"
+  [[ -f $manifest && -r $manifest ]] \
+    || { printf 'ERROR\trequest_manifest_unreadable\trequest manifest is not readable\n' >&2; exit 1; }
+  mapfile -t manifest_lines <"$manifest"
+  [[ ${manifest_lines[0]:-} == $'key\tsurface\targuments' ]] \
+    || { printf 'ERROR\trequest_manifest_header_invalid\tmanifest header is not exact\n' >&2; exit 1; }
+  selected=()
+  for row in "${manifest_lines[@]:1}"; do
+    IFS=$'\t' read -r -a fields <<<"$row"
+    [[ ${#fields[@]} -ge 3 ]] \
+      || { printf 'ERROR\trequest_manifest_row_invalid\tmanifest row is incomplete\n' >&2; exit 1; }
+    if [[ ${fields[0]} == "$key" ]]; then
+      [[ ${fields[1]} == "$surface" ]] \
+        || { printf 'ERROR\trequest_manifest_surface_mismatch\tselected row surface differs from request\n' >&2; exit 1; }
+      [[ ${#selected[@]} -eq 0 ]] \
+        || { printf 'ERROR\trequest_manifest_duplicate\tselected key occurs more than once\n' >&2; exit 1; }
+      selected=("${fields[@]:2}")
+    fi
+  done
+  [[ ${#selected[@]} -gt 0 ]] \
+    || { printf 'ERROR\trequest_manifest_key_missing\tselected key is absent\n' >&2; exit 1; }
+  set -- "${selected[@]}"
 fi
 required_sources=()
 

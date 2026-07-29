@@ -115,19 +115,13 @@ fi
 
 echo ""
 
-# ── Quick engine smoke test ──
-echo "Engine:"
-if [[ "$data_ok" -ne 1 ]]; then
-  warn "src_next engine smoke skipped because data directory is not usable"
-elif out=$(bqn src_next/summary.bqn "$base_dir" 2>&1); then
-  if echo "$out" | grep -q "as_of:"; then
-    pass "src_next engine produces valid summary"
-  else
-    fail "src_next engine output missing expected fields"
-    failures=$((failures + 1))
-  fi
+# ── Destination catalog smoke test ──
+echo "Destination:"
+if metadata=$(tools/report-destination-metadata --format tsv 2>&1) \
+    && [[ $(printf '%s\n' "$metadata" | wc -l | tr -d ' ') -eq 10 ]]; then
+  pass "destination catalog metadata exposes nine reports"
 else
-  fail "src_next engine failed: $out"
+  fail "destination catalog metadata failed: $metadata"
   failures=$((failures + 1))
 fi
 
@@ -145,7 +139,7 @@ echo "  gum  — terminal widgets for add-ui.sh"
 echo "  rg   — ripgrep for check scripts"
 echo ""
 echo "Dev tools (bundled):"
-echo "  bqn-eval, bqn-dump, query, envelope-calc, scaffold-check.sh, repo-index"
+echo "  bqn-eval, bqn-dump, query, ledger-check, ledger-inspect, report-summary, scaffold-check.sh, repo-index"
 echo ""
 
 # ── Result ──

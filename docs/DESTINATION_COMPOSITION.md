@@ -86,7 +86,7 @@ kind | scope_id | account_key | plan_id | excluded_amount | currency | reservati
 
 Asset rows link durable scope identity to an admitted asset Account. Obligation rows link durable scope identity to a canonical Plan `plan_id`; amount/date/currency and completion status come from Plan/Actual evidence rather than the policy row. Positive exclusion requires exact currency and unique reservation reference. The adapter builds assets from observed Account balances and obligations from durable completion Join, preserving contributors. Completed or outside-horizon obligations remain evidenced but are excluded from calculation; overdue open obligations remain included.
 
-The parallel CLI supports all nine keys individually and still does not replace production.
+The parallel CLI supports all nine keys individually and still does not replace production. An individual request may alternatively pass `--manifest REQUEST_MANIFEST`; after key/surface admission, the application selects exactly one matching row and then invokes the same individual source/preflight/composition path. Missing, duplicate, malformed, or surface-mismatched rows fail before household source reads. This gives UI/cache callers a bounded explicit-coordinate route without inventing a shared report context.
 
 ## Fail-closed `all`
 
@@ -152,6 +152,8 @@ This is a parallel cache proof. `tools/command-hub-cache-refresh` continues to u
 ## Cutover boundary
 
 Current production remains `tools/report -> src_next/report.bqn`. No destination alias, dual key, forwarding wrapper, or partial route switch is introduced in P10A.
+
+The final UI will use one explicit human request manifest for direct section selection, `all`, and cache publication. Individual manifest parity is proven against direct argv output; the production UI remains on its old route until the atomic diff.
 
 Before atomic cutover:
 

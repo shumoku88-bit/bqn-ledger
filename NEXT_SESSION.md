@@ -11,9 +11,9 @@ Portfolio P12: exact deletion rehearsal is complete. The tracked simulation remo
 
 ```text
 current daily production: tools/report -> src_next/report.bqn (unchanged)
-rehearsal gate: ready_for_atomic_diff; 23 migrations, three replacements, zero unclassified actions
-tracked blockers: 65 modules, 74 named + 26 compatibility tests, 33 named checks, 34 old fixtures, 14 runtime references
-next slice: prepare final tools/report, metadata/query, Command Hub/UI/cache replacement diff without switching production
+rehearsal gate: ready_for_atomic_diff; 22 migrations, three replacements, zero unclassified actions
+tracked blockers: 65 modules, 74 named + 26 compatibility tests, 33 named checks, 34 old fixtures, 13 runtime references
+next slice: admit explicit human/compact report-manifest config and prepare Command Hub/UI/cache replacement without switching production
 remaining gates: final route integration, separately authorized private readiness, reviewed atomic cutover
 exclude: production switch, old-key deletion, private ledger inspection
 ```
