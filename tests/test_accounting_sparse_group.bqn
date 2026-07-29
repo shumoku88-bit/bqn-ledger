@@ -18,6 +18,16 @@ emptyResult ← group.Build ⟨⟨"a"⟩,2,⟨⟩,⟨⟩,⟨⟩,⟨⟩⟩
 "ok" lib.AssertEq emptyResult.state
 0 lib.AssertEq emptyResult.groups.count
 
+nestedResult ← group.Build ⟨
+  ⟨⟨"a",0⟩,⟨"b",1⟩⟩,2,
+  ⟨⟨"b",1⟩,⟨"a",0⟩,⟨"b",1⟩⟩,⟨1,0,1⟩,⟨2,3,4⟩,⟨⟨4⟩,⟨5⟩,⟨6⟩⟩
+⟩
+"ok" lib.AssertEq nestedResult.state
+⟨0,1⟩ lib.AssertEq nestedResult.groups.row_index
+⟨0,1⟩ lib.AssertEq nestedResult.groups.column_index
+⟨3,6⟩ lib.AssertEq nestedResult.groups.coefficient
+⟨⟨5⟩,⟨4,6⟩⟩ lib.AssertEq nestedResult.groups.contributors
+
 HasCode ← {𝕊 code‿diagnostics: ∨´0∾code⊸≡¨{𝕩.code}¨diagnostics}
 CheckRejected ← {𝕊 input‿code:
   rejected ← group.Build input
@@ -27,7 +37,9 @@ CheckRejected ← {𝕊 input‿code:
 }
 CheckRejected ⟨⟨⟨"a"⟩,1,⟨"a"⟩,⟨0,0⟩,⟨1⟩,⟨⟨0⟩⟩⟩,"group_columns_misaligned"⟩
 CheckRejected ⟨⟨⟨"a","a"⟩,1,⟨⟩,⟨⟩,⟨⟩,⟨⟩⟩,"group_row_axis_duplicate"⟩
+CheckRejected ⟨⟨⟨⟨"a",0⟩,⟨"b",1⟩,⟨"a",0⟩⟩,1,⟨⟩,⟨⟩,⟨⟩,⟨⟩⟩,"group_row_axis_duplicate"⟩
 CheckRejected ⟨⟨⟨"a"⟩,1,⟨"b"⟩,⟨0⟩,⟨1⟩,⟨⟨0⟩⟩⟩,"group_row_coordinate_unknown"⟩
+CheckRejected ⟨⟨⟨⟨"a",0⟩⟩,1,⟨⟨"a",1⟩⟩,⟨0⟩,⟨1⟩,⟨⟨0⟩⟩⟩,"group_row_coordinate_unknown"⟩
 CheckRejected ⟨⟨⟨"a"⟩,1,⟨"a"⟩,⟨1⟩,⟨1⟩,⟨⟨0⟩⟩⟩,"group_column_index_invalid"⟩
 CheckRejected ⟨⟨⟨"a"⟩,1,⟨"a"⟩,⟨0.5⟩,⟨1⟩,⟨⟨0⟩⟩⟩,"group_column_index_invalid"⟩
 CheckRejected ⟨⟨⟨"a"⟩,1,⟨"a"⟩,⟨0⟩,⟨1⟩,⟨⟨⟩⟩⟩,"group_contributors_missing"⟩
