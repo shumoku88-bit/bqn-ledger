@@ -38,14 +38,14 @@ Can `<current procedural form>` become `<array-native form>` while preserving `<
 - non-adjacent duplicate:
 - invalid rank / shape:
 - boundary index:
-- eager versus conditional evaluation:
+- eager evaluation対conditional evaluation:
 - exact arithmetic failure:
 
-Use `not-applicable` where a case cannot occur in this finite slice.
+該当しない項目は `not-applicable` と記録する。
 
 ## BQN refactor lenses
 
-Review against [`docs/BQN_REFACTORING_REVIEW_GUIDE.md`](../../docs/BQN_REFACTORING_REVIEW_GUIDE.md).
+[`docs/BQN_REFACTORING_REVIEW_GUIDE.md`](https://github.com/shumoku88-bit/bqn-ledger/blob/main/docs/BQN_REFACTORING_REVIEW_GUIDE.md) に沿って確認する。
 
 - Marshall: `green / improve / blocked / not-applicable` —
 - Hui: `green / improve / blocked / not-applicable` —
@@ -59,8 +59,8 @@ Review against [`docs/BQN_REFACTORING_REVIEW_GUIDE.md`](../../docs/BQN_REFACTORI
 
 - changed owners:
 - intentionally untouched owners:
-- no new utility bag, forwarding wrapper, universal context, or fallback:
-- correctness and refactoring remain separate:
+- utility bag、forwarding wrapper、universal context、fallbackを追加していない:
+- correctnessとrefactoringを分離している:
 
 ## Verification
 
@@ -74,4 +74,4 @@ Review against [`docs/BQN_REFACTORING_REVIEW_GUIDE.md`](../../docs/BQN_REFACTORI
 
 `accept / revise / reject`
 
-Reason:
+理由:
