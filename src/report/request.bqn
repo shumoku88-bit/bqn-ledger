@@ -12,6 +12,7 @@ Diagnostic ← {𝕊 code‿message:
 EmptyResult ← {𝕊 diagnosticsValue:
   {state⇐"error",key⇐"",surface⇐"",section_indices⇐empty,section_keys⇐empty,diagnostics⇐diagnosticsValue}
 }
+# Support fields are aligned with surfaces: human, compact, json.
 Supports ← {𝕊 entry‿surfaceIndex: surfaceIndex⊑⟨entry.human,entry.compact,entry.json⟩}
 
 Validate ← {𝕊 keyValue‿surface:
