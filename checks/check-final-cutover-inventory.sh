@@ -17,10 +17,10 @@ plan=$(mktemp "${TMPDIR:-/tmp}/bqn-ledger-cutover-plan.XXXXXX")
 trap 'rm -f "$out" "$plan"' EXIT
 ./tools/characterization/final_cutover_inventory.py --format tsv >"$plan"
 sed -n '1p' "$plan" | grep -Fx $'category\taction\tpath' >/dev/null
-if grep -q '^unclassified_reference' "$plan"; then
+if grep -q '^unclassified_' "$plan"; then
   echo 'FAIL: cutover inventory has unclassified references' >&2; exit 1
 fi
-if awk -F '\t' 'NR>1 && $1 != "documentation_reference" && ($2 ~ /or/ || $2 == "classify") {bad=1} END {exit !bad}' "$plan"; then
-  echo 'FAIL: executable cutover disposition is not exact' >&2; exit 1
+if awk -F '\t' 'NR>1 && ($2 ~ /or/ || $2 == "classify") {bad=1} END {exit !bad}' "$plan"; then
+  echo 'FAIL: cutover disposition is not exact' >&2; exit 1
 fi
 echo 'check-final-cutover-inventory: OK'

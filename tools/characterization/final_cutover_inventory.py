@@ -36,6 +36,70 @@ MIGRATE_REFERENCES = {
     "tools/lib/safe-write.sh",
 }
 
+MIGRATE_DOCUMENTS = {
+    "CONTRIBUTING.md",
+    "NEXT_SESSION.md",
+    "TODO.md",
+    "docs/AI_CODEMAP.md",
+    "docs/ARCHITECTURE.md",
+    "docs/AUDIT_IMPROVEMENT_BACKLOG.md",
+    "docs/CONVENTIONS.md",
+    "docs/DESTINATION_COMPOSITION.md",
+    "docs/FINAL_CUTOVER_INVENTORY.md",
+    "docs/MAINTENANCE.md",
+    "docs/PLAN_ID_LIFECYCLE.md",
+    "docs/README.md",
+    "docs/REPORT_PORTFOLIO_CONTRACT.md",
+    "docs/REPORT_PORTFOLIO_DECISION.md",
+    "docs/REPORT_SURFACE_RETIREMENT_MAP.md",
+    "docs/SAFETY_PROFILE.md",
+    "docs/SAFETY_PROFILE_INVARIANT_MAP.md",
+    "docs/STRUCTURED_UI_EXPORT_CONTRACT.md",
+    "src_edit/README.md",
+}
+
+DELETE_DOCUMENTS = {
+    "CURRENT_ENGINE_DESIGN_IDEAS.md",
+    "docs/CANONICAL_DAILY_CUBE.md",
+    "docs/CURRENCY_STAGE2_BUILDPERIODVIEW_DOWNSTREAM_BOUNDARY_DECISION.md",
+    "docs/CURRENCY_STAGE2_EXPLICIT_SINGLE_CURRENCY_EXACT_DECIMAL_IMPLEMENTATION_PLAN.md",
+    "docs/CURRENCY_STAGE2_MINIMAL_DOMAIN_PROOF_IMPLEMENTATION_PLAN.md",
+    "docs/CURRENCY_STAGE2_SINGLE_CURRENCY_DOMAIN_DECISION.md",
+    "docs/CURRENCY_STAGE2_SLICE_B_SPLIT_DECISION.md",
+    "docs/CURRENT_CURRENCY_ASSUMPTION_MAP.md",
+    "docs/CYCLE.md",
+    "docs/DAILY_CAPACITY_CHARACTERIZATION_AMENDMENT.md",
+    "docs/DAILY_CAPACITY_MINIMAL_INPUT_RESULT_CONTRACT.md",
+    "docs/DAILY_TREND_TEMPORAL_CURRENT.md",
+    "docs/DAILY_TREND_TEMPORAL_DEPENDENCY_MAP.md",
+    "docs/DEVELOPER_INSPECTION_ENTRYPOINT.md",
+    "docs/ENVELOPES_SECTION_JSON_EXPORT_DESIGN.md",
+    "docs/ENVELOPE_FUNDING_BASE_INVARIANT.md",
+    "docs/HEADLESS_KERNEL_EVOLUTION_MAP.md",
+    "docs/JOURNAL_EVENT_IDENTITY_PROVENANCE_003.md",
+    "docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md",
+    "docs/OUTLOOK_TEMPORAL_CURRENT.md",
+    "docs/PLANNED_SECTION_JSON_EXPORT_DESIGN.md",
+    "docs/POSTING_IR_CONTRACT.md",
+    "docs/PURE_CHECKED_POSTING_PROJECTION_RESULT_CONTRACT.md",
+    "docs/REPORT_CODE_REDUCTION_PLAN.md",
+    "docs/REPORT_CONSTRUCTION_INVENTORY.md",
+    "docs/REPORT_CONTEXT_DUPLICATION_CHARACTERIZATION-2026-07-27.md",
+    "docs/REPORT_CONTRACTS.md",
+    "docs/REPORT_LATENCY_CHARACTERIZATION-2026-07-27.md",
+    "docs/REPORT_LATENCY_CHARACTERIZATION_INSTRUCTIONS-2026-07-27.md",
+    "docs/REPORT_OUTPUT_MIGRATION_CONTRACT.md",
+    "docs/REPORT_SECTION_CONTRACT_CHECKLIST.md",
+    "docs/RUNTIME_COMPATIBILITY_INVENTORY.md",
+    "docs/SNAPSHOT_SECTION_JSON_EXPORT_DESIGN.md",
+    "docs/SRC_NEXT_CURRENT.md",
+    "docs/SRC_NEXT_EXPORT_CALLER_INVENTORY.md",
+    "docs/TBDS_CONTRACT.md",
+    "docs/TIME_AS_AXIS.md",
+    "docs/TRIAL_BALANCE_MATRIX_REPORT.md",
+    "docs/UNAVAILABLE_SENTINEL_CONTRACT.md",
+}
+
 DELETE_REFERENCES = {
     "checks/check-developer-inspection-entrypoint.sh",
     "checks/check-projection-compatibility-exports.sh",
@@ -46,6 +110,7 @@ DELETE_REFERENCES = {
     "fixtures/editor-golden/expected/src_next_snapshot.txt",
     "tests/fixtures/report_section_metadata_expected.tsv",
     "tools/characterization/final_cutover_inventory.py",
+    "tools/characterization/final_cutover_rehearsal.py",
     "tools/characterization/report-latency-benchmark.sh",
 }
 
@@ -104,8 +169,12 @@ def rows() -> list[tuple[str, str, str]]:
         suffix = Path(path).suffix
         if path.startswith("docs/archive/"):
             continue
-        if path.startswith("docs/") or suffix == ".md":
-            result.append(("documentation_reference", "review_or_delete", path))
+        if path in MIGRATE_DOCUMENTS:
+            result.append(("documentation_reference", "migrate", path))
+        elif path in DELETE_DOCUMENTS:
+            result.append(("documentation_reference", "delete", path))
+        elif path.startswith("docs/") or suffix == ".md":
+            result.append(("unclassified_documentation_reference", "classify", path))
         elif path in MIGRATE_REFERENCES:
             result.append(("runtime_reference", "migrate", path))
         elif path in DELETE_REFERENCES:

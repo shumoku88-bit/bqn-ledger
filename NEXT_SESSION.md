@@ -7,14 +7,14 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Portfolio P12: retained helper classification is complete. Canonical ledger Facts tests are old-import free, the strict editor fixture is neutral, and every executable old reference has an exact migrate/delete disposition.
+Portfolio P12: exact deletion rehearsal is complete. The tracked simulation removes 401 paths while preserving final evidence; no old BQN import/named path survives and all runtime/document references have exact actions.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn (unchanged)
-classification gate: green, no unclassified executable reference and no migrate-or-delete action
-tracked blockers: 65 modules, 74 named + 26 compatibility tests, 33 named checks, 34 old fixtures, 34 runtime references
-next slice: dry-run the atomic deletion/replacement set and close the 58 current documentation references
-remaining gates: rehearsal, UI/route cutover, separately authorized private readiness
+rehearsal gate: ready_for_atomic_diff; 45 migrations, three replacements, zero unclassified actions
+tracked blockers: 65 modules, 74 named + 26 compatibility tests, 33 named checks, 34 old fixtures, 35 runtime references
+next slice: prepare final tools/report, metadata/query, Command Hub/UI/cache replacement diff without switching production
+remaining gates: final route integration, separately authorized private readiness, reviewed atomic cutover
 exclude: production switch, old-key deletion, private ledger inspection
 ```
 

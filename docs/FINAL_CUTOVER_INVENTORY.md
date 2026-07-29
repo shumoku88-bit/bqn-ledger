@@ -1,6 +1,6 @@
 # Final report-engine cutover inventory
 
-Status: P12 retained-helper classification complete; atomic deletion rehearsal next. Cutover is **blocked** and production remains unchanged.
+Status: P12 exact deletion classification and tracked rehearsal complete. Cutover is **blocked** and production remains unchanged.
 Date: 2026-07-28
 Authority: `REPORT_PORTFOLIO_CONTRACT.md`, `REPORT_SURFACE_RETIREMENT_MAP.md`, `DESTINATION_COMPOSITION.md`
 
@@ -21,8 +21,10 @@ other test files with direct src_next import          26
 checks/check-src-next-*.sh                            33
 fixture directories named fixtures/src-next-*         34
 tracked files under fixtures/src-next-*              146
-classified residual runtime references                34
+classified residual runtime references                35
 current documentation references                      58
+  migrate                                              19
+  delete                                               39
 ```
 
 The live editor gate is green: `src_edit/` and `src/editor/` have zero `src_next` imports. The remaining 103 direct-import files are old tests and four characterization/probe files, all classified for deletion. `tests/test_ledger_facts.bqn` was the sole retained non-src-next test and now uses canonical Account admission only. Destination runtime under `src/` also has no `src_next` import.
@@ -33,6 +35,7 @@ The reproducible tracked inventory is:
 tools/characterization/final_cutover_inventory.py
 tools/characterization/final_cutover_inventory.py --format tsv
 tools/characterization/final_cutover_inventory.py --assert-destination-clean
+tools/characterization/final_cutover_rehearsal.py
 ```
 
 `checks/check-final-cutover-inventory.sh` requires every blocker family to remain visible while asserting zero destination `src_next` imports. The check and tool are removed or converted to a ready-state assertion in the atomic cutover.
@@ -138,9 +141,11 @@ No forwarding module remains under `src_next`; editor extraction is no longer a 
 
 The 74 named src-next tests, 26 other compatibility tests, 33 named checks, and four direct-import probe/characterization BQN files are exact deletion inventory. `tests/test_ledger_facts.bqn` is retained and has no old import. The public strict editor fixture was renamed to `fixtures/editor-golden`; the remaining 34 `fixtures/src-next-*` families are deletion inventory.
 
-The inventory additionally classifies 34 residual executable references as 24 migrations and 10 deletions. An unrecognized executable reference fails `check-final-cutover-inventory.sh`; executable actions may not use `or`/`classify`. Historical `docs/archive` references are non-runtime and excluded, while 58 current documentation references remain explicit cleanup inventory.
+The inventory additionally classifies 35 residual executable references as 24 migrations and 11 deletions. Current documentation references are exactly 19 migrations and 39 deletions. Any unrecognized reference fails `check-final-cutover-inventory.sh`; no action may use `or`/`classify`. Historical `docs/archive` references are non-runtime and excluded.
 
 `tools/check.sh`, coverage, repo index, docs indexes, and workflow inventories must be updated in the same atomic deletion so no removed check remains invoked.
+
+`tools/characterization/final_cutover_rehearsal.py` applies the disposition to a tracked-path simulation without touching the worktree. The current rehearsal removes 401 tracked paths, leaves zero old BQN imports and zero old named path families, preserves final proof fixtures/checks/tools, and verifies all three replacement targets have destination proof owners. Its state is `ready_for_atomic_diff`, not permission to inspect private data or switch production.
 
 ## Gate F: private source readiness
 
@@ -175,6 +180,6 @@ Aliases, dual keys, dual catalogs, fallback parsers, and forwarding wrappers are
 
 Before requesting cutover approval:
 
-1. tracked old test/check/fixture/docs deletion rehearsal;
+1. prepare final route/UI/cache replacement diff without switching production;
 2. separately authorized private readiness;
 3. one reviewed atomic production/cutover diff.
