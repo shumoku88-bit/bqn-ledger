@@ -276,7 +276,8 @@ Quality completion is governed by [`docs/DESTINATION_QUALITY_GATE.md`](docs/DEST
 - [x] Classified retained non-src-next helpers: canonical `test_ledger_facts` was migrated, all 26 remaining compatibility tests are deletion inventory, and the strict retained fixture is `fixtures/editor-golden`.
 - [x] Rehearsed deletion/replacement of 402 tracked paths: zero old BQN imports/named path families survive, all 35 runtime and 58 current documentation references have exact actions, and required destination evidence survives.
 - [x] Added manifest-backed individual destination routing with direct-byte parity and fail-closed missing/duplicate/surface checks; no universal report context or alternate calculation.
-- [ ] Prepare explicit final report-manifest config plus UI/cache replacement diff without switching daily production.
+- [x] Admitted separate explicit human/compact manifest config with no ledger-config mixing or path fallback; proved config→individual/all/summary/cache wiring.
+- [ ] Prepare Command Hub/UI/cache replacement diff without switching daily production.
 - [ ] Keep private-source readiness under separate explicit authorization; do not inspect or rewrite user data in this public composition slice.
 
 Phase 0 exit evidence is `docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`: every observable report capability has an owner, every compatibility path has a deletion gate, and no undecided fallback is permitted in the destination fact schema.

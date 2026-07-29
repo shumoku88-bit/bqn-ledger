@@ -39,6 +39,7 @@ Use `green / improve / incomplete / not-applicable`. Record concrete evidence, n
 | P11 editor extraction | green: zero old imports; owners moved physically | green: pure editor semantics + canonical facts/date; no wrappers | green: narrow post-write validation; no report context | green: parser/rewrite/travel/date/editor/full checks | green: `src_edit` and `src/editor` clean | complete |
 | P12 deletion rehearsal | green: exhaustive tracked simulation | green: retained canonical evidence survives 402 deletions | green: exact actions; zero surviving old import/path | green: inventory/rehearsal assertions + full checks | green: 19 doc migrations/39 deletions and 13 runtime refs classified | complete |
 | P13A manifest-backed individual route | green: one selected row, same individual route | green: exact key/surface/argv evidence | green: missing/duplicate/mismatch fail before source reads | green: direct/manifest byte parity + negatives | green: final UI can use one explicit human manifest | complete |
+| P13B explicit manifest config | green: separate application config owner | green: unique/different safe basenames | green: missing/duplicate/unsafe/no-config fail closed | green: config→direct/all/summary/cache proof | green: no ledger config keys or path fallback | complete |
 
 ## P7 exit gate
 

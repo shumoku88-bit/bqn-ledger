@@ -153,7 +153,7 @@ This is a parallel cache proof. `tools/command-hub-cache-refresh` continues to u
 
 Current production remains `tools/report -> src_next/report.bqn`. No destination alias, dual key, forwarding wrapper, or partial route switch is introduced in P10A.
 
-The final UI will use one explicit human request manifest for direct section selection, `all`, and cache publication. Individual manifest parity is proven against direct argv output; the production UI remains on its old route until the atomic diff.
+The final UI will use one explicit human request manifest for direct section selection, `all`, and cache publication. `report_manifest_admission.bqn` admits unique, non-empty, safe, different human/compact basenames from a separately supplied config file; it does not add routing keys to strict ledger `config.tsv` and performs no base/default/repository discovery. Individual manifest parity is proven against direct argv output; the production UI remains on its old route until the atomic diff.
 
 Before atomic cutover:
 

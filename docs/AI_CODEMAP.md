@@ -186,6 +186,7 @@ Updated: 2026-07-28
 - `funding_scope.bqn` — explicit Envelope funding Account keyをunique/same-domain/asset-roleでadmitしてindicesへ解決する。name inferenceなし。
 - `daily_scope_admission.bqn` — asset Account、durable Plan obligation、optional exact reservation linkageのstrict seven-column application admission。
 - `daily_scope_adapter.bqn` — admitted linksをobserved Account BalanceとPlan completion Joinへ結び、source-qualified Daily Target scopesを作るpure owner。
+- `report_manifest_admission.bqn` / `report_manifest_config.bqn` / `report_manifest_config_cli.bqn` — ledger `config.tsv`とは別の明示config fileから、different/unique/safe human・compact request-manifest basenameだけをadmitする。base/default/repository discoveryなし。
 - `report_request_cli.bqn` / `report_selection_cli.bqn` — shell source preflight前のpure request admissionとcatalog-derived selected-key listing。
 - `report_destination_cli.bqn` — request admission後にselected adapter/composer/rendererを呼ぶparallel CLI owner。9 keyを個別配線しproduction routeではない。
 - `tools/report-destination-all` — strict per-key argv manifestをcatalog順に同じindividual routeへ渡し、全成功後だけbuffered human/compact outputをpublishする。

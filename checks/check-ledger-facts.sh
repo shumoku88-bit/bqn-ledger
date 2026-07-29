@@ -13,6 +13,8 @@ bqn tests/test_report_catalog_request.bqn >/dev/null
 bqn tests/test_report_composition.bqn >/dev/null
 bqn tests/test_application_funding_scope.bqn >/dev/null
 bqn tests/test_application_daily_scope.bqn >/dev/null
+bash checks/check-report-manifest-config.sh >/dev/null
+bash checks/check-report-manifest-routing.sh >/dev/null
 bash checks/check-report-destination-composition.sh >/dev/null
 bash checks/check-report-destination-cache.sh >/dev/null
 bash checks/check-ledger-operations.sh >/dev/null
