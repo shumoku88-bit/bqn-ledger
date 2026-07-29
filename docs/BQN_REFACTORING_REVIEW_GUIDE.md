@@ -1,129 +1,129 @@
 # BQN Refactoring Review Guide
 
-Status: proposed review gate for bounded BQN refactors
+Status: boundedなBQN refactorのためのproposed review gate
 
-## Purpose
+## 目的
 
-This guide gives each BQN refactor a stable review method. It is not a code-golf rule and does not require one personal style across the repository.
+このガイドは、BQN refactorを毎回同じ方法で確認するためのものです。code golfの規則ではなく、repository全体を一人の書き方へ統一するものでもありません。
 
-The goal is:
+目標は次です。
 
-> make the data transformation more visible while preserving accounting meaning, ownership, diagnostics, provenance, and fail-closed behavior.
+> 会計上の意味、ownership、diagnostics、provenance、fail-closed behaviorを保ちながら、データ変換をコード上でより直接見えるようにする。
 
-Use this guide for small refactors in `src/`, `src_edit/`, retained shared owners, and their focused tests. Correctness changes and ownership migration remain separate slices.
+`src/`、`src_edit/`、retained shared ownerと、そのfocused testにある小さなrefactorで使います。correctness変更とownership migrationは別sliceのまま保ちます。
 
 ## Hard gates
 
-A refactor is not acceptable unless all applicable gates pass.
+該当するgateが一つでも通らないrefactorは採用しません。
 
-1. **Finite question**: one bounded transformation or ownership question is stated before editing.
-2. **Meaning preservation**: observable values, ordering, diagnostics, provenance, exact arithmetic, and rejection behavior are unchanged unless a separate correctness slice explicitly authorizes a change.
-3. **Owner preservation**: shortening must not create a utility bag, forwarding wrapper, universal context, or new hidden policy owner.
-4. **Evaluation preservation**: an unselected branch, formatter, parser, or expensive calculation must not become eagerly evaluated.
-5. **Edge evidence**: applicable empty, nested, not-found, duplicate, boundary, and malformed-input behavior is characterized.
-6. **Focused scope**: the implementation and its focused tests form one coherent slice.
-7. **Full verification**: focused tests, `tools/check.sh`, coverage, and final patch review pass against current `main`.
+1. **Finite question**: 編集前に、一つのboundedな変換またはownership questionを宣言する。
+2. **Meaning preservation**: 別のcorrectness sliceで明示的に許可しない限り、値、順序、diagnostics、provenance、exact arithmetic、rejection behaviorを変えない。
+3. **Owner preservation**: 短縮のためにutility bag、forwarding wrapper、universal context、新しいhidden policy ownerを作らない。
+4. **Evaluation preservation**: 選ばれていないbranch、formatter、parser、高価な計算をeagerに実行する形へ変えない。
+5. **Edge evidence**: 該当するempty、nested、not-found、duplicate、boundary、malformed inputをcharacterizeする。
+6. **Focused scope**: 実装とfocused testが一つのcoherent finite sliceに収まる。
+7. **Full verification**: focused test、`tools/check.sh`、coverage、final patch reviewをcurrent `main`との統合状態で通す。
 
-Line count is evidence, not a gate. A shorter program that hides a contract is worse.
+行数はevidenceでありgateではありません。contractを隠す短いコードは改善ではありません。
 
 ## Review lenses
 
-Record `green`, `improve`, `blocked`, or `not-applicable` for each applicable lens. Add concrete evidence, not admiration of a person or style.
+該当するlensごとに `green`、`improve`、`blocked`、`not-applicable` を記録します。人物への評価ではなく、変更内容の具体的なevidenceを書きます。
 
-### Marshall Lochbaum: expose the array transformation
+### Marshall Lochbaum: array transformationを露出させる
 
-Ask:
+確認すること:
 
-- Can repeated scans, mutable accumulation, or branch ladders become one visible primitive or coordinate transformation?
-- Are input shape, intermediate coordinate, and output shape apparent?
-- Is a first-class function selected before it is executed?
-- Is the chosen BQN primitive the direct owner of the operation?
+- repeated scan、mutable accumulation、branch ladderを、一つのprimitiveまたはcoordinate transformationとして表せるか。
+- input shape、中間coordinate、output shapeが見えるか。
+- first-class functionを実行前に選択しているか。
+- 選んだBQN primitiveが、その操作の直接ownerになっているか。
 
-Good evidence includes `index-of` for exact lookup, `Deduplicate` for major-cell uniqueness, classify/group keys, masks, selections, and aligned function arrays.
+よいevidenceには、exact lookupの`index-of`、major-cell uniquenessの`Deduplicate`、classify/group key、mask、selection、aligned function arrayなどがあります。
 
-Do not compress strict admission merely because it contains repeated diagnostic steps.
+diagnostic stepが反復して見えるという理由だけでstrict admissionを圧縮しません。
 
-### Roger Hui: prove the semantic edges
+### Roger Hui: semantic edgeを証明する
 
-Ask:
+確認すること:
 
-- What happens for empty input?
-- What is the not-found value, and is it safe before selection?
-- Are nested major cells compared with the intended equality?
-- Are rank, scalar-versus-list, ordering, and duplicate semantics preserved?
-- Are arithmetic and comparisons exact where the accounting contract requires exactness?
+- empty inputでは何が起きるか。
+- not-found valueは何か。selection前に安全か。
+- nested major cellが意図したequalityで比較されるか。
+- rank、scalar対one-element list、ordering、duplicate semanticsを保っているか。
+- accounting contractがexactnessを要求する場所で、演算と比較がexactか。
 
-A primitive replacement is incomplete until its edge semantics are tested.
+primitive置換は、edge semanticsがtestされるまで未完了です。
 
-### John Scholes: keep the declaration readable
+### John Scholes: declarationを読める形に保つ
 
-Ask:
+確認すること:
 
-- Does each named function express one purpose?
-- Are meaningful stages such as admission, coordinate resolution, grouping, and publication still visible?
-- Did shortening remove an incidental temporary, or did it erase a useful domain boundary?
-- Can the function be read as a declaration of the result rather than a sequence of mutations?
+- 各named functionが一つの目的を表しているか。
+- admission、coordinate resolution、grouping、publicationなどの意味あるstageが残っているか。
+- 消えたものはincidental temporaryか。それとも必要なdomain boundaryか。
+- mutationの手順ではなく、resultの宣言として読めるか。
 
-Keep names where they carry accounting or application meaning. Shorten the kernel inside the named boundary.
+accountingまたはapplication上の意味を持つ名前は残し、そのnamed boundary内のkernelを短くします。
 
-### Adám Brudzewsky: leave a derivation path
+### Adám Brudzewsky: derivation pathを残す
 
-Ask:
+確認すること:
 
-- Can a future reader see how the final idiom follows from the previous procedural form?
-- Does one short comment explain the primitive's important contract rather than narrating syntax?
-- Do focused tests show representative intermediate coordinates or selected indices?
-- Is the before/after algorithm described in the PR body?
+- 将来のreaderが、procedural formからfinal idiomへ至る道筋を追えるか。
+- 短いcommentがsyntaxの実況ではなく、primitiveの重要contractを説明しているか。
+- focused testが代表的なcoordinateまたはselected indexを示しているか。
+- PR bodyにbefore/after algorithmが記録されているか。
 
-The final code may be compact. The review evidence should preserve the staircase used to reach it.
+final codeはcompactで構いません。review evidenceには、そこへ到達した階段を残します。
 
-### Aaron Hsu: consider whole-array dataflow
+### Aaron Hsu: whole-array dataflowを検討する
 
-Ask only for substantial pure kernels:
+大きなpure kernelにだけ適用します。
 
-- Is the code repeatedly scanning all postings for every row, account, date, or cell?
-- Can coordinates or lanes be encoded once and grouped, classified, or scattered in one pass?
-- Can branch state become an aligned array rather than per-item control flow?
-- Does the new dataflow remain deterministic and auditable?
+確認すること:
 
-This lens is usually `not-applicable` for small admission functions, I/O boundaries, and editor safety orchestration.
+- 各row、Account、date、cellごとに全Postingを繰り返しscanしていないか。
+- coordinateまたはlaneを一度encodeし、group、classify、scatterできないか。
+- itemごとのcontrol flowをaligned state arrayにできないか。
+- 新しいdataflowがdeterministicでaudit可能か。
 
-### Kenneth Iverson: judge whether notation reveals structure
+小さなadmission function、I/O boundary、editor safety orchestrationでは通常 `not-applicable` です。
 
-Ask:
+### Kenneth Iverson: notationが構造を見せるか判定する
 
-- Does the new expression show the structure of the accounting or reporting question more directly?
-- Are incidental mechanics subordinated without hiding essential meaning?
-- Does the notation suggest valid tests and further deductions?
-- Is the result easier to verify formally or by focused examples?
+確認すること:
 
-The final decision is not “is this clever?” but “does this notation make the problem clearer?”
+- 新しい式は、accountingまたはreporting questionの構造を以前より直接示しているか。
+- incidental mechanicsを従属させながら、重要な意味を隠していないか。
+- notationから有効なtestや追加の推論が導けるか。
+- focused exampleまたは形式的な方法で検証しやすくなったか。
 
-### Arthur Whitney: use extreme brevity as a probe
+最終判断は「巧妙か」ではなく「問題が前より明瞭になったか」です。
 
-Ask:
+### Arthur Whitney: extreme brevityをprobeとして使う
 
-- Is there a much smaller computational kernel hiding inside the current procedure?
-- Which parts are essential contracts, and which are scaffolding?
-- Would the extremely short form remain maintainable and diagnostically complete here?
+確認すること:
 
-This is a probe, not an acceptance criterion. Reject compression that depends on unstated assumptions or removes evidence needed by humans, tests, or future automated changes.
+- procedural codeの内側に、もっと小さなcomputational kernelがないか。
+- 何がessential contractで、何がscaffoldingか。
+- 極端に短い形でも、ここではmaintainableかつdiagnostically completeか。
+
+これはprobeでありacceptance criterionではありません。暗黙の前提へ依存する圧縮や、人間、test、将来の自動変更に必要なevidenceを消す圧縮はrejectします。
 
 ## Standard review sequence
 
-### 1. State the finite question
+### 1. Finite questionを宣言する
 
-Use one sentence:
+一文で書きます。
 
 > Can `<current procedural form>` become `<array-native form>` while preserving `<named contracts>`?
 
-### 2. Freeze the contract
+### 2. Contractを固定する
 
-List the exact properties that cannot change. Include relevant ordering, empty behavior, diagnostics, provenance, arithmetic, output bytes, and evaluation behavior.
+変えてはいけない性質を列挙します。該当するordering、empty behavior、diagnostics、provenance、arithmetic、output bytes、evaluation behaviorを含めます。
 
-### 3. Write the array model before the final expression
-
-Record:
+### 3. Final expressionより先にarray modelを書く
 
 ```text
 input cells / columns
@@ -131,11 +131,11 @@ input cells / columns
 → output cells / columns
 ```
 
-If this cannot be stated clearly, the slice is not ready for compression.
+これを明確に書けないsliceは、まだ圧縮の準備ができていません。
 
-### 4. Characterize semantic edges
+### 4. Semantic edgeをcharacterizeする
 
-Add focused evidence for the applicable cases:
+該当するものへfocused evidenceを追加します。
 
 - empty
 - unknown / not found
@@ -143,16 +143,14 @@ Add focused evidence for the applicable cases:
 - non-adjacent duplicate
 - invalid rank or shape
 - boundary index
-- eager versus conditional evaluation
+- eager evaluation対conditional evaluation
 - exact arithmetic failure
 
-### 5. Implement the smallest coherent change
+### 5. 最小のcoherent changeを実装する
 
-Prefer direct primitives over a new generic helper. Extract a shared owner only after multiple real consumers prove the same semantics.
+新しいgeneric helperより、まずdirect primitiveを使います。複数のreal consumerが同じsemanticsを証明した後にだけshared ownerを抽出します。
 
-### 6. Review with the lenses
-
-Use the compact record below.
+### 6. Lens reviewを記録する
 
 ```markdown
 ## BQN refactor lenses
@@ -166,11 +164,11 @@ Use the compact record below.
 - Whitney: green — <compression considered without deleting contracts>
 ```
 
-### 7. Decide
+### 7. Decisionを出す
 
-- **accept**: all hard gates pass and the notation reveals the transformation more directly.
-- **revise**: meaning is preserved, but shape, naming, tests, or explanation remain unclear.
-- **reject**: the change hides a contract, widens ownership, mixes correctness with refactoring, or depends on untested BQN behavior.
+- **accept**: hard gateがすべて通り、notationが変換を以前より直接示す。
+- **revise**: 意味は保たれているが、shape、naming、test、説明のいずれかが不明瞭。
+- **reject**: contractを隠す、ownershipを広げる、correctnessとrefactorを混ぜる、未検証のBQN behaviorへ依存する。
 
 ## Pull request evidence template
 
@@ -225,24 +223,24 @@ Can ...?
 
 | PR | Kernel | Primary lenses | Important evidence |
 |---|---|---|---|
-| #437 | catalog exact lookup | Marshall, Hui | index-of absent bound; successful branch conditionally executed |
-| #438 | request surface support | Marshall, Scholes | surface and catalog coordinates reused; diagnostic contract retained |
-| #439 | renderer dispatch | Marshall, Hui, Adám | formatter selected as a value; BQN subject/function role failure recorded and corrected; all 17 routes golden-tested |
-| #440 | MatrixResult axis uniqueness | Marshall, Hui, Iverson | native major-cell Deduplicate; empty and nested non-adjacent duplicate evidence |
+| #437 | catalog exact lookup | Marshall, Hui | index-ofのabsent bound。success branchだけをconditional execution |
+| #438 | request surface support | Marshall, Scholes | surface coordinateとcatalog coordinateを再利用。diagnostic contractを維持 |
+| #439 | renderer dispatch | Marshall, Hui, Adám | formatterを値として選択。subject/function role failureを記録して修正。17 routeをgolden test |
+| #440 | MatrixResult axis uniqueness | Marshall, Hui, Iverson | native major-cell Deduplicate。emptyとnested non-adjacent duplicateのevidence |
 
-These examples are not a permanent preferred syntax. They demonstrate the review method.
+これらは永久的なpreferred syntaxではなく、review methodの実例です。
 
 ## Repository-specific stop signs
 
-Do not use this guide to justify:
+このガイドを次の変更の根拠にしません。
 
-- removing or reordering diagnostics without a correctness decision
-- weakening strict source admission
-- flattening multi-posting or provenance evidence
-- replacing exact arithmetic with convenient numeric arithmetic
-- adding a universal report, editor, source, or accounting record
-- adding compatibility aliases, forwarding modules, fallback parsing, or duplicate routes
-- combining editor ownership migration with accounting algorithm changes
-- editing private household sources without separate explicit authorization
+- correctness decisionなしでdiagnosticsを削除または並べ替える
+- strict source admissionを弱める
+- multi-postingまたはprovenance evidenceをflattenする
+- exact arithmeticを便利なnumeric arithmeticへ置き換える
+- universal report、editor、source、accounting recordを追加する
+- compatibility alias、forwarding module、fallback parser、duplicate routeを追加する
+- editor ownership migrationとaccounting algorithm変更を同じsliceへ入れる
+- separate explicit authorizationなしでprivate household sourceを編集する
 
-A good BQN refactor makes the computational crystal clearer without sanding away the ledger's evidence.
+よいBQN refactorは、ledgerのevidenceを削らずにcomputational crystalを澄ませます。
