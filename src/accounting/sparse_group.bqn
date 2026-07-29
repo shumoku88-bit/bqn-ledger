@@ -5,11 +5,6 @@ scale ← •Import "../ledger/exact_scale.bqn"
 empty ← ⟨⟩
 
 Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
-Unique ← {𝕊 items:
-  result ← empty
-  {𝕊 item: {𝕊: result∾↩⟨item⟩}⍟(¬Contains ⟨item,result⟩) @}¨items
-  result
-}
 Diagnostic ← {𝕊 codeText‿messageText:
   {severity⇐"error",stage⇐"accounting_sparse_group",code⇐codeText,message⇐messageText}
 }
@@ -25,7 +20,8 @@ Build ← {𝕊 rowAxis‿columnCount‿rowCoordinates‿columnIndices‿coeffic
   lengths ← ≠¨⟨rowCoordinates,columnIndices,coefficients,contributors⟩
   aligned ← ∧´(≠rowCoordinates)=lengths
   diagnostics ∾↩ AddIf ⟨¬aligned,Diagnostic ⟨"group_columns_misaligned","group input columns must align"⟩⟩
-  diagnostics ∾↩ AddIf ⟨(≠rowAxis)≠≠Unique rowAxis,Diagnostic ⟨"group_row_axis_duplicate","row axis coordinates must be unique"⟩⟩
+  # Deduplicate compares opaque row-axis major cells and preserves first-occurrence order.
+  diagnostics ∾↩ AddIf ⟨(≠rowAxis)≠≠⍷rowAxis,Diagnostic ⟨"group_row_axis_duplicate","row axis coordinates must be unique"⟩⟩
   columnCountInvalid ← (columnCount<0) ∨ columnCount≠⌊columnCount
   diagnostics ∾↩ AddIf ⟨columnCountInvalid,Diagnostic ⟨"group_column_count_invalid","column count must be a nonnegative integer"⟩⟩
   {𝕊:
