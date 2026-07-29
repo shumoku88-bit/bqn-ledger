@@ -3,12 +3,7 @@ set -euo pipefail
 
 # Verify tools/lib/safe-write.sh exact single-line replacement primitive.
 
-if [ -f "src_next/report.bqn" ]; then
-  ROOT_DIR="$PWD"
-else
-  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-  ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-fi
+ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
 # shellcheck source=tools/lib/safe-write.sh

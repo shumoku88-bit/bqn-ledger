@@ -4,12 +4,7 @@ set -euo pipefail
 # Verify plan finish replenishment helper stays shell-safe, supports read-only
 # preflight, and refuses replenishment unless the selected plan is explicitly closed.
 
-if [ -f "src_next/report.bqn" ]; then
-  ROOT_DIR="$PWD"
-else
-  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-  ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-fi
+ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
 bash -n tools/plan-finish-replenish-ui.sh

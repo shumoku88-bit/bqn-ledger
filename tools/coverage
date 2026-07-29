@@ -16,13 +16,20 @@ cd "$ROOT_DIR"
 
 shopt -s nullglob
 
-src_next_modules=(src_next/*.bqn)
-src_next_tests=(tests/test_src_next_*.bqn)
+destination_modules=(
+  src/ledger/*.bqn src/accounting/*.bqn src/sections/*.bqn src/report/*.bqn
+  src/application/*.bqn src/editor/*.bqn src/text/*.bqn
+)
+destination_tests=(
+  tests/test_ledger_*.bqn tests/test_accounting_*.bqn tests/test_section_*.bqn
+  tests/test_report_*.bqn tests/test_application_*.bqn tests/test_editor_*.bqn
+  tests/test_text_*.bqn
+)
 
-printf '=== src_next module inventory ===\n'
-printf '  modules: %s\n' "${#src_next_modules[@]}"
-printf '  matching test files: %s\n' "${#src_next_tests[@]}"
-for test_file in "${src_next_tests[@]}"; do
+printf '=== destination module inventory ===\n'
+printf '  modules: %s\n' "${#destination_modules[@]}"
+printf '  matching test files: %s\n' "${#destination_tests[@]}"
+for test_file in "${destination_tests[@]}"; do
   printf '    %s\n' "$(basename "$test_file")"
 done
 

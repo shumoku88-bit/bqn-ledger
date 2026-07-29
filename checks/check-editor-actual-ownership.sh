@@ -5,10 +5,7 @@ cd "$root"
 work=$(mktemp -d "${TMPDIR:-/tmp}/bqn-ledger-editor-actual.XXXXXX")
 trap 'rm -rf "$work"' EXIT
 
-if rg -n 'src_next/actual_source\.bqn' src_edit --glob '*.bqn' >/dev/null; then
-  echo 'FAIL: editor still imports old Actual source owner' >&2; exit 1
-fi
-if rg -n 'src_next|•SH|/data/|fallbackId|physical_fallback' src/application/editor_actual.bqn >/dev/null; then
+if rg -n '•SH|/data/|fallbackId|physical_fallback' src/application/editor_actual.bqn >/dev/null; then
   echo 'FAIL: strict editor Actual owner gained old runtime, path fallback, or fabricated identity' >&2; exit 1
 fi
 bqn tests/test_application_editor_actual.bqn >/dev/null

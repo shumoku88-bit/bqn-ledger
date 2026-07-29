@@ -37,7 +37,7 @@ Use `green / improve / incomplete / not-applicable`. Record concrete evidence, n
 | Issues | green | green | green: strict admission then bounded source-order selection | green | green | complete |
 | P10 composition | green | green: core pure; I/O/cache/operations isolated in application boundary | green: catalog metadata; nine composers; all/cache/compact reuse individual routes | green: direct/all/cache/metadata/summary/exact-query/operations proofs | **incomplete**: editor/private gates | in progress |
 | P11 editor extraction | green: zero old imports; owners moved physically | green: pure editor semantics + canonical facts/date; no wrappers | green: narrow post-write validation; no report context | green: parser/rewrite/travel/date/editor/full checks | green: `src_edit` and `src/editor` clean | complete |
-| P12 deletion rehearsal | green: exhaustive tracked simulation | green: retained canonical evidence survives 401 deletions | green: exact actions; zero surviving old import/path | green: inventory/rehearsal assertions + full checks | green: 19 doc migrations/39 deletions and 35 runtime refs classified | complete |
+| P12 deletion rehearsal | green: exhaustive tracked simulation | green: retained canonical evidence survives 401 deletions | green: exact actions; zero surviving old import/path | green: inventory/rehearsal assertions + full checks | green: 19 doc migrations/39 deletions and 14 runtime refs classified | complete |
 
 ## P7 exit gate
 

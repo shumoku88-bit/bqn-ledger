@@ -3,10 +3,7 @@ set -euo pipefail
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
 
-if rg -n 'src_next/currency_setup\.bqn' src_edit --glob '*.bqn' >/dev/null; then
-  echo 'FAIL: editor still imports old currency setup owner' >&2; exit 1
-fi
-if rg -n 'src_next|registry_value|currency ← "JPY"|CurrencyFrom' \
+if rg -n 'registry_value|currency ← "JPY"|CurrencyFrom' \
   src/application/editor_currency.bqn >/dev/null; then
   echo 'FAIL: editor currency owner gained old runtime or source-currency fallback' >&2; exit 1
 fi

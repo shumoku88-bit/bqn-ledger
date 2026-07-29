@@ -5,9 +5,6 @@ cd "$root"
 work=$(mktemp -d "${TMPDIR:-/tmp}/bqn-ledger-editor-config.XXXXXX")
 trap 'rm -rf "$work"' EXIT
 
-if rg -n 'src_next/config\.bqn' src_edit --glob '*.bqn' >/dev/null; then
-  echo 'FAIL: editor still imports old report config owner' >&2; exit 1
-fi
 modules=(
   src/application/config_rows.bqn
   src/application/system_defaults.bqn
@@ -16,7 +13,7 @@ modules=(
   src/application/actual_journal_config.bqn
   src/application/editor_plan_budget_config.bqn
 )
-if rg -n 'src_next|•SH|POLICY_(BUDGET|RISK|INCOME)|HOUSEHOLD_GROUP' "${modules[@]}" >/dev/null; then
+if rg -n '•SH|POLICY_(BUDGET|RISK|INCOME)|HOUSEHOLD_GROUP' "${modules[@]}" >/dev/null; then
   echo 'FAIL: editor config owner gained old runtime/report policy or shell fallback' >&2; exit 1
 fi
 bqn tests/test_application_editor_config.bqn >/dev/null

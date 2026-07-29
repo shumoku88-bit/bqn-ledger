@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ -f src_next/report.bqn ]]; then ROOT_DIR=$PWD; else ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"; fi
+ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
 tmp="$(mktemp -d)"
@@ -190,11 +190,5 @@ grep '^\[' "$tmp/ils-balances.out" >"$tmp/ils-sections"
 grep '^\[' "$tmp/usd-balances.out" >"$tmp/usd-sections"
 diff -u "$tmp/jpy-sections" "$tmp/ils-sections"
 diff -u "$tmp/jpy-sections" "$tmp/usd-sections"
-
-# Selected-domain implementation control flow must remain registry-driven.
-if rg -n '"(JPY|ILS|USD)"' src_next/selected_domain_context.bqn src_next/balances.bqn; then
-  echo 'FAIL: selected-domain implementation contains a currency literal' >&2
-  exit 1
-fi
 
 echo 'check-israel-ils-usable-vertical-slice: OK'

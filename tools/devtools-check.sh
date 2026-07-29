@@ -32,89 +32,50 @@ echo "=== devtools-check ===" >&2
 # ── A: repo-index freshness ──
 echo "[A] repo-index freshness" >&2
 
-tmp_idx="$(mktemp)"
-trap 'rm -f "$tmp_idx"' EXIT
-./tools/repo-index > "$tmp_idx" 2>/dev/null || true  # may exit 1 on missing dirs but output is valid
-
-# Check that all .bqn files in src_next/ tests/ tools/ appear in the index
-bqn_count=0
-bqn_missing=0
-while IFS= read -r -d '' f; do
-  bqn_count=$((bqn_count + 1))
-  if ! grep -qF "$f" "$tmp_idx"; then
-    bqn_missing=$((bqn_missing + 1))
-  fi
-done < <(find src_next tests tools -name '*.bqn' -type f -print0 2>/dev/null)
-
-if [ "$bqn_missing" -eq 0 ]; then
-  echo "  PASS: all $bqn_count BQN files indexed" >&2
+if bash checks/check-repo-index.sh >/dev/null 2>&1; then
+  echo "  PASS: repository index is current" >&2
   pass
 else
-  echo "  FAIL: $bqn_missing BQN files not in repo-index (out of $bqn_count)" >&2
-  fail "repo-index: $bqn_missing BQN files missing from index"
-fi
-
-# Check that all check scripts (*.sh) in checks/ appear in the index
-sh_count=0
-sh_missing=0
-while IFS= read -r -d '' f; do
-  sh_count=$((sh_count + 1))
-  if ! grep -qF "$f" "$tmp_idx"; then
-    sh_missing=$((sh_missing + 1))
-  fi
-done < <(find checks -name 'check-*.sh' -type f -print0 2>/dev/null)
-
-if [ "$sh_missing" -eq 0 ]; then
-  echo "  PASS: all $sh_count check scripts indexed" >&2
-  pass
-else
-  echo "  FAIL: $sh_missing check scripts not in repo-index (out of $sh_count)" >&2
-  fail "repo-index: $sh_missing check scripts missing from index"
+  echo "  FAIL: repository index is stale" >&2
+  fail "repo-index: generated index differs"
 fi
 
 # ── B: query coverage ──
 echo "[B] query coverage" >&2
 
 tmp_summary="$(mktemp)"
-trap 'rm -f "$tmp_idx" "$tmp_summary"' EXIT
+trap 'rm -f "$tmp_summary"' EXIT
 
-# Use the standard golden fixture for coverage check
-if ./tools/report-next-summary fixtures/editor-golden > "$tmp_summary" 2>/dev/null; then
-  # Extract all src_next_* keys
-  total_keys=$(grep -c '^src_next_' "$tmp_summary" || echo 0)
-  echo "  INFO: summary exposes $total_keys src_next_* keys" >&2
-  
-  # Test that the first key is queryable
-  first_key=$(sed -n '/^src_next_/{s/: .*//;p;q;}' "$tmp_summary")
-  if [ -n "$first_key" ]; then
-    if ./tools/query fixtures/editor-golden "$first_key" >/dev/null 2>&1; then
-      echo "  PASS: query can retrieve keys (sample: $first_key)" >&2
-      pass
-    else
-      echo "  FAIL: query failed for key: $first_key" >&2
-      fail "query: cannot retrieve key $first_key"
-    fi
-  fi
-  
-  # Check that --list works
-  if ./tools/query fixtures/editor-golden --list >/dev/null 2>&1; then
-    echo "  PASS: query --list works" >&2
+proof_base=fixtures/ledger-facts-phase1-proof
+compact_manifest="$proof_base/report_all_compact.destination.tsv"
+if ./tools/report-summary "$proof_base" "$compact_manifest" >"$tmp_summary" 2>/dev/null; then
+  total_keys=$(grep -c '^ledger_' "$tmp_summary" || echo 0)
+  echo "  INFO: destination summary exposes $total_keys ledger_* rows" >&2
+  first_key=$(sed -n '/^ledger_/{s/: .*//;p;q;}' "$tmp_summary")
+  if [[ -n $first_key ]] && ./tools/query-destination "$proof_base" "$compact_manifest" "$first_key" >/dev/null 2>&1; then
+    echo "  PASS: exact query can retrieve a key (sample: $first_key)" >&2
     pass
   else
-    echo "  FAIL: query --list failed" >&2
+    echo "  FAIL: exact destination query failed for key: $first_key" >&2
+    fail "query: cannot retrieve key $first_key"
+  fi
+  if ./tools/query-destination "$proof_base" "$compact_manifest" --list >/dev/null 2>&1; then
+    echo "  PASS: exact query --list works" >&2
+    pass
+  else
+    echo "  FAIL: exact query --list failed" >&2
     fail "query: --list failed"
   fi
-  
-  # Check that --grep works
-  if ./tools/query fixtures/editor-golden --grep 'cycle' >/dev/null 2>&1; then
-    echo "  PASS: query --grep works" >&2
+  if ./tools/query-destination "$proof_base" "$compact_manifest" --keys >/dev/null 2>&1; then
+    echo "  PASS: exact query --keys works" >&2
     pass
   else
-    echo "  FAIL: query --grep failed" >&2
-    fail "query: --grep failed"
+    echo "  FAIL: exact query --keys failed" >&2
+    fail "query: --keys failed"
   fi
 else
-  echo "  SKIP: report-next-summary failed on fixtures/editor-golden" >&2
+  echo "  FAIL: destination report summary failed on public proof fixture" >&2
+  fail "summary: destination compact route failed"
 fi
 
 # ── C: bqn-eval liveness ──

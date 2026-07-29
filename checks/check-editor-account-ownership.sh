@@ -3,10 +3,7 @@ set -euo pipefail
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
 
-if rg -n 'src_next/account_key\.bqn' src_edit --glob '*.bqn' >/dev/null; then
-  echo 'FAIL: editor retained AccountKey compatibility import' >&2; exit 1
-fi
-if rg -n 'src_next|"JPY"|physical_fallback|RoleFrom|CurrencyFrom' src/application/editor_accounts.bqn >/dev/null; then
+if rg -n '"JPY"|physical_fallback|RoleFrom|CurrencyFrom' src/application/editor_accounts.bqn >/dev/null; then
   echo 'FAIL: strict editor Accounts gained compatibility inference/runtime' >&2; exit 1
 fi
 if rg -n 'journal_currency_proof_carrier_stage2a' \
