@@ -6,7 +6,8 @@
 
 date ← •Import "../src_next/date.bqn"
 dec ← •Import "../src/ledger/exact_decimal.bqn"
-setup ← •Import "../src_next/currency_setup.bqn"
+editorCurrency ← •Import "../src/application/editor_currency.bqn"
+setup ← editorCurrency.Load @
 
 # ── Date validation ─────────────────────────────────────────────
 

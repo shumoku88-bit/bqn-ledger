@@ -7,15 +7,14 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Portfolio P11F: eight operational AccountKey consumers now use strict canonical Account tables with explicit role/currency; redundant Stage 2A carrier checks were removed after complete Journal admission. Live editor blockers are 22 files/nine modules.
+Portfolio P11G: all eight currency_setup consumers now use a load-explicit canonical registry and narrow editor default-view/selection admission. DEFAULT_CURRENCY never fills source evidence. Live editor blockers are 17 files/eight modules.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn (unchanged)
-strict editor Accounts: canonical keys/currency/role, registry-supported domain, no JPY/default/prefix inference
-one deferred AccountKey caller: journal_canonical_surface_rewrite, coupled to old profile/Posting IR and moved with that cluster
-newly src_next-free: account_list_cmd
-next slice: replace eight currency_setup.bqn editor consumers with canonical registry/selection/scale admission
-remaining gates: nine editor dependencies, retained helper decisions, rehearsal, separately authorized private readiness
+editor currency: registry-supported Policy/scale, exact missing/duplicate/empty/unsupported default failures
+newly src_next-free: account_add, journal_add, journal_native_source_check, plan_add, plan_edit
+next slice: extract eight journal_profile_stage1 consumers as one coherent parser/rewrite cluster with canonical Account/Posting boundaries
+remaining gates: eight editor dependencies, retained helper decisions, rehearsal, separately authorized private readiness
 exclude: production switch, old-key deletion, private ledger inspection
 ```
 

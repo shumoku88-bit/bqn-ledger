@@ -5,7 +5,8 @@ admission ← •Import "../src/ledger/journal_complete_admission.bqn"
 editorAccounts ← •Import "../src/application/editor_accounts.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 decimal ← •Import "../src/ledger/exact_decimal.bqn"
-setup ← •Import "../src_next/currency_setup.bqn"
+editorCurrency ← •Import "../src/application/editor_currency.bqn"
+setup ← editorCurrency.Load @
 
 args ← •args
 tab ← @+9
@@ -76,7 +77,7 @@ expected ↩ Normalize¨expected
 
 resolved ← editorAccounts.Require loader.ReadLines (base∾"/accounts.tsv")
 raw ← loader.ReadRaw target
-admitted ← admission.Admit ⟨raw,resolved,setup.registry_value⟩
+admitted ← admission.Admit ⟨raw,resolved,setup.registry⟩
 {𝕊⋄Fail ⟨"native_journal_invalid", "full written native Journal failed complete-source admission"⟩}⍟(admitted.state≢"ok") @
 {𝕊⋄Fail ⟨"native_candidate_count_invalid", "written Journal transaction count does not match the pre-write candidate ordinal plus one"⟩}⍟((candidateOrdinal + 1) ≢ ≠ admitted.transactions) @
 

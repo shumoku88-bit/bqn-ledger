@@ -7,7 +7,8 @@ loader ← •Import "../src/application/source_io.bqn"
 validate ← •Import "validate.bqn"
 render ← •Import "render.bqn"
 defaults ← •Import "../src/application/system_defaults.bqn"
-setup ← •Import "../src_next/currency_setup.bqn"
+editorCurrency ← •Import "../src/application/editor_currency.bqn"
+setup ← editorCurrency.Load @
 
 sys ← defaults.Load @
 args ← •args

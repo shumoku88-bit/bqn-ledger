@@ -16,7 +16,8 @@ plan_id ← •Import "plan_id.bqn"
 defaults ← •Import "../src/application/system_defaults.bqn"
 actualConfig ← •Import "../src/application/actual_journal_config.bqn"
 date ← •Import "../src_next/date.bqn"
-setup ← •Import "../src_next/currency_setup.bqn"
+editorCurrency ← •Import "../src/application/editor_currency.bqn"
+setup ← editorCurrency.Load @
 editorAccounts ← •Import "../src/application/editor_accounts.bqn"
 actual_source ← •Import "../src/application/editor_actual.bqn"
 

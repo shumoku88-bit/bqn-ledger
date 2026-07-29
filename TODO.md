@@ -269,10 +269,10 @@ Quality completion is governed by [`docs/DESTINATION_QUALITY_GATE.md`](docs/DEST
 - [x] Removed the redundant CLI key whitelist, stabilized missing-source diagnostics, and fixed relative base paths against caller cwd.
 - [x] Proved the exact nine-key-plus-all cache manifest, byte-identical direct bodies, fail-closed staging, timestamp-last publication, and stale retired `.txt` deletion.
 - [x] Separated strict source readiness into `tools/ledger-check` and canonical Fact/provenance inspection into non-authoritative `tools/ledger-inspect`; neither is a report/catalog/cache owner.
-- [x] Completed reproducible tracked final-cutover inventory; after strict editor Account extraction it measures 69 modules, 22 live editor import files, 78 named tests, 33 named checks, 35 fixture families, and seven route/consumer owners.
+- [x] Completed reproducible tracked final-cutover inventory; after canonical editor Currency extraction it measures 69 modules, 17 live editor import files, 78 named tests, 33 named checks, 35 fixture families, and seven route/consumer owners.
 - [x] Built catalog-derived six-field destination metadata in TSV/JSON with exact final order, destination owners, no source reads, and parallel UI-independent listing proof.
 - [x] Built final compact `tools/report-summary` plus parallel exact `ledger_*` query proof; explicit external consumer audit found no untracked runtime users, so alias-free cutover deletion is approved.
-- [ ] Extract the remaining 22 live editor files from nine `src_next` dependencies without forwarding wrappers; operational editor Accounts now require canonical explicit role/currency, with one old AccountKey caller deferred to the journal rewrite cluster.
+- [ ] Extract the remaining 17 live editor files from eight `src_next` dependencies without forwarding wrappers; currency registry/default-view/selection now have a bounded editor owner and never default source currency.
 - [ ] Keep private-source readiness under separate explicit authorization; do not inspect or rewrite user data in this public composition slice.
 
 Phase 0 exit evidence is `docs/PHASE0_REPORT_ENGINE_CHARACTERIZATION.md`: every observable report capability has an owner, every compatibility path has a deletion gate, and no undecided fallback is permitted in the destination fact schema.

@@ -5,7 +5,8 @@ admission ← •Import "../src/ledger/journal_complete_admission.bqn"
 editorAccounts ← •Import "../src/application/editor_accounts.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 decimal ← •Import "../src/ledger/exact_decimal.bqn"
-setup ← •Import "../src_next/currency_setup.bqn"
+editorCurrency ← •Import "../src/application/editor_currency.bqn"
+setup ← editorCurrency.Load @
 dates ← •Import "../src_next/date.bqn"
 
 args ← •args
@@ -105,7 +106,7 @@ metadataKeys ← {𝕩.key}¨metadata
 
 resolved ← editorAccounts.Require loader.ReadLines (base ∾ "/accounts.tsv")
 raw ← loader.ReadRaw target
-existing ← admission.Admit ⟨raw,resolved,setup.registry_value⟩
+existing ← admission.Admit ⟨raw,resolved,setup.registry⟩
 {𝕊⋄Fail ⟨"existing_journal_invalid", "existing complete Journal does not satisfy supported-currency admission"⟩}⍟(existing.state ≢ "ok") @
 candidateOrdinal ← ≠ existing.transactions
 {𝕊⋄Fail ⟨"event_id_duplicate", "event-id already exists in the complete Journal"⟩}⍟((identityMode ≡ "durable") ∧ ∨´ 0 ∾ {𝕩.source_event_id ≡ eventId}¨ existing.transactions) @
@@ -130,7 +131,7 @@ endsTwo ← (1 < rawCount) ∧ (lf = ¯1 ⊑ raw) ∧ lf = ¯2 ⊑ raw
 semanticSeparator ← endsTwo ◶ ⟨{endsOne ◶ ⟨{lf ∾ lf}, {lf}⟩ @}, {""}⟩ @
 transportPrefixCount ← endsTwo ◶ ⟨{1}, {0}⟩ @
 proposedRaw ← raw ∾ semanticSeparator ∾ block ∾ lf
-proposed ← admission.Admit ⟨proposedRaw,resolved,setup.registry_value⟩
+proposed ← admission.Admit ⟨proposedRaw,resolved,setup.registry⟩
 {𝕊⋄diagnostic←⊑proposed.diagnostics ⋄ Fail ⟨"proposed_journal_invalid", "exact proposed complete Journal rejected: " ∾ diagnostic.code ∾ " at line " ∾ •Fmt diagnostic.line⟩}⍟(proposed.state ≢ "ok") @
 {𝕊⋄Fail ⟨"candidate_count_invalid", "proposed Journal must contain exactly one transaction beyond the existing transaction count"⟩}⍟((candidateOrdinal + 1) ≢ ≠ proposed.transactions) @
 
