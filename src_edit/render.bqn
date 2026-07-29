@@ -32,9 +32,9 @@ RenderJournalRow ⇐ {
   tab Join allFields
 }
 
-# Build a TSV row for an issue add.
+# Build one canonical strict eight-column Issues row.
 RenderIssueRow ⇐ {
-  fields ← 𝕩.date‿𝕩.status‿𝕩.title‿𝕩.amount‿𝕩.memo
+  fields ← 𝕩.issue_id‿𝕩.status‿𝕩.date‿𝕩.category‿𝕩.title‿𝕩.amount‿𝕩.currency‿𝕩.details
   tab ← @+9
   tab Join fields
 }

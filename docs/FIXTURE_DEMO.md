@@ -34,7 +34,7 @@ Expected meaning:
 ## 2. Read the machine summary
 
 ```bash
-tools/report-next-summary fixtures/editor-golden
+tools/report-summary fixtures/editor-golden
 ```
 
 Expected meaning:

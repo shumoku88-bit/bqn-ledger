@@ -448,6 +448,6 @@ This order starts with vocabulary and contracts, not machinery.
 - `docs/TBDS_CONTRACT.md`
 - `docs/SAFETY_PROFILE.md`
 - `docs/ENGINEERING_ROADMAP.md`
-- `docs/AUDIT_IMPROVEMENT_BACKLOG.md`
+- `docs/archive/completed-plans/AUDIT_IMPROVEMENT_BACKLOG.md`
 - `docs/PUBLIC_PRODUCTIZATION_REVIEW_FILTER.md`
 - `docs/REAL_DATA_TRIAL_SAFETY.md`

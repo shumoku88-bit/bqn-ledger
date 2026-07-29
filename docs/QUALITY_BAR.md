@@ -109,7 +109,7 @@ CIやチェックスクリプトが失敗した際に、原因が即座に分か
 2. きれいな間違いを防ぐ fail-closed fixture / lint / invariant
 3. 数字の再現性・比較可能性を上げる export / golden / parity check
 4. 復旧・診断・doctor・backup などの運用安全
-5. `src_next` の Posting IR / TBDS / section parity
+5. canonical Facts / accounting capability / retained section evidence
 6. 日々の入力や確認を安全にする薄い launcher / UI
 7. 見た目や利便性だけの改善
 

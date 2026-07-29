@@ -2,7 +2,6 @@
 
 Status: Phase 0C current evidence
 Owner: ledger-facts report migration
-Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 Compatibility decisions: `docs/RUNTIME_COMPATIBILITY_INVENTORY.md`
 Scope: direct child directories under public `fixtures/` at `d7188bd`
 

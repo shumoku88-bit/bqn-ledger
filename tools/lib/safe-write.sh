@@ -629,8 +629,11 @@ run_post_check() {
     lint)
       if [[ "$owner" == "journal" || "$owner" == "cleanup_journal" ]]; then
         cmd=(bqn src_edit/journal_validate_cmd.bqn "$base_dir")
+      elif [[ "$owner" == "issue" ]]; then
+        cmd=(bqn src_edit/issue_validate_cmd.bqn "$base_dir")
       else
-        cmd=(bqn src_next/report.bqn "$base_dir")
+        printf 'Post-check: no narrow validator for owner %s\n' "$owner" >&2
+        return 1
       fi
       ;;
     full)

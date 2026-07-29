@@ -80,13 +80,13 @@ handle_edit_bqn_issue_add() {
   fi
 
   if [[ "$TARGET_EXISTS" -eq 1 ]]; then
-    edit_bqn_apply_append_checked "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256"
+    edit_bqn_apply_append_checked "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256" "" issue
   else
     local WRITE_OUT BACKUP_PATH
-    WRITE_OUT="$(safe_create_checked "$TARGET_PATH" $'date\tstatus\ttitle\tamount\tmemo\n'"$PAYLOAD"$'\n')"
+    WRITE_OUT="$(safe_create_checked "$TARGET_PATH" $'issue_id\tstatus\tdate\tcategory\ttitle\tamount\tcurrency\tdetails\n'"$PAYLOAD"$'\n')"
     printf '%s\n' "$WRITE_OUT"
     BACKUP_PATH="$(awk -F': ' '$1 == "Backup" {print $2}' <<< "$WRITE_OUT")"
-    run_post_check "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$BACKUP_PATH"
+    run_post_check "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$BACKUP_PATH" issue
   fi
 }
 
@@ -171,5 +171,5 @@ handle_edit_bqn_issue_close() {
     esac
   fi
 
-  edit_bqn_apply_replace_checked "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$LINE_NUM" "$OLD_LINE" "$NEW_LINE" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256"
+  edit_bqn_apply_replace_checked "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$LINE_NUM" "$OLD_LINE" "$NEW_LINE" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256" "" issue
 }

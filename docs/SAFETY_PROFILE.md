@@ -156,7 +156,7 @@ Event IR -> Projection IR -> Day × Account × Layer -> report / export
 
 ### Report execution invariant
 
-- source TSV (`data/*.tsv`)、config TSV (`data/config.tsv`, `config/system_defaults.tsv`, `config/default_config.tsv`, `config/meta_schema.tsv`) と `src_next/**/*.bqn` で canonical report / export を生成できる。
+- source TSV (`data/*.tsv`)、config TSV (`data/config.tsv`, `config/system_defaults.tsv`, `config/default_config.tsv`, `config/meta_schema.tsv`) と `src/**/*.bqn` で canonical report / export を生成できる。
 - BQN editor, shell UI, gum/fzf, cache/helper-generated files を canonical report calculation の必須依存にしない。
 - shell script で BQN-only 経路をテストすることは許容する。ただし守る対象は、レポート計算そのものが BQN と source/config TSV だけで完結すること。
 
@@ -189,7 +189,7 @@ Event IR -> Projection IR -> Day × Account × Layer -> report / export
 - `AGENTS.md`
 - `TODO.md`
 - `docs/QUALITY_BAR.md`
-- `docs/SAFETY_PROFILE_INVARIANT_MAP.md`
+- `docs/archive/completed-plans/SAFETY_PROFILE_INVARIANT_MAP.md`
 - `docs/CANONICAL_DAILY_CUBE.md`
 - `docs/TIME_AS_AXIS.md`
 - `docs/REPORT_CONTRACTS.md`

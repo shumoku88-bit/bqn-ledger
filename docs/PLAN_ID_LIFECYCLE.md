@@ -56,14 +56,14 @@ BQN editor（`tools/edit`）は、**「予定の実績化（状態遷移の引�
 
 ## 3. BQN レイヤーの責務（計算・レポート射影）
 
-BQN エンジン（主に `src_next/planned_payments.bqn` と `src_next/plan_journal_overlap.bqn`）は、**「残存予定の算出」**と**「重複・曖昧一致の診断」**を担当します。
+BQN エンジン（主に `src/accounting/plan_completion_join.bqn` と `src/sections/planned_payments.bqn`）は、**「残存予定の算出」**と**「重複・曖昧一致の診断」**を担当します。
 
 1. **残存予定（planned/open items）の計算**
    - レポート生成時点で `plan.tsv` に定義されている予定から、選択Actual sourceですでに完了（`plan_id`が一致）しているものを除外して残存予定リストを作る。
    - `plan_id` を持たない予定行は互換用 fallback として扱い、5列一致・日付境界による判定に留める。fallback は正本運用ではなく、診断対象の互換経路である。
 
 2. **重複・曖昧一致のハンドリング (Safety Profile / Fail Closed)**
-   - `plan.tsv` とnative Journal の強一致・曖昧一致・未一致は `src_next/plan_journal_overlap.bqn` と check で観察する。
+   - `plan.tsv` とnative Journal の強一致・曖昧一致・未一致は canonical Plan completion Join と focused checks で観察する。
    - 異常状態を検知した場合、BQNは「きれいな間違い」をサイレントに出力せず、警告・診断・fail-closed の対象として扱う。
 
 ---

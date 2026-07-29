@@ -117,7 +117,7 @@ echo ""
 
 # ── Destination catalog smoke test ──
 echo "Destination:"
-if metadata=$(tools/report-destination-metadata --format tsv 2>&1) \
+if metadata=$(tools/report-section-metadata --format tsv 2>&1) \
     && [[ $(printf '%s\n' "$metadata" | wc -l | tr -d ' ') -eq 10 ]]; then
   pass "destination catalog metadata exposes nine reports"
 else

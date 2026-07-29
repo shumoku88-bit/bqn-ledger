@@ -31,21 +31,15 @@ Usage:
 Commands:
   select, --select     Open fzf/gum section selector (default)
   report, all          Show the full report
-  snapshot             Show Snapshot section
-  issues               Show Issues & Decisions section
-  envelopes            Show Envelope & Budget section
-  outlook              Show Outlook Dashboard section
-  cycle                Show Current Cycle Summary section
-  ytd                  Show YTD Summary section
-  balances             Show Account Balances section
-  trial-balance        Show Trial Balance section
-  recent               Show Recent Journal section
-  planned              Show Planned Payments section
-  daily-trend          Show Daily Trend section
-  daily-flow           Show Daily Flow section
-  check                 Show Readiness Check section
-  actual-comparison    Show Actual Comparison section
-  debug                Show Debug & Provenance section
+  envelopes            Show Envelope & Backing
+  balances             Show Account Balances
+  recent               Show Recent Journal
+  planned              Show Planned Payments
+  cycle-accounts       Show Current-cycle Accounts
+  cycle-comparison     Show Cycle Comparison
+  monthly-accounts     Show Monthly Accounts
+  daily-target         Show Daily Target
+  issues               Show Issues
   add, actions         Launch tools/add-ui.sh
 
 Default behavior intentionally opens the lightweight selector.
@@ -81,6 +75,16 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+manifest_config="${REPORT_MANIFEST_CONFIG:-}"
+if [[ -z "$manifest_config" ]]; then
+  echo "Error: REPORT_MANIFEST_CONFIG must name the explicit report manifest config" >&2
+  exit 2
+fi
+[[ "$manifest_config" == /* ]] || manifest_config="$ROOT_DIR/$manifest_config"
+human_manifest="$(bqn "$ROOT_DIR/src/application/report_manifest_config_cli.bqn" "$manifest_config" human)"
+compact_manifest="$(bqn "$ROOT_DIR/src/application/report_manifest_config_cli.bqn" "$manifest_config" compact)"
+
 # Record whether both stdin and stdout are connected to a terminal at startup.
 # This preserves the interactive check state even when we execute select_section
 # inside a command substitution (which redirects stdout and makes [[ -t 1 ]] false).
@@ -99,7 +103,7 @@ pager_display() {
 
 show_full_report() {
   ensure_ledger_report_base "$base_dir"
-  "$ROOT_DIR/tools/report" "$base_dir" --no-color | "$ROOT_DIR/tools/lib/color-filter" | pager_display
+  "$ROOT_DIR/tools/report" "$base_dir" all human "$human_manifest" | "$ROOT_DIR/tools/lib/color-filter" | pager_display
 }
 
 section_list() {
@@ -112,7 +116,7 @@ show_section_direct() {
   out="$(mktemp)"
   err="$(mktemp)"
   trap 'rm -f "$out" "$err"' RETURN
-  if "$ROOT_DIR/tools/report" "$base_dir" --section "$key" --no-color >"$out" 2>"$err"; then
+  if "$ROOT_DIR/tools/report" "$base_dir" "$key" human --manifest "$human_manifest" >"$out" 2>"$err"; then
     cat "$out" | "$ROOT_DIR/tools/lib/color-filter" | pager_display
   else
     status=$?
@@ -190,10 +194,17 @@ case "$cmd" in
       "$base_abs/budget_alloc.tsv"
       "$base_abs/cycle.tsv"
     )
-    # Automatically invalidate cache when report engine code changes
+    src_files+=(
+      "$base_abs/issues.tsv"
+      "$base_abs/daily_target_scope.tsv"
+      "$base_abs/$human_manifest"
+      "$base_abs/$compact_manifest"
+      "$manifest_config"
+    )
+    # Automatically invalidate cache when final report code changes.
     while IFS= read -r -d '' f; do
       src_files+=("$f")
-    done < <(find "$ROOT_DIR/src_next" -name "*.bqn" -print0)
+    done < <(find "$ROOT_DIR/src" -name "*.bqn" -print0)
     if [[ -f "$base_abs/issues.tsv" ]]; then
       src_files+=("$base_abs/issues.tsv")
     fi
@@ -258,7 +269,7 @@ case "$cmd" in
         background)
           (
             trap '' HUP
-            exec "$ROOT_DIR/tools/command-hub-cache-refresh" "$base_abs" "$cache_dir" "$max_src_mtime"
+            exec "$ROOT_DIR/tools/command-hub-cache-refresh" "$base_abs" "$cache_dir" "$max_src_mtime" "$human_manifest"
           ) </dev/null >"$cache_dir/.refresh.log" 2>&1 &
           # Let the child publish its status marker before fzf asks for the
           # first preview. Never wait for report computation here.
@@ -268,7 +279,7 @@ case "$cmd" in
           done
           ;;
         synchronous)
-          if ! "$ROOT_DIR/tools/command-hub-cache-refresh" "$base_abs" "$cache_dir" "$max_src_mtime"; then
+          if ! "$ROOT_DIR/tools/command-hub-cache-refresh" "$base_abs" "$cache_dir" "$max_src_mtime" "$human_manifest"; then
             echo "Failed to generate report cache" >&2
             exit 1
           fi

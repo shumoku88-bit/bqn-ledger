@@ -44,13 +44,13 @@ bash tools/doctor
   │
   └─ src/application/source_io.bqn (read-only source I/O)
        │
-       └─ src_next/context.bqn (current compatibility BuildContext)
+       └─ src/ledger/facts.bqn (canonical Transaction/Posting Facts)
             │
-            ├─ src_next/cube.bqn (Canonical Daily Cube)
-            ├─ src_next/tbds.bqn (Trial Balance Data Set)
+            ├─ src/accounting/ (narrow exact capabilities)
+            ├─ src/sections/ (retained semantic results)
             │
-            └─ src_next/report.bqn (人間向けレポート)
-                 └─ src_next/summary.bqn (機械向け出力)
+            └─ src/report/catalog.bqn (final routing)
+                 └─ tools/report-summary (compact manifest output)
 ```
 
 詳しくは [`docs/AI_CODEMAP.md`](docs/AI_CODEMAP.md) を参照。

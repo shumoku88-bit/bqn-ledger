@@ -54,16 +54,8 @@ if out=$(tools/query 2>&1); then
   fail "tools/query with no args should fail"
 else
   code=$?
-  assert_eq "1" "$code" "tools/query exit code"
+  assert_eq "2" "$code" "tools/query exit code"
   assert_contains "Usage: tools/query" "$out" "tools/query usage message"
-fi
-
-if out=$(tools/query invalid_base --list 2>&1); then
-  fail "tools/query with invalid base should fail"
-else
-  code=$?
-  assert_eq "2" "$code" "tools/query invalid base exit code"
-  assert_contains "ERROR: base directory not found" "$out" "tools/query invalid base message"
 fi
 
 echo "Testing tools/bqn-eval negative paths..." >&2

@@ -18,4 +18,4 @@ manifest=$2
 [[ $manifest == /* ]] || manifest="$caller_pwd/$manifest"
 [[ -d $base ]] || { printf 'ERROR\tsummary_base_unreadable\tbase directory is not readable\n' >&2; exit 1; }
 [[ -f $manifest && -r $manifest ]] || { printf 'ERROR\tsummary_manifest_unreadable\tcompact manifest is not readable\n' >&2; exit 1; }
-exec "$root/tools/report-destination-all" "$root" "$base" compact "$manifest"
+exec "$root/tools/report-all" "$root" "$base" compact "$manifest"

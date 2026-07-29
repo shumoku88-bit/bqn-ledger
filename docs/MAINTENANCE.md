@@ -1,54 +1,30 @@
-# Maintenance guide (bqn-ledger)
+# Maintenance
 
-位置づけ:
-- 長期の方針: `docs/ENGINEERING_ROADMAP.md`
-- 直近のタスク: `TODO.md`
+## Daily checks
 
-## Quick commands
+```sh
+tools/doctor
+tools/check.sh
+```
 
-- Environment / data-dir doctor: `tools/doctor`
-- Full check suite: `tools/check.sh`
-- Daily operation entry / command hub: `tools/bl`
-  - Full human report via hub: `tools/bl report`
-  - Direct full human report: `tools/report`
-  - Lower-level section selector (fzf/gum): `tools/main-ui.sh select`
-    - TTYのcold/stale cacheはbackground更新され、selector自体は先に開く
-    - 生成中previewは最新値の代わりに明示的な更新中statusを表示する
-- Machine summary: `tools/report-next-summary`
-- Current src_next usage map: `docs/SRC_NEXT_CURRENT.md`
-- Add a transaction (BQN editor):
-  - `tools/edit journal add` — 実績取引の追記
-  - `tools/edit budget add` — 予算配賦の追記
-  - `tools/add-ui.sh` — fzf/gum 対話式入力UI
+Strict household readiness is checked separately with `tools/ledger-check`; canonical provenance is inspected with `tools/ledger-inspect`.
 
-## Where to implement changes
+## Report changes
 
-### Add a new computed metric / report section
+1. Identify the narrow Fact or accounting capability required by the question.
+2. Keep source I/O and clock access in `src/application/`.
+3. Implement the semantic result in `src/sections/` without reading files or another section result.
+4. Add only approved renderers.
+5. Register a final key/surface in `src/report/catalog.bqn` when it is a retained user question.
+6. Update human/compact request manifests explicitly.
+7. Test positive, empty, invalid, provenance, direct/all/cache, and supported structured surfaces.
 
-1) Implement computation in the appropriate `src_next/*.bqn` module
-2) Follow `BuildContext → ViewModel → Format / FormatHuman` pattern
-3) Wire into `src_next/report.bqn` and `src_next/summary.bqn`
+Do not introduce broad contexts, source-shape fallbacks, old-key aliases, or forwarding modules. Operational diagnostics belong in `tools/ledger-check` or `tools/ledger-inspect`, not the report catalog.
 
-### Add a new report view
+## Editor changes
 
-- Keep `tools/report` as the primary entry.
-- Section modules go in `src_next/`.
-- Follow the existing pattern: `Build(ctx) → ViewModel`, `Format(ViewModel) → text`.
+Use preview, stale checks, backup, atomic write, and a narrow post-write validator. Editors consume canonical strict admission where the same source is read by reports. Private household changes stay in the private data repository.
 
-## Stability guidelines
+## Documentation
 
-- Keep TSV as the source of truth; avoid writing derived files.
-- Treat this as a **daily-life tool**: record → validate → aggregate → display.
-- Do **not** embed tax制度判断 in the core; record metadata and export instead.
-- Document any new metadata key in `docs/JOURNAL_META.md` and `docs/CONVENTIONS.md`.
-- Household policy / lifestyle rules belong in the policy layer, not in accounting core.
-
-## Change checklist
-
-When you change behavior:
-
-- TSV schema / row rules changed → update `docs/ARCHITECTURE.md` + `docs/JOURNAL_META.md`
-- New/renamed tool or command → update `docs/ARCHITECTURE.md` + `docs/AI_CODEMAP.md`
-- Data directory resolution / `LEDGER_DATA_DIR` behavior changed → update `docs/DATA_DIR_SETUP.md` + `README.md`
-- New meta key adopted → update `docs/JOURNAL_META.md`
-- After changes, run: `tools/check.sh`
+Keep `README.md`, `TODO.md`, `docs/ARCHITECTURE.md`, and `docs/AI_CODEMAP.md` current. Move historical plans to `docs/archive/` or delete them when Git history is sufficient.

@@ -3,7 +3,7 @@
 Status: Portfolio Contract P1 selected implementation baseline
 Date: 2026-07-28
 Decision authority: `REPORT_PORTFOLIO_DECISION.md`
-Current production: unchanged at `tools/report -> src_next/report.bqn`
+Current production: `tools/report` → strict `src/` composition
 
 ## 1. Static destination catalog
 

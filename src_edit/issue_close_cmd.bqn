@@ -66,16 +66,19 @@ ParseIssueRow ← {𝕊 index:
   line ← index ⊑ bodyLines
   lineNum ← index ⊑ bodyNums
   fields ← loader.SplitTsvKeepEmpty line
-  {𝕊 ⋄ Fail "issues.tsv line has fewer than 5 tab-separated columns"}⍟(5 > ≠ fields) @
+  {𝕊 ⋄ Fail "issues.tsv row must have exactly 8 tab-separated columns"}⍟(8 ≠ ≠ fields) @
   {
     lineNum ⇐ lineNum ⋄
     line ⇐ line ⋄
     fields ⇐ fields ⋄
-    date ⇐ 0 ⊑ fields ⋄
+    issue_id ⇐ 0 ⊑ fields ⋄
     status ⇐ 1 ⊑ fields ⋄
-    title ⇐ 2 ⊑ fields ⋄
-    amount ⇐ 3 ⊑ fields ⋄
-    memo ⇐ 4 ⊑ fields
+    date ⇐ 2 ⊑ fields ⋄
+    category ⇐ 3 ⊑ fields ⋄
+    title ⇐ 4 ⊑ fields ⋄
+    amount ⇐ 5 ⊑ fields ⋄
+    currency ⇐ 6 ⊑ fields ⋄
+    memo ⇐ 7 ⊑ fields
   }
 }
 
@@ -89,7 +92,10 @@ notOpen ← ¬ (selected.status ≡ "open")
 
 oldFields ← selected.fields
 newMemo ← selected.memo ∾ "。Decision: " ∾ decisionMemo
-newFields ← ⟨selected.date, closeStatus, selected.title, selected.amount, newMemo⟩
+newFields ← ⟨
+  selected.issue_id,closeStatus,selected.date,selected.category,
+  selected.title,selected.amount,selected.currency,newMemo
+⟩
 
 oldLine ← selected.line
 newLine ← tab Join newFields

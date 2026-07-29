@@ -47,11 +47,14 @@ valMemo ← validate.ValidateNoTabNewline "memo"‿memoVal
 {𝕊 ⋄ Fail (1 ⊑ valMemo)}⍟(¬ 0 ⊑ valMemo) @
 
 row ← render.RenderIssueRow {
-  date ⇐ dateVal ⋄
+  issue_id ⇐ "issue:" ∾ dateVal ∾ ":" ∾ titleVal ⋄
   status ⇐ statusVal ⋄
+  date ⇐ dateVal ⋄
+  category ⇐ "general" ⋄
   title ⇐ titleVal ⋄
   amount ⇐ amountVal ⋄
-  memo ⇐ memoVal
+  currency ⇐ "JPY" ⋄
+  details ⇐ memoVal
 }
 
 •Out "OK" ∾ tab ∾ "APPEND" ∾ tab ∾ "issues.tsv"

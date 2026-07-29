@@ -60,7 +60,7 @@ Public composition tests invoke every named composer and compare its rendering w
 
 ## Key-first I/O and parallel CLI
 
-Application-only `source_io.bqn` and `report_source_adapter.bqn` own read-only file access. Core ledger/accounting/sections/report modules do not import them. `tools/report-destination` admits key and surface before its BQN entry reads household evidence and currently wires:
+Application-only `source_io.bqn` and `report_source_adapter.bqn` own read-only file access. Core ledger/accounting/sections/report modules do not import them. `tools/report` admits key and surface before its BQN entry reads household evidence and currently wires:
 
 ```text
 envelopes         Accounts/Actual + explicit Plan/Budget + funding Account keys
@@ -86,7 +86,7 @@ kind | scope_id | account_key | plan_id | excluded_amount | currency | reservati
 
 Asset rows link durable scope identity to an admitted asset Account. Obligation rows link durable scope identity to a canonical Plan `plan_id`; amount/date/currency and completion status come from Plan/Actual evidence rather than the policy row. Positive exclusion requires exact currency and unique reservation reference. The adapter builds assets from observed Account balances and obligations from durable completion Join, preserving contributors. Completed or outside-horizon obligations remain evidenced but are excluded from calculation; overdue open obligations remain included.
 
-The parallel CLI supports all nine keys individually and still does not replace production. An individual request may alternatively pass `--manifest REQUEST_MANIFEST`; after key/surface admission, the application selects exactly one matching row and then invokes the same individual source/preflight/composition path. Missing, duplicate, malformed, or surface-mismatched rows fail before household source reads. This gives UI/cache callers a bounded explicit-coordinate route without inventing a shared report context.
+The production CLI supports all nine keys individually. An individual request may alternatively pass `--manifest REQUEST_MANIFEST`; after key/surface admission, the application selects exactly one matching row and then invokes the same individual source/preflight/composition path. Missing, duplicate, malformed, or surface-mismatched rows fail before household source reads. This gives UI/cache callers a bounded explicit-coordinate route without inventing a shared report context.
 
 ## Fail-closed `all`
 
@@ -96,7 +96,7 @@ The parallel CLI supports all nine keys individually and still does not replace 
 key | surface | arguments
 ```
 
-Each row contains the argv for one existing individual route; there is no cross-report coordinate schema. `report_selection_cli.bqn` derives the expected keys from `request.Validate ⟨"all",surface⟩`. The runner requires exact count, catalog order, and one shared admitted surface, then invokes `tools/report-destination` for every row. Output is buffered and published only after all rows succeed.
+Each row contains the argv for one existing individual route; there is no cross-report coordinate schema. `report_selection_cli.bqn` derives the expected keys from `request.Validate ⟨"all",surface⟩`. The runner requires exact count, catalog order, and one shared admitted surface, then invokes `tools/report` for every row. Output is buffered and published only after all rows succeed.
 
 Consequences:
 
@@ -108,13 +108,13 @@ Consequences:
 
 The shell wrapper first runs pure request admission, resolves relative base against caller cwd, validates safe basenames, and returns stable `source_unreadable` diagnostics before BQN source I/O. Its former duplicate implemented-key whitelist has been removed; the static catalog remains authoritative.
 
-No Account-name inference or fabricated default fills ownership. All coordinates remain explicit, so no clock is currently injected. Public CLI proof remains parallel to production until cutover.
+No Account-name inference or fabricated default fills ownership. All coordinates remain explicit, so no clock is currently injected. The production route keeps these coordinates explicit.
 
 ## Compact summary and exact query
 
 `tools/report-summary BASE COMPACT_MANIFEST` runs the compact subset through the same fail-closed catalog-order `all` route. Its stdout is exactly the concatenation of the five compact-owning section renderers; it has no alternate calculation or universal summary result.
 
-`tools/query-destination` is the parallel proof for the final query contract. It recognizes only exact `ledger_[a-z0-9_]+` keys, returns every repeated value in summary order, and offers exact `--list`/unique `--keys` enumeration. It does not expose regex filtering, old-key translation, or human-heading parsing. At atomic cutover this implementation replaces `tools/query`; the old production query and generation-named summary are not forwarding targets.
+`tools/query` owns the final query contract. It recognizes only exact `ledger_[a-z0-9_]+` keys, returns every repeated value in summary order, and offers exact `--list`/unique `--keys` enumeration. It does not expose regex filtering, old-key translation, or human-heading parsing. No old-key or generation-named forwarding route exists.
 
 ## Source-independent metadata
 
@@ -124,11 +124,11 @@ No Account-name inference or fabricated default fills ownership. All coordinates
 key | label | category | owner | human_output | structured_output
 ```
 
-TSV and JSON preserve final catalog order, point owners to `src/sections`, and contain no retired operational/report keys. `tools/report-destination-metadata` is the parallel UI-independent exporter. It reads no base, household source, clock, labels file, or `src_next`; production `tools/report-section-metadata` remains unchanged until cutover.
+TSV and JSON preserve final catalog order, point owners to `src/sections`, and contain no retired operational/report keys. `tools/report-section-metadata` is the UI-independent production exporter. It reads no base, household source, clock, labels file, or the retired report runtime; it is the production metadata owner.
 
 ## Destination cache publication
 
-`tools/report-destination-cache` accepts explicit base, cache directory, decimal generation token, and the human all-request manifest. It derives the nine section keys from the catalog selection, admits the complete manifest before source reads, and writes each body by invoking the same individual route once. `all.txt` is the byte concatenation of those staged bodies.
+`tools/report-cache` accepts explicit base, cache directory, decimal generation token, and the human all-request manifest. It derives the nine section keys from the catalog selection, admits the complete manifest before source reads, and writes each body by invoking the same individual route once. `all.txt` is the byte concatenation of those staged bodies.
 
 The staged manifest is exactly:
 
@@ -147,11 +147,11 @@ all
 
 An exclusive PID lock rejects concurrent publication and recovers an abandoned lock. Publication atomically renames the ten bodies and canonical `.section-keys`, removes stale `.txt` files absent from the new manifest, and renames `.cache-timestamp` last as the generation commit marker. Failure before publication leaves the prior generation untouched; malformed manifest and invalid generation-token proofs preserve prior timestamp/all bytes. Non-cache files are not removed.
 
-This is a parallel cache proof. `tools/command-hub-cache-refresh` continues to use production `tools/report` until atomic cutover.
+`tools/command-hub-cache-refresh` publishes the production cache through `tools/report-cache`.
 
 ## Cutover boundary
 
-Current production remains `tools/report -> src_next/report.bqn`. No destination alias, dual key, forwarding wrapper, or partial route switch is introduced in P10A.
+Production now uses `tools/report` → strict `src/` composition. No retired alias, dual key, or forwarding wrapper exists.
 
 The final UI will use one explicit human request manifest for direct section selection, `all`, and cache publication. `report_manifest_admission.bqn` admits unique, non-empty, safe, different human/compact basenames from a separately supplied config file; it does not add routing keys to strict ledger `config.tsv` and performs no base/default/repository discovery. Individual manifest parity is proven against direct argv output; the production UI remains on its old route until the atomic diff.
 

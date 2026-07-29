@@ -169,12 +169,12 @@ assert_no_backup "$issue_bqn_base" "tools/edit-bqn issue add new-file"
 
 issue_existing_bqn="$tmp_root/issue-existing-bqn"
 cp -R data "$issue_existing_bqn"
-printf 'date\tstatus\ttitle\tamount\tmemo\n2026-06-28\topen\tBefore\t0\tseed\n' > "$issue_existing_bqn/issues.tsv"
+printf 'issue_id\tstatus\tdate\tcategory\ttitle\tamount\tcurrency\tdetails\nissue:seed\topen\t2026-06-28\tgeneral\tBefore\t0\tJPY\tseed\n' > "$issue_existing_bqn/issues.tsv"
 ./tools/edit-bqn --base "$issue_existing_bqn" issue add \
   --date 2026-06-29 \
   --status resolved \
   --title "edit-bqn issue existing" \
-  --amount -302 \
+  --amount 302 \
   --memo "existing file" \
   --yes 
 if ! find "$issue_existing_bqn/.backup" -type f -name 'issues.tsv*' | grep -q .; then

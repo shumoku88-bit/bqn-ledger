@@ -148,7 +148,7 @@ failure, and representative all/overdue/upcoming status and membership behavior.
 
 ## Related documents
 
-- `docs/STRUCTURED_UI_EXPORT_CONTRACT.md`
+- `docs/archive/completed-plans/STRUCTURED_UI_EXPORT_CONTRACT.md`
 - `docs/PLAN_ID_LIFECYCLE.md`
 - `docs/EDIT_BQN_DISPATCHER.md`
 - `src_edit/plan_list_cmd.bqn`

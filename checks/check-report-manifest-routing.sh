@@ -9,12 +9,12 @@ trap 'rm -rf "$work"' EXIT
 
 human=$(bqn src/application/report_manifest_config_cli.bqn "$config" human)
 compact=$(bqn src/application/report_manifest_config_cli.bqn "$config" compact)
-./tools/report-destination "$fixture" balances human --manifest "$human" >"$work/balances"
+./tools/report "$fixture" balances human --manifest "$human" >"$work/balances"
 cmp "$work/balances" "$fixture/account_balances.destination.human.txt"
-./tools/report-destination "$fixture" all human "$human" >"$work/all"
+./tools/report "$fixture" all human "$human" >"$work/all"
 ./tools/report-summary "$fixture" "$fixture/$compact" >"$work/summary"
 cmp "$work/summary" "$fixture/report_summary.destination.txt"
-./tools/report-destination-cache "$fixture" "$work/cache" 1 "$human"
+./tools/report-cache "$fixture" "$work/cache" 1 "$human"
 cmp "$work/cache/balances.txt" "$work/balances"
 cmp "$work/cache/all.txt" "$work/all"
 [[ $(cat "$work/cache/.cache-timestamp") == 1 ]]

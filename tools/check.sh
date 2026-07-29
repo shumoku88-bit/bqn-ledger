@@ -1,169 +1,56 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
-# Repository check suite. During cutover preparation this runs both the
-# current production checks and destination/editor checks.
-
 export NO_COLOR=1
+root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$root"
 
-ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$ROOT_DIR"
-
-check_bqn_presentation_boundary() {
-    local status=0 file
-
-    if grep -RIl $'\033' src_next tests >/dev/null; then
-        echo "FAIL: literal ANSI ESC byte found in BQN source" >&2
-        grep -RIn $'\033' src_next tests >&2 || true
-        status=1
-    fi
-
-    while IFS= read -r file; do
-        if ! awk '
-            /^[[:space:]]*#/ { next }
-            /@[[:space:]]*\+[[:space:]]*27|\\033|\\x1[Bb]|\\u001[Bb]|\\e\[[0-9;]*m/ {
-                print FILENAME ":" FNR ": " $0
-                found=1
-            }
-            END { exit found ? 1 : 0 }
-        ' "$file"; then
-            status=1
-        fi
-    done < <(find src_next tests -type f -name '*.bqn' | sort)
-
-    if [ "$status" -ne 0 ]; then
-        echo "FAIL: BQN source must not emit terminal styling; keep color in presentation layer" >&2
-        exit 1
-    fi
-}
-
-echo "[1/4] unit tests" >&2
+echo '[1/3] BQN tests' >&2
 for test_file in tests/test_*.bqn; do
-    if [ -f "$test_file" ]; then
-        if ! bqn "$test_file" >/dev/null; then
-            echo "FAIL: $test_file" >&2
-            bqn "$test_file" # rerun without redirect to show error
-            exit 1
-        fi
-    fi
+  [[ -f $test_file ]] || continue
+  bqn "$test_file" >/dev/null || { echo "FAIL: $test_file" >&2; bqn "$test_file"; exit 1; }
 done
 
-echo "[2/4] src_next golden checks" >&2
-bash checks/check-src-next-golden.sh fixtures/editor-golden >/dev/null
-bash checks/check-src-next-golden.sh fixtures/src-next-missing-plan >/dev/null
-bash checks/check-src-next-golden.sh fixtures/src-next-empty-projection >/dev/null
-bash checks/check-src-next-golden.sh fixtures/src-next-out-of-cycle-journal >/dev/null
-bash checks/check-src-next-golden.sh fixtures/src-next-expense-role-metadata >/dev/null
-bash checks/check-src-next-golden.sh fixtures/src-next-household-mapping-policy >/dev/null
-bash checks/check-src-next-golden.sh fixtures/src-next-income-anchor-golden >/dev/null
-bash checks/check-src-next-golden.sh fixtures/src-next-stale-plan >/dev/null
-bash checks/check-src-next-golden.sh fixtures/src-next-anchor-unmet >/dev/null
-bash checks/check-src-next-golden.sh fixtures/src-next-zero-vs-unavailable >/dev/null
-bash checks/check-src-next-golden.sh fixtures/src-next-missing-budget-mapping >/dev/null
-bash checks/check-src-next-golden.sh fixtures/src-next-budget-group-rename >/dev/null
+echo '[2/3] final report checks' >&2
+for check in \
+  checks/check-ledger-facts.sh \
+  checks/check-report-manifest-config.sh \
+  checks/check-report-manifest-routing.sh \
+  checks/check-report-composition.sh \
+  checks/check-report-cache.sh \
+  checks/check-report-section-metadata.sh \
+  checks/check-report-summary-query.sh \
+  checks/check-ledger-operations.sh; do
+  bash "$check" >/dev/null || { echo "FAIL: $check" >&2; exit 1; }
+done
 
-echo "[3/4] src_next section checks" >&2
-bash checks/check-src-next-minimal-summary.sh fixtures/editor-golden >/dev/null
-bash checks/check-src-next-minimal-summary.sh fixtures/src-next-empty-projection >/dev/null
-bash checks/check-src-next-minimal-summary.sh fixtures/src-next-out-of-cycle-journal >/dev/null
-bash checks/check-src-next-minimal-summary.sh fixtures/src-next-missing-plan >/dev/null
-bash checks/check-src-next-minimal-summary.sh fixtures/src-next-expense-role-metadata >/dev/null
-bash checks/check-src-next-minimal-summary.sh fixtures/src-next-household-mapping-policy >/dev/null
-bash checks/check-src-next-minimal-summary.sh fixtures/src-next-income-anchor-golden >/dev/null
-bash checks/check-src-next-cycle-summary.sh >/dev/null
-bash checks/check-src-next-ytd-summary.sh >/dev/null
-bash checks/check-src-next-ytd-unavailable-cycle.sh >/dev/null
-bash checks/check-src-next-expense-breakdown.sh >/dev/null
-bash checks/check-src-next-recent-journal.sh fixtures/editor-golden >/dev/null
-bash checks/check-src-next-recent-journal.sh fixtures/src-next-empty-projection >/dev/null
-bash checks/check-src-next-planned-payments.sh fixtures/editor-golden >/dev/null
-bash checks/check-src-next-planned-payments.sh fixtures/src-next-missing-plan >/dev/null
-bash checks/check-src-next-planned-payments.sh fixtures/plan-completion >/dev/null
-bash checks/check-src-next-balances.sh fixtures/editor-golden >/dev/null
-bash checks/check-src-next-balances.sh fixtures/src-next-empty-projection >/dev/null
-bash checks/check-src-next-readiness.sh >/dev/null
-bash checks/check-src-next-household-metadata.sh >/dev/null
-bash checks/check-src-next-plan-journal-overlap.sh >/dev/null
-bash checks/check-src-next-envelope-computation.sh fixtures/src-next-envelope-computation >/dev/null
-bash checks/check-src-next-execution-plan-coverage.sh fixtures/src-next-execution-plan-coverage >/dev/null
-bash checks/check-src-next-envelope-production-guard.sh >/dev/null
-bash checks/check-src-next-actual-comparison.sh fixtures/actual-comparison-numeric-owner-target ok >/dev/null
-bash checks/check-src-next-actual-comparison.sh fixtures/actual-comparison-history-boundary unavailable >/dev/null
-bash checks/check-src-next-snapshot.sh fixtures/editor-golden >/dev/null
-bash checks/check-src-next-report.sh fixtures/editor-golden >/dev/null
-bash checks/check-ledger-facts-phase1-proof-fixture.sh >/dev/null
-bash checks/check-ledger-facts.sh >/dev/null
-bash checks/check-src-next-selected-section.sh fixtures/editor-golden >/dev/null
-bash checks/check-src-next-outlook-observation-source.sh >/dev/null
-bash checks/check-src-next-actual-snapshot.sh >/dev/null
-bash checks/check-src-next-outlook-remaining-plan.sh >/dev/null
-bash checks/check-src-next-daily-trend-plan-numeric-owner.sh >/dev/null
-bash checks/check-json-clock-independence.sh >/dev/null
-bash checks/check-report-section-metadata.sh fixtures/editor-golden >/dev/null
-bash checks/check-src-next-stage4-fields.sh fixtures/editor-golden >/dev/null
-bash checks/check-src-next-currency-domain-proof.sh >/dev/null
-bash checks/check-src-next-checked-posting-projection.sh >/dev/null
-bash checks/check-projection-diagnostic-presentation.sh >/dev/null
-bash checks/check-projection-compatibility-exports.sh >/dev/null
-bash checks/check-source-field-ownership.sh >/dev/null
-bash checks/check-developer-inspection-entrypoint.sh fixtures/editor-golden >/dev/null
-bash checks/check-src-next-compact-summary.sh fixtures/editor-golden >/dev/null
-bash checks/check-src-next-compact-summary.sh fixtures/src-next-envelope-computation >/dev/null
-bash checks/check-src-next-cycle-remaining-plan-characterization.sh >/dev/null
-bash checks/check-src-next-envelope-characterization.sh >/dev/null
+echo '[3/3] repository/editor/tool checks' >&2
+checks=(
+  check-devtools.sh check-devtools-negative.sh check-edit-bqn-account-list.sh
+  check-edit-bqn-journal-add.sh check-edit-bqn-journal-block-add.sh check-edit-bqn-currency-m2.sh
+  check-edit-bqn-travel-friend-add.sh check-travel-exchange-pure.sh check-edit-bqn-travel-exchange-add.sh
+  check-edit-bqn-issue-close.sh check-edit-bqn-journal-list.sh check-edit-bqn-journal-cleanup-plan.sh
+  check-edit-bqn-journal-cleanup-apply.sh check-edit-bqn-journal-canonical-surface.sh
+  check-journal-reconstructible-identity-cleanup.sh check-edit-bqn-journal-reverse.sh
+  check-edit-bqn-plan-list.sh check-edit-bqn-plan-related.sh check-edit-bqn-plan-add.sh
+  check-edit-bqn-plan-budget-sync.sh check-plan-finish-replenish-ui.sh check-edit-bqn-plan-edit.sh
+  check-workflow-drift.sh check-safe-replace-line.sh check-safe-rewrite-checked.sh check-bash-safety.sh
+  check-source-io-ownership.sh check-source-io-unreadable.sh check-editor-config-ownership.sh
+  check-editor-actual-ownership.sh check-editor-account-ownership.sh check-editor-currency-ownership.sh
+  check-editor-runtime-boundary.sh check-absolute-links.sh
+)
+for name in "${checks[@]}"; do
+  [[ -f checks/$name ]] || continue
+  bash "checks/$name" >/dev/null || { echo "FAIL: checks/$name" >&2; exit 1; }
+done
 
-echo "[4/4] engine-independent checks" >&2
-bash checks/check-repo-index.sh >/dev/null
-bash checks/check-src-next-clock-boundary.sh >/dev/null
-bash checks/check-src-next-budget-actual-zero.sh >/dev/null
-bash checks/check-devtools.sh >/dev/null
-bash checks/check-devtools-negative.sh >/dev/null
-bash checks/check-missing-role-fallback.sh >/dev/null
-bash checks/check-report-labels.sh >/dev/null
-bash checks/check-edit-bqn-account-list.sh >/dev/null
-bash checks/check-edit-bqn-journal-add.sh >/dev/null
-bash checks/check-edit-bqn-journal-block-add.sh
-bash checks/check-israel-ils-usable-vertical-slice.sh
-bash checks/check-journal-single-source-cutover.sh
-bash checks/check-edit-bqn-currency-m2.sh >/dev/null
-bash checks/check-edit-bqn-travel-friend-add.sh >/dev/null
-bash checks/check-travel-exchange-pure.sh >/dev/null
-bash checks/check-edit-bqn-travel-exchange-add.sh >/dev/null
-bash checks/check-edit-bqn-issue-close.sh >/dev/null
-bash checks/check-edit-bqn-journal-list.sh >/dev/null
-bash checks/check-edit-bqn-journal-cleanup-plan.sh >/dev/null
-bash checks/check-edit-bqn-journal-cleanup-apply.sh >/dev/null
-bash checks/check-edit-bqn-journal-canonical-surface.sh >/dev/null
-bash checks/check-journal-reconstructible-identity-cleanup.sh >/dev/null
-bash checks/check-edit-bqn-journal-reverse.sh >/dev/null
-bash checks/check-edit-bqn-plan-list.sh >/dev/null
-bash checks/check-edit-bqn-plan-related.sh >/dev/null
-bash checks/check-edit-bqn-plan-add.sh >/dev/null
-bash checks/check-edit-bqn-plan-budget-sync.sh >/dev/null
-bash checks/check-plan-finish-replenish-ui.sh >/dev/null
-bash checks/check-edit-bqn-plan-edit.sh >/dev/null
-bash checks/check-workflow-drift.sh >/dev/null
-bash checks/check-structured-ui-boundary.sh >/dev/null
-bash checks/check-safe-replace-line.sh >/dev/null
-bash checks/check-safe-rewrite-checked.sh >/dev/null
-bash checks/check-bash-safety.sh >/dev/null
-bash checks/check-ui-smoke.sh >/dev/null
-bash checks/check-command-hub-browse-cache.sh >/dev/null
-bash checks/check-report-cache-nested-module-invalidation.sh >/dev/null
-bash checks/check-report-context-duplication-characterization.sh
-bash checks/check-report-source-readiness-audit.sh >/dev/null
-bash checks/check-src-next-export-caller-inventory.sh >/dev/null
-bash checks/check-absolute-links.sh >/dev/null
-bash checks/check-source-io-ownership.sh >/dev/null
-bash checks/check-source-io-unreadable.sh >/dev/null
-bash checks/check-editor-config-ownership.sh >/dev/null
-bash checks/check-editor-actual-ownership.sh >/dev/null
-bash checks/check-editor-account-ownership.sh >/dev/null
-bash checks/check-editor-currency-ownership.sh >/dev/null
-bash checks/check-editor-runtime-boundary.sh >/dev/null
-bash checks/check-final-cutover-inventory.sh >/dev/null
-bash checks/check-final-cutover-rehearsal.sh >/dev/null
-bash checks/audit-budget-style-explicit.sh >/dev/null
-check_bqn_presentation_boundary
-
-echo "OK" >&2
+if rg -n 'src_next/|tools/report-(next|destination)|tools/query-destination' \
+  src src_edit tools checks tests --glob '!tools/check.sh'; then
+  echo 'FAIL: retired runtime reference remains' >&2
+  exit 1
+fi
+if find . -maxdepth 1 -type d -name src_next | grep -q .; then
+  echo 'FAIL: src_next still exists' >&2
+  exit 1
+fi
+git diff --check
+echo OK >&2

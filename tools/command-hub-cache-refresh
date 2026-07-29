@@ -15,14 +15,15 @@ SCRIPT_DIR="$(cd -P "$(dirname "$SOURCE")" >/dev/null 2>&1 && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$ROOT_DIR"
 
-if [[ $# -ne 3 ]]; then
-  echo "Usage: tools/command-hub-cache-refresh <base> <cache-dir> <source-mtime>" >&2
+if [[ $# -ne 4 ]]; then
+  echo "Usage: tools/command-hub-cache-refresh <base> <cache-dir> <source-mtime> <human-manifest>" >&2
   exit 2
 fi
 
 base_abs="$1"
 cache_dir="$2"
 source_mtime="$3"
+human_manifest="$4"
 [[ "$source_mtime" =~ ^[0-9]+$ ]] || { echo "Error: source mtime must be a non-negative integer" >&2; exit 2; }
 [[ -d "$base_abs" ]] || { echo "Error: base directory does not exist" >&2; exit 2; }
 mkdir -p "$cache_dir"
@@ -65,9 +66,8 @@ if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && -n "${COMMAND_HUB_CACHE_TEST_BEFORE_
   "$COMMAND_HUB_CACHE_TEST_BEFORE_BUILD_HOOK"
 fi
 
-# BQN owns every cached section body, including selected-currency balances.
-# This shell boundary only stages, validates, and atomically publishes files.
-"$ROOT_DIR/tools/report" "$base_abs" --write-section-cache "$full_stage" --no-color \
+# The final catalog route owns every body and publishes a complete staged cache.
+"$ROOT_DIR/tools/report-cache" "$base_abs" "$full_stage" "$source_mtime" "$human_manifest" \
   >/dev/null 2>"$stage_dir/full.err"
 
 key_manifest="$full_stage/.section-keys"

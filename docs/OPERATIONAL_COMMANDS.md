@@ -1,12 +1,12 @@
 # Destination operational commands
 
-Status: P10H parallel public proof; old production report `check`/`debug` routes remain until atomic cutover.
+Status: production; readiness and inspection are separate from the report catalog.
 
 ## Why these are not reports
 
 Source admission/readiness and Fact inspection are operational questions. They do not belong in the nine-key accounting report catalog, human `all`, compact summary, JSON dispatch, or section cache.
 
-Neither command imports `src/sections`, `src_next`, report composition, a clock, or cache code.
+Neither command imports `src/sections`, the retired report runtime, report composition, a clock, or cache code.
 
 ## `tools/ledger-check`
 

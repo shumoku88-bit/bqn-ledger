@@ -18,9 +18,9 @@ make_base() {
   local base="$1"
   cp -R data "$base"
   cat >"$base/issues.tsv" <<'TSV'
-date	status	title	amount	memo
-2026-06-28	open	amazon-prime plan化	600	サブスクとして固定支出にするか検討
-2026-06-29	resolved	old decision	0	already closed
+issue_id	status	date	category	title	amount	currency	details
+issue:amazon	open	2026-06-28	subscription	amazon-prime plan化	600	JPY	サブスクとして固定支出にするか検討
+issue:old	resolved	2026-06-29	decision	old decision	0	JPY	already closed
 TSV
 }
 
@@ -28,10 +28,10 @@ make_numbering_base() {
   local base="$1"
   cp -R data "$base"
   cat >"$base/issues.tsv" <<'TSV'
-date	status	title	amount	memo
-2026-06-20	resolved	resolved-before-open	0	already closed
-2026-06-21	open	open issue A	100	first open issue
-2026-06-22	open	open issue B	200	second open issue
+issue_id	status	date	category	title	amount	currency	details
+issue:resolved	resolved	2026-06-20	general	resolved-before-open	0	JPY	already closed
+issue:a	open	2026-06-21	general	open issue A	100	JPY	first open issue
+issue:b	open	2026-06-22	general	open issue B	200	JPY	second open issue
 TSV
 }
 
@@ -91,12 +91,12 @@ fi
 close_a_base="$tmp_root/close-a"
 make_numbering_base "$close_a_base"
 ./tools/edit-bqn --base "$close_a_base" issue close --index 1 --status resolved --decision 'closed A' --yes --post-check none >/dev/null
-if ! grep -F $'2026-06-21	resolved	open issue A	100	first open issue。Decision: closed A' "$close_a_base/issues.tsv" >/dev/null; then
+if ! grep -F $'issue:a	resolved	2026-06-21	general	open issue A	100	JPY	first open issue。Decision: closed A' "$close_a_base/issues.tsv" >/dev/null; then
   echo "FAIL: issue close --index 1 should close open issue A" >&2
   cat "$close_a_base/issues.tsv" >&2
   exit 1
 fi
-if ! grep -F $'2026-06-22	open	open issue B	200	second open issue' "$close_a_base/issues.tsv" >/dev/null; then
+if ! grep -F $'issue:b	open	2026-06-22	general	open issue B	200	JPY	second open issue' "$close_a_base/issues.tsv" >/dev/null; then
   echo "FAIL: issue close --index 1 should not close open issue B" >&2
   cat "$close_a_base/issues.tsv" >&2
   exit 1
@@ -105,12 +105,12 @@ fi
 close_b_base="$tmp_root/close-b"
 make_numbering_base "$close_b_base"
 ./tools/edit-bqn --base "$close_b_base" issue close --index 2 --status resolved --decision 'closed B' --yes --post-check none >/dev/null
-if ! grep -F $'2026-06-22	resolved	open issue B	200	second open issue。Decision: closed B' "$close_b_base/issues.tsv" >/dev/null; then
+if ! grep -F $'issue:b	resolved	2026-06-22	general	open issue B	200	JPY	second open issue。Decision: closed B' "$close_b_base/issues.tsv" >/dev/null; then
   echo "FAIL: issue close --index 2 should close open issue B from the unchanged open issue candidate set" >&2
   cat "$close_b_base/issues.tsv" >&2
   exit 1
 fi
-if ! grep -F $'2026-06-21	open	open issue A	100	first open issue' "$close_b_base/issues.tsv" >/dev/null; then
+if ! grep -F $'issue:a	open	2026-06-21	general	open issue A	100	JPY	first open issue' "$close_b_base/issues.tsv" >/dev/null; then
   echo "FAIL: issue close --index 2 should not close open issue A" >&2
   cat "$close_b_base/issues.tsv" >&2
   exit 1
@@ -138,7 +138,7 @@ fi
   --yes \
   --post-check none >/dev/null
 
-expected=$'2026-06-28	resolved	amazon-prime plan化	600	サブスクとして固定支出にするか検討。Decision: 2026-07-09 解約済み。固定支出/plan化しない。'
+expected=$'issue:amazon	resolved	2026-06-28	subscription	amazon-prime plan化	600	JPY	サブスクとして固定支出にするか検討。Decision: 2026-07-09 解約済み。固定支出/plan化しない。'
 if ! grep -F "$expected" "$base/issues.tsv" >/dev/null; then
   echo "FAIL: closed issue row does not preserve original text plus Decision note" >&2
   cat "$base/issues.tsv" >&2

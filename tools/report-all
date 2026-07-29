@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# Fail-closed all runner over explicit per-key argv rows.
+set -euo pipefail
+if [[ $# -ne 4 ]]; then
+  printf 'ERROR\tusage\texpected ROOT BASE SURFACE MANIFEST\n' >&2
+  exit 2
+fi
+root=$1
+base=$2
+surface=$3
+manifest=$4
+selection=""
+if ! selection="$(bqn "$root/src/application/report_selection_cli.bqn" all "$surface")"; then
+  exit 1
+fi
+mapfile -t expected_keys <<<"$selection"
+mapfile -t manifest_lines <"$manifest"
+header=$'key\tsurface\targuments'
+if [[ ${manifest_lines[0]:-} != "$header" ]]; then
+  printf 'ERROR\tall_manifest_header_invalid\tmanifest requires exact key/surface/arguments header\n' >&2
+  exit 1
+fi
+rows=("${manifest_lines[@]:1}")
+if [[ ${#rows[@]} -ne ${#expected_keys[@]} ]]; then
+  printf 'ERROR\tall_manifest_count_mismatch\tmanifest row count must match selected catalog owners\n' >&2
+  exit 1
+fi
+
+# Admit every row before any household source is read.
+for index in "${!expected_keys[@]}"; do
+  IFS=$'\t' read -r -a fields <<<"${rows[$index]}"
+  if [[ ${#fields[@]} -lt 3 ]]; then
+    printf 'ERROR\tall_manifest_row_invalid\tmanifest row requires key, surface, and arguments\n' >&2
+    exit 1
+  fi
+  if [[ ${fields[0]} != "${expected_keys[$index]}" || ${fields[1]} != "$surface" ]]; then
+    printf 'ERROR\tall_manifest_order_mismatch\tmanifest must follow selected catalog key/surface order\n' >&2
+    exit 1
+  fi
+done
+
+output=$(mktemp "${TMPDIR:-/tmp}/bqn-ledger-all.XXXXXX")
+trap 'rm -f "$output"' EXIT
+for row in "${rows[@]}"; do
+  IFS=$'\t' read -r -a fields <<<"$row"
+  "$root/tools/report" "$base" "${fields[@]}" >>"$output"
+done
+cat "$output"

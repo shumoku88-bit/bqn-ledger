@@ -13,7 +13,7 @@ Public evidence: `fixtures/ledger-facts-phase1-proof/`
 
 It does not accept a report context, source path, raw Journal/TSV text, historical transaction carrier, Cube, TBDS, or section ViewModel. It performs no I/O and reads no clock.
 
-Destination code does not import `src_next`. Phase 1B moved transaction grammar, exact decimal, currency registry, strict Account admission, single-domain admission, complete multi-domain admission, and fact projection into `src/ledger`. Runtime/editor/tool/test callers now import the canonical admission owners directly; old module paths were physically deleted without wrappers. Compatibility callers may still construct the minimal Account key/currency carrier from their existing resolver, while the canonical snapshot proof uses strict Account admission.
+Destination code does not import the retired report runtime. Phase 1B moved transaction grammar, exact decimal, currency registry, strict Account admission, single-domain admission, complete multi-domain admission, and fact projection into `src/ledger`. Runtime/editor/tool/test callers now import the canonical admission owners directly; old module paths were physically deleted without wrappers. Compatibility callers may still construct the minimal Account key/currency carrier from their existing resolver, while the canonical snapshot proof uses strict Account admission.
 
 `src/ledger/snapshot.bqn` is the pure composition boundary:
 

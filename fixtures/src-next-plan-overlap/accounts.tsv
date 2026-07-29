@@ -1,9 +1,0 @@
-# Fixture: src-next-plan-overlap
-# Purpose: plan/journal overlap diagnostics (exact match + unmatched plan)
-
-equity:opening	role=equity
-assets:bank	role=asset
-assets:cash	role=asset
-income:salary	role=income
-expenses:food	role=expense
-expenses:rent	role=expense

@@ -12,7 +12,7 @@ The canonical ledger/accounting architecture is the durable product. Current rep
 
 The migration will preserve useful accounting questions and operational capabilities, but it may rebuild, merge, relocate, or delete current reports and output surfaces. We will not carry old report complexity into the destination solely to obtain 15-section parity.
 
-Current production remains unchanged until an atomic cutover. This decision authorizes destination portfolio redesign; it does not authorize partial production routing, forwarding aliases, private-data inspection, or household-data modification.
+The approved retained portfolio is production. Forwarding aliases and compatibility routes remain forbidden; household data stays separately owned.
 
 ## Minimum destination portfolio
 
@@ -89,14 +89,14 @@ Deleting a report does not imply deleting a generally useful proved capability. 
 - No old/new alias period and no dual compact keys are allowed.
 - Full-report composition iterates the retained static portfolio without constructing one all-report semantic record.
 - Unsupported old JSON or compact surfaces may disappear when their owning report is removed.
-- Production remains `tools/report -> src_next/report.bqn` until the revised portfolio and source-readiness cutover gate pass.
+- Production uses the approved retained portfolio through strict `src/` composition.
 
 ## Contract checkpoint completed
 
 Portfolio Contract P1 is recorded in:
 
 - `REPORT_PORTFOLIO_CONTRACT.md` — final keys/surfaces, three Account Matrix contracts, Envelope & Backing terms, Daily Target semantics, and implementation order;
-- `REPORT_SURFACE_RETIREMENT_MAP.md` — tracked consumer families and per-old-section atomic migration/removal actions.
+- `archive/completed-plans/REPORT_SURFACE_RETIREMENT_MAP.md` — tracked consumer families and per-old-section atomic migration/removal actions.
 
 Implementation proceeds by retained question and dependency order. It does not resume mechanical 15-section migration.
 

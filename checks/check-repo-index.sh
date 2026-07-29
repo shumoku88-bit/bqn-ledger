@@ -30,6 +30,4 @@ if ! grep -q "bqn-def" "$tmp"; then
   exit 1
 fi
 
-bash checks/check-src-next-import-graph.sh >/dev/null
-
 echo "repo-index check OK" >&2

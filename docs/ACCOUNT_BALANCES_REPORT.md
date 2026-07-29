@@ -53,7 +53,7 @@ Exact decimals are emitted as JSON number text without binary-float conversion. 
 - no implicit-JPY compatibility body;
 - no role-group subtotal or net-worth interpretation is bundled into the balance Matrix;
 - currency symbols/display precision are presentation additions, not accounting values;
-- compact key is `ledger_balance`, never dual-emitted with `src_next_balance`.
+- compact key is `ledger_balance`, never dual-emitted with `retired_balance`.
 
 Current production routing and key remain unchanged until atomic cutover.
 

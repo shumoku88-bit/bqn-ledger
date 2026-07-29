@@ -40,7 +40,7 @@ ledger_recent_journal: DATE<TAB>CURRENCY<TAB>AMOUNT<TAB>CREDIT_ACCOUNTS<TAB>DEBI
 
 Account arrays are comma-joined only at rendering. The semantic result retains arrays. JSON is unsupported in Portfolio P1.
 
-The destination heading/key contains no generation name and never dual-emits `src_next_recent_journal`.
+The destination heading/key contains no generation name and never dual-emits `retired_recent_journal`.
 
 ## Intentional differences
 
@@ -50,7 +50,7 @@ The destination heading/key contains no generation name and never dual-emits `sr
 - only canonical complete Facts are accepted;
 - no context, source reload, historical delta rows, or one-lane fallback.
 
-Current production remains unchanged until atomic cutover.
+This retained section is in production.
 
 ## Proof
 

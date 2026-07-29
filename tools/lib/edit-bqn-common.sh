@@ -281,6 +281,7 @@ edit_bqn_apply_replace_checked() {
   local snap_mtime="$8"
   local snap_sha256="$9"
   local hook_var_name="${10:-}"
+  local post_check_owner="${11:-default}"
   local write_out backup_path
 
   if [[ -n "$hook_var_name" ]]; then
@@ -291,7 +292,7 @@ edit_bqn_apply_replace_checked() {
   printf '%s\n' "$write_out"
 
   backup_path="$(awk -F': ' '$1 == "Backup" {print $2}' <<< "$write_out")"
-  run_post_check "$base_dir" "$post_check" "$target_path" "$backup_path"
+  run_post_check "$base_dir" "$post_check" "$target_path" "$backup_path" "$post_check_owner"
 }
 
 edit_bqn_apply_canonical_surface_rewrite_checked() {

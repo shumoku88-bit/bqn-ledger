@@ -26,7 +26,7 @@ Owner: maintainer / format / validation
 ### 推奨ルール
 
 - 勘定科目名は空であってはなりません。
-- 勘定科目名は一意でなければなりません（重複している場合、現行 `src_next` readiness/lint checks で検出対象になります）。
+- 勘定科目名は一意でなければなりません（重複している場合、strict admission/readiness checks で検出対象になります）。
 - 勘定科目数にハードコードされた上限はありません（`accounts.tsv` から動的に決定されます）。重複は `checks/check-src-next-lint.sh` などの検査で検出対象になります。
 - プレフィックスおよびキーにはASCII文字を推奨します。プレフィックスの後ろは日本語でも問題ありません。
   - 例: `expenses:食費`
@@ -65,12 +65,12 @@ Owner: maintainer / format / validation
 - `#` で始まる行はコメント行として扱われ、ローダーや lint によって無視されます。これは `plan.tsv` のセクションを視覚的にグループ化するのに使用できます。
 - 会計計算では先頭の5列のみを使用します。
 - バリデーションでは **「少なくとも5列存在すること」** および既知の勘定科目が使用されていることを強制します。
-- 現行 `src_next` の projection/readiness/lint checks は `date` / `from` / `to` / `amount` の不正を skipped / invalid / warning / error として可視化します。
+- strict admission and accounting diagnostics は `date` / `from` / `to` / `amount` の不正を skipped / invalid / warning / error として可視化します。
   - `date` は `YYYY-MM-DD` 形式かつカレンダー上有効な日付である必要があります。
   - `amount` は exact decimal (10進表記) の数値文字列でなければならず、対象の通貨で許容される最大小数桁（レジストリで定義）を満たす必要があります。
 - `memo`（摘要）は空でも構いません。
 - ジャーナル形式の TSV パース処理は空のフィールドを維持するため、摘要列が空であっても `from` / `to` / `amount` が左にずれることはありません。
-- 観察境界 (`as_of`) の扱いは section ごとに異なるため、変更時は `docs/TIME_AS_AXIS.md` と該当 `src_next` module / check を確認します。未来日の actual journal row を許すかどうかは、便利な補正ではなく fail-visible な診断として扱います。
+- 観察境界 (`as_of`) の扱いは section ごとに異なるため、変更時は `docs/TIME_AS_AXIS.md` と該当 `src/ledger` / `src/accounting` module and check を確認します。未来日の actual journal row を許すかどうかは、便利な補正ではなく fail-visible な診断として扱います。
 - `budget:*` 口座は `budget_alloc.tsv` 内でのみ許可されます。native Journalおよび `plan.tsv` には予算口座を含めてはなりません。費用の封筒消費を投影するには、`accounts.tsv` の `budget=...` メタデータを使用します。
 
 ### 予算勘定の設定
@@ -82,7 +82,7 @@ Owner: maintainer / format / validation
 - `BUDGET_ID_UNASSIGNED`
 - `BUDGET_ID_SPENT`
 
-コードではこれらの名前を直接書かず、current reportは`src_next/config.bqn`、Plan budget editorは狭い`src/application/editor_plan_budget_config.bqn`のアクセサを使います。本文中の`budget:*`は既定設定を使った概念表記です。
+コードではこれらの名前を直接書かず、current reportはstrict manifest/config admission、Plan budget editorは狭い`src/application/editor_plan_budget_config.bqn`のアクセサを使います。本文中の`budget:*`は既定設定を使った概念表記です。
 
 ## メタデータ規約 (Metadata conventions)
 
@@ -129,7 +129,7 @@ Phase 6の `fixtures/multi-time-card` で検証中のキー。まだ本番のク
 
 ## BQN 実装上のはまりどころ (BQN pitfalls)
 
-`src_next` で頻出する BQN の罠。pit が新規コードを書くときの参考に。
+BQNで頻出する罠。pit が新規コードを書くときの参考に。
 
 ### 1. 大文字始まりの名前は関数役割に推論される
 
@@ -265,9 +265,9 @@ outer ← ⟨⟩
 
 ## 出力互換性 (Output compatibility)
 
-### `src_next/summary.bqn` / `tools/report-next-summary`
+### `tools/report-summary`
 
-- 現行の機械向け入口は `tools/report-next-summary`（内部で `src_next/summary.bqn`）です。
+- 現行の機械向け入口は `tools/report-summary`（final compact manifestを同じreport routeへ通す）です。
 - 出力は section-specific な key/value text で、`tools/query` がそのフィルタ入口です。
 - 下流のスクリプトや pit 作業がキー名に依存する場合があります。
 

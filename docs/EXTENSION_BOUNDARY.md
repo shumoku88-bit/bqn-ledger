@@ -47,7 +47,7 @@ Extensions may be built around stable outputs and explicit user actions.
 
 Allowed examples:
 
-- read machine exports from `tools/report-next-summary`, `tools/query`, or other documented exporters
+- read machine exports from `tools/report-summary`, `tools/query`, or other documented exporters
 - read human report output from `tools/report` for display-only transformations
 - transform canonical exports into Markdown, CSV, JSON, charts, or public summaries
 - create anonymized public reports from already-generated output

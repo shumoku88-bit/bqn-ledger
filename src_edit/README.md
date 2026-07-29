@@ -15,7 +15,7 @@ This directory turns edit intent into validated ledger edit operations.
 It is separate from report code on purpose:
 
 ```text
-src_next/   read source TSV -> derive model/report
+src/        strict admission, accounting, and retained report runtime
 src_edit/   receive edit intent -> validate/render edit operation
 tools/lib/  safely apply bytes to source TSV
 ```

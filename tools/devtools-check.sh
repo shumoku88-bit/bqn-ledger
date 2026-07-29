@@ -52,21 +52,21 @@ if ./tools/report-summary "$proof_base" "$compact_manifest" >"$tmp_summary" 2>/d
   total_keys=$(grep -c '^ledger_' "$tmp_summary" || echo 0)
   echo "  INFO: destination summary exposes $total_keys ledger_* rows" >&2
   first_key=$(sed -n '/^ledger_/{s/: .*//;p;q;}' "$tmp_summary")
-  if [[ -n $first_key ]] && ./tools/query-destination "$proof_base" "$compact_manifest" "$first_key" >/dev/null 2>&1; then
+  if [[ -n $first_key ]] && ./tools/query "$proof_base" "$compact_manifest" "$first_key" >/dev/null 2>&1; then
     echo "  PASS: exact query can retrieve a key (sample: $first_key)" >&2
     pass
   else
     echo "  FAIL: exact destination query failed for key: $first_key" >&2
     fail "query: cannot retrieve key $first_key"
   fi
-  if ./tools/query-destination "$proof_base" "$compact_manifest" --list >/dev/null 2>&1; then
+  if ./tools/query "$proof_base" "$compact_manifest" --list >/dev/null 2>&1; then
     echo "  PASS: exact query --list works" >&2
     pass
   else
     echo "  FAIL: exact query --list failed" >&2
     fail "query: --list failed"
   fi
-  if ./tools/query-destination "$proof_base" "$compact_manifest" --keys >/dev/null 2>&1; then
+  if ./tools/query "$proof_base" "$compact_manifest" --keys >/dev/null 2>&1; then
     echo "  PASS: exact query --keys works" >&2
     pass
   else

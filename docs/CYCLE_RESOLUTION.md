@@ -21,7 +21,7 @@ incomeAnchor   admitted definition + explicit as-of + Actual Facts + Plan Facts
 
 There is no universal cycle context and no dispatcher that forces unused Facts into fixed/calendar calls. All mode resolvers return the same typed period result, so an outer use case may dispatch after admission without changing consumers.
 
-No resolver performs source I/O, reads a clock, parses source rows, formats report text, or imports `src_next`.
+No resolver performs source I/O, reads a clock, parses source rows, formats report text, or imports the retired report runtime.
 
 ## Result states
 
@@ -86,7 +86,7 @@ Snapshot-local Actual and Plan indices are never compared or merged.
 
 ## Offset decision
 
-Historical destination admission accepted any integer `offset` even though current `src_next` resolution ignores it. The strict destination now admits only absent/`0`. Nonzero offset is rejected as `income_anchor_offset_unsupported` instead of being silently ignored or given speculative semantics. A future historical-cycle feature requires its own explicit contract and consumers.
+Historical destination admission accepted any integer `offset` even though current the retired report runtime resolution ignores it. The strict destination now admits only absent/`0`. Nonzero offset is rejected as `income_anchor_offset_unsupported` instead of being silently ignored or given speculative semantics. A future historical-cycle feature requires its own explicit contract and consumers.
 
 ## Source table gate
 

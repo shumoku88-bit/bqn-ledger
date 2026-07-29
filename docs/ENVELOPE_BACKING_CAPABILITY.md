@@ -1,6 +1,6 @@
 # Retained Envelope & Backing report
 
-Status: Portfolio P7 complete under [`DESTINATION_QUALITY_GATE.md`](DESTINATION_QUALITY_GATE.md).
+Status: Portfolio P7 complete under [`archive/completed-plans/DESTINATION_QUALITY_GATE.md`](archive/completed-plans/DESTINATION_QUALITY_GATE.md).
 
 Owners:
 

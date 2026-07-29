@@ -25,7 +25,7 @@ half-open Plan/Actual Transaction selection
   → human / compact / JSON renderers
 ```
 
-There is no source path, I/O, clock, report context, Cube/TBDS, raw TSV row, or `src_next` import.
+There is no source path, I/O, clock, report context, Cube/TBDS, raw TSV row, or the retired report runtime import.
 
 ## Selection and observation
 
@@ -86,7 +86,7 @@ Human and JSON preserve current strict-fixture semantics and schema. Compact per
 ledger_planned_payment: ...
 ```
 
-No `src_next_planned_payment` alias is emitted by the destination renderer. Production compact routing is unchanged until final cutover.
+No `retired_planned_payment` alias is emitted by the destination renderer. Production compact routing uses only the final `ledger_*` keys.
 
 Goldens:
 

@@ -45,5 +45,5 @@ They must not:
 
 - read `data/*.tsv`
 - write `data/*.tsv`
-- change `src_next` behavior
+- change the retired report runtime behavior
 - become production output without a separate implementation decision

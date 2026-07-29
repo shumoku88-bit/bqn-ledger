@@ -1,137 +1,74 @@
-# BQN Ledger
+# bqn-ledger
 
-> A plain-text household event ledger and report engine.
-
-BQN Ledger keeps household accounting records in human-readable native Journal and TSV files, then uses BQN to build checks, projections, reports, exports, and editing tools.
-
-The repository is both a daily-use ledger and a workshop for exploring accounting representations with arrays.
-
-## Start here
-
-- Try the demo below.
-- Read [`docs/DATA_DIR_SETUP.md`](docs/DATA_DIR_SETUP.md) to use your own data directory.
-- Read [`docs/BQN_EDITOR_USAGE.md`](docs/BQN_EDITOR_USAGE.md) for daily input.
-- Read [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the current data flow.
-- Browse [`docs/README.md`](docs/README.md) for more documentation.
-- Read [`AGENTS.md`](AGENTS.md) when working on the repository with an AI or another developer.
+A plain-text household event ledger and retained report engine written in BQN.
 
 ## Requirements
 
-The report engine uses [CBQN](https://github.com/dzaima/CBQN). A build with FFI and Singeli support is recommended.
+- CBQN with FFI/Singeli support
+- `fzf` or `gum` for optional interactive UI
 
-`fzf` and `gum` add optional interactive conveniences. The core report path works without them.
+## Data and report configuration
 
-## Quick start
+Set the data directory and the separately admitted report-manifest config:
 
-`fixtures/demo/` contains two synthetic household cycles.
-
-```bash
-# A short current snapshot
-tools/report fixtures/demo --section snapshot
-
-# Available report sections
-tools/report fixtures/demo --list-sections
-
-# Cycle comparison and year-to-date views
-tools/report fixtures/demo --section actual-comparison
-tools/report fixtures/demo --section ytd
-
-# A historical outlook with a fixed observation date
-tools/report fixtures/demo --section outlook --outlook-as-of 2026-02-21
-
-# The complete report
-tools/report fixtures/demo
+```sh
+export LEDGER_DATA_DIR=../ledger-data/data
+export REPORT_MANIFEST_CONFIG=../ledger-data/data/report_manifests.tsv
 ```
 
-For daily operation:
+The manifest config names distinct human and compact request manifests. Every request row carries explicit source basenames, domain, observation, and report-specific coordinates; report routing does not infer them from ledger config.
 
-```bash
-# Interactive command hub
-tools/bl
+Validate strict sources:
 
-# Check the environment and selected data directory
-tools/doctor
+```sh
+tools/ledger-check "$LEDGER_DATA_DIR" \
+  actual.journal plan.tsv budget_alloc.tsv cycle.tsv issues.tsv daily_target_scope.tsv
+```
 
-# Run the project checks
+## Reports
+
+```sh
+# Interactive retained-report selector
+tools/main-ui.sh
+
+# Full human report
+tools/report "$LEDGER_DATA_DIR" all human report_all_human.tsv
+
+# One retained report through the same manifest row
+tools/report "$LEDGER_DATA_DIR" balances human --manifest report_all_human.tsv
+
+# Compact output and exact query
+tools/report-summary "$LEDGER_DATA_DIR" "$LEDGER_DATA_DIR/report_all_compact.tsv"
+tools/query "$LEDGER_DATA_DIR" "$LEDGER_DATA_DIR/report_all_compact.tsv" ledger_daily_target_amount
+
+# Source-independent catalog metadata
+tools/report-section-metadata
+tools/report-section-metadata --format json
+```
+
+The retained keys are `envelopes`, `balances`, `recent`, `planned`, `cycle-accounts`, `cycle-comparison`, `monthly-accounts`, `daily-target`, and `issues`.
+
+Operational diagnostics are separate from reports:
+
+```sh
+tools/ledger-check --help
+tools/ledger-inspect --help
+```
+
+## Editing
+
+```sh
+tools/add-ui.sh
+tools/edit-bqn --help
+```
+
+Writes use preview, stale checks, backups, atomic replacement, and narrow post-write validation. Canonical household data remains in the separate private data repository.
+
+## Development
+
+```sh
 tools/check.sh
+tools/doctor
 ```
 
-## Data
-
-A base directory contains the ledger's source and configuration files.
-
-| File | Role |
-|---|---|
-| configured native Journal | Actual transactions |
-| `plan.tsv` | Future plans |
-| `budget_alloc.tsv` | Envelope allocations |
-| `accounts.tsv` | Accounts and account metadata |
-| `cycle.tsv` | Household cycle boundaries |
-| `config.tsv` | Ledger and UI configuration |
-| `issues.tsv` | Questions and decision notes |
-
-The production data directory is selected with `LEDGER_DATA_DIR` or the configured default.
-
-```bash
-LEDGER_DATA_DIR=/path/to/ledger-data/data tools/report
-```
-
-Household data can live outside the repository while the public repository contains synthetic fixtures for development and discussion.
-
-## Daily input
-
-```bash
-# Add an Actual transaction
-tools/edit journal add \
-  --date 2026-06-21 \
-  --memo "スーパー" \
-  --from assets:cash \
-  --to expenses:食費 \
-  --amount 1240
-
-# List unfinished plans
-tools/edit plan list
-
-# Preview finishing a plan as an Actual transaction
-tools/edit plan finish --index 4 --actual-date 2026-06-21
-```
-
-The editor provides preview, confirmation, backup, stale checks, and post-write checks. See [`docs/BQN_EDITOR_USAGE.md`](docs/BQN_EDITOR_USAGE.md).
-
-## Model
-
-The current path is:
-
-```text
-native Journal and companion TSV
-  -> loader and checked projections
-  -> Posting IR
-  -> accounting and household views
-  -> report / export / UI
-```
-
-One important materialized view is the Canonical Daily Cube:
-
-```text
-Day × Account × Layer
-```
-
-Its main layers are `actual`, `plan`, `budget`, and `forecast`. Other representations and projections can coexist when they illuminate different questions.
-
-## Working on the repository
-
-Code, documentation, tests, fixtures, tools, and architecture are open to revision. Experiments and unexpected discoveries are welcome, especially when they are easy to review and reverse.
-
-Git history preserves earlier designs. Archived documents record the paths already explored without controlling the next one.
-
-Useful entrances:
-
-- [`AGENTS.md`](AGENTS.md)
-- [`TODO.md`](TODO.md)
-- [`docs/AI_CODEMAP.md`](docs/AI_CODEMAP.md)
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-- [`docs/README.md`](docs/README.md)
-
-## Why share it?
-
-See [`docs/WHY_SHARE.md`](docs/WHY_SHARE.md).
+Start with [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/AI_CODEMAP.md`](docs/AI_CODEMAP.md), and [`TODO.md`](TODO.md).

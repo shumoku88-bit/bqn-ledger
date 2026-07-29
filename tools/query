@@ -1,73 +1,41 @@
 #!/usr/bin/env bash
+# Parallel proof for the final exact ledger_* query contract.
 set -euo pipefail
-# tools/query — thin query wrapper over src_next summary output.
-# Reads key:value lines from tools/report-next-summary, filters, returns values.
-# Does NOT compute — only queries existing machine-readable fields.
-#
-# Usage:
-#   tools/query <base> <key>           return value for key
-#   tools/query <base> --list           list all keys and values
-#   tools/query <base> --keys           list all keys only
-#   tools/query <base> --grep <pat>     grep keys (awk regex)
-#   tools/query <base> --grep-val <pat> grep values (awk regex)
-
 usage() {
-  echo "Usage: tools/query <base> <key>" >&2
-  echo "       tools/query <base> --list" >&2
-  echo "       tools/query <base> --keys" >&2
-  echo "       tools/query <base> --grep <pattern>" >&2
-  echo "       tools/query <base> --grep-val <pattern>" >&2
-  exit 1
+  cat >&2 <<'USAGE'
+Usage: tools/query BASE COMPACT_MANIFEST LEDGER_KEY
+       tools/query BASE COMPACT_MANIFEST --list
+       tools/query BASE COMPACT_MANIFEST --keys
+
+LEDGER_KEY lookup is exact and prints every matching value in summary order.
+No retired-key translation, regex lookup, or human-heading parsing is provided.
+USAGE
 }
-
-[ $# -lt 1 ] && usage
-
-# Resolve base dir
-base="$1"
-if [ ! -d "$base" ]; then
-  if [ -d "fixtures/$base" ]; then
-    base="fixtures/$base"
-  elif [ "$base" = "data" ] && [ -d "data" ]; then
-    base="data"
-  else
-    echo "ERROR: base directory not found: $base" >&2
-    exit 2
-  fi
-fi
-shift
-
-# Collect summary to temp file (avoid pipefail SIGPIPE with early awk exit)
-tmp="$(mktemp)"
+[[ $# -eq 3 ]] || { usage; exit 2; }
+root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+base=$1
+manifest=$2
+request=$3
+case "$request" in
+  --list|--keys) ;;
+  --*) usage; exit 2 ;;
+  *)
+    [[ $request =~ ^ledger_[a-z0-9_]+$ ]] \
+      || { printf 'ERROR: unsupported query key: %s\n' "$request" >&2; exit 1; }
+    ;;
+esac
+tmp=$(mktemp "${TMPDIR:-/tmp}/bqn-ledger-query.XXXXXX")
 trap 'rm -f "$tmp"' EXIT
-tools/report-next-summary "$base" 2>/dev/null > "$tmp"
-
-case "${1:-}" in
+"$root/tools/report-summary" "$base" "$manifest" >"$tmp"
+case "$request" in
   --list)
-    grep '^src_next_' "$tmp" || true
+    awk -F': ' '$1 ~ /^ledger_[a-z0-9_]+$/ {print}' "$tmp"
     ;;
   --keys)
-    grep '^src_next_' "$tmp" | sed 's/: .*//' || true
-    ;;
-  --grep)
-    pat="${2:-}"
-    [ -z "$pat" ] && usage
-    awk -F': ' -v p="$pat" '$1 ~ p' "$tmp" || true
-    ;;
-  --grep-val)
-    pat="${2:-}"
-    [ -z "$pat" ] && usage
-    awk -F': ' -v p="$pat" '$2 ~ p' "$tmp" || true
-    ;;
-  -*)
-    usage
+    awk -F': ' '$1 ~ /^ledger_[a-z0-9_]+$/ && !seen[$1]++ {print $1}' "$tmp"
     ;;
   *)
-    key="$1"
-    val="$(awk -F': ' -v k="$key" '$1 == k { print $2; exit }' "$tmp")"
-    if [ -z "$val" ]; then
-      echo "ERROR: key not found: $key" >&2
-      exit 1
-    fi
-    echo "$val"
+    awk -F': ' -v key="$request" '$1 == key {print substr($0, length($1)+3); found=1} END {exit !found}' "$tmp" \
+      || { printf 'ERROR: key not found: %s\n' "$request" >&2; exit 1; }
     ;;
 esac

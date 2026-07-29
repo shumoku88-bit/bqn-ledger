@@ -23,7 +23,7 @@ This repository is not packaged as a general consumer product.  A "release" mean
 
    ```bash
    tools/report fixtures/editor-golden
-   tools/report-next-summary fixtures/editor-golden
+   tools/report-summary fixtures/editor-golden
    ```
 
 4. Confirm the effective data directory guidance is still current.

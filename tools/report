@@ -1,71 +1,155 @@
 #!/usr/bin/env bash
-# tools/report — daily household report using src_next engine
-#
-# Default production report entrypoint.
-# Uses src_next/report.bqn and defaults to LEDGER_DATA_DIR, then config/system_defaults.tsv.
-#
-# Usage:
-#   tools/report                 → uses LEDGER_DATA_DIR or configured default (data/ sandbox)
-#   tools/report data            → explicit sandbox
-#   tools/report fixtures/basic  → fixture mode
-#   tools/report --no-color      → suppress ANSI color
-#   tools/report --color=always  → force ANSI color
-#   tools/report <base> --section balances [--currency CODE]
-#                                → selected human balances (default from config.tsv)
-
+# Parallel public destination composition proof. Does not replace tools/report.
 set -euo pipefail
 
-SOURCE="${BASH_SOURCE[0]}"
-while [ -L "$SOURCE" ]; do
-  DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
-  SOURCE="$(readlink "$SOURCE")"
-  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
-done
-SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
-ROOT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
-cd "$ROOT_DIR"
-source "$ROOT_DIR/tools/lib/system-defaults.sh"
+usage() {
+  cat <<'USAGE'
+Usage:
+  tools/report BASE envelopes SURFACE DOMAIN START END_EXCLUSIVE OBSERVATION JOURNAL PLAN BUDGET FUNDING_ACCOUNT...
+  tools/report BASE balances SURFACE DOMAIN AS_OF JOURNAL
+  tools/report BASE recent SURFACE LIMIT JOURNAL
+  tools/report BASE planned SURFACE OBSERVATION JOURNAL PLAN CYCLE
+  tools/report BASE cycle-accounts human DOMAIN OBSERVATION JOURNAL CYCLE [PLAN]
+  tools/report BASE cycle-comparison human DOMAIN CURRENT_OBS BASELINE_OBS POLICY JOURNAL CURRENT_CYCLE BASELINE_CYCLE [PLAN]
+  tools/report BASE monthly-accounts human DOMAIN FIRST_MONTH LAST_MONTH_EXCLUSIVE JOURNAL
+  tools/report BASE daily-target SURFACE DOMAIN OBSERVATION TARGET JOURNAL PLAN DAILY_SCOPE
+  tools/report BASE issues human ISSUE_SOURCE
+  tools/report BASE KEY SURFACE --manifest REQUEST_MANIFEST
+  tools/report BASE all human|compact REQUEST_MANIFEST
 
-base="${LEDGER_DATA_DIR:-$(get_default_base_dir)}"
-if [[ $# -gt 0 && "$1" != --* ]]; then
-  base="$1"
-  shift
+All coordinates and source basenames are explicit. Production remains tools/report.
+USAGE
+}
+
+if [[ ${1:-} == --help || ${1:-} == -h ]]; then usage; exit 0; fi
+if [[ $# -lt 3 ]]; then usage >&2; exit 2; fi
+
+root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+caller_pwd=$PWD
+base=$1
+key=$2
+surface=$3
+shift 3
+[[ $base == /* ]] || base="$caller_pwd/$base"
+cd "$root"
+
+request_output=""
+if ! request_output="$(bqn src/application/report_request_cli.bqn "$key" "$surface" 2>&1)"; then
+  printf '%s\n' "$request_output" >&2
+  exit 1
 fi
-
-color_args=()
-has_color_arg=0
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --write-section-cache)
-      if [[ $# -lt 2 ]]; then
-        echo "Error: --write-section-cache requires a directory" >&2
-        exit 1
-      fi
-      dir_arg="$2"
-      if [[ "$dir_arg" != /* ]]; then
-        dir_arg="$PWD/$dir_arg"
-      fi
-      color_args+=("--write-section-cache" "$dir_arg")
-      shift 2
-      ;;
-    --no-color|--color=never|--color=always)
-      has_color_arg=1
-      color_args+=("$1")
-      shift
-      ;;
-    *)
-      color_args+=("$1")
-      shift
-      ;;
-  esac
-done
-
-if [[ "$has_color_arg" -eq 0 ]]; then
-  if [[ -n "${NO_COLOR:-}" || ! -t 1 ]]; then
-    color_args+=(--no-color)
+safe_basename() { [[ $1 != */* && $1 != *\\* && -n $1 ]]; }
+require_journal() { safe_basename "$1" && [[ $1 == *.journal ]]; }
+require_tsv() { safe_basename "$1" && [[ $1 == *.tsv ]]; }
+source_name_error() { printf 'ERROR\tsource_basename_invalid\t%s\n' "$1" >&2; exit 1; }
+if [[ $key == all ]]; then
+  [[ $# -eq 1 ]] || { printf 'ERROR\tall_manifest_required\tall requires one manifest basename\n' >&2; exit 1; }
+  require_tsv "$1" || source_name_error 'all manifest must be a safe .tsv basename'
+  if [[ ! -f $base/$1 || ! -r $base/$1 ]]; then
+    printf 'ERROR\tall_manifest_unreadable\tall manifest is not readable\n' >&2
+    exit 1
   fi
+  exec "$root/tools/report-all" "$root" "$base" "$surface" "$base/$1"
 fi
 
-ensure_ledger_report_base "$base"
+if [[ ${1:-} == --manifest ]]; then
+  [[ $# -eq 2 ]] || { printf 'ERROR\tmanifest_request_invalid\texpected --manifest and one basename\n' >&2; exit 1; }
+  require_tsv "$2" || source_name_error 'request manifest must be a safe .tsv basename'
+  manifest="$base/$2"
+  [[ -f $manifest && -r $manifest ]] \
+    || { printf 'ERROR\trequest_manifest_unreadable\trequest manifest is not readable\n' >&2; exit 1; }
+  mapfile -t manifest_lines <"$manifest"
+  [[ ${manifest_lines[0]:-} == $'key\tsurface\targuments' ]] \
+    || { printf 'ERROR\trequest_manifest_header_invalid\tmanifest header is not exact\n' >&2; exit 1; }
+  selected=()
+  for row in "${manifest_lines[@]:1}"; do
+    IFS=$'\t' read -r -a fields <<<"$row"
+    [[ ${#fields[@]} -ge 3 ]] \
+      || { printf 'ERROR\trequest_manifest_row_invalid\tmanifest row is incomplete\n' >&2; exit 1; }
+    if [[ ${fields[0]} == "$key" ]]; then
+      [[ ${fields[1]} == "$surface" ]] \
+        || { printf 'ERROR\trequest_manifest_surface_mismatch\tselected row surface differs from request\n' >&2; exit 1; }
+      [[ ${#selected[@]} -eq 0 ]] \
+        || { printf 'ERROR\trequest_manifest_duplicate\tselected key occurs more than once\n' >&2; exit 1; }
+      selected=("${fields[@]:2}")
+    fi
+  done
+  [[ ${#selected[@]} -gt 0 ]] \
+    || { printf 'ERROR\trequest_manifest_key_missing\tselected key is absent\n' >&2; exit 1; }
+  set -- "${selected[@]}"
+fi
+required_sources=()
 
-exec bqn src_next/report.bqn "$base" "${color_args[@]}"
+case "$key" in
+  envelopes)
+    [[ $# -ge 8 ]] || { usage >&2; exit 2; }
+    require_journal "$5" || source_name_error 'journal must be a safe .journal basename'
+    require_tsv "$6" && require_tsv "$7" || source_name_error 'Plan and Budget must be safe .tsv basenames'
+    required_sources=(accounts.tsv "$5" "$6" "$7")
+    ;;
+  balances)
+    [[ $# -eq 3 ]] || { usage >&2; exit 2; }
+    require_journal "$3" || source_name_error 'journal must be a safe .journal basename'
+    required_sources=(accounts.tsv "$3")
+    ;;
+  recent)
+    [[ $# -eq 2 ]] || { usage >&2; exit 2; }
+    require_journal "$2" || source_name_error 'journal must be a safe .journal basename'
+    required_sources=(accounts.tsv "$2")
+    ;;
+  planned)
+    [[ $# -eq 4 ]] || { usage >&2; exit 2; }
+    require_journal "$2" || source_name_error 'journal must be a safe .journal basename'
+    require_tsv "$3" && require_tsv "$4" || source_name_error 'Plan and Cycle must be safe .tsv basenames'
+    required_sources=(accounts.tsv "$2" "$3" "$4")
+    ;;
+  cycle-accounts)
+    [[ $# -eq 4 || $# -eq 5 ]] || { usage >&2; exit 2; }
+    require_journal "$3" || source_name_error 'journal must be a safe .journal basename'
+    require_tsv "$4" || source_name_error 'Cycle must be a safe .tsv basename'
+    required_sources=(accounts.tsv "$3" "$4")
+    if [[ $# -eq 5 ]]; then
+      require_tsv "$5" || source_name_error 'Plan must be a safe .tsv basename'
+      required_sources+=("$5")
+    fi
+    ;;
+  cycle-comparison)
+    [[ $# -eq 7 || $# -eq 8 ]] || { usage >&2; exit 2; }
+    require_journal "$5" || source_name_error 'journal must be a safe .journal basename'
+    require_tsv "$6" && require_tsv "$7" || source_name_error 'Cycle files must be safe .tsv basenames'
+    required_sources=(accounts.tsv "$5" "$6" "$7")
+    if [[ $# -eq 8 ]]; then
+      require_tsv "$8" || source_name_error 'Plan must be a safe .tsv basename'
+      required_sources+=("$8")
+    fi
+    ;;
+  monthly-accounts)
+    [[ $# -eq 4 ]] || { usage >&2; exit 2; }
+    require_journal "$4" || source_name_error 'journal must be a safe .journal basename'
+    required_sources=(accounts.tsv "$4")
+    ;;
+  daily-target)
+    [[ $# -eq 6 ]] || { usage >&2; exit 2; }
+    require_journal "$4" || source_name_error 'journal must be a safe .journal basename'
+    require_tsv "$5" && require_tsv "$6" || source_name_error 'Plan and Daily Scope must be safe .tsv basenames'
+    required_sources=(accounts.tsv "$4" "$5" "$6")
+    ;;
+  issues)
+    [[ $# -eq 1 ]] || { usage >&2; exit 2; }
+    require_tsv "$1" || source_name_error 'issues must be a safe .tsv basename'
+    required_sources=("$1")
+    ;;
+esac
+
+if [[ ! -r config/currencies.tsv ]]; then
+  printf 'ERROR\tcurrency_registry_unreadable\tcurrency registry is not readable\n' >&2
+  exit 1
+fi
+for source_name in "${required_sources[@]}"; do
+  if [[ ! -f $base/$source_name || ! -r $base/$source_name ]]; then
+    printf 'ERROR\tsource_unreadable\trequired source is not readable: %s\n' "$source_name" >&2
+    exit 1
+  fi
+done
+
+exec bqn src/application/report_destination_cli.bqn "$base" "$key" "$surface" "$@"
