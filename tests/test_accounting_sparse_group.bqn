@@ -27,6 +27,8 @@ CheckRejected ← {𝕊 input‿code:
 }
 CheckRejected ⟨⟨⟨"a"⟩,1,⟨"a"⟩,⟨0,0⟩,⟨1⟩,⟨⟨0⟩⟩⟩,"group_columns_misaligned"⟩
 CheckRejected ⟨⟨⟨"a","a"⟩,1,⟨⟩,⟨⟩,⟨⟩,⟨⟩⟩,"group_row_axis_duplicate"⟩
+nestedDuplicateAxis ← ⟨⟨"a",0⟩,⟨"b",1⟩,⟨"a",0⟩⟩
+CheckRejected ⟨⟨nestedDuplicateAxis,1,⟨⟩,⟨⟩,⟨⟩,⟨⟩⟩,"group_row_axis_duplicate"⟩
 CheckRejected ⟨⟨⟨"a"⟩,1,⟨"b"⟩,⟨0⟩,⟨1⟩,⟨⟨0⟩⟩⟩,"group_row_coordinate_unknown"⟩
 CheckRejected ⟨⟨⟨"a"⟩,1,⟨"a"⟩,⟨1⟩,⟨1⟩,⟨⟨0⟩⟩⟩,"group_column_index_invalid"⟩
 CheckRejected ⟨⟨⟨"a"⟩,1,⟨"a"⟩,⟨0.5⟩,⟨1⟩,⟨⟨0⟩⟩⟩,"group_column_index_invalid"⟩
