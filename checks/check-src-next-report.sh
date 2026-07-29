@@ -4,7 +4,7 @@ set -euo pipefail
 # Verify src_next human-readable Stage 4 report surface.
 # This is observation-only; production remains bqn main.bqn.
 
-fixture="${1:-fixtures/src-next-golden}"
+fixture="${1:-fixtures/editor-golden}"
 if [ ! -d "$fixture" ]; then
   echo "ERROR: fixture directory not found: $fixture" >&2
   exit 2

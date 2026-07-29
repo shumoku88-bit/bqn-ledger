@@ -6,7 +6,7 @@ cd "$ROOT_DIR"
 
 # The public-fixture golden includes the projection header, tabular rows,
 # and source-balance diagnostic emitted by developer_inspection.bqn.
-bash checks/check-src-next-golden.sh fixtures/src-next-golden >/dev/null
+bash checks/check-src-next-golden.sh fixtures/editor-golden >/dev/null
 
 for name in proj_cols BalanceBySourceOk FormatBalanceCheck FormatProjTable; do
   if grep -Eq "^[[:space:]]*${name}[[:space:]]*←|${name}[[:space:]]*⇐" src_next/projection.bqn; then

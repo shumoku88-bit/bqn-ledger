@@ -16,7 +16,7 @@ if find data fixtures -name journal.tsv -print -quit | grep -q .; then
 fi
 base="$tmp/base"
 mkdir -p "$base"
-fixture=fixtures/src-next-golden
+fixture=fixtures/editor-golden
 cp "$fixture/cycle.tsv" "$fixture/plan.tsv" "$fixture/accounts.tsv" "$fixture/actual.journal" "$base/"
 : >"$base/budget_alloc.tsv"
 awk '

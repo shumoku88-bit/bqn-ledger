@@ -55,7 +55,7 @@ if grep -q 'result ↩ BuildFromPrepared ⟨selectedCurrency, raw, resolved, cy,
   exit 1
 fi
 
-out="$(bqn tools/characterization/report_context_duplication_probe.bqn fixtures/src-next-golden JPY)"
+out="$(bqn tools/characterization/report_context_duplication_probe.bqn fixtures/editor-golden JPY)"
 
 grep -q '^--- REPORT CONTEXT DUPLICATION PROBE ---$' <<<"$out"
 grep -Eq '^Legacy_BuildContext_ms: [0-9]' <<<"$out"

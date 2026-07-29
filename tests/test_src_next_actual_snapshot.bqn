@@ -5,7 +5,7 @@ ctx_mod ← •Import "../src_next/context.bqn"
 actual_snapshot ← •Import "../src_next/actual_snapshot.bqn"
 SnapshotAt ← {𝕊 ctx‿asOf: actual_snapshot.BuildFromPrepared ⟨ctx.posting_rows, ctx.cube, ctx.resolved, asOf⟩}
 
-ctx ← ctx_mod.BuildContext "fixtures/src-next-golden"
+ctx ← ctx_mod.BuildContext "fixtures/editor-golden"
 s ← SnapshotAt ⟨ctx, "2026-06-16"⟩
 
 "2026-06-16" lib.AssertEq s.as_of

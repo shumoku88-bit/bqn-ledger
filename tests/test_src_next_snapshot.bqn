@@ -58,7 +58,7 @@ mockCube ← {
 }
 
 mockCtx ← {
-  base ⇐ "fixtures/src-next-golden",
+  base ⇐ "fixtures/editor-golden",
   cy ⇐ { start ⇐ "2026-06-15", end_exclusive ⇐ "2026-06-22", day_count ⇐ 7 },
   resolved ⇐ mockResolved,
   cube ⇐ mockCube,

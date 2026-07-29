@@ -1,6 +1,6 @@
 # Final report-engine cutover inventory
 
-Status: P11 editor extraction complete; P12 tracked deletion rehearsal next. Cutover is **blocked** and production remains unchanged.
+Status: P12 retained-helper classification complete; atomic deletion rehearsal next. Cutover is **blocked** and production remains unchanged.
 Date: 2026-07-28
 Authority: `REPORT_PORTFOLIO_CONTRACT.md`, `REPORT_SURFACE_RETIREMENT_MAP.md`, `DESTINATION_COMPOSITION.md`
 
@@ -12,18 +12,20 @@ Measured tracked blockers:
 
 ```text
 src_next BQN modules                                  65
-BQN files outside src_next with direct src_next import 105
+BQN files outside src_next with direct src_next import 103
   src_edit files                                       0
-  test files                                         101
+  test files                                          99
   check/tool characterization BQN files                 4
 named tests/test_src_next_*.bqn                       74
-other test files with direct src_next import          27
+other test files with direct src_next import          26
 checks/check-src-next-*.sh                            33
-fixture directories named fixtures/src-next-*         35
-tracked files under fixtures/src-next-*              153
+fixture directories named fixtures/src-next-*         34
+tracked files under fixtures/src-next-*              146
+classified residual runtime references                34
+current documentation references                      58
 ```
 
-The live editor gate is green: `src_edit/` and `src/editor/` have zero `src_next` imports. The remaining 105 direct-import files are old tests and four characterization/probe files; most disappear with the old owner. Destination runtime under `src/` also has no `src_next` import.
+The live editor gate is green: `src_edit/` and `src/editor/` have zero `src_next` imports. The remaining 103 direct-import files are old tests and four characterization/probe files, all classified for deletion. `tests/test_ledger_facts.bqn` was the sole retained non-src-next test and now uses canonical Account admission only. Destination runtime under `src/` also has no `src_next` import.
 
 The reproducible tracked inventory is:
 
@@ -130,27 +132,13 @@ src/editor/src_next direct imports 0
 
 The first extractions moved bounded text/source/config operations to neutral owners and physically removed the two obsolete helper modules. The Actual slice then moved all 12 editor consumers to explicit config routing plus canonical strict Account/Journal Facts in `src/application/editor_actual.bqn`. Completion evidence now exists only for durable non-empty `plan_id`; fabricated transaction-field identity is not emitted. Public sandbox/demo/golden/plan fixtures gained explicit source and Account currency evidence. Current production report compatibility remains in `src_next/actual_source.bqn` until cutover/private readiness. The Account slice moved eight operational consumers to strict canonical Account tables and removed redundant Stage 2A carrier revalidation after complete Journal admission. The final cluster physically moved the historical editor Journal parser and travel validators to `src/editor`, moved Plan temporal status to `src/accounting`, replaced editor date use with canonical date coordinates plus one application clock adapter, removed redundant old Posting IR comparison from canonical rewrite, and replaced broad `BuildContext` post-write validation with strict configured Journal validation. No forwarding module remains.
 
-This remains the largest live runtime blocker. Required action is ownership migration, not copying all of `src_next`:
+No forwarding module remains under `src_next`; editor extraction is no longer a cutover blocker.
 
-- move generic I/O/text/date/config operations to implementation-neutral owners;
-- make editor Journal validation use canonical ledger admission where semantics match;
-- retain genuinely editor-specific rewrite/preview capabilities under `src_edit`;
-- replace or remove travel helpers according to actual editor callers;
-- remove the one editor `context.bqn` dependency instead of moving context;
-- update editor checks in the same slices.
+## Gate E: tests, checks, fixtures, and characterization — classified
 
-No forwarding modules may remain under `src_next`.
+The 74 named src-next tests, 26 other compatibility tests, 33 named checks, and four direct-import probe/characterization BQN files are exact deletion inventory. `tests/test_ledger_facts.bqn` is retained and has no old import. The public strict editor fixture was renamed to `fixtures/editor-golden`; the remaining 34 `fixtures/src-next-*` families are deletion inventory.
 
-## Gate E: tests, checks, fixtures, and characterization
-
-The 74 named src-next tests, 33 named checks, and four direct-import probe/characterization BQN files are deletion inventory, not a migration target. The four are the two `checks/probes/*` old-report probes and two `tools/characterization/*` context/report probes. For each file:
-
-- retain only semantics still owned by ledger/accounting/sections/application;
-- move retained assertions to destination tests;
-- delete compatibility, old report, Cube/TBDS-only, fallback, and removed-section tests;
-- retain the tests already migrated to `src/application/source_io.bqn` only where their destination/editor semantics remain useful;
-- delete old characterization probes after their replacement evidence is recorded;
-- delete obsolete `fixtures/src-next-*` directories unless a retained editor/source case still uses one, in which case rename and narrow it.
+The inventory additionally classifies 34 residual executable references as 24 migrations and 10 deletions. An unrecognized executable reference fails `check-final-cutover-inventory.sh`; executable actions may not use `or`/`classify`. Historical `docs/archive` references are non-runtime and excluded, while 58 current documentation references remain explicit cleanup inventory.
 
 `tools/check.sh`, coverage, repo index, docs indexes, and workflow inventories must be updated in the same atomic deletion so no removed check remains invoked.
 
@@ -187,7 +175,6 @@ Aliases, dual keys, dual catalogs, fallback parsers, and forwarding wrappers are
 
 Before requesting cutover approval:
 
-1. retained non-src-next test helper migration;
-2. tracked old test/check/fixture/docs deletion rehearsal;
-3. separately authorized private readiness;
-4. one reviewed atomic production/cutover diff.
+1. tracked old test/check/fixture/docs deletion rehearsal;
+2. separately authorized private readiness;
+3. one reviewed atomic production/cutover diff.

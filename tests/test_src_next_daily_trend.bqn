@@ -4,7 +4,7 @@ lib ← •Import "test_lib.bqn"
 ctx_mod ← •Import "../src_next/context.bqn"
 daily_trend ← •Import "../src_next/daily_trend.bqn"
 
-ctx ← ctx_mod.BuildContext "fixtures/src-next-golden"
+ctx ← ctx_mod.BuildContext "fixtures/editor-golden"
 vm ← daily_trend.Build ctx
 
 "2026-06-16" lib.AssertEq vm.as_of

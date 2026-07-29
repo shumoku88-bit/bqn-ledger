@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
-fixture="${1:-fixtures/src-next-golden}"
+fixture="${1:-fixtures/editor-golden}"
 new_out="$(mktemp)"
 new_err="$(mktemp)"
 old_out="$(mktemp)"

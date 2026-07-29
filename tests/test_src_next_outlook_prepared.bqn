@@ -8,7 +8,7 @@ remaining_plan ← •Import "../src_next/outlook_remaining_plan.bqn"
 env_comp ← •Import "../src_next/envelope_computation.bqn"
 outlook ← •Import "../src_next/outlook.bqn"
 
-ctx ← ctx_mod.BuildContext "fixtures/src-next-golden"
+ctx ← ctx_mod.BuildContext "fixtures/editor-golden"
 adapted ← outlook.Build ctx
 as_of ← adapted.as_of
 cfg ← conf.LoadConfig ctx.base

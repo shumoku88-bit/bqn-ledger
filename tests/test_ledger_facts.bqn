@@ -1,7 +1,6 @@
 #!/usr/bin/env bqn
 
 lib ← •Import "test_lib.bqn"
-account_key ← •Import "../src_next/account_key.bqn"
 admission ← •Import "../src/ledger/journal_complete_admission.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
@@ -14,7 +13,6 @@ dates ← •Import "../src/ledger/date_ordinal.bqn"
 
 base ← "fixtures/ledger-facts-phase1-proof/"
 accountLines ← loader.ReadLines base∾"accounts.tsv"
-resolved ← account_key.Resolve accountLines
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
 strictAccounts ← account_admission.Admit ⟨accountLines,registry⟩
 rawJournal ← •FChars "../"∾base∾"actual.journal"
@@ -54,9 +52,9 @@ lib.Assert ∨´{𝕩.code≡"account_currency_missing"}¨invalidAccountSnapshot
 ⟨"JPY"⟩ lib.AssertEq result.domains.code
 ⟨"actual"⟩ lib.AssertEq result.layers.name
 8 lib.AssertEq result.accounts.count
-resolved.accounts lib.AssertEq result.accounts.key
-resolved.currencies lib.AssertEq result.accounts.currency
-resolved.roles lib.AssertEq result.accounts.role
+strictAccounts.accounts.key lib.AssertEq result.accounts.key
+strictAccounts.accounts.currency lib.AssertEq result.accounts.currency
+strictAccounts.accounts.role lib.AssertEq result.accounts.role
 strictAccounts.accounts.type lib.AssertEq result.accounts.type
 strictAccounts.accounts.metadata lib.AssertEq result.accounts.metadata
 strictAccounts.accounts.source_row lib.AssertEq result.accounts.source_row

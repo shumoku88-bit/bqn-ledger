@@ -9,7 +9,7 @@ export NO_COLOR=1
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
-fixture="${1:-fixtures/src-next-golden}"
+fixture="${1:-fixtures/editor-golden}"
 [[ -d "$fixture" ]] || { echo "ERROR: fixture directory not found: $fixture" >&2; exit 2; }
 fixture_abs="$(cd "$fixture" && pwd)"
 

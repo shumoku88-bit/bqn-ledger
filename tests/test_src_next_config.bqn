@@ -13,7 +13,7 @@ HasKey ← {
 Contains ← { needle ← 𝕨 ⋄ 0 < +´ (needle ⍷ 𝕩) }
 
 # 1. A base without local config.tsv falls back to config/default_config.tsv.
-fallback ← conf.LoadConfig "fixtures/src-next-golden"
+fallback ← conf.LoadConfig "fixtures/editor-golden"
 "budget:" lib.AssertEq fallback.BudgetPrefix @
 ⟨"daily", "flex"⟩ lib.AssertEq fallback.HouseholdGroupLifeLabels @
 ⟨"reserve"⟩ lib.AssertEq fallback.HouseholdGroupReserveLabels @

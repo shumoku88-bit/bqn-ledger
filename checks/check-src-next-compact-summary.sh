@@ -10,7 +10,7 @@ set -euo pipefail
 # This is a validation surface for the next ledger engine candidate.
 # Production remains bqn main.bqn until default switch.
 
-fixture="${1:-fixtures/src-next-golden}"
+fixture="${1:-fixtures/editor-golden}"
 if [ ! -d "$fixture" ]; then
   echo "ERROR: fixture directory not found: $fixture" >&2
   exit 2

@@ -4,7 +4,7 @@ lib ← •Import "test_lib.bqn"
 ctx_mod ← •Import "../src_next/context.bqn"
 outlook ← •Import "../src_next/outlook.bqn"
 
-ctx ← ctx_mod.BuildContext "fixtures/src-next-golden"
+ctx ← ctx_mod.BuildContext "fixtures/editor-golden"
 vm ← outlook.Build ctx
 
 "ok" lib.AssertEq vm.state

@@ -22,8 +22,8 @@ This repository is not packaged as a general consumer product.  A "release" mean
 3. Confirm fixture-only demo paths still work.
 
    ```bash
-   tools/report fixtures/src-next-golden
-   tools/report-next-summary fixtures/src-next-golden
+   tools/report fixtures/editor-golden
+   tools/report-next-summary fixtures/editor-golden
    ```
 
 4. Confirm the effective data directory guidance is still current.

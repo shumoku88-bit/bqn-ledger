@@ -13,7 +13,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
 export NO_COLOR=1
-fixture="${1:-fixtures/src-next-golden}"
+fixture="${1:-fixtures/editor-golden}"
 selected_fixture="${2:-fixtures/demo}"
 if [[ ! -d "$fixture" ]]; then
   echo "ERROR: fixture directory not found: $fixture" >&2

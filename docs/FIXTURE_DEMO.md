@@ -22,19 +22,19 @@ The demo shows three layers:
 ## 1. Read a fixture report
 
 ```bash
-tools/report fixtures/src-next-golden
+tools/report fixtures/editor-golden
 ```
 
 Expected meaning:
 
-- `fixtures/src-next-golden` is the demo base directory.
+- `fixtures/editor-golden` is the demo base directory.
 - `tools/report` is the daily production report wrapper.
 - The report is derived from fixture TSV files, not from private data.
 
 ## 2. Read the machine summary
 
 ```bash
-tools/report-next-summary fixtures/src-next-golden
+tools/report-next-summary fixtures/editor-golden
 ```
 
 Expected meaning:
@@ -45,12 +45,12 @@ Expected meaning:
 ## 3. Inspect source TSV files
 
 ```bash
-ls fixtures/src-next-golden
-cat fixtures/src-next-golden/actual.journal
-cat fixtures/src-next-golden/plan.tsv
-cat fixtures/src-next-golden/budget_alloc.tsv
-cat fixtures/src-next-golden/accounts.tsv
-cat fixtures/src-next-golden/cycle.tsv
+ls fixtures/editor-golden
+cat fixtures/editor-golden/actual.journal
+cat fixtures/editor-golden/plan.tsv
+cat fixtures/editor-golden/budget_alloc.tsv
+cat fixtures/editor-golden/accounts.tsv
+cat fixtures/editor-golden/cycle.tsv
 ```
 
 Expected meaning:

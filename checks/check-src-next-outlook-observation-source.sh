@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
-base="fixtures/src-next-golden"
+base="fixtures/editor-golden"
 
 # Explicit consumer-specific O reaches the human Outlook section through the
 # production wrapper.

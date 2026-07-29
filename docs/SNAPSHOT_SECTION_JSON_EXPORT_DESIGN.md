@@ -88,7 +88,7 @@ The implementation PR must ensure:
 
 1. ✅ `tools/report --section snapshot --format json` produces valid JSON matching the schema contract.
 2. ✅ An automated check in `checks/check-src-next-report.sh` validates the output against the schema using python3 parsing rules.
-3. ✅ Test fixtures cover both valid data (`fixtures/src-next-golden`) and empty/unresolvable states (`fixtures/snapshot-no-cycle`, confirming `null` fallback outputs).
+3. ✅ Test fixtures cover both valid data (`fixtures/editor-golden`) and empty/unresolvable states (`fixtures/snapshot-no-cycle`, confirming `null` fallback outputs).
 4. ✅ The default human report `tools/report --section snapshot` is completely unaffected.
 
 ## Related Documents

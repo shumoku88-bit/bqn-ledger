@@ -62,7 +62,7 @@ for test_file in tests/test_*.bqn; do
 done
 
 echo "[2/4] src_next golden checks" >&2
-bash checks/check-src-next-golden.sh fixtures/src-next-golden >/dev/null
+bash checks/check-src-next-golden.sh fixtures/editor-golden >/dev/null
 bash checks/check-src-next-golden.sh fixtures/src-next-missing-plan >/dev/null
 bash checks/check-src-next-golden.sh fixtures/src-next-empty-projection >/dev/null
 bash checks/check-src-next-golden.sh fixtures/src-next-out-of-cycle-journal >/dev/null
@@ -76,7 +76,7 @@ bash checks/check-src-next-golden.sh fixtures/src-next-missing-budget-mapping >/
 bash checks/check-src-next-golden.sh fixtures/src-next-budget-group-rename >/dev/null
 
 echo "[3/4] src_next section checks" >&2
-bash checks/check-src-next-minimal-summary.sh fixtures/src-next-golden >/dev/null
+bash checks/check-src-next-minimal-summary.sh fixtures/editor-golden >/dev/null
 bash checks/check-src-next-minimal-summary.sh fixtures/src-next-empty-projection >/dev/null
 bash checks/check-src-next-minimal-summary.sh fixtures/src-next-out-of-cycle-journal >/dev/null
 bash checks/check-src-next-minimal-summary.sh fixtures/src-next-missing-plan >/dev/null
@@ -87,12 +87,12 @@ bash checks/check-src-next-cycle-summary.sh >/dev/null
 bash checks/check-src-next-ytd-summary.sh >/dev/null
 bash checks/check-src-next-ytd-unavailable-cycle.sh >/dev/null
 bash checks/check-src-next-expense-breakdown.sh >/dev/null
-bash checks/check-src-next-recent-journal.sh fixtures/src-next-golden >/dev/null
+bash checks/check-src-next-recent-journal.sh fixtures/editor-golden >/dev/null
 bash checks/check-src-next-recent-journal.sh fixtures/src-next-empty-projection >/dev/null
-bash checks/check-src-next-planned-payments.sh fixtures/src-next-golden >/dev/null
+bash checks/check-src-next-planned-payments.sh fixtures/editor-golden >/dev/null
 bash checks/check-src-next-planned-payments.sh fixtures/src-next-missing-plan >/dev/null
 bash checks/check-src-next-planned-payments.sh fixtures/plan-completion >/dev/null
-bash checks/check-src-next-balances.sh fixtures/src-next-golden >/dev/null
+bash checks/check-src-next-balances.sh fixtures/editor-golden >/dev/null
 bash checks/check-src-next-balances.sh fixtures/src-next-empty-projection >/dev/null
 bash checks/check-src-next-readiness.sh >/dev/null
 bash checks/check-src-next-household-metadata.sh >/dev/null
@@ -102,25 +102,25 @@ bash checks/check-src-next-execution-plan-coverage.sh fixtures/src-next-executio
 bash checks/check-src-next-envelope-production-guard.sh >/dev/null
 bash checks/check-src-next-actual-comparison.sh fixtures/actual-comparison-numeric-owner-target ok >/dev/null
 bash checks/check-src-next-actual-comparison.sh fixtures/actual-comparison-history-boundary unavailable >/dev/null
-bash checks/check-src-next-snapshot.sh fixtures/src-next-golden >/dev/null
-bash checks/check-src-next-report.sh fixtures/src-next-golden >/dev/null
+bash checks/check-src-next-snapshot.sh fixtures/editor-golden >/dev/null
+bash checks/check-src-next-report.sh fixtures/editor-golden >/dev/null
 bash checks/check-ledger-facts-phase1-proof-fixture.sh >/dev/null
 bash checks/check-ledger-facts.sh >/dev/null
-bash checks/check-src-next-selected-section.sh fixtures/src-next-golden >/dev/null
+bash checks/check-src-next-selected-section.sh fixtures/editor-golden >/dev/null
 bash checks/check-src-next-outlook-observation-source.sh >/dev/null
 bash checks/check-src-next-actual-snapshot.sh >/dev/null
 bash checks/check-src-next-outlook-remaining-plan.sh >/dev/null
 bash checks/check-src-next-daily-trend-plan-numeric-owner.sh >/dev/null
 bash checks/check-json-clock-independence.sh >/dev/null
-bash checks/check-report-section-metadata.sh fixtures/src-next-golden >/dev/null
-bash checks/check-src-next-stage4-fields.sh fixtures/src-next-golden >/dev/null
+bash checks/check-report-section-metadata.sh fixtures/editor-golden >/dev/null
+bash checks/check-src-next-stage4-fields.sh fixtures/editor-golden >/dev/null
 bash checks/check-src-next-currency-domain-proof.sh >/dev/null
 bash checks/check-src-next-checked-posting-projection.sh >/dev/null
 bash checks/check-projection-diagnostic-presentation.sh >/dev/null
 bash checks/check-projection-compatibility-exports.sh >/dev/null
 bash checks/check-source-field-ownership.sh >/dev/null
-bash checks/check-developer-inspection-entrypoint.sh fixtures/src-next-golden >/dev/null
-bash checks/check-src-next-compact-summary.sh fixtures/src-next-golden >/dev/null
+bash checks/check-developer-inspection-entrypoint.sh fixtures/editor-golden >/dev/null
+bash checks/check-src-next-compact-summary.sh fixtures/editor-golden >/dev/null
 bash checks/check-src-next-compact-summary.sh fixtures/src-next-envelope-computation >/dev/null
 bash checks/check-src-next-cycle-remaining-plan-characterization.sh >/dev/null
 bash checks/check-src-next-envelope-characterization.sh >/dev/null

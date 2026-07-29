@@ -25,7 +25,7 @@ if [ "$#" -gt 0 ]; then
   fixtures=("$@")
 else
   fixtures=(
-    fixtures/src-next-golden
+    fixtures/editor-golden
     fixtures/src-next-income-anchor-golden
     fixtures/src-next-expense-role-metadata
     fixtures/src-next-household-mapping-policy

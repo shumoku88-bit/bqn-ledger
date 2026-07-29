@@ -20,7 +20,7 @@ if [ "$#" -gt 0 ]; then
   fixtures=("$@")
 else
   fixtures=(
-    fixtures/src-next-golden
+    fixtures/editor-golden
     fixtures/plan-completion
   )
 fi

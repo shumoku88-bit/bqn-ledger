@@ -45,7 +45,7 @@ r4 ← Assert ⟨0, summary.ambiguous_overlap_count, "ambiguous_overlap_count = 
 r5 ← Assert ⟨1, summary.unmatched_plan_count, "unmatched_plan_count = 1"⟩
 
 # ── Build: fixture src-next-golden (no overlap) ────────────
-summary2 ← pjo.Build { base ⇐ "fixtures/src-next-golden", cy ⇐ cy }
+summary2 ← pjo.Build { base ⇐ "fixtures/editor-golden", cy ⇐ cy }
 
 r6 ← Assert ⟨1, summary2.plan_rows_checked, "golden: plan_rows_checked = 1"⟩
 r7 ← Assert ⟨2, summary2.journal_rows_checked, "golden: journal_rows_checked = 2"⟩

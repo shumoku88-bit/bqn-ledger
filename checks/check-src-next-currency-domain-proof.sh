@@ -59,12 +59,12 @@ BQN
 bqn "$tmp/same_snapshot.bqn" "$clean" | grep -Fq same-snapshot-ok
 
 set +e
-cross_out="$(bqn -e 'ctx←•Import "src_next/context.bqn" ⋄ s←ctx.LoadNonActualPostingSourceSnapshot "fixtures/src-next-golden" ⋄ ctx.BuildAllRowsFromSnapshot ⟨s,@,"2026-06-15",@⟩' 2>&1)"; cross_status=$?
+cross_out="$(bqn -e 'ctx←•Import "src_next/context.bqn" ⋄ s←ctx.LoadNonActualPostingSourceSnapshot "fixtures/editor-golden" ⋄ ctx.BuildAllRowsFromSnapshot ⟨s,@,"2026-06-15",@⟩' 2>&1)"; cross_status=$?
 set -e
 [[ "$cross_status" -ne 0 ]] || { echo 'FAIL: removed independent-proof API unexpectedly succeeded' >&2; exit 1; }
 
 set +e
-alias_out="$(bqn -e 'ctx←•Import "src_next/context.bqn" ⋄ loader←•Import "src/application/source_io.bqn" ⋄ ak←•Import "src_next/account_key.bqn" ⋄ base←"fixtures/src-next-golden" ⋄ resolved←ak.Resolve loader.ReadLines (base∾"/accounts.tsv") ⋄ ctx.BuildRowsForFile ⟨base,resolved,"2026-06-15","unknown.tsv"⟩' 2>&1)"; alias_status=$?
+alias_out="$(bqn -e 'ctx←•Import "src_next/context.bqn" ⋄ loader←•Import "src/application/source_io.bqn" ⋄ ak←•Import "src_next/account_key.bqn" ⋄ base←"fixtures/editor-golden" ⋄ resolved←ak.Resolve loader.ReadLines (base∾"/accounts.tsv") ⋄ ctx.BuildRowsForFile ⟨base,resolved,"2026-06-15","unknown.tsv"⟩' 2>&1)"; alias_status=$?
 set -e
 [[ "$alias_status" -ne 0 && "$alias_out" == *'unsupported posting source file'* ]] || { echo 'FAIL: unknown non-actual source was not rejected' >&2; exit 1; }
 

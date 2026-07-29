@@ -77,13 +77,13 @@ Measurements below present **Min / Median / Max** process wall-clock elapsed tim
 
 | Dataset Sample | Posting Rows | Transactions | Accounts |
 | :--- | :--- | :--- | :--- |
-| **`fixtures/src-next-golden`** | 8-10 | 2 | 5-6 |
+| **`fixtures/editor-golden`** | 8-10 | 2 | 5-6 |
 | **`data` (sandbox)** | 24 | 9 | 10 |
 | **`LEDGER_DATA_DIR` (daily use)** | 536 | 247 | 36 |
 
 ### 4.1 Subprocess Baselines & Metadata Command Execution
 
-| Benchmark | `fixtures/src-next-golden` | `data` (sandbox) | Daily-Use Data |
+| Benchmark | `fixtures/editor-golden` | `data` (sandbox) | Daily-Use Data |
 | :--- | :--- | :--- | :--- |
 | Command Hub `--help` CLI route (`bl help`) | 26.1 / 28.1 / 31.6 ms | 25.5 / 30.9 / 37.6 ms | 26.6 / 29.9 / 32.9 ms |
 | BQN engine startup (`bqn -e 1+1`) | 12.9 / 13.6 / 14.8 ms | 12.3 / 13.4 / 13.6 ms | 12.4 / 13.0 / 14.2 ms |
@@ -95,7 +95,7 @@ Measurements below present **Min / Median / Max** process wall-clock elapsed tim
 
 ### 4.2 Cold Section Cache Generation vs Warm Metadata Command Execution
 
-| Benchmark | `fixtures/src-next-golden` | `data` (sandbox) | Daily-Use Data |
+| Benchmark | `fixtures/editor-golden` | `data` (sandbox) | Daily-Use Data |
 | :--- | :--- | :--- | :--- |
 | **Cold section cache generation** | 384.1 / 387.9 / 408.0 ms | 574.9 / 581.4 / 585.0 ms | **1268.4 / 1298.5 / 1334.6 ms** |
 | **Warm selector metadata command** | 33.4 / 37.7 / 42.1 ms | 32.8 / 34.7 / 35.1 ms | **33.8 / 37.1 / 40.4 ms** |
@@ -104,7 +104,7 @@ Measurements below present **Min / Median / Max** process wall-clock elapsed tim
 
 ### 4.3 Representative Direct Section Execution
 
-| Direct Section Key | `fixtures/src-next-golden` | `data` (sandbox) | Daily-Use Data |
+| Direct Section Key | `fixtures/editor-golden` | `data` (sandbox) | Daily-Use Data |
 | :--- | :--- | :--- | :--- |
 | `--section snapshot` | 382.6 / 385.1 / 401.8 ms | 577.0 / 579.8 / 586.0 ms | **1291.6 / 1311.2 / 1345.9 ms** |
 | `--section cycle` | 383.4 / 416.1 / 424.7 ms | 577.4 / 587.0 / 614.7 ms | **1282.7 / 1307.8 / 1340.6 ms** |
@@ -114,7 +114,7 @@ Measurements below present **Min / Median / Max** process wall-clock elapsed tim
 
 ### 4.4 Full Report Execution
 
-| Benchmark | `fixtures/src-next-golden` | `data` (sandbox) | Daily-Use Data |
+| Benchmark | `fixtures/editor-golden` | `data` (sandbox) | Daily-Use Data |
 | :--- | :--- | :--- | :--- |
 | `tools/report` (full report) | 357.4 / 359.8 / 363.5 ms | 634.3 / 637.6 / 683.2 ms | **1328.7 / 1356.4 / 1408.2 ms** |
 
@@ -124,7 +124,7 @@ Measurements below present **Min / Median / Max** process wall-clock elapsed tim
 
 The breakdown below measures execution phases inside the characterization harness (`tools/characterization/report_latency_probe.bqn`) (times in milliseconds).
 
-| Execution Phase | `fixtures/src-next-golden` | `data` (sandbox) | Daily-Use Data (536 rows) |
+| Execution Phase | `fixtures/editor-golden` | `data` (sandbox) | Daily-Use Data (536 rows) |
 | :--- | :--- | :--- | :--- |
 | Top-level `•Import` evaluation | 42.9 ms | 60.1 ms | 54.2 ms |
 | **`BuildContext`** | **53.7 ms** | **209.3 ms** | **816.2 ms** |

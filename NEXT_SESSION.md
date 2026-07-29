@@ -7,14 +7,14 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Portfolio P12: editor extraction is complete. src_edit and src/editor have zero src_next imports; historical Journal/travel semantics have real owners, temporal status is shared accounting, and Journal post-write validation no longer builds report context.
+Portfolio P12: retained helper classification is complete. Canonical ledger Facts tests are old-import free, the strict editor fixture is neutral, and every executable old reference has an exact migrate/delete disposition.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn (unchanged)
-editor gate: green, zero old imports, no forwarding modules
-tracked blockers: 65 src_next modules, 74 named tests, 33 named checks, 35 fixture families, seven route/consumers
-next slice: classify retained non-src-next tests/helpers versus old-owner deletion and build atomic deletion rehearsal
-remaining gates: test/check/fixture/docs cleanup, UI/route cutover, separately authorized private readiness
+classification gate: green, no unclassified executable reference and no migrate-or-delete action
+tracked blockers: 65 modules, 74 named + 26 compatibility tests, 33 named checks, 34 old fixtures, 34 runtime references
+next slice: dry-run the atomic deletion/replacement set and close the 58 current documentation references
+remaining gates: rehearsal, UI/route cutover, separately authorized private readiness
 exclude: production switch, old-key deletion, private ledger inspection
 ```
 

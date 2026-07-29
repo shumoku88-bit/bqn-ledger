@@ -415,7 +415,7 @@ BuildPeriodView ← {𝕊 rows‿resolved‿cy:
 }
 
 # BuildContext: convenience — read cycle.tsv, build everything at once.
-# Args: base (string, e.g. "data" or "fixtures/src-next-golden")
+# Args: base (string, e.g. "data" or "fixtures/editor-golden")
 # Returns: context namespace.
 BuildContext ← {𝕊 arg:
   is_string ← (0 = ≠ arg) ∨ (2 = •Type 0 ⊑ arg ∾ ⟨' '⟩)

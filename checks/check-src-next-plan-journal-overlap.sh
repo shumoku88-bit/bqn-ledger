@@ -6,7 +6,7 @@ set -euo pipefail
 fixtures=("${@:-}")
 if [ "$#" -eq 0 ]; then
   fixtures=(
-    fixtures/src-next-golden
+    fixtures/editor-golden
     fixtures/src-next-plan-overlap
     fixtures/src-next-missing-plan
     fixtures/src-next-empty-projection

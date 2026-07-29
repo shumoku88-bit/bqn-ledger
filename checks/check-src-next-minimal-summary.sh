@@ -14,7 +14,7 @@ set -euo pipefail
 # Usage:
 #   bash checks/check-src-next-minimal-summary.sh [fixture-dir]
 
-fixture="${1:-fixtures/src-next-golden}"
+fixture="${1:-fixtures/editor-golden}"
 if [ ! -d "$fixture" ]; then
   echo "ERROR: fixture directory not found: $fixture" >&2
   exit 2

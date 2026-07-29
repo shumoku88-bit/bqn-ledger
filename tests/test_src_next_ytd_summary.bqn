@@ -2,7 +2,7 @@ lib ← •Import "test_lib.bqn"
 context ← •Import "../src_next/context.bqn"
 ytd ← •Import "../src_next/ytd_summary.bqn"
 
-base ← "fixtures/src-next-golden"
+base ← "fixtures/editor-golden"
 ctx ← context.BuildContext base
 summary ← ytd.Build ctx
 

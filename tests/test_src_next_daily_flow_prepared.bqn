@@ -5,7 +5,7 @@ ctx_mod ← •Import "../src_next/context.bqn"
 actual_source ← •Import "../src_next/actual_source.bqn"
 daily_flow ← •Import "../src_next/daily_flow.bqn"
 
-ctx ← ctx_mod.BuildContext "fixtures/src-next-golden"
+ctx ← ctx_mod.BuildContext "fixtures/editor-golden"
 dates ← actual_source.DatesFromContext ctx
 
 # The semantic boundary receives no base path or broad report context.

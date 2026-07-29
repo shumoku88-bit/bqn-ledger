@@ -28,8 +28,8 @@ Default:
 Examples:
   tools/report-next-summary
   tools/report-next-summary data
-  tools/report-next-summary fixtures/src-next-golden
-  tools/report-next-summary --base fixtures/src-next-golden
+  tools/report-next-summary fixtures/editor-golden
+  tools/report-next-summary --base fixtures/editor-golden
 USAGE
 }
 

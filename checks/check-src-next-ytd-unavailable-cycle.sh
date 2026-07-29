@@ -33,7 +33,7 @@ trap 'rm -rf "$work_dir"' EXIT
 
 UNKNOWN_FIXTURE="fixtures/envelopes-disabled-policy"
 ZERO_FIXTURE="fixtures/empty-journal"
-GOLDEN_FIXTURE="fixtures/src-next-golden"
+GOLDEN_FIXTURE="fixtures/editor-golden"
 
 for fixture in "$UNKNOWN_FIXTURE" "$ZERO_FIXTURE" "$GOLDEN_FIXTURE"; do
   if [ ! -d "$fixture" ]; then

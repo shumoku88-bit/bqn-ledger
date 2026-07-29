@@ -4,7 +4,7 @@ set -euo pipefail
 # Verify compact SrcNext Recent Journal format on fixtures.
 # Does not bake in private production amounts.
 
-fixture="${1:-fixtures/src-next-golden}"
+fixture="${1:-fixtures/editor-golden}"
 if [ ! -d "$fixture" ]; then
   echo "ERROR: fixture directory not found: $fixture" >&2
   exit 2

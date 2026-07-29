@@ -4,7 +4,7 @@ lib ← •Import "test_lib.bqn"
 context ← •Import "../src_next/context.bqn"
 readiness ← •Import "../src_next/readiness_check.bqn"
 
-base ← "fixtures/src-next-golden"
+base ← "fixtures/editor-golden"
 ctx ← context.BuildContext base
 human ← readiness.FormatHuman ctx
 

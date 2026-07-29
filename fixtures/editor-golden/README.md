@@ -1,6 +1,6 @@
-# src-next-golden
+# editor-golden
 
-Small public fixture for `src_next` compact golden checks and current-engine comparison analysis.
+Small public strict fixture retained for editor workflows and temporary current-engine comparison checks.
 
 Purpose:
 - Baseline case where cycle range, actual expense total, and plan expense total are intended to match the current engine comparison helper.

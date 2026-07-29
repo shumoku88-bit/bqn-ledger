@@ -20,7 +20,7 @@ ProofSnapshot ← {𝕊 jlines‿plines‿blines:
 
 ResolveProof ← { ev ← ctx.BuildRowEvidenceFromSnapshot 𝕩 ⋄ ctx.ResolveArithmeticCurrencyProof ⟨ev, arith.Build ev⟩ }
 
-legacy ← ctx.BuildContext "fixtures/src-next-golden"
+legacy ← ctx.BuildContext "fixtures/editor-golden"
 "proven" lib.AssertEq legacy.arithmetic_currency_proof.state
 "JPY" lib.AssertEq legacy.arithmetic_currency_proof.domain
 "legacy_compatibility" lib.AssertEq legacy.arithmetic_currency_proof.basis

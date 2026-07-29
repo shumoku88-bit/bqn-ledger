@@ -5,7 +5,7 @@ set -euo pipefail
 # Minimal fixture check for the src_next Stage 4a Snapshot observation screen.
 # This is an opt-in src_next surface only; production remains bqn main.bqn.
 
-fixture="${1:-fixtures/src-next-golden}"
+fixture="${1:-fixtures/editor-golden}"
 expected="$fixture/expected/src_next_snapshot.txt"
 output="$(mktemp)"
 snapshot_actual="$(mktemp)"

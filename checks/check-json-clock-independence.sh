@@ -58,7 +58,7 @@ chmod +x "$TMPDIR/date"
 
 # 2. Run structured JSON request with PATH overridden
 set +e
-json_out="$(PATH="$TMPDIR:$PATH" tools/report fixtures/src-next-golden --section planned --format json 2>/dev/null)"
+json_out="$(PATH="$TMPDIR:$PATH" tools/report fixtures/editor-golden --section planned --format json 2>/dev/null)"
 json_status=$?
 set -e
 
@@ -82,7 +82,7 @@ fi
 # 3. Prove that human report path DOES invoke the date command
 rm -f "$TMPDIR/called.txt"
 set +e
-human_out="$(PATH="$TMPDIR:$PATH" tools/report fixtures/src-next-golden --section snapshot --no-color 2>/dev/null)"
+human_out="$(PATH="$TMPDIR:$PATH" tools/report fixtures/editor-golden --section snapshot --no-color 2>/dev/null)"
 human_status=$?
 set -e
 

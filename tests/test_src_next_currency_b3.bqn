@@ -19,7 +19,7 @@ ProofSnapshot ← {𝕊 planLines‿budgetLines‿moreBudgetLines:
 
 # Exact-decimal non-actual TSV projection remains covered independently of the
 # canonical native Journal actual source.
-resolved ← ak.Resolve loader.ReadLines "fixtures/src-next-golden/accounts.tsv"
+resolved ← ak.Resolve loader.ReadLines "fixtures/editor-golden/accounts.tsv"
 
 # ── Per-case non-actual snapshot posting tests ─────────────
 

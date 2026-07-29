@@ -62,7 +62,7 @@ Before touching real data, run one sandbox rehearsal.
 
 ```sh
 tools/doctor
-tools/report fixtures/src-next-golden
+tools/report fixtures/editor-golden
 tools/add-ui.sh --check
 ```
 
@@ -70,7 +70,7 @@ Then try one dry-run or fixture write against a copied sandbox directory.
 
 ```sh
 mkdir -p sandbox/real-data-trial
-cp fixtures/src-next-golden/*.tsv sandbox/real-data-trial/
+cp fixtures/editor-golden/*.tsv sandbox/real-data-trial/
 
 tools/edit --base sandbox/real-data-trial journal add \
   --date 2026-06-30 \

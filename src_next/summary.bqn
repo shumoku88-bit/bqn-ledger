@@ -5,9 +5,9 @@
 #
 # Usage:
 #   bqn src_next/summary.bqn data
-#   bqn src_next/summary.bqn fixtures/src-next-golden
+#   bqn src_next/summary.bqn fixtures/editor-golden
 #   tools/report-next-summary
-#   tools/report-next-summary fixtures/src-next-golden
+#   tools/report-next-summary fixtures/editor-golden
 #
 # This is the production machine-readable summary surface.
 # Human-readable daily report: tools/report (src_next/report.bqn)

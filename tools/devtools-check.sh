@@ -79,7 +79,7 @@ tmp_summary="$(mktemp)"
 trap 'rm -f "$tmp_idx" "$tmp_summary"' EXIT
 
 # Use the standard golden fixture for coverage check
-if ./tools/report-next-summary fixtures/src-next-golden > "$tmp_summary" 2>/dev/null; then
+if ./tools/report-next-summary fixtures/editor-golden > "$tmp_summary" 2>/dev/null; then
   # Extract all src_next_* keys
   total_keys=$(grep -c '^src_next_' "$tmp_summary" || echo 0)
   echo "  INFO: summary exposes $total_keys src_next_* keys" >&2
@@ -87,7 +87,7 @@ if ./tools/report-next-summary fixtures/src-next-golden > "$tmp_summary" 2>/dev/
   # Test that the first key is queryable
   first_key=$(sed -n '/^src_next_/{s/: .*//;p;q;}' "$tmp_summary")
   if [ -n "$first_key" ]; then
-    if ./tools/query fixtures/src-next-golden "$first_key" >/dev/null 2>&1; then
+    if ./tools/query fixtures/editor-golden "$first_key" >/dev/null 2>&1; then
       echo "  PASS: query can retrieve keys (sample: $first_key)" >&2
       pass
     else
@@ -97,7 +97,7 @@ if ./tools/report-next-summary fixtures/src-next-golden > "$tmp_summary" 2>/dev/
   fi
   
   # Check that --list works
-  if ./tools/query fixtures/src-next-golden --list >/dev/null 2>&1; then
+  if ./tools/query fixtures/editor-golden --list >/dev/null 2>&1; then
     echo "  PASS: query --list works" >&2
     pass
   else
@@ -106,7 +106,7 @@ if ./tools/report-next-summary fixtures/src-next-golden > "$tmp_summary" 2>/dev/
   fi
   
   # Check that --grep works
-  if ./tools/query fixtures/src-next-golden --grep 'cycle' >/dev/null 2>&1; then
+  if ./tools/query fixtures/editor-golden --grep 'cycle' >/dev/null 2>&1; then
     echo "  PASS: query --grep works" >&2
     pass
   else
@@ -114,7 +114,7 @@ if ./tools/report-next-summary fixtures/src-next-golden > "$tmp_summary" 2>/dev/
     fail "query: --grep failed"
   fi
 else
-  echo "  SKIP: report-next-summary failed on fixtures/src-next-golden" >&2
+  echo "  SKIP: report-next-summary failed on fixtures/editor-golden" >&2
 fi
 
 # ── C: bqn-eval liveness ──

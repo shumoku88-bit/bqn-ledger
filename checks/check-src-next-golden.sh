@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-fixture="${1:-fixtures/src-next-golden}"
+fixture="${1:-fixtures/editor-golden}"
 update=0
 if [ "$fixture" = "--update" ]; then
   update=1
-  fixture="${2:-fixtures/src-next-golden}"
+  fixture="${2:-fixtures/editor-golden}"
 fi
 
 expected="$fixture/expected/src_next_summary.txt"

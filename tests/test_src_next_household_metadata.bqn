@@ -46,7 +46,7 @@ text ← hm.Format diag
 
 # ── Fixture: explicit-role expense accounts without household metadata ───────
 # src-next-golden has role=expense on expenses:food and expenses:rent.
-base2 ← "fixtures/src-next-golden"
+base2 ← "fixtures/editor-golden"
 resolved2 ← ak.Resolve loader.ReadLines (base2 ∾ "/accounts.tsv")
 diag2 ← hm.Build { resolved ⇐ resolved2 }
 # Both expense accounts are classified by explicit role metadata.

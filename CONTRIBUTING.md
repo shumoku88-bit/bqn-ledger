@@ -20,7 +20,7 @@ Go は現行の日常レポート・日常 TSV editor path の必須依存では
 bash tools/check.sh
 
 # サンドボックスデータでレポート表示
-tools/report fixtures/src-next-golden
+tools/report fixtures/editor-golden
 
 # 実運用データを使う場合（moko/data は gitignore 済みの例）
 export LEDGER_DATA_DIR=moko/data
@@ -68,7 +68,7 @@ for f in tests/test_*.bqn; do bqn "$f"; done
 bash checks/check-disabled-features.sh
 
 # 特定の golden fixture
-bash checks/check-src-next-golden.sh fixtures/src-next-golden
+bash checks/check-src-next-golden.sh fixtures/editor-golden
 ```
 
 ## コード規約

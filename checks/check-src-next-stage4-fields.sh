@@ -4,7 +4,7 @@ set -euo pipefail
 # src_next Stage 4 validation surface — field presence check.
 # Old engine deleted; validates src_next output without cross-engine comparison.
 
-fixture="${1:-fixtures/src-next-golden}"
+fixture="${1:-fixtures/editor-golden}"
 if [ ! -d "$fixture" ]; then
   echo "ERROR: fixture directory not found: $fixture" >&2
   exit 2

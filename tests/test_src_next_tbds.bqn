@@ -8,7 +8,7 @@ cycle ← •Import "../src_next/cycle.bqn"
 cube ← •Import "../src_next/cube.bqn"
 tbds ← •Import "../src_next/tbds.bqn"
 
-base ← "fixtures/src-next-golden"
+base ← "fixtures/editor-golden"
 cy ← cycle.ReadCycle base
 resolved ← ak.Resolve (loader.ReadLines (base ∾ "/accounts.tsv"))
 ledger ← context.BuildContext base

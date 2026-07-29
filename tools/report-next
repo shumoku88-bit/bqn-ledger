@@ -24,8 +24,8 @@ Default:
 Examples:
   tools/report-next
   tools/report-next data
-  tools/report-next fixtures/src-next-golden
-  tools/report-next --base fixtures/src-next-golden
+  tools/report-next fixtures/editor-golden
+  tools/report-next --base fixtures/editor-golden
 USAGE
 }
 
