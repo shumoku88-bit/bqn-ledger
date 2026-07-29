@@ -34,7 +34,7 @@ nestedDuplicate ← ⟨
 ⟩
 CheckRejected ⟨nestedDuplicate,"matrix_row_axis_duplicate"⟩
 CheckRejected ⟨⟨⟨"r"⟩,⟨"c","c"⟩,0,⟨⟨0,0⟩⟩,⟨⟨⟨⟩,⟨⟩⟩⟩⟩,"matrix_column_axis_duplicate"⟩
-CheckRejected ⟨⟨⟨"r"⟩,⟨"c"⟩,0.5,⟨⟨0⟩⟩,⟨⟨⟨⟩⟩⟩,"matrix_scale_invalid"⟩
+CheckRejected ⟨⟨⟨"r"⟩,⟨"c"⟩,0.5,⟨⟨0⟩⟩,⟨⟨⟨⟩⟩⟩⟩,"matrix_scale_invalid"⟩
 CheckRejected ⟨⟨⟨"r"⟩,⟨"c"⟩,0,⟨⟩,⟨⟩⟩,"matrix_rows_misaligned"⟩
 CheckRejected ⟨⟨⟨"r"⟩,⟨"c"⟩,0,⟨⟨0,1⟩⟩,⟨⟨⟨⟩⟩⟩⟩,"matrix_value_columns_misaligned"⟩
 CheckRejected ⟨⟨⟨"r"⟩,⟨"c"⟩,0,⟨⟨0⟩⟩,⟨⟨⟨⟩,⟨⟩⟩⟩⟩,"matrix_contributor_columns_misaligned"⟩
