@@ -5,13 +5,8 @@ scale ← •Import "../ledger/exact_scale.bqn"
 sparse ← •Import "sparse_group.bqn"
 empty ← ⟨⟩
 
-Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
-Unique ← {𝕊 items:
-  result ← empty
-  {𝕊 item: {𝕊: result∾↩⟨item⟩}⍟(¬Contains ⟨item,result⟩) @}¨items
-  result
-}
-IndexOf ← {𝕊 item‿items: ⊑(item⊸≡¨items)⊐1}
+IndexOf ← {𝕊 item‿items: ⊑ items ⊐ ⟨item⟩}
+Contains ← {𝕊 item‿items: (IndexOf ⟨item,items⟩) < ≠items}
 Diagnostic ← {𝕊 codeText‿messageText:
   {severity⇐"error",stage⇐"accounting_date_category_flow",code⇐codeText,message⇐messageText}
 }
@@ -49,7 +44,7 @@ Build ← {𝕊 factSet‿domainCode‿layerName‿startOrdinal‿endOrdinal:
     envelopeRoles ← envelopeMask/accounts.role
     diagnostics ∾↩ AddIf ⟨∨´0∾{𝕩≢"budget"}¨envelopeRoles,Diagnostic ⟨"envelope_account_role_invalid","envelope Accounts require explicit budget role"⟩⟩
     diagnostics ∾↩ AddIf ⟨∨´0∾{0=≠𝕩}¨envelopeLabels,Diagnostic ⟨"envelope_category_missing","envelope Accounts require explicit budget category metadata"⟩⟩
-    diagnostics ∾↩ AddIf ⟨(≠envelopeLabels)≠≠Unique envelopeLabels,Diagnostic ⟨"envelope_category_duplicate","envelope budget categories must be unique in one domain"⟩⟩
+    diagnostics ∾↩ AddIf ⟨(≠envelopeLabels)≠≠⍷envelopeLabels,Diagnostic ⟨"envelope_category_duplicate","envelope budget categories must be unique in one domain"⟩⟩
     diagnostics ∾↩ AddIf ⟨Contains ⟨"other",envelopeLabels⟩,Diagnostic ⟨"envelope_category_reserved","other is reserved for unmatched expenses"⟩⟩
 
     {𝕊:
@@ -61,16 +56,11 @@ Build ← {𝕊 factSet‿domainCode‿layerName‿startOrdinal‿endOrdinal:
         kind⇐categoryKinds,envelope_account_index⇐categoryEnvelopeIndices
       }
 
-      accountCategory ← {𝕊 accountIndex:
-        result ← ¯1
-        role ← accountIndex⊑accounts.role
-        {𝕊:
-          budget ← accountIndex⊑accounts.budget
-          result↩≠envelopeLabels
-          {𝕊: result↩IndexOf ⟨budget,envelopeLabels⟩}⍟(Contains ⟨budget,envelopeLabels⟩) @
-        }⍟(role≡"expense") @
-        result
-      }¨accounts.index
+      # Index-of's absent bound is exactly the trailing "other" coordinate.
+      # Non-expense Accounts remain outside category space at ¯1.
+      expenseAccountMask ← "expense"⊸≡¨accounts.role
+      budgetCoordinates ← {IndexOf ⟨𝕩,envelopeLabels⟩}¨accounts.budget
+      accountCategory ← ¯1 + expenseAccountMask × (1 + budgetCoordinates)
 
       transactions ← factSet.transactions
       transactionMask ← (domainIndex=transactions.domain_index) ∧ (layerIndex=transactions.layer_index) ∧ (transactions.date_ordinal≥startOrdinal) ∧ transactions.date_ordinal<endOrdinal
