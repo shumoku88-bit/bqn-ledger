@@ -2,7 +2,7 @@
 # I/O boundary for friend_travel_events.tsv validation and APPEND protocol.
 
 loader ← •Import "../src/application/source_io.bqn"
-source ← •Import "../src_next/friend_travel_source_event.bqn"
+source ← •Import "../src/editor/friend_travel_source_event.bqn"
 
 args ← •args
 tab ← @+9

@@ -7,7 +7,7 @@ loader ← •Import "../src/application/source_io.bqn"
 decimal ← •Import "../src/ledger/exact_decimal.bqn"
 editorCurrency ← •Import "../src/application/editor_currency.bqn"
 setup ← editorCurrency.Load @
-dates ← •Import "../src_next/date.bqn"
+dates ← •Import "../src/ledger/date_ordinal.bqn"
 
 args ← •args
 tab ← @+9
@@ -47,7 +47,7 @@ postingCount ← •BQN postingCountText
 postingArgs ← postingCount↑(argIndex+1)↓args
 metadataArgs ← (argIndex+1+postingCount)↓args
 
-{𝕊⋄Fail ⟨"date_invalid", "date must be a valid YYYY-MM-DD calendar date"⟩}⍟(¬ dates.IsValidDateText dateText) @
+{𝕊⋄Fail ⟨"date_invalid", "date must be a valid YYYY-MM-DD calendar date"⟩}⍟(¬ dates.IsValid dateText) @
 {𝕊⋄Fail ⟨"description_invalid", "description must be nonempty and must not contain unsafe control input"⟩}⍟((0 = ≠ Trim description) ∨ (UnsafeText description) ∨ description ≢ Trim description) @
 {𝕊⋄Fail ⟨"identity_mode_invalid", "identity mode must be ordinary or durable"⟩}⍟(¬ ((identityMode ≡ "ordinary") ∨ identityMode ≡ "durable")) @
 {𝕊⋄Fail ⟨"event_id_unexpected", "ordinary actual must not carry an event-id"⟩}⍟((identityMode ≡ "ordinary") ∧ 0 < ≠ eventId) @

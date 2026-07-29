@@ -4,7 +4,7 @@
 
 loader ← •Import "../src/application/source_io.bqn"
 actual_source ← •Import "../src/application/actual_journal_config.bqn"
-parser ← •Import "../src_next/journal_profile_stage1.bqn"
+parser ← •Import "../src/editor/journal_profile.bqn"
 inv ← •Import "journal_identity_inventory.bqn"
 
 args ← •args

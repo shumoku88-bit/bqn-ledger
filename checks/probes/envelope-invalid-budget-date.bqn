@@ -8,7 +8,7 @@ cube ← •Import "../../src_next/cube.bqn"
 tbds ← •Import "../../src_next/tbds.bqn"
 env ← •Import "../../src_next/envelope_computation.bqn"
 actual_source ← •Import "../../src_next/actual_source.bqn"
-legacy_parser ← •Import "../../src_next/journal_profile_stage1.bqn"
+legacy_parser ← •Import "../../src/editor/journal_profile.bqn"
 
 # Load base context
 base ← "fixtures/envelope-characterization"

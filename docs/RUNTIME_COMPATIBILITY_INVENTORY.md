@@ -49,7 +49,7 @@ These counts are characterization. Final deletion is proved by absence and calle
 ### C01 — `src_next/` as the production ownership tree
 
 - Classification: `DELETE_RUNTIME_COMPATIBILITY`
-- Current callers: production report/summary/inspection, editor imports, tools, checks, tests, and docs.
+- Current callers: production report/summary/inspection, old tools, checks, tests, and docs; editor runtime imports are now zero.
 - Current behavior: the once-candidate tree is now production and contains both canonical foundations and migration shelves.
 - Destination: ownership-based modules under `src/`; `src_edit/` imports final strict ledger modules.
 - Prerequisite: all canonical modules and all 15 sections migrated; canonical entrypoints accepted.
@@ -58,7 +58,7 @@ These counts are characterization. Final deletion is proved by absence and calle
 ### C02 — ordinary `context.BuildContext`
 
 - Classification: `DELETE_RUNTIME_COMPATIBILITY`
-- Current callers: report, compact summary, developer inspection, envelope calculator, `src_edit/journal_validate_cmd.bqn`, characterization tools, checks, and many focused tests.
+- Current callers: report, compact summary, developer inspection, envelope calculator, characterization tools, checks, and many focused tests. Journal post-write validation no longer builds this context.
 - Current behavior:
   - builds one broad context containing cycle, accounts, posting rows, Cube, TBDS, issues, historical Actual transactions, and proof state;
   - uses the historical parser for production posting rows;

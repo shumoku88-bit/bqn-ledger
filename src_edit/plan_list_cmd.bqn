@@ -13,7 +13,7 @@ validate ← •Import "validate.bqn"
 plan_id ← •Import "plan_id.bqn"
 defaults ← •Import "../src/application/system_defaults.bqn"
 actual_source ← •Import "../src/application/editor_actual.bqn"
-plan_status ← •Import "../src_next/plan_status.bqn"
+plan_status ← •Import "../src/accounting/plan_temporal_status.bqn"
 
 sys ← defaults.Load @
 args ← •args

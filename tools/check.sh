@@ -173,6 +173,7 @@ bash checks/check-editor-config-ownership.sh >/dev/null
 bash checks/check-editor-actual-ownership.sh >/dev/null
 bash checks/check-editor-account-ownership.sh >/dev/null
 bash checks/check-editor-currency-ownership.sh >/dev/null
+bash checks/check-editor-runtime-boundary.sh >/dev/null
 bash checks/audit-budget-style-explicit.sh >/dev/null
 check_bqn_presentation_boundary
 

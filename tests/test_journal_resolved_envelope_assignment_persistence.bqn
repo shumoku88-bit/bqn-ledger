@@ -1,7 +1,7 @@
 #!/usr/bin/env bqn
 
 lib ← •Import "test_lib.bqn"
-parser ← •Import "../src_next/journal_profile_stage1.bqn"
+parser ← •Import "../src/editor/journal_profile.bqn"
 
 lf ← @+10
 base ← "../fixtures/journal-resolved-envelope-assignment-persistence"

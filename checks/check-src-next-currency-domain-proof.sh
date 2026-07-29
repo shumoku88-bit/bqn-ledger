@@ -8,7 +8,8 @@ trap 'rm -rf "$tmp"' EXIT
 make_fixture() {
   local dir="$1" plan_line="${2:-}" budget_line="${3:-}"
   mkdir -p "$dir"
-  printf 'assets:bank\trole=asset\nexpenses:food\trole=expense\nbudget:food\trole=budget\n' >"$dir/accounts.tsv"
+  printf 'assets:bank\trole=asset\tcurrency=JPY\nexpenses:food\trole=expense\tcurrency=JPY\nbudget:food\trole=budget\tcurrency=JPY\n' >"$dir/accounts.tsv"
+  printf 'ACTUAL_JOURNAL_FILE=actual.journal\n' >"$dir/config.tsv"
   printf 'mode\tfixed\nstart\t2026-06-15\nend_exclusive\t2026-06-22\n' >"$dir/cycle.tsv"
   cat >"$dir/actual.journal" <<'JOURNAL'
 commodity JPY

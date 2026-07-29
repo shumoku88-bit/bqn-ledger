@@ -1,7 +1,7 @@
 # Pure whole-Journal candidate builder and semantic equivalence verifier.
 
 cleanup ← •Import "journal_cleanup_plan.bqn"
-parser ← •Import "../src_next/journal_profile_stage1.bqn"
+parser ← •Import "../src/editor/journal_profile.bqn"
 util ← •Import "../src/text/parse.bqn"
 
 lf ← @+10

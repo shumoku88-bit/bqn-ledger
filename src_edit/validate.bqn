@@ -4,7 +4,7 @@
 # All functions return ⟨1, ""⟩ on success or ⟨0, "error message"⟩ on failure.
 # This module has no side effects and does not read files.
 
-date ← •Import "../src_next/date.bqn"
+date ← •Import "../src/ledger/date_ordinal.bqn"
 dec ← •Import "../src/ledger/exact_decimal.bqn"
 editorCurrency ← •Import "../src/application/editor_currency.bqn"
 setup ← editorCurrency.Load @
@@ -12,6 +12,7 @@ setup ← editorCurrency.Load @
 # ── Date validation ─────────────────────────────────────────────
 
 # Validate YYYY-MM-DD format and calendar correctness.
+IsDigits ← {𝕊 text:(0<≠text) ∧ ∧´text∊"0123456789"}
 ValidateDate ⇐ {
   s ← 𝕩
   lenOk ← 10 = ≠ s
@@ -19,8 +20,8 @@ ValidateDate ⇐ {
   yearS ← lenOk ◶ ⟨ { 𝕊 ⋄ "" }, { 𝕊 ⋄ 4 ↑ s } ⟩ @
   monthS ← lenOk ◶ ⟨ { 𝕊 ⋄ "" }, { 𝕊 ⋄ 2 ↑ 5 ↓ s } ⟩ @
   dayS ← lenOk ◶ ⟨ { 𝕊 ⋄ "" }, { 𝕊 ⋄ 2 ↑ 8 ↓ s } ⟩ @
-  digitsOk ← lenOk ◶ ⟨ { 𝕊 ⋄ 0 }, { 𝕊 ⋄ (date.IsDigits yearS) ∧ (date.IsDigits monthS) ∧ (date.IsDigits dayS) } ⟩ @
-  calendarOk ← digitsOk ∧ date.IsValidDateText s
+  digitsOk ← lenOk ◶ ⟨ { 𝕊 ⋄ 0 }, { 𝕊 ⋄ (IsDigits yearS) ∧ (IsDigits monthS) ∧ IsDigits dayS } ⟩ @
+  calendarOk ← digitsOk ∧ date.IsValid s
   {
     (¬ lenOk) ? ⟨0, "invalid date format (expected YYYY-MM-DD): " ∾ s⟩ ;
     (¬ sepOk) ? ⟨0, "invalid date format (expected YYYY-MM-DD): " ∾ s⟩ ;

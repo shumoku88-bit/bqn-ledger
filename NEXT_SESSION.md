@@ -7,14 +7,14 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Portfolio P11G: all eight currency_setup consumers now use a load-explicit canonical registry and narrow editor default-view/selection admission. DEFAULT_CURRENCY never fills source evidence. Live editor blockers are 17 files/eight modules.
+Portfolio P12: editor extraction is complete. src_edit and src/editor have zero src_next imports; historical Journal/travel semantics have real owners, temporal status is shared accounting, and Journal post-write validation no longer builds report context.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn (unchanged)
-editor currency: registry-supported Policy/scale, exact missing/duplicate/empty/unsupported default failures
-newly src_next-free: account_add, journal_add, journal_native_source_check, plan_add, plan_edit
-next slice: extract eight journal_profile_stage1 consumers as one coherent parser/rewrite cluster with canonical Account/Posting boundaries
-remaining gates: eight editor dependencies, retained helper decisions, rehearsal, separately authorized private readiness
+editor gate: green, zero old imports, no forwarding modules
+tracked blockers: 65 src_next modules, 74 named tests, 33 named checks, 35 fixture families, seven route/consumers
+next slice: classify retained non-src-next tests/helpers versus old-owner deletion and build atomic deletion rehearsal
+remaining gates: test/check/fixture/docs cleanup, UI/route cutover, separately authorized private readiness
 exclude: production switch, old-key deletion, private ledger inspection
 ```
 

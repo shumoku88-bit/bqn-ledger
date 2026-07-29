@@ -1,4 +1,4 @@
-# journal_profile_stage1.bqn
+# journal_profile.bqn — editor-owned historical Journal parser
 # Parser for the supported Minimal BQN Journal Profile subset.
 #
 # Production Journal mode selects the historical_external_plan profile explicitly.
@@ -6,9 +6,9 @@
 # Transaction IR, fails closed on unsupported or ambiguous evidence, and can
 # project valid transactions into a signed event x account matrix.
 
-util ← •Import "../src/text/parse.bqn"
-decimal ← •Import "../src/ledger/exact_decimal.bqn"
-dates ← •Import "date.bqn"
+util ← •Import "../text/parse.bqn"
+decimal ← •Import "../ledger/exact_decimal.bqn"
+dates ← •Import "../ledger/date_ordinal.bqn"
 
 empty ← ⟨⟩
 lf ← @+10
@@ -27,7 +27,7 @@ supportedLayers ← ⟨<"actual", <"plan", <"budget"⟩
 supportedProfiles ← ⟨<"strict_self_contained", <"historical_external_plan"⟩
 
 Diagnostic ← {𝕊 codeText‿lineNumber‿messageText:
-  {severity⇐"error", stage⇐"journal_profile_stage1", code⇐codeText, line⇐lineNumber, message⇐messageText}
+  {severity⇐"error", stage⇐"editor_journal_profile", code⇐codeText, line⇐lineNumber, message⇐messageText}
 }
 
 AddIf ← {𝕊 invalid‿diagnostic: invalid / ⟨diagnostic⟩ }
@@ -64,7 +64,7 @@ LegacyMetadataValueValid ← {𝕊 key‿value:
   taxOk ← IsOneOf ⟨value, ⟨<"private", <"business", <"mixed"⟩⟩
   bizOk ← IsOneOf ⟨value, ⟨<"0", <"1"⟩⟩
   invoiceOk ← IsOneOf ⟨value, ⟨<"none", <"ok"⟩⟩
-  dueOnOk ← dates.IsValidDateText value
+  dueOnOk ← dates.IsValid value
   paymentOk ← IsOneOf ⟨value, ⟨<"cash", <"card", <"debit"⟩⟩
   cashflowOk ← value ≡ "fixed_obligation"
   currencyOk ← value ≡ "JPY"
@@ -114,7 +114,7 @@ FirstLine ← { Trim > ⊑ 𝕩.lines }
 IsDateHeader ← {𝕊 text:
   enough ← 10 < ≠ text
   separator ← space = 10 ⊑ (text ∾ " ")
-  enough ∧ separator ∧ dates.IsValidDateText 10 ↑ text
+  enough ∧ separator ∧ dates.IsValid 10 ↑ text
 }
 
 ParseHeader ← {𝕊 group:
@@ -127,7 +127,7 @@ ParseHeader ← {𝕊 group:
   descriptionDelimiterPresent ← space = 1 ⊑ (rawTail ∾ "  ")
   description ← (1 + descriptionDelimiterPresent) ↓ tail
   diagnostics ← empty
-  diagnostics ∾↩ AddIf ⟨¬ dates.IsValidDateText dateText, Diagnostic ⟨"header_date_invalid", group.start_line, "transaction header date must be a valid YYYY-MM-DD date"⟩⟩
+  diagnostics ∾↩ AddIf ⟨¬ dates.IsValid dateText, Diagnostic ⟨"header_date_invalid", group.start_line, "transaction header date must be a valid YYYY-MM-DD date"⟩⟩
   diagnostics ∾↩ AddIf ⟨¬ (marker ∊ "*!"), Diagnostic ⟨"header_status_invalid", group.start_line, "transaction header status must be * or !"⟩⟩
   diagnostics ∾↩ AddIf ⟨¬ descriptionDelimiterPresent, Diagnostic ⟨"header_description_delimiter_missing", group.start_line, "transaction header status must be followed by one ASCII SPACE delimiter"⟩⟩
   diagnostics ∾↩ AddIf ⟨0 = ≠ description, Diagnostic ⟨"header_description_missing", group.start_line, "transaction header description must be nonempty"⟩⟩

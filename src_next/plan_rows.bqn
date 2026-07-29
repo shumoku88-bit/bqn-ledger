@@ -4,7 +4,7 @@
 loader ← •Import "../src/application/source_io.bqn"
 dt ← •Import "date.bqn"
 proj ← •Import "projection.bqn"
-plan_status ← •Import "plan_status.bqn"
+plan_status ← •Import "../src/accounting/plan_temporal_status.bqn"
 actual_source ← •Import "actual_source.bqn"
 
 Pad5 ← { 𝕩 ∾ ((5 - (5⌊≠𝕩)) ⥊ ⟨""⟩) }

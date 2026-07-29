@@ -15,7 +15,8 @@ render ← •Import "render.bqn"
 plan_id ← •Import "plan_id.bqn"
 defaults ← •Import "../src/application/system_defaults.bqn"
 actualConfig ← •Import "../src/application/actual_journal_config.bqn"
-date ← •Import "../src_next/date.bqn"
+date ← •Import "../src/ledger/date_ordinal.bqn"
+dateToday ← •Import "../src/application/date_today.bqn"
 editorCurrency ← •Import "../src/application/editor_currency.bqn"
 setup ← editorCurrency.Load @
 editorAccounts ← •Import "../src/application/editor_accounts.bqn"
@@ -150,7 +151,7 @@ dateCheck ← validate.ValidateDate actualDate
 {𝕊 ⋄ Fail (1 ⊑ dateCheck)}⍟(¬ 0 ⊑ dateCheck) @
 
 # 未来日付チェック
-today ← date.Today @
+today ← dateToday.Today @
 {𝕊 ⋄ Fail ("payment date cannot be in the future: " ∾ actualDate)}⍟((date.Ordinal actualDate) > date.Ordinal today) @
 
 # actualAmount: empty means preserve the planned amount; non-empty is the observed amount.

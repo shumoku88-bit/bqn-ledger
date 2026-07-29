@@ -8,7 +8,7 @@
 #   - Validates accounting semantic parity and Cube / Posting IR equality
 
 util ← •Import "../src/text/parse.bqn"
-parser ← •Import "../src_next/journal_profile_stage1.bqn"
+parser ← •Import "../src/editor/journal_profile.bqn"
 inv ← •Import "journal_identity_inventory.bqn"
 
 lf ← @+10

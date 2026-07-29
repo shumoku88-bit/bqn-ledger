@@ -86,7 +86,7 @@ lib.Assert 0 < ≠ invalidResult.diagnostics
 # Check that the diagnostic has expected fields and does not hide Stage 1 error meaning
 diagnostic ← ⊑ invalidResult.diagnostics
 "error" lib.AssertEq diagnostic.severity
-"journal_profile_stage1" lib.AssertEq diagnostic.stage
+"editor_journal_profile" lib.AssertEq diagnostic.stage
 "event_unbalanced" lib.AssertEq diagnostic.code
 
 •Out "test_journal_read_only_source_carrier.bqn: OK"

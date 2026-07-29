@@ -2,7 +2,7 @@
 # I/O boundary for travel_exchange_events.tsv validation and APPEND protocol.
 
 loader ← •Import "../src/application/source_io.bqn"
-exchange ← •Import "../src_next/travel_exchange_event.bqn"
+exchange ← •Import "../src/editor/travel_exchange_event.bqn"
 editorAccounts ← •Import "../src/application/editor_accounts.bqn"
 defaults ← •Import "../src/application/system_defaults.bqn"
 

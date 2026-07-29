@@ -24,7 +24,7 @@
 #     - physical source lines (source_start_line, source_end_line)
 
 lib ← •Import "test_lib.bqn"
-parser ← •Import "../src_next/journal_profile_stage1.bqn"
+parser ← •Import "../src/editor/journal_profile.bqn"
 adapter ← •Import "../src_next/journal_posting_ir_stage2a.bqn"
 ak ← •Import "../src_next/account_key.bqn"
 loader ← •Import "../src/application/source_io.bqn"

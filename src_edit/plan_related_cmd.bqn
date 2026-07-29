@@ -18,7 +18,7 @@ validate ← •Import "validate.bqn"
 plan_id ← •Import "plan_id.bqn"
 defaults ← •Import "../src/application/system_defaults.bqn"
 lib ← •Import "../src/text/parse.bqn"
-dateutil ← •Import "../src_next/date.bqn"
+dateutil ← •Import "../src/ledger/date_ordinal.bqn"
 actual_source ← •Import "../src/application/editor_actual.bqn"
 
 sys ← defaults.Load @

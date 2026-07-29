@@ -2,7 +2,7 @@
 # Pure classification and plan builder for Canonical Journal Surface 001.
 
 util ← •Import "../src/text/parse.bqn"
-parser ← •Import "../src_next/journal_profile_stage1.bqn"
+parser ← •Import "../src/editor/journal_profile.bqn"
 
 lf ← @+10
 cr ← @+13

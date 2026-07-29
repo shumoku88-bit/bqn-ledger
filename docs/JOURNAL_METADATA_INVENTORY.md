@@ -11,7 +11,7 @@ This is a code-surface inventory. It does not inspect private production data, s
 
 ## Current boundary
 
-`src_next/journal_profile_stage1.bqn` admits 22 transaction metadata keys:
+`src/editor/journal_profile.bqn` admits 22 transaction metadata keys:
 
 ```text
 action

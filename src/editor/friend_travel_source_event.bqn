@@ -1,9 +1,9 @@
 # friend_travel_source_event.bqn
 # I/O-free validation for Israel friend-paid pending source events.
 
-dates ← •Import "date.bqn"
-decimal ← •Import "../src/ledger/exact_decimal.bqn"
-util ← •Import "../src/text/parse.bqn"
+dates ← •Import "../ledger/date_ordinal.bqn"
+decimal ← •Import "../ledger/exact_decimal.bqn"
+util ← •Import "../text/parse.bqn"
 
 empty ← ⟨⟩
 tab ← @+9
@@ -38,7 +38,7 @@ Render ← {𝕊 event:
 ValidateEvent ← {𝕊 event:
   parsed ← decimal.Parse event.original_amount
   diagnostics ← empty
-  diagnostics ∾↩ AddIf ⟨¬ dates.IsValidDateText event.date, Diagnostic ⟨"date_invalid", "date", "date must be a valid YYYY-MM-DD calendar date"⟩⟩
+  diagnostics ∾↩ AddIf ⟨¬ dates.IsValid event.date, Diagnostic ⟨"date_invalid", "date", "date must be a valid YYYY-MM-DD calendar date"⟩⟩
   diagnostics ∾↩ AddIf ⟨¬ IsSafeText event.party, Diagnostic ⟨"party_invalid", "party", "party must be nonempty and TSV-field safe"⟩⟩
   diagnostics ∾↩ AddIf ⟨¬ IsSafeText event.item_or_category, Diagnostic ⟨"item_or_category_invalid", "item_or_category", "item or category must be nonempty and TSV-field safe"⟩⟩
   diagnostics ∾↩ AddIf ⟨¬ IsPositive parsed, Diagnostic ⟨"original_amount_invalid", "original_amount", "original amount must be a positive exact decimal"⟩⟩

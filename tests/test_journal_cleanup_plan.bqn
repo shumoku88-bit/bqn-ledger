@@ -2,7 +2,7 @@
 
 lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
-parser ← •Import "../src_next/journal_profile_stage1.bqn"
+parser ← •Import "../src/editor/journal_profile.bqn"
 cleanup ← •Import "../src_edit/journal_cleanup_plan.bqn"
 
 fixtureDir ← "fixtures/journal-legacy-entry-id-removal-boundary"

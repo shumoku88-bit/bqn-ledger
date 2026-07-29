@@ -1,9 +1,9 @@
 # travel_exchange_event.bqn
 # I/O-free bidirectional JPY/ILS exchange validation and structured preview.
 
-dates ← •Import "date.bqn"
-decimal ← •Import "../src/ledger/exact_decimal.bqn"
-util ← •Import "../src/text/parse.bqn"
+dates ← •Import "../ledger/date_ordinal.bqn"
+decimal ← •Import "../ledger/exact_decimal.bqn"
+util ← •Import "../text/parse.bqn"
 
 empty ← ⟨⟩
 tab ← @+9
@@ -50,7 +50,7 @@ ValidateExtracted ← {𝕊 request:
   sourceParsed ← decimal.Parse request.source_amount
   targetParsed ← decimal.Parse request.target_amount
   diagnostics ← empty
-  diagnostics ∾↩ AddIf ⟨¬dates.IsValidDateText request.date, Diagnostic ⟨"date_invalid", "date", "date must be a valid YYYY-MM-DD calendar date"⟩⟩
+  diagnostics ∾↩ AddIf ⟨¬dates.IsValid request.date, Diagnostic ⟨"date_invalid", "date", "date must be a valid YYYY-MM-DD calendar date"⟩⟩
   diagnostics ∾↩ AddIf ⟨¬IsSafeText request.memo, Diagnostic ⟨"memo_invalid", "memo", "memo must be nonempty and TSV-field safe"⟩⟩
   directionOk ← DirectionSupported ⟨request.source_currency, request.target_currency⟩
   sourcePrecision ← PrecisionFor request.source_currency

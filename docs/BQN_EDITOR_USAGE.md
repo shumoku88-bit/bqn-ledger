@@ -105,7 +105,7 @@ BQN Editor は会計エンジンとしての計算（残高や封筒の残金計
 
 `journal add` / `journal multi-add` のtransaction currencyは `--currency CODE` で明示する。省略時は既存互換としてJPYを使う。currencyは`config/currencies.tsv`に登録済みで、全posting accountの`currency=`と一致し、1 transaction内でbalancedかつregistry precision内でなければならない。対象Journalには使用するcommodity declarationとaccount declarationが既に必要であり、writerはaccountやcommodity declarationを自動作成しない。
 
-ordinary supported-currency appendはcomplete-source admissionとStage 2A currency-proof carrierを通してからsafe appendされる。異通貨posting、unsupported currency、過剰精度、zero、malformed、unbalanced inputは書き込み前に拒否される。
+ordinary supported-currency appendはstrict Accountsとcomplete-source admissionを通してからsafe appendされる。重複する旧Stage 2A carrier再検査は行わない。異通貨posting、unsupported currency、過剰精度、zero、malformed、unbalanced inputは書き込み前に拒否される。
 *   **オプション**:
     *   `--meta key=value`: 拡張列用のメタデータを指定します。
     *   `--dry-run`: 追記プレビューのみを行い、ファイルには書き込みません。
@@ -250,7 +250,7 @@ Israel旅行中に友人がILSで立て替えた観測事実は、ordinary journ
 2.  **プレビューと確認**: 追記または編集される正確なTSV行を画面に出力し、ユーザーが明示的に `y` または `yes` と入力しない限り書き込みません（`--yes` 指定時を除く）。
 3.  **自動バックアップ**: 置き換えを実行する直前に、対象ディレクトリ内の `.backup/YYYYMMDD-HHMMSS/<ファイル名>` にオリジナルデータを退避します。
 4.  **安全な置き換え**: 追記や編集はBashスクリプト連携で安全に行い、編集中にデータが破損しないように努めます。
-5.  **事後チェック (Post-write check)**: 書き込み直後に自動で確認を実行します。native Journalの既定 `--post-check lint` は `src_edit/journal_validate_cmd.bqn` でconfigured Journal parse、account registry parity、Posting IR、統合contextをfail closedに検査します。`--post-check full` は別の広い検証modeとして `./tools/check.sh` を実行します。Journal post-check失敗時は、post-write digestが一致する場合だけbackupからoriginal bytesへ自動rollbackし、後続writerが変更した場合はrollbackを拒否してrecovery-requiredを表示します。
+5.  **事後チェック (Post-write check)**: 書き込み直後に自動で確認を実行します。native Journalの既定 `--post-check lint` は`src_edit/journal_validate_cmd.bqn`でexplicit config、strict Accounts、configured Journal、canonical Transaction rowsだけをfail closedに検査します。Plan/Budget/report contextはJournal writeのpost-checkへ含めません。`--post-check full` は別の広い検証modeとして `./tools/check.sh` を実行します。Journal post-check失敗時は、post-write digestが一致する場合だけbackupからoriginal bytesへ自動rollbackし、後続writerが変更した場合はrollbackを拒否してrecovery-requiredを表示します。
 
 ---
 

@@ -47,7 +47,7 @@ The resulting rows are not interchangeable by assumption. `context.BuildContext`
 The ordinary route uses:
 
 ```text
-journal_profile_stage1.ParseWithProfile
+src/editor/journal_profile.ParseWithProfile
   -> account declaration parity
   -> journal_posting_ir_stage2a.BuildForSource
 ```

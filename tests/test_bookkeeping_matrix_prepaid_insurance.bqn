@@ -1,7 +1,7 @@
 #!/usr/bin/env bqn
 
 lib ← •Import "test_lib.bqn"
-parser ← •Import "../src_next/journal_profile_stage1.bqn"
+parser ← •Import "../src/editor/journal_profile.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 util ← •Import "../src/text/parse.bqn"
 

@@ -3,7 +3,7 @@
 # Performs no I/O and is not connected to production routing.
 # Preserves Stage 1 and Stage 2A outputs without changing Posting IR rows.
 
-parser ← •Import "journal_profile_stage1.bqn"
+parser ← •Import "../src/editor/journal_profile.bqn"
 adapter ← •Import "journal_posting_ir_stage2a.bqn"
 
 Build ← {𝕊 ⟨carrier, resolved, cycleStart⟩:

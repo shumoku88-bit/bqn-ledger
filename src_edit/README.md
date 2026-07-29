@@ -64,8 +64,8 @@ Dispatcher boundary note: see `docs/EDIT_BQN_DISPATCHER.md` for the current shel
 - `journal reverse` is handled by `src_edit/journal_native_reverse_cmd.bqn`; reverse validation and native block rendering stay in BQN.
 - Native Journal `--post-check lint` is owned by `journal_validate_cmd.bqn`; parser, account parity, Posting IR, and integrated context fail closed.
 - `issue add` has a small dedicated parser because its CLI and new-file semantics differ; its shell handler is split into `tools/lib/edit-bqn-issue.sh`.
-- `travel friend add` validates all existing and candidate source events through `src_next/friend_travel_source_event.bqn`; shell only transports arguments and applies exclusive-create/checked-append/recovery bytes.
-- `travel exchange add` validates accounts plus all existing and candidate two-amount events through `src_next/travel_exchange_event.bqn`; shell does not interpret currency, decimals, or exchange meaning.
+- `travel friend add` validates all existing and candidate source events through `src/editor/friend_travel_source_event.bqn`; shell only transports arguments and applies exclusive-create/checked-append/recovery bytes.
+- `travel exchange add` validates accounts plus all existing and candidate two-amount events through `src/editor/travel_exchange_event.bqn`; shell does not interpret currency, decimals, or exchange meaning.
 - `plan add` owns plan_id generation and duplicate checks.
 - `plan list` is byte-parity checked because its TSV output is a UI selection contract.
 - `plan related` is read-only and owns recurring-plan relation-key semantics for replenishment UI.

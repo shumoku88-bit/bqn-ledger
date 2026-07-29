@@ -8,7 +8,7 @@ util ← •Import "../src/text/parse.bqn"
 decimal ← •Import "../src/ledger/exact_decimal.bqn"
 dates ← •Import "date.bqn"
 setup ← •Import "currency_setup.bqn"
-stage1 ← •Import "journal_profile_stage1.bqn"
+stage1 ← •Import "../src/editor/journal_profile.bqn"
 
 lf ← @+10
 cr ← @+13

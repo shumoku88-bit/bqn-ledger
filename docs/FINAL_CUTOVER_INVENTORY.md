@@ -1,6 +1,6 @@
 # Final report-engine cutover inventory
 
-Status: P11 editor extraction in progress; cutover is **blocked** and production remains unchanged.
+Status: P11 editor extraction complete; P12 tracked deletion rehearsal next. Cutover is **blocked** and production remains unchanged.
 Date: 2026-07-28
 Authority: `REPORT_PORTFOLIO_CONTRACT.md`, `REPORT_SURFACE_RETIREMENT_MAP.md`, `DESTINATION_COMPOSITION.md`
 
@@ -11,19 +11,19 @@ The destination report side is complete through nine individual routes, human/co
 Measured tracked blockers:
 
 ```text
-src_next BQN modules                                  69
-BQN files outside src_next with direct src_next import 133
-  src_edit files                                      17
-  test files                                          112
+src_next BQN modules                                  65
+BQN files outside src_next with direct src_next import 105
+  src_edit files                                       0
+  test files                                         101
   check/tool characterization BQN files                 4
-named tests/test_src_next_*.bqn                       78
-other test files with direct src_next import          34
+named tests/test_src_next_*.bqn                       74
+other test files with direct src_next import          27
 checks/check-src-next-*.sh                            33
 fixture directories named fixtures/src-next-*         35
 tracked files under fixtures/src-next-*              153
 ```
 
-The 133 direct-import files are not all retained runtime. Most tests/checks/fixtures disappear with the old owner, but the 17 editor files are live and must be migrated before physical deletion. Destination runtime under `src/` has no `src_next` import.
+The live editor gate is green: `src_edit/` and `src/editor/` have zero `src_next` imports. The remaining 105 direct-import files are old tests and four characterization/probe files; most disappear with the old owner. Destination runtime under `src/` also has no `src_next` import.
 
 The reproducible tracked inventory is:
 
@@ -121,18 +121,14 @@ At atomic cutover, replace `tools/query` with the proven implementation, update 
 
 The external-consumer gate is green: under explicit user direction, executable/script/config/automation locations, launch agents, cron, and running processes were searched for `tools/query`, `report-next-summary`, and `src_next_*`. No untracked runtime consumer was found. Matches were limited to tracked current code, an independent legacy repository, and non-executable historical logs/docs. Shell history and private ledger contents were intentionally not inspected. Alias-free deletion remains approved.
 
-## Gate D: editor runtime extraction
-
-Seventeen `src_edit/*.bqn` files directly import eight `src_next` modules. Import frequency:
+## Gate D: editor runtime extraction — green
 
 ```text
- 8 journal_profile_stage1.bqn
- 5 date.bqn
- 1 each: journal_posting_ir_stage2a, account_key, plan_status,
-         travel_exchange_event, friend_travel_source_event, context
+src_edit/src_next direct imports   0
+src/editor/src_next direct imports 0
 ```
 
-The first extractions moved bounded text/source/config operations to neutral owners and physically removed the two obsolete helper modules. The Actual slice then moved all 12 editor consumers to explicit config routing plus canonical strict Account/Journal Facts in `src/application/editor_actual.bqn`. Completion evidence now exists only for durable non-empty `plan_id`; fabricated transaction-field identity is not emitted. Public sandbox/demo/golden/plan fixtures gained explicit source and Account currency evidence. Current production report compatibility remains in `src_next/actual_source.bqn` until cutover/private readiness. The Account slice moved eight operational consumers to strict canonical Account tables and removed redundant Stage 2A carrier revalidation after complete Journal admission. One old AccountKey import remains intentionally co-located with canonical-surface rewrite's old journal profile/Posting IR cluster. The Currency slice moved all eight consumers to a load-explicit canonical registry plus narrow default-view/explicit-selection admission; `DEFAULT_CURRENCY` never supplies source currency. Five more editor files became fully `src_next`-free.
+The first extractions moved bounded text/source/config operations to neutral owners and physically removed the two obsolete helper modules. The Actual slice then moved all 12 editor consumers to explicit config routing plus canonical strict Account/Journal Facts in `src/application/editor_actual.bqn`. Completion evidence now exists only for durable non-empty `plan_id`; fabricated transaction-field identity is not emitted. Public sandbox/demo/golden/plan fixtures gained explicit source and Account currency evidence. Current production report compatibility remains in `src_next/actual_source.bqn` until cutover/private readiness. The Account slice moved eight operational consumers to strict canonical Account tables and removed redundant Stage 2A carrier revalidation after complete Journal admission. The final cluster physically moved the historical editor Journal parser and travel validators to `src/editor`, moved Plan temporal status to `src/accounting`, replaced editor date use with canonical date coordinates plus one application clock adapter, removed redundant old Posting IR comparison from canonical rewrite, and replaced broad `BuildContext` post-write validation with strict configured Journal validation. No forwarding module remains.
 
 This remains the largest live runtime blocker. Required action is ownership migration, not copying all of `src_next`:
 
@@ -147,7 +143,7 @@ No forwarding modules may remain under `src_next`.
 
 ## Gate E: tests, checks, fixtures, and characterization
 
-The 78 named src-next tests, 33 named checks, and four direct-import probe/characterization BQN files are deletion inventory, not a migration target. The four are the two `checks/probes/*` old-report probes and two `tools/characterization/*` context/report probes. For each file:
+The 74 named src-next tests, 33 named checks, and four direct-import probe/characterization BQN files are deletion inventory, not a migration target. The four are the two `checks/probes/*` old-report probes and two `tools/characterization/*` context/report probes. For each file:
 
 - retain only semantics still owned by ledger/accounting/sections/application;
 - move retained assertions to destination tests;
@@ -191,8 +187,7 @@ Aliases, dual keys, dual catalogs, fallback parsers, and forwarding wrappers are
 
 Before requesting cutover approval:
 
-1. editor dependency extraction from `src_next`;
-2. retained non-src-next test helper migration;
-3. tracked old test/check/fixture/docs deletion rehearsal;
-4. separately authorized private readiness;
-5. one reviewed atomic production/cutover diff.
+1. retained non-src-next test helper migration;
+2. tracked old test/check/fixture/docs deletion rehearsal;
+3. separately authorized private readiness;
+4. one reviewed atomic production/cutover diff.

@@ -3,7 +3,7 @@
 lib ← •Import "test_lib.bqn"
 ak ← •Import "../src_next/account_key.bqn"
 admission ← •Import "../src/ledger/journal_complete_admission.bqn"
-stage1 ← •Import "../src_next/journal_profile_stage1.bqn"
+stage1 ← •Import "../src/editor/journal_profile.bqn"
 setup ← •Import "../src_next/currency_setup.bqn"
 
 lf ← @+10

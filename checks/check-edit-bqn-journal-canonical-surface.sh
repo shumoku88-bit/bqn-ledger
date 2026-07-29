@@ -14,7 +14,7 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 
 setup_base() {
   local base="$1"
-  mkdir -p "$base/data"
+  mkdir -p "$base"
   cat <<'EOF' > "$base/accounts.tsv"
 assets:cash	role=asset	type=asset	currency=JPY
 expenses:food	role=expense	type=expense	currency=JPY
@@ -32,7 +32,7 @@ EOF
 setup_fixture_a() {
   local base="$1"
   setup_base "$base"
-  cat <<'EOF' > "$base/data/actual.journal"
+  cat <<'EOF' > "$base/actual.journal"
 commodity JPY
 
 account assets:cash
@@ -64,7 +64,7 @@ EOF
 setup_fixture_b() {
   local base="$1"
   setup_base "$base"
-  cat <<'EOF' > "$base/data/actual.journal"
+  cat <<'EOF' > "$base/actual.journal"
 commodity JPY
 
 account assets:cash
@@ -83,7 +83,7 @@ EOF
 setup_fixture_c() {
   local base="$1"
   setup_base "$base"
-  cat <<'EOF' > "$base/data/actual.journal"
+  cat <<'EOF' > "$base/actual.journal"
 commodity JPY
 
 account assets:cash
@@ -127,7 +127,7 @@ if grep -q "; currency: JPY" "$PREVIEW_OUT"; then echo "Test 2 failed: currency:
 echo "Test 2 PASS"
 
 echo "=== Test 3: Preview Output Equals Source Rejection (Fixture F) ==="
-if "$ROOT_DIR/tools/edit-bqn" --base "$BASE_A" journal canonical-surface-preview --output "$BASE_A/data/actual.journal" 2>/dev/null; then
+if "$ROOT_DIR/tools/edit-bqn" --base "$BASE_A" journal canonical-surface-preview --output "$BASE_A/actual.journal" 2>/dev/null; then
   echo "Test 3 failed: output equal to source was not rejected"
   exit 1
 fi
@@ -139,15 +139,15 @@ setup_fixture_b "$BASE_B"
 
 APPLY_NOOP="$("$ROOT_DIR/tools/edit-bqn" --base "$BASE_B" journal canonical-surface-apply --dry-run)"
 echo "$APPLY_NOOP" | grep -q "Journal is already canonical." || { echo "Test 4 failed: no-op message missing"; exit 1; }
-[[ ! -d "$BASE_B/data/.backup" ]] || { echo "Test 4 failed: backup created for no-op"; exit 1; }
+[[ ! -d "$BASE_B/.backup" ]] || { echo "Test 4 failed: backup created for no-op"; exit 1; }
 echo "Test 4 PASS"
 
 echo "=== Test 5: Apply command with --apply on Fixture A ==="
-BEFORE_SHA="$(_safe_write_sha256 "$BASE_A/data/actual.journal")"
+BEFORE_SHA="$(_safe_write_sha256 "$BASE_A/actual.journal")"
 "$ROOT_DIR/tools/edit-bqn" --base "$BASE_A" journal canonical-surface-apply --apply --yes
-AFTER_SHA="$(_safe_write_sha256 "$BASE_A/data/actual.journal")"
+AFTER_SHA="$(_safe_write_sha256 "$BASE_A/actual.journal")"
 [[ "$BEFORE_SHA" != "$AFTER_SHA" ]] || { echo "Test 5 failed: file was not modified"; exit 1; }
-[[ -d "$BASE_A/data/.backup" ]] || { echo "Test 5 failed: backup not created"; exit 1; }
+[[ -d "$BASE_A/.backup" ]] || { echo "Test 5 failed: backup not created"; exit 1; }
 
 # Idempotency check on newly applied Journal
 SECOND_APPLY="$("$ROOT_DIR/tools/edit-bqn" --base "$BASE_A" journal canonical-surface-apply --dry-run)"
@@ -168,7 +168,7 @@ echo "=== Test 7: Stale Source Gate (Fixture D) ==="
 BASE_D="$TMP_DIR/base_d"
 setup_fixture_a "$BASE_D"
 
-TARGET_D="$BASE_D/data/actual.journal"
+TARGET_D="$BASE_D/actual.journal"
 SNAP_TOKEN="$(safe_snapshot_token "$TARGET_D")"
 IFS=$'\t' read -r D_SIZE D_MTIME D_SHA <<< "$SNAP_TOKEN"
 
@@ -185,7 +185,7 @@ echo "Test 7 PASS"
 echo "=== Test 8: Post-check Failure & Guarded Rollback (Fixture E) ==="
 BASE_E="$TMP_DIR/base_e"
 setup_fixture_a "$BASE_E"
-TARGET_E="$BASE_E/data/actual.journal"
+TARGET_E="$BASE_E/actual.journal"
 SNAP_E="$(_safe_write_sha256 "$TARGET_E")"
 
 export BQN_LEDGER_TEST_MODE=1
@@ -226,10 +226,10 @@ if "$ROOT_DIR/tools/edit-bqn" --base "$BASE_9" journal canonical-surface-apply -
 fi
 
 # 9d: --apply without --yes in non-interactive environment (EOF) must cancel without writing
-SHA_9_BEFORE="$(_safe_write_sha256 "$BASE_9/data/actual.journal")"
+SHA_9_BEFORE="$(_safe_write_sha256 "$BASE_9/actual.journal")"
 APPLY_EOF_OUT="$("$ROOT_DIR/tools/edit-bqn" --base "$BASE_9" journal canonical-surface-apply --apply </dev/null)"
 echo "$APPLY_EOF_OUT" | grep -q "Cancelled. No files were modified." || { echo "Test 9d failed: cancellation message missing"; exit 1; }
-SHA_9_AFTER="$(_safe_write_sha256 "$BASE_9/data/actual.journal")"
+SHA_9_AFTER="$(_safe_write_sha256 "$BASE_9/actual.journal")"
 [[ "$SHA_9_BEFORE" == "$SHA_9_AFTER" ]] || { echo "Test 9d failed: file was modified on non-interactive apply"; exit 1; }
 echo "Test 9 PASS"
 

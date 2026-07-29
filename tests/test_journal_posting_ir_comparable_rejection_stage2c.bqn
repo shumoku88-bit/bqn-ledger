@@ -2,7 +2,7 @@
 # Native Journal rejection boundary: malformed dates, amounts, and undeclared
 # posting accounts are rejected before any Posting IR rows are admitted.
 lib ← •Import "test_lib.bqn"
-parser ← •Import "../src_next/journal_profile_stage1.bqn"
+parser ← •Import "../src/editor/journal_profile.bqn"
 ak ← •Import "../src_next/account_key.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 base ← "fixtures/journal-posting-ir-stage2c"

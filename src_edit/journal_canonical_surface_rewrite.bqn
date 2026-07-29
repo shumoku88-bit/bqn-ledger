@@ -2,15 +2,12 @@
 # Pure whole-Journal candidate builder and semantic equivalence verifier for Canonical Surface 001.
 
 util ← •Import "../src/text/parse.bqn"
-parser ← •Import "../src_next/journal_profile_stage1.bqn"
-stage2a ← •Import "../src_next/journal_posting_ir_stage2a.bqn"
-ak ← •Import "../src_next/account_key.bqn"
+parser ← •Import "../src/editor/journal_profile.bqn"
 plan ← •Import "journal_canonical_surface_plan.bqn"
 
 lf ← @+10
 cr ← @+13
 space ← @+32
-tab ← @+9
 empty ← ⟨⟩
 
 Diagnostic ← {𝕊 code‿message: {code⇐code, message⇐message}}
@@ -42,31 +39,10 @@ IsStage0LineId ← { (12 ≤ ≠ 𝕩) ∧ ("stage0-line-" ≡ 12 ↑ 𝕩) }
 EventIdEquivalent ← {𝕊 b‿a:
   (IsStage0LineId b) ◶ ⟨ { b ≡ a }, { IsStage0LineId a } ⟩ @
 }
-PostingIdEquivalent ← {𝕊 b‿a:
-  (IsStage0LineId b) ◶ ⟨ { b ≡ a }, { IsStage0LineId a } ⟩ @
+AccountSignatures ← {𝕊 accounts:
+  {⟨𝕩.account_key,𝕩.role,𝕩.kind,𝕩.default_envelope,MetaPairs 𝕩.metadata⟩}¨accounts
 }
-
-PostingRowEquivalent ← {
-  b ← 𝕨
-  a ← 𝕩
-  sourceIdMatch ← EventIdEquivalent ⟨b.source_id, a.source_id⟩
-  postingIdMatch ← PostingIdEquivalent ⟨b.posting_id, a.posting_id⟩
-  txIdMatch ← EventIdEquivalent ⟨b.tx_id, a.tx_id⟩
-  sourceIdMatch ∧ postingIdMatch ∧ txIdMatch ∧ ∧´ ⟨
-    b.source_file ≡ a.source_file,
-    b.date ≡ a.date,
-    b.day_index = a.day_index,
-    b.account_key ≡ a.account_key,
-    b.account_key_index = a.account_key_index,
-    b.layer_name ≡ a.layer_name,
-    b.layer_index = a.layer_index,
-    b.side ≡ a.side,
-    b.delta = a.delta,
-    b.kind ≡ a.kind,
-    b.status ≡ a.status,
-    b.message ≡ a.message
-  ⟩
-}
+CommoditySignatures ← {𝕊 commodities: {𝕩.commodity}¨commodities}
 
 VerifyEquivalent ← {𝕊 beforeRaw‿afterRaw:
   diagnostics ← empty
@@ -117,16 +93,9 @@ VerifyEquivalent ← {𝕊 beforeRaw‿afterRaw:
 
     }¨ ↕ ⌊´ ⟨≠beforeTx, ≠afterTx⟩
 
-    # Stage 2A Posting IR comparison
-    accLines ← { 𝕩.account_key ∾ tab ∾ "role=" ∾ 𝕩.role }¨ beforeParsed.accounts
-    resolved ← ak.Resolve accLines
-    beforeIr ← stage2a.BuildForSource ⟨beforeTx, resolved, "", "data/actual.journal"⟩
-    afterIr ← stage2a.BuildForSource ⟨afterTx, resolved, "", "data/actual.journal"⟩
-
-    countMatch ← (≠beforeIr.posting_rows) = ≠afterIr.posting_rows
-    rowsMatch ← ∧´ 1 ∾ beforeIr.posting_rows PostingRowEquivalent¨ afterIr.posting_rows
-    irMatch ← countMatch ∧ rowsMatch
-    {FB7: Add ⟨"stage2a_ir_mismatch", "Stage 2A Posting IR changed"⟩}⍟(¬irMatch) @
+    accountsMatch ← (AccountSignatures beforeParsed.accounts) ≡ AccountSignatures afterParsed.accounts
+    commoditiesMatch ← (CommoditySignatures beforeParsed.commodities) ≡ CommoditySignatures afterParsed.commodities
+    {FB7: Add ⟨"declaration_semantics_mismatch", "Account or commodity declarations changed"⟩}⍟(¬accountsMatch ∨ ¬commoditiesMatch) @
 
   }⍟((beforeParsed.state ≡ "ok") ∧ (afterParsed.state ≡ "ok")) @
 
@@ -204,4 +173,4 @@ BuildCandidate ← {𝕊 raw:
   }
 }
 
-{BuildCandidate⇐BuildCandidate, VerifyEquivalent⇐VerifyEquivalent, RewriteSingleLine⇐RewriteSingleLine, PostingRowEquivalent⇐PostingRowEquivalent}
+{BuildCandidate⇐BuildCandidate,VerifyEquivalent⇐VerifyEquivalent,RewriteSingleLine⇐RewriteSingleLine}

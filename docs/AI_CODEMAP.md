@@ -134,6 +134,7 @@ Updated: 2026-07-28
 - `cycle_income_anchor_resolution.bqn` — explicit as-of、Actual Facts、Plan Facts、income Account evidenceからanchor periodとsource-qualified durable contributorsを解決する。I/O、clock、cross-source amount加算を持たない。
 - `fact_reference.bqn` — 2つのcross-source consumerで一致したSource validationとdurable Transaction/Posting reference構築だけを共有する。
 - `plan_completion_join.bqn` — explicitに選択済みのPlan/Actual Transaction Factsをdurable `plan_id`だけでJoinする。各sourceのexact amount、Account direction、Posting contributorを保持し、open/completed/duplicate/ambiguousを区別する。five-field fallbackやduplicate amount加算を持たない。
+- `plan_temporal_status.bqn` — explicit `as_of`に対する`future / due / overdue / completed`分類のpure owner。
 - `recent_transactions.bqn` — Actual Factsとpositive limitからphysical source末尾N件をnewest-firstに選び、multi-posting debit/credit arrays、exact debit total、Transaction/Posting provenanceを返す retained List capability。
 - `cycle_account_period.bqn` — resolved cycle、explicit observation、Actual Factsを`account_period`へcomposeし、observed end-exclusiveを確定する。全cell contributorをsource-qualified Posting referenceへ変換し、cycle boundary evidenceを別保持する。
 - `cycle_comparison.bqn` — 2つのexplicit accounted cycle windowsを`aligned_elapsed | complete_cycles`で比較し、current/baseline/differenceとwindow別・union provenanceを返す。similar period探索を持たない。
@@ -199,17 +200,13 @@ Updated: 2026-07-28
 ### `src_next/` (現行production BQN 会計エンジン)
 
 - `context.bqn` — BuildAllRows / BuildPeriodView / BuildContext。Actualはcanonical complete admissionを使い、既存Cube/TBDS向けに一時的な`delta` rowへ変換してplan/budget TSV rowsと合成する。default/explicit cycle解決も同じcomplete transactionsを再利用し、production historical parser fallbackはない。
-- `journal_profile_stage1.bqn` — Minimal BQN Journal subsetをordered Transaction IRへ変換するparser。`recur` / `series` / `trip-id`とclosed enumの`payment`は会計意味を解釈せずgeneric `transaction.metadata`へexact保持する。Journal modeのproduction read/write validationで使用する。
 - `journal_posting_ir_stage2a.bqn` — admitted Stage 1 Transaction IRをcurrent 16-field Posting IR shapeへ変換するadapter。explicit source file identityを持つnative multi-posting production routingにも使用する。
 - `journal_posting_identity_provenance_stage2b.bqn` — admitted Stage 1 Transaction IRと対応するStage 2Aの16-field rowsを受け、identity/provenance local invariantsをall-or-nothingで検査して、rowを変更せず別の6-field carrierを返すpure test-only helper。production provenance carrier、consumer、routingには未接続。
 - `currency_arithmetic.bqn` — pre-built B1 row evidence だけを入力に、single-domain 検査、snapshot-wide `amount_scale`、exact normalization、normalized overflow evidence を返す pure B2 owner。source file や projection は扱わない。
 - `source_currency_admission.bqn` — supplied account lines と posting snapshot のみを検査する pure source-currency admission owner。closed strict/compatibility policy、privacy-safe diagnostics、no-partial-admission を持ち、I/Oなし・public runtime未配線。
 - `friend_travel_jpy_finalization.bqn` — pending friend-travel source-event descriptor、明示 finalization date / JPY amount、既存account descriptor、既存finalization IDだけを入力にするpure validator。成功時は既存JPY liability → JPY expenseのcanonical previewを正確に1行返し、失敗時はprivacy-safe diagnosticsと0行を返す。I/O、status/index mutation、writer、public runtime配線は持たない。
-- `friend_travel_source_event.bqn` — Israel用friend-paid pending source eventの固定9列、ILS精度、固定payer/trip/status、既存全行検査、ID一意性、exact preview rowを所有するpure validator。I/Oとfinalizationを持たない。
-- `travel_exchange_event.bqn` — Israel用JPY↔ILS bidirectional exchangeの2観測amount、明示source/target currencyごとのprecision、既存account descriptor、ID一意性を検査しstructured previewを返すpure owner。I/O、rate、journal row、valuation、account-name inferenceを持たない。
 - `actual_observation.bqn` — prepared Actual datesからreport-local observation coordinateを導くI/O-free policy owner。Daily Flow/Trendの`start + day_count` windowと、Planned Payments/Cycle Summaryのexplicit half-open cycle windowという、consumer間でexact parityが確認された2 policyだけを共有する。invalid-date filtering、source-order、explicit absence、open-ended frontierは統合しない。
 - `actual_source.bqn` — configured native Journal resolverとtransitional source-loading adapter。`LoadTransactionRows`とbase-oriented completionはcanonical complete admission→Facts→typed transaction rowsを使う。production `LoadCycleEvidence`はcanonical complete admissionでfail-closedし、historical parser fallbackを持たない。focused legacy contextsだけは明示`actual_transactions_complete`不在時の旧completion interpretationを保持し、Phase 3で削除する。declaration-only Journalは正常なempty Actualとしてadmitされる。
-- `loader.bqn` — source ファイル読み込み (`•FChars` 使用)。
 - `cube.bqn` — Canonical Daily Cube (`Day × Account × Layer`) の構築。
 - `tbds.bqn` — Trial Balance Data Set (period/account/layer/opening/movement/closing)。
 - `exact_sparse_grouping.bqn` — explicit keysとalready-admitted exact valuesをfirst-occurrence順でdeterministicにgroupするI/O-free kernel。accounting axes、domain、admission、valuation、provenance ownershipを持たず、contributor indexはsidecar helperで返す。
@@ -240,7 +237,6 @@ Updated: 2026-07-28
 - `household_policy.bqn` — 家計ポリシーレイヤ。
 - `household_metadata.bqn` — 家計メタデータ診断。
 - `plan_rows.bqn` — 予定行の source evidence（`PlanId` / `InCycle` / `BuildBase`）、actual value、temporal status の共有 owner。
-- `plan_status.bqn` — 明示 `as_of` に対する `future / due / overdue / completed` 分類の独立した純粋 owner。
 - `plan_journal_overlap.bqn` — plan/journal 重複検出。
 - `format.bqn` — テキスト整形、ANSI color helper、semantic color/no-color制御。
 - `report_labels.bqn` — report presentation labels の正本ローダー (`config/report_labels.tsv`)。
@@ -254,6 +250,12 @@ Updated: 2026-07-28
 - `report_section_metadata.bqn` — `report_sections.bqn`から静的rowを受け、label解決とUI向けstructured metadata export（TSV default / JSON）を所有する。source TSVは読まず、serializerは今回のdescriptor移行では既存実装を維持する。
 - `summary.bqn` — 機械向けコンパクト出力。
 
+### `src/editor/` (pure editor semantic owners)
+
+- `journal_profile.bqn` — historical external-plan Journal subsetをordered Transaction IRへ変換するeditor parser。metadataをexact保持し、I/O/clock/current report contextを持たない。
+- `friend_travel_source_event.bqn` — friend-paid pending eventの固定9列、ILS精度、ID一意性、preview rowを所有するpure validator。
+- `travel_exchange_event.bqn` — JPY↔ILSのtwo-observed-amount、account/domain/precision、ID一意性を検査するpure owner。rate/valuation/journal rowを作らない。
+
 ### `src_edit/` (BQN editor subsystem)
 
 `tools/edit-bqn` を支える BQN editor subsystem。`src_next/` (report) とは独立。
@@ -263,8 +265,8 @@ Updated: 2026-07-28
 - `src_edit/account_list_cmd.bqn` — UI向け account candidate export。`accounts.tsv` の role メタ解釈を BQN 側に閉じ込める。
 - `src_edit/journal_add_cmd.bqn` — `budget add` のTSV候補を検証・生成する。
 - `src_edit/actual_journal_file_cmd.bqn` — BQN resolverが選んだnative Journal相対pathをUI/toolsへ出力する。
-- `src_edit/journal_validate_cmd.bqn` — configured native Journalと統合contextをfail closedに検査する書き込み後validator。
-- `src_edit/journal_block_add_cmd.bqn` — native Journal transaction blockの検証・append protocol生成。ordinary appendは明示supported currencyを受け、complete-source admissionとStage 2A currency-proof carrierを再利用する。省略時JPY互換、single-domain、account-currency、exact precision、balanceをfail closedに検査する。CLI `trip_id`→native `trip-id`と`payment=cash|card|debit`を含む明示metadataのparse round-tripも検査する。
+- `src_edit/journal_validate_cmd.bqn` — explicit config、strict Accounts、configured native Journal、canonical Transaction rowsだけをfail closedに検査する書き込み後validator。
+- `src_edit/journal_block_add_cmd.bqn` — native Journal transaction blockの検証・append protocol生成。明示supported currency、complete-source admission、single-domain、account-currency、exact precision、balanceをfail closedに検査する。CLI `trip_id`→native `trip-id`と`payment=cash|card|debit`を含む明示metadataのparse round-tripも検査する。
 - `src_edit/travel_friend_add_cmd.bqn` — `friend_travel_events.tsv` の既存全行検査とpending候補APPEND protocol生成。意味検査はpure source-event ownerへ委譲。
 - `src_edit/travel_exchange_add_cmd.bqn` — accountsと`travel_exchange_events.tsv`をpure exchange ownerへ渡し、固定10列候補APPEND protocolを生成。
 - `src_edit/journal_list_cmd.bqn` — journal reverse UI向け read-only native Journal selection export。

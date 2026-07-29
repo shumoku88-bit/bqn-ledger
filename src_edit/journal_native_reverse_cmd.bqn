@@ -1,13 +1,13 @@
 # Select one native Journal transaction and emit its exact inverse posting intent.
 actual_source ← •Import "../src/application/editor_actual.bqn"
-date ← •Import "../src_next/date.bqn"
+dateToday ← •Import "../src/application/date_today.bqn"
 validate ← •Import "validate.bqn"
 lib ← •Import "../src/text/parse.bqn"
 args ← •args ⋄ tab←@+9
 Fail ← {𝕊 msg: •Out "ERROR"∾tab∾msg ⋄ •Exit 1}
 {𝕊: Fail "usage: base id index reverseDate"}⍟(4≠≠args) @
 base←0⊑args ⋄ id←1⊑args ⋄ index←lib.ToNum 2⊑args ⋄ reverseDate←3⊑args
-revDate ← (0=≠reverseDate)◶⟨{𝕊:reverseDate},{𝕊:date.Today @}⟩ @
+revDate ← (0=≠reverseDate)◶⟨{𝕊:reverseDate},{𝕊:dateToday.Today @}⟩ @
 check←validate.ValidateDate revDate ⋄ {𝕊:Fail 1⊑check}⍟(¬0⊑check) @
 txs←actual_source.LoadTransactionRows base
 selected←@

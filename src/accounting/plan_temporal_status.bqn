@@ -1,4 +1,4 @@
-# plan_status.bqn
+# plan_temporal_status.bqn
 # Pure temporal status projection for plan rows.
 #
 # Input:
@@ -9,11 +9,11 @@
 #
 # No formatting, envelope logic, source mutation, or wall-clock reads.
 
-date ← •Import "date.bqn"
+date ← •Import "../ledger/date_ordinal.bqn"
 
 Classify ← {𝕊 completed‿planDate‿asOf:
-  planDn ← date.DaysFromEpoch planDate
-  asOfDn ← date.DaysFromEpoch asOf
+  planDn ← date.Ordinal planDate
+  asOfDn ← date.Ordinal asOf
   openIdx ← (planDn = asOfDn) + (2 × planDn > asOfDn)
   openStatus ← openIdx ⊑ ⟨"overdue", "due", "future"⟩
   completed ⊑ ⟨openStatus, "completed"⟩

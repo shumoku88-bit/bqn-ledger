@@ -1,7 +1,7 @@
 #!/usr/bin/env bqn
 
 lib ← •Import "test_lib.bqn"
-plan_status ← •Import "../src_next/plan_status.bqn"
+plan_status ← •Import "../src/accounting/plan_temporal_status.bqn"
 
 as_of ← "2026-07-05"
 
@@ -14,4 +14,4 @@ as_of ← "2026-07-05"
 "completed" lib.AssertEq plan_status.Classify ⟨1, "2026-07-05", as_of⟩
 "completed" lib.AssertEq plan_status.Classify ⟨1, "2026-07-06", as_of⟩
 
-•Out "test_src_next_plan_status.bqn: OK"
+•Out "test_accounting_plan_temporal_status: ok"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bqn
 
 lib ← •Import "test_lib.bqn"
-source ← •Import "../src_next/friend_travel_source_event.bqn"
+source ← •Import "../src/editor/friend_travel_source_event.bqn"
 
 tab ← @+9
 lf ← @+10
@@ -51,4 +51,4 @@ privacy ← CheckRejected ⟨Event ⟨"private-date", "Private Party"∾tab∾"x
 messages ← ∾({𝕩.message∾"\n"}¨privacy.diagnostics)
 {𝕩 ⋄ 0 lib.AssertEq ∨´𝕩⍷messages}¨ ⟨"private-date", "Private Party", "Private Item", "987x", "private-trip", "private-id"⟩
 
-•Out "test_src_next_friend_travel_source_event.bqn: OK"
+•Out "test_editor_friend_travel_source_event: ok"
