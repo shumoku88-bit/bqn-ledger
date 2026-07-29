@@ -2,65 +2,37 @@
 
 Can `<current procedural form>` become `<array-native form>` while preserving `<named contracts>`?
 
-## Before
+## 日常の5問
 
-```text
-<procedural stages>
-```
+1. **何を配列変換として見せたいか。**
 
-## Array model
+   ```text
+   <input cells / columns>
+   → <coordinate, mask, classification, group, or selected function>
+   → <output cells / columns>
+   ```
 
-```text
-<input cells / columns>
-→ <coordinate, mask, classification, group, or selected function>
-→ <output cells / columns>
-```
+2. **何を絶対に変えないか。**
+
+   -
+
+3. **境界でも同じ意味か。**
+
+   - relevant edge:
+   - focused evidence:
+
+4. **必要な名前とownership boundaryを消していないか。**
+
+   - changed owners:
+   - intentionally untouched owners:
+
+5. **前より問題の構造が見えるか。**
+
+   `accept / revise / reject` —
 
 ## Change
 
-- 
-
-## Preserved contracts
-
-- ordering:
-- empty behavior:
-- diagnostics:
-- provenance:
-- exact arithmetic:
-- output bytes / public shape:
-- evaluation behavior:
-
-## Edge evidence
-
-- empty:
-- unknown / not found:
-- nested cell:
-- non-adjacent duplicate:
-- invalid rank / shape:
-- boundary index:
-- eager evaluation対conditional evaluation:
-- exact arithmetic failure:
-
-該当しない項目は `not-applicable` と記録する。
-
-## BQN refactor lenses
-
-[`docs/BQN_REFACTORING_REVIEW_GUIDE.md`](https://github.com/shumoku88-bit/bqn-ledger/blob/main/docs/BQN_REFACTORING_REVIEW_GUIDE.md) に沿って確認する。
-
-- 配列変換: `green / improve / blocked / not-applicable` —
-- 境界意味論: `green / improve / blocked / not-applicable` —
-- 読める境界: `green / improve / blocked / not-applicable` —
-- 導出経路: `green / improve / blocked / not-applicable` —
-- 全体配列データフロー: `green / improve / blocked / not-applicable` —
-- 記法の明瞭さ: `green / improve / blocked / not-applicable` —
-- 圧縮の限界: `green / improve / blocked / not-applicable` —
-
-## Ownership and scope
-
-- changed owners:
-- intentionally untouched owners:
-- utility bag、forwarding wrapper、universal context、fallbackを追加していない:
-- correctnessとrefactoringを分離している:
+-
 
 ## Verification
 
@@ -70,8 +42,4 @@ Can `<current procedural form>` become `<array-native form>` while preserving `<
 - [ ] current-main integration
 - [ ] final bounded patch review
 
-## Decision
-
-`accept / revise / reject`
-
-理由:
+判断に迷う場合だけ、[`docs/BQN_REFACTORING_REVIEW_GUIDE.md`](https://github.com/shumoku88-bit/bqn-ledger/blob/main/docs/BQN_REFACTORING_REVIEW_GUIDE.md) の詳細lensを参照する。

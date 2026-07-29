@@ -12,6 +12,36 @@ Status: boundedなBQN refactorのためのproposed review gate
 
 `src/`、`src_edit/`、retained shared ownerと、そのfocused testにある小さなrefactorで使います。correctness変更とownership migrationは別sliceのまま保ちます。
 
+## 日常の5問
+
+通常のbounded refactorでは、まずこの5問だけを確認します。
+
+1. **何を配列変換として見せたいか。**
+
+   ```text
+   input cells / columns
+   → coordinate, mask, classification, group, or selected function
+   → output cells / columns
+   ```
+
+2. **何を絶対に変えないか。**
+
+   該当するordering、diagnostics、provenance、exact arithmetic、output bytes、rejection behavior、evaluation behaviorを明記します。
+
+3. **境界でも同じ意味か。**
+
+   該当するempty、not-found、nested cell、duplicate、boundary index、invalid shape、conditional evaluationをfocused testで固定します。
+
+4. **必要な名前とownership boundaryを消していないか。**
+
+   domain上のstageやownerは残し、その内側にあるincidentalなscan、mutation、branch ladderだけを短くします。
+
+5. **前より問題の構造が見えるか。**
+
+   行数ではなく、入力、変換、出力、失敗条件が前より直接読めるかで `accept / revise / reject` を決めます。
+
+5問で判断できないときだけ、後半のReview lensesを使います。
+
 ## Hard gates
 
 該当するgateが一つでも通らないrefactorは採用しません。
@@ -28,7 +58,7 @@ Status: boundedなBQN refactorのためのproposed review gate
 
 ## Review lenses
 
-該当するlensごとに `green`、`improve`、`blocked`、`not-applicable` を記録します。具体的な変更内容とevidenceだけを書きます。
+以下は日常の必須記入欄ではなく、5問だけでは判断が難しいときの参照です。必要なlensだけを使い、具体的な変更内容とevidenceを書きます。
 
 ### 配列変換: array transformationを露出させる
 
@@ -88,7 +118,7 @@ final codeはcompactで構いません。review evidenceには、そこへ到達
 - itemごとのcontrol flowをaligned state arrayにできないか。
 - 新しいdataflowがdeterministicでaudit可能か。
 
-小さなadmission function、I/O boundary、editor safety orchestrationでは通常 `not-applicable` です。
+小さなadmission function、I/O boundary、editor safety orchestrationでは通常使いません。
 
 ### 記法の明瞭さ: notationが構造を見せるか判定する
 
@@ -111,117 +141,21 @@ final codeはcompactで構いません。review evidenceには、そこへ到達
 
 これはprobeでありacceptance criterionではありません。暗黙の前提へ依存する圧縮や、人間、test、将来の自動変更に必要なevidenceを消す圧縮はrejectします。
 
-## Standard review sequence
+## 作業順序
 
-### 1. Finite questionを宣言する
-
-一文で書きます。
-
-> Can `<current procedural form>` become `<array-native form>` while preserving `<named contracts>`?
-
-### 2. Contractを固定する
-
-変えてはいけない性質を列挙します。該当するordering、empty behavior、diagnostics、provenance、arithmetic、output bytes、evaluation behaviorを含めます。
-
-### 3. Final expressionより先にarray modelを書く
-
-```text
-input cells / columns
-→ coordinate, mask, classification, group, or selected function
-→ output cells / columns
-```
-
-これを明確に書けないsliceは、まだ圧縮の準備ができていません。
-
-### 4. Semantic edgeをcharacterizeする
-
-該当するものへfocused evidenceを追加します。
-
-- empty
-- unknown / not found
-- nested cell
-- non-adjacent duplicate
-- invalid rank or shape
-- boundary index
-- eager evaluation対conditional evaluation
-- exact arithmetic failure
-
-### 5. 最小のcoherent changeを実装する
+1. finite questionを一文で宣言する。
+2. 変えてはいけないcontractを書く。
+3. final expressionより先にarray modelを書く。
+4. 該当するsemantic edgeをfocused testへ追加する。
+5. 最小のcoherent changeを実装する。
+6. 5問でreviewし、必要な場合だけ詳細lensを参照する。
+7. current `main`との統合状態で検証し、`accept / revise / reject`を出す。
 
 新しいgeneric helperより、まずdirect primitiveを使います。複数のreal consumerが同じsemanticsを証明した後にだけshared ownerを抽出します。
 
-### 6. Lens reviewを記録する
-
-```markdown
-## BQN refactor lenses
-
-- 配列変換: green — <visible array transformation>
-- 境界意味論: green — <edge semantics and tests>
-- 読める境界: green — <names and boundaries retained>
-- 導出経路: green — <derivation/comment/test evidence>
-- 全体配列データフロー: not-applicable — <why>
-- 記法の明瞭さ: green — <problem structure made clearer>
-- 圧縮の限界: green — <compression considered without deleting contracts>
-```
-
-### 7. Decisionを出す
-
-- **accept**: hard gateがすべて通り、notationが変換を以前より直接示す。
-- **revise**: 意味は保たれているが、shape、naming、test、説明のいずれかが不明瞭。
-- **reject**: contractを隠す、ownershipを広げる、correctnessとrefactorを混ぜる、未検証のBQN behaviorへ依存する。
-
-## Pull request evidence template
-
-```markdown
-## Finite question
-
-Can ...?
-
-## Before
-
-<procedural stages>
-
-## Array model
-
-<input> → <coordinate/mask/group/function> → <output>
-
-## Change
-
-- ...
-
-## Preserved contracts
-
-- ...
-
-## Edge evidence
-
-- empty: ...
-- not found: ...
-- nested / duplicate: ...
-- evaluation order: ...
-
-## BQN refactor lenses
-
-- 配列変換: ...
-- 境界意味論: ...
-- 読める境界: ...
-- 導出経路: ...
-- 全体配列データフロー: ...
-- 記法の明瞭さ: ...
-- 圧縮の限界: ...
-
-## Verification
-
-- [ ] focused test
-- [ ] full `tools/check.sh`
-- [ ] coverage
-- [ ] current-main integration
-- [ ] final bounded patch review
-```
-
 ## Current examples
 
-| PR | Kernel | Primary lenses | Important evidence |
+| PR | Kernel | 主に使う観点 | Important evidence |
 |---|---|---|---|
 | #437 | catalog exact lookup | 配列変換、境界意味論 | index-ofのabsent bound。success branchだけをconditional execution |
 | #438 | request surface support | 配列変換、読める境界 | surface coordinateとcatalog coordinateを再利用。diagnostic contractを維持 |
