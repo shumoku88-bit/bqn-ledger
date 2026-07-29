@@ -1,22 +1,22 @@
 # Fixture: plan-completion
 
-equity:opening-balances	role=equity
+equity:opening-balances	role=equity	currency=JPY
 
-assets:bank	role=asset	type=liquid
-assets:cash	role=asset	type=liquid
-assets:wallet	role=asset	type=liquid
-assets:zero	role=asset	type=liquid
-assets:savings	role=asset	type=savings
+assets:bank	role=asset	type=liquid	currency=JPY
+assets:cash	role=asset	type=liquid	currency=JPY
+assets:wallet	role=asset	type=liquid	currency=JPY
+assets:zero	role=asset	type=liquid	currency=JPY
+assets:savings	role=asset	type=savings	currency=JPY
 
-income:salary	role=income
+income:salary	role=income	currency=JPY
 
-expenses:food	role=expense	budget=daily	spend_class=variable
-expenses:rent	role=expense	fixed=1	spend_class=fixed
-expenses:misc	role=expense	budget=flex	spend_class=variable
+expenses:food	role=expense	budget=daily	spend_class=variable	currency=JPY
+expenses:rent	role=expense	fixed=1	spend_class=fixed	currency=JPY
+expenses:misc	role=expense	budget=flex	spend_class=variable	currency=JPY
 
-budget:opening	role=budget	kind=opening
-budget:unassigned	role=budget	kind=unassigned
-budget:daily	role=budget	kind=envelope
-budget:flex	role=budget	kind=envelope
-budget:reserve	role=budget	kind=envelope
-budget:spent	role=budget	kind=spent
+budget:opening	role=budget	kind=opening	currency=JPY
+budget:unassigned	role=budget	kind=unassigned	currency=JPY
+budget:daily	role=budget	kind=envelope	currency=JPY
+budget:flex	role=budget	kind=envelope	currency=JPY
+budget:reserve	role=budget	kind=envelope	currency=JPY
+budget:spent	role=budget	kind=spent	currency=JPY

@@ -3,7 +3,7 @@
 # Actual transactions have exactly one source: configured ACTUAL_JOURNAL_FILE.
 
 config ← •Import "config.bqn"
-actualConfig ← •Import "../src/application/actual_journal_config.bqn"
+actualAdmission ← •Import "../src/application/actual_journal_admission.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 admission ← •Import "../src/ledger/journal_complete_admission.bqn"
 facts ← •Import "../src/ledger/facts.bqn"
@@ -22,7 +22,20 @@ FactAccounts ← {𝕊 resolved:
   }
 }
 
-Resolve ← {𝕊 base: actualConfig.Resolve config.ReportConfigPath base}
+Resolve ← {𝕊 base:
+  result ← actualAdmission.AdmitWithRepositoryDefault ⟨
+    loader.ReadLines config.ReportConfigPath base,
+    loader.ReadLines "config/default_config.tsv"
+  ⟩
+  {𝕊:
+    {𝕊:•Out "CONFIG ERROR: duplicate value for ACTUAL_JOURNAL_FILE"}⍟(result.code≡"actual_journal_duplicate") @
+    {𝕊:•Out "CONFIG ERROR: repository default missing or duplicate for ACTUAL_JOURNAL_FILE"}⍟(result.code≡"actual_journal_repository_default_invalid") @
+    {𝕊:•Out "CONFIG ERROR: empty value for ACTUAL_JOURNAL_FILE"}⍟(result.code≡"actual_journal_empty") @
+    {𝕊:•Out "CONFIG ERROR: ACTUAL_JOURNAL_FILE must be a safe .journal basename"}⍟(result.code≡"actual_journal_basename_invalid") @
+    •Exit 1
+  }⍟(result.state≢"ok") @
+  {file⇐result.file}
+}
 
 ResolveRelativePath ← {𝕊 base:
   selected ← Resolve base

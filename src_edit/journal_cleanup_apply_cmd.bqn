@@ -2,7 +2,7 @@
 # Prepare a verified cleanup candidate at a caller-owned temporary path.
 
 loader ← •Import "../src/application/source_io.bqn"
-actual ← •Import "../src_next/actual_source.bqn"
+actual ← •Import "../src/application/actual_journal_config.bqn"
 parser ← •Import "../src_next/journal_profile_stage1.bqn"
 cleanup ← •Import "journal_cleanup_plan.bqn"
 rewrite ← •Import "journal_cleanup_rewrite.bqn"

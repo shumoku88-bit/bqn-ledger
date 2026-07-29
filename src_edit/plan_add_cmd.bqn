@@ -15,7 +15,7 @@ plan_id ← •Import "plan_id.bqn"
 defaults ← •Import "../src/application/system_defaults.bqn"
 setup ← •Import "../src_next/currency_setup.bqn"
 ak ← •Import "../src_next/account_key.bqn"
-actual_source ← •Import "../src_next/actual_source.bqn"
+actual_source ← •Import "../src/application/editor_actual.bqn"
 
 sys ← defaults.Load @
 args ← •args

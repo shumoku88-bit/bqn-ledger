@@ -3,7 +3,7 @@
 # Args: base directory, format tsv|text.
 # TSV fields: number date memo from to amount display
 
-actual_source ← •Import "../src_next/actual_source.bqn"
+actual_source ← •Import "../src/application/editor_actual.bqn"
 amount_text ← •Import "../src/ledger/amount_text.bqn"
 args ← •args ⋄ tab ← @+9
 Fail ← {𝕊 msg: •Out "ERROR"∾tab∾msg ⋄ •Exit 1}

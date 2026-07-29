@@ -12,6 +12,7 @@ modules=(
   src/application/config_rows.bqn
   src/application/system_defaults.bqn
   src/application/editor_config_path.bqn
+  src/application/actual_journal_admission.bqn
   src/application/actual_journal_config.bqn
   src/application/editor_plan_budget_config.bqn
 )

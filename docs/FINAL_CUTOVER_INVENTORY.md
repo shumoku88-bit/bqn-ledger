@@ -12,8 +12,8 @@ Measured tracked blockers:
 
 ```text
 src_next BQN modules                                  69
-BQN files outside src_next with direct src_next import 142
-  src_edit files                                      26
+BQN files outside src_next with direct src_next import 139
+  src_edit files                                      23
   test files                                          112
   check/tool characterization BQN files                 4
 named tests/test_src_next_*.bqn                       78
@@ -23,7 +23,7 @@ fixture directories named fixtures/src-next-*         35
 tracked files under fixtures/src-next-*              153
 ```
 
-The 142 direct-import files are not all retained runtime. Most tests/checks/fixtures disappear with the old owner, but the 26 editor files are live and must be migrated before physical deletion. Destination runtime under `src/` has no `src_next` import.
+The 139 direct-import files are not all retained runtime. Most tests/checks/fixtures disappear with the old owner, but the 23 editor files are live and must be migrated before physical deletion. Destination runtime under `src/` has no `src_next` import.
 
 The reproducible tracked inventory is:
 
@@ -123,10 +123,9 @@ The external-consumer gate is green: under explicit user direction, executable/s
 
 ## Gate D: editor runtime extraction
 
-Twenty-six `src_edit/*.bqn` files directly import 11 `src_next` modules. Import frequency:
+Twenty-three `src_edit/*.bqn` files directly import 10 `src_next` modules. Import frequency:
 
 ```text
-12 actual_source.bqn
  9 account_key.bqn
  8 journal_profile_stage1.bqn
  8 currency_setup.bqn
@@ -136,7 +135,7 @@ Twenty-six `src_edit/*.bqn` files directly import 11 `src_next` modules. Import 
          travel_exchange_event, friend_travel_source_event, context
 ```
 
-The first extraction moved bounded text parsing to `src/text/parse.bqn`; the second consolidated read-only source operations in `src/application/source_io.bqn`. Both old helper modules were physically removed without wrappers. The third split 13 editor consumers from old report policy: system filenames, config row/path handling, strict Actual Journal basename resolution, and the three-field Plan budget editor config now have bounded `src/application` owners. `src_next/config.bqn` retains only current-report household policy and its old config-path fallback. Four editor command files became fully `src_next`-free in this slice.
+The first extractions moved bounded text/source/config operations to neutral owners and physically removed the two obsolete helper modules. The Actual slice then moved all 12 editor consumers to explicit config routing plus canonical strict Account/Journal Facts in `src/application/editor_actual.bqn`. Completion evidence now exists only for durable non-empty `plan_id`; fabricated transaction-field identity is not emitted. Public sandbox/demo/golden/plan fixtures gained explicit source and Account currency evidence. Current production report compatibility remains in `src_next/actual_source.bqn` until cutover/private readiness. Three more editor command files became fully `src_next`-free.
 
 This remains the largest live runtime blocker. Required action is ownership migration, not copying all of `src_next`:
 

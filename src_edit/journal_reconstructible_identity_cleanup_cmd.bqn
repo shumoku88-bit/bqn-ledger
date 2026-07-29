@@ -7,7 +7,7 @@
 #   apply INPUT EXPECTED_SHA256 EXPECTED_REMOVAL_COUNT
 
 loader ← •Import "../src/application/source_io.bqn"
-actual_source ← •Import "../src_next/actual_source.bqn"
+actual_source ← •Import "../src/application/actual_journal_config.bqn"
 cleanup ← •Import "journal_reconstructible_identity_cleanup.bqn"
 util ← •Import "../src/text/parse.bqn"
 

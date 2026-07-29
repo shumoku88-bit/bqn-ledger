@@ -1,9 +1,9 @@
 # Fixture: src-next-golden
 # Purpose: tiny src_next fixture for Phase 8 golden checks
 
-equity:opening	role=equity
-assets:bank	role=asset
-assets:cash	role=asset
-income:salary	role=income
-expenses:food	role=expense
-expenses:rent	role=expense
+equity:opening	role=equity	currency=JPY
+assets:bank	role=asset	currency=JPY
+assets:cash	role=asset	currency=JPY
+income:salary	role=income	currency=JPY
+expenses:food	role=expense	currency=JPY
+expenses:rent	role=expense	currency=JPY

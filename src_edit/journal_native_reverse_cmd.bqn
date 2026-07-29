@@ -1,5 +1,5 @@
 # Select one native Journal transaction and emit its exact inverse posting intent.
-actual_source ← •Import "../src_next/actual_source.bqn"
+actual_source ← •Import "../src/application/editor_actual.bqn"
 date ← •Import "../src_next/date.bqn"
 validate ← •Import "validate.bqn"
 lib ← •Import "../src/text/parse.bqn"

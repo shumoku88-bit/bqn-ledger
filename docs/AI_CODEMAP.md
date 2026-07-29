@@ -176,8 +176,9 @@ Updated: 2026-07-28
 - `source_io.bqn` — implementation-neutralなread-only raw/filtered/optional line I/OとTSV split adapter。report application、editor、旧current engine、testsが共有し、schema/accounting/write/shell/clockを持たない。旧`src_next/loader.bqn`はforwardingなしで削除済み。
 - `config_rows.bqn` / `editor_config_path.bqn` — pure key/value row viewとfallbackなしのexplicit editor config path admission。policy keyの意味を持たない。
 - `system_defaults.bqn` — editor/application routing用のrepository system filenamesだけを読む。
-- `actual_journal_config.bqn` — `ACTUAL_JOURNAL_FILE`のunique/safe `.journal` basenameをfail-closed resolveする。
+- `actual_journal_admission.bqn` / `actual_journal_config.bqn` — pure explicit/old-report-default admissionを分け、editorでは`ACTUAL_JOURNAL_FILE`のunique/safe `.journal` basenameをexplicit configからだけfail-closed resolveする。
 - `editor_plan_budget_config.bqn` — Plan budget同期が実際に使うprefix/spent/execution-envelopeの三fieldだけを所有し、household/report policyを構築しない。
+- `editor_actual.bqn` — explicit editor config、strict Account admission、configured native Journalからcanonical Transaction rowsを構築する。Plan completion evidenceはnon-empty durable `plan_id`だけで、date/memo/account/amount fallback IDを作らない。
 - `report_source_adapter.bqn` — explicit base/basenameからRegistry、Actual、Plan/companions、Cycle/Daily Scope/Issue linesをkey-specificに読む。
 - `funding_scope.bqn` — explicit Envelope funding Account keyをunique/same-domain/asset-roleでadmitしてindicesへ解決する。name inferenceなし。
 - `daily_scope_admission.bqn` — asset Account、durable Plan obligation、optional exact reservation linkageのstrict seven-column application admission。

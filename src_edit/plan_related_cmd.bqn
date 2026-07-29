@@ -19,7 +19,7 @@ plan_id ← •Import "plan_id.bqn"
 defaults ← •Import "../src/application/system_defaults.bqn"
 lib ← •Import "../src/text/parse.bqn"
 dateutil ← •Import "../src_next/date.bqn"
-actual_source ← •Import "../src_next/actual_source.bqn"
+actual_source ← •Import "../src/application/editor_actual.bqn"
 
 sys ← defaults.Load @
 args ← •args

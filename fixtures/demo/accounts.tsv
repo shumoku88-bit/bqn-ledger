@@ -1,30 +1,30 @@
 # Quick Start demo: fictional ordinary household
 
-equity:opening-balances	role=equity
+equity:opening-balances	role=equity	currency=JPY
 
-assets:bank	role=asset	type=liquid
-assets:cash	role=asset	type=liquid
-assets:savings	role=asset	type=savings
+assets:bank	role=asset	type=liquid	currency=JPY
+assets:cash	role=asset	type=liquid	currency=JPY
+assets:savings	role=asset	type=savings	currency=JPY
 
-income:salary	role=income
+income:salary	role=income	currency=JPY
 
-expenses:rent	role=expense	fixed=1	spend_class=fixed
-expenses:electricity	role=expense	fixed=1	spend_class=fixed
-expenses:gas	role=expense	fixed=1	spend_class=fixed
-expenses:water	role=expense	fixed=1	spend_class=fixed
-expenses:phone	role=expense	fixed=1	spend_class=fixed
-expenses:internet	role=expense	fixed=1	spend_class=fixed
-expenses:insurance	role=expense	fixed=1	spend_class=fixed
-expenses:groceries	role=expense	budget=daily	spend_class=variable
-expenses:household	role=expense	budget=flex	spend_class=variable
-expenses:transport	role=expense	budget=flex	spend_class=variable
-expenses:dining	role=expense	budget=flex	spend_class=variable
-expenses:books	role=expense	budget=flex	spend_class=variable
-expenses:repairs	role=expense	budget=reserve	spend_class=variable
+expenses:rent	role=expense	fixed=1	spend_class=fixed	currency=JPY
+expenses:electricity	role=expense	fixed=1	spend_class=fixed	currency=JPY
+expenses:gas	role=expense	fixed=1	spend_class=fixed	currency=JPY
+expenses:water	role=expense	fixed=1	spend_class=fixed	currency=JPY
+expenses:phone	role=expense	fixed=1	spend_class=fixed	currency=JPY
+expenses:internet	role=expense	fixed=1	spend_class=fixed	currency=JPY
+expenses:insurance	role=expense	fixed=1	spend_class=fixed	currency=JPY
+expenses:groceries	role=expense	budget=daily	spend_class=variable	currency=JPY
+expenses:household	role=expense	budget=flex	spend_class=variable	currency=JPY
+expenses:transport	role=expense	budget=flex	spend_class=variable	currency=JPY
+expenses:dining	role=expense	budget=flex	spend_class=variable	currency=JPY
+expenses:books	role=expense	budget=flex	spend_class=variable	currency=JPY
+expenses:repairs	role=expense	budget=reserve	spend_class=variable	currency=JPY
 
-budget:opening	role=budget	kind=opening
-budget:unassigned	role=budget	kind=unassigned
-budget:daily	role=budget	kind=envelope
-budget:flex	role=budget	kind=envelope
-budget:reserve	role=budget	kind=envelope
-budget:spent	role=budget	kind=spent
+budget:opening	role=budget	kind=opening	currency=JPY
+budget:unassigned	role=budget	kind=unassigned	currency=JPY
+budget:daily	role=budget	kind=envelope	currency=JPY
+budget:flex	role=budget	kind=envelope	currency=JPY
+budget:reserve	role=budget	kind=envelope	currency=JPY
+budget:spent	role=budget	kind=spent	currency=JPY

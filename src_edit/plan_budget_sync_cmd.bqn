@@ -8,7 +8,7 @@ budgetConfig ← •Import "../src/application/editor_plan_budget_config.bqn"
 planid ← •Import "plan_id.bqn"
 render ← •Import "render.bqn"
 validate ← •Import "validate.bqn"
-actual_source ← •Import "../src_next/actual_source.bqn"
+actual_source ← •Import "../src/application/editor_actual.bqn"
 
 args ← •args ⋄ tab ← @+9
 Fail ← {𝕊 msg: •Out "ERROR" ∾ tab ∾ msg ⋄ •Exit 1}

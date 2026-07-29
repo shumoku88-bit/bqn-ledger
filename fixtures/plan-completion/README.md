@@ -1,6 +1,6 @@
 # Fixture: plan-completion
 
-この fixture は、`plan_id` による予定（Plan）の履行済み判定および未履行予定（`plan_open`）の抽出規則を検証するためのものです。
+この fixture は、`plan_id` による予定（Plan）の履行済み判定および未履行予定（`plan_open`）の抽出規則を検証するためのものです。Account currencyとActual Journal sourceは明示し、editor proofはrepository defaultへfallbackしません。
 
 ## 意図と検証シナリオ
 

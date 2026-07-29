@@ -12,7 +12,7 @@ loader ← •Import "../src/application/source_io.bqn"
 validate ← •Import "validate.bqn"
 plan_id ← •Import "plan_id.bqn"
 defaults ← •Import "../src/application/system_defaults.bqn"
-actual_source ← •Import "../src_next/actual_source.bqn"
+actual_source ← •Import "../src/application/editor_actual.bqn"
 plan_status ← •Import "../src_next/plan_status.bqn"
 
 sys ← defaults.Load @

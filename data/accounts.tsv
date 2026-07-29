@@ -1,11 +1,11 @@
 # Fixture: household-moko
-assets:bank	role=asset	type=liquid
-expenses:食費	role=expense	spend_class=variable	budget=budget:食費	budget_group=daily
-expenses:日用品	role=expense	spend_class=variable	budget=budget:一般生活	budget_group=flex
-expenses:家賃	role=expense	spend_class=fixed
-income:年金	role=income
-equity:opening-balances	role=equity
-budget:食費	kind=envelope
-budget:一般生活	kind=envelope
-budget:opening	kind=opening
-budget:spent	kind=spent
+assets:bank	role=asset	type=liquid	currency=JPY
+expenses:食費	role=expense	spend_class=variable	budget=budget:食費	budget_group=daily	currency=JPY
+expenses:日用品	role=expense	spend_class=variable	budget=budget:一般生活	budget_group=flex	currency=JPY
+expenses:家賃	role=expense	spend_class=fixed	currency=JPY
+income:年金	role=income	currency=JPY
+equity:opening-balances	role=equity	currency=JPY
+budget:食費	role=budget	kind=envelope	currency=JPY
+budget:一般生活	role=budget	kind=envelope	currency=JPY
+budget:opening	role=budget	kind=opening	currency=JPY
+budget:spent	role=budget	kind=spent	currency=JPY
