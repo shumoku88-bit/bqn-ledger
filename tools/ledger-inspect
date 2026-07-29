@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Explicit non-authoritative canonical Actual Fact inspection.
+set -euo pipefail
+if [[ $# -ne 2 ]]; then
+  echo 'Usage: tools/ledger-inspect BASE JOURNAL' >&2
+  exit 2
+fi
+root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+base=$1
+journal=$2
+[[ $base == /* ]] || base="$PWD/$base"
+[[ $journal != */* && $journal != *\\* && $journal == *.journal ]] \
+  || { printf 'ERROR\tjournal_basename_invalid\tjournal must be a safe .journal basename\n' >&2; exit 1; }
+for name in accounts.tsv "$journal"; do
+  [[ -f $base/$name && -r $base/$name ]] \
+    || { printf 'ERROR\tsource_unreadable\trequired source is not readable: %s\n' "$name" >&2; exit 1; }
+done
+cd "$root"
+exec bqn src/application/ledger_inspect_cli.bqn "$base" "$journal"

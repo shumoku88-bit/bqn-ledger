@@ -181,6 +181,8 @@ Updated: 2026-07-28
 - `report_destination_cli.bqn` — request admission後にselected adapter/composer/rendererを呼ぶparallel CLI owner。9 keyを個別配線しproduction routeではない。
 - `tools/report-destination-all` — strict per-key argv manifestをcatalog順に同じindividual routeへ渡し、全成功後だけbuffered human/compact outputをpublishする。
 - `tools/report-destination-cache` — human manifestから9 section＋allをstageし、canonical manifest、stale `.txt` deletion、timestamp-last commit markerでparallel cache generationをpublishする。
+- `ledger_check_cli.bqn` / `tools/ledger-check` — Config/Accounts/Actual/Plan/Budget/Cycle/Issues/Daily Scopeのstrict source-facing operational admission。report/catalog ownerではない。
+- `ledger_inspect_cli.bqn` / `tools/ledger-inspect` — canonical Actual Transaction/Posting identity、Account、exact coefficient/scaleのnon-authoritative provenance inspection。
 
 ### `src_next/` (現行production BQN 会計エンジン)
 

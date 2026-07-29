@@ -1,0 +1,14 @@
+ledger_inspect	state	ok
+ledger_inspect	transactions	3
+ledger_inspect	postings	7
+ledger_inspect	domains	JPY
+transaction	actual.journal	proof-salary-1	2026-01-02
+transaction	actual.journal	proof-food-1	2026-01-10
+transaction	actual.journal	proof-split-1	2026-01-12
+posting	actual.journal	proof-salary-1	proof-salary-1:0	assets:cash	1000	0
+posting	actual.journal	proof-salary-1	proof-salary-1:1	income:salary	¯1000	0
+posting	actual.journal	proof-food-1	proof-food-1:0	expenses:food	20	0
+posting	actual.journal	proof-food-1	proof-food-1:1	assets:cash	¯20	0
+posting	actual.journal	proof-split-1	proof-split-1:0	expenses:food	10	0
+posting	actual.journal	proof-split-1	proof-split-1:1	expenses:transport	5	0
+posting	actual.journal	proof-split-1	proof-split-1:2	assets:cash	¯15	0

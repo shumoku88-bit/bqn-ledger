@@ -7,17 +7,16 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Portfolio P10H: destination individual/all routes and the exact nine-key-plus-all cache now pass direct-byte, fail-closed staging, stale deletion, and timestamp-last publication proofs. Next separate operational check/debug ownership.
+Portfolio P10I: destination routes/cache are complete and operational readiness/inspection now live outside the report catalog as `ledger-check`/`ledger-inspect`. Next perform final tracked cutover inventory and readiness gating without switching production.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn (unchanged)
-parallel cache: tools/report-destination-cache; same individual routes, canonical manifest, all bytes
-failure semantics: bad manifest/token preserves prior timestamp and all.txt; stale retired txt removed only on success
-next proof: source-facing tools/ledger-check and non-authoritative tools/ledger-inspect, neither in report catalog/cache
-then: final tracked cutover inventory and external consumer/private readiness gates
-exclude: production switch, private source inspection/migration, old-key deletion before external consumer confirmation
-forbid: report check/debug sections, diagnostic compact keys, stale partial cache
-private source audit/migration: still requires separate explicit instruction
+operations: ledger-check admits strict sources; ledger-inspect shows canonical Fact provenance; neither enters all/cache
+next proof: tracked route/key/cache/metadata/label/query caller inventory mapped to atomic deletion/replacement diff
+human gates: ask moko about external compact/query scripts; private Issues/Daily Scope/source migration still separately authorized
+exclude: production switch or private inspection in inventory slice
+forbid: forwarding check/debug wrappers, diagnostic compact keys, dual catalogs/routes
+cutover only after: inventory green + external consumer answer + private readiness instruction
 ```
 
 Destination code must not import old context, historical parser, report modules, or compatibility shapes. Move coherent ownership with callers and leave no forwarding wrapper. Private audit or migration still requires separate explicit direction.

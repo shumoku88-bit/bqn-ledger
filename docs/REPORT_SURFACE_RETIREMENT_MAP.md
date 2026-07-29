@@ -118,6 +118,8 @@ The destination section proof is complete.
 
 ### `check` → operational `tools/ledger-check`
 
+Parallel destination proof is complete: the operational command strictly admits source readiness, exits nonzero on invalid evidence, and is absent from report catalog/cache. At cutover:
+
 - remove report route/cache/metadata/labels and readiness compact block;
 - move retained strict admission/readiness diagnostics to a non-report operational command with nonzero error status;
 - overlap diagnostics either become Plan/Envelope validation evidence or are removed;
@@ -156,6 +158,8 @@ The destination section proof is complete.
 - remove lane/count/ratio/status behavior unless separately re-approved.
 
 ### `debug` → operational `tools/ledger-inspect`
+
+Parallel destination proof is complete: the explicit command inspects canonical Transaction/Posting provenance and is absent from report schema. At cutover:
 
 - remove report route/cache/metadata/labels and inline report builder;
 - retain useful Fact/provenance/numeric inspection under a plainly named non-authoritative command;
