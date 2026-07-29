@@ -7,16 +7,15 @@ Roadmap: `docs/LEDGER_REPORT_ENGINE_MIGRATION_ROADMAP.md`
 
 ## Current finite slice
 
-Portfolio P10J: tracked cutover inventory is reproducible and confirms cutover remains blocked by metadata/query/UI and 35 live editor files importing 14 src_next modules. Next build destination six-field metadata and source-independent UI listing proof.
+Portfolio P10K: final six-field destination metadata now derives from the static catalog in TSV/JSON and passes source-independent listing proof. External compact consumer search found no untracked executable/script usage. Next build final report-summary/exact ledger query proof.
 
 ```text
 current daily production: tools/report -> src_next/report.bqn (unchanged)
-measured blockers: 71 modules, 35 editor imports, 79 named tests, 33 named checks, 35 fixture families, 7 route/consumers
-clean boundary: destination src_next imports = 0
-next proof: catalog-derived key/label/category/owner/human_output/structured_output TSV+JSON, then parallel UI listing
-later: final report-summary/query; editor dependency extraction; deletion rehearsal
-human gates: external query/script answer and separately authorized private readiness
-exclude: production switch, old-key deletion, private inspection
+metadata: 9 final keys, categories, destination owners, yes/metadata fields; no household read
+external compact gate: green by explicit user-directed executable/config/automation search; legacy repo/log/docs are not consumers
+next proof: tools/report-summary over compact all manifest and exact ledger_* query with no old translation
+later: editor dependency extraction; tracked deletion rehearsal; separately authorized private readiness
+exclude: production switch, old-key deletion, private ledger inspection
 ```
 
 Destination code must not import old context, historical parser, report modules, or compatibility shapes. Move coherent ownership with callers and leave no forwarding wrapper. Private audit or migration still requires separate explicit direction.

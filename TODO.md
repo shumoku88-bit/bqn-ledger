@@ -270,7 +270,7 @@ Quality completion is governed by [`docs/DESTINATION_QUALITY_GATE.md`](docs/DEST
 - [x] Proved the exact nine-key-plus-all cache manifest, byte-identical direct bodies, fail-closed staging, timestamp-last publication, and stale retired `.txt` deletion.
 - [x] Separated strict source readiness into `tools/ledger-check` and canonical Fact/provenance inspection into non-authoritative `tools/ledger-inspect`; neither is a report/catalog/cache owner.
 - [x] Completed reproducible tracked final-cutover inventory: 71 modules, 35 live editor imports, 79 named tests, 33 named checks, 35 fixture families, and seven route/consumer owners remain blocked.
-- [ ] Build destination six-field metadata and migrate source-independent UI listing proof.
+- [x] Built catalog-derived six-field destination metadata in TSV/JSON with exact final order, destination owners, no source reads, and parallel UI-independent listing proof.
 - [ ] Build final compact `tools/report-summary`/exact `ledger_*` query proof, then ask moko about external `tools/query`/`report-next-summary`/`src_next_*` consumers before deletion.
 - [ ] Extract the 35 live editor files from 14 `src_next` dependencies without forwarding wrappers.
 - [ ] Keep private-source readiness under separate explicit authorization; do not inspect or rewrite user data in this public composition slice.

@@ -80,10 +80,8 @@ checks/check-report-section-metadata.sh
 checks/check-command-hub-browse-cache.sh
 ```
 
-Destination catalog and cache already prove the final key order and stale deletion, but the six-field metadata TSV/JSON adapter is not yet wired. Before cutover:
+The source-independent six-field destination TSV/JSON adapter is now complete in parallel: it derives exact key/order/label/category/owner/human/structured fields from `src/report/catalog.bqn`, points to destination section owners, and rejects retired keys. Before cutover:
 
-- derive metadata from `src/report/catalog.bqn`;
-- point owner fields to destination section modules;
 - switch UI listing and refresh to destination metadata/cache;
 - update browse/cache invalidation proofs;
 - remove old hard-coded help keys and old metadata expected TSV.
@@ -121,7 +119,7 @@ Remaining work:
 - delete all old `src_next_*` keys and generation-named summary route atomically;
 - do not translate old keys or dual-emit.
 
-External consumers cannot be inferred from Git. Moko must confirm whether untracked scripts call `tools/query`, `tools/report-next-summary`, or parse `src_next_*` keys before this gate can turn green.
+The external-consumer gate is green: under explicit user direction, executable/script/config/automation locations, launch agents, cron, and running processes were searched for `tools/query`, `report-next-summary`, and `src_next_*`. No untracked runtime consumer was found. Matches were limited to tracked current code, an independent legacy repository, and non-executable historical logs/docs. Shell history and private ledger contents were intentionally not inspected. Alias-free deletion remains approved.
 
 ## Gate D: editor runtime extraction
 
@@ -198,10 +196,9 @@ Aliases, dual keys, dual catalogs, fallback parsers, and forwarding wrappers are
 
 Before requesting cutover approval:
 
-1. destination six-field metadata and UI-independent listing;
-2. destination compact summary and exact-key query proof;
-3. editor dependency extraction from `src_next`;
-4. retained non-src-next test helper migration;
-5. tracked old test/check/fixture/docs deletion rehearsal;
-6. external script answer and separately authorized private readiness;
-7. one reviewed atomic production/cutover diff.
+1. destination compact summary and exact-key query proof;
+2. editor dependency extraction from `src_next`;
+3. retained non-src-next test helper migration;
+4. tracked old test/check/fixture/docs deletion rehearsal;
+5. separately authorized private readiness;
+6. one reviewed atomic production/cutover diff.

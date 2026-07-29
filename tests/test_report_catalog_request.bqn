@@ -3,6 +3,7 @@ lib ← •Import "test_lib.bqn"
 catalog ← •Import "../src/report/catalog.bqn"
 request ← •Import "../src/report/request.bqn"
 catalogText ← •Import "../src/report/catalog_text.bqn"
+metadata ← •Import "../src/report/section_metadata.bqn"
 
 table ← catalog.Table @
 9 lib.AssertEq table.count
@@ -10,7 +11,10 @@ table ← catalog.Table @
 ⟨1,1,1,1,1,1,1,1,1⟩ lib.AssertEq table.human
 ⟨1,1,1,1,0,0,0,1,0⟩ lib.AssertEq table.compact
 ⟨1,1,0,1,0,0,0,0,0⟩ lib.AssertEq table.json
+⟨"household","accounting","operations","operations","accounting","accounting","accounting","household","operations"⟩ lib.AssertEq table.category
 (•FChars "../fixtures/ledger-facts-phase1-proof/report_catalog.destination.tsv") lib.AssertEq catalogText.FormatTsv @
+(•FChars "../fixtures/ledger-facts-phase1-proof/report_metadata.destination.tsv") lib.AssertEq metadata.FormatTsv @
+(•FChars "../fixtures/ledger-facts-phase1-proof/report_metadata.destination.json") lib.AssertEq metadata.FormatJson @
 "ok" lib.AssertEq (catalog.Find "balances").state
 "unknown" lib.AssertEq (catalog.Find "snapshot").state
 

@@ -164,9 +164,10 @@ Updated: 2026-07-28
 
 - `text.bqn` — 複数Matrix/List rendererで一致したvisual width、padding、既format済みcellのplain deterministic tableだけを所有する。accounting、section label、color、terminal stateを持たない。
 - `json_text.bqn` — Planned PaymentsとAccount Balancesの2 consumerで一致したexplicit JSON String/ExactNumber/Boolean/Pair/Array/Object text constructor。arbitrary value coercionやbinary-float変換を持たない。
-- `catalog.bqn` — source-independentなfinal nine-key catalog。key/order/label/shape/supported surfacesの唯一のdestination owner。
+- `catalog.bqn` — source-independentなfinal nine-key catalog。key/order/label/category/section owner/shape/supported surfacesの唯一のdestination owner。
 - `request.bqn` — final key/surfaceと`all` selectorをpure admissionし、legacy keyやunsupported surfaceを明示errorにする。aliasを持たない。
-- `catalog_text.bqn` — household sourceを読まずcatalog metadataをdeterministic TSVへ描画する。
+- `catalog_text.bqn` — household sourceを読まずcatalog capability metadataをdeterministic TSVへ描画する。
+- `section_metadata.bqn` — catalogからUI契約のsix-field key/label/category/owner/human/structured metadataをTSV/JSONへ描画する。
 - `compose.bqn` — all nine retained reportsのpurpose-specific one-result composition。各関数は必要なFacts/coordinates/ownershipだけを受け、accounting→sectionをcomposeする。I/O、clock、path、all-report recordを持たない。
 - `render.bqn` — admitted key/surfaceとsuccessful composition resultだけをsection formatterへdispatchする。unsupported surfaceでformatterを呼ばない。
 

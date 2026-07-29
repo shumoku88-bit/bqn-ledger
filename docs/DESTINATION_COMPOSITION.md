@@ -110,6 +110,16 @@ The shell wrapper first runs pure request admission, resolves relative base agai
 
 No Account-name inference or fabricated default fills ownership. All coordinates remain explicit, so no clock is currently injected. Public CLI proof remains parallel to production until cutover.
 
+## Source-independent metadata
+
+`src/report/section_metadata.bqn` derives the retained six-field metadata directly from `catalog.bqn`:
+
+```text
+key | label | category | owner | human_output | structured_output
+```
+
+TSV and JSON preserve final catalog order, point owners to `src/sections`, and contain no retired operational/report keys. `tools/report-destination-metadata` is the parallel UI-independent exporter. It reads no base, household source, clock, labels file, or `src_next`; production `tools/report-section-metadata` remains unchanged until cutover.
+
 ## Destination cache publication
 
 `tools/report-destination-cache` accepts explicit base, cache directory, decimal generation token, and the human all-request manifest. It derives the nine section keys from the catalog selection, admits the complete manifest before source reads, and writes each body by invoking the same individual route once. `all.txt` is the byte concatenation of those staged bodies.

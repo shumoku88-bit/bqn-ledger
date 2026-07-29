@@ -1,0 +1,11 @@
+[
+  {"key": "envelopes", "label": "Envelope & Backing", "category": "household", "owner": "src/sections/envelope_backing.bqn", "human_output": "yes", "structured_output": "metadata"},
+  {"key": "balances", "label": "Account Balances", "category": "accounting", "owner": "src/sections/account_balances.bqn", "human_output": "yes", "structured_output": "metadata"},
+  {"key": "recent", "label": "Recent Journal", "category": "operations", "owner": "src/sections/recent_journal.bqn", "human_output": "yes", "structured_output": "metadata"},
+  {"key": "planned", "label": "Planned Payments", "category": "operations", "owner": "src/sections/planned_payments.bqn", "human_output": "yes", "structured_output": "metadata"},
+  {"key": "cycle-accounts", "label": "Current-cycle Accounts", "category": "accounting", "owner": "src/sections/cycle_accounts.bqn", "human_output": "yes", "structured_output": "metadata"},
+  {"key": "cycle-comparison", "label": "Cycle Comparison", "category": "accounting", "owner": "src/sections/cycle_comparison.bqn", "human_output": "yes", "structured_output": "metadata"},
+  {"key": "monthly-accounts", "label": "Monthly Accounts", "category": "accounting", "owner": "src/sections/monthly_accounts.bqn", "human_output": "yes", "structured_output": "metadata"},
+  {"key": "daily-target", "label": "Daily Target", "category": "household", "owner": "src/sections/daily_target.bqn", "human_output": "yes", "structured_output": "metadata"},
+  {"key": "issues", "label": "Issues", "category": "operations", "owner": "src/sections/issues.bqn", "human_output": "yes", "structured_output": "metadata"}
+]

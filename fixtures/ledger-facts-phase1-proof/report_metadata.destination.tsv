@@ -1,0 +1,10 @@
+key	label	category	owner	human_output	structured_output
+envelopes	Envelope & Backing	household	src/sections/envelope_backing.bqn	yes	metadata
+balances	Account Balances	accounting	src/sections/account_balances.bqn	yes	metadata
+recent	Recent Journal	operations	src/sections/recent_journal.bqn	yes	metadata
+planned	Planned Payments	operations	src/sections/planned_payments.bqn	yes	metadata
+cycle-accounts	Current-cycle Accounts	accounting	src/sections/cycle_accounts.bqn	yes	metadata
+cycle-comparison	Cycle Comparison	accounting	src/sections/cycle_comparison.bqn	yes	metadata
+monthly-accounts	Monthly Accounts	accounting	src/sections/monthly_accounts.bqn	yes	metadata
+daily-target	Daily Target	household	src/sections/daily_target.bqn	yes	metadata
+issues	Issues	operations	src/sections/issues.bqn	yes	metadata

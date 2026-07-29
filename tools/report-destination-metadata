@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Parallel source-independent destination metadata export.
+set -euo pipefail
+root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$root"
+case "${1:-}" in
+  -h|--help)
+    echo 'Usage: tools/report-destination-metadata [--format tsv|json]'
+    exit 0
+    ;;
+esac
+exec bqn src/application/report_metadata_cli.bqn "$@"
