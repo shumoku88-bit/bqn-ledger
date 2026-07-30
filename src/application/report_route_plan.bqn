@@ -9,12 +9,10 @@ ErrorLine ← {𝕊 diagnostic:
   "ERROR"∾tab∾diagnostic.code∾tab∾diagnostic.message
 }
 SourceLine ← {𝕊 sourceIndex‿sources:
-  "SOURCE"∾tab∾(•Fmt sourceIndex⊑sources.argument_index)∾tab∾
-    (sourceIndex⊑sources.kind)∾tab∾sourceIndex⊑sources.role
+  ("SOURCE"∾tab∾(•Fmt sourceIndex⊑sources.argument_index)∾tab∾(sourceIndex⊑sources.kind)∾tab∾(sourceIndex⊑sources.role))
 }
 Success ← {𝕊 admitted:
-  header ← "ROUTE"∾tab∾admitted.key∾tab∾admitted.surface∾tab∾
-    (•Fmt ≠admitted.coordinates)∾tab∾•Fmt admitted.sources.count
+  header ← ("ROUTE"∾tab∾admitted.key∾tab∾admitted.surface∾tab∾(•Fmt ≠admitted.coordinates)∾tab∾(•Fmt admitted.sources.count))
   sourceLines ← {𝕊 sourceIndex: SourceLine ⟨sourceIndex,admitted.sources⟩}¨admitted.sources.index
   Result ⟨0,⟨header⟩∾sourceLines⟩
 }
