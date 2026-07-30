@@ -25,3 +25,6 @@ jobs:
 
       - name: Run MatrixResult Cells and Rank probe
         run: bqn experiments/bqn/matrix_result_cells_rank.bqn
+
+      - name: Run sparse grouping classify-once probe
+        run: bqn experiments/bqn/sparse_group_classify_once.bqn
