@@ -8,6 +8,15 @@ tmp="$(mktemp -d "${TMPDIR:-/tmp}/bqn-ledger-destination-route.XXXXXX")"
 trap 'rm -rf "$tmp"' EXIT
 cli="$root/src/application/report_destination_cli.bqn"
 
+ExpectLine() {
+  local expected=$1 file=$2
+  grep -Fx "$expected" "$file" >/dev/null || {
+    echo "FAIL: expected exact line: $expected" >&2
+    cat "$file" >&2
+    exit 1
+  }
+}
+
 grep -F 'route ← •Import "report_route.bqn"' "$cli" >/dev/null
 grep -F 'route.Admit ⟨key,surface,coordinates⟩' "$cli" >/dev/null
 if grep -Eq 'usage_(envelopes|balances|recent|planned|cycle_accounts|cycle_comparison|monthly_accounts|daily_flow|daily_target|issues)' "$cli"; then
@@ -26,13 +35,13 @@ if bqn "$cli" "$fixture" balances human JPY 2026-01-12 >"$tmp/arity" 2>&1; then
   echo 'FAIL: direct destination invalid arity succeeded' >&2
   exit 1
 fi
-grep -Fx $'ERROR\tusage_balances\tbalances requires DOMAIN AS_OF JOURNAL_BASENAME' "$tmp/arity" >/dev/null
+ExpectLine $'ERROR\tusage_balances\tbalances requires DOMAIN AS_OF JOURNAL_BASENAME' "$tmp/arity"
 
 if bqn "$cli" "$fixture" recent human nope actual.journal >"$tmp/limit" 2>&1; then
   echo 'FAIL: direct destination invalid LIMIT succeeded' >&2
   exit 1
 fi
-grep -Fx $'ERROR\tlimit_invalid\tLIMIT must be decimal digits' "$tmp/limit" >/dev/null
+ExpectLine $'ERROR\tlimit_invalid\tLIMIT must be decimal digits' "$tmp/limit"
 
 # Request and `all` admission remain before registry access.
 if (
@@ -42,7 +51,7 @@ if (
   echo 'FAIL: unknown direct destination key succeeded without registry' >&2
   exit 1
 fi
-grep -Fx $'ERROR\treport_key_unknown\tunknown report key: unknown' "$tmp/unknown" >/dev/null
+ExpectLine $'ERROR\treport_key_unknown\treport key is not in the retained catalog' "$tmp/unknown"
 
 if (
   cd "$tmp"
@@ -51,7 +60,7 @@ if (
   echo 'FAIL: direct destination all succeeded without registry' >&2
   exit 1
 fi
-grep -Fx $'ERROR\tall_not_implemented\tparallel CLI currently requires one retained key' "$tmp/all" >/dev/null
+ExpectLine $'ERROR\tall_not_implemented\tparallel CLI currently requires one retained key' "$tmp/all"
 
 # Individual route admission remains after registry access, preserving direct-CLI failure order.
 if (
@@ -61,7 +70,7 @@ if (
   echo 'FAIL: invalid direct route succeeded without registry' >&2
   exit 1
 fi
-grep -Fx $'ERROR\tcurrency_registry_empty\tcurrency registry is empty' "$tmp/registry-first" >/dev/null
+ExpectLine $'ERROR\tcurrency_registry_empty\tcurrency registry is empty' "$tmp/registry-first"
 if grep -Fq $'usage_balances' "$tmp/registry-first"; then
   echo 'FAIL: route admission moved before registry admission' >&2
   exit 1
