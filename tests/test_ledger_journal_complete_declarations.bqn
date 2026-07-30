@@ -99,6 +99,8 @@ layered ← admission.Admit ⟨layeredRaw,accounts,registry⟩
 "ok" lib.AssertEq layered.state
 ⟨"actual","plan","budget"⟩ lib.AssertEq layered.declared_layers
 ⟨"actual","plan","actual","budget"⟩ lib.AssertEq {𝕩.layer_name}¨layered.transactions
+⟨"actual-1","plan-1","actual-2","budget-1"⟩ lib.AssertEq {𝕩.source_event_id}¨layered.transactions
+⟨"durable","durable","durable","durable"⟩ lib.AssertEq {𝕩.identity_kind}¨layered.transactions
 4 lib.AssertEq ≠layered.transactions
 0 lib.AssertEq ≠layered.diagnostics
 
