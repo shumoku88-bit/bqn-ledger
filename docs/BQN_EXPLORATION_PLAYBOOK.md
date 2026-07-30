@@ -8,6 +8,8 @@ Status: current exploration policy
 
 Production safety remains non-negotiable, but production acceptance is not the only legitimate destination for an idea. A primitive, modifier, array representation, tacit form, inverse, or newly revealed capability may be worth exploring even when it is not yet suitable for the runtime.
 
+BQN is not only an implementation language for questions already chosen. Its array model may reveal questions, reports, and representations that were not visible before.
+
 The repository therefore keeps two distinct lanes:
 
 1. **exploration lane** — freely compare BQN formulations, representations, and new questions;
@@ -31,6 +33,8 @@ Do not wait for a primitive name to be requested. Consider whether the current q
 - a reason why the explicit staged form is already the most expressive BQN form.
 
 The scan is successful even when the result is “keep the current form.” Primitive coverage is never the target.
+
+Before selecting work, read `BQN_EXPLORATION_CATALOG.md` and compare its living cards with the current owner and tests. Revise the catalog when new evidence changes an old assumption.
 
 ## What counts as beautiful
 
@@ -82,7 +86,7 @@ The experiment may use the same public fixtures or synthetic household-accountin
 
 Use when the primitive is understood but no current domain question exists, or when the current representation and safety contracts make it a poor fit.
 
-Record why it is not selected. “Not selected now” is not a permanent prohibition.
+Record why it is not selected. “Not selected now” is not a permanent prohibition. The default durable home for a useful parked observation is `BQN_EXPLORATION_CATALOG.md`.
 
 ## AI working agreement
 
@@ -100,7 +104,7 @@ For each surfaced candidate, state:
 
 AI may propose functionality that the user did not explicitly name when it arises naturally from the current data shape. Such proposals must be labeled as **new capability**, not disguised as meaning-preserving refactor.
 
-Do not automatically implement multiple candidates. Present the landscape, select at most one coherent slice after discussion, and keep the others visible for later play.
+A probe may freely compare multiple formulations, primitives, or representations. Do not automatically promote multiple candidates into production. After exploration and discussion, select at most one coherent production slice for adoption and keep the other discoveries visible in `BQN_EXPLORATION_CATALOG.md`, `experiments/bqn/`, or the personal book.
 
 ## Representation freedom
 
@@ -129,7 +133,7 @@ BQN exploration may reveal useful questions that the current system does not yet
 - movement, interval, or adjacency reports;
 - alternate dense and sparse renderings of the same admitted evidence.
 
-These are welcome discoveries. They enter the new-capability lane and require a separate correctness decision before implementation.
+These are welcome discoveries. They enter the new-capability lane and require a separate correctness decision before implementation. Preserve durable candidates in the exploration catalog even when no implementation is selected.
 
 ## Relationship to production review
 
