@@ -96,16 +96,9 @@ Issues ← {𝕊 coordinates:
   ⟩ @
 }
 
-keys ← ⟨
-  "envelopes","balances","recent","planned","cycle-accounts",
-  "cycle-comparison","monthly-accounts","daily-target","issues"
-⟩
+# Function order follows the catalog; request.Validate supplies the admitted catalog index.
 routes ← ⟨Envelopes,Balances,Recent,Planned,CycleAccounts,CycleComparison,MonthlyAccounts,DailyTarget,Issues⟩
-RoutePlan ← {𝕊 key‿coordinates:
-  matches ← key⊸≡¨keys
-  index ← ⊑matches/↕≠keys
-  index◶routes coordinates
-}
+RoutePlan ← {𝕊 catalogIndex‿coordinates: catalogIndex◶routes coordinates}
 
 Admit ← {𝕊 key‿surface‿coordinates:
   admittedRequest ← request.Validate ⟨key,surface⟩
@@ -113,7 +106,7 @@ Admit ← {𝕊 key‿surface‿coordinates:
     {𝕊:MakePlan ⟨admittedRequest.diagnostics,EmptySources @⟩},
     {𝕊:
       (key≡"all")◶⟨
-        {𝕊:RoutePlan ⟨key,coordinates⟩},
+        {𝕊:RoutePlan ⟨⊑admittedRequest.selected_indices,coordinates⟩},
         {𝕊:Reject ⟨"report_route_all_unsupported","all is a manifest-level selection, not one individual route"⟩}
       ⟩ @
     }
