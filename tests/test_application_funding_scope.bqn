@@ -19,8 +19,21 @@ CheckError ← {𝕊 domain‿keys‿code:
   code lib.AssertEq (⊑result.diagnostics).code
 }
 CheckError ⟨"JPY",⟨⟩,"funding_scope_empty"⟩
-CheckError ⟨"JPY",⟨"assets:cash","assets:cash"⟩,"funding_scope_duplicate"⟩
 CheckError ⟨"JPY",⟨"assets:missing"⟩,"funding_account_unknown"⟩
 CheckError ⟨"USD",⟨"assets:cash"⟩,"funding_account_domain_mismatch"⟩
 CheckError ⟨"JPY",⟨"expenses:food"⟩,"funding_account_role_invalid"⟩
+
+multipleAssets ← {
+  key⇐⟨"assets:cash","assets:bank"⟩,
+  index⇐⟨0,1⟩,
+  currency⇐⟨"JPY","JPY"⟩,
+  role⇐⟨"asset","asset"⟩
+}
+duplicate ← fundingScope.Build ⟨multipleAssets,"JPY",⟨"assets:cash","assets:bank","assets:cash"⟩⟩
+"error" lib.AssertEq duplicate.state
+0 lib.AssertEq ≠duplicate.account_keys
+0 lib.AssertEq ≠duplicate.account_indices
+1 lib.AssertEq ≠duplicate.diagnostics
+"funding_scope_duplicate" lib.AssertEq (⊑duplicate.diagnostics).code
+
 •Out "test_application_funding_scope: ok"
