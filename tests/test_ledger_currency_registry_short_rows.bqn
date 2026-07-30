@@ -14,7 +14,7 @@ CheckRowInvalid ← {𝕊 lines:
 
 CheckRowInvalid ⟨"JPY"⟩
 CheckRowInvalid ⟨"JPY"∾tab∾"0"⟩
-CheckRowInvalid ⟨tab⟩
+CheckRowInvalid ⟨tab∾"x"⟩
 CheckRowInvalid ⟨"JPY"∾tab∾"0"∾tab∾"YEN"∾tab∾"extra"⟩
 
 valid ← registry.Build ⟨"JPY"∾tab∾"0"∾tab∾"YEN"⟩
