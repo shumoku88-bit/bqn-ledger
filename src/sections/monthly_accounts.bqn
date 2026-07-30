@@ -1,4 +1,4 @@
-# Retained Month × Account movement Matrix and human-only renderer.
+# Retained Month × Account movement result with Account × Month human presentation.
 
 amount ← •Import "../ledger/amount_text.bqn"
 text ← •Import "../report/text.bqn"
@@ -31,13 +31,13 @@ Build ← {𝕊 monthlyMovement:
 
 AmountText ← {𝕊 coefficient‿scaleValue: amount.Format ⟨coefficient,scaleValue⟩}
 FormatHuman ← {𝕊 result:
-  rows ← {𝕊 row:
-    values ← row⊑result.matrix.values
-    ⟨row⊑result.months⟩∾({AmountText ⟨𝕩,result.matrix.scale⟩}¨values)∾⟨AmountText ⟨row⊑result.totals.month,result.matrix.scale⟩⟩
-  }¨result.matrix.row_index
-  totalRow ← ⟨"Range total"⟩∾({AmountText ⟨𝕩,result.matrix.scale⟩}¨result.totals.account)∾⟨AmountText ⟨result.totals.grand,result.matrix.scale⟩⟩
-  headers ← ⟨"Month"⟩∾result.account_labels∾⟨"Total"⟩
-  right ← 1+↕result.matrix.column_count+1
+  rows ← {𝕊 column:
+    values ← {column⊑𝕩}¨result.matrix.values
+    ⟨column⊑result.account_labels⟩∾({AmountText ⟨𝕩,result.matrix.scale⟩}¨values)∾⟨AmountText ⟨column⊑result.totals.account,result.matrix.scale⟩⟩
+  }¨result.matrix.column_index
+  totalRow ← ⟨"Month total"⟩∾({AmountText ⟨𝕩,result.matrix.scale⟩}¨result.totals.month)∾⟨AmountText ⟨result.totals.grand,result.matrix.scale⟩⟩
+  headers ← ⟨"Account"⟩∾result.months∾⟨"Range total"⟩
+  right ← 1+↕result.matrix.row_count+1
   out ← "== Monthly Accounts =="∾(@+10)
   out ∾↩ "Range: "∾result.first_month∾".."∾result.last_month_exclusive∾(@+10)∾(@+10)
   out ∾↩ text.RenderTable ⟨headers,rows∾⟨totalRow⟩,right⟩

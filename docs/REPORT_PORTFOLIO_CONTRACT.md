@@ -163,12 +163,14 @@ What was each Account’s net movement in each calendar month of one explicit mo
 ### Matrix
 
 ```text
-row axis    = calendar month YYYY-MM, ascending
-column axis = all Accounts in selected domain, admitted order
-measure     = signed exact Actual movement in that calendar month
+semantic row axis    = calendar month YYYY-MM, ascending
+semantic column axis = all Accounts in selected domain, admitted order
+human row axis       = Accounts in admitted order
+human column axis    = calendar months, ascending
+measure              = signed exact Actual movement in that calendar month
 ```
 
-Input month range is `[first_month,last_month_exclusive)` and is not inferred from “today”. Months with no selected Postings remain explicit zero rows/cells with no contributors. Account columns include zero-posting Accounts.
+Input month range is `[first_month,last_month_exclusive)` and is not inferred from “today”. Months with no selected Postings remain explicit zero rows/cells with no contributors. The semantic Matrix includes zero-posting Accounts. Human rendering transposes only presentation; it does not transpose or rebuild the accounting result or contributor coordinates.
 
 P1 intentionally selects movement only. Monthly closing, debit/credit submatrices, role summaries, and YTD cards are not silently bundled. A later concrete consumer may add a separate bounded result after its semantics are reviewed.
 
