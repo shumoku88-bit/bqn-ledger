@@ -1,15 +1,13 @@
 # Pure explicit Envelope funding Account ownership admission.
 
 empty ← ⟨⟩
-Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
-Unique ← {𝕊 values: out←empty ⋄ {𝕊 value:{𝕊:out∾↩⟨value⟩}⍟(¬Contains ⟨value,out⟩) @}¨values ⋄ out}
 Diagnostic ← {𝕊 code‿message:
   {severity⇐"error",stage⇐"application_funding_scope",code⇐code,message⇐message}
 }
 Build ← {𝕊 accounts‿domain‿accountKeys:
   diagnostics ← empty
   diagnostics∾↩(0=≠accountKeys)/⟨Diagnostic ⟨"funding_scope_empty","at least one funding Account key is required"⟩⟩
-  diagnostics∾↩((≠accountKeys)≠≠Unique accountKeys)/⟨Diagnostic ⟨"funding_scope_duplicate","funding Account keys must be unique"⟩⟩
+  diagnostics∾↩((≠accountKeys)≠≠⍷accountKeys)/⟨Diagnostic ⟨"funding_scope_duplicate","funding Account keys must be unique"⟩⟩
   indices ← empty
   {𝕊 key:
     matches ← key⊸≡¨accounts.key
