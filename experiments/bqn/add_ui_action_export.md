@@ -27,6 +27,8 @@ The BQN catalog contains three aligned columns for the twelve current daily acti
 key / label / family
 ```
 
+The keys, order, and labels mirror the current `choose_mode` menu surface in `tools/add-ui.sh`. The labels therefore retain explanatory text such as `assets -> expenses`, `(native Journal)`, and `(反対仕訳追記)` instead of shortening the menu into a looser synthetic vocabulary.
+
 The probe checks:
 
 - all three columns have the same length;
@@ -46,7 +48,9 @@ The shell consumer:
 - checks the BQN validation observations;
 - reads the rows using tab-separated shell fields;
 - derives the selector's `key / label` view;
-- confirms all twelve rows and representative first-class actions.
+- confirms all twelve rows and representative current menu labels.
+
+The validation observations are intentionally printed and checked with shell `grep` because this is an inspectable probe harness. They are not a production admission protocol. A production exporter would need to fail closed with a non-zero status and publish no export block when alignment, uniqueness, or another admission condition fails.
 
 No runtime, editor, `add-ui.sh`, source, or write path imports the experiment.
 
@@ -66,13 +70,13 @@ The corrected boundary names the actual character explicitly:
 tab ← @+9
 ```
 
-and constructs each row with that value.
+and constructs each row with that value. The earlier aligned-catalog probe now uses the same explicit tab value when constructing its menu rows.
 
 This was useful evidence. A text protocol is not established by visual resemblance or by borrowing another language's escape convention. The exact character belongs to the export contract.
 
 ## Observed result
 
-GitHub Actions run `30536814450` completed successfully after the character fix.
+GitHub Actions run `30536814450` completed successfully after the character fix. The same byte comparison and shell consumer remain the executable check for the later exact-label alignment with `choose_mode`.
 
 The successful consumer proved all of the following together:
 
@@ -82,7 +86,7 @@ The successful consumer proved all of the following together:
 - `expense` is admitted as known;
 - `missing` is rejected as unknown;
 - BQN export order matches the static TSV order;
-- all Japanese labels and family values survive the process boundary;
+- menu label text and family values survive the process boundary;
 - shell parses the exported tab fields and derives twelve selector rows;
 - representative `expense` and `issue-close` menu rows remain exact.
 
@@ -179,4 +183,4 @@ This remains a new capability decision, not an automatic cleanup refactor.
 - direct shell ownership: still a live candidate;
 - generic BQN-driven interaction choreography: parked;
 - revisit signal: a second real metadata client or concrete drift among current shell declarations;
-- next useful move: when that signal appears, compare one finite production catalog owner using exact duplicate, unknown-key, ordering, encoding, and unavailable-export failure cases.
+- next useful move: when that signal appears, compare one finite production catalog owner using exact duplicate, unknown-key, ordering, encoding, unavailable-export failure cases, and fail-closed publication.
