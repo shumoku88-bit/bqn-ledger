@@ -5,6 +5,10 @@ on:
     paths:
       - 'experiments/bqn/add_ui_action_catalog.bqn'
       - 'experiments/bqn/add_ui_action_catalog.md'
+      - 'experiments/bqn/add_ui_action_export.bqn'
+      - 'experiments/bqn/add_ui_action_export_consumer.sh'
+      - 'experiments/bqn/add_ui_action_metadata.tsv'
+      - 'experiments/bqn/add_ui_action_export.md'
       - '.github/workflows/bqn-action-catalog-experiment.yml'
   workflow_dispatch:
 
@@ -26,3 +30,6 @@ jobs:
 
       - name: Run add-ui action catalog probe
         run: bqn experiments/bqn/add_ui_action_catalog.bqn
+
+      - name: Run add-ui metadata export boundary probe
+        run: bash experiments/bqn/add_ui_action_export_consumer.sh
