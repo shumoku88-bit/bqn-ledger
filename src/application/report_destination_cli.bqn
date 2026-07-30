@@ -24,6 +24,9 @@ PrintDiagnostics ← {𝕊 diagnostics:
   {𝕊 diagnostic: •Out "ERROR"∾tab∾diagnostic.code∾tab∾diagnostic.message}¨diagnostics
   •Exit 1
 }
+RegistryDiagnostic ← {𝕊 result:
+  {severity⇐"error",stage⇐"currency_registry",code⇐result.code,message⇐result.message}
+}
 AdmitCycle ← {𝕊 base‿name‿accounts:
   cycleAdmission.Admit ⟨sources.CycleLines ⟨base,name⟩,accounts⟩
 }
@@ -47,7 +50,7 @@ admitted ← request.Validate ⟨key,surface⟩
 {𝕊:Fail ⟨"all_not_implemented","parallel CLI currently requires one retained key"⟩}⍟(key≡"all") @
 
 registryResult ← sources.Registry "config/currencies.tsv"
-{𝕊:PrintDiagnostics registryResult.diagnostics}⍟(registryResult.state≢"ok") @
+{𝕊:PrintDiagnostics ⟨RegistryDiagnostic registryResult⟩}⍟(registryResult.state≢"ok") @
 registry ← registryResult.registry
 routeAdmission ← route.Admit ⟨key,surface,coordinates⟩
 {𝕊:PrintDiagnostics routeAdmission.diagnostics}⍟(routeAdmission.state≢"ok") @
