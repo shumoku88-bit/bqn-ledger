@@ -95,6 +95,20 @@ Next useful probe:
 - **Revisit signal:** A deliberately canonical in-memory Journal subset receives an exact round-trip contract.
 - **Next useful probe:** Define a tiny synthetic transaction structure with no comments or optional metadata, then characterize view-edit-reconstruct and failed round trips.
 
+### add-ui actions as an aligned catalog
+
+- **Question or capability:** Can repeated action declarations in `tools/add-ui.sh` become one stable catalog without hiding the mode-specific human interaction?
+- **Current analogue:** `tools/add-ui.sh` help text, accepted modes, selector rows, and interaction dispatch.
+- **BQN lens:** aligned column arrays, namespace row projections, masks, Deduplicate `⍷`, Index Of `⊐`, function arrays, Choose `◶`, and explicit publication views.
+- **Observed evidence:** `experiments/bqn/add_ui_action_catalog.bqn` and its result note model twelve actions as aligned `key`, `label`, `family`, `effect`, and `inputs` columns. GitHub Actions run `30535122149` completed successfully.
+- **What became visible:** One action coordinate generated selector rows, proved key uniqueness, selected journal and replace subsets, projected an individual action namespace, and aligned an effect coordinate with a function list. Column and row views of `expense` agreed. Choose directly expressed `effect index → selected function → original action`.
+- **Learning from failed forms:** Picking a function into a local name exposed BQN's syntactic-role boundary; `◶` was the direct selection-and-application combinator. Printing a namespace required an explicit value view, and an inline equality exposed right-to-left evaluation until the two projected views were named.
+- **Known contract or risk:** The observed `inputs` and `effect` columns are not an editor or persistence schema. `/dev/tty`, cancellation, fzf/gum selection, multi-posting loops, subprocess orchestration, status translation, and approved editor invocation remain effectful shell stages. Unknown key lookup returned the count bound and requires an explicit fail-closed check before selection.
+- **Current destination:** observed experiment; narrow metadata/admission catalog remains a possible production slice. Generic BQN-driven interaction choreography is parked.
+- **New capability:** a structured action metadata export could serve terminal menus, conversational clients, future thin presenters, and generated documentation from the same admitted coordinates.
+- **Revisit signal:** a new action mode causes help/admission/menu drift, or a second thin client needs the same stable action keys and labels.
+- **Next useful probe:** Compare a narrow BQN metadata exporter with a small shell/config catalog, characterizing duplicate and unknown keys, ordering, labels, and the process boundary before selecting any production owner.
+
 ### Tacit routing without erasing domain stages
 
 - **Question or capability:** Which small kernels become clearer through function composition while retaining names for accounting stages?
