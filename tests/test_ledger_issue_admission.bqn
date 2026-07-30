@@ -36,5 +36,20 @@ Reject ⟨⟨h,"x	pending	2026-01-01	decision	Title			Details"⟩,"issue_status_
 Reject ⟨⟨h,"x	open	2026-02-30	decision	Title			Details"⟩,"issue_date_invalid"⟩
 Reject ⟨⟨h,"x	open		decision	Title	10		Details"⟩,"issue_amount_currency_pair_invalid"⟩
 Reject ⟨⟨h,"x	open		decision	Title	1.234	ILS	Details"⟩,"issue_amount_precision_exceeded"⟩
-Reject ⟨⟨h,"x	open		decision	One			A","x	resolved		decision	Two			B"⟩,"issue_identity_duplicate"⟩
+
+duplicateIssues ← issues.Admit ⟨
+  ⟨
+    h,
+    "x	open		decision	One			A",
+    "y	resolved		decision	Two			B",
+    "x	dropped		decision	Three			C"
+  ⟩,
+  registry
+⟩
+"error" lib.AssertEq duplicateIssues.state
+0 lib.AssertEq duplicateIssues.issues.count
+1 lib.AssertEq ≠duplicateIssues.diagnostics
+"issue_identity_duplicate" lib.AssertEq (⊑duplicateIssues.diagnostics).code
+0 lib.AssertEq (⊑duplicateIssues.diagnostics).source_row
+
 •Out "test_ledger_issue_admission: ok"
