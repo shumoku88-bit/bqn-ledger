@@ -4,6 +4,8 @@ request ← •Import "request.bqn"
 dates ← •Import "../ledger/date_ordinal.bqn"
 issueAdmission ← •Import "../ledger/issue_admission.bqn"
 accountBalance ← •Import "../accounting/account_balance.bqn"
+balanceSheetAccounting ← •Import "../accounting/balance_sheet.bqn"
+profitLossAccounting ← •Import "../accounting/profit_and_loss.bqn"
 recentTransactions ← •Import "../accounting/recent_transactions.bqn"
 cycleAccountPeriod ← •Import "../accounting/cycle_account_period.bqn"
 comparisonAccounting ← •Import "../accounting/cycle_comparison.bqn"
@@ -12,6 +14,8 @@ dateCategoryFlow ← •Import "../accounting/date_category_flow.bqn"
 envelopeBacking ← •Import "../accounting/envelope_backing.bqn"
 targetAccounting ← •Import "../accounting/daily_target.bqn"
 balancesSection ← •Import "../sections/account_balances.bqn"
+balanceSheetSection ← •Import "../sections/balance_sheet.bqn"
+profitLossSection ← •Import "../sections/profit_and_loss.bqn"
 recentSection ← •Import "../sections/recent_journal.bqn"
 plannedSection ← •Import "../sections/planned_payments.bqn"
 cycleAccountsSection ← •Import "../sections/cycle_accounts.bqn"
@@ -57,6 +61,23 @@ Balances ← {𝕊 facts‿domain‿observation:
     accounting ← accountBalance.Build ⟨facts,domain,dates.Ordinal observation⟩
     output↩Publish ⟨"balances",balancesSection.Build ⟨accounting,observation⟩⟩
   }⍟(dates.IsValid observation) @
+  output
+}
+BalanceSheet ← {𝕊 facts‿domain‿observation:
+  output ← DateFailure "balance-sheet"
+  {𝕊:
+    accounting ← balanceSheetAccounting.Build ⟨facts,domain,dates.Ordinal observation⟩
+    output↩Publish ⟨"balance-sheet",balanceSheetSection.Build ⟨accounting,observation⟩⟩
+  }⍟(dates.IsValid observation) @
+  output
+}
+ProfitAndLoss ← {𝕊 facts‿domain‿start‿finish:
+  output ← DateFailure "profit-and-loss"
+  valid ← (dates.IsValid start) ∧ dates.IsValid finish
+  {𝕊:
+    accounting ← profitLossAccounting.Build ⟨facts,domain,dates.Ordinal start,dates.Ordinal finish⟩
+    output↩Publish ⟨"profit-and-loss",profitLossSection.Build ⟨accounting,start,finish⟩⟩
+  }⍟valid @
   output
 }
 Recent ← {𝕊 facts‿limit:
@@ -108,7 +129,8 @@ Issues ← {𝕊 lines‿registry:
 
 {
   ValidateSingle⇐ValidateSingle,
-  Balances⇐Balances,Recent⇐Recent,Planned⇐Planned,
+  Balances⇐Balances,BalanceSheet⇐BalanceSheet,ProfitAndLoss⇐ProfitAndLoss,
+  Recent⇐Recent,Planned⇐Planned,
   CycleAccounts⇐CycleAccounts,CycleComparison⇐CycleComparison,
   MonthlyAccounts⇐MonthlyAccounts,DailyFlow⇐DailyFlow,Envelopes⇐Envelopes,
   DailyTarget⇐DailyTarget,Issues⇐Issues

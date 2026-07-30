@@ -3,6 +3,8 @@
 request ← •Import "request.bqn"
 envelopes ← •Import "../sections/envelope_backing.bqn"
 balances ← •Import "../sections/account_balances.bqn"
+balanceSheet ← •Import "../sections/balance_sheet.bqn"
+profitLoss ← •Import "../sections/profit_and_loss.bqn"
 recent ← •Import "../sections/recent_journal.bqn"
 planned ← •Import "../sections/planned_payments.bqn"
 cycleAccounts ← •Import "../sections/cycle_accounts.bqn"
@@ -32,6 +34,8 @@ Render ← {𝕊 key‿surface‿composition:
     {𝕊:
       {𝕊:rendered↩envelopes.FormatHuman result}⍟(key≡"envelopes") @
       {𝕊:rendered↩balances.FormatHuman result}⍟(key≡"balances") @
+      {𝕊:rendered↩balanceSheet.FormatHuman result}⍟(key≡"balance-sheet") @
+      {𝕊:rendered↩profitLoss.FormatHuman result}⍟(key≡"profit-and-loss") @
       {𝕊:rendered↩recent.FormatHuman result}⍟(key≡"recent") @
       {𝕊:rendered↩planned.FormatHuman result}⍟(key≡"planned") @
       {𝕊:rendered↩cycleAccounts.FormatHuman result}⍟(key≡"cycle-accounts") @

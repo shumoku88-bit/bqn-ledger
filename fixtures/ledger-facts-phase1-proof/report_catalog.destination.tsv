@@ -1,6 +1,8 @@
 key	label	shape	human	compact	json
 envelopes	Envelope & Backing	statement	yes	yes	yes
 balances	Account Balances	matrix	yes	yes	yes
+balance-sheet	Balance Sheet	statement	yes	no	no
+profit-and-loss	Profit and Loss	statement	yes	no	no
 recent	Recent Journal	list	yes	yes	no
 planned	Planned Payments	list_card	yes	yes	yes
 cycle-accounts	Current-cycle Accounts	matrix	yes	no	no

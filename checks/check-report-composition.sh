@@ -12,6 +12,10 @@ cmp "$tmp/envelopes" "$fixture/envelope_backing.destination.compact.txt"
 cmp "$tmp/balances" "$fixture/account_balances.destination.human.txt"
 ./tools/report "$fixture" balances human --manifest report_all_human.destination.tsv >"$tmp/balances-manifest"
 cmp "$tmp/balances-manifest" "$tmp/balances"
+./tools/report "$fixture" balance-sheet human JPY 2026-01-12 actual.journal >"$tmp/balance-sheet"
+cmp "$tmp/balance-sheet" "$fixture/balance_sheet.destination.human.txt"
+./tools/report "$fixture" profit-and-loss human JPY 2026-01-01 2026-02-01 actual.journal >"$tmp/profit-and-loss"
+cmp "$tmp/profit-and-loss" "$fixture/profit_and_loss.destination.human.txt"
 ./tools/report "$fixture" recent compact 10 actual.journal >"$tmp/recent"
 cmp "$tmp/recent" "$fixture/recent_journal.destination.compact.txt"
 ./tools/report "$fixture" planned human 2026-01-12 actual.journal plan.tsv cycle.tsv >"$tmp/planned"
@@ -30,6 +34,7 @@ cmp "$tmp/daily-target" "$fixture/daily_target.application.human.txt"
 ./tools/report "$fixture" issues human issues.destination.tsv >"$tmp/issues"
 cmp "$tmp/issues" "$fixture/issues.destination.human.txt"
 cat "$fixture/envelope_backing.destination.human.txt" "$fixture/account_balances.destination.human.txt" \
+  "$fixture/balance_sheet.destination.human.txt" "$fixture/profit_and_loss.destination.human.txt" \
   "$fixture/recent_journal.destination.human.txt" "$fixture/planned_payments.destination.human.txt" \
   "$fixture/cycle_accounts.destination.human.txt" "$fixture/cycle_comparison.destination.human.txt" \
   "$fixture/monthly_accounts.destination.human.txt" "$fixture/daily_flow.destination.human.txt" \
@@ -53,6 +58,8 @@ mkdir "$tmp/actual-only" "$tmp/issues-only" "$tmp/cycle-only" "$tmp/planned-only
 cp "$fixture/accounts.tsv" "$fixture/actual.journal" "$tmp/actual-only/"
 cp "$fixture/issues.destination.tsv" "$tmp/issues-only/"
 ./tools/report "$tmp/actual-only" recent human 2 actual.journal >/dev/null
+./tools/report "$tmp/actual-only" balance-sheet human JPY 2026-01-12 actual.journal >/dev/null
+./tools/report "$tmp/actual-only" profit-and-loss human JPY 2026-01-01 2026-02-01 actual.journal >/dev/null
 ./tools/report "$tmp/actual-only" daily-flow human JPY 2026-01-01 2026-02-01 2026-01-12 actual.journal >/dev/null
 (
   cd "$tmp"

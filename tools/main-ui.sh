@@ -34,6 +34,8 @@ Commands:
   report, all          Show the full report
   envelopes            Show Envelope & Backing
   balances             Show Account Balances
+  balance-sheet        Show Balance Sheet
+  profit-and-loss      Show Profit and Loss
   recent               Show Recent Journal
   planned              Show Planned Payments
   cycle-accounts       Show Current-cycle Accounts

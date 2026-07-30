@@ -36,6 +36,15 @@ Check ⟨
 ⟩
 
 Check ⟨
+  ⟨"profit-and-loss","human","JPY","2026-01-01","2026-02-01","actual.journal"⟩,
+  0,
+  ⟨
+    "ROUTE"∾tab∾"profit-and-loss"∾tab∾"human"∾tab∾"4"∾tab∾"1",
+    "SOURCE"∾tab∾"3"∾tab∾"journal"∾tab∾"actual"
+  ⟩
+⟩
+
+Check ⟨
   ⟨"daily-flow","human","JPY","2026-01-01","2026-02-01","2026-01-12","actual.journal"⟩,
   0,
   ⟨

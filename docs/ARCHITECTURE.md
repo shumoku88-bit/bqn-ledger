@@ -19,7 +19,7 @@ Actual is admitted only from the configured Native Journal. Plan and Budget are 
 - `src/application/` — source I/O adapters, explicit manifest config, selected-request composition, readiness and inspection CLIs.
 - `src/ledger/` — Account, Journal, Plan, Budget, Config, Cycle, Issues, currency, exact-decimal admission, Transaction/Posting Facts, and provenance.
 - `src/accounting/` — period balances, grouping/pivot, cycle resolution/comparison, Plan completion, Envelope backing, Daily Target, and recent transactions.
-- `src/sections/` — the ten retained report results and human/compact/JSON renderers.
+- `src/sections/` — the twelve retained report results and human/compact/JSON renderers.
 - `src/report/` — final catalog/order/surfaces, request validation, result dispatch, metadata, and text/JSON primitives.
 - `src_edit/` and `src/editor/` — write-side commands and pure rewrite semantics using the same strict ledger owners.
 
@@ -39,20 +39,22 @@ Catalog order is:
 
 1. Envelope & Backing
 2. Account Balances
-3. Recent Journal
-4. Planned Payments
-5. Current-cycle Accounts
-6. Cycle Comparison
-7. Monthly Accounts
-8. Daily Flow
-9. Daily Target
-10. Issues
+3. Balance Sheet
+4. Profit and Loss
+5. Recent Journal
+6. Planned Payments
+7. Current-cycle Accounts
+8. Cycle Comparison
+9. Monthly Accounts
+10. Daily Flow
+11. Daily Target
+12. Issues
 
 `all` is a catalog selection, not an all-report semantic record. Human and compact manifests contain existing individual route arguments in catalog order. Every row is admitted before source reads; output is buffered and published only after all selected requests succeed.
 
 ## Cache and UI
 
-`tools/report-cache` stages ten section bodies plus `all.txt`, publishes `.section-keys`, deletes stale report bodies, and writes `.cache-timestamp` last. `tools/command-hub-cache-refresh` adds exclusive background refresh and status markers. Preview reads only cache files and never starts the engine.
+`tools/report-cache` stages twelve section bodies plus `all.txt`, publishes `.section-keys`, deletes stale report bodies, and writes `.cache-timestamp` last. `tools/command-hub-cache-refresh` adds exclusive background refresh and status markers. Preview reads only cache files and never starts the engine.
 
 `tools/report-section-metadata` derives labels, categories, owners, and surfaces directly from the static catalog without household reads. Command Hub does not duplicate report keys.
 

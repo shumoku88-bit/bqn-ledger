@@ -12,6 +12,8 @@ The destination catalog has these keys in this order:
 ```text
 envelopes
 balances
+balance-sheet
+profit-and-loss
 recent
 planned
 cycle-accounts
@@ -26,6 +28,8 @@ issues
 |---|---|---|---:|---:|---:|
 | `envelopes` | Envelope & Backing | bounded Statement: Cards + Matrix/List evidence | yes | yes | yes |
 | `balances` | Account Balances | Account Matrix | yes | yes | yes |
+| `balance-sheet` | Balance Sheet | classified position Statement | yes | no | no |
+| `profit-and-loss` | Profit and Loss | classified period Statement | yes | no | no |
 | `recent` | Recent Journal | Transaction List | yes | yes | no |
 | `planned` | Planned Payments | Plan List + total Card | yes | yes | yes |
 | `cycle-accounts` | Current-cycle Accounts | Account × measure Matrix | yes | no | no |
@@ -83,6 +87,14 @@ Each cell retains contributing Posting references. Result totals are separated b
 ### Empty/error
 
 A valid empty Actual source returns every selected-domain Account with exact zero closing and no contributors. Unknown domain, invalid observation, rejected Facts, or exact overflow returns no numeric table.
+
+## 3A. Balance Sheet and Profit and Loss
+
+Balance Sheet is an observation-bounded position statement over explicit `asset`, `liability`, and `equity` roles. Because current journals do not require closing entries, it exposes an exact `unclosed accumulated result` derived from Income/Expense closing balances and proves `assets = liabilities + equity`. A nonzero Actual balance in an unsupported role fails closed.
+
+Profit and Loss is a half-open-period movement statement over explicit `income` and `expense` roles. It publishes positive-normalized income and expense measures plus `net income = total income - total expenses`; abnormal debits/credits remain negative rather than being inferred into another class.
+
+Both are Actual-only, one-domain, human-only results with source-qualified Posting contributors. The current semantics and the decisions deliberately left open—closing policy, reporting year, classification depth, comparative policy, formal adjustments, and structured surfaces—are in [`FINANCIAL_STATEMENTS.md`](FINANCIAL_STATEMENTS.md).
 
 ## 4. Current-cycle Accounts
 

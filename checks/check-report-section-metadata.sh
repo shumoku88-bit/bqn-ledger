@@ -13,7 +13,7 @@ cmp "$work/metadata.json" "$fixture/report_metadata.destination.json"
 python3 - "$work/metadata.json" <<'PY'
 import json, sys
 rows = json.load(open(sys.argv[1], encoding="utf-8"))
-assert len(rows) == 10
+assert len(rows) == 12
 assert all(list(row) == ["key", "label", "category", "owner", "human_output", "structured_output"] for row in rows)
 PY
 awk -F'\t' 'NR>1{print $1}' "$work/metadata.tsv" >"$work/keys"

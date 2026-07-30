@@ -36,6 +36,18 @@ Balances ← {𝕊 coordinates:
     {𝕊:Accept ⟨coordinates,⟨2⟩,⟨"journal"⟩,⟨"actual"⟩⟩}
   ⟩ @
 }
+BalanceSheet ← {𝕊 coordinates:
+  (3=≠coordinates)◶⟨
+    {𝕊:Reject ⟨"usage_balance_sheet","balance-sheet requires DOMAIN AS_OF JOURNAL_BASENAME"⟩},
+    {𝕊:Accept ⟨coordinates,⟨2⟩,⟨"journal"⟩,⟨"actual"⟩⟩}
+  ⟩ @
+}
+ProfitAndLoss ← {𝕊 coordinates:
+  (4=≠coordinates)◶⟨
+    {𝕊:Reject ⟨"usage_profit_and_loss","profit-and-loss requires DOMAIN START END_EXCLUSIVE JOURNAL_BASENAME"⟩},
+    {𝕊:Accept ⟨coordinates,⟨3⟩,⟨"journal"⟩,⟨"actual"⟩⟩}
+  ⟩ @
+}
 Recent ← {𝕊 coordinates:
   (2=≠coordinates)◶⟨
     {𝕊:Reject ⟨"usage_recent","recent requires LIMIT JOURNAL_BASENAME"⟩},
@@ -103,7 +115,7 @@ Issues ← {𝕊 coordinates:
 }
 
 # Function order follows the catalog; request.Validate supplies the admitted catalog index.
-routes ← ⟨Envelopes,Balances,Recent,Planned,CycleAccounts,CycleComparison,MonthlyAccounts,DailyFlow,DailyTarget,Issues⟩
+routes ← ⟨Envelopes,Balances,BalanceSheet,ProfitAndLoss,Recent,Planned,CycleAccounts,CycleComparison,MonthlyAccounts,DailyFlow,DailyTarget,Issues⟩
 RoutePlan ← {𝕊 catalogIndex‿coordinates: catalogIndex◶routes coordinates}
 
 Admit ← {𝕊 key‿surface‿coordinates:

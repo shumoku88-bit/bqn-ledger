@@ -7,6 +7,8 @@ usage() {
 Usage:
   tools/report BASE envelopes SURFACE DOMAIN START END_EXCLUSIVE OBSERVATION JOURNAL PLAN BUDGET FUNDING_ACCOUNT...
   tools/report BASE balances SURFACE DOMAIN AS_OF JOURNAL
+  tools/report BASE balance-sheet human DOMAIN AS_OF JOURNAL
+  tools/report BASE profit-and-loss human DOMAIN START END_EXCLUSIVE JOURNAL
   tools/report BASE recent SURFACE LIMIT JOURNAL
   tools/report BASE planned SURFACE OBSERVATION JOURNAL PLAN CYCLE
   tools/report BASE cycle-accounts human DOMAIN OBSERVATION JOURNAL CYCLE [PLAN]

@@ -45,7 +45,7 @@ Presentation-neutral exact capabilities: Account period/balance, cycle resolutio
 
 ### `src/sections/`
 
-One bounded semantic result per retained question: `envelope_backing`, `account_balances`, `recent_journal`, `planned_payments`, `cycle_accounts`, `cycle_comparison`, `monthly_accounts`, `daily_flow`, `daily_target`, and `issues`. Renderers consume only their section result.
+One bounded semantic result per retained question: `envelope_backing`, `account_balances`, `balance_sheet`, `profit_and_loss`, `recent_journal`, `planned_payments`, `cycle_accounts`, `cycle_comparison`, `monthly_accounts`, `daily_flow`, `daily_target`, and `issues`. Renderers consume only their section result.
 
 ### `src/report/`
 

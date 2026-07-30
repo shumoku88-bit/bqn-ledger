@@ -4,7 +4,7 @@ Status: production static catalog, individual routes, fail-closed `all`, and ato
 
 ## Static catalog owner
 
-`src/report/catalog.bqn` is the only destination catalog owner. It contains exactly ten retained keys in final order and declares label, bounded result shape, and supported human/compact/JSON surfaces.
+`src/report/catalog.bqn` is the only destination catalog owner. It contains exactly twelve retained keys in final order and declares label, bounded result shape, and supported human/compact/JSON surfaces.
 
 Catalog listing is source-independent. `catalog.Table` and `catalog_text.FormatTsv` perform no source reads, clock access, context construction, or report calculation. The deterministic public listing is `fixtures/ledger-facts-phase1-proof/report_catalog.destination.tsv`.
 
@@ -18,9 +18,9 @@ human | compact | json
 
 Unknown legacy keys fail with `report_key_unknown`; they are not aliases. A known report requested through an unsupported surface fails with `report_surface_unsupported`; it does not return an empty renderer.
 
-`all` is a composition selector, not an eleventh catalog entry:
+`all` is a composition selector, not a thirteenth catalog entry:
 
-- `all + human` selects all ten entries in catalog order;
+- `all + human` selects all twelve entries in catalog order;
 - `all + compact` selects only registered compact owners in catalog order;
 - `all + json` is unsupported because there is no aggregate JSON schema.
 
@@ -36,10 +36,12 @@ daily-target
 
 ## One-result composition
 
-`src/report/compose.bqn` exports ten named functions rather than one universal request context:
+`src/report/compose.bqn` exports twelve named functions rather than one universal request context:
 
 ```text
 Balances          Actual Facts, domain, observation
+BalanceSheet      Actual Facts, domain, observation
+ProfitAndLoss     Actual Facts, domain, period
 Recent            Actual Facts, limit
 Planned           Plan Facts, Actual Facts, resolved cycle, observation
 CycleAccounts     Actual Facts, domain, resolved cycle, observation
@@ -59,13 +61,15 @@ Public composition tests invoke every named composer and compare its rendering w
 
 `all` iteration will repeatedly invoke this same one-result boundary and concatenate supported renderings; it will not widen an individual result or construct an all-report record.
 
-## Key-first I/O and parallel CLI
+## Key-first I/O and production CLI
 
 Application-only `source_io.bqn` and `report_source_adapter.bqn` own read-only file access. Core ledger/accounting/sections/report modules do not import them. `tools/report` admits key and surface before its BQN entry reads household evidence and currently wires:
 
 ```text
 envelopes         Accounts/Actual + explicit Plan/Budget + funding Account keys
 balances          accounts.tsv + explicit Journal basename
+balance-sheet     Accounts/Actual + explicit observation
+profit-and-loss   Accounts/Actual + explicit half-open period
 recent            accounts.tsv + explicit Journal basename
 planned           Accounts/Actual + explicit Plan and Cycle basenames
 cycle-accounts     Accounts/Actual + explicit Cycle; Plan only for incomeAnchor
@@ -88,7 +92,7 @@ kind | scope_id | account_key | plan_id | excluded_amount | currency | reservati
 
 Asset rows link durable scope identity to an admitted asset Account. Obligation rows link durable scope identity to a canonical Plan `plan_id`; amount/date/currency and completion status come from Plan/Actual evidence rather than the policy row. Positive exclusion requires exact currency and unique reservation reference. The adapter builds assets from observed Account balances and obligations from durable completion Join, preserving contributors. Completed or outside-horizon obligations remain evidenced but are excluded from calculation; overdue open obligations remain included.
 
-The production CLI supports all ten keys individually. An individual request may alternatively pass `--manifest REQUEST_MANIFEST`; after key/surface admission, the application selects exactly one matching row and then invokes the same individual source/preflight/composition path. Missing, duplicate, malformed, or surface-mismatched rows fail before household source reads. This gives UI/cache callers a bounded explicit-coordinate route without inventing a shared report context.
+The production CLI supports all twelve keys individually. An individual request may alternatively pass `--manifest REQUEST_MANIFEST`; after key/surface admission, the application selects exactly one matching row and then invokes the same individual source/preflight/composition path. Missing, duplicate, malformed, or surface-mismatched rows fail before household source reads. This gives UI/cache callers a bounded explicit-coordinate route without inventing a shared report context.
 
 ## Fail-closed `all`
 
@@ -102,7 +106,7 @@ Each row contains the argv for one existing individual route; there is no cross-
 
 Consequences:
 
-- human iterates all ten keys;
+- human iterates all twelve keys;
 - compact iterates the five registered compact owners;
 - aggregate JSON remains explicitly unsupported;
 - malformed, missing, reordered, or failing rows publish no partial report;
@@ -130,13 +134,15 @@ TSV and JSON preserve final catalog order, point owners to `src/sections`, and c
 
 ## Destination cache publication
 
-`tools/report-cache` accepts explicit base, cache directory, decimal generation token, and the human all-request manifest. It derives the ten section keys from the catalog selection, admits the complete manifest before source reads, and writes each body by invoking the same individual route once. `all.txt` is the byte concatenation of those staged bodies.
+`tools/report-cache` accepts explicit base, cache directory, decimal generation token, and the human all-request manifest. It derives the twelve section keys from the catalog selection, admits the complete manifest before source reads, and writes each body by invoking the same individual route once. `all.txt` is the byte concatenation of those staged bodies.
 
 The staged manifest is exactly:
 
 ```text
 envelopes
 balances
+balance-sheet
+profit-and-loss
 recent
 planned
 cycle-accounts
@@ -148,7 +154,7 @@ issues
 all
 ```
 
-An exclusive PID lock rejects concurrent publication and recovers an abandoned lock. Publication atomically renames the ten bodies and canonical `.section-keys`, removes stale `.txt` files absent from the new manifest, and renames `.cache-timestamp` last as the generation commit marker. Failure before publication leaves the prior generation untouched; malformed manifest and invalid generation-token proofs preserve prior timestamp/all bytes. Non-cache files are not removed.
+An exclusive PID lock rejects concurrent publication and recovers an abandoned lock. Publication atomically renames the twelve bodies and canonical `.section-keys`, removes stale `.txt` files absent from the new manifest, and renames `.cache-timestamp` last as the generation commit marker. Failure before publication leaves the prior generation untouched; malformed manifest and invalid generation-token proofs preserve prior timestamp/all bytes. Non-cache files are not removed.
 
 `tools/command-hub-cache-refresh` publishes the production cache through `tools/report-cache`.
 
@@ -156,7 +162,7 @@ An exclusive PID lock rejects concurrent publication and recovers an abandoned l
 
 Production now uses `tools/report` → strict `src/` composition. No retired alias, dual key, or forwarding wrapper exists.
 
-The final UI will use one explicit human request manifest for direct section selection, `all`, and cache publication. `report_manifest_admission.bqn` admits unique, non-empty, safe, different human/compact basenames from a separately supplied config file; it does not add routing keys to strict ledger `config.tsv` and performs no base/default/repository discovery. Individual manifest parity is proven against direct argv output; the production UI remains on its old route until the atomic diff.
+The production UI uses one explicit human request manifest for direct section selection, `all`, and cache publication. `report_manifest_admission.bqn` admits unique, non-empty, safe, different human/compact basenames from a separately supplied config file; it does not add routing keys to strict ledger `config.tsv` and performs no base/default/repository discovery. Individual manifest parity is proven against direct argv output.
 
 Before atomic cutover:
 

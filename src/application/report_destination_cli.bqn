@@ -64,6 +64,18 @@ composition ← {state⇐"error",key⇐key,result⇐empty,diagnostics⇐empty}
   composition↩compose.Balances ⟨actual.facts,domain,observation⟩
 }⍟(key≡"balances") @
 {𝕊:
+  domain‿observation‿journal ← coordinates
+  actual ← sources.Actual ⟨base,journal,registry⟩
+  {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
+  composition↩compose.BalanceSheet ⟨actual.facts,domain,observation⟩
+}⍟(key≡"balance-sheet") @
+{𝕊:
+  domain‿start‿finish‿journal ← coordinates
+  actual ← sources.Actual ⟨base,journal,registry⟩
+  {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
+  composition↩compose.ProfitAndLoss ⟨actual.facts,domain,start,finish⟩
+}⍟(key≡"profit-and-loss") @
+{𝕊:
   limitText‿journal ← coordinates
   actual ← sources.Actual ⟨base,journal,registry⟩
   {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @

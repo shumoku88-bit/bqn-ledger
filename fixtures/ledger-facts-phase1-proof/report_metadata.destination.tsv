@@ -1,6 +1,8 @@
 key	label	category	owner	human_output	structured_output
 envelopes	Envelope & Backing	household	src/sections/envelope_backing.bqn	yes	metadata
 balances	Account Balances	accounting	src/sections/account_balances.bqn	yes	metadata
+balance-sheet	Balance Sheet	accounting	src/sections/balance_sheet.bqn	yes	metadata
+profit-and-loss	Profit and Loss	accounting	src/sections/profit_and_loss.bqn	yes	metadata
 recent	Recent Journal	operations	src/sections/recent_journal.bqn	yes	metadata
 planned	Planned Payments	operations	src/sections/planned_payments.bqn	yes	metadata
 cycle-accounts	Current-cycle Accounts	accounting	src/sections/cycle_accounts.bqn	yes	metadata

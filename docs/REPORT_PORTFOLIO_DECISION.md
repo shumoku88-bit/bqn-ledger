@@ -22,6 +22,8 @@ The approved retained portfolio is production. Forwarding aliases and compatibil
 |---|---|---|
 | Envelope & Backing | What remains in each envelope, and which admitted assets, allocations, Actual spend, and open Plans support it? | policy-heavy Statement: summary Cards plus evidence Matrix/List |
 | Account Balances | What is the latest exact balance of every Account in one explicit currency domain? | Matrix/List by Account |
+| Balance Sheet | What admitted financial position exists at one observation, including the result not yet closed into Equity? | classified position Statement |
+| Profit and Loss | What Actual income, expense, and net income occurred in one explicit period? | classified period Statement |
 | Recent Journal | What was recorded recently, in source order, with exact lanes and durable provenance? | Transaction List |
 | Planned Payments | Which Plans are open/due/overdue/completed, and what Actual evidence fulfilled them? | Plan List plus exact total |
 | Issues | Which explicit source issues remain open? | Issue List |
@@ -42,7 +44,7 @@ These are concrete report questions, not permission to build a textual query DSL
 |---|---|---|
 | Daily Target | Given an explicit target date, balances, backing, open Plans, expected income, and reserve policy, what daily amount is safe? | Card/Projection with evidence |
 
-Daily Target and Issues are intentionally not forced into MatrixResult. Recent Journal and Planned Payments remain Lists. Envelope & Backing may combine summary Cards with bounded tabular evidence because its policy question is not a plain balance Pivot.
+Balance Sheet and Profit and Loss are role-classified Statements rather than MatrixResult reports; their current bounded semantics and deferred formal-accounting decisions are in `FINANCIAL_STATEMENTS.md`. Daily Target and Issues are intentionally not forced into MatrixResult. Recent Journal and Planned Payments remain Lists. Envelope & Backing may combine summary Cards with bounded tabular evidence because its policy question is not a plain balance Pivot.
 
 ## Current 15-section disposition
 

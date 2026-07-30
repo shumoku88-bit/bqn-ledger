@@ -1,0 +1,18 @@
+== Profit and Loss ==
+Period: 2026-01-01..2026-02-01 (JPY)
+
+Income
+Account       | Amount
+--------------+-------
+income:salary |   1000
+Total income  |   1000
+
+Expenses
+Account            | Amount
+-------------------+-------
+expenses:food      |     30
+expenses:transport |      5
+Total expenses     |     35
+
+Net income: 965
+

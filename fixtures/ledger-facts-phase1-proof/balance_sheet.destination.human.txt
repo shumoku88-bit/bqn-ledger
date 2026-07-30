@@ -1,0 +1,25 @@
+== Balance Sheet ==
+As of: 2026-01-12 (JPY)
+
+Assets
+Account      | Balance
+-------------+--------
+assets:cash  |     965
+Total assets |     965
+
+Liabilities
+Account           | Balance
+------------------+--------
+Total liabilities |       0
+
+Equity
+Account       | Balance
+--------------+--------
+Stated equity |       0
+Unclosed accumulated result: 965
+Total equity: 965
+
+Total liabilities + equity: 965
+Difference: 0
+Balanced: YES
+

@@ -24,6 +24,8 @@ successCases ← ⟨
     ⟨4,5,6⟩,⟨"journal","tsv","tsv"⟩,⟨"actual","plan","budget"⟩
   ⟩,
   ⟨"balances","json",⟨"JPY","2026-01-12","actual.journal"⟩,⟨2⟩,⟨"journal"⟩,⟨"actual"⟩⟩,
+  ⟨"balance-sheet","human",⟨"JPY","2026-01-12","actual.journal"⟩,⟨2⟩,⟨"journal"⟩,⟨"actual"⟩⟩,
+  ⟨"profit-and-loss","human",⟨"JPY","2026-01-01","2026-02-01","actual.journal"⟩,⟨3⟩,⟨"journal"⟩,⟨"actual"⟩⟩,
   ⟨"recent","compact",⟨"10","actual.journal"⟩,⟨1⟩,⟨"journal"⟩,⟨"actual"⟩⟩,
   ⟨
     "planned","human",⟨"2026-01-12","actual.journal","plan.tsv","cycle.tsv"⟩,
@@ -80,6 +82,8 @@ CheckError ⟨"all","human",⟨"manifest.tsv"⟩,"report_route_all_unsupported"�
 CheckError ⟨"envelopes","human",7⥊⟨"x"⟩,"usage_envelopes"⟩
 CheckError ⟨"balances","human",⟨"JPY","2026-01-12"⟩,"usage_balances"⟩
 CheckError ⟨"balances","human",4⥊⟨"x"⟩,"usage_balances"⟩
+CheckError ⟨"balance-sheet","human",2⥊⟨"x"⟩,"usage_balance_sheet"⟩
+CheckError ⟨"profit-and-loss","human",3⥊⟨"x"⟩,"usage_profit_and_loss"⟩
 CheckError ⟨"recent","human",⟨"x","actual.journal"⟩,"limit_invalid"⟩
 CheckError ⟨"recent","human",3⥊⟨"x"⟩,"usage_recent"⟩
 CheckError ⟨"planned","human",3⥊⟨"x"⟩,"usage_planned"⟩

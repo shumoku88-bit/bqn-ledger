@@ -30,6 +30,10 @@ CheckGolden ← {𝕊 composition‿key‿surface‿file:
 
 balances ← compose.Balances ⟨actual,"JPY","2026-01-12"⟩
 CheckGolden ⟨balances,"balances","human","account_balances.destination.human.txt"⟩
+balanceSheet ← compose.BalanceSheet ⟨actual,"JPY","2026-01-12"⟩
+CheckGolden ⟨balanceSheet,"balance-sheet","human","balance_sheet.destination.human.txt"⟩
+profitLoss ← compose.ProfitAndLoss ⟨actual,"JPY","2026-01-01","2026-02-01"⟩
+CheckGolden ⟨profitLoss,"profit-and-loss","human","profit_and_loss.destination.human.txt"⟩
 recent ← compose.Recent ⟨actual,10⟩
 CheckGolden ⟨recent,"recent","compact","recent_journal.destination.compact.txt"⟩
 planned ← compose.Planned ⟨companions.plan,actual,cycle,"2026-01-12"⟩
