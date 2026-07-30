@@ -43,6 +43,20 @@ safe_basename() { [[ $1 != */* && $1 != *\\* && -n $1 ]]; }
 require_journal() { safe_basename "$1" && [[ $1 == *.journal ]]; }
 require_tsv() { safe_basename "$1" && [[ $1 == *.tsv ]]; }
 source_name_error() { printf 'ERROR\tsource_basename_invalid\t%s\n' "$1" >&2; exit 1; }
+route_plan_error() { printf 'ERROR\treport_route_plan_invalid\t%s\n' "$1" >&2; exit 1; }
+tsv_source_message() {
+  case "$1:$2" in
+    envelopes:plan|envelopes:budget) printf 'Plan and Budget must be safe .tsv basenames' ;;
+    planned:plan|planned:cycle) printf 'Plan and Cycle must be safe .tsv basenames' ;;
+    cycle-accounts:cycle) printf 'Cycle must be a safe .tsv basename' ;;
+    cycle-accounts:plan) printf 'Plan must be a safe .tsv basename' ;;
+    cycle-comparison:current_cycle|cycle-comparison:baseline_cycle) printf 'Cycle files must be safe .tsv basenames' ;;
+    cycle-comparison:plan) printf 'Plan must be a safe .tsv basename' ;;
+    daily-target:plan|daily-target:daily_scope) printf 'Plan and Daily Scope must be safe .tsv basenames' ;;
+    issues:issues) printf 'issues must be a safe .tsv basename' ;;
+    *) printf '%s must be a safe .tsv basename' "$2" ;;
+  esac
+}
 if [[ $key == all ]]; then
   [[ $# -eq 1 ]] || { printf 'ERROR\tall_manifest_required\tall requires one manifest basename\n' >&2; exit 1; }
   require_tsv "$1" || source_name_error 'all manifest must be a safe .tsv basename'
@@ -79,73 +93,79 @@ if [[ ${1:-} == --manifest ]]; then
     || { printf 'ERROR\trequest_manifest_key_missing\tselected key is absent\n' >&2; exit 1; }
   set -- "${selected[@]}"
 fi
-required_sources=()
 
-case "$key" in
-  envelopes)
-    [[ $# -ge 8 ]] || { usage >&2; exit 2; }
-    require_journal "$5" || source_name_error 'journal must be a safe .journal basename'
-    require_tsv "$6" && require_tsv "$7" || source_name_error 'Plan and Budget must be safe .tsv basenames'
-    required_sources=(accounts.tsv "$5" "$6" "$7")
-    ;;
-  balances)
-    [[ $# -eq 3 ]] || { usage >&2; exit 2; }
-    require_journal "$3" || source_name_error 'journal must be a safe .journal basename'
-    required_sources=(accounts.tsv "$3")
-    ;;
-  recent)
-    [[ $# -eq 2 ]] || { usage >&2; exit 2; }
-    require_journal "$2" || source_name_error 'journal must be a safe .journal basename'
-    required_sources=(accounts.tsv "$2")
-    ;;
-  planned)
-    [[ $# -eq 4 ]] || { usage >&2; exit 2; }
-    require_journal "$2" || source_name_error 'journal must be a safe .journal basename'
-    require_tsv "$3" && require_tsv "$4" || source_name_error 'Plan and Cycle must be safe .tsv basenames'
-    required_sources=(accounts.tsv "$2" "$3" "$4")
-    ;;
-  cycle-accounts)
-    [[ $# -eq 4 || $# -eq 5 ]] || { usage >&2; exit 2; }
-    require_journal "$3" || source_name_error 'journal must be a safe .journal basename'
-    require_tsv "$4" || source_name_error 'Cycle must be a safe .tsv basename'
-    required_sources=(accounts.tsv "$3" "$4")
-    if [[ $# -eq 5 ]]; then
-      require_tsv "$5" || source_name_error 'Plan must be a safe .tsv basename'
-      required_sources+=("$5")
+coordinates=("$@")
+route_plan_output=""
+if route_plan_output="$(bqn src/application/report_route_plan_cli.bqn "$key" "$surface" "${coordinates[@]}" 2>&1)"; then
+  :
+else
+  route_plan_status=$?
+  route_plan_code=$(awk -F'\t' 'NR==1 && $1=="ERROR" {print $2}' <<<"$route_plan_output")
+  if [[ $route_plan_code == usage_* ]]; then
+    usage >&2
+    exit 2
+  fi
+  if [[ $route_plan_code == limit_invalid ]]; then
+    # Preserve the previous failure order: operational source checks and strict registry admission
+    # still happen before report_destination_cli publishes the semantic LIMIT rejection.
+    plan_coordinates=("${coordinates[@]}")
+    plan_coordinates[0]=0
+    if ! route_plan_output="$(bqn src/application/report_route_plan_cli.bqn "$key" "$surface" "${plan_coordinates[@]}" 2>&1)"; then
+      printf '%s\n' "$route_plan_output" >&2
+      exit 1
     fi
-    ;;
-  cycle-comparison)
-    [[ $# -eq 7 || $# -eq 8 ]] || { usage >&2; exit 2; }
-    require_journal "$5" || source_name_error 'journal must be a safe .journal basename'
-    require_tsv "$6" && require_tsv "$7" || source_name_error 'Cycle files must be safe .tsv basenames'
-    required_sources=(accounts.tsv "$5" "$6" "$7")
-    if [[ $# -eq 8 ]]; then
-      require_tsv "$8" || source_name_error 'Plan must be a safe .tsv basename'
-      required_sources+=("$8")
-    fi
-    ;;
-  monthly-accounts)
-    [[ $# -eq 4 ]] || { usage >&2; exit 2; }
-    require_journal "$4" || source_name_error 'journal must be a safe .journal basename'
-    required_sources=(accounts.tsv "$4")
-    ;;
-  daily-flow)
-    [[ $# -eq 5 ]] || { usage >&2; exit 2; }
-    require_journal "$5" || source_name_error 'journal must be a safe .journal basename'
-    required_sources=(accounts.tsv "$5")
-    ;;
-  daily-target)
-    [[ $# -eq 6 ]] || { usage >&2; exit 2; }
-    require_journal "$4" || source_name_error 'journal must be a safe .journal basename'
-    require_tsv "$5" && require_tsv "$6" || source_name_error 'Plan and Daily Scope must be safe .tsv basenames'
-    required_sources=(accounts.tsv "$4" "$5" "$6")
-    ;;
-  issues)
-    [[ $# -eq 1 ]] || { usage >&2; exit 2; }
-    require_tsv "$1" || source_name_error 'issues must be a safe .tsv basename'
-    required_sources=("$1")
-    ;;
-esac
+  else
+    printf '%s\n' "$route_plan_output" >&2
+    exit "$route_plan_status"
+  fi
+fi
+
+mapfile -t route_plan_lines <<<"$route_plan_output"
+IFS=$'\t' read -r record plan_key plan_surface coordinate_count source_count extra \
+  <<<"${route_plan_lines[0]:-}"
+[[ $record == ROUTE && $plan_key == "$key" && $plan_surface == "$surface" && -z ${extra:-} ]] \
+  || route_plan_error 'route header does not match the admitted request'
+[[ $coordinate_count =~ ^[0-9]+$ && $source_count =~ ^[0-9]+$ ]] \
+  || route_plan_error 'route header counts are not decimal naturals'
+(( coordinate_count == ${#coordinates[@]} )) \
+  || route_plan_error 'route coordinate count differs from argv'
+(( ${#route_plan_lines[@]} == source_count + 1 )) \
+  || route_plan_error 'route source count differs from SOURCE rows'
+
+explicit_sources=()
+needs_accounts=0
+seen_source_indices=' '
+for ((line_index=1; line_index<${#route_plan_lines[@]}; line_index++)); do
+  IFS=$'\t' read -r source_record argument_index kind role source_extra \
+    <<<"${route_plan_lines[$line_index]}"
+  [[ $source_record == SOURCE && -n $role && -z ${source_extra:-} ]] \
+    || route_plan_error 'SOURCE row shape is invalid'
+  [[ $argument_index =~ ^[0-9]+$ ]] \
+    || route_plan_error 'SOURCE argument index is not a decimal natural'
+  (( argument_index < ${#coordinates[@]} )) \
+    || route_plan_error 'SOURCE argument index is outside argv'
+  [[ $seen_source_indices != *" $argument_index "* ]] \
+    || route_plan_error 'SOURCE argument index is duplicated'
+  seen_source_indices+="$argument_index "
+  source_name=${coordinates[$argument_index]}
+  case "$kind" in
+    journal)
+      require_journal "$source_name" || source_name_error 'journal must be a safe .journal basename'
+      ;;
+    tsv)
+      require_tsv "$source_name" || source_name_error "$(tsv_source_message "$key" "$role")"
+      ;;
+    *)
+      route_plan_error 'SOURCE kind is unsupported'
+      ;;
+  esac
+  [[ $role == issues ]] || needs_accounts=1
+  explicit_sources+=("$source_name")
+done
+
+required_sources=()
+(( needs_accounts == 0 )) || required_sources+=(accounts.tsv)
+required_sources+=("${explicit_sources[@]}")
 
 if [[ ! -r config/currencies.tsv ]]; then
   printf 'ERROR\tcurrency_registry_unreadable\tcurrency registry is not readable\n' >&2
@@ -158,4 +178,4 @@ for source_name in "${required_sources[@]}"; do
   fi
 done
 
-exec bqn src/application/report_destination_cli.bqn "$base" "$key" "$surface" "$@"
+exec bqn src/application/report_destination_cli.bqn "$base" "$key" "$surface" "${coordinates[@]}"

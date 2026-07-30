@@ -15,6 +15,7 @@ for check in \
   checks/check-ledger-facts.sh \
   checks/check-report-manifest-config.sh \
   checks/check-report-manifest-routing.sh \
+  checks/check-report-route-plan-shell.sh \
   checks/check-report-composition.sh \
   checks/check-report-cache.sh \
   checks/check-report-section-metadata.sh \
