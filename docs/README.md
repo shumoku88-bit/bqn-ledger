@@ -4,11 +4,16 @@
 
 - [`ARCHITECTURE.md`](ARCHITECTURE.md) — production ownership and data flow
 - [`AI_CODEMAP.md`](AI_CODEMAP.md) — code and tool map for pits
+- [`BQN_EXPLORATION_PLAYBOOK.md`](BQN_EXPLORATION_PLAYBOOK.md) — standing BQN opportunity scan, experiment lanes, and new-capability discovery
+- [`BQN_EXPLORATION_CATALOG.md`](BQN_EXPLORATION_CATALOG.md) — living BQN questions, probes, parked observations, and revisit signals
+- [`BQN_REFACTORING_REVIEW_GUIDE.md`](BQN_REFACTORING_REVIEW_GUIDE.md) — adoption gate for selected bounded BQN changes
 - [`CONVENTIONS.md`](CONVENTIONS.md) — source and implementation conventions
 - [`MAINTENANCE.md`](MAINTENANCE.md) — change workflow
 - [`QUALITY_BAR.md`](QUALITY_BAR.md) — accounting and safety expectations
 - [`OPERATIONAL_COMMANDS.md`](OPERATIONAL_COMMANDS.md) — readiness and provenance commands
 - [`LIBRI_DI_CASA_INTEGRATION_BOUNDARY.md`](LIBRI_DI_CASA_INTEGRATION_BOUNDARY.md) — durable ownership and data-boundary constraints for possible future convergence
+
+Analysis-only BQN shape and expression probes live under [`../experiments/bqn/`](../experiments/bqn/).
 
 ## Retained report contracts
 
