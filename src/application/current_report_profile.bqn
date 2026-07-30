@@ -17,6 +17,27 @@ ReplaceCoordinateRole ← {𝕊 coordinates‿coordinateRoles‿role‿value:
   index ← ⊑(role⊸≡¨coordinateRoles)⊐1
   (index↑coordinates)∾⟨value⟩∾(index+1)↓coordinates
 }
+FindAdmission ← {𝕊 key‿admittedRoutes:
+  (⊑(key⊸≡¨{𝕩.key}¨admittedRoutes)⊐1)⊑admittedRoutes
+}
+SourceName ← {𝕊 role‿admitted:
+  index ← ⊑(role⊸≡¨admitted.sources.role)⊐1
+  index⊑admitted.sources.name
+}
+SourceNames ← {𝕊 admittedRoutes:
+  cycleAccounts ← FindAdmission ⟨"cycle-accounts",admittedRoutes⟩
+  cycleComparison ← FindAdmission ⟨"cycle-comparison",admittedRoutes⟩
+  planned ← FindAdmission ⟨"planned",admittedRoutes⟩
+  planName ← SourceName ⟨"plan",planned⟩
+  cyclePlanNames ← ("plan"⊸≡¨cycleAccounts.sources.role)/cycleAccounts.sources.name
+  {𝕊:planName↩⊑cyclePlanNames}⍟(1=≠cyclePlanNames) @
+  {
+    current_cycle⇐SourceName ⟨"cycle",cycleAccounts⟩,
+    comparison_current_cycle⇐SourceName ⟨"current_cycle",cycleComparison⟩,
+    baseline_cycle⇐SourceName ⟨"baseline_cycle",cycleComparison⟩,
+    plan⇐planName
+  }
+}
 
 Build ← {𝕊 admittedRoutes‿observation‿currentCycle‿baselineCycle:
   diagnostics ← empty
@@ -64,4 +85,4 @@ Build ← {𝕊 admittedRoutes‿observation‿currentCycle‿baselineCycle:
   {state⇐(0=≠diagnostics)⊑"error"‿"ok",observation⇐observation,rows⇐resolvedRows,diagnostics⇐diagnostics}
 }
 
-{Build⇐Build}
+{Build⇐Build,SourceNames⇐SourceNames}
