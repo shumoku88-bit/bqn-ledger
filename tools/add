@@ -1,0 +1,170 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -L "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+ROOT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+cd "$ROOT_DIR"
+
+# Candidate rows may arrive through an internal pipe. Preserve the launcher's original
+# stdin separately so the plain selector can still read a user or scripted answer.
+exec 3<&0
+
+usage() {
+  cat <<'EOF'
+Usage:
+  bash tools/add [--base <dir>] [--list-actions] [--select-only] [--check] [<mode>]
+
+BQN-catalog-driven launcher for tools/add-ui.sh.
+
+Options:
+  --list-actions  Print key, label, and family as TSV
+  --select-only   Select or admit a mode, print its key, and do not execute it
+  --check         Validate the catalog, then run add-ui preflight
+  --base <dir>    Forward the explicit data directory to add-ui
+EOF
+}
+
+shout() { printf '%s\n' "$*" >&2; }
+
+select_line() {
+  local prompt="$1" selector="${ADD_SELECTOR:-auto}"
+  local -a lines=()
+  local line idx ans
+  while IFS= read -r line; do lines+=("$line"); done
+
+  if [[ ${#lines[@]} -eq 0 ]]; then
+    shout "No candidates for: $prompt"
+    return 1
+  fi
+
+  if [[ "$selector" == "auto" ]]; then
+    if command -v fzf >/dev/null 2>&1; then selector="fzf"
+    elif command -v gum >/dev/null 2>&1; then selector="gum"
+    else selector="plain"
+    fi
+  fi
+
+  case "$selector" in
+    fzf)
+      command -v fzf >/dev/null 2>&1 \
+        || { shout 'Error: ADD_SELECTOR=fzf but fzf is not installed'; return 2; }
+      printf '%s\n' "${lines[@]}" |
+        fzf --prompt="$prompt> " --delimiter=$'\t' --with-nth=2.. --height=40% --reverse --select-1 --exit-0
+      ;;
+    gum)
+      command -v gum >/dev/null 2>&1 \
+        || { shout 'Error: ADD_SELECTOR=gum but gum is not installed'; return 2; }
+      printf '%s\n' "${lines[@]}" | gum filter --placeholder="$prompt"
+      ;;
+    plain)
+      shout "$prompt"
+      idx=1
+      for line in "${lines[@]}"; do
+        printf '  %2d) %s\n' "$idx" "$line" >&2
+        idx=$((idx + 1))
+      done
+      printf '> ' >&2
+      if [[ -t 3 && -r /dev/tty ]]; then
+        read -r ans </dev/tty
+      else
+        read -r ans <&3
+      fi
+      if [[ "$ans" =~ ^[0-9]+$ ]] && (( ans >= 1 && ans <= ${#lines[@]} )); then
+        printf '%s\n' "${lines[$((ans - 1))]}"
+      else
+        printf '%s\n' "$ans"
+      fi
+      ;;
+    *)
+      shout "Error: invalid ADD_SELECTOR: $selector"
+      return 2
+      ;;
+  esac
+}
+
+base_args=()
+list_actions=0
+select_only=0
+run_check=0
+mode=''
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --base)
+      [[ $# -ge 2 ]] || { shout 'Error: --base requires a directory'; usage; exit 1; }
+      base_args=(--base "$2")
+      shift 2
+      ;;
+    --list-actions) list_actions=1; shift ;;
+    --select-only) select_only=1; shift ;;
+    --check) run_check=1; shift ;;
+    -h|--help) usage; exit 0 ;;
+    --)
+      shift
+      [[ $# -le 1 ]] || { shout "Error: Unexpected argument(s): $*"; usage; exit 1; }
+      [[ $# -eq 0 ]] || mode="$1"
+      shift "$#"
+      ;;
+    -*) shout "Error: Unknown option: $1"; usage; exit 1 ;;
+    *)
+      [[ -z "$mode" ]] || { shout "Error: Extra argument: $1"; usage; exit 1; }
+      mode="$1"
+      shift
+      ;;
+  esac
+done
+
+if ! action_rows="$(bqn "$ROOT_DIR/src/application/add_ui_action_catalog_cli.bqn")"; then
+  shout 'Error: BQN action catalog is invalid or unavailable'
+  exit 1
+fi
+
+row_count=0
+while IFS=$'\t' read -r key label family extra; do
+  [[ -n "$key" && -n "$label" && -n "$family" && -z "${extra:-}" ]] \
+    || { shout 'Error: malformed action catalog row'; exit 1; }
+  row_count=$((row_count + 1))
+done <<< "$action_rows"
+[[ "$row_count" -gt 0 ]] || { shout 'Error: action catalog is empty'; exit 1; }
+
+mode_known() {
+  local candidate="$1"
+  awk -F'\t' -v key="$candidate" '$1 == key { found=1; exit } END { exit !found }' <<< "$action_rows"
+}
+
+if [[ "$list_actions" -eq 1 ]]; then
+  printf '%s\n' "$action_rows"
+  exit 0
+fi
+
+if [[ "$run_check" -eq 1 ]]; then
+  exec "$ROOT_DIR/tools/add-ui.sh" "${base_args[@]}" --check
+fi
+
+if [[ -n "$mode" ]]; then
+  mode_known "$mode" || { shout "Error: Unknown action mode: $mode"; exit 1; }
+else
+  selector_rows="$(printf '%s\n' "$action_rows" | cut -f1,2)"
+  if selected="$(printf '%s\n' "$selector_rows" | select_line 'action')"; then
+    :
+  else
+    status=$?
+    exit "$status"
+  fi
+  [[ -n "$selected" ]] || { shout 'Cancelled.'; exit 130; }
+  mode="${selected%%$'\t'*}"
+  mode_known "$mode" || { shout "Error: Unknown selected action mode: $mode"; exit 1; }
+fi
+
+if [[ "$select_only" -eq 1 ]]; then
+  printf '%s\n' "$mode"
+  exit 0
+fi
+
+exec "$ROOT_DIR/tools/add-ui.sh" "${base_args[@]}" "$mode"
