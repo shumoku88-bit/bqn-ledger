@@ -63,11 +63,13 @@ fi
 ExpectLine $'ERROR\tall_not_implemented\tparallel CLI currently requires one retained key' "$tmp/all"
 
 # Individual route admission remains after registry access, preserving direct-CLI failure order.
+mkdir "$tmp/config"
+: >"$tmp/config/currencies.tsv"
 if (
   cd "$tmp"
   bqn "$cli" "$fixture" balances human JPY 2026-01-12 >"$tmp/registry-first" 2>&1
 ); then
-  echo 'FAIL: invalid direct route succeeded without registry' >&2
+  echo 'FAIL: invalid direct route succeeded with an empty registry' >&2
   exit 1
 fi
 ExpectLine $'ERROR\tcurrency_registry_empty\tcurrency registry is empty' "$tmp/registry-first"
