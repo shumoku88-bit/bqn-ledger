@@ -14,9 +14,9 @@ if grep -Fq 'registryResult.diagnostics' "$cli"; then
 fi
 grep -F 'RegistryDiagnostic registryResult' "$cli" >/dev/null
 
-mkdir -p "$tmp/empty/config" "$tmp/malformed/config"
+mkdir -p "$tmp/empty/config" "$tmp/duplicate/config"
 : >"$tmp/empty/config/currencies.tsv"
-printf 'JPY\t0\n' >"$tmp/malformed/config/currencies.tsv"
+printf 'JPY\t0\tYEN\nJPY\t0\tYEN\n' >"$tmp/duplicate/config/currencies.tsv"
 
 if (
   cd "$tmp/empty"
@@ -35,19 +35,19 @@ if grep -Eq 'Field named "diagnostics" not found|usage_balances' "$tmp/empty.out
 fi
 
 if (
-  cd "$tmp/malformed"
-  bqn "$cli" "$fixture" balances human JPY 2026-01-12 >"$tmp/malformed.out" 2>&1
+  cd "$tmp/duplicate"
+  bqn "$cli" "$fixture" balances human JPY 2026-01-12 >"$tmp/duplicate.out" 2>&1
 ); then
-  echo 'FAIL: malformed currency registry succeeded' >&2
+  echo 'FAIL: duplicate currency registry succeeded' >&2
   exit 1
 fi
-grep -Fx $'ERROR\tcurrency_registry_row_invalid\tcurrency registry rows require currency, max_fraction_digits, and symbol' \
-  "$tmp/malformed.out" >/dev/null || {
-    cat "$tmp/malformed.out" >&2
+grep -Fx $'ERROR\tcurrency_registry_currency_duplicate\tcurrency registry contains duplicate currency code' \
+  "$tmp/duplicate.out" >/dev/null || {
+    cat "$tmp/duplicate.out" >&2
     exit 1
   }
-if grep -Eq 'Field named "diagnostics" not found|usage_balances' "$tmp/malformed.out"; then
-  echo 'FAIL: malformed registry did not fail through the registry result contract' >&2
+if grep -Eq 'Field named "diagnostics" not found|usage_balances' "$tmp/duplicate.out"; then
+  echo 'FAIL: duplicate registry did not fail through the registry result contract' >&2
   exit 1
 fi
 
