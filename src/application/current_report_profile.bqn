@@ -1,6 +1,7 @@
 # Pure daily-UI policy: resolve volatile report coordinates from one latest Actual observation.
 # Explicit historical routes and source arguments remain unchanged outside the selected coordinates.
 
+route ← •Import "report_route.bqn"
 dates ← •Import "../ledger/date_ordinal.bqn"
 empty ← ⟨⟩
 
@@ -12,6 +13,10 @@ NextMonthExclusive ← {𝕊 dateText:
   y‿m‿d ← dates.Parts dateText
   nextY ← y+(m=12) ⋄ nextM ← (m=12)⊑⟨m+1,1⟩
   7↑dates.FromParts ⟨nextY,nextM,1⟩
+}
+ReplaceRole ← {𝕊 coordinates‿roles‿role‿value:
+  index ← ⊑(role⊸≡¨roles)⊐1
+  (index↑coordinates)∾⟨value⟩∾(index+1)↓coordinates
 }
 
 Build ← {𝕊 rows‿observation‿currentCycle‿baselineCycle:
@@ -45,7 +50,10 @@ Build ← {𝕊 rows‿observation‿currentCycle‿baselineCycle:
     {𝕊 row:
       key ← row.key ⋄ args ← row.arguments ⋄ rewritten ← args
       {𝕊:rewritten↩⟨0⊑args,currentCycle.start,currentCycle.end_exclusive,observation⟩∾4↓args}⍟(key≡"envelopes") @
-      {𝕊:rewritten↩⟨0⊑args,observation,2⊑args⟩}⍟((key≡"balances") ∨ key≡"balance-sheet") @
+      {𝕊:
+        admitted ← route.Admit ⟨key,row.surface,args⟩
+        rewritten↩ReplaceRole ⟨args,admitted.coordinate_role,"as_of",observation⟩
+      }⍟((key≡"balances") ∨ key≡"balance-sheet") @
       {𝕊:rewritten↩⟨0⊑args,currentCycle.start,dates.AddDays ⟨observation,1⟩,3⊑args⟩}⍟(key≡"profit-and-loss") @
       {𝕊:rewritten↩⟨observation⟩∾1↓args}⍟(key≡"planned") @
       {𝕊:rewritten↩⟨0⊑args,observation⟩∾2↓args}⍟(key≡"cycle-accounts") @
