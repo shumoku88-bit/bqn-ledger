@@ -1,7 +1,6 @@
-# Pure daily-UI policy: resolve volatile report coordinates from one latest Actual observation.
-# Explicit historical routes and source arguments remain unchanged outside the selected coordinates.
+# Pure daily-UI policy: resolve volatile coordinates over admitted report routes.
+# Explicit historical routes and source coordinates remain unchanged outside the selected roles.
 
-route ← •Import "report_route.bqn"
 dates ← •Import "../ledger/date_ordinal.bqn"
 empty ← ⟨⟩
 
@@ -19,7 +18,7 @@ ReplaceRole ← {𝕊 coordinates‿roles‿role‿value:
   (index↑coordinates)∾⟨value⟩∾(index+1)↓coordinates
 }
 
-Build ← {𝕊 rows‿observation‿currentCycle‿baselineCycle:
+Build ← {𝕊 admittedRoutes‿observation‿currentCycle‿baselineCycle:
   diagnostics ← empty
   diagnostics ∾↩ AddIf ⟨¬dates.IsValid observation,Diagnostic ⟨"current_observation_invalid","latest Actual observation must be strict Gregorian text"⟩⟩
   diagnostics ∾↩ AddIf ⟨currentCycle.state≢"ok",Diagnostic ⟨"current_cycle_not_ok","current Cycle must resolve at the latest Actual observation"⟩⟩
@@ -47,13 +46,10 @@ Build ← {𝕊 rows‿observation‿currentCycle‿baselineCycle:
 
   resolvedRows ← empty
   {𝕊:
-    {𝕊 row:
-      key ← row.key ⋄ args ← row.arguments ⋄ rewritten ← args
+    {𝕊 admitted:
+      key ← admitted.key ⋄ args ← admitted.coordinates ⋄ rewritten ← args
       {𝕊:rewritten↩⟨0⊑args,currentCycle.start,currentCycle.end_exclusive,observation⟩∾4↓args}⍟(key≡"envelopes") @
-      {𝕊:
-        admitted ← route.Admit ⟨key,row.surface,args⟩
-        rewritten↩ReplaceRole ⟨args,admitted.coordinate_role,"as_of",observation⟩
-      }⍟((key≡"balances") ∨ key≡"balance-sheet") @
+      {𝕊:rewritten↩ReplaceRole ⟨args,admitted.coordinate_role,"as_of",observation⟩}⍟((key≡"balances") ∨ key≡"balance-sheet") @
       {𝕊:rewritten↩⟨0⊑args,currentCycle.start,dates.AddDays ⟨observation,1⟩,3⊑args⟩}⍟(key≡"profit-and-loss") @
       {𝕊:rewritten↩⟨observation⟩∾1↓args}⍟(key≡"planned") @
       {𝕊:rewritten↩⟨0⊑args,observation⟩∾2↓args}⍟(key≡"cycle-accounts") @
@@ -61,8 +57,8 @@ Build ← {𝕊 rows‿observation‿currentCycle‿baselineCycle:
       {𝕊:rewritten↩⟨0⊑args,1⊑args,NextMonthExclusive observation,3⊑args⟩}⍟(key≡"monthly-accounts") @
       {𝕊:rewritten↩⟨0⊑args,currentCycle.start,currentCycle.end_exclusive,observation,4⊑args⟩}⍟(key≡"daily-flow") @
       {𝕊:rewritten↩⟨0⊑args,observation⟩∾2↓args}⍟(key≡"daily-target") @
-      resolvedRows∾↩⟨{key⇐key,surface⇐row.surface,arguments⇐rewritten}⟩
-    }¨rows
+      resolvedRows∾↩⟨{key⇐key,surface⇐admitted.surface,arguments⇐rewritten}⟩
+    }¨admittedRoutes
   }⍟(0=≠diagnostics) @
 
   {state⇐(0=≠diagnostics)⊑"error"‿"ok",observation⇐observation,rows⇐resolvedRows,diagnostics⇐diagnostics}
