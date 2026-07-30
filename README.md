@@ -16,7 +16,7 @@ export LEDGER_DATA_DIR=../ledger-data/data
 export REPORT_MANIFEST_CONFIG=../ledger-data/data/report_manifests.tsv
 ```
 
-The manifest config names distinct human and compact request manifests. Every request row carries explicit source basenames, domain, observation, and report-specific coordinates; report routing does not infer them from ledger config.
+The manifest config names distinct human and compact request manifests. Every engine request row carries explicit source basenames, domain, observation, and report-specific coordinates; report routing does not infer them from ledger config. The daily Command Hub treats the human manifest as a source/policy template and resolves one clock-free `current` profile from the latest admitted Actual date, so a normal later-dated Journal append does not require manual date maintenance. Direct `tools/report` requests remain explicit and reproducible for historical use.
 
 Validate strict sources:
 
@@ -31,7 +31,10 @@ tools/ledger-check "$LEDGER_DATA_DIR" \
 # Interactive retained-report selector
 tools/main-ui.sh
 
-# Full human report
+# Full current human report through the daily profile
+tools/main-ui.sh report
+
+# Full explicit/historical engine report
 tools/report "$LEDGER_DATA_DIR" all human report_all_human.tsv
 
 # One retained report through the same manifest row

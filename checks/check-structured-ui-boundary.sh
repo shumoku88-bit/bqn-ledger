@@ -40,11 +40,14 @@ else
   fail "tools/main-ui.sh must use tools/report-section-metadata for section menu metadata"
 fi
 
-# Direct section display should address sections by stable section key.
-if rg -q 'tools/report.*"\$key" human --manifest "\$human_manifest"' tools/main-ui.sh; then
+# Direct current display selects one exact stable key from the generated concrete
+# manifest, then invokes the existing explicit report route without parsing prose.
+if rg -q 'tools/report-current-manifest' tools/main-ui.sh \
+  && rg -q 'awk .*\$1 == key' tools/main-ui.sh \
+  && rg -Fq '"$ROOT_DIR/tools/report" "$base_dir" "${fields[@]}"' tools/main-ui.sh; then
   pass
 else
-  fail "tools/main-ui.sh direct display should route a stable key through the admitted human manifest"
+  fail "tools/main-ui.sh direct display should route a stable key through the admitted current manifest"
 fi
 
 # Selector previews use only the cache/status reader, so browsing across rows

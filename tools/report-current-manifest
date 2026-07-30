@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+if [[ $# -ne 2 ]]; then
+  printf 'Usage: tools/report-current-manifest BASE HUMAN_MANIFEST_BASENAME\n' >&2
+  exit 2
+fi
+exec bqn "$root/src/application/current_report_profile_cli.bqn" "$1" "$2"

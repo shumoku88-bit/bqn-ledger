@@ -6,10 +6,7 @@ compose ← •Import "../report/compose.bqn"
 render ← •Import "../report/render.bqn"
 sources ← •Import "report_source_adapter.bqn"
 cycleAdmission ← •Import "../ledger/cycle_admission.bqn"
-fixedCycle ← •Import "../accounting/cycle_fixed_resolution.bqn"
-calendarCycle ← •Import "../accounting/cycle_calendar_month_resolution.bqn"
-incomeCycle ← •Import "../accounting/cycle_income_anchor_resolution.bqn"
-cycleResult ← •Import "../accounting/cycle_result.bqn"
+cycleResolution ← •Import "cycle_resolution.bqn"
 fundingScope ← •Import "funding_scope.bqn"
 dailyScopeAdmission ← •Import "daily_scope_admission.bqn"
 dailyScopeAdapter ← •Import "daily_scope_adapter.bqn"
@@ -30,18 +27,8 @@ RegistryDiagnostic ← {𝕊 result:
 AdmitCycle ← {𝕊 base‿name‿accounts:
   cycleAdmission.Admit ⟨sources.CycleLines ⟨base,name⟩,accounts⟩
 }
-ResolveWithoutPlan ← {𝕊 admitted‿observation:
-  mode ← admitted.definition.mode
-  resolved ← cycleResult.Error ⟨mode,observation,"cycle_plan_required","incomeAnchor requires Plan facts"⟩
-  {𝕊:resolved↩fixedCycle.Resolve admitted}⍟(mode≡"fixed") @
-  {𝕊:resolved↩calendarCycle.Resolve ⟨admitted,observation⟩}⍟(mode≡"calendarMonth") @
-  resolved
-}
-ResolveWithPlan ← {𝕊 admitted‿observation‿actualFacts‿planFacts:
-  resolved ← ResolveWithoutPlan ⟨admitted,observation⟩
-  {𝕊:resolved↩incomeCycle.Resolve ⟨admitted,observation,actualFacts,planFacts⟩}⍟(admitted.definition.mode≡"incomeAnchor") @
-  resolved
-}
+ResolveWithoutPlan ← cycleResolution.WithoutPlan
+ResolveWithPlan ← cycleResolution.WithPlan
 
 {𝕊:Fail ⟨"usage","expected BASE KEY SURFACE and key-specific coordinates"⟩}⍟(3>≠args) @
 base‿key‿surface ← 3↑args ⋄ coordinates ← 3↓args

@@ -26,8 +26,8 @@ IsValid ← {𝕊 text:
 }
 
 FromParts ← {𝕊 y‿m‿d:
-  Pad2 ← {𝕊 value: text←•Fmt value ⋄ ((0⌈2-≠text)⥊'0')∾text}
-  (•Fmt y)∾"-"∾(Pad2 m)∾"-"∾Pad2 d
+  Pad ← {𝕊 width‿value: text←•Fmt value ⋄ ((0⌈width-≠text)⥊'0')∾text}
+  (Pad ⟨4,y⟩)∾"-"∾(Pad ⟨2,m⟩)∾"-"∾Pad ⟨2,d⟩
 }
 
 Ordinal ← {𝕊 text:
@@ -37,8 +37,24 @@ Ordinal ← {𝕊 text:
   yoe ← y2 - 400 × era
   mp ← m + (m ≤ 2) ⊑ ⟨¯3,9⟩
   doy ← (⌊ (2 + 153 × mp) ÷ 5) + d - 1
-  doe ← doy + 365 × yoe + (⌊ yoe ÷ 4) - ⌊ yoe ÷ 100
+  doe ← ((doy + 365 × yoe) + ⌊ yoe ÷ 4) - ⌊ yoe ÷ 100
   doe + 146097 × era
 }
 
-{IsValid⇐IsValid,Ordinal⇐Ordinal,Parts⇐Parts,FromParts⇐FromParts}
+# Exact inverse of Ordinal for nonnegative supported civil-date coordinates.
+FromOrdinal ← {𝕊 ordinal:
+  era ← ⌊ordinal÷146097
+  doe ← ordinal-146097×era
+  adjusted ← ((doe-⌊doe÷1460)+(⌊doe÷36524))-⌊doe÷146096
+  yoe ← ⌊adjusted÷365
+  y ← yoe+400×era
+  yearDays ← ((365×yoe)+(⌊yoe÷4))-⌊yoe÷100
+  doy ← doe-yearDays
+  mp ← ⌊(2+5×doy)÷153
+  d ← 1+doy-⌊(2+153×mp)÷5
+  m ← mp+(mp<10)⊑⟨¯9,3⟩
+  FromParts ⟨y+(m≤2),m,d⟩
+}
+AddDays ← {𝕊 text‿delta: FromOrdinal delta+Ordinal text}
+
+{IsValid⇐IsValid,Ordinal⇐Ordinal,FromOrdinal⇐FromOrdinal,AddDays⇐AddDays,Parts⇐Parts,FromParts⇐FromParts}

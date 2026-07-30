@@ -10,7 +10,8 @@
 
 ## Current directions
 
-- Exercise the retained portfolio in daily use and adjust explicit manifest observations/targets when household decisions change.
+- Daily Command Hub uses one pure latest-Actual `current` profile to derive volatile coordinates and no longer requires manifest date maintenance after a normal later-dated append. Explicit `tools/report` coordinates remain the historical/reproducible boundary; cache failures retain a labeled last-known-good preview and actionable diagnostic.
+
 - Keep editor Issues on the canonical strict eight-column schema.
 - Prefer narrow accounting capabilities and source-qualified contributors over broad contexts or universal report records.
 - Keep operational readiness and inspection outside the report catalog.

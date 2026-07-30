@@ -19,14 +19,29 @@ if [[ ! "$key" =~ ^[a-z0-9][a-z0-9-]*$ ]]; then
   exit 0
 fi
 
-if [[ -f "$cache_dir/.cache-refreshing" ]]; then
-  printf 'Previewを更新中です。\n'
-  printf 'selectorはそのまま操作できます。生成後に項目へ戻ると最新previewを表示します。\n'
-elif [[ -f "$cache_dir/.cache-error" ]]; then
-  printf 'Previewの更新に失敗しました。選択すると最新reportを直接表示します。\n'
-elif [[ -f "$cache_dir/.section-keys" ]] \
+cached=0
+if [[ -f "$cache_dir/.section-keys" ]] \
   && grep -Fxq -- "$key" "$cache_dir/.section-keys" \
   && [[ -f "$cache_dir/$key.txt" ]]; then
+  cached=1
+fi
+
+if [[ -f "$cache_dir/.cache-refreshing" ]]; then
+  printf 'Previewを更新中です。\n'
+  if [[ "$cached" -eq 1 ]]; then
+    printf '以下は前回正常生成時のpreviewです。\n\n'
+    cat "$cache_dir/$key.txt"
+  else
+    printf 'selectorはそのまま操作できます。生成後に項目へ戻ると最新previewを表示します。\n'
+  fi
+elif [[ -f "$cache_dir/.cache-error" ]]; then
+  printf 'Previewの更新に失敗しました。以下は前回正常生成時のpreviewです。\n'
+  sed -n '1,4p' "$cache_dir/.cache-error"
+  if [[ "$cached" -eq 1 ]]; then
+    printf '\n'
+    cat "$cache_dir/$key.txt"
+  fi
+elif [[ "$cached" -eq 1 ]]; then
   cat "$cache_dir/$key.txt"
 else
   printf 'Preview unavailable for this item.\n'

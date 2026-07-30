@@ -27,7 +27,7 @@ source "$ROOT_DIR/tools/lib/ui-preferences.sh"
 usage() {
   cat <<'EOF'
 Usage:
-  tools/main-ui.sh [--base <dir>] [command]
+  tools/main-ui.sh [--base <dir>] [--manifest-config <file>] [command]
 
 Commands:
   select, --select     Open fzf/gum section selector (default)
@@ -51,6 +51,7 @@ EOF
 }
 
 base_dir="${LEDGER_DATA_DIR:-$(get_default_base_dir)}"
+manifest_config_override=""
 cmd="select"
 
 while [[ $# -gt 0 ]]; do
@@ -62,6 +63,15 @@ while [[ $# -gt 0 ]]; do
         exit 1
       fi
       base_dir="$2"
+      shift 2
+      ;;
+    --manifest-config)
+      if [[ $# -lt 2 ]]; then
+        echo "Error: --manifest-config requires a file" >&2
+        usage >&2
+        exit 1
+      fi
+      manifest_config_override="$2"
       shift 2
       ;;
     -h|--help)
@@ -80,7 +90,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-manifest_config="${REPORT_MANIFEST_CONFIG:-}"
+manifest_config="${manifest_config_override:-${REPORT_MANIFEST_CONFIG:-}}"
 if [[ -z "$manifest_config" ]]; then
   echo "Error: REPORT_MANIFEST_CONFIG must name the explicit report manifest config" >&2
   exit 2
@@ -88,6 +98,22 @@ fi
 [[ "$manifest_config" == /* ]] || manifest_config="$ROOT_DIR/$manifest_config"
 human_manifest="$(bqn "$ROOT_DIR/src/application/report_manifest_config_cli.bqn" "$manifest_config" human)"
 compact_manifest="$(bqn "$ROOT_DIR/src/application/report_manifest_config_cli.bqn" "$manifest_config" compact)"
+current_manifest_path=""
+cleanup_current_manifest() {
+  [[ -z "$current_manifest_path" ]] || rm -f "$current_manifest_path"
+}
+trap cleanup_current_manifest EXIT
+ensure_current_manifest() {
+  [[ -z "$current_manifest_path" ]] || return 0
+  local candidate
+  candidate="$(mktemp "${TMPDIR:-/tmp}/bqn-ledger-current-manifest.XXXXXX")"
+  if ! "$ROOT_DIR/tools/report-current-manifest" "$base_dir" "$human_manifest" >"$candidate"; then
+    cat "$candidate" >&2
+    rm -f "$candidate"
+    return 1
+  fi
+  current_manifest_path="$candidate"
+}
 
 # Record whether both stdin and stdout are connected to a terminal at startup.
 # This preserves the interactive check state even when we execute select_section
@@ -107,7 +133,11 @@ pager_display() {
 
 show_full_report() {
   ensure_ledger_report_base "$base_dir"
-  "$ROOT_DIR/tools/report" "$base_dir" all human "$human_manifest" | "$ROOT_DIR/tools/lib/color-filter" | pager_display
+  ensure_current_manifest
+  local base_abs
+  base_abs="$(cd "$base_dir" && pwd)"
+  "$ROOT_DIR/tools/report-all" "$ROOT_DIR" "$base_abs" human "$current_manifest_path" \
+    | "$ROOT_DIR/tools/lib/color-filter" | pager_display
 }
 
 section_list() {
@@ -116,11 +146,15 @@ section_list() {
 }
 
 show_section_direct() {
-  local key="$1" out err status
+  local key="$1" out err status row
+  ensure_current_manifest
+  row="$(awk -F'\t' -v key="$key" '$1 == key { print; found++ } END { if (found != 1) exit 1 }' "$current_manifest_path")" \
+    || { echo "Error: current report row is unavailable: $key" >&2; return 1; }
+  IFS=$'\t' read -r -a fields <<<"$row"
   out="$(mktemp)"
   err="$(mktemp)"
   trap 'rm -f "$out" "$err"' RETURN
-  if "$ROOT_DIR/tools/report" "$base_dir" "$key" human --manifest "$human_manifest" >"$out" 2>"$err"; then
+  if "$ROOT_DIR/tools/report" "$base_dir" "${fields[@]}" >"$out" 2>"$err"; then
     cat "$out" | "$ROOT_DIR/tools/lib/color-filter" | pager_display
   else
     status=$?
@@ -188,6 +222,7 @@ case "$cmd" in
     ;;
   select|--select|'')
     ensure_ledger_report_base "$base_dir"
+    ensure_current_manifest
     
     # Create a stable cache directory based on the absolute path of base_dir
     base_abs="$(cd "$base_dir" && pwd)"
@@ -195,7 +230,9 @@ case "$cmd" in
     cache_dir="${TMPDIR:-/tmp}/bqn-ledger-cache-${sanitized_path}"
     mkdir -p "$cache_dir"
 
-    actual_journal_rel="$(bqn "$ROOT_DIR/src_edit/actual_journal_file_cmd.bqn" "$base_abs")"
+    actual_journal_rel="$(awk -F'\t' '$1 == "balances" { print $5 }' "$current_manifest_path")"
+    [[ -n "$actual_journal_rel" ]] \
+      || { echo "Error: current profile did not publish an Actual Journal source" >&2; exit 1; }
     src_files=(
       "$base_abs/accounts.tsv"
       "$base_abs/$actual_journal_rel"
@@ -278,7 +315,7 @@ case "$cmd" in
         background)
           (
             trap '' HUP
-            exec "$ROOT_DIR/tools/command-hub-cache-refresh" "$base_abs" "$cache_dir" "$max_src_mtime" "$human_manifest"
+            exec "$ROOT_DIR/tools/command-hub-cache-refresh" "$base_abs" "$cache_dir" "$max_src_mtime" "$current_manifest_path"
           ) </dev/null >"$cache_dir/.refresh.log" 2>&1 &
           # Let the child publish its status marker before fzf asks for the
           # first preview. Never wait for report computation here.
@@ -288,7 +325,7 @@ case "$cmd" in
           done
           ;;
         synchronous)
-          if ! "$ROOT_DIR/tools/command-hub-cache-refresh" "$base_abs" "$cache_dir" "$max_src_mtime" "$human_manifest"; then
+          if ! "$ROOT_DIR/tools/command-hub-cache-refresh" "$base_abs" "$cache_dir" "$max_src_mtime" "$current_manifest_path"; then
             echo "Failed to generate report cache" >&2
             exit 1
           fi

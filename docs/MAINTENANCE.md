@@ -16,7 +16,7 @@ Strict household readiness is checked separately with `tools/ledger-check`; cano
 3. Implement the semantic result in `src/sections/` without reading files or another section result.
 4. Add only approved renderers.
 5. Register a final key/surface in `src/report/catalog.bqn` when it is a retained user question.
-6. Update human/compact request manifests explicitly.
+6. Update human/compact manifest source and nonvolatile policy explicitly when their meaning changes; do not advance daily observation dates for Command Hub, which resolves them through the current profile.
 7. Test positive, empty, invalid, provenance, direct/all/cache, and supported structured surfaces.
 
 Do not introduce broad contexts, source-shape fallbacks, old-key aliases, or forwarding modules. Operational diagnostics belong in `tools/ledger-check` or `tools/ledger-inspect`, not the report catalog.

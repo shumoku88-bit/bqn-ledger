@@ -4,6 +4,7 @@
 
 ```text
 explicit source files + report request manifest
+  -> optional daily `current` profile (latest admitted Actual date; no wall clock)
   -> src/application (read-only adapters and CLI composition)
   -> src/ledger (strict admission and canonical Facts)
   -> src/accounting (narrow exact capabilities)
@@ -50,11 +51,13 @@ Catalog order is:
 11. Daily Target
 12. Issues
 
-`all` is a catalog selection, not an all-report semantic record. Human and compact manifests contain existing individual route arguments in catalog order. Every row is admitted before source reads; output is buffered and published only after all selected requests succeed.
+`all` is a catalog selection, not an all-report semantic record. Human and compact manifests contain existing individual route arguments in catalog order. Every row is admitted before source reads; output is buffered and published only after all selected requests succeed. Direct engine and historical requests use those concrete coordinates unchanged.
+
+The daily Command Hub adds one application policy before that boundary: `current_report_profile.bqn` admits the human template, chooses the maximum admitted Actual transaction date as one observation, resolves current and previous Cycles, and emits a complete concrete manifest. It derives only volatile current coordinates such as observation, current-cycle horizon, P/L end-exclusive, aligned baseline observation, and Monthly Accounts end-exclusive month. It reads no wall clock; nonvolatile choices such as Daily Target target and Monthly Accounts first month remain explicit template policy.
 
 ## Cache and UI
 
-`tools/report-cache` stages twelve section bodies plus `all.txt`, publishes `.section-keys`, deletes stale report bodies, and writes `.cache-timestamp` last. `tools/command-hub-cache-refresh` adds exclusive background refresh and status markers. Preview reads only cache files and never starts the engine.
+`tools/report-cache` stages twelve section bodies plus `all.txt`, publishes `.section-keys`, deletes stale report bodies, and writes `.cache-timestamp` last. `tools/command-hub-cache-refresh` adds exclusive background refresh and status markers. Preview reads only cache/status files and never starts the engine. A failed refresh preserves the prior complete generation; preview labels it as last-known-good and exposes the bounded underlying diagnostic instead of hiding every report.
 
 `tools/report-section-metadata` derives labels, categories, owners, and surfaces directly from the static catalog without household reads. Command Hub does not duplicate report keys.
 

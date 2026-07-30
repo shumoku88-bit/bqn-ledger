@@ -162,7 +162,9 @@ An exclusive PID lock rejects concurrent publication and recovers an abandoned l
 
 Production now uses `tools/report` → strict `src/` composition. No retired alias, dual key, or forwarding wrapper exists.
 
-The production UI uses one explicit human request manifest for direct section selection, `all`, and cache publication. `report_manifest_admission.bqn` admits unique, non-empty, safe, different human/compact basenames from a separately supplied config file; it does not add routing keys to strict ledger `config.tsv` and performs no base/default/repository discovery. Individual manifest parity is proven against direct argv output.
+The production UI uses the configured human manifest as an admitted current-profile template. `current_report_profile_cli.bqn` reads its already-declared sources, admits Actual/Plan/Cycle evidence, resolves one latest-Actual observation without a wall clock, and emits a temporary complete concrete manifest. Current-cycle horizons, P/L end-exclusive, aligned baseline observation, and Monthly Accounts end-exclusive month derive from that one coordinate; Daily Target target, Monthly Accounts first month, source basenames, domain, funding scope, and other nonvolatile policy remain explicit template values.
+
+Direct `tools/report` and historical `all` continue to consume concrete rows without current-profile resolution. `report_manifest_admission.bqn` still admits unique, non-empty, safe, different human/compact basenames from a separately supplied config file; it does not add routing keys to strict ledger `config.tsv` or perform fallback discovery.
 
 Before atomic cutover:
 
