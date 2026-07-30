@@ -90,9 +90,11 @@ Admit ← {𝕊 key‿surface‿coordinates:
   }⍟((admittedRequest.state≡"ok") ∧ key≢"all") @
 
   ok ← 0=≠diagnostics
+  publishedSources ← EmptySources @
+  {𝕊:publishedSources↩sources}⍟ok @
   {
     state⇐ok⊑"error"‿"ok",key⇐ok⊑""‿key,surface⇐ok⊑""‿surface,
-    coordinates⇐ok⊑⟨empty,coordinates⟩,sources⇐ok⊑⟨EmptySources @,sources⟩,
+    coordinates⇐ok⊑⟨empty,coordinates⟩,sources⇐publishedSources,
     diagnostics⇐diagnostics
   }
 }
