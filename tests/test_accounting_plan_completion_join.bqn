@@ -116,12 +116,26 @@ ilsJoined ← join.Build ⟨ilsPlan,ilsActual,⟨0⟩,⟨0⟩⟩
 ⟨⟨1125⟩⟩ lib.AssertEq ilsJoined.rows.actual_coefficients
 ⟨⟨2⟩⟩ lib.AssertEq ilsJoined.rows.actual_scales
 
-# Invalid coordinates and swapped source families fail closed with no rows.
-invalidSelection ← join.Build ⟨planFacts,actualFacts,⟨0,0⟩,actualFacts.transactions.index⟩
-"error" lib.AssertEq invalidSelection.state
-0 lib.AssertEq invalidSelection.rows.count
-0 lib.AssertEq invalidSelection.counts.completed
-"plan_selection_duplicate" lib.AssertEq (⊑invalidSelection.diagnostics).code
+# Non-adjacent duplicate selections fail closed before evidence construction.
+selectionPlanFacts ← {
+  state⇐"ok",sources⇐planFacts.sources,
+  transactions⇐{index⇐⟨0,1⟩}
+}
+duplicatePlanSelection ← join.Build ⟨selectionPlanFacts,actualFacts,⟨0,1,0⟩,⟨⟩⟩
+"error" lib.AssertEq duplicatePlanSelection.state
+0 lib.AssertEq duplicatePlanSelection.rows.count
+0 lib.AssertEq duplicatePlanSelection.counts.completed
+1 lib.AssertEq ≠duplicatePlanSelection.diagnostics
+"plan_selection_duplicate" lib.AssertEq (⊑duplicatePlanSelection.diagnostics).code
+
+duplicateActualSelection ← join.Build ⟨planFacts,actualFacts,⟨⟩,⟨0,1,0⟩⟩
+"error" lib.AssertEq duplicateActualSelection.state
+0 lib.AssertEq duplicateActualSelection.rows.count
+0 lib.AssertEq duplicateActualSelection.counts.completed
+1 lib.AssertEq ≠duplicateActualSelection.diagnostics
+"actual_selection_duplicate" lib.AssertEq (⊑duplicateActualSelection.diagnostics).code
+
+# Swapped source families also fail closed with no rows.
 swapped ← join.Build ⟨actualFacts,planFacts,actualFacts.transactions.index,planFacts.transactions.index⟩
 "error" lib.AssertEq swapped.state
 0 lib.AssertEq swapped.rows.count
