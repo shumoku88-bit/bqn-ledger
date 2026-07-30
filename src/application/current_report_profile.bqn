@@ -13,8 +13,8 @@ NextMonthExclusive ← {𝕊 dateText:
   nextY ← y+(m=12) ⋄ nextM ← (m=12)⊑⟨m+1,1⟩
   7↑dates.FromParts ⟨nextY,nextM,1⟩
 }
-ReplaceRole ← {𝕊 coordinates‿roles‿role‿value:
-  index ← ⊑(role⊸≡¨roles)⊐1
+ReplaceCoordinateRole ← {𝕊 coordinates‿coordinateRoles‿role‿value:
+  index ← ⊑(role⊸≡¨coordinateRoles)⊐1
   (index↑coordinates)∾⟨value⟩∾(index+1)↓coordinates
 }
 
@@ -49,7 +49,7 @@ Build ← {𝕊 admittedRoutes‿observation‿currentCycle‿baselineCycle:
     {𝕊 admitted:
       key ← admitted.key ⋄ args ← admitted.coordinates ⋄ rewritten ← args
       {𝕊:rewritten↩⟨0⊑args,currentCycle.start,currentCycle.end_exclusive,observation⟩∾4↓args}⍟(key≡"envelopes") @
-      {𝕊:rewritten↩ReplaceRole ⟨args,admitted.coordinate_role,"as_of",observation⟩}⍟((key≡"balances") ∨ key≡"balance-sheet") @
+      {𝕊:rewritten↩ReplaceCoordinateRole ⟨args,admitted.coordinate_role,"as_of",observation⟩}⍟((key≡"balances") ∨ key≡"balance-sheet") @
       {𝕊:rewritten↩⟨0⊑args,currentCycle.start,dates.AddDays ⟨observation,1⟩,3⊑args⟩}⍟(key≡"profit-and-loss") @
       {𝕊:rewritten↩⟨observation⟩∾1↓args}⍟(key≡"planned") @
       {𝕊:rewritten↩⟨0⊑args,observation⟩∾2↓args}⍟(key≡"cycle-accounts") @
