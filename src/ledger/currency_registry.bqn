@@ -21,9 +21,7 @@ IsFractionDigits ← {𝕊 text:
 
 ParseLine ← {𝕊 line:
   fields ← SplitKeepEmpty ⟨tab,line⟩
-  currency ← (0<≠fields) ⊑ ⟨"", 0⊑fields⟩
-  fraction ← (1<≠fields) ⊑ ⟨"", 1⊑fields⟩
-  symbol ← (2<≠fields) ⊑ ⟨"", 2⊑fields⟩
+  currency‿fraction‿symbol ← 3↑fields∾⟨"","",""⟩
   {currency⇐currency, fraction_text⇐fraction, symbol⇐symbol, field_count⇐≠fields}
 }
 
