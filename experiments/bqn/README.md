@@ -18,7 +18,9 @@ Experiments here may be playful, comparative, incomplete, or intentionally simpl
 
 ## Probe record
 
-A useful probe should state:
+Tiny experiments do not need to fill every field. Use only the fields that help preserve the discovery.
+
+A useful larger probe may state:
 
 ```text
 Question:
@@ -29,10 +31,12 @@ Representations or expressions compared:
 Observed cells / frame / rank / shape / fill:
 Ordering and contributor observations:
 Result:
-Possible destination: production / personal book / parked
+Possible destination: production / personal book / catalog / parked
 ```
 
 A `.bqn` probe may be accompanied by a short Markdown note when the observed shapes or conclusions are not obvious from the code.
+
+When a result should remain visible across future work, add or revise its card in `docs/BQN_EXPLORATION_CATALOG.md`.
 
 ## Boundaries
 
