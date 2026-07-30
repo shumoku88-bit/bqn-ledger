@@ -16,10 +16,12 @@ Sources ← {𝕊 coordinates‿argumentIndices‿kinds‿roles:
     kind⇐kinds,role⇐roles,name⇐argumentIndices⊏coordinates
   }
 }
-MakePlan ← {𝕊 diagnosticsValue‿sourcesValue: {diagnostics⇐diagnosticsValue,sources⇐sourcesValue}}
-Reject ← {𝕊 code‿message: MakePlan ⟨⟨Diagnostic ⟨code,message⟩⟩,EmptySources @⟩}
-Accept ← {𝕊 coordinates‿argumentIndices‿kinds‿roles:
-  MakePlan ⟨empty,Sources ⟨coordinates,argumentIndices,kinds,roles⟩⟩
+MakePlan ← {𝕊 diagnosticsValue‿coordinateRolesValue‿sourcesValue:
+  {diagnostics⇐diagnosticsValue,coordinate_role⇐coordinateRolesValue,sources⇐sourcesValue}
+}
+Reject ← {𝕊 code‿message: MakePlan ⟨⟨Diagnostic ⟨code,message⟩⟩,empty,EmptySources @⟩}
+Accept ← {𝕊 coordinates‿coordinateRoles‿argumentIndices‿kinds‿roles:
+  MakePlan ⟨empty,coordinateRoles,Sources ⟨coordinates,argumentIndices,kinds,roles⟩⟩
 }
 AllowedCount ← {𝕊 count‿allowed: ∨´0∾count⊸=¨allowed}
 IsDigits ← {𝕊 text: (0<≠text) ∧ ∧´text∊"0123456789"}
@@ -27,25 +29,31 @@ IsDigits ← {𝕊 text: (0<≠text) ∧ ∧´text∊"0123456789"}
 Envelopes ← {𝕊 coordinates:
   (8≤≠coordinates)◶⟨
     {𝕊:Reject ⟨"usage_envelopes","envelopes requires DOMAIN START END_EXCLUSIVE OBSERVATION JOURNAL PLAN BUDGET and one or more FUNDING_ACCOUNT_KEY"⟩},
-    {𝕊:Accept ⟨coordinates,⟨4,5,6⟩,⟨"journal","tsv","tsv"⟩,⟨"actual","plan","budget"⟩⟩}
+    {𝕊:
+      coordinateRoles ← ⟨
+        "domain","start","end_exclusive","observation",
+        "actual_source","plan_source","budget_source"
+      ⟩∾((≠coordinates)-7)⥊⟨"funding_account"⟩
+      Accept ⟨coordinates,coordinateRoles,⟨4,5,6⟩,⟨"journal","tsv","tsv"⟩,⟨"actual","plan","budget"⟩⟩
+    }
   ⟩ @
 }
 Balances ← {𝕊 coordinates:
   (3=≠coordinates)◶⟨
     {𝕊:Reject ⟨"usage_balances","balances requires DOMAIN AS_OF JOURNAL_BASENAME"⟩},
-    {𝕊:Accept ⟨coordinates,⟨2⟩,⟨"journal"⟩,⟨"actual"⟩⟩}
+    {𝕊:Accept ⟨coordinates,⟨"domain","as_of","actual_source"⟩,⟨2⟩,⟨"journal"⟩,⟨"actual"⟩⟩}
   ⟩ @
 }
 BalanceSheet ← {𝕊 coordinates:
   (3=≠coordinates)◶⟨
     {𝕊:Reject ⟨"usage_balance_sheet","balance-sheet requires DOMAIN AS_OF JOURNAL_BASENAME"⟩},
-    {𝕊:Accept ⟨coordinates,⟨2⟩,⟨"journal"⟩,⟨"actual"⟩⟩}
+    {𝕊:Accept ⟨coordinates,⟨"domain","as_of","actual_source"⟩,⟨2⟩,⟨"journal"⟩,⟨"actual"⟩⟩}
   ⟩ @
 }
 ProfitAndLoss ← {𝕊 coordinates:
   (4=≠coordinates)◶⟨
     {𝕊:Reject ⟨"usage_profit_and_loss","profit-and-loss requires DOMAIN START END_EXCLUSIVE JOURNAL_BASENAME"⟩},
-    {𝕊:Accept ⟨coordinates,⟨3⟩,⟨"journal"⟩,⟨"actual"⟩⟩}
+    {𝕊:Accept ⟨coordinates,⟨"domain","start","end_exclusive","actual_source"⟩,⟨3⟩,⟨"journal"⟩,⟨"actual"⟩⟩}
   ⟩ @
 }
 Recent ← {𝕊 coordinates:
@@ -54,7 +62,7 @@ Recent ← {𝕊 coordinates:
     {𝕊:
       (IsDigits ⊑coordinates)◶⟨
         {𝕊:Reject ⟨"limit_invalid","LIMIT must be decimal digits"⟩},
-        {𝕊:Accept ⟨coordinates,⟨1⟩,⟨"journal"⟩,⟨"actual"⟩⟩}
+        {𝕊:Accept ⟨coordinates,⟨"limit","actual_source"⟩,⟨1⟩,⟨"journal"⟩,⟨"actual"⟩⟩}
       ⟩ @
     }
   ⟩ @
@@ -62,7 +70,10 @@ Recent ← {𝕊 coordinates:
 Planned ← {𝕊 coordinates:
   (4=≠coordinates)◶⟨
     {𝕊:Reject ⟨"usage_planned","planned requires OBSERVATION JOURNAL_BASENAME PLAN_BASENAME CYCLE_BASENAME"⟩},
-    {𝕊:Accept ⟨coordinates,⟨1,2,3⟩,⟨"journal","tsv","tsv"⟩,⟨"actual","plan","cycle"⟩⟩}
+    {𝕊:Accept ⟨
+      coordinates,⟨"observation","actual_source","plan_source","cycle_source"⟩,
+      ⟨1,2,3⟩,⟨"journal","tsv","tsv"⟩,⟨"actual","plan","cycle"⟩
+    ⟩}
   ⟩ @
 }
 CycleAccounts ← {𝕊 coordinates:
@@ -71,8 +82,14 @@ CycleAccounts ← {𝕊 coordinates:
     {𝕊:Reject ⟨"usage_cycle_accounts","cycle-accounts requires DOMAIN OBSERVATION JOURNAL CYCLE and PLAN only for incomeAnchor"⟩},
     {𝕊:
       (5=count)◶⟨
-        {𝕊:Accept ⟨coordinates,⟨2,3⟩,⟨"journal","tsv"⟩,⟨"actual","cycle"⟩⟩},
-        {𝕊:Accept ⟨coordinates,⟨2,3,4⟩,⟨"journal","tsv","tsv"⟩,⟨"actual","cycle","plan"⟩⟩}
+        {𝕊:Accept ⟨
+          coordinates,⟨"domain","observation","actual_source","cycle_source"⟩,
+          ⟨2,3⟩,⟨"journal","tsv"⟩,⟨"actual","cycle"⟩
+        ⟩},
+        {𝕊:Accept ⟨
+          coordinates,⟨"domain","observation","actual_source","cycle_source","plan_source"⟩,
+          ⟨2,3,4⟩,⟨"journal","tsv","tsv"⟩,⟨"actual","cycle","plan"⟩
+        ⟩}
       ⟩ @
     }
   ⟩ @
@@ -83,8 +100,20 @@ CycleComparison ← {𝕊 coordinates:
     {𝕊:Reject ⟨"usage_cycle_comparison","cycle-comparison requires DOMAIN CURRENT_OBS BASELINE_OBS POLICY JOURNAL two CYCLE files and optional incomeAnchor PLAN"⟩},
     {𝕊:
       (8=count)◶⟨
-        {𝕊:Accept ⟨coordinates,⟨4,5,6⟩,⟨"journal","tsv","tsv"⟩,⟨"actual","current_cycle","baseline_cycle"⟩⟩},
-        {𝕊:Accept ⟨coordinates,⟨4,5,6,7⟩,⟨"journal","tsv","tsv","tsv"⟩,⟨"actual","current_cycle","baseline_cycle","plan"⟩⟩}
+        {𝕊:Accept ⟨
+          coordinates,⟨
+            "domain","current_observation","baseline_observation","policy",
+            "actual_source","current_cycle_source","baseline_cycle_source"
+          ⟩,
+          ⟨4,5,6⟩,⟨"journal","tsv","tsv"⟩,⟨"actual","current_cycle","baseline_cycle"⟩
+        ⟩},
+        {𝕊:Accept ⟨
+          coordinates,⟨
+            "domain","current_observation","baseline_observation","policy",
+            "actual_source","current_cycle_source","baseline_cycle_source","plan_source"
+          ⟩,
+          ⟨4,5,6,7⟩,⟨"journal","tsv","tsv","tsv"⟩,⟨"actual","current_cycle","baseline_cycle","plan"⟩
+        ⟩}
       ⟩ @
     }
   ⟩ @
@@ -92,25 +121,34 @@ CycleComparison ← {𝕊 coordinates:
 MonthlyAccounts ← {𝕊 coordinates:
   (4=≠coordinates)◶⟨
     {𝕊:Reject ⟨"usage_monthly_accounts","monthly-accounts requires DOMAIN FIRST_MONTH LAST_MONTH_EXCLUSIVE JOURNAL_BASENAME"⟩},
-    {𝕊:Accept ⟨coordinates,⟨3⟩,⟨"journal"⟩,⟨"actual"⟩⟩}
+    {𝕊:Accept ⟨
+      coordinates,⟨"domain","first_month","last_month_exclusive","actual_source"⟩,
+      ⟨3⟩,⟨"journal"⟩,⟨"actual"⟩
+    ⟩}
   ⟩ @
 }
 DailyFlow ← {𝕊 coordinates:
   (5=≠coordinates)◶⟨
     {𝕊:Reject ⟨"usage_daily_flow","daily-flow requires DOMAIN START END_EXCLUSIVE OBSERVATION JOURNAL_BASENAME"⟩},
-    {𝕊:Accept ⟨coordinates,⟨4⟩,⟨"journal"⟩,⟨"actual"⟩⟩}
+    {𝕊:Accept ⟨
+      coordinates,⟨"domain","start","end_exclusive","observation","actual_source"⟩,
+      ⟨4⟩,⟨"journal"⟩,⟨"actual"⟩
+    ⟩}
   ⟩ @
 }
 DailyTarget ← {𝕊 coordinates:
   (6=≠coordinates)◶⟨
     {𝕊:Reject ⟨"usage_daily_target","daily-target requires DOMAIN OBSERVATION TARGET JOURNAL PLAN DAILY_SCOPE"⟩},
-    {𝕊:Accept ⟨coordinates,⟨3,4,5⟩,⟨"journal","tsv","tsv"⟩,⟨"actual","plan","daily_scope"⟩⟩}
+    {𝕊:Accept ⟨
+      coordinates,⟨"domain","observation","target","actual_source","plan_source","daily_scope_source"⟩,
+      ⟨3,4,5⟩,⟨"journal","tsv","tsv"⟩,⟨"actual","plan","daily_scope"⟩
+    ⟩}
   ⟩ @
 }
 Issues ← {𝕊 coordinates:
   (1=≠coordinates)◶⟨
     {𝕊:Reject ⟨"usage_issues","issues requires ISSUE_BASENAME"⟩},
-    {𝕊:Accept ⟨coordinates,⟨0⟩,⟨"tsv"⟩,⟨"issues"⟩⟩}
+    {𝕊:Accept ⟨coordinates,⟨"issues_source"⟩,⟨0⟩,⟨"tsv"⟩,⟨"issues"⟩⟩}
   ⟩ @
 }
 
@@ -121,7 +159,7 @@ RoutePlan ← {𝕊 catalogIndex‿coordinates: catalogIndex◶routes coordinate
 Admit ← {𝕊 key‿surface‿coordinates:
   admittedRequest ← request.Validate ⟨key,surface⟩
   plan ← (admittedRequest.state≡"ok")◶⟨
-    {𝕊:MakePlan ⟨admittedRequest.diagnostics,EmptySources @⟩},
+    {𝕊:MakePlan ⟨admittedRequest.diagnostics,empty,EmptySources @⟩},
     {𝕊:
       (key≡"all")◶⟨
         {𝕊:RoutePlan ⟨⊑admittedRequest.section_indices,coordinates⟩},
@@ -132,8 +170,8 @@ Admit ← {𝕊 key‿surface‿coordinates:
   ok ← 0=≠plan.diagnostics
   {
     state⇐ok⊑"error"‿"ok",key⇐ok⊑""‿key,surface⇐ok⊑""‿surface,
-    coordinates⇐ok⊑⟨empty,coordinates⟩,sources⇐plan.sources,
-    diagnostics⇐plan.diagnostics
+    coordinates⇐ok⊑⟨empty,coordinates⟩,coordinate_role⇐ok⊑⟨empty,plan.coordinate_role⟩,
+    sources⇐plan.sources,diagnostics⇐plan.diagnostics
   }
 }
 
