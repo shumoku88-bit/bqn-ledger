@@ -18,6 +18,7 @@
 - Use `docs/BQN_EXPLORATION_PLAYBOOK.md` to place ideas in a production finite slice, an analysis-only probe, a personal-book experiment, or a parked non-use record. Do not turn the exploration landscape into an automatic cleanup queue.
 - Read and revise `docs/BQN_EXPLORATION_CATALOG.md` so questions, representation ideas, rejected formulations, and revisit signals survive across future AI work.
 - Use `experiments/bqn/` for isolated shape and expression probes before a production decision. A probe may compare multiple formulations freely; production adoption remains one coherent slice at a time.
+- Do not mistake exploration volume for architecture progress. Keep the observed seams visible: presentation package coupling, physical source names versus semantic roles, neutral result versus renderer ownership, single-writer authority, and repeated whole-evidence scans. None is an automatic rewrite queue; select one only through a concrete finite need.
 - Do not add FX conversion, mixed-domain totals, a universal Cube, or a generic query DSL without a concrete decision. BQN exploration may still expose these or other new questions for discussion without implementing them.
 - Keep `libri-di-casa` convergence optional: prefer standalone BQN while it remains sufficient, while preserving one authoritative writer, semantic source roles independent of physical format, durable provenance, and neutral report results; do not build or activate an integration protocol before a concrete unmet need and finite contract are proven.
 

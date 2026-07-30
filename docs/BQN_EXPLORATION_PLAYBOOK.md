@@ -141,6 +141,10 @@ These are welcome discoveries. They enter the new-capability lane and require a 
 
 Exploration may be extravagant. Adoption remains finite.
 
+Exploration is not itself architecture progress. It does not resolve dependency direction, source-role versus physical-format coupling, neutral-result versus renderer ownership, writer authority, or avoidable whole-evidence rescans. Keep those observed seams visible and select them through finite architecture or algorithm slices rather than assuming a larger catalog makes the runtime cleaner.
+
+The exploration documents must remain proportionate. Consolidate or retire stale cards, do not require ceremony for a trivial correction, and do not let catalog maintenance displace a current household need or a selected production boundary.
+
 ## Standing examples
 
 Good recurring probe families include:

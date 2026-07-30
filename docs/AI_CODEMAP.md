@@ -31,6 +31,8 @@ Primitive coverage, glyph count, and tacitization are not goals. “Keep the exp
 
 Probes may compare many formulations freely. Do not promote multiple candidates into production automatically. Discuss the landscape, select at most one coherent production slice, and keep the other discoveries visible in the catalog, experiments, or personal book.
 
+Exploration count is not architecture progress. Continue to recognize presentation dependency direction, physical source name versus semantic role, neutral result versus renderer ownership, authoritative writer choice, and repeated whole-evidence scans as separate seams. Select one only when a finite architecture or algorithm question earns a production slice; keep standalone BQN as the preferred outcome while it remains sufficient.
+
 ## Runtime map
 
 ### `src/ledger/`

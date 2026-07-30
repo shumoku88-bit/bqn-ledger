@@ -76,13 +76,24 @@ Next useful probe:
 ### Presentation-only MatrixResult axis exchange
 
 - **Question or capability:** Could a report offer the same admitted evidence with rows and columns exchanged?
-- **Current analogues:** MatrixResult consumers and renderers.
+- **Current precedent:** `monthly-accounts` retains a semantic Month × Account Matrix while its human renderer presents Account rows × Month columns. That bounded renderer transpose is production and preserves the accounting result; it is not a generic MatrixResult transpose.
 - **BQN lens:** Transpose `⍉`.
 - **What becomes visible:** The symmetry between date × category, account × period, and other presentation axes.
 - **Known contract or risk:** Transposing values alone is incorrect. Row labels, column labels, contributors, coordinate metadata, empty dimensions, and rendering ownership must move together. Accounting owners should remain presentation-neutral.
-- **Current destination:** new capability; analysis-only probe when a concrete report requests it.
-- **Revisit signal:** A user-facing report benefits from an axis-swapped view.
+- **Current destination:** bounded production precedent for Monthly Accounts; generic structure-level transpose remains an analysis-only probe or separately selected capability.
+- **Revisit signal:** A second user-facing report needs an axis-swapped view, or a neutral external consumer needs the transposed structure rather than terminal text.
 - **Next useful probe:** Transpose a synthetic MatrixResult as one structure and verify that every value retains the same source-qualified contributor path.
+
+### Single-classification grouping instead of repeated evidence scans
+
+- **Question or capability:** Can admitted Postings be assigned row and column coordinates once, grouped once, and then scattered into dense results without scanning all selected evidence for every output cell?
+- **Current owners:** `src/accounting/sparse_group.bqn`, `month_account_movement.bqn`, and date-level reductions in `date_category_flow.bqn`.
+- **BQN lens:** coordinate encoding, Group, classify, sort/group boundaries, Table for an already-dense destination, and aligned contributor groups.
+- **What becomes visible:** The intended pipeline `Posting → row coordinate × column coordinate → exact grouped reduction → dense Matrix`, rather than `every row × every column → rescan every Posting`.
+- **Known contract or risk:** Current implementations are deterministic and adequate for household scale. A replacement must preserve row/column order, exact scale diagnostics, zero cells, contributor order and identity, empty axes, overflow behavior, and fail-closed publication. Performance alone does not authorize semantic simplification.
+- **Current destination:** algorithm analysis-only probe; not an automatic optimization queue.
+- **Revisit signal:** synthetic scaling evidence, a larger confirmed dataset, or a selected whole-array clarity slice demonstrates a material benefit.
+- **Next useful probe:** Compare current and classify-once formulations over synthetic sparse and dense coordinates, including duplicate contributors, exact-zero groups, malformed coordinates, and empty axes; record both equivalence and scaling.
 
 ### Journal view-edit-reconstruct
 
