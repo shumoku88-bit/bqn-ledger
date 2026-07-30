@@ -103,7 +103,7 @@ PostingDomains ← {𝕊 blockLines:
       {𝕊: domains ∾↩ ⟨2 ⊑ fields⟩}⍟valid @
     }⍟candidate @
   }¨ ↕ ≠ blockLines
-  {domains⇐Unique domains, diagnostics⇐diagnostics}
+  {domains⇐⍷ domains, diagnostics⇐diagnostics}
 }
 
 BuildPartition ← {𝕊 domain‿domainLine‿accounts‿blockLines‿blockStart:
