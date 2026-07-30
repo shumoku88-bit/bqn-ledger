@@ -1,0 +1,12 @@
+account-add	アカウント追加	account
+expense	支出	journal
+multi	複数ポスティング	journal
+move	資金移動	journal
+income	収入	journal
+budget	予算配賦	budget
+plan-add	予定追加	plan
+plan-edit	予定修正	plan
+plan-finish	予定実績化・補充	plan
+reverse	仕訳取消	journal
+issue	Issue追加	issue
+issue-close	Issue終了	issue
