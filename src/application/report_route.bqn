@@ -16,10 +16,10 @@ Sources ← {𝕊 coordinates‿argumentIndices‿kinds‿roles:
     kind⇐kinds,role⇐roles,name⇐argumentIndices⊏coordinates
   }
 }
-Plan ← {𝕊 diagnosticsValue‿sourcesValue: {diagnostics⇐diagnosticsValue,sources⇐sourcesValue}}
-Reject ← {𝕊 code‿message: Plan ⟨⟨Diagnostic ⟨code,message⟩⟩,EmptySources @⟩}
+MakePlan ← {𝕊 diagnosticsValue‿sourcesValue: {diagnostics⇐diagnosticsValue,sources⇐sourcesValue}}
+Reject ← {𝕊 code‿message: MakePlan ⟨⟨Diagnostic ⟨code,message⟩⟩,EmptySources @⟩}
 Accept ← {𝕊 coordinates‿argumentIndices‿kinds‿roles:
-  Plan ⟨empty,Sources ⟨coordinates,argumentIndices,kinds,roles⟩⟩
+  MakePlan ⟨empty,Sources ⟨coordinates,argumentIndices,kinds,roles⟩⟩
 }
 AllowedCount ← {𝕊 count‿allowed: ∨´0∾count⊸=¨allowed}
 IsDigits ← {𝕊 text: (0<≠text) ∧ ∧´text∊"0123456789"}
@@ -110,7 +110,7 @@ RoutePlan ← {𝕊 key‿coordinates:
 Admit ← {𝕊 key‿surface‿coordinates:
   admittedRequest ← request.Validate ⟨key,surface⟩
   plan ← (admittedRequest.state≡"ok")◶⟨
-    {𝕊:Plan ⟨admittedRequest.diagnostics,EmptySources @⟩},
+    {𝕊:MakePlan ⟨admittedRequest.diagnostics,EmptySources @⟩},
     {𝕊:
       (key≡"all")◶⟨
         {𝕊:RoutePlan ⟨key,coordinates⟩},
