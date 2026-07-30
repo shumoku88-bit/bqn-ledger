@@ -1,6 +1,7 @@
 # Effectful production adapter for one admitted retained-report route.
 
 request ← •Import "../report/request.bqn"
+route ← •Import "report_route.bqn"
 compose ← •Import "../report/compose.bqn"
 render ← •Import "../report/render.bqn"
 sources ← •Import "report_source_adapter.bqn"
@@ -15,7 +16,6 @@ dailyScopeAdapter ← •Import "daily_scope_adapter.bqn"
 empty ← ⟨⟩ ⋄ tab ← @+9
 args ← •args
 Fail ← {𝕊 code‿message: •Out "ERROR"∾tab∾code∾tab∾message ⋄ •Exit 1}
-IsDigits ← {𝕊 text: (0<≠text) ∧ ∧´text∊"0123456789"}
 ToNatural ← {𝕊 text:
   digits ← "0123456789"⊐text
   +´digits×10⋆⌽↕≠digits
@@ -49,26 +49,24 @@ admitted ← request.Validate ⟨key,surface⟩
 registryResult ← sources.Registry "config/currencies.tsv"
 {𝕊:PrintDiagnostics registryResult.diagnostics}⍟(registryResult.state≢"ok") @
 registry ← registryResult.registry
+routeAdmission ← route.Admit ⟨key,surface,coordinates⟩
+{𝕊:PrintDiagnostics routeAdmission.diagnostics}⍟(routeAdmission.state≢"ok") @
+coordinates ↩ routeAdmission.coordinates
 composition ← {state⇐"error",key⇐key,result⇐empty,diagnostics⇐empty}
 
 {𝕊:
-  {𝕊:Fail ⟨"usage_balances","balances requires DOMAIN AS_OF JOURNAL_BASENAME"⟩}⍟(3≠≠coordinates) @
   domain‿observation‿journal ← coordinates
   actual ← sources.Actual ⟨base,journal,registry⟩
   {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
   composition↩compose.Balances ⟨actual.facts,domain,observation⟩
 }⍟(key≡"balances") @
 {𝕊:
-  {𝕊:Fail ⟨"usage_recent","recent requires LIMIT JOURNAL_BASENAME"⟩}⍟(2≠≠coordinates) @
   limitText‿journal ← coordinates
-  {𝕊:Fail ⟨"limit_invalid","LIMIT must be decimal digits"⟩}⍟(¬IsDigits limitText) @
   actual ← sources.Actual ⟨base,journal,registry⟩
   {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
   composition↩compose.Recent ⟨actual.facts,ToNatural limitText⟩
 }⍟(key≡"recent") @
 {𝕊:
-  usageMessage ← "envelopes requires DOMAIN START END_EXCLUSIVE OBSERVATION JOURNAL PLAN BUDGET and one or more FUNDING_ACCOUNT_KEY"
-  {𝕊:Fail ⟨"usage_envelopes",usageMessage⟩}⍟(8>≠coordinates) @
   domain‿start‿finish‿observation‿journal‿planName‿budgetName ← 7↑coordinates
   actual ← sources.Actual ⟨base,journal,registry⟩
   {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
@@ -81,7 +79,6 @@ composition ← {state⇐"error",key⇐key,result⇐empty,diagnostics⇐empty}
   ⟩
 }⍟(key≡"envelopes") @
 {𝕊:
-  {𝕊:Fail ⟨"usage_planned","planned requires OBSERVATION JOURNAL_BASENAME PLAN_BASENAME CYCLE_BASENAME"⟩}⍟(4≠≠coordinates) @
   observation‿journal‿planName‿cycleName ← coordinates
   actual ← sources.Actual ⟨base,journal,registry⟩
   {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
@@ -93,8 +90,6 @@ composition ← {state⇐"error",key⇐key,result⇐empty,diagnostics⇐empty}
   composition↩compose.Planned ⟨plan.facts,actual.facts,cycle,observation⟩
 }⍟(key≡"planned") @
 {𝕊:
-  usageMessage ← "cycle-accounts requires DOMAIN OBSERVATION JOURNAL CYCLE and PLAN only for incomeAnchor"
-  {𝕊:Fail ⟨"usage_cycle_accounts",usageMessage⟩}⍟(¬∨´(≠coordinates)⊸=¨⟨4,5⟩) @
   domain‿observation‿journal‿cycleName ← 4↑coordinates
   actual ← sources.Actual ⟨base,journal,registry⟩
   {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
@@ -111,8 +106,6 @@ composition ← {state⇐"error",key⇐key,result⇐empty,diagnostics⇐empty}
   composition↩compose.CycleAccounts ⟨actual.facts,domain,cycle,observation⟩
 }⍟(key≡"cycle-accounts") @
 {𝕊:
-  usageMessage ← "cycle-comparison requires DOMAIN CURRENT_OBS BASELINE_OBS POLICY JOURNAL two CYCLE files and optional incomeAnchor PLAN"
-  {𝕊:Fail ⟨"usage_cycle_comparison",usageMessage⟩}⍟(¬∨´(≠coordinates)⊸=¨⟨7,8⟩) @
   domain‿currentObs‿baselineObs‿policy‿journal‿currentName‿baselineName ← 7↑coordinates
   actual ← sources.Actual ⟨base,journal,registry⟩
   {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
@@ -135,22 +128,18 @@ composition ← {state⇐"error",key⇐key,result⇐empty,diagnostics⇐empty}
   composition↩compose.CycleComparison ⟨actual.facts,domain,current,currentObs,baseline,baselineObs,policy⟩
 }⍟(key≡"cycle-comparison") @
 {𝕊:
-  {𝕊:Fail ⟨"usage_monthly_accounts","monthly-accounts requires DOMAIN FIRST_MONTH LAST_MONTH_EXCLUSIVE JOURNAL_BASENAME"⟩}⍟(4≠≠coordinates) @
   domain‿firstMonth‿lastMonth‿journal ← coordinates
   actual ← sources.Actual ⟨base,journal,registry⟩
   {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
   composition↩compose.MonthlyAccounts ⟨actual.facts,domain,firstMonth,lastMonth⟩
 }⍟(key≡"monthly-accounts") @
 {𝕊:
-  {𝕊:Fail ⟨"usage_daily_flow","daily-flow requires DOMAIN START END_EXCLUSIVE OBSERVATION JOURNAL_BASENAME"⟩}⍟(5≠≠coordinates) @
   domain‿start‿finish‿observation‿journal ← coordinates
   actual ← sources.Actual ⟨base,journal,registry⟩
   {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
   composition↩compose.DailyFlow ⟨actual.facts,domain,start,finish,observation⟩
 }⍟(key≡"daily-flow") @
 {𝕊:
-  usageMessage ← "daily-target requires DOMAIN OBSERVATION TARGET JOURNAL PLAN DAILY_SCOPE"
-  {𝕊:Fail ⟨"usage_daily_target",usageMessage⟩}⍟(6≠≠coordinates) @
   domain‿observation‿target‿journal‿planName‿scopeName ← coordinates
   actual ← sources.Actual ⟨base,journal,registry⟩
   {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
@@ -163,7 +152,6 @@ composition ← {state⇐"error",key⇐key,result⇐empty,diagnostics⇐empty}
   composition↩compose.DailyTarget ⟨observation,target,domain,scopes.asset_scope,scopes.obligation_scope⟩
 }⍟(key≡"daily-target") @
 {𝕊:
-  {𝕊:Fail ⟨"usage_issues","issues requires ISSUE_BASENAME"⟩}⍟(1≠≠coordinates) @
   composition↩compose.Issues ⟨sources.IssueLines ⟨base,⊑coordinates⟩,registry⟩
 }⍟(key≡"issues") @
 
