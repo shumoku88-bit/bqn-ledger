@@ -28,3 +28,6 @@ jobs:
 
       - name: Run sparse grouping classify-once probe
         run: bqn experiments/bqn/sparse_group_classify_once.bqn
+
+      - name: Run sparse grouping classify-once envelope probe
+        run: bqn experiments/bqn/sparse_group_classify_once_envelope.bqn
