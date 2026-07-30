@@ -8,7 +8,6 @@ SplitKeepEmpty ← {𝕊 text:
   {(tab≠𝕩)/𝕩}¨groups
 }
 Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
-Unique ← {𝕊 values: out←empty ⋄ {𝕊 value:{𝕊:out∾↩⟨value⟩}⍟(¬Contains ⟨value,out⟩) @}¨values ⋄ out}
 Diagnostic ← {𝕊 code‿row‿message:
   {severity⇐"error",stage⇐"application_daily_scope_admission",code⇐code,source_row⇐row,message⇐message}
 }
@@ -74,9 +73,9 @@ Admit ← {𝕊 lines‿registry:
     }⍟(7=≠fields) @
   }¨1↓↕≠lines
   ids ← {𝕩.scope_id}¨admitted
-  diagnostics∾↩((≠ids)≠≠Unique ids)/⟨Diagnostic ⟨"daily_scope_id_duplicate",0,"scope_id must be unique"⟩⟩
+  diagnostics∾↩((≠ids)≠≠⍷ids)/⟨Diagnostic ⟨"daily_scope_id_duplicate",0,"scope_id must be unique"⟩⟩
   reservationRefs ← ({0<≠𝕩.reservation_ref}¨admitted)/{𝕩.reservation_ref}¨admitted
-  diagnostics∾↩((≠reservationRefs)≠≠Unique reservationRefs)/⟨Diagnostic ⟨"daily_reservation_reference_duplicate",0,"reservation_ref cannot be reused"⟩⟩
+  diagnostics∾↩((≠reservationRefs)≠≠⍷reservationRefs)/⟨Diagnostic ⟨"daily_reservation_reference_duplicate",0,"reservation_ref cannot be reused"⟩⟩
   rows ← EmptyRows @ ⋄ ok ← 0=≠diagnostics
   {𝕊:
     rows↩{
