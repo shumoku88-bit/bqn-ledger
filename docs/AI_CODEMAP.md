@@ -4,9 +4,10 @@
 
 1. `TODO.md` — current directions
 2. `docs/ARCHITECTURE.md` — production data flow and boundaries
-3. `README.md` — commands and configuration
-4. Relevant focused contract or test
-5. `docs/archive/` only for historical decisions
+3. `docs/LIBRI_DI_CASA_INTEGRATION_BOUNDARY.md` when work can affect future source, writer, identity, provenance, or presentation ownership
+4. `README.md` — commands and configuration
+5. Relevant focused contract or test
+6. `docs/archive/` only for historical decisions
 
 ## Runtime map
 
@@ -52,6 +53,7 @@ Issues use the canonical eight-column schema and strict post-write admission.
 ## Change rules
 
 - Keep source admission, accounting, section, and composition dependencies one-way.
+- Preserve one authoritative writer and a replaceable confirmed-accounting adapter; do not make physical source names a permanent accounting abstraction.
 - Do not add broad context records, historical transaction shapes, aliases, or fallback source discovery.
 - Move an owner with all callers; leave no forwarding module.
 - Keep private household values out of public fixtures and docs.

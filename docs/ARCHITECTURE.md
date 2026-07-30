@@ -25,6 +25,14 @@ Actual is admitted only from the configured Native Journal. Plan and Budget are 
 
 No report section reads files or the clock. No accounting capability imports a section or composition owner. Native multi-posting transactions remain first-class and are never flattened into two-account compatibility rows.
 
+## Possible libri-di-casa convergence
+
+A future integration may make `libri-di-casa`/Haskell the authoritative confirmation, accounting-validation, identity, provenance, and persistence owner while this BQN engine consumes versioned confirmed evidence and owns derived array calculations and neutral report results.
+
+This is a design constraint, not an active alternate source. Native Journal remains the sole production Actual input until a separately admitted adapter and cutover are proven. Current development must preserve one authoritative writer, distinguish semantic source role from physical encoding, retain exact Transaction/Posting identity and provenance, and keep external consumers from having to parse human report text. Plan, Budget, Issues, and Daily Target policy are not presumed to map to historically named books.
+
+The full boundary and future integration gate are in [`LIBRI_DI_CASA_INTEGRATION_BOUNDARY.md`](LIBRI_DI_CASA_INTEGRATION_BOUNDARY.md).
+
 ## Retained portfolio
 
 Catalog order is:

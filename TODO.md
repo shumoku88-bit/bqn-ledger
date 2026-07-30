@@ -15,6 +15,7 @@
 - Prefer narrow accounting capabilities and source-qualified contributors over broad contexts or universal report records.
 - Keep operational readiness and inspection outside the report catalog.
 - Do not add FX conversion, mixed-domain totals, a universal Cube, or a generic query DSL without a concrete decision.
+- Preserve the future `libri-di-casa` seam: one authoritative writer, versioned confirmed-accounting input, semantic source roles independent of physical format, durable provenance, and neutral report results; do not activate an alternate Actual source before a finite integration contract is proven.
 
 ## Data boundary
 

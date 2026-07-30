@@ -8,6 +8,7 @@
 - [`MAINTENANCE.md`](MAINTENANCE.md) — change workflow
 - [`QUALITY_BAR.md`](QUALITY_BAR.md) — accounting and safety expectations
 - [`OPERATIONAL_COMMANDS.md`](OPERATIONAL_COMMANDS.md) — readiness and provenance commands
+- [`LIBRI_DI_CASA_INTEGRATION_BOUNDARY.md`](LIBRI_DI_CASA_INTEGRATION_BOUNDARY.md) — durable ownership and data-boundary constraints for possible future convergence
 
 ## Retained report contracts
 
