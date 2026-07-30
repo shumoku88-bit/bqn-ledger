@@ -72,6 +72,20 @@ expectedArguments ← ⟨
 ⟩
 expectedArguments lib.AssertEq {𝕩.arguments}¨result.rows
 
+# Planned observation follows its admitted role even when coordinates are rearranged.
+reorderedPlanned ← {
+  key⇐"planned",surface⇐"human",
+  coordinate_role⇐⟨"actual_source","observation","plan_source","cycle_source"⟩,
+  coordinates⇐⟨"actual.journal","stale-observation","plan.tsv","cycle.tsv"⟩
+}
+admissionsWithReorderedPlanned ← {
+  𝕊 admitted: (admitted.key≡"planned")⊑⟨admitted,reorderedPlanned⟩
+}¨admissions
+reorderedPlannedResult ← profile.Build ⟨admissionsWithReorderedPlanned,"2026-01-12",current,baseline⟩
+"ok" lib.AssertEq reorderedPlannedResult.state
+reorderedPlannedRow ← (⊑("planned"⊸≡¨{𝕩.key}¨reorderedPlannedResult.rows)⊐1)⊑reorderedPlannedResult.rows
+⟨"actual.journal","2026-01-12","plan.tsv","cycle.tsv"⟩ lib.AssertEq reorderedPlannedRow.arguments
+
 # Year rollover changes only the volatile Monthly Accounts end-exclusive month.
 yearEndCurrent ← cycleResult.Success ⟨"fixed","2026-12-31","2026-12-01","2027-01-15",⟨⟩,⟨⟩⟩
 yearEndBaseline ← cycleResult.Success ⟨"fixed","2026-10-31","2026-10-01","2026-11-15",⟨⟩,⟨⟩⟩
