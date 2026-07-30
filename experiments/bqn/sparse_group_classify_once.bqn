@@ -118,7 +118,7 @@ Compare ⟨"empty row axis",emptyRowsInput⟩
 Compare ⟨"zero column axis",zeroColumnsInput⟩
 Compare ⟨"exact-sum overflow",overflowInput⟩
 
-⟨1,1,0,0,1⟩ AssertEq Validate ⟨⟨"r0"⟩,2,⟨"missing"⟩,⟨0⟩,⟨1⟩,⟨⟨"x"⟩⟩⟩
+⟨1,1,0,1,1⟩ AssertEq Validate ⟨⟨"r0"⟩,2,⟨"missing"⟩,⟨0⟩,⟨1⟩,⟨⟨"x"⟩⟩⟩
 ⟨1,1,1,0,1⟩ AssertEq Validate ⟨⟨"r0"⟩,2,⟨"r0"⟩,⟨2⟩,⟨1⟩,⟨⟨"x"⟩⟩⟩
 ⟨0,1,1,1,1⟩ AssertEq Validate ⟨⟨"r0"⟩,2,⟨"r0"⟩,empty,⟨1⟩,⟨⟨"x"⟩⟩⟩
 
