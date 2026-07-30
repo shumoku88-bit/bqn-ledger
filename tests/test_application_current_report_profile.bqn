@@ -1,15 +1,17 @@
 #!/usr/bin/env bqn
 lib ← •Import "test_lib.bqn"
 io ← •Import "../src/application/source_io.bqn"
+route ← •Import "../src/application/report_route.bqn"
 cycleResult ← •Import "../src/accounting/cycle_result.bqn"
 profile ← •Import "../src/application/current_report_profile.bqn"
 
 lines ← io.ReadLines "fixtures/ledger-facts-phase1-proof/report_all_human.destination.tsv"
 fields ← io.SplitTsv¨1↓lines
 rows ← {𝕊 row: {key⇐0⊑row,surface⇐1⊑row,arguments⇐2↓row}}¨fields
+admissions ← {route.Admit ⟨𝕩.key,𝕩.surface,𝕩.arguments⟩}¨rows
 current ← cycleResult.Success ⟨"fixed","2026-01-12","2026-01-01","2026-02-01",⟨⟩,⟨⟩⟩
 baseline ← cycleResult.Success ⟨"fixed","2025-12-31","2025-12-22","2026-01-22",⟨⟩,⟨⟩⟩
-result ← profile.Build ⟨rows,"2026-01-12",current,baseline⟩
+result ← profile.Build ⟨admissions,"2026-01-12",current,baseline⟩
 
 "ok" lib.AssertEq result.state
 "2026-01-12" lib.AssertEq result.observation
@@ -42,14 +44,14 @@ expectedArguments lib.AssertEq {𝕩.arguments}¨result.rows
 # Year rollover changes only the volatile Monthly Accounts end-exclusive month.
 yearEndCurrent ← cycleResult.Success ⟨"fixed","2026-12-31","2026-12-01","2027-01-15",⟨⟩,⟨⟩⟩
 yearEndBaseline ← cycleResult.Success ⟨"fixed","2026-10-31","2026-10-01","2026-11-15",⟨⟩,⟨⟩⟩
-yearEnd ← profile.Build ⟨rows,"2026-12-31",yearEndCurrent,yearEndBaseline⟩
+yearEnd ← profile.Build ⟨admissions,"2026-12-31",yearEndCurrent,yearEndBaseline⟩
 "ok" lib.AssertEq yearEnd.state
 yearEndMonthly ← (⊑("monthly-accounts"⊸≡¨{𝕩.key}¨yearEnd.rows)⊐1)⊑yearEnd.rows
 ⟨"JPY","2026-01","2027-01","actual.journal"⟩ lib.AssertEq yearEndMonthly.arguments
 
 # Every rejected profile remains fail-closed and publishes one bounded diagnostic.
 CheckRejected ← {𝕊 observation‿currentCycle‿baselineCycle‿expectedCode:
-  rejected ← profile.Build ⟨rows,observation,currentCycle,baselineCycle⟩
+  rejected ← profile.Build ⟨admissions,observation,currentCycle,baselineCycle⟩
   "error" lib.AssertEq rejected.state
   ⟨⟩ lib.AssertEq rejected.rows
   1 lib.AssertEq ≠rejected.diagnostics
