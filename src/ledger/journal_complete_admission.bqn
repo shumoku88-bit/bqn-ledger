@@ -33,11 +33,6 @@ TrimRight ← {𝕊 xs:
 Trim ← { TrimRight TrimLeft 𝕩 }
 StartsWith ← {𝕊 prefix‿text: prefix ≡ (≠ prefix) ↑ text }
 Contains ← {𝕊 item‿items: ∨´ 0 ∾ item⊸≡¨ items }
-Unique ← {𝕊 items:
-  result ← empty
-  {𝕊 item: {𝕊: result ∾↩ ⟨item⟩}⍟(¬ Contains ⟨item, result⟩) @}¨ items
-  result
-}
 IsDateHeader ← {𝕊 text:
   enough ← 10 < ≠ text
   separator ← space = 10 ⊑ (text ∾ 11 ⥊ space)
@@ -236,7 +231,7 @@ Admit ← {𝕊 raw‿accounts‿registry:
   {
     state⇐(0 = ≠ diagnostics) ⊑ "error"‿"ok",source_name⇐"actual.journal",
     declared_domains⇐declarations.domains,
-    declared_layers⇐Unique ⟨"actual"⟩∾{𝕩.layer_name}¨transactions,
+    declared_layers⇐⍷ ⟨"actual"⟩∾{𝕩.layer_name}¨transactions,
     declared_accounts⇐{𝕩.account_key}¨declarations.accounts,
     transactions⇐transactions,
     diagnostics⇐diagnostics
