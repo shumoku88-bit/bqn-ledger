@@ -5,17 +5,20 @@
 1. `TODO.md` — current directions
 2. `docs/ARCHITECTURE.md` — production data flow and boundaries
 3. `docs/BQN_EXPLORATION_PLAYBOOK.md` — standing BQN opportunity scan, experiment destinations, and new-capability discovery
-4. `docs/BQN_REFACTORING_REVIEW_GUIDE.md` — production adoption gate for a selected finite BQN slice
-5. `docs/LIBRI_DI_CASA_INTEGRATION_BOUNDARY.md` when work can affect future source, writer, identity, provenance, or presentation ownership
-6. `README.md` — commands and configuration
-7. Relevant focused contract or test
-8. `docs/archive/` only for historical decisions
+4. `docs/BQN_EXPLORATION_CATALOG.md` — living questions, probes, parked observations, and revisit signals
+5. `docs/BQN_REFACTORING_REVIEW_GUIDE.md` — production adoption gate for a selected finite BQN slice
+6. `docs/LIBRI_DI_CASA_INTEGRATION_BOUNDARY.md` when work can affect future source, writer, identity, provenance, or presentation ownership
+7. `README.md` — commands and configuration
+8. Relevant focused contract or test
+9. `docs/archive/` only for historical decisions
 
 ## BQN exploration lane
 
 Every BQN design, review, refactor, parser, accounting, reporting, editor, or testing task performs a BQN opportunity scan before selecting work.
 
 Actively consider direct primitives and modifiers, cells/rank/axes, whole-array dataflow, alternate representations, inverses, tacit compositions, and newly revealed household-accounting capabilities. Surface the strongest useful candidates even when they are not production-ready.
+
+Read the living exploration catalog before treating a candidate as new. Compare its cards with current runtime code and tests, then revise stale assumptions or preserve new discoveries there.
 
 Place each idea deliberately in one of four destinations:
 
@@ -26,7 +29,7 @@ Place each idea deliberately in one of four destinations:
 
 Primitive coverage, glyph count, and tacitization are not goals. “Keep the explicit staged form” is a valid scan result when it best exposes diagnostics, evidence staging, or publication boundaries.
 
-Do not implement multiple candidates automatically. Discuss the landscape, then select at most one coherent production slice.
+Probes may compare many formulations freely. Do not promote multiple candidates into production automatically. Discuss the landscape, select at most one coherent production slice, and keep the other discoveries visible in the catalog, experiments, or personal book.
 
 ## Runtime map
 
