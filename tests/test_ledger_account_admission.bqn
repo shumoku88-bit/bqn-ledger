@@ -17,11 +17,13 @@ proof ← accounts.Admit ⟨loader.ReadLines "fixtures/ledger-facts-phase1-proof
 ⟨"assets:cash","income:salary","expenses:food","expenses:transport","budget:opening","budget:unassigned","budget:food","budget:spent"⟩ lib.AssertEq proof.accounts.key
 ⟨"JPY","JPY","JPY","JPY","JPY","JPY","JPY","JPY"⟩ lib.AssertEq proof.accounts.currency
 ⟨"asset","income","expense","expense","budget","budget","budget","budget"⟩ lib.AssertEq proof.accounts.role
+⟨1,2,3,4,5,6,7,8⟩ lib.AssertEq proof.accounts.source_row
 
 missingCurrency ← accounts.Admit ⟨⟨"assets:cash"∾tab∾"role=asset"⟩,registry⟩
 "error" lib.AssertEq missingCurrency.state
 0 lib.AssertEq missingCurrency.accounts.count
 "account_currency_missing" lib.AssertEq (⊑missingCurrency.diagnostics).code
+1 lib.AssertEq (⊑missingCurrency.diagnostics).source_row
 
 unclassified ← accounts.Admit ⟨⟨"assets:cash"∾tab∾"currency=JPY"⟩,registry⟩
 "ok" lib.AssertEq unclassified.state
@@ -29,6 +31,14 @@ unclassified ← accounts.Admit ⟨⟨"assets:cash"∾tab∾"currency=JPY"⟩,re
 "" lib.AssertEq ⊑unclassified.accounts.role
 "warning" lib.AssertEq (⊑unclassified.diagnostics).severity
 "account_role_unclassified" lib.AssertEq (⊑unclassified.diagnostics).code
+1 lib.AssertEq (⊑unclassified.diagnostics).source_row
+
+ignoredPrefix ← accounts.Admit ⟨
+  ⟨"# retained pure-owner comment","assets:cash"∾tab∾"currency=JPY"∾tab∾"role=asset"⟩,
+  registry
+⟩
+"ok" lib.AssertEq ignoredPrefix.state
+⟨2⟩ lib.AssertEq ignoredPrefix.accounts.source_row
 
 unsupportedCurrency ← accounts.Admit ⟨⟨"assets:cash"∾tab∾"currency=EUR"∾tab∾"role=asset"⟩,registry⟩
 "error" lib.AssertEq unsupportedCurrency.state
@@ -39,6 +49,7 @@ duplicateMetadata ← accounts.Admit ⟨⟨"assets:cash"∾tab∾"currency=JPY"�
 "error" lib.AssertEq duplicateMetadata.state
 0 lib.AssertEq duplicateMetadata.accounts.count
 "account_metadata_duplicate" lib.AssertEq (⊑duplicateMetadata.diagnostics).code
+1 lib.AssertEq (⊑duplicateMetadata.diagnostics).source_row
 lib.Assert ∨´{𝕩.code≡"account_metadata_duplicate"}¨duplicateMetadata.diagnostics
 
 unknownMetadata ← accounts.Admit ⟨⟨"assets:cash"∾tab∾"currency=JPY"∾tab∾"role=asset"∾tab∾"mystery=x"⟩,registry⟩
@@ -57,5 +68,6 @@ duplicateKeys ← accounts.Admit ⟨
 0 lib.AssertEq duplicateKeys.accounts.count
 1 lib.AssertEq ≠duplicateKeys.diagnostics
 "account_key_duplicate" lib.AssertEq (⊑duplicateKeys.diagnostics).code
+0 lib.AssertEq (⊑duplicateKeys.diagnostics).source_row
 
 •Out "test_ledger_account_admission: ok"

@@ -58,6 +58,7 @@ strictAccounts.accounts.role lib.AssertEq result.accounts.role
 strictAccounts.accounts.type lib.AssertEq result.accounts.type
 strictAccounts.accounts.metadata lib.AssertEq result.accounts.metadata
 strictAccounts.accounts.source_row lib.AssertEq result.accounts.source_row
+⟨1,2,3,4,5,6,7,8⟩ lib.AssertEq result.accounts.source_row
 
 3 lib.AssertEq result.transactions.count
 ⟨0,1,2⟩ lib.AssertEq result.transactions.index
