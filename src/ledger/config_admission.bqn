@@ -17,11 +17,6 @@ SplitKeepEmpty ← {𝕊 sep‿text:
   {(sep≠𝕩)/𝕩}¨groups
 }
 Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
-Unique ← {𝕊 items:
-  result ← empty
-  {𝕊 item: {𝕊: result∾↩⟨item⟩}⍟(¬Contains ⟨item,result⟩) @}¨items
-  result
-}
 Ignored ← {𝕊 line: (0=≠line) ∨ ((0<≠line) ∧ ((⊑line)∊"#\\")) }
 Diagnostic ← {𝕊 codeText‿row‿messageText:
   {severity⇐"error",stage⇐"ledger_config_admission",code⇐codeText,source_row⇐row,message⇐messageText}
@@ -62,7 +57,7 @@ Admit ← {𝕊 lines‿registry:
   }¨↕≠lines
 
   keys ← {𝕩.key}¨rows
-  diagnostics ∾↩ AddIf ⟨(≠keys)≠≠Unique keys,Diagnostic ⟨"config_key_duplicate",0,"config keys must be unique"⟩⟩
+  diagnostics ∾↩ AddIf ⟨(≠keys)≠≠⍷keys,Diagnostic ⟨"config_key_duplicate",0,"config keys must be unique"⟩⟩
   defaultCurrency ← ValueOr ⟨"DEFAULT_CURRENCY",rows,""⟩
   diagnostics ∾↩ AddIf ⟨0=≠defaultCurrency,Diagnostic ⟨"default_currency_missing",0,"DEFAULT_CURRENCY must be explicit"⟩⟩
   diagnostics ∾↩ AddIf ⟨(0<≠defaultCurrency) ∧ (registry.Policy defaultCurrency).state≢"ok",Diagnostic ⟨"default_currency_unsupported",0,"DEFAULT_CURRENCY must be registry-supported"⟩⟩
@@ -82,7 +77,7 @@ Admit ← {𝕊 lines‿registry:
     {𝕊:
       items ← SplitKeepEmpty ⟨',',value⟩
       diagnostics ∾↩ AddIf ⟨∨´0∾{0=≠𝕩}¨items,Diagnostic ⟨"config_list_item_empty",0,key∾" must not contain empty list items"⟩⟩
-      diagnostics ∾↩ AddIf ⟨(≠items)≠≠Unique items,Diagnostic ⟨"config_list_item_duplicate",0,key∾" must not contain duplicate items"⟩⟩
+      diagnostics ∾↩ AddIf ⟨(≠items)≠≠⍷items,Diagnostic ⟨"config_list_item_duplicate",0,key∾" must not contain duplicate items"⟩⟩
     }⍟(0<≠value) @
   }¨listKeys
 
