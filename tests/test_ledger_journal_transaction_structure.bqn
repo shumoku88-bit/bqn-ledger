@@ -44,17 +44,36 @@ physical ← structure.Parse physicalRaw
 "physical_fallback" lib.AssertEq (⊑physical.transactions).identity_kind
 "stage0-line-7" lib.AssertEq (⊑physical.transactions).source_event_id
 
+accountDuplicateRaw ← Raw ⟨
+  "commodity JPY","",
+  "account assets:cash","",
+  "account expenses:food","",
+  "account assets:cash","",
+  "2026-01-10 * duplicate account declaration",
+  "    expenses:food 5 JPY",
+  "    assets:cash -5 JPY"
+⟩
+accountDuplicate ← structure.Parse accountDuplicateRaw
+"error" lib.AssertEq accountDuplicate.state
+1 lib.AssertEq ≠accountDuplicate.diagnostics
+"account_duplicate" lib.AssertEq (⊑accountDuplicate.diagnostics).code
+0 lib.AssertEq (⊑accountDuplicate.diagnostics).line
+0 lib.AssertEq ≠accountDuplicate.transactions
+
 duplicateRaw ← Raw ⟨
   "commodity JPY","","account assets:cash","","account expenses:food","",
   "2026-01-10 * duplicate metadata",
   "    ; event-id: first",
+  "    ; note: between",
   "    ; event-id: second",
   "    expenses:food 5 JPY",
   "    assets:cash -5 JPY"
 ⟩
 duplicate ← structure.Parse duplicateRaw
 "error" lib.AssertEq duplicate.state
-lib.Assert HasCode ⟨"metadata_duplicate",duplicate⟩
+1 lib.AssertEq ≠duplicate.diagnostics
+"metadata_duplicate" lib.AssertEq (⊑duplicate.diagnostics).code
+7 lib.AssertEq (⊑duplicate.diagnostics).line
 0 lib.AssertEq ≠duplicate.transactions
 
 unbalancedRaw ← Raw ⟨
