@@ -74,7 +74,7 @@ Declarations ← {𝕊 lines‿registry:
     commodityCount +↩ StartsWith ⟨"commodity ", text⟩
     {𝕊: accounts ∾↩ ⟨{text⇐text,account_key⇐8↓text,source_line⇐lineIndex+1}⟩}⍟(StartsWith ⟨"account ",text⟩) @
   }¨ ↕ ≠ lines
-  duplicate ← (≠ domains) ≠ ≠ Unique domains
+  duplicate ← (≠ domains) ≠ ≠ ⍷ domains
   diagnostics ∾↩ AddIf ⟨duplicate, Diagnostic ⟨"commodity_domain_duplicate", 0, "each declared commodity domain must appear once"⟩⟩
   diagnostics ∾↩ AddIf ⟨0 = commodityCount, Diagnostic ⟨"commodity_domain_missing", 0, "Journal must declare at least one supported commodity"⟩⟩
   {domains⇐domains, domain_lines⇐domainLines, accounts⇐accounts, diagnostics⇐diagnostics}
