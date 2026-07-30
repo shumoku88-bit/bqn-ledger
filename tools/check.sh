@@ -19,6 +19,7 @@ for check in \
   checks/check-report-destination-route-admission.sh \
   checks/check-report-destination-registry-error.sh \
   checks/check-report-composition.sh \
+  checks/check-current-report-profile.sh \
   checks/check-report-cache.sh \
   checks/check-report-section-metadata.sh \
   checks/check-report-summary-query.sh \

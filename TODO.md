@@ -8,24 +8,9 @@
 - `tools/report`, `tools/report-summary`, `tools/query`, Command Hub metadata, and cache publication all use the same explicit request manifests.
 - The retired report runtime and its compatibility tests, fixtures, checks, and entrypoints have been physically removed.
 
-## Selected P0 — daily Command Hub must not require date maintenance
-
-The explicit route manifest is a reproducible engine boundary, but volatile observation dates have leaked into daily UI configuration. Adding an Actual transaction on a later date can currently make Planned Payments and Daily Flow reject the stale observation; fail-closed `all` then prevents a complete preview generation. This is not acceptable public-product behavior.
-
-Implement one finite application/UI slice with these acceptance conditions:
-
-- a pure BQN `current` report profile resolves one observation from the latest admitted Actual date, without reading the wall clock;
-- that one observation deterministically derives concrete coordinates for every current report, including P/L end-exclusive and aligned Cycle Comparison baseline coordinates;
-- accounting composers and the explicit historical CLI continue to receive concrete dates; fixed historical requests remain reproducible;
-- the daily Command Hub no longer requires editing report-manifest dates after a normal later-dated Journal append;
-- cache refresh remains atomic, but a failed refresh keeps the last-known-good preview visible with an explicit stale/error banner;
-- the underlying diagnostic, such as `observation_evidence_mismatch`, is visible instead of being replaced by a generic preview failure;
-- an end-to-end public test appends a transaction on the next date and proves current-profile resolution, all twelve reports, cache publication, preview browsing, and historical explicit mode;
-- no fallback source discovery, broad report context, writer/report multi-file transaction, or implicit clock policy is introduced.
-
-Until this slice lands, manual manifest advancement is an operational workaround, not the intended public contract. Do not add another retained report before resolving this P0.
-
 ## Current directions
+
+- Daily Command Hub uses one pure latest-Actual `current` profile to derive volatile coordinates and no longer requires manifest date maintenance after a normal later-dated append. Explicit `tools/report` coordinates remain the historical/reproducible boundary; cache failures retain a labeled last-known-good preview and actionable diagnostic.
 
 - Keep editor Issues on the canonical strict eight-column schema.
 - Prefer narrow accounting capabilities and source-qualified contributors over broad contexts or universal report records.

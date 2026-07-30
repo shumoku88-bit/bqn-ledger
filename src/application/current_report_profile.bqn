@@ -1,0 +1,63 @@
+# Pure daily-UI policy: resolve volatile report coordinates from one latest Actual observation.
+# Explicit historical routes and source arguments remain unchanged outside the selected coordinates.
+
+dates ← •Import "../ledger/date_ordinal.bqn"
+empty ← ⟨⟩
+
+Diagnostic ← {𝕊 codeText‿messageText:
+  {severity⇐"error",stage⇐"application_current_report_profile",code⇐codeText,message⇐messageText}
+}
+AddIf ← {𝕊 invalid‿diagnostic: invalid/⟨diagnostic⟩}
+NextMonthExclusive ← {𝕊 dateText:
+  y‿m‿d ← dates.Parts dateText
+  nextY ← y+(m=12) ⋄ nextM ← (m=12)⊑⟨m+1,1⟩
+  7↑dates.FromParts ⟨nextY,nextM,1⟩
+}
+
+Build ← {𝕊 rows‿observation‿currentCycle‿baselineCycle:
+  diagnostics ← empty
+  diagnostics ∾↩ AddIf ⟨¬dates.IsValid observation,Diagnostic ⟨"current_observation_invalid","latest Actual observation must be strict Gregorian text"⟩⟩
+  diagnostics ∾↩ AddIf ⟨currentCycle.state≢"ok",Diagnostic ⟨"current_cycle_not_ok","current Cycle must resolve at the latest Actual observation"⟩⟩
+  diagnostics ∾↩ AddIf ⟨baselineCycle.state≢"ok",Diagnostic ⟨"baseline_cycle_not_ok","baseline Cycle must resolve before the current Cycle"⟩⟩
+  {𝕊:
+    diagnostics ∾↩ AddIf ⟨currentCycle.mode≢baselineCycle.mode,Diagnostic ⟨"comparison_cycle_mode_mismatch","current and baseline Cycle modes must agree"⟩⟩
+    diagnostics ∾↩ AddIf ⟨baselineCycle.start_ordinal≥currentCycle.start_ordinal,Diagnostic ⟨"baseline_cycle_not_previous","baseline Cycle must precede the current Cycle"⟩⟩
+  }⍟((currentCycle.state≡"ok") ∧ (baselineCycle.state≡"ok")) @
+
+  baselineObservation ← ""
+  {𝕊:
+    observationOrdinal ← dates.Ordinal observation
+    currentStart ← currentCycle.start_ordinal
+    currentEnd ← currentCycle.end_exclusive_ordinal
+    observationInCurrent ← (currentStart≤observationOrdinal) ∧ observationOrdinal<currentEnd
+    diagnostics ∾↩ AddIf ⟨¬observationInCurrent,Diagnostic ⟨"current_observation_outside_cycle","latest Actual observation must occur inside the resolved current Cycle"⟩⟩
+    {𝕊:
+      elapsed ← observationOrdinal-currentStart
+      baselineOrdinal ← baselineCycle.start_ordinal+elapsed
+      baselineFits ← baselineOrdinal<baselineCycle.end_exclusive_ordinal
+      diagnostics ∾↩ AddIf ⟨¬baselineFits,Diagnostic ⟨"aligned_baseline_unavailable","baseline Cycle cannot represent the current elapsed observation"⟩⟩
+      {𝕊:baselineObservation↩dates.FromOrdinal baselineOrdinal}⍟baselineFits @
+    }⍟observationInCurrent @
+  }⍟((0=≠diagnostics) ∧ dates.IsValid observation) @
+
+  resolvedRows ← empty
+  {𝕊:
+    {𝕊 row:
+      key ← row.key ⋄ args ← row.arguments ⋄ rewritten ← args
+      {𝕊:rewritten↩⟨0⊑args,currentCycle.start,currentCycle.end_exclusive,observation⟩∾4↓args}⍟(key≡"envelopes") @
+      {𝕊:rewritten↩⟨0⊑args,observation,2⊑args⟩}⍟((key≡"balances") ∨ key≡"balance-sheet") @
+      {𝕊:rewritten↩⟨0⊑args,currentCycle.start,dates.AddDays ⟨observation,1⟩,3⊑args⟩}⍟(key≡"profit-and-loss") @
+      {𝕊:rewritten↩⟨observation⟩∾1↓args}⍟(key≡"planned") @
+      {𝕊:rewritten↩⟨0⊑args,observation⟩∾2↓args}⍟(key≡"cycle-accounts") @
+      {𝕊:rewritten↩⟨0⊑args,observation,baselineObservation,3⊑args⟩∾4↓args}⍟(key≡"cycle-comparison") @
+      {𝕊:rewritten↩⟨0⊑args,1⊑args,NextMonthExclusive observation,3⊑args⟩}⍟(key≡"monthly-accounts") @
+      {𝕊:rewritten↩⟨0⊑args,currentCycle.start,currentCycle.end_exclusive,observation,4⊑args⟩}⍟(key≡"daily-flow") @
+      {𝕊:rewritten↩⟨0⊑args,observation⟩∾2↓args}⍟(key≡"daily-target") @
+      resolvedRows∾↩⟨{key⇐key,surface⇐row.surface,arguments⇐rewritten}⟩
+    }¨rows
+  }⍟(0=≠diagnostics) @
+
+  {state⇐(0=≠diagnostics)⊑"error"‿"ok",observation⇐observation,rows⇐resolvedRows,diagnostics⇐diagnostics}
+}
+
+{Build⇐Build}

@@ -53,7 +53,7 @@ One bounded semantic result per retained question: `envelope_backing`, `account_
 
 ### `src/application/`
 
-Effectful boundaries and CLIs: source adapters, report request/selection/manifest config, selected report composition, strict readiness, inspection, funding scope, Daily Target scope, and editor Actual/config adapters.
+Effectful boundaries and CLIs: source adapters, report request/selection/manifest config, clock-free current-profile resolution, selected report composition, strict readiness, inspection, funding scope, Daily Target scope, and editor Actual/config adapters. `current_report_profile.bqn` is the pure owner of volatile daily coordinates; explicit historical routes bypass it.
 
 ### Editor
 
@@ -70,7 +70,8 @@ Issues use the canonical eight-column schema and strict post-write admission.
 - `tools/query` — exact `ledger_*` lookup/list/keys.
 - `tools/report-section-metadata` — catalog metadata without household reads.
 - `tools/report-cache` — atomic complete cache publication.
-- `tools/main-ui.sh` — Command Hub over explicit manifest config.
+- `tools/main-ui.sh` — Command Hub over a latest-Actual current profile generated from explicit manifest policy.
+- `tools/report-current-manifest` — emit the complete concrete current manifest without a wall clock.
 - `tools/ledger-check` / `tools/ledger-inspect` — operational readiness/provenance.
 - `tools/check.sh` — canonical repository check suite.
 

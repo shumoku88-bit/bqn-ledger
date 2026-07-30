@@ -41,17 +41,15 @@ printf '%s\n' "$$" >"$lock_dir/pid"
 
 refreshing_file="$cache_dir/.cache-refreshing"
 error_file="$cache_dir/.cache-error"
-touch "$refreshing_file"
 rm -f "$error_file"
 stage_dir="$(mktemp -d "$cache_dir/.refresh-stage.XXXXXX")"
 full_stage="$stage_dir/full"
 mkdir "$full_stage"
 success=0
-
 cleanup() {
   status=$?
   rm -rf "$stage_dir"
-  if [[ "$success" -ne 1 ]]; then
+  if [[ "$success" -ne 1 && ! -s "$error_file" ]]; then
     printf 'Preview cache generation failed. Run tools/report directly for current data.\n' >"$error_file"
   else
     rm -f "$cache_dir/.refresh.log"
@@ -62,13 +60,29 @@ cleanup() {
 }
 trap cleanup EXIT
 
+manifest_copy="$stage_dir/current-human.tsv"
+if [[ "$human_manifest" == /* ]]; then
+  cp "$human_manifest" "$manifest_copy"
+else
+  cp "$base_abs/$human_manifest" "$manifest_copy"
+fi
+# Publish the refreshing marker only after the generated manifest is owned by
+# this child; the parent may delete its temporary copy as soon as it sees it.
+touch "$refreshing_file"
+
 if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && -n "${COMMAND_HUB_CACHE_TEST_BEFORE_BUILD_HOOK:-}" ]]; then
   "$COMMAND_HUB_CACHE_TEST_BEFORE_BUILD_HOOK"
 fi
 
 # The final catalog route owns every body and publishes a complete staged cache.
-"$ROOT_DIR/tools/report-cache" "$base_abs" "$full_stage" "$source_mtime" "$human_manifest" \
-  >/dev/null 2>"$stage_dir/full.err"
+if ! "$ROOT_DIR/tools/report-cache" "$base_abs" "$full_stage" "$source_mtime" "$manifest_copy" \
+  >"$stage_dir/full.out" 2>"$stage_dir/full.err"; then
+  {
+    cat "$stage_dir/full.err"
+    cat "$stage_dir/full.out"
+  } >"$error_file"
+  exit 1
+fi
 
 key_manifest="$full_stage/.section-keys"
 [[ -s "$key_manifest" ]] || { echo "Error: report cache key manifest is missing or empty" >&2; exit 1; }
