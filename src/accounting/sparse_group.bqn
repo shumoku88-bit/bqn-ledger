@@ -5,12 +5,35 @@ scale ← •Import "../ledger/exact_scale.bqn"
 empty ← ⟨⟩
 
 Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
+IndexOf ← {𝕊 item‿items: ⊑(item⊸≡¨items)⊐1}
 Diagnostic ← {𝕊 codeText‿messageText:
   {severity⇐"error",stage⇐"accounting_sparse_group",code⇐codeText,message⇐messageText}
 }
 AddIf ← {𝕊 invalid‿diagnostic: invalid/⟨diagnostic⟩}
 EmptyGroups ← {𝕊:
   {count⇐0,index⇐empty,row_index⇐empty,column_index⇐empty,coefficient⇐empty,contributors⇐empty}
+}
+
+# Private kernel over admitted evidence. Classify each item once, group coefficients and
+# contributors by encoded row × column coordinate, then retain occupied cells in row-major order.
+GroupAdmitted ← {𝕊 rowAxis‿columnCount‿rowCoordinates‿columnIndices‿coefficients‿contributors:
+  rowIndices ← {IndexOf ⟨𝕩,rowAxis⟩}¨rowCoordinates
+  cellCount ← columnCount×≠rowAxis
+  cellIndices ← (columnCount×rowIndices)+columnIndices
+
+  # The unmatched trailing group index forces Group to represent the complete coordinate bound,
+  # including empty axes, without adding an evidence item.
+  forcedGroupIndices ← cellIndices∾cellCount
+  coefficientGroups ← forcedGroupIndices⊔coefficients
+  nestedContributorGroups ← forcedGroupIndices⊔contributors
+
+  occupied ← 0<≠¨coefficientGroups
+  occupiedCells ← occupied/↕cellCount
+  occupiedCoefficientGroups ← occupied/coefficientGroups
+  occupiedContributorGroups ← occupied/nestedContributorGroups
+  summed ← scale.Sum¨occupiedCoefficientGroups
+
+  ⟨occupiedCells,occupiedContributorGroups,summed⟩
 }
 
 # Input: row axis, column count, row coordinate/item, column index/item,
@@ -33,30 +56,20 @@ Build ← {𝕊 rowAxis‿columnCount‿rowCoordinates‿columnIndices‿coeffic
 
   groups ← EmptyGroups @
   {𝕊:
-    candidate ← empty
-    {𝕊 rowIndex:
-      coordinate ← rowIndex⊑rowAxis
-      {𝕊 columnIndex:
-        mask ← (coordinate⊸≡¨rowCoordinates) ∧ columnIndex=columnIndices
-        selected ← mask/coefficients
-        {𝕊:
-          summed ← scale.Sum selected
-          diagnostics ∾↩ AddIf ⟨summed.state≢"ok",Diagnostic ⟨"group_sum_failed","group sum exceeds exact range"⟩⟩
-          {𝕊:
-            selectedContributors ← mask/contributors
-            candidate∾↩⟨{
-              row_index⇐rowIndex,column_index⇐columnIndex,
-              coefficient⇐summed.coefficient,contributors⇐∾selectedContributors
-            }⟩
-          }⍟(summed.state≡"ok") @
-        }⍟(0<≠selected) @
-      }¨↕columnCount
-    }¨↕≠rowAxis
+    occupiedCells‿occupiedContributorGroups‿summed ← GroupAdmitted ⟨
+      rowAxis,columnCount,rowCoordinates,columnIndices,coefficients,contributors
+    ⟩
+    diagnostics ∾↩ ∾{𝕊 result:
+      AddIf ⟨result.state≢"ok",Diagnostic ⟨"group_sum_failed","group sum exceeds exact range"⟩⟩
+    }¨summed
     {𝕊:
+      rows ← {⌊𝕩÷columnCount}¨occupiedCells
+      columns ← columnCount|occupiedCells
       groups↩{
-        count⇐≠candidate,index⇐↕≠candidate,
-        row_index⇐{𝕩.row_index}¨candidate,column_index⇐{𝕩.column_index}¨candidate,
-        coefficient⇐{𝕩.coefficient}¨candidate,contributors⇐{𝕩.contributors}¨candidate
+        count⇐≠occupiedCells,index⇐↕≠occupiedCells,
+        row_index⇐rows,column_index⇐columns,
+        coefficient⇐{𝕩.coefficient}¨summed,
+        contributors⇐∾¨occupiedContributorGroups
       }
     }⍟(0=≠diagnostics) @
   }⍟(0=≠diagnostics) @
