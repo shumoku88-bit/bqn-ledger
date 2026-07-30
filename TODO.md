@@ -4,7 +4,7 @@
 
 - Strict Native Journal plus Plan, Budget, Account, Cycle, Issues, and Daily Target scope admission is production.
 - Canonical Transaction/Posting Facts live under `src/ledger`; reusable calculations live under `src/accounting`.
-- Daily reporting uses the nine-key catalog under `src/report` and `src/sections`.
+- Daily reporting uses the ten-key catalog under `src/report` and `src/sections`; Daily Flow is the retained date × category Actual matrix.
 - `tools/report`, `tools/report-summary`, `tools/query`, Command Hub metadata, and cache publication all use the same explicit request manifests.
 - The retired report runtime and its compatibility tests, fixtures, checks, and entrypoints have been physically removed.
 

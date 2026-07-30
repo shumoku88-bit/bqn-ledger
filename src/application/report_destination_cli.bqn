@@ -1,4 +1,4 @@
-# Parallel destination CLI proof. Production tools/report remains unchanged.
+# Effectful production adapter for one admitted retained-report route.
 
 request ← •Import "../report/request.bqn"
 compose ← •Import "../report/compose.bqn"
@@ -141,6 +141,13 @@ composition ← {state⇐"error",key⇐key,result⇐empty,diagnostics⇐empty}
   {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
   composition↩compose.MonthlyAccounts ⟨actual.facts,domain,firstMonth,lastMonth⟩
 }⍟(key≡"monthly-accounts") @
+{𝕊:
+  {𝕊:Fail ⟨"usage_daily_flow","daily-flow requires DOMAIN START END_EXCLUSIVE OBSERVATION JOURNAL_BASENAME"⟩}⍟(5≠≠coordinates) @
+  domain‿start‿finish‿observation‿journal ← coordinates
+  actual ← sources.Actual ⟨base,journal,registry⟩
+  {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
+  composition↩compose.DailyFlow ⟨actual.facts,domain,start,finish,observation⟩
+}⍟(key≡"daily-flow") @
 {𝕊:
   usageMessage ← "daily-target requires DOMAIN OBSERVATION TARGET JOURNAL PLAN DAILY_SCOPE"
   {𝕊:Fail ⟨"usage_daily_target",usageMessage⟩}⍟(6≠≠coordinates) @

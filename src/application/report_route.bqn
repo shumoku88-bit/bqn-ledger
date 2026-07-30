@@ -83,6 +83,12 @@ MonthlyAccounts ← {𝕊 coordinates:
     {𝕊:Accept ⟨coordinates,⟨3⟩,⟨"journal"⟩,⟨"actual"⟩⟩}
   ⟩ @
 }
+DailyFlow ← {𝕊 coordinates:
+  (5=≠coordinates)◶⟨
+    {𝕊:Reject ⟨"usage_daily_flow","daily-flow requires DOMAIN START END_EXCLUSIVE OBSERVATION JOURNAL_BASENAME"⟩},
+    {𝕊:Accept ⟨coordinates,⟨4⟩,⟨"journal"⟩,⟨"actual"⟩⟩}
+  ⟩ @
+}
 DailyTarget ← {𝕊 coordinates:
   (6=≠coordinates)◶⟨
     {𝕊:Reject ⟨"usage_daily_target","daily-target requires DOMAIN OBSERVATION TARGET JOURNAL PLAN DAILY_SCOPE"⟩},
@@ -97,7 +103,7 @@ Issues ← {𝕊 coordinates:
 }
 
 # Function order follows the catalog; request.Validate supplies the admitted catalog index.
-routes ← ⟨Envelopes,Balances,Recent,Planned,CycleAccounts,CycleComparison,MonthlyAccounts,DailyTarget,Issues⟩
+routes ← ⟨Envelopes,Balances,Recent,Planned,CycleAccounts,CycleComparison,MonthlyAccounts,DailyFlow,DailyTarget,Issues⟩
 RoutePlan ← {𝕊 catalogIndex‿coordinates: catalogIndex◶routes coordinates}
 
 Admit ← {𝕊 key‿surface‿coordinates:

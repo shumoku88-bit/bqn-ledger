@@ -45,6 +45,10 @@ CheckOk ⟨
   ⟨3⟩,⟨"journal"⟩,⟨"actual"⟩
 ⟩
 CheckOk ⟨
+  "daily-flow","human",⟨"JPY","2026-01-01","2026-02-01","2026-01-12","actual.journal"⟩,
+  ⟨4⟩,⟨"journal"⟩,⟨"actual"⟩
+⟩
+CheckOk ⟨
   "daily-target","compact",⟨"JPY","2026-01-12","2026-01-22","actual.journal","plan.tsv","scope.tsv"⟩,
   ⟨3,4,5⟩,⟨"journal","tsv","tsv"⟩,⟨"actual","plan","daily_scope"⟩
 ⟩
@@ -75,6 +79,7 @@ CheckError ⟨"cycle-accounts","human",6⥊⟨"x"⟩,"usage_cycle_accounts"⟩
 CheckError ⟨"cycle-comparison","human",6⥊⟨"x"⟩,"usage_cycle_comparison"⟩
 CheckError ⟨"cycle-comparison","human",9⥊⟨"x"⟩,"usage_cycle_comparison"⟩
 CheckError ⟨"monthly-accounts","human",3⥊⟨"x"⟩,"usage_monthly_accounts"⟩
+CheckError ⟨"daily-flow","human",4⥊⟨"x"⟩,"usage_daily_flow"⟩
 CheckError ⟨"daily-target","human",5⥊⟨"x"⟩,"usage_daily_target"⟩
 CheckError ⟨"issues","human",⟨⟩,"usage_issues"⟩
 CheckError ⟨"issues","human",2⥊⟨"x"⟩,"usage_issues"⟩

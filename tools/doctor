@@ -118,8 +118,8 @@ echo ""
 # ── Destination catalog smoke test ──
 echo "Destination:"
 if metadata=$(tools/report-section-metadata --format tsv 2>&1) \
-    && [[ $(printf '%s\n' "$metadata" | wc -l | tr -d ' ') -eq 10 ]]; then
-  pass "destination catalog metadata exposes nine reports"
+    && [[ $(printf '%s\n' "$metadata" | wc -l | tr -d ' ') -eq 11 ]]; then
+  pass "report catalog metadata exposes ten reports"
 else
   fail "destination catalog metadata failed: $metadata"
   failures=$((failures + 1))

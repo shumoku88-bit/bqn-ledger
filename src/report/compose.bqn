@@ -8,6 +8,7 @@ recentTransactions ← •Import "../accounting/recent_transactions.bqn"
 cycleAccountPeriod ← •Import "../accounting/cycle_account_period.bqn"
 comparisonAccounting ← •Import "../accounting/cycle_comparison.bqn"
 monthMovement ← •Import "../accounting/month_account_movement.bqn"
+dateCategoryFlow ← •Import "../accounting/date_category_flow.bqn"
 envelopeBacking ← •Import "../accounting/envelope_backing.bqn"
 targetAccounting ← •Import "../accounting/daily_target.bqn"
 balancesSection ← •Import "../sections/account_balances.bqn"
@@ -16,6 +17,7 @@ plannedSection ← •Import "../sections/planned_payments.bqn"
 cycleAccountsSection ← •Import "../sections/cycle_accounts.bqn"
 cycleComparisonSection ← •Import "../sections/cycle_comparison.bqn"
 monthlySection ← •Import "../sections/monthly_accounts.bqn"
+dailyFlowSection ← •Import "../sections/daily_flow.bqn"
 envelopeSection ← •Import "../sections/envelope_backing.bqn"
 dailyTargetSection ← •Import "../sections/daily_target.bqn"
 issuesSection ← •Import "../sections/issues.bqn"
@@ -77,6 +79,15 @@ MonthlyAccounts ← {𝕊 facts‿domain‿firstMonth‿lastMonthExclusive:
   accounting ← monthMovement.Build ⟨facts,domain,firstMonth,lastMonthExclusive⟩
   Publish ⟨"monthly-accounts",monthlySection.Build accounting⟩
 }
+DailyFlow ← {𝕊 facts‿domain‿start‿finish‿observation:
+  output ← DateFailure "daily-flow"
+  valid ← (dates.IsValid start) ∧ (dates.IsValid finish) ∧ dates.IsValid observation
+  {𝕊:
+    accounting ← dateCategoryFlow.Build ⟨facts,domain,"actual",dates.Ordinal start,dates.Ordinal finish⟩
+    output↩Publish ⟨"daily-flow",dailyFlowSection.Build ⟨accounting,start,finish,observation⟩⟩
+  }⍟valid @
+  output
+}
 Envelopes ← {𝕊 budgetFacts‿actualFacts‿planFacts‿domain‿start‿finish‿observation‿fundingIndices:
   output ← DateFailure "envelopes"
   valid ← (dates.IsValid start) ∧ (dates.IsValid finish) ∧ dates.IsValid observation
@@ -99,6 +110,6 @@ Issues ← {𝕊 lines‿registry:
   ValidateSingle⇐ValidateSingle,
   Balances⇐Balances,Recent⇐Recent,Planned⇐Planned,
   CycleAccounts⇐CycleAccounts,CycleComparison⇐CycleComparison,
-  MonthlyAccounts⇐MonthlyAccounts,Envelopes⇐Envelopes,
+  MonthlyAccounts⇐MonthlyAccounts,DailyFlow⇐DailyFlow,Envelopes⇐Envelopes,
   DailyTarget⇐DailyTarget,Issues⇐Issues
 }

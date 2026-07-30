@@ -46,7 +46,7 @@ tools/report-section-metadata
 tools/report-section-metadata --format json
 ```
 
-The retained keys are `envelopes`, `balances`, `recent`, `planned`, `cycle-accounts`, `cycle-comparison`, `monthly-accounts`, `daily-target`, and `issues`.
+The retained keys are `envelopes`, `balances`, `recent`, `planned`, `cycle-accounts`, `cycle-comparison`, `monthly-accounts`, `daily-flow`, `daily-target`, and `issues`.
 
 ### Local terminal UI preferences
 

@@ -21,7 +21,7 @@ cmp "$work/expected-keys" "$cache/.section-keys"
 [[ ! -e $cache/snapshot.txt && ! -e $cache/debug.txt && -e $cache/application.note ]]
 for key in "${expected[@]}" all; do [[ -f $cache/$key.txt ]]; done
 text_count=$(find "$cache" -maxdepth 1 -type f -name '*.txt' | wc -l | tr -d ' ')
-[[ $text_count -eq 10 ]]
+[[ $text_count -eq $((${#expected[@]} + 1)) ]]
 ./tools/report "$base" all human report_all_human.destination.tsv >"$work/direct-all"
 cmp "$work/direct-all" "$cache/all.txt"
 ./tools/report "$base" balances human JPY 2026-01-12 actual.journal >"$work/direct-balances"

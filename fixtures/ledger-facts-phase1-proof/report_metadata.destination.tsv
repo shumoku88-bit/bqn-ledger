@@ -6,5 +6,6 @@ planned	Planned Payments	operations	src/sections/planned_payments.bqn	yes	metada
 cycle-accounts	Current-cycle Accounts	accounting	src/sections/cycle_accounts.bqn	yes	metadata
 cycle-comparison	Cycle Comparison	accounting	src/sections/cycle_comparison.bqn	yes	metadata
 monthly-accounts	Monthly Accounts	accounting	src/sections/monthly_accounts.bqn	yes	metadata
+daily-flow	Daily Flow	accounting	src/sections/daily_flow.bqn	yes	metadata
 daily-target	Daily Target	household	src/sections/daily_target.bqn	yes	metadata
 issues	Issues	operations	src/sections/issues.bqn	yes	metadata

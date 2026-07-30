@@ -1,10 +1,10 @@
-# Destination composition and cutover preparation
+# Report composition
 
-Status: P10G static catalog, all routes, and atomic destination cache proof complete; operational separation and cutover remain in progress.
+Status: production static catalog, individual routes, fail-closed `all`, and atomic cache publication.
 
 ## Static catalog owner
 
-`src/report/catalog.bqn` is the only destination catalog owner. It contains exactly nine retained keys in final order and declares label, bounded result shape, and supported human/compact/JSON surfaces.
+`src/report/catalog.bqn` is the only destination catalog owner. It contains exactly ten retained keys in final order and declares label, bounded result shape, and supported human/compact/JSON surfaces.
 
 Catalog listing is source-independent. `catalog.Table` and `catalog_text.FormatTsv` perform no source reads, clock access, context construction, or report calculation. The deterministic public listing is `fixtures/ledger-facts-phase1-proof/report_catalog.destination.tsv`.
 
@@ -18,9 +18,9 @@ human | compact | json
 
 Unknown legacy keys fail with `report_key_unknown`; they are not aliases. A known report requested through an unsupported surface fails with `report_surface_unsupported`; it does not return an empty renderer.
 
-`all` is a composition selector, not a tenth catalog entry:
+`all` is a composition selector, not an eleventh catalog entry:
 
-- `all + human` selects all nine entries in catalog order;
+- `all + human` selects all ten entries in catalog order;
 - `all + compact` selects only registered compact owners in catalog order;
 - `all + json` is unsupported because there is no aggregate JSON schema.
 
@@ -36,7 +36,7 @@ daily-target
 
 ## One-result composition
 
-`src/report/compose.bqn` exports nine named functions rather than one universal request context:
+`src/report/compose.bqn` exports ten named functions rather than one universal request context:
 
 ```text
 Balances          Actual Facts, domain, observation
@@ -45,6 +45,7 @@ Planned           Plan Facts, Actual Facts, resolved cycle, observation
 CycleAccounts     Actual Facts, domain, resolved cycle, observation
 CycleComparison   Actual Facts, domain, two explicit cycle windows/observations, policy
 MonthlyAccounts   Actual Facts, domain, first month, last exclusive month
+DailyFlow        Actual Facts, domain, period, observation
 Envelopes         Budget/Actual/Plan Facts, domain, horizon, observation, funding indices
 DailyTarget       observation, target, domain, owner asset scope, obligation scope
 Issues            already-read issue lines, currency registry
@@ -70,6 +71,7 @@ planned           Accounts/Actual + explicit Plan and Cycle basenames
 cycle-accounts     Accounts/Actual + explicit Cycle; Plan only for incomeAnchor
 cycle-comparison   Accounts/Actual + two explicit Cycle definitions; Plan only for incomeAnchor
 monthly-accounts   accounts.tsv + explicit Journal basename
+daily-flow         Accounts/Actual + explicit period and observation
 daily-target       Accounts/Actual + explicit Plan + strict ownership/linkage TSV
 issues             explicit strict Issue TSV basename
 ```
@@ -86,7 +88,7 @@ kind | scope_id | account_key | plan_id | excluded_amount | currency | reservati
 
 Asset rows link durable scope identity to an admitted asset Account. Obligation rows link durable scope identity to a canonical Plan `plan_id`; amount/date/currency and completion status come from Plan/Actual evidence rather than the policy row. Positive exclusion requires exact currency and unique reservation reference. The adapter builds assets from observed Account balances and obligations from durable completion Join, preserving contributors. Completed or outside-horizon obligations remain evidenced but are excluded from calculation; overdue open obligations remain included.
 
-The production CLI supports all nine keys individually. An individual request may alternatively pass `--manifest REQUEST_MANIFEST`; after key/surface admission, the application selects exactly one matching row and then invokes the same individual source/preflight/composition path. Missing, duplicate, malformed, or surface-mismatched rows fail before household source reads. This gives UI/cache callers a bounded explicit-coordinate route without inventing a shared report context.
+The production CLI supports all ten keys individually. An individual request may alternatively pass `--manifest REQUEST_MANIFEST`; after key/surface admission, the application selects exactly one matching row and then invokes the same individual source/preflight/composition path. Missing, duplicate, malformed, or surface-mismatched rows fail before household source reads. This gives UI/cache callers a bounded explicit-coordinate route without inventing a shared report context.
 
 ## Fail-closed `all`
 
@@ -100,7 +102,7 @@ Each row contains the argv for one existing individual route; there is no cross-
 
 Consequences:
 
-- human iterates all nine keys;
+- human iterates all ten keys;
 - compact iterates the five registered compact owners;
 - aggregate JSON remains explicitly unsupported;
 - malformed, missing, reordered, or failing rows publish no partial report;
@@ -128,7 +130,7 @@ TSV and JSON preserve final catalog order, point owners to `src/sections`, and c
 
 ## Destination cache publication
 
-`tools/report-cache` accepts explicit base, cache directory, decimal generation token, and the human all-request manifest. It derives the nine section keys from the catalog selection, admits the complete manifest before source reads, and writes each body by invoking the same individual route once. `all.txt` is the byte concatenation of those staged bodies.
+`tools/report-cache` accepts explicit base, cache directory, decimal generation token, and the human all-request manifest. It derives the ten section keys from the catalog selection, admits the complete manifest before source reads, and writes each body by invoking the same individual route once. `all.txt` is the byte concatenation of those staged bodies.
 
 The staged manifest is exactly:
 
@@ -140,6 +142,7 @@ planned
 cycle-accounts
 cycle-comparison
 monthly-accounts
+daily-flow
 daily-target
 issues
 all

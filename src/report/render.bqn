@@ -8,6 +8,7 @@ planned ← •Import "../sections/planned_payments.bqn"
 cycleAccounts ← •Import "../sections/cycle_accounts.bqn"
 cycleComparison ← •Import "../sections/cycle_comparison.bqn"
 monthlyAccounts ← •Import "../sections/monthly_accounts.bqn"
+dailyFlow ← •Import "../sections/daily_flow.bqn"
 dailyTarget ← •Import "../sections/daily_target.bqn"
 issues ← •Import "../sections/issues.bqn"
 empty ← ⟨⟩
@@ -36,6 +37,7 @@ Render ← {𝕊 key‿surface‿composition:
       {𝕊:rendered↩cycleAccounts.FormatHuman result}⍟(key≡"cycle-accounts") @
       {𝕊:rendered↩cycleComparison.FormatHuman result}⍟(key≡"cycle-comparison") @
       {𝕊:rendered↩monthlyAccounts.FormatHuman result}⍟(key≡"monthly-accounts") @
+      {𝕊:rendered↩dailyFlow.FormatHuman result}⍟(key≡"daily-flow") @
       {𝕊:rendered↩dailyTarget.FormatHuman result}⍟(key≡"daily-target") @
       {𝕊:rendered↩issues.FormatHuman result}⍟(key≡"issues") @
     }⍟(surface≡"human") @

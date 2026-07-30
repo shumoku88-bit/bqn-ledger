@@ -62,7 +62,7 @@ This is a destination disposition, not an immediate production deletion.
 | `check` | move readiness/validation to an operational command; not a normal report |
 | `outlook` | replace with the narrower Daily Target projection and backing evidence |
 | `daily-trend` | replace with Account Matrix and/or Daily Target capabilities; do not preserve automatically |
-| `daily-flow` | its sparse Group/Pivot proof remains useful; the current section may be removed unless a concrete category-flow question is retained |
+| `daily-flow` | retained as the explicit Actual date × dynamic expense-category Matrix |
 | `actual-comparison` | replace with explicit Cycle Comparison Matrix semantics |
 | `debug` | move to developer inspection/diagnostic commands; not a production report |
 
@@ -77,7 +77,7 @@ This is a destination disposition, not an immediate production deletion.
 - pure cycle resolution;
 - durable Plan completion Join;
 - the destination Planned Payments result/renderers;
-- Trial Balance and Daily Flow as architectural proofs, even if their final section names/bodies are not retained.
+- Trial Balance as an architecture proof and Daily Flow as a retained report over the proven sparse Group/Pivot capability.
 
 Deleting a report does not imply deleting a generally useful proved capability. Conversely, a proof module is removable if it has no retained consumer after the portfolio is implemented.
 

@@ -17,6 +17,7 @@ planned
 cycle-accounts
 cycle-comparison
 monthly-accounts
+daily-flow
 daily-target
 issues
 ```
@@ -30,12 +31,15 @@ issues
 | `cycle-accounts` | Current-cycle Accounts | Account × measure Matrix | yes | no | no |
 | `cycle-comparison` | Cycle Comparison | Account × comparison Matrix | yes | no | no |
 | `monthly-accounts` | Monthly Accounts | Month × Account Matrix | yes | no | no |
+| `daily-flow` | Daily Flow | Date × dynamic expense category Matrix | yes | no | no |
 | `daily-target` | Daily Target | evidence-bearing Card/Projection | yes | yes | no |
 | `issues` | Issues | source-ordered List | yes | no | no |
 
 “No” means unsupported, not an empty renderer. Unsupported JSON is a nonzero CLI error. Compact output contains only registered compact owners; Matrix reports are not flattened into ad-hoc key floods.
 
 The catalog is static and source-independent. Listing keys/metadata does not read household sources. Full and cache output iterate this catalog but build one requested result at a time.
+
+Daily Flow answers one bounded question: for explicit Actual period `[start,end_exclusive)` and observation, what income, dynamic expense-category outflow, unmatched `other`, and signed net occurred on each observed date? Category identity comes from admitted Account budget metadata; values retain Posting contributors. Its production surface is human-only.
 
 ## 2. Shared result rules
 

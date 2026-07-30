@@ -4,7 +4,7 @@ Status: production; readiness and inspection are separate from the report catalo
 
 ## Why these are not reports
 
-Source admission/readiness and Fact inspection are operational questions. They do not belong in the nine-key accounting report catalog, human `all`, compact summary, JSON dispatch, or section cache.
+Source admission/readiness and Fact inspection are operational questions. They do not belong in the ten-key accounting report catalog, human `all`, compact summary, JSON dispatch, or section cache.
 
 Neither command imports `src/sections`, the retired report runtime, report composition, a clock, or cache code.
 

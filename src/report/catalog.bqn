@@ -16,6 +16,7 @@ entries ← ⟨
   Entry ⟨"cycle-accounts","Current-cycle Accounts","accounting","src/sections/cycle_accounts.bqn","matrix",1,0,0⟩,
   Entry ⟨"cycle-comparison","Cycle Comparison","accounting","src/sections/cycle_comparison.bqn","matrix",1,0,0⟩,
   Entry ⟨"monthly-accounts","Monthly Accounts","accounting","src/sections/monthly_accounts.bqn","matrix",1,0,0⟩,
+  Entry ⟨"daily-flow","Daily Flow","accounting","src/sections/daily_flow.bqn","matrix",1,0,0⟩,
   Entry ⟨"daily-target","Daily Target","household","src/sections/daily_target.bqn","card_projection",1,1,0⟩,
   Entry ⟨"issues","Issues","operations","src/sections/issues.bqn","list",1,0,0⟩
 ⟩

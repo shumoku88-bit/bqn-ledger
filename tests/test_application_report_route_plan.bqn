@@ -36,6 +36,15 @@ Check ⟨
 ⟩
 
 Check ⟨
+  ⟨"daily-flow","human","JPY","2026-01-01","2026-02-01","2026-01-12","actual.journal"⟩,
+  0,
+  ⟨
+    "ROUTE"∾tab∾"daily-flow"∾tab∾"human"∾tab∾"5"∾tab∾"1",
+    "SOURCE"∾tab∾"4"∾tab∾"journal"∾tab∾"actual"
+  ⟩
+⟩
+
+Check ⟨
   ⟨"recent","human","nope","actual.journal"⟩,
   1,
   ⟨"ERROR"∾tab∾"limit_invalid"∾tab∾"LIMIT must be decimal digits"⟩

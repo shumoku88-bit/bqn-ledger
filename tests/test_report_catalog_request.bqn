@@ -6,12 +6,12 @@ catalogText ← •Import "../src/report/catalog_text.bqn"
 metadata ← •Import "../src/report/section_metadata.bqn"
 
 table ← catalog.Table @
-9 lib.AssertEq table.count
-⟨"envelopes","balances","recent","planned","cycle-accounts","cycle-comparison","monthly-accounts","daily-target","issues"⟩ lib.AssertEq table.key
-⟨1,1,1,1,1,1,1,1,1⟩ lib.AssertEq table.human
-⟨1,1,1,1,0,0,0,1,0⟩ lib.AssertEq table.compact
-⟨1,1,0,1,0,0,0,0,0⟩ lib.AssertEq table.json
-⟨"household","accounting","operations","operations","accounting","accounting","accounting","household","operations"⟩ lib.AssertEq table.category
+10 lib.AssertEq table.count
+⟨"envelopes","balances","recent","planned","cycle-accounts","cycle-comparison","monthly-accounts","daily-flow","daily-target","issues"⟩ lib.AssertEq table.key
+⟨1,1,1,1,1,1,1,1,1,1⟩ lib.AssertEq table.human
+⟨1,1,1,1,0,0,0,0,1,0⟩ lib.AssertEq table.compact
+⟨1,1,0,1,0,0,0,0,0,0⟩ lib.AssertEq table.json
+⟨"household","accounting","operations","operations","accounting","accounting","accounting","accounting","household","operations"⟩ lib.AssertEq table.category
 (•FChars "../fixtures/ledger-facts-phase1-proof/report_catalog.destination.tsv") lib.AssertEq catalogText.FormatTsv @
 (•FChars "../fixtures/ledger-facts-phase1-proof/report_metadata.destination.tsv") lib.AssertEq metadata.FormatTsv @
 (•FChars "../fixtures/ledger-facts-phase1-proof/report_metadata.destination.json") lib.AssertEq metadata.FormatJson @

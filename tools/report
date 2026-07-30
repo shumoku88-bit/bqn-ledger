@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Parallel public destination composition proof. Does not replace tools/report.
+# Production retained-report CLI over explicit key/surface coordinates or manifests.
 set -euo pipefail
 
 usage() {
@@ -12,12 +12,13 @@ Usage:
   tools/report BASE cycle-accounts human DOMAIN OBSERVATION JOURNAL CYCLE [PLAN]
   tools/report BASE cycle-comparison human DOMAIN CURRENT_OBS BASELINE_OBS POLICY JOURNAL CURRENT_CYCLE BASELINE_CYCLE [PLAN]
   tools/report BASE monthly-accounts human DOMAIN FIRST_MONTH LAST_MONTH_EXCLUSIVE JOURNAL
+  tools/report BASE daily-flow human DOMAIN START END_EXCLUSIVE OBSERVATION JOURNAL
   tools/report BASE daily-target SURFACE DOMAIN OBSERVATION TARGET JOURNAL PLAN DAILY_SCOPE
   tools/report BASE issues human ISSUE_SOURCE
   tools/report BASE KEY SURFACE --manifest REQUEST_MANIFEST
   tools/report BASE all human|compact REQUEST_MANIFEST
 
-All coordinates and source basenames are explicit. Production remains tools/report.
+All coordinates and source basenames are explicit.
 USAGE
 }
 
@@ -127,6 +128,11 @@ case "$key" in
     [[ $# -eq 4 ]] || { usage >&2; exit 2; }
     require_journal "$4" || source_name_error 'journal must be a safe .journal basename'
     required_sources=(accounts.tsv "$4")
+    ;;
+  daily-flow)
+    [[ $# -eq 5 ]] || { usage >&2; exit 2; }
+    require_journal "$5" || source_name_error 'journal must be a safe .journal basename'
+    required_sources=(accounts.tsv "$5")
     ;;
   daily-target)
     [[ $# -eq 6 ]] || { usage >&2; exit 2; }

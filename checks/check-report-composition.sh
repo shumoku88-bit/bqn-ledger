@@ -22,6 +22,8 @@ cmp "$tmp/cycle" "$fixture/cycle_accounts.destination.human.txt"
 cmp "$tmp/comparison" "$fixture/cycle_comparison.destination.human.txt"
 ./tools/report "$fixture" monthly-accounts human JPY 2026-01 2026-03 actual.journal >"$tmp/monthly"
 cmp "$tmp/monthly" "$fixture/monthly_accounts.destination.human.txt"
+./tools/report "$fixture" daily-flow human JPY 2026-01-01 2026-02-01 2026-01-12 actual.journal >"$tmp/daily-flow"
+cmp "$tmp/daily-flow" "$fixture/daily_flow.destination.human.txt"
 ./tools/report "$fixture" daily-target human JPY 2026-01-12 2026-01-22 \
   actual.journal daily_target_plan.destination.tsv daily_target_scope.destination.tsv >"$tmp/daily-target"
 cmp "$tmp/daily-target" "$fixture/daily_target.application.human.txt"
@@ -30,7 +32,8 @@ cmp "$tmp/issues" "$fixture/issues.destination.human.txt"
 cat "$fixture/envelope_backing.destination.human.txt" "$fixture/account_balances.destination.human.txt" \
   "$fixture/recent_journal.destination.human.txt" "$fixture/planned_payments.destination.human.txt" \
   "$fixture/cycle_accounts.destination.human.txt" "$fixture/cycle_comparison.destination.human.txt" \
-  "$fixture/monthly_accounts.destination.human.txt" "$fixture/daily_target.application.human.txt" \
+  "$fixture/monthly_accounts.destination.human.txt" "$fixture/daily_flow.destination.human.txt" \
+  "$fixture/daily_target.application.human.txt" \
   "$fixture/issues.destination.human.txt" >"$tmp/all-human-expected"
 ./tools/report "$fixture" all human report_all_human.destination.tsv >"$tmp/all-human"
 cmp "$tmp/all-human" "$tmp/all-human-expected"
@@ -50,6 +53,7 @@ mkdir "$tmp/actual-only" "$tmp/issues-only" "$tmp/cycle-only" "$tmp/planned-only
 cp "$fixture/accounts.tsv" "$fixture/actual.journal" "$tmp/actual-only/"
 cp "$fixture/issues.destination.tsv" "$tmp/issues-only/"
 ./tools/report "$tmp/actual-only" recent human 2 actual.journal >/dev/null
+./tools/report "$tmp/actual-only" daily-flow human JPY 2026-01-01 2026-02-01 2026-01-12 actual.journal >/dev/null
 (
   cd "$tmp"
   "$root/tools/report" actual-only recent human 2 actual.journal >/dev/null

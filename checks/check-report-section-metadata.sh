@@ -13,7 +13,7 @@ cmp "$work/metadata.json" "$fixture/report_metadata.destination.json"
 python3 - "$work/metadata.json" <<'PY'
 import json, sys
 rows = json.load(open(sys.argv[1], encoding="utf-8"))
-assert len(rows) == 9
+assert len(rows) == 10
 assert all(list(row) == ["key", "label", "category", "owner", "human_output", "structured_output"] for row in rows)
 PY
 awk -F'\t' 'NR>1{print $1}' "$work/metadata.tsv" >"$work/keys"
@@ -24,7 +24,7 @@ while IFS=$'\t' read -r key label category owner human structured; do
   [[ -n $label && $category =~ ^(accounting|household|operations)$ ]]
   [[ -f $owner && $human == yes && $structured == metadata ]]
 done <"$work/metadata.tsv"
-if grep -Eq $'^(snapshot|ytd|cycle|trial-balance|check|outlook|daily-trend|daily-flow|actual-comparison|debug)\t' "$work/metadata.tsv"; then
+if grep -Eq $'^(snapshot|ytd|cycle|trial-balance|check|outlook|daily-trend|actual-comparison|debug)\t' "$work/metadata.tsv"; then
   echo 'FAIL: retired key leaked into destination metadata' >&2; exit 1
 fi
 (

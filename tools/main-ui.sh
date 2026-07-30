@@ -39,6 +39,7 @@ Commands:
   cycle-accounts       Show Current-cycle Accounts
   cycle-comparison     Show Cycle Comparison
   monthly-accounts     Show Monthly Accounts
+  daily-flow           Show Daily Flow
   daily-target         Show Daily Target
   issues               Show Issues
   add, actions         Launch tools/add-ui.sh
