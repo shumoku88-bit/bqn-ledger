@@ -9,6 +9,11 @@ lines ← io.ReadLines "fixtures/ledger-facts-phase1-proof/report_all_human.dest
 fields ← io.SplitTsv¨1↓lines
 rows ← {𝕊 row: {key⇐0⊑row,surface⇐1⊑row,arguments⇐2↓row}}¨fields
 admissions ← {route.Admit ⟨𝕩.key,𝕩.surface,𝕩.arguments⟩}¨rows
+(12⥊⟨"ok"⟩) lib.AssertEq {𝕩.state}¨admissions
+FindAdmission ← {𝕊 key: (⊑(key⊸≡¨{𝕩.key}¨admissions)⊐1)⊑admissions}
+⟨"domain","as_of","actual_source"⟩ lib.AssertEq (FindAdmission "balances").coordinate_role
+⟨"domain","as_of","actual_source"⟩ lib.AssertEq (FindAdmission "balance-sheet").coordinate_role
+
 current ← cycleResult.Success ⟨"fixed","2026-01-12","2026-01-01","2026-02-01",⟨⟩,⟨⟩⟩
 baseline ← cycleResult.Success ⟨"fixed","2025-12-31","2025-12-22","2026-01-22",⟨⟩,⟨⟩⟩
 result ← profile.Build ⟨admissions,"2026-01-12",current,baseline⟩
