@@ -18,7 +18,6 @@ AssertEq ← {
 }
 IndexOf ← {𝕊 item‿items: ⊑(item⊸≡¨items)⊐1}
 All ← {𝕊 values: ∧´1∾values}
-EmptyView ← {𝕊: ⟨empty,empty,empty,empty⟩}
 
 Validate ← {𝕊 rowAxis‿columnCount‿rowCoordinates‿columnIndices‿coefficients‿contributors:
   lengths ← ≠¨⟨rowCoordinates,columnIndices,coefficients,contributors⟩
@@ -75,14 +74,16 @@ Compare ← {𝕊 name‿input:
   expected ← Rescan input
   actual ← ClassifyOnce input
   expected AssertEq actual
-  SumView expected AssertEq SumView actual
+  expectedSums ← SumView expected
+  actualSums ← SumView actual
+  expectedSums AssertEq actualSums
   itemCount ← ≠2⊑input
   rowCount ← ≠⊑input
   columnCount ← 1⊑input
   Show ⟨name∾" rescan mask comparisons",rowCount×columnCount×itemCount⟩
   Show ⟨name∾" classify assignments",itemCount⟩
   Show ⟨name∾" grouped view",actual⟩
-  Show ⟨name∾" sum view",SumView actual⟩
+  Show ⟨name∾" sum view",actualSums⟩
 }
 
 sparseInput ← ⟨
