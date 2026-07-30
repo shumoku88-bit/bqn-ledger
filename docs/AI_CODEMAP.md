@@ -4,10 +4,29 @@
 
 1. `TODO.md` — current directions
 2. `docs/ARCHITECTURE.md` — production data flow and boundaries
-3. `docs/LIBRI_DI_CASA_INTEGRATION_BOUNDARY.md` when work can affect future source, writer, identity, provenance, or presentation ownership
-4. `README.md` — commands and configuration
-5. Relevant focused contract or test
-6. `docs/archive/` only for historical decisions
+3. `docs/BQN_EXPLORATION_PLAYBOOK.md` — standing BQN opportunity scan, experiment destinations, and new-capability discovery
+4. `docs/BQN_REFACTORING_REVIEW_GUIDE.md` — production adoption gate for a selected finite BQN slice
+5. `docs/LIBRI_DI_CASA_INTEGRATION_BOUNDARY.md` when work can affect future source, writer, identity, provenance, or presentation ownership
+6. `README.md` — commands and configuration
+7. Relevant focused contract or test
+8. `docs/archive/` only for historical decisions
+
+## BQN exploration lane
+
+Every BQN design, review, refactor, parser, accounting, reporting, editor, or testing task performs a BQN opportunity scan before selecting work.
+
+Actively consider direct primitives and modifiers, cells/rank/axes, whole-array dataflow, alternate representations, inverses, tacit compositions, and newly revealed household-accounting capabilities. Surface the strongest useful candidates even when they are not production-ready.
+
+Place each idea deliberately in one of four destinations:
+
+- production finite slice;
+- analysis-only probe under `experiments/bqn/`;
+- personal BQN book experiment;
+- parked non-use record with its reason.
+
+Primitive coverage, glyph count, and tacitization are not goals. “Keep the explicit staged form” is a valid scan result when it best exposes diagnostics, evidence staging, or publication boundaries.
+
+Do not implement multiple candidates automatically. Discuss the landscape, then select at most one coherent production slice.
 
 ## Runtime map
 
@@ -57,5 +76,6 @@ Issues use the canonical eight-column schema and strict post-write admission.
 - Preserve one authoritative writer and a replaceable confirmed-accounting adapter; do not make physical source names a permanent accounting abstraction.
 - Do not add broad context records, historical transaction shapes, aliases, or fallback source discovery.
 - Move an owner with all callers; leave no forwarding module.
-- Keep private household values out of public fixtures and docs.
+- Keep private household values out of public fixtures, experiments, and docs.
+- Treat new functionality discovered through BQN exploration as a separate correctness decision, not a meaning-preserving refactor.
 - Update current docs and remove completed plans as part of each change.
