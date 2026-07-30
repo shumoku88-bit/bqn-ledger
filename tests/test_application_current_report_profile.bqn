@@ -86,6 +86,20 @@ reorderedPlannedResult ← profile.Build ⟨admissionsWithReorderedPlanned,"2026
 reorderedPlannedRow ← (⊑("planned"⊸≡¨{𝕩.key}¨reorderedPlannedResult.rows)⊐1)⊑reorderedPlannedResult.rows
 ⟨"actual.journal","2026-01-12","plan.tsv","cycle.tsv"⟩ lib.AssertEq reorderedPlannedRow.arguments
 
+# Cycle Accounts observation follows its admitted role and preserves optional Plan coordinates.
+reorderedCycleAccounts ← {
+  key⇐"cycle-accounts",surface⇐"human",
+  coordinate_role⇐⟨"actual_source","plan_source","domain","observation","cycle_source"⟩,
+  coordinates⇐⟨"actual.journal","cycle_plan.tsv","JPY","stale-observation","cycle.tsv"⟩
+}
+admissionsWithReorderedCycleAccounts ← {
+  𝕊 admitted: (admitted.key≡"cycle-accounts")⊑⟨admitted,reorderedCycleAccounts⟩
+}¨admissions
+reorderedCycleAccountsResult ← profile.Build ⟨admissionsWithReorderedCycleAccounts,"2026-01-12",current,baseline⟩
+"ok" lib.AssertEq reorderedCycleAccountsResult.state
+reorderedCycleAccountsRow ← (⊑("cycle-accounts"⊸≡¨{𝕩.key}¨reorderedCycleAccountsResult.rows)⊐1)⊑reorderedCycleAccountsResult.rows
+⟨"actual.journal","cycle_plan.tsv","JPY","2026-01-12","cycle.tsv"⟩ lib.AssertEq reorderedCycleAccountsRow.arguments
+
 # Year rollover changes only the volatile Monthly Accounts end-exclusive month.
 yearEndCurrent ← cycleResult.Success ⟨"fixed","2026-12-31","2026-12-01","2027-01-15",⟨⟩,⟨⟩⟩
 yearEndBaseline ← cycleResult.Success ⟨"fixed","2026-10-31","2026-10-01","2026-11-15",⟨⟩,⟨⟩⟩
