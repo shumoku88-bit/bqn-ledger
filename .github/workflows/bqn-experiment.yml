@@ -31,3 +31,6 @@ jobs:
 
       - name: Run sparse grouping classify-once envelope probe
         run: bqn experiments/bqn/sparse_group_classify_once_envelope.bqn
+
+      - name: Run focused sparse-group portfolio against candidate
+        run: bash experiments/bqn/run_sparse_group_candidate_portfolio.sh
