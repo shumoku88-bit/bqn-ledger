@@ -20,6 +20,14 @@ ReplaceCoordinateRole ← {𝕊 coordinates‿coordinateRoles‿role‿value:
 FindAdmission ← {𝕊 key‿admittedRoutes:
   (⊑(key⊸≡¨{𝕩.key}¨admittedRoutes)⊐1)⊑admittedRoutes
 }
+CoordinateValue ← {𝕊 role‿admitted:
+  index ← ⊑(role⊸≡¨admitted.coordinate_role)⊐1
+  index⊑admitted.coordinates
+}
+ComparisonPolicy ← {𝕊 admittedRoutes:
+  cycleComparison ← FindAdmission ⟨"cycle-comparison",admittedRoutes⟩
+  CoordinateValue ⟨"policy",cycleComparison⟩
+}
 SourceName ← {𝕊 role‿admitted:
   index ← ⊑(role⊸≡¨admitted.sources.role)⊐1
   index⊑admitted.sources.name
@@ -85,4 +93,4 @@ Build ← {𝕊 admittedRoutes‿observation‿currentCycle‿baselineCycle:
   {state⇐(0=≠diagnostics)⊑"error"‿"ok",observation⇐observation,rows⇐resolvedRows,diagnostics⇐diagnostics}
 }
 
-{Build⇐Build,SourceNames⇐SourceNames}
+{Build⇐Build,ComparisonPolicy⇐ComparisonPolicy,SourceNames⇐SourceNames}
