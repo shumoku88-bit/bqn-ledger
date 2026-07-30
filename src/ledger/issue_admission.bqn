@@ -12,7 +12,6 @@ SplitKeepEmpty ← {𝕊 separator‿text:
   {(separator≠𝕩)/𝕩}¨groups
 }
 Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
-Unique ← {𝕊 values: out←empty ⋄ {𝕊 value:{𝕊:out∾↩⟨value⟩}⍟(¬Contains ⟨value,out⟩) @}¨values ⋄ out}
 Ignored ← {𝕊 line: (0=≠line) ∨ ((0<≠line) ∧ (⊑line)∊"#\\")}
 Diagnostic ← {𝕊 code‿row‿message:
   {severity⇐"error",stage⇐"ledger_issue_admission",code⇐code,source_row⇐row,message⇐message}
@@ -78,7 +77,7 @@ Admit ← {𝕊 lines‿registry:
     }⍟(8=≠fields) @
   }¨↕0⌈(≠dataLines)-1
   ids ← {𝕩.issue_id}¨rows
-  diagnostics∾↩AddIf ⟨(≠ids)≠≠Unique ids,Diagnostic ⟨"issue_identity_duplicate",0,"issue_id values must be unique"⟩⟩
+  diagnostics∾↩AddIf ⟨(≠ids)≠≠⍷ids,Diagnostic ⟨"issue_identity_duplicate",0,"issue_id values must be unique"⟩⟩
   table ← EmptyIssues @
   {𝕊:
     table↩{
