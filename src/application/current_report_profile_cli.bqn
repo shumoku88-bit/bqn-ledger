@@ -92,7 +92,7 @@ baselineAdmission ← cycleAdmission.Admit ⟨sources.CycleLines ⟨base,baselin
 baselineCycle ← cycleResolution.WithPlan ⟨baselineAdmission,previousObservation,actual.facts,plan.facts⟩
 {𝕊:CycleFailure ⟨baselineCycle,"baseline_cycle_resolution_failed"⟩}⍟(baselineCycle.state≢"ok") @
 
-resolved ← profile.Build ⟨rows,observation,currentCycle,baselineCycle⟩
+resolved ← profile.Build ⟨admissions,observation,currentCycle,baselineCycle⟩
 {𝕊:PrintDiagnostics resolved.diagnostics}⍟(resolved.state≢"ok") @
 •Out "key"∾tab∾"surface"∾tab∾"arguments"
 {𝕊 row: •Out row.key∾tab∾row.surface∾(∾{tab∾𝕩}¨row.arguments)}¨resolved.rows
