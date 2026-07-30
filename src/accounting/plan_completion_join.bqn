@@ -6,11 +6,6 @@ fact_reference ← •Import "fact_reference.bqn"
 empty ← ⟨⟩
 
 Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
-Unique ← {𝕊 items:
-  output ← empty
-  {𝕊 item: {𝕊: output∾↩⟨item⟩}⍟(¬Contains ⟨item,output⟩) @}¨items
-  output
-}
 Diagnostic ← {𝕊 codeText‿messageText:
   {severity⇐"error",stage⇐"accounting_plan_completion_join",code⇐codeText,message⇐messageText}
 }
@@ -68,8 +63,8 @@ Build ← {𝕊 planFacts‿actualFacts‿planTransactionIndices‿actualTransac
   diagnostics ← empty
   diagnostics ∾↩ AddIf ⟨¬fact_reference.SourceIs ⟨planFacts,"plan.tsv"⟩,Diagnostic ⟨"plan_facts_invalid","Plan facts must be admitted from plan.tsv"⟩⟩
   diagnostics ∾↩ AddIf ⟨¬fact_reference.SourceIs ⟨actualFacts,"actual.journal"⟩,Diagnostic ⟨"actual_facts_invalid","Actual facts must be admitted from actual.journal"⟩⟩
-  diagnostics ∾↩ AddIf ⟨(≠planTransactionIndices)≠≠Unique planTransactionIndices,Diagnostic ⟨"plan_selection_duplicate","Plan selection indices must be unique"⟩⟩
-  diagnostics ∾↩ AddIf ⟨(≠actualTransactionIndices)≠≠Unique actualTransactionIndices,Diagnostic ⟨"actual_selection_duplicate","Actual selection indices must be unique"⟩⟩
+  diagnostics ∾↩ AddIf ⟨(≠planTransactionIndices)≠≠⍷planTransactionIndices,Diagnostic ⟨"plan_selection_duplicate","Plan selection indices must be unique"⟩⟩
+  diagnostics ∾↩ AddIf ⟨(≠actualTransactionIndices)≠≠⍷actualTransactionIndices,Diagnostic ⟨"actual_selection_duplicate","Actual selection indices must be unique"⟩⟩
   diagnostics ∾↩ AddIf ⟨¬∧´1∾{Contains ⟨𝕩,planFacts.transactions.index⟩}¨planTransactionIndices,Diagnostic ⟨"plan_selection_invalid","Plan selection must contain canonical Transaction indices"⟩⟩
   diagnostics ∾↩ AddIf ⟨¬∧´1∾{Contains ⟨𝕩,actualFacts.transactions.index⟩}¨actualTransactionIndices,Diagnostic ⟨"actual_selection_invalid","Actual selection must contain canonical Transaction indices"⟩⟩
 
@@ -79,7 +74,7 @@ Build ← {𝕊 planFacts‿actualFacts‿planTransactionIndices‿actualTransac
   {𝕊:
     planIds ← planTransactionIndices⊏planFacts.transactions.plan_id
     diagnostics ∾↩ AddIf ⟨∨´0∾{0=≠𝕩}¨planIds,Diagnostic ⟨"plan_identity_missing","selected Plan Transactions require durable plan_id"⟩⟩
-    diagnostics ∾↩ AddIf ⟨(≠planIds)≠≠Unique planIds,Diagnostic ⟨"plan_identity_duplicate","selected Plan plan_id values must be unique"⟩⟩
+    diagnostics ∾↩ AddIf ⟨(≠planIds)≠≠⍷planIds,Diagnostic ⟨"plan_identity_duplicate","selected Plan plan_id values must be unique"⟩⟩
 
     selectedActualPlanIds ← actualTransactionIndices⊏actualFacts.transactions.plan_id
     linkedActualMask ← {0<≠𝕩}¨selectedActualPlanIds
