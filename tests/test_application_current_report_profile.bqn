@@ -19,6 +19,17 @@ profileSources ← profile.SourceNames admissions
 "cycle.tsv" lib.AssertEq profileSources.comparison_current_cycle
 "cycle_baseline.destination.tsv" lib.AssertEq profileSources.baseline_cycle
 "plan.tsv" lib.AssertEq profileSources.plan
+"aligned_elapsed" lib.AssertEq profile.ComparisonPolicy admissions
+
+reorderedComparison ← {
+  key⇐"cycle-comparison",
+  coordinate_role⇐⟨"policy","domain"⟩,
+  coordinates⇐⟨"role_selected","JPY"⟩
+}
+admissionsWithReorderedPolicy ← {
+  𝕊 admitted: (admitted.key≡"cycle-comparison")⊑⟨admitted,reorderedComparison⟩
+}¨admissions
+"role_selected" lib.AssertEq profile.ComparisonPolicy admissionsWithReorderedPolicy
 
 cycleAccountsWithPlan ← route.Admit ⟨
   "cycle-accounts","human",⟨"JPY","2026-01-12","actual.journal","cycle.tsv","cycle_plan.tsv"⟩
