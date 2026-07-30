@@ -16,12 +16,12 @@ Status: boundedなBQN refactorのためのproposed review gate
 
 このガイドはproduction採用のgateです。BQNの発想、primitive、modifier、alternate representation、tacit form、新しいcapabilityを発見する範囲を狭めるためのものではありません。
 
-候補の発見と比較には`BQN_EXPLORATION_PLAYBOOK.md`を使います。production gateをまだ通れない案は捨てず、次のどれかへ戻します。
+候補の発見と比較には`BQN_EXPLORATION_PLAYBOOK.md`を使い、蓄積済みの問いと再訪条件は`BQN_EXPLORATION_CATALOG.md`から読みます。production gateをまだ通れない案は捨てず、次のどれかへ戻します。
 
 - `experiments/bqn/`のanalysis-only probe;
 - 個人用BQN書籍の実験;
-- 現在は使わない理由を持つparked record;
-- 別correctness decisionを必要とするnew capability。
+- catalogに理由と再訪条件を残すparked record;
+- catalogに別correctness decisionとして残すnew capability。
 
 探索では複数の大胆な表現を比較して構いません。productionへの採用だけを、一つのcoherent finite sliceに絞ります。
 
@@ -156,14 +156,14 @@ final codeはcompactで構いません。review evidenceには、そこへ到達
 
 ## 作業順序
 
-1. `BQN_EXPLORATION_PLAYBOOK.md`のopportunity scanで、primitive、cell/rank/axis、別representation、whole-array form、新capabilityを観察する。
-2. 今回productionへ持ち込むfinite questionを一文で宣言する。
+1. `BQN_EXPLORATION_PLAYBOOK.md`のopportunity scanと`BQN_EXPLORATION_CATALOG.md`の既存card確認から、primitive、cell/rank/axis、別representation、whole-array form、新capabilityを観察する。
+2. 探索では必要なだけ複数案を比較し、今回productionへ持ち込むfinite questionだけを一文で宣言する。
 3. 変えてはいけないcontractを書く。
 4. final expressionより先にarray modelを書く。
 5. 該当するsemantic edgeをfocused testへ追加する。
 6. 最小のcoherent changeを実装する。
 7. 5問でreviewし、必要な場合だけ詳細lensを参照する。
-8. current `main`との統合状態で検証し、`accept / revise / reject / return-to-probe`を出す。
+8. current `main`との統合状態で検証し、`accept / revise / reject / return-to-probe`を出す。未採用だが再利用価値のある観察はcatalogへ戻す。
 
 新しいgeneric helperより、まずdirect primitiveを使います。複数のreal consumerが同じsemanticsを証明した後にだけshared ownerを抽出します。
 
