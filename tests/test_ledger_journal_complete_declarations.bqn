@@ -36,4 +36,22 @@ duplicate ← admission.Admit ⟨duplicateRaw,⟨⟩,registry⟩
 "commodity_domain_duplicate" lib.AssertEq (⊑duplicate.diagnostics).code
 0 lib.AssertEq (⊑duplicate.diagnostics).line
 
+mixedPostingRaw ← ∾⟨
+  "commodity JPY"∾lf,
+  ""∾lf,
+  "commodity ILS"∾lf,
+  ""∾lf,
+  "2026-01-01 * mixed domain"∾lf,
+  "    assets:cash 10 JPY"∾lf,
+  "    expenses:food 5 ILS"∾lf,
+  "    assets:cash -15 JPY"
+⟩
+mixedPosting ← admission.Admit ⟨mixedPostingRaw,⟨⟩,registry⟩
+"error" lib.AssertEq mixedPosting.state
+⟨"JPY","ILS"⟩ lib.AssertEq mixedPosting.declared_domains
+0 lib.AssertEq ≠mixedPosting.transactions
+1 lib.AssertEq ≠mixedPosting.diagnostics
+"transaction_domain_count_invalid" lib.AssertEq (⊑mixedPosting.diagnostics).code
+5 lib.AssertEq (⊑mixedPosting.diagnostics).line
+
 •Out "test_ledger_journal_complete_declarations: ok"
