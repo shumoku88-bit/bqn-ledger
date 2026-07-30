@@ -65,6 +65,27 @@ scaleFlow ← flow.Build ⟨scaleFacts,"JPY","plan",start,end⟩
 ⟨373⟩ lib.AssertEq scaleFlow.expense_groups.coefficient
 ⟨⟨0,2⟩⟩ lib.AssertEq scaleFlow.expense_groups.contributors
 
+duplicateCategoryLines ← ⟨
+  "assets:jpy	role=asset	currency=JPY",
+  "expenses:food	role=expense	budget=food	currency=JPY",
+  "budget:food-a	role=budget	kind=envelope	budget=food	currency=JPY",
+  "budget:utilities	role=budget	kind=envelope	budget=utilities	currency=JPY",
+  "budget:food-b	role=budget	kind=envelope	budget=food	currency=JPY"
+⟩
+duplicateAccountsResult ← account_admission.Admit ⟨duplicateCategoryLines,registry⟩
+"ok" lib.AssertEq duplicateAccountsResult.state
+duplicateFacts ← {
+  state⇐"ok",transactions⇐scaleFacts.transactions,postings⇐scaleFacts.postings,
+  sources⇐scaleFacts.sources,domains⇐scaleFacts.domains,accounts⇐duplicateAccountsResult.accounts,
+  layers⇐scaleFacts.layers,diagnostics⇐⟨⟩
+}
+duplicateFlow ← flow.Build ⟨duplicateFacts,"JPY","plan",start,end⟩
+"error" lib.AssertEq duplicateFlow.state
+0 lib.AssertEq duplicateFlow.dates.count
+0 lib.AssertEq duplicateFlow.categories.count
+0 lib.AssertEq duplicateFlow.expense_groups.count
+1 lib.AssertEq ∨´0∾"envelope_category_duplicate"⊸≡¨{𝕩.code}¨duplicateFlow.diagnostics
+
 CheckRejected ← {𝕊 domain‿layer‿s‿e‿code:
   rejected ← flow.Build ⟨facts,domain,layer,s,e⟩
   "error" lib.AssertEq rejected.state
