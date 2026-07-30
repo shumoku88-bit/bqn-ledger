@@ -11,11 +11,6 @@ SplitKeepEmpty ← {𝕊 sep‿text:
   {(sep≠𝕩)/𝕩}¨groups
 }
 Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
-Unique ← {𝕊 items:
-  result ← empty
-  {𝕊 item: {𝕊: result∾↩⟨item⟩}⍟(¬Contains ⟨item,result⟩) @}¨items
-  result
-}
 IndexOf ← {𝕊 item‿items: ⊑(item⊸≡¨items)⊐1}
 Ignored ← {𝕊 line: (0=≠line) ∨ ((0<≠line) ∧ ((⊑line)∊"#\\")) }
 IsDigits ← {𝕊 text: (0<≠text) ∧ ∧´text∊"0123456789"}
@@ -62,7 +57,7 @@ Admit ← {𝕊 lines‿accounts:
   }¨↕≠lines
 
   keys ← {𝕩.key}¨rows
-  diagnostics ∾↩ AddIf ⟨(≠keys)≠≠Unique keys,Diagnostic ⟨"cycle_key_duplicate",0,"cycle keys must be unique"⟩⟩
+  diagnostics ∾↩ AddIf ⟨(≠keys)≠≠⍷keys,Diagnostic ⟨"cycle_key_duplicate",0,"cycle keys must be unique"⟩⟩
   mode ← ValueOr ⟨"mode",rows,""⟩
   start ← ValueOr ⟨"start",rows,""⟩
   endExclusive ← ValueOr ⟨"end_exclusive",rows,""⟩
