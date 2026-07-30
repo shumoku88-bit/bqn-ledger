@@ -6,6 +6,7 @@ cd "$ROOT_DIR"
 
 bqn tests/test_ledger_account_admission.bqn >/dev/null
 bqn tests/test_ledger_journal_transaction_structure.bqn >/dev/null
+bqn tests/test_ledger_journal_complete_declarations.bqn >/dev/null
 bqn tests/test_ledger_issue_admission.bqn >/dev/null
 bqn tests/test_ledger_facts.bqn >/dev/null
 bqn tests/test_report_json_text.bqn >/dev/null
