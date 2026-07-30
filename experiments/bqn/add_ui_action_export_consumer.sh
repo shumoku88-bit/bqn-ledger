@@ -29,7 +29,7 @@ while IFS=$'\t' read -r key label family; do
 done <"$exported" >"$menu"
 
 [[ "$(wc -l <"$menu" | tr -d ' ')" == "12" ]]
-grep -Fx $'expense\t支出' "$menu" >/dev/null
-grep -Fx $'issue-close\tIssue終了' "$menu" >/dev/null
+grep -Fx $'expense\t支出 assets -> expenses' "$menu" >/dev/null
+grep -Fx $'issue-close\tIssues & Decisions を閉じる' "$menu" >/dev/null
 
 printf 'add_ui_action_export consumer: complete\n'
