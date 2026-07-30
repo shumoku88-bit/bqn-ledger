@@ -44,6 +44,7 @@ CheckRejected ⟨⟨⟨"a"⟩,1,⟨"a"⟩,⟨0.5⟩,⟨1⟩,⟨⟨0⟩⟩⟩,"gr
 CheckRejected ⟨⟨⟨"a"⟩,1,⟨"a"⟩,⟨0⟩,⟨1⟩,⟨⟨⟩⟩⟩,"group_contributors_missing"⟩
 CheckRejected ⟨⟨⟨"a"⟩,1,⟨"a","a"⟩,⟨0,0⟩,⟨9007199254740991,2⟩,⟨⟨0⟩,⟨1⟩⟩⟩,"group_sum_failed"⟩
 
+# Independent admission failures remain ordered and publication remains fail-closed.
 combinedRejected ← group.Build ⟨
   ⟨"a","a"⟩,¯1,
   ⟨"missing"⟩,⟨0⟩,⟨1⟩,⟨⟨⟩⟩
