@@ -122,7 +122,7 @@ misalignedInput ← ⟨⟨"r0"⟩,2,⟨"r0"⟩,empty,⟨1⟩,⟨⟨"x"⟩⟩⟩
 duplicateAxisInput ← ⟨⟨"r0","r0"⟩,1,⟨"r0"⟩,⟨0⟩,⟨1⟩,⟨⟨"x"⟩⟩⟩
 invalidCountInput ← ⟨⟨"r0"⟩,¯1,empty,empty,empty,empty⟩
 unknownRowInput ← ⟨⟨"r0"⟩,2,⟨"missing"⟩,⟨0⟩,⟨1⟩,⟨⟨"x"⟩⟩⟩
-invalidColumnInput ← ⟨⟨"r0"⟩,2,⟨"r0"⟩,⟨2⟩,⟨1⟩,⟨⟨"x"⟩⟩
+invalidColumnInput ← ⟨⟨"r0"⟩,2,⟨"r0"⟩,⟨2⟩,⟨1⟩,⟨⟨"x"⟩⟩⟩
 missingContributorsInput ← ⟨⟨"r0"⟩,2,⟨"r0"⟩,⟨0⟩,⟨1⟩,⟨empty⟩⟩
 combinedInvalidInput ← ⟨
   ⟨"r0","r0"⟩,¯1,
