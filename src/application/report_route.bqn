@@ -104,8 +104,8 @@ routes ← ⟨Envelopes,Balances,Recent,Planned,CycleAccounts,CycleComparison,Mo
 RoutePlan ← {𝕊 key‿coordinates:
   matches ← key⊸≡¨keys
   index ← ⊑matches/↕≠keys
-  selectedRoute ← index⊑routes
-  selectedRoute coordinates
+  SelectedRoute ← index⊑routes
+  SelectedRoute coordinates
 }
 
 Admit ← {𝕊 key‿surface‿coordinates:
