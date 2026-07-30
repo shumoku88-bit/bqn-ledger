@@ -8,14 +8,8 @@ amount ← •Import "../ledger/amount_text.bqn"
 text ← •Import "../report/text.bqn"
 empty ← ⟨⟩
 
-Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
-Unique ← {𝕊 items:
-  result ← empty
-  {𝕊 item: {𝕊: result∾↩⟨item⟩}⍟(¬Contains ⟨item,result⟩) @}¨items
-  result
-}
 IndexOf ← {𝕊 item‿items: ⊑(item⊸≡¨items)⊐1}
-SortedUnique ← {𝕊 items: sorted←(⍋items)⊏items ⋄ Unique sorted}
+SortedUnique ← {𝕊 items: ⍷(⍋items)⊏items}
 Diagnostic ← {𝕊 codeText‿messageText:
   {severity⇐"error",stage⇐"section_daily_flow",code⇐codeText,message⇐messageText}
 }
