@@ -13,11 +13,6 @@ SplitKeepEmpty ← {𝕊 sep‿text:
   {(sep≠𝕩)/𝕩}¨groups
 }
 Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
-Unique ← {𝕊 items:
-  result ← empty
-  {𝕊 item: {𝕊: result∾↩⟨item⟩}⍟(¬Contains ⟨item,result⟩) @}¨items
-  result
-}
 Ignored ← {𝕊 line: (0=≠line) ∨ ((0<≠line) ∧ ((⊑line)∊"#\\")) }
 Diagnostic ← {𝕊 severityText‿codeText‿row‿messageText:
   {severity⇐severityText,stage⇐"ledger_account_admission",code⇐codeText,source_row⇐row,message⇐messageText}
@@ -72,7 +67,7 @@ Admit ← {𝕊 lines‿registry:
         {𝕊: metadata∾↩⟨parsed.item⟩}⍟(parsed.item≢@) @
       }¨1↓fields
       metadataKeys ← {𝕩.key}¨metadata
-      rowDiagnostics ∾↩ AddIf ⟨(≠metadataKeys)≠≠Unique metadataKeys,Diagnostic ⟨"error","account_metadata_duplicate",i,"account metadata keys must be unique"⟩⟩
+      rowDiagnostics ∾↩ AddIf ⟨(≠metadataKeys)≠≠⍷metadataKeys,Diagnostic ⟨"error","account_metadata_duplicate",i,"account metadata keys must be unique"⟩⟩
       currency ← MetaOr ⟨"currency",metadata,""⟩
       role ← MetaOr ⟨"role",metadata,""⟩
       rowDiagnostics ∾↩ AddIf ⟨0=≠currency,Diagnostic ⟨"error","account_currency_missing",i,"account currency must be explicit"⟩⟩
@@ -97,7 +92,7 @@ Admit ← {𝕊 lines‿registry:
   }¨↕≠lines
 
   keys ← {𝕩.key}¨rows
-  duplicate ← (≠keys)≠≠Unique keys
+  duplicate ← (≠keys)≠≠⍷keys
   diagnostics ∾↩ AddIf ⟨duplicate,Diagnostic ⟨"error","account_key_duplicate",0,"account keys must be unique"⟩⟩
   hasError ← ∨´0∾{𝕩.severity≡"error"}¨diagnostics
   accounts ← EmptyAccounts @

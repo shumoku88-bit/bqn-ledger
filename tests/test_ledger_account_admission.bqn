@@ -35,8 +35,10 @@ unsupportedCurrency ← accounts.Admit ⟨⟨"assets:cash"∾tab∾"currency=EUR
 0 lib.AssertEq unsupportedCurrency.accounts.count
 lib.Assert ∨´{𝕩.code≡"account_currency_unsupported"}¨unsupportedCurrency.diagnostics
 
-duplicateMetadata ← accounts.Admit ⟨⟨"assets:cash"∾tab∾"currency=JPY"∾tab∾"currency=JPY"∾tab∾"role=asset"⟩,registry⟩
+duplicateMetadata ← accounts.Admit ⟨⟨"assets:cash"∾tab∾"currency=JPY"∾tab∾"role=asset"∾tab∾"currency=JPY"⟩,registry⟩
 "error" lib.AssertEq duplicateMetadata.state
+0 lib.AssertEq duplicateMetadata.accounts.count
+"account_metadata_duplicate" lib.AssertEq (⊑duplicateMetadata.diagnostics).code
 lib.Assert ∨´{𝕩.code≡"account_metadata_duplicate"}¨duplicateMetadata.diagnostics
 
 unknownMetadata ← accounts.Admit ⟨⟨"assets:cash"∾tab∾"currency=JPY"∾tab∾"role=asset"∾tab∾"mystery=x"⟩,registry⟩
@@ -44,11 +46,16 @@ unknownMetadata ← accounts.Admit ⟨⟨"assets:cash"∾tab∾"currency=JPY"∾
 lib.Assert ∨´{𝕩.code≡"account_metadata_unsupported"}¨unknownMetadata.diagnostics
 
 duplicateKeys ← accounts.Admit ⟨
-  ⟨"assets:cash"∾tab∾"currency=JPY"∾tab∾"role=asset","assets:cash"∾tab∾"currency=JPY"∾tab∾"role=asset"⟩,
+  ⟨
+    "assets:cash"∾tab∾"currency=JPY"∾tab∾"role=asset",
+    "income:salary"∾tab∾"currency=JPY"∾tab∾"role=income",
+    "assets:cash"∾tab∾"currency=JPY"∾tab∾"role=asset"
+  ⟩,
   registry
 ⟩
 "error" lib.AssertEq duplicateKeys.state
 0 lib.AssertEq duplicateKeys.accounts.count
-lib.Assert ∨´{𝕩.code≡"account_key_duplicate"}¨duplicateKeys.diagnostics
+1 lib.AssertEq ≠duplicateKeys.diagnostics
+"account_key_duplicate" lib.AssertEq (⊑duplicateKeys.diagnostics).code
 
 •Out "test_ledger_account_admission: ok"
