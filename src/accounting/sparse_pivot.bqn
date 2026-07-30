@@ -31,24 +31,33 @@ Build ← {𝕊 rowCoordinates‿columnCoordinates‿valueScale‿groups:
 
   matrix ← EmptyMatrix @
   {𝕊:
-    rowIndices ← ↕≠rowCoordinates
-    columnIndices ← ↕≠columnCoordinates
+    rowCount ← ≠rowCoordinates
+    columnCount ← ≠columnCoordinates
+    cellCount ← rowCount×columnCount
+
+    # Encode each occupied sparse coordinate once. Index Of classifies every dense
+    # destination cell as one Group item or the absent bound groups.count.
+    groupCells ← (columnCount×groups.row_index)+groups.column_index
+    groupLookup ← groupCells ⊐ ↕cellCount
+    cells ← {𝕊 groupIndex:
+      value ← 0
+      cellContributors ← empty
+      {𝕊:
+        value↩groupIndex⊑groups.coefficient
+        cellContributors↩groupIndex⊑groups.contributors
+      }⍟(groupIndex<groups.count) @
+      {value⇐value,contributors⇐cellContributors}
+    }¨groupLookup
+
+    valuesFlat ← {𝕩.value}¨cells
+    contributorsFlat ← {𝕩.contributors}¨cells
     values ← {𝕊 rowIndex:
-      {𝕊 columnIndex:
-        matches ← ((rowIndex=groups.row_index) ∧ columnIndex=groups.column_index)/↕groups.count
-        value ← 0
-        {𝕊: value↩(⊑matches)⊑groups.coefficient}⍟(1=≠matches) @
-        value
-      }¨columnIndices
-    }¨rowIndices
+      ((columnCount×rowIndex)+↕columnCount)⊏valuesFlat
+    }¨↕rowCount
     contributors ← {𝕊 rowIndex:
-      {𝕊 columnIndex:
-        matches ← ((rowIndex=groups.row_index) ∧ columnIndex=groups.column_index)/↕groups.count
-        cell ← empty
-        {𝕊: cell↩(⊑matches)⊑groups.contributors}⍟(1=≠matches) @
-        cell
-      }¨columnIndices
-    }¨rowIndices
+      ((columnCount×rowIndex)+↕columnCount)⊏contributorsFlat
+    }¨↕rowCount
+
     built ← matrixResult.Build ⟨rowCoordinates,columnCoordinates,valueScale,values,contributors⟩
     diagnostics ∾↩ built.diagnostics
     {𝕊: matrix↩built.matrix}⍟(built.state≡"ok") @
