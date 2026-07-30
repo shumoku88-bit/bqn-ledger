@@ -1,12 +1,12 @@
 # libri-di-casa integration boundary
 
-Status: durable future-integration constraint; no integration is active
+Status: optional future-integration constraint; standalone BQN remains a valid long-term outcome
 
 ## Purpose
 
-`bqn-ledger` may later integrate with or converge with `libri-di-casa`. That possibility affects boundaries now, but it does not justify a speculative shared domain model.
+`bqn-ledger` may later integrate with or converge with `libri-di-casa`, but integration is not the default or a committed destination. If BQN alone remains sufficient for trustworthy accounting, writing, reporting, and daily use, `bqn-ledger` may remain independent indefinitely. The possibility of integration should preserve replaceable boundaries now without distorting the standalone design or creating a speculative shared domain model.
 
-The selected long-term division is:
+If a concrete future need selects integration, the candidate division is:
 
 ```text
 libri-di-casa / Haskell
@@ -21,7 +21,9 @@ bqn-ledger / BQN
 
 A conversational client, terminal UI, JSON/API adapter, or authenticated HTML presenter remains outside both accounting meanings. Repository layout and process topology may change later; this ownership split must remain explicit.
 
-## Intended data path
+## Conditional integration data path
+
+Only an explicitly selected integration would introduce this path:
 
 ```text
 human words, observations, or retained evidence
@@ -38,11 +40,17 @@ human words, observations, or retained evidence
 
 The boundary may be an ordinary file, a library value, or a process protocol. Its transport is replaceable. Its accounting meaning, identity, exactness, and provenance are not.
 
+## Decision rule
+
+Prefer continued standalone BQN operation while it satisfies the selected accounting semantics, identity/provenance requirements, write safety, maintainability, and user experience. Integration must answer a demonstrated requirement that cannot be met as clearly by improving the BQN system alone. Language preference, anticipated scale, or architectural symmetry is not sufficient evidence.
+
+No current feature should be delayed merely to prepare a merger, and no shared protocol should be implemented before it has two real sides and one finite consumer. Conversely, current work should avoid needless coupling to physical file names or terminal text when a clean semantic boundary is already natural.
+
 ## Constraints on current development
 
 ### One authoritative writer
 
-Current `bqn-ledger` editors remain authoritative for the current standalone ledger. A future integration must select one write owner before cutover. Haskell and BQN must not independently mutate two supposedly authoritative copies of the same confirmed event.
+Current `bqn-ledger` editors remain authoritative for the standalone ledger and may remain so permanently. A future integration, if selected, must choose one write owner before cutover. Haskell and BQN must not independently mutate two supposedly authoritative copies of the same confirmed event.
 
 Do not turn the current Shell/BQN editor into a universal persistence framework merely to anticipate integration. Preserve its safety while it is in use, and keep it replaceable at the application edge.
 
@@ -100,7 +108,7 @@ Do not add a universal household context, shared mutable store, compatibility al
 
 ## Integration gate
 
-A future integration is ready only when one finite slice can answer all of these questions:
+First, a future proposal must demonstrate why improving standalone BQN is insufficient for its concrete requirement. Only then is integration ready when one finite slice can answer all of these questions:
 
 1. Which project owns the authoritative write?
 2. What exact confirmed record crosses the boundary?

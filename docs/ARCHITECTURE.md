@@ -27,9 +27,9 @@ No report section reads files or the clock. No accounting capability imports a s
 
 ## Possible libri-di-casa convergence
 
-A future integration may make `libri-di-casa`/Haskell the authoritative confirmation, accounting-validation, identity, provenance, and persistence owner while this BQN engine consumes versioned confirmed evidence and owns derived array calculations and neutral report results.
+Integration is optional: if BQN remains sufficient for trustworthy accounting, writing, reporting, and daily use, this system may remain independent indefinitely. Only a demonstrated requirement that standalone BQN cannot satisfy as clearly should select convergence. If selected, a future integration may make `libri-di-casa`/Haskell the authoritative confirmation, accounting-validation, identity, provenance, and persistence owner while this BQN engine consumes versioned confirmed evidence and owns derived array calculations and neutral report results.
 
-This is a design constraint, not an active alternate source. Native Journal remains the sole production Actual input until a separately admitted adapter and cutover are proven. Current development must preserve one authoritative writer, distinguish semantic source role from physical encoding, retain exact Transaction/Posting identity and provenance, and keep external consumers from having to parse human report text. Plan, Budget, Issues, and Daily Target policy are not presumed to map to historically named books.
+This is a replaceability constraint, not a committed merger or an active alternate source. Native Journal remains the sole production Actual input until a separately admitted adapter and cutover are proven. Current development must preserve one authoritative writer, distinguish semantic source role from physical encoding, retain exact Transaction/Posting identity and provenance, and keep external consumers from having to parse human report text. Plan, Budget, Issues, and Daily Target policy are not presumed to map to historically named books.
 
 The full boundary and future integration gate are in [`LIBRI_DI_CASA_INTEGRATION_BOUNDARY.md`](LIBRI_DI_CASA_INTEGRATION_BOUNDARY.md).
 

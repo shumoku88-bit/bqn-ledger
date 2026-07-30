@@ -53,6 +53,7 @@ Issues use the canonical eight-column schema and strict post-write admission.
 ## Change rules
 
 - Keep source admission, accounting, section, and composition dependencies one-way.
+- Prefer standalone BQN while it remains sufficient; possible `libri-di-casa` convergence is optional, not the target architecture.
 - Preserve one authoritative writer and a replaceable confirmed-accounting adapter; do not make physical source names a permanent accounting abstraction.
 - Do not add broad context records, historical transaction shapes, aliases, or fallback source discovery.
 - Move an owner with all callers; leave no forwarding module.
