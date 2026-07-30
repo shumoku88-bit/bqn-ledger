@@ -12,6 +12,19 @@ Status: boundedなBQN refactorのためのproposed review gate
 
 `src/`、`src_edit/`、retained shared ownerと、そのfocused testにある小さなrefactorで使います。correctness変更とownership migrationは別sliceのまま保ちます。
 
+## Exploration laneとの関係
+
+このガイドはproduction採用のgateです。BQNの発想、primitive、modifier、alternate representation、tacit form、新しいcapabilityを発見する範囲を狭めるためのものではありません。
+
+候補の発見と比較には`BQN_EXPLORATION_PLAYBOOK.md`を使います。production gateをまだ通れない案は捨てず、次のどれかへ戻します。
+
+- `experiments/bqn/`のanalysis-only probe;
+- 個人用BQN書籍の実験;
+- 現在は使わない理由を持つparked record;
+- 別correctness decisionを必要とするnew capability。
+
+探索では複数の大胆な表現を比較して構いません。productionへの採用だけを、一つのcoherent finite sliceに絞ります。
+
 ## 日常の5問
 
 通常のbounded refactorでは、まずこの5問だけを確認します。
@@ -44,7 +57,7 @@ Status: boundedなBQN refactorのためのproposed review gate
 
 ## Hard gates
 
-該当するgateが一つでも通らないrefactorは採用しません。
+該当するgateが一つでも通らないrefactorはproductionへ採用しません。価値ある表現はexploration laneへ戻して観察を続けられます。
 
 1. **Finite question**: 編集前に、一つのboundedな変換またはownership questionを宣言する。
 2. **Meaning preservation**: 別のcorrectness sliceで明示的に許可しない限り、値、順序、diagnostics、provenance、exact arithmetic、rejection behaviorを変えない。
@@ -139,17 +152,18 @@ final codeはcompactで構いません。review evidenceには、そこへ到達
 - 何がessential contractで、何がscaffoldingか。
 - 極端に短い形でも、ここではmaintainableかつdiagnostically completeか。
 
-これはprobeでありacceptance criterionではありません。暗黙の前提へ依存する圧縮や、人間、test、将来の自動変更に必要なevidenceを消す圧縮はrejectします。
+これはprobeでありacceptance criterionではありません。暗黙の前提へ依存する圧縮や、人間、test、将来の自動変更に必要なevidenceを消す圧縮はrejectします。rejectされた表現も、隠れた前提を示すexperimentとして保存できます。
 
 ## 作業順序
 
-1. finite questionを一文で宣言する。
-2. 変えてはいけないcontractを書く。
-3. final expressionより先にarray modelを書く。
-4. 該当するsemantic edgeをfocused testへ追加する。
-5. 最小のcoherent changeを実装する。
-6. 5問でreviewし、必要な場合だけ詳細lensを参照する。
-7. current `main`との統合状態で検証し、`accept / revise / reject`を出す。
+1. `BQN_EXPLORATION_PLAYBOOK.md`のopportunity scanで、primitive、cell/rank/axis、別representation、whole-array form、新capabilityを観察する。
+2. 今回productionへ持ち込むfinite questionを一文で宣言する。
+3. 変えてはいけないcontractを書く。
+4. final expressionより先にarray modelを書く。
+5. 該当するsemantic edgeをfocused testへ追加する。
+6. 最小のcoherent changeを実装する。
+7. 5問でreviewし、必要な場合だけ詳細lensを参照する。
+8. current `main`との統合状態で検証し、`accept / revise / reject / return-to-probe`を出す。
 
 新しいgeneric helperより、まずdirect primitiveを使います。複数のreal consumerが同じsemanticsを証明した後にだけshared ownerを抽出します。
 
@@ -177,4 +191,4 @@ final codeはcompactで構いません。review evidenceには、そこへ到達
 - editor ownership migrationとaccounting algorithm変更を同じsliceへ入れる
 - separate explicit authorizationなしでprivate household sourceを編集する
 
-よいBQN refactorは、ledgerのevidenceを削らずにcomputational crystalを澄ませます。
+よいBQN refactorは、ledgerのevidenceを削らずにcomputational crystalを澄ませます。探索laneは、そのcrystalにならなかった鉱石も観察可能な形で残します。
