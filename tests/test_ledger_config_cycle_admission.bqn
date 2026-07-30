@@ -35,13 +35,31 @@ CheckConfigRejected ← {𝕊 lines‿code:
   1 lib.AssertEq HasCode ⟨code,rejected.diagnostics⟩
 }
 CheckConfigRejected ⟨⟨⟩,"default_currency_missing"⟩
-CheckConfigRejected ⟨⟨"DEFAULT_CURRENCY=JPY","DEFAULT_CURRENCY=USD"⟩,"config_key_duplicate"⟩
 CheckConfigRejected ⟨⟨"DEFAULT_CURRENCY=XXX"⟩,"default_currency_unsupported"⟩
 CheckConfigRejected ⟨⟨"DEFAULT_CURRENCY=JPY","UNKNOWN=x"⟩,"config_key_unsupported"⟩
 CheckConfigRejected ⟨⟨"DEFAULT_CURRENCY=JPY","POLICY_BUDGET_STYLE=other"⟩,"budget_style_invalid"⟩
 CheckConfigRejected ⟨⟨"DEFAULT_CURRENCY=JPY","HOUSEHOLD_GROUP_ORDER=daily,,reserve"⟩,"config_list_item_empty"⟩
-CheckConfigRejected ⟨⟨"DEFAULT_CURRENCY=JPY","HOUSEHOLD_GROUP_ORDER=daily,daily"⟩,"config_list_item_duplicate"⟩
 CheckConfigRejected ⟨⟨"DEFAULT_CURRENCY=JPY","ACTUAL_JOURNAL_FILE=../actual.journal"⟩,"actual_journal_file_invalid"⟩
+
+duplicateConfigKeys ← config_admission.Admit ⟨
+  ⟨"DEFAULT_CURRENCY=JPY","POLICY_BUDGET_STYLE=envelope","DEFAULT_CURRENCY=USD"⟩,
+  registry
+⟩
+"error" lib.AssertEq duplicateConfigKeys.state
+0 lib.AssertEq duplicateConfigKeys.table.count
+"" lib.AssertEq duplicateConfigKeys.source.default_currency
+"config_key_duplicate" lib.AssertEq (⊑duplicateConfigKeys.diagnostics).code
+0 lib.AssertEq (⊑duplicateConfigKeys.diagnostics).source_row
+
+duplicateListItems ← config_admission.Admit ⟨
+  ⟨"DEFAULT_CURRENCY=JPY","HOUSEHOLD_GROUP_ORDER=daily,reserve,daily"⟩,
+  registry
+⟩
+"error" lib.AssertEq duplicateListItems.state
+0 lib.AssertEq duplicateListItems.table.count
+1 lib.AssertEq ≠duplicateListItems.diagnostics
+"config_list_item_duplicate" lib.AssertEq (⊑duplicateListItems.diagnostics).code
+0 lib.AssertEq (⊑duplicateListItems.diagnostics).source_row
 
 cycleResult ← cycle_admission.Admit ⟨loader.ReadLines base∾"cycle.tsv",accounts⟩
 "ok" lib.AssertEq cycleResult.state
