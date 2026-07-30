@@ -54,26 +54,27 @@ Admit ← {𝕊 lines‿registry:
   rows ← empty
   {𝕊 i:
     line ← i⊑lines
+    row ← i+1
     {𝕊:
       fields ← SplitKeepEmpty ⟨tab,line⟩
       key ← ⊑fields
       rowDiagnostics ← empty
-      rowDiagnostics ∾↩ AddIf ⟨0=≠key,Diagnostic ⟨"error","account_key_empty",i,"account key must be nonempty"⟩⟩
-      rowDiagnostics ∾↩ AddIf ⟨∨´0∾' '=key,Diagnostic ⟨"error","account_key_space_invalid",i,"account key must not contain ASCII spaces"⟩⟩
+      rowDiagnostics ∾↩ AddIf ⟨0=≠key,Diagnostic ⟨"error","account_key_empty",row,"account key must be nonempty"⟩⟩
+      rowDiagnostics ∾↩ AddIf ⟨∨´0∾' '=key,Diagnostic ⟨"error","account_key_space_invalid",row,"account key must not contain ASCII spaces"⟩⟩
       metadata ← empty
       {𝕊 token:
-        parsed ← ParseMetadata ⟨token,i⟩
+        parsed ← ParseMetadata ⟨token,row⟩
         rowDiagnostics ∾↩ parsed.diagnostics
         {𝕊: metadata∾↩⟨parsed.item⟩}⍟(parsed.item≢@) @
       }¨1↓fields
       metadataKeys ← {𝕩.key}¨metadata
-      rowDiagnostics ∾↩ AddIf ⟨(≠metadataKeys)≠≠⍷metadataKeys,Diagnostic ⟨"error","account_metadata_duplicate",i,"account metadata keys must be unique"⟩⟩
+      rowDiagnostics ∾↩ AddIf ⟨(≠metadataKeys)≠≠⍷metadataKeys,Diagnostic ⟨"error","account_metadata_duplicate",row,"account metadata keys must be unique"⟩⟩
       currency ← MetaOr ⟨"currency",metadata,""⟩
       role ← MetaOr ⟨"role",metadata,""⟩
-      rowDiagnostics ∾↩ AddIf ⟨0=≠currency,Diagnostic ⟨"error","account_currency_missing",i,"account currency must be explicit"⟩⟩
+      rowDiagnostics ∾↩ AddIf ⟨0=≠currency,Diagnostic ⟨"error","account_currency_missing",row,"account currency must be explicit"⟩⟩
       policy ← registry.Policy currency
-      rowDiagnostics ∾↩ AddIf ⟨(0<≠currency) ∧ policy.state≢"ok",Diagnostic ⟨"error","account_currency_unsupported",i,"account currency must be registry-supported"⟩⟩
-      {𝕊: rowDiagnostics∾↩⟨Diagnostic ⟨"warning","account_role_unclassified",i,"missing role remains unclassified"⟩⟩}⍟(0=≠role) @
+      rowDiagnostics ∾↩ AddIf ⟨(0<≠currency) ∧ policy.state≢"ok",Diagnostic ⟨"error","account_currency_unsupported",row,"account currency must be registry-supported"⟩⟩
+      {𝕊: rowDiagnostics∾↩⟨Diagnostic ⟨"warning","account_role_unclassified",row,"missing role remains unclassified"⟩⟩}⍟(0=≠role) @
       diagnostics ∾↩ rowDiagnostics
       hasError ← ∨´0∾{𝕩.severity≡"error"}¨rowDiagnostics
       {𝕊:
@@ -85,7 +86,7 @@ Admit ← {𝕊 lines‿registry:
           spend_class⇐MetaOr ⟨"spend_class",metadata,""⟩,
           kind⇐MetaOr ⟨"kind",metadata,""⟩,
           envelope_role⇐MetaOr ⟨"envelope_role",metadata,""⟩,
-          metadata⇐metadata,source_row⇐i
+          metadata⇐metadata,source_row⇐row
         }⟩
       }⍟(¬hasError) @
     }⍟(¬Ignored line) @
