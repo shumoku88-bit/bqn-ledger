@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$root"
+fixture="$root/fixtures/ledger-facts-phase1-proof"
+tmp="$(mktemp -d "${TMPDIR:-/tmp}/bqn-ledger-destination-route.XXXXXX")"
+trap 'rm -rf "$tmp"' EXIT
+cli="$root/src/application/report_destination_cli.bqn"
+
+ExpectLine() {
+  local expected=$1 file=$2
+  grep -Fx "$expected" "$file" >/dev/null || {
+    echo "FAIL: expected exact line: $expected" >&2
+    cat "$file" >&2
+    exit 1
+  }
+}
+
+grep -F 'route ← •Import "report_route.bqn"' "$cli" >/dev/null
+grep -F 'route.Admit ⟨key,surface,coordinates⟩' "$cli" >/dev/null
+if grep -Eq 'usage_(envelopes|balances|recent|planned|cycle_accounts|cycle_comparison|monthly_accounts|daily_flow|daily_target|issues)' "$cli"; then
+  echo 'FAIL: destination CLI still owns individual raw route admission' >&2
+  exit 1
+fi
+if grep -Fq 'IsDigits' "$cli"; then
+  echo 'FAIL: destination CLI still owns recent LIMIT text admission' >&2
+  exit 1
+fi
+
+registry_line=$(grep -n 'registryResult ← sources.Registry' "$cli" | cut -d: -f1)
+route_line=$(grep -n 'routeAdmission ← route.Admit' "$cli" | cut -d: -f1)
+[[ -n $registry_line && -n $route_line && $registry_line -lt $route_line ]] || {
+  echo 'FAIL: individual route admission moved before registry admission' >&2
+  exit 1
+}
+
+bqn "$cli" "$fixture" balances human JPY 2026-01-12 actual.journal >"$tmp/balances"
+cmp "$tmp/balances" "$fixture/account_balances.destination.human.txt"
+
+if bqn "$cli" "$fixture" balances human JPY 2026-01-12 >"$tmp/arity" 2>&1; then
+  echo 'FAIL: direct destination invalid arity succeeded' >&2
+  exit 1
+fi
+ExpectLine $'ERROR\tusage_balances\tbalances requires DOMAIN AS_OF JOURNAL_BASENAME' "$tmp/arity"
+
+if bqn "$cli" "$fixture" recent human nope actual.journal >"$tmp/limit" 2>&1; then
+  echo 'FAIL: direct destination invalid LIMIT succeeded' >&2
+  exit 1
+fi
+ExpectLine $'ERROR\tlimit_invalid\tLIMIT must be decimal digits' "$tmp/limit"
+
+# Request and `all` admission remain before registry access.
+if (
+  cd "$tmp"
+  bqn "$cli" "$fixture" unknown human >"$tmp/unknown" 2>&1
+); then
+  echo 'FAIL: unknown direct destination key succeeded without registry' >&2
+  exit 1
+fi
+ExpectLine $'ERROR\treport_key_unknown\treport key is not in the retained catalog' "$tmp/unknown"
+
+if (
+  cd "$tmp"
+  bqn "$cli" "$fixture" all human >"$tmp/all" 2>&1
+); then
+  echo 'FAIL: direct destination all succeeded without registry' >&2
+  exit 1
+fi
+ExpectLine $'ERROR\tall_not_implemented\tparallel CLI currently requires one retained key' "$tmp/all"
+
+echo 'check-report-destination-route-admission: OK'
