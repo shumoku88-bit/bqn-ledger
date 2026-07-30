@@ -14,6 +14,21 @@ FindAdmission ← {𝕊 key: (⊑(key⊸≡¨{𝕩.key}¨admissions)⊐1)⊑admi
 ⟨"domain","as_of","actual_source"⟩ lib.AssertEq (FindAdmission "balances").coordinate_role
 ⟨"domain","as_of","actual_source"⟩ lib.AssertEq (FindAdmission "balance-sheet").coordinate_role
 
+profileSources ← profile.SourceNames admissions
+"cycle.tsv" lib.AssertEq profileSources.current_cycle
+"cycle.tsv" lib.AssertEq profileSources.comparison_current_cycle
+"cycle_baseline.destination.tsv" lib.AssertEq profileSources.baseline_cycle
+"plan.tsv" lib.AssertEq profileSources.plan
+
+cycleAccountsWithPlan ← route.Admit ⟨
+  "cycle-accounts","human",⟨"JPY","2026-01-12","actual.journal","cycle.tsv","cycle_plan.tsv"⟩
+⟩
+"ok" lib.AssertEq cycleAccountsWithPlan.state
+admissionsWithCyclePlan ← {
+  𝕊 admitted: (admitted.key≡"cycle-accounts")⊑⟨admitted,cycleAccountsWithPlan⟩
+}¨admissions
+"cycle_plan.tsv" lib.AssertEq (profile.SourceNames admissionsWithCyclePlan).plan
+
 current ← cycleResult.Success ⟨"fixed","2026-01-12","2026-01-01","2026-02-01",⟨⟩,⟨⟩⟩
 baseline ← cycleResult.Success ⟨"fixed","2025-12-31","2025-12-22","2026-01-22",⟨⟩,⟨⟩⟩
 result ← profile.Build ⟨admissions,"2026-01-12",current,baseline⟩
