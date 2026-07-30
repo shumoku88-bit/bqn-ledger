@@ -6,11 +6,6 @@ sparse ← •Import "sparse_group.bqn"
 empty ← ⟨⟩
 
 Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
-Unique ← {𝕊 items:
-  result ← empty
-  {𝕊 item: {𝕊: result∾↩⟨item⟩}⍟(¬Contains ⟨item,result⟩) @}¨items
-  result
-}
 IndexOf ← {𝕊 item‿items: ⊑(item⊸≡¨items)⊐1}
 Diagnostic ← {𝕊 codeText‿messageText:
   {severity⇐"error",stage⇐"accounting_date_category_flow",code⇐codeText,message⇐messageText}
@@ -49,7 +44,8 @@ Build ← {𝕊 factSet‿domainCode‿layerName‿startOrdinal‿endOrdinal:
     envelopeRoles ← envelopeMask/accounts.role
     diagnostics ∾↩ AddIf ⟨∨´0∾{𝕩≢"budget"}¨envelopeRoles,Diagnostic ⟨"envelope_account_role_invalid","envelope Accounts require explicit budget role"⟩⟩
     diagnostics ∾↩ AddIf ⟨∨´0∾{0=≠𝕩}¨envelopeLabels,Diagnostic ⟨"envelope_category_missing","envelope Accounts require explicit budget category metadata"⟩⟩
-    diagnostics ∾↩ AddIf ⟨(≠envelopeLabels)≠≠Unique envelopeLabels,Diagnostic ⟨"envelope_category_duplicate","envelope budget categories must be unique in one domain"⟩⟩
+    # Deduplicate compares category-label major cells and preserves Account-derived order.
+    diagnostics ∾↩ AddIf ⟨(≠envelopeLabels)≠≠⍷envelopeLabels,Diagnostic ⟨"envelope_category_duplicate","envelope budget categories must be unique in one domain"⟩⟩
     diagnostics ∾↩ AddIf ⟨Contains ⟨"other",envelopeLabels⟩,Diagnostic ⟨"envelope_category_reserved","other is reserved for unmatched expenses"⟩⟩
 
     {𝕊:
