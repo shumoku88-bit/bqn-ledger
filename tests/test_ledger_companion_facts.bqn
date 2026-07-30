@@ -83,15 +83,37 @@ CheckRejected ⟨⟨"2026-01-20	food-plan	assets:cash	expenses:food	25	currency=
 CheckRejected ⟨⟨"2026-01-20	food-plan	assets:cash	expenses:food	25	currency=XXX	plan_id=p1"⟩,budgetLines,"companion_currency_unsupported"⟩
 CheckRejected ⟨⟨"2026-01-20	food-plan	assets:cash	expenses:food	1.234	currency=USD	plan_id=p1"⟩,budgetLines,"companion_amount_precision_exceeded"⟩
 CheckRejected ⟨⟨"2026-01-20	food-plan	assets:cash	expenses:food	0	currency=JPY	plan_id=p1"⟩,budgetLines,"companion_amount_nonpositive"⟩
-CheckRejected ⟨⟨"2026-01-20	food-plan	assets:cash	expenses:food	25	currency=JPY	plan_id=p1	plan_id=p2"⟩,budgetLines,"companion_metadata_duplicate"⟩
 CheckRejected ⟨⟨"2026-01-20	food-plan	assets:cash	expenses:food	25	currency=JPY	plan_id=p1	unknown=x"⟩,budgetLines,"companion_metadata_unsupported"⟩
 CheckRejected ⟨⟨"2026-99-20	food-plan	assets:cash	expenses:food	25	currency=JPY	plan_id=p1"⟩,budgetLines,"companion_date_invalid"⟩
 CheckRejected ⟨planLines,⟨"2026-01-01	seed	budget:opening	budget:unassigned	100"⟩,"companion_currency_missing"⟩
 
+duplicateMetadata ← companion_snapshot.Build ⟨
+  ⟨"2026-01-20	food-plan	assets:cash	expenses:food	25	plan_id=p1	currency=JPY	plan_id=p2"⟩,
+  budgetLines,
+  accounts,
+  registry
+⟩
+"error" lib.AssertEq duplicateMetadata.state
+0 lib.AssertEq duplicateMetadata.plan.transactions.count
+0 lib.AssertEq duplicateMetadata.plan.postings.count
+0 lib.AssertEq duplicateMetadata.budget.transactions.count
+0 lib.AssertEq duplicateMetadata.budget.postings.count
+"companion_metadata_duplicate" lib.AssertEq (⊑duplicateMetadata.diagnostics).code
+1 lib.AssertEq (⊑duplicateMetadata.diagnostics).source_row
+
 duplicatePlan ← ⟨
   "2026-01-20	one	assets:cash	expenses:food	25	currency=JPY	plan_id=p1",
-  "2026-01-21	two	assets:cash	expenses:food	30	currency=JPY	plan_id=p1"
+  "2026-01-21	two	assets:cash	expenses:food	30	currency=JPY	plan_id=p2",
+  "2026-01-22	three	assets:cash	expenses:food	35	currency=JPY	plan_id=p1"
 ⟩
-CheckRejected ⟨duplicatePlan,budgetLines,"companion_identity_duplicate"⟩
+duplicateIdentity ← companion_snapshot.Build ⟨duplicatePlan,budgetLines,accounts,registry⟩
+"error" lib.AssertEq duplicateIdentity.state
+0 lib.AssertEq duplicateIdentity.plan.transactions.count
+0 lib.AssertEq duplicateIdentity.plan.postings.count
+0 lib.AssertEq duplicateIdentity.budget.transactions.count
+0 lib.AssertEq duplicateIdentity.budget.postings.count
+1 lib.AssertEq ≠duplicateIdentity.diagnostics
+"companion_identity_duplicate" lib.AssertEq (⊑duplicateIdentity.diagnostics).code
+0 lib.AssertEq (⊑duplicateIdentity.diagnostics).source_row
 
 •Out "test_ledger_companion_facts: ok"

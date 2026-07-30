@@ -12,11 +12,6 @@ SplitKeepEmpty ← {𝕊 sep‿text:
   {(sep≠𝕩)/𝕩}¨groups
 }
 Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
-Unique ← {𝕊 items:
-  result ← empty
-  {𝕊 item: {𝕊: result∾↩⟨item⟩}⍟(¬Contains ⟨item,result⟩) @}¨items
-  result
-}
 IndexOf ← {𝕊 item‿items: ⊑(item⊸≡¨items)⊐1}
 Ignored ← {𝕊 line: (0=≠line) ∨ ((0<≠line) ∧ ((⊑line)∊"#\\")) }
 Diagnostic ← {𝕊 codeText‿row‿messageText:
@@ -78,7 +73,7 @@ Admit ← {𝕊 lines‿policy‿accounts‿registry:
         {𝕊: metadata∾↩⟨parsedMeta.item⟩}⍟(parsedMeta.item≢@) @
       }¨metadataTokens
       metadataKeys ← {𝕩.key}¨metadata
-      rowDiagnostics ∾↩ AddIf ⟨(≠metadataKeys)≠≠Unique metadataKeys,Diagnostic ⟨"companion_metadata_duplicate",row,"metadata keys must be unique"⟩⟩
+      rowDiagnostics ∾↩ AddIf ⟨(≠metadataKeys)≠≠⍷metadataKeys,Diagnostic ⟨"companion_metadata_duplicate",row,"metadata keys must be unique"⟩⟩
 
       currency ← MetaOr ⟨"currency",metadata,""⟩
       planId ← MetaOr ⟨"plan_id",metadata,""⟩
@@ -134,7 +129,7 @@ Admit ← {𝕊 lines‿policy‿accounts‿registry:
   }¨↕≠lines
 
   ids ← {𝕩.source_event_id}¨transactions
-  diagnostics ∾↩ AddIf ⟨(≠ids)≠≠Unique ids,Diagnostic ⟨"companion_identity_duplicate",0,"canonical companion transaction identities must be unique"⟩⟩
+  diagnostics ∾↩ AddIf ⟨(≠ids)≠≠⍷ids,Diagnostic ⟨"companion_identity_duplicate",0,"canonical companion transaction identities must be unique"⟩⟩
   hasError ← 0<≠diagnostics
   admittedTransactions ← hasError⊑transactions‿empty
   admittedDomains ← hasError⊑domains‿empty
