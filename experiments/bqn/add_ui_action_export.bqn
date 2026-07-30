@@ -15,8 +15,10 @@ catalog ← {
     "plan-add","plan-edit","plan-finish","reverse","issue","issue-close"
   ⟩,
   label⇐⟨
-    "アカウント追加","支出","複数ポスティング","資金移動","収入","予算配賦",
-    "予定追加","予定修正","予定実績化・補充","仕訳取消","Issue追加","Issue終了"
+    "アカウント追加","支出 assets -> expenses","複数ポスティング (native Journal)",
+    "資金移動 assets -> assets","収入 income -> assets","予算配賦 budget -> budget",
+    "予定の追加 assets -> expenses","予定の日付・金額修正","予定の実績化 + 次回予定補充",
+    "仕訳取消 (反対仕訳追記)","Issues & Decisions の追加","Issues & Decisions を閉じる"
   ⟩,
   family⇐⟨
     "account","journal","journal","journal","journal","budget",
