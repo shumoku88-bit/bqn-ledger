@@ -48,10 +48,36 @@ invalid ← admission.Admit ⟨invalidLines,registry⟩
 0 lib.AssertEq invalid.rows.count
 "daily_reservation_currency_pair_invalid" lib.AssertEq (⊑invalid.diagnostics).code
 
-validLines ← loader.ReadLines base∾"daily_target_scope.destination.tsv"
-duplicate ← admission.Admit ⟨validLines∾⟨¯1⊑validLines⟩,registry⟩
-"error" lib.AssertEq duplicate.state
-0 lib.AssertEq duplicate.rows.count
+duplicateScopeIds ← admission.Admit ⟨
+  ⟨
+    admission.header,
+    Join ⟨"asset","cash","assets:cash","","","",""⟩,
+    Join ⟨"asset","reserve","assets:cash","","","",""⟩,
+    Join ⟨"asset","cash","assets:cash","","","",""⟩
+  ⟩,
+  registry
+⟩
+"error" lib.AssertEq duplicateScopeIds.state
+0 lib.AssertEq duplicateScopeIds.rows.count
+1 lib.AssertEq ≠duplicateScopeIds.diagnostics
+"daily_scope_id_duplicate" lib.AssertEq (⊑duplicateScopeIds.diagnostics).code
+0 lib.AssertEq (⊑duplicateScopeIds.diagnostics).source_row
+
+duplicateReservationRefs ← admission.Admit ⟨
+  ⟨
+    admission.header,
+    Join ⟨"obligation","rent-1","","plan-rent-1","10","JPY","reservation:shared"⟩,
+    Join ⟨"obligation","rent-2","","plan-rent-2","20","JPY","reservation:other"⟩,
+    Join ⟨"obligation","rent-3","","plan-rent-3","30","JPY","reservation:shared"⟩
+  ⟩,
+  registry
+⟩
+"error" lib.AssertEq duplicateReservationRefs.state
+0 lib.AssertEq duplicateReservationRefs.rows.count
+1 lib.AssertEq ≠duplicateReservationRefs.diagnostics
+"daily_reservation_reference_duplicate" lib.AssertEq (⊑duplicateReservationRefs.diagnostics).code
+0 lib.AssertEq (⊑duplicateReservationRefs.diagnostics).source_row
+
 unknownAccountLines ← ⟨admission.header,Join ⟨"asset","missing","assets:missing","","","",""⟩⟩
 unknownAccount ← admission.Admit ⟨unknownAccountLines,registry⟩
 unknownAccountScope ← adapter.Build ⟨unknownAccount,actual,plan,"JPY","2026-01-12","2026-01-22"⟩
