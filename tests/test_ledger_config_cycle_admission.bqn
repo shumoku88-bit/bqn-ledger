@@ -75,6 +75,14 @@ CheckCycleRejected ⟨⟨"mode	incomeAnchor","income_account	assets:cash"⟩,"cy
 CheckCycleRejected ⟨⟨"mode	incomeAnchor","income_account	income:missing"⟩,"cycle_income_account_unknown"⟩
 CheckCycleRejected ⟨⟨"mode	calendarMonth","start_day	29"⟩,"calendar_start_day_invalid"⟩
 CheckCycleRejected ⟨⟨"mode	calendarMonth","start_day	15","start	2026-01-01"⟩,"calendar_cycle_field_invalid"⟩
-CheckCycleRejected ⟨⟨"mode	fixed","mode	fixed","start	2026-01-01","end_exclusive	2026-02-01"⟩,"cycle_key_duplicate"⟩
+
+duplicateCycle ← cycle_admission.Admit ⟨
+  ⟨"mode	fixed","start	2026-01-01","mode	fixed","end_exclusive	2026-02-01"⟩,
+  accounts
+⟩
+"error" lib.AssertEq duplicateCycle.state
+0 lib.AssertEq duplicateCycle.table.count
+"cycle_key_duplicate" lib.AssertEq (⊑duplicateCycle.diagnostics).code
+0 lib.AssertEq (⊑duplicateCycle.diagnostics).source_row
 
 •Out "test_ledger_config_cycle_admission: ok"
