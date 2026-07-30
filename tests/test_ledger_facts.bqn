@@ -31,7 +31,7 @@ canonicalSnapshot ← snapshot.Build ⟨accountLines,rawJournal,registry⟩
 "ok" lib.AssertEq canonicalSnapshot.state
 0 lib.AssertEq ≠canonicalSnapshot.diagnostics
 result.transactions.transaction_id lib.AssertEq canonicalSnapshot.facts.transactions.transaction_id
-result.postings.posting_id lib.AssertEq canonicalSnapshot.facts.posting_id
+result.postings.posting_id lib.AssertEq canonicalSnapshot.facts.postings.posting_id
 result.postings.coefficient lib.AssertEq canonicalSnapshot.facts.postings.coefficient
 transactionView ← transaction_rows.Build canonicalSnapshot.facts
 "ok" lib.AssertEq transactionView.state
