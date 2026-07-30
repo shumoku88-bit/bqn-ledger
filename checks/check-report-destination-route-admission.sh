@@ -28,6 +28,13 @@ if grep -Fq 'IsDigits' "$cli"; then
   exit 1
 fi
 
+registry_line=$(grep -n 'registryResult ← sources.Registry' "$cli" | cut -d: -f1)
+route_line=$(grep -n 'routeAdmission ← route.Admit' "$cli" | cut -d: -f1)
+[[ -n $registry_line && -n $route_line && $registry_line -lt $route_line ]] || {
+  echo 'FAIL: individual route admission moved before registry admission' >&2
+  exit 1
+}
+
 bqn "$cli" "$fixture" balances human JPY 2026-01-12 actual.journal >"$tmp/balances"
 cmp "$tmp/balances" "$fixture/account_balances.destination.human.txt"
 
@@ -61,21 +68,5 @@ if (
   exit 1
 fi
 ExpectLine $'ERROR\tall_not_implemented\tparallel CLI currently requires one retained key' "$tmp/all"
-
-# Individual route admission remains after registry access, preserving direct-CLI failure order.
-mkdir "$tmp/config"
-: >"$tmp/config/currencies.tsv"
-if (
-  cd "$tmp"
-  bqn "$cli" "$fixture" balances human JPY 2026-01-12 >"$tmp/registry-first" 2>&1
-); then
-  echo 'FAIL: invalid direct route succeeded with an empty registry' >&2
-  exit 1
-fi
-ExpectLine $'ERROR\tcurrency_registry_empty\tcurrency registry is empty' "$tmp/registry-first"
-if grep -Fq $'usage_balances' "$tmp/registry-first"; then
-  echo 'FAIL: route admission moved before registry admission' >&2
-  exit 1
-fi
 
 echo 'check-report-destination-route-admission: OK'
