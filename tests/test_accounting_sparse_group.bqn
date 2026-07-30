@@ -18,6 +18,14 @@ emptyResult ← group.Build ⟨⟨"a"⟩,2,⟨⟩,⟨⟩,⟨⟩,⟨⟩⟩
 "ok" lib.AssertEq emptyResult.state
 0 lib.AssertEq emptyResult.groups.count
 
+emptyRowsResult ← group.Build ⟨⟨⟩,3,⟨⟩,⟨⟩,⟨⟩,⟨⟩⟩
+"ok" lib.AssertEq emptyRowsResult.state
+0 lib.AssertEq emptyRowsResult.groups.count
+
+zeroColumnsResult ← group.Build ⟨⟨"a","b"⟩,0,⟨⟩,⟨⟩,⟨⟩,⟨⟩⟩
+"ok" lib.AssertEq zeroColumnsResult.state
+0 lib.AssertEq zeroColumnsResult.groups.count
+
 HasCode ← {𝕊 code‿diagnostics: ∨´0∾code⊸≡¨{𝕩.code}¨diagnostics}
 CheckRejected ← {𝕊 input‿code:
   rejected ← group.Build input
@@ -29,10 +37,26 @@ CheckRejected ⟨⟨⟨"a"⟩,1,⟨"a"⟩,⟨0,0⟩,⟨1⟩,⟨⟨0⟩⟩⟩,"gr
 CheckRejected ⟨⟨⟨"a","a"⟩,1,⟨⟩,⟨⟩,⟨⟩,⟨⟩⟩,"group_row_axis_duplicate"⟩
 nestedDuplicateAxis ← ⟨⟨"a",0⟩,⟨"b",1⟩,⟨"a",0⟩⟩
 CheckRejected ⟨⟨nestedDuplicateAxis,1,⟨⟩,⟨⟩,⟨⟩,⟨⟩⟩,"group_row_axis_duplicate"⟩
+CheckRejected ⟨⟨⟨"a"⟩,¯1,⟨⟩,⟨⟩,⟨⟩,⟨⟩⟩,"group_column_count_invalid"⟩
 CheckRejected ⟨⟨⟨"a"⟩,1,⟨"b"⟩,⟨0⟩,⟨1⟩,⟨⟨0⟩⟩⟩,"group_row_coordinate_unknown"⟩
 CheckRejected ⟨⟨⟨"a"⟩,1,⟨"a"⟩,⟨1⟩,⟨1⟩,⟨⟨0⟩⟩⟩,"group_column_index_invalid"⟩
 CheckRejected ⟨⟨⟨"a"⟩,1,⟨"a"⟩,⟨0.5⟩,⟨1⟩,⟨⟨0⟩⟩⟩,"group_column_index_invalid"⟩
 CheckRejected ⟨⟨⟨"a"⟩,1,⟨"a"⟩,⟨0⟩,⟨1⟩,⟨⟨⟩⟩⟩,"group_contributors_missing"⟩
 CheckRejected ⟨⟨⟨"a"⟩,1,⟨"a","a"⟩,⟨0,0⟩,⟨9007199254740991,2⟩,⟨⟨0⟩,⟨1⟩⟩⟩,"group_sum_failed"⟩
+
+# Independent admission failures remain ordered and publication remains fail-closed.
+combinedRejected ← group.Build ⟨
+  ⟨"a","a"⟩,¯1,
+  ⟨"missing"⟩,⟨0⟩,⟨1⟩,⟨⟨⟩⟩
+⟩
+"error" lib.AssertEq combinedRejected.state
+0 lib.AssertEq combinedRejected.groups.count
+⟨
+  "group_row_axis_duplicate",
+  "group_column_count_invalid",
+  "group_row_coordinate_unknown",
+  "group_column_index_invalid",
+  "group_contributors_missing"
+⟩ lib.AssertEq {𝕩.code}¨combinedRejected.diagnostics
 
 •Out "test_accounting_sparse_group: ok"
