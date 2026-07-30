@@ -17,6 +17,7 @@ for check in \
   checks/check-report-manifest-routing.sh \
   checks/check-report-route-plan-shell.sh \
   checks/check-report-destination-route-admission.sh \
+  checks/check-report-destination-registry-error.sh \
   checks/check-report-composition.sh \
   checks/check-report-cache.sh \
   checks/check-report-section-metadata.sh \
