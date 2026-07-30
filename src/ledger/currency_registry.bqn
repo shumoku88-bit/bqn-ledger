@@ -10,7 +10,7 @@ SplitKeepEmpty ← {𝕊 sep‿text:
 empty ← ⟨⟩
 
 IsIgnored ← {𝕊 line:
-  (0=≠line) ∨ ((0<≠line) ∧ (((⊑line)='#') ∨ ((⊑line)=⊑"\\")))
+  (0=≠line) ∨ ((0<≠line) ∧ (((⊑line)='#') ∨ ((⊑line)=⊑"\")))
 }
 
 IsFractionDigits ← {𝕊 text:
@@ -21,9 +21,7 @@ IsFractionDigits ← {𝕊 text:
 
 ParseLine ← {𝕊 line:
   fields ← SplitKeepEmpty ⟨tab,line⟩
-  currency ← (0<≠fields) ⊑ ⟨"", 0⊑fields⟩
-  fraction ← (1<≠fields) ⊑ ⟨"", 1⊑fields⟩
-  symbol ← (2<≠fields) ⊑ ⟨"", 2⊑fields⟩
+  currency‿fraction‿symbol ← 3↑fields∾⟨"","",""⟩
   {currency⇐currency, fraction_text⇐fraction, symbol⇐symbol, field_count⇐≠fields}
 }
 
@@ -54,7 +52,7 @@ Build ← {𝕊 lines:
         idx ← ⊑codes⊐⟨<requested⟩
         result ← {state⇐"error",currency⇐requested,max_fraction_digits⇐¯1,symbol⇐"",code⇐"unsupported_currency",message⇐"unsupported currency: "∾requested}
         {𝕊:
-          result ↩ {state⇐"ok",currency⇐>idx⊑codes,max_fraction_digits⇐idx⊑maxes,symbol⇐>idx⊑symbols,code⇐"",message⇐""}
+          result ↩ {state⇐"ok",currency⇐requested,max_fraction_digits⇐idx⊑maxes,symbol⇐>idx⊑symbols,code⇐"",message⇐""}
         }⍟(idx<≠codes) @
         result
       }
