@@ -1,12 +1,12 @@
 account-add	アカウント追加	account
-expense	支出	journal
-multi	複数ポスティング	journal
-move	資金移動	journal
-income	収入	journal
-budget	予算配賦	budget
-plan-add	予定追加	plan
-plan-edit	予定修正	plan
-plan-finish	予定実績化・補充	plan
-reverse	仕訳取消	journal
-issue	Issue追加	issue
-issue-close	Issue終了	issue
+expense	支出 assets -> expenses	journal
+multi	複数ポスティング (native Journal)	journal
+move	資金移動 assets -> assets	journal
+income	収入 income -> assets	journal
+budget	予算配賦 budget -> budget	budget
+plan-add	予定の追加 assets -> expenses	plan
+plan-edit	予定の日付・金額修正	plan
+plan-finish	予定の実績化 + 次回予定補充	plan
+reverse	仕訳取消 (反対仕訳追記)	journal
+issue	Issues & Decisions の追加	issue
+issue-close	Issues & Decisions を閉じる	issue
