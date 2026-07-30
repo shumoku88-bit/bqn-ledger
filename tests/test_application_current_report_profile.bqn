@@ -10,15 +10,36 @@ rows ← {𝕊 row: {key⇐0⊑row,surface⇐1⊑row,arguments⇐2↓row}}¨fiel
 current ← cycleResult.Success ⟨"fixed","2026-01-12","2026-01-01","2026-02-01",⟨⟩,⟨⟩⟩
 baseline ← cycleResult.Success ⟨"fixed","2025-12-31","2025-12-22","2026-01-22",⟨⟩,⟨⟩⟩
 result ← profile.Build ⟨rows,"2026-01-12",current,baseline⟩
-"ok" lib.AssertEq result.state
-12 lib.AssertEq ≠result.rows
-Find ← {𝕊 key: (⊑(key⊸≡¨{𝕩.key}¨result.rows)⊐1)⊑result.rows}
-⟨"JPY","2026-01-12","actual.journal"⟩ lib.AssertEq (Find "balance-sheet").arguments
-⟨"JPY","2026-01-01","2026-01-13","actual.journal"⟩ lib.AssertEq (Find "profit-and-loss").arguments
-⟨"JPY","2026-01-12","2026-01-02","aligned_elapsed","actual.journal","cycle.tsv","cycle_baseline.destination.tsv"⟩ lib.AssertEq (Find "cycle-comparison").arguments
-⟨"JPY","2026-01","2026-02","actual.journal"⟩ lib.AssertEq (Find "monthly-accounts").arguments
-⟨"JPY","2026-01-12","2026-01-22","actual.journal","daily_target_plan.destination.tsv","daily_target_scope.destination.tsv"⟩ lib.AssertEq (Find "daily-target").arguments
 
+"ok" lib.AssertEq result.state
+"2026-01-12" lib.AssertEq result.observation
+⟨⟩ lib.AssertEq result.diagnostics
+12 lib.AssertEq ≠result.rows
+
+expectedKeys ← ⟨
+  "envelopes","balances","balance-sheet","profit-and-loss","recent","planned",
+  "cycle-accounts","cycle-comparison","monthly-accounts","daily-flow","daily-target","issues"
+⟩
+expectedKeys lib.AssertEq {𝕩.key}¨result.rows
+(12⥊⟨"human"⟩) lib.AssertEq {𝕩.surface}¨result.rows
+
+expectedArguments ← ⟨
+  ⟨"JPY","2026-01-01","2026-02-01","2026-01-12","actual.journal","plan.tsv","budget_alloc.tsv","assets:cash"⟩,
+  ⟨"JPY","2026-01-12","actual.journal"⟩,
+  ⟨"JPY","2026-01-12","actual.journal"⟩,
+  ⟨"JPY","2026-01-01","2026-01-13","actual.journal"⟩,
+  ⟨"10","actual.journal"⟩,
+  ⟨"2026-01-12","actual.journal","plan.tsv","cycle.tsv"⟩,
+  ⟨"JPY","2026-01-12","actual.journal","cycle.tsv"⟩,
+  ⟨"JPY","2026-01-12","2026-01-02","aligned_elapsed","actual.journal","cycle.tsv","cycle_baseline.destination.tsv"⟩,
+  ⟨"JPY","2026-01","2026-02","actual.journal"⟩,
+  ⟨"JPY","2026-01-01","2026-02-01","2026-01-12","actual.journal"⟩,
+  ⟨"JPY","2026-01-12","2026-01-22","actual.journal","daily_target_plan.destination.tsv","daily_target_scope.destination.tsv"⟩,
+  ⟨"issues.destination.tsv"⟩
+⟩
+expectedArguments lib.AssertEq {𝕩.arguments}¨result.rows
+
+# Year rollover changes only the volatile Monthly Accounts end-exclusive month.
 yearEndCurrent ← cycleResult.Success ⟨"fixed","2026-12-31","2026-12-01","2027-01-15",⟨⟩,⟨⟩⟩
 yearEndBaseline ← cycleResult.Success ⟨"fixed","2026-10-31","2026-10-01","2026-11-15",⟨⟩,⟨⟩⟩
 yearEnd ← profile.Build ⟨rows,"2026-12-31",yearEndCurrent,yearEndBaseline⟩
@@ -26,8 +47,30 @@ yearEnd ← profile.Build ⟨rows,"2026-12-31",yearEndCurrent,yearEndBaseline⟩
 yearEndMonthly ← (⊑("monthly-accounts"⊸≡¨{𝕩.key}¨yearEnd.rows)⊐1)⊑yearEnd.rows
 ⟨"JPY","2026-01","2027-01","actual.journal"⟩ lib.AssertEq yearEndMonthly.arguments
 
+# Every rejected profile remains fail-closed and publishes one bounded diagnostic.
+CheckRejected ← {𝕊 observation‿currentCycle‿baselineCycle‿expectedCode:
+  rejected ← profile.Build ⟨rows,observation,currentCycle,baselineCycle⟩
+  "error" lib.AssertEq rejected.state
+  ⟨⟩ lib.AssertEq rejected.rows
+  1 lib.AssertEq ≠rejected.diagnostics
+  diagnostic ← ⊑rejected.diagnostics
+  "error" lib.AssertEq diagnostic.severity
+  "application_current_report_profile" lib.AssertEq diagnostic.stage
+  expectedCode lib.AssertEq diagnostic.code
+}
+
+badCurrent ← cycleResult.Error ⟨"fixed","2026-01-12","fixture_current_error","fixture current error"⟩
+badBaseline ← cycleResult.Error ⟨"fixed","2025-12-31","fixture_baseline_error","fixture baseline error"⟩
+calendarCurrent ← cycleResult.Success ⟨"calendarMonth","2026-01-12","2026-01-01","2026-02-01",⟨⟩,⟨⟩⟩
+notPrevious ← cycleResult.Success ⟨"fixed","2026-01-12","2026-01-01","2026-01-20",⟨⟩,⟨⟩⟩
 shortBaseline ← cycleResult.Success ⟨"fixed","2025-12-31","2025-12-30","2026-01-02",⟨⟩,⟨⟩⟩
-rejected ← profile.Build ⟨rows,"2026-01-12",current,shortBaseline⟩
-"error" lib.AssertEq rejected.state
-"aligned_baseline_unavailable" lib.AssertEq (⊑rejected.diagnostics).code
+
+CheckRejected ⟨"not-a-date",current,baseline,"current_observation_invalid"⟩
+CheckRejected ⟨"2026-01-12",badCurrent,baseline,"current_cycle_not_ok"⟩
+CheckRejected ⟨"2026-01-12",current,badBaseline,"baseline_cycle_not_ok"⟩
+CheckRejected ⟨"2026-01-12",calendarCurrent,baseline,"comparison_cycle_mode_mismatch"⟩
+CheckRejected ⟨"2026-01-12",current,notPrevious,"baseline_cycle_not_previous"⟩
+CheckRejected ⟨"2026-02-01",current,baseline,"current_observation_outside_cycle"⟩
+CheckRejected ⟨"2026-01-12",current,shortBaseline,"aligned_baseline_unavailable"⟩
+
 •Out "test_application_current_report_profile: ok"
