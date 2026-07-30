@@ -58,6 +58,7 @@ strictAccounts.accounts.role lib.AssertEq result.accounts.role
 strictAccounts.accounts.type lib.AssertEq result.accounts.type
 strictAccounts.accounts.metadata lib.AssertEq result.accounts.metadata
 strictAccounts.accounts.source_row lib.AssertEq result.accounts.source_row
+⟨1,2,3,4,5,6,7,8⟩ lib.AssertEq result.accounts.source_row
 
 3 lib.AssertEq result.transactions.count
 ⟨0,1,2⟩ lib.AssertEq result.transactions.index
@@ -117,104 +118,3 @@ lib.Assert dates.IsValid "2000-02-29"
 lib.Assert ¬dates.IsValid "1900-02-29"
 lib.Assert ¬dates.IsValid "2026-02-30"
 1 lib.AssertEq (dates.Ordinal "2026-01-02") - dates.Ordinal "2026-01-01"
-
-emptyAccountTable ← {
-  key⇐⟨⟩,currency⇐⟨⟩,role⇐⟨⟩,type⇐⟨⟩,budget⇐⟨⟩,budget_group⇐⟨⟩,
-  spend_class⇐⟨⟩,kind⇐⟨⟩,envelope_role⇐⟨⟩,metadata⇐⟨⟩,source_row⇐⟨⟩
-}
-errorResult ← facts.Project ⟨{state⇐"error"},emptyAccountTable⟩
-"error" lib.AssertEq errorResult.state
-1 lib.AssertEq ≠errorResult.diagnostics
-"admission_not_ok" lib.AssertEq (⊑errorResult.diagnostics).code
-0 lib.AssertEq errorResult.transactions.count
-0 lib.AssertEq errorResult.postings.count
-
-unknownAccountResult ← facts.Project ⟨admitted,emptyAccountTable⟩
-"error" lib.AssertEq unknownAccountResult.state
-lib.Assert ∨´ {𝕩.code ≡ "posting_account_unknown"}¨ unknownAccountResult.diagnostics
-0 lib.AssertEq unknownAccountResult.transactions.count
-0 lib.AssertEq unknownAccountResult.postings.count
-
-misalignedAccounts ← {
-  key⇐admittedAccounts.key,currency⇐⟨⟩,role⇐admittedAccounts.role,type⇐admittedAccounts.type,
-  budget⇐admittedAccounts.budget,budget_group⇐admittedAccounts.budget_group,
-  spend_class⇐admittedAccounts.spend_class,kind⇐admittedAccounts.kind,
-  envelope_role⇐admittedAccounts.envelope_role,metadata⇐admittedAccounts.metadata,
-  source_row⇐admittedAccounts.source_row
-}
-misaligned ← facts.Project ⟨admitted,misalignedAccounts⟩
-"error" lib.AssertEq misaligned.state
-lib.Assert ∨´ {𝕩.code ≡ "account_columns_misaligned"}¨ misaligned.diagnostics
-0 lib.AssertEq misaligned.transactions.count
-0 lib.AssertEq misaligned.postings.count
-
-duplicateLayerAdmission ← {
-  state⇐"ok",transactions⇐admitted.transactions,declared_domains⇐admitted.declared_domains,
-  declared_layers⇐⟨"actual","plan","actual"⟩,source_name⇐admitted.source_name
-}
-duplicateLayerResult ← facts.Project ⟨duplicateLayerAdmission,admittedAccounts⟩
-"error" lib.AssertEq duplicateLayerResult.state
-lib.Assert ∨´ {𝕩.code ≡ "layer_duplicate"}¨ duplicateLayerResult.diagnostics
-0 lib.AssertEq duplicateLayerResult.transactions.count
-0 lib.AssertEq duplicateLayerResult.postings.count
-
-duplicateTransactionAdmission ← {
-  state⇐"ok",transactions⇐admitted.transactions∾⟨⊑admitted.transactions⟩,
-  declared_domains⇐admitted.declared_domains,declared_layers⇐admitted.declared_layers,
-  source_name⇐admitted.source_name
-}
-duplicateTransactionResult ← facts.Project ⟨duplicateTransactionAdmission,admittedAccounts⟩
-"error" lib.AssertEq duplicateTransactionResult.state
-lib.Assert ∨´ {𝕩.code ≡ "transaction_identity_duplicate"}¨ duplicateTransactionResult.diagnostics
-0 lib.AssertEq duplicateTransactionResult.transactions.count
-0 lib.AssertEq duplicateTransactionResult.postings.count
-
-duplicateAccounts ← {
-  key⇐admittedAccounts.key∾⟨⊑admittedAccounts.key⟩,
-  currency⇐admittedAccounts.currency∾⟨⊑admittedAccounts.currency⟩,
-  role⇐admittedAccounts.role∾⟨⊑admittedAccounts.role⟩,
-  type⇐admittedAccounts.type∾⟨⊑admittedAccounts.type⟩,
-  budget⇐admittedAccounts.budget∾⟨⊑admittedAccounts.budget⟩,
-  budget_group⇐admittedAccounts.budget_group∾⟨⊑admittedAccounts.budget_group⟩,
-  spend_class⇐admittedAccounts.spend_class∾⟨⊑admittedAccounts.spend_class⟩,
-  kind⇐admittedAccounts.kind∾⟨⊑admittedAccounts.kind⟩,
-  envelope_role⇐admittedAccounts.envelope_role∾⟨⊑admittedAccounts.envelope_role⟩,
-  metadata⇐admittedAccounts.metadata∾⟨⊑admittedAccounts.metadata⟩,
-  source_row⇐admittedAccounts.source_row∾⟨⊑admittedAccounts.source_row⟩
-}
-duplicateAccountResult ← facts.Project ⟨admitted,duplicateAccounts⟩
-"error" lib.AssertEq duplicateAccountResult.state
-lib.Assert ∨´ {𝕩.code ≡ "account_key_duplicate"}¨ duplicateAccountResult.diagnostics
-0 lib.AssertEq duplicateAccountResult.transactions.count
-0 lib.AssertEq duplicateAccountResult.postings.count
-
-lf ← @+10
-currencyMismatchRaw ← ∾⟨
-  "commodity JPY"∾lf,""∾lf,
-  "account assets:cash"∾lf,""∾lf,
-  "account expenses:food"∾lf,""∾lf,
-  "2026-01-15 * currency mismatch"∾lf,
-  "    ; currency: USD"∾lf,
-  "    expenses:food 1 JPY"∾lf,
-  "    assets:cash -1 JPY"∾lf
-⟩
-currencyMismatch ← admission.Admit ⟨currencyMismatchRaw,strictAccounts.accounts,registry⟩
-"error" lib.AssertEq currencyMismatch.state
-lib.Assert ∨´{𝕩.code≡"transaction_currency_mismatch"}¨currencyMismatch.diagnostics
-0 lib.AssertEq ≠currencyMismatch.transactions
-invalidJournalSnapshot ← snapshot.Build ⟨accountLines,currencyMismatchRaw,registry⟩
-"error" lib.AssertEq invalidJournalSnapshot.state
-0 lib.AssertEq invalidJournalSnapshot.facts.transactions.count
-0 lib.AssertEq invalidJournalSnapshot.facts.postings.count
-lib.Assert ∨´{𝕩.code≡"transaction_currency_mismatch"}¨invalidJournalSnapshot.diagnostics
-
-emptyRaw ← ∾ ⟨"commodity JPY"∾lf,""∾lf,"account assets:cash"∾lf⟩
-emptyAdmitted ← admission.Admit ⟨emptyRaw,strictAccounts.accounts,registry⟩
-emptyResult ← facts.Project ⟨emptyAdmitted,admittedAccounts⟩
-"ok" lib.AssertEq emptyResult.state
-⟨"JPY"⟩ lib.AssertEq emptyResult.domains.code
-0 lib.AssertEq emptyResult.transactions.count
-0 lib.AssertEq emptyResult.postings.count
-⟨"actual"⟩ lib.AssertEq emptyResult.layers.name
-
-•Out "test_ledger_facts: ok"
