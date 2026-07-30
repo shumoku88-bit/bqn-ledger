@@ -43,12 +43,13 @@ Next useful probe:
 
 - **Question or capability:** Can MatrixResult row and column alignment be stated more directly as a cell contract rather than repeated Each predicates?
 - **Current owner:** `src/accounting/matrix_result.bqn`.
-- **BQN lens:** Each `¨`, Cells `˘`, and Rank `⎉`.
-- **What becomes visible:** The distinction between the outer sequence of rows, each row as a cell, and the scalar boolean result of validating one row.
-- **Known contract or risk:** Values and contributors are currently nested rows. Empty input, one-row input, malformed row shape, and contributor alignment must remain explicit. A Rank formulation must not invent fill or silently regularize ragged evidence.
-- **Current destination:** analysis-only probe; strong first probe candidate.
-- **Revisit signal:** MatrixResult row representation changes, or a focused comparison demonstrates clearer shape semantics without contract loss.
-- **Next useful probe:** Compare Each, Cells, and Rank on synthetic empty, rectangular, and ragged rows while printing shape, rank, and boolean results.
+- **BQN lens:** Each `¨`, Cells `˘`, Rank `⎉`, Merge `>`, and the boundary between nested rows and true rank-2 arrays.
+- **Observed evidence:** `experiments/bqn/matrix_result_cells_rank.bqn` and its result note compare equal, ragged, and empty nested rows with true `2×2` and `0×2` arrays. GitHub Actions run `30532900105` completed successfully.
+- **What became visible:** On the current rank-1 sequence of nested row arrays, Each sees the inner row values and correctly distinguishes aligned from ragged rows. Cells and Rank 0 see the outer list's 0-cells and report length one instead. On a true rank-2 array the relationship reverses: Cells and Rank 1 directly own the row-length question while Each maps scalar elements.
+- **Known contract or risk:** `Build` is an admission boundary that must represent malformed ragged candidate rows so it can return structured `matrix_*_columns_misaligned` diagnostics. Merging before validation would replace that domain diagnostic with a primitive shape error. Empty input, contributor cells, fills, and consumer representation remain part of any later canonical-array decision.
+- **Current destination:** observed experiment; direct Each-to-Cells or Each-to-Rank production replacement parked.
+- **Revisit signal:** MatrixResult deliberately separates permissive nested candidate input from a canonical post-admission output representation, or a consumer gains a concrete need for true row and column axes.
+- **Next useful probe:** Characterize `nested candidate rows → structured validation → Merge canonical values and contributors`, including ragged rejection, contributor cells, and `0×N` shapes.
 
 ### Dense Pivot through Table
 

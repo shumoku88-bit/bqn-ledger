@@ -1,0 +1,27 @@
+name: bqn-experiment
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/bqn/**'
+      - '.github/workflows/bqn-experiment.yml'
+  workflow_dispatch:
+
+jobs:
+  experiment:
+    runs-on: ubuntu-latest
+    env:
+      CBQN_REF: master
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install CBQN
+        run: |
+          git clone --depth 1 --branch "$CBQN_REF" https://github.com/dzaima/CBQN.git
+          make -C CBQN -j$(nproc)
+          sudo cp CBQN/BQN /usr/local/bin/bqn
+
+      - name: Run MatrixResult Cells and Rank probe
+        run: bqn experiments/bqn/matrix_result_cells_rank.bqn
