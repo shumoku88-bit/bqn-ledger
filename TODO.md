@@ -16,7 +16,8 @@
 - Keep operational readiness and inspection outside the report catalog.
 - Keep BQN exploration permanently active: every relevant task should scan for direct primitives, cells/rank/axes, whole-array formulations, alternate representations, reversible views, and naturally revealed new capabilities.
 - Use `docs/BQN_EXPLORATION_PLAYBOOK.md` to place ideas in a production finite slice, an analysis-only probe, a personal-book experiment, or a parked non-use record. Do not turn the exploration landscape into an automatic cleanup queue.
-- Use `experiments/bqn/` for isolated shape and expression probes before a production decision.
+- Read and revise `docs/BQN_EXPLORATION_CATALOG.md` so questions, representation ideas, rejected formulations, and revisit signals survive across future AI work.
+- Use `experiments/bqn/` for isolated shape and expression probes before a production decision. A probe may compare multiple formulations freely; production adoption remains one coherent slice at a time.
 - Do not add FX conversion, mixed-domain totals, a universal Cube, or a generic query DSL without a concrete decision. BQN exploration may still expose these or other new questions for discussion without implementing them.
 - Keep `libri-di-casa` convergence optional: prefer standalone BQN while it remains sufficient, while preserving one authoritative writer, semantic source roles independent of physical format, durable provenance, and neutral report results; do not build or activate an integration protocol before a concrete unmet need and finite contract are proven.
 
