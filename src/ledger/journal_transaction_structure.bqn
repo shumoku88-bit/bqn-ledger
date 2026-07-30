@@ -30,11 +30,6 @@ Split ← {𝕊 sep‿text:
 }
 Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
 StartsWith ← {𝕊 prefix‿text: prefix≡(≠prefix)↑text}
-Unique ← {𝕊 items:
-  result ← empty
-  {𝕊 item: {𝕊: result∾↩⟨item⟩}⍟(¬Contains ⟨item,result⟩) @}¨items
-  result
-}
 ToNum ← {𝕊 text: +´(text-⊑"0")×10⋆⌽↕≠text}
 IsDigits ← {𝕊 text: (0<≠text) ∧ ∧´text∊"0123456789"}
 Diagnostic ← {𝕊 codeText‿lineNumber‿messageText:
@@ -106,7 +101,7 @@ Parse ← {𝕊 raw:
   trimmedLines ← Trim¨lines
   declaredAccounts ← {8↓𝕩}¨({StartsWith ⟨"account ",𝕩⟩}¨trimmedLines)/trimmedLines
   declaredCommodities ← {10↓𝕩}¨({StartsWith ⟨"commodity ",𝕩⟩}¨trimmedLines)/trimmedLines
-  diagnostics ∾↩ AddIf ⟨(≠declaredAccounts)≠≠Unique declaredAccounts,Diagnostic ⟨"account_duplicate",0,"account declarations must be unique"⟩⟩
+  diagnostics ∾↩ AddIf ⟨(≠declaredAccounts)≠≠⍷declaredAccounts,Diagnostic ⟨"account_duplicate",0,"account declarations must be unique"⟩⟩
   diagnostics ∾↩ AddIf ⟨⟨"JPY"⟩≢declaredCommodities,Diagnostic ⟨"commodity_declaration_invalid",0,"normalized partition must declare JPY exactly once"⟩⟩
   diagnostics ∾↩ AddIf ⟨1≠≠starts,Diagnostic ⟨"transaction_count_invalid",0,"one normalized partition must contain exactly one transaction"⟩⟩
   transaction ← @
@@ -149,7 +144,7 @@ Parse ← {𝕊 raw:
       diagnostics ∾↩ AddIf ⟨¬Contains ⟨posting.account_key,declaredAccounts⟩,Diagnostic ⟨"posting_account_unknown",posting.source_line,"posting account must be declared in the Journal"⟩⟩
     }¨rawPostings
     keys ← {𝕩.key}¨metadata
-    diagnostics ∾↩ AddIf ⟨(≠keys)≠≠Unique keys,Diagnostic ⟨"metadata_duplicate",start+1,"metadata keys must be unique within one transaction"⟩⟩
+    diagnostics ∾↩ AddIf ⟨(≠keys)≠≠⍷keys,Diagnostic ⟨"metadata_duplicate",start+1,"metadata keys must be unique within one transaction"⟩⟩
     layer ← MetaOr ⟨"layer",metadata,"actual"⟩
     eventId ← MetaOr ⟨"event-id",metadata,""⟩
     planId ← MetaOr ⟨"plan-id",metadata,""⟩
