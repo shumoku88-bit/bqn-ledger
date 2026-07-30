@@ -10,7 +10,7 @@ SplitKeepEmpty ← {𝕊 sep‿text:
 empty ← ⟨⟩
 
 IsIgnored ← {𝕊 line:
-  (0=≠line) ∨ ((0<≠line) ∧ (((⊑line)='#') ∨ ((⊑line)=⊑"\")))
+  (0=≠line) ∨ ((0<≠line) ∧ (((⊑line)='#') ∨ ((⊑line)=⊑"\\")))
 }
 
 IsFractionDigits ← {𝕊 text:
@@ -52,7 +52,7 @@ Build ← {𝕊 lines:
         idx ← ⊑codes⊐⟨<requested⟩
         result ← {state⇐"error",currency⇐requested,max_fraction_digits⇐¯1,symbol⇐"",code⇐"unsupported_currency",message⇐"unsupported currency: "∾requested}
         {𝕊:
-          result ↩ {state⇐"ok",currency⇐requested,max_fraction_digits⇐idx⊑maxes,symbol⇐>idx⊑symbols,code⇐"",message⇐""}
+          result ↩ {state⇐"ok",currency⇐>idx⊑codes,max_fraction_digits⇐idx⊑maxes,symbol⇐>idx⊑symbols,code⇐"",message⇐""}
         }⍟(idx<≠codes) @
         result
       }
