@@ -22,7 +22,6 @@ SafeBasename ← {𝕊 value:
 }
 EndsWith ← {𝕊 suffix‿value: suffix≡(-≠suffix)↑value}
 Join ← {𝕊 base‿name: base∾(('/'≠¯1↑base)/"/")∾name}
-FindRow ← {𝕊 key‿rows: (⊑(key⊸≡¨{𝕩.key}¨rows)⊐1)⊑rows}
 CycleFailure ← {𝕊 resolved‿fallback:
   {𝕊:PrintDiagnostics resolved.diagnostics}⍟(0<≠resolved.diagnostics) @
   code ← fallback ⋄ message ← "Cycle resolution failed"
@@ -72,9 +71,8 @@ currentCycleName ← profileSources.current_cycle
 comparisonCurrentName ← profileSources.comparison_current_cycle
 baselineCycleName ← profileSources.baseline_cycle
 planName ← profileSources.plan
-comparisonRoute ← FindRow ⟨"cycle-comparison",admissions⟩
 {𝕊:Fail ⟨"current_cycle_source_mismatch","Cycle Accounts and Cycle Comparison must share the current Cycle source"⟩}⍟(currentCycleName≢comparisonCurrentName) @
-{𝕊:Fail ⟨"current_comparison_policy_unsupported","current profile requires aligned_elapsed Cycle Comparison"⟩}⍟((3⊑comparisonRoute.coordinates)≢"aligned_elapsed") @
+{𝕊:Fail ⟨"current_comparison_policy_unsupported","current profile requires aligned_elapsed Cycle Comparison"⟩}⍟((profile.ComparisonPolicy admissions)≢"aligned_elapsed") @
 sourceNamesOk ← (SafeBasename currentCycleName) ∧ (SafeBasename baselineCycleName) ∧ SafeBasename planName
 sourceSuffixesOk ← (EndsWith ⟨".tsv",currentCycleName⟩) ∧ (EndsWith ⟨".tsv",baselineCycleName⟩) ∧ EndsWith ⟨".tsv",planName⟩
 {𝕊:Fail ⟨"source_basename_invalid","Cycle and Plan sources must be safe .tsv basenames"⟩}⍟(¬(sourceNamesOk ∧ sourceSuffixesOk)) @
