@@ -19,6 +19,12 @@ result ← balance.Build ⟨facts,"JPY",dates.Ordinal "2026-01-12"⟩
 1 lib.AssertEq result.balanced
 3 lib.AssertEq ≠0⊑result.accounts.contributors
 "actual.journal" lib.AssertEq (⊑0⊑result.accounts.contributors).source
+(("JPY"⊸≡¨facts.accounts.currency)/facts.accounts.key) lib.AssertEq result.accounts.account_key
+cashAccountIndex ← ⊑result.accounts.account_index
+cashPostingMask ← (cashAccountIndex=facts.postings.account_index) ∧ facts.postings.date_ordinal≤result.observation_ordinal
+cashPostingIds ← cashPostingMask/facts.postings.posting_id
+cashContributorIds ← {𝕩.posting_id}¨⊑result.accounts.contributors
+cashPostingIds lib.AssertEq cashContributorIds
 
 atJan10 ← balance.Build ⟨facts,"JPY",dates.Ordinal "2026-01-10"⟩
 ⟨980,¯1000,20,0,0,0,0,0⟩ lib.AssertEq atJan10.accounts.closing
