@@ -86,22 +86,19 @@ usd ← BuildDomain ⟨"USD",usdLines,usdRaw⟩
 ⟨⟨⟨⟩,⟨⟩⟩,⟨⟨⟩,⟨⟩⟩⟩ lib.AssertEq usd.matrix.contributors
 
 # Every Posting is individually exact, but one Month × Account cell sum exceeds the exact range.
+overflowCount ← 1025
 overflowFacts ← {
   state⇐"ok",
   sources⇐{count⇐1,name⇐⟨"actual.journal"⟩},
   domains⇐{code⇐⟨"JPY"⟩},
   layers⇐{name⇐⟨"actual"⟩},
-  accounts⇐{
-    index⇐⟨0,1⟩,key⇐⟨"assets:overflow","expenses:overflow"⟩,
-    currency⇐⟨"JPY","JPY"⟩
-  },
-  transactions⇐{date_text⇐⟨"2026-03-01","2026-03-02"⟩},
+  accounts⇐{index⇐⟨0⟩,key⇐⟨"expenses:overflow"⟩,currency⇐⟨"JPY"⟩},
+  transactions⇐{date_text⇐overflowCount⥊⟨"2026-03-01"⟩},
   postings⇐{
-    index⇐↕4,posting_id⇐⟨"overflow-first:0","overflow-first:1","overflow-second:0","overflow-second:1"⟩,
-    transaction_index⇐⟨0,0,1,1⟩,domain_index⇐4⥊0,layer_index⇐4⥊0,
-    account_index⇐⟨1,0,1,0⟩,
-    coefficient⇐⟨9007199254740991,¯9007199254740991,9007199254740991,¯9007199254740991⟩,
-    scale⇐4⥊0
+    index⇐↕overflowCount,posting_id⇐overflowCount⥊⟨"overflow:0"⟩,
+    transaction_index⇐↕overflowCount,domain_index⇐overflowCount⥊0,
+    layer_index⇐overflowCount⥊0,account_index⇐overflowCount⥊0,
+    coefficient⇐overflowCount⥊9007199254740991,scale⇐overflowCount⥊0
   }
 }
 overflow ← monthly.Build ⟨overflowFacts,"JPY","2026-03","2026-04"⟩
