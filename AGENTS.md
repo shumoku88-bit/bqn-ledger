@@ -35,7 +35,7 @@ Purity is not a role. A pure accounting owner may be a capability boundary that 
 
 Separate a shallow capability boundary from the bounded whole-array kernel it protects. Ledger admission owns source-internal invariants; the capability boundary owns request-specific and cross-source contracts. Once those preconditions are established, the inner kernel should receive aligned arrays and expose the direct transformation rather than repeat source validation or hide it behind defensive predicate ladders. This prohibition concerns defensive control-flow nesting, not nested arrays or ragged evidence cells.
 
-Do not expand a clear train, modifier composition, rank/cell expression, grouping pipeline, or structural transformation solely to make each mechanical step familiar to a non-array-language reader. Preserve names at accounting, admission, exact-arithmetic, diagnostic, provenance, publication, and effect boundaries. Inside a bounded pure kernel, local mechanical names are optional and may disappear when composition makes the complete transformation easier to see.
+Do not expand a clear train, modifier composition, rank/cell expression, grouping pipeline, or structural transformation solely to make each mechanical step familiar to a non-array-language reader. Preserve names at accounting, admission, exact-arithmetic, diagnostic, provenance, publication, and effect boundaries. Inside a bounded whole-array kernel, local mechanical names are optional and may disappear when composition makes the complete transformation easier to see.
 
 Use comments to state what the expression cannot state by itself:
 
