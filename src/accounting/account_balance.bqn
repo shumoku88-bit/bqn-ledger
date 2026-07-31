@@ -30,47 +30,48 @@ Build ← {𝕊 facts‿domainCode‿observationOrdinal:
     diagnostics ∾↩ AddIf ⟨¬layerKnown,Diagnostic ⟨"actual_layer_unknown","Actual layer must occur in Layer facts"⟩⟩
     {𝕊:
       layerIndex ← IndexOf ⟨"actual",facts.layers.name⟩
-      selectedMask ← (domainIndex=facts.postings.domain_index) ∧ (layerIndex=facts.postings.layer_index) ∧ facts.postings.date_ordinal≤observationOrdinal
-      selectedIndices ← selectedMask/facts.postings.index
-      selectedScales ← selectedMask/facts.postings.scale
-      {𝕊: amountScale↩⌈´selectedScales}⍟(0<≠selectedScales) @
-      normalized ← {𝕊 postingIndex:
-        scale.Normalize ⟨postingIndex⊑facts.postings.coefficient,postingIndex⊑facts.postings.scale,amountScale⟩
-      }¨selectedIndices
+      postings ← facts.postings
+      selectedMask ← (domainIndex=postings.domain_index) ∧ (layerIndex=postings.layer_index) ∧ postings.date_ordinal≤observationOrdinal
+      selectedIndices ← selectedMask/postings.index
+      selectedAccountIndices ← selectedMask/postings.account_index
+      selectedCoefficients ← selectedMask/postings.coefficient
+      selectedScales ← selectedMask/postings.scale
+      amountScale↩⌈´0∾selectedScales
+      normalized ← selectedCoefficients {scale.Normalize ⟨𝕨,𝕩,amountScale⟩}¨ selectedScales
       normalizationOk ← ∧´1∾{𝕩.state≡"ok"}¨normalized
       diagnostics ∾↩ AddIf ⟨¬normalizationOk,Diagnostic ⟨"coefficient_normalization_failed","selected Postings cannot normalize exactly"⟩⟩
       {𝕊:
         normalizedCoefficients ← {𝕩.coefficient}¨normalized
-        selectedAccountIndices ← selectedMask/facts.postings.account_index
-        domainAccountIndices ← (domainCode⊸≡¨facts.accounts.currency)/facts.accounts.index
-        rows ← empty
-        {𝕊 accountIndex:
-          accountMask ← accountIndex=selectedAccountIndices
-          sum ← scale.Sum (accountMask/normalizedCoefficients)
-          diagnostics ∾↩ AddIf ⟨sum.state≢"ok",Diagnostic ⟨"coefficient_sum_failed","Account closing exceeds exact range"⟩⟩
-          {𝕊:
-            contributorIndices ← accountMask/selectedIndices
-            rows∾↩⟨{
-              account_index⇐accountIndex,account_key⇐accountIndex⊑facts.accounts.key,
-              role⇐accountIndex⊑facts.accounts.role,type⇐accountIndex⊑facts.accounts.type,
-              closing⇐sum.coefficient,
-              contributors⇐{reference.Posting ⟨facts,𝕩⟩}¨contributorIndices
-            }⟩
-          }⍟(sum.state≡"ok") @
-        }¨domainAccountIndices
+        accountIndices ← (domainCode⊸≡¨facts.accounts.currency)/facts.accounts.index
+        accountCount ← ≠accountIndices
+
+        # p: selected Posting cells in source order; a: domain Accounts in canonical Account order.
+        # p→a Group preserves contributor order; the extra a coordinate retains trailing empty Accounts.
+        accountCoordinates ← accountIndices⊐selectedAccountIndices
+        matched ← accountCoordinates<accountCount
+        groupCoordinates ← (matched/accountCoordinates)∾⟨accountCount⟩
+        coefficientGroups ← groupCoordinates⊔matched/normalizedCoefficients
+        postingGroups ← groupCoordinates⊔matched/selectedIndices
+        sumResults ← scale.Sum¨coefficientGroups
+        sumOk ← {𝕩.state≡"ok"}¨sumResults
+        diagnostics ∾↩ ∾{𝕊 ok:
+          AddIf ⟨¬ok,Diagnostic ⟨"coefficient_sum_failed","Account closing exceeds exact range"⟩⟩
+        }¨sumOk
         {𝕊:
-          total ← scale.Sum {𝕩.closing}¨rows
+          closing ← {𝕩.coefficient}¨sumResults
+          total ← scale.Sum closing
           diagnostics ∾↩ AddIf ⟨total.state≢"ok",Diagnostic ⟨"coefficient_sum_failed","Account closing total exceeds exact range"⟩⟩
           {𝕊:
             balanced↩total.coefficient=0
             accounts↩{
-              count⇐≠rows,index⇐↕≠rows,
-              account_index⇐{𝕩.account_index}¨rows,account_key⇐{𝕩.account_key}¨rows,
-              role⇐{𝕩.role}¨rows,type⇐{𝕩.type}¨rows,
-              closing⇐{𝕩.closing}¨rows,contributors⇐{𝕩.contributors}¨rows
+              count⇐accountCount,index⇐↕accountCount,
+              account_index⇐accountIndices,account_key⇐accountIndices⊏facts.accounts.key,
+              role⇐accountIndices⊏facts.accounts.role,type⇐accountIndices⊏facts.accounts.type,
+              closing⇐closing,
+              contributors⇐{𝕊 indices: {reference.Posting ⟨facts,𝕩⟩}¨indices}¨postingGroups
             }
           }⍟(total.state≡"ok") @
-        }⍟(0=≠diagnostics) @
+        }⍟(∧´1∾sumOk) @
       }⍟normalizationOk @
     }⍟layerKnown @
   }⍟(0=≠diagnostics) @
