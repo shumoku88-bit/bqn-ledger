@@ -42,7 +42,7 @@ Before a phase begins, its complete file inventory must be added here and covere
 
 - [x] `src/accounting/account_balance.bqn` — PR #517 grouped the selected Posting axis onto the canonical Account axis; reread on main `a318b4c49fe4b37cd49e61850a17f8d196184a0f`.
 - [x] `src/accounting/account_period.bqn` — PR #519 exposed the selected Posting axis as an Account × period-lane Group kernel; reread on main `5619cb24bcaa57202135bc8a40d49b0827c98648`.
-- [ ] `src/accounting/balance_sheet.bqn`
+- [x] `src/accounting/balance_sheet.bqn` — PR #521 classified canonical Account rows once into Balance Sheet statement lanes, grouping signed balances and durable Posting evidence in parallel; reread on main `f10ab4db29e9b89bae014d89310497db58162855`.
 - [ ] `src/accounting/cycle_account_period.bqn`
 - [ ] `src/accounting/cycle_calendar_month_resolution.bqn`
 - [ ] `src/accounting/cycle_comparison.bqn`
@@ -65,6 +65,6 @@ Before a phase begins, its complete file inventory must be added here and covere
 
 ## Current cursor
 
-`src/accounting/balance_sheet.bqn`
+`src/accounting/cycle_account_period.bqn`
 
 Do not begin the next file until this cursor has a merged final decision and its checkbox is updated on current `main`.
