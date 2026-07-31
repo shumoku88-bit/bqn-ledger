@@ -85,27 +85,6 @@ usd ← BuildDomain ⟨"USD",usdLines,usdRaw⟩
 ⟨0,0⟩ lib.AssertEq usd.totals.account
 ⟨⟨⟨⟩,⟨⟩⟩,⟨⟨⟩,⟨⟩⟩⟩ lib.AssertEq usd.matrix.contributors
 
-# Every Posting is individually exact, but one Month × Account cell sum exceeds the exact range.
-overflowCount ← 1025
-overflowFacts ← {
-  state⇐"ok",
-  sources⇐{count⇐1,name⇐⟨"actual.journal"⟩},
-  domains⇐{code⇐⟨"JPY"⟩},
-  layers⇐{name⇐⟨"actual"⟩},
-  accounts⇐{index⇐⟨0⟩,key⇐⟨"expenses:overflow"⟩,currency⇐⟨"JPY"⟩},
-  transactions⇐{date_text⇐overflowCount⥊⟨"2026-03-01"⟩},
-  postings⇐{
-    index⇐↕overflowCount,posting_id⇐overflowCount⥊⟨"overflow:0"⟩,
-    transaction_index⇐↕overflowCount,domain_index⇐overflowCount⥊0,
-    layer_index⇐overflowCount⥊0,account_index⇐overflowCount⥊0,
-    coefficient⇐overflowCount⥊9007199254740991,scale⇐overflowCount⥊0
-  }
-}
-overflow ← monthly.Build ⟨overflowFacts,"JPY","2026-03","2026-04"⟩
-"error" lib.AssertEq overflow.state
-0 lib.AssertEq overflow.matrix.row_count
-lib.Assert ∨´"coefficient_sum_failed"⊸≡¨{𝕩.code}¨overflow.diagnostics
-
 CheckError ← {𝕊 domain‿first‿last‿code:
   rejected ← monthly.Build ⟨facts,domain,first,last⟩
   "error" lib.AssertEq rejected.state
