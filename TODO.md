@@ -40,7 +40,7 @@ Before a phase begins, its complete file inventory must be added here and covere
 
 ## Phase 1: `src/accounting/`
 
-- [ ] `src/accounting/account_balance.bqn`
+- [x] `src/accounting/account_balance.bqn` — PR #517 grouped the selected Posting axis onto the canonical Account axis; reread on main `a318b4c49fe4b37cd49e61850a17f8d196184a0f`.
 - [ ] `src/accounting/account_period.bqn`
 - [ ] `src/accounting/balance_sheet.bqn`
 - [ ] `src/accounting/cycle_account_period.bqn`
@@ -65,6 +65,6 @@ Before a phase begins, its complete file inventory must be added here and covere
 
 ## Current cursor
 
-`src/accounting/account_balance.bqn`
+`src/accounting/account_period.bqn`
 
 Do not begin the next file until this cursor has a merged final decision and its checkbox is updated on current `main`.
