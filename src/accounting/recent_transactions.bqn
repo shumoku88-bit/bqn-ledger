@@ -32,49 +32,57 @@ Build ← {𝕊 facts‿limit:
       allActual ← ∧´1∾actualLayerIndex⊸=¨facts.transactions.layer_index
       diagnostics ∾↩ AddIf ⟨¬allActual,Diagnostic ⟨"transaction_layer_invalid","Actual source Transactions must all use Actual layer"⟩⟩
       {𝕊:
-        start ← 0⌈facts.transactions.count-limit
-        selected ← ⌽start↓facts.transactions.index
-        candidateRows ← empty
-        {𝕊 transactionIndex:
-          postingMask ← transactionIndex=facts.postings.transaction_index
-          postingIndices ← postingMask/facts.postings.index
-          debitMask ← postingMask ∧ "debit"⊸≡¨facts.postings.side
-          creditMask ← postingMask ∧ "credit"⊸≡¨facts.postings.side
-          debitIndices ← debitMask/facts.postings.index
-          creditIndices ← creditMask/facts.postings.index
-          transactionScale ← transactionIndex⊑facts.transactions.calculation_scale
-          scalesAligned ← ∧´1∾transactionScale⊸=¨postingIndices⊏facts.postings.scale
-          lanesValid ← (0<≠debitIndices) ∧ 0<≠creditIndices
-          debitTotal ← scale.Sum (debitMask/facts.postings.coefficient)
-          rowValid ← scalesAligned ∧ lanesValid ∧ debitTotal.state≡"ok"
-          diagnostics ∾↩ AddIf ⟨¬rowValid,Diagnostic ⟨"transaction_amount_invalid","selected Transaction requires aligned exact debit and credit evidence"⟩⟩
-          {𝕊:
-            debitAccountIndices ← debitIndices⊏facts.postings.account_index
-            creditAccountIndices ← creditIndices⊏facts.postings.account_index
-            domainIndex ← transactionIndex⊑facts.transactions.domain_index
-            candidateRows∾↩⟨{
-              transaction_index⇐transactionIndex,date⇐transactionIndex⊑facts.transactions.date_text,
-              description⇐transactionIndex⊑facts.transactions.description,
-              currency⇐domainIndex⊑facts.domains.code,
-              coefficient⇐debitTotal.coefficient,scale⇐transactionScale,
-              debit_accounts⇐{𝕩⊑facts.accounts.key}¨debitAccountIndices,
-              credit_accounts⇐{𝕩⊑facts.accounts.key}¨creditAccountIndices,
-              transaction_reference⇐reference.Transaction ⟨facts,transactionIndex⟩,
-              debit_contributors⇐{reference.Posting ⟨facts,𝕩⟩}¨debitIndices,
-              credit_contributors⇐{reference.Posting ⟨facts,𝕩⟩}¨creditIndices
-            }⟩
-          }⍟rowValid @
-        }¨selected
+        transactions ← facts.transactions
+        postings ← facts.postings
+        start ← 0⌈transactions.count-limit
+        selected ← ⌽start↓transactions.index
+        selectedCount ← ≠selected
+
+        postingCoordinates ← selected⊐postings.transaction_index
+        selectedPostingMask ← postingCoordinates<selectedCount
+        selectedPostingCoordinates ← selectedPostingMask/postingCoordinates
+        selectedPostingIndices ← selectedPostingMask/postings.index
+        selectedPostingSides ← selectedPostingMask/postings.side
+        selectedPostingScales ← selectedPostingMask/postings.scale
+        selectedPostingCoefficients ← selectedPostingMask/postings.coefficient
+        selectedPostingAccounts ← selectedPostingMask/postings.account_index
+
+        allCoordinates ← selectedPostingCoordinates∾⟨selectedCount⟩
+        postingScaleGroups ← allCoordinates⊔selectedPostingScales
+
+        debitMask ← "debit"⊸≡¨selectedPostingSides
+        debitCoordinates ← (debitMask/selectedPostingCoordinates)∾⟨selectedCount⟩
+        debitPostingGroups ← debitCoordinates⊔debitMask/selectedPostingIndices
+        debitCoefficientGroups ← debitCoordinates⊔debitMask/selectedPostingCoefficients
+        debitAccountGroups ← debitCoordinates⊔debitMask/selectedPostingAccounts
+
+        creditMask ← "credit"⊸≡¨selectedPostingSides
+        creditCoordinates ← (creditMask/selectedPostingCoordinates)∾⟨selectedCount⟩
+        creditPostingGroups ← creditCoordinates⊔creditMask/selectedPostingIndices
+        creditAccountGroups ← creditCoordinates⊔creditMask/selectedPostingAccounts
+
+        transactionScales ← selected⊏transactions.calculation_scale
+        scalesAligned ← transactionScales {∧´1∾𝕨⊸=¨𝕩}¨ postingScaleGroups
+        lanesValid ← (0<≠¨debitPostingGroups) ∧ 0<≠¨creditPostingGroups
+        debitTotals ← scale.Sum¨debitCoefficientGroups
+        totalsValid ← {𝕩.state≡"ok"}¨debitTotals
+        rowValid ← scalesAligned ∧ lanesValid ∧ totalsValid
+        diagnostics ∾↩ ∾{𝕊 valid:
+          AddIf ⟨¬valid,Diagnostic ⟨"transaction_amount_invalid","selected Transaction requires aligned exact debit and credit evidence"⟩⟩
+        }¨rowValid
+
         {𝕊:
+          domainIndices ← selected⊏transactions.domain_index
           rows↩{
-            count⇐≠candidateRows,index⇐↕≠candidateRows,
-            transaction_index⇐{𝕩.transaction_index}¨candidateRows,date⇐{𝕩.date}¨candidateRows,
-            description⇐{𝕩.description}¨candidateRows,currency⇐{𝕩.currency}¨candidateRows,
-            coefficient⇐{𝕩.coefficient}¨candidateRows,scale⇐{𝕩.scale}¨candidateRows,
-            credit_accounts⇐{𝕩.credit_accounts}¨candidateRows,debit_accounts⇐{𝕩.debit_accounts}¨candidateRows,
-            transaction_reference⇐{𝕩.transaction_reference}¨candidateRows,
-            debit_contributors⇐{𝕩.debit_contributors}¨candidateRows,
-            credit_contributors⇐{𝕩.credit_contributors}¨candidateRows
+            count⇐selectedCount,index⇐↕selectedCount,transaction_index⇐selected,
+            date⇐selected⊏transactions.date_text,description⇐selected⊏transactions.description,
+            currency⇐domainIndices⊏facts.domains.code,
+            coefficient⇐{𝕩.coefficient}¨debitTotals,scale⇐transactionScales,
+            credit_accounts⇐{𝕩⊏facts.accounts.key}¨creditAccountGroups,
+            debit_accounts⇐{𝕩⊏facts.accounts.key}¨debitAccountGroups,
+            transaction_reference⇐{reference.Transaction ⟨facts,𝕩⟩}¨selected,
+            debit_contributors⇐{𝕊 indices: {reference.Posting ⟨facts,𝕩⟩}¨indices}¨debitPostingGroups,
+            credit_contributors⇐{𝕊 indices: {reference.Posting ⟨facts,𝕩⟩}¨indices}¨creditPostingGroups
           }
         }⍟(0=≠diagnostics) @
       }⍟allActual @
