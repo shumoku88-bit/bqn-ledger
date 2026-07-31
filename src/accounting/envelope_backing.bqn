@@ -124,71 +124,110 @@ BuildEnvelopeTerms ← {𝕊 budgetFacts‿actualFacts‿accounts‿ownership‿
   budgetPeriod ← prepared.budget_period
   actualPeriod ← prepared.actual_period
   joined ← prepared.completion_join
-  diagnostics ← empty ⋄ rows ← empty
-  {𝕊 envelopeIndex:
-    category ← envelopeIndex⊑accounts.budget
-    expenseMask ← (domain⊸≡¨accounts.currency) ∧ ("expense"⊸≡¨accounts.role) ∧ category⊸≡¨accounts.budget
-    expenseIndices ← expenseMask/accounts.index
-    budgetRow ← IndexOf ⟨envelopeIndex,budgetPeriod.accounts.account_index⟩
-    entitlementResult ← NormalizeOne ⟨budgetRow⊑budgetPeriod.accounts.movement,budgetPeriod.scale,targetScale⟩
-    expenseRows ← {IndexOf ⟨𝕩,actualPeriod.accounts.account_index⟩}¨expenseIndices
-    consumptionResult ← SumNormalized ⟨expenseRows⊏actualPeriod.accounts.debit_movement,actualPeriod.scale,targetScale⟩
-    refundResult ← SumNormalized ⟨-(expenseRows⊏actualPeriod.accounts.credit_movement),actualPeriod.scale,targetScale⟩
-    expenseKeys ← expenseIndices⊏accounts.key
-    openMask ← ("open"⊸≡¨joined.rows.status) ∧ {Contains ⟨𝕩,expenseKeys⟩}¨joined.rows.planned_to_account
-    openRows ← openMask/joined.rows.index
-    reserveNormalized ← {𝕊 i:
-      NormalizeOne ⟨i⊑joined.rows.planned_coefficient,i⊑joined.rows.planned_scale,targetScale⟩
-    }¨openRows
-    reserveResult ← ErrorExact @
-    {𝕊: reserveResult↩scale.Sum {𝕩.coefficient}¨reserveNormalized}⍟(∧´1∾{𝕩.state≡"ok"}¨reserveNormalized) @
-    termsOk ← ∧´{𝕩.state≡"ok"}¨⟨entitlementResult,consumptionResult,refundResult,reserveResult⟩
-    diagnostics ∾↩ AddIf ⟨¬termsOk,Diagnostic ⟨"coefficient_sum_failed","Envelope terms exceed exact range"⟩⟩
-    {𝕊:
-      remainingResult ← scale.Sum ⟨entitlementResult.coefficient,-consumptionResult.coefficient,refundResult.coefficient⟩
-      headroomResult ← ErrorExact @
-      {𝕊: headroomResult↩scale.Sum ⟨remainingResult.coefficient,-reserveResult.coefficient⟩}⍟(remainingResult.state≡"ok") @
-      finalOk ← (remainingResult.state≡"ok") ∧ headroomResult.state≡"ok"
-      diagnostics ∾↩ AddIf ⟨¬finalOk,Diagnostic ⟨"coefficient_sum_failed","Envelope remaining exceeds exact range"⟩⟩
-      {𝕊:
-        entitlementIndices ← budgetRow⊑budgetPeriod.accounts.period_contributors
-        debitIndices ← ∾{𝕩⊑actualPeriod.accounts.debit_contributors}¨expenseRows
-        creditIndices ← ∾{𝕩⊑actualPeriod.accounts.credit_contributors}¨expenseRows
-        rows∾↩⟨{
-          account_index⇐envelopeIndex,account_key⇐envelopeIndex⊑accounts.key,category⇐category,
-          entitlement⇐entitlementResult.coefficient,actual_consumption⇐consumptionResult.coefficient,
-          actual_refunds⇐refundResult.coefficient,ledger_remaining⇐remainingResult.coefficient,
-          open_plan_reserve⇐reserveResult.coefficient,post_plan_headroom⇐headroomResult.coefficient,
-          entitlement_contributors⇐PostingReferences ⟨budgetFacts,entitlementIndices⟩,
-          consumption_contributors⇐PostingReferences ⟨actualFacts,debitIndices⟩,
-          refund_contributors⇐PostingReferences ⟨actualFacts,creditIndices⟩,
-          plan_contributors⇐openRows⊏joined.rows.plan_reference
-        }⟩
-      }⍟finalOk @
-    }⍟termsOk @
-  }¨ownership.envelope_indices
-  {state⇐(0=≠diagnostics)⊑"error"‿"ok",rows⇐rows,diagnostics⇐diagnostics}
-}
+  envelopeIndices ← ownership.envelope_indices
+  categories ← ownership.categories
+  envelopeCount ← ≠envelopeIndices
 
-RowsTable ← {𝕊 rows:
-  {
-    count⇐≠rows,index⇐↕≠rows,account_index⇐{𝕩.account_index}¨rows,
-    account_key⇐{𝕩.account_key}¨rows,category⇐{𝕩.category}¨rows,
-    entitlement⇐{𝕩.entitlement}¨rows,actual_consumption⇐{𝕩.actual_consumption}¨rows,
-    actual_refunds⇐{𝕩.actual_refunds}¨rows,ledger_remaining⇐{𝕩.ledger_remaining}¨rows,
-    open_plan_reserve⇐{𝕩.open_plan_reserve}¨rows,post_plan_headroom⇐{𝕩.post_plan_headroom}¨rows,
-    entitlement_contributors⇐{𝕩.entitlement_contributors}¨rows,
-    consumption_contributors⇐{𝕩.consumption_contributors}¨rows,
-    refund_contributors⇐{𝕩.refund_contributors}¨rows,plan_contributors⇐{𝕩.plan_contributors}¨rows
-  }
+  budgetRows ← budgetPeriod.accounts.account_index⊐envelopeIndices
+  entitlementResults ← {𝕊 row:
+    NormalizeOne ⟨row⊑budgetPeriod.accounts.movement,budgetPeriod.scale,targetScale⟩
+  }¨budgetRows
+
+  expenseMask ← (domain⊸≡¨accounts.currency) ∧ "expense"⊸≡¨accounts.role
+  expenseIndices ← expenseMask/accounts.index
+  expenseCoordinates ← categories⊐expenseMask/accounts.budget
+  matched ← expenseCoordinates<envelopeCount
+  expenseIndices ↩ matched/expenseIndices
+  expenseCoordinates ↩ matched/expenseCoordinates
+  expenseRows ← actualPeriod.accounts.account_index⊐expenseIndices
+  expenseGroups ← expenseCoordinates∾⟨envelopeCount⟩
+  debitGroups ← expenseGroups⊔expenseRows⊏actualPeriod.accounts.debit_movement
+  creditGroups ← expenseGroups⊔-(expenseRows⊏actualPeriod.accounts.credit_movement)
+  consumptionResults ← {SumNormalized ⟨𝕩,actualPeriod.scale,targetScale⟩}¨debitGroups
+  refundResults ← {SumNormalized ⟨𝕩,actualPeriod.scale,targetScale⟩}¨creditGroups
+
+  debitCells ← expenseGroups⊔expenseRows⊏actualPeriod.accounts.debit_contributors
+  creditCells ← expenseGroups⊔expenseRows⊏actualPeriod.accounts.credit_contributors
+  debitIndices ← {∾⟨empty⟩∾𝕩}¨debitCells
+  creditIndices ← {∾⟨empty⟩∾𝕩}¨creditCells
+
+  planAccountRows ← accounts.key⊐joined.rows.planned_to_account
+  planCoordinates ← categories⊐planAccountRows⊏accounts.budget
+  planCurrencyMatches ← domain⊸≡¨planAccountRows⊏accounts.currency
+  planRoleMatches ← "expense"⊸≡¨planAccountRows⊏accounts.role
+  planEligible ← planCurrencyMatches ∧ planRoleMatches ∧ planCoordinates<envelopeCount
+  openMask ← ("open"⊸≡¨joined.rows.status) ∧ planEligible
+  openCoordinates ← openMask/planCoordinates
+  planCoefficients ← openMask/joined.rows.planned_coefficient
+  planScales ← openMask/joined.rows.planned_scale
+  reserveNormalized ← planCoefficients {NormalizeOne ⟨𝕨,𝕩,targetScale⟩}¨ planScales
+  planGroups ← openCoordinates∾⟨envelopeCount⟩
+  reserveGroups ← planGroups⊔reserveNormalized
+  reserveResults ← {𝕊 results:
+    result ← ErrorExact @
+    {𝕊: result↩scale.Sum {𝕩.coefficient}¨results}⍟(∧´1∾{𝕩.state≡"ok"}¨results) @
+    result
+  }¨reserveGroups
+
+  entitlementOk ← {𝕩.state≡"ok"}¨entitlementResults
+  consumptionOk ← {𝕩.state≡"ok"}¨consumptionResults
+  refundOk ← {𝕩.state≡"ok"}¨refundResults
+  reserveOk ← {𝕩.state≡"ok"}¨reserveResults
+  termsOk ← entitlementOk ∧ consumptionOk ∧ refundOk ∧ reserveOk
+  remainingResults ← {𝕊 i:
+    result ← ErrorExact @
+    {𝕊:
+      result↩scale.Sum ⟨(i⊑entitlementResults).coefficient,-(i⊑consumptionResults).coefficient,(i⊑refundResults).coefficient⟩
+    }⍟(i⊑termsOk) @
+    result
+  }¨↕envelopeCount
+  headroomResults ← {𝕊 i:
+    result ← ErrorExact @
+    remaining ← i⊑remainingResults
+    {𝕊:
+      result↩scale.Sum ⟨remaining.coefficient,-(i⊑reserveResults).coefficient⟩
+    }⍟(remaining.state≡"ok") @
+    result
+  }¨↕envelopeCount
+  finalOk ← ({𝕩.state≡"ok"}¨remainingResults) ∧ {𝕩.state≡"ok"}¨headroomResults
+
+  diagnostics ← ∾{𝕊 i:
+    rowDiagnostics ← empty
+    {𝕊:
+      rowDiagnostics↩⟨Diagnostic ⟨"coefficient_sum_failed","Envelope terms exceed exact range"⟩⟩
+    }⍟(¬i⊑termsOk) @
+    {𝕊:
+      rowDiagnostics↩⟨Diagnostic ⟨"coefficient_sum_failed","Envelope remaining exceeds exact range"⟩⟩
+    }⍟((i⊑termsOk)∧¬i⊑finalOk) @
+    rowDiagnostics
+  }¨↕envelopeCount
+
+  table ← EmptyRows @
+  {𝕊:
+    table↩{
+      count⇐envelopeCount,index⇐↕envelopeCount,
+      account_index⇐envelopeIndices,account_key⇐envelopeIndices⊏accounts.key,category⇐categories,
+      entitlement⇐{𝕩.coefficient}¨entitlementResults,
+      actual_consumption⇐{𝕩.coefficient}¨consumptionResults,
+      actual_refunds⇐{𝕩.coefficient}¨refundResults,
+      ledger_remaining⇐{𝕩.coefficient}¨remainingResults,
+      open_plan_reserve⇐{𝕩.coefficient}¨reserveResults,
+      post_plan_headroom⇐{𝕩.coefficient}¨headroomResults,
+      entitlement_contributors⇐{PostingReferences ⟨budgetFacts,𝕩⟩}¨budgetRows⊏budgetPeriod.accounts.period_contributors,
+      consumption_contributors⇐{PostingReferences ⟨actualFacts,𝕩⟩}¨debitIndices,
+      refund_contributors⇐{PostingReferences ⟨actualFacts,𝕩⟩}¨creditIndices,
+      plan_contributors⇐planGroups⊔openMask/joined.rows.plan_reference
+    }
+  }⍟(0=≠diagnostics) @
+  {state⇐(0=≠diagnostics)⊑"error"‿"ok",table⇐table,diagnostics⇐diagnostics}
 }
 
 BuildBacking ← {𝕊 budgetFacts‿prepared‿ownership‿terms‿fundingIndices‿targetScale:
   budgetPeriod ← prepared.budget_period ⋄ actualBalance ← prepared.actual_balance
-  rows ← terms.rows
-  entitlement ← {𝕩.entitlement}¨rows ⋄ consumption ← {𝕩.actual_consumption}¨rows
-  refunds ← {𝕩.actual_refunds}¨rows ⋄ remaining ← {𝕩.ledger_remaining}¨rows
-  reserve ← {𝕩.open_plan_reserve}¨rows ⋄ headroom ← {𝕩.post_plan_headroom}¨rows
+  table ← terms.table
+  entitlement ← table.entitlement ⋄ consumption ← table.actual_consumption
+  refunds ← table.actual_refunds ⋄ remaining ← table.ledger_remaining
+  reserve ← table.open_plan_reserve ⋄ headroom ← table.post_plan_headroom
   termTotals ← scale.Sum¨⟨entitlement,consumption,refunds,remaining,reserve,headroom⟩
   fundingRows ← {IndexOf ⟨𝕩,actualBalance.accounts.account_index⟩}¨fundingIndices
   fundingValues ← fundingRows⊏actualBalance.accounts.closing
@@ -213,7 +252,7 @@ BuildBacking ← {𝕊 budgetFacts‿prepared‿ownership‿terms‿fundingIndic
     fundingContributors ← ∾{𝕩⊑actualBalance.accounts.contributors}¨fundingRows
     unassignedIndices ← (unassignedRow⊑budgetPeriod.accounts.opening_contributors)∾unassignedRow⊑budgetPeriod.accounts.period_contributors
     output↩{
-      state⇐"ok",table⇐RowsTable rows,
+      state⇐"ok",table⇐table,
       totals⇐{
         entitlement⇐0⊑totalCoefficients,actual_consumption⇐1⊑totalCoefficients,actual_refunds⇐2⊑totalCoefficients,
         ledger_remaining⇐3⊑totalCoefficients,open_plan_reserve⇐4⊑totalCoefficients,post_plan_headroom⇐5⊑totalCoefficients,
