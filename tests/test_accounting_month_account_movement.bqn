@@ -47,11 +47,43 @@ ils ← BuildDomain ⟨"ILS",ilsLines,ilsRaw⟩
 ⟨¯1235,1230,5⟩ lib.AssertEq 0⊑ils.matrix.values
 ⟨0,0,0⟩ lib.AssertEq 1⊑ils.matrix.values
 
+# Source order may interleave month cells. Occupied exact-zero cells retain contributor order.
+interleavedRaw ← ∾⟨
+  "commodity ILS",lf,lf,"account assets:ils",lf,"    ; role: asset",lf,lf,
+  "account expenses:a-ils",lf,"    ; role: expense",lf,lf,
+  "account expenses:b-ils",lf,"    ; role: expense",lf,lf,
+  "2026-03-01 * March A first",lf,"    ; event-id: interleaved-march-a-first",lf,"    ; layer: actual",lf,
+  "    expenses:a-ils 10 ILS",lf,"    assets:ils -10 ILS",lf,lf,
+  "2026-04-01 * April B",lf,"    ; event-id: interleaved-april-b",lf,"    ; layer: actual",lf,
+  "    expenses:b-ils 5 ILS",lf,"    assets:ils -5 ILS",lf,lf,
+  "2026-03-02 * March A second",lf,"    ; event-id: interleaved-march-a-second",lf,"    ; layer: actual",lf,
+  "    expenses:a-ils -10 ILS",lf,"    assets:ils 10 ILS",lf,lf,
+  "2026-04-02 * April A",lf,"    ; event-id: interleaved-april-a",lf,"    ; layer: actual",lf,
+  "    expenses:a-ils 7 ILS",lf,"    assets:ils -7 ILS",lf
+⟩
+interleaved ← BuildDomain ⟨"ILS",ilsLines,interleavedRaw⟩
+"ok" lib.AssertEq interleaved.state
+⟨"2026-03","2026-04"⟩ lib.AssertEq interleaved.months
+⟨0,0,0⟩ lib.AssertEq 0⊑interleaved.matrix.values
+⟨¯12,7,5⟩ lib.AssertEq 1⊑interleaved.matrix.values
+⟨0,0⟩ lib.AssertEq interleaved.totals.month
+⟨¯12,7,5⟩ lib.AssertEq interleaved.totals.account
+0 lib.AssertEq interleaved.totals.grand
+1 lib.AssertEq interleaved.totals.balanced
+marchExpenseA ← 1⊑0⊑interleaved.matrix.contributors
+2 lib.AssertEq ≠marchExpenseA
+⟨"interleaved-march-a-first:0","interleaved-march-a-second:0"⟩ lib.AssertEq {𝕩.posting_id}¨marchExpenseA
+⟨⟩ lib.AssertEq 2⊑0⊑interleaved.matrix.contributors
+⟨"interleaved-april-b:0"⟩ lib.AssertEq {𝕩.posting_id}¨2⊑1⊑interleaved.matrix.contributors
+
 usdLines ← ⟨"assets:usd	role=asset	currency=USD","expenses:usd	role=expense	currency=USD"⟩
 usdRaw ← ∾⟨"commodity USD",lf,lf,"account assets:usd",lf,"    ; role: asset",lf,lf,"account expenses:usd",lf,"    ; role: expense",lf⟩
 usd ← BuildDomain ⟨"USD",usdLines,usdRaw⟩
 "ok" lib.AssertEq usd.state
 ⟨⟨0,0⟩,⟨0,0⟩⟩ lib.AssertEq usd.matrix.values
+⟨0,0⟩ lib.AssertEq usd.totals.month
+⟨0,0⟩ lib.AssertEq usd.totals.account
+⟨⟨⟨⟩,⟨⟩⟩,⟨⟨⟩,⟨⟩⟩⟩ lib.AssertEq usd.matrix.contributors
 
 CheckError ← {𝕊 domain‿first‿last‿code:
   rejected ← monthly.Build ⟨facts,domain,first,last⟩
