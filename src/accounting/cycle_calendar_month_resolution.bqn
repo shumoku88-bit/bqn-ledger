@@ -14,12 +14,13 @@ Resolve ← {𝕊 admittedCycle‿asOfText:
       resolved↩result.Error ⟨definition.mode,asOfText,"observation_invalid","calendarMonth requires strict explicit as-of text"⟩
       {𝕊:
         year‿month‿day ← dates.Parts asOfText
-        baseMonth ← year×12+month-1
-        {𝕊: baseMonth-↩1}⍟(day<definition.start_day) @
-        startYear‿startMonth ← MonthParts baseMonth
-        endYear‿endMonth ← MonthParts baseMonth+1
-        start ← dates.FromParts ⟨startYear,startMonth,definition.start_day⟩
-        finish ← dates.FromParts ⟨endYear,endMonth,definition.start_day⟩
+
+        # b: start / end-exclusive boundary axis. The as-of month shifts back iff day precedes start_day.
+        # Adding ↕2 derives both adjacent month coordinates; MonthParts handles year rollover.
+        baseMonth ← ((year×12)+(month-1))-(day<definition.start_day)
+        boundaryMonths ← baseMonth+↕2
+        boundaryParts ← {𝕩∾definition.start_day}¨MonthParts¨boundaryMonths
+        start‿finish ← dates.FromParts¨boundaryParts
         resolved↩result.Success ⟨definition.mode,asOfText,start,finish,⟨⟩,⟨⟩⟩
       }⍟(dates.IsValid asOfText) @
     }⍟(definition.mode≡"calendarMonth") @
