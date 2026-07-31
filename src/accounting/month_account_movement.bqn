@@ -3,6 +3,8 @@
 scale ← •Import "../ledger/exact_scale.bqn"
 reference ← •Import "fact_reference.bqn"
 matrix_result ← •Import "matrix_result.bqn"
+sparse_group ← •Import "sparse_group.bqn"
+sparse_pivot ← •Import "sparse_pivot.bqn"
 dates ← •Import "../ledger/date_ordinal.bqn"
 empty ← ⟨⟩
 
@@ -50,7 +52,8 @@ Build ← {𝕊 facts‿domainCode‿firstMonth‿lastMonth:
     accountIndices ← (domainCode⊸≡¨facts.accounts.currency)/facts.accounts.index
     postings ← facts.postings
     postingMonths ← {7↑𝕩⊑facts.transactions.date_text}¨postings.transaction_index
-    selectedMask ← (domainIndex=postings.domain_index) ∧ (actualIndex=postings.layer_index) ∧ {Contains ⟨𝕩,months⟩}¨postingMonths
+    postingMonthIndices ← months⊐postingMonths
+    selectedMask ← (domainIndex=postings.domain_index) ∧ (actualIndex=postings.layer_index) ∧ (postingMonthIndices<≠months)
     selectedIndices ← selectedMask/postings.index
     selectedAccounts ← selectedMask/postings.account_index
     selectedMonths ← selectedMask/postingMonths
@@ -63,24 +66,17 @@ Build ← {𝕊 facts‿domainCode‿firstMonth‿lastMonth:
     diagnostics ∾↩ AddIf ⟨¬normalizationOk,Diagnostic ⟨"coefficient_normalization_failed","selected Postings cannot normalize exactly"⟩⟩
     {𝕊:
       normalized ← {𝕩.coefficient}¨normalizedResults
-      values ← empty ⋄ contributors ← empty
-      {𝕊 month:
-        valueRow ← empty ⋄ contributorRow ← empty
-        {𝕊 accountIndex:
-          mask ← (month⊸≡¨selectedMonths) ∧ accountIndex=selectedAccounts
-          sum ← scale.Sum mask/normalized
-          diagnostics ∾↩ AddIf ⟨sum.state≢"ok",Diagnostic ⟨"coefficient_sum_failed","month Account movement exceeds exact range"⟩⟩
-          {𝕊:
-            valueRow∾↩sum.coefficient
-            contributorRow∾↩⟨{reference.Posting ⟨facts,𝕩⟩}¨mask/selectedIndices⟩
-          }⍟(sum.state≡"ok") @
-        }¨accountIndices
-        values∾↩⟨valueRow⟩ ⋄ contributors∾↩⟨contributorRow⟩
-      }¨months
+      selectedAccountColumns ← accountIndices⊐selectedAccounts
+      selectedContributors ← {⟨reference.Posting ⟨facts,𝕩⟩⟩}¨selectedIndices
+      grouped ← sparse_group.Build ⟨
+        months,≠accountIndices,selectedMonths,selectedAccountColumns,normalized,selectedContributors
+      ⟩
+      diagnostics ∾↩ AddIf ⟨grouped.state≢"ok",Diagnostic ⟨"coefficient_sum_failed","month Account movement exceeds exact range"⟩⟩
       {𝕊:
-        built ← matrix_result.Build ⟨months,accountIndices,amountScale,values,contributors⟩
-        diagnostics ∾↩ built.diagnostics
+        pivoted ← sparse_pivot.Build ⟨months,accountIndices,amountScale,grouped.groups⟩
+        diagnostics ∾↩ pivoted.diagnostics
         {𝕊:
+          values ← pivoted.matrix.values
           monthTotalsResult ← scale.Sum¨values
           accountTotalsResult ← {𝕊 column: scale.Sum {column⊑𝕩}¨values}¨↕≠accountIndices
           totalsOk ← (∧´1∾{𝕩.state≡"ok"}¨monthTotalsResult) ∧ ∧´1∾{𝕩.state≡"ok"}¨accountTotalsResult
@@ -99,15 +95,15 @@ Build ← {𝕊 facts‿domainCode‿firstMonth‿lastMonth:
                 result↩{
                   state⇐"ok",domain⇐domainCode,first_month⇐firstMonth,last_month_exclusive⇐lastMonth,
                   months⇐months,account_indices⇐accountIndices,account_keys⇐accountIndices⊏facts.accounts.key,
-                  scale⇐amountScale,matrix⇐built.matrix,
+                  scale⇐amountScale,matrix⇐pivoted.matrix,
                   totals⇐{month⇐monthTotals,account⇐accountTotals,grand⇐grandResult.coefficient,balanced⇐(∧´1∾monthTotals=0) ∧ grandResult.coefficient=0},
                   diagnostics⇐empty
                 }
               }⍟reconciled @
             }⍟grandOk @
           }⍟totalsOk @
-        }⍟(built.state≡"ok") @
-      }⍟(0=≠diagnostics) @
+        }⍟(pivoted.state≡"ok") @
+      }⍟(grouped.state≡"ok") @
     }⍟normalizationOk @
   }⍟(0=≠diagnostics) @
   {𝕊: result↩EmptyResult ⟨domainCode,firstMonth,lastMonth,diagnostics⟩}⍟(0<≠diagnostics) @
