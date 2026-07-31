@@ -48,6 +48,19 @@ for account in 'assets:bank' 'expenses:食費' 'income:年金' 'budget:opening';
   fi
 done
 
+preferred_expense="$(./tools/edit --base "$base" account list --prefer-role expense)"
+expected_preferred_expense=$'expenses:食費\nexpenses:日用品\nexpenses:家賃\nassets:bank\nincome:年金\nequity:opening-balances\nbudget:食費\nbudget:一般生活\nbudget:opening\nbudget:spent'
+if [[ "$preferred_expense" != "$expected_preferred_expense" ]]; then
+  echo "FAIL: account list --prefer-role expense must stably place expenses first" >&2
+  printf '%s\n' "$preferred_expense" >&2
+  exit 1
+fi
+
+if ! grep -Fq "select_account '' 'posting account' 'expense'" tools/add-ui.sh; then
+  echo "FAIL: multi-posting selector must request expense-preferred account order" >&2
+  exit 1
+fi
+
 if ./tools/edit --base "$base" account list --bad > "$out_dir/account-list.out" 2>&1; then
   echo "FAIL: account list accepted unknown option" >&2
   cat "$out_dir/account-list.out" >&2

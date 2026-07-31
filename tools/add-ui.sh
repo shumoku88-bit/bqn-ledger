@@ -118,13 +118,11 @@ fi
 # ── Account listing (BQN-owned account metadata interpretation) ──
 
 accounts() {
-  local role="${1:-}"
-
-  if [[ -n "$role" ]]; then
-    "$ROOT_DIR/tools/edit" --base "$base_dir" account list --role "$role"
-  else
-    "$ROOT_DIR/tools/edit" --base "$base_dir" account list
-  fi
+  local role="${1:-}" prefer_role="${2:-}"
+  local args=(--base "$base_dir" account list)
+  [[ -n "$role" ]] && args+=(--role "$role")
+  [[ -n "$prefer_role" ]] && args+=(--prefer-role "$prefer_role")
+  "$ROOT_DIR/tools/edit" "${args[@]}"
 }
 
 run_preflight() {
@@ -290,8 +288,8 @@ capture_or_cancel() {
 }
 
 select_account() {
-  local role="$1" prompt="$2"
-  accounts "$role" | select_line "$prompt"
+  local role="$1" prompt="$2" prefer_role="${3:-}"
+  accounts "$role" "$prefer_role" | select_line "$prompt"
 }
 
 select_display_lines() {
@@ -588,7 +586,7 @@ case "$mode" in
     shout '金額は符号付きです。費用などの増加は正、支払口座の減少は負で入力します。'
     shout '全ポスティングの合計を0にしてください（例: 費用600、費用150、支払口座-750）。'
     while true; do
-      capture_or_cancel posting_account select_account '' 'posting account'
+      capture_or_cancel posting_account select_account '' 'posting account' 'expense'
       capture_or_cancel posting_amount read_tty 'Amount (500 or -500)' ''
       if [[ -z "$posting_account" || -z "$posting_amount" ]]; then
         shout 'Cancelled or missing posting value.'
