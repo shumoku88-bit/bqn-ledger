@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # checks/check-devtools.sh
-# Wrapper for tools/devtools-check.sh
-# Validates AI development tools are consistent with current repo state.
+# Wrapper for repository development-tool checks.
 
 set -euo pipefail
 export NO_COLOR=1
@@ -17,3 +16,4 @@ ROOT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 cd "$ROOT_DIR"
 
 bash ./tools/devtools-check.sh
+bash ./checks/check-bqn-review-queue.sh
