@@ -3,13 +3,10 @@
 result ← •Import "cycle_result.bqn"
 
 Resolve ← {𝕊 admittedCycle:
-  resolved ← result.Error ⟨"fixed","","cycle_admission_not_ok","cycle definition must be admitted"⟩
-  {𝕊:
-    definition ← admittedCycle.definition
-    resolved↩result.Error ⟨definition.mode,"","cycle_mode_mismatch","fixed resolver requires fixed mode"⟩
-    {𝕊: resolved↩result.Success ⟨"fixed","",definition.start,definition.end_exclusive,⟨⟩,⟨⟩⟩}⍟(definition.mode≡"fixed") @
-  }⍟(admittedCycle.state≡"ok") @
-  resolved
+  {𝕊: result.Error ⟨"fixed","","cycle_admission_not_ok","cycle definition must be admitted"⟩}⍟(admittedCycle.state≢"ok") @ ⋄
+  def ← admittedCycle.definition
+  {𝕊: result.Error ⟨def.mode,"","cycle_mode_mismatch","fixed resolver requires fixed mode"⟩}⍟(def.mode≢"fixed") @ ⋄
+  result.Success ⟨"fixed","",def.start,def.end_exclusive,⟨⟩,⟨⟩⟩
 }
 
 {Resolve⇐Resolve}
