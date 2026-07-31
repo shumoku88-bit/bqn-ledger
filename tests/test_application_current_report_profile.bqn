@@ -137,6 +137,20 @@ reorderedProfitAndLossResult ← profile.Build ⟨admissionsWithReorderedProfitA
 reorderedProfitAndLossRow ← (⊑("profit-and-loss"⊸≡¨{𝕩.key}¨reorderedProfitAndLossResult.rows)⊐1)⊑reorderedProfitAndLossResult.rows
 ⟨"actual.journal","2026-01-13","JPY","2026-01-01"⟩ lib.AssertEq reorderedProfitAndLossRow.arguments
 
+# Daily Flow period and observation follow separate admitted roles and preserve domain and Actual source.
+reorderedDailyFlow ← {
+  key⇐"daily-flow",surface⇐"human",
+  coordinate_role⇐⟨"actual_source","observation","domain","end_exclusive","start"⟩,
+  coordinates⇐⟨"actual.journal","stale-observation","JPY","stale-end","stale-start"⟩
+}
+admissionsWithReorderedDailyFlow ← {
+  𝕊 admitted: (admitted.key≡"daily-flow")⊑⟨admitted,reorderedDailyFlow⟩
+}¨admissions
+reorderedDailyFlowResult ← profile.Build ⟨admissionsWithReorderedDailyFlow,"2026-01-12",current,baseline⟩
+"ok" lib.AssertEq reorderedDailyFlowResult.state
+reorderedDailyFlowRow ← (⊑("daily-flow"⊸≡¨{𝕩.key}¨reorderedDailyFlowResult.rows)⊐1)⊑reorderedDailyFlowResult.rows
+⟨"actual.journal","2026-01-12","JPY","2026-02-01","2026-01-01"⟩ lib.AssertEq reorderedDailyFlowRow.arguments
+
 # Year rollover changes only the volatile Monthly Accounts end-exclusive month.
 yearEndCurrent ← cycleResult.Success ⟨"fixed","2026-12-31","2026-12-01","2027-01-15",⟨⟩,⟨⟩⟩
 yearEndBaseline ← cycleResult.Success ⟨"fixed","2026-10-31","2026-10-01","2026-11-15",⟨⟩,⟨⟩⟩
