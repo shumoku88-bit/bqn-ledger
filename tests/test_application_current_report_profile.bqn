@@ -151,6 +151,20 @@ reorderedDailyFlowResult ← profile.Build ⟨admissionsWithReorderedDailyFlow,"
 reorderedDailyFlowRow ← (⊑("daily-flow"⊸≡¨{𝕩.key}¨reorderedDailyFlowResult.rows)⊐1)⊑reorderedDailyFlowResult.rows
 ⟨"actual.journal","2026-01-12","JPY","2026-02-01","2026-01-01"⟩ lib.AssertEq reorderedDailyFlowRow.arguments
 
+# Daily Target observation follows its admitted role and preserves target and all source coordinates.
+reorderedDailyTarget ← {
+  key⇐"daily-target",surface⇐"human",
+  coordinate_role⇐⟨"daily_scope_source","target","actual_source","domain","observation","plan_source"⟩,
+  coordinates⇐⟨"daily_target_scope.destination.tsv","2026-01-22","actual.journal","JPY","stale-observation","daily_target_plan.destination.tsv"⟩
+}
+admissionsWithReorderedDailyTarget ← {
+  𝕊 admitted: (admitted.key≡"daily-target")⊑⟨admitted,reorderedDailyTarget⟩
+}¨admissions
+reorderedDailyTargetResult ← profile.Build ⟨admissionsWithReorderedDailyTarget,"2026-01-12",current,baseline⟩
+"ok" lib.AssertEq reorderedDailyTargetResult.state
+reorderedDailyTargetRow ← (⊑("daily-target"⊸≡¨{𝕩.key}¨reorderedDailyTargetResult.rows)⊐1)⊑reorderedDailyTargetResult.rows
+⟨"daily_target_scope.destination.tsv","2026-01-22","actual.journal","JPY","2026-01-12","daily_target_plan.destination.tsv"⟩ lib.AssertEq reorderedDailyTargetRow.arguments
+
 # Year rollover changes only the volatile Monthly Accounts end-exclusive month.
 yearEndCurrent ← cycleResult.Success ⟨"fixed","2026-12-31","2026-12-01","2027-01-15",⟨⟩,⟨⟩⟩
 yearEndBaseline ← cycleResult.Success ⟨"fixed","2026-10-31","2026-10-01","2026-11-15",⟨⟩,⟨⟩⟩
