@@ -2,8 +2,6 @@
 # No source parsing, context, Cube/TBDS, report section, formatting, or clock.
 
 scale ← •Import "../ledger/exact_scale.bqn"
-sparse_group ← •Import "sparse_group.bqn"
-sparse_pivot ← •Import "sparse_pivot.bqn"
 empty ← ⟨⟩
 
 Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
@@ -46,46 +44,58 @@ Build ← {𝕊 factSet‿domainCode‿layerName‿startOrdinal‿endOrdinal:
     selectedSides ← selectedMask/postings.side
     selectedCoefficients ← selectedMask/postings.coefficient
     selectedScales ← selectedMask/postings.scale
-    {𝕊: amountScale↩⌈´selectedScales}⍟(0<≠selectedScales) @
-    normalizedResults ← {𝕊 i: scale.Normalize ⟨i⊑selectedCoefficients,i⊑selectedScales,amountScale⟩}¨↕≠selectedCoefficients
+    amountScale↩⌈´0∾selectedScales
+    normalizedResults ← selectedCoefficients {scale.Normalize ⟨𝕨,𝕩,amountScale⟩}¨ selectedScales
     normalizationOk ← ∧´1∾{𝕩.state≡"ok"}¨normalizedResults
     diagnostics ∾↩ AddIf ⟨¬normalizationOk,Diagnostic ⟨"coefficient_normalization_failed","selected postings cannot normalize exactly to one scale"⟩⟩
 
     {𝕊:
       normalized ← {𝕩.coefficient}¨normalizedResults
       accountIndices ← (domainCode⊸≡¨factSet.accounts.currency)/factSet.accounts.index
+      accountCount ← ≠accountIndices
       beforeMask ← selectedDates<startOrdinal
       periodMask ← (selectedDates≥startOrdinal) ∧ selectedDates<endOrdinal
       debitMask ← periodMask ∧ "debit"⊸≡¨selectedSides
       creditMask ← periodMask ∧ "credit"⊸≡¨selectedSides
+      laneMasks ← ⟨beforeMask,debitMask,creditMask,periodMask⟩
+      laneCount ← ≠laneMasks
+      laneCoefficients ← ⟨normalized,normalized,normalized,0×normalized⟩
 
-      beforeAccounts ← beforeMask/selectedAccountIndices
-      debitAccounts ← debitMask/selectedAccountIndices
-      creditAccounts ← creditMask/selectedAccountIndices
-      periodAccounts ← periodMask/selectedAccountIndices
-      evidenceRows ← beforeAccounts∾debitAccounts∾creditAccounts∾periodAccounts
-      evidenceColumns ← ((≠beforeAccounts)⥊0)∾((≠debitAccounts)⥊1)∾((≠creditAccounts)⥊2)∾((≠periodAccounts)⥊3)
-      evidenceCoefficients ← (beforeMask/normalized)∾(debitMask/normalized)∾(creditMask/normalized)∾((≠periodAccounts)⥊0)
-      evidenceFactIndices ← (beforeMask/selectedFactIndices)∾(debitMask/selectedFactIndices)∾(creditMask/selectedFactIndices)∾(periodMask/selectedFactIndices)
-      evidenceContributors ← {⟨𝕩⟩}¨evidenceFactIndices
+      # p: selected Posting cells in source order; a: domain Accounts in canonical order.
+      # k: opening / debit / credit / all-period contributor lanes.
+      # p→a×k Group preserves source order; the trailing cell bound retains every empty lane.
+      evidenceAccounts ← ∾{𝕩/selectedAccountIndices}¨laneMasks
+      evidenceLanes ← ∾(↕laneCount) {(+´𝕩)⥊𝕨}¨ laneMasks
+      evidenceCoefficients ← ∾laneMasks {𝕨/𝕩}¨ laneCoefficients
+      evidenceFactIndices ← ∾{𝕩/selectedFactIndices}¨laneMasks
+      accountCoordinates ← accountIndices⊐evidenceAccounts
+      evidenceKnown ← ∧´1∾accountCoordinates<accountCount
+      diagnostics ∾↩ AddIf ⟨¬evidenceKnown,Diagnostic ⟨"coefficient_sum_failed","Account period sum exceeds exact range"⟩⟩
 
-      grouped ← sparse_group.Build ⟨
-        accountIndices,4,evidenceRows,evidenceColumns,evidenceCoefficients,evidenceContributors
-      ⟩
-      diagnostics ∾↩ {𝕊 ignoredDiagnostic: Diagnostic ⟨"coefficient_sum_failed","Account period sum exceeds exact range"⟩}¨grouped.diagnostics
       {𝕊:
-        pivoted ← sparse_pivot.Build ⟨accountIndices,↕4,amountScale,grouped.groups⟩
-        diagnostics ∾↩ pivoted.diagnostics
+        cellCount ← accountCount×laneCount
+        cellCoordinates ← (laneCount×accountCoordinates)+evidenceLanes
+        groupCoordinates ← cellCoordinates∾cellCount
+        coefficientGroups ← groupCoordinates⊔evidenceCoefficients
+        postingGroups ← groupCoordinates⊔evidenceFactIndices
+        sumResults ← scale.Sum¨coefficientGroups
+        sumOk ← {𝕩.state≡"ok"}¨sumResults
+        diagnostics ∾↩ ∾{𝕊 ok:
+          AddIf ⟨¬ok,Diagnostic ⟨"coefficient_sum_failed","Account period sum exceeds exact range"⟩⟩
+        }¨sumOk
+
         {𝕊:
-          values ← pivoted.matrix.values
-          contributors ← pivoted.matrix.contributors
-          opening ← {0⊑𝕩}¨values
-          debitMovement ← {1⊑𝕩}¨values
-          creditMovement ← {2⊑𝕩}¨values
-          openingContributors ← {0⊑𝕩}¨contributors
-          debitContributors ← {1⊑𝕩}¨contributors
-          creditContributors ← {2⊑𝕩}¨contributors
-          periodContributors ← {3⊑𝕩}¨contributors
+          amountCells ← (accountCount‿laneCount)⥊{𝕩.coefficient}¨sumResults
+          contributorCells ← (accountCount‿laneCount)⥊postingGroups
+          amountLanes ← ⍉amountCells
+          contributorLanes ← ⍉contributorCells
+          opening ← 0⊏amountLanes
+          debitMovement ← 1⊏amountLanes
+          creditMovement ← 2⊏amountLanes
+          openingContributors ← 0⊏contributorLanes
+          debitContributors ← 1⊏contributorLanes
+          creditContributors ← 2⊏contributorLanes
+          periodContributors ← 3⊏contributorLanes
 
           movementResults ← debitMovement {scale.Sum ⟨𝕨,𝕩⟩}¨ creditMovement
           movementOk ← ∧´1∾{𝕩.state≡"ok"}¨movementResults
@@ -101,7 +111,7 @@ Build ← {𝕊 factSet‿domainCode‿layerName‿startOrdinal‿endOrdinal:
             }¨closingResults
             {𝕊:
               table↩{
-                count⇐≠accountIndices,index⇐↕≠accountIndices,
+                count⇐accountCount,index⇐↕accountCount,
                 account_index⇐accountIndices,account_key⇐accountIndices⊏factSet.accounts.key,
                 opening⇐opening,debit_movement⇐debitMovement,
                 credit_movement⇐creditMovement,movement⇐movement,
@@ -111,15 +121,15 @@ Build ← {𝕊 factSet‿domainCode‿layerName‿startOrdinal‿endOrdinal:
               }
             }⍟closingOk @
           }⍟movementOk @
-        }⍟(pivoted.state≡"ok") @
-      }⍟(grouped.state≡"ok") @
+        }⍟(∧´1∾sumOk) @
+      }⍟evidenceKnown @
 
       {𝕊:
-        openingTotal ← scale.Sum (table.opening)
-        debitTotal ← scale.Sum (table.debit_movement)
-        creditTotal ← scale.Sum (table.credit_movement)
-        movementTotal ← scale.Sum (table.movement)
-        closingTotal ← scale.Sum (table.closing)
+        openingTotal ← scale.Sum table.opening
+        debitTotal ← scale.Sum table.debit_movement
+        creditTotal ← scale.Sum table.credit_movement
+        movementTotal ← scale.Sum table.movement
+        closingTotal ← scale.Sum table.closing
         totalsOk ← ∧´{𝕩.state≡"ok"}¨⟨openingTotal,debitTotal,creditTotal,movementTotal,closingTotal⟩
         diagnostics ∾↩ AddIf ⟨¬totalsOk,Diagnostic ⟨"coefficient_sum_failed","period totals exceed exact range"⟩⟩
         {𝕊:
