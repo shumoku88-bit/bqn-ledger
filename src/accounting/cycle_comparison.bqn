@@ -56,7 +56,7 @@ Build ← {𝕊 current‿baseline‿policy:
     }⍟(policy≡"complete_cycles") @
     {𝕊:
       # c: current / baseline comparison sides; a: canonical Account rows.
-      # movement[c,a] normalizes by side, transposes to Account cells, and exact-sums +current/-baseline.
+      # Numeric movement[c,a] is rectangular; contributor cells are ragged and pair by aligned Account Each.
       targetScale ← current.scale⌈baseline.scale
       movementLanes ← ⟨current.accounts.movement,baseline.accounts.movement⟩
       sourceScales ← ⟨current.scale,baseline.scale⟩
@@ -82,15 +82,15 @@ Build ← {𝕊 current‿baseline‿policy:
           {𝕊:
             contributorLanes ← ⟨current.accounts.movement_contributors,baseline.accounts.movement_contributors⟩
             currentContributors‿baselineContributors ← contributorLanes
-            contributorCells ← ⍉>contributorLanes
-            differenceContributors ← {∾𝕩}˘contributorCells
-            valueCells ← ⍉>valueLanes
+            contributorCells ← currentContributors ⋈¨ baselineContributors
+            differenceContributors ← ∾¨contributorCells
+            valueCells ← currentValues ⋈¨ baselineValues
             differenceEvidence ← valueCells {
               {
                 current_coefficient⇐0⊑𝕨,baseline_coefficient⇐1⊑𝕨,
                 current_contributors⇐0⊑𝕩,baseline_contributors⇐1⊑𝕩
               }
-            }˘ contributorCells
+            }¨ contributorCells
             result↩{
               state⇐"ok",reason⇐"",policy⇐policy,domain⇐current.domain,scale⇐targetScale,
               current_start⇐current.cycle_start,current_observation⇐current.observation,
