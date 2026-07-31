@@ -72,6 +72,29 @@ expectedArguments ← ⟨
 ⟩
 expectedArguments lib.AssertEq {𝕩.arguments}¨result.rows
 
+# Envelope period and observation follow admitted roles while all sources and repeated funding accounts remain in place.
+reorderedEnvelopes ← {
+  key⇐"envelopes",surface⇐"human",
+  coordinate_role⇐⟨
+    "funding_account","actual_source","domain","budget_source","observation",
+    "funding_account","end_exclusive","plan_source","start","funding_account"
+  ⟩,
+  coordinates⇐⟨
+    "assets:cash","actual.journal","JPY","budget_alloc.tsv","stale-observation",
+    "assets:bank","stale-end","plan.tsv","stale-start","assets:savings"
+  ⟩
+}
+admissionsWithReorderedEnvelopes ← {
+  𝕊 admitted: (admitted.key≡"envelopes")⊑⟨admitted,reorderedEnvelopes⟩
+}¨admissions
+reorderedEnvelopesResult ← profile.Build ⟨admissionsWithReorderedEnvelopes,"2026-01-12",current,baseline⟩
+"ok" lib.AssertEq reorderedEnvelopesResult.state
+reorderedEnvelopesRow ← (⊑("envelopes"⊸≡¨{𝕩.key}¨reorderedEnvelopesResult.rows)⊐1)⊑reorderedEnvelopesResult.rows
+⟨
+  "assets:cash","actual.journal","JPY","budget_alloc.tsv","2026-01-12",
+  "assets:bank","2026-02-01","plan.tsv","2026-01-01","assets:savings"
+⟩ lib.AssertEq reorderedEnvelopesRow.arguments
+
 # Planned observation follows its admitted role even when coordinates are rearranged.
 reorderedPlanned ← {
   key⇐"planned",surface⇐"human",
