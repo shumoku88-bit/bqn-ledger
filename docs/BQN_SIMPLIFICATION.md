@@ -31,16 +31,22 @@ The capability map is a mandatory memory refresh for BQN code changes, not a req
 
 - module boundaries and internal ownership splits when all consumers move together;
 - intermediate namespaces, stages, local names, and publication construction;
-- internal representations and diagnostic staging inside a pure kernel;
+- internal representations and staging that do not protect a capability contract or an exact-operation result;
 - loops, repeated masks, wrappers, helpers, and tests that only pin implementation shape;
 - single-use mechanical names that merely spell out a direct composition;
 - verbose forms introduced only to resemble conventional non-array-language code.
 
-## Prohibit defensive guard clutter in pure kernels
+## Separate capability boundaries from whole-array kernels
 
-- **No defensive guards inside pure kernels**: Pure accounting kernels in `src/accounting/` must NOT contain ladders of defensive predicate guards, multi-level `}⍟(...) @` nested blocks, or property-by-property Record validation.
-- **Enforce boundary admission**: Invariants (valid dates, matching domains, layers, currencies, sources) must be guaranteed by the admission boundary (`src/ledger/` and admission functions) before entering a pure kernel.
-- **Columnar arrays over Record checks**: Pure kernels operate assuming valid, aligned columnar arrays. Focus strictly on clean array transformations (Mask, Group, Select, Transpose, Reduce) with zero nesting.
+Purity does not identify a function's role. A pure accounting owner may contain a capability boundary that admits request coordinates, checks cross-source compatibility, distinguishes success, unavailable, and error results, converts exact-arithmetic failures into public diagnostics, or assembles identity and provenance. Do not classify every pure function in `src/accounting/` as a whole-array kernel.
+
+Ledger admission owns source-internal invariants such as canonical Fact shape, source provenance, and admitted references. A shallow capability boundary owns request-specific and cross-source contracts such as selected mode, period order, requested domain or layer, and compatibility between independently admitted sources.
+
+Inside the successful path, a bounded whole-array kernel should receive admitted, aligned inputs and perform the direct array transformation. It must not repeat source validation, perform property-by-property defensive Record checks, or hide the transformation behind a ladder of nested predicate blocks. When guards dominate an owner, split the shallow capability boundary from the successful whole-array kernel rather than deleting public contract checks.
+
+This rule prohibits defensive control-flow nesting that obscures semantic axes. It does not prohibit nested arrays, ragged contributor or evidence cells, depth-sensitive operations, or other structures that honestly represent the data.
+
+Exact arithmetic must be checked at the exact operation that can fail. The surrounding capability boundary owns conversion of that failure into the public diagnostic and result shape; an earlier source-admission boundary cannot pre-admit every later normalization or grouped sum.
 
 ## Preferred form
 
@@ -49,9 +55,9 @@ Prefer:
 - columns, axes, coordinates, and aligned arrays over row objects;
 - classify, Group, Pivot, Cells, Rank, Table, Transpose, Under, Scan, reduction, trains, and modifier composition when they state the question directly;
 - a dense classical array-language kernel when it keeps classification, structural transformation, and aggregation in one visual field;
-- one admission boundary, one array kernel, and one publication boundary;
+- one shallow capability boundary, one bounded array kernel, and one publication boundary when those roles are present;
 - updating all affected consumers in the same coherent slice and deleting the old path;
-- net deletion of production machinery, shallower nesting, fewer whole-evidence scans, and fewer accidental intermediate representations.
+- net deletion of production machinery, shallower control-flow nesting, fewer whole-evidence scans, and fewer accidental intermediate representations.
 
 A train, partially tacit expression, modifier composition, or rank/cell expression is not a last resort. Use it when it exposes the dataflow more directly than a ladder of assignments. Do not expand it solely because a conventional-language reader might prefer named steps.
 
@@ -67,7 +73,7 @@ Keep names at semantic boundaries:
 - identity, contributor, and provenance publication;
 - I/O, mutation, and write authority.
 
-Inside a bounded pure kernel, inline or compose mechanical steps that are used once and do not carry independent accounting meaning. The goal is not maximum tacitness. The goal is to remove scaffolding until the array relationship is visible.
+Inside a bounded whole-array kernel, inline or compose mechanical steps that are used once and do not carry independent accounting meaning. The goal is not maximum tacitness. The goal is to remove scaffolding until the array relationship is visible.
 
 Use a short contract comment before a dense kernel when needed:
 
@@ -112,15 +118,17 @@ The second form is preferred because the mathematical structure is visible, not 
 
 ## When staging is justified
 
-Use explicit staged code only at system boundaries when the problem is genuinely sequential or when a named boundary protects:
+Use explicit staged code when a named role protects:
 
-- fail-closed admission at the input boundary before entering pure kernels;
-- dependent exact-arithmetic diagnostics at I/O boundaries;
+- fail-closed source admission before canonical Facts are published;
+- request-coordinate or cross-source admission at a shallow capability boundary;
+- exact arithmetic at the normalization, sum, or dependent operation that can fail, plus conversion of that failure into public diagnostics;
+- success, unavailable, and error result selection;
 - identity or provenance construction;
-- effects, publication buffering, or write safety.
-
-Staging and defensive guards are strictly prohibited inside pure accounting kernels in `src/accounting/`. Pure kernels must receive admitted columnar arrays and compute whole-array transformations without defensive guard ladders.
+- effects, publication buffering, or write safety;
 - a complicated expression whose axes cannot be recovered from code plus a concise contract comment.
+
+Staging is not forbidden by directory or by purity. It becomes suspect when repeated source validation, defensive Record checks, or a guard ladder buries the successful array transformation. Split that wrapper from the bounded kernel. Do not flatten nested arrays or ragged evidence merely to satisfy a control-flow rule.
 
 Do not use staging as a universal readability policy. Unfamiliar BQN is a reason to consult the reference and test a probe, not a reason to translate the kernel back into ordinary loops and temporary records.
 
