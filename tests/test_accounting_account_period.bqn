@@ -60,13 +60,13 @@ normalized ← scale.Normalize ⟨¯12,0,2⟩
 "error" lib.AssertEq (scale.Sum ⟨9007199254740991,2⟩).state
 
 scaleAccountLines ← ⟨
-  "assets:jpy\trole=asset\tcurrency=JPY",
-  "expenses:jpy\trole=expense\tcurrency=JPY"
+  "assets:jpy	role=asset	currency=JPY",
+  "expenses:jpy	role=expense	currency=JPY"
 ⟩
 scaleAccounts ← (account_admission.Admit ⟨scaleAccountLines,registry⟩).accounts
 scalePlanLines ← ⟨
-  "2026-01-10\twhole\tassets:jpy\texpenses:jpy\t25\tcurrency=JPY\tplan_id=p1",
-  "2026-01-11\tfraction\tassets:jpy\texpenses:jpy\t12.30\tcurrency=JPY\tplan_id=p2"
+  "2026-01-10	whole	assets:jpy	expenses:jpy	25	currency=JPY	plan_id=p1",
+  "2026-01-11	fraction	assets:jpy	expenses:jpy	12.30	currency=JPY	plan_id=p2"
 ⟩
 scaleFacts ← (companion_snapshot.Build ⟨scalePlanLines,⟨⟩,scaleAccounts,registry⟩).plan
 scalePeriod ← period.Build ⟨scaleFacts,"JPY","plan",start,end⟩
@@ -83,9 +83,9 @@ BuildActualPeriod ← {𝕊 currency‿accountLines‿raw‿firstDate‿lastDate
   period.Build ⟨domainFacts,currency,"actual",dates.Ordinal firstDate,dates.Ordinal lastDate⟩
 }
 periodAccountLines ← ⟨
-  "assets:ils\trole=asset\tcurrency=ILS",
-  "expenses:a-ils\trole=expense\tcurrency=ILS",
-  "expenses:b-ils\trole=expense\tcurrency=ILS"
+  "assets:ils	role=asset	currency=ILS",
+  "expenses:a-ils	role=expense	currency=ILS",
+  "expenses:b-ils	role=expense	currency=ILS"
 ⟩
 periodRaw ← ∾⟨
   "commodity ILS",lf,lf,"account assets:ils",lf,"    ; role: asset",lf,lf,
@@ -122,8 +122,8 @@ characterized ← BuildActualPeriod ⟨"ILS",periodAccountLines,periodRaw,"2026-
 1 lib.AssertEq characterized.totals.balanced
 
 emptyAccountLines ← ⟨
-  "assets:usd\trole=asset\tcurrency=USD",
-  "expenses:usd\trole=expense\tcurrency=USD"
+  "assets:usd	role=asset	currency=USD",
+  "expenses:usd	role=expense	currency=USD"
 ⟩
 emptyRaw ← ∾⟨
   "commodity USD",lf,lf,"account assets:usd",lf,"    ; role: asset",lf,lf,
