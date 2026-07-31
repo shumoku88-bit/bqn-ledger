@@ -79,7 +79,10 @@ Build ← {𝕊 admittedRoutes‿observation‿currentCycle‿baselineCycle:
       key ← admitted.key ⋄ args ← admitted.coordinates ⋄ rewritten ← args
       {𝕊:rewritten↩⟨0⊑args,currentCycle.start,currentCycle.end_exclusive,observation⟩∾4↓args}⍟(key≡"envelopes") @
       {𝕊:rewritten↩ReplaceCoordinateRole ⟨args,admitted.coordinate_role,"as_of",observation⟩}⍟((key≡"balances") ∨ key≡"balance-sheet") @
-      {𝕊:rewritten↩⟨0⊑args,currentCycle.start,dates.AddDays ⟨observation,1⟩,3⊑args⟩}⍟(key≡"profit-and-loss") @
+      {𝕊:
+        rewritten↩ReplaceCoordinateRole ⟨rewritten,admitted.coordinate_role,"start",currentCycle.start⟩
+        rewritten↩ReplaceCoordinateRole ⟨rewritten,admitted.coordinate_role,"end_exclusive",dates.AddDays ⟨observation,1⟩⟩
+      }⍟(key≡"profit-and-loss") @
       {𝕊:rewritten↩ReplaceCoordinateRole ⟨args,admitted.coordinate_role,"observation",observation⟩}⍟(key≡"planned") @
       {𝕊:rewritten↩ReplaceCoordinateRole ⟨args,admitted.coordinate_role,"observation",observation⟩}⍟(key≡"cycle-accounts") @
       {𝕊:
