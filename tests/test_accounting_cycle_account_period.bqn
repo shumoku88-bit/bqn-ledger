@@ -52,9 +52,9 @@ BuildDomain ← {𝕊 currency‿lines‿raw‿observation:
   cycle_accounts.Build ⟨domainFacts,currency,resolved,observation⟩
 }
 ilsLines ← ⟨
-  "assets:ils\trole=asset\ttype=liquid\tcurrency=ILS",
-  "expenses:a-ils\trole=expense\tcurrency=ILS",
-  "expenses:b-ils\trole=expense\tcurrency=ILS"
+  "assets:ils	role=asset	type=liquid	currency=ILS",
+  "expenses:a-ils	role=expense	currency=ILS",
+  "expenses:b-ils	role=expense	currency=ILS"
 ⟩
 ilsRaw ← ∾⟨
   "commodity ILS",lf,lf,
@@ -71,7 +71,7 @@ ils ← BuildDomain ⟨"ILS",ilsLines,ilsRaw,"2026-03-02"⟩
 2 lib.AssertEq ils.scale
 ⟨¯1235,1230,5⟩ lib.AssertEq ils.accounts.closing
 
-usdLines ← ⟨"assets:usd\trole=asset\tcurrency=USD","expenses:usd\trole=expense\tcurrency=USD"⟩
+usdLines ← ⟨"assets:usd	role=asset	currency=USD","expenses:usd	role=expense	currency=USD"⟩
 usdRaw ← ∾⟨
   "commodity USD",lf,lf,
   "account assets:usd",lf,"    ; role: asset",lf,lf,
