@@ -26,10 +26,26 @@ Before creating or changing any `.bqn` file:
 1. read `docs/BQN_CAPABILITY_MAP.md` in full;
 2. read `docs/BQN_SIMPLIFICATION.md`, the target owner, and focused evidence;
 3. identify input and output shapes, semantic axes, fill and empty behavior, aligned evidence columns, and protected ordering;
-4. consider every capability family in the map before selecting the smallest set that states the problem directly;
+4. consider every capability family in the map before selecting the expression that states the problem most directly;
 5. consult the official BQN reference and run a small CBQN probe instead of guessing when a primitive, modifier, rank, depth, fill, grouping, or empty-array behavior is uncertain.
 
-Treat this as a memory refresh, not a demand to maximize glyph variety. Explicit staged code remains correct when it best protects admission, exact arithmetic, diagnostics, identity, provenance, or write safety. Do not add capability audits, primitive quotas, or checklist files.
+Dense classical array-language style is welcome. A compact BQN expression is not less readable merely because it does not resemble conventional procedural code. When axes and invariants are explicit, prefer a direct whole-array expression over loops, mutable append, temporary row namespaces, or a ladder of single-use staging names.
+
+Do not expand a clear train, modifier composition, rank/cell expression, grouping pipeline, or structural transformation solely to make each mechanical step familiar to a non-array-language reader. Preserve names at accounting, admission, exact-arithmetic, diagnostic, provenance, publication, and effect boundaries. Inside a bounded pure kernel, local mechanical names are optional and may disappear when composition makes the complete transformation easier to see.
+
+Use comments to state what the expression cannot state by itself:
+
+- an axis legend and input/output shape;
+- canonical ordering and contributor alignment;
+- fill, empty-cell, and missing-coordinate behavior;
+- accounting invariants and exactness requirements;
+- why a dense composition preserves the public contract.
+
+Do not narrate glyphs line by line. Tests should protect observable values, ordering, provenance, diagnostics, and edge shapes rather than force a verbose implementation form.
+
+Explicit staging remains appropriate for genuine effect sequencing, fail-closed admission, dependent diagnostics, identity construction, provenance assembly, or write safety. It is not the default merely because a dense expression requires BQN fluency. Avoid code golf that hides semantic axes, but do not reject density, trains, tacit composition, or classical APL-style idioms on familiarity grounds.
+
+Treat the capability map as a memory refresh, not a glyph quota. Do not add capability audits, primitive quotas, or checklist files.
 
 ## Finish the work
 
