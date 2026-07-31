@@ -57,16 +57,7 @@ Build ← {𝕊 factSet‿domainCode‿layerName‿startOrdinal‿endOrdinal:
         kind⇐categoryKinds,envelope_account_index⇐categoryEnvelopeIndices
       }
 
-      accountCategory ← {𝕊 accountIndex:
-        result ← ¯1
-        role ← accountIndex⊑accounts.role
-        {𝕊:
-          budget ← accountIndex⊑accounts.budget
-          result↩≠envelopeLabels
-          {𝕊: result↩IndexOf ⟨budget,envelopeLabels⟩}⍟(Contains ⟨budget,envelopeLabels⟩) @
-        }⍟(role≡"expense") @
-        result
-      }¨accounts.index
+      accountCategory ← ¯1 + ("expense"⊸≡¨accounts.role) × 1+{IndexOf ⟨𝕩,envelopeLabels⟩}¨accounts.budget
 
       transactions ← factSet.transactions
       transactionMask ← (domainIndex=transactions.domain_index) ∧ (layerIndex=transactions.layer_index) ∧ (transactions.date_ordinal≥startOrdinal) ∧ transactions.date_ordinal<endOrdinal
@@ -80,8 +71,8 @@ Build ← {𝕊 factSet‿domainCode‿layerName‿startOrdinal‿endOrdinal:
       dateTexts ← keep/sortedTexts
 
       postings ← factSet.postings
-      postingRoles ← {𝕩⊑accounts.role}¨postings.account_index
-      postingCategories ← {𝕩⊑accountCategory}¨postings.account_index
+      postingRoles ← postings.account_index⊏accounts.role
+      postingCategories ← postings.account_index⊏accountCategory
       accountingRole ← ("income"⊸≡¨postingRoles) ∨ "expense"⊸≡¨postingRoles
       postingMask ← (domainIndex=postings.domain_index) ∧ (layerIndex=postings.layer_index) ∧ (postings.date_ordinal≥startOrdinal) ∧ (postings.date_ordinal<endOrdinal) ∧ accountingRole
       selectedFactIndices ← postingMask/postings.index
@@ -91,48 +82,54 @@ Build ← {𝕊 factSet‿domainCode‿layerName‿startOrdinal‿endOrdinal:
       selectedCoefficients ← postingMask/postings.coefficient
       selectedScales ← postingMask/postings.scale
       {𝕊: amountScale↩⌈´selectedScales}⍟(0<≠selectedScales) @
-      normalizedResults ← {𝕊 i: scale.Normalize ⟨i⊑selectedCoefficients,i⊑selectedScales,amountScale⟩}¨↕≠selectedCoefficients
+      normalizedResults ← selectedCoefficients {scale.Normalize ⟨𝕨,𝕩,amountScale⟩}¨ selectedScales
       normalizationOk ← ∧´1∾{𝕩.state≡"ok"}¨normalizedResults
       diagnostics ∾↩ AddIf ⟨¬normalizationOk,Diagnostic ⟨"coefficient_normalization_failed","selected flow postings cannot normalize exactly to one scale"⟩⟩
 
       {𝕊:
         normalized ← {𝕩.coefficient}¨normalizedResults
+        incomeMask ← "income"⊸≡¨selectedRoles
         expenseMask ← "expense"⊸≡¨selectedRoles
-        grouped ← sparse.Build ⟨
+
+        incomeDateIndices ← {IndexOf ⟨𝕩,dateOrdinals⟩}¨(incomeMask/selectedDates)
+        incomeGroupIndices ← incomeDateIndices∾⟨≠dateOrdinals⟩
+        incomeCoefficientGroups ← incomeGroupIndices⊔-(incomeMask/normalized)
+        incomeContributorGroups ← incomeGroupIndices⊔{⟨𝕩⟩}¨(incomeMask/selectedFactIndices)
+        incomeResults ← scale.Sum¨incomeCoefficientGroups
+        incomeContributorRows ← ∾¨incomeContributorGroups
+
+        expenseGrouped ← sparse.Build ⟨
           dateOrdinals,categoryTable.count,
           expenseMask/selectedDates,expenseMask/selectedCategories,expenseMask/normalized,
           {⟨𝕩⟩}¨(expenseMask/selectedFactIndices)
         ⟩
-        diagnostics ∾↩ grouped.diagnostics
-        candidateDates ← empty
-        {𝕊 dateIndex:
-          ordinal ← dateIndex⊑dateOrdinals
-          dateMask ← ordinal=selectedDates
-          incomeMask ← dateMask ∧ "income"⊸≡¨selectedRoles
-          incomeResult ← scale.Sum (-(incomeMask/normalized))
-          diagnostics ∾↩ AddIf ⟨incomeResult.state≢"ok",Diagnostic ⟨"coefficient_sum_failed","daily income exceeds exact range"⟩⟩
-          dateGroupMask ← dateIndex=grouped.groups.row_index
-          expenseTotal ← scale.Sum (dateGroupMask/grouped.groups.coefficient)
-          netResult ← {state⇐"error",coefficient⇐empty}
-          {𝕊: netResult↩scale.Sum ⟨incomeResult.coefficient,-expenseTotal.coefficient⟩}⍟((incomeResult.state≡"ok") ∧ expenseTotal.state≡"ok") @
-          diagnostics ∾↩ AddIf ⟨netResult.state≢"ok",Diagnostic ⟨"coefficient_sum_failed","daily net exceeds exact range"⟩⟩
+        diagnostics ∾↩ expenseGrouped.diagnostics
+
+        expenseGroupIndices ← expenseGrouped.groups.row_index∾⟨≠dateOrdinals⟩
+        expenseCoefficientGroups ← expenseGroupIndices⊔expenseGrouped.groups.coefficient
+        expenseTotalResults ← scale.Sum¨expenseCoefficientGroups
+        netResults ← incomeResults {
+          incomeResult ← 𝕨
+          expenseResult ← 𝕩
+          result ← {state⇐"error",coefficient⇐empty}
           {𝕊:
-            candidateDates∾↩⟨{
-              date_ordinal⇐ordinal,date_text⇐dateIndex⊑dateTexts,
-              income⇐incomeResult.coefficient,net⇐netResult.coefficient,
-              income_contributors⇐incomeMask/selectedFactIndices
-            }⟩
-          }⍟(netResult.state≡"ok") @
-        }¨↕≠dateOrdinals
+            result↩scale.Sum ⟨incomeResult.coefficient,-expenseResult.coefficient⟩
+          }⍟((incomeResult.state≡"ok") ∧ expenseResult.state≡"ok") @
+          result
+        }¨ expenseTotalResults
+        diagnostics ∾↩ ∾(incomeResults {
+          AddIf ⟨𝕨.state≢"ok",Diagnostic ⟨"coefficient_sum_failed","daily income exceeds exact range"⟩⟩
+          ∾ AddIf ⟨𝕩.state≢"ok",Diagnostic ⟨"coefficient_sum_failed","daily net exceeds exact range"⟩⟩
+        }¨ netResults)
 
         {𝕊:
           dateTable↩{
-            count⇐≠candidateDates,index⇐↕≠candidateDates,
-            date_ordinal⇐{𝕩.date_ordinal}¨candidateDates,date_text⇐{𝕩.date_text}¨candidateDates,
-            income⇐{𝕩.income}¨candidateDates,net⇐{𝕩.net}¨candidateDates,
-            income_contributors⇐{𝕩.income_contributors}¨candidateDates
+            count⇐≠dateOrdinals,index⇐↕≠dateOrdinals,
+            date_ordinal⇐dateOrdinals,date_text⇐dateTexts,
+            income⇐{𝕩.coefficient}¨incomeResults,net⇐{𝕩.coefficient}¨netResults,
+            income_contributors⇐incomeContributorRows
           }
-          groupTable↩grouped.groups
+          groupTable↩expenseGrouped.groups
         }⍟(0=≠diagnostics) @
       }⍟normalizationOk @
     }⍟(0=≠diagnostics) @
