@@ -61,7 +61,8 @@ Build ← {𝕊 facts‿domainCode‿firstMonth‿lastMonth:
     selectedScales ← selectedMask/postings.scale
     amountScale ← 0
     {𝕊: amountScale↩⌈´selectedScales}⍟(0<≠selectedScales) @
-    normalizedResults ← {𝕊 i: scale.Normalize ⟨i⊑selectedCoefficients,i⊑selectedScales,amountScale⟩}¨↕≠selectedCoefficients
+    normalizationInputs ← ↓⍉>⟨selectedCoefficients,selectedScales,(≠selectedScales)⥊amountScale⟩
+    normalizedResults ← scale.Normalize¨normalizationInputs
     normalizationOk ← ∧´1∾{𝕩.state≡"ok"}¨normalizedResults
     diagnostics ∾↩ AddIf ⟨¬normalizationOk,Diagnostic ⟨"coefficient_normalization_failed","selected Postings cannot normalize exactly"⟩⟩
     {𝕊:
@@ -77,8 +78,9 @@ Build ← {𝕊 facts‿domainCode‿firstMonth‿lastMonth:
         diagnostics ∾↩ pivoted.diagnostics
         {𝕊:
           values ← pivoted.matrix.values
-          monthTotalsResult ← scale.Sum¨values
-          accountTotalsResult ← {𝕊 column: scale.Sum {column⊑𝕩}¨values}¨↕≠accountIndices
+          valueArray ← >values
+          monthTotalsResult ← scale.Sum¨↓valueArray
+          accountTotalsResult ← scale.Sum¨↓⍉valueArray
           totalsOk ← (∧´1∾{𝕩.state≡"ok"}¨monthTotalsResult) ∧ ∧´1∾{𝕩.state≡"ok"}¨accountTotalsResult
           diagnostics ∾↩ AddIf ⟨¬totalsOk,Diagnostic ⟨"coefficient_sum_failed","Matrix reconciliation exceeds exact range"⟩⟩
           {𝕊:
