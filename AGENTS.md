@@ -47,6 +47,36 @@ Explicit staging remains appropriate for genuine effect sequencing, fail-closed 
 
 Treat the capability map as a memory refresh, not a glyph quota. Do not add capability audits, primitive quotas, or checklist files.
 
+## Local agent Git protocol
+
+Before changing repository files:
+
+1. confirm the working tree is clean;
+2. fetch the latest remote `main` and record its SHA;
+3. inspect open pull requests and branches that may overlap the intended slice;
+4. read the current cursor in `TODO.md`; during the checked review queue, work on exactly that owner and its necessary focused evidence or consumers;
+5. create a dedicated branch from the verified current `main`.
+
+During the slice:
+
+- keep correctness changes, ownership refactors, algorithm refactors, UI changes, and documentation-only queue movement separate;
+- start with a Draft pull request;
+- do not begin the next checked queue item;
+- do not edit canonical household or private data, and do not add a separate private data repository to the workspace;
+- do not run parallel agents against the same checkout or overlapping repository slice.
+
+Before marking a pull request Ready:
+
+- run focused evidence;
+- run `tools/check.sh`;
+- run `tools/coverage`;
+- inspect the complete diff against current `main`;
+- confirm the branch is not behind `main`;
+- confirm there are no unresolved review threads;
+- record the result in Issue #407 when the work belongs to the checked review queue.
+
+Never merge a pull request, delete its branch, update a queue checkbox, or advance the current cursor without explicit human authorization for that transition. A checked queue item is complete only after its final decision is merged, the owner is reread on current `main`, and a separate queue update is merged.
+
 ## Finish the work
 
 Documentation cleanup is part of completing every task.
