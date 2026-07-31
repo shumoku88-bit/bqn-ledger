@@ -89,7 +89,7 @@ Build ← {𝕊 admittedRoutes‿observation‿currentCycle‿baselineCycle:
         rewritten↩ReplaceCoordinateRole ⟨rewritten,admitted.coordinate_role,"current_observation",observation⟩
         rewritten↩ReplaceCoordinateRole ⟨rewritten,admitted.coordinate_role,"baseline_observation",baselineObservation⟩
       }⍟(key≡"cycle-comparison") @
-      {𝕊:rewritten↩⟨0⊑args,1⊑args,NextMonthExclusive observation,3⊑args⟩}⍟(key≡"monthly-accounts") @
+      {𝕊:rewritten↩ReplaceCoordinateRole ⟨args,admitted.coordinate_role,"last_month_exclusive",NextMonthExclusive observation⟩}⍟(key≡"monthly-accounts") @
       {𝕊:
         rewritten↩ReplaceCoordinateRole ⟨rewritten,admitted.coordinate_role,"start",currentCycle.start⟩
         rewritten↩ReplaceCoordinateRole ⟨rewritten,admitted.coordinate_role,"end_exclusive",currentCycle.end_exclusive⟩
