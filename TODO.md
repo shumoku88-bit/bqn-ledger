@@ -45,7 +45,7 @@ Before a phase begins, its complete file inventory must be added here and covere
 - [x] `src/accounting/balance_sheet.bqn` — PR #521 classified canonical Account rows once into Balance Sheet statement lanes, grouping signed balances and durable Posting evidence in parallel; reread on main `f10ab4db29e9b89bae014d89310497db58162855`.
 - [x] `src/accounting/cycle_account_period.bqn` — PR #523 mapped Account × contributor-lane Posting-index cells to durable Posting references and joined opening plus observed-period evidence by aligned Account cells; reread on main `0ef1ed2492de051896e08890e65bb4361deb1b15`.
 - [x] `src/accounting/cycle_calendar_month_resolution.bqn` — PR #525 derived start and end-exclusive as one adjacent calendar boundary axis; reread on main `29c161e3853ca9bc5b69dbb5f77501f03c060ca3`.
-- [ ] `src/accounting/cycle_comparison.bqn`
+- [x] `src/accounting/cycle_comparison.bqn` — PR #529 simplified comparison window mapping; reread on main `2b587913d24428c9465a2790660b9a449002d8e0`.
 - [ ] `src/accounting/cycle_fixed_resolution.bqn`
 - [ ] `src/accounting/cycle_income_anchor_resolution.bqn`
 - [ ] `src/accounting/cycle_result.bqn`
@@ -65,6 +65,6 @@ Before a phase begins, its complete file inventory must be added here and covere
 
 ## Current cursor
 
-`src/accounting/cycle_comparison.bqn`
+`src/accounting/cycle_fixed_resolution.bqn`
 
 Do not begin the next file until this cursor has a merged final decision and its checkbox is updated on current `main`.
