@@ -51,20 +51,20 @@ synthetic ← balanceSheet.Build ⟨syntheticFacts,"JPY",dates.Ordinal "2026-01-
 "ok" lib.AssertEq synthetic.state
 ⟨"assets:cash","assets:savings"⟩ lib.AssertEq synthetic.assets.account_key
 ⟨150,40⟩ lib.AssertEq synthetic.assets.balance
-⟨⟨0,5⟩,⟨1⟩⟩ lib.AssertEq synthetic.assets.contributors
+⟨⟨"opening:0","salary:0"⟩,⟨"opening:1"⟩⟩ lib.AssertEq {{𝕩.posting_id}¨𝕩}¨synthetic.assets.contributors
 ⟨"liabilities:debt"⟩ lib.AssertEq synthetic.liabilities.account_key
 ⟨30⟩ lib.AssertEq synthetic.liabilities.balance
-⟨⟨4⟩⟩ lib.AssertEq synthetic.liabilities.contributors
+⟨⟨"food:1"⟩⟩ lib.AssertEq {{𝕩.posting_id}¨𝕩}¨synthetic.liabilities.contributors
 ⟨"equity:opening"⟩ lib.AssertEq synthetic.equity.account_key
 ⟨140⟩ lib.AssertEq synthetic.equity.balance
-⟨⟨2⟩⟩ lib.AssertEq synthetic.equity.contributors
+⟨⟨"opening:2"⟩⟩ lib.AssertEq {{𝕩.posting_id}¨𝕩}¨synthetic.equity.contributors
 190 lib.AssertEq synthetic.total_assets
 30 lib.AssertEq synthetic.total_liabilities
 140 lib.AssertEq synthetic.stated_equity
 20 lib.AssertEq synthetic.unclosed_result
 160 lib.AssertEq synthetic.total_equity
 190 lib.AssertEq synthetic.total_liabilities_and_equity
-⟨6,3⟩ lib.AssertEq synthetic.unclosed_result_contributors
+⟨"salary:1","food:0"⟩ lib.AssertEq {𝕩.posting_id}¨synthetic.unclosed_result_contributors
 
 budgetRaw ← (•FChars "../"∾base∾"actual.journal")∾(@+10)∾∾{𝕩∾(@+10)}¨⟨
   "2026-01-13 * unsupported budget balance",
