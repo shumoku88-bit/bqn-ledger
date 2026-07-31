@@ -55,23 +55,42 @@ Build ← {𝕊 current‿baseline‿policy:
       diagnostics ∾↩ AddIf ⟨¬(currentComplete∧baselineComplete),Diagnostic ⟨"complete_cycle_required","complete_cycles requires two fully observed cycles"⟩⟩
     }⍟(policy≡"complete_cycles") @
     {𝕊:
+      # c: current / baseline comparison sides; a: canonical Account rows.
+      # movement[c,a] normalizes by side, transposes to Account cells, and exact-sums +current/-baseline.
       targetScale ← current.scale⌈baseline.scale
-      currentNormalized ← {scale.Normalize ⟨𝕩,current.scale,targetScale⟩}¨current.accounts.movement
-      baselineNormalized ← {scale.Normalize ⟨𝕩,baseline.scale,targetScale⟩}¨baseline.accounts.movement
-      normalizedOk ← (∧´1∾{𝕩.state≡"ok"}¨currentNormalized) ∧ ∧´1∾{𝕩.state≡"ok"}¨baselineNormalized
+      movementLanes ← ⟨current.accounts.movement,baseline.accounts.movement⟩
+      sourceScales ← ⟨current.scale,baseline.scale⟩
+      normalizedLanes ← movementLanes {
+        sourceScale ← 𝕩
+        {scale.Normalize ⟨𝕩,sourceScale,targetScale⟩}¨𝕨
+      }¨ sourceScales
+      normalizedOk ← ∧´1∾{𝕩.state≡"ok"}¨∾normalizedLanes
       diagnostics ∾↩ AddIf ⟨¬normalizedOk,Diagnostic ⟨"coefficient_normalization_failed","window movements cannot normalize exactly"⟩⟩
       {𝕊:
-        currentValues ← {𝕩.coefficient}¨currentNormalized
-        baselineValues ← {𝕩.coefficient}¨baselineNormalized
-        differenceResults ← {𝕊 i: scale.Sum ⟨i⊑currentValues,-(i⊑baselineValues)⟩}¨current.accounts.index
+        valueLanes ← {{𝕩.coefficient}¨𝕩}¨normalizedLanes
+        currentValues‿baselineValues ← valueLanes
+        differenceCells ← ⍉>(⟨1,-1⟩×¨valueLanes)
+        differenceResults ← {scale.Sum 𝕩}˘differenceCells
         differencesOk ← ∧´1∾{𝕩.state≡"ok"}¨differenceResults
         diagnostics ∾↩ AddIf ⟨¬differencesOk,Diagnostic ⟨"coefficient_sum_failed","Account comparison difference exceeds exact range"⟩⟩
         {𝕊:
           differences ← {𝕩.coefficient}¨differenceResults
-          currentTotal ← scale.Sum currentValues ⋄ baselineTotal ← scale.Sum baselineValues ⋄ differenceTotal ← scale.Sum differences
+          currentTotal‿baselineTotal ← scale.Sum¨valueLanes
+          differenceTotal ← scale.Sum differences
           totalsOk ← ∧´{𝕩.state≡"ok"}¨⟨currentTotal,baselineTotal,differenceTotal⟩
           diagnostics ∾↩ AddIf ⟨¬totalsOk,Diagnostic ⟨"coefficient_sum_failed","comparison totals exceed exact range"⟩⟩
           {𝕊:
+            contributorLanes ← ⟨current.accounts.movement_contributors,baseline.accounts.movement_contributors⟩
+            currentContributors‿baselineContributors ← contributorLanes
+            contributorCells ← ⍉>contributorLanes
+            differenceContributors ← {∾𝕩}˘contributorCells
+            valueCells ← ⍉>valueLanes
+            differenceEvidence ← valueCells {
+              {
+                current_coefficient⇐0⊑𝕨,baseline_coefficient⇐1⊑𝕨,
+                current_contributors⇐0⊑𝕩,baseline_contributors⇐1⊑𝕩
+              }
+            }˘ contributorCells
             result↩{
               state⇐"ok",reason⇐"",policy⇐policy,domain⇐current.domain,scale⇐targetScale,
               current_start⇐current.cycle_start,current_observation⇐current.observation,
@@ -83,16 +102,10 @@ Build ← {𝕊 current‿baseline‿policy:
                 count⇐current.accounts.count,index⇐current.accounts.index,
                 account_index⇐current.accounts.account_index,account_key⇐current.accounts.account_key,
                 current_movement⇐currentValues,baseline_movement⇐baselineValues,difference⇐differences,
-                current_contributors⇐current.accounts.movement_contributors,
-                baseline_contributors⇐baseline.accounts.movement_contributors,
-                difference_contributors⇐{𝕊 i: (i⊑current.accounts.movement_contributors)∾(i⊑baseline.accounts.movement_contributors)}¨current.accounts.index,
-                difference_evidence⇐{𝕊 i:
-                  {
-                    current_coefficient⇐i⊑currentValues,baseline_coefficient⇐i⊑baselineValues,
-                    current_contributors⇐i⊑current.accounts.movement_contributors,
-                    baseline_contributors⇐i⊑baseline.accounts.movement_contributors
-                  }
-                }¨current.accounts.index
+                current_contributors⇐currentContributors,
+                baseline_contributors⇐baselineContributors,
+                difference_contributors⇐differenceContributors,
+                difference_evidence⇐differenceEvidence
               },
               totals⇐{
                 current_movement⇐currentTotal.coefficient,baseline_movement⇐baselineTotal.coefficient,
