@@ -2,6 +2,8 @@
 # No source parsing, context, Cube/TBDS, report section, formatting, or clock.
 
 scale ← •Import "../ledger/exact_scale.bqn"
+sparse_group ← •Import "sparse_group.bqn"
+sparse_pivot ← •Import "sparse_pivot.bqn"
 empty ← ⟨⟩
 
 Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
@@ -52,50 +54,67 @@ Build ← {𝕊 factSet‿domainCode‿layerName‿startOrdinal‿endOrdinal:
     {𝕊:
       normalized ← {𝕩.coefficient}¨normalizedResults
       accountIndices ← (domainCode⊸≡¨factSet.accounts.currency)/factSet.accounts.index
-      candidateRows ← empty
-      {𝕊 accountIndex:
-        accountMask ← accountIndex=selectedAccountIndices
-        beforeMask ← accountMask ∧ selectedDates<startOrdinal
-        periodMask ← accountMask ∧ (selectedDates≥startOrdinal) ∧ selectedDates<endOrdinal
-        debitMask ← periodMask ∧ "debit"⊸≡¨selectedSides
-        creditMask ← periodMask ∧ "credit"⊸≡¨selectedSides
-        openingResult ← scale.Sum (beforeMask/normalized)
-        debitResult ← scale.Sum (debitMask/normalized)
-        creditResult ← scale.Sum (creditMask/normalized)
-        sumsOk ← (openingResult.state≡"ok") ∧ (debitResult.state≡"ok") ∧ creditResult.state≡"ok"
-        diagnostics ∾↩ AddIf ⟨¬sumsOk,Diagnostic ⟨"coefficient_sum_failed","Account period sum exceeds exact range"⟩⟩
+      beforeMask ← selectedDates<startOrdinal
+      periodMask ← (selectedDates≥startOrdinal) ∧ selectedDates<endOrdinal
+      debitMask ← periodMask ∧ "debit"⊸≡¨selectedSides
+      creditMask ← periodMask ∧ "credit"⊸≡¨selectedSides
+
+      beforeAccounts ← beforeMask/selectedAccountIndices
+      debitAccounts ← debitMask/selectedAccountIndices
+      creditAccounts ← creditMask/selectedAccountIndices
+      periodAccounts ← periodMask/selectedAccountIndices
+      evidenceRows ← beforeAccounts∾debitAccounts∾creditAccounts∾periodAccounts
+      evidenceColumns ← ((≠beforeAccounts)⥊0)∾((≠debitAccounts)⥊1)∾((≠creditAccounts)⥊2)∾((≠periodAccounts)⥊3)
+      evidenceCoefficients ← (beforeMask/normalized)∾(debitMask/normalized)∾(creditMask/normalized)∾((≠periodAccounts)⥊0)
+      evidenceFactIndices ← (beforeMask/selectedFactIndices)∾(debitMask/selectedFactIndices)∾(creditMask/selectedFactIndices)∾(periodMask/selectedFactIndices)
+      evidenceContributors ← {⟨𝕩⟩}¨evidenceFactIndices
+
+      grouped ← sparse_group.Build ⟨
+        accountIndices,4,evidenceRows,evidenceColumns,evidenceCoefficients,evidenceContributors
+      ⟩
+      diagnostics ∾↩ {𝕊 ignoredDiagnostic: Diagnostic ⟨"coefficient_sum_failed","Account period sum exceeds exact range"⟩}¨grouped.diagnostics
+      {𝕊:
+        pivoted ← sparse_pivot.Build ⟨accountIndices,↕4,amountScale,grouped.groups⟩
+        diagnostics ∾↩ pivoted.diagnostics
         {𝕊:
-          movementResult ← scale.Sum ⟨debitResult.coefficient,creditResult.coefficient⟩
-          closingResult ← scale.Sum ⟨openingResult.coefficient,movementResult.coefficient⟩
-          finalOk ← (movementResult.state≡"ok") ∧ closingResult.state≡"ok"
-          diagnostics ∾↩ AddIf ⟨¬finalOk,Diagnostic ⟨"coefficient_sum_failed","Account movement or closing exceeds exact range"⟩⟩
+          values ← pivoted.matrix.values
+          contributors ← pivoted.matrix.contributors
+          opening ← {0⊑𝕩}¨values
+          debitMovement ← {1⊑𝕩}¨values
+          creditMovement ← {2⊑𝕩}¨values
+          openingContributors ← {0⊑𝕩}¨contributors
+          debitContributors ← {1⊑𝕩}¨contributors
+          creditContributors ← {2⊑𝕩}¨contributors
+          periodContributors ← {3⊑𝕩}¨contributors
+
+          movementResults ← debitMovement {scale.Sum ⟨𝕨,𝕩⟩}¨ creditMovement
+          movementOk ← ∧´1∾{𝕩.state≡"ok"}¨movementResults
+          diagnostics ∾↩ ∾{𝕊 result:
+            AddIf ⟨result.state≢"ok",Diagnostic ⟨"coefficient_sum_failed","Account movement or closing exceeds exact range"⟩⟩
+          }¨movementResults
           {𝕊:
-            candidateRows∾↩⟨{
-              account_index⇐accountIndex,account_key⇐accountIndex⊑factSet.accounts.key,
-              opening⇐openingResult.coefficient,debit_movement⇐debitResult.coefficient,
-              credit_movement⇐creditResult.coefficient,movement⇐movementResult.coefficient,
-              closing⇐closingResult.coefficient,
-              opening_contributors⇐beforeMask/selectedFactIndices,
-              debit_contributors⇐debitMask/selectedFactIndices,
-              credit_contributors⇐creditMask/selectedFactIndices,
-              period_contributors⇐periodMask/selectedFactIndices
-            }⟩
-          }⍟finalOk @
-        }⍟sumsOk @
-      }¨accountIndices
+            movement ← {𝕩.coefficient}¨movementResults
+            closingResults ← opening {scale.Sum ⟨𝕨,𝕩⟩}¨ movement
+            closingOk ← ∧´1∾{𝕩.state≡"ok"}¨closingResults
+            diagnostics ∾↩ ∾{𝕊 result:
+              AddIf ⟨result.state≢"ok",Diagnostic ⟨"coefficient_sum_failed","Account movement or closing exceeds exact range"⟩⟩
+            }¨closingResults
+            {𝕊:
+              table↩{
+                count⇐≠accountIndices,index⇐↕≠accountIndices,
+                account_index⇐accountIndices,account_key⇐accountIndices⊏factSet.accounts.key,
+                opening⇐opening,debit_movement⇐debitMovement,
+                credit_movement⇐creditMovement,movement⇐movement,
+                closing⇐{𝕩.coefficient}¨closingResults,
+                opening_contributors⇐openingContributors,debit_contributors⇐debitContributors,
+                credit_contributors⇐creditContributors,period_contributors⇐periodContributors
+              }
+            }⍟closingOk @
+          }⍟movementOk @
+        }⍟(pivoted.state≡"ok") @
+      }⍟(grouped.state≡"ok") @
 
       {𝕊:
-        table↩{
-          count⇐≠candidateRows,index⇐↕≠candidateRows,
-          account_index⇐{𝕩.account_index}¨candidateRows,account_key⇐{𝕩.account_key}¨candidateRows,
-          opening⇐{𝕩.opening}¨candidateRows,debit_movement⇐{𝕩.debit_movement}¨candidateRows,
-          credit_movement⇐{𝕩.credit_movement}¨candidateRows,movement⇐{𝕩.movement}¨candidateRows,
-          closing⇐{𝕩.closing}¨candidateRows,
-          opening_contributors⇐{𝕩.opening_contributors}¨candidateRows,
-          debit_contributors⇐{𝕩.debit_contributors}¨candidateRows,
-          credit_contributors⇐{𝕩.credit_contributors}¨candidateRows,
-          period_contributors⇐{𝕩.period_contributors}¨candidateRows
-        }
         openingTotal ← scale.Sum (table.opening)
         debitTotal ← scale.Sum (table.debit_movement)
         creditTotal ← scale.Sum (table.credit_movement)
