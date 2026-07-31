@@ -47,11 +47,59 @@ ils ← BuildDomain ⟨"ILS",ilsLines,ilsRaw⟩
 ⟨¯1235,1230,5⟩ lib.AssertEq 0⊑ils.matrix.values
 ⟨0,0,0⟩ lib.AssertEq 1⊑ils.matrix.values
 
+# Source order may interleave month cells. Occupied exact-zero cells retain contributor order.
+interleavedRaw ← ∾⟨
+  "commodity ILS",lf,lf,"account assets:ils",lf,"    ; role: asset",lf,lf,
+  "account expenses:a-ils",lf,"    ; role: expense",lf,lf,
+  "account expenses:b-ils",lf,"    ; role: expense",lf,lf,
+  "2026-03-01 * March A first",lf,"    ; event-id: interleaved-march-a-first",lf,"    ; layer: actual",lf,
+  "    expenses:a-ils 10 ILS",lf,"    assets:ils -10 ILS",lf,lf,
+  "2026-04-01 * April B",lf,"    ; event-id: interleaved-april-b",lf,"    ; layer: actual",lf,
+  "    expenses:b-ils 5 ILS",lf,"    assets:ils -5 ILS",lf,lf,
+  "2026-03-02 * March A second",lf,"    ; event-id: interleaved-march-a-second",lf,"    ; layer: actual",lf,
+  "    expenses:a-ils -10 ILS",lf,"    assets:ils 10 ILS",lf,lf,
+  "2026-04-02 * April A",lf,"    ; event-id: interleaved-april-a",lf,"    ; layer: actual",lf,
+  "    expenses:a-ils 7 ILS",lf,"    assets:ils -7 ILS",lf
+⟩
+interleaved ← BuildDomain ⟨"ILS",ilsLines,interleavedRaw⟩
+"ok" lib.AssertEq interleaved.state
+⟨"2026-03","2026-04"⟩ lib.AssertEq interleaved.months
+⟨0,0,0⟩ lib.AssertEq 0⊑interleaved.matrix.values
+⟨¯12,7,5⟩ lib.AssertEq 1⊑interleaved.matrix.values
+⟨0,0⟩ lib.AssertEq interleaved.totals.month
+⟨¯12,7,5⟩ lib.AssertEq interleaved.totals.account
+0 lib.AssertEq interleaved.totals.grand
+1 lib.AssertEq interleaved.totals.balanced
+marchExpenseA ← 1⊑0⊑interleaved.matrix.contributors
+2 lib.AssertEq ≠marchExpenseA
+⟨"interleaved-march-a-first:0","interleaved-march-a-second:0"⟩ lib.AssertEq {𝕩.posting_id}¨marchExpenseA
+⟨⟩ lib.AssertEq 2⊑0⊑interleaved.matrix.contributors
+⟨"interleaved-april-b:0"⟩ lib.AssertEq {𝕩.posting_id}¨2⊑1⊑interleaved.matrix.contributors
+
 usdLines ← ⟨"assets:usd	role=asset	currency=USD","expenses:usd	role=expense	currency=USD"⟩
 usdRaw ← ∾⟨"commodity USD",lf,lf,"account assets:usd",lf,"    ; role: asset",lf,lf,"account expenses:usd",lf,"    ; role: expense",lf⟩
 usd ← BuildDomain ⟨"USD",usdLines,usdRaw⟩
 "ok" lib.AssertEq usd.state
 ⟨⟨0,0⟩,⟨0,0⟩⟩ lib.AssertEq usd.matrix.values
+⟨0,0⟩ lib.AssertEq usd.totals.month
+⟨0,0⟩ lib.AssertEq usd.totals.account
+⟨⟨⟨⟩,⟨⟩⟩,⟨⟨⟩,⟨⟩⟩⟩ lib.AssertEq usd.matrix.contributors
+
+# Each transaction is exact, but the selected Month × Account cell sum exceeds the exact range.
+overflowLines ← ⟨"assets:overflow	role=asset	currency=JPY","expenses:overflow	role=expense	currency=JPY"⟩
+overflowRaw ← ∾⟨
+  "commodity JPY",lf,lf,"account assets:overflow",lf,"    ; role: asset",lf,lf,
+  "account expenses:overflow",lf,"    ; role: expense",lf,lf,
+  "2026-03-01 * first maximum",lf,"    ; event-id: overflow-first",lf,"    ; layer: actual",lf,
+  "    expenses:overflow 9007199254740991 JPY",lf,"    assets:overflow -9007199254740991 JPY",lf,lf,
+  "2026-03-02 * second maximum",lf,"    ; event-id: overflow-second",lf,"    ; layer: actual",lf,
+  "    expenses:overflow 9007199254740991 JPY",lf,"    assets:overflow -9007199254740991 JPY",lf
+⟩
+overflowFacts ← (snapshot.Build ⟨overflowLines,overflowRaw,registry⟩).facts
+overflow ← monthly.Build ⟨overflowFacts,"JPY","2026-03","2026-04"⟩
+"error" lib.AssertEq overflow.state
+0 lib.AssertEq overflow.matrix.row_count
+lib.Assert ∨´"coefficient_sum_failed"⊸≡¨{𝕩.code}¨overflow.diagnostics
 
 CheckError ← {𝕊 domain‿first‿last‿code:
   rejected ← monthly.Build ⟨facts,domain,first,last⟩
