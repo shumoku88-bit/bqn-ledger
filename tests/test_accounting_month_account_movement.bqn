@@ -85,17 +85,25 @@ usd ← BuildDomain ⟨"USD",usdLines,usdRaw⟩
 ⟨0,0⟩ lib.AssertEq usd.totals.account
 ⟨⟨⟨⟩,⟨⟩⟩,⟨⟨⟩,⟨⟩⟩⟩ lib.AssertEq usd.matrix.contributors
 
-# Each transaction is exact, but the selected Month × Account cell sum exceeds the exact range.
-overflowLines ← ⟨"assets:overflow	role=asset	currency=JPY","expenses:overflow	role=expense	currency=JPY"⟩
-overflowRaw ← ∾⟨
-  "commodity JPY",lf,lf,"account assets:overflow",lf,"    ; role: asset",lf,lf,
-  "account expenses:overflow",lf,"    ; role: expense",lf,lf,
-  "2026-03-01 * first maximum",lf,"    ; event-id: overflow-first",lf,"    ; layer: actual",lf,
-  "    expenses:overflow 9007199254740991 JPY",lf,"    assets:overflow -9007199254740991 JPY",lf,lf,
-  "2026-03-02 * second maximum",lf,"    ; event-id: overflow-second",lf,"    ; layer: actual",lf,
-  "    expenses:overflow 9007199254740991 JPY",lf,"    assets:overflow -9007199254740991 JPY",lf
-⟩
-overflowFacts ← (snapshot.Build ⟨overflowLines,overflowRaw,registry⟩).facts
+# Every Posting is individually exact, but one Month × Account cell sum exceeds the exact range.
+overflowFacts ← {
+  state⇐"ok",
+  sources⇐{count⇐1,name⇐⟨"actual.journal"⟩},
+  domains⇐{code⇐⟨"JPY"⟩},
+  layers⇐{name⇐⟨"actual"⟩},
+  accounts⇐{
+    index⇐⟨0,1⟩,key⇐⟨"assets:overflow","expenses:overflow"⟩,
+    currency⇐⟨"JPY","JPY"⟩
+  },
+  transactions⇐{date_text⇐⟨"2026-03-01","2026-03-02"⟩},
+  postings⇐{
+    index⇐↕4,posting_id⇐⟨"overflow-first:0","overflow-first:1","overflow-second:0","overflow-second:1"⟩,
+    transaction_index⇐⟨0,0,1,1⟩,domain_index⇐4⥊0,layer_index⇐4⥊0,
+    account_index⇐⟨1,0,1,0⟩,
+    coefficient⇐⟨9007199254740991,¯9007199254740991,9007199254740991,¯9007199254740991⟩,
+    scale⇐4⥊0
+  }
+}
 overflow ← monthly.Build ⟨overflowFacts,"JPY","2026-03","2026-04"⟩
 "error" lib.AssertEq overflow.state
 0 lib.AssertEq overflow.matrix.row_count
