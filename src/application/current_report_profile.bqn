@@ -82,7 +82,10 @@ Build ← {𝕊 admittedRoutes‿observation‿currentCycle‿baselineCycle:
       {𝕊:rewritten↩⟨0⊑args,currentCycle.start,dates.AddDays ⟨observation,1⟩,3⊑args⟩}⍟(key≡"profit-and-loss") @
       {𝕊:rewritten↩ReplaceCoordinateRole ⟨args,admitted.coordinate_role,"observation",observation⟩}⍟(key≡"planned") @
       {𝕊:rewritten↩ReplaceCoordinateRole ⟨args,admitted.coordinate_role,"observation",observation⟩}⍟(key≡"cycle-accounts") @
-      {𝕊:rewritten↩⟨0⊑args,observation,baselineObservation,3⊑args⟩∾4↓args}⍟(key≡"cycle-comparison") @
+      {𝕊:
+        rewritten↩ReplaceCoordinateRole ⟨rewritten,admitted.coordinate_role,"current_observation",observation⟩
+        rewritten↩ReplaceCoordinateRole ⟨rewritten,admitted.coordinate_role,"baseline_observation",baselineObservation⟩
+      }⍟(key≡"cycle-comparison") @
       {𝕊:rewritten↩⟨0⊑args,1⊑args,NextMonthExclusive observation,3⊑args⟩}⍟(key≡"monthly-accounts") @
       {𝕊:rewritten↩⟨0⊑args,currentCycle.start,currentCycle.end_exclusive,observation,4⊑args⟩}⍟(key≡"daily-flow") @
       {𝕊:rewritten↩⟨0⊑args,observation⟩∾2↓args}⍟(key≡"daily-target") @
