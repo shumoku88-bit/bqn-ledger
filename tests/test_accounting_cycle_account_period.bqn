@@ -34,6 +34,17 @@ full ← cycle_accounts.Build ⟨facts,"JPY",cycle,"2026-01-31"⟩
 1035 lib.AssertEq full.totals.debit_movement
 ¯1035 lib.AssertEq full.totals.credit_movement
 
+# Both opening and observed-period evidence are nonempty for cash.
+# Closing contributors must preserve opening-first, then period source order.
+shiftedCycle ← cycle_result.Success ⟨"fixed","2026-01-12","2026-01-11","2026-02-01",⟨⟩,⟨⟩⟩
+shifted ← cycle_accounts.Build ⟨facts,"JPY",shiftedCycle,"2026-01-12"⟩
+"ok" lib.AssertEq shifted.state
+⟨"proof-salary-1:0","proof-food-1:1"⟩ lib.AssertEq {𝕩.posting_id}¨0⊑shifted.accounts.opening_contributors
+⟨⟩ lib.AssertEq {𝕩.posting_id}¨0⊑shifted.accounts.debit_contributors
+⟨"proof-split-1:2"⟩ lib.AssertEq {𝕩.posting_id}¨0⊑shifted.accounts.credit_contributors
+⟨"proof-split-1:2"⟩ lib.AssertEq {𝕩.posting_id}¨0⊑shifted.accounts.movement_contributors
+⟨"proof-salary-1:0","proof-food-1:1","proof-split-1:2"⟩ lib.AssertEq {𝕩.posting_id}¨0⊑shifted.accounts.closing_contributors
+
 lf ← @+10
 BuildDomain ← {𝕊 currency‿lines‿raw‿observation:
   domainFacts ← (snapshot.Build ⟨lines,raw,registry⟩).facts

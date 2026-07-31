@@ -55,11 +55,16 @@ Build ← {𝕊 facts‿domainCode‿cycle‿observationText:
         {𝕊:
           source ← accountPeriod.accounts
           PostingReferences ← {𝕊 indices: {reference.Posting ⟨facts,𝕩⟩}¨indices}
-          openingContributors ← PostingReferences¨source.opening_contributors
-          debitContributors ← PostingReferences¨source.debit_contributors
-          creditContributors ← PostingReferences¨source.credit_contributors
-          movementContributors ← PostingReferences¨source.period_contributors
-          closingContributors ← {𝕊 i: (i⊑openingContributors)∾i⊑movementContributors}¨source.index
+
+          # a: canonical Account rows; k: opening / debit / credit / period contributor lanes.
+          # Each [k,a] Posting-index cell becomes durable source-qualified references in source order.
+          contributorIndexLanes ← ⟨
+            source.opening_contributors,source.debit_contributors,
+            source.credit_contributors,source.period_contributors
+          ⟩
+          contributorLanes ← {PostingReferences¨𝕩}¨contributorIndexLanes
+          openingContributors‿debitContributors‿creditContributors‿movementContributors ← contributorLanes
+          closingContributors ← openingContributors ∾¨ movementContributors
           result↩{
             state⇐"ok",reason⇐"",domain⇐domainCode,observation⇐observationText,
             cycle_mode⇐cycle.mode,cycle_start⇐cycle.start,cycle_end_exclusive⇐cycle.end_exclusive,
