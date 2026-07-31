@@ -31,6 +31,8 @@ Before creating or changing any `.bqn` file:
 
 Dense classical array-language style is welcome. A compact BQN expression is not less readable merely because it does not resemble conventional procedural code. When axes and invariants are explicit, prefer a direct whole-array expression over loops, mutable append, temporary row namespaces, or a ladder of single-use staging names.
 
+Do not write defensive guard clutter or multi-level nested `}⍟(...) @` blocks inside pure accounting kernels. All input invariants (valid sources, matching currencies, domains, layers, and explicit dates) must be guaranteed by the admission boundary beforehand. Pure kernels must receive valid columnar arrays and perform direct whole-array transformations without nesting.
+
 Do not expand a clear train, modifier composition, rank/cell expression, grouping pipeline, or structural transformation solely to make each mechanical step familiar to a non-array-language reader. Preserve names at accounting, admission, exact-arithmetic, diagnostic, provenance, publication, and effect boundaries. Inside a bounded pure kernel, local mechanical names are optional and may disappear when composition makes the complete transformation easier to see.
 
 Use comments to state what the expression cannot state by itself:
@@ -43,7 +45,7 @@ Use comments to state what the expression cannot state by itself:
 
 Do not narrate glyphs line by line. Tests should protect observable values, ordering, provenance, diagnostics, and edge shapes rather than force a verbose implementation form.
 
-Explicit staging remains appropriate for genuine effect sequencing, fail-closed admission, dependent diagnostics, identity construction, provenance assembly, or write safety. It is not the default merely because a dense expression requires BQN fluency. Avoid code golf that hides semantic axes, but do not reject density, trains, tacit composition, or classical APL-style idioms on familiarity grounds.
+Explicit staging remains appropriate for genuine effect sequencing at admission boundaries, dependent diagnostics at I/O boundaries, identity construction, provenance assembly, or write safety. It must never be used to introduce defensive guard ladders or Record property checks inside pure accounting kernels. Avoid code golf that hides semantic axes, but do not reject density, trains, tacit composition, or classical APL-style idioms on familiarity grounds.
 
 Treat the capability map as a memory refresh, not a glyph quota. Do not add capability audits, primitive quotas, or checklist files.
 
