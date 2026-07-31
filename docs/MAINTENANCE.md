@@ -7,24 +7,19 @@ tools/doctor
 tools/check.sh
 ```
 
-Strict household readiness is checked separately with `tools/ledger-check`; canonical provenance is inspected with `tools/ledger-inspect`.
+Use `tools/ledger-check` for strict household readiness and `tools/ledger-inspect` for canonical provenance.
 
-## Report changes
+## Change workflow
 
-1. Identify the narrow Fact or accounting capability required by the question.
-2. Keep source I/O and clock access in `src/application/`.
-3. Implement the semantic result in `src/sections/` without reading files or another section result.
-4. Add only approved renderers.
-5. Register a final key/surface in `src/report/catalog.bqn` when it is a retained user question.
-6. Update human/compact manifest source and nonvolatile policy explicitly when their meaning changes; do not advance daily observation dates for Command Hub, which resolves them through the current profile.
-7. Test positive, empty, invalid, provenance, direct/all/cache, and supported structured surfaces.
+1. Identify the public behavior or accounting question being changed.
+2. Change one coherent slice. An owner and all of its consumers may move together.
+3. Run focused evidence, full `tools/check.sh`, coverage, and final current-main review.
+4. Remove superseded code, wrappers, tests, and documents in the same slice.
 
-Do not introduce broad contexts, source-shape fallbacks, old-key aliases, or forwarding modules. Operational diagnostics belong in `tools/ledger-check` or `tools/ledger-inspect`, not the report catalog.
-
-## Editor changes
-
-Use preview, stale checks, backup, atomic write, and a narrow post-write validator. Editors consume canonical strict admission where the same source is read by reports. Private household changes stay in the private data repository.
+Report code keeps source I/O and clocks in `src/application/`, semantic results in `src/sections/`, and final catalog/composition in `src/report/`. Editors keep preview, stale checks, backup, atomic write, and narrow post-write validation.
 
 ## Documentation
 
-Keep `README.md`, `TODO.md`, `docs/ARCHITECTURE.md`, and `docs/AI_CODEMAP.md` current. Move historical plans to `docs/archive/` or delete them when Git history is sufficient.
+Update documentation only when a public command, data format, user-visible result, or ownership boundary changes. Internal algorithm and representation changes do not require README, TODO, architecture, catalog, audit, or code-map edits.
+
+Move completed plans and observations to `docs/archive/`, or delete them when Git history is sufficient.

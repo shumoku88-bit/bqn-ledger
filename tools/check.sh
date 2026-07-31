@@ -41,7 +41,7 @@ checks=(
   check-safe-replace-line.sh check-safe-rewrite-checked.sh check-bash-safety.sh
   check-source-io-ownership.sh check-source-io-unreadable.sh check-editor-config-ownership.sh
   check-editor-actual-ownership.sh check-editor-account-ownership.sh check-editor-currency-ownership.sh
-  check-editor-runtime-boundary.sh check-absolute-links.sh check-bqn-primitive-inventory.sh
+  check-editor-runtime-boundary.sh check-absolute-links.sh
 )
 for name in "${checks[@]}"; do
   [[ -f checks/$name ]] || continue
