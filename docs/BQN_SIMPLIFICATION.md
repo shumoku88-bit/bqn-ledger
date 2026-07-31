@@ -36,6 +36,12 @@ The capability map is a mandatory memory refresh for BQN code changes, not a req
 - single-use mechanical names that merely spell out a direct composition;
 - verbose forms introduced only to resemble conventional non-array-language code.
 
+## Prohibit defensive guard clutter in pure kernels
+
+- **No defensive guards inside pure kernels**: Pure accounting kernels in `src/accounting/` must NOT contain ladders of defensive predicate guards, multi-level `}⍟(...) @` nested blocks, or property-by-property Record validation.
+- **Enforce boundary admission**: Invariants (valid dates, matching domains, layers, currencies, sources) must be guaranteed by the admission boundary (`src/ledger/` and admission functions) before entering a pure kernel.
+- **Columnar arrays over Record checks**: Pure kernels operate assuming valid, aligned columnar arrays. Focus strictly on clean array transformations (Mask, Group, Select, Transpose, Reduce) with zero nesting.
+
 ## Preferred form
 
 Prefer:
@@ -106,12 +112,14 @@ The second form is preferred because the mathematical structure is visible, not 
 
 ## When staging is justified
 
-Use explicit staged code when the problem is genuinely sequential or when a named boundary protects:
+Use explicit staged code only at system boundaries when the problem is genuinely sequential or when a named boundary protects:
 
-- fail-closed admission before unsafe selection;
-- dependent exact-arithmetic diagnostics;
+- fail-closed admission at the input boundary before entering pure kernels;
+- dependent exact-arithmetic diagnostics at I/O boundaries;
 - identity or provenance construction;
-- effects, publication buffering, or write safety;
+- effects, publication buffering, or write safety.
+
+Staging and defensive guards are strictly prohibited inside pure accounting kernels in `src/accounting/`. Pure kernels must receive admitted columnar arrays and compute whole-array transformations without defensive guard ladders.
 - a complicated expression whose axes cannot be recovered from code plus a concise contract comment.
 
 Do not use staging as a universal readability policy. Unfamiliar BQN is a reason to consult the reference and test a probe, not a reason to translate the kernel back into ordinary loops and temporary records.
