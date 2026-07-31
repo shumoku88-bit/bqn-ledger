@@ -60,13 +60,13 @@ normalized ← scale.Normalize ⟨¯12,0,2⟩
 "error" lib.AssertEq (scale.Sum ⟨9007199254740991,2⟩).state
 
 scaleAccountLines ← ⟨
-  "assets:jpy	role=asset	currency=JPY",
-  "expenses:jpy	role=expense	currency=JPY"
+  "assets:jpy\trole=asset\tcurrency=JPY",
+  "expenses:jpy\trole=expense\tcurrency=JPY"
 ⟩
 scaleAccounts ← (account_admission.Admit ⟨scaleAccountLines,registry⟩).accounts
 scalePlanLines ← ⟨
-  "2026-01-10	whole	assets:jpy	expenses:jpy	25	currency=JPY	plan_id=p1",
-  "2026-01-11	fraction	assets:jpy	expenses:jpy	12.30	currency=JPY	plan_id=p2"
+  "2026-01-10\twhole\tassets:jpy\texpenses:jpy\t25\tcurrency=JPY\tplan_id=p1",
+  "2026-01-11\tfraction\tassets:jpy\texpenses:jpy\t12.30\tcurrency=JPY\tplan_id=p2"
 ⟩
 scaleFacts ← (companion_snapshot.Build ⟨scalePlanLines,⟨⟩,scaleAccounts,registry⟩).plan
 scalePeriod ← period.Build ⟨scaleFacts,"JPY","plan",start,end⟩
@@ -76,6 +76,77 @@ scalePeriod ← period.Build ⟨scaleFacts,"JPY","plan",start,end⟩
 373 lib.AssertEq scalePeriod.totals.debit_movement
 ¯373 lib.AssertEq scalePeriod.totals.credit_movement
 1 lib.AssertEq scalePeriod.totals.balanced
+
+lf ← @+10
+BuildActualPeriod ← {𝕊 currency‿accountLines‿raw‿firstDate‿lastDate:
+  domainFacts ← (snapshot.Build ⟨accountLines,raw,registry⟩).facts
+  period.Build ⟨domainFacts,currency,"actual",dates.Ordinal firstDate,dates.Ordinal lastDate⟩
+}
+periodAccountLines ← ⟨
+  "assets:ils\trole=asset\tcurrency=ILS",
+  "expenses:a-ils\trole=expense\tcurrency=ILS",
+  "expenses:b-ils\trole=expense\tcurrency=ILS"
+⟩
+periodRaw ← ∾⟨
+  "commodity ILS",lf,lf,"account assets:ils",lf,"    ; role: asset",lf,lf,
+  "account expenses:a-ils",lf,"    ; role: expense",lf,lf,
+  "account expenses:b-ils",lf,"    ; role: expense",lf,lf,
+  "2026-02-20 * Opening A first",lf,"    ; event-id: period-opening-a-first",lf,"    ; layer: actual",lf,
+  "    expenses:a-ils 10 ILS",lf,"    assets:ils -10 ILS",lf,lf,
+  "2026-02-21 * Opening A second",lf,"    ; event-id: period-opening-a-second",lf,"    ; layer: actual",lf,
+  "    expenses:a-ils -10 ILS",lf,"    assets:ils 10 ILS",lf,lf,
+  "2026-03-01 * Period A first",lf,"    ; event-id: period-a-first",lf,"    ; layer: actual",lf,
+  "    expenses:a-ils 7 ILS",lf,"    assets:ils -7 ILS",lf,lf,
+  "2026-03-02 * Period B",lf,"    ; event-id: period-b",lf,"    ; layer: actual",lf,
+  "    expenses:b-ils 5 ILS",lf,"    assets:ils -5 ILS",lf,lf,
+  "2026-03-03 * Period A second",lf,"    ; event-id: period-a-second",lf,"    ; layer: actual",lf,
+  "    expenses:a-ils -7 ILS",lf,"    assets:ils 7 ILS",lf
+⟩
+characterized ← BuildActualPeriod ⟨"ILS",periodAccountLines,periodRaw,"2026-03-01","2026-04-01"⟩
+"ok" lib.AssertEq characterized.state
+⟨"assets:ils","expenses:a-ils","expenses:b-ils"⟩ lib.AssertEq characterized.accounts.account_key
+⟨0,0,0⟩ lib.AssertEq characterized.accounts.opening
+⟨7,7,5⟩ lib.AssertEq characterized.accounts.debit_movement
+⟨¯12,¯7,0⟩ lib.AssertEq characterized.accounts.credit_movement
+⟨¯5,0,5⟩ lib.AssertEq characterized.accounts.movement
+⟨¯5,0,5⟩ lib.AssertEq characterized.accounts.closing
+⟨⟨1,3⟩,⟨0,2⟩,⟨⟩⟩ lib.AssertEq characterized.accounts.opening_contributors
+⟨⟨9⟩,⟨4⟩,⟨6⟩⟩ lib.AssertEq characterized.accounts.debit_contributors
+⟨⟨5,7⟩,⟨8⟩,⟨⟩⟩ lib.AssertEq characterized.accounts.credit_contributors
+⟨⟨5,7,9⟩,⟨4,8⟩,⟨6⟩⟩ lib.AssertEq characterized.accounts.period_contributors
+0 lib.AssertEq characterized.totals.opening
+19 lib.AssertEq characterized.totals.debit_movement
+¯19 lib.AssertEq characterized.totals.credit_movement
+0 lib.AssertEq characterized.totals.movement
+0 lib.AssertEq characterized.totals.closing
+1 lib.AssertEq characterized.totals.balanced
+
+emptyAccountLines ← ⟨
+  "assets:usd\trole=asset\tcurrency=USD",
+  "expenses:usd\trole=expense\tcurrency=USD"
+⟩
+emptyRaw ← ∾⟨
+  "commodity USD",lf,lf,"account assets:usd",lf,"    ; role: asset",lf,lf,
+  "account expenses:usd",lf,"    ; role: expense",lf
+⟩
+emptyPeriod ← BuildActualPeriod ⟨"USD",emptyAccountLines,emptyRaw,"2026-03-01","2026-04-01"⟩
+"ok" lib.AssertEq emptyPeriod.state
+2 lib.AssertEq emptyPeriod.accounts.count
+⟨0,0⟩ lib.AssertEq emptyPeriod.accounts.opening
+⟨0,0⟩ lib.AssertEq emptyPeriod.accounts.debit_movement
+⟨0,0⟩ lib.AssertEq emptyPeriod.accounts.credit_movement
+⟨0,0⟩ lib.AssertEq emptyPeriod.accounts.movement
+⟨0,0⟩ lib.AssertEq emptyPeriod.accounts.closing
+⟨⟨⟩,⟨⟩⟩ lib.AssertEq emptyPeriod.accounts.opening_contributors
+⟨⟨⟩,⟨⟩⟩ lib.AssertEq emptyPeriod.accounts.debit_contributors
+⟨⟨⟩,⟨⟩⟩ lib.AssertEq emptyPeriod.accounts.credit_contributors
+⟨⟨⟩,⟨⟩⟩ lib.AssertEq emptyPeriod.accounts.period_contributors
+0 lib.AssertEq emptyPeriod.totals.opening
+0 lib.AssertEq emptyPeriod.totals.debit_movement
+0 lib.AssertEq emptyPeriod.totals.credit_movement
+0 lib.AssertEq emptyPeriod.totals.movement
+0 lib.AssertEq emptyPeriod.totals.closing
+1 lib.AssertEq emptyPeriod.totals.balanced
 
 CheckRejected ← {𝕊 domain‿layer‿s‿e‿code:
   rejected ← period.Build ⟨facts,domain,layer,s,e⟩
