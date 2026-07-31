@@ -36,35 +36,34 @@ Build ← {𝕊 facts‿domainCode‿observationOrdinal:
   result ← EmptyResult ⟨domainCode,diagnostics⟩
   {𝕊:
     source ← accountBalances.accounts
-    assetIndices ← ("asset"⊸≡¨source.role)/source.index
-    liabilityIndices ← ("liability"⊸≡¨source.role)/source.index
-    equityIndices ← ("equity"⊸≡¨source.role)/source.index
-    resultIndices ← (("income"⊸≡¨source.role) ∨ "expense"⊸≡¨source.role)/source.index
-    statementRole ← ("asset"⊸≡¨source.role) ∨ ("liability"⊸≡¨source.role) ∨ ("equity"⊸≡¨source.role) ∨ ("income"⊸≡¨source.role) ∨ "expense"⊸≡¨source.role
-    unsupportedIndices ← (¬statementRole)/source.index
+    statementRoles ← ⟨"asset","liability","equity","income","expense"⟩
+    roleCoordinates ← statementRoles⊐source.role
 
-    assetAmounts ← assetIndices⊏source.closing
-    liabilityAmounts ← -(liabilityIndices⊏source.closing)
-    equityAmounts ← -(equityIndices⊏source.closing)
-    unclosedSigned ← scale.Sum resultIndices⊏source.closing
-    unsupportedTotal ← scale.Sum unsupportedIndices⊏source.closing
-    assetTotal ← scale.Sum assetAmounts
-    liabilityTotal ← scale.Sum liabilityAmounts
-    equityTotal ← scale.Sum equityAmounts
-    sums ← ⟨unclosedSigned,unsupportedTotal,assetTotal,liabilityTotal,equityTotal⟩
-    sumsOk ← ∧´{𝕩.state≡"ok"}¨sums
+    # a: canonical Account rows; s: asset / liability / equity / unclosed-result / unsupported-check lanes.
+    # Income and expense share s=3; unmatched roles map to s=4. Group preserves Account and contributor order.
+    # Statement signs publish liabilities, Equity, and unclosed result on the right-hand side; trailing s=5 retains empty lanes.
+    laneCoordinates ← roleCoordinates⊏⟨0,1,2,3,3,4⟩
+    statementSigns ← roleCoordinates⊏⟨1,-1,-1,-1,-1,1⟩
+    statementBalances ← statementSigns×source.closing
+    laneCount ← 5
+    groupCoordinates ← laneCoordinates∾laneCount
+    rowGroups ← groupCoordinates⊔source.index
+    amountGroups ← groupCoordinates⊔statementBalances
+    contributorGroups ← groupCoordinates⊔source.contributors
+    laneSums ← scale.Sum¨amountGroups
+    sumsOk ← ∧´{𝕩.state≡"ok"}¨laneSums
     diagnostics ∾↩ AddIf ⟨¬sumsOk,Diagnostic ⟨"balance_sheet_sum_failed","Balance Sheet totals exceed exact range"⟩⟩
     {𝕊:
-      diagnostics ∾↩ AddIf ⟨unsupportedTotal.coefficient≠0,Diagnostic ⟨"unsupported_role_balance","non-statement Account roles must have zero Actual balance"⟩⟩
+      assetTotal‿liabilityTotal‿equityTotal‿unclosedResult‿unsupportedTotal ← {𝕩.coefficient}¨laneSums
+      diagnostics ∾↩ AddIf ⟨unsupportedTotal≠0,Diagnostic ⟨"unsupported_role_balance","non-statement Account roles must have zero Actual balance"⟩⟩
       {𝕊:
-        unclosedResult ← -unclosedSigned.coefficient
-        totalEquityResult ← scale.Sum ⟨equityTotal.coefficient,unclosedResult⟩
+        totalEquityResult ← scale.Sum ⟨equityTotal,unclosedResult⟩
         diagnostics ∾↩ AddIf ⟨totalEquityResult.state≢"ok",Diagnostic ⟨"balance_sheet_sum_failed","total Equity exceeds exact range"⟩⟩
         {𝕊:
-          rightResult ← scale.Sum ⟨liabilityTotal.coefficient,totalEquityResult.coefficient⟩
+          rightResult ← scale.Sum ⟨liabilityTotal,totalEquityResult.coefficient⟩
           diagnostics ∾↩ AddIf ⟨rightResult.state≢"ok",Diagnostic ⟨"balance_sheet_sum_failed","Liabilities plus Equity exceeds exact range"⟩⟩
           {𝕊:
-            differenceResult ← scale.Sum ⟨assetTotal.coefficient,-rightResult.coefficient⟩
+            differenceResult ← scale.Sum ⟨assetTotal,-rightResult.coefficient⟩
             diagnostics ∾↩ AddIf ⟨differenceResult.state≢"ok",Diagnostic ⟨"balance_sheet_sum_failed","Balance Sheet difference exceeds exact range"⟩⟩
             {𝕊:
               balanced ← accountBalances.balanced ∧ differenceResult.coefficient=0
@@ -72,22 +71,22 @@ Build ← {𝕊 facts‿domainCode‿observationOrdinal:
               {𝕊:
                 result↩{
                   state⇐"ok",domain⇐domainCode,observation_ordinal⇐observationOrdinal,scale⇐accountBalances.scale,
-                  assets⇐Rows ⟨source,assetIndices,assetAmounts⟩,
-                  liabilities⇐Rows ⟨source,liabilityIndices,liabilityAmounts⟩,
-                  equity⇐Rows ⟨source,equityIndices,equityAmounts⟩,
-                  total_assets⇐assetTotal.coefficient,total_liabilities⇐liabilityTotal.coefficient,
-                  stated_equity⇐equityTotal.coefficient,unclosed_result⇐unclosedResult,
+                  assets⇐Rows ⟨source,0⊑rowGroups,0⊑amountGroups⟩,
+                  liabilities⇐Rows ⟨source,1⊑rowGroups,1⊑amountGroups⟩,
+                  equity⇐Rows ⟨source,2⊑rowGroups,2⊑amountGroups⟩,
+                  total_assets⇐assetTotal,total_liabilities⇐liabilityTotal,
+                  stated_equity⇐equityTotal,unclosed_result⇐unclosedResult,
                   total_equity⇐totalEquityResult.coefficient,
                   total_liabilities_and_equity⇐rightResult.coefficient,
                   difference⇐differenceResult.coefficient,balanced⇐balanced,
-                  unclosed_result_contributors⇐∾resultIndices⊏source.contributors,
+                  unclosed_result_contributors⇐∾3⊑contributorGroups,
                   diagnostics⇐empty
                 }
               }⍟balanced @
             }⍟(differenceResult.state≡"ok") @
           }⍟(rightResult.state≡"ok") @
         }⍟(totalEquityResult.state≡"ok") @
-      }⍟(unsupportedTotal.coefficient=0) @
+      }⍟(unsupportedTotal=0) @
     }⍟sumsOk @
   }⍟(accountBalances.state≡"ok") @
   {𝕊: result↩EmptyResult ⟨domainCode,diagnostics⟩}⍟(0<≠diagnostics) @
