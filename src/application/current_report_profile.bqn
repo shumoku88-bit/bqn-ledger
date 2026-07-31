@@ -90,7 +90,11 @@ Build ← {𝕊 admittedRoutes‿observation‿currentCycle‿baselineCycle:
         rewritten↩ReplaceCoordinateRole ⟨rewritten,admitted.coordinate_role,"baseline_observation",baselineObservation⟩
       }⍟(key≡"cycle-comparison") @
       {𝕊:rewritten↩⟨0⊑args,1⊑args,NextMonthExclusive observation,3⊑args⟩}⍟(key≡"monthly-accounts") @
-      {𝕊:rewritten↩⟨0⊑args,currentCycle.start,currentCycle.end_exclusive,observation,4⊑args⟩}⍟(key≡"daily-flow") @
+      {𝕊:
+        rewritten↩ReplaceCoordinateRole ⟨rewritten,admitted.coordinate_role,"start",currentCycle.start⟩
+        rewritten↩ReplaceCoordinateRole ⟨rewritten,admitted.coordinate_role,"end_exclusive",currentCycle.end_exclusive⟩
+        rewritten↩ReplaceCoordinateRole ⟨rewritten,admitted.coordinate_role,"observation",observation⟩
+      }⍟(key≡"daily-flow") @
       {𝕊:rewritten↩⟨0⊑args,observation⟩∾2↓args}⍟(key≡"daily-target") @
       resolvedRows∾↩⟨{key⇐key,surface⇐admitted.surface,arguments⇐rewritten}⟩
     }¨admittedRoutes
