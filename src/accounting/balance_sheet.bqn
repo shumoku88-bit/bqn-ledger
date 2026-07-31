@@ -71,15 +71,15 @@ Build ← {𝕊 facts‿domainCode‿observationOrdinal:
               {𝕊:
                 result↩{
                   state⇐"ok",domain⇐domainCode,observation_ordinal⇐observationOrdinal,scale⇐accountBalances.scale,
-                  assets⇐Rows ⟨source,0⊏rowGroups,0⊏amountGroups⟩,
-                  liabilities⇐Rows ⟨source,1⊏rowGroups,1⊏amountGroups⟩,
-                  equity⇐Rows ⟨source,2⊏rowGroups,2⊏amountGroups⟩,
+                  assets⇐Rows ⟨source,0⊑rowGroups,0⊑amountGroups⟩,
+                  liabilities⇐Rows ⟨source,1⊑rowGroups,1⊑amountGroups⟩,
+                  equity⇐Rows ⟨source,2⊑rowGroups,2⊑amountGroups⟩,
                   total_assets⇐assetTotal,total_liabilities⇐liabilityTotal,
                   stated_equity⇐equityTotal,unclosed_result⇐unclosedResult,
                   total_equity⇐totalEquityResult.coefficient,
                   total_liabilities_and_equity⇐rightResult.coefficient,
                   difference⇐differenceResult.coefficient,balanced⇐balanced,
-                  unclosed_result_contributors⇐∾3⊏contributorGroups,
+                  unclosed_result_contributors⇐∾3⊑contributorGroups,
                   diagnostics⇐empty
                 }
               }⍟balanced @
