@@ -95,7 +95,7 @@ Build ← {𝕊 admittedRoutes‿observation‿currentCycle‿baselineCycle:
         rewritten↩ReplaceCoordinateRole ⟨rewritten,admitted.coordinate_role,"end_exclusive",currentCycle.end_exclusive⟩
         rewritten↩ReplaceCoordinateRole ⟨rewritten,admitted.coordinate_role,"observation",observation⟩
       }⍟(key≡"daily-flow") @
-      {𝕊:rewritten↩⟨0⊑args,observation⟩∾2↓args}⍟(key≡"daily-target") @
+      {𝕊:rewritten↩ReplaceCoordinateRole ⟨args,admitted.coordinate_role,"observation",observation⟩}⍟(key≡"daily-target") @
       resolvedRows∾↩⟨{key⇐key,surface⇐admitted.surface,arguments⇐rewritten}⟩
     }¨admittedRoutes
   }⍟(0=≠diagnostics) @
