@@ -27,6 +27,7 @@ result ← balanceSheet.Build ⟨facts,"JPY",dates.Ordinal "2026-01-12"⟩
 
 syntheticAccounts ← ⟨
   "assets:cash	role=asset	currency=JPY",
+  "assets:savings	role=asset	currency=JPY",
   "liabilities:debt	role=liability	currency=JPY",
   "equity:opening	role=equity	currency=JPY",
   "income:salary	role=income	currency=JPY",
@@ -35,11 +36,12 @@ syntheticAccounts ← ⟨
 syntheticLines ← ⟨
   "commodity JPY","",
   "account assets:cash","    ; role: asset","",
+  "account assets:savings","    ; role: asset","",
   "account liabilities:debt","    ; role: liability","",
   "account equity:opening","    ; role: equity","",
   "account income:salary","    ; role: income","",
   "account expenses:food","    ; role: expense","",
-  "2026-01-01 * opening","    ; event-id: opening","    ; layer: actual","    ; currency: JPY","    assets:cash 100 JPY","    equity:opening -100 JPY","",
+  "2026-01-01 * opening","    ; event-id: opening","    ; layer: actual","    ; currency: JPY","    assets:cash 100 JPY","    assets:savings 40 JPY","    equity:opening -140 JPY","",
   "2026-01-02 * food on debt","    ; event-id: food","    ; layer: actual","    ; currency: JPY","    expenses:food 30 JPY","    liabilities:debt -30 JPY","",
   "2026-01-03 * salary","    ; event-id: salary","    ; layer: actual","    ; currency: JPY","    assets:cash 50 JPY","    income:salary -50 JPY"
 ⟩
@@ -47,12 +49,22 @@ syntheticRaw ← ∾{𝕩∾(@+10)}¨syntheticLines
 syntheticFacts ← (snapshot.Build ⟨syntheticAccounts,syntheticRaw,registry⟩).facts
 synthetic ← balanceSheet.Build ⟨syntheticFacts,"JPY",dates.Ordinal "2026-01-03"⟩
 "ok" lib.AssertEq synthetic.state
-150 lib.AssertEq synthetic.total_assets
+⟨"assets:cash","assets:savings"⟩ lib.AssertEq synthetic.assets.account_key
+⟨150,40⟩ lib.AssertEq synthetic.assets.balance
+⟨⟨0,5⟩,⟨1⟩⟩ lib.AssertEq synthetic.assets.contributors
+⟨"liabilities:debt"⟩ lib.AssertEq synthetic.liabilities.account_key
+⟨30⟩ lib.AssertEq synthetic.liabilities.balance
+⟨⟨4⟩⟩ lib.AssertEq synthetic.liabilities.contributors
+⟨"equity:opening"⟩ lib.AssertEq synthetic.equity.account_key
+⟨140⟩ lib.AssertEq synthetic.equity.balance
+⟨⟨2⟩⟩ lib.AssertEq synthetic.equity.contributors
+190 lib.AssertEq synthetic.total_assets
 30 lib.AssertEq synthetic.total_liabilities
-100 lib.AssertEq synthetic.stated_equity
+140 lib.AssertEq synthetic.stated_equity
 20 lib.AssertEq synthetic.unclosed_result
-120 lib.AssertEq synthetic.total_equity
-150 lib.AssertEq synthetic.total_liabilities_and_equity
+160 lib.AssertEq synthetic.total_equity
+190 lib.AssertEq synthetic.total_liabilities_and_equity
+⟨6,3⟩ lib.AssertEq synthetic.unclosed_result_contributors
 
 budgetRaw ← (•FChars "../"∾base∾"actual.journal")∾(@+10)∾∾{𝕩∾(@+10)}¨⟨
   "2026-01-13 * unsupported budget balance",
