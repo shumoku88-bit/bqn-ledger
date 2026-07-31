@@ -29,6 +29,17 @@ result.accounts.current_movement lib.AssertEq result.accounts.difference
 980 lib.AssertEq (0⊑result.accounts.difference_evidence).current_coefficient
 0 lib.AssertEq (0⊑result.accounts.difference_evidence).baseline_coefficient
 
+# c = current / baseline. Difference evidence preserves side order inside each Account cell.
+splitBaseline ← Window ⟨"2026-01-11","2026-02-11","2026-01-20"⟩
+splitComparison ← comparison.Build ⟨current,splitBaseline,"aligned_elapsed"⟩
+"ok" lib.AssertEq splitComparison.state
+⟨995,¯1000,10,¯5,0,0,0,0⟩ lib.AssertEq splitComparison.accounts.difference
+⟨"proof-salary-1:0","proof-food-1:1","proof-split-1:2"⟩ lib.AssertEq {𝕩.posting_id}¨0⊑splitComparison.accounts.difference_contributors
+980 lib.AssertEq (0⊑splitComparison.accounts.difference_evidence).current_coefficient
+¯15 lib.AssertEq (0⊑splitComparison.accounts.difference_evidence).baseline_coefficient
+⟨"proof-salary-1:0","proof-food-1:1"⟩ lib.AssertEq {𝕩.posting_id}¨(0⊑splitComparison.accounts.difference_evidence).current_contributors
+⟨"proof-split-1:2"⟩ lib.AssertEq {𝕩.posting_id}¨(0⊑splitComparison.accounts.difference_evidence).baseline_contributors
+
 completeCurrent ← Window ⟨"2026-01-01","2026-02-01","2026-01-31"⟩
 completeBaseline ← Window ⟨"2026-02-01","2026-03-01","2026-02-28"⟩
 complete ← comparison.Build ⟨completeCurrent,completeBaseline,"complete_cycles"⟩
