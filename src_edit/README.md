@@ -33,7 +33,7 @@ tools/edit journal list --format tsv
 tools/edit journal reverse ...
 tools/edit travel friend add ...
 tools/edit travel exchange add ...
-tools/edit account list [--role ROLE]
+tools/edit account list [--role ROLE] [--currency CODE] [--prefer-role ROLE]
 tools/edit budget add ...
 tools/edit plan list --format tsv
 tools/edit plan related ... --actual-date YYYY-MM-DD --format tsv
@@ -59,7 +59,7 @@ BQN code here must not silently overwrite source files. The shell write layer ap
 
 Dispatcher boundary note: see `docs/EDIT_BQN_DISPATCHER.md` for the current shell command groups and extraction rule.
 
-- `account list` is a read-only account candidate export for UI shell wrappers; account role metadata interpretation stays in BQN.
+- `account list` is a read-only account candidate export for UI shell wrappers; account role metadata interpretation stays in BQN. `--prefer-role` applies a stable presentation partition, preserving source order within the preferred and remaining groups.
 - `journal list` is a read-only native Journal transaction export for reverse-selection UI; formatting stays in BQN.
 - `journal reverse` is handled by `src_edit/journal_native_reverse_cmd.bqn`; reverse validation and native block rendering stay in BQN.
 - Native Journal `--post-check lint` is owned by `journal_validate_cmd.bqn`; parser, account parity, Posting IR, and integrated context fail closed.

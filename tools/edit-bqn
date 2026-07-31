@@ -42,7 +42,7 @@ Usage:
   tools/edit-bqn [--base DIR] issue list [--format tsv|text]
   tools/edit-bqn [--base DIR] issue close --index NUMBER [--status resolved|dropped] --decision MEMO [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] account add --name ACCOUNT --role asset|liability|income|expense [--type liquid|savings|invest] [--currency CODE] [--dry-run] [--yes] [--post-check none|lint|full]
-  tools/edit-bqn [--base DIR] account list [--role ROLE] [--currency CODE]
+  tools/edit-bqn [--base DIR] account list [--role ROLE] [--currency CODE] [--prefer-role ROLE]
   tools/edit-bqn [--base DIR] journal list [--format tsv|text]
   tools/edit-bqn [--base DIR] journal canonical-surface-plan [--format tsv|text]
   tools/edit-bqn [--base DIR] journal canonical-surface-preview --output OUTPUT_PATH
@@ -320,14 +320,16 @@ if [[ "$1" == "account" && "$2" == "list" ]]; then
   shift 2
   ROLE=""
   CURRENCY=""
+  PREFER_ROLE=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --role) ROLE="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
       --currency) CURRENCY="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+      --prefer-role) PREFER_ROLE="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
       *) echo "ERROR: unknown account list argument: $1" >&2; exit 2 ;;
     esac
   done
-  cd "$ROOT_DIR" && bqn src_edit/account_list_cmd.bqn "$BASE_DIR" "$ROLE" "$CURRENCY"
+  cd "$ROOT_DIR" && bqn src_edit/account_list_cmd.bqn "$BASE_DIR" "$ROLE" "$CURRENCY" "$PREFER_ROLE"
   exit $?
 fi
 
