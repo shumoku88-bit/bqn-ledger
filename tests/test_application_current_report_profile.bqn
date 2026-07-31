@@ -165,6 +165,20 @@ reorderedDailyTargetResult ← profile.Build ⟨admissionsWithReorderedDailyTarg
 reorderedDailyTargetRow ← (⊑("daily-target"⊸≡¨{𝕩.key}¨reorderedDailyTargetResult.rows)⊐1)⊑reorderedDailyTargetResult.rows
 ⟨"daily_target_scope.destination.tsv","2026-01-22","actual.journal","JPY","2026-01-12","daily_target_plan.destination.tsv"⟩ lib.AssertEq reorderedDailyTargetRow.arguments
 
+# Monthly Accounts end-exclusive month follows its admitted role and preserves first month, domain, and Actual source.
+reorderedMonthlyAccounts ← {
+  key⇐"monthly-accounts",surface⇐"human",
+  coordinate_role⇐⟨"actual_source","last_month_exclusive","domain","first_month"⟩,
+  coordinates⇐⟨"actual.journal","stale-last-month","JPY","2026-01"⟩
+}
+admissionsWithReorderedMonthlyAccounts ← {
+  𝕊 admitted: (admitted.key≡"monthly-accounts")⊑⟨admitted,reorderedMonthlyAccounts⟩
+}¨admissions
+reorderedMonthlyAccountsResult ← profile.Build ⟨admissionsWithReorderedMonthlyAccounts,"2026-01-12",current,baseline⟩
+"ok" lib.AssertEq reorderedMonthlyAccountsResult.state
+reorderedMonthlyAccountsRow ← (⊑("monthly-accounts"⊸≡¨{𝕩.key}¨reorderedMonthlyAccountsResult.rows)⊐1)⊑reorderedMonthlyAccountsResult.rows
+⟨"actual.journal","2026-02","JPY","2026-01"⟩ lib.AssertEq reorderedMonthlyAccountsRow.arguments
+
 # Year rollover changes only the volatile Monthly Accounts end-exclusive month.
 yearEndCurrent ← cycleResult.Success ⟨"fixed","2026-12-31","2026-12-01","2027-01-15",⟨⟩,⟨⟩⟩
 yearEndBaseline ← cycleResult.Success ⟨"fixed","2026-10-31","2026-10-01","2026-11-15",⟨⟩,⟨⟩⟩
