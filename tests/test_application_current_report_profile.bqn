@@ -123,6 +123,20 @@ reorderedCycleComparisonRow ← (⊑("cycle-comparison"⊸≡¨{𝕩.key}¨reord
   "aligned_elapsed","cycle.tsv","2026-01-12","cycle_baseline.destination.tsv"
 ⟩ lib.AssertEq reorderedCycleComparisonRow.arguments
 
+# Profit and Loss period follows separate admitted roles and preserves domain and Actual source.
+reorderedProfitAndLoss ← {
+  key⇐"profit-and-loss",surface⇐"human",
+  coordinate_role⇐⟨"actual_source","end_exclusive","domain","start"⟩,
+  coordinates⇐⟨"actual.journal","stale-end","JPY","stale-start"⟩
+}
+admissionsWithReorderedProfitAndLoss ← {
+  𝕊 admitted: (admitted.key≡"profit-and-loss")⊑⟨admitted,reorderedProfitAndLoss⟩
+}¨admissions
+reorderedProfitAndLossResult ← profile.Build ⟨admissionsWithReorderedProfitAndLoss,"2026-01-12",current,baseline⟩
+"ok" lib.AssertEq reorderedProfitAndLossResult.state
+reorderedProfitAndLossRow ← (⊑("profit-and-loss"⊸≡¨{𝕩.key}¨reorderedProfitAndLossResult.rows)⊐1)⊑reorderedProfitAndLossResult.rows
+⟨"actual.journal","2026-01-13","JPY","2026-01-01"⟩ lib.AssertEq reorderedProfitAndLossRow.arguments
+
 # Year rollover changes only the volatile Monthly Accounts end-exclusive month.
 yearEndCurrent ← cycleResult.Success ⟨"fixed","2026-12-31","2026-12-01","2027-01-15",⟨⟩,⟨⟩⟩
 yearEndBaseline ← cycleResult.Success ⟨"fixed","2026-10-31","2026-10-01","2026-11-15",⟨⟩,⟨⟩⟩
