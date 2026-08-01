@@ -5,7 +5,7 @@ A plain-text household event ledger and retained report engine written in BQN.
 ## Requirements
 
 - CBQN with FFI/Singeli support
-- `fzf` or `gum` for optional interactive UI
+- `fzf` or `gum` (Optional for rich TUI; minimal mode works out of the box with CBQN + Bash alone)
 
 ## Data and report configuration
 
@@ -56,11 +56,13 @@ The retained keys are `envelopes`, `balances`, `balance-sheet`, `profit-and-loss
 UI preferences belong in the ignored `.env`, not household `data/config.tsv`:
 
 ```sh
+BL_UI_MODE=rich                  # rich | minimal (minimal mode has zero TUI dependencies)
+BL_THEME=nord                    # nord | catppuccin | tokyo-night | dracula | savepoint | plain
 BL_SELECTOR=auto                 # auto | fzf | gum | plain
 BL_FZF_PREVIEW_WINDOW=right:75%  # right|left|up|down and 1–100%
 ```
 
-`auto` prefers fzf, then gum. Only fzf has a report preview pane; gum is a filter-only fallback. Invalid explicit values fail with a configuration error instead of silently changing behavior. See [`.env.example`](.env.example).
+`auto` prefers fzf, then gum. When `fzf` and `gum` are not installed (or when `BL_UI_MODE=minimal`), the UI automatically falls back to the zero-dependency **Minimal Mode** (pure Bash numbered prompts + interactive arrow-key preview browser). See [`.env.example`](.env.example).
 
 Operational diagnostics are separate from reports:
 
