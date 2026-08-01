@@ -21,40 +21,18 @@ if [[ -z "$force" && ! -t 1 ]] || [[ "$BL_THEME" == "plain" ]]; then
   exec cat
 fi
 
-# Single-pass AWK filter for fast, collision-safe ANSI colorizing
+# Single-pass AWK filter: Highlighting only Headers, Dividers, and Numbers
 exec awk \
   -v h="$ESC_HEADER" \
   -v ok="$ESC_OK" \
-  -v warn="$ESC_WARN" \
   -v err="$ESC_ERROR" \
-  -v fut="$ESC_FUTURE" \
   -v mut="$ESC_MUTED" \
   -v num="$ESC_NUM_HEADER" \
   -v r="$ESC_RESET" '
-BEGIN {
-  # Word replacement map
-  kw["completed"] = ok "completed" r
-  kw["paid"]      = ok "paid" r
-  kw["future"]    = fut "future" r
-  kw["due"]       = warn "due" r
-  kw["overdue"]   = err "overdue" r
-  kw["PASS"]      = ok "PASS" r
-  kw["FAIL"]      = err "FAIL" r
-  kw["Balanced: YES"] = ok "Balanced: YES" r
-  kw["Balanced: NO"]  = err "Balanced: NO" r
-
-  # Account prefix map
-  pfx["assets:"]      = h "assets:" r
-  pfx["liabilities:"] = warn "liabilities:" r
-  pfx["equity:"]      = fut "equity:" r
-  pfx["income:"]      = ok "income:" r
-  pfx["expenses:"]    = warn "expenses:" r
-}
-
 {
   line = $0
 
-  # 1. Full-line header / divider patterns
+  # 1. Full-line section headers and table dividers
   if (line ~ /^== .* ==$/) {
     sub(/^== /, h "== ", line)
     sub(/ ==$/, " ==" r, line)
@@ -78,27 +56,14 @@ BEGIN {
     next
   }
 
-  # 2. Key phrases and account prefixes
-  for (k in kw) {
-    gsub(k, kw[k], line)
-  }
-
-  # 3. Totals vs Account Prefixes
+  # 2. Section totals highlighting
   if (line ~ /^Total [^|]*/) {
     match(line, /^Total [^|]*/)
     tot = substr(line, RSTART, RLENGTH)
     sub(/^Total [^|]*/, h tot r, line)
-  } else {
-    for (p in pfx) {
-      if (index(line, p) == 1) {
-        sub("^" p, pfx[p], line)
-      } else if (index(line, " " p) > 0) {
-        sub(" " p, " " pfx[p], line)
-      }
-    }
   }
 
-  # 4. Numeric values (Negative and Positive)
+  # 3. Numeric values (Negative and Positive numbers)
   # Negative numbers after space or |
   while (match(line, /([[:space:]|])(-[0-9]+)/)) {
     prefix = substr(line, 1, RSTART - 1)
