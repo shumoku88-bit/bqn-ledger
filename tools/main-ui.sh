@@ -168,7 +168,9 @@ select_section() {
   local cache_dir="${1:-}"
   local selector
   selector="$(bl_selector_preference)" || return
-  if [[ "$IS_TTY" -eq 1 && "$selector" == "auto" ]]; then
+  if [[ "${BL_UI_MODE:-}" == "minimal" ]]; then
+    selector="plain"
+  elif [[ "$IS_TTY" -eq 1 && "$selector" == "auto" ]]; then
     if command -v fzf >/dev/null 2>&1; then selector="fzf"
     elif command -v gum >/dev/null 2>&1; then selector="gum"
     else selector="plain"
@@ -206,10 +208,24 @@ select_section() {
       || { echo "Error: BL_SELECTOR=gum but gum is not installed" >&2; return 2; }
     section_list | gum filter "${GUM_FILTER_ARGS[@]}" --placeholder='section / category'
   else
-    section_list >&2
-    printf 'section key> ' >&2
-    read -r key
-    printf '%s\n' "$key"
+    local keys=() labels=() count=0 i sel_idx key label
+    while IFS=$'\t' read -r key label; do
+      [[ -n "$key" ]] || continue
+      count=$((count + 1))
+      keys+=("$key")
+      labels+=("$label")
+    done < <(section_list)
+
+    printf '\n=== レポート / アクション選択 ===\n' >&2
+    for ((i=0; i<count; i++)); do
+      printf ' %2d) %s (%s)\n' "$((i+1))" "${labels[i]}" "${keys[i]}" >&2
+    done
+    printf '  0) キャンセル\n' >&2
+    printf '選択 [0-%d]> ' "$count" >&2
+    read -r sel_idx
+    if [[ "$sel_idx" =~ ^[0-9]+$ ]] && (( sel_idx >= 1 && sel_idx <= count )); then
+      printf '%s\t%s\n' "${keys[sel_idx-1]}" "${labels[sel_idx-1]}"
+    fi
   fi
 }
 

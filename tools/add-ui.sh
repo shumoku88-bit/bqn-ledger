@@ -214,7 +214,7 @@ fi
 select_line() {
   local prompt="$1"
   local -a lines=()
-  local _line
+  local _line selector="auto"
   while IFS= read -r _line; do lines+=("$_line"); done
 
   if [[ ${#lines[@]} -eq 0 ]]; then
@@ -222,19 +222,29 @@ select_line() {
     return 1
   fi
 
-  if command -v fzf >/dev/null 2>&1; then
+  selector="$(bl_selector_preference 2>/dev/null || echo "auto")"
+  if [[ "${BL_UI_MODE:-}" == "minimal" ]]; then
+    selector="plain"
+  elif [[ "$selector" == "auto" ]]; then
+    if command -v fzf >/dev/null 2>&1; then selector="fzf"
+    elif command -v gum >/dev/null 2>&1; then selector="gum"
+    else selector="plain"
+    fi
+  fi
+
+  if [[ "$selector" == "fzf" ]]; then
     printf '%s\n' "${lines[@]}" |
       fzf --prompt="$prompt> " --height=40% --reverse --select-1 --exit-0
-  elif command -v gum >/dev/null 2>&1; then
+  elif [[ "$selector" == "gum" ]]; then
     printf '%s\n' "${lines[@]}" | gum filter --placeholder="$prompt"
   else
-    shout "$prompt"
+    shout "=== $prompt ==="
     local idx=1 ans
     for line in "${lines[@]}"; do
       printf '  %2d) %s\n' "$idx" "$line" >&2
       idx=$((idx + 1))
     done
-    printf '> ' >&2
+    printf '選択 [1-%d]> ' "${#lines[@]}" >&2
     read -r ans </dev/tty
     if [[ "$ans" =~ ^[0-9]+$ ]] && (( ans >= 1 && ans <= ${#lines[@]} )); then
       printf '%s\n' "${lines[$((ans - 1))]}"
@@ -245,7 +255,25 @@ select_line() {
 }
 
 read_tty() {
-  local prompt="$1" default="${2:-}" ans
+  local prompt="$1" default="${2:-}" ans selector="auto"
+  selector="$(bl_selector_preference 2>/dev/null || echo "auto")"
+  if [[ "${BL_UI_MODE:-}" == "minimal" || "$selector" == "plain" ]]; then
+    if [[ -n "$default" ]]; then
+      printf '%s [%s]: ' "$prompt" "$default" >&2
+    else
+      printf '%s: ' "$prompt" >&2
+    fi
+    if ! read -r ans </dev/tty; then
+      return 130
+    fi
+    if [[ -z "$ans" && -n "$default" ]]; then
+      printf '%s\n' "$default"
+    else
+      printf '%s\n' "$ans"
+    fi
+    return 0
+  fi
+
   if command -v gum >/dev/null 2>&1 && [[ -r /dev/tty ]]; then
     if [[ -n "$default" ]]; then
       if ! ans="$(gum input --prompt "${prompt}: " --value "$default" </dev/tty)"; then
