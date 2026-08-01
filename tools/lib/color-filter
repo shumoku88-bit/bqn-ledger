@@ -13,7 +13,6 @@ done
 SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 
 # Initialize theme (which exports ESC_* variables)
-# We assume base_dir might be set by the caller (e.g. main-ui.sh), but if not it will fallback.
 source "$SCRIPT_DIR/theme.sh"
 
 # If output is not a TTY or theme is plain, don't colorize (unless forced via COLOR_FORCE/CLICOLOR_FORCE/FORCE_COLOR)
@@ -22,27 +21,111 @@ if [[ -z "$force" && ! -t 1 ]] || [[ "$BL_THEME" == "plain" ]]; then
   exec cat
 fi
 
-# Colorize keywords, headers, tables, totals, account prefixes, and negative numbers
-sed \
-  -e "s/\<completed\>/${ESC_OK}completed${ESC_RESET}/g" \
-  -e "s/\<paid\>/${ESC_OK}paid${ESC_RESET}/g" \
-  -e "s/\<future\>/${ESC_FUTURE}future${ESC_RESET}/g" \
-  -e "s/\<due\>/${ESC_WARN}due${ESC_RESET}/g" \
-  -e "s/\<overdue\>/${ESC_ERROR}overdue${ESC_RESET}/g" \
-  -e "s/Balanced: YES/${ESC_OK}Balanced: YES${ESC_RESET}/g" \
-  -e "s/Balanced: NO/${ESC_ERROR}Balanced: NO${ESC_RESET}/g" \
-  -e "s/\<PASS\>/${ESC_OK}PASS${ESC_RESET}/g" \
-  -e "s/\<FAIL\>/${ESC_ERROR}FAIL${ESC_RESET}/g" \
-  -e "s/== \(.*\) ==/${ESC_HEADER}== \1 ==${ESC_RESET}/g" \
-  -e "s/── \(.*\) ──/${ESC_MUTED}── \1 ──${ESC_RESET}/g" \
-  -e "s/^\([0-9]\{1,2\}\. .*\)/${ESC_NUM_HEADER}\1${ESC_RESET}/g" \
-  -e "s/^\([-+|]\{4,\}\)$/${ESC_MUTED}\1${ESC_RESET}/g" \
-  -e "s/^\(Total [^|]*\)/${ESC_HEADER}\1${ESC_RESET}/g" \
-  -e "s/assets:/${ESC_HEADER}assets:${ESC_RESET}/g" \
-  -e "s/liabilities:/${ESC_WARN}liabilities:${ESC_RESET}/g" \
-  -e "s/equity:/${ESC_FUTURE}equity:${ESC_RESET}/g" \
-  -e "s/income:/${ESC_OK}income:${ESC_RESET}/g" \
-  -e "s/expenses:/${ESC_WARN}expenses:${ESC_RESET}/g" \
-  -e "s/\([[:space:]|]\)\(-[0-9]\{1,\}\)/\1${ESC_ERROR}\2${ESC_RESET}/g" \
-  -e "s/\([[:space:]|]\)\(\+[0-9]\{1,\}\)/\1${ESC_OK}\2${ESC_RESET}/g" \
-  -e "s/\(|[[:space:]]*\)\([1-9][0-9]*\)/\1${ESC_OK}\2${ESC_RESET}/g"
+# Single-pass AWK filter for fast, collision-safe ANSI colorizing
+exec awk \
+  -v h="$ESC_HEADER" \
+  -v ok="$ESC_OK" \
+  -v warn="$ESC_WARN" \
+  -v err="$ESC_ERROR" \
+  -v fut="$ESC_FUTURE" \
+  -v mut="$ESC_MUTED" \
+  -v num="$ESC_NUM_HEADER" \
+  -v r="$ESC_RESET" '
+BEGIN {
+  # Word replacement map
+  kw["completed"] = ok "completed" r
+  kw["paid"]      = ok "paid" r
+  kw["future"]    = fut "future" r
+  kw["due"]       = warn "due" r
+  kw["overdue"]   = err "overdue" r
+  kw["PASS"]      = ok "PASS" r
+  kw["FAIL"]      = err "FAIL" r
+  kw["Balanced: YES"] = ok "Balanced: YES" r
+  kw["Balanced: NO"]  = err "Balanced: NO" r
+
+  # Account prefix map
+  pfx["assets:"]      = h "assets:" r
+  pfx["liabilities:"] = warn "liabilities:" r
+  pfx["equity:"]      = fut "equity:" r
+  pfx["income:"]      = ok "income:" r
+  pfx["expenses:"]    = warn "expenses:" r
+}
+
+{
+  line = $0
+
+  # 1. Full-line header / divider patterns
+  if (line ~ /^== .* ==$/) {
+    sub(/^== /, h "== ", line)
+    sub(/ ==$/, " ==" r, line)
+    print line
+    next
+  }
+  if (line ~ /^── .* ──$/) {
+    sub(/^── /, mut "── ", line)
+    sub(/ ──$/, " ──" r, line)
+    print line
+    next
+  }
+  if (line ~ /^[0-9]{1,2}\. /) {
+    line = num line r
+    print line
+    next
+  }
+  if (line ~ /^[-+|]{4,}$/) {
+    line = mut line r
+    print line
+    next
+  }
+
+  # 2. Key phrases and account prefixes
+  for (k in kw) {
+    gsub(k, kw[k], line)
+  }
+
+  # 3. Totals vs Account Prefixes
+  if (line ~ /^Total [^|]*/) {
+    match(line, /^Total [^|]*/)
+    tot = substr(line, RSTART, RLENGTH)
+    sub(/^Total [^|]*/, h tot r, line)
+  } else {
+    for (p in pfx) {
+      if (index(line, p) == 1) {
+        sub("^" p, pfx[p], line)
+      } else if (index(line, " " p) > 0) {
+        sub(" " p, " " pfx[p], line)
+      }
+    }
+  }
+
+  # 4. Numeric values (Negative and Positive)
+  # Negative numbers after space or |
+  while (match(line, /([[:space:]|])(-[0-9]+)/)) {
+    prefix = substr(line, 1, RSTART - 1)
+    matched = substr(line, RSTART, RLENGTH)
+    rest = substr(line, RSTART + RLENGTH)
+    sub(/-[0-9]+/, err "&" r, matched)
+    line = prefix matched rest
+  }
+
+  # Positive signed numbers
+  while (match(line, /([[:space:]|])(\+[0-9]+)/)) {
+    prefix = substr(line, 1, RSTART - 1)
+    matched = substr(line, RSTART, RLENGTH)
+    rest = substr(line, RSTART + RLENGTH)
+    sub(/\+[0-9]+/, ok "&" r, matched)
+    line = prefix matched rest
+  }
+
+  # Positive table values after |
+  while (match(line, /(\|[[:space:]]*)([1-9][0-9]*)/)) {
+    prefix = substr(line, 1, RSTART - 1)
+    matched = substr(line, RSTART, RLENGTH)
+    rest = substr(line, RSTART + RLENGTH)
+    sub(/[1-9][0-9]*/, ok "&" r, matched)
+    line = prefix matched rest
+  }
+
+  print line
+}
+'
