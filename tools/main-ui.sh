@@ -164,6 +164,59 @@ show_section_direct() {
   fi
 }
 
+browse_sections_interactive() {
+  local cache_dir="${1:-}"
+  local keys=() labels=() count=0 i current=0 key label char esc_seq
+
+  while IFS=$'\t' read -r key label; do
+    [[ -n "$key" && "$key" != "actions" ]] || continue
+    count=$((count + 1))
+    keys+=("$key")
+    labels+=("$label")
+  done < <(section_list)
+
+  if [[ $count -eq 0 ]]; then
+    return 1
+  fi
+
+  while true; do
+    clear 2>/dev/null || printf '\033[2J\033[H'
+    key="${keys[$current]}"
+    label="${labels[$current]}"
+
+    printf '==============================================================================--\n' >&2
+    printf ' [%d/%d] %s (%s)\n [←/p: 前へ]  [→/n: 次へ]  [Enter: 全画面表示]  [q: メニューへ戻る]\n' "$((current+1))" "$count" "$label" "$key" >&2
+    printf '==============================================================================--\n\n' >&2
+
+    if [[ -f "$cache_dir/$key.txt" ]]; then
+      cat "$cache_dir/$key.txt" | COLOR_FORCE=1 "$ROOT_DIR/tools/lib/color-filter" >&2
+    else
+      show_section_direct "$key" >&2
+    fi
+
+    if ! IFS= read -rsn1 char </dev/tty; then
+      break
+    fi
+
+    if [[ "$char" == $'\x1b' ]]; then
+      read -rsn2 -t 0.1 esc_seq </dev/tty || esc_seq=""
+      case "$esc_seq" in
+        "[C"|"[B") current=$(( (current + 1) % count )) ;;
+        "[D"|"[A") current=$(( (current - 1 + count) % count )) ;;
+      esac
+    elif [[ "$char" == "n" || "$char" == "N" || "$char" == "j" ]]; then
+      current=$(( (current + 1) % count ))
+    elif [[ "$char" == "p" || "$char" == "P" || "$char" == "k" ]]; then
+      current=$(( (current - 1 + count) % count ))
+    elif [[ "$char" == "q" || "$char" == "Q" ]]; then
+      return 0
+    elif [[ "$char" == "" ]]; then
+      printf '%s\t%s\n' "$key" "$label"
+      return 0
+    fi
+  done
+}
+
 select_section() {
   local cache_dir="${1:-}"
   local selector
@@ -217,13 +270,16 @@ select_section() {
     done < <(section_list)
 
     printf '\n=== レポート / アクション選択 ===\n' >&2
+    printf '  v) ★ 矢印キーで順番にプレビュー閲覧 ([←/→] キー切替)\n' >&2
     for ((i=0; i<count; i++)); do
       printf ' %2d) %s (%s)\n' "$((i+1))" "${labels[i]}" "${keys[i]}" >&2
     done
     printf '  0) キャンセル\n' >&2
-    printf '選択 [0-%d]> ' "$count" >&2
+    printf '選択 [v/0-%d]> ' "$count" >&2
     read -r sel_idx
-    if [[ "$sel_idx" =~ ^[0-9]+$ ]] && (( sel_idx >= 1 && sel_idx <= count )); then
+    if [[ "$sel_idx" == "v" || "$sel_idx" == "V" ]]; then
+      browse_sections_interactive "$cache_dir"
+    elif [[ "$sel_idx" =~ ^[0-9]+$ ]] && (( sel_idx >= 1 && sel_idx <= count )); then
       printf '%s\t%s\n' "${keys[sel_idx-1]}" "${labels[sel_idx-1]}"
     fi
   fi
