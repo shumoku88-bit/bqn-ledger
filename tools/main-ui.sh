@@ -190,7 +190,7 @@ select_section() {
         --reverse \
         --exit-0 \
         --ansi \
-        --preview "'$ROOT_DIR/tools/command-hub-preview' '$cache_dir' {1} | COLOR_FORCE=1 '$ROOT_DIR/tools/lib/color-filter'" \
+        --preview "BL_THEME='${BL_THEME:-nord}' COLOR_FORCE=1 '$ROOT_DIR/tools/command-hub-preview' '$cache_dir' {1} | BL_THEME='${BL_THEME:-nord}' COLOR_FORCE=1 '$ROOT_DIR/tools/lib/color-filter'" \
         --preview-window "$preview_win"
     else
       section_list | fzf \

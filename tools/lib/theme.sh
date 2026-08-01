@@ -7,10 +7,9 @@ if [[ -n "${NO_COLOR:-}" ]]; then
 else
   # Resolve theme selection:
   # 1. Environment variable BL_THEME
-  # 2. Local config.tsv parameter (e.g., THEME=nord)
-  # 3. Default fallback: 'nord' (calm and muted Nordic frost palette)
+  # 2. Local config.tsv parameter (e.g., THEME=catppuccin)
+  # 3. Default fallback: 'nord' (Nordic frost palette)
   if [[ -z "${BL_THEME:-}" ]]; then
-    # Try reading from config.tsv in base_dir
     check_dir="${base_dir:-}"
     if [[ -z "$check_dir" ]]; then
       if [[ -n "${LEDGER_DATA_DIR:-}" ]]; then
@@ -23,39 +22,80 @@ else
         unset defaults_file
       fi
     fi
-    # If we resolved check_dir, look for config.tsv (Key=Value format)
     if [[ -n "$check_dir" && -f "$check_dir/config.tsv" ]]; then
       BL_THEME=$(awk -F'=' 'tolower($1) == "theme" { print $2 }' "$check_dir/config.tsv" 2>/dev/null || true)
       BL_THEME=$(echo "${BL_THEME:-}" | xargs)
     fi
     unset check_dir
   fi
-  # Final fallback
   export BL_THEME="${BL_THEME:-nord}"
 fi
 
-# Define escape code helper
 esc=$'\e'
 
 case "$BL_THEME" in
-  nord|muted|calm)
-    # Nordic Frost / Muted pastel True Color (calm and non-vibrant)
+  catppuccin|mocha|catppuccin-mocha)
+    # Catppuccin Mocha — Elegant, soothing modern dark palette
+    export ESC_HEADER="${esc}[38;2;137;180;250m"       # Sapphire / Soft Blue (#89B4FA)
+    export ESC_OK="${esc}[38;2;166;227;161m"           # Mint Green (#A6E3A1)
+    export ESC_WARN="${esc}[38;2;249;226;175m"         # Soft Gold (#F9E2AF)
+    export ESC_ERROR="${esc}[38;2;243;139;168m"        # Flamingo Red (#F38BA8)
+    export ESC_FUTURE="${esc}[38;2;203;166;247m"       # Mauve Violet (#CBA6F7)
+    export ESC_MUTED="${esc}[38;2;88;91;112m"          # Subtext Gray (#585B70)
+    export ESC_NUM_HEADER="${esc}[1;38;2;137;180;250m" # Bold Sapphire Blue
+    export ESC_RESET="${esc}[0m"
+    
+    export GUM_HEADER_FG="#89B4FA"
+    export GUM_CURSOR_FG="#A6E3A1"
+    export GUM_MATCH_FG="#F9E2AF"
+    ;;
+  tokyo|tokyo-night|tokyonight)
+    # Tokyo Night Storm — Sleek, vibrant Cyberpunk Tokyo vibe
+    export ESC_HEADER="${esc}[38;2;122;162;247m"       # Tokyo Blue (#7AA2F7)
+    export ESC_OK="${esc}[38;2;158;206;106m"           # Lime Green (#9ECE6A)
+    export ESC_WARN="${esc}[38;2;224;175;104m"         # Sunset Orange (#E0AF68)
+    export ESC_ERROR="${esc}[38;2;247;118;142m"        # Coral Red (#F7768E)
+    export ESC_FUTURE="${esc}[38;2;187;154;247m"       # Amethyst Purple (#BB9AF7)
+    export ESC_MUTED="${esc}[38;2;65;72;104m"          # Deep Storm Gray (#414868)
+    export ESC_NUM_HEADER="${esc}[1;38;2;122;162;247m" # Bold Tokyo Blue
+    export ESC_RESET="${esc}[0m"
+    
+    export GUM_HEADER_FG="#7AA2F7"
+    export GUM_CURSOR_FG="#9ECE6A"
+    export GUM_MATCH_FG="#E0AF68"
+    ;;
+  dracula)
+    # Dracula — High-contrast, iconic rich dark theme
+    export ESC_HEADER="${esc}[38;2;139;233;253m"       # Cyan (#8BE9FD)
+    export ESC_OK="${esc}[38;2;80;250;123m"            # Neon Green (#50FA7B)
+    export ESC_WARN="${esc}[38;2;241;250;140m"         # Pastel Yellow (#F1FA8C)
+    export ESC_ERROR="${esc}[38;2;255;85;85m"          # Vivid Red (#FF5555)
+    export ESC_FUTURE="${esc}[38;2;189;147;249m"       # Bright Purple (#BD93F9)
+    export ESC_MUTED="${esc}[38;2;98;114;164m"         # Comment Gray (#6272A4)
+    export ESC_NUM_HEADER="${esc}[1;38;2;139;233;253m" # Bold Cyan
+    export ESC_RESET="${esc}[0m"
+    
+    export GUM_HEADER_FG="#8BE9FD"
+    export GUM_CURSOR_FG="#50FA7B"
+    export GUM_MATCH_FG="#F1FA8C"
+    ;;
+  nord|muted|calm|savepoint|savepoint-original)
+    # Savepoint (Nordic Frost) — The saved original baseline palette
     export ESC_HEADER="${esc}[38;2;136;192;208m"       # Frost Blue (#88C0D0)
     export ESC_OK="${esc}[38;2;163;190;140m"           # Sage Green (#A3BE8C)
     export ESC_WARN="${esc}[38;2;235;203;139m"         # Amber Yellow (#EBCB8B)
     export ESC_ERROR="${esc}[38;2;191;97;106m"         # Aurora Red (#BF616A)
     export ESC_FUTURE="${esc}[38;2;180;142;173m"        # Soft Purple (#B48EAD)
     export ESC_MUTED="${esc}[38;2;76;86;106m"           # Slate Gray (#4C566A)
-    export ESC_NUM_HEADER="${esc}[1;38;2;136;192;208m" # Bold Frost Blue for numeric headers
+    export ESC_NUM_HEADER="${esc}[1;38;2;136;192;208m" # Bold Frost Blue
     export ESC_RESET="${esc}[0m"
     
-    # gum-specific styles (Hex values are supported by gum/lipgloss)
     export GUM_HEADER_FG="#88C0D0"
     export GUM_CURSOR_FG="#A3BE8C"
     export GUM_MATCH_FG="#EBCB8B"
     ;;
   classic|vibrant)
-    # Traditional 16-color ANSI colors (vibrant)
+    # Traditional 16-color ANSI colors
     export ESC_HEADER="${esc}[1;36m"      # Bold Cyan
     export ESC_OK="${esc}[32m"            # Green
     export ESC_WARN="${esc}[33m"          # Yellow
@@ -65,7 +105,6 @@ case "$BL_THEME" in
     export ESC_NUM_HEADER="${esc}[1m"     # Bold
     export ESC_RESET="${esc}[0m"
     
-    # gum-specific styles (ANSI color index)
     export GUM_HEADER_FG="6"
     export GUM_CURSOR_FG="2"
     export GUM_MATCH_FG="3"
@@ -87,7 +126,6 @@ case "$BL_THEME" in
     ;;
 esac
 
-# Set gum style options into global array variables
 set_gum_theme_args() {
   GUM_CHOOSE_ARGS=()
   GUM_FILTER_ARGS=()
@@ -104,5 +142,4 @@ set_gum_theme_args() {
   fi
 }
 
-# Auto-execute to set arrays
 set_gum_theme_args
