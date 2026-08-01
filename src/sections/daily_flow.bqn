@@ -104,7 +104,15 @@ CellText ← {𝕊 coefficient‿scale: amount.Format ⟨coefficient,scale⟩}
 FormatHuman ← {𝕊 result:
   daysLeft ← (dates.Ordinal result.period_end_exclusive)-dates.Ordinal result.as_of
   widths ← {10⌈text.VWidth 𝕩}¨result.column_labels
-  HeaderCell ← {𝕊 column: text.PadLeft ⟨column⊑widths,column⊑result.column_labels⟩}
+  HeaderCell ← {𝕊 column:
+    label ← column⊑result.column_labels
+    w ← column⊑widths
+    vlen ← text.VWidth label
+    pad ← 0⌈w-vlen
+    leftPad ← ⌊pad÷2
+    rightPad ← pad-leftPad
+    (leftPad⥊' ')∾label∾(rightPad⥊' ')
+  }
   header ← "date      "∾∾{" | "∾HeaderCell 𝕩}¨↕≠result.column_labels
   separator ← "----------"∾∾{"-+-"∾((𝕩⊑widths)⥊'-')}¨↕≠widths
   out ← "== Daily Flow =="∾(@+10)∾(@+10)
