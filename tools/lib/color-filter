@@ -16,18 +16,33 @@ SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 # We assume base_dir might be set by the caller (e.g. main-ui.sh), but if not it will fallback.
 source "$SCRIPT_DIR/theme.sh"
 
-# If output is not a TTY or theme is plain, don't colorize
-if [[ ! -t 1 || "$BL_THEME" == "plain" ]]; then
+# If output is not a TTY or theme is plain, don't colorize (unless forced via COLOR_FORCE/CLICOLOR_FORCE/FORCE_COLOR)
+force="${COLOR_FORCE:-${CLICOLOR_FORCE:-${FORCE_COLOR:-}}}"
+if [[ -z "$force" && ! -t 1 ]] || [[ "$BL_THEME" == "plain" ]]; then
   exec cat
 fi
 
-# Colorize keywords and headers using the themed escape sequences
+# Colorize keywords, headers, tables, totals, account prefixes, and negative numbers
 sed \
   -e "s/\<completed\>/${ESC_OK}completed${ESC_RESET}/g" \
   -e "s/\<paid\>/${ESC_OK}paid${ESC_RESET}/g" \
   -e "s/\<future\>/${ESC_FUTURE}future${ESC_RESET}/g" \
   -e "s/\<due\>/${ESC_WARN}due${ESC_RESET}/g" \
   -e "s/\<overdue\>/${ESC_ERROR}overdue${ESC_RESET}/g" \
+  -e "s/Balanced: YES/${ESC_OK}Balanced: YES${ESC_RESET}/g" \
+  -e "s/Balanced: NO/${ESC_ERROR}Balanced: NO${ESC_RESET}/g" \
+  -e "s/\<PASS\>/${ESC_OK}PASS${ESC_RESET}/g" \
+  -e "s/\<FAIL\>/${ESC_ERROR}FAIL${ESC_RESET}/g" \
   -e "s/== \(.*\) ==/${ESC_HEADER}== \1 ==${ESC_RESET}/g" \
   -e "s/── \(.*\) ──/${ESC_MUTED}── \1 ──${ESC_RESET}/g" \
-  -e "s/^\([0-9]\{1,2\}\. .*\)/${ESC_NUM_HEADER}\1${ESC_RESET}/g"
+  -e "s/^\([0-9]\{1,2\}\. .*\)/${ESC_NUM_HEADER}\1${ESC_RESET}/g" \
+  -e "s/^\([-+|]\{4,\}\)$/${ESC_MUTED}\1${ESC_RESET}/g" \
+  -e "s/^\(Total [^|]*\)/${ESC_HEADER}\1${ESC_RESET}/g" \
+  -e "s/assets:/${ESC_HEADER}assets:${ESC_RESET}/g" \
+  -e "s/liabilities:/${ESC_WARN}liabilities:${ESC_RESET}/g" \
+  -e "s/equity:/${ESC_FUTURE}equity:${ESC_RESET}/g" \
+  -e "s/income:/${ESC_OK}income:${ESC_RESET}/g" \
+  -e "s/expenses:/${ESC_WARN}expenses:${ESC_RESET}/g" \
+  -e "s/\([[:space:]|]\)\(-[0-9]\{1,\}\)/\1${ESC_ERROR}\2${ESC_RESET}/g" \
+  -e "s/\([[:space:]|]\)\(\+[0-9]\{1,\}\)/\1${ESC_OK}\2${ESC_RESET}/g" \
+  -e "s/\(|[[:space:]]*\)\([1-9][0-9]*\)/\1${ESC_OK}\2${ESC_RESET}/g"
