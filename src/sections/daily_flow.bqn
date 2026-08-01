@@ -103,24 +103,29 @@ Build ← {𝕊 flow‿periodStartText‿periodEndText‿asOfText:
 CellText ← {𝕊 coefficient‿scale: amount.Format ⟨coefficient,scale⟩}
 FormatHuman ← {𝕊 result:
   daysLeft ← (dates.Ordinal result.period_end_exclusive)-dates.Ordinal result.as_of
-  widths ← {10⌈text.VWidth 𝕩}¨result.column_labels
-  HeaderCell ← {𝕊 column: text.PadLeft ⟨column⊑widths,column⊑result.column_labels⟩}
-  header ← "date      "∾∾{" | "∾HeaderCell 𝕩}¨↕≠result.column_labels
-  separator ← "----------"∾∾{"-+-"∾((𝕩⊑widths)⥊'-')}¨↕≠widths
+  categoryLabels ← result.column_labels
+  dateWidths ← {10⌈text.VWidth 𝕩}¨result.date_text
+  maxCatWidth ← 10⌈´text.VWidth¨categoryLabels
+  catHeaderCell ← text.PadRight ⟨maxCatWidth,"category"⟩
+  DateHeaderCell ← {𝕊 col: text.PadLeft ⟨col⊑dateWidths,col⊑result.date_text⟩}
+  header ← catHeaderCell∾∾{" | "∾DateHeaderCell 𝕩}¨↕≠result.date_text
+  separator ← ((maxCatWidth)⥊'-')∾∾{"-+-"∾((𝕩⊑dateWidths)⥊'-')}¨↕≠dateWidths
   out ← "== Daily Flow =="∾(@+10)∾(@+10)
   out ∾↩ "cycle: "∾result.period_start∾" 〜 "∾result.period_end_exclusive
   out ∾↩ " (as of "∾result.as_of∾"; "∾(•Fmt daysLeft)∾" days left)"∾(@+10)∾(@+10)
   out ∾↩ header∾(@+10)∾separator∾(@+10)
-  {𝕊 rowIndex:
-    row ← rowIndex⊑result.matrix.values
-    cells ← {𝕊 columnIndex:
-      value ← columnIndex⊑row
+  {𝕊 catIndex:
+    catLabel ← catIndex⊑categoryLabels
+    catCell ← text.PadRight ⟨maxCatWidth,catLabel⟩
+    cells ← {𝕊 dateIndex:
+      row ← dateIndex⊑result.matrix.values
+      value ← catIndex⊑row
       displayValue ← value
-      {𝕊: displayValue↩-value}⍟(columnIndex∊result.expense_column_indices) @
-      text.PadLeft ⟨columnIndex⊑widths,CellText ⟨displayValue,result.matrix.scale⟩⟩
-    }¨result.matrix.column_index
-    out ∾↩ (rowIndex⊑result.date_text)∾(∾{" | "∾𝕩}¨cells)∾(@+10)
-  }¨result.matrix.row_index
+      {𝕊: displayValue↩-value}⍟(catIndex∊result.expense_column_indices) @
+      text.PadLeft ⟨dateIndex⊑dateWidths,CellText ⟨displayValue,result.matrix.scale⟩⟩
+    }¨↕≠result.date_text
+    out ∾↩ catCell∾(∾{" | "∾𝕩}¨cells)∾(@+10)
+  }¨↕≠categoryLabels
   out∾(@+10)
 }
 
