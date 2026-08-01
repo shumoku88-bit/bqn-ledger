@@ -3,6 +3,11 @@
 # These settings are environment-owned and must not be read from ledger config.tsv.
 
 bl_selector_preference() {
+  local mode="${BL_UI_MODE:-}"
+  if [[ "$mode" == "minimal" ]]; then
+    printf 'plain\n'
+    return 0
+  fi
   local value="${BL_SELECTOR:-auto}"
   case "$value" in
     auto|fzf|gum|plain) printf '%s\n' "$value" ;;
