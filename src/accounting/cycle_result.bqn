@@ -22,8 +22,7 @@ Unavailable ← {𝕊 mode‿observation‿reason:
   }
 }
 Success ← {𝕊 mode‿observation‿start‿finish‿startContributors‿endContributors:
-  startOrdinal ← dates.Ordinal start
-  endOrdinal ← dates.Ordinal finish
+  startOrdinal‿endOrdinal ← dates.Ordinal¨ start‿finish
   {
     state⇐"ok",mode⇐mode,observation⇐observation,reason⇐"",
     start⇐start,end_exclusive⇐finish,start_ordinal⇐startOrdinal,end_exclusive_ordinal⇐endOrdinal,
