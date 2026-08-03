@@ -48,7 +48,7 @@ Before a phase begins, its complete file inventory must be added here and covere
 - [x] `src/accounting/cycle_comparison.bqn` — PR #529 simplified comparison window mapping; reread on main `2b587913d24428c9465a2790660b9a449002d8e0`.
 - [x] `src/accounting/cycle_fixed_resolution.bqn` — PR #531 replaced 3-level nested repeat blocks with flat early guard pattern; reread on main `9c386937f959727c223534642e7792d2ccb3aee9`.
 - [x] `src/accounting/cycle_income_anchor_resolution.bqn` — PR #533 simplified Deduplicate and IndexOf helpers; reread on main `6a0e12d785cb1ef397173993322af298b22091c1`.
-- [ ] `src/accounting/cycle_result.bqn`
+- [x] `src/accounting/cycle_result.bqn` — PR #548 simplified ordinal resolution with dyadic Each; reread on main `ae9049d`.
 - [ ] `src/accounting/daily_target.bqn`
 - [ ] `src/accounting/date_category_flow.bqn`
 - [ ] `src/accounting/envelope_backing.bqn`
@@ -65,6 +65,6 @@ Before a phase begins, its complete file inventory must be added here and covere
 
 ## Current cursor
 
-`src/accounting/cycle_result.bqn`
+`src/accounting/daily_target.bqn`
 
 Do not begin the next file until this cursor has a merged final decision and its checkbox is updated on current `main`.
