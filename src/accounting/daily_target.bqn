@@ -5,7 +5,8 @@ dates ← •Import "../ledger/date_ordinal.bqn"
 empty ← ⟨⟩
 
 Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
-Unique ← {𝕊 values: out←empty ⋄ {𝕊 value:{𝕊:out∾↩⟨value⟩}⍟(¬Contains ⟨value,out⟩) @}¨values ⋄ out}
+HasDuplicates ← {∨´0<⊒𝕩}
+Unique ← (↕∘≠ = ⊐)/⊢
 Diagnostic ← {𝕊 severity‿code‿message‿refs:
   {severity⇐severity,stage⇐"accounting_daily_target",code⇐code,message⇐message,evidence_refs⇐refs}
 }
@@ -46,7 +47,7 @@ ValidateAssets ← {𝕊 scope‿domain:
   diagnostics∾↩AddIf ⟨scope.state≡"error",Diagnostic ⟨"error","asset_scope_error","asset scope rejected",⟨scope.scope_id⟩⟩⟩
   {𝕊:
     ids ← {𝕩.asset_id}¨scope.rows
-    diagnostics∾↩AddIf ⟨(≠ids)≠≠Unique ids,Diagnostic ⟨"error","duplicate_asset_id","asset identities must be unique",ids⟩⟩
+    diagnostics∾↩AddIf ⟨HasDuplicates ids,Diagnostic ⟨"error","duplicate_asset_id","asset identities must be unique",ids⟩⟩
     diagnostics∾↩AddIf ⟨scope.basis_kind≢"account_balance",Diagnostic ⟨"error","asset_basis_invalid","P1 requires one account_balance basis",⟨scope.basis_kind⟩⟩⟩
     invalid ← {𝕊 row:
       decisionInvalid ← ¬Contains ⟨row.decision,⟨"include","exclude"⟩⟩
@@ -68,7 +69,7 @@ ValidateObligations ← {𝕊 scope‿domain‿targetOrdinal:
   diagnostics∾↩AddIf ⟨scope.state≡"error",Diagnostic ⟨"error","obligation_scope_error","obligation scope rejected",⟨scope.scope_id⟩⟩⟩
   {𝕊:
     rows ← scope.rows ⋄ ids ← {𝕩.obligation_id}¨rows
-    diagnostics∾↩AddIf ⟨(≠ids)≠≠Unique ids,Diagnostic ⟨"error","duplicate_obligation_id","obligation identities must be unique",ids⟩⟩
+    diagnostics∾↩AddIf ⟨HasDuplicates ids,Diagnostic ⟨"error","duplicate_obligation_id","obligation identities must be unique",ids⟩⟩
     invalid ← {𝕊 row:
       decisionInvalid ← ¬Contains ⟨row.decision,⟨"include","exclude"⟩⟩
       settlementInvalid ← ¬Contains ⟨row.settlement_state,⟨"open","completed"⟩⟩
@@ -100,7 +101,7 @@ ValidateObligations ← {𝕊 scope‿domain‿targetOrdinal:
     diagnostics∾↩AddIf ⟨∨´0∾provenZero,Diagnostic ⟨"error","reservation_amount_invalid","proven reservation requires positive excluded amount",provenZero/ids⟩⟩
     diagnostics∾↩AddIf ⟨∨´0∾noneMismatch,Diagnostic ⟨"error","reservation_amount_invalid","none reservation cannot exclude amount",noneMismatch/ids⟩⟩
     usedRefs ← (proven∧positive)/{𝕩.reservation_ref}¨rows
-    diagnostics∾↩AddIf ⟨(≠usedRefs)≠≠Unique usedRefs,Diagnostic ⟨"error","duplicate_reservation_linkage","reservation reference cannot be reused",usedRefs⟩⟩
+    diagnostics∾↩AddIf ⟨HasDuplicates usedRefs,Diagnostic ⟨"error","duplicate_reservation_linkage","reservation reference cannot be reused",usedRefs⟩⟩
   }⍟(scope.state≡"resolved") @
   diagnostics
 }
