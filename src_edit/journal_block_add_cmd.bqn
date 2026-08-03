@@ -100,16 +100,20 @@ metadata ← empty
   metadata ∾↩ ⟨{key⇐keyIndex⊑nativeKeys,value⇐value}⟩
 }¨metadataArgs
 metadataKeys ← {𝕩.key}¨metadata
+hasPlanLink ← ∨´ 0 ∾ "plan-id"⊸≡¨ metadataKeys
+isReverse ← "[reverse]" ≡ 9 ↑ description
+derivedTransaction ← hasPlanLink ∨ isReverse
+effectiveDurable ← (identityMode ≡ "durable") ∧ ¬ derivedTransaction
 {𝕊⋄Fail ⟨"metadata_duplicate", "metadata keys must be unique"⟩}⍟((≠metadataKeys)≠≠⍷metadataKeys) @
 {𝕊⋄Fail ⟨"metadata_payment_invalid", "payment metadata must be cash, card, or debit"⟩}⍟(∨´ 0 ∾ {(𝕩.key ≡ "payment") ∧ ¬ ∨´ 𝕩.value⊸≡¨ "cash"‿"card"‿"debit"}¨ metadata) @
-{𝕊⋄Fail ⟨"ordinary_plan_link_invalid", "ordinary actual cannot carry plan-id; use a durable plan completion path"⟩}⍟((identityMode ≡ "ordinary") ∧ ∨´ 0 ∾ "plan-id"⊸≡¨ metadataKeys) @
+{𝕊⋄Fail ⟨"ordinary_plan_link_invalid", "ordinary actual cannot carry plan-id; use a durable plan completion path"⟩}⍟((identityMode ≡ "ordinary") ∧ hasPlanLink) @
 
 resolved ← editorAccounts.Require loader.ReadLines (base ∾ "/accounts.tsv")
 raw ← loader.ReadRaw target
 existing ← admission.Admit ⟨raw,resolved,setup.registry⟩
 {𝕊⋄Fail ⟨"existing_journal_invalid", "existing complete Journal does not satisfy supported-currency admission"⟩}⍟(existing.state ≢ "ok") @
 candidateOrdinal ← ≠ existing.transactions
-{𝕊⋄Fail ⟨"event_id_duplicate", "event-id already exists in the complete Journal"⟩}⍟((identityMode ≡ "durable") ∧ ∨´ 0 ∾ {𝕩.source_event_id ≡ eventId}¨ existing.transactions) @
+{𝕊⋄Fail ⟨"event_id_duplicate", "event-id already exists in the complete Journal"⟩}⍟(effectiveDurable ∧ ∨´ 0 ∾ {𝕩.source_event_id ≡ eventId}¨ existing.transactions) @
 
 {𝕊 posting:
   registryMask ← posting.account_key⊸≡¨ resolved.key
@@ -120,7 +124,7 @@ candidateOrdinal ← ≠ existing.transactions
 
 postingLines ← {"    " ∾ 𝕩.account_key ∾ "    " ∾ 𝕩.amount_text ∾ " " ∾ currency}¨ postings
 metadataLines ← {"    ; "∾𝕩.key∾": "∾𝕩.value}¨metadata
-headerLines ← (identityMode ≡ "durable") ◶ ⟨{⟨dateText ∾ " * " ∾ description⟩}, {⟨dateText ∾ " * " ∾ description, "    ; event-id: " ∾ eventId⟩}⟩ @
+headerLines ← effectiveDurable ◶ ⟨{⟨dateText ∾ " * " ∾ description⟩}, {⟨dateText ∾ " * " ∾ description, "    ; event-id: " ∾ eventId⟩}⟩ @
 blockLines ← headerLines ∾ metadataLines ∾ postingLines
 block ← ⊑ blockLines
 {𝕊 line: block ∾↩ lf ∾ line}¨ 1 ↓ blockLines
@@ -153,7 +157,7 @@ MetadataPreserved ← {𝕊 item:
   1 = ≠ matches
 }
 metadataOk ← ∧´ 1 ∾ MetadataPreserved¨ metadata
-identityOk ← (identityMode ≡ "durable") ◶ ⟨
+identityOk ← effectiveDurable ◶ ⟨
   {(candidate.identity_kind ≡ "physical_fallback") ∧ 0 = eventMetadataCount},
   {(candidate.identity_kind ≡ "durable") ∧ (candidate.source_event_id ≡ eventId) ∧ 1 = eventMetadataCount}
 ⟩ @

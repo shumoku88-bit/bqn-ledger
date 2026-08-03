@@ -23,8 +23,9 @@ cp "$write/actual.journal" "$tmp/original"
 size="$(wc -c <"$tmp/original"|tr -d ' ')"; events="$(grep -Fc '; event-id:' "$write/actual.journal"||true)"
 ./tools/edit --base "$write" journal reverse --index 2 --date 2026-07-25 --yes --post-check lint >"$tmp/write.out"
 head -c "$size" "$write/actual.journal" >"$tmp/prefix"; cmp "$tmp/original" "$tmp/prefix"
-[[ "$(grep -Fc '; event-id:' "$write/actual.journal"||true)" -eq $((events+1)) ]]
+[[ "$(grep -Fc '; event-id:' "$write/actual.journal"||true)" -eq "$events" ]]
 grep -Fq '2026-07-25 * [reverse]Ordinary purchase' "$write/actual.journal"
 grep -Fq 'Mandatory native validation: OK' "$tmp/write.out"
+grep -Fq $'OK\tNATIVE_JOURNAL_CANDIDATE\tdurable\t-' "$tmp/write.out"
 bqn src_edit/journal_validate_cmd.bqn "$write" >/dev/null
 printf 'OK: native Journal reverse contract\n'

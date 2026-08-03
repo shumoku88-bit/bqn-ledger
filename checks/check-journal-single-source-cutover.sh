@@ -35,7 +35,7 @@ if bqn src_edit/actual_journal_file_cmd.bqn "$unsafe" >"$tmp/unsafe.out" 2>&1; t
 fi
 grep -Fq 'ACTUAL_JOURNAL_FILE must be a safe .journal basename' "$tmp/unsafe.out"
 report_out="$tmp/report.out"
-tools/report "$base" >"$report_out"
+tools/report "$base" recent human 10 actual.journal >"$report_out"
 [[ -s "$report_out" && ! -e "$base/journal.tsv" ]]
 
 before_sha=$(shasum -a 256 "$base/actual.journal" | awk '{print $1}')
@@ -73,13 +73,13 @@ tools/edit --base "$base" plan finish --id plan-2026-08-20-journal-cutover --act
 [[ ! -e "$base/journal.tsv" ]]
 plan_event_count=$(grep -Fc '; event-id:' "$base/actual.journal" || true)
 plan_currency_count=$(grep -Fc '; currency: JPY' "$base/actual.journal" || true)
-[[ "$plan_event_count" -eq $((daily_event_count + 1)) ]]
+[[ "$plan_event_count" -eq "$daily_event_count" ]]
 [[ "$plan_currency_count" -eq "$daily_currency_count" ]]
-grep -Fq '    ; event-id: completion-plan-2026-08-20-journal-cutover-2026-07-23' "$base/actual.journal"
+! grep -Fq '    ; event-id: completion-plan-2026-08-20-journal-cutover-2026-07-23' "$base/actual.journal"
 grep -Fq '    ; plan-id: plan-2026-08-20-journal-cutover' "$base/actual.journal"
-grep -Fq $'OK\tNATIVE_JOURNAL_CANDIDATE\tdurable\tcompletion-plan-2026-08-20-journal-cutover-2026-07-23' "$plan_finish_out"
+grep -Fq $'OK\tNATIVE_JOURNAL_CANDIDATE\tdurable\t-' "$plan_finish_out"
 tools/edit --base "$base" plan list --all --format tsv | grep -Fq $'plan-2026-08-20-journal-cutover\t2026-08-20'
 
-tools/report "$base" >"$report_out"
+tools/report "$base" recent human 10 actual.journal >"$report_out"
 [[ -s "$report_out" && ! -e "$base/journal.tsv" ]]
-echo 'OK: Journal-only report, daily add, list, and plan completion passed without journal.tsv or redundant JPY metadata'
+echo 'OK: Journal-only report, daily add, list, and plan completion passed without journal.tsv or generated event-id metadata'

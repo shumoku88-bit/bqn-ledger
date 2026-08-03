@@ -93,12 +93,16 @@ actualAmounts ← {𝕩.normalized_coefficient}¨candidate.postings
 commoditiesOk ← ∧´ {𝕩.commodity≡currency}¨candidate.postings
 postingIndexesOk ← (↕≠candidate.postings) ≡ {𝕩.posting_index}¨candidate.postings
 eventMetadataCount ← +´ {𝕩.key ≡ "event-id"}¨ candidate.metadata
-identityOk ← (identityMode ≡ "durable") ◶ ⟨
+hasPlanLink ← ∨´ 0 ∾ {𝕩.key ≡ "plan-id"}¨ candidate.metadata
+isReverse ← "[reverse]" ≡ 9 ↑ candidate.description
+derivedTransaction ← hasPlanLink ∨ isReverse
+effectiveDurable ← (identityMode ≡ "durable") ∧ ¬ derivedTransaction
+identityOk ← effectiveDurable ◶ ⟨
   {(candidate.identity_kind ≡ "physical_fallback") ∧ 0 = eventMetadataCount},
   {(candidate.identity_kind ≡ "durable") ∧ (candidate.source_event_id ≡ eventId) ∧ 1 = eventMetadataCount}
 ⟩ @
 candidateOk ← (candidate.date≡dateText) ∧ (candidate.description≡description) ∧ identityOk ∧ (candidate.status_marker='*') ∧ (candidate.layer_name≡"actual") ∧ (candidate.domain≡currency) ∧ (candidate.calculation_scale=calculationScale) ∧ ((≠candidate.postings)=≠expected) ∧ postingIndexesOk ∧ (actualAccounts≡expectedAccounts) ∧ (actualAmounts≡expectedAmounts) ∧ commoditiesOk
 {𝕊⋄Fail ⟨"native_candidate_mismatch", "written candidate does not exactly equal previewed candidate"⟩}⍟(¬candidateOk) @
 
-identityToken ← (identityMode ≡ "durable") ◶ ⟨{"-"}, {eventId}⟩ @
+identityToken ← effectiveDurable ◶ ⟨{"-"}, {eventId}⟩ @
 •Out "OK"∾tab∾"NATIVE_JOURNAL_CANDIDATE"∾tab∾identityMode∾tab∾identityToken∾tab∾(•Fmt candidateOrdinal)∾tab∾(•Fmt ≠candidate.postings)
