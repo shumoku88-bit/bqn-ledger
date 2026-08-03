@@ -20,6 +20,9 @@ UnsafeText ← {𝕊 text:
   controls ← ((@+0) + ↕32) ∾ ⟨@+127⟩
   ∨´ 0 ∾ text ∊ controls
 }
+GeneratedEventId ← {𝕊 id:
+  ("completion-" ≡ 11 ↑ id) ∨ ("reverse-" ≡ 8 ↑ id)
+}
 {𝕊⋄Fail ⟨"usage", "expected BASE TARGET DATE DESCRIPTION IDENTITY_MODE EVENT_ID CANDIDATE_ORDINAL [currency=CODE] and at least two postings"⟩}⍟(9 > ≠ args) @
 base ← 0⊑args
 target ← 1⊑args
@@ -39,6 +42,8 @@ policy ← setup.Policy currency
 {𝕊⋄Fail ⟨"identity_mode_invalid", "identity mode must be ordinary or durable"⟩}⍟(¬ ((identityMode ≡ "ordinary") ∨ identityMode ≡ "durable")) @
 {𝕊⋄Fail ⟨"event_id_unexpected", "ordinary actual must not carry an event-id"⟩}⍟((identityMode ≡ "ordinary") ∧ 0 < ≠ eventId) @
 {𝕊⋄Fail ⟨"event_id_invalid", "event-id must be nonempty and must not contain unsafe control input"⟩}⍟((identityMode ≡ "durable") ∧ ((0 = ≠ Trim eventId) ∨ (UnsafeText eventId) ∨ eventId ≢ Trim eventId)) @
+derivedIdentity ← (identityMode ≡ "durable") ∧ GeneratedEventId eventId
+effectiveDurable ← (identityMode ≡ "durable") ∧ ¬ derivedIdentity
 
 parsedOrdinal ← decimal.Parse candidateOrdinalText
 isOk ← (parsedOrdinal.state ≡ "ok") ∧ (0 ≡ parsedOrdinal.scale)
@@ -93,12 +98,12 @@ actualAmounts ← {𝕩.normalized_coefficient}¨candidate.postings
 commoditiesOk ← ∧´ {𝕩.commodity≡currency}¨candidate.postings
 postingIndexesOk ← (↕≠candidate.postings) ≡ {𝕩.posting_index}¨candidate.postings
 eventMetadataCount ← +´ {𝕩.key ≡ "event-id"}¨ candidate.metadata
-identityOk ← (identityMode ≡ "durable") ◶ ⟨
+identityOk ← effectiveDurable ◶ ⟨
   {(candidate.identity_kind ≡ "physical_fallback") ∧ 0 = eventMetadataCount},
   {(candidate.identity_kind ≡ "durable") ∧ (candidate.source_event_id ≡ eventId) ∧ 1 = eventMetadataCount}
 ⟩ @
 candidateOk ← (candidate.date≡dateText) ∧ (candidate.description≡description) ∧ identityOk ∧ (candidate.status_marker='*') ∧ (candidate.layer_name≡"actual") ∧ (candidate.domain≡currency) ∧ (candidate.calculation_scale=calculationScale) ∧ ((≠candidate.postings)=≠expected) ∧ postingIndexesOk ∧ (actualAccounts≡expectedAccounts) ∧ (actualAmounts≡expectedAmounts) ∧ commoditiesOk
 {𝕊⋄Fail ⟨"native_candidate_mismatch", "written candidate does not exactly equal previewed candidate"⟩}⍟(¬candidateOk) @
 
-identityToken ← (identityMode ≡ "durable") ◶ ⟨{"-"}, {eventId}⟩ @
+identityToken ← effectiveDurable ◶ ⟨{"-"}, {eventId}⟩ @
 •Out "OK"∾tab∾"NATIVE_JOURNAL_CANDIDATE"∾tab∾identityMode∾tab∾identityToken∾tab∾(•Fmt candidateOrdinal)∾tab∾(•Fmt ≠candidate.postings)
