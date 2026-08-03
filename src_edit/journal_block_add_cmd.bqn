@@ -27,6 +27,9 @@ UnsafeText ← {𝕊 text:
   controls ← ((@+0) + ↕32) ∾ ⟨@+127⟩
   ∨´ 0 ∾ text ∊ controls
 }
+GeneratedEventId ← {𝕊 id:
+  ("completion-" ≡ 11 ↑ id) ∨ ("reverse-" ≡ 8 ↑ id)
+}
 {𝕊⋄Fail ⟨"usage", "expected BASE TARGET DATE DESCRIPTION IDENTITY_MODE EVENT_ID [currency=CODE] POSTING_COUNT postings and optional metadata"⟩}⍟(9 > ≠ args) @
 base ← 0 ⊑ args
 target ← 1 ⊑ args
@@ -52,6 +55,8 @@ metadataArgs ← (argIndex+1+postingCount)↓args
 {𝕊⋄Fail ⟨"identity_mode_invalid", "identity mode must be ordinary or durable"⟩}⍟(¬ ((identityMode ≡ "ordinary") ∨ identityMode ≡ "durable")) @
 {𝕊⋄Fail ⟨"event_id_unexpected", "ordinary actual must not carry an event-id"⟩}⍟((identityMode ≡ "ordinary") ∧ 0 < ≠ eventId) @
 {𝕊⋄Fail ⟨"event_id_invalid", "event-id must be nonempty and must not contain unsafe control input"⟩}⍟((identityMode ≡ "durable") ∧ ((0 = ≠ Trim eventId) ∨ (UnsafeText eventId) ∨ eventId ≢ Trim eventId)) @
+derivedIdentity ← (identityMode ≡ "durable") ∧ GeneratedEventId eventId
+effectiveDurable ← (identityMode ≡ "durable") ∧ ¬ derivedIdentity
 {𝕊⋄Fail ⟨"posting_count_invalid", "at least two --posting values are required"⟩}⍟(2 > ≠ postingArgs) @
 
 postings ← empty
@@ -109,7 +114,7 @@ raw ← loader.ReadRaw target
 existing ← admission.Admit ⟨raw,resolved,setup.registry⟩
 {𝕊⋄Fail ⟨"existing_journal_invalid", "existing complete Journal does not satisfy supported-currency admission"⟩}⍟(existing.state ≢ "ok") @
 candidateOrdinal ← ≠ existing.transactions
-{𝕊⋄Fail ⟨"event_id_duplicate", "event-id already exists in the complete Journal"⟩}⍟((identityMode ≡ "durable") ∧ ∨´ 0 ∾ {𝕩.source_event_id ≡ eventId}¨ existing.transactions) @
+{𝕊⋄Fail ⟨"event_id_duplicate", "event-id already exists in the complete Journal"⟩}⍟(effectiveDurable ∧ ∨´ 0 ∾ {𝕩.source_event_id ≡ eventId}¨ existing.transactions) @
 
 {𝕊 posting:
   registryMask ← posting.account_key⊸≡¨ resolved.key
@@ -120,7 +125,7 @@ candidateOrdinal ← ≠ existing.transactions
 
 postingLines ← {"    " ∾ 𝕩.account_key ∾ "    " ∾ 𝕩.amount_text ∾ " " ∾ currency}¨ postings
 metadataLines ← {"    ; "∾𝕩.key∾": "∾𝕩.value}¨metadata
-headerLines ← (identityMode ≡ "durable") ◶ ⟨{⟨dateText ∾ " * " ∾ description⟩}, {⟨dateText ∾ " * " ∾ description, "    ; event-id: " ∾ eventId⟩}⟩ @
+headerLines ← effectiveDurable ◶ ⟨{⟨dateText ∾ " * " ∾ description⟩}, {⟨dateText ∾ " * " ∾ description, "    ; event-id: " ∾ eventId⟩}⟩ @
 blockLines ← headerLines ∾ metadataLines ∾ postingLines
 block ← ⊑ blockLines
 {𝕊 line: block ∾↩ lf ∾ line}¨ 1 ↓ blockLines
@@ -153,7 +158,7 @@ MetadataPreserved ← {𝕊 item:
   1 = ≠ matches
 }
 metadataOk ← ∧´ 1 ∾ MetadataPreserved¨ metadata
-identityOk ← (identityMode ≡ "durable") ◶ ⟨
+identityOk ← effectiveDurable ◶ ⟨
   {(candidate.identity_kind ≡ "physical_fallback") ∧ 0 = eventMetadataCount},
   {(candidate.identity_kind ≡ "durable") ∧ (candidate.source_event_id ≡ eventId) ∧ 1 = eventMetadataCount}
 ⟩ @
