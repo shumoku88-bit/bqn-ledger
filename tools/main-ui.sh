@@ -281,7 +281,15 @@ select_section() {
       browse_sections_interactive "$cache_dir"
     elif [[ "$sel_idx" =~ ^[0-9]+$ ]] && (( sel_idx >= 1 && sel_idx <= count )); then
       printf '%s\t%s\n' "${keys[sel_idx-1]}" "${labels[sel_idx-1]}"
+    else
+      for ((i=0; i<count; i++)); do
+        if [[ "${keys[i]}" == "$sel_idx" ]]; then
+          printf '%s\t%s\n' "${keys[i]}" "${labels[i]}"
+          break
+        fi
+      done
     fi
+
   fi
 }
 
