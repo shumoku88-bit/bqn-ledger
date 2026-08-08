@@ -12,7 +12,13 @@ registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").regi
 lines ← loader.ReadLines base∾"accounts.tsv"
 actual ← (snapshot.Build ⟨lines,•FChars "../"∾base∾"actual.journal",registry⟩).facts
 lf ← @+10
+tab ← @+9
 Raw ← {𝕊 lines: ∾lines∾¨lf}
+Join ← {𝕊 fields:
+  out ← ⊑fields
+  {𝕊 field: out∾↩tab∾field}¨1↓fields
+  out
+}
 planRaw ← Raw ⟨
   "2026-01-20 food-plan",
   "  ; plan-id: plan-food-2026-01",
@@ -54,12 +60,12 @@ invalidRange ← envelopes.Build ⟨budget,actual,plan,"JPY",dates.Ordinal "2026
 
 # Open Plan, refund, overspent Envelope, and under-backed funding remain distinct.
 syntheticLines ← ⟨
-  "assets:cash\trole=asset\ttype=liquid\tcurrency=JPY",
-  "income:salary\trole=income\tcurrency=JPY",
-  "expenses:food\trole=expense\tbudget=food\tcurrency=JPY",
-  "budget:opening\trole=budget\tkind=opening\tcurrency=JPY",
-  "budget:unassigned\trole=budget\tkind=unassigned\tcurrency=JPY",
-  "budget:food\trole=budget\tkind=envelope\tbudget=food\tcurrency=JPY"
+  Join ⟨"assets:cash","role=asset","type=liquid","currency=JPY"⟩,
+  Join ⟨"income:salary","role=income","currency=JPY"⟩,
+  Join ⟨"expenses:food","role=expense","budget=food","currency=JPY"⟩,
+  Join ⟨"budget:opening","role=budget","kind=opening","currency=JPY"⟩,
+  Join ⟨"budget:unassigned","role=budget","kind=unassigned","currency=JPY"⟩,
+  Join ⟨"budget:food","role=budget","kind=envelope","budget=food","currency=JPY"⟩
 ⟩
 syntheticRaw ← ∾⟨
   "commodity JPY",lf,lf,
@@ -85,8 +91,8 @@ syntheticPlanRaw ← Raw ⟨
 ⟩
 syntheticPlan ← (canonicalPlan.Build ⟨syntheticPlanRaw,syntheticActual.accounts,registry⟩).facts
 syntheticBudgetLines ← ⟨
-  "2026-01-01\tseed\tbudget:opening\tbudget:unassigned\t20\tcurrency=JPY",
-  "2026-01-01\tallocate\tbudget:unassigned\tbudget:food\t20\tcurrency=JPY"
+  Join ⟨"2026-01-01","seed","budget:opening","budget:unassigned","20","currency=JPY"⟩,
+  Join ⟨"2026-01-01","allocate","budget:unassigned","budget:food","20","currency=JPY"⟩
 ⟩
 syntheticBudget ← (budgetSnapshot.Build ⟨syntheticBudgetLines,syntheticActual.accounts,registry⟩).facts
 synthetic ← envelopes.Build ⟨syntheticBudget,syntheticActual,syntheticPlan,"JPY",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-10",⟨0⟩⟩
@@ -123,10 +129,10 @@ duplicateCompletion ← envelopes.Build ⟨syntheticBudget,duplicateActual,synth
 
 # Cross-source scale normalization overflow is fail-closed.
 overflowLines ← ⟨
-  "assets:ils\trole=asset\tcurrency=ILS",
-  "expenses:ils\trole=expense\tbudget=food\tcurrency=ILS",
-  "budget:unassigned-ils\trole=budget\tkind=unassigned\tcurrency=ILS",
-  "budget:food-ils\trole=budget\tkind=envelope\tbudget=food\tcurrency=ILS"
+  Join ⟨"assets:ils","role=asset","currency=ILS"⟩,
+  Join ⟨"expenses:ils","role=expense","budget=food","currency=ILS"⟩,
+  Join ⟨"budget:unassigned-ils","role=budget","kind=unassigned","currency=ILS"⟩,
+  Join ⟨"budget:food-ils","role=budget","kind=envelope","budget=food","currency=ILS"⟩
 ⟩
 overflowRaw ← ∾⟨
   "commodity ILS",lf,lf,"account assets:ils",lf,"    ; role: asset",lf,lf,
@@ -138,7 +144,7 @@ overflowRaw ← ∾⟨
 ⟩
 overflowActual ← (snapshot.Build ⟨overflowLines,overflowRaw,registry⟩).facts
 overflowBudget ← (budgetSnapshot.Build ⟨
-  ⟨"2026-01-01\tmax\tbudget:unassigned-ils\tbudget:food-ils\t999999999999999\tcurrency=ILS"⟩,
+  ⟨Join ⟨"2026-01-01","max","budget:unassigned-ils","budget:food-ils","999999999999999","currency=ILS"⟩⟩,
   overflowActual.accounts,registry
 ⟩).facts
 overflowPlan ← (canonicalPlan.Build ⟨"",overflowActual.accounts,registry⟩).facts
