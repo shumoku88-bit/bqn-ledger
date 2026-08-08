@@ -32,18 +32,13 @@ SourceName ← {𝕊 role‿admitted:
   index ← ⊑(role⊸≡¨admitted.sources.role)⊐1
   index⊑admitted.sources.name
 }
-SourceNames ← {𝕊 admittedRoutes:
+CycleSourceNames ← {𝕊 admittedRoutes:
   cycleAccounts ← FindAdmission ⟨"cycle-accounts",admittedRoutes⟩
   cycleComparison ← FindAdmission ⟨"cycle-comparison",admittedRoutes⟩
-  planned ← FindAdmission ⟨"planned",admittedRoutes⟩
-  planName ← SourceName ⟨"plan",planned⟩
-  cyclePlanNames ← ("plan"⊸≡¨cycleAccounts.sources.role)/cycleAccounts.sources.name
-  {𝕊:planName↩⊑cyclePlanNames}⍟(1=≠cyclePlanNames) @
   {
     current_cycle⇐SourceName ⟨"cycle",cycleAccounts⟩,
     comparison_current_cycle⇐SourceName ⟨"current_cycle",cycleComparison⟩,
-    baseline_cycle⇐SourceName ⟨"baseline_cycle",cycleComparison⟩,
-    plan⇐planName
+    baseline_cycle⇐SourceName ⟨"baseline_cycle",cycleComparison⟩
   }
 }
 
@@ -107,4 +102,4 @@ Build ← {𝕊 admittedRoutes‿observation‿currentCycle‿baselineCycle:
   {state⇐(0=≠diagnostics)⊑"error"‿"ok",observation⇐observation,rows⇐resolvedRows,diagnostics⇐diagnostics}
 }
 
-{Build⇐Build,ComparisonPolicy⇐ComparisonPolicy,SourceNames⇐SourceNames}
+{Build⇐Build,ComparisonPolicy⇐ComparisonPolicy,CycleSourceNames⇐CycleSourceNames}
