@@ -7,13 +7,14 @@ if [[ $# -ne 2 ]]; then
 fi
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 base=$1
-journal=$2
+journal_coordinate=$2
 [[ $base == /* ]] || base="$PWD/$base"
-[[ $journal != */* && $journal != *\\* && $journal == *.journal ]] \
-  || { printf 'ERROR\tjournal_basename_invalid\tjournal must be a safe .journal basename\n' >&2; exit 1; }
-for name in accounts.tsv "$journal"; do
+
+# JOURNAL remains in the request shape only until Phase 6. Canonical Actual
+# inspection is fixed to accounts.journal + actual.journal.
+for name in accounts.journal actual.journal; do
   [[ -f $base/$name && -r $base/$name ]] \
-    || { printf 'ERROR\tsource_unreadable\trequired source is not readable: %s\n' "$name" >&2; exit 1; }
+    || { printf 'ERROR\tsource_unreadable\trequired canonical source is not readable: %s\n' "$name" >&2; exit 1; }
 done
 cd "$root"
-exec bqn src/application/ledger_inspect_cli.bqn "$base" "$journal"
+exec bqn src/application/ledger_inspect_cli.bqn "$base" "$journal_coordinate"
