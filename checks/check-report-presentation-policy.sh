@@ -5,6 +5,7 @@ cd "$root"
 fixture=fixtures/ledger-facts-phase1-proof
 work=$(mktemp -d "${TMPDIR:-/tmp}/bqn-ledger-report-presentation.XXXXXX")
 trap 'rm -rf "$work"' EXIT
+trap 'status=$?; echo "FAIL: check-report-presentation-policy line $LINENO" >&2; echo "::error file=checks/check-report-presentation-policy.sh,line=$LINENO::Report presentation policy check failed" >&2; exit "$status"' ERR
 cp -R "$fixture" "$work/base"
 base="$work/base"
 
