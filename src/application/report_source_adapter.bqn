@@ -16,13 +16,14 @@ Actual ← {𝕊 base‿journalName‿registry:
   snapshot.Build ⟨io.ReadLines Join ⟨base,"accounts.tsv"⟩,io.ReadRaw Join ⟨base,journalName⟩,registry⟩
 }
 CanonicalActual ← {𝕊 base‿registry: actualSource.Load ⟨base,registry⟩ }
+CanonicalPlan ← {𝕊 base‿registry: planSource.Load ⟨base,registry⟩ }
 
 # Report manifests retain a Plan basename coordinate until report.toml Phase 6,
 # but physical Plan ownership is already fixed by the canonical Household root.
 # The legacy coordinate and caller-supplied Account carrier therefore do not choose
 # a Plan source and are intentionally ignored here.
 Plan ← {𝕊 base‿planName‿accounts‿registry:
-  planName‿accounts ⋄ planSource.Load ⟨base,registry⟩
+  planName‿accounts ⋄ CanonicalPlan ⟨base,registry⟩
 }
 
 # Envelope remains mixed-source until Budget Phase 4: canonical Plan Facts plus
@@ -41,7 +42,7 @@ DailyScopeLines ← {𝕊 base‿scopeName: io.ReadLines Join ⟨base,scopeName�
 IssueLines ← {𝕊 base‿issueName: io.ReadLines Join ⟨base,issueName⟩}
 
 {
-  Registry⇐Registry,Actual⇐Actual,CanonicalActual⇐CanonicalActual,
+  Registry⇐Registry,Actual⇐Actual,CanonicalActual⇐CanonicalActual,CanonicalPlan⇐CanonicalPlan,
   Plan⇐Plan,Companions⇐Companions,
   CycleLines⇐CycleLines,DailyScopeLines⇐DailyScopeLines,IssueLines⇐IssueLines
 }
