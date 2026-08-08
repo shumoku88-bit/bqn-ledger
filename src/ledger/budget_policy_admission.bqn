@@ -21,8 +21,8 @@ TrimLeft ← {𝕊 xs: prefix ← ∧`IsWhitespace¨xs ⋄ (+´prefix)↓xs}
 TrimRight ← {𝕊 xs: ⌽TrimLeft⌽xs}
 Trim ← {TrimRight TrimLeft 𝕩}
 SplitKeepEmpty ← {𝕊 sep‿text: groups ← (+`sep=text)⊔text ⋄ {(sep≠𝕩)/𝕩}¨groups}
-StartsWith ← {𝕊 prefix‿text: prefix≡(≠prefix)↑text}
 NoWhitespace ← {𝕊 value: (0<≠value) ∧ ¬∨´0∾IsWhitespace¨value}
+FirstOrSpace ← {𝕊 text: ⊑text∾⟨space⟩}
 
 Diagnostic ← {𝕊 codeText‿lineNumber‿messageText:
   {severity⇐"error",stage⇐"ledger_budget_policy_admission",code⇐codeText,line⇐lineNumber,message⇐messageText}
@@ -32,7 +32,9 @@ AddIf ← {𝕊 invalid‿diagnostic: invalid/⟨diagnostic⟩}
 ParseString ← {𝕊 text:
   value ← "" ⋄ diagnostics ← empty
   t ← Trim text
-  enclosed ← (2≤≠t) ∧ (quote=⊑(t∾" ")) ∧ quote=⊑⌽(t∾" ")
+  first ← FirstOrSpace t
+  last ← FirstOrSpace ⌽t
+  enclosed ← (2≤≠t) ∧ (quote=first) ∧ quote=last
   diagnostics∾↩AddIf ⟨¬enclosed,Diagnostic ⟨"budget_policy_string_invalid",0,"policy string value must be quoted"⟩⟩
   {𝕊:
     body ← ¯1↓1↓t
@@ -57,7 +59,7 @@ ParseString ← {𝕊 text:
 }
 
 SplitArrayItems ← {𝕊 inner:
-  parts ← empty ⋄ current ← "" ⋄ inQuote ← 0 ⋄ escaped ← 0 ⋄ invalid ← 0
+  parts ← empty ⋄ current ← "" ⋄ inQuote ← 0 ⋄ escaped ← 0
   {𝕊 c:
     separator ← (c=',') ∧ ¬inQuote
     {𝕊:parts∾↩⟨Trim current⟩ ⋄ current↩""}⍟separator @
@@ -70,18 +72,20 @@ SplitArrayItems ← {𝕊 inner:
       }⍟(¬escaped) @
     }⍟(¬separator) @
   }¨inner
-  {𝕊:parts∾↩⟨Trim current⟩}⍟(0<≠Trim current) @
-  invalid↩inQuote ∨ escaped
-  {parts⇐parts,invalid⇐invalid}
+  trimmed ← Trim current
+  {𝕊:parts∾↩⟨trimmed⟩}⍟(0<≠trimmed) @
+  {parts⇐parts,invalid⇐inQuote ∨ escaped}
 }
 
 ParseStringArray ← {𝕊 text:
   values ← empty ⋄ diagnostics ← empty
   t ← Trim text
-  enclosed ← (2≤≠t) ∧ ('['=⊑(t∾" ")) ∧ ']'=⊑⌽(t∾" ")
+  first ← FirstOrSpace t
+  last ← FirstOrSpace ⌽t
+  enclosed ← (2≤≠t) ∧ ('['=first) ∧ ']'=last
   diagnostics∾↩AddIf ⟨¬enclosed,Diagnostic ⟨"budget_policy_array_invalid",0,"policy Account list must use a TOML array"⟩⟩
   {𝕊:
-    inner ← Trim (¯1↓1↓t)
+    inner ← Trim ¯1↓1↓t
     {𝕊:
       split ← SplitArrayItems inner
       diagnostics∾↩AddIf ⟨split.invalid,Diagnostic ⟨"budget_policy_array_invalid",0,"policy Account list has unbalanced quoting"⟩⟩
@@ -102,6 +106,10 @@ PairValue ← {𝕊 block‿key:
   result
 }
 
+AtLine ← {𝕊 parsed‿lineNumber:
+  {𝕊 d:{severity⇐d.severity,stage⇐d.stage,code⇐d.code,line⇐lineNumber,message⇐d.message}}¨parsed.diagnostics
+}
+
 Admit ← {𝕊 raw‿accounts:
   normalized ← (cr≠raw)/raw
   lines ← SplitKeepEmpty ⟨lf,normalized⟩
@@ -113,7 +121,7 @@ Admit ← {𝕊 raw‿accounts:
   }
   {𝕊 i:
     line ← Trim i⊑lines ⋄ row ← i+1
-    ignored ← (0=≠line) ∨ ((0<≠line) ∧ hash=⊑line)
+    ignored ← (0=≠line) ∨ hash=FirstOrSpace line
     {𝕊:
       poolHeader ← line≡"[[backing-pools]]"
       envelopeHeader ← line≡"[[envelopes]]"
@@ -131,8 +139,9 @@ Admit ← {𝕊 raw‿accounts:
           {𝕊:
             p ← ⊑equals/↕≠line
             key ← Trim p↑line ⋄ value ← Trim (p+1)↓line
-            diagnostics∾↩AddIf ⟨(0=≠key) ∨ 0=≠value,Diagnostic ⟨"budget_policy_key_shape_invalid",row,"policy key and value must be nonempty"⟩⟩
-            {𝕊:activePairs∾↩⟨{key⇐key,text⇐value,line⇐row}⟩}⍟((0<≠key) ∧ 0<≠value) @
+            validPair ← (0<≠key) ∧ 0<≠value
+            diagnostics∾↩AddIf ⟨¬validPair,Diagnostic ⟨"budget_policy_key_shape_invalid",row,"policy key and value must be nonempty"⟩⟩
+            {𝕊:activePairs∾↩⟨{key⇐key,text⇐value,line⇐row}⟩}⍟validPair @
           }⍟(1=+´equals) @
         }⍟active @
       }⍟(¬header) @
@@ -142,21 +151,24 @@ Admit ← {𝕊 raw‿accounts:
 
   pools ← empty ⋄ envelopes ← empty
   {𝕊 block:
-    allowed ← (block.kind≡"backing-pool")⊑⟨⟨"id","label","pacing","backing-pool","expense-accounts"⟩,⟨"id","asset-accounts"⟩⟩
+    poolBlock ← block.kind≡"backing-pool"
+    allowed ← poolBlock⊑⟨⟨"id","label","pacing","backing-pool","expense-accounts"⟩,⟨"id","asset-accounts"⟩⟩
     keys ← {𝕩.key}¨block.pairs
     diagnostics∾↩AddIf ⟨(≠keys)≠≠⍷keys,Diagnostic ⟨"budget_policy_key_duplicate",block.line,"policy table keys must be unique"⟩⟩
     diagnostics∾↩AddIf ⟨∨´0∾{¬Contains ⟨𝕩,allowed⟩}¨keys,Diagnostic ⟨"budget_policy_key_unsupported",block.line,"policy table contains an unsupported key"⟩⟩
-    required ← allowed
-    diagnostics∾↩AddIf ⟨∨´0∾{¬Contains ⟨𝕩,keys⟩}¨required,Diagnostic ⟨"budget_policy_key_missing",block.line,"policy table is missing a required key"⟩⟩
+    diagnostics∾↩AddIf ⟨∨´0∾{¬Contains ⟨𝕩,keys⟩}¨allowed,Diagnostic ⟨"budget_policy_key_missing",block.line,"policy table is missing a required key"⟩⟩
+    blockClean ← 0=≠diagnostics
     {𝕊:
       idPair ← PairValue ⟨block,"id"⟩ ⋄ idParsed ← ParseString idPair.text
-      diagnostics∾↩{𝕊 d:{severity⇐d.severity,stage⇐d.stage,code⇐d.code,line⇐idPair.line,message⇐d.message}}¨idParsed.diagnostics
       accountsPair ← PairValue ⟨block,"asset-accounts"⟩ ⋄ accountsParsed ← ParseStringArray accountsPair.text
-      diagnostics∾↩{𝕊 d:{severity⇐d.severity,stage⇐d.stage,code⇐d.code,line⇐accountsPair.line,message⇐d.message}}¨accountsParsed.diagnostics
-      diagnostics∾↩AddIf ⟨idParsed.ok ∧ ¬NoWhitespace idParsed.value,Diagnostic ⟨"backing_pool_id_invalid",idPair.line,"backing pool id must be nonempty and contain no whitespace"⟩⟩
-      diagnostics∾↩AddIf ⟨accountsParsed.ok ∧ 0=≠accountsParsed.values,Diagnostic ⟨"backing_pool_accounts_empty",accountsPair.line,"backing pool requires at least one Asset Account"⟩⟩
-      {𝕊:pools∾↩⟨{id⇐idParsed.value,asset_account_keys⇐accountsParsed.values,line⇐block.line}⟩}⍟(idParsed.ok ∧ accountsParsed.ok ∧ NoWhitespace idParsed.value ∧ 0<≠accountsParsed.values) @
-    }⍟((block.kind≡"backing-pool") ∧ 0=≠diagnostics) @
+      diagnostics∾↩AtLine ⟨idParsed,idPair.line⟩
+      diagnostics∾↩AtLine ⟨accountsParsed,accountsPair.line⟩
+      validId ← idParsed.ok ∧ NoWhitespace idParsed.value
+      nonemptyAccounts ← accountsParsed.ok ∧ 0<≠accountsParsed.values
+      diagnostics∾↩AddIf ⟨¬validId,Diagnostic ⟨"backing_pool_id_invalid",idPair.line,"backing pool id must be nonempty and contain no whitespace"⟩⟩
+      diagnostics∾↩AddIf ⟨¬nonemptyAccounts,Diagnostic ⟨"backing_pool_accounts_empty",accountsPair.line,"backing pool requires at least one Asset Account"⟩⟩
+      {𝕊:pools∾↩⟨{id⇐idParsed.value,asset_account_keys⇐accountsParsed.values,line⇐block.line}⟩}⍟(validId ∧ nonemptyAccounts) @
+    }⍟(poolBlock ∧ blockClean) @
     {𝕊:
       idPair ← PairValue ⟨block,"id"⟩ ⋄ idParsed ← ParseString idPair.text
       labelPair ← PairValue ⟨block,"label"⟩ ⋄ labelParsed ← ParseString labelPair.text
@@ -165,19 +177,21 @@ Admit ← {𝕊 raw‿accounts:
       expensePair ← PairValue ⟨block,"expense-accounts"⟩ ⋄ expenseParsed ← ParseStringArray expensePair.text
       parsed ← ⟨idParsed,labelParsed,pacingParsed,poolParsed,expenseParsed⟩
       pairLines ← ⟨idPair.line,labelPair.line,pacingPair.line,poolPair.line,expensePair.line⟩
-      {𝕊 j:
-        diagnostics∾↩{𝕊 d:{severity⇐d.severity,stage⇐d.stage,code⇐d.code,line⇐j⊑pairLines,message⇐d.message}}¨(j⊑parsed).diagnostics
-      }¨↕≠parsed
-      diagnostics∾↩AddIf ⟨idParsed.ok ∧ ¬NoWhitespace idParsed.value,Diagnostic ⟨"envelope_id_invalid",idPair.line,"envelope id must be nonempty and contain no whitespace"⟩⟩
-      diagnostics∾↩AddIf ⟨labelParsed.ok ∧ (0=≠labelParsed.value ∨ labelParsed.value≢Trim labelParsed.value),Diagnostic ⟨"envelope_label_invalid",labelPair.line,"envelope label must be nonempty without surrounding whitespace"⟩⟩
-      diagnostics∾↩AddIf ⟨pacingParsed.ok ∧ ¬Contains ⟨pacingParsed.value,⟨"daily","flex"⟩⟩,Diagnostic ⟨"envelope_pacing_invalid",pacingPair.line,"envelope pacing must be daily or flex"⟩⟩
-      diagnostics∾↩AddIf ⟨poolParsed.ok ∧ ¬NoWhitespace poolParsed.value,Diagnostic ⟨"envelope_backing_pool_invalid",poolPair.line,"backing pool reference must be nonempty and contain no whitespace"⟩⟩
+      {𝕊 j: diagnostics∾↩AtLine ⟨j⊑parsed,j⊑pairLines⟩}¨↕≠parsed
+      validId ← idParsed.ok ∧ NoWhitespace idParsed.value
+      validLabel ← labelParsed.ok ∧ (0<≠labelParsed.value) ∧ labelParsed.value≡Trim labelParsed.value
+      validPacing ← pacingParsed.ok ∧ Contains ⟨pacingParsed.value,⟨"daily","flex"⟩⟩
+      validPool ← poolParsed.ok ∧ NoWhitespace poolParsed.value
+      diagnostics∾↩AddIf ⟨¬validId,Diagnostic ⟨"envelope_id_invalid",idPair.line,"envelope id must be nonempty and contain no whitespace"⟩⟩
+      diagnostics∾↩AddIf ⟨¬validLabel,Diagnostic ⟨"envelope_label_invalid",labelPair.line,"envelope label must be nonempty without surrounding whitespace"⟩⟩
+      diagnostics∾↩AddIf ⟨¬validPacing,Diagnostic ⟨"envelope_pacing_invalid",pacingPair.line,"envelope pacing must be daily or flex"⟩⟩
+      diagnostics∾↩AddIf ⟨¬validPool,Diagnostic ⟨"envelope_backing_pool_invalid",poolPair.line,"backing pool reference must be nonempty and contain no whitespace"⟩⟩
       allOk ← ∧´{𝕩.ok}¨parsed
       {𝕊:envelopes∾↩⟨{
         id⇐idParsed.value,label⇐labelParsed.value,pacing⇐pacingParsed.value,
         backing_pool⇐poolParsed.value,expense_account_keys⇐expenseParsed.values,line⇐block.line
-      }⟩}⍟(allOk ∧ NoWhitespace idParsed.value ∧ NoWhitespace poolParsed.value ∧ Contains ⟨pacingParsed.value,⟨"daily","flex"⟩⟩) @
-    }⍟((block.kind≡"envelope") ∧ 0=≠diagnostics) @
+      }⟩}⍟(allOk ∧ validId ∧ validLabel ∧ validPacing ∧ validPool) @
+    }⍟((¬poolBlock) ∧ blockClean) @
   }¨blocks
 
   diagnostics∾↩AddIf ⟨0=≠pools,Diagnostic ⟨"budget_policy_backing_pools_missing",0,"budget.toml requires at least one backing pool"⟩⟩
@@ -199,18 +213,22 @@ Admit ← {𝕊 raw‿accounts:
   {𝕊 envelope:
     {𝕊 key:
       i ← IndexOf ⟨key,accounts.key⟩ ⋄ known ← i<accounts.count
+      role ← i⊑accounts.role∾⟨""⟩
+      validRole ← role≡"expense"
       diagnostics∾↩AddIf ⟨¬known,Diagnostic ⟨"budget_policy_expense_account_unknown",envelope.line,"Envelope Expense Account must be declared"⟩⟩
-      diagnostics∾↩AddIf ⟨known ∧ (i⊑accounts.role)≢"expense",Diagnostic ⟨"budget_policy_expense_account_role_invalid",envelope.line,"Envelope Expense Account must have Expense type"⟩⟩
-      {𝕊:expenseIndices∾↩⟨i⟩ ⋄ expenseEnvelope∾↩⟨envelope.id⟩}⍟(known ∧ (i⊑accounts.role)≡"expense") @
+      diagnostics∾↩AddIf ⟨known ∧ ¬validRole,Diagnostic ⟨"budget_policy_expense_account_role_invalid",envelope.line,"Envelope Expense Account must have Expense type"⟩⟩
+      {𝕊:expenseIndices∾↩⟨i⟩ ⋄ expenseEnvelope∾↩⟨envelope.id⟩}⍟(known ∧ validRole) @
     }¨envelope.expense_account_keys
   }¨envelopes
   assetIndices ← empty ⋄ assetPool ← empty
   {𝕊 pool:
     {𝕊 key:
       i ← IndexOf ⟨key,accounts.key⟩ ⋄ known ← i<accounts.count
+      role ← i⊑accounts.role∾⟨""⟩
+      validRole ← role≡"asset"
       diagnostics∾↩AddIf ⟨¬known,Diagnostic ⟨"budget_policy_asset_account_unknown",pool.line,"Backing pool Asset Account must be declared"⟩⟩
-      diagnostics∾↩AddIf ⟨known ∧ (i⊑accounts.role)≢"asset",Diagnostic ⟨"budget_policy_asset_account_role_invalid",pool.line,"Backing pool Account must have Asset type"⟩⟩
-      {𝕊:assetIndices∾↩⟨i⟩ ⋄ assetPool∾↩⟨pool.id⟩}⍟(known ∧ (i⊑accounts.role)≡"asset") @
+      diagnostics∾↩AddIf ⟨known ∧ ¬validRole,Diagnostic ⟨"budget_policy_asset_account_role_invalid",pool.line,"Backing pool Account must have Asset type"⟩⟩
+      {𝕊:assetIndices∾↩⟨i⟩ ⋄ assetPool∾↩⟨pool.id⟩}⍟(known ∧ validRole) @
     }¨pool.asset_account_keys
   }¨pools
 
