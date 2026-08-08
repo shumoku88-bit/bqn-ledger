@@ -39,7 +39,7 @@ cmp "$tmp/planned" "$fixture/planned_payments.destination.human.txt"
 
 ./tools/report "$fixture" cycle-accounts human JPY \
   2026-01-12 actual.journal bad/cycle.tsv bad/plan.tsv >"$tmp/cycle"
-grep -F '== Cycle Accounts ==' "$tmp/cycle" >/dev/null
+grep -F '== Current-cycle Accounts ==' "$tmp/cycle" >/dev/null
 
 ./tools/report "$fixture" daily-target human JPY \
   2026-01-12 2026-01-22 actual.journal bad/plan.tsv bad/scope.tsv >"$tmp/daily-target"
