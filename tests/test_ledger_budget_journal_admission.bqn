@@ -46,6 +46,11 @@ valid ← budgetAdmission.Admit ⟨validRaw,accounts,registry⟩
 ⟨"physical_fallback","physical_fallback"⟩ lib.AssertEq {𝕩.identity_kind}¨valid.transactions
 ⟨"budget.journal:line:1","budget.journal:line:5"⟩ lib.AssertEq {𝕩.source_event_id}¨valid.transactions
 first ← ⊑valid.transactions
+"Budget:Unassigned" lib.AssertEq first.from_account_key
+"Budget:Food" lib.AssertEq first.to_account_key
+"JPY" lib.AssertEq first.movement_commodity
+200 lib.AssertEq first.movement_coefficient
+1 lib.AssertEq first.movement_scale
 ⟨"Budget:Unassigned","Budget:Food"⟩ lib.AssertEq {𝕩.account_key}¨first.postings
 ⟨0,1⟩ lib.AssertEq {𝕩.posting_index}¨first.postings
 ⟨¯200,200⟩ lib.AssertEq {𝕩.normalized_coefficient}¨first.postings
