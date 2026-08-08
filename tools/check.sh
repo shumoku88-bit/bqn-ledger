@@ -4,23 +4,15 @@ export NO_COLOR=1
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
 
-GithubEscape() {
-  local text=${1:0:2000}
-  text=${text//'%'/'%25'}
-  text=${text//$'\r'/'%0D'}
-  text=${text//$'\n'/'%0A'}
-  printf '%s' "$text"
-}
-
 echo '[1/3] BQN tests' >&2
 for test_file in tests/test_*.bqn; do
   [[ -f $test_file ]] || continue
-  if ! output=$(bqn "$test_file" 2>&1); then
+  bqn "$test_file" >/dev/null || {
     echo "FAIL: $test_file" >&2
-    printf '%s\n' "$output" >&2
-    printf '::error file=%s::%s\n' "$test_file" "$(GithubEscape "$output")"
+    echo "::error file=$test_file::BQN test failed"
+    bqn "$test_file"
     exit 1
-  fi
+  }
 done
 
 echo '[2/3] final report checks' >&2
@@ -38,12 +30,11 @@ for check in \
   checks/check-report-section-metadata.sh \
   checks/check-report-summary-query.sh \
   checks/check-ledger-operations.sh; do
-  if ! output=$(bash "$check" 2>&1); then
+  bash "$check" >/dev/null || {
     echo "FAIL: $check" >&2
-    printf '%s\n' "$output" >&2
-    printf '::error file=%s::%s\n' "$check" "$(GithubEscape "$output")"
+    echo "::error file=$check::Repository check failed"
     exit 1
-  fi
+  }
 done
 
 echo '[3/3] repository/editor/tool checks' >&2
@@ -65,10 +56,9 @@ checks=(
 )
 for name in "${checks[@]}"; do
   [[ -f checks/$name ]] || continue
-  if ! output=$(bash "checks/$name" 2>&1); then
+  if ! bash "checks/$name" >/dev/null; then
     echo "FAIL: checks/$name" >&2
-    printf '%s\n' "$output" >&2
-    printf '::error file=checks/%s::%s\n' "$name" "$(GithubEscape "$output")"
+    echo "::error file=checks/$name::Repository check failed"
     exit 1
   fi
 done
