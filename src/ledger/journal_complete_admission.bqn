@@ -191,8 +191,8 @@ Admit ← {𝕊 raw‿accounts‿registry:
   diagnostics ← declarations.diagnostics
   transactions ← empty
   starts ← (IsDateHeader¨ Trim¨ lines) / ↕ ≠ lines
-  structuralAccountKeys ← accounts.key
-  {𝕊: structuralAccountKeys↩{𝕩.account_key}¨declarations.accounts}⍟(0<≠declarations.accounts) @
+  structuralAccountKeys ← {𝕩.account_key}¨declarations.accounts
+  {𝕊: structuralAccountKeys↩accounts.key}⍟((0=≠structuralAccountKeys) ∧ 0<≠starts) @
 
   {𝕊:
     {𝕊 transactionIndex:
