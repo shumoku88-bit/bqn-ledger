@@ -1,26 +1,17 @@
 #!/usr/bin/env bash
-# Strict source-facing destination readiness command. Not a report section.
+# Strict source-facing readiness command for the canonical Household root.
 set -euo pipefail
-if [[ $# -ne 7 ]]; then
-  echo 'Usage: tools/ledger-check BASE JOURNAL PLAN_COORDINATE BUDGET CYCLE ISSUES DAILY_SCOPE' >&2
+if [[ $# -ne 1 ]]; then
+  echo 'Usage: tools/ledger-check BASE' >&2
   exit 2
 fi
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 base=$1
-journal_coordinate=$2
-plan_coordinate=$3
-budget_coordinate=$4
-cycle_coordinate=$5
-issues_coordinate=$6
-daily_scope_coordinate=$7
 [[ $base == /* ]] || base="$PWD/$base"
 
-# Retained coordinates are Phase 7 operational request-shape shells only. None
-# can redirect canonical Household I/O, including the historical Issues slot.
-for name in accounts.journal actual.journal plan.journal budget.journal budget.toml household.toml issues.tsv; do
+for name in accounts.journal actual.journal plan.journal budget.journal budget.toml household.toml report.toml issues.tsv; do
   [[ -f $base/$name && -r $base/$name ]] \
     || { printf 'ERROR\tsource_unreadable\trequired canonical source is not readable: %s\n' "$name" >&2; exit 1; }
 done
 cd "$root"
-exec bqn src/application/ledger_check_cli.bqn "$base" "$journal_coordinate" "$plan_coordinate" \
-  "$budget_coordinate" "$cycle_coordinate" "$issues_coordinate" "$daily_scope_coordinate"
+exec bqn src/application/ledger_check_cli.bqn "$base"
