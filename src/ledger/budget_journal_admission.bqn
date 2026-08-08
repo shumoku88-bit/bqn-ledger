@@ -4,7 +4,7 @@
 # Account resolution, balancing, elision, Posting order, and source coordinates.
 # This owner adds only Household Budget movement meaning: every transaction is
 # exactly two Budget postings, source order is from then to, and their exact
-# amounts are opposites. No legacy allocation row or writer policy is involved.
+# resolved amounts are opposites. No legacy allocation row or writer policy is involved.
 
 journal ← •Import "journal_complete_admission.bqn"
 empty ← ⟨⟩
@@ -74,7 +74,7 @@ Admit ← {𝕊 raw‿accounts‿registry:
         }¨postings
         diagnostics∾↩AddIf ⟨¬∧´"budget"⊸≡¨roles,Diagnostic ⟨"budget_movement_posting_not_budget",transaction.source_start_line,"Budget movement postings must resolve to Budget Accounts"⟩⟩
         from‿to ← postings
-        exactOpposites ← (from.commodity≡to.commodity) ∧ (from.source_scale=to.source_scale) ∧ 0=from.source_coefficient+to.source_coefficient
+        exactOpposites ← (from.commodity≡to.commodity) ∧ 0=from.normalized_coefficient+to.normalized_coefficient
         diagnostics∾↩AddIf ⟨¬exactOpposites,Diagnostic ⟨"budget_movement_postings_not_exact_opposites",transaction.source_start_line,"Budget movement postings must be exact opposites"⟩⟩
       }⍟binary @
     }¨sourceTransactions
