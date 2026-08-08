@@ -79,7 +79,8 @@ Project ← {𝕊 admitted‿admittedAccounts:
       diagnostics ∾↩ AddIf ⟨¬accountKnown, Diagnostic ⟨"posting_account_unknown","posting account must occur in the admitted account table"⟩⟩
       {𝕊:
         ai ← IndexOf ⟨posting.account_key,accountKeys⟩
-        diagnostics ∾↩ AddIf ⟨(ai⊑accountCurrencies) ≢ transaction.domain, Diagnostic ⟨"posting_account_domain_mismatch","posting account currency must equal transaction domain"⟩⟩
+        accountDefault ← ai⊑accountCurrencies
+        diagnostics ∾↩ AddIf ⟨(0<≠accountDefault) ∧ (accountDefault ≢ transaction.domain), Diagnostic ⟨"posting_account_domain_mismatch","Account default Commodity must match transaction domain when declared"⟩⟩
       }⍟(accountKnown ∧ accountColumnsAligned) @
     }¨ transaction.postings
     coefficients ← {𝕩.normalized_coefficient}¨ transaction.postings

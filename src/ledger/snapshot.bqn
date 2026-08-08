@@ -1,5 +1,5 @@
 # Pure canonical ledger snapshot admission.
-# Composition supplies already-read account lines, raw Journal text, and registry.
+# Composition supplies already-read source values and registry policy.
 # No report, context, Plan/Budget, path, clock, or source I/O is accepted here.
 
 accountAdmission ← •Import "account_admission.bqn"
@@ -18,26 +18,30 @@ EmptyFacts ← {𝕊:
   }
 }
 
+BuildFromAccounts ← {𝕊 admittedAccounts‿rawJournal‿registry:
+  diagnostics ← empty
+  journalResult ← journalAdmission.Admit ⟨rawJournal,admittedAccounts,registry⟩
+  diagnostics ∾↩ journalResult.diagnostics
+  factResult ← EmptyFacts @
+  {𝕊:
+    factResult ↩ facts.Project ⟨journalResult,admittedAccounts⟩
+    diagnostics ∾↩ factResult.diagnostics
+  }⍟(journalResult.state≡"ok") @
+  state ← ((journalResult.state≡"ok") ∧ factResult.state≡"ok")⊑"error"‿"ok"
+  {state⇐state,facts⇐factResult,diagnostics⇐diagnostics}
+}
+
 Build ← {𝕊 accountLines‿rawJournal‿registry:
   diagnostics ← empty
   accountResult ← accountAdmission.Admit ⟨accountLines,registry⟩
   diagnostics ∾↩ accountResult.diagnostics
-  journalResult ← {state⇐"error",declared_domains⇐empty,transactions⇐empty,diagnostics⇐empty}
-  factResult ← EmptyFacts @
+  result ← {state⇐"error",facts⇐EmptyFacts @,diagnostics⇐diagnostics}
   {𝕊:
-    journalResult ↩ journalAdmission.Admit ⟨rawJournal,accountResult.accounts,registry⟩
-    diagnostics ∾↩ journalResult.diagnostics
-    {𝕊:
-      factResult ↩ facts.Project ⟨journalResult,accountResult.accounts⟩
-      diagnostics ∾↩ factResult.diagnostics
-    }⍟(journalResult.state≡"ok") @
+    built ← BuildFromAccounts ⟨accountResult.accounts,rawJournal,registry⟩
+    diagnostics ∾↩ built.diagnostics
+    result ↩ {state⇐built.state,facts⇐built.facts,diagnostics⇐diagnostics}
   }⍟(accountResult.state≡"ok") @
-  state ← ((accountResult.state≡"ok") ∧ (journalResult.state≡"ok") ∧ factResult.state≡"ok")⊑"error"‿"ok"
-  {
-    state⇐state,
-    facts⇐factResult,
-    diagnostics⇐diagnostics
-  }
+  result
 }
 
-{Build⇐Build}
+{Build⇐Build,BuildFromAccounts⇐BuildFromAccounts}

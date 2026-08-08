@@ -1,17 +1,21 @@
 # journal_complete_admission.bqn
 # Production complete-source admission for a multi-currency Journal container.
 #
-# One raw Journal may declare several registry-supported currency domains while
-# every ordinary transaction remains single-domain and balances within its own
-# exact calculation scale. A declaration-only Journal is a valid empty Actual
-# source. No Journal-wide money domain, scale, or total exists.
+# One raw Journal may declare several registry-supported currency domains, or
+# omit top-level commodity declarations when Account identity is owned outside
+# the Journal. Legacy inline-Account Journals retain their explicit commodity
+# declaration contract. Every ordinary transaction remains single-domain and
+# balances within its own exact calculation scale. A transaction-free Journal
+# is valid. No Journal-wide money domain, scale, or total exists.
 
 dates ← •Import "date_ordinal.bqn"
 single ← •Import "journal_single_domain_admission.bqn"
+postingText ← •Import "journal_posting_text.bqn"
 
 lf ← @+10
 cr ← @+13
 space ← @+32
+tab ← @+9
 empty ← ⟨⟩
 SplitKeepEmpty ← {𝕊 sep‿text:
   groups ← (+`sep=text)⊔text
@@ -22,20 +26,22 @@ Split ← {𝕊 sep‿text:
   (0<≠¨parts)/parts
 }
 
+IsWhitespace ← {𝕊 c: (c=space) ∨ c=tab }
 TrimLeft ← {𝕊 xs:
-  prefix ← ∧` (xs = space)
-  (+´ prefix) ↓ xs
+  prefix ← ∧` IsWhitespace¨xs
+  (+´prefix)↓xs
 }
 TrimRight ← {𝕊 xs:
-  suffix ← ∧` ((⌽ xs) = space)
-  ((≠ xs) - +´ suffix) ↑ xs
+  reversed ← ⌽xs
+  trimmed ← TrimLeft reversed
+  ⌽trimmed
 }
 Trim ← { TrimRight TrimLeft 𝕩 }
 StartsWith ← {𝕊 prefix‿text: prefix ≡ (≠ prefix) ↑ text }
 Contains ← {𝕊 item‿items: ∨´ 0 ∾ item⊸≡¨ items }
 IsDateHeader ← {𝕊 text:
   enough ← 10 < ≠ text
-  separator ← space = 10 ⊑ (text ∾ 11 ⥊ space)
+  separator ← IsWhitespace 10 ⊑ (text ∾ 11 ⥊ space)
   enough ∧ separator ∧ dates.IsValid 10 ↑ text
 }
 
@@ -49,7 +55,6 @@ Declarations ← {𝕊 lines‿registry:
   domains ← empty
   domainLines ← empty
   accounts ← empty
-  commodityCount ← 0
   {𝕊 lineIndex:
     text ← Trim lineIndex ⊑ lines
     {𝕊:
@@ -66,12 +71,10 @@ Declarations ← {𝕊 lines‿registry:
         }⍟(policy.state ≡ "ok") @
       }⍟valid @
     }⍟(StartsWith ⟨"commodity ", text⟩) @
-    commodityCount +↩ StartsWith ⟨"commodity ", text⟩
     {𝕊: accounts ∾↩ ⟨{text⇐text,account_key⇐8↓text,source_line⇐lineIndex+1}⟩}⍟(StartsWith ⟨"account ",text⟩) @
   }¨ ↕ ≠ lines
   duplicate ← (≠ domains) ≠ ≠ ⍷ domains
   diagnostics ∾↩ AddIf ⟨duplicate, Diagnostic ⟨"commodity_domain_duplicate", 0, "each declared commodity domain must appear once"⟩⟩
-  diagnostics ∾↩ AddIf ⟨0 = commodityCount, Diagnostic ⟨"commodity_domain_missing", 0, "Journal must declare at least one supported commodity"⟩⟩
   {domains⇐domains, domain_lines⇐domainLines, accounts⇐accounts, diagnostics⇐diagnostics}
 }
 
@@ -88,26 +91,25 @@ PostingDomains ← {𝕊 blockLines:
   {𝕊 offset:
     original ← offset ⊑ blockLines
     trimmed ← Trim original
-    indented ← space = ⊑ (original ∾ " ")
+    indented ← IsWhitespace ⊑(original∾" ")
     metadata ← ';' = ⊑ (trimmed ∾ ";")
     candidate ← indented ∧ (0 < ≠ trimmed) ∧ (¬ metadata)
     {𝕊:
-      fields ← Split ⟨space,trimmed⟩
-      valid ← 3 = ≠ fields
-      diagnostics ∾↩ AddIf ⟨¬ valid, Diagnostic ⟨"posting_shape_invalid", offset + 1, "posting must contain account, explicit amount, and commodity"⟩⟩
-      {𝕊: domains ∾↩ ⟨2 ⊑ fields⟩}⍟valid @
+      parsed ← postingText.Split original
+      diagnostics ∾↩ AddIf ⟨¬parsed.valid, Diagnostic ⟨"posting_shape_invalid", offset + 1, "posting must contain account plus explicit amount and commodity, or one elided account only"⟩⟩
+      {𝕊: domains ∾↩ ⟨1⊑parsed.words⟩}⍟parsed.explicit @
     }⍟candidate @
   }¨ ↕ ≠ blockLines
   {domains⇐⍷ domains, diagnostics⇐diagnostics}
 }
 
-BuildPartition ← {𝕊 domain‿domainLine‿accounts‿blockLines‿blockStart:
+BuildPartition ← {𝕊 domain‿domainLine‿structuralAccountKeys‿blockLines‿blockStart:
   partitionLines ← ⟨"commodity " ∾ domain, ""⟩
   lineMap ← ⟨domainLine, 0⟩
-  {𝕊 account:
-    partitionLines ∾↩ ⟨account.text, ""⟩
-    lineMap ∾↩ ⟨account.source_line, 0⟩
-  }¨ accounts
+  {𝕊 accountKey:
+    partitionLines ∾↩ ⟨"account "∾accountKey, ""⟩
+    lineMap ∾↩ ⟨0,0⟩
+  }¨ structuralAccountKeys
   partitionLines ∾↩ blockLines
   lineMap ∾↩ blockStart + 1 + ↕ ≠ blockLines
   {raw⇐∾ (partitionLines ∾¨ lf), line_map⇐lineMap}
@@ -188,6 +190,8 @@ Admit ← {𝕊 raw‿accounts‿registry:
   lines ← SplitKeepEmpty ⟨lf,normalizedRaw⟩
   declarations ← Declarations ⟨lines,registry⟩
   diagnostics ← declarations.diagnostics
+  inlineAccounts ← 0<≠declarations.accounts
+  diagnostics ∾↩ AddIf ⟨inlineAccounts ∧ 0=≠declarations.domains, Diagnostic ⟨"commodity_domain_missing",0,"Journal with inline Account declarations must declare at least one commodity domain"⟩⟩
   transactions ← empty
   starts ← (IsDateHeader¨ Trim¨ lines) / ↕ ≠ lines
 
@@ -203,34 +207,36 @@ Admit ← {𝕊 raw‿accounts‿registry:
       }¨ domainEvidence.diagnostics
       shapeOk ← 0 = ≠ localDiagnostics
       domainCountOk ← 1 = ≠ domainEvidence.domains
-      localDiagnostics ∾↩ AddIf ⟨shapeOk ∧ (¬ domainCountOk), Diagnostic ⟨"transaction_domain_count_invalid", start + 1, "ordinary transaction must contain exactly one posting currency domain"⟩⟩
+      localDiagnostics ∾↩ AddIf ⟨shapeOk ∧ (¬ domainCountOk), Diagnostic ⟨"transaction_domain_count_invalid", start + 1, "ordinary transaction must contain exactly one explicit posting currency domain"⟩⟩
       {𝕊:
         domain ← ⊑ domainEvidence.domains
+        declarationRequired ← 0 < ≠ declarations.domains
         declared ← Contains ⟨domain, declarations.domains⟩
-        localDiagnostics ∾↩ AddIf ⟨¬ declared, Diagnostic ⟨"transaction_domain_undeclared", start + 1, "ordinary transaction currency must be declared by the Journal"⟩⟩
+        localDiagnostics ∾↩ AddIf ⟨declarationRequired ∧ (¬ declared), Diagnostic ⟨"transaction_domain_undeclared", start + 1, "ordinary transaction currency must be declared by the Journal when commodity declarations are present"⟩⟩
         {𝕊:
+          structuralAccountKeys ← {𝕩.account_key}¨declarations.accounts
+          {𝕊: structuralAccountKeys↩accounts.key}⍟(0=≠structuralAccountKeys) @
           domainLine ← DomainSourceLine ⟨domain, declarations⟩
-          partition ← BuildPartition ⟨domain, domainLine, declarations.accounts, blockLines, start⟩
+          {𝕊: domainLine ↩ start + 1}⍟(0=domainLine) @
+          partition ← BuildPartition ⟨domain, domainLine, structuralAccountKeys, blockLines, start⟩
           admitted ← single.Admit ⟨partition.raw,accounts,registry⟩
           localDiagnostics ∾↩ {MapDiagnostic ⟨𝕩, partition.line_map⟩}¨ admitted.diagnostics
           {𝕊:
             transaction ← MapTransaction ⟨⊑ admitted.transactions, partition.line_map⟩
             transactions ∾↩ ⟨transaction⟩
           }⍟((admitted.state ≡ "ok") ∧ (1 = ≠ admitted.transactions)) @
-        }⍟declared @
+        }⍟((¬declarationRequired) ∨ declared) @
       }⍟(shapeOk ∧ domainCountOk) @
       diagnostics ∾↩ localDiagnostics
     }¨ ↕ ≠ starts
-  }⍟(0 = ≠ declarations.diagnostics) @
+  }⍟(0 = ≠ diagnostics) @
 
-  # Zero transactions is a valid complete-source snapshot. Declarations are
-  # still checked above; consumers receive an empty transaction carrier and
-  # apply the same empty-domain rule for every selected currency.
   diagnostics ∾↩ CrossTransactionDiagnostics transactions
   {𝕊: transactions ↩ empty}⍟(0 < ≠ diagnostics) @
+  admittedDomains ← ⍷ declarations.domains ∾ {𝕩.domain}¨transactions
   {
     state⇐(0 = ≠ diagnostics) ⊑ "error"‿"ok",source_name⇐"actual.journal",
-    declared_domains⇐declarations.domains,
+    declared_domains⇐admittedDomains,
     declared_layers⇐⍷ ⟨"actual"⟩∾{𝕩.layer_name}¨transactions,
     declared_accounts⇐{𝕩.account_key}¨declarations.accounts,
     transactions⇐transactions,
