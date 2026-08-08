@@ -12,6 +12,7 @@ Local verification was performed from detached temporary worktrees with no edits
 - `origin/main`: `e35203c856ef27fed52dfe955825472104823198`
 - initial Phase 0 head: `ac3b051562aadeaf57e2d99f955bbb302b5bd4f3`
 - first updated-head rerun: `ee801d4c640775368de6f0d353982101d572af4c`
+- second updated-head rerun: `5419f95a69b84408234f32dd467825a5f51f271b`
 
 ## Baseline result
 
@@ -22,23 +23,25 @@ The current remote `main` baseline is healthy:
 
 Therefore canonical source recovery does not require a pre-migration baseline-repair PR.
 
-The initial Phase 0 branch failed only in the new `tests/test_application_canonical_household_sources.bqn` assertion. The failure was a BQN train parse error in a redundant count assertion after the exact `expected ≡ sources.Basenames` contract. The redundant assertions were removed rather than preserved as extra syntax.
+The canonical source topology shell check and `git diff --check` have remained green in each local Phase 0 verification.
 
-The canonical source topology shell check and `git diff --check` both passed in the initial local verification.
+## BQN role corrections found by executable verification
 
-## Updated-head rerun result
+The initial Phase 0 branch failed in the new `tests/test_application_canonical_household_sources.bqn` assertion. The failure was a BQN train parse error in redundant count assertions after the exact ordered-list equality contract. Those redundant assertions were removed rather than replaced with more syntax.
 
-The first updated-head rerun at `ee801d4c640775368de6f0d353982101d572af4c` produced:
+The first updated-head rerun at `ee801d4c640775368de6f0d353982101d572af4c` then exposed a source-owner error: canonical basenames are Subject values, but the implementation assigned string Subjects directly to uppercase identifiers such as `Accounts`, which BQN assigns a Function role.
 
-- focused canonical-source BQN test: FAIL;
-- canonical topology shell guard: PASS;
-- `tools/check.sh`: FAIL at the same new BQN test;
-- `git diff --check`: PASS;
-- final temporary worktree status: clean.
+That implementation was changed to lowercase Subject locals. The second updated-head rerun at `5419f95a69b84408234f32dd467825a5f51f271b` correctly showed that the remaining uppercase export fields such as `Accounts⇐accounts` still violate the same role rule. An uppercase namespace field is itself Function-role; it cannot directly hold a Subject value.
 
-The failure was in `src/application/canonical_household_sources.bqn`: canonical basenames are Subject values, but the first implementation assigned string Subjects directly to uppercase identifiers such as `Accounts`, which BQN assigns a Function role. The repository's active `docs/CONVENTIONS.md` already defines the correct pattern: keep Subject values in lowercase locals and export them through uppercase namespace fields.
+Repository examples confirm the correct distinction: Function exports use uppercase Function-role names such as `Parse`, while Subject-valued namespace fields use lowercase names such as `state`, `coefficient`, or `value`.
 
-The source owner was therefore corrected without changing its public namespace surface: callers still use fields such as `sources.Accounts`, while the implementation now stores `accounts`, `actual`, `plan`, `budget`, policy filenames, `issues`, and `basenames` as lowercase Subject locals before export.
+The canonical source owner now follows that native BQN shape end to end:
+
+- lowercase Subject locals;
+- lowercase Subject namespace fields: `accounts`, `actual`, `plan`, `budget`, `budgetPolicy`, `householdPolicy`, `reportPolicy`, `issues`, `basenames`;
+- no compatibility wrapper or Function-valued getter is introduced merely to preserve an unused uppercase field shape.
+
+Only the new Phase 0 test referenced the earlier uppercase field names, so changing the new namespace surface introduces no production caller migration.
 
 A further updated-head rerun is required before PR #551 becomes Ready.
 
