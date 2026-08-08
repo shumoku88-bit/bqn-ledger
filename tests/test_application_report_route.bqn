@@ -27,19 +27,19 @@ successCases ← ⟨
   ⟩,
   ⟨
     "balances","json",⟨"JPY","2026-01-12","actual.journal"⟩,
-    ⟨"domain","as_of","actual_source"⟩,⟨2⟩,⟨"journal"⟩,⟨"actual"⟩
+    ⟨"domain","as_of","actual_source"⟩,⟨2⟩,⟨"canonical-journal"⟩,⟨"actual"⟩
   ⟩,
   ⟨
     "balance-sheet","human",⟨"JPY","2026-01-12","actual.journal"⟩,
-    ⟨"domain","as_of","actual_source"⟩,⟨2⟩,⟨"journal"⟩,⟨"actual"⟩
+    ⟨"domain","as_of","actual_source"⟩,⟨2⟩,⟨"canonical-journal"⟩,⟨"actual"⟩
   ⟩,
   ⟨
     "profit-and-loss","human",⟨"JPY","2026-01-01","2026-02-01","actual.journal"⟩,
-    ⟨"domain","start","end_exclusive","actual_source"⟩,⟨3⟩,⟨"journal"⟩,⟨"actual"⟩
+    ⟨"domain","start","end_exclusive","actual_source"⟩,⟨3⟩,⟨"canonical-journal"⟩,⟨"actual"⟩
   ⟩,
   ⟨
     "recent","compact",⟨"10","actual.journal"⟩,
-    ⟨"limit","actual_source"⟩,⟨1⟩,⟨"journal"⟩,⟨"actual"⟩
+    ⟨"limit","actual_source"⟩,⟨1⟩,⟨"canonical-journal"⟩,⟨"actual"⟩
   ⟩,
   ⟨
     "planned","human",⟨"2026-01-12","actual.journal","plan.tsv","cycle.tsv"⟩,
@@ -63,7 +63,7 @@ successCases ← ⟨
   ⟨
     "monthly-accounts","human",⟨"JPY","2026-01","2026-03","actual.journal"⟩,
     ⟨"domain","first_month","last_month_exclusive","actual_source"⟩,
-    ⟨3⟩,⟨"journal"⟩,⟨"actual"⟩
+    ⟨3⟩,⟨"canonical-journal"⟩,⟨"actual"⟩
   ⟩,
   ⟨
     "daily-flow","human",⟨"JPY","2026-01-01","2026-02-01","2026-01-12","actual.journal"⟩,
