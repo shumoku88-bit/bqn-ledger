@@ -1,0 +1,23 @@
+account Assets:Bank
+  type: Asset
+  commodity: JPY
+
+account Equity:Opening
+  type: Equity
+  commodity: JPY
+
+account Income:Salary
+  type: Income
+  commodity: JPY
+
+account Expenses:Groceries
+  type: Expense
+  commodity: JPY
+
+account Budget:Unassigned
+  type: Budget
+  commodity: JPY
+
+account Budget:Daily
+  type: Budget
+  commodity: JPY
