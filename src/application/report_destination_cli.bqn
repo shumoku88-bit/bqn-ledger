@@ -137,7 +137,7 @@ composition ← {state⇐"error",key⇐key,result⇐empty,diagnostics⇐empty}
 }⍟(key≡"monthly-accounts") @
 {𝕊:
   domain‿start‿finish‿observation‿journal ← coordinates
-  actual ← sources.CanonicalActual ⟨base,registry⟩
+  actual ← sources.Actual ⟨base,journal,registry⟩
   {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
   composition↩compose.DailyFlow ⟨actual.facts,domain,start,finish,observation⟩
 }⍟(key≡"daily-flow") @
