@@ -24,6 +24,20 @@ account budget:food
 account budget:spent
     ; role: budget
 
+2025-12-01 * prior salary anchor
+    ; event-id: proof-prior-salary
+    ; layer: actual
+    ; currency: JPY
+    assets:cash 1 JPY
+    income:salary -1 JPY
+
+2025-12-02 * neutralize prior anchor proof
+    ; event-id: proof-prior-neutralize
+    ; layer: actual
+    ; currency: JPY
+    income:salary 1 JPY
+    assets:cash -1 JPY
+
 2026-01-02 * salary
     ; event-id: proof-salary-1
     ; layer: actual
