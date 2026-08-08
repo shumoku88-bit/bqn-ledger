@@ -55,7 +55,7 @@ cmp "$tmp/all-compact" "$tmp/all-compact-expected"
 
 mkdir "$tmp/actual-only" "$tmp/issues-only" "$tmp/cycle-only" "$tmp/planned-only" \
   "$tmp/income-cycle" "$tmp/envelope-only" "$tmp/daily-only"
-cp "$fixture/accounts.tsv" "$fixture/actual.journal" "$tmp/actual-only/"
+cp "$fixture/accounts.journal" "$fixture/actual.journal" "$tmp/actual-only/"
 cp "$fixture/issues.destination.tsv" "$tmp/issues-only/"
 ./tools/report "$tmp/actual-only" recent human 2 actual.journal >/dev/null
 ./tools/report "$tmp/actual-only" balance-sheet human JPY 2026-01-12 actual.journal >/dev/null
@@ -103,7 +103,7 @@ grep -F $'report_surface_unsupported' "$tmp/unsupported" >/dev/null
 if ./tools/report "$tmp/issues-only" balances human JPY 2026-01-12 missing.journal >"$tmp/unreadable" 2>&1; then
   echo 'FAIL: missing required source succeeded' >&2; exit 1
 fi
-grep -F $'source_unreadable' "$tmp/unreadable" >/dev/null
+grep -F $'actual_source_not_canonical' "$tmp/unreadable" >/dev/null
 if ./tools/report "$tmp/not-present" all human >"$tmp/all" 2>&1; then
   echo 'FAIL: all without manifest succeeded' >&2; exit 1
 fi
