@@ -1,5 +1,10 @@
 include accounts.journal
 
+2026-01-02 historical next-income boundary
+  ; plan-id: plan-income-2026-01
+  income:salary  -1 JPY
+  assets:cash  1 JPY
+
 2026-01-15 rent
   ; plan-id: plan-rent-daily-target
   ; daily-target-id: rent
