@@ -4,34 +4,34 @@
 # select writer authority, or provide legacy fallback. Migration adapters import
 # these names instead of reconstructing basenames independently.
 
-Accounts ← "accounts.journal"
-Actual ← "actual.journal"
-Plan ← "plan.journal"
-Budget ← "budget.journal"
-BudgetPolicy ← "budget.toml"
-HouseholdPolicy ← "household.toml"
-ReportPolicy ← "report.toml"
-Issues ← "issues.tsv"
+accounts ← "accounts.journal"
+actual ← "actual.journal"
+plan ← "plan.journal"
+budget ← "budget.journal"
+budgetPolicy ← "budget.toml"
+householdPolicy ← "household.toml"
+reportPolicy ← "report.toml"
+issues ← "issues.tsv"
 
-Basenames ← ⟨
-  Accounts,
-  Actual,
-  Plan,
-  Budget,
-  BudgetPolicy,
-  HouseholdPolicy,
-  ReportPolicy,
-  Issues
+basenames ← ⟨
+  accounts,
+  actual,
+  plan,
+  budget,
+  budgetPolicy,
+  householdPolicy,
+  reportPolicy,
+  issues
 ⟩
 
 {
-  Accounts⇐Accounts,
-  Actual⇐Actual,
-  Plan⇐Plan,
-  Budget⇐Budget,
-  BudgetPolicy⇐BudgetPolicy,
-  HouseholdPolicy⇐HouseholdPolicy,
-  ReportPolicy⇐ReportPolicy,
-  Issues⇐Issues,
-  Basenames⇐Basenames
+  Accounts⇐accounts,
+  Actual⇐actual,
+  Plan⇐plan,
+  Budget⇐budget,
+  BudgetPolicy⇐budgetPolicy,
+  HouseholdPolicy⇐householdPolicy,
+  ReportPolicy⇐reportPolicy,
+  Issues⇐issues,
+  Basenames⇐basenames
 }
