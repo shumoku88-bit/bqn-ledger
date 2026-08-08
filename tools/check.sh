@@ -18,7 +18,6 @@ done
 echo '[2/3] final report checks' >&2
 for check in \
   checks/check-ledger-facts.sh \
-  checks/check-report-manifest-config.sh \
   checks/check-report-manifest-routing.sh \
   checks/check-report-route-plan-shell.sh \
   checks/check-report-destination-route-admission.sh \
@@ -26,10 +25,12 @@ for check in \
   checks/check-report-composition.sh \
   checks/check-canonical-actual-reports.sh \
   checks/check-canonical-household-read-cutover.sh \
+  checks/check-canonical-report-policy-cutover.sh \
   checks/check-current-report-profile.sh \
   checks/check-report-cache.sh \
   checks/check-report-section-metadata.sh \
   checks/check-report-summary-query.sh \
+  checks/check-report-presentation-policy.sh \
   checks/check-ledger-operations.sh; do
   bash "$check" >/dev/null || {
     echo "FAIL: $check" >&2

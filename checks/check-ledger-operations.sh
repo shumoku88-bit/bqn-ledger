@@ -20,9 +20,9 @@ Compare() {
   }
 }
 
-# Retained CLI coordinates are request-shape shells only until Phase 6.
+# Retained operational coordinates are request-shape shells only until Phase 7.
 if ! ./tools/ledger-check "$fixture" bad/journal bad/plan.tsv bad/budget_alloc.tsv bad/cycle.tsv \
-  issues.destination.tsv bad/daily_target_scope.tsv >"$work/check"; then
+  bad/issues.tsv bad/daily_target_scope.tsv >"$work/check"; then
   head -n 8 "$work/check" >&2 || true
   diagnostic=$(head -n 1 "$work/check" | head -c 300)
   echo "::error file=checks/check-ledger-operations.sh::canonical ledger-check failed: $diagnostic" >&2
@@ -33,13 +33,13 @@ Compare 'canonical ledger-check output mismatch' "$work/check" "$fixture/ledger_
 Compare 'canonical ledger-inspect output mismatch' "$work/inspect" "$fixture/ledger_inspect.destination.txt"
 
 cp -R "$fixture" "$work/invalid"
-printf 'bad\theader\n' >"$work/invalid/issues-invalid.tsv"
+printf 'bad\theader\n' >"$work/invalid/issues.tsv"
 if ./tools/ledger-check "$work/invalid" bad/journal bad/plan.tsv bad/budget_alloc.tsv bad/cycle.tsv \
-  issues-invalid.tsv bad/daily_target_scope.tsv >"$work/invalid.out" 2>&1; then
-  Fail 'ledger-check accepted invalid Issues'
+  bad/issues.tsv bad/daily_target_scope.tsv >"$work/invalid.out" 2>&1; then
+  Fail 'ledger-check accepted invalid canonical Issues'
 fi
-grep -F 'issue_header_invalid' "$work/invalid.out" >/dev/null || Fail 'invalid Issues diagnostic missing'
-! grep -F $'ledger_check\tstate\tok' "$work/invalid.out" >/dev/null || Fail 'invalid Issues published ok state'
+grep -F 'issue_header_invalid' "$work/invalid.out" >/dev/null || Fail 'invalid canonical Issues diagnostic missing'
+! grep -F $'ledger_check\tstate\tok' "$work/invalid.out" >/dev/null || Fail 'invalid canonical Issues published ok state'
 
 # A path-shaped Journal coordinate cannot redirect canonical Actual inspection.
 ./tools/ledger-inspect "$work/invalid" missing.journal >"$work/ignored-journal-coordinate" || Fail 'ignored Journal coordinate changed inspect success'

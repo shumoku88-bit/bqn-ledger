@@ -2,8 +2,9 @@
 set -euo pipefail
 
 # Build the command-hub preview cache away from live preview files, then publish
-# complete files atomically. Callers may run this synchronously or in the
-# background; an exclusive lock prevents duplicate refreshes.
+# complete files atomically. Request configuration comes from canonical
+# report.toml; callers provide only the selected report domain and optional
+# deterministic latest date.
 
 SOURCE="${BASH_SOURCE[0]}"
 while [ -L "$SOURCE" ]; do
@@ -15,15 +16,16 @@ SCRIPT_DIR="$(cd -P "$(dirname "$SOURCE")" >/dev/null 2>&1 && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$ROOT_DIR"
 
-if [[ $# -ne 4 ]]; then
-  echo "Usage: tools/command-hub-cache-refresh <base> <cache-dir> <source-mtime> <human-manifest>" >&2
+if [[ $# -lt 4 || $# -gt 5 ]]; then
+  echo "Usage: tools/command-hub-cache-refresh <base> <cache-dir> <source-mtime> <domain> [latest]" >&2
   exit 2
 fi
 
 base_abs="$1"
 cache_dir="$2"
 source_mtime="$3"
-human_manifest="$4"
+domain="$4"
+latest="${5:-}"
 [[ "$source_mtime" =~ ^[0-9]+$ ]] || { echo "Error: source mtime must be a non-negative integer" >&2; exit 2; }
 [[ -d "$base_abs" ]] || { echo "Error: base directory does not exist" >&2; exit 2; }
 mkdir -p "$cache_dir"
@@ -60,23 +62,15 @@ cleanup() {
 }
 trap cleanup EXIT
 
-manifest_copy="$stage_dir/current-human.tsv"
-if [[ "$human_manifest" == /* ]]; then
-  cp "$human_manifest" "$manifest_copy"
-else
-  cp "$base_abs/$human_manifest" "$manifest_copy"
-fi
-# Publish the refreshing marker only after the generated manifest is owned by
-# this child; the parent may delete its temporary copy as soon as it sees it.
 touch "$refreshing_file"
 
 if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && -n "${COMMAND_HUB_CACHE_TEST_BEFORE_BUILD_HOOK:-}" ]]; then
   "$COMMAND_HUB_CACHE_TEST_BEFORE_BUILD_HOOK"
 fi
 
-# The final catalog route owns every body and publishes a complete staged cache.
-if ! "$ROOT_DIR/tools/report-cache" "$base_abs" "$full_stage" "$source_mtime" "$manifest_copy" \
-  >"$stage_dir/full.out" 2>"$stage_dir/full.err"; then
+cache_args=("$base_abs" "$full_stage" "$source_mtime" "$domain")
+[[ -z "$latest" ]] || cache_args+=("$latest")
+if ! "$ROOT_DIR/tools/report-cache" "${cache_args[@]}" >"$stage_dir/full.out" 2>"$stage_dir/full.err"; then
   {
     cat "$stage_dir/full.err"
     cat "$stage_dir/full.out"
@@ -100,8 +94,6 @@ while IFS= read -r key; do
 done <"$key_manifest"
 [[ "$key_count" -gt 0 && "$has_all" -eq 1 ]] || { echo "Error: incomplete report cache key manifest" >&2; exit 1; }
 
-# Each visible file and then its canonical key manifest is published by atomic
-# rename. The timestamp is published last as the complete-generation commit.
 while IFS= read -r key; do
   mv -f "$full_stage/$key.txt" "$cache_dir/$key.txt"
 done <"$key_manifest"

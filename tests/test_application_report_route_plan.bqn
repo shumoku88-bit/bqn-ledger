@@ -11,42 +11,28 @@ Check ← {𝕊 args‿exitCode‿lines:
 }
 
 Check ⟨
-  ⟨"envelopes","human","JPY","2026-01-01","2026-02-01","2026-01-12","actual.journal","ignored-plan","ignored-budget","ignored-funding"⟩,
-  0,
-  ⟨"ROUTE"∾tab∾"envelopes"∾tab∾"human"∾tab∾"8"∾tab∾"1",
-    "SOURCE"∾tab∾"4"∾tab∾"canonical-journal"∾tab∾"actual"⟩
+  ⟨"envelopes","human","JPY","2026-01-01","2026-02-01","2026-01-12"⟩,
+  0,⟨"ROUTE"∾tab∾"envelopes"∾tab∾"human"∾tab∾"4"∾tab∾"0"⟩
 ⟩
-
 Check ⟨
-  ⟨"cycle-accounts","human","JPY","2026-01-12","actual.journal","ignored-cycle","ignored-plan"⟩,
-  0,
-  ⟨"ROUTE"∾tab∾"cycle-accounts"∾tab∾"human"∾tab∾"5"∾tab∾"1",
-    "SOURCE"∾tab∾"2"∾tab∾"canonical-journal"∾tab∾"actual"⟩
+  ⟨"cycle-accounts","human","JPY","2026-01-12"⟩,
+  0,⟨"ROUTE"∾tab∾"cycle-accounts"∾tab∾"human"∾tab∾"2"∾tab∾"0"⟩
 ⟩
-
 Check ⟨
-  ⟨"daily-target","human","JPY","2026-01-12","2026-01-22","actual.journal","ignored-plan","ignored-scope"⟩,
-  0,
-  ⟨"ROUTE"∾tab∾"daily-target"∾tab∾"human"∾tab∾"6"∾tab∾"1",
-    "SOURCE"∾tab∾"3"∾tab∾"canonical-journal"∾tab∾"actual"⟩
+  ⟨"daily-target","human","JPY","2026-01-12","2026-01-22"⟩,
+  0,⟨"ROUTE"∾tab∾"daily-target"∾tab∾"human"∾tab∾"3"∾tab∾"0"⟩
 ⟩
-
 Check ⟨
-  ⟨"profit-and-loss","human","JPY","2026-01-01","2026-02-01","actual.journal"⟩,
-  0,
-  ⟨"ROUTE"∾tab∾"profit-and-loss"∾tab∾"human"∾tab∾"4"∾tab∾"1",
-    "SOURCE"∾tab∾"3"∾tab∾"canonical-journal"∾tab∾"actual"⟩
+  ⟨"profit-and-loss","human","JPY","2026-01-01","2026-02-01"⟩,
+  0,⟨"ROUTE"∾tab∾"profit-and-loss"∾tab∾"human"∾tab∾"3"∾tab∾"0"⟩
 ⟩
-
 Check ⟨
-  ⟨"daily-flow","human","JPY","2026-01-01","2026-02-01","2026-01-12","actual.journal"⟩,
-  0,
-  ⟨"ROUTE"∾tab∾"daily-flow"∾tab∾"human"∾tab∾"5"∾tab∾"1",
-    "SOURCE"∾tab∾"4"∾tab∾"canonical-journal"∾tab∾"actual"⟩
+  ⟨"daily-flow","human","JPY","2026-01-01","2026-02-01","2026-01-12"⟩,
+  0,⟨"ROUTE"∾tab∾"daily-flow"∾tab∾"human"∾tab∾"4"∾tab∾"0"⟩
 ⟩
 
-Check ⟨⟨"recent","human","nope","actual.journal"⟩,1,⟨"ERROR"∾tab∾"limit_invalid"∾tab∾"LIMIT must be decimal digits"⟩⟩
-Check ⟨⟨"all","human","manifest.tsv"⟩,1,⟨"ERROR"∾tab∾"report_route_all_unsupported"∾tab∾"all is a manifest-level selection, not one individual route"⟩⟩
+Check ⟨⟨"recent","human","2026-01-12","nope"⟩,1,⟨"ERROR"∾tab∾"limit_invalid"∾tab∾"LIMIT must be decimal digits"⟩⟩
+Check ⟨⟨"all","human"⟩,1,⟨"ERROR"∾tab∾"report_route_all_unsupported"∾tab∾"all is a request-set selection, not one individual route"⟩⟩
 Check ⟨⟨⟩,2,⟨"ERROR"∾tab∾"usage"∾tab∾"expected KEY SURFACE [COORDINATE...]"⟩⟩
 
 •Out "test_application_report_route_plan: ok"

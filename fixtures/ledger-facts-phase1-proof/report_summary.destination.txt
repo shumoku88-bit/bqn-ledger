@@ -30,6 +30,6 @@ ledger_daily_target_gross_obligations: 200
 ledger_daily_target_already_excluded: 50
 ledger_daily_target_obligation_deduction: 150
 ledger_daily_target_capacity_balance: 815
-ledger_daily_target_remaining_days: 10
-ledger_daily_target_amount: 81
+ledger_daily_target_remaining_days: 20
+ledger_daily_target_amount: 40
 ledger_daily_target_shortfall: 0

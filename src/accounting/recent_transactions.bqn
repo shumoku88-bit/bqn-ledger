@@ -18,7 +18,7 @@ EmptyRows ← {𝕊:
   }
 }
 
-Build ← {𝕊 facts‿limit:
+BuildSelected ← {𝕊 facts‿limit‿eligibleTransactionIndices:
   diagnostics ← empty
   diagnostics ∾↩ AddIf ⟨¬reference.SourceIs ⟨facts,"actual.journal"⟩,Diagnostic ⟨"actual_facts_invalid","Actual facts must be admitted from actual.journal"⟩⟩
   limitInvalid ← (limit≤0) ∨ limit≠⌊limit
@@ -34,8 +34,8 @@ Build ← {𝕊 facts‿limit:
       {𝕊:
         transactions ← facts.transactions
         postings ← facts.postings
-        start ← 0⌈transactions.count-limit
-        selected ← ⌽start↓transactions.index
+        start ← 0⌈(≠eligibleTransactionIndices)-limit
+        selected ← ⌽start↓eligibleTransactionIndices
         selectedCount ← ≠selected
 
         postingCoordinates ← selected⊐postings.transaction_index
@@ -92,4 +92,15 @@ Build ← {𝕊 facts‿limit:
   {state⇐(0=≠diagnostics)⊑"error"‿"ok",limit⇐limit,rows⇐rows,diagnostics⇐diagnostics}
 }
 
-{Build⇐Build}
+Build ← {𝕊 facts‿limit:
+  eligible ← empty
+  {𝕊:eligible↩facts.transactions.index}⍟reference.SourceIs ⟨facts,"actual.journal"⟩
+  BuildSelected ⟨facts,limit,eligible⟩
+}
+BuildThrough ← {𝕊 facts‿throughOrdinal‿limit:
+  eligible ← empty
+  {𝕊:eligible↩(facts.transactions.date_ordinal≤throughOrdinal)/facts.transactions.index}⍟reference.SourceIs ⟨facts,"actual.journal"⟩
+  BuildSelected ⟨facts,limit,eligible⟩
+}
+
+{Build⇐Build,BuildThrough⇐BuildThrough}

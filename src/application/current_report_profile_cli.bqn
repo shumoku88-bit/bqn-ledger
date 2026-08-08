@@ -1,22 +1,19 @@
-# Effectful adapter: admit one concrete human manifest, resolve volatile daily
-# coordinates from canonical Household evidence, and print a complete manifest.
+# Effectful current-request adapter over the canonical Household root.
+# Normal operation reads report.toml and canonical facts. Optional LATEST makes
+# cache/tests deterministic without embedding a clock in pure policy resolution.
 
-io ← •Import "source_io.bqn"
 sources ← •Import "report_source_adapter.bqn"
-route ← •Import "report_route.bqn"
-catalog ← •Import "../report/catalog.bqn"
 cycleResolution ← •Import "cycle_resolution.bqn"
-profile ← •Import "current_report_profile.bqn"
+policyResolution ← •Import "report_policy_resolution.bqn"
+requests ← •Import "current_report_requests.bqn"
+request ← •Import "../report/request.bqn"
 dates ← •Import "../ledger/date_ordinal.bqn"
+today ← •Import "date_today.bqn"
 tab ← @+9
 
+Contains ← {𝕊 item‿items:∨´0∾item⊸≡¨items}
 Fail ← {𝕊 code‿message:•Out "ERROR"∾tab∾code∾tab∾message ⋄ •Exit 1}
 PrintDiagnostics ← {𝕊 diagnostics:{𝕊 diagnostic:•Out "ERROR"∾tab∾diagnostic.code∾tab∾diagnostic.message}¨diagnostics ⋄ •Exit 1}
-SafeBasename ← {𝕊 value:
-  forbidden ← ('/'=value) ∨ ((@+92)=value) ∨ value∊(@+9)‿(@+10)‿(@+13)
-  (0<≠value) ∧ ¬∨´forbidden
-}
-Join ← {𝕊 base‿name:base∾(('/'≠¯1↑base)/"/")∾name}
 CycleFailure ← {𝕊 resolved‿fallback:
   {𝕊:PrintDiagnostics resolved.diagnostics}⍟(0<≠resolved.diagnostics) @
   code ← fallback ⋄ message ← "Cycle resolution failed"
@@ -25,29 +22,14 @@ CycleFailure ← {𝕊 resolved‿fallback:
 }
 
 args ← •args
-{𝕊:Fail ⟨"usage","expected BASE HUMAN_MANIFEST_BASENAME"⟩}⍟(2≠≠args) @
-base‿manifestName ← args
-{𝕊:Fail ⟨"manifest_basename_invalid","human manifest must be a safe .tsv basename"⟩}⍟((¬SafeBasename manifestName) ∨ ¬".tsv"≡¯4↑manifestName) @
-manifestPath ← Join ⟨base,manifestName⟩
-{𝕊:Fail ⟨"manifest_unreadable","human manifest is not readable"⟩}⍟(¬•file.Exists io.ResolvePath manifestPath) @
-lines ← io.ReadLines manifestPath
-{𝕊:Fail ⟨"manifest_header_invalid","manifest header must be key, surface, arguments"⟩}⍟((0=≠lines) ∨ (⊑lines)≢"key"∾tab∾"surface"∾tab∾"arguments") @
-fields ← io.SplitTsv¨1↓lines
-{𝕊:Fail ⟨"manifest_row_invalid","every manifest row requires key, surface, and arguments"⟩}⍟(∨´0∾{3>≠𝕩}¨fields) @
-rows ← {𝕊 row:{key⇐0⊑row,surface⇐1⊑row,arguments⇐2↓row}}¨fields
-expectedKeys ← (catalog.Table @).key
-{𝕊:Fail ⟨"manifest_catalog_mismatch","human manifest must contain every catalog key in order"⟩}⍟((≠rows)≠≠expectedKeys) @
-{𝕊:Fail ⟨"manifest_catalog_mismatch","human manifest must contain every catalog key in order"⟩}⍟(expectedKeys≢{𝕩.key}¨rows) @
-{𝕊:Fail ⟨"manifest_surface_mismatch","current profile requires human rows"⟩}⍟(∨´0∾{"human"≢𝕩.surface}¨rows) @
-
-admissions ← {route.Admit ⟨𝕩.key,𝕩.surface,𝕩.arguments⟩}¨rows
-routeDiagnostics ← ∾{𝕩.diagnostics}¨admissions
-{𝕊:PrintDiagnostics routeDiagnostics}⍟(0<≠routeDiagnostics) @
-sourceRoles ← ∾{𝕩.sources.role}¨admissions ⋄ sourceNames ← ∾{𝕩.sources.name}¨admissions
-actualNames ← ("actual"⊸≡¨sourceRoles)/sourceNames ⋄ actualUnique ← ⍷actualNames
-{𝕊:Fail ⟨"current_actual_source_mismatch","current profile requires one shared canonical Actual source"⟩}⍟(1≠≠actualUnique) @
-{𝕊:Fail ⟨"current_actual_source_mismatch","current profile requires canonical actual.journal"⟩}⍟((⊑actualUnique)≢"actual.journal") @
-{𝕊:Fail ⟨"current_comparison_policy_unsupported","current profile requires aligned_elapsed Cycle Comparison"⟩}⍟((profile.ComparisonPolicy admissions)≢"aligned_elapsed") @
+{𝕊:Fail ⟨"usage","expected BASE DOMAIN SURFACE [LATEST]"⟩}⍟((3>≠args) ∨ 4<≠args) @
+base‿domain‿surface ← 3↑args
+latest ← today.Today @
+{𝕊:latest↩3⊑args}⍟(4=≠args) @
+{𝕊:Fail ⟨"report_latest_invalid","LATEST must be strict YYYY-MM-DD"⟩}⍟(¬dates.IsValid latest) @
+selection ← request.Validate ⟨"all",surface⟩
+{𝕊:PrintDiagnostics selection.diagnostics}⍟(selection.state≢"ok") @
+needsBaseline ← Contains ⟨"cycle-comparison",selection.section_keys⟩
 
 registryResult ← sources.Registry "config/currencies.tsv"
 {𝕊:Fail ⟨registryResult.code,registryResult.message⟩}⍟(registryResult.state≢"ok") @
@@ -55,18 +37,27 @@ registry ← registryResult.registry
 actual ← sources.CanonicalActual ⟨base,registry⟩
 {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
 {𝕊:Fail ⟨"current_observation_missing","current profile requires at least one admitted Actual transaction"⟩}⍟(0=actual.facts.transactions.count) @
-latestOrdinal ← ⌈´actual.facts.transactions.date_ordinal ⋄ latestIndex ← ⊑(latestOrdinal=actual.facts.transactions.date_ordinal)⊐1
-observation ← latestIndex⊑actual.facts.transactions.date_text
+latestActualOrdinal ← ⌈´actual.facts.transactions.date_ordinal
+latestActualIndex ← ⊑(latestActualOrdinal=actual.facts.transactions.date_ordinal)⊐1
+observation ← latestActualIndex⊑actual.facts.transactions.date_text
+
+policy ← sources.CanonicalReportPolicy base
+{𝕊:PrintDiagnostics policy.diagnostics}⍟(policy.state≢"ok") @
+resolvedPolicy ← policyResolution.Resolve ⟨policy,latest,actual.facts.transactions.date_text⟩
+{𝕊:PrintDiagnostics resolvedPolicy.diagnostics}⍟(resolvedPolicy.state≢"ok") @
 
 context ← sources.HouseholdContext ⟨base,actual.facts.accounts,registry⟩
 {𝕊:PrintDiagnostics context.diagnostics}⍟(context.state≢"ok") @
 currentCycle ← cycleResolution.WithPlan ⟨context.household.cycle,observation,actual.facts,context.plan⟩
 {𝕊:CycleFailure ⟨currentCycle,"current_cycle_resolution_failed"⟩}⍟(currentCycle.state≢"ok") @
-previousObservation ← dates.FromOrdinal currentCycle.start_ordinal-1
-baselineCycle ← cycleResolution.WithPlan ⟨context.household.cycle,previousObservation,actual.facts,context.plan⟩
-{𝕊:CycleFailure ⟨baselineCycle,"baseline_cycle_resolution_failed"⟩}⍟(baselineCycle.state≢"ok") @
+baselineCycle ← {state⇐"unused"}
+{𝕊:
+  previousObservation ← dates.FromOrdinal currentCycle.start_ordinal-1
+  baselineCycle↩cycleResolution.WithPlan ⟨context.household.cycle,previousObservation,actual.facts,context.plan⟩
+  {𝕊:CycleFailure ⟨baselineCycle,"baseline_cycle_resolution_failed"⟩}⍟(baselineCycle.state≢"ok") @
+}⍟needsBaseline @
 
-resolved ← profile.Build ⟨admissions,observation,currentCycle,baselineCycle⟩
-{𝕊:PrintDiagnostics resolved.diagnostics}⍟(resolved.state≢"ok") @
+built ← requests.Build ⟨domain,surface,resolvedPolicy,actual.facts,observation,currentCycle,baselineCycle⟩
+{𝕊:PrintDiagnostics built.diagnostics}⍟(built.state≢"ok") @
 •Out "key"∾tab∾"surface"∾tab∾"arguments"
-{𝕊 row:•Out row.key∾tab∾row.surface∾(∾{tab∾𝕩}¨row.arguments)}¨resolved.rows
+{𝕊 row:•Out row.key∾tab∾row.surface∾(∾{tab∾𝕩}¨row.arguments)}¨built.rows
