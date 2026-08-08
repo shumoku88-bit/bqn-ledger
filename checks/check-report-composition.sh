@@ -20,43 +20,45 @@ cmp "$tmp/balance-sheet" "$fixture/balance_sheet.destination.human.txt"
 cmp "$tmp/profit-and-loss" "$fixture/profit_and_loss.destination.human.txt"
 ./tools/report "$fixture" recent compact 10 actual.journal >"$tmp/recent"
 cmp "$tmp/recent" "$fixture/recent_journal.destination.compact.txt"
-./tools/report "$fixture" planned human 2026-01-12 actual.journal plan.tsv cycle.tsv >"$tmp/planned"
+./tools/report "$fixture" planned human 2026-01-12 actual.journal ignored-plan ignored-cycle >"$tmp/planned"
 cmp "$tmp/planned" "$fixture/planned_payments.destination.human.txt"
-./tools/report "$fixture" cycle-accounts human JPY 2026-01-10 actual.journal cycle.tsv >"$tmp/cycle"
+./tools/report "$fixture" cycle-accounts human JPY 2026-01-10 actual.journal ignored-cycle >"$tmp/cycle"
 cmp "$tmp/cycle" "$fixture/cycle_accounts.destination.human.txt"
-./tools/report "$fixture" cycle-comparison human JPY 2026-01-10 2025-12-31 aligned_elapsed actual.journal cycle.tsv cycle_baseline.destination.tsv >"$tmp/comparison"
+./tools/report "$fixture" cycle-comparison human JPY 2026-01-10 2026-01-10 aligned_elapsed \
+  actual.journal ignored-current-cycle ignored-baseline-cycle >"$tmp/comparison"
 cmp "$tmp/comparison" "$fixture/cycle_comparison.destination.human.txt"
 ./tools/report "$fixture" monthly-accounts human JPY 2026-01 2026-03 actual.journal >"$tmp/monthly"
 cmp "$tmp/monthly" "$fixture/monthly_accounts.destination.human.txt"
 ./tools/report "$fixture" daily-flow human JPY 2026-01-01 2026-02-01 2026-01-12 actual.journal >"$tmp/daily-flow"
 cmp "$tmp/daily-flow" "$fixture/daily_flow.destination.human.txt"
 ./tools/report "$fixture" daily-target human JPY 2026-01-12 2026-01-22 \
-  actual.journal daily_target_plan.destination.tsv daily_target_scope.destination.tsv >"$tmp/daily-target"
+  actual.journal ignored-plan ignored-scope >"$tmp/daily-target"
 cmp "$tmp/daily-target" "$fixture/daily_target.application.human.txt"
 ./tools/report "$fixture" issues human issues.destination.tsv >"$tmp/issues"
 cmp "$tmp/issues" "$fixture/issues.destination.human.txt"
+
 cat "$fixture/envelope_backing.destination.human.txt" "$fixture/account_balances.destination.human.txt" \
   "$fixture/balance_sheet.destination.human.txt" "$fixture/profit_and_loss.destination.human.txt" \
   "$fixture/recent_journal.destination.human.txt" "$fixture/planned_payments.destination.human.txt" \
   "$fixture/cycle_accounts.destination.human.txt" "$fixture/cycle_comparison.destination.human.txt" \
   "$fixture/monthly_accounts.destination.human.txt" "$fixture/daily_flow.destination.human.txt" \
-  "$fixture/daily_target.application.human.txt" \
-  "$fixture/issues.destination.human.txt" >"$tmp/all-human-expected"
+  "$fixture/daily_target.application.human.txt" "$fixture/issues.destination.human.txt" >"$tmp/all-human-expected"
 ./tools/report "$fixture" all human report_all_human.destination.tsv >"$tmp/all-human"
 cmp "$tmp/all-human" "$tmp/all-human-expected"
+
 ./tools/report "$fixture" all compact report_all_compact.destination.tsv >"$tmp/all-compact"
 : >"$tmp/all-compact-expected"
 ./tools/report "$fixture" envelopes compact JPY 2026-01-01 2026-02-01 2026-01-12 \
-  actual.journal ignored-plan-coordinate ignored-budget-coordinate ignored-funding-coordinate >>"$tmp/all-compact-expected"
+  actual.journal ignored-plan ignored-budget ignored-funding >>"$tmp/all-compact-expected"
 ./tools/report "$fixture" balances compact JPY 2026-01-12 actual.journal >>"$tmp/all-compact-expected"
 ./tools/report "$fixture" recent compact 10 actual.journal >>"$tmp/all-compact-expected"
-./tools/report "$fixture" planned compact 2026-01-12 actual.journal plan.tsv cycle.tsv >>"$tmp/all-compact-expected"
+./tools/report "$fixture" planned compact 2026-01-12 actual.journal ignored-plan ignored-cycle >>"$tmp/all-compact-expected"
 ./tools/report "$fixture" daily-target compact JPY 2026-01-12 2026-01-22 \
-  actual.journal daily_target_plan.destination.tsv daily_target_scope.destination.tsv >>"$tmp/all-compact-expected"
+  actual.journal ignored-plan ignored-scope >>"$tmp/all-compact-expected"
 cmp "$tmp/all-compact" "$tmp/all-compact-expected"
 
-mkdir "$tmp/actual-only" "$tmp/issues-only" "$tmp/cycle-only" "$tmp/planned-only" \
-  "$tmp/income-cycle" "$tmp/envelope-only" "$tmp/daily-only"
+# Actual-only and Issues-only surfaces retain their intentionally smaller roots.
+mkdir "$tmp/actual-only" "$tmp/issues-only"
 cp "$fixture/accounts.journal" "$fixture/actual.journal" "$tmp/actual-only/"
 cp "$fixture/issues.destination.tsv" "$tmp/issues-only/"
 ./tools/report "$tmp/actual-only" recent human 2 actual.journal >/dev/null
@@ -67,41 +69,6 @@ cp "$fixture/issues.destination.tsv" "$tmp/issues-only/"
   "$root/tools/report" actual-only recent human 2 actual.journal >/dev/null
 )
 ./tools/report "$tmp/issues-only" issues human issues.destination.tsv >/dev/null
-cp "$fixture/accounts.tsv" "$fixture/actual.journal" "$fixture/cycle.tsv" "$tmp/cycle-only/"
-./tools/report "$tmp/cycle-only" cycle-accounts human JPY 2026-01-10 actual.journal cycle.tsv >/dev/null
-cp "$fixture/accounts.tsv" "$fixture/accounts.journal" "$fixture/actual.journal" \
-  "$fixture/plan.journal" "$fixture/daily_target_scope.destination.tsv" "$tmp/daily-only/"
-if ! ./tools/report "$tmp/daily-only" daily-target human JPY 2026-01-12 2026-01-22 \
-  actual.journal daily_target_plan.destination.tsv daily_target_scope.destination.tsv \
-  >/dev/null 2>"$tmp/daily-only.err"; then
-  diagnostic=$(head -n 1 "$tmp/daily-only.err" | head -c 400)
-  echo "::error file=checks/check-report-composition.sh,line=74::daily-only: $diagnostic" >&2
-  cat "$tmp/daily-only.err" >&2
-  exit 1
-fi
-cp "$fixture/accounts.tsv" "$fixture/accounts.journal" "$fixture/actual.journal" \
-  "$fixture/plan.journal" "$fixture/budget.journal" "$fixture/budget.toml" "$tmp/envelope-only/"
-[[ ! -e $tmp/envelope-only/budget_alloc.tsv ]]
-./tools/report "$tmp/envelope-only" envelopes human JPY \
-  2026-01-01 2026-02-01 2026-01-12 actual.journal missing-plan.tsv missing-budget.tsv missing-funding >/dev/null
-cp "$fixture/accounts.tsv" "$fixture/accounts.journal" "$fixture/actual.journal" \
-  "$fixture/plan.journal" "$fixture/cycle.tsv" "$tmp/planned-only/"
-./tools/report "$tmp/planned-only" planned human 2026-01-12 actual.journal plan.tsv cycle.tsv >/dev/null
-cp "$fixture/accounts.tsv" "$fixture/accounts.journal" "$fixture/actual.journal" "$tmp/income-cycle/"
-printf '%s\n' $'mode\tincomeAnchor' $'income_account\tincome:salary' $'offset\t0' >"$tmp/income-cycle/cycle.tsv"
-cat >"$tmp/income-cycle/plan.journal" <<'EOF'
-include accounts.journal
-
-2026-02-01 next-income
-  ; plan-id: income-next
-  income:salary  -1000 JPY
-  assets:cash  1000 JPY
-EOF
-./tools/report "$tmp/income-cycle" cycle-accounts human JPY 2026-01-12 actual.journal cycle.tsv plan.tsv >/dev/null
-if ./tools/report "$tmp/income-cycle" cycle-accounts human JPY 2026-01-12 actual.journal cycle.tsv >"$tmp/plan-required" 2>&1; then
-  echo 'FAIL: incomeAnchor succeeded without Plan' >&2; exit 1
-fi
-grep -F $'plan_required' "$tmp/plan-required" >/dev/null
 
 if ./tools/report "$tmp/not-present" snapshot human >"$tmp/unknown" 2>&1; then
   echo 'FAIL: unknown key succeeded' >&2; exit 1
@@ -119,6 +86,7 @@ if ./tools/report "$tmp/not-present" all human >"$tmp/all" 2>&1; then
   echo 'FAIL: all without manifest succeeded' >&2; exit 1
 fi
 grep -F $'all_manifest_required' "$tmp/all" >/dev/null
+
 {
   printf 'key\tsurface\targuments\n'
   tail -n +3 "$fixture/report_all_human.destination.tsv"
@@ -129,11 +97,13 @@ if ./tools/report "$tmp" all human bad-order.tsv >"$tmp/partial" 2>"$tmp/bad-ord
 fi
 [[ ! -s $tmp/partial ]] || { echo 'FAIL: failed all request published partial output' >&2; exit 1; }
 grep -F $'all_manifest_order_mismatch' "$tmp/bad-order-error" >/dev/null
+
 if ./tools/report "$fixture" balances compact --manifest report_all_human.destination.tsv \
   >"$tmp/manifest-surface" 2>&1; then
   echo 'FAIL: manifest surface mismatch succeeded' >&2; exit 1
 fi
 grep -F $'request_manifest_surface_mismatch' "$tmp/manifest-surface" >/dev/null
+
 {
   printf 'key\tsurface\targuments\n'
   sed -n '3p' "$fixture/report_all_human.destination.tsv"

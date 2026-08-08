@@ -1,51 +1,39 @@
 # Pure individual report-route admission before source I/O or composition.
-# Operational filesystem checks remain in Shell; semantic source admission remains downstream.
+# Canonical companion files have fixed Household-root identities. Legacy argv
+# coordinates remain only until report.toml Phase 6 and never select physical I/O.
 
 request ← •Import "../report/request.bqn"
 canonical ← •Import "canonical_household_sources.bqn"
 empty ← ⟨⟩
 
-Diagnostic ← {𝕊 code‿message:
-  {severity⇐"error",stage⇐"application_report_route",code⇐code,message⇐message}
-}
-EmptySources ← {𝕊:
-  {count⇐0,index⇐empty,argument_index⇐empty,kind⇐empty,role⇐empty,name⇐empty}
-}
-Sources ← {𝕊 coordinates‿argumentIndices‿kinds‿roles:
-  {
-    count⇐≠argumentIndices,index⇐↕≠argumentIndices,argument_index⇐argumentIndices,
-    kind⇐kinds,role⇐roles,name⇐argumentIndices⊏coordinates
-  }
-}
-MakePlan ← {𝕊 diagnosticsValue‿coordinateRolesValue‿sourcesValue:
-  {diagnostics⇐diagnosticsValue,coordinate_role⇐coordinateRolesValue,sources⇐sourcesValue}
-}
-Reject ← {𝕊 code‿message: MakePlan ⟨⟨Diagnostic ⟨code,message⟩⟩,empty,EmptySources @⟩}
-Accept ← {𝕊 coordinates‿coordinateRoles‿argumentIndices‿kinds‿roles:
-  MakePlan ⟨empty,coordinateRoles,Sources ⟨coordinates,argumentIndices,kinds,roles⟩⟩
-}
+Diagnostic ← {𝕊 code‿message:{severity⇐"error",stage⇐"application_report_route",code⇐code,message⇐message}}
+EmptySources ← {𝕊:{count⇐0,index⇐empty,argument_index⇐empty,kind⇐empty,role⇐empty,name⇐empty}}
+Sources ← {𝕊 coordinates‿argumentIndices‿kinds‿roles:{
+  count⇐≠argumentIndices,index⇐↕≠argumentIndices,argument_index⇐argumentIndices,
+  kind⇐kinds,role⇐roles,name⇐argumentIndices⊏coordinates
+}}
+MakePlan ← {𝕊 diagnosticsValue‿coordinateRolesValue‿sourcesValue:{diagnostics⇐diagnosticsValue,coordinate_role⇐coordinateRolesValue,sources⇐sourcesValue}}
+Reject ← {𝕊 code‿message:MakePlan ⟨⟨Diagnostic ⟨code,message⟩⟩,empty,EmptySources @⟩}
+Accept ← {𝕊 coordinates‿coordinateRoles‿argumentIndices‿kinds‿roles:MakePlan ⟨empty,coordinateRoles,Sources ⟨coordinates,argumentIndices,kinds,roles⟩⟩}
 AcceptCanonicalActual ← {𝕊 coordinates‿coordinateRoles‿argumentIndex:
-  (canonical.actual ≡ argumentIndex⊑coordinates)◶⟨
-    {𝕊:Reject ⟨"actual_source_not_canonical","Actual-only report requires canonical actual.journal"⟩},
+  (canonical.actual≡argumentIndex⊑coordinates)◶⟨
+    {𝕊:Reject ⟨"actual_source_not_canonical","Report requires canonical actual.journal"⟩},
     {𝕊:Accept ⟨coordinates,coordinateRoles,⟨argumentIndex⟩,⟨"canonical-journal"⟩,⟨"actual"⟩⟩}
   ⟩ @
 }
-AllowedCount ← {𝕊 count‿allowed: ∨´0∾count⊸=¨allowed}
-IsDigits ← {𝕊 text: (0<≠text) ∧ ∧´text∊"0123456789"}
+AllowedCount ← {𝕊 count‿allowed:∨´0∾count⊸=¨allowed}
+IsDigits ← {𝕊 text:(0<≠text) ∧ ∧´text∊"0123456789"}
 
-# Plan/Budget basename coordinates and legacy funding-account coordinates remain in
-# the request shape until report.toml Phase 6, but canonical plan.journal,
-# budget.journal, and budget.toml own physical companion I/O and backing scope.
-# Consequently only Actual appears in the source table consumed by Shell preflight.
+# Plan/Budget/Cycle/Daily-Scope/funding coordinates remain in request shapes until
+# Phase 6 only. Canonical plan.journal, budget.journal, budget.toml, household.toml
+# own companion semantics and are loaded internally. Only actual.journal is a
+# caller-visible physical source at this stage.
 Envelopes ← {𝕊 coordinates:
   (8≤≠coordinates)◶⟨
     {𝕊:Reject ⟨"usage_envelopes","envelopes requires DOMAIN START END_EXCLUSIVE OBSERVATION JOURNAL PLAN BUDGET and one or more legacy funding coordinates until report.toml migration"⟩},
     {𝕊:
-      coordinateRoles ← ⟨
-        "domain","start","end_exclusive","observation",
-        "actual_source","plan_source","budget_source"
-      ⟩∾((≠coordinates)-7)⥊⟨"funding_account"⟩
-      Accept ⟨coordinates,coordinateRoles,⟨4⟩,⟨"journal"⟩,⟨"actual"⟩⟩
+      roles ← ⟨"domain","start","end_exclusive","observation","actual_source","plan_source","budget_source"⟩∾((≠coordinates)-7)⥊⟨"funding_account"⟩
+      AcceptCanonicalActual ⟨coordinates,roles,4⟩
     }
   ⟩ @
 }
@@ -81,51 +69,32 @@ Recent ← {𝕊 coordinates:
 Planned ← {𝕊 coordinates:
   (4=≠coordinates)◶⟨
     {𝕊:Reject ⟨"usage_planned","planned requires OBSERVATION JOURNAL_BASENAME PLAN_BASENAME CYCLE_BASENAME"⟩},
-    {𝕊:Accept ⟨
-      coordinates,⟨"observation","actual_source","plan_source","cycle_source"⟩,
-      ⟨1,3⟩,⟨"journal","tsv"⟩,⟨"actual","cycle"⟩
-    ⟩}
+    {𝕊:AcceptCanonicalActual ⟨coordinates,⟨"observation","actual_source","plan_source","cycle_source"⟩,1⟩}
   ⟩ @
 }
 CycleAccounts ← {𝕊 coordinates:
   count ← ≠coordinates
   (AllowedCount ⟨count,⟨4,5⟩⟩)◶⟨
-    {𝕊:Reject ⟨"usage_cycle_accounts","cycle-accounts requires DOMAIN OBSERVATION JOURNAL CYCLE and PLAN only for incomeAnchor"⟩},
+    {𝕊:Reject ⟨"usage_cycle_accounts","cycle-accounts requires DOMAIN OBSERVATION JOURNAL CYCLE and optional legacy PLAN coordinate until report.toml migration"⟩},
     {𝕊:
-      (5=count)◶⟨
-        {𝕊:Accept ⟨
-          coordinates,⟨"domain","observation","actual_source","cycle_source"⟩,
-          ⟨2,3⟩,⟨"journal","tsv"⟩,⟨"actual","cycle"⟩
-        ⟩},
-        {𝕊:Accept ⟨
-          coordinates,⟨"domain","observation","actual_source","cycle_source","plan_source"⟩,
-          ⟨2,3⟩,⟨"journal","tsv"⟩,⟨"actual","cycle"⟩
-        ⟩}
-      ⟩ @
+      roles ← (5=count)⊑⟨
+        ⟨"domain","observation","actual_source","cycle_source"⟩,
+        ⟨"domain","observation","actual_source","cycle_source","plan_source"⟩
+      ⟩
+      AcceptCanonicalActual ⟨coordinates,roles,2⟩
     }
   ⟩ @
 }
 CycleComparison ← {𝕊 coordinates:
   count ← ≠coordinates
   (AllowedCount ⟨count,⟨7,8⟩⟩)◶⟨
-    {𝕊:Reject ⟨"usage_cycle_comparison","cycle-comparison requires DOMAIN CURRENT_OBS BASELINE_OBS POLICY JOURNAL two CYCLE files and optional incomeAnchor PLAN"⟩},
+    {𝕊:Reject ⟨"usage_cycle_comparison","cycle-comparison requires DOMAIN CURRENT_OBS BASELINE_OBS POLICY JOURNAL two legacy CYCLE coordinates and optional legacy PLAN coordinate until report.toml migration"⟩},
     {𝕊:
-      (8=count)◶⟨
-        {𝕊:Accept ⟨
-          coordinates,⟨
-            "domain","current_observation","baseline_observation","policy",
-            "actual_source","current_cycle_source","baseline_cycle_source"
-          ⟩,
-          ⟨4,5,6⟩,⟨"journal","tsv","tsv"⟩,⟨"actual","current_cycle","baseline_cycle"⟩
-        ⟩},
-        {𝕊:Accept ⟨
-          coordinates,⟨
-            "domain","current_observation","baseline_observation","policy",
-            "actual_source","current_cycle_source","baseline_cycle_source","plan_source"
-          ⟩,
-          ⟨4,5,6⟩,⟨"journal","tsv","tsv"⟩,⟨"actual","current_cycle","baseline_cycle"⟩
-        ⟩}
-      ⟩ @
+      roles ← (8=count)⊑⟨
+        ⟨"domain","current_observation","baseline_observation","policy","actual_source","current_cycle_source","baseline_cycle_source"⟩,
+        ⟨"domain","current_observation","baseline_observation","policy","actual_source","current_cycle_source","baseline_cycle_source","plan_source"⟩
+      ⟩
+      AcceptCanonicalActual ⟨coordinates,roles,4⟩
     }
   ⟩ @
 }
@@ -138,16 +107,13 @@ MonthlyAccounts ← {𝕊 coordinates:
 DailyFlow ← {𝕊 coordinates:
   (5=≠coordinates)◶⟨
     {𝕊:Reject ⟨"usage_daily_flow","daily-flow requires DOMAIN START END_EXCLUSIVE OBSERVATION JOURNAL_BASENAME"⟩},
-    {𝕊:Accept ⟨coordinates,⟨"domain","start","end_exclusive","observation","actual_source"⟩,⟨4⟩,⟨"journal"⟩,⟨"actual"⟩⟩}
+    {𝕊:AcceptCanonicalActual ⟨coordinates,⟨"domain","start","end_exclusive","observation","actual_source"⟩,4⟩}
   ⟩ @
 }
 DailyTarget ← {𝕊 coordinates:
   (6=≠coordinates)◶⟨
-    {𝕊:Reject ⟨"usage_daily_target","daily-target requires DOMAIN OBSERVATION TARGET JOURNAL PLAN DAILY_SCOPE"⟩},
-    {𝕊:Accept ⟨
-      coordinates,⟨"domain","observation","target","actual_source","plan_source","daily_scope_source"⟩,
-      ⟨3,5⟩,⟨"journal","tsv"⟩,⟨"actual","daily_scope"⟩
-    ⟩}
+    {𝕊:Reject ⟨"usage_daily_target","daily-target requires DOMAIN OBSERVATION TARGET JOURNAL PLAN DAILY_SCOPE until report.toml migration"⟩},
+    {𝕊:AcceptCanonicalActual ⟨coordinates,⟨"domain","observation","target","actual_source","plan_source","daily_scope_source"⟩,3⟩}
   ⟩ @
 }
 Issues ← {𝕊 coordinates:
@@ -157,10 +123,8 @@ Issues ← {𝕊 coordinates:
   ⟩ @
 }
 
-# Function order follows the catalog; request.Validate supplies the admitted catalog index.
 routes ← ⟨Envelopes,Balances,BalanceSheet,ProfitAndLoss,Recent,Planned,CycleAccounts,CycleComparison,MonthlyAccounts,DailyFlow,DailyTarget,Issues⟩
-RoutePlan ← {𝕊 catalogIndex‿coordinates: catalogIndex◶routes coordinates}
-
+RoutePlan ← {𝕊 catalogIndex‿coordinates:catalogIndex◶routes coordinates}
 Admit ← {𝕊 key‿surface‿coordinates:
   admittedRequest ← request.Validate ⟨key,surface⟩
   plan ← (admittedRequest.state≡"ok")◶⟨
@@ -173,11 +137,9 @@ Admit ← {𝕊 key‿surface‿coordinates:
     }
   ⟩ @
   ok ← 0=≠plan.diagnostics
-  {
-    state⇐ok⊑"error"‿"ok",key⇐ok⊑""‿key,surface⇐ok⊑""‿surface,
-    coordinates⇐ok⊑⟨empty,coordinates⟩,coordinate_role⇐ok⊑⟨empty,plan.coordinate_role⟩,
-    sources⇐plan.sources,diagnostics⇐plan.diagnostics
-  }
+  {state⇐ok⊑"error"‿"ok",key⇐ok⊑""‿key,surface⇐ok⊑""‿surface,
+   coordinates⇐ok⊑⟨empty,coordinates⟩,coordinate_role⇐ok⊑⟨empty,plan.coordinate_role⟩,
+   sources⇐plan.sources,diagnostics⇐plan.diagnostics}
 }
 
 {Admit⇐Admit}

@@ -1,12 +1,11 @@
 # Pure daily-UI policy: resolve volatile coordinates over admitted report routes.
-# Explicit historical routes and source coordinates remain unchanged outside the selected roles.
+# Legacy companion coordinates remain unchanged until report.toml Phase 6, but
+# canonical Household source ownership is no longer discovered from route sources.
 
 dates ← •Import "../ledger/date_ordinal.bqn"
 empty ← ⟨⟩
 
-Diagnostic ← {𝕊 codeText‿messageText:
-  {severity⇐"error",stage⇐"application_current_report_profile",code⇐codeText,message⇐messageText}
-}
+Diagnostic ← {𝕊 codeText‿messageText:{severity⇐"error",stage⇐"application_current_report_profile",code⇐codeText,message⇐messageText}}
 AddIf ← {𝕊 invalid‿diagnostic: invalid/⟨diagnostic⟩}
 NextMonthExclusive ← {𝕊 dateText:
   y‿m‿d ← dates.Parts dateText
@@ -17,9 +16,7 @@ ReplaceCoordinateRole ← {𝕊 coordinates‿coordinateRoles‿role‿value:
   index ← ⊑(role⊸≡¨coordinateRoles)⊐1
   (index↑coordinates)∾⟨value⟩∾(index+1)↓coordinates
 }
-FindAdmission ← {𝕊 key‿admittedRoutes:
-  (⊑(key⊸≡¨{𝕩.key}¨admittedRoutes)⊐1)⊑admittedRoutes
-}
+FindAdmission ← {𝕊 key‿admittedRoutes:(⊑(key⊸≡¨{𝕩.key}¨admittedRoutes)⊐1)⊑admittedRoutes}
 CoordinateValue ← {𝕊 role‿admitted:
   index ← ⊑(role⊸≡¨admitted.coordinate_role)⊐1
   index⊑admitted.coordinates
@@ -27,19 +24,6 @@ CoordinateValue ← {𝕊 role‿admitted:
 ComparisonPolicy ← {𝕊 admittedRoutes:
   cycleComparison ← FindAdmission ⟨"cycle-comparison",admittedRoutes⟩
   CoordinateValue ⟨"policy",cycleComparison⟩
-}
-SourceName ← {𝕊 role‿admitted:
-  index ← ⊑(role⊸≡¨admitted.sources.role)⊐1
-  index⊑admitted.sources.name
-}
-CycleSourceNames ← {𝕊 admittedRoutes:
-  cycleAccounts ← FindAdmission ⟨"cycle-accounts",admittedRoutes⟩
-  cycleComparison ← FindAdmission ⟨"cycle-comparison",admittedRoutes⟩
-  {
-    current_cycle⇐SourceName ⟨"cycle",cycleAccounts⟩,
-    comparison_current_cycle⇐SourceName ⟨"current_cycle",cycleComparison⟩,
-    baseline_cycle⇐SourceName ⟨"baseline_cycle",cycleComparison⟩
-  }
 }
 
 Build ← {𝕊 admittedRoutes‿observation‿currentCycle‿baselineCycle:
@@ -102,4 +86,4 @@ Build ← {𝕊 admittedRoutes‿observation‿currentCycle‿baselineCycle:
   {state⇐(0=≠diagnostics)⊑"error"‿"ok",observation⇐observation,rows⇐resolvedRows,diagnostics⇐diagnostics}
 }
 
-{Build⇐Build,ComparisonPolicy⇐ComparisonPolicy,CycleSourceNames⇐CycleSourceNames}
+{Build⇐Build,ComparisonPolicy⇐ComparisonPolicy}

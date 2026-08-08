@@ -7,16 +7,11 @@ canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 budgetPolicyAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 envelopes ← •Import "../src/accounting/envelope_backing.bqn"
-lf ← @+10
-tab ← @+9
-quote ← @+34
+lf ← @+10 ⋄ tab ← @+9 ⋄ quote ← @+34
 JournalText ← {𝕊 lines: ∾lines∾¨lf}
 Q ← {𝕊 text: ⟨quote⟩∾text∾⟨quote⟩}
-Join ← {𝕊 fields:
-  out ← ⊑fields
-  {𝕊 field: out∾↩tab∾field}¨1↓fields
-  out
-}
+Join ← {𝕊 fields: out ← ⊑fields ⋄ {𝕊 field:out∾↩tab∾field}¨1↓fields ⋄ out}
+Index ← {𝕊 key‿accountFacts:⊑accountFacts.key⊐⟨key⟩}
 registry ← (registry_core.Build ⟨Join ⟨"JPY","0","¥"⟩⟩).registry
 accounts ← ⟨
   Join ⟨"assets:cash","role=asset","type=liquid","currency=JPY"⟩,
@@ -47,54 +42,34 @@ raw ← ∾⟨
 ⟩
 actual ← (snapshot.Build ⟨accounts,raw,registry⟩).facts
 planRaw ← JournalText ⟨
-  "2026-01-12 food a",
-  "  ; plan-id: food-plan-a",
-  "  expenses:groceries  4 JPY",
-  "  assets:cash  -4 JPY",
-  "",
-  "2026-01-13 transport",
-  "  ; plan-id: transport-plan",
-  "  expenses:transport  6 JPY",
-  "  assets:cash  -6 JPY",
-  "",
-  "2026-01-14 food b",
-  "  ; plan-id: food-plan-b",
-  "  expenses:food  2 JPY",
-  "  assets:cash  -2 JPY"
+  "2026-01-12 food a","  ; plan-id: food-plan-a","  expenses:groceries  4 JPY","  assets:cash  -4 JPY","",
+  "2026-01-13 transport","  ; plan-id: transport-plan","  expenses:transport  6 JPY","  assets:cash  -6 JPY","",
+  "2026-01-14 food b","  ; plan-id: food-plan-b","  expenses:food  2 JPY","  assets:cash  -2 JPY"
 ⟩
 plan ← (canonicalPlan.Build ⟨planRaw,actual.accounts,registry⟩).facts
 budgetRaw ← JournalText ⟨
-  "2026-01-01 seed",
-  "  budget:opening     -30 JPY",
-  "  budget:unassigned   30 JPY","",
-  "2026-01-01 food",
-  "  budget:unassigned  -20 JPY",
-  "  budget:food         20 JPY","",
-  "2026-01-01 transport",
-  "  budget:unassigned  -10 JPY",
-  "  budget:transport    10 JPY"
+  "2026-01-01 seed","  budget:opening     -30 JPY","  budget:unassigned   30 JPY","",
+  "2026-01-01 food","  budget:unassigned  -20 JPY","  budget:food         20 JPY","",
+  "2026-01-01 transport","  budget:unassigned  -10 JPY","  budget:transport    10 JPY"
 ⟩
 budget ← (canonicalBudget.Build ⟨budgetRaw,actual.accounts,registry⟩).facts
 policyRaw ← JournalText ⟨
-  "[[backing-pools]]",
-  "id = "∾Q "cash",
-  "asset-accounts = ["∾(Q "assets:cash")∾"]","",
-  "[[envelopes]]",
-  "id = "∾Q "food",
-  "label = "∾Q "Food",
-  "pacing = "∾Q "daily",
-  "backing-pool = "∾Q "cash",
-  "expense-accounts = ["∾(Q "expenses:food")∾", "∾(Q "expenses:groceries")∾"]","",
-  "[[envelopes]]",
-  "id = "∾Q "transport",
-  "label = "∾Q "Transport",
-  "pacing = "∾Q "flex",
-  "backing-pool = "∾Q "cash",
-  "expense-accounts = ["∾(Q "expenses:transport")∾"]"
+  "[[backing-pools]]","id = "∾Q "cash","asset-accounts = ["∾(Q "assets:cash")∾"]","",
+  "[[envelopes]]","id = "∾Q "food","label = "∾Q "Food","pacing = "∾Q "daily","backing-pool = "∾Q "cash","expense-accounts = ["∾(Q "expenses:food")∾", "∾(Q "expenses:groceries")∾"]","",
+  "[[envelopes]]","id = "∾Q "transport","label = "∾Q "Transport","pacing = "∾Q "flex","backing-pool = "∾Q "cash","expense-accounts = ["∾(Q "expenses:transport")∾"]"
 ⟩
 policy ← budgetPolicyAdmission.Admit ⟨policyRaw,actual.accounts⟩
 "ok" lib.AssertEq policy.state
-result ← envelopes.Build ⟨budget,policy,actual,plan,"JPY",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-10"⟩
+household ← {
+  state⇐"ok",source_name⇐"household.toml",
+  budget⇐{
+    envelope_id⇐⟨"food","transport"⟩,
+    allocation_account_index⇐{Index ⟨𝕩,actual.accounts⟩}¨⟨"budget:food","budget:transport"⟩,
+    unassigned_account_indices⇐⟨Index ⟨"budget:unassigned",actual.accounts⟩⟩
+  },
+  account_policy⇐{account_key⇐actual.accounts.key}
+}
+result ← envelopes.Build ⟨budget,policy,household,actual,plan,"JPY",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-10"⟩
 "ok" lib.AssertEq result.state
 2 lib.AssertEq result.envelopes.count
 ⟨"budget:food","budget:transport"⟩ lib.AssertEq result.envelopes.account_key

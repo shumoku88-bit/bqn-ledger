@@ -22,6 +22,18 @@ Join ← {𝕊 fields:
   {𝕊 field: out∾↩tab∾field}¨1↓fields
   out
 }
+AccountIndex ← {𝕊 key‿accounts: ⊑accounts.key⊐⟨key⟩}
+MakeHouseholdPolicy ← {𝕊 accounts‿allocationKey‿unassignedKeys:
+  {
+    state⇐"ok",source_name⇐"household.toml",
+    budget⇐{
+      envelope_id⇐⟨"food"⟩,
+      allocation_account_index⇐⟨AccountIndex ⟨allocationKey,accounts⟩⟩,
+      unassigned_account_indices⇐{AccountIndex ⟨𝕩,accounts⟩}¨unassignedKeys
+    },
+    account_policy⇐{account_key⇐accounts.key}
+  }
+}
 
 planRaw ← Raw ⟨
   "2026-01-20 food-plan",
@@ -42,8 +54,9 @@ budget ← (canonicalBudget.Build ⟨budgetRaw,actual.accounts,registry⟩).fact
 policyRaw ← •FChars "../"∾base∾"budget.toml"
 policy ← budgetPolicyAdmission.Admit ⟨policyRaw,actual.accounts⟩
 "ok" lib.AssertEq policy.state
+household ← MakeHouseholdPolicy ⟨actual.accounts,"budget:food",⟨"budget:unassigned"⟩⟩
 
-result ← envelopes.Build ⟨budget,policy,actual,plan,"JPY",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-12"⟩
+result ← envelopes.Build ⟨budget,policy,household,actual,plan,"JPY",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-12"⟩
 "ok" lib.AssertEq result.state
 1 lib.AssertEq result.envelopes.count
 ⟨60⟩ lib.AssertEq result.envelopes.entitlement
@@ -63,10 +76,10 @@ result ← envelopes.Build ⟨budget,policy,actual,plan,"JPY",dates.Ordinal "202
 "budget.journal" lib.AssertEq (⊑⊑result.envelopes.entitlement_contributors).source
 "actual.journal" lib.AssertEq (⊑⊑result.envelopes.consumption_contributors).source
 
-unknownDomain ← envelopes.Build ⟨budget,policy,actual,plan,"USD",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-12"⟩
+unknownDomain ← envelopes.Build ⟨budget,policy,household,actual,plan,"USD",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-12"⟩
 "error" lib.AssertEq unknownDomain.state
 "domain_unknown" lib.AssertEq (⊑unknownDomain.diagnostics).code
-invalidRange ← envelopes.Build ⟨budget,policy,actual,plan,"JPY",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-01",dates.Ordinal "2026-01-12"⟩
+invalidRange ← envelopes.Build ⟨budget,policy,household,actual,plan,"JPY",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-01",dates.Ordinal "2026-01-12"⟩
 "error" lib.AssertEq invalidRange.state
 "statement_range_invalid" lib.AssertEq (⊑invalidRange.diagnostics).code
 
@@ -92,7 +105,8 @@ syntheticPlan ← (canonicalPlan.Build ⟨Raw ⟨"2026-01-15 open-food","  ; pla
 syntheticBudget ← (canonicalBudget.Build ⟨Raw ⟨"2026-01-01 seed","  budget:opening     -20 JPY","  budget:unassigned   20 JPY","","2026-01-01 allocate","  budget:unassigned  -20 JPY","  budget:food         20 JPY"⟩,syntheticActual.accounts,registry⟩).facts
 syntheticPolicy ← budgetPolicyAdmission.Admit ⟨policyRaw,syntheticActual.accounts⟩
 "ok" lib.AssertEq syntheticPolicy.state
-synthetic ← envelopes.Build ⟨syntheticBudget,syntheticPolicy,syntheticActual,syntheticPlan,"JPY",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-10"⟩
+syntheticHousehold ← MakeHouseholdPolicy ⟨syntheticActual.accounts,"budget:food",⟨"budget:unassigned"⟩⟩
+synthetic ← envelopes.Build ⟨syntheticBudget,syntheticPolicy,syntheticHousehold,syntheticActual,syntheticPlan,"JPY",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-10"⟩
 "ok" lib.AssertEq synthetic.state
 ⟨20⟩ lib.AssertEq synthetic.envelopes.entitlement
 ⟨30⟩ lib.AssertEq synthetic.envelopes.actual_consumption
@@ -108,7 +122,7 @@ synthetic ← envelopes.Build ⟨syntheticBudget,syntheticPolicy,syntheticActual
 "actual.journal" lib.AssertEq (⊑⊑synthetic.envelopes.refund_contributors).source
 
 emptyPlanFacts ← (canonicalPlan.Build ⟨"",syntheticActual.accounts,registry⟩).facts
-emptyPlan ← envelopes.Build ⟨syntheticBudget,syntheticPolicy,syntheticActual,emptyPlanFacts,"JPY",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-10"⟩
+emptyPlan ← envelopes.Build ⟨syntheticBudget,syntheticPolicy,syntheticHousehold,syntheticActual,emptyPlanFacts,"JPY",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-10"⟩
 "ok" lib.AssertEq emptyPlan.state
 ⟨0⟩ lib.AssertEq emptyPlan.envelopes.open_plan_reserve
 
@@ -117,19 +131,22 @@ duplicateRaw ← syntheticRaw∾lf∾lf∾∾⟨
   "2026-01-09 * duplicate two",lf,"    ; event-id: duplicate-two",lf,"    ; layer: actual",lf,"    ; currency: JPY",lf,"    ; plan-id: open-food",lf,"    expenses:food 4 JPY",lf,"    assets:cash -4 JPY",lf
 ⟩
 duplicateActual ← (snapshot.Build ⟨syntheticLines,duplicateRaw,registry⟩).facts
-duplicateCompletion ← envelopes.Build ⟨syntheticBudget,syntheticPolicy,duplicateActual,syntheticPlan,"JPY",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-10"⟩
+duplicateHousehold ← MakeHouseholdPolicy ⟨duplicateActual.accounts,"budget:food",⟨"budget:unassigned"⟩⟩
+duplicateCompletion ← envelopes.Build ⟨syntheticBudget,syntheticPolicy,duplicateHousehold,duplicateActual,syntheticPlan,"JPY",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-10"⟩
 "error" lib.AssertEq duplicateCompletion.state
 0 lib.AssertEq duplicateCompletion.envelopes.count
 "plan_completion_conflict" lib.AssertEq (⊑duplicateCompletion.diagnostics).code
 
 overflowLines ← ⟨
   Join ⟨"assets:ils","role=asset","currency=ILS"⟩,
+  Join ⟨"income:ils","role=income","currency=ILS"⟩,
   Join ⟨"expenses:ils","role=expense","budget=food","currency=ILS"⟩,
   Join ⟨"budget:unassigned-ils","role=budget","kind=unassigned","currency=ILS"⟩,
   Join ⟨"budget:food-ils","role=budget","kind=envelope","budget=food","currency=ILS"⟩
 ⟩
 overflowRaw ← ∾⟨
-  "commodity ILS",lf,lf,"account assets:ils",lf,"    ; role: asset",lf,lf,"account expenses:ils",lf,"    ; role: expense",lf,lf,
+  "commodity ILS",lf,lf,"account assets:ils",lf,"    ; role: asset",lf,lf,
+  "account income:ils",lf,"    ; role: income",lf,lf,"account expenses:ils",lf,"    ; role: expense",lf,lf,
   "account budget:unassigned-ils",lf,"    ; role: budget",lf,lf,"account budget:food-ils",lf,"    ; role: budget",lf,lf,
   "2026-01-05 * fractional",lf,"    ; event-id: fractional",lf,"    ; layer: actual",lf,"    expenses:ils 0.1 ILS",lf,"    assets:ils -0.1 ILS",lf
 ⟩
@@ -142,7 +159,8 @@ overflowPolicyRaw ← Raw ⟨
 overflowPolicy ← budgetPolicyAdmission.Admit ⟨overflowPolicyRaw,overflowActual.accounts⟩
 "ok" lib.AssertEq overflowPolicy.state
 overflowPlan ← (canonicalPlan.Build ⟨"",overflowActual.accounts,registry⟩).facts
-overflow ← envelopes.Build ⟨overflowBudget,overflowPolicy,overflowActual,overflowPlan,"ILS",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-10"⟩
+overflowHousehold ← MakeHouseholdPolicy ⟨overflowActual.accounts,"budget:food-ils",⟨"budget:unassigned-ils"⟩⟩
+overflow ← envelopes.Build ⟨overflowBudget,overflowPolicy,overflowHousehold,overflowActual,overflowPlan,"ILS",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-10"⟩
 "error" lib.AssertEq overflow.state
 0 lib.AssertEq overflow.envelopes.count
 "coefficient_sum_failed" lib.AssertEq (⊑overflow.diagnostics).code

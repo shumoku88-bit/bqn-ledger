@@ -6,6 +6,7 @@ snapshot ← •Import "../src/ledger/snapshot.bqn"
 canonicalBudget ← •Import "canonical_budget_test_facts.bqn"
 canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 budgetPolicyAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
+householdAdmission ← •Import "../src/ledger/household_policy_admission.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 accounting ← •Import "../src/accounting/envelope_backing.bqn"
 section ← •Import "../src/sections/envelope_backing.bqn"
@@ -19,7 +20,9 @@ budgetRaw ← •FChars "../"∾base∾"budget.journal"
 budget ← (canonicalBudget.Build ⟨budgetRaw,actual.accounts,registry⟩).facts
 policy ← budgetPolicyAdmission.Admit ⟨•FChars "../"∾base∾"budget.toml",actual.accounts⟩
 "ok" lib.AssertEq policy.state
-statement ← accounting.Build ⟨budget,policy,actual,plan,"JPY",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-12"⟩
+household ← householdAdmission.Admit ⟨•FChars "../"∾base∾"household.toml",actual.accounts,policy⟩
+"ok" lib.AssertEq household.state
+statement ← accounting.Build ⟨budget,policy,household,actual,plan,"JPY",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-12"⟩
 result ← section.Build ⟨statement,"2026-01-01","2026-02-01","2026-01-12"⟩
 "ok" lib.AssertEq result.state
 "backed" lib.AssertEq result.status

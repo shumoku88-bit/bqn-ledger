@@ -27,111 +27,73 @@ dailyTargetSection ← •Import "../sections/daily_target.bqn"
 issuesSection ← •Import "../sections/issues.bqn"
 empty ← ⟨⟩
 
-Diagnostic ← {𝕊 code‿message:
-  {severity⇐"error",stage⇐"report_composition",code⇐code,message⇐message}
-}
-Failure ← {𝕊 keyValue‿diagnosticsValue:
-  {state⇐"error",reason⇐"",key⇐keyValue,result⇐empty,diagnostics⇐diagnosticsValue}
-}
+Diagnostic ← {𝕊 code‿message:{severity⇐"error",stage⇐"report_composition",code⇐code,message⇐message}}
+Failure ← {𝕊 keyValue‿diagnosticsValue:{state⇐"error",reason⇐"",key⇐keyValue,result⇐empty,diagnostics⇐diagnosticsValue}}
 Publish ← {𝕊 keyValue‿resultValue:
   renderable ← ∨´resultValue.state⊸≡¨⟨"ok","deficit"⟩
   output ← Failure ⟨keyValue,resultValue.diagnostics⟩
   {𝕊:output↩{state⇐"ok",reason⇐"",key⇐keyValue,result⇐resultValue,diagnostics⇐empty}}⍟renderable @
-  {𝕊:
-    output↩{
-      state⇐"unavailable",reason⇐resultValue.reason,key⇐keyValue,
-      result⇐empty,diagnostics⇐resultValue.diagnostics
-    }
-  }⍟(resultValue.state≡"unavailable") @
+  {𝕊:output↩{state⇐"unavailable",reason⇐resultValue.reason,key⇐keyValue,result⇐empty,diagnostics⇐resultValue.diagnostics}}⍟(resultValue.state≡"unavailable") @
   output
 }
 ValidateSingle ← {𝕊 keyValue‿surface:
-  admitted ← request.Validate ⟨keyValue,surface⟩
-  diagnostics ← admitted.diagnostics
+  admitted ← request.Validate ⟨keyValue,surface⟩ ⋄ diagnostics ← admitted.diagnostics
   diagnostics∾↩(keyValue≡"all")/⟨Diagnostic ⟨"single_composition_required","one-result composer does not accept all"⟩⟩
   {state⇐(0=≠diagnostics)⊑"error"‿"ok",diagnostics⇐diagnostics}
 }
-DateFailure ← {𝕊 keyValue:
-  Failure ⟨keyValue,⟨Diagnostic ⟨"composition_date_invalid","composition date must be strict Gregorian text"⟩⟩⟩
-}
-
+DateFailure ← {𝕊 keyValue:Failure ⟨keyValue,⟨Diagnostic ⟨"composition_date_invalid","composition date must be strict Gregorian text"⟩⟩⟩}
 Balances ← {𝕊 facts‿domain‿observation:
   output ← DateFailure "balances"
-  {𝕊:
-    accounting ← accountBalance.Build ⟨facts,domain,dates.Ordinal observation⟩
-    output↩Publish ⟨"balances",balancesSection.Build ⟨accounting,observation⟩⟩
-  }⍟(dates.IsValid observation) @
+  {𝕊:accounting←accountBalance.Build ⟨facts,domain,dates.Ordinal observation⟩ ⋄ output↩Publish ⟨"balances",balancesSection.Build ⟨accounting,observation⟩⟩}⍟(dates.IsValid observation) @
   output
 }
 BalanceSheet ← {𝕊 facts‿domain‿observation:
   output ← DateFailure "balance-sheet"
-  {𝕊:
-    accounting ← balanceSheetAccounting.Build ⟨facts,domain,dates.Ordinal observation⟩
-    output↩Publish ⟨"balance-sheet",balanceSheetSection.Build ⟨accounting,observation⟩⟩
-  }⍟(dates.IsValid observation) @
+  {𝕊:accounting←balanceSheetAccounting.Build ⟨facts,domain,dates.Ordinal observation⟩ ⋄ output↩Publish ⟨"balance-sheet",balanceSheetSection.Build ⟨accounting,observation⟩⟩}⍟(dates.IsValid observation) @
   output
 }
 ProfitAndLoss ← {𝕊 facts‿domain‿start‿finish:
-  output ← DateFailure "profit-and-loss"
-  valid ← (dates.IsValid start) ∧ (dates.IsValid finish)
-  {𝕊:
-    accounting ← profitLossAccounting.Build ⟨facts,domain,dates.Ordinal start,dates.Ordinal finish⟩
-    output↩Publish ⟨"profit-and-loss",profitLossSection.Build ⟨accounting,start,finish⟩⟩
-  }⍟valid @
+  output ← DateFailure "profit-and-loss" ⋄ valid ← (dates.IsValid start) ∧ dates.IsValid finish
+  {𝕊:accounting←profitLossAccounting.Build ⟨facts,domain,dates.Ordinal start,dates.Ordinal finish⟩ ⋄ output↩Publish ⟨"profit-and-loss",profitLossSection.Build ⟨accounting,start,finish⟩⟩}⍟valid @
   output
 }
-Recent ← {𝕊 facts‿limit:
-  Publish ⟨"recent",recentSection.Build recentTransactions.Build ⟨facts,limit⟩⟩
-}
-Planned ← {𝕊 planFacts‿actualFacts‿cycle‿observation:
-  Publish ⟨"planned",plannedSection.Build ⟨planFacts,actualFacts,cycle,observation⟩⟩
-}
+Recent ← {𝕊 facts‿limit:Publish ⟨"recent",recentSection.Build recentTransactions.Build ⟨facts,limit⟩⟩}
+Planned ← {𝕊 planFacts‿actualFacts‿cycle‿observation:Publish ⟨"planned",plannedSection.Build ⟨planFacts,actualFacts,cycle,observation⟩⟩}
 CycleAccounts ← {𝕊 facts‿domain‿cycle‿observation:
-  accounting ← cycleAccountPeriod.Build ⟨facts,domain,cycle,observation⟩
-  Publish ⟨"cycle-accounts",cycleAccountsSection.Build accounting⟩
+  accounting ← cycleAccountPeriod.Build ⟨facts,domain,cycle,observation⟩ ⋄ Publish ⟨"cycle-accounts",cycleAccountsSection.Build accounting⟩
 }
 CycleComparison ← {𝕊 facts‿domain‿currentCycle‿currentObservation‿baselineCycle‿baselineObservation‿policy:
   current ← cycleAccountPeriod.Build ⟨facts,domain,currentCycle,currentObservation⟩
   baseline ← cycleAccountPeriod.Build ⟨facts,domain,baselineCycle,baselineObservation⟩
-  compared ← comparisonAccounting.Build ⟨current,baseline,policy⟩
-  Publish ⟨"cycle-comparison",cycleComparisonSection.Build compared⟩
+  Publish ⟨"cycle-comparison",cycleComparisonSection.Build comparisonAccounting.Build ⟨current,baseline,policy⟩⟩
 }
 MonthlyAccounts ← {𝕊 facts‿domain‿firstMonth‿lastMonthExclusive:
-  accounting ← monthMovement.Build ⟨facts,domain,firstMonth,lastMonthExclusive⟩
-  Publish ⟨"monthly-accounts",monthlySection.Build accounting⟩
+  Publish ⟨"monthly-accounts",monthlySection.Build monthMovement.Build ⟨facts,domain,firstMonth,lastMonthExclusive⟩⟩
 }
-DailyFlow ← {𝕊 facts‿domain‿start‿finish‿observation:
-  output ← DateFailure "daily-flow"
-  valid ← (dates.IsValid start) ∧ (dates.IsValid finish) ∧ dates.IsValid observation
+DailyFlow ← {𝕊 facts‿budgetPolicy‿householdPolicy‿domain‿start‿finish‿observation:
+  output ← DateFailure "daily-flow" ⋄ valid ← (dates.IsValid start) ∧ (dates.IsValid finish) ∧ dates.IsValid observation
   {𝕊:
-    accounting ← dateCategoryFlow.Build ⟨facts,domain,"actual",dates.Ordinal start,dates.Ordinal finish⟩
+    accounting ← dateCategoryFlow.Build ⟨facts,budgetPolicy,householdPolicy,domain,"actual",dates.Ordinal start,dates.Ordinal finish⟩
     output↩Publish ⟨"daily-flow",dailyFlowSection.Build ⟨accounting,start,finish,observation⟩⟩
   }⍟valid @
   output
 }
-Envelopes ← {𝕊 budgetFacts‿budgetPolicy‿actualFacts‿planFacts‿domain‿start‿finish‿observation:
-  output ← DateFailure "envelopes"
-  valid ← (dates.IsValid start) ∧ (dates.IsValid finish) ∧ dates.IsValid observation
+Envelopes ← {𝕊 budgetFacts‿budgetPolicy‿householdPolicy‿actualFacts‿planFacts‿domain‿start‿finish‿observation:
+  output ← DateFailure "envelopes" ⋄ valid ← (dates.IsValid start) ∧ (dates.IsValid finish) ∧ dates.IsValid observation
   {𝕊:
-    accounting ← envelopeBacking.Build ⟨budgetFacts,budgetPolicy,actualFacts,planFacts,domain,dates.Ordinal start,dates.Ordinal finish,dates.Ordinal observation⟩
+    accounting ← envelopeBacking.Build ⟨budgetFacts,budgetPolicy,householdPolicy,actualFacts,planFacts,domain,dates.Ordinal start,dates.Ordinal finish,dates.Ordinal observation⟩
     output↩Publish ⟨"envelopes",envelopeSection.Build ⟨accounting,start,finish,observation⟩⟩
   }⍟valid @
   output
 }
 DailyTarget ← {𝕊 observation‿target‿domain‿assetScope‿obligationScope:
-  accounting ← targetAccounting.Build ⟨observation,target,domain,assetScope,obligationScope⟩
-  Publish ⟨"daily-target",dailyTargetSection.Build accounting⟩
+  Publish ⟨"daily-target",dailyTargetSection.Build targetAccounting.Build ⟨observation,target,domain,assetScope,obligationScope⟩⟩
 }
-Issues ← {𝕊 lines‿registry:
-  admitted ← issueAdmission.Admit ⟨lines,registry⟩
-  Publish ⟨"issues",issuesSection.Build admitted⟩
-}
+Issues ← {𝕊 lines‿registry:Publish ⟨"issues",issuesSection.Build issueAdmission.Admit ⟨lines,registry⟩⟩}
 
 {
   ValidateSingle⇐ValidateSingle,
-  Balances⇐Balances,BalanceSheet⇐BalanceSheet,ProfitAndLoss⇐ProfitAndLoss,
-  Recent⇐Recent,Planned⇐Planned,
-  CycleAccounts⇐CycleAccounts,CycleComparison⇐CycleComparison,
-  MonthlyAccounts⇐MonthlyAccounts,DailyFlow⇐DailyFlow,Envelopes⇐Envelopes,
-  DailyTarget⇐DailyTarget,Issues⇐Issues
+  Balances⇐Balances,BalanceSheet⇐BalanceSheet,ProfitAndLoss⇐ProfitAndLoss,Recent⇐Recent,Planned⇐Planned,
+  CycleAccounts⇐CycleAccounts,CycleComparison⇐CycleComparison,MonthlyAccounts⇐MonthlyAccounts,DailyFlow⇐DailyFlow,
+  Envelopes⇐Envelopes,DailyTarget⇐DailyTarget,Issues⇐Issues
 }

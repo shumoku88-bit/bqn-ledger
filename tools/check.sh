@@ -25,6 +25,7 @@ for check in \
   checks/check-report-destination-registry-error.sh \
   checks/check-report-composition.sh \
   checks/check-canonical-actual-reports.sh \
+  checks/check-canonical-household-read-cutover.sh \
   checks/check-current-report-profile.sh \
   checks/check-report-cache.sh \
   checks/check-report-section-metadata.sh \

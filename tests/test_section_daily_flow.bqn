@@ -2,22 +2,29 @@
 
 lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
+actualSource ← •Import "../src/application/actual_source_adapter.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
-snapshot ← •Import "../src/ledger/snapshot.bqn"
-cycle_admission ← •Import "../src/ledger/cycle_admission.bqn"
+budgetPolicyAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
+householdAdmission ← •Import "../src/ledger/household_policy_admission.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 flow ← •Import "../src/accounting/date_category_flow.bqn"
 section ← •Import "../src/sections/daily_flow.bqn"
 
 base ← "fixtures/ledger-facts-phase1-proof/"
-accountLines ← loader.ReadLines base∾"accounts.tsv"
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
-facts ← (snapshot.Build ⟨accountLines,•FChars "../"∾base∾"actual.journal",registry⟩).facts
-cycle ← cycle_admission.Admit ⟨loader.ReadLines base∾"cycle.tsv",facts.accounts⟩
-start ← dates.Ordinal cycle.definition.start
-end ← dates.Ordinal cycle.definition.end_exclusive
-accounting ← flow.Build ⟨facts,"JPY","actual",start,end⟩
-result ← section.Build ⟨accounting,cycle.definition.start,cycle.definition.end_exclusive,"2026-01-12"⟩
+actualResult ← actualSource.Load ⟨base,registry⟩
+"ok" lib.AssertEq actualResult.state
+facts ← actualResult.facts
+budgetPolicy ← budgetPolicyAdmission.Admit ⟨•FChars "../"∾base∾"budget.toml",facts.accounts⟩
+"ok" lib.AssertEq budgetPolicy.state
+household ← householdAdmission.Admit ⟨•FChars "../"∾base∾"household.toml",facts.accounts,budgetPolicy⟩
+"ok" lib.AssertEq household.state
+startText ← "2026-01-01"
+endText ← "2026-02-01"
+start ← dates.Ordinal startText
+end ← dates.Ordinal endText
+accounting ← flow.Build ⟨facts,budgetPolicy,household,"JPY","actual",start,end⟩
+result ← section.Build ⟨accounting,startText,endText,"2026-01-12"⟩
 
 "ok" lib.AssertEq result.state
 0 lib.AssertEq ≠result.diagnostics
@@ -68,19 +75,28 @@ human ← section.FormatHuman result
 human lib.AssertEq section.FormatHuman result
 (•FChars "../"∾base∾"daily_flow.destination.human.txt") lib.AssertEq human
 
-lf ← @+10
-emptyRaw ← ∾⟨"commodity JPY"∾lf,""∾lf,"account assets:cash"∾lf⟩
-emptyFacts ← (snapshot.Build ⟨accountLines,emptyRaw,registry⟩).facts
-⟨"actual"⟩ lib.AssertEq emptyFacts.layers.name
-emptyAccounting ← flow.Build ⟨emptyFacts,"JPY","actual",start,end⟩
+emptyFacts ← {
+  state⇐facts.state,transactions⇐{
+    count⇐0,index⇐⟨⟩,transaction_id⇐⟨⟩,source_event_id⇐⟨⟩,identity_kind⇐⟨⟩,
+    source_start_line⇐⟨⟩,source_end_line⇐⟨⟩,date_ordinal⇐⟨⟩,date_text⇐⟨⟩,
+    domain_index⇐⟨⟩,layer_index⇐⟨⟩,description⇐⟨⟩,status_marker⇐⟨⟩,
+    txn_id⇐⟨⟩,plan_id⇐⟨⟩,allocation_id⇐⟨⟩,execution_envelope⇐⟨⟩,
+    actual_event_id⇐⟨⟩,metadata⇐⟨⟩
+  },postings⇐{
+    count⇐0,index⇐⟨⟩,transaction_index⇐⟨⟩,posting_index⇐⟨⟩,posting_id⇐⟨⟩,
+    account_index⇐⟨⟩,domain_index⇐⟨⟩,layer_index⇐⟨⟩,date_ordinal⇐⟨⟩,
+    coefficient⇐⟨⟩,scale⇐⟨⟩,side⇐⟨⟩,source_line⇐⟨⟩
+  },sources⇐facts.sources,domains⇐facts.domains,accounts⇐facts.accounts,layers⇐facts.layers,diagnostics⇐⟨⟩
+}
+emptyAccounting ← flow.Build ⟨emptyFacts,budgetPolicy,household,"JPY","actual",start,end⟩
 "ok" lib.AssertEq emptyAccounting.state
 0 lib.AssertEq emptyAccounting.dates.count
-emptyResult ← section.Build ⟨emptyAccounting,cycle.definition.start,cycle.definition.end_exclusive,cycle.definition.start⟩
+emptyResult ← section.Build ⟨emptyAccounting,startText,endText,startText⟩
 "ok" lib.AssertEq emptyResult.state
-⟨"2026-01-01"⟩ lib.AssertEq emptyResult.date_text
+⟨startText⟩ lib.AssertEq emptyResult.date_text
 ⟨⟨0,0,0,0⟩⟩ lib.AssertEq emptyResult.matrix.values
 
-rejected ← section.Build ⟨accounting,cycle.definition.start,cycle.definition.end_exclusive,"2026-01-11"⟩
+rejected ← section.Build ⟨accounting,startText,endText,"2026-01-11"⟩
 "error" lib.AssertEq rejected.state
 0 lib.AssertEq rejected.matrix.cell_count
 1 lib.AssertEq ∨´0∾"observation_evidence_mismatch"⊸≡¨{𝕩.code}¨rejected.diagnostics

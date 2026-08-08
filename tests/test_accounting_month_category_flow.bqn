@@ -2,21 +2,29 @@
 
 lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
+actualSource ← •Import "../src/application/actual_source_adapter.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
+budgetPolicyAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
+householdAdmission ← •Import "../src/ledger/household_policy_admission.bqn"
 account_admission ← •Import "../src/ledger/account_admission.bqn"
 companion_snapshot ← •Import "../src/ledger/companion_snapshot.bqn"
-snapshot ← •Import "../src/ledger/snapshot.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 monthly ← •Import "../src/accounting/month_category_flow.bqn"
 pivot ← •Import "../src/accounting/sparse_pivot.bqn"
 
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
 base ← "fixtures/ledger-facts-phase1-proof/"
-actualFacts ← (snapshot.Build ⟨loader.ReadLines base∾"accounts.tsv",•FChars "../"∾base∾"actual.journal",registry⟩).facts
+actualResult ← actualSource.Load ⟨base,registry⟩
+"ok" lib.AssertEq actualResult.state
+actualFacts ← actualResult.facts
+budgetPolicy ← budgetPolicyAdmission.Admit ⟨•FChars "../"∾base∾"budget.toml",actualFacts.accounts⟩
+"ok" lib.AssertEq budgetPolicy.state
+household ← householdAdmission.Admit ⟨•FChars "../"∾base∾"household.toml",actualFacts.accounts,budgetPolicy⟩
+"ok" lib.AssertEq household.state
 jan ← dates.Ordinal "2026-01-01"
 feb ← dates.Ordinal "2026-02-01"
 mar ← dates.Ordinal "2026-03-01"
-actual ← monthly.Build ⟨actualFacts,"JPY","actual",jan,feb⟩
+actual ← monthly.Build ⟨actualFacts,budgetPolicy,household,"JPY","actual",jan,feb⟩
 "ok" lib.AssertEq actual.state
 ⟨"2026-01"⟩ lib.AssertEq actual.months.label
 ⟨"food","other"⟩ lib.AssertEq actual.categories.label
@@ -25,9 +33,9 @@ actual ← monthly.Build ⟨actualFacts,"JPY","actual",jan,feb⟩
 
 accountLines ← ⟨
   "assets:cash	role=asset	currency=JPY",
-  "expenses:food	role=expense	budget=food	currency=JPY",
-  "expenses:transport	role=expense	budget=transport	currency=JPY",
-  "budget:food	role=budget	kind=envelope	budget=food	currency=JPY"
+  "expenses:food	role=expense	currency=JPY",
+  "expenses:transport	role=expense	currency=JPY",
+  "budget:food	role=budget	currency=JPY"
 ⟩
 accounts ← (account_admission.Admit ⟨accountLines,registry⟩).accounts
 planLines ← ⟨
@@ -38,7 +46,16 @@ planLines ← ⟨
   "2026-02-07	feb-other	assets:cash	expenses:transport	7	currency=JPY	plan_id=p5"
 ⟩
 planFacts ← (companion_snapshot.Build ⟨planLines,⟨⟩,accounts,registry⟩).plan
-result ← monthly.Build ⟨planFacts,"JPY","plan",jan,mar⟩
+planBudgetPolicy ← {
+  state⇐"ok",source_name⇐"budget.toml",envelopes⇐{count⇐1,id⇐⟨"food"⟩},
+  expense_account_index⇐⟨1⟩,expense_envelope_id⇐⟨"food"⟩
+}
+planHousehold ← {
+  state⇐"ok",source_name⇐"household.toml",
+  budget⇐{envelope_id⇐⟨"food"⟩,allocation_account_index⇐⟨3⟩},
+  account_policy⇐{account_key⇐accounts.key}
+}
+result ← monthly.Build ⟨planFacts,planBudgetPolicy,planHousehold,"JPY","plan",jan,mar⟩
 
 "ok" lib.AssertEq result.state
 0 lib.AssertEq ≠result.diagnostics
@@ -56,7 +73,7 @@ matrix ← pivot.Build ⟨result.months.label,result.categories.label,result.sca
 ⟨⟨⟨0⟩,⟨2⟩⟩,⟨⟨4,6⟩,⟨8⟩⟩⟩ lib.AssertEq matrix.matrix.contributors
 
 CheckRejected ← {𝕊 domain‿layer‿s‿e:
-  rejected ← monthly.Build ⟨planFacts,domain,layer,s,e⟩
+  rejected ← monthly.Build ⟨planFacts,planBudgetPolicy,planHousehold,domain,layer,s,e⟩
   "error" lib.AssertEq rejected.state
   0 lib.AssertEq rejected.months.count
   0 lib.AssertEq rejected.categories.count

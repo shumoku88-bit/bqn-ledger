@@ -1,5 +1,5 @@
 # Pure calendar-month rollup of presentation-neutral date/category flow evidence.
-# Reuses the admitted category axis, exact scale, and contributor Posting indices.
+# Reuses canonical Budget/Household category policy, exact scale, and contributor Posting indices.
 
 byDate ← •Import "date_category_flow.bqn"
 sparse ← •Import "sparse_group.bqn"
@@ -15,8 +15,8 @@ EmptyCategories ← {𝕊: {count⇐0,index⇐empty,label⇐empty,kind⇐empty,e
 EmptyGroups ← {𝕊: {count⇐0,index⇐empty,row_index⇐empty,column_index⇐empty,coefficient⇐empty,contributors⇐empty} }
 
 # Input is the same explicit query accepted by date_category_flow.Build.
-Build ← {𝕊 factSet‿domainCode‿layerName‿startOrdinal‿endOrdinal:
-  daily ← byDate.Build ⟨factSet,domainCode,layerName,startOrdinal,endOrdinal⟩
+Build ← {𝕊 factSet‿budgetPolicy‿householdPolicy‿domainCode‿layerName‿startOrdinal‿endOrdinal:
+  daily ← byDate.Build ⟨factSet,budgetPolicy,householdPolicy,domainCode,layerName,startOrdinal,endOrdinal⟩
   diagnostics ← daily.diagnostics
   monthTable ← EmptyMonths @
   groupTable ← EmptyGroups @

@@ -5,155 +5,105 @@ route ← •Import "report_route.bqn"
 compose ← •Import "../report/compose.bqn"
 render ← •Import "../report/render.bqn"
 sources ← •Import "report_source_adapter.bqn"
-cycleAdmission ← •Import "../ledger/cycle_admission.bqn"
 cycleResolution ← •Import "cycle_resolution.bqn"
-dailyScopeAdmission ← •Import "daily_scope_admission.bqn"
+householdDaily ← •Import "household_daily_scope.bqn"
 dailyScopeAdapter ← •Import "daily_scope_adapter.bqn"
 empty ← ⟨⟩ ⋄ tab ← @+9
 args ← •args
 Fail ← {𝕊 code‿message: •Out "ERROR"∾tab∾code∾tab∾message ⋄ •Exit 1}
-ToNatural ← {𝕊 text:
-  digits ← "0123456789"⊐text
-  +´digits×10⋆⌽↕≠digits
-}
+ToNatural ← {𝕊 text: digits ← "0123456789"⊐text ⋄ +´digits×10⋆⌽↕≠digits}
 PrintDiagnostics ← {𝕊 diagnostics:
   {𝕊 diagnostic: •Out "ERROR"∾tab∾diagnostic.code∾tab∾diagnostic.message}¨diagnostics
   •Exit 1
 }
-RegistryDiagnostic ← {𝕊 result:
-  {severity⇐"error",stage⇐"currency_registry",code⇐result.code,message⇐result.message}
-}
-AdmitCycle ← {𝕊 base‿name‿accounts:
-  cycleAdmission.Admit ⟨sources.CycleLines ⟨base,name⟩,accounts⟩
-}
-ResolveWithoutPlan ← cycleResolution.WithoutPlan
-ResolveWithPlan ← cycleResolution.WithPlan
+RegistryDiagnostic ← {𝕊 result:{severity⇐"error",stage⇐"currency_registry",code⇐result.code,message⇐result.message}}
 
 {𝕊:Fail ⟨"usage","expected BASE KEY SURFACE and key-specific coordinates"⟩}⍟(3>≠args) @
 base‿key‿surface ← 3↑args ⋄ coordinates ← 3↓args
 admitted ← request.Validate ⟨key,surface⟩
 {𝕊:PrintDiagnostics admitted.diagnostics}⍟(admitted.state≢"ok") @
 {𝕊:Fail ⟨"all_not_implemented","parallel CLI currently requires one retained key"⟩}⍟(key≡"all") @
-
 registryResult ← sources.Registry "config/currencies.tsv"
 {𝕊:PrintDiagnostics ⟨RegistryDiagnostic registryResult⟩}⍟(registryResult.state≢"ok") @
 registry ← registryResult.registry
 routeAdmission ← route.Admit ⟨key,surface,coordinates⟩
 {𝕊:PrintDiagnostics routeAdmission.diagnostics}⍟(routeAdmission.state≢"ok") @
-coordinates ↩ routeAdmission.coordinates
+coordinates↩routeAdmission.coordinates
 composition ← {state⇐"error",key⇐key,result⇐empty,diagnostics⇐empty}
 
+LoadActual ← {𝕊:
+  result ← sources.CanonicalActual ⟨base,registry⟩
+  {𝕊:PrintDiagnostics result.diagnostics}⍟(result.state≢"ok") @
+  result
+}
+LoadHouseholdContext ← {𝕊 actual:
+  context ← sources.HouseholdContext ⟨base,actual.facts.accounts,registry⟩
+  {𝕊:PrintDiagnostics context.diagnostics}⍟(context.state≢"ok") @
+  {plan⇐{facts⇐context.plan},budget_policy⇐context.budget_policy,household⇐context.household}
+}
+
 {𝕊:
-  domain‿observation‿journal ← coordinates
-  actual ← sources.CanonicalActual ⟨base,registry⟩
-  {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
+  domain‿observation‿journal ← coordinates ⋄ actual ← LoadActual @
   composition↩compose.Balances ⟨actual.facts,domain,observation⟩
 }⍟(key≡"balances") @
 {𝕊:
-  domain‿observation‿journal ← coordinates
-  actual ← sources.CanonicalActual ⟨base,registry⟩
-  {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
+  domain‿observation‿journal ← coordinates ⋄ actual ← LoadActual @
   composition↩compose.BalanceSheet ⟨actual.facts,domain,observation⟩
 }⍟(key≡"balance-sheet") @
 {𝕊:
-  domain‿start‿finish‿journal ← coordinates
-  actual ← sources.CanonicalActual ⟨base,registry⟩
-  {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
+  domain‿start‿finish‿journal ← coordinates ⋄ actual ← LoadActual @
   composition↩compose.ProfitAndLoss ⟨actual.facts,domain,start,finish⟩
 }⍟(key≡"profit-and-loss") @
 {𝕊:
-  limitText‿journal ← coordinates
-  actual ← sources.CanonicalActual ⟨base,registry⟩
-  {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
+  limitText‿journal ← coordinates ⋄ actual ← LoadActual @
   composition↩compose.Recent ⟨actual.facts,ToNatural limitText⟩
 }⍟(key≡"recent") @
 {𝕊:
-  domain‿start‿finish‿observation‿journal‿planName‿budgetName ← 7↑coordinates
-  actual ← sources.Actual ⟨base,journal,registry⟩
-  {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
-  companions ← sources.Companions ⟨base,planName,budgetName,actual.facts.accounts,registry⟩
+  domain‿start‿finish‿observation‿journal‿planCoordinate‿budgetCoordinate ← 7↑coordinates
+  planCoordinate‿budgetCoordinate
+  actual ← LoadActual @
+  companions ← sources.Companions ⟨base,actual.facts.accounts,registry⟩
   {𝕊:PrintDiagnostics companions.diagnostics}⍟(companions.state≢"ok") @
-  composition↩compose.Envelopes ⟨
-    companions.budget,companions.budget_policy,actual.facts,companions.plan,
-    domain,start,finish,observation
-  ⟩
+  composition↩compose.Envelopes ⟨companions.budget,companions.budget_policy,companions.household,actual.facts,companions.plan,domain,start,finish,observation⟩
 }⍟(key≡"envelopes") @
 {𝕊:
-  observation‿journal‿planName‿cycleName ← coordinates
-  actual ← sources.Actual ⟨base,journal,registry⟩
-  {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
-  plan ← sources.Plan ⟨base,planName,actual.facts.accounts,registry⟩
-  {𝕊:PrintDiagnostics plan.diagnostics}⍟(plan.state≢"ok") @
-  admittedCycle ← AdmitCycle ⟨base,cycleName,actual.facts.accounts⟩
-  {𝕊:PrintDiagnostics admittedCycle.diagnostics}⍟(admittedCycle.state≢"ok") @
-  cycle ← ResolveWithPlan ⟨admittedCycle,observation,actual.facts,plan.facts⟩
-  composition↩compose.Planned ⟨plan.facts,actual.facts,cycle,observation⟩
+  observation‿journal‿planCoordinate‿cycleCoordinate ← coordinates ⋄ planCoordinate‿cycleCoordinate
+  actual ← LoadActual @ ⋄ context ← LoadHouseholdContext actual
+  cycle ← cycleResolution.WithPlan ⟨context.household.cycle,observation,actual.facts,context.plan.facts⟩
+  composition↩compose.Planned ⟨context.plan.facts,actual.facts,cycle,observation⟩
 }⍟(key≡"planned") @
 {𝕊:
-  domain‿observation‿journal‿cycleName ← 4↑coordinates
-  actual ← sources.Actual ⟨base,journal,registry⟩
-  {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
-  admittedCycle ← AdmitCycle ⟨base,cycleName,actual.facts.accounts⟩
-  {𝕊:PrintDiagnostics admittedCycle.diagnostics}⍟(admittedCycle.state≢"ok") @
-  cycle ← ResolveWithoutPlan ⟨admittedCycle,observation⟩
-  {𝕊:
-    {𝕊:Fail ⟨"plan_required","incomeAnchor cycle requires PLAN_BASENAME"⟩}⍟(5≠≠coordinates) @
-    plan ← sources.Plan ⟨base,4⊑coordinates,actual.facts.accounts,registry⟩
-    {𝕊:PrintDiagnostics plan.diagnostics}⍟(plan.state≢"ok") @
-    cycle↩ResolveWithPlan ⟨admittedCycle,observation,actual.facts,plan.facts⟩
-  }⍟(admittedCycle.definition.mode≡"incomeAnchor") @
-  {𝕊:Fail ⟨"plan_unexpected","PLAN_BASENAME is accepted only for incomeAnchor"⟩}⍟((admittedCycle.definition.mode≢"incomeAnchor") ∧ 5=≠coordinates) @
+  domain‿observation‿journal‿cycleCoordinate ← 4↑coordinates ⋄ cycleCoordinate
+  actual ← LoadActual @ ⋄ context ← LoadHouseholdContext actual
+  cycle ← cycleResolution.WithPlan ⟨context.household.cycle,observation,actual.facts,context.plan.facts⟩
   composition↩compose.CycleAccounts ⟨actual.facts,domain,cycle,observation⟩
 }⍟(key≡"cycle-accounts") @
 {𝕊:
-  domain‿currentObs‿baselineObs‿policy‿journal‿currentName‿baselineName ← 7↑coordinates
-  actual ← sources.Actual ⟨base,journal,registry⟩
-  {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
-  currentAdmission ← AdmitCycle ⟨base,currentName,actual.facts.accounts⟩
-  baselineAdmission ← AdmitCycle ⟨base,baselineName,actual.facts.accounts⟩
-  cycleDiagnostics ← currentAdmission.diagnostics∾baselineAdmission.diagnostics
-  {𝕊:PrintDiagnostics cycleDiagnostics}⍟(0<≠cycleDiagnostics) @
-  modesMatch ← currentAdmission.definition.mode≡baselineAdmission.definition.mode
-  {𝕊:Fail ⟨"comparison_cycle_mode_mismatch","current and baseline cycle modes must agree"⟩}⍟(¬modesMatch) @
-  current ← ResolveWithoutPlan ⟨currentAdmission,currentObs⟩
-  baseline ← ResolveWithoutPlan ⟨baselineAdmission,baselineObs⟩
-  {𝕊:
-    {𝕊:Fail ⟨"plan_required","incomeAnchor comparison requires PLAN_BASENAME"⟩}⍟(8≠≠coordinates) @
-    plan ← sources.Plan ⟨base,7⊑coordinates,actual.facts.accounts,registry⟩
-    {𝕊:PrintDiagnostics plan.diagnostics}⍟(plan.state≢"ok") @
-    current↩ResolveWithPlan ⟨currentAdmission,currentObs,actual.facts,plan.facts⟩
-    baseline↩ResolveWithPlan ⟨baselineAdmission,baselineObs,actual.facts,plan.facts⟩
-  }⍟(currentAdmission.definition.mode≡"incomeAnchor") @
-  {𝕊:Fail ⟨"plan_unexpected","PLAN_BASENAME is accepted only for incomeAnchor"⟩}⍟((currentAdmission.definition.mode≢"incomeAnchor") ∧ 8=≠coordinates) @
+  domain‿currentObs‿baselineObs‿policy‿journal‿currentCycleCoordinate‿baselineCycleCoordinate ← 7↑coordinates ⋄ currentCycleCoordinate‿baselineCycleCoordinate
+  actual ← LoadActual @ ⋄ context ← LoadHouseholdContext actual
+  current ← cycleResolution.WithPlan ⟨context.household.cycle,currentObs,actual.facts,context.plan.facts⟩
+  baseline ← cycleResolution.WithPlan ⟨context.household.cycle,baselineObs,actual.facts,context.plan.facts⟩
   composition↩compose.CycleComparison ⟨actual.facts,domain,current,currentObs,baseline,baselineObs,policy⟩
 }⍟(key≡"cycle-comparison") @
 {𝕊:
-  domain‿firstMonth‿lastMonth‿journal ← coordinates
-  actual ← sources.CanonicalActual ⟨base,registry⟩
-  {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
+  domain‿firstMonth‿lastMonth‿journal ← coordinates ⋄ actual ← LoadActual @
   composition↩compose.MonthlyAccounts ⟨actual.facts,domain,firstMonth,lastMonth⟩
 }⍟(key≡"monthly-accounts") @
 {𝕊:
   domain‿start‿finish‿observation‿journal ← coordinates
-  actual ← sources.Actual ⟨base,journal,registry⟩
-  {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
-  composition↩compose.DailyFlow ⟨actual.facts,domain,start,finish,observation⟩
+  actual ← LoadActual @ ⋄ context ← LoadHouseholdContext actual
+  composition↩compose.DailyFlow ⟨actual.facts,context.budget_policy,context.household,domain,start,finish,observation⟩
 }⍟(key≡"daily-flow") @
 {𝕊:
-  domain‿observation‿target‿journal‿planName‿scopeName ← coordinates
-  actual ← sources.Actual ⟨base,journal,registry⟩
-  {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
-  plan ← sources.Plan ⟨base,planName,actual.facts.accounts,registry⟩
-  {𝕊:PrintDiagnostics plan.diagnostics}⍟(plan.state≢"ok") @
-  scopeAdmission ← dailyScopeAdmission.Admit ⟨sources.DailyScopeLines ⟨base,scopeName⟩,registry⟩
+  domain‿observation‿target‿journal‿planCoordinate‿scopeCoordinate ← coordinates ⋄ planCoordinate‿scopeCoordinate
+  actual ← LoadActual @ ⋄ context ← LoadHouseholdContext actual
+  scopeAdmission ← householdDaily.Build ⟨context.household,context.plan.facts,registry⟩
   {𝕊:PrintDiagnostics scopeAdmission.diagnostics}⍟(scopeAdmission.state≢"ok") @
-  scopes ← dailyScopeAdapter.Build ⟨scopeAdmission,actual.facts,plan.facts,domain,observation,target⟩
+  scopes ← dailyScopeAdapter.Build ⟨scopeAdmission,actual.facts,context.plan.facts,domain,observation,target⟩
   {𝕊:PrintDiagnostics scopes.diagnostics}⍟(scopes.state≢"ok") @
   composition↩compose.DailyTarget ⟨observation,target,domain,scopes.asset_scope,scopes.obligation_scope⟩
 }⍟(key≡"daily-target") @
-{𝕊:
-  composition↩compose.Issues ⟨sources.IssueLines ⟨base,⊑coordinates⟩,registry⟩
-}⍟(key≡"issues") @
+{𝕊:composition↩compose.Issues ⟨sources.IssueLines ⟨base,⊑coordinates⟩,registry⟩}⍟(key≡"issues") @
 
 {𝕊:PrintDiagnostics composition.diagnostics}⍟(composition.state≢"ok") @
 rendered ← render.Render ⟨key,surface,composition⟩

@@ -1,57 +1,55 @@
-# Key-specific application I/O adapters. Paths are explicit at the CLI boundary.
+# Key-specific application I/O adapters over the canonical eight-file Household root.
 
 io ← •Import "source_io.bqn"
 registryBuilder ← •Import "../ledger/currency_registry.bqn"
-snapshot ← •Import "../ledger/snapshot.bqn"
 actualSource ← •Import "actual_source_adapter.bqn"
 planSource ← •Import "plan_source_adapter.bqn"
 budgetSource ← •Import "budget_source_adapter.bqn"
+householdSource ← •Import "household_source_adapter.bqn"
+empty ← ⟨⟩
 
 Join ← {𝕊 base‿name: base∾(('/'≠¯1↑base)/"/")∾name}
 Registry ← {𝕊 path: registryBuilder.Build io.ReadLines path}
-
-# Legacy Actual remains only for routes whose Cycle/Household policy source
-# topology has not yet migrated. Canonical Actual-only reports use CanonicalActual.
-Actual ← {𝕊 base‿journalName‿registry:
-  snapshot.Build ⟨io.ReadLines Join ⟨base,"accounts.tsv"⟩,io.ReadRaw Join ⟨base,journalName⟩,registry⟩
-}
 CanonicalActual ← {𝕊 base‿registry: actualSource.Load ⟨base,registry⟩ }
 CanonicalPlan ← {𝕊 base‿registry: planSource.Load ⟨base,registry⟩ }
 CanonicalBudget ← {𝕊 base‿registry: budgetSource.Load ⟨base,registry⟩ }
+CanonicalBudgetPolicy ← {𝕊 base‿accounts: budgetSource.LoadPolicy ⟨base,accounts⟩ }
+CanonicalHousehold ← {𝕊 base‿accounts‿budgetPolicy: householdSource.Load ⟨base,accounts,budgetPolicy⟩ }
 
-# Report manifests retain a Plan basename coordinate until report.toml Phase 6,
-# but physical Plan ownership is already fixed by the canonical Household root.
-# The legacy coordinate and caller-supplied Account carrier therefore do not choose
-# a Plan source and are intentionally ignored here.
-Plan ← {𝕊 base‿planName‿accounts‿registry:
-  planName‿accounts ⋄ CanonicalPlan ⟨base,registry⟩
+HouseholdContext ← {𝕊 base‿accounts‿registry:
+  planResult ← CanonicalPlan ⟨base,registry⟩
+  policyResult ← CanonicalBudgetPolicy ⟨base,accounts⟩
+  diagnostics ← planResult.diagnostics∾policyResult.diagnostics
+  householdResult ← {state⇐"error",diagnostics⇐empty}
+  {𝕊:
+    householdResult↩CanonicalHousehold ⟨base,accounts,policyResult⟩
+    diagnostics∾↩householdResult.diagnostics
+  }⍟(policyResult.state≡"ok") @
+  ok ← (planResult.state≡"ok") ∧ (policyResult.state≡"ok") ∧ householdResult.state≡"ok"
+  result ← {state⇐"error",plan⇐@,budget_policy⇐@,household⇐@,diagnostics⇐diagnostics}
+  {𝕊:result↩{state⇐"ok",plan⇐planResult.facts,budget_policy⇐policyResult,household⇐householdResult,diagnostics⇐diagnostics}}⍟ok @
+  result
 }
 
-# Envelope request coordinates retain legacy Plan/Budget basenames until report.toml
-# Phase 6, but neither chooses a physical companion source. Canonical plan.journal,
-# budget.journal, and budget.toml are the read owners. The caller Account carrier is
-# retained only by the Phase 5 Household structural-policy bridge downstream.
-Companions ← {𝕊 base‿planName‿budgetName‿accounts‿registry:
-  planName‿budgetName‿accounts
-  planResult ← CanonicalPlan ⟨base,registry⟩
+Companions ← {𝕊 base‿accounts‿registry:
+  context ← HouseholdContext ⟨base,accounts,registry⟩
   budgetResult ← CanonicalBudget ⟨base,registry⟩
-  diagnostics ← planResult.diagnostics∾budgetResult.diagnostics
-  ok ← (planResult.state≡"ok") ∧ budgetResult.state≡"ok"
-  result ← {state⇐"error",plan⇐@,budget⇐@,budget_policy⇐@,diagnostics⇐diagnostics}
+  diagnostics ← context.diagnostics∾budgetResult.diagnostics
+  ok ← (context.state≡"ok") ∧ budgetResult.state≡"ok"
+  result ← {state⇐"error",plan⇐@,budget⇐@,budget_policy⇐@,household⇐@,diagnostics⇐diagnostics}
   {𝕊:
     result↩{
-      state⇐"ok",plan⇐planResult.facts,budget⇐budgetResult.facts,
-      budget_policy⇐budgetResult.policy,diagnostics⇐diagnostics
+      state⇐"ok",plan⇐context.plan,budget⇐budgetResult.facts,
+      budget_policy⇐context.budget_policy,household⇐context.household,diagnostics⇐diagnostics
     }
   }⍟ok @
   result
 }
-CycleLines ← {𝕊 base‿cycleName: io.ReadLines Join ⟨base,cycleName⟩}
-DailyScopeLines ← {𝕊 base‿scopeName: io.ReadLines Join ⟨base,scopeName⟩}
 IssueLines ← {𝕊 base‿issueName: io.ReadLines Join ⟨base,issueName⟩}
 
 {
-  Registry⇐Registry,Actual⇐Actual,CanonicalActual⇐CanonicalActual,CanonicalPlan⇐CanonicalPlan,
-  CanonicalBudget⇐CanonicalBudget,Plan⇐Plan,Companions⇐Companions,
-  CycleLines⇐CycleLines,DailyScopeLines⇐DailyScopeLines,IssueLines⇐IssueLines
+  Registry⇐Registry,CanonicalActual⇐CanonicalActual,CanonicalPlan⇐CanonicalPlan,
+  CanonicalBudget⇐CanonicalBudget,CanonicalBudgetPolicy⇐CanonicalBudgetPolicy,
+  CanonicalHousehold⇐CanonicalHousehold,HouseholdContext⇐HouseholdContext,
+  Companions⇐Companions,IssueLines⇐IssueLines
 }

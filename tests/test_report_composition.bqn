@@ -6,10 +6,9 @@ snapshot ← •Import "../src/ledger/snapshot.bqn"
 canonicalBudget ← •Import "canonical_budget_test_facts.bqn"
 canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 budgetPolicyAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
+householdAdmission ← •Import "../src/ledger/household_policy_admission.bqn"
 account_admission ← •Import "../src/ledger/account_admission.bqn"
-cycle_admission ← •Import "../src/ledger/cycle_admission.bqn"
-fixed_resolver ← •Import "../src/accounting/cycle_fixed_resolution.bqn"
-cycle_result ← •Import "../src/accounting/cycle_result.bqn"
+cycleResolution ← •Import "../src/application/cycle_resolution.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 compose ← •Import "../src/report/compose.bqn"
 render ← •Import "../src/report/render.bqn"
@@ -24,23 +23,22 @@ plan ← (canonicalPlan.Build ⟨planRaw,accounts,registry⟩).facts
 lf ← @+10
 Raw ← {𝕊 lines: ∾lines∾¨lf}
 budgetRaw ← Raw ⟨
-  "2026-01-01 seed",
-  "  budget:opening     -100 JPY",
-  "  budget:unassigned   100 JPY","",
-  "2026-01-01 allocate-food",
-  "  budget:unassigned  -60 JPY",
-  "  budget:food         60 JPY"
+  "2026-01-01 seed","  budget:opening     -100 JPY","  budget:unassigned   100 JPY","",
+  "2026-01-01 allocate-food","  budget:unassigned  -60 JPY","  budget:food         60 JPY"
 ⟩
 budget ← (canonicalBudget.Build ⟨budgetRaw,accounts,registry⟩).facts
 budgetPolicy ← budgetPolicyAdmission.Admit ⟨•FChars "../"∾base∾"budget.toml",accounts⟩
 "ok" lib.AssertEq budgetPolicy.state
-cycle ← fixed_resolver.Resolve cycle_admission.Admit ⟨loader.ReadLines base∾"cycle.tsv",accounts⟩
+household ← householdAdmission.Admit ⟨•FChars "../"∾base∾"household.toml",accounts,budgetPolicy⟩
+"ok" lib.AssertEq household.state
+cycle10 ← cycleResolution.WithPlan ⟨household.cycle,"2026-01-10",actual,plan⟩
+"ok" lib.AssertEq cycle10.state
+cycle12 ← cycleResolution.WithPlan ⟨household.cycle,"2026-01-12",actual,plan⟩
+"ok" lib.AssertEq cycle12.state
 
 CheckGolden ← {𝕊 composition‿key‿surface‿file:
-  "ok" lib.AssertEq composition.state
-  key lib.AssertEq composition.key
-  rendered ← render.Render ⟨key,surface,composition⟩
-  "ok" lib.AssertEq rendered.state
+  "ok" lib.AssertEq composition.state ⋄ key lib.AssertEq composition.key
+  rendered ← render.Render ⟨key,surface,composition⟩ ⋄ "ok" lib.AssertEq rendered.state
   (•FChars "../"∾base∾file) lib.AssertEq rendered.text
 }
 
@@ -52,20 +50,17 @@ profitLoss ← compose.ProfitAndLoss ⟨actual,"JPY","2026-01-01","2026-02-01"�
 CheckGolden ⟨profitLoss,"profit-and-loss","human","profit_and_loss.destination.human.txt"⟩
 recent ← compose.Recent ⟨actual,10⟩
 CheckGolden ⟨recent,"recent","compact","recent_journal.destination.compact.txt"⟩
-planned ← compose.Planned ⟨plan,actual,cycle,"2026-01-12"⟩
+planned ← compose.Planned ⟨plan,actual,cycle12,"2026-01-12"⟩
 CheckGolden ⟨planned,"planned","json","planned_payments.destination.json"⟩
-cycleAccounts ← compose.CycleAccounts ⟨actual,"JPY",cycle,"2026-01-10"⟩
+cycleAccounts ← compose.CycleAccounts ⟨actual,"JPY",cycle10,"2026-01-10"⟩
 CheckGolden ⟨cycleAccounts,"cycle-accounts","human","cycle_accounts.destination.human.txt"⟩
-
-currentCycle ← cycle_result.Success ⟨"fixed","2026-01-10","2026-01-01","2026-02-01",⟨⟩,⟨⟩⟩
-baselineCycle ← cycle_result.Success ⟨"fixed","2025-12-31","2025-12-22","2026-01-22",⟨⟩,⟨⟩⟩
-comparison ← compose.CycleComparison ⟨actual,"JPY",currentCycle,"2026-01-10",baselineCycle,"2025-12-31","aligned_elapsed"⟩
+comparison ← compose.CycleComparison ⟨actual,"JPY",cycle10,"2026-01-10",cycle10,"2026-01-10","aligned_elapsed"⟩
 CheckGolden ⟨comparison,"cycle-comparison","human","cycle_comparison.destination.human.txt"⟩
 monthly ← compose.MonthlyAccounts ⟨actual,"JPY","2026-01","2026-03"⟩
 CheckGolden ⟨monthly,"monthly-accounts","human","monthly_accounts.destination.human.txt"⟩
-dailyFlow ← compose.DailyFlow ⟨actual,"JPY","2026-01-01","2026-02-01","2026-01-12"⟩
+dailyFlow ← compose.DailyFlow ⟨actual,budgetPolicy,household,"JPY","2026-01-01","2026-02-01","2026-01-12"⟩
 CheckGolden ⟨dailyFlow,"daily-flow","human","daily_flow.destination.human.txt"⟩
-envelopes ← compose.Envelopes ⟨budget,budgetPolicy,actual,plan,"JPY","2026-01-01","2026-02-01","2026-01-12"⟩
+envelopes ← compose.Envelopes ⟨budget,budgetPolicy,household,actual,plan,"JPY","2026-01-01","2026-02-01","2026-01-12"⟩
 CheckGolden ⟨envelopes,"envelopes","compact","envelope_backing.destination.compact.txt"⟩
 
 Ref ← {𝕊 id:{source⇐"synthetic",transaction_id⇐id,posting_id⇐id}}

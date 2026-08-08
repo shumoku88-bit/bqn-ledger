@@ -1,5 +1,6 @@
 # Pure selected-domain/layer date × dynamic category accounting flow.
-# Category identity comes only from admitted Account role/budget/kind metadata.
+# budget.toml owns Envelope-to-Expense assignment; household.toml owns each
+# Envelope's structural Budget Account. Account identity/type stays in Facts.
 
 scale ← •Import "../ledger/exact_scale.bqn"
 sparse ← •Import "sparse_group.bqn"
@@ -21,13 +22,17 @@ EmptyGroups ← {𝕊:
   {count⇐0,index⇐empty,row_index⇐empty,column_index⇐empty,coefficient⇐empty,contributors⇐empty}
 }
 
-# Input: facts, domain code, layer name, start ordinal, end-exclusive ordinal.
-Build ← {𝕊 factSet‿domainCode‿layerName‿startOrdinal‿endOrdinal:
+# Input: Facts, admitted Budget policy, admitted Household policy, domain/layer,
+# start ordinal, and end-exclusive ordinal.
+Build ← {𝕊 factSet‿budgetPolicy‿householdPolicy‿domainCode‿layerName‿startOrdinal‿endOrdinal:
   diagnostics ← empty
   diagnostics ∾↩ AddIf ⟨factSet.state≢"ok",Diagnostic ⟨"facts_not_ok","canonical facts must be ok"⟩⟩
+  diagnostics ∾↩ AddIf ⟨(budgetPolicy.state≢"ok") ∨ budgetPolicy.source_name≢"budget.toml",Diagnostic ⟨"budget_policy_invalid","date/category flow requires admitted budget.toml policy"⟩⟩
+  diagnostics ∾↩ AddIf ⟨(householdPolicy.state≢"ok") ∨ householdPolicy.source_name≢"household.toml",Diagnostic ⟨"household_policy_invalid","date/category flow requires admitted household.toml policy"⟩⟩
   diagnostics ∾↩ AddIf ⟨¬Contains ⟨domainCode,factSet.domains.code⟩,Diagnostic ⟨"domain_unknown","selected domain must occur in Domain facts"⟩⟩
   diagnostics ∾↩ AddIf ⟨¬Contains ⟨layerName,factSet.layers.name⟩,Diagnostic ⟨"layer_unknown","selected layer must occur in Layer facts"⟩⟩
   diagnostics ∾↩ AddIf ⟨startOrdinal≥endOrdinal,Diagnostic ⟨"period_range_invalid","period start must precede end_exclusive"⟩⟩
+  diagnostics ∾↩ AddIf ⟨householdPolicy.account_policy.account_key≢factSet.accounts.key,Diagnostic ⟨"account_axis_mismatch","Household policy and Facts must share one Account axis"⟩⟩
 
   dateTable ← EmptyDates @
   categoryTable ← EmptyCategories @
@@ -38,15 +43,25 @@ Build ← {𝕊 factSet‿domainCode‿layerName‿startOrdinal‿endOrdinal:
     layerIndex ← IndexOf ⟨layerName,factSet.layers.name⟩
     accounts ← factSet.accounts
 
-    envelopeMask ← (domainCode⊸≡¨accounts.currency) ∧ ("envelope"⊸≡¨accounts.kind)
-    envelopeIndices ← envelopeMask/accounts.index
-    envelopeLabels ← envelopeMask/accounts.budget
-    envelopeRoles ← envelopeMask/accounts.role
-    diagnostics ∾↩ AddIf ⟨∨´0∾{𝕩≢"budget"}¨envelopeRoles,Diagnostic ⟨"envelope_account_role_invalid","envelope Accounts require explicit budget role"⟩⟩
-    diagnostics ∾↩ AddIf ⟨∨´0∾{0=≠𝕩}¨envelopeLabels,Diagnostic ⟨"envelope_category_missing","envelope Accounts require explicit budget category metadata"⟩⟩
-    # Deduplicate compares category-label major cells and preserves Account-derived order.
-    diagnostics ∾↩ AddIf ⟨(≠envelopeLabels)≠≠⍷envelopeLabels,Diagnostic ⟨"envelope_category_duplicate","envelope budget categories must be unique in one domain"⟩⟩
+    envelopeLabels ← budgetPolicy.envelopes.id
+    diagnostics ∾↩ AddIf ⟨(≠envelopeLabels)≠≠⍷envelopeLabels,Diagnostic ⟨"envelope_category_duplicate","budget.toml Envelope ids must be unique"⟩⟩
     diagnostics ∾↩ AddIf ⟨Contains ⟨"other",envelopeLabels⟩,Diagnostic ⟨"envelope_category_reserved","other is reserved for unmatched expenses"⟩⟩
+    householdRows ← {IndexOf ⟨𝕩,householdPolicy.budget.envelope_id⟩}¨envelopeLabels
+    householdKnown ← ∧´1∾householdRows<≠householdPolicy.budget.envelope_id
+    diagnostics ∾↩ AddIf ⟨¬householdKnown,Diagnostic ⟨"household_envelope_coordinates_missing","Every budget.toml Envelope requires household.toml allocation coordinates"⟩⟩
+    envelopeIndices ← empty
+    {𝕊:envelopeIndices↩householdRows⊏householdPolicy.budget.allocation_account_index}⍟householdKnown @
+    {𝕊:
+      envelopeRoles ← envelopeIndices⊏accounts.role
+      envelopeCurrencies ← envelopeIndices⊏accounts.currency
+      diagnostics ∾↩ AddIf ⟨∨´0∾{𝕩≢"budget"}¨envelopeRoles,Diagnostic ⟨"envelope_account_role_invalid","Household Envelope allocation Accounts require Budget type"⟩⟩
+      diagnostics ∾↩ AddIf ⟨∨´0∾{𝕩≢domainCode}¨envelopeCurrencies,Diagnostic ⟨"envelope_account_domain_invalid","Household Envelope allocation Accounts must belong to the selected domain"⟩⟩
+    }⍟householdKnown @
+
+    expenseIndices ← budgetPolicy.expense_account_index
+    expenseEnvelopeIds ← budgetPolicy.expense_envelope_id
+    diagnostics ∾↩ AddIf ⟨(≠expenseIndices)≠≠⍷expenseIndices,Diagnostic ⟨"expense_account_assignment_duplicate","one Expense Account may belong to only one Envelope"⟩⟩
+    diagnostics ∾↩ AddIf ⟨∨´0∾{¬Contains ⟨𝕩,envelopeLabels⟩}¨expenseEnvelopeIds,Diagnostic ⟨"expense_envelope_unknown","Expense assignment must reference a declared Envelope"⟩⟩
 
     {𝕊:
       categoryLabels ← envelopeLabels∾⟨"other"⟩
@@ -57,7 +72,15 @@ Build ← {𝕊 factSet‿domainCode‿layerName‿startOrdinal‿endOrdinal:
         kind⇐categoryKinds,envelope_account_index⇐categoryEnvelopeIndices
       }
 
-      accountCategory ← ¯1 + ("expense"⊸≡¨accounts.role) × 1+{IndexOf ⟨𝕩,envelopeLabels⟩}¨accounts.budget
+      accountCategory ← {𝕊 accountIndex:
+        category ← ¯1
+        {𝕊:
+          matches ← (accountIndex=expenseIndices)/↕≠expenseIndices
+          {𝕊:category↩≠envelopeLabels}⍟(0=≠matches) @
+          {𝕊:category↩IndexOf ⟨(⊑matches)⊑expenseEnvelopeIds,envelopeLabels⟩}⍟(1=≠matches) @
+        }⍟((accountIndex⊑accounts.role)≡"expense") @
+        category
+      }¨accounts.index
 
       transactions ← factSet.transactions
       transactionMask ← (domainIndex=transactions.domain_index) ∧ (layerIndex=transactions.layer_index) ∧ (transactions.date_ordinal≥startOrdinal) ∧ transactions.date_ordinal<endOrdinal
