@@ -1,33 +1,11 @@
 #!/usr/bin/env bash
 # tools/lib/theme.sh — Common color themes for bqn-ledger CLI tools
 
-# Respect NO_COLOR (https://no-color.org/)
+# Respect NO_COLOR (https://no-color.org/). Theme preference is terminal-local
+# state owned by BL_THEME/.env, never by a Household source file.
 if [[ -n "${NO_COLOR:-}" ]]; then
   export BL_THEME="plain"
 else
-  # Resolve theme selection:
-  # 1. Environment variable BL_THEME
-  # 2. Local config.tsv parameter (e.g., THEME=catppuccin)
-  # 3. Default fallback: 'nord' (Nordic frost palette)
-  if [[ -z "${BL_THEME:-}" ]]; then
-    check_dir="${base_dir:-}"
-    if [[ -z "$check_dir" ]]; then
-      if [[ -n "${LEDGER_DATA_DIR:-}" ]]; then
-        check_dir="$LEDGER_DATA_DIR"
-      else
-        defaults_file="config/system_defaults.tsv"
-        if [[ -f "$defaults_file" ]]; then
-          check_dir=$(awk -F'\t' '$1 == "DEFAULT_BASE_DIR" { print $2 }' "$defaults_file" 2>/dev/null || true)
-        fi
-        unset defaults_file
-      fi
-    fi
-    if [[ -n "$check_dir" && -f "$check_dir/config.tsv" ]]; then
-      BL_THEME=$(awk -F'=' 'tolower($1) == "theme" { print $2 }' "$check_dir/config.tsv" 2>/dev/null || true)
-      BL_THEME=$(echo "${BL_THEME:-}" | xargs)
-    fi
-    unset check_dir
-  fi
   export BL_THEME="${BL_THEME:-nord}"
 fi
 
@@ -44,7 +22,7 @@ case "$BL_THEME" in
     export ESC_MUTED="${esc}[38;2;88;91;112m"          # Subtext Gray (#585B70)
     export ESC_NUM_HEADER="${esc}[1;38;2;137;180;250m" # Bold Sapphire Blue
     export ESC_RESET="${esc}[0m"
-    
+
     export GUM_HEADER_FG="#89B4FA"
     export GUM_CURSOR_FG="#A6E3A1"
     export GUM_MATCH_FG="#F9E2AF"
@@ -59,7 +37,7 @@ case "$BL_THEME" in
     export ESC_MUTED="${esc}[38;2;65;72;104m"          # Deep Storm Gray (#414868)
     export ESC_NUM_HEADER="${esc}[1;38;2;122;162;247m" # Bold Tokyo Blue
     export ESC_RESET="${esc}[0m"
-    
+
     export GUM_HEADER_FG="#7AA2F7"
     export GUM_CURSOR_FG="#9ECE6A"
     export GUM_MATCH_FG="#E0AF68"
@@ -74,7 +52,7 @@ case "$BL_THEME" in
     export ESC_MUTED="${esc}[38;2;98;114;164m"         # Comment Gray (#6272A4)
     export ESC_NUM_HEADER="${esc}[1;38;2;139;233;253m" # Bold Cyan
     export ESC_RESET="${esc}[0m"
-    
+
     export GUM_HEADER_FG="#8BE9FD"
     export GUM_CURSOR_FG="#50FA7B"
     export GUM_MATCH_FG="#F1FA8C"
@@ -85,11 +63,11 @@ case "$BL_THEME" in
     export ESC_OK="${esc}[38;2;163;190;140m"           # Sage Green (#A3BE8C)
     export ESC_WARN="${esc}[38;2;235;203;139m"         # Amber Yellow (#EBCB8B)
     export ESC_ERROR="${esc}[38;2;191;97;106m"         # Aurora Red (#BF616A)
-    export ESC_FUTURE="${esc}[38;2;180;142;173m"        # Soft Purple (#B48EAD)
-    export ESC_MUTED="${esc}[38;2;76;86;106m"           # Slate Gray (#4C566A)
+    export ESC_FUTURE="${esc}[38;2;180;142;173m"       # Soft Purple (#B48EAD)
+    export ESC_MUTED="${esc}[38;2;76;86;106m"          # Slate Gray (#4C566A)
     export ESC_NUM_HEADER="${esc}[1;38;2;136;192;208m" # Bold Frost Blue
     export ESC_RESET="${esc}[0m"
-    
+
     export GUM_HEADER_FG="#88C0D0"
     export GUM_CURSOR_FG="#A3BE8C"
     export GUM_MATCH_FG="#EBCB8B"
@@ -104,7 +82,7 @@ case "$BL_THEME" in
     export ESC_MUTED="${esc}[1;34m"       # Bold Blue
     export ESC_NUM_HEADER="${esc}[1m"     # Bold
     export ESC_RESET="${esc}[0m"
-    
+
     export GUM_HEADER_FG="6"
     export GUM_CURSOR_FG="2"
     export GUM_MATCH_FG="3"
@@ -119,7 +97,7 @@ case "$BL_THEME" in
     export ESC_MUTED=""
     export ESC_NUM_HEADER=""
     export ESC_RESET=""
-    
+
     export GUM_HEADER_FG=""
     export GUM_CURSOR_FG=""
     export GUM_MATCH_FG=""
