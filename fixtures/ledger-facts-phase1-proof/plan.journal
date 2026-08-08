@@ -2,6 +2,10 @@ include accounts.journal
 
 2026-01-15 rent
   ; plan-id: plan-rent-daily-target
+  ; daily-target-id: rent
+  ; reservation-id: reservation:rent
+  ; reservation-amount: 50
+  ; reservation-commodity: JPY
   expenses:food  200 JPY
   assets:cash  -200 JPY
 
@@ -9,3 +13,8 @@ include accounts.journal
   ; plan-id: plan-food-2026-01
   expenses:food  25 JPY
   assets:cash  -25 JPY
+
+2026-02-01 next-income
+  ; plan-id: plan-income-next
+  income:salary  -1000 JPY
+  assets:cash  1000 JPY
