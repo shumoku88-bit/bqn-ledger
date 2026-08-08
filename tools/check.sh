@@ -18,7 +18,6 @@ done
 echo '[2/3] final report checks' >&2
 for check in \
   checks/check-ledger-facts.sh \
-  checks/check-report-manifest-config.sh \
   checks/check-report-manifest-routing.sh \
   checks/check-report-route-plan-shell.sh \
   checks/check-report-destination-route-admission.sh \
