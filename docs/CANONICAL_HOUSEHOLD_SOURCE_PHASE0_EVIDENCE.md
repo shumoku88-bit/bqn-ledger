@@ -11,6 +11,7 @@ Local verification was performed from detached temporary worktrees with no edits
 
 - `origin/main`: `e35203c856ef27fed52dfe955825472104823198`
 - initial Phase 0 head: `ac3b051562aadeaf57e2d99f955bbb302b5bd4f3`
+- first updated-head rerun: `ee801d4c640775368de6f0d353982101d572af4c`
 
 ## Baseline result
 
@@ -24,6 +25,22 @@ Therefore canonical source recovery does not require a pre-migration baseline-re
 The initial Phase 0 branch failed only in the new `tests/test_application_canonical_household_sources.bqn` assertion. The failure was a BQN train parse error in a redundant count assertion after the exact `expected ≡ sources.Basenames` contract. The redundant assertions were removed rather than preserved as extra syntax.
 
 The canonical source topology shell check and `git diff --check` both passed in the initial local verification.
+
+## Updated-head rerun result
+
+The first updated-head rerun at `ee801d4c640775368de6f0d353982101d572af4c` produced:
+
+- focused canonical-source BQN test: FAIL;
+- canonical topology shell guard: PASS;
+- `tools/check.sh`: FAIL at the same new BQN test;
+- `git diff --check`: PASS;
+- final temporary worktree status: clean.
+
+The failure was in `src/application/canonical_household_sources.bqn`: canonical basenames are Subject values, but the first implementation assigned string Subjects directly to uppercase identifiers such as `Accounts`, which BQN assigns a Function role. The repository's active `docs/CONVENTIONS.md` already defines the correct pattern: keep Subject values in lowercase locals and export them through uppercase namespace fields.
+
+The source owner was therefore corrected without changing its public namespace surface: callers still use fields such as `sources.Accounts`, while the implementation now stores `accounts`, `actual`, `plan`, `budget`, policy filenames, `issues`, and `basenames` as lowercase Subject locals before export.
+
+A further updated-head rerun is required before PR #551 becomes Ready.
 
 ## Legacy source families
 
@@ -107,11 +124,12 @@ This does not block Phase 0 topology work. Private canonical smoke remains a gat
 
 ## Writer authority and production selection
 
-The initial Phase 0 implementation changed neither writer authority nor production source selection. Its changes were limited to:
+The Phase 0 implementation changes neither writer authority nor production source selection. Its scope remains limited to:
 
 - canonical basename ownership;
 - synthetic canonical fixture files;
 - topology verification;
-- tests and verification instructions.
+- tests and verification instructions;
+- recorded migration evidence.
 
-No `src_edit` owner, production ledger reader, or report source adapter was changed by the initial slice.
+No `src_edit` owner, production ledger reader, or report source adapter has been changed by this slice.
