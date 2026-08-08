@@ -1,10 +1,11 @@
 # journal_complete_admission.bqn
 # Production complete-source admission for a multi-currency Journal container.
 #
-# One raw Journal may declare several registry-supported currency domains while
-# every ordinary transaction remains single-domain and balances within its own
-# exact calculation scale. A declaration-only Journal is a valid empty Actual
-# source. No Journal-wide money domain, scale, or total exists.
+# One raw Journal may declare several registry-supported currency domains, or
+# omit top-level commodity declarations and let transaction postings establish
+# their domains. Every ordinary transaction remains single-domain and balances
+# within its own exact calculation scale. A transaction-free Journal is valid.
+# No Journal-wide money domain, scale, or total exists.
 
 dates ← •Import "date_ordinal.bqn"
 single ← •Import "journal_single_domain_admission.bqn"
@@ -49,7 +50,6 @@ Declarations ← {𝕊 lines‿registry:
   domains ← empty
   domainLines ← empty
   accounts ← empty
-  commodityCount ← 0
   {𝕊 lineIndex:
     text ← Trim lineIndex ⊑ lines
     {𝕊:
@@ -66,12 +66,10 @@ Declarations ← {𝕊 lines‿registry:
         }⍟(policy.state ≡ "ok") @
       }⍟valid @
     }⍟(StartsWith ⟨"commodity ", text⟩) @
-    commodityCount +↩ StartsWith ⟨"commodity ", text⟩
     {𝕊: accounts ∾↩ ⟨{text⇐text,account_key⇐8↓text,source_line⇐lineIndex+1}⟩}⍟(StartsWith ⟨"account ",text⟩) @
   }¨ ↕ ≠ lines
   duplicate ← (≠ domains) ≠ ≠ ⍷ domains
   diagnostics ∾↩ AddIf ⟨duplicate, Diagnostic ⟨"commodity_domain_duplicate", 0, "each declared commodity domain must appear once"⟩⟩
-  diagnostics ∾↩ AddIf ⟨0 = commodityCount, Diagnostic ⟨"commodity_domain_missing", 0, "Journal must declare at least one supported commodity"⟩⟩
   {domains⇐domains, domain_lines⇐domainLines, accounts⇐accounts, diagnostics⇐diagnostics}
 }
 
@@ -206,10 +204,12 @@ Admit ← {𝕊 raw‿accounts‿registry:
       localDiagnostics ∾↩ AddIf ⟨shapeOk ∧ (¬ domainCountOk), Diagnostic ⟨"transaction_domain_count_invalid", start + 1, "ordinary transaction must contain exactly one posting currency domain"⟩⟩
       {𝕊:
         domain ← ⊑ domainEvidence.domains
+        declarationRequired ← 0 < ≠ declarations.domains
         declared ← Contains ⟨domain, declarations.domains⟩
-        localDiagnostics ∾↩ AddIf ⟨¬ declared, Diagnostic ⟨"transaction_domain_undeclared", start + 1, "ordinary transaction currency must be declared by the Journal"⟩⟩
+        localDiagnostics ∾↩ AddIf ⟨declarationRequired ∧ (¬ declared), Diagnostic ⟨"transaction_domain_undeclared", start + 1, "ordinary transaction currency must be declared by the Journal when commodity declarations are present"⟩⟩
         {𝕊:
           domainLine ← DomainSourceLine ⟨domain, declarations⟩
+          {𝕊: domainLine ↩ start + 1}⍟(0=domainLine) @
           partition ← BuildPartition ⟨domain, domainLine, declarations.accounts, blockLines, start⟩
           admitted ← single.Admit ⟨partition.raw,accounts,registry⟩
           localDiagnostics ∾↩ {MapDiagnostic ⟨𝕩, partition.line_map⟩}¨ admitted.diagnostics
@@ -217,20 +217,18 @@ Admit ← {𝕊 raw‿accounts‿registry:
             transaction ← MapTransaction ⟨⊑ admitted.transactions, partition.line_map⟩
             transactions ∾↩ ⟨transaction⟩
           }⍟((admitted.state ≡ "ok") ∧ (1 = ≠ admitted.transactions)) @
-        }⍟declared @
+        }⍟((¬declarationRequired) ∨ declared) @
       }⍟(shapeOk ∧ domainCountOk) @
       diagnostics ∾↩ localDiagnostics
     }¨ ↕ ≠ starts
   }⍟(0 = ≠ declarations.diagnostics) @
 
-  # Zero transactions is a valid complete-source snapshot. Declarations are
-  # still checked above; consumers receive an empty transaction carrier and
-  # apply the same empty-domain rule for every selected currency.
   diagnostics ∾↩ CrossTransactionDiagnostics transactions
   {𝕊: transactions ↩ empty}⍟(0 < ≠ diagnostics) @
+  admittedDomains ← ⍷ declarations.domains ∾ {𝕩.domain}¨transactions
   {
     state⇐(0 = ≠ diagnostics) ⊑ "error"‿"ok",source_name⇐"actual.journal",
-    declared_domains⇐declarations.domains,
+    declared_domains⇐admittedDomains,
     declared_layers⇐⍷ ⟨"actual"⟩∾{𝕩.layer_name}¨transactions,
     declared_accounts⇐{𝕩.account_key}¨declarations.accounts,
     transactions⇐transactions,
