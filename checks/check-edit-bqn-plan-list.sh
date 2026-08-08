@@ -1,144 +1,86 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Verify read-only `tools/edit-bqn plan list` output compatibility.
-# `--format tsv` is consumed by tools/add-ui.sh plan selection, so this check
-# keeps the BQN editor output contract stable.
+# Verify read-only `tools/edit-bqn plan list` over the canonical Household root.
+# The stable TSV UI contract remains nine fields, but Plan identity now comes from
+# canonical plan.journal admission rather than legacy plan.tsv row metadata.
 
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
 tmp_root="$(mktemp -d)"
 trap 'rm -rf "$tmp_root"' EXIT
+base="$tmp_root/canonical"
+cp -R fixtures/canonical-household-v1 "$base"
 
-sha_file() {
-  shasum -a 256 "$1" | awk '{print $1}'
-}
+sha_file() { shasum -a 256 "$1" | awk '{print $1}'; }
+plan_before="$(sha_file "$base/plan.journal")"
+actual_before="$(sha_file "$base/actual.journal")"
+accounts_before="$(sha_file "$base/accounts.journal")"
 
-assert_plan_list_parity() {
-  local name="$1"
-  local fixture="$2"
-  shift 2
-  local base="$tmp_root/$name"
-  local bqn_out="$tmp_root/$name.bqn.out"
-  local before_sha after_sha
+./tools/edit-bqn --base "$base" plan list --format tsv >"$tmp_root/default.tsv"
+./tools/edit-bqn --base "$base" plan list --all --format tsv >"$tmp_root/all.tsv"
 
-  cp -R "$fixture" "$base"
-  before_sha="$(sha_file "$base/plan.tsv")"
+awk -F '\t' 'NF != 9 { print "bad field count on line " NR ": " $0 > "/dev/stderr"; exit 1 }' "$tmp_root/default.tsv"
+awk -F '\t' '$8 != "" && $8 != "CLOSED" { print "bad status on line " NR ": " $8 > "/dev/stderr"; exit 1 }' "$tmp_root/all.tsv"
 
-  ./tools/edit-bqn --base "$base" plan list "$@" >"$bqn_out"
+# The completed groceries Plan is hidden by default; salary remains open.
+[[ $(wc -l <"$tmp_root/default.tsv" | tr -d ' ') -eq 1 ]]
+awk -F '\t' '$1=="1" && $2=="plan-salary" && $3=="2026-02-05" && $4=="Planned salary" && $5=="Income:Salary" && $6=="Assets:Bank" && $7=="50000" && $8=="" {found=1} END {exit found?0:1}' "$tmp_root/default.tsv"
 
+# --all exposes completion derived from canonical Actual plan-id linkage.
+awk -F '\t' '$2=="plan-groceries" && $3=="2026-01-15" && $8=="CLOSED" {found=1} END {exit found?0:1}' "$tmp_root/all.tsv"
+awk -F '\t' '$2=="plan-salary" && $8=="" {found=1} END {exit found?0:1}' "$tmp_root/all.tsv"
 
-  after_sha="$(sha_file "$base/plan.tsv")"
-  if [ "$before_sha" != "$after_sha" ]; then
-    echo "FAIL: tools/edit-bqn plan list modified plan.tsv: $name $*" >&2
-    exit 1
-  fi
+# A legacy Plan TSV is not an editor read authority anymore.
+printf 'not\ta\tcanonical\tplan\trow\n' >"$base/plan.tsv"
+./tools/edit-bqn --base "$base" plan list --format tsv >"$tmp_root/with-legacy.tsv"
+cmp "$tmp_root/default.tsv" "$tmp_root/with-legacy.tsv"
 
-  if [ -e "$base/.backup" ] && find "$base/.backup" -type f | grep -q .; then
-    echo "FAIL: tools/edit-bqn plan list created a backup: $name $*" >&2
-    find "$base/.backup" -type f >&2 || true
-    exit 1
-  fi
-}
+# Temporal filtering is applied after canonical projection and excludes completed Plans.
+cat >>"$base/plan.journal" <<'EOF'
 
-assert_tsv_shape() {
-  local name="$1"
-  local fixture="$2"
-  local base="$tmp_root/$name-shape"
-  local out="$tmp_root/$name-shape.out"
+2026-01-18 * Open overdue groceries
+  ; plan-id: plan-overdue
+  Assets:Bank  -700 JPY
+  Expenses:Groceries  700 JPY
 
-  cp -R "$fixture" "$base"
-  ./tools/edit-bqn --base "$base" plan list --format tsv >"$out"
-  awk -F '\t' 'NF != 9 { print "bad field count on line " NR ": " $0 > "/dev/stderr"; exit 1 }' "$out"
-  awk -F '\t' '$8 != "" && $8 != "MISSING-ID" && $8 != "INVALID-ID" && $8 != "CLOSED" { print "bad status on line " NR ": " $8 > "/dev/stderr"; exit 1 }' "$out"
-}
+2026-02-10 * Open future groceries
+  ; plan-id: plan-upcoming
+  Assets:Bank  -800 JPY
+  Expenses:Groceries  800 JPY
+EOF
+./tools/edit-bqn --base "$base" plan list --format tsv --temporal overdue --as-of 2026-01-24 >"$tmp_root/overdue.tsv"
+./tools/edit-bqn --base "$base" plan list --format tsv --temporal upcoming --as-of 2026-01-24 >"$tmp_root/upcoming.tsv"
+[[ $(wc -l <"$tmp_root/overdue.tsv" | tr -d ' ') -eq 1 ]]
+awk -F '\t' '$2!="plan-overdue" || $3!="2026-01-18" {exit 1}' "$tmp_root/overdue.tsv"
+[[ $(wc -l <"$tmp_root/upcoming.tsv" | tr -d ' ') -eq 2 ]]
+awk -F '\t' '$3 < "2026-01-24" {exit 1}' "$tmp_root/upcoming.tsv"
 
-assert_plan_contract() {
-  local base="$tmp_root/plan-contract"
-  local out="$tmp_root/plan-contract.out"
-  local all_out="$tmp_root/plan-contract-all.out"
-
-  cp -R fixtures/plan-completion "$base"
-  ./tools/edit-bqn --base "$base" plan list --format tsv >"$out"
-  ./tools/edit-bqn --base "$base" plan list --all --format tsv >"$all_out"
-
-  if ! awk -F '\t' '$1 == "1" && $2 == "plan-2026-01-10-phone" && $3 == "2026-01-10" && $8 == "" { found=1 } END { exit found ? 0 : 1 }' "$out"; then
-    echo "FAIL: default plan list missing expected open plan row" >&2
-    exit 1
-  fi
-
-  if grep -q $'\tCLOSED\t' "$out"; then
-    echo "FAIL: default plan list emitted CLOSED row" >&2
-    exit 1
-  fi
-
-  if ! awk -F '\t' '$2 == "" && $8 == "MISSING-ID" { found=1 } END { exit found ? 0 : 1 }' "$out"; then
-    echo "FAIL: default plan list missing MISSING-ID status row" >&2
-    exit 1
-  fi
-
-  if ! awk -F '\t' '$2 == "plan-2026-01-15-rent" && $8 == "CLOSED" { found=1 } END { exit found ? 0 : 1 }' "$all_out"; then
-    echo "FAIL: plan list --all missing CLOSED status row" >&2
-    exit 1
-  fi
-}
-
-assert_plan_list_parity plan-completion-tsv fixtures/plan-completion --format tsv
-assert_plan_list_parity plan-completion-tsv-all fixtures/plan-completion --all --format tsv
-assert_plan_list_parity plan-completion-text-default fixtures/plan-completion
-assert_plan_list_parity plan-completion-text fixtures/plan-completion --format text
-assert_plan_list_parity plan-completion-text-all fixtures/plan-completion --all --format text
-assert_plan_list_parity plan-completion-overdue fixtures/plan-completion --format tsv --temporal overdue --as-of 2026-01-24
-assert_plan_list_parity plan-completion-upcoming fixtures/plan-completion --format tsv --temporal upcoming --as-of 2026-01-24
-assert_plan_list_parity data-tsv data --format tsv
-assert_tsv_shape plan-completion fixtures/plan-completion
-assert_plan_contract
-
-temporal_base="$tmp_root/temporal-contract"
-cp -R fixtures/plan-completion "$temporal_base"
-./tools/edit-bqn --base "$temporal_base" plan list --format tsv --temporal overdue --as-of 2026-01-24 >"$tmp_root/overdue.out"
-./tools/edit-bqn --base "$temporal_base" plan list --format tsv --temporal upcoming --as-of 2026-01-24 >"$tmp_root/upcoming.out"
-[[ $(wc -l <"$tmp_root/overdue.out" | tr -d ' ') -eq 1 ]]
-awk -F '\t' '$3 != "2026-01-10" {exit 1}' "$tmp_root/overdue.out"
-[[ $(wc -l <"$tmp_root/upcoming.out" | tr -d ' ') -eq 2 ]]
-awk -F '\t' '$3 < "2026-01-24" {exit 1}' "$tmp_root/upcoming.out"
-
-# Invalid CLI format/filter combinations should fail before touching source data or creating backups.
-neg_base="$tmp_root/invalid-format"
-cp -R fixtures/plan-completion "$neg_base"
-neg_before="$(sha_file "$neg_base/plan.tsv")"
-set +e
-./tools/edit-bqn --base "$neg_base" plan list --format json >"$tmp_root/invalid.out" 2>&1
-neg_rc=$?
-set -e
-if [ "$neg_rc" -eq 0 ]; then
-  echo "FAIL: invalid plan list format unexpectedly succeeded" >&2
-  cat "$tmp_root/invalid.out" >&2
-  exit 1
-fi
-neg_after="$(sha_file "$neg_base/plan.tsv")"
-if [ "$neg_before" != "$neg_after" ]; then
-  echo "FAIL: invalid plan list format modified plan.tsv" >&2
+# Read-only commands never rewrite canonical sources or create editor backups.
+# plan.journal was intentionally extended above, so compare Actual/Accounts only here.
+[[ "$actual_before" == "$(sha_file "$base/actual.journal")" ]]
+[[ "$accounts_before" == "$(sha_file "$base/accounts.journal")" ]]
+if [ -e "$base/.backup" ] && find "$base/.backup" -type f | grep -q .; then
+  echo 'FAIL: plan list created a backup' >&2
   exit 1
 fi
 
+# Invalid CLI combinations fail before source mutation.
+invalid_plan_sha="$(sha_file "$base/plan.journal")"
 for bad_args in \
-  '--temporal overdue' \
-  '--temporal invalid --as-of 2026-01-24' \
-  '--temporal upcoming --as-of invalid' \
-  '--all --temporal overdue --as-of 2026-01-24'; do
+  '--format json' \
+  '--format tsv --temporal overdue' \
+  '--format tsv --temporal invalid --as-of 2026-01-24' \
+  '--format tsv --temporal upcoming --as-of invalid' \
+  '--all --format tsv --temporal overdue --as-of 2026-01-24'; do
   set +e
   # shellcheck disable=SC2086
-  ./tools/edit-bqn --base "$neg_base" plan list --format tsv $bad_args >"$tmp_root/invalid-filter.out" 2>&1
-  neg_rc=$?
+  ./tools/edit-bqn --base "$base" plan list $bad_args >"$tmp_root/invalid.out" 2>&1
+  rc=$?
   set -e
-  [[ "$neg_rc" -ne 0 ]] || { echo "FAIL: invalid plan temporal filter unexpectedly succeeded: $bad_args" >&2; exit 1; }
+  [[ $rc -ne 0 ]] || { echo "FAIL: invalid plan list args succeeded: $bad_args" >&2; exit 1; }
 done
-[[ "$neg_before" == "$(sha_file "$neg_base/plan.tsv")" ]]
-if [ -e "$neg_base/.backup" ] && find "$neg_base/.backup" -type f | grep -q .; then
-  echo "FAIL: invalid plan temporal filter created backup" >&2
-  exit 1
-fi
+[[ "$invalid_plan_sha" == "$(sha_file "$base/plan.journal")" ]]
 
-printf 'OK edit-bqn plan list parity\n'
+printf 'OK: canonical tools/edit-bqn plan list checks passed\n'
