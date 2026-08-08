@@ -14,7 +14,13 @@ registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").regi
 accountLines ← loader.ReadLines base∾"accounts.tsv"
 accounts ← (account_admission.Admit ⟨accountLines,registry⟩).accounts
 lf ← @+10
+tab ← @+9
 Raw ← {𝕊 lines: ∾lines∾¨lf}
+Join ← {𝕊 fields:
+  out ← ⊑fields
+  {𝕊 field: out∾↩tab∾field}¨1↓fields
+  out
+}
 planRaw ← Raw ⟨
   "2026-01-20 food-plan",
   "  ; plan-id: plan-food-2026-01",
@@ -97,8 +103,8 @@ unknown ← join.Build ⟨planFacts,unknownFacts,⟨0⟩,unknownFacts.transactio
 
 # Exact coefficients/scales stay source-local in a non-JPY domain.
 ilsAccountLines ← ⟨
-  "assets:ils\trole=asset\tcurrency=ILS",
-  "expenses:ils\trole=expense\tcurrency=ILS"
+  Join ⟨"assets:ils","role=asset","currency=ILS"⟩,
+  Join ⟨"expenses:ils","role=expense","currency=ILS"⟩
 ⟩
 ilsAccounts ← (account_admission.Admit ⟨ilsAccountLines,registry⟩).accounts
 ilsPlanRaw ← Raw ⟨
