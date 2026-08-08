@@ -7,7 +7,6 @@ render ← •Import "../report/render.bqn"
 sources ← •Import "report_source_adapter.bqn"
 cycleAdmission ← •Import "../ledger/cycle_admission.bqn"
 cycleResolution ← •Import "cycle_resolution.bqn"
-fundingScope ← •Import "funding_scope.bqn"
 dailyScopeAdmission ← •Import "daily_scope_admission.bqn"
 dailyScopeAdapter ← •Import "daily_scope_adapter.bqn"
 empty ← ⟨⟩ ⋄ tab ← @+9
@@ -74,10 +73,9 @@ composition ← {state⇐"error",key⇐key,result⇐empty,diagnostics⇐empty}
   {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
   companions ← sources.Companions ⟨base,planName,budgetName,actual.facts.accounts,registry⟩
   {𝕊:PrintDiagnostics companions.diagnostics}⍟(companions.state≢"ok") @
-  funding ← fundingScope.Build ⟨actual.facts.accounts,domain,7↓coordinates⟩
-  {𝕊:PrintDiagnostics funding.diagnostics}⍟(funding.state≢"ok") @
   composition↩compose.Envelopes ⟨
-    companions.budget,actual.facts,companions.plan,domain,start,finish,observation,funding.account_indices
+    companions.budget,companions.budget_policy,actual.facts,companions.plan,
+    domain,start,finish,observation
   ⟩
 }⍟(key≡"envelopes") @
 {𝕊:
