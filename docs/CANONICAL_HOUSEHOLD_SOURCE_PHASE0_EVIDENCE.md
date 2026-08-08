@@ -1,0 +1,117 @@
+# Canonical Household source recovery Phase 0 — evidence
+
+Status: local verification recorded
+
+Roadmap: PR #550
+Implementation: PR #551
+
+## Verified revisions
+
+Local verification was performed from detached temporary worktrees with no edits to existing worktrees.
+
+- `origin/main`: `e35203c856ef27fed52dfe955825472104823198`
+- initial Phase 0 head: `ac3b051562aadeaf57e2d99f955bbb302b5bd4f3`
+
+## Baseline result
+
+The current remote `main` baseline is healthy:
+
+- `tools/check.sh`: PASS
+- `checks/check-current-report-profile.sh`: PASS
+
+Therefore canonical source recovery does not require a pre-migration baseline-repair PR.
+
+The initial Phase 0 branch failed only in the new `tests/test_application_canonical_household_sources.bqn` assertion. The failure was a BQN train parse error in a redundant count assertion after the exact `expected ≡ sources.Basenames` contract. The redundant assertions were removed rather than preserved as extra syntax.
+
+The canonical source topology shell check and `git diff --check` both passed in the initial local verification.
+
+## Legacy source families
+
+Repository-wide local search found 1,492 matching lines across the nine legacy basename patterns. The migration meaning clusters into these source families:
+
+| Legacy source | Confirmed production ownership | Retirement target |
+| --- | --- | --- |
+| `accounts.tsv` | Account admission, editor account read/write, Actual editor verification, hledger conversion | after canonical Account and all downstream consumers no longer require it |
+| `plan.tsv` | Plan snapshot/admission, Plan editor lifecycle, planned-report and Plan-dependent application paths | Phase 3+ |
+| `budget_alloc.tsv` | Envelope/Backing input and Plan/Budget editor synchronization | Phase 4+ |
+| `cycle.tsv` | Cycle admission and cycle-resolution application paths | Phase 5+ |
+| `daily_target_scope.tsv` | Daily Target scope admission | Phase 5+ |
+| `config.tsv` | legacy ledger/application configuration and local system-default discovery | after canonical root/policy/application discovery replaces it |
+| `report_manifests.tsv` | report manifest configuration, source routing, Command Hub/report application configuration | Phase 6+ |
+| `report_all_human.tsv` | human report suite request manifest | Phase 6+ |
+| `report_all_compact.tsv` | compact report suite request manifest | Phase 6+ |
+
+Tests, fixtures, current documentation/defaults, and archived historical documentation contain additional references. These are not alternate canonical owners. They must be updated or retired in the same phase as the corresponding production path, while genuinely archived historical records may retain historical names when clearly marked as such.
+
+## Confirmed representative owners
+
+The local inventory confirmed these production-relevant paths among the legacy references:
+
+### Accounts
+
+- `src/ledger/account_admission.bqn`
+- `src_edit/account_add_cmd.bqn`
+- `src_edit/account_list_cmd.bqn`
+- `src/application/editor_actual.bqn`
+- `tools/to-hledger`
+
+### Plan
+
+- `src/ledger/plan_snapshot.bqn`
+- `src_edit/plan_add_cmd.bqn`
+- `src_edit/plan_edit_cmd.bqn`
+- `src_edit/plan_finish_cmd.bqn`
+- `src/sections/planned_payments.bqn`
+- `tools/plan-finish-replenish-ui.sh`
+
+### Budget
+
+- `src/accounting/envelope_backing.bqn`
+- `src_edit/plan_budget_sync_cmd.bqn`
+
+### Cycle
+
+- `src/ledger/cycle_admission.bqn`
+- `src/accounting/cycle_income_anchor_resolution.bqn`
+
+### Daily Target
+
+- `src/application/daily_scope_admission.bqn`
+
+### Config
+
+- `src/ledger/config_admission.bqn`
+- `tools/lib/system-defaults.sh`
+
+### Report manifests
+
+- `src/application/report_manifest_config.bqn`
+- `src/application/report_source_adapter.bqn`
+- `tools/main-ui.sh`
+
+This list identifies migration owners, not every test/fixture/document occurrence. Repository-wide retirement checks must still search the full tree for the corresponding basename before each deletion gate is declared complete.
+
+## Executable tool surface
+
+Local inventory found 26 executable files under top-level `tools/`.
+
+The retained user/application surface includes the unified CLI/TUI, editing, ledger checking/inspection, report/query commands, and Plan completion workflow. Operational/development tools and internal helpers remain supported where they are required by those surfaces.
+
+`tools/to-hledger` is the only tool currently classified as `candidate for retirement / unclear`: it converts legacy Account/Plan TSV inputs to hledger Journal form, so its purpose must be re-evaluated once canonical Journal sources are native. Do not delete it before that explicit decision.
+
+## Private canonical root
+
+The filename-only private-root check was skipped because `HKERNEL_LEDGER_DATA_DIR` was not set in the verification environment. No private Household content was read or printed.
+
+This does not block Phase 0 topology work. Private canonical smoke remains a gate for later reader cutovers before any legacy private file is deleted.
+
+## Writer authority and production selection
+
+The initial Phase 0 implementation changed neither writer authority nor production source selection. Its changes were limited to:
+
+- canonical basename ownership;
+- synthetic canonical fixture files;
+- topology verification;
+- tests and verification instructions.
+
+No `src_edit` owner, production ledger reader, or report source adapter was changed by the initial slice.
