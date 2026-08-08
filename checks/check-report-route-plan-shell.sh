@@ -25,29 +25,36 @@ fi
 [[ $status -eq 2 ]] || { echo 'FAIL: invalid route arity did not preserve exit 2' >&2; exit 1; }
 grep -F 'Usage:' "$tmp/arity" >/dev/null
 
-# Historical Plan/Budget/funding coordinates remain in argv until report.toml
-# removes them, but none names physical companion I/O. Path-shaped values cannot
-# redirect canonical Plan/Budget reads away from Household canonical sources.
+# Legacy companion coordinates remain in argv until report.toml Phase 6, but none
+# selects physical I/O after canonical Household recovery.
 ./tools/report "$fixture" envelopes human JPY \
   2026-01-01 2026-02-01 2026-01-12 actual.journal bad/plan.tsv bad/budget.tsv bad/funding \
-  >"$tmp/legacy-coordinates"
-cmp "$tmp/legacy-coordinates" "$fixture/envelope_backing.destination.human.txt"
+  >"$tmp/envelopes"
+cmp "$tmp/envelopes" "$fixture/envelope_backing.destination.human.txt"
+
+./tools/report "$fixture" planned human \
+  2026-01-12 actual.journal bad/plan.tsv bad/cycle.tsv >"$tmp/planned"
+cmp "$tmp/planned" "$fixture/planned_payments.destination.human.txt"
+
+./tools/report "$fixture" cycle-accounts human JPY \
+  2026-01-12 actual.journal bad/cycle.tsv bad/plan.tsv >"$tmp/cycle"
+grep -F '== Cycle Accounts ==' "$tmp/cycle" >/dev/null
+
+./tools/report "$fixture" daily-target human JPY \
+  2026-01-12 2026-01-22 actual.journal bad/plan.tsv bad/scope.tsv >"$tmp/daily-target"
+grep -F '== Daily Target ==' "$tmp/daily-target" >/dev/null
 
 if ./tools/report "$fixture" issues human bad/issues.tsv >"$tmp/issues-basename" 2>&1; then
   echo 'FAIL: unsafe Issue basename succeeded' >&2
   exit 1
 fi
-grep -Fx $'ERROR\tsource_basename_invalid\tissues must be a safe .tsv basename' \
-  "$tmp/issues-basename" >/dev/null
+grep -Fx $'ERROR\tsource_basename_invalid\tissues must be a safe .tsv basename' "$tmp/issues-basename" >/dev/null
 
-# Canonical Actual routes reject a noncanonical source identity before filesystem
-# readability or the independent LIMIT diagnostic can become relevant.
 if ./tools/report "$tmp/not-present" recent human nope missing.journal >"$tmp/recent-precedence" 2>&1; then
   echo 'FAIL: invalid recent request with noncanonical source succeeded' >&2
   exit 1
 fi
-grep -Fx $'ERROR\tactual_source_not_canonical\tActual-only report requires canonical actual.journal' \
-  "$tmp/recent-precedence" >/dev/null
+grep -Fx $'ERROR\tactual_source_not_canonical\tReport requires canonical actual.journal' "$tmp/recent-precedence" >/dev/null
 if grep -Fq $'limit_invalid' "$tmp/recent-precedence"; then
   echo 'FAIL: canonical source identity did not retain precedence over LIMIT validation' >&2
   exit 1
