@@ -25,13 +25,13 @@ basenames ← ⟨
 ⟩
 
 {
-  Accounts⇐accounts,
-  Actual⇐actual,
-  Plan⇐plan,
-  Budget⇐budget,
-  BudgetPolicy⇐budgetPolicy,
-  HouseholdPolicy⇐householdPolicy,
-  ReportPolicy⇐reportPolicy,
-  Issues⇐issues,
-  Basenames⇐basenames
+  accounts⇐accounts,
+  actual⇐actual,
+  plan⇐plan,
+  budget⇐budget,
+  budgetPolicy⇐budgetPolicy,
+  householdPolicy⇐householdPolicy,
+  reportPolicy⇐reportPolicy,
+  issues⇐issues,
+  basenames⇐basenames
 }
