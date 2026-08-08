@@ -1,13 +1,10 @@
 # Strict BQN-native admission for canonical household.toml.
-#
-# Account identity/type remains owned by accounts.journal. General envelope and
-# backing policy remains owned by budget.toml. This owner admits only Household
-# coordinates: income-anchor Cycle policy, Budget structural Account mapping,
-# Daily Target Asset selection, and retained Account classification axes.
+# Account identity/type remains owned by accounts.journal. General Envelope and
+# Backing policy remains owned by budget.toml. This owner admits Household-only
+# Cycle, Budget structural coordinates, Daily Target selections, and policy axes.
 
 lf ← @+10 ⋄ cr ← @+13 ⋄ space ← @+32 ⋄ tab ← @+9 ⋄ quote ← @+34 ⋄ hash ← ⊑"#"
 empty ← ⟨⟩
-
 Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
 IndexOf ← {𝕊 item‿items: ⊑items⊐⟨item⟩}
 IsWhitespace ← {𝕊 c: (c=space) ∨ c=tab}
@@ -17,10 +14,7 @@ Trim ← {TrimRight TrimLeft 𝕩}
 SplitKeepEmpty ← {𝕊 sep‿text: groups ← (+`sep=text)⊔text ⋄ {(sep≠𝕩)/𝕩}¨groups}
 FirstOrSpace ← {𝕊 text: ⊑text∾⟨space⟩}
 NoWhitespace ← {𝕊 value: (0<≠value) ∧ ¬∨´0∾IsWhitespace¨value}
-
-Diagnostic ← {𝕊 codeText‿lineNumber‿messageText:
-  {severity⇐"error",stage⇐"ledger_household_policy_admission",code⇐codeText,line⇐lineNumber,message⇐messageText}
-}
+Diagnostic ← {𝕊 code‿line‿message:{severity⇐"error",stage⇐"ledger_household_policy_admission",code⇐code,line⇐line,message⇐message}}
 AddIf ← {𝕊 invalid‿diagnostic: invalid/⟨diagnostic⟩}
 
 ParseString ← {𝕊 text:
@@ -28,7 +22,7 @@ ParseString ← {𝕊 text:
   enclosed ← (2≤≠t) ∧ (quote=FirstOrSpace t) ∧ quote=FirstOrSpace⌽t
   diagnostics∾↩AddIf ⟨¬enclosed,Diagnostic ⟨"household_string_invalid",0,"Household string value must be quoted"⟩⟩
   {𝕊:value↩¯1↓1↓t}⍟enclosed @
-  diagnostics∾↩AddIf ⟨enclosed ∧ ∨´0∾quote=value,Diagnostic ⟨"household_string_escape_unsupported",0,"Household strings do not admit embedded quotes"⟩⟩
+  diagnostics∾↩AddIf ⟨enclosed ∧ ∨´0∾quote=value,Diagnostic ⟨"household_string_escape_unsupported",0,"Embedded quotes are not admitted"⟩⟩
   {ok⇐0=≠diagnostics,value⇐(0=≠diagnostics)/value,diagnostics⇐diagnostics}
 }
 SplitArrayItems ← {𝕊 inner:
@@ -36,10 +30,13 @@ SplitArrayItems ← {𝕊 inner:
   {𝕊 c:
     separator ← (c=',') ∧ ¬inQuote
     {𝕊:parts∾↩⟨Trim current⟩ ⋄ current↩""}⍟separator @
-    {𝕊:current∾↩⟨c⟩ ⋄ inQuote↩(c=quote)⊑⟨inQuote,¬inQuote⟩}⍟(¬separator) @
+    {𝕊:
+      current∾↩⟨c⟩
+      {𝕊:inQuote↩¬inQuote}⍟(c=quote) @
+    }⍟(¬separator) @
   }¨inner
-  last ← Trim current
-  {𝕊:parts∾↩⟨last⟩}⍟(0<≠last) @
+  tail ← Trim current
+  {𝕊:parts∾↩⟨tail⟩}⍟(0<≠tail) @
   {parts⇐parts,invalid⇐inQuote}
 }
 ParseArray ← {𝕊 text:
@@ -50,7 +47,7 @@ ParseArray ← {𝕊 text:
     inner ← Trim ¯1↓1↓t
     {𝕊:
       split ← SplitArrayItems inner
-      diagnostics∾↩AddIf ⟨split.invalid,Diagnostic ⟨"household_array_invalid",0,"Household Account list has unbalanced quoting"⟩⟩
+      diagnostics∾↩AddIf ⟨split.invalid,Diagnostic ⟨"household_array_invalid",0,"Household array has unbalanced quoting"⟩⟩
       {𝕊 part:
         parsed ← ParseString part ⋄ diagnostics∾↩parsed.diagnostics
         {𝕊:values∾↩⟨parsed.value⟩}⍟parsed.ok @
@@ -59,11 +56,8 @@ ParseArray ← {𝕊 text:
   }⍟enclosed @
   {ok⇐0=≠diagnostics,values⇐(0=≠diagnostics)/values,diagnostics⇐diagnostics}
 }
-AtLine ← {𝕊 parsed‿lineNumber:
-  {𝕊 d:{severity⇐d.severity,stage⇐d.stage,code⇐d.code,line⇐lineNumber,message⇐d.message}}¨parsed.diagnostics
-}
-
-EmptyBlock ← {𝕊 kindValue‿lineValue: {kind⇐kindValue,line⇐lineValue,pairs⇐empty}}
+AtLine ← {𝕊 parsed‿lineNumber:{𝕊 d:{severity⇐d.severity,stage⇐d.stage,code⇐d.code,line⇐lineNumber,message⇐d.message}}¨parsed.diagnostics}
+EmptyBlock ← {𝕊 kind‿line:{kind⇐kind,line⇐line,pairs⇐empty}}
 PairValue ← {𝕊 block‿key:
   matches ← ({𝕩.key≡key}¨block.pairs)/block.pairs
   result ← {found⇐0,text⇐"",line⇐block.line}
@@ -72,15 +66,17 @@ PairValue ← {𝕊 block‿key:
 }
 
 Admit ← {𝕊 raw‿accounts‿budgetPolicy:
-  normalized ← (cr≠raw)/raw ⋄ lines ← SplitKeepEmpty ⟨lf,normalized⟩
+  lines ← SplitKeepEmpty ⟨lf,(cr≠raw)/raw⟩
   diagnostics ← empty ⋄ blocks ← empty ⋄ active ← 0 ⋄ current ← EmptyBlock ⟨"",0⟩
-  Finalize ← {𝕊:{𝕊:blocks∾↩⟨current⟩}⍟active @ ⋄ active↩0 ⋄ current↩EmptyBlock ⟨"",0⟩}
   KnownSection ← {𝕊 name: Contains ⟨name,⟨
     "cycle","budget","budget.envelopes","daily-target","daily-target.assets",
-    "account-policy.assets","account-policy.budget.kind",
-    "account-policy.budget.envelope-role","account-policy.budget.group",
-    "account-policy.expenses"
+    "account-policy.assets","account-policy.budget.kind","account-policy.budget.envelope-role",
+    "account-policy.budget.group","account-policy.expenses"
   ⟩⟩}
+  Finalize ← {𝕊:
+    {𝕊:blocks∾↩⟨current⟩}⍟active @
+    active↩0 ⋄ current↩EmptyBlock ⟨"",0⟩
+  }
   {𝕊 i:
     text ← Trim i⊑lines ⋄ row ← i+1
     ignored ← (0=≠text) ∨ hash=FirstOrSpace text
@@ -90,9 +86,10 @@ Admit ← {𝕊 raw‿accounts‿budgetPolicy:
       header ← arrayHeader ∨ tableHeader
       {𝕊:
         Finalize @
-        name ← (1+arrayHeader)↓(-1-arrayHeader)↓text
-        diagnostics∾↩AddIf ⟨¬KnownSection name,Diagnostic ⟨"household_section_unsupported",row,"household.toml contains an unsupported section"⟩⟩
-        {𝕊:active↩1 ⋄ current↩EmptyBlock ⟨name,row⟩}⍟KnownSection name @
+        edge ← 1+arrayHeader ⋄ name ← edge↓(-edge)↓text
+        known ← KnownSection name
+        diagnostics∾↩AddIf ⟨¬known,Diagnostic ⟨"household_section_unsupported",row,"household.toml contains an unsupported section"⟩⟩
+        {𝕊:active↩1 ⋄ current↩EmptyBlock ⟨name,row⟩}⍟known @
       }⍟header @
       {𝕊:
         diagnostics∾↩AddIf ⟨¬active,Diagnostic ⟨"household_key_outside_section",row,"Household key must occur inside a supported section"⟩⟩
@@ -113,11 +110,9 @@ Admit ← {𝕊 raw‿accounts‿budgetPolicy:
 
   Singles ← {𝕊 kind: ({𝕩.kind≡kind}¨blocks)/blocks}
   RequireOne ← {𝕊 kind:
-    found ← Singles kind
+    found ← Singles kind ⋄ result ← EmptyBlock ⟨kind,0⟩
     diagnostics∾↩AddIf ⟨1≠≠found,Diagnostic ⟨"household_section_cardinality_invalid",0,"Required Household section must occur exactly once"⟩⟩
-    result ← EmptyBlock ⟨kind,0⟩
-    {𝕊:result↩⊑found}⍟(1=≠found) @
-    result
+    {𝕊:result↩⊑found}⍟(1=≠found) @ ⋄ result
   }
   CheckKeys ← {𝕊 block‿required‿optional:
     keys ← {𝕩.key}¨block.pairs ⋄ allowed ← required∾optional
@@ -134,8 +129,7 @@ Admit ← {𝕊 raw‿accounts‿budgetPolicy:
     diagnostics∾↩AtLine ⟨parsed,pair.line⟩ ⋄ parsed.values
   }
   ValidateAccount ← {𝕊 key‿expectedRole‿lineNumber:
-    i ← IndexOf ⟨key,accounts.key⟩ ⋄ known ← i<accounts.count
-    role ← i⊑accounts.role∾⟨""⟩
+    i ← IndexOf ⟨key,accounts.key⟩ ⋄ known ← i<accounts.count ⋄ role ← i⊑accounts.role∾⟨""⟩
     diagnostics∾↩AddIf ⟨¬known,Diagnostic ⟨"household_account_unknown",lineNumber,"Household policy Account must be declared in accounts.journal"⟩⟩
     diagnostics∾↩AddIf ⟨known ∧ (0<≠expectedRole) ∧ role≢expectedRole,Diagnostic ⟨"household_account_role_invalid",lineNumber,"Household policy Account has the wrong accounting type"⟩⟩
     known ∧ ((0=≠expectedRole) ∨ role≡expectedRole)
@@ -144,47 +138,52 @@ Admit ← {𝕊 raw‿accounts‿budgetPolicy:
   cycleBlock ← RequireOne "cycle" ⋄ CheckKeys ⟨cycleBlock,⟨"mode","income-account"⟩,empty⟩
   cycleMode ← StringValue ⟨cycleBlock,"mode"⟩ ⋄ incomeKey ← StringValue ⟨cycleBlock,"income-account"⟩
   diagnostics∾↩AddIf ⟨cycleMode≢"income-anchor",Diagnostic ⟨"household_cycle_mode_invalid",cycleBlock.line,"Canonical Household cycle mode must be income-anchor"⟩⟩
-  incomeIndex ← IndexOf ⟨incomeKey,accounts.key⟩
-  ValidateAccount ⟨incomeKey,"income",cycleBlock.line⟩
+  incomeIndex ← IndexOf ⟨incomeKey,accounts.key⟩ ⋄ incomeValid ← ValidateAccount ⟨incomeKey,"income",cycleBlock.line⟩
 
   budgetBlock ← RequireOne "budget" ⋄ CheckKeys ⟨budgetBlock,⟨"unassigned-accounts"⟩,empty⟩
   unassignedKeys ← ArrayValue ⟨budgetBlock,"unassigned-accounts"⟩
   diagnostics∾↩AddIf ⟨0=≠unassignedKeys,Diagnostic ⟨"household_unassigned_missing",budgetBlock.line,"Household Budget policy requires at least one unassigned Account"⟩⟩
   diagnostics∾↩AddIf ⟨(≠unassignedKeys)≠≠⍷unassignedKeys,Diagnostic ⟨"household_unassigned_duplicate",budgetBlock.line,"Unassigned Budget Accounts must be unique"⟩⟩
   unassignedIndices ← empty
-  {𝕊 key:{𝕊:unassignedIndices∾↩⟨IndexOf ⟨key,accounts.key⟩⟩}⍟ValidateAccount ⟨key,"budget",budgetBlock.line⟩ @}¨unassignedKeys
+  {𝕊 key:
+    valid ← ValidateAccount ⟨key,"budget",budgetBlock.line⟩
+    {𝕊:unassignedIndices∾↩⟨IndexOf ⟨key,accounts.key⟩⟩}⍟valid @
+  }¨unassignedKeys
 
-  envelopeBlocks ← Singles "budget.envelopes" ⋄ envelopeRows ← empty
+  envelopeRows ← empty
   {𝕊 block:
     CheckKeys ⟨block,⟨"id","allocation-account"⟩,⟨"plan-destination-accounts"⟩⟩
     id ← StringValue ⟨block,"id"⟩ ⋄ allocationKey ← StringValue ⟨block,"allocation-account"⟩
     destinationPair ← PairValue ⟨block,"plan-destination-accounts"⟩ ⋄ destinationKeys ← empty
     {𝕊:destinationKeys↩ArrayValue ⟨block,"plan-destination-accounts"⟩}⍟destinationPair.found @
-    validId ← NoWhitespace id ⋄ diagnostics∾↩AddIf ⟨¬validId,Diagnostic ⟨"household_envelope_id_invalid",block.line,"Household envelope id must be nonempty and contain no whitespace"⟩⟩
-    allocationIndex ← IndexOf ⟨allocationKey,accounts.key⟩ ⋄ allocationValid ← ValidateAccount ⟨allocationKey,"budget",block.line⟩
+    validId ← NoWhitespace id
+    diagnostics∾↩AddIf ⟨¬validId,Diagnostic ⟨"household_envelope_id_invalid",block.line,"Household envelope id must be nonempty and contain no whitespace"⟩⟩
+    allocationValid ← ValidateAccount ⟨allocationKey,"budget",block.line⟩ ⋄ allocationIndex ← IndexOf ⟨allocationKey,accounts.key⟩
     destinationIndices ← empty
-    {𝕊 key:{𝕊:destinationIndices∾↩⟨IndexOf ⟨key,accounts.key⟩⟩}⍟ValidateAccount ⟨key,"",block.line⟩ @}¨destinationKeys
+    {𝕊 key:
+      valid ← ValidateAccount ⟨key,"",block.line⟩
+      {𝕊:destinationIndices∾↩⟨IndexOf ⟨key,accounts.key⟩⟩}⍟valid @
+    }¨destinationKeys
     {𝕊:envelopeRows∾↩⟨{id⇐id,allocation_key⇐allocationKey,allocation_index⇐allocationIndex,plan_destination_keys⇐destinationKeys,plan_destination_indices⇐destinationIndices,line⇐block.line}⟩}⍟(validId ∧ allocationValid) @
-  }¨envelopeBlocks
+  }¨Singles "budget.envelopes"
   envelopeIds ← {𝕩.id}¨envelopeRows ⋄ allocationIndices ← {𝕩.allocation_index}¨envelopeRows
   diagnostics∾↩AddIf ⟨(≠envelopeIds)≠≠⍷envelopeIds,Diagnostic ⟨"household_envelope_id_duplicate",0,"Household envelope ids must be unique"⟩⟩
   diagnostics∾↩AddIf ⟨(≠allocationIndices)≠≠⍷allocationIndices,Diagnostic ⟨"household_allocation_account_duplicate",0,"One Budget Account may allocate only one envelope"⟩⟩
   diagnostics∾↩AddIf ⟨(≠envelopeIds)≠budgetPolicy.envelopes.count,Diagnostic ⟨"household_envelope_coordinates_incomplete",0,"Every budget.toml envelope requires Household allocation coordinates"⟩⟩
-  diagnostics∾↩AddIf ⟨∨´0∾{¬Contains ⟨𝕩,budgetPolicy.envelopes.id⟩}¨envelopeIds,Diagnostic ⟨"household_envelope_unknown",0,"Household allocation coordinates must reference budget.toml envelopes"⟩⟩
+  diagnostics∾↩AddIf ⟨∨´0∾{¬Contains ⟨𝕩,budgetPolicy.envelopes.id⟩}¨envelopeIds,Diagnostic ⟨"household_envelope_unknown",0,"Household envelope coordinates must reference budget.toml"⟩⟩
   diagnostics∾↩AddIf ⟨∨´0∾{¬Contains ⟨𝕩,envelopeIds⟩}¨budgetPolicy.envelopes.id,Diagnostic ⟨"household_envelope_coordinates_missing",0,"Every budget.toml envelope requires Household coordinates"⟩⟩
   allDestinations ← ∾{𝕩.plan_destination_indices}¨envelopeRows
   diagnostics∾↩AddIf ⟨(≠allDestinations)≠≠⍷allDestinations,Diagnostic ⟨"household_plan_destination_duplicate",0,"One Plan destination Account may belong to only one envelope"⟩⟩
 
-  dailyAssetRows ← empty
+  dailyRows ← empty
   {𝕊 block:
     CheckKeys ⟨block,⟨"id","account"⟩,empty⟩
     id ← StringValue ⟨block,"id"⟩ ⋄ key ← StringValue ⟨block,"account"⟩
-    validId ← 0<≠id ⋄ diagnostics∾↩AddIf ⟨¬validId,Diagnostic ⟨"daily_target_id_empty",block.line,"Daily Target selection id must be nonempty"⟩⟩
-    validAccount ← ValidateAccount ⟨key,"asset",block.line⟩
-    {𝕊:dailyAssetRows∾↩⟨{scope_id⇐id,account_key⇐key,account_index⇐IndexOf ⟨key,accounts.key⟩,line⇐block.line}⟩}⍟(validId ∧ validAccount) @
+    validId ← 0<≠id ⋄ validAccount ← ValidateAccount ⟨key,"asset",block.line⟩
+    diagnostics∾↩AddIf ⟨¬validId,Diagnostic ⟨"daily_target_id_empty",block.line,"Daily Target selection id must be nonempty"⟩⟩
+    {𝕊:dailyRows∾↩⟨{scope_id⇐id,account_key⇐key,account_index⇐IndexOf ⟨key,accounts.key⟩,line⇐block.line}⟩}⍟(validId ∧ validAccount) @
   }¨Singles "daily-target.assets"
-  dailyIds ← {𝕩.scope_id}¨dailyAssetRows
-  diagnostics∾↩AddIf ⟨0=≠dailyIds,Diagnostic ⟨"daily_target_assets_missing",0,"Daily Target requires at least one eligible Asset Account"⟩⟩
+  dailyIds ← {𝕩.scope_id}¨dailyRows
   diagnostics∾↩AddIf ⟨(≠dailyIds)≠≠⍷dailyIds,Diagnostic ⟨"daily_target_id_duplicate",0,"Daily Target selection ids must be unique"⟩⟩
 
   axisSpec ← ⟨
@@ -194,58 +193,54 @@ Admit ← {𝕊 raw‿accounts‿budgetPolicy:
     ⟨"account-policy.budget.group",⟨⟨"daily","daily"⟩,⟨"flex","flex"⟩,⟨"reserve","reserve"⟩⟩,"budget"⟩,
     ⟨"account-policy.expenses",⟨⟨"fixed","fixed"⟩,⟨"variable","variable"⟩⟩,"expense"⟩
   ⟩
-  axisValues ← (≠axisSpec)⥊⟨accounts.count⥊⟨""⟩⟩
-  {𝕊 s:
-    sectionName‿members‿expectedRole ← s⊑axisSpec
-    found ← Singles sectionName
+  axisRows ← empty
+  {𝕊 spec:
+    sectionName‿members‿expectedRole ← spec ⋄ found ← Singles sectionName
+    diagnostics∾↩AddIf ⟨1<≠found,Diagnostic ⟨"household_section_cardinality_invalid",0,"Household policy section may occur at most once"⟩⟩
     {𝕊:
-      block ← ⊑found ⋄ required ← {⊑𝕩}¨members ⋄ CheckKeys ⟨block,required,empty⟩
-      values ← s⊑axisValues
+      block ← ⊑found ⋄ CheckKeys ⟨block,{⊑𝕩}¨members,empty⟩
       {𝕊 member:
         keyName‿label ← member ⋄ keys ← ArrayValue ⟨block,keyName⟩
         {𝕊 key:
-          i ← IndexOf ⟨key,accounts.key⟩ ⋄ valid ← ValidateAccount ⟨key,expectedRole,block.line⟩
-          {𝕊:
-            diagnostics∾↩AddIf ⟨0<≠i⊑values,Diagnostic ⟨"household_account_axis_duplicate",block.line,"One Account may occur only once on one Household policy axis"⟩⟩
-            {𝕊:values↩label i⊑values}⍟(0=≠i⊑values) @
-          }⍟valid @
+          valid ← ValidateAccount ⟨key,expectedRole,block.line⟩
+          {𝕊:axisRows∾↩⟨{axis⇐sectionName,account_index⇐IndexOf ⟨key,accounts.key⟩,label⇐label,line⇐block.line}⟩}⍟valid @
         }¨keys
       }¨members
-      axisValues↩values s⊑axisValues
     }⍟(1=≠found) @
-    diagnostics∾↩AddIf ⟨1<≠found,Diagnostic ⟨"household_section_cardinality_invalid",0,"Household policy section may occur at most once"⟩⟩
-  }¨↕≠axisSpec
-
-  ok ← 0=≠diagnostics
-  admittedEnvelopes ← ok/envelopeRows ⋄ admittedDaily ← ok/dailyAssetRows
-  emptyAxis ← accounts.count⥊⟨""⟩
-  assetClass ← ok⊑⟨emptyAxis,0⊑axisValues⟩
-  budgetKind ← ok⊑⟨emptyAxis,1⊑axisValues⟩
-  envelopeRole ← ok⊑⟨emptyAxis,2⊑axisValues⟩
-  budgetGroup ← ok⊑⟨emptyAxis,3⊑axisValues⟩
-  spendClass ← ok⊑⟨emptyAxis,4⊑axisValues⟩
-  cycleAdmission ← {
-    state⇐ok⊑"error"‿"ok",diagnostics⇐diagnostics,
-    definition⇐{mode⇐ok⊑""‿"incomeAnchor",start⇐"",end_exclusive⇐"",income_account⇐ok⊑""‿incomeKey,start_day⇐0,offset⇐0}
+  }¨axisSpec
+  AxisValues ← {𝕊 sectionName:
+    {𝕊 i:
+      selected ← ({(𝕩.axis≡sectionName) ∧ 𝕩.account_index=i}¨axisRows)/axisRows
+      diagnostics∾↩AddIf ⟨1<≠selected,Diagnostic ⟨"household_account_axis_duplicate",0,"One Account may occur only once on one Household policy axis"⟩⟩
+      labels ← {𝕩.label}¨selected
+      (0<≠labels)⊑""‿⊑labels∾⟨""⟩
+    }¨accounts.index
   }
+  assetClass ← AxisValues "account-policy.assets"
+  budgetKind ← AxisValues "account-policy.budget.kind"
+  envelopeRole ← AxisValues "account-policy.budget.envelope-role"
+  budgetGroup ← AxisValues "account-policy.budget.group"
+  spendClass ← AxisValues "account-policy.expenses"
+
+  ok ← 0=≠diagnostics ⋄ admittedEnvelopes ← ok/envelopeRows ⋄ admittedDaily ← ok/dailyRows
+  emptyAxis ← accounts.count⥊⟨""⟩
+  cycleAdmission ← {state⇐ok⊑"error"‿"ok",diagnostics⇐diagnostics,definition⇐{
+    mode⇐ok⊑""‿"incomeAnchor",start⇐"",end_exclusive⇐"",income_account⇐ok⊑""‿incomeKey,start_day⇐0,offset⇐0
+  }}
   {
-    state⇐ok⊑"error"‿"ok",source_name⇐"household.toml",
-    cycle⇐cycleAdmission,
+    state⇐ok⊑"error"‿"ok",source_name⇐"household.toml",cycle⇐cycleAdmission,
     budget⇐{
       envelope_count⇐≠admittedEnvelopes,envelope_id⇐{𝕩.id}¨admittedEnvelopes,
-      allocation_account_key⇐{𝕩.allocation_key}¨admittedEnvelopes,
-      allocation_account_index⇐{𝕩.allocation_index}¨admittedEnvelopes,
-      plan_destination_account_keys⇐{𝕩.plan_destination_keys}¨admittedEnvelopes,
-      plan_destination_account_indices⇐{𝕩.plan_destination_indices}¨admittedEnvelopes,
+      allocation_account_key⇐{𝕩.allocation_key}¨admittedEnvelopes,allocation_account_index⇐{𝕩.allocation_index}¨admittedEnvelopes,
+      plan_destination_account_keys⇐{𝕩.plan_destination_keys}¨admittedEnvelopes,plan_destination_account_indices⇐{𝕩.plan_destination_indices}¨admittedEnvelopes,
       unassigned_account_keys⇐ok/unassignedKeys,unassigned_account_indices⇐ok/unassignedIndices
     },
-    daily_target⇐{
-      count⇐≠admittedDaily,index⇐↕≠admittedDaily,scope_id⇐{𝕩.scope_id}¨admittedDaily,
-      account_key⇐{𝕩.account_key}¨admittedDaily,account_index⇐{𝕩.account_index}¨admittedDaily
-    },
+    daily_target⇐{count⇐≠admittedDaily,index⇐↕≠admittedDaily,scope_id⇐{𝕩.scope_id}¨admittedDaily,account_key⇐{𝕩.account_key}¨admittedDaily,account_index⇐{𝕩.account_index}¨admittedDaily},
     account_policy⇐{
-      account_key⇐accounts.key,asset_class⇐assetClass,budget_kind⇐budgetKind,
-      envelope_role⇐envelopeRole,budget_group⇐budgetGroup,spend_class⇐spendClass
+      account_key⇐accounts.key,
+      asset_class⇐ok⊑⟨emptyAxis,assetClass⟩,budget_kind⇐ok⊑⟨emptyAxis,budgetKind⟩,
+      envelope_role⇐ok⊑⟨emptyAxis,envelopeRole⟩,budget_group⇐ok⊑⟨emptyAxis,budgetGroup⟩,
+      spend_class⇐ok⊑⟨emptyAxis,spendClass⟩
     },
     diagnostics⇐diagnostics
   }
