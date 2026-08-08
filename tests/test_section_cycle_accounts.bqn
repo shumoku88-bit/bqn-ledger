@@ -27,7 +27,7 @@ result ← section.Build accounting
 ⟨0,1020,¯1020,0,0⟩ lib.AssertEq ⟨result.totals.opening,result.totals.debit,result.totals.credit,result.totals.movement,result.totals.closing⟩
 1 lib.AssertEq result.totals.balanced
 human ← section.FormatHuman result
-(•FChars "../"∾base∾"cycle_accounts.destination.human.txt") lib.AssertEq human
+(•FChars "../"∾base∾"cycle_accounts.fixed.destination.human.txt") lib.AssertEq human
 
 unavailable ← section.Build {
   state⇐"unavailable",reason⇐"cycle_missing",diagnostics⇐⟨⟩
