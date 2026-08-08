@@ -23,7 +23,7 @@ successCases ← ⟨
     "envelopes","human",
     ⟨"JPY","2026-01-01","2026-02-01","2026-01-12","actual.journal","plan.tsv","budget_alloc.tsv","assets:cash"⟩,
     ⟨"domain","start","end_exclusive","observation","actual_source","plan_source","budget_source","funding_account"⟩,
-    ⟨4,6⟩,⟨"journal","tsv"⟩,⟨"actual","budget"⟩
+    ⟨4⟩,⟨"journal"⟩,⟨"actual"⟩
   ⟩,
   ⟨
     "balances","json",⟨"JPY","2026-01-12","actual.journal"⟩,
@@ -62,8 +62,7 @@ successCases ← ⟨
   ⟩,
   ⟨
     "monthly-accounts","human",⟨"JPY","2026-01","2026-03","actual.journal"⟩,
-    ⟨"domain","first_month","last_month_exclusive","actual_source"⟩,
-    ⟨3⟩,⟨"canonical-journal"⟩,⟨"actual"⟩
+    ⟨"domain","first_month","last_month_exclusive","actual_source"⟩,⟨3⟩,⟨"canonical-journal"⟩,⟨"actual"⟩
   ⟩,
   ⟨
     "daily-flow","human",⟨"JPY","2026-01-01","2026-02-01","2026-01-12","actual.journal"⟩,
@@ -81,12 +80,11 @@ successCases ← ⟨
   ⟩
 ⟩
 
-# Every retained catalog route must have one ordered successful route-contract case.
 (catalog.Table @).key lib.AssertEq {⊑𝕩}¨successCases
 CheckOk¨successCases
 
-# Repeated and optional coordinates retain exact roles in every admitted shape.
-# Plan remains a coordinate until report.toml removes it, but is not physical I/O.
+# Request coordinates survive until report.toml Phase 6, but canonical Budget
+# ownership means legacy Plan/Budget/funding coordinates do not enter preflight I/O.
 CheckOk ⟨
   "envelopes","human",
   ⟨"JPY","2026-01-01","2026-02-01","2026-01-12","actual.journal","plan.tsv","budget.tsv","assets:cash","assets:bank"⟩,
@@ -94,7 +92,7 @@ CheckOk ⟨
     "domain","start","end_exclusive","observation","actual_source","plan_source","budget_source",
     "funding_account","funding_account"
   ⟩,
-  ⟨4,6⟩,⟨"journal","tsv"⟩,⟨"actual","budget"⟩
+  ⟨4⟩,⟨"journal"⟩,⟨"actual"⟩
 ⟩
 CheckOk ⟨
   "cycle-accounts","human",⟨"JPY","2026-01-12","actual.journal","cycle.tsv","plan.tsv"⟩,
