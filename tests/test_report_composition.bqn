@@ -32,10 +32,7 @@ budgetRaw ← Raw ⟨
   "  budget:food         60 JPY"
 ⟩
 budget ← (canonicalBudget.Build ⟨budgetRaw,accounts,registry⟩).facts
-budgetPolicy ← budgetPolicyAdmission.Admit ⟨Raw ⟨
-  "[[backing-pools]]","id = \"cash\"","asset-accounts = [\"assets:cash\"]","",
-  "[[envelopes]]","id = \"food\"","label = \"Food\"","pacing = \"daily\"","backing-pool = \"cash\"","expense-accounts = [\"expenses:food\"]"
-⟩,accounts⟩
+budgetPolicy ← budgetPolicyAdmission.Admit ⟨•FChars "../"∾base∾"budget.toml",accounts⟩
 "ok" lib.AssertEq budgetPolicy.state
 cycle ← fixed_resolver.Resolve cycle_admission.Admit ⟨loader.ReadLines base∾"cycle.tsv",accounts⟩
 
