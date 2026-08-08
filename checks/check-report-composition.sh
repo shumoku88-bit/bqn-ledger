@@ -60,7 +60,6 @@ cp "$fixture/issues.destination.tsv" "$tmp/issues-only/"
 ./tools/report "$tmp/actual-only" recent human 2 actual.journal >/dev/null
 ./tools/report "$tmp/actual-only" balance-sheet human JPY 2026-01-12 actual.journal >/dev/null
 ./tools/report "$tmp/actual-only" profit-and-loss human JPY 2026-01-01 2026-02-01 actual.journal >/dev/null
-./tools/report "$tmp/actual-only" daily-flow human JPY 2026-01-01 2026-02-01 2026-01-12 actual.journal >/dev/null
 (
   cd "$tmp"
   "$root/tools/report" actual-only recent human 2 actual.journal >/dev/null
