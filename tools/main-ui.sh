@@ -111,6 +111,18 @@ ensure_report_context() {
   else
     report_domain="$(bqn "$ROOT_DIR/src/application/report_domain_cli.bqn" "$base_abs")"
   fi
+
+  local presentation_output negative_color
+  if ! presentation_output="$(bqn "$ROOT_DIR/src/application/report_presentation_cli.bqn" "$base_abs" 2>&1)"; then
+    printf '%s\n' "$presentation_output" >&2
+    return 1
+  fi
+  negative_color="$(awk -F'\t' '$1 == "negative_color" { print $2 }' <<<"$presentation_output")"
+  [[ -n "$negative_color" ]] || {
+    echo "Error: canonical Report negative color is unavailable" >&2
+    return 1
+  }
+  export REPORT_NEGATIVE_COLOR="$negative_color"
 }
 
 ensure_current_requests() {
@@ -337,6 +349,7 @@ case "$cmd" in
     exec "$ROOT_DIR/tools/add-ui.sh" --base "$base_dir"
     ;;
   select|--select|'')
+    ensure_report_context
     cache_dir="$(prepare_cache)"
     selection="$(select_section "$cache_dir" || true)"
     [[ -n "$selection" ]] || { echo "Cancelled." >&2; exit 0; }
