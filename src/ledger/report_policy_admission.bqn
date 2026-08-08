@@ -126,7 +126,10 @@ Admit ← {𝕊 raw:
   }
   CheckExplicitRange ← {𝕊 from‿through‿lineNumber:
     both ← (date.IsValid from) ∧ date.IsValid through
-    diagnostics∾↩AddIf ⟨both ∧ (date.Ordinal from)>date.Ordinal through,Diagnostic ⟨"report_policy_range_invalid",lineNumber,"Report range start must not be after its through date"⟩⟩
+    {𝕊:
+      reversed ← (date.Ordinal from)>date.Ordinal through
+      diagnostics∾↩AddIf ⟨reversed,Diagnostic ⟨"report_policy_range_invalid",lineNumber,"Report range start must not be after its through date"⟩⟩
+    }⍟both @
   }
 
   presentationBlock ← OptionalOne "presentation.amounts"
