@@ -13,40 +13,40 @@ Neither command imports `src/sections`, the retired report runtime, report compo
 Usage:
 
 ```text
-tools/ledger-check BASE JOURNAL PLAN_COORDINATE BUDGET CYCLE ISSUES DAILY_SCOPE
+tools/ledger-check BASE
 ```
 
-The retained Plan coordinate remains in this operational argv shape while surrounding request cleanup is unfinished, but it no longer names a physical source. Canonical `accounts.journal` and `plan.journal` own Plan admission. The wrapper requires readable fixed canonical Plan sources plus the still-retained Config/Account support for unmigrated surfaces and safe readable basenames for the caller-selected Actual, Budget, Cycle, Issues, and Daily Scope sources.
+`BASE` is the canonical Household root. No physical source basename is a command coordinate.
 
-The BQN owner strictly admits:
+The command requires and strictly admits the canonical eight-file source set:
 
-- currency registry and retained `config.tsv` where later policy phases have not replaced it;
-- current Actual Facts;
-- canonical Plan Facts from `plan.journal`;
-- retained Budget movement Facts from `budget_alloc.tsv`;
-- unresolved Cycle definition;
-- destination Issues;
-- Daily Target ownership/linkage rows.
+- `accounts.journal` for Account identity/type/default Commodity;
+- `actual.journal` for Actual transactions and relations;
+- `plan.journal` for Plan transactions and lifecycle evidence;
+- `budget.journal` for ordered Budget movement evidence;
+- `budget.toml` for Budget policy;
+- `household.toml` for Household classification, Cycle, and Daily Target policy;
+- `report.toml` for Report query and presentation policy;
+- `issues.tsv` for the Household notebook.
 
-Success prints implementation-neutral operational counts and exits zero. Any invalid source exits nonzero with admission stage/code and prints no `state ok` line. It does not resolve a cycle, calculate balances, render a report, or claim that every possible report coordinate is available. Individual report requests still validate temporal/domain/ownership joins at execution.
+The repository-owned `config/currencies.tsv` remains the currency registry. It is application configuration, not a ninth Household source.
+
+Success prints implementation-neutral operational counts and exits zero. Any invalid canonical source exits nonzero with admission stage/code and prints no `state ok` line. The command does not calculate balances or render a report; individual report requests still validate their temporal/domain joins at execution.
 
 ## `tools/ledger-inspect`
 
 Usage:
 
 ```text
-tools/ledger-inspect BASE JOURNAL
+tools/ledger-inspect BASE
 ```
 
-This command strictly admits canonical Actual Facts and prints source-qualified Transaction and Posting identities, Account keys, exact coefficients, and scales. The output is explicitly non-authoritative diagnostic text, not a compact or JSON schema.
+This command strictly admits canonical Actual Facts from `accounts.journal` + `actual.journal` and prints source-qualified Transaction and Posting identities, Account keys, exact coefficients, and scales. The output is explicitly non-authoritative diagnostic text, not a compact or JSON schema.
 
-Inspection can expose details from the explicitly selected ledger. Public fixtures are safe for committed proofs. Running it against private household data requires the user's explicit command/direction; its output must not be committed to public fixtures or reports.
+Inspection can expose details from the supplied Household root. Public fixtures are safe for committed proofs. Running it against private household data requires the user's explicit command/direction; its output must not be committed to public fixtures or reports.
 
-## Cutover
+## Boundary
 
-At atomic cutover:
-
-- remove report keys/cache/metadata/labels `check` and `debug`;
-- retain these operational commands under their implementation-neutral names;
-- remove old readiness compact keys and inline debug renderer rather than forwarding them;
-- keep development repository checks under `tools/check.sh`, distinct from source-facing `tools/ledger-check`.
+- operational commands accept one canonical root, not caller-selected source files;
+- report keys/cache/metadata remain separate from `check` and `inspect`;
+- development repository checks stay under `tools/check.sh`, distinct from source-facing `tools/ledger-check`.
