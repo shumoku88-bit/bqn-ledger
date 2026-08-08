@@ -3,8 +3,9 @@ lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
 snapshot ← •Import "../src/ledger/snapshot.bqn"
-budgetSnapshot ← •Import "../src/ledger/budget_snapshot.bqn"
+canonicalBudget ← •Import "canonical_budget_test_facts.bqn"
 canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
+budgetPolicyAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 accounting ← •Import "../src/accounting/envelope_backing.bqn"
 section ← •Import "../src/sections/envelope_backing.bqn"
@@ -14,8 +15,11 @@ lines ← loader.ReadLines base∾"accounts.tsv"
 actual ← (snapshot.Build ⟨lines,•FChars "../"∾base∾"actual.journal",registry⟩).facts
 planRaw ← •FChars "../"∾base∾"plan.journal"
 plan ← (canonicalPlan.Build ⟨planRaw,actual.accounts,registry⟩).facts
-budget ← (budgetSnapshot.Build ⟨loader.ReadLines base∾"budget_alloc.tsv",actual.accounts,registry⟩).facts
-statement ← accounting.Build ⟨budget,actual,plan,"JPY",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-12",⟨0⟩⟩
+budgetRaw ← •FChars "../"∾base∾"budget.journal"
+budget ← (canonicalBudget.Build ⟨budgetRaw,actual.accounts,registry⟩).facts
+policy ← budgetPolicyAdmission.Admit ⟨•FChars "../"∾base∾"budget.toml",actual.accounts⟩
+"ok" lib.AssertEq policy.state
+statement ← accounting.Build ⟨budget,policy,actual,plan,"JPY",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-12"⟩
 result ← section.Build ⟨statement,"2026-01-01","2026-02-01","2026-01-12"⟩
 "ok" lib.AssertEq result.state
 "backed" lib.AssertEq result.status
