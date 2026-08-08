@@ -8,6 +8,7 @@ actualSource ← •Import "actual_source_adapter.bqn"
 planSource ← •Import "plan_source_adapter.bqn"
 budgetSource ← •Import "budget_source_adapter.bqn"
 householdSource ← •Import "household_source_adapter.bqn"
+empty ← ⟨⟩
 
 Join ← {𝕊 base‿name: base∾(('/'≠¯1↑base)/"/")∾name}
 Registry ← {𝕊 path: registryBuilder.Build io.ReadLines path}
