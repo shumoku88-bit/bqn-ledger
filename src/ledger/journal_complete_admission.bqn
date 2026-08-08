@@ -9,10 +9,12 @@
 
 dates ← •Import "date_ordinal.bqn"
 single ← •Import "journal_single_domain_admission.bqn"
+postingText ← •Import "journal_posting_text.bqn"
 
 lf ← @+10
 cr ← @+13
 space ← @+32
+tab ← @+9
 empty ← ⟨⟩
 SplitKeepEmpty ← {𝕊 sep‿text:
   groups ← (+`sep=text)⊔text
@@ -23,20 +25,22 @@ Split ← {𝕊 sep‿text:
   (0<≠¨parts)/parts
 }
 
+IsWhitespace ← {𝕊 c: (c=space) ∨ c=tab }
 TrimLeft ← {𝕊 xs:
-  prefix ← ∧` (xs = space)
-  (+´ prefix) ↓ xs
+  prefix ← ∧` IsWhitespace¨xs
+  (+´prefix)↓xs
 }
 TrimRight ← {𝕊 xs:
-  suffix ← ∧` ((⌽ xs) = space)
-  ((≠ xs) - +´ suffix) ↑ xs
+  reversed ← ⌽xs
+  trimmed ← TrimLeft reversed
+  ⌽trimmed
 }
 Trim ← { TrimRight TrimLeft 𝕩 }
 StartsWith ← {𝕊 prefix‿text: prefix ≡ (≠ prefix) ↑ text }
 Contains ← {𝕊 item‿items: ∨´ 0 ∾ item⊸≡¨ items }
 IsDateHeader ← {𝕊 text:
   enough ← 10 < ≠ text
-  separator ← space = 10 ⊑ (text ∾ 11 ⥊ space)
+  separator ← IsWhitespace 10 ⊑ (text ∾ 11 ⥊ space)
   enough ∧ separator ∧ dates.IsValid 10 ↑ text
 }
 
@@ -86,28 +90,25 @@ PostingDomains ← {𝕊 blockLines:
   {𝕊 offset:
     original ← offset ⊑ blockLines
     trimmed ← Trim original
-    indented ← space = ⊑ (original ∾ " ")
+    indented ← IsWhitespace ⊑(original∾" ")
     metadata ← ';' = ⊑ (trimmed ∾ ";")
     candidate ← indented ∧ (0 < ≠ trimmed) ∧ (¬ metadata)
     {𝕊:
-      fields ← Split ⟨space,trimmed⟩
-      explicit ← 3 = ≠ fields
-      elided ← 1 = ≠ fields
-      valid ← explicit ∨ elided
-      diagnostics ∾↩ AddIf ⟨¬ valid, Diagnostic ⟨"posting_shape_invalid", offset + 1, "posting must contain account plus explicit amount and commodity, or one elided account only"⟩⟩
-      {𝕊: domains ∾↩ ⟨2 ⊑ fields⟩}⍟explicit @
+      parsed ← postingText.Split original
+      diagnostics ∾↩ AddIf ⟨¬parsed.valid, Diagnostic ⟨"posting_shape_invalid", offset + 1, "posting must contain account plus explicit amount and commodity, or one elided account only"⟩⟩
+      {𝕊: domains ∾↩ ⟨1⊑parsed.words⟩}⍟parsed.explicit @
     }⍟candidate @
   }¨ ↕ ≠ blockLines
   {domains⇐⍷ domains, diagnostics⇐diagnostics}
 }
 
-BuildPartition ← {𝕊 domain‿domainLine‿accounts‿blockLines‿blockStart:
+BuildPartition ← {𝕊 domain‿domainLine‿admittedAccounts‿blockLines‿blockStart:
   partitionLines ← ⟨"commodity " ∾ domain, ""⟩
   lineMap ← ⟨domainLine, 0⟩
-  {𝕊 account:
-    partitionLines ∾↩ ⟨account.text, ""⟩
-    lineMap ∾↩ ⟨account.source_line, 0⟩
-  }¨ accounts
+  {𝕊 accountKey:
+    partitionLines ∾↩ ⟨"account "∾accountKey, ""⟩
+    lineMap ∾↩ ⟨0,0⟩
+  }¨ admittedAccounts.key
   partitionLines ∾↩ blockLines
   lineMap ∾↩ blockStart + 1 + ↕ ≠ blockLines
   {raw⇐∾ (partitionLines ∾¨ lf), line_map⇐lineMap}
@@ -212,7 +213,7 @@ Admit ← {𝕊 raw‿accounts‿registry:
         {𝕊:
           domainLine ← DomainSourceLine ⟨domain, declarations⟩
           {𝕊: domainLine ↩ start + 1}⍟(0=domainLine) @
-          partition ← BuildPartition ⟨domain, domainLine, declarations.accounts, blockLines, start⟩
+          partition ← BuildPartition ⟨domain, domainLine, accounts, blockLines, start⟩
           admitted ← single.Admit ⟨partition.raw,accounts,registry⟩
           localDiagnostics ∾↩ {MapDiagnostic ⟨𝕩, partition.line_map⟩}¨ admitted.diagnostics
           {𝕊:
