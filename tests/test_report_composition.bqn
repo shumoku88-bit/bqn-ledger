@@ -3,8 +3,9 @@ lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
 snapshot ← •Import "../src/ledger/snapshot.bqn"
-budgetSnapshot ← •Import "../src/ledger/budget_snapshot.bqn"
+canonicalBudget ← •Import "canonical_budget_test_facts.bqn"
 canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
+budgetPolicyAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
 account_admission ← •Import "../src/ledger/account_admission.bqn"
 cycle_admission ← •Import "../src/ledger/cycle_admission.bqn"
 fixed_resolver ← •Import "../src/accounting/cycle_fixed_resolution.bqn"
@@ -20,7 +21,22 @@ accounts ← (account_admission.Admit ⟨accountLines,registry⟩).accounts
 actual ← (snapshot.Build ⟨accountLines,•FChars "../"∾base∾"actual.journal",registry⟩).facts
 planRaw ← •FChars "../"∾base∾"plan.journal"
 plan ← (canonicalPlan.Build ⟨planRaw,accounts,registry⟩).facts
-budget ← (budgetSnapshot.Build ⟨loader.ReadLines base∾"budget_alloc.tsv",accounts,registry⟩).facts
+lf ← @+10
+Raw ← {𝕊 lines: ∾lines∾¨lf}
+budgetRaw ← Raw ⟨
+  "2026-01-01 seed",
+  "  budget:opening     -100 JPY",
+  "  budget:unassigned   100 JPY","",
+  "2026-01-01 allocate-food",
+  "  budget:unassigned  -60 JPY",
+  "  budget:food         60 JPY"
+⟩
+budget ← (canonicalBudget.Build ⟨budgetRaw,accounts,registry⟩).facts
+budgetPolicy ← budgetPolicyAdmission.Admit ⟨Raw ⟨
+  "[[backing-pools]]","id = \"cash\"","asset-accounts = [\"assets:cash\"]","",
+  "[[envelopes]]","id = \"food\"","label = \"Food\"","pacing = \"daily\"","backing-pool = \"cash\"","expense-accounts = [\"expenses:food\"]"
+⟩,accounts⟩
+"ok" lib.AssertEq budgetPolicy.state
 cycle ← fixed_resolver.Resolve cycle_admission.Admit ⟨loader.ReadLines base∾"cycle.tsv",accounts⟩
 
 CheckGolden ← {𝕊 composition‿key‿surface‿file:
@@ -52,7 +68,7 @@ monthly ← compose.MonthlyAccounts ⟨actual,"JPY","2026-01","2026-03"⟩
 CheckGolden ⟨monthly,"monthly-accounts","human","monthly_accounts.destination.human.txt"⟩
 dailyFlow ← compose.DailyFlow ⟨actual,"JPY","2026-01-01","2026-02-01","2026-01-12"⟩
 CheckGolden ⟨dailyFlow,"daily-flow","human","daily_flow.destination.human.txt"⟩
-envelopes ← compose.Envelopes ⟨budget,actual,plan,"JPY","2026-01-01","2026-02-01","2026-01-12",⟨0⟩⟩
+envelopes ← compose.Envelopes ⟨budget,budgetPolicy,actual,plan,"JPY","2026-01-01","2026-02-01","2026-01-12"⟩
 CheckGolden ⟨envelopes,"envelopes","compact","envelope_backing.destination.compact.txt"⟩
 
 Ref ← {𝕊 id:{source⇐"synthetic",transaction_id⇐id,posting_id⇐id}}
