@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# Stage, validate, and publish one complete destination human cache generation.
+# Stage, validate, and atomically publish one complete current human cache from
+# canonical report.toml and canonical Household evidence.
 set -euo pipefail
-if [[ $# -ne 4 ]]; then
-  printf 'Usage: tools/report-cache BASE CACHE_DIR GENERATION_TOKEN REQUEST_MANIFEST\n' >&2
+if [[ $# -lt 4 || $# -gt 5 ]]; then
+  printf 'Usage: tools/report-cache BASE CACHE_DIR GENERATION_TOKEN DOMAIN [LATEST]\n' >&2
   exit 2
 fi
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -10,21 +11,37 @@ caller_pwd=$PWD
 base=$1
 cache_dir=$2
 generation=$3
-manifest_name=$4
+domain=$4
+latest=${5:-}
 [[ $base == /* ]] || base="$caller_pwd/$base"
 [[ $cache_dir == /* ]] || cache_dir="$caller_pwd/$cache_dir"
 [[ $generation =~ ^[0-9]+$ ]] || { printf 'ERROR\tcache_generation_invalid\tgeneration token must be decimal digits\n' >&2; exit 1; }
-if [[ $manifest_name == /* ]]; then
-  [[ $manifest_name == *.tsv ]] \
-    || { printf 'ERROR\tall_manifest_path_invalid\texplicit manifest path must end in .tsv\n' >&2; exit 1; }
-  manifest=$manifest_name
-else
-  [[ $manifest_name != */* && $manifest_name != *\\* && $manifest_name == *.tsv ]] \
-    || { printf 'ERROR\tall_manifest_basename_invalid\tmanifest must be a safe .tsv basename\n' >&2; exit 1; }
-  manifest="$base/$manifest_name"
+cd "$root"
+
+request_args=("$base" "$domain" human)
+[[ -z $latest ]] || request_args+=("$latest")
+request_set=""
+if ! request_set="$(bqn src/application/current_report_profile_cli.bqn "${request_args[@]}" 2>&1)"; then
+  printf '%s\n' "$request_set" >&2
+  exit 1
 fi
-[[ -f $manifest && -r $manifest ]] \
-  || { printf 'ERROR\tall_manifest_unreadable\tmanifest is not readable\n' >&2; exit 1; }
+mapfile -t lines <<<"$request_set"
+[[ ${lines[0]:-} == $'key\tsurface\targuments' ]] \
+  || { printf 'ERROR\tcurrent_request_header_invalid\tcurrent request set header is invalid\n' >&2; exit 1; }
+rows=("${lines[@]:1}")
+selection="$(bqn src/application/report_selection_cli.bqn all human)"
+mapfile -t expected_keys <<<"$selection"
+[[ ${#rows[@]} -eq ${#expected_keys[@]} ]] \
+  || { printf 'ERROR\tcurrent_request_count_mismatch\tcurrent request set must contain every human key\n' >&2; exit 1; }
+
+for index in "${!expected_keys[@]}"; do
+  IFS=$'\t' read -r -a fields <<<"${rows[$index]}"
+  [[ ${#fields[@]} -ge 2 ]] \
+    || { printf 'ERROR\tcurrent_request_row_invalid\tcurrent request row is incomplete\n' >&2; exit 1; }
+  [[ ${fields[0]} == "${expected_keys[$index]}" && ${fields[1]} == human ]] \
+    || { printf 'ERROR\tcurrent_request_order_mismatch\tcurrent request set must use catalog human order\n' >&2; exit 1; }
+done
+
 mkdir -p "$cache_dir"
 lock="$cache_dir/.destination-cache-lock"
 if ! mkdir "$lock" 2>/dev/null; then
@@ -40,23 +57,6 @@ printf '%s\n' "$$" >"$lock/pid"
 stage=$(mktemp -d "$cache_dir/.destination-stage.XXXXXX")
 cleanup() { rm -rf "$stage" "$lock"; }
 trap cleanup EXIT
-
-selection="$(bqn "$root/src/application/report_selection_cli.bqn" all human)"
-mapfile -t expected_keys <<<"$selection"
-mapfile -t lines <"$manifest"
-[[ ${lines[0]:-} == $'key\tsurface\targuments' ]] \
-  || { printf 'ERROR\tall_manifest_header_invalid\tmanifest header is not exact\n' >&2; exit 1; }
-rows=("${lines[@]:1}")
-[[ ${#rows[@]} -eq ${#expected_keys[@]} ]] \
-  || { printf 'ERROR\tall_manifest_count_mismatch\tmanifest must contain every human key\n' >&2; exit 1; }
-
-for index in "${!expected_keys[@]}"; do
-  IFS=$'\t' read -r -a fields <<<"${rows[$index]}"
-  [[ ${#fields[@]} -ge 3 ]] \
-    || { printf 'ERROR\tall_manifest_row_invalid\tmanifest row is incomplete\n' >&2; exit 1; }
-  [[ ${fields[0]} == "${expected_keys[$index]}" && ${fields[1]} == human ]] \
-    || { printf 'ERROR\tall_manifest_order_mismatch\tmanifest must use catalog human order\n' >&2; exit 1; }
-done
 
 : >"$stage/all.txt"
 for index in "${!expected_keys[@]}"; do
@@ -74,7 +74,6 @@ for key in "${expected_keys[@]}" all; do
   [[ -f $stage/$key.txt ]] || { printf 'ERROR\tcache_body_missing\tmissing cache body: %s\n' "$key" >&2; exit 1; }
 done
 
-# Publish bodies and canonical manifest by atomic rename. Timestamp is the commit marker.
 for key in "${expected_keys[@]}" all; do
   mv -f "$stage/$key.txt" "$cache_dir/$key.txt"
 done
