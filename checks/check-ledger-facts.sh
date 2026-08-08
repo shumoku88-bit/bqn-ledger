@@ -14,13 +14,21 @@ bqn tests/test_report_catalog_request.bqn >/dev/null
 bqn tests/test_report_composition.bqn >/dev/null
 bqn tests/test_application_funding_scope.bqn >/dev/null
 bqn tests/test_application_daily_scope.bqn >/dev/null
-bash checks/check-report-manifest-config.sh >/dev/null
-bash checks/check-report-manifest-routing.sh >/dev/null
-bash checks/check-report-composition.sh >/dev/null
-bash checks/check-report-cache.sh >/dev/null
-bash checks/check-ledger-operations.sh >/dev/null
-bash checks/check-report-section-metadata.sh >/dev/null
-bash checks/check-report-summary-query.sh >/dev/null
+
+RunCheck ← /dev/null
+run_check() {
+  local check=$1
+  echo "check-ledger-facts: running $check" >&2
+  bash "$check" >/dev/null
+}
+run_check checks/check-report-manifest-config.sh
+run_check checks/check-report-manifest-routing.sh
+run_check checks/check-report-composition.sh
+run_check checks/check-report-cache.sh
+run_check checks/check-ledger-operations.sh
+run_check checks/check-report-section-metadata.sh
+run_check checks/check-report-summary-query.sh
+
 bqn tests/test_ledger_companion_facts.bqn >/dev/null
 bqn tests/test_ledger_plan_snapshot.bqn >/dev/null
 bqn tests/test_ledger_config_cycle_admission.bqn >/dev/null
