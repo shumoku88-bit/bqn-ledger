@@ -26,7 +26,7 @@ result ← section.Build comparison.Build ⟨current,baseline,"aligned_elapsed"�
 "actual.journal" lib.AssertEq (⊑0⊑0⊑result.matrix.contributors).source
 980 lib.AssertEq (0⊑result.difference_evidence).current_coefficient
 human ← section.FormatHuman result
-(•FChars "../"∾base∾"cycle_comparison.destination.human.txt") lib.AssertEq human
+(•FChars "../"∾base∾"cycle_comparison.fixed.destination.human.txt") lib.AssertEq human
 
 unavailableAccounting ← comparison.Build ⟨current,cycle_period.Build ⟨facts,"JPY",cycle_result.Unavailable ⟨"incomeAnchor","2025-12-31","anchor_missing"⟩,"2025-12-31"⟩,"aligned_elapsed"⟩
 unavailable ← section.Build unavailableAccounting
