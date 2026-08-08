@@ -9,6 +9,33 @@ trap 'status=$?; echo "FAIL: check-report-presentation-policy line $LINENO" >&2;
 cp -R "$fixture" "$work/base"
 base="$work/base"
 
+# Command Hub builds the full current human request set even when one section is
+# displayed. Supply neutral prior-cycle evidence so this presentation proof can
+# reach the terminal adapter without making Cycle Comparison the subject here.
+cat >>"$base/actual.journal" <<'EOF'
+
+2025-12-01 presentation prior income anchor
+    ; event-id: presentation-prior-income
+    ; layer: actual
+    ; currency: JPY
+    assets:cash 1 JPY
+    income:salary -1 JPY
+
+2025-12-02 presentation prior income neutralization
+    ; event-id: presentation-prior-neutralization
+    ; layer: actual
+    ; currency: JPY
+    assets:cash -1 JPY
+    income:salary 1 JPY
+EOF
+cat >>"$base/plan.journal" <<'EOF'
+
+2026-01-02 presentation historical next income
+    ; plan-id: presentation-historical-income
+    income:salary -1 JPY
+    assets:cash 1 JPY
+EOF
+
 bqn src/application/report_presentation_cli.bqn "$base" >"$work/presentation"
 grep -Fx $'negative_style\tminus' "$work/presentation" >/dev/null
 grep -Fx $'negative_color\tred' "$work/presentation" >/dev/null
