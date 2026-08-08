@@ -191,8 +191,6 @@ Admit ← {𝕊 raw‿accounts‿registry:
   diagnostics ← declarations.diagnostics
   transactions ← empty
   starts ← (IsDateHeader¨ Trim¨ lines) / ↕ ≠ lines
-  structuralAccountKeys ← {𝕩.account_key}¨declarations.accounts
-  {𝕊: structuralAccountKeys↩accounts.key}⍟((0=≠structuralAccountKeys) ∧ 0<≠starts) @
 
   {𝕊:
     {𝕊 transactionIndex:
@@ -213,6 +211,8 @@ Admit ← {𝕊 raw‿accounts‿registry:
         declared ← Contains ⟨domain, declarations.domains⟩
         localDiagnostics ∾↩ AddIf ⟨declarationRequired ∧ (¬ declared), Diagnostic ⟨"transaction_domain_undeclared", start + 1, "ordinary transaction currency must be declared by the Journal when commodity declarations are present"⟩⟩
         {𝕊:
+          structuralAccountKeys ← {𝕩.account_key}¨declarations.accounts
+          {𝕊: structuralAccountKeys↩accounts.key}⍟(0=≠structuralAccountKeys) @
           domainLine ← DomainSourceLine ⟨domain, declarations⟩
           {𝕊: domainLine ↩ start + 1}⍟(0=domainLine) @
           partition ← BuildPartition ⟨domain, domainLine, structuralAccountKeys, blockLines, start⟩
