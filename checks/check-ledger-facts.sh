@@ -15,7 +15,6 @@ bqn tests/test_report_composition.bqn >/dev/null
 bqn tests/test_application_funding_scope.bqn >/dev/null
 bqn tests/test_application_daily_scope.bqn >/dev/null
 
-RunCheck ← /dev/null
 run_check() {
   local check=$1
   echo "check-ledger-facts: running $check" >&2
