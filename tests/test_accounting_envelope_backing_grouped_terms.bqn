@@ -8,7 +8,7 @@ dates ← •Import "../src/ledger/date_ordinal.bqn"
 envelopes ← •Import "../src/accounting/envelope_backing.bqn"
 lf ← @+10
 tab ← @+9
-Raw ← {𝕊 lines: ∾lines∾¨lf}
+JournalText ← {𝕊 lines: ∾lines∾¨lf}
 Join ← {𝕊 fields:
   out ← ⊑fields
   {𝕊 field: out∾↩tab∾field}¨1↓fields
@@ -43,7 +43,7 @@ raw ← ∾⟨
   "    expenses:transport 5 JPY",lf,"    assets:cash -5 JPY",lf
 ⟩
 actual ← (snapshot.Build ⟨accounts,raw,registry⟩).facts
-planRaw ← Raw ⟨
+planRaw ← JournalText ⟨
   "2026-01-12 food a",
   "  ; plan-id: food-plan-a",
   "  expenses:groceries  4 JPY",
