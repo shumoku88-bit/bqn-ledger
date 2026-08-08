@@ -18,14 +18,7 @@ registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").regi
 accountLines ← loader.ReadLines base∾"accounts.tsv"
 accounts ← (account_admission.Admit ⟨accountLines,registry⟩).accounts
 actual ← (snapshot.Build ⟨accountLines,•FChars "../"∾base∾"actual.journal",registry⟩).facts
-lf ← @+10
-Raw ← {𝕊 sourceLines: ∾sourceLines∾¨lf}
-planRaw ← Raw ⟨
-  "2026-01-20 food-plan",
-  "  ; plan-id: plan-food-2026-01",
-  "  expenses:food  25 JPY",
-  "  assets:cash  -25 JPY"
-⟩
+planRaw ← •FChars "../"∾base∾"plan.journal"
 plan ← (canonicalPlan.Build ⟨planRaw,accounts,registry⟩).facts
 budget ← (budgetSnapshot.Build ⟨loader.ReadLines base∾"budget_alloc.tsv",accounts,registry⟩).facts
 cycle ← fixed_resolver.Resolve cycle_admission.Admit ⟨loader.ReadLines base∾"cycle.tsv",accounts⟩
