@@ -4,6 +4,7 @@ root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
 fixture=fixtures/ledger-facts-phase1-proof
 tmp="$(mktemp -d "${TMPDIR:-/tmp}/bqn-ledger-destination.XXXXXX")"
+trap 'status=$?; echo "::error file=checks/check-report-composition.sh,line=$LINENO::Report composition check failed" >&2; exit "$status"' ERR
 trap 'rm -rf "$tmp"' EXIT
 
 ./tools/report "$fixture" envelopes compact JPY 2026-01-01 2026-02-01 2026-01-12 actual.journal plan.tsv budget_alloc.tsv assets:cash >"$tmp/envelopes"
