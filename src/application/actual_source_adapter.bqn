@@ -1,13 +1,13 @@
 # Read-only application adapter for canonical Household Actual Facts.
 #
 # Physical basenames are owned by canonical_household_sources.bqn. Account
-# admission is owned by account_source_adapter.bqn. Actual-root include topology
-# is checked before pure Ledger admission/projection.
+# admission is owned by account_source_adapter.bqn. Canonical Journal-root include
+# topology is checked before pure Ledger admission/projection.
 
 io ← •Import "source_io.bqn"
 sources ← •Import "canonical_household_sources.bqn"
 accountSource ← •Import "account_source_adapter.bqn"
-rootAdmission ← •Import "../ledger/actual_root_admission.bqn"
+rootAdmission ← •Import "../ledger/canonical_journal_root_admission.bqn"
 snapshot ← •Import "../ledger/snapshot.bqn"
 
 Join ← {𝕊 base‿name: base∾(('/'≠¯1↑base)/"/")∾name}
