@@ -40,7 +40,7 @@ Check ⟨
   0,
   ⟨
     "ROUTE"∾tab∾"profit-and-loss"∾tab∾"human"∾tab∾"4"∾tab∾"1",
-    "SOURCE"∾tab∾"3"∾tab∾"journal"∾tab∾"actual"
+    "SOURCE"∾tab∾"3"∾tab∾"canonical-journal"∾tab∾"actual"
   ⟩
 ⟩
 
