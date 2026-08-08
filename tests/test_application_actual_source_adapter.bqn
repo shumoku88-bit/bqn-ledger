@@ -9,7 +9,9 @@ registryResult ← registryBuilder.Build io.ReadLines "config/currencies.tsv"
 "ok" lib.AssertEq registryResult.state
 
 result ← adapter.Load ⟨"fixtures/canonical-household-v1",registryResult.registry⟩
-{𝕊: •Out •Fmt result.diagnostics}⍟(result.state≢"ok") @
+{𝕊:
+  {𝕊 diagnostic: •Out diagnostic.code∾" | "∾(•Fmt diagnostic.line)∾" | "∾diagnostic.message}¨result.diagnostics
+}⍟(result.state≢"ok") @
 "ok" lib.AssertEq result.state
 0 lib.AssertEq ≠result.diagnostics
 4 lib.AssertEq result.facts.transactions.count
