@@ -8,8 +8,7 @@
 #   3: preferred role, or empty string to preserve source order
 # Output: one account name per line. A preferred role is a stable partition only.
 
-loader ← •Import "../src/application/source_io.bqn"
-editorAccounts ← •Import "../src/application/editor_accounts.bqn"
+accountSource ← •Import "../src/application/account_source_adapter.bqn"
 validate ← •Import "validate.bqn"
 
 tab ← @+9
@@ -27,10 +26,9 @@ preferredRole ← 3⊑args
   {𝕊: Fail (1⊑check)}⍟(¬0⊑check) @
 }⍟(0 < ≠currency) @
 
-lines ← loader.ReadLines (base ∾ "/accounts.tsv")
-IsDataLine ← { (0 < ≠𝕩) ? ((⊑𝕩 ≠ '#') ∧ (⊑𝕩 ≠ ⊑"\\")) ; 0 }
-dataLines ← (IsDataLine¨ lines) / lines
-resolved ← editorAccounts.Require dataLines
+result ← accountSource.Load base
+{𝕊: Fail "accounts.journal rejected"}⍟(result.state≢"ok") @
+resolved ← result.accounts
 accounts ← resolved.key
 roles ← resolved.role
 currencies ← resolved.currency
