@@ -7,7 +7,8 @@ tmp="$(mktemp -d "${TMPDIR:-/tmp}/bqn-ledger-destination.XXXXXX")"
 trap 'status=$?; echo "::error file=checks/check-report-composition.sh,line=$LINENO::Report composition check failed" >&2; exit "$status"' ERR
 trap 'rm -rf "$tmp"' EXIT
 
-./tools/report "$fixture" envelopes compact JPY 2026-01-01 2026-02-01 2026-01-12 actual.journal plan.tsv budget_alloc.tsv assets:cash >"$tmp/envelopes"
+./tools/report "$fixture" envelopes compact JPY 2026-01-01 2026-02-01 2026-01-12 \
+  actual.journal ignored-plan-coordinate ignored-budget-coordinate ignored-funding-coordinate >"$tmp/envelopes"
 cmp "$tmp/envelopes" "$fixture/envelope_backing.destination.compact.txt"
 ./tools/report "$fixture" balances human JPY 2026-01-12 actual.journal >"$tmp/balances"
 cmp "$tmp/balances" "$fixture/account_balances.destination.human.txt"
@@ -15,8 +16,8 @@ cmp "$tmp/balances" "$fixture/account_balances.destination.human.txt"
 cmp "$tmp/balances-manifest" "$tmp/balances"
 ./tools/report "$fixture" balance-sheet human JPY 2026-01-12 actual.journal >"$tmp/balance-sheet"
 cmp "$tmp/balance-sheet" "$fixture/balance_sheet.destination.human.txt"
-./tools/report "$fixture" profit-and-loss human JPY 2026-01-01 2026-02-01 actual.journal >"$tmp/profit-and-loss"
-cmp "$tmp/profit-and-loss" "$fixture/profit_and_loss.destination.human.txt"
+./tools/report "$fixture" profit-and-loss human JPY 2026-01-01 2026-02-01 actual.journal >"$tmp/profit-loss"
+cmp "$tmp/profit-loss" "$fixture/profit_and_loss.destination.human.txt"
 ./tools/report "$fixture" recent compact 10 actual.journal >"$tmp/recent"
 cmp "$tmp/recent" "$fixture/recent_journal.destination.compact.txt"
 ./tools/report "$fixture" planned human 2026-01-12 actual.journal plan.tsv cycle.tsv >"$tmp/planned"
@@ -46,7 +47,7 @@ cmp "$tmp/all-human" "$tmp/all-human-expected"
 ./tools/report "$fixture" all compact report_all_compact.destination.tsv >"$tmp/all-compact"
 : >"$tmp/all-compact-expected"
 ./tools/report "$fixture" envelopes compact JPY 2026-01-01 2026-02-01 2026-01-12 \
-  actual.journal plan.tsv budget_alloc.tsv assets:cash >>"$tmp/all-compact-expected"
+  actual.journal ignored-plan-coordinate ignored-budget-coordinate ignored-funding-coordinate >>"$tmp/all-compact-expected"
 ./tools/report "$fixture" balances compact JPY 2026-01-12 actual.journal >>"$tmp/all-compact-expected"
 ./tools/report "$fixture" recent compact 10 actual.journal >>"$tmp/all-compact-expected"
 ./tools/report "$fixture" planned compact 2026-01-12 actual.journal plan.tsv cycle.tsv >>"$tmp/all-compact-expected"
@@ -74,20 +75,15 @@ if ! ./tools/report "$tmp/daily-only" daily-target human JPY 2026-01-12 2026-01-
   actual.journal daily_target_plan.destination.tsv daily_target_scope.destination.tsv \
   >/dev/null 2>"$tmp/daily-only.err"; then
   diagnostic=$(head -n 1 "$tmp/daily-only.err" | head -c 400)
-  echo "::error file=checks/check-report-composition.sh,line=73::daily-only: $diagnostic" >&2
+  echo "::error file=checks/check-report-composition.sh,line=74::daily-only: $diagnostic" >&2
   cat "$tmp/daily-only.err" >&2
   exit 1
 fi
 cp "$fixture/accounts.tsv" "$fixture/accounts.journal" "$fixture/actual.journal" \
-  "$fixture/plan.journal" "$fixture/budget_alloc.tsv" "$tmp/envelope-only/"
+  "$fixture/plan.journal" "$fixture/budget.journal" "$fixture/budget.toml" "$tmp/envelope-only/"
+[[ ! -e $tmp/envelope-only/budget_alloc.tsv ]]
 ./tools/report "$tmp/envelope-only" envelopes human JPY \
-  2026-01-01 2026-02-01 2026-01-12 actual.journal plan.tsv budget_alloc.tsv assets:cash >/dev/null
-if ./tools/report "$tmp/envelope-only" envelopes human JPY \
-  2026-01-01 2026-02-01 2026-01-12 actual.journal plan.tsv budget_alloc.tsv expenses:food \
-  >"$tmp/funding-role" 2>&1; then
-  echo 'FAIL: non-asset funding Account succeeded' >&2; exit 1
-fi
-grep -F $'funding_account_role_invalid' "$tmp/funding-role" >/dev/null
+  2026-01-01 2026-02-01 2026-01-12 actual.journal missing-plan.tsv missing-budget.tsv missing-funding >/dev/null
 cp "$fixture/accounts.tsv" "$fixture/accounts.journal" "$fixture/actual.journal" \
   "$fixture/plan.journal" "$fixture/cycle.tsv" "$tmp/planned-only/"
 ./tools/report "$tmp/planned-only" planned human 2026-01-12 actual.journal plan.tsv cycle.tsv >/dev/null
