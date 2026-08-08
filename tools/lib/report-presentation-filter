@@ -12,9 +12,9 @@ case "$style" in
         for (i=1; i<=n; i++) {
           c=substr(line,i,1)
           prev=(i==1 ? "" : substr(line,i-1,1))
-          next=(i==n ? "" : substr(line,i+1,1))
+          nextc=(i==n ? "" : substr(line,i+1,1))
           boundary=(i==1 || prev==" " || prev=="\t" || prev=="=" || prev==":" || prev=="(")
-          if (c=="-" && boundary && digit(next)) {
+          if (c=="-" && boundary && digit(nextc)) {
             number=""; j=i+1
             while (j<=n) {
               d=substr(line,j,1)
