@@ -30,6 +30,7 @@ for check in \
   checks/check-report-cache.sh \
   checks/check-report-section-metadata.sh \
   checks/check-report-summary-query.sh \
+  checks/check-report-presentation-policy.sh \
   checks/check-ledger-operations.sh; do
   bash "$check" >/dev/null || {
     echo "FAIL: $check" >&2
