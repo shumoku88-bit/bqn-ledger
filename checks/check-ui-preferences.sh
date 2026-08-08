@@ -25,6 +25,10 @@ done
 if rg -n 'fzf_preview_window' tools/main-ui.sh | rg 'config\.tsv|awk'; then
   echo 'FAIL: terminal UI preference leaked into ledger config ownership' >&2; exit 1
 fi
+if rg -n 'config\.tsv|LEDGER_DATA_DIR|DEFAULT_BASE_DIR' tools/lib/theme.sh; then
+  echo 'FAIL: terminal theme still depends on a Household/default data source' >&2; exit 1
+fi
+grep -F 'BL_THEME=nord' .env.example >/dev/null
 grep -F 'BL_FZF_PREVIEW_WINDOW=right:75%' .env.example >/dev/null
 grep -F 'BL_SELECTOR=auto' .env.example >/dev/null
 echo 'check-ui-preferences: OK'
