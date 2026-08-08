@@ -2,6 +2,8 @@
 # Accounting syntax remains owned by Journal admission. This owner only proves
 # that include directives do not escape the canonical Account source.
 
+parse ← •Import "../text/parse.bqn"
+
 lf ← @+10
 cr ← @+13
 space ← @+32
@@ -14,7 +16,11 @@ TrimLeft ← {𝕊 xs:
   prefix ← ∧` IsWhitespace¨xs
   (+´prefix)↓xs
 }
-TrimRight ← {𝕊 xs: ⌽TrimLeft⌽xs }
+TrimRight ← {𝕊 xs:
+  reversed ← ⌽xs
+  trimmed ← TrimLeft reversed
+  ⌽trimmed
+}
 Trim ← { TrimRight TrimLeft 𝕩 }
 BeforeComment ← {𝕊 text:
   positions ← semicolon=text
@@ -36,7 +42,7 @@ Diagnostic ← {𝕊 codeText‿lineNumber‿messageText:
 
 Admit ← {𝕊 raw‿expectedAccountSource:
   normalized ← (cr≠raw)/raw
-  lines ← lf (⊣⊔˜+`∘=) normalized
+  lines ← lf parse.SplitKeepEmpty normalized
   diagnostics ← empty
   includes ← empty
   {𝕊 i:
