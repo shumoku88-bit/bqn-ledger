@@ -1,0 +1,17 @@
+== Current-cycle Accounts ==
+Cycle: 2026-01-01..2026-02-01 (fixed)
+Observed through: 2026-01-10
+
+Account                | Opening | Debit | Credit (signed) | Movement | Closing
+-----------------------+---------+-------+-----------------+----------+--------
+assets:cash/JPY        |       0 |  1000 |             -20 |      980 |     980
+income:salary/JPY      |       0 |     0 |           -1000 |    -1000 |   -1000
+expenses:food/JPY      |       0 |    20 |               0 |       20 |      20
+expenses:transport/JPY |       0 |     0 |               0 |        0 |       0
+budget:opening/JPY     |       0 |     0 |               0 |        0 |       0
+budget:unassigned/JPY  |       0 |     0 |               0 |        0 |       0
+budget:food/JPY        |       0 |     0 |               0 |        0 |       0
+budget:spent/JPY       |       0 |     0 |               0 |        0 |       0
+Total                  |       0 |  1020 |           -1020 |        0 |       0
+Balanced: YES
+
