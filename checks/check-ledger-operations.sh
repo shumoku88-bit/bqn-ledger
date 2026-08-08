@@ -6,24 +6,25 @@ fixture=fixtures/ledger-facts-phase1-proof
 work=$(mktemp -d "${TMPDIR:-/tmp}/bqn-ledger-operations.XXXXXX")
 trap 'rm -rf "$work"' EXIT
 
-./tools/ledger-check "$fixture" actual.journal does-not-exist-plan.tsv budget_alloc.tsv cycle.tsv \
-  issues.destination.tsv daily_target_scope.destination.tsv >"$work/check"
+# Retained CLI coordinates are request-shape shells only until Phase 6.
+./tools/ledger-check "$fixture" bad/journal bad/plan.tsv bad/budget_alloc.tsv bad/cycle.tsv \
+  issues.destination.tsv bad/daily_target_scope.tsv >"$work/check"
 cmp "$work/check" "$fixture/ledger_check.destination.txt"
-./tools/ledger-inspect "$fixture" actual.journal >"$work/inspect"
+./tools/ledger-inspect "$fixture" bad/journal >"$work/inspect"
 cmp "$work/inspect" "$fixture/ledger_inspect.destination.txt"
 
 cp -R "$fixture" "$work/invalid"
 printf 'bad\theader\n' >"$work/invalid/issues-invalid.tsv"
-if ./tools/ledger-check "$work/invalid" actual.journal does-not-exist-plan.tsv budget_alloc.tsv cycle.tsv \
-  issues-invalid.tsv daily_target_scope.destination.tsv >"$work/invalid.out" 2>&1; then
+if ./tools/ledger-check "$work/invalid" bad/journal bad/plan.tsv bad/budget_alloc.tsv bad/cycle.tsv \
+  issues-invalid.tsv bad/daily_target_scope.tsv >"$work/invalid.out" 2>&1; then
   echo 'FAIL: ledger-check accepted invalid Issues' >&2; exit 1
 fi
 grep -F 'issue_header_invalid' "$work/invalid.out" >/dev/null
 ! grep -F $'ledger_check\tstate\tok' "$work/invalid.out" >/dev/null
-if ./tools/ledger-inspect "$work/invalid" missing.journal >"$work/missing.out" 2>&1; then
-  echo 'FAIL: ledger-inspect accepted missing Journal' >&2; exit 1
-fi
-grep -F 'source_unreadable' "$work/missing.out" >/dev/null
+
+# A path-shaped Journal coordinate cannot redirect canonical Actual inspection.
+./tools/ledger-inspect "$work/invalid" missing.journal >"$work/ignored-journal-coordinate"
+cmp "$work/ignored-journal-coordinate" "$fixture/ledger_inspect.destination.txt"
 
 if bqn src/application/report_selection_cli.bqn all human | grep -Eq '^(check|debug)$'; then
   echo 'FAIL: operational command leaked into report catalog' >&2; exit 1
