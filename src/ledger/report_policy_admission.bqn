@@ -125,7 +125,7 @@ Admit ← {𝕊 raw:
     ValidateDateReference ⟨value,allowBeginning,pair.line⟩ ⋄ value
   }
   CheckExplicitRange ← {𝕊 from‿through‿lineNumber:
-    both ← date.IsValid from ∧ date.IsValid through
+    both ← (date.IsValid from) ∧ date.IsValid through
     diagnostics∾↩AddIf ⟨both ∧ (date.Ordinal from)>date.Ordinal through,Diagnostic ⟨"report_policy_range_invalid",lineNumber,"Report range start must not be after its through date"⟩⟩
   }
 
