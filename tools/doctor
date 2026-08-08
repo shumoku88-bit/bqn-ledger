@@ -91,7 +91,7 @@ else
 fi
 
 if [[ "$data_ok" -eq 0 ]]; then
-  warn "set LEDGER_DATA_DIR or pass --base to a canonical Household root"
+  warn "set LEDGER_DATA_DIR to a canonical Household root"
 fi
 
 echo ""
