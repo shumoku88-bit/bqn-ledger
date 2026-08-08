@@ -23,7 +23,7 @@ grep -F '== Envelope & Backing Statement ==' "$tmp/envelopes.out" >/dev/null
 
 ./tools/report "$tmp" cycle-accounts human JPY \
   2026-01-12 actual.journal bad/cycle.tsv bad/plan.tsv >"$tmp/cycle.out"
-grep -F '== Cycle Accounts ==' "$tmp/cycle.out" >/dev/null
+grep -F '== Current-cycle Accounts ==' "$tmp/cycle.out" >/dev/null
 
 ./tools/report "$tmp" planned human \
   2026-01-12 actual.journal bad/plan.tsv bad/cycle.tsv >"$tmp/planned.out"
