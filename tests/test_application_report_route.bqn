@@ -23,7 +23,7 @@ successCases ← ⟨
     "envelopes","human",
     ⟨"JPY","2026-01-01","2026-02-01","2026-01-12","actual.journal","plan.tsv","budget_alloc.tsv","assets:cash"⟩,
     ⟨"domain","start","end_exclusive","observation","actual_source","plan_source","budget_source","funding_account"⟩,
-    ⟨4,5,6⟩,⟨"journal","tsv","tsv"⟩,⟨"actual","plan","budget"⟩
+    ⟨4,6⟩,⟨"journal","tsv"⟩,⟨"actual","budget"⟩
   ⟩,
   ⟨
     "balances","json",⟨"JPY","2026-01-12","actual.journal"⟩,
@@ -44,7 +44,7 @@ successCases ← ⟨
   ⟨
     "planned","human",⟨"2026-01-12","actual.journal","plan.tsv","cycle.tsv"⟩,
     ⟨"observation","actual_source","plan_source","cycle_source"⟩,
-    ⟨1,2,3⟩,⟨"journal","tsv","tsv"⟩,⟨"actual","plan","cycle"⟩
+    ⟨1,3⟩,⟨"journal","tsv"⟩,⟨"actual","cycle"⟩
   ⟩,
   ⟨
     "cycle-accounts","human",⟨"JPY","2026-01-12","actual.journal","cycle.tsv"⟩,
@@ -58,7 +58,7 @@ successCases ← ⟨
       "domain","current_observation","baseline_observation","policy",
       "actual_source","current_cycle_source","baseline_cycle_source","plan_source"
     ⟩,
-    ⟨4,5,6,7⟩,⟨"journal","tsv","tsv","tsv"⟩,⟨"actual","current_cycle","baseline_cycle","plan"⟩
+    ⟨4,5,6⟩,⟨"journal","tsv","tsv"⟩,⟨"actual","current_cycle","baseline_cycle"⟩
   ⟩,
   ⟨
     "monthly-accounts","human",⟨"JPY","2026-01","2026-03","actual.journal"⟩,
@@ -73,7 +73,7 @@ successCases ← ⟨
   ⟨
     "daily-target","compact",⟨"JPY","2026-01-12","2026-01-22","actual.journal","plan.tsv","scope.tsv"⟩,
     ⟨"domain","observation","target","actual_source","plan_source","daily_scope_source"⟩,
-    ⟨3,4,5⟩,⟨"journal","tsv","tsv"⟩,⟨"actual","plan","daily_scope"⟩
+    ⟨3,5⟩,⟨"journal","tsv"⟩,⟨"actual","daily_scope"⟩
   ⟩,
   ⟨
     "issues","human",⟨"issues.tsv"⟩,
@@ -86,6 +86,7 @@ successCases ← ⟨
 CheckOk¨successCases
 
 # Repeated and optional coordinates retain exact roles in every admitted shape.
+# Plan remains a coordinate until report.toml removes it, but is not physical I/O.
 CheckOk ⟨
   "envelopes","human",
   ⟨"JPY","2026-01-01","2026-02-01","2026-01-12","actual.journal","plan.tsv","budget.tsv","assets:cash","assets:bank"⟩,
@@ -93,12 +94,12 @@ CheckOk ⟨
     "domain","start","end_exclusive","observation","actual_source","plan_source","budget_source",
     "funding_account","funding_account"
   ⟩,
-  ⟨4,5,6⟩,⟨"journal","tsv","tsv"⟩,⟨"actual","plan","budget"⟩
+  ⟨4,6⟩,⟨"journal","tsv"⟩,⟨"actual","budget"⟩
 ⟩
 CheckOk ⟨
   "cycle-accounts","human",⟨"JPY","2026-01-12","actual.journal","cycle.tsv","plan.tsv"⟩,
   ⟨"domain","observation","actual_source","cycle_source","plan_source"⟩,
-  ⟨2,3,4⟩,⟨"journal","tsv","tsv"⟩,⟨"actual","cycle","plan"⟩
+  ⟨2,3⟩,⟨"journal","tsv"⟩,⟨"actual","cycle"⟩
 ⟩
 CheckOk ⟨
   "cycle-comparison","human",
