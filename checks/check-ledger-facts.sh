@@ -14,13 +14,24 @@ bqn tests/test_report_catalog_request.bqn >/dev/null
 bqn tests/test_report_composition.bqn >/dev/null
 bqn tests/test_application_funding_scope.bqn >/dev/null
 bqn tests/test_application_daily_scope.bqn >/dev/null
-bash checks/check-report-manifest-config.sh >/dev/null
-bash checks/check-report-manifest-routing.sh >/dev/null
-bash checks/check-report-composition.sh >/dev/null
-bash checks/check-report-cache.sh >/dev/null
-bash checks/check-ledger-operations.sh >/dev/null
-bash checks/check-report-section-metadata.sh >/dev/null
-bash checks/check-report-summary-query.sh >/dev/null
+
+RunCheck() {
+  local check=$1
+  bash "$check" >/dev/null || {
+    echo "FAIL: $check" >&2
+    echo "::error file=$check::Nested ledger fact check failed"
+    exit 1
+  }
+}
+
+RunCheck checks/check-report-manifest-config.sh
+RunCheck checks/check-report-manifest-routing.sh
+RunCheck checks/check-report-composition.sh
+RunCheck checks/check-report-cache.sh
+RunCheck checks/check-ledger-operations.sh
+RunCheck checks/check-report-section-metadata.sh
+RunCheck checks/check-report-summary-query.sh
+
 bqn tests/test_ledger_companion_facts.bqn >/dev/null
 bqn tests/test_ledger_plan_snapshot.bqn >/dev/null
 bqn tests/test_ledger_config_cycle_admission.bqn >/dev/null
