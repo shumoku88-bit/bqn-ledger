@@ -10,7 +10,6 @@ parse ← •Import "../text/parse.bqn"
 space ← @+32
 tab ← @+9
 semicolon ← ⊑ ";"
-empty ← ⟨⟩
 
 IsWhitespace ← {𝕊 c: (c=space) ∨ c=tab }
 TrimLeft ← {𝕊 xs:
@@ -42,10 +41,7 @@ Split ← {𝕊 line:
     account↩Trim i↑body
     amount↩Trim i↓body
   }⍟hasSeparator @
-  normalizedAmount ← (tab≠amount)⊸/ amount
-  # Tabs inside Amount text are whitespace, not content. Convert them to spaces
-  # before bounded word splitting rather than deleting token boundaries.
-  normalizedAmount ↩ {(𝕩=tab)⊑𝕩‿space}¨amount
+  normalizedAmount ← {(𝕩=tab)⊑𝕩‿space}¨amount
   words ← space parse.Split normalizedAmount
   elided ← 0=≠amount
   explicit ← 2=≠words
