@@ -73,8 +73,7 @@ if [[ -d "$base_dir" ]]; then
   mapfile -t missing_required < <(canonical_report_base_missing_required "$base_dir")
   if [[ ${#missing_required[@]} -eq 0 ]]; then
     pass "canonical Household root files present: 8"
-    if "$ROOT_DIR/tools/ledger-check" "$base_dir" ignored ignored ignored ignored ignored ignored >/dev/null 2>&1 \
-      && bqn src/application/report_presentation_cli.bqn "$base_dir" >/dev/null 2>&1; then
+    if "$ROOT_DIR/tools/ledger-check" "$base_dir" >/dev/null 2>&1; then
       pass "canonical Household source admission succeeded"
     else
       fail "canonical Household source admission failed"

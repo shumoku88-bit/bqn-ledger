@@ -81,11 +81,11 @@ BL_FZF_PREVIEW_WINDOW=right:75%  # right|left|up|down and 1–100%
 
 `auto` prefers fzf, then gum. When `fzf` and `gum` are not installed (or when `BL_UI_MODE=minimal`), the UI automatically falls back to the zero-dependency **Minimal Mode** (pure Bash numbered prompts + interactive arrow-key preview browser). See [`.env.example`](.env.example).
 
-Operational diagnostics are separate from reports:
+Operational diagnostics are separate from reports and accept the canonical Household root, never individual source basenames:
 
 ```sh
-tools/ledger-check --help
-tools/ledger-inspect --help
+tools/ledger-check "$LEDGER_DATA_DIR"
+tools/ledger-inspect "$LEDGER_DATA_DIR"
 ```
 
 ## Editing

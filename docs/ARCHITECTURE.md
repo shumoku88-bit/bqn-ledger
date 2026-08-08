@@ -1,11 +1,10 @@
 # Architecture
 
-## Production flow
+## Production read flow
 
 ```text
-explicit source files + report request manifest
-  -> optional daily `current` profile (latest admitted Actual date; no wall clock)
-  -> src/application (read-only adapters and CLI composition)
+canonical Household root
+  -> src/application (native source adapters, typed policy, CLI composition)
   -> src/ledger (strict admission and canonical Facts)
   -> src/accounting (narrow exact capabilities)
   -> src/sections (one semantic result and approved renderers)
@@ -13,22 +12,46 @@ explicit source files + report request manifest
   -> tools/report / report-summary / query / Command Hub cache
 ```
 
-Canonical Account, Actual, and Plan reads come from `accounts.journal`, `actual.journal`, and `plan.journal`. Budget movement and Household policy remain on their retained sources until their named migration phases replace them; Issues remain non-accounting facts. Report manifests still carry historical source-basename coordinates until `report.toml` replaces that request shape, but an admitted canonical owner is not redirected by those coordinates. Invalid evidence fails closed without partial publication.
+The production Household root has exactly eight physical sources:
+
+```text
+accounts.journal
+actual.journal
+plan.journal
+budget.journal
+budget.toml
+household.toml
+report.toml
+issues.tsv
+```
+
+Source basenames are not report or operational request coordinates. The application receives one Household root and resolves named canonical owners internally. Invalid evidence fails closed without partial publication.
+
+The repository-owned `config/currencies.tsv` is application configuration, not part of the Household root.
 
 ## Ownership
 
-- `src/application/` — source I/O adapters, explicit manifest config, selected-request composition, readiness and inspection CLIs.
-- `src/ledger/` — Account, Journal, Plan, Budget, Config, Cycle, Issues, currency, exact-decimal admission, Transaction/Posting Facts, and provenance.
+- `src/application/` — canonical source I/O adapters, typed policy loading, current-request composition, readiness and inspection CLIs.
+- `src/ledger/` — Account, Journal, Plan, Budget, Issues, currency, exact-decimal admission, Transaction/Posting Facts, and provenance.
 - `src/accounting/` — period balances, grouping/pivot, cycle resolution/comparison, Plan completion, Envelope backing, Daily Target, and recent transactions.
 - `src/sections/` — the twelve retained report results and human/compact/JSON renderers.
 - `src/report/` — final catalog/order/surfaces, request validation, result dispatch, metadata, and text/JSON primitives.
-- `src_edit/` and `src/editor/` — write-side commands and pure rewrite semantics using the same strict ledger owners.
+- `src_edit/` and `src/editor/` — write-side commands and pure rewrite semantics. Writer qualification is a separate boundary from canonical read-side recovery.
 
-Canonical Account identity, accounting type, and optional default Commodity are admitted directly from `accounts.journal` by `src/ledger/account_journal_admission.bqn`; `src/application/account_source_adapter.bqn` is the read-only file boundary. Read-only Account selection uses this canonical registry. Household-specific Account policy does not enter Account Journal admission and remains on its legacy path until the `household.toml` policy boundary replaces it. Writer-side Account mutation remains separately qualified and is not implied by read-side admission.
+Canonical ownership is:
 
-Canonical Plan source admission preserves whole Transaction/Posting structure from `plan.journal` and derives durable Plan identity from `plan-id`; `src/application/plan_source_adapter.bqn` owns physical read selection. Report and cycle consumers receive those canonical Facts even while their request rows still contain a historical Plan basename coordinate. That coordinate is routing debt for the later `report.toml` phase, not Plan I/O authority. Envelope temporarily combines canonical Plan Facts with retained Budget movement evidence. Plan writers remain separately qualified and are not authorized by this read-side cutover.
+- Account identity, accounting type, and optional default Commodity: `accounts.journal`;
+- Actual Transaction/Posting evidence and relations: `actual.journal`;
+- Plan Transaction/Posting evidence, schedule, recurrence, and lifecycle relations: `plan.journal`;
+- ordered Budget movement evidence: `budget.journal`;
+- Budget policy: `budget.toml`;
+- Household classification, Cycle, and Daily Target policy: `household.toml`;
+- report query defaults and presentation policy: `report.toml`;
+- non-accounting Household notebook: `issues.tsv`.
 
 No report section reads files or the clock. No accounting capability imports a section or composition owner. Native multi-posting transactions remain first-class and are never flattened into two-account compatibility rows.
+
+Writer authority is not inferred from read capability. A mutating operation is canonical only after its own preview, complete-source admission, stale rejection, backup/atomic publication, post-admission, and authority proof. Until that qualification is complete, write-side code must not be treated as evidence for an alternate production source topology.
 
 ## Implementation style
 
@@ -44,7 +67,7 @@ Compactness does not permit boundary collapse. Strict admission, exact arithmeti
 
 Integration is optional: if BQN remains sufficient for trustworthy accounting, writing, reporting, and daily use, this system may remain independent indefinitely. Only a demonstrated requirement that standalone BQN cannot satisfy as clearly should select convergence. If selected, a future integration may make `libri-di-casa`/Haskell the authoritative confirmation, accounting-validation, identity, provenance, and persistence owner while this BQN engine consumes versioned confirmed evidence and owns derived array calculations and neutral report results.
 
-This is a replaceability constraint, not a committed merger or an active alternate source. Native Journal remains the sole production Actual input until a separately admitted adapter and cutover are proven. Current development must preserve one authoritative writer, distinguish semantic source role from physical encoding, retain exact Transaction/Posting identity and provenance, and keep external consumers from having to parse human report text. Plan, Budget, Issues, and Daily Target policy are not presumed to map to historically named books.
+This is a replaceability constraint, not a committed merger or an active alternate source. Current development must preserve one authoritative writer, distinguish semantic source role from physical encoding, retain exact Transaction/Posting identity and provenance, and keep external consumers from having to parse human report text.
 
 The full boundary and future integration gate are in [`LIBRI_DI_CASA_INTEGRATION_BOUNDARY.md`](LIBRI_DI_CASA_INTEGRATION_BOUNDARY.md).
 
@@ -65,18 +88,20 @@ Catalog order is:
 11. Daily Target
 12. Issues
 
-`all` is a catalog selection, not an all-report semantic record. Human and compact manifests contain existing individual route arguments in catalog order. Every row is admitted before source reads; output is buffered and published only after all selected requests succeed. Direct engine and historical requests use those concrete coordinates unchanged.
+`all` is a catalog selection, not an all-report semantic record. Current report requests are built from the canonical Household root plus typed `report.toml` policy. Physical source basenames never enter the request shape.
 
-The daily Command Hub adds one application policy before that boundary: `current_report_profile.bqn` admits the human template, chooses the maximum admitted Actual transaction date as one observation, resolves current and previous Cycles, and emits a complete concrete manifest. It derives only volatile current coordinates such as observation, current-cycle horizon, P/L end-exclusive, aligned baseline observation, and Monthly Accounts end-exclusive month. It reads no wall clock; nonvolatile choices such as Daily Target target and Monthly Accounts first month remain explicit template policy.
+Historical requests remain explicit through semantic coordinates such as domain, dates, observations, and comparison policy. Current-domain resolution reads canonical Actual Facts; current Cycle/Daily Target coordinates derive from canonical Household/Plan evidence. Clock access is confined to the application boundary, while policy resolution and accounting remain deterministic and clock-free.
 
 ## Cache and UI
 
 `tools/report-cache` stages twelve section bodies plus `all.txt`, publishes `.section-keys`, deletes stale report bodies, and writes `.cache-timestamp` last. `tools/command-hub-cache-refresh` adds exclusive background refresh and status markers. Preview reads only cache/status files and never starts the engine. A failed refresh preserves the prior complete generation; preview labels it as last-known-good and exposes the bounded underlying diagnostic instead of hiding every report.
 
-`tools/report-section-metadata` derives labels, categories, owners, and surfaces directly from the static catalog without household reads. Command Hub does not duplicate report keys.
+`tools/report-section-metadata` derives labels, categories, owners, and surfaces directly from the static catalog without Household reads. Command Hub does not duplicate report keys.
+
+Terminal presentation policy comes from canonical `report.toml`; local UI preferences such as theme and selector remain outside Household policy.
 
 ## Operational boundary
 
-`tools/ledger-check` validates strict source readiness. `tools/ledger-inspect` exposes canonical Fact/provenance evidence. Neither is a report key or compact schema owner.
+`tools/ledger-check BASE` strictly admits the complete eight-file canonical Household root. `tools/ledger-inspect BASE` exposes canonical Actual Fact/provenance evidence from the same root. Neither command accepts a caller-selected Household source basename, and neither is a report key or compact schema owner.
 
-Git is rollback. Retired runtime aliases, old-key translation, historical parser fallback, and forwarding modules are intentionally absent.
+Git is rollback. Retired runtime aliases, old-key translation, historical parser fallback, and source-basename forwarding are intentionally absent from the canonical read side.
