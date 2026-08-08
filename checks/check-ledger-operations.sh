@@ -21,8 +21,13 @@ Compare() {
 }
 
 # Retained CLI coordinates are request-shape shells only until Phase 6.
-./tools/ledger-check "$fixture" bad/journal bad/plan.tsv bad/budget_alloc.tsv bad/cycle.tsv \
-  issues.destination.tsv bad/daily_target_scope.tsv >"$work/check" || Fail 'canonical ledger-check failed'
+if ! ./tools/ledger-check "$fixture" bad/journal bad/plan.tsv bad/budget_alloc.tsv bad/cycle.tsv \
+  issues.destination.tsv bad/daily_target_scope.tsv >"$work/check"; then
+  head -n 8 "$work/check" >&2 || true
+  diagnostic=$(head -n 1 "$work/check" | head -c 300)
+  echo "::error file=checks/check-ledger-operations.sh::canonical ledger-check failed: $diagnostic" >&2
+  exit 1
+fi
 Compare 'canonical ledger-check output mismatch' "$work/check" "$fixture/ledger_check.destination.txt"
 ./tools/ledger-inspect "$fixture" bad/journal >"$work/inspect" || Fail 'canonical ledger-inspect failed'
 Compare 'canonical ledger-inspect output mismatch' "$work/inspect" "$fixture/ledger_inspect.destination.txt"
