@@ -19,7 +19,7 @@ RunCheck() {
   local check=$1
   bash "$check" >/dev/null || {
     echo "FAIL: $check" >&2
-    echo "::error file=$check::Nested ledger fact check failed"
+    echo "::error file=$check::Nested ledger fact check failed" >&2
     exit 1
   }
 }
