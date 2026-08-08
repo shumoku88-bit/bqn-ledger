@@ -86,9 +86,8 @@ if [[ $surface == human ]]; then
     printf 'ERROR\treport_presentation_invalid\tnegative style is absent from admitted Report policy\n' >&2
     exit 1
   }
-  REPORT_NEGATIVE_STYLE="$negative_style" \
-    bqn src/application/report_destination_cli.bqn "$base" "$key" "$surface" "${coordinates[@]}" \
-    | bash "$root/tools/lib/report-presentation-filter"
+  bqn src/application/report_destination_cli.bqn "$base" "$key" "$surface" "${coordinates[@]}" \
+    | REPORT_NEGATIVE_STYLE="$negative_style" bash "$root/tools/lib/report-presentation-filter"
 else
   exec bqn src/application/report_destination_cli.bqn "$base" "$key" "$surface" "${coordinates[@]}"
 fi
