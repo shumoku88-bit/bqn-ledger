@@ -20,9 +20,11 @@ DailyObservation ← {𝕊 facts‿domain‿start‿through:
   {𝕊:
     domainIndex ← ⊑domainMatches
     startOrdinal ← dates.Ordinal start ⋄ throughOrdinal ← dates.Ordinal through
-    selected ← (facts.transactions.domain_index=domainIndex) ∧
-      (facts.transactions.date_ordinal≥startOrdinal) ∧ facts.transactions.date_ordinal≤throughOrdinal
-    ordinals ← selected/facts.transactions.date_ordinal
+    domainMask ← facts.transactions.domain_index=domainIndex
+    startMask ← facts.transactions.date_ordinal≥startOrdinal
+    throughMask ← facts.transactions.date_ordinal≤throughOrdinal
+    mask ← domainMask ∧ startMask ∧ throughMask
+    ordinals ← mask/facts.transactions.date_ordinal
     {𝕊:result↩dates.FromOrdinal⌈´ordinals}⍟(0<≠ordinals) @
   }⍟(1=≠domainMatches) @
   result
@@ -71,8 +73,8 @@ Build ← {𝕊 domain‿surface‿reportPlan‿actualFacts‿observation‿curr
       {key⇐"issues",arguments⇐empty}
     ⟩
     selectedKeys ← selection.section_keys
-    selected ← ({Contains ⟨𝕩.key,selectedKeys⟩}¨candidates)/candidates
-    admissions ← {𝕊 candidate:route.Admit ⟨candidate.key,surface,candidate.arguments⟩}¨selected
+    selectedCandidates ← ({Contains ⟨𝕩.key,selectedKeys⟩}¨candidates)/candidates
+    admissions ← {𝕊 candidate:route.Admit ⟨candidate.key,surface,candidate.arguments⟩}¨selectedCandidates
     diagnostics∾↩∾{𝕩.diagnostics}¨admissions
     {𝕊:
       rows↩{𝕊 admitted:{key⇐admitted.key,surface⇐admitted.surface,arguments⇐admitted.coordinates}}¨admissions
