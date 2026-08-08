@@ -12,14 +12,7 @@ base ← "fixtures/ledger-facts-phase1-proof/"
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
 lines ← loader.ReadLines base∾"accounts.tsv"
 actual ← (snapshot.Build ⟨lines,•FChars "../"∾base∾"actual.journal",registry⟩).facts
-lf ← @+10
-Raw ← {𝕊 sourceLines: ∾sourceLines∾¨lf}
-planRaw ← Raw ⟨
-  "2026-01-20 food-plan",
-  "  ; plan-id: plan-food-2026-01",
-  "  expenses:food  25 JPY",
-  "  assets:cash  -25 JPY"
-⟩
+planRaw ← •FChars "../"∾base∾"plan.journal"
 plan ← (canonicalPlan.Build ⟨planRaw,actual.accounts,registry⟩).facts
 budget ← (budgetSnapshot.Build ⟨loader.ReadLines base∾"budget_alloc.tsv",actual.accounts,registry⟩).facts
 statement ← accounting.Build ⟨budget,actual,plan,"JPY",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-12",⟨0⟩⟩
