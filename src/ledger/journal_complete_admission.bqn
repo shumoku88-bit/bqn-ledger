@@ -91,9 +91,11 @@ PostingDomains ← {𝕊 blockLines:
     candidate ← indented ∧ (0 < ≠ trimmed) ∧ (¬ metadata)
     {𝕊:
       fields ← Split ⟨space,trimmed⟩
-      valid ← 3 = ≠ fields
-      diagnostics ∾↩ AddIf ⟨¬ valid, Diagnostic ⟨"posting_shape_invalid", offset + 1, "posting must contain account, explicit amount, and commodity"⟩⟩
-      {𝕊: domains ∾↩ ⟨2 ⊑ fields⟩}⍟valid @
+      explicit ← 3 = ≠ fields
+      elided ← 1 = ≠ fields
+      valid ← explicit ∨ elided
+      diagnostics ∾↩ AddIf ⟨¬ valid, Diagnostic ⟨"posting_shape_invalid", offset + 1, "posting must contain account plus explicit amount and commodity, or one elided account only"⟩⟩
+      {𝕊: domains ∾↩ ⟨2 ⊑ fields⟩}⍟explicit @
     }⍟candidate @
   }¨ ↕ ≠ blockLines
   {domains⇐⍷ domains, diagnostics⇐diagnostics}
@@ -201,7 +203,7 @@ Admit ← {𝕊 raw‿accounts‿registry:
       }¨ domainEvidence.diagnostics
       shapeOk ← 0 = ≠ localDiagnostics
       domainCountOk ← 1 = ≠ domainEvidence.domains
-      localDiagnostics ∾↩ AddIf ⟨shapeOk ∧ (¬ domainCountOk), Diagnostic ⟨"transaction_domain_count_invalid", start + 1, "ordinary transaction must contain exactly one posting currency domain"⟩⟩
+      localDiagnostics ∾↩ AddIf ⟨shapeOk ∧ (¬ domainCountOk), Diagnostic ⟨"transaction_domain_count_invalid", start + 1, "ordinary transaction must contain exactly one explicit posting currency domain"⟩⟩
       {𝕊:
         domain ← ⊑ domainEvidence.domains
         declarationRequired ← 0 < ≠ declarations.domains
