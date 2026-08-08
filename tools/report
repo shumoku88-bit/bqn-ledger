@@ -136,7 +136,7 @@ IFS=$'\t' read -r record plan_key plan_surface coordinate_count source_count ext
 
 canonical_actual_only=0
 case "$key" in
-  balances|balance-sheet|profit-and-loss|recent|monthly-accounts|daily-flow) canonical_actual_only=1 ;;
+  balances|balance-sheet|profit-and-loss|recent|monthly-accounts) canonical_actual_only=1 ;;
 esac
 
 explicit_sources=()
