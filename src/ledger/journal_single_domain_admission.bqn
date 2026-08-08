@@ -1,10 +1,11 @@
 # journal_single_domain_admission.bqn
 # Production semantic admission for one supported currency domain.
 #
-# Original source amounts, commodities, account-currency proof, identities, and
-# provenance are returned. A transient integer-JPY structural adapter is used
-# only to reuse the unchanged Stage 1 structure checks; it is never returned or
-# persisted as production evidence.
+# Original source amounts, commodities, account-default proof, identities, and
+# provenance are returned. One posting amount may be elided and is inferred from
+# the exact balance of the other postings, matching the canonical Journal rule.
+# A transient integer-JPY structural adapter is used only to reuse unchanged
+# Stage 1 structure checks; it is never returned or persisted as source evidence.
 
 decimal ← •Import "exact_decimal.bqn"
 dates ← •Import "date_ordinal.bqn"
@@ -99,28 +100,41 @@ Collect ← {𝕊 lines‿accounts‿domainInfo:
     {𝕊:
       lineNumber ← lineIndex + 1
       fields ← Split ⟨space,trimmed⟩
-      valid ← 3 = ≠ fields
-      diagnostics ∾↩ AddIf ⟨¬ valid, Diagnostic ⟨"posting_shape_invalid", lineNumber, "posting must contain account, explicit amount, and commodity"⟩⟩
+      explicit ← 3 = ≠ fields
+      elided ← 1 = ≠ fields
+      valid ← explicit ∨ elided
+      diagnostics ∾↩ AddIf ⟨¬ valid, Diagnostic ⟨"posting_shape_invalid", lineNumber, "posting must contain account plus explicit amount and commodity, or one elided account only"⟩⟩
       {𝕊:
         accountKey ← 0 ⊑ fields
-        amountText ← 1 ⊑ fields
-        commodity ← 2 ⊑ fields
-        negative ← '-' = ⊑ (amountText ∾ "0")
-        parsed ← decimal.Parse (negative ↓ amountText)
-        amountOk ← parsed.state ≡ "ok"
-        coefficient ← 0
-        {𝕊: coefficient ↩ (1 - 2 × negative) × parsed.coefficient}⍟amountOk @
-        finite ← 0 ≤ domainInfo.policy.max_fraction_digits
-        precisionOk ← amountOk ∧ ((¬ finite) ∨ parsed.scale ≤ domainInfo.policy.max_fraction_digits)
         account ← LookupAccount ⟨accountKey,accounts⟩
+        commodity ← domainInfo.domain
+        amountText ← ""
+        amountOk ← 1
+        precisionOk ← 1
+        coefficient ← 0
+        sourceScale ← 0
+        {𝕊:
+          amountText ↩ 1 ⊑ fields
+          commodity ↩ 2 ⊑ fields
+          negative ← '-' = ⊑ (amountText ∾ "0")
+          parsed ← decimal.Parse (negative ↓ amountText)
+          amountOk ↩ parsed.state ≡ "ok"
+          {𝕊:
+            coefficient ↩ (1 - 2 × negative) × parsed.coefficient
+            sourceScale ↩ parsed.scale
+          }⍟amountOk @
+          finite ← 0 ≤ domainInfo.policy.max_fraction_digits
+          precisionOk ↩ amountOk ∧ ((¬ finite) ∨ sourceScale ≤ domainInfo.policy.max_fraction_digits)
+        }⍟explicit @
         localDiagnostics ← empty
         localDiagnostics ∾↩ AddIf ⟨transactionIndex < 0, Diagnostic ⟨"posting_outside_transaction", lineNumber, "posting must belong to a dated transaction"⟩⟩
-        localDiagnostics ∾↩ AddIf ⟨¬ amountOk, Diagnostic ⟨"posting_amount_invalid", lineNumber, "posting amount must parse exactly"⟩⟩
-        localDiagnostics ∾↩ AddIf ⟨amountOk ∧ (¬ precisionOk), Diagnostic ⟨"posting_precision_exceeded", lineNumber, "posting precision exceeds currency policy"⟩⟩
-        localDiagnostics ∾↩ AddIf ⟨amountOk ∧ (coefficient = 0), Diagnostic ⟨"posting_amount_zero", lineNumber, "posting amount must be nonzero"⟩⟩
-        localDiagnostics ∾↩ AddIf ⟨commodity ≢ domainInfo.domain, Diagnostic ⟨"posting_domain_mismatch", lineNumber, "posting commodity differs from transaction domain"⟩⟩
+        localDiagnostics ∾↩ AddIf ⟨explicit ∧ (¬ amountOk), Diagnostic ⟨"posting_amount_invalid", lineNumber, "posting amount must parse exactly"⟩⟩
+        localDiagnostics ∾↩ AddIf ⟨explicit ∧ amountOk ∧ (¬ precisionOk), Diagnostic ⟨"posting_precision_exceeded", lineNumber, "posting precision exceeds currency policy"⟩⟩
+        localDiagnostics ∾↩ AddIf ⟨explicit ∧ amountOk ∧ (coefficient = 0), Diagnostic ⟨"posting_amount_zero", lineNumber, "posting amount must be nonzero"⟩⟩
+        localDiagnostics ∾↩ AddIf ⟨explicit ∧ (commodity ≢ domainInfo.domain), Diagnostic ⟨"posting_domain_mismatch", lineNumber, "posting commodity differs from transaction domain"⟩⟩
         localDiagnostics ∾↩ AddIf ⟨account.state ≢ "ok", Diagnostic ⟨"posting_account_unresolved", lineNumber, "posting account must resolve exactly once"⟩⟩
-        localDiagnostics ∾↩ AddIf ⟨(account.state ≡ "ok") ∧ (account.currency ≢ domainInfo.domain), Diagnostic ⟨"posting_account_currency_mismatch", lineNumber, "account currency differs from transaction domain"⟩⟩
+        accountConstrainsDomain ← (account.state ≡ "ok") ∧ 0 < ≠ account.currency
+        localDiagnostics ∾↩ AddIf ⟨accountConstrainsDomain ∧ (account.currency ≢ domainInfo.domain), Diagnostic ⟨"posting_account_currency_mismatch", lineNumber, "Account default Commodity differs from transaction domain"⟩⟩
         diagnostics ∾↩ localDiagnostics
         {𝕊:
           postings ∾↩ ⟨{
@@ -132,7 +146,8 @@ Collect ← {𝕊 lines‿accounts‿domainInfo:
             commodity⇐commodity,
             amount_text⇐amountText,
             source_coefficient⇐coefficient,
-            source_scale⇐parsed.scale
+            source_scale⇐sourceScale,
+            elided⇐elided
           }⟩
         }⍟(0 = ≠ localDiagnostics) @
         postingIndex ↩ postingIndex + 1
@@ -165,6 +180,50 @@ Normalize ← {𝕊 postings:
     }
   }¨ postings
   {calculation_scale⇐calculationScale, postings⇐normalized}
+}
+
+CompleteElided ← {𝕊 postings‿transactionStarts:
+  diagnostics ← empty
+  completed ← empty
+  {𝕊 transactionIndex:
+    selected ← ({transactionIndex = 𝕩.transaction_index}¨ postings) / postings
+    missing ← ({𝕩.elided}¨ selected) / selected
+    missingCount ← ≠ missing
+    sourceLine ← transactionIndex ⊑ transactionStarts
+    diagnostics ∾↩ AddIf ⟨1 < missingCount, Diagnostic ⟨"posting_elided_multiple", sourceLine, "transaction may elide at most one posting amount"⟩⟩
+    {𝕊: completed ∾↩ selected}⍟(0 = missingCount) @
+    {𝕊:
+      explicit ← ({¬𝕩.elided}¨ selected) / selected
+      diagnostics ∾↩ AddIf ⟨0 = ≠ explicit, Diagnostic ⟨"posting_elided_uninferable", (⊑missing).source_line, "elided posting requires explicit balance evidence"⟩⟩
+      {𝕊:
+        normalizedExplicit ← Normalize explicit
+        inferredCoefficient ← - +´ 0 ∾ {𝕩.normalized_coefficient}¨ normalizedExplicit.postings
+        diagnostics ∾↩ AddIf ⟨0 = inferredCoefficient, Diagnostic ⟨"posting_elided_zero", (⊑missing).source_line, "inferred posting amount must be nonzero"⟩⟩
+        {𝕊:
+          missingPosting ← ⊑ missing
+          completed ∾↩ {𝕊 posting:
+            result ← posting
+            {𝕊:
+              result ↩ {
+                transaction_index⇐posting.transaction_index,
+                posting_index⇐posting.posting_index,
+                source_line⇐posting.source_line,
+                account_key⇐posting.account_key,
+                account_currency⇐posting.account_currency,
+                commodity⇐posting.commodity,
+                amount_text⇐"",
+                source_coefficient⇐inferredCoefficient,
+                source_scale⇐normalizedExplicit.calculation_scale,
+                elided⇐1
+              }
+            }⍟(posting.posting_index = missingPosting.posting_index) @
+            result
+          }¨ selected
+        }⍟(0 ≠ inferredCoefficient) @
+      }⍟(0 < ≠ explicit) @
+    }⍟(1 = missingCount) @
+  }¨ ↕ ≠ transactionStarts
+  {diagnostics⇐diagnostics,postings⇐completed}
 }
 
 BalanceDiagnostics ← {𝕊 postings‿transactionStarts:
@@ -255,30 +314,34 @@ Admit ← {𝕊 raw‿accounts‿registry:
     transactionStarts ↩ collected.transaction_starts
     diagnostics ∾↩ AddIf ⟨0 = ≠ transactionStarts, Diagnostic ⟨"transaction_missing", 0, "Journal partition must contain at least one dated transaction"⟩⟩
     {𝕊:
-      normalized ← Normalize collected.postings
-      calculationScale ↩ normalized.calculation_scale
-      normalizedPostings ↩ normalized.postings
-      diagnostics ∾↩ BalanceDiagnostics ⟨normalizedPostings, transactionStarts⟩
+      completed ← CompleteElided ⟨collected.postings,transactionStarts⟩
+      diagnostics ∾↩ completed.diagnostics
       {𝕊:
-        structuralRaw ← BuildStructuralRaw ⟨raw, domainInfo, normalizedPostings⟩
-        structural ← structure.Parse structuralRaw
-        diagnostics ∾↩ structural.diagnostics
-        {𝕊 transaction:
-          currencyValues ← {𝕩.value}¨({𝕩.key ≡ "currency"}¨transaction.metadata)/transaction.metadata
-          currencyMismatch ← 0
-          {𝕊: currencyMismatch ↩ (⊑currencyValues) ≢ domainInfo.domain}⍟(1=≠currencyValues) @
-          diagnostics ∾↩ AddIf ⟨currencyMismatch, Diagnostic ⟨"transaction_currency_mismatch", transaction.source_start_line, "transaction currency metadata must match posting domain"⟩⟩
-        }¨ structural.transactions
+        normalized ← Normalize completed.postings
+        calculationScale ↩ normalized.calculation_scale
+        normalizedPostings ↩ normalized.postings
+        diagnostics ∾↩ BalanceDiagnostics ⟨normalizedPostings, transactionStarts⟩
         {𝕊:
-          transactionCountOk ← (≠ structural.transactions) = ≠ transactionStarts
-          postingCount ← +´ {≠ 𝕩.postings}¨ structural.transactions
-          postingCountOk ← postingCount = ≠ normalizedPostings
-          diagnostics ∾↩ AddIf ⟨¬ transactionCountOk, Diagnostic ⟨"transaction_trace_count_mismatch", 0, "structural and semantic transaction counts differ"⟩⟩
-          diagnostics ∾↩ AddIf ⟨¬ postingCountOk, Diagnostic ⟨"posting_trace_count_mismatch", 0, "structural and semantic posting counts differ"⟩⟩
+          structuralRaw ← BuildStructuralRaw ⟨raw, domainInfo, normalizedPostings⟩
+          structural ← structure.Parse structuralRaw
+          diagnostics ∾↩ structural.diagnostics
+          {𝕊 transaction:
+            currencyValues ← {𝕩.value}¨({𝕩.key ≡ "currency"}¨transaction.metadata)/transaction.metadata
+            currencyMismatch ← 0
+            {𝕊: currencyMismatch ↩ (⊑currencyValues) ≢ domainInfo.domain}⍟(1=≠currencyValues) @
+            diagnostics ∾↩ AddIf ⟨currencyMismatch, Diagnostic ⟨"transaction_currency_mismatch", transaction.source_start_line, "transaction currency metadata must match posting domain"⟩⟩
+          }¨ structural.transactions
           {𝕊:
-            transactions ↩ BuildTransactions ⟨structural.transactions, normalizedPostings, domainInfo.domain, calculationScale⟩
-          }⍟(0 = ≠ diagnostics) @
-        }⍟(structural.state ≡ "ok") @
+            transactionCountOk ← (≠ structural.transactions) = ≠ transactionStarts
+            postingCount ← +´ {≠ 𝕩.postings}¨ structural.transactions
+            postingCountOk ← postingCount = ≠ normalizedPostings
+            diagnostics ∾↩ AddIf ⟨¬ transactionCountOk, Diagnostic ⟨"transaction_trace_count_mismatch", 0, "structural and semantic transaction counts differ"⟩⟩
+            diagnostics ∾↩ AddIf ⟨¬ postingCountOk, Diagnostic ⟨"posting_trace_count_mismatch", 0, "structural and semantic posting counts differ"⟩⟩
+            {𝕊:
+              transactions ↩ BuildTransactions ⟨structural.transactions, normalizedPostings, domainInfo.domain, calculationScale⟩
+            }⍟(0 = ≠ diagnostics) @
+          }⍟(structural.state ≡ "ok") @
+        }⍟(0 = ≠ diagnostics) @
       }⍟(0 = ≠ diagnostics) @
     }⍟(0 = ≠ diagnostics) @
   }⍟(0 = ≠ diagnostics) @
