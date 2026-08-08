@@ -14,8 +14,8 @@ tab ← @+9
 semicolon ← ⊑ ";"
 colon ← ⊑ ":"
 empty ← ⟨⟩
-upper ← "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-lower ← "abcdefghijklmnopqrstuvwxyz"
+upperAlphabet ← "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+lowerAlphabet ← "abcdefghijklmnopqrstuvwxyz"
 accountTypes ← ⟨"asset","liability","equity","income","expense","budget"⟩
 canonicalTypes ← ⟨"Asset","Liability","Equity","Income","Expense","Budget"⟩
 
@@ -45,13 +45,13 @@ StartsDirective ← {𝕊 keyword‿line:
   enough ∧ (keyword≡n↑text) ∧ boundary
 }
 BeforeComment ← {𝕊 text: (IndexOf ⟨semicolon,text⟩) ↑ text }
-LowerChar ← {𝕊 c:
-  i ← IndexOf ⟨c,upper⟩
+AsciiLowerChar ← {𝕊 c:
+  i ← IndexOf ⟨c,upperAlphabet⟩
   result ← c
-  {𝕊: result↩i⊑lower}⍟(i<≠upper) @
+  {𝕊: result↩i⊑lowerAlphabet}⍟(i<≠upperAlphabet) @
   result
 }
-Lower ← { LowerChar¨𝕩 }
+AsciiLower ← { AsciiLowerChar¨𝕩 }
 DropMetadataPrefix ← {𝕊 text:
   PrefixChar ← {𝕊 c: (c=semicolon) ∨ IsWhitespace c }
   prefix ← ∧` PrefixChar¨text
@@ -69,7 +69,7 @@ EmptyAccounts ← {𝕊:
   }
 }
 TypeValue ← {𝕊 value:
-  normalized ← Lower Trim value
+  normalized ← AsciiLower Trim value
   i ← IndexOf ⟨normalized,accountTypes⟩
   ok ← i<≠accountTypes
   canonical ← ""
@@ -153,7 +153,7 @@ Admit ← {𝕊 raw:
       {𝕊: AddActiveError Diagnostic ⟨"account_metadata_shape_invalid",row,"account metadata must use key: value shape"⟩}⍟(¬comment) @
     }⍟(¬hasColon) @
     {𝕊:
-      key ← Lower Trim p↑text
+      key ← AsciiLower Trim p↑text
       value ← Trim (p+1)↓text
       supported ← (key≡"type") ∨ (key≡"role") ∨ key≡"commodity"
       {𝕊: AddActiveError Diagnostic ⟨"account_metadata_unsupported",row,"accounts.journal admits only type, role, and commodity metadata"⟩}⍟(¬supported) @
