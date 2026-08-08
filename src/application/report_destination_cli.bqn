@@ -37,13 +37,9 @@ LoadActual ← {𝕊:
   result
 }
 LoadHouseholdContext ← {𝕊 actual:
-  plan ← sources.CanonicalPlan ⟨base,registry⟩
-  {𝕊:PrintDiagnostics plan.diagnostics}⍟(plan.state≢"ok") @
-  budget ← sources.CanonicalBudget ⟨base,registry⟩
-  {𝕊:PrintDiagnostics budget.diagnostics}⍟(budget.state≢"ok") @
-  household ← sources.CanonicalHousehold ⟨base,actual.facts.accounts,budget.policy⟩
-  {𝕊:PrintDiagnostics household.diagnostics}⍟(household.state≢"ok") @
-  {plan⇐plan,budget⇐budget,household⇐household}
+  companions ← sources.Companions ⟨base,actual.facts.accounts,registry⟩
+  {𝕊:PrintDiagnostics companions.diagnostics}⍟(companions.state≢"ok") @
+  {plan⇐{facts⇐companions.plan},budget⇐{facts⇐companions.budget,policy⇐companions.budget_policy},household⇐companions.household}
 }
 
 {𝕊:
@@ -64,28 +60,26 @@ LoadHouseholdContext ← {𝕊 actual:
 }⍟(key≡"recent") @
 {𝕊:
   domain‿start‿finish‿observation‿journal‿planCoordinate‿budgetCoordinate ← 7↑coordinates
+  planCoordinate‿budgetCoordinate
   actual ← LoadActual @
-  companions ← sources.Companions ⟨base,planCoordinate,budgetCoordinate,actual.facts.accounts,registry⟩
+  companions ← sources.Companions ⟨base,actual.facts.accounts,registry⟩
   {𝕊:PrintDiagnostics companions.diagnostics}⍟(companions.state≢"ok") @
-  composition↩compose.Envelopes ⟨
-    companions.budget,companions.budget_policy,companions.household,
-    actual.facts,companions.plan,domain,start,finish,observation
-  ⟩
+  composition↩compose.Envelopes ⟨companions.budget,companions.budget_policy,companions.household,actual.facts,companions.plan,domain,start,finish,observation⟩
 }⍟(key≡"envelopes") @
 {𝕊:
-  observation‿journal‿planCoordinate‿cycleCoordinate ← coordinates
+  observation‿journal‿planCoordinate‿cycleCoordinate ← coordinates ⋄ planCoordinate‿cycleCoordinate
   actual ← LoadActual @ ⋄ context ← LoadHouseholdContext actual
   cycle ← cycleResolution.WithPlan ⟨context.household.cycle,observation,actual.facts,context.plan.facts⟩
   composition↩compose.Planned ⟨context.plan.facts,actual.facts,cycle,observation⟩
 }⍟(key≡"planned") @
 {𝕊:
-  domain‿observation‿journal‿cycleCoordinate ← 4↑coordinates
+  domain‿observation‿journal‿cycleCoordinate ← 4↑coordinates ⋄ cycleCoordinate
   actual ← LoadActual @ ⋄ context ← LoadHouseholdContext actual
   cycle ← cycleResolution.WithPlan ⟨context.household.cycle,observation,actual.facts,context.plan.facts⟩
   composition↩compose.CycleAccounts ⟨actual.facts,domain,cycle,observation⟩
 }⍟(key≡"cycle-accounts") @
 {𝕊:
-  domain‿currentObs‿baselineObs‿policy‿journal‿currentCycleCoordinate‿baselineCycleCoordinate ← 7↑coordinates
+  domain‿currentObs‿baselineObs‿policy‿journal‿currentCycleCoordinate‿baselineCycleCoordinate ← 7↑coordinates ⋄ currentCycleCoordinate‿baselineCycleCoordinate
   actual ← LoadActual @ ⋄ context ← LoadHouseholdContext actual
   current ← cycleResolution.WithPlan ⟨context.household.cycle,currentObs,actual.facts,context.plan.facts⟩
   baseline ← cycleResolution.WithPlan ⟨context.household.cycle,baselineObs,actual.facts,context.plan.facts⟩
@@ -100,7 +94,7 @@ LoadHouseholdContext ← {𝕊 actual:
   composition↩compose.DailyFlow ⟨actual.facts,domain,start,finish,observation⟩
 }⍟(key≡"daily-flow") @
 {𝕊:
-  domain‿observation‿target‿journal‿planCoordinate‿scopeCoordinate ← coordinates
+  domain‿observation‿target‿journal‿planCoordinate‿scopeCoordinate ← coordinates ⋄ planCoordinate‿scopeCoordinate
   actual ← LoadActual @ ⋄ context ← LoadHouseholdContext actual
   scopeAdmission ← householdDaily.Build ⟨context.household,context.plan.facts,registry⟩
   {𝕊:PrintDiagnostics scopeAdmission.diagnostics}⍟(scopeAdmission.state≢"ok") @
