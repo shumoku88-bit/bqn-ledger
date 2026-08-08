@@ -1,5 +1,4 @@
-# Strict source-facing destination readiness check. Legacy CLI coordinates remain
-# temporarily for caller compatibility but cannot select canonical Household I/O.
+# Strict source-facing readiness check for the canonical eight-file Household root.
 
 sources ← •Import "report_source_adapter.bqn"
 issueAdmission ← •Import "../ledger/issue_admission.bqn"
@@ -9,9 +8,8 @@ Fail ← {𝕊 diagnostics:
   {𝕊 diagnostic:•Out "ERROR"∾tab∾diagnostic.stage∾tab∾diagnostic.code∾tab∾diagnostic.message}¨diagnostics
   •Exit 1
 }
-{𝕊:•Out "ERROR"∾tab∾"usage"∾tab∾"expected BASE JOURNAL PLAN BUDGET CYCLE ISSUES DAILY_SCOPE until canonical CLI cleanup" ⋄ •Exit 2}⍟(7≠≠args) @
-base‿journalCoordinate‿planCoordinate‿budgetCoordinate‿cycleCoordinate‿issueCoordinate‿dailyCoordinate ← args
-journalCoordinate‿planCoordinate‿budgetCoordinate‿cycleCoordinate‿issueCoordinate‿dailyCoordinate
+{𝕊:•Out "ERROR"∾tab∾"usage"∾tab∾"expected canonical Household BASE" ⋄ •Exit 2}⍟(1≠≠args) @
+base ← ⊑args
 registryResult ← sources.Registry "config/currencies.tsv"
 {𝕊:Fail ⟨{stage⇐"currency_registry",code⇐registryResult.code,message⇐registryResult.message}⟩}⍟(registryResult.state≢"ok") @
 registry ← registryResult.registry
@@ -23,6 +21,8 @@ daily ← householdDaily.Build ⟨companions.household,companions.plan,registry�
 {𝕊:Fail daily.diagnostics}⍟(daily.state≢"ok") @
 issues ← issueAdmission.Admit ⟨sources.IssueLines base,registry⟩
 {𝕊:Fail issues.diagnostics}⍟(issues.state≢"ok") @
+reportPolicy ← sources.CanonicalReportPolicy base
+{𝕊:Fail reportPolicy.diagnostics}⍟(reportPolicy.state≢"ok") @
 •Out "ledger_check"∾tab∾"state"∾tab∾"ok"
 •Out "ledger_check"∾tab∾"actual_transactions"∾tab∾•Fmt actual.facts.transactions.count
 •Out "ledger_check"∾tab∾"actual_postings"∾tab∾•Fmt actual.facts.postings.count
