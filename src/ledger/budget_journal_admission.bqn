@@ -34,6 +34,7 @@ MapPosting ← {𝕊 posting‿transactionId:
 
 MapTransaction ← {𝕊 transaction:
   transactionId ← sourceName∾":line:"∾•Fmt transaction.source_start_line
+  from‿to ← transaction.postings
   {
     source_event_id⇐transactionId,
     identity_kind⇐"physical_fallback",
@@ -50,6 +51,11 @@ MapTransaction ← {𝕊 transaction:
     actual_event_id⇐transaction.actual_event_id,
     domain⇐transaction.domain,
     calculation_scale⇐transaction.calculation_scale,
+    from_account_key⇐from.account_key,
+    to_account_key⇐to.account_key,
+    movement_commodity⇐to.commodity,
+    movement_coefficient⇐to.normalized_coefficient,
+    movement_scale⇐transaction.calculation_scale,
     metadata⇐transaction.metadata,
     postings⇐{MapPosting ⟨𝕩,transactionId⟩}¨transaction.postings
   }
@@ -70,7 +76,7 @@ Admit ← {𝕊 raw‿accounts‿registry:
       {𝕊:
         roles ← {𝕊 posting:
           i ← IndexOf ⟨posting.account_key,accounts.key⟩
-          (i<accounts.count)⊑⟨"",i⊑accounts.role⟩
+          i⊑accounts.role∾⟨""⟩
         }¨postings
         diagnostics∾↩AddIf ⟨¬∧´"budget"⊸≡¨roles,Diagnostic ⟨"budget_movement_posting_not_budget",transaction.source_start_line,"Budget movement postings must resolve to Budget Accounts"⟩⟩
         from‿to ← postings
