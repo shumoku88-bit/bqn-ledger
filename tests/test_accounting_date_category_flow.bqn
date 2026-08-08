@@ -2,22 +2,28 @@
 
 lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
+actualSource ← •Import "../src/application/actual_source_adapter.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
-snapshot ← •Import "../src/ledger/snapshot.bqn"
+budgetPolicyAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
+householdAdmission ← •Import "../src/ledger/household_policy_admission.bqn"
 account_admission ← •Import "../src/ledger/account_admission.bqn"
 companion_snapshot ← •Import "../src/ledger/companion_snapshot.bqn"
-cycle_admission ← •Import "../src/ledger/cycle_admission.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 flow ← •Import "../src/accounting/date_category_flow.bqn"
 pivot ← •Import "../src/accounting/sparse_pivot.bqn"
 
 base ← "fixtures/ledger-facts-phase1-proof/"
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
-facts ← (snapshot.Build ⟨loader.ReadLines base∾"accounts.tsv",•FChars "../"∾base∾"actual.journal",registry⟩).facts
-cycle ← cycle_admission.Admit ⟨loader.ReadLines base∾"cycle.tsv",facts.accounts⟩
-start ← dates.Ordinal cycle.definition.start
-end ← dates.Ordinal cycle.definition.end_exclusive
-result ← flow.Build ⟨facts,"JPY","actual",start,end⟩
+actualResult ← actualSource.Load ⟨base,registry⟩
+"ok" lib.AssertEq actualResult.state
+facts ← actualResult.facts
+budgetPolicy ← budgetPolicyAdmission.Admit ⟨•FChars "../"∾base∾"budget.toml",facts.accounts⟩
+"ok" lib.AssertEq budgetPolicy.state
+household ← householdAdmission.Admit ⟨•FChars "../"∾base∾"household.toml",facts.accounts,budgetPolicy⟩
+"ok" lib.AssertEq household.state
+start ← dates.Ordinal "2026-01-01"
+end ← dates.Ordinal "2026-02-01"
+result ← flow.Build ⟨facts,budgetPolicy,household,"JPY","actual",start,end⟩
 
 "ok" lib.AssertEq result.state
 0 lib.AssertEq ≠result.diagnostics
@@ -39,7 +45,7 @@ matrix ← pivot.Build ⟨result.dates.date_ordinal,result.categories.label,resu
 ⟨⟨0,0⟩,⟨20,0⟩,⟨10,5⟩⟩ lib.AssertEq matrix.matrix.values
 ⟨⟨⟨⟩,⟨⟩⟩,⟨⟨2⟩,⟨⟩⟩,⟨⟨4⟩,⟨5⟩⟩⟩ lib.AssertEq matrix.matrix.contributors
 
-late ← flow.Build ⟨facts,"JPY","actual",dates.Ordinal "2026-01-11",end⟩
+late ← flow.Build ⟨facts,budgetPolicy,household,"JPY","actual",dates.Ordinal "2026-01-11",end⟩
 "ok" lib.AssertEq late.state
 ⟨"2026-01-12"⟩ lib.AssertEq late.dates.date_text
 ⟨0⟩ lib.AssertEq late.dates.income
@@ -47,17 +53,26 @@ late ← flow.Build ⟨facts,"JPY","actual",dates.Ordinal "2026-01-11",end⟩
 ⟨10,5⟩ lib.AssertEq late.expense_groups.coefficient
 
 scaleAccountLines ← ⟨
-  "assets:jpy	role=asset	currency=JPY",
-  "expenses:food	role=expense	budget=food	currency=JPY",
-  "budget:food	role=budget	kind=envelope	budget=food	currency=JPY"
+  "assets:jpy\trole=asset\tcurrency=JPY",
+  "expenses:food\trole=expense\tcurrency=JPY",
+  "budget:food\trole=budget\tcurrency=JPY"
 ⟩
 scaleAccounts ← (account_admission.Admit ⟨scaleAccountLines,registry⟩).accounts
 scalePlanLines ← ⟨
-  "2026-01-10	whole	assets:jpy	expenses:food	25	currency=JPY	plan_id=p1",
-  "2026-01-10	fraction	assets:jpy	expenses:food	12.30	currency=JPY	plan_id=p2"
+  "2026-01-10\twhole\tassets:jpy\texpenses:food\t25\tcurrency=JPY\tplan_id=p1",
+  "2026-01-10\tfraction\tassets:jpy\texpenses:food\t12.30\tcurrency=JPY\tplan_id=p2"
 ⟩
 scaleFacts ← (companion_snapshot.Build ⟨scalePlanLines,⟨⟩,scaleAccounts,registry⟩).plan
-scaleFlow ← flow.Build ⟨scaleFacts,"JPY","plan",start,end⟩
+scaleBudgetPolicy ← {
+  state⇐"ok",source_name⇐"budget.toml",envelopes⇐{count⇐1,id⇐⟨"food"⟩},
+  expense_account_index⇐⟨1⟩,expense_envelope_id⇐⟨"food"⟩
+}
+scaleHousehold ← {
+  state⇐"ok",source_name⇐"household.toml",
+  budget⇐{envelope_id⇐⟨"food"⟩,allocation_account_index⇐⟨2⟩},
+  account_policy⇐{account_key⇐scaleAccounts.key}
+}
+scaleFlow ← flow.Build ⟨scaleFacts,scaleBudgetPolicy,scaleHousehold,"JPY","plan",start,end⟩
 "ok" lib.AssertEq scaleFlow.state
 1 lib.AssertEq scaleFlow.scale
 ⟨"food","other"⟩ lib.AssertEq scaleFlow.categories.label
@@ -65,29 +80,20 @@ scaleFlow ← flow.Build ⟨scaleFacts,"JPY","plan",start,end⟩
 ⟨373⟩ lib.AssertEq scaleFlow.expense_groups.coefficient
 ⟨⟨0,2⟩⟩ lib.AssertEq scaleFlow.expense_groups.contributors
 
-duplicateCategoryLines ← ⟨
-  "assets:jpy	role=asset	currency=JPY",
-  "expenses:food	role=expense	budget=food	currency=JPY",
-  "budget:food-a	role=budget	kind=envelope	budget=food	currency=JPY",
-  "budget:utilities	role=budget	kind=envelope	budget=utilities	currency=JPY",
-  "budget:food-b	role=budget	kind=envelope	budget=food	currency=JPY"
-⟩
-duplicateAccountsResult ← account_admission.Admit ⟨duplicateCategoryLines,registry⟩
-"ok" lib.AssertEq duplicateAccountsResult.state
-duplicateFacts ← {
-  state⇐"ok",transactions⇐scaleFacts.transactions,postings⇐scaleFacts.postings,
-  sources⇐scaleFacts.sources,domains⇐scaleFacts.domains,accounts⇐duplicateAccountsResult.accounts,
-  layers⇐scaleFacts.layers,diagnostics⇐⟨⟩
+missingHousehold ← {
+  state⇐"ok",source_name⇐"household.toml",
+  budget⇐{envelope_id⇐⟨⟩,allocation_account_index⇐⟨⟩},
+  account_policy⇐{account_key⇐facts.accounts.key}
 }
-duplicateFlow ← flow.Build ⟨duplicateFacts,"JPY","plan",start,end⟩
-"error" lib.AssertEq duplicateFlow.state
-0 lib.AssertEq duplicateFlow.dates.count
-0 lib.AssertEq duplicateFlow.categories.count
-0 lib.AssertEq duplicateFlow.expense_groups.count
-1 lib.AssertEq ∨´0∾"envelope_category_duplicate"⊸≡¨{𝕩.code}¨duplicateFlow.diagnostics
+missingCoordinates ← flow.Build ⟨facts,budgetPolicy,missingHousehold,"JPY","actual",start,end⟩
+"error" lib.AssertEq missingCoordinates.state
+0 lib.AssertEq missingCoordinates.dates.count
+0 lib.AssertEq missingCoordinates.categories.count
+0 lib.AssertEq missingCoordinates.expense_groups.count
+1 lib.AssertEq ∨´0∾"household_envelope_coordinates_missing"⊸≡¨{𝕩.code}¨missingCoordinates.diagnostics
 
 CheckRejected ← {𝕊 domain‿layer‿s‿e‿code:
-  rejected ← flow.Build ⟨facts,domain,layer,s,e⟩
+  rejected ← flow.Build ⟨facts,budgetPolicy,household,domain,layer,s,e⟩
   "error" lib.AssertEq rejected.state
   0 lib.AssertEq rejected.dates.count
   0 lib.AssertEq rejected.categories.count
