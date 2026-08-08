@@ -37,9 +37,9 @@ LoadActual ← {𝕊:
   result
 }
 LoadHouseholdContext ← {𝕊 actual:
-  companions ← sources.Companions ⟨base,actual.facts.accounts,registry⟩
-  {𝕊:PrintDiagnostics companions.diagnostics}⍟(companions.state≢"ok") @
-  {plan⇐{facts⇐companions.plan},budget⇐{facts⇐companions.budget,policy⇐companions.budget_policy},household⇐companions.household}
+  context ← sources.HouseholdContext ⟨base,actual.facts.accounts,registry⟩
+  {𝕊:PrintDiagnostics context.diagnostics}⍟(context.state≢"ok") @
+  {plan⇐{facts⇐context.plan},household⇐context.household}
 }
 
 {𝕊:
