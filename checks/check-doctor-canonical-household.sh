@@ -7,7 +7,7 @@ fixture="$root/fixtures/ledger-facts-phase1-proof"
 
 output="$(LEDGER_DATA_DIR="$fixture" NO_COLOR=1 "$root/tools/doctor")"
 printf '%s\n' "$output" | grep -F 'PASS canonical Household root files present: 8' >/dev/null
-printf '%s\n' "$output" | grep -F 'PASS canonical Actual and Report policy admission succeeded' >/dev/null
+printf '%s\n' "$output" | grep -F 'PASS canonical Household source admission succeeded' >/dev/null
 
 if grep -Eq 'accounts\.tsv|plan\.tsv|budget_alloc\.tsv|cycle\.tsv|daily_target_scope\.tsv|config\.tsv|src_edit/' "$root/tools/doctor"; then
   echo 'FAIL: doctor still depends on a legacy Household source or writer-side command' >&2
@@ -35,6 +35,6 @@ if LEDGER_DATA_DIR="$invalid" NO_COLOR=1 "$root/tools/doctor" >"$tmp/invalid.out
   echo 'FAIL: doctor accepted invalid canonical Report policy' >&2
   exit 1
 fi
-grep -F 'canonical Actual or Report policy admission failed' "$tmp/invalid.out" >/dev/null
+grep -F 'canonical Household source admission failed' "$tmp/invalid.out" >/dev/null
 
 echo OK
