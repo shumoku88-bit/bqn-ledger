@@ -1,27 +1,22 @@
-# Effectful adapter: admit one concrete human manifest, resolve its volatile daily coordinates,
-# and print a complete concrete manifest for the existing report engine.
+# Effectful adapter: admit one concrete human manifest, resolve volatile daily
+# coordinates from canonical Household evidence, and print a complete manifest.
 
 io ← •Import "source_io.bqn"
 sources ← •Import "report_source_adapter.bqn"
 route ← •Import "report_route.bqn"
 catalog ← •Import "../report/catalog.bqn"
-cycleAdmission ← •Import "../ledger/cycle_admission.bqn"
 cycleResolution ← •Import "cycle_resolution.bqn"
 profile ← •Import "current_report_profile.bqn"
 dates ← •Import "../ledger/date_ordinal.bqn"
-empty ← ⟨⟩ ⋄ tab ← @+9
+tab ← @+9
 
-Fail ← {𝕊 code‿message: •Out "ERROR"∾tab∾code∾tab∾message ⋄ •Exit 1}
-PrintDiagnostics ← {𝕊 diagnostics:
-  {𝕊 diagnostic: •Out "ERROR"∾tab∾diagnostic.code∾tab∾diagnostic.message}¨diagnostics
-  •Exit 1
-}
+Fail ← {𝕊 code‿message:•Out "ERROR"∾tab∾code∾tab∾message ⋄ •Exit 1}
+PrintDiagnostics ← {𝕊 diagnostics:{𝕊 diagnostic:•Out "ERROR"∾tab∾diagnostic.code∾tab∾diagnostic.message}¨diagnostics ⋄ •Exit 1}
 SafeBasename ← {𝕊 value:
   forbidden ← ('/'=value) ∨ ((@+92)=value) ∨ value∊(@+9)‿(@+10)‿(@+13)
   (0<≠value) ∧ ¬∨´forbidden
 }
-EndsWith ← {𝕊 suffix‿value: suffix≡(-≠suffix)↑value}
-Join ← {𝕊 base‿name: base∾(('/'≠¯1↑base)/"/")∾name}
+Join ← {𝕊 base‿name:base∾(('/'≠¯1↑base)/"/")∾name}
 CycleFailure ← {𝕊 resolved‿fallback:
   {𝕊:PrintDiagnostics resolved.diagnostics}⍟(0<≠resolved.diagnostics) @
   code ← fallback ⋄ message ← "Cycle resolution failed"
@@ -39,7 +34,7 @@ lines ← io.ReadLines manifestPath
 {𝕊:Fail ⟨"manifest_header_invalid","manifest header must be key, surface, arguments"⟩}⍟((0=≠lines) ∨ (⊑lines)≢"key"∾tab∾"surface"∾tab∾"arguments") @
 fields ← io.SplitTsv¨1↓lines
 {𝕊:Fail ⟨"manifest_row_invalid","every manifest row requires key, surface, and arguments"⟩}⍟(∨´0∾{3>≠𝕩}¨fields) @
-rows ← {𝕊 row: {key⇐0⊑row,surface⇐1⊑row,arguments⇐2↓row}}¨fields
+rows ← {𝕊 row:{key⇐0⊑row,surface⇐1⊑row,arguments⇐2↓row}}¨fields
 expectedKeys ← (catalog.Table @).key
 {𝕊:Fail ⟨"manifest_catalog_mismatch","human manifest must contain every catalog key in order"⟩}⍟((≠rows)≠≠expectedKeys) @
 {𝕊:Fail ⟨"manifest_catalog_mismatch","human manifest must contain every catalog key in order"⟩}⍟(expectedKeys≢{𝕩.key}¨rows) @
@@ -48,46 +43,34 @@ expectedKeys ← (catalog.Table @).key
 admissions ← {route.Admit ⟨𝕩.key,𝕩.surface,𝕩.arguments⟩}¨rows
 routeDiagnostics ← ∾{𝕩.diagnostics}¨admissions
 {𝕊:PrintDiagnostics routeDiagnostics}⍟(0<≠routeDiagnostics) @
-sourceRoles ← ∾{𝕩.sources.role}¨admissions
-sourceNames ← ∾{𝕩.sources.name}¨admissions
-actualNames ← ("actual"⊸≡¨sourceRoles)/sourceNames
-actualUnique ← ⍷actualNames
-{𝕊:Fail ⟨"current_actual_source_mismatch","current profile requires one shared Actual source"⟩}⍟(1≠≠actualUnique) @
-actualName ← ⊑actualUnique
-{𝕊:Fail ⟨"source_basename_invalid","current profile Actual source must be a safe .journal basename"⟩}⍟(¬((SafeBasename actualName) ∧ EndsWith ⟨".journal",actualName⟩)) @
+sourceRoles ← ∾{𝕩.sources.role}¨admissions ⋄ sourceNames ← ∾{𝕩.sources.name}¨admissions
+actualNames ← ("actual"⊸≡¨sourceRoles)/sourceNames ⋄ actualUnique ← ⍷actualNames
+{𝕊:Fail ⟨"current_actual_source_mismatch","current profile requires one shared canonical Actual source"⟩}⍟(1≠≠actualUnique) @
+{𝕊:Fail ⟨"current_actual_source_mismatch","current profile requires canonical actual.journal"⟩}⍟((⊑actualUnique)≢"actual.journal") @
+{𝕊:Fail ⟨"current_comparison_policy_unsupported","current profile requires aligned_elapsed Cycle Comparison"⟩}⍟((profile.ComparisonPolicy admissions)≢"aligned_elapsed") @
 
 registryResult ← sources.Registry "config/currencies.tsv"
 {𝕊:Fail ⟨registryResult.code,registryResult.message⟩}⍟(registryResult.state≢"ok") @
 registry ← registryResult.registry
-actual ← sources.Actual ⟨base,actualName,registry⟩
+actual ← sources.CanonicalActual ⟨base,registry⟩
 {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
 {𝕊:Fail ⟨"current_observation_missing","current profile requires at least one admitted Actual transaction"⟩}⍟(0=actual.facts.transactions.count) @
-latestOrdinal ← ⌈´actual.facts.transactions.date_ordinal
-latestIndex ← ⊑(latestOrdinal=actual.facts.transactions.date_ordinal)⊐1
+latestOrdinal ← ⌈´actual.facts.transactions.date_ordinal ⋄ latestIndex ← ⊑(latestOrdinal=actual.facts.transactions.date_ordinal)⊐1
 observation ← latestIndex⊑actual.facts.transactions.date_text
 
-cycleSources ← profile.CycleSourceNames admissions
-currentCycleName ← cycleSources.current_cycle
-comparisonCurrentName ← cycleSources.comparison_current_cycle
-baselineCycleName ← cycleSources.baseline_cycle
-{𝕊:Fail ⟨"current_cycle_source_mismatch","Cycle Accounts and Cycle Comparison must share the current Cycle source"⟩}⍟(currentCycleName≢comparisonCurrentName) @
-{𝕊:Fail ⟨"current_comparison_policy_unsupported","current profile requires aligned_elapsed Cycle Comparison"⟩}⍟((profile.ComparisonPolicy admissions)≢"aligned_elapsed") @
-sourceNamesOk ← (SafeBasename currentCycleName) ∧ SafeBasename baselineCycleName
-sourceSuffixesOk ← (EndsWith ⟨".tsv",currentCycleName⟩) ∧ EndsWith ⟨".tsv",baselineCycleName⟩
-{𝕊:Fail ⟨"source_basename_invalid","Cycle sources must be safe .tsv basenames"⟩}⍟(¬(sourceNamesOk ∧ sourceSuffixesOk)) @
 plan ← sources.CanonicalPlan ⟨base,registry⟩
 {𝕊:PrintDiagnostics plan.diagnostics}⍟(plan.state≢"ok") @
-currentAdmission ← cycleAdmission.Admit ⟨sources.CycleLines ⟨base,currentCycleName⟩,actual.facts.accounts⟩
-{𝕊:PrintDiagnostics currentAdmission.diagnostics}⍟(currentAdmission.state≢"ok") @
-currentCycle ← cycleResolution.WithPlan ⟨currentAdmission,observation,actual.facts,plan.facts⟩
+budget ← sources.CanonicalBudget ⟨base,registry⟩
+{𝕊:PrintDiagnostics budget.diagnostics}⍟(budget.state≢"ok") @
+household ← sources.CanonicalHousehold ⟨base,actual.facts.accounts,budget.policy⟩
+{𝕊:PrintDiagnostics household.diagnostics}⍟(household.state≢"ok") @
+currentCycle ← cycleResolution.WithPlan ⟨household.cycle,observation,actual.facts,plan.facts⟩
 {𝕊:CycleFailure ⟨currentCycle,"current_cycle_resolution_failed"⟩}⍟(currentCycle.state≢"ok") @
 previousObservation ← dates.FromOrdinal currentCycle.start_ordinal-1
-baselineAdmission ← cycleAdmission.Admit ⟨sources.CycleLines ⟨base,baselineCycleName⟩,actual.facts.accounts⟩
-{𝕊:PrintDiagnostics baselineAdmission.diagnostics}⍟(baselineAdmission.state≢"ok") @
-baselineCycle ← cycleResolution.WithPlan ⟨baselineAdmission,previousObservation,actual.facts,plan.facts⟩
+baselineCycle ← cycleResolution.WithPlan ⟨household.cycle,previousObservation,actual.facts,plan.facts⟩
 {𝕊:CycleFailure ⟨baselineCycle,"baseline_cycle_resolution_failed"⟩}⍟(baselineCycle.state≢"ok") @
 
 resolved ← profile.Build ⟨admissions,observation,currentCycle,baselineCycle⟩
 {𝕊:PrintDiagnostics resolved.diagnostics}⍟(resolved.state≢"ok") @
 •Out "key"∾tab∾"surface"∾tab∾"arguments"
-{𝕊 row: •Out row.key∾tab∾row.surface∾(∾{tab∾𝕩}¨row.arguments)}¨resolved.rows
+{𝕊 row:•Out row.key∾tab∾row.surface∾(∾{tab∾𝕩}¨row.arguments)}¨resolved.rows
