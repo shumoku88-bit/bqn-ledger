@@ -11,13 +11,13 @@ Fail ← {𝕊 diagnostics:
 }
 {𝕊:•Out "ERROR"∾tab∾"usage"∾tab∾"expected BASE JOURNAL PLAN BUDGET CYCLE ISSUES DAILY_SCOPE until canonical CLI cleanup" ⋄ •Exit 2}⍟(7≠≠args) @
 base‿journalCoordinate‿planCoordinate‿budgetCoordinate‿cycleCoordinate‿issueName‿dailyCoordinate ← args
-journalCoordinate‿cycleCoordinate‿dailyCoordinate
+journalCoordinate‿planCoordinate‿budgetCoordinate‿cycleCoordinate‿dailyCoordinate
 registryResult ← sources.Registry "config/currencies.tsv"
 {𝕊:Fail ⟨{stage⇐"currency_registry",code⇐registryResult.code,message⇐registryResult.message}⟩}⍟(registryResult.state≢"ok") @
 registry ← registryResult.registry
 actual ← sources.CanonicalActual ⟨base,registry⟩
 {𝕊:Fail actual.diagnostics}⍟(actual.state≢"ok") @
-companions ← sources.Companions ⟨base,planCoordinate,budgetCoordinate,actual.facts.accounts,registry⟩
+companions ← sources.Companions ⟨base,actual.facts.accounts,registry⟩
 {𝕊:Fail companions.diagnostics}⍟(companions.state≢"ok") @
 daily ← householdDaily.Build ⟨companions.household,companions.plan,registry⟩
 {𝕊:Fail daily.diagnostics}⍟(daily.state≢"ok") @
