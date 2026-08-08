@@ -46,25 +46,25 @@ composition ← {state⇐"error",key⇐key,result⇐empty,diagnostics⇐empty}
 
 {𝕊:
   domain‿observation‿journal ← coordinates
-  actual ← sources.Actual ⟨base,journal,registry⟩
+  actual ← sources.CanonicalActual ⟨base,registry⟩
   {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
   composition↩compose.Balances ⟨actual.facts,domain,observation⟩
 }⍟(key≡"balances") @
 {𝕊:
   domain‿observation‿journal ← coordinates
-  actual ← sources.Actual ⟨base,journal,registry⟩
+  actual ← sources.CanonicalActual ⟨base,registry⟩
   {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
   composition↩compose.BalanceSheet ⟨actual.facts,domain,observation⟩
 }⍟(key≡"balance-sheet") @
 {𝕊:
   domain‿start‿finish‿journal ← coordinates
-  actual ← sources.Actual ⟨base,journal,registry⟩
+  actual ← sources.CanonicalActual ⟨base,registry⟩
   {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
   composition↩compose.ProfitAndLoss ⟨actual.facts,domain,start,finish⟩
 }⍟(key≡"profit-and-loss") @
 {𝕊:
   limitText‿journal ← coordinates
-  actual ← sources.Actual ⟨base,journal,registry⟩
+  actual ← sources.CanonicalActual ⟨base,registry⟩
   {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
   composition↩compose.Recent ⟨actual.facts,ToNatural limitText⟩
 }⍟(key≡"recent") @
@@ -131,13 +131,13 @@ composition ← {state⇐"error",key⇐key,result⇐empty,diagnostics⇐empty}
 }⍟(key≡"cycle-comparison") @
 {𝕊:
   domain‿firstMonth‿lastMonth‿journal ← coordinates
-  actual ← sources.Actual ⟨base,journal,registry⟩
+  actual ← sources.CanonicalActual ⟨base,registry⟩
   {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
   composition↩compose.MonthlyAccounts ⟨actual.facts,domain,firstMonth,lastMonth⟩
 }⍟(key≡"monthly-accounts") @
 {𝕊:
   domain‿start‿finish‿observation‿journal ← coordinates
-  actual ← sources.Actual ⟨base,journal,registry⟩
+  actual ← sources.CanonicalActual ⟨base,registry⟩
   {𝕊:PrintDiagnostics actual.diagnostics}⍟(actual.state≢"ok") @
   composition↩compose.DailyFlow ⟨actual.facts,domain,start,finish,observation⟩
 }⍟(key≡"daily-flow") @
