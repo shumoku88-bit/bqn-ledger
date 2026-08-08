@@ -50,7 +50,9 @@ fi
 
 coordinates=("$@")
 route_plan_output=""
-if ! route_plan_output="$(bqn src/application/report_route_plan_cli.bqn "$key" "$surface" "${coordinates[@]}" 2>&1)"; then
+if route_plan_output="$(bqn src/application/report_route_plan_cli.bqn "$key" "$surface" "${coordinates[@]}" 2>&1)"; then
+  :
+else
   status=$?
   printf '%s\n' "$route_plan_output" >&2
   code=$(awk -F'\t' 'NR==1 && $1=="ERROR" {print $2}' <<<"$route_plan_output")
