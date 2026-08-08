@@ -45,7 +45,7 @@ if ./tools/report "$tmp/not-present" recent human nope missing.journal >"$tmp/re
   echo 'FAIL: invalid recent request with unreadable sources succeeded' >&2
   exit 1
 fi
-grep -Fx $'ERROR\tsource_unreadable\trequired source is not readable: accounts.tsv' \
+grep -Fx $'ERROR\tsource_unreadable\trequired source is not readable: accounts.journal' \
   "$tmp/recent-precedence" >/dev/null
 if grep -Fq $'limit_invalid' "$tmp/recent-precedence"; then
   echo 'FAIL: pure route validation changed the previous operational failure precedence' >&2
