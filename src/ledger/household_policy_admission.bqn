@@ -213,7 +213,9 @@ Admit ← {𝕊 raw‿accounts‿budgetPolicy:
       selected ← ({(𝕩.axis≡sectionName) ∧ 𝕩.account_index=i}¨axisRows)/axisRows
       diagnostics∾↩AddIf ⟨1<≠selected,Diagnostic ⟨"household_account_axis_duplicate",0,"One Account may occur only once on one Household policy axis"⟩⟩
       labels ← {𝕩.label}¨selected
-      (0<≠labels)⊑""‿⊑labels∾⟨""⟩
+      value ← ""
+      {𝕊:value↩⊑labels}⍟(0<≠labels) @
+      value
     }¨accounts.index
   }
   assetClass ← AxisValues "account-policy.assets"
