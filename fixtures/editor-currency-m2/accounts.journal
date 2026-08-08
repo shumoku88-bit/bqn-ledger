@@ -1,0 +1,31 @@
+account assets:bank
+  type: Asset
+  commodity: JPY
+
+account expenses:food
+  type: Expense
+  commodity: JPY
+
+account income:salary
+  type: Income
+  commodity: JPY
+
+account assets:cash-ils
+  type: Asset
+  commodity: ILS
+
+account expenses:food-ils
+  type: Expense
+  commodity: ILS
+
+account income:refund-ils
+  type: Income
+  commodity: ILS
+
+account liabilities:card-jpy
+  type: Liability
+  commodity: JPY
+
+account expenses:transit-jpy
+  type: Expense
+  commodity: JPY
