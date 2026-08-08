@@ -25,7 +25,11 @@ TrimLeft ← {𝕊 xs:
   prefix ← ∧` IsWhitespace¨xs
   (+´prefix) ↓ xs
 }
-TrimRight ← {𝕊 xs: ⌽ TrimLeft ⌽ xs }
+TrimRight ← {𝕊 xs:
+  reversed ← ⌽xs
+  trimmed ← TrimLeft reversed
+  ⌽trimmed
+}
 Trim ← { TrimRight TrimLeft 𝕩 }
 IsComment ← {𝕊 line:
   text ← TrimLeft line
