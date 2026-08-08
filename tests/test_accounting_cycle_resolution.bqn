@@ -18,7 +18,13 @@ registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").regi
 accounts ← (account_admission.Admit ⟨accountLines,registry⟩).accounts
 actualFacts ← (snapshot.Build ⟨accountLines,•FChars "../"∾base∾"actual.journal",registry⟩).facts
 lf ← @+10
+tab ← @+9
 Raw ← {𝕊 lines: ∾lines∾¨lf}
+Join ← {𝕊 fields:
+  out ← ⊑fields
+  {𝕊 field: out∾↩tab∾field}¨1↓fields
+  out
+}
 
 fixedAdmission ← cycle_admission.Admit ⟨loader.ReadLines base∾"cycle.tsv",accounts⟩
 fixed ← fixed_resolver.Resolve fixedAdmission
@@ -29,7 +35,7 @@ fixed ← fixed_resolver.Resolve fixedAdmission
 31 lib.AssertEq fixed.day_count
 ⟨⟩ lib.AssertEq fixed.start_contributors
 
-calendarAdmission ← cycle_admission.Admit ⟨⟨"mode\tcalendarMonth","start_day\t25"⟩,accounts⟩
+calendarAdmission ← cycle_admission.Admit ⟨⟨Join ⟨"mode","calendarMonth"⟩,Join ⟨"start_day","25"⟩⟩,accounts⟩
 calendarBefore ← calendar_resolver.Resolve ⟨calendarAdmission,"2026-01-10"⟩
 "ok" lib.AssertEq calendarBefore.state
 "2025-12-25" lib.AssertEq calendarBefore.start
@@ -47,7 +53,10 @@ planRaw ← Raw ⟨
   "  assets:cash  1000 JPY"
 ⟩
 planFacts ← (canonicalPlan.Build ⟨planRaw,accounts,registry⟩).facts
-incomeAdmission ← cycle_admission.Admit ⟨⟨"mode\tincomeAnchor","income_account\tincome:salary","offset\t0"⟩,accounts⟩
+incomeAdmission ← cycle_admission.Admit ⟨
+  ⟨Join ⟨"mode","incomeAnchor"⟩,Join ⟨"income_account","income:salary"⟩,Join ⟨"offset","0"⟩⟩,
+  accounts
+⟩
 income ← income_resolver.Resolve ⟨incomeAdmission,"2026-01-12",actualFacts,planFacts⟩
 "ok" lib.AssertEq income.state
 "incomeAnchor" lib.AssertEq income.mode
