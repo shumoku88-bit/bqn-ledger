@@ -5,7 +5,7 @@ loader ← •Import "../src/application/source_io.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
 account_admission ← •Import "../src/ledger/account_admission.bqn"
 snapshot ← •Import "../src/ledger/snapshot.bqn"
-companion ← •Import "../src/ledger/companion_snapshot.bqn"
+canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 join ← •Import "../src/accounting/plan_completion_join.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 
@@ -13,7 +13,15 @@ base ← "fixtures/ledger-facts-phase1-proof/"
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
 accountLines ← loader.ReadLines base∾"accounts.tsv"
 accounts ← (account_admission.Admit ⟨accountLines,registry⟩).accounts
-planFacts ← (companion.Build ⟨loader.ReadLines base∾"plan.tsv",⟨⟩,accounts,registry⟩).plan
+lf ← @+10
+Raw ← {𝕊 lines: ∾lines∾¨lf}
+planRaw ← Raw ⟨
+  "2026-01-20 food-plan",
+  "  ; plan-id: plan-food-2026-01",
+  "  expenses:food  25 JPY",
+  "  assets:cash  -25 JPY"
+⟩
+planFacts ← (canonicalPlan.Build ⟨planRaw,accounts,registry⟩).facts
 actualRaw ← •FChars "../"∾base∾"actual.journal"
 BuildActualFacts ← {𝕊 raw: (snapshot.Build ⟨accountLines,raw,registry⟩).facts}
 actualFacts ← BuildActualFacts actualRaw
@@ -39,8 +47,8 @@ completed ← join.Build ⟨planFacts,actualFacts,planSelection,actualSelection�
 ⟨⟨⟨"assets:cash"⟩⟩⟩ lib.AssertEq completed.rows.actual_credit_accounts
 ⟨⟨1⟩⟩ lib.AssertEq completed.rows.currency_matches
 ⟨⟨1⟩⟩ lib.AssertEq completed.rows.direction_matches
-"plan.tsv" lib.AssertEq (⊑completed.rows.plan_reference).source
-"plan.tsv:plan_id:plan-food-2026-01" lib.AssertEq (⊑completed.rows.plan_reference).transaction_id
+"plan.journal" lib.AssertEq (⊑completed.rows.plan_reference).source
+"plan.journal:plan_id:plan-food-2026-01" lib.AssertEq (⊑completed.rows.plan_reference).transaction_id
 "actual.journal" lib.AssertEq (⊑⊑completed.rows.actual_references).source
 "proof-food-1" lib.AssertEq (⊑⊑completed.rows.actual_references).transaction_id
 ⟨⟩ lib.AssertEq completed.unmatched_actual_references
@@ -51,7 +59,6 @@ open ← join.Build ⟨planFacts,actualFacts,⟨0⟩,⟨0,2⟩⟩
 1 lib.AssertEq open.counts.open
 ⟨⟨⟩⟩ lib.AssertEq open.rows.actual_coefficients
 
-lf ← @+10
 DuplicateCompletion ← {𝕊 amountText:
   ∾⟨
     actualRaw,lf,"2026-01-10 * repeated completion",lf,
@@ -90,14 +97,17 @@ unknown ← join.Build ⟨planFacts,unknownFacts,⟨0⟩,unknownFacts.transactio
 
 # Exact coefficients/scales stay source-local in a non-JPY domain.
 ilsAccountLines ← ⟨
-  "assets:ils	role=asset	currency=ILS",
-  "expenses:ils	role=expense	currency=ILS"
+  "assets:ils\trole=asset\tcurrency=ILS",
+  "expenses:ils\trole=expense\tcurrency=ILS"
 ⟩
 ilsAccounts ← (account_admission.Admit ⟨ilsAccountLines,registry⟩).accounts
-ilsPlan ← (companion.Build ⟨
-  ⟨"2026-03-20	service	assets:ils	expenses:ils	12.30	currency=ILS	plan_id=ils-service"⟩,
-  ⟨⟩,ilsAccounts,registry
-⟩).plan
+ilsPlanRaw ← Raw ⟨
+  "2026-03-20 service",
+  "  ; plan-id: ils-service",
+  "  expenses:ils  12.30 ILS",
+  "  assets:ils  -12.30 ILS"
+⟩
+ilsPlan ← (canonicalPlan.Build ⟨ilsPlanRaw,ilsAccounts,registry⟩).facts
 ilsRaw ← ∾⟨
   "commodity ILS",lf,lf,
   "account assets:ils",lf,"    ; role: asset",lf,lf,
