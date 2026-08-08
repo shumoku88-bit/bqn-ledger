@@ -10,7 +10,6 @@ cd "$ROOT_DIR"
 
 tmp_root="$(mktemp -d)"
 trap 'rm -rf "$tmp_root"' EXIT
-trap 'status=$?; echo "::error file=checks/check-edit-bqn-plan-list.sh,line=$LINENO::canonical Plan list check failed" >&2; exit "$status"' ERR
 base="$tmp_root/canonical"
 cp -R fixtures/canonical-household-v1 "$base"
 
