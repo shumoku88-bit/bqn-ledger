@@ -75,4 +75,20 @@ if [[ ! -r config/currencies.tsv ]]; then
   exit 1
 fi
 
-exec bqn src/application/report_destination_cli.bqn "$base" "$key" "$surface" "${coordinates[@]}"
+if [[ $surface == human ]]; then
+  presentation_output=""
+  if ! presentation_output="$(bqn src/application/report_presentation_cli.bqn "$base" 2>&1)"; then
+    printf '%s\n' "$presentation_output" >&2
+    exit 1
+  fi
+  negative_style=$(awk -F'\t' '$1=="negative_style" {print $2}' <<<"$presentation_output")
+  [[ -n $negative_style ]] || {
+    printf 'ERROR\treport_presentation_invalid\tnegative style is absent from admitted Report policy\n' >&2
+    exit 1
+  }
+  REPORT_NEGATIVE_STYLE="$negative_style" \
+    bqn src/application/report_destination_cli.bqn "$base" "$key" "$surface" "${coordinates[@]}" \
+    | "$root/tools/lib/report-presentation-filter"
+else
+  exec bqn src/application/report_destination_cli.bqn "$base" "$key" "$surface" "${coordinates[@]}"
+fi
