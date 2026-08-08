@@ -13,23 +13,34 @@ Registry ← {𝕊 path: registryBuilder.Build io.ReadLines path}
 CanonicalActual ← {𝕊 base‿registry: actualSource.Load ⟨base,registry⟩ }
 CanonicalPlan ← {𝕊 base‿registry: planSource.Load ⟨base,registry⟩ }
 CanonicalBudget ← {𝕊 base‿registry: budgetSource.Load ⟨base,registry⟩ }
+CanonicalBudgetPolicy ← {𝕊 base‿accounts: budgetSource.LoadPolicy ⟨base,accounts⟩ }
 CanonicalHousehold ← {𝕊 base‿accounts‿budgetPolicy: householdSource.Load ⟨base,accounts,budgetPolicy⟩ }
 
-Companions ← {𝕊 base‿accounts‿registry:
+HouseholdContext ← {𝕊 base‿accounts‿registry:
   planResult ← CanonicalPlan ⟨base,registry⟩
-  budgetResult ← CanonicalBudget ⟨base,registry⟩
-  diagnostics ← planResult.diagnostics∾budgetResult.diagnostics
+  policyResult ← CanonicalBudgetPolicy ⟨base,accounts⟩
+  diagnostics ← planResult.diagnostics∾policyResult.diagnostics
   householdResult ← {state⇐"error",diagnostics⇐empty}
   {𝕊:
-    householdResult↩CanonicalHousehold ⟨base,accounts,budgetResult.policy⟩
+    householdResult↩CanonicalHousehold ⟨base,accounts,policyResult⟩
     diagnostics∾↩householdResult.diagnostics
-  }⍟(budgetResult.state≡"ok") @
-  ok ← (planResult.state≡"ok") ∧ (budgetResult.state≡"ok") ∧ householdResult.state≡"ok"
+  }⍟(policyResult.state≡"ok") @
+  ok ← (planResult.state≡"ok") ∧ (policyResult.state≡"ok") ∧ householdResult.state≡"ok"
+  result ← {state⇐"error",plan⇐@,budget_policy⇐@,household⇐@,diagnostics⇐diagnostics}
+  {𝕊:result↩{state⇐"ok",plan⇐planResult.facts,budget_policy⇐policyResult,household⇐householdResult,diagnostics⇐diagnostics}}⍟ok @
+  result
+}
+
+Companions ← {𝕊 base‿accounts‿registry:
+  context ← HouseholdContext ⟨base,accounts,registry⟩
+  budgetResult ← CanonicalBudget ⟨base,registry⟩
+  diagnostics ← context.diagnostics∾budgetResult.diagnostics
+  ok ← (context.state≡"ok") ∧ budgetResult.state≡"ok"
   result ← {state⇐"error",plan⇐@,budget⇐@,budget_policy⇐@,household⇐@,diagnostics⇐diagnostics}
   {𝕊:
     result↩{
-      state⇐"ok",plan⇐planResult.facts,budget⇐budgetResult.facts,
-      budget_policy⇐budgetResult.policy,household⇐householdResult,diagnostics⇐diagnostics
+      state⇐"ok",plan⇐context.plan,budget⇐budgetResult.facts,
+      budget_policy⇐context.budget_policy,household⇐context.household,diagnostics⇐diagnostics
     }
   }⍟ok @
   result
@@ -38,6 +49,7 @@ IssueLines ← {𝕊 base‿issueName: io.ReadLines Join ⟨base,issueName⟩}
 
 {
   Registry⇐Registry,CanonicalActual⇐CanonicalActual,CanonicalPlan⇐CanonicalPlan,
-  CanonicalBudget⇐CanonicalBudget,CanonicalHousehold⇐CanonicalHousehold,
+  CanonicalBudget⇐CanonicalBudget,CanonicalBudgetPolicy⇐CanonicalBudgetPolicy,
+  CanonicalHousehold⇐CanonicalHousehold,HouseholdContext⇐HouseholdContext,
   Companions⇐Companions,IssueLines⇐IssueLines
 }
