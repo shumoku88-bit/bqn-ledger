@@ -1,6 +1,6 @@
 # Canonical Household source recovery Phase 0 — evidence
 
-Status: local verification recorded
+Status: local verification complete; PR remains Draft pending maintainer Ready decision
 
 Roadmap: PR #550
 Implementation: PR #551
@@ -13,6 +13,7 @@ Local verification was performed from detached temporary worktrees with no edits
 - initial Phase 0 head: `ac3b051562aadeaf57e2d99f955bbb302b5bd4f3`
 - first updated-head rerun: `ee801d4c640775368de6f0d353982101d572af4c`
 - second updated-head rerun: `5419f95a69b84408234f32dd467825a5f51f271b`
+- final green updated-head rerun: `bf6707ceefc16bce6ad4a1de7070320838ce496f`
 
 ## Baseline result
 
@@ -23,7 +24,7 @@ The current remote `main` baseline is healthy:
 
 Therefore canonical source recovery does not require a pre-migration baseline-repair PR.
 
-The canonical source topology shell check and `git diff --check` have remained green in each local Phase 0 verification.
+The canonical source topology shell check and `git diff --check` remained green throughout Phase 0 verification.
 
 ## BQN role corrections found by executable verification
 
@@ -43,7 +44,17 @@ The canonical source owner now follows that native BQN shape end to end:
 
 Only the new Phase 0 test referenced the earlier uppercase field names, so changing the new namespace surface introduces no production caller migration.
 
-A further updated-head rerun is required before PR #551 becomes Ready.
+## Final updated-head verification
+
+The final rerun at `bf6707ceefc16bce6ad4a1de7070320838ce496f` passed all required checks:
+
+- `bqn tests/test_application_canonical_household_sources.bqn`: PASS, exit 0;
+- `bash checks/check-canonical-household-source-topology.sh`: PASS, exit 0;
+- `NO_COLOR=1 tools/check.sh`: PASS, exit 0;
+- `git diff --check`: PASS, exit 0;
+- final temporary worktree status: clean.
+
+No failure diagnostic remained.
 
 ## Legacy source families
 
@@ -136,3 +147,9 @@ The Phase 0 implementation changes neither writer authority nor production sourc
 - recorded migration evidence.
 
 No `src_edit` owner, production ledger reader, or report source adapter has been changed by this slice.
+
+## Phase 0 conclusion
+
+Phase 0 now has a healthy remote-main baseline, a canonical eight-file topology owner, a synthetic canonical root, an enforced topology guard, a recorded legacy-source/tool inventory, and a green full local suite at the final verified head.
+
+This completes the executable evidence required for Phase 0 implementation. PR #551 remains Draft until the maintainer explicitly chooses Ready/merge.
