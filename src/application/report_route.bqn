@@ -134,7 +134,7 @@ MonthlyAccounts ← {𝕊 coordinates:
 DailyFlow ← {𝕊 coordinates:
   (5=≠coordinates)◶⟨
     {𝕊:Reject ⟨"usage_daily_flow","daily-flow requires DOMAIN START END_EXCLUSIVE OBSERVATION JOURNAL_BASENAME"⟩},
-    {𝕊:AcceptCanonicalActual ⟨coordinates,⟨"domain","start","end_exclusive","observation","actual_source"⟩,4⟩}
+    {𝕊:Accept ⟨coordinates,⟨"domain","start","end_exclusive","observation","actual_source"⟩,⟨4⟩,⟨"journal"⟩,⟨"actual"⟩⟩}
   ⟩ @
 }
 DailyTarget ← {𝕊 coordinates:
