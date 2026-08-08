@@ -1,20 +1,17 @@
 #!/usr/bin/env bash
 # Explicit non-authoritative canonical Actual Fact inspection.
 set -euo pipefail
-if [[ $# -ne 2 ]]; then
-  echo 'Usage: tools/ledger-inspect BASE JOURNAL' >&2
+if [[ $# -ne 1 ]]; then
+  echo 'Usage: tools/ledger-inspect BASE' >&2
   exit 2
 fi
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 base=$1
-journal_coordinate=$2
 [[ $base == /* ]] || base="$PWD/$base"
 
-# JOURNAL remains in the request shape only until Phase 6. Canonical Actual
-# inspection is fixed to accounts.journal + actual.journal.
 for name in accounts.journal actual.journal; do
   [[ -f $base/$name && -r $base/$name ]] \
     || { printf 'ERROR\tsource_unreadable\trequired canonical source is not readable: %s\n' "$name" >&2; exit 1; }
 done
 cd "$root"
-exec bqn src/application/ledger_inspect_cli.bqn "$base" "$journal_coordinate"
+exec bqn src/application/ledger_inspect_cli.bqn "$base"
