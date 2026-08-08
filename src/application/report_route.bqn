@@ -27,7 +27,7 @@ Accept ← {𝕊 coordinates‿coordinateRoles‿argumentIndices‿kinds‿roles
 AcceptCanonicalActual ← {𝕊 coordinates‿coordinateRoles‿argumentIndex:
   (canonical.actual ≡ argumentIndex⊑coordinates)◶⟨
     {𝕊:Reject ⟨"actual_source_not_canonical","Actual-only report requires canonical actual.journal"⟩},
-    {𝕊:Accept ⟨coordinates,coordinateRoles,⟨argumentIndex⟩,⟨"journal"⟩,⟨"actual"⟩⟩}
+    {𝕊:Accept ⟨coordinates,coordinateRoles,⟨argumentIndex⟩,⟨"canonical-journal"⟩,⟨"actual"⟩⟩}
   ⟩ @
 }
 AllowedCount ← {𝕊 count‿allowed: ∨´0∾count⊸=¨allowed}
