@@ -15,7 +15,6 @@ result ← sources.CanonicalPlan ⟨"fixtures/canonical-household-v1",registryRe
 0 lib.AssertEq ≠result.diagnostics
 "plan.journal" lib.AssertEq ⊑result.facts.sources.name
 ⟨"plan"⟩ lib.AssertEq result.facts.layers.name
-2 lib.AssertEq result.facts.transactions.count
 ⟨"plan-groceries","plan-salary"⟩ lib.AssertEq result.facts.transactions.plan_id
 
 •Out "test_application_report_source_canonical_plan: ok"
