@@ -13,14 +13,17 @@ Neither command imports `src/sections`, the retired report runtime, report compo
 Usage:
 
 ```text
-tools/ledger-check BASE JOURNAL PLAN BUDGET CYCLE ISSUES DAILY_SCOPE
+tools/ledger-check BASE JOURNAL PLAN_COORDINATE BUDGET CYCLE ISSUES DAILY_SCOPE
 ```
 
-The wrapper requires explicit safe basenames and readable Config, Accounts, and supplied sources. The BQN owner strictly admits:
+The retained Plan coordinate remains in this operational argv shape while surrounding request cleanup is unfinished, but it no longer names a physical source. Canonical `accounts.journal` and `plan.journal` own Plan admission. The wrapper requires readable fixed canonical Plan sources plus the still-retained Config/Account support for unmigrated surfaces and safe readable basenames for the caller-selected Actual, Budget, Cycle, Issues, and Daily Scope sources.
 
-- currency registry and `config.tsv`;
-- Accounts/Actual canonical Facts;
-- all-or-nothing Plan/Budget Facts;
+The BQN owner strictly admits:
+
+- currency registry and retained `config.tsv` where later policy phases have not replaced it;
+- current Actual Facts;
+- canonical Plan Facts from `plan.journal`;
+- retained Budget movement Facts from `budget_alloc.tsv`;
 - unresolved Cycle definition;
 - destination Issues;
 - Daily Target ownership/linkage rows.
