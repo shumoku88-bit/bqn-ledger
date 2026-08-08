@@ -1,12 +1,13 @@
 # Read-only application adapter for canonical Household Actual Facts.
 #
 # Physical basenames are owned by canonical_household_sources.bqn. Account
-# admission is owned by account_source_adapter.bqn. Ledger admission/projection
-# remains pure in src/ledger/snapshot.bqn.
+# admission is owned by account_source_adapter.bqn. Actual-root include topology
+# is checked before pure Ledger admission/projection.
 
 io ← •Import "source_io.bqn"
 sources ← •Import "canonical_household_sources.bqn"
 accountSource ← •Import "account_source_adapter.bqn"
+rootAdmission ← •Import "../ledger/actual_root_admission.bqn"
 snapshot ← •Import "../ledger/snapshot.bqn"
 
 Join ← {𝕊 base‿name: base∾(('/'≠¯1↑base)/"/")∾name}
@@ -16,7 +17,9 @@ Load ← {𝕊 base‿registry:
   result ← {state⇐"error",diagnostics⇐accountResult.diagnostics}
   {𝕊:
     raw ← io.ReadRaw Join ⟨base,sources.actual⟩
-    result ↩ snapshot.BuildFromAccounts ⟨accountResult.accounts,raw,registry⟩
+    rootResult ← rootAdmission.Admit ⟨raw,sources.accounts⟩
+    result ↩ {state⇐"error",diagnostics⇐rootResult.diagnostics}
+    {𝕊: result↩snapshot.BuildFromAccounts ⟨accountResult.accounts,raw,registry⟩}⍟(rootResult.state≡"ok") @
   }⍟(accountResult.state≡"ok") @
   result
 }
