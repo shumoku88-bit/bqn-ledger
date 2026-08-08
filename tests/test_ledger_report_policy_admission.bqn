@@ -5,7 +5,10 @@ admission ← •Import "../src/ledger/report_policy_admission.bqn"
 io ← •Import "../src/application/source_io.bqn"
 
 lf ← @+10
+quote ← @+34
 Raw ← {𝕊 lines: ∾lines∾¨lf}
+Q ← {𝕊 text: ⟨quote⟩∾text∾⟨quote⟩}
+Pair ← {𝕊 key‿value:key∾" = "∾Q value}
 HasCode ← {𝕊 code‿diagnostics: ∨´0∾{𝕩.code≡code}¨diagnostics}
 
 valid ← admission.Admit io.ReadRaw "fixtures/canonical-household-v1/report.toml"
@@ -28,12 +31,12 @@ valid ← admission.Admit io.ReadRaw "fixtures/canonical-household-v1/report.tom
 5 lib.AssertEq valid.reports.recent_transactions.count
 
 withoutPresentation ← admission.Admit Raw ⟨
-  "[reports.trial-balance]","as-of = \"latest\"","",
-  "[reports.balance-sheet]","as-of = \"latest\"","",
-  "[reports.profit-and-loss]","from = \"beginning\"","through = \"latest\"","",
-  "[reports.daily-flow]","from = \"beginning\"","through = \"latest\"","",
-  "[reports.monthly-accounts]","from = \"beginning\"","through = \"latest\"","",
-  "[reports.recent-transactions]","through = \"latest\"","count = 7"
+  "[reports.trial-balance]",Pair ⟨"as-of","latest"⟩,"",
+  "[reports.balance-sheet]",Pair ⟨"as-of","latest"⟩,"",
+  "[reports.profit-and-loss]",Pair ⟨"from","beginning"⟩,Pair ⟨"through","latest"⟩,"",
+  "[reports.daily-flow]",Pair ⟨"from","beginning"⟩,Pair ⟨"through","latest"⟩,"",
+  "[reports.monthly-accounts]",Pair ⟨"from","beginning"⟩,Pair ⟨"through","latest"⟩,"",
+  "[reports.recent-transactions]",Pair ⟨"through","latest"⟩,"count = 7"
 ⟩
 "ok" lib.AssertEq withoutPresentation.state
 "parentheses" lib.AssertEq withoutPresentation.presentation.negative_style
@@ -42,46 +45,46 @@ withoutPresentation ← admission.Admit Raw ⟨
 7 lib.AssertEq withoutPresentation.reports.recent_transactions.count
 
 sourceFilename ← admission.Admit Raw ⟨
-  "[presentation.amounts]","negative-style = \"minus\"","",
-  "[reports.trial-balance]","as-of = \"latest\"","source = \"actual.journal\"","",
-  "[reports.balance-sheet]","as-of = \"latest\"","",
-  "[reports.profit-and-loss]","from = \"2026-01-01\"","through = \"latest\"","",
-  "[reports.daily-flow]","from = \"2026-01-01\"","through = \"latest\"","",
-  "[reports.monthly-accounts]","from = \"2026-01-01\"","through = \"latest\"","",
-  "[reports.recent-transactions]","through = \"latest\"","count = 5"
+  "[presentation.amounts]",Pair ⟨"negative-style","minus"⟩,"",
+  "[reports.trial-balance]",Pair ⟨"as-of","latest"⟩,Pair ⟨"source","actual.journal"⟩,"",
+  "[reports.balance-sheet]",Pair ⟨"as-of","latest"⟩,"",
+  "[reports.profit-and-loss]",Pair ⟨"from","2026-01-01"⟩,Pair ⟨"through","latest"⟩,"",
+  "[reports.daily-flow]",Pair ⟨"from","2026-01-01"⟩,Pair ⟨"through","latest"⟩,"",
+  "[reports.monthly-accounts]",Pair ⟨"from","2026-01-01"⟩,Pair ⟨"through","latest"⟩,"",
+  "[reports.recent-transactions]",Pair ⟨"through","latest"⟩,"count = 5"
 ⟩
 "error" lib.AssertEq sourceFilename.state
 lib.Assert HasCode ⟨"report_policy_key_unsupported",sourceFilename.diagnostics⟩
 
 invalidDate ← admission.Admit Raw ⟨
-  "[reports.trial-balance]","as-of = \"2026-02-30\"","",
-  "[reports.balance-sheet]","as-of = \"latest\"","",
-  "[reports.profit-and-loss]","from = \"beginning\"","through = \"latest\"","",
-  "[reports.daily-flow]","from = \"beginning\"","through = \"latest\"","",
-  "[reports.monthly-accounts]","from = \"beginning\"","through = \"latest\"","",
-  "[reports.recent-transactions]","through = \"latest\"","count = 5"
+  "[reports.trial-balance]",Pair ⟨"as-of","2026-02-30"⟩,"",
+  "[reports.balance-sheet]",Pair ⟨"as-of","latest"⟩,"",
+  "[reports.profit-and-loss]",Pair ⟨"from","beginning"⟩,Pair ⟨"through","latest"⟩,"",
+  "[reports.daily-flow]",Pair ⟨"from","beginning"⟩,Pair ⟨"through","latest"⟩,"",
+  "[reports.monthly-accounts]",Pair ⟨"from","beginning"⟩,Pair ⟨"through","latest"⟩,"",
+  "[reports.recent-transactions]",Pair ⟨"through","latest"⟩,"count = 5"
 ⟩
 "error" lib.AssertEq invalidDate.state
 lib.Assert HasCode ⟨"report_policy_date_reference_invalid",invalidDate.diagnostics⟩
 
 reversedRange ← admission.Admit Raw ⟨
-  "[reports.trial-balance]","as-of = \"latest\"","",
-  "[reports.balance-sheet]","as-of = \"latest\"","",
-  "[reports.profit-and-loss]","from = \"2026-02-01\"","through = \"2026-01-01\"","",
-  "[reports.daily-flow]","from = \"beginning\"","through = \"latest\"","",
-  "[reports.monthly-accounts]","from = \"beginning\"","through = \"latest\"","",
-  "[reports.recent-transactions]","through = \"latest\"","count = 5"
+  "[reports.trial-balance]",Pair ⟨"as-of","latest"⟩,"",
+  "[reports.balance-sheet]",Pair ⟨"as-of","latest"⟩,"",
+  "[reports.profit-and-loss]",Pair ⟨"from","2026-02-01"⟩,Pair ⟨"through","2026-01-01"⟩,"",
+  "[reports.daily-flow]",Pair ⟨"from","beginning"⟩,Pair ⟨"through","latest"⟩,"",
+  "[reports.monthly-accounts]",Pair ⟨"from","beginning"⟩,Pair ⟨"through","latest"⟩,"",
+  "[reports.recent-transactions]",Pair ⟨"through","latest"⟩,"count = 5"
 ⟩
 "error" lib.AssertEq reversedRange.state
 lib.Assert HasCode ⟨"report_policy_range_invalid",reversedRange.diagnostics⟩
 
 zeroCount ← admission.Admit Raw ⟨
-  "[reports.trial-balance]","as-of = \"latest\"","",
-  "[reports.balance-sheet]","as-of = \"latest\"","",
-  "[reports.profit-and-loss]","from = \"beginning\"","through = \"latest\"","",
-  "[reports.daily-flow]","from = \"beginning\"","through = \"latest\"","max-date-columns = 0","",
-  "[reports.monthly-accounts]","from = \"beginning\"","through = \"latest\"","",
-  "[reports.recent-transactions]","through = \"latest\"","count = 0"
+  "[reports.trial-balance]",Pair ⟨"as-of","latest"⟩,"",
+  "[reports.balance-sheet]",Pair ⟨"as-of","latest"⟩,"",
+  "[reports.profit-and-loss]",Pair ⟨"from","beginning"⟩,Pair ⟨"through","latest"⟩,"",
+  "[reports.daily-flow]",Pair ⟨"from","beginning"⟩,Pair ⟨"through","latest"⟩,"max-date-columns = 0","",
+  "[reports.monthly-accounts]",Pair ⟨"from","beginning"⟩,Pair ⟨"through","latest"⟩,"",
+  "[reports.recent-transactions]",Pair ⟨"through","latest"⟩,"count = 0"
 ⟩
 "error" lib.AssertEq zeroCount.state
 lib.Assert HasCode ⟨"report_policy_positive_integer_invalid",zeroCount.diagnostics⟩
