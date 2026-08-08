@@ -7,26 +7,23 @@ if [[ $# -ne 7 ]]; then
 fi
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 base=$1
-journal=$2
+journal_coordinate=$2
 plan_coordinate=$3
-budget=$4
-cycle=$5
+budget_coordinate=$4
+cycle_coordinate=$5
 issues=$6
-daily_scope=$7
+daily_scope_coordinate=$7
 [[ $base == /* ]] || base="$PWD/$base"
 
-# Plan remains an argv coordinate until the surrounding operational request shape
-# is simplified, but canonical plan.journal owns physical Plan I/O. Validate and
-# preflight only sources that are actually read through caller-selected basenames.
-for name in "$journal" "$budget" "$cycle" "$issues" "$daily_scope"; do
-  [[ $name != */* && $name != *\\* && ( $name == *.tsv || $name == *.journal ) ]] \
-    || { printf 'ERROR\tsource_basename_invalid\tinvalid source basename: %s\n' "$name" >&2; exit 1; }
-done
-for name in config.tsv accounts.tsv accounts.journal plan.journal \
-  "$journal" "$budget" "$cycle" "$issues" "$daily_scope"; do
+# Until Phase 6 the legacy-looking coordinates remain in argv shape only. They
+# cannot redirect Household I/O. Issues is still caller-selected until report.toml
+# owns that request surface.
+[[ $issues != */* && $issues != *\\* && $issues == *.tsv ]] \
+  || { printf 'ERROR\tsource_basename_invalid\tinvalid Issues basename: %s\n' "$issues" >&2; exit 1; }
+for name in accounts.journal actual.journal plan.journal budget.journal budget.toml household.toml "$issues"; do
   [[ -f $base/$name && -r $base/$name ]] \
-    || { printf 'ERROR\tsource_unreadable\trequired source is not readable: %s\n' "$name" >&2; exit 1; }
+    || { printf 'ERROR\tsource_unreadable\trequired canonical source is not readable: %s\n' "$name" >&2; exit 1; }
 done
 cd "$root"
-exec bqn src/application/ledger_check_cli.bqn "$base" "$journal" "$plan_coordinate" \
-  "$budget" "$cycle" "$issues" "$daily_scope"
+exec bqn src/application/ledger_check_cli.bqn "$base" "$journal_coordinate" "$plan_coordinate" \
+  "$budget_coordinate" "$cycle_coordinate" "$issues" "$daily_scope_coordinate"
