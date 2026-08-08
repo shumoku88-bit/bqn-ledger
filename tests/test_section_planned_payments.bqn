@@ -18,33 +18,29 @@ actualRaw ← •FChars "../"∾base∾"actual.journal"
 actualFacts ← (snapshot.Build ⟨accountLines,actualRaw,registry⟩).facts
 lf ← @+10
 Raw ← {𝕊 lines: ∾lines∾¨lf}
-planRaw ← Raw ⟨
-  "2026-01-20 food-plan",
-  "  ; plan-id: plan-food-2026-01",
-  "  expenses:food  25 JPY",
-  "  assets:cash  -25 JPY"
-⟩
+planRaw ← •FChars "../"∾base∾"plan.journal"
 planFacts ← (canonicalPlan.Build ⟨planRaw,accounts,registry⟩).facts
 cycle ← fixed_cycle.Resolve cycle_admission.Admit ⟨loader.ReadLines base∾"cycle.tsv",accounts⟩
 
 result ← section.Build ⟨planFacts,actualFacts,cycle,"2026-01-12"⟩
 "ok" lib.AssertEq result.state
-1 lib.AssertEq result.rows.count
-⟨"completed"⟩ lib.AssertEq result.rows.status
-⟨"2026-01-20"⟩ lib.AssertEq result.rows.date
-⟨"food"⟩ lib.AssertEq result.rows.category
-⟨"food-plan"⟩ lib.AssertEq result.rows.memo
-⟨25⟩ lib.AssertEq result.rows.planned_coefficient
-⟨0⟩ lib.AssertEq result.rows.planned_scale
-⟨20⟩ lib.AssertEq result.rows.actual_coefficient
-⟨0⟩ lib.AssertEq result.rows.actual_scale
-⟨⟩ lib.AssertEq result.open_indices
-⟨0⟩ lib.AssertEq result.completed_indices
-0 lib.AssertEq result.open_total_coefficient
+2 lib.AssertEq result.rows.count
+⟨"future","completed"⟩ lib.AssertEq result.rows.status
+⟨"2026-01-15","2026-01-20"⟩ lib.AssertEq result.rows.date
+⟨"food","food"⟩ lib.AssertEq result.rows.category
+⟨"rent","food-plan"⟩ lib.AssertEq result.rows.memo
+⟨200,25⟩ lib.AssertEq result.rows.planned_coefficient
+⟨0,0⟩ lib.AssertEq result.rows.planned_scale
+20 lib.AssertEq 1⊑result.rows.actual_coefficient
+0 lib.AssertEq 1⊑result.rows.actual_scale
+⟨0⟩ lib.AssertEq result.open_indices
+⟨1⟩ lib.AssertEq result.completed_indices
+200 lib.AssertEq result.open_total_coefficient
 0 lib.AssertEq result.open_total_scale
-"plan.journal" lib.AssertEq (⊑result.rows.plan_reference).source
-"actual.journal" lib.AssertEq (⊑result.rows.actual_reference).source
-4 lib.AssertEq ≠(⊑result.rows.planned_contributors)∾⊑result.rows.actual_contributors
+"plan.journal" lib.AssertEq (0⊑result.rows.plan_reference).source
+"plan.journal" lib.AssertEq (1⊑result.rows.plan_reference).source
+"actual.journal" lib.AssertEq (1⊑result.rows.actual_reference).source
+4 lib.AssertEq ≠(1⊑result.rows.planned_contributors)∾1⊑result.rows.actual_contributors
 
 human ← section.FormatHuman result
 compact ← section.FormatCompact result
