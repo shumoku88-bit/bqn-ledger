@@ -1,4 +1,7 @@
-# Pure Envelope & Backing Statement from strict Budget/Actual/Plan evidence.
+# Pure Envelope & Backing Statement from canonical Budget/Actual/Plan evidence.
+# Budget movement comes from budget.journal and general Envelope/Backing policy
+# comes from budget.toml. Household structural Budget Account classification is
+# intentionally retained until household.toml Phase 5.
 
 period ← •Import "account_period.bqn"
 balance ← •Import "account_balance.bqn"
@@ -47,9 +50,10 @@ EmptyResult ← {𝕊 state‿reason‿domain‿diagnostics:
   }
 }
 
-ValidateInputs ← {𝕊 budgetFacts‿actualFacts‿planFacts‿domain‿start‿finish‿observation‿fundingIndices:
+ValidateInputs ← {𝕊 budgetFacts‿budgetPolicy‿actualFacts‿planFacts‿domain‿start‿finish‿observation:
   diagnostics ← empty
-  diagnostics ∾↩ AddIf ⟨¬reference.SourceIs ⟨budgetFacts,"budget_alloc.tsv"⟩,Diagnostic ⟨"budget_facts_invalid","Budget facts must be admitted"⟩⟩
+  diagnostics ∾↩ AddIf ⟨¬reference.SourceIs ⟨budgetFacts,"budget.journal"⟩,Diagnostic ⟨"budget_facts_invalid","Budget facts must be admitted from budget.journal"⟩⟩
+  diagnostics ∾↩ AddIf ⟨(budgetPolicy.state≢"ok") ∨ budgetPolicy.source_name≢"budget.toml",Diagnostic ⟨"budget_policy_invalid","Budget policy must be admitted from budget.toml"⟩⟩
   diagnostics ∾↩ AddIf ⟨¬reference.SourceIs ⟨actualFacts,"actual.journal"⟩,Diagnostic ⟨"actual_facts_invalid","Actual facts must be admitted"⟩⟩
   diagnostics ∾↩ AddIf ⟨¬reference.SourceIs ⟨planFacts,"plan.journal"⟩,Diagnostic ⟨"plan_facts_invalid","Plan facts must be admitted from plan.journal"⟩⟩
   domainKnown ← Contains ⟨domain,actualFacts.accounts.currency⟩
@@ -58,31 +62,35 @@ ValidateInputs ← {𝕊 budgetFacts‿actualFacts‿planFacts‿domain‿start�
   diagnostics ∾↩ AddIf ⟨rangeInvalid,Diagnostic ⟨"statement_range_invalid","require start <= observation < end_exclusive"⟩⟩
   axesMatch ← (budgetFacts.accounts.key≡actualFacts.accounts.key) ∧ planFacts.accounts.key≡actualFacts.accounts.key
   diagnostics ∾↩ AddIf ⟨¬axesMatch,Diagnostic ⟨"account_axis_mismatch","all sources must share one Account axis"⟩⟩
-  diagnostics ∾↩ AddIf ⟨(≠fundingIndices)≠≠Unique fundingIndices,Diagnostic ⟨"funding_scope_duplicate","funding indices must be unique"⟩⟩
+  fundingIndices ← budgetPolicy.asset_account_index
+  diagnostics ∾↩ AddIf ⟨(≠fundingIndices)≠≠Unique fundingIndices,Diagnostic ⟨"funding_scope_duplicate","Budget policy funding Accounts must be unique"⟩⟩
   fundingKnown ← ∧´1∾{Contains ⟨𝕩,actualFacts.accounts.index⟩}¨fundingIndices
-  diagnostics ∾↩ AddIf ⟨¬fundingKnown,Diagnostic ⟨"funding_scope_invalid","funding indices must be admitted Accounts"⟩⟩
+  diagnostics ∾↩ AddIf ⟨¬fundingKnown,Diagnostic ⟨"funding_scope_invalid","Budget policy funding Accounts must be admitted"⟩⟩
   diagnostics
 }
 
-ResolveOwnership ← {𝕊 accounts‿domain‿fundingIndices:
-  envelopeMask ← (domain⊸≡¨accounts.currency) ∧ ("budget"⊸≡¨accounts.role) ∧ "envelope"⊸≡¨accounts.kind
-  envelopeIndices ← envelopeMask/accounts.index
-  categories ← envelopeMask/accounts.budget
+ResolveOwnership ← {𝕊 accounts‿budgetPolicy‿domain:
+  categories ← budgetPolicy.envelopes.id
+  envelopeIndices ← empty
+  diagnostics ← empty
+  {𝕊 category:
+    mask ← (domain⊸≡¨accounts.currency) ∧ ("budget"⊸≡¨accounts.role) ∧ ("envelope"⊸≡¨accounts.kind) ∧ category⊸≡¨accounts.budget
+    diagnostics ∾↩ AddIf ⟨1≠+´mask,Diagnostic ⟨"envelope_account_mapping_invalid","Each budget.toml envelope must map to exactly one structural Budget Account until household.toml Phase 5"⟩⟩
+    {𝕊:envelopeIndices∾↩⟨⊑mask/accounts.index⟩}⍟(1=+´mask) @
+  }¨categories
   unassignedMask ← (domain⊸≡¨accounts.currency) ∧ ("budget"⊸≡¨accounts.role) ∧ "unassigned"⊸≡¨accounts.kind
   unassignedIndices ← unassignedMask/accounts.index
+  fundingIndices ← budgetPolicy.asset_account_index
   ownershipMissing ← (0=≠envelopeIndices) ∨ (0=≠fundingIndices) ∨ 1≠≠unassignedIndices
-  diagnostics ← empty
-  diagnostics ∾↩ AddIf ⟨∨´0∾{0=≠𝕩}¨categories,Diagnostic ⟨"envelope_category_missing","Envelope Accounts require category metadata"⟩⟩
-  diagnostics ∾↩ AddIf ⟨(≠categories)≠≠Unique categories,Diagnostic ⟨"envelope_category_duplicate","Envelope categories must be unique"⟩⟩
   fundingValid ← ∧´1∾{𝕊 i: ((i⊑accounts.currency)≡domain) ∧ (i⊑accounts.role)≡"asset"}¨fundingIndices
-  diagnostics ∾↩ AddIf ⟨¬fundingValid,Diagnostic ⟨"funding_scope_invalid","funding scope requires selected-domain asset Accounts"⟩⟩
+  diagnostics ∾↩ AddIf ⟨¬fundingValid,Diagnostic ⟨"funding_scope_invalid","budget.toml backing Accounts require selected-domain Asset Accounts"⟩⟩
   state ← "ok" ⋄ reason ← "" ⋄ unassignedIndex ← empty
   {𝕊: state↩"unavailable" ⋄ reason↩"envelope_or_funding_ownership_missing" ⋄ diagnostics↩empty}⍟ownershipMissing @
   {𝕊: state↩"error"}⍟((¬ownershipMissing) ∧ 0<≠diagnostics) @
   {𝕊: unassignedIndex↩⊑unassignedIndices}⍟(¬ownershipMissing) @
   {
     state⇐state,reason⇐reason,envelope_indices⇐envelopeIndices,categories⇐categories,
-    unassigned_index⇐unassignedIndex,diagnostics⇐diagnostics
+    funding_indices⇐fundingIndices,unassigned_index⇐unassignedIndex,diagnostics⇐diagnostics
   }
 }
 
@@ -120,7 +128,7 @@ PostingReferences ← {𝕊 facts‿indices:
   {reference.Posting ⟨facts,𝕩⟩}¨indices
 }
 
-BuildEnvelopeTerms ← {𝕊 budgetFacts‿actualFacts‿accounts‿ownership‿prepared‿domain‿targetScale:
+BuildEnvelopeTerms ← {𝕊 budgetFacts‿budgetPolicy‿actualFacts‿accounts‿ownership‿prepared‿domain‿targetScale:
   budgetPeriod ← prepared.budget_period
   actualPeriod ← prepared.actual_period
   joined ← prepared.completion_join
@@ -133,9 +141,12 @@ BuildEnvelopeTerms ← {𝕊 budgetFacts‿actualFacts‿accounts‿ownership‿
     NormalizeOne ⟨row⊑budgetPeriod.accounts.movement,budgetPeriod.scale,targetScale⟩
   }¨budgetRows
 
-  expenseMask ← (domain⊸≡¨accounts.currency) ∧ "expense"⊸≡¨accounts.role
-  expenseIndices ← expenseMask/accounts.index
-  expenseCoordinates ← categories⊐expenseMask/accounts.budget
+  expenseIndices ← budgetPolicy.expense_account_index
+  expenseEnvelopeIds ← budgetPolicy.expense_envelope_id
+  domainMask ← domain⊸≡¨expenseIndices⊏accounts.currency
+  expenseIndices ↩ domainMask/expenseIndices
+  expenseEnvelopeIds ↩ domainMask/expenseEnvelopeIds
+  expenseCoordinates ← categories⊐expenseEnvelopeIds
   matched ← expenseCoordinates<envelopeCount
   expenseIndices ↩ matched/expenseIndices
   expenseCoordinates ↩ matched/expenseCoordinates
@@ -152,10 +163,13 @@ BuildEnvelopeTerms ← {𝕊 budgetFacts‿actualFacts‿accounts‿ownership‿
   creditIndices ← {∾⟨empty⟩∾𝕩}¨creditCells
 
   planAccountRows ← accounts.key⊐joined.rows.planned_to_account
-  planCoordinates ← categories⊐planAccountRows⊏accounts.budget
+  assignmentRows ← budgetPolicy.expense_account_index⊐planAccountRows
+  assigned ← assignmentRows<≠budgetPolicy.expense_account_index
+  planEnvelopeIds ← assignmentRows⊏budgetPolicy.expense_envelope_id∾⟨""⟩
+  planCoordinates ← categories⊐planEnvelopeIds
   planCurrencyMatches ← domain⊸≡¨planAccountRows⊏accounts.currency
   planRoleMatches ← "expense"⊸≡¨planAccountRows⊏accounts.role
-  planEligible ← planCurrencyMatches ∧ planRoleMatches ∧ planCoordinates<envelopeCount
+  planEligible ← assigned ∧ planCurrencyMatches ∧ planRoleMatches ∧ planCoordinates<envelopeCount
   openMask ← ("open"⊸≡¨joined.rows.status) ∧ planEligible
   openCoordinates ← openMask/planCoordinates
   planCoefficients ← openMask/joined.rows.planned_coefficient
@@ -222,13 +236,14 @@ BuildEnvelopeTerms ← {𝕊 budgetFacts‿actualFacts‿accounts‿ownership‿
   {state⇐(0=≠diagnostics)⊑"error"‿"ok",table⇐table,diagnostics⇐diagnostics}
 }
 
-BuildBacking ← {𝕊 budgetFacts‿prepared‿ownership‿terms‿fundingIndices‿targetScale:
+BuildBacking ← {𝕊 budgetFacts‿prepared‿ownership‿terms‿targetScale:
   budgetPeriod ← prepared.budget_period ⋄ actualBalance ← prepared.actual_balance
   table ← terms.table
   entitlement ← table.entitlement ⋄ consumption ← table.actual_consumption
   refunds ← table.actual_refunds ⋄ remaining ← table.ledger_remaining
   reserve ← table.open_plan_reserve ⋄ headroom ← table.post_plan_headroom
   termTotals ← scale.Sum¨⟨entitlement,consumption,refunds,remaining,reserve,headroom⟩
+  fundingIndices ← ownership.funding_indices
   fundingRows ← {IndexOf ⟨𝕩,actualBalance.accounts.account_index⟩}¨fundingIndices
   fundingValues ← fundingRows⊏actualBalance.accounts.closing
   fundingResult ← SumNormalized ⟨fundingValues,actualBalance.scale,targetScale⟩
@@ -268,11 +283,11 @@ BuildBacking ← {𝕊 budgetFacts‿prepared‿ownership‿terms‿fundingIndic
   output
 }
 
-Build ← {𝕊 budgetFacts‿actualFacts‿planFacts‿domain‿start‿finish‿observation‿fundingIndices:
-  diagnostics ← ValidateInputs ⟨budgetFacts,actualFacts,planFacts,domain,start,finish,observation,fundingIndices⟩
+Build ← {𝕊 budgetFacts‿budgetPolicy‿actualFacts‿planFacts‿domain‿start‿finish‿observation:
+  diagnostics ← ValidateInputs ⟨budgetFacts,budgetPolicy,actualFacts,planFacts,domain,start,finish,observation⟩
   result ← EmptyResult ⟨"error","",domain,diagnostics⟩
   {𝕊:
-    ownership ← ResolveOwnership ⟨actualFacts.accounts,domain,fundingIndices⟩
+    ownership ← ResolveOwnership ⟨actualFacts.accounts,budgetPolicy,domain⟩
     result↩EmptyResult ⟨ownership.state,ownership.reason,domain,ownership.diagnostics⟩
     {𝕊:
       prepared ← PrepareEvidence ⟨budgetFacts,actualFacts,planFacts,domain,start,finish,observation⟩
@@ -280,10 +295,10 @@ Build ← {𝕊 budgetFacts‿actualFacts‿planFacts‿domain‿start‿finish�
       {𝕊:
         sourceScales ← ⟨prepared.budget_period.scale,prepared.actual_period.scale,prepared.actual_balance.scale⟩
         targetScale ← ⌈´sourceScales∾prepared.completion_join.rows.planned_scale
-        terms ← BuildEnvelopeTerms ⟨budgetFacts,actualFacts,actualFacts.accounts,ownership,prepared,domain,targetScale⟩
+        terms ← BuildEnvelopeTerms ⟨budgetFacts,budgetPolicy,actualFacts,actualFacts.accounts,ownership,prepared,domain,targetScale⟩
         result↩EmptyResult ⟨"error","",domain,terms.diagnostics⟩
         {𝕊:
-          backing ← BuildBacking ⟨budgetFacts,prepared,ownership,terms,fundingIndices,targetScale⟩
+          backing ← BuildBacking ⟨budgetFacts,prepared,ownership,terms,targetScale⟩
           result↩EmptyResult ⟨"error","",domain,backing.diagnostics⟩
           {𝕊:
             result↩{
@@ -291,7 +306,7 @@ Build ← {𝕊 budgetFacts‿actualFacts‿planFacts‿domain‿start‿finish�
               start_ordinal⇐start,end_exclusive_ordinal⇐finish,observation_ordinal⇐observation,
               scale⇐targetScale,status⇐(backing.totals.backing_surplus<0)⊑"backed"‿"under_backed",
               envelopes⇐backing.table,totals⇐backing.totals,
-              funding_account_indices⇐fundingIndices,
+              funding_account_indices⇐ownership.funding_indices,
               funding_contributors⇐backing.funding_contributors,
               unassigned_contributors⇐backing.unassigned_contributors,diagnostics⇐empty
             }
