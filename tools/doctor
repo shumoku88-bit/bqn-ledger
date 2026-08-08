@@ -9,7 +9,7 @@ while [ -L "$SOURCE" ]; do
   SOURCE="$(readlink "$SOURCE")"
   [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
 done
-SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd)"
+SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 ROOT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 cd "$ROOT_DIR"
 source "$ROOT_DIR/tools/lib/system-defaults.sh"
@@ -73,10 +73,11 @@ if [[ -d "$base_dir" ]]; then
   mapfile -t missing_required < <(canonical_report_base_missing_required "$base_dir")
   if [[ ${#missing_required[@]} -eq 0 ]]; then
     pass "canonical Household root files present: 8"
-    if NO_COLOR=1 "$ROOT_DIR/tools/report" "$base_dir" balances human JPY 2026-01-12 >/dev/null 2>&1; then
-      pass "canonical read pipeline accepts Household root"
+    if bqn src/application/report_domain_cli.bqn "$base_dir" >/dev/null 2>&1 \
+      && bqn src/application/report_presentation_cli.bqn "$base_dir" >/dev/null 2>&1; then
+      pass "canonical Actual and Report policy admission succeeded"
     else
-      fail "canonical read pipeline rejected Household root"
+      fail "canonical Actual or Report policy admission failed"
       failures=$((failures + 1)); data_ok=0
     fi
   else
