@@ -9,7 +9,9 @@ empty ← ⟨⟩
 MetaValues ← {𝕊 key‿metadata: {𝕩.value}¨({key≡𝕩.key}¨metadata)/metadata}
 MetaOne ← {𝕊 key‿metadata:
   values ← MetaValues ⟨key,metadata⟩
-  {count⇐≠values,value⇐(0<≠values)⊑""‿⊑values}
+  value ← ""
+  {𝕊:value↩⊑values}⍟(0<≠values) @
+  {count⇐≠values,value⇐value}
 }
 Diagnostic ← {𝕊 code‿message:
   {severity⇐"error",stage⇐"application_household_daily_scope",code⇐code,message⇐message}
