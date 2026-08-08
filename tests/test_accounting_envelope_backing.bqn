@@ -23,7 +23,7 @@ Join ← {𝕊 fields:
   out
 }
 AccountIndex ← {𝕊 key‿accounts: ⊑accounts.key⊐⟨key⟩}
-Household ← {𝕊 accounts‿allocationKey‿unassignedKeys:
+MakeHouseholdPolicy ← {𝕊 accounts‿allocationKey‿unassignedKeys:
   {
     state⇐"ok",source_name⇐"household.toml",
     budget⇐{
@@ -54,7 +54,7 @@ budget ← (canonicalBudget.Build ⟨budgetRaw,actual.accounts,registry⟩).fact
 policyRaw ← •FChars "../"∾base∾"budget.toml"
 policy ← budgetPolicyAdmission.Admit ⟨policyRaw,actual.accounts⟩
 "ok" lib.AssertEq policy.state
-household ← Household ⟨actual.accounts,"budget:food",⟨"budget:unassigned"⟩⟩
+household ← MakeHouseholdPolicy ⟨actual.accounts,"budget:food",⟨"budget:unassigned"⟩⟩
 
 result ← envelopes.Build ⟨budget,policy,household,actual,plan,"JPY",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-12"⟩
 "ok" lib.AssertEq result.state
@@ -105,7 +105,7 @@ syntheticPlan ← (canonicalPlan.Build ⟨Raw ⟨"2026-01-15 open-food","  ; pla
 syntheticBudget ← (canonicalBudget.Build ⟨Raw ⟨"2026-01-01 seed","  budget:opening     -20 JPY","  budget:unassigned   20 JPY","","2026-01-01 allocate","  budget:unassigned  -20 JPY","  budget:food         20 JPY"⟩,syntheticActual.accounts,registry⟩).facts
 syntheticPolicy ← budgetPolicyAdmission.Admit ⟨policyRaw,syntheticActual.accounts⟩
 "ok" lib.AssertEq syntheticPolicy.state
-syntheticHousehold ← Household ⟨syntheticActual.accounts,"budget:food",⟨"budget:unassigned"⟩⟩
+syntheticHousehold ← MakeHouseholdPolicy ⟨syntheticActual.accounts,"budget:food",⟨"budget:unassigned"⟩⟩
 synthetic ← envelopes.Build ⟨syntheticBudget,syntheticPolicy,syntheticHousehold,syntheticActual,syntheticPlan,"JPY",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-10"⟩
 "ok" lib.AssertEq synthetic.state
 ⟨20⟩ lib.AssertEq synthetic.envelopes.entitlement
@@ -131,7 +131,7 @@ duplicateRaw ← syntheticRaw∾lf∾lf∾∾⟨
   "2026-01-09 * duplicate two",lf,"    ; event-id: duplicate-two",lf,"    ; layer: actual",lf,"    ; currency: JPY",lf,"    ; plan-id: open-food",lf,"    expenses:food 4 JPY",lf,"    assets:cash -4 JPY",lf
 ⟩
 duplicateActual ← (snapshot.Build ⟨syntheticLines,duplicateRaw,registry⟩).facts
-duplicateHousehold ← Household ⟨duplicateActual.accounts,"budget:food",⟨"budget:unassigned"⟩⟩
+duplicateHousehold ← MakeHouseholdPolicy ⟨duplicateActual.accounts,"budget:food",⟨"budget:unassigned"⟩⟩
 duplicateCompletion ← envelopes.Build ⟨syntheticBudget,syntheticPolicy,duplicateHousehold,duplicateActual,syntheticPlan,"JPY",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-10"⟩
 "error" lib.AssertEq duplicateCompletion.state
 0 lib.AssertEq duplicateCompletion.envelopes.count
@@ -159,7 +159,7 @@ overflowPolicyRaw ← Raw ⟨
 overflowPolicy ← budgetPolicyAdmission.Admit ⟨overflowPolicyRaw,overflowActual.accounts⟩
 "ok" lib.AssertEq overflowPolicy.state
 overflowPlan ← (canonicalPlan.Build ⟨"",overflowActual.accounts,registry⟩).facts
-overflowHousehold ← Household ⟨overflowActual.accounts,"budget:food-ils",⟨"budget:unassigned-ils"⟩⟩
+overflowHousehold ← MakeHouseholdPolicy ⟨overflowActual.accounts,"budget:food-ils",⟨"budget:unassigned-ils"⟩⟩
 overflow ← envelopes.Build ⟨overflowBudget,overflowPolicy,overflowHousehold,overflowActual,overflowPlan,"ILS",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-10"⟩
 "error" lib.AssertEq overflow.state
 0 lib.AssertEq overflow.envelopes.count
