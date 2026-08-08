@@ -6,18 +6,27 @@ fixture=fixtures/ledger-facts-phase1-proof
 work=$(mktemp -d "${TMPDIR:-/tmp}/bqn-ledger-summary.XXXXXX")
 trap 'rm -rf "$work"' EXIT
 
+Compare() {
+  local actual=$1 expected=$2 label=$3
+  cmp "$actual" "$expected" || {
+    echo "FAIL: $label" >&2
+    diff -u "$expected" "$actual" >&2 || true
+    exit 1
+  }
+}
+
 ./tools/report-summary "$fixture" JPY 2026-01-12 >"$work/summary"
-cmp "$work/summary" "$fixture/report_summary.destination.txt"
+Compare "$work/summary" "$fixture/report_summary.destination.txt" 'canonical compact summary mismatch'
 if rg -n 'src_next_|SrcNext|src-next' "$work/summary"; then
   echo 'FAIL: generation name leaked into destination summary' >&2; exit 1
 fi
 [[ $(grep -c '^--- Ledger ' "$work/summary") -eq 5 ]]
 awk -F': ' '$1 ~ /^ledger_[a-z0-9_]+$/ {print}' "$work/summary" >"$work/ledger-lines"
 ./tools/query "$fixture" JPY --list 2026-01-12 >"$work/query-list"
-cmp "$work/ledger-lines" "$work/query-list"
+Compare "$work/query-list" "$work/ledger-lines" 'query --list differs from canonical compact summary'
 awk -F': ' '$1 ~ /^ledger_[a-z0-9_]+$/ && !seen[$1]++ {print $1}' "$work/summary" >"$work/keys"
 ./tools/query "$fixture" JPY --keys 2026-01-12 >"$work/query-keys"
-cmp "$work/keys" "$work/query-keys"
+Compare "$work/query-keys" "$work/keys" 'query --keys differs from canonical compact summary'
 printf '%s\n' \
   'assets:cash/JPY 965' \
   'income:salary/JPY -1000' \
@@ -28,7 +37,7 @@ printf '%s\n' \
   'budget:food/JPY 0' \
   'budget:spent/JPY 0' >"$work/expected-balances"
 ./tools/query "$fixture" JPY ledger_balance 2026-01-12 >"$work/balances"
-cmp "$work/expected-balances" "$work/balances"
+Compare "$work/balances" "$work/expected-balances" 'ledger_balance query mismatch'
 ./tools/query "$fixture" JPY ledger_daily_target_amount 2026-01-12 >"$work/daily-target"
 [[ -s $work/daily-target ]]
 
@@ -66,6 +75,6 @@ grep -F 'report_policy_positive_integer_invalid' "$work/bad.err" >/dev/null
   cd "$work"
   "$root/tools/report-summary" "$root/$fixture" JPY 2026-01-12 >from-empty-cwd
 )
-cmp "$work/from-empty-cwd" "$work/summary"
+Compare "$work/from-empty-cwd" "$work/summary" 'empty-cwd compact summary mismatch'
 
 echo 'check-report-summary-query: OK'
