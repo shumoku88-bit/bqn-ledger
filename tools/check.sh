@@ -7,7 +7,12 @@ cd "$root"
 echo '[1/3] BQN tests' >&2
 for test_file in tests/test_*.bqn; do
   [[ -f $test_file ]] || continue
-  bqn "$test_file" >/dev/null || { echo "FAIL: $test_file" >&2; bqn "$test_file"; exit 1; }
+  bqn "$test_file" >/dev/null || {
+    echo "FAIL: $test_file" >&2
+    echo "::error file=$test_file::BQN test failed"
+    bqn "$test_file"
+    exit 1
+  }
 done
 
 echo '[2/3] final report checks' >&2
@@ -25,7 +30,11 @@ for check in \
   checks/check-report-section-metadata.sh \
   checks/check-report-summary-query.sh \
   checks/check-ledger-operations.sh; do
-  bash "$check" >/dev/null || { echo "FAIL: $check" >&2; exit 1; }
+  bash "$check" >/dev/null || {
+    echo "FAIL: $check" >&2
+    echo "::error file=$check::Repository check failed"
+    exit 1
+  }
 done
 
 echo '[3/3] repository/editor/tool checks' >&2
@@ -47,7 +56,11 @@ checks=(
 )
 for name in "${checks[@]}"; do
   [[ -f checks/$name ]] || continue
-  bash "checks/$name" >/dev/null || { echo "FAIL: checks/$name" >&2; exit 1; }
+  if ! bash "checks/$name" >/dev/null; then
+    echo "FAIL: checks/$name" >&2
+    echo "::error file=checks/$name::Repository check failed"
+    exit 1
+  fi
 done
 
 if rg -n 'src_next/|tools/report-(next|destination)|tools/query-destination' \
