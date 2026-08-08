@@ -153,7 +153,7 @@ DailyTarget ← {𝕊 coordinates:
 Issues ← {𝕊 coordinates:
   (1=≠coordinates)◶⟨
     {𝕊:Reject ⟨"usage_issues","issues requires ISSUE_BASENAME"⟩},
-    {𝕊:Accept ⟨coordinates,⟨"issues_source"⟩,⟨0⟩,⟨"tsv"⟩,⟨"issues"⟩}
+    {𝕊:Accept ⟨coordinates,⟨"issues_source"⟩,⟨0⟩,⟨"tsv"⟩,⟨"issues"⟩⟩}
   ⟩ @
 }
 
