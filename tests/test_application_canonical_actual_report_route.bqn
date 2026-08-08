@@ -18,8 +18,7 @@ cases ← ⟨
   ⟨"actual"⟩ lib.AssertEq admitted.sources.role
   ⟨"actual.journal"⟩ lib.AssertEq admitted.sources.name
 
-  rejectedCoordinates ← coordinates
-  rejectedCoordinates ((≠coordinates)-1)⊸⊑↩ <"legacy.journal"
+  rejectedCoordinates ← (¯1↓coordinates) ∾ ⟨"legacy.journal"⟩
   rejected ← route.Admit ⟨key,surface,rejectedCoordinates⟩
   "error" lib.AssertEq rejected.state
   "actual_source_not_canonical" lib.AssertEq (⊑rejected.diagnostics).code
