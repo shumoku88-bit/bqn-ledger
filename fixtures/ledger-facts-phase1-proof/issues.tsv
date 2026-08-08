@@ -1,0 +1,4 @@
+issue_id	status	date	category	title	amount	currency	details
+subscription-review	open	2026-01-18	subscription	Review public demo service	12.30	ILS	Decide whether the synthetic annual plan is still useful.
+missing-receipt	open		documentation	Attach synthetic receipt			No monetary estimate is admitted.
+resolved-demo	resolved	2026-01-05	decision	Choose demo account	1000	JPY	Resolved in the public fixture.
