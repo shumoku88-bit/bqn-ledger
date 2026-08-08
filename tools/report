@@ -134,6 +134,11 @@ IFS=$'\t' read -r record plan_key plan_surface coordinate_count source_count ext
 (( ${#route_plan_lines[@]} == source_count + 1 )) \
   || route_plan_error 'route source count differs from SOURCE rows'
 
+canonical_actual_only=0
+case "$key" in
+  balances|balance-sheet|profit-and-loss|recent|monthly-accounts|daily-flow) canonical_actual_only=1 ;;
+esac
+
 explicit_sources=()
 needs_accounts=0
 seen_source_indices=' '
@@ -166,7 +171,13 @@ for ((line_index=1; line_index<${#route_plan_lines[@]}; line_index++)); do
 done
 
 required_sources=()
-(( needs_accounts == 0 )) || required_sources+=(accounts.tsv)
+if (( needs_accounts != 0 )); then
+  if (( canonical_actual_only != 0 )); then
+    required_sources+=(accounts.journal)
+  else
+    required_sources+=(accounts.tsv)
+  fi
+fi
 required_sources+=("${explicit_sources[@]}")
 
 if [[ ! -r config/currencies.tsv ]]; then
