@@ -102,13 +102,13 @@ PostingDomains ← {𝕊 blockLines:
   {domains⇐⍷ domains, diagnostics⇐diagnostics}
 }
 
-BuildPartition ← {𝕊 domain‿domainLine‿admittedAccounts‿blockLines‿blockStart:
+BuildPartition ← {𝕊 domain‿domainLine‿structuralAccountKeys‿blockLines‿blockStart:
   partitionLines ← ⟨"commodity " ∾ domain, ""⟩
   lineMap ← ⟨domainLine, 0⟩
   {𝕊 accountKey:
     partitionLines ∾↩ ⟨"account "∾accountKey, ""⟩
     lineMap ∾↩ ⟨0,0⟩
-  }¨ admittedAccounts.key
+  }¨ structuralAccountKeys
   partitionLines ∾↩ blockLines
   lineMap ∾↩ blockStart + 1 + ↕ ≠ blockLines
   {raw⇐∾ (partitionLines ∾¨ lf), line_map⇐lineMap}
@@ -191,6 +191,8 @@ Admit ← {𝕊 raw‿accounts‿registry:
   diagnostics ← declarations.diagnostics
   transactions ← empty
   starts ← (IsDateHeader¨ Trim¨ lines) / ↕ ≠ lines
+  structuralAccountKeys ← accounts.key
+  {𝕊: structuralAccountKeys↩{𝕩.account_key}¨declarations.accounts}⍟(0<≠declarations.accounts) @
 
   {𝕊:
     {𝕊 transactionIndex:
@@ -213,7 +215,7 @@ Admit ← {𝕊 raw‿accounts‿registry:
         {𝕊:
           domainLine ← DomainSourceLine ⟨domain, declarations⟩
           {𝕊: domainLine ↩ start + 1}⍟(0=domainLine) @
-          partition ← BuildPartition ⟨domain, domainLine, accounts, blockLines, start⟩
+          partition ← BuildPartition ⟨domain, domainLine, structuralAccountKeys, blockLines, start⟩
           admitted ← single.Admit ⟨partition.raw,accounts,registry⟩
           localDiagnostics ∾↩ {MapDiagnostic ⟨𝕩, partition.line_map⟩}¨ admitted.diagnostics
           {𝕊:
