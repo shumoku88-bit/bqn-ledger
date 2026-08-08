@@ -25,14 +25,22 @@ fi
 [[ $status -eq 2 ]] || { echo 'FAIL: invalid route arity did not preserve exit 2' >&2; exit 1; }
 grep -F 'Usage:' "$tmp/arity" >/dev/null
 
-if ./tools/report "$fixture" envelopes human JPY \
+# The historical Plan coordinate remains in argv until report.toml removes it,
+# but it no longer names a physical source. Even a path-shaped value cannot
+# redirect canonical Plan I/O away from Household plan.journal.
+./tools/report "$fixture" envelopes human JPY \
   2026-01-01 2026-02-01 2026-01-12 actual.journal bad/plan.tsv budget_alloc.tsv assets:cash \
-  >"$tmp/envelope-basename" 2>&1; then
-  echo 'FAIL: unsafe envelope Plan basename succeeded' >&2
+  >"$tmp/plan-coordinate"
+cmp "$tmp/plan-coordinate" "$fixture/envelope_backing.destination.human.txt"
+
+if ./tools/report "$fixture" envelopes human JPY \
+  2026-01-01 2026-02-01 2026-01-12 actual.journal plan.tsv bad/budget.tsv assets:cash \
+  >"$tmp/budget-basename" 2>&1; then
+  echo 'FAIL: unsafe Budget basename succeeded' >&2
   exit 1
 fi
-grep -Fx $'ERROR\tsource_basename_invalid\tPlan and Budget must be safe .tsv basenames' \
-  "$tmp/envelope-basename" >/dev/null
+grep -F $'ERROR\tsource_basename_invalid\tBudget must be a safe .tsv basename' \
+  "$tmp/budget-basename" >/dev/null
 
 if ./tools/report "$fixture" issues human bad/issues.tsv >"$tmp/issues-basename" 2>&1; then
   echo 'FAIL: unsafe Issue basename succeeded' >&2
