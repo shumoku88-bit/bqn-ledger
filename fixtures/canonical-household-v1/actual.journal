@@ -2,18 +2,18 @@ include accounts.journal
 
 2026-01-01 * Opening
   Assets:Bank  100000 JPY
-  Equity:Opening  -100000 JPY
+  Equity:Opening
 
 2026-01-05 * Salary
   Assets:Bank  50000 JPY
-  Income:Salary  -50000 JPY
+  Income:Salary
 
 2026-01-10 * Groceries
   ; event-id: actual-001
   Assets:Bank  -5000 JPY
-  Expenses:Groceries  5000 JPY
+  Expenses:Groceries
 
 2026-01-15 * Planned groceries completed
   ; plan-id: plan-groceries
   Assets:Bank  -4000 JPY
-  Expenses:Groceries  4000 JPY
+  Expenses:Groceries
