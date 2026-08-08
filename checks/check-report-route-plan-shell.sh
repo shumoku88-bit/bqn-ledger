@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+trap 'status=$?; echo "FAIL: check-report-route-plan-shell line $LINENO" >&2; echo "::error file=checks/check-report-route-plan-shell.sh,line=$LINENO::route-plan shell check failed" >&2; exit "$status"' ERR
 
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
