@@ -1,11 +1,10 @@
-# Non-authoritative canonical Actual Fact/provenance inspection. Legacy JOURNAL
-# coordinate remains temporarily in CLI shape but cannot redirect source I/O.
+# Non-authoritative canonical Actual Fact/provenance inspection.
 
 sources ← •Import "report_source_adapter.bqn"
 tab ← @+9 ⋄ args ← •args
 Fail ← {𝕊 diagnostics:{𝕊 diagnostic:•Out "ERROR"∾tab∾diagnostic.stage∾tab∾diagnostic.code∾tab∾diagnostic.message}¨diagnostics ⋄ •Exit 1}
-{𝕊:•Out "ERROR"∾tab∾"usage"∾tab∾"expected BASE JOURNAL until canonical CLI cleanup" ⋄ •Exit 2}⍟(2≠≠args) @
-base‿journalCoordinate ← args ⋄ journalCoordinate
+{𝕊:•Out "ERROR"∾tab∾"usage"∾tab∾"expected canonical Household BASE" ⋄ •Exit 2}⍟(1≠≠args) @
+base ← ⊑args
 registryResult ← sources.Registry "config/currencies.tsv"
 {𝕊:•Out "ERROR"∾tab∾"currency_registry"∾tab∾registryResult.code∾tab∾registryResult.message ⋄ •Exit 1}⍟(registryResult.state≢"ok") @
 actual ← sources.CanonicalActual ⟨base,registryResult.registry⟩
