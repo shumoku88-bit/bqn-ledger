@@ -13,14 +13,14 @@ expected ← ⟨
   "issues.tsv"
 ⟩
 
-! "accounts.journal" ≡ sources.Accounts
-! "actual.journal" ≡ sources.Actual
-! "plan.journal" ≡ sources.Plan
-! "budget.journal" ≡ sources.Budget
-! "budget.toml" ≡ sources.BudgetPolicy
-! "household.toml" ≡ sources.HouseholdPolicy
-! "report.toml" ≡ sources.ReportPolicy
-! "issues.tsv" ≡ sources.Issues
-! expected ≡ sources.Basenames
+! "accounts.journal" ≡ sources.accounts
+! "actual.journal" ≡ sources.actual
+! "plan.journal" ≡ sources.plan
+! "budget.journal" ≡ sources.budget
+! "budget.toml" ≡ sources.budgetPolicy
+! "household.toml" ≡ sources.householdPolicy
+! "report.toml" ≡ sources.reportPolicy
+! "issues.tsv" ≡ sources.issues
+! expected ≡ sources.basenames
 
 •Out "test_application_canonical_household_sources passed"
