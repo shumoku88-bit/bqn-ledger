@@ -59,7 +59,7 @@ done
 
 echo ""
 
-# ── Data directory ──
+# ── Canonical Household root ──
 echo "Data:"
 base_source="config/system_defaults.tsv DEFAULT_BASE_DIR"
 if [[ -n "${LEDGER_DATA_DIR:-}" ]]; then
@@ -70,34 +70,20 @@ data_ok=1
 info "base dir ($base_source): $base_dir"
 
 if [[ -d "$base_dir" ]]; then
-  mapfile -t missing_required < <(ledger_base_missing_required "$base_dir")
+  mapfile -t missing_required < <(canonical_report_base_missing_required "$base_dir")
   if [[ ${#missing_required[@]} -eq 0 ]]; then
-    pass "report base files present: accounts.tsv cycle.tsv"
-    if actual_file="$(bqn src_edit/actual_journal_file_cmd.bqn "$base_dir" 2>&1)" && [[ -n "$actual_file" && -f "$base_dir/$actual_file" ]]; then
-      pass "configured native Journal present: $actual_file"
-      if journal_check="$(bqn src_edit/journal_validate_cmd.bqn "$base_dir" 2>&1)"; then
-        pass "configured native Journal context is valid"
-      else
-        fail "configured native Journal validation failed"
-        failures=$((failures + 1)); data_ok=0
-      fi
+    pass "canonical Household root files present: 8"
+    if NO_COLOR=1 "$ROOT_DIR/tools/main-ui.sh" --base "$base_dir" balances >/dev/null 2>&1; then
+      pass "canonical read pipeline accepts Household root"
     else
-      fail "configured native Journal is missing or invalid"
+      fail "canonical read pipeline rejected Household root"
       failures=$((failures + 1)); data_ok=0
     fi
   else
-    fail "missing report base file(s): ${missing_required[*]}"
+    fail "missing canonical Household file(s): ${missing_required[*]}"
     failures=$((failures + 1))
     data_ok=0
   fi
-
-  for f in plan.tsv budget_alloc.tsv config.tsv; do
-    if [[ -f "$base_dir/$f" ]]; then
-      pass "$f"
-    else
-      warn "$f missing (some views or write paths may be unavailable)"
-    fi
-  done
 else
   fail "base dir not found: $base_dir"
   failures=$((failures + 1))
@@ -105,12 +91,7 @@ else
 fi
 
 if [[ "$data_ok" -eq 0 ]]; then
-  if suggestion="$(ledger_suggest_base_dir)"; then
-    warn "candidate data directory found: $suggestion"
-    info "try: export LEDGER_DATA_DIR=$suggestion"
-  else
-    warn "no local candidate data directory found"
-  fi
+  warn "set LEDGER_DATA_DIR or pass --base to a canonical Household root"
 fi
 
 echo ""
