@@ -4,7 +4,9 @@ lib ← •Import "test_lib.bqn"
 policyAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
 
 lf ← @+10
+quote ← @+34
 Raw ← {𝕊 lines: ∾lines∾¨lf}
+Q ← {𝕊 text: ⟨quote⟩∾text∾⟨quote⟩}
 HasCode ← {𝕊 code‿diagnostics: ∨´0∾{𝕩.code≡code}¨diagnostics}
 accounts ← {
   count⇐4,index⇐↕4,
@@ -14,20 +16,20 @@ accounts ← {
 
 validRaw ← Raw ⟨
   "[[backing-pools]]",
-  "id = \"cash\"",
-  "asset-accounts = [\"Assets:Cash\", \"Assets:Savings\"]","",
+  "id = "∾(Q "cash"),
+  "asset-accounts = ["∾(Q "Assets:Cash")∾", "∾(Q "Assets:Savings")∾"]","",
   "[[envelopes]]",
-  "id = \"food\"",
-  "label = \"Food\"",
-  "pacing = \"daily\"",
-  "backing-pool = \"cash\"",
-  "expense-accounts = [\"Expenses:Food\"]","",
+  "id = "∾(Q "food"),
+  "label = "∾(Q "Food"),
+  "pacing = "∾(Q "daily"),
+  "backing-pool = "∾(Q "cash"),
+  "expense-accounts = ["∾(Q "Expenses:Food")∾"]","",
   "[[envelopes]]",
-  "id = \"books\"",
-  "label = \"Books\"",
-  "pacing = \"flex\"",
-  "backing-pool = \"cash\"",
-  "expense-accounts = [\"Expenses:Books\"]"
+  "id = "∾(Q "books"),
+  "label = "∾(Q "Books"),
+  "pacing = "∾(Q "flex"),
+  "backing-pool = "∾(Q "cash"),
+  "expense-accounts = ["∾(Q "Expenses:Books")∾"]"
 ⟩
 valid ← policyAdmission.Admit ⟨validRaw,accounts⟩
 "ok" lib.AssertEq valid.state
@@ -47,23 +49,23 @@ valid ← policyAdmission.Admit ⟨validRaw,accounts⟩
 ⟨"cash","cash"⟩ lib.AssertEq valid.asset_backing_pool_id
 
 duplicateExpense ← policyAdmission.Admit ⟨Raw ⟨
-  "[[backing-pools]]","id = \"cash\"","asset-accounts = [\"Assets:Cash\"]","",
-  "[[envelopes]]","id = \"food\"","label = \"Food\"","pacing = \"daily\"","backing-pool = \"cash\"","expense-accounts = [\"Expenses:Food\"]","",
-  "[[envelopes]]","id = \"shared\"","label = \"Shared\"","pacing = \"flex\"","backing-pool = \"cash\"","expense-accounts = [\"Expenses:Food\"]"
+  "[[backing-pools]]","id = "∾(Q "cash"),"asset-accounts = ["∾(Q "Assets:Cash")∾"]","",
+  "[[envelopes]]","id = "∾(Q "food"),"label = "∾(Q "Food"),"pacing = "∾(Q "daily"),"backing-pool = "∾(Q "cash"),"expense-accounts = ["∾(Q "Expenses:Food")∾"]","",
+  "[[envelopes]]","id = "∾(Q "shared"),"label = "∾(Q "Shared"),"pacing = "∾(Q "flex"),"backing-pool = "∾(Q "cash"),"expense-accounts = ["∾(Q "Expenses:Food")∾"]"
 ⟩,accounts⟩
 "error" lib.AssertEq duplicateExpense.state
 lib.Assert HasCode ⟨"expense_account_assignment_duplicate",duplicateExpense.diagnostics⟩
 
 wrongRole ← policyAdmission.Admit ⟨Raw ⟨
-  "[[backing-pools]]","id = \"cash\"","asset-accounts = [\"Expenses:Food\"]","",
-  "[[envelopes]]","id = \"food\"","label = \"Food\"","pacing = \"daily\"","backing-pool = \"cash\"","expense-accounts = [\"Expenses:Food\"]"
+  "[[backing-pools]]","id = "∾(Q "cash"),"asset-accounts = ["∾(Q "Expenses:Food")∾"]","",
+  "[[envelopes]]","id = "∾(Q "food"),"label = "∾(Q "Food"),"pacing = "∾(Q "daily"),"backing-pool = "∾(Q "cash"),"expense-accounts = ["∾(Q "Expenses:Food")∾"]"
 ⟩,accounts⟩
 "error" lib.AssertEq wrongRole.state
 lib.Assert HasCode ⟨"budget_policy_asset_account_role_invalid",wrongRole.diagnostics⟩
 
 unknownPool ← policyAdmission.Admit ⟨Raw ⟨
-  "[[backing-pools]]","id = \"cash\"","asset-accounts = [\"Assets:Cash\"]","",
-  "[[envelopes]]","id = \"food\"","label = \"Food\"","pacing = \"daily\"","backing-pool = \"missing\"","expense-accounts = [\"Expenses:Food\"]"
+  "[[backing-pools]]","id = "∾(Q "cash"),"asset-accounts = ["∾(Q "Assets:Cash")∾"]","",
+  "[[envelopes]]","id = "∾(Q "food"),"label = "∾(Q "Food"),"pacing = "∾(Q "daily"),"backing-pool = "∾(Q "missing"),"expense-accounts = ["∾(Q "Expenses:Food")∾"]"
 ⟩,accounts⟩
 "error" lib.AssertEq unknownPool.state
 lib.Assert HasCode ⟨"envelope_backing_pool_unknown",unknownPool.diagnostics⟩
