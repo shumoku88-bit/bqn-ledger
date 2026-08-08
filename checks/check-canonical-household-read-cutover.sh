@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+trap 'status=$?; echo "FAIL: check-canonical-household-read-cutover line $LINENO" >&2; echo "::error file=checks/check-canonical-household-read-cutover.sh,line=$LINENO::canonical Household cutover check failed" >&2; exit "$status"' ERR
 
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
