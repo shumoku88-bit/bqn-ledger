@@ -1,0 +1,39 @@
+account assets:bank
+  type: Asset
+  commodity: JPY
+
+account expenses:食費
+  type: Expense
+  commodity: JPY
+
+account expenses:日用品
+  type: Expense
+  commodity: JPY
+
+account expenses:家賃
+  type: Expense
+  commodity: JPY
+
+account income:年金
+  type: Income
+  commodity: JPY
+
+account equity:opening-balances
+  type: Equity
+  commodity: JPY
+
+account budget:食費
+  type: Budget
+  commodity: JPY
+
+account budget:一般生活
+  type: Budget
+  commodity: JPY
+
+account budget:opening
+  type: Budget
+  commodity: JPY
+
+account budget:spent
+  type: Budget
+  commodity: JPY
