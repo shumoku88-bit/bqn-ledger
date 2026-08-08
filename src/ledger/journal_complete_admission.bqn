@@ -2,10 +2,11 @@
 # Production complete-source admission for a multi-currency Journal container.
 #
 # One raw Journal may declare several registry-supported currency domains, or
-# omit top-level commodity declarations and let transaction postings establish
-# their domains. Every ordinary transaction remains single-domain and balances
-# within its own exact calculation scale. A transaction-free Journal is valid.
-# No Journal-wide money domain, scale, or total exists.
+# omit top-level commodity declarations when Account identity is owned outside
+# the Journal. Legacy inline-Account Journals retain their explicit commodity
+# declaration contract. Every ordinary transaction remains single-domain and
+# balances within its own exact calculation scale. A transaction-free Journal
+# is valid. No Journal-wide money domain, scale, or total exists.
 
 dates ← •Import "date_ordinal.bqn"
 single ← •Import "journal_single_domain_admission.bqn"
@@ -189,6 +190,8 @@ Admit ← {𝕊 raw‿accounts‿registry:
   lines ← SplitKeepEmpty ⟨lf,normalizedRaw⟩
   declarations ← Declarations ⟨lines,registry⟩
   diagnostics ← declarations.diagnostics
+  inlineAccounts ← 0<≠declarations.accounts
+  diagnostics ∾↩ AddIf ⟨inlineAccounts ∧ 0=≠declarations.domains, Diagnostic ⟨"commodity_domain_missing",0,"Journal with inline Account declarations must declare at least one commodity domain"⟩⟩
   transactions ← empty
   starts ← (IsDateHeader¨ Trim¨ lines) / ↕ ≠ lines
 
@@ -226,7 +229,7 @@ Admit ← {𝕊 raw‿accounts‿registry:
       }⍟(shapeOk ∧ domainCountOk) @
       diagnostics ∾↩ localDiagnostics
     }¨ ↕ ≠ starts
-  }⍟(0 = ≠ declarations.diagnostics) @
+  }⍟(0 = ≠ diagnostics) @
 
   diagnostics ∾↩ CrossTransactionDiagnostics transactions
   {𝕊: transactions ↩ empty}⍟(0 < ≠ diagnostics) @
