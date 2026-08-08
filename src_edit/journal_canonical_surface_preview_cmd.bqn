@@ -7,11 +7,9 @@ outputPath ← 1 ⊑ args
 
 rewrite ← •Import "journal_canonical_surface_rewrite.bqn"
 loader ← •Import "../src/application/source_io.bqn"
-actualConfig ← •Import "../src/application/actual_journal_config.bqn"
+canonical ← •Import "../src/application/canonical_household_sources.bqn"
 
-resolved ← actualConfig.Resolve baseDir
-relPath ← resolved.file
-{𝕊: relPath ↩ "data/" ∾ resolved.file}⍟(0 = ⊑ •SH ⟨"test", "-f", baseDir ∾ "/data/" ∾ resolved.file⟩) @
+relPath ← canonical.actual
 sourcePath ← baseDir ∾ "/" ∾ relPath
 
 # Reject if source path and output path resolve to the exact same string
@@ -26,7 +24,6 @@ res ← rewrite.BuildCandidate raw
 tab ← @+9
 
 {FB:
-  # Output file write
   outputPath •FChars res.candidate_raw
   •Out "OK" ∾ tab ∾ "CANONICAL_PREVIEW" ∾ tab ∾ relPath ∾ tab ∾ outputPath
 }⍟(res.state ≡ "ok") @
