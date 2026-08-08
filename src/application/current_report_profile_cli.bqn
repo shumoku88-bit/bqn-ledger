@@ -66,17 +66,16 @@ latestOrdinal ← ⌈´actual.facts.transactions.date_ordinal
 latestIndex ← ⊑(latestOrdinal=actual.facts.transactions.date_ordinal)⊐1
 observation ← latestIndex⊑actual.facts.transactions.date_text
 
-profileSources ← profile.SourceNames admissions
-currentCycleName ← profileSources.current_cycle
-comparisonCurrentName ← profileSources.comparison_current_cycle
-baselineCycleName ← profileSources.baseline_cycle
-planName ← profileSources.plan
+cycleSources ← profile.CycleSourceNames admissions
+currentCycleName ← cycleSources.current_cycle
+comparisonCurrentName ← cycleSources.comparison_current_cycle
+baselineCycleName ← cycleSources.baseline_cycle
 {𝕊:Fail ⟨"current_cycle_source_mismatch","Cycle Accounts and Cycle Comparison must share the current Cycle source"⟩}⍟(currentCycleName≢comparisonCurrentName) @
 {𝕊:Fail ⟨"current_comparison_policy_unsupported","current profile requires aligned_elapsed Cycle Comparison"⟩}⍟((profile.ComparisonPolicy admissions)≢"aligned_elapsed") @
-sourceNamesOk ← (SafeBasename currentCycleName) ∧ (SafeBasename baselineCycleName) ∧ SafeBasename planName
-sourceSuffixesOk ← (EndsWith ⟨".tsv",currentCycleName⟩) ∧ (EndsWith ⟨".tsv",baselineCycleName⟩) ∧ EndsWith ⟨".tsv",planName⟩
-{𝕊:Fail ⟨"source_basename_invalid","Cycle and Plan sources must be safe .tsv basenames"⟩}⍟(¬(sourceNamesOk ∧ sourceSuffixesOk)) @
-plan ← sources.Plan ⟨base,planName,actual.facts.accounts,registry⟩
+sourceNamesOk ← (SafeBasename currentCycleName) ∧ SafeBasename baselineCycleName
+sourceSuffixesOk ← (EndsWith ⟨".tsv",currentCycleName⟩) ∧ EndsWith ⟨".tsv",baselineCycleName⟩
+{𝕊:Fail ⟨"source_basename_invalid","Cycle sources must be safe .tsv basenames"⟩}⍟(¬(sourceNamesOk ∧ sourceSuffixesOk)) @
+plan ← sources.CanonicalPlan ⟨base,registry⟩
 {𝕊:PrintDiagnostics plan.diagnostics}⍟(plan.state≢"ok") @
 currentAdmission ← cycleAdmission.Admit ⟨sources.CycleLines ⟨base,currentCycleName⟩,actual.facts.accounts⟩
 {𝕊:PrintDiagnostics currentAdmission.diagnostics}⍟(currentAdmission.state≢"ok") @
