@@ -6,18 +6,24 @@ budgetSnapshot ← •Import "../src/ledger/budget_snapshot.bqn"
 canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 envelopes ← •Import "../src/accounting/envelope_backing.bqn"
-registry ← (registry_core.Build ⟨"JPY\t0\t¥"⟩).registry
 lf ← @+10
+tab ← @+9
 Raw ← {𝕊 lines: ∾lines∾¨lf}
+Join ← {𝕊 fields:
+  out ← ⊑fields
+  {𝕊 field: out∾↩tab∾field}¨1↓fields
+  out
+}
+registry ← (registry_core.Build ⟨Join ⟨"JPY","0","¥"⟩⟩).registry
 accounts ← ⟨
-  "assets:cash\trole=asset\ttype=liquid\tcurrency=JPY",
-  "expenses:food\trole=expense\tbudget=food\tcurrency=JPY",
-  "expenses:groceries\trole=expense\tbudget=food\tcurrency=JPY",
-  "expenses:transport\trole=expense\tbudget=transport\tcurrency=JPY",
-  "budget:opening\trole=budget\tkind=opening\tcurrency=JPY",
-  "budget:unassigned\trole=budget\tkind=unassigned\tcurrency=JPY",
-  "budget:food\trole=budget\tkind=envelope\tbudget=food\tcurrency=JPY",
-  "budget:transport\trole=budget\tkind=envelope\tbudget=transport\tcurrency=JPY"
+  Join ⟨"assets:cash","role=asset","type=liquid","currency=JPY"⟩,
+  Join ⟨"expenses:food","role=expense","budget=food","currency=JPY"⟩,
+  Join ⟨"expenses:groceries","role=expense","budget=food","currency=JPY"⟩,
+  Join ⟨"expenses:transport","role=expense","budget=transport","currency=JPY"⟩,
+  Join ⟨"budget:opening","role=budget","kind=opening","currency=JPY"⟩,
+  Join ⟨"budget:unassigned","role=budget","kind=unassigned","currency=JPY"⟩,
+  Join ⟨"budget:food","role=budget","kind=envelope","budget=food","currency=JPY"⟩,
+  Join ⟨"budget:transport","role=budget","kind=envelope","budget=transport","currency=JPY"⟩
 ⟩
 raw ← ∾⟨
   "commodity JPY",lf,lf,
@@ -56,9 +62,9 @@ planRaw ← Raw ⟨
 plan ← (canonicalPlan.Build ⟨planRaw,actual.accounts,registry⟩).facts
 budget ← (budgetSnapshot.Build ⟨
   ⟨
-    "2026-01-01\tseed\tbudget:opening\tbudget:unassigned\t30\tcurrency=JPY",
-    "2026-01-01\tfood\tbudget:unassigned\tbudget:food\t20\tcurrency=JPY",
-    "2026-01-01\ttransport\tbudget:unassigned\tbudget:transport\t10\tcurrency=JPY"
+    Join ⟨"2026-01-01","seed","budget:opening","budget:unassigned","30","currency=JPY"⟩,
+    Join ⟨"2026-01-01","food","budget:unassigned","budget:food","20","currency=JPY"⟩,
+    Join ⟨"2026-01-01","transport","budget:unassigned","budget:transport","10","currency=JPY"⟩
   ⟩,
   actual.accounts,registry
 ⟩).facts
