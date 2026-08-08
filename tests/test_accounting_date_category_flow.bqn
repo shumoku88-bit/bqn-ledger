@@ -53,14 +53,14 @@ late ← flow.Build ⟨facts,budgetPolicy,household,"JPY","actual",dates.Ordinal
 ⟨10,5⟩ lib.AssertEq late.expense_groups.coefficient
 
 scaleAccountLines ← ⟨
-  "assets:jpy\trole=asset\tcurrency=JPY",
-  "expenses:food\trole=expense\tcurrency=JPY",
-  "budget:food\trole=budget\tcurrency=JPY"
+  "assets:jpy	role=asset	currency=JPY",
+  "expenses:food	role=expense	currency=JPY",
+  "budget:food	role=budget	currency=JPY"
 ⟩
 scaleAccounts ← (account_admission.Admit ⟨scaleAccountLines,registry⟩).accounts
 scalePlanLines ← ⟨
-  "2026-01-10\twhole\tassets:jpy\texpenses:food\t25\tcurrency=JPY\tplan_id=p1",
-  "2026-01-10\tfraction\tassets:jpy\texpenses:food\t12.30\tcurrency=JPY\tplan_id=p2"
+  "2026-01-10	whole	assets:jpy	expenses:food	25	currency=JPY	plan_id=p1",
+  "2026-01-10	fraction	assets:jpy	expenses:food	12.30	currency=JPY	plan_id=p2"
 ⟩
 scaleFacts ← (companion_snapshot.Build ⟨scalePlanLines,⟨⟩,scaleAccounts,registry⟩).plan
 scaleBudgetPolicy ← {
