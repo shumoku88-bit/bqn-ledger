@@ -8,13 +8,15 @@ cases ← ⟨
   ⟨"balance-sheet","human",⟨"JPY","2026-01-15","actual.journal"⟩⟩,
   ⟨"profit-and-loss","human",⟨"JPY","2026-01-01","2026-02-01","actual.journal"⟩⟩,
   ⟨"recent","compact",⟨"3","actual.journal"⟩⟩,
-  ⟨"monthly-accounts","human",⟨"JPY","2026-01","2026-02","actual.journal"⟩⟩
+  ⟨"monthly-accounts","human",⟨"JPY","2026-01","2026-02","actual.journal"⟩⟩,
+  ⟨"daily-flow","human",⟨"JPY","2026-01-01","2026-02-01","2026-01-15","actual.journal"⟩⟩
 ⟩
 
 {𝕊 key‿surface‿coordinates:
   admitted ← route.Admit ⟨key,surface,coordinates⟩
   "ok" lib.AssertEq admitted.state
   ⟨"actual"⟩ lib.AssertEq admitted.sources.role
+  ⟨"canonical-journal"⟩ lib.AssertEq admitted.sources.kind
   ⟨"actual.journal"⟩ lib.AssertEq admitted.sources.name
 
   rejectedCoordinates ← (¯1↓coordinates) ∾ ⟨"legacy.journal"⟩
@@ -22,11 +24,5 @@ cases ← ⟨
   "error" lib.AssertEq rejected.state
   "actual_source_not_canonical" lib.AssertEq (⊑rejected.diagnostics).code
 }¨cases
-
-# Daily Flow also needs Household category policy currently carried by the legacy
-# Account path. It remains a normal Journal route until household.toml owns that axis.
-daily ← route.Admit ⟨"daily-flow","human",⟨"JPY","2026-01-01","2026-02-01","2026-01-15","legacy.journal"⟩⟩
-"ok" lib.AssertEq daily.state
-⟨"legacy.journal"⟩ lib.AssertEq daily.sources.name
 
 •Out "test_application_canonical_actual_report_route: ok"
