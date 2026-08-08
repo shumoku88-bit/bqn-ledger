@@ -1,163 +1,65 @@
 # src_edit/plan_list_cmd.bqn
-# Read-only BQN command for experimental `tools/edit-bqn plan list`.
+# Read-only BQN command for `tools/edit-bqn plan list`.
 #
 # Input args:
 #   <baseDir> <showAll: 0|1> <format: tsv|text> <temporal: all|overdue|upcoming> <asOf: YYYY-MM-DD|empty>
 #
 # `--format tsv` is a UI contract used by tools/add-ui.sh plan selection.
-# Keep byte/field compatibility with the Go editor:
+# Output fields remain:
 #   number plan_id date memo from to amount status display
 
-loader ← •Import "../src/application/source_io.bqn"
 validate ← •Import "validate.bqn"
-plan_id ← •Import "plan_id.bqn"
-defaults ← •Import "../src/application/system_defaults.bqn"
-actual_source ← •Import "../src/application/editor_actual.bqn"
-plan_status ← •Import "../src/accounting/plan_temporal_status.bqn"
+planRows ← •Import "../src/application/editor_plan_rows.bqn"
+planStatus ← •Import "../src/accounting/plan_temporal_status.bqn"
 
-sys ← defaults.Load @
-args ← •args
-tab ← @+9
-
-Fail ← {𝕊 msg:
-  •Out "ERROR" ∾ tab ∾ msg
+args ← •args ⋄ tab ← @+9
+Fail ← {𝕊 msg: •Out "ERROR"∾tab∾msg ⋄ •Exit 1}
+FailDiagnostics ← {𝕊 diagnostics:
+  {𝕊 d: •Out "ERROR"∾tab∾d.code∾tab∾d.message}¨diagnostics
   •Exit 1
 }
 
-{𝕊 ⋄ Fail "usage: plan_list_cmd.bqn <baseDir> <showAll: 0|1> <format: tsv|text> <temporal: all|overdue|upcoming> <asOf>"}⍟(5 ≠ ≠ args) @
+{𝕊:Fail "usage: plan_list_cmd.bqn <baseDir> <showAll: 0|1> <format: tsv|text> <temporal: all|overdue|upcoming> <asOf>"}⍟(5≠≠args) @
+baseDir‿showAllArg‿format‿temporal‿asOf ← args
 
-baseDir ← 0 ⊑ args
-showAllArg ← 1 ⊑ args
-format ← 2 ⊑ args
-temporal ← 3 ⊑ args
-asOf ← 4 ⊑ args
-
-validShowAll ← ∨´ showAllArg ⊸ ≡¨ "0"‿"1"
-{𝕊 ⋄ Fail ("invalid showAll flag: " ∾ showAllArg)}⍟(¬ validShowAll) @
-showAll ← showAllArg ≡ "1"
-
-validFormat ← ∨´ format ⊸ ≡¨ "tsv"‿"text"
-{𝕊 ⋄ Fail ("invalid format: " ∾ format ∾ " (expected 'tsv' or 'text')")}⍟(¬ validFormat) @
-validTemporal ← ∨´ temporal ⊸ ≡¨ "all"‿"overdue"‿"upcoming"
-{𝕊 ⋄ Fail ("invalid temporal filter: " ∾ temporal ∾ " (expected 'all', 'overdue', or 'upcoming')")}⍟(¬ validTemporal) @
-usesTemporal ← temporal ≢ "all"
-{𝕊 ⋄ Fail "--as-of is required for overdue/upcoming plan filtering"}⍟(usesTemporal ∧ 0=≠asOf) @
-{𝕊 ⋄ Fail "--all cannot be combined with overdue/upcoming plan filtering"}⍟(showAll ∧ usesTemporal) @
+{𝕊:Fail ("invalid showAll flag: "∾showAllArg)}⍟(¬∨´showAllArg⊸≡¨"0"‿"1") @
+showAll ← showAllArg≡"1"
+{𝕊:Fail ("invalid format: "∾format∾" (expected 'tsv' or 'text')")}⍟(¬∨´format⊸≡¨"tsv"‿"text") @
+{𝕊:Fail ("invalid temporal filter: "∾temporal∾" (expected 'all', 'overdue', or 'upcoming')")}⍟(¬∨´temporal⊸≡¨"all"‿"overdue"‿"upcoming") @
+usesTemporal ← temporal≢"all"
+{𝕊:Fail "--as-of is required for overdue/upcoming plan filtering"}⍟(usesTemporal ∧ 0=≠asOf) @
+{𝕊:Fail "--all cannot be combined with overdue/upcoming plan filtering"}⍟(showAll ∧ usesTemporal) @
 {𝕊:
-  asOfCheck ← validate.ValidateDate asOf
-  {𝕊 ⋄ Fail (1 ⊑ asOfCheck)}⍟(¬ 0 ⊑ asOfCheck) @
+  dateCheck ← validate.ValidateDate asOf
+  {𝕊:Fail (1⊑dateCheck)}⍟(¬0⊑dateCheck) @
 }⍟usesTemporal @
 
-ResolvePath ← { baseDir ∾ "/" ∾ 𝕩 }
-
-IsDataLine ← { (0 < ≠ 𝕩) ? ((⊑ 𝕩 ≠ '#') ∧ (⊑ 𝕩 ≠ ⊑"\\")) ; 0 }
-
-ReadDataLinesWithNums ← {
-  raw ← loader.ReadRaw 𝕩
-  stripped ← ((@+13) ≠ raw) / raw
-  lines ← (@+10) loader.SplitKeepEmpty stripped
-  nums ← 1 + ↕ ≠ lines
-  mask ← IsDataLine¨ lines
-  ⟨mask / lines, mask / nums⟩
+loaded ← planRows.Load baseDir
+{𝕊:FailDiagnostics loaded.diagnostics}⍟(loaded.state≢"ok") @
+allPlans ← loaded.rows
+openPlans ← (¬{𝕩.closed}¨allPlans)/allPlans
+TemporalMatch ← {𝕊 row:
+  status ← planStatus.Classify ⟨0,row.date,asOf⟩
+  overdue ← status≡"overdue"
+  upcoming ← (status≡"due") ∨ status≡"future"
+  (temporal≡"overdue")⊑⟨upcoming,overdue⟩
 }
+filteredOpen ← usesTemporal◶⟨{𝕊:openPlans},{𝕊:(TemporalMatch¨openPlans)/openPlans}⟩ @
+plans ← showAll◶⟨{𝕊:filteredOpen},{𝕊:allPlans}⟩ @
 
-LoadAccounts ← {𝕩 ⋄
-  lines ← loader.ReadLines (ResolvePath (sys.DefaultAccountsFile @))
-  fields ← loader.SplitTsvKeepEmpty¨ lines
-  nonEmpty ← (0 < ≠¨ fields) / fields
-  {⊑ 𝕩}¨ nonEmpty
+StatusText ← {𝕊 row: row.closed◶⟨{𝕊:""},{𝕊:" [CLOSED]"}⟩ @}
+StatusTsv ← {𝕊 row: row.closed◶⟨{𝕊:""},{𝕊:"CLOSED"}⟩ @}
+Display ← {𝕊 index:
+  row ← index⊑plans ⋄ n ← index+1
+  (•Fmt n)∾": "∾row.date∾"  "∾row.description∾"  "∾row.from_account∾" -> "∾row.to_account∾"  "∾row.amount∾(StatusText row)
 }
-
-ValidatePlanFields ← {𝕊 fields:
-  {𝕊 ⋄ Fail "plan.tsv line has fewer than 5 tab-separated columns"}⍟(5 > ≠ fields) @
-  dateCheck ← validate.ValidateDate (0 ⊑ fields)
-  {𝕊 ⋄ Fail (1 ⊑ dateCheck)}⍟(¬ 0 ⊑ dateCheck) @
-  fromCheck ← validate.ValidateAccount "from"‿(2 ⊑ fields)‿accounts
-  {𝕊 ⋄ Fail (1 ⊑ fromCheck)}⍟(¬ 0 ⊑ fromCheck) @
-  toCheck ← validate.ValidateAccount "to"‿(3 ⊑ fields)‿accounts
-  {𝕊 ⋄ Fail (1 ⊑ toCheck)}⍟(¬ 0 ⊑ toCheck) @
-  amountCheck ← validate.ValidateAmount (4 ⊑ fields)
-  {𝕊 ⋄ Fail (1 ⊑ amountCheck)}⍟(¬ 0 ⊑ amountCheck) @
-  metaCheck ← validate.ValidateMeta (5 ↓ fields)
-  {𝕊 ⋄ Fail (1 ⊑ metaCheck)}⍟(¬ 0 ⊑ metaCheck) @
-  1
-}
-
-accounts ← LoadAccounts @
-planPath ← ResolvePath (sys.DefaultPlanFile @)
-completionEvidence ← actual_source.CompletionEvidence baseDir
-completedIDsAll ← {𝕩.plan_id}¨completionEvidence
-completedIDs ← (0 < ≠¨ completedIDsAll) / completedIDsAll
-
-lineData ← ReadDataLinesWithNums planPath
-planLines ← 0 ⊑ lineData
-lineNums ← 1 ⊑ lineData
-
-ParsePlanRow ← {𝕊 index:
-  line ← index ⊑ planLines
-  lineNum ← index ⊑ lineNums
-  fields ← loader.SplitTsvKeepEmpty line
-  validationOk ← ValidatePlanFields fields
-  pid ← plan_id.ExtractPlanId line
-  missingID ← 0 = ≠ pid
-  invalidID ← (¬ missingID) ◶ ⟨ {𝕊 ⋄ 0}, {𝕊 ⋄ ¬ (0 ⊑ plan_id.ValidatePlanIDFormat pid)} ⟩ @
-  closed ← (¬ missingID) ◶ ⟨ {𝕊 ⋄ 0}, {𝕊 ⋄ ∨´ pid ⊸ ≡¨ completedIDs} ⟩ @
-  ⟨lineNum, <fields, closed, <pid, missingID, invalidID⟩
-}
-
-allPlans ← ParsePlanRow¨ ↕ ≠ planLines
-openPlans ← (¬ {2⊑𝕩}¨ allPlans) / allPlans
-TemporalMatch ← {𝕊 r:
-  fields ← > 1⊑r
-  temporalStatus ← plan_status.Classify ⟨0, 0⊑fields, asOf⟩
-  isOverdue ← temporalStatus≡"overdue"
-  isUpcoming ← (temporalStatus≡"due") ∨ temporalStatus≡"future"
-  (temporal≡"overdue") ⊑ ⟨isUpcoming, isOverdue⟩
-}
-filteredOpen ← usesTemporal ◶ ⟨{𝕊: openPlans}, {𝕊: (TemporalMatch¨openPlans)/openPlans}⟩ @
-plans ← showAll ◶ ⟨ {𝕊 ⋄ filteredOpen}, {𝕊 ⋄ allPlans} ⟩ @
-
-StatusText ← {𝕊 r:
-  closed ← 2 ⊑ r
-  missingID ← 4 ⊑ r
-  invalidID ← 5 ⊑ r
-  closed ◶ ⟨
-    {𝕊 ⋄ missingID ◶ ⟨ {𝕊 ⋄ invalidID ◶ ⟨ {𝕊 ⋄ ""}, {𝕊 ⋄ " [INVALID-ID]"} ⟩ @}, {𝕊 ⋄ " [MISSING-ID]"} ⟩ @},
-    {𝕊 ⋄ " [CLOSED]"}
-  ⟩ @
-}
-
-StatusTsv ← {𝕊 r:
-  closed ← 2 ⊑ r
-  missingID ← 4 ⊑ r
-  invalidID ← 5 ⊑ r
-  closed ◶ ⟨
-    {𝕊 ⋄ missingID ◶ ⟨ {𝕊 ⋄ invalidID ◶ ⟨ {𝕊 ⋄ ""}, {𝕊 ⋄ "INVALID-ID"} ⟩ @}, {𝕊 ⋄ "MISSING-ID"} ⟩ @},
-    {𝕊 ⋄ "CLOSED"}
-  ⟩ @
-}
-
-PrintText ← {𝕊 index:
-  r ← index ⊑ plans
-  n ← index + 1
-  f ← > 1 ⊑ r
-  •Out (•Fmt n) ∾ ": " ∾ (0⊑f) ∾ tab ∾ (1⊑f) ∾ tab ∾ (2⊑f) ∾ " -> " ∾ (3⊑f) ∾ tab ∾ (4⊑f) ∾ (StatusText r)
-}
-
+PrintText ← {𝕊 index: •Out (Display index)}
 PrintTsv ← {𝕊 index:
-  r ← index ⊑ plans
-  n ← index + 1
-  f ← > 1 ⊑ r
-  pid ← > 3 ⊑ r
-  statusTextVal ← StatusText r
-  display ← (•Fmt n) ∾ ": " ∾ (0⊑f) ∾ "  " ∾ (1⊑f) ∾ "  " ∾ (2⊑f) ∾ " -> " ∾ (3⊑f) ∾ "  " ∾ (4⊑f) ∾ statusTextVal
-  •Out (•Fmt n) ∾ tab ∾ pid ∾ tab ∾ (0⊑f) ∾ tab ∾ (1⊑f) ∾ tab ∾ (2⊑f) ∾ tab ∾ (3⊑f) ∾ tab ∾ (4⊑f) ∾ tab ∾ (StatusTsv r) ∾ tab ∾ display
+  row ← index⊑plans ⋄ n ← index+1
+  •Out (•Fmt n)∾tab∾row.plan_id∾tab∾row.date∾tab∾row.description∾tab∾row.from_account∾tab∾row.to_account∾tab∾row.amount∾tab∾(StatusTsv row)∾tab∾(Display index)
 }
 
-(format ≡ "tsv") ◶ ⟨
-  {𝕊 ⋄
-    •Out "Plan rows:"
-    {PrintText 𝕩}¨ ↕ ≠ plans
-  },
-  {𝕊 ⋄ {PrintTsv 𝕩}¨ ↕ ≠ plans}
+(format≡"tsv")◶⟨
+  {𝕊:•Out "Plan rows:" ⋄ PrintText¨↕≠plans},
+  {𝕊:PrintTsv¨↕≠plans}
 ⟩ @

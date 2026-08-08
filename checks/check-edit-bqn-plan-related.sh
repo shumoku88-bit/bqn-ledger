@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Verify BQN-backed `plan related` owns recurring-plan relation semantics.
+# Verify BQN-backed `plan related` owns recurring-plan relation semantics over
+# canonical plan.journal Facts.
 
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
@@ -9,50 +10,78 @@ cd "$ROOT_DIR"
 tmp_root="$(mktemp -d)"
 trap 'rm -rf "$tmp_root"' EXIT
 base="$tmp_root/plan-related"
-cp -R fixtures/plan-completion "$base"
+cp -R fixtures/canonical-household-v1 "$base"
 
-# Same plan_id-derived series as the selected phone plan, with an explicit
-# series meta to verify the preferred relation path remains BQN-owned.
-printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
-  '2026-02-10' 'Future phone' 'assets:bank' 'expenses:misc' '1500' \
-  'plan_id=plan-2026-02-10-phone' 'series=phone' >> "$base/plan.tsv"
+cat >>"$base/plan.journal" <<'EOF'
 
-out="$(./tools/edit --base "$base" plan related --index 1 --actual-date 2026-01-12 --format tsv)"
+2026-01-10 * Phone current
+  ; plan-id: plan-2026-01-10-phone
+  Assets:Bank  -1500 JPY
+  Expenses:Groceries  1500 JPY
 
+2026-02-10 * Future phone
+  ; plan-id: plan-2026-02-10-phone
+  Assets:Bank  -1500 JPY
+  Expenses:Groceries  1500 JPY
+
+2026-01-11 * Exact current
+  ; plan-id: exact-current
+  Assets:Bank  -500 JPY
+  Expenses:Groceries  500 JPY
+
+2026-02-20 * Exact future
+  ; plan-id: exact-future
+  Assets:Bank  -500 JPY
+  Expenses:Groceries  500 JPY
+EOF
+
+out="$(./tools/edit --base "$base" plan related --id plan-2026-01-10-phone --actual-date 2026-01-12 --format tsv)"
 if ! grep -q $'^KEY\tseries\tphone$' <<< "$out"; then
-  echo "FAIL: missing relation key" >&2
+  echo 'FAIL: missing plan-id relation key' >&2
   printf '%s\n' "$out" >&2
   exit 1
 fi
-
-if ! grep -q $'^ROW\t2026-02-10\tFuture phone\tassets:bank\texpenses:misc\t1500\tplan-2026-02-10-phone' <<< "$out"; then
-  echo "FAIL: missing related future row" >&2
+if ! grep -q $'^ROW\t2026-02-10\tFuture phone\tAssets:Bank\tExpenses:Groceries\t1500\tplan-2026-02-10-phone' <<< "$out"; then
+  echo 'FAIL: missing related future Plan row' >&2
   printf '%s\n' "$out" >&2
   exit 1
 fi
-
-# Exact fallback: missing plan_id/series still groups only by exact
-# memo/from/to/amount and only for future open plans.
-printf '%s\t%s\t%s\t%s\t%s\n' \
-  '2026-02-20' 'Unplanned food' 'assets:bank' 'expenses:food' '500' >> "$base/plan.tsv"
-
-fallback_out="$(./tools/edit --base "$base" plan related --id plan-2026-01-24-book --actual-date 2026-01-12 --format tsv)"
-if ! grep -q $'^KEY\tseries\tbook$' <<< "$fallback_out"; then
-  echo "FAIL: plan_id series fallback missing" >&2
-  printf '%s\n' "$fallback_out" >&2
+if grep -q $'^ROW\t2026-01-10\tPhone current' <<< "$out"; then
+  echo 'FAIL: related result included a Plan on/before Actual date' >&2
   exit 1
 fi
 
-exact_out="$(./tools/edit --base "$base" plan related --index 3 --actual-date 2026-01-26 --format tsv)"
-if ! grep -q $'^KEY\texact\tUnplanned food\tassets:bank\texpenses:food\t500$' <<< "$exact_out"; then
-  echo "FAIL: exact fallback key missing" >&2
-  printf '%s\n' "$exact_out" >&2
-  exit 1
-fi
-if ! grep -q $'^ROW\t2026-02-20\tUnplanned food\tassets:bank\texpenses:food\t500\t(missing)' <<< "$exact_out"; then
-  echo "FAIL: exact fallback related row missing" >&2
+# Generic canonical plan-id values do not imply a series. They use the exact
+# description/from/to/amount fallback instead of reintroducing TSV metadata rules.
+exact_out="$(./tools/edit --base "$base" plan related --id exact-current --actual-date 2026-01-12 --format tsv)"
+if ! grep -q $'^KEY\texact\tExact current\tAssets:Bank\tExpenses:Groceries\t500$' <<< "$exact_out"; then
+  echo 'FAIL: exact canonical fallback key missing' >&2
   printf '%s\n' "$exact_out" >&2
   exit 1
 fi
 
-printf 'OK: tools/edit-bqn plan related checks passed\n'
+# Add a second Plan with the same exact relation fields so it is discoverable.
+python3 - "$base/plan.journal" <<'PY'
+from pathlib import Path
+import sys
+p = Path(sys.argv[1])
+s = p.read_text()
+s = s.replace('2026-02-20 * Exact future', '2026-02-20 * Exact current')
+p.write_text(s)
+PY
+exact_out="$(./tools/edit --base "$base" plan related --id exact-current --actual-date 2026-01-12 --format tsv)"
+if ! grep -q $'^ROW\t2026-02-20\tExact current\tAssets:Bank\tExpenses:Groceries\t500\texact-future' <<< "$exact_out"; then
+  echo 'FAIL: exact fallback related row missing' >&2
+  printf '%s\n' "$exact_out" >&2
+  exit 1
+fi
+
+# Legacy plan.tsv content cannot redirect relation discovery.
+printf 'bogus\tlegacy\tplan\trow\t1\n' >"$base/plan.tsv"
+legacy_out="$(./tools/edit --base "$base" plan related --id plan-2026-01-10-phone --actual-date 2026-01-12 --format tsv)"
+if ! grep -q $'^ROW\t2026-02-10\tFuture phone' <<< "$legacy_out"; then
+  echo 'FAIL: legacy plan.tsv interfered with canonical related lookup' >&2
+  exit 1
+fi
+
+printf 'OK: canonical tools/edit-bqn plan related checks passed\n'

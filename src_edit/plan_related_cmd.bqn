@@ -3,170 +3,83 @@
 #
 # Input args:
 #   <baseDir> <index> <plan_id> <actual_date> <format: tsv>
-#
-# Output protocol for tsv:
+# Output protocol remains:
 #   KEY <tab> <relation_kind> <tab> <relation_value>
 #   ROW <tab> date <tab> memo <tab> from <tab> to <tab> amount <tab> plan_id <tab> display
 #
-# Relation order is intentional and owned here, not in shell UI:
-#   1. meta series=...
-#   2. series extracted from plan_id=plan-YYYY-MM-DD-<series>
-#   3. exact memo/from/to/amount fallback
+# Relation order:
+#   1. canonical metadata `series`
+#   2. series extracted from legacy-shaped plan-id `plan-YYYY-MM-DD-<series>`
+#   3. exact description/from/to/amount fallback
 
 loader ← •Import "../src/application/source_io.bqn"
 validate ← •Import "validate.bqn"
-plan_id ← •Import "plan_id.bqn"
-defaults ← •Import "../src/application/system_defaults.bqn"
-lib ← •Import "../src/text/parse.bqn"
-dateutil ← •Import "../src/ledger/date_ordinal.bqn"
-actual_source ← •Import "../src/application/editor_actual.bqn"
+planId ← •Import "plan_id.bqn"
+parse ← •Import "../src/text/parse.bqn"
+dates ← •Import "../src/ledger/date_ordinal.bqn"
+planRows ← •Import "../src/application/editor_plan_rows.bqn"
 
-sys ← defaults.Load @
-args ← •args
-tab ← @+9
-
-Fail ← {𝕊 msg:
-  •Out "ERROR" ∾ tab ∾ msg
+args ← •args ⋄ tab ← @+9
+Fail ← {𝕊 msg: •Out "ERROR"∾tab∾msg ⋄ •Exit 1}
+FailDiagnostics ← {𝕊 diagnostics:
+  {𝕊 d: •Out "ERROR"∾tab∾d.code∾tab∾d.message}¨diagnostics
   •Exit 1
 }
 
-{𝕊 ⋄ Fail "usage: plan_related_cmd.bqn <baseDir> <index> <plan_id> <actual_date> <format: tsv>"}⍟(5 ≠ ≠ args) @
+{𝕊:Fail "usage: plan_related_cmd.bqn <baseDir> <index> <plan_id> <actual_date> <format: tsv>"}⍟(5≠≠args) @
+baseDir‿indexArg‿selectorPlanID‿actualDate‿format ← args
+{𝕊:Fail ("invalid format: "∾format∾" (expected 'tsv')")}⍟(format≢"tsv") @
+dateCheck ← validate.ValidateDate actualDate
+{𝕊:Fail (1⊑dateCheck)}⍟(¬0⊑dateCheck) @
 
-baseDir ← 0 ⊑ args
-indexArg ← 1 ⊑ args
-selectorPlanID ← 2 ⊑ args
-actualDate ← 3 ⊑ args
-format ← 4 ⊑ args
-
-validFormat ← format ≡ "tsv"
-{𝕊 ⋄ Fail ("invalid format: " ∾ format ∾ " (expected 'tsv')")}⍟(¬ validFormat) @
-
-actualDateCheck ← validate.ValidateDate actualDate
-{𝕊 ⋄ Fail (1 ⊑ actualDateCheck)}⍟(¬ 0 ⊑ actualDateCheck) @
-
-ResolvePath ← { baseDir ∾ "/" ∾ 𝕩 }
-IsDataLine ← { (0 < ≠ 𝕩) ? ((⊑ 𝕩 ≠ '#') ∧ (⊑ 𝕩 ≠ ⊑"\\")) ; 0 }
-
-ReadDataLinesWithNums ← {
-  raw ← loader.ReadRaw 𝕩
-  stripped ← ((@+13) ≠ raw) / raw
-  lines ← (@+10) loader.SplitKeepEmpty stripped
-  nums ← 1 + ↕ ≠ lines
-  mask ← IsDataLine¨ lines
-  ⟨mask / lines, mask / nums⟩
+MetaValue ← {𝕊 key‿metadata:
+  matches ← key⊸≡¨{𝕩.key}¨metadata
+  (∨´0∾matches)◶⟨{𝕊:""},{𝕊:(⊑matches/{𝕩.value}¨metadata)}⟩ @
 }
-
-LoadAccounts ← {𝕩 ⋄
-  lines ← loader.ReadLines (ResolvePath (sys.DefaultAccountsFile @))
-  fields ← loader.SplitTsvKeepEmpty¨ lines
-  nonEmpty ← (0 < ≠¨ fields) / fields
-  {⊑ 𝕩}¨ nonEmpty
-}
-
-ValidatePlanFields ← {𝕊 fields:
-  {𝕊 ⋄ Fail "plan.tsv line has fewer than 5 tab-separated columns"}⍟(5 > ≠ fields) @
-  dateCheck ← validate.ValidateDate (0 ⊑ fields)
-  {𝕊 ⋄ Fail (1 ⊑ dateCheck)}⍟(¬ 0 ⊑ dateCheck) @
-  fromCheck ← validate.ValidateAccount "from"‿(2 ⊑ fields)‿accounts
-  {𝕊 ⋄ Fail (1 ⊑ fromCheck)}⍟(¬ 0 ⊑ fromCheck) @
-  toCheck ← validate.ValidateAccount "to"‿(3 ⊑ fields)‿accounts
-  {𝕊 ⋄ Fail (1 ⊑ toCheck)}⍟(¬ 0 ⊑ toCheck) @
-  amountCheck ← validate.ValidateAmount (4 ⊑ fields)
-  {𝕊 ⋄ Fail (1 ⊑ amountCheck)}⍟(¬ 0 ⊑ amountCheck) @
-  metaCheck ← validate.ValidateMeta (5 ↓ fields)
-  {𝕊 ⋄ Fail (1 ⊑ metaCheck)}⍟(¬ 0 ⊑ metaCheck) @
-  1
-}
-
-StartsWith ← plan_id.StartsWith
-
-MetaValue ← {𝕊 key‿fields:
-  meta ← (5 < ≠ fields) ◶ ⟨ {𝕊 ⋄ ⟨⟩}, {𝕊 ⋄ 5 ↓ fields} ⟩ @
-  prefix ← key ∾ "="
-  IsKey ← { ((≠ prefix) ≤ ≠ 𝕩) ? prefix StartsWith 𝕩 ; 0 }
-  mask ← IsKey¨ meta
-  has ← ∨´ mask
-  has ◶ ⟨ {𝕊 ⋄ ""}, {𝕊 ⋄ (1 + ≠ key) ↓ (⊑ (mask / ↕ ≠ meta)) ⊑ meta} ⟩ @
-}
-
 SeriesFromPlanID ← {𝕊 pid:
-  valid ← (0 < ≠ pid) ∧ (0 ⊑ plan_id.ValidatePlanIDFormat pid)
-  parts ← valid ◶ ⟨ {𝕊 ⋄ ⟨⟩}, {𝕊 ⋄ '-' loader.SplitKeepEmpty pid} ⟩ @
-  valid ◶ ⟨ {𝕊 ⋄ ""}, {𝕊 ⋄ "-" plan_id.Join (4 ↓ parts)} ⟩ @
+  valid ← (0<≠pid) ∧ (0⊑planId.ValidatePlanIDFormat pid)
+  parts ← valid◶⟨{𝕊:⟨⟩},{𝕊:'-' loader.SplitKeepEmpty pid}⟩ @
+  valid◶⟨{𝕊:""},{𝕊:"-" planId.Join (4↓parts)}⟩ @
 }
-
-RelationKey ← {𝕊 fields‿pid:
-  metaSeries ← MetaValue "series"‿fields
-  pidSeries ← SeriesFromPlanID pid
-  exactKey ← ⟨"exact", (1⊑fields) ∾ tab ∾ (2⊑fields) ∾ tab ∾ (3⊑fields) ∾ tab ∾ (4⊑fields)⟩
-  pidKey ← (0 < ≠ pidSeries) ◶ ⟨ {𝕊 ⋄ exactKey}, {𝕊 ⋄ ⟨"series", pidSeries⟩} ⟩ @
-  (0 < ≠ metaSeries) ◶ ⟨ {𝕊 ⋄ pidKey}, {𝕊 ⋄ ⟨"series", metaSeries⟩} ⟩ @
+RelationKey ← {𝕊 row:
+  metaSeries ← MetaValue ⟨"series",row.metadata⟩
+  pidSeries ← SeriesFromPlanID row.plan_id
+  exactKey ← ⟨"exact",row.description∾tab∾row.from_account∾tab∾row.to_account∾tab∾row.amount⟩
+  pidKey ← (0<≠pidSeries)◶⟨{𝕊:exactKey},{𝕊:⟨"series",pidSeries⟩}⟩ @
+  (0<≠metaSeries)◶⟨{𝕊:pidKey},{𝕊:⟨"series",metaSeries⟩}⟩ @
 }
+KeyString ← {(0⊑𝕩)∾tab∾1⊑𝕩}
 
-KeyString ← { (0⊑𝕩) ∾ tab ∾ (1⊑𝕩) }
+loaded ← planRows.Load baseDir
+{𝕊:FailDiagnostics loaded.diagnostics}⍟(loaded.state≢"ok") @
+allPlans ← loaded.rows
+openPlans ← (¬{𝕩.closed}¨allPlans)/allPlans
 
-accounts ← LoadAccounts @
-planPath ← ResolvePath (sys.DefaultPlanFile @)
-completionEvidence ← actual_source.CompletionEvidence baseDir
-completedIDsAll ← {𝕩.plan_id}¨completionEvidence
-completedIDs ← (0 < ≠¨ completedIDsAll) / completedIDsAll
-
-lineData ← ReadDataLinesWithNums planPath
-planLines ← 0 ⊑ lineData
-lineNums ← 1 ⊑ lineData
-
-ParsePlanRow ← {𝕊 index:
-  line ← index ⊑ planLines
-  lineNum ← index ⊑ lineNums
-  fields ← loader.SplitTsvKeepEmpty line
-  validationOk ← ValidatePlanFields fields
-  pid ← plan_id.ExtractPlanId line
-  missingID ← 0 = ≠ pid
-  closed ← (¬ missingID) ◶ ⟨ {𝕊 ⋄ 0}, {𝕊 ⋄ ∨´ pid ⊸ ≡¨ completedIDs} ⟩ @
-  key ← RelationKey fields‿pid
-  ⟨lineNum, <fields, closed, <pid, <key⟩
-}
-
-allPlans ← ParsePlanRow¨ ↕ ≠ planLines
-openPlans ← (¬ {2⊑𝕩}¨ allPlans) / allPlans
-
-ToNumOrZero ← { lib.ToNum 𝕩 }
-ifByID ← 0 < ≠ selectorPlanID
-selected ← ifByID ◶ ⟨
-  {𝕊 ⋄
-    idx ← ToNumOrZero indexArg
-    {𝕊 ⋄ Fail "--index must be positive"}⍟(idx < 1) @
-    {𝕊 ⋄ Fail "--index out of range"}⍟(idx > ≠ openPlans) @
-    (idx-1) ⊑ openPlans
+byId ← 0<≠selectorPlanID
+selected ← byId◶⟨
+  {𝕊:
+    idx ← parse.ToNum indexArg
+    {𝕊:Fail "--index must be positive"}⍟(idx<1) @
+    {𝕊:Fail "--index out of range"}⍟(idx>≠openPlans) @
+    (idx-1)⊑openPlans
   },
-  {𝕊 ⋄
-    matches ← ({ selectorPlanID ≡ >3⊑𝕩 }¨ allPlans) / allPlans
-    {𝕊 ⋄ Fail ("plan_id not found: " ∾ selectorPlanID)}⍟(0 = ≠ matches) @
-    ⊑ matches
+  {𝕊:
+    matches ← (selectorPlanID⊸≡¨{𝕩.plan_id}¨allPlans)/allPlans
+    {𝕊:Fail ("plan_id not found: "∾selectorPlanID)}⍟(0=≠matches) @
+    ⊑matches
   }
 ⟩ @
 
-selectedKey ← > 4 ⊑ selected
+selectedKey ← RelationKey selected
 selectedKeyString ← KeyString selectedKey
-
-Related ← {𝕊 r:
-  f ← > 1 ⊑ r
-  pid ← > 3 ⊑ r
-  key ← > 4 ⊑ r
-  date ← 0 ⊑ f
-  ((dateutil.Ordinal date) > dateutil.Ordinal actualDate) ∧ (selectedKeyString ≡ KeyString key)
+Related ← {𝕊 row:
+  ((dates.Ordinal row.date)>dates.Ordinal actualDate) ∧ selectedKeyString≡KeyString RelationKey row
 }
+relatedPlans ← (Related¨openPlans)/openPlans
 
-relatedPlans ← (Related¨ openPlans) / openPlans
-
-•Out "KEY" ∾ tab ∾ (0⊑selectedKey) ∾ tab ∾ (1⊑selectedKey)
-
-PrintRow ← {𝕊 r:
-  f ← > 1 ⊑ r
-  pid ← > 3 ⊑ r
-  pidDisplay ← (0 = ≠ pid) ◶ ⟨ {𝕊 ⋄ pid}, {𝕊 ⋄ "(missing)"} ⟩ @
-  display ← (0⊑f) ∾ tab ∾ (1⊑f) ∾ tab ∾ (2⊑f) ∾ " -> " ∾ (3⊑f) ∾ tab ∾ (4⊑f) ∾ tab ∾ pidDisplay
-  •Out "ROW" ∾ tab ∾ (0⊑f) ∾ tab ∾ (1⊑f) ∾ tab ∾ (2⊑f) ∾ tab ∾ (3⊑f) ∾ tab ∾ (4⊑f) ∾ tab ∾ pidDisplay ∾ tab ∾ display
+•Out "KEY"∾tab∾(0⊑selectedKey)∾tab∾1⊑selectedKey
+PrintRow ← {𝕊 row:
+  display ← row.date∾tab∾row.description∾tab∾row.from_account∾" -> "∾row.to_account∾tab∾row.amount∾tab∾row.plan_id
+  •Out "ROW"∾tab∾row.date∾tab∾row.description∾tab∾row.from_account∾tab∾row.to_account∾tab∾row.amount∾tab∾row.plan_id∾tab∾display
 }
-
-{PrintRow 𝕩}¨ relatedPlans
+PrintRow¨relatedPlans

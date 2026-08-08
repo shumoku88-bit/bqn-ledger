@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Verify plan finish replenishment helper stays shell-safe, supports read-only
-# preflight, and refuses replenishment unless the selected plan is explicitly closed.
+# preflight, and refuses replenishment unless the selected canonical Plan is closed.
 
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
@@ -23,10 +23,15 @@ source "$ROOT_DIR/tools/lib/plan-finish-workflow.sh"
 
 tmp_root="$(mktemp -d)"
 trap 'rm -rf "$tmp_root"' EXIT
-base="$tmp_root/plan-completion"
-cp -R fixtures/plan-completion "$base"
+base="$tmp_root/canonical-plan"
+cp -R fixtures/canonical-household-v1 "$base"
 
-before_plan="$(shasum -a 256 "$base/plan.tsv" | awk '{print $1}')"
+# The general UI base guard still requires retained Account/Cycle TSV policy until
+# their named migration phases. They are prerequisites here, not Plan read owners.
+cp fixtures/plan-completion/accounts.tsv "$base/accounts.tsv"
+cp fixtures/plan-completion/cycle.tsv "$base/cycle.tsv"
+
+before_plan="$(shasum -a 256 "$base/plan.journal" | awk '{print $1}')"
 before_journal="$(shasum -a 256 "$base/actual.journal" | awk '{print $1}')"
 
 run_preflight() {
@@ -43,11 +48,11 @@ run_preflight() {
 run_preflight default env
 run_preflight bqn-editor env BQN_EDITOR=1
 
-after_plan="$(shasum -a 256 "$base/plan.tsv" | awk '{print $1}')"
+after_plan="$(shasum -a 256 "$base/plan.journal" | awk '{print $1}')"
 after_journal="$(shasum -a 256 "$base/actual.journal" | awk '{print $1}')"
 
 if [ "$before_plan" != "$after_plan" ]; then
-  echo "FAIL: preflight modified plan.tsv" >&2
+  echo "FAIL: preflight modified plan.journal" >&2
   exit 1
 fi
 if [ "$before_journal" != "$after_journal" ]; then
@@ -55,44 +60,44 @@ if [ "$before_journal" != "$after_journal" ]; then
   exit 1
 fi
 
-# Open plan: a cancelled/non-applied finish must be distinguishable from success.
-if ! plan_finish_plan_id_is_open "$ROOT_DIR/tools/edit" "$base" plan-2026-01-10-phone; then
-  echo "FAIL: expected phone plan to be open" >&2
+# Open canonical Plan: a cancelled/non-applied finish must be distinguishable from success.
+if ! plan_finish_plan_id_is_open "$ROOT_DIR/tools/edit" "$base" plan-salary; then
+  echo "FAIL: expected salary Plan to be open" >&2
   exit 1
 fi
 
 set +e
-plan_finish_require_applied "$ROOT_DIR/tools/edit" "$base" plan-2026-01-10-phone
+plan_finish_require_applied "$ROOT_DIR/tools/edit" "$base" plan-salary
 open_status=$?
 set -e
 if [ "$open_status" -ne 130 ]; then
-  echo "FAIL: still-open plan should report cancellation/not-applied status 130, got $open_status" >&2
+  echo "FAIL: still-open Plan should report cancellation/not-applied status 130, got $open_status" >&2
   exit 1
 fi
 
-# Closed plan: the fixture journal already contains the matching plan_id.
-if plan_finish_plan_id_is_open "$ROOT_DIR/tools/edit" "$base" plan-2026-01-15-rent; then
-  echo "FAIL: expected rent plan to be closed" >&2
+# Closed canonical Plan: Actual already contains the matching plan-id.
+if plan_finish_plan_id_is_open "$ROOT_DIR/tools/edit" "$base" plan-groceries; then
+  echo "FAIL: expected groceries Plan to be closed" >&2
   exit 1
 fi
-if ! plan_finish_require_applied "$ROOT_DIR/tools/edit" "$base" plan-2026-01-15-rent; then
-  echo "FAIL: closed plan should satisfy finish postcondition" >&2
+if ! plan_finish_require_applied "$ROOT_DIR/tools/edit" "$base" plan-groceries; then
+  echo "FAIL: closed Plan should satisfy finish postcondition" >&2
   exit 1
 fi
 
-# Missing plan_id must not be confused with a closed plan.
+# Missing plan-id must not be confused with a closed Plan.
 set +e
 plan_finish_require_applied "$ROOT_DIR/tools/edit" "$base" plan-does-not-exist
 missing_status=$?
 set -e
 if [ "$missing_status" -ne 2 ]; then
-  echo "FAIL: missing plan_id should report verification error status 2, got $missing_status" >&2
+  echo "FAIL: missing plan-id should report verification error status 2, got $missing_status" >&2
   exit 1
 fi
 
 # Query failure must remain a verification error rather than looking closed.
 set +e
-plan_finish_require_applied false "$base" plan-2026-01-10-phone
+plan_finish_require_applied false "$base" plan-salary
 query_status=$?
 set -e
 if [ "$query_status" -ne 2 ]; then
@@ -110,11 +115,11 @@ if [ -z "$return_line" ] || [ -z "$finish_applied_line" ] || [ -z "$replenish_pr
   exit 1
 fi
 
-# The selected plan summary must be visible before asking for actual values.
+# The selected Plan summary must be visible before asking for actual values.
 summary_line="$(grep -nF 'show_selected_plan' tools/plan-finish-replenish-ui.sh | tail -n1 | cut -d: -f1)"
 actual_date_line="$(grep -nF "actual_date=\"\$(read_tty 'Actual date YYYY-MM-DD'" tools/plan-finish-replenish-ui.sh | head -n1 | cut -d: -f1)"
 if [ -z "$summary_line" ] || [ -z "$actual_date_line" ] || [ "$summary_line" -ge "$actual_date_line" ]; then
-  echo "FAIL: selected plan details must be shown before actual date/amount prompts" >&2
+  echo "FAIL: selected Plan details must be shown before actual date/amount prompts" >&2
   exit 1
 fi
 
