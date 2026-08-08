@@ -1,5 +1,6 @@
 [presentation.amounts]
 negative-style = "minus"
+negative-color = "red"
 
 [reports.trial-balance]
 as-of = "latest"
