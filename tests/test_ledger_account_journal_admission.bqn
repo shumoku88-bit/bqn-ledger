@@ -15,7 +15,7 @@ proof ← accounts.Admit loader.ReadRaw "fixtures/canonical-household-v1/account
 ⟨"Assets:Bank","Equity:Opening","Income:Salary","Expenses:Groceries","Budget:Unassigned","Budget:Daily"⟩ lib.AssertEq proof.accounts.key
 ⟨"Asset","Equity","Income","Expense","Budget","Budget"⟩ lib.AssertEq proof.accounts.type
 ⟨"asset","equity","income","expense","budget","budget"⟩ lib.AssertEq proof.accounts.role
-6⥊⟨"JPY"⟩ lib.AssertEq proof.accounts.currency
+⟨"JPY","JPY","JPY","JPY","JPY","JPY"⟩ lib.AssertEq proof.accounts.currency
 ⟨1,5,9,13,17,21⟩ lib.AssertEq proof.accounts.source_row
 
 optionalCommodity ← accounts.Admit Raw ⟨
