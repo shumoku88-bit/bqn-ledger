@@ -25,7 +25,7 @@ accountResult ← accountsAdmission.Admit accountRaw
 accounts ← accountResult.accounts
 
 # Source order is semantic from -> to. Different textual scales still represent
-# exact opposite resolved amounts and must not be rejected merely for spelling.
+# exact opposite resolved amounts and normalize to the canonical JPY scale.
 validRaw ← Raw ⟨
   "2026-08-08 Allocate food",
   "  Budget:Unassigned  -20.0 JPY",
@@ -49,11 +49,11 @@ first ← ⊑valid.transactions
 "Budget:Unassigned" lib.AssertEq first.from_account_key
 "Budget:Food" lib.AssertEq first.to_account_key
 "JPY" lib.AssertEq first.movement_commodity
-200 lib.AssertEq first.movement_coefficient
-1 lib.AssertEq first.movement_scale
+20 lib.AssertEq first.movement_coefficient
+0 lib.AssertEq first.movement_scale
 ⟨"Budget:Unassigned","Budget:Food"⟩ lib.AssertEq {𝕩.account_key}¨first.postings
 ⟨0,1⟩ lib.AssertEq {𝕩.posting_index}¨first.postings
-⟨¯200,200⟩ lib.AssertEq {𝕩.normalized_coefficient}¨first.postings
+⟨¯20,20⟩ lib.AssertEq {𝕩.normalized_coefficient}¨first.postings
 ⟨2,3⟩ lib.AssertEq {𝕩.source_line}¨first.postings
 ⟨"budget.journal:line:1:0","budget.journal:line:1:1"⟩ lib.AssertEq {𝕩.posting_id}¨first.postings
 
