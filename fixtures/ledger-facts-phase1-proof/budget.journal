@@ -1,0 +1,9 @@
+include accounts.journal
+
+2026-01-01 seed
+  budget:opening     -100 JPY
+  budget:unassigned   100 JPY
+
+2026-01-01 allocate-food
+  budget:unassigned  -60 JPY
+  budget:food         60 JPY
