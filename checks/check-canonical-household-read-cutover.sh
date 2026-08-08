@@ -29,6 +29,10 @@ grep -F '== Cycle Accounts ==' "$tmp/cycle.out" >/dev/null
   2026-01-12 actual.journal bad/plan.tsv bad/cycle.tsv >"$tmp/planned.out"
 grep -F '== Planned Payments ==' "$tmp/planned.out" >/dev/null
 
+./tools/report "$tmp" daily-flow human JPY \
+  2026-01-01 2026-02-01 2026-01-12 actual.journal >"$tmp/daily-flow.out"
+grep -F '== Daily Flow ==' "$tmp/daily-flow.out" >/dev/null
+
 ./tools/report "$tmp" daily-target human JPY \
   2026-01-12 2026-01-22 actual.journal bad/plan.tsv bad/daily_target_scope.tsv >"$tmp/daily.out"
 grep -F '== Daily Target ==' "$tmp/daily.out" >/dev/null
