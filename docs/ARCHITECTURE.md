@@ -24,6 +24,8 @@ Actual is admitted only from the configured Native Journal. Plan and Budget are 
 - `src/report/` — final catalog/order/surfaces, request validation, result dispatch, metadata, and text/JSON primitives.
 - `src_edit/` and `src/editor/` — write-side commands and pure rewrite semantics using the same strict ledger owners.
 
+Canonical Account identity, accounting type, and optional default Commodity are admitted directly from `accounts.journal` by `src/ledger/account_journal_admission.bqn`; `src/application/account_source_adapter.bqn` is the read-only file boundary. Read-only Account selection uses this canonical registry. Household-specific Account policy does not enter Account Journal admission and remains on its legacy path until the `household.toml` policy boundary replaces it. Writer-side Account mutation remains separately qualified and is not implied by read-side admission.
+
 No report section reads files or the clock. No accounting capability imports a section or composition owner. Native multi-posting transactions remain first-class and are never flattened into two-account compatibility rows.
 
 ## Implementation style
