@@ -1,0 +1,12 @@
+include accounts.journal
+
+2026-01-15 * Planned groceries
+  ; plan-id: plan-groceries
+  ; daily-target-id: groceries
+  Assets:Bank  -4000 JPY
+  Expenses:Groceries  4000 JPY
+
+2026-02-05 * Planned salary
+  ; plan-id: plan-salary
+  Income:Salary  -50000 JPY
+  Assets:Bank  50000 JPY
