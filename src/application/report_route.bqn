@@ -33,18 +33,19 @@ AcceptCanonicalActual ← {𝕊 coordinates‿coordinateRoles‿argumentIndex:
 AllowedCount ← {𝕊 count‿allowed: ∨´0∾count⊸=¨allowed}
 IsDigits ← {𝕊 text: (0<≠text) ∧ ∧´text∊"0123456789"}
 
-# Plan basename coordinates remain in the request shape until report.toml Phase 6,
-# but canonical plan.journal owns physical Plan I/O. Consequently Plan coordinates
-# never appear in the source table consumed by Shell preflight.
+# Plan/Budget basename coordinates and legacy funding-account coordinates remain in
+# the request shape until report.toml Phase 6, but canonical plan.journal,
+# budget.journal, and budget.toml own physical companion I/O and backing scope.
+# Consequently only Actual appears in the source table consumed by Shell preflight.
 Envelopes ← {𝕊 coordinates:
   (8≤≠coordinates)◶⟨
-    {𝕊:Reject ⟨"usage_envelopes","envelopes requires DOMAIN START END_EXCLUSIVE OBSERVATION JOURNAL PLAN BUDGET and one or more FUNDING_ACCOUNT_KEY"⟩},
+    {𝕊:Reject ⟨"usage_envelopes","envelopes requires DOMAIN START END_EXCLUSIVE OBSERVATION JOURNAL PLAN BUDGET and one or more legacy funding coordinates until report.toml migration"⟩},
     {𝕊:
       coordinateRoles ← ⟨
         "domain","start","end_exclusive","observation",
         "actual_source","plan_source","budget_source"
       ⟩∾((≠coordinates)-7)⥊⟨"funding_account"⟩
-      Accept ⟨coordinates,coordinateRoles,⟨4,6⟩,⟨"journal","tsv"⟩,⟨"actual","budget"⟩⟩
+      Accept ⟨coordinates,coordinateRoles,⟨4⟩,⟨"journal"⟩,⟨"actual"⟩⟩
     }
   ⟩ @
 }

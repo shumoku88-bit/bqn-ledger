@@ -73,7 +73,7 @@ BalanceSheet ← {𝕊 facts‿domain‿observation:
 }
 ProfitAndLoss ← {𝕊 facts‿domain‿start‿finish:
   output ← DateFailure "profit-and-loss"
-  valid ← (dates.IsValid start) ∧ dates.IsValid finish
+  valid ← (dates.IsValid start) ∧ (dates.IsValid finish)
   {𝕊:
     accounting ← profitLossAccounting.Build ⟨facts,domain,dates.Ordinal start,dates.Ordinal finish⟩
     output↩Publish ⟨"profit-and-loss",profitLossSection.Build ⟨accounting,start,finish⟩⟩
@@ -109,11 +109,11 @@ DailyFlow ← {𝕊 facts‿domain‿start‿finish‿observation:
   }⍟valid @
   output
 }
-Envelopes ← {𝕊 budgetFacts‿actualFacts‿planFacts‿domain‿start‿finish‿observation‿fundingIndices:
+Envelopes ← {𝕊 budgetFacts‿budgetPolicy‿actualFacts‿planFacts‿domain‿start‿finish‿observation:
   output ← DateFailure "envelopes"
   valid ← (dates.IsValid start) ∧ (dates.IsValid finish) ∧ dates.IsValid observation
   {𝕊:
-    accounting ← envelopeBacking.Build ⟨budgetFacts,actualFacts,planFacts,domain,dates.Ordinal start,dates.Ordinal finish,dates.Ordinal observation,fundingIndices⟩
+    accounting ← envelopeBacking.Build ⟨budgetFacts,budgetPolicy,actualFacts,planFacts,domain,dates.Ordinal start,dates.Ordinal finish,dates.Ordinal observation⟩
     output↩Publish ⟨"envelopes",envelopeSection.Build ⟨accounting,start,finish,observation⟩⟩
   }⍟valid @
   output

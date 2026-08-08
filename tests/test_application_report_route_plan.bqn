@@ -17,9 +17,8 @@ Check ⟨
   ⟩,
   0,
   ⟨
-    "ROUTE"∾tab∾"envelopes"∾tab∾"human"∾tab∾"8"∾tab∾"2",
-    "SOURCE"∾tab∾"4"∾tab∾"journal"∾tab∾"actual",
-    "SOURCE"∾tab∾"6"∾tab∾"tsv"∾tab∾"budget"
+    "ROUTE"∾tab∾"envelopes"∾tab∾"human"∾tab∾"8"∾tab∾"1",
+    "SOURCE"∾tab∾"4"∾tab∾"journal"∾tab∾"actual"
   ⟩
 ⟩
 

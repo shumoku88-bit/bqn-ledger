@@ -2,13 +2,16 @@
 lib ← •Import "test_lib.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
 snapshot ← •Import "../src/ledger/snapshot.bqn"
-budgetSnapshot ← •Import "../src/ledger/budget_snapshot.bqn"
+canonicalBudget ← •Import "canonical_budget_test_facts.bqn"
 canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
+budgetPolicyAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 envelopes ← •Import "../src/accounting/envelope_backing.bqn"
 lf ← @+10
 tab ← @+9
+quote ← @+34
 JournalText ← {𝕊 lines: ∾lines∾¨lf}
+Q ← {𝕊 text: ⟨quote⟩∾text∾⟨quote⟩}
 Join ← {𝕊 fields:
   out ← ⊑fields
   {𝕊 field: out∾↩tab∾field}¨1↓fields
@@ -60,15 +63,38 @@ planRaw ← JournalText ⟨
   "  assets:cash  -2 JPY"
 ⟩
 plan ← (canonicalPlan.Build ⟨planRaw,actual.accounts,registry⟩).facts
-budget ← (budgetSnapshot.Build ⟨
-  ⟨
-    Join ⟨"2026-01-01","seed","budget:opening","budget:unassigned","30","currency=JPY"⟩,
-    Join ⟨"2026-01-01","food","budget:unassigned","budget:food","20","currency=JPY"⟩,
-    Join ⟨"2026-01-01","transport","budget:unassigned","budget:transport","10","currency=JPY"⟩
-  ⟩,
-  actual.accounts,registry
-⟩).facts
-result ← envelopes.Build ⟨budget,actual,plan,"JPY",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-10",⟨0⟩⟩
+budgetRaw ← JournalText ⟨
+  "2026-01-01 seed",
+  "  budget:opening     -30 JPY",
+  "  budget:unassigned   30 JPY","",
+  "2026-01-01 food",
+  "  budget:unassigned  -20 JPY",
+  "  budget:food         20 JPY","",
+  "2026-01-01 transport",
+  "  budget:unassigned  -10 JPY",
+  "  budget:transport    10 JPY"
+⟩
+budget ← (canonicalBudget.Build ⟨budgetRaw,actual.accounts,registry⟩).facts
+policyRaw ← JournalText ⟨
+  "[[backing-pools]]",
+  "id = "∾Q "cash",
+  "asset-accounts = ["∾(Q "assets:cash")∾"]","",
+  "[[envelopes]]",
+  "id = "∾Q "food",
+  "label = "∾Q "Food",
+  "pacing = "∾Q "daily",
+  "backing-pool = "∾Q "cash",
+  "expense-accounts = ["∾(Q "expenses:food")∾", "∾(Q "expenses:groceries")∾"]","",
+  "[[envelopes]]",
+  "id = "∾Q "transport",
+  "label = "∾Q "Transport",
+  "pacing = "∾Q "flex",
+  "backing-pool = "∾Q "cash",
+  "expense-accounts = ["∾(Q "expenses:transport")∾"]"
+⟩
+policy ← budgetPolicyAdmission.Admit ⟨policyRaw,actual.accounts⟩
+"ok" lib.AssertEq policy.state
+result ← envelopes.Build ⟨budget,policy,actual,plan,"JPY",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-10"⟩
 "ok" lib.AssertEq result.state
 2 lib.AssertEq result.envelopes.count
 ⟨"budget:food","budget:transport"⟩ lib.AssertEq result.envelopes.account_key
