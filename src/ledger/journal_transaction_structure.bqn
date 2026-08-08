@@ -13,7 +13,8 @@ supportedMetadata ← ⟨
   "action","receipt-id","event-id","layer","plan-id","execution-envelope",
   "allocation-id","agreement-id","actual-event-id","tax","biz","invoice",
   "note","due-on","receipt","txn-id","party","trip-id","payment","cashflow",
-  "currency","income-budget","recur","series"
+  "currency","income-budget","recur","series","daily-target-id",
+  "reservation-id","reservation-amount","reservation-commodity"
 ⟩
 supportedLayers ← ⟨"actual","plan","budget"⟩
 
@@ -108,13 +109,12 @@ Parse ← {𝕊 raw:
   {𝕊:
     start ← ⊑starts
     headerText ← Trim start⊑lines
-    rawTail ← TrimLeft 10↓start⊑lines
     tail ← TrimLeft 10↓headerText
-    marker ← ⊑(tail∾" ")
-    delimiter ← space=1⊑(rawTail∾"  ")
-    description ← (1+delimiter)↓tail
-    diagnostics ∾↩ AddIf ⟨¬marker∊"*!",Diagnostic ⟨"header_status_invalid",start+1,"transaction status must be * or !"⟩⟩
-    diagnostics ∾↩ AddIf ⟨¬delimiter,Diagnostic ⟨"header_description_delimiter_missing",start+1,"status must be followed by one ASCII space"⟩⟩
+    first ← ⊑(tail∾" ")
+    hasMarker ← first∊"*!"
+    marker ← ""
+    description ← tail
+    {𝕊: marker↩first ⋄ description↩TrimLeft 1↓tail}⍟hasMarker @
     diagnostics ∾↩ AddIf ⟨0=≠description,Diagnostic ⟨"header_description_missing",start+1,"transaction description must be nonempty"⟩⟩
 
     nonblank ← (0<≠¨Trim¨lines)/↕≠lines
@@ -153,7 +153,6 @@ Parse ← {𝕊 raw:
     actualEventId ← MetaOr ⟨"actual-event-id",metadata,""⟩
     txnId ← MetaOr ⟨"txn-id",metadata,""⟩
     diagnostics ∾↩ AddIf ⟨¬Contains ⟨layer,supportedLayers⟩,Diagnostic ⟨"layer_unsupported",start+1,"layer must be actual, plan, or budget"⟩⟩
-    diagnostics ∾↩ AddIf ⟨(layer≡"plan") ∧ 0=≠eventId,Diagnostic ⟨"plan_event_id_missing",start+1,"plan events require event-id"⟩⟩
     diagnostics ∾↩ AddIf ⟨(layer≡"plan") ∧ 0=≠planId,Diagnostic ⟨"plan_id_missing",start+1,"plan events require plan-id"⟩⟩
     budgetLinkCount ← (0<≠allocationId) + 0<≠actualEventId
     diagnostics ∾↩ AddIf ⟨(layer≡"budget") ∧ 0=≠eventId,Diagnostic ⟨"budget_event_id_missing",start+1,"budget events require event-id"⟩⟩
