@@ -30,4 +30,15 @@ lib.Assert d.valid
 e ← posting.Split "  Assets:Cash  -100"
 0 lib.AssertEq e.valid
 
+legacy ← posting.Split "    assets:cash 1000 JPY"
+lib.Assert legacy.valid
+"assets:cash" lib.AssertEq legacy.account
+⟨"1000","JPY"⟩ lib.AssertEq legacy.words
+0 lib.AssertEq legacy.elided
+
+threeWordAccount ← posting.Split "  Assets Long Cash"
+lib.Assert threeWordAccount.valid
+"Assets Long Cash" lib.AssertEq threeWordAccount.account
+1 lib.AssertEq threeWordAccount.elided
+
 •Out "test_ledger_journal_posting_text: ok"
