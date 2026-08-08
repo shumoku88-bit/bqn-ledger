@@ -96,11 +96,16 @@ pager_display() {
 
 base_abs=""
 report_domain=""
+report_negative_color=""
 current_requests_path=""
 cleanup_current_requests() {
   [[ -z "$current_requests_path" ]] || rm -f "$current_requests_path"
 }
 trap cleanup_current_requests EXIT
+
+report_color_filter() {
+  REPORT_NEGATIVE_COLOR="$report_negative_color" "$ROOT_DIR/tools/lib/color-filter"
+}
 
 ensure_report_context() {
   [[ -n "$base_abs" ]] && return 0
@@ -112,17 +117,16 @@ ensure_report_context() {
     report_domain="$(bqn "$ROOT_DIR/src/application/report_domain_cli.bqn" "$base_abs")"
   fi
 
-  local presentation_output negative_color
+  local presentation_output
   if ! presentation_output="$(bqn "$ROOT_DIR/src/application/report_presentation_cli.bqn" "$base_abs" 2>&1)"; then
     printf '%s\n' "$presentation_output" >&2
     return 1
   fi
-  negative_color="$(awk -F'\t' '$1 == "negative_color" { print $2 }' <<<"$presentation_output")"
-  [[ -n "$negative_color" ]] || {
+  report_negative_color="$(awk -F'\t' '$1 == "negative_color" { print $2 }' <<<"$presentation_output")"
+  [[ -n "$report_negative_color" ]] || {
     echo "Error: canonical Report negative color is unavailable" >&2
     return 1
   }
-  export REPORT_NEGATIVE_COLOR="$negative_color"
 }
 
 ensure_current_requests() {
@@ -145,7 +149,7 @@ show_full_report() {
   local args
   args=("$base_abs" "$report_domain" human)
   [[ -z "$latest_override" ]] || args+=("$latest_override")
-  "$ROOT_DIR/tools/report-all" "${args[@]}" | "$ROOT_DIR/tools/lib/color-filter" | pager_display
+  "$ROOT_DIR/tools/report-all" "${args[@]}" | report_color_filter | pager_display
 }
 
 section_list() {
@@ -163,7 +167,7 @@ show_section_direct() {
   err="$(mktemp)"
   trap 'rm -f "$out" "$err"' RETURN
   if "$ROOT_DIR/tools/report" "$base_abs" "${fields[@]}" >"$out" 2>"$err"; then
-    cat "$out" | "$ROOT_DIR/tools/lib/color-filter" | pager_display
+    cat "$out" | report_color_filter | pager_display
   else
     status=$?
     [[ ! -s "$out" ]] || cat "$out" >&2
@@ -193,7 +197,7 @@ browse_sections_interactive() {
     printf '==============================================================================--\n\n' >&2
 
     if [[ -f "$cache_dir/$key.txt" ]]; then
-      cat "$cache_dir/$key.txt" | COLOR_FORCE=1 "$ROOT_DIR/tools/lib/color-filter" >&2
+      cat "$cache_dir/$key.txt" | COLOR_FORCE=1 report_color_filter >&2
     else
       show_section_direct "$key" >&2
     fi
@@ -237,7 +241,7 @@ select_section() {
     preview_win="$(bl_fzf_preview_window)" || return
     if [[ -n "$cache_dir" ]]; then
       section_list | fzf --prompt='section> ' --delimiter=$'\t' --with-nth=2.. --height=80% --reverse --exit-0 --ansi \
-        --preview "BL_THEME='${BL_THEME:-nord}' COLOR_FORCE=1 '$ROOT_DIR/tools/command-hub-preview' '$cache_dir' {1} | BL_THEME='${BL_THEME:-nord}' COLOR_FORCE=1 '$ROOT_DIR/tools/lib/color-filter'" \
+        --preview "BL_THEME='${BL_THEME:-nord}' COLOR_FORCE=1 '$ROOT_DIR/tools/command-hub-preview' '$cache_dir' {1} | BL_THEME='${BL_THEME:-nord}' COLOR_FORCE=1 REPORT_NEGATIVE_COLOR='${report_negative_color}' '$ROOT_DIR/tools/lib/color-filter'" \
         --preview-window "$preview_win"
     else
       section_list | fzf --prompt='section> ' --delimiter=$'\t' --with-nth=2.. --height=80% --reverse --exit-0
@@ -359,7 +363,7 @@ case "$cmd" in
       all) show_full_report ;;
       *)
         if [[ ! -f "$cache_dir/.cache-refreshing" && ! -f "$cache_dir/.cache-error" && -f "$cache_dir/$key.txt" ]]; then
-          cat "$cache_dir/$key.txt" | "$ROOT_DIR/tools/lib/color-filter" | pager_display
+          cat "$cache_dir/$key.txt" | report_color_filter | pager_display
         else
           show_section_direct "$key"
         fi
