@@ -58,6 +58,11 @@ ProfitAndLoss ← {𝕊 facts‿domain‿start‿finish:
   output
 }
 Recent ← {𝕊 facts‿limit:Publish ⟨"recent",recentSection.Build recentTransactions.Build ⟨facts,limit⟩⟩}
+RecentThrough ← {𝕊 facts‿through‿limit:
+  output ← DateFailure "recent"
+  {𝕊:output↩Publish ⟨"recent",recentSection.Build recentTransactions.BuildThrough ⟨facts,dates.Ordinal through,limit⟩⟩}⍟(dates.IsValid through) @
+  output
+}
 Planned ← {𝕊 planFacts‿actualFacts‿cycle‿observation:Publish ⟨"planned",plannedSection.Build ⟨planFacts,actualFacts,cycle,observation⟩⟩}
 CycleAccounts ← {𝕊 facts‿domain‿cycle‿observation:
   accounting ← cycleAccountPeriod.Build ⟨facts,domain,cycle,observation⟩ ⋄ Publish ⟨"cycle-accounts",cycleAccountsSection.Build accounting⟩
@@ -93,7 +98,7 @@ Issues ← {𝕊 lines‿registry:Publish ⟨"issues",issuesSection.Build issueA
 
 {
   ValidateSingle⇐ValidateSingle,
-  Balances⇐Balances,BalanceSheet⇐BalanceSheet,ProfitAndLoss⇐ProfitAndLoss,Recent⇐Recent,Planned⇐Planned,
+  Balances⇐Balances,BalanceSheet⇐BalanceSheet,ProfitAndLoss⇐ProfitAndLoss,Recent⇐Recent,RecentThrough⇐RecentThrough,Planned⇐Planned,
   CycleAccounts⇐CycleAccounts,CycleComparison⇐CycleComparison,MonthlyAccounts⇐MonthlyAccounts,DailyFlow⇐DailyFlow,
   Envelopes⇐Envelopes,DailyTarget⇐DailyTarget,Issues⇐Issues
 }

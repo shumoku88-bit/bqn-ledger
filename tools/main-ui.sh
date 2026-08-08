@@ -3,12 +3,9 @@ set -euo pipefail
 
 # tools/main-ui.sh — daily report entry / small command hub
 #
-# Default path must be useful for daily browsing:
-#   tools/main-ui.sh  -> open the lightweight section selector
-# Full report output remains available through `report` / `all`.
-#
-# Selector-based browsing uses structured report-section metadata for menu labels.
-# Section display uses section keys / cache files, not human heading parsing.
+# Report requests come from canonical report.toml plus canonical Household
+# evidence. The selector still consumes generated section keys and cache files;
+# it never parses report headings or owns accounting coordinates.
 
 SOURCE="${BASH_SOURCE[0]}"
 while [ -L "$SOURCE" ]; do
@@ -27,7 +24,7 @@ source "$ROOT_DIR/tools/lib/ui-preferences.sh"
 usage() {
   cat <<'EOF'
 Usage:
-  tools/main-ui.sh [--base <dir>] [--manifest-config <file>] [command]
+  tools/main-ui.sh [--base <dir>] [--domain <commodity>] [--latest YYYY-MM-DD] [command]
 
 Commands:
   select, --select     Open fzf/gum section selector (default)
@@ -46,32 +43,32 @@ Commands:
   issues               Show Issues
   add, actions         Launch tools/add-ui.sh
 
-Default behavior intentionally opens the lightweight selector.
+If --domain is omitted, a single canonical Actual domain is selected. Multiple
+admitted domains require an explicit --domain. --latest is primarily useful for
+deterministic cache generation and tests; normal operation uses the local day.
 EOF
 }
 
 base_dir="${LEDGER_DATA_DIR:-$(get_default_base_dir)}"
-manifest_config_override=""
+domain_override="${REPORT_DOMAIN:-}"
+latest_override=""
 cmd="select"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --base)
-      if [[ $# -lt 2 ]]; then
-        echo "Error: --base requires a directory" >&2
-        usage >&2
-        exit 1
-      fi
+      [[ $# -ge 2 ]] || { echo "Error: --base requires a directory" >&2; usage >&2; exit 1; }
       base_dir="$2"
       shift 2
       ;;
-    --manifest-config)
-      if [[ $# -lt 2 ]]; then
-        echo "Error: --manifest-config requires a file" >&2
-        usage >&2
-        exit 1
-      fi
-      manifest_config_override="$2"
+    --domain)
+      [[ $# -ge 2 ]] || { echo "Error: --domain requires a commodity" >&2; usage >&2; exit 1; }
+      domain_override="$2"
+      shift 2
+      ;;
+    --latest)
+      [[ $# -ge 2 ]] || { echo "Error: --latest requires YYYY-MM-DD" >&2; usage >&2; exit 1; }
+      latest_override="$2"
       shift 2
       ;;
     -h|--help)
@@ -81,47 +78,13 @@ while [[ $# -gt 0 ]]; do
     *)
       cmd="$1"
       shift
-      if [[ $# -gt 0 ]]; then
-        echo "Error: Unexpected argument(s): $*" >&2
-        usage >&2
-        exit 1
-      fi
+      [[ $# -eq 0 ]] || { echo "Error: Unexpected argument(s): $*" >&2; usage >&2; exit 1; }
       ;;
   esac
 done
 
-manifest_config="${manifest_config_override:-${REPORT_MANIFEST_CONFIG:-}}"
-if [[ -z "$manifest_config" ]]; then
-  echo "Error: REPORT_MANIFEST_CONFIG must name the explicit report manifest config" >&2
-  exit 2
-fi
-[[ "$manifest_config" == /* ]] || manifest_config="$ROOT_DIR/$manifest_config"
-human_manifest="$(bqn "$ROOT_DIR/src/application/report_manifest_config_cli.bqn" "$manifest_config" human)"
-compact_manifest="$(bqn "$ROOT_DIR/src/application/report_manifest_config_cli.bqn" "$manifest_config" compact)"
-current_manifest_path=""
-cleanup_current_manifest() {
-  [[ -z "$current_manifest_path" ]] || rm -f "$current_manifest_path"
-}
-trap cleanup_current_manifest EXIT
-ensure_current_manifest() {
-  [[ -z "$current_manifest_path" ]] || return 0
-  local candidate
-  candidate="$(mktemp "${TMPDIR:-/tmp}/bqn-ledger-current-manifest.XXXXXX")"
-  if ! "$ROOT_DIR/tools/report-current-manifest" "$base_dir" "$human_manifest" >"$candidate"; then
-    cat "$candidate" >&2
-    rm -f "$candidate"
-    return 1
-  fi
-  current_manifest_path="$candidate"
-}
-
-# Record whether both stdin and stdout are connected to a terminal at startup.
-# This preserves the interactive check state even when we execute select_section
-# inside a command substitution (which redirects stdout and makes [[ -t 1 ]] false).
 IS_TTY=0
-if [[ -t 0 && -t 1 ]]; then
-  IS_TTY=1
-fi
+if [[ -t 0 && -t 1 ]]; then IS_TTY=1; fi
 
 pager_display() {
   if [[ "$IS_TTY" -eq 1 ]] && command -v less >/dev/null 2>&1; then
@@ -131,13 +94,46 @@ pager_display() {
   fi
 }
 
-show_full_report() {
-  ensure_ledger_report_base "$base_dir"
-  ensure_current_manifest
-  local base_abs
+base_abs=""
+report_domain=""
+current_requests_path=""
+cleanup_current_requests() {
+  [[ -z "$current_requests_path" ]] || rm -f "$current_requests_path"
+}
+trap cleanup_current_requests EXIT
+
+ensure_report_context() {
+  [[ -n "$base_abs" ]] && return 0
+  ensure_canonical_report_base "$base_dir"
   base_abs="$(cd "$base_dir" && pwd)"
-  "$ROOT_DIR/tools/report-all" "$ROOT_DIR" "$base_abs" human "$current_manifest_path" \
-    | "$ROOT_DIR/tools/lib/color-filter" | pager_display
+  if [[ -n "$domain_override" ]]; then
+    report_domain="$(bqn "$ROOT_DIR/src/application/report_domain_cli.bqn" "$base_abs" "$domain_override")"
+  else
+    report_domain="$(bqn "$ROOT_DIR/src/application/report_domain_cli.bqn" "$base_abs")"
+  fi
+}
+
+ensure_current_requests() {
+  [[ -n "$current_requests_path" ]] && return 0
+  ensure_report_context
+  local candidate args
+  candidate="$(mktemp "${TMPDIR:-/tmp}/bqn-ledger-current-requests.XXXXXX")"
+  args=("$base_abs" "$report_domain" human)
+  [[ -z "$latest_override" ]] || args+=("$latest_override")
+  if ! bqn "$ROOT_DIR/src/application/current_report_profile_cli.bqn" "${args[@]}" >"$candidate"; then
+    cat "$candidate" >&2
+    rm -f "$candidate"
+    return 1
+  fi
+  current_requests_path="$candidate"
+}
+
+show_full_report() {
+  ensure_report_context
+  local args
+  args=("$base_abs" "$report_domain" human)
+  [[ -z "$latest_override" ]] || args+=("$latest_override")
+  "$ROOT_DIR/tools/report-all" "${args[@]}" | "$ROOT_DIR/tools/lib/color-filter" | pager_display
 }
 
 section_list() {
@@ -147,19 +143,19 @@ section_list() {
 
 show_section_direct() {
   local key="$1" out err status row
-  ensure_current_manifest
-  row="$(awk -F'\t' -v key="$key" '$1 == key { print; found++ } END { if (found != 1) exit 1 }' "$current_manifest_path")" \
+  ensure_current_requests
+  row="$(awk -F'\t' -v key="$key" '$1 == key { print; found++ } END { if (found != 1) exit 1 }' "$current_requests_path")" \
     || { echo "Error: current report row is unavailable: $key" >&2; return 1; }
   IFS=$'\t' read -r -a fields <<<"$row"
   out="$(mktemp)"
   err="$(mktemp)"
   trap 'rm -f "$out" "$err"' RETURN
-  if "$ROOT_DIR/tools/report" "$base_dir" "${fields[@]}" >"$out" 2>"$err"; then
+  if "$ROOT_DIR/tools/report" "$base_abs" "${fields[@]}" >"$out" 2>"$err"; then
     cat "$out" | "$ROOT_DIR/tools/lib/color-filter" | pager_display
   else
     status=$?
-    if [[ -s "$out" ]]; then cat "$out" >&2; fi
-    if [[ -s "$err" ]]; then cat "$err" >&2; fi
+    [[ ! -s "$out" ]] || cat "$out" >&2
+    [[ ! -s "$err" ]] || cat "$err" >&2
     return "$status"
   fi
 }
@@ -174,16 +170,12 @@ browse_sections_interactive() {
     keys+=("$key")
     labels+=("$label")
   done < <(section_list)
-
-  if [[ $count -eq 0 ]]; then
-    return 1
-  fi
+  [[ $count -gt 0 ]] || return 1
 
   while true; do
     clear 2>/dev/null || printf '\033[2J\033[H'
     key="${keys[$current]}"
     label="${labels[$current]}"
-
     printf '==============================================================================--\n' >&2
     printf ' [%d/%d] %s (%s)\n [←/p: 前へ]  [→/n: 次へ]  [Enter: 全画面表示]  [q: メニューへ戻る]\n' "$((current+1))" "$count" "$label" "$key" >&2
     printf '==============================================================================--\n\n' >&2
@@ -194,10 +186,7 @@ browse_sections_interactive() {
       show_section_direct "$key" >&2
     fi
 
-    if ! IFS= read -rsn1 char </dev/tty; then
-      break
-    fi
-
+    if ! IFS= read -rsn1 char </dev/tty; then break; fi
     if [[ "$char" == $'\x1b' ]]; then
       read -rsn2 -t 0.1 esc_seq </dev/tty || esc_seq=""
       case "$esc_seq" in
@@ -231,34 +220,18 @@ select_section() {
   fi
 
   if [[ "$IS_TTY" -eq 1 && "$selector" == "fzf" ]]; then
-    command -v fzf >/dev/null 2>&1 \
-      || { echo "Error: BL_SELECTOR=fzf but fzf is not installed" >&2; return 2; }
+    command -v fzf >/dev/null 2>&1 || { echo "Error: BL_SELECTOR=fzf but fzf is not installed" >&2; return 2; }
     local preview_win
     preview_win="$(bl_fzf_preview_window)" || return
-
     if [[ -n "$cache_dir" ]]; then
-      section_list | fzf \
-        --prompt='section> ' \
-        --delimiter=$'\t' \
-        --with-nth=2.. \
-        --height=80% \
-        --reverse \
-        --exit-0 \
-        --ansi \
+      section_list | fzf --prompt='section> ' --delimiter=$'\t' --with-nth=2.. --height=80% --reverse --exit-0 --ansi \
         --preview "BL_THEME='${BL_THEME:-nord}' COLOR_FORCE=1 '$ROOT_DIR/tools/command-hub-preview' '$cache_dir' {1} | BL_THEME='${BL_THEME:-nord}' COLOR_FORCE=1 '$ROOT_DIR/tools/lib/color-filter'" \
         --preview-window "$preview_win"
     else
-      section_list | fzf \
-        --prompt='section> ' \
-        --delimiter=$'\t' \
-        --with-nth=2.. \
-        --height=80% \
-        --reverse \
-        --exit-0
+      section_list | fzf --prompt='section> ' --delimiter=$'\t' --with-nth=2.. --height=80% --reverse --exit-0
     fi
   elif [[ "$IS_TTY" -eq 1 && "$selector" == "gum" ]]; then
-    command -v gum >/dev/null 2>&1 \
-      || { echo "Error: BL_SELECTOR=gum but gum is not installed" >&2; return 2; }
+    command -v gum >/dev/null 2>&1 || { echo "Error: BL_SELECTOR=gum but gum is not installed" >&2; return 2; }
     section_list | gum filter "${GUM_FILTER_ARGS[@]}" --placeholder='section / category'
   else
     local keys=() labels=() count=0 i sel_idx key label
@@ -289,8 +262,71 @@ select_section() {
         fi
       done
     fi
-
   fi
+}
+
+prepare_cache() {
+  ensure_report_context
+  local cache_date sanitized_path cache_dir max_src_mtime f mtime key_manifest timestamp_file cache_mtime
+  cache_date="${latest_override:-$(date +%Y-%m-%d)}"
+  sanitized_path="${base_abs//\//_}"
+  cache_dir="${TMPDIR:-/tmp}/bqn-ledger-cache-${sanitized_path}-${report_domain}-${cache_date}"
+  mkdir -p "$cache_dir"
+
+  local src_files=(
+    "$base_abs/accounts.journal" "$base_abs/actual.journal" "$base_abs/plan.journal" "$base_abs/budget.journal"
+    "$base_abs/budget.toml" "$base_abs/household.toml" "$base_abs/report.toml" "$base_abs/issues.tsv"
+  )
+  while IFS= read -r -d '' f; do src_files+=("$f"); done < <(find "$ROOT_DIR/src" -name "*.bqn" -print0)
+  [[ ! -f "$ROOT_DIR/config/report_labels.tsv" ]] || src_files+=("$ROOT_DIR/config/report_labels.tsv")
+
+  max_src_mtime=0
+  for f in "${src_files[@]}"; do
+    if [[ -f "$f" ]]; then
+      if stat -f %m "$f" >/dev/null 2>&1; then mtime=$(stat -f %m "$f"); else mtime=$(stat -c %Y "$f"); fi
+      (( mtime <= max_src_mtime )) || max_src_mtime=$mtime
+    fi
+  done
+
+  local cache_ok=0 cache_key_count cache_has_all key
+  timestamp_file="$cache_dir/.cache-timestamp"
+  key_manifest="$cache_dir/.section-keys"
+  if [[ -f "$timestamp_file" && -f "$key_manifest" && ! -f "$cache_dir/.cache-refreshing" && ! -f "$cache_dir/.cache-error" ]]; then
+    cache_mtime=$(cat "$timestamp_file" 2>/dev/null || echo 0)
+    if (( cache_mtime >= max_src_mtime )); then
+      cache_ok=1; cache_key_count=0; cache_has_all=0
+      while IFS= read -r key; do
+        cache_key_count=$((cache_key_count + 1))
+        [[ "$key" =~ ^[a-z0-9][a-z0-9-]*$ ]] || { cache_ok=0; break; }
+        [[ "$key" == "all" ]] && cache_has_all=1
+        [[ -f "$cache_dir/$key.txt" ]] || { cache_ok=0; break; }
+      done <"$key_manifest"
+      [[ "$cache_key_count" -gt 0 && "$cache_has_all" -eq 1 ]] || cache_ok=0
+    fi
+  fi
+
+  if [[ "$cache_ok" -ne 1 ]]; then
+    local refresh_mode="${COMMAND_HUB_CACHE_REFRESH_MODE:-}"
+    if [[ -z "$refresh_mode" ]]; then
+      if [[ "$IS_TTY" -eq 1 ]]; then refresh_mode="background"; else refresh_mode="synchronous"; fi
+    fi
+    local refresh_args=("$base_abs" "$cache_dir" "$max_src_mtime" "$report_domain")
+    [[ -z "$latest_override" ]] || refresh_args+=("$latest_override")
+    case "$refresh_mode" in
+      background)
+        ( trap '' HUP; exec "$ROOT_DIR/tools/command-hub-cache-refresh" "${refresh_args[@]}" ) </dev/null >"$cache_dir/.refresh.log" 2>&1 &
+        for _ in 1 2 3 4 5 6 7 8 9 10; do
+          [[ -f "$cache_dir/.cache-refreshing" || -f "$cache_dir/.cache-error" ]] && break
+          sleep 0.01
+        done
+        ;;
+      synchronous)
+        "$ROOT_DIR/tools/command-hub-cache-refresh" "${refresh_args[@]}" || { echo "Failed to generate report cache" >&2; exit 1; }
+        ;;
+      *) echo "Error: invalid COMMAND_HUB_CACHE_REFRESH_MODE: $refresh_mode" >&2; exit 2 ;;
+    esac
+  fi
+  printf '%s\n' "$cache_dir"
 }
 
 case "$cmd" in
@@ -301,136 +337,17 @@ case "$cmd" in
     exec "$ROOT_DIR/tools/add-ui.sh" --base "$base_dir"
     ;;
   select|--select|'')
-    ensure_ledger_report_base "$base_dir"
-    ensure_current_manifest
-    
-    # Create a stable cache directory based on the absolute path of base_dir
-    base_abs="$(cd "$base_dir" && pwd)"
-    sanitized_path="${base_abs//\//_}"
-    cache_dir="${TMPDIR:-/tmp}/bqn-ledger-cache-${sanitized_path}"
-    mkdir -p "$cache_dir"
-
-    actual_journal_rel="$(awk -F'\t' '$1 == "balances" { print $5 }' "$current_manifest_path")"
-    [[ -n "$actual_journal_rel" ]] \
-      || { echo "Error: current profile did not publish an Actual Journal source" >&2; exit 1; }
-    src_files=(
-      "$base_abs/accounts.tsv"
-      "$base_abs/$actual_journal_rel"
-      "$base_abs/plan.tsv"
-      "$base_abs/budget_alloc.tsv"
-      "$base_abs/cycle.tsv"
-    )
-    src_files+=(
-      "$base_abs/issues.tsv"
-      "$base_abs/daily_target_scope.tsv"
-      "$base_abs/$human_manifest"
-      "$base_abs/$compact_manifest"
-      "$manifest_config"
-    )
-    # Automatically invalidate cache when final report code changes.
-    while IFS= read -r -d '' f; do
-      src_files+=("$f")
-    done < <(find "$ROOT_DIR/src" -name "*.bqn" -print0)
-    if [[ -f "$base_abs/issues.tsv" ]]; then
-      src_files+=("$base_abs/issues.tsv")
-    fi
-    if [[ -f "$base_abs/config.tsv" ]]; then
-      src_files+=("$base_abs/config.tsv")
-    fi
-    if [[ -f "$ROOT_DIR/config/report_labels.tsv" ]]; then
-      src_files+=("$ROOT_DIR/config/report_labels.tsv")
-    fi
-
-    # Find the maximum modification time among source files
-    max_src_mtime=0
-    for f in "${src_files[@]}"; do
-      if [[ -f "$f" ]]; then
-        if stat -f %m "$f" >/dev/null 2>&1; then
-          mtime=$(stat -f %m "$f")
-        else
-          mtime=$(stat -c %Y "$f")
-        fi
-        if (( mtime > max_src_mtime )); then
-          max_src_mtime=$mtime
-        fi
-      fi
-    done
-
-    # Check if the complete cache generation is still valid. BQN publishes the
-    # canonical key manifest; UI code does not duplicate report section names.
-    cache_ok=0
-    timestamp_file="$cache_dir/.cache-timestamp"
-    key_manifest="$cache_dir/.section-keys"
-    if [[ -f "$timestamp_file" \
-       && -f "$key_manifest" \
-       && ! -f "$cache_dir/.cache-refreshing" \
-       && ! -f "$cache_dir/.cache-error" ]]; then
-      cache_mtime=$(cat "$timestamp_file" 2>/dev/null || echo 0)
-      if (( cache_mtime >= max_src_mtime )); then
-        cache_ok=1
-        cache_key_count=0
-        cache_has_all=0
-        while IFS= read -r key; do
-          cache_key_count=$((cache_key_count + 1))
-          [[ "$key" =~ ^[a-z0-9][a-z0-9-]*$ ]] || { cache_ok=0; break; }
-          [[ "$key" == "all" ]] && cache_has_all=1
-          [[ -f "$cache_dir/$key.txt" ]] || { cache_ok=0; break; }
-        done <"$key_manifest"
-        if [[ "$cache_key_count" -eq 0 || "$cache_has_all" -ne 1 ]]; then
-          cache_ok=0
-        fi
-      fi
-    fi
-
-    # A TTY selector opens immediately while a stale or missing cache refreshes
-    # in the background. Non-interactive callers remain synchronous so scripts
-    # receive deterministic output. The test-only override characterizes the
-    # background boundary without requiring terminal automation.
-    if [[ "$cache_ok" -ne 1 ]]; then
-      refresh_mode="${COMMAND_HUB_CACHE_REFRESH_MODE:-}"
-      if [[ -z "$refresh_mode" ]]; then
-        if [[ "$IS_TTY" -eq 1 ]]; then refresh_mode="background"; else refresh_mode="synchronous"; fi
-      fi
-      case "$refresh_mode" in
-        background)
-          (
-            trap '' HUP
-            exec "$ROOT_DIR/tools/command-hub-cache-refresh" "$base_abs" "$cache_dir" "$max_src_mtime" "$current_manifest_path"
-          ) </dev/null >"$cache_dir/.refresh.log" 2>&1 &
-          # Let the child publish its status marker before fzf asks for the
-          # first preview. Never wait for report computation here.
-          for _ in 1 2 3 4 5 6 7 8 9 10; do
-            [[ -f "$cache_dir/.cache-refreshing" || -f "$cache_dir/.cache-error" ]] && break
-            sleep 0.01
-          done
-          ;;
-        synchronous)
-          if ! "$ROOT_DIR/tools/command-hub-cache-refresh" "$base_abs" "$cache_dir" "$max_src_mtime" "$current_manifest_path"; then
-            echo "Failed to generate report cache" >&2
-            exit 1
-          fi
-          ;;
-        *)
-          echo "Error: invalid COMMAND_HUB_CACHE_REFRESH_MODE: $refresh_mode" >&2
-          exit 2
-          ;;
-      esac
-    fi
-
+    cache_dir="$(prepare_cache)"
     selection="$(select_section "$cache_dir" || true)"
-    [[ -z "$selection" ]] && echo "Cancelled." >&2 && exit 0
+    [[ -n "$selection" ]] || { echo "Cancelled." >&2; exit 0; }
     key="${selection%%$'\t'*}"
     case "$key" in
       actions) exec "$ROOT_DIR/tools/add-ui.sh" --base "$base_dir" ;;
       all) show_full_report ;;
       *)
-        if [[ ! -f "$cache_dir/.cache-refreshing" \
-           && ! -f "$cache_dir/.cache-error" \
-           && -f "$cache_dir/$key.txt" ]]; then
+        if [[ ! -f "$cache_dir/.cache-refreshing" && ! -f "$cache_dir/.cache-error" && -f "$cache_dir/$key.txt" ]]; then
           cat "$cache_dir/$key.txt" | "$ROOT_DIR/tools/lib/color-filter" | pager_display
         else
-          # Selection remains correct even when the user chooses a row before
-          # the background cache is ready.
           show_section_direct "$key"
         fi
         ;;

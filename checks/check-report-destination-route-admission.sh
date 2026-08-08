@@ -35,16 +35,22 @@ route_line=$(grep -n 'routeAdmission ← route.Admit' "$cli" | cut -d: -f1)
   exit 1
 }
 
-bqn "$cli" "$fixture" balances human JPY 2026-01-12 actual.journal >"$tmp/balances"
+bqn "$cli" "$fixture" balances human JPY 2026-01-12 >"$tmp/balances"
 cmp "$tmp/balances" "$fixture/account_balances.destination.human.txt"
 
-if bqn "$cli" "$fixture" balances human JPY 2026-01-12 >"$tmp/arity" 2>&1; then
+if bqn "$cli" "$fixture" balances human JPY >"$tmp/arity" 2>&1; then
   echo 'FAIL: direct destination invalid arity succeeded' >&2
   exit 1
 fi
-ExpectLine $'ERROR\tusage_balances\tbalances requires DOMAIN AS_OF JOURNAL_BASENAME' "$tmp/arity"
+ExpectLine $'ERROR\tusage_balances\tbalances requires DOMAIN AS_OF' "$tmp/arity"
 
-if bqn "$cli" "$fixture" recent human nope actual.journal >"$tmp/limit" 2>&1; then
+if bqn "$cli" "$fixture" balances human JPY 2026-01-12 actual.journal >"$tmp/source" 2>&1; then
+  echo 'FAIL: direct destination physical source coordinate succeeded' >&2
+  exit 1
+fi
+ExpectLine $'ERROR\tusage_balances\tbalances requires DOMAIN AS_OF' "$tmp/source"
+
+if bqn "$cli" "$fixture" recent human 2026-01-12 nope >"$tmp/limit" 2>&1; then
   echo 'FAIL: direct destination invalid LIMIT succeeded' >&2
   exit 1
 fi

@@ -9,7 +9,7 @@ SOURCE="${BASH_SOURCE[0]}"
 while [ -L "$SOURCE" ]; do
   DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
   SOURCE="$(readlink "$SOURCE")"
-  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+  [[ "$SOURCE" != /* ]] && SOURCE="$DIR/$SOURCE"
 done
 SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 ROOT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
@@ -40,14 +40,15 @@ else
   fail "tools/main-ui.sh must use tools/report-section-metadata for section menu metadata"
 fi
 
-# Direct current display selects one exact stable key from the generated concrete
-# manifest, then invokes the existing explicit report route without parsing prose.
-if rg -q 'tools/report-current-manifest' tools/main-ui.sh \
+# Direct current display selects one exact stable key from the typed request set
+# generated from canonical report.toml, then invokes the explicit report route.
+if rg -q 'current_report_profile_cli\.bqn' tools/main-ui.sh \
   && rg -q 'awk .*\$1 == key' tools/main-ui.sh \
-  && rg -Fq '"$ROOT_DIR/tools/report" "$base_dir" "${fields[@]}"' tools/main-ui.sh; then
+  && rg -Fq '"$ROOT_DIR/tools/report" "$base_abs" "${fields[@]}"' tools/main-ui.sh \
+  && ! rg -q 'report-current-manifest|REPORT_MANIFEST_CONFIG' tools/main-ui.sh; then
   pass
 else
-  fail "tools/main-ui.sh direct display should route a stable key through the admitted current manifest"
+  fail "tools/main-ui.sh direct display should route a stable key through the canonical current request set"
 fi
 
 # Selector previews use only the cache/status reader, so browsing across rows
@@ -61,9 +62,10 @@ else
   fail "tools/main-ui.sh selector should refresh separately and use file/status-only previews"
 fi
 
-# Keep old marker/list-section scraping from returning as a UI dependency.
-if rg -n -- '--list-sections|marker mapping|section header parsing|section headers' tools/main-ui.sh tools/bl; then
-  fail "UI should not depend on human section headers or marker mapping"
+# Keep old marker/list-section scraping and request-manifest ownership from
+# returning as UI dependencies.
+if rg -n -- '--list-sections|marker mapping|section header parsing|section headers|REPORT_MANIFEST_CONFIG|report-current-manifest' tools/main-ui.sh tools/bl; then
+  fail "UI should not depend on human section headers, marker mapping, or legacy Report manifests"
 else
   pass
 fi

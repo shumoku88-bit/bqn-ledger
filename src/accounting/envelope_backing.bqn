@@ -117,7 +117,8 @@ BuildEnvelopeTerms ← {𝕊 budgetFacts‿budgetPolicy‿actualFacts‿accounts
   budgetPeriod ← prepared.budget_period ⋄ actualPeriod ← prepared.actual_period ⋄ joined ← prepared.completion_join
   envelopeIndices ← ownership.envelope_indices ⋄ categories ← ownership.categories ⋄ envelopeCount ← ≠envelopeIndices
   budgetRows ← budgetPeriod.accounts.account_index⊐envelopeIndices
-  entitlementResults ← {𝕊 row:NormalizeOne ⟨row⊑budgetPeriod.accounts.movement,budgetPeriod.scale,targetScale⟩}¨budgetRows
+  entitlementResults ← {𝕊 row:NormalizeOne ⟨row⊑budgetPeriod.accounts.closing,budgetPeriod.scale,targetScale⟩}¨budgetRows
+  entitlementIndices ← {𝕊 row:(row⊑budgetPeriod.accounts.opening_contributors)∾row⊑budgetPeriod.accounts.period_contributors}¨budgetRows
   expenseIndices ← budgetPolicy.expense_account_index ⋄ expenseEnvelopeIds ← budgetPolicy.expense_envelope_id
   domainMask ← domain⊸≡¨expenseIndices⊏accounts.currency
   expenseIndices↩domainMask/expenseIndices ⋄ expenseEnvelopeIds↩domainMask/expenseEnvelopeIds
@@ -173,7 +174,7 @@ BuildEnvelopeTerms ← {𝕊 budgetFacts‿budgetPolicy‿actualFacts‿accounts
     entitlement⇐{𝕩.coefficient}¨entitlementResults,actual_consumption⇐{𝕩.coefficient}¨consumptionResults,
     actual_refunds⇐{𝕩.coefficient}¨refundResults,ledger_remaining⇐{𝕩.coefficient}¨remainingResults,
     open_plan_reserve⇐{𝕩.coefficient}¨reserveResults,post_plan_headroom⇐{𝕩.coefficient}¨headroomResults,
-    entitlement_contributors⇐{PostingReferences ⟨budgetFacts,𝕩⟩}¨budgetRows⊏budgetPeriod.accounts.period_contributors,
+    entitlement_contributors⇐{PostingReferences ⟨budgetFacts,𝕩⟩}¨entitlementIndices,
     consumption_contributors⇐{PostingReferences ⟨actualFacts,𝕩⟩}¨debitIndices,
     refund_contributors⇐{PostingReferences ⟨actualFacts,𝕩⟩}¨creditIndices,
     plan_contributors⇐planGroups⊔openMask/joined.rows.plan_reference

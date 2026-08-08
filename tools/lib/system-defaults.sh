@@ -37,6 +37,8 @@ get_system_default_file() {
   printf '%s\n' "$fallback"
 }
 
+# Retained writer-side legacy helper. Do not reuse it for canonical Report reads;
+# writer qualification is a later migration phase.
 ledger_base_missing_required() {
   local base_dir="$1"
   local required=(accounts.tsv cycle.tsv)
@@ -95,5 +97,36 @@ ensure_ledger_report_base() {
     echo "Set LEDGER_DATA_DIR to the directory containing accounts.tsv and cycle.tsv; BQN validates the explicitly selected actual source." >&2
   fi
 
+  return 1
+}
+
+canonical_report_base_missing_required() {
+  local base_dir="$1"
+  local required=(
+    accounts.journal actual.journal plan.journal budget.journal
+    budget.toml household.toml report.toml issues.tsv
+  )
+  local file missing=()
+
+  for file in "${required[@]}"; do
+    [[ -f "$base_dir/$file" ]] || missing+=("$file")
+  done
+  if [[ ${#missing[@]} -gt 0 ]]; then
+    printf '%s\n' "${missing[@]}"
+  fi
+}
+
+ensure_canonical_report_base() {
+  local base_dir="$1"
+  local missing=() line
+  while IFS= read -r line; do
+    [[ -z "$line" ]] || missing+=("$line")
+  done < <(canonical_report_base_missing_required "$base_dir")
+
+  if [[ ${#missing[@]} -eq 0 ]]; then
+    return 0
+  fi
+  echo "Error: canonical Household root is not usable for reports: $base_dir" >&2
+  echo "Missing required canonical file(s): ${missing[*]}" >&2
   return 1
 }

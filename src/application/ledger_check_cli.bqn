@@ -10,8 +10,8 @@ Fail ← {𝕊 diagnostics:
   •Exit 1
 }
 {𝕊:•Out "ERROR"∾tab∾"usage"∾tab∾"expected BASE JOURNAL PLAN BUDGET CYCLE ISSUES DAILY_SCOPE until canonical CLI cleanup" ⋄ •Exit 2}⍟(7≠≠args) @
-base‿journalCoordinate‿planCoordinate‿budgetCoordinate‿cycleCoordinate‿issueName‿dailyCoordinate ← args
-journalCoordinate‿planCoordinate‿budgetCoordinate‿cycleCoordinate‿dailyCoordinate
+base‿journalCoordinate‿planCoordinate‿budgetCoordinate‿cycleCoordinate‿issueCoordinate‿dailyCoordinate ← args
+journalCoordinate‿planCoordinate‿budgetCoordinate‿cycleCoordinate‿issueCoordinate‿dailyCoordinate
 registryResult ← sources.Registry "config/currencies.tsv"
 {𝕊:Fail ⟨{stage⇐"currency_registry",code⇐registryResult.code,message⇐registryResult.message}⟩}⍟(registryResult.state≢"ok") @
 registry ← registryResult.registry
@@ -21,7 +21,7 @@ companions ← sources.Companions ⟨base,actual.facts.accounts,registry⟩
 {𝕊:Fail companions.diagnostics}⍟(companions.state≢"ok") @
 daily ← householdDaily.Build ⟨companions.household,companions.plan,registry⟩
 {𝕊:Fail daily.diagnostics}⍟(daily.state≢"ok") @
-issues ← issueAdmission.Admit ⟨sources.IssueLines ⟨base,issueName⟩,registry⟩
+issues ← issueAdmission.Admit ⟨sources.IssueLines base,registry⟩
 {𝕊:Fail issues.diagnostics}⍟(issues.state≢"ok") @
 •Out "ledger_check"∾tab∾"state"∾tab∾"ok"
 •Out "ledger_check"∾tab∾"actual_transactions"∾tab∾•Fmt actual.facts.transactions.count

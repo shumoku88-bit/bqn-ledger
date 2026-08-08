@@ -1,21 +1,23 @@
 #!/usr/bin/env bash
-# Parallel proof for the final exact ledger_* query contract.
+# Exact ledger_* query contract over the canonical compact Report summary.
 set -euo pipefail
 usage() {
   cat >&2 <<'USAGE'
-Usage: tools/query BASE COMPACT_MANIFEST LEDGER_KEY
-       tools/query BASE COMPACT_MANIFEST --list
-       tools/query BASE COMPACT_MANIFEST --keys
+Usage: tools/query BASE DOMAIN LEDGER_KEY [LATEST]
+       tools/query BASE DOMAIN --list [LATEST]
+       tools/query BASE DOMAIN --keys [LATEST]
 
 LEDGER_KEY lookup is exact and prints every matching value in summary order.
-No retired-key translation, regex lookup, or human-heading parsing is provided.
+No retired-key translation, regex lookup, human-heading parsing, or request
+manifest input is provided.
 USAGE
 }
-[[ $# -eq 3 ]] || { usage; exit 2; }
+[[ $# -ge 3 && $# -le 4 ]] || { usage; exit 2; }
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 base=$1
-manifest=$2
+domain=$2
 request=$3
+latest=${4:-}
 case "$request" in
   --list|--keys) ;;
   --*) usage; exit 2 ;;
@@ -26,7 +28,9 @@ case "$request" in
 esac
 tmp=$(mktemp "${TMPDIR:-/tmp}/bqn-ledger-query.XXXXXX")
 trap 'rm -f "$tmp"' EXIT
-"$root/tools/report-summary" "$base" "$manifest" >"$tmp"
+summary_args=("$base" "$domain")
+[[ -z $latest ]] || summary_args+=("$latest")
+"$root/tools/report-summary" "${summary_args[@]}" >"$tmp"
 case "$request" in
   --list)
     awk -F': ' '$1 ~ /^ledger_[a-z0-9_]+$/ {print}' "$tmp"

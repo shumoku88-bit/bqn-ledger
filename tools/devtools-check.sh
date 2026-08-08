@@ -14,7 +14,7 @@ SOURCE="${BASH_SOURCE[0]}"
 while [ -L "$SOURCE" ]; do
   DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
   SOURCE="$(readlink "$SOURCE")"
-  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+  [[ "$SOURCE" != /* ]] && SOURCE="$DIR/$SOURCE"
 done
 SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 ROOT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
@@ -47,26 +47,27 @@ tmp_summary="$(mktemp)"
 trap 'rm -f "$tmp_summary"' EXIT
 
 proof_base=fixtures/ledger-facts-phase1-proof
-compact_manifest="$proof_base/report_all_compact.destination.tsv"
-if ./tools/report-summary "$proof_base" "$compact_manifest" >"$tmp_summary" 2>/dev/null; then
+proof_domain=JPY
+proof_latest=2026-01-12
+if ./tools/report-summary "$proof_base" "$proof_domain" "$proof_latest" >"$tmp_summary" 2>/dev/null; then
   total_keys=$(grep -c '^ledger_' "$tmp_summary" || echo 0)
   echo "  INFO: destination summary exposes $total_keys ledger_* rows" >&2
   first_key=$(sed -n '/^ledger_/{s/: .*//;p;q;}' "$tmp_summary")
-  if [[ -n $first_key ]] && ./tools/query "$proof_base" "$compact_manifest" "$first_key" >/dev/null 2>&1; then
+  if [[ -n $first_key ]] && ./tools/query "$proof_base" "$proof_domain" "$first_key" "$proof_latest" >/dev/null 2>&1; then
     echo "  PASS: exact query can retrieve a key (sample: $first_key)" >&2
     pass
   else
     echo "  FAIL: exact destination query failed for key: $first_key" >&2
     fail "query: cannot retrieve key $first_key"
   fi
-  if ./tools/query "$proof_base" "$compact_manifest" --list >/dev/null 2>&1; then
+  if ./tools/query "$proof_base" "$proof_domain" --list "$proof_latest" >/dev/null 2>&1; then
     echo "  PASS: exact query --list works" >&2
     pass
   else
     echo "  FAIL: exact query --list failed" >&2
     fail "query: --list failed"
   fi
-  if ./tools/query "$proof_base" "$compact_manifest" --keys >/dev/null 2>&1; then
+  if ./tools/query "$proof_base" "$proof_domain" --keys "$proof_latest" >/dev/null 2>&1; then
     echo "  PASS: exact query --keys works" >&2
     pass
   else
@@ -105,7 +106,6 @@ if command -v rtk >/dev/null 2>&1; then
   pass
 else
   echo "  WARN: rtk not found (non-fatal)" >&2
-  # rtk is optional, don't fail
 fi
 
 if command -v sqz >/dev/null 2>&1; then
@@ -113,23 +113,15 @@ if command -v sqz >/dev/null 2>&1; then
   pass
 else
   echo "  WARN: sqz not found (non-fatal)" >&2
-  # sqz is optional, don't fail
 fi
 
 # ── F: stale tool references ──
 echo "[F] stale tool references in docs" >&2
 
-# Tools known to be removed from the current tree
 STALE_TOOLS=("tools/sqz-report" "lint_cli.bqn")
 STALE_FOUND=0
 
 for tool in "${STALE_TOOLS[@]}"; do
-  # Search non-archive, non-status docs for the stale tool name
-  # Exclude files that intentionally document historical context:
-  # - DECISION_AI_DEVELOPMENT_EFFICIENCY_PROPOSALS.md (historical record)
-  # - BQN_REPL_AND_DUMPER_DESIGN.md (comparison reference)
-  # - DRIFT_FIX_PLAN-*.md (already fixing)
-  # - AI_AGENT_EFFICIENCY_PLAN.md (historical reference)
   refs=$(grep -rn "$tool" docs/ AGENTS.md 2>/dev/null \
     | grep -v 'docs/archive/' \
     | grep -v '削除済み' \
@@ -173,7 +165,6 @@ fi
 
 # ── H: CLI tools liveness (with colors enabled) ──
 echo "[H] CLI tools liveness (with colors enabled)" >&2
-# Temporarily unset NO_COLOR to test color theme loading in non-plain environments
 if env -u NO_COLOR ./tools/bl help >/dev/null 2>&1; then
   echo "  PASS: tools/bl launches successfully with colors enabled" >&2
   pass

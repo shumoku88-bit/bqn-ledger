@@ -1,21 +1,22 @@
 #!/usr/bin/env bash
-# Canonical destination compact summary over the admitted compact all manifest.
+# Canonical compact summary from report.toml plus canonical Household evidence.
 set -euo pipefail
 usage() {
   cat >&2 <<'USAGE'
-Usage: tools/report-summary BASE COMPACT_MANIFEST
+Usage: tools/report-summary BASE DOMAIN [LATEST]
 
-COMPACT_MANIFEST is an explicit key/surface/arguments TSV admitted in final
-catalog order. Relative paths are resolved from the caller's working directory.
+DOMAIN is the explicit accounting domain for this result. LATEST is optional and
+is mainly useful for deterministic tests; normal operation uses the local day.
 USAGE
 }
-if [[ $# -ne 2 ]]; then usage; exit 2; fi
+[[ $# -ge 2 && $# -le 3 ]] || { usage; exit 2; }
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 caller_pwd=$PWD
 base=$1
-manifest=$2
+domain=$2
+latest=${3:-}
 [[ $base == /* ]] || base="$caller_pwd/$base"
-[[ $manifest == /* ]] || manifest="$caller_pwd/$manifest"
 [[ -d $base ]] || { printf 'ERROR\tsummary_base_unreadable\tbase directory is not readable\n' >&2; exit 1; }
-[[ -f $manifest && -r $manifest ]] || { printf 'ERROR\tsummary_manifest_unreadable\tcompact manifest is not readable\n' >&2; exit 1; }
-exec "$root/tools/report-all" "$root" "$base" compact "$manifest"
+args=("$base" "$domain" compact)
+[[ -z $latest ]] || args+=("$latest")
+exec "$root/tools/report-all" "${args[@]}"
