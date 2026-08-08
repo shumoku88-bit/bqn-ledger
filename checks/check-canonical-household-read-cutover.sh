@@ -20,7 +20,7 @@ done
 ./tools/report "$tmp" envelopes human JPY \
   2026-01-01 2026-02-01 2026-01-12 actual.journal bad/plan.tsv bad/budget.tsv bad/funding \
   >"$tmp/envelopes.out"
-grep -F '== Envelope & Backing Statement ==' "$tmp/envelopes.out" >/dev/null
+grep -F '== Envelope & Backing ==' "$tmp/envelopes.out" >/dev/null
 
 ./tools/report "$tmp" cycle-accounts human JPY \
   2026-01-12 actual.journal bad/cycle.tsv bad/plan.tsv >"$tmp/cycle.out"
