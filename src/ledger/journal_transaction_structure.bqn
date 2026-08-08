@@ -13,7 +13,7 @@ supportedMetadata ← ⟨
   "action","receipt-id","event-id","layer","plan-id","execution-envelope",
   "allocation-id","agreement-id","actual-event-id","tax","biz","invoice",
   "note","due-on","receipt","txn-id","party","trip-id","payment","cashflow",
-  "currency","income-budget","recur","series","daily-target-id",
+  "currency","income-budget","recur","series","reverses","daily-target-id",
   "reservation-id","reservation-amount","reservation-commodity"
 ⟩
 supportedLayers ← ⟨"actual","plan","budget"⟩
