@@ -21,7 +21,7 @@ Resolve ← {𝕊 admittedCycle‿asOfText‿actualFacts‿planFacts:
       {𝕊:
         resolved ↩ result.Error ⟨def.mode,asOfText,"actual_facts_invalid","Actual facts must be admitted from actual.journal"⟩
         {𝕊:
-          resolved ↩ result.Error ⟨def.mode,asOfText,"plan_facts_invalid","Plan facts must be admitted from plan.tsv"⟩
+          resolved ↩ result.Error ⟨def.mode,asOfText,"plan_facts_invalid","Plan facts must be admitted from plan.journal"⟩
           {𝕊:
             resolved ↩ result.Error ⟨def.mode,asOfText,"income_anchor_offset_unsupported","incomeAnchor resolver supports only admitted offset 0"⟩
             {𝕊:
@@ -85,7 +85,7 @@ Resolve ← {𝕊 admittedCycle‿asOfText‿actualFacts‿planFacts:
                 }⍟evidenceCompat @
               }⍟(actualKnown ∧ planKnown) @
             }⍟(def.offset=0) @
-          }⍟(reference.SourceIs ⟨planFacts,"plan.tsv"⟩) @
+          }⍟(reference.SourceIs ⟨planFacts,"plan.journal"⟩) @
         }⍟(reference.SourceIs ⟨actualFacts,"actual.journal"⟩) @
       }⍟(dates.IsValid asOfText) @
     }⍟(def.mode≡"incomeAnchor") @
