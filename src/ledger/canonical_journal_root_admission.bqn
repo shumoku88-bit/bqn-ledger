@@ -1,4 +1,4 @@
-# Pure topology admission for the canonical Actual root document.
+# Pure topology admission for one canonical Journal root document.
 # Accounting syntax remains owned by Journal admission. This owner only proves
 # that include directives do not escape the canonical Account source.
 
@@ -37,7 +37,7 @@ StartsDirective ← {𝕊 keyword‿line:
   enough ∧ (keyword≡n↑text) ∧ boundary
 }
 Diagnostic ← {𝕊 codeText‿lineNumber‿messageText:
-  {severity⇐"error",stage⇐"ledger_actual_root_admission",code⇐codeText,line⇐lineNumber,message⇐messageText}
+  {severity⇐"error",stage⇐"ledger_canonical_journal_root_admission",code⇐codeText,line⇐lineNumber,message⇐messageText}
 }
 
 Admit ← {𝕊 raw‿expectedAccountSource:
@@ -50,14 +50,14 @@ Admit ← {𝕊 raw‿expectedAccountSource:
     {𝕊:
       body ← Trim BeforeComment TrimLeft line
       path ← Trim (≠"include")↓body
-      {𝕊: diagnostics∾↩⟨Diagnostic ⟨"actual_include_empty",i+1,"include directive requires a source path"⟩⟩}⍟(0=≠path) @
+      {𝕊: diagnostics∾↩⟨Diagnostic ⟨"journal_include_empty",i+1,"include directive requires a source path"⟩⟩}⍟(0=≠path) @
       {𝕊:
         includes∾↩⟨path⟩
-        {𝕊: diagnostics∾↩⟨Diagnostic ⟨"actual_include_unknown",i+1,"Actual root may include only the canonical Account source"⟩⟩}⍟(path≢expectedAccountSource) @
+        {𝕊: diagnostics∾↩⟨Diagnostic ⟨"journal_include_unknown",i+1,"canonical Journal root may include only the canonical Account source"⟩⟩}⍟(path≢expectedAccountSource) @
       }⍟(0<≠path) @
     }⍟(StartsDirective ⟨"include",line⟩) @
   }¨↕≠lines
-  diagnostics∾↩((1<+´expectedAccountSource⊸≡¨includes)/⟨Diagnostic ⟨"actual_include_duplicate",0,"canonical Account source may be included at most once"⟩⟩)
+  diagnostics∾↩((1<+´expectedAccountSource⊸≡¨includes)/⟨Diagnostic ⟨"journal_include_duplicate",0,"canonical Account source may be included at most once"⟩⟩)
   {state⇐(0=≠diagnostics)⊑"error"‿"ok",includes⇐includes,diagnostics⇐diagnostics}
 }
 
