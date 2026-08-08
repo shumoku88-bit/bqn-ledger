@@ -18,7 +18,11 @@ bqn tests/test_application_daily_scope.bqn >/dev/null
 run_check() {
   local check=$1
   echo "check-ledger-facts: running $check" >&2
-  bash "$check" >/dev/null
+  if [[ $check == checks/check-report-composition.sh ]]; then
+    bash -x "$check" >/dev/null
+  else
+    bash "$check" >/dev/null
+  fi
 }
 run_check checks/check-report-manifest-config.sh
 run_check checks/check-report-manifest-routing.sh
