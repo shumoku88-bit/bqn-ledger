@@ -9,11 +9,14 @@ bqn tests/test_ledger_journal_transaction_structure.bqn >/dev/null
 bqn tests/test_ledger_journal_complete_declarations.bqn >/dev/null
 bqn tests/test_ledger_issue_admission.bqn >/dev/null
 bqn tests/test_ledger_facts.bqn >/dev/null
+bqn tests/test_ledger_report_policy_admission.bqn >/dev/null
 bqn tests/test_report_json_text.bqn >/dev/null
 bqn tests/test_report_catalog_request.bqn >/dev/null
 bqn tests/test_report_composition.bqn >/dev/null
 bqn tests/test_application_funding_scope.bqn >/dev/null
 bqn tests/test_application_daily_scope.bqn >/dev/null
+bqn tests/test_application_report_policy_resolution.bqn >/dev/null
+bqn tests/test_application_current_report_requests.bqn >/dev/null
 
 RunCheck() {
   local check=$1
@@ -24,7 +27,6 @@ RunCheck() {
   }
 }
 
-RunCheck checks/check-report-manifest-config.sh
 RunCheck checks/check-report-manifest-routing.sh
 RunCheck checks/check-report-composition.sh
 RunCheck checks/check-report-cache.sh
