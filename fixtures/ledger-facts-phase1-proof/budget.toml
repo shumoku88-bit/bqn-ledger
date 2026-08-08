@@ -1,0 +1,10 @@
+[[backing-pools]]
+id = "cash"
+asset-accounts = ["assets:cash"]
+
+[[envelopes]]
+id = "food"
+label = "Food"
+pacing = "daily"
+backing-pool = "cash"
+expense-accounts = ["expenses:food"]
