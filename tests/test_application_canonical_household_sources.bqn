@@ -22,7 +22,5 @@ expected ← ⟨
 ! "report.toml" ≡ sources.ReportPolicy
 ! "issues.tsv" ≡ sources.Issues
 ! expected ≡ sources.Basenames
-! 8 = ≠ sources.Basenames
-! 8 = ≠ ⍷ sources.Basenames
 
 •Out "test_application_canonical_household_sources passed"
