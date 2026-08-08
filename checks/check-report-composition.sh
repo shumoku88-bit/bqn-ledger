@@ -70,8 +70,14 @@ cp "$fixture/accounts.tsv" "$fixture/actual.journal" "$fixture/cycle.tsv" "$tmp/
 ./tools/report "$tmp/cycle-only" cycle-accounts human JPY 2026-01-10 actual.journal cycle.tsv >/dev/null
 cp "$fixture/accounts.tsv" "$fixture/accounts.journal" "$fixture/actual.journal" \
   "$fixture/plan.journal" "$fixture/daily_target_scope.destination.tsv" "$tmp/daily-only/"
-./tools/report "$tmp/daily-only" daily-target human JPY 2026-01-12 2026-01-22 \
-  actual.journal daily_target_plan.destination.tsv daily_target_scope.destination.tsv >/dev/null
+if ! ./tools/report "$tmp/daily-only" daily-target human JPY 2026-01-12 2026-01-22 \
+  actual.journal daily_target_plan.destination.tsv daily_target_scope.destination.tsv \
+  >/dev/null 2>"$tmp/daily-only.err"; then
+  diagnostic=$(head -n 1 "$tmp/daily-only.err" | head -c 400)
+  echo "::error file=checks/check-report-composition.sh,line=73::daily-only: $diagnostic" >&2
+  cat "$tmp/daily-only.err" >&2
+  exit 1
+fi
 cp "$fixture/accounts.tsv" "$fixture/accounts.journal" "$fixture/actual.journal" \
   "$fixture/plan.journal" "$fixture/budget_alloc.tsv" "$tmp/envelope-only/"
 ./tools/report "$tmp/envelope-only" envelopes human JPY \
