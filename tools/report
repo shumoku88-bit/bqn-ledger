@@ -1,27 +1,27 @@
 #!/usr/bin/env bash
-# Production retained-report CLI over explicit key/surface coordinates or manifests.
+# Production retained-report CLI over semantic query coordinates.
+# Canonical Household sources are resolved internally from BASE and never appear
+# in argv or manifest-selected source coordinates.
 set -euo pipefail
 
 usage() {
   cat <<'USAGE'
 Usage:
-  tools/report BASE envelopes SURFACE DOMAIN START END_EXCLUSIVE OBSERVATION JOURNAL PLAN BUDGET FUNDING_ACCOUNT...
-  tools/report BASE balances SURFACE DOMAIN AS_OF JOURNAL
-  tools/report BASE balance-sheet human DOMAIN AS_OF JOURNAL
-  tools/report BASE profit-and-loss human DOMAIN START END_EXCLUSIVE JOURNAL
-  tools/report BASE recent SURFACE LIMIT JOURNAL
-  tools/report BASE planned SURFACE OBSERVATION JOURNAL PLAN CYCLE
-  tools/report BASE cycle-accounts human DOMAIN OBSERVATION JOURNAL CYCLE [PLAN]
-  tools/report BASE cycle-comparison human DOMAIN CURRENT_OBS BASELINE_OBS POLICY JOURNAL CURRENT_CYCLE BASELINE_CYCLE [PLAN]
-  tools/report BASE monthly-accounts human DOMAIN FIRST_MONTH LAST_MONTH_EXCLUSIVE JOURNAL
-  tools/report BASE daily-flow human DOMAIN START END_EXCLUSIVE OBSERVATION JOURNAL
-  tools/report BASE daily-target SURFACE DOMAIN OBSERVATION TARGET JOURNAL PLAN DAILY_SCOPE
-  tools/report BASE issues human ISSUE_SOURCE
-  tools/report BASE KEY SURFACE --manifest REQUEST_MANIFEST
-  tools/report BASE all human|compact REQUEST_MANIFEST
+  tools/report BASE envelopes SURFACE DOMAIN START END_EXCLUSIVE OBSERVATION
+  tools/report BASE balances SURFACE DOMAIN AS_OF
+  tools/report BASE balance-sheet human DOMAIN AS_OF
+  tools/report BASE profit-and-loss human DOMAIN START END_EXCLUSIVE
+  tools/report BASE recent SURFACE THROUGH LIMIT
+  tools/report BASE planned SURFACE OBSERVATION
+  tools/report BASE cycle-accounts human DOMAIN OBSERVATION
+  tools/report BASE cycle-comparison human DOMAIN CURRENT_OBS BASELINE_OBS POLICY
+  tools/report BASE monthly-accounts human DOMAIN FIRST_MONTH LAST_MONTH_EXCLUSIVE
+  tools/report BASE daily-flow human DOMAIN START END_EXCLUSIVE OBSERVATION
+  tools/report BASE daily-target SURFACE DOMAIN OBSERVATION TARGET
+  tools/report BASE issues human
 
-Plan coordinates remain in the retained request shape until report.toml migration,
-but canonical plan.journal owns physical Plan I/O. Other source basenames are explicit.
+Physical Household source basenames are not Report query coordinates. Historical
+queries remain available by supplying the semantic dates/domain/policy explicitly.
 USAGE
 }
 
@@ -37,157 +37,40 @@ shift 3
 [[ $base == /* ]] || base="$caller_pwd/$base"
 cd "$root"
 
+if [[ $key == all || ${1:-} == --manifest ]]; then
+  printf 'ERROR\treport_manifest_retired\tReport manifests are not execution inputs; use canonical report.toml or explicit semantic coordinates\n' >&2
+  exit 2
+fi
+
 request_output=""
 if ! request_output="$(bqn src/application/report_request_cli.bqn "$key" "$surface" 2>&1)"; then
   printf '%s\n' "$request_output" >&2
   exit 1
 fi
-safe_basename() { [[ $1 != */* && $1 != *\\* && -n $1 ]]; }
-require_journal() { safe_basename "$1" && [[ $1 == *.journal ]]; }
-require_tsv() { safe_basename "$1" && [[ $1 == *.tsv ]]; }
-source_name_error() { printf 'ERROR\tsource_basename_invalid\t%s\n' "$1" >&2; exit 1; }
-route_plan_error() { printf 'ERROR\treport_route_plan_invalid\t%s\n' "$1" >&2; exit 1; }
-tsv_source_message() {
-  case "$1:$2" in
-    envelopes:budget) printf 'Budget must be a safe .tsv basename' ;;
-    planned:cycle) printf 'Cycle must be a safe .tsv basename' ;;
-    cycle-accounts:cycle) printf 'Cycle must be a safe .tsv basename' ;;
-    cycle-comparison:current_cycle|cycle-comparison:baseline_cycle) printf 'Cycle files must be safe .tsv basenames' ;;
-    daily-target:daily_scope) printf 'Daily Scope must be a safe .tsv basename' ;;
-    issues:issues) printf 'issues must be a safe .tsv basename' ;;
-    *) printf '%s must be a safe .tsv basename' "$2" ;;
-  esac
-}
-if [[ $key == all ]]; then
-  [[ $# -eq 1 ]] || { printf 'ERROR\tall_manifest_required\tall requires one manifest basename\n' >&2; exit 1; }
-  require_tsv "$1" || source_name_error 'all manifest must be a safe .tsv basename'
-  if [[ ! -f $base/$1 || ! -r $base/$1 ]]; then
-    printf 'ERROR\tall_manifest_unreadable\tall manifest is not readable\n' >&2
-    exit 1
-  fi
-  exec "$root/tools/report-all" "$root" "$base" "$surface" "$base/$1"
-fi
-
-if [[ ${1:-} == --manifest ]]; then
-  [[ $# -eq 2 ]] || { printf 'ERROR\tmanifest_request_invalid\texpected --manifest and one basename\n' >&2; exit 1; }
-  require_tsv "$2" || source_name_error 'request manifest must be a safe .tsv basename'
-  manifest="$base/$2"
-  [[ -f $manifest && -r $manifest ]] \
-    || { printf 'ERROR\trequest_manifest_unreadable\trequest manifest is not readable\n' >&2; exit 1; }
-  mapfile -t manifest_lines <"$manifest"
-  [[ ${manifest_lines[0]:-} == $'key\tsurface\targuments' ]] \
-    || { printf 'ERROR\trequest_manifest_header_invalid\tmanifest header is not exact\n' >&2; exit 1; }
-  selected=()
-  for row in "${manifest_lines[@]:1}"; do
-    IFS=$'\t' read -r -a fields <<<"$row"
-    [[ ${#fields[@]} -ge 3 ]] \
-      || { printf 'ERROR\trequest_manifest_row_invalid\tmanifest row is incomplete\n' >&2; exit 1; }
-    if [[ ${fields[0]} == "$key" ]]; then
-      [[ ${fields[1]} == "$surface" ]] \
-        || { printf 'ERROR\trequest_manifest_surface_mismatch\tselected row surface differs from request\n' >&2; exit 1; }
-      [[ ${#selected[@]} -eq 0 ]] \
-        || { printf 'ERROR\trequest_manifest_duplicate\tselected key occurs more than once\n' >&2; exit 1; }
-      selected=("${fields[@]:2}")
-    fi
-  done
-  [[ ${#selected[@]} -gt 0 ]] \
-    || { printf 'ERROR\trequest_manifest_key_missing\tselected key is absent\n' >&2; exit 1; }
-  set -- "${selected[@]}"
-fi
 
 coordinates=("$@")
 route_plan_output=""
-if route_plan_output="$(bqn src/application/report_route_plan_cli.bqn "$key" "$surface" "${coordinates[@]}" 2>&1)"; then
-  :
-else
-  route_plan_status=$?
-  route_plan_code=$(awk -F'\t' 'NR==1 && $1=="ERROR" {print $2}' <<<"$route_plan_output")
-  if [[ $route_plan_code == usage_* ]]; then
-    usage >&2
-    exit 2
-  fi
-  if [[ $route_plan_code == limit_invalid ]]; then
-    # Preserve the previous failure order: operational source checks and strict registry admission
-    # still happen before report_destination_cli publishes the semantic LIMIT rejection.
-    plan_coordinates=("${coordinates[@]}")
-    plan_coordinates[0]=0
-    if ! route_plan_output="$(bqn src/application/report_route_plan_cli.bqn "$key" "$surface" "${plan_coordinates[@]}" 2>&1)"; then
-      printf '%s\n' "$route_plan_output" >&2
-      exit 1
-    fi
-  else
-    printf '%s\n' "$route_plan_output" >&2
-    exit "$route_plan_status"
-  fi
+if ! route_plan_output="$(bqn src/application/report_route_plan_cli.bqn "$key" "$surface" "${coordinates[@]}" 2>&1)"; then
+  status=$?
+  printf '%s\n' "$route_plan_output" >&2
+  code=$(awk -F'\t' 'NR==1 && $1=="ERROR" {print $2}' <<<"$route_plan_output")
+  [[ $code == usage_* ]] && exit 2
+  exit "$status"
 fi
 
-mapfile -t route_plan_lines <<<"$route_plan_output"
-IFS=$'\t' read -r record plan_key plan_surface coordinate_count source_count extra \
-  <<<"${route_plan_lines[0]:-}"
-[[ $record == ROUTE && $plan_key == "$key" && $plan_surface == "$surface" && -z ${extra:-} ]] \
-  || route_plan_error 'route header does not match the admitted request'
-[[ $coordinate_count =~ ^[0-9]+$ && $source_count =~ ^[0-9]+$ ]] \
-  || route_plan_error 'route header counts are not decimal naturals'
-(( coordinate_count == ${#coordinates[@]} )) \
-  || route_plan_error 'route coordinate count differs from argv'
-(( ${#route_plan_lines[@]} == source_count + 1 )) \
-  || route_plan_error 'route source count differs from SOURCE rows'
-
-explicit_sources=()
-account_owner=''
-seen_source_indices=' '
-for ((line_index=1; line_index<${#route_plan_lines[@]}; line_index++)); do
-  IFS=$'\t' read -r source_record argument_index kind role source_extra \
-    <<<"${route_plan_lines[$line_index]}"
-  [[ $source_record == SOURCE && -n $role && -z ${source_extra:-} ]] \
-    || route_plan_error 'SOURCE row shape is invalid'
-  [[ $argument_index =~ ^[0-9]+$ ]] \
-    || route_plan_error 'SOURCE argument index is not a decimal natural'
-  (( argument_index < ${#coordinates[@]} )) \
-    || route_plan_error 'SOURCE argument index is outside argv'
-  [[ $seen_source_indices != *" $argument_index "* ]] \
-    || route_plan_error 'SOURCE argument index is duplicated'
-  seen_source_indices+="$argument_index "
-  source_name=${coordinates[$argument_index]}
-  case "$kind" in
-    canonical-journal)
-      require_journal "$source_name" || source_name_error 'journal must be a safe .journal basename'
-      [[ -z $account_owner || $account_owner == canonical ]] \
-        || route_plan_error 'route mixes canonical and legacy Account ownership'
-      account_owner=canonical
-      ;;
-    journal)
-      require_journal "$source_name" || source_name_error 'journal must be a safe .journal basename'
-      [[ -z $account_owner || $account_owner == legacy ]] \
-        || route_plan_error 'route mixes canonical and legacy Account ownership'
-      account_owner=legacy
-      ;;
-    tsv)
-      require_tsv "$source_name" || source_name_error "$(tsv_source_message "$key" "$role")"
-      ;;
-    *)
-      route_plan_error 'SOURCE kind is unsupported'
-      ;;
-  esac
-  explicit_sources+=("$source_name")
-done
-
-required_sources=()
-case "$account_owner" in
-  canonical) required_sources+=(accounts.journal) ;;
-  legacy) required_sources+=(accounts.tsv) ;;
-esac
-required_sources+=("${explicit_sources[@]}")
+IFS=$'\t' read -r record plan_key plan_surface coordinate_count source_count extra <<<"$route_plan_output"
+if [[ $record != ROUTE || $plan_key != "$key" || $plan_surface != "$surface" || -n ${extra:-} ]]; then
+  printf 'ERROR\treport_route_plan_invalid\troute header does not match admitted request\n' >&2
+  exit 1
+fi
+if [[ ! $coordinate_count =~ ^[0-9]+$ || ! $source_count =~ ^[0-9]+$ || $source_count -ne 0 || $coordinate_count -ne ${#coordinates[@]} ]]; then
+  printf 'ERROR\treport_route_plan_invalid\tsemantic route must contain argv coordinates and no physical sources\n' >&2
+  exit 1
+fi
 
 if [[ ! -r config/currencies.tsv ]]; then
   printf 'ERROR\tcurrency_registry_unreadable\tcurrency registry is not readable\n' >&2
   exit 1
 fi
-for source_name in "${required_sources[@]}"; do
-  if [[ ! -f $base/$source_name || ! -r $base/$source_name ]]; then
-    printf 'ERROR\tsource_unreadable\trequired source is not readable: %s\n' "$source_name" >&2
-    exit 1
-  fi
-done
 
 exec bqn src/application/report_destination_cli.bqn "$base" "$key" "$surface" "${coordinates[@]}"
