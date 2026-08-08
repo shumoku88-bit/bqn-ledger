@@ -39,10 +39,11 @@ cat "$fixture/envelope_backing.destination.compact.txt" >>"$tmp/compact-expected
 ./tools/report "$fixture" planned compact 2026-01-12 >>"$tmp/compact-expected"
 ./tools/report "$fixture" daily-target compact JPY 2026-01-12 2026-01-22 >>"$tmp/compact-expected"
 
-# Actual-only and Issues-only direct surfaces retain intentionally smaller roots.
+# Partial data roots may exercise individual owners, but human rendering still
+# uses the canonical Report presentation policy.
 mkdir "$tmp/actual-only" "$tmp/issues-only"
-cp "$fixture/accounts.journal" "$fixture/actual.journal" "$tmp/actual-only/"
-cp "$fixture/issues.tsv" "$tmp/issues-only/"
+cp "$fixture/accounts.journal" "$fixture/actual.journal" "$fixture/report.toml" "$tmp/actual-only/"
+cp "$fixture/issues.tsv" "$fixture/report.toml" "$tmp/issues-only/"
 ./tools/report "$tmp/actual-only" recent human 2026-01-12 2 >/dev/null
 ./tools/report "$tmp/actual-only" balance-sheet human JPY 2026-01-12 >/dev/null
 ./tools/report "$tmp/actual-only" profit-and-loss human JPY 2026-01-01 2026-02-01 >/dev/null
