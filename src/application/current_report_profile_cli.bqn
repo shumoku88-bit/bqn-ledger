@@ -58,16 +58,12 @@ actual ← sources.CanonicalActual ⟨base,registry⟩
 latestOrdinal ← ⌈´actual.facts.transactions.date_ordinal ⋄ latestIndex ← ⊑(latestOrdinal=actual.facts.transactions.date_ordinal)⊐1
 observation ← latestIndex⊑actual.facts.transactions.date_text
 
-plan ← sources.CanonicalPlan ⟨base,registry⟩
-{𝕊:PrintDiagnostics plan.diagnostics}⍟(plan.state≢"ok") @
-budget ← sources.CanonicalBudget ⟨base,registry⟩
-{𝕊:PrintDiagnostics budget.diagnostics}⍟(budget.state≢"ok") @
-household ← sources.CanonicalHousehold ⟨base,actual.facts.accounts,budget.policy⟩
-{𝕊:PrintDiagnostics household.diagnostics}⍟(household.state≢"ok") @
-currentCycle ← cycleResolution.WithPlan ⟨household.cycle,observation,actual.facts,plan.facts⟩
+context ← sources.HouseholdContext ⟨base,actual.facts.accounts,registry⟩
+{𝕊:PrintDiagnostics context.diagnostics}⍟(context.state≢"ok") @
+currentCycle ← cycleResolution.WithPlan ⟨context.household.cycle,observation,actual.facts,context.plan⟩
 {𝕊:CycleFailure ⟨currentCycle,"current_cycle_resolution_failed"⟩}⍟(currentCycle.state≢"ok") @
 previousObservation ← dates.FromOrdinal currentCycle.start_ordinal-1
-baselineCycle ← cycleResolution.WithPlan ⟨household.cycle,previousObservation,actual.facts,plan.facts⟩
+baselineCycle ← cycleResolution.WithPlan ⟨context.household.cycle,previousObservation,actual.facts,context.plan⟩
 {𝕊:CycleFailure ⟨baselineCycle,"baseline_cycle_resolution_failed"⟩}⍟(baselineCycle.state≢"ok") @
 
 resolved ← profile.Build ⟨admissions,observation,currentCycle,baselineCycle⟩
