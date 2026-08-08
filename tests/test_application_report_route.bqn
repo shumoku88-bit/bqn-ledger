@@ -32,7 +32,7 @@ successCases ← ⟨
   ⟨"monthly-accounts","human",⟨"JPY","2026-01","2026-03","actual.journal"⟩,⟨"domain","first_month","last_month_exclusive","actual_source"⟩,⟨3⟩,⟨"canonical-journal"⟩,⟨"actual"⟩⟩,
   ⟨"daily-flow","human",⟨"JPY","2026-01-01","2026-02-01","2026-01-12","actual.journal"⟩,⟨"domain","start","end_exclusive","observation","actual_source"⟩,⟨4⟩,⟨"canonical-journal"⟩,⟨"actual"⟩⟩,
   ⟨"daily-target","compact",⟨"JPY","2026-01-12","2026-01-22","actual.journal","ignored-plan","ignored-scope"⟩,⟨"domain","observation","target","actual_source","plan_source","daily_scope_source"⟩,⟨3⟩,⟨"canonical-journal"⟩,⟨"actual"⟩⟩,
-  ⟨"issues","human",⟨"issues.tsv"⟩,⟨"issues_source"⟩,⟨0⟩,⟨"tsv"⟩,⟨"issues"⟩
+  ⟨"issues","human",⟨"issues.tsv"⟩,⟨"issues_source"⟩,⟨0⟩,⟨"tsv"⟩,⟨"issues"⟩⟩
 ⟩
 
 (catalog.Table @).key lib.AssertEq {⊑𝕩}¨successCases
