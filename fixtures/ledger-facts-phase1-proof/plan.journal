@@ -1,0 +1,11 @@
+include accounts.journal
+
+2026-01-15 rent
+  ; plan-id: plan-rent-daily-target
+  expenses:food  200 JPY
+  assets:cash  -200 JPY
+
+2026-01-20 food-plan
+  ; plan-id: plan-food-2026-01
+  expenses:food  25 JPY
+  assets:cash  -25 JPY
