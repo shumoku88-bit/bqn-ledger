@@ -14,7 +14,9 @@ lines ← loader.ReadLines base∾"accounts.tsv"
 actual ← (snapshot.Build ⟨lines,•FChars "../"∾base∾"actual.journal",registry⟩).facts
 lf ← @+10
 tab ← @+9
+quote ← @+34
 Raw ← {𝕊 lines: ∾lines∾¨lf}
+Q ← {𝕊 text: ⟨quote⟩∾text∾⟨quote⟩}
 Join ← {𝕊 fields:
   out ← ⊑fields
   {𝕊 field: out∾↩tab∾field}¨1↓fields
@@ -37,10 +39,7 @@ budgetRaw ← Raw ⟨
   "  budget:food         60 JPY"
 ⟩
 budget ← (canonicalBudget.Build ⟨budgetRaw,actual.accounts,registry⟩).facts
-policyRaw ← Raw ⟨
-  "[[backing-pools]]","id = \"cash\"","asset-accounts = [\"assets:cash\"]","",
-  "[[envelopes]]","id = \"food\"","label = \"Food\"","pacing = \"daily\"","backing-pool = \"cash\"","expense-accounts = [\"expenses:food\"]"
-⟩
+policyRaw ← •FChars "../"∾base∾"budget.toml"
 policy ← budgetPolicyAdmission.Admit ⟨policyRaw,actual.accounts⟩
 "ok" lib.AssertEq policy.state
 
@@ -71,7 +70,6 @@ invalidRange ← envelopes.Build ⟨budget,policy,actual,plan,"JPY",dates.Ordina
 "error" lib.AssertEq invalidRange.state
 "statement_range_invalid" lib.AssertEq (⊑invalidRange.diagnostics).code
 
-# Open Plan, refund, overspent Envelope, and under-backed funding remain distinct.
 syntheticLines ← ⟨
   Join ⟨"assets:cash","role=asset","type=liquid","currency=JPY"⟩,
   Join ⟨"income:salary","role=income","currency=JPY"⟩,
@@ -81,37 +79,17 @@ syntheticLines ← ⟨
   Join ⟨"budget:food","role=budget","kind=envelope","budget=food","currency=JPY"⟩
 ⟩
 syntheticRaw ← ∾⟨
-  "commodity JPY",lf,lf,
-  "account assets:cash",lf,"    ; role: asset",lf,lf,
-  "account income:salary",lf,"    ; role: income",lf,lf,
-  "account expenses:food",lf,"    ; role: expense",lf,lf,
-  "account budget:opening",lf,"    ; role: budget",lf,lf,
-  "account budget:unassigned",lf,"    ; role: budget",lf,lf,
+  "commodity JPY",lf,lf,"account assets:cash",lf,"    ; role: asset",lf,lf,
+  "account income:salary",lf,"    ; role: income",lf,lf,"account expenses:food",lf,"    ; role: expense",lf,lf,
+  "account budget:opening",lf,"    ; role: budget",lf,lf,"account budget:unassigned",lf,"    ; role: budget",lf,lf,
   "account budget:food",lf,"    ; role: budget",lf,lf,
-  "2026-01-02 * income",lf,"    ; event-id: income",lf,"    ; layer: actual",lf,
-  "    assets:cash 10 JPY",lf,"    income:salary -10 JPY",lf,lf,
-  "2026-01-05 * spend",lf,"    ; event-id: spend",lf,"    ; layer: actual",lf,
-  "    expenses:food 30 JPY",lf,"    assets:cash -30 JPY",lf,lf,
-  "2026-01-08 * refund",lf,"    ; event-id: refund",lf,"    ; layer: actual",lf,
-  "    assets:cash 5 JPY",lf,"    expenses:food -5 JPY",lf
+  "2026-01-02 * income",lf,"    ; event-id: income",lf,"    ; layer: actual",lf,"    assets:cash 10 JPY",lf,"    income:salary -10 JPY",lf,lf,
+  "2026-01-05 * spend",lf,"    ; event-id: spend",lf,"    ; layer: actual",lf,"    expenses:food 30 JPY",lf,"    assets:cash -30 JPY",lf,lf,
+  "2026-01-08 * refund",lf,"    ; event-id: refund",lf,"    ; layer: actual",lf,"    assets:cash 5 JPY",lf,"    expenses:food -5 JPY",lf
 ⟩
 syntheticActual ← (snapshot.Build ⟨syntheticLines,syntheticRaw,registry⟩).facts
-syntheticPlanRaw ← Raw ⟨
-  "2026-01-15 open-food",
-  "  ; plan-id: open-food",
-  "  expenses:food  4 JPY",
-  "  assets:cash  -4 JPY"
-⟩
-syntheticPlan ← (canonicalPlan.Build ⟨syntheticPlanRaw,syntheticActual.accounts,registry⟩).facts
-syntheticBudgetRaw ← Raw ⟨
-  "2026-01-01 seed",
-  "  budget:opening     -20 JPY",
-  "  budget:unassigned   20 JPY","",
-  "2026-01-01 allocate",
-  "  budget:unassigned  -20 JPY",
-  "  budget:food         20 JPY"
-⟩
-syntheticBudget ← (canonicalBudget.Build ⟨syntheticBudgetRaw,syntheticActual.accounts,registry⟩).facts
+syntheticPlan ← (canonicalPlan.Build ⟨Raw ⟨"2026-01-15 open-food","  ; plan-id: open-food","  expenses:food  4 JPY","  assets:cash  -4 JPY"⟩,syntheticActual.accounts,registry⟩).facts
+syntheticBudget ← (canonicalBudget.Build ⟨Raw ⟨"2026-01-01 seed","  budget:opening     -20 JPY","  budget:unassigned   20 JPY","","2026-01-01 allocate","  budget:unassigned  -20 JPY","  budget:food         20 JPY"⟩,syntheticActual.accounts,registry⟩).facts
 syntheticPolicy ← budgetPolicyAdmission.Admit ⟨policyRaw,syntheticActual.accounts⟩
 "ok" lib.AssertEq syntheticPolicy.state
 synthetic ← envelopes.Build ⟨syntheticBudget,syntheticPolicy,syntheticActual,syntheticPlan,"JPY",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-10"⟩
@@ -135,10 +113,8 @@ emptyPlan ← envelopes.Build ⟨syntheticBudget,syntheticPolicy,syntheticActual
 ⟨0⟩ lib.AssertEq emptyPlan.envelopes.open_plan_reserve
 
 duplicateRaw ← syntheticRaw∾lf∾lf∾∾⟨
-  "2026-01-09 * duplicate one",lf,"    ; event-id: duplicate-one",lf,"    ; layer: actual",lf,"    ; currency: JPY",lf,"    ; plan-id: open-food",lf,
-  "    expenses:food 4 JPY",lf,"    assets:cash -4 JPY",lf,lf,
-  "2026-01-09 * duplicate two",lf,"    ; event-id: duplicate-two",lf,"    ; layer: actual",lf,"    ; currency: JPY",lf,"    ; plan-id: open-food",lf,
-  "    expenses:food 4 JPY",lf,"    assets:cash -4 JPY",lf
+  "2026-01-09 * duplicate one",lf,"    ; event-id: duplicate-one",lf,"    ; layer: actual",lf,"    ; currency: JPY",lf,"    ; plan-id: open-food",lf,"    expenses:food 4 JPY",lf,"    assets:cash -4 JPY",lf,lf,
+  "2026-01-09 * duplicate two",lf,"    ; event-id: duplicate-two",lf,"    ; layer: actual",lf,"    ; currency: JPY",lf,"    ; plan-id: open-food",lf,"    expenses:food 4 JPY",lf,"    assets:cash -4 JPY",lf
 ⟩
 duplicateActual ← (snapshot.Build ⟨syntheticLines,duplicateRaw,registry⟩).facts
 duplicateCompletion ← envelopes.Build ⟨syntheticBudget,syntheticPolicy,duplicateActual,syntheticPlan,"JPY",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-10"⟩
@@ -146,7 +122,6 @@ duplicateCompletion ← envelopes.Build ⟨syntheticBudget,syntheticPolicy,dupli
 0 lib.AssertEq duplicateCompletion.envelopes.count
 "plan_completion_conflict" lib.AssertEq (⊑duplicateCompletion.diagnostics).code
 
-# Cross-source scale normalization overflow is fail-closed.
 overflowLines ← ⟨
   Join ⟨"assets:ils","role=asset","currency=ILS"⟩,
   Join ⟨"expenses:ils","role=expense","budget=food","currency=ILS"⟩,
@@ -154,23 +129,15 @@ overflowLines ← ⟨
   Join ⟨"budget:food-ils","role=budget","kind=envelope","budget=food","currency=ILS"⟩
 ⟩
 overflowRaw ← ∾⟨
-  "commodity ILS",lf,lf,"account assets:ils",lf,"    ; role: asset",lf,lf,
-  "account expenses:ils",lf,"    ; role: expense",lf,lf,
-  "account budget:unassigned-ils",lf,"    ; role: budget",lf,lf,
-  "account budget:food-ils",lf,"    ; role: budget",lf,lf,
-  "2026-01-05 * fractional",lf,"    ; event-id: fractional",lf,"    ; layer: actual",lf,
-  "    expenses:ils 0.1 ILS",lf,"    assets:ils -0.1 ILS",lf
+  "commodity ILS",lf,lf,"account assets:ils",lf,"    ; role: asset",lf,lf,"account expenses:ils",lf,"    ; role: expense",lf,lf,
+  "account budget:unassigned-ils",lf,"    ; role: budget",lf,lf,"account budget:food-ils",lf,"    ; role: budget",lf,lf,
+  "2026-01-05 * fractional",lf,"    ; event-id: fractional",lf,"    ; layer: actual",lf,"    expenses:ils 0.1 ILS",lf,"    assets:ils -0.1 ILS",lf
 ⟩
 overflowActual ← (snapshot.Build ⟨overflowLines,overflowRaw,registry⟩).facts
-overflowBudgetRaw ← Raw ⟨
-  "2026-01-01 max",
-  "  budget:unassigned-ils  -999999999999999 ILS",
-  "  budget:food-ils         999999999999999 ILS"
-⟩
-overflowBudget ← (canonicalBudget.Build ⟨overflowBudgetRaw,overflowActual.accounts,registry⟩).facts
+overflowBudget ← (canonicalBudget.Build ⟨Raw ⟨"2026-01-01 max","  budget:unassigned-ils  -999999999999999 ILS","  budget:food-ils         999999999999999 ILS"⟩,overflowActual.accounts,registry⟩).facts
 overflowPolicyRaw ← Raw ⟨
-  "[[backing-pools]]","id = \"cash\"","asset-accounts = [\"assets:ils\"]","",
-  "[[envelopes]]","id = \"food\"","label = \"Food\"","pacing = \"daily\"","backing-pool = \"cash\"","expense-accounts = [\"expenses:ils\"]"
+  "[[backing-pools]]","id = "∾(Q "cash"),"asset-accounts = ["∾(Q "assets:ils")∾"]","",
+  "[[envelopes]]","id = "∾(Q "food"),"label = "∾(Q "Food"),"pacing = "∾(Q "daily"),"backing-pool = "∾(Q "cash"),"expense-accounts = ["∾(Q "expenses:ils")∾"]"
 ⟩
 overflowPolicy ← budgetPolicyAdmission.Admit ⟨overflowPolicyRaw,overflowActual.accounts⟩
 "ok" lib.AssertEq overflowPolicy.state
