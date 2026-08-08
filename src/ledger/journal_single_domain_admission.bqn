@@ -10,10 +10,12 @@
 decimal ← •Import "exact_decimal.bqn"
 dates ← •Import "date_ordinal.bqn"
 structure ← •Import "journal_transaction_structure.bqn"
+postingText ← •Import "journal_posting_text.bqn"
 
 lf ← @+10
 cr ← @+13
 space ← @+32
+tab ← @+9
 empty ← ⟨⟩
 SplitKeepEmpty ← {𝕊 sep‿text:
   groups ← (+`sep=text)⊔text
@@ -24,19 +26,21 @@ Split ← {𝕊 sep‿text:
   (0<≠¨parts)/parts
 }
 
+IsWhitespace ← {𝕊 c: (c=space) ∨ c=tab }
 TrimLeft ← {𝕊 xs:
-  prefix ← ∧` (xs = space)
-  (+´ prefix) ↓ xs
+  prefix ← ∧` IsWhitespace¨xs
+  (+´prefix)↓xs
 }
 TrimRight ← {𝕊 xs:
-  suffix ← ∧` ((⌽ xs) = space)
-  ((≠ xs) - +´ suffix) ↑ xs
+  reversed ← ⌽xs
+  trimmed ← TrimLeft reversed
+  ⌽trimmed
 }
 Trim ← { TrimRight TrimLeft 𝕩 }
 StartsWith ← {𝕊 prefix‿text: prefix ≡ (≠ prefix) ↑ text }
 IsDateHeader ← {𝕊 text:
   enough ← 10 < ≠ text
-  separator ← space = 10 ⊑ (text ∾ 11 ⥊ space)
+  separator ← IsWhitespace 10 ⊑ (text ∾ 11 ⥊ space)
   enough ∧ separator ∧ dates.IsValid 10 ↑ text
 }
 
@@ -94,18 +98,18 @@ Collect ← {𝕊 lines‿accounts‿domainInfo:
       postingIndex ↩ 0
     }⍟(IsDateHeader trimmed) @
 
-    indented ← space = ⊑ (original ∾ " ")
+    indented ← IsWhitespace ⊑ (original ∾ " ")
     metadata ← ';' = ⊑ (trimmed ∾ ";")
     candidate ← indented ∧ (0 < ≠ trimmed) ∧ (¬ metadata)
     {𝕊:
       lineNumber ← lineIndex + 1
-      fields ← Split ⟨space,trimmed⟩
-      explicit ← 3 = ≠ fields
-      elided ← 1 = ≠ fields
-      valid ← explicit ∨ elided
+      parsedPosting ← postingText.Split original
+      valid ← parsedPosting.valid
+      explicit ← parsedPosting.explicit
+      elided ← parsedPosting.elided
       diagnostics ∾↩ AddIf ⟨¬ valid, Diagnostic ⟨"posting_shape_invalid", lineNumber, "posting must contain account plus explicit amount and commodity, or one elided account only"⟩⟩
       {𝕊:
-        accountKey ← 0 ⊑ fields
+        accountKey ← parsedPosting.account
         account ← LookupAccount ⟨accountKey,accounts⟩
         commodity ← domainInfo.domain
         amountText ← ""
@@ -114,14 +118,14 @@ Collect ← {𝕊 lines‿accounts‿domainInfo:
         coefficient ← 0
         sourceScale ← 0
         {𝕊:
-          amountText ↩ 1 ⊑ fields
-          commodity ↩ 2 ⊑ fields
+          amountText ↩ 0 ⊑ parsedPosting.words
+          commodity ↩ 1 ⊑ parsedPosting.words
           negative ← '-' = ⊑ (amountText ∾ "0")
-          parsed ← decimal.Parse (negative ↓ amountText)
-          amountOk ↩ parsed.state ≡ "ok"
+          parsedAmount ← decimal.Parse (negative ↓ amountText)
+          amountOk ↩ parsedAmount.state ≡ "ok"
           {𝕊:
-            coefficient ↩ (1 - 2 × negative) × parsed.coefficient
-            sourceScale ↩ parsed.scale
+            coefficient ↩ (1 - 2 × negative) × parsedAmount.coefficient
+            sourceScale ↩ parsedAmount.scale
           }⍟amountOk @
           finite ← 0 ≤ domainInfo.policy.max_fraction_digits
           precisionOk ↩ amountOk ∧ ((¬ finite) ∨ sourceScale ≤ domainInfo.policy.max_fraction_digits)
@@ -194,13 +198,13 @@ CompleteElided ← {𝕊 postings‿transactionStarts:
     {𝕊: completed ∾↩ selected}⍟(0 = missingCount) @
     {𝕊:
       explicit ← ({¬𝕩.elided}¨ selected) / selected
-      diagnostics ∾↩ AddIf ⟨0 = ≠ explicit, Diagnostic ⟨"posting_elided_uninferable", (⊑missing).source_line, "elided posting requires explicit balance evidence"⟩⟩
+      missingPosting ← ⊑ missing
+      diagnostics ∾↩ AddIf ⟨0 = ≠ explicit, Diagnostic ⟨"posting_elided_uninferable", missingPosting.source_line, "elided posting requires explicit balance evidence"⟩⟩
       {𝕊:
         normalizedExplicit ← Normalize explicit
         inferredCoefficient ← - +´ 0 ∾ {𝕩.normalized_coefficient}¨ normalizedExplicit.postings
-        diagnostics ∾↩ AddIf ⟨0 = inferredCoefficient, Diagnostic ⟨"posting_elided_zero", (⊑missing).source_line, "inferred posting amount must be nonzero"⟩⟩
+        diagnostics ∾↩ AddIf ⟨0 = inferredCoefficient, Diagnostic ⟨"posting_elided_zero", missingPosting.source_line, "inferred posting amount must be nonzero"⟩⟩
         {𝕊:
-          missingPosting ← ⊑ missing
           completed ∾↩ {𝕊 posting:
             result ← posting
             {𝕊:
