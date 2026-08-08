@@ -3,22 +3,30 @@ lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 registryBuilder ← •Import "../src/ledger/currency_registry.bqn"
 snapshot ← •Import "../src/ledger/snapshot.bqn"
-planSnapshot ← •Import "../src/ledger/plan_snapshot.bqn"
+canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 admission ← •Import "../src/application/daily_scope_admission.bqn"
 adapter ← •Import "../src/application/daily_scope_adapter.bqn"
 compose ← •Import "../src/report/compose.bqn"
 tab ← @+9
+lf ← @+10
 Join ← {𝕊 fields:
   out ← ⊑fields
   {𝕊 field:out∾↩tab∾field}¨1↓fields
   out
 }
+Raw ← {𝕊 lines: ∾lines∾¨lf}
 
 base ← "fixtures/ledger-facts-phase1-proof/"
 registry ← (registryBuilder.Build loader.ReadLines "config/currencies.tsv").registry
 accountLines ← loader.ReadLines base∾"accounts.tsv"
 actual ← (snapshot.Build ⟨accountLines,•FChars "../"∾base∾"actual.journal",registry⟩).facts
-plan ← (planSnapshot.Build ⟨loader.ReadLines base∾"daily_target_plan.destination.tsv",actual.accounts,registry⟩).facts
+planRaw ← Raw ⟨
+  "2026-01-15 rent",
+  "  ; plan-id: plan-rent-daily-target",
+  "  expenses:food  200 JPY",
+  "  assets:cash  -200 JPY"
+⟩
+plan ← (canonicalPlan.Build ⟨planRaw,actual.accounts,registry⟩).facts
 admitted ← admission.Admit ⟨loader.ReadLines base∾"daily_target_scope.destination.tsv",registry⟩
 "ok" lib.AssertEq admitted.state
 2 lib.AssertEq admitted.rows.count
