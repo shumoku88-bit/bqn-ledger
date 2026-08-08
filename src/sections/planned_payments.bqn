@@ -51,9 +51,9 @@ CategoryLabel ← {𝕊 accountKey‿role:
 Build ← {𝕊 planFacts‿actualFacts‿cycle‿asOfText:
   diagnostics ← empty
   diagnostics ∾↩ AddIf ⟨cycle.state≢"ok",Diagnostic ⟨"cycle_not_ok","Planned Payments requires a resolved cycle"⟩⟩
-  planFactsOk ← reference.SourceIs ⟨planFacts,"plan.tsv"⟩
+  planFactsOk ← reference.SourceIs ⟨planFacts,"plan.journal"⟩
   actualFactsOk ← reference.SourceIs ⟨actualFacts,"actual.journal"⟩
-  diagnostics ∾↩ AddIf ⟨¬planFactsOk,Diagnostic ⟨"plan_facts_invalid","Plan facts must be admitted from plan.tsv"⟩⟩
+  diagnostics ∾↩ AddIf ⟨¬planFactsOk,Diagnostic ⟨"plan_facts_invalid","Plan facts must be admitted from plan.journal"⟩⟩
   diagnostics ∾↩ AddIf ⟨¬actualFactsOk,Diagnostic ⟨"actual_facts_invalid","Actual facts must be admitted from actual.journal"⟩⟩
   asOfValid ← dates.IsValid asOfText
   diagnostics ∾↩ AddIf ⟨¬asOfValid,Diagnostic ⟨"observation_invalid","as-of must be strict Gregorian text"⟩⟩
