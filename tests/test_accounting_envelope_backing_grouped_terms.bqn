@@ -2,20 +2,22 @@
 lib ← •Import "test_lib.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
 snapshot ← •Import "../src/ledger/snapshot.bqn"
-companion ← •Import "../src/ledger/companion_snapshot.bqn"
+budgetSnapshot ← •Import "../src/ledger/budget_snapshot.bqn"
+canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 envelopes ← •Import "../src/accounting/envelope_backing.bqn"
-registry ← (registry_core.Build ⟨"JPY	0	¥"⟩).registry
+registry ← (registry_core.Build ⟨"JPY\t0\t¥"⟩).registry
 lf ← @+10
+Raw ← {𝕊 lines: ∾lines∾¨lf}
 accounts ← ⟨
-  "assets:cash	role=asset	type=liquid	currency=JPY",
-  "expenses:food	role=expense	budget=food	currency=JPY",
-  "expenses:groceries	role=expense	budget=food	currency=JPY",
-  "expenses:transport	role=expense	budget=transport	currency=JPY",
-  "budget:opening	role=budget	kind=opening	currency=JPY",
-  "budget:unassigned	role=budget	kind=unassigned	currency=JPY",
-  "budget:food	role=budget	kind=envelope	budget=food	currency=JPY",
-  "budget:transport	role=budget	kind=envelope	budget=transport	currency=JPY"
+  "assets:cash\trole=asset\ttype=liquid\tcurrency=JPY",
+  "expenses:food\trole=expense\tbudget=food\tcurrency=JPY",
+  "expenses:groceries\trole=expense\tbudget=food\tcurrency=JPY",
+  "expenses:transport\trole=expense\tbudget=transport\tcurrency=JPY",
+  "budget:opening\trole=budget\tkind=opening\tcurrency=JPY",
+  "budget:unassigned\trole=budget\tkind=unassigned\tcurrency=JPY",
+  "budget:food\trole=budget\tkind=envelope\tbudget=food\tcurrency=JPY",
+  "budget:transport\trole=budget\tkind=envelope\tbudget=transport\tcurrency=JPY"
 ⟩
 raw ← ∾⟨
   "commodity JPY",lf,lf,
@@ -35,20 +37,32 @@ raw ← ∾⟨
   "    expenses:transport 5 JPY",lf,"    assets:cash -5 JPY",lf
 ⟩
 actual ← (snapshot.Build ⟨accounts,raw,registry⟩).facts
-companions ← companion.Build ⟨
+planRaw ← Raw ⟨
+  "2026-01-12 food a",
+  "  ; plan-id: food-plan-a",
+  "  expenses:groceries  4 JPY",
+  "  assets:cash  -4 JPY",
+  "",
+  "2026-01-13 transport",
+  "  ; plan-id: transport-plan",
+  "  expenses:transport  6 JPY",
+  "  assets:cash  -6 JPY",
+  "",
+  "2026-01-14 food b",
+  "  ; plan-id: food-plan-b",
+  "  expenses:food  2 JPY",
+  "  assets:cash  -2 JPY"
+⟩
+plan ← (canonicalPlan.Build ⟨planRaw,actual.accounts,registry⟩).facts
+budget ← (budgetSnapshot.Build ⟨
   ⟨
-    "2026-01-12	food a	assets:cash	expenses:groceries	4	currency=JPY	plan_id=food-plan-a",
-    "2026-01-13	transport	assets:cash	expenses:transport	6	currency=JPY	plan_id=transport-plan",
-    "2026-01-14	food b	assets:cash	expenses:food	2	currency=JPY	plan_id=food-plan-b"
-  ⟩,
-  ⟨
-    "2026-01-01	seed	budget:opening	budget:unassigned	30	currency=JPY",
-    "2026-01-01	food	budget:unassigned	budget:food	20	currency=JPY",
-    "2026-01-01	transport	budget:unassigned	budget:transport	10	currency=JPY"
+    "2026-01-01\tseed\tbudget:opening\tbudget:unassigned\t30\tcurrency=JPY",
+    "2026-01-01\tfood\tbudget:unassigned\tbudget:food\t20\tcurrency=JPY",
+    "2026-01-01\ttransport\tbudget:unassigned\tbudget:transport\t10\tcurrency=JPY"
   ⟩,
   actual.accounts,registry
-⟩
-result ← envelopes.Build ⟨companions.budget,actual,companions.plan,"JPY",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-10",⟨0⟩⟩
+⟩).facts
+result ← envelopes.Build ⟨budget,actual,plan,"JPY",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-10",⟨0⟩⟩
 "ok" lib.AssertEq result.state
 2 lib.AssertEq result.envelopes.count
 ⟨"budget:food","budget:transport"⟩ lib.AssertEq result.envelopes.account_key
@@ -62,5 +76,5 @@ result ← envelopes.Build ⟨companions.budget,actual,companions.plan,"JPY",dat
 foodConsumption ← 0⊑result.envelopes.consumption_contributors
 ⟨"food-spend:0","grocery-spend:0"⟩ lib.AssertEq {𝕩.posting_id}¨foodConsumption
 foodPlans ← 0⊑result.envelopes.plan_contributors
-⟨"plan.tsv:plan_id:food-plan-a","plan.tsv:plan_id:food-plan-b"⟩ lib.AssertEq {𝕩.transaction_id}¨foodPlans
+⟨"plan.journal:plan_id:food-plan-a","plan.journal:plan_id:food-plan-b"⟩ lib.AssertEq {𝕩.transaction_id}¨foodPlans
 •Out "test_accounting_envelope_backing_grouped_terms: ok"
