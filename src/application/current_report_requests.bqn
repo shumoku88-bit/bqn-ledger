@@ -34,10 +34,12 @@ Build ← {𝕊 domain‿surface‿reportPlan‿actualFacts‿observation‿curr
   diagnostics ← empty
   selection ← request.Validate ⟨"all",surface⟩
   diagnostics∾↩selection.diagnostics
+  selectedKeys ← selection.section_keys
+  needsBaseline ← Contains ⟨"cycle-comparison",selectedKeys⟩
   diagnostics∾↩AddIf ⟨reportPlan.state≢"ok",Diagnostic ⟨"report_plan_not_ok","Resolved Report policy must be ok"⟩⟩
   diagnostics∾↩AddIf ⟨¬dates.IsValid observation,Diagnostic ⟨"current_observation_invalid","Current accounting observation must be strict Gregorian text"⟩⟩
   diagnostics∾↩AddIf ⟨currentCycle.state≢"ok",Diagnostic ⟨"current_cycle_not_ok","Current Cycle must be resolved"⟩⟩
-  diagnostics∾↩AddIf ⟨baselineCycle.state≢"ok",Diagnostic ⟨"baseline_cycle_not_ok","Baseline Cycle must be resolved"⟩⟩
+  {𝕊:diagnostics∾↩AddIf ⟨baselineCycle.state≢"ok",Diagnostic ⟨"baseline_cycle_not_ok","Baseline Cycle must be resolved for Cycle Comparison"⟩⟩}⍟needsBaseline @
   diagnostics∾↩AddIf ⟨1≠+´domain⊸≡¨actualFacts.domains.code,Diagnostic ⟨"report_domain_invalid","Current Report domain must identify exactly one admitted domain"⟩⟩
 
   baselineObservation ← ""
@@ -52,7 +54,7 @@ Build ← {𝕊 domain‿surface‿reportPlan‿actualFacts‿observation‿curr
       diagnostics∾↩AddIf ⟨¬fits,Diagnostic ⟨"aligned_baseline_unavailable","Previous Cycle cannot represent current elapsed observation"⟩⟩
       {𝕊:baselineObservation↩dates.FromOrdinal baselineOrdinal}⍟fits @
     }⍟inCurrent @
-  }⍟((0=≠diagnostics) ∧ dates.IsValid observation) @
+  }⍟(needsBaseline ∧ (0=≠diagnostics) ∧ dates.IsValid observation) @
 
   rows ← empty
   {𝕊:
@@ -72,7 +74,6 @@ Build ← {𝕊 domain‿surface‿reportPlan‿actualFacts‿observation‿curr
       {key⇐"daily-target",arguments⇐⟨domain,observation,currentCycle.end_exclusive⟩},
       {key⇐"issues",arguments⇐empty}
     ⟩
-    selectedKeys ← selection.section_keys
     selectedCandidates ← ({Contains ⟨𝕩.key,selectedKeys⟩}¨candidates)/candidates
     admissions ← {𝕊 candidate:route.Admit ⟨candidate.key,surface,candidate.arguments⟩}¨selectedCandidates
     diagnostics∾↩∾{𝕩.diagnostics}¨admissions
