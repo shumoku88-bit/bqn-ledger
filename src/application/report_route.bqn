@@ -2,6 +2,7 @@
 # Operational filesystem checks remain in Shell; semantic source admission remains downstream.
 
 request ← •Import "../report/request.bqn"
+canonical ← •Import "canonical_household_sources.bqn"
 empty ← ⟨⟩
 
 Diagnostic ← {𝕊 code‿message:
@@ -23,6 +24,12 @@ Reject ← {𝕊 code‿message: MakePlan ⟨⟨Diagnostic ⟨code,message⟩⟩
 Accept ← {𝕊 coordinates‿coordinateRoles‿argumentIndices‿kinds‿roles:
   MakePlan ⟨empty,coordinateRoles,Sources ⟨coordinates,argumentIndices,kinds,roles⟩⟩
 }
+AcceptCanonicalActual ← {𝕊 coordinates‿coordinateRoles‿argumentIndex:
+  (canonical.actual ≡ argumentIndex⊑coordinates)◶⟨
+    {𝕊:Reject ⟨"actual_source_not_canonical","Actual-only report requires canonical actual.journal"⟩},
+    {𝕊:Accept ⟨coordinates,coordinateRoles,⟨argumentIndex⟩,⟨"journal"⟩,⟨"actual"⟩⟩}
+  ⟩ @
+}
 AllowedCount ← {𝕊 count‿allowed: ∨´0∾count⊸=¨allowed}
 IsDigits ← {𝕊 text: (0<≠text) ∧ ∧´text∊"0123456789"}
 
@@ -41,19 +48,19 @@ Envelopes ← {𝕊 coordinates:
 Balances ← {𝕊 coordinates:
   (3=≠coordinates)◶⟨
     {𝕊:Reject ⟨"usage_balances","balances requires DOMAIN AS_OF JOURNAL_BASENAME"⟩},
-    {𝕊:Accept ⟨coordinates,⟨"domain","as_of","actual_source"⟩,⟨2⟩,⟨"journal"⟩,⟨"actual"⟩⟩}
+    {𝕊:AcceptCanonicalActual ⟨coordinates,⟨"domain","as_of","actual_source"⟩,2⟩}
   ⟩ @
 }
 BalanceSheet ← {𝕊 coordinates:
   (3=≠coordinates)◶⟨
     {𝕊:Reject ⟨"usage_balance_sheet","balance-sheet requires DOMAIN AS_OF JOURNAL_BASENAME"⟩},
-    {𝕊:Accept ⟨coordinates,⟨"domain","as_of","actual_source"⟩,⟨2⟩,⟨"journal"⟩,⟨"actual"⟩⟩}
+    {𝕊:AcceptCanonicalActual ⟨coordinates,⟨"domain","as_of","actual_source"⟩,2⟩}
   ⟩ @
 }
 ProfitAndLoss ← {𝕊 coordinates:
   (4=≠coordinates)◶⟨
     {𝕊:Reject ⟨"usage_profit_and_loss","profit-and-loss requires DOMAIN START END_EXCLUSIVE JOURNAL_BASENAME"⟩},
-    {𝕊:Accept ⟨coordinates,⟨"domain","start","end_exclusive","actual_source"⟩,⟨3⟩,⟨"journal"⟩,⟨"actual"⟩⟩}
+    {𝕊:AcceptCanonicalActual ⟨coordinates,⟨"domain","start","end_exclusive","actual_source"⟩,3⟩}
   ⟩ @
 }
 Recent ← {𝕊 coordinates:
@@ -62,7 +69,7 @@ Recent ← {𝕊 coordinates:
     {𝕊:
       (IsDigits ⊑coordinates)◶⟨
         {𝕊:Reject ⟨"limit_invalid","LIMIT must be decimal digits"⟩},
-        {𝕊:Accept ⟨coordinates,⟨"limit","actual_source"⟩,⟨1⟩,⟨"journal"⟩,⟨"actual"⟩⟩}
+        {𝕊:AcceptCanonicalActual ⟨coordinates,⟨"limit","actual_source"⟩,1⟩}
       ⟩ @
     }
   ⟩ @
@@ -121,19 +128,13 @@ CycleComparison ← {𝕊 coordinates:
 MonthlyAccounts ← {𝕊 coordinates:
   (4=≠coordinates)◶⟨
     {𝕊:Reject ⟨"usage_monthly_accounts","monthly-accounts requires DOMAIN FIRST_MONTH LAST_MONTH_EXCLUSIVE JOURNAL_BASENAME"⟩},
-    {𝕊:Accept ⟨
-      coordinates,⟨"domain","first_month","last_month_exclusive","actual_source"⟩,
-      ⟨3⟩,⟨"journal"⟩,⟨"actual"⟩
-    ⟩}
+    {𝕊:AcceptCanonicalActual ⟨coordinates,⟨"domain","first_month","last_month_exclusive","actual_source"⟩,3⟩}
   ⟩ @
 }
 DailyFlow ← {𝕊 coordinates:
   (5=≠coordinates)◶⟨
     {𝕊:Reject ⟨"usage_daily_flow","daily-flow requires DOMAIN START END_EXCLUSIVE OBSERVATION JOURNAL_BASENAME"⟩},
-    {𝕊:Accept ⟨
-      coordinates,⟨"domain","start","end_exclusive","observation","actual_source"⟩,
-      ⟨4⟩,⟨"journal"⟩,⟨"actual"⟩
-    ⟩}
+    {𝕊:AcceptCanonicalActual ⟨coordinates,⟨"domain","start","end_exclusive","observation","actual_source"⟩,4⟩}
   ⟩ @
 }
 DailyTarget ← {𝕊 coordinates:
