@@ -51,7 +51,7 @@ ValidateInputs ← {𝕊 budgetFacts‿actualFacts‿planFacts‿domain‿start�
   diagnostics ← empty
   diagnostics ∾↩ AddIf ⟨¬reference.SourceIs ⟨budgetFacts,"budget_alloc.tsv"⟩,Diagnostic ⟨"budget_facts_invalid","Budget facts must be admitted"⟩⟩
   diagnostics ∾↩ AddIf ⟨¬reference.SourceIs ⟨actualFacts,"actual.journal"⟩,Diagnostic ⟨"actual_facts_invalid","Actual facts must be admitted"⟩⟩
-  diagnostics ∾↩ AddIf ⟨¬reference.SourceIs ⟨planFacts,"plan.tsv"⟩,Diagnostic ⟨"plan_facts_invalid","Plan facts must be admitted"⟩⟩
+  diagnostics ∾↩ AddIf ⟨¬reference.SourceIs ⟨planFacts,"plan.journal"⟩,Diagnostic ⟨"plan_facts_invalid","Plan facts must be admitted from plan.journal"⟩⟩
   domainKnown ← Contains ⟨domain,actualFacts.accounts.currency⟩
   diagnostics ∾↩ AddIf ⟨¬domainKnown,Diagnostic ⟨"domain_unknown","selected domain must occur in admitted Accounts"⟩⟩
   rangeInvalid ← (start≥finish) ∨ (observation<start) ∨ observation≥finish
