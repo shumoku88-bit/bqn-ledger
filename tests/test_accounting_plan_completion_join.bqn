@@ -16,7 +16,7 @@ accounts ← (account_admission.Admit ⟨accountLines,registry⟩).accounts
 lf ← @+10
 tab ← @+9
 Raw ← {𝕊 lines: ∾lines∾¨lf}
-Join ← {𝕊 fields:
+TsvLine ← {𝕊 fields:
   out ← ⊑fields
   {𝕊 field: out∾↩tab∾field}¨1↓fields
   out
@@ -103,8 +103,8 @@ unknown ← join.Build ⟨planFacts,unknownFacts,⟨0⟩,unknownFacts.transactio
 
 # Exact coefficients/scales stay source-local in a non-JPY domain.
 ilsAccountLines ← ⟨
-  Join ⟨"assets:ils","role=asset","currency=ILS"⟩,
-  Join ⟨"expenses:ils","role=expense","currency=ILS"⟩
+  TsvLine ⟨"assets:ils","role=asset","currency=ILS"⟩,
+  TsvLine ⟨"expenses:ils","role=expense","currency=ILS"⟩
 ⟩
 ilsAccounts ← (account_admission.Admit ⟨ilsAccountLines,registry⟩).accounts
 ilsPlanRaw ← Raw ⟨
