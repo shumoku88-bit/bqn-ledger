@@ -17,97 +17,38 @@ CheckOk ← {𝕊 key‿surface‿coordinates‿coordinateRoles‿argumentIndice
   (argumentIndices⊏coordinates) lib.AssertEq result.sources.name
   0 lib.AssertEq ≠result.diagnostics
 }
+CanonicalActual ← {𝕊 index:⟨index⟩‿⟨"canonical-journal"⟩‿⟨"actual"⟩}
 
 successCases ← ⟨
-  ⟨
-    "envelopes","human",
-    ⟨"JPY","2026-01-01","2026-02-01","2026-01-12","actual.journal","plan.tsv","budget_alloc.tsv","assets:cash"⟩,
-    ⟨"domain","start","end_exclusive","observation","actual_source","plan_source","budget_source","funding_account"⟩,
-    ⟨4⟩,⟨"journal"⟩,⟨"actual"⟩
-  ⟩,
-  ⟨
-    "balances","json",⟨"JPY","2026-01-12","actual.journal"⟩,
-    ⟨"domain","as_of","actual_source"⟩,⟨2⟩,⟨"canonical-journal"⟩,⟨"actual"⟩
-  ⟩,
-  ⟨
-    "balance-sheet","human",⟨"JPY","2026-01-12","actual.journal"⟩,
-    ⟨"domain","as_of","actual_source"⟩,⟨2⟩,⟨"canonical-journal"⟩,⟨"actual"⟩
-  ⟩,
-  ⟨
-    "profit-and-loss","human",⟨"JPY","2026-01-01","2026-02-01","actual.journal"⟩,
-    ⟨"domain","start","end_exclusive","actual_source"⟩,⟨3⟩,⟨"canonical-journal"⟩,⟨"actual"⟩
-  ⟩,
-  ⟨
-    "recent","compact",⟨"10","actual.journal"⟩,
-    ⟨"limit","actual_source"⟩,⟨1⟩,⟨"canonical-journal"⟩,⟨"actual"⟩
-  ⟩,
-  ⟨
-    "planned","human",⟨"2026-01-12","actual.journal","plan.tsv","cycle.tsv"⟩,
-    ⟨"observation","actual_source","plan_source","cycle_source"⟩,
-    ⟨1,3⟩,⟨"journal","tsv"⟩,⟨"actual","cycle"⟩
-  ⟩,
-  ⟨
-    "cycle-accounts","human",⟨"JPY","2026-01-12","actual.journal","cycle.tsv"⟩,
-    ⟨"domain","observation","actual_source","cycle_source"⟩,
-    ⟨2,3⟩,⟨"journal","tsv"⟩,⟨"actual","cycle"⟩
-  ⟩,
-  ⟨
-    "cycle-comparison","human",
-    ⟨"JPY","2026-01-12","2025-12-31","aligned_elapsed","actual.journal","current.tsv","baseline.tsv","plan.tsv"⟩,
-    ⟨
-      "domain","current_observation","baseline_observation","policy",
-      "actual_source","current_cycle_source","baseline_cycle_source","plan_source"
-    ⟩,
-    ⟨4,5,6⟩,⟨"journal","tsv","tsv"⟩,⟨"actual","current_cycle","baseline_cycle"⟩
-  ⟩,
-  ⟨
-    "monthly-accounts","human",⟨"JPY","2026-01","2026-03","actual.journal"⟩,
-    ⟨"domain","first_month","last_month_exclusive","actual_source"⟩,⟨3⟩,⟨"canonical-journal"⟩,⟨"actual"⟩
-  ⟩,
-  ⟨
-    "daily-flow","human",⟨"JPY","2026-01-01","2026-02-01","2026-01-12","actual.journal"⟩,
-    ⟨"domain","start","end_exclusive","observation","actual_source"⟩,
-    ⟨4⟩,⟨"journal"⟩,⟨"actual"⟩
-  ⟩,
-  ⟨
-    "daily-target","compact",⟨"JPY","2026-01-12","2026-01-22","actual.journal","plan.tsv","scope.tsv"⟩,
-    ⟨"domain","observation","target","actual_source","plan_source","daily_scope_source"⟩,
-    ⟨3,5⟩,⟨"journal","tsv"⟩,⟨"actual","daily_scope"⟩
-  ⟩,
-  ⟨
-    "issues","human",⟨"issues.tsv"⟩,
-    ⟨"issues_source"⟩,⟨0⟩,⟨"tsv"⟩,⟨"issues"⟩
-  ⟩
+  ⟨"envelopes","human",⟨"JPY","2026-01-01","2026-02-01","2026-01-12","actual.journal","ignored-plan","ignored-budget","ignored-funding"⟩,
+    ⟨"domain","start","end_exclusive","observation","actual_source","plan_source","budget_source","funding_account"⟩,CanonicalActual 4⟩,
+  ⟨"balances","json",⟨"JPY","2026-01-12","actual.journal"⟩,⟨"domain","as_of","actual_source"⟩,CanonicalActual 2⟩,
+  ⟨"balance-sheet","human",⟨"JPY","2026-01-12","actual.journal"⟩,⟨"domain","as_of","actual_source"⟩,CanonicalActual 2⟩,
+  ⟨"profit-and-loss","human",⟨"JPY","2026-01-01","2026-02-01","actual.journal"⟩,⟨"domain","start","end_exclusive","actual_source"⟩,CanonicalActual 3⟩,
+  ⟨"recent","compact",⟨"10","actual.journal"⟩,⟨"limit","actual_source"⟩,CanonicalActual 1⟩,
+  ⟨"planned","human",⟨"2026-01-12","actual.journal","ignored-plan","ignored-cycle"⟩,
+    ⟨"observation","actual_source","plan_source","cycle_source"⟩,CanonicalActual 1⟩,
+  ⟨"cycle-accounts","human",⟨"JPY","2026-01-12","actual.journal","ignored-cycle"⟩,
+    ⟨"domain","observation","actual_source","cycle_source"⟩,CanonicalActual 2⟩,
+  ⟨"cycle-comparison","human",⟨"JPY","2026-01-12","2025-12-31","aligned_elapsed","actual.journal","ignored-current","ignored-baseline","ignored-plan"⟩,
+    ⟨"domain","current_observation","baseline_observation","policy","actual_source","current_cycle_source","baseline_cycle_source","plan_source"⟩,CanonicalActual 4⟩,
+  ⟨"monthly-accounts","human",⟨"JPY","2026-01","2026-03","actual.journal"⟩,⟨"domain","first_month","last_month_exclusive","actual_source"⟩,CanonicalActual 3⟩,
+  ⟨"daily-flow","human",⟨"JPY","2026-01-01","2026-02-01","2026-01-12","actual.journal"⟩,⟨"domain","start","end_exclusive","observation","actual_source"⟩,CanonicalActual 4⟩,
+  ⟨"daily-target","compact",⟨"JPY","2026-01-12","2026-01-22","actual.journal","ignored-plan","ignored-scope"⟩,
+    ⟨"domain","observation","target","actual_source","plan_source","daily_scope_source"⟩,CanonicalActual 3⟩,
+  ⟨"issues","human",⟨"issues.tsv"⟩,⟨"issues_source"⟩,⟨0⟩,⟨"tsv"⟩,⟨"issues"⟩
 ⟩
 
 (catalog.Table @).key lib.AssertEq {⊑𝕩}¨successCases
 CheckOk¨successCases
 
-# Request coordinates survive until report.toml Phase 6, but canonical Budget
-# ownership means legacy Plan/Budget/funding coordinates do not enter preflight I/O.
-CheckOk ⟨
-  "envelopes","human",
-  ⟨"JPY","2026-01-01","2026-02-01","2026-01-12","actual.journal","plan.tsv","budget.tsv","assets:cash","assets:bank"⟩,
-  ⟨
-    "domain","start","end_exclusive","observation","actual_source","plan_source","budget_source",
-    "funding_account","funding_account"
-  ⟩,
-  ⟨4⟩,⟨"journal"⟩,⟨"actual"⟩
-⟩
-CheckOk ⟨
-  "cycle-accounts","human",⟨"JPY","2026-01-12","actual.journal","cycle.tsv","plan.tsv"⟩,
-  ⟨"domain","observation","actual_source","cycle_source","plan_source"⟩,
-  ⟨2,3⟩,⟨"journal","tsv"⟩,⟨"actual","cycle"⟩
-⟩
-CheckOk ⟨
-  "cycle-comparison","human",
-  ⟨"JPY","2026-01-12","2025-12-31","aligned_elapsed","actual.journal","current.tsv","baseline.tsv"⟩,
-  ⟨
-    "domain","current_observation","baseline_observation","policy",
-    "actual_source","current_cycle_source","baseline_cycle_source"
-  ⟩,
-  ⟨4,5,6⟩,⟨"journal","tsv","tsv"⟩,⟨"actual","current_cycle","baseline_cycle"⟩
-⟩
+# Legacy companion coordinates survive only as Phase-6 request-shape shells.
+CheckOk ⟨"envelopes","human",⟨"JPY","2026-01-01","2026-02-01","2026-01-12","actual.journal","bad/plan","bad/budget","bad/funding","another"⟩,
+  ⟨"domain","start","end_exclusive","observation","actual_source","plan_source","budget_source","funding_account","funding_account"⟩,CanonicalActual 4⟩
+CheckOk ⟨"cycle-accounts","human",⟨"JPY","2026-01-12","actual.journal","bad/cycle","bad/plan"⟩,
+  ⟨"domain","observation","actual_source","cycle_source","plan_source"⟩,CanonicalActual 2⟩
+CheckOk ⟨"cycle-comparison","human",⟨"JPY","2026-01-12","2025-12-31","aligned_elapsed","actual.journal","bad/current","bad/baseline"⟩,
+  ⟨"domain","current_observation","baseline_observation","policy","actual_source","current_cycle_source","baseline_cycle_source"⟩,CanonicalActual 4⟩
 
 HasCode ← {𝕊 code‿diagnostics: ∨´0∾code⊸≡¨{𝕩.code}¨diagnostics}
 CheckError ← {𝕊 key‿surface‿coordinates‿code:
