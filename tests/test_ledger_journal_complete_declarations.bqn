@@ -8,6 +8,13 @@ admission ← •Import "../src/ledger/journal_complete_admission.bqn"
 lf ← @+10
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
 
+emptyJournal ← admission.Admit ⟨"",⟨⟩,registry⟩
+"ok" lib.AssertEq emptyJournal.state
+⟨⟩ lib.AssertEq emptyJournal.declared_domains
+⟨"actual"⟩ lib.AssertEq emptyJournal.declared_layers
+0 lib.AssertEq ≠emptyJournal.transactions
+0 lib.AssertEq ≠emptyJournal.diagnostics
+
 validRaw ← ∾⟨
   "commodity ILS"∾lf,
   ""∾lf,
