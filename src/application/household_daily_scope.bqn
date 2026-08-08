@@ -3,9 +3,9 @@
 # selections and optional exact reservation evidence.
 
 exact ← •Import "../ledger/exact_decimal.bqn"
+reference ← •Import "../accounting/fact_reference.bqn"
 empty ← ⟨⟩
 
-Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
 MetaValues ← {𝕊 key‿metadata: {𝕩.value}¨({key≡𝕩.key}¨metadata)/metadata}
 MetaOne ← {𝕊 key‿metadata:
   values ← MetaValues ⟨key,metadata⟩
@@ -24,7 +24,7 @@ Build ← {𝕊 household‿planFacts‿registry:
   diagnostics∾↩((household.state≢"ok") ∨ household.source_name≢"household.toml")/⟨
     Diagnostic ⟨"household_policy_invalid","Daily Target requires admitted household.toml policy"⟩
   ⟩
-  diagnostics∾↩((planFacts.source_name≢"plan.journal"))/⟨
+  diagnostics∾↩(¬reference.SourceIs ⟨planFacts,"plan.journal"⟩)/⟨
     Diagnostic ⟨"plan_facts_invalid","Daily Target requires canonical Plan facts"⟩
   ⟩
   rows ← empty
@@ -52,7 +52,7 @@ Build ← {𝕊 household‿planFacts‿registry:
       diagnostics∾↩(0=≠selectionId)/⟨Diagnostic ⟨"daily_target_id_empty","daily-target-id must be nonempty"⟩⟩
       completeReservation ← (reservationId.count=reservationAmount.count) ∧ (reservationAmount.count=reservationCommodity.count)
       diagnostics∾↩(anyReservation ∧ ¬completeReservation)/⟨Diagnostic ⟨"daily_reservation_incomplete","Reservation requires id, amount, and commodity together"⟩⟩
-      coefficient ← 0 ⋄ reservationScale ← 0 ⋄ currency ← "" ⋄ reference ← ""
+      coefficient ← 0 ⋄ reservationScale ← 0 ⋄ currency ← "" ⋄ reservationRef ← ""
       {𝕊:
         parsed ← exact.Parse reservationAmount.value ⋄ policy ← registry.Policy reservationCommodity.value
         valid ← (parsed.state≡"ok") ∧ (policy.state≡"ok")
@@ -65,7 +65,7 @@ Build ← {𝕊 household‿planFacts‿registry:
         diagnostics∾↩(0=≠reservationId.value)/⟨Diagnostic ⟨"daily_reservation_id_invalid","Reservation id must be nonempty"⟩⟩
         {𝕊:
           coefficient↩parsed.coefficient ⋄ reservationScale↩parsed.scale
-          currency↩reservationCommodity.value ⋄ reference↩reservationId.value
+          currency↩reservationCommodity.value ⋄ reservationRef↩reservationId.value
         }⍟(valid ∧ parsed.coefficient>0 ∧ 0<≠reservationId.value) @
       }⍟(anyReservation ∧ completeReservation) @
       {𝕊:
@@ -73,8 +73,8 @@ Build ← {𝕊 household‿planFacts‿registry:
           kind⇐"obligation",scope_id⇐selectionId,account_key⇐"",
           plan_id⇐i⊑planFacts.transactions.plan_id,
           excluded_coefficient⇐coefficient,excluded_scale⇐reservationScale,
-          currency⇐currency,reservation_ref⇐reference,source_row⇐0,
-          source_ref⇐i⊑planFacts.transactions.reference
+          currency⇐currency,reservation_ref⇐reservationRef,source_row⇐i⊑planFacts.transactions.source_start_line,
+          source_ref⇐i⊑planFacts.transactions.transaction_id
         }⟩
       }⍟(0<≠selectionId) @
     }⍟(hasSelection ∧ ¬duplicate) @
