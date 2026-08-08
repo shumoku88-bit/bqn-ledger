@@ -21,11 +21,25 @@ if [[ -z "$force" && ! -t 1 ]] || [[ "$BL_THEME" == "plain" ]]; then
   exec cat
 fi
 
+negative_color="$ESC_ERROR"
+case "${REPORT_NEGATIVE_COLOR:-}" in
+  '') ;;
+  red) negative_color=$'\e[31m' ;;
+  bright-red) negative_color=$'\e[91m' ;;
+  green) negative_color=$'\e[32m' ;;
+  yellow) negative_color=$'\e[33m' ;;
+  blue) negative_color=$'\e[34m' ;;
+  magenta) negative_color=$'\e[35m' ;;
+  cyan) negative_color=$'\e[36m' ;;
+  white) negative_color=$'\e[37m' ;;
+  *) printf 'ERROR\treport_negative_color_invalid\tunsupported Report negative color: %s\n' "$REPORT_NEGATIVE_COLOR" >&2; exit 1 ;;
+esac
+
 # Single-pass AWK filter: Highlighting only Headers, Dividers, and Numbers
 exec awk \
   -v h="$ESC_HEADER" \
   -v ok="$ESC_OK" \
-  -v err="$ESC_ERROR" \
+  -v err="$negative_color" \
   -v mut="$ESC_MUTED" \
   -v num="$ESC_NUM_HEADER" \
   -v r="$ESC_RESET" '
@@ -70,6 +84,15 @@ exec awk \
     matched = substr(line, RSTART, RLENGTH)
     rest = substr(line, RSTART + RLENGTH)
     sub(/-[0-9]+/, err "&" r, matched)
+    line = prefix matched rest
+  }
+
+  # Parenthesized negative notation after canonical presentation filtering.
+  while (match(line, /([[:space:]|])(\([0-9]+([.][0-9]+)?\))/)) {
+    prefix = substr(line, 1, RSTART - 1)
+    matched = substr(line, RSTART, RLENGTH)
+    rest = substr(line, RSTART + RLENGTH)
+    sub(/\([0-9]+([.][0-9]+)?\)/, err "&" r, matched)
     line = prefix matched rest
   }
 
