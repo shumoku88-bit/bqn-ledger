@@ -3,7 +3,8 @@ lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
 snapshot ← •Import "../src/ledger/snapshot.bqn"
-companion ← •Import "../src/ledger/companion_snapshot.bqn"
+budgetSnapshot ← •Import "../src/ledger/budget_snapshot.bqn"
+canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 account_admission ← •Import "../src/ledger/account_admission.bqn"
 cycle_admission ← •Import "../src/ledger/cycle_admission.bqn"
 fixed_resolver ← •Import "../src/accounting/cycle_fixed_resolution.bqn"
@@ -17,7 +18,16 @@ registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").regi
 accountLines ← loader.ReadLines base∾"accounts.tsv"
 accounts ← (account_admission.Admit ⟨accountLines,registry⟩).accounts
 actual ← (snapshot.Build ⟨accountLines,•FChars "../"∾base∾"actual.journal",registry⟩).facts
-companions ← companion.Build ⟨loader.ReadLines base∾"plan.tsv",loader.ReadLines base∾"budget_alloc.tsv",accounts,registry⟩
+lf ← @+10
+Raw ← {𝕊 sourceLines: ∾sourceLines∾¨lf}
+planRaw ← Raw ⟨
+  "2026-01-20 food-plan",
+  "  ; plan-id: plan-food-2026-01",
+  "  expenses:food  25 JPY",
+  "  assets:cash  -25 JPY"
+⟩
+plan ← (canonicalPlan.Build ⟨planRaw,accounts,registry⟩).facts
+budget ← (budgetSnapshot.Build ⟨loader.ReadLines base∾"budget_alloc.tsv",accounts,registry⟩).facts
 cycle ← fixed_resolver.Resolve cycle_admission.Admit ⟨loader.ReadLines base∾"cycle.tsv",accounts⟩
 
 CheckGolden ← {𝕊 composition‿key‿surface‿file:
@@ -36,7 +46,7 @@ profitLoss ← compose.ProfitAndLoss ⟨actual,"JPY","2026-01-01","2026-02-01"�
 CheckGolden ⟨profitLoss,"profit-and-loss","human","profit_and_loss.destination.human.txt"⟩
 recent ← compose.Recent ⟨actual,10⟩
 CheckGolden ⟨recent,"recent","compact","recent_journal.destination.compact.txt"⟩
-planned ← compose.Planned ⟨companions.plan,actual,cycle,"2026-01-12"⟩
+planned ← compose.Planned ⟨plan,actual,cycle,"2026-01-12"⟩
 CheckGolden ⟨planned,"planned","json","planned_payments.destination.json"⟩
 cycleAccounts ← compose.CycleAccounts ⟨actual,"JPY",cycle,"2026-01-10"⟩
 CheckGolden ⟨cycleAccounts,"cycle-accounts","human","cycle_accounts.destination.human.txt"⟩
@@ -49,7 +59,7 @@ monthly ← compose.MonthlyAccounts ⟨actual,"JPY","2026-01","2026-03"⟩
 CheckGolden ⟨monthly,"monthly-accounts","human","monthly_accounts.destination.human.txt"⟩
 dailyFlow ← compose.DailyFlow ⟨actual,"JPY","2026-01-01","2026-02-01","2026-01-12"⟩
 CheckGolden ⟨dailyFlow,"daily-flow","human","daily_flow.destination.human.txt"⟩
-envelopes ← compose.Envelopes ⟨companions.budget,actual,companions.plan,"JPY","2026-01-01","2026-02-01","2026-01-12",⟨0⟩⟩
+envelopes ← compose.Envelopes ⟨budget,actual,plan,"JPY","2026-01-01","2026-02-01","2026-01-12",⟨0⟩⟩
 CheckGolden ⟨envelopes,"envelopes","compact","envelope_backing.destination.compact.txt"⟩
 
 Ref ← {𝕊 id:{source⇐"synthetic",transaction_id⇐id,posting_id⇐id}}
