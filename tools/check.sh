@@ -41,7 +41,7 @@ done
 
 echo '[3/3] repository/editor/tool checks' >&2
 checks=(
-  check-canonical-household-source-topology.sh
+  check-canonical-household-source-topology.sh check-doctor-canonical-household.sh
   check-devtools.sh check-devtools-negative.sh check-edit-bqn-account-list.sh
   check-edit-bqn-journal-add.sh check-edit-bqn-journal-block-add.sh check-edit-bqn-currency-m2.sh
   check-edit-bqn-travel-friend-add.sh check-travel-exchange-pure.sh check-edit-bqn-travel-exchange-add.sh
