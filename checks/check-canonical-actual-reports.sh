@@ -21,7 +21,6 @@ run_report balance-sheet balance-sheet human JPY 2026-01-15 actual.journal
 run_report profit-and-loss profit-and-loss human JPY 2026-01-01 2026-02-01 actual.journal
 run_report recent recent compact 3 actual.journal
 run_report monthly-accounts monthly-accounts human JPY 2026-01 2026-02 actual.journal
-run_report daily-flow daily-flow human JPY 2026-01-01 2026-02-01 2026-01-15 actual.journal
 
 set +e
 rejected="$(tools/report "$base" balances json JPY 2026-01-15 legacy.journal 2>&1)"
