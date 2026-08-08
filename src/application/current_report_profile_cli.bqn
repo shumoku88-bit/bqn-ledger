@@ -6,10 +6,12 @@ sources ← •Import "report_source_adapter.bqn"
 cycleResolution ← •Import "cycle_resolution.bqn"
 policyResolution ← •Import "report_policy_resolution.bqn"
 requests ← •Import "current_report_requests.bqn"
+request ← •Import "../report/request.bqn"
 dates ← •Import "../ledger/date_ordinal.bqn"
 today ← •Import "date_today.bqn"
 tab ← @+9
 
+Contains ← {𝕊 item‿items:∨´0∾item⊸≡¨items}
 Fail ← {𝕊 code‿message:•Out "ERROR"∾tab∾code∾tab∾message ⋄ •Exit 1}
 PrintDiagnostics ← {𝕊 diagnostics:{𝕊 diagnostic:•Out "ERROR"∾tab∾diagnostic.code∾tab∾diagnostic.message}¨diagnostics ⋄ •Exit 1}
 CycleFailure ← {𝕊 resolved‿fallback:
@@ -25,6 +27,9 @@ base‿domain‿surface ← 3↑args
 latest ← today.Today @
 {𝕊:latest↩3⊑args}⍟(4=≠args) @
 {𝕊:Fail ⟨"report_latest_invalid","LATEST must be strict YYYY-MM-DD"⟩}⍟(¬dates.IsValid latest) @
+selection ← request.Validate ⟨"all",surface⟩
+{𝕊:PrintDiagnostics selection.diagnostics}⍟(selection.state≢"ok") @
+needsBaseline ← Contains ⟨"cycle-comparison",selection.section_keys⟩
 
 registryResult ← sources.Registry "config/currencies.tsv"
 {𝕊:Fail ⟨registryResult.code,registryResult.message⟩}⍟(registryResult.state≢"ok") @
@@ -45,9 +50,12 @@ context ← sources.HouseholdContext ⟨base,actual.facts.accounts,registry⟩
 {𝕊:PrintDiagnostics context.diagnostics}⍟(context.state≢"ok") @
 currentCycle ← cycleResolution.WithPlan ⟨context.household.cycle,observation,actual.facts,context.plan⟩
 {𝕊:CycleFailure ⟨currentCycle,"current_cycle_resolution_failed"⟩}⍟(currentCycle.state≢"ok") @
-previousObservation ← dates.FromOrdinal currentCycle.start_ordinal-1
-baselineCycle ← cycleResolution.WithPlan ⟨context.household.cycle,previousObservation,actual.facts,context.plan⟩
-{𝕊:CycleFailure ⟨baselineCycle,"baseline_cycle_resolution_failed"⟩}⍟(baselineCycle.state≢"ok") @
+baselineCycle ← {state⇐"unused"}
+{𝕊:
+  previousObservation ← dates.FromOrdinal currentCycle.start_ordinal-1
+  baselineCycle↩cycleResolution.WithPlan ⟨context.household.cycle,previousObservation,actual.facts,context.plan⟩
+  {𝕊:CycleFailure ⟨baselineCycle,"baseline_cycle_resolution_failed"⟩}⍟(baselineCycle.state≢"ok") @
+}⍟needsBaseline @
 
 built ← requests.Build ⟨domain,surface,resolvedPolicy,actual.facts,observation,currentCycle,baselineCycle⟩
 {𝕊:PrintDiagnostics built.diagnostics}⍟(built.state≢"ok") @
