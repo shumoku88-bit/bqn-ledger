@@ -24,23 +24,23 @@ plan ← (canonicalPlan.Build ⟨planRaw,accounts,registry⟩).facts
 lf ← @+10
 Raw ← {𝕊 lines: ∾lines∾¨lf}
 budgetRaw ← Raw ⟨
-  "2026-01-01 seed",
-  "  budget:opening     -100 JPY",
-  "  budget:unassigned   100 JPY","",
-  "2026-01-01 allocate-food",
-  "  budget:unassigned  -60 JPY",
-  "  budget:food         60 JPY"
+  "2026-01-01 seed","  budget:opening     -100 JPY","  budget:unassigned   100 JPY","",
+  "2026-01-01 allocate-food","  budget:unassigned  -60 JPY","  budget:food         60 JPY"
 ⟩
 budget ← (canonicalBudget.Build ⟨budgetRaw,accounts,registry⟩).facts
 budgetPolicy ← budgetPolicyAdmission.Admit ⟨•FChars "../"∾base∾"budget.toml",accounts⟩
 "ok" lib.AssertEq budgetPolicy.state
 cycle ← fixed_resolver.Resolve cycle_admission.Admit ⟨loader.ReadLines base∾"cycle.tsv",accounts⟩
+Index ← {𝕊 key:⊑accounts.key⊐⟨key⟩}
+household ← {
+  state⇐"ok",source_name⇐"household.toml",
+  budget⇐{envelope_id⇐⟨"food"⟩,allocation_account_index⇐⟨Index "budget:food"⟩,unassigned_account_indices⇐⟨Index "budget:unassigned"⟩},
+  account_policy⇐{account_key⇐accounts.key}
+}
 
 CheckGolden ← {𝕊 composition‿key‿surface‿file:
-  "ok" lib.AssertEq composition.state
-  key lib.AssertEq composition.key
-  rendered ← render.Render ⟨key,surface,composition⟩
-  "ok" lib.AssertEq rendered.state
+  "ok" lib.AssertEq composition.state ⋄ key lib.AssertEq composition.key
+  rendered ← render.Render ⟨key,surface,composition⟩ ⋄ "ok" lib.AssertEq rendered.state
   (•FChars "../"∾base∾file) lib.AssertEq rendered.text
 }
 
@@ -65,7 +65,7 @@ monthly ← compose.MonthlyAccounts ⟨actual,"JPY","2026-01","2026-03"⟩
 CheckGolden ⟨monthly,"monthly-accounts","human","monthly_accounts.destination.human.txt"⟩
 dailyFlow ← compose.DailyFlow ⟨actual,"JPY","2026-01-01","2026-02-01","2026-01-12"⟩
 CheckGolden ⟨dailyFlow,"daily-flow","human","daily_flow.destination.human.txt"⟩
-envelopes ← compose.Envelopes ⟨budget,budgetPolicy,actual,plan,"JPY","2026-01-01","2026-02-01","2026-01-12"⟩
+envelopes ← compose.Envelopes ⟨budget,budgetPolicy,household,actual,plan,"JPY","2026-01-01","2026-02-01","2026-01-12"⟩
 CheckGolden ⟨envelopes,"envelopes","compact","envelope_backing.destination.compact.txt"⟩
 
 Ref ← {𝕊 id:{source⇐"synthetic",transaction_id⇐id,posting_id⇐id}}
