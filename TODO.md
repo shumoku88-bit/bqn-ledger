@@ -68,3 +68,32 @@ Before a phase begins, its complete file inventory must be added here and covere
 `src/accounting/date_category_flow.bqn`
 
 Do not begin the next file until this cursor has a merged final decision and its checkbox is updated on current `main`.
+
+## Deferred product TODO: loan and temporary-payable classification
+
+This product work is recorded outside the active review cursor. It does not advance or bypass the owner-by-owner BQN review queue above.
+
+Canonical household data may use distinct stable Account identities such as
+`liabilities:loan:<anonymous-id>` and `liabilities:payable:<anonymous-id>`.
+Both remain ordinary Accounts with the admitted `liability` role. The extra
+path components are human-readable identity, not authority for accounting or
+report classification.
+
+Required BQN Ledger work:
+
+- preserve nested Liability Account identities without inferring role or purpose from their text;
+- add synthetic admission evidence for Actual postings and outgoing Plans that reference both loan and temporary-payable Accounts;
+- define an explicit household-policy owner for the set of Accounts included in a debt-position projection; do not select Accounts merely because their name contains `loan` or exclude them because it contains `payable`;
+- retain all Liability Accounts in Account Balances and Balance Sheet regardless of debt-report membership;
+- add a debt-position result that publishes, per explicitly selected loan Account and Commodity, opening principal, principal increases, principal repayments, closing signed balance, positive amount owed for presentation, and aligned source contributors;
+- keep principal repayment out of Expense flow, while supporting split Actual transactions where interest or fees are separate Expense postings;
+- join future principal-payment Plans to the exact Liability Account and durable Plan identity, without allowing a Plan to change Actual balance before completion;
+- ensure temporary payables can open and settle to zero without entering the long-lived loan projection unless policy explicitly includes them;
+- teach editor previews and diagnostics to distinguish principal repayment, interest Expense, and unsupported or ambiguous mixed directions without silently rewriting historical facts;
+- provide compact, human, and machine-readable evidence with exact Commodity separation and no cross-currency summation;
+- compare the resulting account selection, balances, movements, and open-Plan evidence with h-kernel using synthetic data before treating the two engines as operationally equivalent.
+
+Completion requires focused synthetic fixtures, strict source checks, report
+contract documentation, editor safety evidence where writing is introduced,
+and an explained cross-engine parity result. Private household names, dates,
+and amounts must not be copied into repository fixtures or documentation.
