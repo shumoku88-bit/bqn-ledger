@@ -61,7 +61,7 @@ Signature ← {𝕊 evidence:
 # Selection/period policy stays outside this Join.
 Build ← {𝕊 planFacts‿actualFacts‿planTransactionIndices‿actualTransactionIndices:
   diagnostics ← empty
-  diagnostics ∾↩ AddIf ⟨¬fact_reference.SourceIs ⟨planFacts,"plan.tsv"⟩,Diagnostic ⟨"plan_facts_invalid","Plan facts must be admitted from plan.tsv"⟩⟩
+  diagnostics ∾↩ AddIf ⟨¬fact_reference.SourceIs ⟨planFacts,"plan.journal"⟩,Diagnostic ⟨"plan_facts_invalid","Plan facts must be admitted from plan.journal"⟩⟩
   diagnostics ∾↩ AddIf ⟨¬fact_reference.SourceIs ⟨actualFacts,"actual.journal"⟩,Diagnostic ⟨"actual_facts_invalid","Actual facts must be admitted from actual.journal"⟩⟩
   diagnostics ∾↩ AddIf ⟨(≠planTransactionIndices)≠≠⍷planTransactionIndices,Diagnostic ⟨"plan_selection_duplicate","Plan selection indices must be unique"⟩⟩
   diagnostics ∾↩ AddIf ⟨(≠actualTransactionIndices)≠≠⍷actualTransactionIndices,Diagnostic ⟨"actual_selection_duplicate","Actual selection indices must be unique"⟩⟩

@@ -13,7 +13,7 @@ explicit source files + report request manifest
   -> tools/report / report-summary / query / Command Hub cache
 ```
 
-Actual is admitted only from the configured Native Journal. Plan and Budget are strict exact companion facts; Issues remain non-accounting facts. Currency, Account ownership, cycle coordinates, observations, and source basenames are explicit. Invalid evidence fails closed without partial publication.
+Canonical Account, Actual, and Plan reads come from `accounts.journal`, `actual.journal`, and `plan.journal`. Budget movement and Household policy remain on their retained sources until their named migration phases replace them; Issues remain non-accounting facts. Report manifests still carry historical source-basename coordinates until `report.toml` replaces that request shape, but an admitted canonical owner is not redirected by those coordinates. Invalid evidence fails closed without partial publication.
 
 ## Ownership
 
@@ -25,6 +25,8 @@ Actual is admitted only from the configured Native Journal. Plan and Budget are 
 - `src_edit/` and `src/editor/` — write-side commands and pure rewrite semantics using the same strict ledger owners.
 
 Canonical Account identity, accounting type, and optional default Commodity are admitted directly from `accounts.journal` by `src/ledger/account_journal_admission.bqn`; `src/application/account_source_adapter.bqn` is the read-only file boundary. Read-only Account selection uses this canonical registry. Household-specific Account policy does not enter Account Journal admission and remains on its legacy path until the `household.toml` policy boundary replaces it. Writer-side Account mutation remains separately qualified and is not implied by read-side admission.
+
+Canonical Plan source admission preserves whole Transaction/Posting structure from `plan.journal` and derives durable Plan identity from `plan-id`; `src/application/plan_source_adapter.bqn` owns physical read selection. Report and cycle consumers receive those canonical Facts even while their request rows still contain a historical Plan basename coordinate. That coordinate is routing debt for the later `report.toml` phase, not Plan I/O authority. Envelope temporarily combines canonical Plan Facts with retained Budget movement evidence. Plan writers remain separately qualified and are not authorized by this read-side cutover.
 
 No report section reads files or the clock. No accounting capability imports a section or composition owner. Native multi-posting transactions remain first-class and are never flattened into two-account compatibility rows.
 

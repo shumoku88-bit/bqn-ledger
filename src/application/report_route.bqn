@@ -33,6 +33,9 @@ AcceptCanonicalActual ← {𝕊 coordinates‿coordinateRoles‿argumentIndex:
 AllowedCount ← {𝕊 count‿allowed: ∨´0∾count⊸=¨allowed}
 IsDigits ← {𝕊 text: (0<≠text) ∧ ∧´text∊"0123456789"}
 
+# Plan basename coordinates remain in the request shape until report.toml Phase 6,
+# but canonical plan.journal owns physical Plan I/O. Consequently Plan coordinates
+# never appear in the source table consumed by Shell preflight.
 Envelopes ← {𝕊 coordinates:
   (8≤≠coordinates)◶⟨
     {𝕊:Reject ⟨"usage_envelopes","envelopes requires DOMAIN START END_EXCLUSIVE OBSERVATION JOURNAL PLAN BUDGET and one or more FUNDING_ACCOUNT_KEY"⟩},
@@ -41,7 +44,7 @@ Envelopes ← {𝕊 coordinates:
         "domain","start","end_exclusive","observation",
         "actual_source","plan_source","budget_source"
       ⟩∾((≠coordinates)-7)⥊⟨"funding_account"⟩
-      Accept ⟨coordinates,coordinateRoles,⟨4,5,6⟩,⟨"journal","tsv","tsv"⟩,⟨"actual","plan","budget"⟩⟩
+      Accept ⟨coordinates,coordinateRoles,⟨4,6⟩,⟨"journal","tsv"⟩,⟨"actual","budget"⟩⟩
     }
   ⟩ @
 }
@@ -79,7 +82,7 @@ Planned ← {𝕊 coordinates:
     {𝕊:Reject ⟨"usage_planned","planned requires OBSERVATION JOURNAL_BASENAME PLAN_BASENAME CYCLE_BASENAME"⟩},
     {𝕊:Accept ⟨
       coordinates,⟨"observation","actual_source","plan_source","cycle_source"⟩,
-      ⟨1,2,3⟩,⟨"journal","tsv","tsv"⟩,⟨"actual","plan","cycle"⟩
+      ⟨1,3⟩,⟨"journal","tsv"⟩,⟨"actual","cycle"⟩
     ⟩}
   ⟩ @
 }
@@ -95,7 +98,7 @@ CycleAccounts ← {𝕊 coordinates:
         ⟩},
         {𝕊:Accept ⟨
           coordinates,⟨"domain","observation","actual_source","cycle_source","plan_source"⟩,
-          ⟨2,3,4⟩,⟨"journal","tsv","tsv"⟩,⟨"actual","cycle","plan"⟩
+          ⟨2,3⟩,⟨"journal","tsv"⟩,⟨"actual","cycle"⟩
         ⟩}
       ⟩ @
     }
@@ -119,7 +122,7 @@ CycleComparison ← {𝕊 coordinates:
             "domain","current_observation","baseline_observation","policy",
             "actual_source","current_cycle_source","baseline_cycle_source","plan_source"
           ⟩,
-          ⟨4,5,6,7⟩,⟨"journal","tsv","tsv","tsv"⟩,⟨"actual","current_cycle","baseline_cycle","plan"⟩
+          ⟨4,5,6⟩,⟨"journal","tsv","tsv"⟩,⟨"actual","current_cycle","baseline_cycle"⟩
         ⟩}
       ⟩ @
     }
@@ -142,7 +145,7 @@ DailyTarget ← {𝕊 coordinates:
     {𝕊:Reject ⟨"usage_daily_target","daily-target requires DOMAIN OBSERVATION TARGET JOURNAL PLAN DAILY_SCOPE"⟩},
     {𝕊:Accept ⟨
       coordinates,⟨"domain","observation","target","actual_source","plan_source","daily_scope_source"⟩,
-      ⟨3,4,5⟩,⟨"journal","tsv","tsv"⟩,⟨"actual","plan","daily_scope"⟩
+      ⟨3,5⟩,⟨"journal","tsv"⟩,⟨"actual","daily_scope"⟩
     ⟩}
   ⟩ @
 }

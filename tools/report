@@ -20,7 +20,8 @@ Usage:
   tools/report BASE KEY SURFACE --manifest REQUEST_MANIFEST
   tools/report BASE all human|compact REQUEST_MANIFEST
 
-All coordinates and source basenames are explicit.
+Plan coordinates remain in the retained request shape until report.toml migration,
+but canonical plan.journal owns physical Plan I/O. Other source basenames are explicit.
 USAGE
 }
 
@@ -48,13 +49,11 @@ source_name_error() { printf 'ERROR\tsource_basename_invalid\t%s\n' "$1" >&2; ex
 route_plan_error() { printf 'ERROR\treport_route_plan_invalid\t%s\n' "$1" >&2; exit 1; }
 tsv_source_message() {
   case "$1:$2" in
-    envelopes:plan|envelopes:budget) printf 'Plan and Budget must be safe .tsv basenames' ;;
-    planned:plan|planned:cycle) printf 'Plan and Cycle must be safe .tsv basenames' ;;
+    envelopes:budget) printf 'Budget must be a safe .tsv basename' ;;
+    planned:cycle) printf 'Cycle must be a safe .tsv basename' ;;
     cycle-accounts:cycle) printf 'Cycle must be a safe .tsv basename' ;;
-    cycle-accounts:plan) printf 'Plan must be a safe .tsv basename' ;;
     cycle-comparison:current_cycle|cycle-comparison:baseline_cycle) printf 'Cycle files must be safe .tsv basenames' ;;
-    cycle-comparison:plan) printf 'Plan must be a safe .tsv basename' ;;
-    daily-target:plan|daily-target:daily_scope) printf 'Plan and Daily Scope must be safe .tsv basenames' ;;
+    daily-target:daily_scope) printf 'Daily Scope must be a safe .tsv basename' ;;
     issues:issues) printf 'issues must be a safe .tsv basename' ;;
     *) printf '%s must be a safe .tsv basename' "$2" ;;
   esac

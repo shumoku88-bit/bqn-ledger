@@ -4,6 +4,7 @@ root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
 fixture=fixtures/ledger-facts-phase1-proof
 tmp="$(mktemp -d "${TMPDIR:-/tmp}/bqn-ledger-destination.XXXXXX")"
+trap 'status=$?; echo "::error file=checks/check-report-composition.sh,line=$LINENO::Report composition check failed" >&2; exit "$status"' ERR
 trap 'rm -rf "$tmp"' EXIT
 
 ./tools/report "$fixture" envelopes compact JPY 2026-01-01 2026-02-01 2026-01-12 actual.journal plan.tsv budget_alloc.tsv assets:cash >"$tmp/envelopes"
@@ -67,11 +68,18 @@ cp "$fixture/issues.destination.tsv" "$tmp/issues-only/"
 ./tools/report "$tmp/issues-only" issues human issues.destination.tsv >/dev/null
 cp "$fixture/accounts.tsv" "$fixture/actual.journal" "$fixture/cycle.tsv" "$tmp/cycle-only/"
 ./tools/report "$tmp/cycle-only" cycle-accounts human JPY 2026-01-10 actual.journal cycle.tsv >/dev/null
-cp "$fixture/accounts.tsv" "$fixture/actual.journal" \
-  "$fixture/daily_target_plan.destination.tsv" "$fixture/daily_target_scope.destination.tsv" "$tmp/daily-only/"
-./tools/report "$tmp/daily-only" daily-target human JPY 2026-01-12 2026-01-22 \
-  actual.journal daily_target_plan.destination.tsv daily_target_scope.destination.tsv >/dev/null
-cp "$fixture/accounts.tsv" "$fixture/actual.journal" "$fixture/plan.tsv" "$fixture/budget_alloc.tsv" "$tmp/envelope-only/"
+cp "$fixture/accounts.tsv" "$fixture/accounts.journal" "$fixture/actual.journal" \
+  "$fixture/plan.journal" "$fixture/daily_target_scope.destination.tsv" "$tmp/daily-only/"
+if ! ./tools/report "$tmp/daily-only" daily-target human JPY 2026-01-12 2026-01-22 \
+  actual.journal daily_target_plan.destination.tsv daily_target_scope.destination.tsv \
+  >/dev/null 2>"$tmp/daily-only.err"; then
+  diagnostic=$(head -n 1 "$tmp/daily-only.err" | head -c 400)
+  echo "::error file=checks/check-report-composition.sh,line=73::daily-only: $diagnostic" >&2
+  cat "$tmp/daily-only.err" >&2
+  exit 1
+fi
+cp "$fixture/accounts.tsv" "$fixture/accounts.journal" "$fixture/actual.journal" \
+  "$fixture/plan.journal" "$fixture/budget_alloc.tsv" "$tmp/envelope-only/"
 ./tools/report "$tmp/envelope-only" envelopes human JPY \
   2026-01-01 2026-02-01 2026-01-12 actual.journal plan.tsv budget_alloc.tsv assets:cash >/dev/null
 if ./tools/report "$tmp/envelope-only" envelopes human JPY \
@@ -80,11 +88,19 @@ if ./tools/report "$tmp/envelope-only" envelopes human JPY \
   echo 'FAIL: non-asset funding Account succeeded' >&2; exit 1
 fi
 grep -F $'funding_account_role_invalid' "$tmp/funding-role" >/dev/null
-cp "$fixture/accounts.tsv" "$fixture/actual.journal" "$fixture/plan.tsv" "$fixture/cycle.tsv" "$tmp/planned-only/"
+cp "$fixture/accounts.tsv" "$fixture/accounts.journal" "$fixture/actual.journal" \
+  "$fixture/plan.journal" "$fixture/cycle.tsv" "$tmp/planned-only/"
 ./tools/report "$tmp/planned-only" planned human 2026-01-12 actual.journal plan.tsv cycle.tsv >/dev/null
-cp "$fixture/accounts.tsv" "$fixture/actual.journal" "$tmp/income-cycle/"
+cp "$fixture/accounts.tsv" "$fixture/accounts.journal" "$fixture/actual.journal" "$tmp/income-cycle/"
 printf '%s\n' $'mode\tincomeAnchor' $'income_account\tincome:salary' $'offset\t0' >"$tmp/income-cycle/cycle.tsv"
-printf '%s\n' $'2026-02-01\tnext-income\tincome:salary\tassets:cash\t1000\tcurrency=JPY\tplan_id=income-next' >"$tmp/income-cycle/plan.tsv"
+cat >"$tmp/income-cycle/plan.journal" <<'EOF'
+include accounts.journal
+
+2026-02-01 next-income
+  ; plan-id: income-next
+  income:salary  -1000 JPY
+  assets:cash  1000 JPY
+EOF
 ./tools/report "$tmp/income-cycle" cycle-accounts human JPY 2026-01-12 actual.journal cycle.tsv plan.tsv >/dev/null
 if ./tools/report "$tmp/income-cycle" cycle-accounts human JPY 2026-01-12 actual.journal cycle.tsv >"$tmp/plan-required" 2>&1; then
   echo 'FAIL: incomeAnchor succeeded without Plan' >&2; exit 1

@@ -1,7 +1,7 @@
 ledger_check	state	ok
 ledger_check	actual_transactions	3
 ledger_check	actual_postings	7
-ledger_check	plan_transactions	1
+ledger_check	plan_transactions	2
 ledger_check	budget_transactions	2
 ledger_check	cycle_mode	fixed
 ledger_check	issues	3

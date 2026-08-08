@@ -6,7 +6,7 @@ fixture=fixtures/ledger-facts-phase1-proof
 work=$(mktemp -d "${TMPDIR:-/tmp}/bqn-ledger-operations.XXXXXX")
 trap 'rm -rf "$work"' EXIT
 
-./tools/ledger-check "$fixture" actual.journal plan.tsv budget_alloc.tsv cycle.tsv \
+./tools/ledger-check "$fixture" actual.journal does-not-exist-plan.tsv budget_alloc.tsv cycle.tsv \
   issues.destination.tsv daily_target_scope.destination.tsv >"$work/check"
 cmp "$work/check" "$fixture/ledger_check.destination.txt"
 ./tools/ledger-inspect "$fixture" actual.journal >"$work/inspect"
@@ -14,7 +14,7 @@ cmp "$work/inspect" "$fixture/ledger_inspect.destination.txt"
 
 cp -R "$fixture" "$work/invalid"
 printf 'bad\theader\n' >"$work/invalid/issues-invalid.tsv"
-if ./tools/ledger-check "$work/invalid" actual.journal plan.tsv budget_alloc.tsv cycle.tsv \
+if ./tools/ledger-check "$work/invalid" actual.journal does-not-exist-plan.tsv budget_alloc.tsv cycle.tsv \
   issues-invalid.tsv daily_target_scope.destination.tsv >"$work/invalid.out" 2>&1; then
   echo 'FAIL: ledger-check accepted invalid Issues' >&2; exit 1
 fi

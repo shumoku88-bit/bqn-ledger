@@ -17,9 +17,8 @@ Check ⟨
   ⟩,
   0,
   ⟨
-    "ROUTE"∾tab∾"envelopes"∾tab∾"human"∾tab∾"8"∾tab∾"3",
+    "ROUTE"∾tab∾"envelopes"∾tab∾"human"∾tab∾"8"∾tab∾"2",
     "SOURCE"∾tab∾"4"∾tab∾"journal"∾tab∾"actual",
-    "SOURCE"∾tab∾"5"∾tab∾"tsv"∾tab∾"plan",
     "SOURCE"∾tab∾"6"∾tab∾"tsv"∾tab∾"budget"
   ⟩
 ⟩
@@ -28,10 +27,9 @@ Check ⟨
   ⟨"cycle-accounts","human","JPY","2026-01-12","actual.journal","cycle.tsv","plan.tsv"⟩,
   0,
   ⟨
-    "ROUTE"∾tab∾"cycle-accounts"∾tab∾"human"∾tab∾"5"∾tab∾"3",
+    "ROUTE"∾tab∾"cycle-accounts"∾tab∾"human"∾tab∾"5"∾tab∾"2",
     "SOURCE"∾tab∾"2"∾tab∾"journal"∾tab∾"actual",
-    "SOURCE"∾tab∾"3"∾tab∾"tsv"∾tab∾"cycle",
-    "SOURCE"∾tab∾"4"∾tab∾"tsv"∾tab∾"plan"
+    "SOURCE"∾tab∾"3"∾tab∾"tsv"∾tab∾"cycle"
   ⟩
 ⟩
 

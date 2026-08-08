@@ -1,1 +1,1 @@
-{"open_items": [], "open_total": 0, "completed_items": [{"date": "2026-01-20", "category": "food", "memo": "food-plan", "amount": 25, "actual_amount": 20, "status": "completed", "plan_id": "plan-food-2026-01"}]}
+{"open_items": [{"date": "2026-01-15", "category": "food", "memo": "rent", "amount": 200, "status": "future", "plan_id": "plan-rent-daily-target"}], "open_total": 200, "completed_items": [{"date": "2026-01-20", "category": "food", "memo": "food-plan", "amount": 25, "actual_amount": 20, "status": "completed", "plan_id": "plan-food-2026-01"}]}

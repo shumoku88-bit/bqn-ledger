@@ -185,7 +185,8 @@ CrossTransactionDiagnostics ← {𝕊 transactions:
 
 Admit ← {𝕊 raw‿accounts‿registry:
   normalizedRaw ← (cr ≠ raw) / raw
-  hasTerminalLf ← (0 < ≠ normalizedRaw) ∧ (lf = ⊑⌽normalizedRaw)
+  hasTerminalLf ← 0
+  {𝕊: hasTerminalLf ↩ lf = ⊑⌽normalizedRaw}⍟(0 < ≠ normalizedRaw) @
   {𝕊: normalizedRaw ↩ ¯1 ↓ normalizedRaw}⍟hasTerminalLf @
   lines ← SplitKeepEmpty ⟨lf,normalizedRaw⟩
   declarations ← Declarations ⟨lines,registry⟩

@@ -4,7 +4,7 @@ Observed through: 2026-01-12
 
 Envelope | Entitlement | Consumption | Credits/refunds | Remaining | Plan reserve | Headroom
 ---------+-------------+-------------+-----------------+-----------+--------------+---------
-food     |          60 |          30 |               0 |        30 |            0 |       30
+food     |          60 |          30 |               0 |        30 |          200 |     -170
 
 Backing evidence
 Coordinate                | Amount

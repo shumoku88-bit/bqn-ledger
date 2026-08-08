@@ -1,2 +1,3 @@
 --- Ledger Planned Payments ---
+ledger_planned_payment: 2026-01-15 planned rent assets:cash expenses:food 200
 ledger_planned_payment: 2026-01-20 paid food-plan assets:cash expenses:food 25
