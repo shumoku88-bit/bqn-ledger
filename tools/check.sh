@@ -5,7 +5,8 @@ root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
 
 GithubEscape() {
-  local text=${1//'%'/'%25'}
+  local text=${1:0:2000}
+  text=${text//'%'/'%25'}
   text=${text//$'\r'/'%0D'}
   text=${text//$'\n'/'%0A'}
   printf '%s' "$text"
