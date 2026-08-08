@@ -80,7 +80,7 @@ production=(
   tools/report tools/report-all tools/report-cache tools/report-summary tools/query
   tools/main-ui.sh tools/command-hub-cache-refresh
 )
-if rg -n 'REPORT_MANIFEST_CONFIG|report_manifests\.tsv|report_all_human\.tsv|report_all_compact\.tsv|accounts\.tsv|cycle\.tsv|daily_target_scope\.tsv|budget_alloc\.tsv' "${production[@]}"; then
+if rg -n 'REPORT_MANIFEST_CONFIG|report_manifests\.tsv|report_all_human\.tsv|report_all_compact\.tsv|accounts\.tsv|plan\.tsv|budget_alloc\.tsv|cycle\.tsv|daily_target_scope\.tsv|config\.tsv' "${production[@]}"; then
   echo 'FAIL: production Report path still names a retired source topology' >&2
   exit 1
 fi
