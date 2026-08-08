@@ -7,11 +7,9 @@ format ← 1 ⊑ args
 
 plan ← •Import "journal_canonical_surface_plan.bqn"
 loader ← •Import "../src/application/source_io.bqn"
-actualConfig ← •Import "../src/application/actual_journal_config.bqn"
+canonical ← •Import "../src/application/canonical_household_sources.bqn"
 
-resolved ← actualConfig.Resolve baseDir
-relPath ← resolved.file
-{𝕊: relPath ↩ "data/" ∾ resolved.file}⍟(0 = ⊑ •SH ⟨"test", "-f", baseDir ∾ "/data/" ∾ resolved.file⟩) @
+relPath ← canonical.actual
 absPath ← baseDir ∾ "/" ∾ relPath
 raw ← loader.ReadRaw absPath
 
