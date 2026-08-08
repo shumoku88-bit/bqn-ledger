@@ -39,7 +39,7 @@ LoadActual ← {𝕊:
 LoadHouseholdContext ← {𝕊 actual:
   context ← sources.HouseholdContext ⟨base,actual.facts.accounts,registry⟩
   {𝕊:PrintDiagnostics context.diagnostics}⍟(context.state≢"ok") @
-  {plan⇐{facts⇐context.plan},household⇐context.household}
+  {plan⇐{facts⇐context.plan},budget_policy⇐context.budget_policy,household⇐context.household}
 }
 
 {𝕊:
@@ -90,8 +90,9 @@ LoadHouseholdContext ← {𝕊 actual:
   composition↩compose.MonthlyAccounts ⟨actual.facts,domain,firstMonth,lastMonth⟩
 }⍟(key≡"monthly-accounts") @
 {𝕊:
-  domain‿start‿finish‿observation‿journal ← coordinates ⋄ actual ← LoadActual @
-  composition↩compose.DailyFlow ⟨actual.facts,domain,start,finish,observation⟩
+  domain‿start‿finish‿observation‿journal ← coordinates
+  actual ← LoadActual @ ⋄ context ← LoadHouseholdContext actual
+  composition↩compose.DailyFlow ⟨actual.facts,context.budget_policy,context.household,domain,start,finish,observation⟩
 }⍟(key≡"daily-flow") @
 {𝕊:
   domain‿observation‿target‿journal‿planCoordinate‿scopeCoordinate ← coordinates ⋄ planCoordinate‿scopeCoordinate
