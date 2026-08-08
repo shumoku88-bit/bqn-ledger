@@ -9,6 +9,7 @@ registryResult ← registryBuilder.Build io.ReadLines "config/currencies.tsv"
 "ok" lib.AssertEq registryResult.state
 
 result ← adapter.Load ⟨"fixtures/canonical-household-v1",registryResult.registry⟩
+{𝕊: •Out •Fmt result.diagnostics}⍟(result.state≢"ok") @
 "ok" lib.AssertEq result.state
 0 lib.AssertEq ≠result.diagnostics
 4 lib.AssertEq result.facts.transactions.count
@@ -20,5 +21,6 @@ result ← adapter.Load ⟨"fixtures/canonical-household-v1",registryResult.regi
 ⟨3,7,11,16⟩ lib.AssertEq result.facts.transactions.source_start_line
 ⟨"Opening","Salary","Groceries","Planned groceries completed"⟩ lib.AssertEq result.facts.transactions.description
 ⟨"Assets:Bank","Equity:Opening","Income:Salary","Expenses:Groceries","Budget:Unassigned","Budget:Daily"⟩ lib.AssertEq result.facts.accounts.key
+⟨"100000","","50000","","-5000","","-4000",""⟩ lib.AssertEq result.facts.postings.amount_text
 
 •Out "test_application_actual_source_adapter: ok"
