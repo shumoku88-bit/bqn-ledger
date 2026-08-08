@@ -2,20 +2,31 @@
 # Strict source-facing destination readiness command. Not a report section.
 set -euo pipefail
 if [[ $# -ne 7 ]]; then
-  echo 'Usage: tools/ledger-check BASE JOURNAL PLAN BUDGET CYCLE ISSUES DAILY_SCOPE' >&2
+  echo 'Usage: tools/ledger-check BASE JOURNAL PLAN_COORDINATE BUDGET CYCLE ISSUES DAILY_SCOPE' >&2
   exit 2
 fi
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 base=$1
-shift
+journal=$2
+plan_coordinate=$3
+budget=$4
+cycle=$5
+issues=$6
+daily_scope=$7
 [[ $base == /* ]] || base="$PWD/$base"
-for name in "$@"; do
+
+# Plan remains an argv coordinate until the surrounding operational request shape
+# is simplified, but canonical plan.journal owns physical Plan I/O. Validate and
+# preflight only sources that are actually read through caller-selected basenames.
+for name in "$journal" "$budget" "$cycle" "$issues" "$daily_scope"; do
   [[ $name != */* && $name != *\\* && ( $name == *.tsv || $name == *.journal ) ]] \
     || { printf 'ERROR\tsource_basename_invalid\tinvalid source basename: %s\n' "$name" >&2; exit 1; }
 done
-for name in config.tsv accounts.tsv "$@"; do
+for name in config.tsv accounts.tsv accounts.journal plan.journal \
+  "$journal" "$budget" "$cycle" "$issues" "$daily_scope"; do
   [[ -f $base/$name && -r $base/$name ]] \
     || { printf 'ERROR\tsource_unreadable\trequired source is not readable: %s\n' "$name" >&2; exit 1; }
 done
 cd "$root"
-exec bqn src/application/ledger_check_cli.bqn "$base" "$@"
+exec bqn src/application/ledger_check_cli.bqn "$base" "$journal" "$plan_coordinate" \
+  "$budget" "$cycle" "$issues" "$daily_scope"
