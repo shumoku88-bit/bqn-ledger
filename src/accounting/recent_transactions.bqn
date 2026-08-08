@@ -92,9 +92,14 @@ BuildSelected ← {𝕊 facts‿limit‿eligibleTransactionIndices:
   {state⇐(0=≠diagnostics)⊑"error"‿"ok",limit⇐limit,rows⇐rows,diagnostics⇐diagnostics}
 }
 
-Build ← {𝕊 facts‿limit:BuildSelected ⟨facts,limit,facts.transactions.index⟩}
+Build ← {𝕊 facts‿limit:
+  eligible ← empty
+  {𝕊:eligible↩facts.transactions.index}⍟reference.SourceIs ⟨facts,"actual.journal"⟩
+  BuildSelected ⟨facts,limit,eligible⟩
+}
 BuildThrough ← {𝕊 facts‿throughOrdinal‿limit:
-  eligible ← (facts.transactions.date_ordinal≤throughOrdinal)/facts.transactions.index
+  eligible ← empty
+  {𝕊:eligible↩(facts.transactions.date_ordinal≤throughOrdinal)/facts.transactions.index}⍟reference.SourceIs ⟨facts,"actual.journal"⟩
   BuildSelected ⟨facts,limit,eligible⟩
 }
 
