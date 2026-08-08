@@ -1,0 +1,31 @@
+account assets:cash
+  type: Asset
+  commodity: JPY
+
+account income:salary
+  type: Income
+  commodity: JPY
+
+account expenses:food
+  type: Expense
+  commodity: JPY
+
+account expenses:transport
+  type: Expense
+  commodity: JPY
+
+account budget:opening
+  type: Budget
+  commodity: JPY
+
+account budget:unassigned
+  type: Budget
+  commodity: JPY
+
+account budget:food
+  type: Budget
+  commodity: JPY
+
+account budget:spent
+  type: Budget
+  commodity: JPY
