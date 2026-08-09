@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - experiments/performance/report_pipeline_probe.sh
+      - docs/REPORT_PERFORMANCE_OBSERVATION-2026-08-09.md
       - .github/workflows/report-performance-observation.yml
 
 jobs:
