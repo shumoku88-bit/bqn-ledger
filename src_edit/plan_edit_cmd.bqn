@@ -67,7 +67,9 @@ selectedIndex ← ¯1
 }⍟(indexVal>0) @
 {𝕊:
   matches ← {idVal≡𝕩⊑planIDs}¨visibleIndices
-  {𝕊:Fail (showAll⊑⟨"plan_id not found or already closed: ","plan_id not found: "⟩∾idVal)}⍟(1≠+´matches) @
+  missingMessage ← "plan_id not found or already closed: "
+  {𝕊:missingMessage↩"plan_id not found: "}⍟showAll @
+  {𝕊:Fail (missingMessage∾idVal)}⍟(1≠+´matches) @
   selectedIndex↩⊑matches/visibleIndices
 }⍟(indexVal≤0) @
 {𝕊:Fail ("cannot edit closed plan: "∾selectedIndex⊑planIDs)}⍟(selectedIndex⊑closedMask) @
@@ -97,7 +99,6 @@ parsedAmount ← @
   amountChanged↩¬ExactMagnitudeEqual ⟨firstPosting⊑facts.postings.source_coefficient,firstPosting⊑facts.postings.source_scale,parsedAmount.coefficient,parsedAmount.scale⟩
 }⍟(0<≠amountVal) @
 dateChanged ← targetDate≢currentDate
-{𝕊:Fail "edit would not change the selected Plan"}⍟(¬(dateChanged ∨ amountChanged)) @
 
 raw ← loader.ReadRaw Join ⟨baseDir,canonical.plan⟩
 {𝕊:Fail "canonical Plan edit refuses CR source normalization"}⍟(∨´0∾cr=raw) @
