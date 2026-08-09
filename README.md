@@ -36,10 +36,10 @@ export REPORT_DOMAIN=JPY
 
 Direct historical requests remain explicit and reproducible without exposing source basenames.
 
-## Reports
+## Daily Command Hub
 
 ```sh
-# Interactive retained-report selector
+# One interactive entrance for recording, Plans, Budget, Accounts, and reports
 tools/main-ui.sh
 
 # Full current human report from report.toml
@@ -88,12 +88,19 @@ tools/ledger-check "$LEDGER_DATA_DIR"
 tools/ledger-inspect "$LEDGER_DATA_DIR"
 ```
 
-## Editing
+## Editing and export
+
+The Command Hub routes ordinary two-Posting and multi-Posting entries, Plan add/edit/finish/replenishment, Budget movements, and Account creation to the qualified canonical writers. Low-level commands remain available for automation:
 
 ```sh
 tools/add-ui.sh
 tools/edit-bqn --help
+
+# Copy the canonical Journal surface for hledger (no legacy TSV input)
+tools/to-hledger "$LEDGER_DATA_DIR"
 ```
+
+Every interactive mutation displays a candidate preview and confirmation before publication. Plan Finish retains its `plan-id` provenance, performs Plan → Budget sync when Household policy maps the destination, and can replenish the next Plan while inheriting recurrence metadata.
 
 Writer qualification is separate from the canonical read-side recovery. Existing writer authority is not changed by report configuration. Writes continue to use preview, stale checks, backups, atomic replacement, and narrow post-write validation. Canonical household data remains in the separate private data repository.
 

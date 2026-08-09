@@ -10,8 +10,8 @@ fi
 
 cache_dir="$1"
 key="$2"
-if [[ "$key" == "actions" ]]; then
-  printf '仕訳追加・取消は選択後に開きます。\n'
+if [[ "$key" == "actions" || "$key" == action-* ]]; then
+  printf 'この日常操作は選択後に入力画面を開きます。公開前にpreviewと確認があります。\n'
   exit 0
 fi
 if [[ ! "$key" =~ ^[a-z0-9][a-z0-9-]*$ ]]; then

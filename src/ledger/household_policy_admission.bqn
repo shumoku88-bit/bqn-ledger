@@ -13,6 +13,21 @@ TrimRight ← {𝕊 xs: ⌽TrimLeft⌽xs}
 Trim ← {TrimRight TrimLeft 𝕩}
 SplitKeepEmpty ← {𝕊 sep‿text: groups ← (+`sep=text)⊔text ⋄ {(sep≠𝕩)/𝕩}¨groups}
 FirstOrSpace ← {𝕊 text: ⊑text∾⟨space⟩}
+
+# Canonical Account arrays may span physical TOML lines. A logical row keeps
+# the first physical line for diagnostics and preserves item/source order.
+ArrayClosed ← {𝕊 text:
+  inQuote ← 0 ⋄ closed ← 0
+  {𝕊 c:
+    wasInQuote ← inQuote
+    {𝕊:inQuote↩0}⍟(wasInQuote ∧ c=quote) @
+    {𝕊:
+      {𝕊:inQuote↩1}⍟(c=quote) @
+      {𝕊:closed↩1}⍟(c=']') @
+    }⍟(¬wasInQuote) @
+  }¨text
+  closed ∧ ¬inQuote
+}
 NoWhitespace ← {𝕊 value: (0<≠value) ∧ ¬∨´0∾IsWhitespace¨value}
 Diagnostic ← {𝕊 code‿line‿message:{severity⇐"error",stage⇐"ledger_household_policy_admission",code⇐code,line⇐line,message⇐message}}
 AddIf ← {𝕊 invalid‿diagnostic: invalid/⟨diagnostic⟩}
@@ -66,7 +81,26 @@ PairValue ← {𝕊 block‿key:
 }
 
 Admit ← {𝕊 raw‿accounts‿budgetPolicy:
-  lines ← SplitKeepEmpty ⟨lf,(cr≠raw)/raw⟩
+  physicalLines ← SplitKeepEmpty ⟨lf,(cr≠raw)/raw⟩
+  lines ← empty ⋄ lineRows ← empty ⋄ pending ← 0 ⋄ pendingText ← "" ⋄ pendingRow ← 0
+  {𝕊 i:
+    text ← Trim i⊑physicalLines ⋄ row ← i+1 ⋄ wasPending ← pending
+    {𝕊:
+      pendingText∾↩" "∾text
+      {𝕊:lines∾↩⟨pendingText⟩ ⋄ lineRows∾↩⟨pendingRow⟩ ⋄ pending↩0 ⋄ pendingText↩""}⍟(ArrayClosed pendingText) @
+    }⍟wasPending @
+    {𝕊:
+      equals ← '='=text ⋄ multiline ← 0
+      {𝕊:
+        p ← ⊑equals/↕≠text ⋄ value ← Trim (p+1)↓text
+        multiline↩('['=FirstOrSpace value) ∧ ¬ArrayClosed value
+      }⍟(1=+´equals) @
+      {𝕊:pending↩1 ⋄ pendingText↩text ⋄ pendingRow↩row}⍟multiline @
+      {𝕊:lines∾↩⟨text⟩ ⋄ lineRows∾↩⟨row⟩}⍟(¬multiline) @
+    }⍟(¬wasPending) @
+  }¨↕≠physicalLines
+  {𝕊:lines∾↩⟨pendingText⟩ ⋄ lineRows∾↩⟨pendingRow⟩}⍟pending @
+
   diagnostics ← empty ⋄ blocks ← empty ⋄ active ← 0 ⋄ current ← EmptyBlock ⟨"",0⟩
   KnownSection ← {𝕊 name: Contains ⟨name,⟨
     "cycle","budget","budget.envelopes","daily-target","daily-target.assets",
@@ -78,7 +112,7 @@ Admit ← {𝕊 raw‿accounts‿budgetPolicy:
     active↩0 ⋄ current↩EmptyBlock ⟨"",0⟩
   }
   {𝕊 i:
-    text ← Trim i⊑lines ⋄ row ← i+1
+    text ← i⊑lines ⋄ row ← i⊑lineRows
     ignored ← (0=≠text) ∨ hash=FirstOrSpace text
     {𝕊:
       arrayHeader ← (4≤≠text) ∧ ("[["≡2↑text) ∧ "]]"≡¯2↑text

@@ -11,7 +11,7 @@ This is a code-surface inventory. It does not inspect private production data, s
 
 ## Current boundary
 
-`src/editor/journal_profile.bqn` admits 22 transaction metadata keys:
+`src/editor/journal_profile.bqn` admits 24 transaction metadata keys:
 
 ```text
 action
@@ -36,9 +36,11 @@ currency
 income-budget
 recur
 series
+anchor
+offset
 ```
 
-The parser preserves every admitted item in `transaction.metadata`, but only seven keys are promoted to dedicated transaction fields:
+`anchor` and `offset` retain canonical cycle-recurrence evidence used by Plan workflows; they are not inferred from Account names. The parser preserves every admitted item in `transaction.metadata`, but only seven keys are promoted to dedicated transaction fields:
 
 ```text
 event-id
@@ -74,15 +76,9 @@ series
 
 It writes `event-id` separately only for durable transactions. Ordinary actual transactions intentionally carry no explicit `event-id`.
 
-`src_edit/plan_finish_cmd.bqn` creates a deterministic durable identity:
+Plan Finish publishes an identity-free Actual carrying the unique canonical `plan-id` relation. The completion candidate does not persist the reconstructible `completion-<plan-id>-<actual-date>` transport identity. Plan → Budget sync retains an existing durable `actual-event-id` when available; for an identity-free completion it links through the shared unique `plan-id` and never invents an absent Actual event.
 
-```text
-completion-<plan-id>-<actual-date>
-```
-
-It uses the selected plan row's `currency=` token to resolve and validate the transaction domain, then leaves that token in `plan.tsv`. The completed Actual carries currency in its posting commodities and no longer duplicates it as `; currency: JPY` metadata.
-
-The command still copies the remaining plan metadata broadly. This means plan-oriented metadata such as `recur` and `series` can be copied into an Actual transaction even though the Journal runtime gives them no recurrence semantics.
+The completed Actual carries Commodity in its Postings and does not copy Plan recurrence metadata. Replenishment keeps `recur`, `series`, `anchor`, `offset`, `cashflow`, and `execution-envelope` on the new `plan.journal` transaction while excluding per-Plan Daily Target and reservation identities.
 
 No current production writer was found for `action`, `receipt-id`, `layer`, `execution-envelope`, `allocation-id`, `agreement-id`, `actual-event-id`, or `income-budget`. Their current presence in the parser comes from historical migration compatibility, public synthetic characterization, or test-only event forms.
 
@@ -94,7 +90,7 @@ These keys currently affect identity, layer selection, cross-event validation, o
 
 | Key | Generation source | Current readers | Regeneration | Removal assessment |
 |---|---|---|---|---|
-| `event-id` | Caller-supplied durable append; deterministic plan completion; historical migration and reverse paths | Parser identity, posting IDs, duplicate checks, cross-event references, identity inventory | Depends on family. Some historical migration and completion IDs are reproducible; externally supplied IDs may not be | Keep when referenced or externally meaningful. Ordinary Actuals already omit it. Reconstructibility alone is not deletion authority. |
+| `event-id` | Caller-supplied durable append and historical migration paths | Parser identity, posting IDs, duplicate checks, cross-event references, identity inventory | Depends on family; externally supplied IDs may not be reproducible | Keep when referenced or externally meaningful. Ordinary Actuals and current Plan completions omit it. Reconstructibility alone is not deletion authority. |
 | `layer` | Explicit historical/test plan and budget events; omitted by ordinary Actual writer | Parser chooses `actual`, `plan`, or `budget`; Posting IR layer index and transaction kind | `actual` is the parser default and is known from the production Actual source boundary. Other layers are not reliably derivable from postings | `layer: actual` is a strong cleanup candidate in an Actual-only Journal. Keep explicit non-Actual layers while those event forms exist. |
 | `plan-id` | Plan editor and plan completion workflow; explicit metadata append | Parser completion links, plan completion validation, `actual_source.CompletionEvidence`, budget synchronization, identity inventory | Sometimes visible inside a completion `event-id`, but not universally and not safely for arbitrary imported data | Keep. It is a real external relationship between a plan row and an Actual transaction. |
 | `execution-envelope` | Historical/test plan and completion events; no current general writer found | Parser checks equality between an internal plan and its completion; identity inventory treats it as a functional link | It may be proposed again from current policy, but that would not prove the historical accepted value | Keep where present until the plan/envelope model is deliberately simplified. Do not regenerate historical meaning from mutable defaults. |

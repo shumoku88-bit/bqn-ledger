@@ -74,15 +74,17 @@ spentMask ← "spent"⊸≡¨household.account_policy.budget_kind
 toAccount ← ⊑spentMask/accounts.key
 actualEvent ← actualIndex⊑actual.transactions.transaction_id
 actualIdentity ← actualIndex⊑actual.transactions.identity_kind
-{𝕊:Fail "Plan Budget sync requires durable Actual completion identity"}⍟(actualIdentity≢"durable") @
 date ← actualIndex⊑actual.transactions.date_text
 description ← "Plan completion Budget sync: "∾planID
+# Preserve a direct Actual reference when one exists. Identity-free canonical
+# completions remain durably joined through their unique plan-id instead of
+# inventing an event-id that is absent from actual.journal.
 metadata ← ⟨
   {key⇐"layer",value⇐"budget"},
   {key⇐"event-id",value⇐"budget-sync-"∾planID},
-  {key⇐"plan-id",value⇐planID},
-  {key⇐"actual-event-id",value⇐actualEvent}
+  {key⇐"plan-id",value⇐planID}
 ⟩
+{𝕊:metadata∾↩⟨{key⇐"actual-event-id",value⇐actualEvent}⟩}⍟(actualIdentity≡"durable") @
 intent ← {
   date⇐date,description⇐description,from_account⇐fromAccount,to_account⇐toAccount,
   amount⇐amount,currency⇐actualDomain,metadata⇐metadata

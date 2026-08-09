@@ -24,6 +24,28 @@ SplitKeepEmpty ← {𝕊 sep‿text: groups ← (+`sep=text)⊔text ⋄ {(sep≠
 NoWhitespace ← {𝕊 value: (0<≠value) ∧ ¬∨´0∾IsWhitespace¨value}
 FirstOrSpace ← {𝕊 text: ⊑text∾⟨space⟩}
 
+# One physical key/value row may carry a TOML string array over several lines.
+# The logical row retains the first physical line for diagnostics; quoted ']'
+# characters do not close the array, and source order is unchanged.
+ArrayClosed ← {𝕊 text:
+  inQuote ← 0 ⋄ escaped ← 0 ⋄ closed ← 0
+  {𝕊 c:
+    wasInQuote ← inQuote ⋄ wasEscaped ← escaped
+    {𝕊:
+      {𝕊:escaped↩0}⍟wasEscaped @
+      {𝕊:
+        {𝕊:escaped↩1}⍟(c=slash) @
+        {𝕊:inQuote↩0}⍟(c=quote) @
+      }⍟(¬wasEscaped) @
+    }⍟wasInQuote @
+    {𝕊:
+      {𝕊:inQuote↩1}⍟(c=quote) @
+      {𝕊:closed↩1}⍟(c=']') @
+    }⍟(¬wasInQuote) @
+  }¨text
+  closed ∧ ¬inQuote ∧ ¬escaped
+}
+
 Diagnostic ← {𝕊 codeText‿lineNumber‿messageText:
   {severity⇐"error",stage⇐"ledger_budget_policy_admission",code⇐codeText,line⇐lineNumber,message⇐messageText}
 }
@@ -112,7 +134,26 @@ AtLine ← {𝕊 parsed‿lineNumber:
 
 Admit ← {𝕊 raw‿accounts:
   normalized ← (cr≠raw)/raw
-  lines ← SplitKeepEmpty ⟨lf,normalized⟩
+  physicalLines ← SplitKeepEmpty ⟨lf,normalized⟩
+  lines ← empty ⋄ lineRows ← empty ⋄ pending ← 0 ⋄ pendingText ← "" ⋄ pendingRow ← 0
+  {𝕊 i:
+    text ← Trim i⊑physicalLines ⋄ row ← i+1 ⋄ wasPending ← pending
+    {𝕊:
+      pendingText∾↩" "∾text
+      {𝕊:lines∾↩⟨pendingText⟩ ⋄ lineRows∾↩⟨pendingRow⟩ ⋄ pending↩0 ⋄ pendingText↩""}⍟(ArrayClosed pendingText) @
+    }⍟wasPending @
+    {𝕊:
+      equals ← '='=text ⋄ multiline ← 0
+      {𝕊:
+        p ← ⊑equals/↕≠text ⋄ value ← Trim (p+1)↓text
+        multiline↩('['=FirstOrSpace value) ∧ ¬ArrayClosed value
+      }⍟(1=+´equals) @
+      {𝕊:pending↩1 ⋄ pendingText↩text ⋄ pendingRow↩row}⍟multiline @
+      {𝕊:lines∾↩⟨text⟩ ⋄ lineRows∾↩⟨row⟩}⍟(¬multiline) @
+    }⍟(¬wasPending) @
+  }¨↕≠physicalLines
+  {𝕊:lines∾↩⟨pendingText⟩ ⋄ lineRows∾↩⟨pendingRow⟩}⍟pending @
+
   diagnostics ← empty ⋄ blocks ← empty
   active ← 0 ⋄ activeKind ← "" ⋄ activeLine ← 0 ⋄ activePairs ← empty
   Finalize ← {𝕊:
@@ -120,7 +161,7 @@ Admit ← {𝕊 raw‿accounts:
     active↩0 ⋄ activeKind↩"" ⋄ activeLine↩0 ⋄ activePairs↩empty
   }
   {𝕊 i:
-    line ← Trim i⊑lines ⋄ row ← i+1
+    line ← i⊑lines ⋄ row ← i⊑lineRows
     ignored ← (0=≠line) ∨ hash=FirstOrSpace line
     {𝕊:
       poolHeader ← line≡"[[backing-pools]]"

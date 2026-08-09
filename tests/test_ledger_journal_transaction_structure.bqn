@@ -33,6 +33,20 @@ transaction ← ⊑valid.transactions
 ⟨"event-food-1:0","event-food-1:1"⟩ lib.AssertEq {𝕩.posting_id}¨transaction.postings
 0 lib.AssertEq +´{𝕩.delta}¨transaction.postings
 
+recurrenceRaw ← Raw ⟨
+  "commodity JPY","","account assets:cash","","account expenses:food","",
+  "2026-01-10 recurring plan",
+  "    ; plan-id: plan-cycle-1",
+  "    ; recur: cycle",
+  "    ; anchor: income:salary",
+  "    ; offset: 1",
+  "    expenses:food 20 JPY",
+  "    assets:cash -20 JPY"
+⟩
+recurrence ← structure.Parse recurrenceRaw
+"ok" lib.AssertEq recurrence.state
+⟨"plan-id","recur","anchor","offset"⟩ lib.AssertEq {𝕩.key}¨(⊑recurrence.transactions).metadata
+
 physicalRaw ← Raw ⟨
   "commodity JPY","","account assets:cash","","account expenses:food","",
   "2026-01-11 ! physical identity",

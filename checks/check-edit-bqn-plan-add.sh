@@ -38,11 +38,14 @@ dry_legacy_before="$(sha_file "$dry/plan.tsv")"
 ./tools/edit --base "$dry" plan add \
   --date 2026-06-30 --memo 'canonical plan dry-run' \
   --from assets:cash --to expenses:food --amount 301 \
-  --meta series=canonical-plan --dry-run >"$tmp_root/dry.out"
+  --meta series=canonical-plan --meta recur=cycle --meta anchor=income:salary --meta offset=1 \
+  --dry-run >"$tmp_root/dry.out"
 assert_plan_unchanged "$dry" "$dry_before" 'plan add dry-run'
 assert_legacy_plan_unchanged "$dry" "$dry_legacy_before" 'plan add dry-run'
 assert_no_backup "$dry" 'plan add dry-run'
 grep -F 'plan.journal' "$tmp_root/dry.out" >/dev/null
+grep -F '  ; anchor: income:salary' "$tmp_root/dry.out" >/dev/null
+grep -F '  ; offset: 1' "$tmp_root/dry.out" >/dev/null
 
 # Generated ID, shared canonical block shape, backup, and mandatory admission.
 base="$tmp_root/generated"

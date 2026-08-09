@@ -3,9 +3,9 @@
 Status: current operational guide
 Owner: editor / UI
 Canonical: yes
-Exit: revise while `tools/add-ui.sh` remains the daily write UI
+Exit: revise while `tools/add-ui.sh` remains the Command Hub action UI
 
-`tools/add-ui.sh` は、日常の取引入力用UIです。
+通常利用は `tools/main-ui.sh --base <household-root>` から始めます。`tools/add-ui.sh` は Command Hub が開く日常取引入力UIです。
 
 fzf / gum / 番号選択で項目を選び、最後の追記だけを BQN editor (`tools/edit`) に委譲します。通常利用では `tools/edit-bqn` と shell safe-write が裏で動きます。
 
@@ -38,15 +38,16 @@ tools/add-ui.sh --check
 
 | mode | 意味 | 書き込み先 | 内部コマンド |
 |---|---|---|---|
-| `expense` | 支出 (`assets:` → `expenses:`) | configured native Journal | `tools/edit journal add` |
-| `multi` | 1取引に3件以上のポスティングを入力 | configured native Journal | `tools/edit journal multi-add` |
-| `move` | 資金移動 (`assets:` → `assets:`) | configured native Journal | `tools/edit journal add` |
-| `income` | 収入 (`income:` → `assets:`) | configured native Journal | `tools/edit journal add` |
+| `account-add` | Account追加 | `accounts.journal` | `tools/edit account add` |
+| `expense` | 支出 (`assets:` → `expenses:`) | `actual.journal` | `tools/edit journal add` |
+| `multi` | 1取引に3件以上のポスティングを入力 | `actual.journal` | `tools/edit journal multi-add` |
+| `move` | 資金移動 (`assets:` → `assets:`) | `actual.journal` | `tools/edit journal add` |
+| `income` | 収入 (`income:` → `assets:`) | `actual.journal` | `tools/edit journal add` |
 | `budget` | Budget movement | `budget.journal` | `tools/edit budget add` |
-| `plan-add` | 予定の追加 | `plan.tsv` | `tools/edit plan add` |
-| `plan-edit` | 予定の日付・金額修正 | `plan.tsv` | `tools/edit plan edit` |
-| `plan-finish` | 予定の実績化 | configured native Journal | `tools/edit plan finish --apply` |
-| `reverse` | 仕訳取消（反対仕訳追記） | configured native Journal | `tools/edit journal reverse` |
+| `plan-add` | 予定の追加 | `plan.journal` | `tools/edit plan add` |
+| `plan-edit` | 予定の日付・金額修正 | `plan.journal` | `tools/edit plan edit` |
+| `plan-finish` | 予定の実績化・Budget連携・任意の次回補充 | `actual.journal`, 必要時 `budget.journal` / `plan.journal` | qualified Plan workflow |
+| `reverse` | 仕訳取消（反対仕訳追記） | `actual.journal` | `tools/edit journal reverse` |
 | `issue` | Issues & Decisions の追加 | `issues.tsv` | `tools/edit issue add` |
 | `issue-close` | Issues & Decisions を閉じる | `issues.tsv` | `tools/edit issue close` |
 
@@ -55,6 +56,8 @@ tools/add-ui.sh --check
 `plan-finish`では最初にupcoming / overdue / allを選びます。予定候補は狭いselectorでも内容を識別しやすいよう、`内容（memo） → 予定日 → 金額 → 振替元/先`の順で表示します。
 
 候補を選んだ後、実績日・実績金額を入力する前に、選択した予定の内容、予定日、予定金額、振替、`plan_id`、行状態、選択範囲を再表示します。期限超過予定を実績化するときも、何を選択したか確認してから入力できます。
+
+実績化後は Household policy に一致する Plan を自動的に Budget sync します。次回予定を補充する場合、description・Account・amount と `recur` / `series` / `anchor` / `offset` などのschedule metadataを既定で引き継ぎ、日付だけを選べます。必要な場合だけ引き継ぎ値を変更します。
 
 Journalへの実績追記が完了する前に `Ctrl+C` を押すと、書き込まずに `add-ui` のmode選択へ戻ります。実績追記が完了した後の `Ctrl+C` は、完了済みの実績を取り消したようには扱わず、次回予定の補充だけを中止して終了します。
 
