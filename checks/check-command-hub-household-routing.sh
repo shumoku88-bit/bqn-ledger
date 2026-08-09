@@ -10,9 +10,10 @@ trap 'rm -rf "$tmp"' EXIT
 
 sha_file() { shasum -a 256 "$1" | awk '{print $1}'; }
 
-declare -A before=()
+before_dir="$tmp/before"
+mkdir -p "$before_dir"
 for name in accounts.journal actual.journal plan.journal budget.journal budget.toml household.toml report.toml issues.tsv; do
-  before["$name"]="$(sha_file "$base/$name")"
+  sha_file "$base/$name" >"$before_dir/$name.sha"
 done
 
 expected="$tmp/expected"
@@ -66,8 +67,9 @@ grep -Fq 'dev-check' tools/bl
 grep -Fq '"$ROOT_DIR/tools/check.sh"' tools/bl
 
 for name in accounts.journal actual.journal plan.journal budget.journal budget.toml household.toml report.toml issues.tsv; do
+  before="$(cat "$before_dir/$name.sha")"
   after="$(sha_file "$base/$name")"
-  [[ "$after" == "${before[$name]}" ]] || {
+  [[ "$after" == "$before" ]] || {
     echo "FAIL: Command Hub read/operation routes mutated $name" >&2
     exit 1
   }
