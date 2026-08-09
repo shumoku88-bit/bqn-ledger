@@ -254,9 +254,43 @@ run_edit_menu() {
 }
 
 report_lines() {
+  printf 'preview\t★ プレビュー閲覧 (矢印キー [←/→] で連続プレビュー)\n'
   printf 'all\tAll twelve reports\n'
   "$ROOT_DIR/tools/report-section-metadata" | awk -F'\t' 'NR>1 {print $1 "\t" $2}'
   printf 'back\tBack\n'
+}
+
+select_reports_menu() {
+  local prompt="$1" lines="$2" selector selection status=0 key='' label='' cache_dir=''
+  selector="$(bl_selector_preference 2>/dev/null || echo auto)"
+  if [[ "${BL_UI_MODE:-}" == minimal ]]; then
+    selector=plain
+  elif [[ $selector == auto ]]; then
+    if command -v fzf >/dev/null 2>&1; then selector=fzf
+    elif command -v gum >/dev/null 2>&1; then selector=gum
+    else selector=plain
+    fi
+  fi
+
+  if [[ $IS_TTY -eq 1 && $selector == fzf ]]; then
+    cache_dir="$(run_child "$ROOT_DIR/tools/main-ui.sh" --base "$base_dir" prepare-cache 2>/dev/null || true)"
+    local preview_win
+    preview_win="$(bl_fzf_preview_window 2>/dev/null || echo 'right:50%')"
+    set +e
+    if [[ -n $cache_dir && -d $cache_dir ]]; then
+      selection="$(printf '%s\n' "$lines" | fzf --prompt="$prompt> " --delimiter=$'\t' --with-nth=2.. --height=80% --reverse --exit-0 --ansi \
+        --preview "BL_THEME='${BL_THEME:-nord}' COLOR_FORCE=1 '$ROOT_DIR/tools/command-hub-preview' '$cache_dir' {1} | BL_THEME='${BL_THEME:-nord}' COLOR_FORCE=1 REPORT_NEGATIVE_COLOR='${report_negative_color:-cyan}' '$ROOT_DIR/tools/lib/color-filter'" \
+        --preview-window "$preview_win")"
+    else
+      selection="$(printf '%s\n' "$lines" | fzf --prompt="$prompt> " --delimiter=$'\t' --with-nth=2.. --reverse --exit-0)"
+    fi
+    status=$?
+    set -e
+    [[ $status -eq 0 && -n $selection ]] || return 130
+    printf '%s\n' "${selection%%$'\t'*}"
+  else
+    select_menu "$prompt" "$lines"
+  fi
 }
 
 run_reports() {
@@ -265,7 +299,7 @@ run_reports() {
     [[ $IS_TTY -eq 1 ]] || { echo 'Error: reports requires KEY outside an interactive terminal' >&2; return 2; }
     while true; do
       set +e
-      key="$(select_menu 'Reports' "$(report_lines)")"
+      key="$(select_reports_menu 'Reports' "$(report_lines)")"
       status=$?
       set -e
       [[ $status -eq 130 ]] && return 0
@@ -279,7 +313,9 @@ run_reports() {
   local -a ui_args=(--base "$base_dir")
   [[ -z $domain_override ]] || ui_args+=(--domain "$domain_override")
   [[ -z $latest_override ]] || ui_args+=(--latest "$latest_override")
-  if [[ $key == all || $key == report ]]; then
+  if [[ $key == preview || $key == browse ]]; then
+    run_child "$ROOT_DIR/tools/main-ui.sh" "${ui_args[@]}" preview
+  elif [[ $key == all || $key == report ]]; then
     run_child "$ROOT_DIR/tools/main-ui.sh" "${ui_args[@]}" report
   else
     run_child "$ROOT_DIR/tools/main-ui.sh" "${ui_args[@]}" "$key"
