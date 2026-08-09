@@ -58,7 +58,9 @@ checks=(
 )
 for name in "${checks[@]}"; do
   [[ -f checks/$name ]] || continue
-  if ! bash "checks/$name" >/dev/null; then
+  check_output=""
+  if ! check_output="$(bash "checks/$name" 2>&1)"; then
+    [[ -z "$check_output" ]] || printf '%s\n' "$check_output" >&2
     echo "FAIL: checks/$name" >&2
     echo "::error file=checks/$name::Repository check failed"
     exit 1
