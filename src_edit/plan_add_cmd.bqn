@@ -130,9 +130,9 @@ finalPlanID ← ""
 }⍟(0=≠planIdArg) @
 
 metadataLines ← {"  ; "∾𝕩.key∾": "∾𝕩.value}¨metadata
-blockLines ← ⟨dateVal∾" * "∾memoVal,"  ; plan-id: "∾finalPlanID⟩
+blockLines ← ⟨dateVal∾" "∾memoVal,"  ; plan-id: "∾finalPlanID⟩
 blockLines ∾↩ metadataLines
-blockLines ∾↩ ⟨"  "∾toVal∾"  "∾amountVal∾" "∾currency,"  "∾fromVal∾"  -"∾amountVal∾" "∾currency⟩
+blockLines ∾↩ ⟨"  "∾fromVal∾"  -"∾amountVal∾" "∾currency,"  "∾toVal∾"  "∾amountVal∾" "∾currency⟩
 block ← ⊑blockLines
 {𝕊 line:block∾↩lf∾line}¨1↓blockLines
 
@@ -162,9 +162,9 @@ planIdCount ← +´{"plan-id"≡𝕩.key}¨candidate.metadata
 MetadataPreserved ← {𝕊 item:1=+´{(𝕩.key≡item.key) ∧ 𝕩.value≡item.value}¨candidate.metadata}
 metadataOk ← ∧´1∾MetadataPreserved¨metadata
 candidateOk ←
-  (candidate.date≡dateVal) ∧ (candidate.description≡memoVal) ∧
+  (candidate.date≡dateVal) ∧ (candidate.description≡memoVal) ∧ (candidate.status_marker≡"") ∧
   (candidate.plan_id≡finalPlanID) ∧ (candidate.domain≡currency) ∧
-  (candidateAccounts≡toVal‿fromVal) ∧ (candidateAmounts≡amountVal‿("-"∾amountVal)) ∧
+  (candidateAccounts≡fromVal‿toVal) ∧ (candidateAmounts≡("-"∾amountVal)‿amountVal) ∧
   (∧´{𝕩≡currency}¨candidateCommodities) ∧ (1=planIdCount) ∧ metadataOk
 {𝕊:Fail "parsed Plan candidate does not exactly match rendered intent"}⍟(¬candidateOk) @
 
