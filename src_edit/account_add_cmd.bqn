@@ -16,7 +16,12 @@ types ← ⟨"Asset","Liability","Equity","Income","Expense","Budget"⟩
 prefixes ← ⟨"assets:","liabilities:","equity:","income:","expenses:","budget:"⟩
 upper ← "ABCDEFGHIJKLMNOPQRSTUVWXYZ" ⋄ lower ← "abcdefghijklmnopqrstuvwxyz"
 IndexOf ← {𝕊 item‿items: ⊑ items⊐⟨item⟩}
-AsciiLowerChar ← {𝕊 c:i←IndexOf ⟨c,upper⟩ ⋄ (i<≠upper)◶⟨{c},{i⊑lower}⟩ @}
+AsciiLowerChar ← {𝕊 c:
+  i ← IndexOf ⟨c,upper⟩
+  result ← c
+  {𝕊:result↩i⊑lower}⍟(i<≠upper) @
+  result
+}
 AsciiLower ← {AsciiLowerChar¨𝕩}
 IsWhitespace ← {𝕊 c:(c=space)∨c=tab}
 TrimLeft ← {𝕊 xs:prefix←∧`IsWhitespace¨xs ⋄ (+´prefix)↓xs}
