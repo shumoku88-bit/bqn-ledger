@@ -132,7 +132,8 @@ edit_bqn_apply_append_checked() {
   local snap_sha256="$7"
   local hook_var_name="${8:-}"
   local post_check_owner="${9:-default}"
-  local write_out backup_path post_write_sha
+  local write_out backup_path post_write_sha account_check_out=""
+  local mandatory_ok=1 post_ok=1
 
   if [[ -n "$hook_var_name" ]]; then
     edit_bqn_run_test_hook "$hook_var_name"
@@ -143,19 +144,39 @@ edit_bqn_apply_append_checked() {
 
   backup_path="$(awk -F': ' '$1 == "Backup" {print $2}' <<< "$write_out")"
   post_write_sha="$(_safe_write_sha256 "$target_path")"
-  local post_ok=1
-  if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && "${EDIT_BQN_TEST_FORCE_POST_CHECK_FAIL:-}" == "1" ]]; then
-    printf 'Post-check failed.\n'
-    printf 'Source: %s\n' "$target_path"
-    printf 'Backup: %s\n' "$backup_path"
-    post_ok=0
-  elif ! run_post_check "$base_dir" "$post_check" "$target_path" "$backup_path" "$post_check_owner"; then
-    post_ok=0
+
+  if [[ "$(basename "$target_path")" == "accounts.journal" ]]; then
+    post_check_owner="account"
+    if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && "${EDIT_BQN_TEST_FORCE_ACCOUNT_POST_CHECK_FAIL:-}" == "1" ]]; then
+      mandatory_ok=0
+      account_check_out="forced canonical Account post-admission failure"
+    elif ! account_check_out="$(cd "$ROOT_DIR" && bqn src_edit/account_validate_cmd.bqn "$base_dir" 2>&1)"; then
+      mandatory_ok=0
+    fi
+    if [[ "$mandatory_ok" -eq 1 ]]; then
+      printf 'Mandatory Account validation: OK\n%s\n' "$account_check_out"
+    else
+      printf 'Mandatory Account validation: FAILED\n%s\n' "$account_check_out" >&2
+    fi
   fi
-  if [[ "$post_ok" -eq 1 ]]; then
+
+  if [[ "$mandatory_ok" -eq 1 ]]; then
+    if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && "${EDIT_BQN_TEST_FORCE_POST_CHECK_FAIL:-}" == "1" ]]; then
+      printf 'Post-check failed.\n'
+      printf 'Source: %s\n' "$target_path"
+      printf 'Backup: %s\n' "$backup_path"
+      post_ok=0
+    elif [[ "$post_check_owner" == "account" && "$post_check" == "lint" ]]; then
+      printf 'Post-check: OK\n'
+    elif ! run_post_check "$base_dir" "$post_check" "$target_path" "$backup_path" "$post_check_owner"; then
+      post_ok=0
+    fi
+  fi
+
+  if [[ "$mandatory_ok" -eq 1 && "$post_ok" -eq 1 ]]; then
     return 0
   fi
-  if [[ "$post_check_owner" != "journal" ]]; then
+  if [[ "$post_check_owner" != "journal" && "$post_check_owner" != "account" ]]; then
     return 1
   fi
 
