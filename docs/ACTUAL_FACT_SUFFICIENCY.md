@@ -59,7 +59,7 @@ Remaining gaps are capabilities or other source families, not missing Actual mon
 | `check` | admitted/rejected counts and metadata readiness | fact counts + snapshot diagnostics | Plan/Budget/config diagnostics |
 | `outlook` | cumulative Actual snapshot and admitted income anchors | Posting facts + Transaction identity/date | Plan, Envelope, cycle, observation |
 | `daily-trend` | row-date Actual replay and income coordinates | Posting date/account/layer/domain/coefficient | Plan reserve facts and row observation |
-| `daily-flow` | date × all selected-domain Accounts | Posting facts + admitted Account order/roles | cycle/date policy |
+| `daily-flow` | date × active non-Budget Accounts | Posting facts + admitted Account order/roles | cycle/date policy |
 | `actual-comparison` | two explicit windows, account lanes, source-row counts | Posting date/account/side/coefficient/source line | observation and baseline policy |
 | `debug` | source balance, identity, zero-sum, provenance | all fact/side-table columns + diagnostics | diagnostic formatting only |
 
