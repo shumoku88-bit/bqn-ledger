@@ -92,41 +92,41 @@ print_header() {
 
 menu_list() {
   cat <<EOF
-report\tShow full report
-section\tBrowse reports and daily actions
-add\tRecord or change household entries
-browse\tBrowse transactions, plans, accounts, and issues
-check\tValidate canonical Household source
-doctor\tCheck runtime and Household readiness
-inspect\tInspect canonical Actual facts
-export\tExport canonical Journals for hledger
-edit\tOpen canonical source files in \$EDITOR
-dev-check\tRun repository development checks
-exit\tExit
+report	Show full report
+section	Browse reports and daily actions
+add	Record or change household entries
+browse	Browse transactions, plans, accounts, and issues
+check	Validate canonical Household source
+doctor	Check runtime and Household readiness
+inspect	Inspect canonical Actual facts
+export	Export canonical Journals for hledger
+edit	Open canonical source files in \$EDITOR
+dev-check	Run repository development checks
+exit	Exit
 EOF
 }
 
 browse_list() {
   cat <<'EOF'
-transactions\tActual transactions
-plans\tOpen Plans
-accounts\tAccounts
-issues\tIssues & Decisions
-back\tBack to main menu
+transactions	Actual transactions
+plans	Open Plans
+accounts	Accounts
+issues	Issues & Decisions
+back	Back to main menu
 EOF
 }
 
 # Canonical Household files offered by the direct source editor.
 source_list() {
   cat <<'EOF'
-accounts.journal\tAccount declarations
-actual.journal\tActual transactions
-plan.journal\tFuture plans
-budget.journal\tBudget movements
-budget.toml\tBudget policy
-household.toml\tHousehold policy
-report.toml\tReport policy
-issues.tsv\tPending issues and decisions
+accounts.journal	Account declarations
+actual.journal	Actual transactions
+plan.journal	Future plans
+budget.journal	Budget movements
+budget.toml	Budget policy
+household.toml	Household policy
+report.toml	Report policy
+issues.tsv	Pending issues and decisions
 EOF
 }
 
@@ -154,7 +154,7 @@ select_menu_key() {
     [[ "$status" -eq 130 || -z "$selection" ]] && return 130
     key="${selection%%$'\t'*}"
   else
-    "$producer" >&2
+    "$producer" | awk -F'\t' '{print NR ") " $2 " (" $1 ")"}' >&2
     printf '%s> ' "$prompt" >&2
     if ! read -r opt; then
       return 130
