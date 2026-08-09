@@ -51,6 +51,24 @@ tools/edit-bqn --base "$apply" plan budget-sync --id plan-food-2026-01 --yes --p
 grep -F 'Budget sync already applied' "$tmp/retry.out" >/dev/null
 [[ "$(sha_file "$apply/budget.journal")" == "$after" ]]
 
+# Current Plan Finish intentionally uses the durable plan-id relation without
+# persisting a reconstructible Actual event-id. Budget sync must retain that
+# provenance directly and must not invent an absent actual-event-id.
+identity_free="$tmp/identity-free"; copy_fixture "$identity_free"
+python3 - "$identity_free/actual.journal" <<'PY'
+from pathlib import Path
+import sys
+p = Path(sys.argv[1])
+s = p.read_text().replace('    ; event-id: proof-food-1\n', '')
+p.write_text(s)
+PY
+tools/edit --base "$identity_free" plan budget-sync --id plan-food-2026-01 --yes --post-check none >"$tmp/identity-free.out"
+grep -F '    ; plan-id: plan-food-2026-01' "$identity_free/budget.journal" >/dev/null
+if grep -F 'actual-event-id: proof-food-1' "$identity_free/budget.journal" >/dev/null; then
+  echo 'FAIL: identity-free sync invented an Actual event-id' >&2; exit 1
+fi
+tools/ledger-check "$identity_free" >/dev/null
+
 # A Plan without an admitted Household destination coordinate is not linked. It
 # requires valid completion evidence first, so append a synthetic canonical pair.
 unlinked="$tmp/unlinked"; copy_fixture "$unlinked"

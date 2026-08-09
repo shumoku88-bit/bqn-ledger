@@ -89,7 +89,7 @@ NormalizeKey ← {𝕊 key:
 }
 allowedMeta ← ⟨
   "action","receipt-id","tax","biz","invoice","note","due-on","receipt","txn-id",
-  "party","trip-id","payment","cashflow","income-budget","recur","series",
+  "party","trip-id","payment","cashflow","income-budget","recur","series","anchor","offset",
   "execution-envelope","allocation-id","agreement-id","daily-target-id",
   "reservation-id","reservation-amount","reservation-commodity"
 ⟩

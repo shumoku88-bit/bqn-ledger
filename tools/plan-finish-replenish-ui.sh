@@ -154,8 +154,9 @@ read_tty() {
 }
 
 ask_yes_no() {
-  local prompt="$1" default="${2:-N}" ans
-  ans="$(read_tty "$prompt (y/N)" "$default")"
+  local prompt="$1" default="${2:-N}" ans hint='y/N'
+  [[ "$default" != 'Y' && "$default" != 'y' ]] || hint='Y/n'
+  ans="$(read_tty "$prompt ($hint)" "$default")"
   case "$ans" in
     y|Y|yes|YES|Yes) return 0 ;;
     *) return 1 ;;
@@ -286,6 +287,7 @@ plan_to="$(field 6 "$selected_row")"
 plan_amount="$(field 7 "$selected_row")"
 plan_status="$(field 8 "$selected_row")"
 plan_series=""
+inherited_plan_meta=()
 
 show_selected_plan
 if ! actual_date="$(read_tty 'Actual date YYYY-MM-DD' "$today")"; then return_to_add_menu; fi
@@ -344,6 +346,11 @@ for line in "${related_out[@]}"; do
         plan_series="$relation_value"
       fi
       ;;
+    META)
+      meta_key="$(field 2 "$line")"
+      meta_value="$(field 3 "$line")"
+      inherited_plan_meta+=("$meta_key=$meta_value")
+      ;;
     ROW)
       date_f="$(field 2 "$line")"
       related_lines+=("$(field 2 "$line")	$(field 3 "$line")	$(field 4 "$line") -> $(field 5 "$line")	$(field 6 "$line")	$(field 7 "$line")")
@@ -397,10 +404,11 @@ case "$interval_key" in
 esac
 
 next_date="$(read_tty 'Next plan date YYYY-MM-DD' "$suggested_date")"
-next_memo="$(read_tty 'Memo/Description' "$plan_memo")"
-next_from="$(read_tty 'From account' "$plan_from")"
-next_to="$(read_tty 'To account' "$plan_to")"
-next_amount="$(read_tty 'Amount' "$plan_amount")"
+next_memo="$plan_memo"
+next_from="$plan_from"
+next_to="$plan_to"
+next_amount="$plan_amount"
+printf '次回予定は内容・Account・金額・schedule metadataを引き継ぎます。必要なら作成後に「予定を編集」を選んでください。\n' >&2
 
 if [[ -z "$next_date" || -z "$next_from" || -z "$next_to" || -z "$next_amount" ]]; then
   shout 'Cancelled or missing required value.'
@@ -435,7 +443,12 @@ plan_add_cmd=(
   --amount "$next_amount"
 )
 
-if [[ -n "$plan_series" ]]; then
+has_inherited_series=0
+for token in "${inherited_plan_meta[@]}"; do
+  plan_add_cmd+=(--meta "$token")
+  [[ "${token%%=*}" != "series" ]] || has_inherited_series=1
+done
+if [[ -n "$plan_series" && "$has_inherited_series" -eq 0 ]]; then
   plan_add_cmd+=(--meta "series=$plan_series")
 fi
 

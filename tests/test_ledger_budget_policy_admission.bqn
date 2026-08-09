@@ -48,6 +48,19 @@ valid ← policyAdmission.Admit ⟨validRaw,accounts⟩
 ⟨0,1⟩ lib.AssertEq valid.asset_account_index
 ⟨"cash","cash"⟩ lib.AssertEq valid.asset_backing_pool_id
 
+multilineRaw ← Raw ⟨
+  "[[backing-pools]]","id = "∾(Q "cash"),"asset-accounts = [",
+  "  "∾(Q "Assets:Cash")∾",","  "∾(Q "Assets:Savings"),"]","",
+  "[[envelopes]]","id = "∾(Q "food"),"label = "∾(Q "Food"),
+  "pacing = "∾(Q "daily"),"backing-pool = "∾(Q "cash"),"expense-accounts = [",
+  "  "∾(Q "Expenses:Food")∾",",
+  "]"
+⟩
+multiline ← policyAdmission.Admit ⟨multilineRaw,accounts⟩
+"ok" lib.AssertEq multiline.state
+⟨⟨"Assets:Cash","Assets:Savings"⟩⟩ lib.AssertEq multiline.backing_pools.asset_account_keys
+⟨⟨"Expenses:Food"⟩⟩ lib.AssertEq multiline.envelopes.expense_account_keys
+
 duplicateExpense ← policyAdmission.Admit ⟨Raw ⟨
   "[[backing-pools]]","id = "∾(Q "cash"),"asset-accounts = ["∾(Q "Assets:Cash")∾"]","",
   "[[envelopes]]","id = "∾(Q "food"),"label = "∾(Q "Food"),"pacing = "∾(Q "daily"),"backing-pool = "∾(Q "cash"),"expense-accounts = ["∾(Q "Expenses:Food")∾"]","",

@@ -16,6 +16,10 @@ cat >>"$base/plan.journal" <<'EOF'
 
 2026-01-10 * Phone current
   ; plan-id: plan-2026-01-10-phone
+  ; recur: cycle
+  ; series: phone
+  ; anchor: Income:Salary
+  ; offset: 1
   Assets:Bank  -1500 JPY
   Expenses:Groceries  1500 JPY
 
@@ -41,6 +45,12 @@ if ! grep -q $'^KEY\tseries\tphone$' <<< "$out"; then
   printf '%s\n' "$out" >&2
   exit 1
 fi
+for expected in $'META\trecur\tcycle' $'META\tseries\tphone' $'META\tanchor\tIncome:Salary' $'META\toffset\t1'; do
+  if ! grep -Fqx "$expected" <<< "$out"; then
+    echo "FAIL: missing inheritable Plan metadata: $expected" >&2
+    exit 1
+  fi
+done
 if ! grep -q $'^ROW\t2026-02-10\tFuture phone\tAssets:Bank\tExpenses:Groceries\t1500\tplan-2026-02-10-phone' <<< "$out"; then
   echo 'FAIL: missing related future Plan row' >&2
   printf '%s\n' "$out" >&2

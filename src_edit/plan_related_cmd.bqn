@@ -5,6 +5,7 @@
 #   <baseDir> <index> <plan_id> <actual_date> <format: tsv>
 # Output protocol remains:
 #   KEY <tab> <relation_kind> <tab> <relation_value>
+#   META <tab> <inheritable schedule key> <tab> <value>
 #   ROW <tab> date <tab> memo <tab> from <tab> to <tab> amount <tab> plan_id <tab> display
 #
 # Relation order:
@@ -78,6 +79,12 @@ Related ← {𝕊 row:
 relatedPlans ← (Related¨openPlans)/openPlans
 
 •Out "KEY"∾tab∾(0⊑selectedKey)∾tab∾1⊑selectedKey
+# A replenished Plan keeps schedule/classification evidence, but not durable
+# per-Plan Daily Target or reservation identities.
+inheritableKeys ← ⟨"recur","series","anchor","offset","cashflow","execution-envelope"⟩
+{𝕊 item:
+  {𝕊:•Out "META"∾tab∾item.key∾tab∾item.value}⍟(∨´0∾item.key⊸≡¨inheritableKeys) @
+}¨selected.metadata
 PrintRow ← {𝕊 row:
   display ← row.date∾tab∾row.description∾tab∾row.from_account∾" -> "∾row.to_account∾tab∾row.amount∾tab∾row.plan_id
   •Out "ROW"∾tab∾row.date∾tab∾row.description∾tab∾row.from_account∾tab∾row.to_account∾tab∾row.amount∾tab∾row.plan_id∾tab∾display

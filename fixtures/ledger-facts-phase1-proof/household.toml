@@ -38,4 +38,7 @@ reserve = ["budget:unassigned"]
 
 [account-policy.expenses]
 fixed = []
-variable = ["expenses:food", "expenses:transport"]
+variable = [
+  "expenses:food",
+  "expenses:transport",
+]

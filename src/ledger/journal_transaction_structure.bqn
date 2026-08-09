@@ -14,7 +14,7 @@ supportedMetadata ← ⟨
   "allocation-id","agreement-id","actual-event-id","tax","biz","invoice",
   "note","due-on","receipt","txn-id","party","trip-id","payment","cashflow",
   "currency","income-budget","recur","series","reverses","daily-target-id",
-  "reservation-id","reservation-amount","reservation-commodity"
+  "reservation-id","reservation-amount","reservation-commodity","anchor","offset"
 ⟩
 supportedLayers ← ⟨"actual","plan","budget"⟩
 
@@ -155,9 +155,10 @@ Parse ← {𝕊 raw:
     diagnostics ∾↩ AddIf ⟨¬Contains ⟨layer,supportedLayers⟩,Diagnostic ⟨"layer_unsupported",start+1,"layer must be actual, plan, or budget"⟩⟩
     diagnostics ∾↩ AddIf ⟨(layer≡"plan") ∧ 0=≠planId,Diagnostic ⟨"plan_id_missing",start+1,"plan events require plan-id"⟩⟩
     budgetLinkCount ← (0<≠allocationId) + 0<≠actualEventId
+    planCompletionLink ← (0<≠planId) ∧ 0=budgetLinkCount
     diagnostics ∾↩ AddIf ⟨(layer≡"budget") ∧ 0=≠eventId,Diagnostic ⟨"budget_event_id_missing",start+1,"budget events require event-id"⟩⟩
-    diagnostics ∾↩ AddIf ⟨(layer≡"budget") ∧ 0=budgetLinkCount,Diagnostic ⟨"budget_link_missing",start+1,"budget events require allocation-id or actual-event-id"⟩⟩
-    diagnostics ∾↩ AddIf ⟨(layer≡"budget") ∧ 1<budgetLinkCount,Diagnostic ⟨"budget_link_ambiguous",start+1,"budget events require exactly one link"⟩⟩
+    diagnostics ∾↩ AddIf ⟨(layer≡"budget") ∧ (0=budgetLinkCount) ∧ ¬planCompletionLink,Diagnostic ⟨"budget_link_missing",start+1,"budget events require allocation-id, actual-event-id, or a Plan completion link"⟩⟩
+    diagnostics ∾↩ AddIf ⟨(layer≡"budget") ∧ 1<budgetLinkCount,Diagnostic ⟨"budget_link_ambiguous",start+1,"budget events require at most one direct allocation/Actual link"⟩⟩
     diagnostics ∾↩ AddIf ⟨(layer≢"budget") ∧ 0<≠actualEventId,Diagnostic ⟨"actual_event_link_layer_invalid",start+1,"actual-event-id is valid only on budget events"⟩⟩
     diagnostics ∾↩ AddIf ⟨0=≠rawPostings,Diagnostic ⟨"posting_missing",start+1,"transaction must contain postings"⟩⟩
     diagnostics ∾↩ AddIf ⟨0≠+´0∾{𝕩.delta}¨rawPostings,Diagnostic ⟨"event_unbalanced",start+1,"transaction postings must sum to zero"⟩⟩

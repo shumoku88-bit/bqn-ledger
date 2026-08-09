@@ -77,9 +77,12 @@ ResolveOwnership ← {𝕊 accounts‿budgetPolicy‿householdPolicy‿domain:
   unassignedIndices ← householdPolicy.budget.unassigned_account_indices
   unassignedValid ← (0<≠unassignedIndices) ∧ ∧´1∾{𝕊 i:(i<accounts.count) ∧ ((i⊑accounts.currency)≡domain) ∧ (i⊑accounts.role)≡"budget"}¨unassignedIndices
   diagnostics∾↩AddIf ⟨¬unassignedValid,Diagnostic ⟨"unassigned_scope_invalid","household.toml unassigned Accounts must be selected-domain Budget Accounts"⟩⟩
-  fundingIndices ← budgetPolicy.asset_account_index
-  fundingValid ← (0<≠fundingIndices) ∧ ∧´1∾{𝕊 i:((i⊑accounts.currency)≡domain) ∧ (i⊑accounts.role)≡"asset"}¨fundingIndices
-  diagnostics∾↩AddIf ⟨¬fundingValid,Diagnostic ⟨"funding_scope_invalid","budget.toml backing Accounts require selected-domain Asset Accounts"⟩⟩
+  # budget.toml pool membership spans Commodities; this statement projects the
+  # Account axis to the requested domain while preserving policy order.
+  policyFundingIndices ← budgetPolicy.asset_account_index
+  fundingIndices ← (domain⊸≡¨policyFundingIndices⊏accounts.currency)/policyFundingIndices
+  fundingValid ← (0<≠fundingIndices) ∧ ∧´1∾"asset"⊸≡¨fundingIndices⊏accounts.role
+  diagnostics∾↩AddIf ⟨¬fundingValid,Diagnostic ⟨"funding_scope_invalid","budget.toml backing policy requires an Asset Account in the selected domain"⟩⟩
   ownershipMissing ← (≠envelopeIndices)≠≠categories
   state ← "ok" ⋄ reason ← ""
   {𝕊:state↩"error"}⍟(0<≠diagnostics) @
