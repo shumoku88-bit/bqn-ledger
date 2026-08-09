@@ -140,26 +140,65 @@ done
 tools/bl --base "$base" --domain JPY --latest 2026-01-13 report >"$work/report-all"
 [[ $(grep -c '^== ' "$work/report-all") -eq 12 ]]
 
-# Behavioral qualification 1 & 2: Reports menu contains only report catalog items.
-printf '0\n' | BL_SELECTOR=plain tools/main-ui.sh --base "$base" --domain JPY --latest 2026-01-13 >"$work/main-ui-menu.out" 2>"$work/main-ui-menu.err" || true
+# Behavioral qualification 1 & 2: Reports menu contains only report catalog items under interactive TTY.
+python3 - "$base" "$work/main-ui-menu.err" "$work/bl-reports-menu.err" <<'PY'
+import sys, pty, os, fcntl, termios
+
+base = sys.argv[1]
+main_ui_err_path = sys.argv[2]
+bl_reports_err_path = sys.argv[3]
+
+def run_tty(cmd):
+    master, slave = pty.openpty()
+    pid = os.fork()
+    if pid == 0:
+        os.setsid()
+        fcntl.ioctl(slave, termios.TIOCSCTTY, 0)
+        os.dup2(slave, 0)
+        os.dup2(slave, 1)
+        os.dup2(slave, 2)
+        os.close(master)
+        os.close(slave)
+        os.environ["BL_SELECTOR"] = "plain"
+        os.execv(cmd[0], cmd)
+    else:
+        os.close(slave)
+        os.write(master, b"0\n")
+        output = b""
+        while True:
+            try:
+                data = os.read(master, 1024)
+                if not data: break
+                output += data
+            except OSError:
+                break
+        os.close(master)
+        _, status = os.waitpid(pid, 0)
+        return os.WEXITSTATUS(status), output.decode("utf-8", errors="replace")
+
+status_main, out_main = run_tty(["tools/main-ui.sh", "--base", base, "--domain", "JPY", "--latest", "2026-01-13"])
+if status_main != 0:
+    sys.exit(f"main-ui PTY failed with status {status_main}")
+with open(main_ui_err_path, "w", encoding="utf-8") as f:
+    f.write(out_main)
+
+status_bl, out_bl = run_tty(["tools/bl", "--base", base, "reports"])
+if status_bl != 0:
+    sys.exit(f"bl reports PTY failed with status {status_bl}")
+with open(bl_reports_err_path, "w", encoding="utf-8") as f:
+    f.write(out_bl)
+PY
+
 for key in "${report_keys[@]}"; do
   grep -F "($key)" "$work/main-ui-menu.err" >/dev/null
 done
-for forbidden in 'action-' 'actions' '今日の記帳' '複数 Posting' '予定を実績化' '予定を追加' '予定を編集' 'Budget movement を追加' 'Account を追加'; do
-  if grep -F "$forbidden" "$work/main-ui-menu.err"; then
-    echo "FAIL: main-ui selector output contained forbidden action text: $forbidden" >&2
-    exit 1
-  fi
-done
-
-printf '0\n' | BL_SELECTOR=plain tools/bl --base "$base" reports >"$work/bl-reports-menu.out" 2>"$work/bl-reports-menu.err" || true
 mapfile -t report_labels < <(tools/report-section-metadata | awk -F'\t' 'NR>1 {print $2}')
 for label in "${report_labels[@]}"; do
   grep -F "$label" "$work/bl-reports-menu.err" >/dev/null
 done
-for forbidden in 'Expense' 'Income' 'Transfer' 'Multi-posting' 'Reverse' 'Plan Add' 'Plan Edit' 'Plan Finish' 'Budget Add' 'Account Add' 'Issue Add' 'action-' 'actions'; do
-  if grep -F "$forbidden" "$work/bl-reports-menu.err"; then
-    echo "FAIL: bl reports menu contained forbidden action text: $forbidden" >&2
+for forbidden in 'Expense' 'Income' 'Transfer' 'Multi-posting' 'Reverse' 'Plan Add' 'Plan Edit' 'Plan Finish' 'Budget Add' 'Account Add' 'Issue Add' 'Issue Close' 'action-' 'actions' '今日の記帳' '複数 Posting' '予定を実績化' '予定を追加' '予定を編集' 'Budget movement を追加' 'Account を追加'; do
+  if grep -F "$forbidden" "$work/main-ui-menu.err" "$work/bl-reports-menu.err"; then
+    echo "FAIL: Reports menu selector output contained forbidden action text: $forbidden" >&2
     exit 1
   fi
 done
