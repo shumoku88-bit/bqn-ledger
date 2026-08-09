@@ -25,6 +25,16 @@ get_default_base_dir() {
 get_system_default_file() {
   local key="$1"
   local fallback="$2"
+
+  # Account physical ownership is canonical and is no longer configurable.
+  # tools/edit-bqn is the only shell caller for DEFAULT_ACCOUNTS_FILE; keep the
+  # old key from redirecting Account writes while the remaining writer defaults
+  # are migrated source by source.
+  if [[ "$key" == "DEFAULT_ACCOUNTS_FILE" ]]; then
+    printf 'accounts.journal\n'
+    return 0
+  fi
+
   local defaults_file="config/system_defaults.tsv"
   if [[ -f "$defaults_file" ]]; then
     local val
