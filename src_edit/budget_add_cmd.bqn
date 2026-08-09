@@ -95,8 +95,8 @@ existing ← budgetAdmission.Admit ⟨raw,accounts,setup.registry⟩
 
 metadataLines ← {"    ; "∾𝕩.key∾": "∾𝕩.value}¨metadata
 blockLines ← ⟨dateVal∾" "∾memoVal⟩∾metadataLines∾⟨
-  "  "∾fromVal∾"  -"∾amountVal∾" "∾currency,
-  "  "∾toVal∾"  "∾amountVal∾" "∾currency
+  "    "∾fromVal∾"    -"∾amountVal∾" "∾currency,
+  "    "∾toVal∾"    "∾amountVal∾" "∾currency
 ⟩
 block ← ⊑blockLines
 {𝕊 line:block∾↩lf∾line}¨1↓blockLines
