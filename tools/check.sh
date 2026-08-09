@@ -77,5 +77,11 @@ if find . -maxdepth 1 -type d -name src_next | grep -q .; then
   echo 'FAIL: src_next still exists' >&2
   exit 1
 fi
+
+if [[ -f experiments-current-report-batch-observation.sh ]]; then
+  echo '[observation] current report batch vs main' >&2
+  bash experiments-current-report-batch-observation.sh
+fi
+
 git diff --check
 echo OK >&2
