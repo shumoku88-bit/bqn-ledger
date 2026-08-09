@@ -8,6 +8,11 @@ trap 'rm -rf "$work"' EXIT
 if rg -n '•SH|/data/|fallbackId|physical_fallback|accounts\.tsv|config\.tsv|ACTUAL_JOURNAL_FILE' src/application/editor_actual.bqn >/dev/null; then
   echo 'FAIL: strict editor Actual owner gained legacy source, path fallback, or fabricated identity' >&2; exit 1
 fi
+if rg -n 'accounts\.tsv|editor_accounts\.bqn' src_edit/journal_block_add_cmd.bqn >/dev/null; then
+  echo 'FAIL: native Journal append still reads legacy Account TSV evidence' >&2; exit 1
+fi
+grep -F 'account_source_adapter.bqn' src_edit/journal_block_add_cmd.bqn >/dev/null \
+  || { echo 'FAIL: native Journal append does not use canonical Account source owner' >&2; exit 1; }
 bqn tests/test_application_editor_actual.bqn >/dev/null
 
 cp -R fixtures/plan-completion "$work/baseline"
