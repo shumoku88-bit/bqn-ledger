@@ -76,7 +76,7 @@ build_single_oracle() {
   done
 }
 
-for surface in human compact json; do
+for surface in human compact; do
   build_single_oracle "$surface" "$work/oracle.$surface"
   if ! ./tools/report-all "$base" "$domain" "$surface" "$latest" >"$work/batch.$surface"; then
     echo "FAIL: production report-all failed for $surface" >&2
@@ -85,6 +85,13 @@ for surface in human compact json; do
   fi
   AssertSame "$surface report-all vs single-report oracle" "$work/oracle.$surface" "$work/batch.$surface"
 done
+
+# Aggregate JSON remains intentionally unsupported; this slice does not invent a schema.
+if ./tools/report-all "$base" "$domain" json "$latest" >"$work/json.out" 2>&1; then
+  echo 'FAIL: aggregate JSON unexpectedly succeeded' >&2
+  exit 1
+fi
+ExpectLine $'ERROR\treport_surface_unsupported\tall has no aggregate JSON schema' "$work/json.out"
 
 # Single and batch adapters share one semantic key-to-compose owner.
 for file in src/application/report_destination_cli.bqn src/application/current_report_batch_cli.bqn; do
