@@ -35,7 +35,9 @@ JoinLines ← {𝕊 xs:
   result
 }
 ExactMagnitudeEqual ← {𝕊 oldCoefficient‿oldScale‿newCoefficient‿newScale:
-  (|oldCoefficient)×10⋆newScale = newCoefficient×10⋆oldScale
+  oldScaled ← oldCoefficient × 10⋆newScale
+  newScaled ← newCoefficient × 10⋆oldScale
+  oldScaled = newScaled
 }
 
 {𝕊:Fail "usage: plan_edit_cmd.bqn <baseDir> <candidateFile> <index> <planId> <date> <amount> <showAll>"}⍟(7≠≠args) @
@@ -101,7 +103,9 @@ parsedAmount ← @
   {𝕊:Fail 1⊑amountCheck}⍟(¬0⊑amountCheck) @
   parsedAmount↩decimal.Parse amountVal
   {𝕊:Fail "Plan edit amount must be strictly positive"}⍟((parsedAmount.state≢"ok") ∨ parsedAmount.coefficient≤0) @
-  amountChanged↩¬ExactMagnitudeEqual ⟨|⊑selectedCoefficients,⊑selectedScales,parsedAmount.coefficient,parsedAmount.scale⟩
+  oldMagnitude ← |⊑selectedCoefficients
+  sameAmount ← ExactMagnitudeEqual ⟨oldMagnitude,⊑selectedScales,parsedAmount.coefficient,parsedAmount.scale⟩
+  amountChanged↩¬sameAmount
 }⍟(0<≠amountVal) @
 dateChanged ← targetDate≢currentDate
 
