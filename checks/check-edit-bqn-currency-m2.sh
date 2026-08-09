@@ -50,11 +50,7 @@ expect_fail_unchanged() {
     echo "FAIL: $label modified $target_file" >&2
     exit 1
   fi
-  if [[ -d "$base/.backup" ]] && find "$base/.backup" -type f | grep -q .; then
-    echo "FAIL: $label created a backup" >&2
-    find "$base/.backup" -type f >&2
-    exit 1
-  fi
+  assert_no_backup "$base" "$label"
 }
 
 # Role and currency filters compose without leaking the other domain.
@@ -70,25 +66,35 @@ if grep -Fxq 'expenses:food-ils' <<<"$jpy_expenses"; then
   echo 'FAIL: JPY expense list included ILS account' >&2
   exit 1
 fi
-if ./tools/edit --base "$fixture" account list --currency EUR >"$tmp_root/list-usd.out" 2>&1; then
+if ./tools/edit --base "$fixture" account list --currency EUR >"$tmp_root/list-eur.out" 2>&1; then
   echo 'FAIL: account list accepted unsupported EUR' >&2
   exit 1
 fi
 
-# Account add uses ledger default only as initial selection and always writes it.
-default_account_base="$(copy_fixture account-default)"
-default_preview="$(./tools/edit --base "$default_account_base" account add --name 'expenses:travel' --role expense --dry-run --post-check none)"
-grep -Fq $'expenses:travel\trole=expense\tcurrency=JPY' <<<"$default_preview"
-if grep -Fq 'expenses:travel' "$default_account_base/accounts.tsv"; then
-  echo 'FAIL: default account dry-run modified accounts.tsv' >&2
+# A multi-currency canonical Account root cannot guess one Commodity from legacy config.
+expect_fail_unchanged account-missing-currency accounts.journal \
+  account add --name 'expenses:travel' --role expense --dry-run --post-check none
+grep -Fq -- '--currency is required when canonical Accounts do not determine exactly one Commodity' "$tmp_root/fail-account-missing-currency.out"
+
+jpy_account_base="$(copy_fixture account-jpy)"
+jpy_preview="$(./tools/edit --base "$jpy_account_base" account add --name 'expenses:travel' --role expense --currency JPY --dry-run --post-check none)"
+grep -Fq 'account expenses:travel' <<<"$jpy_preview"
+grep -Fq '  type: Expense' <<<"$jpy_preview"
+grep -Fq '  commodity: JPY' <<<"$jpy_preview"
+if grep -Fq 'account expenses:travel' "$jpy_account_base/accounts.journal"; then
+  echo 'FAIL: JPY Account dry-run modified accounts.journal' >&2
   exit 1
 fi
 
 ils_account_base="$(copy_fixture account-ils)"
-./tools/edit --base "$ils_account_base" account add --name 'expenses:transit-ils' --role expense --currency ILS --yes --post-check none >/dev/null
-grep -Fxq $'expenses:transit-ils\trole=expense\tcurrency=ILS' "$ils_account_base/accounts.tsv"
+legacy_before="$(sha_file "$ils_account_base/accounts.tsv")"
+./tools/edit --base "$ils_account_base" account add --name 'expenses:transit-ils' --role expense --currency ILS --yes --post-check none >"$tmp_root/ils.out"
+grep -Fq 'Mandatory Account validation: OK' "$tmp_root/ils.out"
+grep -Fq 'account expenses:transit-ils' "$ils_account_base/accounts.journal"
+grep -Fq '  commodity: ILS' "$ils_account_base/accounts.journal"
+[[ "$(sha_file "$ils_account_base/accounts.tsv")" == "$legacy_before" ]] || { echo 'FAIL: ILS Account write modified legacy accounts.tsv' >&2; exit 1; }
 
-expect_fail_unchanged account-unsupported accounts.tsv \
-  account add --name 'assets:eur' --role asset --type liquid --currency EUR --yes --post-check none
+expect_fail_unchanged account-unsupported accounts.journal \
+  account add --name 'assets:eur' --role asset --currency EUR --yes --post-check none
 
 printf 'OK: M2 currency-aware account editor contracts passed\n'
