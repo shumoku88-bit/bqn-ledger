@@ -13,18 +13,22 @@ setup ← editorCurrency.Load @
 args ← •args ⋄ tab ← @+9 ⋄ lf ← @+10 ⋄ space ← @+32
 roles ← ⟨"asset","liability","equity","income","expense","budget"⟩
 types ← ⟨"Asset","Liability","Equity","Income","Expense","Budget"⟩
-IndexOf ← {𝕊 item‿items: ⊑items⊐⟨item⟩}
-TrimLeft ← {𝕊 xs: (+´∧`((xs=space)∨xs=tab))↓xs}
-TrimRight ← {𝕊 xs: ⌽TrimLeft⌽xs}
+prefixes ← ⟨"assets:","liabilities:","equity:","income:","expenses:","budget:"⟩
+IndexOf ← {𝕊 item‿items: ⊑ items⊐⟨item⟩}
+IsWhitespace ← {𝕊 c:(c=space)∨c=tab}
+TrimLeft ← {𝕊 xs:prefix←∧`IsWhitespace¨xs ⋄ (+´prefix)↓xs}
+TrimRight ← {𝕊 xs:⌽TrimLeft⌽xs}
 Trim ← {TrimRight TrimLeft 𝕩}
 Fail ← {𝕊 msg: •Out "ERROR"∾tab∾msg ⋄ •Exit 1}
 
 {𝕊:Fail "usage: account_add_cmd.bqn <baseDir> <name> <role> <legacy-type-or-empty> <currency-or-empty>"}⍟(5≠≠args) @
-base ← 0⊑args ⋄ name ← Trim 1⊑args ⋄ role ← 2⊑args ⋄ legacyType ← 3⊑args ⋄ explicitCurrency ← 4⊑args
+base ← 0⊑args ⋄ name ← Trim 1⊑args ⋄ role ← 2⊑args ⋄ legacyType ← 3⊑args ⋄ explicitCurrency ← Trim 4⊑args
 {𝕊:Fail "legacy --type Household classification belongs in household.toml; omit --type"}⍟(0<≠legacyType) @
 roleIndex ← IndexOf ⟨role,roles⟩
 {𝕊:Fail "role must be asset, liability, equity, income, expense, or budget"}⍟(roleIndex≥≠roles) @
 {𝕊:Fail "account name must be nonempty"}⍟(0=≠name) @
+prefix ← roleIndex⊑prefixes
+{𝕊:Fail "account namespace does not match role: "∾name∾" vs "∾role}⍟(prefix≢(≠prefix)↑name) @
 
 current ← accountSource.Load base
 {𝕊:Fail "canonical accounts.journal failed admission"}⍟(current.state≢"ok") @
