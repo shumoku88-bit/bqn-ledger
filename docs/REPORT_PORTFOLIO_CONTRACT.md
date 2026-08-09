@@ -43,7 +43,7 @@ issues
 
 The catalog is static and source-independent. Listing keys/metadata does not read household sources. Full and cache output iterate this catalog but build one requested result at a time.
 
-Daily Flow answers one bounded question: for explicit Actual period `[start,end_exclusive)` and observation, how did every selected-domain Account move on each observed date? The column axis follows admitted Account order and retains zero-posting Accounts, so specific expense Accounts remain visible instead of disappearing into Budget categories. Semantic cells retain canonical Posting signs and contributors; human presentation reverses income and expense signs so inflow is positive and outflow is negative. Its production surface is human-only.
+Daily Flow answers one bounded question: for explicit Actual period `[start,end_exclusive)` and observation, how did each active non-Budget Account move on each observed date? The column axis follows admitted Account order, excludes Budget-role Accounts, and omits Accounts whose cells are all zero throughout the period. Specific expense Accounts remain visible instead of disappearing into Budget categories. Semantic cells retain canonical Posting signs and contributors; human presentation reverses income and expense signs so inflow is positive and outflow is negative. Its production surface is human-only.
 
 ## 2. Shared result rules
 
@@ -190,17 +190,17 @@ P1 intentionally selects movement only. Monthly closing, debit/credit submatrice
 
 ### Question
 
-How did every Account move on each observed date in one explicit Actual period?
+How did each active non-Budget Account move on each observed date in one explicit Actual period?
 
 ```text
 semantic row axis    = selected transaction dates, ascending, plus observation when absent
-semantic column axis = all Accounts in selected domain, admitted order
-human row axis       = all Accounts in admitted order
-human column axis    = latest configured number of selected dates, ascending
+semantic column axis = active non-Budget Accounts in selected-domain admitted order
+human row axis       = selected dates, ascending
+human column axis    = active non-Budget Accounts in admitted order
 measure              = signed exact Actual movement on that date
 ```
 
-Zero-posting Accounts remain explicit columns and the observation remains an explicit zero row when no transaction occurs on it. Semantic coefficients keep canonical Posting signs and each occupied cell retains its Posting contributors. Human output transposes the Matrix to Account rows, limits date columns by admitted report presentation policy, and reverses income and expense Account signs only. This preserves the familiar positive-inflow/negative-outflow reading while exposing individual Accounts such as specific purchases. Asset, liability, equity, and Budget Account signs remain canonical.
+The observation remains an explicit zero row when no transaction occurs on it. Budget-role Accounts are never report columns; every other Account is omitted only when all of its period cells are zero. An Account with offsetting nonzero movements remains visible. Semantic coefficients keep canonical Posting signs and each occupied cell retains its Posting contributors. Human output keeps Date rows and Account columns, reversing income and expense Account signs only. This preserves the familiar positive-inflow/negative-outflow reading while exposing individual Accounts such as specific purchases. Asset, liability, and equity Account signs remain canonical.
 
 ## 7. Envelope & Backing
 

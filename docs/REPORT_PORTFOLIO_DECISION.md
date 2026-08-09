@@ -35,7 +35,7 @@ The approved retained portfolio is production. Forwarding aliases and compatibil
 | Current-cycle Accounts | How did each Account move through the resolved cycle? | Account × opening/debit/credit/movement/closing |
 | Cycle comparison | How does current-cycle Account activity compare with the previous cycle? | Account × current/previous/difference, with an explicit full-cycle or aligned-observation policy |
 | Monthly Accounts | How do Account movement and/or closing state change month by month? | Month × Account or Account × Month under one explicit measure contract |
-| Daily Flow | How did every Account move on each observed date? | Date × Account in admitted Account order |
+| Daily Flow | How did each active non-Budget Account move on each observed date? | Date × active non-Budget Account in admitted order |
 
 These are concrete report questions, not permission to build a textual query DSL or one universal three-axis report record. Shared Matrix operations are extracted only after the concrete builders agree.
 
@@ -65,7 +65,7 @@ This is a destination disposition, not an immediate production deletion.
 | `check` | move readiness/validation to an operational command; not a normal report |
 | `outlook` | replace with the narrower Daily Target projection and backing evidence |
 | `daily-trend` | replace with Account Matrix and/or Daily Target capabilities; do not preserve automatically |
-| `daily-flow` | retained as the explicit Actual date × all-Account Matrix |
+| `daily-flow` | retained as the explicit Actual date × active non-Budget Account Matrix |
 | `actual-comparison` | replace with explicit Cycle Comparison Matrix semantics |
 | `debug` | move to developer inspection/diagnostic commands; not a production report |
 

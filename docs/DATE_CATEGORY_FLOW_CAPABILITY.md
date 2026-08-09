@@ -52,7 +52,7 @@ A sparse group exists when postings contribute to that coordinate, even if their
 - mixed source scales normalized to one exact coefficient scale;
 - unknown domain/layer and invalid period fail closed.
 
-The category fields remain the accounting evidence consumed by Month Category Flow. Daily Flow consumes the aligned date/Account fields so individual Accounts are not collapsed into Envelope categories. This module is not a report section and does not own observation/as-of or formatting policy.
+The category fields remain the accounting evidence consumed by Month Category Flow. Daily Flow consumes the aligned date/Account fields, then selects active non-Budget columns so individual Accounts are not collapsed into Envelope categories. This module is not a report section and does not own observation/as-of or formatting policy.
 
 ## Comparison with Account-period grouping
 
