@@ -1,210 +1,50 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Verify non-actual TSV editor append paths.
-# Scope:
-#   - positive append creates expected TSV/backup effects
-#   - dry-run source protection
-#   - negative cases fail closed without source/backup writes
-
+# Legacy Budget row qualification was removed with its writer authority. This
+# retained check covers the unrelated Issue append surface still in edit-bqn.
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
-
-tmp_root="$(mktemp -d)"
-trap 'rm -rf "$tmp_root"' EXIT
-
-sha_file() {
-  shasum -a 256 "$1" | awk '{print $1}'
-}
+tmp_root="$(mktemp -d)"; trap 'rm -rf "$tmp_root"' EXIT
 
 assert_no_backup() {
-  local base="$1"
-  local label="$2"
-  if [ -e "$base/.backup" ] && find "$base/.backup" -type f | grep -q .; then
-    echo "FAIL: $label created a backup during a failing/dry-run case" >&2
-    find "$base/.backup" -type f >&2 || true
-    exit 1
+  local base="$1" label="$2"
+  if [[ -e "$base/.backup" ]] && find "$base/.backup" -type f | grep -q .; then
+    echo "FAIL: $label created a backup" >&2; exit 1
   fi
 }
 
-assert_unchanged() {
-  local base="$1"
-  local target_file="$2"
-  local before_sha="$3"
-  local label="$4"
-  local after_sha
-  after_sha="$(sha_file "$base/$target_file")"
-  if [ "$before_sha" != "$after_sha" ]; then
-    echo "FAIL: $label modified $target_file" >&2
-    exit 1
-  fi
-}
-
-run_expect_fail_closed() {
-  local name="$1"
-  local target_file="$2"
-  shift 2
-  local bqn_base="$tmp_root/neg-${name}-bqn"
-  local bqn_out="$tmp_root/neg-${name}-bqn.out"
-  local bqn_before bqn_rc
-
-  cp -R data "$bqn_base"
-  bqn_before="$(sha_file "$bqn_base/$target_file")"
-
-  set +e
-  ./tools/edit-bqn --base "$bqn_base" "$@" >"$bqn_out" 2>&1
-  bqn_rc=$?
-  set -e
-
-
-  if [ "$bqn_rc" -eq 0 ]; then
-    echo "FAIL: tools/edit-bqn unexpectedly accepted negative case: $name" >&2
-    cat "$bqn_out" >&2
-    exit 1
-  fi
-
-  assert_unchanged "$bqn_base" "$target_file" "$bqn_before" "tools/edit-bqn negative case $name"
-  assert_no_backup "$bqn_base" "tools/edit-bqn negative case $name"
-}
-
-run_positive() {
-  local name="$1"
-  local target_file="$2"
-  shift 2
-  local bqn_base="$tmp_root/pos-${name}-bqn"
-  local bqn_out="$tmp_root/pos-${name}-bqn.out"
-
-  cp -R data "$bqn_base"
-
-  if [[ "$name" == *"no-trailing-newline" ]]; then
-    perl -0pi -e 's/\n\z//' "$bqn_base/$target_file"
-  fi
-
-  ./tools/edit-bqn --base "$bqn_base" "$@" >"$bqn_out" 2>&1
-
-
-
-  if ! find "$bqn_base/.backup" -type f -name "${target_file}*" | grep -q .; then
-    echo "FAIL: tools/edit-bqn positive case did not create a backup for $target_file: $name" >&2
-    exit 1
-  fi
-}
-
-# ── Budget add positive parity and dry-run protection ───────────
-
-budget_dry_base="$tmp_root/budget-dry"
-cp -R data "$budget_dry_base"
-budget_before_sha="$(sha_file "$budget_dry_base/budget_alloc.tsv")"
-./tools/edit-bqn --base "$budget_dry_base" budget add \
-  --date 2026-06-29 \
-  --memo "edit-bqn budget dry-run" \
-  --from budget:opening \
-  --to budget:食費 \
-  --amount 200 \
-  --meta source=check-edit-bqn \
-  --dry-run 
-if [[ "$budget_before_sha" != "$(sha_file "$budget_dry_base/budget_alloc.tsv")" ]]; then
-  echo "FAIL: tools/edit-bqn budget add --dry-run modified budget_alloc.tsv" >&2
-  exit 1
-fi
-assert_no_backup "$budget_dry_base" "tools/edit-bqn budget add --dry-run"
-
-run_positive budget-basic budget_alloc.tsv \
-  budget add \
-  --date 2026-06-29 \
-  --memo "edit-bqn budget parity" \
-  --from budget:opening \
-  --to budget:食費 \
-  --amount 201 \
-  --meta source=check-edit-bqn \
-  --yes \
-  --post-check none
-
-run_positive budget-no-trailing-newline budget_alloc.tsv \
-  budget add \
-  --date 2026-06-29 \
-  --memo "edit-bqn budget no trailing newline" \
-  --from budget:opening \
-  --to budget:一般生活 \
-  --amount 202 \
-  --yes \
-  --post-check none
-
-# ── Budget add negative fail-closed parity ──────────────────────
-
-run_expect_fail_closed budget-unknown-from budget_alloc.tsv \
-  budget add --date 2026-06-29 --memo "unknown budget from" --from budget:missing --to budget:食費 --amount 123 --yes --post-check none
-run_expect_fail_closed budget-unknown-to budget_alloc.tsv \
-  budget add --date 2026-06-29 --memo "unknown budget to" --from budget:opening --to budget:missing --amount 123 --yes --post-check none
-run_expect_fail_closed budget-invalid-amount budget_alloc.tsv \
-  budget add --date 2026-06-29 --memo "bad budget amount" --from budget:opening --to budget:食費 --amount 12x --yes --post-check none
-run_expect_fail_closed budget-invalid-meta budget_alloc.tsv \
-  budget add --date 2026-06-29 --memo "bad budget meta" --from budget:opening --to budget:食費 --amount 123 --meta Source=test --yes --post-check none
-
-# ── Issue add parity and fail-closed checks ─────────────────────
-
-issue_dry_base="$tmp_root/issue-dry"
-cp -R data "$issue_dry_base"
+issue_dry_base="$tmp_root/issue-dry"; cp -R data "$issue_dry_base"
 ./tools/edit-bqn --base "$issue_dry_base" issue add \
-  --date 2026-06-29 \
-  --title "edit-bqn issue dry-run" \
-  --amount 300 \
-  --memo "dry" \
-  --dry-run 
-if [[ -e "$issue_dry_base/issues.tsv" ]]; then
-  echo "FAIL: tools/edit-bqn issue add --dry-run created issues.tsv" >&2
-  exit 1
-fi
+  --date 2026-06-29 --title "edit-bqn issue dry-run" --amount 300 --memo dry --dry-run
+[[ ! -e "$issue_dry_base/issues.tsv" ]]
 assert_no_backup "$issue_dry_base" "tools/edit-bqn issue add --dry-run"
 
-issue_bqn_base="$tmp_root/issue-new-bqn"
-cp -R data "$issue_bqn_base"
+issue_bqn_base="$tmp_root/issue-new-bqn"; cp -R data "$issue_bqn_base"
 ./tools/edit-bqn --base "$issue_bqn_base" issue add \
-  --date 2026-06-29 \
-  --title "edit-bqn issue parity" \
-  --amount 301 \
-  --memo "new file" \
-  --yes 
+  --date 2026-06-29 --title "edit-bqn issue parity" --amount 301 --memo "new file" --yes
 assert_no_backup "$issue_bqn_base" "tools/edit-bqn issue add new-file"
 
-issue_existing_bqn="$tmp_root/issue-existing-bqn"
-cp -R data "$issue_existing_bqn"
-printf 'issue_id\tstatus\tdate\tcategory\ttitle\tamount\tcurrency\tdetails\nissue:seed\topen\t2026-06-28\tgeneral\tBefore\t0\tJPY\tseed\n' > "$issue_existing_bqn/issues.tsv"
+issue_existing_bqn="$tmp_root/issue-existing-bqn"; cp -R data "$issue_existing_bqn"
+printf 'issue_id\tstatus\tdate\tcategory\ttitle\tamount\tcurrency\tdetails\nissue:seed\topen\t2026-06-28\tgeneral\tBefore\t0\tJPY\tseed\n' >"$issue_existing_bqn/issues.tsv"
 ./tools/edit-bqn --base "$issue_existing_bqn" issue add \
-  --date 2026-06-29 \
-  --status resolved \
-  --title "edit-bqn issue existing" \
-  --amount 302 \
-  --memo "existing file" \
-  --yes 
-if ! find "$issue_existing_bqn/.backup" -type f -name 'issues.tsv*' | grep -q .; then
-  echo "FAIL: tools/edit-bqn issue add existing-file did not create an issues backup" >&2
-  exit 1
-fi
+  --date 2026-06-29 --status resolved --title "edit-bqn issue existing" --amount 302 --memo "existing file" --yes
+find "$issue_existing_bqn/.backup" -type f -name 'issues.tsv*' | grep -q .
 
 for issue_case in invalid-status missing-title invalid-amount title-tab memo-newline; do
-  issue_neg_bqn="$tmp_root/issue-neg-${issue_case}-bqn"
-  cp -R data "$issue_neg_bqn"
+  base="$tmp_root/issue-neg-$issue_case"; cp -R data "$base"
   case "$issue_case" in
-    invalid-status) issue_args=(issue add --date 2026-06-29 --status bad --title "bad status" --yes) ;;
-    missing-title) issue_args=(issue add --date 2026-06-29 --amount 1 --yes) ;;
-    invalid-amount) issue_args=(issue add --date 2026-06-29 --title "bad amount" --amount 1.2 --yes) ;;
-    title-tab) issue_args=(issue add --date 2026-06-29 --title $'bad\ttitle' --yes) ;;
-    memo-newline) issue_args=(issue add --date 2026-06-29 --title "bad memo" --memo $'bad\nmemo' --yes) ;;
+    invalid-status) args=(issue add --date 2026-06-29 --status bad --title "bad status" --yes) ;;
+    missing-title) args=(issue add --date 2026-06-29 --amount 1 --yes) ;;
+    invalid-amount) args=(issue add --date 2026-06-29 --title "bad amount" --amount 1.2 --yes) ;;
+    title-tab) args=(issue add --date 2026-06-29 --title $'bad\ttitle' --yes) ;;
+    memo-newline) args=(issue add --date 2026-06-29 --title "bad memo" --memo $'bad\nmemo' --yes) ;;
   esac
-  set +e
-  ./tools/edit-bqn --base "$issue_neg_bqn" "${issue_args[@]}" >"$tmp_root/issue-neg-${issue_case}-bqn.out" 2>&1
-  bqn_rc=$?
-  set -e
-  if [[ "$bqn_rc" -eq 0 ]]; then
-    echo "FAIL: issue negative case was accepted: $issue_case (bqn=$bqn_rc)" >&2
-    exit 1
+  if ./tools/edit-bqn --base "$base" "${args[@]}" >"$tmp_root/$issue_case.out" 2>&1; then
+    echo "FAIL: Issue negative case accepted: $issue_case" >&2; exit 1
   fi
-  if [[ -e "$issue_neg_bqn/issues.tsv" ]]; then
-    echo "FAIL: issue negative case created issues.tsv: $issue_case" >&2
-    exit 1
-  fi
-  assert_no_backup "$issue_neg_bqn" "tools/edit-bqn issue negative case $issue_case"
+  [[ ! -e "$base/issues.tsv" ]]
+  assert_no_backup "$base" "Issue negative case $issue_case"
 done
 
-echo "OK: tools/edit-bqn budget/issue add checks passed" >&2
+echo 'OK: tools/edit-bqn Issue add checks passed' >&2

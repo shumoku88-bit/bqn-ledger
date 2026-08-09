@@ -7,7 +7,7 @@ registry_core ← •Import "../src/ledger/currency_registry.bqn"
 budgetPolicyAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
 householdAdmission ← •Import "../src/ledger/household_policy_admission.bqn"
 account_admission ← •Import "../src/ledger/account_admission.bqn"
-companion_snapshot ← •Import "../src/ledger/companion_snapshot.bqn"
+canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 monthly ← •Import "../src/accounting/month_category_flow.bqn"
 pivot ← •Import "../src/accounting/sparse_pivot.bqn"
@@ -38,14 +38,14 @@ accountLines ← ⟨
   "budget:food	role=budget	currency=JPY"
 ⟩
 accounts ← (account_admission.Admit ⟨accountLines,registry⟩).accounts
-planLines ← ⟨
-  "2026-01-10	jan-food	assets:cash	expenses:food	10	currency=JPY	plan_id=p1",
-  "2026-01-12	jan-other	assets:cash	expenses:transport	5	currency=JPY	plan_id=p2",
-  "2026-02-05	feb-food-whole	assets:cash	expenses:food	20	currency=JPY	plan_id=p3",
-  "2026-02-06	feb-food-fraction	assets:cash	expenses:food	2.50	currency=JPY	plan_id=p4",
-  "2026-02-07	feb-other	assets:cash	expenses:transport	7	currency=JPY	plan_id=p5"
+planRaw ← ∾{𝕩∾@+10}¨⟨
+  "2026-01-10 jan-food","  ; plan-id: p1","  expenses:food 10 JPY","  assets:cash -10 JPY","",
+  "2026-01-12 jan-other","  ; plan-id: p2","  expenses:transport 5 JPY","  assets:cash -5 JPY","",
+  "2026-02-05 feb-food-whole","  ; plan-id: p3","  expenses:food 20 JPY","  assets:cash -20 JPY","",
+  "2026-02-06 feb-food-fraction","  ; plan-id: p4","  expenses:food 2.50 JPY","  assets:cash -2.50 JPY","",
+  "2026-02-07 feb-other","  ; plan-id: p5","  expenses:transport 7 JPY","  assets:cash -7 JPY"
 ⟩
-planFacts ← (companion_snapshot.Build ⟨planLines,⟨⟩,accounts,registry⟩).plan
+planFacts ← (canonicalPlan.Build ⟨planRaw,accounts,registry⟩).facts
 planBudgetPolicy ← {
   state⇐"ok",source_name⇐"budget.toml",envelopes⇐{count⇐1,id⇐⟨"food"⟩},
   expense_account_index⇐⟨1⟩,expense_envelope_id⇐⟨"food"⟩

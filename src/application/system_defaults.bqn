@@ -15,7 +15,6 @@ Load ← {𝕊:
     DefaultBaseDir⇐{𝕊:Required "DEFAULT_BASE_DIR"},
     DefaultAccountsFile⇐{𝕊:Required "DEFAULT_ACCOUNTS_FILE"},
     DefaultPlanFile⇐{𝕊:Required "DEFAULT_PLAN_FILE"},
-    DefaultBudgetAllocFile⇐{𝕊:Required "DEFAULT_BUDGET_ALLOC_FILE"},
     DefaultCycleFile⇐{𝕊:Required "DEFAULT_CYCLE_FILE"},
     DefaultConfigFile⇐{𝕊:Required "DEFAULT_CONFIG_FILE"}
   }
