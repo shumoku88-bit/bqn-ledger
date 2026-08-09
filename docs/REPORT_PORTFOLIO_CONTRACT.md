@@ -256,12 +256,13 @@ The result retains funding Account contributors, Budget entitlement contributors
 
 The implemented contract in `PLANNED_PAYMENTS_SECTION.md` remains selected:
 
-- strict cycle selection and explicit latest-or-start observation;
-- durable `plan_id` only;
-- `future / due / overdue / completed`;
+- unpaid Plan projection only (completed Plans excluded from result);
+- date-ordered Plan selection & full-evidence Actual completion join;
+- temporal classification (`overdue`, `current_cycle`, `future_cycles`);
+- as-of relative status (`future / due / overdue`);
 - duplicate/ambiguous completion refusal;
-- exact single-domain open total;
-- human/compact/JSON from one result.
+- exact single-domain group totals (`current_cycle_total`, `due_through_cycle_total`, `overdue_total`, `future_cycles_total`);
+- human/compact/JSON from one open-only result.
 
 Its final key remains `planned`; destination compact prefix remains `ledger_planned_payment`.
 

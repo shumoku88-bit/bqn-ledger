@@ -1,6 +1,6 @@
 # Destination Planned Payments section
 
-Status: Phase 3I destination section proof
+Status: Phase 3I destination section proof (updated: unpaid Plan projection)
 
 Owner: `src/sections/planned_payments.bqn`
 
@@ -18,10 +18,12 @@ explicit as-of
 It composes:
 
 ```text
-half-open Plan/Actual Transaction selection
+all-Plan date-ordered selection & all-Actual completion selection
   → durable Plan completion Join
-  → section-local temporal state and total
-  → one List result
+  → exclude completed Plans from section semantic result
+  → temporal classification (overdue / current_cycle / future_cycles)
+  → exact totals (current_cycle_total, due_through_cycle_total, overdue_total, future_cycles_total)
+  → open-only List result
   → human / compact / JSON renderers
 ```
 
@@ -29,30 +31,38 @@ There is no source path, I/O, clock, report context, Cube/TBDS, raw TSV row, or 
 
 ## Selection and observation
 
-Plan and Actual Transactions are independently selected inside `[cycle.start, cycle.end_exclusive)`. Plan rows are sorted by date before the Join. Equal-date source order remains deterministic.
+Plan Transactions across all periods are selected and sorted by date before the Join. Actual Transactions across all admitted Actual evidence are selected for completion matching to prevent false-positive open status for previously or future paid Plans. Equal-date source order remains deterministic.
 
 The explicit section observation must equal:
 
-- the latest selected Actual Transaction date; or
-- cycle start when selected Actual is empty.
+- the latest selected Actual Transaction date in the current cycle; or
+- cycle start when selected Actual in current cycle is empty.
 
 A caller cannot substitute hidden today or a report-wide fallback date. Invalid/mismatched observation fails closed with no rows or total.
 
 ## Relationship policy
 
-Only Join rows in `open` or `completed` state are renderable.
+Only Join rows in `open` state are included in the section result. Completed Plans are verified for currency and direction agreement, then excluded from the open Planned Payments projection.
 
 - `duplicate` completion evidence is rejected as `completion_duplicate`;
 - conflicting evidence is rejected as `completion_ambiguous`;
 - completed currency mismatch is rejected;
 - completed Account-direction mismatch is rejected;
-- multiple selected Plan currency domains are rejected before computing one naked total.
+- multiple selected open Plan currency domains are rejected before computing exact totals.
 
-The section never sums multiple Actual completion transactions. It preserves source-qualified Plan/Actual Transaction references and Posting contributors in the result.
+The section never sums multiple Actual completion transactions. It preserves source-qualified Plan Transaction references and Posting contributors in the result.
 
-## Temporal state
+## Temporal classification and status
 
-Open Plan rows are classified against explicit as-of:
+Open Plan rows are classified into three time groups relative to the current cycle boundaries:
+
+```text
+plan date < cycle.start                 → overdue (期限超過の未払い)
+cycle.start <= plan date < cycle.end    → current_cycle (今サイクルの未払い)
+plan date >= cycle.end                  → future_cycles (サイクル外の予定)
+```
+
+Each row also carries an as-of-relative status label:
 
 ```text
 plan date < as-of  → overdue
@@ -60,11 +70,15 @@ plan date = as-of  → due
 plan date > as-of  → future
 ```
 
-A valid single completion is `completed`. These are section display states, not generic accounting states.
-
 ## Exact amounts and totals
 
-Every row retains its own admitted coefficient and scale. Open Plan amounts normalize to the highest selected open scale and use checked exact summation. Different currency domains are never normalized or added together.
+Every open row retains its own admitted coefficient and scale. Open Plan amounts normalize to the highest selected open scale and use checked exact summation. Different currency domains are never normalized or added together.
+
+Explicit totals are provided for:
+- `current_cycle_total` (unpaid total for the current cycle)
+- `due_through_cycle_total` (overdue past + current cycle unpaid)
+- `overdue_total` (overdue past unpaid)
+- `future_cycles_total` (future cycles unpaid)
 
 Human/compact/JSON rendering occurs from the same section result. JSON numbers are emitted from exact decimal text, not binary-float conversion.
 
@@ -79,14 +93,14 @@ Existing `income:`, `expenses:`, and `liabilities:` prefixes are shortened only 
 
 ## Output contracts
 
-Human and JSON preserve current strict-fixture semantics and schema. Compact performs the approved atomic generation-name cleanup in its destination golden:
+Human, compact, and JSON express the same open-only projection. Human displays grouped subsections (`── 期限超過の未払い ──`, `── 今サイクルの未払い ──`, `── サイクル外の予定 ──`) and removes the completed section and status legend entry. Compact emits open planned payments with `ledger_planned_payment:` prefix:
 
 ```text
 --- Ledger Planned Payments ---
-ledger_planned_payment: ...
+ledger_planned_payment: ... planned ...
 ```
 
-No `retired_planned_payment` alias is emitted by the destination renderer. Production compact routing uses only the final `ledger_*` keys.
+No `retired_planned_payment` alias or completed (`paid`) rows are emitted by the destination renderer.
 
 Goldens:
 
@@ -98,11 +112,12 @@ Goldens:
 
 `tests/test_section_planned_payments.bqn` proves:
 
-- strict public completed row with planned `25` and Actual `20`;
+- exclusion of completed current-cycle and past-cycle Plans from Planned Payments;
+- multi-timegroup classification (overdue, current_cycle, future_cycles);
 - exact source-qualified Transaction and Posting provenance;
 - deterministic human/compact/JSON output;
 - empty Plan output;
-- overdue/due/future state and exact open total;
+- overdue/due/future as-of status and exact group totals;
 - observation mismatch fail-closed;
 - duplicate completion refusal with no partial rows.
 

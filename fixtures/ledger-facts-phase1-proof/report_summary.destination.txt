@@ -22,7 +22,7 @@ ledger_recent_journal: 2026-01-10	JPY	20	assets:cash	expenses:food	completed foo
 ledger_recent_journal: 2026-01-02	JPY	1000	income:salary	assets:cash	salary
 --- Ledger Planned Payments ---
 ledger_planned_payment: 2026-01-15 planned rent assets:cash expenses:food 200
-ledger_planned_payment: 2026-01-20 paid food-plan assets:cash expenses:food 25
+ledger_planned_payment: 2026-02-01 planned next-income income:salary assets:cash 1000
 --- Ledger Daily Target ---
 ledger_daily_target_status: ok
 ledger_daily_target_eligible_assets: 965

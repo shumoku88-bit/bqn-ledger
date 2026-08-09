@@ -1,5 +1,6 @@
 # Destination Planned Payments List result and human/compact/JSON renderers.
-# This section owns period selection, observation, temporal labels, totals, and presentation.
+# This section owns selection, observation, temporal classification, totals, and presentation.
+# Completed Plans are excluded from the section semantic result.
 
 completion ← •Import "../accounting/plan_completion_join.bqn"
 reference ← •Import "../accounting/fact_reference.bqn"
@@ -23,19 +24,21 @@ Diagnostic ← {𝕊 codeText‿messageText:
 AddIf ← {𝕊 invalid‿diagnostic: invalid/⟨diagnostic⟩}
 EmptyRows ← {𝕊:
   {
-    count⇐0,index⇐empty,status⇐empty,date⇐empty,category⇐empty,memo⇐empty,plan_id⇐empty,
+    count⇐0,index⇐empty,status⇐empty,time_group⇐empty,date⇐empty,category⇐empty,memo⇐empty,plan_id⇐empty,
     currency⇐empty,planned_coefficient⇐empty,planned_scale⇐empty,
-    actual_coefficient⇐empty,actual_scale⇐empty,
     from_account⇐empty,to_account⇐empty,
-    plan_reference⇐empty,actual_reference⇐empty,
-    planned_contributors⇐empty,actual_contributors⇐empty
+    plan_reference⇐empty,planned_contributors⇐empty
   }
 }
 EmptyResult ← {𝕊 diagnosticsValue:
   {
     state⇐"error",period_start⇐"",period_end_exclusive⇐"",as_of⇐"",currency⇐"",
-    rows⇐EmptyRows @,open_indices⇐empty,completed_indices⇐empty,
-    open_total_coefficient⇐empty,open_total_scale⇐empty,diagnostics⇐diagnosticsValue
+    rows⇐EmptyRows @,overdue_indices⇐empty,current_cycle_indices⇐empty,future_cycle_indices⇐empty,
+    overdue_total_coefficient⇐empty,overdue_total_scale⇐empty,
+    current_cycle_total_coefficient⇐empty,current_cycle_total_scale⇐empty,
+    due_through_cycle_total_coefficient⇐empty,due_through_cycle_total_scale⇐empty,
+    future_cycles_total_coefficient⇐empty,future_cycles_total_scale⇐empty,
+    diagnostics⇐diagnosticsValue
   }
 }
 StartsWith ← {𝕊 prefix‿value: prefix≡(≠prefix)↑value}
@@ -64,23 +67,21 @@ Build ← {𝕊 planFacts‿actualFacts‿cycle‿asOfText:
     asOfOrdinal ← dates.Ordinal asOfText
     diagnostics ∾↩ AddIf ⟨asOfOrdinal<startOrdinal ∨ asOfOrdinal≥endOrdinal,Diagnostic ⟨"observation_out_of_period","as-of must occur inside the cycle"⟩⟩
 
-    planMask ← (planFacts.transactions.date_ordinal≥startOrdinal) ∧ planFacts.transactions.date_ordinal<endOrdinal
-    actualMask ← (actualFacts.transactions.date_ordinal≥startOrdinal) ∧ actualFacts.transactions.date_ordinal<endOrdinal
-    planSelection ← planMask/planFacts.transactions.index
-    planDates ← planMask/planFacts.transactions.date_ordinal
-    planSelection ↩ (⍋planDates)⊏planSelection
-    actualSelection ← actualMask/actualFacts.transactions.index
+    currentCycleActualMask ← (actualFacts.transactions.date_ordinal≥startOrdinal) ∧ actualFacts.transactions.date_ordinal<endOrdinal
+    currentCycleActuals ← currentCycleActualMask/actualFacts.transactions.date_ordinal
     expectedAsOf ← startOrdinal
-    {𝕊: expectedAsOf↩⌈´actualMask/actualFacts.transactions.date_ordinal}⍟(0<≠actualSelection) @
+    {𝕊: expectedAsOf↩⌈´currentCycleActuals}⍟(0<≠currentCycleActuals) @
     diagnostics ∾↩ AddIf ⟨asOfOrdinal≠expectedAsOf,Diagnostic ⟨"observation_evidence_mismatch","as-of must equal latest selected Actual date, or cycle start when empty"⟩⟩
+
+    planOrder ← ⍋planFacts.transactions.date_ordinal
+    planSelection ← planOrder⊏planFacts.transactions.index
+    actualSelection ← actualFacts.transactions.index
 
     joined ← completion.Build ⟨planFacts,actualFacts,planSelection,actualSelection⟩
     diagnostics ∾↩ joined.diagnostics
     {𝕊:
       diagnostics ∾↩ AddIf ⟨joined.counts.duplicate>0,Diagnostic ⟨"completion_duplicate","duplicate Actual completion evidence cannot be rendered as paid"⟩⟩
       diagnostics ∾↩ AddIf ⟨joined.counts.ambiguous>0,Diagnostic ⟨"completion_ambiguous","conflicting Actual completion evidence cannot be rendered"⟩⟩
-      selectedCurrencies ← Unique joined.rows.currency
-      diagnostics ∾↩ AddIf ⟨1<≠selectedCurrencies,Diagnostic ⟨"currency_domain_mixed","Planned Payments cannot total multiple currency domains"⟩⟩
 
       candidateRows ← empty
       {𝕊 rowIndex:
@@ -93,79 +94,98 @@ Build ← {𝕊 planFacts‿actualFacts‿cycle‿asOfText:
         }⍟completed @
         diagnostics ∾↩ AddIf ⟨completed ∧ ¬currencyMatch,Diagnostic ⟨"completion_currency_mismatch","completed Plan and Actual currency must agree"⟩⟩
         diagnostics ∾↩ AddIf ⟨completed ∧ ¬directionMatch,Diagnostic ⟨"completion_direction_mismatch","completed Plan and Actual Account directions must agree"⟩⟩
+
         {𝕊:
           planTransactionIndex ← rowIndex⊑joined.rows.plan_transaction_index
           planDate ← rowIndex⊑joined.rows.plan_date
-          temporalStatus ← "completed"
-          {𝕊:
-            planOrdinal ← dates.Ordinal planDate
-            temporalStatus↩"overdue"
-            {𝕊: temporalStatus↩"due"}⍟(planOrdinal=asOfOrdinal) @
-            {𝕊: temporalStatus↩"future"}⍟(planOrdinal>asOfOrdinal) @
-          }⍟(¬completed) @
+          planOrdinal ← dates.Ordinal planDate
+          timeGroup ← "current_cycle"
+          {𝕊: timeGroup↩"overdue"}⍟(planOrdinal<startOrdinal) @
+          {𝕊: timeGroup↩"future_cycles"}⍟(planOrdinal≥endOrdinal) @
+
+          temporalStatus ← "overdue"
+          {𝕊: temporalStatus↩"due"}⍟(planOrdinal=asOfOrdinal) @
+          {𝕊: temporalStatus↩"future"}⍟(planOrdinal>asOfOrdinal) @
+
           fromAccount ← rowIndex⊑joined.rows.planned_from_account
           toAccount ← rowIndex⊑joined.rows.planned_to_account
           fromIndex ← IndexOf ⟨fromAccount,planFacts.accounts.key⟩
           categoryAccount ← toAccount
           {𝕊: categoryAccount↩fromAccount}⍟((fromIndex⊑planFacts.accounts.role)≡"income") @
           categoryIndex ← IndexOf ⟨categoryAccount,planFacts.accounts.key⟩
-          actualCoefficient ← empty ⋄ actualScale ← empty ⋄ actualReference ← empty ⋄ actualContributors ← empty
-          {𝕊:
-            actualCoefficient↩⊑rowIndex⊑joined.rows.actual_coefficients
-            actualScale↩⊑rowIndex⊑joined.rows.actual_scales
-            actualReference↩⊑rowIndex⊑joined.rows.actual_references
-            actualContributors↩(⊑rowIndex⊑joined.rows.actual_debit_contributors)∾⊑rowIndex⊑joined.rows.actual_credit_contributors
-          }⍟completed @
+
           candidateRows∾↩⟨{
-            status⇐temporalStatus,date⇐planDate,
+            status⇐temporalStatus,time_group⇐timeGroup,date⇐planDate,
             category⇐CategoryLabel ⟨categoryAccount,categoryIndex⊑planFacts.accounts.role⟩,
             memo⇐planTransactionIndex⊑planFacts.transactions.description,
             plan_id⇐rowIndex⊑joined.rows.plan_id,currency⇐rowIndex⊑joined.rows.currency,
             planned_coefficient⇐rowIndex⊑joined.rows.planned_coefficient,
             planned_scale⇐rowIndex⊑joined.rows.planned_scale,
-            actual_coefficient⇐actualCoefficient,actual_scale⇐actualScale,
             from_account⇐fromAccount,to_account⇐toAccount,
-            plan_reference⇐rowIndex⊑joined.rows.plan_reference,actual_reference⇐actualReference,
-            planned_contributors⇐(rowIndex⊑joined.rows.planned_debit_contributors)∾rowIndex⊑joined.rows.planned_credit_contributors,
-            actual_contributors⇐actualContributors
+            plan_reference⇐rowIndex⊑joined.rows.plan_reference,
+            planned_contributors⇐(rowIndex⊑joined.rows.planned_debit_contributors)∾rowIndex⊑joined.rows.planned_credit_contributors
           }⟩
-        }⍟((relationStatus≡"open") ∨ completed) @
+        }⍟(relationStatus≡"open") @
       }¨joined.rows.index
 
       {𝕊:
-        statuses ← {𝕩.status}¨candidateRows
-        openIndices ← (¬"completed"⊸≡¨statuses)/↕≠candidateRows
-        completedIndices ← ("completed"⊸≡¨statuses)/↕≠candidateRows
-        openScales ← openIndices⊏{𝕩.planned_scale}¨candidateRows
-        openTotalScale ← 0
-        {𝕊: openTotalScale↩⌈´openScales}⍟(0<≠openScales) @
-        normalized ← {𝕊 i: scale.Normalize ⟨(i⊑candidateRows).planned_coefficient,(i⊑candidateRows).planned_scale,openTotalScale⟩}¨openIndices
-        normalizedOk ← ∧´1∾{𝕩.state≡"ok"}¨normalized
-        diagnostics ∾↩ AddIf ⟨¬normalizedOk,Diagnostic ⟨"open_total_normalization_failed","open Plan amounts cannot normalize exactly"⟩⟩
-        {𝕊:
-          openTotal ← scale.Sum {𝕩.coefficient}¨normalized
-          diagnostics ∾↩ AddIf ⟨openTotal.state≢"ok",Diagnostic ⟨"open_total_sum_failed","open Plan total exceeds exact range"⟩⟩
+        selectedCurrencies ← Unique {𝕩.currency}¨candidateRows
+        diagnostics ∾↩ AddIf ⟨1<≠selectedCurrencies,Diagnostic ⟨"currency_domain_mixed","Planned Payments cannot total multiple currency domains"⟩⟩
+        resultCurrency ← ""
+        {𝕊: resultCurrency↩⊑selectedCurrencies}⍟(0<≠selectedCurrencies) @
+
+        overdueIndices ← ("overdue"⊸≡¨{𝕩.time_group}¨candidateRows)/↕≠candidateRows
+        currentCycleIndices ← ("current_cycle"⊸≡¨{𝕩.time_group}¨candidateRows)/↕≠candidateRows
+        futureCycleIndices ← ("future_cycles"⊸≡¨{𝕩.time_group}¨candidateRows)/↕≠candidateRows
+        dueThroughIndices ← overdueIndices∾currentCycleIndices
+
+        SumGroup ← {𝕊 indices:
+          count ← ≠indices
+          res ← {count⇐0,coef⇐0,scale⇐0,ok⇐1}
           {𝕊:
-            rows ← {
-              count⇐≠candidateRows,index⇐↕≠candidateRows,status⇐statuses,
-              date⇐{𝕩.date}¨candidateRows,category⇐{𝕩.category}¨candidateRows,memo⇐{𝕩.memo}¨candidateRows,
-              plan_id⇐{𝕩.plan_id}¨candidateRows,currency⇐{𝕩.currency}¨candidateRows,
-              planned_coefficient⇐{𝕩.planned_coefficient}¨candidateRows,planned_scale⇐{𝕩.planned_scale}¨candidateRows,
-              actual_coefficient⇐{𝕩.actual_coefficient}¨candidateRows,actual_scale⇐{𝕩.actual_scale}¨candidateRows,
-              from_account⇐{𝕩.from_account}¨candidateRows,to_account⇐{𝕩.to_account}¨candidateRows,
-              plan_reference⇐{𝕩.plan_reference}¨candidateRows,actual_reference⇐{𝕩.actual_reference}¨candidateRows,
-              planned_contributors⇐{𝕩.planned_contributors}¨candidateRows,actual_contributors⇐{𝕩.actual_contributors}¨candidateRows
-            }
-            resultCurrency ← ""
-            {𝕊: resultCurrency↩⊑selectedCurrencies}⍟(0<≠selectedCurrencies) @
-            result↩{
-              state⇐"ok",period_start⇐cycle.start,period_end_exclusive⇐cycle.end_exclusive,as_of⇐asOfText,
-              currency⇐resultCurrency,
-              rows⇐rows,open_indices⇐openIndices,completed_indices⇐completedIndices,
-              open_total_coefficient⇐openTotal.coefficient,open_total_scale⇐openTotalScale,diagnostics⇐empty
-            }
-          }⍟(openTotal.state≡"ok") @
-        }⍟normalizedOk @
+            scales ← indices⊏{𝕩.planned_scale}¨candidateRows
+            maxScale ← ⌈´scales
+            norm ← {scale.Normalize ⟨(𝕩⊑candidateRows).planned_coefficient,(𝕩⊑candidateRows).planned_scale,maxScale⟩}¨indices
+            allNormOk ← ∧´1∾{𝕩.state≡"ok"}¨norm
+            res ↩ {count⇐count,coef⇐0,scale⇐maxScale,ok⇐0}
+            {𝕊:
+              s ← scale.Sum {𝕩.coefficient}¨norm
+              res ↩ {count⇐count,coef⇐s.coefficient,scale⇐maxScale,ok⇐(s.state≡"ok")}
+            }⍟allNormOk @
+          }⍟(0<count) @
+          res
+        }
+
+        overdueSum ← SumGroup overdueIndices
+        currentCycleSum ← SumGroup currentCycleIndices
+        dueThroughSum ← SumGroup dueThroughIndices
+        futureCyclesSum ← SumGroup futureCycleIndices
+
+        totalsOk ← overdueSum.ok ∧ currentCycleSum.ok ∧ dueThroughSum.ok ∧ futureCyclesSum.ok
+        diagnostics ∾↩ AddIf ⟨¬totalsOk,Diagnostic ⟨"total_sum_failed","open Plan total computation failed"⟩⟩
+
+        {𝕊:
+          rows ← {
+            count⇐≠candidateRows,index⇐↕≠candidateRows,
+            status⇐{𝕩.status}¨candidateRows,time_group⇐{𝕩.time_group}¨candidateRows,
+            date⇐{𝕩.date}¨candidateRows,category⇐{𝕩.category}¨candidateRows,memo⇐{𝕩.memo}¨candidateRows,
+            plan_id⇐{𝕩.plan_id}¨candidateRows,currency⇐{𝕩.currency}¨candidateRows,
+            planned_coefficient⇐{𝕩.planned_coefficient}¨candidateRows,planned_scale⇐{𝕩.planned_scale}¨candidateRows,
+            from_account⇐{𝕩.from_account}¨candidateRows,to_account⇐{𝕩.to_account}¨candidateRows,
+            plan_reference⇐{𝕩.plan_reference}¨candidateRows,planned_contributors⇐{𝕩.planned_contributors}¨candidateRows
+          }
+          result↩{
+            state⇐"ok",period_start⇐cycle.start,period_end_exclusive⇐cycle.end_exclusive,as_of⇐asOfText,
+            currency⇐resultCurrency,
+            rows⇐rows,
+            overdue_indices⇐overdueIndices,current_cycle_indices⇐currentCycleIndices,future_cycle_indices⇐futureCycleIndices,
+            overdue_total_coefficient⇐overdueSum.coef,overdue_total_scale⇐overdueSum.scale,
+            current_cycle_total_coefficient⇐currentCycleSum.coef,current_cycle_total_scale⇐currentCycleSum.scale,
+            due_through_cycle_total_coefficient⇐dueThroughSum.coef,due_through_cycle_total_scale⇐dueThroughSum.scale,
+            future_cycles_total_coefficient⇐futureCyclesSum.coef,future_cycles_total_scale⇐futureCyclesSum.scale,
+            diagnostics⇐empty
+          }
+        }⍟totalsOk @
       }⍟(0=≠diagnostics) @
     }⍟(joined.state≡"ok") @
   }⍟((cycle.state≡"ok") ∧ asOfValid ∧ planFactsOk ∧ actualFactsOk) @
@@ -175,35 +195,44 @@ Build ← {𝕊 planFacts‿actualFacts‿cycle‿asOfText:
 
 AmountText ← {𝕊 coefficient‿scaleValue: amount.Format ⟨coefficient,scaleValue⟩}
 FormatHuman ← {𝕊 result:
-  openRows ← {𝕊 index:
-    ⟨index⊑result.rows.date,index⊑result.rows.category,index⊑result.rows.memo,
-      AmountText ⟨index⊑result.rows.planned_coefficient,index⊑result.rows.planned_scale⟩,
-      index⊑result.rows.status⟩
-  }¨result.open_indices
-  completedRows ← {𝕊 index:
-    ⟨index⊑result.rows.date,index⊑result.rows.category,index⊑result.rows.memo,
-      AmountText ⟨index⊑result.rows.planned_coefficient,index⊑result.rows.planned_scale⟩,
-      AmountText ⟨index⊑result.rows.actual_coefficient,index⊑result.rows.actual_scale⟩⟩
-  }¨result.completed_indices
   out ← "== Planned Payments =="∾(@+10)∾(@+10)
-  out ∾↩ "── 未了 ──"∾(@+10)
-  out ∾↩ text.RenderTable ⟨⟨"Date","Category","Memo","Amount","Status"⟩,openRows,⟨3⟩⟩
-  out ∾↩ (@+10)∾"未了合計: "∾(AmountText ⟨result.open_total_coefficient,result.open_total_scale⟩)∾(@+10)∾(@+10)
-  out ∾↩ "── 完了 ──"∾(@+10)
-  out ∾↩ text.RenderTable ⟨⟨"Date","Category","Memo","Planned","Actual"⟩,completedRows,⟨3,4⟩⟩
-  out ∾↩ (@+10)∾"[Status]"∾(@+10)
+  {𝕊:
+    overdueRows ← {
+      ⟨𝕩⊑result.rows.date,𝕩⊑result.rows.category,𝕩⊑result.rows.memo,
+        AmountText ⟨𝕩⊑result.rows.planned_coefficient,𝕩⊑result.rows.planned_scale⟩,
+        𝕩⊑result.rows.status⟩
+    }¨result.overdue_indices
+    out ∾↩ "── 期限超過の未払い ──"∾(@+10)
+    out ∾↩ text.RenderTable ⟨⟨"Date","Category","Memo","Amount","Status"⟩,overdueRows,⟨3⟩⟩
+    out ∾↩ (@+10)
+  }⍟(0<≠result.overdue_indices) @
+  currentCycleRows ← {
+    ⟨𝕩⊑result.rows.date,𝕩⊑result.rows.category,𝕩⊑result.rows.memo,
+      AmountText ⟨𝕩⊑result.rows.planned_coefficient,𝕩⊑result.rows.planned_scale⟩,
+      𝕩⊑result.rows.status⟩
+  }¨result.current_cycle_indices
+  out ∾↩ "── 今サイクルの未払い ──"∾(@+10)
+  out ∾↩ text.RenderTable ⟨⟨"Date","Category","Memo","Amount","Status"⟩,currentCycleRows,⟨3⟩⟩
+  out ∾↩ (@+10)∾"今サイクル未払い合計: "∾(AmountText ⟨result.current_cycle_total_coefficient,result.current_cycle_total_scale⟩)∾(@+10)
+  {𝕊:
+    out ∾↩ (@+10)∾"── サイクル外の予定 ──"∾(@+10)
+    futureCycleRows ← {
+      ⟨𝕩⊑result.rows.date,𝕩⊑result.rows.category,𝕩⊑result.rows.memo,
+        AmountText ⟨𝕩⊑result.rows.planned_coefficient,𝕩⊑result.rows.planned_scale⟩⟩
+    }¨result.future_cycle_indices
+    out ∾↩ text.RenderTable ⟨⟨"Date","Category","Memo","Amount"⟩,futureCycleRows,⟨3⟩⟩
+  }⍟(0<≠result.future_cycle_indices) @
+  out ∾↩ (@+10)∾(@+10)∾"[Status]"∾(@+10)
   out ∾↩ "future  : これから"∾(@+10)
   out ∾↩ "due     : 今日が期限"∾(@+10)
-  out ∾↩ "overdue : 期限超過 ⚠"∾(@+10)
-  out ∾↩ "completed : 支払い済み"∾(@+10)∾(@+10)
+  out ∾↩ "overdue : 期限超過 ⚠"∾(@+10)∾(@+10)
   out
 }
 
 FormatCompact ← {𝕊 result:
   out ← "--- Ledger Planned Payments ---"∾(@+10)
   {𝕊 index:
-    machineStatus ← ((index⊑result.rows.status)≡"completed")⊑"planned"‿"paid"
-    out ∾↩ "ledger_planned_payment: "∾(index⊑result.rows.date)∾" "∾machineStatus∾" "
+    out ∾↩ "ledger_planned_payment: "∾(index⊑result.rows.date)∾" planned "
     out ∾↩ (index⊑result.rows.memo)∾" "∾(index⊑result.rows.from_account)∾" "∾(index⊑result.rows.to_account)∾" "
     out ∾↩ (AmountText ⟨index⊑result.rows.planned_coefficient,index⊑result.rows.planned_scale⟩)∾(@+10)
   }¨result.rows.index
@@ -212,33 +241,24 @@ FormatCompact ← {𝕊 result:
 }
 
 FormatJson ← {𝕊 result:
-  OpenItem ← {𝕊 index:
+  Item ← {𝕊 index:
     json.Object ⟨
       json.Pair ⟨"date",json.String index⊑result.rows.date⟩,
       json.Pair ⟨"category",json.String index⊑result.rows.category⟩,
       json.Pair ⟨"memo",json.String index⊑result.rows.memo⟩,
       json.Pair ⟨"amount",json.ExactNumber ⟨index⊑result.rows.planned_coefficient,index⊑result.rows.planned_scale⟩⟩,
       json.Pair ⟨"status",json.String index⊑result.rows.status⟩,
+      json.Pair ⟨"time_group",json.String index⊑result.rows.time_group⟩,
       json.Pair ⟨"plan_id",json.String index⊑result.rows.plan_id⟩
     ⟩
   }
-  CompletedItem ← {𝕊 index:
-    json.Object ⟨
-      json.Pair ⟨"date",json.String index⊑result.rows.date⟩,
-      json.Pair ⟨"category",json.String index⊑result.rows.category⟩,
-      json.Pair ⟨"memo",json.String index⊑result.rows.memo⟩,
-      json.Pair ⟨"amount",json.ExactNumber ⟨index⊑result.rows.planned_coefficient,index⊑result.rows.planned_scale⟩⟩,
-      json.Pair ⟨"actual_amount",json.ExactNumber ⟨index⊑result.rows.actual_coefficient,index⊑result.rows.actual_scale⟩⟩,
-      json.Pair ⟨"status",json.String "completed"⟩,
-      json.Pair ⟨"plan_id",json.String index⊑result.rows.plan_id⟩
-    ⟩
-  }
-  openItems ← OpenItem¨result.open_indices
-  completedItems ← CompletedItem¨result.completed_indices
+  openItems ← Item¨result.rows.index
   json.Object ⟨
     json.Pair ⟨"open_items",json.Array openItems⟩,
-    json.Pair ⟨"open_total",json.ExactNumber ⟨result.open_total_coefficient,result.open_total_scale⟩⟩,
-    json.Pair ⟨"completed_items",json.Array completedItems⟩
+    json.Pair ⟨"current_cycle_total",json.ExactNumber ⟨result.current_cycle_total_coefficient,result.current_cycle_total_scale⟩⟩,
+    json.Pair ⟨"due_through_cycle_total",json.ExactNumber ⟨result.due_through_cycle_total_coefficient,result.due_through_cycle_total_scale⟩⟩,
+    json.Pair ⟨"overdue_total",json.ExactNumber ⟨result.overdue_total_coefficient,result.overdue_total_scale⟩⟩,
+    json.Pair ⟨"future_cycles_total",json.ExactNumber ⟨result.future_cycles_total_coefficient,result.future_cycles_total_scale⟩⟩
   ⟩
 }
 

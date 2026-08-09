@@ -1,20 +1,20 @@
 == Planned Payments ==
 
-── 未了 ──
+── 今サイクルの未払い ──
 Date       | Category | Memo | Amount | Status
 -----------+----------+------+--------+-------
 2026-01-15 | food     | rent |    200 | future
 
-未了合計: 200
+今サイクル未払い合計: 200
 
-── 完了 ──
-Date       | Category | Memo      | Planned | Actual
------------+----------+-----------+---------+-------
-2026-01-20 | food     | food-plan |      25 |     20
+── サイクル外の予定 ──
+Date       | Category | Memo        | Amount
+-----------+----------+-------------+-------
+2026-02-01 | salary   | next-income |   1000
+
 
 [Status]
 future  : これから
 due     : 今日が期限
 overdue : 期限超過 ⚠
-completed : 支払い済み
 
