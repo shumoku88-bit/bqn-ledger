@@ -23,9 +23,10 @@ Exit: revise if the production write-path ownership changes.
 ## Editor architecture
 
 ### `tools/add-ui.sh`
-- Responsible for user interaction, mode selection, fzf / gum / numbered fallback, text input, and account selection.
+- Responsible for current user interaction, mode selection, optional fzf / gum / numbered adapters, text input, and account selection.
 - Calls `tools/edit`.
-- Does not own TSV write semantics.
+- Does not own Journal/TSV write semantics.
+- Its selector implementation is replaceable; editor intent and machine-readable results must remain usable by a future UI without reproducing BQN validation or shell publication logic.
 
 ### `tools/plan-finish-replenish-ui.sh`
 - Optional interactive helper for the recurring-plan workflow.
@@ -92,12 +93,18 @@ Append-only commands are the lowest-risk path. `plan budget-sync` は journal ac
 
 BQN should be the place where ledger meaning is checked. Shell should be the place where bytes are moved safely.
 
+## UI replaceability
+
+`fzf`, `gum`, and numbered prompts are current delivery choices, not editor architecture. UI modernization may replace or remove one of these adapters after comparing daily usability, dependency cost, preview behavior, cancellation, and failure visibility. Such a change must consume existing typed or machine-readable editor/report surfaces and must not become a second source parser, accounting owner, or writer.
+
+Selector replacement is separate from accounting-kernel simplification. Kernel work should preserve a neutral boundary; UI implementation should be reviewed as its own coherent change when the main queue reaches the relevant command owners, unless a concrete UI defect needs an earlier isolated fix.
+
 ## Acceptance criteria
 
-- `tools/add-ui.sh` continues to work for existing interactive modes.
+- Existing qualified daily operations remain reachable through at least one documented interactive path and through their direct command surfaces.
 - `tools/edit` command compatibility is preserved for daily commands.
 - `tools/check.sh` passes.
-- No source TSV format changes are required.
+- No canonical source format change is required merely to replace a UI adapter.
 - The daily path stays BQN-centered and shell-safe.
 
 ## Language guidance
