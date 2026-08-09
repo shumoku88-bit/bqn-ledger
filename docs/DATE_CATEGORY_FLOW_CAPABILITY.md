@@ -30,6 +30,8 @@ The presentation-neutral result contains:
 - per-date income and net coefficients plus income contributor Posting indices;
 - dynamic category labels and their envelope Account indices;
 - sparse date/category expense groups with exact coefficients and contributor Posting indices;
+- the complete selected-domain Account axis in admitted order;
+- sparse date/Account groups over every selected Posting, aligned to that Account axis;
 - one exact selected-flow scale;
 - fail-closed diagnostics and empty result tables on error.
 
@@ -44,11 +46,13 @@ A sparse group exists when postings contribute to that coordinate, even if their
 - income `1000`, food expenses `20` and `10`, other expense `5`;
 - net values `1000`, `-20`, `-15`;
 - exact contributors: income Posting `1`, food Postings `2`/`4`, other Posting `5`;
+- every JPY Account in admitted order, including zero-posting Budget Accounts;
+- sparse date/Account movement with balancing asset, income, food, and transport Posting contributors;
 - later-period selection;
 - mixed source scales normalized to one exact coefficient scale;
 - unknown domain/layer and invalid period fail closed.
 
-These values match the current public Daily Flow semantics, but this module is not a Daily Flow section and does not own observation/as-of or formatting policy.
+The category fields remain the accounting evidence consumed by Month Category Flow. Daily Flow consumes the aligned date/Account fields so individual Accounts are not collapsed into Envelope categories. This module is not a report section and does not own observation/as-of or formatting policy.
 
 ## Comparison with Account-period grouping
 

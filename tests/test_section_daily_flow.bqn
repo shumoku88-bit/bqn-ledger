@@ -28,19 +28,23 @@ result ← section.Build ⟨accounting,startText,endText,"2026-01-12"⟩
 
 "ok" lib.AssertEq result.state
 0 lib.AssertEq ≠result.diagnostics
-⟨"income","food","other","net"⟩ lib.AssertEq result.column_labels
+⟨
+  "assets:cash/JPY","income:salary/JPY","expenses:food/JPY","expenses:transport/JPY",
+  "budget:opening/JPY","budget:unassigned/JPY","budget:food/JPY","budget:spent/JPY"
+⟩ lib.AssertEq result.column_labels
 ⟨"2026-01-02","2026-01-10","2026-01-12"⟩ lib.AssertEq result.date_text
 ⟨
-  ⟨1000,0,0,1000⟩,
-  ⟨0,20,0,¯20⟩,
-  ⟨0,10,5,¯15⟩
+  ⟨1000,¯1000,0,0,0,0,0,0⟩,
+  ⟨¯20,0,20,0,0,0,0,0⟩,
+  ⟨¯15,0,10,5,0,0,0,0⟩
 ⟩ lib.AssertEq result.matrix.values
-⟨1,2⟩ lib.AssertEq result.expense_column_indices
-⟨1⟩ lib.AssertEq 0⊑0⊑result.matrix.contributors
-⟨1⟩ lib.AssertEq 3⊑0⊑result.matrix.contributors
-⟨2⟩ lib.AssertEq 1⊑1⊑result.matrix.contributors
-⟨2⟩ lib.AssertEq 3⊑1⊑result.matrix.contributors
-⟨4,5⟩ lib.AssertEq 3⊑2⊑result.matrix.contributors
+⟨1,2,3⟩ lib.AssertEq result.inverted_column_indices
+⟨0⟩ lib.AssertEq 0⊑0⊑result.matrix.contributors
+⟨1⟩ lib.AssertEq 1⊑0⊑result.matrix.contributors
+⟨3⟩ lib.AssertEq 0⊑1⊑result.matrix.contributors
+⟨2⟩ lib.AssertEq 2⊑1⊑result.matrix.contributors
+⟨4⟩ lib.AssertEq 2⊑2⊑result.matrix.contributors
+⟨5⟩ lib.AssertEq 3⊑2⊑result.matrix.contributors
 
 syntheticStartText ← "2026-02-01"
 syntheticEndText ← "2026-02-02"
@@ -61,19 +65,32 @@ syntheticFlow ← {
     count⇐1,index⇐⟨0⟩,row_index⇐⟨0⟩,column_index⇐⟨0⟩,
     coefficient⇐⟨4⟩,contributors⇐⟨⟨3,1,3⟩⟩
   },
+  accounts⇐{
+    count⇐3,index⇐↕3,account_index⇐↕3,
+    key⇐⟨"income:work","expenses:food","assets:cash"⟩,
+    role⇐⟨"income","expense","asset"⟩
+  },
+  account_groups⇐{
+    count⇐3,index⇐↕3,row_index⇐3⥊0,column_index⇐↕3,
+    coefficient⇐⟨¯10,4,6⟩,contributors⇐⟨⟨5,1,5⟩,⟨3,1,3⟩,⟨7⟩⟩
+  },
   diagnostics⇐⟨⟩
 }
 deduplicated ← section.Build ⟨syntheticFlow,syntheticStartText,syntheticEndText,syntheticStartText⟩
 "ok" lib.AssertEq deduplicated.state
 ⟨syntheticStartText⟩ lib.AssertEq deduplicated.date_text
-⟨⟨10,4,6⟩⟩ lib.AssertEq deduplicated.matrix.values
+⟨⟨¯10,4,6⟩⟩ lib.AssertEq deduplicated.matrix.values
+⟨0,1⟩ lib.AssertEq deduplicated.inverted_column_indices
 ⟨5,1,5⟩ lib.AssertEq 0⊑0⊑deduplicated.matrix.contributors
 ⟨3,1,3⟩ lib.AssertEq 1⊑0⊑deduplicated.matrix.contributors
-⟨1,3,5⟩ lib.AssertEq 2⊑0⊑deduplicated.matrix.contributors
+⟨7⟩ lib.AssertEq 2⊑0⊑deduplicated.matrix.contributors
 
 human ← section.FormatHuman result
 human lib.AssertEq section.FormatHuman result
 (•FChars "../"∾base∾"daily_flow.destination.human.txt") lib.AssertEq human
+limited ← section.FormatHuman ⟨result,{negative_style⇐"minus",daily_flow_max_date_columns⇐2}⟩
+lib.Assert ∨´"Account                | 2026-01-10 | 2026-01-12"⍷limited
+lib.Assert ¬∨´"Account                | 2026-01-02"⍷limited
 
 emptyFacts ← {
   state⇐facts.state,transactions⇐{
@@ -94,7 +111,7 @@ emptyAccounting ← flow.Build ⟨emptyFacts,budgetPolicy,household,"JPY","actua
 emptyResult ← section.Build ⟨emptyAccounting,startText,endText,startText⟩
 "ok" lib.AssertEq emptyResult.state
 ⟨startText⟩ lib.AssertEq emptyResult.date_text
-⟨⟨0,0,0,0⟩⟩ lib.AssertEq emptyResult.matrix.values
+⟨8⥊0⟩ lib.AssertEq emptyResult.matrix.values
 
 rejected ← section.Build ⟨accounting,startText,endText,"2026-01-11"⟩
 "error" lib.AssertEq rejected.state

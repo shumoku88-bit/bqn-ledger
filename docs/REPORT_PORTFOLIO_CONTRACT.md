@@ -35,7 +35,7 @@ issues
 | `cycle-accounts` | Current-cycle Accounts | Account × measure Matrix | yes | no | no |
 | `cycle-comparison` | Cycle Comparison | Account × comparison Matrix | yes | no | no |
 | `monthly-accounts` | Monthly Accounts | Month × Account Matrix | yes | no | no |
-| `daily-flow` | Daily Flow | Date × dynamic expense category Matrix | yes | no | no |
+| `daily-flow` | Daily Flow | Date × Account Matrix | yes | no | no |
 | `daily-target` | Daily Target | evidence-bearing Card/Projection | yes | yes | no |
 | `issues` | Issues | source-ordered List | yes | no | no |
 
@@ -43,7 +43,7 @@ issues
 
 The catalog is static and source-independent. Listing keys/metadata does not read household sources. Full and cache output iterate this catalog but build one requested result at a time.
 
-Daily Flow answers one bounded question: for explicit Actual period `[start,end_exclusive)` and observation, what income, dynamic expense-category outflow, unmatched `other`, and signed net occurred on each observed date? Category identity comes from admitted Account budget metadata; values retain Posting contributors. Its production surface is human-only.
+Daily Flow answers one bounded question: for explicit Actual period `[start,end_exclusive)` and observation, how did every selected-domain Account move on each observed date? The column axis follows admitted Account order and retains zero-posting Accounts, so specific expense Accounts remain visible instead of disappearing into Budget categories. Semantic cells retain canonical Posting signs and contributors; human presentation reverses income and expense signs so inflow is positive and outflow is negative. Its production surface is human-only.
 
 ## 2. Shared result rules
 
@@ -185,6 +185,22 @@ measure              = signed exact Actual movement in that calendar month
 Input month range is `[first_month,last_month_exclusive)` and is not inferred from “today”. Months with no selected Postings remain explicit zero rows/cells with no contributors. The semantic Matrix includes zero-posting Accounts. Human rendering transposes only presentation; it does not transpose or rebuild the accounting result or contributor coordinates.
 
 P1 intentionally selects movement only. Monthly closing, debit/credit submatrices, role summaries, and YTD cards are not silently bundled. A later concrete consumer may add a separate bounded result after its semantics are reviewed.
+
+## 6A. Daily Flow
+
+### Question
+
+How did every Account move on each observed date in one explicit Actual period?
+
+```text
+semantic row axis    = selected transaction dates, ascending, plus observation when absent
+semantic column axis = all Accounts in selected domain, admitted order
+human row axis       = all Accounts in admitted order
+human column axis    = latest configured number of selected dates, ascending
+measure              = signed exact Actual movement on that date
+```
+
+Zero-posting Accounts remain explicit columns and the observation remains an explicit zero row when no transaction occurs on it. Semantic coefficients keep canonical Posting signs and each occupied cell retains its Posting contributors. Human output transposes the Matrix to Account rows, limits date columns by admitted report presentation policy, and reverses income and expense Account signs only. This preserves the familiar positive-inflow/negative-outflow reading while exposing individual Accounts such as specific purchases. Asset, liability, equity, and Budget Account signs remain canonical.
 
 ## 7. Envelope & Backing
 
