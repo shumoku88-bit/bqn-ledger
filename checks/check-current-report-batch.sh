@@ -51,8 +51,12 @@ cat >>"$base/plan.journal" <<'EOF'
 EOF
 
 build_single_oracle() {
-  local surface=$1 output=$2 request_set
-  request_set="$(bqn src/application/current_report_profile_cli.bqn "$base" "$domain" "$surface" "$latest")"
+  local surface=$1 output=$2 request_set part
+  if ! request_set="$(bqn src/application/current_report_profile_cli.bqn "$base" "$domain" "$surface" "$latest" 2>&1)"; then
+    echo "FAIL: $surface current report profile failed" >&2
+    printf '%s\n' "$request_set" >&2
+    exit 1
+  fi
   printf '%s\n' "$request_set" >"$work/requests.$surface"
   mapfile -t lines <<<"$request_set"
   [[ ${lines[0]:-} == $'key\tsurface\targuments' ]] || {
@@ -62,13 +66,23 @@ build_single_oracle() {
   : >"$output"
   for row in "${lines[@]:1}"; do
     IFS=$'\t' read -r -a fields <<<"$row"
-    ./tools/report "$base" "${fields[@]}" >>"$output"
+    part="$work/oracle-part.$surface.${fields[0]}"
+    if ! ./tools/report "$base" "${fields[@]}" >"$part"; then
+      echo "FAIL: single-report oracle failed for $surface ${fields[0]}" >&2
+      cat "$part" >&2
+      exit 1
+    fi
+    cat "$part" >>"$output"
   done
 }
 
 for surface in human compact json; do
   build_single_oracle "$surface" "$work/oracle.$surface"
-  ./tools/report-all "$base" "$domain" "$surface" "$latest" >"$work/batch.$surface"
+  if ! ./tools/report-all "$base" "$domain" "$surface" "$latest" >"$work/batch.$surface"; then
+    echo "FAIL: production report-all failed for $surface" >&2
+    cat "$work/batch.$surface" >&2
+    exit 1
+  fi
   AssertSame "$surface report-all vs single-report oracle" "$work/oracle.$surface" "$work/batch.$surface"
 done
 
@@ -116,7 +130,11 @@ export BQN_PROBE_COUNT="$count_file"
 export PATH="$probe_bin:$PATH"
 
 : >"$count_file"
-./tools/report-all "$base" "$domain" human "$latest" >/dev/null
+if ! ./tools/report-all "$base" "$domain" human "$latest" >"$work/process-report-all.out"; then
+  echo 'FAIL: process-count report-all execution failed' >&2
+  cat "$work/process-report-all.out" >&2
+  exit 1
+fi
 report_all_processes=$(wc -l <"$count_file" | tr -d ' ')
 [[ $report_all_processes -eq 2 ]] || {
   echo "FAIL: report-all launched $report_all_processes BQN processes, expected 2" >&2
@@ -126,7 +144,10 @@ report_all_processes=$(wc -l <"$count_file" | tr -d ' ')
 cache="$work/cache"
 mkdir "$cache"
 : >"$count_file"
-./tools/report-cache "$base" "$cache" 201 "$domain" "$latest"
+if ! ./tools/report-cache "$base" "$cache" 201 "$domain" "$latest"; then
+  echo 'FAIL: process-count report-cache execution failed' >&2
+  exit 1
+fi
 report_cache_processes=$(wc -l <"$count_file" | tr -d ' ')
 [[ $report_cache_processes -eq 3 ]] || {
   echo "FAIL: report-cache launched $report_cache_processes BQN processes, expected 3" >&2
@@ -142,7 +163,11 @@ for key in "${keys[@]}"; do
   for row in "${human_lines[@]:1}"; do
     IFS=$'\t' read -r -a fields <<<"$row"
     [[ ${fields[0]} == "$key" ]] || continue
-    "$root/tools/report" "$base" "${fields[@]}" >"$work/single.$key"
+    if ! "$root/tools/report" "$base" "${fields[@]}" >"$work/single.$key"; then
+      echo "FAIL: cache oracle single report failed for $key" >&2
+      cat "$work/single.$key" >&2
+      exit 1
+    fi
     AssertSame "cache $key vs single-report path" "$work/single.$key" "$cache/$key.txt"
     found=1
     break
