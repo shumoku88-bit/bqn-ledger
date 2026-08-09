@@ -107,8 +107,7 @@ headerIndex ← (selectedIndex⊑facts.transactions.source_start_line)-1
 {𝕊:Fail "admitted Plan header coordinate is outside source"}⍟((headerIndex<0) ∨ headerIndex≥≠lines) @
 header ← headerIndex⊑lines
 {𝕊:Fail "admitted Plan header date does not match source coordinate"}⍟(currentDate≢10↑header) @
-candidateLines ← lines
-{𝕊:candidateLines↩ReplaceAt ⟨headerIndex,targetDate∾10↓header,candidateLines⟩}⍟dateChanged @
+dateCandidateLines ← dateChanged ◶ ⟨{lines},{ReplaceAt ⟨headerIndex,targetDate∾10↓header,lines⟩}⟩ @
 
 originalAmountTexts ← postingIndices⊏facts.postings.amount_text
 SignedAmount ← {𝕊 postingIndex: (((postingIndex⊑facts.postings.source_coefficient)<0)/"-")∾amountVal}
@@ -128,7 +127,7 @@ ApplyAmount ← {𝕊 inputLines:
   }
   LineAt¨↕≠inputLines
 }
-candidateLines ← amountChanged ◶ ⟨{candidateLines},{ApplyAmount candidateLines}⟩ @
+candidateLines ← amountChanged ◶ ⟨{dateCandidateLines},{ApplyAmount dateCandidateLines}⟩ @
 
 candidateRaw ← JoinLines candidateLines
 {𝕊:Fail "canonical Plan edit produced no source change"}⍟(candidateRaw≡raw) @
