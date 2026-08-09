@@ -158,6 +158,48 @@ The shared seam is therefore before semantic reduction: selected Posting evidenc
 
 Decision D4 in `POST_MIGRATION_ARCHITECTURE_DECISIONS-2026-08-09.md` records the accepted result: Date × Account and Date × Category remain independent exact reductions. The presence of two `sparse.Build` calls is not by itself a defect.
 
+### Cursor revalidation on 2026-08-10
+
+Revalidated against `main` `01f7981921e0a051dab3cd67115d69d4548c9015` after the repository-resident continuation and complete production-BQN inventory work.
+
+The direct consumer boundary remains meaningful rather than duplicated:
+
+- `src/accounting/month_category_flow.bqn` consumes Date × Category evidence and performs the new semantic reduction onto a Month axis while retaining category policy, exact scale, and contributor Posting order;
+- `src/sections/daily_flow.bqn` consumes Date × Account evidence, adds observation/period checks, filters presentation-visible active non-Budget Accounts, pivots the admitted groups, and owns labels/sign presentation rather than recomputing accounting classification.
+
+The focused tests pin the contracts that matter for a rewrite: canonical axes, exact coefficients, mixed-scale normalization, contributor order/alignment, empty/fail-closed result shapes, Daily Flow visibility/presentation behavior, and Month × Category regrouping.
+
+The current validation ladder also contains a more specific subtraction candidate. `date_category_flow.Build` requires admitted `budget.toml` and `household.toml` values but repeats several invariants already established by their admission owners:
+
+- `budget_policy_admission.bqn` already guarantees unique Envelope ids, one-Envelope-per-Expense-Account assignment, admitted Expense Account role, and that published `expense_envelope_id` values arise from admitted Envelopes;
+- `household_policy_admission.bqn` already guarantees unique Household Envelope ids, complete Budget/Household Envelope coordinate coverage for the Budget policy used at admission, and Budget role for allocation Accounts.
+
+Not every flow-level guard is therefore redundant. The capability still receives independently admitted values and a query, so it must retain request-specific and cross-source compatibility checks. In particular:
+
+- selected domain/layer and half-open period are request contracts;
+- Facts/Household Account-axis compatibility is cross-source;
+- Budget Envelope ids still need compatibility with the independently supplied Household coordinates rather than assuming both values came from the same admission call;
+- allocation Account currency versus the selected domain is query-specific;
+- the synthetic `other` category collision is a Date/Category capability concern unless a broader admission contract explicitly adopts that reservation.
+
+After a compatible Account axis is established, rechecking the allocation Account's Budget role is a candidate duplicate because Household admission already established that role against that axis. Rechecking Budget-internal Envelope uniqueness, Expense assignment uniqueness, and Expense-to-Envelope reference membership is likewise a candidate duplicate of source admission rather than a capability contract.
+
+The successful transformation underneath those guards is comparatively direct:
+
+```text
+admitted Account / Category coordinates
+  -> selected period Posting axis
+  -> one exact common-scale normalization
+  -> Date × Income checked reduction
+  -> independent Date × Category and Date × Account sparse checked reductions
+  -> Date expense total and exact net
+  -> semantic result publication
+```
+
+One local array-visibility hotspot remains before that kernel: `accountCategory` currently iterates every Account and performs nested role/assignment/category lookup control flow even after assignment uniqueness has been established. This is a candidate for a classify-once aligned mapping, but no rewrite is accepted yet. The replacement must be shown to make the Account → Category relation clearer while preserving canonical Account order, unmatched-Expense → `other`, non-Expense exclusion, diagnostics, and contributor behavior.
+
+Current classification: **OBSERVE / RESTRUCTURE candidate**, not SUBTRACT and not yet reviewed-complete. The likely reason-to-change is narrower than the file size: remove repeated source admission and expose the existing bounded array kernel without moving accounting meaning into sections or deriving one semantic reduction from the other.
+
 ## Observation C: validation density is not itself the problem
 
 Ordered diagnostics and fail-closed validation appear broadly across ledger, accounting, section, and editor owners. The repeated visual shape of helpers such as `AddIf` is not sufficient evidence that validation should be centralized into one generic validation framework.
