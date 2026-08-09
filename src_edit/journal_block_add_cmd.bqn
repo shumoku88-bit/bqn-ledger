@@ -2,7 +2,7 @@
 # Semantic owner for one explicit native actual-layer Journal transaction append.
 
 admission ← •Import "../src/ledger/journal_complete_admission.bqn"
-editorAccounts ← •Import "../src/application/editor_accounts.bqn"
+accountSource ← •Import "../src/application/account_source_adapter.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 decimal ← •Import "../src/ledger/exact_decimal.bqn"
 editorCurrency ← •Import "../src/application/editor_currency.bqn"
@@ -108,7 +108,9 @@ effectiveDurable ← (identityMode ≡ "durable") ∧ ¬ derivedTransaction
 {𝕊⋄Fail ⟨"metadata_payment_invalid", "payment metadata must be cash, card, or debit"⟩}⍟(∨´ 0 ∾ {(𝕩.key ≡ "payment") ∧ ¬ ∨´ 𝕩.value⊸≡¨ "cash"‿"card"‿"debit"}¨ metadata) @
 {𝕊⋄Fail ⟨"ordinary_plan_link_invalid", "ordinary actual cannot carry plan-id; use a durable plan completion path"⟩}⍟((identityMode ≡ "ordinary") ∧ hasPlanLink) @
 
-resolved ← editorAccounts.Require loader.ReadLines (base ∾ "/accounts.tsv")
+accountResult ← accountSource.Load base
+{𝕊⋄Fail ⟨"accounts_invalid", "canonical accounts.journal failed admission"⟩}⍟(accountResult.state ≢ "ok") @
+resolved ← accountResult.accounts
 raw ← loader.ReadRaw target
 existing ← admission.Admit ⟨raw,resolved,setup.registry⟩
 {𝕊⋄Fail ⟨"existing_journal_invalid", "existing complete Journal does not satisfy supported-currency admission"⟩}⍟(existing.state ≢ "ok") @
@@ -117,7 +119,7 @@ candidateOrdinal ← ≠ existing.transactions
 
 {𝕊 posting:
   registryMask ← posting.account_key⊸≡¨ resolved.key
-  {𝕊⋄Fail ⟨"posting_account_unresolved", "posting account must resolve exactly once in accounts.tsv"⟩}⍟(1 ≠ +´ registryMask) @
+  {𝕊⋄Fail ⟨"posting_account_unresolved", "posting account must resolve exactly once in accounts.journal"⟩}⍟(1 ≠ +´ registryMask) @
   idx ← ⊑ registryMask / ↕ ≠ registryMask
   {𝕊⋄Fail ⟨"posting_currency_invalid", "resolved posting account currency must equal transaction currency"⟩}⍟(currency ≢ idx ⊑ resolved.currency) @
 }¨ postings
