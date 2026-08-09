@@ -112,6 +112,14 @@ grep -F $'\033[36m-12\033[0m' "$work/color" >/dev/null
 printf 'value -12\n' | NO_COLOR=1 REPORT_NEGATIVE_COLOR=cyan bash tools/lib/color-filter >"$work/plain"
 grep -Fx 'value -12' "$work/plain" >/dev/null
 
+# Calendar coordinates are colored as complete tokens, not year-only positive values.
+printf 'Account | 2026-01 | 2026-02\nRange: 2026-01..2026-03\n2026-01-12 | 5\n' \
+  | env -u NO_COLOR COLOR_FORCE=1 BL_THEME=nord REPORT_NEGATIVE_COLOR=red \
+    bash tools/lib/color-filter >"$work/calendar-color"
+grep -Fx $'Account | \033[1;38;2;136;192;208m2026-01\033[0m | \033[1;38;2;136;192;208m2026-02\033[0m' "$work/calendar-color" >/dev/null
+grep -Fx $'Range: \033[1;38;2;136;192;208m2026-01\033[0m..\033[1;38;2;136;192;208m2026-03\033[0m' "$work/calendar-color" >/dev/null
+grep -Fx $'\033[1;38;2;136;192;208m2026-01-12\033[0m | \033[38;2;163;190;140m5\033[0m' "$work/calendar-color" >/dev/null
+
 # Default Nord theme uses theme-native ESC_ERROR (#BF616A / \033[38;2;191;97;106m)
 printf 'value -12.5\n' | env -u NO_COLOR COLOR_FORCE=1 BL_THEME=nord REPORT_NEGATIVE_COLOR=red \
   bash tools/lib/color-filter >"$work/nord-minus"
