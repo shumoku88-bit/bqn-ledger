@@ -2,22 +2,19 @@
 
 request ← •Import "../report/request.bqn"
 route ← •Import "report_route.bqn"
-compose ← •Import "../report/compose.bqn"
+destination ← •Import "report_destination.bqn"
 render ← •Import "../report/render.bqn"
 sources ← •Import "report_source_adapter.bqn"
-cycleResolution ← •Import "cycle_resolution.bqn"
-householdDaily ← •Import "household_daily_scope.bqn"
-dailyScopeAdapter ← •Import "daily_scope_adapter.bqn"
 policySource ← •Import "report_policy_source_adapter.bqn"
 empty ← ⟨⟩ ⋄ tab ← @+9
 args ← •args
 Fail ← {𝕊 code‿message: •Out "ERROR"∾tab∾code∾tab∾message ⋄ •Exit 1}
-ToNatural ← {𝕊 text: digits ← "0123456789"⊐text ⋄ +´digits×10⋆⌽↕≠digits}
 PrintDiagnostics ← {𝕊 diagnostics:
   {𝕊 diagnostic: •Out "ERROR"∾tab∾diagnostic.code∾tab∾diagnostic.message}¨diagnostics
   •Exit 1
 }
 RegistryDiagnostic ← {𝕊 result:{severity⇐"error",stage⇐"currency_registry",code⇐result.code,message⇐result.message}}
+Contains ← {𝕊 item‿items:∨´0∾item⊸≡¨items}
 
 {𝕊:Fail ⟨"usage","expected BASE KEY SURFACE and key-specific semantic coordinates"⟩}⍟(3>≠args) @
 base‿key‿surface ← 3↑args ⋄ coordinates ← 3↓args
@@ -36,81 +33,34 @@ registry ← registryResult.registry
 routeAdmission ← route.Admit ⟨key,surface,coordinates⟩
 {𝕊:PrintDiagnostics routeAdmission.diagnostics}⍟(routeAdmission.state≢"ok") @
 coordinates↩routeAdmission.coordinates
-composition ← {state⇐"error",key⇐key,result⇐empty,diagnostics⇐empty}
 
-LoadActual ← {𝕊:
-  result ← sources.CanonicalActual ⟨base,registry⟩
-  {𝕊:PrintDiagnostics result.diagnostics}⍟(result.state≢"ok") @
-  result
+evidence ← {
+  registry⇐registry,actual⇐@,plan⇐@,budget⇐@,budget_policy⇐@,household⇐@,issue_lines⇐empty
 }
-LoadHouseholdContext ← {𝕊 actual:
-  context ← sources.HouseholdContext ⟨base,actual.facts.accounts,registry⟩
-  {𝕊:PrintDiagnostics context.diagnostics}⍟(context.state≢"ok") @
-  {plan⇐{facts⇐context.plan},budget_policy⇐context.budget_policy,household⇐context.household}
-}
-
+actualKeys ← ⟨"envelopes","balances","balance-sheet","profit-and-loss","recent","planned","cycle-accounts","cycle-comparison","monthly-accounts","daily-flow","daily-target"⟩
+contextKeys ← ⟨"planned","cycle-accounts","cycle-comparison","daily-flow","daily-target"⟩
+actual ← @
 {𝕊:
-  domain‿observation ← coordinates ⋄ actual ← LoadActual @
-  composition↩compose.Balances ⟨actual.facts,domain,observation⟩
-}⍟(key≡"balances") @
+  actualResult ← sources.CanonicalActual ⟨base,registry⟩
+  {𝕊:PrintDiagnostics actualResult.diagnostics}⍟(actualResult.state≢"ok") @
+  actual↩actualResult.facts
+  evidence↩evidence∾{actual⇐actual}
+}⍟(Contains ⟨key,actualKeys⟩) @
 {𝕊:
-  domain‿observation ← coordinates ⋄ actual ← LoadActual @
-  composition↩compose.BalanceSheet ⟨actual.facts,domain,observation⟩
-}⍟(key≡"balance-sheet") @
-{𝕊:
-  domain‿start‿finish ← coordinates ⋄ actual ← LoadActual @
-  composition↩compose.ProfitAndLoss ⟨actual.facts,domain,start,finish⟩
-}⍟(key≡"profit-and-loss") @
-{𝕊:
-  through‿limitText ← coordinates ⋄ actual ← LoadActual @
-  composition↩compose.RecentThrough ⟨actual.facts,through,ToNatural limitText⟩
-}⍟(key≡"recent") @
-{𝕊:
-  domain‿start‿finish‿observation ← coordinates
-  actual ← LoadActual @
-  companions ← sources.Companions ⟨base,actual.facts.accounts,registry⟩
+  companions ← sources.Companions ⟨base,actual.accounts,registry⟩
   {𝕊:PrintDiagnostics companions.diagnostics}⍟(companions.state≢"ok") @
-  composition↩compose.Envelopes ⟨companions.budget,companions.budget_policy,companions.household,actual.facts,companions.plan,domain,start,finish,observation⟩
+  evidence↩evidence∾{
+    plan⇐companions.plan,budget⇐companions.budget,budget_policy⇐companions.budget_policy,household⇐companions.household
+  }
 }⍟(key≡"envelopes") @
 {𝕊:
-  observation ← ⊑coordinates
-  actual ← LoadActual @ ⋄ context ← LoadHouseholdContext actual
-  cycle ← cycleResolution.WithPlan ⟨context.household.cycle,observation,actual.facts,context.plan.facts⟩
-  composition↩compose.Planned ⟨context.plan.facts,actual.facts,cycle,observation⟩
-}⍟(key≡"planned") @
-{𝕊:
-  domain‿observation ← coordinates
-  actual ← LoadActual @ ⋄ context ← LoadHouseholdContext actual
-  cycle ← cycleResolution.WithPlan ⟨context.household.cycle,observation,actual.facts,context.plan.facts⟩
-  composition↩compose.CycleAccounts ⟨actual.facts,domain,cycle,observation⟩
-}⍟(key≡"cycle-accounts") @
-{𝕊:
-  domain‿currentObs‿baselineObs‿policy ← coordinates
-  actual ← LoadActual @ ⋄ context ← LoadHouseholdContext actual
-  current ← cycleResolution.WithPlan ⟨context.household.cycle,currentObs,actual.facts,context.plan.facts⟩
-  baseline ← cycleResolution.WithPlan ⟨context.household.cycle,baselineObs,actual.facts,context.plan.facts⟩
-  composition↩compose.CycleComparison ⟨actual.facts,domain,current,currentObs,baseline,baselineObs,policy⟩
-}⍟(key≡"cycle-comparison") @
-{𝕊:
-  domain‿firstMonth‿lastMonth ← coordinates ⋄ actual ← LoadActual @
-  composition↩compose.MonthlyAccounts ⟨actual.facts,domain,firstMonth,lastMonth⟩
-}⍟(key≡"monthly-accounts") @
-{𝕊:
-  domain‿start‿finish‿observation ← coordinates
-  actual ← LoadActual @ ⋄ context ← LoadHouseholdContext actual
-  composition↩compose.DailyFlow ⟨actual.facts,context.budget_policy,context.household,domain,start,finish,observation⟩
-}⍟(key≡"daily-flow") @
-{𝕊:
-  domain‿observation‿target ← coordinates
-  actual ← LoadActual @ ⋄ context ← LoadHouseholdContext actual
-  scopeAdmission ← householdDaily.Build ⟨context.household,context.plan.facts,registry⟩
-  {𝕊:PrintDiagnostics scopeAdmission.diagnostics}⍟(scopeAdmission.state≢"ok") @
-  scopes ← dailyScopeAdapter.Build ⟨scopeAdmission,actual.facts,context.plan.facts,domain,observation,target⟩
-  {𝕊:PrintDiagnostics scopes.diagnostics}⍟(scopes.state≢"ok") @
-  composition↩compose.DailyTarget ⟨observation,target,domain,scopes.asset_scope,scopes.obligation_scope⟩
-}⍟(key≡"daily-target") @
-{𝕊:composition↩compose.Issues ⟨sources.IssueLines base,registry⟩}⍟(key≡"issues") @
+  context ← sources.HouseholdContext ⟨base,actual.accounts,registry⟩
+  {𝕊:PrintDiagnostics context.diagnostics}⍟(context.state≢"ok") @
+  evidence↩evidence∾{plan⇐context.plan,budget_policy⇐context.budget_policy,household⇐context.household}
+}⍟(Contains ⟨key,contextKeys⟩) @
+{𝕊:evidence↩evidence∾{issue_lines⇐sources.IssueLines base}}⍟(key≡"issues") @
 
+composition ← destination.Build ⟨key,coordinates,evidence⟩
 {𝕊:PrintDiagnostics composition.diagnostics}⍟(composition.state≢"ok") @
 rendered ← render.Render ⟨key,surface,composition,presentation⟩
 {𝕊:PrintDiagnostics rendered.diagnostics}⍟(rendered.state≢"ok") @
