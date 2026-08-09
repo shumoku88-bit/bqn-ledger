@@ -5,7 +5,7 @@ Owner: editor / UI
 Canonical: yes
 Exit: revise while `tools/add-ui.sh` remains the Command Hub action UI
 
-通常利用は `tools/main-ui.sh --base <household-root>` から始めます。`tools/add-ui.sh` は Command Hub が開く日常取引入力UIです。
+通常利用は `tools/bl --base <household-root>` から始めます。`tools/add-ui.sh` は Command Hub のRecord / Plan / Budget / Account / Issue操作が開く日常入力UIです。
 
 fzf / gum / 番号選択で項目を選び、最後の追記だけを BQN editor (`tools/edit`) に委譲します。通常利用では `tools/edit-bqn` と shell safe-write が裏で動きます。
 

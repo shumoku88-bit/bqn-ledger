@@ -96,12 +96,12 @@ Historical requests remain explicit through semantic coordinates such as domain,
 
 `tools/report-cache` stages twelve section bodies plus `all.txt`, publishes `.section-keys`, deletes stale report bodies, and writes `.cache-timestamp` last. `tools/command-hub-cache-refresh` adds exclusive background refresh and status markers. Preview reads only cache/status files and never starts the engine. A failed refresh preserves the prior complete generation; preview labels it as last-known-good and exposes the bounded underlying diagnostic instead of hiding every report.
 
-`tools/report-section-metadata` derives labels, categories, owners, and surfaces directly from the static catalog without Household reads. Command Hub does not duplicate report keys.
+`tools/report-section-metadata` derives labels, categories, owners, and surfaces directly from the static catalog without Household reads. `tools/bl` is the complete daily Command Hub: it groups Record, Plans, Budget, Accounts, Issues, Reports, and Operations, while routing to existing editor/report/operational owners. It does not duplicate report keys, parse owner output for accounting meaning, or publish source changes itself.
 
 Terminal presentation policy comes from canonical `report.toml`; local UI preferences such as theme and selector remain outside Household policy.
 
 ## Operational boundary
 
-`tools/ledger-check BASE` strictly admits the complete eight-file canonical Household root. `tools/ledger-inspect BASE` exposes canonical Actual Fact/provenance evidence from the same root. Neither command accepts a caller-selected Household source basename, and neither is a report key or compact schema owner.
+`tools/ledger-check BASE` strictly admits the complete eight-file canonical Household root. `tools/ledger-inspect BASE` exposes canonical Actual Fact/provenance evidence from the same root. Neither command accepts a caller-selected Household source basename, and neither is a report key or compact schema owner. `tools/bl check` routes to `tools/ledger-check`; repository development validation remains the separate `tools/check.sh` suite.
 
 Git is rollback. Retired runtime aliases, old-key translation, historical parser fallback, and source-basename forwarding are intentionally absent from the canonical read side.

@@ -5,14 +5,14 @@ Owner: editor
 Canonical: yes
 Exit: keep current while `tools/edit` and `tools/add-ui.sh` remain the daily write paths.
 
-BQN-Ledgerにおける base directory 配下のconfigured native Journalとsource TSV（`plan.tsv` など）を安全に表示・編集・完了処理するための、BQN製エディタ（`tools/edit` / `tools/edit-bqn`）および日常記帳UI（`tools/add-ui.sh`）の使い方説明書です。
+BQN-Ledgerのcanonical Household rootにあるAccount / Actual / Plan / Budget JournalとIssuesを安全に表示・編集・完了処理するための、BQN製エディタ（`tools/edit` / `tools/edit-bqn`）および日常記帳UI（`tools/add-ui.sh`）の使い方説明書です。通常の入口は`tools/bl`です。
 
 ## 1. 基本コンセプト：秤（はかり）と手袋
 
 本プロジェクトでは、データの計算・整合性検証と、ファイル編集・入力UXの責務を以下のように分離しています。
 
-*   **BQN = 秤（Scale）**: 正本データの読み込み、残高・封筒予算・トレンド・予実比較（actual-comparison）の集計・計算、レポート出力、および最終的な会計整合性の検証（Lint）。
-*   **BQN Editor = 手袋（Gloves）**: 正本TSVファイル群の安全な読み込み、対話的な追加・編集、自動バックアップ、事後チェック。
+*   **BQN = 秤（Scale）**: canonical sourceのadmission、exact accounting、12 retained reports、diagnostics、identityとprovenance。
+*   **BQN Editor = 手袋（Gloves）**: canonical sourceの候補生成、対話的な追加・限定編集、自動バックアップ、stale fence、事後チェック。
 
 BQN Editor は会計エンジンとしての計算（残高や封筒の残金計算など）を行わず、データの編集と安全なファイル操作に特化します。
 
@@ -31,15 +31,15 @@ BQN Editor は会計エンジンとしての計算（残高や封筒の残金計
 ### モード一覧
 起動すると、まず以下の記帳モードを選択します。
 
-1.  **`account-add` (アカウント追加)**: `asset / liability / income / expense` を選び、明示的な `role=` と一致する名前空間で `accounts.tsv` に安全追記します。assetでは任意で `type=liquid|savings|invest` を選べます。
-2.  **`expense` (支出)**: 資産口座から費用口座への支出。明示選択されたActual sourceへ追記。
-3.  **`multi` (複数ポスティング)**: native Journal mode専用。UIでは1取引につき3件以上の勘定と符号付き金額を入力します。費用などの増加は正、支払口座の減少は負とし、全ポスティングの合計をゼロにします（例: 費用600、費用150、支払口座-750）。選択Actual Journalへ安全追記し、TSV modeでは書き込まず拒否します。CLIの`journal multi-add`はnative transaction一般の下限として2件以上を受け付けます。
-4.  **`move` (資金移動)**: 資産口座間の振替。明示選択されたActual sourceへ追記。
-5.  **`income` (収入)**: 収入元から資産口座への入金。明示選択されたActual sourceへ追記。
+1.  **`account-add` (アカウント追加)**: `asset / liability / income / expense` を選び、明示的な `role=` と一致する名前空間で `accounts.journal` に安全追記します。assetでは任意で `type=liquid|savings|invest` を選べます。
+2.  **`expense` (支出)**: 資産口座から費用口座への支出。canonical `actual.journal`へ追記。
+3.  **`multi` (複数ポスティング)**: 1取引につき3件以上の勘定と符号付き金額を入力します。費用などの増加は正、支払口座の減少は負とし、全Postingの合計をゼロにします（例: 費用600、費用150、支払口座-750）。canonical `actual.journal`へPosting orderを保って安全追記します。
+4.  **`move` (資金移動)**: 資産口座間の振替をcanonical `actual.journal`へ追記。
+5.  **`income` (収入)**: 収入元から資産口座への入金をcanonical `actual.journal`へ追記。
 6.  **`budget` (予算移動)**: Budget Account間の移動（例: `budget:unassigned` $\rightarrow$ `budget:daily`）をcanonical `budget.journal`へ追記します。memo候補は`config/ui_budget_memo_presets.tsv`で管理します。
-7.  **`plan-add` (予定の追加)**: 未来の支払い予定を `plan.tsv` に安全追記。必要なら `series` を入力でき、`plan_id` は自動生成。
+7.  **`plan-add` (予定の追加)**: 未来の支払い予定を `plan.journal` に安全追記。必要なら `series` を入力でき、`plan-id` は自動生成。
 8.  **`plan-edit` (予定の日付・金額修正)**: 未完了予定を選び、`date` / `amount` だけを差分プレビュー付きで修正。
-9.  **`plan-finish` (予定の実績化)**: `plan.tsv` の予定を、選択Actual sourceへ `plan_id` 付き実績として追記し、必要なら次回予定も追加。
+9.  **`plan-finish` (予定の実績化)**: `plan.journal` の予定をcanonical `actual.journal`へ `plan-id` 付き実績として追記し、必要なら次回予定も追加。
 10.  **`reverse` (仕訳取消)**: 選択Actual sourceの取引を選び、反対postingを新しい取引として安全追記。
 11.  **`issue` (Issues & Decisions の追加)**: 財務的な issue / decision（例: サブスクリプションの見直し）を `issues.tsv` に安全追記。
 
@@ -49,15 +49,15 @@ BQN Editor は会計エンジンとしての計算（残高や封筒の残金計
 
 ## 3. 予定の完了（実績化）とライフサイクル
 
-予定（Plan）の消化（`plan-finish`）は、**「予定行を plan.tsv から消さない」** という非破壊設計を採用しています。
+予定（Plan）の消化（`plan-finish`）は、**「予定blockを `plan.journal` から消さない」** という非破壊設計を採用しています。
 
 ### ライフサイクルと Closed 判定の仕組み
-*   **非破壊**: 予定を実績化しても、`plan.tsv` から予定行は削除されません。予実ブレ（actual-comparison / planned-payments）の履歴として残されます。
-*   **動的クローズ**: 選択Actual sourceに同じ `plan_id` / `plan-id` を持つ実績が追記された時点で、BQNエンジンおよびエディタが動的に「この予定は完了（Closed）」と判定します。
+*   **非破壊**: 予定を実績化しても、`plan.journal` から予定blockは削除されません。`planned` reportとcompletion provenanceの履歴として残されます。
+*   **動的クローズ**: canonical `actual.journal`に同じ `plan-id` を持つ実績が追記された時点で、BQNエンジンおよびエディタが動的に「この予定は完了（Closed）」と判定します。
 *   **自動フィルタリング**: 完了した予定は、`plan list` や `tools/add-ui.sh` の未完了予定リストから自動的に非表示になります。
 
 ### 幽霊の防止（安全ゲート）
-`plan.tsv` に `plan_id` が存在しない行（`Unplanned` 予定）や、`plan_id` の書式が崩れている予定は、**実績化（finish / apply）がエラーで拒否されます**。これは「完了したはずなのに予定リストに残り続けるゾンビデータ」の発生を防ぐための安全仕様です。
+`plan.journal` にdurable `plan-id`が存在しない、または書式が崩れている予定は、**実績化がエラーで拒否されます**。これは「完了したはずなのに予定リストに残り続けるゾンビデータ」の発生を防ぐための安全仕様です。
 
 ---
 
@@ -233,7 +233,7 @@ Israel旅行中に友人がILSで立て替えた観測事実は、ordinary journ
 # 差分プレビューのみ（書き込みなし）
 ./tools/edit plan edit --index 1 --date 2026-07-05 --amount 3500 --dry-run
 
-# 確認プロンプト付きで plan.tsv の対象1行だけを書き換え
+# 確認プロンプト付きで plan.journal の対象blockだけを書き換え
 ./tools/edit plan edit --id plan-2026-07-01-phone --date 2026-07-05 --amount 3500
 ```
 *   編集できるのは未完了予定の `date` と `amount` だけです。
