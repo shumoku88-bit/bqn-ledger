@@ -59,7 +59,12 @@ checks=(
 for name in "${checks[@]}"; do
   [[ -f checks/$name ]] || continue
   check_output=""
-  if ! check_output="$(bash "checks/$name" 2>&1)"; then
+  if [[ "$name" == "check-edit-bqn-plan-finish.sh" ]]; then
+    check_command=(bash -x "checks/$name")
+  else
+    check_command=(bash "checks/$name")
+  fi
+  if ! check_output="$("${check_command[@]}" 2>&1)"; then
     [[ -z "$check_output" ]] || printf '%s\n' "$check_output" >&2
     echo "FAIL: checks/$name" >&2
     echo "::error file=checks/$name::Repository check failed"
