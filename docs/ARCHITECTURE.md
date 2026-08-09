@@ -100,6 +100,8 @@ Historical requests remain explicit through semantic coordinates such as domain,
 
 Terminal presentation policy comes from canonical `report.toml`; local UI preferences such as theme and selector remain outside Household policy.
 
+The UI boundary is tool-neutral. Report metadata, cached section bodies, editor candidate protocols, and public command results are the stable inputs to presentation adapters. `fzf`, `gum`, and plain numbered interaction are current optional implementations, not owners of report identity, accounting policy, edit semantics, or publication. A future terminal UI may replace them without changing the accounting kernel or canonical writers. Shared selection and input behavior may be consolidated when the review queue reaches `tools/`; until then, core refactors must avoid introducing new selector-specific contracts.
+
 ## Operational boundary
 
 `tools/ledger-check BASE` strictly admits the complete eight-file canonical Household root. `tools/ledger-inspect BASE` exposes canonical Actual Fact/provenance evidence from the same root. Neither command accepts a caller-selected Household source basename, and neither is a report key or compact schema owner. `tools/bl check` routes to `tools/ledger-check`; repository development validation remains the separate `tools/check.sh` suite.
