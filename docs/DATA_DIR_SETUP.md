@@ -5,7 +5,7 @@ Date: 2026-06-27
 
 ## Purpose
 
-`bqn-ledger` treats the configured native Journal and source TSV files as the source of truth, but their directory is allowed to move.
+`bqn-ledger` treats the canonical eight-file Household root as source of truth, but its directory is allowed to move.
 
 The repository `data/` directory is a public sandbox. Real household data should normally live outside this repository and be selected with `LEDGER_DATA_DIR`.
 
@@ -18,43 +18,20 @@ Do not hardcode one personal path into code or docs as the only supported locati
 
 ## Base directory contract
 
-A usable report base directory contains at least:
+A usable Household root contains exactly these physical owners:
 
 ```text
-accounts.tsv
-cycle.tsv
-config.tsv
-<the native Journal selected by ACTUAL_JOURNAL_FILE>
+accounts.journal
+actual.journal
+plan.journal
+budget.journal
+budget.toml
+household.toml
+report.toml
+issues.tsv
 ```
 
-Daily operation normally also expects:
-
-```text
-plan.tsv
-budget_alloc.tsv
-```
-
-Actual source selection is explicit and Journal-only:
-
-```text
-ACTUAL_JOURNAL_FILE=actual.journal
-```
-
-There is no actual-transaction TSV route, silent fallback, or dual write.
-
-For a new ledger, `config.tsv` must explicitly choose the budget policy instead of relying on the repository compatibility fallback:
-
-```text
-POLICY_BUDGET_STYLE=envelope
-```
-
-or:
-
-```text
-POLICY_BUDGET_STYLE=none
-```
-
-Choose `envelope` only when the ledger owner wants to use or try envelope-oriented policy, reports, and diagnostics. Choose `none` when envelope policy is not used. Missing is not a third choice. The current missing-key `envelope` fallback exists temporarily for older ledgers and fixtures.
+There is no Budget or Actual TSV route, fallback, or dual write. `budget.journal` owns movements; `budget.toml` owns Budget policy.
 
 The base directory is resolved in this order:
 

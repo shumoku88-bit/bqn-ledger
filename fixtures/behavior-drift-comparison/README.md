@@ -9,7 +9,7 @@ Envelope viewとPlan / Actual / Residual候補を、同じActualで比較するf
 - 食費、タバコ、通院などの反復支出をすべてPlan入力しない。
 - 学習は`budget:flex`に含める。
 - 通院は独立した`budget:medical`に対応させる。
-- 通院への配賦は次の収入時に行う想定なので、このfixtureの`budget_alloc.tsv`には`budget:medical`への配賦行を置かない。
+- legacy Budget allocation evidenceはcanonical migration後に退役済み。
 - `medical`はfixture内の仮名であり、本番の科目名を確定するものではない。
 
 ## Envelope view

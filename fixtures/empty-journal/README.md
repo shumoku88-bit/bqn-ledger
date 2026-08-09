@@ -1,5 +1,5 @@
 # Fixture: empty-journal
 
-Tests the behavior of the system when `actual.journal` is completely empty but `accounts.tsv`, `budget_alloc.tsv`, and `plan.tsv` exist. This simulates a "fresh start" scenario.
+Legacy fixture for an empty `actual.journal`; its former Budget allocation source was retired by the canonical Budget migration.
 
 The system should not crash and should render zero values or appropriate defaults for metrics requiring history.

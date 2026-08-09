@@ -36,7 +36,7 @@ BQN Editor は会計エンジンとしての計算（残高や封筒の残金計
 3.  **`multi` (複数ポスティング)**: native Journal mode専用。UIでは1取引につき3件以上の勘定と符号付き金額を入力します。費用などの増加は正、支払口座の減少は負とし、全ポスティングの合計をゼロにします（例: 費用600、費用150、支払口座-750）。選択Actual Journalへ安全追記し、TSV modeでは書き込まず拒否します。CLIの`journal multi-add`はnative transaction一般の下限として2件以上を受け付けます。
 4.  **`move` (資金移動)**: 資産口座間の振替。明示選択されたActual sourceへ追記。
 5.  **`income` (収入)**: 収入元から資産口座への入金。明示選択されたActual sourceへ追記。
-6.  **`budget` (予算配賦)**: 封筒への予算割り当て（例: `budget:unassigned` $\rightarrow$ `budget:daily`）。`budget_alloc.tsv` に追記。memo 候補は `config/ui_budget_memo_presets.tsv` で管理します。
+6.  **`budget` (予算移動)**: Budget Account間の移動（例: `budget:unassigned` $\rightarrow$ `budget:daily`）をcanonical `budget.journal`へ追記します。memo候補は`config/ui_budget_memo_presets.tsv`で管理します。
 7.  **`plan-add` (予定の追加)**: 未来の支払い予定を `plan.tsv` に安全追記。必要なら `series` を入力でき、`plan_id` は自動生成。
 8.  **`plan-edit` (予定の日付・金額修正)**: 未完了予定を選び、`date` / `amount` だけを差分プレビュー付きで修正。
 9.  **`plan-finish` (予定の実績化)**: `plan.tsv` の予定を、選択Actual sourceへ `plan_id` 付き実績として追記し、必要なら次回予定も追加。
@@ -177,15 +177,15 @@ Israel旅行中に友人がILSで立て替えた観測事実は、ordinary journ
 
 ### 完了済み予定と固定費封筒の同期 (`plan budget-sync`)
 
-`plan finish` で実績化した固定費予定は、設定された execution envelope の消化候補を確認付きで同期できます。
+`plan finish`で実績化したPlanは、`household.toml`の`plan-destination-accounts`が一意に示すEnvelopeから、Household policyが一意に示すspent Budget Accountへのmovementとして同期できます。
 
 ```bash
 ./tools/edit plan budget-sync --id plan-2026-07-08-wifi --dry-run
 ./tools/edit plan budget-sync --id plan-2026-07-08-wifi
 ```
 
-- BQN が `plan_id`、対応する実績行、`spend_class=fixed`、`EXECUTION_PLANNED_PAYMENTS_ENVELOPE`、budget spent sink、通貨を検査して正確な1行を生成します。
-- 同じ `plan_id` の budget row が既にあれば `already applied` として成功し、重複追記しません。
+- BQNがcanonical Plan/Actual、Account、Budget/Household policy、exact amount、Commodity、Posting orderを検査し、shared Budget candidate ownerでcanonical Journal blockを生成します。
+- 同じ`plan-id`のexact movementが既にあれば`already applied`として成功します。異なるmovementや重複linkはfail closedです。
 - plan-finish UI は実績化後にこの同期を案内します。取消・失敗時は `BUDGET_SYNC_PENDING` と表示され、同じコマンドで再試行できます。
 - memo・日付・金額の類似だけでは対応付けません。曖昧な場合は書き込みません。
 - 通常収入の未割当連動はこのコマンドの対象外です。
@@ -246,7 +246,7 @@ Israel旅行中に友人がILSで立て替えた観測事実は、ordinary journ
 
 書き込みを伴うコマンド（`account add`、`journal add`、`journal multi-add`、`journal reverse`、`travel friend add`、`travel exchange add`、`budget add`、`plan add`、`plan finish --apply`、`plan budget-sync`、`plan edit`、`issue add`）を実行する際、BQN Editorは以下の安全機構を自動で走らせます。
 
-1.  **事前バリデーション**: 日付フォーマット、金額が整数か、アカウント名が `<base>/accounts.tsv` に存在するか、メタデータ形式に問題がないかを書き込み前に構造検査します。
+1.  **事前バリデーション**: canonical Account admission、日付、exact amount、Commodity、metadata、complete candidate sourceを構造検査します。
 2.  **プレビューと確認**: 追記または編集される正確なTSV行を画面に出力し、ユーザーが明示的に `y` または `yes` と入力しない限り書き込みません（`--yes` 指定時を除く）。
 3.  **自動バックアップ**: 置き換えを実行する直前に、対象ディレクトリ内の `.backup/YYYYMMDD-HHMMSS/<ファイル名>` にオリジナルデータを退避します。
 4.  **安全な置き換え**: 追記や編集はBashスクリプト連携で安全に行い、編集中にデータが破損しないように努めます。

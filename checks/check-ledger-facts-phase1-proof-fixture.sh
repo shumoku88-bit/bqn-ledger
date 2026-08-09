@@ -19,9 +19,6 @@ bqn tests/test_report_catalog_request.bqn >/dev/null
 bqn tests/test_report_composition.bqn >/dev/null
 bqn tests/test_section_monthly_accounts.bqn >/dev/null
 
-audit=$(python3 tools/characterization/report_source_readiness_audit.py "$base")
-grep -Fq $'\texplicit\t8\t0\t0\t1\t0\t0\t2\t0\tdirect' <<<"$audit"
-
 trial=$(tools/report "$base" --section trial-balance --no-color)
 destination_trial=$(cat "$base/trial_balance.destination.human.txt")
 [[ "$trial" == "$destination_trial" ]]

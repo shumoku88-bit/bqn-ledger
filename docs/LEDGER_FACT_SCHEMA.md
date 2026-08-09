@@ -1,7 +1,7 @@
 # Canonical ledger fact schema
 
 Status: Phase 3F; canonical Actual/Plan/Budget facts with explicit empty Domain/Layer semantics
-Owner: `src/ledger/snapshot.bqn` / `src/ledger/plan_snapshot.bqn` / `src/ledger/companion_snapshot.bqn` / `src/ledger/facts.bqn`
+Owner: canonical Journal admissions / `src/ledger/facts.bqn`
 Public evidence: `fixtures/ledger-facts-phase1-proof/`
 
 ## Boundary
@@ -112,7 +112,7 @@ A numeric amount is the pair `(coefficient, scale)`. Consumers never combine row
 
 ### Source table
 
-`index`, `name`; one independently admitted fact result currently has one explicit physical source even when it is empty: `actual.journal`, `plan.tsv`, or `budget_alloc.tsv`. Transaction and Posting Facts carry `source_index=0`. Cross-source consumers retain source-qualified durable references rather than treating snapshot-local indices from different fact results as interchangeable.
+`index`, `name`; one independently admitted fact result has one explicit physical source even when it is empty: `actual.journal`, `plan.journal`, or `budget.journal`. Transaction and Posting Facts carry `source_index=0`. Cross-source consumers retain source-qualified durable references rather than treating snapshot-local indices from different fact results as interchangeable.
 
 The Source table was introduced only when incomeAnchor became the first real Actual+Plan query consumer. It is not a report section axis or permission to merge currency domains.
 

@@ -26,7 +26,7 @@ budget tracking (envelope method)
 ## Intended source when implemented
 
 ```text
-budget_alloc.tsv → allocated amounts (cycle-bounded)
+budget.journal → ordered Budget movements (cycle-bounded)
 configured native Journal actual layer → spent per envelope
 plan.tsv plan layer → future planned spending
 ```

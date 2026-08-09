@@ -7,10 +7,7 @@
 - opening balance から資産を作る。
 - 銀行→現金の資金移動を含む。
 - 固定費 (`expenses:rent`, `fixed=1`) と変動費 (`expenses:food`) を含む。
-- `accounts.tsv` の `budget=...` メタから、支出が封筒消費へ導出される。
-- 封筒は `daily` / `flex` / `reserve` を使う。
-- 固定費 (`expenses:rent`) は封筒外に置く。
-- `budget_alloc.tsv` で `budget:unassigned` から `budget:daily` / `budget:flex` / `budget:reserve` に配賦する。
+- このlegacy fixtureのBudget allocation sourceはcanonical migration後に退役済み。
 - `cycle.tsv` は `fixed` で `2026-01-01` 〜 `<2026-02-01` を指定する。
 - `plan.tsv` は意図的に日付順ではない。レポート側で未来予定が日付順に並ぶことを確認する。
 

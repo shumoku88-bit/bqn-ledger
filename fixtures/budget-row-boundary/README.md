@@ -1,7 +1,5 @@
-# Fixture: budget-row-boundary
+# Fixture: retired Budget row boundary
 
-Invalid fixture used by `tools/check-budget-row-lint.sh`.
-
-`actual.journal` and `plan.tsv` intentionally contain `budget:*` rows. They must fail lint/strict validation because manual budget allocation belongs in `budget_alloc.tsv`.
-
-`budget_alloc.tsv` contains the same kind of budget movement and is valid there.
+This legacy invalid-row fixture no longer contains a Budget source. Canonical
+Budget movement evidence belongs only in a complete canonical `budget.journal`
+Household fixture and is admitted by `budget_journal_admission.bqn`.

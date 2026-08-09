@@ -6,7 +6,7 @@ Canonical: no; canonical path: `docs/ENGINEERING_ROADMAP.md`
 Exit: archive when the currency-awareness campaign closes or when a current currency contract replaces this plan
 Date: 2026-07-08
 
-Source-model note (2026-07-24): references below to `journal.tsv` describe the pre-Journal-only evidence/model and are not current runtime instructions. Current Actual ingress is the configured native Journal; `plan.tsv` and `budget_alloc.tsv` remain TSV sources.
+Source-model note: legacy TSV references below are historical campaign evidence, not current runtime instructions. Current Household ingress uses canonical Journals, including `plan.journal` and `budget.journal`.
 
 ## Purpose
 
@@ -384,7 +384,7 @@ Closure must record residual independent candidates rather than leaving the camp
 Unless a later explicit decision says otherwise:
 
 - existing JPY source data remains valid;
-- real `journal.tsv`, `plan.tsv`, `budget_alloc.tsv`, and `accounts.tsv` are not rewritten automatically;
+- private canonical Household sources are not rewritten automatically;
 - first five journal-like TSV columns remain protected until a specific contract change is selected;
 - optional metadata does not become accounting truth merely because it parses;
 - unknown or incompatible currency states fail visibly rather than becoming zero;

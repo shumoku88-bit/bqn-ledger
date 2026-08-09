@@ -1,5 +1,5 @@
 key	surface	arguments
-envelopes	human	JPY	2026-01-01	2026-02-01	2026-01-12	actual.journal	plan.tsv	budget_alloc.tsv	assets:cash
+envelopes	human	JPY	2026-01-01	2026-02-01	2026-01-12	actual.journal	plan.tsv	budget.journal	assets:cash
 balances	human	JPY	2026-01-12	actual.journal
 balance-sheet	human	JPY	2026-01-12	actual.journal
 profit-and-loss	human	JPY	2026-01-01	2026-02-01	actual.journal

@@ -141,7 +141,7 @@ Expected retirement phases from the roadmap:
 
 - `accounts.tsv` -> after Account/downstream canonical cutovers prove it unused
 - `plan.tsv` -> Phase 3+
-- `budget_alloc.tsv` -> Phase 4+
+- legacy Budget allocation TSV -> retired after canonical Budget writer migration
 - `cycle.tsv` -> Phase 5+
 - `daily_target_scope.tsv` -> Phase 5+
 - `config.tsv` -> after canonical root/policy/application discovery no longer needs it
@@ -175,7 +175,7 @@ if [[ -n ${HKERNEL_LEDGER_DATA_DIR:-} ]]; then
     budget.toml household.toml report.toml issues.tsv
   )
   legacy=(
-    accounts.tsv plan.tsv budget_alloc.tsv cycle.tsv daily_target_scope.tsv
+    accounts.tsv plan.tsv cycle.tsv daily_target_scope.tsv
     config.tsv report_manifests.tsv report_all_human.tsv report_all_compact.tsv
   )
 

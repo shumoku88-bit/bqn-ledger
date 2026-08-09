@@ -9,11 +9,11 @@ Exit: revise when journal-like metadata contracts change
 - 長期の方針: `docs/ENGINEERING_ROADMAP.md` (Phase 2)
 - 表記ルール（キーの命名など）: `docs/CONVENTIONS.md`
 
-Actual取引はnative Journal transaction metadata、`plan.tsv` / `budget_alloc.tsv` は6列目以降のTSV metadataを使います。Actual取引のTSV routeはありません。
+Canonical `actual.journal` / `plan.journal` / `budget.journal` はnative Journal transaction metadataを使います。Budget movementのTSV routeはありません。
 
 ## source TSVの基本フォーマット（必須: 5列）
 
-`plan.tsv` / `budget_alloc.tsv` はTAB区切りで以下の5列が必須です。
+以下はretained noncanonical TSV補助形式の説明です。canonical Budget writer contractではありません。
 
 1. 日付 (`YYYY-MM-DD`)
 2. 摘要（メモ）
@@ -167,21 +167,9 @@ native Journal transaction metadata: ; plan-id: plan-2026-07-15-gpt-plus
 
 現時点では、`txn_id` ごとの一覧・束表示は専用ツールの現行入口としては固定していません。必要になったら、native Journalを直接壊さないread-only helperとして追加します。
 
-## account metadata: `envelope_role`
+## Budget Account classification
 
-`accounts.tsv` の budget account では、封筒レポート表示のために次の任意メタを使えます。
-
-```text
-envelope_role=dynamic|execution|unassigned
-```
-
-意味:
-
-- `dynamic`: 食費・日用品など、日々の支出ペースを見る封筒。
-- `execution`: 固定費予定・支払い予定・貯金・投資など、サイクル中の執行待ち封筒。
-- `unassigned`: 未割当 budget pool。通常は `kind=unassigned` と併用します。
-
-短期方針では、未指定の `kind=envelope` は既存互換のため dynamic 相当として扱います。未知値は active envelope total に含めず、pace / execution advice もしません。`readiness` は未知 `envelope_role` と `kind` / `envelope_role` の不整合を診断します。
+Budget Account identity/typeは`accounts.journal`が所有します。`opening` / `unassigned` / `spent` / `envelope`や`dynamic` / `execution`等のHousehold classificationは`household.toml`が所有し、Budget policyは`budget.toml`が所有します。旧Account TSV metadataをcanonical Account declarationへ移植しません。
 
 ## 現行の追記ツールでのメタ指定
 
