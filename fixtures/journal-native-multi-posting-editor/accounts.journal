@@ -1,0 +1,15 @@
+account equity:opening
+  type: Equity
+  commodity: JPY
+
+account assets:cash
+  type: Asset
+  commodity: JPY
+
+account expenses:food:daily
+  type: Expense
+  commodity: JPY
+
+account expenses:household
+  type: Expense
+  commodity: JPY

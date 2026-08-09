@@ -2,7 +2,7 @@
 # Mandatory post-write validator for one explicit supported-currency Journal candidate.
 
 admission ← •Import "../src/ledger/journal_complete_admission.bqn"
-editorAccounts ← •Import "../src/application/editor_accounts.bqn"
+accountSource ← •Import "../src/application/account_source_adapter.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 decimal ← •Import "../src/ledger/exact_decimal.bqn"
 editorCurrency ← •Import "../src/application/editor_currency.bqn"
@@ -75,7 +75,9 @@ Normalize ← {𝕊 posting:
 expected ↩ Normalize¨expected
 {𝕊⋄Fail ⟨"expected_posting_invalid", "expected candidate requires balanced postings"⟩}⍟(0≠+´{𝕩.normalized_coefficient}¨expected) @
 
-resolved ← editorAccounts.Require loader.ReadLines (base∾"/accounts.tsv")
+accountResult ← accountSource.Load base
+{𝕊⋄Fail ⟨"account_source_invalid", "canonical accounts.journal failed admission"⟩}⍟(accountResult.state≢"ok") @
+resolved ← accountResult.accounts
 raw ← loader.ReadRaw target
 admitted ← admission.Admit ⟨raw,resolved,setup.registry⟩
 {𝕊⋄Fail ⟨"native_journal_invalid", "full written native Journal failed complete-source admission"⟩}⍟(admitted.state≢"ok") @

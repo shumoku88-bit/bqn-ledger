@@ -9,7 +9,6 @@ modules=(
   src/application/config_rows.bqn
   src/application/system_defaults.bqn
   src/application/editor_config_path.bqn
-  src/application/actual_journal_admission.bqn
   src/application/actual_journal_config.bqn
   src/application/editor_plan_budget_config.bqn
 )
@@ -19,26 +18,28 @@ fi
 bqn tests/test_application_editor_config.bqn >/dev/null
 
 mkdir "$work/no-config"
-if bqn src_edit/actual_journal_file_cmd.bqn "$work/no-config" >"$work/no-config.out" 2>&1; then
-  echo 'FAIL: missing explicit editor config fell back to repository defaults' >&2; exit 1
+actual_file="$(bqn src_edit/actual_journal_file_cmd.bqn "$work/no-config")"
+[[ "$actual_file" == "actual.journal" ]] || { echo 'FAIL: Actual writer target is not canonical actual.journal' >&2; exit 1; }
+
+printf 'ACTUAL_JOURNAL_FILE=legacy.journal\n' >"$work/no-config/config.tsv"
+actual_file="$(bqn src_edit/actual_journal_file_cmd.bqn "$work/no-config")"
+[[ "$actual_file" == "actual.journal" ]] || { echo 'FAIL: legacy config redirected canonical Actual writer target' >&2; exit 1; }
+
+if rg -n 'ACTUAL_JOURNAL_FILE|config\.tsv|editor_config_path|actual_journal_admission' \
+  src/application/actual_journal_config.bqn src_edit/actual_journal_file_cmd.bqn; then
+  echo 'FAIL: canonical Actual target still depends on legacy config admission' >&2
+  exit 1
 fi
-grep -F 'config source is not readable' "$work/no-config.out" >/dev/null
 
 mkdir "$work/base"
 printf 'BUDGET_ID_SPENT=budget:spent\n' >"$work/base/config.tsv"
 if bqn -e 'c←•Import "src/application/editor_plan_budget_config.bqn" ⋄ x←c.Load "'"$work/base"'" ⋄ •Out x.BudgetPrefix @' \
   >"$work/missing.out" 2>&1; then
-  echo 'FAIL: missing required editor config succeeded' >&2; exit 1
+  echo 'FAIL: missing required Plan/Budget editor config succeeded' >&2; exit 1
 fi
 grep -F 'missing value for BUDGET_PREFIX' "$work/missing.out" >/dev/null
 if grep -Eq '^budget:' "$work/missing.out"; then
-  echo 'FAIL: missing editor config published a fabricated value' >&2; exit 1
+  echo 'FAIL: missing Plan/Budget editor config published a fabricated value' >&2; exit 1
 fi
-
-printf 'ACTUAL_JOURNAL_FILE=one.journal\nACTUAL_JOURNAL_FILE=two.journal\n' >"$work/base/config.tsv"
-if bqn src_edit/actual_journal_file_cmd.bqn "$work/base" >"$work/duplicate.out" 2>&1; then
-  echo 'FAIL: duplicate Actual Journal config succeeded' >&2; exit 1
-fi
-grep -F 'duplicate value for ACTUAL_JOURNAL_FILE' "$work/duplicate.out" >/dev/null
 
 echo 'check-editor-config-ownership: OK'

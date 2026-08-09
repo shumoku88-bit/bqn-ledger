@@ -1,24 +1,17 @@
-# Strict editor Actual evidence from one explicit configured native Journal.
+# Strict editor Actual evidence from canonical accounts.journal + actual.journal.
 # Completion evidence exists only for durable non-empty plan_id links.
 
 io ← •Import "source_io.bqn"
-actualConfig ← •Import "actual_journal_config.bqn"
+sources ← •Import "report_source_adapter.bqn"
 registryBuilder ← •Import "../ledger/currency_registry.bqn"
-snapshot ← •Import "../ledger/snapshot.bqn"
 transactionRows ← •Import "../ledger/transaction_rows.bqn"
-Join ← {𝕊 base‿name: base∾(('/'≠¯1↑base)/"/")∾name}
 LoadTransactionRows ← {𝕊 base:
-  route ← actualConfig.Resolve base
   registryResult ← registryBuilder.Build io.ReadLines "config/currencies.tsv"
   {𝕊:•Out "ERROR: currency registry rejected" ⋄ •Exit 1}⍟(registryResult.state≢"ok") @
-  admitted ← snapshot.Build ⟨
-    io.ReadLines Join ⟨base,"accounts.tsv"⟩,
-    io.ReadRaw Join ⟨base,route.file⟩,
-    registryResult.registry
-  ⟩
-  {𝕊:•Out "ERROR: native Journal source rejected" ⋄ •Exit 1}⍟(admitted.state≢"ok") @
+  admitted ← sources.CanonicalActual ⟨base,registryResult.registry⟩
+  {𝕊:•Out "ERROR: canonical Actual source rejected" ⋄ •Exit 1}⍟(admitted.state≢"ok") @
   view ← transactionRows.Build admitted.facts
-  {𝕊:•Out "ERROR: native Journal transaction view rejected" ⋄ •Exit 1}⍟(view.state≢"ok") @
+  {𝕊:•Out "ERROR: canonical Actual transaction view rejected" ⋄ •Exit 1}⍟(view.state≢"ok") @
   view.rows
 }
 CompletionEvidenceFromRows ← {𝕊 rows:

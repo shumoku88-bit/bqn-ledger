@@ -144,27 +144,25 @@ tail -n 3 "$nested/sub/native.journal" >"$tmp_root/nested.tail"
 printf '%s\n' '    expenses:food:daily    1200 JPY' '    expenses:household    500 JPY' '    assets:cash    -1700 JPY' >"$tmp_root/nested.expected"
 cmp "$tmp_root/nested.expected" "$tmp_root/nested.tail"
 
-# Routed multi-add selects the configured native Journal without exposing file routing to the UI.
+# Routed multi-add is fixed to canonical actual.journal without exposing file routing to the UI.
 routed=$(new_base routed)
-awk '
-  /^ACTUAL_JOURNAL_FILE=/ {print "ACTUAL_JOURNAL_FILE=source.journal"; next}
-  {print}
-  END {print "DEFAULT_CURRENCY=JPY"}
-' config/default_config.tsv >"$routed/config.tsv"
-routed_before=$(sha_file "$routed/source.journal")
-routed_before_events=$(grep -Fc '; event-id:' "$routed/source.journal" || true)
+printf 'ACTUAL_JOURNAL_FILE=source.journal\nDEFAULT_CURRENCY=JPY\n' >"$routed/config.tsv"
+routed_actual_before=$(sha_file "$routed/actual.journal")
+routed_source_before=$(sha_file "$routed/source.journal")
+routed_before_events=$(grep -Fc '; event-id:' "$routed/actual.journal" || true)
 run_ok "$routed" "$tmp_root/routed.out" journal multi-add --date 2026-07-22 --description routed-split \
   --posting expenses:food:daily=1200 --posting expenses:household=500 --posting assets:cash=-1700 --yes --post-check none
-[[ $(sha_file "$routed/source.journal") != "$routed_before" ]]
-grep -Fq '2026-07-22 * routed-split' "$routed/source.journal"
-tail -n 3 "$routed/source.journal" >"$tmp_root/routed.tail"
+[[ $(sha_file "$routed/actual.journal") != "$routed_actual_before" ]]
+[[ $(sha_file "$routed/source.journal") == "$routed_source_before" ]]
+grep -Fq '2026-07-22 * routed-split' "$routed/actual.journal"
+tail -n 3 "$routed/actual.journal" >"$tmp_root/routed.tail"
 printf '%s\n' '    expenses:food:daily    1200 JPY' '    expenses:household    500 JPY' '    assets:cash    -1700 JPY' >"$tmp_root/routed.expected"
 cmp "$tmp_root/routed.expected" "$tmp_root/routed.tail"
 grep -Fq 'Mandatory native validation: OK' "$tmp_root/routed.out"
 grep -Fq $'OK\tNATIVE_JOURNAL_CANDIDATE\tordinary\t-' "$tmp_root/routed.out"
-[[ $(grep -Fc '; event-id:' "$routed/source.journal" || true) -eq "$routed_before_events" ]]
+[[ $(grep -Fc '; event-id:' "$routed/actual.journal" || true) -eq "$routed_before_events" ]]
 ! grep -Fq 'entry-' "$tmp_root/routed.out"
-! grep -Fq 'entry-' "$routed/source.journal"
+! grep -Fq 'entry-' "$routed/actual.journal"
 ! grep -Fq 'stage0-line-' "$tmp_root/routed.out"
 
 # Path rejection cases.
@@ -203,11 +201,23 @@ run_semantic_case zero-posting noop_setup "${common_prefix[@]}" --date 2026-07-2
 run_semantic_case decimal-posting noop_setup "${common_prefix[@]}" --date 2026-07-22 --description x --event-id new-id --posting expenses:food:daily=1.5 --posting assets:cash=-1
 run_semantic_case noninteger-posting noop_setup "${common_prefix[@]}" --date 2026-07-22 --description x --event-id new-id --posting expenses:food:daily=abc --posting assets:cash=-1
 run_semantic_case unbalanced noop_setup "${common_prefix[@]}" --date 2026-07-22 --description x --event-id new-id --posting expenses:food:daily=2 --posting assets:cash=-1
-setup_registry_only() { printf '%s\n' $'expenses:registry-only\trole=expense\tcurrency=JPY' >>"$1/accounts.tsv"; }
+setup_registry_only() { cat >>"$1/accounts.journal" <<'EOF'
+
+account expenses:registry-only
+  type: Expense
+  commodity: JPY
+EOF
+}
 run_semantic_case undeclared-account setup_registry_only "${common_prefix[@]}" --date 2026-07-22 --description x --event-id new-id --posting expenses:registry-only=1 --posting assets:cash=-1
 setup_declared_missing_registry() { printf '\naccount expenses:declared-only\n    ; role: expense\n' >>"$1/source.journal"; }
 run_semantic_case missing-registry setup_declared_missing_registry "${common_prefix[@]}" --date 2026-07-22 --description x --event-id new-id --posting expenses:declared-only=1 --posting assets:cash=-1
-setup_usd() { printf '%s\n' $'expenses:usd\trole=expense\tcurrency=USD' >>"$1/accounts.tsv"; printf '\naccount expenses:usd\n    ; role: expense\n' >>"$1/source.journal"; }
+setup_usd() { cat >>"$1/accounts.journal" <<'EOF'
+
+account expenses:usd
+  type: Expense
+  commodity: USD
+EOF
+printf '\naccount expenses:usd\n    ; role: expense\n' >>"$1/source.journal"; }
 run_semantic_case non-jpy setup_usd "${common_prefix[@]}" --date 2026-07-22 --description x --event-id new-id --posting expenses:usd=1 --posting assets:cash=-1
 setup_missing_commodity() { perl -0pi -e 's/commodity JPY/; commodity removed/' "$1/source.journal"; }
 run_semantic_case missing-commodity setup_missing_commodity "${common_prefix[@]}" --date 2026-07-22 --description x --event-id new-id --posting expenses:food:daily=1 --posting assets:cash=-1
@@ -393,5 +403,10 @@ rc=$?
 set -e
 [[ $rc -ne 0 ]] || { echo "FAIL multi-append expected non-zero rc" >&2; exit 1; }
 grep -Fq $'ERROR\tnative_candidate_count_invalid' "$m_out" || { echo "FAIL multi-append output:" >&2; cat "$m_out" >&2; exit 1; }
+
+if rg -n 'accounts\.tsv|editor_accounts' src_edit/journal_native_source_check.bqn; then
+  echo 'FAIL: native Journal validator still depends on legacy Accounts' >&2
+  exit 1
+fi
 
 printf 'check-edit-bqn-journal-block-add: OK\n'

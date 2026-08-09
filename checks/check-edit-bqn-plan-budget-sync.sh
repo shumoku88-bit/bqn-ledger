@@ -14,6 +14,39 @@ printf '%s\n' \
   $'budget:opening\trole=budget\tkind=opening\tcurrency=JPY' \
   $'budget:unassigned\trole=budget\tkind=unassigned\tenvelope_role=unassigned\tcurrency=JPY' \
   $'budget:spent\trole=budget\tkind=spent\tcurrency=JPY' >"$base/accounts.tsv"
+cat >"$base/accounts.journal" <<'ACCOUNTS'
+account assets:bank
+  type: Asset
+  commodity: JPY
+
+account expenses:fixed
+  type: Expense
+  commodity: JPY
+
+account expenses:variable
+  type: Expense
+  commodity: JPY
+
+account budget:fixed
+  type: Budget
+  commodity: JPY
+
+account budget:daily
+  type: Budget
+  commodity: JPY
+
+account budget:opening
+  type: Budget
+  commodity: JPY
+
+account budget:unassigned
+  type: Budget
+  commodity: JPY
+
+account budget:spent
+  type: Budget
+  commodity: JPY
+ACCOUNTS
 printf '%s\n' \
   $'2026-07-20\tfixed bill\tassets:bank\texpenses:fixed\t1000\tplan_id=plan-2026-07-20-fixed\tcurrency=JPY' \
   $'2026-07-20\tvariable\tassets:bank\texpenses:variable\t200\tplan_id=plan-2026-07-20-variable\tcurrency=JPY' >"$base/plan.tsv"
