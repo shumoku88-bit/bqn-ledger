@@ -1,343 +1,601 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# tools/bl — Command Hub / doorway into bqn-ledger tools
+# tools/bl — canonical Household Command Hub.
+# This script owns only navigation, selection, and presentation. Accounting,
+# admission, and publication remain in the existing report/editor/tool owners.
 
-# Resolve script paths
 SOURCE="${BASH_SOURCE[0]}"
-while [ -L "$SOURCE" ]; do
-  DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+while [[ -L "$SOURCE" ]]; do
+  DIR="$(cd -P "$(dirname "$SOURCE")" >/dev/null 2>&1 && pwd)"
   SOURCE="$(readlink "$SOURCE")"
-  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+  [[ $SOURCE == /* ]] || SOURCE="$DIR/$SOURCE"
 done
-SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+SCRIPT_DIR="$(cd -P "$(dirname "$SOURCE")" >/dev/null 2>&1 && pwd)"
 ROOT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 cd "$ROOT_DIR"
 
 source "$ROOT_DIR/tools/lib/system-defaults.sh"
+source "$ROOT_DIR/tools/lib/theme.sh"
+source "$ROOT_DIR/tools/lib/ui-preferences.sh"
 
 usage() {
-  cat <<EOF
+  cat <<'EOF'
 Usage:
-  tools/bl [--base <dir>] [command]
+  tools/bl [--base DIR] [command [subcommand] [args...]]
 
-Commands:
-  (no command)     Open interactive main menu
-  report, all      Show the full report
-  section [<key>]  Show section selector or direct section output
-  add              Launch transaction addition / cancellation UI
-  check            Run data validation checks
-  edit [<file>]    Open TSV files in \$EDITOR
-  help             Show this help message
+Interactive categories:
+  record        Expense, income, transfer, multi-posting, reverse, history
+  plans         Open/overdue/upcoming/related Plans; add, edit, finish
+  budget        Budget movement and Envelope report
+  accounts      Account list, balances, and add
+  issues        Issue list, report, add, and close
+  reports       All twelve retained reports
+  operations    Household check, inspect, doctor, hledger export, source edit
+
+Direct commands (non-TTY safe when the target command is read-only):
+  report, all                    Full current report
+  section [KEY]                  Report selector or one retained report
+  reports [KEY]                  Report selector or one retained report
+  journal [list], transactions   Canonical transaction history
+  plans list|all|overdue|upcoming [editor options]
+  plans related [editor options] Related Plan evidence (interactive if no args)
+  plans add|edit|finish          Existing selection-based writer UI
+  plans budget-sync [options]    Retry sync (selection-based without options)
+  accounts list [editor options] Canonical Account inventory
+  accounts balances             Account Balances report
+  accounts add                  Existing Account writer UI
+  issues list                   Open Issue inventory
+  issues report                 Issues report
+  issues add|close              Existing Issue lifecycle UI
+  record expense|income|transfer|multi|reverse
+  budget add|envelopes
+  check                          Strict canonical Household readiness
+  inspect                        Canonical ledger/provenance inspection
+  doctor                         Dependency and canonical-root diagnosis
+  export                         Export canonical Journals for hledger
+  query DOMAIN KEY [LATEST]      Exact compact-key query (advanced)
+  dev-check                      Repository development suite (not Household check)
+  edit [CANONICAL_FILE]          Open one of the eight canonical sources
+  add                            Existing complete daily action menu
 
 Options:
-  --base <dir>     Specify ledger base directory
+  --base DIR                     Canonical eight-file Household root
+  --domain COMMODITY             Explicit report domain
+  --latest YYYY-MM-DD            Deterministic current-report date
 EOF
 }
 
 base_dir="${LEDGER_DATA_DIR:-$(get_default_base_dir)}"
-cmd=""
-
-# Simple argument parsing
+domain_override="${REPORT_DOMAIN:-}"
+latest_override=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --base)
-      if [[ $# -lt 2 ]]; then
-        echo "Error: --base requires a directory" >&2
-        usage >&2
-        exit 1
-      fi
+      [[ $# -ge 2 ]] || { echo 'Error: --base requires a directory' >&2; usage >&2; exit 2; }
       base_dir="$2"
       shift 2
       ;;
-    -h|--help|help)
-      usage
-      exit 0
+    --domain)
+      [[ $# -ge 2 ]] || { echo 'Error: --domain requires a commodity' >&2; usage >&2; exit 2; }
+      domain_override="$2"
+      shift 2
       ;;
-    *)
-      if [[ -z "$cmd" ]]; then
-        cmd="$1"
-        shift
-      else
-        # Accumulate remaining args
-        break
-      fi
+    --latest)
+      [[ $# -ge 2 ]] || { echo 'Error: --latest requires YYYY-MM-DD' >&2; usage >&2; exit 2; }
+      latest_override="$2"
+      shift 2
       ;;
+    -h|--help|help) usage; exit 0 ;;
+    --) shift; break ;;
+    -*) echo "Error: unknown option: $1" >&2; usage >&2; exit 2 ;;
+    *) break ;;
   esac
 done
 
-# Initialize theme after resolving base_dir so --base config can affect the hub.
-source "$ROOT_DIR/tools/lib/theme.sh"
-
+IS_TTY=0
+[[ -t 0 && -t 1 ]] && IS_TTY=1
 COLOR_HEADER="$ESC_HEADER"
 COLOR_OK="$ESC_OK"
 COLOR_ERROR="$ESC_ERROR"
 COLOR_RESET="$ESC_RESET"
 
-IS_TTY=0
-if [[ -t 0 && -t 1 ]]; then
-  IS_TTY=1
-fi
+print_header() { printf '%b=== %s ===%b\n' "$COLOR_HEADER" "$1" "$COLOR_RESET"; }
 
-# Print section wrapper with a colored header
-print_header() {
-  local title="$1"
-  printf "${COLOR_HEADER}=== %s ===${COLOR_RESET}\n" "$title"
-}
+select_menu() {
+  local prompt="$1" lines="$2" selector selection status=0 key='' label=''
+  selector="$(bl_selector_preference 2>/dev/null || echo auto)"
+  if [[ "${BL_UI_MODE:-}" == minimal ]]; then
+    selector=plain
+  elif [[ $selector == auto ]]; then
+    if command -v fzf >/dev/null 2>&1; then selector=fzf
+    elif command -v gum >/dev/null 2>&1; then selector=gum
+    else selector=plain
+    fi
+  fi
 
-# Main menu items
-menu_list() {
-  cat <<EOF
-section	Show report sections (fzf selector)
-add	Add or cancel transaction / plan
-check	Run check.sh
-edit	Open source files in \$EDITOR
-exit	Exit
-EOF
-}
-
-# Canonical Household files offered by the direct source editor.
-tsv_list() {
-  cat <<'EOF'
-accounts.journal	Account declarations
-actual.journal	Actual transactions
-plan.journal	Future plans
-budget.journal	Budget movements
-budget.toml	Budget policy
-household.toml	Household policy
-report.toml	Report policy
-issues.tsv	Pending issues and decisions
-EOF
-}
-
-tsv_menu_list() {
-  tsv_list
-  printf 'back\tBack to main menu\n'
-}
-
-run_check() {
-  print_header "Running Checks"
-  # Run check.sh and propagate its exit status for direct command use.
-  if "$ROOT_DIR/tools/check.sh"; then
-    printf '%bAll checks passed successfully.%b\n' "$COLOR_OK" "$COLOR_RESET"
-    return 0
+  if [[ $IS_TTY -eq 1 && $selector == fzf ]]; then
+    set +e
+    selection="$(printf '%s\n' "$lines" | fzf --prompt="$prompt> " --delimiter=$'\t' --with-nth=2.. --reverse --exit-0)"
+    status=$?
+    set -e
+    [[ $status -eq 0 && -n $selection ]] || return 130
+    printf '%s\n' "${selection%%$'\t'*}"
+  elif [[ $IS_TTY -eq 1 && $selector == gum ]]; then
+    set +e
+    selection="$(printf '%s\n' "$lines" | cut -f2- | gum choose "${GUM_CHOOSE_ARGS[@]}" --header="$prompt")"
+    status=$?
+    set -e
+    [[ $status -eq 0 && -n $selection ]] || return 130
+    key="$(awk -F'\t' -v label="$selection" '$0 ~ /^[^\t]+\t/ && substr($0,index($0,"\t")+1)==label {print $1; exit}' <<<"$lines")"
+    [[ -n $key ]] || return 1
+    printf '%s\n' "$key"
   else
-    printf '%bChecks failed. Please review errors above.%b\n' "$COLOR_ERROR" "$COLOR_RESET"
+    local -a keys=() labels=()
+    local count=0 i answer
+    while IFS=$'\t' read -r key label; do
+      [[ -n $key ]] || continue
+      keys+=("$key")
+      labels+=("$label")
+      count=$((count + 1))
+    done <<<"$lines"
+    printf '\n=== %s ===\n' "$prompt" >&2
+    for ((i=0; i<count; i++)); do printf ' %2d) %s\n' "$((i+1))" "${labels[i]}" >&2; done
+    printf '  0) Back\nSelect [0-%d]> ' "$count" >&2
+    if [[ $IS_TTY -eq 1 ]]; then
+      read -r answer </dev/tty || return 130
+    else
+      read -r answer || return 130
+    fi
+    [[ $answer != 0 && $answer != back && -n $answer ]] || return 130
+    if [[ $answer =~ ^[0-9]+$ ]] && ((answer >= 1 && answer <= count)); then
+      printf '%s\n' "${keys[answer-1]}"
+      return 0
+    fi
+    for ((i=0; i<count; i++)); do
+      [[ ${keys[i]} == "$answer" ]] && { printf '%s\n' "${keys[i]}"; return 0; }
+    done
     return 1
   fi
 }
 
-select_tsv_file() {
-  local selection="" status=0 file=""
-
-  if command -v fzf >/dev/null 2>&1 && [[ "$IS_TTY" -eq 1 ]]; then
-    set +e
-    selection="$(tsv_menu_list | fzf --prompt='edit file> ' --delimiter=$'\t' --with-nth=2.. --reverse --exit-0)"
-    status=$?
-    set -e
-    [[ "$status" -eq 130 || -z "$selection" ]] && return 130
-    file="${selection%%$'\t'*}"
-  elif command -v gum >/dev/null 2>&1 && [[ "$IS_TTY" -eq 1 ]]; then
-    set +e
-    selection="$(tsv_menu_list | gum filter "${GUM_FILTER_ARGS[@]}" --placeholder='edit file')"
-    status=$?
-    set -e
-    [[ "$status" -eq 130 || -z "$selection" ]] && return 130
-    file="${selection%%$'\t'*}"
-  else
-    tsv_menu_list >&2
-    printf 'Enter file to edit (or back): ' >&2
-    if ! read -r file; then
-      return 130
-    fi
-  fi
-
-  case "$file" in
-    back|quit|exit|'') return 130 ;;
-    *) printf '%s\n' "$file" ;;
-  esac
-}
-
-resolve_tsv_path() {
-  local file="$1"
-  case "$file" in
-    accounts.journal|actual.journal|plan.journal|budget.journal|budget.toml|household.toml|report.toml|issues.tsv)
-      printf '%s\n' "$base_dir/$file"
-      ;;
-    *)
-      printf '%s\n' "$file"
-      ;;
-  esac
-}
-
-ensure_editor() {
-  if [[ -z "${EDITOR:-}" ]]; then
-    EDITOR="nano"
-    if command -v vim >/dev/null 2>&1; then EDITOR="vim"; fi
-    if command -v vi >/dev/null 2>&1; then EDITOR="vi"; fi
-  fi
-}
-
-open_tsv_file() {
-  local file="$1" file_path status
-  file_path="$(resolve_tsv_path "$file")"
-  ensure_editor
-
-  print_header "Opening $file_path in $EDITOR"
+run_child() {
+  local status=0
   set +e
-  $EDITOR "$file_path"
+  "$@"
   status=$?
   set -e
-  if [[ "$status" -ne 0 ]]; then
-    printf '%bEditor exited with status %s.%b\n' "$COLOR_ERROR" "$status" "$COLOR_RESET" >&2
+  if [[ $status -eq 130 ]]; then
+    return 130
+  elif [[ $status -ne 0 ]]; then
+    printf '%bCommand failed with status %s.%b\n' "$COLOR_ERROR" "$status" "$COLOR_RESET" >&2
   fi
   return "$status"
 }
 
-run_edit() {
-  local file="${1:-}" status
-
-  if [[ -n "$file" ]]; then
-    open_tsv_file "$file"
-    return $?
+run_action() {
+  local mode="$1"
+  if [[ -n $mode ]]; then
+    run_child "$ROOT_DIR/tools/add-ui.sh" --base "$base_dir" "$mode"
+  else
+    run_child "$ROOT_DIR/tools/add-ui.sh" --base "$base_dir"
   fi
+}
 
-  # Interactive edit submenu: after editing one file, return here.
-  # back / cancel / Ctrl-C returns to the parent bl menu.
+run_check() {
+  print_header 'Canonical Household Check'
+  if "$ROOT_DIR/tools/ledger-check" "$base_dir"; then
+    printf '%bCanonical Household is ready.%b\n' "$COLOR_OK" "$COLOR_RESET"
+  else
+    local status=$?
+    printf '%bCanonical Household admission failed.%b\n' "$COLOR_ERROR" "$COLOR_RESET" >&2
+    return "$status"
+  fi
+}
+
+canonical_files() {
+  cat <<'EOF'
+accounts.journal	Account declarations
+actual.journal	Actual transactions
+plan.journal	Future Plans
+budget.journal	Budget movements
+budget.toml	Budget policy
+household.toml	Household policy
+report.toml	Report policy
+issues.tsv	Issues and decisions
+EOF
+}
+
+resolve_source_path() {
+  case "$1" in
+    accounts.journal|actual.journal|plan.journal|budget.journal|budget.toml|household.toml|report.toml|issues.tsv)
+      printf '%s/%s\n' "$base_dir" "$1" ;;
+    *) return 2 ;;
+  esac
+}
+
+open_source() {
+  local file="$1" path editor status=0
+  if ! path="$(resolve_source_path "$file")"; then
+    echo "Error: source edit is limited to the canonical eight files: $file" >&2
+    return 2
+  fi
+  editor="${EDITOR:-}"
+  if [[ -z $editor ]]; then
+    editor=nano
+    command -v vim >/dev/null 2>&1 && editor=vim
+    command -v vi >/dev/null 2>&1 && editor=vi
+  fi
+  print_header "Opening $path in $editor"
+  set +e
+  $editor "$path"
+  status=$?
+  set -e
+  return "$status"
+}
+
+run_edit_menu() {
+  local file="${1:-}" key status
+  [[ -z $file ]] || { open_source "$file"; return; }
+  [[ $IS_TTY -eq 1 ]] || {
+    canonical_files >&2
+    echo 'Error: edit without a file requires an interactive terminal' >&2
+    return 2
+  }
   while true; do
     set +e
-    file="$(select_tsv_file)"
+    key="$(select_menu 'Edit canonical source' "$(canonical_files)" )"
     status=$?
     set -e
-    if [[ "$status" -eq 130 ]]; then
-      return 0
-    elif [[ "$status" -ne 0 ]]; then
-      return "$status"
-    fi
-
-    open_tsv_file "$file" || true
-    echo ""
+    [[ $status -eq 130 ]] && return 0
+    [[ $status -eq 0 ]] || return "$status"
+    open_source "$key" || true
   done
 }
 
-# Main routing
-if [[ -z "$cmd" ]]; then
-  # Interactive main menu
-  if [[ "$IS_TTY" -eq 0 ]]; then
-    echo "Error: Not a TTY. Cannot open interactive menu. Use --help for direct commands." >&2
-    exit 1
+report_lines() {
+  printf 'all\tAll twelve reports\n'
+  "$ROOT_DIR/tools/report-section-metadata" | awk -F'\t' 'NR>1 {print $1 "\t" $2}'
+}
+
+run_reports() {
+  local key="${1:-}" status
+  if [[ -z $key ]]; then
+    [[ $IS_TTY -eq 1 ]] || { echo 'Error: reports requires KEY outside an interactive terminal' >&2; return 2; }
+    set +e
+    key="$(select_menu 'Reports' "$(report_lines)")"
+    status=$?
+    set -e
+    [[ $status -eq 130 ]] && return 0
+    [[ $status -eq 0 ]] || return "$status"
   fi
+  local -a ui_args=(--base "$base_dir")
+  [[ -z $domain_override ]] || ui_args+=(--domain "$domain_override")
+  [[ -z $latest_override ]] || ui_args+=(--latest "$latest_override")
+  if [[ $key == all || $key == report ]]; then
+    run_child "$ROOT_DIR/tools/main-ui.sh" "${ui_args[@]}" report
+  else
+    run_child "$ROOT_DIR/tools/main-ui.sh" "${ui_args[@]}" "$key"
+  fi
+}
 
+show_plan_related_interactive() {
+  local rows selected status index selected_row selected_plan_date
+  rows="$("$ROOT_DIR/tools/edit" --base "$base_dir" plan list --format tsv)"
+  [[ -n $rows ]] || { echo 'No open Plans.'; return 0; }
+  set +e
+  selected="$(select_menu 'Plan for related evidence' "$(awk -F'\t' '{print $1 "\t" $9}' <<<"$rows")")"
+  status=$?
+  set -e
+  [[ $status -eq 130 ]] && return 130
+  [[ $status -eq 0 ]] || return "$status"
+  index="$selected"
+  selected_row="$(awk -F'\t' -v selected_index="$index" '$1==selected_index {print; found++} END {if (found!=1) exit 1}' <<<"$rows")" || {
+    echo 'Failed to resolve the selected Plan row.' >&2
+    return 1
+  }
+  selected_plan_date="$(cut -f3 <<<"$selected_row")"
+  run_child "$ROOT_DIR/tools/edit" --base "$base_dir" plan related --index "$index" --actual-date "$selected_plan_date" --format tsv
+}
+
+show_plan_budget_sync_interactive() {
+  local rows selected status
+  rows="$("$ROOT_DIR/tools/edit" --base "$base_dir" plan list --all --format tsv | awk -F'\t' '$8=="CLOSED"')"
+  [[ -n $rows ]] || { echo 'No completed Plans available for Budget sync.'; return 0; }
+  set +e
+  selected="$(select_menu 'Completed Plan to sync' "$(awk -F'\t' '{print $2 "\t" $9}' <<<"$rows")")"
+  status=$?
+  set -e
+  [[ $status -eq 130 ]] && return 130
+  [[ $status -eq 0 ]] || return "$status"
+  run_child "$ROOT_DIR/tools/edit" --base "$base_dir" plan budget-sync --id "$selected"
+}
+
+prompt_value() {
+  local prompt="$1" default="${2:-}" value
+  if [[ -n $default ]]; then printf '%s [%s]: ' "$prompt" "$default" >&2; else printf '%s: ' "$prompt" >&2; fi
+  read -r value </dev/tty || return 130
+  [[ -n $value ]] || value="$default"
+  [[ -n $value ]] || return 130
+  printf '%s\n' "$value"
+}
+
+run_summary_interactive() {
+  local domain
+  domain="$(prompt_value 'Commodity' "$domain_override")" || return 130
+  if [[ -n $latest_override ]]; then
+    "$ROOT_DIR/tools/report-summary" "$base_dir" "$domain" "$latest_override"
+  else
+    "$ROOT_DIR/tools/report-summary" "$base_dir" "$domain"
+  fi
+}
+
+run_query_interactive() {
+  local domain keys key status
+  domain="$(prompt_value 'Commodity' "$domain_override")" || return 130
+  if [[ -n $latest_override ]]; then
+    keys="$("$ROOT_DIR/tools/query" "$base_dir" "$domain" --keys "$latest_override")"
+  else
+    keys="$("$ROOT_DIR/tools/query" "$base_dir" "$domain" --keys)"
+  fi
+  set +e
+  key="$(select_menu 'Compact key' "$(awk '{print $0 "\t" $0}' <<<"$keys")")"
+  status=$?
+  set -e
+  [[ $status -eq 130 ]] && return 130
+  [[ $status -eq 0 ]] || return "$status"
+  if [[ -n $latest_override ]]; then
+    "$ROOT_DIR/tools/query" "$base_dir" "$domain" "$key" "$latest_override"
+  else
+    "$ROOT_DIR/tools/query" "$base_dir" "$domain" "$key"
+  fi
+}
+
+record_menu() {
+  cat <<'EOF'
+expense	Expense
+income	Income
+move	Transfer / move
+multi	Multi-posting transaction
+reverse	Reverse with a compensating transaction
+history	Journal history
+back	Back
+EOF
+}
+plans_menu() {
+  cat <<'EOF'
+list	Open Plans
+all	All Plans, including completed
+overdue	Overdue open Plans
+upcoming	Upcoming open Plans
+related	Related Plans
+add	Add Plan
+edit	Edit Plan date / amount
+finish	Finish Plan, sync Budget, optionally replenish
+budget-sync	Retry Budget sync for a completed Plan
+back	Back
+EOF
+}
+budget_menu() {
+  cat <<'EOF'
+add	Add / move Budget
+report	Envelope & Backing report
+back	Back
+EOF
+}
+accounts_menu() {
+  cat <<'EOF'
+list	List Accounts
+balances	Account Balances report
+add	Add Account
+back	Back
+EOF
+}
+issues_menu() {
+  cat <<'EOF'
+list	List open Issues
+report	Issues report
+add	Add Issue
+close	Close Issue
+back	Back
+EOF
+}
+operations_menu() {
+  cat <<'EOF'
+check	Canonical Household check
+inspect	Ledger / provenance inspection
+doctor	Dependency and source diagnosis
+export	Export canonical Journals to hledger
+edit	Edit canonical source
+summary	Compact report summary
+query	Exact compact-key query (advanced)
+dev-check	Repository development suite
+back	Back
+EOF
+}
+top_menu() {
+  cat <<'EOF'
+record	Record / Journal
+plans	Plans
+budget	Budget
+accounts	Accounts
+issues	Issues
+reports	Reports (12)
+operations	Inspect / Operations
+exit	Exit
+EOF
+}
+
+run_record_key() {
+  case "$1" in
+    expense|income|move|multi|reverse) run_action "$1" ;;
+    transfer) run_action move ;;
+    history|list) "$ROOT_DIR/tools/edit" --base "$base_dir" journal list ;;
+    back) return 130 ;;
+    *) echo "Error: unknown record action: $1" >&2; return 2 ;;
+  esac
+}
+run_plan_key() {
+  local key="$1"; shift
+  case "$key" in
+    list) "$ROOT_DIR/tools/edit" --base "$base_dir" plan list "$@" ;;
+    all) "$ROOT_DIR/tools/edit" --base "$base_dir" plan list --all "$@" ;;
+    overdue|upcoming)
+      "$ROOT_DIR/tools/edit" --base "$base_dir" plan list --temporal "$key" --as-of "$(date +%Y-%m-%d)" "$@" ;;
+    related)
+      if [[ $# -gt 0 ]]; then "$ROOT_DIR/tools/edit" --base "$base_dir" plan related "$@"; else show_plan_related_interactive; fi ;;
+    add) run_action plan-add ;;
+    edit) run_action plan-edit ;;
+    finish) run_action plan-finish ;;
+    budget-sync)
+      if [[ $# -gt 0 ]]; then "$ROOT_DIR/tools/edit" --base "$base_dir" plan budget-sync "$@"; else show_plan_budget_sync_interactive; fi ;;
+    back) return 130 ;;
+    *) echo "Error: unknown Plans action: $key" >&2; return 2 ;;
+  esac
+}
+run_budget_key() {
+  case "$1" in
+    add|move) run_action budget ;;
+    report|envelopes) run_reports envelopes ;;
+    back) return 130 ;;
+    *) echo "Error: unknown Budget action: $1" >&2; return 2 ;;
+  esac
+}
+run_account_key() {
+  local key="$1"; shift
+  case "$key" in
+    list) "$ROOT_DIR/tools/edit" --base "$base_dir" account list "$@" ;;
+    balances) run_reports balances ;;
+    add) run_action account-add ;;
+    back) return 130 ;;
+    *) echo "Error: unknown Accounts action: $key" >&2; return 2 ;;
+  esac
+}
+run_issue_key() {
+  case "$1" in
+    list) "$ROOT_DIR/tools/edit" --base "$base_dir" issue list ;;
+    report) run_reports issues ;;
+    add) run_action issue ;;
+    close) run_action issue-close ;;
+    back) return 130 ;;
+    *) echo "Error: unknown Issues action: $1" >&2; return 2 ;;
+  esac
+}
+run_operation_key() {
+  local key="$1"; shift
+  case "$key" in
+    check) run_check ;;
+    inspect) "$ROOT_DIR/tools/ledger-inspect" "$base_dir" ;;
+    doctor) LEDGER_DATA_DIR="$base_dir" "$ROOT_DIR/tools/doctor" ;;
+    export) "$ROOT_DIR/tools/to-hledger" "$base_dir" ;;
+    edit) run_edit_menu "${1:-}" ;;
+    summary)
+      if [[ $# -gt 0 ]]; then "$ROOT_DIR/tools/report-summary" "$base_dir" "$@"; elif [[ $IS_TTY -eq 1 ]]; then run_summary_interactive; else echo 'Error: operations summary requires DOMAIN' >&2; return 2; fi ;;
+    query)
+      if [[ $# -gt 1 ]]; then "$ROOT_DIR/tools/query" "$base_dir" "$@"; elif [[ $IS_TTY -eq 1 ]]; then run_query_interactive; else echo 'Error: operations query requires DOMAIN LEDGER_KEY' >&2; return 2; fi ;;
+    dev-check) "$ROOT_DIR/tools/check.sh" ;;
+    back) return 130 ;;
+    *) echo "Error: unknown operation: $key" >&2; return 2 ;;
+  esac
+}
+
+run_interactive_submenu() {
+  local title="$1" list_fn="$2" handler="$3" key status
   while true; do
-    selection=""
-    if command -v gum >/dev/null 2>&1; then
-      # use gum choose for a clean vertical menu
-      selection="$(menu_list | cut -f2 | gum choose "${GUM_CHOOSE_ARGS[@]}" --header="BQN-Ledger Command Hub (${base_dir})")"
-      [[ -z "$selection" ]] && break
-      key="$(menu_list | grep -F "$selection" | cut -f1)"
-    elif command -v fzf >/dev/null 2>&1; then
-      selection="$(menu_list | fzf --prompt='bl> ' --delimiter=$'\t' --with-nth=2.. --reverse --exit-0)"
-      [[ -z "$selection" ]] && break
-      key="${selection%%$'\t'*}"
-    else
-      # Simple read fallback
-      echo "=== BQN-Ledger Command Hub ==="
-      menu_list | awk -F'\t' '{print NR ") " $2 " (" $1 ")"}'
-      printf "Select option: "
-      read -r opt
-      key="$(menu_list | sed -n "${opt}p" | cut -f1)"
-      if [[ -z "$key" ]]; then
-        key="$opt"
-      fi
-    fi
+    set +e
+    key="$(select_menu "$title" "$("$list_fn")")"
+    status=$?
+    set -e
+    [[ $status -eq 130 ]] && return 0
+    [[ $status -eq 0 ]] || { echo 'Invalid selection.' >&2; continue; }
+    [[ $key == back ]] && return 0
+    set +e
+    "$handler" "$key"
+    status=$?
+    set -e
+    [[ $status -eq 130 ]] || [[ $status -eq 0 ]] || true
+    [[ $IS_TTY -eq 1 ]] && printf '\n'
+  done
+}
 
+run_interactive_hub() {
+  local key status
+  [[ $IS_TTY -eq 1 ]] || { echo 'Error: no command and no interactive terminal; use tools/bl --help' >&2; return 2; }
+  # Keep the navigation shell alive while the active selector/child receives
+  # Ctrl-C. External children reset this caught signal to their normal default.
+  trap ':' INT
+  while true; do
+    set +e
+    key="$(select_menu "BQN-Ledger Command Hub ($base_dir)" "$(top_menu)")"
+    status=$?
+    set -e
+    [[ $status -eq 130 ]] && return 0
+    [[ $status -eq 0 ]] || { echo 'Invalid selection.' >&2; continue; }
     case "$key" in
-      report)
-        print_header "Full Report"
-        "$ROOT_DIR/tools/main-ui.sh" --base "$base_dir" report
-        echo ""
-        ;;
-      section)
-        "$ROOT_DIR/tools/main-ui.sh" --base "$base_dir" select
-        echo ""
-        ;;
-      add)
-        while true; do
-          set +e
-          "$ROOT_DIR/tools/add-ui.sh" --base "$base_dir"
-          status=$?
-          set -e
-          if [[ "$status" -eq 130 ]]; then
-            # Input-flow cancel: discard partial input and reopen the add/cancel menu.
-            continue
-          fi
-          if [[ "$status" -ne 0 ]]; then
-            printf '%bAdd/cancel UI failed. Please review errors above.%b\n' "$COLOR_ERROR" "$COLOR_RESET"
-          fi
-          break
-        done
-        echo ""
-        ;;
-      check)
-        run_check || true
-        echo ""
-        ;;
-      edit)
-        run_edit ""
-        echo ""
-        ;;
-      exit)
-        break
-        ;;
-      *)
-        echo "Unknown option: $key"
-        ;;
+      record) run_interactive_submenu Record record_menu run_record_key ;;
+      plans) run_interactive_submenu Plans plans_menu run_plan_key ;;
+      budget) run_interactive_submenu Budget budget_menu run_budget_key ;;
+      accounts) run_interactive_submenu Accounts accounts_menu run_account_key ;;
+      issues) run_interactive_submenu Issues issues_menu run_issue_key ;;
+      reports) run_reports || true ;;
+      operations) run_interactive_submenu 'Inspect / Operations' operations_menu run_operation_key ;;
+      exit) return 0 ;;
     esac
   done
-else
-  # Direct subcommand execution
-  case "$cmd" in
-    report|all)
-      "$ROOT_DIR/tools/main-ui.sh" --base "$base_dir" report
-      ;;
-    section)
-      section_key="${1:-}"
-      if [[ -z "$section_key" ]]; then
-        "$ROOT_DIR/tools/main-ui.sh" --base "$base_dir" select
-      else
-        "$ROOT_DIR/tools/main-ui.sh" --base "$base_dir" "$section_key"
-      fi
-      ;;
-    add)
-      if [[ $# -gt 0 ]]; then
-        exec "$ROOT_DIR/tools/add-ui.sh" --base "$base_dir" "$@"
-      fi
-      while true; do
-        set +e
-        "$ROOT_DIR/tools/add-ui.sh" --base "$base_dir"
-        status=$?
-        set -e
-        if [[ "$status" -eq 130 ]]; then
-          continue
-        fi
-        exit "$status"
-      done
-      ;;
-    check)
-      run_check
-      ;;
-    edit)
-      run_edit "${1:-}"
-      ;;
-    *)
-      # Fallback: check if it's a section key directly
-      if "$ROOT_DIR/tools/main-ui.sh" --base "$base_dir" "$cmd" >/dev/null 2>&1; then
-        exec "$ROOT_DIR/tools/main-ui.sh" --base "$base_dir" "$cmd"
-      else
-        echo "Error: Unknown command or section '$cmd'" >&2
-        usage >&2
-        exit 1
-      fi
-      ;;
-  esac
+}
+
+if [[ $# -eq 0 ]]; then
+  run_interactive_hub
+  exit $?
 fi
+
+cmd="$1"; shift
+case "$cmd" in
+  report|all) run_reports all ;;
+  section|reports)
+    if [[ $# -gt 0 ]]; then run_reports "$1"; else run_reports; fi ;;
+  journal)
+    sub="${1:-list}"; [[ $# -eq 0 ]] || shift
+    case "$sub" in list|history) "$ROOT_DIR/tools/edit" --base "$base_dir" journal list "$@" ;; *) echo "Error: unknown journal action: $sub" >&2; exit 2 ;; esac ;;
+  transactions) "$ROOT_DIR/tools/edit" --base "$base_dir" journal list ;;
+  browse)
+    [[ $# -gt 0 ]] || { echo 'Error: browse requires transactions|plans|accounts|issues' >&2; exit 2; }
+    case "$1" in
+      transactions|journal) "$ROOT_DIR/tools/edit" --base "$base_dir" journal list ;;
+      plans) "$ROOT_DIR/tools/edit" --base "$base_dir" plan list ;;
+      accounts) "$ROOT_DIR/tools/edit" --base "$base_dir" account list ;;
+      issues) "$ROOT_DIR/tools/edit" --base "$base_dir" issue list ;;
+      *) echo "Error: unknown browse surface: $1" >&2; exit 2 ;;
+    esac ;;
+  record)
+    [[ $# -gt 0 ]] || { echo 'Error: record requires an action' >&2; exit 2; }
+    run_record_key "$1" ;;
+  plans|plan)
+    if [[ $# -eq 0 ]]; then "$ROOT_DIR/tools/edit" --base "$base_dir" plan list; else sub="$1"; shift; run_plan_key "$sub" "$@"; fi ;;
+  budget)
+    [[ $# -gt 0 ]] || { echo 'Error: budget requires an action' >&2; exit 2; }
+    run_budget_key "$1" ;;
+  accounts|account)
+    if [[ $# -eq 0 ]]; then "$ROOT_DIR/tools/edit" --base "$base_dir" account list; else sub="$1"; shift; run_account_key "$sub" "$@"; fi ;;
+  issues|issue)
+    [[ $# -gt 0 ]] || { echo 'Error: issues requires an action' >&2; exit 2; }
+    run_issue_key "$1" ;;
+  issue-list) "$ROOT_DIR/tools/edit" --base "$base_dir" issue list ;;
+  operations|operation)
+    [[ $# -gt 0 ]] || { echo 'Error: operations requires an action' >&2; exit 2; }
+    sub="$1"; shift; run_operation_key "$sub" "$@" ;;
+  check) run_check ;;
+  inspect) run_operation_key inspect ;;
+  doctor) run_operation_key doctor ;;
+  export|to-hledger) run_operation_key export ;;
+  query) run_operation_key query "$@" ;;
+  summary) run_operation_key summary "$@" ;;
+  dev-check) run_operation_key dev-check ;;
+  edit) run_edit_menu "${1:-}" ;;
+  add) run_action "${1:-}" ;;
+  expense|income|move|transfer|multi|reverse) run_record_key "$cmd" ;;
+  *)
+    # Retained report keys stay source-owned by the report catalog. This fallback
+    # asks main-ui to validate and route the key; no legacy aliases are added.
+    run_reports "$cmd" ;;
+esac

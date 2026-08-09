@@ -39,14 +39,20 @@ Direct historical requests remain explicit and reproducible without exposing sou
 ## Daily Command Hub
 
 ```sh
-# One interactive entrance for recording, Plans, Budget, Accounts, and reports
-tools/main-ui.sh
+# One interactive entrance for recording, browsing, reports, and operations
+tools/bl
+
+# Discoverable direct routes also work without an interactive selector
+tools/bl --base "$LEDGER_DATA_DIR" journal list
+tools/bl --base "$LEDGER_DATA_DIR" plans overdue
+tools/bl --base "$LEDGER_DATA_DIR" accounts list
+tools/bl --base "$LEDGER_DATA_DIR" issues list
 
 # Full current human report from report.toml
-tools/main-ui.sh report
+tools/bl report
 
 # Explicit domain when the Household contains multiple domains
-tools/main-ui.sh --domain JPY report
+tools/bl --domain JPY report
 
 # One explicit/historical report
 tools/report "$LEDGER_DATA_DIR" balances human JPY 2026-01-31
@@ -81,12 +87,22 @@ BL_FZF_PREVIEW_WINDOW=right:75%  # right|left|up|down and 1–100%
 
 `auto` prefers fzf, then gum. When `fzf` and `gum` are not installed (or when `BL_UI_MODE=minimal`), the UI automatically falls back to the zero-dependency **Minimal Mode** (pure Bash numbered prompts + interactive arrow-key preview browser). See [`.env.example`](.env.example).
 
+The Hub is grouped into Record, Plans, Budget, Accounts, Issues, Reports, and Inspect / Operations. Its Reports menu is generated from the static twelve-report catalog. It routes only: report meaning remains in BQN owners and all mutation routes continue through the qualified editor writers.
+
 Operational diagnostics are separate from reports and accept the canonical Household root, never individual source basenames:
 
 ```sh
+tools/bl check       # canonical Household readiness, not repository tests
+tools/bl inspect
+tools/bl doctor
+tools/bl export      # canonical Journal projection for hledger
+
+# Equivalent low-level operations
 tools/ledger-check "$LEDGER_DATA_DIR"
 tools/ledger-inspect "$LEDGER_DATA_DIR"
 ```
+
+See [`docs/CANONICAL_CAPABILITY_MATRIX.md`](docs/CANONICAL_CAPABILITY_MATRIX.md) for the historical/current capability inventory, owners, recovery classification, and intentional non-capabilities.
 
 ## Editing and export
 

@@ -371,15 +371,6 @@ expense	費用 (expenses:)
 EOF
 }
 
-choose_asset_type() {
-  cat <<'EOF' | select_line 'asset type'
-liquid	日常的に利用可能
-savings	貯蓄
-invest	投資
-none	未指定
-EOF
-}
-
 choose_issue_close_status() {
   cat <<'EOF' | select_line 'close status'
 resolved	resolved: decision made / completed
@@ -549,12 +540,6 @@ case "$mode" in
     esac
     capture_or_cancel account_suffix read_tty 'Account name (namespace is added automatically)' ''
     account_name="${account_prefix}${account_suffix}"
-    account_type=''
-    if [[ "$account_role" == 'asset' ]]; then
-      capture_or_cancel account_type_line choose_asset_type
-      account_type="${account_type_line%%$'\t'*}"
-      [[ "$account_type" == 'none' ]] && account_type=''
-    fi
     ;;
   issue)
     capture_or_cancel title read_tty 'Title/Item' ''
@@ -773,7 +758,6 @@ if [[ "$mode" == 'account-add' ]]; then
     --name "$account_name"
     --role "$account_role"
   )
-  [[ -n "$account_type" ]] && cmd+=(--type "$account_type")
 elif [[ "$mode" == 'plan-edit' ]]; then
   cmd=("$ROOT_DIR/tools/edit" --base "$base_dir" plan edit "${plan_edit_args[@]}")
 elif [[ "$mode" == 'reverse' ]]; then

@@ -50,7 +50,7 @@ checks=(
   check-journal-reconstructible-identity-cleanup.sh check-edit-bqn-journal-reverse.sh
   check-edit-bqn-plan-list.sh check-edit-bqn-plan-related.sh check-edit-bqn-plan-add.sh
   check-edit-bqn-plan-edit.sh check-edit-bqn-plan-finish.sh check-edit-bqn-plan-budget-sync.sh
-  check-plan-finish-replenish-ui.sh check-workflow-drift.sh check-structured-ui-boundary.sh check-ui-preferences.sh
+  check-plan-finish-replenish-ui.sh check-command-hub-recovery.sh check-workflow-drift.sh check-structured-ui-boundary.sh check-ui-preferences.sh
   check-safe-replace-line.sh check-safe-rewrite-checked.sh check-bash-safety.sh
   check-source-io-ownership.sh check-source-io-unreadable.sh check-editor-config-ownership.sh
   check-editor-actual-ownership.sh check-editor-account-ownership.sh check-editor-currency-ownership.sh
