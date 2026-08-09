@@ -28,9 +28,8 @@ mapfile -t rows <<<"$request_set"
   exit 1
 }
 
-output=$(mktemp "${TMPDIR:-/tmp}/bqn-ledger-all.XXXXXX")
-trap 'rm -f "$output"' EXIT
-for row in "${rows[@]:1}"; do
+batch_rows=("${rows[@]:1}")
+for row in "${batch_rows[@]}"; do
   IFS=$'\t' read -r -a fields <<<"$row"
   [[ ${#fields[@]} -ge 2 ]] || {
     printf 'ERROR\tcurrent_request_row_invalid\tcurrent request row is incomplete\n' >&2
@@ -40,6 +39,6 @@ for row in "${rows[@]:1}"; do
     printf 'ERROR\tcurrent_request_surface_mismatch\tcurrent request row surface differs from selection\n' >&2
     exit 1
   }
-  "$root/tools/report" "$base" "${fields[@]}" >>"$output"
 done
-cat "$output"
+
+bqn src/application/current_report_batch_cli.bqn "$base" concat "$surface" "${batch_rows[@]}"
