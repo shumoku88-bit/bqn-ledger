@@ -122,11 +122,8 @@ ApplyAmount ← {𝕊 inputLines:
   {𝕊:Fail "admitted Posting coordinate is outside Plan source"}⍟(∨´0∾invalidLines) @
   RenderPosting ← {𝕊 i: "    "∾(i⊑selectedAccounts)∾"    "∾(i⊑replacementAmountTexts)∾" "∾currency}
   replacementLines ← RenderPosting¨↕postingCount
-  LineAt ← {𝕊 lineIndex:
-    replacementIndex ← ⊑replacementLineIndices⊐⟨lineIndex⟩
-    (replacementIndex<≠replacementLines) ◶ ⟨{lineIndex⊑inputLines},{replacementIndex⊑replacementLines}⟩ @
-  }
-  LineAt¨↕≠inputLines
+  first ← ReplaceAt ⟨0⊑replacementLineIndices,0⊑replacementLines,inputLines⟩
+  ReplaceAt ⟨1⊑replacementLineIndices,1⊑replacementLines,first⟩
 }
 candidateLines ← amountChanged ◶ ⟨{dateCandidateLines},{ApplyAmount dateCandidateLines}⟩ @
 
