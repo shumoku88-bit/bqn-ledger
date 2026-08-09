@@ -112,19 +112,21 @@ candidateLines ← lines
 
 expectedAmountTexts ← postingIndices⊏facts.postings.amount_text
 {𝕊:
-  expectedAmountTexts↩⟨⟩
-  {𝕊 postingIndex:
-    sourceLine ← postingIndex⊑facts.postings.source_line
-    lineIndex ← sourceLine-1
-    {𝕊:Fail "admitted Posting coordinate is outside Plan source"}⍟((lineIndex<0) ∨ lineIndex≥≠candidateLines) @
+  replacementLineIndices ← (postingIndices⊏facts.postings.source_line)-1
+  invalidLines ← (replacementLineIndices<0) ∨ replacementLineIndices≥≠candidateLines
+  {𝕊:Fail "admitted Posting coordinate is outside Plan source"}⍟(∨´0∾invalidLines) @
+  SignedAmount ← {𝕊 postingIndex: (((postingIndex⊑facts.postings.source_coefficient)<0)/"-")∾amountVal}
+  expectedAmountTexts↩SignedAmount¨postingIndices
+  RenderPosting ← {𝕊 postingIndex:
     account ← (postingIndex⊑facts.postings.account_index)⊑facts.accounts.key
-    sourceCoefficient ← postingIndex⊑facts.postings.source_coefficient
-    signedAmount ← amountVal
-    {𝕊:signedAmount↩"-"∾amountVal}⍟(sourceCoefficient<0) @
-    replacement ← "    "∾account∾"    "∾signedAmount∾" "∾currency
-    candidateLines↩ReplaceAt ⟨lineIndex,replacement,candidateLines⟩
-    expectedAmountTexts∾↩⟨signedAmount⟩
-  }¨postingIndices
+    "    "∾account∾"    "∾SignedAmount postingIndex∾" "∾currency
+  }
+  replacementLines ← RenderPosting¨postingIndices
+  LineAt ← {𝕊 lineIndex:
+    replacementIndex ← ⊑replacementLineIndices⊐⟨lineIndex⟩
+    (replacementIndex<≠replacementLines) ◶ ⟨{lineIndex⊑candidateLines},{replacementIndex⊑replacementLines}⟩ @
+  }
+  candidateLines↩LineAt¨↕≠candidateLines
 }⍟amountChanged @
 
 candidateRaw ← JoinLines candidateLines
