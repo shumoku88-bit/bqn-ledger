@@ -1,164 +1,162 @@
-# src_edit/plan_edit_cmd.bqn
-# BQN command for `tools/edit-bqn plan edit`.
-#
-# Input args:
-#   <baseDir> <index: 0 or number> <planId: "" or id> <date: "" or YYYY-MM-DD> <amount: "" or INT> <showAll: 0|1>
-#
-# Stdout protocol on success:
-#   OK\tREPLACE\t<lineNum>\t<planId>
-#   <old TSV row>
-#   <new TSV row>
-#
-# Stdout protocol on validation error (with non-zero exit):
-#   ERROR\t<message>
+# Prepare one canonical plan.journal block edit.
+# Source coordinates come only from strict Plan admission. Date edits touch the
+# header date; amount edits replace binary Posting lines in order. Metadata and
+# every unrelated source byte remain in place. The complete candidate is
+# re-admitted before publication.
 
 lib ← •Import "../src/text/parse.bqn"
 loader ← •Import "../src/application/source_io.bqn"
+canonical ← •Import "../src/application/canonical_household_sources.bqn"
+accountSource ← •Import "../src/application/account_source_adapter.bqn"
+planSource ← •Import "../src/application/plan_source_adapter.bqn"
+actualSource ← •Import "../src/application/editor_actual.bqn"
+rootAdmission ← •Import "../src/ledger/canonical_journal_root_admission.bqn"
+planAdmission ← •Import "../src/ledger/plan_journal_admission.bqn"
 validate ← •Import "validate.bqn"
-plan_id ← •Import "plan_id.bqn"
-defaults ← •Import "../src/application/system_defaults.bqn"
+decimal ← •Import "../src/ledger/exact_decimal.bqn"
 editorCurrency ← •Import "../src/application/editor_currency.bqn"
 setup ← editorCurrency.Load @
-editorAccounts ← •Import "../src/application/editor_accounts.bqn"
-actual_source ← •Import "../src/application/editor_actual.bqn"
 
-
-sys ← defaults.Load @
 args ← •args
 tab ← @+9
+lf ← @+10
+cr ← @+13
 
-Fail ← {𝕊 msg:
-  •Out "ERROR" ∾ tab ∾ msg
-  •Exit 1
+Fail ← {𝕊 msg: •Out "ERROR"∾tab∾msg ⋄ •Exit 1}
+Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
+Join ← {𝕊 base‿name: base∾(('/'≠¯1↑base)/"/")∾name}
+ReplaceAt ← {𝕊 index‿value‿xs: (index↑xs)∾⟨value⟩∾(index+1)↓xs}
+JoinLines ← {𝕊 xs:
+  result ← ""
+  {𝕊:
+    result↩⊑xs
+    {𝕊 line: result∾↩lf∾line}¨1↓xs
+  }⍟(0<≠xs) @
+  result
+}
+ExactMagnitudeEqual ← {𝕊 oldCoefficient‿oldScale‿newCoefficient‿newScale:
+  oldScaled ← oldCoefficient × 10⋆newScale
+  newScaled ← newCoefficient × 10⋆oldScale
+  oldScaled = newScaled
 }
 
-{𝕊 ⋄ Fail "usage: plan_edit_cmd.bqn <baseDir> <index> <planId> <date> <amount> <showAll>"}⍟(6 ≠ ≠ args) @
+{𝕊:Fail "usage: plan_edit_cmd.bqn <baseDir> <candidateFile> <index> <planId> <date> <amount> <showAll>"}⍟(7≠≠args) @
+baseDir ← 0⊑args
+candidateFile ← 1⊑args
+indexVal ← lib.ToNum 2⊑args
+idVal ← 3⊑args
+dateVal ← 4⊑args
+amountVal ← 5⊑args
+showAll ← "1"≡6⊑args
+{𝕊:Fail "must specify Plan using --index or --id"}⍟((indexVal≤0) ∧ 0=≠idVal) @
+{𝕊:Fail "must specify at least one of --date or --amount"}⍟((0=≠dateVal) ∧ 0=≠amountVal) @
 
-baseDir ← 0 ⊑ args
-indexVal ← lib.ToNum (1 ⊑ args)
-idVal ← 2 ⊑ args
-dateVal ← 3 ⊑ args
-amountVal ← 4 ⊑ args
-showAll ← "1" ≡ 5 ⊑ args
+planResult ← planSource.Load ⟨baseDir,setup.registry⟩
+{𝕊:Fail "canonical plan.journal rejected"}⍟(planResult.state≢"ok") @
+facts ← planResult.facts
+transactionCount ← facts.transactions.count
+transactionIndices ← ↕transactionCount
+planIDs ← facts.transactions.plan_id
+completionIDs ← {𝕩.plan_id}¨actualSource.CompletionEvidence baseDir
+closedMask ← {Contains ⟨𝕩,completionIDs⟩}¨planIDs
+visibleIndices ← (¬closedMask)/transactionIndices
+{𝕊:visibleIndices↩transactionIndices}⍟showAll @
 
-ResolvePath ← { baseDir ∾ "/" ∾ 𝕩 }
+selectedIndex ← ¯1
+{𝕊:
+  {𝕊:Fail ("invalid plan index: "∾•Fmt indexVal∾" (available: 1-"∾•Fmt ≠visibleIndices∾")")}⍟((indexVal<1) ∨ indexVal>≠visibleIndices) @
+  selectedIndex↩(indexVal-1)⊑visibleIndices
+}⍟(indexVal>0) @
+{𝕊:
+  matches ← {idVal≡𝕩⊑planIDs}¨visibleIndices
+  missingMessage ← "plan_id not found or already closed: "
+  {𝕊:missingMessage↩"plan_id not found: "}⍟showAll @
+  {𝕊:Fail (missingMessage∾idVal)}⍟(1≠+´matches) @
+  selectedIndex↩⊑matches/visibleIndices
+}⍟(indexVal≤0) @
+{𝕊:Fail ("cannot edit closed plan: "∾selectedIndex⊑planIDs)}⍟(selectedIndex⊑closedMask) @
 
-accountsFile ← ResolvePath (sys.DefaultAccountsFile @)
-accountsLinesRaw ← loader.ReadLinesOptional accountsFile
-IsDataLine ← { (0 < ≠ 𝕩) ? ((⊑ 𝕩 ≠ '#') ∧ (⊑ 𝕩 ≠ ⊑"\\")) ; 0 }
-accountsLines ← (IsDataLine¨ accountsLinesRaw) / accountsLinesRaw
-resolvedAccounts ← editorAccounts.Require accountsLines
-accounts ← resolvedAccounts.key
-accountCurrencies ← resolvedAccounts.currency
-
-
-{ 𝕊 ⋄
+targetPlanID ← selectedIndex⊑planIDs
+currentDate ← selectedIndex⊑facts.transactions.date_text
+targetDate ← currentDate
+{𝕊:
   dateCheck ← validate.ValidateDate dateVal
-  { 𝕊 ⋄ Fail (1 ⊑ dateCheck) }⍟(¬ 0 ⊑ dateCheck) @
-}⍟(0 < ≠ dateVal) @
+  {𝕊:Fail 1⊑dateCheck}⍟(¬0⊑dateCheck) @
+  targetDate↩dateVal
+}⍟(0<≠dateVal) @
 
-# Amount validation will be deferred to target resolution below
+postingMask ← selectedIndex=facts.postings.transaction_index
+postingIndices ← postingMask/↕facts.postings.count
+postingCount ← ≠postingIndices
+selectedCoefficients ← postingIndices⊏facts.postings.source_coefficient
+selectedScales ← postingIndices⊏facts.postings.source_scale
+selectedAccountIndices ← postingIndices⊏facts.postings.account_index
+selectedAccounts ← selectedAccountIndices⊏facts.accounts.key
+selectedSourceLines ← postingIndices⊏facts.postings.source_line
+originalAmountTexts ← postingIndices⊏facts.postings.amount_text
+currency ← (selectedIndex⊑facts.transactions.domain_index)⊑facts.domains.code
+amountChanged ← 0
+parsedAmount ← @
+{𝕊:
+  {𝕊:Fail "Plan amount edit requires exactly two Postings"}⍟(2≠postingCount) @
+  amountCheck ← validate.ValidateExactAmountForCurrency currency‿amountVal
+  {𝕊:Fail 1⊑amountCheck}⍟(¬0⊑amountCheck) @
+  parsedAmount↩decimal.Parse amountVal
+  {𝕊:Fail "Plan edit amount must be strictly positive"}⍟((parsedAmount.state≢"ok") ∨ parsedAmount.coefficient≤0) @
+  oldMagnitude ← |⊑selectedCoefficients
+  sameAmount ← ExactMagnitudeEqual ⟨oldMagnitude,⊑selectedScales,parsedAmount.coefficient,parsedAmount.scale⟩
+  amountChanged↩¬sameAmount
+}⍟(0<≠amountVal) @
+dateChanged ← targetDate≢currentDate
 
+raw ← loader.ReadRaw Join ⟨baseDir,canonical.plan⟩
+{𝕊:Fail "canonical Plan edit refuses CR source normalization"}⍟(∨´0∾cr=raw) @
+lines ← lf loader.SplitKeepEmpty raw
+headerIndex ← (selectedIndex⊑facts.transactions.source_start_line)-1
+{𝕊:Fail "admitted Plan header coordinate is outside source"}⍟((headerIndex<0) ∨ headerIndex≥≠lines) @
+header ← headerIndex⊑lines
+{𝕊:Fail "admitted Plan header date does not match source coordinate"}⍟(currentDate≢10↑header) @
+dateCandidateLines ← dateChanged ◶ ⟨{lines},{ReplaceAt ⟨headerIndex,targetDate∾10↓header,lines⟩}⟩ @
 
-LoadPlansList ← { 𝕩 ⋄
-  planPath ← ResolvePath (sys.DefaultPlanFile @)
-  completionEvidence ← actual_source.CompletionEvidence baseDir
-  completedIDs ← {𝕩.plan_id}¨completionEvidence
-  nonEmptyCompleted ← (0 < ≠¨ completedIDs) / completedIDs
-
-  rawPlanLines ← loader.ReadRaw planPath
-  cleanPlanLines ← ((@+13) ≠ rawPlanLines) / rawPlanLines
-  allLines ← (@+10) loader.SplitKeepEmpty cleanPlanLines
-
-  IsDataLine ← { (0 < ≠ 𝕩) ? ((⊑ 𝕩 ≠ '#') ∧ (⊑ 𝕩 ≠ ⊑"\\")) ; 0 }
-  lineNums ← 1 + ↕ ≠ allLines
-
-  dataMask ← IsDataLine¨ allLines
-  dataLines ← dataMask / allLines
-  dataLineNums ← dataMask / lineNums
-
-  ParsePlanRow ← {𝕊 index:
-    line ← index ⊑ dataLines
-    lineNum ← index ⊑ dataLineNums
-    flds ← loader.SplitTsvKeepEmpty line
-
-    pid ← plan_id.ExtractPlanId line
-    missingID ← 0 = ≠ pid
-    invalidID ← (¬ missingID) ◶ ⟨ { 𝕊 ⋄ 0 }, { 𝕊 ⋄ ¬ (0 ⊑ plan_id.ValidatePlanIDFormat pid) } ⟩ @
-    closed ← (¬ missingID) ◶ ⟨ { 𝕊 ⋄ 0 }, { 𝕊 ⋄ ∨´ pid ⊸ ≡¨ nonEmptyCompleted } ⟩ @
-
-    {
-      lineNum ⇐ lineNum ⋄
-      fields ⇐ flds ⋄
-      closed ⇐ closed ⋄
-      planID ⇐ pid ⋄
-      missingID ⇐ missingID ⋄
-      invalidID ⇐ invalidID
-    }
-  }
-
-  ParsePlanRow¨ ↕ ≠ dataLines
+replacementAmountTexts ← {𝕊 coefficient: ((coefficient<0)/"-")∾amountVal}¨selectedCoefficients
+expectedAmountTexts ← amountChanged ◶ ⟨{originalAmountTexts},{replacementAmountTexts}⟩ @
+ApplyAmount ← {𝕊 inputLines:
+  replacementLineIndices ← selectedSourceLines-1
+  invalidLines ← (replacementLineIndices<0) ∨ replacementLineIndices≥≠inputLines
+  {𝕊:Fail "admitted Posting coordinate is outside Plan source"}⍟(∨´0∾invalidLines) @
+  RenderPosting ← {𝕊 i: "    "∾(i⊑selectedAccounts)∾"    "∾(i⊑replacementAmountTexts)∾" "∾currency}
+  replacementLines ← RenderPosting¨↕postingCount
+  first ← ReplaceAt ⟨0⊑replacementLineIndices,0⊑replacementLines,inputLines⟩
+  ReplaceAt ⟨1⊑replacementLineIndices,1⊑replacementLines,first⟩
 }
+candidateLines ← amountChanged ◶ ⟨{dateCandidateLines},{ApplyAmount dateCandidateLines}⟩ @
 
-plans ← LoadPlansList @
-selectedPlans ← showAll ◶ ⟨ { 𝕊 ⋄ (¬ {𝕩.closed}¨ plans) / plans }, { 𝕊 ⋄ plans } ⟩ @
+candidateRaw ← JoinLines candidateLines
+{𝕊:Fail "canonical Plan edit produced no source change"}⍟(candidateRaw≡raw) @
 
-selIdx ← 0
-(indexVal > 0) ◶ ⟨
-  { 𝕊 ⋄
-    matches ← { 𝕩.planID ≡ idVal }¨ selectedPlans
-    (∨´ matches) ◶ ⟨
-      { 𝕊 ⋄ Fail (showAll ◶ ⟨ {"plan_id not found or already closed: " ∾ idVal}, {"plan_id not found: " ∾ idVal} ⟩ @) },
-      { 𝕊 ⋄ selIdx ↩ ⊑ (matches / ↕ ≠ selectedPlans) }
-    ⟩ @
-  },
-  { 𝕊 ⋄
-    { 𝕊 ⋄ Fail ("invalid plan index: " ∾ (•Fmt indexVal) ∾ " (available: 1-" ∾ (•Fmt ≠ selectedPlans) ∾ ")") }⍟((indexVal < 1) ∨ (indexVal > ≠ selectedPlans)) @
-    selIdx ↩ indexVal - 1
-  }
-⟩ @
+accountResult ← accountSource.Load baseDir
+{𝕊:Fail "canonical accounts.journal rejected"}⍟(accountResult.state≢"ok") @
+rootResult ← rootAdmission.Admit ⟨candidateRaw,canonical.accounts⟩
+{𝕊:Fail "candidate plan.journal root include topology rejected"}⍟(rootResult.state≢"ok") @
+candidateResult ← planAdmission.Admit ⟨candidateRaw,accountResult.accounts,setup.registry⟩
+{𝕊:
+  diagnostic ← ⊑candidateResult.diagnostics
+  Fail ("candidate canonical Plan rejected: "∾diagnostic.code∾" at line "∾•Fmt diagnostic.line)
+}⍟(candidateResult.state≢"ok") @
+{𝕊:Fail "candidate Plan transaction count changed"}⍟((≠candidateResult.transactions)≠transactionCount) @
+candidateIDs ← {𝕩.plan_id}¨candidateResult.transactions
+{𝕊:Fail "candidate Plan identities or ordering changed"}⍟(candidateIDs≢planIDs) @
+candidate ← selectedIndex⊑candidateResult.transactions
+candidateAccounts ← {𝕩.account_key}¨candidate.postings
+candidateAmounts ← {𝕩.amount_text}¨candidate.postings
+candidateCommodities ← {𝕩.commodity}¨candidate.postings
+originalMetadata ← selectedIndex⊑facts.transactions.metadata
+candidateMetadataKeys ← {𝕩.key}¨candidate.metadata
+originalMetadataKeys ← {𝕩.key}¨originalMetadata
+candidateMetadataValues ← {𝕩.value}¨candidate.metadata
+originalMetadataValues ← {𝕩.value}¨originalMetadata
+candidateOk ← (candidate.plan_id≡targetPlanID) ∧ (candidate.date≡targetDate) ∧ (candidate.description≡selectedIndex⊑facts.transactions.description) ∧ (candidate.status_marker≡selectedIndex⊑facts.transactions.status_marker) ∧ (candidateAccounts≡selectedAccounts) ∧ (candidateAmounts≡expectedAmountTexts) ∧ (∧´{𝕩≡currency}¨candidateCommodities) ∧ (candidateMetadataKeys≡originalMetadataKeys) ∧ (candidateMetadataValues≡originalMetadataValues) ∧ (candidate.source_start_line=selectedIndex⊑facts.transactions.source_start_line) ∧ (candidate.source_end_line=selectedIndex⊑facts.transactions.source_end_line)
+{𝕊:Fail "re-admitted Plan candidate does not match edit intent"}⍟(¬candidateOk) @
 
-selected ← selIdx ⊑ selectedPlans
-{ 𝕊 ⋄ Fail "cannot edit closed plan" }⍟selected.closed @
-{ 𝕊 ⋄ Fail "cannot edit plan without plan_id" }⍟selected.missingID @
-{ 𝕊 ⋄ Fail ("cannot edit plan with invalid plan_id: " ∾ selected.planID) }⍟selected.invalidID @
-
-{ 𝕊 ⋄
-  meta ← 5 ↓ selected.fields
-  IsCurrencyMeta ← { (9 ≤ ≠ 𝕩) ? "currency=" ≡ (9↑𝕩) ; 0 }
-  metaCurrencies ← IsCurrencyMeta¨ meta
-  explicitCurrency ← (0 < +´ metaCurrencies) ◶ ⟨ { 𝕊 ⋄ "" }, { 𝕊 ⋄ 9 ↓ ⊑ metaCurrencies / meta } ⟩ @
-
-  configLines ← loader.ReadLinesOptional (baseDir ∾ "/config.tsv")
-  defaultResult ← setup.ResolveDefault configLines
-  selection ← setup.ResolveSelection ⟨defaultResult, explicitCurrency⟩
-  {𝕊: Fail selection.message}⍟(selection.state ≢ "ok") @
-  currency ← selection.currency
-
-  fromCurrCheck ← validate.ValidateAccountCurrency "from"‿(2 ⊑ selected.fields)‿currency‿accounts‿accountCurrencies
-  { 𝕊 ⋄ Fail (1 ⊑ fromCurrCheck) }⍟(¬ 0 ⊑ fromCurrCheck) @
-
-  toCurrCheck ← validate.ValidateAccountCurrency "to"‿(3 ⊑ selected.fields)‿currency‿accounts‿accountCurrencies
-  { 𝕊 ⋄ Fail (1 ⊑ toCurrCheck) }⍟(¬ 0 ⊑ toCurrCheck) @
-
-  { 𝕊 ⋄
-    amountCheck ← validate.ValidateExactAmountForCurrency currency‿amountVal
-    { 𝕊 ⋄ Fail (1 ⊑ amountCheck) }⍟(¬ 0 ⊑ amountCheck) @
-  }⍟(0 < ≠ amountVal) @
-} @
-
-oldFields ← selected.fields
-{ 𝕊 ⋄ Fail "plan.tsv line has fewer than 5 tab-separated columns" }⍟(5 > ≠ oldFields) @
-
-newFields ← oldFields
-{ 𝕊 ⋄ newFields ↩ ⟨dateVal⟩ ∾ 1↓newFields }⍟(0 < ≠ dateVal) @
-{ 𝕊 ⋄ newFields ↩ (4↑newFields) ∾ ⟨amountVal⟩ ∾ 5↓newFields }⍟(0 < ≠ amountVal) @
-
-oldLine ← tab plan_id.Join oldFields
-newLine ← tab plan_id.Join newFields
-
-{ 𝕊 ⋄ Fail "edit would not change the selected plan row" }⍟(oldLine ≡ newLine) @
-
-•Out "OK" ∾ tab ∾ "REPLACE" ∾ tab ∾ (•Fmt selected.lineNum) ∾ tab ∾ selected.planID
-•Out oldLine
-•Out newLine
+candidateFile •FChars candidateRaw
+•Out "OK"∾tab∾"REWRITE"∾tab∾canonical.plan∾tab∾targetPlanID
