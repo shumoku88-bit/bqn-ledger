@@ -152,6 +152,7 @@ show_full_report() {
 }
 
 section_list() {
+  printf 'preview\t★ プレビュー閲覧 (矢印キー [←/→] で連続プレビュー)\n'
   printf 'all\tAll twelve reports\n'
   "$ROOT_DIR/tools/report-section-metadata" | awk -F'\t' 'NR > 1 { print $1 "\t" $2 }'
 }
@@ -345,6 +346,15 @@ prepare_cache() {
 }
 
 case "$cmd" in
+  prepare-cache|--prepare-cache)
+    ensure_report_context
+    prepare_cache
+    ;;
+  preview|browse|--browse)
+    ensure_report_context
+    cache_dir="$(prepare_cache)"
+    browse_sections_interactive "$cache_dir"
+    ;;
   report|all)
     show_full_report
     ;;
@@ -355,6 +365,9 @@ case "$cmd" in
     [[ -n "$selection" ]] || { echo "Cancelled." >&2; exit 0; }
     key="${selection%%$'\t'*}"
     case "$key" in
+      preview|browse)
+        browse_sections_interactive "$cache_dir"
+        ;;
       all) show_full_report ;;
       *)
         if [[ ! -f "$cache_dir/.cache-refreshing" && ! -f "$cache_dir/.cache-error" && -f "$cache_dir/$key.txt" ]]; then
