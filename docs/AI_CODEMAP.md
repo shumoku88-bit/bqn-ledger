@@ -8,7 +8,7 @@
 4. The target owner and its focused tests.
 5. `README.md` only when command usage is relevant.
 
-Read a specialized contract only when the change touches that boundary. Do not read `docs/archive/` as current instruction.
+Read a specialized contract only when the change touches that boundary. Use Git history when historical context is needed; the current tree is the source of current instruction.
 
 ## Runtime map
 

@@ -164,8 +164,6 @@ find docs -name "*.md" -type f 2>/dev/null | sort | while read -r file; do
     kind="design-doc"
   elif [[ "$basename" =~ _POLICY\.md$ ]]; then
     kind="policy-doc"
-  elif [[ "$file" =~ ^docs/archive/ ]]; then
-    kind="archive-doc"
   fi
   
   first_heading=""
