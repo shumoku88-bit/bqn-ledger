@@ -97,7 +97,7 @@ parsedAmount ← @
   amountChanged↩¬ExactMagnitudeEqual ⟨firstPosting⊑facts.postings.source_coefficient,firstPosting⊑facts.postings.source_scale,parsedAmount.coefficient,parsedAmount.scale⟩
 }⍟(0<≠amountVal) @
 dateChanged ← targetDate≢currentDate
-{𝕊:Fail "edit would not change the selected Plan"}⍟(¬dateChanged ∨ amountChanged) @
+{𝕊:Fail "edit would not change the selected Plan"}⍟(¬(dateChanged ∨ amountChanged)) @
 
 raw ← loader.ReadRaw Join ⟨baseDir,canonical.plan⟩
 {𝕊:Fail "canonical Plan edit refuses CR source normalization"}⍟(∨´0∾cr=raw) @
