@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# tools/main-ui.sh — daily report entry / small command hub
+# tools/main-ui.sh — report presentation and report browsing owner
 #
 # Report requests come from canonical report.toml plus canonical Household
 # evidence. The selector still consumes generated section keys and cache files;
@@ -41,14 +41,6 @@ Commands:
   daily-flow           Show Daily Flow
   daily-target         Show Daily Target
   issues               Show Issues
-  add, actions         Open the daily action menu
-  actual-add           Add an ordinary two-Posting transaction
-  actual-multi         Add a transaction with three or more Postings
-  plan-add             Add a Plan
-  plan-edit            Edit an open Plan
-  plan-finish          Finish a Plan, sync Budget, and optionally replenish it
-  budget-add           Add a Budget movement
-  account-add          Add an Account
 
 If --domain is omitted, a single canonical Actual domain is selected. Multiple
 admitted domains require an explicit --domain. --latest is primarily useful for
@@ -160,32 +152,8 @@ show_full_report() {
 }
 
 section_list() {
-  cat <<'EOF'
-action-actual-add	★ 今日の記帳 (2 Posting)
-action-actual-multi	★ 複数 Posting の記帳
-action-plan-finish	★ 予定を実績化・Budget連携・次回補充
-action-plan-add	予定を追加
-action-plan-edit	予定を編集
-action-budget-add	Budget movement を追加
-action-account-add	Account を追加
-actions	その他の操作・取消・Issue
-EOF
+  printf 'all\tAll twelve reports\n'
   "$ROOT_DIR/tools/report-section-metadata" | awk -F'\t' 'NR > 1 { print $1 "\t" $2 }'
-}
-
-run_action() {
-  local mode="${1:-}"
-  if [[ -n "$mode" ]]; then
-    "$ROOT_DIR/tools/add-ui.sh" --base "$base_dir" "$mode"
-  else
-    "$ROOT_DIR/tools/add-ui.sh" --base "$base_dir"
-  fi
-  if [[ "$IS_TTY" -eq 1 ]]; then
-    local hub_args=(--base "$base_dir")
-    [[ -z "$domain_override" ]] || hub_args+=(--domain "$domain_override")
-    printf '\n完了しました。Command Hubへ戻ります。\n' >&2
-    exec "$ROOT_DIR/tools/main-ui.sh" "${hub_args[@]}" select
-  fi
 }
 
 show_section_direct() {
@@ -212,7 +180,7 @@ browse_sections_interactive() {
   local keys=() labels=() count=0 i current=0 key label char esc_seq
 
   while IFS=$'\t' read -r key label; do
-    [[ -n "$key" && "$key" != "actions" && "$key" != action-* ]] || continue
+    [[ -n "$key" ]] || continue
     count=$((count + 1))
     keys+=("$key")
     labels+=("$label")
@@ -289,7 +257,7 @@ select_section() {
       labels+=("$label")
     done < <(section_list)
 
-    printf '\n=== レポート / アクション選択 ===\n' >&2
+    printf '\n=== レポート選択 ===\n' >&2
     printf '  v) ★ 矢印キーで順番にプレビュー閲覧 ([←/→] キー切替)\n' >&2
     for ((i=0; i<count; i++)); do
       printf ' %2d) %s (%s)\n' "$((i+1))" "${labels[i]}" "${keys[i]}" >&2
@@ -380,16 +348,6 @@ case "$cmd" in
   report|all)
     show_full_report
     ;;
-  add|actions)
-    run_action ""
-    ;;
-  actual-add) run_action expense ;;
-  actual-multi) run_action multi ;;
-  plan-add) run_action plan-add ;;
-  plan-edit) run_action plan-edit ;;
-  plan-finish) run_action plan-finish ;;
-  budget-add) run_action budget ;;
-  account-add) run_action account-add ;;
   select|--select|'')
     ensure_report_context
     cache_dir="$(prepare_cache)"
@@ -397,14 +355,6 @@ case "$cmd" in
     [[ -n "$selection" ]] || { echo "Cancelled." >&2; exit 0; }
     key="${selection%%$'\t'*}"
     case "$key" in
-      actions) run_action "" ;;
-      action-actual-add) run_action expense ;;
-      action-actual-multi) run_action multi ;;
-      action-plan-finish) run_action plan-finish ;;
-      action-plan-add) run_action plan-add ;;
-      action-plan-edit) run_action plan-edit ;;
-      action-budget-add) run_action budget ;;
-      action-account-add) run_action account-add ;;
       all) show_full_report ;;
       *)
         if [[ ! -f "$cache_dir/.cache-refreshing" && ! -f "$cache_dir/.cache-error" && -f "$cache_dir/$key.txt" ]]; then
