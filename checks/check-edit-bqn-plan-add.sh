@@ -44,7 +44,7 @@ assert_legacy_plan_unchanged "$dry" "$dry_legacy_before" 'plan add dry-run'
 assert_no_backup "$dry" 'plan add dry-run'
 grep -F 'plan.journal' "$tmp_root/dry.out" >/dev/null
 
-# Generated ID, canonical metadata rendering, backup, and mandatory admission.
+# Generated ID, shared canonical block shape, backup, and mandatory admission.
 base="$tmp_root/generated"
 copy_fixture "$base"
 legacy_before="$(sha_file "$base/plan.tsv")"
@@ -53,11 +53,11 @@ legacy_before="$(sha_file "$base/plan.tsv")"
   --from assets:cash --to expenses:food --amount 302 \
   --meta series=canonical-plan-generated --yes --post-check none >"$tmp_root/generated.out"
 grep -F 'Mandatory Plan validation: OK' "$tmp_root/generated.out" >/dev/null
-grep -F '2026-06-30 * canonical plan generated' "$base/plan.journal" >/dev/null
+grep -Fx '2026-06-30 canonical plan generated' "$base/plan.journal" >/dev/null
 grep -F '  ; plan-id: plan-2026-06-30-canonical-plan-generated' "$base/plan.journal" >/dev/null
 grep -F '  ; series: canonical-plan-generated' "$base/plan.journal" >/dev/null
-grep -F '  expenses:food  302 JPY' "$base/plan.journal" >/dev/null
 grep -F '  assets:cash  -302 JPY' "$base/plan.journal" >/dev/null
+grep -F '  expenses:food  302 JPY' "$base/plan.journal" >/dev/null
 find "$base/.backup" -type f -name 'plan.journal.*.bak' | grep -q .
 assert_legacy_plan_unchanged "$base" "$legacy_before" 'canonical Plan append'
 bqn src_edit/plan_validate_cmd.bqn "$base" >/dev/null
