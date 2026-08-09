@@ -1,0 +1,32 @@
+name: report-performance-observation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - experiments/performance/report_pipeline_probe.sh
+      - .github/workflows/report-performance-observation.yml
+
+jobs:
+  observe:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Tokyo
+      CBQN_REF: master
+      RUNS: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install CBQN
+        run: |
+          git clone --depth 1 --branch "$CBQN_REF" https://github.com/dzaima/CBQN.git
+          echo "CBQN commit: $(git -C CBQN rev-parse HEAD)"
+          make -C CBQN -j$(nproc)
+          sudo cp CBQN/BQN /usr/local/bin/bqn
+
+      - name: Observe report pipeline
+        run: |
+          uname -a
+          bash experiments/performance/report_pipeline_probe.sh | tee report-performance.tsv
