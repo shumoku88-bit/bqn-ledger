@@ -34,32 +34,30 @@ routeAdmission ← route.Admit ⟨key,surface,coordinates⟩
 {𝕊:PrintDiagnostics routeAdmission.diagnostics}⍟(routeAdmission.state≢"ok") @
 coordinates↩routeAdmission.coordinates
 
-evidence ← {
-  registry⇐registry,actual⇐@,plan⇐@,budget⇐@,budget_policy⇐@,household⇐@,issue_lines⇐empty
-}
 actualKeys ← ⟨"envelopes","balances","balance-sheet","profit-and-loss","recent","planned","cycle-accounts","cycle-comparison","monthly-accounts","daily-flow","daily-target"⟩
 contextKeys ← ⟨"planned","cycle-accounts","cycle-comparison","daily-flow","daily-target"⟩
-actual ← @
+actual ← @ ⋄ plan ← @ ⋄ budget ← @ ⋄ budgetPolicy ← @ ⋄ household ← @ ⋄ issueLines ← empty
 {𝕊:
   actualResult ← sources.CanonicalActual ⟨base,registry⟩
   {𝕊:PrintDiagnostics actualResult.diagnostics}⍟(actualResult.state≢"ok") @
   actual↩actualResult.facts
-  evidence↩evidence∾{actual⇐actual}
 }⍟(Contains ⟨key,actualKeys⟩) @
 {𝕊:
   companions ← sources.Companions ⟨base,actual.accounts,registry⟩
   {𝕊:PrintDiagnostics companions.diagnostics}⍟(companions.state≢"ok") @
-  evidence↩evidence∾{
-    plan⇐companions.plan,budget⇐companions.budget,budget_policy⇐companions.budget_policy,household⇐companions.household
-  }
+  plan↩companions.plan ⋄ budget↩companions.budget ⋄ budgetPolicy↩companions.budget_policy ⋄ household↩companions.household
 }⍟(key≡"envelopes") @
 {𝕊:
   context ← sources.HouseholdContext ⟨base,actual.accounts,registry⟩
   {𝕊:PrintDiagnostics context.diagnostics}⍟(context.state≢"ok") @
-  evidence↩evidence∾{plan⇐context.plan,budget_policy⇐context.budget_policy,household⇐context.household}
+  plan↩context.plan ⋄ budgetPolicy↩context.budget_policy ⋄ household↩context.household
 }⍟(Contains ⟨key,contextKeys⟩) @
-{𝕊:evidence↩evidence∾{issue_lines⇐sources.IssueLines base}}⍟(key≡"issues") @
+{𝕊:issueLines↩sources.IssueLines base}⍟(key≡"issues") @
 
+evidence ← {
+  registry⇐registry,actual⇐actual,plan⇐plan,budget⇐budget,
+  budget_policy⇐budgetPolicy,household⇐household,issue_lines⇐issueLines
+}
 composition ← destination.Build ⟨key,coordinates,evidence⟩
 {𝕊:PrintDiagnostics composition.diagnostics}⍟(composition.state≢"ok") @
 rendered ← render.Render ⟨key,surface,composition,presentation⟩
