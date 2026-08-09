@@ -17,7 +17,7 @@ while (( i < ${#args[@]} )); do
 done
 
 if [[ "${args[$i]-}" == "plan" && "${args[$((i + 1))]-}" == "add" ]]; then
-  exec "$DIR/plan-add" "$@"
+  exec bash "$DIR/plan-add" "$@"
 fi
 
 exec "$DIR/edit-bqn" "$@"
