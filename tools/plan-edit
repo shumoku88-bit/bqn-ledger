@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=tools/lib/system-defaults.sh
+source "$ROOT_DIR/tools/lib/system-defaults.sh"
+# shellcheck source=tools/lib/safe-write.sh
+source "$ROOT_DIR/tools/lib/safe-write.sh"
+# shellcheck source=tools/lib/edit-bqn-common.sh
+source "$ROOT_DIR/tools/lib/edit-bqn-common.sh"
+
+BASE_DIR="${LEDGER_DATA_DIR:-$(get_default_base_dir)}"
+TARGET_FILE="plan.journal"
+args=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --base) BASE_DIR="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+    *) args+=("$1"); shift ;;
+  esac
+done
+set -- "${args[@]}"
+
+if [[ "${1-}" != "plan" || "${2-}" != "edit" ]]; then
+  echo 'ERROR: tools/plan-edit handles only: plan edit' >&2
+  exit 2
+fi
+shift 2
+
+INDEX="0"; PLAN_ID=""; DATE=""; AMOUNT=""; SHOW_ALL=0; DRY_RUN=0; YES=0; POST_CHECK="lint"
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --index) INDEX="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+    --id) PLAN_ID="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+    --date) DATE="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+    --amount) AMOUNT="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+    --all) SHOW_ALL=1; shift ;;
+    --dry-run) DRY_RUN=1; shift ;;
+    --yes) YES=1; shift ;;
+    --post-check) POST_CHECK="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+    *) echo "ERROR: unknown plan edit option: $1" >&2; exit 2 ;;
+  esac
+done
+[[ "$INDEX" != "0" || -n "$PLAN_ID" ]] || { echo 'ERROR: must specify plan to edit using --index or --id' >&2; exit 2; }
+[[ -n "$DATE" || -n "$AMOUNT" ]] || { echo 'ERROR: must specify at least one of --date or --amount' >&2; exit 2; }
+edit_bqn_validate_post_check "$POST_CHECK"
+
+TARGET_PATH="$BASE_DIR/$TARGET_FILE"
+SNAPSHOT_TOKEN="$(safe_snapshot_token "$TARGET_PATH")"
+IFS=$'\t' read -r SNAP_SIZE SNAP_MTIME SNAP_SHA256 <<< "$SNAPSHOT_TOKEN"
+CANDIDATE_FILE="$(mktemp "${TMPDIR:-/tmp}/bqn-ledger-plan-edit.XXXXXX")"
+BQN_STDERR="$(mktemp "${TMPDIR:-/tmp}/bqn-ledger-plan-edit-stderr.XXXXXX")"
+trap 'rm -f "$CANDIDATE_FILE" "$BQN_STDERR"' EXIT
+
+BQN_OUT=""
+if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/plan_edit_cmd.bqn "$BASE_DIR" "$CANDIDATE_FILE" "$INDEX" "$PLAN_ID" "$DATE" "$AMOUNT" "$SHOW_ALL" 2>"$BQN_STDERR")"; then
+  [[ -n "$BQN_OUT" ]] && printf '%s\n' "$BQN_OUT" >&2
+  [[ -s "$BQN_STDERR" ]] && cat "$BQN_STDERR" >&2
+  exit 1
+fi
+IFS=$'\t' read -r STATUS OP PROTOCOL_TARGET EDIT_ID EXTRA <<< "$BQN_OUT"
+if [[ -n "${EXTRA:-}" || "$STATUS" != "OK" || "$OP" != "REWRITE" || "$PROTOCOL_TARGET" != "$TARGET_FILE" || -z "$EDIT_ID" || ! -f "$CANDIDATE_FILE" ]]; then
+  echo "ERROR: invalid canonical Plan edit protocol: $BQN_OUT" >&2
+  exit 1
+fi
+
+MODE="$(edit_bqn_mode "$DRY_RUN" "$YES")"
+printf 'Plan edit preview\nTarget: %s\nPlan ID: %s\nMode: %s\nPost-check: %s\nDiff:\n' "$TARGET_PATH" "$EDIT_ID" "$MODE" "$POST_CHECK"
+diff -u "$TARGET_PATH" "$CANDIDATE_FILE" || true
+if [[ "$DRY_RUN" -eq 1 ]]; then
+  echo 'Dry-run only. No files were modified.'
+  exit 0
+fi
+if [[ "$YES" -eq 0 ]]; then
+  printf 'Rewrite this Plan block? [y/N]: '
+  reply=""; read -r reply || true
+  case "$reply" in y|Y|yes|YES) ;; *) echo 'Cancelled. No files were modified.'; exit 0 ;; esac
+fi
+
+edit_bqn_run_test_hook EDIT_BQN_TEST_BEFORE_REPLACE_HOOK
+WRITE_OUT="$(safe_rewrite_checked "$TARGET_PATH" "$CANDIDATE_FILE" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256")"
+printf '%s\n' "$WRITE_OUT"
+BACKUP_PATH="$(awk -F': ' '$1 == "Backup" {print $2}' <<< "$WRITE_OUT")"
+[[ -f "$BACKUP_PATH" ]] || { echo 'ERROR: checked Plan rewrite did not report one backup' >&2; exit 1; }
+POST_WRITE_SHA="$(_safe_write_sha256 "$TARGET_PATH")"
+
+MANDATORY_OK=1
+VALIDATE_OUT=""
+if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && "${EDIT_BQN_TEST_FORCE_PLAN_POST_CHECK_FAIL:-}" == "1" ]]; then
+  MANDATORY_OK=0
+  VALIDATE_OUT='forced canonical Plan post-admission failure'
+elif ! VALIDATE_OUT="$(cd "$ROOT_DIR" && bqn src_edit/plan_validate_cmd.bqn "$BASE_DIR" 2>&1)"; then
+  MANDATORY_OK=0
+fi
+if [[ "$MANDATORY_OK" -eq 1 ]]; then
+  printf 'Mandatory Plan validation: OK\n%s\n' "$VALIDATE_OUT"
+else
+  printf 'Mandatory Plan validation: FAILED\n%s\n' "$VALIDATE_OUT" >&2
+fi
+
+OPTIONAL_OK=1
+if [[ "$MANDATORY_OK" -eq 1 && "$POST_CHECK" == "full" ]]; then
+  printf 'Additional full check: starting\n'
+  if ! (cd "$ROOT_DIR" && bash tools/check.sh); then OPTIONAL_OK=0; else printf 'Additional full check: OK\n'; fi
+elif [[ "$MANDATORY_OK" -eq 1 ]]; then
+  printf 'Additional check: none (%s mode)\n' "$POST_CHECK"
+fi
+
+if [[ "$MANDATORY_OK" -eq 1 && "$OPTIONAL_OK" -eq 1 ]]; then exit 0; fi
+edit_bqn_run_test_hook EDIT_BQN_TEST_BEFORE_POSTCHECK_ROLLBACK_HOOK
+if safe_restore_backup_checked "$TARGET_PATH" "$BACKUP_PATH" "$POST_WRITE_SHA"; then
+  if [[ "$(_safe_write_sha256 "$TARGET_PATH")" != "$SNAP_SHA256" ]]; then
+    echo 'Rollback: restore digest mismatch; recovery required' >&2
+    exit 1
+  fi
+  echo 'Rollback: restored original bytes' >&2
+  exit 1
+fi
+echo 'Rollback: refused; target changed after rewrite; recovery required' >&2
+exit 1
