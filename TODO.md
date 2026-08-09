@@ -110,7 +110,9 @@ The phases are an inventory and review-navigation order, not mandatory PR bounda
 6. `src/editor/` and `src_edit/` rewrite and command owners
 7. remaining production BQN under `src/text/` and `tools/`, followed by selector/UI adapter consolidation
 
-Before a phase becomes the active inventory focus, its complete file inventory must be added here and covered by the queue check. A phase is considered reviewed only when every listed box is checked and the inventory check still passes. This bookkeeping does not require implementation changes to be split at phase boundaries.
+The production BQN inventory law covers every `.bqn` file under `src/`, `src_edit/`, and `tools/` exactly once in the phase lists below. `experiments/` is deliberately outside that production inventory and is handled by the repository-wide reachability audit rather than being presumed retained or dead.
+
+A phase is considered reviewed only when every listed box is checked and the inventory check still passes. This bookkeeping does not require implementation changes to be split at phase boundaries. The current cursor remains the normal review sequence; the repository-wide inventory exists so later phases cannot disappear from view while an earlier phase is active.
 
 ## Phase 1: `src/accounting/`
 
@@ -136,6 +138,170 @@ Before a phase becomes the active inventory focus, its complete file inventory m
 - [ ] `src/accounting/recent_transactions.bqn`
 - [ ] `src/accounting/sparse_group.bqn`
 - [ ] `src/accounting/sparse_pivot.bqn`
+
+## Phase 2: `src/ledger/`
+
+- [ ] `src/ledger/account_admission.bqn`
+- [ ] `src/ledger/account_journal_admission.bqn`
+- [ ] `src/ledger/amount_text.bqn`
+- [ ] `src/ledger/budget_journal_admission.bqn`
+- [ ] `src/ledger/budget_policy_admission.bqn`
+- [ ] `src/ledger/canonical_journal_root_admission.bqn`
+- [ ] `src/ledger/companion_admission.bqn`
+- [ ] `src/ledger/config_admission.bqn`
+- [ ] `src/ledger/currency_registry.bqn`
+- [ ] `src/ledger/cycle_admission.bqn`
+- [ ] `src/ledger/date_ordinal.bqn`
+- [ ] `src/ledger/exact_decimal.bqn`
+- [ ] `src/ledger/exact_scale.bqn`
+- [ ] `src/ledger/facts.bqn`
+- [ ] `src/ledger/household_policy_admission.bqn`
+- [ ] `src/ledger/issue_admission.bqn`
+- [ ] `src/ledger/journal_complete_admission.bqn`
+- [ ] `src/ledger/journal_posting_text.bqn`
+- [ ] `src/ledger/journal_single_domain_admission.bqn`
+- [ ] `src/ledger/journal_transaction_structure.bqn`
+- [ ] `src/ledger/plan_journal_admission.bqn`
+- [ ] `src/ledger/plan_snapshot.bqn`
+- [ ] `src/ledger/report_policy_admission.bqn`
+- [ ] `src/ledger/snapshot.bqn`
+- [ ] `src/ledger/transaction_rows.bqn`
+
+## Phase 3: `src/sections/`
+
+- [ ] `src/sections/account_balances.bqn`
+- [ ] `src/sections/balance_sheet.bqn`
+- [ ] `src/sections/cycle_accounts.bqn`
+- [ ] `src/sections/cycle_comparison.bqn`
+- [ ] `src/sections/daily_flow.bqn`
+- [ ] `src/sections/daily_target.bqn`
+- [ ] `src/sections/envelope_backing.bqn`
+- [ ] `src/sections/issues.bqn`
+- [ ] `src/sections/monthly_accounts.bqn`
+- [ ] `src/sections/planned_payments.bqn`
+- [ ] `src/sections/profit_and_loss.bqn`
+- [ ] `src/sections/recent_journal.bqn`
+- [ ] `src/sections/trial_balance.bqn`
+
+## Phase 4: `src/report/`
+
+- [ ] `src/report/catalog.bqn`
+- [ ] `src/report/catalog_text.bqn`
+- [ ] `src/report/compose.bqn`
+- [ ] `src/report/json_text.bqn`
+- [ ] `src/report/render.bqn`
+- [ ] `src/report/request.bqn`
+- [ ] `src/report/section_metadata.bqn`
+- [ ] `src/report/text.bqn`
+
+## Phase 5: `src/application/`
+
+- [ ] `src/application/account_source_adapter.bqn`
+- [ ] `src/application/actual_journal_config.bqn`
+- [ ] `src/application/actual_source_adapter.bqn`
+- [ ] `src/application/budget_source_adapter.bqn`
+- [ ] `src/application/canonical_household_sources.bqn`
+- [ ] `src/application/config_rows.bqn`
+- [ ] `src/application/current_report_batch_cli.bqn`
+- [ ] `src/application/current_report_profile_cli.bqn`
+- [ ] `src/application/current_report_requests.bqn`
+- [ ] `src/application/cycle_resolution.bqn`
+- [ ] `src/application/daily_scope_adapter.bqn`
+- [ ] `src/application/daily_scope_admission.bqn`
+- [ ] `src/application/date_today.bqn`
+- [ ] `src/application/editor_accounts.bqn`
+- [ ] `src/application/editor_actual.bqn`
+- [ ] `src/application/editor_config_path.bqn`
+- [ ] `src/application/editor_currency.bqn`
+- [ ] `src/application/editor_plan_rows.bqn`
+- [ ] `src/application/funding_scope.bqn`
+- [ ] `src/application/household_daily_scope.bqn`
+- [ ] `src/application/household_source_adapter.bqn`
+- [ ] `src/application/ledger_check_cli.bqn`
+- [ ] `src/application/ledger_inspect_cli.bqn`
+- [ ] `src/application/plan_source_adapter.bqn`
+- [ ] `src/application/report_destination.bqn`
+- [ ] `src/application/report_destination_cli.bqn`
+- [ ] `src/application/report_domain_cli.bqn`
+- [ ] `src/application/report_domain_selection.bqn`
+- [ ] `src/application/report_metadata_cli.bqn`
+- [ ] `src/application/report_policy_resolution.bqn`
+- [ ] `src/application/report_policy_source_adapter.bqn`
+- [ ] `src/application/report_presentation_cli.bqn`
+- [ ] `src/application/report_request_cli.bqn`
+- [ ] `src/application/report_route.bqn`
+- [ ] `src/application/report_route_plan.bqn`
+- [ ] `src/application/report_route_plan_cli.bqn`
+- [ ] `src/application/report_selection_cli.bqn`
+- [ ] `src/application/report_source_adapter.bqn`
+- [ ] `src/application/source_io.bqn`
+- [ ] `src/application/system_defaults.bqn`
+
+## Phase 6: `src/editor/` and `src_edit/`
+
+### `src/editor/`
+
+- [ ] `src/editor/friend_travel_source_event.bqn`
+- [ ] `src/editor/journal_profile.bqn`
+- [ ] `src/editor/travel_exchange_event.bqn`
+
+### `src_edit/`
+
+- [ ] `src_edit/account_add_cmd.bqn`
+- [ ] `src_edit/account_list_cmd.bqn`
+- [ ] `src_edit/account_validate_cmd.bqn`
+- [ ] `src_edit/actual_journal_file_cmd.bqn`
+- [ ] `src_edit/budget_add_cmd.bqn`
+- [ ] `src_edit/budget_movement_candidate.bqn`
+- [ ] `src_edit/budget_validate_cmd.bqn`
+- [ ] `src_edit/issue_add_cmd.bqn`
+- [ ] `src_edit/issue_close_cmd.bqn`
+- [ ] `src_edit/issue_list_cmd.bqn`
+- [ ] `src_edit/issue_validate_cmd.bqn`
+- [ ] `src_edit/journal_block_add_cmd.bqn`
+- [ ] `src_edit/journal_canonical_surface_apply_cmd.bqn`
+- [ ] `src_edit/journal_canonical_surface_plan.bqn`
+- [ ] `src_edit/journal_canonical_surface_plan_cmd.bqn`
+- [ ] `src_edit/journal_canonical_surface_preview_cmd.bqn`
+- [ ] `src_edit/journal_canonical_surface_rewrite.bqn`
+- [ ] `src_edit/journal_cleanup_apply_cmd.bqn`
+- [ ] `src_edit/journal_cleanup_plan.bqn`
+- [ ] `src_edit/journal_cleanup_plan_cmd.bqn`
+- [ ] `src_edit/journal_cleanup_rewrite.bqn`
+- [ ] `src_edit/journal_cleanup_verify_cmd.bqn`
+- [ ] `src_edit/journal_identity_inventory.bqn`
+- [ ] `src_edit/journal_identity_inventory_cmd.bqn`
+- [ ] `src_edit/journal_list_cmd.bqn`
+- [ ] `src_edit/journal_native_reverse_cmd.bqn`
+- [ ] `src_edit/journal_native_source_check.bqn`
+- [ ] `src_edit/journal_reconstructible_identity_cleanup.bqn`
+- [ ] `src_edit/journal_reconstructible_identity_cleanup_cmd.bqn`
+- [ ] `src_edit/journal_validate_cmd.bqn`
+- [ ] `src_edit/plan_add_cmd.bqn`
+- [ ] `src_edit/plan_budget_sync_cmd.bqn`
+- [ ] `src_edit/plan_edit_cmd.bqn`
+- [ ] `src_edit/plan_finish_cmd.bqn`
+- [ ] `src_edit/plan_finish_validate_cmd.bqn`
+- [ ] `src_edit/plan_id.bqn`
+- [ ] `src_edit/plan_list_cmd.bqn`
+- [ ] `src_edit/plan_related_cmd.bqn`
+- [ ] `src_edit/plan_validate_cmd.bqn`
+- [ ] `src_edit/render.bqn`
+- [ ] `src_edit/travel_exchange_add_cmd.bqn`
+- [ ] `src_edit/travel_friend_add_cmd.bqn`
+- [ ] `src_edit/validate.bqn`
+
+## Phase 7: remaining production BQN and selector/UI adapters
+
+### `src/text/`
+
+- [ ] `src/text/parse.bqn`
+
+### `tools/` BQN
+
+- [ ] `tools/bqn-dump.bqn`
+
+After the production BQN inventory is reviewed, the selector/UI adapter consolidation and the shell/tool families remain governed by the cross-cutting audit inventory above rather than pretending every shell wrapper is a BQN semantic owner.
 
 ## Current cursor
 
