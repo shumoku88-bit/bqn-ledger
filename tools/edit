@@ -1,9 +1,23 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# tools/edit — wrapper for BQN editor.
+# Public editor dispatcher. Canonical writer slices may graduate here before the
+# older monolithic implementation is retired command-by-command.
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-BQN_EDITOR="$DIR/edit-bqn"
 
-exec "$BQN_EDITOR" "$@"
+args=("$@")
+i=0
+while (( i < ${#args[@]} )); do
+  case "${args[$i]}" in
+    --base) i=$((i + 2)) ;;
+    --) i=$((i + 1)); break ;;
+    *) break ;;
+  esac
+done
+
+if [[ "${args[$i]-}" == "plan" && "${args[$((i + 1))]-}" == "add" ]]; then
+  exec bash "$DIR/plan-add" "$@"
+fi
+
+exec "$DIR/edit-bqn" "$@"

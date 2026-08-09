@@ -1,189 +1,159 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Verify BQN-backed `plan add` append path.
-# Scope:
-#   - resulting plan.tsv append creates expected TSV/backup effects
-#   - dry-run source protection
-#   - negative cases fail closed without source/backup writes
-
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
-
+fixture="$ROOT_DIR/fixtures/ledger-facts-phase1-proof"
 tmp_root="$(mktemp -d)"
 trap 'rm -rf "$tmp_root"' EXIT
 
-sha_file() {
-  shasum -a 256 "$1" | awk '{print $1}'
+sha_file() { shasum -a 256 "$1" | awk '{print $1}'; }
+copy_fixture() {
+  local dest="$1"
+  mkdir -p "$dest"
+  cp -R "$fixture"/. "$dest"/
 }
-
 assert_no_backup() {
-  local base="$1"
-  local label="$2"
-  if [ -e "$base/.backup" ] && find "$base/.backup" -type f | grep -q .; then
+  local base="$1" label="$2"
+  if [[ -d "$base/.backup" ]] && find "$base/.backup" -type f | grep -q .; then
     echo "FAIL: $label created a backup" >&2
-    find "$base/.backup" -type f >&2 || true
     exit 1
   fi
 }
-
-assert_unchanged() {
-  local base="$1"
-  local before_sha="$2"
-  local label="$3"
-  local after_sha
-  after_sha="$(sha_file "$base/plan.tsv")"
-  if [ "$before_sha" != "$after_sha" ]; then
-    echo "FAIL: $label modified plan.tsv" >&2
-    exit 1
-  fi
+assert_plan_unchanged() {
+  local base="$1" before="$2" label="$3"
+  [[ "$(sha_file "$base/plan.journal")" == "$before" ]] || { echo "FAIL: $label modified plan.journal" >&2; exit 1; }
+}
+assert_legacy_plan_unchanged() {
+  local base="$1" before="$2" label="$3"
+  [[ "$(sha_file "$base/plan.tsv")" == "$before" ]] || { echo "FAIL: $label modified legacy plan.tsv" >&2; exit 1; }
 }
 
-run_positive_parity() {
-  local name="$1"
-  shift
-  local bqn_base="$tmp_root/pos-$name-bqn"
-  local bqn_out="$tmp_root/pos-$name-bqn.out"
+# Dry-run publishes no bytes and does not consult legacy config for currency.
+dry="$tmp_root/dry"
+copy_fixture "$dry"
+printf 'DEFAULT_CURRENCY=USD\n' >"$dry/config.tsv"
+dry_before="$(sha_file "$dry/plan.journal")"
+dry_legacy_before="$(sha_file "$dry/plan.tsv")"
+./tools/edit --base "$dry" plan add \
+  --date 2026-06-30 --memo 'canonical plan dry-run' \
+  --from assets:cash --to expenses:food --amount 301 \
+  --meta series=canonical-plan --dry-run >"$tmp_root/dry.out"
+assert_plan_unchanged "$dry" "$dry_before" 'plan add dry-run'
+assert_legacy_plan_unchanged "$dry" "$dry_legacy_before" 'plan add dry-run'
+assert_no_backup "$dry" 'plan add dry-run'
+grep -F 'plan.journal' "$tmp_root/dry.out" >/dev/null
 
-  cp -R data "$bqn_base"
+# Generated ID, shared canonical block shape, backup, and mandatory admission.
+base="$tmp_root/generated"
+copy_fixture "$base"
+legacy_before="$(sha_file "$base/plan.tsv")"
+./tools/edit --base "$base" plan add \
+  --date 2026-06-30 --memo 'canonical plan generated' \
+  --from assets:cash --to expenses:food --amount 302 \
+  --meta series=canonical-plan-generated --yes --post-check none >"$tmp_root/generated.out"
+grep -F 'Mandatory Plan validation: OK' "$tmp_root/generated.out" >/dev/null
+grep -Fx '2026-06-30 canonical plan generated' "$base/plan.journal" >/dev/null
+grep -F '  ; plan-id: plan-2026-06-30-canonical-plan-generated' "$base/plan.journal" >/dev/null
+grep -F '  ; series: canonical-plan-generated' "$base/plan.journal" >/dev/null
+grep -F '  assets:cash  -302 JPY' "$base/plan.journal" >/dev/null
+grep -F '  expenses:food  302 JPY' "$base/plan.journal" >/dev/null
+find "$base/.backup" -type f -name 'plan.journal.*.bak' | grep -q .
+assert_legacy_plan_unchanged "$base" "$legacy_before" 'canonical Plan append'
+bqn src_edit/plan_validate_cmd.bqn "$base" >/dev/null
 
-  if [[ "$name" == *"no-trailing-newline" ]]; then
-    perl -0pi -e 's/\n\z//'  "$bqn_base/plan.tsv"
-  fi
+# Same generated identity receives the deterministic collision suffix.
+./tools/edit --base "$base" plan add \
+  --date 2026-06-30 --memo 'canonical plan generated' \
+  --from assets:cash --to expenses:food --amount 303 \
+  --meta series=canonical-plan-generated --yes --post-check none >/dev/null
+grep -F '  ; plan-id: plan-2026-06-30-canonical-plan-generated-02' "$base/plan.journal" >/dev/null
 
-  ./tools/edit-bqn --base "$bqn_base" "$@" >"$bqn_out" 2>&1
+# Explicit Plan identity and underscore-to-native metadata key normalization.
+explicit="$tmp_root/explicit"
+copy_fixture "$explicit"
+./tools/edit --base "$explicit" plan add \
+  --date 2026-07-01 --memo 'explicit plan' \
+  --from assets:cash --to expenses:transport --amount 45 \
+  --id plan-2026-07-01-explicit \
+  --meta due_on=2026-07-02 --yes --post-check lint >/dev/null
+grep -F '  ; plan-id: plan-2026-07-01-explicit' "$explicit/plan.journal" >/dev/null
+grep -F '  ; due-on: 2026-07-02' "$explicit/plan.journal" >/dev/null
 
+# Source with no final newline still receives one separated canonical block.
+no_nl="$tmp_root/no-newline"
+copy_fixture "$no_nl"
+perl -0pi -e 's/\n\z//' "$no_nl/plan.journal"
+./tools/edit --base "$no_nl" plan add \
+  --date 2026-07-03 --memo 'no trailing newline' \
+  --from assets:cash --to expenses:food --amount 46 \
+  --id plan-2026-07-03-no-newline --yes --post-check none >/dev/null
+bqn src_edit/plan_validate_cmd.bqn "$no_nl" >/dev/null
 
-  if ! find "$bqn_base/.backup" -type f -name 'plan.tsv*' | grep -q .; then
-    echo "FAIL: tools/edit-bqn plan add did not create a plan backup: $name" >&2
+expect_fail_closed() {
+  local name="$1"; shift
+  local fail_base="$tmp_root/fail-$name" out="$tmp_root/fail-$name.out"
+  copy_fixture "$fail_base"
+  local before legacy_before
+  before="$(sha_file "$fail_base/plan.journal")"
+  legacy_before="$(sha_file "$fail_base/plan.tsv")"
+  if ./tools/edit --base "$fail_base" plan add "$@" >"$out" 2>&1; then
+    echo "FAIL: plan add accepted negative case: $name" >&2
+    cat "$out" >&2
     exit 1
   fi
+  assert_plan_unchanged "$fail_base" "$before" "$name"
+  assert_legacy_plan_unchanged "$fail_base" "$legacy_before" "$name"
+  assert_no_backup "$fail_base" "$name"
 }
 
-run_expect_fail_closed() {
-  local name="$1"
-  shift
-  local bqn_base="$tmp_root/neg-$name-bqn"
-  local bqn_out="$tmp_root/neg-$name-bqn.out"
-  local bqn_before bqn_rc
+expect_fail_closed empty-description \
+  --date 2026-07-04 --memo '' --from assets:cash --to expenses:food --amount 47 --yes --post-check none
+expect_fail_closed meta-plan-id \
+  --date 2026-07-04 --memo bad --from assets:cash --to expenses:food --amount 47 \
+  --meta plan_id=plan-2026-07-04-bad --yes --post-check none
+expect_fail_closed invalid-explicit-id \
+  --date 2026-07-04 --memo bad --from assets:cash --to expenses:food --amount 47 \
+  --id not-a-plan-id --yes --post-check none
+expect_fail_closed unknown-account \
+  --date 2026-07-04 --memo bad --from assets:not-found --to expenses:food --amount 47 --yes --post-check none
+expect_fail_closed mismatched-explicit-currency \
+  --date 2026-07-04 --memo bad --from assets:cash --to expenses:food --amount 47 \
+  --currency USD --yes --post-check none
 
-  cp -R data "$bqn_base"
-  bqn_before="$(sha_file "$bqn_base/plan.tsv")"
+# The old monolithic direct route cannot publish plan.tsv after the canonical cutover.
+legacy_route="$tmp_root/legacy-route"
+copy_fixture "$legacy_route"
+legacy_plan_before="$(sha_file "$legacy_route/plan.tsv")"
+canonical_before="$(sha_file "$legacy_route/plan.journal")"
+if ./tools/edit-bqn --base "$legacy_route" plan add \
+  --date 2026-07-05 --memo 'legacy route' --from assets:cash --to expenses:food --amount 48 \
+  --yes --post-check none >"$tmp_root/legacy-route.out" 2>&1; then
+  echo 'FAIL: legacy edit-bqn Plan Add route remained writable' >&2
+  exit 1
+fi
+assert_plan_unchanged "$legacy_route" "$canonical_before" 'legacy edit-bqn route'
+assert_legacy_plan_unchanged "$legacy_route" "$legacy_plan_before" 'legacy edit-bqn route'
+assert_no_backup "$legacy_route" 'legacy edit-bqn route'
 
-  set +e
-  ./tools/edit-bqn --base "$bqn_base" "$@" >"$bqn_out" 2>&1
-  bqn_rc=$?
-  set -e
+# Mandatory canonical post-admission failure restores the exact original bytes.
+rollback="$tmp_root/rollback"
+copy_fixture "$rollback"
+rollback_before="$(sha_file "$rollback/plan.journal")"
+if BQN_LEDGER_TEST_MODE=1 EDIT_BQN_TEST_FORCE_PLAN_POST_CHECK_FAIL=1 \
+  ./tools/edit --base "$rollback" plan add \
+    --date 2026-07-06 --memo rollback --from assets:cash --to expenses:food --amount 49 \
+    --id plan-2026-07-06-rollback --yes --post-check none >"$tmp_root/rollback.out" 2>&1; then
+  echo 'FAIL: forced Plan post-admission failure succeeded' >&2
+  exit 1
+fi
+assert_plan_unchanged "$rollback" "$rollback_before" 'Plan rollback'
+grep -F 'Rollback: restored original bytes' "$tmp_root/rollback.out" >/dev/null
 
-  if [ "$bqn_rc" -eq 0 ]; then
-    echo "FAIL: tools/edit-bqn unexpectedly accepted negative case: $name" >&2
-    cat "$bqn_out" >&2
-    exit 1
-  fi
+if rg -n 'plan\.tsv|config\.tsv|editor_accounts|DefaultPlanFile|DefaultAccountsFile' \
+  src_edit/plan_add_cmd.bqn tools/plan-add >/dev/null; then
+  echo 'FAIL: canonical Plan Add still depends on legacy Plan/Account/config source routing' >&2
+  exit 1
+fi
 
-  assert_unchanged "$bqn_base" "$bqn_before" "tools/edit-bqn negative case $name"
-  assert_no_backup "$bqn_base" "tools/edit-bqn negative case $name"
-}
-
-# Dry-run protection.
-dry_base="$tmp_root/dry"
-cp -R data "$dry_base"
-dry_before="$(sha_file "$dry_base/plan.tsv")"
-./tools/edit-bqn --base "$dry_base" plan add \
-  --date 2026-06-30 \
-  --memo "edit-bqn plan dry-run" \
-  --from assets:bank \
-  --to expenses:食費 \
-  --amount 301 \
-  --meta series=edit-bqn-plan \
-  --dry-run >/dev/null
-assert_unchanged "$dry_base" "$dry_before" "tools/edit-bqn plan add --dry-run"
-assert_no_backup "$dry_base" "tools/edit-bqn plan add --dry-run"
-
-run_positive_parity generated-id \
-  plan add \
-  --date 2026-06-30 \
-  --memo "edit-bqn plan generated" \
-  --from assets:bank \
-  --to expenses:食費 \
-  --amount 302 \
-  --meta series=edit-bqn-plan-generated \
-  --yes \
-  --post-check none
-
-run_positive_parity explicit-id \
-  plan add \
-  --date 2026-06-30 \
-  --memo "edit-bqn plan explicit" \
-  --from assets:bank \
-  --to expenses:食費 \
-  --amount 303 \
-  --id plan-2026-06-30-edit-bqn-explicit \
-  --yes \
-  --post-check none
-
-run_positive_parity generated-collision-suffix \
-  plan add \
-  --date 2026-01-10 \
-  --memo "phone" \
-  --from assets:bank \
-  --to expenses:食費 \
-  --amount 304 \
-  --meta series=phone \
-  --yes \
-  --post-check none
-
-run_positive_parity empty-memo-generated-plan-slug \
-  plan add \
-  --date 2026-06-30 \
-  --memo "" \
-  --from assets:bank \
-  --to expenses:食費 \
-  --amount 305 \
-  --yes \
-  --post-check none
-
-run_positive_parity no-trailing-newline \
-  plan add \
-  --date 2026-06-30 \
-  --memo "edit-bqn no trailing newline" \
-  --from assets:bank \
-  --to expenses:食費 \
-  --amount 306 \
-  --meta series=edit-bqn-no-trailing \
-  --yes \
-  --post-check none
-
-run_expect_fail_closed meta-plan-id \
-  plan add \
-  --date 2026-06-30 \
-  --memo "bad plan_id meta" \
-  --from assets:bank \
-  --to expenses:食費 \
-  --amount 307 \
-  --meta plan_id=plan-2026-06-30-bad \
-  --yes \
-  --post-check none
-
-run_expect_fail_closed invalid-explicit-id \
-  plan add \
-  --date 2026-06-30 \
-  --memo "invalid id" \
-  --from assets:bank \
-  --to expenses:食費 \
-  --amount 308 \
-  --id not-a-plan-id \
-  --yes \
-  --post-check none
-
-run_expect_fail_closed unknown-account \
-  plan add \
-  --date 2026-06-30 \
-  --memo "unknown account" \
-  --from assets:not-found \
-  --to expenses:食費 \
-  --amount 309 \
-  --yes \
-  --post-check none
-
-printf 'OK: tools/edit-bqn plan add parity checks passed\n'
+echo 'check-edit-bqn-plan-add: OK'
