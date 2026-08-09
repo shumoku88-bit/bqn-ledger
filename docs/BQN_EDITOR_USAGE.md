@@ -31,7 +31,7 @@ BQN Editor は会計エンジンとしての計算（残高や封筒の残金計
 ### モード一覧
 起動すると、まず以下の記帳モードを選択します。
 
-1.  **`account-add` (アカウント追加)**: `asset / liability / income / expense` を選び、明示的な `role=` と一致する名前空間で `accounts.journal` に安全追記します。assetでは任意で `type=liquid|savings|invest` を選べます。
+1.  **`account-add` (アカウント追加)**: `asset / liability / income / expense` を選び、明示的な `role=` と一致する名前空間で `accounts.journal` に安全追記します。Household classificationはAccount declarationへ書かず、`household.toml`のownerに残します。
 2.  **`expense` (支出)**: 資産口座から費用口座への支出。canonical `actual.journal`へ追記。
 3.  **`multi` (複数ポスティング)**: 1取引につき3件以上の勘定と符号付き金額を入力します。費用などの増加は正、支払口座の減少は負とし、全Postingの合計をゼロにします（例: 費用600、費用150、支払口座-750）。canonical `actual.journal`へPosting orderを保って安全追記します。
 4.  **`move` (資金移動)**: 資産口座間の振替をcanonical `actual.journal`へ追記。

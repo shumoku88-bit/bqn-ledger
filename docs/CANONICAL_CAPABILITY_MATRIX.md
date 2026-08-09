@@ -90,7 +90,7 @@ All rows are owned by the static catalog and current composition described in `R
 | Direct canonical source edit | historical Hub editor menu | Hub editor launcher | `$EDITOR` over fixed canonical file menu | usable | yes | yes | user-directed only | 1 | no | retain eight-file allowlist |
 | Report summary / exact query | report reset checks | summary/query tools | `tools/report-summary`, `tools/query` | current advanced CLI | yes, Operations direct routes | yes | not separately required | 2 | yes | expose without parsing output |
 | Report cache | cache checks and architecture | cache tool | `tools/report-cache` / Command Hub cache refresh | used automatically by report UI | indirect | yes | yes through reports | 1 | no | keep automatic; no second cache owner |
-| Repository development suite | repository check history | `tools/check.sh` | `tools/check.sh` | current developer-only command | no daily route | repository, not Household | CI PASS | 1 | no | keep under Development docs, distinct from `bl check` |
+| Repository development suite | repository check history | `tools/check.sh` | `tools/check.sh` | current developer-only command | advanced `dev-check` only | repository, not Household | CI PASS | 1 | no | keep distinct from `bl check` |
 
 ## Separate and intentionally unresolved historical surfaces
 
