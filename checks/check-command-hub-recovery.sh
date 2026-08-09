@@ -141,7 +141,7 @@ tools/bl --base "$base" --domain JPY --latest 2026-01-13 report >"$work/report-a
 [[ $(grep -c '^== ' "$work/report-all") -eq 12 ]]
 
 # Behavioral qualification 1 & 2: Reports menu contains only report catalog items.
-printf '0\n' | BL_SELECTOR=plain tools/main-ui.sh --base "$base" >"$work/main-ui-menu.out" 2>"$work/main-ui-menu.err" || true
+printf '0\n' | BL_SELECTOR=plain tools/main-ui.sh --base "$base" --domain JPY --latest 2026-01-13 >"$work/main-ui-menu.out" 2>"$work/main-ui-menu.err" || true
 for key in "${report_keys[@]}"; do
   grep -F "($key)" "$work/main-ui-menu.err" >/dev/null
 done
