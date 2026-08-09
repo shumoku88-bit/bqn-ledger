@@ -207,7 +207,7 @@ if BQN_LEDGER_TEST_MODE=1 EDIT_BQN_TEST_BEFORE_PLAN_FINISH_APPEND_HOOK=mutate_pl
 fi
 assert_sha "$race/actual.journal" "$race_actual_before" 'Plan race fence Actual'
 assert_no_backup "$race" 'Plan race fence'
-grep -F 'snapshot mismatch' "$tmp_root/race.out" >/dev/null
+grep -F 'is stale; it changed during editing' "$tmp_root/race.out" >/dev/null
 
 if rg -n 'plan\.tsv|accounts\.tsv|config\.tsv|DefaultPlanFile|DefaultAccountsFile|editor_accounts|system_defaults\.bqn' \
   src_edit/plan_finish_cmd.bqn src_edit/plan_finish_validate_cmd.bqn >/dev/null; then
