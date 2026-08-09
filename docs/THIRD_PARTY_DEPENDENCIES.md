@@ -19,15 +19,15 @@ It is not a full SBOM. It exists so maintainers and reviewers can see the main r
 | fzf | Optional interactive UI | Presentation/selection helper only. |
 | gum | Optional interactive UI | Presentation/selection helper only. |
 
-## Legacy / archived implementation notes
+## Retired implementation notes
 
-All Go source code has been completely retired and removed from the active tree. Legacy/historical design records and planning documents are kept in `docs/archive/` for background reference only. No active workflows or tools require Go.
+All Go source code has been completely retired and removed from the current tree. Historical design records and planning documents are available through Git history when needed. No current workflows or tools require Go.
 
 ## Reproducibility notes
 
 - The public repo should keep runtime requirements in README, CONTRIBUTING, and CI aligned.
 - If CBQN is pinned in CI, update README at the same time.
-- Removed or archived experiments should not be listed as current dependency paths.
+- Removed experiments should not be listed as current dependency paths.
 
 ## Data safety note
 

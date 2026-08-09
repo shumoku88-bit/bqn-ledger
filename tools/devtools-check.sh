@@ -123,19 +123,7 @@ STALE_FOUND=0
 
 for tool in "${STALE_TOOLS[@]}"; do
   refs=$(grep -rn "$tool" docs/ AGENTS.md 2>/dev/null \
-    | grep -v 'docs/archive/' \
     | grep -v '削除済み' \
-    | grep -v 'DECISION_AI_DEVELOPMENT_EFFICIENCY_PROPOSALS.md' \
-    | grep -v 'BQN_REPL_AND_DUMPER_DESIGN.md' \
-    | grep -v 'DRIFT_FIX_PLAN' \
-    | grep -v 'DRIFT_AUDIT' \
-    | grep -v 'AI_AGENT_EFFICIENCY_PLAN.md' \
-    | grep -v 'OUTPUT_SQUEEZER_DESIGN.md' \
-    | grep -v 'OLD_ENGINE_REMOVAL_PLAN.md' \
-    | grep -v 'REPO_INDEX_DESIGN.md' \
-    | grep -v 'REPO_INDEX_IMPLEMENTATION_HANDOFF.md' \
-    | grep -v 'SAFETY_PROFILE_INVARIANT_MAP.md' \
-    | grep -v 'PHASE4_BASE_AWARE_CONTEXT_INVESTIGATION.md' \
     | grep -v '^docs/README.md:' \
     || true)
   

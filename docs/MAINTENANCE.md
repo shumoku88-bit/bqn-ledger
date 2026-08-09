@@ -22,4 +22,4 @@ Report code keeps source I/O and clocks in `src/application/`, semantic results 
 
 Update documentation only when a public command, data format, user-visible result, or ownership boundary changes. Internal algorithm and representation changes do not require README, TODO, architecture, catalog, audit, or code-map edits.
 
-Move completed plans and observations to `docs/archive/`, or delete them when Git history is sufficient.
+Delete completed plans and observations when they are no longer current. Git history preserves their historical versions when later investigation needs them.

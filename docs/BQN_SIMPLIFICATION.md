@@ -17,7 +17,7 @@ For ordinary BQN code work, read only:
 3. this file;
 4. the target owner and its focused tests.
 
-The capability map is a mandatory memory refresh for BQN code changes, not a requirement to use more glyphs or produce an audit. Read a specialized contract only when the change touches that boundary. `docs/archive/` is historical evidence, never current instruction.
+The capability map is a mandatory memory refresh for BQN code changes, not a requirement to use more glyphs or produce an audit. Read a specialized contract only when the change touches that boundary. Use Git history when historical context is needed; the current tree is current instruction.
 
 ## Protect
 
