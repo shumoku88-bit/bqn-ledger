@@ -21,7 +21,7 @@ RegistryDiagnostic ← {𝕊 result:{severity⇐"error",stage⇐"currency_regist
 args ← •args
 {𝕊:Fail ⟨"usage","expected BASE MODE SURFACE followed by current request rows"⟩}⍟(4>≠args) @
 base‿mode‿surface ← 3↑args ⋄ rows ← 3↓args
-{𝕊:Fail ⟨"batch_mode_invalid","MODE must be concat or frame"⟩}⍟(¬mode∊⟨"concat","frame"⟩) @
+{𝕊:Fail ⟨"batch_mode_invalid","MODE must be concat or frame"⟩}⍟((mode≢"concat") ∧ mode≢"frame") @
 selection ← request.Validate ⟨"all",surface⟩
 {𝕊:PrintDiagnostics selection.diagnostics}⍟(selection.state≢"ok") @
 
