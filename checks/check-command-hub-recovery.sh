@@ -138,6 +138,7 @@ for route in 'run_action plan-add' 'run_action plan-edit' 'run_action plan-finis
   rg -F "$route" tools/bl >/dev/null
 done
 ! rg -n 'safe_(append|replace|rewrite)|APPEND_BLOCK|posting.*coefficient|accounts\.tsv|plan\.tsv|budget_alloc\.tsv|cycle\.tsv|daily_target_scope\.tsv|config\.tsv' tools/bl >/dev/null
+! rg -n 'choose_asset_type|--type.*account_type' tools/add-ui.sh >/dev/null
 
 # Legacy files can coexist as poison sentinels but cannot affect any route.
 cp -R "$base" "$work/with-legacy"
