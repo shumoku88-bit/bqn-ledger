@@ -256,18 +256,25 @@ run_edit_menu() {
 report_lines() {
   printf 'all\tAll twelve reports\n'
   "$ROOT_DIR/tools/report-section-metadata" | awk -F'\t' 'NR>1 {print $1 "\t" $2}'
+  printf 'back\tBack\n'
 }
 
 run_reports() {
   local key="${1:-}" status
   if [[ -z $key ]]; then
     [[ $IS_TTY -eq 1 ]] || { echo 'Error: reports requires KEY outside an interactive terminal' >&2; return 2; }
-    set +e
-    key="$(select_menu 'Reports' "$(report_lines)")"
-    status=$?
-    set -e
-    [[ $status -eq 130 ]] && return 0
-    [[ $status -eq 0 ]] || return "$status"
+    while true; do
+      set +e
+      key="$(select_menu 'Reports' "$(report_lines)")"
+      status=$?
+      set -e
+      [[ $status -eq 130 ]] && return 0
+      [[ $status -eq 0 ]] || return "$status"
+      [[ $key == back ]] && return 0
+      run_reports "$key" || true
+      [[ $IS_TTY -eq 1 ]] && printf '\n'
+    done
+    return 0
   fi
   local -a ui_args=(--base "$base_dir")
   [[ -z $domain_override ]] || ui_args+=(--domain "$domain_override")

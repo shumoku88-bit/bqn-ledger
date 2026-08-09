@@ -140,6 +140,35 @@ done
 tools/bl --base "$base" --domain JPY --latest 2026-01-13 report >"$work/report-all"
 [[ $(grep -c '^== ' "$work/report-all") -eq 12 ]]
 
+# Behavioral qualification 1 & 2: Reports menu contains only report catalog items.
+printf '0\n' | BL_SELECTOR=plain tools/main-ui.sh --base "$base" >"$work/main-ui-menu.out" 2>"$work/main-ui-menu.err" || true
+for key in "${report_keys[@]}"; do
+  grep -F "($key)" "$work/main-ui-menu.err" >/dev/null
+done
+for forbidden in 'action-' 'actions' '今日の記帳' '複数 Posting' '予定を実績化' '予定を追加' '予定を編集' 'Budget movement を追加' 'Account を追加'; do
+  if grep -F "$forbidden" "$work/main-ui-menu.err"; then
+    echo "FAIL: main-ui selector output contained forbidden action text: $forbidden" >&2
+    exit 1
+  fi
+done
+
+printf '0\n' | BL_SELECTOR=plain tools/bl --base "$base" reports >"$work/bl-reports-menu.out" 2>"$work/bl-reports-menu.err" || true
+mapfile -t report_labels < <(tools/report-section-metadata | awk -F'\t' 'NR>1 {print $2}')
+for label in "${report_labels[@]}"; do
+  grep -F "$label" "$work/bl-reports-menu.err" >/dev/null
+done
+for forbidden in 'Expense' 'Income' 'Transfer' 'Multi-posting' 'Reverse' 'Plan Add' 'Plan Edit' 'Plan Finish' 'Budget Add' 'Account Add' 'Issue Add' 'action-' 'actions'; do
+  if grep -F "$forbidden" "$work/bl-reports-menu.err"; then
+    echo "FAIL: bl reports menu contained forbidden action text: $forbidden" >&2
+    exit 1
+  fi
+done
+
+# Behavioral qualification 4 & 5: main-ui.sh has no action runners, mutation paths, or exec-loops.
+! grep -n 'run_action' tools/main-ui.sh >/dev/null
+! grep -n 'Command Hubへ戻ります' tools/main-ui.sh >/dev/null
+! grep -n 'exec .*main-ui\.sh.*select' tools/main-ui.sh >/dev/null
+
 tools/bl --base "$base" operations summary JPY 2026-01-13 >"$work/summary"
 [[ -s "$work/summary" ]]
 tools/bl --base "$base" operations query JPY --keys 2026-01-13 >"$work/query"
