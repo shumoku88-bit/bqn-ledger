@@ -25,5 +25,8 @@ fi
 if [[ "${args[$i]-}" == "plan" && "${args[$((i + 1))]-}" == "finish" ]]; then
   exec bash "$DIR/plan-finish" "$@"
 fi
+if [[ "${args[$i]-}" == "budget" && "${args[$((i + 1))]-}" == "add" ]]; then
+  exec bash "$DIR/budget-add" "$@"
+fi
 
 exec "$DIR/edit-bqn" "$@"
