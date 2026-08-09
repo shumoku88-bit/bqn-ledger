@@ -6,9 +6,9 @@ sha() { shasum -a 256 "$1" | awk '{print $1}'; }
 files() { find "$1" -type f -print | sed "s#^$1/##" | LC_ALL=C sort; }
 make_base() {
   local base="$1"
-  mkdir -p "$base"; cp fixtures/journal-legacy-entry-id-removal-boundary/before.journal "$base/actual.journal"; cp fixtures/journal-legacy-entry-id-removal-boundary/accounts.tsv "$base/accounts.tsv"
-  printf 'mode\tfixed\nstart\t2026-07-01\nend_exclusive\t2026-08-01\n' >"$base/cycle.tsv"
-  awk '/^ACTUAL_JOURNAL_FILE=/{print "ACTUAL_JOURNAL_FILE=actual.journal";next}{print}' config/default_config.tsv >"$base/config.tsv"
+  mkdir -p "$base"
+  cp fixtures/journal-legacy-entry-id-removal-boundary/before.journal "$base/actual.journal"
+  cp fixtures/journal-legacy-entry-id-removal-boundary/accounts.journal "$base/accounts.journal"
 }
 backup_count() { if [[ -d "$1/.backup" ]]; then find "$1/.backup" -type f | wc -l | tr -d ' '; else echo 0; fi; }
 
