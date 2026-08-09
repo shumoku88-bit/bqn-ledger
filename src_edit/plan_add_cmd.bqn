@@ -124,9 +124,7 @@ finalPlanID ← ""
   finalPlanID↩planIdArg
 }⍟(0<≠planIdArg) @
 {𝕊:
-  finalPlanID↩plan_id.GeneratePlanID {
-    date⇐dateVal,memo⇐memoVal,meta⇐metaTokens,existing_ids⇐existingIDs
-  }
+  finalPlanID↩plan_id.GeneratePlanID {date⇐dateVal,memo⇐memoVal,meta⇐metaTokens,existing_ids⇐existingIDs}
 }⍟(0=≠planIdArg) @
 
 metadataLines ← {"    ; "∾𝕩.key∾": "∾𝕩.value}¨metadata
@@ -161,11 +159,7 @@ candidateCommodities ← {𝕩.commodity}¨candidate.postings
 planIdCount ← +´{"plan-id"≡𝕩.key}¨candidate.metadata
 MetadataPreserved ← {𝕊 item:1=+´{(𝕩.key≡item.key) ∧ 𝕩.value≡item.value}¨candidate.metadata}
 metadataOk ← ∧´1∾MetadataPreserved¨metadata
-candidateOk ←
-  (candidate.date≡dateVal) ∧ (candidate.description≡memoVal) ∧ (candidate.status_marker≡"") ∧
-  (candidate.plan_id≡finalPlanID) ∧ (candidate.domain≡currency) ∧
-  (candidateAccounts≡fromVal‿toVal) ∧ (candidateAmounts≡("-"∾amountVal)‿amountVal) ∧
-  (∧´{𝕩≡currency}¨candidateCommodities) ∧ (1=planIdCount) ∧ metadataOk
+candidateOk ← (candidate.date≡dateVal) ∧ (candidate.description≡memoVal) ∧ (candidate.status_marker≡"") ∧ (candidate.plan_id≡finalPlanID) ∧ (candidate.domain≡currency) ∧ (candidateAccounts≡fromVal‿toVal) ∧ (candidateAmounts≡("-"∾amountVal)‿amountVal) ∧ (∧´{𝕩≡currency}¨candidateCommodities) ∧ (1=planIdCount) ∧ metadataOk
 {𝕊:Fail "parsed Plan candidate does not exactly match rendered intent"}⍟(¬candidateOk) @
 
 •Out "OK"∾tab∾"APPEND"∾tab∾canonical.plan
