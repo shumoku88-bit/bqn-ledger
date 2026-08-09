@@ -110,13 +110,13 @@ header ← headerIndex⊑lines
 candidateLines ← lines
 {𝕊:candidateLines↩ReplaceAt ⟨headerIndex,targetDate∾10↓header,candidateLines⟩}⍟dateChanged @
 
-expectedAmountTexts ← postingIndices⊏facts.postings.amount_text
-{𝕊:
+originalAmountTexts ← postingIndices⊏facts.postings.amount_text
+SignedAmount ← {𝕊 postingIndex: (((postingIndex⊑facts.postings.source_coefficient)<0)/"-")∾amountVal}
+expectedAmountTexts ← amountChanged ◶ ⟨{originalAmountTexts},{SignedAmount¨postingIndices}⟩ @
+ApplyAmount ← {𝕊 inputLines:
   replacementLineIndices ← (postingIndices⊏facts.postings.source_line)-1
-  invalidLines ← (replacementLineIndices<0) ∨ replacementLineIndices≥≠candidateLines
+  invalidLines ← (replacementLineIndices<0) ∨ replacementLineIndices≥≠inputLines
   {𝕊:Fail "admitted Posting coordinate is outside Plan source"}⍟(∨´0∾invalidLines) @
-  SignedAmount ← {𝕊 postingIndex: (((postingIndex⊑facts.postings.source_coefficient)<0)/"-")∾amountVal}
-  expectedAmountTexts↩SignedAmount¨postingIndices
   RenderPosting ← {𝕊 postingIndex:
     account ← (postingIndex⊑facts.postings.account_index)⊑facts.accounts.key
     "    "∾account∾"    "∾SignedAmount postingIndex∾" "∾currency
@@ -124,10 +124,11 @@ expectedAmountTexts ← postingIndices⊏facts.postings.amount_text
   replacementLines ← RenderPosting¨postingIndices
   LineAt ← {𝕊 lineIndex:
     replacementIndex ← ⊑replacementLineIndices⊐⟨lineIndex⟩
-    (replacementIndex<≠replacementLines) ◶ ⟨{lineIndex⊑candidateLines},{replacementIndex⊑replacementLines}⟩ @
+    (replacementIndex<≠replacementLines) ◶ ⟨{lineIndex⊑inputLines},{replacementIndex⊑replacementLines}⟩ @
   }
-  candidateLines↩LineAt¨↕≠candidateLines
-}⍟amountChanged @
+  LineAt¨↕≠inputLines
+}
+candidateLines ← amountChanged ◶ ⟨{candidateLines},{ApplyAmount candidateLines}⟩ @
 
 candidateRaw ← JoinLines candidateLines
 {𝕊:Fail "canonical Plan edit produced no source change"}⍟(candidateRaw≡raw) @
