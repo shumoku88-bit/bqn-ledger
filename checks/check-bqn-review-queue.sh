@@ -5,23 +5,24 @@ root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
 
 queue=TODO.md
-scope=src/accounting
+production_roots=(src src_edit tools)
+cursor_scope=src/accounting
 
 actual="$(mktemp)"
 listed="$(mktemp)"
 raw="$(mktemp)"
 trap 'rm -f "$actual" "$listed" "$raw"' EXIT
 
-find "$scope" -maxdepth 1 -type f -name '*.bqn' -print | sort >"$actual"
+find "${production_roots[@]}" -type f -name '*.bqn' -print | sort >"$actual"
 
 sed -nE 's/^- \[[ x]\] `([^`]+\.bqn)`.*$/\1/p' "$queue" \
-  | grep "^${scope}/" >"$raw" || true
+  | grep -E '^(src/|src_edit/|tools/)' >"$raw" || true
 sort "$raw" >"$listed"
 
 failed=0
 
 if duplicates="$(uniq -d "$listed")" && [[ -n $duplicates ]]; then
-  echo 'FAIL: duplicate BQN review queue entries:' >&2
+  echo 'FAIL: duplicate production BQN review queue entries:' >&2
   printf '%s\n' "$duplicates" >&2
   failed=1
 fi
@@ -35,12 +36,15 @@ fi
 
 stale="$(comm -13 "$actual" "$listed")"
 if [[ -n $stale ]]; then
-  echo 'FAIL: review queue paths that do not exist in the current phase:' >&2
+  echo 'FAIL: production BQN review queue paths that do not exist:' >&2
   printf '%s\n' "$stale" >&2
   failed=1
 fi
 
-if ! awk -v scope="$scope/" '
+# The cursor sequence is a navigation aid for the currently active phase only.
+# Repository-wide inventory coverage must not turn later phase order into a
+# topology law or block a justified cross-owner exception under D1/D6.
+if ! awk -v scope="$cursor_scope/" '
   /^- \[[ x]\] `[^`]+\.bqn`/ {
     line=$0
     first=index(line, "`")
@@ -51,7 +55,7 @@ if ! awk -v scope="$scope/" '
     checked = line ~ /^- \[x\]/
     if (!checked) pending=1
     if (checked && pending) {
-      print "FAIL: checked item appears after an unchecked item: " path > "/dev/stderr"
+      print "FAIL: checked item appears after an unchecked item in current cursor scope: " path > "/dev/stderr"
       bad=1
     }
   }
@@ -65,4 +69,4 @@ if [[ $failed -ne 0 ]]; then
 fi
 
 count="$(wc -l <"$actual" | tr -d ' ')"
-echo "check-bqn-review-queue: ${count} ${scope} files covered exactly once"
+echo "check-bqn-review-queue: ${count} production BQN files covered exactly once; cursor scope ${cursor_scope} remains ordered"
