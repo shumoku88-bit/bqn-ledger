@@ -22,7 +22,10 @@ Failure ← {𝕊 diagnosticsValue:
   {state⇐"error",text⇐"",diagnostics⇐diagnosticsValue}
 }
 
-Render ← {𝕊 key‿surface‿composition:
+Render ← {𝕊 args:
+  key‿surface‿composition ← 3↑args
+  presentation ← {negative_style⇐"minus"}
+  {𝕊: presentation ↩ 3⊑args}⍟(3<≠args) @
   admitted ← request.Validate ⟨key,surface⟩
   diagnostics ← admitted.diagnostics
   diagnostics∾↩(key≡"all")/⟨Diagnostic ⟨"single_render_required","one-result renderer does not accept all"⟩⟩
@@ -32,18 +35,18 @@ Render ← {𝕊 key‿surface‿composition:
   {𝕊:
     result ← composition.result ⋄ rendered ← ""
     {𝕊:
-      {𝕊:rendered↩envelopes.FormatHuman result}⍟(key≡"envelopes") @
-      {𝕊:rendered↩balances.FormatHuman result}⍟(key≡"balances") @
-      {𝕊:rendered↩balanceSheet.FormatHuman result}⍟(key≡"balance-sheet") @
-      {𝕊:rendered↩profitLoss.FormatHuman result}⍟(key≡"profit-and-loss") @
-      {𝕊:rendered↩recent.FormatHuman result}⍟(key≡"recent") @
-      {𝕊:rendered↩planned.FormatHuman result}⍟(key≡"planned") @
-      {𝕊:rendered↩cycleAccounts.FormatHuman result}⍟(key≡"cycle-accounts") @
-      {𝕊:rendered↩cycleComparison.FormatHuman result}⍟(key≡"cycle-comparison") @
-      {𝕊:rendered↩monthlyAccounts.FormatHuman result}⍟(key≡"monthly-accounts") @
-      {𝕊:rendered↩dailyFlow.FormatHuman result}⍟(key≡"daily-flow") @
-      {𝕊:rendered↩dailyTarget.FormatHuman result}⍟(key≡"daily-target") @
-      {𝕊:rendered↩issues.FormatHuman result}⍟(key≡"issues") @
+      {𝕊:rendered↩envelopes.FormatHuman ⟨result,presentation⟩}⍟(key≡"envelopes") @
+      {𝕊:rendered↩balances.FormatHuman ⟨result,presentation⟩}⍟(key≡"balances") @
+      {𝕊:rendered↩balanceSheet.FormatHuman ⟨result,presentation⟩}⍟(key≡"balance-sheet") @
+      {𝕊:rendered↩profitLoss.FormatHuman ⟨result,presentation⟩}⍟(key≡"profit-and-loss") @
+      {𝕊:rendered↩recent.FormatHuman ⟨result,presentation⟩}⍟(key≡"recent") @
+      {𝕊:rendered↩planned.FormatHuman ⟨result,presentation⟩}⍟(key≡"planned") @
+      {𝕊:rendered↩cycleAccounts.FormatHuman ⟨result,presentation⟩}⍟(key≡"cycle-accounts") @
+      {𝕊:rendered↩cycleComparison.FormatHuman ⟨result,presentation⟩}⍟(key≡"cycle-comparison") @
+      {𝕊:rendered↩monthlyAccounts.FormatHuman ⟨result,presentation⟩}⍟(key≡"monthly-accounts") @
+      {𝕊:rendered↩dailyFlow.FormatHuman ⟨result,presentation⟩}⍟(key≡"daily-flow") @
+      {𝕊:rendered↩dailyTarget.FormatHuman ⟨result,presentation⟩}⍟(key≡"daily-target") @
+      {𝕊:rendered↩issues.FormatHuman ⟨result,presentation⟩}⍟(key≡"issues") @
     }⍟(surface≡"human") @
     {𝕊:
       {𝕊:rendered↩envelopes.FormatCompact result}⍟(key≡"envelopes") @

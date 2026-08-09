@@ -35,12 +35,14 @@ Build ← {𝕊 admission:
   result
 }
 
-FormatHuman ← {𝕊 result:
+FormatHuman ← {𝕊 input:
+  result ← input ⋄ style ← "minus"
+  {𝕊: result↩0⊑input ⋄ style↩(1⊑input).negative_style}⍟((0<≡input) ∧ (2=≠input)) @
   rows ← {𝕊 i:
     date ← i⊑result.issues.date ⋄ {𝕊:date↩"—"}⍟(0=≠date) @
     amountText ← "—"
     {𝕊:
-      amountText↩(amount.Format ⟨i⊑result.issues.coefficient,i⊑result.issues.scale⟩)∾" "∾i⊑result.issues.currency
+      amountText↩(text.FormatAmount ⟨i⊑result.issues.coefficient,i⊑result.issues.scale,style⟩)∾" "∾i⊑result.issues.currency
     }⍟(i⊑result.issues.amount_present) @
     ⟨date,i⊑result.issues.category,i⊑result.issues.title,amountText,i⊑result.issues.details⟩
   }¨result.issues.index

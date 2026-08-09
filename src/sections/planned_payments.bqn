@@ -194,12 +194,15 @@ Build ← {𝕊 planFacts‿actualFacts‿cycle‿asOfText:
 }
 
 AmountText ← {𝕊 coefficient‿scaleValue: amount.Format ⟨coefficient,scaleValue⟩}
-FormatHuman ← {𝕊 result:
+FormatHuman ← {𝕊 input:
+  result ← input ⋄ style ← "minus"
+  {𝕊: result↩0⊑input ⋄ style↩(1⊑input).negative_style}⍟((0<≡input) ∧ (2=≠input)) @
+  Fmt ← {𝕊 coeff‿scale: text.FormatAmount ⟨coeff,scale,style⟩}
   out ← "== Planned Payments =="∾(@+10)∾(@+10)
   {𝕊:
     overdueRows ← {
       ⟨𝕩⊑result.rows.date,𝕩⊑result.rows.category,𝕩⊑result.rows.memo,
-        AmountText ⟨𝕩⊑result.rows.planned_coefficient,𝕩⊑result.rows.planned_scale⟩,
+        Fmt ⟨𝕩⊑result.rows.planned_coefficient,𝕩⊑result.rows.planned_scale⟩,
         𝕩⊑result.rows.status⟩
     }¨result.overdue_indices
     out ∾↩ "── 期限超過の未払い ──"∾(@+10)
@@ -208,17 +211,17 @@ FormatHuman ← {𝕊 result:
   }⍟(0<≠result.overdue_indices) @
   currentCycleRows ← {
     ⟨𝕩⊑result.rows.date,𝕩⊑result.rows.category,𝕩⊑result.rows.memo,
-      AmountText ⟨𝕩⊑result.rows.planned_coefficient,𝕩⊑result.rows.planned_scale⟩,
+      Fmt ⟨𝕩⊑result.rows.planned_coefficient,𝕩⊑result.rows.planned_scale⟩,
       𝕩⊑result.rows.status⟩
   }¨result.current_cycle_indices
   out ∾↩ "── 今サイクルの未払い ──"∾(@+10)
   out ∾↩ text.RenderTable ⟨⟨"Date","Category","Memo","Amount","Status"⟩,currentCycleRows,⟨3⟩⟩
-  out ∾↩ (@+10)∾"今サイクル未払い合計: "∾(AmountText ⟨result.current_cycle_total_coefficient,result.current_cycle_total_scale⟩)∾(@+10)
+  out ∾↩ (@+10)∾"今サイクル未払い合計: "∾(Fmt ⟨result.current_cycle_total_coefficient,result.current_cycle_total_scale⟩)∾(@+10)
   {𝕊:
     out ∾↩ (@+10)∾"── サイクル外の予定 ──"∾(@+10)
     futureCycleRows ← {
       ⟨𝕩⊑result.rows.date,𝕩⊑result.rows.category,𝕩⊑result.rows.memo,
-        AmountText ⟨𝕩⊑result.rows.planned_coefficient,𝕩⊑result.rows.planned_scale⟩⟩
+        Fmt ⟨𝕩⊑result.rows.planned_coefficient,𝕩⊑result.rows.planned_scale⟩⟩
     }¨result.future_cycle_indices
     out ∾↩ text.RenderTable ⟨⟨"Date","Category","Memo","Amount"⟩,futureCycleRows,⟨3⟩⟩
   }⍟(0<≠result.future_cycle_indices) @

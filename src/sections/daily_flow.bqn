@@ -101,9 +101,24 @@ Build ← {𝕊 flow‿periodStartText‿periodEndText‿asOfText:
 }
 
 CellText ← {𝕊 coefficient‿scale: amount.Format ⟨coefficient,scale⟩}
-FormatHuman ← {𝕊 result:
+FormatHuman ← {𝕊 input:
+  result ← input ⋄ style ← "minus"
+  {𝕊: result↩0⊑input ⋄ style↩(1⊑input).negative_style}⍟((0<≡input) ∧ (2=≠input)) @
   daysLeft ← (dates.Ordinal result.period_end_exclusive)-dates.Ordinal result.as_of
-  widths ← {10⌈text.VWidth 𝕩}¨result.column_labels
+  matrixTexts ← {𝕊 rowIndex:
+    row ← rowIndex⊑result.matrix.values
+    {𝕊 columnIndex:
+      value ← columnIndex⊑row
+      displayValue ← value
+      {𝕊: displayValue↩-value}⍟(columnIndex∊result.expense_column_indices) @
+      text.FormatAmount ⟨displayValue,result.matrix.scale,style⟩
+    }¨result.matrix.column_index
+  }¨result.matrix.row_index
+  widths ← {𝕊 columnIndex:
+    label ← columnIndex⊑result.column_labels
+    cellLens ← {columnIndex⊑𝕩}¨matrixTexts
+    ⌈´⟨10,text.VWidth label⟩∾text.VWidth¨cellLens
+  }¨result.matrix.column_index
   HeaderCell ← {𝕊 column:
     label ← column⊑result.column_labels
     w ← column⊑widths
@@ -120,12 +135,9 @@ FormatHuman ← {𝕊 result:
   out ∾↩ " (as of "∾result.as_of∾"; "∾(•Fmt daysLeft)∾" days left)"∾(@+10)∾(@+10)
   out ∾↩ header∾(@+10)∾separator∾(@+10)
   {𝕊 rowIndex:
-    row ← rowIndex⊑result.matrix.values
+    rowTexts ← rowIndex⊑matrixTexts
     cells ← {𝕊 columnIndex:
-      value ← columnIndex⊑row
-      displayValue ← value
-      {𝕊: displayValue↩-value}⍟(columnIndex∊result.expense_column_indices) @
-      text.PadLeft ⟨columnIndex⊑widths,CellText ⟨displayValue,result.matrix.scale⟩⟩
+      text.PadLeft ⟨columnIndex⊑widths,columnIndex⊑rowTexts⟩
     }¨result.matrix.column_index
     out ∾↩ (rowIndex⊑result.date_text)∾(∾{" | "∾𝕩}¨cells)∾(@+10)
   }¨result.matrix.row_index

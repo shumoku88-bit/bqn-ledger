@@ -8,6 +8,7 @@ sources ← •Import "report_source_adapter.bqn"
 cycleResolution ← •Import "cycle_resolution.bqn"
 householdDaily ← •Import "household_daily_scope.bqn"
 dailyScopeAdapter ← •Import "daily_scope_adapter.bqn"
+policySource ← •Import "report_policy_source_adapter.bqn"
 empty ← ⟨⟩ ⋄ tab ← @+9
 args ← •args
 Fail ← {𝕊 code‿message: •Out "ERROR"∾tab∾code∾tab∾message ⋄ •Exit 1}
@@ -20,6 +21,8 @@ RegistryDiagnostic ← {𝕊 result:{severity⇐"error",stage⇐"currency_regist
 
 {𝕊:Fail ⟨"usage","expected BASE KEY SURFACE and key-specific semantic coordinates"⟩}⍟(3>≠args) @
 base‿key‿surface ← 3↑args ⋄ coordinates ← 3↓args
+policy ← policySource.Load base
+{𝕊:PrintDiagnostics policy.diagnostics}⍟(policy.state≢"ok") @
 admitted ← request.Validate ⟨key,surface⟩
 {𝕊:PrintDiagnostics admitted.diagnostics}⍟(admitted.state≢"ok") @
 {𝕊:Fail ⟨"all_not_implemented","parallel CLI currently requires one retained key"⟩}⍟(key≡"all") @
@@ -105,7 +108,7 @@ LoadHouseholdContext ← {𝕊 actual:
 {𝕊:composition↩compose.Issues ⟨sources.IssueLines base,registry⟩}⍟(key≡"issues") @
 
 {𝕊:PrintDiagnostics composition.diagnostics}⍟(composition.state≢"ok") @
-rendered ← render.Render ⟨key,surface,composition⟩
+rendered ← render.Render ⟨key,surface,composition,policy.presentation⟩
 {𝕊:PrintDiagnostics rendered.diagnostics}⍟(rendered.state≢"ok") @
 text ← rendered.text
 {𝕊:text↩¯1↓text}⍟((0<≠text) ∧ (@+10)=¯1↑text) @

@@ -45,27 +45,28 @@ Build ← {𝕊 accounting‿asOfText:
   result
 }
 
-AmountText ← {𝕊 coefficient‿scaleValue: amount.Format ⟨coefficient,scaleValue⟩}
-StatementTable ← {𝕊 rows‿totalLabel‿totalValue‿scaleValue:
+StatementTable ← {𝕊 rows‿totalLabel‿totalValue‿scaleValue‿style:
   body ← {𝕊 rowIndex:
-    ⟨rowIndex⊑rows.account_key,AmountText ⟨rowIndex⊑rows.balance,scaleValue⟩⟩
+    ⟨rowIndex⊑rows.account_key,text.FormatAmount ⟨rowIndex⊑rows.balance,scaleValue,style⟩⟩
   }¨rows.index
-  body ∾↩ ⟨⟨totalLabel,AmountText ⟨totalValue,scaleValue⟩⟩⟩
+  body ∾↩ ⟨⟨totalLabel,text.FormatAmount ⟨totalValue,scaleValue,style⟩⟩⟩
   text.RenderTable ⟨⟨"Account","Balance"⟩,body,⟨1⟩⟩
 }
-FormatHuman ← {𝕊 result:
+FormatHuman ← {𝕊 input:
+  result ← input ⋄ style ← "minus"
+  {𝕊: result↩0⊑input ⋄ style↩(1⊑input).negative_style}⍟((0<≡input) ∧ (2=≠input)) @
   out ← "== Balance Sheet =="∾(@+10)
   out ∾↩ "As of: "∾result.as_of∾" ("∾result.domain∾")"∾(@+10)∾(@+10)
   out ∾↩ "Assets"∾(@+10)
-  out ∾↩ StatementTable ⟨result.assets,"Total assets",result.total_assets,result.scale⟩
+  out ∾↩ StatementTable ⟨result.assets,"Total assets",result.total_assets,result.scale,style⟩
   out ∾↩ (@+10)∾"Liabilities"∾(@+10)
-  out ∾↩ StatementTable ⟨result.liabilities,"Total liabilities",result.total_liabilities,result.scale⟩
+  out ∾↩ StatementTable ⟨result.liabilities,"Total liabilities",result.total_liabilities,result.scale,style⟩
   out ∾↩ (@+10)∾"Equity"∾(@+10)
-  out ∾↩ StatementTable ⟨result.equity,"Stated equity",result.stated_equity,result.scale⟩
-  out ∾↩ "Unclosed accumulated result: "∾(AmountText ⟨result.unclosed_result,result.scale⟩)∾(@+10)
-  out ∾↩ "Total equity: "∾(AmountText ⟨result.total_equity,result.scale⟩)∾(@+10)∾(@+10)
-  out ∾↩ "Total liabilities + equity: "∾(AmountText ⟨result.total_liabilities_and_equity,result.scale⟩)∾(@+10)
-  out ∾↩ "Difference: "∾(AmountText ⟨result.difference,result.scale⟩)∾(@+10)
+  out ∾↩ StatementTable ⟨result.equity,"Stated equity",result.stated_equity,result.scale,style⟩
+  out ∾↩ "Unclosed accumulated result: "∾(text.FormatAmount ⟨result.unclosed_result,result.scale,style⟩)∾(@+10)
+  out ∾↩ "Total equity: "∾(text.FormatAmount ⟨result.total_equity,result.scale,style⟩)∾(@+10)∾(@+10)
+  out ∾↩ "Total liabilities + equity: "∾(text.FormatAmount ⟨result.total_liabilities_and_equity,result.scale,style⟩)∾(@+10)
+  out ∾↩ "Difference: "∾(text.FormatAmount ⟨result.difference,result.scale,style⟩)∾(@+10)
   out ∾↩ "Balanced: "∾(result.balanced⊑"NO"‿"YES")∾(@+10)∾(@+10)
   out
 }

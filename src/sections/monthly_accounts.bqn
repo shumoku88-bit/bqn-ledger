@@ -30,12 +30,15 @@ Build ← {𝕊 monthlyMovement:
 }
 
 AmountText ← {𝕊 coefficient‿scaleValue: amount.Format ⟨coefficient,scaleValue⟩}
-FormatHuman ← {𝕊 result:
+FormatHuman ← {𝕊 input:
+  result ← input ⋄ style ← "minus"
+  {𝕊: result↩0⊑input ⋄ style↩(1⊑input).negative_style}⍟((0<≡input) ∧ (2=≠input)) @
+  Fmt ← {𝕊 coeff: text.FormatAmount ⟨coeff,result.matrix.scale,style⟩}
   rows ← {𝕊 column:
     values ← {column⊑𝕩}¨result.matrix.values
-    ⟨column⊑result.account_labels⟩∾({AmountText ⟨𝕩,result.matrix.scale⟩}¨values)∾⟨AmountText ⟨column⊑result.totals.account,result.matrix.scale⟩⟩
+    ⟨column⊑result.account_labels⟩∾(Fmt¨values)∾⟨Fmt column⊑result.totals.account⟩
   }¨result.matrix.column_index
-  totalRow ← ⟨"Month total"⟩∾({AmountText ⟨𝕩,result.matrix.scale⟩}¨result.totals.month)∾⟨AmountText ⟨result.totals.grand,result.matrix.scale⟩⟩
+  totalRow ← ⟨"Month total"⟩∾(Fmt¨result.totals.month)∾⟨Fmt result.totals.grand⟩
   headers ← ⟨"Account"⟩∾result.months∾⟨"Range total"⟩
   right ← 1+↕result.matrix.row_count+1
   out ← "== Monthly Accounts =="∾(@+10)
