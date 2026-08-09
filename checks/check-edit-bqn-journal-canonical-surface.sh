@@ -15,17 +15,18 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 setup_base() {
   local base="$1"
   mkdir -p "$base"
-  cat <<'EOF' > "$base/accounts.tsv"
-assets:cash	role=asset	type=asset	currency=JPY
-expenses:food	role=expense	type=expense	currency=JPY
-expenses:rent	role=expense	type=expense	currency=JPY
-EOF
-  cat <<'EOF' > "$base/cycle.tsv"
-# year	month	start_day
-2026	07	25
-EOF
-  cat <<'EOF' > "$base/config.tsv"
-ACTUAL_JOURNAL_FILE=actual.journal
+  cat <<'EOF' > "$base/accounts.journal"
+account assets:cash
+  type: Asset
+  commodity: JPY
+
+account expenses:food
+  type: Expense
+  commodity: JPY
+
+account expenses:rent
+  type: Expense
+  commodity: JPY
 EOF
 }
 
