@@ -7,6 +7,7 @@ cd "$ROOT_DIR"
 fixture="$ROOT_DIR/fixtures/ledger-facts-phase1-proof"
 tmp_root="$(mktemp -d)"
 trap 'rm -rf "$tmp_root"' EXIT
+trap 'rc=$?; echo "::error file=checks/check-edit-bqn-plan-finish.sh,line=$LINENO::Plan Finish check failed (exit $rc)" >&2' ERR
 
 sha_file() { shasum -a 256 "$1" | awk '{print $1}'; }
 copy_fixture() {
