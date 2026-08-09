@@ -96,18 +96,17 @@ exit	Exit
 EOF
 }
 
-# Source files list for edit command. Journal identity is resolved by BQN.
+# Canonical Household files offered by the direct source editor.
 tsv_list() {
-  local actual_journal
-  actual_journal="$(bqn "$ROOT_DIR/src_edit/actual_journal_file_cmd.bqn" "$base_dir")"
-  cat <<EOF
-${actual_journal}	Actual transactions (native Journal)
-plan.tsv	Future plans
-budget_alloc.tsv	Budget allocations
-accounts.tsv	Account master
-cycle.tsv	Cycle parameters
+  cat <<'EOF'
+accounts.journal	Account declarations
+actual.journal	Actual transactions
+plan.journal	Future plans
+budget.journal	Budget movements
+budget.toml	Budget policy
+household.toml	Household policy
+report.toml	Report policy
 issues.tsv	Pending issues and decisions
-config.tsv	Local configuration
 EOF
 }
 
@@ -160,18 +159,10 @@ select_tsv_file() {
 }
 
 resolve_tsv_path() {
-  local file="$1" actual_journal
-  actual_journal="$(bqn "$ROOT_DIR/src_edit/actual_journal_file_cmd.bqn" "$base_dir")"
+  local file="$1"
   case "$file" in
-    "$actual_journal"|plan.tsv|budget_alloc.tsv|accounts.tsv|cycle.tsv|issues.tsv)
+    accounts.journal|actual.journal|plan.journal|budget.journal|budget.toml|household.toml|report.toml|issues.tsv)
       printf '%s\n' "$base_dir/$file"
-      ;;
-    config.tsv)
-      local file_path="$base_dir/config.tsv"
-      if [[ ! -f "$file_path" ]]; then
-        file_path="$ROOT_DIR/config/default_config.tsv"
-      fi
-      printf '%s\n' "$file_path"
       ;;
     *)
       printf '%s\n' "$file"
