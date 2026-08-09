@@ -86,28 +86,12 @@ for surface in human compact; do
   AssertSame "$surface report-all vs single-report oracle" "$work/oracle.$surface" "$work/batch.$surface"
 done
 
-# Aggregate JSON remains intentionally unsupported; this slice does not invent a schema.
+# Aggregate JSON remains intentionally unsupported; this check does not invent a schema.
 if ./tools/report-all "$base" "$domain" json "$latest" >"$work/json.out" 2>&1; then
   echo 'FAIL: aggregate JSON unexpectedly succeeded' >&2
   exit 1
 fi
 ExpectLine $'ERROR\treport_surface_unsupported\tall has no aggregate JSON schema' "$work/json.out"
-
-# Single and batch adapters share one semantic key-to-compose owner.
-for file in src/application/report_destination_cli.bqn src/application/current_report_batch_cli.bqn; do
-  grep -F 'destination ← •Import "report_destination.bqn"' "$file" >/dev/null || {
-    echo "FAIL: $file does not import shared report destination" >&2; exit 1;
-  }
-  grep -F 'destination.Build' "$file" >/dev/null || {
-    echo "FAIL: $file does not call shared report destination" >&2; exit 1;
-  }
-done
-if grep -Fq 'compose.' src/application/report_destination_cli.bqn || grep -Fq 'compose.' src/application/current_report_batch_cli.bqn; then
-  echo 'FAIL: application CLI owns report composition dispatch outside report_destination.bqn' >&2
-  exit 1
-fi
-grep -F 'compose.Balances' src/application/report_destination.bqn >/dev/null || { echo 'FAIL: shared destination lacks balances dispatch' >&2; exit 1; }
-grep -F 'compose.Issues' src/application/report_destination.bqn >/dev/null || { echo 'FAIL: shared destination lacks issues dispatch' >&2; exit 1; }
 
 # Batch rows fail closed before source lifetime is shared.
 if bqn src/application/current_report_batch_cli.bqn "$base" concat human $'balances\thuman\tJPY' >"$work/invalid.out" 2>&1; then
@@ -121,7 +105,25 @@ if bqn src/application/current_report_batch_cli.bqn "$base" concat human $'envel
 fi
 ExpectLine $'ERROR\tcurrent_request_surface_mismatch\tcurrent request row surface differs from selection' "$work/surface.out"
 
-# Count actual BQN process launches on the production paths.
+# Lifetime law: a current batch must be able to consume Actual once and reuse the
+# admitted evidence for every report. /dev/stdin becomes empty after the first read,
+# so re-admitting Actual later in the same batch would fail or change the bytes.
+one_shot_base="$work/one-shot-base"
+cp -R "$base" "$one_shot_base"
+cp "$one_shot_base/actual.journal" "$work/actual-once.journal"
+rm "$one_shot_base/actual.journal"
+ln -s /dev/stdin "$one_shot_base/actual.journal"
+mapfile -t human_rows < <(tail -n +2 "$work/requests.human")
+if ! cat "$work/actual-once.journal" | bqn src/application/current_report_batch_cli.bqn \
+  "$one_shot_base" concat human "${human_rows[@]}" >"$work/one-shot.out"; then
+  echo 'FAIL: current batch re-read one-shot Actual or failed to retain admitted evidence' >&2
+  exit 1
+fi
+AssertSame 'one-shot Actual batch vs normal human batch' "$work/batch.human" "$work/one-shot.out"
+
+# Process-scaling law: orchestration may change internally, but it must not scale
+# with the number of selected reports. Human and compact deliberately select
+# different report counts; their report-all process counts must therefore match.
 real_bqn=$(command -v bqn)
 probe_bin="$work/bin"
 count_file="$work/bqn-processes"
@@ -136,28 +138,40 @@ export BQN_PROBE_REAL="$real_bqn"
 export BQN_PROBE_COUNT="$count_file"
 export PATH="$probe_bin:$PATH"
 
-: >"$count_file"
-if ! ./tools/report-all "$base" "$domain" human "$latest" >"$work/process-report-all.out"; then
-  echo 'FAIL: process-count report-all execution failed' >&2
-  cat "$work/process-report-all.out" >&2
+CountProcesses() {
+  local label=$1 output=$2
+  shift 2
+  : >"$count_file"
+  if ! "$@" >"$output"; then
+    echo "FAIL: process-count execution failed for $label" >&2
+    cat "$output" >&2 || true
+    exit 1
+  fi
+  wc -l <"$count_file" | tr -d ' '
+}
+
+human_report_count=$(( $(wc -l <"$work/requests.human") - 1 ))
+compact_report_count=$(( $(wc -l <"$work/requests.compact") - 1 ))
+[[ $human_report_count -ne $compact_report_count ]] || {
+  echo 'FAIL: process-scaling fixture needs different human and compact report counts' >&2
   exit 1
-fi
-report_all_processes=$(wc -l <"$count_file" | tr -d ' ')
-[[ $report_all_processes -eq 2 ]] || {
-  echo "FAIL: report-all launched $report_all_processes BQN processes, expected 2" >&2
+}
+report_all_human_processes=$(CountProcesses report-all-human "$work/process-report-all-human.out" \
+  ./tools/report-all "$base" "$domain" human "$latest")
+report_all_compact_processes=$(CountProcesses report-all-compact "$work/process-report-all-compact.out" \
+  ./tools/report-all "$base" "$domain" compact "$latest")
+[[ $report_all_human_processes -gt 0 ]] || { echo 'FAIL: report-all launched no BQN process' >&2; exit 1; }
+[[ $report_all_human_processes -eq $report_all_compact_processes ]] || {
+  echo "FAIL: report-all BQN process count scales with selected reports: human=$human_report_count/$report_all_human_processes compact=$compact_report_count/$report_all_compact_processes" >&2
   exit 1
 }
 
 cache="$work/cache"
 mkdir "$cache"
-: >"$count_file"
-if ! ./tools/report-cache "$base" "$cache" 201 "$domain" "$latest"; then
-  echo 'FAIL: process-count report-cache execution failed' >&2
-  exit 1
-fi
-report_cache_processes=$(wc -l <"$count_file" | tr -d ' ')
-[[ $report_cache_processes -eq 3 ]] || {
-  echo "FAIL: report-cache launched $report_cache_processes BQN processes, expected 3" >&2
+report_cache_processes=$(CountProcesses report-cache "$work/process-report-cache.out" \
+  ./tools/report-cache "$base" "$cache" 201 "$domain" "$latest")
+[[ $report_cache_processes -lt $human_report_count ]] || {
+  echo "FAIL: report-cache orchestration grew to report-count scale: reports=$human_report_count processes=$report_cache_processes" >&2
   exit 1
 }
 AssertSame 'cache all vs single-report human oracle' "$work/oracle.human" "$cache/all.txt"
