@@ -31,6 +31,9 @@ result ← flow.Build ⟨facts,budgetPolicy,household,"JPY","actual",start,end�
 ⟨"food","other"⟩ lib.AssertEq result.categories.label
 ⟨"envelope","other"⟩ lib.AssertEq result.categories.kind
 ⟨6,¯1⟩ lib.AssertEq result.categories.envelope_account_index
+facts.accounts.index lib.AssertEq result.accounts.account_index
+facts.accounts.key lib.AssertEq result.accounts.key
+facts.accounts.role lib.AssertEq result.accounts.role
 ⟨"2026-01-02","2026-01-10","2026-01-12"⟩ lib.AssertEq result.dates.date_text
 ⟨1000,0,0⟩ lib.AssertEq result.dates.income
 ⟨1000,¯20,¯15⟩ lib.AssertEq result.dates.net
@@ -40,6 +43,10 @@ result ← flow.Build ⟨facts,budgetPolicy,household,"JPY","actual",start,end�
 ⟨0,0,1⟩ lib.AssertEq result.expense_groups.column_index
 ⟨20,10,5⟩ lib.AssertEq result.expense_groups.coefficient
 ⟨⟨2⟩,⟨4⟩,⟨5⟩⟩ lib.AssertEq result.expense_groups.contributors
+⟨0,0,1,1,2,2,2⟩ lib.AssertEq result.account_groups.row_index
+⟨0,1,0,2,0,2,3⟩ lib.AssertEq result.account_groups.column_index
+⟨1000,¯1000,¯20,20,¯15,10,5⟩ lib.AssertEq result.account_groups.coefficient
+⟨⟨0⟩,⟨1⟩,⟨3⟩,⟨2⟩,⟨6⟩,⟨4⟩,⟨5⟩⟩ lib.AssertEq result.account_groups.contributors
 matrix ← pivot.Build ⟨result.dates.date_ordinal,result.categories.label,result.scale,result.expense_groups⟩
 "ok" lib.AssertEq matrix.state
 ⟨⟨0,0⟩,⟨20,0⟩,⟨10,5⟩⟩ lib.AssertEq matrix.matrix.values
@@ -90,6 +97,8 @@ missingCoordinates ← flow.Build ⟨facts,budgetPolicy,missingHousehold,"JPY","
 0 lib.AssertEq missingCoordinates.dates.count
 0 lib.AssertEq missingCoordinates.categories.count
 0 lib.AssertEq missingCoordinates.expense_groups.count
+0 lib.AssertEq missingCoordinates.accounts.count
+0 lib.AssertEq missingCoordinates.account_groups.count
 1 lib.AssertEq ∨´0∾"household_envelope_coordinates_missing"⊸≡¨{𝕩.code}¨missingCoordinates.diagnostics
 
 CheckRejected ← {𝕊 domain‿layer‿s‿e‿code:
@@ -98,6 +107,8 @@ CheckRejected ← {𝕊 domain‿layer‿s‿e‿code:
   0 lib.AssertEq rejected.dates.count
   0 lib.AssertEq rejected.categories.count
   0 lib.AssertEq rejected.expense_groups.count
+  0 lib.AssertEq rejected.accounts.count
+  0 lib.AssertEq rejected.account_groups.count
   1 lib.AssertEq ∨´0∾code⊸≡¨{𝕩.code}¨rejected.diagnostics
 }
 CheckRejected ⟨"USD","actual",start,end,"domain_unknown"⟩

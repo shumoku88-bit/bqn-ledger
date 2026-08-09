@@ -24,7 +24,7 @@ Failure ← {𝕊 diagnosticsValue:
 
 Render ← {𝕊 args:
   key‿surface‿composition ← 3↑args
-  presentation ← {negative_style⇐"minus"}
+  presentation ← {negative_style⇐"minus",daily_flow_max_date_columns⇐14}
   {𝕊: presentation ↩ 3⊑args}⍟(3<≠args) @
   admitted ← request.Validate ⟨key,surface⟩
   diagnostics ← admitted.diagnostics

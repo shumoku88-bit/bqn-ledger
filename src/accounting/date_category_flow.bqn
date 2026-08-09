@@ -1,4 +1,4 @@
-# Pure selected-domain/layer date × dynamic category accounting flow.
+# Pure selected-domain/layer date × Account and dynamic-category accounting flow.
 # budget.toml owns Envelope-to-Expense assignment; household.toml owns each
 # Envelope's structural Budget Account. Account identity/type stays in Facts.
 
@@ -18,6 +18,9 @@ EmptyDates ← {𝕊:
 EmptyCategories ← {𝕊:
   {count⇐0,index⇐empty,label⇐empty,kind⇐empty,envelope_account_index⇐empty}
 }
+EmptyAccounts ← {𝕊:
+  {count⇐0,index⇐empty,account_index⇐empty,key⇐empty,role⇐empty}
+}
 EmptyGroups ← {𝕊:
   {count⇐0,index⇐empty,row_index⇐empty,column_index⇐empty,coefficient⇐empty,contributors⇐empty}
 }
@@ -36,12 +39,19 @@ Build ← {𝕊 factSet‿budgetPolicy‿householdPolicy‿domainCode‿layerNam
 
   dateTable ← EmptyDates @
   categoryTable ← EmptyCategories @
+  accountTable ← EmptyAccounts @
   groupTable ← EmptyGroups @
+  accountGroupTable ← EmptyGroups @
   amountScale ← 0
   {𝕊:
     domainIndex ← IndexOf ⟨domainCode,factSet.domains.code⟩
     layerIndex ← IndexOf ⟨layerName,factSet.layers.name⟩
     accounts ← factSet.accounts
+    accountIndices ← (domainCode⊸≡¨accounts.currency)/accounts.index
+    accountTable↩{
+      count⇐≠accountIndices,index⇐↕≠accountIndices,account_index⇐accountIndices,
+      key⇐accountIndices⊏accounts.key,role⇐accountIndices⊏accounts.role
+    }
 
     envelopeLabels ← budgetPolicy.envelopes.id
     diagnostics ∾↩ AddIf ⟨(≠envelopeLabels)≠≠⍷envelopeLabels,Diagnostic ⟨"envelope_category_duplicate","budget.toml Envelope ids must be unique"⟩⟩
@@ -96,10 +106,10 @@ Build ← {𝕊 factSet‿budgetPolicy‿householdPolicy‿domainCode‿layerNam
       postings ← factSet.postings
       postingRoles ← postings.account_index⊏accounts.role
       postingCategories ← postings.account_index⊏accountCategory
-      accountingRole ← ("income"⊸≡¨postingRoles) ∨ "expense"⊸≡¨postingRoles
-      postingMask ← (domainIndex=postings.domain_index) ∧ (layerIndex=postings.layer_index) ∧ (postings.date_ordinal≥startOrdinal) ∧ (postings.date_ordinal<endOrdinal) ∧ accountingRole
+      postingMask ← (domainIndex=postings.domain_index) ∧ (layerIndex=postings.layer_index) ∧ (postings.date_ordinal≥startOrdinal) ∧ postings.date_ordinal<endOrdinal
       selectedFactIndices ← postingMask/postings.index
       selectedDates ← postingMask/postings.date_ordinal
+      selectedAccounts ← postingMask/postings.account_index
       selectedRoles ← postingMask/postingRoles
       selectedCategories ← postingMask/postingCategories
       selectedCoefficients ← postingMask/postings.coefficient
@@ -126,7 +136,11 @@ Build ← {𝕊 factSet‿budgetPolicy‿householdPolicy‿domainCode‿layerNam
           expenseMask/selectedDates,expenseMask/selectedCategories,expenseMask/normalized,
           {⟨𝕩⟩}¨(expenseMask/selectedFactIndices)
         ⟩
-        diagnostics ∾↩ expenseGrouped.diagnostics
+        accountGrouped ← sparse.Build ⟨
+          dateOrdinals,accountTable.count,selectedDates,
+          accountIndices⊐selectedAccounts,normalized,{⟨𝕩⟩}¨selectedFactIndices
+        ⟩
+        diagnostics ∾↩ expenseGrouped.diagnostics∾accountGrouped.diagnostics
 
         expenseGroupIndices ← expenseGrouped.groups.row_index∾⟨≠dateOrdinals⟩
         expenseCoefficientGroups ← expenseGroupIndices⊔expenseGrouped.groups.coefficient
@@ -153,14 +167,22 @@ Build ← {𝕊 factSet‿budgetPolicy‿householdPolicy‿domainCode‿layerNam
             income_contributors⇐incomeContributorRows
           }
           groupTable↩expenseGrouped.groups
+          accountGroupTable↩accountGrouped.groups
         }⍟(0=≠diagnostics) @
       }⍟normalizationOk @
     }⍟(0=≠diagnostics) @
   }⍟(0=≠diagnostics) @
 
-  {𝕊: dateTable↩EmptyDates @ ⋄ categoryTable↩EmptyCategories @ ⋄ groupTable↩EmptyGroups @ ⋄ amountScale↩0}⍟(0<≠diagnostics) @
+  {𝕊:
+    dateTable↩EmptyDates @ ⋄ categoryTable↩EmptyCategories @ ⋄ accountTable↩EmptyAccounts @
+    groupTable↩EmptyGroups @ ⋄ accountGroupTable↩EmptyGroups @ ⋄ amountScale↩0
+  }⍟(0<≠diagnostics) @
   state ← (0=≠diagnostics)⊑"error"‿"ok"
-  {state⇐state,domain⇐domainCode,layer⇐layerName,start_ordinal⇐startOrdinal,end_exclusive_ordinal⇐endOrdinal,scale⇐amountScale,dates⇐dateTable,categories⇐categoryTable,expense_groups⇐groupTable,diagnostics⇐diagnostics}
+  {
+    state⇐state,domain⇐domainCode,layer⇐layerName,start_ordinal⇐startOrdinal,end_exclusive_ordinal⇐endOrdinal,
+    scale⇐amountScale,dates⇐dateTable,categories⇐categoryTable,expense_groups⇐groupTable,
+    accounts⇐accountTable,account_groups⇐accountGroupTable,diagnostics⇐diagnostics
+  }
 }
 
 {Build⇐Build}

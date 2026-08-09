@@ -1,10 +1,9 @@
-# Destination Daily Flow Matrix section proof.
-# Accounting/category evidence is supplied; observation and rendering remain section-local.
+# Destination Date × Account Daily Flow Matrix.
+# Accounting evidence is supplied; observation and rendering remain section-local.
 
 pivot ← •Import "../accounting/sparse_pivot.bqn"
 matrixResult ← •Import "../accounting/matrix_result.bqn"
 dates ← •Import "../ledger/date_ordinal.bqn"
-amount ← •Import "../ledger/amount_text.bqn"
 text ← •Import "../report/text.bqn"
 empty ← ⟨⟩
 
@@ -18,12 +17,12 @@ EmptyMatrix ← {𝕊: (matrixResult.Build ⟨empty,empty,0,empty,empty⟩).matr
 EmptyResult ← {𝕊 diagnosticsValue:
   {
     state⇐"error",domain⇐"",layer⇐"",period_start⇐"",period_end_exclusive⇐"",as_of⇐"",
-    date_text⇐empty,column_labels⇐empty,expense_column_indices⇐empty,
+    date_text⇐empty,column_labels⇐empty,inverted_column_indices⇐empty,
     matrix⇐EmptyMatrix @,diagnostics⇐diagnosticsValue
   }
 }
 
-# Input: successful date/category flow, strict period text, explicit section observation.
+# Input: successful date/Account-category flow, strict period text, explicit section observation.
 Build ← {𝕊 flow‿periodStartText‿periodEndText‿asOfText:
   diagnostics ← empty
   diagnostics ∾↩ AddIf ⟨flow.state≢"ok",Diagnostic ⟨"date_category_flow_not_ok","date/category accounting evidence must be ok"⟩⟩
@@ -56,91 +55,51 @@ Build ← {𝕊 flow‿periodStartText‿periodEndText‿asOfText:
       value
     }¨rowOrdinals
     remappedGroups ← {
-      count⇐flow.expense_groups.count,index⇐flow.expense_groups.index,
-      row_index⇐{𝕊 oldIndex: IndexOf ⟨oldIndex⊑flow.dates.date_ordinal,rowOrdinals⟩}¨flow.expense_groups.row_index,
-      column_index⇐flow.expense_groups.column_index,
-      coefficient⇐flow.expense_groups.coefficient,
-      contributors⇐flow.expense_groups.contributors
+      count⇐flow.account_groups.count,index⇐flow.account_groups.index,
+      row_index⇐{𝕊 oldIndex: IndexOf ⟨oldIndex⊑flow.dates.date_ordinal,rowOrdinals⟩}¨flow.account_groups.row_index,
+      column_index⇐flow.account_groups.column_index,
+      coefficient⇐flow.account_groups.coefficient,
+      contributors⇐flow.account_groups.contributors
     }
-    expenseMatrix ← pivot.Build ⟨rowOrdinals,flow.categories.index,flow.scale,remappedGroups⟩
-    diagnostics ∾↩ expenseMatrix.diagnostics
+    accountMatrix ← pivot.Build ⟨rowOrdinals,flow.accounts.account_index,flow.scale,remappedGroups⟩
+    diagnostics ∾↩ accountMatrix.diagnostics
     {𝕊:
-      values ← empty ⋄ contributors ← empty
-      {𝕊 rowIndex:
-        ordinal ← rowIndex⊑rowOrdinals
-        oldMatches ← (ordinal=flow.dates.date_ordinal)/↕flow.dates.count
-        income ← 0 ⋄ net ← 0 ⋄ incomeContributors ← empty
-        {𝕊:
-          oldIndex ← ⊑oldMatches
-          income↩oldIndex⊑flow.dates.income
-          net↩oldIndex⊑flow.dates.net
-          incomeContributors↩oldIndex⊑flow.dates.income_contributors
-        }⍟(1=≠oldMatches) @
-        expenses ← rowIndex⊑expenseMatrix.matrix.values
-        expenseContributors ← rowIndex⊑expenseMatrix.matrix.contributors
-        netContributors ← SortedUnique incomeContributors∾∾expenseContributors
-        values∾↩⟨⟨income⟩∾expenses∾⟨net⟩⟩
-        contributors∾↩⟨⟨incomeContributors⟩∾expenseContributors∾⟨netContributors⟩⟩
-      }¨↕≠rowOrdinals
-      columnCoordinates ← ⟨"measure:income"⟩∾({"expense:"∾•Fmt 𝕩}¨flow.categories.index)∾⟨"measure:net"⟩
-      builtMatrix ← matrixResult.Build ⟨rowOrdinals,columnCoordinates,flow.scale,values,contributors⟩
-      diagnostics ∾↩ builtMatrix.diagnostics
-      {𝕊:
-        result↩{
-          state⇐"ok",domain⇐flow.domain,layer⇐flow.layer,
-          period_start⇐periodStartText,period_end_exclusive⇐periodEndText,as_of⇐asOfText,
-          date_text⇐rowTexts,column_labels⇐⟨"income"⟩∾flow.categories.label∾⟨"net"⟩,
-          expense_column_indices⇐1+flow.categories.index,
-          matrix⇐builtMatrix.matrix,diagnostics⇐empty
-        }
-      }⍟(builtMatrix.state≡"ok") @
-    }⍟(expenseMatrix.state≡"ok") @
+      result↩{
+        state⇐"ok",domain⇐flow.domain,layer⇐flow.layer,
+        period_start⇐periodStartText,period_end_exclusive⇐periodEndText,as_of⇐asOfText,
+        date_text⇐rowTexts,column_labels⇐{𝕩∾"/"∾flow.domain}¨flow.accounts.key,
+        inverted_column_indices⇐(("income"⊸≡¨flow.accounts.role) ∨ "expense"⊸≡¨flow.accounts.role)/flow.accounts.index,
+        matrix⇐accountMatrix.matrix,diagnostics⇐empty
+      }
+    }⍟(accountMatrix.state≡"ok") @
   }⍟(0=≠diagnostics) @
   {𝕊: result↩EmptyResult diagnostics}⍟(0<≠diagnostics) @
   result
 }
 
-CellText ← {𝕊 coefficient‿scale: amount.Format ⟨coefficient,scale⟩}
 FormatHuman ← {𝕊 input:
-  result ← input ⋄ style ← "minus"
-  {𝕊: result↩0⊑input ⋄ style↩(1⊑input).negative_style}⍟((0<≡input) ∧ (2=≠input)) @
+  result ← input ⋄ style ← "minus" ⋄ configuredMax ← 0
+  {𝕊:
+    result↩0⊑input ⋄ presentation ← 1⊑input
+    style↩presentation.negative_style ⋄ configuredMax↩presentation.daily_flow_max_date_columns
+  }⍟((0<≡input) ∧ (2=≠input)) @
+  maxDateColumns ← configuredMax⌈result.matrix.row_count×configuredMax=0
   daysLeft ← (dates.Ordinal result.period_end_exclusive)-dates.Ordinal result.as_of
-  matrixTexts ← {𝕊 rowIndex:
-    row ← rowIndex⊑result.matrix.values
-    {𝕊 columnIndex:
-      value ← columnIndex⊑row
-      displayValue ← value
-      {𝕊: displayValue↩-value}⍟(columnIndex∊result.expense_column_indices) @
-      text.FormatAmount ⟨displayValue,result.matrix.scale,style⟩
-    }¨result.matrix.column_index
-  }¨result.matrix.row_index
-  widths ← {𝕊 columnIndex:
-    label ← columnIndex⊑result.column_labels
-    cellLens ← {columnIndex⊑𝕩}¨matrixTexts
-    ⌈´⟨10,text.VWidth label⟩∾text.VWidth¨cellLens
+  firstDate ← 0⌈result.matrix.row_count-maxDateColumns
+  dateIndices ← firstDate↓result.matrix.row_index
+  rows ← {𝕊 accountIndex:
+    values ← {𝕊 dateIndex:
+      value ← accountIndex⊑dateIndex⊑result.matrix.values
+      {𝕊:value↩-value}⍟(accountIndex∊result.inverted_column_indices) @
+      text.FormatAmount ⟨value,result.matrix.scale,style⟩
+    }¨dateIndices
+    ⟨accountIndex⊑result.column_labels⟩∾values
   }¨result.matrix.column_index
-  HeaderCell ← {𝕊 column:
-    label ← column⊑result.column_labels
-    w ← column⊑widths
-    vlen ← text.VWidth label
-    pad ← 0⌈w-vlen
-    leftPad ← ⌊pad÷2
-    rightPad ← pad-leftPad
-    (leftPad⥊' ')∾label∾(rightPad⥊' ')
-  }
-  header ← "date      "∾∾{" | "∾HeaderCell 𝕩}¨↕≠result.column_labels
-  separator ← "----------"∾∾{"-+-"∾((𝕩⊑widths)⥊'-')}¨↕≠widths
+  headers ← ⟨"Account"⟩∾dateIndices⊏result.date_text
   out ← "== Daily Flow =="∾(@+10)∾(@+10)
   out ∾↩ "cycle: "∾result.period_start∾" 〜 "∾result.period_end_exclusive
   out ∾↩ " (as of "∾result.as_of∾"; "∾(•Fmt daysLeft)∾" days left)"∾(@+10)∾(@+10)
-  out ∾↩ header∾(@+10)∾separator∾(@+10)
-  {𝕊 rowIndex:
-    rowTexts ← rowIndex⊑matrixTexts
-    cells ← {𝕊 columnIndex:
-      text.PadLeft ⟨columnIndex⊑widths,columnIndex⊑rowTexts⟩
-    }¨result.matrix.column_index
-    out ∾↩ (rowIndex⊑result.date_text)∾(∾{" | "∾𝕩}¨cells)∾(@+10)
-  }¨result.matrix.row_index
+  out ∾↩ text.RenderTable ⟨headers,rows,1+↕≠dateIndices⟩
   out∾(@+10)
 }
 

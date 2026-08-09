@@ -2,9 +2,14 @@
 
 cycle: 2026-01-01 〜 2026-02-01 (as of 2026-01-12; 20 days left)
 
-date       |   income   |    food    |   other    |    net    
------------+------------+------------+------------+-----------
-2026-01-02 |       1000 |          0 |          0 |       1000
-2026-01-10 |          0 |        -20 |          0 |        -20
-2026-01-12 |          0 |        -10 |         -5 |        -15
+Account                | 2026-01-02 | 2026-01-10 | 2026-01-12
+-----------------------+------------+------------+-----------
+assets:cash/JPY        |       1000 |        -20 |        -15
+income:salary/JPY      |       1000 |          0 |          0
+expenses:food/JPY      |          0 |        -20 |        -10
+expenses:transport/JPY |          0 |          0 |         -5
+budget:opening/JPY     |          0 |          0 |          0
+budget:unassigned/JPY  |          0 |          0 |          0
+budget:food/JPY        |          0 |          0 |          0
+budget:spent/JPY       |          0 |          0 |          0
 
