@@ -27,6 +27,7 @@ for check in \
   checks/check-canonical-household-read-cutover.sh \
   checks/check-canonical-report-policy-cutover.sh \
   checks/check-current-report-profile.sh \
+  checks/check-current-report-batch.sh \
   checks/check-report-cache.sh \
   checks/check-report-section-metadata.sh \
   checks/check-report-summary-query.sh \
