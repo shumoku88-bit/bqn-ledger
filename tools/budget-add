@@ -11,6 +11,10 @@ source "$ROOT_DIR/tools/lib/edit-bqn-common.sh"
 
 BASE_DIR="${LEDGER_DATA_DIR:-$(get_default_base_dir)}"
 TARGET_FILE="budget.journal"
+CANONICAL_FILES=(
+  accounts.journal actual.journal plan.journal budget.journal
+  budget.toml household.toml report.toml issues.tsv
+)
 
 args=()
 while [[ $# -gt 0 ]]; do
@@ -49,14 +53,58 @@ while [[ $# -gt 0 ]]; do
 done
 edit_bqn_validate_post_check "$POST_CHECK"
 
-TARGET_PATH="$BASE_DIR/$TARGET_FILE"
-SNAPSHOT_TOKEN="$(safe_snapshot_token "$TARGET_PATH")"
-IFS=$'\t' read -r SNAP_SIZE SNAP_MTIME SNAP_SHA256 <<< "$SNAPSHOT_TOKEN"
+[[ -d "$BASE_DIR" ]] || { echo "ERROR: base directory does not exist: $BASE_DIR" >&2; exit 1; }
+CANONICAL_BASE="$(cd -P "$BASE_DIR" && pwd)"
+TARGET_PATH="$CANONICAL_BASE/$TARGET_FILE"
+
+HOUSEHOLD_SIZE=()
+HOUSEHOLD_MTIME=()
+HOUSEHOLD_SHA=()
+for file in "${CANONICAL_FILES[@]}"; do
+  path="$CANONICAL_BASE/$file"
+  [[ -f "$path" ]] || { echo "ERROR: canonical source is not a regular file: $path" >&2; exit 1; }
+  [[ ! -L "$path" ]] || { echo "ERROR: canonical source symlink is rejected: $path" >&2; exit 1; }
+  token="$(safe_snapshot_token "$path")"
+  IFS=$'\t' read -r size mtime sha <<< "$token"
+  HOUSEHOLD_SIZE+=("$size")
+  HOUSEHOLD_MTIME+=("$mtime")
+  HOUSEHOLD_SHA+=("$sha")
+done
+
+budget_index=3
+SNAP_SIZE="${HOUSEHOLD_SIZE[$budget_index]}"
+SNAP_MTIME="${HOUSEHOLD_MTIME[$budget_index]}"
+SNAP_SHA256="${HOUSEHOLD_SHA[$budget_index]}"
+
+fence_initial_household() {
+  local i file path
+  for i in "${!CANONICAL_FILES[@]}"; do
+    file="${CANONICAL_FILES[$i]}"
+    path="$CANONICAL_BASE/$file"
+    _safe_write_check_expected_snapshot \
+      "$path" "${HOUSEHOLD_SIZE[$i]}" "${HOUSEHOLD_MTIME[$i]}" "${HOUSEHOLD_SHA[$i]}" || return 1
+  done
+}
+
+fence_nonbudget_household() {
+  local i file path
+  for i in "${!CANONICAL_FILES[@]}"; do
+    [[ "$i" -eq "$budget_index" ]] && continue
+    file="${CANONICAL_FILES[$i]}"
+    path="$CANONICAL_BASE/$file"
+    _safe_write_check_expected_snapshot \
+      "$path" "${HOUSEHOLD_SIZE[$i]}" "${HOUSEHOLD_MTIME[$i]}" "${HOUSEHOLD_SHA[$i]}" || return 1
+  done
+}
+
+# Refuse to publish into an already-invalid canonical Household observation.
+"$ROOT_DIR/tools/ledger-check" "$CANONICAL_BASE" >/dev/null
+fence_initial_household
 
 BQN_STDERR="$(mktemp)"
 trap 'rm -f "$BQN_STDERR"' EXIT
 BQN_OUT=""
-if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/budget_add_cmd.bqn "$BASE_DIR" "$DATE" "$MEMO" "$FROM" "$TO" "$AMOUNT" "$CURRENCY" "${META[@]}" 2>"$BQN_STDERR")"; then
+if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/budget_add_cmd.bqn "$CANONICAL_BASE" "$DATE" "$MEMO" "$FROM" "$TO" "$AMOUNT" "$CURRENCY" "${META[@]}" 2>"$BQN_STDERR")"; then
   [[ -n "$BQN_OUT" ]] && printf '%s\n' "$BQN_OUT" >&2
   [[ -s "$BQN_STDERR" ]] && cat "$BQN_STDERR" >&2
   exit 1
@@ -64,8 +112,9 @@ fi
 if ! edit_bqn_split_protocol_output "$BQN_OUT"; then exit 1; fi
 if ! edit_bqn_require_append_protocol "$EDIT_BQN_PROTOCOL_FIRST_LINE" "$TARGET_FILE"; then exit 1; fi
 PAYLOAD="$EDIT_BQN_PROTOCOL_PAYLOAD"
-MODE="$(edit_bqn_mode "$DRY_RUN" "$YES")"
+fence_initial_household
 
+MODE="$(edit_bqn_mode "$DRY_RUN" "$YES")"
 printf 'Budget movement append preview\n'
 printf 'Target: %s\n' "$TARGET_PATH"
 printf 'Mode: %s\n' "$MODE"
@@ -81,26 +130,61 @@ if [[ "$YES" -eq 0 ]] && ! confirm_append; then
 fi
 
 edit_bqn_run_test_hook EDIT_BQN_TEST_BEFORE_BUDGET_APPEND_HOOK
+fence_initial_household
 WRITE_OUT=""
 if ! WRITE_OUT="$(safe_append_checked "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256")"; then
   exit 1
 fi
 printf '%s\n' "$WRITE_OUT"
 BACKUP_PATH="$(awk -F': ' '$1 == "Backup" {print $2}' <<< "$WRITE_OUT")"
+[[ -f "$BACKUP_PATH" ]] || { echo 'ERROR: checked Budget append did not report one backup' >&2; exit 1; }
 POST_WRITE_SHA="$(_safe_write_sha256 "$TARGET_PATH")"
 
+append_mandatory_output() {
+  local text="$1"
+  [[ -n "$text" ]] || return 0
+  if [[ -n "$MANDATORY_OUT" ]]; then MANDATORY_OUT+=$'\n'; fi
+  MANDATORY_OUT+="$text"
+}
+
 MANDATORY_OK=1
-VALIDATE_OUT=""
-if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && "${EDIT_BQN_TEST_FORCE_BUDGET_POST_CHECK_FAIL:-}" == "1" ]]; then
+MANDATORY_OUT=""
+STEP_OUT=""
+if ! fence_nonbudget_household; then
   MANDATORY_OK=0
-  VALIDATE_OUT='forced canonical Budget post-admission failure'
-elif ! VALIDATE_OUT="$(cd "$ROOT_DIR" && bqn src_edit/budget_validate_cmd.bqn "$BASE_DIR" 2>&1)"; then
+  append_mandatory_output 'canonical Household source changed during Budget publication'
+fi
+if [[ "$MANDATORY_OK" -eq 1 && "${BQN_LEDGER_TEST_MODE:-}" == "1" && "${EDIT_BQN_TEST_FORCE_BUDGET_POST_CHECK_FAIL:-}" == "1" ]]; then
   MANDATORY_OK=0
+  append_mandatory_output 'forced canonical Budget post-admission failure'
 fi
 if [[ "$MANDATORY_OK" -eq 1 ]]; then
-  printf 'Mandatory Budget validation: OK\n%s\n' "$VALIDATE_OUT"
+  STEP_OUT=""
+  if ! STEP_OUT="$(cd "$ROOT_DIR" && bqn src_edit/budget_validate_cmd.bqn "$CANONICAL_BASE" 2>&1)"; then
+    MANDATORY_OK=0
+  fi
+  append_mandatory_output "$STEP_OUT"
+fi
+if [[ "$MANDATORY_OK" -eq 1 ]]; then
+  STEP_OUT=""
+  if ! STEP_OUT="$(cd "$ROOT_DIR" && "$ROOT_DIR/tools/ledger-check" "$CANONICAL_BASE" 2>&1)"; then
+    MANDATORY_OK=0
+  fi
+  append_mandatory_output "$STEP_OUT"
+fi
+if [[ "$MANDATORY_OK" -eq 1 ]] && ! fence_nonbudget_household; then
+  MANDATORY_OK=0
+  append_mandatory_output 'canonical Household source changed before Budget validation finished'
+fi
+if [[ "$MANDATORY_OK" -eq 1 && "$(_safe_write_sha256 "$TARGET_PATH")" != "$POST_WRITE_SHA" ]]; then
+  MANDATORY_OK=0
+  append_mandatory_output 'Budget source changed after canonical validation'
+fi
+
+if [[ "$MANDATORY_OK" -eq 1 ]]; then
+  printf 'Mandatory Budget validation: OK\n%s\n' "$MANDATORY_OUT"
 else
-  printf 'Mandatory Budget validation: FAILED\n%s\n' "$VALIDATE_OUT" >&2
+  printf 'Mandatory Budget validation: FAILED\n%s\n' "$MANDATORY_OUT" >&2
 fi
 
 OPTIONAL_OK=1
@@ -115,6 +199,14 @@ elif [[ "$MANDATORY_OK" -eq 1 ]]; then
   printf 'Additional check: none (%s mode)\n' "$POST_CHECK"
 fi
 
+if [[ "$MANDATORY_OK" -eq 1 && "$OPTIONAL_OK" -eq 1 ]] && ! fence_nonbudget_household; then
+  MANDATORY_OK=0
+  append_mandatory_output 'canonical Household source changed before Budget publication returned'
+fi
+if [[ "$MANDATORY_OK" -eq 1 && "$OPTIONAL_OK" -eq 1 && "$(_safe_write_sha256 "$TARGET_PATH")" != "$POST_WRITE_SHA" ]]; then
+  MANDATORY_OK=0
+  append_mandatory_output 'Budget source changed before publication returned'
+fi
 if [[ "$MANDATORY_OK" -eq 1 && "$OPTIONAL_OK" -eq 1 ]]; then
   exit 0
 fi
