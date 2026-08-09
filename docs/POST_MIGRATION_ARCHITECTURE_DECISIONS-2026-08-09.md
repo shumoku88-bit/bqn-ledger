@@ -153,6 +153,29 @@ Wall-clock measurements remain evidence and diagnostics rather than hard CI thre
 
 When implementation topology changes, guards may be rewritten so long as the same law remains demonstrably protected. The test should make the bad architecture difficult to reintroduce, not make the good architecture difficult to evolve.
 
+## D7. Repository state is the continuation authority
+
+Accepted 2026-08-10.
+
+Long-running architectural review must be resumable from the current repository without requiring a conversational handoff prompt, remembered SHA, or prior assistant state. Conversation context may accelerate a session, but it is not process authority.
+
+The durable continuation model is:
+
+- `TODO.md` owns the review inventory, current cursor, and cross-cutting audit state;
+- active observation records own unresolved evidence and questions;
+- this decision record owns accepted architectural/process decisions;
+- current tests and checks provide qualification evidence and inventory/law guards where appropriate;
+- GitHub remote state remains authoritative for the actual current `main`, open work, and CI status;
+- Git history remains the archive for superseded plans and completed handoffs.
+
+A fresh session therefore starts by verifying remote state, reading the current queue and active records, checking parallel work that may overlap the active owners, and resuming from the first unresolved item or recorded cursor exception. It must not assume that a SHA, PR state, or current cursor copied into an old chat is still current.
+
+Before a session ends, any information required to resume correctly must be made durable in the repository when it has architectural value: unresolved observations belong in the active observation record; accepted decisions belong here; merged review outcomes and the next normal continuation point belong in the queue. Transient reasoning that does not affect future work does not need to be persisted.
+
+PR descriptions remain useful evidence for one coherent change, but a closed or merged PR must not be the only place from which current review state can be reconstructed. Likewise, do not create recurring handoff documents merely to mirror chat context. If a statement remains authoritative, it belongs in a current repository owner; if it is historical only, Git history is sufficient under D3.
+
+Inventory checks may be expanded as later review phases receive complete inventories, but such checks protect the law that active production review surface is not silently omitted. They must not freeze a particular file layout, import graph, or other incidental topology contrary to D6.
+
 ## Process-authority precedence
 
 Current active documentation and this decision record define present repository process. Historical documents remain useful as evidence only through Git history after D3 is applied.
