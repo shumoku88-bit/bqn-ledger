@@ -129,8 +129,8 @@ finalPlanID ← ""
   }
 }⍟(0=≠planIdArg) @
 
-metadataLines ← {"  ; "∾𝕩.key∾": "∾𝕩.value}¨metadata
-blockLines ← ⟨dateVal∾" "∾memoVal,"  ; plan-id: "∾finalPlanID⟩
+metadataLines ← {"    ; "∾𝕩.key∾": "∾𝕩.value}¨metadata
+blockLines ← ⟨dateVal∾" "∾memoVal,"    ; plan-id: "∾finalPlanID⟩
 blockLines ∾↩ metadataLines
 blockLines ∾↩ ⟨"  "∾fromVal∾"  -"∾amountVal∾" "∾currency,"  "∾toVal∾"  "∾amountVal∾" "∾currency⟩
 block ← ⊑blockLines
