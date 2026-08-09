@@ -86,6 +86,12 @@ targetDate ← currentDate
 postingMask ← selectedIndex=facts.postings.transaction_index
 postingIndices ← postingMask/↕facts.postings.count
 postingCount ← ≠postingIndices
+selectedCoefficients ← postingIndices⊏facts.postings.source_coefficient
+selectedScales ← postingIndices⊏facts.postings.source_scale
+selectedAccountIndices ← postingIndices⊏facts.postings.account_index
+selectedAccounts ← selectedAccountIndices⊏facts.accounts.key
+selectedSourceLines ← postingIndices⊏facts.postings.source_line
+originalAmountTexts ← postingIndices⊏facts.postings.amount_text
 currency ← (selectedIndex⊑facts.transactions.domain_index)⊑facts.domains.code
 amountChanged ← 0
 parsedAmount ← @
@@ -95,8 +101,7 @@ parsedAmount ← @
   {𝕊:Fail 1⊑amountCheck}⍟(¬0⊑amountCheck) @
   parsedAmount↩decimal.Parse amountVal
   {𝕊:Fail "Plan edit amount must be strictly positive"}⍟((parsedAmount.state≢"ok") ∨ parsedAmount.coefficient≤0) @
-  firstPosting ← ⊑postingIndices
-  amountChanged↩¬ExactMagnitudeEqual ⟨firstPosting⊑facts.postings.source_coefficient,firstPosting⊑facts.postings.source_scale,parsedAmount.coefficient,parsedAmount.scale⟩
+  amountChanged↩¬ExactMagnitudeEqual ⟨|⊑selectedCoefficients,⊑selectedScales,parsedAmount.coefficient,parsedAmount.scale⟩
 }⍟(0<≠amountVal) @
 dateChanged ← targetDate≢currentDate
 
@@ -109,18 +114,14 @@ header ← headerIndex⊑lines
 {𝕊:Fail "admitted Plan header date does not match source coordinate"}⍟(currentDate≢10↑header) @
 dateCandidateLines ← dateChanged ◶ ⟨{lines},{ReplaceAt ⟨headerIndex,targetDate∾10↓header,lines⟩}⟩ @
 
-originalAmountTexts ← postingIndices⊏facts.postings.amount_text
-SignedAmount ← {𝕊 postingIndex: (((postingIndex⊑facts.postings.source_coefficient)<0)/"-")∾amountVal}
-expectedAmountTexts ← amountChanged ◶ ⟨{originalAmountTexts},{SignedAmount¨postingIndices}⟩ @
+replacementAmountTexts ← {𝕊 coefficient: ((coefficient<0)/"-")∾amountVal}¨selectedCoefficients
+expectedAmountTexts ← amountChanged ◶ ⟨{originalAmountTexts},{replacementAmountTexts}⟩ @
 ApplyAmount ← {𝕊 inputLines:
-  replacementLineIndices ← (postingIndices⊏facts.postings.source_line)-1
+  replacementLineIndices ← selectedSourceLines-1
   invalidLines ← (replacementLineIndices<0) ∨ replacementLineIndices≥≠inputLines
   {𝕊:Fail "admitted Posting coordinate is outside Plan source"}⍟(∨´0∾invalidLines) @
-  RenderPosting ← {𝕊 postingIndex:
-    account ← (postingIndex⊑facts.postings.account_index)⊑facts.accounts.key
-    "    "∾account∾"    "∾SignedAmount postingIndex∾" "∾currency
-  }
-  replacementLines ← RenderPosting¨postingIndices
+  RenderPosting ← {𝕊 i: "    "∾(i⊑selectedAccounts)∾"    "∾(i⊑replacementAmountTexts)∾" "∾currency}
+  replacementLines ← RenderPosting¨↕postingCount
   LineAt ← {𝕊 lineIndex:
     replacementIndex ← ⊑replacementLineIndices⊐⟨lineIndex⟩
     (replacementIndex<≠replacementLines) ◶ ⟨{lineIndex⊑inputLines},{replacementIndex⊑replacementLines}⟩ @
@@ -148,13 +149,12 @@ candidate ← selectedIndex⊑candidateResult.transactions
 candidateAccounts ← {𝕩.account_key}¨candidate.postings
 candidateAmounts ← {𝕩.amount_text}¨candidate.postings
 candidateCommodities ← {𝕩.commodity}¨candidate.postings
-originalAccounts ← {(𝕩⊑facts.postings.account_index)⊑facts.accounts.key}¨postingIndices
 originalMetadata ← selectedIndex⊑facts.transactions.metadata
 candidateMetadataKeys ← {𝕩.key}¨candidate.metadata
 originalMetadataKeys ← {𝕩.key}¨originalMetadata
 candidateMetadataValues ← {𝕩.value}¨candidate.metadata
 originalMetadataValues ← {𝕩.value}¨originalMetadata
-candidateOk ← (candidate.plan_id≡targetPlanID) ∧ (candidate.date≡targetDate) ∧ (candidate.description≡selectedIndex⊑facts.transactions.description) ∧ (candidate.status_marker≡selectedIndex⊑facts.transactions.status_marker) ∧ (candidateAccounts≡originalAccounts) ∧ (candidateAmounts≡expectedAmountTexts) ∧ (∧´{𝕩≡currency}¨candidateCommodities) ∧ (candidateMetadataKeys≡originalMetadataKeys) ∧ (candidateMetadataValues≡originalMetadataValues) ∧ (candidate.source_start_line=selectedIndex⊑facts.transactions.source_start_line) ∧ (candidate.source_end_line=selectedIndex⊑facts.transactions.source_end_line)
+candidateOk ← (candidate.plan_id≡targetPlanID) ∧ (candidate.date≡targetDate) ∧ (candidate.description≡selectedIndex⊑facts.transactions.description) ∧ (candidate.status_marker≡selectedIndex⊑facts.transactions.status_marker) ∧ (candidateAccounts≡selectedAccounts) ∧ (candidateAmounts≡expectedAmountTexts) ∧ (∧´{𝕩≡currency}¨candidateCommodities) ∧ (candidateMetadataKeys≡originalMetadataKeys) ∧ (candidateMetadataValues≡originalMetadataValues) ∧ (candidate.source_start_line=selectedIndex⊑facts.transactions.source_start_line) ∧ (candidate.source_end_line=selectedIndex⊑facts.transactions.source_end_line)
 {𝕊:Fail "re-admitted Plan candidate does not match edit intent"}⍟(¬candidateOk) @
 
 candidateFile •FChars candidateRaw
