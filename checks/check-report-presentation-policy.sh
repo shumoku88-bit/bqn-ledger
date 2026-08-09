@@ -117,13 +117,43 @@ printf 'value -12.5\n' | env -u NO_COLOR COLOR_FORCE=1 BL_THEME=nord REPORT_NEGA
   bash tools/lib/color-filter >"$work/nord-minus"
 grep -F $'\033[38;2;191;97;106m-12.5\033[0m' "$work/nord-minus" >/dev/null
 
-printf 'value (12.5)\n' | env -u NO_COLOR COLOR_FORCE=1 BL_THEME=nord REPORT_NEGATIVE_COLOR=red \
+printf 'Balance: (12.5)\n' | env -u NO_COLOR COLOR_FORCE=1 BL_THEME=nord REPORT_NEGATIVE_COLOR=red \
   bash tools/lib/color-filter >"$work/nord-paren"
 grep -F $'\033[38;2;191;97;106m(12.5)\033[0m' "$work/nord-paren" >/dev/null
 
-# Non-numeric parentheses in text (e.g. memo (2026)) are not colored as negative numbers
+# Non-numeric parentheses in text (e.g. memo (2026), year (2026)) are not colored as negative numbers
 printf 'memo (2026) | (1000)\n' | env -u NO_COLOR COLOR_FORCE=1 BL_THEME=nord REPORT_NEGATIVE_COLOR=red \
   bash tools/lib/color-filter >"$work/text-paren"
 grep -F $'memo (2026) | \033[38;2;191;97;106m(1000)\033[0m' "$work/text-paren" >/dev/null
+
+printf 'memo (2026)\nyear (2026)\n' | env -u NO_COLOR COLOR_FORCE=1 BL_THEME=nord REPORT_NEGATIVE_COLOR=red \
+  bash tools/lib/color-filter >"$work/prose-paren"
+grep -Fx 'memo (2026)' "$work/prose-paren" >/dev/null
+grep -Fx 'year (2026)' "$work/prose-paren" >/dev/null
+
+# Non-table summary parenthesized negative amounts (Balance: (1000)) are colored
+printf 'Balance: (1000)\n' | env -u NO_COLOR COLOR_FORCE=1 BL_THEME=nord REPORT_NEGATIVE_COLOR=red \
+  bash tools/lib/color-filter >"$work/summary-paren"
+grep -F $'Balance: \033[38;2;191;97;106m(1000)\033[0m' "$work/summary-paren" >/dev/null
+
+# Compact and JSON machine surfaces do not depend on presentation policy validity in report.toml
+cp -R "$fixture" "$work/broken_policy"
+python3 - "$work/broken_policy/report.toml" <<'PY'
+from pathlib import Path
+import sys
+p = Path(sys.argv[1])
+s = p.read_text().replace('negative-style = "minus"', 'negative-style = "invalid_style"')
+p.write_text(s)
+PY
+
+if ./tools/report "$work/broken_policy" balances human JPY 2026-01-12 >/dev/null 2>&1; then
+  echo 'FAIL: human surface succeeded despite invalid presentation negative-style' >&2
+  exit 1
+fi
+./tools/report "$work/broken_policy" balances compact JPY 2026-01-12 >"$work/broken-compact"
+grep -F 'ledger_balance: income:salary/JPY -1000' "$work/broken-compact" >/dev/null
+
+./tools/report "$work/broken_policy" balances json JPY 2026-01-12 >"$work/broken-json"
+grep -F '"balance": -1000' "$work/broken-json" >/dev/null
 
 echo 'check-report-presentation-policy: OK'

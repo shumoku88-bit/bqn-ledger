@@ -96,7 +96,7 @@ exec awk \
       line = prefix matched rest
     }
   } else {
-    while (match(line, /([[:space:]:]|^)(\([0-9]+([.][0-9]+)?\))/)) {
+    while (match(line, /(:[[:space:]]*)(\([0-9]+([.][0-9]+)?\))/)) {
       prefix = substr(line, 1, RSTART - 1)
       matched = substr(line, RSTART, RLENGTH)
       rest = substr(line, RSTART + RLENGTH)
