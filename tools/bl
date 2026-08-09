@@ -3,7 +3,6 @@ set -euo pipefail
 
 # tools/bl — Command Hub / doorway into bqn-ledger tools
 
-# Resolve script paths
 SOURCE="${BASH_SOURCE[0]}"
 while [ -L "$SOURCE" ]; do
   DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
@@ -22,23 +21,32 @@ Usage:
   tools/bl [--base <dir>] [command]
 
 Commands:
-  (no command)     Open interactive main menu
-  report, all      Show the full report
-  section [<key>]  Show section selector or direct section output
-  add              Launch transaction addition / cancellation UI
-  check            Run data validation checks
-  edit [<file>]    Open TSV files in \$EDITOR
-  help             Show this help message
+  (no command)          Open interactive Command Hub
+  report, all           Show the full report
+  section [<key>]       Show report/action selector or direct section output
+  add [mode]            Launch daily write UI
+  browse [surface]      Browse transactions, plans, accounts, or issues
+  transactions          List canonical Actual transactions
+  plans                 List open canonical Plans
+  accounts              List canonical Accounts
+  issue-list            List Issues & Decisions
+  check                 Validate the canonical eight-file Household source
+  doctor                Check runtime dependencies and Household readiness
+  inspect               Inspect canonical Actual identities and Postings
+  export                Export canonical Journals for hledger
+  query <domain> <key>  Run the exact ledger query for this Household root
+  edit [<file>]         Open canonical source files in \$EDITOR
+  dev-check             Run the repository development check suite
+  help                  Show this help message
 
 Options:
-  --base <dir>     Specify ledger base directory
+  --base <dir>          Specify canonical Household root
 EOF
 }
 
 base_dir="${LEDGER_DATA_DIR:-$(get_default_base_dir)}"
 cmd=""
 
-# Simple argument parsing
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --base)
@@ -59,14 +67,12 @@ while [[ $# -gt 0 ]]; do
         cmd="$1"
         shift
       else
-        # Accumulate remaining args
         break
       fi
       ;;
   esac
 done
 
-# Initialize theme after resolving base_dir so --base config can affect the hub.
 source "$ROOT_DIR/tools/lib/theme.sh"
 
 COLOR_HEADER="$ESC_HEADER"
@@ -79,73 +85,205 @@ if [[ -t 0 && -t 1 ]]; then
   IS_TTY=1
 fi
 
-# Print section wrapper with a colored header
 print_header() {
   local title="$1"
   printf "${COLOR_HEADER}=== %s ===${COLOR_RESET}\n" "$title"
 }
 
-# Main menu items
 menu_list() {
   cat <<EOF
-section	Show report sections (fzf selector)
-add	Add or cancel transaction / plan
-check	Run check.sh
-edit	Open source files in \$EDITOR
-exit	Exit
+report\tShow full report
+section\tBrowse reports and daily actions
+add\tRecord or change household entries
+browse\tBrowse transactions, plans, accounts, and issues
+check\tValidate canonical Household source
+doctor\tCheck runtime and Household readiness
+inspect\tInspect canonical Actual facts
+export\tExport canonical Journals for hledger
+edit\tOpen canonical source files in \$EDITOR
+dev-check\tRun repository development checks
+exit\tExit
+EOF
+}
+
+browse_list() {
+  cat <<'EOF'
+transactions\tActual transactions
+plans\tOpen Plans
+accounts\tAccounts
+issues\tIssues & Decisions
+back\tBack to main menu
 EOF
 }
 
 # Canonical Household files offered by the direct source editor.
-tsv_list() {
+source_list() {
   cat <<'EOF'
-accounts.journal	Account declarations
-actual.journal	Actual transactions
-plan.journal	Future plans
-budget.journal	Budget movements
-budget.toml	Budget policy
-household.toml	Household policy
-report.toml	Report policy
-issues.tsv	Pending issues and decisions
+accounts.journal\tAccount declarations
+actual.journal\tActual transactions
+plan.journal\tFuture plans
+budget.journal\tBudget movements
+budget.toml\tBudget policy
+household.toml\tHousehold policy
+report.toml\tReport policy
+issues.tsv\tPending issues and decisions
 EOF
 }
 
-tsv_menu_list() {
-  tsv_list
+source_menu_list() {
+  source_list
   printf 'back\tBack to main menu\n'
 }
 
-run_check() {
-  print_header "Running Checks"
-  # Run check.sh and propagate its exit status for direct command use.
-  if "$ROOT_DIR/tools/check.sh"; then
-    printf '%bAll checks passed successfully.%b\n' "$COLOR_OK" "$COLOR_RESET"
+select_menu_key() {
+  local prompt="$1" producer="$2"
+  local selection="" status=0 key="" opt=""
+
+  if command -v fzf >/dev/null 2>&1 && [[ "$IS_TTY" -eq 1 ]]; then
+    set +e
+    selection="$("$producer" | fzf --prompt="$prompt> " --delimiter=$'\t' --with-nth=2.. --reverse --exit-0)"
+    status=$?
+    set -e
+    [[ "$status" -eq 130 || -z "$selection" ]] && return 130
+    key="${selection%%$'\t'*}"
+  elif command -v gum >/dev/null 2>&1 && [[ "$IS_TTY" -eq 1 ]]; then
+    set +e
+    selection="$("$producer" | gum filter "${GUM_FILTER_ARGS[@]}" --placeholder="$prompt")"
+    status=$?
+    set -e
+    [[ "$status" -eq 130 || -z "$selection" ]] && return 130
+    key="${selection%%$'\t'*}"
+  else
+    "$producer" >&2
+    printf '%s> ' "$prompt" >&2
+    if ! read -r opt; then
+      return 130
+    fi
+    if [[ "$opt" =~ ^[0-9]+$ ]]; then
+      key="$("$producer" | sed -n "${opt}p" | cut -f1)"
+    else
+      key="$opt"
+    fi
+  fi
+
+  [[ -n "$key" ]] || return 130
+  printf '%s\n' "$key"
+}
+
+run_source_check() {
+  print_header "Canonical Household Check"
+  if "$ROOT_DIR/tools/ledger-check" "$base_dir"; then
+    printf '%bCanonical Household source is valid.%b\n' "$COLOR_OK" "$COLOR_RESET"
     return 0
   else
-    printf '%bChecks failed. Please review errors above.%b\n' "$COLOR_ERROR" "$COLOR_RESET"
+    printf '%bCanonical Household source failed validation.%b\n' "$COLOR_ERROR" "$COLOR_RESET"
     return 1
   fi
 }
 
-select_tsv_file() {
+run_dev_check() {
+  print_header "Repository Development Checks"
+  if "$ROOT_DIR/tools/check.sh"; then
+    printf '%bAll repository checks passed successfully.%b\n' "$COLOR_OK" "$COLOR_RESET"
+    return 0
+  else
+    printf '%bRepository checks failed. Please review errors above.%b\n' "$COLOR_ERROR" "$COLOR_RESET"
+    return 1
+  fi
+}
+
+run_doctor() {
+  print_header "Doctor"
+  LEDGER_DATA_DIR="$base_dir" "$ROOT_DIR/tools/doctor"
+}
+
+run_inspect() {
+  print_header "Actual Inspection"
+  "$ROOT_DIR/tools/ledger-inspect" "$base_dir"
+}
+
+run_export() {
+  print_header "hledger Export"
+  "$ROOT_DIR/tools/to-hledger" "$base_dir"
+}
+
+run_query() {
+  "$ROOT_DIR/tools/query" "$base_dir" "$@"
+}
+
+run_browse_surface() {
+  local surface="$1"
+  case "$surface" in
+    transactions)
+      print_header "Actual Transactions"
+      "$ROOT_DIR/tools/edit" --base "$base_dir" journal list --format text
+      ;;
+    plans)
+      print_header "Open Plans"
+      "$ROOT_DIR/tools/edit" --base "$base_dir" plan list --format text
+      ;;
+    accounts)
+      print_header "Accounts"
+      "$ROOT_DIR/tools/edit" --base "$base_dir" account list
+      ;;
+    issues)
+      print_header "Issues & Decisions"
+      "$ROOT_DIR/tools/edit" --base "$base_dir" issue list --format text
+      ;;
+    *)
+      echo "Error: Unknown browse surface '$surface'" >&2
+      return 2
+      ;;
+  esac
+}
+
+run_browse() {
+  local surface="${1:-}" status=0
+  if [[ -n "$surface" ]]; then
+    run_browse_surface "$surface"
+    return $?
+  fi
+
+  if [[ "$IS_TTY" -eq 0 ]]; then
+    echo "Error: browse without a surface requires an interactive terminal." >&2
+    echo "Use: tools/bl --base <dir> browse transactions|plans|accounts|issues" >&2
+    return 2
+  fi
+
+  while true; do
+    set +e
+    surface="$(select_menu_key 'browse' browse_list)"
+    status=$?
+    set -e
+    if [[ "$status" -eq 130 || "$surface" == "back" ]]; then
+      return 0
+    elif [[ "$status" -ne 0 ]]; then
+      return "$status"
+    fi
+    run_browse_surface "$surface" || true
+    echo ""
+  done
+}
+
+select_source_file() {
   local selection="" status=0 file=""
 
   if command -v fzf >/dev/null 2>&1 && [[ "$IS_TTY" -eq 1 ]]; then
     set +e
-    selection="$(tsv_menu_list | fzf --prompt='edit file> ' --delimiter=$'\t' --with-nth=2.. --reverse --exit-0)"
+    selection="$(source_menu_list | fzf --prompt='edit file> ' --delimiter=$'\t' --with-nth=2.. --reverse --exit-0)"
     status=$?
     set -e
     [[ "$status" -eq 130 || -z "$selection" ]] && return 130
     file="${selection%%$'\t'*}"
   elif command -v gum >/dev/null 2>&1 && [[ "$IS_TTY" -eq 1 ]]; then
     set +e
-    selection="$(tsv_menu_list | gum filter "${GUM_FILTER_ARGS[@]}" --placeholder='edit file')"
+    selection="$(source_menu_list | gum filter "${GUM_FILTER_ARGS[@]}" --placeholder='edit file')"
     status=$?
     set -e
     [[ "$status" -eq 130 || -z "$selection" ]] && return 130
     file="${selection%%$'\t'*}"
   else
-    tsv_menu_list >&2
+    source_menu_list >&2
     printf 'Enter file to edit (or back): ' >&2
     if ! read -r file; then
       return 130
@@ -158,7 +296,7 @@ select_tsv_file() {
   esac
 }
 
-resolve_tsv_path() {
+resolve_source_path() {
   local file="$1"
   case "$file" in
     accounts.journal|actual.journal|plan.journal|budget.journal|budget.toml|household.toml|report.toml|issues.tsv)
@@ -178,9 +316,9 @@ ensure_editor() {
   fi
 }
 
-open_tsv_file() {
+open_source_file() {
   local file="$1" file_path status
-  file_path="$(resolve_tsv_path "$file")"
+  file_path="$(resolve_source_path "$file")"
   ensure_editor
 
   print_header "Opening $file_path in $EDITOR"
@@ -198,15 +336,13 @@ run_edit() {
   local file="${1:-}" status
 
   if [[ -n "$file" ]]; then
-    open_tsv_file "$file"
+    open_source_file "$file"
     return $?
   fi
 
-  # Interactive edit submenu: after editing one file, return here.
-  # back / cancel / Ctrl-C returns to the parent bl menu.
   while true; do
     set +e
-    file="$(select_tsv_file)"
+    file="$(select_source_file)"
     status=$?
     set -e
     if [[ "$status" -eq 130 ]]; then
@@ -215,14 +351,12 @@ run_edit() {
       return "$status"
     fi
 
-    open_tsv_file "$file" || true
+    open_source_file "$file" || true
     echo ""
   done
 }
 
-# Main routing
 if [[ -z "$cmd" ]]; then
-  # Interactive main menu
   if [[ "$IS_TTY" -eq 0 ]]; then
     echo "Error: Not a TTY. Cannot open interactive menu. Use --help for direct commands." >&2
     exit 1
@@ -231,7 +365,6 @@ if [[ -z "$cmd" ]]; then
   while true; do
     selection=""
     if command -v gum >/dev/null 2>&1; then
-      # use gum choose for a clean vertical menu
       selection="$(menu_list | cut -f2 | gum choose "${GUM_CHOOSE_ARGS[@]}" --header="BQN-Ledger Command Hub (${base_dir})")"
       [[ -z "$selection" ]] && break
       key="$(menu_list | grep -F "$selection" | cut -f1)"
@@ -240,7 +373,6 @@ if [[ -z "$cmd" ]]; then
       [[ -z "$selection" ]] && break
       key="${selection%%$'\t'*}"
     else
-      # Simple read fallback
       echo "=== BQN-Ledger Command Hub ==="
       menu_list | awk -F'\t' '{print NR ") " $2 " (" $1 ")"}'
       printf "Select option: "
@@ -268,22 +400,41 @@ if [[ -z "$cmd" ]]; then
           status=$?
           set -e
           if [[ "$status" -eq 130 ]]; then
-            # Input-flow cancel: discard partial input and reopen the add/cancel menu.
             continue
           fi
           if [[ "$status" -ne 0 ]]; then
-            printf '%bAdd/cancel UI failed. Please review errors above.%b\n' "$COLOR_ERROR" "$COLOR_RESET"
+            printf '%bDaily write UI failed. Please review errors above.%b\n' "$COLOR_ERROR" "$COLOR_RESET"
           fi
           break
         done
         echo ""
         ;;
+      browse)
+        run_browse
+        echo ""
+        ;;
       check)
-        run_check || true
+        run_source_check || true
+        echo ""
+        ;;
+      doctor)
+        run_doctor || true
+        echo ""
+        ;;
+      inspect)
+        run_inspect || true
+        echo ""
+        ;;
+      export)
+        run_export || true
         echo ""
         ;;
       edit)
         run_edit ""
+        echo ""
+        ;;
+      dev-check)
+        run_dev_check || true
         echo ""
         ;;
       exit)
@@ -295,7 +446,6 @@ if [[ -z "$cmd" ]]; then
     esac
   done
 else
-  # Direct subcommand execution
   case "$cmd" in
     report|all)
       "$ROOT_DIR/tools/main-ui.sh" --base "$base_dir" report
@@ -323,14 +473,43 @@ else
         exit "$status"
       done
       ;;
+    browse)
+      run_browse "${1:-}"
+      ;;
+    transactions)
+      run_browse_surface transactions
+      ;;
+    plans)
+      run_browse_surface plans
+      ;;
+    accounts)
+      run_browse_surface accounts
+      ;;
+    issue-list)
+      run_browse_surface issues
+      ;;
     check)
-      run_check
+      run_source_check
+      ;;
+    doctor)
+      run_doctor
+      ;;
+    inspect)
+      run_inspect
+      ;;
+    export)
+      run_export
+      ;;
+    query)
+      run_query "$@"
+      ;;
+    dev-check)
+      run_dev_check
       ;;
     edit)
       run_edit "${1:-}"
       ;;
     *)
-      # Fallback: check if it's a section key directly
       if "$ROOT_DIR/tools/main-ui.sh" --base "$base_dir" "$cmd" >/dev/null 2>&1; then
         exec "$ROOT_DIR/tools/main-ui.sh" --base "$base_dir" "$cmd"
       else
