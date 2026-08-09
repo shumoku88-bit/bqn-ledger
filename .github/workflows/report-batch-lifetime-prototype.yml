@@ -1,0 +1,34 @@
+name: report-batch-lifetime-prototype
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - experiments/performance/report_batch_destination_prototype.bqn
+      - experiments/performance/report_batch_lifetime_prototype.sh
+      - experiments/performance/report_batch_lifetime_probe.sh
+      - .github/workflows/report-batch-lifetime-prototype.yml
+
+jobs:
+  prototype:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Tokyo
+      CBQN_REF: master
+      RUNS: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install CBQN
+        run: |
+          git clone --depth 1 --branch "$CBQN_REF" https://github.com/dzaima/CBQN.git
+          echo "CBQN commit: $(git -C CBQN rev-parse HEAD)"
+          make -C CBQN -j$(nproc)
+          sudo cp CBQN/BQN /usr/local/bin/bqn
+
+      - name: Compare current and prototype lifetimes
+        run: |
+          uname -a
+          bash experiments/performance/report_batch_lifetime_probe.sh | tee report-batch-lifetime.tsv
