@@ -34,7 +34,6 @@ RunCheck checks/check-ledger-operations.sh
 RunCheck checks/check-report-section-metadata.sh
 RunCheck checks/check-report-summary-query.sh
 
-bqn tests/test_ledger_companion_facts.bqn >/dev/null
 bqn tests/test_ledger_plan_snapshot.bqn >/dev/null
 bqn tests/test_ledger_config_cycle_admission.bqn >/dev/null
 bqn tests/test_accounting_account_period.bqn >/dev/null

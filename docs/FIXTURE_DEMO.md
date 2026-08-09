@@ -48,7 +48,7 @@ Expected meaning:
 ls fixtures/editor-golden
 cat fixtures/editor-golden/actual.journal
 cat fixtures/editor-golden/plan.tsv
-cat fixtures/editor-golden/budget_alloc.tsv
+cat fixtures/canonical-household-v1/budget.journal
 cat fixtures/editor-golden/accounts.tsv
 cat fixtures/editor-golden/cycle.tsv
 ```

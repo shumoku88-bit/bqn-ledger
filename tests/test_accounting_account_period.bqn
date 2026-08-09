@@ -5,7 +5,7 @@ loader ← •Import "../src/application/source_io.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
 snapshot ← •Import "../src/ledger/snapshot.bqn"
 account_admission ← •Import "../src/ledger/account_admission.bqn"
-companion_snapshot ← •Import "../src/ledger/companion_snapshot.bqn"
+canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 cycle_admission ← •Import "../src/ledger/cycle_admission.bqn"
 scale ← •Import "../src/ledger/exact_scale.bqn"
@@ -64,11 +64,11 @@ scaleAccountLines ← ⟨
   "expenses:jpy	role=expense	currency=JPY"
 ⟩
 scaleAccounts ← (account_admission.Admit ⟨scaleAccountLines,registry⟩).accounts
-scalePlanLines ← ⟨
-  "2026-01-10	whole	assets:jpy	expenses:jpy	25	currency=JPY	plan_id=p1",
-  "2026-01-11	fraction	assets:jpy	expenses:jpy	12.30	currency=JPY	plan_id=p2"
+scalePlanRaw ← ∾{𝕩∾@+10}¨⟨
+  "2026-01-10 whole","  ; plan-id: p1","  expenses:jpy 25 JPY","  assets:jpy -25 JPY","",
+  "2026-01-11 fraction","  ; plan-id: p2","  expenses:jpy 12.30 JPY","  assets:jpy -12.30 JPY"
 ⟩
-scaleFacts ← (companion_snapshot.Build ⟨scalePlanLines,⟨⟩,scaleAccounts,registry⟩).plan
+scaleFacts ← (canonicalPlan.Build ⟨scalePlanRaw,scaleAccounts,registry⟩).facts
 scalePeriod ← period.Build ⟨scaleFacts,"JPY","plan",start,end⟩
 "ok" lib.AssertEq scalePeriod.state
 1 lib.AssertEq scalePeriod.scale

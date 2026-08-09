@@ -29,7 +29,7 @@ The following areas are not plugin surfaces:
 
 - source TSV meaning and the first five-column journal-like contract
 - `accounts.tsv` role interpretation
-- `budget_alloc.tsv` / envelope semantics
+- `budget.journal` movement and `budget.toml` / `household.toml` envelope semantics
 - `cycle.tsv` boundary interpretation
 - `plan.tsv` completion semantics
 - Posting IR construction

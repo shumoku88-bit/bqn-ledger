@@ -71,7 +71,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-ensure_ledger_report_base "$base_dir"
+ensure_canonical_report_base "$base_dir"
 
 finish_applied=0
 return_to_add_menu() {

@@ -11,7 +11,7 @@ This document selects the next narrow Stage 2 meaning after a concrete consumer 
 
 This slice is docs-only. It does not authorize runtime, test, fixture, source TSV, metadata schema, editor, or report changes.
 
-Source-model note (2026-07-24): references below to `journal.tsv` describe the pre-Journal-only evidence/model and are not current runtime instructions. Current Actual ingress is the configured native Journal; `plan.tsv` and `budget_alloc.tsv` remain TSV sources.
+Source-model note: TSV references below are historical stage evidence, not current runtime instructions. Current Plan and Budget ingress are `plan.journal` and `budget.journal`.
 
 ## 1. Question
 
@@ -80,7 +80,7 @@ For each admitted monetary source row from:
 ```text
 journal.tsv
 plan.tsv
-budget_alloc.tsv
+legacy Budget allocation TSV (retired)
 ```
 
 inspect metadata tokens only after the protected first five fields.

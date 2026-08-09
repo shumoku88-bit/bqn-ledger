@@ -29,14 +29,14 @@ Usage:
 Fuzzy transaction adder for everyday entries.
 
 Modes:
-  account-add   アカウント追加 (writes accounts.tsv)
-  expense       assets -> expenses  (writes selected actual source)
+  account-add   アカウント追加 (writes accounts.journal)
+  expense       assets -> expenses  (writes actual.journal)
   multi         native Journal transaction with 3+ signed postings (total = 0)
   move          assets -> assets    (writes selected actual source)
   income        income -> assets    (writes selected actual source)
-  budget        budget -> budget    (writes budget_alloc.tsv)
-  plan-add      assets -> expenses  (writes plan.tsv)
-  plan-edit     date/amount         (edits plan.tsv)
+  budget        budget -> budget    (writes budget.journal)
+  plan-add      assets -> expenses  (writes plan.journal)
+  plan-edit     date/amount         (edits plan.journal)
   plan-finish                       (plan -> journal, optional next plan)
   reverse       仕訳取消 (反対仕訳追記)
   issue         Issues & Decisions の追加 (writes issues.tsv)
@@ -45,7 +45,7 @@ Modes:
 Append is delegated to tools/edit (BQN editor path).
 
 Options:
-  --base <dir>  Use an explicit source TSV base directory
+  --base <dir>  Use an explicit canonical Household root
   --check       Read-only preflight; validate data dir, candidates, and editor path
 EOF
 }
@@ -99,8 +99,6 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-ensure_ledger_report_base "$base_dir"
-
 mode=''
 if [[ -n "$mode_arg" ]]; then
   case "$mode_arg" in
@@ -114,6 +112,8 @@ if [[ -n "$mode_arg" ]]; then
       ;;
   esac
 fi
+
+ensure_canonical_report_base "$base_dir"
 
 # ── Account listing (BQN-owned account metadata interpretation) ──
 
@@ -135,19 +135,11 @@ run_preflight() {
   printf 'add-ui preflight\n'
   printf 'base: %s\n' "$base_dir"
 
-  for f in accounts.tsv cycle.tsv; do
+  for f in accounts.journal actual.journal plan.journal budget.journal budget.toml household.toml report.toml issues.tsv; do
     if [[ -f "$base_dir/$f" ]]; then
       ok "$f"
     else
       fail_check "$f missing"
-    fi
-  done
-
-  for f in plan.tsv budget_alloc.tsv config.tsv; do
-    if [[ -f "$base_dir/$f" ]]; then
-      ok "$f"
-    else
-      warn_check "$f missing; related mode/view may be unavailable"
     fi
   done
 
@@ -179,14 +171,10 @@ run_preflight() {
     warn_check "role=budget has no candidates; budget mode may be unavailable"
   fi
 
-  if [[ -f "$base_dir/plan.tsv" ]]; then
-    if "$ROOT_DIR/tools/edit" --base "$base_dir" plan list --format tsv >/dev/null; then
-      ok "tools/edit plan list --format tsv"
-    else
-      fail_check "tools/edit plan list --format tsv failed"
-    fi
+  if "$ROOT_DIR/tools/edit" --base "$base_dir" plan list --format tsv >/dev/null; then
+    ok "tools/edit plan list --format tsv"
   else
-    warn_check "skipped plan list check because plan.tsv is missing"
+    fail_check "tools/edit plan list --format tsv failed"
   fi
 
   if "$ROOT_DIR/tools/edit" --base "$base_dir" issue list --format tsv >/dev/null; then

@@ -56,7 +56,7 @@ Do not turn the current Shell/BQN editor into a universal persistence framework 
 
 ### Source role is not source format
 
-Current Facts identify strict sources such as `actual.journal`, `plan.tsv`, and `budget_alloc.tsv`. Several accounting capabilities use those identities as admission guards. This is safe for the current runtime but must not become a permanent claim that confirmed Actual evidence can only have one physical encoding.
+Current Facts identify strict sources such as `actual.journal`, `plan.journal`, and `budget.journal`. Several accounting capabilities use those identities as admission guards. This is safe for the current runtime but must not become a permanent claim that confirmed evidence can only have one physical encoding.
 
 A future admitted source boundary must distinguish at least:
 

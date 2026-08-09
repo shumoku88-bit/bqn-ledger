@@ -64,7 +64,7 @@ Repository-wide local search found 1,492 matching lines across the nine legacy b
 | --- | --- | --- |
 | `accounts.tsv` | Account admission, editor account read/write, Actual editor verification, hledger conversion | after canonical Account and all downstream consumers no longer require it |
 | `plan.tsv` | Plan snapshot/admission, Plan editor lifecycle, planned-report and Plan-dependent application paths | Phase 3+ |
-| `budget_alloc.tsv` | Envelope/Backing input and Plan/Budget editor synchronization | Phase 4+ |
+| legacy Budget allocation TSV | retired; canonical read/write and Plan sync use `budget.journal` | complete |
 | `cycle.tsv` | Cycle admission and cycle-resolution application paths | Phase 5+ |
 | `daily_target_scope.tsv` | Daily Target scope admission | Phase 5+ |
 | `config.tsv` | legacy ledger/application configuration and local system-default discovery | after canonical root/policy/application discovery replaces it |

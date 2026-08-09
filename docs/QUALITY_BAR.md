@@ -31,9 +31,9 @@ UI や launcher は作ってよいが、目的は販売可能なプロダクト�
 
 ## 品質基準
 
-### 1. Source TSV protection
+### 1. Canonical Household source protection
 
-base directory 配下の明示選択されたActual source（native JournalまたはTSV compatibility source）, `plan.tsv`, `budget_alloc.tsv`, `accounts.tsv` は正データである。公開 repo の `data/` は匿名 sandbox、実運用データは `LEDGER_DATA_DIR`（例: `/path/to/ledger-data/data`）で外出しする。正データの場所は移動可能なので、日常入口と pit 作業では `tools/doctor` で実効 base directory を確認する。
+base directory配下のcanonical eight-file Household rootが正データである。Budget movementは`budget.journal`、Budget policyは`budget.toml`が所有する。公開repoのdataは匿名sandbox、実運用データは`LEDGER_DATA_DIR`で外出しする。
 
 - AI は明示指示なしに実データ TSV を編集しない。
 - 書き込みは approved editor path を通す。

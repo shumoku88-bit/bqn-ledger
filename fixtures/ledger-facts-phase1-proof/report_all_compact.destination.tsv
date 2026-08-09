@@ -1,5 +1,5 @@
 key	surface	arguments
-envelopes	compact	JPY	2026-01-01	2026-02-01	2026-01-12	actual.journal	plan.tsv	budget_alloc.tsv	assets:cash
+envelopes	compact	JPY	2026-01-01	2026-02-01	2026-01-12	actual.journal	plan.tsv	budget.journal	assets:cash
 balances	compact	JPY	2026-01-12	actual.journal
 recent	compact	10	actual.journal
 planned	compact	2026-01-12	actual.journal	plan.tsv	cycle.tsv

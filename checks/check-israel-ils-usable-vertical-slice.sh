@@ -38,11 +38,6 @@ cat >"$base/plan.tsv" <<'EOF'
 2026-07-29	synthetic ILS plan	assets:balance-ils	expenses:food-ils	2.50	currency=ILS
 2026-07-29	synthetic USD plan	assets:cash-usd	expenses:food-usd	3.50	currency=USD
 EOF
-cat >"$base/budget_alloc.tsv" <<'EOF'
-2026-07-01	synthetic JPY budget	budget:pool-jpy	budget:daily-jpy	50	currency=JPY
-2026-07-01	synthetic ILS budget	budget:pool-ils	budget:daily-ils	1.25	currency=ILS
-2026-07-01	synthetic USD budget	budget:pool-usd	budget:daily-usd	0.75	currency=USD
-EOF
 cat >"$base/source.journal" <<'EOF'
 commodity JPY
 
@@ -155,7 +150,7 @@ expect_fail_unchanged mixed-domain journal multi-add --date 2026-07-26 --descrip
 expect_fail_unchanged zero journal add --date 2026-07-26 --memo bad --from assets:cash-ils --to expenses:food-ils --amount 0 --currency ILS --yes
 expect_fail_unchanged unbalanced journal multi-add --date 2026-07-26 --description bad --currency ILS --posting assets:cash-ils=-1 --posting expenses:food-ils=2 --yes
 
-# End-to-end selected-domain read: Actual + plan + budget compose at ILS scale,
+# End-to-end selected-domain read at ILS scale,
 # while JPY and USD accounts remain absent and no cross-currency total exists.
 ./tools/report "$base" --section balances --currency ILS >"$tmp/ils-balances.out"
 grep -q 'Currency view: ILS' "$tmp/ils-balances.out"

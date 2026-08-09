@@ -1,125 +1,108 @@
 #!/usr/bin/env bash
 set -euo pipefail
+export NO_COLOR=1
+
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$ROOT_DIR"; unset LEDGER_DATA_DIR
-
+cd "$ROOT_DIR"
+fixture="$ROOT_DIR/fixtures/ledger-facts-phase1-proof"
 tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
-base="$tmp/base"; mkdir "$base"
-printf '%s\n' \
-  $'assets:bank\trole=asset\ttype=liquid\tcurrency=JPY' \
-  $'expenses:fixed\trole=expense\tspend_class=fixed\tcurrency=JPY' \
-  $'expenses:variable\trole=expense\tspend_class=variable\tbudget=daily\tcurrency=JPY' \
-  $'budget:fixed\trole=budget\tkind=envelope\tenvelope_role=execution\tcurrency=JPY' \
-  $'budget:daily\trole=budget\tkind=envelope\tenvelope_role=dynamic\tcurrency=JPY' \
-  $'budget:opening\trole=budget\tkind=opening\tcurrency=JPY' \
-  $'budget:unassigned\trole=budget\tkind=unassigned\tenvelope_role=unassigned\tcurrency=JPY' \
-  $'budget:spent\trole=budget\tkind=spent\tcurrency=JPY' >"$base/accounts.tsv"
-cat >"$base/accounts.journal" <<'ACCOUNTS'
-account assets:bank
-  type: Asset
-  commodity: JPY
-
-account expenses:fixed
-  type: Expense
-  commodity: JPY
-
-account expenses:variable
-  type: Expense
-  commodity: JPY
-
-account budget:fixed
-  type: Budget
-  commodity: JPY
-
-account budget:daily
-  type: Budget
-  commodity: JPY
-
-account budget:opening
-  type: Budget
-  commodity: JPY
-
-account budget:unassigned
-  type: Budget
-  commodity: JPY
-
-account budget:spent
-  type: Budget
-  commodity: JPY
-ACCOUNTS
-printf '%s\n' \
-  $'2026-07-20\tfixed bill\tassets:bank\texpenses:fixed\t1000\tplan_id=plan-2026-07-20-fixed\tcurrency=JPY' \
-  $'2026-07-20\tvariable\tassets:bank\texpenses:variable\t200\tplan_id=plan-2026-07-20-variable\tcurrency=JPY' >"$base/plan.tsv"
-cat >"$base/actual.journal" <<'JOURNAL'
-commodity JPY
-
-account assets:bank
-    ; role: asset
-
-account expenses:fixed
-    ; role: expense
-
-account expenses:variable
-    ; role: expense
-
-2026-07-14 * fixed bill
-    ; plan-id: plan-2026-07-20-fixed
-    assets:bank       -900 JPY
-    expenses:fixed     900 JPY
-
-2026-07-14 * variable
-    ; plan-id: plan-2026-07-20-variable
-    assets:bank          -200 JPY
-    expenses:variable     200 JPY
-JOURNAL
-: >"$base/budget_alloc.tsv"; printf '%s\n' $'2026-06-15\tcycle\t2026-08-15' >"$base/cycle.tsv"
-cp config/default_config.tsv "$base/config.tsv"
-python3 - "$base/config.tsv" <<'PY'
+sha_file() { shasum -a 256 "$1" | awk '{print $1}'; }
+copy_fixture() {
+  mkdir -p "$1"; cp -R "$fixture"/. "$1"/
+  rm -f "$1/accounts.tsv" "$1/budget_alloc.tsv" "$1/config.tsv"
+  python3 - "$1/household.toml" <<'PY'
 from pathlib import Path
 import sys
-p=Path(sys.argv[1]); s=p.read_text()
-s=s.replace('EXECUTION_PLANNED_PAYMENTS_ENVELOPE=', 'EXECUTION_PLANNED_PAYMENTS_ENVELOPE=fixed')
-s=s.replace('BUDGET_ID_UNASSIGNED=none', 'BUDGET_ID_UNASSIGNED=budget:unassigned')
+p = Path(sys.argv[1])
+s = p.read_text()
+s = s.replace('allocation-account = "budget:food"', 'allocation-account = "budget:food"\nplan-destination-accounts = ["expenses:food"]')
 p.write_text(s)
 PY
+}
+assert_no_backup() {
+  if [[ -d "$1/.backup" ]] && find "$1/.backup" -type f | grep -q .; then
+    echo "FAIL: $2 created a backup" >&2; exit 1
+  fi
+}
 
-before="$(shasum -a 256 "$base/budget_alloc.tsv" | awk '{print $1}')"
-out="$(tools/edit --base "$base" plan budget-sync --id plan-2026-07-20-fixed --dry-run)"
-grep -Fq $'budget:fixed\tbudget:spent\t900\tplan_id=plan-2026-07-20-fixed\tcurrency=JPY' <<<"$out"
-[[ "$before" == "$(shasum -a 256 "$base/budget_alloc.tsv" | awk '{print $1}')" ]]
+# Canonical Plan/Actual/Household evidence derives one canonical movement; dry-run
+# is read-only even though no legacy Budget, Account, or config TSV exists.
+dry="$tmp/dry"; copy_fixture "$dry"
+before="$(sha_file "$dry/budget.journal")"
+tools/edit --base "$dry" plan budget-sync --id plan-food-2026-01 --dry-run >"$tmp/dry.out"
+[[ "$(sha_file "$dry/budget.journal")" == "$before" ]]
+assert_no_backup "$dry" dry-run
+grep -F 'Plan Budget sync preview' "$tmp/dry.out" >/dev/null
+grep -F '    ; plan-id: plan-food-2026-01' "$tmp/dry.out" >/dev/null
+grep -F '    ; actual-event-id: proof-food-1' "$tmp/dry.out" >/dev/null
+grep -F '    budget:food    -20 JPY' "$tmp/dry.out" >/dev/null
+grep -F '    budget:spent    20 JPY' "$tmp/dry.out" >/dev/null
 
-legacy="$tmp/legacy"; cp -R "$base" "$legacy"
-printf '%s\n' $'2026-07-14\tmanual sync\tbudget:fixed\tbudget:spent\t900\tcurrency=JPY' >>"$legacy/budget_alloc.tsv"
-set +e
-legacy_out="$(tools/edit --base "$legacy" plan budget-sync --id plan-2026-07-20-fixed --dry-run 2>&1)"; legacy_rc=$?
-set -e
-[[ "$legacy_rc" -ne 0 ]]; grep -Fq 'possible existing budget companion lacks plan_id' <<<"$legacy_out"
+# Apply, mandatory narrow/Household validation, and exact idempotent retry all use
+# the same Budget publication authority as Budget Add.
+apply="$tmp/apply"; copy_fixture "$apply"
+tools/edit --base "$apply" plan budget-sync --id plan-food-2026-01 --yes --post-check none >"$tmp/apply.out"
+grep -Fx '2026-01-10 Plan completion Budget sync: plan-food-2026-01' "$apply/budget.journal" >/dev/null
+grep -F 'Mandatory Budget validation: OK' "$tmp/apply.out" >/dev/null
+bqn src_edit/budget_validate_cmd.bqn "$apply" >/dev/null
+tools/ledger-check "$apply" >/dev/null
+after="$(sha_file "$apply/budget.journal")"
+tools/edit-bqn --base "$apply" plan budget-sync --id plan-food-2026-01 --yes --post-check none >"$tmp/retry.out"
+grep -F 'Budget sync already applied' "$tmp/retry.out" >/dev/null
+[[ "$(sha_file "$apply/budget.journal")" == "$after" ]]
 
-pending="$tmp/pending"; cp -R "$base" "$pending"
-mutate_budget_sync_target() { printf '%s\n' '# concurrent writer' >>"$SYNC_TARGET"; }
-export -f mutate_budget_sync_target
-set +e
-BQN_LEDGER_TEST_MODE=1 EDIT_BQN_TEST_BEFORE_APPEND_HOOK=mutate_budget_sync_target SYNC_TARGET="$pending/budget_alloc.tsv" \
-  tools/edit --base "$pending" plan budget-sync --id plan-2026-07-20-fixed --yes --post-check none >"$tmp/pending.out" 2>&1
-pending_rc=$?
-set -e
-[[ "$pending_rc" -ne 0 ]]
-! grep -Fq 'plan_id=plan-2026-07-20-fixed' "$pending/budget_alloc.tsv"
-tools/edit --base "$pending" plan budget-sync --id plan-2026-07-20-fixed --yes --post-check none >/dev/null
-grep -Fq 'plan_id=plan-2026-07-20-fixed' "$pending/budget_alloc.tsv"
+# A Plan without an admitted Household destination coordinate is not linked. It
+# requires valid completion evidence first, so append a synthetic canonical pair.
+unlinked="$tmp/unlinked"; copy_fixture "$unlinked"
+cat >>"$unlinked/plan.journal" <<'PLAN'
 
-tools/edit --base "$base" plan budget-sync --id plan-2026-07-20-fixed --yes --post-check none >/dev/null
-[[ "$(wc -l <"$base/budget_alloc.tsv" | tr -d ' ')" == 1 ]]
-tools/edit --base "$base" plan budget-sync --id plan-2026-07-20-fixed --yes --post-check none | grep -Fq 'already applied'
-[[ "$(wc -l <"$base/budget_alloc.tsv" | tr -d ' ')" == 1 ]]
+2026-01-22 transport-plan
+  ; plan-id: plan-transport-2026-01
+  expenses:transport  7 JPY
+  assets:cash  -7 JPY
+PLAN
+cat >>"$unlinked/actual.journal" <<'ACTUAL'
 
-tools/edit --base "$base" plan budget-sync --id plan-2026-07-20-variable --yes --post-check none | grep -Fq 'not linked'
-[[ "$(wc -l <"$base/budget_alloc.tsv" | tr -d ' ')" == 1 ]]
+2026-01-21 * completed transport plan
+    ; event-id: proof-transport-1
+    ; layer: actual
+    ; plan-id: plan-transport-2026-01
+    expenses:transport 7 JPY
+    assets:cash -7 JPY
+ACTUAL
+before="$(sha_file "$unlinked/budget.journal")"
+tools/edit --base "$unlinked" plan budget-sync --id plan-transport-2026-01 --yes --post-check none >"$tmp/unlinked.out"
+grep -F 'Budget sync not linked' "$tmp/unlinked.out" >/dev/null
+[[ "$(sha_file "$unlinked/budget.journal")" == "$before" ]]
+assert_no_backup "$unlinked" not-linked
 
-awk '/^2026-07-14 \* variable$/{copy=1} copy{print}' "$base/actual.journal" >>"$base/actual.journal"
-set +e
-err="$(tools/edit --base "$base" plan budget-sync --id plan-2026-07-20-variable --dry-run 2>&1)"; rc=$?
-set -e
-[[ "$rc" -ne 0 ]]; grep -Fq 'plan_id must identify exactly one completed journal row' <<<"$err"
+# A stale source observation fails before publication and leaves no backup.
+stale="$tmp/stale"; copy_fixture "$stale"
+before="$(sha_file "$stale/budget.journal")"
+HOOK_ACCOUNTS_PATH="$stale/accounts.journal"; export HOOK_ACCOUNTS_PATH
+mutate_budget_sync_observation() { printf '\n; concurrent Account change\n' >>"$HOOK_ACCOUNTS_PATH"; }
+export -f mutate_budget_sync_observation
+if BQN_LEDGER_TEST_MODE=1 EDIT_BQN_TEST_BEFORE_BUDGET_APPEND_HOOK=mutate_budget_sync_observation \
+  tools/edit --base "$stale" plan budget-sync --id plan-food-2026-01 --yes --post-check none >"$tmp/stale.out" 2>&1; then
+  echo 'FAIL: stale Plan Budget sync published' >&2; exit 1
+fi
+[[ "$(sha_file "$stale/budget.journal")" == "$before" ]]
+assert_no_backup "$stale" stale
+
+# Post-write failure restores exact original bytes; guarded rollback remains in
+# the shared Budget authority rather than a Plan-owned writer.
+rollback="$tmp/rollback"; copy_fixture "$rollback"
+before="$(sha_file "$rollback/budget.journal")"
+if BQN_LEDGER_TEST_MODE=1 EDIT_BQN_TEST_FORCE_BUDGET_POST_CHECK_FAIL=1 \
+  tools/edit --base "$rollback" plan budget-sync --id plan-food-2026-01 --yes --post-check none >"$tmp/rollback.out" 2>&1; then
+  echo 'FAIL: forced Plan Budget sync post-check failure succeeded' >&2; exit 1
+fi
+[[ "$(sha_file "$rollback/budget.journal")" == "$before" ]]
+grep -F 'Rollback: restored original Budget bytes' "$tmp/rollback.out" >/dev/null
+
+if rg -n 'budget_alloc\.tsv|accounts\.tsv|config\.tsv|DefaultBudgetAllocFile|editor_plan_budget_config|system_defaults\.bqn' \
+  src_edit/plan_budget_sync_cmd.bqn src_edit/budget_movement_candidate.bqn tools/budget-write >/dev/null; then
+  echo 'FAIL: canonical Budget sync retains a legacy Household dependency' >&2; exit 1
+fi
 
 printf 'check-edit-bqn-plan-budget-sync: OK\n'

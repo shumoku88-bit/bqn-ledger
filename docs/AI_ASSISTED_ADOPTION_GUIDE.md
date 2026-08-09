@@ -98,23 +98,20 @@ The current production Actual/report path is explicit exact-integer JPY only. `c
 
 Create or prepare a base directory outside the repository, following `docs/DATA_DIR_SETUP.md`.
 
-A minimal usable base contains:
+A usable base is one canonical Household root:
 
 ```text
-accounts.tsv
+accounts.journal
 actual.journal
-cycle.tsv
-config.tsv
+plan.journal
+budget.journal
+budget.toml
+household.toml
+report.toml
+issues.tsv
 ```
 
-Daily use commonly also needs:
-
-```text
-plan.tsv
-budget_alloc.tsv
-```
-
-Create only what the user has chosen to use. Preserve the documented TSV shapes and metadata contracts. Prefer an empty, valid journal over fabricated transactions.
+Preserve canonical Journal and typed policy contracts. Prefer empty, valid Journals over fabricated transactions.
 
 Before applying the draft, show the user:
 

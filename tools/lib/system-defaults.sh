@@ -1,10 +1,16 @@
 #!/usr/bin/env bash
 
-# Load local environment variables from .env if present
+# Load local defaults without overriding an explicit caller-selected Household.
+_caller_ledger_data_dir_set="${LEDGER_DATA_DIR+x}"
+_caller_ledger_data_dir="${LEDGER_DATA_DIR-}"
 if [[ -f ".env" ]]; then
   # shellcheck disable=SC1090,SC1091
   source ".env"
 fi
+if [[ -n "$_caller_ledger_data_dir_set" ]]; then
+  LEDGER_DATA_DIR="$_caller_ledger_data_dir"
+fi
+unset _caller_ledger_data_dir_set _caller_ledger_data_dir
 
 # Resolve system defaults from config/system_defaults.tsv
 
@@ -45,69 +51,6 @@ get_system_default_file() {
     fi
   fi
   printf '%s\n' "$fallback"
-}
-
-# Retained writer-side legacy helper. Do not reuse it for canonical Report reads;
-# writer qualification is a later migration phase.
-ledger_base_missing_required() {
-  local base_dir="$1"
-  local required=(accounts.tsv cycle.tsv)
-  local file missing=()
-
-  for file in "${required[@]}"; do
-    if [[ ! -f "$base_dir/$file" ]]; then
-      missing+=("$file")
-    fi
-  done
-
-  if [[ ${#missing[@]} -gt 0 ]]; then
-    printf '%s\n' "${missing[@]}"
-  fi
-}
-
-ledger_suggest_base_dir() {
-  local candidates=(
-    "../ledger-data/data"
-    "../../ledger-data/data"
-    "data"
-  )
-  local candidate
-
-  for candidate in "${candidates[@]}"; do
-    if [[ -d "$candidate" ]] && [[ -f "$candidate/accounts.tsv" ]] && [[ -f "$candidate/cycle.tsv" ]]; then
-      printf '%s\n' "$candidate"
-      return 0
-    fi
-  done
-
-  return 1
-}
-
-ensure_ledger_report_base() {
-  local base_dir="$1"
-  local missing=() suggestion line
-  while IFS= read -r line; do
-    missing+=("$line")
-  done < <(ledger_base_missing_required "$base_dir")
-
-  if [[ ${#missing[@]} -eq 0 ]]; then
-    return 0
-  fi
-
-  echo "Error: ledger data directory is not usable for reports: $base_dir" >&2
-  echo "Missing required file(s): ${missing[*]}" >&2
-
-  if suggestion="$(ledger_suggest_base_dir)"; then
-    echo "Candidate data directory found: $suggestion" >&2
-    echo "Try:" >&2
-    echo "  export LEDGER_DATA_DIR=$suggestion" >&2
-    echo "  tools/main-ui.sh" >&2
-    echo "  tools/add-ui.sh" >&2
-  else
-    echo "Set LEDGER_DATA_DIR to the directory containing accounts.tsv and cycle.tsv; BQN validates the explicitly selected actual source." >&2
-  fi
-
-  return 1
 }
 
 canonical_report_base_missing_required() {

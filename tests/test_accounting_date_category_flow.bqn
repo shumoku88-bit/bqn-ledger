@@ -7,7 +7,7 @@ registry_core ← •Import "../src/ledger/currency_registry.bqn"
 budgetPolicyAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
 householdAdmission ← •Import "../src/ledger/household_policy_admission.bqn"
 account_admission ← •Import "../src/ledger/account_admission.bqn"
-companion_snapshot ← •Import "../src/ledger/companion_snapshot.bqn"
+canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 flow ← •Import "../src/accounting/date_category_flow.bqn"
 pivot ← •Import "../src/accounting/sparse_pivot.bqn"
@@ -58,11 +58,11 @@ scaleAccountLines ← ⟨
   "budget:food	role=budget	currency=JPY"
 ⟩
 scaleAccounts ← (account_admission.Admit ⟨scaleAccountLines,registry⟩).accounts
-scalePlanLines ← ⟨
-  "2026-01-10	whole	assets:jpy	expenses:food	25	currency=JPY	plan_id=p1",
-  "2026-01-10	fraction	assets:jpy	expenses:food	12.30	currency=JPY	plan_id=p2"
+scalePlanRaw ← ∾{𝕩∾@+10}¨⟨
+  "2026-01-10 whole","  ; plan-id: p1","  expenses:food 25 JPY","  assets:jpy -25 JPY","",
+  "2026-01-10 fraction","  ; plan-id: p2","  expenses:food 12.30 JPY","  assets:jpy -12.30 JPY"
 ⟩
-scaleFacts ← (companion_snapshot.Build ⟨scalePlanLines,⟨⟩,scaleAccounts,registry⟩).plan
+scaleFacts ← (canonicalPlan.Build ⟨scalePlanRaw,scaleAccounts,registry⟩).facts
 scaleBudgetPolicy ← {
   state⇐"ok",source_name⇐"budget.toml",envelopes⇐{count⇐1,id⇐⟨"food"⟩},
   expense_account_index⇐⟨1⟩,expense_envelope_id⇐⟨"food"⟩

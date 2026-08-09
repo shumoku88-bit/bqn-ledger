@@ -21,7 +21,7 @@ Owner: maintainer / format / validation
 - `income:*`   : 収入源
 - `expenses:*` : 費用カテゴリ
 - `equity:*`   : 開始残高 / 純資産勘定
-- `budget:*`   : 封筒 / 予算レイヤの勘定科目（既定プレフィックス。実際値は `config.tsv` で設定）
+- `budget:*`   : 封筒 / 予算レイヤの慣用名前空間。identity/typeは`accounts.journal`、具体的な分類とpolicyは`household.toml` / `budget.toml`が所有します。
 
 ### 推奨ルール
 
@@ -50,39 +50,12 @@ Owner: maintainer / format / validation
 - `system_today` より未来のActual取引は入力エラーとして拒否されます。将来予定は `plan.tsv` に記述します。
 - Actual取引のTSV形式、fallback、dual writeはありません。
 
-### source TSV (`plan.tsv`, `budget_alloc.tsv`)
+### canonical Plan / Budget Journal
 
-- 必須列（1〜5列目）:
-  1) 日付 (`YYYY-MM-DD`)
-  2) 摘要（メモ）
-  3) 送金元 (from)
-  4) 送金先 (to)
-  5) 金額 (amount)
-- 任意列（6列目以降）: メタデータトークン（`key=value` 形式）、1列につき1トークン
-
-注意点：
-
-- `#` で始まる行はコメント行として扱われ、ローダーや lint によって無視されます。これは `plan.tsv` のセクションを視覚的にグループ化するのに使用できます。
-- 会計計算では先頭の5列のみを使用します。
-- バリデーションでは **「少なくとも5列存在すること」** および既知の勘定科目が使用されていることを強制します。
-- strict admission and accounting diagnostics は `date` / `from` / `to` / `amount` の不正を skipped / invalid / warning / error として可視化します。
-  - `date` は `YYYY-MM-DD` 形式かつカレンダー上有効な日付である必要があります。
-  - `amount` は exact decimal (10進表記) の数値文字列でなければならず、対象の通貨で許容される最大小数桁（レジストリで定義）を満たす必要があります。
-- `memo`（摘要）は空でも構いません。
-- ジャーナル形式の TSV パース処理は空のフィールドを維持するため、摘要列が空であっても `from` / `to` / `amount` が左にずれることはありません。
-- 観察境界 (`as_of`) の扱いは section ごとに異なるため、変更時は `docs/TIME_AS_AXIS.md` と該当 `src/ledger` / `src/accounting` module and check を確認します。未来日の actual journal row を許すかどうかは、便利な補正ではなく fail-visible な診断として扱います。
-- `budget:*` 口座は `budget_alloc.tsv` 内でのみ許可されます。native Journalおよび `plan.tsv` には予算口座を含めてはなりません。費用の封筒消費を投影するには、`accounts.tsv` の `budget=...` メタデータを使用します。
-
-### 予算勘定の設定
-
-予算レイヤのPrefixと特殊勘定名は `config.tsv` の次の必須キーで定義します。
-
-- `BUDGET_PREFIX`
-- `BUDGET_ID_OPENING`
-- `BUDGET_ID_UNASSIGNED`
-- `BUDGET_ID_SPENT`
-
-コードではこれらの名前を直接書かず、current reportはstrict manifest/config admission、Plan budget editorは狭い`src/application/editor_plan_budget_config.bqn`のアクセサを使います。本文中の`budget:*`は既定設定を使った概念表記です。
+- `plan.journal`はPlan transaction、`budget.journal`はordered Budget movement evidenceを所有します。
+- 通常のJournal admissionがdate、description、Account resolution、Commodity、exact amount、balancing、metadata、Posting order、provenanceをfail closedで検査します。
+- Budget transactionはexactly two Budget Postingsで、source orderは`from → to`、resolved amountsはexact oppositesです。
+- Account identity/type/optional default Commodityは`accounts.journal`、Envelope policyは`budget.toml`、allocation/spent/classification coordinatesは`household.toml`が所有します。物理basenameは`src/application/canonical_household_sources.bqn`だけが定義します。
 
 ## メタデータ規約 (Metadata conventions)
 
@@ -97,10 +70,6 @@ Owner: maintainer / format / validation
 これらは規約です（すべてがすでにエンジンによって解釈されるわけではありません）：
 
 - `type=liquid|savings|invest` (`accounts.tsv`): 資産カテゴリ
-- `budget=<name>` (`accounts.tsv`): 費用 → 封筒マッピング (`budget:<name>`)
-  - `budget:<name>` は `accounts.tsv` に存在する必要があります。対象の封筒が存在しない場合、現行 lint/readiness checks で検出対象になります。
-  - `budget=<name>` メタデータを使用する場合、予算消費のシンク（吸い込み先）として `budget:spent` も存在する必要があります。
-  - 上記の `budget:` や `budget:spent` は既定値です。実際の名前は `config.tsv` の予算設定に従います。
 - `fixed=1` (`accounts.tsv`): 固定費フラグ（YTD内訳の集計で使用）
 - `spend_class=fixed|variable` (`accounts.tsv`): 日次トレンド / 支出分析クラス
   - 詳細: `docs/archive/completed-plans/SPEND_CLASS.md`

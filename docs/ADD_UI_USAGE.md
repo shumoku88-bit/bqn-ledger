@@ -32,7 +32,7 @@ tools/add-ui.sh reverse
 tools/add-ui.sh --check
 ```
 
-`--check` は source TSV を書き換えません。base directory、主要 TSV、role 別 account 候補、BQN editor 経路、plan list の読み取りを確認します。
+`--check` は source を書き換えません。canonical Household 8ファイル、role 別 account 候補、BQN editor 経路、plan list の読み取りを確認します。
 
 ## mode
 
@@ -42,7 +42,7 @@ tools/add-ui.sh --check
 | `multi` | 1取引に3件以上のポスティングを入力 | configured native Journal | `tools/edit journal multi-add` |
 | `move` | 資金移動 (`assets:` → `assets:`) | configured native Journal | `tools/edit journal add` |
 | `income` | 収入 (`income:` → `assets:`) | configured native Journal | `tools/edit journal add` |
-| `budget` | 予算配賦 (`budget:` → `budget:`) | `budget_alloc.tsv` | `tools/edit budget add` |
+| `budget` | Budget movement | `budget.journal` | `tools/edit budget add` |
 | `plan-add` | 予定の追加 | `plan.tsv` | `tools/edit plan add` |
 | `plan-edit` | 予定の日付・金額修正 | `plan.tsv` | `tools/edit plan edit` |
 | `plan-finish` | 予定の実績化 | configured native Journal | `tools/edit plan finish --apply` |
@@ -81,16 +81,6 @@ BQN editor 側では次を行います。
 - post-check lint（既定）
 
 そのため、確認なしに静かに追記する旧方式より安全です。
-
-## 旧BQN backendへ一時的に戻す
-
-問題切り分けなどで旧BQN追記を使いたい場合だけ、次のように実行します。
-
-```sh
-ADD_UI_BACKEND=bqn tools/add-ui.sh
-```
-
-通常は指定不要です。
 
 ## BQN editor を直接使う例
 
@@ -145,7 +135,7 @@ tools/edit journal add \
 
 ## 注意
 
-- configured native Journal / `budget_alloc.tsv` は source of truth です。Actual取引のTSV routeはありません。
+- Budget movement の source of truth は `budget.journal` です。`budget.toml` は policy であり transaction store ではありません。
 - `tools/add-ui.sh --check` は read-only preflight です。入力UIが壊れていないか先に確認できます。
 - `tools/add-ui.sh <mode>` は mode selector をスキップするだけです。unknown mode は usage を表示して nonzero で終了します。
 - `tools/add-ui.sh` は承認済み範囲の single-file append だけを行います。

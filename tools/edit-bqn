@@ -25,7 +25,6 @@ source "$DIR/lib/edit-bqn-issue.sh"
 source "$DIR/lib/edit-bqn-travel.sh"
 
 BASE_DIR="${LEDGER_DATA_DIR:-$(get_default_base_dir)}"
-BUDGET_ALLOC_FILE="$(get_system_default_file DEFAULT_BUDGET_ALLOC_FILE budget_alloc.tsv)"
 PLAN_FILE="$(get_system_default_file DEFAULT_PLAN_FILE plan.tsv)"
 ISSUES_FILE="issues.tsv"
 ACCOUNTS_FILE="$(get_system_default_file DEFAULT_ACCOUNTS_FILE accounts.tsv)"
@@ -86,6 +85,12 @@ if [[ $# -lt 2 ]]; then
   echo "ERROR: missing command/subcommand" >&2
   usage
   exit 2
+fi
+
+# Direct callers cannot retain a second Budget mutation authority. Both Budget
+# commands enter the same canonical writer used by the public tools/edit route.
+if [[ "$1" == "budget" && "$2" == "add" ]] || [[ "$1" == "plan" && "$2" == "budget-sync" ]]; then
+  exec bash "$ROOT_DIR/tools/budget-write" --base "$BASE_DIR" "$@"
 fi
 
 if [[ "$1" == "travel" && "$2" == "friend" && "${3-}" == "add" ]]; then
@@ -599,45 +604,6 @@ if [[ "$1" == "journal" && "$2" == "reverse" ]]; then
   [[ "$YES" -eq 1 ]] && native_args+=(--yes)
   exec "$0" "${native_args[@]}"
 fi
-if [[ "$1" == "plan" && "$2" == "budget-sync" ]]; then
-  shift 2
-  PLAN_ID=""
-  DRY_RUN=0
-  YES=0
-  POST_CHECK="lint"
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      --id) PLAN_ID="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
-      --dry-run) DRY_RUN=1; shift ;;
-      --yes) YES=1; shift ;;
-      --post-check) POST_CHECK="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
-      *) echo "ERROR: unknown plan budget-sync argument: $1" >&2; exit 2 ;;
-    esac
-  done
-  [[ -n "$PLAN_ID" ]] || { echo "ERROR: missing required option: --id" >&2; exit 2; }
-  edit_bqn_validate_post_check "$POST_CHECK"
-
-  TARGET_PATH="$BASE_DIR/$BUDGET_ALLOC_FILE"
-  SNAPSHOT_TOKEN="$(safe_snapshot_token "$TARGET_PATH")"
-  IFS=$'\t' read -r SNAP_SIZE SNAP_MTIME SNAP_SHA256 <<< "$SNAPSHOT_TOKEN"
-  BQN_STDERR="$(mktemp)"; trap 'rm -f "$BQN_STDERR"' EXIT
-  if ! BQN_OUT="$(edit_bqn_bqn_capture "$BQN_STDERR" bqn src_edit/plan_budget_sync_cmd.bqn "$BASE_DIR" "$PLAN_ID")"; then exit 1; fi
-  FIRST_LINE="${BQN_OUT%%$'\n'*}"
-  case "$FIRST_LINE" in
-    $'OK\tAPPLIED\t'*) printf 'Budget sync already applied: %s\n' "$PLAN_ID"; exit 0 ;;
-    $'OK\tNOT_LINKED\t'*) printf 'Budget sync not linked: %s\n' "$PLAN_ID"; exit 0 ;;
-  esac
-  if ! edit_bqn_split_protocol_output "$BQN_OUT"; then exit 1; fi
-  if ! edit_bqn_require_append_protocol "$EDIT_BQN_PROTOCOL_FIRST_LINE" "$BUDGET_ALLOC_FILE"; then exit 1; fi
-  PAYLOAD="$EDIT_BQN_PROTOCOL_PAYLOAD"
-  MODE="$(edit_bqn_mode "$DRY_RUN" "$YES")"
-  edit_bqn_print_append_preview "Plan budget sync" "$TARGET_PATH" "$MODE" "$POST_CHECK" "Budget companion row" "$PAYLOAD"
-  if [[ "$DRY_RUN" -eq 1 ]]; then printf 'Dry-run only. No files were modified.\n'; exit 0; fi
-  if [[ "$YES" -eq 0 ]] && ! confirm_append; then echo 'BUDGET_SYNC_PENDING: no files were modified.'; exit 130; fi
-  edit_bqn_apply_append_checked "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256" EDIT_BQN_TEST_BEFORE_APPEND_HOOK
-  exit 0
-fi
-
 if [[ "$1" == "plan" && "$2" == "edit" ]]; then
   shift 2
   INDEX="0"
@@ -871,11 +837,6 @@ case "$COMMAND" in
     PREVIEW_TITLE="Journal"
     ROW_TITLE="Journal transaction"
     ;;
-  budget)
-    EXPECTED_TARGET_FILE="$BUDGET_ALLOC_FILE"
-    PREVIEW_TITLE="Budget allocation"
-    ROW_TITLE="Budget allocation row"
-    ;;
   plan)
     EXPECTED_TARGET_FILE="$PLAN_FILE"
     PREVIEW_TITLE="Plan"
@@ -927,8 +888,8 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [[ "$COMMAND" != "journal" && "$COMMAND" != "budget" && "$COMMAND" != "plan" && -n "$CURRENCY" ]]; then
-  echo "ERROR: --currency is currently supported only for journal, budget, and plan add" >&2
+if [[ "$COMMAND" != "journal" && "$COMMAND" != "plan" && -n "$CURRENCY" ]]; then
+  echo "ERROR: --currency is currently supported only for journal, Budget, and Plan add" >&2
   exit 2
 fi
 edit_bqn_validate_post_check "$POST_CHECK"
@@ -952,26 +913,14 @@ IFS=$'\t' read -r SNAP_SIZE SNAP_MTIME SNAP_SHA256 <<< "$SNAPSHOT_TOKEN"
 BQN_STDERR="$(mktemp)"
 trap 'rm -f "$BQN_STDERR"' EXIT
 BQN_OUT=""
-if [[ "$COMMAND" == "plan" ]]; then
-  if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/plan_add_cmd.bqn "$BASE_DIR" "$DATE" "$MEMO" "$FROM" "$TO" "$AMOUNT" "$PLAN_ID" "$CURRENCY" "${META[@]}" 2>"$BQN_STDERR")"; then
-    if [[ -n "$BQN_OUT" ]]; then
-      printf '%s\n' "$BQN_OUT" >&2
-    fi
-    if [[ -s "$BQN_STDERR" ]]; then
-      cat "$BQN_STDERR" >&2
-    fi
-    exit 1
+if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/plan_add_cmd.bqn "$BASE_DIR" "$DATE" "$MEMO" "$FROM" "$TO" "$AMOUNT" "$PLAN_ID" "$CURRENCY" "${META[@]}" 2>"$BQN_STDERR")"; then
+  if [[ -n "$BQN_OUT" ]]; then
+    printf '%s\n' "$BQN_OUT" >&2
   fi
-else
-  if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/journal_add_cmd.bqn "$BASE_DIR" "$COMMAND" "$DATE" "$MEMO" "$FROM" "$TO" "$AMOUNT" "$CURRENCY" "${META[@]}" 2>"$BQN_STDERR")"; then
-    if [[ -n "$BQN_OUT" ]]; then
-      printf '%s\n' "$BQN_OUT" >&2
-    fi
-    if [[ -s "$BQN_STDERR" ]]; then
-      cat "$BQN_STDERR" >&2
-    fi
-    exit 1
+  if [[ -s "$BQN_STDERR" ]]; then
+    cat "$BQN_STDERR" >&2
   fi
+  exit 1
 fi
 
 if ! edit_bqn_split_protocol_output "$BQN_OUT"; then
