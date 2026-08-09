@@ -1,0 +1,132 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=tools/lib/system-defaults.sh
+source "$ROOT_DIR/tools/lib/system-defaults.sh"
+# shellcheck source=tools/lib/safe-write.sh
+source "$ROOT_DIR/tools/lib/safe-write.sh"
+# shellcheck source=tools/lib/edit-bqn-common.sh
+source "$ROOT_DIR/tools/lib/edit-bqn-common.sh"
+
+BASE_DIR="${LEDGER_DATA_DIR:-$(get_default_base_dir)}"
+TARGET_FILE="budget.journal"
+
+args=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --base)
+      BASE_DIR="$(get_opt_val "$1" "${2-}")"
+      shift 2
+      ;;
+    *) args+=("$1"); shift ;;
+  esac
+done
+set -- "${args[@]}"
+
+if [[ "${1-}" != "budget" || "${2-}" != "add" ]]; then
+  echo 'ERROR: tools/budget-add handles only: budget add' >&2
+  exit 2
+fi
+shift 2
+
+DATE=""; MEMO=""; FROM=""; TO=""; AMOUNT=""; CURRENCY=""
+META=(); DRY_RUN=0; YES=0; POST_CHECK="lint"
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --date) DATE="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+    --memo) MEMO="$(get_opt_val_allow_empty "$1" "${2-}")"; shift 2 ;;
+    --from) FROM="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+    --to) TO="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+    --amount) AMOUNT="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+    --currency) CURRENCY="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+    --meta) META+=("$(get_opt_val "$1" "${2-}")"); shift 2 ;;
+    --dry-run) DRY_RUN=1; shift ;;
+    --yes) YES=1; shift ;;
+    --post-check) POST_CHECK="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+    *) echo "ERROR: unknown budget add option: $1" >&2; exit 2 ;;
+  esac
+done
+edit_bqn_validate_post_check "$POST_CHECK"
+
+TARGET_PATH="$BASE_DIR/$TARGET_FILE"
+SNAPSHOT_TOKEN="$(safe_snapshot_token "$TARGET_PATH")"
+IFS=$'\t' read -r SNAP_SIZE SNAP_MTIME SNAP_SHA256 <<< "$SNAPSHOT_TOKEN"
+
+BQN_STDERR="$(mktemp)"
+trap 'rm -f "$BQN_STDERR"' EXIT
+BQN_OUT=""
+if ! BQN_OUT="$(cd "$ROOT_DIR" && bqn src_edit/budget_add_cmd.bqn "$BASE_DIR" "$DATE" "$MEMO" "$FROM" "$TO" "$AMOUNT" "$CURRENCY" "${META[@]}" 2>"$BQN_STDERR")"; then
+  [[ -n "$BQN_OUT" ]] && printf '%s\n' "$BQN_OUT" >&2
+  [[ -s "$BQN_STDERR" ]] && cat "$BQN_STDERR" >&2
+  exit 1
+fi
+if ! edit_bqn_split_protocol_output "$BQN_OUT"; then exit 1; fi
+if ! edit_bqn_require_append_protocol "$EDIT_BQN_PROTOCOL_FIRST_LINE" "$TARGET_FILE"; then exit 1; fi
+PAYLOAD="$EDIT_BQN_PROTOCOL_PAYLOAD"
+MODE="$(edit_bqn_mode "$DRY_RUN" "$YES")"
+
+printf 'Budget movement append preview\n'
+printf 'Target: %s\n' "$TARGET_PATH"
+printf 'Mode: %s\n' "$MODE"
+printf 'Post-check: %s\n' "$POST_CHECK"
+printf 'Budget transaction:\n%s\n' "$PAYLOAD"
+if [[ "$DRY_RUN" -eq 1 ]]; then
+  printf 'Dry-run only. No files were modified.\n'
+  exit 0
+fi
+if [[ "$YES" -eq 0 ]] && ! confirm_append; then
+  echo 'Cancelled. No files were modified.'
+  exit 0
+fi
+
+edit_bqn_run_test_hook EDIT_BQN_TEST_BEFORE_BUDGET_APPEND_HOOK
+WRITE_OUT=""
+if ! WRITE_OUT="$(safe_append_checked "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256")"; then
+  exit 1
+fi
+printf '%s\n' "$WRITE_OUT"
+BACKUP_PATH="$(awk -F': ' '$1 == "Backup" {print $2}' <<< "$WRITE_OUT")"
+POST_WRITE_SHA="$(_safe_write_sha256 "$TARGET_PATH")"
+
+MANDATORY_OK=1
+VALIDATE_OUT=""
+if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && "${EDIT_BQN_TEST_FORCE_BUDGET_POST_CHECK_FAIL:-}" == "1" ]]; then
+  MANDATORY_OK=0
+  VALIDATE_OUT='forced canonical Budget post-admission failure'
+elif ! VALIDATE_OUT="$(cd "$ROOT_DIR" && bqn src_edit/budget_validate_cmd.bqn "$BASE_DIR" 2>&1)"; then
+  MANDATORY_OK=0
+fi
+if [[ "$MANDATORY_OK" -eq 1 ]]; then
+  printf 'Mandatory Budget validation: OK\n%s\n' "$VALIDATE_OUT"
+else
+  printf 'Mandatory Budget validation: FAILED\n%s\n' "$VALIDATE_OUT" >&2
+fi
+
+OPTIONAL_OK=1
+if [[ "$MANDATORY_OK" -eq 1 && "$POST_CHECK" == "full" ]]; then
+  printf 'Additional full check: starting\n'
+  if ! (cd "$ROOT_DIR" && bash tools/check.sh); then
+    OPTIONAL_OK=0
+  else
+    printf 'Additional full check: OK\n'
+  fi
+elif [[ "$MANDATORY_OK" -eq 1 ]]; then
+  printf 'Additional check: none (%s mode)\n' "$POST_CHECK"
+fi
+
+if [[ "$MANDATORY_OK" -eq 1 && "$OPTIONAL_OK" -eq 1 ]]; then
+  exit 0
+fi
+
+edit_bqn_run_test_hook EDIT_BQN_TEST_BEFORE_POSTCHECK_ROLLBACK_HOOK
+if safe_restore_backup_checked "$TARGET_PATH" "$BACKUP_PATH" "$POST_WRITE_SHA"; then
+  if [[ "$(_safe_write_sha256 "$TARGET_PATH")" != "$SNAP_SHA256" ]]; then
+    echo 'Rollback: restore digest mismatch; recovery required' >&2
+    exit 1
+  fi
+  echo 'Rollback: restored original Budget bytes' >&2
+  exit 1
+fi
+echo 'Rollback: refused; target changed after append; recovery required' >&2
+exit 1
