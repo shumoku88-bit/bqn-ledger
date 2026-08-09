@@ -58,16 +58,54 @@ stage=$(mktemp -d "$cache_dir/.destination-stage.XXXXXX")
 cleanup() { rm -rf "$stage" "$lock"; }
 trap cleanup EXIT
 
+batch="$stage/.report-batch"
+if ! bqn src/application/current_report_batch_cli.bqn "$base" frame human "${rows[@]}" >"$batch"; then
+  cat "$batch" >&2
+  exit 1
+fi
+
+exec 3<"$batch"
+IFS=$'\t' read -r batch_marker batch_version batch_count batch_extra <&3 || {
+  printf 'ERROR\tbatch_frame_header_invalid\tbatch frame header is missing\n' >&2
+  exit 1
+}
+[[ $batch_marker == BQN-LEDGER-REPORT-BATCH && $batch_version == 1 && $batch_count =~ ^[0-9]+$ && -z ${batch_extra:-} ]] || {
+  printf 'ERROR\tbatch_frame_header_invalid\tbatch frame header is invalid\n' >&2
+  exit 1
+}
+[[ $batch_count -eq ${#expected_keys[@]} ]] || {
+  printf 'ERROR\tbatch_frame_count_mismatch\tbatch frame count differs from selected report count\n' >&2
+  exit 1
+}
+
 : >"$stage/all.txt"
 for index in "${!expected_keys[@]}"; do
-  IFS=$'\t' read -r -a fields <<<"${rows[$index]}"
-  key=${expected_keys[$index]}
-  if ! "$root/tools/report" "$base" "${fields[@]}" >"$stage/$key.txt"; then
-    cat "$stage/$key.txt" >&2
+  IFS=$'\t' read -r marker key line_count header_extra <&3 || {
+    printf 'ERROR\tbatch_frame_report_header_missing\tbatch report header is missing\n' >&2
     exit 1
-  fi
+  }
+  [[ $marker == REPORT && $key == "${expected_keys[$index]}" && $line_count =~ ^[0-9]+$ && -z ${header_extra:-} ]] || {
+    printf 'ERROR\tbatch_frame_report_header_invalid\tbatch report header is invalid or out of order\n' >&2
+    exit 1
+  }
+  : >"$stage/$key.txt"
+  for ((line_index=0; line_index<line_count; line_index++)); do
+    body_line=""
+    IFS= read -r body_line <&3 || {
+      printf 'ERROR\tbatch_frame_body_truncated\tbatch report body ended before declared line count\n' >&2
+      exit 1
+    }
+    printf '%s\n' "$body_line" >>"$stage/$key.txt"
+  done
   cat "$stage/$key.txt" >>"$stage/all.txt"
 done
+if IFS= read -r trailing <&3; then
+  printf 'ERROR\tbatch_frame_trailing_data\tbatch frame contains trailing data\n' >&2
+  exit 1
+fi
+exec 3<&-
+rm -f "$batch"
+
 printf '%s\n' "${expected_keys[@]}" all >"$stage/.section-keys"
 [[ -s $stage/all.txt ]] || { printf 'ERROR\tcache_all_empty\tall cache body is empty\n' >&2; exit 1; }
 for key in "${expected_keys[@]}" all; do
