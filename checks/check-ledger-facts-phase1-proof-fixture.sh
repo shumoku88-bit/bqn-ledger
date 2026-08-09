@@ -53,17 +53,11 @@ destination_planned_json=$(cat "$base/planned_payments.destination.json")
 python3 -c '
 import json, sys
 value = json.load(sys.stdin)
-assert value["open_items"] == []
-assert value["open_total"] == 0
-assert value["completed_items"] == [{
-    "date": "2026-01-20",
-    "category": "food",
-    "memo": "food-plan",
-    "amount": 25,
-    "actual_amount": 20,
-    "status": "completed",
-    "plan_id": "plan-food-2026-01",
-}]
+assert len(value["open_items"]) == 2
+assert value["current_cycle_total"] == 200
+assert value["due_through_cycle_total"] == 200
+assert value["overdue_total"] == 0
+assert value["future_cycles_total"] == 1000
 ' <<<"$planned"
 
 sections=$(tools/report "$base" --list-sections --no-color)
