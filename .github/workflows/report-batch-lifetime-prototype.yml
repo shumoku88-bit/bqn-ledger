@@ -7,6 +7,7 @@ on:
       - experiments/performance/report_batch_destination_prototype.bqn
       - experiments/performance/report_batch_lifetime_prototype.sh
       - experiments/performance/report_batch_lifetime_probe.sh
+      - docs/REPORT_BATCH_LIFETIME_PROTOTYPE-2026-08-09.md
       - .github/workflows/report-batch-lifetime-prototype.yml
 
 jobs:
