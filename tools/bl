@@ -280,8 +280,7 @@ run_reports() {
 }
 
 show_plan_related_interactive() {
-  local today rows selected status index
-  today="$(date +%Y-%m-%d)"
+  local rows selected status index selected_row selected_plan_date
   rows="$("$ROOT_DIR/tools/edit" --base "$base_dir" plan list --format tsv)"
   [[ -n $rows ]] || { echo 'No open Plans.'; return 0; }
   set +e
@@ -291,7 +290,12 @@ show_plan_related_interactive() {
   [[ $status -eq 130 ]] && return 130
   [[ $status -eq 0 ]] || return "$status"
   index="$selected"
-  run_child "$ROOT_DIR/tools/edit" --base "$base_dir" plan related --index "$index" --actual-date "$today" --format tsv
+  selected_row="$(awk -F'\t' -v selected_index="$index" '$1==selected_index {print; found++} END {if (found!=1) exit 1}' <<<"$rows")" || {
+    echo 'Failed to resolve the selected Plan row.' >&2
+    return 1
+  }
+  selected_plan_date="$(cut -f3 <<<"$selected_row")"
+  run_child "$ROOT_DIR/tools/edit" --base "$base_dir" plan related --index "$index" --actual-date "$selected_plan_date" --format tsv
 }
 
 show_plan_budget_sync_interactive() {

@@ -39,6 +39,18 @@ cat >>"$base/plan.journal" <<'EOF'
     ; plan-id: hub-historical-income
     income:salary -1 JPY
     assets:cash 1 JPY
+
+2098-09-10 selected related boundary
+    ; plan-id: plan-2098-09-10-hub-related-proof
+    ; series: hub-related-proof
+    expenses:food 31 JPY
+    assets:cash -31 JPY
+
+2098-10-10 future related result
+    ; plan-id: plan-2098-10-10-hub-related-proof
+    ; series: hub-related-proof
+    expenses:food 31 JPY
+    assets:cash -31 JPY
 EOF
 
 bash -n tools/bl
@@ -64,6 +76,22 @@ for temporal in overdue upcoming; do
   tools/edit --base "$base" plan list --temporal "$temporal" --as-of "$(date +%Y-%m-%d)" --format tsv >"$work/owner-$temporal"
   cmp "$work/hub-$temporal" "$work/owner-$temporal"
 done
+
+# Interactive Plans → Related passes the selected Plan date—not today's date—to
+# the BQN relation owner. Thus the selected future Plan is excluded while a
+# later Plan with the same canonical series remains visible.
+selected_plan_index="$(awk -F'\t' '$2=="plan-2098-09-10-hub-related-proof" {print $1}' "$work/hub-plans")"
+[[ -n $selected_plan_index ]]
+tools/edit --base "$base" plan related --index "$selected_plan_index" \
+  --actual-date 2098-09-10 --format tsv >"$work/owner-related"
+printf '%s\n' "$selected_plan_index" | BL_SELECTOR=plain \
+  tools/bl --base "$base" plans related >"$work/hub-related" 2>"$work/hub-related-menu"
+cmp "$work/owner-related" "$work/hub-related"
+grep -q $'^ROW\t2098-10-10\tfuture related result\t' "$work/hub-related"
+if grep -q $'^ROW\t2098-09-10\tselected related boundary\t' "$work/hub-related"; then
+  echo 'FAIL: interactive related browse included the selected Plan itself' >&2
+  exit 1
+fi
 
 tools/bl --base "$base" accounts list >"$work/hub-accounts"
 tools/edit --base "$base" account list >"$work/owner-accounts"
