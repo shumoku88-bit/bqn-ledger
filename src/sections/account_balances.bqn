@@ -44,19 +44,23 @@ Build ← {𝕊 accountBalance‿asOfText:
 }
 
 AmountText ← {𝕊 coefficient‿scaleValue: amount.Format ⟨coefficient,scaleValue⟩}
-FormatHuman ← {𝕊 result:
+FormatHuman ← {𝕊 input:
+  result ← input ⋄ style ← "minus"
+  {𝕊: result↩0⊑input ⋄ style↩(1⊑input).negative_style}⍟((0<≡input) ∧ (2=≠input)) @
   labels ← {𝕩∾"/"∾result.domain}¨result.account_keys
+  amountTexts ← {text.FormatAmount ⟨⊑𝕩⊑result.matrix.values,result.matrix.scale,style⟩}¨result.matrix.row_index
+  valWidth ← ⌈´⟨12⟩∾text.VWidth¨amountTexts
   nameWidth ← ⌈´⟨7⟩∾text.VWidth¨labels
-  divider ← (nameWidth⥊'-')∾"-+--------------"
+  divider ← (nameWidth⥊'-')∾"-+--"∾(valWidth⥊'-')
   out ← "== Account Balances =="∾(@+10)
   out ∾↩ "Currency: "∾result.domain∾(@+10)
   out ∾↩ "As of: "∾result.as_of∾(@+10)∾(@+10)
-  out ∾↩ (text.PadRight ⟨nameWidth,"Account"⟩)∾" |      Balance"∾(@+10)
+  out ∾↩ (text.PadRight ⟨nameWidth,"Account"⟩)∾" | "∾(text.PadLeft ⟨valWidth,"Balance"⟩)∾(@+10)
   out ∾↩ divider∾(@+10)
   {𝕊 rowIndex:
-    value ← ⊑rowIndex⊑result.matrix.values
+    amtText ← rowIndex⊑amountTexts
     out ∾↩ (text.PadRight ⟨nameWidth,rowIndex⊑labels⟩)∾" | "
-    out ∾↩ (text.PadLeft ⟨12,AmountText ⟨value,result.matrix.scale⟩⟩)∾(@+10)
+    out ∾↩ (text.PadLeft ⟨valWidth,amtText⟩)∾(@+10)
   }¨result.matrix.row_index
   out ∾↩ divider∾(@+10)
   out ∾↩ "Balanced: "∾(result.balanced⊑"NO"‿"YES")∾(@+10)∾(@+10)

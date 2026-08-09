@@ -78,9 +78,11 @@ Build ← {𝕊 accountPeriod‿periodStartText‿periodEndText:
 }
 
 CellText ← {𝕊 coefficient‿scale: amount.Format ⟨coefficient,scale⟩}
-AmountCell ← {𝕊 coefficient‿scale: text.PadLeft ⟨12,CellText ⟨coefficient,scale⟩⟩}
+AmountCell ← {𝕊 coefficient‿scale‿style: text.PadLeft ⟨12,text.FormatAmount ⟨coefficient,scale,style⟩⟩}
 
-FormatHuman ← {𝕊 result:
+FormatHuman ← {𝕊 input:
+  result ← input ⋄ style ← "minus"
+  {𝕊: result↩0⊑input ⋄ style↩(1⊑input).negative_style}⍟((0<≡input) ∧ (2=≠input)) @
   maxName ← ⌈´⟨7⟩∾text.VWidth¨result.account_labels
   divider ← (maxName⥊'-')∾"-+--------------+--------------+--------------+--------------"
   out ← "== Trial Balance ("∾result.layer∾" layer) =="∾(@+10)
@@ -91,17 +93,17 @@ FormatHuman ← {𝕊 result:
   {𝕊 rowIndex:
     values ← rowIndex⊑result.matrix.values
     out ∾↩ (text.PadRight ⟨maxName,rowIndex⊑result.account_labels⟩)∾" | "
-    out ∾↩ (AmountCell ⟨0⊑values,result.matrix.scale⟩)∾" | "
-    out ∾↩ (AmountCell ⟨1⊑values,result.matrix.scale⟩)∾" | "
-    out ∾↩ (AmountCell ⟨2⊑values,result.matrix.scale⟩)∾" | "
-    out ∾↩ (AmountCell ⟨3⊑values,result.matrix.scale⟩)∾" "∾(@+10)
+    out ∾↩ (AmountCell ⟨0⊑values,result.matrix.scale,style⟩)∾" | "
+    out ∾↩ (AmountCell ⟨1⊑values,result.matrix.scale,style⟩)∾" | "
+    out ∾↩ (AmountCell ⟨2⊑values,result.matrix.scale,style⟩)∾" | "
+    out ∾↩ (AmountCell ⟨3⊑values,result.matrix.scale,style⟩)∾" "∾(@+10)
   }¨result.matrix.row_index
   out ∾↩ divider∾(@+10)
   out ∾↩ (text.PadRight ⟨maxName,"Total"⟩)∾" | "
-  out ∾↩ (AmountCell ⟨result.totals.opening,result.matrix.scale⟩)∾" | "
-  out ∾↩ (AmountCell ⟨result.totals.debit_movement,result.matrix.scale⟩)∾" | "
-  out ∾↩ (AmountCell ⟨result.totals.credit_movement,result.matrix.scale⟩)∾" | "
-  out ∾↩ (AmountCell ⟨result.totals.closing,result.matrix.scale⟩)∾" "∾(@+10)∾(@+10)
+  out ∾↩ (AmountCell ⟨result.totals.opening,result.matrix.scale,style⟩)∾" | "
+  out ∾↩ (AmountCell ⟨result.totals.debit_movement,result.matrix.scale,style⟩)∾" | "
+  out ∾↩ (AmountCell ⟨result.totals.credit_movement,result.matrix.scale,style⟩)∾" | "
+  out ∾↩ (AmountCell ⟨result.totals.closing,result.matrix.scale,style⟩)∾" "∾(@+10)∾(@+10)
   out ∾↩ "Zero-sum check (debit=credit): "∾(result.totals.balanced⊑"FAIL"‿"OK")∾(@+10)∾(@+10)
   out
 }

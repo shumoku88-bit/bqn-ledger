@@ -64,24 +64,27 @@ Build ← {𝕊 cycleAccountPeriod:
 }
 
 AmountText ← {𝕊 coefficient‿scaleValue: amount.Format ⟨coefficient,scaleValue⟩}
-FormatHuman ← {𝕊 result:
+FormatHuman ← {𝕊 input:
+  result ← input ⋄ style ← "minus"
+  {𝕊: result↩0⊑input ⋄ style↩(1⊑input).negative_style}⍟((0<≡input) ∧ (2=≠input)) @
+  Fmt ← {𝕊 coeff: text.FormatAmount ⟨coeff,result.matrix.scale,style⟩}
   rows ← {𝕊 i:
     values ← i⊑result.matrix.values
     ⟨
       i⊑result.account_labels,
-      AmountText ⟨0⊑values,result.matrix.scale⟩,
-      AmountText ⟨1⊑values,result.matrix.scale⟩,
-      AmountText ⟨2⊑values,result.matrix.scale⟩,
-      AmountText ⟨3⊑values,result.matrix.scale⟩,
-      AmountText ⟨4⊑values,result.matrix.scale⟩
+      Fmt 0⊑values,
+      Fmt 1⊑values,
+      Fmt 2⊑values,
+      Fmt 3⊑values,
+      Fmt 4⊑values
     ⟩
   }¨result.matrix.row_index
   total ← ⟨
-    "Total",AmountText ⟨result.totals.opening,result.matrix.scale⟩,
-    AmountText ⟨result.totals.debit,result.matrix.scale⟩,
-    AmountText ⟨result.totals.credit,result.matrix.scale⟩,
-    AmountText ⟨result.totals.movement,result.matrix.scale⟩,
-    AmountText ⟨result.totals.closing,result.matrix.scale⟩
+    "Total",Fmt result.totals.opening,
+    Fmt result.totals.debit,
+    Fmt result.totals.credit,
+    Fmt result.totals.movement,
+    Fmt result.totals.closing
   ⟩
   out ← "== Current-cycle Accounts =="∾(@+10)
   out ∾↩ "Cycle: "∾result.cycle_start∾".."∾result.cycle_end_exclusive∾" ("∾result.cycle_mode∾")"∾(@+10)

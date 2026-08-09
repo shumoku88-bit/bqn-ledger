@@ -47,12 +47,14 @@ TrimMemo ← {𝕊 value:
   result
 }
 
-FormatHuman ← {𝕊 result:
+FormatHuman ← {𝕊 input:
+  result ← input ⋄ style ← "minus"
+  {𝕊: result↩0⊑input ⋄ style↩(1⊑input).negative_style}⍟((0<≡input) ∧ (2=≠input)) @
   rows ← {𝕊 index:
     ⟨
       index⊑result.rows.date,Join (index⊑result.rows.credit_accounts),Join (index⊑result.rows.debit_accounts),
       TrimMemo (index⊑result.rows.description),
-      AmountText ⟨index⊑result.rows.coefficient,index⊑result.rows.scale⟩,
+      text.FormatAmount ⟨index⊑result.rows.coefficient,index⊑result.rows.scale,style⟩,
       index⊑result.rows.currency
     ⟩
   }¨result.rows.index

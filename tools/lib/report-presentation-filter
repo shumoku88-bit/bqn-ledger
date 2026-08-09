@@ -3,34 +3,7 @@
 set -euo pipefail
 style=${REPORT_NEGATIVE_STYLE:-minus}
 case "$style" in
-  minus) cat ;;
-  parentheses)
-    awk '
-      function digit(c) { return c ~ /^[0-9]$/ }
-      {
-        line=$0; out=""; n=length(line)
-        for (i=1; i<=n; i++) {
-          c=substr(line,i,1)
-          prev=(i==1 ? "" : substr(line,i-1,1))
-          nextc=(i==n ? "" : substr(line,i+1,1))
-          boundary=(i==1 || prev==" " || prev=="\t" || prev=="=" || prev==":" || prev=="(")
-          if (c=="-" && boundary && digit(nextc)) {
-            number=""; j=i+1
-            while (j<=n) {
-              d=substr(line,j,1)
-              if (digit(d) || d==".") { number=number d; j++ }
-              else break
-            }
-            out=out "(" number ")"
-            i=j-1
-          } else {
-            out=out c
-          }
-        }
-        print out
-      }
-    '
-    ;;
+  minus|parentheses) exec cat ;;
   *)
     printf 'ERROR\treport_negative_style_invalid\tunsupported Report negative style: %s\n' "$style" >&2
     exit 1

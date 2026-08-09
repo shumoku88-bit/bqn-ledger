@@ -34,34 +34,37 @@ Build ← {𝕊 dailyTarget:
 }
 
 AmountText ← {𝕊 coefficient‿scaleValue: amount.Format ⟨coefficient,scaleValue⟩}
-FormatHuman ← {𝕊 result:
+FormatHuman ← {𝕊 input:
+  result ← input ⋄ style ← "minus"
+  {𝕊: result↩0⊑input ⋄ style↩(1⊑input).negative_style}⍟((0<≡input) ∧ (2=≠input)) @
+  Fmt ← {𝕊 coeff‿scale: text.FormatAmount ⟨coeff,scale,style⟩}
   calculation ← result.calculation
   out ← "== Daily Target =="∾(@+10)
   out ∾↩ "Observation: "∾result.observation∾(@+10)
   out ∾↩ "Target date: "∾result.target_date∾" ("∾(•Fmt calculation.remaining_days)∾" days)"∾(@+10)∾(@+10)
-  assetRows ← {𝕊 row:⟨row.asset_id,AmountText ⟨row.coefficient,row.scale⟩⟩}¨result.asset_evidence
+  assetRows ← {𝕊 row:⟨row.asset_id,Fmt ⟨row.coefficient,row.scale⟩⟩}¨result.asset_evidence
   out ∾↩ "Eligible asset evidence"∾(@+10)
   out ∾↩ text.RenderTable ⟨⟨"Asset","Amount"⟩,assetRows,⟨1⟩⟩
   obligationRows ← {𝕊 row:
     reservation ← row.reservation_state
     {𝕊:reservation↩reservation∾":"∾row.reservation_ref}⍟(0<≠row.reservation_ref) @
     ⟨
-      row.obligation_id,AmountText ⟨row.coefficient,row.scale⟩,
-      AmountText ⟨row.excluded_coefficient,row.scale⟩,
-      AmountText ⟨row.deduction_coefficient,row.scale⟩,reservation
+      row.obligation_id,Fmt ⟨row.coefficient,row.scale⟩,
+      Fmt ⟨row.excluded_coefficient,row.scale⟩,
+      Fmt ⟨row.deduction_coefficient,row.scale⟩,reservation
     ⟩
   }¨result.obligation_evidence
   out ∾↩ (@+10)∾"Open obligation evidence"∾(@+10)
   {𝕊:out∾↩text.RenderTable ⟨⟨"Obligation","Gross","Already excluded","Deduction","Reservation"⟩,obligationRows,⟨1,2,3⟩⟩}⍟(0<≠obligationRows) @
   {𝕊:out∾↩"  (none)"∾(@+10)}⍟(0=≠obligationRows) @
   calculationRows ← ⟨
-    ⟨"Eligible assets",AmountText ⟨calculation.eligible_assets,result.scale⟩⟩,
-    ⟨"Gross obligations",AmountText ⟨calculation.gross_obligations,result.scale⟩⟩,
-    ⟨"Already excluded",AmountText ⟨calculation.already_excluded,result.scale⟩⟩,
-    ⟨"Obligation deduction",AmountText ⟨calculation.obligation_deduction,result.scale⟩⟩,
-    ⟨"Capacity balance",AmountText ⟨calculation.capacity_balance,result.scale⟩⟩,
-    ⟨"Daily target",AmountText ⟨calculation.daily_target,result.scale⟩⟩,
-    ⟨"Daily shortfall",AmountText ⟨calculation.daily_shortfall,result.scale⟩⟩
+    ⟨"Eligible assets",Fmt ⟨calculation.eligible_assets,result.scale⟩⟩,
+    ⟨"Gross obligations",Fmt ⟨calculation.gross_obligations,result.scale⟩⟩,
+    ⟨"Already excluded",Fmt ⟨calculation.already_excluded,result.scale⟩⟩,
+    ⟨"Obligation deduction",Fmt ⟨calculation.obligation_deduction,result.scale⟩⟩,
+    ⟨"Capacity balance",Fmt ⟨calculation.capacity_balance,result.scale⟩⟩,
+    ⟨"Daily target",Fmt ⟨calculation.daily_target,result.scale⟩⟩,
+    ⟨"Daily shortfall",Fmt ⟨calculation.daily_shortfall,result.scale⟩⟩
   ⟩
   out ∾↩ (@+10)∾"Calculation"∾(@+10)
   out ∾↩ text.RenderTable ⟨⟨"Coordinate","Amount"⟩,calculationRows,⟨1⟩⟩

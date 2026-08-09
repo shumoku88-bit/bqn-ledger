@@ -1,9 +1,22 @@
 # Narrow destination report text primitives proved by multiple section renderers.
 # No accounting, source, section label, color, or terminal-state policy.
 
+amount ← •Import "../ledger/amount_text.bqn"
+
 VWidth ← {+´⥊1+127<𝕩-@}
 PadRight ← {𝕊 width‿text: text∾(0⌈width-VWidth text)⥊' '}
 PadLeft ← {𝕊 width‿text: ((0⌈width-VWidth text)⥊' ')∾text}
+
+FormatAmount ← {𝕊 coefficient‿scale‿style:
+  plain ← amount.Format ⟨coefficient,scale⟩
+  {𝕊:
+    {𝕊:
+      digits ← 1↓plain
+      plain ↩ "("∾digits∾")"
+    }⍟('-'≡0⊑plain) @
+  }⍟(style≡"parentheses") @
+  plain
+}
 
 # Plain deterministic table over already-formatted text cells.
 RenderTable ← {𝕊 headers‿rows‿rightAligned:
@@ -22,4 +35,4 @@ RenderTable ← {𝕊 headers‿rows‿rightAligned:
   (RenderRow headers)∾(@+10)∾separator∾(@+10)∾∾{(RenderRow 𝕩)∾(@+10)}¨rows
 }
 
-{VWidth⇐VWidth,PadRight⇐PadRight,PadLeft⇐PadLeft,RenderTable⇐RenderTable}
+{VWidth⇐VWidth,PadRight⇐PadRight,PadLeft⇐PadLeft,RenderTable⇐RenderTable,FormatAmount⇐FormatAmount}

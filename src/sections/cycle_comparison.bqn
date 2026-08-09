@@ -42,15 +42,18 @@ Build ← {𝕊 comparison:
 }
 
 AmountText ← {𝕊 coefficient‿scaleValue: amount.Format ⟨coefficient,scaleValue⟩}
-FormatHuman ← {𝕊 result:
+FormatHuman ← {𝕊 input:
+  result ← input ⋄ style ← "minus"
+  {𝕊: result↩0⊑input ⋄ style↩(1⊑input).negative_style}⍟((0<≡input) ∧ (2=≠input)) @
+  Fmt ← {𝕊 coeff: text.FormatAmount ⟨coeff,result.matrix.scale,style⟩}
   rows ← {𝕊 i:
     values ← i⊑result.matrix.values
-    ⟨i⊑result.account_labels⟩∾{AmountText ⟨𝕩,result.matrix.scale⟩}¨values
+    ⟨i⊑result.account_labels⟩∾Fmt¨values
   }¨result.matrix.row_index
   total ← ⟨"Total",
-    AmountText ⟨result.totals.current_movement,result.matrix.scale⟩,
-    AmountText ⟨result.totals.baseline_movement,result.matrix.scale⟩,
-    AmountText ⟨result.totals.difference,result.matrix.scale⟩
+    Fmt result.totals.current_movement,
+    Fmt result.totals.baseline_movement,
+    Fmt result.totals.difference
   ⟩
   out ← "== Cycle Comparison =="∾(@+10)
   out ∾↩ "Policy: "∾result.policy∾(@+10)

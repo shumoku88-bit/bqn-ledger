@@ -74,9 +74,12 @@ Build ← {𝕊 statement‿startText‿endText‿observationText:
 }
 
 AmountText ← {𝕊 value‿scaleValue: amount.Format ⟨value,scaleValue⟩}
-FormatHuman ← {𝕊 result:
+FormatHuman ← {𝕊 input:
+  result ← input ⋄ style ← "minus"
+  {𝕊: result↩0⊑input ⋄ style↩(1⊑input).negative_style}⍟((0<≡input) ∧ (2=≠input)) @
+  Fmt ← {𝕊 coeff: text.FormatAmount ⟨coeff,result.scale,style⟩}
   rows ← {𝕊 i:
-    ⟨i⊑result.envelopes.category⟩∾{AmountText ⟨𝕩,result.scale⟩}¨⟨
+    ⟨i⊑result.envelopes.category⟩∾Fmt¨⟨
       i⊑result.envelopes.entitlement,i⊑result.envelopes.actual_consumption,
       i⊑result.envelopes.actual_refunds,i⊑result.envelopes.ledger_remaining,
       i⊑result.envelopes.open_plan_reserve,i⊑result.envelopes.post_plan_headroom
@@ -88,12 +91,12 @@ FormatHuman ← {𝕊 result:
   out ∾↩ text.RenderTable ⟨⟨"Envelope","Entitlement","Consumption","Credits/refunds","Remaining","Plan reserve","Headroom"⟩,rows,⟨1,2,3,4,5,6⟩⟩
   out ∾↩ (@+10)∾"Backing evidence"∾(@+10)
   backingRows ← ⟨
-    ⟨"Funding balance",AmountText ⟨result.totals.funding_balance,result.scale⟩⟩,
-    ⟨"Signed envelope total",AmountText ⟨result.totals.signed_envelope_total,result.scale⟩⟩,
-    ⟨"Positive backing required",AmountText ⟨result.totals.backing_required,result.scale⟩⟩,
-    ⟨"Backing surplus",AmountText ⟨result.totals.backing_surplus,result.scale⟩⟩,
-    ⟨"Budget unassigned",AmountText ⟨result.totals.ledger_unassigned,result.scale⟩⟩,
-    ⟨"Reconciliation delta",AmountText ⟨result.totals.reconciliation_delta,result.scale⟩⟩
+    ⟨"Funding balance",Fmt result.totals.funding_balance⟩,
+    ⟨"Signed envelope total",Fmt result.totals.signed_envelope_total⟩,
+    ⟨"Positive backing required",Fmt result.totals.backing_required⟩,
+    ⟨"Backing surplus",Fmt result.totals.backing_surplus⟩,
+    ⟨"Budget unassigned",Fmt result.totals.ledger_unassigned⟩,
+    ⟨"Reconciliation delta",Fmt result.totals.reconciliation_delta⟩
   ⟩
   out ∾↩ text.RenderTable ⟨⟨"Coordinate","Amount"⟩,backingRows,⟨1⟩⟩
   out ∾↩ "Status: "∾result.status∾(@+10)∾(@+10)
