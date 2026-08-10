@@ -12,10 +12,13 @@ accountsResult ← accountsAdmission.Admit •FChars "../"∾base∾"accounts.jo
 accounts ← accountsResult.accounts
 budget ← budgetAdmission.Admit ⟨•FChars "../"∾base∾"budget.toml",accounts⟩
 "ok" lib.AssertEq budget.state
-household ← householdAdmission.Admit ⟨•FChars "../"∾base∾"household.toml",accounts,budget⟩
+householdRaw ← •FChars "../"∾base∾"household.toml"
+household ← householdAdmission.Admit ⟨householdRaw,accounts,budget⟩
 "ok" lib.AssertEq household.state
 0 lib.AssertEq ≠household.diagnostics
 "household.toml" lib.AssertEq household.source_name
+0 lib.AssertEq household.money.present
+"" lib.AssertEq household.money.primary_commodity
 "incomeAnchor" lib.AssertEq household.cycle.definition.mode
 "income:salary" lib.AssertEq household.cycle.definition.income_account
 ⟨"food"⟩ lib.AssertEq household.budget.envelope_id
@@ -23,6 +26,13 @@ household ← householdAdmission.Admit ⟨•FChars "../"∾base∾"household.to
 ⟨"budget:unassigned"⟩ lib.AssertEq household.budget.unassigned_account_keys
 ⟨"cash"⟩ lib.AssertEq household.daily_target.scope_id
 ⟨"assets:cash"⟩ lib.AssertEq household.daily_target.account_key
+
+withMoneyRaw ← "[money]"∾@+10∾"primary-commodity = \"JPY\""∾@+10∾@+10∾householdRaw
+withMoney ← householdAdmission.Admit ⟨withMoneyRaw,accounts,budget⟩
+"ok" lib.AssertEq withMoney.state
+0 lib.AssertEq ≠withMoney.diagnostics
+1 lib.AssertEq withMoney.money.present
+"JPY" lib.AssertEq withMoney.money.primary_commodity
 
 IndexOf ← {𝕊 key: ⊑accounts.key⊐⟨key⟩}
 "liquid" lib.AssertEq (IndexOf "assets:cash")⊑household.account_policy.asset_class
