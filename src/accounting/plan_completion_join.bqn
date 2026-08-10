@@ -56,6 +56,85 @@ TransactionEvidence ← {𝕊 facts‿transactionIndex‿requireSingleDirection:
 Signature ← {𝕊 evidence:
   ⟨evidence.date,evidence.currency,evidence.coefficient,evidence.scale,evidence.debit_accounts,evidence.credit_accounts⟩
 }
+CompletionStatus ← {𝕊 evidence:
+  signatures ← Signature¨evidence
+  duplicateLike ← (1=≠⍷signatures)⊑"ambiguous"‿"duplicate"
+  (2⌊≠evidence)⊑⟨"open","completed",duplicateLike⟩
+}
+
+# p: selected Plan Transactions in caller-owned order.
+# a: selected Actual Transactions with nonempty plan_id, also in caller-owned order.
+# p⊐a.plan_id gives one Plan coordinate per linked Actual; unmatched is the p-axis bound.
+# Group turns the matched coordinates into one ragged Actual-index cell per p while preserving a order.
+RelationKernel ← {𝕊 planFacts‿actualFacts‿planTransactionIndices‿actualTransactionIndices‿planIds:
+  selectedActualPlanIds ← actualTransactionIndices⊏actualFacts.transactions.plan_id
+  linkedActualMask ← {0<≠𝕩}¨selectedActualPlanIds
+  linkedActualIndices ← linkedActualMask/actualTransactionIndices
+  linkedActualPlanIds ← linkedActualMask/selectedActualPlanIds
+
+  planCount ← ≠planIds
+  planCoordinates ← planIds⊐linkedActualPlanIds
+  matched ← planCoordinates<planCount
+  actualIndexCells ← ((matched/planCoordinates)∾planCount)⊔matched/linkedActualIndices
+  unmatchedActualReferences ← {fact_reference.Transaction ⟨actualFacts,𝕩⟩}¨(¬matched)/linkedActualIndices
+
+  planEvidence ← {TransactionEvidence ⟨planFacts,𝕩,1⟩}¨planTransactionIndices
+  actualEvidenceCells ← {𝕊 indices:
+    {TransactionEvidence ⟨actualFacts,𝕩,0⟩}¨indices
+  }¨actualIndexCells
+  planOk ← {𝕩.state≡"ok"}¨planEvidence
+  actualOk ← {∧´1∾{𝕩.state≡"ok"}¨𝕩}¨actualEvidenceCells
+  rowDiagnostics ← planOk {𝕊:
+    planDiagnostics ← AddIf ⟨¬𝕨,Diagnostic ⟨"plan_transaction_invalid","selected Plan transaction must have one exact debit and credit direction"⟩⟩
+    actualDiagnostics ← AddIf ⟨¬𝕩,Diagnostic ⟨"actual_completion_invalid","matching Actual completion must have exact debit and credit evidence"⟩⟩
+    planDiagnostics∾actualDiagnostics
+  }¨ actualOk
+  diagnostics ← ∾⟨empty⟩∾rowDiagnostics
+
+  rows ← EmptyRows @
+  counts ← EmptyCounts @
+  {𝕊:
+    statuses ← CompletionStatus¨actualEvidenceCells
+    currencyMatches ← planEvidence {𝕊:
+      expected ← 𝕨.currency
+      {𝕩.currency≡expected}¨𝕩
+    }¨ actualEvidenceCells
+    directionMatches ← planEvidence {𝕊:
+      expectedDebit ← 𝕨.debit_accounts
+      expectedCredit ← 𝕨.credit_accounts
+      {(𝕩.debit_accounts≡expectedDebit) ∧ 𝕩.credit_accounts≡expectedCredit}¨𝕩
+    }¨ actualEvidenceCells
+
+    rows↩{
+      count⇐planCount,index⇐↕planCount,status⇐statuses,
+      plan_transaction_index⇐planTransactionIndices,plan_id⇐planIds,
+      plan_reference⇐{𝕩.reference}¨planEvidence,plan_date⇐{𝕩.date}¨planEvidence,
+      currency⇐{𝕩.currency}¨planEvidence,planned_coefficient⇐{𝕩.coefficient}¨planEvidence,
+      planned_scale⇐{𝕩.scale}¨planEvidence,
+      planned_from_account⇐{⊑𝕩.credit_accounts}¨planEvidence,
+      planned_to_account⇐{⊑𝕩.debit_accounts}¨planEvidence,
+      planned_debit_contributors⇐{𝕩.debit_contributors}¨planEvidence,
+      planned_credit_contributors⇐{𝕩.credit_contributors}¨planEvidence,
+      actual_transaction_indices⇐actualIndexCells,
+      actual_references⇐{𝕊 cell: {𝕩.reference}¨cell}¨actualEvidenceCells,
+      actual_dates⇐{𝕊 cell: {𝕩.date}¨cell}¨actualEvidenceCells,
+      actual_currencies⇐{𝕊 cell: {𝕩.currency}¨cell}¨actualEvidenceCells,
+      actual_coefficients⇐{𝕊 cell: {𝕩.coefficient}¨cell}¨actualEvidenceCells,
+      actual_scales⇐{𝕊 cell: {𝕩.scale}¨cell}¨actualEvidenceCells,
+      actual_debit_accounts⇐{𝕊 cell: {𝕩.debit_accounts}¨cell}¨actualEvidenceCells,
+      actual_credit_accounts⇐{𝕊 cell: {𝕩.credit_accounts}¨cell}¨actualEvidenceCells,
+      actual_debit_contributors⇐{𝕊 cell: {𝕩.debit_contributors}¨cell}¨actualEvidenceCells,
+      actual_credit_contributors⇐{𝕊 cell: {𝕩.credit_contributors}¨cell}¨actualEvidenceCells,
+      currency_matches⇐currencyMatches,direction_matches⇐directionMatches
+    }
+    counts↩{
+      open⇐+´"open"⊸≡¨statuses,completed⇐+´"completed"⊸≡¨statuses,
+      duplicate⇐+´"duplicate"⊸≡¨statuses,ambiguous⇐+´"ambiguous"⊸≡¨statuses
+    }
+  }⍟(0=≠diagnostics) @
+
+  {rows⇐rows,counts⇐counts,unmatched_actual_references⇐(0=≠diagnostics)⊑⟨empty,unmatchedActualReferences⟩,diagnostics⇐diagnostics}
+}
 
 # Input selection vectors are canonical snapshot-local Transaction indices.
 # Selection/period policy stays outside this Join.
@@ -75,78 +154,14 @@ Build ← {𝕊 planFacts‿actualFacts‿planTransactionIndices‿actualTransac
     planIds ← planTransactionIndices⊏planFacts.transactions.plan_id
     diagnostics ∾↩ AddIf ⟨∨´0∾{0=≠𝕩}¨planIds,Diagnostic ⟨"plan_identity_missing","selected Plan Transactions require durable plan_id"⟩⟩
     diagnostics ∾↩ AddIf ⟨(≠planIds)≠≠⍷planIds,Diagnostic ⟨"plan_identity_duplicate","selected Plan plan_id values must be unique"⟩⟩
-
-    selectedActualPlanIds ← actualTransactionIndices⊏actualFacts.transactions.plan_id
-    linkedActualMask ← {0<≠𝕩}¨selectedActualPlanIds
-    linkedActualIndices ← linkedActualMask/actualTransactionIndices
-    linkedActualPlanIds ← linkedActualMask/selectedActualPlanIds
-    unmatchedMask ← {¬Contains ⟨𝕩,planIds⟩}¨linkedActualPlanIds
-    unmatchedActualReferences ↩ {fact_reference.Transaction ⟨actualFacts,𝕩⟩}¨unmatchedMask/linkedActualIndices
-
-    candidateRows ← empty
-    {𝕊 pi:
-      planId ← pi⊑planFacts.transactions.plan_id
-      planEvidence ← TransactionEvidence ⟨planFacts,pi,1⟩
-      diagnostics ∾↩ AddIf ⟨planEvidence.state≢"ok",Diagnostic ⟨"plan_transaction_invalid","selected Plan transaction must have one exact debit and credit direction"⟩⟩
-      matchingMask ← planId⊸≡¨linkedActualPlanIds
-      matchingIndices ← matchingMask/linkedActualIndices
-      actualEvidence ← {TransactionEvidence ⟨actualFacts,𝕩,0⟩}¨matchingIndices
-      actualsOk ← ∧´1∾{𝕩.state≡"ok"}¨actualEvidence
-      diagnostics ∾↩ AddIf ⟨¬actualsOk,Diagnostic ⟨"actual_completion_invalid","matching Actual completion must have exact debit and credit evidence"⟩⟩
-      {𝕊:
-        status ← "open"
-        {𝕊: status↩"completed"}⍟(1=≠actualEvidence) @
-        {𝕊:
-          signatures ← Signature¨actualEvidence
-          allSame ← ∧´1∾{𝕩≡⊑signatures}¨signatures
-          status↩allSame⊑"ambiguous"‿"duplicate"
-        }⍟(1<≠actualEvidence) @
-        candidateRows∾↩⟨{
-          status⇐status,plan_transaction_index⇐pi,plan_id⇐planId,
-          plan_reference⇐planEvidence.reference,plan_date⇐planEvidence.date,currency⇐planEvidence.currency,
-          planned_coefficient⇐planEvidence.coefficient,planned_scale⇐planEvidence.scale,
-          planned_from_account⇐⊑planEvidence.credit_accounts,planned_to_account⇐⊑planEvidence.debit_accounts,
-          planned_debit_contributors⇐planEvidence.debit_contributors,
-          planned_credit_contributors⇐planEvidence.credit_contributors,
-          actual_transaction_indices⇐matchingIndices,
-          actual_references⇐{𝕩.reference}¨actualEvidence,actual_dates⇐{𝕩.date}¨actualEvidence,
-          actual_currencies⇐{𝕩.currency}¨actualEvidence,
-          actual_coefficients⇐{𝕩.coefficient}¨actualEvidence,actual_scales⇐{𝕩.scale}¨actualEvidence,
-          actual_debit_accounts⇐{𝕩.debit_accounts}¨actualEvidence,
-          actual_credit_accounts⇐{𝕩.credit_accounts}¨actualEvidence,
-          actual_debit_contributors⇐{𝕩.debit_contributors}¨actualEvidence,
-          actual_credit_contributors⇐{𝕩.credit_contributors}¨actualEvidence,
-          currency_matches⇐{𝕩.currency≡planEvidence.currency}¨actualEvidence,
-          direction_matches⇐{(𝕩.debit_accounts≡planEvidence.debit_accounts) ∧ 𝕩.credit_accounts≡planEvidence.credit_accounts}¨actualEvidence
-        }⟩
-      }⍟((planEvidence.state≡"ok") ∧ actualsOk) @
-    }¨planTransactionIndices
-
     {𝕊:
-      rows↩{
-        count⇐≠candidateRows,index⇐↕≠candidateRows,status⇐{𝕩.status}¨candidateRows,
-        plan_transaction_index⇐{𝕩.plan_transaction_index}¨candidateRows,plan_id⇐{𝕩.plan_id}¨candidateRows,
-        plan_reference⇐{𝕩.plan_reference}¨candidateRows,plan_date⇐{𝕩.plan_date}¨candidateRows,
-        currency⇐{𝕩.currency}¨candidateRows,planned_coefficient⇐{𝕩.planned_coefficient}¨candidateRows,
-        planned_scale⇐{𝕩.planned_scale}¨candidateRows,
-        planned_from_account⇐{𝕩.planned_from_account}¨candidateRows,planned_to_account⇐{𝕩.planned_to_account}¨candidateRows,
-        planned_debit_contributors⇐{𝕩.planned_debit_contributors}¨candidateRows,
-        planned_credit_contributors⇐{𝕩.planned_credit_contributors}¨candidateRows,
-        actual_transaction_indices⇐{𝕩.actual_transaction_indices}¨candidateRows,
-        actual_references⇐{𝕩.actual_references}¨candidateRows,actual_dates⇐{𝕩.actual_dates}¨candidateRows,
-        actual_currencies⇐{𝕩.actual_currencies}¨candidateRows,
-        actual_coefficients⇐{𝕩.actual_coefficients}¨candidateRows,actual_scales⇐{𝕩.actual_scales}¨candidateRows,
-        actual_debit_accounts⇐{𝕩.actual_debit_accounts}¨candidateRows,
-        actual_credit_accounts⇐{𝕩.actual_credit_accounts}¨candidateRows,
-        actual_debit_contributors⇐{𝕩.actual_debit_contributors}¨candidateRows,
-        actual_credit_contributors⇐{𝕩.actual_credit_contributors}¨candidateRows,
-        currency_matches⇐{𝕩.currency_matches}¨candidateRows,direction_matches⇐{𝕩.direction_matches}¨candidateRows
-      }
-      statuses ← rows.status
-      counts↩{
-        open⇐+´"open"⊸≡¨statuses,completed⇐+´"completed"⊸≡¨statuses,
-        duplicate⇐+´"duplicate"⊸≡¨statuses,ambiguous⇐+´"ambiguous"⊸≡¨statuses
-      }
+      result ← RelationKernel ⟨planFacts,actualFacts,planTransactionIndices,actualTransactionIndices,planIds⟩
+      diagnostics ∾↩ result.diagnostics
+      {𝕊:
+        rows↩result.rows
+        counts↩result.counts
+        unmatchedActualReferences↩result.unmatched_actual_references
+      }⍟(0=≠result.diagnostics) @
     }⍟(0=≠diagnostics) @
   }⍟(0=≠diagnostics) @
 
