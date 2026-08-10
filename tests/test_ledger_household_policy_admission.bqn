@@ -27,7 +27,8 @@ household ← householdAdmission.Admit ⟨householdRaw,accounts,budget⟩
 ⟨"cash"⟩ lib.AssertEq household.daily_target.scope_id
 ⟨"assets:cash"⟩ lib.AssertEq household.daily_target.account_key
 
-withMoneyRaw ← "[money]"∾@+10∾"primary-commodity = \"JPY\""∾@+10∾@+10∾householdRaw
+quote ← @+34 ⋄ newline ← @+10
+withMoneyRaw ← "[money]"∾⟨newline⟩∾"primary-commodity = "∾⟨quote⟩∾"JPY"∾⟨quote⟩∾⟨newline⟩∾⟨newline⟩∾householdRaw
 withMoney ← householdAdmission.Admit ⟨withMoneyRaw,accounts,budget⟩
 "ok" lib.AssertEq withMoney.state
 0 lib.AssertEq ≠withMoney.diagnostics
