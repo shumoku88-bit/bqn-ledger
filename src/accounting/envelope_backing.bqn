@@ -47,26 +47,37 @@ ValidateInputs ← {𝕊 budgetFacts‿budgetPolicy‿householdPolicy‿actualFa
   diagnostics∾↩AddIf ⟨¬domainKnown,Diagnostic ⟨"domain_unknown","selected domain must occur in admitted Accounts"⟩⟩
   rangeInvalid ← (start≥finish) ∨ (observation<start) ∨ observation≥finish
   diagnostics∾↩AddIf ⟨rangeInvalid,Diagnostic ⟨"statement_range_invalid","require start <= observation < end_exclusive"⟩⟩
-  axesMatch ← (budgetFacts.accounts.key≡actualFacts.accounts.key) ∧ (planFacts.accounts.key≡actualFacts.accounts.key) ∧ householdPolicy.account_policy.account_key≡actualFacts.accounts.key
-  diagnostics∾↩AddIf ⟨¬axesMatch,Diagnostic ⟨"account_axis_mismatch","all sources and Household policy must share one Account axis"⟩⟩
+  axesMatch ← (budgetFacts.accounts.key≡actualFacts.accounts.key) ∧ planFacts.accounts.key≡actualFacts.accounts.key
+  diagnostics∾↩AddIf ⟨¬axesMatch,Diagnostic ⟨"account_axis_mismatch","Budget, Actual, and Plan facts must share one Account axis"⟩⟩
   diagnostics
 }
 
 ResolveOwnership ← {𝕊 accounts‿budgetPolicy‿householdPolicy‿domain:
   categories ← budgetPolicy.envelopes.id ⋄ householdIds ← householdPolicy.budget.envelope_id
-  envelopeIndices ← empty ⋄ diagnostics ← empty
-  {𝕊 category:
-    matches ← category⊸≡¨householdIds
-    diagnostics∾↩AddIf ⟨1≠+´matches,Diagnostic ⟨"envelope_account_mapping_invalid","Each budget.toml envelope must have exactly one household.toml allocation Account"⟩⟩
-    {𝕊:
-      row ← ⊑matches/↕≠householdIds ⋄ index ← row⊑householdPolicy.budget.allocation_account_index
-      valid ← (index<accounts.count) ∧ ((index⊑accounts.currency)≡domain) ∧ (index⊑accounts.role)≡"budget"
-      diagnostics∾↩AddIf ⟨¬valid,Diagnostic ⟨"envelope_account_mapping_invalid","Household allocation Account must be a selected-domain Budget Account"⟩⟩
-      {𝕊:envelopeIndices∾↩⟨index⟩}⍟valid @
-    }⍟(1=+´matches) @
-  }¨categories
-  unassignedIndices ← householdPolicy.budget.unassigned_account_indices
-  unassignedValid ← (0<≠unassignedIndices) ∧ ∧´1∾{𝕊 i:(i<accounts.count) ∧ ((i⊑accounts.currency)≡domain) ∧ (i⊑accounts.role)≡"budget"}¨unassignedIndices
+  diagnostics ← empty
+
+  householdCounts ← {+´𝕩⊸≡¨householdIds}¨categories
+  mappingValid ← ∧´1∾1=householdCounts
+  diagnostics∾↩AddIf ⟨¬mappingValid,Diagnostic ⟨"envelope_account_mapping_invalid","Each budget.toml envelope must have exactly one household.toml allocation Account"⟩⟩
+  envelopeIndices ← empty
+  {𝕊:
+    householdRows ← householdIds⊐categories
+    allocationKeys ← householdRows⊏householdPolicy.budget.allocation_account_key
+    envelopeIndices↩accounts.key⊐allocationKeys
+    allocationKnown ← envelopeIndices<accounts.count
+    allocationRoles ← envelopeIndices⊏accounts.role∾⟨""⟩
+    allocationCurrencies ← envelopeIndices⊏accounts.currency∾⟨""⟩
+    allocationValid ← allocationKnown ∧ ("budget"⊸≡¨allocationRoles) ∧ domain⊸≡¨allocationCurrencies
+    diagnostics∾↩AddIf ⟨¬∧´1∾allocationValid,Diagnostic ⟨"envelope_account_mapping_invalid","Household allocation Account must be a selected-domain Budget Account"⟩⟩
+  }⍟mappingValid @
+
+  unassignedKeys ← householdPolicy.budget.unassigned_account_keys
+  unassignedIndices ← accounts.key⊐unassignedKeys
+  unassignedKnown ← unassignedIndices<accounts.count
+  unassignedRoles ← unassignedIndices⊏accounts.role∾⟨""⟩
+  unassignedCurrencies ← unassignedIndices⊏accounts.currency∾⟨""⟩
+  unassignedRowsValid ← unassignedKnown ∧ ("budget"⊸≡¨unassignedRoles) ∧ domain⊸≡¨unassignedCurrencies
+  unassignedValid ← (0<≠unassignedKeys) ∧ ∧´1∾unassignedRowsValid
   diagnostics∾↩AddIf ⟨¬unassignedValid,Diagnostic ⟨"unassigned_scope_invalid","household.toml unassigned Accounts must be selected-domain Budget Accounts"⟩⟩
 
   # budget.toml owns sparse Account-key relations. Re-resolve those keys against
@@ -168,6 +179,7 @@ BuildEnvelopeTerms ← {𝕊 budgetFacts‿actualFacts‿accounts‿ownership‿
   headroomResults ← {𝕊 i:
     result ← ErrorExact @ ⋄ remaining ← i⊑remainingResults
     {𝕊:result↩scale.Sum ⟨remaining.coefficient,-(i⊑reserveResults).coefficient⟩}⍟(remaining.state≡"ok") @ ⋄ result
+    result
   }¨↕envelopeCount
   finalOk ← ({𝕩.state≡"ok"}¨remainingResults) ∧ {𝕩.state≡"ok"}¨headroomResults
   diagnostics ← ∾{𝕊 i:
