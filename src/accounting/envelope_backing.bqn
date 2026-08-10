@@ -140,8 +140,7 @@ BuildEnvelopeTerms ← {𝕊 budgetFacts‿actualFacts‿accounts‿ownership‿
   expenseIndices ← ownership.expense_indices ⋄ expenseEnvelopeIds ← ownership.expense_envelope_ids
   domainMask ← domain⊸≡¨expenseIndices⊏accounts.currency
   expenseIndices↩domainMask/expenseIndices ⋄ expenseEnvelopeIds↩domainMask/expenseEnvelopeIds
-  expenseCoordinates ← categories⊐expenseEnvelopeIds ⋄ matched ← expenseCoordinates<envelopeCount
-  expenseIndices↩matched/expenseIndices ⋄ expenseCoordinates↩matched/expenseCoordinates
+  expenseCoordinates ← categories⊐expenseEnvelopeIds
   expenseRows ← actualPeriod.accounts.account_index⊐expenseIndices ⋄ expenseGroups ← expenseCoordinates∾⟨envelopeCount⟩
   debitGroups ← expenseGroups⊔expenseRows⊏actualPeriod.accounts.debit_movement
   creditGroups ← expenseGroups⊔-(expenseRows⊏actualPeriod.accounts.credit_movement)
@@ -155,10 +154,7 @@ BuildEnvelopeTerms ← {𝕊 budgetFacts‿actualFacts‿accounts‿ownership‿
   assigned ← assignmentRows<≠expenseIndices
   planEnvelopeIds ← assignmentRows⊏expenseEnvelopeIds∾⟨""⟩
   planCoordinates ← categories⊐planEnvelopeIds
-  planCurrencyMatches ← domain⊸≡¨planAccountRows⊏accounts.currency
-  planRoleMatches ← "expense"⊸≡¨planAccountRows⊏accounts.role
-  planEligible ← assigned ∧ planCurrencyMatches ∧ planRoleMatches ∧ planCoordinates<envelopeCount
-  openMask ← ("open"⊸≡¨joined.rows.status) ∧ planEligible
+  openMask ← ("open"⊸≡¨joined.rows.status) ∧ assigned
   openCoordinates ← openMask/planCoordinates ⋄ planCoefficients ← openMask/joined.rows.planned_coefficient
   planScales ← openMask/joined.rows.planned_scale
   reserveNormalized ← planCoefficients {NormalizeOne ⟨𝕨,𝕩,targetScale⟩}¨planScales
