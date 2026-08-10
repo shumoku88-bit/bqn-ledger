@@ -9,6 +9,7 @@ householdAdmission ← •Import "../src/ledger/household_policy_admission.bqn"
 account_admission ← •Import "../src/ledger/account_admission.bqn"
 canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
+byDate ← •Import "../src/accounting/date_category_flow.bqn"
 monthly ← •Import "../src/accounting/month_category_flow.bqn"
 pivot ← •Import "../src/accounting/sparse_pivot.bqn"
 
@@ -71,6 +72,42 @@ matrix ← pivot.Build ⟨result.months.label,result.categories.label,result.sca
 "ok" lib.AssertEq matrix.state
 ⟨⟨100,50⟩,⟨225,70⟩⟩ lib.AssertEq matrix.matrix.values
 ⟨⟨⟨0⟩,⟨2⟩⟩,⟨⟨4,6⟩,⟨8⟩⟩⟩ lib.AssertEq matrix.matrix.contributors
+
+# Every Date-level group remains exact; only their January regrouping exceeds the exact range.
+dailyAmount ← 300000000000001
+dayOrdinals ← jan+↕31
+postingDates ← ∾{⟨𝕩,𝕩⟩}¨dayOrdinals
+planDomainIndex ← ⊑planFacts.transactions.domain_index
+planLayerIndex ← ⊑planFacts.transactions.layer_index
+cashIndex ← 0⊑accounts.index
+foodIndex ← 1⊑accounts.index
+overflowFacts ← {
+  state⇐"ok",domains⇐planFacts.domains,layers⇐planFacts.layers,accounts⇐accounts,
+  transactions⇐{
+    domain_index⇐31⥊planDomainIndex,layer_index⇐31⥊planLayerIndex,
+    date_ordinal⇐dayOrdinals,date_text⇐31⥊⟨"2026-01-01"⟩
+  },
+  postings⇐{
+    index⇐↕62,domain_index⇐62⥊planDomainIndex,layer_index⇐62⥊planLayerIndex,
+    date_ordinal⇐postingDates,
+    account_index⇐∾{𝕩 ⋄ ⟨foodIndex,cashIndex⟩}¨dayOrdinals,
+    coefficient⇐∾{𝕩 ⋄ ⟨dailyAmount,-dailyAmount⟩}¨dayOrdinals,
+    scale⇐62⥊0
+  }
+}
+dailyOverflow ← byDate.Build ⟨overflowFacts,planBudgetPolicy,planHousehold,"JPY","plan",jan,feb⟩
+"ok" lib.AssertEq dailyOverflow.state
+0 lib.AssertEq ≠dailyOverflow.diagnostics
+(31⥊dailyAmount) lib.AssertEq dailyOverflow.expense_groups.coefficient
+
+HasCode ← {𝕊 code‿diagnostics: ∨´0∾code⊸≡¨{𝕩.code}¨diagnostics}
+monthlyOverflow ← monthly.Build ⟨overflowFacts,planBudgetPolicy,planHousehold,"JPY","plan",jan,feb⟩
+"error" lib.AssertEq monthlyOverflow.state
+1 lib.AssertEq HasCode ⟨"group_sum_failed",monthlyOverflow.diagnostics⟩
+0 lib.AssertEq monthlyOverflow.scale
+0 lib.AssertEq monthlyOverflow.months.count
+0 lib.AssertEq monthlyOverflow.categories.count
+0 lib.AssertEq monthlyOverflow.expense_groups.count
 
 CheckRejected ← {𝕊 domain‿layer‿s‿e:
   rejected ← monthly.Build ⟨planFacts,planBudgetPolicy,planHousehold,domain,layer,s,e⟩
