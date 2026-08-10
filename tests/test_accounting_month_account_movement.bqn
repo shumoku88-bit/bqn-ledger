@@ -19,6 +19,7 @@ result ← monthly.Build ⟨facts,"JPY","2026-01","2026-03"⟩
 ⟨965,¯1000,30,5,0,0,0,0⟩ lib.AssertEq result.totals.account
 0 lib.AssertEq result.totals.grand
 1 lib.AssertEq result.totals.balanced
+(∧´1∾result.totals.month=0) lib.AssertEq result.totals.balanced
 "actual.journal" lib.AssertEq (⊑0⊑0⊑result.matrix.contributors).source
 ⟨⟨⟩,⟨⟩,⟨⟩,⟨⟩,⟨⟩,⟨⟩,⟨⟩,⟨⟩⟩ lib.AssertEq 1⊑result.matrix.contributors
 
@@ -80,6 +81,7 @@ usdLines ← ⟨"assets:usd	role=asset	currency=USD","expenses:usd	role=expense	
 usdRaw ← ∾⟨"commodity USD",lf,lf,"account assets:usd",lf,"    ; role: asset",lf,lf,"account expenses:usd",lf,"    ; role: expense",lf⟩
 usd ← BuildDomain ⟨"USD",usdLines,usdRaw⟩
 "ok" lib.AssertEq usd.state
+0 lib.AssertEq usd.scale
 ⟨⟨0,0⟩,⟨0,0⟩⟩ lib.AssertEq usd.matrix.values
 ⟨0,0⟩ lib.AssertEq usd.totals.month
 ⟨0,0⟩ lib.AssertEq usd.totals.account

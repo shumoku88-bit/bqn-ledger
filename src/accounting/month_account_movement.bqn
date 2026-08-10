@@ -59,8 +59,7 @@ Build ← {𝕊 facts‿domainCode‿firstMonth‿lastMonth:
     selectedMonths ← selectedMask/postingMonths
     selectedCoefficients ← selectedMask/postings.coefficient
     selectedScales ← selectedMask/postings.scale
-    amountScale ← 0
-    {𝕊: amountScale↩⌈´selectedScales}⍟(0<≠selectedScales) @
+    amountScale ← ⌈´0∾selectedScales
     normalizedResults ← selectedCoefficients {scale.Normalize ⟨𝕨,𝕩,amountScale⟩}¨ selectedScales
     normalizationOk ← ∧´1∾{𝕩.state≡"ok"}¨normalizedResults
     diagnostics ∾↩ AddIf ⟨¬normalizationOk,Diagnostic ⟨"coefficient_normalization_failed","selected Postings cannot normalize exactly"⟩⟩
@@ -97,7 +96,7 @@ Build ← {𝕊 facts‿domainCode‿firstMonth‿lastMonth:
                   state⇐"ok",domain⇐domainCode,first_month⇐firstMonth,last_month_exclusive⇐lastMonth,
                   months⇐months,account_indices⇐accountIndices,account_keys⇐accountIndices⊏facts.accounts.key,
                   scale⇐amountScale,matrix⇐pivoted.matrix,
-                  totals⇐{month⇐monthTotals,account⇐accountTotals,grand⇐grandResult.coefficient,balanced⇐(∧´1∾monthTotals=0) ∧ grandResult.coefficient=0},
+                  totals⇐{month⇐monthTotals,account⇐accountTotals,grand⇐grandResult.coefficient,balanced⇐∧´1∾monthTotals=0},
                   diagnostics⇐empty
                 }
               }⍟reconciled @
