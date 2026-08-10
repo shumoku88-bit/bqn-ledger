@@ -21,25 +21,31 @@ Git preserves earlier versions. A reversible experiment is often more informativ
 
 ## BQN work
 
+**BQN-native is the target. Array-native is only a floor.**
+
 Before creating or changing any `.bqn` file:
 
 1. read `docs/BQN_CAPABILITY_MAP.md` in full;
 2. read `docs/BQN_SIMPLIFICATION.md`, the target owner, and focused evidence;
-3. identify input and output shapes, semantic axes, fill and empty behavior, aligned evidence columns, and protected ordering;
+3. identify input and output shapes, semantic axes, rank/depth/cell structure, fill and empty behavior, aligned evidence columns, and protected ordering;
 4. consider every capability family in the map before selecting the expression that states the problem most directly;
-5. consult the official BQN reference and run a small CBQN probe instead of guessing when a primitive, modifier, rank, depth, fill, grouping, or empty-array behavior is uncertain.
+5. after reaching an array-native form, ask whether the design is still only a generic classify/group/reduce or column pipeline and whether BQN's own cells, rank, depth, structural transforms, modifiers, trains, based arrays, or fill semantics expose the relationship more directly;
+6. consult the official BQN reference and run a small CBQN probe instead of guessing when a primitive, modifier, rank, depth, fill, grouping, or empty-array behavior is uncertain.
 
-Dense classical array-language style is welcome. A compact BQN expression is not less readable merely because it does not resemble conventional procedural code. When axes and invariants are explicit, prefer a direct whole-array expression over loops, mutable append, temporary row namespaces, or a ladder of single-use staging names.
+Do not measure BQN-native quality by glyph count or by how unlike k, q, APL, J, SQL, or another language the code looks. Shared mathematical structures are expected. A simple `⊐` followed by `⊔` may be the right endpoint. The requirement is to derive the implementation from BQN's data model and composition rather than merely transliterating a language-agnostic algorithm.
 
-Purity is not a role. A pure accounting owner may be a capability boundary that admits request coordinates, checks cross-source compatibility, distinguishes success, unavailable, and error results, converts exact-arithmetic failures into public diagnostics, or assembles identity and provenance. Do not treat every pure function in `src/accounting/` as a whole-array kernel.
+Dense classical array-language style is welcome. A compact BQN expression is not less readable merely because it does not resemble conventional procedural code. When axes, cells, rank/depth relationships, and invariants are explicit, prefer a direct BQN expression over loops, mutable append, temporary row namespaces, or a ladder of single-use staging names.
 
-Separate a shallow capability boundary from the bounded whole-array kernel it protects. Ledger admission owns source-internal invariants; the capability boundary owns request-specific and cross-source contracts. Once those preconditions are established, the inner kernel should receive aligned arrays and expose the direct transformation rather than repeat source validation or hide it behind defensive predicate ladders. This prohibition concerns defensive control-flow nesting, not nested arrays or ragged evidence cells.
+Purity is not a role. A pure accounting owner may be a capability boundary that admits request coordinates, checks cross-source compatibility, distinguishes success, unavailable, and error results, converts exact-arithmetic failures into public diagnostics, or assembles identity and provenance. Do not treat every pure function in `src/accounting/` as a BQN kernel.
 
-Do not expand a clear train, modifier composition, rank/cell expression, grouping pipeline, or structural transformation solely to make each mechanical step familiar to a non-array-language reader. Preserve names at accounting, admission, exact-arithmetic, diagnostic, provenance, publication, and effect boundaries. Inside a bounded whole-array kernel, local mechanical names are optional and may disappear when composition makes the complete transformation easier to see.
+Separate a shallow capability boundary from the bounded BQN kernel it protects. Ledger admission owns source-internal invariants; the capability boundary owns request-specific and cross-source contracts. Once those preconditions are established, the inner kernel should receive aligned arrays and expose the direct structural transformation rather than repeat source validation or hide it behind defensive predicate ladders. This prohibition concerns defensive control-flow nesting, not nested arrays or ragged evidence cells.
+
+Do not expand a clear train, modifier composition, rank/cell/depth expression, grouping pipeline, or structural transformation solely to make each mechanical step familiar to a non-array-language reader. Preserve names at accounting, admission, exact-arithmetic, diagnostic, provenance, publication, and effect boundaries. Inside a bounded BQN kernel, local mechanical names are optional and may disappear when composition makes the complete transformation easier to see.
 
 Use comments to state what the expression cannot state by itself:
 
 - an axis legend and input/output shape;
+- rank, cell, depth, and nested-structure interpretation;
 - canonical ordering and contributor alignment;
 - fill, empty-cell, and missing-coordinate behavior;
 - accounting invariants and exactness requirements;
@@ -47,9 +53,11 @@ Use comments to state what the expression cannot state by itself:
 
 Do not narrate glyphs line by line. Tests should protect observable values, ordering, provenance, diagnostics, and edge shapes rather than force a verbose implementation form.
 
-Explicit staging remains appropriate for genuine effect sequencing, fail-closed source or request admission, exact-arithmetic operations and conversion of their failures into public diagnostics, identity construction, provenance assembly, publication buffering, or write safety. Detect an exact failure at the operation that can produce it; do not pretend it can always be admitted earlier. When guards dominate a pure owner, split a shallow capability boundary from the successful whole-array kernel instead of deleting public contract checks or burying the kernel. Avoid code golf that hides semantic axes, but do not reject density, trains, tacit composition, or classical APL-style idioms on familiarity grounds.
+Explicit staging remains appropriate for genuine effect sequencing, fail-closed source or request admission, exact-arithmetic operations and conversion of their failures into public diagnostics, identity construction, provenance assembly, publication buffering, or write safety. Detect an exact failure at the operation that can produce it; do not pretend it can always be admitted earlier. When guards dominate a pure owner, split a shallow capability boundary from the successful BQN kernel instead of deleting public contract checks or burying the kernel. Avoid code golf that hides semantic structure, but do not reject density, trains, tacit composition, or classical APL-style idioms on familiarity grounds.
 
-Treat the capability map as a memory refresh, not a glyph quota. Do not add capability audits, primitive quotas, or checklist files.
+Treat the capability map as a memory refresh, not a glyph quota. Do not add capability audits, primitive quotas, cross-language distinctiveness scores, or checklist files.
+
+A change to the BQN-native rule does not automatically reopen every previously reviewed owner. Revisit previously closed algorithmic kernels later when there is concrete evidence that a review stopped at a language-agnostic array shape and BQN's cell/rank/depth/structural model may simplify it further. Do not reopen admission, exactness, identity, provenance, writer-safety, or publication work merely to make it look more BQN-specific.
 
 ## Local agent Git protocol
 
@@ -105,7 +113,7 @@ Repository code, documentation, public fixtures, tests, tools, and architecture 
 - `README.md` for running the project
 - `docs/ARCHITECTURE.md` for the current data flow
 - `docs/BQN_CAPABILITY_MAP.md` for complete BQN language recall before BQN code work
-- `docs/BQN_SIMPLIFICATION.md` for array-native simplification rules
+- `docs/BQN_SIMPLIFICATION.md` for BQN-native simplification rules
 - `docs/AI_CODEMAP.md` for a code map
 - `TODO.md` for current notes and open directions
 - `tools/check.sh` for the project checks
