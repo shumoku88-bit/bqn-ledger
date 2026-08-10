@@ -1,9 +1,9 @@
 # Strict pure admission for canonical accounts.journal.
 #
 # Canonical ownership is intentionally narrow: Account identity, accounting
-# type, optional default Commodity, declaration order, and source line. Legacy
-# Household policy columns are published empty only to preserve the existing
-# aligned Account carrier shape; their meaning belongs to household.toml.
+# type, optional default Commodity, declaration order, and source line.
+# Household classification belongs to household.toml and is not published in
+# the canonical Account carrier.
 
 parse ← •Import "../text/parse.bqn"
 
@@ -64,8 +64,7 @@ Diagnostic ← {𝕊 codeText‿lineNumber‿messageText:
 EmptyAccounts ← {𝕊:
   {
     count⇐0,index⇐empty,key⇐empty,currency⇐empty,default_commodity⇐empty,
-    role⇐empty,type⇐empty,budget⇐empty,budget_group⇐empty,spend_class⇐empty,
-    kind⇐empty,envelope_role⇐empty,metadata⇐empty,source_row⇐empty
+    role⇐empty,type⇐empty,metadata⇐empty,source_row⇐empty
   }
 }
 TypeValue ← {𝕊 value:
@@ -115,7 +114,6 @@ Admit ← {𝕊 raw:
           default_commodity⇐activeCommodity,
           role⇐activeRole,
           type⇐activeType,
-          budget⇐"",budget_group⇐"",spend_class⇐"",kind⇐"",envelope_role⇐"",
           metadata⇐metadata,
           source_row⇐activeLine
         }⟩
@@ -209,11 +207,6 @@ Admit ← {𝕊 raw:
       default_commodity⇐{𝕩.default_commodity}¨rows,
       role⇐{𝕩.role}¨rows,
       type⇐{𝕩.type}¨rows,
-      budget⇐{𝕩.budget}¨rows,
-      budget_group⇐{𝕩.budget_group}¨rows,
-      spend_class⇐{𝕩.spend_class}¨rows,
-      kind⇐{𝕩.kind}¨rows,
-      envelope_role⇐{𝕩.envelope_role}¨rows,
       metadata⇐{𝕩.metadata}¨rows,
       source_row⇐{𝕩.source_row}¨rows
     }
