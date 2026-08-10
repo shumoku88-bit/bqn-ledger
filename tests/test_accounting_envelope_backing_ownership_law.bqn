@@ -41,7 +41,9 @@ Household ← {𝕊 envelopeIds‿allocationIndices‿unassignedIndices:
     state⇐"ok",source_name⇐"household.toml",
     budget⇐{
       envelope_id⇐envelopeIds,
+      allocation_account_key⇐allocationIndices⊏actual.accounts.key∾⟨""⟩,
       allocation_account_index⇐allocationIndices,
+      unassigned_account_keys⇐unassignedIndices⊏actual.accounts.key∾⟨""⟩,
       unassigned_account_indices⇐unassignedIndices
     },
     account_policy⇐{account_key⇐actual.accounts.key}
@@ -57,9 +59,7 @@ AssertOwnershipError ← {𝕊 expectedCode‿result:
   expectedCode lib.AssertEq (⊑result.diagnostics).code
 }
 
-# An Envelope index is appended only after exactly one Household mapping and a
-# selected-domain Budget-role check. Every failure to append therefore emits a
-# diagnostic first, so diagnostics-free ownershipMissing cannot be constructed.
+# Every missing or ambiguous Envelope relation fails before numeric publication.
 missingMapping ← Build ⟨policy,Household ⟨⟨⟩,⟨⟩,⟨unassignedBudget⟩⟩⟩
 AssertOwnershipError ⟨"envelope_account_mapping_invalid",missingMapping⟩
 
@@ -71,6 +71,35 @@ AssertOwnershipError ⟨"envelope_account_mapping_invalid",invalidAllocationRole
 
 missingUnassigned ← Build ⟨policy,Household ⟨⟨"food"⟩,⟨foodBudget⟩,⟨⟩⟩⟩
 AssertOwnershipError ⟨"unassigned_scope_invalid",missingUnassigned⟩
+
+# Stable Household keys, not admission-time numeric caches, name current Accounts.
+missingAllocationKeyHousehold ← {
+  state⇐"ok",source_name⇐"household.toml",
+  budget⇐{
+    envelope_id⇐⟨"food"⟩,
+    allocation_account_key⇐⟨"budget:missing"⟩,
+    allocation_account_index⇐⟨foodBudget⟩,
+    unassigned_account_keys⇐⟨"budget:unassigned"⟩,
+    unassigned_account_indices⇐⟨unassignedBudget⟩
+  },
+  account_policy⇐{account_key⇐actual.accounts.key}
+}
+missingAllocationKey ← Build ⟨policy,missingAllocationKeyHousehold⟩
+AssertOwnershipError ⟨"envelope_account_mapping_invalid",missingAllocationKey⟩
+
+missingUnassignedKeyHousehold ← {
+  state⇐"ok",source_name⇐"household.toml",
+  budget⇐{
+    envelope_id⇐⟨"food"⟩,
+    allocation_account_key⇐⟨"budget:food"⟩,
+    allocation_account_index⇐⟨foodBudget⟩,
+    unassigned_account_keys⇐⟨"budget:missing"⟩,
+    unassigned_account_indices⇐⟨unassignedBudget⟩
+  },
+  account_policy⇐{account_key⇐actual.accounts.key}
+}
+missingUnassignedKey ← Build ⟨policy,missingUnassignedKeyHousehold⟩
+AssertOwnershipError ⟨"unassigned_scope_invalid",missingUnassignedKey⟩
 
 missingFundingPolicy ← {
   state⇐"ok",source_name⇐"budget.toml",
