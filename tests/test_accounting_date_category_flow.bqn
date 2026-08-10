@@ -78,9 +78,9 @@ late ← flow.Build ⟨facts,budgetPolicy,household,"JPY","actual",dates.Ordinal
 ⟨10,5⟩ lib.AssertEq late.expense_groups.coefficient
 
 scaleAccountLines ← ⟨
-  "assets:jpy\trole=asset\tcurrency=JPY",
-  "expenses:food\trole=expense\tcurrency=JPY",
-  "budget:food\trole=budget\tcurrency=JPY"
+  "assets:jpy	role=asset	currency=JPY",
+  "expenses:food	role=expense	currency=JPY",
+  "budget:food	role=budget	currency=JPY"
 ⟩
 scaleAccounts ← (account_admission.Admit ⟨scaleAccountLines,registry⟩).accounts
 scalePlanRaw ← ∾{𝕩∾@+10}¨⟨
