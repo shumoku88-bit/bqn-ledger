@@ -10,7 +10,6 @@ scale ← •Import "../ledger/exact_scale.bqn"
 empty ← ⟨⟩
 
 Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
-IndexOf ← {𝕊 item‿items: ⊑(item⊸≡¨items)⊐1}
 Diagnostic ← {𝕊 code‿message:{severity⇐"error",stage⇐"accounting_envelope_backing",code⇐code,message⇐message}}
 AddIf ← {𝕊 invalid‿diagnostic: invalid/⟨diagnostic⟩}
 ErrorExact ← {𝕊:{state⇐"error",coefficient⇐empty}}
@@ -207,12 +206,12 @@ BuildBacking ← {𝕊 budgetFacts‿prepared‿ownership‿terms‿targetScale:
   remaining ← table.ledger_remaining ⋄ reserve ← table.open_plan_reserve ⋄ headroom ← table.post_plan_headroom
   termTotals ← scale.Sum¨⟨entitlement,consumption,refunds,remaining,reserve,headroom⟩
   fundingIndices ← ownership.funding_indices
-  fundingRows ← {IndexOf ⟨𝕩,actualBalance.accounts.account_index⟩}¨fundingIndices
+  fundingRows ← actualBalance.accounts.account_index⊐fundingIndices
   fundingValues ← fundingRows⊏actualBalance.accounts.closing
   fundingResult ← SumNormalized ⟨fundingValues,actualBalance.scale,targetScale⟩
   backingResult ← scale.Sum {0⌈𝕩}¨remaining ⋄ surplusResult ← ErrorExact @
   {𝕊:surplusResult↩scale.Sum ⟨fundingResult.coefficient,-backingResult.coefficient⟩}⍟((fundingResult.state≡"ok") ∧ backingResult.state≡"ok") @
-  unassignedRows ← {IndexOf ⟨𝕩,budgetPeriod.accounts.account_index⟩}¨ownership.unassigned_indices
+  unassignedRows ← budgetPeriod.accounts.account_index⊐ownership.unassigned_indices
   unassignedValues ← unassignedRows⊏budgetPeriod.accounts.closing
   unassignedResult ← SumNormalized ⟨unassignedValues,budgetPeriod.scale,targetScale⟩
   reconciliationResult ← ErrorExact @
