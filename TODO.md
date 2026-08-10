@@ -131,7 +131,7 @@ A phase is considered reviewed only when every listed box is checked and the inv
 - [x] `src/accounting/matrix_result.bqn` — PR #609 recorded the owner/consumer/representation audit; #610–#611 returned all Section-local empty MatrixResult shapes to the canonical owner; #612 removed derived public `cell_count` and strengthened empty-result laws to assert both axes directly; reread on main `459454dbfadccfc6e56dd7d779b93ff48774c12c`; final decisions in `docs/MATRIX_RESULT_REVIEW_CLOSEOUT-2026-08-10.md`.
 - [x] `src/accounting/month_account_movement.bqn` — PR #614 recorded the owner/kernel/consumer audit; #615 removed guarded scale mutation and the derived grand predicate from `Balanced by month`; #616 proved result-wide scale and Account-axis publication laws; #617 removed duplicate top-level `account_indices`; reread on main `5a632891546912766672e754d52f268ddc3c989c`; final decisions in `docs/MONTH_ACCOUNT_MOVEMENT_REVIEW_CLOSEOUT-2026-08-10.md`.
 - [x] `src/accounting/month_category_flow.bqn` — PR #619 recorded the semantic/reachability audit; #620 proved the distinct Month exact-overflow boundary; #621 replaced mutable deduplication, duplicate Group authority, and placeholder/reset staging with `⍷` plus `FailureResult -> Kernel`; #622 removed the empty successful-Date diagnostics carry; reread on main `7f08031a1cd51e20dce7f63e496289dca9156b88`; final decisions in `docs/MONTH_CATEGORY_FLOW_REVIEW_CLOSEOUT-2026-08-11.md`.
-- [ ] `src/accounting/plan_completion_join.bqn`
+- [x] `src/accounting/plan_completion_join.bqn` — PR #624 recorded the owner/relation/consumer audit; #625 fixed caller-owned Plan/Actual/unmatched ordering laws; #628 classified linked Actual `plan_id` once onto the selected Plan axis and grouped ragged completion cells while removing candidate-row reprojection; #629 removed the undocumented Actual snapshot-coordinate result and unused private evidence coordinate; reread on main `56dfbb09c37188f4443bb500f655509638e351cd`; final decisions in `docs/PLAN_COMPLETION_JOIN_REVIEW_CLOSEOUT-2026-08-11.md`.
 - [ ] `src/accounting/plan_temporal_status.bqn`
 - [ ] `src/accounting/profit_and_loss.bqn`
 - [ ] `src/accounting/recent_transactions.bqn`
@@ -305,6 +305,6 @@ After the production BQN inventory is reviewed, the selector/UI adapter consolid
 
 ## Current cursor
 
-`src/accounting/plan_completion_join.bqn`
+`src/accounting/plan_temporal_status.bqn`
 
-Resume the normal Phase 1 accounting review sequence here after the completed Month Category Flow review.
+Resume the normal Phase 1 accounting review sequence here after the completed Plan Completion Join review.
