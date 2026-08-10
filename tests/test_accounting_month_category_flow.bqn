@@ -32,10 +32,10 @@ actual ← monthly.Build ⟨actualFacts,budgetPolicy,household,"JPY","actual",ja
 ⟨⟨2,4⟩,⟨5⟩⟩ lib.AssertEq actual.expense_groups.contributors
 
 accountLines ← ⟨
-  "assets:cash\trole=asset\tcurrency=JPY",
-  "expenses:food\trole=expense\tcurrency=JPY",
-  "expenses:transport\trole=expense\tcurrency=JPY",
-  "budget:food\trole=budget\tcurrency=JPY"
+  "assets:cash	role=asset	currency=JPY",
+  "expenses:food	role=expense	currency=JPY",
+  "expenses:transport	role=expense	currency=JPY",
+  "budget:food	role=budget	currency=JPY"
 ⟩
 accounts ← (account_admission.Admit ⟨accountLines,registry⟩).accounts
 planRaw ← ∾{𝕩∾@+10}¨⟨
