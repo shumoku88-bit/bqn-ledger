@@ -17,7 +17,7 @@ EmptyRows ← {𝕊:
     planned_coefficient⇐empty,planned_scale⇐empty,
     planned_from_account⇐empty,planned_to_account⇐empty,
     planned_debit_contributors⇐empty,planned_credit_contributors⇐empty,
-    actual_transaction_indices⇐empty,actual_references⇐empty,actual_dates⇐empty,
+    actual_references⇐empty,actual_dates⇐empty,
     actual_currencies⇐empty,actual_coefficients⇐empty,actual_scales⇐empty,
     actual_debit_accounts⇐empty,actual_credit_accounts⇐empty,
     actual_debit_contributors⇐empty,actual_credit_contributors⇐empty,
@@ -43,7 +43,7 @@ TransactionEvidence ← {𝕊 facts‿transactionIndex‿requireSingleDirection:
   debitAccounts ← {𝕩⊑accountKeys}¨debitIndices⊏facts.postings.account_index
   creditAccounts ← {𝕩⊑accountKeys}¨creditIndices⊏facts.postings.account_index
   {
-    state⇐ok⊑"error"‿"ok",transaction_index⇐transactionIndex,
+    state⇐ok⊑"error"‿"ok",
     reference⇐fact_reference.Transaction ⟨facts,transactionIndex⟩,
     date⇐transactionIndex⊑facts.transactions.date_text,
     currency⇐(transactionIndex⊑facts.transactions.domain_index)⊑facts.domains.code,
@@ -115,7 +115,6 @@ RelationKernel ← {𝕊 planFacts‿actualFacts‿planTransactionIndices‿actu
       planned_to_account⇐{⊑𝕩.debit_accounts}¨planEvidence,
       planned_debit_contributors⇐{𝕩.debit_contributors}¨planEvidence,
       planned_credit_contributors⇐{𝕩.credit_contributors}¨planEvidence,
-      actual_transaction_indices⇐actualIndexCells,
       actual_references⇐{𝕊 cell: {𝕩.reference}¨cell}¨actualEvidenceCells,
       actual_dates⇐{𝕊 cell: {𝕩.date}¨cell}¨actualEvidenceCells,
       actual_currencies⇐{𝕊 cell: {𝕩.currency}¨cell}¨actualEvidenceCells,
