@@ -128,7 +128,7 @@ A phase is considered reviewed only when every listed box is checked and the inv
 - [x] `src/accounting/daily_target.bqn` — PR #549 simplified helper functions and duplicate validation; reread on main `7aed0a6`.
 - [x] `src/accounting/date_category_flow.bqn` — PR #591 made Budget policy Account relations key-based; PR #592 exposed `Admit -> Kernel -> Result` and removed the successful-path guard ladder; PR #593 removed the remaining duplicate Budget source check while protecting current-Facts role drift; reread on main `9a697075784c280c240a8279c6148932e502731a`.
 - [x] `src/accounting/envelope_backing.bqn` — PRs #596–#599 made ownership failures explicit, removed the unreachable unavailable path, re-resolved ownership by stable Account keys, and aligned row lookup; #600 revalidated the remaining candidates; #601 proved the Envelope/Plan relation laws; #602 removed only the proven duplicate guards while retaining the staged failure boundaries; reread on main `0002c7b9acb133974c19b158a147980290c47a54`.
-- [ ] `src/accounting/matrix_result.bqn`
+- [x] `src/accounting/matrix_result.bqn` — PR #609 recorded the owner/consumer/representation audit; #610–#611 returned all Section-local empty MatrixResult shapes to the canonical owner; #612 removed derived public `cell_count` and strengthened empty-result laws to assert both axes directly; reread on main `459454dbfadccfc6e56dd7d779b93ff48774c12c`; final decisions in `docs/MATRIX_RESULT_REVIEW_CLOSEOUT-2026-08-10.md`.
 - [ ] `src/accounting/month_account_movement.bqn`
 - [ ] `src/accounting/month_category_flow.bqn`
 - [ ] `src/accounting/plan_completion_join.bqn`
@@ -305,6 +305,6 @@ After the production BQN inventory is reviewed, the selector/UI adapter consolid
 
 ## Current cursor
 
-`src/accounting/matrix_result.bqn`
+`src/accounting/month_account_movement.bqn`
 
-Resume the normal Phase 1 accounting review sequence here after the completed Fact reference ledger-owner review.
+Resume the normal Phase 1 accounting review sequence here after the completed MatrixResult review.
