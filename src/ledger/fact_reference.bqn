@@ -1,9 +1,7 @@
 # Source validation and durable source-qualified references for cross-Fact-set consumers.
 
 SourceIs ← {𝕊 facts‿sourceName:
-  ok ← 0
-  {𝕊: ok↩(⊑facts.sources.name)≡sourceName}⍟((facts.state≡"ok") ∧ facts.sources.count=1) @
-  ok
+  (facts.state≡"ok") ∧ (facts.sources.name≡⟨sourceName⟩)
 }
 Transaction ← {𝕊 facts‿transactionIndex:
   {source⇐⊑facts.sources.name,transaction_id⇐transactionIndex⊑facts.transactions.transaction_id}
