@@ -1,7 +1,7 @@
 # Pure Actual income and expense statement over one explicit half-open period.
 
 period ← •Import "account_period.bqn"
-reference ← •Import "fact_reference.bqn"
+reference ← •Import "../ledger/fact_reference.bqn"
 scale ← •Import "../ledger/exact_scale.bqn"
 empty ← ⟨⟩
 
