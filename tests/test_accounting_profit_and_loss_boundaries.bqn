@@ -34,14 +34,10 @@ MakeFacts ← {𝕊 accountKeys‿roles‿postingAccounts‿postingSides‿posti
   }
 }
 
-CheckExactFailure ← {𝕊 label‿boundaryFacts‿code:
+CheckExactFailure ← {𝕊 boundaryFacts‿code:
   upstream ← period.Build ⟨boundaryFacts,"JPY","actual",start,end⟩
-  •Out "boundary period "∾label∾": "∾upstream.state
-  {𝕊 d: •Out d.code∾": "∾d.message}¨upstream.diagnostics
   "ok" lib.AssertEq upstream.state
   failed ← profitLoss.Build ⟨boundaryFacts,"JPY",start,end⟩
-  •Out "boundary pnl "∾label∾": "∾failed.state
-  {𝕊 d: •Out d.code∾": "∾d.message}¨failed.diagnostics
   "error" lib.AssertEq failed.state
   0 lib.AssertEq failed.income.count
   0 lib.AssertEq failed.expenses.count
@@ -55,8 +51,6 @@ zeroFacts ← MakeFacts ⟨
   empty,empty,empty
 ⟩
 zero ← profitLoss.Build ⟨zeroFacts,"JPY",start,end⟩
-•Out "boundary pnl zero: "∾zero.state
-{𝕊 d: •Out d.code∾": "∾d.message}¨zero.diagnostics
 "ok" lib.AssertEq zero.state
 ⟨"income:z","income:a"⟩ lib.AssertEq zero.income.account_key
 ⟨0,0⟩ lib.AssertEq zero.income.amount
@@ -68,31 +62,58 @@ zero ← profitLoss.Build ⟨zeroFacts,"JPY",start,end⟩
 0 lib.AssertEq zero.total_expenses
 0 lib.AssertEq zero.net_income
 
+# Build 2^53-1 from individually normalizable 15-digit coefficients.
+# Every prefix remains inside the contiguous exact-integer interval.
+chunks ← (9⥊900000000000000)∾⟨907199254740991⟩
+primaryValues ← chunks∾⟨1,2⟩
+primaryCount ← ≠primaryValues
+
+# A balanced debit-primary Account axis sums exactly as:
+#   chunks -> 2^53-1 -> +1 -> 2^53 -> +2 -> 2^53+2.
+# Expense role omits the non-Expense bridge 1, so its subset instead attempts
+#   chunks -> 2^53-1 -> +2 = 2^53+1,
+# which exact_scale.Sum must reject.
+expensePrimaryKeys ← ({𝕊 i: "expenses:chunk-"∾•Fmt i}¨↕≠chunks)∾⟨"assets:bridge","expenses:tail"⟩
+expensePrimaryRoles ← ({𝕊 i: "expense"}¨↕≠chunks)∾⟨"asset","expense"⟩
+expenseCounterKeys ← {𝕊 i: "liabilities:expense-counter-"∾•Fmt i}¨↕primaryCount
+expenseCounterRoles ← {𝕊 i: "liability"}¨↕primaryCount
+debitPostingAccounts ← ∾{𝕊 i: ⟨i,primaryCount+i⟩}¨↕primaryCount
+pairedSides ← ∾{𝕊 i: ⟨"debit","credit"⟩}¨↕primaryCount
+pairedCoefficients ← ∾{𝕊 value: ⟨value,-value⟩}¨primaryValues
 expenseSubsetFacts ← MakeFacts ⟨
-  ⟨"expenses:subset-a","assets:subset-bridge","expenses:subset-b","liabilities:subset-a","liabilities:subset-bridge","liabilities:subset-b"⟩,
-  ⟨"expense","asset","expense","liability","liability","liability"⟩,
-  ⟨0,3,1,4,2,5⟩,
-  ⟨"debit","credit","debit","credit","debit","credit"⟩,
-  ⟨9007199254740991,¯9007199254740991,1,¯1,2,¯2⟩
+  expensePrimaryKeys∾expenseCounterKeys,
+  expensePrimaryRoles∾expenseCounterRoles,
+  debitPostingAccounts,pairedSides,pairedCoefficients
 ⟩
-CheckExactFailure ⟨"expense subset",expenseSubsetFacts,"expense_sum_failed"⟩
+CheckExactFailure ⟨expenseSubsetFacts,"expense_sum_failed"⟩
 
+# Symmetric credit-primary Account axis: Income sign normalization turns the
+# selected credit movement back into the same positive subset 2^53-1 + 2.
+incomePrimaryKeys ← ({𝕊 i: "income:chunk-"∾•Fmt i}¨↕≠chunks)∾⟨"liabilities:bridge","income:tail"⟩
+incomePrimaryRoles ← ({𝕊 i: "income"}¨↕≠chunks)∾⟨"liability","income"⟩
+incomeCounterKeys ← {𝕊 i: "assets:income-counter-"∾•Fmt i}¨↕primaryCount
+incomeCounterRoles ← {𝕊 i: "asset"}¨↕primaryCount
+creditPostingAccounts ← ∾{𝕊 i: ⟨primaryCount+i,i⟩}¨↕primaryCount
 incomeSubsetFacts ← MakeFacts ⟨
-  ⟨"income:subset-a","liabilities:subset-bridge","income:subset-b","assets:subset-a","assets:subset-bridge","assets:subset-b"⟩,
-  ⟨"income","liability","income","asset","asset","asset"⟩,
-  ⟨3,0,4,1,5,2⟩,
-  ⟨"debit","credit","debit","credit","debit","credit"⟩,
-  ⟨9007199254740991,¯9007199254740991,1,¯1,2,¯2⟩
+  incomePrimaryKeys∾incomeCounterKeys,
+  incomePrimaryRoles∾incomeCounterRoles,
+  creditPostingAccounts,pairedSides,pairedCoefficients
 ⟩
-CheckExactFailure ⟨"income subset",incomeSubsetFacts,"income_sum_failed"⟩
+CheckExactFailure ⟨incomeSubsetFacts,"income_sum_failed"⟩
 
+# Individually exact Income and Expense totals can still make net income fail.
+# Income selects only the chunks (= 2^53-1); bridge 1 is Liability; the final
+# Expense Account is an abnormal credit and publishes -2. Net therefore attempts
+# 2^53-1 - (-2) = 2^53+1 while the complete credit side remains exact.
+netPrimaryKeys ← ({𝕊 i: "income:net-chunk-"∾•Fmt i}¨↕≠chunks)∾⟨"liabilities:net-bridge","expenses:net-tail"⟩
+netPrimaryRoles ← ({𝕊 i: "income"}¨↕≠chunks)∾⟨"liability","expense"⟩
+netCounterKeys ← {𝕊 i: "assets:net-counter-"∾•Fmt i}¨↕primaryCount
+netCounterRoles ← {𝕊 i: "asset"}¨↕primaryCount
 netSubsetFacts ← MakeFacts ⟨
-  ⟨"income:net-a","liabilities:net-bridge","expenses:net-b","assets:net-a","assets:net-bridge","assets:net-b"⟩,
-  ⟨"income","liability","expense","asset","asset","asset"⟩,
-  ⟨3,0,4,1,5,2⟩,
-  ⟨"debit","credit","debit","credit","debit","credit"⟩,
-  ⟨9007199254740991,¯9007199254740991,1,¯1,2,¯2⟩
+  netPrimaryKeys∾netCounterKeys,
+  netPrimaryRoles∾netCounterRoles,
+  creditPostingAccounts,pairedSides,pairedCoefficients
 ⟩
-CheckExactFailure ⟨"net subset",netSubsetFacts,"net_income_sum_failed"⟩
+CheckExactFailure ⟨netSubsetFacts,"net_income_sum_failed"⟩
 
 •Out "test_accounting_profit_and_loss_boundaries: ok"
