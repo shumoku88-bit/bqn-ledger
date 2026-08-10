@@ -103,7 +103,7 @@ result.funding_account_indices lib.AssertEq reordered.funding_account_indices
 householdRaw ← •FChars "../"∾base∾"household.toml"
 reorderedHousehold ← householdPolicyAdmission.Admit ⟨householdRaw,reorderedAccounts,policy⟩
 "ok" lib.AssertEq reorderedHousehold.state
-⌽actual.accounts.key lib.AssertEq reorderedHousehold.account_policy.account_key
+(⌽actual.accounts.key) lib.AssertEq reorderedHousehold.account_policy.account_key
 reorderedHouseholdResult ← envelopes.Build ⟨budget,policy,reorderedHousehold,actual,plan,"JPY",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-12"⟩
 "ok" lib.AssertEq reorderedHouseholdResult.state
 result.envelopes.account_key lib.AssertEq reorderedHouseholdResult.envelopes.account_key
