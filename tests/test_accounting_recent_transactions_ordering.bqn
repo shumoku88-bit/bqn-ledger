@@ -65,7 +65,7 @@ creditContributorCounts ← {≠𝕩}¨latest.rows.credit_contributors
 
 # BuildThrough filters by date eligibility first, then keeps the same physical-tail law.
 # A and B are after Jan15; among eligible rows the physical tail is C,D, reversed to D,C.
-through ← recent.BuildThrough ⟨facts,2,dates.Ordinal "2026-01-15"⟩
+through ← recent.BuildThrough ⟨facts,dates.Ordinal "2026-01-15",2⟩
 "ok" lib.AssertEq through.state
 ⟨"recent-physical-d","recent-physical-c"⟩ lib.AssertEq Ids through.rows.transaction_reference
 ⟨"2026-01-05","2026-01-14"⟩ lib.AssertEq through.rows.date
