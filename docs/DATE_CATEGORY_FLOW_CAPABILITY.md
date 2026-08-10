@@ -1,26 +1,56 @@
 # Date × dynamic category flow capability
 
-Status: Phase 3B public proof
+Status: current retained capability
 Owner: `src/accounting/date_category_flow.bqn`
 
 ## Boundary
 
-`date_category_flow.Build ⟨facts,domain,layer,startOrdinal,endExclusiveOrdinal⟩` consumes one canonical fact result and explicit query coordinates. It imports only exact arithmetic from `src/ledger`; it does not import source readers, context, Cube/TBDS, report sections, formatters, or clock.
+`date_category_flow.Build ⟨facts,budgetPolicy,householdPolicy,domain,layer,startOrdinal,endExclusiveOrdinal⟩` consumes canonical Facts, admitted `budget.toml` / `household.toml` policy, and explicit query coordinates. It imports exact-scale arithmetic and the retained sparse Group owner; it does not read sources, the clock, report policy, sections, or presentation state.
 
-This is the second materially different grouping consumer after Account-period state. It intentionally remains a narrow accounting capability rather than introducing a generic query DSL before grouping semantics are compared.
+The public owner is intentionally narrow:
 
-## Explicit category semantics
+```text
+capability admission / cross-source coordinate resolution
+  -> selected Posting array kernel
+  -> exact semantic result + contributor evidence
+```
 
-Dynamic categories come from admitted Account metadata:
+Admission protects request and cross-source compatibility. The successful kernel owns the accounting transformation. Exact normalization and checked reductions remain at the operations that can fail.
 
-1. selected-domain Accounts with `kind=envelope` must have role `budget` and a nonempty, unique `budget` label;
-2. selected-domain expense Accounts whose `budget` exactly matches one envelope label use that category;
-3. remaining explicit-role expense Accounts use the reserved `other` category;
-4. explicit-role income Accounts contribute to the separate income measure.
+## Category ownership
 
-No account prefix, display-name trimming, or report label inference participates. The category axis follows canonical envelope Account order, followed by `other`.
+Category meaning is no longer carried by Account metadata.
 
-Income is the negated signed sum of postings to explicit income Accounts. Expense groups retain the signed sum of postings to explicit expense Accounts, so reversals/refunds remain accounting evidence rather than being forced positive.
+- `accounts.journal` / Account Facts own Account identity, accounting role/type, and Commodity coordinate.
+- `budget.toml` owns the sparse `Expense AccountKey -> Envelope` relation and Envelope order.
+- `household.toml` owns each Envelope's structural Budget allocation Account coordinate.
+- Date Category Flow owns the synthetic trailing `other` category for Expense Accounts not assigned to a spendable Envelope.
+
+For one successful build:
+
+1. the Budget-policy Expense Account keys are resolved against the current Facts Account axis;
+2. each declared Envelope is matched to its Household allocation Account;
+3. the selected-domain Account axis is retained in canonical Facts order;
+4. Expense Accounts map to their Envelope coordinate or `other`; non-Expense Accounts remain outside the expense-category coordinate space;
+5. income is reduced separately from explicit Income postings.
+
+No Account prefix, display-label inference, or presentation policy participates.
+
+## Selected Posting kernel
+
+The admitted domain/layer/half-open period selects one Posting axis. The selected coefficients are normalized once to one exact scale, then the capability performs independent checked reductions:
+
+```text
+selected Posting axis
+  -> Date × Income
+  -> Date × dynamic Expense Category
+  -> Date × Account
+  -> Date net
+```
+
+Date × Category and Date × Account remain independent reductions. Deriving one from the already-reduced other can change exact-range failure semantics and contributor order, so sharing stops before semantic reduction.
+
+The Account-category relation is built once as an aligned Account vector. The kernel does not rescan every Account for its Envelope assignment.
 
 ## Result
 
@@ -28,45 +58,36 @@ The presentation-neutral result contains:
 
 - sorted unique transaction dates in the selected period;
 - per-date income and net coefficients plus income contributor Posting indices;
-- dynamic category labels and their envelope Account indices;
-- sparse date/category expense groups with exact coefficients and contributor Posting indices;
-- the complete selected-domain Account axis in admitted order;
-- sparse date/Account groups over every selected Posting, aligned to that Account axis;
+- dynamic category labels in Budget-policy Envelope order followed by `other`;
+- each Envelope category's Household Budget allocation Account index;
+- sparse Date × Category expense groups with exact coefficients and contributor Posting indices;
+- the complete selected-domain Account axis in canonical Facts order;
+- sparse Date × Account groups over every selected Posting;
 - one exact selected-flow scale;
-- fail-closed diagnostics and empty result tables on error.
+- owner-specific diagnostics and empty semantic tables on error.
 
-A sparse group exists when postings contribute to that coordinate, even if their exact sum is zero. Dense zero cells and display signs are presentation concerns and are not materialized here.
+A sparse group exists when postings contribute to that coordinate, even if their exact sum is zero. Dense zero cells, display signs, Account visibility, and observation/as-of policy are presentation/section concerns.
 
-## Public proof
+## Consumers
 
-`tests/test_accounting_date_category_flow.bqn` proves:
+`src/accounting/month_category_flow.bqn` consumes Date × Category evidence and performs the distinct Month-axis reduction.
 
-- dates `2026-01-02`, `2026-01-10`, and `2026-01-12`;
-- dynamic categories `food`, `other`;
-- income `1000`, food expenses `20` and `10`, other expense `5`;
-- net values `1000`, `-20`, `-15`;
-- exact contributors: income Posting `1`, food Postings `2`/`4`, other Posting `5`;
-- every JPY Account in admitted order, including zero-posting Budget Accounts;
-- sparse date/Account movement with balancing asset, income, food, and transport Posting contributors;
+`src/sections/daily_flow.bqn` consumes Date × Account evidence, applies observation/period checks, selects active non-Budget Account columns, pivots the admitted sparse groups, and owns labels/sign presentation. It does not recompute category/accounting classification.
+
+## Focused proof
+
+`tests/test_accounting_date_category_flow.bqn` protects:
+
+- canonical date, category, and Account axes;
+- exact income, expense, and net coefficients;
+- Posting contributor alignment and order;
+- mixed-scale exact normalization;
 - later-period selection;
-- mixed source scales normalized to one exact coefficient scale;
-- unknown domain/layer and invalid period fail closed.
+- independent Date × Account movement evidence;
+- Budget-policy Account-admission-order invariance;
+- fail-closed missing Expense Account key and Expense-role drift;
+- missing Household Envelope coordinates;
+- unknown domain/layer and invalid period;
+- empty semantic tables on error.
 
-The category fields remain the accounting evidence consumed by Month Category Flow. Daily Flow consumes the aligned date/Account fields, then selects active non-Budget columns so individual Accounts are not collapsed into Envelope categories. This module is not a report section and does not own observation/as-of or formatting policy.
-
-## Comparison with Account-period grouping
-
-Shared evidence now exists for:
-
-- explicit domain/layer/period selection;
-- Account-index joins;
-- exact scale normalization and checked sums;
-- deterministic contributor Posting indices;
-- fail-closed empty results.
-
-The group policies are still materially different:
-
-- Account-period state includes all domain Accounts, zero rows, and pre-period opening evidence;
-- date/category flow uses transaction-date axes, metadata-derived dynamic categories, transformed income, sparse expense coordinates, and no opening state.
-
-The subsequent `month × expense category` proof demonstrated that explicit row-axis plus bounded category coordinate, exact sum, and contributor flattening are identical. That operation now lives in `sparse_group.bqn` and is used by both date and month consumers. Category classification, transaction-date selection, month derivation, income/net, and opening state remain outside the generic Group owner. See `MONTH_CATEGORY_GROUPING.md`.
+The capability therefore treats source admission as evidence rather than re-parsing source-internal policy syntax, while retaining the request/cross-source checks needed by independently supplied admitted values.
