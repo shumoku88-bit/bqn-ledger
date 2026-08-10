@@ -25,7 +25,7 @@ EmptyTotals ← {𝕊: {month⇐empty,account⇐empty,grand⇐empty,balanced⇐0
 EmptyResult ← {𝕊 domainCode‿firstMonth‿lastMonth‿diagnosticsValue:
   {
     state⇐"error",domain⇐domainCode,first_month⇐firstMonth,last_month_exclusive⇐lastMonth,
-    months⇐empty,account_indices⇐empty,account_keys⇐empty,scale⇐0,matrix⇐EmptyMatrix @,
+    months⇐empty,account_keys⇐empty,scale⇐0,matrix⇐EmptyMatrix @,
     totals⇐EmptyTotals @,diagnostics⇐diagnosticsValue
   }
 }
@@ -94,7 +94,7 @@ Build ← {𝕊 facts‿domainCode‿firstMonth‿lastMonth:
               {𝕊:
                 result↩{
                   state⇐"ok",domain⇐domainCode,first_month⇐firstMonth,last_month_exclusive⇐lastMonth,
-                  months⇐months,account_indices⇐accountIndices,account_keys⇐accountIndices⊏facts.accounts.key,
+                  months⇐months,account_keys⇐accountIndices⊏facts.accounts.key,
                   scale⇐amountScale,matrix⇐pivoted.matrix,
                   totals⇐{month⇐monthTotals,account⇐accountTotals,grand⇐grandResult.coefficient,balanced⇐∧´1∾monthTotals=0},
                   diagnostics⇐empty
