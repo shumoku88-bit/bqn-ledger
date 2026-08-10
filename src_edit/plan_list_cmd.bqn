@@ -39,7 +39,7 @@ loaded ← planRows.Load baseDir
 allPlans ← loaded.rows
 openPlans ← (¬{𝕩.closed}¨allPlans)/allPlans
 TemporalMatch ← {𝕊 row:
-  status ← planStatus.Classify ⟨0,row.date,asOf⟩
+  status ← planStatus.Classify ⟨row.date,asOf⟩
   overdue ← status≡"overdue"
   upcoming ← (status≡"due") ∨ status≡"future"
   (temporal≡"overdue")⊑⟨upcoming,overdue⟩
