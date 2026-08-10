@@ -3,7 +3,7 @@
 # Completed Plans are excluded from the section semantic result.
 
 completion ← •Import "../accounting/plan_completion_join.bqn"
-reference ← •Import "../accounting/fact_reference.bqn"
+reference ← •Import "../ledger/fact_reference.bqn"
 scale ← •Import "../ledger/exact_scale.bqn"
 dates ← •Import "../ledger/date_ordinal.bqn"
 amount ← •Import "../ledger/amount_text.bqn"
