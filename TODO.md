@@ -153,7 +153,7 @@ A phase is considered reviewed only when every listed box is checked and the inv
 - [ ] `src/ledger/date_ordinal.bqn`
 - [ ] `src/ledger/exact_decimal.bqn`
 - [ ] `src/ledger/exact_scale.bqn`
-- [ ] `src/ledger/fact_reference.bqn`
+- [x] `src/ledger/fact_reference.bqn` — PR #605 moved the generic Facts identity/provenance owner into `src/ledger/`; #606 proved its source-axis and durable-reference laws; #607 simplified `SourceIs` to direct successful-state plus singleton-source equality; reread on main `478b870a9eb0a32a4c34bf2271fc1f605c1929f6`.
 - [ ] `src/ledger/facts.bqn`
 - [ ] `src/ledger/household_policy_admission.bqn`
 - [ ] `src/ledger/issue_admission.bqn`
@@ -305,6 +305,6 @@ After the production BQN inventory is reviewed, the selector/UI adapter consolid
 
 ## Current cursor
 
-`src/ledger/fact_reference.bqn`
+`src/accounting/matrix_result.bqn`
 
-The cursor follows the coherent ownership move from `src/accounting/` into the ledger identity/provenance layer. Finish the Fact reference owner review here; after it closes, resume the normal Phase 1 sequence at `src/accounting/matrix_result.bqn`.
+Resume the normal Phase 1 accounting review sequence here after the completed Fact reference ledger-owner review.
