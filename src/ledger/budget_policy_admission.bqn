@@ -250,7 +250,6 @@ Admit ← {𝕊 raw‿accounts:
   diagnostics∾↩AddIf ⟨(≠expenseKeys)≠≠⍷expenseKeys,Diagnostic ⟨"expense_account_assignment_duplicate",0,"one Expense Account may belong to only one envelope"⟩⟩
   diagnostics∾↩AddIf ⟨(≠assetKeys)≠≠⍷assetKeys,Diagnostic ⟨"asset_account_membership_duplicate",0,"one Asset Account may belong to only one backing pool"⟩⟩
 
-  expenseIndices ← empty ⋄ expenseEnvelope ← empty
   {𝕊 envelope:
     {𝕊 key:
       i ← IndexOf ⟨key,accounts.key⟩ ⋄ known ← i<accounts.count
@@ -258,10 +257,8 @@ Admit ← {𝕊 raw‿accounts:
       validRole ← role≡"expense"
       diagnostics∾↩AddIf ⟨¬known,Diagnostic ⟨"budget_policy_expense_account_unknown",envelope.line,"Envelope Expense Account must be declared"⟩⟩
       diagnostics∾↩AddIf ⟨known ∧ ¬validRole,Diagnostic ⟨"budget_policy_expense_account_role_invalid",envelope.line,"Envelope Expense Account must have Expense type"⟩⟩
-      {𝕊:expenseIndices∾↩⟨i⟩ ⋄ expenseEnvelope∾↩⟨envelope.id⟩}⍟(known ∧ validRole) @
     }¨envelope.expense_account_keys
   }¨envelopes
-  assetIndices ← empty ⋄ assetPool ← empty
   {𝕊 pool:
     {𝕊 key:
       i ← IndexOf ⟨key,accounts.key⟩ ⋄ known ← i<accounts.count
@@ -269,7 +266,6 @@ Admit ← {𝕊 raw‿accounts:
       validRole ← role≡"asset"
       diagnostics∾↩AddIf ⟨¬known,Diagnostic ⟨"budget_policy_asset_account_unknown",pool.line,"Backing pool Asset Account must be declared"⟩⟩
       diagnostics∾↩AddIf ⟨known ∧ ¬validRole,Diagnostic ⟨"budget_policy_asset_account_role_invalid",pool.line,"Backing pool Account must have Asset type"⟩⟩
-      {𝕊:assetIndices∾↩⟨i⟩ ⋄ assetPool∾↩⟨pool.id⟩}⍟(known ∧ validRole) @
     }¨pool.asset_account_keys
   }¨pools
 
@@ -287,8 +283,6 @@ Admit ← {𝕊 raw‿accounts:
       backing_pool⇐{𝕩.backing_pool}¨admittedEnvelopes,
       expense_account_keys⇐{𝕩.expense_account_keys}¨admittedEnvelopes
     },
-    expense_account_index⇐ok/expenseIndices,expense_envelope_id⇐ok/expenseEnvelope,
-    asset_account_index⇐ok/assetIndices,asset_backing_pool_id⇐ok/assetPool,
     diagnostics⇐diagnostics
   }
 }
