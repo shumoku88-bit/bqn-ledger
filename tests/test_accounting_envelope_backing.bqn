@@ -76,6 +76,23 @@ result ← envelopes.Build ⟨budget,policy,household,actual,plan,"JPY",dates.Or
 "budget.journal" lib.AssertEq (⊑⊑result.envelopes.entitlement_contributors).source
 "actual.journal" lib.AssertEq (⊑⊑result.envelopes.consumption_contributors).source
 
+# Budget policy keeps Account keys, not the admission-time numeric coordinate.
+# Reversing only the Account carrier used for policy admission must therefore
+# leave both Expense classification and backing-pool resolution unchanged.
+reorderedAccounts ← {
+  count⇐actual.accounts.count,index⇐actual.accounts.index,
+  key⇐⌽actual.accounts.key,role⇐⌽actual.accounts.role
+}
+reorderedPolicy ← budgetPolicyAdmission.Admit ⟨policyRaw,reorderedAccounts⟩
+"ok" lib.AssertEq reorderedPolicy.state
+reordered ← envelopes.Build ⟨budget,reorderedPolicy,household,actual,plan,"JPY",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-12"⟩
+"ok" lib.AssertEq reordered.state
+result.envelopes.actual_consumption lib.AssertEq reordered.envelopes.actual_consumption
+result.envelopes.ledger_remaining lib.AssertEq reordered.envelopes.ledger_remaining
+result.totals.funding_balance lib.AssertEq reordered.totals.funding_balance
+result.totals.backing_surplus lib.AssertEq reordered.totals.backing_surplus
+result.funding_account_indices lib.AssertEq reordered.funding_account_indices
+
 unknownDomain ← envelopes.Build ⟨budget,policy,household,actual,plan,"USD",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-12"⟩
 "error" lib.AssertEq unknownDomain.state
 "domain_unknown" lib.AssertEq (⊑unknownDomain.diagnostics).code
