@@ -43,10 +43,7 @@ valid ← policyAdmission.Admit ⟨validRaw,accounts⟩
 ⟨"Food","Books"⟩ lib.AssertEq valid.envelopes.label
 ⟨"daily","flex"⟩ lib.AssertEq valid.envelopes.pacing
 ⟨"cash","cash"⟩ lib.AssertEq valid.envelopes.backing_pool
-⟨2,3⟩ lib.AssertEq valid.expense_account_index
-⟨"food","books"⟩ lib.AssertEq valid.expense_envelope_id
-⟨0,1⟩ lib.AssertEq valid.asset_account_index
-⟨"cash","cash"⟩ lib.AssertEq valid.asset_backing_pool_id
+⟨⟨"Expenses:Food"⟩,⟨"Expenses:Books"⟩⟩ lib.AssertEq valid.envelopes.expense_account_keys
 
 multilineRaw ← Raw ⟨
   "[[backing-pools]]","id = "∾(Q "cash"),"asset-accounts = [",

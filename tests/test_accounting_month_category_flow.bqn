@@ -47,8 +47,8 @@ planRaw ← ∾{𝕩∾@+10}¨⟨
 ⟩
 planFacts ← (canonicalPlan.Build ⟨planRaw,accounts,registry⟩).facts
 planBudgetPolicy ← {
-  state⇐"ok",source_name⇐"budget.toml",envelopes⇐{count⇐1,id⇐⟨"food"⟩},
-  expense_account_index⇐⟨1⟩,expense_envelope_id⇐⟨"food"⟩
+  state⇐"ok",source_name⇐"budget.toml",
+  envelopes⇐{count⇐1,id⇐⟨"food"⟩,expense_account_keys⇐⟨⟨"expenses:food"⟩⟩}
 }
 planHousehold ← {
   state⇐"ok",source_name⇐"household.toml",

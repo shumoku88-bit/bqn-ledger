@@ -68,10 +68,13 @@ Build ← {𝕊 factSet‿budgetPolicy‿householdPolicy‿domainCode‿layerNam
       diagnostics ∾↩ AddIf ⟨∨´0∾{𝕩≢domainCode}¨envelopeCurrencies,Diagnostic ⟨"envelope_account_domain_invalid","Household Envelope allocation Accounts must belong to the selected domain"⟩⟩
     }⍟householdKnown @
 
-    expenseIndices ← budgetPolicy.expense_account_index
-    expenseEnvelopeIds ← budgetPolicy.expense_envelope_id
-    diagnostics ∾↩ AddIf ⟨(≠expenseIndices)≠≠⍷expenseIndices,Diagnostic ⟨"expense_account_assignment_duplicate","one Expense Account may belong to only one Envelope"⟩⟩
-    diagnostics ∾↩ AddIf ⟨∨´0∾{¬Contains ⟨𝕩,envelopeLabels⟩}¨expenseEnvelopeIds,Diagnostic ⟨"expense_envelope_unknown","Expense assignment must reference a declared Envelope"⟩⟩
+    expenseKeys ← ∾budgetPolicy.envelopes.expense_account_keys
+    expenseEnvelopeIds ← ∾{𝕊 i:(≠i⊑budgetPolicy.envelopes.expense_account_keys)⥊⟨i⊑envelopeLabels⟩}¨↕≠envelopeLabels
+    expenseIndices ← accounts.key⊐expenseKeys
+    expenseKnown ← expenseIndices<accounts.count
+    expenseRoles ← expenseIndices⊏accounts.role∾⟨""⟩
+    diagnostics ∾↩ AddIf ⟨¬∧´1∾expenseKnown,Diagnostic ⟨"budget_policy_expense_account_unknown","budget.toml Expense Accounts must occur on the current Facts Account axis"⟩⟩
+    diagnostics ∾↩ AddIf ⟨∨´0∾expenseKnown ∧ ¬"expense"⊸≡¨expenseRoles,Diagnostic ⟨"budget_policy_expense_account_role_invalid","budget.toml Expense Accounts must remain Expense Accounts on the current Facts axis"⟩⟩
 
     {𝕊:
       categoryLabels ← envelopeLabels∾⟨"other"⟩
@@ -82,15 +85,13 @@ Build ← {𝕊 factSet‿budgetPolicy‿householdPolicy‿domainCode‿layerNam
         kind⇐categoryKinds,envelope_account_index⇐categoryEnvelopeIndices
       }
 
-      accountCategory ← {𝕊 accountIndex:
-        category ← ¯1
-        {𝕊:
-          matches ← (accountIndex=expenseIndices)/↕≠expenseIndices
-          {𝕊:category↩≠envelopeLabels}⍟(0=≠matches) @
-          {𝕊:category↩IndexOf ⟨(⊑matches)⊑expenseEnvelopeIds,envelopeLabels⟩}⍟(1=≠matches) @
-        }⍟((accountIndex⊑accounts.role)≡"expense") @
-        category
-      }¨accounts.index
+      expenseCoordinates ← envelopeLabels⊐expenseEnvelopeIds
+      assignmentRows ← expenseIndices⊐accounts.index
+      assigned ← assignmentRows<≠expenseIndices
+      assignedCategories ← assignmentRows⊏expenseCoordinates∾⟨≠envelopeLabels⟩
+      accountExpenseMask ← "expense"⊸≡¨accounts.role
+      baseCategories ← ((≠envelopeLabels)×accountExpenseMask)-¬accountExpenseMask
+      accountCategory ← (assigned×assignedCategories)+(¬assigned)×baseCategories
 
       transactions ← factSet.transactions
       transactionMask ← (domainIndex=transactions.domain_index) ∧ (layerIndex=transactions.layer_index) ∧ (transactions.date_ordinal≥startOrdinal) ∧ transactions.date_ordinal<endOrdinal

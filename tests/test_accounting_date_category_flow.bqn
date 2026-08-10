@@ -11,13 +11,15 @@ canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 flow ← •Import "../src/accounting/date_category_flow.bqn"
 pivot ← •Import "../src/accounting/sparse_pivot.bqn"
+HasCode ← {𝕊 code‿diagnostics: ∨´0∾code⊸≡¨{𝕩.code}¨diagnostics}
 
 base ← "fixtures/ledger-facts-phase1-proof/"
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
 actualResult ← actualSource.Load ⟨base,registry⟩
 "ok" lib.AssertEq actualResult.state
 facts ← actualResult.facts
-budgetPolicy ← budgetPolicyAdmission.Admit ⟨•FChars "../"∾base∾"budget.toml",facts.accounts⟩
+budgetRaw ← •FChars "../"∾base∾"budget.toml"
+budgetPolicy ← budgetPolicyAdmission.Admit ⟨budgetRaw,facts.accounts⟩
 "ok" lib.AssertEq budgetPolicy.state
 household ← householdAdmission.Admit ⟨•FChars "../"∾base∾"household.toml",facts.accounts,budgetPolicy⟩
 "ok" lib.AssertEq household.state
@@ -52,6 +54,21 @@ matrix ← pivot.Build ⟨result.dates.date_ordinal,result.categories.label,resu
 ⟨⟨0,0⟩,⟨20,0⟩,⟨10,5⟩⟩ lib.AssertEq matrix.matrix.values
 ⟨⟨⟨⟩,⟨⟩⟩,⟨⟨2⟩,⟨⟩⟩,⟨⟨4⟩,⟨5⟩⟩⟩ lib.AssertEq matrix.matrix.contributors
 
+# Budget policy Account order is admission evidence, not a reusable numeric axis.
+reorderedAccounts ← {
+  count⇐facts.accounts.count,index⇐facts.accounts.index,
+  key⇐⌽facts.accounts.key,role⇐⌽facts.accounts.role
+}
+reorderedPolicy ← budgetPolicyAdmission.Admit ⟨budgetRaw,reorderedAccounts⟩
+"ok" lib.AssertEq reorderedPolicy.state
+reordered ← flow.Build ⟨facts,reorderedPolicy,household,"JPY","actual",start,end⟩
+"ok" lib.AssertEq reordered.state
+result.categories.label lib.AssertEq reordered.categories.label
+result.expense_groups.row_index lib.AssertEq reordered.expense_groups.row_index
+result.expense_groups.column_index lib.AssertEq reordered.expense_groups.column_index
+result.expense_groups.coefficient lib.AssertEq reordered.expense_groups.coefficient
+result.expense_groups.contributors lib.AssertEq reordered.expense_groups.contributors
+
 late ← flow.Build ⟨facts,budgetPolicy,household,"JPY","actual",dates.Ordinal "2026-01-11",end⟩
 "ok" lib.AssertEq late.state
 ⟨"2026-01-12"⟩ lib.AssertEq late.dates.date_text
@@ -71,8 +88,8 @@ scalePlanRaw ← ∾{𝕩∾@+10}¨⟨
 ⟩
 scaleFacts ← (canonicalPlan.Build ⟨scalePlanRaw,scaleAccounts,registry⟩).facts
 scaleBudgetPolicy ← {
-  state⇐"ok",source_name⇐"budget.toml",envelopes⇐{count⇐1,id⇐⟨"food"⟩},
-  expense_account_index⇐⟨1⟩,expense_envelope_id⇐⟨"food"⟩
+  state⇐"ok",source_name⇐"budget.toml",
+  envelopes⇐{count⇐1,id⇐⟨"food"⟩,expense_account_keys⇐⟨⟨"expenses:food"⟩⟩}
 }
 scaleHousehold ← {
   state⇐"ok",source_name⇐"household.toml",
@@ -87,6 +104,21 @@ scaleFlow ← flow.Build ⟨scaleFacts,scaleBudgetPolicy,scaleHousehold,"JPY","p
 ⟨373⟩ lib.AssertEq scaleFlow.expense_groups.coefficient
 ⟨⟨0,2⟩⟩ lib.AssertEq scaleFlow.expense_groups.contributors
 
+missingKeyPolicy ← {
+  state⇐"ok",source_name⇐"budget.toml",
+  envelopes⇐{count⇐1,id⇐⟨"food"⟩,expense_account_keys⇐⟨⟨"expenses:missing"⟩⟩}
+}
+missingKey ← flow.Build ⟨scaleFacts,missingKeyPolicy,scaleHousehold,"JPY","plan",start,end⟩
+"error" lib.AssertEq missingKey.state
+lib.Assert HasCode ⟨"budget_policy_expense_account_unknown",missingKey.diagnostics⟩
+roleDriftPolicy ← {
+  state⇐"ok",source_name⇐"budget.toml",
+  envelopes⇐{count⇐1,id⇐⟨"food"⟩,expense_account_keys⇐⟨⟨"assets:jpy"⟩⟩}
+}
+roleDrift ← flow.Build ⟨scaleFacts,roleDriftPolicy,scaleHousehold,"JPY","plan",start,end⟩
+"error" lib.AssertEq roleDrift.state
+lib.Assert HasCode ⟨"budget_policy_expense_account_role_invalid",roleDrift.diagnostics⟩
+
 missingHousehold ← {
   state⇐"ok",source_name⇐"household.toml",
   budget⇐{envelope_id⇐⟨⟩,allocation_account_index⇐⟨⟩},
@@ -99,7 +131,7 @@ missingCoordinates ← flow.Build ⟨facts,budgetPolicy,missingHousehold,"JPY","
 0 lib.AssertEq missingCoordinates.expense_groups.count
 0 lib.AssertEq missingCoordinates.accounts.count
 0 lib.AssertEq missingCoordinates.account_groups.count
-1 lib.AssertEq ∨´0∾"household_envelope_coordinates_missing"⊸≡¨{𝕩.code}¨missingCoordinates.diagnostics
+lib.Assert HasCode ⟨"household_envelope_coordinates_missing",missingCoordinates.diagnostics⟩
 
 CheckRejected ← {𝕊 domain‿layer‿s‿e‿code:
   rejected ← flow.Build ⟨facts,budgetPolicy,household,domain,layer,s,e⟩
@@ -109,7 +141,7 @@ CheckRejected ← {𝕊 domain‿layer‿s‿e‿code:
   0 lib.AssertEq rejected.expense_groups.count
   0 lib.AssertEq rejected.accounts.count
   0 lib.AssertEq rejected.account_groups.count
-  1 lib.AssertEq ∨´0∾code⊸≡¨{𝕩.code}¨rejected.diagnostics
+  lib.Assert HasCode ⟨code,rejected.diagnostics⟩
 }
 CheckRejected ⟨"USD","actual",start,end,"domain_unknown"⟩
 CheckRejected ⟨"JPY","plan",start,end,"layer_unknown"⟩
