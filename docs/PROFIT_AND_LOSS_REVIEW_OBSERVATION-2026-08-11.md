@@ -60,7 +60,7 @@ Account Period dense Account axis
 → admitted Account role per Account row
 → income / expense selection
 → statement sign normalization
-→ statement totals
+→ checked statement totals
 → statement rows + durable Posting contributors
 ```
 
@@ -94,40 +94,63 @@ Each published statement Account row converts `account_period.period_contributor
 
 Period/domain selection belongs to the caller. This owner must not choose a Cycle, current profile, observation date, or default currency.
 
-## Exact-range proof and duplicate guards
+## Exact subset sums are a distinct safety boundary
 
-The initial review treated the local `scale.Sum` calls as independent exact failure boundaries. Reading `account_period.bqn` and `exact_scale.bqn` shows that this is too conservative.
+An initial review hypothesis was that a successful Account Period might make the local Profit and Loss `scale.Sum` checks redundant because Account Period already checks the complete debit and credit totals. Reading `exact_decimal.bqn` and `exact_scale.bqn` disproves that hypothesis.
 
-A successful Account Period has already proved all selected Posting coefficients normalized to one common scale and has checked exact totals for:
+### Exact coefficients are not a contiguous bounded integer interval
 
-```text
-all debit movement   — nonnegative side
-all credit movement  — nonpositive side
-```
+`exact_decimal.Parse` admits an integer coefficient when the BQN runtime formats the parsed Number back to the identical canonical integer text. This admits exactly representable large integers beyond the consecutive-safe-integer interval as well as ordinary smaller integers.
 
-For each Account `a`, let:
+`exact_scale.Sum` does not merely compare a final magnitude to one fixed bound. It checks every sequential addition for reversibility:
 
 ```text
-D[a] >= 0
-C[a] <= 0
-M[a] = D[a] + C[a]
+candidate - previous = value
+candidate - value    = previous
 ```
 
-For any subset of Accounts `S`:
+Therefore exactness depends on the selected sequence, not only on a final mathematical magnitude.
 
-- the total positive part of `M[S]` cannot exceed the already-checked total debit movement;
-- the absolute total negative part of `M[S]` cannot exceed the already-checked absolute total credit movement;
-- therefore every partial sum of `M[S]`, in any Account order, remains inside the exact bounds already admitted upstream.
+### Counterexample to the duplicate-guard hypothesis
 
-Profit and Loss statement measures are only sign changes and subsets of this same movement axis:
+Consider same-scale nonnegative Account movements in canonical Account order:
 
 ```text
-income total  = - sum M[income]
-expense total =   sum M[expense]
-net income    = - sum M[income ∪ expense]
+9007199254740991
+1
+2
 ```
 
-Consequently, after `accountPeriod.state = "ok"`, the local failure states:
+The complete sequence can be added exactly in that order:
+
+```text
+9007199254740991
+→ 9007199254740992
+→ 9007199254740994
+```
+
+All three values are representable by the current numeric boundary, so an upstream checked Account-side sum can succeed.
+
+Now let a statement role select only the first and third Accounts while the middle Account belongs to another role:
+
+```text
+9007199254740991
+2
+```
+
+Their mathematical sum is:
+
+```text
+9007199254740993
+```
+
+which is not exactly representable at that spacing. The statement subset sum therefore fails even though the complete upstream sequence succeeded.
+
+The same construction can be placed on the credit side, and a mixed Income/Expense selection can make the final net subtraction fail while the independently selected Income and Expense totals remain exact.
+
+### Decision
+
+The local failure states:
 
 ```text
 income_sum_failed
@@ -135,13 +158,11 @@ expense_sum_failed
 net_income_sum_failed
 ```
 
-are unreachable unless the upstream Account Period exactness contract is broken.
+are **reachable and meaningful**. They are not duplicate guards.
 
-`exact_scale.Sum` itself performs checked sequential addition. The subset proof above is strong enough for any order because every prefix is bounded by the total admitted positive and negative sides, not merely by the final algebraic result.
+Classification: **KEEP all three checked `scale.Sum` boundaries and the `exact_scale` dependency.** This is an example where a downstream semantic subset creates a new exact operation that must be checked at the operation itself.
 
-Classification: **SUBTRACT candidate, strong proof.** A coherent implementation may replace the three local checked sums with direct reductions/subtraction and remove the now-unused `exact_scale` dependency while preserving exact arithmetic by construction.
-
-This is not weakening the exact boundary. It recognizes that the exact boundary is already owned and proved once by `account_period`.
+This counterexample is more valuable than a generic “be conservative with arithmetic” rule because it explains precisely why successful whole-axis exactness does not imply successful role-subset exactness in the current BQN Number representation.
 
 ## Array-visibility decision
 
@@ -157,7 +178,8 @@ A classify-once Group form is possible, but current evidence does not justify it
 - the input is already one dense Account axis rather than raw repeated Posting evidence;
 - there are only two retained statement lanes;
 - direct masks make role semantics and canonical Account order visible;
-- zero-movement Accounts remain naturally present.
+- zero-movement Accounts remain naturally present;
+- the selected lanes have their own necessary checked exact sums anyway.
 
 Classification: **KEEP current role masks.** BQN-native is not a requirement to use Group where direct axis selection is clearer.
 
@@ -202,7 +224,7 @@ The current accounting test directly proves:
 - source-qualified contributor source;
 - unknown-domain failure.
 
-Two laws deserve direct characterization before subtracting the duplicate exact guards.
+Two additional laws would make the final KEEP decision reconstructible from tests as well as prose.
 
 ### A. Dense zero statement rows
 
@@ -214,18 +236,34 @@ The current synthetic Account fixture has one Income and two Expense Accounts, a
 
 This protects the strongest reason not to replace the dense Account projection with a sparse statement-only representation.
 
-### B. Exact admitted edge
+### B. Role-subset exact failure
 
-Add one admitted statement example whose debit and credit sides reach the largest exact coefficient admitted by the ledger while the statement contains both normal and abnormal signs. Prove that Profit and Loss publishes the exact edge value successfully.
+Construct an admitted Account Period whose complete one-sided Account sum succeeds through a sequence equivalent to:
 
-This does not attempt to manufacture a local P&L overflow failure. The proof says such a failure is unreachable after a successful Account Period. The edge law instead fixes the positive contract at the boundary where the upstream exact proof still succeeds.
+```text
+9007199254740991, 1, 2
+```
+
+but whose Income or Expense role selects only:
+
+```text
+9007199254740991, 2
+```
+
+and prove that Profit and Loss fails closed with the appropriate statement-sum diagnostic and no partial rows.
+
+A second small characterization may target `net_income_sum_failed` with individually exact Income and Expense totals whose final statement combination is not exact.
+
+These laws protect the reason the local checked sums must remain even after the upstream Account Period is successful.
 
 ## Current review direction
+
+No production refactor is justified by the completed observation.
 
 The next sequence should be:
 
 1. merge this observation;
-2. add the dense-zero and exact-edge characterization laws without production changes;
-3. subtract the three unreachable local checked-sum diagnostics and `exact_scale` dependency, replacing them with direct reductions/subtraction over the already-bounded Account movement axis;
-4. run the full suite and reread the final owner on merged `main`;
-5. close the Profit and Loss review and advance to `src/accounting/recent_transactions.bqn` if no new evidence appears.
+2. add focused dense-zero and role-subset exact-failure laws without production changes;
+3. reread the unchanged owner on merged `main`;
+4. close the Profit and Loss review as a KEEP decision if no new evidence appears;
+5. advance to `src/accounting/recent_transactions.bqn`.
