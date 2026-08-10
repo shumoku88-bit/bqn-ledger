@@ -2,7 +2,7 @@
 # No row parsing, five-field identity fallback, period policy, I/O, formatting, or cross-source summation.
 
 scale ← •Import "../ledger/exact_scale.bqn"
-fact_reference ← •Import "fact_reference.bqn"
+fact_reference ← •Import "../ledger/fact_reference.bqn"
 empty ← ⟨⟩
 
 Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
