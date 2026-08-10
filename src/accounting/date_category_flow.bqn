@@ -53,7 +53,6 @@ Admit ← {𝕊 factSet‿budgetPolicy‿householdPolicy‿domainCode‿layerNam
     accountIndices↩(domainCode⊸≡¨accounts.currency)/accounts.index
 
     envelopeLabels↩budgetPolicy.envelopes.id
-    diagnostics ∾↩ AddIf ⟨(≠envelopeLabels)≠≠⍷envelopeLabels,Diagnostic ⟨"envelope_category_duplicate","budget.toml Envelope ids must be unique"⟩⟩
     diagnostics ∾↩ AddIf ⟨Contains ⟨"other",envelopeLabels⟩,Diagnostic ⟨"envelope_category_reserved","other is reserved for unmatched expenses"⟩⟩
 
     householdRows ← householdPolicy.budget.envelope_id⊐envelopeLabels
