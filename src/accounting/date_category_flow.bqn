@@ -71,11 +71,10 @@ Build ← {𝕊 factSet‿budgetPolicy‿householdPolicy‿domainCode‿layerNam
     expenseKeys ← ∾budgetPolicy.envelopes.expense_account_keys
     expenseEnvelopeIds ← ∾{𝕊 i:(≠i⊑budgetPolicy.envelopes.expense_account_keys)⥊⟨i⊑envelopeLabels⟩}¨↕≠envelopeLabels
     expenseIndices ← accounts.key⊐expenseKeys
-    expenseKnown ← ∧´1∾expenseIndices<accounts.count
-    diagnostics ∾↩ AddIf ⟨¬expenseKnown,Diagnostic ⟨"budget_policy_expense_account_unknown","budget.toml Expense Accounts must occur on the current Facts Account axis"⟩⟩
-    {𝕊:
-      diagnostics ∾↩ AddIf ⟨∨´0∾{𝕩≢"expense"}¨expenseIndices⊏accounts.role,Diagnostic ⟨"budget_policy_expense_account_role_invalid","budget.toml Expense Accounts must remain Expense Accounts on the current Facts axis"⟩⟩
-    }⍟expenseKnown @
+    expenseKnown ← expenseIndices<accounts.count
+    expenseRoles ← expenseIndices⊏accounts.role∾⟨""⟩
+    diagnostics ∾↩ AddIf ⟨¬∧´1∾expenseKnown,Diagnostic ⟨"budget_policy_expense_account_unknown","budget.toml Expense Accounts must occur on the current Facts Account axis"⟩⟩
+    diagnostics ∾↩ AddIf ⟨∨´0∾expenseKnown ∧ ¬"expense"⊸≡¨expenseRoles,Diagnostic ⟨"budget_policy_expense_account_role_invalid","budget.toml Expense Accounts must remain Expense Accounts on the current Facts axis"⟩⟩
 
     {𝕊:
       categoryLabels ← envelopeLabels∾⟨"other"⟩
