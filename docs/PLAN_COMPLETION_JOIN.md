@@ -4,7 +4,7 @@ Status: Phase 3H capability proof
 
 Owner: `src/accounting/plan_completion_join.bqn`
 
-Shared provenance helper: `src/accounting/fact_reference.bqn`
+Shared provenance helper: `src/ledger/fact_reference.bqn`
 
 ## Boundary
 
