@@ -13,6 +13,7 @@ result ← monthly.Build ⟨facts,"JPY","2026-01","2026-03"⟩
 "ok" lib.AssertEq result.state
 ⟨"2026-01","2026-02"⟩ lib.AssertEq result.months
 8 lib.AssertEq result.matrix.column_count
+(result.matrix.column_coordinates⊏facts.accounts.key) lib.AssertEq result.account_keys
 ⟨965,¯1000,30,5,0,0,0,0⟩ lib.AssertEq 0⊑result.matrix.values
 (8⥊0) lib.AssertEq 1⊑result.matrix.values
 ⟨0,0⟩ lib.AssertEq result.totals.month
@@ -45,6 +46,7 @@ ilsRaw ← ∾⟨
 ils ← BuildDomain ⟨"ILS",ilsLines,ilsRaw⟩
 "ok" lib.AssertEq ils.state
 2 lib.AssertEq ils.scale
+ils.matrix.scale lib.AssertEq ils.scale
 ⟨¯1235,1230,5⟩ lib.AssertEq 0⊑ils.matrix.values
 ⟨0,0,0⟩ lib.AssertEq 1⊑ils.matrix.values
 
