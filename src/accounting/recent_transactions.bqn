@@ -12,7 +12,7 @@ Diagnostic ← {𝕊 codeText‿messageText:
 AddIf ← {𝕊 invalid‿diagnostic: invalid/⟨diagnostic⟩}
 EmptyRows ← {𝕊:
   {
-    count⇐0,index⇐empty,transaction_index⇐empty,date⇐empty,description⇐empty,currency⇐empty,
+    count⇐0,index⇐empty,date⇐empty,description⇐empty,currency⇐empty,
     coefficient⇐empty,scale⇐empty,credit_accounts⇐empty,debit_accounts⇐empty,
     transaction_reference⇐empty,debit_contributors⇐empty,credit_contributors⇐empty
   }
@@ -74,7 +74,7 @@ BuildSelected ← {𝕊 facts‿limit‿eligibleTransactionIndices:
         {𝕊:
           domainIndices ← selected⊏transactions.domain_index
           rows↩{
-            count⇐selectedCount,index⇐↕selectedCount,transaction_index⇐selected,
+            count⇐selectedCount,index⇐↕selectedCount,
             date⇐selected⊏transactions.date_text,description⇐selected⊏transactions.description,
             currency⇐domainIndices⊏facts.domains.code,
             coefficient⇐{𝕩.coefficient}¨debitTotals,scale⇐transactionScales,
