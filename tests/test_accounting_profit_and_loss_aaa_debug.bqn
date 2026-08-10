@@ -16,7 +16,7 @@ accounts ← ⟨
   "liabilities:subset-bridge	role=liability	currency=JPY",
   "liabilities:subset-b	role=liability	currency=JPY"
 ⟩
-raw ← Raw ⟨
+debugRaw ← Raw ⟨
   "commodity JPY","",
   "account expenses:subset-a","    ; role: expense","",
   "account assets:subset-bridge","    ; role: asset","",
@@ -31,7 +31,7 @@ raw ← Raw ⟨
   "2026-01-12 * subset B","    ; event-id: pnl-expense-subset-b","    ; layer: actual",
   "    expenses:subset-b 2 JPY","    liabilities:subset-b -2 JPY"
 ⟩
-built ← snapshot.Build ⟨accounts,raw,registry⟩
+built ← snapshot.Build ⟨accounts,debugRaw,registry⟩
 •Out "debug snapshot state: "∾built.state
 {𝕊 d:
   •Out "stage="∾d.stage
