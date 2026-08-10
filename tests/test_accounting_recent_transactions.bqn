@@ -9,10 +9,11 @@ base ← "fixtures/ledger-facts-phase1-proof/"
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
 accountLines ← loader.ReadLines base∾"accounts.tsv"
 facts ← (snapshot.Build ⟨accountLines,•FChars "../"∾base∾"actual.journal",registry⟩).facts
+Ids ← {𝕊 references: {𝕩.transaction_id}¨references}
 result ← recent.Build ⟨facts,10⟩
 "ok" lib.AssertEq result.state
 3 lib.AssertEq result.rows.count
-⟨2,1,0⟩ lib.AssertEq result.rows.transaction_index
+⟨"proof-split-1","proof-food-1","proof-salary-1"⟩ lib.AssertEq Ids result.rows.transaction_reference
 ⟨"2026-01-12","2026-01-10","2026-01-02"⟩ lib.AssertEq result.rows.date
 ⟨15,20,1000⟩ lib.AssertEq result.rows.coefficient
 ⟨⟨"expenses:food","expenses:transport"⟩,⟨"expenses:food"⟩,⟨"assets:cash"⟩⟩ lib.AssertEq result.rows.debit_accounts
@@ -21,7 +22,7 @@ result ← recent.Build ⟨facts,10⟩
 3 lib.AssertEq ≠(⊑result.rows.debit_contributors)∾⊑result.rows.credit_contributors
 
 limited ← recent.Build ⟨facts,2⟩
-⟨2,1⟩ lib.AssertEq limited.rows.transaction_index
+⟨"proof-split-1","proof-food-1"⟩ lib.AssertEq Ids limited.rows.transaction_reference
 invalid ← recent.Build ⟨facts,0⟩
 "error" lib.AssertEq invalid.state
 0 lib.AssertEq invalid.rows.count
