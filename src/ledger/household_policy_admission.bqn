@@ -1,7 +1,8 @@
 # Strict BQN-native admission for canonical household.toml.
 # Account identity/type remains owned by accounts.journal. General Envelope and
 # Backing policy remains owned by budget.toml. This owner admits Household-only
-# Cycle, Budget structural coordinates, Daily Target selections, and policy axes.
+# Cycle, Budget structural coordinates, Money defaults, Daily Target selections,
+# and policy axes.
 
 lf ← @+10 ⋄ cr ← @+13 ⋄ space ← @+32 ⋄ tab ← @+9 ⋄ quote ← @+34 ⋄ hash ← ⊑"#"
 empty ← ⟨⟩
@@ -103,7 +104,7 @@ Admit ← {𝕊 raw‿accounts‿budgetPolicy:
 
   diagnostics ← empty ⋄ blocks ← empty ⋄ active ← 0 ⋄ current ← EmptyBlock ⟨"",0⟩
   KnownSection ← {𝕊 name: Contains ⟨name,⟨
-    "cycle","budget","budget.envelopes","daily-target","daily-target.assets",
+    "cycle","budget","budget.envelopes","money","daily-target","daily-target.assets",
     "account-policy.assets","account-policy.budget.kind","account-policy.budget.envelope-role",
     "account-policy.budget.group","account-policy.expenses"
   ⟩⟩}
@@ -183,6 +184,15 @@ Admit ← {𝕊 raw‿accounts‿budgetPolicy:
     valid ← ValidateAccount ⟨key,"budget",budgetBlock.line⟩
     {𝕊:unassignedIndices∾↩⟨IndexOf ⟨key,accounts.key⟩⟩}⍟valid @
   }¨unassignedKeys
+
+  moneyBlocks ← Singles "money" ⋄ moneyPresent ← 1=≠moneyBlocks ⋄ primaryCommodity ← ""
+  diagnostics∾↩AddIf ⟨1<≠moneyBlocks,Diagnostic ⟨"household_section_cardinality_invalid",0,"Household money section may occur at most once"⟩⟩
+  {𝕊:
+    moneyBlock ← ⊑moneyBlocks
+    CheckKeys ⟨moneyBlock,⟨"primary-commodity"⟩,empty⟩
+    primaryCommodity↩StringValue ⟨moneyBlock,"primary-commodity"⟩
+    diagnostics∾↩AddIf ⟨¬NoWhitespace primaryCommodity,Diagnostic ⟨"household_primary_commodity_invalid",moneyBlock.line,"Household primary Commodity must be nonempty and contain no whitespace"⟩⟩
+  }⍟moneyPresent @
 
   envelopeRows ← empty
   {𝕊 block:
@@ -265,6 +275,7 @@ Admit ← {𝕊 raw‿accounts‿budgetPolicy:
   }}
   {
     state⇐ok⊑"error"‿"ok",source_name⇐"household.toml",cycle⇐cycleAdmission,
+    money⇐{present⇐ok∧moneyPresent,primary_commodity⇐ok⊑""‿primaryCommodity},
     budget⇐{
       envelope_count⇐≠admittedEnvelopes,envelope_id⇐{𝕩.id}¨admittedEnvelopes,
       allocation_account_key⇐{𝕩.allocation_key}¨admittedEnvelopes,allocation_account_index⇐{𝕩.allocation_index}¨admittedEnvelopes,
