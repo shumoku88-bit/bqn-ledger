@@ -34,10 +34,14 @@ MakeFacts ← {𝕊 accountKeys‿roles‿postingAccounts‿postingSides‿posti
   }
 }
 
-CheckExactFailure ← {𝕊 boundaryFacts‿code:
+CheckExactFailure ← {𝕊 label‿boundaryFacts‿code:
   upstream ← period.Build ⟨boundaryFacts,"JPY","actual",start,end⟩
+  •Out "boundary period "∾label∾": "∾upstream.state
+  {𝕊 d: •Out d.code∾": "∾d.message}¨upstream.diagnostics
   "ok" lib.AssertEq upstream.state
   failed ← profitLoss.Build ⟨boundaryFacts,"JPY",start,end⟩
+  •Out "boundary pnl "∾label∾": "∾failed.state
+  {𝕊 d: •Out d.code∾": "∾d.message}¨failed.diagnostics
   "error" lib.AssertEq failed.state
   0 lib.AssertEq failed.income.count
   0 lib.AssertEq failed.expenses.count
@@ -51,6 +55,8 @@ zeroFacts ← MakeFacts ⟨
   empty,empty,empty
 ⟩
 zero ← profitLoss.Build ⟨zeroFacts,"JPY",start,end⟩
+•Out "boundary pnl zero: "∾zero.state
+{𝕊 d: •Out d.code∾": "∾d.message}¨zero.diagnostics
 "ok" lib.AssertEq zero.state
 ⟨"income:z","income:a"⟩ lib.AssertEq zero.income.account_key
 ⟨0,0⟩ lib.AssertEq zero.income.amount
@@ -62,12 +68,6 @@ zero ← profitLoss.Build ⟨zeroFacts,"JPY",start,end⟩
 0 lib.AssertEq zero.total_expenses
 0 lib.AssertEq zero.net_income
 
-# The complete Account axis can sum exactly while the Expense-role subset cannot.
-# Account movements in canonical order are:
-#   9007199254740991, 1, 2, -9007199254740991, -1, -2
-# The whole sequence and its one-sided totals are exact, but Expense selects the
-# first and third movements: 9007199254740991 + 2 = 9007199254740993, which is
-# not exactly representable at the current Number spacing.
 expenseSubsetFacts ← MakeFacts ⟨
   ⟨"expenses:subset-a","assets:subset-bridge","expenses:subset-b","liabilities:subset-a","liabilities:subset-bridge","liabilities:subset-b"⟩,
   ⟨"expense","asset","expense","liability","liability","liability"⟩,
@@ -75,10 +75,8 @@ expenseSubsetFacts ← MakeFacts ⟨
   ⟨"debit","credit","debit","credit","debit","credit"⟩,
   ⟨9007199254740991,¯9007199254740991,1,¯1,2,¯2⟩
 ⟩
-CheckExactFailure ⟨expenseSubsetFacts,"expense_sum_failed"⟩
+CheckExactFailure ⟨"expense subset",expenseSubsetFacts,"expense_sum_failed"⟩
 
-# Symmetric credit-side construction keeps Account Period exact while Income
-# statement sign normalization exposes the same non-exact subset 9007199254740991 + 2.
 incomeSubsetFacts ← MakeFacts ⟨
   ⟨"income:subset-a","liabilities:subset-bridge","income:subset-b","assets:subset-a","assets:subset-bridge","assets:subset-b"⟩,
   ⟨"income","liability","income","asset","asset","asset"⟩,
@@ -86,11 +84,8 @@ incomeSubsetFacts ← MakeFacts ⟨
   ⟨"debit","credit","debit","credit","debit","credit"⟩,
   ⟨9007199254740991,¯9007199254740991,1,¯1,2,¯2⟩
 ⟩
-CheckExactFailure ⟨incomeSubsetFacts,"income_sum_failed"⟩
+CheckExactFailure ⟨"income subset",incomeSubsetFacts,"income_sum_failed"⟩
 
-# Income and Expense totals can each be exact while their final net combination is not.
-# Income publishes +9007199254740991; abnormal Expense credit publishes -2;
-# net income therefore requires 9007199254740991 - (-2) = 9007199254740993.
 netSubsetFacts ← MakeFacts ⟨
   ⟨"income:net-a","liabilities:net-bridge","expenses:net-b","assets:net-a","assets:net-bridge","assets:net-b"⟩,
   ⟨"income","liability","expense","asset","asset","asset"⟩,
@@ -98,6 +93,6 @@ netSubsetFacts ← MakeFacts ⟨
   ⟨"debit","credit","debit","credit","debit","credit"⟩,
   ⟨9007199254740991,¯9007199254740991,1,¯1,2,¯2⟩
 ⟩
-CheckExactFailure ⟨netSubsetFacts,"net_income_sum_failed"⟩
+CheckExactFailure ⟨"net subset",netSubsetFacts,"net_income_sum_failed"⟩
 
 •Out "test_accounting_profit_and_loss_boundaries: ok"
