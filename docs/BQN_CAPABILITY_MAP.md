@@ -10,6 +10,26 @@ Dense classical array-language style is a first-class production option. A train
 
 This is not a glyph quota. A feature belongs in production when it makes the data shape, accounting question, or protected boundary clearer. Familiarity with conventional procedural syntax is not itself a clarity criterion.
 
+## BQN-native, not merely array-native
+
+**Array-native is a floor, not the target. BQN-native is the target.**
+
+Turning loops into masks, classifications, columns, Group, or reductions is useful, but a generic array/group-by design can still stop before the language has contributed much. Before settling on such a formulation, ask whether BQN's own data model and composition vocabulary expose the problem more directly:
+
+- leading-axis and major-cell structure;
+- rank, Cells, nested depth, and based arrays;
+- fill and empty-cell behavior;
+- structural transforms and axis reordering;
+- modifiers that make the operated cell/rank explicit;
+- trains, bindings, and right-to-left composition that remove mechanical plumbing;
+- Group, Table, Under, Scan, and other primitives as parts of a larger BQN expression rather than isolated replacements for loops.
+
+A useful warning question is: **could this design be translated almost mechanically into a generic dataframe/group-by pipeline, k/q-style key grouping, or ordinary loops over columns without reconsidering its structure?** If yes, scan the BQN capability surface again before declaring the kernel finished.
+
+This is not a distinctiveness contest. Do not add a train, Rank, Depth, Table, Under, or another glyph merely to make code look unlike k, q, J, APL, SQL, or a conventional language. If `⊐` followed by `⊔` is genuinely the clearest BQN expression, use it. The requirement is that the design has been derived from BQN's shapes, cells, ranks, depth, fills, and composition model rather than stopping at a language-agnostic algorithm expressed with BQN syntax.
+
+BQN-native also does not mean flattening every domain boundary into a dense kernel. Keep accounting names, exact-arithmetic failures, diagnostics, identity, provenance, admission, publication, effects, and write authority explicit when those names protect meaning.
+
 Primary references:
 
 - BQN documentation: https://mlochbaum.github.io/BQN/doc/index.html
@@ -29,7 +49,7 @@ Before selecting syntax, identify:
 - the desired output rank and public empty-cell behavior;
 - which evidence columns must remain aligned, including contributors and provenance.
 
-Try to turn a loop variable into an axis or coordinate before translating the loop into BQN punctuation. Then ask whether the resulting axis transformation can be seen as one composition rather than a sequence of temporary assignments.
+Try to turn a loop variable into an axis or coordinate before translating the loop into BQN punctuation. Then ask whether the resulting axis transformation can be seen as one composition rather than a sequence of temporary assignments. Do not stop merely because the result is now an array expression; ask whether its cell/rank/depth structure and composition are the natural BQN view of the problem.
 
 ## Classical array-language composition
 
@@ -116,17 +136,20 @@ Scan these prompts before preserving an existing implementation shape:
 13. Can a concise contract comment carry axis, order, fill, and invariant information that should not be encoded as procedural scaffolding?
 14. Would partially tacit code show the stable transformation more clearly while retaining names only at semantic boundaries?
 15. Is explicit staged code genuinely required by effects, dependent failure, exact arithmetic, diagnostics, identity, provenance, or write safety?
+16. After becoming array-native, is the kernel still only a generic classify/group/reduce pipeline, or have BQN's cell/rank/depth/fill/structural semantics been considered?
+17. Does a modifier, structural transform, train, or based-array view reveal a relationship that named column plumbing still hides?
 
 ## Repository use
 
 For a BQN change:
 
 1. read this whole page, `docs/BQN_SIMPLIFICATION.md`, the target owner, and focused evidence;
-2. describe the transformation in terms of input shape, axes, coordinates, and output shape;
+2. describe the transformation in terms of input shape, axes, coordinates, rank/depth/cells, fill, and output shape;
 3. consider every capability family above, including trains and dense composition, then select the expression that fits;
-4. preserve public meaning and delete the replaced procedural path in the same coherent slice;
-5. retain names at semantic boundaries, but do not require names for every mechanical intermediate;
-6. use small executable CBQN probes when rank, fill, grouping, modifier, train, or empty-array behavior is uncertain;
-7. open the official reference instead of guessing when a primitive, modifier, monadic/dyadic meaning, fill rule, or rank behavior is not active in memory.
+4. perform the BQN-native warning check: do not stop at a language-agnostic group-by/column algorithm without reconsidering BQN's own structural model;
+5. preserve public meaning and delete the replaced procedural path in the same coherent slice;
+6. retain names at semantic boundaries, but do not require names for every mechanical intermediate;
+7. use small executable CBQN probes when rank, fill, grouping, modifier, train, or empty-array behavior is uncertain;
+8. open the official reference instead of guessing when a primitive, modifier, monadic/dyadic meaning, fill rule, or rank behavior is not active in memory.
 
-Explain the axis model and protected contract in the PR when it clarifies the change. A PR does not need to defend compactness merely because the code is dense, nor enumerate rejected glyphs as ceremony. Do not create a capability-audit file, primitive-count target, or mandatory glyph-coverage report.
+Explain the axis/cell model and protected contract in the PR when it clarifies the change. A PR does not need to defend compactness merely because the code is dense, nor enumerate rejected glyphs as ceremony. Do not create a capability-audit file, primitive-count target, mandatory glyph-coverage report, or cross-language distinctiveness score.
