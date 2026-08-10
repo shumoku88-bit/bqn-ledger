@@ -126,7 +126,7 @@ A phase is considered reviewed only when every listed box is checked and the inv
 - [x] `src/accounting/cycle_income_anchor_resolution.bqn` — PR #533 simplified Deduplicate and IndexOf helpers; reread on main `6a0e12d785cb1ef397173993322af298b22091c1`.
 - [x] `src/accounting/cycle_result.bqn` — PR #548 simplified ordinal resolution with dyadic Each; reread on main `ae9049d`.
 - [x] `src/accounting/daily_target.bqn` — PR #549 simplified helper functions and duplicate validation; reread on main `7aed0a6`.
-- [ ] `src/accounting/date_category_flow.bqn`
+- [x] `src/accounting/date_category_flow.bqn` — PR #591 made Budget policy Account relations key-based; PR #592 exposed `Admit -> Kernel -> Result` and removed the successful-path guard ladder; PR #593 removed the remaining duplicate Budget source check while protecting current-Facts role drift; reread on main `9a697075784c280c240a8279c6148932e502731a`.
 - [ ] `src/accounting/envelope_backing.bqn`
 - [ ] `src/accounting/fact_reference.bqn`
 - [ ] `src/accounting/matrix_result.bqn`
@@ -305,6 +305,6 @@ After the production BQN inventory is reviewed, the selector/UI adapter consolid
 
 ## Current cursor
 
-`src/accounting/date_category_flow.bqn`
+`src/accounting/envelope_backing.bqn`
 
-This remains the normal place to resume review. It does not limit the scope of a coherent architectural change discovered from that review.
+This is now the normal place to resume review. It does not limit the scope of a coherent architectural change discovered from that review.
