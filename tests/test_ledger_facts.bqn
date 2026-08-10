@@ -120,8 +120,7 @@ lib.Assert ¬dates.IsValid "2026-02-30"
 1 lib.AssertEq (dates.Ordinal "2026-01-02") - dates.Ordinal "2026-01-01"
 
 emptyAccountTable ← {
-  key⇐⟨⟩,currency⇐⟨⟩,role⇐⟨⟩,type⇐⟨⟩,budget⇐⟨⟩,budget_group⇐⟨⟩,
-  spend_class⇐⟨⟩,kind⇐⟨⟩,envelope_role⇐⟨⟩,metadata⇐⟨⟩,source_row⇐⟨⟩
+  key⇐⟨⟩,currency⇐⟨⟩,role⇐⟨⟩,type⇐⟨⟩,metadata⇐⟨⟩,source_row⇐⟨⟩
 }
 errorResult ← facts.Project ⟨{state⇐"error"},emptyAccountTable⟩
 "error" lib.AssertEq errorResult.state
@@ -138,10 +137,7 @@ lib.Assert ∨´ {𝕩.code ≡ "posting_account_unknown"}¨ unknownAccountResul
 
 misalignedAccounts ← {
   key⇐admittedAccounts.key,currency⇐⟨⟩,role⇐admittedAccounts.role,type⇐admittedAccounts.type,
-  budget⇐admittedAccounts.budget,budget_group⇐admittedAccounts.budget_group,
-  spend_class⇐admittedAccounts.spend_class,kind⇐admittedAccounts.kind,
-  envelope_role⇐admittedAccounts.envelope_role,metadata⇐admittedAccounts.metadata,
-  source_row⇐admittedAccounts.source_row
+  metadata⇐admittedAccounts.metadata,source_row⇐admittedAccounts.source_row
 }
 misaligned ← facts.Project ⟨admitted,misalignedAccounts⟩
 "error" lib.AssertEq misaligned.state
@@ -175,11 +171,6 @@ duplicateAccounts ← {
   currency⇐admittedAccounts.currency∾⟨⊑admittedAccounts.currency⟩,
   role⇐admittedAccounts.role∾⟨⊑admittedAccounts.role⟩,
   type⇐admittedAccounts.type∾⟨⊑admittedAccounts.type⟩,
-  budget⇐admittedAccounts.budget∾⟨⊑admittedAccounts.budget⟩,
-  budget_group⇐admittedAccounts.budget_group∾⟨⊑admittedAccounts.budget_group⟩,
-  spend_class⇐admittedAccounts.spend_class∾⟨⊑admittedAccounts.spend_class⟩,
-  kind⇐admittedAccounts.kind∾⟨⊑admittedAccounts.kind⟩,
-  envelope_role⇐admittedAccounts.envelope_role∾⟨⊑admittedAccounts.envelope_role⟩,
   metadata⇐admittedAccounts.metadata∾⟨⊑admittedAccounts.metadata⟩,
   source_row⇐admittedAccounts.source_row∾⟨⊑admittedAccounts.source_row⟩
 }
