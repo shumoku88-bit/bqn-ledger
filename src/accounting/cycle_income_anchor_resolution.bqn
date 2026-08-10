@@ -2,7 +2,7 @@
 # Source-qualified contributors remain separate; no cross-source amount is added.
 
 result ← •Import "cycle_result.bqn"
-reference ← •Import "fact_reference.bqn"
+reference ← •Import "../ledger/fact_reference.bqn"
 dates ← •Import "../ledger/date_ordinal.bqn"
 empty ← ⟨⟩
 
