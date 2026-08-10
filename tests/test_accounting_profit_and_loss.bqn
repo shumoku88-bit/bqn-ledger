@@ -44,11 +44,11 @@ abnormal ← profitLoss.Build ⟨abnormalFacts,"JPY",start,end⟩
 lf ← @+10
 Raw ← {𝕊 lines: ∾{𝕩∾lf}¨lines}
 zeroAccountLines ← ⟨
-  "assets:zero\trole=asset\tcurrency=JPY",
-  "income:z\trole=income\tcurrency=JPY",
-  "expenses:z\trole=expense\tcurrency=JPY",
-  "income:a\trole=income\tcurrency=JPY",
-  "expenses:a\trole=expense\tcurrency=JPY"
+  "assets:zero	role=asset	currency=JPY",
+  "income:z	role=income	currency=JPY",
+  "expenses:z	role=expense	currency=JPY",
+  "income:a	role=income	currency=JPY",
+  "expenses:a	role=expense	currency=JPY"
 ⟩
 zeroRaw ← Raw ⟨
   "commodity JPY","",
@@ -87,12 +87,12 @@ CheckExactFailure ← {𝕊 boundaryFacts‿code:
 }
 
 expenseSubsetAccounts ← ⟨
-  "expenses:subset-a\trole=expense\tcurrency=JPY",
-  "assets:subset-bridge\trole=asset\tcurrency=JPY",
-  "expenses:subset-b\trole=expense\tcurrency=JPY",
-  "liabilities:subset-a\trole=liability\tcurrency=JPY",
-  "liabilities:subset-bridge\trole=liability\tcurrency=JPY",
-  "liabilities:subset-b\trole=liability\tcurrency=JPY"
+  "expenses:subset-a	role=expense	currency=JPY",
+  "assets:subset-bridge	role=asset	currency=JPY",
+  "expenses:subset-b	role=expense	currency=JPY",
+  "liabilities:subset-a	role=liability	currency=JPY",
+  "liabilities:subset-bridge	role=liability	currency=JPY",
+  "liabilities:subset-b	role=liability	currency=JPY"
 ⟩
 expenseSubsetRaw ← Raw ⟨
   "commodity JPY","",
@@ -114,12 +114,12 @@ expenseSubsetFacts ← (snapshot.Build ⟨expenseSubsetAccounts,expenseSubsetRaw
 CheckExactFailure ⟨expenseSubsetFacts,"expense_sum_failed"⟩
 
 incomeSubsetAccounts ← ⟨
-  "income:subset-a\trole=income\tcurrency=JPY",
-  "liabilities:subset-bridge\trole=liability\tcurrency=JPY",
-  "income:subset-b\trole=income\tcurrency=JPY",
-  "assets:subset-a\trole=asset\tcurrency=JPY",
-  "assets:subset-bridge\trole=asset\tcurrency=JPY",
-  "assets:subset-b\trole=asset\tcurrency=JPY"
+  "income:subset-a	role=income	currency=JPY",
+  "liabilities:subset-bridge	role=liability	currency=JPY",
+  "income:subset-b	role=income	currency=JPY",
+  "assets:subset-a	role=asset	currency=JPY",
+  "assets:subset-bridge	role=asset	currency=JPY",
+  "assets:subset-b	role=asset	currency=JPY"
 ⟩
 incomeSubsetRaw ← Raw ⟨
   "commodity JPY","",
@@ -142,12 +142,12 @@ CheckExactFailure ⟨incomeSubsetFacts,"income_sum_failed"⟩
 
 # Income and Expense totals can each be exact while their final net combination is not.
 netSubsetAccounts ← ⟨
-  "income:net-a\trole=income\tcurrency=JPY",
-  "liabilities:net-bridge\trole=liability\tcurrency=JPY",
-  "expenses:net-b\trole=expense\tcurrency=JPY",
-  "assets:net-a\trole=asset\tcurrency=JPY",
-  "assets:net-bridge\trole=asset\tcurrency=JPY",
-  "assets:net-b\trole=asset\tcurrency=JPY"
+  "income:net-a	role=income	currency=JPY",
+  "liabilities:net-bridge	role=liability	currency=JPY",
+  "expenses:net-b	role=expense	currency=JPY",
+  "assets:net-a	role=asset	currency=JPY",
+  "assets:net-bridge	role=asset	currency=JPY",
+  "assets:net-b	role=asset	currency=JPY"
 ⟩
 netSubsetRaw ← Raw ⟨
   "commodity JPY","",
