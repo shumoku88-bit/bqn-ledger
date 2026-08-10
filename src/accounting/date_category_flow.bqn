@@ -32,7 +32,7 @@ FailureResult ← {𝕊 domainCode‿layerName‿startOrdinal‿endOrdinal‿dia
   }
 }
 
-# Shallow capability admission: request coordinates and cross-source relations only.
+# Shallow capability admission owns request coordinates and cross-source relations.
 Admit ← {𝕊 factSet‿budgetPolicy‿householdPolicy‿domainCode‿layerName‿startOrdinal‿endOrdinal:
   diagnostics ← empty
   diagnostics ∾↩ AddIf ⟨factSet.state≢"ok",Diagnostic ⟨"facts_not_ok","canonical facts must be ok"⟩⟩
