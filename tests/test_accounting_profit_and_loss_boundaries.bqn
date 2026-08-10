@@ -1,29 +1,41 @@
 #!/usr/bin/env bqn
 lib ← •Import "test_lib.bqn"
-loader ← •Import "../src/application/source_io.bqn"
-registryCore ← •Import "../src/ledger/currency_registry.bqn"
-snapshot ← •Import "../src/ledger/snapshot.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 period ← •Import "../src/accounting/account_period.bqn"
 profitLoss ← •Import "../src/accounting/profit_and_loss.bqn"
 
-registry ← (registryCore.Build loader.ReadLines "config/currencies.tsv").registry
+empty ← ⟨⟩
 start ← dates.Ordinal "2026-01-01"
 end ← dates.Ordinal "2026-02-01"
-lf ← @+10
-Raw ← {𝕊 lines: ∾{𝕩∾lf}¨lines}
 
-BuildFacts ← {𝕊 label‿accountLines‿raw:
-  built ← snapshot.Build ⟨accountLines,raw,registry⟩
-  •Out "boundary snapshot: "∾label∾" = "∾built.state
-  {𝕊: •Out •Fmt built.diagnostics}⍟(built.state≢"ok") @
-  "ok" lib.AssertEq built.state
-  built.facts
+# Pure accounting boundary fixtures deliberately start at the admitted Facts contract.
+# Journal amount admission is a separate ledger-owner boundary and must not decide
+# whether an already-admitted Account subset can still overflow a downstream exact sum.
+MakeFacts ← {𝕊 accountKeys‿roles‿postingAccounts‿postingSides‿postingCoefficients:
+  accountCount ← ≠accountKeys
+  postingCount ← ≠postingAccounts
+  currencies ← {𝕊 i: "JPY"}¨↕accountCount
+  postingIds ← {𝕊 i: "pnl-boundary-"∾•Fmt i}¨↕postingCount
+  {
+    state⇐"ok",
+    sources⇐{name⇐⟨"actual.journal"⟩},
+    domains⇐{code⇐⟨"JPY"⟩},
+    layers⇐{name⇐⟨"actual"⟩},
+    accounts⇐{
+      count⇐accountCount,index⇐↕accountCount,key⇐accountKeys,role⇐roles,currency⇐currencies
+    },
+    postings⇐{
+      count⇐postingCount,index⇐↕postingCount,posting_id⇐postingIds,
+      account_index⇐postingAccounts,domain_index⇐0×↕postingCount,layer_index⇐0×↕postingCount,
+      date_ordinal⇐start+0×↕postingCount,side⇐postingSides,
+      coefficient⇐postingCoefficients,scale⇐0×↕postingCount
+    },
+    diagnostics⇐empty
+  }
 }
-CheckExactFailure ← {𝕊 label‿boundaryFacts‿code:
+
+CheckExactFailure ← {𝕊 boundaryFacts‿code:
   upstream ← period.Build ⟨boundaryFacts,"JPY","actual",start,end⟩
-  •Out "boundary period: "∾label∾" = "∾upstream.state
-  {𝕊: •Out •Fmt upstream.diagnostics}⍟(upstream.state≢"ok") @
   "ok" lib.AssertEq upstream.state
   failed ← profitLoss.Build ⟨boundaryFacts,"JPY",start,end⟩
   "error" lib.AssertEq failed.state
@@ -33,24 +45,12 @@ CheckExactFailure ← {𝕊 label‿boundaryFacts‿code:
 }
 
 # Dense statement rows retain zero-movement Income/Expense Accounts in canonical Account order.
-zeroAccountLines ← ⟨
-  "assets:zero	role=asset	currency=JPY",
-  "income:z	role=income	currency=JPY",
-  "expenses:z	role=expense	currency=JPY",
-  "income:a	role=income	currency=JPY",
-  "expenses:a	role=expense	currency=JPY"
+zeroFacts ← MakeFacts ⟨
+  ⟨"assets:zero","income:z","expenses:z","income:a","expenses:a"⟩,
+  ⟨"asset","income","expense","income","expense"⟩,
+  empty,empty,empty
 ⟩
-zeroRaw ← Raw ⟨
-  "commodity JPY","",
-  "account assets:zero","    ; role: asset","",
-  "account income:z","    ; role: income","",
-  "account expenses:z","    ; role: expense","",
-  "account income:a","    ; role: income","",
-  "account expenses:a","    ; role: expense"
-⟩
-zeroFacts ← BuildFacts ⟨"zero",zeroAccountLines,zeroRaw⟩
 zero ← profitLoss.Build ⟨zeroFacts,"JPY",start,end⟩
-•Out "boundary pnl: zero = "∾zero.state
 "ok" lib.AssertEq zero.state
 ⟨"income:z","income:a"⟩ lib.AssertEq zero.income.account_key
 ⟨0,0⟩ lib.AssertEq zero.income.amount
@@ -62,86 +62,42 @@ zero ← profitLoss.Build ⟨zeroFacts,"JPY",start,end⟩
 0 lib.AssertEq zero.total_expenses
 0 lib.AssertEq zero.net_income
 
-# A full one-sided Account sum can be exact while a role-selected subset is not.
-maxConsecutive ← "9007199254740991"
+# The complete Account axis can sum exactly while the Expense-role subset cannot.
+# Account movements in canonical order are:
+#   9007199254740991, 1, 2, -9007199254740991, -1, -2
+# The whole sequence and its one-sided totals are exact, but Expense selects the
+# first and third movements: 9007199254740991 + 2 = 9007199254740993, which is
+# not exactly representable at the current Number spacing.
+expenseSubsetFacts ← MakeFacts ⟨
+  ⟨"expenses:subset-a","assets:subset-bridge","expenses:subset-b","liabilities:subset-a","liabilities:subset-bridge","liabilities:subset-b"⟩,
+  ⟨"expense","asset","expense","liability","liability","liability"⟩,
+  ⟨0,3,1,4,2,5⟩,
+  ⟨"debit","credit","debit","credit","debit","credit"⟩,
+  ⟨9007199254740991,¯9007199254740991,1,¯1,2,¯2⟩
+⟩
+CheckExactFailure ⟨expenseSubsetFacts,"expense_sum_failed"⟩
 
-expenseSubsetAccounts ← ⟨
-  "expenses:subset-a	role=expense	currency=JPY",
-  "assets:subset-bridge	role=asset	currency=JPY",
-  "expenses:subset-b	role=expense	currency=JPY",
-  "liabilities:subset-a	role=liability	currency=JPY",
-  "liabilities:subset-bridge	role=liability	currency=JPY",
-  "liabilities:subset-b	role=liability	currency=JPY"
+# Symmetric credit-side construction keeps Account Period exact while Income
+# statement sign normalization exposes the same non-exact subset 9007199254740991 + 2.
+incomeSubsetFacts ← MakeFacts ⟨
+  ⟨"income:subset-a","liabilities:subset-bridge","income:subset-b","assets:subset-a","assets:subset-bridge","assets:subset-b"⟩,
+  ⟨"income","liability","income","asset","asset","asset"⟩,
+  ⟨3,0,4,1,5,2⟩,
+  ⟨"debit","credit","debit","credit","debit","credit"⟩,
+  ⟨9007199254740991,¯9007199254740991,1,¯1,2,¯2⟩
 ⟩
-expenseSubsetRaw ← Raw ⟨
-  "commodity JPY","",
-  "account expenses:subset-a","    ; role: expense","",
-  "account assets:subset-bridge","    ; role: asset","",
-  "account expenses:subset-b","    ; role: expense","",
-  "account liabilities:subset-a","    ; role: liability","",
-  "account liabilities:subset-bridge","    ; role: liability","",
-  "account liabilities:subset-b","    ; role: liability","",
-  "2026-01-10 * subset A","    ; event-id: pnl-expense-subset-a","    ; layer: actual",
-  "    expenses:subset-a "∾maxConsecutive∾" JPY","    liabilities:subset-a -"∾maxConsecutive∾" JPY","",
-  "2026-01-11 * subset bridge","    ; event-id: pnl-expense-subset-bridge","    ; layer: actual",
-  "    assets:subset-bridge 1 JPY","    liabilities:subset-bridge -1 JPY","",
-  "2026-01-12 * subset B","    ; event-id: pnl-expense-subset-b","    ; layer: actual",
-  "    expenses:subset-b 2 JPY","    liabilities:subset-b -2 JPY"
-⟩
-expenseSubsetFacts ← BuildFacts ⟨"expense subset",expenseSubsetAccounts,expenseSubsetRaw⟩
-CheckExactFailure ⟨"expense subset",expenseSubsetFacts,"expense_sum_failed"⟩
-
-incomeSubsetAccounts ← ⟨
-  "income:subset-a	role=income	currency=JPY",
-  "liabilities:subset-bridge	role=liability	currency=JPY",
-  "income:subset-b	role=income	currency=JPY",
-  "assets:subset-a	role=asset	currency=JPY",
-  "assets:subset-bridge	role=asset	currency=JPY",
-  "assets:subset-b	role=asset	currency=JPY"
-⟩
-incomeSubsetRaw ← Raw ⟨
-  "commodity JPY","",
-  "account income:subset-a","    ; role: income","",
-  "account liabilities:subset-bridge","    ; role: liability","",
-  "account income:subset-b","    ; role: income","",
-  "account assets:subset-a","    ; role: asset","",
-  "account assets:subset-bridge","    ; role: asset","",
-  "account assets:subset-b","    ; role: asset","",
-  "2026-01-10 * income subset A","    ; event-id: pnl-income-subset-a","    ; layer: actual",
-  "    assets:subset-a "∾maxConsecutive∾" JPY","    income:subset-a -"∾maxConsecutive∾" JPY","",
-  "2026-01-11 * income subset bridge","    ; event-id: pnl-income-subset-bridge","    ; layer: actual",
-  "    assets:subset-bridge 1 JPY","    liabilities:subset-bridge -1 JPY","",
-  "2026-01-12 * income subset B","    ; event-id: pnl-income-subset-b","    ; layer: actual",
-  "    assets:subset-b 2 JPY","    income:subset-b -2 JPY"
-⟩
-incomeSubsetFacts ← BuildFacts ⟨"income subset",incomeSubsetAccounts,incomeSubsetRaw⟩
-CheckExactFailure ⟨"income subset",incomeSubsetFacts,"income_sum_failed"⟩
+CheckExactFailure ⟨incomeSubsetFacts,"income_sum_failed"⟩
 
 # Income and Expense totals can each be exact while their final net combination is not.
-netSubsetAccounts ← ⟨
-  "income:net-a	role=income	currency=JPY",
-  "liabilities:net-bridge	role=liability	currency=JPY",
-  "expenses:net-b	role=expense	currency=JPY",
-  "assets:net-a	role=asset	currency=JPY",
-  "assets:net-bridge	role=asset	currency=JPY",
-  "assets:net-b	role=asset	currency=JPY"
+# Income publishes +9007199254740991; abnormal Expense credit publishes -2;
+# net income therefore requires 9007199254740991 - (-2) = 9007199254740993.
+netSubsetFacts ← MakeFacts ⟨
+  ⟨"income:net-a","liabilities:net-bridge","expenses:net-b","assets:net-a","assets:net-bridge","assets:net-b"⟩,
+  ⟨"income","liability","expense","asset","asset","asset"⟩,
+  ⟨3,0,4,1,5,2⟩,
+  ⟨"debit","credit","debit","credit","debit","credit"⟩,
+  ⟨9007199254740991,¯9007199254740991,1,¯1,2,¯2⟩
 ⟩
-netSubsetRaw ← Raw ⟨
-  "commodity JPY","",
-  "account income:net-a","    ; role: income","",
-  "account liabilities:net-bridge","    ; role: liability","",
-  "account expenses:net-b","    ; role: expense","",
-  "account assets:net-a","    ; role: asset","",
-  "account assets:net-bridge","    ; role: asset","",
-  "account assets:net-b","    ; role: asset","",
-  "2026-01-10 * net subset income","    ; event-id: pnl-net-income","    ; layer: actual",
-  "    assets:net-a "∾maxConsecutive∾" JPY","    income:net-a -"∾maxConsecutive∾" JPY","",
-  "2026-01-11 * net subset bridge","    ; event-id: pnl-net-bridge","    ; layer: actual",
-  "    assets:net-bridge 1 JPY","    liabilities:net-bridge -1 JPY","",
-  "2026-01-12 * net subset expense credit","    ; event-id: pnl-net-expense","    ; layer: actual",
-  "    assets:net-b 2 JPY","    expenses:net-b -2 JPY"
-⟩
-netSubsetFacts ← BuildFacts ⟨"net subset",netSubsetAccounts,netSubsetRaw⟩
-CheckExactFailure ⟨"net subset",netSubsetFacts,"net_income_sum_failed"⟩
+CheckExactFailure ⟨netSubsetFacts,"net_income_sum_failed"⟩
 
 •Out "test_accounting_profit_and_loss_boundaries: ok"
