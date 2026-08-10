@@ -179,7 +179,6 @@ BuildEnvelopeTerms ← {𝕊 budgetFacts‿actualFacts‿accounts‿ownership‿
   headroomResults ← {𝕊 i:
     result ← ErrorExact @ ⋄ remaining ← i⊑remainingResults
     {𝕊:result↩scale.Sum ⟨remaining.coefficient,-(i⊑reserveResults).coefficient⟩}⍟(remaining.state≡"ok") @ ⋄ result
-    result
   }¨↕envelopeCount
   finalOk ← ({𝕩.state≡"ok"}¨remainingResults) ∧ {𝕩.state≡"ok"}¨headroomResults
   diagnostics ← ∾{𝕊 i:
