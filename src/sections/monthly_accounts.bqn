@@ -1,12 +1,11 @@
 # Retained Month × Account movement result with Account × Month human presentation.
 
+matrix_result ← •Import "../accounting/matrix_result.bqn"
 amount ← •Import "../ledger/amount_text.bqn"
 text ← •Import "../report/text.bqn"
 empty ← ⟨⟩
 
-EmptyMatrix ← {𝕊:
-  {row_count⇐0,column_count⇐0,cell_count⇐0,row_index⇐empty,column_index⇐empty,row_coordinates⇐empty,column_coordinates⇐empty,scale⇐0,values⇐empty,contributors⇐empty}
-}
+EmptyMatrix ← {𝕊: (matrix_result.Build ⟨empty,empty,0,empty,empty⟩).matrix}
 EmptyResult ← {𝕊 diagnosticsValue:
   {
     state⇐"error",domain⇐"",first_month⇐"",last_month_exclusive⇐"",months⇐empty,
