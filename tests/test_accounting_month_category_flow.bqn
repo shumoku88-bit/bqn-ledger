@@ -32,10 +32,10 @@ actual ← monthly.Build ⟨actualFacts,budgetPolicy,household,"JPY","actual",ja
 ⟨⟨2,4⟩,⟨5⟩⟩ lib.AssertEq actual.expense_groups.contributors
 
 accountLines ← ⟨
-  "assets:cash	role=asset	currency=JPY",
-  "expenses:food	role=expense	currency=JPY",
-  "expenses:transport	role=expense	currency=JPY",
-  "budget:food	role=budget	currency=JPY"
+  "assets:cash\trole=asset\tcurrency=JPY",
+  "expenses:food\trole=expense\tcurrency=JPY",
+  "expenses:transport\trole=expense\tcurrency=JPY",
+  "budget:food\trole=budget\tcurrency=JPY"
 ⟩
 accounts ← (account_admission.Admit ⟨accountLines,registry⟩).accounts
 planRaw ← ∾{𝕩∾@+10}¨⟨
@@ -47,8 +47,8 @@ planRaw ← ∾{𝕩∾@+10}¨⟨
 ⟩
 planFacts ← (canonicalPlan.Build ⟨planRaw,accounts,registry⟩).facts
 planBudgetPolicy ← {
-  state⇐"ok",source_name⇐"budget.toml",envelopes⇐{count⇐1,id⇐⟨"food"⟩},
-  expense_account_index⇐⟨1⟩,expense_envelope_id⇐⟨"food"⟩
+  state⇐"ok",source_name⇐"budget.toml",
+  envelopes⇐{count⇐1,id⇐⟨"food"⟩,expense_account_keys⇐⟨⟨"expenses:food"⟩⟩}
 }
 planHousehold ← {
   state⇐"ok",source_name⇐"household.toml",
