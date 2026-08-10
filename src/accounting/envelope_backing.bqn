@@ -73,37 +73,30 @@ ResolveOwnership ← {𝕊 accounts‿budgetPolicy‿householdPolicy‿domain:
   # this statement's current Facts axis instead of trusting admission-time indices.
   expenseKeys ← ∾budgetPolicy.envelopes.expense_account_keys
   expenseEnvelopeIds ← ∾{𝕊 i:(≠i⊑budgetPolicy.envelopes.expense_account_keys)⥊⟨i⊑categories⟩}¨↕≠categories
-  expenseCandidates ← accounts.key⊐expenseKeys
-  expenseKnown ← ∧´1∾expenseCandidates<accounts.count
-  diagnostics∾↩AddIf ⟨¬expenseKnown,Diagnostic ⟨"budget_policy_expense_account_unknown","budget.toml Expense Accounts must occur on the current Facts Account axis"⟩⟩
-  expenseRolesValid ← 0
-  {𝕊:
-    expenseRolesValid↩∧´1∾"expense"⊸≡¨expenseCandidates⊏accounts.role
-    diagnostics∾↩AddIf ⟨¬expenseRolesValid,Diagnostic ⟨"budget_policy_expense_account_role_invalid","budget.toml Expense Accounts must remain Expense Accounts on the current Facts axis"⟩⟩
-  }⍟expenseKnown @
-  expenseIndices ← empty ⋄ resolvedExpenseEnvelopeIds ← empty
-  {𝕊:expenseIndices↩expenseCandidates ⋄ resolvedExpenseEnvelopeIds↩expenseEnvelopeIds}⍟(expenseKnown ∧ expenseRolesValid) @
+  expenseIndices ← accounts.key⊐expenseKeys
+  expenseKnown ← expenseIndices<accounts.count
+  expenseRoles ← expenseIndices⊏accounts.role∾⟨""⟩
+  diagnostics∾↩AddIf ⟨¬∧´1∾expenseKnown,Diagnostic ⟨"budget_policy_expense_account_unknown","budget.toml Expense Accounts must occur on the current Facts Account axis"⟩⟩
+  diagnostics∾↩AddIf ⟨∨´0∾expenseKnown ∧ ¬"expense"⊸≡¨expenseRoles,Diagnostic ⟨"budget_policy_expense_account_role_invalid","budget.toml Expense Accounts must remain Expense Accounts on the current Facts axis"⟩⟩
 
   # Pool membership may span Commodities; resolve by key first, then project the
   # current Account axis to the requested domain while preserving policy order.
   fundingKeys ← ∾budgetPolicy.backing_pools.asset_account_keys
   policyFundingIndices ← accounts.key⊐fundingKeys
-  fundingKnown ← ∧´1∾policyFundingIndices<accounts.count
-  diagnostics∾↩AddIf ⟨¬fundingKnown,Diagnostic ⟨"budget_policy_asset_account_unknown","budget.toml backing Accounts must occur on the current Facts Account axis"⟩⟩
-  fundingRolesValid ← 0 ⋄ fundingIndices ← empty
-  {𝕊:
-    fundingRolesValid↩∧´1∾"asset"⊸≡¨policyFundingIndices⊏accounts.role
-    diagnostics∾↩AddIf ⟨¬fundingRolesValid,Diagnostic ⟨"budget_policy_asset_account_role_invalid","budget.toml backing Accounts must remain Asset Accounts on the current Facts axis"⟩⟩
-    {𝕊:fundingIndices↩(domain⊸≡¨policyFundingIndices⊏accounts.currency)/policyFundingIndices}⍟fundingRolesValid @
-  }⍟fundingKnown @
-  diagnostics∾↩AddIf ⟨fundingKnown ∧ fundingRolesValid ∧ 0=≠fundingIndices,Diagnostic ⟨"funding_scope_invalid","budget.toml backing policy requires an Asset Account in the selected domain"⟩⟩
+  fundingKnown ← policyFundingIndices<accounts.count
+  fundingRoles ← policyFundingIndices⊏accounts.role∾⟨""⟩
+  fundingCurrencies ← policyFundingIndices⊏accounts.currency∾⟨""⟩
+  diagnostics∾↩AddIf ⟨¬∧´1∾fundingKnown,Diagnostic ⟨"budget_policy_asset_account_unknown","budget.toml backing Accounts must occur on the current Facts Account axis"⟩⟩
+  diagnostics∾↩AddIf ⟨∨´0∾fundingKnown ∧ ¬"asset"⊸≡¨fundingRoles,Diagnostic ⟨"budget_policy_asset_account_role_invalid","budget.toml backing Accounts must remain Asset Accounts on the current Facts axis"⟩⟩
+  fundingIndices ← (domain⊸≡¨fundingCurrencies)/policyFundingIndices
+  diagnostics∾↩AddIf ⟨0=≠fundingIndices,Diagnostic ⟨"funding_scope_invalid","budget.toml backing policy requires an Asset Account in the selected domain"⟩⟩
 
   ownershipMissing ← (≠envelopeIndices)≠≠categories
   state ← "ok" ⋄ reason ← ""
   {𝕊:state↩"error"}⍟(0<≠diagnostics) @
   {𝕊:state↩"unavailable" ⋄ reason↩"envelope_or_funding_ownership_missing"}⍟((0=≠diagnostics) ∧ ownershipMissing) @
   {state⇐state,reason⇐reason,envelope_indices⇐envelopeIndices,categories⇐categories,
-   expense_indices⇐expenseIndices,expense_envelope_ids⇐resolvedExpenseEnvelopeIds,
+   expense_indices⇐expenseIndices,expense_envelope_ids⇐expenseEnvelopeIds,
    funding_indices⇐fundingIndices,unassigned_indices⇐unassignedIndices,diagnostics⇐diagnostics}
 }
 
