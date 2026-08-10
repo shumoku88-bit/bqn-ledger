@@ -1,7 +1,7 @@
 # Pure Actual Account closing balances through one explicit observation.
 
 scale ← •Import "../ledger/exact_scale.bqn"
-reference ← •Import "fact_reference.bqn"
+reference ← •Import "../ledger/fact_reference.bqn"
 empty ← ⟨⟩
 
 Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}

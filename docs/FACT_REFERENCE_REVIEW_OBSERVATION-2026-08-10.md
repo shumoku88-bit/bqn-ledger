@@ -2,13 +2,15 @@
 
 ## Baseline
 
-Observed on `main` `0f33d6044f186acbf9185f97690872b76d376b1f` after the Envelope Backing review closed in PR #603.
+The review began on `main` `0f33d6044f186acbf9185f97690872b76d376b1f` after the Envelope Backing review closed in PR #603. PR #604 recorded the first observation on `main` `f0636998aac10c63eefa3be80e52f281b3df21d2` before production ownership changed.
 
-The active review cursor is `src/accounting/fact_reference.bqn`. This is observation-only: no production file, import path, public result, source authority, identity, provenance, accounting meaning, or review checkbox is changed here.
+The owner was then located at `src/accounting/fact_reference.bqn`. The relocation slice following #604 moves the unchanged three-function module to `src/ledger/fact_reference.bqn`, updates every direct production importer and active owner-path document, and leaves no compatibility shim at the retired accounting path.
 
-## Current owner shape
+The active review cursor follows the owner to `src/ledger/fact_reference.bqn`. The owner is not review-complete yet because the separate `SourceIs` subtraction candidate still requires a focused law.
 
-`src/accounting/fact_reference.bqn` is a 13-line, dependency-free module with three public functions:
+## Owner shape
+
+`src/ledger/fact_reference.bqn` is a 13-line, dependency-free module with three public functions:
 
 ```text
 SourceIs    Facts × source name -> boolean
@@ -18,29 +20,19 @@ Posting     Facts × snapshot-local Posting index     -> {source, posting_id}
 
 It performs no accounting arithmetic, period selection, grouping, report policy, rendering, I/O, or source parsing. Its responsibility is source qualification plus publication of durable source-qualified identity from canonical Facts.
 
-`Transaction` and `Posting` deliberately translate snapshot-local numeric coordinates into stable public evidence. The record shapes are centralized here rather than reconstructed by consumers.
+`Transaction` and `Posting` deliberately translate snapshot-local numeric coordinates into stable public evidence. The record shapes remain centralized here rather than reconstructed by consumers.
 
 ## Facts source-axis contract
 
-`src/ledger/facts.bqn` owns the source axis. `Project` starts with an empty source name, admits one nonempty canonical `source_name`, and publishes:
+`src/ledger/facts.bqn` owns the source axis. `Project` starts with an empty source name, admits one nonempty canonical `source_name`, and publishes either an empty source-name vector or exactly one source-name cell.
 
-```text
-sources.name = empty
-```
-
-or exactly:
-
-```text
-sources.name = <sourceName>
-```
-
-as a one-cell vector. Successful Facts therefore have exactly one source name. An error Facts value may still retain that singleton source axis if a later Facts diagnostic was raised after source admission.
+Successful Facts therefore have exactly one source name. An error Facts value may still retain that singleton source axis if a later Facts diagnostic was raised after source admission.
 
 This distinction matters: source-name equality alone is not enough to accept an error Facts value; `SourceIs` must retain the `facts.state == "ok"` requirement.
 
 ## Direct consumer graph
 
-Repository search finds ten direct production importers spanning three architectural layers.
+Repository search found ten direct production importers spanning three architectural layers.
 
 Accounting:
 
@@ -61,34 +53,35 @@ Application:
 
 - `src/application/household_daily_scope.bqn`
 
-`SourceIs` is used as a source-qualified Facts admission predicate across those consumers. `Transaction` is used by Plan completion, recent Transactions, and income-anchor provenance. `Posting` is used by Account/cycle/month/P&L/Envelope/recent/Plan evidence publication.
+The relocation updates all ten to import `src/ledger/fact_reference.bqn` through their appropriate relative path. No consumer API changes.
 
-The consumers use the reference constructors after selecting canonical Facts indices; none of the observed consumers asks this module to own selection, bounds checking, accounting validation, or diagnostic policy.
+`SourceIs` remains the source-qualified Facts admission predicate. `Transaction` remains the durable Transaction reference constructor used by Plan completion, recent Transactions, and income-anchor provenance. `Posting` remains the durable Posting reference constructor used by Account/cycle/month/P&L/Envelope/recent/Plan evidence publication.
 
-## Ownership observation
+The consumers use the reference constructors only after selecting canonical Facts indices; none asks this owner to perform selection, bounds checking, accounting validation, or diagnostic policy.
 
-The current path is suspicious.
+## Ownership decision: MOVE
 
-`TODO.md` describes Phase 2 `src/ledger/` as owning "admission, Facts, exact values, identity, and provenance". `fact_reference.bqn` describes itself as source validation plus durable source-qualified references, operates only on generic Facts structure, and is imported directly by Section and Application code as well as Accounting.
+`TODO.md` defines Phase 2 `src/ledger/` as owning admission, Facts, exact values, identity, and provenance. Fact reference operates only on generic Facts structure and is consumed directly by Section and Application code as well as Accounting.
 
-That makes the module look more like a ledger identity/provenance capability than an accounting kernel.
+Keeping it under `src/accounting/` therefore made higher layers depend on the accounting directory for a generic Facts identity/provenance concern. Repository dependency search also found higher layers importing Accounting while no `src/ledger/` consumer imported `../accounting/`.
 
-Keeping it under `src/accounting/` causes higher layers to depend on the accounting directory for a generic Facts/provenance concern. Moving the owner downward to `src/ledger/fact_reference.bqn` would align dependency direction and repository vocabulary without changing the public three-function contract.
+The retained ownership is therefore:
 
-Classification: **MOVE candidate**, strong evidence but not applied in this observation.
+```text
+src/ledger/fact_reference.bqn
+```
 
-If accepted, prefer one coherent ownership relocation:
+The relocation is behavior-preserving:
 
-1. move the file to `src/ledger/fact_reference.bqn`;
-2. update all direct production imports to the new owner;
-3. update active documentation that names the current owner path, including `docs/PLAN_COMPLETION_JOIN.md` and `docs/ACTUAL_FACT_SUFFICIENCY.md`, and re-check other current review records for path references;
-4. update the production BQN inventory / review cursor bookkeeping so the file is listed exactly once in its new phase;
-5. do not leave an `src/accounting/fact_reference.bqn` compatibility shim;
-6. do not change `SourceIs`, `Transaction`, or `Posting` semantics in the relocation PR.
+1. the file content and exported `SourceIs`, `Transaction`, and `Posting` contracts are unchanged;
+2. all ten direct production imports point to the ledger owner;
+3. active path documentation points to the ledger owner;
+4. the production inventory lists the file exactly once under Phase 2;
+5. `src/accounting/fact_reference.bqn` is removed rather than retained as a compatibility shim.
 
-The move is an ownership refactor, not an algorithm refactor. A complete move must update both dependency edges and current explanatory ownership references rather than leaving documentation pointing at the retired path.
+Classification: **MOVE applied**.
 
-## `Transaction` / `Posting` judgment
+## `Transaction` / `Posting` decision: KEEP
 
 The two reference constructors are small but carry real domain meaning:
 
@@ -96,15 +89,15 @@ The two reference constructors are small but carry real domain meaning:
 snapshot-local coordinate -> source-qualified durable identity
 ```
 
-Their current scalar shape composes naturally with the consumer-owned Group/Each cells that determine provenance ordering. Adding plural `Transactions` / `Postings` APIs would enlarge the public surface without removing a semantic owner; replacing both with a generic kind-parameterized `Reference` helper would weaken the Transaction/Posting vocabulary.
+Their scalar shape composes naturally with consumer-owned Group/Each cells that determine provenance ordering. Adding plural `Transactions` / `Postings` APIs would enlarge the public surface without removing a semantic owner. Replacing both with a kind-parameterized generic `Reference` helper would weaken the Transaction/Posting vocabulary.
+
+No duplicate production definition of the `{source, transaction_id}` or `{source, posting_id}` reference shapes was found in the current search.
 
 Classification: **KEEP**.
 
-No duplicate production definition of the `{source, transaction_id}` or `{source, posting_id}` reference shapes was found in the current search. Central ownership is useful.
-
 ## `SourceIs` subtraction candidate
 
-The current implementation uses a mutable local plus conditional execution to avoid taking the first source name when the source axis is not singleton:
+The current implementation intentionally remains unchanged by the ownership relocation:
 
 ```text
 ok <- 0
@@ -112,42 +105,40 @@ if facts.state == "ok" and facts.sources.count == 1:
   ok <- first(facts.sources.name) == sourceName
 ```
 
-Given the canonical Facts source-axis contract, exact vector equality can express the singleton shape and name relation simultaneously:
+Given the canonical Facts source-axis contract, exact vector equality appears able to express singleton shape and name relation simultaneously:
 
 ```text
 (facts.state == "ok") and (facts.sources.name == <sourceName>)
 ```
 
-In BQN terms, this suggests a direct expression equivalent to:
+In BQN terms, the candidate is equivalent in intent to:
 
 ```text
 (facts.state≡"ok") ∧ (facts.sources.name≡⟨sourceName⟩)
 ```
 
-This would remove the mutable `ok`, the conditional, and the separate count topology while preserving the important rejection of error Facts even when an error value still carries the expected singleton source name.
+This would remove the mutable `ok`, conditional execution, and separate count topology while still rejecting error Facts that happen to carry the expected singleton source name.
 
-Classification: **SUBTRACT candidate**, secondary to the ownership decision.
+Classification: **SUBTRACT candidate**, not applied by the ownership relocation.
 
-Do not combine this simplification with the file relocation. If the owner moves first, prove and apply this relation against the retained ledger owner in a separate algorithm slice.
+## Evidence required before `SourceIs` subtraction
 
-## Evidence gap before `SourceIs` subtraction
+There is no focused direct Fact reference law yet. Current behavior is exercised transitively through accounting, section, and application tests, but a local relation simplification deserves a local proof.
 
-No focused `test_accounting_fact_reference.bqn` (or equivalent direct owner test) was found. Current behavior is exercised transitively through many accounting/section/application tests, but a local relation simplification deserves a small direct law before production change.
-
-A focused law should cover at least:
+The focused law should cover at least:
 
 1. `ok` Facts + expected singleton source -> true;
 2. `ok` Facts + different singleton source -> false;
 3. `ok` Facts + empty source axis -> false;
 4. `ok` Facts + multiple source names -> false;
 5. `error` Facts + expected singleton source -> false;
-6. `Transaction` publishes the supplied Facts source plus durable `transaction_id` rather than the numeric index;
-7. `Posting` publishes the supplied Facts source plus durable `posting_id` rather than the numeric index.
+6. `Transaction` publishes the supplied Facts source plus durable `transaction_id`, not the numeric coordinate;
+7. `Posting` publishes the supplied Facts source plus durable `posting_id`, not the numeric coordinate.
 
-The last two laws protect the reason this owner exists while the first five establish the proposed shape relation.
+The last two laws protect why the owner exists while the first five establish the proposed source-axis relation.
 
-## Current classification
+## Current classification and continuation
 
-`src/accounting/fact_reference.bqn` is **OBSERVE / MOVE candidate**, with a later local `SourceIs` subtraction candidate.
+`src/ledger/fact_reference.bqn` is now the retained **ledger identity/provenance owner**. The ownership question is closed; the owner itself remains unchecked until the `SourceIs` law/subtraction decision is completed and the final form is reread on merged `main`.
 
-The next decision should be whether to relocate this generic Facts identity/provenance owner to `src/ledger/` without semantic changes. Only after ownership is settled should the `SourceIs` implementation be simplified.
+The current cursor stays on `src/ledger/fact_reference.bqn` for that focused follow-up. After Fact reference closes, normal Phase 1 review resumes at `src/accounting/matrix_result.bqn`.

@@ -1,7 +1,7 @@
 # Pure dense Month × Account signed Actual movement over an explicit month range.
 
 scale ← •Import "../ledger/exact_scale.bqn"
-reference ← •Import "fact_reference.bqn"
+reference ← •Import "../ledger/fact_reference.bqn"
 matrix_result ← •Import "matrix_result.bqn"
 sparse_group ← •Import "sparse_group.bqn"
 sparse_pivot ← •Import "sparse_pivot.bqn"

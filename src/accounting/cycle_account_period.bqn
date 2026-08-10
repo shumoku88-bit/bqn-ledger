@@ -1,7 +1,7 @@
 # Pure Current-cycle Account state from resolved cycle, explicit observation, and Actual Facts.
 
 period ← •Import "account_period.bqn"
-reference ← •Import "fact_reference.bqn"
+reference ← •Import "../ledger/fact_reference.bqn"
 dates ← •Import "../ledger/date_ordinal.bqn"
 empty ← ⟨⟩
 
