@@ -1,22 +1,22 @@
 # plan_temporal_status.bqn
-# Pure temporal status projection for plan rows.
+# Pure temporal status projection for open Plan rows.
 #
 # Input:
-#   completed‿plan_date‿as_of
+#   plan_date‿as_of
 #
-# Output vocabulary is intentionally compatible with planned_payments:
-#   future / due / overdue / completed
+# Output vocabulary:
+#   future / due / overdue
 #
-# No formatting, envelope logic, source mutation, or wall-clock reads.
+# Completion belongs to the Plan Completion Join. No formatting, envelope logic,
+# source mutation, observation defaulting, or wall-clock reads live here.
 
 date ← •Import "../ledger/date_ordinal.bqn"
 
-Classify ← {𝕊 completed‿planDate‿asOf:
+Classify ← {𝕊 planDate‿asOf:
   planDn ← date.Ordinal planDate
   asOfDn ← date.Ordinal asOf
   openIdx ← (planDn = asOfDn) + (2 × planDn > asOfDn)
-  openStatus ← openIdx ⊑ ⟨"overdue", "due", "future"⟩
-  completed ⊑ ⟨openStatus, "completed"⟩
+  openIdx ⊑ ⟨"overdue", "due", "future"⟩
 }
 
 { Classify ⇐ Classify }
