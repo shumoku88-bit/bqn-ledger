@@ -6,6 +6,7 @@ snapshot ← •Import "../src/ledger/snapshot.bqn"
 canonicalBudget ← •Import "canonical_budget_test_facts.bqn"
 canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 budgetPolicyAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
+householdPolicyAdmission ← •Import "../src/ledger/household_policy_admission.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 envelopes ← •Import "../src/accounting/envelope_backing.bqn"
 base ← "fixtures/ledger-facts-phase1-proof/"
@@ -28,7 +29,9 @@ MakeHouseholdPolicy ← {𝕊 accounts‿allocationKey‿unassignedKeys:
     state⇐"ok",source_name⇐"household.toml",
     budget⇐{
       envelope_id⇐⟨"food"⟩,
+      allocation_account_key⇐⟨allocationKey⟩,
       allocation_account_index⇐⟨AccountIndex ⟨allocationKey,accounts⟩⟩,
+      unassigned_account_keys⇐unassignedKeys,
       unassigned_account_indices⇐{AccountIndex ⟨𝕩,accounts⟩}¨unassignedKeys
     },
     account_policy⇐{account_key⇐accounts.key}
@@ -92,6 +95,21 @@ result.envelopes.ledger_remaining lib.AssertEq reordered.envelopes.ledger_remain
 result.totals.funding_balance lib.AssertEq reordered.totals.funding_balance
 result.totals.backing_surplus lib.AssertEq reordered.totals.backing_surplus
 result.funding_account_indices lib.AssertEq reordered.funding_account_indices
+
+# Household policy also owns stable Account keys. Re-admitting household.toml
+# against the reversed Account carrier changes its dense policy axis and cached
+# numeric coordinates, but Envelope Backing must resolve sparse ownership keys
+# against the current Actual Facts Account axis.
+householdRaw ← •FChars "../"∾base∾"household.toml"
+reorderedHousehold ← householdPolicyAdmission.Admit ⟨householdRaw,reorderedAccounts,policy⟩
+"ok" lib.AssertEq reorderedHousehold.state
+(⌽actual.accounts.key) lib.AssertEq reorderedHousehold.account_policy.account_key
+reorderedHouseholdResult ← envelopes.Build ⟨budget,policy,reorderedHousehold,actual,plan,"JPY",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-12"⟩
+"ok" lib.AssertEq reorderedHouseholdResult.state
+result.envelopes.account_key lib.AssertEq reorderedHouseholdResult.envelopes.account_key
+result.envelopes.ledger_remaining lib.AssertEq reorderedHouseholdResult.envelopes.ledger_remaining
+result.totals.ledger_unassigned lib.AssertEq reorderedHouseholdResult.totals.ledger_unassigned
+result.totals.backing_surplus lib.AssertEq reorderedHouseholdResult.totals.backing_surplus
 
 unknownDomain ← envelopes.Build ⟨budget,policy,household,actual,plan,"USD",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-12"⟩
 "error" lib.AssertEq unknownDomain.state
