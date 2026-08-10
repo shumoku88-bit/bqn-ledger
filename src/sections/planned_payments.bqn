@@ -1,8 +1,9 @@
 # Destination Planned Payments List result and human/compact/JSON renderers.
-# This section owns selection, observation, temporal classification, totals, and presentation.
+# This section owns selection, observation, cycle grouping, totals, and presentation.
 # Completed Plans are excluded from the section semantic result.
 
 completion ← •Import "../accounting/plan_completion_join.bqn"
+planStatus ← •Import "../accounting/plan_temporal_status.bqn"
 reference ← •Import "../ledger/fact_reference.bqn"
 scale ← •Import "../ledger/exact_scale.bqn"
 dates ← •Import "../ledger/date_ordinal.bqn"
@@ -103,9 +104,7 @@ Build ← {𝕊 planFacts‿actualFacts‿cycle‿asOfText:
           {𝕊: timeGroup↩"overdue"}⍟(planOrdinal<startOrdinal) @
           {𝕊: timeGroup↩"future_cycles"}⍟(planOrdinal≥endOrdinal) @
 
-          temporalStatus ← "overdue"
-          {𝕊: temporalStatus↩"due"}⍟(planOrdinal=asOfOrdinal) @
-          {𝕊: temporalStatus↩"future"}⍟(planOrdinal>asOfOrdinal) @
+          temporalStatus ← planStatus.Classify ⟨planDate,asOfText⟩
 
           fromAccount ← rowIndex⊑joined.rows.planned_from_account
           toAccount ← rowIndex⊑joined.rows.planned_to_account
