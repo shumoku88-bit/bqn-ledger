@@ -304,6 +304,98 @@ It is an ownership question for later UI/presentation work:
 
 Do not change this until the desired ownership is agreed.
 
+## Observation H: `envelope_backing.bqn` has a visible array kernel under residual ownership plumbing
+
+### Focused baseline
+
+Revalidated against `main` `40295202181f6ba27e0afe559509d740cdc40854` with `src/accounting/envelope_backing.bqn` as the active BQN review cursor. The focused reread covered the owner, its accounting dependencies, Budget and Household policy admission, direct report contracts, focused tests, the original Envelope Backing introduction, canonical Budget migration, PR #591, and the current independent `h-kernel` Backing contract.
+
+### Preserved kernel and Backing meaning
+
+The successful accounting transformation is already substantially array-native. Expense Account evidence and open Plan evidence are mapped onto the Envelope axis and grouped there; exact normalization, checked reductions, contributor references, ledger remaining, Plan reserve, headroom, and Backing totals remain explicit.
+
+The current whole-Household funding reduction is intentional rather than an accidental loss of the `backing_pool` relation. Canonical Budget admission retains:
+
+```text
+Envelope -> backing_pool
+backing_pool -> Asset Account keys
+```
+
+but the current Envelope & Backing report asks for one Household funding balance. It therefore aggregates Asset Accounts from every admitted Backing pool. The independent `h-kernel` domain contract has the same boundary: pool-specific shortage/surplus is not a current report surface. Do not replace this aggregate with per-pool arithmetic merely because the policy model can represent more than one pool.
+
+Classification: **KEEP** for whole-Household pool aggregation, grouped Envelope arithmetic, exactness, Plan-reserve separation, and provenance.
+
+### `unavailable` ownership is a subtraction candidate, not yet a deletion
+
+The original Envelope Backing capability accepted an explicit caller-supplied funding Account scope. In that design, an empty funding scope had a focused characterization and legitimately produced:
+
+```text
+state = unavailable
+reason = envelope_or_funding_ownership_missing
+```
+
+Canonical Budget migration moved funding ownership into strict `budget.toml` policy and removed that explicit empty-funding test. Current Budget policy admission requires at least one Backing pool and at least one Asset Account per pool; Household policy admission requires complete Budget/Household Envelope coordinates. On the current path, missing selected-domain funding becomes `funding_scope_invalid`, and invalid Household ownership also produces diagnostics before a numeric result is published.
+
+No current focused test or direct consumer was found that establishes a reachable diagnostics-free `ownershipMissing` state after successful canonical admission. This is strong migration-residue evidence, but not yet proof of unreachability.
+
+Classification: **SUBTRACT candidate**. Before deleting the state, add or derive a focused law proving that every currently admitted ownership absence is either rejected by source admission or becomes a capability error, and verify that no supported composition intentionally manufactures partial policy values.
+
+### Household coordinate dependence is narrower than the current dense-axis guard
+
+`household_policy_admission.bqn` already retains stable sparse keys as well as admission-time numeric coordinates for the relations Envelope Backing needs:
+
+```text
+Envelope id -> allocation Account key
+unassigned Budget -> Account keys
+```
+
+`envelope_backing.bqn` currently consumes the numeric Household coordinates and therefore requires `householdPolicy.account_policy.account_key` to equal the current Facts Account axis exactly. PR #591 removed the corresponding admission-time numeric cache dependency from Budget policy by resolving retained Account keys against the current Facts axis.
+
+Do not remove the Household policy's dense `account_policy` axis globally; it genuinely owns Account-aligned classifications. The narrower review question is whether Envelope Backing itself needs that dense admission-time coordinate dependency. A candidate end-state is to resolve the sparse allocation and unassigned Account keys against the current Facts axis inside this capability, while retaining current-Facts role/domain drift checks.
+
+Classification: **RESTRUCTURE candidate**. Qualification must prove semantic invariance to Account order used only for Household policy admission, and fail closed when a retained key disappears or changes role/domain on current Facts.
+
+### `ResolveOwnership` obscures an otherwise direct relation
+
+Current Envelope -> Household allocation resolution iterates Envelope categories and mutably appends resolved indices and diagnostics. The already-reviewed Date Flow owner expresses the same Envelope-id coordinate relation with aligned lookup once admission uniqueness/completeness has been established.
+
+This is an array-visibility candidate rather than evidence for a shared generic helper. Prefer making the relation directly visible inside Envelope Backing first. Only consider a shared owner later if Date Flow and Envelope Backing still contain an identical domain relation after both owners are independently simplified.
+
+### Successful-path staging is clearer than its current control shape
+
+The semantic stages are meaningful:
+
+```text
+request/cross-source admission
+  -> ownership coordinates
+  -> period/completion evidence
+  -> Envelope grouped terms
+  -> Backing reduction and result
+```
+
+The current `Build` implementation expresses success with a nested guard ladder across `ValidateInputs`, `ResolveOwnership`, `PrepareEvidence`, `BuildEnvelopeTerms`, and `BuildBacking`. The stage names themselves are not the defect. The review question is whether admission/result plumbing can become shallower so the bounded grouped kernel is readable without weakening exact-operation failure checks, diagnostics, fail-closed publication, or contributor alignment.
+
+This resembles the reason-to-change resolved for Date Flow by PR #592, but Envelope Backing additionally owns Plan completion evidence and Backing reduction. Do not force the exact Date Flow topology merely for visual symmetry.
+
+### Documentation residue discovered during the cursor review
+
+Some retained Envelope documents describe earlier ownership stages rather than the current canonical path. In particular, `ENVELOPE_BACKING_CAPABILITY.md` still describes the old application `funding_scope.bqn` boundary, and `ENVELOPE_BUDGET_POOL_METADATA_POLICY.md` describes the pre-canonical `budget_pool=main` / TSV-era direction where multiple pools were future work.
+
+These documents are evidence for migration history, but current active documentation should not teach them as the live ownership contract. Classify and update/retire them with the code decision rather than preserving stale architecture merely because the files remain reachable in repository search.
+
+### Current cursor classification
+
+`src/accounting/envelope_backing.bqn` remains **OBSERVE / RESTRUCTURE candidate** and is not review-complete.
+
+The strongest next proof obligations are:
+
+1. characterize whether `envelope_or_funding_ownership_missing` is reachable from any supported admitted input;
+2. prove or reject current-Facts key re-resolution for Household allocation/unassigned coordinates;
+3. only after those laws are known, decide whether the successful path should be reshaped around a smaller admission boundary and visible Envelope/Backing kernel;
+4. preserve whole-Household Backing aggregation unless a new pool-specific report question is explicitly selected.
+
+Do not create a generic Budget/Household relation helper before these owner-specific laws settle the real shared boundary.
+
 ## Cross-cutting quality axes discovered by this audit
 
 The owner-by-owner BQN review remains useful, but the audit found cross-cutting properties that a purely local cursor can miss.
