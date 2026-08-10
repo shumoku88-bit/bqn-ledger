@@ -64,7 +64,9 @@ household ← {
   state⇐"ok",source_name⇐"household.toml",
   budget⇐{
     envelope_id⇐⟨"food","transport"⟩,
+    allocation_account_key⇐⟨"budget:food","budget:transport"⟩,
     allocation_account_index⇐{Index ⟨𝕩,actual.accounts⟩}¨⟨"budget:food","budget:transport"⟩,
+    unassigned_account_keys⇐⟨"budget:unassigned"⟩,
     unassigned_account_indices⇐⟨Index ⟨"budget:unassigned",actual.accounts⟩⟩
   },
   account_policy⇐{account_key⇐actual.accounts.key}
