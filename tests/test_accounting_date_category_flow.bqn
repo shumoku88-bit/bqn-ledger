@@ -17,7 +17,8 @@ registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").regi
 actualResult ← actualSource.Load ⟨base,registry⟩
 "ok" lib.AssertEq actualResult.state
 facts ← actualResult.facts
-budgetPolicy ← budgetPolicyAdmission.Admit ⟨•FChars "../"∾base∾"budget.toml",facts.accounts⟩
+budgetRaw ← •FChars "../"∾base∾"budget.toml"
+budgetPolicy ← budgetPolicyAdmission.Admit ⟨budgetRaw,facts.accounts⟩
 "ok" lib.AssertEq budgetPolicy.state
 household ← householdAdmission.Admit ⟨•FChars "../"∾base∾"household.toml",facts.accounts,budgetPolicy⟩
 "ok" lib.AssertEq household.state
@@ -52,6 +53,23 @@ matrix ← pivot.Build ⟨result.dates.date_ordinal,result.categories.label,resu
 ⟨⟨0,0⟩,⟨20,0⟩,⟨10,5⟩⟩ lib.AssertEq matrix.matrix.values
 ⟨⟨⟨⟩,⟨⟩⟩,⟨⟨2⟩,⟨⟩⟩,⟨⟨4⟩,⟨5⟩⟩⟩ lib.AssertEq matrix.matrix.contributors
 
+# Budget policy Account order is admission evidence, not a reusable numeric axis.
+# Re-admitting the same policy against a reversed Account carrier must not change
+# classification when the capability later consumes the current Facts axis.
+reorderedAccounts ← {
+  count⇐facts.accounts.count,index⇐facts.accounts.index,
+  key⇐⌽facts.accounts.key,role⇐⌽facts.accounts.role
+}
+reorderedPolicy ← budgetPolicyAdmission.Admit ⟨budgetRaw,reorderedAccounts⟩
+"ok" lib.AssertEq reorderedPolicy.state
+reordered ← flow.Build ⟨facts,reorderedPolicy,household,"JPY","actual",start,end⟩
+"ok" lib.AssertEq reordered.state
+result.categories.label lib.AssertEq reordered.categories.label
+result.expense_groups.row_index lib.AssertEq reordered.expense_groups.row_index
+result.expense_groups.column_index lib.AssertEq reordered.expense_groups.column_index
+result.expense_groups.coefficient lib.AssertEq reordered.expense_groups.coefficient
+result.expense_groups.contributors lib.AssertEq reordered.expense_groups.contributors
+
 late ← flow.Build ⟨facts,budgetPolicy,household,"JPY","actual",dates.Ordinal "2026-01-11",end⟩
 "ok" lib.AssertEq late.state
 ⟨"2026-01-12"⟩ lib.AssertEq late.dates.date_text
@@ -60,9 +78,9 @@ late ← flow.Build ⟨facts,budgetPolicy,household,"JPY","actual",dates.Ordinal
 ⟨10,5⟩ lib.AssertEq late.expense_groups.coefficient
 
 scaleAccountLines ← ⟨
-  "assets:jpy	role=asset	currency=JPY",
-  "expenses:food	role=expense	currency=JPY",
-  "budget:food	role=budget	currency=JPY"
+  "assets:jpy\trole=asset\tcurrency=JPY",
+  "expenses:food\trole=expense\tcurrency=JPY",
+  "budget:food\trole=budget\tcurrency=JPY"
 ⟩
 scaleAccounts ← (account_admission.Admit ⟨scaleAccountLines,registry⟩).accounts
 scalePlanRaw ← ∾{𝕩∾@+10}¨⟨
@@ -71,8 +89,8 @@ scalePlanRaw ← ∾{𝕩∾@+10}¨⟨
 ⟩
 scaleFacts ← (canonicalPlan.Build ⟨scalePlanRaw,scaleAccounts,registry⟩).facts
 scaleBudgetPolicy ← {
-  state⇐"ok",source_name⇐"budget.toml",envelopes⇐{count⇐1,id⇐⟨"food"⟩},
-  expense_account_index⇐⟨1⟩,expense_envelope_id⇐⟨"food"⟩
+  state⇐"ok",source_name⇐"budget.toml",
+  envelopes⇐{count⇐1,id⇐⟨"food"⟩,expense_account_keys⇐⟨⟨"expenses:food"⟩⟩}
 }
 scaleHousehold ← {
   state⇐"ok",source_name⇐"household.toml",
