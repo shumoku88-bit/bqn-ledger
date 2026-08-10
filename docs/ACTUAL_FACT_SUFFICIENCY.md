@@ -91,7 +91,7 @@ Implement a capability only with a real migrating consumer. Do not create a univ
 
 ## Source identity decision
 
-Every independently admitted fact result has one explicit Source row and aligned Transaction/Posting `source_index`. Cross-source consumers retain `{source, transaction_id}` or `{source, posting_id}` references through `src/accounting/fact_reference.bqn`; snapshot-local indices from different sources are never merged.
+Every independently admitted fact result has one explicit Source row and aligned Transaction/Posting `source_index`. Cross-source consumers retain `{source, transaction_id}` or `{source, posting_id}` references through `src/ledger/fact_reference.bqn`; snapshot-local indices from different sources are never merged.
 
 ## Migration progress from this evidence
 
