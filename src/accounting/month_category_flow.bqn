@@ -5,49 +5,44 @@ byDate ← •Import "date_category_flow.bqn"
 sparse ← •Import "sparse_group.bqn"
 empty ← ⟨⟩
 
-Unique ← {𝕊 items:
-  result ← empty
-  {𝕊 item: {𝕊: result∾↩⟨item⟩}⍟(¬∨´0∾item⊸≡¨result) @}¨items
-  result
-}
 EmptyMonths ← {𝕊: {count⇐0,index⇐empty,label⇐empty} }
 EmptyCategories ← {𝕊: {count⇐0,index⇐empty,label⇐empty,kind⇐empty,envelope_account_index⇐empty} }
-EmptyGroups ← {𝕊: {count⇐0,index⇐empty,row_index⇐empty,column_index⇐empty,coefficient⇐empty,contributors⇐empty} }
+FailureResult ← {𝕊 domainCode‿layerName‿startOrdinal‿endOrdinal‿diagnosticsValue:
+  {
+    state⇐"error",domain⇐domainCode,layer⇐layerName,
+    start_ordinal⇐startOrdinal,end_exclusive_ordinal⇐endOrdinal,scale⇐0,
+    months⇐EmptyMonths @,categories⇐EmptyCategories @,
+    expense_groups⇐(sparse.Build ⟨empty,0,empty,empty,empty,empty⟩).groups,
+    diagnostics⇐diagnosticsValue
+  }
+}
+
+Kernel ← {𝕊 daily‿domainCode‿layerName‿startOrdinal‿endOrdinal:
+  dateMonths ← {7↑𝕩}¨daily.dates.date_text
+  monthLabels ← ⍷dateMonths
+  sourceMonths ← {𝕩⊑dateMonths}¨daily.expense_groups.row_index
+  grouped ← sparse.Build ⟨
+    monthLabels,daily.categories.count,
+    sourceMonths,daily.expense_groups.column_index,daily.expense_groups.coefficient,
+    daily.expense_groups.contributors
+  ⟩
+  diagnostics ← daily.diagnostics∾grouped.diagnostics
+  result ← FailureResult ⟨domainCode,layerName,startOrdinal,endOrdinal,diagnostics⟩
+  {𝕊: result↩{
+    state⇐"ok",domain⇐domainCode,layer⇐layerName,
+    start_ordinal⇐startOrdinal,end_exclusive_ordinal⇐endOrdinal,scale⇐daily.scale,
+    months⇐{count⇐≠monthLabels,index⇐↕≠monthLabels,label⇐monthLabels},
+    categories⇐daily.categories,expense_groups⇐grouped.groups,diagnostics⇐empty
+  }}⍟(0=≠diagnostics) @
+  result
+}
 
 # Input is the same explicit query accepted by date_category_flow.Build.
 Build ← {𝕊 factSet‿budgetPolicy‿householdPolicy‿domainCode‿layerName‿startOrdinal‿endOrdinal:
   daily ← byDate.Build ⟨factSet,budgetPolicy,householdPolicy,domainCode,layerName,startOrdinal,endOrdinal⟩
-  diagnostics ← daily.diagnostics
-  monthTable ← EmptyMonths @
-  groupTable ← EmptyGroups @
-  categories ← daily.categories
-  amountScale ← daily.scale
-
-  {𝕊:
-    dateMonths ← {7↑𝕩}¨daily.dates.date_text
-    monthLabels ← Unique dateMonths
-    sourceMonths ← {𝕩⊑dateMonths}¨daily.expense_groups.row_index
-    grouped ← sparse.Build ⟨
-      monthLabels,daily.categories.count,
-      sourceMonths,daily.expense_groups.column_index,daily.expense_groups.coefficient,
-      daily.expense_groups.contributors
-    ⟩
-    diagnostics ∾↩ grouped.diagnostics
-
-    {𝕊:
-      monthTable↩{count⇐≠monthLabels,index⇐↕≠monthLabels,label⇐monthLabels}
-      groupTable↩grouped.groups
-    }⍟(0=≠diagnostics) @
-  }⍟(daily.state≡"ok") @
-
-  {𝕊: monthTable↩EmptyMonths @ ⋄ categories↩EmptyCategories @ ⋄ groupTable↩EmptyGroups @ ⋄ amountScale↩0}⍟(0<≠diagnostics) @
-  state ← (0=≠diagnostics)⊑"error"‿"ok"
-  {
-    state⇐state,domain⇐domainCode,layer⇐layerName,
-    start_ordinal⇐startOrdinal,end_exclusive_ordinal⇐endOrdinal,scale⇐amountScale,
-    months⇐monthTable,categories⇐categories,expense_groups⇐groupTable,
-    diagnostics⇐diagnostics
-  }
+  result ← FailureResult ⟨domainCode,layerName,startOrdinal,endOrdinal,daily.diagnostics⟩
+  {𝕊: result↩Kernel ⟨daily,domainCode,layerName,startOrdinal,endOrdinal⟩}⍟(daily.state≡"ok") @
+  result
 }
 
 {Build⇐Build}
