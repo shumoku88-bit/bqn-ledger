@@ -5,7 +5,7 @@
 period ← •Import "account_period.bqn"
 balance ← •Import "account_balance.bqn"
 completion ← •Import "plan_completion_join.bqn"
-reference ← •Import "fact_reference.bqn"
+reference ← •Import "../ledger/fact_reference.bqn"
 scale ← •Import "../ledger/exact_scale.bqn"
 empty ← ⟨⟩
 
