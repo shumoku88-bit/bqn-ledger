@@ -81,11 +81,12 @@ If accepted, prefer one coherent ownership relocation:
 
 1. move the file to `src/ledger/fact_reference.bqn`;
 2. update all direct production imports to the new owner;
-3. update the production BQN inventory / review cursor bookkeeping so the file is listed exactly once in its new phase;
-4. do not leave an `src/accounting/fact_reference.bqn` compatibility shim;
-5. do not change `SourceIs`, `Transaction`, or `Posting` semantics in the relocation PR.
+3. update active documentation that names the current owner path, including `docs/PLAN_COMPLETION_JOIN.md` and `docs/ACTUAL_FACT_SUFFICIENCY.md`, and re-check other current review records for path references;
+4. update the production BQN inventory / review cursor bookkeeping so the file is listed exactly once in its new phase;
+5. do not leave an `src/accounting/fact_reference.bqn` compatibility shim;
+6. do not change `SourceIs`, `Transaction`, or `Posting` semantics in the relocation PR.
 
-The move is an ownership refactor, not an algorithm refactor.
+The move is an ownership refactor, not an algorithm refactor. A complete move must update both dependency edges and current explanatory ownership references rather than leaving documentation pointing at the retired path.
 
 ## `Transaction` / `Posting` judgment
 
