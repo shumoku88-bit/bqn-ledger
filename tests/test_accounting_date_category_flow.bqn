@@ -119,6 +119,18 @@ roleDrift ← flow.Build ⟨scaleFacts,roleDriftPolicy,scaleHousehold,"JPY","pla
 "error" lib.AssertEq roleDrift.state
 lib.Assert HasCode ⟨"budget_policy_expense_account_role_invalid",roleDrift.diagnostics⟩
 
+# Household admission proved the allocation Account against its own Account carrier.
+# The capability must still reject role drift on the current Facts carrier even when
+# Account keys remain aligned.
+allocationRoleDriftHousehold ← {
+  state⇐"ok",source_name⇐"household.toml",
+  budget⇐{envelope_id⇐⟨"food"⟩,allocation_account_index⇐⟨0⟩},
+  account_policy⇐{account_key⇐scaleAccounts.key}
+}
+allocationRoleDrift ← flow.Build ⟨scaleFacts,scaleBudgetPolicy,allocationRoleDriftHousehold,"JPY","plan",start,end⟩
+"error" lib.AssertEq allocationRoleDrift.state
+lib.Assert HasCode ⟨"envelope_account_role_invalid",allocationRoleDrift.diagnostics⟩
+
 missingHousehold ← {
   state⇐"ok",source_name⇐"household.toml",
   budget⇐{envelope_id⇐⟨⟩,allocation_account_index⇐⟨⟩},
