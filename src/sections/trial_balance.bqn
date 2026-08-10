@@ -12,9 +12,7 @@ Diagnostic ← {𝕊 codeText‿messageText:
   {severity⇐"error",stage⇐"section_trial_balance",code⇐codeText,message⇐messageText}
 }
 AddIf ← {𝕊 invalid‿diagnostic: invalid/⟨diagnostic⟩}
-EmptyMatrix ← {𝕊:
-  {row_count⇐0,column_count⇐0,cell_count⇐0,row_index⇐empty,column_index⇐empty,row_coordinates⇐empty,column_coordinates⇐empty,scale⇐0,values⇐empty,contributors⇐empty}
-}
+EmptyMatrix ← {𝕊: (matrixResult.Build ⟨empty,empty,0,empty,empty⟩).matrix}
 EmptyResult ← {𝕊 diagnosticsValue:
   {
     state⇐"error",domain⇐"",layer⇐"",period_start⇐"",period_end_exclusive⇐"",as_of⇐"",
