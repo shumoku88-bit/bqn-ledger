@@ -1,7 +1,7 @@
 # Pure newest-first bounded Actual Transaction List from canonical Facts.
 
 scale ← •Import "../ledger/exact_scale.bqn"
-reference ← •Import "fact_reference.bqn"
+reference ← •Import "../ledger/fact_reference.bqn"
 empty ← ⟨⟩
 
 Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
