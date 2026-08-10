@@ -26,7 +26,7 @@ Kernel ← {𝕊 daily‿domainCode‿layerName‿startOrdinal‿endOrdinal:
     sourceMonths,daily.expense_groups.column_index,daily.expense_groups.coefficient,
     daily.expense_groups.contributors
   ⟩
-  diagnostics ← daily.diagnostics∾grouped.diagnostics
+  diagnostics ← grouped.diagnostics
   result ← FailureResult ⟨domainCode,layerName,startOrdinal,endOrdinal,diagnostics⟩
   {𝕊: result↩{
     state⇐"ok",domain⇐domainCode,layer⇐layerName,
