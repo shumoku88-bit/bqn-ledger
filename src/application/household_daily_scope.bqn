@@ -3,7 +3,7 @@
 # selections and optional exact reservation evidence.
 
 exact ← •Import "../ledger/exact_decimal.bqn"
-reference ← •Import "../accounting/fact_reference.bqn"
+reference ← •Import "../ledger/fact_reference.bqn"
 empty ← ⟨⟩
 
 MetaValues ← {𝕊 key‿metadata: {𝕩.value}¨({key≡𝕩.key}¨metadata)/metadata}
