@@ -13,10 +13,12 @@ end ← dates.Ordinal "2026-02-01"
 lf ← @+10
 Raw ← {𝕊 lines: ∾{𝕩∾lf}¨lines}
 
-CheckFacts ← {𝕊 label‿facts:
-  •Out "boundary facts: "∾label∾" = "∾facts.state
-  {𝕊: •Out •Fmt facts.diagnostics}⍟(facts.state≢"ok") @
-  "ok" lib.AssertEq facts.state
+BuildFacts ← {𝕊 label‿accountLines‿raw:
+  built ← snapshot.Build ⟨accountLines,raw,registry⟩
+  •Out "boundary snapshot: "∾label∾" = "∾built.state
+  {𝕊: •Out •Fmt built.diagnostics}⍟(built.state≢"ok") @
+  "ok" lib.AssertEq built.state
+  built.facts
 }
 CheckExactFailure ← {𝕊 label‿boundaryFacts‿code:
   upstream ← period.Build ⟨boundaryFacts,"JPY","actual",start,end⟩
@@ -46,8 +48,7 @@ zeroRaw ← Raw ⟨
   "account income:a","    ; role: income","",
   "account expenses:a","    ; role: expense"
 ⟩
-zeroFacts ← (snapshot.Build ⟨zeroAccountLines,zeroRaw,registry⟩).facts
-CheckFacts ⟨"zero",zeroFacts⟩
+zeroFacts ← BuildFacts ⟨"zero",zeroAccountLines,zeroRaw⟩
 zero ← profitLoss.Build ⟨zeroFacts,"JPY",start,end⟩
 •Out "boundary pnl: zero = "∾zero.state
 "ok" lib.AssertEq zero.state
@@ -87,8 +88,7 @@ expenseSubsetRaw ← Raw ⟨
   "2026-01-12 * subset B","    ; event-id: pnl-expense-subset-b","    ; layer: actual",
   "    expenses:subset-b 2 JPY","    liabilities:subset-b -2 JPY"
 ⟩
-expenseSubsetFacts ← (snapshot.Build ⟨expenseSubsetAccounts,expenseSubsetRaw,registry⟩).facts
-CheckFacts ⟨"expense subset",expenseSubsetFacts⟩
+expenseSubsetFacts ← BuildFacts ⟨"expense subset",expenseSubsetAccounts,expenseSubsetRaw⟩
 CheckExactFailure ⟨"expense subset",expenseSubsetFacts,"expense_sum_failed"⟩
 
 incomeSubsetAccounts ← ⟨
@@ -114,8 +114,7 @@ incomeSubsetRaw ← Raw ⟨
   "2026-01-12 * income subset B","    ; event-id: pnl-income-subset-b","    ; layer: actual",
   "    assets:subset-b 2 JPY","    income:subset-b -2 JPY"
 ⟩
-incomeSubsetFacts ← (snapshot.Build ⟨incomeSubsetAccounts,incomeSubsetRaw,registry⟩).facts
-CheckFacts ⟨"income subset",incomeSubsetFacts⟩
+incomeSubsetFacts ← BuildFacts ⟨"income subset",incomeSubsetAccounts,incomeSubsetRaw⟩
 CheckExactFailure ⟨"income subset",incomeSubsetFacts,"income_sum_failed"⟩
 
 # Income and Expense totals can each be exact while their final net combination is not.
@@ -142,8 +141,7 @@ netSubsetRaw ← Raw ⟨
   "2026-01-12 * net subset expense credit","    ; event-id: pnl-net-expense","    ; layer: actual",
   "    assets:net-b 2 JPY","    expenses:net-b -2 JPY"
 ⟩
-netSubsetFacts ← (snapshot.Build ⟨netSubsetAccounts,netSubsetRaw,registry⟩).facts
-CheckFacts ⟨"net subset",netSubsetFacts⟩
+netSubsetFacts ← BuildFacts ⟨"net subset",netSubsetAccounts,netSubsetRaw⟩
 CheckExactFailure ⟨"net subset",netSubsetFacts,"net_income_sum_failed"⟩
 
 •Out "test_accounting_profit_and_loss_boundaries: ok"
