@@ -11,20 +11,21 @@ result ← matrix.Build ⟨
 "ok" lib.AssertEq result.state
 2 lib.AssertEq result.matrix.row_count
 2 lib.AssertEq result.matrix.column_count
-4 lib.AssertEq result.matrix.cell_count
 1 lib.AssertEq result.matrix.scale
 ⟨⟨10,0⟩,⟨¯5,2⟩⟩ lib.AssertEq result.matrix.values
 ⟨⟨⟨0⟩,⟨⟩⟩,⟨⟨1⟩,⟨2,3⟩⟩⟩ lib.AssertEq result.matrix.contributors
 
 emptyResult ← matrix.Build ⟨⟨⟩,⟨⟩,0,⟨⟩,⟨⟩⟩
 "ok" lib.AssertEq emptyResult.state
-0 lib.AssertEq emptyResult.matrix.cell_count
+0 lib.AssertEq emptyResult.matrix.row_count
+0 lib.AssertEq emptyResult.matrix.column_count
 
 HasCode ← {𝕊 code‿diagnostics: ∨´0∾code⊸≡¨{𝕩.code}¨diagnostics}
 CheckRejected ← {𝕊 input‿code:
   rejected ← matrix.Build input
   "error" lib.AssertEq rejected.state
-  0 lib.AssertEq rejected.matrix.cell_count
+  0 lib.AssertEq rejected.matrix.row_count
+  0 lib.AssertEq rejected.matrix.column_count
   1 lib.AssertEq HasCode ⟨code,rejected.diagnostics⟩
 }
 CheckRejected ⟨⟨⟨"r","r"⟩,⟨"c"⟩,0,⟨⟨0⟩,⟨0⟩⟩,⟨⟨⟨⟩⟩,⟨⟨⟩⟩⟩⟩,"matrix_row_axis_duplicate"⟩

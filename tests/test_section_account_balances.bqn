@@ -51,6 +51,7 @@ lib.Assert ∨´"0.00"⍷section.FormatHuman usdResult
 
 badText ← section.Build ⟨accountState,"2026-01-11"⟩
 "error" lib.AssertEq badText.state
-0 lib.AssertEq badText.matrix.cell_count
+0 lib.AssertEq badText.matrix.row_count
+0 lib.AssertEq badText.matrix.column_count
 "observation_mismatch" lib.AssertEq (⊑badText.diagnostics).code
 •Out "test_section_account_balances: ok"
