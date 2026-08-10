@@ -56,14 +56,9 @@ Project ← {𝕊 admitted‿admittedAccounts:
   accountCurrencies ← admittedAccounts.currency
   accountRoles ← admittedAccounts.role
   accountTypes ← admittedAccounts.type
-  accountBudgets ← admittedAccounts.budget
-  accountBudgetGroups ← admittedAccounts.budget_group
-  accountSpendClasses ← admittedAccounts.spend_class
-  accountKinds ← admittedAccounts.kind
-  accountEnvelopeRoles ← admittedAccounts.envelope_role
   accountMetadata ← admittedAccounts.metadata
   accountSourceRows ← admittedAccounts.source_row
-  accountColumnLengths ← ≠¨⟨accountCurrencies,accountRoles,accountTypes,accountBudgets,accountBudgetGroups,accountSpendClasses,accountKinds,accountEnvelopeRoles,accountMetadata,accountSourceRows⟩
+  accountColumnLengths ← ≠¨⟨accountCurrencies,accountRoles,accountTypes,accountMetadata,accountSourceRows⟩
   accountColumnsAligned ← ∧´(≠accountKeys)=accountColumnLengths
   diagnostics ∾↩ AddIf ⟨¬accountColumnsAligned, Diagnostic ⟨"account_columns_misaligned","all account columns must align with account keys"⟩⟩
   diagnostics ∾↩ AddIf ⟨(≠accountKeys) ≠ ≠⍷accountKeys, Diagnostic ⟨"account_key_duplicate","account keys must be unique"⟩⟩
@@ -165,9 +160,7 @@ Project ← {𝕊 admitted‿admittedAccounts:
     domains⇐{count⇐≠declaredDomains,index⇐↕≠declaredDomains,code⇐declaredDomains},
     accounts⇐{
       count⇐≠accountKeys,index⇐↕≠accountKeys,key⇐accountKeys,currency⇐accountCurrencies,
-      role⇐accountRoles,type⇐accountTypes,budget⇐accountBudgets,budget_group⇐accountBudgetGroups,
-      spend_class⇐accountSpendClasses,kind⇐accountKinds,envelope_role⇐accountEnvelopeRoles,
-      metadata⇐accountMetadata,source_row⇐accountSourceRows
+      role⇐accountRoles,type⇐accountTypes,metadata⇐accountMetadata,source_row⇐accountSourceRows
     },
     layers⇐{count⇐≠layerNames,index⇐↕≠layerNames,name⇐layerNames},
     diagnostics⇐diagnostics
