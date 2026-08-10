@@ -25,7 +25,7 @@ Axis coordinates are opaque admitted values supplied by the caller. The Pivot us
 A successful result contains:
 
 ```text
-row_count, column_count, cell_count
+row_count, column_count
 row_index, column_index
 row_coordinates, column_coordinates
 scale

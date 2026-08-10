@@ -9,7 +9,7 @@ Diagnostic ← {𝕊 codeText‿messageText:
 AddIf ← {𝕊 invalid‿diagnostic: invalid/⟨diagnostic⟩}
 EmptyMatrix ← {𝕊:
   {
-    row_count⇐0,column_count⇐0,cell_count⇐0,
+    row_count⇐0,column_count⇐0,
     row_index⇐empty,column_index⇐empty,row_coordinates⇐empty,column_coordinates⇐empty,
     scale⇐0,values⇐empty,contributors⇐empty
   }
@@ -38,7 +38,7 @@ Build ← {𝕊 rowCoordinates‿columnCoordinates‿valueScale‿values‿contr
   matrix ← EmptyMatrix @
   {𝕊:
     matrix↩{
-      row_count⇐rowCount,column_count⇐columnCount,cell_count⇐rowCount×columnCount,
+      row_count⇐rowCount,column_count⇐columnCount,
       row_index⇐↕rowCount,column_index⇐↕columnCount,
       row_coordinates⇐rowCoordinates,column_coordinates⇐columnCoordinates,
       scale⇐valueScale,values⇐values,contributors⇐contributors

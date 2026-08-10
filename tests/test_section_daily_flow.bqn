@@ -111,7 +111,8 @@ emptyResult ← section.Build ⟨emptyAccounting,startText,endText,startText⟩
 
 rejected ← section.Build ⟨accounting,startText,endText,"2026-01-11"⟩
 "error" lib.AssertEq rejected.state
-0 lib.AssertEq rejected.matrix.cell_count
+0 lib.AssertEq rejected.matrix.row_count
+0 lib.AssertEq rejected.matrix.column_count
 1 lib.AssertEq ∨´0∾"observation_evidence_mismatch"⊸≡¨{𝕩.code}¨rejected.diagnostics
 
 •Out "test_section_daily_flow: ok"

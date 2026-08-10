@@ -11,7 +11,6 @@ result ← pivot.Build ⟨⟨"r0","r1"⟩,⟨"c0","c1"⟩,2,groups⟩
 "ok" lib.AssertEq result.state
 2 lib.AssertEq result.matrix.row_count
 2 lib.AssertEq result.matrix.column_count
-4 lib.AssertEq result.matrix.cell_count
 2 lib.AssertEq result.matrix.scale
 ⟨⟨0,0⟩,⟨0,5⟩⟩ lib.AssertEq result.matrix.values
 ⟨⟨⟨3,4⟩,⟨⟩⟩,⟨⟨⟩,⟨8⟩⟩⟩ lib.AssertEq result.matrix.contributors
@@ -25,13 +24,13 @@ wide ← pivot.Build ⟨⟨"r0","r1"⟩,⟨"c0","c1","c2"⟩,0,wideGroups⟩
 emptyGroups ← MakeGroups ⟨⟨⟩,⟨⟩,⟨⟩,⟨⟩⟩
 emptyResult ← pivot.Build ⟨⟨⟩,⟨⟩,0,emptyGroups⟩
 "ok" lib.AssertEq emptyResult.state
-0 lib.AssertEq emptyResult.matrix.cell_count
+0 lib.AssertEq emptyResult.matrix.row_count
+0 lib.AssertEq emptyResult.matrix.column_count
 
 emptyColumns ← pivot.Build ⟨⟨"r0","r1"⟩,⟨⟩,0,emptyGroups⟩
 "ok" lib.AssertEq emptyColumns.state
 2 lib.AssertEq emptyColumns.matrix.row_count
 0 lib.AssertEq emptyColumns.matrix.column_count
-0 lib.AssertEq emptyColumns.matrix.cell_count
 ⟨⟨⟩,⟨⟩⟩ lib.AssertEq emptyColumns.matrix.values
 ⟨⟨⟩,⟨⟩⟩ lib.AssertEq emptyColumns.matrix.contributors
 
@@ -39,7 +38,6 @@ emptyRows ← pivot.Build ⟨⟨⟩,⟨"c0","c1"⟩,0,emptyGroups⟩
 "ok" lib.AssertEq emptyRows.state
 0 lib.AssertEq emptyRows.matrix.row_count
 2 lib.AssertEq emptyRows.matrix.column_count
-0 lib.AssertEq emptyRows.matrix.cell_count
 ⟨⟩ lib.AssertEq emptyRows.matrix.values
 ⟨⟩ lib.AssertEq emptyRows.matrix.contributors
 
@@ -47,7 +45,8 @@ HasCode ← {𝕊 code‿diagnostics: ∨´0∾code⊸≡¨{𝕩.code}¨diagnost
 CheckRejected ← {𝕊 rows‿columns‿valueScale‿sourceGroups‿code:
   rejected ← pivot.Build ⟨rows,columns,valueScale,sourceGroups⟩
   "error" lib.AssertEq rejected.state
-  0 lib.AssertEq rejected.matrix.cell_count
+  0 lib.AssertEq rejected.matrix.row_count
+  0 lib.AssertEq rejected.matrix.column_count
   1 lib.AssertEq HasCode ⟨code,rejected.diagnostics⟩
 }
 CheckRejected ⟨⟨"r","r"⟩,⟨"c"⟩,0,emptyGroups,"matrix_row_axis_duplicate"⟩

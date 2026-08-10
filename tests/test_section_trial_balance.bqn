@@ -50,7 +50,8 @@ compact lib.AssertEq section.FormatCompact result
 
 rejected ← section.Build ⟨accountState,"2026-01-02",cycle.definition.end_exclusive⟩
 "error" lib.AssertEq rejected.state
-0 lib.AssertEq rejected.matrix.cell_count
+0 lib.AssertEq rejected.matrix.row_count
+0 lib.AssertEq rejected.matrix.column_count
 1 lib.AssertEq ∨´0∾"period_start_mismatch"⊸≡¨{𝕩.code}¨rejected.diagnostics
 
 •Out "test_section_trial_balance: ok"
