@@ -1,25 +1,29 @@
 # Envelope Backing review observation — 2026-08-10
 
-## Baseline
+## Final baseline
 
-Revalidated on `main` `20ee55f6f2ae2632e4ed59730c6beb4aebfc71f5` after PRs #596–#599.
+Final reread performed on `main` `0002c7b9acb133974c19b158a147980290c47a54` after PRs #596–#602.
 
-The active review cursor remains `src/accounting/envelope_backing.bqn`. This note supersedes the pre-#596 observation recorded in Draft PR #595; it does not advance the cursor or classify the owner review-complete.
+The review began from the pre-#596 ownership/control-shape observation, was revalidated after #596–#599 in PR #600, proved the remaining local relation laws in PR #601, and applied the proven subtraction in PR #602.
 
-## Resolved findings from the earlier observation
+This record now closes the `src/accounting/envelope_backing.bqn` owner review and advances the normal cursor to `src/accounting/fact_reference.bqn` once the closeout documentation is merged.
 
-The earlier ownership questions are no longer open:
+## Ownership findings resolved
+
+The earlier ownership questions are closed:
 
 - PR #596 proved that every supported ownership failure publishes `error`; there is no diagnostics-free partial ownership path requiring a separate `unavailable` state.
 - PR #597 removed the unreachable `unavailable / envelope_or_funding_ownership_missing` branch while preserving the public result shape.
 - PR #598 changed Household allocation and unassigned resolution from admission-time numeric Account coordinates to stable Account keys resolved against the current Actual Facts axis.
 - PR #599 expressed funding and unassigned row resolution as aligned vector index-of operations and removed the scalar `IndexOf` helper used only for those lookups.
 
+The final owner therefore has one current-Facts ownership authority: admitted Budget/Household policy supplies Account keys and semantic relations, and `ResolveOwnership` re-resolves and validates those relations against the current Facts Account axis before numeric publication.
+
 The retained whole-Household Backing aggregation, exact arithmetic, Plan reserve separation, contributor order, provenance, fail-closed publication, source authority, and writer boundaries remain protected.
 
-## Current control-shape judgment
+## Control-shape decision: KEEP
 
-`Build` still composes:
+`Build` composes:
 
 ```text
 ValidateInputs
@@ -30,71 +34,89 @@ ValidateInputs
   -> public result
 ```
 
-The nested conditional execution is visually deeper than `date_category_flow`'s `Admit -> Kernel -> Result` shape, but the current stages are not merely presentation wrappers. Ownership resolution, completion evidence, exact Envelope term construction, and Backing totals each have independent failure boundaries whose downstream inputs are not meaningful after failure.
+The nested conditional execution is visually deeper than `date_category_flow`'s `Admit -> Kernel -> Result` shape, but the stages correspond to real failure boundaries. Ownership resolution, completion evidence, exact Envelope term construction, and Backing totals each produce inputs that are not meaningful downstream after failure.
 
-Therefore this review does **not** currently recommend reshaping `Build` merely to imitate Date Flow. The burden of proof is on any future control-flow rewrite to make the successful path materially clearer without duplicating staging, weakening exact-operation locality, or introducing a generic pipeline abstraction.
+The review therefore rejects a cosmetic control-flow rewrite. Flattening this owner merely to imitate Date Flow would either duplicate staging, weaken exact-operation failure locality, or require a generic pipeline abstraction with less domain meaning than the current names.
 
-Classification: **KEEP for now**.
+Classification: **KEEP**.
 
-## New subtraction candidate: generated Envelope ids are revalidated against their source axis
+## Local relation subtraction: PROVED and APPLIED
 
-Inside `BuildEnvelopeTerms`, `expenseEnvelopeIds` is constructed by repeating each value from `ownership.categories` for the corresponding admitted Expense Account keys. The code then computes:
+The strongest remaining subtraction candidates were local to `BuildEnvelopeTerms`.
+
+### Generated Envelope ids
+
+`expenseEnvelopeIds` is constructed by repeating values from the admitted Envelope axis for the corresponding Expense Account relation. The former code then revalidated those generated ids against the same category axis and filtered unmatched rows.
+
+PR #601 proved that every generated `expenseEnvelopeId` maps to a valid `categories` coordinate. PR #602 removed the redundant `matched` category filter while preserving selected-domain projection of the Expense relation.
+
+### Plan eligibility
+
+The former code mapped `joined.rows.planned_to_account` to the already-resolved selected-domain Expense relation and then separately rechecked current Account currency, role, and category-coordinate validity.
+
+PR #601 proved that when a Plan destination is `assigned` to that resolved relation it already inherits:
+
+- current role `expense`;
+- the selected domain after the retained Expense-domain projection;
+- a valid Envelope coordinate generated from the admitted Envelope axis.
+
+The same law proves that an unmatched Plan destination remains merely ineligible for Envelope reserve rather than becoming a new ownership error.
+
+PR #602 therefore removed the duplicate Plan role/domain/category eligibility checks and now forms the reserve mask directly from open Plan status and `assigned`.
+
+Classification: **SUBTRACTED**.
+
+## What remains intentionally protected
+
+The final owner still retains:
+
+- strict source checks for Budget, Actual, Plan, Budget policy, and Household policy;
+- a shared Budget/Actual/Plan Account-key axis requirement;
+- current-Facts key existence and role checks for policy-owned Accounts;
+- selected-domain projection where a policy relation may legitimately span Commodities;
+- Household Envelope-allocation uniqueness and selected-domain Budget role checks;
+- Plan completion duplicate/ambiguous/currency/direction conflict rejection before numeric publication;
+- exact normalization and reduction failures at the exact operation that can fail;
+- stable grouping, contributor ordering, and source-qualified provenance;
+- whole-Household Backing semantics rather than invented pool-specific shortage/surplus semantics.
+
+These checks protect semantic, evidence, authority, or exactness laws rather than incidental implementation topology.
+
+## Documentation correction
+
+`docs/ENVELOPE_BACKING_CAPABILITY.md` previously described the retired Envelope Backing route in terms of explicit funding Account indices resolved through `src/application/funding_scope.bqn`, and said missing ownership was `unavailable`.
+
+The final capability contract instead states that:
+
+- `budget.toml` owns Envelope/Expense/Backing-pool key relations;
+- `household.toml` owns Envelope allocation and unassigned Budget Account keys;
+- Envelope Backing re-resolves those keys against the current Actual Facts axis;
+- `src/application/funding_scope.bqn` is not the ownership authority or input route for this accounting owner;
+- required ownership failures publish `error` rather than `unavailable` or numeric zero.
+
+The capability document is corrected in the same closeout slice so active documentation describes the retained contract rather than an intermediate architecture.
+
+## Deferred public-shape residue
+
+The public result still contains an always-empty `reason` field after the unreachable `unavailable` state was removed.
+
+That field is no longer an Envelope Backing accounting-kernel decision. Removing it would require a public result/consumer compatibility review across report and section owners, so it is deliberately deferred to the later result/section reachability audit. It does not block this accounting-owner review from completing.
+
+## Final classification
+
+`src/accounting/envelope_backing.bqn` is **REVIEW-COMPLETE** under the current dense-array/subtraction policy.
+
+The completed sequence is:
 
 ```text
-expenseCoordinates <- categories index-of expenseEnvelopeIds
-matched <- expenseCoordinates < envelopeCount
-expenseIndices <- matched / expenseIndices
-expenseCoordinates <- matched / expenseCoordinates
+observe ownership/control shape
+  -> make ownership failure semantics explicit
+  -> resolve ownership by stable keys
+  -> align row lookup
+  -> revalidate the remaining local candidates
+  -> prove relation laws
+  -> subtract only the proven duplicate guards
+  -> retain meaningful staged failure boundaries
 ```
 
-Because every `expenseEnvelopeId` is generated from `categories` itself, the `matched` filter appears structurally redundant once `ResolveOwnership` has succeeded. This is narrower and better evidenced than a broad `Build` rewrite.
-
-Classification: **SUBTRACT candidate**, pending a focused law or direct construction proof.
-
-## New subtraction candidate: Plan eligibility appears to repeat admitted/current-Facts guarantees
-
-For open Plan reserve, the current code first maps `joined.rows.planned_to_account` to the already-resolved `expenseIndices` relation:
-
-```text
-assignmentRows <- expenseIndices index-of planAccountRows
-assigned <- assignmentRows < length expenseIndices
-planEnvelopeIds <- assignmentRows select expenseEnvelopeIds
-planCoordinates <- categories index-of planEnvelopeIds
-```
-
-It then additionally checks current Account currency, Account role, and category coordinate validity before `openMask` is formed.
-
-After successful `ResolveOwnership`:
-
-- each retained Budget policy Expense key has been re-resolved against the current Facts axis;
-- each resolved Expense Account has current role `expense`;
-- `expenseEnvelopeIds` is generated from the admitted unique Envelope axis;
-- `assignmentRows < length expenseIndices` means the Plan destination matched that resolved Expense relation.
-
-This suggests that, for `assigned` rows, the later role/domain/category checks may be consequences of the already-established relation rather than independent safety laws.
-
-Classification: **SUBTRACT candidate**, not yet accepted.
-
-## Required proof before production subtraction
-
-Before removing any of the candidate guards, prove on current main that:
-
-1. every generated `expenseEnvelopeId` maps to a valid `categories` coordinate after successful ownership resolution;
-2. every `assigned` Plan destination inherits the resolved Expense Account role, selected domain, and valid Envelope coordinate from the admitted relation;
-3. unmatched Plan destinations remain simply ineligible for Envelope reserve and do not gain a new error state;
-4. duplicate/ambiguous/mismatched Plan completion evidence still fails in `PrepareEvidence` before numeric publication;
-5. grouped Envelope values, contributor order, exact failure behavior, result shape, and diagnostics remain unchanged.
-
-Prefer one focused law test before production subtraction. Do not introduce a shared validation helper or a generic admission/kernel framework for this proof.
-
-## Documentation residue
-
-`docs/ENVELOPE_BACKING_CAPABILITY.md` still teaches the retired explicit funding-scope route and says missing ownership is `unavailable`. Those statements are stale after canonical Budget/Household ownership and PRs #596–#599.
-
-Do not update that capability document in this observation-only slice. Update it together with the final Envelope Backing review decision so the active documentation describes the final retained contract rather than an intermediate state.
-
-## Current classification
-
-`src/accounting/envelope_backing.bqn` remains **OBSERVE / SUBTRACT candidate** and is not review-complete.
-
-The next coherent slice is a focused law proving or rejecting the two local redundancy candidates above. Only after that result should production code be changed or the review cursor advance to `src/accounting/fact_reference.bqn`.
+The next normal review cursor is `src/accounting/fact_reference.bqn`.
