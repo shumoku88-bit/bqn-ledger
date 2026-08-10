@@ -4,6 +4,8 @@ Status: Phase 3I destination section proof (updated: unpaid Plan projection)
 
 Owner: `src/sections/planned_payments.bqn`
 
+Generic open Plan as-of status owner: `src/accounting/plan_temporal_status.bqn`
+
 ## Composition
 
 The section receives only:
@@ -21,7 +23,8 @@ It composes:
 all-Plan date-ordered selection & all-Actual completion selection
   → durable Plan completion Join
   → exclude completed Plans from section semantic result
-  → temporal classification (overdue / current_cycle / future_cycles)
+  → shared open Plan as-of status (overdue / due / future)
+  → section-local cycle grouping (overdue / current_cycle / future_cycles)
   → exact totals (current_cycle_total, due_through_cycle_total, overdue_total, future_cycles_total)
   → open-only List result
   → human / compact / JSON renderers
@@ -52,9 +55,9 @@ Only Join rows in `open` state are included in the section result. Completed Pla
 
 The section never sums multiple Actual completion transactions. It preserves source-qualified Plan Transaction references and Posting contributors in the result.
 
-## Temporal classification and status
+## Temporal status and cycle grouping
 
-Open Plan rows are classified into three time groups relative to the current cycle boundaries:
+Open Plan rows are classified into three time groups relative to the current cycle boundaries. This relation is section-local because it drives grouped totals and presentation:
 
 ```text
 plan date < cycle.start                 → overdue (期限超過の未払い)
@@ -62,13 +65,15 @@ cycle.start <= plan date < cycle.end    → current_cycle (今サイクルの未
 plan date >= cycle.end                  → future_cycles (サイクル外の予定)
 ```
 
-Each row also carries an as-of-relative status label:
+Each open row also carries a generic as-of-relative status from `src/accounting/plan_temporal_status.bqn`:
 
 ```text
 plan date < as-of  → overdue
 plan date = as-of  → due
 plan date > as-of  → future
 ```
+
+Completion is not a temporal-status responsibility here. Completion state comes from the Plan Completion Join; completed Plans are validated and excluded before the shared open temporal classifier is used.
 
 ## Exact amounts and totals
 
