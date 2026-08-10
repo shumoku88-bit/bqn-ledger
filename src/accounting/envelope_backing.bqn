@@ -91,11 +91,7 @@ ResolveOwnership ← {𝕊 accounts‿budgetPolicy‿householdPolicy‿domain:
   fundingIndices ← (domain⊸≡¨fundingCurrencies)/policyFundingIndices
   diagnostics∾↩AddIf ⟨0=≠fundingIndices,Diagnostic ⟨"funding_scope_invalid","budget.toml backing policy requires an Asset Account in the selected domain"⟩⟩
 
-  ownershipMissing ← (≠envelopeIndices)≠≠categories
-  state ← "ok" ⋄ reason ← ""
-  {𝕊:state↩"error"}⍟(0<≠diagnostics) @
-  {𝕊:state↩"unavailable" ⋄ reason↩"envelope_or_funding_ownership_missing"}⍟((0=≠diagnostics) ∧ ownershipMissing) @
-  {state⇐state,reason⇐reason,envelope_indices⇐envelopeIndices,categories⇐categories,
+  {state⇐(0=≠diagnostics)⊑"error"‿"ok",reason⇐"",envelope_indices⇐envelopeIndices,categories⇐categories,
    expense_indices⇐expenseIndices,expense_envelope_ids⇐expenseEnvelopeIds,
    funding_indices⇐fundingIndices,unassigned_indices⇐unassignedIndices,diagnostics⇐diagnostics}
 }
