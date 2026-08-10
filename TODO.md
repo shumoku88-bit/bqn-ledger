@@ -55,7 +55,7 @@ Each owner or coherent owner family is reviewed against the dimensions that actu
 
 Validation density or file size is not, by itself, a defect. Exact-operation failure checks stay at the operation that can fail; public diagnostic ownership and successful-path visibility are reviewed separately.
 
-### cross-cutting audit inventory
+### Cross-cutting audit inventory
 
 These items complement the file-by-file phase inventory. They are checked only after their consumer graph, protected laws, and final repository decision have been reviewed on current `main`.
 
