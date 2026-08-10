@@ -11,11 +11,6 @@ empty ← ⟨⟩
 
 Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
 IndexOf ← {𝕊 item‿items: ⊑(item⊸≡¨items)⊐1}
-Unique ← {𝕊 values:
-  result ← empty
-  {𝕊 value: {𝕊: result∾↩⟨value⟩}⍟(¬Contains ⟨value,result⟩) @}¨values
-  result
-}
 Diagnostic ← {𝕊 code‿message:{severity⇐"error",stage⇐"accounting_envelope_backing",code⇐code,message⇐message}}
 AddIf ← {𝕊 invalid‿diagnostic: invalid/⟨diagnostic⟩}
 ErrorExact ← {𝕊:{state⇐"error",coefficient⇐empty}}
@@ -54,10 +49,6 @@ ValidateInputs ← {𝕊 budgetFacts‿budgetPolicy‿householdPolicy‿actualFa
   diagnostics∾↩AddIf ⟨rangeInvalid,Diagnostic ⟨"statement_range_invalid","require start <= observation < end_exclusive"⟩⟩
   axesMatch ← (budgetFacts.accounts.key≡actualFacts.accounts.key) ∧ (planFacts.accounts.key≡actualFacts.accounts.key) ∧ householdPolicy.account_policy.account_key≡actualFacts.accounts.key
   diagnostics∾↩AddIf ⟨¬axesMatch,Diagnostic ⟨"account_axis_mismatch","all sources and Household policy must share one Account axis"⟩⟩
-  fundingIndices ← budgetPolicy.asset_account_index
-  diagnostics∾↩AddIf ⟨(≠fundingIndices)≠≠Unique fundingIndices,Diagnostic ⟨"funding_scope_duplicate","Budget policy funding Accounts must be unique"⟩⟩
-  fundingKnown ← ∧´1∾{Contains ⟨𝕩,actualFacts.accounts.index⟩}¨fundingIndices
-  diagnostics∾↩AddIf ⟨¬fundingKnown,Diagnostic ⟨"funding_scope_invalid","Budget policy funding Accounts must be admitted"⟩⟩
   diagnostics
 }
 
@@ -77,17 +68,42 @@ ResolveOwnership ← {𝕊 accounts‿budgetPolicy‿householdPolicy‿domain:
   unassignedIndices ← householdPolicy.budget.unassigned_account_indices
   unassignedValid ← (0<≠unassignedIndices) ∧ ∧´1∾{𝕊 i:(i<accounts.count) ∧ ((i⊑accounts.currency)≡domain) ∧ (i⊑accounts.role)≡"budget"}¨unassignedIndices
   diagnostics∾↩AddIf ⟨¬unassignedValid,Diagnostic ⟨"unassigned_scope_invalid","household.toml unassigned Accounts must be selected-domain Budget Accounts"⟩⟩
-  # budget.toml pool membership spans Commodities; this statement projects the
-  # Account axis to the requested domain while preserving policy order.
-  policyFundingIndices ← budgetPolicy.asset_account_index
-  fundingIndices ← (domain⊸≡¨policyFundingIndices⊏accounts.currency)/policyFundingIndices
-  fundingValid ← (0<≠fundingIndices) ∧ ∧´1∾"asset"⊸≡¨fundingIndices⊏accounts.role
-  diagnostics∾↩AddIf ⟨¬fundingValid,Diagnostic ⟨"funding_scope_invalid","budget.toml backing policy requires an Asset Account in the selected domain"⟩⟩
+
+  # budget.toml owns sparse Account-key relations. Re-resolve those keys against
+  # this statement's current Facts axis instead of trusting admission-time indices.
+  expenseKeys ← ∾budgetPolicy.envelopes.expense_account_keys
+  expenseEnvelopeIds ← ∾{𝕊 i:(≠i⊑budgetPolicy.envelopes.expense_account_keys)⥊⟨i⊑categories⟩}¨↕≠categories
+  expenseCandidates ← accounts.key⊐expenseKeys
+  expenseKnown ← ∧´1∾expenseCandidates<accounts.count
+  diagnostics∾↩AddIf ⟨¬expenseKnown,Diagnostic ⟨"budget_policy_expense_account_unknown","budget.toml Expense Accounts must occur on the current Facts Account axis"⟩⟩
+  expenseRolesValid ← 0
+  {𝕊:
+    expenseRolesValid↩∧´1∾"expense"⊸≡¨expenseCandidates⊏accounts.role
+    diagnostics∾↩AddIf ⟨¬expenseRolesValid,Diagnostic ⟨"budget_policy_expense_account_role_invalid","budget.toml Expense Accounts must remain Expense Accounts on the current Facts axis"⟩⟩
+  }⍟expenseKnown @
+  expenseIndices ← empty ⋄ resolvedExpenseEnvelopeIds ← empty
+  {𝕊:expenseIndices↩expenseCandidates ⋄ resolvedExpenseEnvelopeIds↩expenseEnvelopeIds}⍟(expenseKnown ∧ expenseRolesValid) @
+
+  # Pool membership may span Commodities; resolve by key first, then project the
+  # current Account axis to the requested domain while preserving policy order.
+  fundingKeys ← ∾budgetPolicy.backing_pools.asset_account_keys
+  policyFundingIndices ← accounts.key⊐fundingKeys
+  fundingKnown ← ∧´1∾policyFundingIndices<accounts.count
+  diagnostics∾↩AddIf ⟨¬fundingKnown,Diagnostic ⟨"budget_policy_asset_account_unknown","budget.toml backing Accounts must occur on the current Facts Account axis"⟩⟩
+  fundingRolesValid ← 0 ⋄ fundingIndices ← empty
+  {𝕊:
+    fundingRolesValid↩∧´1∾"asset"⊸≡¨policyFundingIndices⊏accounts.role
+    diagnostics∾↩AddIf ⟨¬fundingRolesValid,Diagnostic ⟨"budget_policy_asset_account_role_invalid","budget.toml backing Accounts must remain Asset Accounts on the current Facts axis"⟩⟩
+    {𝕊:fundingIndices↩(domain⊸≡¨policyFundingIndices⊏accounts.currency)/policyFundingIndices}⍟fundingRolesValid @
+  }⍟fundingKnown @
+  diagnostics∾↩AddIf ⟨fundingKnown ∧ fundingRolesValid ∧ 0=≠fundingIndices,Diagnostic ⟨"funding_scope_invalid","budget.toml backing policy requires an Asset Account in the selected domain"⟩⟩
+
   ownershipMissing ← (≠envelopeIndices)≠≠categories
   state ← "ok" ⋄ reason ← ""
   {𝕊:state↩"error"}⍟(0<≠diagnostics) @
   {𝕊:state↩"unavailable" ⋄ reason↩"envelope_or_funding_ownership_missing"}⍟((0=≠diagnostics) ∧ ownershipMissing) @
   {state⇐state,reason⇐reason,envelope_indices⇐envelopeIndices,categories⇐categories,
+   expense_indices⇐expenseIndices,expense_envelope_ids⇐resolvedExpenseEnvelopeIds,
    funding_indices⇐fundingIndices,unassigned_indices⇐unassignedIndices,diagnostics⇐diagnostics}
 }
 
@@ -116,13 +132,13 @@ SumNormalized ← {𝕊 coefficients‿sourceScale‿targetScale:
 }
 PostingReferences ← {𝕊 facts‿indices:{reference.Posting ⟨facts,𝕩⟩}¨indices}
 
-BuildEnvelopeTerms ← {𝕊 budgetFacts‿budgetPolicy‿actualFacts‿accounts‿ownership‿prepared‿domain‿targetScale:
+BuildEnvelopeTerms ← {𝕊 budgetFacts‿actualFacts‿accounts‿ownership‿prepared‿domain‿targetScale:
   budgetPeriod ← prepared.budget_period ⋄ actualPeriod ← prepared.actual_period ⋄ joined ← prepared.completion_join
   envelopeIndices ← ownership.envelope_indices ⋄ categories ← ownership.categories ⋄ envelopeCount ← ≠envelopeIndices
   budgetRows ← budgetPeriod.accounts.account_index⊐envelopeIndices
   entitlementResults ← {𝕊 row:NormalizeOne ⟨row⊑budgetPeriod.accounts.closing,budgetPeriod.scale,targetScale⟩}¨budgetRows
   entitlementIndices ← {𝕊 row:(row⊑budgetPeriod.accounts.opening_contributors)∾row⊑budgetPeriod.accounts.period_contributors}¨budgetRows
-  expenseIndices ← budgetPolicy.expense_account_index ⋄ expenseEnvelopeIds ← budgetPolicy.expense_envelope_id
+  expenseIndices ← ownership.expense_indices ⋄ expenseEnvelopeIds ← ownership.expense_envelope_ids
   domainMask ← domain⊸≡¨expenseIndices⊏accounts.currency
   expenseIndices↩domainMask/expenseIndices ⋄ expenseEnvelopeIds↩domainMask/expenseEnvelopeIds
   expenseCoordinates ← categories⊐expenseEnvelopeIds ⋄ matched ← expenseCoordinates<envelopeCount
@@ -136,9 +152,9 @@ BuildEnvelopeTerms ← {𝕊 budgetFacts‿budgetPolicy‿actualFacts‿accounts
   creditCells ← expenseGroups⊔expenseRows⊏actualPeriod.accounts.credit_contributors
   debitIndices ← {∾⟨empty⟩∾𝕩}¨debitCells ⋄ creditIndices ← {∾⟨empty⟩∾𝕩}¨creditCells
   planAccountRows ← accounts.key⊐joined.rows.planned_to_account
-  assignmentRows ← budgetPolicy.expense_account_index⊐planAccountRows
-  assigned ← assignmentRows<≠budgetPolicy.expense_account_index
-  planEnvelopeIds ← assignmentRows⊏budgetPolicy.expense_envelope_id∾⟨""⟩
+  assignmentRows ← expenseIndices⊐planAccountRows
+  assigned ← assignmentRows<≠expenseIndices
+  planEnvelopeIds ← assignmentRows⊏expenseEnvelopeIds∾⟨""⟩
   planCoordinates ← categories⊐planEnvelopeIds
   planCurrencyMatches ← domain⊸≡¨planAccountRows⊏accounts.currency
   planRoleMatches ← "expense"⊸≡¨planAccountRows⊏accounts.role
@@ -235,7 +251,7 @@ Build ← {𝕊 budgetFacts‿budgetPolicy‿householdPolicy‿actualFacts‿pla
       {𝕊:
         sourceScales ← ⟨prepared.budget_period.scale,prepared.actual_period.scale,prepared.actual_balance.scale⟩
         targetScale ← ⌈´sourceScales∾prepared.completion_join.rows.planned_scale
-        terms ← BuildEnvelopeTerms ⟨budgetFacts,budgetPolicy,actualFacts,actualFacts.accounts,ownership,prepared,domain,targetScale⟩
+        terms ← BuildEnvelopeTerms ⟨budgetFacts,actualFacts,actualFacts.accounts,ownership,prepared,domain,targetScale⟩
         result↩EmptyResult ⟨"error","",domain,terms.diagnostics⟩
         {𝕊:
           backing ← BuildBacking ⟨budgetFacts,prepared,ownership,terms,targetScale⟩
