@@ -9,9 +9,7 @@ columns ← ⟨"opening","debit","credit","movement","closing"⟩
 Diagnostic ← {𝕊 codeText‿messageText:
   {severity⇐"error",stage⇐"section_cycle_accounts",code⇐codeText,message⇐messageText}
 }
-EmptyMatrix ← {𝕊:
-  {row_count⇐0,column_count⇐0,cell_count⇐0,row_index⇐empty,column_index⇐empty,row_coordinates⇐empty,column_coordinates⇐empty,scale⇐0,values⇐empty,contributors⇐empty}
-}
+EmptyMatrix ← {𝕊: (matrix_result.Build ⟨empty,empty,0,empty,empty⟩).matrix}
 EmptyTotals ← {𝕊:
   {opening⇐empty,debit⇐empty,credit⇐empty,movement⇐empty,closing⇐empty,balanced⇐0}
 }
