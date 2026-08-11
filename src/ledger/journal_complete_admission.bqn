@@ -51,12 +51,12 @@ Diagnostic ← {𝕊 codeText‿lineNumber‿messageText:
 AddIf ← {𝕊 invalid‿diagnostic: invalid / ⟨diagnostic⟩ }
 
 Declarations ← {𝕊 lines‿registry:
-  diagnostics ← empty
-  domains ← empty
-  domainLines ← empty
-  accounts ← empty
-  {𝕊 lineIndex:
-    text ← Trim lineIndex ⊑ lines
+  texts ← Trim¨lines
+  ParseDeclaration ← {𝕊 lineIndex:
+    text ← lineIndex ⊑ texts
+    diagnostics ← empty
+    domainItem ← @
+    accountItem ← @
     {𝕊:
       fields ← Split ⟨space,text⟩
       valid ← 2 = ≠ fields
@@ -65,16 +65,24 @@ Declarations ← {𝕊 lines‿registry:
         domain ← 1 ⊑ fields
         policy ← registry.Policy domain
         diagnostics ∾↩ AddIf ⟨policy.state ≢ "ok", Diagnostic ⟨"commodity_unsupported", lineIndex + 1, "commodity must be admitted by registry"⟩⟩
-        {𝕊:
-          domains ∾↩ ⟨domain⟩
-          domainLines ∾↩ ⟨lineIndex + 1⟩
-        }⍟(policy.state ≡ "ok") @
+        {𝕊: domainItem ↩ {value⇐domain,line⇐lineIndex+1}}⍟(policy.state ≡ "ok") @
       }⍟valid @
     }⍟(StartsWith ⟨"commodity ", text⟩) @
-    {𝕊: accounts ∾↩ ⟨{text⇐text,account_key⇐8↓text,source_line⇐lineIndex+1}⟩}⍟(StartsWith ⟨"account ",text⟩) @
-  }¨ ↕ ≠ lines
+    {𝕊: accountItem ↩ {text⇐text,account_key⇐8↓text,source_line⇐lineIndex+1}}⍟(StartsWith ⟨"account ",text⟩) @
+    {diagnostics⇐diagnostics,domain⇐domainItem,account⇐accountItem}
+  }
+
+  parsed ← ParseDeclaration¨↕≠lines
+  rowDiagnostics ← ∾{𝕩.diagnostics}¨parsed
+  domainItems ← {𝕩.domain}¨parsed
+  admittedDomains ← ({𝕩≢@}¨domainItems)/domainItems
+  domains ← {𝕩.value}¨admittedDomains
+  domainLines ← {𝕩.line}¨admittedDomains
+  accountItems ← {𝕩.account}¨parsed
+  accounts ← ({𝕩≢@}¨accountItems)/accountItems
   duplicate ← (≠ domains) ≠ ≠ ⍷ domains
-  diagnostics ∾↩ AddIf ⟨duplicate, Diagnostic ⟨"commodity_domain_duplicate", 0, "each declared commodity domain must appear once"⟩⟩
+  duplicateDiagnostics ← AddIf ⟨duplicate, Diagnostic ⟨"commodity_domain_duplicate", 0, "each declared commodity domain must appear once"⟩⟩
+  diagnostics ← rowDiagnostics∾duplicateDiagnostics
   {domains⇐domains, domain_lines⇐domainLines, accounts⇐accounts, diagnostics⇐diagnostics}
 }
 
@@ -86,21 +94,27 @@ DomainSourceLine ← {𝕊 domain‿declarations:
 }
 
 PostingDomains ← {𝕊 blockLines:
-  diagnostics ← empty
-  domains ← empty
-  {𝕊 offset:
-    original ← offset ⊑ blockLines
+  PostingCandidate ← {𝕊 original:
     trimmed ← Trim original
     indented ← IsWhitespace ⊑(original∾" ")
-    metadata ← ';' = ⊑ (trimmed ∾ ";")
-    candidate ← indented ∧ (0 < ≠ trimmed) ∧ (¬ metadata)
-    {𝕊:
-      parsed ← postingText.Split original
-      diagnostics ∾↩ AddIf ⟨¬parsed.valid, Diagnostic ⟨"posting_shape_invalid", offset + 1, "posting must contain account plus explicit amount and commodity, or one elided account only"⟩⟩
-      {𝕊: domains ∾↩ ⟨1⊑parsed.words⟩}⍟parsed.explicit @
-    }⍟candidate @
-  }¨ ↕ ≠ blockLines
-  {domains⇐⍷ domains, diagnostics⇐diagnostics}
+    metadata ← ';' = ⊑(trimmed∾";")
+    indented ∧ (0 < ≠ trimmed) ∧ (¬ metadata)
+  }
+  offsets ← ↕≠blockLines
+  candidate ← PostingCandidate¨blockLines
+  candidateOffsets ← candidate/offsets
+  ParsePostingDomain ← {𝕊 offset:
+    parsed ← postingText.Split offset⊑blockLines
+    diagnostics ← AddIf ⟨¬parsed.valid, Diagnostic ⟨"posting_shape_invalid", offset + 1, "posting must contain account plus explicit amount and commodity, or one elided account only"⟩⟩
+    domain ← @
+    {𝕊: domain↩1⊑parsed.words}⍟(parsed.valid ∧ parsed.explicit) @
+    {diagnostics⇐diagnostics,domain⇐domain}
+  }
+  parsed ← ParsePostingDomain¨candidateOffsets
+  diagnostics ← ∾{𝕩.diagnostics}¨parsed
+  domainItems ← {𝕩.domain}¨parsed
+  domains ← ⍷({𝕩≢@}¨domainItems)/domainItems
+  {domains⇐domains, diagnostics⇐diagnostics}
 }
 
 BuildPartition ← {𝕊 domain‿domainLine‿structuralAccountKeys‿blockLines‿blockStart:
