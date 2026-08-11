@@ -42,7 +42,8 @@ StartsDirective ← {𝕊 keyword‿line:
   remainder ← n↓text
   enough ← n≤≠text
   boundary ← (0=≠remainder) ∨ IsWhitespace ⊑(remainder∾" ")
-  enough ∧ (keyword≡n↑text) ∧ boundary
+  prefix ← n↑text∾n⥊space
+  enough ∧ (keyword≡prefix) ∧ boundary
 }
 BeforeComment ← {𝕊 text: (IndexOf ⟨semicolon,text⟩) ↑ text }
 AsciiLowerChar ← {𝕊 c:
