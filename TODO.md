@@ -145,8 +145,8 @@ A phase is considered reviewed only when every listed box is checked and the inv
 - [x] `src/ledger/amount_text.bqn` — PR #647 replaced branch-local body mutation with one structural exact-decimal character-array expression; dedicated boundary laws retained; reread on main `e78430d9709f716f2c59d98c55311be8b2c577b5`; merged-main CI #2604 SUCCESS; decisions in `docs/AMOUNT_TEXT_REVIEW_OBSERVATION-2026-08-11.md`.
 - [x] `src/ledger/budget_journal_admission.bqn` — PR #648 returned exact-opposite ownership to complete Journal admission and classified aligned `postingRows / binary / budgetOnly` transaction relations before source-ordered diagnostic publication; reread on main `9ab7c8ae9becdff4d87cff6fe290298ea014152f`; merged-main CI #2610 SUCCESS; decisions in `docs/BUDGET_JOURNAL_ADMISSION_REVIEW_OBSERVATION-2026-08-11.md`.
 - [x] `src/ledger/budget_policy_admission.bqn` — PR #650 retained genuine lexical/multiline state while replacing logical-table `active / Finalize` staging with header classification plus Scan/Group segmentation and classifying backing-pool/Account relations once via aligned coordinates; reread on main `e196924ec3d500c72899891bbf2e5946803b5a8d`; merged-main CI #2620 SUCCESS; closeout in `docs/BUDGET_POLICY_ADMISSION_REVIEW_CLOSEOUT-2026-08-11.md`.
-- [ ] `src/ledger/canonical_journal_root_admission.bqn`
-- [ ] `src/ledger/companion_admission.bqn`
+- [x] `src/ledger/canonical_journal_root_admission.bqn` — PR #652 fixed short-line directive totality and replaced mutable include staging with an aligned directive/path/mask relation; reread on main `7355b43bfc1555e88e557ef123bcd7a8cad5c5dc`; merged-main CI #2627 SUCCESS; closeout in `docs/CANONICAL_JOURNAL_ROOT_ADMISSION_REVIEW_CLOSEOUT-2026-08-11.md`.
+- [x] `src/ledger/companion_admission.bqn` — reviewed on main `7355b43bfc1555e88e557ef123bcd7a8cad5c5dc` as a retained legacy/qualification fixed-width TSV seam after canonical Plan readers moved to Journal Facts; no local array refactor selected; retirement delegated with `plan_snapshot` and old TSV proof evidence to legacy/reachability closeout; decision in `docs/COMPANION_ADMISSION_REVIEW_OBSERVATION-2026-08-11.md`.
 - [ ] `src/ledger/config_admission.bqn`
 - [ ] `src/ledger/currency_registry.bqn`
 - [ ] `src/ledger/cycle_admission.bqn`
@@ -305,6 +305,6 @@ After the production BQN inventory is reviewed, the selector/UI adapter consolid
 
 ## Current cursor
 
-`src/ledger/canonical_journal_root_admission.bqn`
+`src/ledger/config_admission.bqn`
 
-Resume the normal Phase 2 ledger review sequence at canonical Journal root admission.
+Resume the normal Phase 2 ledger review sequence at config admission.
