@@ -4,6 +4,8 @@ lib ← •Import "test_lib.bqn"
 registry ← •Import "../src/ledger/currency_registry.bqn"
 tab ← @+9
 
+ValidLine ← "JPY"∾tab∾"0"∾tab∾"YEN"
+
 CheckRowInvalid ← {𝕊 lines:
   result ← registry.Build lines
   "error" lib.AssertEq result.state
@@ -17,7 +19,7 @@ CheckRowInvalid ⟨"JPY"∾tab∾"0"⟩
 CheckRowInvalid ⟨tab∾"x"⟩
 CheckRowInvalid ⟨"JPY"∾tab∾"0"∾tab∾"YEN"∾tab∾"extra"⟩
 
-valid ← registry.Build ⟨"JPY"∾tab∾"0"∾tab∾"YEN"⟩
+valid ← registry.Build ⟨ValidLine⟩
 "ok" lib.AssertEq valid.state
 ⟨"JPY"⟩ lib.AssertEq valid.registry.codes
 policy ← valid.registry.Policy "JPY"
@@ -25,5 +27,9 @@ policy ← valid.registry.Policy "JPY"
 "JPY" lib.AssertEq policy.currency
 0 lib.AssertEq policy.max_fraction_digits
 "YEN" lib.AssertEq policy.symbol
+
+ignored ← registry.Build ⟨"", "# comment", "\\ legacy comment", ValidLine⟩
+"ok" lib.AssertEq ignored.state
+⟨"JPY"⟩ lib.AssertEq ignored.registry.codes
 
 •Out "test_ledger_currency_registry_short_rows: ok"
