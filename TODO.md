@@ -140,7 +140,7 @@ A phase is considered reviewed only when every listed box is checked and the inv
 
 ## Phase 2: `src/ledger/`
 
-- [ ] `src/ledger/account_admission.bqn`
+- [x] `src/ledger/account_admission.bqn` — reviewed on main `45686e5728292541df1c42628823a871c20a8264` as a live legacy `accounts.tsv` seam rather than canonical Account authority; no local array refactor selected because its remaining production reachability belongs to legacy-source retirement; decision recorded in `docs/ACCOUNT_ADMISSION_REVIEW_OBSERVATION-2026-08-11.md`.
 - [ ] `src/ledger/account_journal_admission.bqn`
 - [ ] `src/ledger/amount_text.bqn`
 - [ ] `src/ledger/budget_journal_admission.bqn`
@@ -305,6 +305,6 @@ After the production BQN inventory is reviewed, the selector/UI adapter consolid
 
 ## Current cursor
 
-`src/ledger/account_admission.bqn`
+`src/ledger/account_journal_admission.bqn`
 
-Phase 1 `src/accounting/` is complete. Resume the normal Phase 2 ledger review sequence here.
+Resume the normal Phase 2 ledger review sequence at the canonical Account grammar owner.
