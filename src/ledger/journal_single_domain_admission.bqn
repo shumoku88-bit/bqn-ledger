@@ -270,58 +270,57 @@ RenderStructuralPosting ← {𝕊 posting:
 
 BuildStructuralRaw ← {𝕊 raw‿domainInfo‿postings:
   lines ← SplitKeepEmpty ⟨lf,(cr≠raw)/raw⟩
+  postingLines ← {𝕩.source_line}¨postings
+  postingCoordinates ← postingLines ⊐ 1 + ↕≠lines
+  postingBound ← ≠postings
   transformed ← {𝕊 lineIndex:
     lineNumber ← lineIndex + 1
     output ← lineIndex ⊑ lines
-    matches ← ({lineNumber = 𝕩.source_line}¨ postings) / postings
+    postingCoordinate ← lineIndex ⊑ postingCoordinates
     {𝕊: output ↩ "commodity JPY"}⍟(lineNumber = domainInfo.source_line) @
-    {𝕊: output ↩ RenderStructuralPosting (⊑ matches)}⍟(1 = ≠ matches) @
+    {𝕊: output ↩ RenderStructuralPosting (postingCoordinate ⊑ postings)}⍟(postingCoordinate < postingBound) @
     output
   }¨ ↕ ≠ lines
   ∾ (transformed ∾¨ lf)
 }
 
-BuildTransactions ← {𝕊 parsedTransactions‿postings‿domain‿calculationScale:
-  {𝕊 transactionIndex:
-    parsed ← transactionIndex ⊑ parsedTransactions
-    evidence ← ({transactionIndex = 𝕩.transaction_index}¨ postings) / postings
-    combined ← {𝕊 postingIndex:
-      semantic ← postingIndex ⊑ evidence
-      structural ← postingIndex ⊑ parsed.postings
-      {
-        posting_id⇐structural.posting_id,
-        posting_index⇐postingIndex,
-        side⇐structural.side,
-        source_line⇐semantic.source_line,
-        account_key⇐semantic.account_key,
-        account_currency⇐semantic.account_currency,
-        commodity⇐domain,
-        amount_text⇐semantic.amount_text,
-        source_coefficient⇐semantic.source_coefficient,
-        source_scale⇐semantic.source_scale,
-        normalized_coefficient⇐semantic.normalized_coefficient
-      }
-    }¨ ↕ ≠ evidence
+BuildTransaction ← {𝕊 parsed‿postings‿domain‿calculationScale:
+  combined ← {𝕊 postingIndex:
+    semantic ← postingIndex ⊑ postings
+    structural ← postingIndex ⊑ parsed.postings
     {
-      source_event_id⇐parsed.source_event_id,
-      identity_kind⇐parsed.identity_kind,
-      source_start_line⇐parsed.source_start_line,
-      source_end_line⇐parsed.source_end_line,
-      date⇐parsed.date,
-      status_marker⇐parsed.status_marker,
-      description⇐parsed.description,
-      layer_name⇐parsed.layer_name,
-      txn_id⇐parsed.txn_id,
-      plan_id⇐parsed.plan_id,
-      allocation_id⇐parsed.allocation_id,
-      execution_envelope⇐parsed.execution_envelope,
-      actual_event_id⇐parsed.actual_event_id,
-      domain⇐domain,
-      calculation_scale⇐calculationScale,
-      metadata⇐parsed.metadata,
-      postings⇐combined
+      posting_id⇐structural.posting_id,
+      posting_index⇐postingIndex,
+      side⇐structural.side,
+      source_line⇐semantic.source_line,
+      account_key⇐semantic.account_key,
+      account_currency⇐semantic.account_currency,
+      commodity⇐domain,
+      amount_text⇐semantic.amount_text,
+      source_coefficient⇐semantic.source_coefficient,
+      source_scale⇐semantic.source_scale,
+      normalized_coefficient⇐semantic.normalized_coefficient
     }
-  }¨ ↕ ≠ parsedTransactions
+  }¨ ↕≠postings
+  {
+    source_event_id⇐parsed.source_event_id,
+    identity_kind⇐parsed.identity_kind,
+    source_start_line⇐parsed.source_start_line,
+    source_end_line⇐parsed.source_end_line,
+    date⇐parsed.date,
+    status_marker⇐parsed.status_marker,
+    description⇐parsed.description,
+    layer_name⇐parsed.layer_name,
+    txn_id⇐parsed.txn_id,
+    plan_id⇐parsed.plan_id,
+    allocation_id⇐parsed.allocation_id,
+    execution_envelope⇐parsed.execution_envelope,
+    actual_event_id⇐parsed.actual_event_id,
+    domain⇐domain,
+    calculation_scale⇐calculationScale,
+    metadata⇐parsed.metadata,
+    postings⇐combined
+  }
 }
 
 Admit ← {𝕊 raw‿accounts‿registry:
@@ -349,20 +348,16 @@ Admit ← {𝕊 raw‿accounts‿registry:
           structuralRaw ← BuildStructuralRaw ⟨raw, domainInfo, normalizedPostings⟩
           structural ← structure.Parse structuralRaw
           diagnostics ∾↩ structural.diagnostics
-          {𝕊 transaction:
-            currencyValues ← {𝕩.value}¨({𝕩.key ≡ "currency"}¨transaction.metadata)/transaction.metadata
+          {𝕊:
+            parsed ← ⊑structural.transactions
+            currencyValues ← {𝕩.value}¨({𝕩.key ≡ "currency"}¨parsed.metadata)/parsed.metadata
             currencyMismatch ← 0
             {𝕊: currencyMismatch ↩ (⊑currencyValues) ≢ domainInfo.domain}⍟(1=≠currencyValues) @
-            diagnostics ∾↩ AddIf ⟨currencyMismatch, Diagnostic ⟨"transaction_currency_mismatch", transaction.source_start_line, "transaction currency metadata must match posting domain"⟩⟩
-          }¨ structural.transactions
-          {𝕊:
-            transactionCountOk ← (≠ structural.transactions) = ≠ transactionStarts
-            postingCount ← +´ {≠ 𝕩.postings}¨ structural.transactions
-            postingCountOk ← postingCount = ≠ normalizedPostings
-            diagnostics ∾↩ AddIf ⟨¬ transactionCountOk, Diagnostic ⟨"transaction_trace_count_mismatch", 0, "structural and semantic transaction counts differ"⟩⟩
+            diagnostics ∾↩ AddIf ⟨currencyMismatch, Diagnostic ⟨"transaction_currency_mismatch", parsed.source_start_line, "transaction currency metadata must match posting domain"⟩⟩
+            postingCountOk ← (≠parsed.postings) = ≠normalizedPostings
             diagnostics ∾↩ AddIf ⟨¬ postingCountOk, Diagnostic ⟨"posting_trace_count_mismatch", 0, "structural and semantic posting counts differ"⟩⟩
             {𝕊:
-              transactions ↩ BuildTransactions ⟨structural.transactions, normalizedPostings, domainInfo.domain, calculationScale⟩
+              transactions ↩ ⟨BuildTransaction ⟨parsed, normalizedPostings, domainInfo.domain, calculationScale⟩⟩
             }⍟(0 = ≠ diagnostics) @
           }⍟(structural.state ≡ "ok") @
         }⍟(0 = ≠ diagnostics) @
