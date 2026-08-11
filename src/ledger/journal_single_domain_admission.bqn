@@ -179,8 +179,7 @@ Collect ← {𝕊 lines‿accounts‿domainInfo:
 }
 
 Normalize ← {𝕊 postings:
-  calculationScale ← 0
-  {𝕊: calculationScale ↩ ⌈´ {𝕩.source_scale}¨ postings}⍟(0 < ≠ postings) @
+  calculationScale ← ⌈´ 0 ∾ {𝕩.source_scale}¨postings
   normalized ← {𝕊 posting:
     zeroCount ← calculationScale - posting.source_scale
     magnitudeText ← (•Fmt | posting.source_coefficient) ∾ zeroCount ⥊ '0'
@@ -203,25 +202,24 @@ Normalize ← {𝕊 postings:
 }
 
 CompleteElided ← {𝕊 postings‿transactionStarts:
-  diagnostics ← empty
-  completed ← empty
-  {𝕊 transactionIndex:
+  CompleteTransaction ← {𝕊 transactionIndex:
     selected ← ({transactionIndex = 𝕩.transaction_index}¨ postings) / postings
     missing ← ({𝕩.elided}¨ selected) / selected
     missingCount ← ≠ missing
     sourceLine ← transactionIndex ⊑ transactionStarts
-    diagnostics ∾↩ AddIf ⟨1 < missingCount, Diagnostic ⟨"posting_elided_multiple", sourceLine, "transaction may elide at most one posting amount"⟩⟩
-    {𝕊: completed ∾↩ selected}⍟(0 = missingCount) @
+    localDiagnostics ← AddIf ⟨1 < missingCount, Diagnostic ⟨"posting_elided_multiple", sourceLine, "transaction may elide at most one posting amount"⟩⟩
+    completed ← empty
+    {𝕊: completed ↩ selected}⍟(0 = missingCount) @
     {𝕊:
       explicit ← ({¬𝕩.elided}¨ selected) / selected
       missingPosting ← ⊑ missing
-      diagnostics ∾↩ AddIf ⟨0 = ≠ explicit, Diagnostic ⟨"posting_elided_uninferable", missingPosting.source_line, "elided posting requires explicit balance evidence"⟩⟩
+      localDiagnostics ∾↩ AddIf ⟨0 = ≠ explicit, Diagnostic ⟨"posting_elided_uninferable", missingPosting.source_line, "elided posting requires explicit balance evidence"⟩⟩
       {𝕊:
         normalizedExplicit ← Normalize explicit
         inferredCoefficient ← - +´ 0 ∾ {𝕩.normalized_coefficient}¨ normalizedExplicit.postings
-        diagnostics ∾↩ AddIf ⟨0 = inferredCoefficient, Diagnostic ⟨"posting_elided_zero", missingPosting.source_line, "inferred posting amount must be nonzero"⟩⟩
+        localDiagnostics ∾↩ AddIf ⟨0 = inferredCoefficient, Diagnostic ⟨"posting_elided_zero", missingPosting.source_line, "inferred posting amount must be nonzero"⟩⟩
         {𝕊:
-          completed ∾↩ {𝕊 posting:
+          completed ↩ {𝕊 posting:
             result ← posting
             {𝕊:
               result ↩ {
@@ -242,20 +240,26 @@ CompleteElided ← {𝕊 postings‿transactionStarts:
         }⍟(0 ≠ inferredCoefficient) @
       }⍟(0 < ≠ explicit) @
     }⍟(1 = missingCount) @
-  }¨ ↕ ≠ transactionStarts
+    {diagnostics⇐localDiagnostics,postings⇐completed}
+  }
+
+  results ← CompleteTransaction¨↕≠transactionStarts
+  diagnostics ← ∾{𝕩.diagnostics}¨results
+  completed ← ∾{𝕩.postings}¨results
   {diagnostics⇐diagnostics,postings⇐completed}
 }
 
 BalanceDiagnostics ← {𝕊 postings‿transactionStarts:
-  diagnostics ← empty
-  {𝕊 transactionIndex:
+  BalanceTransaction ← {𝕊 transactionIndex:
     selected ← ({transactionIndex = 𝕩.transaction_index}¨ postings) / postings
     sourceLine ← transactionIndex ⊑ transactionStarts
     total ← +´ 0 ∾ {𝕩.normalized_coefficient}¨ selected
-    diagnostics ∾↩ AddIf ⟨0 = ≠ selected, Diagnostic ⟨"posting_missing", sourceLine, "transaction must contain postings"⟩⟩
-    diagnostics ∾↩ AddIf ⟨0 ≠ total, Diagnostic ⟨"event_unbalanced", sourceLine, "normalized posting coefficients must sum to zero"⟩⟩
-  }¨ ↕ ≠ transactionStarts
-  diagnostics
+    missingDiagnostic ← AddIf ⟨0 = ≠ selected, Diagnostic ⟨"posting_missing", sourceLine, "transaction must contain postings"⟩⟩
+    balanceDiagnostic ← AddIf ⟨0 ≠ total, Diagnostic ⟨"event_unbalanced", sourceLine, "normalized posting coefficients must sum to zero"⟩⟩
+    missingDiagnostic ∾ balanceDiagnostic
+  }
+  cells ← BalanceTransaction¨↕≠transactionStarts
+  ∾cells
 }
 
 RenderStructuralPosting ← {𝕊 posting:
