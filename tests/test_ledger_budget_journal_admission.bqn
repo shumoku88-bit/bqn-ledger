@@ -9,6 +9,7 @@ budgetAdmission ← •Import "../src/ledger/budget_journal_admission.bqn"
 lf ← @+10
 Raw ← {𝕊 lines: ∾lines∾¨lf}
 HasCode ← {𝕊 code‿diagnostics: ∨´0∾{𝕩.code≡code}¨diagnostics}
+Codes ← {𝕊 diagnostics: {𝕩.code}¨diagnostics}
 
 registryResult ← registryBuilder.Build io.ReadLines "config/currencies.tsv"
 "ok" lib.AssertEq registryResult.state
@@ -73,5 +74,31 @@ nonBudget ← budgetAdmission.Admit ⟨Raw ⟨
 ⟩,accounts,registry⟩
 "error" lib.AssertEq nonBudget.state
 lib.Assert HasCode ⟨"budget_movement_posting_not_budget",nonBudget.diagnostics⟩
+
+# Exact balance belongs to complete Journal admission. A two-Posting Budget
+# transaction that is not exact opposites never reaches Budget-specific relation
+# admission, so the historical Budget exact-opposite diagnostic is unreachable.
+unbalanced ← budgetAdmission.Admit ⟨Raw ⟨
+  "2026-08-08 Unbalanced movement",
+  "  Budget:Unassigned  -20 JPY",
+  "  Budget:Food          10 JPY"
+⟩,accounts,registry⟩
+"error" lib.AssertEq unbalanced.state
+lib.Assert HasCode ⟨"event_unbalanced",unbalanced.diagnostics⟩
+0 lib.AssertEq HasCode ⟨"budget_movement_postings_not_exact_opposites",unbalanced.diagnostics⟩
+
+# Budget diagnostics stay transaction-major: each transaction's semantic
+# diagnostics appear in source order rather than being regrouped by rule.
+mixedInvalid ← budgetAdmission.Admit ⟨Raw ⟨
+  "2026-08-08 Non-budget first",
+  "  Budget:Unassigned  -20 JPY",
+  "  Assets:Cash          20 JPY","",
+  "2026-08-09 Non-binary second",
+  "  Budget:Unassigned  -20 JPY",
+  "  Budget:Food          10 JPY",
+  "  Budget:Reserve       10 JPY"
+⟩,accounts,registry⟩
+"error" lib.AssertEq mixedInvalid.state
+⟨"budget_movement_posting_not_budget","budget_movement_requires_binary_transaction"⟩ lib.AssertEq Codes mixedInvalid.diagnostics
 
 •Out "test_ledger_budget_journal_admission: ok"
