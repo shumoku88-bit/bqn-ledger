@@ -2,7 +2,7 @@
 lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
-snapshot ← •Import "../src/ledger/snapshot.bqn"
+snapshot ← •Import "legacy_snapshot_fixture.bqn"
 recent ← •Import "../src/accounting/recent_transactions.bqn"
 
 base ← "fixtures/ledger-facts-phase1-proof/"
