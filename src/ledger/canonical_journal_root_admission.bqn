@@ -44,21 +44,34 @@ Diagnostic ← {𝕊 codeText‿lineNumber‿messageText:
 Admit ← {𝕊 raw‿expectedAccountSource:
   normalized ← (cr≠raw)/raw
   lines ← lf parse.SplitKeepEmpty normalized
-  diagnostics ← empty
-  includes ← empty
-  {𝕊 i:
-    line ← i⊑lines
-    {𝕊:
-      body ← Trim BeforeComment TrimLeft line
-      path ← Trim (≠"include")↓body
-      {𝕊: diagnostics∾↩⟨Diagnostic ⟨"journal_include_empty",i+1,"include directive requires a source path"⟩⟩}⍟(0=≠path) @
-      {𝕊:
-        includes∾↩⟨path⟩
-        {𝕊: diagnostics∾↩⟨Diagnostic ⟨"journal_include_unknown",i+1,"canonical Journal root may include only the canonical Account source"⟩⟩}⍟(path≢expectedAccountSource) @
-      }⍟(0<≠path) @
-    }⍟(StartsDirective ⟨"include",line⟩) @
-  }¨↕≠lines
-  diagnostics∾↩((1<+´expectedAccountSource⊸≡¨includes)/⟨Diagnostic ⟨"journal_include_duplicate",0,"canonical Account source may be included at most once"⟩⟩)
+
+  # Include topology is one physical-source relation. Classify the line axis
+  # once, retain source coordinates for directive cells, and derive path masks
+  # before publishing includes or diagnostics.
+  indices ← ↕≠lines
+  includeMask ← {StartsDirective ⟨"include",𝕩⟩}¨lines
+  includeIndices ← includeMask/indices
+  includeRows ← 1+includeIndices
+  includeLines ← includeMask/lines
+  paths ← {𝕊 line:
+    body ← Trim BeforeComment TrimLeft line
+    Trim (≠"include")↓body
+  }¨includeLines
+  emptyPath ← 0=≠¨paths
+  knownPath ← {𝕩≡expectedAccountSource}¨paths
+  unknownPath ← (¬emptyPath) ∧ ¬knownPath
+  includes ← (¬emptyPath)/paths
+
+  lineDiagnostics ← ∾⟨empty⟩∾{𝕊 i:
+    row ← i⊑includeRows
+    emptyDiagnostic ← (i⊑emptyPath)/⟨Diagnostic ⟨"journal_include_empty",row,"include directive requires a source path"⟩⟩
+    unknownDiagnostic ← (i⊑unknownPath)/⟨Diagnostic ⟨"journal_include_unknown",row,"canonical Journal root may include only the canonical Account source"⟩⟩
+    emptyDiagnostic∾unknownDiagnostic
+  }¨↕≠paths
+  duplicate ← 1<+´{𝕩≡expectedAccountSource}¨includes
+  duplicateDiagnostic ← duplicate/⟨Diagnostic ⟨"journal_include_duplicate",0,"canonical Account source may be included at most once"⟩⟩
+  diagnostics ← lineDiagnostics∾duplicateDiagnostic
+
   {state⇐(0=≠diagnostics)⊑"error"‿"ok",includes⇐includes,diagnostics⇐diagnostics}
 }
 
