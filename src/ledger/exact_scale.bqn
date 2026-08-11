@@ -23,16 +23,17 @@ Normalize ← {𝕊 coefficient‿sourceScale‿targetScale:
 }
 
 Sum ← {𝕊 coefficients:
-  state ← "ok" ⋄ code ← "" ⋄ total ← 0
-  {𝕊 value:
-    {𝕊:
-      candidate ← total+value
-      exactAdd ← ((candidate-total)=value) ∧ ((candidate-value)=total)
-      {𝕊: total↩candidate}⍟exactAdd @
-      {𝕊: state↩"error" ⋄ code↩"coefficient_sum_out_of_exact_range"}⍟(¬exactAdd) @
-    }⍟(state≡"ok") @
-  }¨coefficients
-  {state⇐state,coefficient⇐(state≡"ok")⊑⟨empty,total⟩,code⇐code}
+  prefixes ← +` 0∾coefficients
+  previous ← ¯1↓prefixes
+  candidates ← 1↓prefixes
+  exactAdds ← ((candidates-previous)=coefficients) ∧ ((candidates-coefficients)=previous)
+  allExact ← ∧´1∾exactAdds
+  total ← ¯1⊑prefixes
+  {
+    state⇐allExact⊑"error"‿"ok",
+    coefficient⇐allExact⊑⟨empty,total⟩,
+    code⇐allExact⊑"coefficient_sum_out_of_exact_range"‿""
+  }
 }
 
 {Normalize⇐Normalize,Sum⇐Sum}
