@@ -6,6 +6,7 @@ amount ← •Import "../ledger/amount_text.bqn"
 text ← •Import "../report/text.bqn"
 json ← •Import "../report/json_text.bqn"
 empty ← ⟨⟩
+lf ← @+10
 
 Diagnostic ← {𝕊 codeText‿messageText:
   {severity⇐"error",stage⇐"section_account_balances",code⇐codeText,message⇐messageText}
@@ -52,29 +53,25 @@ FormatHuman ← {𝕊 input:
   valWidth ← ⌈´⟨12⟩∾text.VWidth¨amountTexts
   nameWidth ← ⌈´⟨7⟩∾text.VWidth¨labels
   divider ← (nameWidth⥊'-')∾"-+--"∾(valWidth⥊'-')
-  out ← "== Account Balances =="∾(@+10)
-  out ∾↩ "Currency: "∾result.domain∾(@+10)
-  out ∾↩ "As of: "∾result.as_of∾(@+10)∾(@+10)
-  out ∾↩ (text.PadRight ⟨nameWidth,"Account"⟩)∾" | "∾(text.PadLeft ⟨valWidth,"Balance"⟩)∾(@+10)
-  out ∾↩ divider∾(@+10)
-  {𝕊 rowIndex:
-    amtText ← rowIndex⊑amountTexts
-    out ∾↩ (text.PadRight ⟨nameWidth,rowIndex⊑labels⟩)∾" | "
-    out ∾↩ (text.PadLeft ⟨valWidth,amtText⟩)∾(@+10)
+  header ← (text.PadRight ⟨nameWidth,"Account"⟩)∾" | "∾(text.PadLeft ⟨valWidth,"Balance"⟩)
+  rowLines ← {𝕊 rowIndex:
+    (text.PadRight ⟨nameWidth,rowIndex⊑labels⟩)∾" | "∾(text.PadLeft ⟨valWidth,rowIndex⊑amountTexts⟩)
   }¨result.matrix.row_index
-  out ∾↩ divider∾(@+10)
-  out ∾↩ "Balanced: "∾(result.balanced⊑"NO"‿"YES")∾(@+10)∾(@+10)
-  out
+  tableLines ← ⟨header,divider⟩∾rowLines∾⟨divider⟩
+  "== Account Balances =="∾lf∾
+    "Currency: "∾result.domain∾lf∾
+    "As of: "∾result.as_of∾lf∾lf∾
+    (∾{𝕩∾lf}¨tableLines)∾
+    "Balanced: "∾(result.balanced⊑"NO"‿"YES")∾lf∾lf
 }
 
 FormatCompact ← {𝕊 result:
-  out ← "--- Ledger Account Balances ---"∾(@+10)
-  {𝕊 rowIndex:
+  rowLines ← {𝕊 rowIndex:
     value ← ⊑rowIndex⊑result.matrix.values
-    out ∾↩ "ledger_balance: "∾(rowIndex⊑result.account_keys)∾"/"∾result.domain∾" "∾(AmountText ⟨value,result.matrix.scale⟩)∾(@+10)
+    "ledger_balance: "∾(rowIndex⊑result.account_keys)∾"/"∾result.domain∾" "∾AmountText ⟨value,result.matrix.scale⟩
   }¨result.matrix.row_index
-  {𝕊: out∾↩"ledger_balance: (none) 0"∾(@+10)}⍟(0=result.matrix.row_count) @
-  out
+  lines ← rowLines∾((0=result.matrix.row_count)/⟨"ledger_balance: (none) 0"⟩)
+  "--- Ledger Account Balances ---"∾lf∾∾{𝕩∾lf}¨lines
 }
 
 FormatJson ← {𝕊 result:
