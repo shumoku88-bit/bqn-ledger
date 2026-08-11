@@ -1,5 +1,5 @@
 # exact_decimal.bqn
-# Pure exact-decimal source parser for Currency Stage 2 Slice A.
+# Pure exact-decimal source parser for canonical decimal magnitude text.
 #
 # Accepted grammar:
 #   digits+
@@ -13,8 +13,6 @@
 digits ← "0123456789"
 dot ← ⊑ "."
 zero ← ⊑ "0"
-
-IsDigits ← { (0 < ≠ 𝕩) ∧ ∧´ (𝕩 ∊ digits) }
 
 TrimLeadingZeros ← {𝕊 xs:
   zeroPrefix ← ∧` (xs = zero)

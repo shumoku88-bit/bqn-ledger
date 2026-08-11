@@ -28,6 +28,9 @@ CheckOk ⟨"00042.50", 425, 1⟩
 CheckOk ⟨"0.000", 0, 0⟩
 CheckOk ⟨"0000.000", 0, 0⟩
 CheckOk ⟨"42.5000", 425, 1⟩
+CheckOk ⟨"00000000000000000000042.500000000000000000", 425, 1⟩
+CheckOk ⟨"0000000000000000000000000000000", 0, 0⟩
+CheckOk ⟨"0.0000000000000000001", 1, 19⟩
 
 invalid ← ⟨"", "+1", "-1", ".5", "5.", "1e3", "1E3", "1,000", "42 50", "1.2.3"⟩
 {𝕩 ⋄ CheckFail ⟨𝕩, "invalid_syntax", "invalid_decimal_syntax"⟩}¨ invalid
@@ -35,5 +38,7 @@ invalid ← ⟨"", "+1", "-1", ".5", "5.", "1e3", "1E3", "1,000", "42 50", "1.2.
 # CBQN's current Number path cannot preserve this coefficient exactly. The
 # parser must expose range failure rather than admitting a rounded coefficient.
 CheckFail ⟨"9007199254740993", "out_of_exact_range", "amount_out_of_exact_range"⟩
+CheckFail ⟨"0009007199254740993", "out_of_exact_range", "amount_out_of_exact_range"⟩
+CheckFail ⟨"9007199254740993.0", "out_of_exact_range", "amount_out_of_exact_range"⟩
 
 •Out "test_ledger_exact_decimal.bqn: OK"
