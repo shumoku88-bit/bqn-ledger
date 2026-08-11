@@ -28,7 +28,8 @@ EmptyIssues ← {𝕊:
 Admit ← {𝕊 lines‿registry:
   diagnostics ← empty ⋄ rows ← empty
   sourceRows ← 1+↕≠lines
-  dataMask ← ¬Ignored¨lines
+  ignored ← Ignored¨lines
+  dataMask ← ¬ignored
   dataLines ← dataMask/lines
   dataSourceRows ← dataMask/sourceRows
   sourceAbsent ← 0=≠lines
