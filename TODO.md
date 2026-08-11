@@ -97,7 +97,6 @@ Checkbox meaning:
 
 - `[ ]` not yet finally reviewed under the dense-array-kernel policy;
 - `[x]` reviewed on current `main`, with the final decision recorded beside the path.
-
 ## Phase order
 
 The phases are an inventory and review-navigation order, not mandatory PR boundaries. A coherent architectural change may cross them when its reason-to-change genuinely does.
@@ -135,8 +134,8 @@ A phase is considered reviewed only when every listed box is checked and the inv
 - [x] `src/accounting/plan_temporal_status.bqn` — PR #631 recorded the reachability/history/ownership audit; #632 narrowed the owner to open Plan date versus explicit as-of and routed Plan List plus Planned Payments through the same `overdue / due / future` relation while keeping completion and cycle grouping separate; reread on main `05edf2aecdd2d5d467a66fce0b00f17c87ec8e54`; final decisions in `docs/PLAN_TEMPORAL_STATUS_REVIEW_CLOSEOUT-2026-08-11.md`.
 - [x] `src/accounting/profit_and_loss.bqn` — PR #634 recorded the owner/consumer/array/public-surface audit; #635 proved dense zero rows plus independently reachable Income/Expense/net exact-sum failures without production changes; reread unchanged on main `07168702a4427e6d6b98ae3a3a26dc83fd78ebe4`; final decisions in `docs/PROFIT_AND_LOSS_REVIEW_CLOSEOUT-2026-08-11.md`.
 - [x] `src/accounting/recent_transactions.bqn` — PR #637 recorded the owner/ordering/consumer audit; #638 proved physical-source ordering and `BuildThrough` eligibility through durable Transaction references; #639 removed the public snapshot-local `transaction_index` while retaining the private relation coordinate; reread on main `1f5773beabad5a52a2cd0c511feb46ee261cf412`; final decisions in `docs/RECENT_TRANSACTIONS_REVIEW_CLOSEOUT-2026-08-11.md`.
-- [ ] `src/accounting/sparse_group.bqn`
-- [ ] `src/accounting/sparse_pivot.bqn`
+- [x] `src/accounting/sparse_group.bqn` — PR #641 classified row coordinates once with dyadic Index Of, reused the absent bound for unknown-row admission, and passed admitted integer coordinates directly into Group; reread on main `60ed9848bed340c6fc24109c48d576132ee36ba0`; final decisions in `docs/ACCOUNTING_PHASE_ONE_REVIEW_CLOSEOUT-2026-08-11.md`.
+- [x] `src/accounting/sparse_pivot.bqn` — PR #642 replaced coordinate rescans with relation-cell Deduplicate and dense cell mutation with absent-bound fill selection; reread on main `60ed9848bed340c6fc24109c48d576132ee36ba0`; final decisions in `docs/ACCOUNTING_PHASE_ONE_REVIEW_CLOSEOUT-2026-08-11.md`.
 
 ## Phase 2: `src/ledger/`
 
@@ -246,7 +245,6 @@ A phase is considered reviewed only when every listed box is checked and the inv
 - [ ] `src/editor/travel_exchange_event.bqn`
 
 ### `src_edit/`
-
 - [ ] `src_edit/account_add_cmd.bqn`
 - [ ] `src_edit/account_list_cmd.bqn`
 - [ ] `src_edit/account_validate_cmd.bqn`
@@ -305,6 +303,6 @@ After the production BQN inventory is reviewed, the selector/UI adapter consolid
 
 ## Current cursor
 
-`src/accounting/sparse_group.bqn`
+`src/ledger/account_admission.bqn`
 
-Resume the normal Phase 1 accounting review sequence here after the completed Recent Transactions review.
+Phase 1 `src/accounting/` is complete. Resume the normal Phase 2 ledger review sequence here.
