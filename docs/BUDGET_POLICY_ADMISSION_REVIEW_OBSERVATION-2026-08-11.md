@@ -5,6 +5,7 @@
 - repository: `shumoku88-bit/bqn-ledger`
 - review base: `d6c44df6924f7cd9622434f42095f8fe4b130877`
 - active owner: `src/ledger/budget_policy_admission.bqn`
+- focused review PR: #650
 - repository cursor reached this owner after #649 closed `amount_text.bqn` and `budget_journal_admission.bqn`
 
 ## Reachability and history
@@ -32,9 +33,9 @@ expense-accounts = ["Expenses:Groceries"]
 
 The owner therefore remains authoritative for the deterministic `budget.toml` subset shared with the canonical Household contract.
 
-## Current pipeline hidden inside one Admit
+## Four different kinds of work live inside Admit
 
-The file currently contains four materially different stages.
+The review began by separating four materially different stages rather than treating every visible loop or mutation as one defect.
 
 ### 1. Literal / lexical state
 
@@ -47,45 +48,57 @@ In particular:
 - only `\"` and `\\` are supported escapes in the retained string subset;
 - malformed literal diagnostics are later remapped to their logical key/value source line.
 
-A review must not replace these with a compact whole-array expression merely to remove visible state if the lexical transition becomes less explicit.
+The review deliberately leaves this state explicit. No generic TOML parser or parser framework is introduced.
 
 ### 2. Physical lines -> logical key/value rows
 
-One TOML string array may span several physical lines. The current implementation carries mutable `pending / pendingText / pendingRow`, appends continuation text, and closes the logical row when `ArrayClosed` succeeds.
+One TOML string array may span several physical lines. The implementation carries `pending / pendingText / pendingRow`, appends continuation text, and closes the logical row when `ArrayClosed` succeeds.
 
 The first physical line is retained as the diagnostic coordinate for the resulting logical row.
 
-This stage is related to lexical state: whether a physical line ends the logical row depends on quote-aware array closure. It should not be mechanically rewritten using the Account Journal segmentation recipe.
+This stage is coupled to lexical state because whether a physical line closes the logical row depends on quote-aware array closure. The review therefore does not mechanically copy the Account Journal segmentation rewrite across this boundary.
 
 ### 3. Logical rows -> table blocks
 
-After logical rows exist, the grammar is simpler. Canonical headers are exactly:
+Once quote-aware logical rows exist, the grammar is structural. Canonical headers are exactly:
 
 - `[[backing-pools]]`
 - `[[envelopes]]`
 
-The current implementation nevertheless uses file-wide mutable:
+The previous implementation used file-wide mutable:
 
 ```text
 active / activeKind / activeLine / activePairs / Finalize
 ```
 
-and walks logical rows one at a time.
+and walked logical rows one at a time.
 
-Unlike physical-to-logical assembly, this stage has a plausible structural relation:
+The retained production form instead exposes the source relation:
 
 ```text
 logical rows
-  -> header / ignored / key-row classification
-  -> table-segment coordinate
-  -> ordered blocks
+  -> ignored / backing-pool-header / envelope-header classification
+  -> header mask
+  -> Scan table coordinate
+  -> Group ordered source segments
+  -> local ParseSegment
 ```
 
-A Scan/Group form may be clearer here, but only if it preserves the exact treatment of rows before the first valid header, invalid header-looking rows, comments/blanks, source order, and line coordinates.
+In BQN this is centered on:
 
-### 4. Block semantics and Account relations
+```bqn
+header ← poolHeader ∨ envelopeHeader
+segmentIds ← +`header
+segments ← segmentIds⊔indices
+```
 
-For each admitted table block, the owner validates the fixed key set and parses the field values. It then validates cross-block relations:
+`ParseSegment` then handles either the outside-table prefix or one source-ordered canonical table segment. Empty group zero, comments/blanks, rows before the first canonical header, invalid header-looking rows, source order, and physical line coordinates remain covered by focused and repository-wide laws.
+
+This is the same broad array idea seen in Account Journal review, but it is applied only after the lexical boundary rather than copied wholesale into the physical-line parser.
+
+### 4. Block semantics and policy relations
+
+For each admitted table block, the owner still validates the fixed key set and parses field values. It then owns cross-block relations:
 
 - backing-pool IDs unique;
 - envelope IDs and labels unique;
@@ -95,11 +108,28 @@ For each admitted table block, the owner validates the fixed key set and parses 
 - Expense Account keys resolve to `expense` Accounts;
 - backing Account keys resolve to `asset` Accounts.
 
-The final Account-resolution loops currently resolve each flattened policy key repeatedly through `IndexOf`. These relations are candidates for classify-once coordinates over the canonical Account axis, but they are independent of the lexical parser and should be judged on their own clarity.
+The previous Account-resolution path nested loops over every Envelope/Pool key and called scalar `IndexOf` for each key.
 
-## Diagnostic frontier observation
+The retained production form makes the policy axes explicit instead:
 
-There is an important global-state contract inside block admission:
+```text
+ragged Expense / Asset policy lists
+  -> flattened policy-key axes
+  -> replicated owner-line axes
+  -> Account coordinates with dyadic Index Of
+  -> known masks
+  -> role cells with vector Select
+  -> role-valid masks
+  -> key-major diagnostic cells
+```
+
+Envelope backing-pool references are likewise classified once onto the declared pool ID axis before unknown diagnostics are published.
+
+The publication order is intentionally unchanged: Expense Account diagnostics remain before backing Asset Account diagnostics, and within each family diagnostics remain policy-key-major with the owning Envelope/Pool source line.
+
+## Diagnostic frontier retained intentionally
+
+There is an important global-state contract inside block semantic admission:
 
 ```bqn
 blockClean ← 0=≠diagnostics
@@ -107,39 +137,92 @@ blockClean ← 0=≠diagnostics
 
 Because this tests the complete diagnostic vector rather than only the current block's structural diagnostics, one semantic error in an earlier block prevents later structurally valid blocks from being semantically parsed. Structural key checks still run for later blocks, but semantic diagnostics beyond that frontier are suppressed.
 
-This may be deliberate fail-fast diagnostic publication or incidental coupling. The review must not silently turn it into independent per-block diagnostic accumulation, because that would change public diagnostics and their order even though the final result remains fail-closed.
+The review characterized this behavior before production work and keeps it unchanged. Turning block semantics into an independent map would otherwise change public diagnostics and ordering even though final publication remained fail-closed.
 
-The first characterization records the current frontier explicitly. A later change may deliberately revise it only with a separate diagnostic-ownership decision.
+This frontier may deserve a separate future diagnostic-ownership decision, but it is not incidental cleanup inside the present BQN-native review.
 
-## Characterization added before production work
+## Characterization before production work
 
-The focused `tests/test_ledger_budget_policy_admission.bqn` is extended to protect source-shape behavior that was previously left mostly to downstream integration tests:
+The focused `tests/test_ledger_budget_policy_admission.bqn` was strengthened before each production boundary.
+
+Source-shape characterization protects:
 
 1. quoted `]` does not close a multiline array and quoted `,` does not split an Account key;
 2. malformed literal diagnostics in a multiline array retain the first physical line of the logical key/value row;
 3. a key before the first canonical table header remains outside every block and retains its own physical line;
-4. the current semantic diagnostic frontier is transaction/table-source ordered and suppresses later semantic block diagnostics after the first semantic failure;
+4. the current semantic diagnostic frontier suppresses later semantic block diagnostics after the first semantic failure;
 5. invalid policy publication remains fail-closed with empty admitted pool/envelope axes.
 
-No production behavior is changed by this characterization commit.
+Relation characterization additionally fixes current Account diagnostic order and owner coordinates. For a mixed unknown/wrong-role policy, the public order is:
 
-## Candidate review boundary
+```text
+Expense unknown
+Expense wrong role
+Asset unknown
+Asset wrong role
+```
 
-Do not treat every loop in this file as one defect.
+with each diagnostic retaining the source line of the owning Envelope or backing-pool block.
 
-The likely useful boundary is:
+## Failed probes retained as BQN evidence
 
-- keep quote/escape state explicit where it is genuine lexical state unless a clearer Scan transition is demonstrated;
-- investigate structural Scan/Group segmentation only after logical rows exist;
-- investigate Account key resolution as aligned policy-key -> Account-axis classification;
-- keep diagnostic publication semantics explicit, especially the current global frontier;
-- do not introduce a generic TOML parser or generic parser framework.
+Two failed production probes were useful because they exposed scalar notation that had survived after the relation itself became an array.
 
-The goal is a visible pipeline of named source and semantic axes, not the minimum number of lines.
+### CI #2616: string cell versus character axis
+
+The first classify-once spelling selected roles with scalar Pick and then attempted:
+
+```bqn
+"expense"⊸≡¨expenseRoles
+```
+
+The observed value was not yet the intended vector of role-string cells. CBQN reported a Mapping shape mismatch. The comparison was rewritten as an explicit role-cell mask, but the next run showed that comparison spelling was not the underlying issue.
+
+### CI #2617: Pick versus Select
+
+The remaining failure occurred at:
+
+```bqn
+expenseKnown ∧ ¬expenseRoleValid
+```
+
+with a one-key known axis against the seven-character axis of the string `"expense"`.
+
+The cause was precise: `accounts.key⊐expenseKeys` produces a vector of Account coordinates, but the first production spelling used scalar Pick `⊑` to project `accounts.role`. A one-element coordinate vector therefore picked one role string as a character vector instead of selecting one role cell on the policy-key axis.
+
+Repository-native examples confirm the correct relation idiom:
+
+```bqn
+indices ← accounts.key⊐keys
+roles ← indices⊏(accounts.role∾⟨""⟩)
+```
+
+Changing role projection from `⊑` to vector Select `⊏` restored the intended aligned key axis. CI #2618 then passed the full repository check and coverage.
+
+The failed probes are therefore not hidden as noise. They document a useful BQN rule for this codebase: once a relation is expressed as a coordinate array, subsequent projection must preserve that array axis rather than falling back to scalar Pick notation.
+
+## What was deliberately not changed
+
+The review does not pursue minimum mutation count.
+
+Retained intentionally:
+
+- quote/escape state in literal parsing;
+- pending multiline logical-row assembly;
+- block semantic mutation and the current global diagnostic frontier;
+- domain-specific local parsing rather than a generic TOML abstraction.
+
+Changed structurally:
+
+- table boundary state after logical rows exist;
+- repeated backing-pool lookup;
+- repeated scalar Account key lookup and role resolution.
+
+This makes the remaining state easier to justify: it corresponds either to real lexical transition or to current diagnostic publication semantics, not merely to source segmentation or repeated relation search.
 
 ## Protected contracts
 
-Preserve unless a separate review decision says otherwise:
+Preserved by focused and full qualification:
 
 - canonical `budget.toml` ownership and basename;
 - deterministic backing-pool / envelope table grammar;
@@ -161,8 +244,28 @@ Preserve unless a separate review decision says otherwise:
 
 - review base main `d6c44df6924f7cd9622434f42095f8fe4b130877` follows docs closeout #649;
 - merged-main #649 CI #2612: SUCCESS before the review branch was cut;
-- characterization CI: pending at the time this observation was first written.
+- source-shape characterization CI #2613: SUCCESS;
+- table Scan/Group segmentation CI #2614: SUCCESS;
+- Account relation diagnostic-order characterization CI #2615: SUCCESS;
+- Account classify-once CI #2616: FAILED on the first role-axis spelling;
+- role-cell comparison adjustment CI #2617: FAILED and exposed remaining scalar Pick versus vector Select mismatch;
+- corrected Account coordinate projection CI #2618: SUCCESS with full repository check and coverage.
 
-## Current decision
+## Review decision
 
-Observation only. Do not yet copy the Account Journal refactor into this owner. First qualify the lexical/source-coordinate and diagnostic-frontier laws, then decide whether the clearest coherent production change is table segmentation, Account relation classification, both, or no change.
+Retain `src/ledger/budget_policy_admission.bqn` as the canonical deterministic Budget policy owner.
+
+Its BQN-native architecture should make the different state classes visible rather than flatten them into one aesthetic rule:
+
+```text
+physical source
+  -> explicit lexical/multiline state
+  -> logical rows
+  -> whole-array header classification / Scan / Group
+  -> ordered local table semantics
+  -> classify-once pool and Account relations
+  -> source-ordered diagnostics
+  -> fail-closed policy publication
+```
+
+Do not replace the remaining lexical state merely because it is mutable. Do not introduce a generic parser abstraction. The coherent improvement is to remove structural table staging and repeated relation search while retaining state that still carries lexical or diagnostic meaning.
