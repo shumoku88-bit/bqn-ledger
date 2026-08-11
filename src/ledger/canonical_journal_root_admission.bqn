@@ -34,7 +34,8 @@ StartsDirective ← {𝕊 keyword‿line:
   enough ← n≤≠text
   remainder ← n↓text
   boundary ← (0=≠remainder) ∨ IsWhitespace ⊑(remainder∾" ")
-  enough ∧ (keyword≡n↑text) ∧ boundary
+  prefix ← n↑text∾n⥊space
+  enough ∧ (keyword≡prefix) ∧ boundary
 }
 Diagnostic ← {𝕊 codeText‿lineNumber‿messageText:
   {severity⇐"error",stage⇐"ledger_canonical_journal_root_admission",code⇐codeText,line⇐lineNumber,message⇐messageText}
