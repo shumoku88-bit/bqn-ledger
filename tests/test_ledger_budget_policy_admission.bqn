@@ -9,6 +9,7 @@ Raw ← {𝕊 lines: ∾lines∾¨lf}
 Q ← {𝕊 text: ⟨quote⟩∾text∾⟨quote⟩}
 HasCode ← {𝕊 code‿diagnostics: ∨´0∾{𝕩.code≡code}¨diagnostics}
 Codes ← {𝕊 diagnostics: {𝕩.code}¨diagnostics}
+Lines ← {𝕊 diagnostics: {𝕩.line}¨diagnostics}
 LineForCode ← {𝕊 code‿diagnostics:
   matches ← ({𝕩.code≡code}¨diagnostics)/diagnostics
   (⊑matches).line
@@ -125,6 +126,25 @@ semanticFrontier ← policyAdmission.Admit ⟨Raw ⟨
 "error" lib.AssertEq semanticFrontier.state
 ⟨"envelope_pacing_invalid","budget_policy_envelopes_missing"⟩ lib.AssertEq Codes semanticFrontier.diagnostics
 0 lib.AssertEq HasCode ⟨"envelope_backing_pool_unknown",semanticFrontier.diagnostics⟩
+
+# Account relation diagnostics are policy-key-major. Expense memberships are
+# resolved before backing Asset memberships, and each diagnostic keeps the line
+# of the owning Envelope or backing-pool block.
+relationOrder ← policyAdmission.Admit ⟨Raw ⟨
+  "[[backing-pools]]","id = "∾(Q "cash"),
+  "asset-accounts = ["∾(Q "Missing:Asset")∾", "∾(Q "Expenses:Books")∾"]","",
+  "[[envelopes]]","id = "∾(Q "mixed"),"label = "∾(Q "Mixed"),
+  "pacing = "∾(Q "flex"),"backing-pool = "∾(Q "cash"),
+  "expense-accounts = ["∾(Q "Missing:Expense")∾", "∾(Q "Assets:Savings")∾"]"
+⟩,accounts⟩
+"error" lib.AssertEq relationOrder.state
+⟨
+  "budget_policy_expense_account_unknown",
+  "budget_policy_expense_account_role_invalid",
+  "budget_policy_asset_account_unknown",
+  "budget_policy_asset_account_role_invalid"
+⟩ lib.AssertEq Codes relationOrder.diagnostics
+⟨5,5,1,1⟩ lib.AssertEq Lines relationOrder.diagnostics
 
 duplicateExpense ← policyAdmission.Admit ⟨Raw ⟨
   "[[backing-pools]]","id = "∾(Q "cash"),"asset-accounts = ["∾(Q "Assets:Cash")∾"]","",
