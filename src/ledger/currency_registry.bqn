@@ -7,6 +7,7 @@ SplitKeepEmpty ← {𝕊 sep‿text:
   groups ← (+`sep=text)⊔text
   {(sep≠𝕩)/𝕩}¨groups
 }
+empty ← ⟨⟩
 
 IsIgnored ← {𝕊 line:
   (0=≠line) ? 1 ; (((⊑line)='#') ∨ ((⊑line)=⊑"\\"))
@@ -30,31 +31,36 @@ Failure ← {𝕊 code‿message:
 
 Build ← {𝕊 lines:
   data ← (¬IsIgnored¨lines)/lines
-  (0=≠data) ? Failure ⟨"currency_registry_empty", "currency registry is empty"⟩ ; {
-    parsed ← ParseLine¨data
+  parsed ← ParseLine¨data
+  result ← Failure ⟨"currency_registry_empty", "currency registry is empty"⟩
+  {𝕊:
     codes ← <¨ {𝕩.currency}¨parsed
     fractions ← {𝕩.fraction_text}¨parsed
     fieldOk ← ∧´ {𝕩.field_count=3}¨parsed
     codeOk ← ∧´ {0<≠>𝕩}¨codes
     fractionOk ← ∧´ IsFractionDigits¨fractions
-    duplicate ← (≠codes) ≠ ≠⍷codes
-
-    (¬fieldOk) ? Failure ⟨"currency_registry_row_invalid", "currency registry rows require currency, max_fraction_digits, and symbol"⟩ ;
-    (¬codeOk) ? Failure ⟨"currency_registry_currency_empty", "currency registry contains an empty currency code"⟩ ;
-    (¬fractionOk) ? Failure ⟨"currency_registry_fraction_digits_invalid", "currency registry contains invalid max_fraction_digits"⟩ ;
-    duplicate ? Failure ⟨"currency_registry_currency_duplicate", "currency registry contains duplicate currency code"⟩ ; {
+    sorted ← (⍋ codes) ⊏ codes
+    duplicate ← 0 < +´ ((1↓sorted) ≡¨ (¯1↓sorted))
+    {𝕊: result ↩ Failure ⟨"currency_registry_row_invalid", "currency registry rows require currency, max_fraction_digits, and symbol"⟩}⍟(¬fieldOk) @
+    {𝕊: result ↩ Failure ⟨"currency_registry_currency_empty", "currency registry contains an empty currency code"⟩}⍟(fieldOk ∧ ¬codeOk) @
+    {𝕊: result ↩ Failure ⟨"currency_registry_fraction_digits_invalid", "currency registry contains invalid max_fraction_digits"⟩}⍟(fieldOk ∧ codeOk ∧ ¬fractionOk) @
+    {𝕊: result ↩ Failure ⟨"currency_registry_currency_duplicate", "currency registry contains duplicate currency code"⟩}⍟(fieldOk ∧ codeOk ∧ fractionOk ∧ duplicate) @
+    {𝕊:
       maxes ← •BQN¨fractions
       symbols ← <¨ {𝕩.symbol}¨parsed
       Policy ← {𝕊 requested:
         idx ← ⊑codes⊐⟨<requested⟩
-        (idx<≠codes) ?
-          {state⇐"ok",currency⇐>idx⊑codes,max_fraction_digits⇐idx⊑maxes,symbol⇐>idx⊑symbols,code⇐"",message⇐""} ;
-          {state⇐"error",currency⇐requested,max_fraction_digits⇐¯1,symbol⇐"",code⇐"unsupported_currency",message⇐"unsupported currency: "∾requested}
+        result ← {state⇐"error",currency⇐requested,max_fraction_digits⇐¯1,symbol⇐"",code⇐"unsupported_currency",message⇐"unsupported currency: "∾requested}
+        {𝕊:
+          result ↩ {state⇐"ok",currency⇐>idx⊑codes,max_fraction_digits⇐idx⊑maxes,symbol⇐>idx⊑symbols,code⇐"",message⇐""}
+        }⍟(idx<≠codes) @
+        result
       }
       IsSupportedCurrency ← {𝕊 requested: (Policy requested).state≡"ok"}
-      {state⇐"ok",code⇐"",message⇐"",registry⇐{codes⇐>¨codes,Policy⇐Policy,IsSupportedCurrency⇐IsSupportedCurrency}}
-    }
-  }
+      result ↩ {state⇐"ok",code⇐"",message⇐"",registry⇐{codes⇐>¨codes,Policy⇐Policy,IsSupportedCurrency⇐IsSupportedCurrency}}
+    }⍟(fieldOk ∧ codeOk ∧ fractionOk ∧ ¬duplicate) @
+  }⍟(0<≠data) @
+  result
 }
 
 {Build⇐Build}
