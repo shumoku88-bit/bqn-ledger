@@ -57,4 +57,29 @@ accounts.key lib.AssertEq result.accounts.key
 ⟨0,0⟩ lib.AssertEq result.transactions.layer_index
 ⟨0,0,0,0⟩ lib.AssertEq result.postings.layer_index
 
+# Projection diagnostics remain transaction-major and preserve the established
+# validation order even though the join relations are classified beforehand.
+forgedPosting ← {account_key⇐"missing:account",normalized_coefficient⇐1}
+forgedTransaction ← {
+  date⇐"2026-02-30",domain⇐"USD",layer_name⇐"",source_event_id⇐"",
+  postings⇐⟨forgedPosting⟩
+}
+forgedAdmission ← {
+  state⇐"ok",transactions⇐⟨forgedTransaction⟩,
+  declared_domains⇐⟨"JPY"⟩,declared_layers⇐⟨"actual"⟩,source_name⇐"actual.journal"
+}
+forged ← facts.Project ⟨forgedAdmission,accounts⟩
+"error" lib.AssertEq forged.state
+⟨
+  "transaction_date_invalid",
+  "transaction_domain_undeclared",
+  "transaction_layer_missing",
+  "transaction_layer_undeclared",
+  "transaction_identity_missing",
+  "posting_account_unknown",
+  "transaction_unbalanced"
+⟩ lib.AssertEq {𝕩.code}¨forged.diagnostics
+0 lib.AssertEq forged.transactions.count
+0 lib.AssertEq forged.postings.count
+
 •Out "test_ledger_facts_coordinates: ok"
