@@ -27,15 +27,14 @@ EmptyIssues ← {𝕊:
 
 Admit ← {𝕊 lines‿registry:
   diagnostics ← empty ⋄ rows ← empty
-  dataLines ← empty ⋄ dataSourceRows ← empty
-  {𝕊 i:
-    {𝕊:dataLines∾↩⟨i⊑lines⟩ ⋄ dataSourceRows∾↩i+1}⍟(¬Ignored i⊑lines) @
-  }¨↕≠lines
+  sourceRows ← 1+↕≠lines
+  dataMask ← ¬Ignored¨lines
+  dataLines ← dataMask/lines
+  dataSourceRows ← dataMask/sourceRows
   sourceAbsent ← 0=≠lines
-  headerOk ← sourceAbsent
-  {𝕊:headerOk↩(SplitKeepEmpty ⟨tab,⊑dataLines⟩)≡header}⍟(0<≠dataLines) @
-  headerRow ← 1
-  {𝕊:headerRow↩⊑dataSourceRows}⍟(0<≠dataSourceRows) @
+  headerLine ← ⊑(dataLines∾⟨""⟩)
+  headerRow ← ⊑(dataSourceRows∾⟨1⟩)
+  headerOk ← sourceAbsent ∨ (SplitKeepEmpty ⟨tab,headerLine⟩)≡header
   diagnostics∾↩AddIf ⟨¬headerOk,Diagnostic ⟨"issue_header_invalid",headerRow,"issues.tsv header must match the strict eight-column schema"⟩⟩
   {𝕊 i:
     line ← i⊑1↓dataLines ⋄ sourceRow ← i⊑1↓dataSourceRows
