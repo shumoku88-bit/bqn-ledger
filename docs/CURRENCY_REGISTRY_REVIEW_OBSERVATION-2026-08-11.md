@@ -109,7 +109,8 @@ Qualified production milestones:
 
 - CI #2645: SUCCESS with total ignored-line classification and the original admission/Policy structure;
 - CI #2646: SUCCESS after replacing sort-based uniqueness detection with `⍷`;
-- CI #2647: SUCCESS after removing the temporary early review gate; this is the final source-and-focused-test qualification before documentation-only updates.
+- CI #2647: SUCCESS after removing the temporary early review gate;
+- CI #2650: SUCCESS on the final production head after also removing the pre-existing unused `empty` binding.
 
 ## Review conclusion
 
@@ -119,6 +120,7 @@ The retained owner is deliberately modest:
 make shape-sensitive classification total
 + express true whole-array uniqueness with Deduplicate
 + strengthen public laws
++ remove one dead local binding
 + retain ordered diagnostic control where it carries domain behavior
 ```
 
