@@ -106,6 +106,14 @@ Keep unchanged:
 - exact retention of trailing fractional zeros;
 - shared public `Format` export and all consumers.
 
+## Qualification
+
+- characterization-only CI #2599: SUCCESS;
+- production plus dedicated laws and observation CI #2602: SUCCESS;
+- while #2602 was running, docs-only PR #646 advanced main from `945fbb11f9f0a3b7a89006110e88468a063a2a64` to `b971308f84158f5891c7b774e8db3184c192b50a`;
+- that intervening main commit changes only the Account Journal review closeout documentation/TODO cursor and has no runtime, test, or `amount_text` overlap;
+- this final documentation commit intentionally retriggers the PR workflow against current main so the final merge ref is requalified after that docs-only drift.
+
 ## Review decision
 
 Retain `amount_text.bqn` as the shared exact plain-text formatter. Replace only the branch-local body mutation with one structural character-array expression and retain the new dedicated boundary laws.
