@@ -97,7 +97,6 @@ Project ← {𝕊 admitted‿admittedAccounts:
   transactionBalanced ← 0=Sum0¨transactionCoefficients
 
   {𝕊 ti:
-    transaction ← ti⊑transactions
     diagnostics ∾↩ AddIf ⟨¬ti⊑dateValid, Diagnostic ⟨"transaction_date_invalid","admitted transaction date must be strict ISO Gregorian text"⟩⟩
     diagnostics ∾↩ AddIf ⟨¬ti⊑domainKnown, Diagnostic ⟨"transaction_domain_undeclared","transaction domain must occur in the admitted domain table"⟩⟩
     diagnostics ∾↩ AddIf ⟨ti⊑layerMissing, Diagnostic ⟨"transaction_layer_missing","transaction layer must be explicit"⟩⟩
