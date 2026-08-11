@@ -12,7 +12,10 @@ SplitKeepEmpty ← {𝕊 separator‿text:
   {(separator≠𝕩)/𝕩}¨groups
 }
 Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
-Ignored ← {𝕊 line: (0=≠line) ∨ (⊑(line∾" "))∊"#\\"}
+Ignored ← {𝕊 line:
+  first ← ⊑(line∾" ")
+  (0=≠line) ∨ (first='#') ∨ first=⊑"\\"
+}
 Diagnostic ← {𝕊 code‿row‿message:
   {severity⇐"error",stage⇐"ledger_issue_admission",code⇐code,source_row⇐row,message⇐message}
 }
