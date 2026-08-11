@@ -15,7 +15,6 @@ hash ← ⊑"#"
 empty ← ⟨⟩
 
 Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
-IndexOf ← {𝕊 item‿items: ⊑items⊐⟨item⟩}
 IsWhitespace ← {𝕊 c: (c=space) ∨ c=tab}
 TrimLeft ← {𝕊 xs: prefix ← ∧`IsWhitespace¨xs ⋄ (+´prefix)↓xs}
 TrimRight ← {𝕊 xs: ⌽TrimLeft⌽xs}
@@ -154,41 +153,63 @@ Admit ← {𝕊 raw‿accounts:
   }¨↕≠physicalLines
   {𝕊:lines∾↩⟨pendingText⟩ ⋄ lineRows∾↩⟨pendingRow⟩}⍟pending @
 
-  diagnostics ← empty ⋄ blocks ← empty
-  active ← 0 ⋄ activeKind ← "" ⋄ activeLine ← 0 ⋄ activePairs ← empty
-  Finalize ← {𝕊:
-    {𝕊:blocks∾↩⟨{kind⇐activeKind,line⇐activeLine,pairs⇐activePairs}⟩}⍟active @
-    active↩0 ⋄ activeKind↩"" ⋄ activeLine↩0 ⋄ activePairs↩empty
-  }
-  {𝕊 i:
-    line ← i⊑lines ⋄ row ← i⊑lineRows
-    ignored ← (0=≠line) ∨ hash=FirstOrSpace line
+  # Once quote-aware logical rows exist, table structure is an aligned source
+  # relation: classify canonical headers, Scan one table coordinate, then Group
+  # source indices into the outside-prefix and ordered table segments.
+  indices ← ↕≠lines
+  ignored ← (0=≠¨lines) ∨ hash=FirstOrSpace¨lines
+  poolHeader ← {𝕩≡"[[backing-pools]]"}¨lines
+  envelopeHeader ← {𝕩≡"[[envelopes]]"}¨lines
+  header ← poolHeader ∨ envelopeHeader
+  segmentIds ← +`header
+  segments ← segmentIds⊔indices
+
+  ParsePair ← {𝕊 sourceIndex:
+    line ← sourceIndex⊑lines
+    row ← sourceIndex⊑lineRows
+    diagnostics ← empty
+    pair ← @
+    equals ← '='=line
+    diagnostics∾↩AddIf ⟨1≠+´equals,Diagnostic ⟨"budget_policy_key_shape_invalid",row,"policy row requires exactly one equals separator"⟩⟩
     {𝕊:
-      poolHeader ← line≡"[[backing-pools]]"
-      envelopeHeader ← line≡"[[envelopes]]"
-      header ← poolHeader ∨ envelopeHeader
+      p ← ⊑equals/↕≠line
+      key ← Trim p↑line ⋄ value ← Trim (p+1)↓line
+      validPair ← (0<≠key) ∧ 0<≠value
+      diagnostics∾↩AddIf ⟨¬validPair,Diagnostic ⟨"budget_policy_key_shape_invalid",row,"policy key and value must be nonempty"⟩⟩
+      {𝕊:pair↩{key⇐key,text⇐value,line⇐row}}⍟validPair @
+    }⍟(1=+´equals) @
+    {diagnostics⇐diagnostics,pair⇐pair}
+  }
+
+  ParseSegment ← {𝕊 segment:
+    diagnostics ← empty
+    block ← @
+    {𝕊:
+      first ← ⊑segment
+      tableSegment ← first⊑header
       {𝕊:
-        Finalize @
-        active↩1 ⋄ activeLine↩row
-        activeKind↩poolHeader⊑⟨"envelope","backing-pool"⟩
-      }⍟header @
+        pairIndices ← ((¬segment⊏ignored) ∧ ¬segment⊏header)/segment
+        parsedPairs ← ParsePair¨pairIndices
+        diagnostics∾↩∾⟨empty⟩∾{𝕩.diagnostics}¨parsedPairs
+        pairItems ← {𝕩.pair}¨parsedPairs
+        pairs ← ({𝕩≢@}¨pairItems)/pairItems
+        kind ← (first⊑poolHeader)⊑⟨"envelope","backing-pool"⟩
+        block↩{kind⇐kind,line⇐first⊑lineRows,pairs⇐pairs}
+      }⍟tableSegment @
       {𝕊:
-        diagnostics∾↩AddIf ⟨¬active,Diagnostic ⟨"budget_policy_key_outside_table",row,"policy key must occur inside a canonical array-of-tables block"⟩⟩
-        {𝕊:
-          equals ← '='=line
-          diagnostics∾↩AddIf ⟨1≠+´equals,Diagnostic ⟨"budget_policy_key_shape_invalid",row,"policy row requires exactly one equals separator"⟩⟩
-          {𝕊:
-            p ← ⊑equals/↕≠line
-            key ← Trim p↑line ⋄ value ← Trim (p+1)↓line
-            validPair ← (0<≠key) ∧ 0<≠value
-            diagnostics∾↩AddIf ⟨¬validPair,Diagnostic ⟨"budget_policy_key_shape_invalid",row,"policy key and value must be nonempty"⟩⟩
-            {𝕊:activePairs∾↩⟨{key⇐key,text⇐value,line⇐row}⟩}⍟validPair @
-          }⍟(1=+´equals) @
-        }⍟active @
-      }⍟(¬header) @
-    }⍟(¬ignored) @
-  }¨↕≠lines
-  Finalize @
+        outside ← (¬segment⊏ignored)/segment
+        diagnostics∾↩{𝕊 sourceIndex:
+          Diagnostic ⟨"budget_policy_key_outside_table",sourceIndex⊑lineRows,"policy key must occur inside a canonical array-of-tables block"⟩
+        }¨outside
+      }⍟(¬tableSegment) @
+    }⍟(0<≠segment) @
+    {diagnostics⇐diagnostics,block⇐block}
+  }
+
+  parsedSegments ← ParseSegment¨segments
+  diagnostics ← ∾⟨empty⟩∾{𝕩.diagnostics}¨parsedSegments
+  blockItems ← {𝕩.block}¨parsedSegments
+  blocks ← ({𝕩≢@}¨blockItems)/blockItems
 
   pools ← empty ⋄ envelopes ← empty
   {𝕊 block:
@@ -241,33 +262,58 @@ Admit ← {𝕊 raw‿accounts:
   diagnostics∾↩AddIf ⟨(≠poolIds)≠≠⍷poolIds,Diagnostic ⟨"backing_pool_id_duplicate",0,"backing pool ids must be unique"⟩⟩
   diagnostics∾↩AddIf ⟨(≠envelopeIds)≠≠⍷envelopeIds,Diagnostic ⟨"envelope_id_duplicate",0,"envelope ids must be unique"⟩⟩
   diagnostics∾↩AddIf ⟨(≠labels)≠≠⍷labels,Diagnostic ⟨"envelope_label_duplicate",0,"envelope labels must be unique"⟩⟩
-  {𝕊 envelope:
-    diagnostics∾↩AddIf ⟨¬Contains ⟨envelope.backing_pool,poolIds⟩,Diagnostic ⟨"envelope_backing_pool_unknown",envelope.line,"envelope must reference a declared backing pool"⟩⟩
-  }¨envelopes
 
-  expenseKeys ← ∾{𝕩.expense_account_keys}¨envelopes
-  assetKeys ← ∾{𝕩.asset_account_keys}¨pools
+  # Resolve each Envelope backing-pool reference once onto the declared pool axis.
+  envelopePoolKeys ← {𝕩.backing_pool}¨envelopes
+  poolCoordinates ← poolIds⊐envelopePoolKeys
+  poolKnown ← poolCoordinates<≠poolIds
+  diagnostics∾↩{𝕊 envelope:
+    Diagnostic ⟨"envelope_backing_pool_unknown",envelope.line,"envelope must reference a declared backing pool"⟩
+  }¨(¬poolKnown)/envelopes
+
+  # Flatten the ragged policy Account lists while retaining the owning block line
+  # for every key. Classify each key once against the canonical Account axis;
+  # diagnostic cells then restore the existing key-major publication order.
+  expenseLists ← {𝕩.expense_account_keys}¨envelopes
+  assetLists ← {𝕩.asset_account_keys}¨pools
+  expenseCounts ← ≠¨expenseLists
+  assetCounts ← ≠¨assetLists
+  expenseKeys ← ∾expenseLists
+  assetKeys ← ∾assetLists
+  expenseLines ← expenseCounts/({𝕩.line}¨envelopes)
+  assetLines ← assetCounts/({𝕩.line}¨pools)
   diagnostics∾↩AddIf ⟨(≠expenseKeys)≠≠⍷expenseKeys,Diagnostic ⟨"expense_account_assignment_duplicate",0,"one Expense Account may belong to only one envelope"⟩⟩
   diagnostics∾↩AddIf ⟨(≠assetKeys)≠≠⍷assetKeys,Diagnostic ⟨"asset_account_membership_duplicate",0,"one Asset Account may belong to only one backing pool"⟩⟩
 
-  {𝕊 envelope:
-    {𝕊 key:
-      i ← IndexOf ⟨key,accounts.key⟩ ⋄ known ← i<accounts.count
-      role ← i⊑accounts.role∾⟨""⟩
-      validRole ← role≡"expense"
-      diagnostics∾↩AddIf ⟨¬known,Diagnostic ⟨"budget_policy_expense_account_unknown",envelope.line,"Envelope Expense Account must be declared"⟩⟩
-      diagnostics∾↩AddIf ⟨known ∧ ¬validRole,Diagnostic ⟨"budget_policy_expense_account_role_invalid",envelope.line,"Envelope Expense Account must have Expense type"⟩⟩
-    }¨envelope.expense_account_keys
-  }¨envelopes
-  {𝕊 pool:
-    {𝕊 key:
-      i ← IndexOf ⟨key,accounts.key⟩ ⋄ known ← i<accounts.count
-      role ← i⊑accounts.role∾⟨""⟩
-      validRole ← role≡"asset"
-      diagnostics∾↩AddIf ⟨¬known,Diagnostic ⟨"budget_policy_asset_account_unknown",pool.line,"Backing pool Asset Account must be declared"⟩⟩
-      diagnostics∾↩AddIf ⟨known ∧ ¬validRole,Diagnostic ⟨"budget_policy_asset_account_role_invalid",pool.line,"Backing pool Account must have Asset type"⟩⟩
-    }¨pool.asset_account_keys
-  }¨pools
+  expenseAccountIndices ← accounts.key⊐expenseKeys
+  expenseKnown ← expenseAccountIndices<accounts.count
+  expenseRoles ← expenseAccountIndices⊏(accounts.role∾⟨""⟩)
+  expenseRoleValid ← {𝕩≡"expense"}¨expenseRoles
+  expenseWrongRole ← expenseKnown ∧ ¬expenseRoleValid
+  expenseDiagnostics ← ∾⟨empty⟩∾{𝕊 i:
+    line ← i⊑expenseLines
+    known ← i⊑expenseKnown
+    wrongRole ← i⊑expenseWrongRole
+    unknownDiagnostic ← AddIf ⟨¬known,Diagnostic ⟨"budget_policy_expense_account_unknown",line,"Envelope Expense Account must be declared"⟩⟩
+    roleDiagnostic ← AddIf ⟨wrongRole,Diagnostic ⟨"budget_policy_expense_account_role_invalid",line,"Envelope Expense Account must have Expense type"⟩⟩
+    unknownDiagnostic∾roleDiagnostic
+  }¨↕≠expenseKeys
+  diagnostics∾↩expenseDiagnostics
+
+  assetAccountIndices ← accounts.key⊐assetKeys
+  assetKnown ← assetAccountIndices<accounts.count
+  assetRoles ← assetAccountIndices⊏(accounts.role∾⟨""⟩)
+  assetRoleValid ← {𝕩≡"asset"}¨assetRoles
+  assetWrongRole ← assetKnown ∧ ¬assetRoleValid
+  assetDiagnostics ← ∾⟨empty⟩∾{𝕊 i:
+    line ← i⊑assetLines
+    known ← i⊑assetKnown
+    wrongRole ← i⊑assetWrongRole
+    unknownDiagnostic ← AddIf ⟨¬known,Diagnostic ⟨"budget_policy_asset_account_unknown",line,"Backing pool Asset Account must be declared"⟩⟩
+    roleDiagnostic ← AddIf ⟨wrongRole,Diagnostic ⟨"budget_policy_asset_account_role_invalid",line,"Backing pool Account must have Asset type"⟩⟩
+    unknownDiagnostic∾roleDiagnostic
+  }¨↕≠assetKeys
+  diagnostics∾↩assetDiagnostics
 
   ok ← 0=≠diagnostics
   admittedPools ← ok/pools ⋄ admittedEnvelopes ← ok/envelopes
