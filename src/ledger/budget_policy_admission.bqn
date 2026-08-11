@@ -288,7 +288,8 @@ Admit ← {𝕊 raw‿accounts:
   expenseAccountIndices ← accounts.key⊐expenseKeys
   expenseKnown ← expenseAccountIndices<accounts.count
   expenseRoles ← expenseAccountIndices⊑(accounts.role∾⟨""⟩)
-  expenseWrongRole ← expenseKnown ∧ ¬"expense"⊸≡¨expenseRoles
+  expenseRoleValid ← {𝕩≡"expense"}¨expenseRoles
+  expenseWrongRole ← expenseKnown ∧ ¬expenseRoleValid
   expenseDiagnostics ← ∾⟨empty⟩∾{𝕊 i:
     line ← i⊑expenseLines
     known ← i⊑expenseKnown
@@ -302,7 +303,8 @@ Admit ← {𝕊 raw‿accounts:
   assetAccountIndices ← accounts.key⊐assetKeys
   assetKnown ← assetAccountIndices<accounts.count
   assetRoles ← assetAccountIndices⊑(accounts.role∾⟨""⟩)
-  assetWrongRole ← assetKnown ∧ ¬"asset"⊸≡¨assetRoles
+  assetRoleValid ← {𝕩≡"asset"}¨assetRoles
+  assetWrongRole ← assetKnown ∧ ¬assetRoleValid
   assetDiagnostics ← ∾⟨empty⟩∾{𝕊 i:
     line ← i⊑assetLines
     known ← i⊑assetKnown
