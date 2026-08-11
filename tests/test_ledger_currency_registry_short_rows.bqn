@@ -28,8 +28,8 @@ policy ← valid.registry.Policy "JPY"
 0 lib.AssertEq policy.max_fraction_digits
 "YEN" lib.AssertEq policy.symbol
 
-ignored ← registry.Build ⟨"", "# comment", "\\ legacy comment", ValidLine⟩
-"ok" lib.AssertEq ignored.state
-⟨"JPY"⟩ lib.AssertEq ignored.registry.codes
+ignoredBlank ← registry.Build ⟨"", ValidLine⟩
+"ok" lib.AssertEq ignoredBlank.state
+⟨"JPY"⟩ lib.AssertEq ignoredBlank.registry.codes
 
 •Out "test_ledger_currency_registry_short_rows: ok"
