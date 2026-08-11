@@ -12,7 +12,10 @@ SplitKeepEmpty ← {𝕊 separator‿text:
   {(separator≠𝕩)/𝕩}¨groups
 }
 Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
-Ignored ← {𝕊 line: (0=≠line) ∨ ((0<≠line) ∧ (⊑line)∊"#\\")}
+Ignored ← {𝕊 line:
+  first ← ⊑(line∾" ")
+  (0=≠line) ∨ (first='#') ∨ first=⊑"\\"
+}
 Diagnostic ← {𝕊 code‿row‿message:
   {severity⇐"error",stage⇐"ledger_issue_admission",code⇐code,source_row⇐row,message⇐message}
 }
@@ -26,22 +29,25 @@ EmptyIssues ← {𝕊:
 }
 
 Admit ← {𝕊 lines‿registry:
-  diagnostics ← empty ⋄ rows ← empty
-  dataLines ← empty ⋄ dataSourceRows ← empty
-  {𝕊 i:
-    {𝕊:dataLines∾↩⟨i⊑lines⟩ ⋄ dataSourceRows∾↩i+1}⍟(¬Ignored i⊑lines) @
-  }¨↕≠lines
+  sourceRows ← 1+↕≠lines
+  ignored ← Ignored¨lines
+  dataMask ← ¬ignored
+  dataLines ← dataMask/lines
+  dataSourceRows ← dataMask/sourceRows
+
   sourceAbsent ← 0=≠lines
-  headerOk ← sourceAbsent
-  {𝕊:headerOk↩(SplitKeepEmpty ⟨tab,⊑dataLines⟩)≡header}⍟(0<≠dataLines) @
-  headerRow ← 1
-  {𝕊:headerRow↩⊑dataSourceRows}⍟(0<≠dataSourceRows) @
-  diagnostics∾↩AddIf ⟨¬headerOk,Diagnostic ⟨"issue_header_invalid",headerRow,"issues.tsv header must match the strict eight-column schema"⟩⟩
-  {𝕊 i:
-    line ← i⊑1↓dataLines ⋄ sourceRow ← i⊑1↓dataSourceRows
+  headerLine ← ⊑(dataLines∾⟨""⟩)
+  headerRow ← ⊑(dataSourceRows∾⟨1⟩)
+  headerOk ← sourceAbsent ∨ (SplitKeepEmpty ⟨tab,headerLine⟩)≡header
+  headerDiagnostics ← AddIf ⟨¬headerOk,Diagnostic ⟨"issue_header_invalid",headerRow,"issues.tsv header must match the strict eight-column schema"⟩⟩
+
+  rowLines ← 1↓dataLines
+  rowSourceRows ← 1↓dataSourceRows
+  ParseRow ← {𝕊 i:
+    line ← i⊑rowLines ⋄ sourceRow ← i⊑rowSourceRows
     fields ← SplitKeepEmpty ⟨tab,line⟩
-    rowDiagnostics ← empty
-    rowDiagnostics∾↩AddIf ⟨8≠≠fields,Diagnostic ⟨"issue_field_count_invalid",sourceRow,"issue row requires exactly eight fields"⟩⟩
+    rowDiagnostics ← AddIf ⟨8≠≠fields,Diagnostic ⟨"issue_field_count_invalid",sourceRow,"issue row requires exactly eight fields"⟩⟩
+    item ← @
     {𝕊:
       issueId‿status‿date‿category‿title‿amountText‿currency‿details ← fields
       rowDiagnostics∾↩AddIf ⟨0=≠issueId,Diagnostic ⟨"issue_identity_missing",sourceRow,"issue_id must be nonempty"⟩⟩
@@ -63,21 +69,28 @@ Admit ← {𝕊 lines‿registry:
           rowDiagnostics∾↩AddIf ⟨precisionInvalid,Diagnostic ⟨"issue_amount_precision_exceeded",sourceRow,"amount precision exceeds currency policy"⟩⟩
         }⍟((parsed.state≡"ok") ∧ policy.state≡"ok") @
       }⍟amountPresent @
-      diagnostics∾↩rowDiagnostics
       {𝕊:
         dateOrdinal ← empty
         {𝕊:dateOrdinal↩dates.Ordinal date}⍟(0<≠date) @
-        rows∾↩⟨{
+        item↩{
           issue_id⇐issueId,status⇐status,date⇐date,date_ordinal⇐dateOrdinal,
           category⇐category,title⇐title,amount_present⇐amountPresent,
           coefficient⇐parsed.coefficient,scale⇐parsed.scale,currency⇐currency,details⇐details,
           source_row⇐sourceRow,source_ref⇐"issues.tsv:row:"∾•Fmt sourceRow
-        }⟩
+        }
       }⍟(0=≠rowDiagnostics) @
     }⍟(8=≠fields) @
-  }¨↕0⌈(≠dataLines)-1
+    {diagnostics⇐rowDiagnostics,item⇐item}
+  }
+
+  parsedRows ← ParseRow¨↕≠rowLines
+  rowDiagnostics ← ∾{𝕩.diagnostics}¨parsedRows
+  items ← {𝕩.item}¨parsedRows
+  rows ← ({𝕩≢@}¨items)/items
   ids ← {𝕩.issue_id}¨rows
-  diagnostics∾↩AddIf ⟨(≠ids)≠≠⍷ids,Diagnostic ⟨"issue_identity_duplicate",0,"issue_id values must be unique"⟩⟩
+  duplicateDiagnostics ← AddIf ⟨(≠ids)≠≠⍷ids,Diagnostic ⟨"issue_identity_duplicate",0,"issue_id values must be unique"⟩⟩
+  diagnostics ← headerDiagnostics∾rowDiagnostics∾duplicateDiagnostics
+
   table ← EmptyIssues @
   {𝕊:
     table↩{
