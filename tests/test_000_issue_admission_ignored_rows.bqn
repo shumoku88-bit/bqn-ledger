@@ -8,6 +8,7 @@ registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").regi
 fixture ← loader.ReadLines "fixtures/ledger-facts-phase1-proof/issues.destination.tsv"
 lines ← ⟨0⊑fixture,"","# comment"⟩∾1↓fixture
 result ← issues.Admit ⟨lines,registry⟩
-"ok" lib.AssertEq result.state
+"error" lib.AssertEq result.state
+"issue_header_invalid" lib.AssertEq (⊑result.diagnostics).code
 
-•Out "temporary Issue state gate: ok"
+•Out "temporary Issue diagnostic probe: ok"
