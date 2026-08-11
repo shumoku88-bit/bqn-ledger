@@ -97,6 +97,7 @@ Checkbox meaning:
 
 - `[ ]` not yet finally reviewed under the dense-array-kernel policy;
 - `[x]` reviewed on current `main`, with the final decision recorded beside the path.
+
 ## Phase order
 
 The phases are an inventory and review-navigation order, not mandatory PR boundaries. A coherent architectural change may cross them when its reason-to-change genuinely does.
@@ -245,6 +246,7 @@ A phase is considered reviewed only when every listed box is checked and the inv
 - [ ] `src/editor/travel_exchange_event.bqn`
 
 ### `src_edit/`
+
 - [ ] `src_edit/account_add_cmd.bqn`
 - [ ] `src_edit/account_list_cmd.bqn`
 - [ ] `src_edit/account_validate_cmd.bqn`
