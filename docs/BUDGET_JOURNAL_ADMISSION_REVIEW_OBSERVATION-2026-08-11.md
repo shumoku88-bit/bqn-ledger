@@ -87,7 +87,7 @@ This was correct for reachable behavior, but it mixed relation classification, i
 
 ## BQN-native relation shape
 
-The candidate production form first exposes aligned transaction relations:
+The production form first exposes aligned transaction relations:
 
 ```text
 sourceTransactions
@@ -101,6 +101,14 @@ sourceTransactions
 The exact-opposite recheck is removed because exact single-domain balance remains owned upstream.
 
 The empty transaction axis remains valid: diagnostic flattening is seeded with one empty cell, so an admitted transaction-free Budget Journal does not introduce a special mutation path.
+
+## Failed probe retained as evidence
+
+The first production spelling attempted to concatenate two inline `AddIf` expressions directly across a line break. CI #2606 failed during BQN import with `Second-level parts of a train must be functions` at that expression. This was a syntax/parse-shape failure, not a semantic or law failure.
+
+The retained form names the two diagnostic cells explicitly and concatenates those names. This keeps the aligned relation design unchanged while making the BQN parse shape unambiguous. CI #2608 then passed the full repository check and coverage.
+
+No temporary debug instrumentation or alternate semantic path remains in the branch.
 
 ## Protected contracts
 
@@ -122,7 +130,8 @@ Keep unchanged:
 
 - merged-main amount-text CI #2604: SUCCESS before this branch was cut;
 - Budget relation characterization-only CI #2605: SUCCESS;
-- production relation-classification CI #2606: pending at the time this observation was first written.
+- CI #2606: FAILED on the discarded inline-concatenation spelling with a BQN train parse error;
+- CI #2608: SUCCESS after making diagnostic-cell construction explicit, with full repository check and coverage.
 
 ## Review decision
 
