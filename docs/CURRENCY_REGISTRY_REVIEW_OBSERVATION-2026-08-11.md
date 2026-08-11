@@ -109,7 +109,7 @@ Qualified production milestones:
 
 - CI #2645: SUCCESS with total ignored-line classification and the original admission/Policy structure;
 - CI #2646: SUCCESS after replacing sort-based uniqueness detection with `⍷`;
-- final no-temporary-gate qualification: pending at the time this observation was written.
+- CI #2647: SUCCESS after removing the temporary early review gate; this is the final source-and-focused-test qualification before documentation-only updates.
 
 ## Review conclusion
 
