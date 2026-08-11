@@ -7,28 +7,31 @@ empty ← ⟨⟩
 Build ← {𝕊 factSet:
   rows ← empty
   {𝕊:
-    {𝕊 ti:
-      postingIndices ← (ti=factSet.postings.transaction_index)/factSet.postings.index
-      postings ← {𝕊 pi:
-        ai ← pi⊑factSet.postings.account_index
-        {
-          posting_index⇐pi,
-          posting_id⇐pi⊑factSet.postings.posting_id,
-          transaction_posting_index⇐pi⊑factSet.postings.transaction_posting_index,
-          account_index⇐ai,
-          account_key⇐ai⊑factSet.accounts.key,
-          side⇐pi⊑factSet.postings.side,
-          coefficient⇐pi⊑factSet.postings.coefficient,
-          scale⇐pi⊑factSet.postings.scale,
-          source_coefficient⇐pi⊑factSet.postings.source_coefficient,
-          source_scale⇐pi⊑factSet.postings.source_scale,
-          amount_text⇐pi⊑factSet.postings.amount_text,
-          source_line⇐pi⊑factSet.postings.source_line
-        }
-      }¨postingIndices
+    postingGroups ← factSet.postings.transaction_index⊔factSet.postings.index
+
+    MakePosting ← {𝕊 pi:
+      ai ← pi⊑factSet.postings.account_index
+      {
+        posting_index⇐pi,
+        posting_id⇐pi⊑factSet.postings.posting_id,
+        transaction_posting_index⇐pi⊑factSet.postings.transaction_posting_index,
+        account_index⇐ai,
+        account_key⇐ai⊑factSet.accounts.key,
+        side⇐pi⊑factSet.postings.side,
+        coefficient⇐pi⊑factSet.postings.coefficient,
+        scale⇐pi⊑factSet.postings.scale,
+        source_coefficient⇐pi⊑factSet.postings.source_coefficient,
+        source_scale⇐pi⊑factSet.postings.source_scale,
+        amount_text⇐pi⊑factSet.postings.amount_text,
+        source_line⇐pi⊑factSet.postings.source_line
+      }
+    }
+
+    MakeRow ← {𝕊 ti:
+      postings ← MakePosting¨ti⊑postingGroups
       li ← ti⊑factSet.transactions.layer_index
       di ← ti⊑factSet.transactions.domain_index
-      rows∾↩⟨{
+      {
         transaction_index⇐ti,
         transaction_id⇐ti⊑factSet.transactions.transaction_id,
         identity_kind⇐ti⊑factSet.transactions.identity_kind,
@@ -44,8 +47,10 @@ Build ← {𝕊 factSet:
         source_start_line⇐ti⊑factSet.transactions.source_start_line,
         source_end_line⇐ti⊑factSet.transactions.source_end_line,
         postings⇐postings
-      }⟩
-    }¨factSet.transactions.index
+      }
+    }
+
+    rows↩MakeRow¨factSet.transactions.index
   }⍟(factSet.state≡"ok") @
   {state⇐factSet.state,rows⇐rows,diagnostics⇐factSet.diagnostics}
 }
