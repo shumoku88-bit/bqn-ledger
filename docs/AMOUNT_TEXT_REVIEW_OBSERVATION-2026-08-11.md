@@ -112,8 +112,15 @@ Keep unchanged:
 - production plus dedicated laws and observation CI #2602: SUCCESS;
 - while #2602 was running, docs-only PR #646 advanced main from `945fbb11f9f0a3b7a89006110e88468a063a2a64` to `b971308f84158f5891c7b774e8db3184c192b50a`;
 - that intervening main commit changes only the Account Journal review closeout documentation/TODO cursor and has no runtime, test, or `amount_text` overlap;
-- this final documentation commit intentionally retriggers the PR workflow against current main so the final merge ref is requalified after that docs-only drift.
+- final PR-head CI #2603: SUCCESS after that docs-only drift;
+- PR #647 squash merged as main `e78430d9709f716f2c59d98c55311be8b2c577b5`;
+- merged `src/ledger/amount_text.bqn` was reread on that main and contains the intended structural split expression with no temporary debug path;
+- merged-main CI #2604: SUCCESS.
 
 ## Review decision
 
 Retain `amount_text.bqn` as the shared exact plain-text formatter. Replace only the branch-local body mutation with one structural character-array expression and retain the new dedicated boundary laws.
+
+## Closeout
+
+The owner is finally reviewed on main `e78430d9709f716f2c59d98c55311be8b2c577b5`. The Phase 2 queue may mark `src/ledger/amount_text.bqn` complete and advance through the subsequently reviewed Budget Journal owner.
