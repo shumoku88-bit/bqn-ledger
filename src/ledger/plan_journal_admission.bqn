@@ -70,12 +70,14 @@ Admit ← {𝕊 raw‿accounts‿registry:
     sourceTransactions ← accounting.transactions
     domains↩accounting.declared_domains
     planIds ← {𝕩.plan_id}¨sourceTransactions
-    {𝕊 i:
+    transactionDiagnostics ← {𝕊 i:
       transaction ← i⊑sourceTransactions
       planId ← i⊑planIds
-      diagnostics∾↩AddIf ⟨0=≠planId,Diagnostic ⟨"plan_id_missing",transaction.source_start_line,"Plan transaction requires plan-id metadata"⟩⟩
-      diagnostics∾↩AddIf ⟨(0<≠planId) ∧ ¬PlanIdValid planId,Diagnostic ⟨"plan_id_invalid",transaction.source_start_line,"plan-id must be nonempty and contain no whitespace"⟩⟩
+      missingDiagnostic ← AddIf ⟨0=≠planId,Diagnostic ⟨"plan_id_missing",transaction.source_start_line,"Plan transaction requires plan-id metadata"⟩⟩
+      invalidDiagnostic ← AddIf ⟨(0<≠planId) ∧ ¬PlanIdValid planId,Diagnostic ⟨"plan_id_invalid",transaction.source_start_line,"plan-id must be nonempty and contain no whitespace"⟩⟩
+      missingDiagnostic∾invalidDiagnostic
     }¨↕≠sourceTransactions
+    diagnostics∾↩∾transactionDiagnostics
     diagnostics∾↩AddIf ⟨(≠planIds)≠≠⍷planIds,Diagnostic ⟨"plan_id_duplicate",0,"one plan-id may identify only one Plan transaction"⟩⟩
     {𝕊: transactions↩MapTransaction¨sourceTransactions}⍟(0=≠diagnostics) @
   }⍟(accounting.state≡"ok") @
