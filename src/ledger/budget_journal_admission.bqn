@@ -1,10 +1,10 @@
 # Pure Budget-specific admission over validated canonical Journal accounting.
 #
 # Journal admission owns syntax, dates, descriptions, exact amounts, commodities,
-# Account resolution, balancing, elision, Posting order, and source coordinates.
+# Account resolution, exact balance, elision, Posting order, and source coordinates.
 # This owner adds only Household Budget movement meaning: every transaction is
-# exactly two Budget postings, source order is from then to, and their exact
-# resolved amounts are opposites. No legacy allocation row or writer policy is involved.
+# exactly two Budget postings and source order is from then to. No legacy
+# allocation row or writer policy is involved.
 
 journal ← •Import "journal_complete_admission.bqn"
 empty ← ⟨⟩
@@ -69,21 +69,23 @@ Admit ← {𝕊 raw‿accounts‿registry:
   {𝕊:
     domains↩accounting.declared_domains
     sourceTransactions ← accounting.transactions
-    {𝕊 transaction:
-      postings ← transaction.postings
-      binary ← 2=≠postings
-      diagnostics∾↩AddIf ⟨¬binary,Diagnostic ⟨"budget_movement_requires_binary_transaction",transaction.source_start_line,"Budget movement transaction requires exactly two postings"⟩⟩
-      {𝕊:
-        roles ← {𝕊 posting:
-          i ← IndexOf ⟨posting.account_key,accounts.key⟩
-          i⊑accounts.role∾⟨""⟩
-        }¨postings
-        diagnostics∾↩AddIf ⟨¬∧´"budget"⊸≡¨roles,Diagnostic ⟨"budget_movement_posting_not_budget",transaction.source_start_line,"Budget movement postings must resolve to Budget Accounts"⟩⟩
-        from‿to ← postings
-        exactOpposites ← (from.commodity≡to.commodity) ∧ 0=from.normalized_coefficient+to.normalized_coefficient
-        diagnostics∾↩AddIf ⟨¬exactOpposites,Diagnostic ⟨"budget_movement_postings_not_exact_opposites",transaction.source_start_line,"Budget movement postings must be exact opposites"⟩⟩
-      }⍟binary @
-    }¨sourceTransactions
+    postingRows ← {𝕩.postings}¨sourceTransactions
+    binary ← 2=≠¨postingRows
+    budgetOnly ← {𝕊 postings:
+      roles ← {𝕊 posting:
+        i ← IndexOf ⟨posting.account_key,accounts.key⟩
+        i⊑accounts.role∾⟨""⟩
+      }¨postings
+      ∧´1∾"budget"⊸≡¨roles
+    }¨postingRows
+    relationDiagnostics ← ∾⟨empty⟩∾{𝕊 i:
+      sourceLine ← (i⊑sourceTransactions).source_start_line
+      binaryInvalid ← ¬i⊑binary
+      roleInvalid ← (i⊑binary) ∧ ¬i⊑budgetOnly
+      (AddIf ⟨binaryInvalid,Diagnostic ⟨"budget_movement_requires_binary_transaction",sourceLine,"Budget movement transaction requires exactly two postings"⟩⟩) ∾
+        AddIf ⟨roleInvalid,Diagnostic ⟨"budget_movement_posting_not_budget",sourceLine,"Budget movement postings must resolve to Budget Accounts"⟩⟩
+    }¨↕≠sourceTransactions
+    diagnostics∾↩relationDiagnostics
     {𝕊:transactions↩MapTransaction¨sourceTransactions}⍟(0=≠diagnostics) @
   }⍟(accounting.state≡"ok") @
   {𝕊:transactions↩empty ⋄ domains↩empty}⍟(0<≠diagnostics) @
