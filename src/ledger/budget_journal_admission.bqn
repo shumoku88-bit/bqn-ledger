@@ -82,8 +82,9 @@ Admit ← {𝕊 raw‿accounts‿registry:
       sourceLine ← (i⊑sourceTransactions).source_start_line
       binaryInvalid ← ¬i⊑binary
       roleInvalid ← (i⊑binary) ∧ ¬i⊑budgetOnly
-      (AddIf ⟨binaryInvalid,Diagnostic ⟨"budget_movement_requires_binary_transaction",sourceLine,"Budget movement transaction requires exactly two postings"⟩⟩) ∾
-        AddIf ⟨roleInvalid,Diagnostic ⟨"budget_movement_posting_not_budget",sourceLine,"Budget movement postings must resolve to Budget Accounts"⟩⟩
+      binaryDiagnostic ← AddIf ⟨binaryInvalid,Diagnostic ⟨"budget_movement_requires_binary_transaction",sourceLine,"Budget movement transaction requires exactly two postings"⟩⟩
+      roleDiagnostic ← AddIf ⟨roleInvalid,Diagnostic ⟨"budget_movement_posting_not_budget",sourceLine,"Budget movement postings must resolve to Budget Accounts"⟩⟩
+      binaryDiagnostic∾roleDiagnostic
     }¨↕≠sourceTransactions
     diagnostics∾↩relationDiagnostics
     {𝕊:transactions↩MapTransaction¨sourceTransactions}⍟(0=≠diagnostics) @
