@@ -15,7 +15,7 @@ accounts ← {
 
 # Date headers define the transaction axis. Metadata/blank rows do not consume
 # Posting coordinates, and Posting order restarts at zero for each transaction.
-raw ← Raw ⟨
+source ← Raw ⟨
   "commodity JPY",
   "",
   "account Assets:Cash",
@@ -31,7 +31,7 @@ raw ← Raw ⟨
   "  Expenses:Food  50 JPY",
   "  Assets:Cash  -50 JPY"
 ⟩
-result ← single.Admit ⟨raw,accounts,registry⟩
+result ← single.Admit ⟨source,accounts,registry⟩
 "ok" lib.AssertEq result.state
 0 lib.AssertEq ≠result.diagnostics
 ⟨7,11⟩ lib.AssertEq result.transaction_starts
