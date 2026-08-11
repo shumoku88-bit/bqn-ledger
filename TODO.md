@@ -144,7 +144,7 @@ A phase is considered reviewed only when every listed box is checked and the inv
 - [x] `src/ledger/account_journal_admission.bqn` — PR #645 replaced the file-wide active/Finalize state machine with whole-source line classification, Scan/Group segmentation, and local Account-block admission; made directive classification total for whole-array evaluation; protected canonical writer round-trip; reread on main `945fbb11f9f0a3b7a89006110e88468a063a2a64`; merged-main CI #2597 SUCCESS; decisions in `docs/ACCOUNT_JOURNAL_ADMISSION_REVIEW_OBSERVATION-2026-08-11.md`.
 - [x] `src/ledger/amount_text.bqn` — PR #647 replaced branch-local body mutation with one structural exact-decimal character-array expression; dedicated boundary laws retained; reread on main `e78430d9709f716f2c59d98c55311be8b2c577b5`; merged-main CI #2604 SUCCESS; decisions in `docs/AMOUNT_TEXT_REVIEW_OBSERVATION-2026-08-11.md`.
 - [x] `src/ledger/budget_journal_admission.bqn` — PR #648 returned exact-opposite ownership to complete Journal admission and classified aligned `postingRows / binary / budgetOnly` transaction relations before source-ordered diagnostic publication; reread on main `9ab7c8ae9becdff4d87cff6fe290298ea014152f`; merged-main CI #2610 SUCCESS; decisions in `docs/BUDGET_JOURNAL_ADMISSION_REVIEW_OBSERVATION-2026-08-11.md`.
-- [ ] `src/ledger/budget_policy_admission.bqn`
+- [x] `src/ledger/budget_policy_admission.bqn` — PR #650 retained genuine lexical/multiline state while replacing logical-table `active / Finalize` staging with header classification plus Scan/Group segmentation and classifying backing-pool/Account relations once via aligned coordinates; reread on main `e196924ec3d500c72899891bbf2e5946803b5a8d`; merged-main CI #2620 SUCCESS; closeout in `docs/BUDGET_POLICY_ADMISSION_REVIEW_CLOSEOUT-2026-08-11.md`.
 - [ ] `src/ledger/canonical_journal_root_admission.bqn`
 - [ ] `src/ledger/companion_admission.bqn`
 - [ ] `src/ledger/config_admission.bqn`
@@ -305,6 +305,6 @@ After the production BQN inventory is reviewed, the selector/UI adapter consolid
 
 ## Current cursor
 
-`src/ledger/budget_policy_admission.bqn`
+`src/ledger/canonical_journal_root_admission.bqn`
 
-Resume the normal Phase 2 ledger review sequence at canonical Budget policy admission.
+Resume the normal Phase 2 ledger review sequence at canonical Journal root admission.
