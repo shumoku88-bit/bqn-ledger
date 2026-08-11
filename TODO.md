@@ -141,7 +141,7 @@ A phase is considered reviewed only when every listed box is checked and the inv
 ## Phase 2: `src/ledger/`
 
 - [x] `src/ledger/account_admission.bqn` — reviewed on main `45686e5728292541df1c42628823a871c20a8264` as a live legacy `accounts.tsv` seam rather than canonical Account authority; no local array refactor selected because its remaining production reachability belongs to legacy-source retirement; decision recorded in `docs/ACCOUNT_ADMISSION_REVIEW_OBSERVATION-2026-08-11.md`.
-- [ ] `src/ledger/account_journal_admission.bqn`
+- [x] `src/ledger/account_journal_admission.bqn` — PR #645 replaced the file-wide active/Finalize state machine with whole-source line classification, Scan/Group segmentation, and local Account-block admission; made directive classification total for whole-array evaluation; protected canonical writer round-trip; reread on main `945fbb11f9f0a3b7a89006110e88468a063a2a64`; merged-main CI #2597 SUCCESS; decisions in `docs/ACCOUNT_JOURNAL_ADMISSION_REVIEW_OBSERVATION-2026-08-11.md`.
 - [ ] `src/ledger/amount_text.bqn`
 - [ ] `src/ledger/budget_journal_admission.bqn`
 - [ ] `src/ledger/budget_policy_admission.bqn`
@@ -305,6 +305,6 @@ After the production BQN inventory is reviewed, the selector/UI adapter consolid
 
 ## Current cursor
 
-`src/ledger/account_journal_admission.bqn`
+`src/ledger/amount_text.bqn`
 
-Resume the normal Phase 2 ledger review sequence at the canonical Account grammar owner.
+Resume the normal Phase 2 ledger review sequence at the exact amount text formatter.
