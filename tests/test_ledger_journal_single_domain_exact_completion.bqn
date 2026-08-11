@@ -23,20 +23,21 @@ prefixLines ← ⟨
 ⟩
 Admit ← {𝕊 body: single.Admit ⟨Raw prefixLines∾body,accounts,registry⟩}
 
-# Source scales remain evidence while exact normalization uses one calculation
-# scale for the admitted transaction.
+# Canonical source scales remain evidence while exact normalization uses one
+# calculation scale for the admitted transaction.
 scaled ← Admit ⟨
   "2026-01-01 * mixed exact scales",
-  "  Assets:Cash  -1.2 JPY",
-  "  Expenses:Food  1.20 JPY"
+  "  Assets:Cash  -1.23 JPY",
+  "  Expenses:Food  1.2 JPY",
+  "  Expenses:Food  0.03 JPY"
 ⟩
 "ok" lib.AssertEq scaled.state
 1 lib.AssertEq ≠scaled.transactions
 scaledTxn ← ⊑scaled.transactions
 2 lib.AssertEq scaledTxn.calculation_scale
-⟨¯12,120⟩ lib.AssertEq {𝕩.source_coefficient}¨scaledTxn.postings
-⟨1,2⟩ lib.AssertEq {𝕩.source_scale}¨scaledTxn.postings
-⟨¯120,120⟩ lib.AssertEq {𝕩.normalized_coefficient}¨scaledTxn.postings
+⟨¯123,12,3⟩ lib.AssertEq {𝕩.source_coefficient}¨scaledTxn.postings
+⟨2,1,2⟩ lib.AssertEq {𝕩.source_scale}¨scaledTxn.postings
+⟨¯123,120,3⟩ lib.AssertEq {𝕩.normalized_coefficient}¨scaledTxn.postings
 
 # One elided Posting is inferred as the exact opposite of explicit evidence and
 # retains empty source amount text.
