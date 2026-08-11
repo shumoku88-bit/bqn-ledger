@@ -17,10 +17,10 @@ IsValid ← {𝕊 text:
   valid ← 0
   {𝕊:
     y‿m‿d ← Parts text
-    monthOk ← (1 ≤ m) ∧ m ≤ 12
-    maxDay ← 0
-    {𝕊: maxDay ↩ (m-1)⊑⟨31,28+IsLeap y,31,30,31,30,31,31,30,31,30,31⟩}⍟monthOk @
-    valid ↩ monthOk ∧ (1 ≤ d) ∧ d ≤ maxDay
+    monthDays ← ⟨31,28+IsLeap y,31,30,31,30,31,31,30,31,30,31⟩
+    monthIndex ← ⊑((1+↕12)⊐⟨m⟩)
+    maxDay ← monthIndex⊑(monthDays∾0)
+    valid ↩ (monthIndex<≠monthDays) ∧ (1 ≤ d) ∧ d ≤ maxDay
   }⍟digitsOk @
   valid
 }
