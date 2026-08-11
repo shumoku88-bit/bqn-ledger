@@ -20,18 +20,17 @@ validTail ← ⟨
 # outside; an unsupported header resets ownership; keys under it remain outside;
 # the next known header starts a new admitted block. Row-local diagnostics stay
 # in physical source order.
-mixed ← admission.Admit Raw (
-  ⟨
-    Pair ⟨"orphan","value"⟩,
-    "[reports.trial-balance]",
-    Pair ⟨"as-of","latest"⟩,
-    "[unsupported.section]",
-    Pair ⟨"ghost","value"⟩,
-    "[reports.balance-sheet]",
-    "broken row",
-    Pair ⟨"as-of","latest"⟩,""
-  ⟩∾validTail
-)
+mixedLines ← ⟨
+  Pair ⟨"orphan","value"⟩,
+  "[reports.trial-balance]",
+  Pair ⟨"as-of","latest"⟩,
+  "[unsupported.section]",
+  Pair ⟨"ghost","value"⟩,
+  "[reports.balance-sheet]",
+  "broken row",
+  Pair ⟨"as-of","latest"⟩,""
+⟩∾validTail
+mixed ← admission.Admit Raw mixedLines
 "error" lib.AssertEq mixed.state
 ⟨
   "report_policy_key_outside_section",
@@ -42,17 +41,16 @@ mixed ← admission.Admit Raw (
 ⟨1,4,5,7⟩ lib.AssertEq {𝕩.line}¨mixed.diagnostics
 
 # Ignored rows do not participate in section ownership or key parsing.
-ignored ← admission.Admit Raw (
-  ⟨
-    "# before first section",
-    "",
-    "[reports.trial-balance]",
-    "  # inside trial balance",
-    Pair ⟨"as-of","latest"⟩,"",
-    "[reports.balance-sheet]",
-    Pair ⟨"as-of","latest"⟩,""
-  ⟩∾validTail
-)
+ignoredLines ← ⟨
+  "# before first section",
+  "",
+  "[reports.trial-balance]",
+  "  # inside trial balance",
+  Pair ⟨"as-of","latest"⟩,"",
+  "[reports.balance-sheet]",
+  Pair ⟨"as-of","latest"⟩,""
+⟩∾validTail
+ignored ← admission.Admit Raw ignoredLines
 "ok" lib.AssertEq ignored.state
 0 lib.AssertEq ≠ignored.diagnostics
 "latest" lib.AssertEq ignored.reports.trial_balance.as_of
