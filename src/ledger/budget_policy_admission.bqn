@@ -154,41 +154,63 @@ Admit ← {𝕊 raw‿accounts:
   }¨↕≠physicalLines
   {𝕊:lines∾↩⟨pendingText⟩ ⋄ lineRows∾↩⟨pendingRow⟩}⍟pending @
 
-  diagnostics ← empty ⋄ blocks ← empty
-  active ← 0 ⋄ activeKind ← "" ⋄ activeLine ← 0 ⋄ activePairs ← empty
-  Finalize ← {𝕊:
-    {𝕊:blocks∾↩⟨{kind⇐activeKind,line⇐activeLine,pairs⇐activePairs}⟩}⍟active @
-    active↩0 ⋄ activeKind↩"" ⋄ activeLine↩0 ⋄ activePairs↩empty
-  }
-  {𝕊 i:
-    line ← i⊑lines ⋄ row ← i⊑lineRows
-    ignored ← (0=≠line) ∨ hash=FirstOrSpace line
+  # Once quote-aware logical rows exist, table structure is an aligned source
+  # relation: classify canonical headers, Scan one table coordinate, then Group
+  # source indices into the outside-prefix and ordered table segments.
+  indices ← ↕≠lines
+  ignored ← (0=≠¨lines) ∨ hash=FirstOrSpace¨lines
+  poolHeader ← {𝕩≡"[[backing-pools]]"}¨lines
+  envelopeHeader ← {𝕩≡"[[envelopes]]"}¨lines
+  header ← poolHeader ∨ envelopeHeader
+  segmentIds ← +`header
+  segments ← segmentIds⊔indices
+
+  ParsePair ← {𝕊 sourceIndex:
+    line ← sourceIndex⊑lines
+    row ← sourceIndex⊑lineRows
+    diagnostics ← empty
+    pair ← @
+    equals ← '='=line
+    diagnostics∾↩AddIf ⟨1≠+´equals,Diagnostic ⟨"budget_policy_key_shape_invalid",row,"policy row requires exactly one equals separator"⟩⟩
     {𝕊:
-      poolHeader ← line≡"[[backing-pools]]"
-      envelopeHeader ← line≡"[[envelopes]]"
-      header ← poolHeader ∨ envelopeHeader
+      p ← ⊑equals/↕≠line
+      key ← Trim p↑line ⋄ value ← Trim (p+1)↓line
+      validPair ← (0<≠key) ∧ 0<≠value
+      diagnostics∾↩AddIf ⟨¬validPair,Diagnostic ⟨"budget_policy_key_shape_invalid",row,"policy key and value must be nonempty"⟩⟩
+      {𝕊:pair↩{key⇐key,text⇐value,line⇐row}}⍟validPair @
+    }⍟(1=+´equals) @
+    {diagnostics⇐diagnostics,pair⇐pair}
+  }
+
+  ParseSegment ← {𝕊 segment:
+    diagnostics ← empty
+    block ← @
+    {𝕊:
+      first ← ⊑segment
+      tableSegment ← first⊑header
       {𝕊:
-        Finalize @
-        active↩1 ⋄ activeLine↩row
-        activeKind↩poolHeader⊑⟨"envelope","backing-pool"⟩
-      }⍟header @
+        pairIndices ← ((¬segment⊏ignored) ∧ ¬segment⊏header)/segment
+        parsedPairs ← ParsePair¨pairIndices
+        diagnostics∾↩∾⟨empty⟩∾{𝕩.diagnostics}¨parsedPairs
+        pairItems ← {𝕩.pair}¨parsedPairs
+        pairs ← ({𝕩≢@}¨pairItems)/pairItems
+        kind ← (first⊑poolHeader)⊑⟨"envelope","backing-pool"⟩
+        block↩{kind⇐kind,line⇐first⊑lineRows,pairs⇐pairs}
+      }⍟tableSegment @
       {𝕊:
-        diagnostics∾↩AddIf ⟨¬active,Diagnostic ⟨"budget_policy_key_outside_table",row,"policy key must occur inside a canonical array-of-tables block"⟩⟩
-        {𝕊:
-          equals ← '='=line
-          diagnostics∾↩AddIf ⟨1≠+´equals,Diagnostic ⟨"budget_policy_key_shape_invalid",row,"policy row requires exactly one equals separator"⟩⟩
-          {𝕊:
-            p ← ⊑equals/↕≠line
-            key ← Trim p↑line ⋄ value ← Trim (p+1)↓line
-            validPair ← (0<≠key) ∧ 0<≠value
-            diagnostics∾↩AddIf ⟨¬validPair,Diagnostic ⟨"budget_policy_key_shape_invalid",row,"policy key and value must be nonempty"⟩⟩
-            {𝕊:activePairs∾↩⟨{key⇐key,text⇐value,line⇐row}⟩}⍟validPair @
-          }⍟(1=+´equals) @
-        }⍟active @
-      }⍟(¬header) @
-    }⍟(¬ignored) @
-  }¨↕≠lines
-  Finalize @
+        outside ← (¬segment⊏ignored)/segment
+        diagnostics∾↩{𝕊 sourceIndex:
+          Diagnostic ⟨"budget_policy_key_outside_table",sourceIndex⊑lineRows,"policy key must occur inside a canonical array-of-tables block"⟩
+        }¨outside
+      }⍟(¬tableSegment) @
+    }⍟(0<≠segment) @
+    {diagnostics⇐diagnostics,block⇐block}
+  }
+
+  parsedSegments ← ParseSegment¨segments
+  diagnostics ← ∾⟨empty⟩∾{𝕩.diagnostics}¨parsedSegments
+  blockItems ← {𝕩.block}¨parsedSegments
+  blocks ← ({𝕩≢@}¨blockItems)/blockItems
 
   pools ← empty ⋄ envelopes ← empty
   {𝕊 block:
