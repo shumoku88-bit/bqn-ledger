@@ -7,7 +7,6 @@ SplitKeepEmpty ← {𝕊 sep‿text:
   groups ← (+`sep=text)⊔text
   {(sep≠𝕩)/𝕩}¨groups
 }
-empty ← ⟨⟩
 
 IsIgnored ← {𝕊 line:
   (0<≠line) ? (((⊑line)='#') ∨ ((⊑line)=⊑"\\")) ; 1
