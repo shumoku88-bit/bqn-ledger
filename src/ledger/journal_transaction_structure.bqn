@@ -39,14 +39,6 @@ Diagnostic ← {𝕊 codeText‿lineNumber‿messageText:
 AddIf ← {𝕊 invalid‿diagnostic: invalid/⟨diagnostic⟩}
 IsDateHeader ← {𝕊 text: (10<≠text) ∧ (space=10⊑(text∾11⥊space)) ∧ dates.IsValid 10↑text}
 
-MetaValues ← {𝕊 key‿metadata: {𝕩.value}¨({key≡𝕩.key}¨metadata)/metadata}
-MetaOr ← {𝕊 key‿metadata‿fallback:
-  values ← MetaValues ⟨key,metadata⟩
-  result ← fallback
-  {𝕊: result↩⊑values}⍟(0<≠values) @
-  result
-}
-
 ParseMetadata ← {𝕊 text‿lineNumber:
   diagnostics ← empty
   content ← Trim 1↓Trim text
@@ -119,39 +111,60 @@ Parse ← {𝕊 raw:
 
     nonblank ← (0<≠¨Trim¨lines)/↕≠lines
     finish ← 1+⊑⌽nonblank
-    metadata ← empty ⋄ rawPostings ← empty
     bodyCount ← 0⌈(finish-start)-1
     bodyIndices ← (start+1)+↕bodyCount
-    {𝕊 i:
+
+    ParseBodyRow ← {𝕊 i:
       original ← i⊑lines
       trimmed ← Trim original
       indented ← space=⊑(original∾" ")
       isMetadata ← ';'=⊑(trimmed∾";")
-      diagnostics ∾↩ AddIf ⟨¬indented,Diagnostic ⟨"transaction_body_not_indented",i+1,"transaction metadata and postings must be indented"⟩⟩
+      rowDiagnostics ← AddIf ⟨¬indented,Diagnostic ⟨"transaction_body_not_indented",i+1,"transaction metadata and postings must be indented"⟩⟩
+      metadataItem ← @
+      postingItem ← @
       {𝕊:
         parsed ← ParseMetadata ⟨original,i+1⟩
-        diagnostics ∾↩ parsed.diagnostics
-        {𝕊: metadata∾↩⟨parsed.item⟩}⍟(parsed.item≢@) @
+        rowDiagnostics ∾↩ parsed.diagnostics
+        metadataItem ↩ parsed.item
       }⍟(indented ∧ isMetadata) @
       {𝕊:
         parsed ← ParsePosting ⟨original,i+1⟩
-        diagnostics ∾↩ parsed.diagnostics
-        {𝕊: rawPostings∾↩⟨parsed.posting⟩}⍟(parsed.posting≢@) @
+        rowDiagnostics ∾↩ parsed.diagnostics
+        postingItem ↩ parsed.posting
       }⍟(indented ∧ ¬isMetadata) @
-    }¨ bodyIndices
+      {diagnostics⇐rowDiagnostics,metadata⇐metadataItem,posting⇐postingItem}
+    }
 
-    {𝕊 posting:
-      diagnostics ∾↩ AddIf ⟨¬Contains ⟨posting.account_key,declaredAccounts⟩,Diagnostic ⟨"posting_account_unknown",posting.source_line,"posting account must be declared in the Journal"⟩⟩
+    bodyResults ← ParseBodyRow¨bodyIndices
+    diagnostics ∾↩ ∾{𝕩.diagnostics}¨bodyResults
+    metadataItems ← {𝕩.metadata}¨bodyResults
+    postingItems ← {𝕩.posting}¨bodyResults
+    metadata ← ({𝕩≢@}¨metadataItems)/metadataItems
+    rawPostings ← ({𝕩≢@}¨postingItems)/postingItems
+
+    accountDiagnostics ← {𝕊 posting:
+      AddIf ⟨¬Contains ⟨posting.account_key,declaredAccounts⟩,Diagnostic ⟨"posting_account_unknown",posting.source_line,"posting account must be declared in the Journal"⟩⟩
     }¨rawPostings
+    diagnostics ∾↩ ∾accountDiagnostics
     keys ← {𝕩.key}¨metadata
     diagnostics ∾↩ AddIf ⟨(≠keys)≠≠⍷keys,Diagnostic ⟨"metadata_duplicate",start+1,"metadata keys must be unique within one transaction"⟩⟩
-    layer ← MetaOr ⟨"layer",metadata,"actual"⟩
-    eventId ← MetaOr ⟨"event-id",metadata,""⟩
-    planId ← MetaOr ⟨"plan-id",metadata,""⟩
-    allocationId ← MetaOr ⟨"allocation-id",metadata,""⟩
-    executionEnvelope ← MetaOr ⟨"execution-envelope",metadata,""⟩
-    actualEventId ← MetaOr ⟨"actual-event-id",metadata,""⟩
-    txnId ← MetaOr ⟨"txn-id",metadata,""⟩
+
+    semanticKeys ← ⟨
+      "layer","event-id","plan-id","allocation-id",
+      "execution-envelope","actual-event-id","txn-id"
+    ⟩
+    semanticCoordinates ← keys⊐semanticKeys
+    values ← {𝕩.value}¨metadata
+    semanticValues ← semanticCoordinates⊏(values∾⟨""⟩)
+    layerValue ← 0⊑semanticValues
+    eventId ← 1⊑semanticValues
+    planId ← 2⊑semanticValues
+    allocationId ← 3⊑semanticValues
+    executionEnvelope ← 4⊑semanticValues
+    actualEventId ← 5⊑semanticValues
+    txnId ← 6⊑semanticValues
+    layer ← (0<≠layerValue)⊑⟨"actual",layerValue⟩
+
     diagnostics ∾↩ AddIf ⟨¬Contains ⟨layer,supportedLayers⟩,Diagnostic ⟨"layer_unsupported",start+1,"layer must be actual, plan, or budget"⟩⟩
     diagnostics ∾↩ AddIf ⟨(layer≡"plan") ∧ 0=≠planId,Diagnostic ⟨"plan_id_missing",start+1,"plan events require plan-id"⟩⟩
     budgetLinkCount ← (0<≠allocationId) + 0<≠actualEventId
