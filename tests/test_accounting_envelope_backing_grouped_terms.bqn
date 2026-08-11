@@ -1,7 +1,7 @@
 #!/usr/bin/env bqn
 lib ← •Import "test_lib.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
-snapshot ← •Import "../src/ledger/snapshot.bqn"
+snapshot ← •Import "legacy_snapshot_fixture.bqn"
 canonicalBudget ← •Import "canonical_budget_test_facts.bqn"
 canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 budgetPolicyAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
