@@ -3,7 +3,7 @@ lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
 account_admission ← •Import "../src/ledger/account_admission.bqn"
-snapshot ← •Import "../src/ledger/snapshot.bqn"
+snapshot ← •Import "legacy_snapshot_fixture.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 balance ← •Import "../src/accounting/account_balance.bqn"
 
@@ -37,7 +37,7 @@ BuildDomain ← {𝕊 currency‿accountText‿raw:
   balance.Build ⟨domainFacts,currency,dates.Ordinal "2026-03-02"⟩
 }
 ilsLines ← ⟨
-  "assets:ils	role=asset	type=liquid	currency=ILS",
+  "assets:ils	role=asset	currency=ILS",
   "expenses:a-ils	role=expense	currency=ILS",
   "expenses:b-ils	role=expense	currency=ILS"
 ⟩
