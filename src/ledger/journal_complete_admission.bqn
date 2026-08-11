@@ -118,15 +118,11 @@ PostingDomains ← {𝕊 blockLines:
 }
 
 BuildPartition ← {𝕊 domain‿domainLine‿structuralAccountKeys‿blockLines‿blockStart:
-  partitionLines ← ⟨"commodity " ∾ domain, ""⟩
-  lineMap ← ⟨domainLine, 0⟩
-  {𝕊 accountKey:
-    partitionLines ∾↩ ⟨"account "∾accountKey, ""⟩
-    lineMap ∾↩ ⟨0,0⟩
-  }¨ structuralAccountKeys
-  partitionLines ∾↩ blockLines
-  lineMap ∾↩ blockStart + 1 + ↕ ≠ blockLines
-  {raw⇐∾ (partitionLines ∾¨ lf), line_map⇐lineMap}
+  accountLines ← ∾⟨empty⟩∾{𝕊 accountKey: ⟨"account "∾accountKey,""⟩}¨structuralAccountKeys
+  partitionLines ← ⟨"commodity "∾domain,""⟩∾accountLines∾blockLines
+  accountLineMap ← (≠accountLines)⥊0
+  lineMap ← ⟨domainLine,0⟩∾accountLineMap∾(blockStart + 1 + ↕≠blockLines)
+  {raw⇐∾(partitionLines∾¨lf), line_map⇐lineMap}
 }
 
 MapLine ← {𝕊 line‿lineMap:
@@ -166,8 +162,8 @@ MapPosting ← {𝕊 posting‿lineMap‿sourceEventId:
 
 MapTransaction ← {𝕊 transaction‿lineMap:
   mappedStart ← MapLine ⟨transaction.source_start_line, lineMap⟩
-  mappedSourceEventId ← transaction.source_event_id
-  {𝕊: mappedSourceEventId ↩ "stage0-line-" ∾ •Fmt mappedStart}⍟(transaction.identity_kind ≡ "physical_fallback") @
+  fallback ← transaction.identity_kind ≡ "physical_fallback"
+  mappedSourceEventId ← fallback⊑⟨transaction.source_event_id,"stage0-line-"∾•Fmt mappedStart⟩
   {
     source_event_id⇐mappedSourceEventId,
     identity_kind⇐transaction.identity_kind,
@@ -190,11 +186,9 @@ MapTransaction ← {𝕊 transaction‿lineMap:
 }
 
 CrossTransactionDiagnostics ← {𝕊 transactions:
-  diagnostics ← empty
   durableTransactions ← ({𝕩.identity_kind ≡ "durable"}¨ transactions) / transactions
   durableIds ← {<𝕩.source_event_id}¨ durableTransactions
-  diagnostics ∾↩ AddIf ⟨(≠ durableIds) ≠ ≠ ⍷ durableIds, Diagnostic ⟨"event_id_duplicate", 0, "durable event-id values must be unique across the complete Journal source"⟩⟩
-  diagnostics
+  AddIf ⟨(≠ durableIds) ≠ ≠ ⍷ durableIds, Diagnostic ⟨"event_id_duplicate", 0, "durable event-id values must be unique across the complete Journal source"⟩⟩
 }
 
 Admit ← {𝕊 raw‿accounts‿registry:
@@ -207,52 +201,53 @@ Admit ← {𝕊 raw‿accounts‿registry:
   diagnostics ← declarations.diagnostics
   inlineAccounts ← 0<≠declarations.accounts
   diagnostics ∾↩ AddIf ⟨inlineAccounts ∧ 0=≠declarations.domains, Diagnostic ⟨"commodity_domain_missing",0,"Journal with inline Account declarations must declare at least one commodity domain"⟩⟩
-  transactions ← empty
-  starts ← (IsDateHeader¨ Trim¨ lines) / ↕ ≠ lines
 
-  {𝕊:
-    {𝕊 transactionIndex:
-      start ← transactionIndex ⊑ starts
-      end ← ≠ lines
-      {𝕊: end ↩ (transactionIndex + 1) ⊑ starts}⍟((transactionIndex + 1) < ≠ starts) @
-      blockLines ← (end - start) ↑ start ↓ lines
-      domainEvidence ← PostingDomains blockLines
-      localDiagnostics ← {𝕊 diagnostic:
-        {severity⇐diagnostic.severity, stage⇐diagnostic.stage, code⇐diagnostic.code, line⇐start + diagnostic.line, message⇐diagnostic.message}
-      }¨ domainEvidence.diagnostics
-      shapeOk ← 0 = ≠ localDiagnostics
-      domainCountOk ← 1 = ≠ domainEvidence.domains
-      localDiagnostics ∾↩ AddIf ⟨shapeOk ∧ (¬ domainCountOk), Diagnostic ⟨"transaction_domain_count_invalid", start + 1, "ordinary transaction must contain exactly one explicit posting currency domain"⟩⟩
+  starts ← (IsDateHeader¨ Trim¨ lines) / ↕≠lines
+  ends ← 1↓(starts∾⟨≠lines⟩)
+  ParseTransaction ← {𝕊 transactionIndex:
+    start ← transactionIndex⊑starts
+    end ← transactionIndex⊑ends
+    blockLines ← (end-start)↑start↓lines
+    domainEvidence ← PostingDomains blockLines
+    localDiagnostics ← {𝕊 diagnostic:
+      {severity⇐diagnostic.severity,stage⇐diagnostic.stage,code⇐diagnostic.code,line⇐start+diagnostic.line,message⇐diagnostic.message}
+    }¨domainEvidence.diagnostics
+    transaction ← @
+    shapeOk ← 0=≠localDiagnostics
+    domainCountOk ← 1=≠domainEvidence.domains
+    localDiagnostics ∾↩ AddIf ⟨shapeOk ∧ (¬domainCountOk), Diagnostic ⟨"transaction_domain_count_invalid",start+1,"ordinary transaction must contain exactly one explicit posting currency domain"⟩⟩
+    {𝕊:
+      domain ← ⊑domainEvidence.domains
+      declarationRequired ← 0<≠declarations.domains
+      declared ← Contains ⟨domain,declarations.domains⟩
+      localDiagnostics ∾↩ AddIf ⟨declarationRequired ∧ (¬declared), Diagnostic ⟨"transaction_domain_undeclared",start+1,"ordinary transaction currency must be declared by the Journal when commodity declarations are present"⟩⟩
       {𝕊:
-        domain ← ⊑ domainEvidence.domains
-        declarationRequired ← 0 < ≠ declarations.domains
-        declared ← Contains ⟨domain, declarations.domains⟩
-        localDiagnostics ∾↩ AddIf ⟨declarationRequired ∧ (¬ declared), Diagnostic ⟨"transaction_domain_undeclared", start + 1, "ordinary transaction currency must be declared by the Journal when commodity declarations are present"⟩⟩
-        {𝕊:
-          structuralAccountKeys ← {𝕩.account_key}¨declarations.accounts
-          {𝕊: structuralAccountKeys↩accounts.key}⍟(0=≠structuralAccountKeys) @
-          domainLine ← DomainSourceLine ⟨domain, declarations⟩
-          {𝕊: domainLine ↩ start + 1}⍟(0=domainLine) @
-          partition ← BuildPartition ⟨domain, domainLine, structuralAccountKeys, blockLines, start⟩
-          admitted ← single.Admit ⟨partition.raw,accounts,registry⟩
-          localDiagnostics ∾↩ {MapDiagnostic ⟨𝕩, partition.line_map⟩}¨ admitted.diagnostics
-          {𝕊:
-            transaction ← MapTransaction ⟨⊑ admitted.transactions, partition.line_map⟩
-            transactions ∾↩ ⟨transaction⟩
-          }⍟((admitted.state ≡ "ok") ∧ (1 = ≠ admitted.transactions)) @
-        }⍟((¬declarationRequired) ∨ declared) @
-      }⍟(shapeOk ∧ domainCountOk) @
-      diagnostics ∾↩ localDiagnostics
-    }¨ ↕ ≠ starts
-  }⍟(0 = ≠ diagnostics) @
+        declaredAccountKeys ← {𝕩.account_key}¨declarations.accounts
+        structuralAccountKeys ← (0=≠declaredAccountKeys)⊑⟨declaredAccountKeys,accounts.key⟩
+        declaredDomainLine ← DomainSourceLine ⟨domain,declarations⟩
+        domainLine ← (0=declaredDomainLine)⊑⟨declaredDomainLine,start+1⟩
+        partition ← BuildPartition ⟨domain,domainLine,structuralAccountKeys,blockLines,start⟩
+        admitted ← single.Admit ⟨partition.raw,accounts,registry⟩
+        localDiagnostics ∾↩ {MapDiagnostic ⟨𝕩,partition.line_map⟩}¨admitted.diagnostics
+        {𝕊: transaction↩MapTransaction ⟨⊑admitted.transactions,partition.line_map⟩}⍟((admitted.state≡"ok") ∧ (1=≠admitted.transactions)) @
+      }⍟((¬declarationRequired) ∨ declared) @
+    }⍟(shapeOk ∧ domainCountOk) @
+    {diagnostics⇐localDiagnostics,transaction⇐transaction}
+  }
 
+  parsedTransactions ← empty
+  {𝕊: parsedTransactions↩ParseTransaction¨↕≠starts}⍟(0=≠diagnostics) @
+  transactionDiagnostics ← ∾{𝕩.diagnostics}¨parsedTransactions
+  transactionItems ← {𝕩.transaction}¨parsedTransactions
+  transactions ← ({𝕩≢@}¨transactionItems)/transactionItems
+  diagnostics ∾↩ transactionDiagnostics
   diagnostics ∾↩ CrossTransactionDiagnostics transactions
-  {𝕊: transactions ↩ empty}⍟(0 < ≠ diagnostics) @
-  admittedDomains ← ⍷ declarations.domains ∾ {𝕩.domain}¨transactions
+  {𝕊: transactions↩empty}⍟(0<≠diagnostics) @
+  admittedDomains ← ⍷declarations.domains∾{𝕩.domain}¨transactions
   {
-    state⇐(0 = ≠ diagnostics) ⊑ "error"‿"ok",source_name⇐"actual.journal",
+    state⇐(0=≠diagnostics)⊑"error"‿"ok",source_name⇐"actual.journal",
     declared_domains⇐admittedDomains,
-    declared_layers⇐⍷ ⟨"actual"⟩∾{𝕩.layer_name}¨transactions,
+    declared_layers⇐⍷⟨"actual"⟩∾{𝕩.layer_name}¨transactions,
     declared_accounts⇐{𝕩.account_key}¨declarations.accounts,
     transactions⇐transactions,
     diagnostics⇐diagnostics
