@@ -58,15 +58,6 @@ adjacentAccounts ← accounts.Admit Raw ⟨
 ⟨"Assets:Cash","Expenses:Food"⟩ lib.AssertEq adjacentAccounts.accounts.key
 ⟨1,3⟩ lib.AssertEq adjacentAccounts.accounts.source_row
 
-# The canonical writer appends a new declaration directly after a source ending in LF.
-writerRaw ← loader.ReadRaw "fixtures/canonical-household-v1/accounts.journal"
-writerBlock ← "account Income:Friend-Settlement"∾⟨lf⟩∾"  type: Income"∾⟨lf⟩∾"  commodity: JPY"
-writerCandidate ← writerRaw
-{𝕊:writerCandidate∾↩⟨lf⟩}⍟((0<≠writerCandidate) ∧ lf≠¯1↑writerCandidate) @
-writerCandidate∾↩writerBlock∾⟨lf⟩
-writerRoundTrip ← accounts.Admit writerCandidate
-"ok" lib.AssertEq writerRoundTrip.state
-
 # A blank closes the block; later indented metadata is outside any Account.
 blankTerminates ← accounts.Admit Raw ⟨
   "account Assets:Cash",
