@@ -58,6 +58,21 @@ adjacentAccounts ← accounts.Admit Raw ⟨
 ⟨"Assets:Cash","Expenses:Food"⟩ lib.AssertEq adjacentAccounts.accounts.key
 ⟨1,3⟩ lib.AssertEq adjacentAccounts.accounts.source_row
 
+# Protect the exact complete-source shape produced by the canonical Account append writer.
+writerRaw ← loader.ReadRaw "fixtures/canonical-household-v1/accounts.journal"
+writerBlock ← "account Income:Friend-Settlement"∾⟨lf⟩∾"  type: Income"∾⟨lf⟩∾"  commodity: JPY"
+writerCandidate ← writerRaw
+{𝕊:writerCandidate∾↩⟨lf⟩}⍟((0<≠writerCandidate) ∧ lf≠¯1↑writerCandidate) @
+writerCandidate∾↩writerBlock∾⟨lf⟩
+writerRoundTrip ← accounts.Admit writerCandidate
+"ok" lib.AssertEq writerRoundTrip.state
+7 lib.AssertEq writerRoundTrip.accounts.count
+writerIndex ← writerRoundTrip.accounts.count-1
+"Income:Friend-Settlement" lib.AssertEq writerIndex⊑writerRoundTrip.accounts.key
+"income" lib.AssertEq writerIndex⊑writerRoundTrip.accounts.role
+"Income" lib.AssertEq writerIndex⊑writerRoundTrip.accounts.type
+"JPY" lib.AssertEq writerIndex⊑writerRoundTrip.accounts.currency
+
 # A blank closes the block; later indented metadata is outside any Account.
 blankTerminates ← accounts.Admit Raw ⟨
   "account Assets:Cash",
