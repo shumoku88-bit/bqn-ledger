@@ -37,7 +37,7 @@ BuildDomain ← {𝕊 currency‿accountText‿raw:
   balance.Build ⟨domainFacts,currency,dates.Ordinal "2026-03-02"⟩
 }
 ilsLines ← ⟨
-  "assets:ils	role=asset	currency=ILS",
+  "assets:ils	role=asset	type=liquid	currency=ILS",
   "expenses:a-ils	role=expense	currency=ILS",
   "expenses:b-ils	role=expense	currency=ILS"
 ⟩
