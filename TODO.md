@@ -156,7 +156,7 @@ A phase is considered reviewed only when every listed box is checked and the inv
 - [x] `src/ledger/fact_reference.bqn` — PR #605 moved the generic Facts identity/provenance owner into `src/ledger/`; #606 proved its source-axis and durable-reference laws; #607 simplified `SourceIs` to direct successful-state plus singleton-source equality; reread on main `478b870a9eb0a32a4c34bf2271fc1f605c1929f6`.
 - [x] `src/ledger/facts.bqn` — PR #664 classified Transaction Domain/Layer and Posting Account coordinates once, reused them for projection-invariant diagnostics and direct column publication, removed the temporary Posting-row reconstruction, and protected transaction-major diagnostic order; reread on main `b085574654167e200e7435ec2a3380ad69763609`; merged-main CI #2678 SUCCESS; decisions in `docs/FACTS_REVIEW_OBSERVATION-2026-08-11.md`.
 - [x] `src/ledger/household_policy_admission.bqn` — PR #665 retained genuine multiline lexical state while replacing logical section active/Finalize staging with total header classification plus Scan/Group segments; PR #666 classified Household Account references once onto the admitted Account axis and densified Account-policy coordinates without per-Account rescans; reread on main `36bd3f91a1034b2470979cd03dd84a67f38da200`; merged-main CI #2686 SUCCESS; decisions in `docs/HOUSEHOLD_POLICY_SECTION_REVIEW_OBSERVATION-2026-08-11.md` and `docs/HOUSEHOLD_POLICY_ACCOUNT_RELATION_REVIEW_OBSERVATION-2026-08-11.md`.
-- [ ] `src/ledger/issue_admission.bqn`
+- [x] `src/ledger/issue_admission.bqn` — PR #668 totalized ignored-row classification, aligned source text and one-based source coordinates through one scalar mask, isolated row admission as independent `{diagnostics,item}` cells, and preserved source-major diagnostics plus aggregate identity ordering; reread on main `fe2108f82e2f188be388a98713e02784633dcf7d`; merged-main CI #2709 SUCCESS; decisions in `docs/ISSUE_ADMISSION_REVIEW_OBSERVATION-2026-08-11.md` and `docs/ISSUE_ADMISSION_REVIEW_CLOSEOUT-2026-08-11.md`.
 - [ ] `src/ledger/journal_complete_admission.bqn`
 - [ ] `src/ledger/journal_posting_text.bqn`
 - [ ] `src/ledger/journal_single_domain_admission.bqn`
@@ -305,6 +305,6 @@ After the production BQN inventory is reviewed, the selector/UI adapter consolid
 
 ## Current cursor
 
-`src/ledger/issue_admission.bqn`
+`src/ledger/journal_complete_admission.bqn`
 
-Resume the normal Phase 2 ledger review sequence at Issue admission.
+Resume the normal Phase 2 ledger review sequence at complete Journal admission.
