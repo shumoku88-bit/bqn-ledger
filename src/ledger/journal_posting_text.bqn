@@ -30,23 +30,20 @@ TrimRight ← {𝕊 xs:
 Trim ← { TrimRight TrimLeft 𝕩 }
 BeforeComment ← {𝕊 text:
   mask ← semicolon=text
-  index ← ≠text
-  {𝕊:index↩⊑mask/↕≠text}⍟(∨´0∾mask) @
-  index↑text
+  commentCoordinates ← mask/↕≠text
+  commentStart ← ⊑(commentCoordinates∾⟨≠text⟩)
+  commentStart↑text
 }
 
 Split ← {𝕊 line:
   body ← Trim BeforeComment TrimLeft line
   next ← 1↓body∾" "
   separatorMask ← (tab=body) ∨ ((space=body) ∧ space=next)
-  hasSeparator ← ∨´0∾separatorMask
-  account ← body
-  amount ← ""
-  {𝕊:
-    i ← ⊑separatorMask/↕≠body
-    account↩Trim i↑body
-    amount↩Trim i↓body
-  }⍟hasSeparator @
+  separatorCoordinates ← separatorMask/↕≠body
+  separatorIndex ← ⊑(separatorCoordinates∾⟨≠body⟩)
+  hasSeparator ← separatorIndex<≠body
+  account ← hasSeparator⊑⟨body,Trim separatorIndex↑body⟩
+  amount ← hasSeparator⊑⟨"",Trim separatorIndex↓body⟩
 
   legacyWords ← space parse.Split body
   {𝕊:
