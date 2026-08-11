@@ -66,6 +66,9 @@ writerCandidate ← writerRaw
 writerCandidate∾↩writerBlock∾⟨lf⟩
 writerRoundTrip ← accounts.Admit writerCandidate
 {𝕊 diagnostic: •Out "::error file=tests/test_ledger_account_journal_admission.bqn::writer candidate diagnostic: "∾diagnostic.code}¨writerRoundTrip.diagnostics
+•Out "::warning file=tests/test_ledger_account_journal_admission.bqn::writer candidate state: "∾writerRoundTrip.state
+•Out "::warning file=tests/test_ledger_account_journal_admission.bqn::writer candidate count: "∾•Fmt writerRoundTrip.accounts.count
+{𝕊: •Out "::warning file=tests/test_ledger_account_journal_admission.bqn::writer candidate last key: "∾¯1⊑writerRoundTrip.accounts.key}⍟(0<writerRoundTrip.accounts.count) @
 "ok" lib.AssertEq writerRoundTrip.state
 7 lib.AssertEq writerRoundTrip.accounts.count
 "Income:Friend-Settlement" lib.AssertEq ¯1⊑writerRoundTrip.accounts.key
