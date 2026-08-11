@@ -287,7 +287,7 @@ Admit ← {𝕊 raw‿accounts:
 
   expenseAccountIndices ← accounts.key⊐expenseKeys
   expenseKnown ← expenseAccountIndices<accounts.count
-  expenseRoles ← expenseAccountIndices⊑(accounts.role∾⟨""⟩)
+  expenseRoles ← expenseAccountIndices⊏(accounts.role∾⟨""⟩)
   expenseRoleValid ← {𝕩≡"expense"}¨expenseRoles
   expenseWrongRole ← expenseKnown ∧ ¬expenseRoleValid
   expenseDiagnostics ← ∾⟨empty⟩∾{𝕊 i:
@@ -302,7 +302,7 @@ Admit ← {𝕊 raw‿accounts:
 
   assetAccountIndices ← accounts.key⊐assetKeys
   assetKnown ← assetAccountIndices<accounts.count
-  assetRoles ← assetAccountIndices⊑(accounts.role∾⟨""⟩)
+  assetRoles ← assetAccountIndices⊏(accounts.role∾⟨""⟩)
   assetRoleValid ← {𝕩≡"asset"}¨assetRoles
   assetWrongRole ← assetKnown ∧ ¬assetRoleValid
   assetDiagnostics ← ∾⟨empty⟩∾{𝕊 i:
