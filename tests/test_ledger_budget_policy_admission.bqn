@@ -8,10 +8,15 @@ quote ← @+34
 Raw ← {𝕊 lines: ∾lines∾¨lf}
 Q ← {𝕊 text: ⟨quote⟩∾text∾⟨quote⟩}
 HasCode ← {𝕊 code‿diagnostics: ∨´0∾{𝕩.code≡code}¨diagnostics}
+Codes ← {𝕊 diagnostics: {𝕩.code}¨diagnostics}
+LineForCode ← {𝕊 code‿diagnostics:
+  matches ← ({𝕩.code≡code}¨diagnostics)/diagnostics
+  (⊑matches).line
+}
 accounts ← {
-  count⇐4,index⇐↕4,
-  key⇐⟨"Assets:Cash","Assets:Savings","Expenses:Food","Expenses:Books"⟩,
-  role⇐⟨"asset","asset","expense","expense"⟩
+  count⇐6,index⇐↕6,
+  key⇐⟨"Assets:Cash","Assets:Savings","Expenses:Food","Expenses:Books","Assets:Reserve]One","Expenses:Food,Shared"⟩,
+  role⇐⟨"asset","asset","expense","expense","asset","expense"⟩
 }
 
 validRaw ← Raw ⟨
@@ -58,6 +63,69 @@ multiline ← policyAdmission.Admit ⟨multilineRaw,accounts⟩
 ⟨⟨"Assets:Cash","Assets:Savings"⟩⟩ lib.AssertEq multiline.backing_pools.asset_account_keys
 ⟨⟨"Expenses:Food"⟩⟩ lib.AssertEq multiline.envelopes.expense_account_keys
 
+# A closing bracket or comma inside a quoted Account key is data, not source
+# structure. Multiline logical-row assembly and item splitting must agree on the
+# same quote boundary.
+quotedPunctuationRaw ← Raw ⟨
+  "[[backing-pools]]","id = "∾(Q "punct"),"asset-accounts = [",
+  "  "∾(Q "Assets:Reserve]One")∾",",
+  "  "∾(Q "Assets:Cash"),
+  "]","",
+  "[[envelopes]]","id = "∾(Q "shared"),"label = "∾(Q "Shared"),
+  "pacing = "∾(Q "flex"),"backing-pool = "∾(Q "punct"),
+  "expense-accounts = ["∾(Q "Expenses:Food,Shared")∾"]"
+⟩
+quotedPunctuation ← policyAdmission.Admit ⟨quotedPunctuationRaw,accounts⟩
+"ok" lib.AssertEq quotedPunctuation.state
+⟨⟨"Assets:Reserve]One","Assets:Cash"⟩⟩ lib.AssertEq quotedPunctuation.backing_pools.asset_account_keys
+⟨⟨"Expenses:Food,Shared"⟩⟩ lib.AssertEq quotedPunctuation.envelopes.expense_account_keys
+
+# A multiline logical key/value row owns the first physical source coordinate.
+# Literal diagnostics from later physical continuation lines are remapped to
+# that first line rather than losing source provenance during row assembly.
+malformedMultiline ← policyAdmission.Admit ⟨Raw ⟨
+  "[[backing-pools]]","id = "∾(Q "cash"),"asset-accounts = [",
+  "  "∾(Q "Assets:Cash")∾",",
+  "  not-quoted",
+  "]","",
+  "[[envelopes]]","id = "∾(Q "food"),"label = "∾(Q "Food"),
+  "pacing = "∾(Q "daily"),"backing-pool = "∾(Q "cash"),
+  "expense-accounts = ["∾(Q "Expenses:Food")∾"]"
+⟩,accounts⟩
+"error" lib.AssertEq malformedMultiline.state
+lib.Assert HasCode ⟨"budget_policy_string_invalid",malformedMultiline.diagnostics⟩
+3 lib.AssertEq LineForCode ⟨"budget_policy_string_invalid",malformedMultiline.diagnostics⟩
+
+# Before the first canonical table header, a key/value row is not silently
+# attached to the first later block. Its own physical coordinate is retained.
+outsideTable ← policyAdmission.Admit ⟨Raw ⟨
+  "id = "∾(Q "orphan"),
+  "[[backing-pools]]","id = "∾(Q "cash"),"asset-accounts = ["∾(Q "Assets:Cash")∾"]","",
+  "[[envelopes]]","id = "∾(Q "food"),"label = "∾(Q "Food"),
+  "pacing = "∾(Q "daily"),"backing-pool = "∾(Q "cash"),
+  "expense-accounts = ["∾(Q "Expenses:Food")∾"]"
+⟩,accounts⟩
+"error" lib.AssertEq outsideTable.state
+lib.Assert HasCode ⟨"budget_policy_key_outside_table",outsideTable.diagnostics⟩
+1 lib.AssertEq LineForCode ⟨"budget_policy_key_outside_table",outsideTable.diagnostics⟩
+
+# Current admission is fail-fast across semantic blocks: once one block emits a
+# semantic diagnostic, later structurally valid blocks are not semantically
+# parsed. Preserve this diagnostic frontier unless a separate review deliberately
+# changes diagnostic publication semantics.
+semanticFrontier ← policyAdmission.Admit ⟨Raw ⟨
+  "[[backing-pools]]","id = "∾(Q "cash"),"asset-accounts = ["∾(Q "Assets:Cash")∾"]","",
+  "[[envelopes]]","id = "∾(Q "bad-pacing"),"label = "∾(Q "Bad pacing"),
+  "pacing = "∾(Q "weekly"),"backing-pool = "∾(Q "cash"),
+  "expense-accounts = ["∾(Q "Expenses:Food")∾"]","",
+  "[[envelopes]]","id = "∾(Q "later"),"label = "∾(Q "Later"),
+  "pacing = "∾(Q "daily"),"backing-pool = "∾(Q "missing"),
+  "expense-accounts = ["∾(Q "Expenses:Books")∾"]"
+⟩,accounts⟩
+"error" lib.AssertEq semanticFrontier.state
+⟨"envelope_pacing_invalid","budget_policy_envelopes_missing"⟩ lib.AssertEq Codes semanticFrontier.diagnostics
+0 lib.AssertEq HasCode ⟨"envelope_backing_pool_unknown",semanticFrontier.diagnostics⟩
+
 duplicateExpense ← policyAdmission.Admit ⟨Raw ⟨
   "[[backing-pools]]","id = "∾(Q "cash"),"asset-accounts = ["∾(Q "Assets:Cash")∾"]","",
   "[[envelopes]]","id = "∾(Q "food"),"label = "∾(Q "Food"),"pacing = "∾(Q "daily"),"backing-pool = "∾(Q "cash"),"expense-accounts = ["∾(Q "Expenses:Food")∾"]","",
@@ -72,6 +140,8 @@ wrongRole ← policyAdmission.Admit ⟨Raw ⟨
 ⟩,accounts⟩
 "error" lib.AssertEq wrongRole.state
 lib.Assert HasCode ⟨"budget_policy_asset_account_role_invalid",wrongRole.diagnostics⟩
+0 lib.AssertEq wrongRole.backing_pools.count
+0 lib.AssertEq wrongRole.envelopes.count
 
 unknownPool ← policyAdmission.Admit ⟨Raw ⟨
   "[[backing-pools]]","id = "∾(Q "cash"),"asset-accounts = ["∾(Q "Assets:Cash")∾"]","",
