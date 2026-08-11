@@ -102,46 +102,74 @@ Admit ← {𝕊 raw‿accounts‿budgetPolicy:
   }¨↕≠physicalLines
   {𝕊:lines∾↩⟨pendingText⟩ ⋄ lineRows∾↩⟨pendingRow⟩}⍟pending @
 
-  diagnostics ← empty ⋄ blocks ← empty ⋄ active ← 0 ⋄ current ← EmptyBlock ⟨"",0⟩
+  diagnostics ← empty ⋄ blocks ← empty
   KnownSection ← {𝕊 name: Contains ⟨name,⟨
     "cycle","budget","budget.envelopes","money","daily-target","daily-target.assets",
     "account-policy.assets","account-policy.budget.kind","account-policy.budget.envelope-role",
     "account-policy.budget.group","account-policy.expenses"
   ⟩⟩}
-  Finalize ← {𝕊:
-    {𝕊:blocks∾↩⟨current⟩}⍟active @
-    active↩0 ⋄ current↩EmptyBlock ⟨"",0⟩
+
+  # Multiline/quote state above is lexical. Once logical rows exist, section
+  # ownership is a source relation: classify headers, Scan one segment axis,
+  # then parse each source-ordered segment locally.
+  indices ← ↕≠lines
+  ignored ← (0=≠¨lines) ∨ hash=FirstOrSpace¨lines
+  HeaderShape ← {𝕊 text:
+    n ← ≠text
+    first ← FirstOrSpace text
+    last ← FirstOrSpace⌽text
+    firstTwo ← 2↑text∾2⥊space
+    lastTwo ← 2↑(⌽text)∾2⥊space
+    array ← (4≤n) ∧ ("[["≡firstTwo) ∧ ("]]"≡lastTwo)
+    table ← (2≤n) ∧ ('['=first) ∧ (']'=last) ∧ ¬array
+    {array⇐array,table⇐table}
   }
-  {𝕊 i:
-    text ← i⊑lines ⋄ row ← i⊑lineRows
-    ignored ← (0=≠text) ∨ hash=FirstOrSpace text
+  shapes ← HeaderShape¨lines
+  arrayHeader ← {𝕩.array}¨shapes
+  tableHeader ← {𝕩.table}¨shapes
+  header ← arrayHeader ∨ tableHeader
+  segmentIds ← +`header
+  segments ← segmentIds⊔indices
+
+  ParsePair ← {𝕊 sourceIndex:
+    text ← sourceIndex⊑lines ⋄ row ← sourceIndex⊑lineRows ⋄ pair ← empty
+    equals ← '='=text
+    diagnostics∾↩AddIf ⟨1≠+´equals,Diagnostic ⟨"household_key_shape_invalid",row,"Household row requires exactly one equals separator"⟩⟩
     {𝕊:
-      arrayHeader ← (4≤≠text) ∧ ("[["≡2↑text) ∧ "]]"≡¯2↑text
-      tableHeader ← (2≤≠text) ∧ ('['=FirstOrSpace text) ∧ (']'=FirstOrSpace⌽text) ∧ ¬arrayHeader
-      header ← arrayHeader ∨ tableHeader
+      p ← ⊑equals/↕≠text ⋄ key ← Trim p↑text ⋄ value ← Trim (p+1)↓text
+      valid ← (0<≠key) ∧ 0<≠value
+      diagnostics∾↩AddIf ⟨¬valid,Diagnostic ⟨"household_key_shape_invalid",row,"Household key and value must be nonempty"⟩⟩
+      {𝕊:pair↩⟨{key⇐key,text⇐value,line⇐row}⟩}⍟valid @
+    }⍟(1=+´equals) @
+    pair
+  }
+  Outside ← {𝕊 sourceIndex:
+    diagnostics∾↩⟨Diagnostic ⟨"household_key_outside_section",sourceIndex⊑lineRows,"Household key must occur inside a supported section"⟩⟩
+  }
+
+  {𝕊 segmentIndex:
+    segment ← segmentIndex⊑segments
+    {𝕊:
+      outsideIndices ← (¬segment⊏ignored)/segment
+      Outside¨outsideIndices
+    }⍟(0=segmentIndex) @
+    {𝕊:
+      headerIndex ← ⊑segment
+      headerText ← headerIndex⊑lines
+      row ← headerIndex⊑lineRows
+      edge ← 1+headerIndex⊑arrayHeader
+      name ← edge↓(-edge)↓headerText
+      known ← KnownSection name
+      diagnostics∾↩AddIf ⟨¬known,Diagnostic ⟨"household_section_unsupported",row,"household.toml contains an unsupported section"⟩⟩
+      tail ← 1↓segment
+      sourceIndices ← (¬tail⊏ignored)/tail
       {𝕊:
-        Finalize @
-        edge ← 1+arrayHeader ⋄ name ← edge↓(-edge)↓text
-        known ← KnownSection name
-        diagnostics∾↩AddIf ⟨¬known,Diagnostic ⟨"household_section_unsupported",row,"household.toml contains an unsupported section"⟩⟩
-        {𝕊:active↩1 ⋄ current↩EmptyBlock ⟨name,row⟩}⍟known @
-      }⍟header @
-      {𝕊:
-        diagnostics∾↩AddIf ⟨¬active,Diagnostic ⟨"household_key_outside_section",row,"Household key must occur inside a supported section"⟩⟩
-        {𝕊:
-          equals ← '='=text
-          diagnostics∾↩AddIf ⟨1≠+´equals,Diagnostic ⟨"household_key_shape_invalid",row,"Household row requires exactly one equals separator"⟩⟩
-          {𝕊:
-            p ← ⊑equals/↕≠text ⋄ key ← Trim p↑text ⋄ value ← Trim (p+1)↓text
-            valid ← (0<≠key) ∧ 0<≠value
-            diagnostics∾↩AddIf ⟨¬valid,Diagnostic ⟨"household_key_shape_invalid",row,"Household key and value must be nonempty"⟩⟩
-            {𝕊:current↩{kind⇐current.kind,line⇐current.line,pairs⇐current.pairs∾⟨{key⇐key,text⇐value,line⇐row}⟩}}⍟valid @
-          }⍟(1=+´equals) @
-        }⍟active @
-      }⍟(¬header) @
-    }⍟(¬ignored) @
-  }¨↕≠lines
-  Finalize @
+        pairs ← ∾ParsePair¨sourceIndices
+        blocks∾↩⟨{kind⇐name,line⇐row,pairs⇐pairs}⟩
+      }⍟known @
+      {𝕊:Outside¨sourceIndices}⍟(¬known) @
+    }⍟(0<segmentIndex) @
+  }¨↕≠segments
 
   Singles ← {𝕊 kind: ({𝕩.kind≡kind}¨blocks)/blocks}
   RequireOne ← {𝕊 kind:
