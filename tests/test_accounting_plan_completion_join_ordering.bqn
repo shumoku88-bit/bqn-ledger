@@ -4,7 +4,7 @@ lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
 account_admission ← •Import "../src/ledger/account_admission.bqn"
-snapshot ← •Import "../src/ledger/snapshot.bqn"
+snapshot ← •Import "legacy_snapshot_fixture.bqn"
 canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 join ← •Import "../src/accounting/plan_completion_join.bqn"
 
