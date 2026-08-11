@@ -148,8 +148,8 @@ A phase is considered reviewed only when every listed box is checked and the inv
 - [x] `src/ledger/canonical_journal_root_admission.bqn` — PR #652 fixed short-line directive totality and replaced mutable include staging with an aligned directive/path/mask relation; reread on main `7355b43bfc1555e88e557ef123bcd7a8cad5c5dc`; merged-main CI #2627 SUCCESS; closeout in `docs/CANONICAL_JOURNAL_ROOT_ADMISSION_REVIEW_CLOSEOUT-2026-08-11.md`.
 - [x] `src/ledger/companion_admission.bqn` — reviewed on main `7355b43bfc1555e88e557ef123bcd7a8cad5c5dc` as a retained legacy/qualification fixed-width TSV seam after canonical Plan readers moved to Journal Facts; no local array refactor selected; retirement delegated with `plan_snapshot` and old TSV proof evidence to legacy/reachability closeout; decision in `docs/COMPANION_ADMISSION_REVIEW_OBSERVATION-2026-08-11.md`.
 - [x] `src/ledger/config_admission.bqn` — reviewed on main `79e572d5c91daec89cf196c8e103fefd17367129` as a legacy/qualification aggregate `config.tsv` seam; current application configuration uses narrow `config_rows` owners and canonical responsibility-specific sources instead; no local array refactor selected; decision in `docs/CONFIG_ADMISSION_REVIEW_OBSERVATION-2026-08-11.md`.
-- [ ] `src/ledger/currency_registry.bqn`
-- [ ] `src/ledger/cycle_admission.bqn`
+- [x] `src/ledger/currency_registry.bqn` — PR #655 made ignored-line classification total for empty rows, replaced sort/adjacent duplicate detection with direct `⍷`, strengthened public Policy and validation-priority laws, and removed one dead local binding; reread on main `d6f7c93845680d09dd3452724b88ea9560d0fb81`; merged-main CI #2652 SUCCESS; decisions in `docs/CURRENCY_REGISTRY_REVIEW_OBSERVATION-2026-08-11.md` and `docs/CURRENCY_REGISTRY_REVIEW_CLOSEOUT-2026-08-11.md`.
+- [x] `src/ledger/cycle_admission.bqn` — reviewed on main `d6f7c93845680d09dd3452724b88ea9560d0fb81` as a retained legacy/qualification `cycle.tsv` seam; canonical Cycle policy now comes from `household.toml` via `household_policy_admission`, and the canonical-only read gate omits `cycle.tsv`; no local array refactor selected; decision in `docs/CYCLE_ADMISSION_REVIEW_OBSERVATION-2026-08-11.md`.
 - [ ] `src/ledger/date_ordinal.bqn`
 - [ ] `src/ledger/exact_decimal.bqn`
 - [ ] `src/ledger/exact_scale.bqn`
@@ -305,6 +305,6 @@ After the production BQN inventory is reviewed, the selector/UI adapter consolid
 
 ## Current cursor
 
-`src/ledger/currency_registry.bqn`
+`src/ledger/date_ordinal.bqn`
 
-Resume the normal Phase 2 ledger review sequence at currency registry.
+Resume the normal Phase 2 ledger review sequence at date ordinal.
