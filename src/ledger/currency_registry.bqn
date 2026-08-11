@@ -10,8 +10,7 @@ SplitKeepEmpty ← {𝕊 sep‿text:
 empty ← ⟨⟩
 
 IsIgnored ← {𝕊 line:
-  first ← ⊑(line∾" ")
-  (0=≠line) ∨ (first∊"#\\")
+  (0=≠line) ? 1 ; (⊑line)∊"#\\"
 }
 
 IsFractionDigits ← {𝕊 text:
