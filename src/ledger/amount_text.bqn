@@ -6,12 +6,8 @@ Format ← {𝕊 coefficient‿scale:
   digits ← •Fmt |coefficient
   needed ← (scale+1)-≠digits
   padded ← ((0⌈needed)⥊'0')∾digits
-  body ← padded
-  {𝕊:
-    split ← (≠padded)-scale
-    body↩(split↑padded)∾"."∾split↓padded
-  }⍟(0<scale) @
-  ((negative)/"-")∾body
+  split ← (≠padded)-scale
+  ((negative)/"-")∾(split↑padded)∾((0<scale)/".")∾split↓padded
 }
 
 {Format⇐Format}
