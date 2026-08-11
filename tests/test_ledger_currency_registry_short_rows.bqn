@@ -4,7 +4,7 @@ lib ← •Import "test_lib.bqn"
 registry ← •Import "../src/ledger/currency_registry.bqn"
 tab ← @+9
 
-ValidLine ← "JPY"∾tab∾"0"∾tab∾"YEN"
+validLine ← "JPY"∾tab∾"0"∾tab∾"YEN"
 
 CheckRowInvalid ← {𝕊 lines:
   result ← registry.Build lines
@@ -19,7 +19,7 @@ CheckRowInvalid ⟨"JPY"∾tab∾"0"⟩
 CheckRowInvalid ⟨tab∾"x"⟩
 CheckRowInvalid ⟨"JPY"∾tab∾"0"∾tab∾"YEN"∾tab∾"extra"⟩
 
-valid ← registry.Build ⟨ValidLine⟩
+valid ← registry.Build ⟨validLine⟩
 "ok" lib.AssertEq valid.state
 ⟨"JPY"⟩ lib.AssertEq valid.registry.codes
 policy ← valid.registry.Policy "JPY"
@@ -28,7 +28,7 @@ policy ← valid.registry.Policy "JPY"
 0 lib.AssertEq policy.max_fraction_digits
 "YEN" lib.AssertEq policy.symbol
 
-ignoredBlank ← registry.Build ⟨"", ValidLine⟩
+ignoredBlank ← registry.Build ⟨"", validLine⟩
 "ok" lib.AssertEq ignoredBlank.state
 ⟨"JPY"⟩ lib.AssertEq ignoredBlank.registry.codes
 
