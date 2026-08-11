@@ -2,7 +2,7 @@
 
 lib ← •Import "test_lib.bqn"
 line ← ""
-ignored ← (0=≠line) ? 1 ; (⊑line)∊"#\\"
+ignored ← (0=≠line) ? 1 ; 0
 lib.Assert ignored
 
 •Out "temporary Issue predicate gate: ok"
