@@ -14,6 +14,18 @@ result ← group.Build ⟨
 ⟨0,5⟩ lib.AssertEq result.groups.coefficient
 ⟨⟨0,1,2⟩,⟨3⟩⟩ lib.AssertEq result.groups.contributors
 
+# Opaque nested row coordinates classify directly onto the explicit row axis.
+nestedRows ← ⟨⟨"a",0⟩,⟨"b",1⟩⟩
+nestedResult ← group.Build ⟨
+  nestedRows,2,
+  ⟨⟨"b",1⟩,⟨"a",0⟩,⟨"b",1⟩⟩,⟨1,0,1⟩,⟨3,4,5⟩,⟨⟨3⟩,⟨4⟩,⟨5⟩⟩
+⟩
+"ok" lib.AssertEq nestedResult.state
+⟨0,1⟩ lib.AssertEq nestedResult.groups.row_index
+⟨0,1⟩ lib.AssertEq nestedResult.groups.column_index
+⟨4,8⟩ lib.AssertEq nestedResult.groups.coefficient
+⟨⟨4⟩,⟨3,5⟩⟩ lib.AssertEq nestedResult.groups.contributors
+
 emptyResult ← group.Build ⟨⟨"a"⟩,2,⟨⟩,⟨⟩,⟨⟩,⟨⟩⟩
 "ok" lib.AssertEq emptyResult.state
 0 lib.AssertEq emptyResult.groups.count
