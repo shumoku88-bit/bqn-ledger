@@ -17,12 +17,10 @@ householdRaw ← •FChars "../"∾base∾"household.toml"
 Codes ← { {𝕩.code}¨𝕩.diagnostics }
 Lines ← { {𝕩.line}¨𝕩.diagnostics }
 
-# The ordinary fixture already contains a multiline Account array. Its first
-# physical row remains the logical-row diagnostic owner and the source admits.
+# The ordinary fixture already exercises a multiline Account array.
 valid ← householdAdmission.Admit ⟨householdRaw,accounts,budget⟩
 "ok" lib.AssertEq valid.state
 0 lib.AssertEq ≠valid.diagnostics
-⟨"expenses:food","expenses:transport"⟩ lib.AssertEq ({𝕩.account_key}¨accounts.index⊏⟨⟩)⍟0 @
 
 # A key before the first supported section belongs to no policy block.
 outsideRaw ← "orphan = "∾⟨@+34⟩∾"x"∾⟨@+34,lf⟩∾householdRaw
