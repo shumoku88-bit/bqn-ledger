@@ -22,11 +22,11 @@ validTail ← ⟨
 # in physical source order.
 mixed ← admission.Admit Raw (
   ⟨
-    "orphan = \"value\"",
+    Pair ⟨"orphan","value"⟩,
     "[reports.trial-balance]",
     Pair ⟨"as-of","latest"⟩,
     "[unsupported.section]",
-    "ghost = \"value\"",
+    Pair ⟨"ghost","value"⟩,
     "[reports.balance-sheet]",
     "broken row",
     Pair ⟨"as-of","latest"⟩,""
