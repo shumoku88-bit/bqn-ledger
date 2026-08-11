@@ -131,8 +131,16 @@ Keep unchanged:
 - merged-main amount-text CI #2604: SUCCESS before this branch was cut;
 - Budget relation characterization-only CI #2605: SUCCESS;
 - CI #2606: FAILED on the discarded inline-concatenation spelling with a BQN train parse error;
-- CI #2608: SUCCESS after making diagnostic-cell construction explicit, with full repository check and coverage.
+- CI #2608: SUCCESS after making diagnostic-cell construction explicit, with full repository check and coverage;
+- final documented PR-head CI #2609: SUCCESS;
+- PR #648 squash merged as main `9ab7c8ae9becdff4d87cff6fe290298ea014152f`;
+- merged `src/ledger/budget_journal_admission.bqn` was reread on that main and retains the aligned `postingRows / binary / budgetOnly` relation with source-ordered diagnostic cells and no exact-opposite recheck;
+- merged-main CI #2610: SUCCESS, including full repository check and coverage.
 
 ## Review decision
 
 Treat exact opposite normalized amounts as an inherited Journal invariant, not a second Budget admission rule. Retain Budget admission as a thin semantic refinement whose visible kernel is the aligned `binary / Budget-role / source-order` transaction relation, with diagnostic publication derived structurally from that relation.
+
+## Closeout
+
+The owner is finally reviewed on main `9ab7c8ae9becdff4d87cff6fe290298ea014152f`. The Phase 2 queue may mark `src/ledger/budget_journal_admission.bqn` complete and advance to `src/ledger/budget_policy_admission.bqn`.
