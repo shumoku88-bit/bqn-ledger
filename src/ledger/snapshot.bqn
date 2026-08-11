@@ -2,7 +2,6 @@
 # Composition supplies already-read source values and registry policy.
 # No report, context, Plan/Budget, path, clock, or source I/O is accepted here.
 
-accountAdmission ← •Import "account_admission.bqn"
 journalAdmission ← •Import "journal_complete_admission.bqn"
 facts ← •Import "facts.bqn"
 empty ← ⟨⟩
@@ -31,17 +30,4 @@ BuildFromAccounts ← {𝕊 admittedAccounts‿rawJournal‿registry:
   {state⇐state,facts⇐factResult,diagnostics⇐diagnostics}
 }
 
-Build ← {𝕊 accountLines‿rawJournal‿registry:
-  diagnostics ← empty
-  accountResult ← accountAdmission.Admit ⟨accountLines,registry⟩
-  diagnostics ∾↩ accountResult.diagnostics
-  result ← {state⇐"error",facts⇐EmptyFacts @,diagnostics⇐diagnostics}
-  {𝕊:
-    built ← BuildFromAccounts ⟨accountResult.accounts,rawJournal,registry⟩
-    diagnostics ∾↩ built.diagnostics
-    result ↩ {state⇐built.state,facts⇐built.facts,diagnostics⇐diagnostics}
-  }⍟(accountResult.state≡"ok") @
-  result
-}
-
-{Build⇐Build,BuildFromAccounts⇐BuildFromAccounts}
+{BuildFromAccounts⇐BuildFromAccounts}
