@@ -22,12 +22,13 @@ accountResult ← accountsAdmission.Admit accountRaw
 accounts ← accountResult.accounts
 
 # The live Snapshot boundary receives already-admitted canonical Account evidence.
-valid ← snapshot.BuildFromAccounts ⟨Raw ⟨
+validRaw ← Raw ⟨
   "2026-08-12 Live snapshot",
   "  ; event-id: snapshot-live",
   "  Expenses:Food  100 JPY",
   "  Assets:Cash"
-⟩,accounts,registry⟩
+⟩
+valid ← snapshot.BuildFromAccounts ⟨accounts,validRaw,registry⟩
 "ok" lib.AssertEq valid.state
 0 lib.AssertEq ≠valid.diagnostics
 1 lib.AssertEq valid.facts.transactions.count
@@ -37,12 +38,13 @@ valid ← snapshot.BuildFromAccounts ⟨Raw ⟨
 
 # Journal admission failure remains fail-closed at the Snapshot publication
 # boundary; no partial Facts are published.
-invalid ← snapshot.BuildFromAccounts ⟨Raw ⟨
+invalidRaw ← Raw ⟨
   "2026-08-12 Unbalanced snapshot",
   "  ; event-id: snapshot-unbalanced",
   "  Expenses:Food  100 JPY",
   "  Assets:Cash -90 JPY"
-⟩,accounts,registry⟩
+⟩
+invalid ← snapshot.BuildFromAccounts ⟨accounts,invalidRaw,registry⟩
 "error" lib.AssertEq invalid.state
 0 lib.AssertEq invalid.facts.transactions.count
 0 lib.AssertEq invalid.facts.postings.count
