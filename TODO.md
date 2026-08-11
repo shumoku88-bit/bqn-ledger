@@ -160,12 +160,12 @@ A phase is considered reviewed only when every listed box is checked and the inv
 - [x] `src/ledger/journal_complete_admission.bqn` — PR #670 exposed Declaration and Posting-domain source relations; PR #671 aligned transaction start/end partitions, structural synthetic source/line-map construction, physical fallback identity remapping, transaction-major diagnostics, and complete-source durable event-id admission; reread on main `19fc9e017f167635b47c938542457f739b8573bc`; merged-main CI #2719 SUCCESS; decisions in `docs/JOURNAL_COMPLETE_SOURCE_RELATION_REVIEW_OBSERVATION-2026-08-11.md`, `docs/JOURNAL_COMPLETE_PARTITION_REVIEW_OBSERVATION-2026-08-11.md`, and `docs/JOURNAL_COMPLETE_REVIEW_CLOSEOUT-2026-08-11.md`.
 - [x] `src/ledger/journal_posting_text.bqn` — PR #673 exposed first-comment and canonical Account/Amount separator character coordinates while retaining the finite guarded three-token legacy compatibility path; reread on main `31bc3ad61fcbb17a7ba39025d31475f7c8697030`; merged-main CI #2725 SUCCESS; decision in `docs/JOURNAL_POSTING_TEXT_REVIEW_OBSERVATION-2026-08-11.md`.
 - [x] `src/ledger/journal_single_domain_admission.bqn` — PR #674 exposed physical source/Posting relations and narrowed publication to final semantic results; PR #675 exposed transaction-local exact completion, normalization, and balance; PR #676 classified structural Posting source coordinates once, narrowed the final join to the one-partition successful contract, and removed unreachable Transaction trace revalidation while retaining the Posting trace guard; reread on main `3f7131cf0649d0e2f492356f35e2632a87b2a957`; merged-main CI #2742 SUCCESS; decisions in `docs/JOURNAL_SINGLE_DOMAIN_POSTING_RELATION_REVIEW_OBSERVATION-2026-08-12.md`, `docs/JOURNAL_SINGLE_DOMAIN_EXACT_COMPLETION_REVIEW_OBSERVATION-2026-08-12.md`, `docs/JOURNAL_SINGLE_DOMAIN_STRUCTURAL_EVIDENCE_REVIEW_OBSERVATION-2026-08-12.md`, and `docs/JOURNAL_SINGLE_DOMAIN_REVIEW_CLOSEOUT-2026-08-12.md`.
-- [ ] `src/ledger/journal_transaction_structure.bqn`
-- [ ] `src/ledger/plan_journal_admission.bqn`
-- [ ] `src/ledger/plan_snapshot.bqn`
-- [ ] `src/ledger/report_policy_admission.bqn`
-- [ ] `src/ledger/snapshot.bqn`
-- [ ] `src/ledger/transaction_rows.bqn`
+- [x] `src/ledger/journal_transaction_structure.bqn` — PR #678 replaced shared body traversal accumulation with body-local result cells and one semantic metadata coordinate relation; reread on main `dc815fe98a7ff029a1e64a1d58bc7920960faf99`; merged-main CI #2750 SUCCESS; decision in `docs/JOURNAL_TRANSACTION_BODY_RELATION_REVIEW_OBSERVATION-2026-08-12.md`.
+- [x] `src/ledger/plan_journal_admission.bqn` — PR #679 exposed transaction-local Plan diagnostics while retaining whole-source plan-id uniqueness and explicit durable-relation identity remapping; reread on main `05094b357705558feaa64eeb72ca6daefc3cd7c9`; merged-main CI #2754 SUCCESS; decision in `docs/PLAN_JOURNAL_RELATION_REVIEW_OBSERVATION-2026-08-12.md`.
+- [x] `src/ledger/plan_snapshot.bqn` — reviewed as a retained legacy/qualification `plan.tsv` seam over `companion_admission`; canonical Plan runtime uses Journal Facts instead; no local array refactor selected; decision in `docs/PLAN_SNAPSHOT_REVIEW_OBSERVATION-2026-08-12.md`.
+- [x] `src/ledger/report_policy_admission.bqn` — PR #680 replaced mutable section ownership with physical header classification, Scan/Group source segments, and local segment admission; reread on main `06e12a24fd181b1e5af7092726a3bd3886f2fb27`; merged-main CI #2760 SUCCESS; decision in `docs/REPORT_POLICY_SECTION_REVIEW_OBSERVATION-2026-08-12.md`.
+- [x] `src/ledger/snapshot.bqn` — PR #681 removed legacy Account admission and the legacy `Build` entry from the production Snapshot owner, leaving canonical `BuildFromAccounts`; reread on main `fbbfbaf8be1a3c8b20ecdba189a5fec61dd84cea`; merged-main CI #2798 SUCCESS; decision in `docs/SNAPSHOT_LIVE_BOUNDARY_REVIEW_OBSERVATION-2026-08-12.md`.
+- [x] `src/ledger/transaction_rows.bqn` — PR #682 grouped Posting indices once by canonical Transaction coordinate and mapped typed Posting cells directly into Transaction rows while preserving multi-Posting evidence; reread on main `8aeda703afcf31968d45e81edcc1345ba0ed4190`; merged-main CI #2803 SUCCESS; decision in `docs/TRANSACTION_ROWS_REVIEW_OBSERVATION-2026-08-12.md`; Phase 2 closeout in `docs/LEDGER_PHASE_TWO_REVIEW_CLOSEOUT-2026-08-12.md`.
 
 ## Phase 3: `src/sections/`
 
@@ -305,6 +305,6 @@ After the production BQN inventory is reviewed, the selector/UI adapter consolid
 
 ## Current cursor
 
-`src/ledger/journal_transaction_structure.bqn`
+`src/sections/account_balances.bqn`
 
-Resume the normal Phase 2 ledger review sequence at Journal transaction structure admission.
+Resume the normal Phase 3 sections review sequence at Account Balances.
