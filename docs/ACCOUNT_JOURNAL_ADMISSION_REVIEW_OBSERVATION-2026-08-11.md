@@ -118,9 +118,11 @@ The failed runs are retained as design evidence rather than hidden:
 - CI #2585, #2588, #2589, and #2590: temporary writer-candidate probes narrowed the problem while some probe/output forms themselves were intentionally discarded rather than retained as evidence;
 - CI #2592: exact writer output exposed the partial `StartsDirective` prefix take and its missing-fill error;
 - CI #2593: after making directive classification total, full `tools/check.sh` and coverage succeeded, including canonical Account add/write qualification;
-- CI #2595: after removing all temporary instrumentation and retaining the clean writer round-trip law, full `tools/check.sh` and coverage succeeded again.
+- CI #2595: after removing all temporary instrumentation and retaining the clean writer round-trip law, full `tools/check.sh` and coverage succeeded again;
+- CI #2596: the final documented PR head passed full `tools/check.sh` and coverage;
+- CI #2597: squash-merged main `945fbb11f9f0a3b7a89006110e88468a063a2a64` passed full `tools/check.sh` and coverage.
 
-No temporary debug test or shell instrumentation remains in the final branch diff.
+No temporary debug test or shell instrumentation remains in the merged diff.
 
 ## Protected contracts
 
@@ -145,3 +147,7 @@ The refactor preserves:
 Retain `account_journal_admission.bqn` as the canonical grammar owner. Replace the global active/Finalize state machine with whole-source line classification plus Scan/Group segmentation, while retaining small local block state where it directly expresses Account metadata laws.
 
 The useful BQN lesson is not merely “use Group”. Moving a sequential source grammar into a whole-array model also requires helpers used across that array to be total over the expanded evaluation domain.
+
+## Closeout
+
+PR #645 was squash-merged as `945fbb11f9f0a3b7a89006110e88468a063a2a64`. The merged owner was reread on main with the Scan/Group segmentation present as intended, and merged-main CI #2597 succeeded. The repository review cursor can therefore advance to `src/ledger/amount_text.bqn`.
