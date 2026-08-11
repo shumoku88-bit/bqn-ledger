@@ -42,43 +42,75 @@ PairValue ← {𝕊 block‿key:
 
 Admit ← {𝕊 raw:
   lines ← SplitKeepEmpty ⟨lf,(cr≠raw)/raw⟩
-  diagnostics ← empty ⋄ blocks ← empty ⋄ active ← 0 ⋄ current ← EmptyBlock ⟨"",0⟩
   knownSections ← ⟨
     "presentation.amounts","reports.trial-balance","reports.balance-sheet",
     "reports.profit-and-loss","reports.daily-flow","reports.monthly-accounts",
     "reports.recent-transactions"
   ⟩
-  Finalize ← {𝕊:
-    {𝕊:blocks∾↩⟨current⟩}⍟active @
-    active↩0 ⋄ current↩EmptyBlock ⟨"",0⟩
-  }
-  {𝕊 i:
-    text ← Trim i⊑lines ⋄ row ← i+1
-    ignored ← (0=≠text) ∨ hash=FirstOrSpace text
+
+  indices ← ↕≠lines
+  trimmed ← Trim¨lines
+  ignored ← (0=≠¨trimmed) ∨ hash=FirstOrSpace¨trimmed
+  header ← {(2≤≠𝕩) ∧ ('['=FirstOrSpace 𝕩) ∧ ']'=FirstOrSpace⌽𝕩}¨trimmed
+  segmentIds ← +`header
+  segments ← segmentIds⊔indices
+
+  ParsePair ← {𝕊 sourceIndex:
+    text ← sourceIndex⊑trimmed
+    row ← sourceIndex+1
+    diagnostics ← empty
+    pair ← @
+    equals ← '='=text
+    diagnostics∾↩AddIf ⟨1≠+´equals,Diagnostic ⟨"report_policy_key_shape_invalid",row,"Report policy row requires exactly one equals separator"⟩⟩
     {𝕊:
-      header ← (2≤≠text) ∧ ('['=FirstOrSpace text) ∧ ']'=FirstOrSpace⌽text
+      p ← ⊑equals/↕≠text
+      key ← Trim p↑text
+      value ← Trim (p+1)↓text
+      valid ← (0<≠key) ∧ 0<≠value
+      diagnostics∾↩AddIf ⟨¬valid,Diagnostic ⟨"report_policy_key_shape_invalid",row,"Report policy key and value must be nonempty"⟩⟩
+      {𝕊:pair↩{key⇐key,text⇐value,line⇐row}}⍟valid @
+    }⍟(1=+´equals) @
+    {diagnostics⇐diagnostics,pair⇐pair}
+  }
+
+  ParseSegment ← {𝕊 segment:
+    diagnostics ← empty
+    block ← @
+    {𝕊:
+      first ← ⊑segment
+      sectionSegment ← first⊑header
+      rowIndices ← ((¬segment⊏ignored) ∧ ¬segment⊏header)/segment
       {𝕊:
-        Finalize @
-        name ← ¯1↓1↓text ⋄ known ← Contains ⟨name,knownSections⟩
-        diagnostics∾↩AddIf ⟨¬known,Diagnostic ⟨"report_policy_section_unsupported",row,"report.toml contains an unsupported section"⟩⟩
-        {𝕊:active↩1 ⋄ current↩EmptyBlock ⟨name,row⟩}⍟known @
-      }⍟header @
-      {𝕊:
-        diagnostics∾↩AddIf ⟨¬active,Diagnostic ⟨"report_policy_key_outside_section",row,"Report policy key must occur inside a supported section"⟩⟩
+        name ← ¯1↓1↓first⊑trimmed
+        known ← Contains ⟨name,knownSections⟩
+        diagnostics∾↩AddIf ⟨¬known,Diagnostic ⟨"report_policy_section_unsupported",first+1,"report.toml contains an unsupported section"⟩⟩
         {𝕊:
-          equals ← '='=text
-          diagnostics∾↩AddIf ⟨1≠+´equals,Diagnostic ⟨"report_policy_key_shape_invalid",row,"Report policy row requires exactly one equals separator"⟩⟩
-          {𝕊:
-            p ← ⊑equals/↕≠text ⋄ key ← Trim p↑text ⋄ value ← Trim (p+1)↓text
-            valid ← (0<≠key) ∧ 0<≠value
-            diagnostics∾↩AddIf ⟨¬valid,Diagnostic ⟨"report_policy_key_shape_invalid",row,"Report policy key and value must be nonempty"⟩⟩
-            {𝕊:current↩{kind⇐current.kind,line⇐current.line,pairs⇐current.pairs∾⟨{key⇐key,text⇐value,line⇐row}⟩}}⍟valid @
-          }⍟(1=+´equals) @
-        }⍟active @
-      }⍟(¬header) @
-    }⍟(¬ignored) @
-  }¨↕≠lines
-  Finalize @
+          parsedPairs ← ParsePair¨rowIndices
+          diagnostics∾↩∾⟨empty⟩∾{𝕩.diagnostics}¨parsedPairs
+          pairItems ← {𝕩.pair}¨parsedPairs
+          pairs ← ({𝕩≢@}¨pairItems)/pairItems
+          block↩{kind⇐name,line⇐first+1,pairs⇐pairs}
+        }⍟known @
+        {𝕊:
+          diagnostics∾↩{𝕊 sourceIndex:
+            Diagnostic ⟨"report_policy_key_outside_section",sourceIndex+1,"Report policy key must occur inside a supported section"⟩
+          }¨rowIndices
+        }⍟(¬known) @
+      }⍟sectionSegment @
+      {𝕊:
+        outside ← (¬segment⊏ignored)/segment
+        diagnostics∾↩{𝕊 sourceIndex:
+          Diagnostic ⟨"report_policy_key_outside_section",sourceIndex+1,"Report policy key must occur inside a supported section"⟩
+        }¨outside
+      }⍟(¬sectionSegment) @
+    }⍟(0<≠segment) @
+    {diagnostics⇐diagnostics,block⇐block}
+  }
+
+  parsedSegments ← ParseSegment¨segments
+  diagnostics ← ∾⟨empty⟩∾{𝕩.diagnostics}¨parsedSegments
+  blockItems ← {𝕩.block}¨parsedSegments
+  blocks ← ({𝕩≢@}¨blockItems)/blockItems
 
   Singles ← {𝕊 kind: ({𝕩.kind≡kind}¨blocks)/blocks}
   RequireOne ← {𝕊 kind:
