@@ -83,83 +83,99 @@ LookupAccount ← {𝕊 accountKey‿accounts:
 }
 
 Collect ← {𝕊 lines‿accounts‿domainInfo:
-  diagnostics ← empty
-  postings ← empty
-  transactionStarts ← empty
-  transactionIndex ← ¯1
-  postingIndex ← 0
+  trimmedLines ← Trim¨lines
+  headerMask ← IsDateHeader¨trimmedLines
+  transactionStarts ← 1 + headerMask / ↕ ≠ lines
+  transactionCoordinates ← (+`headerMask) - 1
 
-  {𝕊 lineIndex:
-    original ← lineIndex ⊑ lines
-    trimmed ← Trim original
-    {𝕊:
-      transactionIndex ↩ transactionIndex + 1
-      transactionStarts ∾↩ ⟨lineIndex + 1⟩
-      postingIndex ↩ 0
-    }⍟(IsDateHeader trimmed) @
-
-    indented ← IsWhitespace ⊑ (original ∾ " ")
+  PostingCandidate ← {𝕊 line:
+    trimmed ← Trim line
+    indented ← IsWhitespace ⊑ (line ∾ " ")
     metadata ← ';' = ⊑ (trimmed ∾ ";")
-    candidate ← indented ∧ (0 < ≠ trimmed) ∧ (¬ metadata)
+    indented ∧ (0 < ≠ trimmed) ∧ (¬ metadata)
+  }
+  candidateMask ← PostingCandidate¨lines
+  candidateIndices ← candidateMask / ↕ ≠ lines
+  candidateLines ← candidateMask / lines
+  candidateTransactions ← candidateMask / transactionCoordinates
+  parsedPostings ← postingText.Split¨candidateLines
+  shapeValid ← {𝕩.valid}¨parsedPostings
+
+  # Transaction coordinates are nondecreasing in source order. Grouping the
+  # candidate axis therefore preserves source order while exposing the local
+  # count of earlier shape-valid Postings in each transaction.
+  candidateGroups ← (1 + candidateTransactions) ⊔ ↕ ≠ candidateTransactions
+  postingIndices ← ∾ {𝕊 group:
+    valid ← group ⊏ shapeValid
+    (+`valid) - valid
+  }¨ candidateGroups
+
+  AdmitCandidate ← {𝕊 candidateIndex:
+    lineIndex ← candidateIndex ⊑ candidateIndices
+    lineNumber ← lineIndex + 1
+    parsedPosting ← candidateIndex ⊑ parsedPostings
+    transactionIndex ← candidateIndex ⊑ candidateTransactions
+    postingIndex ← candidateIndex ⊑ postingIndices
+    valid ← parsedPosting.valid
+    rowDiagnostics ← AddIf ⟨¬ valid, Diagnostic ⟨"posting_shape_invalid", lineNumber, "posting must contain account plus explicit amount and commodity, or one elided account only"⟩⟩
+    item ← @
     {𝕊:
-      lineNumber ← lineIndex + 1
-      parsedPosting ← postingText.Split original
-      valid ← parsedPosting.valid
       explicit ← parsedPosting.explicit
       elided ← parsedPosting.elided
-      diagnostics ∾↩ AddIf ⟨¬ valid, Diagnostic ⟨"posting_shape_invalid", lineNumber, "posting must contain account plus explicit amount and commodity, or one elided account only"⟩⟩
+      accountKey ← parsedPosting.account
+      account ← LookupAccount ⟨accountKey,accounts⟩
+      commodity ← domainInfo.domain
+      amountText ← ""
+      amountOk ← 1
+      precisionOk ← 1
+      coefficient ← 0
+      sourceScale ← 0
       {𝕊:
-        accountKey ← parsedPosting.account
-        account ← LookupAccount ⟨accountKey,accounts⟩
-        commodity ← domainInfo.domain
-        amountText ← ""
-        amountOk ← 1
-        precisionOk ← 1
-        coefficient ← 0
-        sourceScale ← 0
+        amountText ↩ 0 ⊑ parsedPosting.words
+        commodity ↩ 1 ⊑ parsedPosting.words
+        negative ← '-' = ⊑ (amountText ∾ "0")
+        parsedAmount ← decimal.Parse (negative ↓ amountText)
+        amountOk ↩ parsedAmount.state ≡ "ok"
         {𝕊:
-          amountText ↩ 0 ⊑ parsedPosting.words
-          commodity ↩ 1 ⊑ parsedPosting.words
-          negative ← '-' = ⊑ (amountText ∾ "0")
-          parsedAmount ← decimal.Parse (negative ↓ amountText)
-          amountOk ↩ parsedAmount.state ≡ "ok"
-          {𝕊:
-            coefficient ↩ (1 - 2 × negative) × parsedAmount.coefficient
-            sourceScale ↩ parsedAmount.scale
-          }⍟amountOk @
-          finite ← 0 ≤ domainInfo.policy.max_fraction_digits
-          precisionOk ↩ amountOk ∧ ((¬ finite) ∨ sourceScale ≤ domainInfo.policy.max_fraction_digits)
-        }⍟explicit @
-        localDiagnostics ← empty
-        localDiagnostics ∾↩ AddIf ⟨transactionIndex < 0, Diagnostic ⟨"posting_outside_transaction", lineNumber, "posting must belong to a dated transaction"⟩⟩
-        localDiagnostics ∾↩ AddIf ⟨explicit ∧ (¬ amountOk), Diagnostic ⟨"posting_amount_invalid", lineNumber, "posting amount must parse exactly"⟩⟩
-        localDiagnostics ∾↩ AddIf ⟨explicit ∧ amountOk ∧ (¬ precisionOk), Diagnostic ⟨"posting_precision_exceeded", lineNumber, "posting precision exceeds currency policy"⟩⟩
-        localDiagnostics ∾↩ AddIf ⟨explicit ∧ amountOk ∧ (coefficient = 0), Diagnostic ⟨"posting_amount_zero", lineNumber, "posting amount must be nonzero"⟩⟩
-        localDiagnostics ∾↩ AddIf ⟨explicit ∧ (commodity ≢ domainInfo.domain), Diagnostic ⟨"posting_domain_mismatch", lineNumber, "posting commodity differs from transaction domain"⟩⟩
-        localDiagnostics ∾↩ AddIf ⟨account.state ≢ "ok", Diagnostic ⟨"posting_account_unresolved", lineNumber, "posting account must resolve exactly once"⟩⟩
-        accountConstrainsDomain ← (account.state ≡ "ok") ∧ 0 < ≠ account.currency
-        localDiagnostics ∾↩ AddIf ⟨accountConstrainsDomain ∧ (account.currency ≢ domainInfo.domain), Diagnostic ⟨"posting_account_currency_mismatch", lineNumber, "Account default Commodity differs from transaction domain"⟩⟩
-        diagnostics ∾↩ localDiagnostics
-        {𝕊:
-          postings ∾↩ ⟨{
-            transaction_index⇐transactionIndex,
-            posting_index⇐postingIndex,
-            source_line⇐lineNumber,
-            account_key⇐accountKey,
-            account_currency⇐account.currency,
-            commodity⇐commodity,
-            amount_text⇐amountText,
-            source_coefficient⇐coefficient,
-            source_scale⇐sourceScale,
-            elided⇐elided
-          }⟩
-        }⍟(0 = ≠ localDiagnostics) @
-        postingIndex ↩ postingIndex + 1
-      }⍟valid @
-    }⍟candidate @
-  }¨ ↕ ≠ lines
+          coefficient ↩ (1 - 2 × negative) × parsedAmount.coefficient
+          sourceScale ↩ parsedAmount.scale
+        }⍟amountOk @
+        finite ← 0 ≤ domainInfo.policy.max_fraction_digits
+        precisionOk ↩ amountOk ∧ ((¬ finite) ∨ sourceScale ≤ domainInfo.policy.max_fraction_digits)
+      }⍟explicit @
+      localDiagnostics ← empty
+      localDiagnostics ∾↩ AddIf ⟨transactionIndex < 0, Diagnostic ⟨"posting_outside_transaction", lineNumber, "posting must belong to a dated transaction"⟩⟩
+      localDiagnostics ∾↩ AddIf ⟨explicit ∧ (¬ amountOk), Diagnostic ⟨"posting_amount_invalid", lineNumber, "posting amount must parse exactly"⟩⟩
+      localDiagnostics ∾↩ AddIf ⟨explicit ∧ amountOk ∧ (¬ precisionOk), Diagnostic ⟨"posting_precision_exceeded", lineNumber, "posting precision exceeds currency policy"⟩⟩
+      localDiagnostics ∾↩ AddIf ⟨explicit ∧ amountOk ∧ (coefficient = 0), Diagnostic ⟨"posting_amount_zero", lineNumber, "posting amount must be nonzero"⟩⟩
+      localDiagnostics ∾↩ AddIf ⟨explicit ∧ (commodity ≢ domainInfo.domain), Diagnostic ⟨"posting_domain_mismatch", lineNumber, "posting commodity differs from transaction domain"⟩⟩
+      localDiagnostics ∾↩ AddIf ⟨account.state ≢ "ok", Diagnostic ⟨"posting_account_unresolved", lineNumber, "posting account must resolve exactly once"⟩⟩
+      accountConstrainsDomain ← (account.state ≡ "ok") ∧ 0 < ≠ account.currency
+      localDiagnostics ∾↩ AddIf ⟨accountConstrainsDomain ∧ (account.currency ≢ domainInfo.domain), Diagnostic ⟨"posting_account_currency_mismatch", lineNumber, "Account default Commodity differs from transaction domain"⟩⟩
+      rowDiagnostics ∾↩ localDiagnostics
+      {𝕊:
+        item ↩ {
+          transaction_index⇐transactionIndex,
+          posting_index⇐postingIndex,
+          source_line⇐lineNumber,
+          account_key⇐accountKey,
+          account_currency⇐account.currency,
+          commodity⇐commodity,
+          amount_text⇐amountText,
+          source_coefficient⇐coefficient,
+          source_scale⇐sourceScale,
+          elided⇐elided
+        }
+      }⍟(0 = ≠ localDiagnostics) @
+    }⍟valid @
+    {diagnostics⇐rowDiagnostics,item⇐item}
+  }
 
-  {diagnostics⇐diagnostics, postings⇐postings, transaction_starts⇐transactionStarts}
+  candidateResults ← AdmitCandidate¨↕≠candidateIndices
+  diagnostics ← ∾{𝕩.diagnostics}¨candidateResults
+  items ← {𝕩.item}¨candidateResults
+  postings ← ({𝕩≢@}¨items)/items
+  {diagnostics⇐diagnostics,postings⇐postings,transaction_starts⇐transactionStarts}
 }
 
 Normalize ← {𝕊 postings:
@@ -353,8 +369,6 @@ Admit ← {𝕊 raw‿accounts‿registry:
     state⇐(0 = ≠ diagnostics) ⊑ "error"‿"ok",
     domain⇐domainInfo.domain,
     calculation_scale⇐calculationScale,
-    normalized_postings⇐normalizedPostings,
-    transaction_starts⇐transactionStarts,
     transactions⇐transactions,
     diagnostics⇐diagnostics
   }
