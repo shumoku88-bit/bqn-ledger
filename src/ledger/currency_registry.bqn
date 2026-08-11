@@ -7,10 +7,9 @@ SplitKeepEmpty ← {𝕊 sep‿text:
   groups ← (+`sep=text)⊔text
   {(sep≠𝕩)/𝕩}¨groups
 }
-empty ← ⟨⟩
 
 IsIgnored ← {𝕊 line:
-  (0=≠line) ∨ ((0<≠line) ∧ (((⊑line)='#') ∨ ((⊑line)=⊑"\\")))
+  (0<≠line) ? (((⊑line)='#') ∨ ((⊑line)=⊑"\\")) ; 1
 }
 
 IsFractionDigits ← {𝕊 text:
@@ -39,8 +38,7 @@ Build ← {𝕊 lines:
     fieldOk ← ∧´ {𝕩.field_count=3}¨parsed
     codeOk ← ∧´ {0<≠>𝕩}¨codes
     fractionOk ← ∧´ IsFractionDigits¨fractions
-    sorted ← (⍋ codes) ⊏ codes
-    duplicate ← 0 < +´ ((1↓sorted) ≡¨ (¯1↓sorted))
+    duplicate ← (≠codes) ≠ ≠⍷codes
     {𝕊: result ↩ Failure ⟨"currency_registry_row_invalid", "currency registry rows require currency, max_fraction_digits, and symbol"⟩}⍟(¬fieldOk) @
     {𝕊: result ↩ Failure ⟨"currency_registry_currency_empty", "currency registry contains an empty currency code"⟩}⍟(fieldOk ∧ ¬codeOk) @
     {𝕊: result ↩ Failure ⟨"currency_registry_fraction_digits_invalid", "currency registry contains invalid max_fraction_digits"⟩}⍟(fieldOk ∧ codeOk ∧ ¬fractionOk) @
