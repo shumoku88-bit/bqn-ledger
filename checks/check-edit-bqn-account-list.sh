@@ -74,15 +74,7 @@ printf 'legacy sentinel\n' >"$tmp/accounts.tsv"
 legacy_before="$(shasum -a 256 "$tmp/accounts.tsv" | awk '{print $1}')"
 account_before="$(shasum -a 256 "$tmp/accounts.journal" | awk '{print $1}')"
 
-set +e
-preview="$(./tools/edit --base "$tmp" account add --name 'Income:Friend-Settlement' --role income --currency JPY --dry-run --post-check none 2>&1)"
-preview_rc=$?
-set -e
-if [[ "$preview_rc" -ne 0 ]]; then
-  preview_one_line="${preview//$'\n'/; }"
-  echo "::error file=checks/check-edit-bqn-account-list.sh::Account writer debug: $preview_one_line" >&2
-  exit "$preview_rc"
-fi
+preview="$(./tools/edit --base "$tmp" account add --name 'Income:Friend-Settlement' --role income --currency JPY --dry-run --post-check none)"
 grep -Fq 'Target:' <<<"$preview"
 grep -Fq '/accounts.journal' <<<"$preview"
 grep -Fq 'account Income:Friend-Settlement' <<<"$preview"
