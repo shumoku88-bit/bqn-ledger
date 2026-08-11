@@ -18,14 +18,12 @@ Build ← {𝕊 rowCoordinates‿columnCoordinates‿valueScale‿groups:
   aligned ← (groups.count=≠groups.row_index) ∧ ∧´groups.count=groupLengths
   diagnostics ∾↩ AddIf ⟨¬aligned,Diagnostic ⟨"pivot_group_columns_misaligned","sparse Group columns must align with count"⟩⟩
   {𝕊:
-    rowInvalid ← ∨´0∾{(𝕩<0) ∨ (𝕩≥≠rowCoordinates) ∨ 𝕩≠⌊𝕩}¨groups.row_index
-    columnInvalid ← ∨´0∾{(𝕩<0) ∨ (𝕩≥≠columnCoordinates) ∨ 𝕩≠⌊𝕩}¨groups.column_index
+    rowInvalid ← ∨´0∾((groups.row_index<0) ∨ (groups.row_index≥≠rowCoordinates) ∨ groups.row_index≠⌊groups.row_index)
+    columnInvalid ← ∨´0∾((groups.column_index<0) ∨ (groups.column_index≥≠columnCoordinates) ∨ groups.column_index≠⌊groups.column_index)
     diagnostics ∾↩ AddIf ⟨rowInvalid,Diagnostic ⟨"pivot_row_index_invalid","sparse row indices must be in bounds"⟩⟩
     diagnostics ∾↩ AddIf ⟨columnInvalid,Diagnostic ⟨"pivot_column_index_invalid","sparse column indices must be in bounds"⟩⟩
-    duplicate ← ∨´0∾{𝕊 i:
-      r←i⊑groups.row_index ⋄ c←i⊑groups.column_index
-      1<+´(r=groups.row_index) ∧ c=groups.column_index
-    }¨↕groups.count
+    coordinateCells ← {𝕊 i: ⟨i⊑groups.row_index,i⊑groups.column_index⟩}¨↕groups.count
+    duplicate ← groups.count≠≠⍷coordinateCells
     diagnostics ∾↩ AddIf ⟨duplicate,Diagnostic ⟨"pivot_coordinate_duplicate","sparse Group must contain at most one item per coordinate"⟩⟩
   }⍟aligned @
 
@@ -39,18 +37,10 @@ Build ← {𝕊 rowCoordinates‿columnCoordinates‿valueScale‿groups:
     # destination cell as one Group item or the absent bound groups.count.
     groupCells ← (columnCount×groups.row_index)+groups.column_index
     groupLookup ← groupCells ⊐ ↕cellCount
-    cells ← {𝕊 groupIndex:
-      value ← 0
-      cellContributors ← empty
-      {𝕊:
-        value↩groupIndex⊑groups.coefficient
-        cellContributors↩groupIndex⊑groups.contributors
-      }⍟(groupIndex<groups.count) @
-      {value⇐value,contributors⇐cellContributors}
-    }¨groupLookup
 
-    valuesFlat ← {𝕩.value}¨cells
-    contributorsFlat ← {𝕩.contributors}¨cells
+    # Append one fill item at the absent bound, then select values and contributor cells directly.
+    valuesFlat ← groupLookup⊏(groups.coefficient∾0)
+    contributorsFlat ← groupLookup⊏(groups.contributors∾⟨empty⟩)
     values ← {𝕊 rowIndex:
       ((columnCount×rowIndex)+↕columnCount)⊏valuesFlat
     }¨↕rowCount
