@@ -42,7 +42,8 @@ StartsDirective ← {𝕊 keyword‿line:
   remainder ← n↓text
   enough ← n≤≠text
   boundary ← (0=≠remainder) ∨ IsWhitespace ⊑(remainder∾" ")
-  enough ∧ (keyword≡n↑text) ∧ boundary
+  prefix ← n↑text∾n⥊space
+  enough ∧ (keyword≡prefix) ∧ boundary
 }
 BeforeComment ← {𝕊 text: (IndexOf ⟨semicolon,text⟩) ↑ text }
 AsciiLowerChar ← {𝕊 c:
@@ -83,115 +84,124 @@ CommodityValid ← {𝕊 value:
 Admit ← {𝕊 raw:
   normalized ← (cr≠raw)/raw
   lines ← lf parse.SplitKeepEmpty normalized
-  diagnostics ← empty
-  rows ← empty
+  indices ← ↕≠lines
 
-  active ← 0
-  activeValid ← 0
-  activeHasError ← 0
-  activeKey ← ""
-  activeType ← ""
-  activeRole ← ""
-  activeCommodity ← ""
-  activeLine ← 0
-  typeCount ← 0
-  commodityCount ← 0
+  # Make the source grammar visible as one aligned line classification. Blank lines and
+  # top-level non-comment lines start new segments; comments never terminate an Account block.
+  trimmed ← Trim¨lines
+  blank ← 0=≠¨trimmed
+  indented ← IsIndented¨lines
+  comment ← IsComment¨lines
+  topLevel ← (¬blank) ∧ (¬indented) ∧ ¬comment
+  accountStart ← topLevel ∧ {StartsDirective ⟨"account",𝕩⟩}¨lines
+  segmentIds ← +`(blank ∨ topLevel)
+  segments ← segmentIds⊔indices
 
-  AddActiveError ← {𝕊 diagnostic:
-    diagnostics∾↩⟨diagnostic⟩
-    activeHasError↩1
-  }
-
-  Finalize ← {𝕊:
-    {𝕊:
-      {𝕊: AddActiveError Diagnostic ⟨"account_type_missing",activeLine,"account declaration must contain exactly one type or role"⟩}⍟(0=typeCount) @
-      {𝕊:
-        metadata ← ⟨{key⇐"type",value⇐activeType}⟩
-        {𝕊: metadata∾↩⟨{key⇐"commodity",value⇐activeCommodity}⟩}⍟(0<≠activeCommodity) @
-        rows∾↩⟨{
-          key⇐activeKey,
-          currency⇐activeCommodity,
-          default_commodity⇐activeCommodity,
-          role⇐activeRole,
-          type⇐activeType,
-          metadata⇐metadata,
-          source_row⇐activeLine
-        }⟩
-      }⍟((¬activeHasError) ∧ 1=typeCount ∧ commodityCount≤1) @
-    }⍟(active ∧ activeValid) @
-    active↩0
-    activeValid↩0
-    activeHasError↩0
-    activeKey↩""
-    activeType↩""
-    activeRole↩""
-    activeCommodity↩""
-    activeLine↩0
-    typeCount↩0
-    commodityCount↩0
-  }
-
-  StartAccount ← {𝕊 line‿row:
-    body ← Trim BeforeComment TrimLeft line
+  ParseAccountSegment ← {𝕊 segment:
+    diagnostics ← empty
+    hasError ← 0
+    headerValid ← 1
+    headerIndex ← ⊑segment
+    headerRow ← headerIndex+1
+    headerLine ← headerIndex⊑lines
+    body ← Trim BeforeComment TrimLeft headerLine
     name ← Trim (≠"account")↓body
-    active↩1
-    activeValid↩1
-    activeLine↩row
-    {𝕊: AddActiveError Diagnostic ⟨"account_key_empty",row,"account directive requires a nonempty Account identity"⟩ ⋄ activeValid↩0}⍟(0=≠name) @
-    {𝕊: AddActiveError Diagnostic ⟨"account_key_control_invalid",row,"Account identity must not contain control whitespace"⟩ ⋄ activeValid↩0}⍟(∨´0∾tab=name) @
-    activeKey↩name
+
+    AddError ← {𝕊 diagnostic:
+      diagnostics∾↩⟨diagnostic⟩
+      hasError↩1
+    }
+
+    {𝕊: AddError Diagnostic ⟨"account_key_empty",headerRow,"account directive requires a nonempty Account identity"⟩ ⋄ headerValid↩0}⍟(0=≠name) @
+    {𝕊: AddError Diagnostic ⟨"account_key_control_invalid",headerRow,"Account identity must not contain control whitespace"⟩ ⋄ headerValid↩0}⍟(∨´0∾tab=name) @
+
+    accountType ← ""
+    accountRole ← ""
+    accountCommodity ← ""
+    typeCount ← 0
+    commodityCount ← 0
+
+    ParseMetadata ← {𝕊 sourceIndex:
+      line ← sourceIndex⊑lines
+      row ← sourceIndex+1
+      isComment ← sourceIndex⊑comment
+      text ← DropMetadataPrefix Trim line
+      p ← IndexOf ⟨colon,text⟩
+      hasColon ← p<≠text
+      {𝕊:
+        {𝕊: AddError Diagnostic ⟨"account_metadata_shape_invalid",row,"account metadata must use key: value shape"⟩}⍟(¬isComment) @
+      }⍟(¬hasColon) @
+      {𝕊:
+        key ← AsciiLower Trim p↑text
+        value ← Trim (p+1)↓text
+        supported ← (key≡"type") ∨ (key≡"role") ∨ key≡"commodity"
+        {𝕊: AddError Diagnostic ⟨"account_metadata_unsupported",row,"accounts.journal admits only type, role, and commodity metadata"⟩}⍟(¬supported) @
+        {𝕊:
+          typeCount+↩1
+          {𝕊: AddError Diagnostic ⟨"account_type_duplicate",row,"account declaration must contain exactly one type or role"⟩}⍟(1<typeCount) @
+          parsedType ← TypeValue value
+          {𝕊: AddError Diagnostic ⟨"account_type_invalid",row,"account type must be Asset, Liability, Equity, Income, Expense, or Budget"⟩}⍟(¬parsedType.ok) @
+          {𝕊: accountType↩parsedType.type ⋄ accountRole↩parsedType.role}⍟(parsedType.ok ∧ 1=typeCount) @
+        }⍟((key≡"type") ∨ key≡"role") @
+        {𝕊:
+          commodityCount+↩1
+          {𝕊: AddError Diagnostic ⟨"account_commodity_duplicate",row,"account declaration may contain at most one default Commodity"⟩}⍟(1<commodityCount) @
+          validCommodity ← CommodityValid value
+          {𝕊: AddError Diagnostic ⟨"account_commodity_invalid",row,"default Commodity must be nonempty and contain no whitespace"⟩}⍟(¬validCommodity) @
+          {𝕊: accountCommodity↩value}⍟(validCommodity ∧ 1=commodityCount) @
+        }⍟(key≡"commodity") @
+      }⍟hasColon @
+    }
+
+    metadataIndices ← (segment⊏indented)/segment
+    ParseMetadata¨metadataIndices
+    {𝕊: AddError Diagnostic ⟨"account_type_missing",headerRow,"account declaration must contain exactly one type or role"⟩}⍟(headerValid ∧ 0=typeCount) @
+
+    item ← @
+    {𝕊:
+      metadata ← ⟨{key⇐"type",value⇐accountType}⟩
+      {𝕊: metadata∾↩⟨{key⇐"commodity",value⇐accountCommodity}⟩}⍟(0<≠accountCommodity) @
+      item↩{
+        key⇐name,
+        currency⇐accountCommodity,
+        default_commodity⇐accountCommodity,
+        role⇐accountRole,
+        type⇐accountType,
+        metadata⇐metadata,
+        source_row⇐headerRow
+      }
+    }⍟(headerValid ∧ ¬hasError ∧ 1=typeCount ∧ commodityCount≤1) @
+    {diagnostics⇐diagnostics,item⇐item}
   }
 
-  ParseMetadata ← {𝕊 line‿row:
-    comment ← IsComment line
-    text ← DropMetadataPrefix Trim line
-    p ← IndexOf ⟨colon,text⟩
-    hasColon ← p<≠text
+  ParseOutsideSegment ← {𝕊 segment:
+    diagnostics ← empty
     {𝕊:
-      {𝕊: AddActiveError Diagnostic ⟨"account_metadata_shape_invalid",row,"account metadata must use key: value shape"⟩}⍟(¬comment) @
-    }⍟(¬hasColon) @
-    {𝕊:
-      key ← AsciiLower Trim p↑text
-      value ← Trim (p+1)↓text
-      supported ← (key≡"type") ∨ (key≡"role") ∨ key≡"commodity"
-      {𝕊: AddActiveError Diagnostic ⟨"account_metadata_unsupported",row,"accounts.journal admits only type, role, and commodity metadata"⟩}⍟(¬supported) @
-      {𝕊:
-        typeCount+↩1
-        {𝕊: AddActiveError Diagnostic ⟨"account_type_duplicate",row,"account declaration must contain exactly one type or role"⟩}⍟(1<typeCount) @
-        parsedType ← TypeValue value
-        {𝕊: AddActiveError Diagnostic ⟨"account_type_invalid",row,"account type must be Asset, Liability, Equity, Income, Expense, or Budget"⟩}⍟(¬parsedType.ok) @
-        {𝕊: activeType↩parsedType.type ⋄ activeRole↩parsedType.role}⍟(parsedType.ok ∧ 1=typeCount) @
-      }⍟((key≡"type") ∨ key≡"role") @
-      {𝕊:
-        commodityCount+↩1
-        {𝕊: AddActiveError Diagnostic ⟨"account_commodity_duplicate",row,"account declaration may contain at most one default Commodity"⟩}⍟(1<commodityCount) @
-        validCommodity ← CommodityValid value
-        {𝕊: AddActiveError Diagnostic ⟨"account_commodity_invalid",row,"default Commodity must be nonempty and contain no whitespace"⟩}⍟(¬validCommodity) @
-        {𝕊: activeCommodity↩value}⍟(validCommodity ∧ 1=commodityCount) @
-      }⍟(key≡"commodity") @
-    }⍟hasColon @
+      first ← ⊑segment
+      {𝕊: diagnostics∾↩⟨Diagnostic ⟨"account_block_unsupported",first+1,"accounts.journal may contain only account declarations and comments"⟩⟩}⍟(first⊑topLevel) @
+      stray ← ((segment⊏indented) ∧ ¬segment⊏comment)/segment
+      diagnostics∾↩{𝕊 sourceIndex:
+        Diagnostic ⟨"account_indented_line_unexpected",sourceIndex+1,"indented source is valid only inside an account declaration"⟩
+      }¨stray
+    }⍟(0<≠segment) @
+    {diagnostics⇐diagnostics,item⇐@}
   }
 
-  {𝕊 i:
-    line ← i⊑lines
-    row ← i+1
-    text ← Trim line
-    blank ← 0=≠text
-    indented ← IsIndented line
-    comment ← IsComment line
+  ParseSegment ← {𝕊 segment:
+    result ← {diagnostics⇐empty,item⇐@}
+    {𝕊:
+      first ← ⊑segment
+      isAccount ← first⊑accountStart
+      {𝕊: result↩ParseAccountSegment segment}⍟isAccount @
+      {𝕊: result↩ParseOutsideSegment segment}⍟(¬isAccount) @
+    }⍟(0<≠segment) @
+    result
+  }
 
-    {𝕊: Finalize @}⍟blank @
-    {𝕊:
-      {𝕊: ParseMetadata ⟨line,row⟩}⍟active @
-      {𝕊: diagnostics∾↩⟨Diagnostic ⟨"account_indented_line_unexpected",row,"indented source is valid only inside an account declaration"⟩⟩}⍟((¬active) ∧ ¬comment) @
-    }⍟((¬blank) ∧ indented) @
-    {𝕊:
-      isAccount ← StartsDirective ⟨"account",line⟩
-      {𝕊: Finalize @ ⋄ StartAccount ⟨line,row⟩}⍟isAccount @
-      {𝕊: Finalize @ ⋄ diagnostics∾↩⟨Diagnostic ⟨"account_block_unsupported",row,"accounts.journal may contain only account declarations and comments"⟩⟩}⍟(¬isAccount) @
-    }⍟((¬blank) ∧ (¬indented) ∧ (¬comment)) @
-  }¨↕≠lines
-  Finalize @
+  parsed ← ParseSegment¨segments
+  diagnostics ← ∾{𝕩.diagnostics}¨parsed
+  items ← {𝕩.item}¨parsed
+  rows ← ({𝕩≢@}¨items)/items
 
   keys ← {𝕩.key}¨rows
   duplicate ← (≠keys)≠≠⍷keys

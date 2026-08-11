@@ -7,6 +7,7 @@ accounts ← •Import "../src/ledger/account_journal_admission.bqn"
 lf ← @+10
 Raw ← {𝕊 lines: ∾ lines ∾¨ lf }
 HasCode ← {𝕊 code‿diagnostics: ∨´0∾{𝕩.code≡code}¨diagnostics }
+Codes ← {𝕊 diagnostics: {𝕩.code}¨diagnostics }
 
 proof ← accounts.Admit loader.ReadRaw "fixtures/canonical-household-v1/accounts.journal"
 "ok" lib.AssertEq proof.state
@@ -35,6 +36,60 @@ roleSynonym ← accounts.Admit Raw ⟨
 "ok" lib.AssertEq roleSynonym.state
 "Expense" lib.AssertEq ⊑roleSynonym.accounts.type
 "expense" lib.AssertEq ⊑roleSynonym.accounts.role
+
+# A top-level comment does not terminate the active Account block.
+commentBridge ← accounts.Admit Raw ⟨
+  "account Assets:Cash",
+  "; explanatory comment",
+  "  type: Asset"
+⟩
+"ok" lib.AssertEq commentBridge.state
+⟨"Assets:Cash"⟩ lib.AssertEq commentBridge.accounts.key
+⟨1⟩ lib.AssertEq commentBridge.accounts.source_row
+
+# A new Account directive closes the preceding block without requiring a blank line.
+adjacentAccounts ← accounts.Admit Raw ⟨
+  "account Assets:Cash",
+  "  type: Asset",
+  "account Expenses:Food",
+  "  role: Expense"
+⟩
+"ok" lib.AssertEq adjacentAccounts.state
+⟨"Assets:Cash","Expenses:Food"⟩ lib.AssertEq adjacentAccounts.accounts.key
+⟨1,3⟩ lib.AssertEq adjacentAccounts.accounts.source_row
+
+# Protect the exact complete-source shape produced by the canonical Account append writer.
+writerRaw ← loader.ReadRaw "fixtures/canonical-household-v1/accounts.journal"
+writerBlock ← "account Income:Friend-Settlement"∾⟨lf⟩∾"  type: Income"∾⟨lf⟩∾"  commodity: JPY"
+writerCandidate ← writerRaw
+{𝕊:writerCandidate∾↩⟨lf⟩}⍟((0<≠writerCandidate) ∧ lf≠¯1↑writerCandidate) @
+writerCandidate∾↩writerBlock∾⟨lf⟩
+writerRoundTrip ← accounts.Admit writerCandidate
+"ok" lib.AssertEq writerRoundTrip.state
+7 lib.AssertEq writerRoundTrip.accounts.count
+writerIndex ← writerRoundTrip.accounts.count-1
+"Income:Friend-Settlement" lib.AssertEq writerIndex⊑writerRoundTrip.accounts.key
+"income" lib.AssertEq writerIndex⊑writerRoundTrip.accounts.role
+"Income" lib.AssertEq writerIndex⊑writerRoundTrip.accounts.type
+"JPY" lib.AssertEq writerIndex⊑writerRoundTrip.accounts.currency
+
+# A blank closes the block; later indented metadata is outside any Account.
+blankTerminates ← accounts.Admit Raw ⟨
+  "account Assets:Cash",
+  "",
+  "  type: Asset"
+⟩
+"error" lib.AssertEq blankTerminates.state
+⟨"account_type_missing","account_indented_line_unexpected"⟩ lib.AssertEq Codes blankTerminates.diagnostics
+0 lib.AssertEq blankTerminates.accounts.count
+
+# An unsupported top-level block finalizes the prior Account before its own diagnostic.
+unsupportedFinalizes ← accounts.Admit Raw ⟨
+  "account Assets:Cash",
+  "include shared.journal"
+⟩
+"error" lib.AssertEq unsupportedFinalizes.state
+⟨"account_type_missing","account_block_unsupported"⟩ lib.AssertEq Codes unsupportedFinalizes.diagnostics
 
 unsupportedBlock ← accounts.Admit Raw ⟨"include shared-accounts.journal"⟩
 "error" lib.AssertEq unsupportedBlock.state
