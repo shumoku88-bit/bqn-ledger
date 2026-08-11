@@ -119,30 +119,41 @@ Parse ← {𝕊 raw:
 
     nonblank ← (0<≠¨Trim¨lines)/↕≠lines
     finish ← 1+⊑⌽nonblank
-    metadata ← empty ⋄ rawPostings ← empty
     bodyCount ← 0⌈(finish-start)-1
     bodyIndices ← (start+1)+↕bodyCount
-    {𝕊 i:
+
+    ParseBodyRow ← {𝕊 i:
       original ← i⊑lines
       trimmed ← Trim original
       indented ← space=⊑(original∾" ")
       isMetadata ← ';'=⊑(trimmed∾";")
-      diagnostics ∾↩ AddIf ⟨¬indented,Diagnostic ⟨"transaction_body_not_indented",i+1,"transaction metadata and postings must be indented"⟩⟩
+      rowDiagnostics ← AddIf ⟨¬indented,Diagnostic ⟨"transaction_body_not_indented",i+1,"transaction metadata and postings must be indented"⟩⟩
+      metadataItem ← @
+      postingItem ← @
       {𝕊:
         parsed ← ParseMetadata ⟨original,i+1⟩
-        diagnostics ∾↩ parsed.diagnostics
-        {𝕊: metadata∾↩⟨parsed.item⟩}⍟(parsed.item≢@) @
+        rowDiagnostics ∾↩ parsed.diagnostics
+        metadataItem ↩ parsed.item
       }⍟(indented ∧ isMetadata) @
       {𝕊:
         parsed ← ParsePosting ⟨original,i+1⟩
-        diagnostics ∾↩ parsed.diagnostics
-        {𝕊: rawPostings∾↩⟨parsed.posting⟩}⍟(parsed.posting≢@) @
+        rowDiagnostics ∾↩ parsed.diagnostics
+        postingItem ↩ parsed.posting
       }⍟(indented ∧ ¬isMetadata) @
-    }¨ bodyIndices
+      {diagnostics⇐rowDiagnostics,metadata⇐metadataItem,posting⇐postingItem}
+    }
 
-    {𝕊 posting:
-      diagnostics ∾↩ AddIf ⟨¬Contains ⟨posting.account_key,declaredAccounts⟩,Diagnostic ⟨"posting_account_unknown",posting.source_line,"posting account must be declared in the Journal"⟩⟩
+    bodyResults ← ParseBodyRow¨bodyIndices
+    diagnostics ∾↩ ∾{𝕩.diagnostics}¨bodyResults
+    metadataItems ← {𝕩.metadata}¨bodyResults
+    postingItems ← {𝕩.posting}¨bodyResults
+    metadata ← ({𝕩≢@}¨metadataItems)/metadataItems
+    rawPostings ← ({𝕩≢@}¨postingItems)/postingItems
+
+    accountDiagnostics ← {𝕊 posting:
+      AddIf ⟨¬Contains ⟨posting.account_key,declaredAccounts⟩,Diagnostic ⟨"posting_account_unknown",posting.source_line,"posting account must be declared in the Journal"⟩⟩
     }¨rawPostings
+    diagnostics ∾↩ ∾accountDiagnostics
     keys ← {𝕩.key}¨metadata
     diagnostics ∾↩ AddIf ⟨(≠keys)≠≠⍷keys,Diagnostic ⟨"metadata_duplicate",start+1,"metadata keys must be unique within one transaction"⟩⟩
     layer ← MetaOr ⟨"layer",metadata,"actual"⟩
