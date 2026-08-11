@@ -59,4 +59,12 @@ CheckRejected ⟨⟨"r"⟩,⟨"c"⟩,0,MakeGroups ⟨⟨0⟩,⟨1⟩,⟨1⟩,⟨
 duplicate ← MakeGroups ⟨⟨0,0⟩,⟨0,0⟩,⟨1,2⟩,⟨⟨0⟩,⟨1⟩⟩⟩
 CheckRejected ⟨⟨"r"⟩,⟨"c"⟩,0,duplicate,"pivot_coordinate_duplicate"⟩
 
+# Distinct invalid coordinate pairs stay distinct even when row-major encoding would collide.
+distinctInvalid ← pivot.Build ⟨
+  ⟨"r"⟩,⟨"c"⟩,0,
+  MakeGroups ⟨⟨1,0⟩,⟨0,1⟩,⟨1,2⟩,⟨⟨0⟩,⟨1⟩⟩⟩
+⟩
+"error" lib.AssertEq distinctInvalid.state
+⟨"pivot_row_index_invalid","pivot_column_index_invalid"⟩ lib.AssertEq {𝕩.code}¨distinctInvalid.diagnostics
+
 •Out "test_accounting_sparse_pivot: ok"
