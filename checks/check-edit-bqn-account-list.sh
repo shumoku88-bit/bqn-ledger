@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
-trap 'rc=$?; echo "::error file=checks/check-edit-bqn-account-list.sh::debug failed command: $BASH_COMMAND" >&2; exit "$rc"' ERR
 
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
