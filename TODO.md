@@ -134,7 +134,7 @@ A phase is considered reviewed only when every listed box is checked and the inv
 - [x] `src/accounting/plan_completion_join.bqn` — PR #624 recorded the owner/relation/consumer audit; #625 fixed caller-owned Plan/Actual/unmatched ordering laws; #628 classified linked Actual `plan_id` once onto the selected Plan axis and grouped ragged completion cells while removing candidate-row reprojection; #629 removed the undocumented Actual snapshot-coordinate result and unused private evidence coordinate; reread on main `56dfbb09c37188f4443bb500f655509638e351cd`; final decisions in `docs/PLAN_COMPLETION_JOIN_REVIEW_CLOSEOUT-2026-08-11.md`.
 - [x] `src/accounting/plan_temporal_status.bqn` — PR #631 recorded the reachability/history/ownership audit; #632 narrowed the owner to open Plan date versus explicit as-of and routed Plan List plus Planned Payments through the same `overdue / due / future` relation while keeping completion and cycle grouping separate; reread on main `05edf2aecdd2d5d467a66fce0b00f17c87ec8e54`; final decisions in `docs/PLAN_TEMPORAL_STATUS_REVIEW_CLOSEOUT-2026-08-11.md`.
 - [x] `src/accounting/profit_and_loss.bqn` — PR #634 recorded the owner/consumer/array/public-surface audit; #635 proved dense zero rows plus independently reachable Income/Expense/net exact-sum failures without production changes; reread unchanged on main `07168702a4427e6d6b98ae3a3a26dc83fd78ebe4`; final decisions in `docs/PROFIT_AND_LOSS_REVIEW_CLOSEOUT-2026-08-11.md`.
-- [ ] `src/accounting/recent_transactions.bqn`
+- [x] `src/accounting/recent_transactions.bqn` — PR #637 recorded the owner/ordering/consumer audit; #638 proved physical-source ordering and `BuildThrough` eligibility through durable Transaction references; #639 removed the public snapshot-local `transaction_index` while retaining the private relation coordinate; reread on main `1f5773beabad5a52a2cd0c511feb46ee261cf412`; final decisions in `docs/RECENT_TRANSACTIONS_REVIEW_CLOSEOUT-2026-08-11.md`.
 - [ ] `src/accounting/sparse_group.bqn`
 - [ ] `src/accounting/sparse_pivot.bqn`
 
@@ -305,6 +305,6 @@ After the production BQN inventory is reviewed, the selector/UI adapter consolid
 
 ## Current cursor
 
-`src/accounting/recent_transactions.bqn`
+`src/accounting/sparse_group.bqn`
 
-Resume the normal Phase 1 accounting review sequence here after the completed Profit and Loss review.
+Resume the normal Phase 1 accounting review sequence here after the completed Recent Transactions review.
