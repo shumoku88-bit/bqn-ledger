@@ -7,6 +7,7 @@ accounts ← •Import "../src/ledger/account_journal_admission.bqn"
 lf ← @+10
 Raw ← {𝕊 lines: ∾ lines ∾¨ lf }
 HasCode ← {𝕊 code‿diagnostics: ∨´0∾{𝕩.code≡code}¨diagnostics }
+Codes ← {𝕊 diagnostics: {𝕩.code}¨diagnostics }
 
 proof ← accounts.Admit loader.ReadRaw "fixtures/canonical-household-v1/accounts.journal"
 "ok" lib.AssertEq proof.state
@@ -35,6 +36,45 @@ roleSynonym ← accounts.Admit Raw ⟨
 "ok" lib.AssertEq roleSynonym.state
 "Expense" lib.AssertEq ⊑roleSynonym.accounts.type
 "expense" lib.AssertEq ⊑roleSynonym.accounts.role
+
+# A top-level comment does not terminate the active Account block.
+commentBridge ← accounts.Admit Raw ⟨
+  "account Assets:Cash",
+  "; explanatory comment",
+  "  type: Asset"
+⟩
+"ok" lib.AssertEq commentBridge.state
+⟨"Assets:Cash"⟩ lib.AssertEq commentBridge.accounts.key
+⟨1⟩ lib.AssertEq commentBridge.accounts.source_row
+
+# A new Account directive closes the preceding block without requiring a blank line.
+adjacentAccounts ← accounts.Admit Raw ⟨
+  "account Assets:Cash",
+  "  type: Asset",
+  "account Expenses:Food",
+  "  role: Expense"
+⟩
+"ok" lib.AssertEq adjacentAccounts.state
+⟨"Assets:Cash","Expenses:Food"⟩ lib.AssertEq adjacentAccounts.accounts.key
+⟨1,3⟩ lib.AssertEq adjacentAccounts.accounts.source_row
+
+# A blank closes the block; later indented metadata is outside any Account.
+blankTerminates ← accounts.Admit Raw ⟨
+  "account Assets:Cash",
+  "",
+  "  type: Asset"
+⟩
+"error" lib.AssertEq blankTerminates.state
+⟨"account_type_missing","account_indented_line_unexpected"⟩ lib.AssertEq Codes blankTerminates.diagnostics
+0 lib.AssertEq blankTerminates.accounts.count
+
+# An unsupported top-level block finalizes the prior Account before its own diagnostic.
+unsupportedFinalizes ← accounts.Admit Raw ⟨
+  "account Assets:Cash",
+  "include shared.journal"
+⟩
+"error" lib.AssertEq unsupportedFinalizes.state
+⟨"account_type_missing","account_block_unsupported"⟩ lib.AssertEq Codes unsupportedFinalizes.diagnostics
 
 unsupportedBlock ← accounts.Admit Raw ⟨"include shared-accounts.journal"⟩
 "error" lib.AssertEq unsupportedBlock.state
