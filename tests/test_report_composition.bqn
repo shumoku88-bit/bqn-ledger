@@ -53,9 +53,9 @@ CheckGolden ⟨recent,"recent","compact","recent_journal.destination.compact.txt
 planned ← compose.Planned ⟨plan,actual,cycle12,"2026-01-12"⟩
 CheckGolden ⟨planned,"planned","json","planned_payments.destination.json"⟩
 cycleAccounts ← compose.CycleAccounts ⟨actual,"JPY",cycle10,"2026-01-10"⟩
-CheckGolden ⟨cycleAccounts,"cycle-accounts","human","cycle_accounts.fixed.destination.human.txt"⟩
+CheckGolden ⟨cycleAccounts,"cycle-accounts","human","cycle_accounts.destination.human.txt"⟩
 comparison ← compose.CycleComparison ⟨actual,"JPY",cycle10,"2026-01-10",cycle10,"2026-01-10","aligned_elapsed"⟩
-CheckGolden ⟨comparison,"cycle-comparison","human","cycle_comparison.fixed.destination.human.txt"⟩
+CheckGolden ⟨comparison,"cycle-comparison","human","cycle_comparison.destination.human.txt"⟩
 monthly ← compose.MonthlyAccounts ⟨actual,"JPY","2026-01","2026-03"⟩
 CheckGolden ⟨monthly,"monthly-accounts","human","monthly_accounts.destination.human.txt"⟩
 dailyFlow ← compose.DailyFlow ⟨actual,budgetPolicy,household,"JPY","2026-01-01","2026-02-01","2026-01-12"⟩
