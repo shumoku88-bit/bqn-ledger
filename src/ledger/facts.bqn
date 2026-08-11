@@ -6,8 +6,6 @@
 dates ← •Import "date_ordinal.bqn"
 empty ← ⟨⟩
 
-IndexOf ← {𝕊 item‿items: ⊑ items ⊐ ⟨item⟩ }
-Contains ← {𝕊 item‿items: (IndexOf ⟨item,items⟩) < ≠items }
 Diagnostic ← {𝕊 codeText‿messageText:
   {severity⇐"error",stage⇐"ledger_facts",code⇐codeText,message⇐messageText}
 }
@@ -51,7 +49,6 @@ Project ← {𝕊 admitted‿admittedAccounts:
     diagnostics ∾↩ AddIf ⟨(≠declaredLayers)≠≠⍷declaredLayers, Diagnostic ⟨"layer_duplicate","declared source layers must be unique"⟩⟩
   }⍟(admitted.state ≡ "ok") @
 
-  layerNames ← declaredLayers
   accountKeys ← admittedAccounts.key
   accountCurrencies ← admittedAccounts.currency
   accountRoles ← admittedAccounts.role
@@ -63,92 +60,109 @@ Project ← {𝕊 admitted‿admittedAccounts:
   diagnostics ∾↩ AddIf ⟨¬accountColumnsAligned, Diagnostic ⟨"account_columns_misaligned","all account columns must align with account keys"⟩⟩
   diagnostics ∾↩ AddIf ⟨(≠accountKeys) ≠ ≠⍷accountKeys, Diagnostic ⟨"account_key_duplicate","account keys must be unique"⟩⟩
 
-  {𝕊 transaction:
-    diagnostics ∾↩ AddIf ⟨¬dates.IsValid transaction.date, Diagnostic ⟨"transaction_date_invalid","admitted transaction date must be strict ISO Gregorian text"⟩⟩
-    diagnostics ∾↩ AddIf ⟨¬Contains ⟨transaction.domain,declaredDomains⟩, Diagnostic ⟨"transaction_domain_undeclared","transaction domain must occur in the admitted domain table"⟩⟩
-    diagnostics ∾↩ AddIf ⟨0 = ≠transaction.layer_name, Diagnostic ⟨"transaction_layer_missing","transaction layer must be explicit"⟩⟩
-    diagnostics ∾↩ AddIf ⟨¬Contains ⟨transaction.layer_name,declaredLayers⟩, Diagnostic ⟨"transaction_layer_undeclared","transaction layer must occur in declared source layers"⟩⟩
-    diagnostics ∾↩ AddIf ⟨0 = ≠transaction.source_event_id, Diagnostic ⟨"transaction_identity_missing","transaction identity must be explicit after complete admission"⟩⟩
-    {𝕊 posting:
-      accountKnown ← Contains ⟨posting.account_key,accountKeys⟩
-      diagnostics ∾↩ AddIf ⟨¬accountKnown, Diagnostic ⟨"posting_account_unknown","posting account must occur in the admitted account table"⟩⟩
-      {𝕊:
-        ai ← IndexOf ⟨posting.account_key,accountKeys⟩
-        accountDefault ← ai⊑accountCurrencies
-        diagnostics ∾↩ AddIf ⟨(0<≠accountDefault) ∧ (accountDefault ≢ transaction.domain), Diagnostic ⟨"posting_account_domain_mismatch","Account default Commodity must match transaction domain when declared"⟩⟩
-      }⍟(accountKnown ∧ accountColumnsAligned) @
-    }¨ transaction.postings
-    coefficients ← {𝕩.normalized_coefficient}¨ transaction.postings
-    diagnostics ∾↩ AddIf ⟨0 = ≠coefficients, Diagnostic ⟨"transaction_postings_missing","transaction must contain postings"⟩⟩
-    diagnostics ∾↩ AddIf ⟨0 ≠ Sum0 coefficients, Diagnostic ⟨"transaction_unbalanced","normalized posting coefficients must sum to zero"⟩⟩
-  }¨ transactions
+  # Classify the semantic join axes once. These coordinates are used both by
+  # projection-invariant diagnostics and by successful Fact publication.
+  transactionIndex ← ↕≠transactions
+  transactionDates ← {𝕩.date}¨transactions
+  transactionDomains ← {𝕩.domain}¨transactions
+  transactionLayers ← {𝕩.layer_name}¨transactions
+  transactionIds ← {𝕩.source_event_id}¨transactions
+  transactionPostingCells ← {𝕩.postings}¨transactions
+  postingCounts ← ≠¨transactionPostingCells
+  postingStarts ← ¯1↓+`0∾postingCounts
 
-  transactionIds ← {𝕩.source_event_id}¨ transactions
+  domainCoordinates ← declaredDomains⊐transactionDomains
+  layerCoordinates ← declaredLayers⊐transactionLayers
+  domainKnown ← domainCoordinates<≠declaredDomains
+  layerKnown ← layerCoordinates<≠declaredLayers
+  dateValid ← dates.IsValid¨transactionDates
+  layerMissing ← 0=≠¨transactionLayers
+  identityMissing ← 0=≠¨transactionIds
+
+  postings ← ∾transactionPostingCells
+  postingTransactionIndex ← ∾{𝕊 ti: (ti⊑postingCounts)⥊ti}¨transactionIndex
+  postingAccountKeys ← {𝕩.account_key}¨postings
+  accountCoordinates ← accountKeys⊐postingAccountKeys
+  accountKnown ← accountCoordinates<≠accountKeys
+  accountDomainMismatch ← (≠postings)⥊0
+  {𝕊:
+    postingAccountCurrencies ← accountCoordinates⊏(accountCurrencies∾⟨""⟩)
+    postingDomains ← postingTransactionIndex⊏transactionDomains
+    accountConstrainsDomain ← 0<≠¨postingAccountCurrencies
+    sameDomain ← postingAccountCurrencies≡¨postingDomains
+    accountDomainMismatch ↩ accountKnown ∧ accountConstrainsDomain ∧ ¬sameDomain
+  }⍟accountColumnsAligned @
+
+  transactionCoefficients ← {{𝕩.normalized_coefficient}¨𝕩}¨transactionPostingCells
+  transactionBalanced ← 0=Sum0¨transactionCoefficients
+
+  {𝕊 ti:
+    transaction ← ti⊑transactions
+    diagnostics ∾↩ AddIf ⟨¬ti⊑dateValid, Diagnostic ⟨"transaction_date_invalid","admitted transaction date must be strict ISO Gregorian text"⟩⟩
+    diagnostics ∾↩ AddIf ⟨¬ti⊑domainKnown, Diagnostic ⟨"transaction_domain_undeclared","transaction domain must occur in the admitted domain table"⟩⟩
+    diagnostics ∾↩ AddIf ⟨ti⊑layerMissing, Diagnostic ⟨"transaction_layer_missing","transaction layer must be explicit"⟩⟩
+    diagnostics ∾↩ AddIf ⟨¬ti⊑layerKnown, Diagnostic ⟨"transaction_layer_undeclared","transaction layer must occur in declared source layers"⟩⟩
+    diagnostics ∾↩ AddIf ⟨ti⊑identityMissing, Diagnostic ⟨"transaction_identity_missing","transaction identity must be explicit after complete admission"⟩⟩
+
+    postingCount ← ti⊑postingCounts
+    postingStart ← ti⊑postingStarts
+    localKnown ← postingCount↑postingStart↓accountKnown
+    localMismatch ← postingCount↑postingStart↓accountDomainMismatch
+    {𝕊 pi:
+      diagnostics ∾↩ AddIf ⟨¬pi⊑localKnown, Diagnostic ⟨"posting_account_unknown","posting account must occur in the admitted account table"⟩⟩
+      diagnostics ∾↩ AddIf ⟨pi⊑localMismatch, Diagnostic ⟨"posting_account_domain_mismatch","Account default Commodity must match transaction domain when declared"⟩⟩
+    }¨↕postingCount
+
+    diagnostics ∾↩ AddIf ⟨0=postingCount, Diagnostic ⟨"transaction_postings_missing","transaction must contain postings"⟩⟩
+    diagnostics ∾↩ AddIf ⟨¬ti⊑transactionBalanced, Diagnostic ⟨"transaction_unbalanced","normalized posting coefficients must sum to zero"⟩⟩
+  }¨transactionIndex
+
   diagnostics ∾↩ AddIf ⟨(≠transactionIds) ≠ ≠⍷transactionIds, Diagnostic ⟨"transaction_identity_duplicate","canonical transaction identities must be unique"⟩⟩
 
   transactionFacts ← EmptyTransactionFacts @
   postingFacts ← EmptyPostingFacts @
   {𝕊:
-    transactionIndex ← ↕≠transactions
+    transactionDateOrdinals ← dates.Ordinal¨transactionDates
+    transactionScales ← {𝕩.calculation_scale}¨transactions
     transactionFacts ↩ {
       count⇐≠transactions,
       index⇐transactionIndex,source_index⇐(≠transactions)⥊0,
-      transaction_id⇐{𝕩.source_event_id}¨ transactions,
-      identity_kind⇐{𝕩.identity_kind}¨ transactions,
-      source_start_line⇐{𝕩.source_start_line}¨ transactions,
-      source_end_line⇐{𝕩.source_end_line}¨ transactions,
-      date_text⇐{𝕩.date}¨ transactions,
-      date_ordinal⇐{dates.Ordinal 𝕩.date}¨ transactions,
-      description⇐{𝕩.description}¨ transactions,
-      status_marker⇐{𝕩.status_marker}¨ transactions,
-      metadata⇐{𝕩.metadata}¨ transactions,
-      layer_index⇐{IndexOf ⟨𝕩.layer_name,layerNames⟩}¨ transactions,
-      domain_index⇐{IndexOf ⟨𝕩.domain,declaredDomains⟩}¨ transactions,
-      calculation_scale⇐{𝕩.calculation_scale}¨ transactions,
-      txn_id⇐{𝕩.txn_id}¨ transactions,
-      plan_id⇐{𝕩.plan_id}¨ transactions,
-      allocation_id⇐{𝕩.allocation_id}¨ transactions,
-      execution_envelope⇐{𝕩.execution_envelope}¨ transactions,
-      actual_event_id⇐{𝕩.actual_event_id}¨ transactions
+      transaction_id⇐transactionIds,
+      identity_kind⇐{𝕩.identity_kind}¨transactions,
+      source_start_line⇐{𝕩.source_start_line}¨transactions,
+      source_end_line⇐{𝕩.source_end_line}¨transactions,
+      date_text⇐transactionDates,
+      date_ordinal⇐transactionDateOrdinals,
+      description⇐{𝕩.description}¨transactions,
+      status_marker⇐{𝕩.status_marker}¨transactions,
+      metadata⇐{𝕩.metadata}¨transactions,
+      layer_index⇐layerCoordinates,
+      domain_index⇐domainCoordinates,
+      calculation_scale⇐transactionScales,
+      txn_id⇐{𝕩.txn_id}¨transactions,
+      plan_id⇐{𝕩.plan_id}¨transactions,
+      allocation_id⇐{𝕩.allocation_id}¨transactions,
+      execution_envelope⇐{𝕩.execution_envelope}¨transactions,
+      actual_event_id⇐{𝕩.actual_event_id}¨transactions
     }
 
-    postingRows ← ∾ {𝕊 ti:
-      transaction ← ti⊑transactions
-      {𝕊 posting:
-        {
-          source_index⇐0,posting_id⇐posting.posting_id,
-          transaction_index⇐ti,
-          transaction_posting_index⇐posting.posting_index,
-          date_ordinal⇐dates.Ordinal transaction.date,
-          account_index⇐IndexOf ⟨posting.account_key,accountKeys⟩,
-          layer_index⇐IndexOf ⟨transaction.layer_name,layerNames⟩,
-          domain_index⇐IndexOf ⟨transaction.domain,declaredDomains⟩,
-          coefficient⇐posting.normalized_coefficient,
-          scale⇐transaction.calculation_scale,
-          side⇐posting.side,
-          source_line⇐posting.source_line,
-          source_coefficient⇐posting.source_coefficient,
-          source_scale⇐posting.source_scale,
-          amount_text⇐posting.amount_text
-        }
-      }¨ transaction.postings
-    }¨ transactionIndex
     postingFacts ↩ {
-      count⇐≠postingRows,index⇐↕≠postingRows,
-      source_index⇐{𝕩.source_index}¨postingRows,posting_id⇐{𝕩.posting_id}¨ postingRows,
-      transaction_index⇐{𝕩.transaction_index}¨ postingRows,
-      transaction_posting_index⇐{𝕩.transaction_posting_index}¨ postingRows,
-      date_ordinal⇐{𝕩.date_ordinal}¨ postingRows,
-      account_index⇐{𝕩.account_index}¨ postingRows,
-      layer_index⇐{𝕩.layer_index}¨ postingRows,
-      domain_index⇐{𝕩.domain_index}¨ postingRows,
-      coefficient⇐{𝕩.coefficient}¨ postingRows,
-      scale⇐{𝕩.scale}¨ postingRows,
-      side⇐{𝕩.side}¨ postingRows,
-      source_line⇐{𝕩.source_line}¨ postingRows,
-      source_coefficient⇐{𝕩.source_coefficient}¨ postingRows,
-      source_scale⇐{𝕩.source_scale}¨ postingRows,
-      amount_text⇐{𝕩.amount_text}¨ postingRows
+      count⇐≠postings,index⇐↕≠postings,
+      source_index⇐(≠postings)⥊0,
+      posting_id⇐{𝕩.posting_id}¨postings,
+      transaction_index⇐postingTransactionIndex,
+      transaction_posting_index⇐{𝕩.posting_index}¨postings,
+      date_ordinal⇐postingTransactionIndex⊏transactionDateOrdinals,
+      account_index⇐accountCoordinates,
+      layer_index⇐postingTransactionIndex⊏layerCoordinates,
+      domain_index⇐postingTransactionIndex⊏domainCoordinates,
+      coefficient⇐{𝕩.normalized_coefficient}¨postings,
+      scale⇐postingTransactionIndex⊏transactionScales,
+      side⇐{𝕩.side}¨postings,
+      source_line⇐{𝕩.source_line}¨postings,
+      source_coefficient⇐{𝕩.source_coefficient}¨postings,
+      source_scale⇐{𝕩.source_scale}¨postings,
+      amount_text⇐{𝕩.amount_text}¨postings
     }
   }⍟(0 = ≠diagnostics) @
 
@@ -162,7 +176,7 @@ Project ← {𝕊 admitted‿admittedAccounts:
       count⇐≠accountKeys,index⇐↕≠accountKeys,key⇐accountKeys,currency⇐accountCurrencies,
       role⇐accountRoles,type⇐accountTypes,metadata⇐accountMetadata,source_row⇐accountSourceRows
     },
-    layers⇐{count⇐≠layerNames,index⇐↕≠layerNames,name⇐layerNames},
+    layers⇐{count⇐≠declaredLayers,index⇐↕≠declaredLayers,name⇐declaredLayers},
     diagnostics⇐diagnostics
   }
 }
