@@ -24,7 +24,7 @@ accountResult ← accountsAdmission.Admit accountRaw
 "ok" lib.AssertEq accountResult.state
 accounts ← accountResult.accounts
 
-raw ← Raw ⟨
+journalRaw ← Raw ⟨
   "2026-08-12 Split purchase",
   "  ; event-id: rows-split",
   "  Expenses:Food 60 JPY",
@@ -35,7 +35,7 @@ raw ← Raw ⟨
   "  Assets:Cash 1000 JPY",
   "  Income:Salary -1000 JPY"
 ⟩
-built ← snapshot.BuildFromAccounts ⟨accounts,raw,registry⟩
+built ← snapshot.BuildFromAccounts ⟨accounts,journalRaw,registry⟩
 "ok" lib.AssertEq built.state
 view ← transactionRows.Build built.facts
 "ok" lib.AssertEq view.state
