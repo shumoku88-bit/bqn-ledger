@@ -13,7 +13,7 @@ accounts ← {
   key⇐⟨"Assets:Cash","Expenses:Food"⟩,
   currency⇐⟨"JPY","JPY"⟩
 }
-Prefix ← ⟨
+prefixLines ← ⟨
   "commodity JPY",
   "",
   "account Assets:Cash",
@@ -21,7 +21,7 @@ Prefix ← ⟨
   "account Expenses:Food",
   ""
 ⟩
-Admit ← {𝕊 body: single.Admit ⟨Raw Prefix∾body,accounts,registry⟩}
+Admit ← {𝕊 body: single.Admit ⟨Raw prefixLines∾body,accounts,registry⟩}
 
 # Source scales remain evidence while exact normalization uses one calculation
 # scale for the admitted transaction.
