@@ -63,11 +63,13 @@ FormatHuman ← {𝕊 input:
 
 FormatCompact ← {𝕊 result:
   rowLines ← {𝕊 index:
-    "ledger_recent_journal: "∾(index⊑result.rows.date)∾tab∾
-    (index⊑result.rows.currency)∾tab∾
-    (AmountText ⟨index⊑result.rows.coefficient,index⊑result.rows.scale⟩)∾tab∾
-    (Join (index⊑result.rows.credit_accounts))∾tab∾(Join (index⊑result.rows.debit_accounts))∾tab∾
-    index⊑result.rows.description
+    ∾⟨
+      "ledger_recent_journal: ",index⊑result.rows.date,tab,
+      index⊑result.rows.currency,tab,
+      AmountText ⟨index⊑result.rows.coefficient,index⊑result.rows.scale⟩,tab,
+      Join (index⊑result.rows.credit_accounts),tab,Join (index⊑result.rows.debit_accounts),tab,
+      index⊑result.rows.description
+    ⟩
   }¨result.rows.index
   bodyLines ← rowLines∾((0=result.rows.count)/⟨"ledger_recent_journal: (none)"⟩)
   ∾{𝕩∾lf}¨⟨"--- Ledger Recent Journal ---"⟩∾bodyLines
