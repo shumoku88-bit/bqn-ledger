@@ -124,7 +124,7 @@ BuildDetail ← {𝕊 calendar‿transactionRows‿planned‿issues‿cycle‿se
     matches ← selectedDate⊸≡¨calendar.days.date
     diagnostics ∾↩ AddIf ⟨1≠+´matches,Diagnostic ⟨"detail_date_outside_month","Selected Home date must occur in the displayed calendar month"⟩⟩
     {𝕊:
-      dayIndex ← matches⊐1
+      dayIndex ← ⊑(matches⊐1)
       actualIndices ← dayIndex⊑calendar.days.actual_indices
       planIndices ← dayIndex⊑calendar.days.plan_indices
       issueIndices ← dayIndex⊑calendar.days.issue_indices
