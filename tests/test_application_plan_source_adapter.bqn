@@ -3,12 +3,14 @@
 lib ← •Import "test_lib.bqn"
 registryBuilder ← •Import "../src/ledger/currency_registry.bqn"
 io ← •Import "../src/application/source_io.bqn"
+accountSource ← •Import "../src/application/account_source_adapter.bqn"
 adapter ← •Import "../src/application/plan_source_adapter.bqn"
 
 registryResult ← registryBuilder.Build io.ReadLines "config/currencies.tsv"
 "ok" lib.AssertEq registryResult.state
 
-result ← adapter.Load ⟨"fixtures/canonical-household-v1",registryResult.registry⟩
+base ← "fixtures/canonical-household-v1"
+result ← adapter.Load ⟨base,registryResult.registry⟩
 {𝕊:
   {𝕊 diagnostic: •Out diagnostic.code∾" | "∾(•Fmt diagnostic.line)∾" | "∾diagnostic.message}¨result.diagnostics
 }⍟(result.state≢"ok") @
@@ -30,5 +32,15 @@ result ← adapter.Load ⟨"fixtures/canonical-household-v1",registryResult.regi
 firstMetadata ← ⊑result.facts.transactions.metadata
 ⟨"plan-id","daily-target-id"⟩ lib.AssertEq {𝕩.key}¨firstMetadata
 ⟨"plan-groceries","groceries"⟩ lib.AssertEq {𝕩.value}¨firstMetadata
+
+# A wider application lifetime may admit Accounts once and reuse that exact
+# observation. The resulting Plan meaning is identical to the standalone load.
+accounts ← accountSource.Load base
+"ok" lib.AssertEq accounts.state
+shared ← adapter.LoadFromAccounts ⟨base,accounts.accounts,registryResult.registry⟩
+"ok" lib.AssertEq shared.state
+result.facts.transactions.transaction_id lib.AssertEq shared.facts.transactions.transaction_id
+result.facts.postings.posting_id lib.AssertEq shared.facts.postings.posting_id
+result.facts.accounts.key lib.AssertEq shared.facts.accounts.key
 
 •Out "test_application_plan_source_adapter: ok"

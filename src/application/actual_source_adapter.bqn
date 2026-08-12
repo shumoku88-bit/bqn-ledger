@@ -10,16 +10,23 @@ accountSource ← •Import "account_source_adapter.bqn"
 rootAdmission ← •Import "../ledger/canonical_journal_root_admission.bqn"
 snapshot ← •Import "../ledger/snapshot.bqn"
 
-Load ← {𝕊 base‿registry:
-  accountResult ← accountSource.Load base
-  result ← {state⇐"error",diagnostics⇐accountResult.diagnostics}
-  {𝕊:
-    raw ← io.ReadRaw (io.JoinPath ⟨base,sources.actual⟩)
-    rootResult ← rootAdmission.Admit ⟨raw,sources.accounts⟩
-    result ↩ {state⇐"error",diagnostics⇐rootResult.diagnostics}
-    {𝕊: result↩snapshot.BuildFromAccounts ⟨accountResult.accounts,raw,registry⟩}⍟(rootResult.state≡"ok") @
-  }⍟(accountResult.state≡"ok") @
-  result
+# Use one already-admitted Account observation when a wider application lifetime
+# needs several canonical sources interpreted against the same Account Registry.
+LoadFromAccounts ← {𝕊 base‿accounts‿registry:
+  raw ← io.ReadRaw (io.JoinPath ⟨base,sources.actual⟩)
+  rootResult ← rootAdmission.Admit ⟨raw,sources.accounts⟩
+  (rootResult.state≡"ok")◶⟨
+    {𝕊:{state⇐"error",diagnostics⇐rootResult.diagnostics}},
+    {𝕊:snapshot.BuildFromAccounts ⟨accounts,raw,registry⟩}
+  ⟩ @
 }
 
-{Load⇐Load}
+Load ← {𝕊 base‿registry:
+  accountResult ← accountSource.Load base
+  (accountResult.state≡"ok")◶⟨
+    {𝕊:{state⇐"error",diagnostics⇐accountResult.diagnostics}},
+    {𝕊:LoadFromAccounts ⟨base,accountResult.accounts,registry⟩}
+  ⟩ @
+}
+
+{Load⇐Load,LoadFromAccounts⇐LoadFromAccounts}

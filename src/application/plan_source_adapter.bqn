@@ -11,23 +11,32 @@ rootAdmission ← •Import "../ledger/canonical_journal_root_admission.bqn"
 planAdmission ← •Import "../ledger/plan_journal_admission.bqn"
 facts ← •Import "../ledger/facts.bqn"
 
-Load ← {𝕊 base‿registry:
-  accountResult ← accountSource.Load base
-  result ← {state⇐"error",diagnostics⇐accountResult.diagnostics}
-  {𝕊:
-    raw ← io.ReadRaw (io.JoinPath ⟨base,sources.plan⟩)
-    rootResult ← rootAdmission.Admit ⟨raw,sources.accounts⟩
-    result↩{state⇐"error",diagnostics⇐rootResult.diagnostics}
+# Wider application observations can provide one admitted Account Registry and
+# interpret Plan alongside other canonical sources without re-reading Accounts.
+LoadFromAccounts ← {𝕊 base‿accounts‿registry:
+  raw ← io.ReadRaw (io.JoinPath ⟨base,sources.plan⟩)
+  rootResult ← rootAdmission.Admit ⟨raw,sources.accounts⟩
+  (rootResult.state≡"ok")◶⟨
+    {𝕊:{state⇐"error",diagnostics⇐rootResult.diagnostics}},
     {𝕊:
-      admitted ← planAdmission.Admit ⟨raw,accountResult.accounts,registry⟩
-      result↩{state⇐"error",diagnostics⇐admitted.diagnostics}
-      {𝕊:
-        projected ← facts.Project ⟨admitted,accountResult.accounts⟩
-        result↩{state⇐projected.state,facts⇐projected,diagnostics⇐projected.diagnostics}
-      }⍟(admitted.state≡"ok") @
-    }⍟(rootResult.state≡"ok") @
-  }⍟(accountResult.state≡"ok") @
-  result
+      admitted ← planAdmission.Admit ⟨raw,accounts,registry⟩
+      (admitted.state≡"ok")◶⟨
+        {𝕊:{state⇐"error",diagnostics⇐admitted.diagnostics}},
+        {𝕊:
+          projected ← facts.Project ⟨admitted,accounts⟩
+          {state⇐projected.state,facts⇐projected,diagnostics⇐projected.diagnostics}
+        }
+      ⟩ @
+    }
+  ⟩ @
 }
 
-{Load⇐Load}
+Load ← {𝕊 base‿registry:
+  accountResult ← accountSource.Load base
+  (accountResult.state≡"ok")◶⟨
+    {𝕊:{state⇐"error",diagnostics⇐accountResult.diagnostics}},
+    {𝕊:LoadFromAccounts ⟨base,accountResult.accounts,registry⟩}
+  ⟩ @
+}
+
+{Load⇐Load,LoadFromAccounts⇐LoadFromAccounts}

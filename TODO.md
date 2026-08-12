@@ -160,7 +160,7 @@ Closeout: `docs/REPORT_PHASE_FOUR_REVIEW_CLOSEOUT-2026-08-12.md`.
 ## Phase 5: `src/application/`
 
 - [x] `src/application/account_source_adapter.bqn` — #699
-- [x] `src/application/actual_source_adapter.bqn` — #701 (effect-lifetime law review; production unchanged)
+- [x] `src/application/actual_source_adapter.bqn` — #701 (effect-lifetime law review; production unchanged), #713 shared-Account capability
 - [x] `src/application/budget_source_adapter.bqn` — #702 (capability-lifetime law review; production unchanged)
 - [x] `src/application/canonical_household_sources.bqn` — #703
 - [x] `src/application/config_rows.bqn` — #704
@@ -173,13 +173,13 @@ Closeout: `docs/REPORT_PHASE_FOUR_REVIEW_CLOSEOUT-2026-08-12.md`.
 - [x] `src/application/date_today.bqn` — #709 (clock-boundary law review; production unchanged)
 - [x] `src/application/editor_actual.bqn` — #710
 - [x] `src/application/editor_currency.bqn` — #712
-- [ ] `src/application/editor_plan_rows.bqn`
+- [x] `src/application/editor_plan_rows.bqn` — #713
 - [ ] `src/application/funding_scope.bqn`
 - [ ] `src/application/household_daily_scope.bqn`
 - [ ] `src/application/household_source_adapter.bqn`
 - [ ] `src/application/ledger_check_cli.bqn`
 - [ ] `src/application/ledger_inspect_cli.bqn`
-- [ ] `src/application/plan_source_adapter.bqn`
+- [ ] `src/application/plan_source_adapter.bqn` — #713 shared-Account capability follow-up
 - [ ] `src/application/report_destination.bqn`
 - [ ] `src/application/report_destination_cli.bqn`
 - [ ] `src/application/report_domain_cli.bqn`
@@ -264,6 +264,6 @@ After the production BQN inventory is reviewed, selector/UI adapter consolidatio
 
 ## Current cursor
 
-`src/application/editor_plan_rows.bqn`
+`src/application/funding_scope.bqn`
 
-Resume the normal Phase 5 application review sequence at Editor Plan Rows.
+Resume the normal Phase 5 application review sequence at Funding Scope.
