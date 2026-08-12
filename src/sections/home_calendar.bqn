@@ -226,7 +226,7 @@ FormatDetailHuman ← {𝕊 result:
 
   IssueLine ← {𝕊 row:
     amountText ← ""
-    {𝕊:amountText↩"  "∾amount.Format ⟨row.coefficient,row.scale⟩∾" "∾row.currency}⍟row.amount_present @
+    {𝕊:amountText↩"  "∾(amount.Format ⟨row.coefficient,row.scale⟩)∾" "∾row.currency}⍟row.amount_present @
     detailText ← ""
     {𝕊:detailText↩lf∾"    "∾row.details}⍟(0<≠row.details) @
     ∾⟨"  ",row.issue_id,"  [",row.category,"] ",row.title,amountText,detailText,lf⟩
