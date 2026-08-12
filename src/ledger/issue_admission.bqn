@@ -4,7 +4,8 @@ exact ← •Import "exact_decimal.bqn"
 dates ← •Import "date_ordinal.bqn"
 empty ← ⟨⟩
 tab ← @+9
-header ← ⟨"issue_id","status","date","category","title","amount","currency","details"⟩
+legacyHeader ← ⟨"issue_id","status","date","category","title","amount","currency","details"⟩
+dueHeader ← ⟨"issue_id","status","date","due","category","title","amount","currency","details"⟩
 statuses ← ⟨"open","resolved","dropped"⟩
 
 SplitKeepEmpty ← {𝕊 separator‿text:
@@ -23,8 +24,8 @@ AddIf ← {𝕊 invalid‿diagnostic: invalid/⟨diagnostic⟩}
 EmptyIssues ← {𝕊:
   {
     count⇐0,index⇐empty,issue_id⇐empty,status⇐empty,date⇐empty,date_ordinal⇐empty,
-    category⇐empty,title⇐empty,amount_present⇐empty,coefficient⇐empty,scale⇐empty,
-    currency⇐empty,details⇐empty,source_row⇐empty,source_ref⇐empty
+    due⇐empty,due_ordinal⇐empty,category⇐empty,title⇐empty,amount_present⇐empty,
+    coefficient⇐empty,scale⇐empty,currency⇐empty,details⇐empty,source_row⇐empty,source_ref⇐empty
   }
 }
 
@@ -38,21 +39,30 @@ Admit ← {𝕊 lines‿registry:
   sourceAbsent ← 0=≠lines
   headerLine ← ⊑(dataLines∾⟨""⟩)
   headerRow ← ⊑(dataSourceRows∾⟨1⟩)
-  headerOk ← sourceAbsent ∨ (SplitKeepEmpty ⟨tab,headerLine⟩)≡header
-  headerDiagnostics ← AddIf ⟨¬headerOk,Diagnostic ⟨"issue_header_invalid",headerRow,"issues.tsv header must match the strict eight-column schema"⟩⟩
+  headerFields ← SplitKeepEmpty ⟨tab,headerLine⟩
+  legacySchema ← headerFields≡legacyHeader
+  dueSchema ← headerFields≡dueHeader
+  headerOk ← sourceAbsent ∨ legacySchema ∨ dueSchema
+  headerDiagnostics ← AddIf ⟨¬headerOk,Diagnostic ⟨"issue_header_invalid",headerRow,"issues.tsv header must match the supported eight- or nine-column schema"⟩⟩
 
   rowLines ← 1↓dataLines
   rowSourceRows ← 1↓dataSourceRows
+  expectedCount ← 8 + dueSchema
   ParseRow ← {𝕊 i:
     line ← i⊑rowLines ⋄ sourceRow ← i⊑rowSourceRows
     fields ← SplitKeepEmpty ⟨tab,line⟩
-    rowDiagnostics ← AddIf ⟨8≠≠fields,Diagnostic ⟨"issue_field_count_invalid",sourceRow,"issue row requires exactly eight fields"⟩⟩
+    rowDiagnostics ← AddIf ⟨expectedCount≠≠fields,Diagnostic ⟨"issue_field_count_invalid",sourceRow,"issue row width must match the admitted issues.tsv header"⟩⟩
     item ← @
     {𝕊:
-      issueId‿status‿date‿category‿title‿amountText‿currency‿details ← fields
+      normalized ← fields
+      {𝕊:normalized↩(3↑fields)∾⟨"undetermined"⟩∾3↓fields}⍟legacySchema @
+      issueId‿status‿date‿due‿category‿title‿amountText‿currency‿details ← normalized
       rowDiagnostics∾↩AddIf ⟨0=≠issueId,Diagnostic ⟨"issue_identity_missing",sourceRow,"issue_id must be nonempty"⟩⟩
       rowDiagnostics∾↩AddIf ⟨¬Contains ⟨status,statuses⟩,Diagnostic ⟨"issue_status_invalid",sourceRow,"status must be open, resolved, or dropped"⟩⟩
       rowDiagnostics∾↩AddIf ⟨(0<≠date) ∧ ¬dates.IsValid date,Diagnostic ⟨"issue_date_invalid",sourceRow,"date must be empty or strict Gregorian text"⟩⟩
+      dueSpecial ← Contains ⟨due,"none"‿"undetermined"⟩
+      dueDateValid ← dates.IsValid due
+      rowDiagnostics∾↩AddIf ⟨¬dueSpecial ∧ ¬dueDateValid,Diagnostic ⟨"issue_due_invalid",sourceRow,"due must be none, undetermined, or strict Gregorian text"⟩⟩
       rowDiagnostics∾↩AddIf ⟨0=≠category,Diagnostic ⟨"issue_category_missing",sourceRow,"category must be nonempty"⟩⟩
       rowDiagnostics∾↩AddIf ⟨0=≠title,Diagnostic ⟨"issue_title_missing",sourceRow,"title must be nonempty"⟩⟩
       amountPresent ← 0<≠amountText
@@ -72,14 +82,17 @@ Admit ← {𝕊 lines‿registry:
       {𝕊:
         dateOrdinal ← empty
         {𝕊:dateOrdinal↩dates.Ordinal date}⍟(0<≠date) @
+        dueOrdinal ← empty
+        {𝕊:dueOrdinal↩dates.Ordinal due}⍟dueDateValid @
         item↩{
           issue_id⇐issueId,status⇐status,date⇐date,date_ordinal⇐dateOrdinal,
-          category⇐category,title⇐title,amount_present⇐amountPresent,
-          coefficient⇐parsed.coefficient,scale⇐parsed.scale,currency⇐currency,details⇐details,
-          source_row⇐sourceRow,source_ref⇐"issues.tsv:row:"∾•Fmt sourceRow
+          due⇐due,due_ordinal⇐dueOrdinal,category⇐category,title⇐title,
+          amount_present⇐amountPresent,coefficient⇐parsed.coefficient,scale⇐parsed.scale,
+          currency⇐currency,details⇐details,source_row⇐sourceRow,
+          source_ref⇐"issues.tsv:row:"∾•Fmt sourceRow
         }
       }⍟(0=≠rowDiagnostics) @
-    }⍟(8=≠fields) @
+    }⍟(expectedCount=≠fields) @
     {diagnostics⇐rowDiagnostics,item⇐item}
   }
 
@@ -96,6 +109,7 @@ Admit ← {𝕊 lines‿registry:
     table↩{
       count⇐≠rows,index⇐↕≠rows,issue_id⇐{𝕩.issue_id}¨rows,status⇐{𝕩.status}¨rows,
       date⇐{𝕩.date}¨rows,date_ordinal⇐{𝕩.date_ordinal}¨rows,
+      due⇐{𝕩.due}¨rows,due_ordinal⇐{𝕩.due_ordinal}¨rows,
       category⇐{𝕩.category}¨rows,title⇐{𝕩.title}¨rows,
       amount_present⇐{𝕩.amount_present}¨rows,coefficient⇐{𝕩.coefficient}¨rows,
       scale⇐{𝕩.scale}¨rows,currency⇐{𝕩.currency}¨rows,details⇐{𝕩.details}¨rows,
