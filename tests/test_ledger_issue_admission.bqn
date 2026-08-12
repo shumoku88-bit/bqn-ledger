@@ -16,6 +16,7 @@ result ← issues.Admit ⟨lines,registry⟩
 ⟨"subscription-review","missing-receipt","resolved-demo"⟩ lib.AssertEq result.issues.issue_id
 ⟨"open","open","resolved"⟩ lib.AssertEq result.issues.status
 ⟨"undetermined","undetermined","undetermined"⟩ lib.AssertEq result.issues.due
+⟨"none","none","undetermined"⟩ lib.AssertEq result.issues.closed
 ⟨1,0,1⟩ lib.AssertEq result.issues.amount_present
 123 lib.AssertEq 0⊑result.issues.coefficient
 1 lib.AssertEq 0⊑result.issues.scale
@@ -23,10 +24,13 @@ result ← issues.Admit ⟨lines,registry⟩
 ⟨⟩ lib.AssertEq 1⊑result.issues.coefficient
 ⟨⟩ lib.AssertEq 1⊑result.issues.date_ordinal
 ⟨⟩ lib.AssertEq 0⊑result.issues.due_ordinal
+⟨⟩ lib.AssertEq 0⊑result.issues.closed_ordinal
+⟨⟩ lib.AssertEq 2⊑result.issues.closed_ordinal
 "issues.tsv:row:2" lib.AssertEq 0⊑result.issues.source_ref
 
 legacyHeader ← Tsv ⟨"issue_id","status","date","category","title","amount","currency","details"⟩
 dueHeader ← Tsv ⟨"issue_id","status","date","due","category","title","amount","currency","details"⟩
+closedHeader ← Tsv ⟨"issue_id","status","date","due","closed","category","title","amount","currency","details"⟩
 
 emptyLegacy ← issues.Admit ⟨⟨legacyHeader⟩,registry⟩
 "ok" lib.AssertEq emptyLegacy.state
@@ -34,6 +38,9 @@ emptyLegacy ← issues.Admit ⟨⟨legacyHeader⟩,registry⟩
 emptyDue ← issues.Admit ⟨⟨dueHeader⟩,registry⟩
 "ok" lib.AssertEq emptyDue.state
 0 lib.AssertEq emptyDue.issues.count
+emptyClosed ← issues.Admit ⟨⟨closedHeader⟩,registry⟩
+"ok" lib.AssertEq emptyClosed.state
+0 lib.AssertEq emptyClosed.issues.count
 absent ← issues.Admit ⟨⟨⟩,registry⟩
 "ok" lib.AssertEq absent.state
 0 lib.AssertEq absent.issues.count
@@ -55,12 +62,28 @@ current ← issues.Admit ⟨
 "ok" lib.AssertEq current.state
 ⟨"2026-08-01","2026-08-02","2026-08-03"⟩ lib.AssertEq current.issues.date
 ⟨"2026-08-15","none","undetermined"⟩ lib.AssertEq current.issues.due
+⟨"none","none","none"⟩ lib.AssertEq current.issues.closed
 lib.Assert (0⊑current.issues.date_ordinal) ≠ 0⊑current.issues.due_ordinal
 1000 lib.AssertEq 0⊑current.issues.coefficient
 "JPY" lib.AssertEq 0⊑current.issues.currency
 lib.Assert 0<≠0⊑current.issues.due_ordinal
 ⟨⟩ lib.AssertEq 1⊑current.issues.due_ordinal
 ⟨⟩ lib.AssertEq 2⊑current.issues.due_ordinal
+
+closedCurrent ← issues.Admit ⟨
+  ⟨
+    closedHeader,
+    Tsv ⟨"open-now","open","2026-08-01","none","none","want","Open","","","pending"⟩,
+    Tsv ⟨"closed-known","resolved","2026-08-01","none","2026-08-03","want","Done","","","complete"⟩,
+    Tsv ⟨"closed-unknown","dropped","2026-08-02","undetermined","undetermined","waiting","Dropped","","","old close date unknown"⟩
+  ⟩,
+  registry
+⟩
+"ok" lib.AssertEq closedCurrent.state
+⟨"none","2026-08-03","undetermined"⟩ lib.AssertEq closedCurrent.issues.closed
+⟨⟩ lib.AssertEq 0⊑closedCurrent.issues.closed_ordinal
+lib.Assert 0<≠1⊑closedCurrent.issues.closed_ordinal
+⟨⟩ lib.AssertEq 2⊑closedCurrent.issues.closed_ordinal
 
 Reject ← {𝕊 rows‿code:
   rejected ← issues.Admit ⟨rows,registry⟩
@@ -75,6 +98,10 @@ Reject ⟨⟨h,Tsv ⟨"x","open","","decision","Title","10","","Details"⟩⟩,"
 Reject ⟨⟨h,Tsv ⟨"x","open","","decision","Title","1.234","ILS","Details"⟩⟩,"issue_amount_precision_exceeded"⟩
 Reject ⟨⟨dueHeader,Tsv ⟨"x","open","2026-08-01","soon","want","Title","","","Details"⟩⟩,"issue_due_invalid"⟩
 Reject ⟨⟨dueHeader,Tsv ⟨"x","open","2026-08-01","2026-02-30","want","Title","","","Details"⟩⟩,"issue_due_invalid"⟩
+Reject ⟨⟨closedHeader,Tsv ⟨"x","open","2026-08-01","none","undetermined","want","Title","","","Details"⟩⟩,"issue_closed_status_mismatch"⟩
+Reject ⟨⟨closedHeader,Tsv ⟨"x","resolved","2026-08-01","none","none","want","Title","","","Details"⟩⟩,"issue_closed_status_mismatch"⟩
+Reject ⟨⟨closedHeader,Tsv ⟨"x","resolved","2026-08-01","none","2026-02-30","want","Title","","","Details"⟩⟩,"issue_closed_invalid"⟩
+Reject ⟨⟨closedHeader,Tsv ⟨"x","resolved","2026-08-02","none","2026-08-01","want","Title","","","Details"⟩⟩,"issue_closed_before_recorded"⟩
 
 duplicateIssues ← issues.Admit ⟨
   ⟨
