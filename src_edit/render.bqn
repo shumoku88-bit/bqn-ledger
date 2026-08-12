@@ -39,9 +39,16 @@ RenderIssueRow ⇐ {
   tab Join fields
 }
 
-# Build one current nine-column Issues row with an explicit due coordinate.
+# Build one bounded nine-column Issues row with an explicit due coordinate.
 RenderIssueRowWithDue ⇐ {
   fields ← 𝕩.issue_id‿𝕩.status‿𝕩.date‿𝕩.due‿𝕩.category‿𝕩.title‿𝕩.amount‿𝕩.currency‿𝕩.details
+  tab ← @+9
+  tab Join fields
+}
+
+# Build one current ten-column Issues row with explicit due and close lifecycle.
+RenderIssueRowWithClosed ⇐ {
+  fields ← 𝕩.issue_id‿𝕩.status‿𝕩.date‿𝕩.due‿𝕩.closed‿𝕩.category‿𝕩.title‿𝕩.amount‿𝕩.currency‿𝕩.details
   tab ← @+9
   tab Join fields
 }

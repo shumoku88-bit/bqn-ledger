@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Legacy Budget row qualification was removed with its writer authority. This
 # retained check covers the unrelated Issue append surface still in edit-bqn,
-# including the bounded eight-/nine-column Issue schema migration.
+# including the bounded eight-/nine-/ten-column Issue schema migration.
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 tmp_root="$(mktemp -d)"; trap 'rm -rf "$tmp_root"' EXIT
@@ -25,13 +25,13 @@ issue_bqn_base="$tmp_root/issue-new-bqn"; cp -R data "$issue_bqn_base"
 ./tools/edit-bqn --base "$issue_bqn_base" issue add \
   --date 2026-06-29 --title "edit-bqn issue parity" --amount 301 --memo "new file" --yes
 assert_no_backup "$issue_bqn_base" "tools/edit-bqn issue add new-file"
-if ! head -n 1 "$issue_bqn_base/issues.tsv" | grep -Fx $'issue_id\tstatus\tdate\tdue\tcategory\ttitle\tamount\tcurrency\tdetails' >/dev/null; then
-  echo "FAIL: new issues.tsv should use the due-aware nine-column header" >&2
+if ! head -n 1 "$issue_bqn_base/issues.tsv" | grep -Fx $'issue_id\tstatus\tdate\tdue\tclosed\tcategory\ttitle\tamount\tcurrency\tdetails' >/dev/null; then
+  echo "FAIL: new issues.tsv should use the closed-aware ten-column header" >&2
   cat "$issue_bqn_base/issues.tsv" >&2
   exit 1
 fi
-if ! grep -F $'issue:2026-06-29:edit-bqn issue parity\topen\t2026-06-29\tundetermined\tgeneral\tedit-bqn issue parity\t301\tJPY\tnew file' "$issue_bqn_base/issues.tsv" >/dev/null; then
-  echo "FAIL: new Issue row should retain explicit undetermined due" >&2
+if ! grep -F $'issue:2026-06-29:edit-bqn issue parity\topen\t2026-06-29\tundetermined\tnone\tgeneral\tedit-bqn issue parity\t301\tJPY\tnew file' "$issue_bqn_base/issues.tsv" >/dev/null; then
+  echo "FAIL: new Issue row should retain explicit undetermined due and open close state" >&2
   cat "$issue_bqn_base/issues.tsv" >&2
   exit 1
 fi
@@ -54,6 +54,16 @@ printf 'issue_id\tstatus\tdate\tdue\tcategory\ttitle\tamount\tcurrency\tdetails\
 if ! grep -F $'issue:2026-06-29:due-aware existing\topen\t2026-06-29\tundetermined\tgeneral\tdue-aware existing\t303\tJPY\tdue source' "$issue_due_existing/issues.tsv" >/dev/null; then
   echo "FAIL: due-aware Issue append should preserve nine-column source shape" >&2
   cat "$issue_due_existing/issues.tsv" >&2
+  exit 1
+fi
+
+issue_closed_existing="$tmp_root/issue-closed-existing"; cp -R data "$issue_closed_existing"
+printf 'issue_id\tstatus\tdate\tdue\tclosed\tcategory\ttitle\tamount\tcurrency\tdetails\nissue:seed\topen\t2026-06-28\tnone\tnone\tgeneral\tBefore\t0\tJPY\tseed\n' >"$issue_closed_existing/issues.tsv"
+./tools/edit-bqn --base "$issue_closed_existing" issue add \
+  --date 2026-06-29 --title "closed-aware existing" --amount 304 --memo "closed source" --yes
+if ! grep -F $'issue:2026-06-29:closed-aware existing\topen\t2026-06-29\tundetermined\tnone\tgeneral\tclosed-aware existing\t304\tJPY\tclosed source' "$issue_closed_existing/issues.tsv" >/dev/null; then
+  echo "FAIL: closed-aware Issue append should preserve ten-column source shape" >&2
+  cat "$issue_closed_existing/issues.tsv" >&2
   exit 1
 fi
 
