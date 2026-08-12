@@ -4,6 +4,7 @@ lib ← •Import "test_lib.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 section ← •Import "../src/sections/home_calendar.bqn"
 
+lf ← @+10
 actualDates ← ⟨"2026-08-11","2026-08-11","2026-08-12"⟩
 actualFacts ← {
   state⇐"ok",sources⇐{name⇐⟨"actual.journal"⟩},
@@ -53,6 +54,35 @@ result ← section.Build ⟨actualFacts,planned,issues,cycle,"2026-08-12"⟩
 # A neighboring date carries no marker and no Actual evidence.
 0 lib.AssertEq 24⊑result.days.actual_present
 0 lib.AssertEq 24⊑result.days.marker_count
+
+calendarPolicy ← {
+  cycle_end_marker⇐"*",plan_due_marker⇐"$",issue_due_marker⇐"!",multiple_marker⇐"+"
+}
+markers ← section.Markers ⟨result,calendarPolicy⟩
+" " lib.AssertEq 10⊑markers
+"!" lib.AssertEq 11⊑markers
+"$" lib.AssertEq 13⊑markers
+"+" lib.AssertEq 25⊑markers
+
+expectedHuman ← ∾⟨
+  "2026-08",lf,
+  "Mo  Tu  We  Th  Fr  Sa  Su ",lf,
+  "                     1   2 ",lf,
+  " 3   4   5   6   7   8   9 ",lf,
+  "10  11  12! 13  14$ 15  16 ",lf,
+  "17  18  19  20  21  22  23 ",lf,
+  "24  25  26+ 27  28  29  30 ",lf,
+  "31                         ",lf
+⟩
+expectedHuman lib.AssertEq section.FormatHuman ⟨result,calendarPolicy⟩
+
+customPolicy ← {
+  cycle_end_marker⇐"C",plan_due_marker⇐"P",issue_due_marker⇐"I",multiple_marker⇐"M"
+}
+customMarkers ← section.Markers ⟨result,customPolicy⟩
+"I" lib.AssertEq 11⊑customMarkers
+"P" lib.AssertEq 13⊑customMarkers
+"M" lib.AssertEq 25⊑customMarkers
 
 badDate ← section.Build ⟨actualFacts,planned,issues,cycle,"2026-02-30"⟩
 "error" lib.AssertEq badDate.state
