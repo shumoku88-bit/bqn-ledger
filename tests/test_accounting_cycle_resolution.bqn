@@ -81,10 +81,10 @@ calendarBefore.end_exclusive lib.AssertEq selectedCalendar.end_exclusive
 selectedIncome ← cycleSelection.WithPlan ⟨incomeAdmission,"2026-01-12",actualFacts,planFacts⟩
 income.start lib.AssertEq selectedIncome.start
 income.end_exclusive lib.AssertEq selectedIncome.end_exclusive
-{𝕩.source}¨income.start_contributors lib.AssertEq {𝕩.source}¨selectedIncome.start_contributors
-{𝕩.transaction_id}¨income.start_contributors lib.AssertEq {𝕩.transaction_id}¨selectedIncome.start_contributors
-{𝕩.source}¨income.end_contributors lib.AssertEq {𝕩.source}¨selectedIncome.end_contributors
-{𝕩.transaction_id}¨income.end_contributors lib.AssertEq {𝕩.transaction_id}¨selectedIncome.end_contributors
+({𝕩.source}¨income.start_contributors) lib.AssertEq ({𝕩.source}¨selectedIncome.start_contributors)
+({𝕩.transaction_id}¨income.start_contributors) lib.AssertEq ({𝕩.transaction_id}¨selectedIncome.start_contributors)
+({𝕩.source}¨income.end_contributors) lib.AssertEq ({𝕩.source}¨selectedIncome.end_contributors)
+({𝕩.transaction_id}¨income.end_contributors) lib.AssertEq ({𝕩.transaction_id}¨selectedIncome.end_contributors)
 
 # Explicit observation excludes later Actual transactions from the frontier.
 incomeAtJan10 ← income_resolver.Resolve ⟨incomeAdmission,"2026-01-10",actualFacts,planFacts⟩
