@@ -77,4 +77,60 @@ fi
 
 bqn src_edit/issue_validate_cmd.bqn "$base" >/dev/null
 
-echo 'OK: Issue due compatibility checks passed' >&2
+closed_base="$tmp_root/closed-aware"
+cp -R data "$closed_base"
+printf '%s\n' \
+  $'issue_id\tstatus\tdate\tdue\tclosed\tcategory\ttitle\tamount\tcurrency\tdetails' \
+  $'issue:close-me\topen\t2026-08-12\t2026-08-15\tnone\twant\tClose me\t1000\tJPY\tdecision pending' \
+  $'issue:old\tresolved\t2026-08-01\tnone\tundetermined\twant\tHistorical close\t\t\tlegacy close date unknown' \
+  >"$closed_base/issues.tsv"
+
+bqn src_edit/issue_validate_cmd.bqn "$closed_base" >/dev/null
+
+closed_before="$(shasum -a 256 "$closed_base/issues.tsv" | awk '{print $1}')"
+if ./tools/edit-bqn --base "$closed_base" issue close \
+  --index 1 --status resolved --decision 'too early' --closed-date 2026-08-11 \
+  --yes --post-check none >/dev/null 2>&1; then
+  echo "FAIL: Issue close admitted a close date before the recorded date" >&2
+  exit 1
+fi
+if [[ "$closed_before" != "$(shasum -a 256 "$closed_base/issues.tsv" | awk '{print $1}')" ]]; then
+  echo "FAIL: rejected early close date changed issues.tsv" >&2
+  exit 1
+fi
+
+./tools/edit-bqn --base "$closed_base" issue close \
+  --index 1 --status resolved --decision 'closed deliberately' --closed-date 2026-08-13 \
+  --yes --post-check none >/dev/null
+if ! grep -F $'issue:close-me\tresolved\t2026-08-12\t2026-08-15\t2026-08-13\twant\tClose me\t1000\tJPY\tdecision pending。Decision: closed deliberately' "$closed_base/issues.tsv" >/dev/null; then
+  echo "FAIL: closing a closed-aware Issue did not stamp the close date" >&2
+  cat "$closed_base/issues.tsv" >&2
+  exit 1
+fi
+
+./tools/edit-bqn --base "$closed_base" issue add \
+  --date 2026-08-14 --title 'Still open' --amount 10 --memo 'lifecycle' --yes --post-check none >/dev/null
+if ! grep -F $'issue:2026-08-14:Still open\topen\t2026-08-14\tundetermined\tnone\tgeneral\tStill open\t10\tJPY\tlifecycle' "$closed_base/issues.tsv" >/dev/null; then
+  echo "FAIL: closed-aware append did not write closed=none for an open Issue" >&2
+  cat "$closed_base/issues.tsv" >&2
+  exit 1
+fi
+
+invalid_lifecycle="$tmp_root/invalid-lifecycle"
+cp -R data "$invalid_lifecycle"
+printf '%s\n' \
+  $'issue_id\tstatus\tdate\tdue\tclosed\tcategory\ttitle\tamount\tcurrency\tdetails' \
+  $'issue:bad-open\topen\t2026-08-12\tnone\tundetermined\twant\tBad open\t\t\tinvalid lifecycle' \
+  >"$invalid_lifecycle/issues.tsv"
+if bqn src_edit/issue_validate_cmd.bqn "$invalid_lifecycle" >/dev/null 2>&1; then
+  echo "FAIL: admission accepted open Issue with closed=undetermined" >&2
+  exit 1
+fi
+if ./tools/edit-bqn --base "$invalid_lifecycle" issue list --format text >/dev/null 2>&1; then
+  echo "FAIL: list accepted open Issue with closed=undetermined" >&2
+  exit 1
+fi
+
+bqn src_edit/issue_validate_cmd.bqn "$closed_base" >/dev/null
+
+echo 'OK: Issue due/closed lifecycle compatibility checks passed' >&2
