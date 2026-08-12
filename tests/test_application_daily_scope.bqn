@@ -96,6 +96,16 @@ unknownPlan ← admission.Admit ⟨unknownPlanLines,registry⟩
 unknownPlanScope ← adapter.Build ⟨unknownPlan,actual,plan,"JPY","2026-01-12","2026-01-22"⟩
 "error" lib.AssertEq unknownPlanScope.state
 "daily_obligation_plan_unknown" lib.AssertEq (⊑unknownPlanScope.diagnostics).code
+
+mixedUnknownLines ← ⟨
+  admission.header,
+  Join ⟨"asset","missing-asset","assets:missing","","","",""⟩,
+  Join ⟨"obligation","missing-plan","","plan-missing","","",""⟩
+⟩
+mixedUnknown ← admission.Admit ⟨mixedUnknownLines,registry⟩
+mixedUnknownScope ← adapter.Build ⟨mixedUnknown,actual,plan,"JPY","2026-01-12","2026-01-22"⟩
+⟨"daily_asset_account_unknown","daily_obligation_plan_unknown"⟩ lib.AssertEq {𝕩.code}¨mixedUnknownScope.diagnostics
+
 outsideScope ← adapter.Build ⟨admitted,actual,plan,"JPY","2026-01-12","2026-01-14"⟩
 "exclude" lib.AssertEq (⊑outsideScope.obligation_scope.rows).decision
 outside ← compose.DailyTarget ⟨"2026-01-12","2026-01-14","JPY",outsideScope.asset_scope,outsideScope.obligation_scope⟩
