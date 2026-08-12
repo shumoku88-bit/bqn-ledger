@@ -163,7 +163,7 @@ Retired during review: `src/application/funding_scope.bqn` — #714. See `docs/F
 
 - [x] `src/application/account_source_adapter.bqn` — #699
 - [x] `src/application/actual_source_adapter.bqn` — #701 (effect-lifetime law review; production unchanged), #713 shared-Account capability
-- [x] `src/application/budget_source_adapter.bqn` — #702 (capability-lifetime law review; production unchanged)
+- [x] `src/application/budget_source_adapter.bqn` — #702 (capability-lifetime law review; production unchanged), #717 shared-Account capability
 - [x] `src/application/canonical_household_sources.bqn` — #703
 - [x] `src/application/config_rows.bqn` — #704
 - [x] `src/application/current_report_batch_cli.bqn` — #705 (effect-lifetime review; production unchanged)
@@ -178,7 +178,7 @@ Retired during review: `src/application/funding_scope.bqn` — #714. See `docs/F
 - [x] `src/application/editor_plan_rows.bqn` — #713
 - [x] `src/application/household_daily_scope.bqn` — #715
 - [x] `src/application/household_source_adapter.bqn` — #716 (source-boundary law review; production unchanged)
-- [ ] `src/application/ledger_check_cli.bqn`
+- [x] `src/application/ledger_check_cli.bqn` — #717 (readiness effect-lifetime review; production unchanged)
 - [ ] `src/application/ledger_inspect_cli.bqn`
 - [ ] `src/application/plan_source_adapter.bqn` — #713 shared-Account capability follow-up
 - [ ] `src/application/report_destination.bqn`
@@ -194,7 +194,7 @@ Retired during review: `src/application/funding_scope.bqn` — #714. See `docs/F
 - [ ] `src/application/report_route_plan.bqn`
 - [ ] `src/application/report_route_plan_cli.bqn`
 - [ ] `src/application/report_selection_cli.bqn`
-- [ ] `src/application/report_source_adapter.bqn`
+- [ ] `src/application/report_source_adapter.bqn` — #717 companion shared-Account lifetime follow-up
 - [ ] `src/application/source_io.bqn`
 
 ## Phase 6: `src/editor/` and `src_edit/`
@@ -265,6 +265,6 @@ After the production BQN inventory is reviewed, selector/UI adapter consolidatio
 
 ## Current cursor
 
-`src/application/ledger_check_cli.bqn`
+`src/application/ledger_inspect_cli.bqn`
 
-Resume the normal Phase 5 application review sequence at Ledger Check CLI.
+Resume the normal Phase 5 application review sequence at Ledger Inspect CLI.
