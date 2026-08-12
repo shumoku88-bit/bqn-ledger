@@ -8,8 +8,8 @@ lf ← @+10
 EmptyRows ← {𝕊:
   {
     count⇐0,index⇐empty,issue_id⇐empty,status⇐empty,date⇐empty,due⇐empty,due_ordinal⇐empty,
-    category⇐empty,title⇐empty,amount_present⇐empty,coefficient⇐empty,scale⇐empty,currency⇐empty,details⇐empty,
-    source_row⇐empty,source_ref⇐empty
+    closed⇐empty,closed_ordinal⇐empty,category⇐empty,title⇐empty,amount_present⇐empty,
+    coefficient⇐empty,scale⇐empty,currency⇐empty,details⇐empty,source_row⇐empty,source_ref⇐empty
   }
 }
 EmptyResult ← {𝕊 diagnostics:
@@ -27,6 +27,7 @@ Build ← {𝕊 admission:
         count⇐≠selected,index⇐↕≠selected,
         issue_id⇐selected⊏source.issue_id,status⇐selected⊏source.status,date⇐selected⊏source.date,
         due⇐selected⊏source.due,due_ordinal⇐selected⊏source.due_ordinal,
+        closed⇐selected⊏source.closed,closed_ordinal⇐selected⊏source.closed_ordinal,
         category⇐selected⊏source.category,title⇐selected⊏source.title,
         amount_present⇐selected⊏source.amount_present,coefficient⇐selected⊏source.coefficient,
         scale⇐selected⊏source.scale,currency⇐selected⊏source.currency,details⇐selected⊏source.details,
