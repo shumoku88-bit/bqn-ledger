@@ -5,6 +5,14 @@ cd "$root"
 fixture=fixtures/ledger-facts-phase1-proof
 work=$(mktemp -d "${TMPDIR:-/tmp}/bqn-ledger-cache-proof.XXXXXX")
 trap 'rm -rf "$work"' EXIT
+
+selection_cli=src/application/report_selection_cli.bqn
+grep -Fq 'request ← •Import "../report/request.bqn"' "$selection_cli"
+if grep -Eq '•Import ".*(source_adapter|source_io|canonical_household_sources)' "$selection_cli"; then
+  echo 'FAIL: Report selection CLI gained source ownership' >&2
+  exit 1
+fi
+
 cp -R "$fixture" "$work/base"
 base="$work/base"
 cache="$work/cache"
