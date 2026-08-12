@@ -5,6 +5,7 @@ dates ← •Import "../ledger/date_ordinal.bqn"
 text ← •Import "../report/text.bqn"
 json ← •Import "../report/json_text.bqn"
 empty ← ⟨⟩
+lf ← @+10
 
 Diagnostic ← {𝕊 code‿message:
   {severity⇐"error",stage⇐"section_envelope_backing",code⇐code,message⇐message}
@@ -85,11 +86,6 @@ FormatHuman ← {𝕊 input:
       i⊑result.envelopes.open_plan_reserve,i⊑result.envelopes.post_plan_headroom
     ⟩
   }¨result.envelopes.index
-  out ← "== Envelope & Backing =="∾(@+10)
-  out ∾↩ "Horizon: "∾result.start∾".."∾result.end_exclusive∾(@+10)
-  out ∾↩ "Observed through: "∾result.observation∾(@+10)∾(@+10)
-  out ∾↩ text.RenderTable ⟨⟨"Envelope","Entitlement","Consumption","Credits/refunds","Remaining","Plan reserve","Headroom"⟩,rows,⟨1,2,3,4,5,6⟩⟩
-  out ∾↩ (@+10)∾"Backing evidence"∾(@+10)
   backingRows ← ⟨
     ⟨"Funding balance",Fmt result.totals.funding_balance⟩,
     ⟨"Signed envelope total",Fmt result.totals.signed_envelope_total⟩,
@@ -98,29 +94,37 @@ FormatHuman ← {𝕊 input:
     ⟨"Budget unassigned",Fmt result.totals.ledger_unassigned⟩,
     ⟨"Reconciliation delta",Fmt result.totals.reconciliation_delta⟩
   ⟩
-  out ∾↩ text.RenderTable ⟨⟨"Coordinate","Amount"⟩,backingRows,⟨1⟩⟩
-  out ∾↩ "Status: "∾result.status∾(@+10)∾(@+10)
-  out
+  headingText ← ∾{𝕩∾lf}¨⟨
+    "== Envelope & Backing ==",
+    ("Horizon: "∾result.start∾".."∾result.end_exclusive),
+    ("Observed through: "∾result.observation),""
+  ⟩
+  envelopeTable ← text.RenderTable ⟨⟨"Envelope","Entitlement","Consumption","Credits/refunds","Remaining","Plan reserve","Headroom"⟩,rows,⟨1,2,3,4,5,6⟩⟩
+  backingBlock ← lf∾"Backing evidence"∾lf∾text.RenderTable ⟨⟨"Coordinate","Amount"⟩,backingRows,⟨1⟩⟩
+  statusText ← ∾{𝕩∾lf}¨⟨("Status: "∾result.status),""⟩
+  ∾⟨headingText,envelopeTable,backingBlock,statusText⟩
 }
 
 FormatCompact ← {𝕊 result:
-  out ← "--- Ledger Envelope & Backing ---"∾(@+10)
-  {𝕊 i:
-    out∾↩"ledger_envelope_item: "∾(i⊑result.envelopes.category)
-    out∾↩" entitlement="∾(AmountText ⟨i⊑result.envelopes.entitlement,result.scale⟩)
-    out∾↩" consumption="∾(AmountText ⟨i⊑result.envelopes.actual_consumption,result.scale⟩)
-    out∾↩" refunds="∾(AmountText ⟨i⊑result.envelopes.actual_refunds,result.scale⟩)
-    out∾↩" remaining="∾(AmountText ⟨i⊑result.envelopes.ledger_remaining,result.scale⟩)
-    out∾↩" reserve="∾(AmountText ⟨i⊑result.envelopes.open_plan_reserve,result.scale⟩)
-    out∾↩" headroom="∾(AmountText ⟨i⊑result.envelopes.post_plan_headroom,result.scale⟩)∾(@+10)
+  itemLines ← {𝕊 i:
+    ∾⟨
+      "ledger_envelope_item: ",i⊑result.envelopes.category,
+      " entitlement=",AmountText ⟨i⊑result.envelopes.entitlement,result.scale⟩,
+      " consumption=",AmountText ⟨i⊑result.envelopes.actual_consumption,result.scale⟩,
+      " refunds=",AmountText ⟨i⊑result.envelopes.actual_refunds,result.scale⟩,
+      " remaining=",AmountText ⟨i⊑result.envelopes.ledger_remaining,result.scale⟩,
+      " reserve=",AmountText ⟨i⊑result.envelopes.open_plan_reserve,result.scale⟩,
+      " headroom=",AmountText ⟨i⊑result.envelopes.post_plan_headroom,result.scale⟩
+    ⟩
   }¨result.envelopes.index
   pairs ← ⟨
     ⟨"funding_balance",result.totals.funding_balance⟩,⟨"signed_total",result.totals.signed_envelope_total⟩,
     ⟨"backing_required",result.totals.backing_required⟩,⟨"backing_surplus",result.totals.backing_surplus⟩,
     ⟨"ledger_unassigned",result.totals.ledger_unassigned⟩,⟨"reconciliation_delta",result.totals.reconciliation_delta⟩
   ⟩
-  {𝕊 pair: out∾↩"ledger_envelope_"∾(0⊑pair)∾": "∾(AmountText ⟨1⊑pair,result.scale⟩)∾(@+10)}¨pairs
-  out∾"ledger_envelope_status: "∾result.status∾(@+10)
+  pairLines ← {𝕊 pair: "ledger_envelope_"∾(0⊑pair)∾": "∾AmountText ⟨1⊑pair,result.scale⟩}¨pairs
+  lines ← ⟨"--- Ledger Envelope & Backing ---"⟩∾itemLines∾pairLines∾⟨"ledger_envelope_status: "∾result.status⟩
+  ∾{𝕩∾lf}¨lines
 }
 
 EnvelopeJson ← {𝕊 result‿i:
@@ -150,7 +154,7 @@ FormatJson ← {𝕊 result:
     json.Pair ⟨"ledger_unassigned",json.ExactNumber ⟨totals.ledger_unassigned,result.scale⟩⟩,
     json.Pair ⟨"reconciliation_delta",json.ExactNumber ⟨totals.reconciliation_delta,result.scale⟩⟩,
     json.Pair ⟨"status",json.String result.status⟩
-  ⟩)∾(@+10)
+  ⟩)∾lf
 }
 
 {Build⇐Build,FormatHuman⇐FormatHuman,FormatCompact⇐FormatCompact,FormatJson⇐FormatJson}
