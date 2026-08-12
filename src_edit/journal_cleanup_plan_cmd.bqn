@@ -3,7 +3,7 @@
 # Args: base directory, format (tsv|text)
 
 loader ← •Import "../src/application/source_io.bqn"
-actual_source ← •Import "../src/application/actual_journal_config.bqn"
+canonical ← •Import "../src/application/canonical_household_sources.bqn"
 parser ← •Import "../src/editor/journal_profile.bqn"
 cleanup ← •Import "journal_cleanup_plan.bqn"
 
@@ -26,8 +26,7 @@ baseDir ← 0 ⊑ args
 format ← 1 ⊑ args
 {𝕊: Fail ⟨"ERROR", "invalid_format", format⟩}⍟(¬ ∨´ format⊸≡¨ "tsv"‿"text") @
 
-route ← actual_source.Resolve baseDir
-raw ← loader.ReadRaw (baseDir ∾ "/" ∾ route.file)
+raw ← loader.ReadRaw (loader.JoinPath ⟨baseDir,canonical.actual⟩)
 parsed ← parser.ParseWithProfile ⟨raw, "historical_external_plan"⟩
 {𝕊:
   first ← ⊑ parsed.diagnostics
