@@ -1,12 +1,14 @@
-# Pure semantic month calendar for the Command Hub Home observation surface.
+# Semantic month calendar plus pure fixed-width Home presentation.
 #
-# This owner composes already-admitted/derived meaning. It does not read source
-# files, render terminal glyphs, or own Plan/Issue/Cycle lifecycle semantics.
+# Build composes already-admitted/derived meaning and does not read source files.
+# FormatHuman consumes admitted calendar presentation policy without owning
+# Plan/Issue/Cycle lifecycle semantics or canonical source authority.
 
 reference ← •Import "../ledger/fact_reference.bqn"
 dates ← •Import "../ledger/date_ordinal.bqn"
 
 empty ← ⟨⟩
+lf ← @+10
 
 Diagnostic ← {𝕊 codeText‿messageText:
   {severity⇐"error",stage⇐"section_home_calendar",code⇐codeText,message⇐messageText}
@@ -94,4 +96,40 @@ Build ← {𝕊 actualFacts‿planned‿issues‿cycle‿focusDate:
   result
 }
 
-{Build⇐Build}
+# Encode the three independent calendar marker meanings as bits. Codes with two
+# or three facts map to the explicit multiple marker, so no hidden priority is
+# introduced by presentation. Parentheses keep the 1/2/4 weights explicit under
+# BQN's right-to-left expression evaluation.
+Markers ← {𝕊 result‿calendar:
+  codes ← result.days.cycle_end + (2×result.days.plan_due) + (4×result.days.issue_due)
+  table ← ⟨
+    " ",calendar.cycle_end_marker,calendar.plan_due_marker,calendar.multiple_marker,
+    calendar.issue_due_marker,calendar.multiple_marker,calendar.multiple_marker,calendar.multiple_marker
+  ⟩
+  codes⊏table
+}
+
+FormatHuman ← {𝕊 result‿calendar:
+  markers ← Markers ⟨result,calendar⟩
+  PadDay ← {𝕊 dayValue:
+    value ← •Fmt dayValue
+    ((0⌈2-≠value)⥊' ')∾value
+  }
+  cells ← {𝕊 i:(PadDay i⊑result.days.day)∾i⊑markers}¨result.days.index
+  CellFor ← {𝕊 dayIndex:
+    cell ← "   "
+    {𝕊:cell↩dayIndex⊑cells}⍟(dayIndex≥0) @
+    cell
+  }
+  rowTexts ← {𝕊 rowIndex:
+    rowCells ← CellFor¨rowIndex⊏result.day_index_grid
+    ¯1↓∾{𝕩∾" "}¨rowCells
+  }¨↕≠result.day_index_grid
+  ∾⟨
+    7↑result.month_start,lf,
+    "Mo  Tu  We  Th  Fr  Sa  Su ",lf,
+    ∾{𝕩∾lf}¨rowTexts
+  ⟩
+}
+
+{Build⇐Build,Markers⇐Markers,FormatHuman⇐FormatHuman}
