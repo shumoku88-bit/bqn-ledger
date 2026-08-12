@@ -32,7 +32,7 @@ AdmitRow ← {𝕊 row:
   {𝕊:Fail ⟨"current_request_surface_mismatch","current request row surface differs from selection"⟩}⍟(rowSurface≢surface) @
   admitted ← route.Admit ⟨key,rowSurface,coordinates⟩
   {𝕊:PrintDiagnostics admitted.diagnostics}⍟(admitted.state≢"ok") @
-  {key⇐key,surface⇐rowSurface,coordinates⇐admitted.coordinates}
+  {key⇐key,surface⇐rowSurface,catalog_index⇐admitted.catalog_index,coordinates⇐admitted.coordinates}
 }
 admittedRows ← AdmitRow¨rows
 expectedKeys ← selection.section_keys
@@ -62,7 +62,7 @@ evidence ← {
   budget_policy⇐companions.budget_policy,household⇐companions.household,issue_lines⇐issueLines
 }
 RenderRow ← {𝕊 row:
-  composition ← destination.Build ⟨row.key,row.coordinates,evidence⟩
+  composition ← destination.Build ⟨row.catalog_index,row.coordinates,evidence⟩
   {𝕊:PrintDiagnostics composition.diagnostics}⍟(composition.state≢"ok") @
   rendered ← render.Render ⟨row.key,row.surface,composition,presentation⟩
   {𝕊:PrintDiagnostics rendered.diagnostics}⍟(rendered.state≢"ok") @

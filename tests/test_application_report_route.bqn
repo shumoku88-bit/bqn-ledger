@@ -4,11 +4,12 @@ lib ← •Import "test_lib.bqn"
 catalog ← •Import "../src/report/catalog.bqn"
 route ← •Import "../src/application/report_route.bqn"
 
-CheckOk ← {𝕊 key‿surface‿coordinates‿coordinateRoles:
+CheckOk ← {𝕊 catalogIndex‿key‿surface‿coordinates‿coordinateRoles:
   result ← route.Admit ⟨key,surface,coordinates⟩
   "ok" lib.AssertEq result.state
   key lib.AssertEq result.key
   surface lib.AssertEq result.surface
+  catalogIndex lib.AssertEq result.catalog_index
   coordinates lib.AssertEq result.coordinates
   coordinateRoles lib.AssertEq result.coordinate_role
   0 lib.AssertEq result.sources.count
@@ -17,21 +18,21 @@ CheckOk ← {𝕊 key‿surface‿coordinates‿coordinateRoles:
 }
 
 successCases ← ⟨
-  ⟨"envelopes","human",⟨"JPY","2026-01-01","2026-02-01","2026-01-12"⟩,⟨"domain","start","end_exclusive","observation"⟩⟩,
-  ⟨"balances","json",⟨"JPY","2026-01-12"⟩,⟨"domain","as_of"⟩⟩,
-  ⟨"balance-sheet","human",⟨"JPY","2026-01-12"⟩,⟨"domain","as_of"⟩⟩,
-  ⟨"profit-and-loss","human",⟨"JPY","2026-01-01","2026-02-01"⟩,⟨"domain","start","end_exclusive"⟩⟩,
-  ⟨"recent","compact",⟨"2026-01-12","10"⟩,⟨"through","limit"⟩⟩,
-  ⟨"planned","human",⟨"2026-01-12"⟩,⟨"observation"⟩⟩,
-  ⟨"cycle-accounts","human",⟨"JPY","2026-01-12"⟩,⟨"domain","observation"⟩⟩,
-  ⟨"cycle-comparison","human",⟨"JPY","2026-01-12","2025-12-31","aligned_elapsed"⟩,⟨"domain","current_observation","baseline_observation","policy"⟩⟩,
-  ⟨"monthly-accounts","human",⟨"JPY","2026-01","2026-03"⟩,⟨"domain","first_month","last_month_exclusive"⟩⟩,
-  ⟨"daily-flow","human",⟨"JPY","2026-01-01","2026-02-01","2026-01-12"⟩,⟨"domain","start","end_exclusive","observation"⟩⟩,
-  ⟨"daily-target","compact",⟨"JPY","2026-01-12","2026-01-22"⟩,⟨"domain","observation","target"⟩⟩,
-  ⟨"issues","human",⟨⟩,⟨⟩⟩
+  ⟨0,"envelopes","human",⟨"JPY","2026-01-01","2026-02-01","2026-01-12"⟩,⟨"domain","start","end_exclusive","observation"⟩⟩,
+  ⟨1,"balances","json",⟨"JPY","2026-01-12"⟩,⟨"domain","as_of"⟩⟩,
+  ⟨2,"balance-sheet","human",⟨"JPY","2026-01-12"⟩,⟨"domain","as_of"⟩⟩,
+  ⟨3,"profit-and-loss","human",⟨"JPY","2026-01-01","2026-02-01"⟩,⟨"domain","start","end_exclusive"⟩⟩,
+  ⟨4,"recent","compact",⟨"2026-01-12","10"⟩,⟨"through","limit"⟩⟩,
+  ⟨5,"planned","human",⟨"2026-01-12"⟩,⟨"observation"⟩⟩,
+  ⟨6,"cycle-accounts","human",⟨"JPY","2026-01-12"⟩,⟨"domain","observation"⟩⟩,
+  ⟨7,"cycle-comparison","human",⟨"JPY","2026-01-12","2025-12-31","aligned_elapsed"⟩,⟨"domain","current_observation","baseline_observation","policy"⟩⟩,
+  ⟨8,"monthly-accounts","human",⟨"JPY","2026-01","2026-03"⟩,⟨"domain","first_month","last_month_exclusive"⟩⟩,
+  ⟨9,"daily-flow","human",⟨"JPY","2026-01-01","2026-02-01","2026-01-12"⟩,⟨"domain","start","end_exclusive","observation"⟩⟩,
+  ⟨10,"daily-target","compact",⟨"JPY","2026-01-12","2026-01-22"⟩,⟨"domain","observation","target"⟩⟩,
+  ⟨11,"issues","human",⟨⟩,⟨⟩⟩
 ⟩
 
-(catalog.Table @).key lib.AssertEq {⊑𝕩}¨successCases
+(catalog.Table @).key lib.AssertEq {1⊑𝕩}¨successCases
 CheckOk¨successCases
 
 HasCode ← {𝕊 code‿diagnostics: ∨´0∾code⊸≡¨{𝕩.code}¨diagnostics}
@@ -40,6 +41,7 @@ CheckError ← {𝕊 key‿surface‿coordinates‿code:
   "error" lib.AssertEq result.state
   "" lib.AssertEq result.key
   "" lib.AssertEq result.surface
+  0 lib.AssertEq ≠result.catalog_index
   0 lib.AssertEq ≠result.coordinates
   0 lib.AssertEq ≠result.coordinate_role
   0 lib.AssertEq result.sources.count

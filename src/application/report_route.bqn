@@ -104,7 +104,9 @@ Admit ← {𝕊 key‿surface‿coordinates:
     }
   ⟩ @
   ok ← 0=≠plan.diagnostics
+  catalogIndex ← ok◶⟨{𝕊:empty},{𝕊:⊑admittedRequest.section_indices}⟩ @
   {state⇐ok⊑"error"‿"ok",key⇐ok⊑""‿key,surface⇐ok⊑""‿surface,
+   catalog_index⇐catalogIndex,
    coordinates⇐ok⊑⟨empty,coordinates⟩,coordinate_role⇐ok⊑⟨empty,plan.coordinate_role⟩,
    sources⇐plan.sources,diagnostics⇐plan.diagnostics}
 }

@@ -32,7 +32,7 @@ registryResult ← sources.Registry "config/currencies.tsv"
 registry ← registryResult.registry
 routeAdmission ← route.Admit ⟨key,surface,coordinates⟩
 {𝕊:PrintDiagnostics routeAdmission.diagnostics}⍟(routeAdmission.state≢"ok") @
-coordinates↩routeAdmission.coordinates
+catalogIndex ← routeAdmission.catalog_index ⋄ coordinates↩routeAdmission.coordinates
 
 actualKeys ← ⟨"envelopes","balances","balance-sheet","profit-and-loss","recent","planned","cycle-accounts","cycle-comparison","monthly-accounts","daily-flow","daily-target"⟩
 contextKeys ← ⟨"planned","cycle-accounts","cycle-comparison","daily-flow","daily-target"⟩
@@ -58,7 +58,7 @@ evidence ← {
   registry⇐registry,actual⇐actual,plan⇐plan,budget⇐budget,
   budget_policy⇐budgetPolicy,household⇐household,issue_lines⇐issueLines
 }
-composition ← destination.Build ⟨key,coordinates,evidence⟩
+composition ← destination.Build ⟨catalogIndex,coordinates,evidence⟩
 {𝕊:PrintDiagnostics composition.diagnostics}⍟(composition.state≢"ok") @
 rendered ← render.Render ⟨key,surface,composition,presentation⟩
 {𝕊:PrintDiagnostics rendered.diagnostics}⍟(rendered.state≢"ok") @
