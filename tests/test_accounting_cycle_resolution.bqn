@@ -7,6 +7,7 @@ account_admission ← •Import "../src/ledger/account_admission.bqn"
 snapshot ← •Import "legacy_snapshot_fixture.bqn"
 canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 cycle_admission ← •Import "../src/ledger/cycle_admission.bqn"
+cycleSelection ← •Import "../src/application/cycle_resolution.bqn"
 fixed_resolver ← •Import "../src/accounting/cycle_fixed_resolution.bqn"
 calendar_resolver ← •Import "../src/accounting/cycle_calendar_month_resolution.bqn"
 income_resolver ← •Import "../src/accounting/cycle_income_anchor_resolution.bqn"
@@ -67,6 +68,23 @@ income ← income_resolver.Resolve ⟨incomeAdmission,"2026-01-12",actualFacts,p
 ⟨"proof-salary-1"⟩ lib.AssertEq {𝕩.transaction_id}¨income.start_contributors
 ⟨"plan.journal"⟩ lib.AssertEq {𝕩.source}¨income.end_contributors
 ⟨"plan.journal:plan_id:income-next"⟩ lib.AssertEq {𝕩.transaction_id}¨income.end_contributors
+
+# Application resolver selection stays aligned with the admitted mode axis.
+selectedFixed ← cycleSelection.WithPlan ⟨fixedAdmission,"2026-01-12",actualFacts,planFacts⟩
+"fixed" lib.AssertEq selectedFixed.mode
+fixed.start lib.AssertEq selectedFixed.start
+fixed.end_exclusive lib.AssertEq selectedFixed.end_exclusive
+selectedCalendar ← cycleSelection.WithPlan ⟨calendarAdmission,"2026-01-10",actualFacts,planFacts⟩
+"calendarMonth" lib.AssertEq selectedCalendar.mode
+calendarBefore.start lib.AssertEq selectedCalendar.start
+calendarBefore.end_exclusive lib.AssertEq selectedCalendar.end_exclusive
+selectedIncome ← cycleSelection.WithPlan ⟨incomeAdmission,"2026-01-12",actualFacts,planFacts⟩
+income.start lib.AssertEq selectedIncome.start
+income.end_exclusive lib.AssertEq selectedIncome.end_exclusive
+({𝕩.source}¨income.start_contributors) lib.AssertEq ({𝕩.source}¨selectedIncome.start_contributors)
+({𝕩.transaction_id}¨income.start_contributors) lib.AssertEq ({𝕩.transaction_id}¨selectedIncome.start_contributors)
+({𝕩.source}¨income.end_contributors) lib.AssertEq ({𝕩.source}¨selectedIncome.end_contributors)
+({𝕩.transaction_id}¨income.end_contributors) lib.AssertEq ({𝕩.transaction_id}¨selectedIncome.end_contributors)
 
 # Explicit observation excludes later Actual transactions from the frontier.
 incomeAtJan10 ← income_resolver.Resolve ⟨incomeAdmission,"2026-01-10",actualFacts,planFacts⟩
