@@ -5,6 +5,8 @@ registry_core ← •Import "../src/ledger/currency_registry.bqn"
 issues ← •Import "../src/ledger/issue_admission.bqn"
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
 
+tab ← @+9
+Tsv ← {𝕊 fields: 1↓∾tab⊸∾¨fields}
 CheckOk ← {𝕊 label‿value:
   {𝕊:
     •Out "DEBUG " ∾ label ∾ " state=" ∾ value.state
@@ -30,8 +32,8 @@ CheckOk ⟨"legacy fixture",result⟩
 ⟨⟩ lib.AssertEq 0⊑result.issues.due_ordinal
 "issues.tsv:row:2" lib.AssertEq 0⊑result.issues.source_ref
 
-legacyHeader ← "issue_id\tstatus\tdate\tcategory\ttitle\tamount\tcurrency\tdetails"
-dueHeader ← "issue_id\tstatus\tdate\tdue\tcategory\ttitle\tamount\tcurrency\tdetails"
+legacyHeader ← Tsv ⟨"issue_id","status","date","category","title","amount","currency","details"⟩
+dueHeader ← Tsv ⟨"issue_id","status","date","due","category","title","amount","currency","details"⟩
 
 emptyLegacy ← issues.Admit ⟨⟨legacyHeader⟩,registry⟩
 CheckOk ⟨"empty legacy",emptyLegacy⟩
@@ -49,9 +51,9 @@ CheckOk ⟨"absent",absent⟩
 current ← issues.Admit ⟨
   ⟨
     dueHeader,
-    "known\topen\t2026-08-01\t2026-08-15\twant\tAuction item\t1000\tJPY\tbuy if still available",
-    "none\topen\t2026-08-02\tnone\twant\tBookshelf\t\t\tno deadline",
-    "unknown\topen\t2026-08-03\tundetermined\twaiting\tRepair date\t\t\twaiting for reply"
+    Tsv ⟨"known","open","2026-08-01","2026-08-15","want","Auction item","1000","JPY","buy if still available"⟩,
+    Tsv ⟨"none","open","2026-08-02","none","want","Bookshelf","","","no deadline"⟩,
+    Tsv ⟨"unknown","open","2026-08-03","undetermined","waiting","Repair date","","","waiting for reply"⟩
   ⟩,
   registry
 ⟩
@@ -69,19 +71,19 @@ Reject ← {𝕊 rows‿code:
   lib.Assert ∨´code⊸≡¨{𝕩.code}¨rejected.diagnostics
 }
 h ← legacyHeader
-Reject ⟨⟨h,"x\tpending\t2026-01-01\tdecision\tTitle\t\t\tDetails"⟩,"issue_status_invalid"⟩
-Reject ⟨⟨h,"x\topen\t2026-02-30\tdecision\tTitle\t\t\tDetails"⟩,"issue_date_invalid"⟩
-Reject ⟨⟨h,"x\topen\t\tdecision\tTitle\t10\t\tDetails"⟩,"issue_amount_currency_pair_invalid"⟩
-Reject ⟨⟨h,"x\topen\t\tdecision\tTitle\t1.234\tILS\tDetails"⟩,"issue_amount_precision_exceeded"⟩
-Reject ⟨⟨dueHeader,"x\topen\t2026-08-01\tsoon\twant\tTitle\t\t\tDetails"⟩,"issue_due_invalid"⟩
-Reject ⟨⟨dueHeader,"x\topen\t2026-08-01\t2026-02-30\twant\tTitle\t\t\tDetails"⟩,"issue_due_invalid"⟩
+Reject ⟨⟨h,Tsv ⟨"x","pending","2026-01-01","decision","Title","","","Details"⟩⟩,"issue_status_invalid"⟩
+Reject ⟨⟨h,Tsv ⟨"x","open","2026-02-30","decision","Title","","","Details"⟩⟩,"issue_date_invalid"⟩
+Reject ⟨⟨h,Tsv ⟨"x","open","","decision","Title","10","","Details"⟩⟩,"issue_amount_currency_pair_invalid"⟩
+Reject ⟨⟨h,Tsv ⟨"x","open","","decision","Title","1.234","ILS","Details"⟩⟩,"issue_amount_precision_exceeded"⟩
+Reject ⟨⟨dueHeader,Tsv ⟨"x","open","2026-08-01","soon","want","Title","","","Details"⟩⟩,"issue_due_invalid"⟩
+Reject ⟨⟨dueHeader,Tsv ⟨"x","open","2026-08-01","2026-02-30","want","Title","","","Details"⟩⟩,"issue_due_invalid"⟩
 
 duplicateIssues ← issues.Admit ⟨
   ⟨
     h,
-    "x\topen\t\tdecision\tOne\t\t\tA",
-    "y\tresolved\t\tdecision\tTwo\t\t\tB",
-    "x\tdropped\t\tdecision\tThree\t\t\tC"
+    Tsv ⟨"x","open","","decision","One","","","A"⟩,
+    Tsv ⟨"y","resolved","","decision","Two","","","B"⟩,
+    Tsv ⟨"x","dropped","","decision","Three","","","C"⟩
   ⟩,
   registry
 ⟩
