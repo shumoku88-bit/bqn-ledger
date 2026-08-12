@@ -7,7 +7,8 @@ admission ← •Import "../ledger/report_policy_admission.bqn"
 canonical ← •Import "canonical_household_sources.bqn"
 
 Load ← {𝕊 base:
-  admission.Admit io.ReadRaw (io.JoinPath ⟨base,canonical.reportPolicy⟩)
+  raw ← io.ReadRaw (io.JoinPath ⟨base,canonical.reportPolicy⟩)
+  admission.Admit raw
 }
 
 {Load⇐Load}
