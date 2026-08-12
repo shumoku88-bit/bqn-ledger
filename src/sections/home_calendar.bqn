@@ -44,7 +44,7 @@ Build ← {𝕊 actualFacts‿planned‿issues‿cycle‿focusDate:
 
   result ← EmptyResult diagnostics
   {𝕊:
-    year‿month‿_ ← dates.Parts focusDate
+    year‿month‿focusDay ← dates.Parts focusDate
     monthStart ← dates.FromParts ⟨year,month,1⟩
     nextYear ← year+month=12
     nextMonth ← 1+12|month
