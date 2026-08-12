@@ -9,6 +9,7 @@ date ← •Import "date_ordinal.bqn"
 lf ← @+10 ⋄ cr ← @+13 ⋄ space ← @+32 ⋄ tab ← @+9 ⋄ quote ← @+34 ⋄ hash ← ⊑"#"
 empty ← ⟨⟩
 digits ← "0123456789"
+printableAscii ← @+32+↕95
 
 Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
 IsWhitespace ← {𝕊 c: (c=space) ∨ c=tab}
@@ -18,6 +19,7 @@ Trim ← {TrimRight TrimLeft 𝕩}
 SplitKeepEmpty ← {𝕊 sep‿text: groups ← (+`sep=text)⊔text ⋄ {(sep≠𝕩)/𝕩}¨groups}
 FirstOrSpace ← {𝕊 text: ⊑text∾⟨space⟩}
 IsDigits ← {𝕊 text: (0<≠text) ∧ ∧´text∊digits}
+IsMarker ← {𝕊 text: (1=≠text) ∧ ∧´text∊printableAscii}
 ToNum ← {𝕊 text: +´(text-⊑"0")×10⋆⌽↕≠text}
 
 Diagnostic ← {𝕊 code‿line‿message:{severity⇐"error",stage⇐"ledger_report_policy_admission",code⇐code,line⇐line,message⇐message}}
@@ -43,7 +45,7 @@ PairValue ← {𝕊 block‿key:
 Admit ← {𝕊 raw:
   lines ← SplitKeepEmpty ⟨lf,(cr≠raw)/raw⟩
   knownSections ← ⟨
-    "presentation.amounts","reports.trial-balance","reports.balance-sheet",
+    "presentation.amounts","presentation.calendar","reports.trial-balance","reports.balance-sheet",
     "reports.profit-and-loss","reports.daily-flow","reports.monthly-accounts",
     "reports.recent-transactions"
   ⟩
@@ -133,6 +135,14 @@ Admit ← {𝕊 raw:
     pair ← PairValue ⟨block,key⟩ ⋄ parsed ← ParseString pair.text
     diagnostics∾↩AtLine ⟨parsed,pair.line⟩ ⋄ parsed.value
   }
+  MarkerValue ← {𝕊 block‿key‿fallback:
+    pair ← PairValue ⟨block,key⟩ ⋄ value ← fallback
+    {𝕊:
+      value↩StringValue ⟨block,key⟩
+      diagnostics∾↩AddIf ⟨¬IsMarker value,Diagnostic ⟨"report_policy_calendar_marker_invalid",pair.line,"Calendar marker must be exactly one printable ASCII character"⟩⟩
+    }⍟pair.found @
+    value
+  }
   PositiveInteger ← {𝕊 block‿key‿fallback:
     pair ← PairValue ⟨block,key⟩ ⋄ value ← fallback
     {𝕊:
@@ -175,6 +185,16 @@ Admit ← {𝕊 raw:
     diagnostics∾↩AddIf ⟨¬Contains ⟨negativeColor,⟨"red","bright-red","green","yellow","blue","magenta","cyan","white"⟩⟩,Diagnostic ⟨"report_policy_negative_color_invalid",presentationBlock.line,"negative-color is not a supported terminal color"⟩⟩
   }⍟(0<presentationBlock.line) @
 
+  calendarBlock ← OptionalOne "presentation.calendar"
+  cycleEndMarker ← "*" ⋄ planDueMarker ← "$" ⋄ issueDueMarker ← "!" ⋄ multipleMarker ← "+"
+  {𝕊:
+    CheckKeys ⟨calendarBlock,empty,⟨"cycle-end-marker","plan-due-marker","issue-due-marker","multiple-marker"⟩⟩
+    cycleEndMarker↩MarkerValue ⟨calendarBlock,"cycle-end-marker",cycleEndMarker⟩
+    planDueMarker↩MarkerValue ⟨calendarBlock,"plan-due-marker",planDueMarker⟩
+    issueDueMarker↩MarkerValue ⟨calendarBlock,"issue-due-marker",issueDueMarker⟩
+    multipleMarker↩MarkerValue ⟨calendarBlock,"multiple-marker",multipleMarker⟩
+  }⍟(0<calendarBlock.line) @
+
   trialBlock ← RequireOne "reports.trial-balance" ⋄ CheckKeys ⟨trialBlock,⟨"as-of"⟩,empty⟩
   trialAsOf ← StringDate ⟨trialBlock,"as-of",0⟩
 
@@ -201,7 +221,10 @@ Admit ← {𝕊 raw:
   state ← (0=≠diagnostics)⊑"error"‿"ok"
   {
     state⇐state,source_name⇐"report.toml",
-    presentation⇐{negative_style⇐negativeStyle,negative_color⇐negativeColor,daily_flow_max_date_columns⇐dailyColumns},
+    presentation⇐{
+      negative_style⇐negativeStyle,negative_color⇐negativeColor,daily_flow_max_date_columns⇐dailyColumns,
+      calendar⇐{cycle_end_marker⇐cycleEndMarker,plan_due_marker⇐planDueMarker,issue_due_marker⇐issueDueMarker,multiple_marker⇐multipleMarker}
+    },
     reports⇐{
       trial_balance⇐{as_of⇐trialAsOf},
       balance_sheet⇐{as_of⇐balanceAsOf},
