@@ -47,7 +47,7 @@ Companions ← {𝕊 base‿accounts‿registry:
   }⍟ok @
   result
 }
-IssueLines ← {𝕊 base: io.ReadLines io.JoinPath ⟨base,canonical.issues⟩}
+IssueLines ← {𝕊 base: io.ReadLines (io.JoinPath ⟨base,canonical.issues⟩)}
 
 {
   Registry⇐Registry,CanonicalActual⇐CanonicalActual,CanonicalPlan⇐CanonicalPlan,
