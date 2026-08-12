@@ -25,11 +25,13 @@ Usage:
   tools/bl [--base DIR] [command [subcommand] [args...]]
 
 Interactive Command Hub:
+  Home             Read-only calendar observation above the interaction choices
   Editor           Structured Household changes
   Reports          Read-only semantic reports
   Source & System  Raw canonical sources, diagnostics, export, and maintenance
 
 Direct commands (non-TTY safe when the target command is read-only):
+  home [YYYY-MM-DD]              Home calendar for one focus month
   report, all                    Full current report
   section [KEY]                  Report selector or one retained report
   reports [KEY]                  Report selector or one retained report
@@ -61,7 +63,7 @@ Direct command groups:
 Options:
   --base DIR                     Canonical eight-file Household root
   --domain COMMODITY             Explicit report domain
-  --latest YYYY-MM-DD            Deterministic current-report date
+  --latest YYYY-MM-DD            Deterministic current-report / Home focus date
 EOF
 }
 
@@ -102,7 +104,7 @@ COLOR_RESET="$ESC_RESET"
 print_header() { printf '%b=== %s ===%b\n' "$COLOR_HEADER" "$1" "$COLOR_RESET"; }
 
 select_menu() {
-  local prompt="$1" lines="$2" selector selection status=0 key='' label=''
+  local prompt="$1" lines="$2" header="${3:-}" selector selection status=0 key='' label='' header_text=''
   selector="$(bl_selector_preference 2>/dev/null || echo auto)"
   if [[ "${BL_UI_MODE:-}" == minimal ]]; then
     selector=plain
@@ -114,15 +116,19 @@ select_menu() {
   fi
 
   if [[ $IS_TTY -eq 1 && $selector == fzf ]]; then
+    local -a fzf_args=(--prompt="$prompt> " --delimiter=$'\t' --with-nth=2.. --reverse --exit-0)
+    [[ -z $header ]] || fzf_args+=(--header="$header")
     set +e
-    selection="$(printf '%s\n' "$lines" | fzf --prompt="$prompt> " --delimiter=$'\t' --with-nth=2.. --reverse --exit-0)"
+    selection="$(printf '%s\n' "$lines" | fzf "${fzf_args[@]}")"
     status=$?
     set -e
     [[ $status -eq 0 && -n $selection ]] || return 130
     printf '%s\n' "${selection%%$'\t'*}"
   elif [[ $IS_TTY -eq 1 && $selector == gum ]]; then
+    header_text="$prompt"
+    [[ -z $header ]] || header_text="$header"$'\n\n'"$prompt"
     set +e
-    selection="$(printf '%s\n' "$lines" | cut -f2- | gum choose "${GUM_CHOOSE_ARGS[@]}" --header="$prompt")"
+    selection="$(printf '%s\n' "$lines" | cut -f2- | gum choose "${GUM_CHOOSE_ARGS[@]}" --header="$header_text")"
     status=$?
     set -e
     [[ $status -eq 0 && -n $selection ]] || return 130
@@ -138,6 +144,7 @@ select_menu() {
       labels+=("$label")
       count=$((count + 1))
     done <<<"$lines"
+    [[ -z $header ]] || printf '\n%s\n' "$header" >&2
     printf '\n=== %s ===\n' "$prompt" >&2
     for ((i=0; i<count; i++)); do printf ' %2d) %s\n' "$((i+1))" "${labels[i]}" >&2; done
     printf '  0) Back\nSelect [0-%d]> ' "$count" >&2
@@ -170,6 +177,34 @@ run_child() {
     printf '%bCommand failed with status %s.%b\n' "$COLOR_ERROR" "$status" "$COLOR_RESET" >&2
   fi
   return "$status"
+}
+
+home_focus_date() {
+  if [[ -n $latest_override ]]; then
+    printf '%s\n' "$latest_override"
+  else
+    date +%Y-%m-%d
+  fi
+}
+
+run_home() {
+  local focus="${1:-}"
+  [[ -n $focus ]] || focus="$(home_focus_date)"
+  run_child "$ROOT_DIR/tools/home-calendar" "$base_dir" "$focus"
+}
+
+home_header() {
+  local focus output status=0
+  focus="$(home_focus_date)"
+  set +e
+  output="$("$ROOT_DIR/tools/home-calendar" "$base_dir" "$focus" 2>&1)"
+  status=$?
+  set -e
+  if [[ $status -eq 0 ]]; then
+    printf '%s\n' "$output"
+  else
+    printf '[Home unavailable for %s]\n%s\n' "$focus" "$output"
+  fi
 }
 
 run_action() {
@@ -645,14 +680,15 @@ run_source_system_hub() {
 }
 
 run_interactive_hub() {
-  local key status
+  local key status home
   [[ $IS_TTY -eq 1 ]] || { echo 'Error: no command and no interactive terminal; use tools/bl --help' >&2; return 2; }
   # Keep the navigation shell alive while the active selector/child receives
   # Ctrl-C. External children reset this caught signal to their normal default.
   trap ':' INT
   while true; do
+    home="$(home_header)"
     set +e
-    key="$(select_menu "BQN-Ledger Command Hub ($base_dir)" "$(top_menu)")"
+    key="$(select_menu "BQN-Ledger Command Hub ($base_dir)" "$(top_menu)" "$home")"
     status=$?
     set -e
     [[ $status -eq 130 ]] && return 0
@@ -673,6 +709,7 @@ fi
 
 cmd="$1"; shift
 case "$cmd" in
+  home) run_home "${1:-}" ;;
   report|all) run_reports all ;;
   section|reports)
     if [[ $# -gt 0 ]]; then run_reports "$1"; else run_reports; fi ;;
