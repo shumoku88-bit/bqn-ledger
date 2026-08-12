@@ -9,13 +9,8 @@ PadLeft ← {𝕊 width‿text: ((0⌈width-VWidth text)⥊' ')∾text}
 
 FormatAmount ← {𝕊 coefficient‿scale‿style:
   plain ← amount.Format ⟨coefficient,scale⟩
-  {𝕊:
-    {𝕊:
-      digits ← 1↓plain
-      plain ↩ "("∾digits∾")"
-    }⍟('-'≡0⊑plain) @
-  }⍟(style≡"parentheses") @
-  plain
+  parenthesized ← (style≡"parentheses") ∧ ('-'≡0⊑plain)
+  parenthesized◶⟨{𝕊:plain},{𝕊:"("∾(1↓plain)∾")"}⟩ @
 }
 
 # Plain deterministic table over already-formatted text cells.
