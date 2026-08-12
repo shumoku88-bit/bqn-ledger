@@ -7,6 +7,19 @@ tmp="$(mktemp -d "${TMPDIR:-/tmp}/bqn-ledger-destination.XXXXXX")"
 trap 'status=$?; echo "::error file=checks/check-report-composition.sh,line=$LINENO::Report composition check failed" >&2; exit "$status"' ERR
 trap 'rm -rf "$tmp"' EXIT
 
+request_cli=src/application/report_request_cli.bqn
+presentation_cli=src/application/report_presentation_cli.bqn
+grep -Fq 'request ← •Import "../report/request.bqn"' "$request_cli"
+if grep -Eq '•Import ".*(source_adapter|source_io|canonical_household_sources)' "$request_cli"; then
+  echo 'FAIL: Report request CLI gained source ownership' >&2
+  exit 1
+fi
+grep -Fq 'source ← •Import "report_policy_source_adapter.bqn"' "$presentation_cli"
+if grep -Fq 'report_source_adapter.bqn' "$presentation_cli"; then
+  echo 'FAIL: Report presentation CLI gained accounting evidence ownership' >&2
+  exit 1
+fi
+
 ./tools/report "$fixture" envelopes compact JPY 2026-01-01 2026-02-01 2026-01-12 >"$tmp/envelopes"
 cmp "$tmp/envelopes" "$fixture/envelope_backing.destination.compact.txt"
 ./tools/report "$fixture" balances human JPY 2026-01-12 >"$tmp/balances"
