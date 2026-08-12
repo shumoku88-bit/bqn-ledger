@@ -8,17 +8,9 @@ registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").regi
 
 tab ← @+9
 Tsv ← {𝕊 fields: 1↓∾tab⊸∾¨fields}
-CheckOk ← {𝕊 label‿value:
-  {𝕊:
-    •Out "DEBUG " ∾ label ∾ " state=" ∾ value.state
-    {𝕊 diagnostic: •Out diagnostic.code ∾ " row=" ∾ (•Fmt diagnostic.source_row) ∾ ": " ∾ diagnostic.message}¨ value.diagnostics
-    •Exit 1
-  }⍟(value.state≢"ok") @
-}
 
 lines ← loader.ReadLines "fixtures/ledger-facts-phase1-proof/issues.destination.tsv"
 result ← issues.Admit ⟨lines,registry⟩
-CheckOk ⟨"legacy fixture",result⟩
 "ok" lib.AssertEq result.state
 3 lib.AssertEq result.issues.count
 ⟨"subscription-review","missing-receipt","resolved-demo"⟩ lib.AssertEq result.issues.issue_id
@@ -37,15 +29,12 @@ legacyHeader ← Tsv ⟨"issue_id","status","date","category","title","amount","
 dueHeader ← Tsv ⟨"issue_id","status","date","due","category","title","amount","currency","details"⟩
 
 emptyLegacy ← issues.Admit ⟨⟨legacyHeader⟩,registry⟩
-CheckOk ⟨"empty legacy",emptyLegacy⟩
 "ok" lib.AssertEq emptyLegacy.state
 0 lib.AssertEq emptyLegacy.issues.count
 emptyDue ← issues.Admit ⟨⟨dueHeader⟩,registry⟩
-CheckOk ⟨"empty due",emptyDue⟩
 "ok" lib.AssertEq emptyDue.state
 0 lib.AssertEq emptyDue.issues.count
 absent ← issues.Admit ⟨⟨⟩,registry⟩
-CheckOk ⟨"absent",absent⟩
 "ok" lib.AssertEq absent.state
 0 lib.AssertEq absent.issues.count
 
@@ -63,7 +52,6 @@ current ← issues.Admit ⟨
   ⟩,
   registry
 ⟩
-CheckOk ⟨"due-aware fixture",current⟩
 "ok" lib.AssertEq current.state
 ⟨"2026-08-15","none","undetermined"⟩ lib.AssertEq current.issues.due
 lib.Assert 0<≠0⊑current.issues.due_ordinal
