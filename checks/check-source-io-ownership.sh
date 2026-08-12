@@ -19,6 +19,16 @@ if grep -Fq 'Join ← {𝕊 base‿name:' src/application/*source_adapter.bqn; t
   fail 'application source adapters must reuse source_io.JoinPath instead of owning path composition'
 fi
 
+policy_source=src/application/report_policy_source_adapter.bqn
+grep -Fq 'canonical ← •Import "canonical_household_sources.bqn"' "$policy_source" \
+  || fail 'Report policy source adapter must import canonical Household source ownership'
+grep -Fq 'io.ReadRaw (io.JoinPath ⟨base,canonical.reportPolicy⟩)' "$policy_source" \
+  || fail 'Report policy source adapter must read the canonical Report policy basename through source_io'
+if grep -Eq 'report_manifests\.tsv|REPORT_MANIFEST_CONFIG|config\.tsv' "$policy_source"; then
+  fail 'Report policy source adapter revived legacy Report/config source selection'
+fi
+
 bqn tests/test_application_household_source_adapter.bqn >/dev/null
+bqn tests/test_application_report_policy_source.bqn >/dev/null
 
 echo 'check-source-io-ownership: OK'
