@@ -4,6 +4,7 @@ matrix_result ← •Import "../accounting/matrix_result.bqn"
 amount ← •Import "../ledger/amount_text.bqn"
 text ← •Import "../report/text.bqn"
 empty ← ⟨⟩
+lf ← @+10
 
 EmptyMatrix ← {𝕊: (matrix_result.Build ⟨empty,empty,0,empty,empty⟩).matrix}
 EmptyResult ← {𝕊 diagnosticsValue:
@@ -40,11 +41,10 @@ FormatHuman ← {𝕊 input:
   totalRow ← ⟨"Month total"⟩∾(Fmt¨result.totals.month)∾⟨Fmt result.totals.grand⟩
   headers ← ⟨"Account"⟩∾result.months∾⟨"Range total"⟩
   right ← 1+↕result.matrix.row_count+1
-  out ← "== Monthly Accounts =="∾(@+10)
-  out ∾↩ "Range: "∾result.first_month∾".."∾result.last_month_exclusive∾(@+10)∾(@+10)
-  out ∾↩ text.RenderTable ⟨headers,rows∾⟨totalRow⟩,right⟩
-  out ∾↩ "Balanced by month: "∾(result.totals.balanced⊑"NO"‿"YES")∾(@+10)∾(@+10)
-  out
+  headingText ← ∾{𝕩∾lf}¨⟨"== Monthly Accounts ==",("Range: "∾result.first_month∾".."∾result.last_month_exclusive),""⟩
+  tableText ← text.RenderTable ⟨headers,rows∾⟨totalRow⟩,right⟩
+  summaryText ← ∾{𝕩∾lf}¨⟨("Balanced by month: "∾result.totals.balanced⊑"NO"‿"YES"),""⟩
+  ∾⟨headingText,tableText,summaryText⟩
 }
 
 {Build⇐Build,FormatHuman⇐FormatHuman}
