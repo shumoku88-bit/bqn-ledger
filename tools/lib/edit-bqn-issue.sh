@@ -38,7 +38,7 @@ handle_edit_bqn_issue_add() {
   SNAP_SIZE=""
   SNAP_MTIME=""
   SNAP_SHA256=""
-  ISSUE_SCHEMA="due"
+  ISSUE_SCHEMA="closed"
   if [[ -f "$TARGET_PATH" ]]; then
     TARGET_EXISTS=1
     SNAPSHOT_TOKEN="$(safe_snapshot_token "$TARGET_PATH")"
@@ -51,12 +51,15 @@ handle_edit_bqn_issue_add() {
       $'issue_id\tstatus\tdate\tdue\tcategory\ttitle\tamount\tcurrency\tdetails')
         ISSUE_SCHEMA="due"
         ;;
+      $'issue_id\tstatus\tdate\tdue\tclosed\tcategory\ttitle\tamount\tcurrency\tdetails')
+        ISSUE_SCHEMA="closed"
+        ;;
       '')
         echo "ERROR: existing issues.tsv has no supported header" >&2
         return 1
         ;;
       *)
-        echo "ERROR: existing issues.tsv header is not a supported eight- or nine-column schema" >&2
+        echo "ERROR: existing issues.tsv header is not a supported eight-, nine-, or ten-column schema" >&2
         return 1
         ;;
     esac
@@ -101,7 +104,7 @@ handle_edit_bqn_issue_add() {
     edit_bqn_apply_append_checked "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256" "" issue
   else
     local WRITE_OUT BACKUP_PATH
-    WRITE_OUT="$(safe_create_checked "$TARGET_PATH" $'issue_id\tstatus\tdate\tdue\tcategory\ttitle\tamount\tcurrency\tdetails\n'"$PAYLOAD"$'\n')"
+    WRITE_OUT="$(safe_create_checked "$TARGET_PATH" $'issue_id\tstatus\tdate\tdue\tclosed\tcategory\ttitle\tamount\tcurrency\tdetails\n'"$PAYLOAD"$'\n')"
     printf '%s\n' "$WRITE_OUT"
     BACKUP_PATH="$(awk -F': ' '$1 == "Backup" {print $2}' <<< "$WRITE_OUT")"
     run_post_check "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$BACKUP_PATH" issue
@@ -125,10 +128,11 @@ handle_edit_bqn_issue_list() {
 }
 
 handle_edit_bqn_issue_close() {
-  local ISSUE_INDEX CLOSE_STATUS DECISION_MEMO DRY_RUN YES POST_CHECK
+  local ISSUE_INDEX CLOSE_STATUS DECISION_MEMO CLOSE_DATE DRY_RUN YES POST_CHECK
   ISSUE_INDEX="0"
   CLOSE_STATUS="resolved"
   DECISION_MEMO=""
+  CLOSE_DATE=""
   DRY_RUN=0
   YES=0
   POST_CHECK="lint"
@@ -138,6 +142,7 @@ handle_edit_bqn_issue_close() {
       --index) ISSUE_INDEX="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
       --status) CLOSE_STATUS="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
       --decision|--memo) DECISION_MEMO="$(get_opt_val_allow_empty "$1" "${2-}")"; shift 2 ;;
+      --closed-date) CLOSE_DATE="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
       --dry-run) DRY_RUN=1; shift ;;
       --yes) YES=1; shift ;;
       --post-check) POST_CHECK="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
@@ -151,16 +156,39 @@ handle_edit_bqn_issue_close() {
   fi
   edit_bqn_validate_post_check "$POST_CHECK"
 
-  local TARGET_PATH SNAPSHOT_TOKEN SNAP_SIZE SNAP_MTIME SNAP_SHA256
+  local TARGET_PATH SNAPSHOT_TOKEN SNAP_SIZE SNAP_MTIME SNAP_SHA256 ISSUE_HEADER ISSUE_SCHEMA
   TARGET_PATH="$BASE_DIR/$EXPECTED_TARGET_FILE"
   SNAPSHOT_TOKEN="$(safe_snapshot_token "$TARGET_PATH")"
   IFS=$'\t' read -r SNAP_SIZE SNAP_MTIME SNAP_SHA256 <<< "$SNAPSHOT_TOKEN"
+  ISSUE_HEADER="$(awk 'length && substr($0,1,1) != "#" && substr($0,1,1) != "\\" {print; exit}' "$TARGET_PATH")"
+  case "$ISSUE_HEADER" in
+    $'issue_id\tstatus\tdate\tcategory\ttitle\tamount\tcurrency\tdetails') ISSUE_SCHEMA="legacy" ;;
+    $'issue_id\tstatus\tdate\tdue\tcategory\ttitle\tamount\tcurrency\tdetails') ISSUE_SCHEMA="due" ;;
+    $'issue_id\tstatus\tdate\tdue\tclosed\tcategory\ttitle\tamount\tcurrency\tdetails') ISSUE_SCHEMA="closed" ;;
+    *)
+      echo "ERROR: existing issues.tsv header is not a supported eight-, nine-, or ten-column schema" >&2
+      return 1
+      ;;
+  esac
+  if [[ "$ISSUE_SCHEMA" == "closed" ]]; then
+    [[ -n "$CLOSE_DATE" ]] || CLOSE_DATE="$(date +%F)"
+  elif [[ -n "$CLOSE_DATE" ]]; then
+    echo "ERROR: --closed-date requires the ten-column closed-aware issues.tsv schema" >&2
+    return 2
+  fi
 
   local BQN_STDERR BQN_OUT LINE_NUM ISSUE_TITLE OLD_LINE NEW_LINE MODE
   BQN_STDERR="$(mktemp)"
-  if ! BQN_OUT="$(edit_bqn_bqn_capture "$BQN_STDERR" bqn src_edit/issue_close_cmd.bqn "$BASE_DIR" "$ISSUE_INDEX" "$CLOSE_STATUS" "$DECISION_MEMO")"; then
-    rm -f "$BQN_STDERR"
-    return 1
+  if [[ "$ISSUE_SCHEMA" == "closed" ]]; then
+    if ! BQN_OUT="$(edit_bqn_bqn_capture "$BQN_STDERR" bqn src_edit/issue_close_cmd.bqn "$BASE_DIR" "$ISSUE_INDEX" "$CLOSE_STATUS" "$DECISION_MEMO" "$CLOSE_DATE")"; then
+      rm -f "$BQN_STDERR"
+      return 1
+    fi
+  else
+    if ! BQN_OUT="$(edit_bqn_bqn_capture "$BQN_STDERR" bqn src_edit/issue_close_cmd.bqn "$BASE_DIR" "$ISSUE_INDEX" "$CLOSE_STATUS" "$DECISION_MEMO")"; then
+      rm -f "$BQN_STDERR"
+      return 1
+    fi
   fi
   rm -f "$BQN_STDERR"
 
