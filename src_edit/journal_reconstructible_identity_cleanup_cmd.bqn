@@ -7,7 +7,7 @@
 #   apply INPUT EXPECTED_SHA256 EXPECTED_REMOVAL_COUNT
 
 loader ← •Import "../src/application/source_io.bqn"
-actual_source ← •Import "../src/application/actual_journal_config.bqn"
+canonical ← •Import "../src/application/canonical_household_sources.bqn"
 cleanup ← •Import "journal_reconstructible_identity_cleanup.bqn"
 util ← •Import "../src/text/parse.bqn"
 
@@ -31,10 +31,7 @@ ResolveJournalFile ← { 𝕊 inputPath:
   isDir ← (•file.Exists (inputPath ∾ "/config.tsv")) ∨ (•file.Exists (inputPath ∾ "/accounts.tsv"))
   isDir ◶ ⟨
     { 𝕊: inputPath },
-    { 𝕊:
-      route ← actual_source.Resolve inputPath
-      inputPath ∾ "/" ∾ route.file
-    }
+    { 𝕊: loader.JoinPath ⟨inputPath,canonical.actual⟩ }
   ⟩ @
 }
 
