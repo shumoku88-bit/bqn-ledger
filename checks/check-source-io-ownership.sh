@@ -10,8 +10,13 @@ if grep -Eq '•SH|•FChars|•file\.|•Out|•Exit|LoadChars|LoadLines' src/t
 fi
 grep -Fq 'parse ← •Import "../text/parse.bqn"' src/application/source_io.bqn \
   || fail 'source_io must delegate splitting to src/text/parse.bqn'
+grep -Fq 'JoinPath⇐JoinPath' src/application/source_io.bqn \
+  || fail 'source_io must own shared application source path composition'
 if grep -Eq '•SH|•Out|•Exit|•GetTime|•Delay' src/application/source_io.bqn; then
   fail 'source_io gained shell, output, process, or clock behavior'
+fi
+if grep -Fq 'Join ← {𝕊 base‿name:' src/application/*source_adapter.bqn; then
+  fail 'application source adapters must reuse source_io.JoinPath instead of owning path composition'
 fi
 
 echo 'check-source-io-ownership: OK'
