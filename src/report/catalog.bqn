@@ -2,39 +2,47 @@
 
 empty ← ⟨⟩
 
-Entry ← {𝕊 keyValue‿labelValue‿categoryValue‿ownerValue‿shapeValue‿humanValue‿compactValue‿jsonValue:
-  {
-    key⇐keyValue,label⇐labelValue,category⇐categoryValue,owner⇐ownerValue,shape⇐shapeValue,
-    human⇐humanValue,compact⇐compactValue,json⇐jsonValue
-  }
-}
-entries ← ⟨
-  Entry ⟨"envelopes","Envelope & Backing","household","src/sections/envelope_backing.bqn","statement",1,1,1⟩,
-  Entry ⟨"balances","Account Balances","accounting","src/sections/account_balances.bqn","matrix",1,1,1⟩,
-  Entry ⟨"balance-sheet","Balance Sheet","accounting","src/sections/balance_sheet.bqn","statement",1,0,0⟩,
-  Entry ⟨"profit-and-loss","Profit and Loss","accounting","src/sections/profit_and_loss.bqn","statement",1,0,0⟩,
-  Entry ⟨"recent","Recent Journal","operations","src/sections/recent_journal.bqn","list",1,1,0⟩,
-  Entry ⟨"planned","Planned Payments","operations","src/sections/planned_payments.bqn","list_card",1,1,1⟩,
-  Entry ⟨"cycle-accounts","Current-cycle Accounts","accounting","src/sections/cycle_accounts.bqn","matrix",1,0,0⟩,
-  Entry ⟨"cycle-comparison","Cycle Comparison","accounting","src/sections/cycle_comparison.bqn","matrix",1,0,0⟩,
-  Entry ⟨"monthly-accounts","Monthly Accounts","accounting","src/sections/monthly_accounts.bqn","matrix",1,0,0⟩,
-  Entry ⟨"daily-flow","Daily Flow","accounting","src/sections/daily_flow.bqn","matrix",1,0,0⟩,
-  Entry ⟨"daily-target","Daily Target","household","src/sections/daily_target.bqn","card_projection",1,1,0⟩,
-  Entry ⟨"issues","Issues","operations","src/sections/issues.bqn","list",1,0,0⟩
+keys ← ⟨
+  "envelopes","balances","balance-sheet","profit-and-loss","recent","planned",
+  "cycle-accounts","cycle-comparison","monthly-accounts","daily-flow","daily-target","issues"
 ⟩
+labels ← ⟨
+  "Envelope & Backing","Account Balances","Balance Sheet","Profit and Loss","Recent Journal","Planned Payments",
+  "Current-cycle Accounts","Cycle Comparison","Monthly Accounts","Daily Flow","Daily Target","Issues"
+⟩
+categories ← ⟨
+  "household","accounting","accounting","accounting","operations","operations",
+  "accounting","accounting","accounting","accounting","household","operations"
+⟩
+owners ← ⟨
+  "src/sections/envelope_backing.bqn","src/sections/account_balances.bqn","src/sections/balance_sheet.bqn",
+  "src/sections/profit_and_loss.bqn","src/sections/recent_journal.bqn","src/sections/planned_payments.bqn",
+  "src/sections/cycle_accounts.bqn","src/sections/cycle_comparison.bqn","src/sections/monthly_accounts.bqn",
+  "src/sections/daily_flow.bqn","src/sections/daily_target.bqn","src/sections/issues.bqn"
+⟩
+shapes ← ⟨"statement","matrix","statement","statement","list","list_card","matrix","matrix","matrix","matrix","card_projection","list"⟩
+human ← 12⥊1
+compact ← ⟨1,1,0,0,1,1,0,0,0,0,1,0⟩
+json ← ⟨1,1,0,0,0,1,0,0,0,0,0,0⟩
 
-Table ← {𝕊:
+table ← {
+  count⇐≠keys,index⇐↕≠keys,key⇐keys,label⇐labels,category⇐categories,owner⇐owners,shape⇐shapes,
+  human⇐human,compact⇐compact,json⇐json
+}
+Row ← {𝕊 i:
   {
-    count⇐≠entries,index⇐↕≠entries,key⇐{𝕩.key}¨entries,label⇐{𝕩.label}¨entries,
-    category⇐{𝕩.category}¨entries,owner⇐{𝕩.owner}¨entries,shape⇐{𝕩.shape}¨entries,
-    human⇐{𝕩.human}¨entries,
-    compact⇐{𝕩.compact}¨entries,json⇐{𝕩.json}¨entries
+    key⇐i⊑table.key,label⇐i⊑table.label,category⇐i⊑table.category,owner⇐i⊑table.owner,shape⇐i⊑table.shape,
+    human⇐i⊑table.human,compact⇐i⊑table.compact,json⇐i⊑table.json
   }
 }
+Table ← {𝕊: table}
 Find ← {𝕊 keyValue:
-  matches ← keyValue⊸≡¨{𝕩.key}¨entries
-  result ← {state⇐"unknown",entry⇐empty}
-  {𝕊:result↩{state⇐"ok",entry⇐(⊑matches/↕≠entries)⊑entries}}⍟(1=+´matches) @
+  indices ← (keyValue⊸≡¨table.key)/table.index
+  result ← {state⇐"unknown",index⇐empty,entry⇐empty}
+  {𝕊:
+    i ← ⊑indices
+    result↩{state⇐"ok",index⇐i,entry⇐Row i}
+  }⍟(1=≠indices) @
   result
 }
 
