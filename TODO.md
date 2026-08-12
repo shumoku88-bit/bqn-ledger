@@ -181,7 +181,7 @@ Retired during review: `src/application/funding_scope.bqn` — #714. See `docs/F
 - [x] `src/application/ledger_check_cli.bqn` — #717 (readiness effect-lifetime review; production unchanged)
 - [x] `src/application/ledger_inspect_cli.bqn` — #718
 - [x] `src/application/plan_source_adapter.bqn` — #713 (shared-Account capability; normal review complete on revisit)
-- [ ] `src/application/report_destination.bqn`
+- [x] `src/application/report_destination.bqn` — #719
 - [ ] `src/application/report_destination_cli.bqn`
 - [ ] `src/application/report_domain_cli.bqn`
 - [ ] `src/application/report_domain_selection.bqn`
@@ -190,7 +190,7 @@ Retired during review: `src/application/funding_scope.bqn` — #714. See `docs/F
 - [ ] `src/application/report_policy_source_adapter.bqn`
 - [ ] `src/application/report_presentation_cli.bqn`
 - [ ] `src/application/report_request_cli.bqn`
-- [ ] `src/application/report_route.bqn`
+- [ ] `src/application/report_route.bqn` — #719 publishes admitted catalog coordinate; normal review pending
 - [ ] `src/application/report_route_plan.bqn`
 - [ ] `src/application/report_route_plan_cli.bqn`
 - [ ] `src/application/report_selection_cli.bqn`
@@ -265,6 +265,6 @@ After the production BQN inventory is reviewed, selector/UI adapter consolidatio
 
 ## Current cursor
 
-`src/application/report_destination.bqn`
+`src/application/report_destination_cli.bqn`
 
-Resume the normal Phase 5 application review sequence at Report Destination.
+Resume the normal Phase 5 application review sequence at Report Destination CLI.
