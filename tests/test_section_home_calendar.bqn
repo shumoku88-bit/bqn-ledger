@@ -64,6 +64,13 @@ markers ← section.Markers ⟨result,calendarPolicy⟩
 "$" lib.AssertEq 13⊑markers
 "+" lib.AssertEq 25⊑markers
 
+# A separate Cycle witness makes the cycle-only bit code observable.
+cycleOnly ← {state⇐"ok",start⇐"2026-07-01",end_exclusive⇐"2026-08-21"}
+cycleOnlyResult ← section.Build ⟨actualFacts,planned,issues,cycleOnly,"2026-08-12"⟩
+cycleOnlyMarkers ← section.Markers ⟨cycleOnlyResult,calendarPolicy⟩
+1 lib.AssertEq 19⊑cycleOnlyResult.days.cycle_end
+"*" lib.AssertEq 19⊑cycleOnlyMarkers
+
 expectedHuman ← ∾⟨
   "2026-08",lf,
   "Mo  Tu  We  Th  Fr  Sa  Su ",lf,
