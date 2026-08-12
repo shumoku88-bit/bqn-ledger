@@ -12,6 +12,8 @@ loader ← •Import "../src/application/source_io.bqn"
 
 args ← •args
 tab ← @+9
+legacyHeader ← ⟨"issue_id","status","date","category","title","amount","currency","details"⟩
+dueHeader ← ⟨"issue_id","status","date","due","category","title","amount","currency","details"⟩
 
 Fail ← {𝕊 msg:
   •Out "ERROR" ∾ tab ∾ msg
@@ -33,7 +35,7 @@ Join ← {
   (0 = ≠ list) ◶ ⟨ { 𝕊 ⋄ 1↓ ∾ (sep ⊸ ∾) ¨ list }, { 𝕊 ⋄ ""} ⟩ @
 }
 
-IsDataLine ← { (0 < ≠ 𝕩) ? ((⊑ 𝕩 ≠ '#') ∧ (⊑ 𝕩 ≠ ⊑"\\")) ; 0 }
+IsDataLine ← { (0 < ≠𝕩) ? ((⊑𝕩 ≠ '#') ∧ (⊑𝕩 ≠ ⊑"\\")) ; 0 }
 
 ResolvePath ← {
   path ← 𝕩
@@ -60,6 +62,14 @@ lineData ← ReadDataLinesWithNumsOptional issuePath
 allLines ← 0 ⊑ lineData
 allNums ← 1 ⊑ lineData
 
+headerFields ← ⟨⟩
+{𝕊:headerFields↩loader.SplitTsvKeepEmpty ⊑allLines}⍟(0<≠allLines) @
+legacySchema ← headerFields≡legacyHeader
+dueSchema ← headerFields≡dueHeader
+headerOk ← (0=≠allLines) ∨ legacySchema ∨ dueSchema
+{𝕊 ⋄ Fail "issues.tsv header must match the supported eight- or nine-column schema"}⍟(¬headerOk) @
+expectedCount ← 8 + dueSchema
+
 # Drop the TSV header when present.
 bodyLines ← (0 < ≠ allLines) ◶ ⟨ {𝕊 ⋄ ⟨⟩}, {𝕊 ⋄ 1 ↓ allLines} ⟩ @
 bodyNums ← (0 < ≠ allNums) ◶ ⟨ {𝕊 ⋄ ⟨⟩}, {𝕊 ⋄ 1 ↓ allNums} ⟩ @
@@ -68,18 +78,22 @@ ParseIssueRow ← {𝕊 index:
   line ← index ⊑ bodyLines
   lineNum ← index ⊑ bodyNums
   fields ← loader.SplitTsvKeepEmpty line
-  {𝕊 ⋄ Fail "issues.tsv row must have exactly 8 tab-separated columns"}⍟(8 ≠ ≠ fields) @
+  {𝕊 ⋄ Fail "issues.tsv row width must match its header"}⍟(expectedCount ≠ ≠ fields) @
+  normalized ← fields
+  {𝕊:normalized↩(3↑fields)∾⟨"undetermined"⟩∾3↓fields}⍟legacySchema @
+  issueId‿status‿date‿due‿category‿title‿amount‿currency‿memo ← normalized
   {
     lineNum ⇐ lineNum ⋄
     fields ⇐ fields ⋄
-    issue_id ⇐ 0 ⊑ fields ⋄
-    status ⇐ 1 ⊑ fields ⋄
-    date ⇐ 2 ⊑ fields ⋄
-    category ⇐ 3 ⊑ fields ⋄
-    title ⇐ 4 ⊑ fields ⋄
-    amount ⇐ 5 ⊑ fields ⋄
-    currency ⇐ 6 ⊑ fields ⋄
-    memo ⇐ 7 ⊑ fields
+    issue_id ⇐ issueId ⋄
+    status ⇐ status ⋄
+    date ⇐ date ⋄
+    due ⇐ due ⋄
+    category ⇐ category ⋄
+    title ⇐ title ⋄
+    amount ⇐ amount ⋄
+    currency ⇐ currency ⋄
+    memo ⇐ memo
   }
 }
 
