@@ -185,7 +185,7 @@ Retired during review: `src/application/funding_scope.bqn` — #714. See `docs/F
 - [x] `src/application/report_destination_cli.bqn` — #720
 - [x] `src/application/report_domain_cli.bqn` — #721
 - [x] `src/application/report_domain_selection.bqn` — #721
-- [ ] `src/application/report_metadata_cli.bqn`
+- [x] `src/application/report_metadata_cli.bqn` — #722
 - [ ] `src/application/report_policy_resolution.bqn`
 - [ ] `src/application/report_policy_source_adapter.bqn`
 - [ ] `src/application/report_presentation_cli.bqn`
@@ -265,6 +265,6 @@ After the production BQN inventory is reviewed, selector/UI adapter consolidatio
 
 ## Current cursor
 
-`src/application/report_metadata_cli.bqn`
+`src/application/report_policy_resolution.bqn`
 
-Resume the normal Phase 5 application review sequence at Report Metadata CLI.
+Resume the normal Phase 5 application review sequence at Report Policy Resolution.
