@@ -4,11 +4,16 @@ amount ← •Import "../ledger/amount_text.bqn"
 text ← •Import "../report/text.bqn"
 empty ← ⟨⟩
 lf ← @+10
+TrimRight ← {𝕊 line:(1+⌈´¯1∾(line≠' ')/↕≠line)↑line}
+TrimTable ← {𝕊 table:
+  lines ← {(lf≠𝕩)/𝕩}¨(+`lf=table)⊔table
+  1↓∾lf⊸∾¨TrimRight¨lines
+}
 
 EmptyRows ← {𝕊:
   {
-    count⇐0,index⇐empty,issue_id⇐empty,status⇐empty,date⇐empty,category⇐empty,title⇐empty,
-    amount_present⇐empty,coefficient⇐empty,scale⇐empty,currency⇐empty,details⇐empty,
+    count⇐0,index⇐empty,issue_id⇐empty,status⇐empty,date⇐empty,due⇐empty,due_ordinal⇐empty,
+    category⇐empty,title⇐empty,amount_present⇐empty,coefficient⇐empty,scale⇐empty,currency⇐empty,details⇐empty,
     source_row⇐empty,source_ref⇐empty
   }
 }
@@ -26,6 +31,7 @@ Build ← {𝕊 admission:
       issues⇐{
         count⇐≠selected,index⇐↕≠selected,
         issue_id⇐selected⊏source.issue_id,status⇐selected⊏source.status,date⇐selected⊏source.date,
+        due⇐selected⊏source.due,due_ordinal⇐selected⊏source.due_ordinal,
         category⇐selected⊏source.category,title⇐selected⊏source.title,
         amount_present⇐selected⊏source.amount_present,coefficient⇐selected⊏source.coefficient,
         scale⇐selected⊏source.scale,currency⇐selected⊏source.currency,details⇐selected⊏source.details,
@@ -45,10 +51,10 @@ FormatHuman ← {𝕊 input:
     {𝕊:
       amountText↩(text.FormatAmount ⟨i⊑result.issues.coefficient,i⊑result.issues.scale,style⟩)∾" "∾i⊑result.issues.currency
     }⍟(i⊑result.issues.amount_present) @
-    ⟨date,i⊑result.issues.category,i⊑result.issues.title,amountText,i⊑result.issues.details⟩
+    ⟨date,i⊑result.issues.due,i⊑result.issues.category,i⊑result.issues.title,amountText,i⊑result.issues.details⟩
   }¨result.issues.index
   headingText ← ∾{𝕩∾lf}¨⟨"== Issues ==","Selection: open (source order)",""⟩
-  tableText ← text.RenderTable ⟨⟨"Date","Category","Title","Amount","Details"⟩,rows,⟨3⟩⟩
+  tableText ← TrimTable text.RenderTable ⟨⟨"Date","Due","Category","Title","Amount","Details"⟩,rows,⟨4⟩⟩
   bodyText ← (0<≠rows)⊑⟨"  (none)"∾lf,tableText⟩
   ∾⟨headingText,bodyText,lf⟩
 }

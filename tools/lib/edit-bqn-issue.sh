@@ -43,7 +43,7 @@ handle_edit_bqn_issue_add() {
     TARGET_EXISTS=1
     SNAPSHOT_TOKEN="$(safe_snapshot_token "$TARGET_PATH")"
     IFS=$'\t' read -r SNAP_SIZE SNAP_MTIME SNAP_SHA256 <<< "$SNAPSHOT_TOKEN"
-    ISSUE_HEADER="$(awk 'NF && $0 !~ /^[[:space:]]*#/ {print; exit}' "$TARGET_PATH")"
+    ISSUE_HEADER="$(awk 'length && substr($0,1,1) != "#" && substr($0,1,1) != "\\" {print; exit}' "$TARGET_PATH")"
     case "$ISSUE_HEADER" in
       $'issue_id\tstatus\tdate\tcategory\ttitle\tamount\tcurrency\tdetails')
         ISSUE_SCHEMA="legacy"

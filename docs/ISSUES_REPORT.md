@@ -9,17 +9,18 @@ Owners:
 
 ## Strict source
 
-Destination schema is exactly:
+The current schema is exactly:
 
 ```text
-issue_id  status  date  category  title  amount  currency  details
+issue_id  status  date  due  category  title  amount  currency  details
 ```
 
-with tab separators and this exact header. Rules:
+with tab separators and this exact header. During the bounded shared-source migration window, the exact legacy header without `due` is also admitted. A legacy row has no due evidence and therefore normalizes to `undetermined`, never `none`. Rules:
 
 - `issue_id` is required and unique;
 - status is `open | resolved | dropped`;
-- date is empty or strict Gregorian `YYYY-MM-DD`;
+- recorded `date` is empty or strict Gregorian `YYYY-MM-DD` and is never repurposed as due;
+- `due` is `none`, `undetermined`, or a strict Gregorian `YYYY-MM-DD`;
 - category and title are required;
 - amount and currency are both absent or both present;
 - present amount is an exact unsigned decimal within registry currency precision;
@@ -32,24 +33,16 @@ An absent optional source and a header-only source are both valid empty evidence
 
 ## Section
 
-The retained default selection is `status=open`, preserving admitted source order. Human output displays date, category, title, optional exact amount/currency, and details. Missing date/amount remains visibly absent rather than becoming a sentinel date or numeric zero.
+The retained default selection is `status=open`, preserving admitted source order. The aligned result and human output retain recorded date and three-way due meaning as separate coordinates, alongside category, title, optional exact amount/currency, and details. Missing recorded date/amount remains visibly absent rather than becoming a sentinel date or numeric zero.
 
 Portfolio P1 supports human only. There is no compact or JSON renderer.
 
 ## Editor migration boundary
 
-Current production editor commands still operate the historical five-column schema:
+Issue add/list/close support only the same exact legacy and current headers. Add observes the target header beside the Issue writer: legacy files remain eight columns, current files remain nine columns, and a new current row with no due input writes explicit `undetermined`. Close changes status and decision details while preserving the original source width and exact due coordinate.
 
-```text
-date  status  title  amount  memo
-```
-
-They are not destination admission consumers and must not be silently pointed at the strict schema while private/user sources may still use the historical form. At atomic cutover, issue add/list/close must migrate together to `issue_admission.bqn` semantics and durable `issue_id`; no dual parser or five-to-eight-column fallback is permitted.
-
-That source migration requires the repository's explicit private-source protocol before user data is inspected or rewritten. Until then, destination proof uses only `fixtures/ledger-facts-phase1-proof/issues.destination.tsv`, which current production does not read.
+This compatibility does not migrate or confer writer authority over the separately owned canonical Household source. Explicit due-entry UI remains a later slice; no path accepts `DueOn` or `NoDueDate` and then silently discards it into a legacy row.
 
 ## Proof
 
-Public tests cover ordered open/resolved rows, optional date and amount, exact ILS amount, source coordinates, absent/header-only source, invalid status/date/amount-currency pair/precision, duplicate identity, all-or-nothing failure, open-only selection, empty List, and deterministic human golden.
-
-Production routing remains unchanged until atomic cutover.
+Public tests cover ordered open/resolved rows, optional recorded date and amount, all three due states, invalid due text and Gregorian dates, exact ILS amount, source coordinates, absent/header-only source, invalid status/date/amount-currency pair/precision, duplicate identity, all-or-nothing failure, open-only selection, empty List, source-width-preserving add/close, and deterministic human rendering.

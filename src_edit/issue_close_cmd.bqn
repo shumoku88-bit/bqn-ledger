@@ -80,6 +80,8 @@ ParseIssueRow ← {𝕊 index:
   normalized ← fields
   {𝕊:normalized↩(3↑fields)∾⟨"undetermined"⟩∾3↓fields}⍟legacySchema @
   issueId‿status‿date‿due‿category‿title‿amount‿currency‿memo ← normalized
+  dueOk ← (due≡"none") ∨ (due≡"undetermined") ∨ 0⊑validate.ValidateDate due
+  {𝕊 ⋄ Fail "issues.tsv due must be none, undetermined, or a strict Gregorian date"}⍟(¬dueOk) @
   {
     lineNum ⇐ lineNum ⋄
     line ⇐ line ⋄

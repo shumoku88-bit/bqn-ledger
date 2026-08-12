@@ -11,8 +11,24 @@ result ← section.Build admitted
 "open" lib.AssertEq result.selection
 2 lib.AssertEq result.issues.count
 ⟨"subscription-review","missing-receipt"⟩ lib.AssertEq result.issues.issue_id
+⟨"undetermined","undetermined"⟩ lib.AssertEq result.issues.due
 ⟨"issues.tsv:row:2","issues.tsv:row:3"⟩ lib.AssertEq result.issues.source_ref
 (•FChars "../fixtures/ledger-facts-phase1-proof/issues.destination.human.txt") lib.AssertEq section.FormatHuman result
+
+tab ← @+9
+Tsv ← {𝕊 fields:1↓∾tab⊸∾¨fields}
+dueAware ← admission.Admit ⟨⟨
+  Tsv ⟨"issue_id","status","date","due","category","title","amount","currency","details"⟩,
+  Tsv ⟨"known","open","2026-08-01","2026-08-15","want","Auction item","1000","JPY","known deadline"⟩,
+  Tsv ⟨"none","open","2026-08-02","none","want","Bookshelf","","","no deadline"⟩,
+  Tsv ⟨"unknown","open","2026-08-03","undetermined","waiting","Repair date","","","waiting for reply"⟩
+⟩,registry⟩
+dueResult ← section.Build dueAware
+⟨"2026-08-15","none","undetermined"⟩ lib.AssertEq dueResult.issues.due
+dueText ← section.FormatHuman dueResult
+lib.Assert ∨´"2026-08-15"⍷dueText
+lib.Assert ∨´"none"⍷dueText
+lib.Assert ∨´"undetermined"⍷dueText
 emptyAdmission ← admission.Admit ⟨⟨"issue_id	status	date	category	title	amount	currency	details"⟩,registry⟩
 emptyResult ← section.Build emptyAdmission
 "ok" lib.AssertEq emptyResult.state
