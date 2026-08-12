@@ -3,6 +3,7 @@
 amount ← •Import "../ledger/amount_text.bqn"
 text ← •Import "../report/text.bqn"
 empty ← ⟨⟩
+lf ← @+10
 
 EmptyRows ← {𝕊:
   {
@@ -46,11 +47,10 @@ FormatHuman ← {𝕊 input:
     }⍟(i⊑result.issues.amount_present) @
     ⟨date,i⊑result.issues.category,i⊑result.issues.title,amountText,i⊑result.issues.details⟩
   }¨result.issues.index
-  out ← "== Issues =="∾(@+10)
-  out ∾↩ "Selection: open (source order)"∾(@+10)∾(@+10)
-  {𝕊:out∾↩text.RenderTable ⟨⟨"Date","Category","Title","Amount","Details"⟩,rows,⟨3⟩⟩}⍟(0<≠rows) @
-  {𝕊:out∾↩"  (none)"∾(@+10)}⍟(0=≠rows) @
-  out∾(@+10)
+  headingText ← ∾{𝕩∾lf}¨⟨"== Issues ==","Selection: open (source order)",""⟩
+  tableText ← text.RenderTable ⟨⟨"Date","Category","Title","Amount","Details"⟩,rows,⟨3⟩⟩
+  bodyText ← (0<≠rows)⊑⟨"  (none)"∾lf,tableText⟩
+  ∾⟨headingText,bodyText,lf⟩
 }
 
 {Build⇐Build,FormatHuman⇐FormatHuman}
