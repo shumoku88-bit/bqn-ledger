@@ -1,5 +1,6 @@
 # Pure rendering dispatch for one successfully composed retained result.
 
+catalog ← •Import "catalog.bqn"
 request ← •Import "request.bqn"
 envelopes ← •Import "../sections/envelope_backing.bqn"
 balances ← •Import "../sections/account_balances.bqn"
@@ -14,12 +15,57 @@ dailyFlow ← •Import "../sections/daily_flow.bqn"
 dailyTarget ← •Import "../sections/daily_target.bqn"
 issues ← •Import "../sections/issues.bqn"
 empty ← ⟨⟩
+surfaces ← ⟨"human","compact","json"⟩
+relation ← catalog.Table @
+
+humanRenderers ← ⟨
+  {𝕊 input: envelopes.FormatHuman input},
+  {𝕊 input: balances.FormatHuman input},
+  {𝕊 input: balanceSheet.FormatHuman input},
+  {𝕊 input: profitLoss.FormatHuman input},
+  {𝕊 input: recent.FormatHuman input},
+  {𝕊 input: planned.FormatHuman input},
+  {𝕊 input: cycleAccounts.FormatHuman input},
+  {𝕊 input: cycleComparison.FormatHuman input},
+  {𝕊 input: monthlyAccounts.FormatHuman input},
+  {𝕊 input: dailyFlow.FormatHuman input},
+  {𝕊 input: dailyTarget.FormatHuman input},
+  {𝕊 input: issues.FormatHuman input}
+⟩
+compactRenderers ← ⟨
+  {𝕊 result: envelopes.FormatCompact result},
+  {𝕊 result: balances.FormatCompact result},
+  {𝕊 result: recent.FormatCompact result},
+  {𝕊 result: planned.FormatCompact result},
+  {𝕊 result: dailyTarget.FormatCompact result}
+⟩
+jsonRenderers ← ⟨
+  {𝕊 result: envelopes.FormatJson result},
+  {𝕊 result: balances.FormatJson result},
+  {𝕊 result: planned.FormatJson result}
+⟩
 
 Diagnostic ← {𝕊 code‿message:
   {severity⇐"error",stage⇐"report_render",code⇐code,message⇐message}
 }
 Failure ← {𝕊 diagnosticsValue:
   {state⇐"error",text⇐"",diagnostics⇐diagnosticsValue}
+}
+
+RenderHuman ← {𝕊 index‿result‿presentation:
+  index◶humanRenderers ⟨result,presentation⟩
+}
+RenderCompact ← {𝕊 index‿result‿presentation:
+  coordinate ← +´index↑relation.compact
+  coordinate◶compactRenderers result
+}
+RenderJson ← {𝕊 index‿result‿presentation:
+  coordinate ← +´index↑relation.json
+  coordinate◶jsonRenderers result
+}
+Dispatch ← {𝕊 surface‿index‿result‿presentation:
+  surfaceIndex ← ⊑(surface⊸≡¨surfaces)⊐1
+  surfaceIndex◶⟨RenderHuman,RenderCompact,RenderJson⟩ ⟨index,result,presentation⟩
 }
 
 Render ← {𝕊 args:
@@ -33,33 +79,8 @@ Render ← {𝕊 args:
   diagnostics∾↩((composition.state≡"ok") ∧ composition.key≢key)/⟨Diagnostic ⟨"composition_key_mismatch","composition key must equal rendering key"⟩⟩
   output ← Failure diagnostics
   {𝕊:
-    result ← composition.result ⋄ rendered ← ""
-    {𝕊:
-      {𝕊:rendered↩envelopes.FormatHuman ⟨result,presentation⟩}⍟(key≡"envelopes") @
-      {𝕊:rendered↩balances.FormatHuman ⟨result,presentation⟩}⍟(key≡"balances") @
-      {𝕊:rendered↩balanceSheet.FormatHuman ⟨result,presentation⟩}⍟(key≡"balance-sheet") @
-      {𝕊:rendered↩profitLoss.FormatHuman ⟨result,presentation⟩}⍟(key≡"profit-and-loss") @
-      {𝕊:rendered↩recent.FormatHuman ⟨result,presentation⟩}⍟(key≡"recent") @
-      {𝕊:rendered↩planned.FormatHuman ⟨result,presentation⟩}⍟(key≡"planned") @
-      {𝕊:rendered↩cycleAccounts.FormatHuman ⟨result,presentation⟩}⍟(key≡"cycle-accounts") @
-      {𝕊:rendered↩cycleComparison.FormatHuman ⟨result,presentation⟩}⍟(key≡"cycle-comparison") @
-      {𝕊:rendered↩monthlyAccounts.FormatHuman ⟨result,presentation⟩}⍟(key≡"monthly-accounts") @
-      {𝕊:rendered↩dailyFlow.FormatHuman ⟨result,presentation⟩}⍟(key≡"daily-flow") @
-      {𝕊:rendered↩dailyTarget.FormatHuman ⟨result,presentation⟩}⍟(key≡"daily-target") @
-      {𝕊:rendered↩issues.FormatHuman ⟨result,presentation⟩}⍟(key≡"issues") @
-    }⍟(surface≡"human") @
-    {𝕊:
-      {𝕊:rendered↩envelopes.FormatCompact result}⍟(key≡"envelopes") @
-      {𝕊:rendered↩balances.FormatCompact result}⍟(key≡"balances") @
-      {𝕊:rendered↩recent.FormatCompact result}⍟(key≡"recent") @
-      {𝕊:rendered↩planned.FormatCompact result}⍟(key≡"planned") @
-      {𝕊:rendered↩dailyTarget.FormatCompact result}⍟(key≡"daily-target") @
-    }⍟(surface≡"compact") @
-    {𝕊:
-      {𝕊:rendered↩envelopes.FormatJson result}⍟(key≡"envelopes") @
-      {𝕊:rendered↩balances.FormatJson result}⍟(key≡"balances") @
-      {𝕊:rendered↩planned.FormatJson result}⍟(key≡"planned") @
-    }⍟(surface≡"json") @
+    index ← ⊑admitted.section_indices
+    rendered ← Dispatch ⟨surface,index,composition.result,presentation⟩
     output↩{state⇐"ok",text⇐rendered,diagnostics⇐empty}
   }⍟(0=≠diagnostics) @
   output
