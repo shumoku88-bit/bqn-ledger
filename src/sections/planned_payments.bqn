@@ -210,15 +210,19 @@ FormatHuman ← {𝕊 input:
   headingText ← "== Planned Payments =="∾lf∾lf
   overdueText ← "── 期限超過の未払い ──"∾lf∾text.RenderTable ⟨⟨"Date","Category","Memo","Amount","Status"⟩,overdueRows,⟨3⟩⟩∾lf
   overdueBlock ← (0<≠result.overdue_indices)⊑⟨"",overdueText⟩
-  currentBlock ← "── 今サイクルの未払い ──"∾lf∾
-    text.RenderTable ⟨⟨"Date","Category","Memo","Amount","Status"⟩,currentCycleRows,⟨3⟩⟩∾
-    lf∾"今サイクル未払い合計: "∾(Fmt ⟨result.current_cycle_total_coefficient,result.current_cycle_total_scale⟩)∾lf
+  currentBlock ← ∾⟨
+    "── 今サイクルの未払い ──",lf,
+    text.RenderTable ⟨⟨"Date","Category","Memo","Amount","Status"⟩,currentCycleRows,⟨3⟩⟩,
+    lf,"今サイクル未払い合計: ",Fmt ⟨result.current_cycle_total_coefficient,result.current_cycle_total_scale⟩,lf
+  ⟩
   futureText ← lf∾"── サイクル外の予定 ──"∾lf∾text.RenderTable ⟨⟨"Date","Category","Memo","Amount"⟩,futureCycleRows,⟨3⟩⟩
   futureBlock ← (0<≠result.future_cycle_indices)⊑⟨"",futureText⟩
-  statusText ← lf∾lf∾"[Status]"∾lf∾
-    "future  : これから"∾lf∾
-    "due     : 今日が期限"∾lf∾
-    "overdue : 期限超過 ⚠"∾lf∾lf
+  statusText ← ∾⟨
+    lf,lf,"[Status]",lf,
+    "future  : これから",lf,
+    "due     : 今日が期限",lf,
+    "overdue : 期限超過 ⚠",lf,lf
+  ⟩
   ∾⟨headingText,overdueBlock,currentBlock,futureBlock,statusText⟩
 }
 
