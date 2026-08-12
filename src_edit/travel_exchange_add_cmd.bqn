@@ -3,13 +3,11 @@
 
 loader ← •Import "../src/application/source_io.bqn"
 exchange ← •Import "../src/editor/travel_exchange_event.bqn"
-editorAccounts ← •Import "../src/application/editor_accounts.bqn"
-defaults ← •Import "../src/application/system_defaults.bqn"
+accountSource ← •Import "../src/application/account_source_adapter.bqn"
 
 args ← •args
 tab ← @+9
 file ← "travel_exchange_events.tsv"
-sys ← defaults.Load @
 FailDiagnostics ← {𝕊 diagnostics:
   {•Out "ERROR"∾tab∾𝕩.code∾tab∾𝕩.field∾tab∾𝕩.message}¨diagnostics
   •Exit 1
@@ -17,10 +15,11 @@ FailDiagnostics ← {𝕊 diagnostics:
 {𝕊⋄•Out "ERROR"∾tab∾"usage"⋄•Exit 2}⍟(2>≠args) @
 base ← 0⊑args
 mode ← 1⊑args
-accountLines ← loader.ReadLinesOptional (base∾"/"∾sys.DefaultAccountsFile @)
-resolved ← editorAccounts.Require accountLines
+accountResult ← accountSource.Load base
+{𝕊⋄•Out "ERROR"∾tab∾"account_source_rejected"⋄•Exit 1}⍟(accountResult.state≢"ok") @
+resolved ← accountResult.accounts
 accounts ← {𝕊 i: {name⇐i⊑resolved.key, exists⇐1, currency⇐i⊑resolved.currency}}¨ resolved.index
-lines ← loader.ReadLinesOptional (base∾"/"∾file)
+lines ← loader.ReadLinesOptional (loader.JoinPath ⟨base,file⟩)
 
 {𝕊:
   result ← exchange.ValidateExisting ⟨lines, accounts⟩
