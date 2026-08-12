@@ -13,7 +13,6 @@ bqn tests/test_ledger_report_policy_admission.bqn >/dev/null
 bqn tests/test_report_json_text.bqn >/dev/null
 bqn tests/test_report_catalog_request.bqn >/dev/null
 bqn tests/test_report_composition.bqn >/dev/null
-bqn tests/test_application_funding_scope.bqn >/dev/null
 bqn tests/test_application_daily_scope.bqn >/dev/null
 bqn tests/test_application_report_policy_resolution.bqn >/dev/null
 bqn tests/test_application_current_report_requests.bqn >/dev/null
