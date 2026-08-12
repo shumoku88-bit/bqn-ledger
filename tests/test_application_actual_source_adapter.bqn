@@ -25,4 +25,11 @@ result ← adapter.Load ⟨"fixtures/canonical-household-v1",registryResult.regi
 ⟨"Assets:Bank","Equity:Opening","Income:Salary","Expenses:Groceries","Budget:Unassigned","Budget:Daily"⟩ lib.AssertEq result.facts.accounts.key
 ⟨"100000","","50000","","-5000","","-4000",""⟩ lib.AssertEq result.facts.postings.amount_text
 
+# Account admission owns the first capability gate. This fixture deliberately has
+# no actual.journal; reaching the Actual read would raise instead of returning an
+# admitted error result.
+accountFailure ← adapter.Load ⟨"tests/fixtures/actual-source-invalid-accounts",registryResult.registry⟩
+"error" lib.AssertEq accountFailure.state
+1 lib.AssertEq 0<≠accountFailure.diagnostics
+
 •Out "test_application_actual_source_adapter: ok"
