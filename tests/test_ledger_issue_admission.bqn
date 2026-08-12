@@ -3,6 +3,7 @@ lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
 issues ← •Import "../src/ledger/issue_admission.bqn"
+dates ← •Import "../src/ledger/date_ordinal.bqn"
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
 
 tab ← @+9
@@ -48,10 +49,15 @@ CheckOk ⟨"absent",absent⟩
 "ok" lib.AssertEq absent.state
 0 lib.AssertEq absent.issues.count
 
+knownRow ← Tsv ⟨"known","open","2026-08-01","2026-08-15","want","Auction item","1000","JPY","buy if still available"⟩
+knownFields ← loader.SplitTsvKeepEmpty knownRow
+"2026-08-15" lib.AssertEq 3⊑knownFields
+lib.Assert dates.IsValid 3⊑knownFields
+
 current ← issues.Admit ⟨
   ⟨
     dueHeader,
-    Tsv ⟨"known","open","2026-08-01","2026-08-15","want","Auction item","1000","JPY","buy if still available"⟩,
+    knownRow,
     Tsv ⟨"none","open","2026-08-02","none","want","Bookshelf","","","no deadline"⟩,
     Tsv ⟨"unknown","open","2026-08-03","undetermined","waiting","Repair date","","","waiting for reply"⟩
   ⟩,
