@@ -159,6 +159,8 @@ Closeout: `docs/REPORT_PHASE_FOUR_REVIEW_CLOSEOUT-2026-08-12.md`.
 
 ## Phase 5: `src/application/`
 
+Retired during review: `src/application/funding_scope.bqn` — #714. See `docs/FUNDING_SCOPE_REVIEW_OBSERVATION-2026-08-12.md`.
+
 - [x] `src/application/account_source_adapter.bqn` — #699
 - [x] `src/application/actual_source_adapter.bqn` — #701 (effect-lifetime law review; production unchanged), #713 shared-Account capability
 - [x] `src/application/budget_source_adapter.bqn` — #702 (capability-lifetime law review; production unchanged)
@@ -174,7 +176,6 @@ Closeout: `docs/REPORT_PHASE_FOUR_REVIEW_CLOSEOUT-2026-08-12.md`.
 - [x] `src/application/editor_actual.bqn` — #710
 - [x] `src/application/editor_currency.bqn` — #712
 - [x] `src/application/editor_plan_rows.bqn` — #713
-- [ ] `src/application/funding_scope.bqn`
 - [ ] `src/application/household_daily_scope.bqn`
 - [ ] `src/application/household_source_adapter.bqn`
 - [ ] `src/application/ledger_check_cli.bqn`
@@ -264,6 +265,6 @@ After the production BQN inventory is reviewed, selector/UI adapter consolidatio
 
 ## Current cursor
 
-`src/application/funding_scope.bqn`
+`src/application/household_daily_scope.bqn`
 
-Resume the normal Phase 5 application review sequence at Funding Scope.
+Resume the normal Phase 5 application review sequence at Household Daily Scope.
