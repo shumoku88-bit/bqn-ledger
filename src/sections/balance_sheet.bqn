@@ -4,6 +4,7 @@ amount ← •Import "../ledger/amount_text.bqn"
 dates ← •Import "../ledger/date_ordinal.bqn"
 text ← •Import "../report/text.bqn"
 empty ← ⟨⟩
+lf ← @+10
 
 Diagnostic ← {𝕊 codeText‿messageText:
   {severity⇐"error",stage⇐"section_balance_sheet",code⇐codeText,message⇐messageText}
@@ -46,29 +47,35 @@ Build ← {𝕊 accounting‿asOfText:
 }
 
 StatementTable ← {𝕊 rows‿totalLabel‿totalValue‿scaleValue‿style:
-  body ← {𝕊 rowIndex:
+  body ← ({𝕊 rowIndex:
     ⟨rowIndex⊑rows.account_key,text.FormatAmount ⟨rowIndex⊑rows.balance,scaleValue,style⟩⟩
-  }¨rows.index
-  body ∾↩ ⟨⟨totalLabel,text.FormatAmount ⟨totalValue,scaleValue,style⟩⟩⟩
+  }¨rows.index)∾⟨⟨totalLabel,text.FormatAmount ⟨totalValue,scaleValue,style⟩⟩⟩
   text.RenderTable ⟨⟨"Account","Balance"⟩,body,⟨1⟩⟩
 }
 FormatHuman ← {𝕊 input:
   result ← input ⋄ style ← "minus"
   {𝕊: result↩0⊑input ⋄ style↩(1⊑input).negative_style}⍟((0<≡input) ∧ (2=≠input)) @
-  out ← "== Balance Sheet =="∾(@+10)
-  out ∾↩ "As of: "∾result.as_of∾" ("∾result.domain∾")"∾(@+10)∾(@+10)
-  out ∾↩ "Assets"∾(@+10)
-  out ∾↩ StatementTable ⟨result.assets,"Total assets",result.total_assets,result.scale,style⟩
-  out ∾↩ (@+10)∾"Liabilities"∾(@+10)
-  out ∾↩ StatementTable ⟨result.liabilities,"Total liabilities",result.total_liabilities,result.scale,style⟩
-  out ∾↩ (@+10)∾"Equity"∾(@+10)
-  out ∾↩ StatementTable ⟨result.equity,"Stated equity",result.stated_equity,result.scale,style⟩
-  out ∾↩ "Unclosed accumulated result: "∾(text.FormatAmount ⟨result.unclosed_result,result.scale,style⟩)∾(@+10)
-  out ∾↩ "Total equity: "∾(text.FormatAmount ⟨result.total_equity,result.scale,style⟩)∾(@+10)∾(@+10)
-  out ∾↩ "Total liabilities + equity: "∾(text.FormatAmount ⟨result.total_liabilities_and_equity,result.scale,style⟩)∾(@+10)
-  out ∾↩ "Difference: "∾(text.FormatAmount ⟨result.difference,result.scale,style⟩)∾(@+10)
-  out ∾↩ "Balanced: "∾(result.balanced⊑"NO"‿"YES")∾(@+10)∾(@+10)
-  out
+
+  headingLines ← ⟨"== Balance Sheet ==",("As of: "∾result.as_of∾" ("∾result.domain∾")"),""⟩
+  headingText ← ∾{𝕩∾lf}¨headingLines
+
+  assetsBlock ← "Assets"∾lf∾(StatementTable ⟨result.assets,"Total assets",result.total_assets,result.scale,style⟩)
+  liabilitiesBlock ← lf∾"Liabilities"∾lf∾(StatementTable ⟨result.liabilities,"Total liabilities",result.total_liabilities,result.scale,style⟩)
+  equityBlock ← lf∾"Equity"∾lf∾(StatementTable ⟨result.equity,"Stated equity",result.stated_equity,result.scale,style⟩)
+  statementText ← ∾⟨assetsBlock,liabilitiesBlock,equityBlock⟩
+
+  summaryLines ← ⟨
+    ("Unclosed accumulated result: "∾text.FormatAmount ⟨result.unclosed_result,result.scale,style⟩),
+    ("Total equity: "∾text.FormatAmount ⟨result.total_equity,result.scale,style⟩),
+    "",
+    ("Total liabilities + equity: "∾text.FormatAmount ⟨result.total_liabilities_and_equity,result.scale,style⟩),
+    ("Difference: "∾text.FormatAmount ⟨result.difference,result.scale,style⟩),
+    ("Balanced: "∾result.balanced⊑"NO"‿"YES"),
+    ""
+  ⟩
+  summaryText ← ∾{𝕩∾lf}¨summaryLines
+
+  ∾⟨headingText,statementText,summaryText⟩
 }
 
 {Build⇐Build,FormatHuman⇐FormatHuman}
