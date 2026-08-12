@@ -2,17 +2,6 @@
 
 sources ← •Import "../src/application/canonical_household_sources.bqn"
 
-expected ← ⟨
-  "accounts.journal",
-  "actual.journal",
-  "plan.journal",
-  "budget.journal",
-  "budget.toml",
-  "household.toml",
-  "report.toml",
-  "issues.tsv"
-⟩
-
 ! "accounts.journal" ≡ sources.accounts
 ! "actual.journal" ≡ sources.actual
 ! "plan.journal" ≡ sources.plan
@@ -21,6 +10,11 @@ expected ← ⟨
 ! "household.toml" ≡ sources.householdPolicy
 ! "report.toml" ≡ sources.reportPolicy
 ! "issues.tsv" ≡ sources.issues
-! expected ≡ sources.basenames
+
+names ← ⟨
+  sources.accounts,sources.actual,sources.plan,sources.budget,
+  sources.budgetPolicy,sources.householdPolicy,sources.reportPolicy,sources.issues
+⟩
+! (≠names) = ≠⍷names
 
 •Out "test_application_canonical_household_sources passed"

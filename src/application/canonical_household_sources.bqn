@@ -13,17 +13,6 @@ householdPolicy ← "household.toml"
 reportPolicy ← "report.toml"
 issues ← "issues.tsv"
 
-basenames ← ⟨
-  accounts,
-  actual,
-  plan,
-  budget,
-  budgetPolicy,
-  householdPolicy,
-  reportPolicy,
-  issues
-⟩
-
 {
   accounts⇐accounts,
   actual⇐actual,
@@ -32,6 +21,5 @@ basenames ← ⟨
   budgetPolicy⇐budgetPolicy,
   householdPolicy⇐householdPolicy,
   reportPolicy⇐reportPolicy,
-  issues⇐issues,
-  basenames⇐basenames
+  issues⇐issues
 }
