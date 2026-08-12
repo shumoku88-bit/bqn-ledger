@@ -45,6 +45,16 @@ cat >>"$base/actual.journal" <<'EOF'
     assets:cash -7 JPY
 EOF
 
+# Report-domain CLI preserves the pure selection law at the effect boundary.
+[[ "$(bqn src/application/report_domain_cli.bqn "$base")" == JPY ]]
+[[ "$(bqn src/application/report_domain_cli.bqn "$base" JPY)" == JPY ]]
+if bqn src/application/report_domain_cli.bqn "$base" USD >"$work/domain-unknown.out" 2>&1; then
+  echo 'FAIL: unknown explicit Report domain succeeded' >&2
+  exit 1
+fi
+grep -Fx $'ERROR\treport_domain_unknown\tRequested Report domain is not admitted by canonical Actual Facts' \
+  "$work/domain-unknown.out" >/dev/null
+
 bqn src/application/current_report_profile_cli.bqn "$base" JPY human 2026-01-13 >"$work/current.tsv"
 awk -F'\t' '$1=="balances" {exit !($3=="JPY" && $4=="2026-01-13")}' "$work/current.tsv"
 awk -F'\t' '$1=="profit-and-loss" {exit !($3=="JPY" && $4=="2026-01-01" && $5=="2026-01-14")}' "$work/current.tsv"
