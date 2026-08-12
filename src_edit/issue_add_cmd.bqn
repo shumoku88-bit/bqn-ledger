@@ -2,7 +2,7 @@
 # Narrow BQN command for experimental `tools/edit-bqn issue add`.
 #
 # Input args:
-#   <date> <status> <title> <amount> <memo> [schema: legacy|due]
+#   <date> <status> <title> <amount> <memo> [schema: legacy|due|closed]
 #
 # The optional schema argument is supplied by the shell owner that observes the
 # target source. Direct legacy callers remain compatible when it is omitted.
@@ -27,7 +27,7 @@ Fail ← {𝕊 msg:
 
 argCount ← ≠args
 validArgCount ← (argCount=5) ∨ argCount=6
-{𝕊 ⋄ Fail "usage: issue_add_cmd.bqn <date> <status> <title> <amount> <memo> [legacy|due]"}⍟(¬validArgCount) @
+{𝕊 ⋄ Fail "usage: issue_add_cmd.bqn <date> <status> <title> <amount> <memo> [legacy|due|closed]"}⍟(¬validArgCount) @
 
 dateVal ← 0 ⊑ args
 statusVal ← 1 ⊑ args
@@ -37,8 +37,8 @@ memoVal ← 4 ⊑ args
 schema ← "legacy"
 {𝕊:schema↩5⊑args}⍟(argCount=6) @
 
-validSchema ← ∨´schema⊸≡¨"legacy"‿"due"
-{𝕊 ⋄ Fail ("invalid issue schema: " ∾ schema ∾ " (expected 'legacy' or 'due')")}⍟(¬validSchema) @
+validSchema ← ∨´schema⊸≡¨"legacy"‿"due"‿"closed"
+{𝕊 ⋄ Fail ("invalid issue schema: " ∾ schema ∾ " (expected 'legacy', 'due', or 'closed')")}⍟(¬validSchema) @
 
 valDate ← validate.ValidateDate dateVal
 {𝕊 ⋄ Fail (1 ⊑ valDate)}⍟(¬ 0 ⊑ valDate) @
@@ -56,11 +56,13 @@ valAmount ← validate.ValidateAmount amountVal
 valMemo ← validate.ValidateNoTabNewline "memo"‿memoVal
 {𝕊 ⋄ Fail (1 ⊑ valMemo)}⍟(¬ 0 ⊑ valMemo) @
 
+closedVal ← (statusVal≡"open")⊑⟨"undetermined","none"⟩
 issue ← {
   issue_id ⇐ "issue:" ∾ dateVal ∾ ":" ∾ titleVal ⋄
   status ⇐ statusVal ⋄
   date ⇐ dateVal ⋄
   due ⇐ "undetermined" ⋄
+  closed ⇐ closedVal ⋄
   category ⇐ "general" ⋄
   title ⇐ titleVal ⋄
   amount ⇐ amountVal ⋄
@@ -71,6 +73,7 @@ issue ← {
 row ← ""
 {𝕊:row↩render.RenderIssueRow issue}⍟(schema≡"legacy") @
 {𝕊:row↩render.RenderIssueRowWithDue issue}⍟(schema≡"due") @
+{𝕊:row↩render.RenderIssueRowWithClosed issue}⍟(schema≡"closed") @
 
 •Out "OK" ∾ tab ∾ "APPEND" ∾ tab ∾ "issues.tsv"
 •Out row
