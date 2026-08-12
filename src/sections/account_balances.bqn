@@ -58,11 +58,10 @@ FormatHuman ← {𝕊 input:
     (text.PadRight ⟨nameWidth,rowIndex⊑labels⟩)∾" | "∾(text.PadLeft ⟨valWidth,rowIndex⊑amountTexts⟩)
   }¨result.matrix.row_index
   tableLines ← ⟨header,divider⟩∾rowLines∾⟨divider⟩
-  "== Account Balances =="∾lf∾
-    "Currency: "∾result.domain∾lf∾
-    "As of: "∾result.as_of∾lf∾lf∾
-    (∾{𝕩∾lf}¨tableLines)∾
-    "Balanced: "∾(result.balanced⊑"NO"‿"YES")∾lf∾lf
+  prefixLines ← ⟨"== Account Balances ==",("Currency: "∾result.domain),("As of: "∾result.as_of),""⟩
+  suffixLines ← ⟨("Balanced: "∾result.balanced⊑"NO"‿"YES"),""⟩
+  lines ← prefixLines∾tableLines∾suffixLines
+  ∾{𝕩∾lf}¨lines
 }
 
 FormatCompact ← {𝕊 result:
@@ -70,8 +69,8 @@ FormatCompact ← {𝕊 result:
     value ← ⊑rowIndex⊑result.matrix.values
     "ledger_balance: "∾(rowIndex⊑result.account_keys)∾"/"∾result.domain∾" "∾AmountText ⟨value,result.matrix.scale⟩
   }¨result.matrix.row_index
-  lines ← rowLines∾((0=result.matrix.row_count)/⟨"ledger_balance: (none) 0"⟩)
-  "--- Ledger Account Balances ---"∾lf∾∾{𝕩∾lf}¨lines
+  lines ← ⟨"--- Ledger Account Balances ---"⟩∾rowLines∾((0=result.matrix.row_count)/⟨"ledger_balance: (none) 0"⟩)
+  ∾{𝕩∾lf}¨lines
 }
 
 FormatJson ← {𝕊 result:
