@@ -193,7 +193,7 @@ Retired during review: `src/application/funding_scope.bqn` — #714. See `docs/F
 - [x] `src/application/report_route.bqn` — #719 coordinate publication, #726 schema relation / source residue retirement
 - [x] `src/application/report_route_plan.bqn` — #726
 - [x] `src/application/report_route_plan_cli.bqn` — #726 (effect-only leaf; production unchanged)
-- [ ] `src/application/report_selection_cli.bqn`
+- [x] `src/application/report_selection_cli.bqn` — #727 (boundary law review; production unchanged)
 - [ ] `src/application/report_source_adapter.bqn` — #717 companion shared-Account lifetime follow-up
 - [ ] `src/application/source_io.bqn`
 
@@ -265,6 +265,6 @@ After the production BQN inventory is reviewed, selector/UI adapter consolidatio
 
 ## Current cursor
 
-`src/application/report_selection_cli.bqn`
+`src/application/report_source_adapter.bqn`
 
-Resume the normal Phase 5 application review sequence at Report Selection CLI.
+Resume the normal Phase 5 application review sequence at Report Source Adapter.
