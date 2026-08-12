@@ -129,8 +129,8 @@ for label in \
   'Dependency and source diagnosis' 'Export canonical Journals to hledger' \
   'Compact report summary' 'Exact compact-key query (advanced)' \
   'Repository development suite' \
-  'accounts.journal' 'actual.journal' 'plan.journal' 'budget.journal' \
-  'budget.toml' 'household.toml' 'report.toml' 'issues.tsv'; do
+  'Account declarations' 'Actual transactions' 'Future Plans' 'Budget movements' \
+  'Budget policy' 'Household policy' 'Report policy' 'Issues and decisions'; do
   require_text "$source_out" "$label"
 done
 for forbidden in 'Expense' 'Finish / actualize / replenish Plan' 'Account Balances' 'Envelope & Backing'; do
@@ -144,5 +144,11 @@ done
 # owns friendly group labels, not a second list of the twelve retained keys.
 grep -F 'tools/report-section-metadata' tools/bl >/dev/null
 grep -F '$3==category' tools/bl >/dev/null
+
+# The raw-source submenu still owns exactly the existing canonical eight keys;
+# selector presentation may hide those keys and show their descriptions.
+for file in accounts.journal actual.journal plan.journal budget.journal budget.toml household.toml report.toml issues.tsv; do
+  grep -F "$file" tools/bl >/dev/null
+done
 
 echo 'check-command-hub-drilldown: OK'
