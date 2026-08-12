@@ -7,6 +7,7 @@ fixture="$root/fixtures/ledger-facts-phase1-proof"
 tmp="$(mktemp -d "${TMPDIR:-/tmp}/bqn-ledger-destination-route.XXXXXX")"
 trap 'rm -rf "$tmp"' EXIT
 cli="$root/src/application/report_destination_cli.bqn"
+destination="$root/src/application/report_destination.bqn"
 
 ExpectLine() {
   local expected=$1 file=$2
@@ -19,6 +20,12 @@ ExpectLine() {
 
 grep -F 'route ← •Import "report_route.bqn"' "$cli" >/dev/null
 grep -F 'route.Admit ⟨key,surface,coordinates⟩' "$cli" >/dev/null
+grep -F 'catalogIndex ← routeAdmission.catalog_index' "$cli" >/dev/null
+grep -F 'catalogIndex◶destinations' "$destination" >/dev/null
+if grep -Eq 'key≡"(envelopes|balances|balance-sheet|profit-and-loss|recent|planned|cycle-accounts|cycle-comparison|monthly-accounts|daily-flow|daily-target|issues)"' "$destination"; then
+  echo 'FAIL: semantic destination still rescans admitted report keys' >&2
+  exit 1
+fi
 if grep -Eq 'usage_(envelopes|balances|recent|planned|cycle_accounts|cycle_comparison|monthly_accounts|daily_flow|daily_target|issues)' "$cli"; then
   echo 'FAIL: destination CLI still owns individual raw route admission' >&2
   exit 1
