@@ -7,10 +7,10 @@ configPath ← •Import "../src/application/editor_config_path.bqn"
 tab ← @+9
 
 table ← rows.Build ⟨"A=one","B"∾tab∾"two","EMPTY="∾"","A=three"⟩
-⟨1,"one"⟩ lib.AssertEq table.Lookup "A"
-⟨0,""⟩ lib.AssertEq table.Lookup "MISSING"
-2 lib.AssertEq ≠table.Matches "A"
-"" lib.AssertEq table.Get "EMPTY"
+⟨⟨"A","one"⟩,⟨"A","three"⟩⟩ lib.AssertEq table.Matches "A"
+⟨⟨"B","two"⟩⟩ lib.AssertEq table.Matches "B"
+⟨⟨"EMPTY",""⟩⟩ lib.AssertEq table.Matches "EMPTY"
+⟨⟩ lib.AssertEq table.Matches "MISSING"
 
 system ← defaults.Load @
 "accounts.tsv" lib.AssertEq system.DefaultAccountsFile @
