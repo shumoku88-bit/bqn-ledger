@@ -11,15 +11,14 @@ budgetAdmission ← •Import "../ledger/budget_journal_admission.bqn"
 policyAdmission ← •Import "../ledger/budget_policy_admission.bqn"
 facts ← •Import "../ledger/facts.bqn"
 
-Join ← {𝕊 base‿name: base∾(('/'≠¯1↑base)/"/")∾name}
 LoadPolicy ← {𝕊 base‿accounts:
-  policyAdmission.Admit ⟨io.ReadRaw Join ⟨base,sources.budgetPolicy⟩,accounts⟩
+  policyAdmission.Admit ⟨io.ReadRaw (io.JoinPath ⟨base,sources.budgetPolicy⟩),accounts⟩
 }
 Load ← {𝕊 base‿registry:
   accountResult ← accountSource.Load base
   result ← {state⇐"error",diagnostics⇐accountResult.diagnostics}
   {𝕊:
-    raw ← io.ReadRaw Join ⟨base,sources.budget⟩
+    raw ← io.ReadRaw (io.JoinPath ⟨base,sources.budget⟩)
     rootResult ← rootAdmission.Admit ⟨raw,sources.accounts⟩
     result↩{state⇐"error",diagnostics⇐rootResult.diagnostics}
     {𝕊:

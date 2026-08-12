@@ -10,7 +10,6 @@ reportPolicySource ← •Import "report_policy_source_adapter.bqn"
 canonical ← •Import "canonical_household_sources.bqn"
 empty ← ⟨⟩
 
-Join ← {𝕊 base‿name: base∾(('/'≠¯1↑base)/"/")∾name}
 Registry ← {𝕊 path: registryBuilder.Build io.ReadLines path}
 CanonicalActual ← {𝕊 base‿registry: actualSource.Load ⟨base,registry⟩ }
 CanonicalPlan ← {𝕊 base‿registry: planSource.Load ⟨base,registry⟩ }
@@ -48,7 +47,7 @@ Companions ← {𝕊 base‿accounts‿registry:
   }⍟ok @
   result
 }
-IssueLines ← {𝕊 base: io.ReadLines Join ⟨base,canonical.issues⟩}
+IssueLines ← {𝕊 base: io.ReadLines (io.JoinPath ⟨base,canonical.issues⟩)}
 
 {
   Registry⇐Registry,CanonicalActual⇐CanonicalActual,CanonicalPlan⇐CanonicalPlan,

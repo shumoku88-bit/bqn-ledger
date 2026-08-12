@@ -16,6 +16,10 @@ sample ← ",a,,b,"
 (comma parse.Split sample) lib.AssertEq comma io.Split sample
 (comma parse.SplitKeepEmpty sample) lib.AssertEq comma io.SplitKeepEmpty sample
 
+# Application source paths have one composition owner and preserve an existing slash.
+"root/accounts.journal" lib.AssertEq io.JoinPath ⟨"root","accounts.journal"⟩
+"root/accounts.journal" lib.AssertEq io.JoinPath ⟨"root/","accounts.journal"⟩
+
 42 lib.AssertEq parse.ToNum "42"
 ¯42 lib.AssertEq parse.ToNum "-42"
 
