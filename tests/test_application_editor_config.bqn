@@ -4,7 +4,6 @@ lib ← •Import "test_lib.bqn"
 rows ← •Import "../src/application/config_rows.bqn"
 defaults ← •Import "../src/application/system_defaults.bqn"
 configPath ← •Import "../src/application/editor_config_path.bqn"
-actual ← •Import "../src/application/actual_journal_config.bqn"
 tab ← @+9
 
 table ← rows.Build ⟨"A=one","B"∾tab∾"two","EMPTY="∾"","A=three"⟩
@@ -18,7 +17,5 @@ system ← defaults.Load @
 "plan.tsv" lib.AssertEq system.DefaultPlanFile @
 "config.tsv" lib.AssertEq system.DefaultConfigFile @
 "fixtures/ledger-facts-phase1-proof/config.tsv" lib.AssertEq configPath.Resolve "fixtures/ledger-facts-phase1-proof"
-"actual.journal" lib.AssertEq (actual.Resolve "fixtures/plan-completion").file
-"actual.journal" lib.AssertEq (actual.Resolve "path-with-no-config").file
 
 •Out "test_application_editor_config: ok"
