@@ -183,8 +183,8 @@ Retired during review: `src/application/funding_scope.bqn` — #714. See `docs/F
 - [x] `src/application/plan_source_adapter.bqn` — #713 (shared-Account capability; normal review complete on revisit)
 - [x] `src/application/report_destination.bqn` — #719
 - [x] `src/application/report_destination_cli.bqn` — #720
-- [ ] `src/application/report_domain_cli.bqn`
-- [ ] `src/application/report_domain_selection.bqn`
+- [x] `src/application/report_domain_cli.bqn` — #721
+- [x] `src/application/report_domain_selection.bqn` — #721
 - [ ] `src/application/report_metadata_cli.bqn`
 - [ ] `src/application/report_policy_resolution.bqn`
 - [ ] `src/application/report_policy_source_adapter.bqn`
@@ -265,6 +265,6 @@ After the production BQN inventory is reviewed, selector/UI adapter consolidatio
 
 ## Current cursor
 
-`src/application/report_domain_cli.bqn`
+`src/application/report_metadata_cli.bqn`
 
-Resume the normal Phase 5 application review sequence at Report Domain CLI.
+Resume the normal Phase 5 application review sequence at Report Metadata CLI.
