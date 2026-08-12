@@ -5,6 +5,7 @@ parse ← •Import "../text/parse.bqn"
 Split ← parse.Split
 SplitKeepEmpty ← parse.SplitKeepEmpty
 
+JoinPath ← {𝕊 base‿name: base∾(('/'≠¯1↑base)/"/")∾name}
 ResolvePath ← {𝕊 path:
   absolute ← (0<≠path) ∧ (("/"≡1↑path) ∨ ("~"≡1↑path))
   absolute⊑⟨•wdpath∾"/"∾path,path⟩
@@ -28,7 +29,7 @@ SplitTsv ← {𝕊 line: (@+9) Split line}
 SplitTsvKeepEmpty ← {𝕊 line: (@+9) SplitKeepEmpty line}
 
 {
-  ResolvePath⇐ResolvePath,ReadRaw⇐ReadRaw,ReadLines⇐ReadLines,
+  JoinPath⇐JoinPath,ResolvePath⇐ResolvePath,ReadRaw⇐ReadRaw,ReadLines⇐ReadLines,
   ReadLinesOptional⇐ReadLinesOptional,SplitTsv⇐SplitTsv,
   SplitTsvKeepEmpty⇐SplitTsvKeepEmpty,Split⇐Split,SplitKeepEmpty⇐SplitKeepEmpty
 }
