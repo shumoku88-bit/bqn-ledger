@@ -18,7 +18,7 @@ Ownership is key-based and re-resolved against the statement's current Actual Fa
 - current-Facts role and Account existence are revalidated before numeric publication;
 - Backing-pool membership may span Commodities, then the current Account axis is projected to the selected domain while preserving policy order.
 
-`src/application/funding_scope.bqn` remains a separate application capability, but it is not the ownership authority or an input route for Envelope Backing. Envelope Backing resolves its Backing Account relation from admitted `budget.toml` policy itself.
+The former `src/application/funding_scope.bqn` capability was retired during the Application review after confirming it had no production consumer. It was not the ownership authority or an input route for Envelope Backing. Envelope Backing resolves its Backing Account relation from admitted `budget.toml` policy itself.
 
 Missing, duplicate, unknown, wrong-role, or otherwise invalid required ownership fails closed with diagnostics. There is no supported diagnostics-free `unavailable` ownership state and missing ownership is never published as numeric zero.
 
