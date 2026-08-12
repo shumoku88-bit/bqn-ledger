@@ -2,7 +2,10 @@
 # Narrow BQN command for experimental `tools/edit-bqn issue add`.
 #
 # Input args:
-#   <date> <status> <title> <amount> <memo>
+#   <date> <status> <title> <amount> <memo> [schema: legacy|due]
+#
+# The optional schema argument is supplied by the shell owner that observes the
+# target source. Direct legacy callers remain compatible when it is omitted.
 #
 # Stdout protocol on success:
 #   OK\tAPPEND\tissues.tsv
@@ -22,13 +25,20 @@ Fail ← {𝕊 msg:
   •Exit 1
 }
 
-{𝕊 ⋄ Fail "usage: issue_add_cmd.bqn <date> <status> <title> <amount> <memo>"}⍟(5 > ≠ args) @
+argCount ← ≠args
+validArgCount ← (argCount=5) ∨ argCount=6
+{𝕊 ⋄ Fail "usage: issue_add_cmd.bqn <date> <status> <title> <amount> <memo> [legacy|due]"}⍟(¬validArgCount) @
 
 dateVal ← 0 ⊑ args
 statusVal ← 1 ⊑ args
 titleVal ← 2 ⊑ args
 amountVal ← 3 ⊑ args
 memoVal ← 4 ⊑ args
+schema ← "legacy"
+{𝕊:schema↩5⊑args}⍟(argCount=6) @
+
+validSchema ← ∨´schema⊸≡¨"legacy"‿"due"
+{𝕊 ⋄ Fail ("invalid issue schema: " ∾ schema ∾ " (expected 'legacy' or 'due')")}⍟(¬validSchema) @
 
 valDate ← validate.ValidateDate dateVal
 {𝕊 ⋄ Fail (1 ⊑ valDate)}⍟(¬ 0 ⊑ valDate) @
@@ -46,16 +56,21 @@ valAmount ← validate.ValidateAmount amountVal
 valMemo ← validate.ValidateNoTabNewline "memo"‿memoVal
 {𝕊 ⋄ Fail (1 ⊑ valMemo)}⍟(¬ 0 ⊑ valMemo) @
 
-row ← render.RenderIssueRow {
+issue ← {
   issue_id ⇐ "issue:" ∾ dateVal ∾ ":" ∾ titleVal ⋄
   status ⇐ statusVal ⋄
   date ⇐ dateVal ⋄
+  due ⇐ "undetermined" ⋄
   category ⇐ "general" ⋄
   title ⇐ titleVal ⋄
   amount ⇐ amountVal ⋄
   currency ⇐ "JPY" ⋄
   details ⇐ memoVal
 }
+
+row ← ""
+{𝕊:row↩render.RenderIssueRow issue}⍟(schema≡"legacy") @
+{𝕊:row↩render.RenderIssueRowWithDue issue}⍟(schema≡"due") @
 
 •Out "OK" ∾ tab ∾ "APPEND" ∾ tab ∾ "issues.tsv"
 •Out row
