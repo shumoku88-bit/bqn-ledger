@@ -7,7 +7,16 @@ cd "$root"
 
 work="$(mktemp -d "${TMPDIR:-/tmp}/bqn-ledger-command-hub-drilldown.XXXXXX")"
 trap 'rm -rf "$work"' EXIT
+trap 'echo "FAIL: check-command-hub-drilldown line $LINENO: $BASH_COMMAND" >&2' ERR
 base="$root/fixtures/ledger-facts-phase1-proof"
+
+require_text() {
+  local file="$1" text="$2"
+  if ! grep -F "$text" "$file" >/dev/null; then
+    echo "FAIL: expected text is missing from $(basename "$file"): $text" >&2
+    return 1
+  fi
+}
 
 bash -n tools/bl
 
@@ -67,7 +76,7 @@ reports="$work/reports.out"
 source_out="$work/source.out"
 
 for label in 'Editor' 'Reports' 'Source & System' 'Exit'; do
-  grep -F "$label" "$top" >/dev/null
+  require_text "$top" "$label"
 done
 for old_top in 'Record / Journal' 'Inspect / Operations'; do
   if grep -F "$old_top" "$top" >/dev/null; then
@@ -83,7 +92,7 @@ for label in \
   'Add Plan' 'Edit Plan date / amount' 'Finish / actualize / replenish Plan' \
   'Retry Budget sync for a completed Plan' 'Related Plan evidence' \
   'Add / move Budget' 'Add Account' 'Add Issue' 'Close Issue'; do
-  grep -F "$label" "$editor" >/dev/null
+  require_text "$editor" "$label"
 done
 for browse_label in 'Journal history' 'Open Plans' 'All Plans, including completed' 'List Accounts' 'List open Issues'; do
   if grep -F "$browse_label" "$editor" >/dev/null; then
@@ -99,14 +108,11 @@ for report_label in 'Envelope & Backing' 'Account Balances' 'Recent Journal' 'Pl
 done
 
 for label in 'Household' 'Accounting' 'Activity' 'All reports' 'Sequential preview'; do
-  grep -F "$label" "$reports" >/dev/null
+  require_text "$reports" "$label"
 done
 while IFS=$'\t' read -r key label category owner human structured; do
   [[ $key == key ]] && continue
-  grep -F "$label" "$reports" >/dev/null || {
-    echo "FAIL: report catalog label is missing from drill-down: $label" >&2
-    exit 1
-  }
+  require_text "$reports" "$label"
 done < <(tools/report-section-metadata)
 for action_label in \
   'Expense' 'Income' 'Transfer / move' 'Multi-posting transaction' \
@@ -125,7 +131,7 @@ for label in \
   'Repository development suite' \
   'accounts.journal' 'actual.journal' 'plan.journal' 'budget.journal' \
   'budget.toml' 'household.toml' 'report.toml' 'issues.tsv'; do
-  grep -F "$label" "$source_out" >/dev/null
+  require_text "$source_out" "$label"
 done
 for forbidden in 'Expense' 'Finish / actualize / replenish Plan' 'Account Balances' 'Envelope & Backing'; do
   if grep -F "$forbidden" "$source_out" >/dev/null; then
