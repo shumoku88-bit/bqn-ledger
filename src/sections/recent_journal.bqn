@@ -4,6 +4,7 @@ amount ← •Import "../ledger/amount_text.bqn"
 text ← •Import "../report/text.bqn"
 empty ← ⟨⟩
 tab ← @+9
+lf ← @+10
 
 Diagnostic ← {𝕊 codeText‿messageText:
   {severity⇐"error",stage⇐"section_recent_journal",code⇐codeText,message⇐messageText}
@@ -35,11 +36,7 @@ Build ← {𝕊 recentTransactions:
   result
 }
 
-Join ← {𝕊 values:
-  out ← ""
-  {𝕊 i: out∾↩((i>0)/",")∾i⊑values}¨↕≠values
-  out
-}
+Join ← {𝕊 values: ∾{𝕊 i: ((i>0)/",")∾i⊑values}¨↕≠values}
 AmountText ← {𝕊 coefficient‿scaleValue: amount.Format ⟨coefficient,scaleValue⟩}
 TrimMemo ← {𝕊 value:
   result ← value
@@ -58,24 +55,22 @@ FormatHuman ← {𝕊 input:
       index⊑result.rows.currency
     ⟩
   }¨result.rows.index
-  out ← "== Recent Journal =="∾(@+10)
-  out ∾↩ "(newest first, last "∾(•Fmt result.limit)∾")"∾(@+10)
-  {𝕊: out∾↩text.RenderTable ⟨⟨"Date","From","To","Memo","Amount","Currency"⟩,rows,⟨4⟩⟩}⍟(0<result.rows.count) @
-  {𝕊: out∾↩"  (none)"∾(@+10)}⍟(0=result.rows.count) @
-  out∾(@+10)
+  headingText ← ∾{𝕩∾lf}¨⟨"== Recent Journal ==",("(newest first, last "∾(•Fmt result.limit)∾")")⟩
+  tableText ← text.RenderTable ⟨⟨"Date","From","To","Memo","Amount","Currency"⟩,rows,⟨4⟩⟩
+  bodyText ← (0<result.rows.count)⊑⟨"  (none)"∾lf,tableText⟩
+  ∾⟨headingText,bodyText,lf⟩
 }
 
 FormatCompact ← {𝕊 result:
-  out ← "--- Ledger Recent Journal ---"∾(@+10)
-  {𝕊 index:
-    out∾↩"ledger_recent_journal: "∾(index⊑result.rows.date)∾tab
-    out∾↩(index⊑result.rows.currency)∾tab
-    out∾↩(AmountText ⟨index⊑result.rows.coefficient,index⊑result.rows.scale⟩)∾tab
-    out∾↩(Join (index⊑result.rows.credit_accounts))∾tab∾(Join (index⊑result.rows.debit_accounts))∾tab
-    out∾↩(index⊑result.rows.description)∾(@+10)
+  rowLines ← {𝕊 index:
+    "ledger_recent_journal: "∾(index⊑result.rows.date)∾tab∾
+    (index⊑result.rows.currency)∾tab∾
+    (AmountText ⟨index⊑result.rows.coefficient,index⊑result.rows.scale⟩)∾tab∾
+    (Join (index⊑result.rows.credit_accounts))∾tab∾(Join (index⊑result.rows.debit_accounts))∾tab∾
+    index⊑result.rows.description
   }¨result.rows.index
-  {𝕊: out∾↩"ledger_recent_journal: (none)"∾(@+10)}⍟(0=result.rows.count) @
-  out
+  bodyLines ← rowLines∾((0=result.rows.count)/⟨"ledger_recent_journal: (none)"⟩)
+  ∾{𝕩∾lf}¨⟨"--- Ledger Recent Journal ---"⟩∾bodyLines
 }
 
 {Build⇐Build,FormatHuman⇐FormatHuman,FormatCompact⇐FormatCompact}
