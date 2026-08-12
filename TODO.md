@@ -161,17 +161,16 @@ Closeout: `docs/REPORT_PHASE_FOUR_REVIEW_CLOSEOUT-2026-08-12.md`.
 
 - [x] `src/application/account_source_adapter.bqn` — #699
 - [x] `src/application/actual_source_adapter.bqn` — #701 (effect-lifetime law review; production unchanged)
-- [x] `src/application/budget_source_adapter.bqn` — capability-lifetime law review; production unchanged
-- [ ] `src/application/canonical_household_sources.bqn`
-- [ ] `src/application/config_rows.bqn`
-- [ ] `src/application/current_report_batch_cli.bqn`
-- [ ] `src/application/current_report_profile_cli.bqn`
-- [ ] `src/application/current_report_requests.bqn`
-- [ ] `src/application/cycle_resolution.bqn`
-- [ ] `src/application/daily_scope_adapter.bqn`
-- [ ] `src/application/daily_scope_admission.bqn`
+- [x] `src/application/budget_source_adapter.bqn` — #702 (capability-lifetime law review; production unchanged)
+- [x] `src/application/canonical_household_sources.bqn` — #703
+- [x] `src/application/config_rows.bqn` — #704
+- [x] `src/application/current_report_batch_cli.bqn` — #705 (effect-lifetime review; production unchanged)
+- [x] `src/application/current_report_profile_cli.bqn` — #705 (effect-lifetime review; production unchanged)
+- [x] `src/application/current_report_requests.bqn` — #705
+- [x] `src/application/cycle_resolution.bqn` — #706
+- [x] `src/application/daily_scope_adapter.bqn` — #707
+- [x] `src/application/daily_scope_admission.bqn` — #707
 - [ ] `src/application/date_today.bqn`
-- [ ] `src/application/editor_accounts.bqn`
 - [ ] `src/application/editor_actual.bqn`
 - [ ] `src/application/editor_config_path.bqn`
 - [ ] `src/application/editor_currency.bqn`
@@ -267,6 +266,6 @@ After the production BQN inventory is reviewed, selector/UI adapter consolidatio
 
 ## Current cursor
 
-`src/application/canonical_household_sources.bqn`
+`src/application/date_today.bqn`
 
-Resume the normal Phase 5 application review sequence at Canonical Household Sources.
+Resume the normal Phase 5 application review sequence at Date Today.
