@@ -12,6 +12,7 @@ result ← section.Build admitted
 2 lib.AssertEq result.issues.count
 ⟨"subscription-review","missing-receipt"⟩ lib.AssertEq result.issues.issue_id
 ⟨"undetermined","undetermined"⟩ lib.AssertEq result.issues.due
+⟨"none","none"⟩ lib.AssertEq result.issues.closed
 ⟨"issues.tsv:row:2","issues.tsv:row:3"⟩ lib.AssertEq result.issues.source_ref
 (•FChars "../fixtures/ledger-facts-phase1-proof/issues.destination.human.txt") lib.AssertEq section.FormatHuman result
 
@@ -25,6 +26,7 @@ dueAware ← admission.Admit ⟨⟨
 ⟩,registry⟩
 dueResult ← section.Build dueAware
 ⟨"2026-08-15","none","undetermined"⟩ lib.AssertEq dueResult.issues.due
+⟨"none","none","none"⟩ lib.AssertEq dueResult.issues.closed
 dueText ← section.FormatHuman dueResult
 lib.Assert ∨´"2026-08-15"⍷dueText
 lib.Assert ∨´"none"⍷dueText
