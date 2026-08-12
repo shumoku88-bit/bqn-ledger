@@ -53,7 +53,11 @@ current ← issues.Admit ⟨
   registry
 ⟩
 "ok" lib.AssertEq current.state
+⟨"2026-08-01","2026-08-02","2026-08-03"⟩ lib.AssertEq current.issues.date
 ⟨"2026-08-15","none","undetermined"⟩ lib.AssertEq current.issues.due
+lib.Assert (0⊑current.issues.date_ordinal) ≠ 0⊑current.issues.due_ordinal
+1000 lib.AssertEq 0⊑current.issues.coefficient
+"JPY" lib.AssertEq 0⊑current.issues.currency
 lib.Assert 0<≠0⊑current.issues.due_ordinal
 ⟨⟩ lib.AssertEq 1⊑current.issues.due_ordinal
 ⟨⟩ lib.AssertEq 2⊑current.issues.due_ordinal

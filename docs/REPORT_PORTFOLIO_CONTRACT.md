@@ -306,13 +306,13 @@ ledger_recent_journal: DATE<TAB>CURRENCY<TAB>AMOUNT<TAB>CREDIT_ACCOUNTS<TAB>DEBI
 
 Issues is a source-ordered List over admitted issue rows. It does not become an accounting Fact or monetary obligation.
 
-Destination admission uses the exact header and field order:
+Current admission uses the exact header and field order:
 
 ```text
-issue_id | status | date | category | title | amount | currency | details
+issue_id | status | date | due | category | title | amount | currency | details
 ```
 
-(tab-separated in the source). Required evidence is durable unique issue identity, source row/reference, `open | resolved | dropped` status, optional strict date, required category/title, optional exact amount paired with explicit currency, and optional details. Default human selection is open issues only. Absent/header-only source is valid empty evidence. Invalid issue admission is `error`; no valid-looking partial List is returned.
+(tab-separated in the source). The exact legacy header without `due` remains bounded migration compatibility and normalizes missing evidence to `undetermined`. Required evidence is durable unique issue identity, source row/reference, `open | resolved | dropped` status, optional strict recorded date, three-way due (`YYYY-MM-DD | none | undetermined`), required category/title, optional exact amount paired with explicit currency, and optional details. Default human selection is open issues only and retains due meaning. Absent/header-only source is valid empty evidence. Invalid issue admission is `error`; no valid-looking partial List is returned.
 
 Editor issue list/close/add workflows remain separate source commands and must share admission semantics rather than parse report text.
 

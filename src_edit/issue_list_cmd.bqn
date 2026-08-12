@@ -5,10 +5,12 @@
 #   <baseDir> <format: tsv|text>
 #
 # `--format tsv` is a UI contract used by tools/add-ui.sh issue-close selection:
-#   number date title amount memo display
+#   number date title amount memo display due
+# The first six fields remain in their established order; due is appended.
 # number is the 1-based ordinal within current open issues, matching issue close --index.
 
 loader ← •Import "../src/application/source_io.bqn"
+validate ← •Import "validate.bqn"
 
 args ← •args
 tab ← @+9
@@ -82,6 +84,8 @@ ParseIssueRow ← {𝕊 index:
   normalized ← fields
   {𝕊:normalized↩(3↑fields)∾⟨"undetermined"⟩∾3↓fields}⍟legacySchema @
   issueId‿status‿date‿due‿category‿title‿amount‿currency‿memo ← normalized
+  dueOk ← (due≡"none") ∨ (due≡"undetermined") ∨ 0⊑validate.ValidateDate due
+  {𝕊 ⋄ Fail "issues.tsv due must be none, undetermined, or a strict Gregorian date"}⍟(¬dueOk) @
   {
     lineNum ⇐ lineNum ⋄
     fields ⇐ fields ⋄
@@ -103,13 +107,13 @@ openIssues ← ({𝕩.status ≡ "open"}¨ allIssues) / allIssues
 Display ← {
   n ← 𝕨
   r ← 𝕩
-  (•Fmt n) ∾ " | line " ∾ (•Fmt r.lineNum) ∾ " | " ∾ r.date ∾ " | " ∾ r.title ∾ " | " ∾ r.amount ∾ " | " ∾ r.memo
+  (•Fmt n) ∾ " | line " ∾ (•Fmt r.lineNum) ∾ " | " ∾ r.date ∾ " | " ∾ r.title ∾ " | " ∾ r.amount ∾ " | " ∾ r.memo ∾ " | due: " ∾ r.due
 }
 
 PrintTsv ← {𝕊 index:
   r ← index ⊑ openIssues
   n ← index + 1
-  •Out tab Join ⟨(•Fmt n), r.date, r.title, r.amount, r.memo, n Display r⟩
+  •Out tab Join ⟨(•Fmt n), r.date, r.title, r.amount, r.memo, n Display r, r.due⟩
 }
 
 PrintText ← {𝕊 index:
