@@ -14,12 +14,14 @@ Table ← {𝕊:
 }
 FormatTsv ← {𝕊:
   table ← Table @
-  out ← "key"∾tab∾"label"∾tab∾"category"∾tab∾"owner"∾tab∾"human_output"∾tab∾"structured_output"∾lf
-  {𝕊 i:
-    out∾↩(i⊑table.key)∾tab∾(i⊑table.label)∾tab∾(i⊑table.category)∾tab∾(i⊑table.owner)∾tab
-    out∾↩(i⊑table.human_output)∾tab∾(i⊑table.structured_output)∾lf
+  header ← ∾⟨"key",tab,"label",tab,"category",tab,"owner",tab,"human_output",tab,"structured_output",lf⟩
+  rows ← {𝕊 i:
+    ∾⟨
+      i⊑table.key,tab,i⊑table.label,tab,i⊑table.category,tab,i⊑table.owner,tab,
+      i⊑table.human_output,tab,i⊑table.structured_output,lf
+    ⟩
   }¨table.index
-  out
+  ∾⟨header,∾rows⟩
 }
 FormatJson ← {𝕊:
   table ← Table @
@@ -33,9 +35,9 @@ FormatJson ← {𝕊:
       json.Pair ⟨"structured_output",json.String i⊑table.structured_output⟩
     ⟩
   }¨table.index
-  out ← "["∾lf
-  {𝕊 i:out∾↩"  "∾(i⊑encoded)∾((i<table.count-1)/",")∾lf}¨table.index
-  out∾"]"∾lf
+  bodyLines ← {𝕊 i: "  "∾(i⊑encoded)∾((i<table.count-1)/",")}¨table.index
+  lines ← ⟨"["⟩∾bodyLines∾⟨"]"⟩
+  ∾{𝕩∾lf}¨lines
 }
 
 {Table⇐Table,FormatTsv⇐FormatTsv,FormatJson⇐FormatJson}
