@@ -60,9 +60,9 @@ Admit ← {𝕊 lines‿registry:
       rowDiagnostics∾↩AddIf ⟨0=≠issueId,Diagnostic ⟨"issue_identity_missing",sourceRow,"issue_id must be nonempty"⟩⟩
       rowDiagnostics∾↩AddIf ⟨¬Contains ⟨status,statuses⟩,Diagnostic ⟨"issue_status_invalid",sourceRow,"status must be open, resolved, or dropped"⟩⟩
       rowDiagnostics∾↩AddIf ⟨(0<≠date) ∧ ¬dates.IsValid date,Diagnostic ⟨"issue_date_invalid",sourceRow,"date must be empty or strict Gregorian text"⟩⟩
-      dueSpecial ← Contains ⟨due,"none"‿"undetermined"⟩
       dueDateValid ← dates.IsValid due
-      rowDiagnostics∾↩AddIf ⟨¬dueSpecial ∧ ¬dueDateValid,Diagnostic ⟨"issue_due_invalid",sourceRow,"due must be none, undetermined, or strict Gregorian text"⟩⟩
+      dueOk ← (due≡"none") ∨ (due≡"undetermined") ∨ dueDateValid
+      rowDiagnostics∾↩AddIf ⟨¬dueOk,Diagnostic ⟨"issue_due_invalid",sourceRow,"due must be none, undetermined, or strict Gregorian text"⟩⟩
       rowDiagnostics∾↩AddIf ⟨0=≠category,Diagnostic ⟨"issue_category_missing",sourceRow,"category must be nonempty"⟩⟩
       rowDiagnostics∾↩AddIf ⟨0=≠title,Diagnostic ⟨"issue_title_missing",sourceRow,"title must be nonempty"⟩⟩
       amountPresent ← 0<≠amountText
