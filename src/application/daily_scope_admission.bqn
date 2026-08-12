@@ -1,12 +1,9 @@
 # Pure strict ownership/linkage admission for Daily Target application scopes.
 
 exact ← •Import "../ledger/exact_decimal.bqn"
+parse ← •Import "../text/parse.bqn"
 empty ← ⟨⟩ ⋄ tab ← @+9
 header ← "kind"∾tab∾"scope_id"∾tab∾"account_key"∾tab∾"plan_id"∾tab∾"excluded_amount"∾tab∾"currency"∾tab∾"reservation_ref"
-SplitKeepEmpty ← {𝕊 text:
-  groups ← (+`tab=text)⊔text
-  {(tab≠𝕩)/𝕩}¨groups
-}
 Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
 Diagnostic ← {𝕊 code‿row‿message:
   {severity⇐"error",stage⇐"application_daily_scope_admission",code⇐code,source_row⇐row,message⇐message}
@@ -19,14 +16,15 @@ EmptyRows ← {𝕊:
   }
 }
 Admit ← {𝕊 lines‿registry:
-  diagnostics ← empty ⋄ admitted ← empty
+  diagnostics ← empty
   hasHeader ← 0<≠lines ⋄ headerValid ← 0
   {𝕊:headerValid↩(⊑lines)≡header}⍟hasHeader @
   diagnostics∾↩(¬hasHeader)/⟨Diagnostic ⟨"daily_scope_header_missing",0,"daily scope source requires exact header"⟩⟩
   diagnostics∾↩(hasHeader ∧ ¬headerValid)/⟨Diagnostic ⟨"daily_scope_header_invalid",1,"daily scope header is not exact"⟩⟩
-  {𝕊 i:
-    sourceRow ← i+1 ⋄ fields ← SplitKeepEmpty i⊑lines
-    rowDiagnostics ← empty
+
+  AdmitRow ← {𝕊 i:
+    sourceRow ← i+1 ⋄ fields ← tab parse.SplitKeepEmpty i⊑lines
+    rowDiagnostics ← empty ⋄ items ← empty
     rowDiagnostics∾↩(7≠≠fields)/⟨Diagnostic ⟨"daily_scope_row_shape_invalid",sourceRow,"daily scope row requires seven fields"⟩⟩
     {𝕊:
       kind‿scopeId‿accountKey‿planId‿amountText‿currency‿reservationRef ← fields
@@ -61,9 +59,8 @@ Admit ← {𝕊 lines‿registry:
           }⍟valid @
         }⍟reservationPresent @
       }⍟(kind≡"obligation") @
-      diagnostics∾↩rowDiagnostics
       {𝕊:
-        admitted∾↩⟨{
+        items↩⟨{
           kind⇐kind,scope_id⇐scopeId,account_key⇐accountKey,plan_id⇐planId,
           excluded_coefficient⇐coefficient,excluded_scale⇐scale,currency⇐currency,
           reservation_ref⇐reservationRef,source_row⇐sourceRow,
@@ -71,7 +68,12 @@ Admit ← {𝕊 lines‿registry:
         }⟩
       }⍟(0=≠rowDiagnostics) @
     }⍟(7=≠fields) @
-  }¨1↓↕≠lines
+    {diagnostics⇐rowDiagnostics,items⇐items}
+  }
+
+  rowResults ← AdmitRow¨1↓↕≠lines
+  diagnostics∾↩∾{𝕩.diagnostics}¨rowResults
+  admitted ← ∾{𝕩.items}¨rowResults
   ids ← {𝕩.scope_id}¨admitted
   diagnostics∾↩((≠ids)≠≠⍷ids)/⟨Diagnostic ⟨"daily_scope_id_duplicate",0,"scope_id must be unique"⟩⟩
   reservationRefs ← ({0<≠𝕩.reservation_ref}¨admitted)/{𝕩.reservation_ref}¨admitted

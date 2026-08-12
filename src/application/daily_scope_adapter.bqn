@@ -24,38 +24,41 @@ Build ← {𝕊 admitted‿actualFacts‿planFacts‿domain‿observation‿targ
     diagnostics∾↩balances.diagnostics
     joined ← completion.Build ⟨planFacts,actualFacts,planFacts.transactions.index,actualFacts.transactions.index⟩
     diagnostics∾↩joined.diagnostics
-    {𝕊 i:
+
+    ResolveRow ← {𝕊 i:
+      rowDiagnostics ← empty ⋄ assetItems ← empty ⋄ obligationItems ← empty
       kind ← i⊑admitted.rows.kind
       {𝕊:
         key ← i⊑admitted.rows.account_key ⋄ matches ← key⊸≡¨balances.accounts.account_key
         known ← 1=+´matches
-        diagnostics∾↩(¬known)/⟨Diagnostic ⟨"daily_asset_account_unknown","asset Account must occur exactly once in selected domain"⟩⟩
+        rowDiagnostics∾↩(¬known)/⟨Diagnostic ⟨"daily_asset_account_unknown","asset Account must occur exactly once in selected domain"⟩⟩
         {𝕊:
           row ← ⊑matches/balances.accounts.index
-          diagnostics∾↩((row⊑balances.accounts.role)≢"asset")/⟨Diagnostic ⟨"daily_asset_role_invalid","daily asset Account must have asset role"⟩⟩
+          roleValid ← (row⊑balances.accounts.role)≡"asset"
+          rowDiagnostics∾↩(¬roleValid)/⟨Diagnostic ⟨"daily_asset_role_invalid","daily asset Account must have asset role"⟩⟩
           contributors ← row⊑balances.accounts.contributors
-          diagnostics∾↩(0=≠contributors)/⟨Diagnostic ⟨"daily_asset_evidence_missing","asset balance requires source-qualified contributors"⟩⟩
+          rowDiagnostics∾↩(0=≠contributors)/⟨Diagnostic ⟨"daily_asset_evidence_missing","asset balance requires source-qualified contributors"⟩⟩
           {𝕊:
-            assetRows∾↩⟨{
+            assetItems↩⟨{
               asset_id⇐i⊑admitted.rows.scope_id,currency⇐domain,
               coefficient⇐row⊑balances.accounts.closing,scale⇐balances.scale,
               decision⇐"include",reference⇐⊑contributors,contributors⇐contributors
             }⟩
-          }⍟(((row⊑balances.accounts.role)≡"asset") ∧ 0<≠contributors) @
+          }⍟(roleValid ∧ 0<≠contributors) @
         }⍟known @
       }⍟(kind≡"asset") @
       {𝕊:
         planId ← i⊑admitted.rows.plan_id ⋄ matches ← planId⊸≡¨joined.rows.plan_id
         known ← 1=+´matches
-        diagnostics∾↩(¬known)/⟨Diagnostic ⟨"daily_obligation_plan_unknown","obligation plan_id must occur exactly once"⟩⟩
+        rowDiagnostics∾↩(¬known)/⟨Diagnostic ⟨"daily_obligation_plan_unknown","obligation plan_id must occur exactly once"⟩⟩
         {𝕊:
           row ← ⊑matches/joined.rows.index ⋄ relation ← row⊑joined.rows.status
           conflict ← Contains ⟨relation,⟨"duplicate","ambiguous"⟩⟩
-          diagnostics∾↩conflict/⟨Diagnostic ⟨"daily_obligation_completion_conflict","completion evidence must be open or completed"⟩⟩
+          rowDiagnostics∾↩conflict/⟨Diagnostic ⟨"daily_obligation_completion_conflict","completion evidence must be open or completed"⟩⟩
           planCurrency ← row⊑joined.rows.currency
           reservationCurrency ← i⊑admitted.rows.currency
           currencyMismatch ← (0<≠reservationCurrency) ∧ reservationCurrency≢planCurrency
-          diagnostics∾↩currencyMismatch/⟨
+          rowDiagnostics∾↩currencyMismatch/⟨
             Diagnostic ⟨"daily_reservation_currency_mismatch","reservation currency must match Plan"⟩
           ⟩
           {𝕊:
@@ -63,9 +66,9 @@ Build ← {𝕊 admitted‿actualFacts‿planFacts‿domain‿observation‿targ
             completed ← relation≡"completed" ⋄ outside ← due≥dates.Ordinal target
             excluded ← i⊑admitted.rows.excluded_coefficient
             contributors ← (row⊑joined.rows.planned_debit_contributors)∾(row⊑joined.rows.planned_credit_contributors)
-            diagnostics∾↩(0=≠contributors)/⟨Diagnostic ⟨"daily_obligation_evidence_missing","Plan obligation requires Posting contributors"⟩⟩
+            rowDiagnostics∾↩(0=≠contributors)/⟨Diagnostic ⟨"daily_obligation_evidence_missing","Plan obligation requires Posting contributors"⟩⟩
             {𝕊:
-              obligationRows∾↩⟨{
+              obligationItems↩⟨{
                 obligation_id⇐i⊑admitted.rows.scope_id,due_ordinal⇐due,
                 currency⇐planCurrency,coefficient⇐row⊑joined.rows.planned_coefficient,
                 scale⇐row⊑joined.rows.planned_scale,settlement_state⇐completed⊑"open"‿"completed",
@@ -79,7 +82,13 @@ Build ← {𝕊 admitted‿actualFacts‿planFacts‿domain‿observation‿targ
           }⍟(¬conflict) @
         }⍟known @
       }⍟(kind≡"obligation") @
-    }¨admitted.rows.index
+      {diagnostics⇐rowDiagnostics,asset_items⇐assetItems,obligation_items⇐obligationItems}
+    }
+
+    rowResults ← ResolveRow¨admitted.rows.index
+    diagnostics∾↩∾{𝕩.diagnostics}¨rowResults
+    assetRows↩∾{𝕩.asset_items}¨rowResults
+    obligationRows↩∾{𝕩.obligation_items}¨rowResults
   }⍟((0=≠diagnostics) ∧ validDates) @
   ok ← 0=≠diagnostics
   assetScope ← EmptyAssetScope "error" ⋄ obligationScope ← EmptyObligationScope "error"
