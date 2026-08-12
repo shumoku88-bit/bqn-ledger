@@ -12,23 +12,23 @@ Check ← {𝕊 args‿exitCode‿lines:
 
 Check ⟨
   ⟨"envelopes","human","JPY","2026-01-01","2026-02-01","2026-01-12"⟩,
-  0,⟨"ROUTE"∾tab∾"envelopes"∾tab∾"human"∾tab∾"4"∾tab∾"0"⟩
+  0,⟨"ROUTE"∾tab∾"envelopes"∾tab∾"human"∾tab∾"4"⟩
 ⟩
 Check ⟨
   ⟨"cycle-accounts","human","JPY","2026-01-12"⟩,
-  0,⟨"ROUTE"∾tab∾"cycle-accounts"∾tab∾"human"∾tab∾"2"∾tab∾"0"⟩
+  0,⟨"ROUTE"∾tab∾"cycle-accounts"∾tab∾"human"∾tab∾"2"⟩
 ⟩
 Check ⟨
   ⟨"daily-target","human","JPY","2026-01-12","2026-01-22"⟩,
-  0,⟨"ROUTE"∾tab∾"daily-target"∾tab∾"human"∾tab∾"3"∾tab∾"0"⟩
+  0,⟨"ROUTE"∾tab∾"daily-target"∾tab∾"human"∾tab∾"3"⟩
 ⟩
 Check ⟨
   ⟨"profit-and-loss","human","JPY","2026-01-01","2026-02-01"⟩,
-  0,⟨"ROUTE"∾tab∾"profit-and-loss"∾tab∾"human"∾tab∾"3"∾tab∾"0"⟩
+  0,⟨"ROUTE"∾tab∾"profit-and-loss"∾tab∾"human"∾tab∾"3"⟩
 ⟩
 Check ⟨
   ⟨"daily-flow","human","JPY","2026-01-01","2026-02-01","2026-01-12"⟩,
-  0,⟨"ROUTE"∾tab∾"daily-flow"∾tab∾"human"∾tab∾"4"∾tab∾"0"⟩
+  0,⟨"ROUTE"∾tab∾"daily-flow"∾tab∾"human"∾tab∾"4"⟩
 ⟩
 
 Check ⟨⟨"recent","human","2026-01-12","nope"⟩,1,⟨"ERROR"∾tab∾"limit_invalid"∾tab∾"LIMIT must be decimal digits"⟩⟩
