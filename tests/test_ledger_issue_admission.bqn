@@ -10,7 +10,7 @@ Tsv ← {𝕊 fields: 1↓∾tab⊸∾¨fields}
 CheckOk ← {𝕊 label‿value:
   {𝕊:
     •Out "DEBUG " ∾ label ∾ " state=" ∾ value.state
-    {𝕊 diagnostic: •Out diagnostic.code ∾ ": " ∾ diagnostic.message}¨ value.diagnostics
+    {𝕊 diagnostic: •Out diagnostic.code ∾ " row=" ∾ (•Fmt diagnostic.source_row) ∾ ": " ∾ diagnostic.message}¨ value.diagnostics
     •Exit 1
   }⍟(value.state≢"ok") @
 }
