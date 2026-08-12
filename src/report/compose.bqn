@@ -31,10 +31,13 @@ Diagnostic ← {𝕊 code‿message:{severity⇐"error",stage⇐"report_composit
 Failure ← {𝕊 keyValue‿diagnosticsValue:{state⇐"error",reason⇐"",key⇐keyValue,result⇐empty,diagnostics⇐diagnosticsValue}}
 Publish ← {𝕊 keyValue‿resultValue:
   renderable ← ∨´resultValue.state⊸≡¨⟨"ok","deficit"⟩
-  output ← Failure ⟨keyValue,resultValue.diagnostics⟩
-  {𝕊:output↩{state⇐"ok",reason⇐"",key⇐keyValue,result⇐resultValue,diagnostics⇐empty}}⍟renderable @
-  {𝕊:output↩{state⇐"unavailable",reason⇐resultValue.reason,key⇐keyValue,result⇐empty,diagnostics⇐resultValue.diagnostics}}⍟(resultValue.state≡"unavailable") @
-  output
+  unavailable ← resultValue.state≡"unavailable"
+  publication ← renderable + 2×unavailable
+  publication◶⟨
+    {𝕊:Failure ⟨keyValue,resultValue.diagnostics⟩},
+    {𝕊:{state⇐"ok",reason⇐"",key⇐keyValue,result⇐resultValue,diagnostics⇐empty}},
+    {𝕊:{state⇐"unavailable",reason⇐resultValue.reason,key⇐keyValue,result⇐empty,diagnostics⇐resultValue.diagnostics}}
+  ⟩ @
 }
 ValidateSingle ← {𝕊 keyValue‿surface:
   admitted ← request.Validate ⟨keyValue,surface⟩ ⋄ diagnostics ← admitted.diagnostics
