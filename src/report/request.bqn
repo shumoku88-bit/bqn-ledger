@@ -40,7 +40,7 @@ Validate ← {𝕊 keyValue‿surface:
       {𝕊:
         supported ← Supports ⟨found.entry,surface⟩
         diagnostics∾↩(¬supported)/⟨Diagnostic ⟨"report_surface_unsupported","requested report does not support this surface"⟩⟩
-        {𝕊:indices↩⟨⊑(keyValue⊸≡¨table.key)/table.index⟩}⍟supported @
+        {𝕊:indices↩⟨found.index⟩}⍟supported @
       }⍟(found.state≡"ok") @
     }⍟(keyValue≢"all") @
   }⍟surfaceKnown @
