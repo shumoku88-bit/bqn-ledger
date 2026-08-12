@@ -149,14 +149,16 @@ BuildDetail ← {𝕊 calendar‿transactionRows‿planned‿issues‿cycle‿se
 
       selectedOrdinal ← dates.Ordinal selectedDate
       contains ← (selectedOrdinal≥cycle.start_ordinal) ∧ selectedOrdinal<cycle.end_exclusive_ordinal
-      endDay ← selectedDate≡dates.AddDays ⟨cycle.end_exclusive,¯1⟩
+      cycleStart ← cycle.start
+      cycleEndExclusive ← cycle.end_exclusive
+      endDay ← selectedDate≡dates.AddDays ⟨cycleEndExclusive,¯1⟩
 
       result↩{
         state⇐"ok",date⇐selectedDate,
         actual⇐{count⇐≠actualRows,rows⇐actualRows},
         plans⇐{count⇐≠planRows,rows⇐planRows},
         issues⇐{count⇐≠issueRows,rows⇐issueRows},
-        cycle⇐{start⇐cycle.start,end_exclusive⇐cycle.end_exclusive,contains⇐contains,end_day⇐endDay},
+        cycle⇐{start⇐cycleStart,end_exclusive⇐cycleEndExclusive,contains⇐contains,end_day⇐endDay},
         diagnostics⇐empty
       }
     }⍟(0=≠diagnostics) @
