@@ -6,6 +6,7 @@ matrixResult ← •Import "../accounting/matrix_result.bqn"
 dates ← •Import "../ledger/date_ordinal.bqn"
 text ← •Import "../report/text.bqn"
 empty ← ⟨⟩
+lf ← @+10
 
 IndexOf ← {𝕊 item‿items: ⊑(item⊸≡¨items)⊐1}
 SortedUnique ← {𝕊 items: ⍷(⍋items)⊏items}
@@ -102,11 +103,10 @@ FormatHuman ← {𝕊 input:
     ⟨dateIndex⊑result.date_text⟩∾values
   }¨result.matrix.row_index
   headers ← ⟨"date"⟩∾result.column_labels
-  out ← "== Daily Flow =="∾(@+10)∾(@+10)
-  out ∾↩ "cycle: "∾result.period_start∾" 〜 "∾result.period_end_exclusive
-  out ∾↩ " (as of "∾result.as_of∾"; "∾(•Fmt daysLeft)∾" days left)"∾(@+10)∾(@+10)
-  out ∾↩ text.RenderTable ⟨headers,rows,1+↕result.matrix.column_count⟩
-  out∾(@+10)
+  cycleLine ← "cycle: "∾result.period_start∾" 〜 "∾result.period_end_exclusive∾" (as of "∾result.as_of∾"; "∾(•Fmt daysLeft)∾" days left)"
+  headingText ← ∾{𝕩∾lf}¨⟨"== Daily Flow ==","",cycleLine,""⟩
+  tableText ← text.RenderTable ⟨headers,rows,1+↕result.matrix.column_count⟩
+  ∾⟨headingText,tableText,lf⟩
 }
 
 {Build⇐Build,FormatHuman⇐FormatHuman}
