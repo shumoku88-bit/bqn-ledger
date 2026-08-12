@@ -12,6 +12,11 @@ grep -Fq 'parse ← •Import "../text/parse.bqn"' src/application/source_io.bqn
   || fail 'source_io must delegate splitting to src/text/parse.bqn'
 grep -Fq 'JoinPath⇐JoinPath' src/application/source_io.bqn \
   || fail 'source_io must own shared application source path composition'
+if grep -Fq 'ResolvePath⇐ResolvePath' src/application/source_io.bqn; then
+  fail 'source_io must keep ambient path resolution private'
+fi
+grep -Fq 'absolute◶⟨' src/application/source_io.bqn \
+  || fail 'source_io path resolution must select absolute/relative behavior lazily'
 if grep -Eq '•SH|•Out|•Exit|•GetTime|•Delay' src/application/source_io.bqn; then
   fail 'source_io gained shell, output, process, or clock behavior'
 fi
@@ -28,6 +33,7 @@ if grep -Eq 'report_manifests\.tsv|REPORT_MANIFEST_CONFIG|config\.tsv' "$policy_
   fail 'Report policy source adapter revived legacy Report/config source selection'
 fi
 
+bqn tests/test_source_io_ownership.bqn >/dev/null
 bqn tests/test_application_household_source_adapter.bqn >/dev/null
 bqn tests/test_application_report_policy_source.bqn >/dev/null
 

@@ -157,7 +157,9 @@ Closeout: `docs/REPORT_PHASE_FOUR_REVIEW_CLOSEOUT-2026-08-12.md`.
 - [x] `src/report/section_metadata.bqn` — #692
 - [x] `src/report/text.bqn` — #694
 
-## Phase 5: `src/application/`
+## Phase 5: `src/application/` — complete
+
+Closeout: `docs/APPLICATION_PHASE_FIVE_REVIEW_CLOSEOUT-2026-08-12.md`.
 
 Retired during review: `src/application/funding_scope.bqn` — #714. See `docs/FUNDING_SCOPE_REVIEW_OBSERVATION-2026-08-12.md`.
 
@@ -195,7 +197,7 @@ Retired during review: `src/application/funding_scope.bqn` — #714. See `docs/F
 - [x] `src/application/report_route_plan_cli.bqn` — #726 (effect-only leaf; production unchanged)
 - [x] `src/application/report_selection_cli.bqn` — #727 (boundary law review; production unchanged)
 - [x] `src/application/report_source_adapter.bqn` — #717 shared Account lifetime, #728 result relation review
-- [ ] `src/application/source_io.bqn`
+- [x] `src/application/source_io.bqn` — #729
 
 ## Phase 6: `src/editor/` and `src_edit/`
 
@@ -265,6 +267,6 @@ After the production BQN inventory is reviewed, selector/UI adapter consolidatio
 
 ## Current cursor
 
-`src/application/source_io.bqn`
+`src/editor/friend_travel_source_event.bqn`
 
-Resume the normal Phase 5 application review sequence at Source I/O.
+Resume the normal Phase 6 Editor review sequence at Friend Travel Source Event.
