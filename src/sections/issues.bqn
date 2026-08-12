@@ -4,11 +4,6 @@ amount ← •Import "../ledger/amount_text.bqn"
 text ← •Import "../report/text.bqn"
 empty ← ⟨⟩
 lf ← @+10
-TrimRight ← {𝕊 line:(1+⌈´¯1∾(line≠' ')/↕≠line)↑line}
-TrimTable ← {𝕊 table:
-  lines ← {(lf≠𝕩)/𝕩}¨(+`lf=table)⊔table
-  1↓∾lf⊸∾¨TrimRight¨lines
-}
 
 EmptyRows ← {𝕊:
   {
@@ -54,7 +49,7 @@ FormatHuman ← {𝕊 input:
     ⟨date,i⊑result.issues.due,i⊑result.issues.category,i⊑result.issues.title,amountText,i⊑result.issues.details⟩
   }¨result.issues.index
   headingText ← ∾{𝕩∾lf}¨⟨"== Issues ==","Selection: open (source order)",""⟩
-  tableText ← TrimTable text.RenderTable ⟨⟨"Date","Due","Category","Title","Amount","Details"⟩,rows,⟨4⟩⟩
+  tableText ← text.RenderTable ⟨⟨"Date","Due","Category","Title","Amount","Details"⟩,rows,⟨4⟩⟩
   bodyText ← (0<≠rows)⊑⟨"  (none)"∾lf,tableText⟩
   ∾⟨headingText,bodyText,lf⟩
 }

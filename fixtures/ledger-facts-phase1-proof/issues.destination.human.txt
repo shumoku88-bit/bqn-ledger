@@ -1,8 +1,8 @@
 == Issues ==
 Selection: open (source order)
 
-Date       | Due          | Category      | Title                      |   Amount | Details
+Date       | Due          | Category      | Title                      |   Amount | Details                                                  
 -----------+--------------+---------------+----------------------------+----------+----------------------------------------------------------
 2026-01-18 | undetermined | subscription  | Review public demo service | 12.3 ILS | Decide whether the synthetic annual plan is still useful.
-—         | undetermined | documentation | Attach synthetic receipt   |       — | No monetary estimate is admitted.
+—         | undetermined | documentation | Attach synthetic receipt   |       — | No monetary estimate is admitted.                        
 
