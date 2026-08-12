@@ -177,7 +177,7 @@ Retired during review: `src/application/funding_scope.bqn` — #714. See `docs/F
 - [x] `src/application/editor_currency.bqn` — #712
 - [x] `src/application/editor_plan_rows.bqn` — #713
 - [x] `src/application/household_daily_scope.bqn` — #715
-- [ ] `src/application/household_source_adapter.bqn`
+- [x] `src/application/household_source_adapter.bqn` — #716 (source-boundary law review; production unchanged)
 - [ ] `src/application/ledger_check_cli.bqn`
 - [ ] `src/application/ledger_inspect_cli.bqn`
 - [ ] `src/application/plan_source_adapter.bqn` — #713 shared-Account capability follow-up
@@ -265,6 +265,6 @@ After the production BQN inventory is reviewed, selector/UI adapter consolidatio
 
 ## Current cursor
 
-`src/application/household_source_adapter.bqn`
+`src/application/ledger_check_cli.bqn`
 
-Resume the normal Phase 5 application review sequence at Household Source Adapter.
+Resume the normal Phase 5 application review sequence at Ledger Check CLI.

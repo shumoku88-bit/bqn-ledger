@@ -19,4 +19,6 @@ if grep -Fq 'Join ← {𝕊 base‿name:' src/application/*source_adapter.bqn; t
   fail 'application source adapters must reuse source_io.JoinPath instead of owning path composition'
 fi
 
+bqn tests/test_application_household_source_adapter.bqn >/dev/null
+
 echo 'check-source-io-ownership: OK'
