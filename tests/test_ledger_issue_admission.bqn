@@ -6,6 +6,7 @@ issues ← •Import "../src/ledger/issue_admission.bqn"
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
 lines ← loader.ReadLines "fixtures/ledger-facts-phase1-proof/issues.destination.tsv"
 result ← issues.Admit ⟨lines,registry⟩
+{𝕊:•Out •Fmt result.diagnostics}⍟(result.state≡"error") @
 "ok" lib.AssertEq result.state
 3 lib.AssertEq result.issues.count
 ⟨"subscription-review","missing-receipt","resolved-demo"⟩ lib.AssertEq result.issues.issue_id
