@@ -13,11 +13,8 @@ EmptyResult ← {𝕊 diagnosticsValue:
 }
 
 Supports ← {𝕊 entry‿surface:
-  supported ← 0
-  {𝕊:supported↩entry.human}⍟(surface≡"human") @
-  {𝕊:supported↩entry.compact}⍟(surface≡"compact") @
-  {𝕊:supported↩entry.json}⍟(surface≡"json") @
-  supported
+  surfaceIndex ← ⊑(surface⊸≡¨surfaces)⊐1
+  surfaceIndex⊑⟨entry.human,entry.compact,entry.json⟩
 }
 
 Validate ← {𝕊 keyValue‿surface:
