@@ -87,17 +87,21 @@ FormatHuman ← {𝕊 input:
   tableHeader ← (maxName⥊' ')∾" |      Opening |        Debit |       Credit |      Closing "
   rowLines ← {𝕊 rowIndex:
     values ← rowIndex⊑result.matrix.values
-    (text.PadRight ⟨maxName,rowIndex⊑result.account_labels⟩)∾" | "∾
-    (AmountCell ⟨0⊑values,result.matrix.scale,style⟩)∾" | "∾
-    (AmountCell ⟨1⊑values,result.matrix.scale,style⟩)∾" | "∾
-    (AmountCell ⟨2⊑values,result.matrix.scale,style⟩)∾" | "∾
-    (AmountCell ⟨3⊑values,result.matrix.scale,style⟩)∾" "
+    ∾⟨
+      text.PadRight ⟨maxName,rowIndex⊑result.account_labels⟩," | ",
+      AmountCell ⟨0⊑values,result.matrix.scale,style⟩," | ",
+      AmountCell ⟨1⊑values,result.matrix.scale,style⟩," | ",
+      AmountCell ⟨2⊑values,result.matrix.scale,style⟩," | ",
+      AmountCell ⟨3⊑values,result.matrix.scale,style⟩," "
+    ⟩
   }¨result.matrix.row_index
-  totalLine ← (text.PadRight ⟨maxName,"Total"⟩)∾" | "∾
-    (AmountCell ⟨result.totals.opening,result.matrix.scale,style⟩)∾" | "∾
-    (AmountCell ⟨result.totals.debit_movement,result.matrix.scale,style⟩)∾" | "∾
-    (AmountCell ⟨result.totals.credit_movement,result.matrix.scale,style⟩)∾" | "∾
-    (AmountCell ⟨result.totals.closing,result.matrix.scale,style⟩)∾" "
+  totalLine ← ∾⟨
+    text.PadRight ⟨maxName,"Total"⟩," | ",
+    AmountCell ⟨result.totals.opening,result.matrix.scale,style⟩," | ",
+    AmountCell ⟨result.totals.debit_movement,result.matrix.scale,style⟩," | ",
+    AmountCell ⟨result.totals.credit_movement,result.matrix.scale,style⟩," | ",
+    AmountCell ⟨result.totals.closing,result.matrix.scale,style⟩," "
+  ⟩
   lines ← ⟨
     ("== Trial Balance ("∾result.layer∾" layer) =="),
     ("Period: "∾result.period_start∾"〜"∾result.period_end_exclusive),
@@ -112,11 +116,13 @@ FormatHuman ← {𝕊 input:
 FormatCompact ← {𝕊 result:
   rowLines ← {𝕊 rowIndex:
     values ← rowIndex⊑result.matrix.values
-    "ledger_trial_balance_row: "∾(rowIndex⊑result.account_labels)∾
-    " opening="∾(CellText ⟨0⊑values,result.matrix.scale⟩)∾
-    " debit="∾(CellText ⟨1⊑values,result.matrix.scale⟩)∾
-    " credit="∾(CellText ⟨2⊑values,result.matrix.scale⟩)∾
-    " closing="∾CellText ⟨3⊑values,result.matrix.scale⟩
+    ∾⟨
+      "ledger_trial_balance_row: ",rowIndex⊑result.account_labels,
+      " opening=",CellText ⟨0⊑values,result.matrix.scale⟩,
+      " debit=",CellText ⟨1⊑values,result.matrix.scale⟩,
+      " credit=",CellText ⟨2⊑values,result.matrix.scale⟩,
+      " closing=",CellText ⟨3⊑values,result.matrix.scale⟩
+    ⟩
   }¨result.matrix.row_index
   lines ← ⟨
     "--- Ledger Trial Balance ---",
