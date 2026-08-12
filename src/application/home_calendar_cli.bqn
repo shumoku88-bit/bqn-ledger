@@ -6,6 +6,7 @@
 sources ← •Import "report_source_adapter.bqn"
 cycleResolution ← •Import "cycle_resolution.bqn"
 compose ← •Import "../report/compose.bqn"
+plannedSection ← •Import "../sections/planned_payments.bqn"
 home ← •Import "../sections/home_calendar.bqn"
 dates ← •Import "../ledger/date_ordinal.bqn"
 today ← •Import "date_today.bqn"
@@ -50,7 +51,10 @@ context ← sources.HouseholdContext ⟨base,actual.facts.accounts,registry⟩
 cycle ← cycleResolution.WithPlan ⟨context.household.cycle,focus,actual.facts,context.plan⟩
 {𝕊:CycleFailure cycle}⍟(cycle.state≢"ok") @
 
-planned ← compose.Planned ⟨context.plan,actual.facts,cycle,focus⟩
+# The displayed calendar focus is not the Planned Payments evidence clock.
+# Ask the Planned semantic owner for its evidence observation inside this Cycle.
+evidenceObservation ← plannedSection.EvidenceObservation ⟨actual.facts,cycle⟩
+planned ← compose.Planned ⟨context.plan,actual.facts,cycle,evidenceObservation⟩
 {𝕊:PublicationFailure ⟨planned,"home_planned_payments_failed"⟩}⍟(planned.state≢"ok") @
 
 issues ← compose.Issues ⟨sources.IssueLines base,registry⟩
