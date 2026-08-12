@@ -176,7 +176,7 @@ Retired during review: `src/application/funding_scope.bqn` — #714. See `docs/F
 - [x] `src/application/editor_actual.bqn` — #710
 - [x] `src/application/editor_currency.bqn` — #712
 - [x] `src/application/editor_plan_rows.bqn` — #713
-- [ ] `src/application/household_daily_scope.bqn`
+- [x] `src/application/household_daily_scope.bqn` — #715
 - [ ] `src/application/household_source_adapter.bqn`
 - [ ] `src/application/ledger_check_cli.bqn`
 - [ ] `src/application/ledger_inspect_cli.bqn`
@@ -265,6 +265,6 @@ After the production BQN inventory is reviewed, selector/UI adapter consolidatio
 
 ## Current cursor
 
-`src/application/household_daily_scope.bqn`
+`src/application/household_source_adapter.bqn`
 
-Resume the normal Phase 5 application review sequence at Household Daily Scope.
+Resume the normal Phase 5 application review sequence at Household Source Adapter.
