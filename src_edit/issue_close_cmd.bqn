@@ -132,7 +132,9 @@ selected ← (indexVal - 1) ⊑ openIssues
 notOpen ← ¬ (selected.status ≡ "open")
 {𝕊 ⋄ Fail "cannot close issue that is not open"}⍟notOpen @
 {𝕊:
-  {𝕊 ⋄ Fail "closed date cannot precede recorded date"}⍟((0<≠selected.date) ∧ (dates.Ordinal closedDate)<dates.Ordinal selected.date) @
+  {𝕊:
+    {𝕊 ⋄ Fail "closed date cannot precede recorded date"}⍟((dates.Ordinal closedDate)<dates.Ordinal selected.date) @
+  }⍟(0<≠selected.date) @
 }⍟closedSchema @
 
 oldFields ← selected.fields
