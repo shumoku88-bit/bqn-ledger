@@ -64,4 +64,11 @@ if rg -n 'accounts\.tsv|plan\.tsv|budget_alloc\.tsv|cycle\.tsv|daily_target_scop
   Fail 'operational command still exposes a retired Household source coordinate'
 fi
 
+# Readiness is one admitted Account observation. Plan and Budget companions must
+# reuse the Account Registry supplied by the already-admitted Actual observation.
+grep -Fq 'planResult ← planSource.LoadFromAccounts ⟨base,accounts,registry⟩' src/application/report_source_adapter.bqn \
+  || Fail 'HouseholdContext re-reads Accounts instead of sharing the readiness observation'
+grep -Fq 'budgetResult ← budgetSource.LoadFromAccounts ⟨base,accounts,registry⟩' src/application/report_source_adapter.bqn \
+  || Fail 'Companions re-reads Accounts instead of sharing the readiness observation'
+
 echo 'check-ledger-operations: OK'
