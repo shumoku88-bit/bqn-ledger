@@ -9,11 +9,11 @@ trap 'rm -rf "$tmp_root"' EXIT
 
 base="$tmp_root/due-aware"
 cp -R data "$base"
-cat >"$base/issues.tsv" <<'TSV'
-issue_id	status	date	due	category	title	amount	currency	details
-issue:auction	open	2026-08-12	2026-08-15	want	Auction item	1000	JPY	buy before listing ends
-issue:bookshelf	open	2026-08-01	none	want	Bookshelf			look when convenient
-TSV
+printf '%s\n' \
+  $'issue_id\tstatus\tdate\tdue\tcategory\ttitle\tamount\tcurrency\tdetails' \
+  $'issue:auction\topen\t2026-08-12\t2026-08-15\twant\tAuction item\t1000\tJPY\tbuy before listing ends' \
+  $'issue:bookshelf\topen\t2026-08-01\tnone\twant\tBookshelf\t\t\tlook when convenient' \
+  >"$base/issues.tsv"
 
 bqn src_edit/issue_validate_cmd.bqn "$base" >/dev/null
 
