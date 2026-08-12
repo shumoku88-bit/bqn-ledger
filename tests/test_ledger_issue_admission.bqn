@@ -6,7 +6,6 @@ issues ← •Import "../src/ledger/issue_admission.bqn"
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
 lines ← loader.ReadLines "fixtures/ledger-facts-phase1-proof/issues.destination.tsv"
 result ← issues.Admit ⟨lines,registry⟩
-{𝕊:•Out •Fmt result.diagnostics}⍟(result.state≡"error") @
 "ok" lib.AssertEq result.state
 3 lib.AssertEq result.issues.count
 ⟨"subscription-review","missing-receipt","resolved-demo"⟩ lib.AssertEq result.issues.issue_id
@@ -43,6 +42,7 @@ current ← issues.Admit ⟨
   ⟩,
   registry
 ⟩
+{𝕊:•Out •Fmt current.diagnostics}⍟(current.state≡"error") @
 "ok" lib.AssertEq current.state
 ⟨"2026-08-15","none","undetermined"⟩ lib.AssertEq current.issues.due
 lib.Assert 0<≠0⊑current.issues.due_ordinal
