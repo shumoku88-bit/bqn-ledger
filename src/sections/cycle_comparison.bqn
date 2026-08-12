@@ -5,6 +5,7 @@ amount ← •Import "../ledger/amount_text.bqn"
 text ← •Import "../report/text.bqn"
 empty ← ⟨⟩
 columns ← ⟨"current_movement","baseline_movement","difference"⟩
+lf ← @+10
 
 EmptyMatrix ← {𝕊: (matrix_result.Build ⟨empty,empty,0,empty,empty⟩).matrix}
 EmptyResult ← {𝕊 stateValue‿reasonValue‿diagnosticsValue:
@@ -53,13 +54,17 @@ FormatHuman ← {𝕊 input:
     Fmt result.totals.baseline_movement,
     Fmt result.totals.difference
   ⟩
-  out ← "== Cycle Comparison =="∾(@+10)
-  out ∾↩ "Policy: "∾result.policy∾(@+10)
-  out ∾↩ "Current : "∾result.current_start∾" through "∾result.current_observation∾" ("∾(•Fmt result.current_day_count)∾" days)"∾(@+10)
-  out ∾↩ "Baseline: "∾result.baseline_start∾" through "∾result.baseline_observation∾" ("∾(•Fmt result.baseline_day_count)∾" days)"∾(@+10)∾(@+10)
-  out ∾↩ text.RenderTable ⟨⟨"Account","Current movement","Baseline movement","Difference"⟩,rows∾⟨total⟩,⟨1,2,3⟩⟩
-  out ∾↩ "Balanced: "∾(result.totals.balanced⊑"NO"‿"YES")∾(@+10)∾(@+10)
-  out
+  headingLines ← ⟨
+    "== Cycle Comparison ==",
+    ("Policy: "∾result.policy),
+    ("Current : "∾result.current_start∾" through "∾result.current_observation∾" ("∾(•Fmt result.current_day_count)∾" days)"),
+    ("Baseline: "∾result.baseline_start∾" through "∾result.baseline_observation∾" ("∾(•Fmt result.baseline_day_count)∾" days)"),
+    ""
+  ⟩
+  headingText ← ∾{𝕩∾lf}¨headingLines
+  tableText ← text.RenderTable ⟨⟨"Account","Current movement","Baseline movement","Difference"⟩,rows∾⟨total⟩,⟨1,2,3⟩⟩
+  summaryText ← ∾{𝕩∾lf}¨⟨("Balanced: "∾result.totals.balanced⊑"NO"‿"YES"),""⟩
+  ∾⟨headingText,tableText,summaryText⟩
 }
 
 {Build⇐Build,FormatHuman⇐FormatHuman}
