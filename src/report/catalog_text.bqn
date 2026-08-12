@@ -7,12 +7,14 @@ YesNo ← {𝕊 value: value⊑"no"‿"yes"}
 
 FormatTsv ← {𝕊:
   table ← catalog.Table @
-  out ← "key"∾tab∾"label"∾tab∾"shape"∾tab∾"human"∾tab∾"compact"∾tab∾"json"∾lf
-  {𝕊 i:
-    out∾↩(i⊑table.key)∾tab∾(i⊑table.label)∾tab∾(i⊑table.shape)∾tab
-    out∾↩(YesNo (i⊑table.human))∾tab∾(YesNo (i⊑table.compact))∾tab∾(YesNo (i⊑table.json))∾lf
+  header ← ∾⟨"key",tab,"label",tab,"shape",tab,"human",tab,"compact",tab,"json",lf⟩
+  rows ← {𝕊 i:
+    ∾⟨
+      i⊑table.key,tab,i⊑table.label,tab,i⊑table.shape,tab,
+      YesNo (i⊑table.human),tab,YesNo (i⊑table.compact),tab,YesNo (i⊑table.json),lf
+    ⟩
   }¨table.index
-  out
+  ∾⟨header,∾rows⟩
 }
 
 {FormatTsv⇐FormatTsv}
