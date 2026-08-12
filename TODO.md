@@ -2,15 +2,11 @@
 
 ## Purpose
 
-Turn bqn-ledger into a place where household accounting is expressed through beautiful, compact, and instructive BQN architecture and algorithms.
+Turn bqn-ledger into a place where household accounting is expressed through compact, explicit, and instructive BQN architecture and algorithms.
 
-The Haskell project provides an independent implementation path and reduces the need to preserve incidental report machinery here. This repository should still preserve admitted meaning, exact arithmetic, diagnostics, identity, provenance, and safe effects, but its pure kernels should actively teach array-language thinking.
+The canonical Household source/configuration migration is the foundation. The main review line now subtracts incidental machinery while preserving admitted meaning, exact arithmetic, diagnostics, identity, provenance, evidence alignment, safe effects, and public behavior.
 
-The canonical Household source and configuration migration is now the foundation rather than the next architecture campaign. Its remaining retirement and closeout work is tracked separately; it must not displace this queue or reintroduce legacy source shapes into reviewed kernels.
-
-## Long-term outcome
-
-The main development line is now simplification of the retained BQN system:
+The intended path is:
 
 ```text
 strict source and request admission
@@ -19,88 +15,49 @@ strict source and request admission
   -> selector-independent command/UI boundary
 ```
 
-The desired result is less production machinery, fewer repeated scans and incidental row representations, shallower successful paths, and more direct use of BQN classification, grouping, rank, cells, structural transformation, and composition. Compactness is accepted only when exactness, diagnostics, canonical ordering, evidence alignment, safe effects, and public behavior remain explicit.
-
-Terminal UI implementation is replaceable. `fzf`, `gum`, and the current plain selector are adapters, not architecture owners; a later UI may replace any of them. Refactoring before the UI phase must therefore preserve structured command/result boundaries and must not move accounting meaning, source mutation, report keys, or policy into selector-specific shell code. UI implementation may move with the architectural concern that requires it; phase order does not force an incomplete intermediate design.
+Terminal selectors are adapters rather than architecture owners. Accounting meaning, source mutation, report keys, and policy must not drift into selector-specific shell code.
 
 ## Repository-resident continuation contract
 
-The repository is the authority for review state. Chat history, handoff prompts, local recollection, and remembered SHAs are conveniences only; none of them define the current continuation point.
+The repository defines the current review state. Chat history, remembered SHAs, and handoff prompts are conveniences only.
 
-A fresh review session must be able to recover the current state from the repository alone. Start by:
+A fresh session should:
 
-1. verifying remote `main`, open PRs/branches relevant to the active owners, and current CI instead of assuming a remembered state;
-2. reading this queue, especially the current cursor, unchecked inventory, and any recorded cross-cutting work;
-3. reading the active architecture observation and decision records that explain unresolved evidence and accepted constraints;
-4. checking whether parallel work changed the active owner, its direct consumers, or protected invariants;
-5. resuming from the first unresolved review item unless a recorded cursor exception applies;
-6. before ending a review session, recording durable observations, accepted decisions, merged outcomes, and the resulting cursor in the repository rather than relying on a future handoff prompt.
+1. verify current remote `main`, relevant open PRs/branches, and CI;
+2. read this queue and the closeout/observation documents referenced by completed phases;
+3. check whether parallel work changed the active owner, direct consumers, or protected invariants;
+4. resume from the current cursor unless a concrete correctness, performance, or architectural defect justifies a cursor exception;
+5. record durable decisions and the resulting cursor in the repository before ending the session.
 
-PR descriptions may explain one coherent change, but they are not the sole continuity store. Historical handoff documents are not required for ordinary continuation; Git history is the archive. A checked queue item must still mean that its final decision is present on current `main` and can be reconstructed from current repository evidence.
+A checked item means the owner has been reviewed under the dense-array policy and its final decision is reconstructible from current repository evidence and Git history.
 
-### Subtraction audit dimensions
+## Review rules
 
-Each owner or coherent owner family is reviewed against the dimensions that actually apply. The purpose is not to manufacture refactors, but to distinguish protected complexity from removable machinery.
+Review one coherent reason-to-change at a time. A coherent end-state may cross files or layers; do not manufacture tiny PRs, temporary adapters, duplicate paths, or compatibility shims merely to keep a change small.
 
-- ownership duplication: the same semantic decision or transformation owned in more than one place;
-- structural plumbing: adapters, rows, stages, or forwarding surfaces that add no retained meaning;
-- repeated effect lifetime: canonical evidence, admission, processes, or other effects repeated where one capability lifetime would suffice;
-- obsolete migration residue: compatibility or migration surfaces whose live contract has ended;
-- change locality: one behavioral change requiring edits across unrelated owners;
-- array visibility: semantic axes, masks, classification, Group/Pivot/Rank/Cells, and exact reductions remaining visible as BQN transformations;
-- validation/kernel/publication separation: capability admission or diagnostic control flow obscuring an otherwise bounded whole-array kernel;
-- dead surface and reachability: production, documented public, qualification, or evidence consumers no longer reaching a retained surface;
-- generic abstraction debt: abstractions whose maintenance burden exceeds the domain meaning they preserve;
-- guard quality: checks protecting semantic, lifetime, authority, or safety laws rather than incidental implementation topology.
+For each owner, ask whether semantic axes, classification, Group/Pivot/Rank/Cells, structural transformation, composition, and exact reductions are visible enough. Distinguish removable machinery from protected complexity.
 
-Validation density or file size is not, by itself, a defect. Exact-operation failure checks stay at the operation that can fail; public diagnostic ownership and successful-path visibility are reviewed separately.
+Keep local guards when they protect a real law or evaluation boundary, including:
 
-### Cross-cutting audit inventory
+- exact-operation failure;
+- identity/provenance selection;
+- diagnostic ordering and fail-closed publication;
+- source/writer authority;
+- optional publication whose eager evaluation changes validity or behavior.
 
-These items complement the file-by-file phase inventory. They are checked only after their consumer graph, protected laws, and final repository decision have been reviewed on current `main`.
+Validation density or file size is not itself a defect. Compactness is useful only when meaning becomes clearer.
+
+## Cross-cutting audit inventory
 
 - [ ] terminal selector/input duplication and UI change locality across active shell surfaces;
 - [ ] editor/writer ownership from BQN semantic decision through machine operation to safe-write publication;
 - [ ] report/application CLI reachability and repeated effect/protocol boundaries beyond the resolved multi-report lifetime;
 - [ ] repository-wide dead-surface and reachability audit, including retained wrappers, `experiments/`, and `tui/`;
 - [ ] validation/kernel/publication separation across retained accounting and adjacent semantic owners;
-- [ ] remaining migration/compatibility residue classified without duplicating the canonical Household recovery closeout tracked separately;
+- [ ] remaining migration/compatibility residue classified without duplicating the canonical Household recovery closeout;
 - [ ] checks and tests classified as law guards, characterization evidence, or obsolete topology assumptions.
 
-## Review method
-
-Use the top-to-bottom owner order as the normal place to resume review. The cursor identifies where to look next; it does not constrain one PR to one file, one owner, or one layer.
-
-Starting from the current owner:
-
-1. read the whole owner, its direct imports, focused tests, and direct consumers;
-2. state input/output shapes, semantic axes, order, fill/empty behavior, exactness, and evidence alignment;
-3. ask whether loops, repeated masks, row namespaces, mutable append, single-use names, staged plumbing, repeated admissions, and unnecessary process/effect boundaries can become a clearer classification, Group, Rank, Cells, Table, structural transform, composition, or shared admitted observation;
-4. apply the subtraction audit dimensions above and distinguish protected complexity from removable responsibility;
-5. preserve names where they carry accounting meaning or protect admission, diagnostics, exact arithmetic, identity, provenance, publication, effects, or write authority;
-6. identify the complete architectural end-state implied by the reason-to-change and move every necessary owner, caller, consumer, test, adapter, and document together when that produces the clearer design;
-7. avoid temporary adapters, duplicate paths, compatibility shims, or intermediate abstractions whose only justification is keeping a PR small;
-8. either merge the coherent completed change or record why the current architecture is already the clearer form;
-9. check reviewed queue items only after the relevant decision is merged to current `main` and the final owners are reread there.
-
-Change boundaries are defined by **one reason-to-change and one coherent end-state**, not by file count, owner count, layer count, line count, or a preferred PR size. Unrelated changes remain separate, but related changes must not be artificially fragmented merely to produce small slices.
-
-The negotiated rationale is recorded in `docs/POST_MIGRATION_ARCHITECTURE_DECISIONS-2026-08-09.md`.
-
-### Cursor policy
-
-The cursor is a default navigation sequence, not an absolute prohibition or PR-size policy. A concrete user-facing defect, measured performance problem, correctness risk, or clearly demonstrated cross-owner architectural defect may move work outside the current owner. Such a change must have one explicit reason-to-change and completion condition, preserve protected invariants and writer authority, and record why the normal sequence was bypassed. It may be as broad across owners and layers as the coherent end-state requires, while excluding unrelated work.
-
-After the change closes, review resumes from the remembered cursor unless the architecture itself changed enough to require updating the queue.
-
-Checkbox meaning:
-
-- `[ ]` not yet finally reviewed under the dense-array-kernel policy;
-- `[x]` reviewed on current `main`, with the final decision recorded beside the path.
-
 ## Phase order
-
-The phases are an inventory and review-navigation order, not mandatory PR boundaries. A coherent architectural change may cross them when its reason-to-change genuinely does.
 
 1. `src/accounting/` pure accounting kernels
 2. `src/ledger/` admission, Facts, exact values, identity, and provenance
@@ -110,78 +67,82 @@ The phases are an inventory and review-navigation order, not mandatory PR bounda
 6. `src/editor/` and `src_edit/` rewrite and command owners
 7. remaining production BQN under `src/text/` and `tools/`, followed by selector/UI adapter consolidation
 
-The production BQN inventory law covers every `.bqn` file under `src/`, `src_edit/`, and `tools/` exactly once in the phase lists below. `experiments/` is deliberately outside that production inventory and is handled by the repository-wide reachability audit rather than being presumed retained or dead.
+The production inventory covers every `.bqn` file under `src/`, `src_edit/`, and `tools/` exactly once below. `experiments/` stays outside this production inventory and belongs to the repository-wide reachability audit.
 
-A phase is considered reviewed only when every listed box is checked and the inventory check still passes. This bookkeeping does not require implementation changes to be split at phase boundaries. The current cursor remains the normal review sequence; the repository-wide inventory exists so later phases cannot disappear from view while an earlier phase is active.
+## Phase 1: `src/accounting/` — complete
 
-## Phase 1: `src/accounting/`
+Closeout: `docs/ACCOUNTING_PHASE_ONE_REVIEW_CLOSEOUT-2026-08-11.md`.
 
-- [x] `src/accounting/account_balance.bqn` — PR #517 grouped the selected Posting axis onto the canonical Account axis; reread on main `a318b4c49fe4b37cd49e61850a17f8d196184a0f`.
-- [x] `src/accounting/account_period.bqn` — PR #519 exposed the selected Posting axis as an Account × period-lane Group kernel; reread on main `5619cb24bcaa57202135bc8a40d49b0827c98648`.
-- [x] `src/accounting/balance_sheet.bqn` — PR #521 classified canonical Account rows once into Balance Sheet statement lanes, grouping signed balances and durable Posting evidence in parallel; reread on main `f10ab4db29e9b89bae014d89310497db58162855`.
-- [x] `src/accounting/cycle_account_period.bqn` — PR #523 mapped Account × contributor-lane Posting-index cells to durable Posting references and joined opening plus observed-period evidence by aligned Account cells; reread on main `0ef1ed2492de051896e08890e65bb4361deb1b15`.
-- [x] `src/accounting/cycle_calendar_month_resolution.bqn` — PR #525 derived start and end-exclusive as one adjacent calendar boundary axis; reread on main `29c161e3853ca9bc5b69dbb5f77501f03c060ca3`.
-- [x] `src/accounting/cycle_comparison.bqn` — PR #529 simplified comparison window mapping; reread on main `2b587913d24428c9465a2790660b9a449002d8e0`.
-- [x] `src/accounting/cycle_fixed_resolution.bqn` — PR #531 replaced 3-level nested repeat blocks with flat early guard pattern; reread on main `9c386937f959727c223534642e7792d2ccb3aee9`.
-- [x] `src/accounting/cycle_income_anchor_resolution.bqn` — PR #533 simplified Deduplicate and IndexOf helpers; reread on main `6a0e12d785cb1ef397173993322af298b22091c1`.
-- [x] `src/accounting/cycle_result.bqn` — PR #548 simplified ordinal resolution with dyadic Each; reread on main `ae9049d`.
-- [x] `src/accounting/daily_target.bqn` — PR #549 simplified helper functions and duplicate validation; reread on main `7aed0a6`.
-- [x] `src/accounting/date_category_flow.bqn` — PR #591 made Budget policy Account relations key-based; PR #592 exposed `Admit -> Kernel -> Result` and removed the successful-path guard ladder; PR #593 removed the remaining duplicate Budget source check while protecting current-Facts role drift; reread on main `9a697075784c280c240a8279c6148932e502731a`.
-- [x] `src/accounting/envelope_backing.bqn` — PRs #596–#599 made ownership failures explicit, removed the unreachable unavailable path, re-resolved ownership by stable Account keys, and aligned row lookup; #600 revalidated the remaining candidates; #601 proved the Envelope/Plan relation laws; #602 removed only the proven duplicate guards while retaining the staged failure boundaries; reread on main `0002c7b9acb133974c19b158a147980290c47a54`.
-- [x] `src/accounting/matrix_result.bqn` — PR #609 recorded the owner/consumer/representation audit; #610–#611 returned all Section-local empty MatrixResult shapes to the canonical owner; #612 removed derived public `cell_count` and strengthened empty-result laws to assert both axes directly; reread on main `459454dbfadccfc6e56dd7d779b93ff48774c12c`; final decisions in `docs/MATRIX_RESULT_REVIEW_CLOSEOUT-2026-08-10.md`.
-- [x] `src/accounting/month_account_movement.bqn` — PR #614 recorded the owner/kernel/consumer audit; #615 removed guarded scale mutation and the derived grand predicate from `Balanced by month`; #616 proved result-wide scale and Account-axis publication laws; #617 removed duplicate top-level `account_indices`; reread on main `5a632891546912766672e754d52f268ddc3c989c`; final decisions in `docs/MONTH_ACCOUNT_MOVEMENT_REVIEW_CLOSEOUT-2026-08-10.md`.
-- [x] `src/accounting/month_category_flow.bqn` — PR #619 recorded the semantic/reachability audit; #620 proved the distinct Month exact-overflow boundary; #621 replaced mutable deduplication, duplicate Group authority, and placeholder/reset staging with `⍷` plus `FailureResult -> Kernel`; #622 removed the empty successful-Date diagnostics carry; reread on main `7f08031a1cd51e20dce7f63e496289dca9156b88`; final decisions in `docs/MONTH_CATEGORY_FLOW_REVIEW_CLOSEOUT-2026-08-11.md`.
-- [x] `src/accounting/plan_completion_join.bqn` — PR #624 recorded the owner/relation/consumer audit; #625 fixed caller-owned Plan/Actual/unmatched ordering laws; #628 classified linked Actual `plan_id` once onto the selected Plan axis and grouped ragged completion cells while removing candidate-row reprojection; #629 removed the undocumented Actual snapshot-coordinate result and unused private evidence coordinate; reread on main `56dfbb09c37188f4443bb500f655509638e351cd`; final decisions in `docs/PLAN_COMPLETION_JOIN_REVIEW_CLOSEOUT-2026-08-11.md`.
-- [x] `src/accounting/plan_temporal_status.bqn` — PR #631 recorded the reachability/history/ownership audit; #632 narrowed the owner to open Plan date versus explicit as-of and routed Plan List plus Planned Payments through the same `overdue / due / future` relation while keeping completion and cycle grouping separate; reread on main `05edf2aecdd2d5d467a66fce0b00f17c87ec8e54`; final decisions in `docs/PLAN_TEMPORAL_STATUS_REVIEW_CLOSEOUT-2026-08-11.md`.
-- [x] `src/accounting/profit_and_loss.bqn` — PR #634 recorded the owner/consumer/array/public-surface audit; #635 proved dense zero rows plus independently reachable Income/Expense/net exact-sum failures without production changes; reread unchanged on main `07168702a4427e6d6b98ae3a3a26dc83fd78ebe4`; final decisions in `docs/PROFIT_AND_LOSS_REVIEW_CLOSEOUT-2026-08-11.md`.
-- [x] `src/accounting/recent_transactions.bqn` — PR #637 recorded the owner/ordering/consumer audit; #638 proved physical-source ordering and `BuildThrough` eligibility through durable Transaction references; #639 removed the public snapshot-local `transaction_index` while retaining the private relation coordinate; reread on main `1f5773beabad5a52a2cd0c511feb46ee261cf412`; final decisions in `docs/RECENT_TRANSACTIONS_REVIEW_CLOSEOUT-2026-08-11.md`.
-- [x] `src/accounting/sparse_group.bqn` — PR #641 classified row coordinates once with dyadic Index Of, reused the absent bound for unknown-row admission, and passed admitted integer coordinates directly into Group; reread on main `60ed9848bed340c6fc24109c48d576132ee36ba0`; final decisions in `docs/ACCOUNTING_PHASE_ONE_REVIEW_CLOSEOUT-2026-08-11.md`.
-- [x] `src/accounting/sparse_pivot.bqn` — PR #642 replaced coordinate rescans with relation-cell Deduplicate and dense cell mutation with absent-bound fill selection; reread on main `60ed9848bed340c6fc24109c48d576132ee36ba0`; final decisions in `docs/ACCOUNTING_PHASE_ONE_REVIEW_CLOSEOUT-2026-08-11.md`.
+- [x] `src/accounting/account_balance.bqn`
+- [x] `src/accounting/account_period.bqn`
+- [x] `src/accounting/balance_sheet.bqn`
+- [x] `src/accounting/cycle_account_period.bqn`
+- [x] `src/accounting/cycle_calendar_month_resolution.bqn`
+- [x] `src/accounting/cycle_comparison.bqn`
+- [x] `src/accounting/cycle_fixed_resolution.bqn`
+- [x] `src/accounting/cycle_income_anchor_resolution.bqn`
+- [x] `src/accounting/cycle_result.bqn`
+- [x] `src/accounting/daily_target.bqn`
+- [x] `src/accounting/date_category_flow.bqn`
+- [x] `src/accounting/envelope_backing.bqn`
+- [x] `src/accounting/matrix_result.bqn`
+- [x] `src/accounting/month_account_movement.bqn`
+- [x] `src/accounting/month_category_flow.bqn`
+- [x] `src/accounting/plan_completion_join.bqn`
+- [x] `src/accounting/plan_temporal_status.bqn`
+- [x] `src/accounting/profit_and_loss.bqn`
+- [x] `src/accounting/recent_transactions.bqn`
+- [x] `src/accounting/sparse_group.bqn`
+- [x] `src/accounting/sparse_pivot.bqn`
 
-## Phase 2: `src/ledger/`
+## Phase 2: `src/ledger/` — complete
 
-- [x] `src/ledger/account_admission.bqn` — reviewed on main `45686e5728292541df1c42628823a871c20a8264` as a live legacy `accounts.tsv` seam rather than canonical Account authority; no local array refactor selected because its remaining production reachability belongs to legacy-source retirement; decision recorded in `docs/ACCOUNT_ADMISSION_REVIEW_OBSERVATION-2026-08-11.md`.
-- [x] `src/ledger/account_journal_admission.bqn` — PR #645 replaced the file-wide active/Finalize state machine with whole-source line classification, Scan/Group segmentation, and local Account-block admission; made directive classification total for whole-array evaluation; protected canonical writer round-trip; reread on main `945fbb11f9f0a3b7a89006110e88468a063a2a64`; merged-main CI #2597 SUCCESS; decisions in `docs/ACCOUNT_JOURNAL_ADMISSION_REVIEW_OBSERVATION-2026-08-11.md`.
-- [x] `src/ledger/amount_text.bqn` — PR #647 replaced branch-local body mutation with one structural exact-decimal character-array expression; dedicated boundary laws retained; reread on main `e78430d9709f716f2c59d98c55311be8b2c577b5`; merged-main CI #2604 SUCCESS; decisions in `docs/AMOUNT_TEXT_REVIEW_OBSERVATION-2026-08-11.md`.
-- [x] `src/ledger/budget_journal_admission.bqn` — PR #648 returned exact-opposite ownership to complete Journal admission and classified aligned `postingRows / binary / budgetOnly` transaction relations before source-ordered diagnostic publication; reread on main `9ab7c8ae9becdff4d87cff6fe290298ea014152f`; merged-main CI #2610 SUCCESS; decisions in `docs/BUDGET_JOURNAL_ADMISSION_REVIEW_OBSERVATION-2026-08-11.md`.
-- [x] `src/ledger/budget_policy_admission.bqn` — PR #650 retained genuine lexical/multiline state while replacing logical-table `active / Finalize` staging with header classification plus Scan/Group segmentation and classifying backing-pool/Account relations once via aligned coordinates; reread on main `e196924ec3d500c72899891bbf2e5946803b5a8d`; merged-main CI #2620 SUCCESS; closeout in `docs/BUDGET_POLICY_ADMISSION_REVIEW_CLOSEOUT-2026-08-11.md`.
-- [x] `src/ledger/canonical_journal_root_admission.bqn` — PR #652 fixed short-line directive totality and replaced mutable include staging with an aligned directive/path/mask relation; reread on main `7355b43bfc1555e88e557ef123bcd7a8cad5c5dc`; merged-main CI #2627 SUCCESS; closeout in `docs/CANONICAL_JOURNAL_ROOT_ADMISSION_REVIEW_CLOSEOUT-2026-08-11.md`.
-- [x] `src/ledger/companion_admission.bqn` — reviewed on main `7355b43bfc1555e88e557ef123bcd7a8cad5c5dc` as a retained legacy/qualification fixed-width TSV seam after canonical Plan readers moved to Journal Facts; no local array refactor selected; retirement delegated with `plan_snapshot` and old TSV proof evidence to legacy/reachability closeout; decision in `docs/COMPANION_ADMISSION_REVIEW_OBSERVATION-2026-08-11.md`.
-- [x] `src/ledger/config_admission.bqn` — reviewed on main `79e572d5c91daec89cf196c8e103fefd17367129` as a legacy/qualification aggregate `config.tsv` seam; current application configuration uses narrow `config_rows` owners and canonical responsibility-specific sources instead; no local array refactor selected; decision in `docs/CONFIG_ADMISSION_REVIEW_OBSERVATION-2026-08-11.md`.
-- [x] `src/ledger/currency_registry.bqn` — PR #655 made ignored-line classification total for empty rows, replaced sort/adjacent duplicate detection with direct `⍷`, strengthened public Policy and validation-priority laws, and removed one dead local binding; reread on main `d6f7c93845680d09dd3452724b88ea9560d0fb81`; merged-main CI #2652 SUCCESS; decisions in `docs/CURRENCY_REGISTRY_REVIEW_OBSERVATION-2026-08-11.md` and `docs/CURRENCY_REGISTRY_REVIEW_CLOSEOUT-2026-08-11.md`.
-- [x] `src/ledger/cycle_admission.bqn` — reviewed on main `d6f7c93845680d09dd3452724b88ea9560d0fb81` as a retained legacy/qualification `cycle.tsv` seam; canonical Cycle policy now comes from `household.toml` via `household_policy_admission`, and the canonical-only read gate omits `cycle.tsv`; no local array refactor selected; decision in `docs/CYCLE_ADMISSION_REVIEW_OBSERVATION-2026-08-11.md`.
-- [x] `src/ledger/date_ordinal.bqn` — PR #657 strengthened strict Gregorian boundary laws and replaced guarded month-day Pick staging with one 1..12 month-axis Index Of coordinate plus absent-coordinate fill; reread on main `76ed65e021c2daaec9966d05bdf5d617efafc0ab`; final decisions in `docs/DATE_ORDINAL_REVIEW_OBSERVATION-2026-08-11.md` and `docs/DATE_ORDINAL_REVIEW_CLOSEOUT-2026-08-11.md`.
-- [x] `src/ledger/exact_decimal.bqn` — PR #660 strengthened canonicalization/exact-range laws, removed one dead private parser binding, and retained the existing Scan-based decimal-character kernel unchanged; reread on main `c75fa0c65118ba78e7f4cae9ec62091e3af60a62`; decisions in `docs/EXACT_DECIMAL_REVIEW_OBSERVATION-2026-08-11.md`.
-- [x] `src/ledger/exact_scale.bqn` — PR #661 retained scalar `Normalize` staging and replaced mutable checked summation with one source-order prefix Scan plus aligned reversible-addition mask; reread on main `9091cc860a9c29893fd50350d9c95a54b033ed7f`; merged-main CI #2669 SUCCESS; decisions in `docs/EXACT_SCALE_REVIEW_OBSERVATION-2026-08-11.md`.
-- [x] `src/ledger/fact_reference.bqn` — PR #605 moved the generic Facts identity/provenance owner into `src/ledger/`; #606 proved its source-axis and durable-reference laws; #607 simplified `SourceIs` to direct successful-state plus singleton-source equality; reread on main `478b870a9eb0a32a4c34bf2271fc1f605c1929f6`.
-- [x] `src/ledger/facts.bqn` — PR #664 classified Transaction Domain/Layer and Posting Account coordinates once, reused them for projection-invariant diagnostics and direct column publication, removed the temporary Posting-row reconstruction, and protected transaction-major diagnostic order; reread on main `b085574654167e200e7435ec2a3380ad69763609`; merged-main CI #2678 SUCCESS; decisions in `docs/FACTS_REVIEW_OBSERVATION-2026-08-11.md`.
-- [x] `src/ledger/household_policy_admission.bqn` — PR #665 retained genuine multiline lexical state while replacing logical section active/Finalize staging with total header classification plus Scan/Group segments; PR #666 classified Household Account references once onto the admitted Account axis and densified Account-policy coordinates without per-Account rescans; reread on main `36bd3f91a1034b2470979cd03dd84a67f38da200`; merged-main CI #2686 SUCCESS; decisions in `docs/HOUSEHOLD_POLICY_SECTION_REVIEW_OBSERVATION-2026-08-11.md` and `docs/HOUSEHOLD_POLICY_ACCOUNT_RELATION_REVIEW_OBSERVATION-2026-08-11.md`.
-- [x] `src/ledger/issue_admission.bqn` — PR #668 totalized ignored-row classification, aligned source text and one-based source coordinates through one scalar mask, isolated row admission as independent `{diagnostics,item}` cells, and preserved source-major diagnostics plus aggregate identity ordering; reread on main `fe2108f82e2f188be388a98713e02784633dcf7d`; merged-main CI #2709 SUCCESS; decisions in `docs/ISSUE_ADMISSION_REVIEW_OBSERVATION-2026-08-11.md` and `docs/ISSUE_ADMISSION_REVIEW_CLOSEOUT-2026-08-11.md`.
-- [x] `src/ledger/journal_complete_admission.bqn` — PR #670 exposed Declaration and Posting-domain source relations; PR #671 aligned transaction start/end partitions, structural synthetic source/line-map construction, physical fallback identity remapping, transaction-major diagnostics, and complete-source durable event-id admission; reread on main `19fc9e017f167635b47c938542457f739b8573bc`; merged-main CI #2719 SUCCESS; decisions in `docs/JOURNAL_COMPLETE_SOURCE_RELATION_REVIEW_OBSERVATION-2026-08-11.md`, `docs/JOURNAL_COMPLETE_PARTITION_REVIEW_OBSERVATION-2026-08-11.md`, and `docs/JOURNAL_COMPLETE_REVIEW_CLOSEOUT-2026-08-11.md`.
-- [x] `src/ledger/journal_posting_text.bqn` — PR #673 exposed first-comment and canonical Account/Amount separator character coordinates while retaining the finite guarded three-token legacy compatibility path; reread on main `31bc3ad61fcbb17a7ba39025d31475f7c8697030`; merged-main CI #2725 SUCCESS; decision in `docs/JOURNAL_POSTING_TEXT_REVIEW_OBSERVATION-2026-08-11.md`.
-- [x] `src/ledger/journal_single_domain_admission.bqn` — PR #674 exposed physical source/Posting relations and narrowed publication to final semantic results; PR #675 exposed transaction-local exact completion, normalization, and balance; PR #676 classified structural Posting source coordinates once, narrowed the final join to the one-partition successful contract, and removed unreachable Transaction trace revalidation while retaining the Posting trace guard; reread on main `3f7131cf0649d0e2f492356f35e2632a87b2a957`; merged-main CI #2742 SUCCESS; decisions in `docs/JOURNAL_SINGLE_DOMAIN_POSTING_RELATION_REVIEW_OBSERVATION-2026-08-12.md`, `docs/JOURNAL_SINGLE_DOMAIN_EXACT_COMPLETION_REVIEW_OBSERVATION-2026-08-12.md`, `docs/JOURNAL_SINGLE_DOMAIN_STRUCTURAL_EVIDENCE_REVIEW_OBSERVATION-2026-08-12.md`, and `docs/JOURNAL_SINGLE_DOMAIN_REVIEW_CLOSEOUT-2026-08-12.md`.
-- [x] `src/ledger/journal_transaction_structure.bqn` — PR #678 replaced shared body traversal accumulation with body-local result cells and one semantic metadata coordinate relation; reread on main `dc815fe98a7ff029a1e64a1d58bc7920960faf99`; merged-main CI #2750 SUCCESS; decision in `docs/JOURNAL_TRANSACTION_BODY_RELATION_REVIEW_OBSERVATION-2026-08-12.md`.
-- [x] `src/ledger/plan_journal_admission.bqn` — PR #679 exposed transaction-local Plan diagnostics while retaining whole-source plan-id uniqueness and explicit durable-relation identity remapping; reread on main `05094b357705558feaa64eeb72ca6daefc3cd7c9`; merged-main CI #2754 SUCCESS; decision in `docs/PLAN_JOURNAL_RELATION_REVIEW_OBSERVATION-2026-08-12.md`.
-- [x] `src/ledger/plan_snapshot.bqn` — reviewed as a retained legacy/qualification `plan.tsv` seam over `companion_admission`; canonical Plan runtime uses Journal Facts instead; no local array refactor selected; decision in `docs/PLAN_SNAPSHOT_REVIEW_OBSERVATION-2026-08-12.md`.
-- [x] `src/ledger/report_policy_admission.bqn` — PR #680 replaced mutable section ownership with physical header classification, Scan/Group source segments, and local segment admission; reread on main `06e12a24fd181b1e5af7092726a3bd3886f2fb27`; merged-main CI #2760 SUCCESS; decision in `docs/REPORT_POLICY_SECTION_REVIEW_OBSERVATION-2026-08-12.md`.
-- [x] `src/ledger/snapshot.bqn` — PR #681 removed legacy Account admission and the legacy `Build` entry from the production Snapshot owner, leaving canonical `BuildFromAccounts`; reread on main `fbbfbaf8be1a3c8b20ecdba189a5fec61dd84cea`; merged-main CI #2798 SUCCESS; decision in `docs/SNAPSHOT_LIVE_BOUNDARY_REVIEW_OBSERVATION-2026-08-12.md`.
-- [x] `src/ledger/transaction_rows.bqn` — PR #682 grouped Posting indices once by canonical Transaction coordinate and mapped typed Posting cells directly into Transaction rows while preserving multi-Posting evidence; reread on main `8aeda703afcf31968d45e81edcc1345ba0ed4190`; merged-main CI #2803 SUCCESS; decision in `docs/TRANSACTION_ROWS_REVIEW_OBSERVATION-2026-08-12.md`; Phase 2 closeout in `docs/LEDGER_PHASE_TWO_REVIEW_CLOSEOUT-2026-08-12.md`.
+Closeout: `docs/LEDGER_PHASE_TWO_REVIEW_CLOSEOUT-2026-08-12.md`.
 
-## Phase 3: `src/sections/`
+- [x] `src/ledger/account_admission.bqn`
+- [x] `src/ledger/account_journal_admission.bqn`
+- [x] `src/ledger/amount_text.bqn`
+- [x] `src/ledger/budget_journal_admission.bqn`
+- [x] `src/ledger/budget_policy_admission.bqn`
+- [x] `src/ledger/canonical_journal_root_admission.bqn`
+- [x] `src/ledger/companion_admission.bqn`
+- [x] `src/ledger/config_admission.bqn`
+- [x] `src/ledger/currency_registry.bqn`
+- [x] `src/ledger/cycle_admission.bqn`
+- [x] `src/ledger/date_ordinal.bqn`
+- [x] `src/ledger/exact_decimal.bqn`
+- [x] `src/ledger/exact_scale.bqn`
+- [x] `src/ledger/fact_reference.bqn`
+- [x] `src/ledger/facts.bqn`
+- [x] `src/ledger/household_policy_admission.bqn`
+- [x] `src/ledger/issue_admission.bqn`
+- [x] `src/ledger/journal_complete_admission.bqn`
+- [x] `src/ledger/journal_posting_text.bqn`
+- [x] `src/ledger/journal_single_domain_admission.bqn`
+- [x] `src/ledger/journal_transaction_structure.bqn`
+- [x] `src/ledger/plan_journal_admission.bqn`
+- [x] `src/ledger/plan_snapshot.bqn`
+- [x] `src/ledger/report_policy_admission.bqn`
+- [x] `src/ledger/snapshot.bqn`
+- [x] `src/ledger/transaction_rows.bqn`
 
-- [ ] `src/sections/account_balances.bqn`
-- [ ] `src/sections/balance_sheet.bqn`
-- [ ] `src/sections/cycle_accounts.bqn`
-- [ ] `src/sections/cycle_comparison.bqn`
-- [ ] `src/sections/daily_flow.bqn`
-- [ ] `src/sections/daily_target.bqn`
-- [ ] `src/sections/envelope_backing.bqn`
-- [ ] `src/sections/issues.bqn`
-- [ ] `src/sections/monthly_accounts.bqn`
-- [ ] `src/sections/planned_payments.bqn`
-- [ ] `src/sections/profit_and_loss.bqn`
-- [ ] `src/sections/recent_journal.bqn`
-- [ ] `src/sections/trial_balance.bqn`
+## Phase 3: `src/sections/` — complete
+
+Closeout: `docs/SECTIONS_PHASE_THREE_REVIEW_CLOSEOUT-2026-08-12.md`.
+
+- [x] `src/sections/account_balances.bqn` — #684
+- [x] `src/sections/balance_sheet.bqn` — #685
+- [x] `src/sections/cycle_accounts.bqn` — #686
+- [x] `src/sections/cycle_comparison.bqn` — #686
+- [x] `src/sections/daily_flow.bqn` — #687
+- [x] `src/sections/daily_target.bqn` — #689
+- [x] `src/sections/envelope_backing.bqn` — #689
+- [x] `src/sections/issues.bqn` — #687
+- [x] `src/sections/monthly_accounts.bqn` — #687
+- [x] `src/sections/planned_payments.bqn` — #690
+- [x] `src/sections/profit_and_loss.bqn` — #687
+- [x] `src/sections/recent_journal.bqn` — #688
+- [x] `src/sections/trial_balance.bqn` — #688
 
 ## Phase 4: `src/report/`
 
@@ -301,10 +262,10 @@ A phase is considered reviewed only when every listed box is checked and the inv
 
 - [ ] `tools/bqn-dump.bqn`
 
-After the production BQN inventory is reviewed, the selector/UI adapter consolidation and the shell/tool families remain governed by the cross-cutting audit inventory above rather than pretending every shell wrapper is a BQN semantic owner.
+After the production BQN inventory is reviewed, selector/UI adapter consolidation and shell/tool families remain governed by the cross-cutting audit inventory rather than pretending every shell wrapper is a BQN semantic owner.
 
 ## Current cursor
 
-`src/sections/account_balances.bqn`
+`src/report/catalog.bqn`
 
-Resume the normal Phase 3 sections review sequence at Account Balances.
+Resume the normal Phase 4 report review sequence at Report Catalog.
