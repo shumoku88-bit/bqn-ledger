@@ -15,6 +15,8 @@ policy ← {
     recent_transactions⇐{through⇐"latest",count⇐5}
   }
 }
+Codes ← {𝕊 diagnostics:{𝕩.code}¨diagnostics}
+Messages ← {𝕊 diagnostics:{𝕩.message}¨diagnostics}
 
 resolved ← resolution.Resolve ⟨policy,"2026-01-13",⟨"2026-01-10","2026-01-02","2026-02-01"⟩⟩
 "ok" lib.AssertEq resolved.state
@@ -39,5 +41,48 @@ emptyBeginning ← resolution.Resolve ⟨policy,"2026-01-13",⟨"2026-02-01"⟩�
 
 badLatest ← resolution.Resolve ⟨policy,"2026-02-30",⟨"2026-01-02"⟩⟩
 "error" lib.AssertEq badLatest.state
+
+badPolicy ← {state⇐"error",presentation⇐policy.presentation,reports⇐policy.reports}
+inputErrors ← resolution.Resolve ⟨badPolicy,"2026-02-30",⟨"2026-13-01","2026-01-02","bad"⟩⟩
+"error" lib.AssertEq inputErrors.state
+⟨"report_policy_not_ok","report_latest_invalid","report_journal_date_invalid","report_journal_date_invalid"⟩ lib.AssertEq Codes inputErrors.diagnostics
+"" lib.AssertEq inputErrors.trial_balance.as_of
+"" lib.AssertEq inputErrors.balance_sheet.as_of
+"" lib.AssertEq inputErrors.profit_and_loss.from
+"" lib.AssertEq inputErrors.profit_and_loss.through
+"" lib.AssertEq inputErrors.daily_flow.from
+"" lib.AssertEq inputErrors.daily_flow.through
+"" lib.AssertEq inputErrors.monthly_accounts.from
+"" lib.AssertEq inputErrors.monthly_accounts.through
+"" lib.AssertEq inputErrors.recent_transactions.through
+0 lib.AssertEq inputErrors.recent_transactions.count
+5 lib.AssertEq inputErrors.daily_flow.max_date_columns
+
+reversedPolicy ← {
+  state⇐"ok",presentation⇐policy.presentation,
+  reports⇐{
+    trial_balance⇐policy.reports.trial_balance,
+    balance_sheet⇐policy.reports.balance_sheet,
+    profit_and_loss⇐{from⇐"2026-02-01",through⇐"latest"},
+    daily_flow⇐{from⇐"2026-02-02",through⇐"latest",max_date_columns⇐5},
+    monthly_accounts⇐{from⇐"2026-02-03",through⇐"latest"},
+    recent_transactions⇐policy.reports.recent_transactions
+  }
+}
+reversed ← resolution.Resolve ⟨reversedPolicy,"2026-01-13",⟨"2026-01-02"⟩⟩
+"error" lib.AssertEq reversed.state
+3 lib.AssertEq ≠reversed.diagnostics
+⟨"report_range_invalid","report_range_invalid","report_range_invalid"⟩ lib.AssertEq Codes reversed.diagnostics
+⟨
+  "profit-and-loss start must not be after its through date",
+  "daily-flow start must not be after its through date",
+  "monthly-accounts start must not be after its through date"
+⟩ lib.AssertEq Messages reversed.diagnostics
+"2026-02-01" lib.AssertEq reversed.profit_and_loss.from
+"2026-01-13" lib.AssertEq reversed.profit_and_loss.through
+"2026-02-02" lib.AssertEq reversed.daily_flow.from
+"2026-01-13" lib.AssertEq reversed.daily_flow.through
+"2026-02-03" lib.AssertEq reversed.monthly_accounts.from
+"2026-01-13" lib.AssertEq reversed.monthly_accounts.through
 
 •Out "test_application_report_policy_resolution: ok"
