@@ -18,8 +18,11 @@ CanonicalBudgetPolicy ← {𝕊 base‿accounts: budgetSource.LoadPolicy ⟨base
 CanonicalHousehold ← {𝕊 base‿accounts‿budgetPolicy: householdSource.Load ⟨base,accounts,budgetPolicy⟩ }
 CanonicalReportPolicy ← {𝕊 base: reportPolicySource.Load base}
 
+# A caller that already owns admitted Accounts defines one companion observation:
+# Plan, Budget policy, Household policy, and Budget movement all reuse that exact
+# Account Registry instead of independently re-reading accounts.journal.
 HouseholdContext ← {𝕊 base‿accounts‿registry:
-  planResult ← CanonicalPlan ⟨base,registry⟩
+  planResult ← planSource.LoadFromAccounts ⟨base,accounts,registry⟩
   policyResult ← CanonicalBudgetPolicy ⟨base,accounts⟩
   diagnostics ← planResult.diagnostics∾policyResult.diagnostics
   householdResult ← {state⇐"error",diagnostics⇐empty}
@@ -35,7 +38,7 @@ HouseholdContext ← {𝕊 base‿accounts‿registry:
 
 Companions ← {𝕊 base‿accounts‿registry:
   context ← HouseholdContext ⟨base,accounts,registry⟩
-  budgetResult ← CanonicalBudget ⟨base,registry⟩
+  budgetResult ← budgetSource.LoadFromAccounts ⟨base,accounts,registry⟩
   diagnostics ← context.diagnostics∾budgetResult.diagnostics
   ok ← (context.state≡"ok") ∧ budgetResult.state≡"ok"
   result ← {state⇐"error",plan⇐@,budget⇐@,budget_policy⇐@,household⇐@,diagnostics⇐diagnostics}
