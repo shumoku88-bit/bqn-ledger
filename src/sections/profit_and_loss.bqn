@@ -4,6 +4,7 @@ amount ← •Import "../ledger/amount_text.bqn"
 dates ← •Import "../ledger/date_ordinal.bqn"
 text ← •Import "../report/text.bqn"
 empty ← ⟨⟩
+lf ← @+10
 
 Diagnostic ← {𝕊 codeText‿messageText:
   {severity⇐"error",stage⇐"section_profit_and_loss",code⇐codeText,message⇐messageText}
@@ -42,23 +43,19 @@ Build ← {𝕊 accounting‿periodStartText‿periodEndText:
 
 AmountText ← {𝕊 coefficient‿scaleValue: amount.Format ⟨coefficient,scaleValue⟩}
 StatementTable ← {𝕊 rows‿totalLabel‿totalValue‿scaleValue‿style:
-  body ← {𝕊 rowIndex:
+  body ← ({𝕊 rowIndex:
     ⟨rowIndex⊑rows.account_key,text.FormatAmount ⟨rowIndex⊑rows.amount,scaleValue,style⟩⟩
-  }¨rows.index
-  body ∾↩ ⟨⟨totalLabel,text.FormatAmount ⟨totalValue,scaleValue,style⟩⟩⟩
+  }¨rows.index)∾⟨⟨totalLabel,text.FormatAmount ⟨totalValue,scaleValue,style⟩⟩⟩
   text.RenderTable ⟨⟨"Account","Amount"⟩,body,⟨1⟩⟩
 }
 FormatHuman ← {𝕊 input:
   result ← input ⋄ style ← "minus"
   {𝕊: result↩0⊑input ⋄ style↩(1⊑input).negative_style}⍟((0<≡input) ∧ (2=≠input)) @
-  out ← "== Profit and Loss =="∾(@+10)
-  out ∾↩ "Period: "∾result.period_start∾".."∾result.period_end_exclusive∾" ("∾result.domain∾")"∾(@+10)∾(@+10)
-  out ∾↩ "Income"∾(@+10)
-  out ∾↩ StatementTable ⟨result.income,"Total income",result.total_income,result.scale,style⟩
-  out ∾↩ (@+10)∾"Expenses"∾(@+10)
-  out ∾↩ StatementTable ⟨result.expenses,"Total expenses",result.total_expenses,result.scale,style⟩
-  out ∾↩ (@+10)∾"Net income: "∾(text.FormatAmount ⟨result.net_income,result.scale,style⟩)∾(@+10)∾(@+10)
-  out
+  headingText ← ∾{𝕩∾lf}¨⟨"== Profit and Loss ==",("Period: "∾result.period_start∾".."∾result.period_end_exclusive∾" ("∾result.domain∾")"),""⟩
+  incomeBlock ← "Income"∾lf∾StatementTable ⟨result.income,"Total income",result.total_income,result.scale,style⟩
+  expensesBlock ← lf∾"Expenses"∾lf∾StatementTable ⟨result.expenses,"Total expenses",result.total_expenses,result.scale,style⟩
+  summaryText ← ∾{𝕩∾lf}¨⟨"",("Net income: "∾text.FormatAmount ⟨result.net_income,result.scale,style⟩),""⟩
+  ∾⟨headingText,incomeBlock,expensesBlock,summaryText⟩
 }
 
 {Build⇐Build,FormatHuman⇐FormatHuman}
