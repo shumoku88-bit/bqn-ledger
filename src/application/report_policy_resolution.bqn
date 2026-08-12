@@ -33,7 +33,8 @@ InputDiagnostics ← {𝕊 policy‿latest‿journalDates:
   policyDiagnostics ← AddIf ⟨policy.state≢"ok",Diagnostic ⟨"report_policy_not_ok","Report policy must be admitted before resolution"⟩⟩
   latestDiagnostics ← AddIf ⟨¬dates.IsValid latest,Diagnostic ⟨"report_latest_invalid","latest Report date must be strict Gregorian text"⟩⟩
   journalCells ← {𝕊 value:AddIf ⟨¬dates.IsValid value,Diagnostic ⟨"report_journal_date_invalid","Actual journal dates must be strict Gregorian text"⟩⟩}¨journalDates
-  policyDiagnostics∾latestDiagnostics∾∾⟨empty⟩∾journalCells
+  journalDiagnostics ← ∾⟨empty⟩∾journalCells
+  policyDiagnostics∾latestDiagnostics∾journalDiagnostics
 }
 RangeDiagnostics ← {𝕊 rows:
   cells ← {𝕊 row:
