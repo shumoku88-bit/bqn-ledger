@@ -7,10 +7,18 @@ COMMAND HUB SURFACE
 
 BQN-Ledger Command Hub (demo:sanitized-public)
 
-  section  Show report sections (fzf selector)
-  add      Add or cancel transaction / plan
-  check    Run check.sh
-  edit     Open TSV files in $EDITOR
-  exit     Exit
+  Editor           Structured Household changes
+  Reports          Read-only semantic reports
+  Source & System  Raw canonical sources and maintenance
+  Exit
 
-selected: section (Show report sections)
+selected: Reports
+
+Reports
+
+  Household
+  Accounting
+  Activity
+  All reports
+  Sequential preview
+  Back

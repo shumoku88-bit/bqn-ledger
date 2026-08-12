@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# tools/bl — canonical Household Command Hub.
+# tools/bl - canonical Household Command Hub.
 # This script owns only navigation, selection, and presentation. Accounting,
 # admission, and publication remain in the existing report/editor/tool owners.
 
@@ -24,14 +24,10 @@ usage() {
 Usage:
   tools/bl [--base DIR] [command [subcommand] [args...]]
 
-Interactive categories:
-  record        Expense, income, transfer, multi-posting, reverse, history
-  plans         Open/overdue/upcoming/related Plans; add, edit, finish
-  budget        Budget movement and Envelope report
-  accounts      Account list, balances, and add
-  issues        Issue list, report, add, and close
-  reports       All twelve retained reports
-  operations    Household check, inspect, doctor, hledger export, source edit
+Interactive Command Hub:
+  Editor           Structured Household changes
+  Reports          Read-only semantic reports
+  Source & System  Raw canonical sources, diagnostics, export, and maintenance
 
 Direct commands (non-TTY safe when the target command is read-only):
   report, all                    Full current report
@@ -58,6 +54,9 @@ Direct commands (non-TTY safe when the target command is read-only):
   dev-check                      Repository development suite (not Household check)
   edit [CANONICAL_FILE]          Open one of the eight canonical sources
   add                            Existing complete daily action menu
+
+Direct command groups:
+  operations    Household check, inspect, doctor, hledger export, source edit
 
 Options:
   --base DIR                     Canonical eight-file Household root
@@ -244,7 +243,7 @@ run_edit_menu() {
   }
   while true; do
     set +e
-    key="$(select_menu 'Edit canonical source' "$(canonical_files)" )"
+    key="$(select_menu 'Open canonical source' "$(canonical_files)")"
     status=$?
     set -e
     [[ $status -eq 130 ]] && return 0
@@ -322,6 +321,60 @@ run_reports() {
   fi
 }
 
+report_group_menu() {
+  cat <<'EOF'
+household	Household
+accounting	Accounting
+operations	Activity
+all	All reports
+preview	Sequential preview
+back	Back
+EOF
+}
+
+report_group_lines() {
+  local category="$1"
+  "$ROOT_DIR/tools/report-section-metadata" |
+    awk -F'\t' -v category="$category" 'NR>1 && $3==category {print $1 "\t" $2}'
+  printf 'back\tBack\n'
+}
+
+run_report_group() {
+  local category="$1" title="$2" key status
+  while true; do
+    set +e
+    key="$(select_reports_menu "$title" "$(report_group_lines "$category")")"
+    status=$?
+    set -e
+    [[ $status -eq 130 ]] && return 0
+    [[ $status -eq 0 ]] || return "$status"
+    [[ $key == back ]] && return 0
+    run_reports "$key" || true
+    [[ $IS_TTY -eq 1 ]] && printf '\n'
+  done
+}
+
+run_reports_hub() {
+  local key status
+  while true; do
+    set +e
+    key="$(select_menu 'Reports' "$(report_group_menu)")"
+    status=$?
+    set -e
+    [[ $status -eq 130 ]] && return 0
+    [[ $status -eq 0 ]] || { echo 'Invalid selection.' >&2; continue; }
+    case "$key" in
+      household) run_report_group household Household ;;
+      accounting) run_report_group accounting Accounting ;;
+      operations) run_report_group operations Activity ;;
+      all) run_reports all || true ;;
+      preview) run_reports preview || true ;;
+      back) return 0 ;;
+    esac
+    [[ $IS_TTY -eq 1 ]] && printf '\n'
+  done
+}
+
 show_plan_related_interactive() {
   local rows selected status index selected_row selected_plan_date
   rows="$("$ROOT_DIR/tools/edit" --base "$base_dir" plan list --format tsv)"
@@ -394,81 +447,8 @@ run_query_interactive() {
   fi
 }
 
-record_menu() {
-  cat <<'EOF'
-expense	Expense
-income	Income
-move	Transfer / move
-multi	Multi-posting transaction
-reverse	Reverse with a compensating transaction
-history	Journal history
-back	Back
-EOF
-}
-plans_menu() {
-  cat <<'EOF'
-list	Open Plans
-all	All Plans, including completed
-overdue	Overdue open Plans
-upcoming	Upcoming open Plans
-related	Related Plans
-add	Add Plan
-edit	Edit Plan date / amount
-finish	Finish Plan, sync Budget, optionally replenish
-budget-sync	Retry Budget sync for a completed Plan
-back	Back
-EOF
-}
-budget_menu() {
-  cat <<'EOF'
-add	Add / move Budget
-report	Envelope & Backing report
-back	Back
-EOF
-}
-accounts_menu() {
-  cat <<'EOF'
-list	List Accounts
-balances	Account Balances report
-add	Add Account
-back	Back
-EOF
-}
-issues_menu() {
-  cat <<'EOF'
-list	List open Issues
-report	Issues report
-add	Add Issue
-close	Close Issue
-back	Back
-EOF
-}
-operations_menu() {
-  cat <<'EOF'
-check	Canonical Household check
-inspect	Ledger / provenance inspection
-doctor	Dependency and source diagnosis
-export	Export canonical Journals to hledger
-edit	Edit canonical source
-summary	Compact report summary
-query	Exact compact-key query (advanced)
-dev-check	Repository development suite
-back	Back
-EOF
-}
-top_menu() {
-  cat <<'EOF'
-record	Record / Journal
-plans	Plans
-budget	Budget
-accounts	Accounts
-issues	Issues
-reports	Reports (12)
-operations	Inspect / Operations
-exit	Exit
-EOF
-}
-
+# Direct-command handlers remain stable even though the interactive Hub is
+# grouped by interaction type.
 run_record_key() {
   case "$1" in
     expense|income|move|multi|reverse) run_action "$1" ;;
@@ -478,6 +458,7 @@ run_record_key() {
     *) echo "Error: unknown record action: $1" >&2; return 2 ;;
   esac
 }
+
 run_plan_key() {
   local key="$1"; shift
   case "$key" in
@@ -496,6 +477,7 @@ run_plan_key() {
     *) echo "Error: unknown Plans action: $key" >&2; return 2 ;;
   esac
 }
+
 run_budget_key() {
   case "$1" in
     add|move) run_action budget ;;
@@ -504,6 +486,7 @@ run_budget_key() {
     *) echo "Error: unknown Budget action: $1" >&2; return 2 ;;
   esac
 }
+
 run_account_key() {
   local key="$1"; shift
   case "$key" in
@@ -514,6 +497,7 @@ run_account_key() {
     *) echo "Error: unknown Accounts action: $key" >&2; return 2 ;;
   esac
 }
+
 run_issue_key() {
   case "$1" in
     list) "$ROOT_DIR/tools/edit" --base "$base_dir" issue list ;;
@@ -524,6 +508,7 @@ run_issue_key() {
     *) echo "Error: unknown Issues action: $1" >&2; return 2 ;;
   esac
 }
+
 run_operation_key() {
   local key="$1"; shift
   case "$key" in
@@ -531,7 +516,7 @@ run_operation_key() {
     inspect) "$ROOT_DIR/tools/ledger-inspect" "$base_dir" ;;
     doctor) LEDGER_DATA_DIR="$base_dir" "$ROOT_DIR/tools/doctor" ;;
     export) "$ROOT_DIR/tools/to-hledger" "$base_dir" ;;
-    edit) run_edit_menu "${1:-}" ;;
+    edit|open-source) run_edit_menu "${1:-}" ;;
     summary)
       if [[ $# -gt 0 ]]; then "$ROOT_DIR/tools/report-summary" "$base_dir" "$@"; elif [[ $IS_TTY -eq 1 ]]; then run_summary_interactive; else echo 'Error: operations summary requires DOMAIN' >&2; return 2; fi ;;
     query)
@@ -540,6 +525,84 @@ run_operation_key() {
     back) return 130 ;;
     *) echo "Error: unknown operation: $key" >&2; return 2 ;;
   esac
+}
+
+editor_menu() {
+  cat <<'EOF'
+journal	Journal
+plans	Plans
+budget	Budget
+accounts	Accounts
+issues	Issues
+back	Back
+EOF
+}
+
+editor_journal_menu() {
+  cat <<'EOF'
+expense	Expense
+income	Income
+move	Transfer / move
+multi	Multi-posting transaction
+reverse	Reverse with a compensating transaction
+back	Back
+EOF
+}
+
+editor_plans_menu() {
+  cat <<'EOF'
+add	Add Plan
+edit	Edit Plan date / amount
+finish	Finish / actualize / replenish Plan
+budget-sync	Retry Budget sync for a completed Plan
+related	Related Plan evidence
+back	Back
+EOF
+}
+
+editor_budget_menu() {
+  cat <<'EOF'
+add	Add / move Budget
+back	Back
+EOF
+}
+
+editor_accounts_menu() {
+  cat <<'EOF'
+add	Add Account
+back	Back
+EOF
+}
+
+editor_issues_menu() {
+  cat <<'EOF'
+add	Add Issue
+close	Close Issue
+back	Back
+EOF
+}
+
+source_system_menu() {
+  cat <<'EOF'
+open-source	Open canonical source
+check	Household check
+inspect	Ledger / provenance inspection
+doctor	Dependency and source diagnosis
+export	Export canonical Journals to hledger
+summary	Compact report summary
+query	Exact compact-key query (advanced)
+dev-check	Repository development suite
+back	Back
+EOF
+}
+
+top_menu() {
+  cat <<'EOF'
+editor	Editor
+reports	Reports
+source-system	Source & System
+exit	Exit
+EOF
 }
 
 run_interactive_submenu() {
@@ -561,6 +624,26 @@ run_interactive_submenu() {
   done
 }
 
+run_editor_key() {
+  case "$1" in
+    journal) run_interactive_submenu Journal editor_journal_menu run_record_key ;;
+    plans) run_interactive_submenu Plans editor_plans_menu run_plan_key ;;
+    budget) run_interactive_submenu Budget editor_budget_menu run_budget_key ;;
+    accounts) run_interactive_submenu Accounts editor_accounts_menu run_account_key ;;
+    issues) run_interactive_submenu Issues editor_issues_menu run_issue_key ;;
+    back) return 130 ;;
+    *) echo "Error: unknown Editor area: $1" >&2; return 2 ;;
+  esac
+}
+
+run_editor_hub() {
+  run_interactive_submenu Editor editor_menu run_editor_key
+}
+
+run_source_system_hub() {
+  run_interactive_submenu 'Source & System' source_system_menu run_operation_key
+}
+
 run_interactive_hub() {
   local key status
   [[ $IS_TTY -eq 1 ]] || { echo 'Error: no command and no interactive terminal; use tools/bl --help' >&2; return 2; }
@@ -575,13 +658,9 @@ run_interactive_hub() {
     [[ $status -eq 130 ]] && return 0
     [[ $status -eq 0 ]] || { echo 'Invalid selection.' >&2; continue; }
     case "$key" in
-      record) run_interactive_submenu Record record_menu run_record_key ;;
-      plans) run_interactive_submenu Plans plans_menu run_plan_key ;;
-      budget) run_interactive_submenu Budget budget_menu run_budget_key ;;
-      accounts) run_interactive_submenu Accounts accounts_menu run_account_key ;;
-      issues) run_interactive_submenu Issues issues_menu run_issue_key ;;
-      reports) run_reports || true ;;
-      operations) run_interactive_submenu 'Inspect / Operations' operations_menu run_operation_key ;;
+      editor) run_editor_hub ;;
+      reports) run_reports_hub ;;
+      source-system) run_source_system_hub ;;
       exit) return 0 ;;
     esac
   done
