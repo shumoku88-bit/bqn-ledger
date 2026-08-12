@@ -16,24 +16,38 @@ Load ← {𝕊:
   registry ← built.registry
   ResolveDefault ← {𝕊 configLines:
     matches ← (rows.Build configLines).Matches "DEFAULT_CURRENCY"
-    result ← Failure ⟨"missing_default_currency","missing ledger config key: DEFAULT_CURRENCY"⟩
-    {𝕊:result↩Failure ⟨"duplicate_default_currency","duplicate ledger config key: DEFAULT_CURRENCY"⟩}⍟(1<≠matches) @
-    {𝕊:
-      value ← 1⊑⊑matches
-      result↩Failure ⟨"empty_default_currency","empty ledger config value: DEFAULT_CURRENCY"⟩
-      {𝕊:result↩Failure ⟨"unsupported_default_currency","unsupported default currency: "∾value⟩}⍟((0<≠value) ∧ ¬registry.IsSupportedCurrency value) @
-      {𝕊:result↩Success ⟨value,"ledger_config"⟩}⍟((0<≠value) ∧ registry.IsSupportedCurrency value) @
-    }⍟(1=≠matches) @
-    result
+    matchClass ← 2⌊≠matches
+    matchClass◶⟨
+      {𝕊:Failure ⟨"missing_default_currency","missing ledger config key: DEFAULT_CURRENCY"⟩},
+      {𝕊:
+        value ← 1⊑⊑matches
+        valuePresent ← 0<≠value
+        valueClass ← valuePresent + valuePresent∧registry.IsSupportedCurrency value
+        valueClass◶⟨
+          {𝕊:Failure ⟨"empty_default_currency","empty ledger config value: DEFAULT_CURRENCY"⟩},
+          {𝕊:Failure ⟨"unsupported_default_currency","unsupported default currency: "∾value⟩},
+          {𝕊:Success ⟨value,"ledger_config"⟩}
+        ⟩ @
+      },
+      {𝕊:Failure ⟨"duplicate_default_currency","duplicate ledger config key: DEFAULT_CURRENCY"⟩}
+    ⟩ @
   }
   ResolveSelection ← {𝕊 defaultResult‿explicitCurrency:
-    result ← Failure ⟨"default_currency_unavailable",defaultResult.message⟩
-    {𝕊:
-      result↩Failure ⟨"unsupported_selected_currency","unsupported selected currency: "∾explicitCurrency⟩
-      {𝕊:result↩Success ⟨explicitCurrency,"explicit_selection"⟩}⍟(registry.IsSupportedCurrency explicitCurrency) @
-    }⍟(0<≠explicitCurrency) @
-    {𝕊:result↩Success ⟨defaultResult.currency,"ledger_default"⟩}⍟((0=≠explicitCurrency) ∧ defaultResult.state≡"ok") @
-    result
+    hasExplicit ← 0<≠explicitCurrency
+    hasExplicit◶⟨
+      {𝕊:
+        (defaultResult.state≡"ok")◶⟨
+          {𝕊:Failure ⟨"default_currency_unavailable",defaultResult.message⟩},
+          {𝕊:Success ⟨defaultResult.currency,"ledger_default"⟩}
+        ⟩ @
+      },
+      {𝕊:
+        (registry.IsSupportedCurrency explicitCurrency)◶⟨
+          {𝕊:Failure ⟨"unsupported_selected_currency","unsupported selected currency: "∾explicitCurrency⟩},
+          {𝕊:Success ⟨explicitCurrency,"explicit_selection"⟩}
+        ⟩ @
+      }
+    ⟩ @
   }
   {
     registry⇐registry,Policy⇐registry.Policy,IsSupportedCurrency⇐registry.IsSupportedCurrency,

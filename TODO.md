@@ -170,9 +170,9 @@ Closeout: `docs/REPORT_PHASE_FOUR_REVIEW_CLOSEOUT-2026-08-12.md`.
 - [x] `src/application/cycle_resolution.bqn` — #706
 - [x] `src/application/daily_scope_adapter.bqn` — #707
 - [x] `src/application/daily_scope_admission.bqn` — #707
-- [ ] `src/application/date_today.bqn`
-- [ ] `src/application/editor_actual.bqn`
-- [ ] `src/application/editor_currency.bqn`
+- [x] `src/application/date_today.bqn` — #709 (clock-boundary law review; production unchanged)
+- [x] `src/application/editor_actual.bqn` — #710
+- [x] `src/application/editor_currency.bqn` — #712
 - [ ] `src/application/editor_plan_rows.bqn`
 - [ ] `src/application/funding_scope.bqn`
 - [ ] `src/application/household_daily_scope.bqn`
@@ -264,6 +264,6 @@ After the production BQN inventory is reviewed, selector/UI adapter consolidatio
 
 ## Current cursor
 
-`src/application/date_today.bqn`
+`src/application/editor_plan_rows.bqn`
 
-Resume the normal Phase 5 application review sequence at Date Today.
+Resume the normal Phase 5 application review sequence at Editor Plan Rows.
