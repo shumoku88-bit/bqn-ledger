@@ -8,7 +8,7 @@ registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").regi
 CheckOk ← {𝕊 label‿value:
   {𝕊:
     •Out "DEBUG " ∾ label ∾ " state=" ∾ value.state
-    •Out •Fmt value.diagnostics
+    {𝕊 diagnostic: •Out diagnostic.code ∾ ": " ∾ diagnostic.message}¨ value.diagnostics
     •Exit 1
   }⍟(value.state≢"ok") @
 }
