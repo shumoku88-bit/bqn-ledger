@@ -2,13 +2,13 @@
 # Completion evidence exists only for durable non-empty plan_id links.
 
 io ← •Import "source_io.bqn"
-sources ← •Import "report_source_adapter.bqn"
+actualSource ← •Import "actual_source_adapter.bqn"
 registryBuilder ← •Import "../ledger/currency_registry.bqn"
 transactionRows ← •Import "../ledger/transaction_rows.bqn"
 LoadTransactionRows ← {𝕊 base:
   registryResult ← registryBuilder.Build io.ReadLines "config/currencies.tsv"
   {𝕊:•Out "ERROR: currency registry rejected" ⋄ •Exit 1}⍟(registryResult.state≢"ok") @
-  admitted ← sources.CanonicalActual ⟨base,registryResult.registry⟩
+  admitted ← actualSource.Load ⟨base,registryResult.registry⟩
   {𝕊:•Out "ERROR: canonical Actual source rejected" ⋄ •Exit 1}⍟(admitted.state≢"ok") @
   view ← transactionRows.Build admitted.facts
   {𝕊:•Out "ERROR: canonical Actual transaction view rejected" ⋄ •Exit 1}⍟(view.state≢"ok") @
@@ -34,6 +34,5 @@ CompletionEvidence ← {𝕊 base: CompletionEvidenceFromRows LoadTransactionRow
 
 {
   LoadTransactionRows⇐LoadTransactionRows,
-  CompletionEvidenceFromRows⇐CompletionEvidenceFromRows,
   CompletionEvidence⇐CompletionEvidence
 }

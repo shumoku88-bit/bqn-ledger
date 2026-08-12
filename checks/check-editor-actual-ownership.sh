@@ -5,9 +5,11 @@ cd "$root"
 work=$(mktemp -d "${TMPDIR:-/tmp}/bqn-ledger-editor-actual.XXXXXX")
 trap 'rm -rf "$work"' EXIT
 
-if rg -n '•SH|/data/|fallbackId|physical_fallback|accounts\.tsv|config\.tsv|ACTUAL_JOURNAL_FILE' src/application/editor_actual.bqn >/dev/null; then
-  echo 'FAIL: strict editor Actual owner gained legacy source, path fallback, or fabricated identity' >&2; exit 1
+if rg -n '•SH|/data/|fallbackId|physical_fallback|accounts\.tsv|config\.tsv|ACTUAL_JOURNAL_FILE|report_source_adapter\.bqn' src/application/editor_actual.bqn >/dev/null; then
+  echo 'FAIL: strict editor Actual owner gained legacy source, Report aggregate dependency, path fallback, or fabricated identity' >&2; exit 1
 fi
+grep -Fq 'actualSource ← •Import "actual_source_adapter.bqn"' src/application/editor_actual.bqn \
+  || { echo 'FAIL: editor Actual must use the canonical Actual source owner directly' >&2; exit 1; }
 if rg -n 'accounts\.tsv|editor_accounts\.bqn' src_edit/journal_block_add_cmd.bqn >/dev/null; then
   echo 'FAIL: native Journal append still reads legacy Account TSV evidence' >&2; exit 1
 fi
