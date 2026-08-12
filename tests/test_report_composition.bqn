@@ -73,6 +73,12 @@ CheckGolden ⟨dailyTarget,"daily-target","human","daily_target.destination.huma
 issues ← compose.Issues ⟨loader.ReadLines base∾"issues.destination.tsv",registry⟩
 CheckGolden ⟨issues,"issues","human","issues.destination.human.txt"⟩
 
+deficitAsset ← {asset_id⇐"cash",currency⇐"JPY",coefficient⇐100,scale⇐0,decision⇐"include",reference⇐Ref "cash",contributors⇐⟨Ref "cash"⟩}
+deficitAssetScope ← {state⇐"resolved",scope_id⇐"assets",basis_kind⇐"account_balance",rows⇐⟨deficitAsset⟩}
+deficitTarget ← compose.DailyTarget ⟨"2026-01-10","2026-01-20","JPY",deficitAssetScope,obligationScope⟩
+"ok" lib.AssertEq deficitTarget.state
+"deficit" lib.AssertEq deficitTarget.result.state
+
 unavailableAssets ← {state⇐"unavailable",scope_id⇐"missing",basis_kind⇐"account_balance",rows⇐⟨⟩}
 unavailableTarget ← compose.DailyTarget ⟨"2026-01-10","2026-01-20","JPY",unavailableAssets,obligationScope⟩
 "unavailable" lib.AssertEq unavailableTarget.state
