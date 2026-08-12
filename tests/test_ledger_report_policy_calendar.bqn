@@ -10,7 +10,7 @@ Q ← {𝕊 text: ⟨quote⟩∾text∾⟨quote⟩}
 Pair ← {𝕊 key‿value:key∾" = "∾Q value}
 HasCode ← {𝕊 code‿diagnostics: ∨´0∾{𝕩.code≡code}¨diagnostics}
 
-RequiredReports ← ⟨
+requiredReports ← ⟨
   "[reports.trial-balance]",Pair ⟨"as-of","latest"⟩,"",
   "[reports.balance-sheet]",Pair ⟨"as-of","latest"⟩,"",
   "[reports.profit-and-loss]",Pair ⟨"from","beginning"⟩,Pair ⟨"through","latest"⟩,"",
@@ -19,7 +19,7 @@ RequiredReports ← ⟨
   "[reports.recent-transactions]",Pair ⟨"through","latest"⟩,"count = 5"
 ⟩
 
-withoutCalendar ← admission.Admit Raw RequiredReports
+withoutCalendar ← admission.Admit Raw requiredReports
 "ok" lib.AssertEq withoutCalendar.state
 "*" lib.AssertEq withoutCalendar.presentation.calendar.cycle_end_marker
 "$" lib.AssertEq withoutCalendar.presentation.calendar.plan_due_marker
@@ -33,7 +33,7 @@ custom ← admission.Admit Raw ⟨
   Pair ⟨"issue-due-marker","!"⟩,
   Pair ⟨"multiple-marker","+"⟩,
   ""
-⟩∾RequiredReports
+⟩∾requiredReports
 "ok" lib.AssertEq custom.state
 "#" lib.AssertEq custom.presentation.calendar.cycle_end_marker
 "$" lib.AssertEq custom.presentation.calendar.plan_due_marker
@@ -42,19 +42,19 @@ custom ← admission.Admit Raw ⟨
 
 multiCharacter ← admission.Admit Raw ⟨
   "[presentation.calendar]",Pair ⟨"cycle-end-marker","**"⟩,""
-⟩∾RequiredReports
+⟩∾requiredReports
 "error" lib.AssertEq multiCharacter.state
 lib.Assert HasCode ⟨"report_policy_calendar_marker_invalid",multiCharacter.diagnostics⟩
 
 wideCharacter ← admission.Admit Raw ⟨
   "[presentation.calendar]",Pair ⟨"issue-due-marker","◇"⟩,""
-⟩∾RequiredReports
+⟩∾requiredReports
 "error" lib.AssertEq wideCharacter.state
 lib.Assert HasCode ⟨"report_policy_calendar_marker_invalid",wideCharacter.diagnostics⟩
 
 unsupportedKey ← admission.Admit Raw ⟨
   "[presentation.calendar]",Pair ⟨"today-marker","@"⟩,""
-⟩∾RequiredReports
+⟩∾requiredReports
 "error" lib.AssertEq unsupportedKey.state
 lib.Assert HasCode ⟨"report_policy_key_unsupported",unsupportedKey.diagnostics⟩
 
