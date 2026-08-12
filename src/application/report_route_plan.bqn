@@ -1,20 +1,17 @@
 # Pure machine-readable route-plan application result.
+# Retained Report routes contain semantic argv coordinates only. Canonical
+# Household physical sources are resolved internally after route admission.
 
 route ← •Import "report_route.bqn"
-empty ← ⟨⟩
 tab ← @+9
 
-Result ← {𝕊 exitCode‿linesValue: {exit_code⇐exitCode,lines⇐linesValue}}
+Result ← {𝕊 exitCode‿linesValue:{exit_code⇐exitCode,lines⇐linesValue}}
 ErrorLine ← {𝕊 diagnostic:
   "ERROR"∾tab∾diagnostic.code∾tab∾diagnostic.message
 }
-SourceLine ← {𝕊 sourceIndex‿sources:
-  ("SOURCE"∾tab∾(•Fmt sourceIndex⊑sources.argument_index)∾tab∾(sourceIndex⊑sources.kind)∾tab∾(sourceIndex⊑sources.role))
-}
 Success ← {𝕊 admitted:
-  header ← ("ROUTE"∾tab∾admitted.key∾tab∾admitted.surface∾tab∾(•Fmt ≠admitted.coordinates)∾tab∾(•Fmt admitted.sources.count))
-  sourceLines ← {𝕊 sourceIndex: SourceLine ⟨sourceIndex,admitted.sources⟩}¨admitted.sources.index
-  Result ⟨0,⟨header⟩∾sourceLines⟩
+  header ← "ROUTE"∾tab∾admitted.key∾tab∾admitted.surface∾tab∾•Fmt ≠admitted.coordinates
+  Result ⟨0,⟨header⟩⟩
 }
 Failure ← {𝕊 admitted:
   Result ⟨1,ErrorLine¨admitted.diagnostics⟩

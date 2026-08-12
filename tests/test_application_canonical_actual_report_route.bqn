@@ -15,8 +15,7 @@ cases ← ⟨
 {𝕊 key‿surface‿coordinates:
   admitted ← route.Admit ⟨key,surface,coordinates⟩
   "ok" lib.AssertEq admitted.state
-  0 lib.AssertEq admitted.sources.count
-  0 lib.AssertEq ≠admitted.sources.name
+  coordinates lib.AssertEq admitted.coordinates
 
   withPhysicalSource ← coordinates∾⟨"actual.journal"⟩
   rejected ← route.Admit ⟨key,surface,withPhysicalSource⟩

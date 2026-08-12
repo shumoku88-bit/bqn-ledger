@@ -12,8 +12,6 @@ CheckOk ← {𝕊 catalogIndex‿key‿surface‿coordinates‿coordinateRoles:
   catalogIndex lib.AssertEq result.catalog_index
   coordinates lib.AssertEq result.coordinates
   coordinateRoles lib.AssertEq result.coordinate_role
-  0 lib.AssertEq result.sources.count
-  0 lib.AssertEq ≠result.sources.name
   0 lib.AssertEq ≠result.diagnostics
 }
 
@@ -35,7 +33,7 @@ successCases ← ⟨
 (catalog.Table @).key lib.AssertEq {1⊑𝕩}¨successCases
 CheckOk¨successCases
 
-HasCode ← {𝕊 code‿diagnostics: ∨´0∾code⊸≡¨{𝕩.code}¨diagnostics}
+HasCode ← {𝕊 code‿diagnostics:∨´0∾code⊸≡¨{𝕩.code}¨diagnostics}
 CheckError ← {𝕊 key‿surface‿coordinates‿code:
   result ← route.Admit ⟨key,surface,coordinates⟩
   "error" lib.AssertEq result.state
@@ -44,7 +42,6 @@ CheckError ← {𝕊 key‿surface‿coordinates‿code:
   0 lib.AssertEq ≠result.catalog_index
   0 lib.AssertEq ≠result.coordinates
   0 lib.AssertEq ≠result.coordinate_role
-  0 lib.AssertEq result.sources.count
   1 lib.AssertEq HasCode ⟨code,result.diagnostics⟩
 }
 
