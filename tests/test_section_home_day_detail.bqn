@@ -2,7 +2,7 @@
 
 lib ← •Import "test_lib.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
-section ← •Import "../src/sections/home_day_detail.bqn"
+section ← •Import "../src/sections/home_calendar.bqn"
 
 lf ← @+10
 selectedDate ← "2026-08-12"
@@ -45,7 +45,7 @@ cycle ← {
   start_ordinal⇐dates.Ordinal "2026-07-01",end_exclusive_ordinal⇐dates.Ordinal "2026-08-13"
 }
 
-result ← section.Build ⟨calendar,transactionRows,planned,issues,cycle,selectedDate⟩
+result ← section.BuildDetail ⟨calendar,transactionRows,planned,issues,cycle,selectedDate⟩
 "ok" lib.AssertEq result.state
 selectedDate lib.AssertEq result.date
 1 lib.AssertEq result.actual.count
@@ -72,7 +72,7 @@ expected ← ∾⟨
   "  2026-07-01 .. 2026-08-13 (end exclusive)",lf,
   "  cycle end day",lf
 ⟩
-expected lib.AssertEq section.FormatHuman result
+expected lib.AssertEq section.FormatDetailHuman result
 
 emptyCalendar ← {
   state⇐"ok",
@@ -81,13 +81,13 @@ emptyCalendar ← {
     actual_indices⇐⟨⟨⟩⟩,plan_indices⇐⟨⟨⟩⟩,issue_indices⇐⟨⟨⟩⟩
   }
 }
-emptyResult ← section.Build ⟨emptyCalendar,transactionRows,planned,issues,cycle,"2026-08-11"⟩
+emptyResult ← section.BuildDetail ⟨emptyCalendar,transactionRows,planned,issues,cycle,"2026-08-11"⟩
 0 lib.AssertEq emptyResult.actual.count
 0 lib.AssertEq emptyResult.plans.count
 0 lib.AssertEq emptyResult.issues.count
 
-outside ← section.Build ⟨calendar,transactionRows,planned,issues,cycle,"2026-08-13"⟩
+outside ← section.BuildDetail ⟨calendar,transactionRows,planned,issues,cycle,"2026-08-13"⟩
 "error" lib.AssertEq outside.state
-"selected_date_outside_month" lib.AssertEq (⊑outside.diagnostics).code
+"detail_date_outside_month" lib.AssertEq (⊑outside.diagnostics).code
 
 •Out "test_section_home_day_detail: ok"
