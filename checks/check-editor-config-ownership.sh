@@ -5,13 +5,15 @@ cd "$root"
 work=$(mktemp -d "${TMPDIR:-/tmp}/bqn-ledger-editor-config.XXXXXX")
 trap 'rm -rf "$work"' EXIT
 
-modules=(
-  src/application/config_rows.bqn
-  src/application/system_defaults.bqn
-  src/application/editor_config_path.bqn
-)
-if rg -n '•SH|POLICY_(BUDGET|RISK|INCOME)|HOUSEHOLD_GROUP' "${modules[@]}" >/dev/null; then
-  echo 'FAIL: editor config owner gained old runtime/report policy or shell fallback' >&2; exit 1
+[[ ! -e src/application/system_defaults.bqn ]] \
+  || { echo 'FAIL: retired system defaults owner returned' >&2; exit 1; }
+[[ ! -e src/application/editor_config_path.bqn ]] \
+  || { echo 'FAIL: retired editor config path owner returned' >&2; exit 1; }
+if rg -n '•SH|POLICY_(BUDGET|RISK|INCOME)|HOUSEHOLD_GROUP' src/application/config_rows.bqn >/dev/null; then
+  echo 'FAIL: bounded config row matcher gained runtime/report policy or shell fallback' >&2; exit 1
+fi
+if rg -n 'system_defaults\.bqn|editor_config_path\.bqn|actual_journal_config\.bqn' src src_edit >/dev/null; then
+  echo 'FAIL: retired editor/config compatibility owner is still referenced by production code' >&2; exit 1
 fi
 bqn tests/test_application_editor_config.bqn >/dev/null
 
@@ -25,10 +27,6 @@ actual_file="$(bqn src_edit/actual_journal_file_cmd.bqn "$work/no-config")"
 
 if rg -n 'ACTUAL_JOURNAL_FILE|config\.tsv|editor_config_path|actual_journal_admission' src_edit/actual_journal_file_cmd.bqn; then
   echo 'FAIL: canonical Actual target still depends on legacy config admission' >&2
-  exit 1
-fi
-if rg -n 'actual_journal_config\.bqn' src src_edit; then
-  echo 'FAIL: retired Actual config-shaped wrapper is still referenced by production code' >&2
   exit 1
 fi
 
