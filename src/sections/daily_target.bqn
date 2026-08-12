@@ -3,6 +3,7 @@
 amount ← •Import "../ledger/amount_text.bqn"
 text ← •Import "../report/text.bqn"
 empty ← ⟨⟩
+lf ← @+10
 
 EmptyCalculation ← {𝕊:
   {
@@ -39,12 +40,7 @@ FormatHuman ← {𝕊 input:
   {𝕊: result↩0⊑input ⋄ style↩(1⊑input).negative_style}⍟((0<≡input) ∧ (2=≠input)) @
   Fmt ← {𝕊 coeff‿scale: text.FormatAmount ⟨coeff,scale,style⟩}
   calculation ← result.calculation
-  out ← "== Daily Target =="∾(@+10)
-  out ∾↩ "Observation: "∾result.observation∾(@+10)
-  out ∾↩ "Target date: "∾result.target_date∾" ("∾(•Fmt calculation.remaining_days)∾" days)"∾(@+10)∾(@+10)
   assetRows ← {𝕊 row:⟨row.asset_id,Fmt ⟨row.coefficient,row.scale⟩⟩}¨result.asset_evidence
-  out ∾↩ "Eligible asset evidence"∾(@+10)
-  out ∾↩ text.RenderTable ⟨⟨"Asset","Amount"⟩,assetRows,⟨1⟩⟩
   obligationRows ← {𝕊 row:
     reservation ← row.reservation_state
     {𝕊:reservation↩reservation∾":"∾row.reservation_ref}⍟(0<≠row.reservation_ref) @
@@ -54,9 +50,6 @@ FormatHuman ← {𝕊 input:
       Fmt ⟨row.deduction_coefficient,row.scale⟩,reservation
     ⟩
   }¨result.obligation_evidence
-  out ∾↩ (@+10)∾"Open obligation evidence"∾(@+10)
-  {𝕊:out∾↩text.RenderTable ⟨⟨"Obligation","Gross","Already excluded","Deduction","Reservation"⟩,obligationRows,⟨1,2,3⟩⟩}⍟(0<≠obligationRows) @
-  {𝕊:out∾↩"  (none)"∾(@+10)}⍟(0=≠obligationRows) @
   calculationRows ← ⟨
     ⟨"Eligible assets",Fmt ⟨calculation.eligible_assets,result.scale⟩⟩,
     ⟨"Gross obligations",Fmt ⟨calculation.gross_obligations,result.scale⟩⟩,
@@ -66,10 +59,19 @@ FormatHuman ← {𝕊 input:
     ⟨"Daily target",Fmt ⟨calculation.daily_target,result.scale⟩⟩,
     ⟨"Daily shortfall",Fmt ⟨calculation.daily_shortfall,result.scale⟩⟩
   ⟩
-  out ∾↩ (@+10)∾"Calculation"∾(@+10)
-  out ∾↩ text.RenderTable ⟨⟨"Coordinate","Amount"⟩,calculationRows,⟨1⟩⟩
-  out ∾↩ "Status: "∾result.state∾(@+10)∾(@+10)
-  out
+
+  headingText ← ∾{𝕩∾lf}¨⟨
+    "== Daily Target ==",
+    ("Observation: "∾result.observation),
+    ("Target date: "∾result.target_date∾" ("∾(•Fmt calculation.remaining_days)∾" days)"),
+    ""
+  ⟩
+  assetBlock ← "Eligible asset evidence"∾lf∾text.RenderTable ⟨⟨"Asset","Amount"⟩,assetRows,⟨1⟩⟩
+  obligationBody ← (0<≠obligationRows)⊑⟨"  (none)"∾lf,text.RenderTable ⟨⟨"Obligation","Gross","Already excluded","Deduction","Reservation"⟩,obligationRows,⟨1,2,3⟩⟩⟩
+  obligationBlock ← lf∾"Open obligation evidence"∾lf∾obligationBody
+  calculationBlock ← lf∾"Calculation"∾lf∾text.RenderTable ⟨⟨"Coordinate","Amount"⟩,calculationRows,⟨1⟩⟩
+  statusText ← ∾{𝕩∾lf}¨⟨("Status: "∾result.state),""⟩
+  ∾⟨headingText,assetBlock,obligationBlock,calculationBlock,statusText⟩
 }
 
 FormatCompact ← {𝕊 result:
@@ -85,7 +87,7 @@ FormatCompact ← {𝕊 result:
     ⟨"amount",AmountText ⟨calculation.daily_target,result.scale⟩⟩,
     ⟨"shortfall",AmountText ⟨calculation.daily_shortfall,result.scale⟩⟩
   ⟩
-  "--- Ledger Daily Target ---"∾(@+10)∾∾{𝕊 field:"ledger_daily_target_"∾(0⊑field)∾": "∾(1⊑field)∾(@+10)}¨fields
+  "--- Ledger Daily Target ---"∾lf∾∾{𝕊 field:"ledger_daily_target_"∾(0⊑field)∾": "∾(1⊑field)∾lf}¨fields
 }
 
 {Build⇐Build,FormatHuman⇐FormatHuman,FormatCompact⇐FormatCompact}
