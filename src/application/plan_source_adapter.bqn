@@ -11,13 +11,11 @@ rootAdmission ← •Import "../ledger/canonical_journal_root_admission.bqn"
 planAdmission ← •Import "../ledger/plan_journal_admission.bqn"
 facts ← •Import "../ledger/facts.bqn"
 
-Join ← {𝕊 base‿name: base∾(('/'≠¯1↑base)/"/")∾name}
-
 Load ← {𝕊 base‿registry:
   accountResult ← accountSource.Load base
   result ← {state⇐"error",diagnostics⇐accountResult.diagnostics}
   {𝕊:
-    raw ← io.ReadRaw Join ⟨base,sources.plan⟩
+    raw ← io.ReadRaw (io.JoinPath ⟨base,sources.plan⟩)
     rootResult ← rootAdmission.Admit ⟨raw,sources.accounts⟩
     result↩{state⇐"error",diagnostics⇐rootResult.diagnostics}
     {𝕊:
