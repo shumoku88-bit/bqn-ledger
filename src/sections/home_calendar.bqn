@@ -98,9 +98,10 @@ Build ← {𝕊 actualFacts‿planned‿issues‿cycle‿focusDate:
 
 # Encode the three independent calendar marker meanings as bits. Codes with two
 # or three facts map to the explicit multiple marker, so no hidden priority is
-# introduced by presentation.
+# introduced by presentation. Parentheses keep the 1/2/4 weights explicit under
+# BQN's right-to-left expression evaluation.
 Markers ← {𝕊 result‿calendar:
-  codes ← result.days.cycle_end + 2×result.days.plan_due + 4×result.days.issue_due
+  codes ← result.days.cycle_end + (2×result.days.plan_due) + (4×result.days.issue_due)
   table ← ⟨
     " ",calendar.cycle_end_marker,calendar.plan_due_marker,calendar.multiple_marker,
     calendar.issue_due_marker,calendar.multiple_marker,calendar.multiple_marker,calendar.multiple_marker
