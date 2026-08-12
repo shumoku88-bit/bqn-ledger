@@ -7,8 +7,8 @@ Fail ← {𝕊 code‿message:•Out "ERROR"∾tab∾code∾tab∾message ⋄ �
 PrintDiagnostics ← {𝕊 diagnostics:{𝕊 diagnostic:•Out "ERROR"∾tab∾diagnostic.code∾tab∾diagnostic.message}¨diagnostics ⋄ •Exit 1}
 
 {𝕊:Fail ⟨"usage","expected BASE [DOMAIN]"⟩}⍟(2<≠args) @
-base ← ⊑args ⋄ requested ← ""
-{𝕊:requested↩1⊑args}⍟(2=≠args) @
+base ← ⊑args
+requested ← (2=≠args)◶⟨{𝕊:""},{𝕊:1⊑args}⟩ @
 registryResult ← sources.Registry "config/currencies.tsv"
 {𝕊:Fail ⟨registryResult.code,registryResult.message⟩}⍟(registryResult.state≢"ok") @
 actual ← sources.CanonicalActual ⟨base,registryResult.registry⟩
