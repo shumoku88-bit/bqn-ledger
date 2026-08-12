@@ -172,7 +172,6 @@ Closeout: `docs/REPORT_PHASE_FOUR_REVIEW_CLOSEOUT-2026-08-12.md`.
 - [x] `src/application/daily_scope_admission.bqn` — #707
 - [ ] `src/application/date_today.bqn`
 - [ ] `src/application/editor_actual.bqn`
-- [ ] `src/application/editor_config_path.bqn`
 - [ ] `src/application/editor_currency.bqn`
 - [ ] `src/application/editor_plan_rows.bqn`
 - [ ] `src/application/funding_scope.bqn`
@@ -196,7 +195,6 @@ Closeout: `docs/REPORT_PHASE_FOUR_REVIEW_CLOSEOUT-2026-08-12.md`.
 - [ ] `src/application/report_selection_cli.bqn`
 - [ ] `src/application/report_source_adapter.bqn`
 - [ ] `src/application/source_io.bqn`
-- [ ] `src/application/system_defaults.bqn`
 
 ## Phase 6: `src/editor/` and `src_edit/`
 
