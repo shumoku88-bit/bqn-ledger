@@ -13,11 +13,8 @@ EmptyResult ← {𝕊 diagnosticsValue:
 }
 
 Supports ← {𝕊 entry‿surface:
-  supported ← 0
-  {𝕊:supported↩entry.human}⍟(surface≡"human") @
-  {𝕊:supported↩entry.compact}⍟(surface≡"compact") @
-  {𝕊:supported↩entry.json}⍟(surface≡"json") @
-  supported
+  surfaceIndex ← ⊑(surface⊸≡¨surfaces)⊐1
+  surfaceIndex⊑⟨entry.human,entry.compact,entry.json⟩
 }
 
 Validate ← {𝕊 keyValue‿surface:
@@ -40,7 +37,7 @@ Validate ← {𝕊 keyValue‿surface:
       {𝕊:
         supported ← Supports ⟨found.entry,surface⟩
         diagnostics∾↩(¬supported)/⟨Diagnostic ⟨"report_surface_unsupported","requested report does not support this surface"⟩⟩
-        {𝕊:indices↩⟨⊑(keyValue⊸≡¨table.key)/table.index⟩}⍟supported @
+        {𝕊:indices↩⟨found.index⟩}⍟supported @
       }⍟(found.state≡"ok") @
     }⍟(keyValue≢"all") @
   }⍟surfaceKnown @
