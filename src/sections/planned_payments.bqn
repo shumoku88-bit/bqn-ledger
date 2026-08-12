@@ -11,13 +11,8 @@ amount ← •Import "../ledger/amount_text.bqn"
 text ← •Import "../report/text.bqn"
 json ← •Import "../report/json_text.bqn"
 empty ← ⟨⟩
+lf ← @+10
 
-Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
-Unique ← {𝕊 items:
-  output ← empty
-  {𝕊 item: {𝕊: output∾↩⟨item⟩}⍟(¬Contains ⟨item,output⟩) @}¨items
-  output
-}
 IndexOf ← {𝕊 item‿items: ⊑(item⊸≡¨items)⊐1}
 Diagnostic ← {𝕊 codeText‿messageText:
   {severity⇐"error",stage⇐"section_planned_payments",code⇐codeText,message⇐messageText}
@@ -84,7 +79,6 @@ Build ← {𝕊 planFacts‿actualFacts‿cycle‿asOfText:
       diagnostics ∾↩ AddIf ⟨joined.counts.duplicate>0,Diagnostic ⟨"completion_duplicate","duplicate Actual completion evidence cannot be rendered as paid"⟩⟩
       diagnostics ∾↩ AddIf ⟨joined.counts.ambiguous>0,Diagnostic ⟨"completion_ambiguous","conflicting Actual completion evidence cannot be rendered"⟩⟩
 
-      candidateRows ← empty
       {𝕊 rowIndex:
         relationStatus ← rowIndex⊑joined.rows.status
         completed ← relationStatus≡"completed"
@@ -95,40 +89,41 @@ Build ← {𝕊 planFacts‿actualFacts‿cycle‿asOfText:
         }⍟completed @
         diagnostics ∾↩ AddIf ⟨completed ∧ ¬currencyMatch,Diagnostic ⟨"completion_currency_mismatch","completed Plan and Actual currency must agree"⟩⟩
         diagnostics ∾↩ AddIf ⟨completed ∧ ¬directionMatch,Diagnostic ⟨"completion_direction_mismatch","completed Plan and Actual Account directions must agree"⟩⟩
-
-        {𝕊:
-          planTransactionIndex ← rowIndex⊑joined.rows.plan_transaction_index
-          planDate ← rowIndex⊑joined.rows.plan_date
-          planOrdinal ← dates.Ordinal planDate
-          timeGroup ← "current_cycle"
-          {𝕊: timeGroup↩"overdue"}⍟(planOrdinal<startOrdinal) @
-          {𝕊: timeGroup↩"future_cycles"}⍟(planOrdinal≥endOrdinal) @
-
-          temporalStatus ← planStatus.Classify ⟨planDate,asOfText⟩
-
-          fromAccount ← rowIndex⊑joined.rows.planned_from_account
-          toAccount ← rowIndex⊑joined.rows.planned_to_account
-          fromIndex ← IndexOf ⟨fromAccount,planFacts.accounts.key⟩
-          categoryAccount ← toAccount
-          {𝕊: categoryAccount↩fromAccount}⍟((fromIndex⊑planFacts.accounts.role)≡"income") @
-          categoryIndex ← IndexOf ⟨categoryAccount,planFacts.accounts.key⟩
-
-          candidateRows∾↩⟨{
-            status⇐temporalStatus,time_group⇐timeGroup,date⇐planDate,
-            category⇐CategoryLabel ⟨categoryAccount,categoryIndex⊑planFacts.accounts.role⟩,
-            memo⇐planTransactionIndex⊑planFacts.transactions.description,
-            plan_id⇐rowIndex⊑joined.rows.plan_id,currency⇐rowIndex⊑joined.rows.currency,
-            planned_coefficient⇐rowIndex⊑joined.rows.planned_coefficient,
-            planned_scale⇐rowIndex⊑joined.rows.planned_scale,
-            from_account⇐fromAccount,to_account⇐toAccount,
-            plan_reference⇐rowIndex⊑joined.rows.plan_reference,
-            planned_contributors⇐(rowIndex⊑joined.rows.planned_debit_contributors)∾rowIndex⊑joined.rows.planned_credit_contributors
-          }⟩
-        }⍟(relationStatus≡"open") @
       }¨joined.rows.index
 
+      openIndices ← ("open"⊸≡¨joined.rows.status)/joined.rows.index
+      candidateRows ← {𝕊 rowIndex:
+        planTransactionIndex ← rowIndex⊑joined.rows.plan_transaction_index
+        planDate ← rowIndex⊑joined.rows.plan_date
+        planOrdinal ← dates.Ordinal planDate
+        timeGroup ← "current_cycle"
+        {𝕊: timeGroup↩"overdue"}⍟(planOrdinal<startOrdinal) @
+        {𝕊: timeGroup↩"future_cycles"}⍟(planOrdinal≥endOrdinal) @
+
+        temporalStatus ← planStatus.Classify ⟨planDate,asOfText⟩
+
+        fromAccount ← rowIndex⊑joined.rows.planned_from_account
+        toAccount ← rowIndex⊑joined.rows.planned_to_account
+        fromIndex ← IndexOf ⟨fromAccount,planFacts.accounts.key⟩
+        categoryAccount ← toAccount
+        {𝕊: categoryAccount↩fromAccount}⍟((fromIndex⊑planFacts.accounts.role)≡"income") @
+        categoryIndex ← IndexOf ⟨categoryAccount,planFacts.accounts.key⟩
+
+        {
+          status⇐temporalStatus,time_group⇐timeGroup,date⇐planDate,
+          category⇐CategoryLabel ⟨categoryAccount,categoryIndex⊑planFacts.accounts.role⟩,
+          memo⇐planTransactionIndex⊑planFacts.transactions.description,
+          plan_id⇐rowIndex⊑joined.rows.plan_id,currency⇐rowIndex⊑joined.rows.currency,
+          planned_coefficient⇐rowIndex⊑joined.rows.planned_coefficient,
+          planned_scale⇐rowIndex⊑joined.rows.planned_scale,
+          from_account⇐fromAccount,to_account⇐toAccount,
+          plan_reference⇐rowIndex⊑joined.rows.plan_reference,
+          planned_contributors⇐(rowIndex⊑joined.rows.planned_debit_contributors)∾rowIndex⊑joined.rows.planned_credit_contributors
+        }
+      }¨openIndices
+
       {𝕊:
-        selectedCurrencies ← Unique {𝕩.currency}¨candidateRows
+        selectedCurrencies ← ⍷({𝕩.currency}¨candidateRows)
         diagnostics ∾↩ AddIf ⟨1<≠selectedCurrencies,Diagnostic ⟨"currency_domain_mixed","Planned Payments cannot total multiple currency domains"⟩⟩
         resultCurrency ← ""
         {𝕊: resultCurrency↩⊑selectedCurrencies}⍟(0<≠selectedCurrencies) @
@@ -197,49 +192,60 @@ FormatHuman ← {𝕊 input:
   result ← input ⋄ style ← "minus"
   {𝕊: result↩0⊑input ⋄ style↩(1⊑input).negative_style}⍟((0<≡input) ∧ (2=≠input)) @
   Fmt ← {𝕊 coeff‿scale: text.FormatAmount ⟨coeff,scale,style⟩}
-  out ← "== Planned Payments =="∾(@+10)∾(@+10)
+  currentCycleRows ← {
+    ⟨𝕩⊑result.rows.date,𝕩⊑result.rows.category,𝕩⊑result.rows.memo,
+      Fmt ⟨𝕩⊑result.rows.planned_coefficient,𝕩⊑result.rows.planned_scale⟩,
+      𝕩⊑result.rows.status⟩
+  }¨result.current_cycle_indices
+
+  headingText ← "== Planned Payments =="∾lf∾lf
+  overdueBlock ← ""
   {𝕊:
     overdueRows ← {
       ⟨𝕩⊑result.rows.date,𝕩⊑result.rows.category,𝕩⊑result.rows.memo,
         Fmt ⟨𝕩⊑result.rows.planned_coefficient,𝕩⊑result.rows.planned_scale⟩,
         𝕩⊑result.rows.status⟩
     }¨result.overdue_indices
-    out ∾↩ "── 期限超過の未払い ──"∾(@+10)
-    out ∾↩ text.RenderTable ⟨⟨"Date","Category","Memo","Amount","Status"⟩,overdueRows,⟨3⟩⟩
-    out ∾↩ (@+10)
+    overdueBlock↩∾⟨
+      "── 期限超過の未払い ──",lf,
+      text.RenderTable ⟨⟨"Date","Category","Memo","Amount","Status"⟩,overdueRows,⟨3⟩⟩,lf
+    ⟩
   }⍟(0<≠result.overdue_indices) @
-  currentCycleRows ← {
-    ⟨𝕩⊑result.rows.date,𝕩⊑result.rows.category,𝕩⊑result.rows.memo,
-      Fmt ⟨𝕩⊑result.rows.planned_coefficient,𝕩⊑result.rows.planned_scale⟩,
-      𝕩⊑result.rows.status⟩
-  }¨result.current_cycle_indices
-  out ∾↩ "── 今サイクルの未払い ──"∾(@+10)
-  out ∾↩ text.RenderTable ⟨⟨"Date","Category","Memo","Amount","Status"⟩,currentCycleRows,⟨3⟩⟩
-  out ∾↩ (@+10)∾"今サイクル未払い合計: "∾(Fmt ⟨result.current_cycle_total_coefficient,result.current_cycle_total_scale⟩)∾(@+10)
+  currentBlock ← ∾⟨
+    "── 今サイクルの未払い ──",lf,
+    text.RenderTable ⟨⟨"Date","Category","Memo","Amount","Status"⟩,currentCycleRows,⟨3⟩⟩,
+    lf,"今サイクル未払い合計: ",Fmt ⟨result.current_cycle_total_coefficient,result.current_cycle_total_scale⟩,lf
+  ⟩
+  futureBlock ← ""
   {𝕊:
-    out ∾↩ (@+10)∾"── サイクル外の予定 ──"∾(@+10)
     futureCycleRows ← {
       ⟨𝕩⊑result.rows.date,𝕩⊑result.rows.category,𝕩⊑result.rows.memo,
         Fmt ⟨𝕩⊑result.rows.planned_coefficient,𝕩⊑result.rows.planned_scale⟩⟩
     }¨result.future_cycle_indices
-    out ∾↩ text.RenderTable ⟨⟨"Date","Category","Memo","Amount"⟩,futureCycleRows,⟨3⟩⟩
+    futureBlock↩∾⟨
+      lf,"── サイクル外の予定 ──",lf,
+      text.RenderTable ⟨⟨"Date","Category","Memo","Amount"⟩,futureCycleRows,⟨3⟩⟩
+    ⟩
   }⍟(0<≠result.future_cycle_indices) @
-  out ∾↩ (@+10)∾(@+10)∾"[Status]"∾(@+10)
-  out ∾↩ "future  : これから"∾(@+10)
-  out ∾↩ "due     : 今日が期限"∾(@+10)
-  out ∾↩ "overdue : 期限超過 ⚠"∾(@+10)∾(@+10)
-  out
+  statusText ← ∾⟨
+    lf,lf,"[Status]",lf,
+    "future  : これから",lf,
+    "due     : 今日が期限",lf,
+    "overdue : 期限超過 ⚠",lf,lf
+  ⟩
+  ∾⟨headingText,overdueBlock,currentBlock,futureBlock,statusText⟩
 }
 
 FormatCompact ← {𝕊 result:
-  out ← "--- Ledger Planned Payments ---"∾(@+10)
-  {𝕊 index:
-    out ∾↩ "ledger_planned_payment: "∾(index⊑result.rows.date)∾" planned "
-    out ∾↩ (index⊑result.rows.memo)∾" "∾(index⊑result.rows.from_account)∾" "∾(index⊑result.rows.to_account)∾" "
-    out ∾↩ (AmountText ⟨index⊑result.rows.planned_coefficient,index⊑result.rows.planned_scale⟩)∾(@+10)
+  rowLines ← {𝕊 index:
+    ∾⟨
+      "ledger_planned_payment: ",index⊑result.rows.date," planned ",
+      index⊑result.rows.memo," ",index⊑result.rows.from_account," ",index⊑result.rows.to_account," ",
+      AmountText ⟨index⊑result.rows.planned_coefficient,index⊑result.rows.planned_scale⟩
+    ⟩
   }¨result.rows.index
-  {𝕊: out∾↩"ledger_planned_payment: (none)"∾(@+10)}⍟(0=result.rows.count) @
-  out
+  bodyLines ← rowLines∾((0=result.rows.count)/⟨"ledger_planned_payment: (none)"⟩)
+  ∾{𝕩∾lf}¨⟨"--- Ledger Planned Payments ---"⟩∾bodyLines
 }
 
 FormatJson ← {𝕊 result:
