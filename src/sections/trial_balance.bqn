@@ -6,6 +6,7 @@ dates ← •Import "../ledger/date_ordinal.bqn"
 amount ← •Import "../ledger/amount_text.bqn"
 text ← •Import "../report/text.bqn"
 empty ← ⟨⟩
+lf ← @+10
 
 columnCoordinates ← ⟨"opening","debit_movement","credit_movement","closing"⟩
 Diagnostic ← {𝕊 codeText‿messageText:
@@ -83,43 +84,53 @@ FormatHuman ← {𝕊 input:
   {𝕊: result↩0⊑input ⋄ style↩(1⊑input).negative_style}⍟((0<≡input) ∧ (2=≠input)) @
   maxName ← ⌈´⟨7⟩∾text.VWidth¨result.account_labels
   divider ← (maxName⥊'-')∾"-+--------------+--------------+--------------+--------------"
-  out ← "== Trial Balance ("∾result.layer∾" layer) =="∾(@+10)
-  out ∾↩ "Period: "∾result.period_start∾"〜"∾result.period_end_exclusive∾(@+10)
-  out ∾↩ "As of : "∾result.as_of∾(@+10)∾(@+10)
-  out ∾↩ (maxName⥊' ')∾" |      Opening |        Debit |       Credit |      Closing "∾(@+10)
-  out ∾↩ divider∾(@+10)
-  {𝕊 rowIndex:
+  tableHeader ← (maxName⥊' ')∾" |      Opening |        Debit |       Credit |      Closing "
+  rowLines ← {𝕊 rowIndex:
     values ← rowIndex⊑result.matrix.values
-    out ∾↩ (text.PadRight ⟨maxName,rowIndex⊑result.account_labels⟩)∾" | "
-    out ∾↩ (AmountCell ⟨0⊑values,result.matrix.scale,style⟩)∾" | "
-    out ∾↩ (AmountCell ⟨1⊑values,result.matrix.scale,style⟩)∾" | "
-    out ∾↩ (AmountCell ⟨2⊑values,result.matrix.scale,style⟩)∾" | "
-    out ∾↩ (AmountCell ⟨3⊑values,result.matrix.scale,style⟩)∾" "∾(@+10)
+    ∾⟨
+      text.PadRight ⟨maxName,rowIndex⊑result.account_labels⟩," | ",
+      AmountCell ⟨0⊑values,result.matrix.scale,style⟩," | ",
+      AmountCell ⟨1⊑values,result.matrix.scale,style⟩," | ",
+      AmountCell ⟨2⊑values,result.matrix.scale,style⟩," | ",
+      AmountCell ⟨3⊑values,result.matrix.scale,style⟩," "
+    ⟩
   }¨result.matrix.row_index
-  out ∾↩ divider∾(@+10)
-  out ∾↩ (text.PadRight ⟨maxName,"Total"⟩)∾" | "
-  out ∾↩ (AmountCell ⟨result.totals.opening,result.matrix.scale,style⟩)∾" | "
-  out ∾↩ (AmountCell ⟨result.totals.debit_movement,result.matrix.scale,style⟩)∾" | "
-  out ∾↩ (AmountCell ⟨result.totals.credit_movement,result.matrix.scale,style⟩)∾" | "
-  out ∾↩ (AmountCell ⟨result.totals.closing,result.matrix.scale,style⟩)∾" "∾(@+10)∾(@+10)
-  out ∾↩ "Zero-sum check (debit=credit): "∾(result.totals.balanced⊑"FAIL"‿"OK")∾(@+10)∾(@+10)
-  out
+  totalLine ← ∾⟨
+    text.PadRight ⟨maxName,"Total"⟩," | ",
+    AmountCell ⟨result.totals.opening,result.matrix.scale,style⟩," | ",
+    AmountCell ⟨result.totals.debit_movement,result.matrix.scale,style⟩," | ",
+    AmountCell ⟨result.totals.credit_movement,result.matrix.scale,style⟩," | ",
+    AmountCell ⟨result.totals.closing,result.matrix.scale,style⟩," "
+  ⟩
+  lines ← ⟨
+    ("== Trial Balance ("∾result.layer∾" layer) =="),
+    ("Period: "∾result.period_start∾"〜"∾result.period_end_exclusive),
+    ("As of : "∾result.as_of),"",tableHeader,divider
+  ⟩∾rowLines∾⟨
+    divider,totalLine,"",
+    ("Zero-sum check (debit=credit): "∾result.totals.balanced⊑"FAIL"‿"OK"),""
+  ⟩
+  ∾{𝕩∾lf}¨lines
 }
 
 FormatCompact ← {𝕊 result:
-  out ← "--- Ledger Trial Balance ---"∾(@+10)
-  out ∾↩ "ledger_trial_balance_period: "∾result.period_start∾".."∾result.period_end_exclusive∾(@+10)
-  out ∾↩ "ledger_trial_balance_layer: "∾result.layer∾(@+10)
-  out ∾↩ "ledger_trial_balance_rows: "∾(•Fmt result.matrix.row_count)∾(@+10)
-  {𝕊 rowIndex:
+  rowLines ← {𝕊 rowIndex:
     values ← rowIndex⊑result.matrix.values
-    out ∾↩ "ledger_trial_balance_row: "∾(rowIndex⊑result.account_labels)
-    out ∾↩ " opening="∾(CellText ⟨0⊑values,result.matrix.scale⟩)
-    out ∾↩ " debit="∾(CellText ⟨1⊑values,result.matrix.scale⟩)
-    out ∾↩ " credit="∾(CellText ⟨2⊑values,result.matrix.scale⟩)
-    out ∾↩ " closing="∾(CellText ⟨3⊑values,result.matrix.scale⟩)∾(@+10)
+    ∾⟨
+      "ledger_trial_balance_row: ",rowIndex⊑result.account_labels,
+      " opening=",CellText ⟨0⊑values,result.matrix.scale⟩,
+      " debit=",CellText ⟨1⊑values,result.matrix.scale⟩,
+      " credit=",CellText ⟨2⊑values,result.matrix.scale⟩,
+      " closing=",CellText ⟨3⊑values,result.matrix.scale⟩
+    ⟩
   }¨result.matrix.row_index
-  out
+  lines ← ⟨
+    "--- Ledger Trial Balance ---",
+    ("ledger_trial_balance_period: "∾result.period_start∾".."∾result.period_end_exclusive),
+    ("ledger_trial_balance_layer: "∾result.layer),
+    ("ledger_trial_balance_rows: "∾•Fmt result.matrix.row_count)
+  ⟩∾rowLines
+  ∾{𝕩∾lf}¨lines
 }
 
 {Build⇐Build,FormatHuman⇐FormatHuman,FormatCompact⇐FormatCompact}
