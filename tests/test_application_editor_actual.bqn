@@ -8,7 +8,7 @@ rows ← actual.LoadTransactionRows "fixtures/plan-completion"
 "" lib.AssertEq (0⊑rows).plan_id
 "plan-2026-01-15-rent" lib.AssertEq (1⊑rows).plan_id
 
-evidence ← actual.CompletionEvidenceFromRows rows
+evidence ← actual.CompletionEvidence "fixtures/plan-completion"
 1 lib.AssertEq ≠evidence
 completed ← ⊑evidence
 "plan-2026-01-15-rent" lib.AssertEq completed.plan_id
