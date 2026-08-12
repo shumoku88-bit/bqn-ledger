@@ -143,6 +143,7 @@ Closeout: `docs/SECTIONS_PHASE_THREE_REVIEW_CLOSEOUT-2026-08-12.md`.
 - [x] `src/sections/daily_flow.bqn` — #687
 - [x] `src/sections/daily_target.bqn` — #689
 - [x] `src/sections/envelope_backing.bqn` — #689
+- [x] `src/sections/home_calendar.bqn` — #736 (BQN-native semantic matrix introduced after Phase 3 closeout)
 - [x] `src/sections/issues.bqn` — #687
 - [x] `src/sections/monthly_accounts.bqn` — #687
 - [x] `src/sections/planned_payments.bqn` — #690
