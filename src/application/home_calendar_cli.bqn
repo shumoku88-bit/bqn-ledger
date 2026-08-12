@@ -9,7 +9,6 @@ cycleResolution ← •Import "cycle_resolution.bqn"
 compose ← •Import "../report/compose.bqn"
 plannedSection ← •Import "../sections/planned_payments.bqn"
 home ← •Import "../sections/home_calendar.bqn"
-detail ← •Import "../sections/home_day_detail.bqn"
 transactionRows ← •Import "../ledger/transaction_rows.bqn"
 dates ← •Import "../ledger/date_ordinal.bqn"
 today ← •Import "date_today.bqn"
@@ -73,9 +72,9 @@ output ← home.FormatHuman ⟨calendar,policy.presentation.calendar⟩
 {𝕊:
   typedRows ← transactionRows.Build actual.facts
   {𝕊:PrintDiagnostics typedRows.diagnostics}⍟(typedRows.state≢"ok") @
-  selected ← detail.Build ⟨calendar,typedRows,planned.result,issues.result,cycle,focus⟩
+  selected ← home.BuildDetail ⟨calendar,typedRows,planned.result,issues.result,cycle,focus⟩
   {𝕊:PrintDiagnostics selected.diagnostics}⍟(selected.state≢"ok") @
-  output↩detail.FormatHuman selected
+  output↩home.FormatDetailHuman selected
 }⍟(mode≡"detail") @
 
 # Home formatters own their final LF; remove it before •Out adds the process newline.
