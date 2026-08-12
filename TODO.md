@@ -57,6 +57,12 @@ Validation density or file size is not itself a defect. Compactness is useful on
 - [ ] remaining migration/compatibility residue classified without duplicating the canonical Household recovery closeout;
 - [ ] checks and tests classified as law guards, characterization evidence, or obsolete topology assumptions.
 
+## Parallel Command Hub design track
+
+Interactive Command Hub information architecture is being designed separately from the BQN-native production review. See `docs/COMMAND_HUB_DRILLDOWN_DESIGN-2026-08-12.md`.
+
+The design separates daily structured Editor actions, read-only Reports, and direct Source & System operations. It does not move the Phase 6 cursor, change writer authority, create a second Report catalog, or authorize runtime shell changes before the navigation hierarchy is accepted.
+
 ## Phase order
 
 1. `src/accounting/` pure accounting kernels
@@ -200,6 +206,17 @@ Retired during review: `src/application/funding_scope.bqn` — #714. See `docs/F
 - [x] `src/application/source_io.bqn` — #729
 
 ## Phase 6: `src/editor/` and `src_edit/`
+
+### Fresh Issue editor observation
+
+Open PR #732 (`feat(issue): retain close lifecycle date`) extends Issue compatibility to the ten-column close-aware shape. Its focused review exposed useful Phase 6 evidence rather than a reason to jump the cursor:
+
+- `issue_list_cmd.bqn` and `issue_close_cmd.bqn` repeat 8/9/10-column schema classification, compatibility normalization, and lifecycle validation already owned semantically by Issue admission;
+- `issue_add_cmd.bqn` selects schema-specific rendering through mutable result staging;
+- `issue_close_cmd.bqn` retains row-local mutation while changing status, close date, and decision text;
+- `src/sections/issues.bqn` and `src_edit/render.bqn` remain comparatively direct relation/projection surfaces.
+
+Do not manufacture an Issue-only generic TSV framework to fix this observation early. Preserve it for the normal Phase 6 owner review, where the wider Editor family can show which duplication is accidental, which shape preservation belongs to the writer boundary, and whether admitted Issue relations can replace command-local semantic re-parsing.
 
 ### `src/editor/`
 
