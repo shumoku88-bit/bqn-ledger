@@ -16,6 +16,7 @@ args ← •args
 tab ← @+9
 legacyHeader ← ⟨"issue_id","status","date","category","title","amount","currency","details"⟩
 dueHeader ← ⟨"issue_id","status","date","due","category","title","amount","currency","details"⟩
+closedHeader ← ⟨"issue_id","status","date","due","closed","category","title","amount","currency","details"⟩
 
 Fail ← {𝕊 msg:
   •Out "ERROR" ∾ tab ∾ msg
@@ -68,9 +69,10 @@ headerFields ← ⟨⟩
 {𝕊:headerFields↩loader.SplitTsvKeepEmpty ⊑allLines}⍟(0<≠allLines) @
 legacySchema ← headerFields≡legacyHeader
 dueSchema ← headerFields≡dueHeader
-headerOk ← (0=≠allLines) ∨ legacySchema ∨ dueSchema
-{𝕊 ⋄ Fail "issues.tsv header must match the supported eight- or nine-column schema"}⍟(¬headerOk) @
-expectedCount ← 8 + dueSchema
+closedSchema ← headerFields≡closedHeader
+headerOk ← (0=≠allLines) ∨ legacySchema ∨ dueSchema ∨ closedSchema
+{𝕊 ⋄ Fail "issues.tsv header must match the supported eight-, nine-, or ten-column schema"}⍟(¬headerOk) @
+expectedCount ← 8 + dueSchema + 2×closedSchema
 
 # Drop the TSV header when present.
 bodyLines ← (0 < ≠ allLines) ◶ ⟨ {𝕊 ⋄ ⟨⟩}, {𝕊 ⋄ 1 ↓ allLines} ⟩ @
@@ -81,11 +83,18 @@ ParseIssueRow ← {𝕊 index:
   lineNum ← index ⊑ bodyNums
   fields ← loader.SplitTsvKeepEmpty line
   {𝕊 ⋄ Fail "issues.tsv row width must match its header"}⍟(expectedCount ≠ ≠ fields) @
+  statusRaw ← 1⊑fields
+  closedFallback ← (statusRaw≡"open")⊑⟨"undetermined","none"⟩
   normalized ← fields
-  {𝕊:normalized↩(3↑fields)∾⟨"undetermined"⟩∾3↓fields}⍟legacySchema @
-  issueId‿status‿date‿due‿category‿title‿amount‿currency‿memo ← normalized
+  {𝕊:normalized↩(3↑fields)∾⟨"undetermined",closedFallback⟩∾3↓fields}⍟legacySchema @
+  {𝕊:normalized↩(4↑fields)∾⟨closedFallback⟩∾4↓fields}⍟dueSchema @
+  issueId‿status‿date‿due‿closed‿category‿title‿amount‿currency‿memo ← normalized
   dueOk ← (due≡"none") ∨ (due≡"undetermined") ∨ 0⊑validate.ValidateDate due
   {𝕊 ⋄ Fail "issues.tsv due must be none, undetermined, or a strict Gregorian date"}⍟(¬dueOk) @
+  closedOk ← (closed≡"none") ∨ (closed≡"undetermined") ∨ 0⊑validate.ValidateDate closed
+  {𝕊 ⋄ Fail "issues.tsv closed must be none, undetermined, or a strict Gregorian date"}⍟(¬closedOk) @
+  lifecycleOk ← (status≡"open") = (closed≡"none")
+  {𝕊 ⋄ Fail "issues.tsv status and closed lifecycle disagree"}⍟(¬lifecycleOk) @
   {
     lineNum ⇐ lineNum ⋄
     fields ⇐ fields ⋄
@@ -93,6 +102,7 @@ ParseIssueRow ← {𝕊 index:
     status ⇐ status ⋄
     date ⇐ date ⋄
     due ⇐ due ⋄
+    closed ⇐ closed ⋄
     category ⇐ category ⋄
     title ⇐ title ⋄
     amount ⇐ amount ⋄
