@@ -32,9 +32,16 @@ RenderJournalRow ⇐ {
   tab Join allFields
 }
 
-# Build one canonical strict eight-column Issues row.
+# Build one retained legacy eight-column Issues row.
 RenderIssueRow ⇐ {
   fields ← 𝕩.issue_id‿𝕩.status‿𝕩.date‿𝕩.category‿𝕩.title‿𝕩.amount‿𝕩.currency‿𝕩.details
+  tab ← @+9
+  tab Join fields
+}
+
+# Build one current nine-column Issues row with an explicit due coordinate.
+RenderIssueRowWithDue ⇐ {
+  fields ← 𝕩.issue_id‿𝕩.status‿𝕩.date‿𝕩.due‿𝕩.category‿𝕩.title‿𝕩.amount‿𝕩.currency‿𝕩.details
   tab ← @+9
   tab Join fields
 }

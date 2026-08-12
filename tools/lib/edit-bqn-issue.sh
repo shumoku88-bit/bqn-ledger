@@ -3,7 +3,7 @@
 #
 # Sourced by tools/edit-bqn. Handles `issue add`, `issue list`, and `issue close`;
 # BQN owns validation / TSV row rendering, while this shell layer handles
-# preview/confirm/safe write.
+# preview/confirm/safe write and target-source shape observation.
 
 handle_edit_bqn_issue_add() {
   local ISSUE_DATE ISSUE_STATUS ISSUE_TITLE ISSUE_AMOUNT ISSUE_MEMO DRY_RUN YES POST_CHECK
@@ -32,21 +32,39 @@ handle_edit_bqn_issue_add() {
 
   edit_bqn_validate_post_check "$POST_CHECK"
 
-  local TARGET_PATH TARGET_EXISTS SNAP_SIZE SNAP_MTIME SNAP_SHA256 SNAPSHOT_TOKEN
+  local TARGET_PATH TARGET_EXISTS SNAP_SIZE SNAP_MTIME SNAP_SHA256 SNAPSHOT_TOKEN ISSUE_SCHEMA ISSUE_HEADER
   TARGET_PATH="$BASE_DIR/$EXPECTED_TARGET_FILE"
   TARGET_EXISTS=0
   SNAP_SIZE=""
   SNAP_MTIME=""
   SNAP_SHA256=""
+  ISSUE_SCHEMA="due"
   if [[ -f "$TARGET_PATH" ]]; then
     TARGET_EXISTS=1
     SNAPSHOT_TOKEN="$(safe_snapshot_token "$TARGET_PATH")"
     IFS=$'\t' read -r SNAP_SIZE SNAP_MTIME SNAP_SHA256 <<< "$SNAPSHOT_TOKEN"
+    ISSUE_HEADER="$(awk 'NF && $0 !~ /^[[:space:]]*#/ {print; exit}' "$TARGET_PATH")"
+    case "$ISSUE_HEADER" in
+      $'issue_id\tstatus\tdate\tcategory\ttitle\tamount\tcurrency\tdetails')
+        ISSUE_SCHEMA="legacy"
+        ;;
+      $'issue_id\tstatus\tdate\tdue\tcategory\ttitle\tamount\tcurrency\tdetails')
+        ISSUE_SCHEMA="due"
+        ;;
+      '')
+        echo "ERROR: existing issues.tsv has no supported header" >&2
+        return 1
+        ;;
+      *)
+        echo "ERROR: existing issues.tsv header is not a supported eight- or nine-column schema" >&2
+        return 1
+        ;;
+    esac
   fi
 
   local BQN_STDERR BQN_OUT FIRST_LINE PAYLOAD STATUS OP PROTOCOL_TARGET_FILE EXTRA
   BQN_STDERR="$(mktemp)"
-  if ! BQN_OUT="$(edit_bqn_bqn_capture "$BQN_STDERR" bqn src_edit/issue_add_cmd.bqn "$ISSUE_DATE" "$ISSUE_STATUS" "$ISSUE_TITLE" "$ISSUE_AMOUNT" "$ISSUE_MEMO")"; then
+  if ! BQN_OUT="$(edit_bqn_bqn_capture "$BQN_STDERR" bqn src_edit/issue_add_cmd.bqn "$ISSUE_DATE" "$ISSUE_STATUS" "$ISSUE_TITLE" "$ISSUE_AMOUNT" "$ISSUE_MEMO" "$ISSUE_SCHEMA")"; then
     rm -f "$BQN_STDERR"
     return 1
   fi
@@ -83,7 +101,7 @@ handle_edit_bqn_issue_add() {
     edit_bqn_apply_append_checked "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256" "" issue
   else
     local WRITE_OUT BACKUP_PATH
-    WRITE_OUT="$(safe_create_checked "$TARGET_PATH" $'issue_id\tstatus\tdate\tcategory\ttitle\tamount\tcurrency\tdetails\n'"$PAYLOAD"$'\n')"
+    WRITE_OUT="$(safe_create_checked "$TARGET_PATH" $'issue_id\tstatus\tdate\tdue\tcategory\ttitle\tamount\tcurrency\tdetails\n'"$PAYLOAD"$'\n')"
     printf '%s\n' "$WRITE_OUT"
     BACKUP_PATH="$(awk -F': ' '$1 == "Backup" {print $2}' <<< "$WRITE_OUT")"
     run_post_check "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$BACKUP_PATH" issue

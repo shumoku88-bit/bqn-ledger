@@ -2,7 +2,8 @@
 set -euo pipefail
 
 # Legacy Budget row qualification was removed with its writer authority. This
-# retained check covers the unrelated Issue append surface still in edit-bqn.
+# retained check covers the unrelated Issue append surface still in edit-bqn,
+# including the bounded eight-/nine-column Issue schema migration.
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 tmp_root="$(mktemp -d)"; trap 'rm -rf "$tmp_root"' EXIT
@@ -24,12 +25,37 @@ issue_bqn_base="$tmp_root/issue-new-bqn"; cp -R data "$issue_bqn_base"
 ./tools/edit-bqn --base "$issue_bqn_base" issue add \
   --date 2026-06-29 --title "edit-bqn issue parity" --amount 301 --memo "new file" --yes
 assert_no_backup "$issue_bqn_base" "tools/edit-bqn issue add new-file"
+if ! head -n 1 "$issue_bqn_base/issues.tsv" | grep -Fx $'issue_id\tstatus\tdate\tdue\tcategory\ttitle\tamount\tcurrency\tdetails' >/dev/null; then
+  echo "FAIL: new issues.tsv should use the due-aware nine-column header" >&2
+  cat "$issue_bqn_base/issues.tsv" >&2
+  exit 1
+fi
+if ! grep -F $'issue:2026-06-29:edit-bqn issue parity\topen\t2026-06-29\tundetermined\tgeneral\tedit-bqn issue parity\t301\tJPY\tnew file' "$issue_bqn_base/issues.tsv" >/dev/null; then
+  echo "FAIL: new Issue row should retain explicit undetermined due" >&2
+  cat "$issue_bqn_base/issues.tsv" >&2
+  exit 1
+fi
 
 issue_existing_bqn="$tmp_root/issue-existing-bqn"; cp -R data "$issue_existing_bqn"
 printf 'issue_id\tstatus\tdate\tcategory\ttitle\tamount\tcurrency\tdetails\nissue:seed\topen\t2026-06-28\tgeneral\tBefore\t0\tJPY\tseed\n' >"$issue_existing_bqn/issues.tsv"
 ./tools/edit-bqn --base "$issue_existing_bqn" issue add \
   --date 2026-06-29 --status resolved --title "edit-bqn issue existing" --amount 302 --memo "existing file" --yes
 find "$issue_existing_bqn/.backup" -type f -name 'issues.tsv*' | grep -q .
+if ! grep -F $'issue:2026-06-29:edit-bqn issue existing\tresolved\t2026-06-29\tgeneral\tedit-bqn issue existing\t302\tJPY\texisting file' "$issue_existing_bqn/issues.tsv" >/dev/null; then
+  echo "FAIL: legacy Issue append should preserve the eight-column source shape" >&2
+  cat "$issue_existing_bqn/issues.tsv" >&2
+  exit 1
+fi
+
+issue_due_existing="$tmp_root/issue-due-existing"; cp -R data "$issue_due_existing"
+printf 'issue_id\tstatus\tdate\tdue\tcategory\ttitle\tamount\tcurrency\tdetails\nissue:seed\topen\t2026-06-28\tnone\tgeneral\tBefore\t0\tJPY\tseed\n' >"$issue_due_existing/issues.tsv"
+./tools/edit-bqn --base "$issue_due_existing" issue add \
+  --date 2026-06-29 --title "due-aware existing" --amount 303 --memo "due source" --yes
+if ! grep -F $'issue:2026-06-29:due-aware existing\topen\t2026-06-29\tundetermined\tgeneral\tdue-aware existing\t303\tJPY\tdue source' "$issue_due_existing/issues.tsv" >/dev/null; then
+  echo "FAIL: due-aware Issue append should preserve nine-column source shape" >&2
+  cat "$issue_due_existing/issues.tsv" >&2
+  exit 1
+fi
 
 for issue_case in invalid-status missing-title invalid-amount title-tab memo-newline; do
   base="$tmp_root/issue-neg-$issue_case"; cp -R data "$base"
