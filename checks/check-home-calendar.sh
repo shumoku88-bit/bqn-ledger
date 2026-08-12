@@ -20,8 +20,30 @@ cat >>"$base/report.toml" <<'EOF'
 issue-due-marker = "?"
 EOF
 
-wrapper="$(tools/home-calendar "$base" 2026-01-20)"
-direct="$(bqn src/application/home_calendar_cli.bqn "$base" 2026-01-20)"
+wrapper=''
+wrapper_status=0
+set +e
+wrapper="$(tools/home-calendar "$base" 2026-01-20 2>&1)"
+wrapper_status=$?
+set -e
+if [[ $wrapper_status -ne 0 ]]; then
+  echo 'FAIL: Home calendar shell wrapper failed' >&2
+  printf '%s\n' "$wrapper" >&2
+  exit 1
+fi
+
+direct=''
+direct_status=0
+set +e
+direct="$(bqn src/application/home_calendar_cli.bqn "$base" 2026-01-20 2>&1)"
+direct_status=$?
+set -e
+if [[ $direct_status -ne 0 ]]; then
+  echo 'FAIL: Home calendar BQN application failed' >&2
+  printf '%s\n' "$direct" >&2
+  exit 1
+fi
+
 [[ "$wrapper" == "$direct" ]] || {
   echo 'FAIL: Home calendar shell wrapper differs from BQN application output' >&2
   exit 1
