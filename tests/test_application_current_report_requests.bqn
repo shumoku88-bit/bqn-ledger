@@ -50,7 +50,6 @@ emptyDaily ← builder.DailyObservation ⟨facts,"JPY","2025-11-01","2025-11-30"
 
 compact ← builder.Build ⟨"JPY","compact",reportPlan,facts,"2026-01-20",current,baseline⟩
 "ok" lib.AssertEq compact.state
-lib.Assert 0<≠compact.rows
-lib.Assert (≠compact.rows)<12
+⟨"envelopes","balances","recent","planned","daily-target"⟩ lib.AssertEq {𝕩.key}¨compact.rows
 
 •Out "test_application_current_report_requests: ok"
