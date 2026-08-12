@@ -10,13 +10,26 @@ reportPolicySource ← •Import "report_policy_source_adapter.bqn"
 canonical ← •Import "canonical_household_sources.bqn"
 empty ← ⟨⟩
 
-Registry ← {𝕊 path: registryBuilder.Build io.ReadLines path}
-CanonicalActual ← {𝕊 base‿registry: actualSource.Load ⟨base,registry⟩ }
-CanonicalPlan ← {𝕊 base‿registry: planSource.Load ⟨base,registry⟩ }
-CanonicalBudget ← {𝕊 base‿registry: budgetSource.Load ⟨base,registry⟩ }
-CanonicalBudgetPolicy ← {𝕊 base‿accounts: budgetSource.LoadPolicy ⟨base,accounts⟩ }
-CanonicalHousehold ← {𝕊 base‿accounts‿budgetPolicy: householdSource.Load ⟨base,accounts,budgetPolicy⟩ }
-CanonicalReportPolicy ← {𝕊 base: reportPolicySource.Load base}
+Registry ← {𝕊 path:registryBuilder.Build io.ReadLines path}
+CanonicalActual ← {𝕊 base‿registry:actualSource.Load ⟨base,registry⟩}
+CanonicalPlan ← {𝕊 base‿registry:planSource.Load ⟨base,registry⟩}
+CanonicalBudget ← {𝕊 base‿registry:budgetSource.Load ⟨base,registry⟩}
+CanonicalBudgetPolicy ← {𝕊 base‿accounts:budgetSource.LoadPolicy ⟨base,accounts⟩}
+CanonicalHousehold ← {𝕊 base‿accounts‿budgetPolicy:householdSource.Load ⟨base,accounts,budgetPolicy⟩}
+CanonicalReportPolicy ← {𝕊 base:reportPolicySource.Load base}
+
+Unavailable ← {𝕊:{state⇐"error",diagnostics⇐empty}}
+ContextFailure ← {𝕊 diagnosticsValue:{state⇐"error",plan⇐@,budget_policy⇐@,household⇐@,diagnostics⇐diagnosticsValue}}
+ContextSuccess ← {𝕊 planResult‿policyResult‿householdResult‿diagnosticsValue:
+  {state⇐"ok",plan⇐planResult.facts,budget_policy⇐policyResult,household⇐householdResult,diagnostics⇐diagnosticsValue}
+}
+CompanionFailure ← {𝕊 diagnosticsValue:{state⇐"error",plan⇐@,budget⇐@,budget_policy⇐@,household⇐@,diagnostics⇐diagnosticsValue}}
+CompanionSuccess ← {𝕊 context‿budgetResult‿diagnosticsValue:
+  {
+    state⇐"ok",plan⇐context.plan,budget⇐budgetResult.facts,
+    budget_policy⇐context.budget_policy,household⇐context.household,diagnostics⇐diagnosticsValue
+  }
+}
 
 # A caller that already owns admitted Accounts defines one companion observation:
 # Plan, Budget policy, Household policy, and Budget movement all reuse that exact
@@ -24,16 +37,16 @@ CanonicalReportPolicy ← {𝕊 base: reportPolicySource.Load base}
 HouseholdContext ← {𝕊 base‿accounts‿registry:
   planResult ← planSource.LoadFromAccounts ⟨base,accounts,registry⟩
   policyResult ← CanonicalBudgetPolicy ⟨base,accounts⟩
-  diagnostics ← planResult.diagnostics∾policyResult.diagnostics
-  householdResult ← {state⇐"error",diagnostics⇐empty}
-  {𝕊:
-    householdResult↩CanonicalHousehold ⟨base,accounts,policyResult⟩
-    diagnostics∾↩householdResult.diagnostics
-  }⍟(policyResult.state≡"ok") @
+  householdResult ← (policyResult.state≡"ok")◶⟨
+    {𝕊:Unavailable @},
+    {𝕊:CanonicalHousehold ⟨base,accounts,policyResult⟩}
+  ⟩ @
+  diagnostics ← planResult.diagnostics∾policyResult.diagnostics∾householdResult.diagnostics
   ok ← (planResult.state≡"ok") ∧ (policyResult.state≡"ok") ∧ householdResult.state≡"ok"
-  result ← {state⇐"error",plan⇐@,budget_policy⇐@,household⇐@,diagnostics⇐diagnostics}
-  {𝕊:result↩{state⇐"ok",plan⇐planResult.facts,budget_policy⇐policyResult,household⇐householdResult,diagnostics⇐diagnostics}}⍟ok @
-  result
+  ok◶⟨
+    {𝕊:ContextFailure diagnostics},
+    {𝕊:ContextSuccess ⟨planResult,policyResult,householdResult,diagnostics⟩}
+  ⟩ @
 }
 
 Companions ← {𝕊 base‿accounts‿registry:
@@ -41,16 +54,12 @@ Companions ← {𝕊 base‿accounts‿registry:
   budgetResult ← budgetSource.LoadFromAccounts ⟨base,accounts,registry⟩
   diagnostics ← context.diagnostics∾budgetResult.diagnostics
   ok ← (context.state≡"ok") ∧ budgetResult.state≡"ok"
-  result ← {state⇐"error",plan⇐@,budget⇐@,budget_policy⇐@,household⇐@,diagnostics⇐diagnostics}
-  {𝕊:
-    result↩{
-      state⇐"ok",plan⇐context.plan,budget⇐budgetResult.facts,
-      budget_policy⇐context.budget_policy,household⇐context.household,diagnostics⇐diagnostics
-    }
-  }⍟ok @
-  result
+  ok◶⟨
+    {𝕊:CompanionFailure diagnostics},
+    {𝕊:CompanionSuccess ⟨context,budgetResult,diagnostics⟩}
+  ⟩ @
 }
-IssueLines ← {𝕊 base: io.ReadLines (io.JoinPath ⟨base,canonical.issues⟩)}
+IssueLines ← {𝕊 base:io.ReadLines (io.JoinPath ⟨base,canonical.issues⟩)}
 
 {
   Registry⇐Registry,CanonicalActual⇐CanonicalActual,CanonicalPlan⇐CanonicalPlan,

@@ -70,5 +70,8 @@ grep -Fq 'planResult ← planSource.LoadFromAccounts ⟨base,accounts,registry�
   || Fail 'HouseholdContext re-reads Accounts instead of sharing the readiness observation'
 grep -Fq 'budgetResult ← budgetSource.LoadFromAccounts ⟨base,accounts,registry⟩' src/application/report_source_adapter.bqn \
   || Fail 'Companions re-reads Accounts instead of sharing the readiness observation'
+if grep -Fq '↩' src/application/report_source_adapter.bqn; then
+  Fail 'Report source adapter reintroduced mutable result or diagnostic staging'
+fi
 
 echo 'check-ledger-operations: OK'
