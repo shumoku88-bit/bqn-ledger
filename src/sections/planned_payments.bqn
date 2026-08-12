@@ -46,6 +46,16 @@ CategoryLabel ← {𝕊 accountKey‿role:
   label
 }
 
+# The evidence observation is semantic owner policy: latest Actual inside the
+# resolved Cycle, or the Cycle start when no Actual exists in that period.
+EvidenceObservation ← {𝕊 actualFacts‿cycle:
+  mask ← (actualFacts.transactions.date_ordinal≥cycle.start_ordinal) ∧ actualFacts.transactions.date_ordinal<cycle.end_exclusive_ordinal
+  selected ← mask/actualFacts.transactions.date_ordinal
+  ordinal ← cycle.start_ordinal
+  {𝕊:ordinal↩⌈´selected}⍟(0<≠selected) @
+  dates.FromOrdinal ordinal
+}
+
 # Inputs are canonical Facts, one successful resolved cycle, and explicit observation.
 Build ← {𝕊 planFacts‿actualFacts‿cycle‿asOfText:
   diagnostics ← empty
@@ -63,11 +73,8 @@ Build ← {𝕊 planFacts‿actualFacts‿cycle‿asOfText:
     asOfOrdinal ← dates.Ordinal asOfText
     diagnostics ∾↩ AddIf ⟨asOfOrdinal<startOrdinal ∨ asOfOrdinal≥endOrdinal,Diagnostic ⟨"observation_out_of_period","as-of must occur inside the cycle"⟩⟩
 
-    currentCycleActualMask ← (actualFacts.transactions.date_ordinal≥startOrdinal) ∧ actualFacts.transactions.date_ordinal<endOrdinal
-    currentCycleActuals ← currentCycleActualMask/actualFacts.transactions.date_ordinal
-    expectedAsOf ← startOrdinal
-    {𝕊: expectedAsOf↩⌈´currentCycleActuals}⍟(0<≠currentCycleActuals) @
-    diagnostics ∾↩ AddIf ⟨asOfOrdinal≠expectedAsOf,Diagnostic ⟨"observation_evidence_mismatch","as-of must equal latest selected Actual date, or cycle start when empty"⟩⟩
+    expectedAsOfText ← EvidenceObservation ⟨actualFacts,cycle⟩
+    diagnostics ∾↩ AddIf ⟨asOfText≢expectedAsOfText,Diagnostic ⟨"observation_evidence_mismatch","as-of must equal latest selected Actual date, or cycle start when empty"⟩⟩
 
     planOrder ← ⍋planFacts.transactions.date_ordinal
     planSelection ← planOrder⊏planFacts.transactions.index
@@ -270,4 +277,4 @@ FormatJson ← {𝕊 result:
   ⟩
 }
 
-{Build⇐Build,FormatHuman⇐FormatHuman,FormatCompact⇐FormatCompact,FormatJson⇐FormatJson}
+{EvidenceObservation⇐EvidenceObservation,Build⇐Build,FormatHuman⇐FormatHuman,FormatCompact⇐FormatCompact,FormatJson⇐FormatJson}
