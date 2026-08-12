@@ -21,7 +21,12 @@ ExpectLine() {
 grep -F 'route ← •Import "report_route.bqn"' "$cli" >/dev/null
 grep -F 'route.Admit ⟨key,surface,coordinates⟩' "$cli" >/dev/null
 grep -F 'catalogIndex ← routeAdmission.catalog_index' "$cli" >/dev/null
+grep -F 'catalogIndex◶evidenceLoaders' "$cli" >/dev/null
 grep -F 'catalogIndex◶destinations' "$destination" >/dev/null
+if grep -Eq 'Contains ←|actualKeys ←|contextKeys ←' "$cli"; then
+  echo 'FAIL: destination CLI still rescans report keys for evidence lifetime' >&2
+  exit 1
+fi
 if grep -Eq 'key≡"(envelopes|balances|balance-sheet|profit-and-loss|recent|planned|cycle-accounts|cycle-comparison|monthly-accounts|daily-flow|daily-target|issues)"' "$destination"; then
   echo 'FAIL: semantic destination still rescans admitted report keys' >&2
   exit 1
@@ -44,6 +49,32 @@ route_line=$(grep -n 'routeAdmission ← route.Admit' "$cli" | cut -d: -f1)
 
 bqn "$cli" "$fixture" balances human JPY 2026-01-12 >"$tmp/balances"
 cmp "$tmp/balances" "$fixture/account_balances.destination.human.txt"
+
+# Evidence-lifetime laws use temporary reductions of the existing canonical fixture.
+# They do not introduce a second fixture topology.
+cp -R "$fixture" "$tmp/actual-only"
+rm -f "$tmp/actual-only/plan.journal" "$tmp/actual-only/budget.journal" \
+  "$tmp/actual-only/budget.toml" "$tmp/actual-only/household.toml" "$tmp/actual-only/issues.tsv"
+bqn "$cli" "$tmp/actual-only" balances human JPY 2026-01-12 >"$tmp/actual-only.out"
+cmp "$tmp/actual-only.out" "$fixture/account_balances.destination.human.txt"
+
+cp -R "$fixture" "$tmp/context-only"
+rm -f "$tmp/context-only/budget.journal" "$tmp/context-only/issues.tsv"
+bqn "$cli" "$tmp/context-only" planned human 2026-01-12 >"$tmp/context-only.out"
+[[ -s "$tmp/context-only.out" ]] || {
+  echo 'FAIL: planned destination produced no output without Budget movement source' >&2
+  exit 1
+}
+
+cp -R "$fixture" "$tmp/issues-only"
+rm -f "$tmp/issues-only/accounts.journal" "$tmp/issues-only/actual.journal" \
+  "$tmp/issues-only/plan.journal" "$tmp/issues-only/budget.journal" \
+  "$tmp/issues-only/budget.toml" "$tmp/issues-only/household.toml"
+bqn "$cli" "$tmp/issues-only" issues human >"$tmp/issues-only.out"
+[[ -s "$tmp/issues-only.out" ]] || {
+  echo 'FAIL: issues destination produced no output without accounting sources' >&2
+  exit 1
+}
 
 if bqn "$cli" "$fixture" balances human JPY >"$tmp/arity" 2>&1; then
   echo 'FAIL: direct destination invalid arity succeeded' >&2
