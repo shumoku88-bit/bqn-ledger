@@ -13,18 +13,14 @@ facts ← actual.facts
 •Out "ledger_inspect"∾tab∾"state"∾tab∾"ok"
 •Out "ledger_inspect"∾tab∾"transactions"∾tab∾•Fmt facts.transactions.count
 •Out "ledger_inspect"∾tab∾"postings"∾tab∾•Fmt facts.postings.count
-domains ← ""
-{𝕊:
-  domains↩⊑facts.domains.code
-  {𝕊 code:domains∾↩","∾code}¨1↓facts.domains.code
-}⍟(0<facts.domains.count) @
+domains ← (0<facts.domains.count)◶⟨
+  {𝕊:""},
+  {𝕊:(⊑facts.domains.code)∾∾{","∾𝕩}¨1↓facts.domains.code}
+⟩ @
 •Out "ledger_inspect"∾tab∾"domains"∾tab∾domains
 source ← ⊑facts.sources.name
 {𝕊 i:•Out "transaction"∾tab∾source∾tab∾(i⊑facts.transactions.transaction_id)∾tab∾i⊑facts.transactions.date_text}¨facts.transactions.index
 {𝕊 i:
   accountIndex ← i⊑facts.postings.account_index ⋄ transactionIndex ← i⊑facts.postings.transaction_index
-  line ← "posting"∾tab∾source∾tab∾(transactionIndex⊑facts.transactions.transaction_id)∾tab
-  line∾↩(i⊑facts.postings.posting_id)∾tab∾(accountIndex⊑facts.accounts.key)∾tab
-  line∾↩(•Fmt i⊑facts.postings.coefficient)∾tab∾•Fmt i⊑facts.postings.scale
-  •Out line
+  •Out "posting"∾tab∾source∾tab∾(transactionIndex⊑facts.transactions.transaction_id)∾tab∾(i⊑facts.postings.posting_id)∾tab∾(accountIndex⊑facts.accounts.key)∾tab∾(•Fmt i⊑facts.postings.coefficient)∾tab∾•Fmt i⊑facts.postings.scale
 }¨facts.postings.index
