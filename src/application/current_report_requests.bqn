@@ -74,7 +74,7 @@ Build ← {𝕊 domain‿surface‿reportPlan‿actualFacts‿observation‿curr
       {key⇐"daily-target",arguments⇐⟨domain,observation,currentCycle.end_exclusive⟩},
       {key⇐"issues",arguments⇐empty}
     ⟩
-    selectedCandidates ← ({Contains ⟨𝕩.key,selectedKeys⟩}¨candidates)/candidates
+    selectedCandidates ← selection.section_indices⊏candidates
     admissions ← {𝕊 candidate:route.Admit ⟨candidate.key,surface,candidate.arguments⟩}¨selectedCandidates
     diagnostics∾↩∾{𝕩.diagnostics}¨admissions
     {𝕊:
