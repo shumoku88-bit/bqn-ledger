@@ -21,12 +21,23 @@ policyOnly ← adapter.LoadPolicy ⟨"tests/fixtures/budget-policy-only",account
 ⟨"main"⟩ lib.AssertEq policyOnly.backing_pools.id
 ⟨"Daily"⟩ lib.AssertEq policyOnly.envelopes.id
 
-combined ← adapter.Load ⟨"fixtures/canonical-household-v1",registryResult.registry⟩
+base ← "fixtures/canonical-household-v1"
+combined ← adapter.Load ⟨base,registryResult.registry⟩
 "ok" lib.AssertEq combined.state
 0 lib.AssertEq ≠combined.diagnostics
 1 lib.AssertEq combined.facts.transactions.count
 2 lib.AssertEq combined.facts.postings.count
 1 lib.AssertEq combined.policy.backing_pools.count
 1 lib.AssertEq combined.policy.envelopes.count
+
+# A wider application observation can reuse one admitted Account Registry without
+# changing Budget transaction identity, Posting identity, Account axes, or policy.
+shared ← adapter.LoadFromAccounts ⟨base,accounts.accounts,registryResult.registry⟩
+"ok" lib.AssertEq shared.state
+combined.facts.transactions.transaction_id lib.AssertEq shared.facts.transactions.transaction_id
+combined.facts.postings.posting_id lib.AssertEq shared.facts.postings.posting_id
+combined.facts.accounts.key lib.AssertEq shared.facts.accounts.key
+combined.policy.backing_pools.id lib.AssertEq shared.policy.backing_pools.id
+combined.policy.envelopes.id lib.AssertEq shared.policy.envelopes.id
 
 •Out "test_application_budget_source_adapter: ok"
