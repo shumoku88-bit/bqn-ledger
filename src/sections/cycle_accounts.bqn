@@ -5,6 +5,7 @@ amount ← •Import "../ledger/amount_text.bqn"
 text ← •Import "../report/text.bqn"
 empty ← ⟨⟩
 columns ← ⟨"opening","debit","credit","movement","closing"⟩
+lf ← @+10
 
 Diagnostic ← {𝕊 codeText‿messageText:
   {severity⇐"error",stage⇐"section_cycle_accounts",code⇐codeText,message⇐messageText}
@@ -84,12 +85,16 @@ FormatHuman ← {𝕊 input:
     Fmt result.totals.movement,
     Fmt result.totals.closing
   ⟩
-  out ← "== Current-cycle Accounts =="∾(@+10)
-  out ∾↩ "Cycle: "∾result.cycle_start∾".."∾result.cycle_end_exclusive∾" ("∾result.cycle_mode∾")"∾(@+10)
-  out ∾↩ "Observed through: "∾result.observation∾(@+10)∾(@+10)
-  out ∾↩ text.RenderTable ⟨⟨"Account","Opening","Debit","Credit (signed)","Movement","Closing"⟩,rows∾⟨total⟩,⟨1,2,3,4,5⟩⟩
-  out ∾↩ "Balanced: "∾(result.totals.balanced⊑"NO"‿"YES")∾(@+10)∾(@+10)
-  out
+  headingLines ← ⟨
+    "== Current-cycle Accounts ==",
+    ("Cycle: "∾result.cycle_start∾".."∾result.cycle_end_exclusive∾" ("∾result.cycle_mode∾")"),
+    ("Observed through: "∾result.observation),
+    ""
+  ⟩
+  headingText ← ∾{𝕩∾lf}¨headingLines
+  tableText ← text.RenderTable ⟨⟨"Account","Opening","Debit","Credit (signed)","Movement","Closing"⟩,rows∾⟨total⟩,⟨1,2,3,4,5⟩⟩
+  summaryText ← ∾{𝕩∾lf}¨⟨("Balanced: "∾result.totals.balanced⊑"NO"‿"YES"),""⟩
+  ∾⟨headingText,tableText,summaryText⟩
 }
 
 {Build⇐Build,FormatHuman⇐FormatHuman}
