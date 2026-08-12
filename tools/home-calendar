@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ $# -lt 1 || $# -gt 2 ]]; then
-  printf 'Usage: tools/home-calendar BASE [FOCUS_DATE]\n' >&2
+if [[ $# -lt 1 || $# -gt 3 ]]; then
+  printf 'Usage: tools/home-calendar BASE [FOCUS_DATE] [detail]\n' >&2
   exit 2
 fi
 
@@ -10,9 +10,11 @@ root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 caller_pwd=$PWD
 base=$1
 focus=${2:-}
+mode=${3:-}
 [[ $base == /* ]] || base="$caller_pwd/$base"
 cd "$root"
 
 args=("$base")
 [[ -z $focus ]] || args+=("$focus")
+[[ -z $mode ]] || args+=("$mode")
 exec bqn src/application/home_calendar_cli.bqn "${args[@]}"
