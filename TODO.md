@@ -144,16 +144,18 @@ Closeout: `docs/SECTIONS_PHASE_THREE_REVIEW_CLOSEOUT-2026-08-12.md`.
 - [x] `src/sections/recent_journal.bqn` — #688
 - [x] `src/sections/trial_balance.bqn` — #688
 
-## Phase 4: `src/report/`
+## Phase 4: `src/report/` — complete
 
-- [ ] `src/report/catalog.bqn`
-- [ ] `src/report/catalog_text.bqn`
-- [ ] `src/report/compose.bqn`
-- [ ] `src/report/json_text.bqn`
-- [ ] `src/report/render.bqn`
-- [ ] `src/report/request.bqn`
-- [ ] `src/report/section_metadata.bqn`
-- [ ] `src/report/text.bqn`
+Closeout: `docs/REPORT_PHASE_FOUR_REVIEW_CLOSEOUT-2026-08-12.md`.
+
+- [x] `src/report/catalog.bqn` — #692
+- [x] `src/report/catalog_text.bqn` — #692
+- [x] `src/report/compose.bqn` — #696
+- [x] `src/report/json_text.bqn` — #697 (law review; production unchanged)
+- [x] `src/report/render.bqn` — #693
+- [x] `src/report/request.bqn` — #692
+- [x] `src/report/section_metadata.bqn` — #692
+- [x] `src/report/text.bqn` — #694
 
 ## Phase 5: `src/application/`
 
@@ -266,6 +268,6 @@ After the production BQN inventory is reviewed, selector/UI adapter consolidatio
 
 ## Current cursor
 
-`src/report/catalog.bqn`
+`src/application/account_source_adapter.bqn`
 
-Resume the normal Phase 4 report review sequence at Report Catalog.
+Resume the normal Phase 5 application review sequence at Account Source Adapter.
