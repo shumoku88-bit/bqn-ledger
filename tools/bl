@@ -55,6 +55,9 @@ Direct commands (non-TTY safe when the target command is read-only):
   edit [CANONICAL_FILE]          Open one of the eight canonical sources
   add                            Existing complete daily action menu
 
+Direct command groups:
+  operations    Household check, inspect, doctor, hledger export, source edit
+
 Options:
   --base DIR                     Canonical eight-file Household root
   --domain COMMODITY             Explicit report domain
