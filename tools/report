@@ -60,13 +60,13 @@ else
   exit "$status"
 fi
 
-IFS=$'\t' read -r record plan_key plan_surface coordinate_count source_count extra <<<"$route_plan_output"
+IFS=$'\t' read -r record plan_key plan_surface coordinate_count extra <<<"$route_plan_output"
 if [[ $record != ROUTE || $plan_key != "$key" || $plan_surface != "$surface" || -n ${extra:-} ]]; then
   printf 'ERROR\treport_route_plan_invalid\troute header does not match admitted request\n' >&2
   exit 1
 fi
-if [[ ! $coordinate_count =~ ^[0-9]+$ || ! $source_count =~ ^[0-9]+$ || $source_count -ne 0 || $coordinate_count -ne ${#coordinates[@]} ]]; then
-  printf 'ERROR\treport_route_plan_invalid\tsemantic route must contain argv coordinates and no physical sources\n' >&2
+if [[ ! $coordinate_count =~ ^[0-9]+$ || $coordinate_count -ne ${#coordinates[@]} ]]; then
+  printf 'ERROR\treport_route_plan_invalid\tsemantic route coordinate count does not match argv\n' >&2
   exit 1
 fi
 
