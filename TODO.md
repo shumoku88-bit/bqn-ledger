@@ -160,7 +160,7 @@ Closeout: `docs/REPORT_PHASE_FOUR_REVIEW_CLOSEOUT-2026-08-12.md`.
 ## Phase 5: `src/application/`
 
 - [x] `src/application/account_source_adapter.bqn` — #699
-- [ ] `src/application/actual_source_adapter.bqn`
+- [x] `src/application/actual_source_adapter.bqn` — effect-lifetime law review; production unchanged
 - [ ] `src/application/budget_source_adapter.bqn`
 - [ ] `src/application/canonical_household_sources.bqn`
 - [ ] `src/application/config_rows.bqn`
@@ -267,6 +267,6 @@ After the production BQN inventory is reviewed, selector/UI adapter consolidatio
 
 ## Current cursor
 
-`src/application/actual_source_adapter.bqn`
+`src/application/budget_source_adapter.bqn`
 
-Resume the normal Phase 5 application review sequence at Actual Source Adapter.
+Resume the normal Phase 5 application review sequence at Budget Source Adapter.
