@@ -20,6 +20,8 @@ cd "$ROOT_DIR"
 
 # Load shared system defaults helper
 source "$ROOT_DIR/tools/lib/system-defaults.sh"
+# shellcheck source=tools/lib/ui-choice.sh
+source "$ROOT_DIR/tools/lib/ui-choice.sh"
 
 usage() {
   cat <<'EOF'
@@ -200,46 +202,7 @@ fi
 # ── UI helpers ──
 
 select_line() {
-  local prompt="$1"
-  local -a lines=()
-  local _line selector="auto"
-  while IFS= read -r _line; do lines+=("$_line"); done
-
-  if [[ ${#lines[@]} -eq 0 ]]; then
-    shout "No candidates for: $prompt"
-    return 1
-  fi
-
-  selector="$(bl_selector_preference 2>/dev/null || echo "auto")"
-  if [[ "${BL_UI_MODE:-}" == "minimal" ]]; then
-    selector="plain"
-  elif [[ "$selector" == "auto" ]]; then
-    if command -v fzf >/dev/null 2>&1; then selector="fzf"
-    elif command -v gum >/dev/null 2>&1; then selector="gum"
-    else selector="plain"
-    fi
-  fi
-
-  if [[ "$selector" == "fzf" ]]; then
-    printf '%s\n' "${lines[@]}" |
-      fzf --prompt="$prompt> " --height=40% --reverse --select-1 --exit-0
-  elif [[ "$selector" == "gum" ]]; then
-    printf '%s\n' "${lines[@]}" | gum filter --placeholder="$prompt"
-  else
-    shout "=== $prompt ==="
-    local idx=1 ans
-    for line in "${lines[@]}"; do
-      printf '  %2d) %s\n' "$idx" "$line" >&2
-      idx=$((idx + 1))
-    done
-    printf '選択 [1-%d]> ' "${#lines[@]}" >&2
-    read -r ans </dev/tty
-    if [[ "$ans" =~ ^[0-9]+$ ]] && (( ans >= 1 && ans <= ${#lines[@]} )); then
-      printf '%s\n' "${lines[$((ans - 1))]}"
-    else
-      printf '%s\n' "$ans"
-    fi
-  fi
+  bl_ui_choose_line "$@"
 }
 
 read_tty() {
