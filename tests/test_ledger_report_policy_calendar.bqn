@@ -21,7 +21,7 @@ requiredReports ← ⟨
 
 withoutCalendar ← admission.Admit Raw requiredReports
 "ok" lib.AssertEq withoutCalendar.state
-"*" lib.AssertEq withoutCalendar.presentation.calendar.cycle_end_marker
+"|" lib.AssertEq withoutCalendar.presentation.calendar.cycle_end_marker
 "$" lib.AssertEq withoutCalendar.presentation.calendar.plan_due_marker
 "!" lib.AssertEq withoutCalendar.presentation.calendar.issue_due_marker
 "+" lib.AssertEq withoutCalendar.presentation.calendar.multiple_marker

@@ -186,7 +186,7 @@ Admit ← {𝕊 raw:
   }⍟(0<presentationBlock.line) @
 
   calendarBlock ← OptionalOne "presentation.calendar"
-  cycleEndMarker ← "*" ⋄ planDueMarker ← "$" ⋄ issueDueMarker ← "!" ⋄ multipleMarker ← "+"
+  cycleEndMarker ← "|" ⋄ planDueMarker ← "$" ⋄ issueDueMarker ← "!" ⋄ multipleMarker ← "+"
   {𝕊:
     CheckKeys ⟨calendarBlock,empty,⟨"cycle-end-marker","plan-due-marker","issue-due-marker","multiple-marker"⟩⟩
     cycleEndMarker↩MarkerValue ⟨calendarBlock,"cycle-end-marker",cycleEndMarker⟩
