@@ -33,7 +33,7 @@ issuePath ← baseDir ∾ "/issues.tsv"
 Join ← {
   sep ← 𝕨
   list ← 𝕩
-  (0 = ≠ list) ◶ ⟨ { 𝕊 ⋄ 1↓ ∾ (sep ⊸ ∾) ¨ list }, { 𝕊 ⋄ ""} ⟩ @
+  (0 = ≠ list) ◶ ⟨ { 𝕊 ⋄ (≠sep)↓ ∾ (sep ⊸ ∾) ¨ list }, { 𝕊 ⋄ ""} ⟩ @
 }
 IsDataLine ← { (0 < ≠𝕩) ? ((⊑𝕩 ≠ '#') ∧ (⊑𝕩 ≠ ⊑"\\")) ; 0 }
 
