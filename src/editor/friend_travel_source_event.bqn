@@ -37,18 +37,18 @@ Render ← {𝕊 event:
 
 ValidateEvent ← {𝕊 event:
   parsed ← decimal.Parse event.original_amount
-  diagnostics ← empty
-  diagnostics ∾↩ AddIf ⟨¬ dates.IsValid event.date, Diagnostic ⟨"date_invalid", "date", "date must be a valid YYYY-MM-DD calendar date"⟩⟩
-  diagnostics ∾↩ AddIf ⟨¬ IsSafeText event.party, Diagnostic ⟨"party_invalid", "party", "party must be nonempty and TSV-field safe"⟩⟩
-  diagnostics ∾↩ AddIf ⟨¬ IsSafeText event.item_or_category, Diagnostic ⟨"item_or_category_invalid", "item_or_category", "item or category must be nonempty and TSV-field safe"⟩⟩
-  diagnostics ∾↩ AddIf ⟨¬ IsPositive parsed, Diagnostic ⟨"original_amount_invalid", "original_amount", "original amount must be a positive exact decimal"⟩⟩
-  diagnostics ∾↩ AddIf ⟨2 < FractionDigits event.original_amount, Diagnostic ⟨"original_amount_precision_invalid", "original_amount", "ILS amount must have at most two fractional digits"⟩⟩
-  diagnostics ∾↩ AddIf ⟨event.original_currency ≢ "ILS", Diagnostic ⟨"original_currency_invalid", "original_currency", "original currency must be ILS"⟩⟩
-  diagnostics ∾↩ AddIf ⟨event.payer ≢ "friend", Diagnostic ⟨"payer_invalid", "payer", "payer must be friend"⟩⟩
-  diagnostics ∾↩ AddIf ⟨event.trip_id ≢ "israel-2026", Diagnostic ⟨"trip_id_invalid", "trip_id", "trip id must be israel-2026"⟩⟩
-  diagnostics ∾↩ AddIf ⟨¬ IsSafeText event.source_event_id, Diagnostic ⟨"source_event_id_invalid", "source_event_id", "source event id must be nonempty and TSV-field safe"⟩⟩
-  diagnostics ∾↩ AddIf ⟨event.status ≢ "pending", Diagnostic ⟨"status_invalid", "status", "status must be pending"⟩⟩
-  diagnostics
+  ∾´ ⟨
+    AddIf ⟨¬ dates.IsValid event.date, Diagnostic ⟨"date_invalid", "date", "date must be a valid YYYY-MM-DD calendar date"⟩⟩,
+    AddIf ⟨¬ IsSafeText event.party, Diagnostic ⟨"party_invalid", "party", "party must be nonempty and TSV-field safe"⟩⟩,
+    AddIf ⟨¬ IsSafeText event.item_or_category, Diagnostic ⟨"item_or_category_invalid", "item_or_category", "item or category must be nonempty and TSV-field safe"⟩⟩,
+    AddIf ⟨¬ IsPositive parsed, Diagnostic ⟨"original_amount_invalid", "original_amount", "original amount must be a positive exact decimal"⟩⟩,
+    AddIf ⟨2 < FractionDigits event.original_amount, Diagnostic ⟨"original_amount_precision_invalid", "original_amount", "ILS amount must have at most two fractional digits"⟩⟩,
+    AddIf ⟨event.original_currency ≢ "ILS", Diagnostic ⟨"original_currency_invalid", "original_currency", "original currency must be ILS"⟩⟩,
+    AddIf ⟨event.payer ≢ "friend", Diagnostic ⟨"payer_invalid", "payer", "payer must be friend"⟩⟩,
+    AddIf ⟨event.trip_id ≢ "israel-2026", Diagnostic ⟨"trip_id_invalid", "trip_id", "trip id must be israel-2026"⟩⟩,
+    AddIf ⟨¬ IsSafeText event.source_event_id, Diagnostic ⟨"source_event_id_invalid", "source_event_id", "source event id must be nonempty and TSV-field safe"⟩⟩,
+    AddIf ⟨event.status ≢ "pending", Diagnostic ⟨"status_invalid", "status", "status must be pending"⟩⟩
+  ⟩
 }
 
 ParseExisting ← {𝕊 lines:
