@@ -31,13 +31,14 @@ PublicationFailure ← {𝕊 publication‿fallback:
 }
 
 args ← •args
-{𝕊:Fail ⟨"usage","expected BASE [FOCUS_DATE] [detail]"⟩}⍟((1>≠args) ∨ 3<≠args) @
+{𝕊:Fail ⟨"usage","expected BASE [FOCUS_DATE] [calendar|detail|choices]"⟩}⍟((1>≠args) ∨ 3<≠args) @
 base ← 0⊑args
 focus ← today.Today @
 {𝕊:focus↩1⊑args}⍟(2≤≠args) @
 mode ← "calendar"
 {𝕊:mode↩2⊑args}⍟(3=≠args) @
-{𝕊:Fail ⟨"home_mode_invalid","third argument must be detail"⟩}⍟((mode≢"calendar") ∧ mode≢"detail") @
+modeValid ← (mode≡"calendar") ∨ (mode≡"detail") ∨ mode≡"choices"
+{𝕊:Fail ⟨"home_mode_invalid","third argument must be calendar, detail, or choices"⟩}⍟(¬modeValid) @
 {𝕊:Fail ⟨"home_focus_date_invalid","FOCUS_DATE must be strict YYYY-MM-DD"⟩}⍟(¬dates.IsValid focus) @
 
 registryResult ← sources.Registry "config/currencies.tsv"
@@ -69,6 +70,7 @@ calendar ← home.Build ⟨actual.facts,planned.result,issues.result,cycle,focus
 {𝕊:PrintDiagnostics calendar.diagnostics}⍟(calendar.state≢"ok") @
 
 output ← home.FormatHuman ⟨calendar,policy.presentation.calendar⟩
+{𝕊:output↩home.FormatChoices ⟨calendar,policy.presentation.calendar⟩}⍟(mode≡"choices") @
 {𝕊:
   typedRows ← transactionRows.Build actual.facts
   {𝕊:PrintDiagnostics typedRows.diagnostics}⍟(typedRows.state≢"ok") @
