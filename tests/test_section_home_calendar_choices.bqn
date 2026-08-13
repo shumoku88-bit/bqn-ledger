@@ -6,7 +6,9 @@ section ← •Import "../src/sections/home_calendar.bqn"
 tab ← @+9
 lf ← @+10
 calendar ← {
+  weekday_start⇐5,
   days⇐{
+    count⇐4,
     index⇐↕4,
     day⇐1‿2‿3‿4,
     date⇐⟨"2026-08-01","2026-08-02","2026-08-03","2026-08-04"⟩,
