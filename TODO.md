@@ -122,6 +122,7 @@ Closeout: `docs/LEDGER_PHASE_TWO_REVIEW_CLOSEOUT-2026-08-12.md`.
 - [x] `src/ledger/facts.bqn`
 - [x] `src/ledger/household_policy_admission.bqn`
 - [x] `src/ledger/issue_admission.bqn`
+- [x] `src/ledger/issue_relation_admission.bqn` — #764 (post-closeout non-canonical relation owner)
 - [x] `src/ledger/journal_complete_admission.bqn`
 - [x] `src/ledger/journal_posting_text.bqn`
 - [x] `src/ledger/journal_single_domain_admission.bqn`
