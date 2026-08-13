@@ -10,7 +10,6 @@ setup ← editorCurrency.Load @
 
 args ← •args
 tab ← @+9
-empty ← ⟨⟩
 Fail ← {𝕊 msg: •Out "ERROR"∾tab∾msg ⋄ •Exit 1}
 Join ← {𝕊 base‿name: base∾(('/'≠¯1↑base)/"/")∾name}
 Unique ← {𝕊 xs: ((xs⊐xs)=↕≠xs)/xs}
@@ -65,13 +64,16 @@ errors ← (¬⊑¨checks)/1⊸⊑¨checks
 {𝕊:Fail ⊑errors}⍟(0<≠errors) @
 {𝕊:Fail "Budget movement description must be nonempty in canonical budget.journal"}⍟(0=≠memoVal) @
 
-metadata ← empty
-{𝕊 token:
+# After generic metadata admission, Budget Add's stricter one-equals contract is
+# a regular source-ordered collection: each token maps to exactly one key/value
+# record. No mutable accumulator models domain state here.
+MetadataRecord ← {𝕊 token:
   equalMask ← '='=token
   {𝕊:Fail "each --meta item must contain exactly one key=value pair"}⍟(1≠+´equalMask) @
   p ← ⊑equalMask/↕≠token
-  metadata∾↩⟨{key⇐p↑token,value⇐(p+1)↓token}⟩
-}¨metaTokens
+  {key⇐p↑token,value⇐(p+1)↓token}
+}
+metadata ← MetadataRecord¨metaTokens
 
 raw ← loader.ReadRaw Join ⟨baseDir,canonical.budget⟩
 prepared ← candidate.Prepare ⟨raw,accounts,setup.registry,{

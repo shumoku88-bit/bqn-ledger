@@ -38,6 +38,31 @@ grep -F 'Target: '"$(cd -P "$dry" && pwd)"'/budget.journal' "$tmp_root/dry.out" 
 grep -F '    budget:unassigned    -10 JPY' "$tmp_root/dry.out" >/dev/null
 grep -F '    budget:food    10 JPY' "$tmp_root/dry.out" >/dev/null
 
+# Source-ordered metadata is a regular key/value collection after admission.
+# Use values admitted by the canonical Journal metadata owner; this witness
+# characterizes mapping/order, not a new permissive metadata contract.
+./tools/edit --base "$dry" budget add \
+  --date 2026-01-02 --memo metadata-map \
+  --from budget:unassigned --to budget:food --amount 10 \
+  --meta note=first --meta tax=business --dry-run >"$tmp_root/meta.out"
+python3 - "$tmp_root/meta.out" <<'PY'
+import sys
+text = open(sys.argv[1], encoding="utf-8").read()
+first = text.find("    ; note: first")
+second = text.find("    ; tax: business")
+if first < 0 or second < 0 or first >= second:
+    raise SystemExit("FAIL: Budget metadata order/rendering changed")
+PY
+if ./tools/edit --base "$dry" budget add \
+  --date 2026-01-02 --memo bad-metadata \
+  --from budget:unassigned --to budget:food --amount 10 \
+  --meta 'note=one=two' --dry-run >"$tmp_root/meta-bad.out" 2>&1; then
+  echo 'FAIL: Budget Add accepted metadata with more than one equals sign' >&2
+  exit 1
+fi
+grep -F 'each --meta item must contain exactly one key=value pair' "$tmp_root/meta-bad.out" >/dev/null
+assert_sha "$dry/budget.journal" "$budget_before" 'Budget metadata dry-run/failure'
+
 # Apply appends only canonical budget.journal and creates one canonical backup.
 apply="$tmp_root/apply"
 copy_fixture "$apply"
