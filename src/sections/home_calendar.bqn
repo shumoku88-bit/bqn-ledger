@@ -12,7 +12,6 @@ amount ← •Import "../ledger/amount_text.bqn"
 
 empty ← ⟨⟩
 lf ← @+10
-tab ← @+9
 
 Diagnostic ← {𝕊 codeText‿messageText:
   {severity⇐"error",stage⇐"section_home_calendar",code⇐codeText,message⇐messageText}
@@ -46,14 +45,15 @@ IndicesByText ← {𝕊 value‿values‿indices: (value⊸≡¨values)/indices}
 # Inputs are canonical Actual Facts plus already-derived open Plan and open Issue
 # results, one resolved Cycle, and one strict Gregorian focus date.
 Build ← {𝕊 actualFacts‿planned‿issues‿cycle‿focusDate:
-  diagnostics ← empty
   actualOk ← reference.SourceIs ⟨actualFacts,"actual.journal"⟩
-  diagnostics ∾↩ AddIf ⟨¬actualOk,Diagnostic ⟨"actual_facts_invalid","Home calendar requires admitted Actual facts"⟩⟩
-  diagnostics ∾↩ AddIf ⟨planned.state≢"ok",Diagnostic ⟨"planned_payments_invalid","Home calendar requires an ok Planned Payments result"⟩⟩
-  diagnostics ∾↩ AddIf ⟨issues.state≢"ok",Diagnostic ⟨"issues_invalid","Home calendar requires an ok open Issues result"⟩⟩
-  diagnostics ∾↩ AddIf ⟨cycle.state≢"ok",Diagnostic ⟨"cycle_invalid","Home calendar requires a resolved cycle"⟩⟩
   focusValid ← dates.IsValid focusDate
-  diagnostics ∾↩ AddIf ⟨¬focusValid,Diagnostic ⟨"focus_date_invalid","Home calendar focus date must be strict Gregorian text"⟩⟩
+  diagnostics ← ∾´ ⟨
+    AddIf ⟨¬actualOk,Diagnostic ⟨"actual_facts_invalid","Home calendar requires admitted Actual facts"⟩⟩,
+    AddIf ⟨planned.state≢"ok",Diagnostic ⟨"planned_payments_invalid","Home calendar requires an ok Planned Payments result"⟩⟩,
+    AddIf ⟨issues.state≢"ok",Diagnostic ⟨"issues_invalid","Home calendar requires an ok open Issues result"⟩⟩,
+    AddIf ⟨cycle.state≢"ok",Diagnostic ⟨"cycle_invalid","Home calendar requires a resolved cycle"⟩⟩,
+    AddIf ⟨¬focusValid,Diagnostic ⟨"focus_date_invalid","Home calendar focus date must be strict Gregorian text"⟩⟩
+  ⟩
 
   result ← EmptyResult diagnostics
   {𝕊:
@@ -111,14 +111,15 @@ Build ← {𝕊 actualFacts‿planned‿issues‿cycle‿focusDate:
 # those indices rather than rescanning canonical source text or reclassifying due
 # meaning in a second owner.
 BuildDetail ← {𝕊 calendar‿transactionRows‿planned‿issues‿cycle‿selectedDate:
-  diagnostics ← empty
-  diagnostics ∾↩ AddIf ⟨calendar.state≢"ok",Diagnostic ⟨"detail_calendar_invalid","Home detail requires an ok Home calendar result"⟩⟩
-  diagnostics ∾↩ AddIf ⟨transactionRows.state≢"ok",Diagnostic ⟨"detail_actual_rows_invalid","Home detail requires typed Actual transaction rows"⟩⟩
-  diagnostics ∾↩ AddIf ⟨planned.state≢"ok",Diagnostic ⟨"detail_planned_invalid","Home detail requires an ok Planned Payments result"⟩⟩
-  diagnostics ∾↩ AddIf ⟨issues.state≢"ok",Diagnostic ⟨"detail_issues_invalid","Home detail requires an ok Issues result"⟩⟩
-  diagnostics ∾↩ AddIf ⟨cycle.state≢"ok",Diagnostic ⟨"detail_cycle_invalid","Home detail requires a resolved Cycle"⟩⟩
   selectedValid ← dates.IsValid selectedDate
-  diagnostics ∾↩ AddIf ⟨¬selectedValid,Diagnostic ⟨"detail_date_invalid","Selected Home date must be strict Gregorian text"⟩⟩
+  diagnostics ← ∾´ ⟨
+    AddIf ⟨calendar.state≢"ok",Diagnostic ⟨"detail_calendar_invalid","Home detail requires an ok Home calendar result"⟩⟩,
+    AddIf ⟨transactionRows.state≢"ok",Diagnostic ⟨"detail_actual_rows_invalid","Home detail requires typed Actual transaction rows"⟩⟩,
+    AddIf ⟨planned.state≢"ok",Diagnostic ⟨"detail_planned_invalid","Home detail requires an ok Planned Payments result"⟩⟩,
+    AddIf ⟨issues.state≢"ok",Diagnostic ⟨"detail_issues_invalid","Home detail requires an ok Issues result"⟩⟩,
+    AddIf ⟨cycle.state≢"ok",Diagnostic ⟨"detail_cycle_invalid","Home detail requires a resolved Cycle"⟩⟩,
+    AddIf ⟨¬selectedValid,Diagnostic ⟨"detail_date_invalid","Selected Home date must be strict Gregorian text"⟩⟩
+  ⟩
 
   result ← EmptyDetail diagnostics
   {𝕊:
@@ -194,13 +195,18 @@ CellRelation ← {𝕊 result‿calendar:
   }
 }
 
-FormatHuman ← {𝕊 result‿calendar:
+# Fixed-width semantic cell text belongs beside CellRelation. Frontends may place
+# these cells physically, but must not independently rebuild day padding/markers.
+CellText ← {𝕊 result‿calendar:
   relation ← CellRelation ⟨result,calendar⟩
-  PadDay ← {𝕊 dayValue:
-    value ← •Fmt dayValue
-    ((0⌈2-≠value)⥊' ')∾value
-  }
-  cells ← {𝕊 i:(PadDay i⊑relation.day)∾i⊑relation.marker}¨relation.index
+  {𝕊 i:
+    dayText ← •Fmt i⊑relation.day
+    ∾⟨((0⌈2-≠dayText)⥊' '),dayText,i⊑relation.marker⟩
+  }¨relation.index
+}
+
+FormatHuman ← {𝕊 result‿calendar:
+  cells ← CellText ⟨result,calendar⟩
   CellFor ← {𝕊 dayIndex:
     cell ← "   "
     {𝕊:cell↩dayIndex⊑cells}⍟(dayIndex≥0) @
@@ -215,19 +221,6 @@ FormatHuman ← {𝕊 result‿calendar:
     "Mo  Tu  We  Th  Fr  Sa  Su ",lf,
     ∾{𝕩∾lf}¨rowTexts
   ⟩
-}
-
-# Choice rows are a selector adapter contract: stable date key, human label.
-# Shell code need not derive month length, markers, or date semantics.
-FormatChoices ← {𝕊 result‿calendar:
-  relation ← CellRelation ⟨result,calendar⟩
-  rows ← {𝕊 i:
-    dayText ← •Fmt i⊑relation.day
-    padded ← ((0⌈2-≠dayText)⥊' ')∾dayText
-    dateText ← i⊑relation.date
-    ∾⟨dateText,tab,padded,i⊑relation.marker,"  ",dateText,lf⟩
-  }¨relation.index
-  ∾rows
 }
 
 FormatDetailHuman ← {𝕊 result:
@@ -276,4 +269,4 @@ FormatDetailHuman ← {𝕊 result:
   ⟩
 }
 
-{Build⇐Build,BuildDetail⇐BuildDetail,Markers⇐Markers,CellRelation⇐CellRelation,FormatHuman⇐FormatHuman,FormatChoices⇐FormatChoices,FormatDetailHuman⇐FormatDetailHuman}
+{Build⇐Build,BuildDetail⇐BuildDetail,Markers⇐Markers,CellRelation⇐CellRelation,CellText⇐CellText,FormatHuman⇐FormatHuman,FormatDetailHuman⇐FormatDetailHuman}

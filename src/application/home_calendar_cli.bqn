@@ -15,16 +15,17 @@ detailMarker ← "HOME_SELECTED_DETAIL"
 Fail ← {𝕊 code‿message:•Out "ERROR"∾tab∾code∾tab∾message ⋄ •Exit 1}
 
 args ← •args
-{𝕊:Fail ⟨"usage","expected BASE [FOCUS_DATE] [calendar|detail|detail-frame|choices|cells|frame|day-prev|day-next|week-prev|week-next|month-prev|month-next]"⟩}⍟((1>≠args) ∨ 3<≠args) @
+{𝕊:Fail ⟨"usage","expected BASE [FOCUS_DATE] [calendar|detail|detail-frame|cells|frame|day-prev|day-next|week-prev|week-next|month-prev|month-next]"⟩}⍟((1>≠args) ∨ 3<≠args) @
 base ← 0⊑args
-focus ← today.Today @
+focus ← ""
+{𝕊:focus↩today.Today @}⍟(1=≠args) @
 {𝕊:focus↩1⊑args}⍟(2≤≠args) @
 mode ← "calendar"
 {𝕊:mode↩2⊑args}⍟(3=≠args) @
 detailMode ← (mode≡"detail") ∨ mode≡"detail-frame"
-staticMode ← (mode≡"calendar") ∨ detailMode ∨ (mode≡"choices") ∨ (mode≡"cells") ∨ mode≡"frame"
+staticMode ← (mode≡"calendar") ∨ detailMode ∨ (mode≡"cells") ∨ mode≡"frame"
 modeValid ← staticMode ∨ navigation.ValidMove mode
-{𝕊:Fail ⟨"home_mode_invalid","third argument must be calendar, detail, detail-frame, choices, cells, frame, day-prev, day-next, week-prev, week-next, month-prev, or month-next"⟩}⍟(¬modeValid) @
+{𝕊:Fail ⟨"home_mode_invalid","third argument must be calendar, detail, detail-frame, cells, frame, day-prev, day-next, week-prev, week-next, month-prev, or month-next"⟩}⍟(¬modeValid) @
 {𝕊:Fail ⟨"home_focus_date_invalid","FOCUS_DATE must be strict YYYY-MM-DD"⟩}⍟(¬dates.IsValid focus) @
 
 # Logical movement is pure selected-date meaning. Return before importing report,
@@ -56,17 +57,16 @@ PublicationFailure ← {𝕊 publication‿fallback:
 
 # Serialize the Home-owned semantic cell relation for cursor adapters. Physical
 # terminal placement stays in shell; row/column are only the shared 7-column
-# calendar matrix coordinates.
+# calendar matrix coordinates. Fixed-width cell text is Home presentation too.
 FormatCursorCells ← {𝕊 calendar‿calendarPolicy:
   relation ← home.CellRelation ⟨calendar,calendarPolicy⟩
+  texts ← home.CellText ⟨calendar,calendarPolicy⟩
   lines ← {𝕊 i:
-    dayText ← •Fmt i⊑relation.day
-    padded ← ((0⌈2-≠dayText)⥊' ')∾dayText
     ∾⟨
       i⊑relation.date,tab,
       •Fmt i⊑relation.row,tab,
       •Fmt i⊑relation.column,tab,
-      padded,i⊑relation.marker,lf
+      i⊑texts,lf
     ⟩
   }¨relation.index
   ∾lines
@@ -126,7 +126,6 @@ calendar ← home.Build ⟨actual.facts,planned.result,issues.result,cycle,focus
 {𝕊:PrintDiagnostics calendar.diagnostics}⍟(calendar.state≢"ok") @
 
 output ← home.FormatHuman ⟨calendar,policy.presentation.calendar⟩
-{𝕊:output↩home.FormatChoices ⟨calendar,policy.presentation.calendar⟩}⍟(mode≡"choices") @
 {𝕊:output↩FormatCursorCells ⟨calendar,policy.presentation.calendar⟩}⍟(mode≡"cells") @
 {𝕊:output↩FormatCursorFrame ⟨calendar,policy.presentation.calendar⟩}⍟(mode≡"frame") @
 {𝕊:

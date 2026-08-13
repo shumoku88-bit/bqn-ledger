@@ -20,6 +20,24 @@ cp -R fixtures/canonical-household-v1 "$base"
   exit 1
 }
 
+# An explicit focus date is already the logical coordinate. Pure movement must
+# not read the application clock merely because date_today is available.
+mkdir -p "$work/bin"
+cat >"$work/bin/date" <<'SH'
+#!/usr/bin/env bash
+echo 'FAIL: pure Home movement touched the clock' >&2
+exit 77
+SH
+chmod +x "$work/bin/date"
+clock_free="$(PATH="$work/bin:$PATH" tools/home-calendar "$base" 2026-01-28 week-next)" || {
+  echo 'FAIL: explicit Home movement depended on date(1)' >&2
+  exit 1
+}
+[[ "$clock_free" == '2026-02-04' ]] || {
+  echo 'FAIL: clock-free Home movement changed logical result' >&2
+  exit 1
+}
+
 # The terminal Down key maps to the same logical week-next action. Start on the
 # last Wednesday of January and cross into the first Wednesday of February.
 python3 - "$base" "$work/down.out" <<'PY'

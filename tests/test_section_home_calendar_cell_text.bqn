@@ -3,8 +3,6 @@
 lib ← •Import "test_lib.bqn"
 section ← •Import "../src/sections/home_calendar.bqn"
 
-tab ← @+9
-lf ← @+10
 calendar ← {
   weekday_start⇐5,
   days⇐{
@@ -21,12 +19,6 @@ policy ← {
   cycle_end_marker⇐"*",plan_due_marker⇐"$",issue_due_marker⇐"!",multiple_marker⇐"+"
 }
 
-expected ← ∾⟨
-  "2026-08-01",tab," 1 ","  2026-08-01",lf,
-  "2026-08-02",tab," 2*","  2026-08-02",lf,
-  "2026-08-03",tab," 3$","  2026-08-03",lf,
-  "2026-08-04",tab," 4+","  2026-08-04",lf
-⟩
-expected lib.AssertEq section.FormatChoices ⟨calendar,policy⟩
+⟨" 1 "," 2*"," 3$"," 4+"⟩ lib.AssertEq section.CellText ⟨calendar,policy⟩
 
-•Out "test_section_home_calendar_choices: ok"
+•Out "test_section_home_calendar_cell_text: ok"
