@@ -74,9 +74,15 @@ AmountFor ← {𝕊 i:
   text
 }
 Display ← {𝕊 displayIndex‿i:
-  (•Fmt displayIndex) ∾ " | line " ∾ (•Fmt i⊑issues.source_row) ∾ " | " ∾
-    (i⊑issues.date) ∾ " | " ∾ (i⊑issues.title) ∾ " | " ∾ (AmountFor i) ∾ " | " ∾
-    (i⊑issues.details) ∾ " | due: " ∾ (i⊑issues.due)
+  " | " Join ⟨
+    •Fmt displayIndex,
+    "line "∾•Fmt i⊑issues.source_row,
+    i⊑issues.date,
+    i⊑issues.title,
+    AmountFor i,
+    i⊑issues.details,
+    "due: "∾i⊑issues.due
+  ⟩
 }
 PrintTsv ← {𝕊 displayIndex‿i:
   display ← Display ⟨displayIndex,i⟩
