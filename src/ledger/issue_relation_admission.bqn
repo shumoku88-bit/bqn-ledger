@@ -39,10 +39,8 @@ Diagnostic ← {𝕊 code‿row‿message:
 AddIf ← {𝕊 invalid‿diagnostic: invalid/⟨diagnostic⟩}
 EmptyRelations ← {𝕊:
   {
-    count⇐0,index⇐empty,relation_event_id⇐empty,
-    recorded_on⇐empty,recorded_on_ordinal⇐empty,
-    issue_id⇐empty,relation_kind⇐empty,target_id⇐empty,details⇐empty,
-    source_row⇐empty
+    count⇐0,index⇐empty,relation_event_id⇐empty,recorded_on⇐empty,
+    issue_id⇐empty,relation_kind⇐empty,target_id⇐empty,details⇐empty
   }
 }
 
@@ -69,19 +67,16 @@ Admit ← {𝕊 lines:
     {𝕊:
       relationEventId‿recordedOn‿issueId‿relationKind‿targetId‿details ← fields
       kindOk ← Contains ⟨relationKind,kinds⟩
-      dateOk ← dates.IsValid recordedOn
       diagnostics ∾↩ AddIf ⟨¬IdentityValid relationEventId,Diagnostic ⟨"issue_relation_event_identity_invalid",sourceRow,"relation_event_id must be nonempty and contain no whitespace"⟩⟩
-      diagnostics ∾↩ AddIf ⟨¬dateOk,Diagnostic ⟨"issue_relation_recorded_on_invalid",sourceRow,"recorded_on must be strict Gregorian text"⟩⟩
+      diagnostics ∾↩ AddIf ⟨¬dates.IsValid recordedOn,Diagnostic ⟨"issue_relation_recorded_on_invalid",sourceRow,"recorded_on must be strict Gregorian text"⟩⟩
       diagnostics ∾↩ AddIf ⟨¬IdentityValid issueId,Diagnostic ⟨"issue_relation_issue_identity_invalid",sourceRow,"issue_id must be nonempty and contain no whitespace"⟩⟩
       diagnostics ∾↩ AddIf ⟨¬kindOk,Diagnostic ⟨"issue_relation_kind_invalid",sourceRow,"relation_kind must use the closed Issue relation vocabulary"⟩⟩
       diagnostics ∾↩ AddIf ⟨¬IdentityValid targetId,Diagnostic ⟨"issue_relation_target_identity_invalid",sourceRow,"target_id must be nonempty and contain no whitespace"⟩⟩
       diagnostics ∾↩ AddIf ⟨¬DetailsValid details,Diagnostic ⟨"issue_relation_details_invalid",sourceRow,"details must not contain controls or surrounding spaces"⟩⟩
       {𝕊:
         item↩{
-          relation_event_id⇐relationEventId,
-          recorded_on⇐recordedOn,recorded_on_ordinal⇐dates.Ordinal recordedOn,
-          issue_id⇐issueId,relation_kind⇐relationKind,target_id⇐targetId,
-          details⇐details,source_row⇐sourceRow
+          relation_event_id⇐relationEventId,recorded_on⇐recordedOn,issue_id⇐issueId,
+          relation_kind⇐relationKind,target_id⇐targetId,details⇐details
         }
       }⍟(0=≠diagnostics) @
     }⍟(6=≠fields) @
@@ -102,12 +97,10 @@ Admit ← {𝕊 lines:
       count⇐≠rows,index⇐↕≠rows,
       relation_event_id⇐{𝕩.relation_event_id}¨rows,
       recorded_on⇐{𝕩.recorded_on}¨rows,
-      recorded_on_ordinal⇐{𝕩.recorded_on_ordinal}¨rows,
       issue_id⇐{𝕩.issue_id}¨rows,
       relation_kind⇐{𝕩.relation_kind}¨rows,
       target_id⇐{𝕩.target_id}¨rows,
-      details⇐{𝕩.details}¨rows,
-      source_row⇐{𝕩.source_row}¨rows
+      details⇐{𝕩.details}¨rows
     }
   }⍟(0=≠diagnostics) @
   {state⇐(0=≠diagnostics)⊑"error"‿"ok",relations⇐relations,diagnostics⇐diagnostics}
