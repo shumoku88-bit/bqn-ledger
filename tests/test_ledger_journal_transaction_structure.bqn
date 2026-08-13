@@ -62,10 +62,8 @@ retirement ← structure.Parse retirementRaw
 0 lib.AssertEq ≠retirement.diagnostics
 retirementTransaction ← ⊑retirement.transactions
 "plan" lib.AssertEq retirementTransaction.layer_name
-⟨"layer","plan-id","superseded-on","superseded-by"⟩
-  lib.AssertEq {𝕩.key}¨retirementTransaction.metadata
-⟨"plan","plan-old","2026-01-05","plan-new"⟩
-  lib.AssertEq {𝕩.value}¨retirementTransaction.metadata
+⟨"layer","plan-id","superseded-on","superseded-by"⟩ lib.AssertEq {𝕩.key}¨retirementTransaction.metadata
+⟨"plan","plan-old","2026-01-05","plan-new"⟩ lib.AssertEq {𝕩.value}¨retirementTransaction.metadata
 
 cancellationRaw ← Raw ⟨
   "commodity JPY","","account assets:cash","","account expenses:food","",

@@ -82,8 +82,7 @@ retirement ← planAdmission.Admit ⟨retirementRaw,accounts,registry⟩
 ⟨"plan-old","plan-cancelled"⟩ lib.AssertEq retirement.retirements.plan_id
 ⟨"2026-08-13","2026-08-12"⟩ lib.AssertEq retirement.retirements.retired_on
 ⟨"plan-new",""⟩ lib.AssertEq retirement.retirements.successor_plan_id
-⟨"plan-id","superseded-on","superseded-by"⟩
-  lib.AssertEq {𝕩.key}¨(⊑retirement.transactions).metadata
+⟨"plan-id","superseded-on","superseded-by"⟩ lib.AssertEq {𝕩.key}¨(⊑retirement.transactions).metadata
 
 missing ← planAdmission.Admit ⟨Raw ⟨
   "2026-08-08 Missing identity",
