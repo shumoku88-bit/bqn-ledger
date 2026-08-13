@@ -10,13 +10,12 @@
 # number is the 1-based ordinal within current open issues, matching issue close --index.
 
 loader ← •Import "../src/application/source_io.bqn"
-validate ← •Import "validate.bqn"
+registryMod ← •Import "../src/ledger/currency_registry.bqn"
+admission ← •Import "../src/ledger/issue_admission.bqn"
+amountText ← •Import "../src/ledger/amount_text.bqn"
 
 args ← •args
 tab ← @+9
-legacyHeader ← ⟨"issue_id","status","date","category","title","amount","currency","details"⟩
-dueHeader ← ⟨"issue_id","status","date","due","category","title","amount","currency","details"⟩
-closedHeader ← ⟨"issue_id","status","date","due","closed","category","title","amount","currency","details"⟩
 
 Fail ← {𝕊 msg:
   •Out "ERROR" ∾ tab ∾ msg
@@ -24,7 +23,6 @@ Fail ← {𝕊 msg:
 }
 
 {𝕊 ⋄ Fail "usage: issue_list_cmd.bqn <baseDir> <format: tsv|text>"}⍟(2 ≠ ≠ args) @
-
 baseDir ← 0 ⊑ args
 format ← 1 ⊑ args
 validFormat ← ∨´ format ⊸ ≡¨ "tsv"‿"text"
@@ -38,101 +36,59 @@ Join ← {
   (0 = ≠ list) ◶ ⟨ { 𝕊 ⋄ 1↓ ∾ (sep ⊸ ∾) ¨ list }, { 𝕊 ⋄ ""} ⟩ @
 }
 
-IsDataLine ← { (0 < ≠𝕩) ? ((⊑𝕩 ≠ '#') ∧ (⊑𝕩 ≠ ⊑"\\")) ; 0 }
-
+# Keep physical lines only so the admitted relation can retain real source_row
+# coordinates. Header/schema/lifecycle/date/amount meaning belongs to admission.
 ResolvePath ← {
   path ← 𝕩
   is_abs ← (0 < ≠ path) ∧ (("/" ≡ 1 ↑ path) ∨ ("~" ≡ 1 ↑ path))
   is_abs ◶ ⟨ { 𝕊 ⋄ •wdpath ∾ "/" ∾ path }, { 𝕊 ⋄ path } ⟩ @
 }
-
-ReadDataLinesWithNumsOptional ← {
+ReadSourceLinesOptional ← {
   full ← ResolvePath 𝕩
   (•file.Exists full) ◶ ⟨
-    {𝕊 ⋄ ⟨⟨⟩,⟨⟩⟩},
+    {𝕊 ⋄ ⟨⟩},
     {𝕊 ⋄
       raw ← loader.ReadRaw full
       stripped ← ((@+13) ≠ raw) / raw
-      lines ← (@+10) loader.SplitKeepEmpty stripped
-      nums ← 1 + ↕ ≠ lines
-      mask ← IsDataLine¨ lines
-      ⟨mask / lines, mask / nums⟩
+      (@+10) loader.SplitKeepEmpty stripped
     }
   ⟩ @
 }
 
-lineData ← ReadDataLinesWithNumsOptional issuePath
-allLines ← 0 ⊑ lineData
-allNums ← 1 ⊑ lineData
+sourceLines ← ReadSourceLinesOptional issuePath
+registryResult ← registryMod.Build loader.ReadLines "config/currencies.tsv"
+{𝕊 ⋄ Fail "currency registry invalid"}⍟(registryResult.state≢"ok") @
+result ← admission.Admit ⟨sourceLines,registryResult.registry⟩
+{𝕊 ⋄ Fail (⊑result.diagnostics).message}⍟(result.state≢"ok") @
+issues ← result.issues
+openIndices ← ("open"⊸≡¨issues.status) / issues.index
 
-headerFields ← ⟨⟩
-{𝕊:headerFields↩loader.SplitTsvKeepEmpty ⊑allLines}⍟(0<≠allLines) @
-legacySchema ← headerFields≡legacyHeader
-dueSchema ← headerFields≡dueHeader
-closedSchema ← headerFields≡closedHeader
-headerOk ← (0=≠allLines) ∨ legacySchema ∨ dueSchema ∨ closedSchema
-{𝕊 ⋄ Fail "issues.tsv header must match the supported eight-, nine-, or ten-column schema"}⍟(¬headerOk) @
-expectedCount ← 8 + dueSchema + 2×closedSchema
-
-# Drop the TSV header when present.
-bodyLines ← (0 < ≠ allLines) ◶ ⟨ {𝕊 ⋄ ⟨⟩}, {𝕊 ⋄ 1 ↓ allLines} ⟩ @
-bodyNums ← (0 < ≠ allNums) ◶ ⟨ {𝕊 ⋄ ⟨⟩}, {𝕊 ⋄ 1 ↓ allNums} ⟩ @
-
-ParseIssueRow ← {𝕊 index:
-  line ← index ⊑ bodyLines
-  lineNum ← index ⊑ bodyNums
-  fields ← loader.SplitTsvKeepEmpty line
-  {𝕊 ⋄ Fail "issues.tsv row width must match its header"}⍟(expectedCount ≠ ≠ fields) @
-  statusRaw ← 1⊑fields
-  closedFallback ← (statusRaw≡"open")⊑⟨"undetermined","none"⟩
-  normalized ← fields
-  {𝕊:normalized↩(3↑fields)∾⟨"undetermined",closedFallback⟩∾3↓fields}⍟legacySchema @
-  {𝕊:normalized↩(4↑fields)∾⟨closedFallback⟩∾4↓fields}⍟dueSchema @
-  issueId‿status‿date‿due‿closed‿category‿title‿amount‿currency‿memo ← normalized
-  dueOk ← (due≡"none") ∨ (due≡"undetermined") ∨ 0⊑validate.ValidateDate due
-  {𝕊 ⋄ Fail "issues.tsv due must be none, undetermined, or a strict Gregorian date"}⍟(¬dueOk) @
-  closedOk ← (closed≡"none") ∨ (closed≡"undetermined") ∨ 0⊑validate.ValidateDate closed
-  {𝕊 ⋄ Fail "issues.tsv closed must be none, undetermined, or a strict Gregorian date"}⍟(¬closedOk) @
-  lifecycleOk ← (status≡"open") = (closed≡"none")
-  {𝕊 ⋄ Fail "issues.tsv status and closed lifecycle disagree"}⍟(¬lifecycleOk) @
-  {
-    lineNum ⇐ lineNum ⋄
-    fields ⇐ fields ⋄
-    issue_id ⇐ issueId ⋄
-    status ⇐ status ⋄
-    date ⇐ date ⋄
-    due ⇐ due ⋄
-    closed ⇐ closed ⋄
-    category ⇐ category ⋄
-    title ⇐ title ⋄
-    amount ⇐ amount ⋄
-    currency ⇐ currency ⋄
-    memo ⇐ memo
-  }
+AmountFor ← {𝕊 i:
+  text ← ""
+  {𝕊:text↩amountText.Format ⟨i⊑issues.coefficient,i⊑issues.scale⟩}⍟(i⊑issues.amount_present) @
+  text
 }
-
-allIssues ← ParseIssueRow¨ ↕ ≠ bodyLines
-openIssues ← ({𝕩.status ≡ "open"}¨ allIssues) / allIssues
-
-Display ← {
-  n ← 𝕨
-  r ← 𝕩
-  (•Fmt n) ∾ " | line " ∾ (•Fmt r.lineNum) ∾ " | " ∾ r.date ∾ " | " ∾ r.title ∾ " | " ∾ r.amount ∾ " | " ∾ r.memo ∾ " | due: " ∾ r.due
+Display ← {𝕊 displayIndex‿i:
+  (•Fmt displayIndex) ∾ " | line " ∾ (•Fmt i⊑issues.source_row) ∾ " | " ∾
+    (i⊑issues.date) ∾ " | " ∾ (i⊑issues.title) ∾ " | " ∾ (AmountFor i) ∾ " | " ∾
+    (i⊑issues.details) ∾ " | due: " ∾ (i⊑issues.due)
 }
-
-PrintTsv ← {𝕊 index:
-  r ← index ⊑ openIssues
-  n ← index + 1
-  •Out tab Join ⟨(•Fmt n), r.date, r.title, r.amount, r.memo, n Display r, r.due⟩
+PrintTsv ← {𝕊 displayIndex‿i:
+  display ← Display ⟨displayIndex,i⟩
+  •Out tab Join ⟨
+    •Fmt displayIndex,
+    i⊑issues.date,
+    i⊑issues.title,
+    AmountFor i,
+    i⊑issues.details,
+    display,
+    i⊑issues.due
+  ⟩
 }
+PrintText ← {𝕊 displayIndex‿i: •Out Display ⟨displayIndex,i⟩}
 
-PrintText ← {𝕊 index:
-  r ← index ⊑ openIssues
-  n ← index + 1
-  •Out (n Display r)
-}
-
+pairs ← {𝕊 j:⟨j+1,j⊑openIndices⟩}¨↕≠openIndices
 (format ≡ "tsv") ◶ ⟨
-  {𝕊 ⋄ PrintText¨ ↕ ≠ openIssues},
-  {𝕊 ⋄ PrintTsv¨ ↕ ≠ openIssues}
+  {𝕊 ⋄ PrintText¨pairs},
+  {𝕊 ⋄ PrintTsv¨pairs}
 ⟩ @
