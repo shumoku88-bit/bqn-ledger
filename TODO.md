@@ -243,6 +243,12 @@ See `docs/EDITOR_PHASE_SIX_ACTUAL_BUDGET_OBSERVATION-2026-08-13.md`.
 
 The Actual Journal basename leaf, Budget candidate fail-closed staging, and mandatory Budget post-write validator remain deliberately unchanged. Budget Add exposes one genuinely regular collection by mapping admitted metadata tokens directly to key/value records instead of mutating an accumulator. The review also records repeated eager currency-registry setup across broader editor validation as a cross-cutting `validate.bqn` pressure rather than applying a Budget-only workaround.
 
+### Issue editor relation observation
+
+See `docs/EDITOR_PHASE_SIX_ISSUE_RELATION_OBSERVATION-2026-08-13.md`.
+
+#763 moves Issue List and the semantic side of Issue Close onto canonical Issue admission while preserving the writer's historical 8/9/10-column physical shape. Issue Add selects its admitted schema renderer through BQN Choose (`◶`), and Issue Validate remains the mandatory post-write admission leaf. Physical `source_row` remains explicit evidence, including through comments, source notes, and blank lines.
+
 ### `src/editor/`
 
 - [x] `src/editor/friend_travel_source_event.bqn` — #734
@@ -258,10 +264,10 @@ The Actual Journal basename leaf, Budget candidate fail-closed staging, and mand
 - [x] `src_edit/budget_add_cmd.bqn` — regular metadata map
 - [x] `src_edit/budget_movement_candidate.bqn` — law review; fail-closed staging unchanged
 - [x] `src_edit/budget_validate_cmd.bqn` — law review; production unchanged
-- [ ] `src_edit/issue_add_cmd.bqn`
-- [ ] `src_edit/issue_close_cmd.bqn`
-- [ ] `src_edit/issue_list_cmd.bqn`
-- [ ] `src_edit/issue_validate_cmd.bqn`
+- [x] `src_edit/issue_add_cmd.bqn` — #763 schema/renderer relation
+- [x] `src_edit/issue_close_cmd.bqn` — #763 admitted semantics with physical shape-preserving rewrite
+- [x] `src_edit/issue_list_cmd.bqn` — #763 admitted Issue relation
+- [x] `src_edit/issue_validate_cmd.bqn` — law review in #763; mandatory post-write leaf unchanged
 - [ ] `src_edit/journal_block_add_cmd.bqn`
 - [ ] `src_edit/journal_canonical_surface_apply_cmd.bqn`
 - [ ] `src_edit/journal_canonical_surface_plan.bqn`
@@ -309,6 +315,6 @@ After the production BQN inventory is reviewed, selector/UI adapter consolidatio
 
 ## Current cursor
 
-`src_edit/issue_add_cmd.bqn`
+`src_edit/journal_block_add_cmd.bqn`
 
-Resume the normal Phase 6 `src_edit/` review sequence at Issue Add.
+Resume the normal Phase 6 `src_edit/` review sequence at Journal Block Add.
