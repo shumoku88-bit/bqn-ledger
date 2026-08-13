@@ -21,8 +21,9 @@ account Expenses:Dollar-Food
   commodity: USD
 EOF
 
-# USD is registry-supported even though the retired validator helper only knew
-# the older JPY/ILS pair. Account List must follow the canonical registry owner.
+# Explicit currency filtering follows the same canonical registry already used by
+# editor validation. This witness keeps USD support and mask composition visible
+# while Account List narrows its dependency/effect lifetime.
 usd="$(tools/edit --base "$base" account list --currency USD)"
 grep -Fxq 'Assets:Dollar' <<<"$usd" || {
   echo 'FAIL: Account List rejected or lost registry-supported USD asset' >&2
@@ -50,14 +51,14 @@ if tools/edit --base "$base" account list --currency EUR >"$work/eur.out" 2>&1; 
   echo 'FAIL: Account List accepted unsupported EUR' >&2
   exit 1
 fi
-grep -Fq 'unsupported selected currency: EUR' "$work/eur.out" || {
-  echo 'FAIL: Account List unsupported-currency diagnostic is not registry-owned' >&2
+grep -Fq 'unsupported currency: EUR' "$work/eur.out" || {
+  echo 'FAIL: Account List changed the unsupported-currency diagnostic contract' >&2
   cat "$work/eur.out" >&2
   exit 1
 }
 
 if grep -Fq 'validate.bqn' src_edit/account_list_cmd.bqn; then
-  echo 'FAIL: Account List still delegates currency admission to legacy validate.bqn' >&2
+  echo 'FAIL: Account List still imports the broad edit validator surface' >&2
   exit 1
 fi
 
