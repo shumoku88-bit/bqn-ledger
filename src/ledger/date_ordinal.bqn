@@ -57,4 +57,20 @@ FromOrdinal ← {𝕊 ordinal:
 }
 AddDays ← {𝕊 text‿delta: FromOrdinal delta+Ordinal text}
 
-{IsValid⇐IsValid,Ordinal⇐Ordinal,FromOrdinal⇐FromOrdinal,AddDays⇐AddDays,Parts⇐Parts,FromParts⇐FromParts}
+# Shift an exact Gregorian coordinate by whole calendar months. Preserve the
+# day-of-month when the target month has it; otherwise clip to that month end.
+# This is date-coordinate meaning, not terminal/UI policy.
+MonthIndex ← {𝕊 y‿m: (12×y)+m-1}
+MonthParts ← {𝕊 index: ⟨⌊index÷12,1+12|index⟩}
+AddMonths ← {𝕊 text‿delta:
+  y‿m‿d ← Parts text
+  targetIndex ← delta+MonthIndex ⟨y,m⟩
+  targetYear‿targetMonth ← MonthParts targetIndex
+  nextYear‿nextMonth ← MonthParts 1+targetIndex
+  targetStart ← FromParts ⟨targetYear,targetMonth,1⟩
+  nextStart ← FromParts ⟨nextYear,nextMonth,1⟩
+  maxDay ← (Ordinal nextStart)-Ordinal targetStart
+  FromParts ⟨targetYear,targetMonth,d⌊maxDay⟩
+}
+
+{IsValid⇐IsValid,Ordinal⇐Ordinal,FromOrdinal⇐FromOrdinal,AddDays⇐AddDays,AddMonths⇐AddMonths,Parts⇐Parts,FromParts⇐FromParts}
