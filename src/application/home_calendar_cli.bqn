@@ -9,19 +9,20 @@ dates ← •Import "../ledger/date_ordinal.bqn"
 today ← •Import "date_today.bqn"
 tab ← @+9
 lf ← @+10
+frameMarker ← "HOME_CURSOR_CELLS"
 
 Fail ← {𝕊 code‿message:•Out "ERROR"∾tab∾code∾tab∾message ⋄ •Exit 1}
 
 args ← •args
-{𝕊:Fail ⟨"usage","expected BASE [FOCUS_DATE] [calendar|detail|choices|cells|day-prev|day-next|week-prev|week-next|month-prev|month-next]"⟩}⍟((1>≠args) ∨ 3<≠args) @
+{𝕊:Fail ⟨"usage","expected BASE [FOCUS_DATE] [calendar|detail|choices|cells|frame|day-prev|day-next|week-prev|week-next|month-prev|month-next]"⟩}⍟((1>≠args) ∨ 3<≠args) @
 base ← 0⊑args
 focus ← today.Today @
 {𝕊:focus↩1⊑args}⍟(2≤≠args) @
 mode ← "calendar"
 {𝕊:mode↩2⊑args}⍟(3=≠args) @
-staticMode ← (mode≡"calendar") ∨ (mode≡"detail") ∨ (mode≡"choices") ∨ mode≡"cells"
+staticMode ← (mode≡"calendar") ∨ (mode≡"detail") ∨ (mode≡"choices") ∨ (mode≡"cells") ∨ mode≡"frame"
 modeValid ← staticMode ∨ navigation.ValidMove mode
-{𝕊:Fail ⟨"home_mode_invalid","third argument must be calendar, detail, choices, cells, day-prev, day-next, week-prev, week-next, month-prev, or month-next"⟩}⍟(¬modeValid) @
+{𝕊:Fail ⟨"home_mode_invalid","third argument must be calendar, detail, choices, cells, frame, day-prev, day-next, week-prev, week-next, month-prev, or month-next"⟩}⍟(¬modeValid) @
 {𝕊:Fail ⟨"home_focus_date_invalid","FOCUS_DATE must be strict YYYY-MM-DD"⟩}⍟(¬dates.IsValid focus) @
 
 # Logical movement is pure selected-date meaning. Return before importing report,
@@ -51,9 +52,9 @@ PublicationFailure ← {𝕊 publication‿fallback:
   Fail ⟨fallback,"Home calendar dependency publication failed"⟩
 }
 
-# Serialize the Home-owned semantic cell relation for the terminal cursor
-# adapter. Physical terminal placement stays in shell; row/column are only the
-# shared 7-column calendar matrix coordinates.
+# Serialize the Home-owned semantic cell relation for cursor adapters. Physical
+# terminal placement stays in shell; row/column are only the shared 7-column
+# calendar matrix coordinates.
 FormatCursorCells ← {𝕊 calendar‿calendarPolicy:
   relation ← home.CellRelation ⟨calendar,calendarPolicy⟩
   lines ← {𝕊 i:
@@ -67,6 +68,17 @@ FormatCursorCells ← {𝕊 calendar‿calendarPolicy:
     ⟩
   }¨relation.index
   ∾lines
+}
+
+# One cursor frame publication combines the rendered calendar and its semantic
+# cell relation from this same Household observation. frameMarker is only an
+# application protocol delimiter; it is not Home/accounting meaning.
+FormatCursorFrame ← {𝕊 calendar‿calendarPolicy:
+  ∾⟨
+    home.FormatHuman ⟨calendar,calendarPolicy⟩,
+    frameMarker,lf,
+    FormatCursorCells ⟨calendar,calendarPolicy⟩
+  ⟩
 }
 
 registryResult ← sources.Registry "config/currencies.tsv"
@@ -100,6 +112,7 @@ calendar ← home.Build ⟨actual.facts,planned.result,issues.result,cycle,focus
 output ← home.FormatHuman ⟨calendar,policy.presentation.calendar⟩
 {𝕊:output↩home.FormatChoices ⟨calendar,policy.presentation.calendar⟩}⍟(mode≡"choices") @
 {𝕊:output↩FormatCursorCells ⟨calendar,policy.presentation.calendar⟩}⍟(mode≡"cells") @
+{𝕊:output↩FormatCursorFrame ⟨calendar,policy.presentation.calendar⟩}⍟(mode≡"frame") @
 {𝕊:
   typedRows ← transactionRows.Build actual.facts
   {𝕊:PrintDiagnostics typedRows.diagnostics}⍟(typedRows.state≢"ok") @
