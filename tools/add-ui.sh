@@ -53,6 +53,10 @@ EOF
 }
 
 shout() { printf '%s\n' "$*" >&2; }
+handle_interrupt() {
+  printf '\n' >&2
+  exit 130
+}
 
 main() {
 base_dir="${LEDGER_DATA_DIR:-$(get_default_base_dir)}"
@@ -114,6 +118,11 @@ if [[ -n "$mode_arg" ]]; then
       ;;
   esac
 fi
+
+# A writer leaf reports terminal interruption as status 130. Interactive
+# parents such as tools/bl may then interpret it as logical Back without
+# teaching this workflow anything about the parent's menu topology.
+trap handle_interrupt INT
 
 ensure_canonical_report_base "$base_dir"
 
@@ -474,13 +483,20 @@ fi
 if [[ "$mode" == 'plan-finish' ]]; then
   plan_finish_status=0
   # Both shells receive terminal SIGINT. Keep this parent alive while the child
-  # translates pre-apply Ctrl+C into status 130.
+  # translates pre-apply Ctrl+C into status 130, then restore this leaf's normal
+  # status-130 interrupt contract.
   trap ':' INT
   "$ROOT_DIR/tools/plan-finish-replenish-ui.sh" --base "$base_dir" || plan_finish_status=$?
-  trap - INT
+  trap handle_interrupt INT
   case "$plan_finish_status" in
     0) return 0 ;;
     130)
+      # An explicitly invoked leaf has a caller that owns navigation (for
+      # example Command Hub). Bubble cancellation there. The standalone add-ui
+      # mode menu still loops locally when it selected Plan Finish itself.
+      if [[ -n "$mode_arg" ]]; then
+        return 130
+      fi
       shout '入力メニューに戻ります。'
       exec "$ROOT_DIR/tools/add-ui.sh" --base "$base_dir"
       ;;
