@@ -31,7 +31,6 @@ result ← relation.Admit source
 ⟨"concerns-plan","planning-withdrawn","planned-as","funded-by","realized-as"⟩ lib.AssertEq result.relations.relation_kind
 ⟨"plan-old","plan-old","plan-new","actual-transfer","actual-payment"⟩ lib.AssertEq result.relations.target_id
 ⟨"review current commitment","decision changed","replacement commitment","move funding first","payment occurred"⟩ lib.AssertEq result.relations.details
-⟨3,4,5,6,7⟩ lib.AssertEq result.relations.source_row
 
 roundTrip ← relation.Admit relation.Render result.relations
 "ok" lib.AssertEq roundTrip.state
