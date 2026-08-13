@@ -72,7 +72,8 @@ issue ← {
   details ⇐ memoVal
 }
 
-row ← (schemaIndex⊑renderers) issue
+renderer ← schemaIndex⊑renderers
+row ← renderer issue
 
 •Out "OK" ∾ tab ∾ "APPEND" ∾ tab ∾ "issues.tsv"
 •Out row
