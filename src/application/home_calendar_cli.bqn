@@ -27,7 +27,7 @@ modeValid ← staticMode ∨ navigation.ValidMove mode
 # Logical movement is pure selected-date meaning. Return before importing report,
 # source, or Home presentation owners so cursor movement cannot open Household
 # evidence merely to calculate the next selected date.
-{𝕊:•Out navigation.MoveDate ⟨focus,mode⟩ ⋄ •Exit 0}⍟navigation.ValidMove mode @
+{𝕊:•Out navigation.MoveDate ⟨focus,mode⟩ ⋄ •Exit 0}⍟(navigation.ValidMove mode) @
 
 sources ← •Import "report_source_adapter.bqn"
 cycleResolution ← •Import "cycle_resolution.bqn"
