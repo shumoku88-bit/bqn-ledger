@@ -2,7 +2,7 @@
 set -euo pipefail
 
 if [[ $# -lt 1 || $# -gt 3 ]]; then
-  printf 'Usage: tools/home-calendar BASE [FOCUS_DATE] [calendar|detail|choices|cells|month-prev|month-next]\n' >&2
+  printf 'Usage: tools/home-calendar BASE [FOCUS_DATE] [calendar|detail|choices|cells|day-prev|day-next|month-prev|month-next]\n' >&2
   exit 2
 fi
 
@@ -78,7 +78,7 @@ load_calendar() {
   max_row=$next_max_row
 }
 
-shift_month() {
+shift_focus() {
   local shift_mode="$1" next_focus
   next_focus="$(run_bqn "${dates[selected_index]}" "$shift_mode")" || return 1
   load_calendar "$next_focus"
@@ -197,17 +197,27 @@ while true; do
   key="$(read_home_key)" || exit 130
   case "$key" in
     left|h|H)
-      (( selected_index > 0 )) && selected_index=$((selected_index - 1)) ;;
+      if (( selected_index > 0 )); then
+        selected_index=$((selected_index - 1))
+      else
+        shift_focus day-prev || printf '\a' >/dev/tty
+      fi
+      ;;
     right|l|L)
-      (( selected_index + 1 < ${#dates[@]} )) && selected_index=$((selected_index + 1)) ;;
+      if (( selected_index + 1 < ${#dates[@]} )); then
+        selected_index=$((selected_index + 1))
+      else
+        shift_focus day-next || printf '\a' >/dev/tty
+      fi
+      ;;
     up|k|K)
       (( selected_index >= 7 )) && selected_index=$((selected_index - 7)) ;;
     down|j|J)
       (( selected_index + 7 < ${#dates[@]} )) && selected_index=$((selected_index + 7)) ;;
     page-up|\[)
-      shift_month month-prev || printf '\a' >/dev/tty ;;
+      shift_focus month-prev || printf '\a' >/dev/tty ;;
     page-down|\])
-      shift_month month-next || printf '\a' >/dev/tty ;;
+      shift_focus month-next || printf '\a' >/dev/tty ;;
     mouse\;*)
       IFS=';' read -r event button mouse_x mouse_y mouse_state <<<"$key"
       [[ $event == mouse ]] || continue
