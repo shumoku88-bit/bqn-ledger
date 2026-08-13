@@ -13,6 +13,7 @@ transactionRows ← •Import "../ledger/transaction_rows.bqn"
 dates ← •Import "../ledger/date_ordinal.bqn"
 today ← •Import "date_today.bqn"
 tab ← @+9
+lf ← @+10
 
 Fail ← {𝕊 code‿message:•Out "ERROR"∾tab∾code∾tab∾message ⋄ •Exit 1}
 PrintDiagnostics ← {𝕊 diagnostics:
@@ -30,15 +31,31 @@ PublicationFailure ← {𝕊 publication‿fallback:
   Fail ⟨fallback,"Home calendar dependency publication failed"⟩
 }
 
+# Structured terminal-layout relation for the thin cursor adapter. Calendar
+# semantics and marker policy are already owned by Home; this only exposes each
+# rendered day cell with its 7-column matrix coordinate.
+FormatCursorCells ← {𝕊 calendar‿calendarPolicy:
+  markers ← home.Markers ⟨calendar,calendarPolicy⟩
+  flat ← calendar.weekday_start+calendar.days.index
+  rows ← ⌊flat÷7
+  cols ← 7|flat
+  lines ← {𝕊 i:
+    dayText ← •Fmt i⊑calendar.days.day
+    padded ← ((0⌈2-≠dayText)⥊' ')∾dayText
+    ∾⟨i⊑calendar.days.date,tab,•Fmt i⊑rows,tab,•Fmt i⊑cols,tab,padded,i⊑markers,lf⟩
+  }¨calendar.days.index
+  ∾lines
+}
+
 args ← •args
-{𝕊:Fail ⟨"usage","expected BASE [FOCUS_DATE] [calendar|detail|choices]"⟩}⍟((1>≠args) ∨ 3<≠args) @
+{𝕊:Fail ⟨"usage","expected BASE [FOCUS_DATE] [calendar|detail|choices|cells]"⟩}⍟((1>≠args) ∨ 3<≠args) @
 base ← 0⊑args
 focus ← today.Today @
 {𝕊:focus↩1⊑args}⍟(2≤≠args) @
 mode ← "calendar"
 {𝕊:mode↩2⊑args}⍟(3=≠args) @
-modeValid ← (mode≡"calendar") ∨ (mode≡"detail") ∨ mode≡"choices"
-{𝕊:Fail ⟨"home_mode_invalid","third argument must be calendar, detail, or choices"⟩}⍟(¬modeValid) @
+modeValid ← (mode≡"calendar") ∨ (mode≡"detail") ∨ (mode≡"choices") ∨ mode≡"cells"
+{𝕊:Fail ⟨"home_mode_invalid","third argument must be calendar, detail, choices, or cells"⟩}⍟(¬modeValid) @
 {𝕊:Fail ⟨"home_focus_date_invalid","FOCUS_DATE must be strict YYYY-MM-DD"⟩}⍟(¬dates.IsValid focus) @
 
 registryResult ← sources.Registry "config/currencies.tsv"
@@ -71,6 +88,7 @@ calendar ← home.Build ⟨actual.facts,planned.result,issues.result,cycle,focus
 
 output ← home.FormatHuman ⟨calendar,policy.presentation.calendar⟩
 {𝕊:output↩home.FormatChoices ⟨calendar,policy.presentation.calendar⟩}⍟(mode≡"choices") @
+{𝕊:output↩FormatCursorCells ⟨calendar,policy.presentation.calendar⟩}⍟(mode≡"cells") @
 {𝕊:
   typedRows ← transactionRows.Build actual.facts
   {𝕊:PrintDiagnostics typedRows.diagnostics}⍟(typedRows.state≢"ok") @
