@@ -25,7 +25,7 @@ preferredRole ← 3⊑args
 # registry only when a caller actually asks to admit an explicit currency key.
 {𝕊:
   setup ← editorCurrency.Load @
-  {𝕊: Fail "unsupported selected currency: "∾currency}⍟(¬setup.IsSupportedCurrency currency) @
+  {𝕊: Fail "unsupported currency: "∾currency}⍟(¬setup.IsSupportedCurrency currency) @
 }⍟(0<≠currency) @
 
 result ← accountSource.Load base
