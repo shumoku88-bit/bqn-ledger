@@ -39,7 +39,7 @@ memoVal ← 4 ⊑ args
 schema ← "legacy"
 {𝕊:schema↩5⊑args}⍟(argCount=6) @
 
-schemaIndex ← ⊑schema⊸≡¨schemas⊐1
+schemaIndex ← ⊑(schema⊸≡¨schemas)⊐1
 {𝕊 ⋄ Fail ("invalid issue schema: " ∾ schema ∾ " (expected 'legacy', 'due', or 'closed')")}⍟(schemaIndex≥≠schemas) @
 
 valDate ← validate.ValidateDate dateVal
