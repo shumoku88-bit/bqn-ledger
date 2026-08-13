@@ -48,15 +48,21 @@ FormatCursorCells ← {𝕊 calendar‿calendarPolicy:
 }
 
 args ← •args
-{𝕊:Fail ⟨"usage","expected BASE [FOCUS_DATE] [calendar|detail|choices|cells]"⟩}⍟((1>≠args) ∨ 3<≠args) @
+{𝕊:Fail ⟨"usage","expected BASE [FOCUS_DATE] [calendar|detail|choices|cells|month-prev|month-next]"⟩}⍟((1>≠args) ∨ 3<≠args) @
 base ← 0⊑args
 focus ← today.Today @
 {𝕊:focus↩1⊑args}⍟(2≤≠args) @
 mode ← "calendar"
 {𝕊:mode↩2⊑args}⍟(3=≠args) @
-modeValid ← (mode≡"calendar") ∨ (mode≡"detail") ∨ (mode≡"choices") ∨ mode≡"cells"
-{𝕊:Fail ⟨"home_mode_invalid","third argument must be calendar, detail, choices, or cells"⟩}⍟(¬modeValid) @
+modeValid ← (mode≡"calendar") ∨ (mode≡"detail") ∨ (mode≡"choices") ∨ (mode≡"cells") ∨ (mode≡"month-prev") ∨ mode≡"month-next"
+{𝕊:Fail ⟨"home_mode_invalid","third argument must be calendar, detail, choices, cells, month-prev, or month-next"⟩}⍟(¬modeValid) @
 {𝕊:Fail ⟨"home_focus_date_invalid","FOCUS_DATE must be strict YYYY-MM-DD"⟩}⍟(¬dates.IsValid focus) @
+
+# Month navigation is pure focus-coordinate meaning. Return it before opening a
+# canonical Household observation so the terminal adapter never reimplements
+# Gregorian month arithmetic and a focus shift never performs source I/O.
+{𝕊:•Out dates.AddMonths ⟨focus,¯1⟩ ⋄ •Exit 0}⍟(mode≡"month-prev") @
+{𝕊:•Out dates.AddMonths ⟨focus,1⟩ ⋄ •Exit 0}⍟(mode≡"month-next") @
 
 registryResult ← sources.Registry "config/currencies.tsv"
 {𝕊:Fail ⟨registryResult.code,registryResult.message⟩}⍟(registryResult.state≢"ok") @

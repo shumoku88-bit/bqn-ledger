@@ -25,6 +25,14 @@ samples ← ⟨"0001-01-01","1900-02-28","2000-02-29","2026-07-30","2400-12-31"�
 "2000-03-01" lib.AssertEq dates.AddDays ⟨"2000-02-29",1⟩
 "1900-03-01" lib.AssertEq dates.AddDays ⟨"1900-02-28",1⟩
 
+"2026-02-13" lib.AssertEq dates.AddMonths ⟨"2026-01-13",1⟩
+"2026-02-28" lib.AssertEq dates.AddMonths ⟨"2026-01-31",1⟩
+"2024-02-29" lib.AssertEq dates.AddMonths ⟨"2024-01-31",1⟩
+"2026-02-28" lib.AssertEq dates.AddMonths ⟨"2026-03-31",¯1⟩
+"2027-01-13" lib.AssertEq dates.AddMonths ⟨"2026-12-13",1⟩
+"2025-12-13" lib.AssertEq dates.AddMonths ⟨"2026-01-13",¯1⟩
+"2026-01-31" lib.AssertEq dates.AddMonths ⟨"2026-01-31",0⟩
+
 1 lib.AssertEq (dates.Ordinal "2026-01-01")-dates.Ordinal "2025-12-31"
 60 lib.AssertEq (dates.Ordinal "2024-03-01")-dates.Ordinal "2024-01-01"
 

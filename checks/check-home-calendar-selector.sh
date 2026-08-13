@@ -46,6 +46,17 @@ grep -Fq $'2026-01-20\t3\t1\t20?' <<<"$cells" || {
   exit 1
 }
 
+# Adjacent-month focus is BQN-owned and does not need to open canonical source
+# observations. Day-of-month is retained when possible and clipped at month end.
+[[ "$(tools/home-calendar "$base" 2026-01-31 month-next)" == '2026-02-28' ]] || {
+  echo 'FAIL: Home next-month focus did not clip January 31 to February end' >&2
+  exit 1
+}
+[[ "$(tools/home-calendar "$base" 2026-03-31 month-prev)" == '2026-02-28' ]] || {
+  echo 'FAIL: Home previous-month focus did not clip March 31 to February end' >&2
+  exit 1
+}
+
 # Exercise the terminal matrix cursor. Start on Jan 12, move right to Jan 13,
 # then down one week in the same weekday column to Jan 20, inspect it, and q
 # from the detail pane. Exit 130 is the existing Home/back signal.
@@ -126,6 +137,71 @@ raw = open(sys.argv[1], "rb").read()
 if b"\x1b[7m20?\x1b[0m" not in raw:
     raise SystemExit("FAIL: selected Home cell was not reverse-video highlighted")
 PY
+
+# Walk across calendar months through both printable and terminal-native keys.
+# Every transition asks BQN for the adjacent focus and reloads BQN-owned calendar
+# and cell relations; the shell does not derive February length or weekdays.
+python3 - "$base" "$work/month.out" <<'PY'
+import fcntl
+import os
+import pty
+import sys
+import termios
+
+base, output_path = sys.argv[1:3]
+master, slave = pty.openpty()
+pid = os.fork()
+if pid == 0:
+    os.setsid()
+    fcntl.ioctl(slave, termios.TIOCSCTTY, 0)
+    os.dup2(slave, 0)
+    os.dup2(slave, 1)
+    os.dup2(slave, 2)
+    os.close(master)
+    os.close(slave)
+    env = os.environ.copy()
+    env["NO_COLOR"] = "1"
+    env["TERM"] = "xterm-256color"
+    os.execve(
+        "tools/home-calendar",
+        ["tools/home-calendar", base, "2026-01-20"],
+        env,
+    )
+
+os.close(slave)
+# ] -> Feb, PgUp -> Jan, PgDn -> Feb, [ -> Jan, then q.
+os.write(master, b"]\x1b[5~\x1b[6~[q")
+output = bytearray()
+while True:
+    try:
+        data = os.read(master, 4096)
+        if not data:
+            break
+        output.extend(data)
+    except OSError:
+        break
+os.close(master)
+_, status = os.waitpid(pid, 0)
+exit_status = os.waitstatus_to_exitcode(status)
+if exit_status not in (0, 130):
+    raise SystemExit(f"Home month-navigation PTY failed with status {exit_status}")
+with open(output_path, "wb") as f:
+    f.write(output)
+PY
+
+month_out="$work/month.out"
+for expected in \
+  '2026-01' \
+  '2026-02' \
+  'Home date: 2026-01-20' \
+  'Home date: 2026-02-20' \
+  '[ ] / PgUp PgDn: month'; do
+  grep -Fq "$expected" "$month_out" || {
+    echo "FAIL: Home month-navigation output missing: $expected" >&2
+    cat "$month_out" >&2
+    exit 1
+  }
+done
 
 # Exercise xterm SGR mouse reporting against the same BQN-owned cell relation.
 # Jan 20 is row 3 / column 1, so its three-character cell occupies terminal
