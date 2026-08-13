@@ -13,8 +13,9 @@ supportedMetadata ← ⟨
   "action","receipt-id","event-id","layer","plan-id","execution-envelope",
   "allocation-id","agreement-id","actual-event-id","tax","biz","invoice",
   "note","due-on","receipt","txn-id","party","trip-id","payment","cashflow",
-  "currency","income-budget","recur","series","reverses","daily-target-id",
-  "reservation-id","reservation-amount","reservation-commodity","anchor","offset"
+  "currency","income-budget","recur","series","reverses","cancelled-on",
+  "superseded-on","superseded-by","daily-target-id","reservation-id",
+  "reservation-amount","reservation-commodity","anchor","offset"
 ⟩
 supportedLayers ← ⟨"actual","plan","budget"⟩
 
@@ -56,7 +57,7 @@ ParseMetadata ← {𝕊 text‿lineNumber:
   {𝕊: valueOk↩Contains ⟨value,⟨"private","business","mixed"⟩⟩}⍟(key≡"tax") @
   {𝕊: valueOk↩Contains ⟨value,⟨"0","1"⟩⟩}⍟(key≡"biz") @
   {𝕊: valueOk↩Contains ⟨value,⟨"none","ok"⟩⟩}⍟(key≡"invoice") @
-  {𝕊: valueOk↩dates.IsValid value}⍟(key≡"due-on") @
+  {𝕊: valueOk↩dates.IsValid value}⍟(Contains ⟨key,⟨"due-on","cancelled-on","superseded-on"⟩⟩) @
   {𝕊: valueOk↩Contains ⟨value,⟨"cash","card","debit"⟩⟩}⍟(key≡"payment") @
   {𝕊: valueOk↩value≡"fixed_obligation"}⍟(key≡"cashflow") @
   {𝕊: valueOk↩Contains ⟨value,⟨"JPY","ILS","USD"⟩⟩}⍟(key≡"currency") @

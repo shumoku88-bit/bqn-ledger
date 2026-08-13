@@ -47,6 +47,68 @@ recurrence ← structure.Parse recurrenceRaw
 "ok" lib.AssertEq recurrence.state
 ⟨"plan-id","recur","anchor","offset"⟩ lib.AssertEq {𝕩.key}¨(⊑recurrence.transactions).metadata
 
+retirementRaw ← Raw ⟨
+  "commodity JPY","","account assets:cash","","account expenses:food","",
+  "2026-01-10 superseded commitment",
+  "    ; layer: plan",
+  "    ; plan-id: plan-old",
+  "    ; superseded-on: 2026-01-05",
+  "    ; superseded-by: plan-new",
+  "    expenses:food 20 JPY",
+  "    assets:cash -20 JPY"
+⟩
+retirement ← structure.Parse retirementRaw
+"ok" lib.AssertEq retirement.state
+0 lib.AssertEq ≠retirement.diagnostics
+retirementTransaction ← ⊑retirement.transactions
+"plan" lib.AssertEq retirementTransaction.layer_name
+⟨"layer","plan-id","superseded-on","superseded-by"⟩
+  lib.AssertEq {𝕩.key}¨retirementTransaction.metadata
+⟨"plan","plan-old","2026-01-05","plan-new"⟩
+  lib.AssertEq {𝕩.value}¨retirementTransaction.metadata
+
+cancellationRaw ← Raw ⟨
+  "commodity JPY","","account assets:cash","","account expenses:food","",
+  "2026-01-10 cancelled commitment",
+  "    ; layer: plan",
+  "    ; plan-id: plan-cancelled",
+  "    ; cancelled-on: 2026-01-06",
+  "    expenses:food 20 JPY",
+  "    assets:cash -20 JPY"
+⟩
+cancellation ← structure.Parse cancellationRaw
+"ok" lib.AssertEq cancellation.state
+⟨"layer","plan-id","cancelled-on"⟩ lib.AssertEq {𝕩.key}¨(⊑cancellation.transactions).metadata
+
+invalidCancelledDateRaw ← Raw ⟨
+  "commodity JPY","","account assets:cash","","account expenses:food","",
+  "2026-01-10 invalid cancelled date",
+  "    ; layer: plan",
+  "    ; plan-id: plan-cancelled",
+  "    ; cancelled-on: 2026-02-30",
+  "    expenses:food 20 JPY",
+  "    assets:cash -20 JPY"
+⟩
+invalidCancelledDate ← structure.Parse invalidCancelledDateRaw
+"error" lib.AssertEq invalidCancelledDate.state
+lib.Assert HasCode ⟨"metadata_value_invalid",invalidCancelledDate⟩
+0 lib.AssertEq ≠invalidCancelledDate.transactions
+
+invalidSupersededDateRaw ← Raw ⟨
+  "commodity JPY","","account assets:cash","","account expenses:food","",
+  "2026-01-10 invalid superseded date",
+  "    ; layer: plan",
+  "    ; plan-id: plan-old",
+  "    ; superseded-on: 2026-02-30",
+  "    ; superseded-by: plan-new",
+  "    expenses:food 20 JPY",
+  "    assets:cash -20 JPY"
+⟩
+invalidSupersededDate ← structure.Parse invalidSupersededDateRaw
+"error" lib.AssertEq invalidSupersededDate.state
+lib.Assert HasCode ⟨"metadata_value_invalid",invalidSupersededDate⟩
+0 lib.AssertEq ≠invalidSupersededDate.transactions
+
 physicalRaw ← Raw ⟨
   "commodity JPY","","account assets:cash","","account expenses:food","",
   "2026-01-11 ! physical identity",
