@@ -35,6 +35,7 @@ Join ← {
   list ← 𝕩
   (0 = ≠ list) ◶ ⟨ { 𝕊 ⋄ 1↓ ∾ (sep ⊸ ∾) ¨ list }, { 𝕊 ⋄ ""} ⟩ @
 }
+IsDataLine ← { (0 < ≠𝕩) ? ((⊑𝕩 ≠ '#') ∧ (⊑𝕩 ≠ ⊑"\\")) ; 0 }
 
 # Keep physical lines only so the admitted relation can retain real source_row
 # coordinates. Header/schema/lifecycle/date/amount meaning belongs to admission.
@@ -56,6 +57,10 @@ ReadSourceLinesOptional ← {
 }
 
 sourceLines ← ReadSourceLinesOptional issuePath
+# Preserve the historical empty/missing/comment-only list contract, and avoid a
+# registry observation when there is no Issue source relation to admit.
+{𝕊:•Exit 0}⍟(¬∨´0∾IsDataLine¨sourceLines) @
+
 registryResult ← registryMod.Build loader.ReadLines "config/currencies.tsv"
 {𝕊 ⋄ Fail "currency registry invalid"}⍟(registryResult.state≢"ok") @
 result ← admission.Admit ⟨sourceLines,registryResult.registry⟩
