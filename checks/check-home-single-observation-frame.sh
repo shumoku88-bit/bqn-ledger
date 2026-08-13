@@ -137,4 +137,74 @@ if b"\x1b[7m20?\x1b[0m" not in raw:
     raise SystemExit("FAIL: single-observation Home frame lost selected-cell highlight")
 PY
 
+# A cursor publication failure is an application failure, not navigation/back.
+# Keep the canonical diagnostic and original status visible even before the
+# alternate screen has been entered.
+cat >"$work/bin/bqn" <<'SH'
+#!/usr/bin/env bash
+set -euo pipefail
+: "${REAL_BQN:?}"
+last="${!#:-}"
+if [[ $last == frame ]]; then
+  printf 'ERROR\thome_frame_fixture_failure\tfixture cursor-frame failure\n'
+  exit 7
+fi
+exec "$REAL_BQN" "$@"
+SH
+chmod +x "$work/bin/bqn"
+
+python3 - "$base" "$work/failure.out" "$work/bin" "$real_bqn" <<'PY'
+import fcntl
+import os
+import pty
+import sys
+import termios
+
+base, output_path, shim_bin, real_bqn = sys.argv[1:5]
+master, slave = pty.openpty()
+pid = os.fork()
+if pid == 0:
+    os.setsid()
+    fcntl.ioctl(slave, termios.TIOCSCTTY, 0)
+    os.dup2(slave, 0)
+    os.dup2(slave, 1)
+    os.dup2(slave, 2)
+    os.close(master)
+    os.close(slave)
+    env = os.environ.copy()
+    env["NO_COLOR"] = "1"
+    env["TERM"] = "xterm-256color"
+    env["PATH"] = shim_bin + os.pathsep + env["PATH"]
+    env["REAL_BQN"] = real_bqn
+    os.execve(
+        "tools/home-calendar",
+        ["tools/home-calendar", base, "2026-01-20"],
+        env,
+    )
+
+os.close(slave)
+output = bytearray()
+while True:
+    try:
+        data = os.read(master, 4096)
+        if not data:
+            break
+        output.extend(data)
+    except OSError:
+        break
+os.close(master)
+_, status = os.waitpid(pid, 0)
+exit_status = os.waitstatus_to_exitcode(status)
+if exit_status != 7:
+    raise SystemExit(f"Home frame failure became status {exit_status}, expected 7")
+with open(output_path, "wb") as f:
+    f.write(output)
+PY
+
+grep -Fq 'ERROR'$'\t''home_frame_fixture_failure'$'\t''fixture cursor-frame failure' "$work/failure.out" || {
+  echo 'FAIL: Home frame failure diagnostic was hidden by shell capture' >&2
+  cat "$work/failure.out" >&2
+  exit 1
+}
+
 echo 'check-home-single-observation-frame: ok'
