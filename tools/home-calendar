@@ -2,7 +2,7 @@
 set -euo pipefail
 
 if [[ $# -lt 1 || $# -gt 3 ]]; then
-  printf 'Usage: tools/home-calendar BASE [FOCUS_DATE] [calendar|detail|choices|cells]\n' >&2
+  printf 'Usage: tools/home-calendar BASE [FOCUS_DATE] [calendar|detail|choices|cells|month-prev|month-next]\n' >&2
   exit 2
 fi
 
@@ -32,33 +32,65 @@ if [[ -n $mode || ! -t 0 || ! -t 1 ]]; then
 fi
 
 [[ -n $focus ]] || focus="$(date +%Y-%m-%d)"
-calendar="$(run_bqn "$focus" calendar)"
-cells="$(run_bqn "$focus" cells)"
-
+calendar=''
+cells=''
 dates=()
 rows=()
 cols=()
 texts=()
 selected_index=0
 max_row=0
-while IFS=$'\t' read -r date_value row_value col_value cell_value; do
-  [[ -n $date_value ]] || continue
-  index=${#dates[@]}
-  dates+=("$date_value")
-  rows+=("$row_value")
-  cols+=("$col_value")
-  texts+=("$cell_value")
-  [[ $date_value == "$focus" ]] && selected_index=$index
-  (( row_value > max_row )) && max_row=$row_value
-done <<<"$cells"
 
-((${#dates[@]} > 0)) || {
-  echo 'Error: Home calendar returned no cursor cells' >&2
+# Reload one BQN-owned month atomically. The shell receives rendered calendar
+# text plus the date/row/column/cell relation; it never calculates Gregorian
+# month boundaries, day clipping, weekdays, or semantic markers itself.
+load_calendar() {
+  local focus_value="$1" next_calendar next_cells
+  local date_value row_value col_value cell_value index
+  local next_selected_index=-1 next_max_row=0
+  local -a next_dates=() next_rows=() next_cols=() next_texts=()
+
+  next_calendar="$(run_bqn "$focus_value" calendar)" || return 1
+  next_cells="$(run_bqn "$focus_value" cells)" || return 1
+
+  while IFS=$'\t' read -r date_value row_value col_value cell_value; do
+    [[ -n $date_value ]] || continue
+    index=${#next_dates[@]}
+    next_dates+=("$date_value")
+    next_rows+=("$row_value")
+    next_cols+=("$col_value")
+    next_texts+=("$cell_value")
+    [[ $date_value == "$focus_value" ]] && next_selected_index=$index
+    (( row_value > next_max_row )) && next_max_row=$row_value
+  done <<<"$next_cells"
+
+  ((${#next_dates[@]} > 0)) || return 1
+  (( next_selected_index >= 0 )) || return 1
+
+  focus=$focus_value
+  calendar=$next_calendar
+  cells=$next_cells
+  dates=("${next_dates[@]}")
+  rows=("${next_rows[@]}")
+  cols=("${next_cols[@]}")
+  texts=("${next_texts[@]}")
+  selected_index=$next_selected_index
+  max_row=$next_max_row
+}
+
+shift_month() {
+  local shift_mode="$1" next_focus
+  next_focus="$(run_bqn "${dates[selected_index]}" "$shift_mode")" || return 1
+  load_calendar "$next_focus"
+}
+
+load_calendar "$focus" || {
+  echo 'Error: Home calendar returned no cursor cells for focus date' >&2
   exit 1
 }
 
 read_home_key() {
-  local first='' second='' third='' payload='' ch=''
+  local first='' second='' third='' fourth='' payload='' ch=''
   IFS= read -rsn1 first </dev/tty || return 1
   if [[ $first == $'\e' ]]; then
     if IFS= read -rsn1 -t 0.05 second </dev/tty; then
@@ -68,6 +100,12 @@ read_home_key() {
           B) printf 'down\n'; return 0 ;;
           C) printf 'right\n'; return 0 ;;
           D) printf 'left\n'; return 0 ;;
+          5|6)
+            if IFS= read -rsn1 -t 0.05 fourth </dev/tty && [[ $fourth == '~' ]]; then
+              [[ $third == 5 ]] && printf 'page-up\n' || printf 'page-down\n'
+              return 0
+            fi
+            ;;
           '<')
             while IFS= read -rsn1 -t 0.05 ch </dev/tty; do
               if [[ $ch == M || $ch == m ]]; then
@@ -101,7 +139,8 @@ render_cursor() {
   printf '\033[%d;%dH\033[7m%s\033[0m' "$line" "$column" "${texts[selected_index]}" >/dev/tty
   printf '\033[%d;1H\033[J' "$footer" >/dev/tty
   printf 'Home date: %s\n' "$selected_date" >/dev/tty
-  printf '← → ↑ ↓ / h j k l: move   Click / Enter: inspect   q / Esc: back\n' >/dev/tty
+  printf '← → ↑ ↓ / h j k l: move   [ ] / PgUp PgDn: month\n' >/dev/tty
+  printf 'Click / Enter: inspect   q / Esc: back\n' >/dev/tty
 }
 
 mouse_hit_index=-1
@@ -165,6 +204,10 @@ while true; do
       (( selected_index >= 7 )) && selected_index=$((selected_index - 7)) ;;
     down|j|J)
       (( selected_index + 7 < ${#dates[@]} )) && selected_index=$((selected_index + 7)) ;;
+    page-up|\[)
+      shift_month month-prev || printf '\a' >/dev/tty ;;
+    page-down|\])
+      shift_month month-next || printf '\a' >/dev/tty ;;
     mouse\;*)
       IFS=';' read -r event button mouse_x mouse_y mouse_state <<<"$key"
       [[ $event == mouse ]] || continue
