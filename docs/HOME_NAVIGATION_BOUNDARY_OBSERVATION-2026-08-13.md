@@ -1,5 +1,22 @@
 # Home navigation boundary observation - 2026-08-13
 
+## Follow-up: #757 implementation decision
+
+The observation below records the pre-implementation boundary. PR #757 resolves its first open semantic decision and implements the smallest shared boundary it proposed.
+
+Current Home navigation is now:
+
+- `src/application/home_navigation.bqn` owns the pure admitted move vocabulary and `selected date + move -> next selected date` relation;
+- previous/next day use continuous `AddDays +/-1`;
+- previous/next week deliberately use continuous `AddDays +/-7`, including month and year boundaries;
+- previous/next month retain the existing `AddMonths +/-1` clipping behavior;
+- no preferred day-of-month state is introduced, so `2026-01-31 -> 2026-02-28 -> 2026-03-28` remains the date-only path;
+- `tools/home-calendar` treats `selected_date` as the logical coordinate and `selected_index` only as a cached projection into the current `CellRelation` for rendering;
+- physical keys, SGR mouse packets, and terminal geometry remain frontend-owned;
+- pure movement returns from `home_calendar_cli.bqn` before canonical Household/report/Home presentation owners are imported or observed.
+
+The sections below that describe week movement as month-local or undecided are historical observation evidence for why this change was made. The unresolved month-clipping question remains intentionally unresolved beyond preserving the existing date-only behavior.
+
 ## Scope
 
 This note observes the Home calendar after the frontend-neutral `CellRelation` work.
