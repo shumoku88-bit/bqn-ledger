@@ -64,6 +64,18 @@ markers ← section.Markers ⟨result,calendarPolicy⟩
 "$" lib.AssertEq 13⊑markers
 "+" lib.AssertEq 25⊑markers
 
+# CellRelation is the frontend-neutral calendar-cell relation. Physical terminal
+# or pixel coordinates remain outside Home; row/column are semantic matrix axes.
+cells ← section.CellRelation ⟨result,calendarPolicy⟩
+31 lib.AssertEq cells.count
+"2026-08-01" lib.AssertEq 0⊑cells.date
+1 lib.AssertEq 0⊑cells.day
+0 lib.AssertEq 0⊑cells.row
+5 lib.AssertEq 0⊑cells.column
+4 lib.AssertEq 25⊑cells.row
+2 lib.AssertEq 25⊑cells.column
+"+" lib.AssertEq 25⊑cells.marker
+
 # A separate Cycle witness makes the cycle-only bit code observable.
 cycleOnly ← {state⇐"ok",start⇐"2026-07-01",end_exclusive⇐"2026-08-21"}
 cycleOnlyResult ← section.Build ⟨actualFacts,planned,issues,cycleOnly,"2026-08-12"⟩
