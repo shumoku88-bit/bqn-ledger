@@ -10,7 +10,7 @@ relation ← •Import "../src/ledger/issue_relation_admission.bqn"
 
 tab ← @+9
 Tsv ← {𝕊 fields: 1↓∾tab⊸∾¨fields}
-headerLine ← relation.Header
+headerLine ← relation.header
 
 source ← ⟨
   "# synthetic relation-source characterization",
