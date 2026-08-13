@@ -143,6 +143,7 @@ Closeout: `docs/SECTIONS_PHASE_THREE_REVIEW_CLOSEOUT-2026-08-12.md`.
 - [x] `src/sections/daily_flow.bqn` — #687
 - [x] `src/sections/daily_target.bqn` — #689
 - [x] `src/sections/envelope_backing.bqn` — #689
+- [x] `src/sections/home_calendar.bqn` — #736 (BQN-native semantic matrix introduced after Phase 3 closeout)
 - [x] `src/sections/issues.bqn` — #687
 - [x] `src/sections/monthly_accounts.bqn` — #687
 - [x] `src/sections/planned_payments.bqn` — #690
@@ -184,6 +185,8 @@ Retired during review: `src/application/funding_scope.bqn` — #714. See `docs/F
 - [x] `src/application/editor_actual.bqn` — #710
 - [x] `src/application/editor_currency.bqn` — #712
 - [x] `src/application/editor_plan_rows.bqn` — #713
+- [x] `src/application/home_calendar_cli.bqn` — #738 (post-closeout Home observation adapter)
+- [x] `src/application/home_navigation.bqn` — #757 (post-closeout Home logical navigation owner)
 - [x] `src/application/household_daily_scope.bqn` — #715
 - [x] `src/application/household_source_adapter.bqn` — #716 (source-boundary law review; production unchanged)
 - [x] `src/application/ledger_check_cli.bqn` — #717 (readiness effect-lifetime review; production unchanged)
