@@ -20,18 +20,12 @@ cat >>"$base/report.toml" <<'EOF'
 issue-due-marker = "?"
 EOF
 
-# Non-TTY callers retain the calendar contract. Explicit selector/cursor
-# relations are BQN-owned and preserve configured marker meaning.
+# Non-TTY callers retain the calendar contract. The explicit cursor relation is
+# BQN-owned and preserves configured marker meaning.
 legacy="$(tools/home-calendar "$base" 2026-01-20)"
 explicit="$(tools/home-calendar "$base" 2026-01-20 calendar)"
 [[ "$legacy" == "$explicit" ]] || {
   echo 'FAIL: non-TTY Home calendar behavior changed' >&2
-  exit 1
-}
-choices="$(tools/home-calendar "$base" 2026-01-20 choices)"
-grep -Fq $'2026-01-20\t20?  2026-01-20' <<<"$choices" || {
-  echo 'FAIL: semantic Home date choice did not retain configured marker' >&2
-  printf '%s\n' "$choices" >&2
   exit 1
 }
 cells="$(tools/home-calendar "$base" 2026-01-20 cells)"
