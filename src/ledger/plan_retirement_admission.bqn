@@ -51,7 +51,7 @@ HasSupersessionCycle ← {𝕊 start‿oldIds‿successorIds:
   current ← start
   seen ← ⟨start⟩
   cycle ← 0
-  {𝕊 _:
+  {𝕊 ignored:
     matches ← current⊸≡¨oldIds
     canAdvance ← (¬cycle) ∧ (0<≠current) ∧ 1=+´matches
     {𝕊:
