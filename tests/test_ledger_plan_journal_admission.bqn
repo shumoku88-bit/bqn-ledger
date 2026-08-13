@@ -44,6 +44,7 @@ valid ← planAdmission.Admit ⟨validRaw,accounts,registry⟩
 "plan.journal" lib.AssertEq valid.source_name
 ⟨"plan"⟩ lib.AssertEq valid.declared_layers
 2 lib.AssertEq ≠valid.transactions
+0 lib.AssertEq valid.retirements.count
 ⟨"plan-wifi","plan-shared"⟩ lib.AssertEq {𝕩.plan_id}¨valid.transactions
 ⟨"durable_relation","durable_relation"⟩ lib.AssertEq {𝕩.identity_kind}¨valid.transactions
 ⟨"plan.journal:plan_id:plan-wifi","plan.journal:plan_id:plan-shared"⟩ lib.AssertEq {𝕩.source_event_id}¨valid.transactions
@@ -52,6 +53,37 @@ valid ← planAdmission.Admit ⟨validRaw,accounts,registry⟩
 ⟨2,3⟩ lib.AssertEq {≠𝕩.postings}¨valid.transactions
 ⟨"plan.journal:plan_id:plan-wifi:0","plan.journal:plan_id:plan-wifi:1"⟩ lib.AssertEq {𝕩.posting_id}¨(⊑valid.transactions).postings
 ⟨"plan-id","daily-target-id"⟩ lib.AssertEq {𝕩.key}¨(1⊑valid.transactions).metadata
+
+retirementRaw ← Raw ⟨
+  "2026-08-20 Original commitment",
+  "  ; plan-id: plan-old",
+  "  ; superseded-on: 2026-08-13",
+  "  ; superseded-by: plan-new",
+  "  Expenses:Food  500 JPY",
+  "  Assets:Cash   -500 JPY",
+  "",
+  "2026-08-20 Replacement commitment",
+  "  ; plan-id: plan-new",
+  "  Expenses:Food  300 JPY",
+  "  Assets:Cash   -300 JPY",
+  "",
+  "2026-08-18 Cancelled commitment",
+  "  ; plan-id: plan-cancelled",
+  "  ; cancelled-on: 2026-08-12",
+  "  Expenses:Books  200 JPY",
+  "  Assets:Cash    -200 JPY"
+⟩
+retirement ← planAdmission.Admit ⟨retirementRaw,accounts,registry⟩
+"ok" lib.AssertEq retirement.state
+0 lib.AssertEq ≠retirement.diagnostics
+3 lib.AssertEq ≠retirement.transactions
+2 lib.AssertEq retirement.retirements.count
+⟨"superseded","cancelled"⟩ lib.AssertEq retirement.retirements.kind
+⟨"plan-old","plan-cancelled"⟩ lib.AssertEq retirement.retirements.plan_id
+⟨"2026-08-13","2026-08-12"⟩ lib.AssertEq retirement.retirements.retired_on
+⟨"plan-new",""⟩ lib.AssertEq retirement.retirements.successor_plan_id
+⟨"plan-id","superseded-on","superseded-by"⟩
+  lib.AssertEq {𝕩.key}¨(⊑retirement.transactions).metadata
 
 missing ← planAdmission.Admit ⟨Raw ⟨
   "2026-08-08 Missing identity",
