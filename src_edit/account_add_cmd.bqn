@@ -37,6 +37,7 @@ roleIndex ← IndexOf ⟨role,roles⟩
 {𝕊:Fail "account name must be nonempty"}⍟(0=≠name) @
 prefix ← roleIndex⊑prefixes
 {𝕊:Fail "account namespace does not match role: "∾name∾" vs "∾role}⍟(AsciiLower prefix≢AsciiLower (≠prefix)↑name) @
+{𝕊:Fail "account name must include a name after namespace: "∾name}⍟((≠prefix)≥≠name) @
 
 current ← accountSource.Load base
 {𝕊:Fail "canonical accounts.journal failed admission"}⍟(current.state≢"ok") @
