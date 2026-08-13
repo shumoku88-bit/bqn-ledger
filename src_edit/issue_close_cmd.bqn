@@ -21,9 +21,6 @@ admission ← •Import "../src/ledger/issue_admission.bqn"
 
 args ← •args
 tab ← @+9
-legacyHeader ← ⟨"issue_id","status","date","category","title","amount","currency","details"⟩
-dueHeader ← ⟨"issue_id","status","date","due","category","title","amount","currency","details"⟩
-closedHeader ← ⟨"issue_id","status","date","due","closed","category","title","amount","currency","details"⟩
 
 Fail ← {𝕊 msg:
   •Out "ERROR" ∾ tab ∾ msg
@@ -67,15 +64,14 @@ result ← admission.Admit ⟨sourceLines,registryResult.registry⟩
 {𝕊 ⋄ Fail (⊑result.diagnostics).message}⍟(result.state≢"ok") @
 issues ← result.issues
 
-# Admission owns header/row/lifecycle validity. The writer still observes the
-# admitted source's physical header because replacement must preserve its shape.
+# Admission already proves the exact supported header. The writer needs only the
+# admitted source's physical column count to preserve 8/9/10-column shape.
 dataIndices ← (IsDataLine¨sourceLines) / ↕≠sourceLines
-{𝕊 ⋄ Fail "issues.tsv has no header"}⍟(0=≠dataIndices) @
 headerFields ← loader.SplitTsvKeepEmpty (⊑dataIndices)⊑sourceLines
-legacySchema ← headerFields≡legacyHeader
-dueSchema ← headerFields≡dueHeader
-closedSchema ← headerFields≡closedHeader
-{𝕊 ⋄ Fail "issues.tsv header must match the supported eight-, nine-, or ten-column schema"}⍟(¬legacySchema ∧ ¬dueSchema ∧ ¬closedSchema) @
+columnCount ← ≠headerFields
+legacySchema ← columnCount=8
+dueSchema ← columnCount=9
+closedSchema ← columnCount=10
 {𝕊 ⋄ Fail "closed-aware issues.tsv requires a close date"}⍟(closedSchema ∧ argCount=4) @
 {𝕊 ⋄ Fail "eight-/nine-column issues.tsv cannot represent a close date"}⍟((¬closedSchema) ∧ argCount=5) @
 {𝕊:
