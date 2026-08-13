@@ -133,4 +133,31 @@ fi
 
 bqn src_edit/issue_validate_cmd.bqn "$closed_base" >/dev/null
 
+# Comments, backslash notes, and blank lines are physical source evidence, not
+# semantic Issue rows. The admitted relation carries source_row so List and Close
+# can preserve real physical coordinates without re-parsing Issue lifecycle.
+source_rows="$tmp_root/source-rows"
+cp -R data "$source_rows"
+cat >"$source_rows/issues.tsv" <<'EOF'
+# retained comment
+issue_id	status	date	due	closed	category	title	amount	currency	details
+\ retained source note
+issue:commented	open	2026-08-10	none	none	general	Commented open	100	JPY	keep coordinates
+
+issue:done	resolved	2026-08-01	none	2026-08-02	general	Already done			closed
+EOF
+bqn src_edit/issue_validate_cmd.bqn "$source_rows" >/dev/null
+source_list="$(./tools/edit-bqn --base "$source_rows" issue list --format text)"
+grep -F '1 | line 4 | 2026-08-10 | Commented open | 100 | keep coordinates | due: none' <<<"$source_list" >/dev/null || {
+  echo 'FAIL: admitted Issue list lost physical source_row' >&2
+  printf '%s\n' "$source_list" >&2
+  exit 1
+}
+close_protocol="$(bqn src_edit/issue_close_cmd.bqn "$source_rows" 1 resolved 'coordinate witness' 2026-08-13)"
+grep -Fq $'OK\tREPLACE\t4\tCommented open' <<<"$close_protocol" || {
+  echo 'FAIL: admitted Issue close lost physical source_row' >&2
+  printf '%s\n' "$close_protocol" >&2
+  exit 1
+}
+
 echo 'OK: Issue due/closed lifecycle compatibility checks passed' >&2
