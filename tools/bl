@@ -167,10 +167,14 @@ select_menu() {
 
 run_child() {
   local status=0
-  set +e
-  "$@"
-  status=$?
-  set -e
+  # Capture failure in conditional position so this helper never mutates the
+  # caller's errexit state before returning status 130 (logical Back) or another
+  # child status to the owning submenu.
+  if "$@"; then
+    return 0
+  else
+    status=$?
+  fi
   if [[ $status -eq 130 ]]; then
     return 130
   elif [[ $status -ne 0 ]]; then
