@@ -64,6 +64,48 @@ grep -Fq '20?' <<<"$wrapper" || {
   exit 1
 }
 
+# A day with canonical Actual evidence exposes the admitted transaction and all
+# postings rather than reparsing actual.journal in shell.
+actual_detail="$(tools/home-calendar "$base" 2026-01-10 detail)"
+for expected in \
+  '2026-01-10' \
+  'Actual' \
+  'Groceries' \
+  'Assets:Bank' \
+  'Expenses:Groceries' \
+  'Plans due' \
+  'Issues due' \
+  'Cycle'; do
+  grep -Fq "$expected" <<<"$actual_detail" || {
+    echo "FAIL: Home Actual detail missing: $expected" >&2
+    printf '%s\n' "$actual_detail" >&2
+    exit 1
+  }
+done
+
+# A date with no Actual evidence says so explicitly while retaining independent
+# Issue due meaning. This is observation, not a synthetic bookkeeping-complete flag.
+issue_detail="$(tools/home-calendar "$base" 2026-01-20 detail)"
+grep -Fq $'Actual\n  (none)' <<<"$issue_detail" || {
+  echo 'FAIL: Home detail did not expose absence of Actual evidence' >&2
+  printf '%s\n' "$issue_detail" >&2
+  exit 1
+}
+for expected in 'ISSUE-001' 'Synthetic reminder' 'Fixture-only evidence'; do
+  grep -Fq "$expected" <<<"$issue_detail" || {
+    echo "FAIL: Home Issue detail missing: $expected" >&2
+    printf '%s\n' "$issue_detail" >&2
+    exit 1
+  }
+done
+
+# Wrapper and BQN application remain identical in detail mode too.
+direct_detail="$(bqn src/application/home_calendar_cli.bqn "$base" 2026-01-20 detail)"
+[[ "$issue_detail" == "$direct_detail" ]] || {
+  echo 'FAIL: Home detail shell wrapper differs from BQN application output' >&2
+  exit 1
+}
+
 invalid_output=''
 if invalid_output="$(tools/home-calendar "$base" 2026-02-30 2>&1)"; then
   echo 'FAIL: Home calendar accepted an invalid focus date' >&2
@@ -72,6 +114,17 @@ fi
 grep -Fq $'ERROR\thome_focus_date_invalid\t' <<<"$invalid_output" || {
   echo 'FAIL: invalid Home focus date diagnostic missing' >&2
   printf '%s\n' "$invalid_output" >&2
+  exit 1
+}
+
+invalid_mode=''
+if invalid_mode="$(tools/home-calendar "$base" 2026-01-20 unknown 2>&1)"; then
+  echo 'FAIL: Home calendar accepted an unknown detail mode' >&2
+  exit 1
+fi
+grep -Fq $'ERROR\thome_mode_invalid\t' <<<"$invalid_mode" || {
+  echo 'FAIL: invalid Home mode diagnostic missing' >&2
+  printf '%s\n' "$invalid_mode" >&2
   exit 1
 }
 

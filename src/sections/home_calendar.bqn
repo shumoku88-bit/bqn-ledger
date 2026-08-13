@@ -1,11 +1,14 @@
-# Semantic month calendar plus pure fixed-width Home presentation.
+# Semantic month calendar, selected-date detail, and pure Home presentation.
 #
 # Build composes already-admitted/derived meaning and does not read source files.
-# FormatHuman consumes admitted calendar presentation policy without owning
+# BuildDetail selects one day from the calendar relation and projects typed
+# transaction rows plus already-derived Plan / Issue / Cycle meaning.
+# Presentation consumes admitted or already-derived values without owning
 # Plan/Issue/Cycle lifecycle semantics or canonical source authority.
 
 reference ← •Import "../ledger/fact_reference.bqn"
 dates ← •Import "../ledger/date_ordinal.bqn"
+amount ← •Import "../ledger/amount_text.bqn"
 
 empty ← ⟨⟩
 lf ← @+10
@@ -26,6 +29,13 @@ EmptyResult ← {𝕊 diagnosticsValue:
   {
     state⇐"error",focus_date⇐"",month_start⇐"",month_end_exclusive⇐"",weekday_start⇐0,
     day_index_grid⇐0‿7⥊empty,days⇐EmptyDays @,diagnostics⇐diagnosticsValue
+  }
+}
+EmptyDetail ← {𝕊 diagnosticsValue:
+  {
+    state⇐"error",date⇐"",actual⇐{count⇐0,rows⇐empty},plans⇐{count⇐0,rows⇐empty},
+    issues⇐{count⇐0,rows⇐empty},cycle⇐{start⇐"",end_exclusive⇐"",contains⇐0,end_day⇐0},
+    diagnostics⇐diagnosticsValue
   }
 }
 
@@ -96,6 +106,67 @@ Build ← {𝕊 actualFacts‿planned‿issues‿cycle‿focusDate:
   result
 }
 
+# The calendar already owns the date-to-index relation. Detail selection follows
+# those indices rather than rescanning canonical source text or reclassifying due
+# meaning in a second owner.
+BuildDetail ← {𝕊 calendar‿transactionRows‿planned‿issues‿cycle‿selectedDate:
+  diagnostics ← empty
+  diagnostics ∾↩ AddIf ⟨calendar.state≢"ok",Diagnostic ⟨"detail_calendar_invalid","Home detail requires an ok Home calendar result"⟩⟩
+  diagnostics ∾↩ AddIf ⟨transactionRows.state≢"ok",Diagnostic ⟨"detail_actual_rows_invalid","Home detail requires typed Actual transaction rows"⟩⟩
+  diagnostics ∾↩ AddIf ⟨planned.state≢"ok",Diagnostic ⟨"detail_planned_invalid","Home detail requires an ok Planned Payments result"⟩⟩
+  diagnostics ∾↩ AddIf ⟨issues.state≢"ok",Diagnostic ⟨"detail_issues_invalid","Home detail requires an ok Issues result"⟩⟩
+  diagnostics ∾↩ AddIf ⟨cycle.state≢"ok",Diagnostic ⟨"detail_cycle_invalid","Home detail requires a resolved Cycle"⟩⟩
+  selectedValid ← dates.IsValid selectedDate
+  diagnostics ∾↩ AddIf ⟨¬selectedValid,Diagnostic ⟨"detail_date_invalid","Selected Home date must be strict Gregorian text"⟩⟩
+
+  result ← EmptyDetail diagnostics
+  {𝕊:
+    matches ← selectedDate⊸≡¨calendar.days.date
+    diagnostics ∾↩ AddIf ⟨1≠+´matches,Diagnostic ⟨"detail_date_outside_month","Selected Home date must occur in the displayed calendar month"⟩⟩
+    {𝕊:
+      dayIndex ← ⊑(matches⊐1)
+      actualIndices ← dayIndex⊑calendar.days.actual_indices
+      planIndices ← dayIndex⊑calendar.days.plan_indices
+      issueIndices ← dayIndex⊑calendar.days.issue_indices
+
+      actualRows ← actualIndices⊏transactionRows.rows
+      planRows ← {𝕊 i:
+        {
+          index⇐i,plan_id⇐i⊑planned.rows.plan_id,status⇐i⊑planned.rows.status,
+          category⇐i⊑planned.rows.category,memo⇐i⊑planned.rows.memo,currency⇐i⊑planned.rows.currency,
+          coefficient⇐i⊑planned.rows.planned_coefficient,scale⇐i⊑planned.rows.planned_scale,
+          from_account⇐i⊑planned.rows.from_account,to_account⇐i⊑planned.rows.to_account
+        }
+      }¨planIndices
+      issueRows ← {𝕊 i:
+        {
+          index⇐i,issue_id⇐i⊑issues.issues.issue_id,category⇐i⊑issues.issues.category,
+          title⇐i⊑issues.issues.title,details⇐i⊑issues.issues.details,
+          amount_present⇐i⊑issues.issues.amount_present,coefficient⇐i⊑issues.issues.coefficient,
+          scale⇐i⊑issues.issues.scale,currency⇐i⊑issues.issues.currency
+        }
+      }¨issueIndices
+
+      selectedOrdinal ← dates.Ordinal selectedDate
+      contains ← (selectedOrdinal≥cycle.start_ordinal) ∧ selectedOrdinal<cycle.end_exclusive_ordinal
+      cycleStart ← cycle.start
+      cycleEndExclusive ← cycle.end_exclusive
+      endDay ← selectedDate≡dates.AddDays ⟨cycleEndExclusive,¯1⟩
+
+      result↩{
+        state⇐"ok",date⇐selectedDate,
+        actual⇐{count⇐≠actualRows,rows⇐actualRows},
+        plans⇐{count⇐≠planRows,rows⇐planRows},
+        issues⇐{count⇐≠issueRows,rows⇐issueRows},
+        cycle⇐{start⇐cycleStart,end_exclusive⇐cycleEndExclusive,contains⇐contains,end_day⇐endDay},
+        diagnostics⇐empty
+      }
+    }⍟(0=≠diagnostics) @
+  }⍟((0=≠diagnostics) ∧ selectedValid) @
+  {𝕊:result↩EmptyDetail diagnostics}⍟(0<≠diagnostics) @
+  result
+}
+
 # Encode the three independent calendar marker meanings as bits. Codes with two
 # or three facts map to the explicit multiple marker, so no hidden priority is
 # introduced by presentation. Parentheses keep the 1/2/4 weights explicit under
@@ -132,4 +203,50 @@ FormatHuman ← {𝕊 result‿calendar:
   ⟩
 }
 
-{Build⇐Build,Markers⇐Markers,FormatHuman⇐FormatHuman}
+FormatDetailHuman ← {𝕊 result:
+  PostingLine ← {𝕊 domain‿posting:
+    ∾⟨"    ",posting.side,"  ",posting.account_key,"  ",posting.amount_text," ",domain,lf⟩
+  }
+  ActualLine ← {𝕊 row:
+    postingText ← ∾{𝕊 posting:PostingLine ⟨row.domain,posting⟩}¨row.postings
+    ∾⟨"  [",•Fmt row.transaction_index,"] ",row.description,lf,postingText⟩
+  }
+  actualText ← "  (none)"∾lf
+  {𝕊:actualText↩∾ActualLine¨result.actual.rows}⍟(0<result.actual.count) @
+
+  PlanLine ← {𝕊 row:
+    ∾⟨
+      "  ",row.plan_id,"  ",row.category,"  ",row.memo,"  ",
+      row.from_account," -> ",row.to_account,"  ",
+      amount.Format ⟨row.coefficient,row.scale⟩," ",row.currency,lf
+    ⟩
+  }
+  planText ← "  (none)"∾lf
+  {𝕊:planText↩∾PlanLine¨result.plans.rows}⍟(0<result.plans.count) @
+
+  IssueLine ← {𝕊 row:
+    amountText ← ""
+    {𝕊:amountText↩"  "∾(amount.Format ⟨row.coefficient,row.scale⟩)∾" "∾row.currency}⍟row.amount_present @
+    detailText ← ""
+    {𝕊:detailText↩lf∾"    "∾row.details}⍟(0<≠row.details) @
+    ∾⟨"  ",row.issue_id,"  [",row.category,"] ",row.title,amountText,detailText,lf⟩
+  }
+  issueText ← "  (none)"∾lf
+  {𝕊:issueText↩∾IssueLine¨result.issues.rows}⍟(0<result.issues.count) @
+
+  cycleState ← "outside current resolved cycle"
+  {𝕊:cycleState↩"inside current resolved cycle"}⍟result.cycle.contains @
+  {𝕊:cycleState↩"cycle end day"}⍟result.cycle.end_day @
+
+  ∾⟨
+    result.date,lf,lf,
+    "Actual",lf,actualText,lf,
+    "Plans due",lf,planText,lf,
+    "Issues due",lf,issueText,lf,
+    "Cycle",lf,
+    "  ",result.cycle.start," .. ",result.cycle.end_exclusive," (end exclusive)",lf,
+    "  ",cycleState,lf
+  ⟩
+}
+
+{Build⇐Build,BuildDetail⇐BuildDetail,Markers⇐Markers,FormatHuman⇐FormatHuman,FormatDetailHuman⇐FormatDetailHuman}
