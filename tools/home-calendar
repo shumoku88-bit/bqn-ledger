@@ -2,7 +2,7 @@
 set -euo pipefail
 
 if [[ $# -lt 1 || $# -gt 3 ]]; then
-  printf 'Usage: tools/home-calendar BASE [FOCUS_DATE] [calendar|detail|choices|cells|day-prev|day-next|week-prev|week-next|month-prev|month-next]\n' >&2
+  printf 'Usage: tools/home-calendar BASE [FOCUS_DATE] [calendar|detail|choices|cells|frame|day-prev|day-next|week-prev|week-next|month-prev|month-next]\n' >&2
   exit 2
 fi
 
@@ -32,8 +32,8 @@ if [[ -n $mode || ! -t 0 || ! -t 1 ]]; then
 fi
 
 [[ -n $focus ]] || focus="$(date +%Y-%m-%d)"
+frame_separator=$'\nHOME_CURSOR_CELLS\n'
 calendar=''
-cells=''
 dates=()
 rows=()
 cols=()
@@ -42,17 +42,19 @@ selected_date=''
 selected_index=0
 max_row=0
 
-# Reload one BQN-owned month atomically. The shell receives rendered calendar
-# text plus the date/row/column/cell relation; it never calculates Gregorian
-# month boundaries, day clipping, weekdays, or semantic markers itself.
+# Reload one BQN-owned month from one application publication. Calendar text and
+# its semantic CellRelation are produced by the same Household observation; the
+# shell only splits the physical frame protocol and never derives calendar meaning.
 load_calendar() {
-  local focus_value="$1" next_calendar next_cells
+  local focus_value="$1" next_frame next_calendar next_cells
   local date_value row_value col_value cell_value index
   local next_selected_index=-1 next_max_row=0
   local -a next_dates=() next_rows=() next_cols=() next_texts=()
 
-  next_calendar="$(run_bqn "$focus_value" calendar)" || return 1
-  next_cells="$(run_bqn "$focus_value" cells)" || return 1
+  next_frame="$(run_bqn "$focus_value" frame)" || return 1
+  [[ $next_frame == *"$frame_separator"* ]] || return 1
+  next_calendar="${next_frame%%"$frame_separator"*}"
+  next_cells="${next_frame#*"$frame_separator"}"
 
   while IFS=$'\t' read -r date_value row_value col_value cell_value; do
     [[ -n $date_value ]] || continue
@@ -69,7 +71,6 @@ load_calendar() {
   (( next_selected_index >= 0 )) || return 1
 
   calendar=$next_calendar
-  cells=$next_cells
   dates=("${next_dates[@]}")
   rows=("${next_rows[@]}")
   cols=("${next_cols[@]}")
@@ -100,7 +101,7 @@ shift_focus() {
 }
 
 load_calendar "$focus" || {
-  echo 'Error: Home calendar returned no cursor cells for focus date' >&2
+  echo 'Error: Home calendar returned no cursor frame for focus date' >&2
   exit 1
 }
 
