@@ -12,6 +12,7 @@ amount ← •Import "../ledger/amount_text.bqn"
 
 empty ← ⟨⟩
 lf ← @+10
+tab ← @+9
 
 Diagnostic ← {𝕊 codeText‿messageText:
   {severity⇐"error",stage⇐"section_home_calendar",code⇐codeText,message⇐messageText}
@@ -203,6 +204,19 @@ FormatHuman ← {𝕊 result‿calendar:
   ⟩
 }
 
+# Choice rows are a selector adapter contract: stable date key, human label.
+# Shell code need not derive month length, markers, or date semantics.
+FormatChoices ← {𝕊 result‿calendar:
+  markers ← Markers ⟨result,calendar⟩
+  rows ← {𝕊 i:
+    dayText ← •Fmt i⊑result.days.day
+    padded ← ((0⌈2-≠dayText)⥊' ')∾dayText
+    dateText ← i⊑result.days.date
+    ∾⟨dateText,tab,padded,i⊑markers,"  ",dateText,lf⟩
+  }¨result.days.index
+  ∾rows
+}
+
 FormatDetailHuman ← {𝕊 result:
   PostingLine ← {𝕊 domain‿posting:
     ∾⟨"    ",posting.side,"  ",posting.account_key,"  ",posting.amount_text," ",domain,lf⟩
@@ -249,4 +263,4 @@ FormatDetailHuman ← {𝕊 result:
   ⟩
 }
 
-{Build⇐Build,BuildDetail⇐BuildDetail,Markers⇐Markers,FormatHuman⇐FormatHuman,FormatDetailHuman⇐FormatDetailHuman}
+{Build⇐Build,BuildDetail⇐BuildDetail,Markers⇐Markers,FormatHuman⇐FormatHuman,FormatChoices⇐FormatChoices,FormatDetailHuman⇐FormatDetailHuman}

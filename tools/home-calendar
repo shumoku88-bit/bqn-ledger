@@ -2,7 +2,7 @@
 set -euo pipefail
 
 if [[ $# -lt 1 || $# -gt 3 ]]; then
-  printf 'Usage: tools/home-calendar BASE [FOCUS_DATE] [detail]\n' >&2
+  printf 'Usage: tools/home-calendar BASE [FOCUS_DATE] [calendar|detail|choices]\n' >&2
   exit 2
 fi
 
@@ -14,7 +14,86 @@ mode=${3:-}
 [[ $base == /* ]] || base="$caller_pwd/$base"
 cd "$root"
 
-args=("$base")
-[[ -z $focus ]] || args+=("$focus")
-[[ -z $mode ]] || args+=("$mode")
-exec bqn src/application/home_calendar_cli.bqn "${args[@]}"
+source "$root/tools/lib/ui-preferences.sh"
+
+run_bqn() {
+  local focus_value="$1" mode_value="${2:-}"
+  local -a args=("$base")
+  [[ -z $focus_value ]] || args+=("$focus_value")
+  [[ -z $mode_value ]] || args+=("$mode_value")
+  bqn src/application/home_calendar_cli.bqn "${args[@]}"
+}
+
+# Explicit modes and non-interactive consumers retain the stable application
+# contract. A terminal call without a mode becomes the thin date selector.
+if [[ -n $mode || ! -t 0 || ! -t 1 ]]; then
+  args=("$base")
+  [[ -z $focus ]] || args+=("$focus")
+  [[ -z $mode ]] || args+=("$mode")
+  exec bqn src/application/home_calendar_cli.bqn "${args[@]}"
+fi
+
+[[ -n $focus ]] || focus="$(date +%Y-%m-%d)"
+calendar="$(run_bqn "$focus" calendar)"
+choices="$(run_bqn "$focus" choices)"
+selector="$(bl_selector_preference)"
+if [[ $selector == auto ]]; then
+  if command -v fzf >/dev/null 2>&1; then selector=fzf
+  elif command -v gum >/dev/null 2>&1; then selector=gum
+  else selector=plain
+  fi
+fi
+
+selected=''
+case "$selector" in
+  fzf)
+    set +e
+    selected="$(printf '%s\n' "$choices" | fzf \
+      --prompt='Home date> ' --delimiter=$'\t' --with-nth=2.. --reverse --exit-0 \
+      --header="$calendar")"
+    status=$?
+    set -e
+    [[ $status -eq 0 && -n $selected ]] || exit 130
+    selected="${selected%%$'\t'*}"
+    ;;
+  gum)
+    set +e
+    label="$(printf '%s\n' "$choices" | cut -f2- | gum choose --header="$calendar"$'\n\nSelect Home date')"
+    status=$?
+    set -e
+    [[ $status -eq 0 && -n $label ]] || exit 130
+    selected="$(awk -F'\t' -v label="$label" 'substr($0,index($0,"\t")+1)==label {print $1; exit}' <<<"$choices")"
+    [[ -n $selected ]] || exit 1
+    ;;
+  plain)
+    printf '\n%s\n' "$calendar" >&2
+    printf '\n=== Home date ===\n' >&2
+    keys=()
+    labels=()
+    while IFS=$'\t' read -r key label; do
+      [[ -n $key ]] || continue
+      keys+=("$key")
+      labels+=("$label")
+    done <<<"$choices"
+    for ((i=0; i<${#keys[@]}; i++)); do
+      printf ' %2d) %s\n' "$((i+1))" "${labels[i]}" >&2
+    done
+    printf '  0) Back\nSelect [0-%d]> ' "${#keys[@]}" >&2
+    read -r answer </dev/tty || exit 130
+    [[ $answer != 0 && $answer != back && -n $answer ]] || exit 130
+    if [[ $answer =~ ^[0-9]+$ ]] && ((answer >= 1 && answer <= ${#keys[@]})); then
+      selected="${keys[answer-1]}"
+    else
+      for key in "${keys[@]}"; do
+        [[ $key == "$answer" ]] && { selected="$key"; break; }
+      done
+    fi
+    [[ -n $selected ]] || exit 1
+    ;;
+  *)
+    printf 'Error: unsupported Home selector: %s\n' "$selector" >&2
+    exit 2
+    ;;
+esac
+
+exec bqn src/application/home_calendar_cli.bqn "$base" "$selected" detail
