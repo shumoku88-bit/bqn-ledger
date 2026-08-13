@@ -186,6 +186,7 @@ Retired during review: `src/application/funding_scope.bqn` — #714. See `docs/F
 - [x] `src/application/editor_currency.bqn` — #712
 - [x] `src/application/editor_plan_rows.bqn` — #713
 - [x] `src/application/home_calendar_cli.bqn` — #738 (post-closeout Home observation adapter)
+- [x] `src/application/home_navigation.bqn` — #757 (post-closeout Home logical navigation owner)
 - [x] `src/application/household_daily_scope.bqn` — #715
 - [x] `src/application/household_source_adapter.bqn` — #716 (source-boundary law review; production unchanged)
 - [x] `src/application/ledger_check_cli.bqn` — #717 (readiness effect-lifetime review; production unchanged)

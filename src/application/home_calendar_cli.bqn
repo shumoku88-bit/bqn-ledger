@@ -2,7 +2,32 @@
 #
 # This CLI owns only one observation lifetime and delegates admission, Plan/Issue
 # semantics, Cycle resolution, transaction-row projection, and presentation to
-# their existing owners.
+# their existing owners. Pure Home movement exits before Household observation.
+
+navigation ← •Import "home_navigation.bqn"
+dates ← •Import "../ledger/date_ordinal.bqn"
+today ← •Import "date_today.bqn"
+tab ← @+9
+lf ← @+10
+
+Fail ← {𝕊 code‿message:•Out "ERROR"∾tab∾code∾tab∾message ⋄ •Exit 1}
+
+args ← •args
+{𝕊:Fail ⟨"usage","expected BASE [FOCUS_DATE] [calendar|detail|choices|cells|day-prev|day-next|week-prev|week-next|month-prev|month-next]"⟩}⍟((1>≠args) ∨ 3<≠args) @
+base ← 0⊑args
+focus ← today.Today @
+{𝕊:focus↩1⊑args}⍟(2≤≠args) @
+mode ← "calendar"
+{𝕊:mode↩2⊑args}⍟(3=≠args) @
+staticMode ← (mode≡"calendar") ∨ (mode≡"detail") ∨ (mode≡"choices") ∨ mode≡"cells"
+modeValid ← staticMode ∨ navigation.ValidMove mode
+{𝕊:Fail ⟨"home_mode_invalid","third argument must be calendar, detail, choices, cells, day-prev, day-next, week-prev, week-next, month-prev, or month-next"⟩}⍟(¬modeValid) @
+{𝕊:Fail ⟨"home_focus_date_invalid","FOCUS_DATE must be strict YYYY-MM-DD"⟩}⍟(¬dates.IsValid focus) @
+
+# Logical movement is pure selected-date meaning. Return before importing report,
+# source, or Home presentation owners so cursor movement cannot open Household
+# evidence merely to calculate the next selected date.
+{𝕊:•Out navigation.MoveDate ⟨focus,mode⟩ ⋄ •Exit 0}⍟(navigation.ValidMove mode) @
 
 sources ← •Import "report_source_adapter.bqn"
 cycleResolution ← •Import "cycle_resolution.bqn"
@@ -10,12 +35,7 @@ compose ← •Import "../report/compose.bqn"
 plannedSection ← •Import "../sections/planned_payments.bqn"
 home ← •Import "../sections/home_calendar.bqn"
 transactionRows ← •Import "../ledger/transaction_rows.bqn"
-dates ← •Import "../ledger/date_ordinal.bqn"
-today ← •Import "date_today.bqn"
-tab ← @+9
-lf ← @+10
 
-Fail ← {𝕊 code‿message:•Out "ERROR"∾tab∾code∾tab∾message ⋄ •Exit 1}
 PrintDiagnostics ← {𝕊 diagnostics:
   {𝕊 diagnostic:•Out "ERROR"∾tab∾diagnostic.code∾tab∾diagnostic.message}¨diagnostics
   •Exit 1
@@ -48,25 +68,6 @@ FormatCursorCells ← {𝕊 calendar‿calendarPolicy:
   }¨relation.index
   ∾lines
 }
-
-args ← •args
-{𝕊:Fail ⟨"usage","expected BASE [FOCUS_DATE] [calendar|detail|choices|cells|day-prev|day-next|month-prev|month-next]"⟩}⍟((1>≠args) ∨ 3<≠args) @
-base ← 0⊑args
-focus ← today.Today @
-{𝕊:focus↩1⊑args}⍟(2≤≠args) @
-mode ← "calendar"
-{𝕊:mode↩2⊑args}⍟(3=≠args) @
-modeValid ← (mode≡"calendar") ∨ (mode≡"detail") ∨ (mode≡"choices") ∨ (mode≡"cells") ∨ (mode≡"day-prev") ∨ (mode≡"day-next") ∨ (mode≡"month-prev") ∨ mode≡"month-next"
-{𝕊:Fail ⟨"home_mode_invalid","third argument must be calendar, detail, choices, cells, day-prev, day-next, month-prev, or month-next"⟩}⍟(¬modeValid) @
-{𝕊:Fail ⟨"home_focus_date_invalid","FOCUS_DATE must be strict YYYY-MM-DD"⟩}⍟(¬dates.IsValid focus) @
-
-# Day/month navigation is pure focus-coordinate meaning. Return it before
-# opening a canonical Household observation so the terminal adapter never
-# reimplements Gregorian arithmetic and a focus shift never performs source I/O.
-{𝕊:•Out dates.AddDays ⟨focus,¯1⟩ ⋄ •Exit 0}⍟(mode≡"day-prev") @
-{𝕊:•Out dates.AddDays ⟨focus,1⟩ ⋄ •Exit 0}⍟(mode≡"day-next") @
-{𝕊:•Out dates.AddMonths ⟨focus,¯1⟩ ⋄ •Exit 0}⍟(mode≡"month-prev") @
-{𝕊:•Out dates.AddMonths ⟨focus,1⟩ ⋄ •Exit 0}⍟(mode≡"month-next") @
 
 registryResult ← sources.Registry "config/currencies.tsv"
 {𝕊:Fail ⟨registryResult.code,registryResult.message⟩}⍟(registryResult.state≢"ok") @
