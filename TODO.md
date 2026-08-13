@@ -233,7 +233,7 @@ The travel review distinguishes regular ordered diagnostic collections from muta
 - Account List: `docs/EDITOR_PHASE_SIX_ACCOUNT_LIST_OBSERVATION-2026-08-13.md`.
 - Account Validate: `docs/EDITOR_PHASE_SIX_ACCOUNT_VALIDATE_OBSERVATION-2026-08-13.md`.
 
-#760 keeps the existing BQN-native Account relations and writer safety, adds the missing Account namespace-suffix gate, moves Account List explicit-currency admission from the retired hard-coded validator to the canonical registry owner without adding an observation for unfiltered lists, and leaves the mandatory post-write Account validation leaf deliberately unchanged.
+#760 keeps the existing BQN-native Account relations, registry-owned currency meaning, and writer safety; adds the missing Account namespace-suffix gate; narrows Account List so the currency registry is observed only when an explicit currency filter requires it; and leaves the mandatory post-write Account validation leaf deliberately unchanged.
 
 The Account Add review also records stale four-role/TSV validation, rendering, UI, and operational-documentation residue for their proper later owner/cross-cutting lanes rather than duplicating Account meaning in shell.
 
