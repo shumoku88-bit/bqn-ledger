@@ -9,7 +9,7 @@
 # Output: one account name per line. A preferred role is a stable partition only.
 
 accountSource ← •Import "../src/application/account_source_adapter.bqn"
-validate ← •Import "validate.bqn"
+editorCurrency ← •Import "../src/application/editor_currency.bqn"
 
 tab ← @+9
 args ← •args
@@ -21,10 +21,12 @@ role ← 1⊑args
 currency ← 2⊑args
 preferredRole ← 3⊑args
 
+# Empty currency means no filter, not "use the editor default". Observe the
+# registry only when a caller actually asks to admit an explicit currency key.
 {𝕊:
-  check ← validate.ValidateCurrency currency
-  {𝕊: Fail (1⊑check)}⍟(¬0⊑check) @
-}⍟(0 < ≠currency) @
+  setup ← editorCurrency.Load @
+  {𝕊: Fail "unsupported currency: "∾currency}⍟(¬setup.IsSupportedCurrency currency) @
+}⍟(0<≠currency) @
 
 result ← accountSource.Load base
 {𝕊: Fail "accounts.journal rejected"}⍟(result.state≢"ok") @

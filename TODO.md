@@ -227,6 +227,16 @@ See `docs/EDITOR_PHASE_SIX_SRC_REVIEW_OBSERVATION-2026-08-12.md`.
 
 The travel review distinguishes regular ordered diagnostic collections from mutations that protect jagged source admission, evaluation/failure order, provenance-sensitive construction, or fail-closed publication. `journal_profile.bqn` remains production-unchanged because no concrete correctness, performance, or architectural defect justifies rewriting its historical parser state machine in this pass.
 
+### Canonical Account editor observations
+
+- Account Add: `docs/EDITOR_PHASE_SIX_ACCOUNT_ADD_OBSERVATION-2026-08-13.md`.
+- Account List: `docs/EDITOR_PHASE_SIX_ACCOUNT_LIST_OBSERVATION-2026-08-13.md`.
+- Account Validate: `docs/EDITOR_PHASE_SIX_ACCOUNT_VALIDATE_OBSERVATION-2026-08-13.md`.
+
+#760 keeps the existing BQN-native Account relations, registry-owned currency meaning, and writer safety; adds the missing Account namespace-suffix gate; narrows Account List so the currency registry is observed only when an explicit currency filter requires it; and leaves the mandatory post-write Account validation leaf deliberately unchanged.
+
+The Account Add review also records stale four-role/TSV validation, rendering, UI, and operational-documentation residue for their proper later owner/cross-cutting lanes rather than duplicating Account meaning in shell.
+
 ### `src/editor/`
 
 - [x] `src/editor/friend_travel_source_event.bqn` — #734
@@ -235,9 +245,9 @@ The travel review distinguishes regular ordered diagnostic collections from muta
 
 ### `src_edit/`
 
-- [ ] `src_edit/account_add_cmd.bqn`
-- [ ] `src_edit/account_list_cmd.bqn`
-- [ ] `src_edit/account_validate_cmd.bqn`
+- [x] `src_edit/account_add_cmd.bqn` — #760
+- [x] `src_edit/account_list_cmd.bqn` — #760
+- [x] `src_edit/account_validate_cmd.bqn` — law review in #760; production unchanged
 - [ ] `src_edit/actual_journal_file_cmd.bqn`
 - [ ] `src_edit/budget_add_cmd.bqn`
 - [ ] `src_edit/budget_movement_candidate.bqn`
@@ -293,6 +303,6 @@ After the production BQN inventory is reviewed, selector/UI adapter consolidatio
 
 ## Current cursor
 
-`src_edit/account_add_cmd.bqn`
+`src_edit/actual_journal_file_cmd.bqn`
 
-Resume the normal Phase 6 `src_edit/` review sequence at Account Add.
+Resume the normal Phase 6 `src_edit/` review sequence at Actual Journal File.
