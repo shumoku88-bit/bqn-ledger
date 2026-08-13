@@ -19,6 +19,8 @@ render ← •Import "render.bqn"
 
 tab ← @+9
 args ← •args
+schemas ← "legacy"‿"due"‿"closed"
+renderers ← ⟨render.RenderIssueRow,render.RenderIssueRowWithDue,render.RenderIssueRowWithClosed⟩
 
 Fail ← {𝕊 msg:
   •Out "ERROR" ∾ tab ∾ msg
@@ -37,8 +39,8 @@ memoVal ← 4 ⊑ args
 schema ← "legacy"
 {𝕊:schema↩5⊑args}⍟(argCount=6) @
 
-validSchema ← ∨´schema⊸≡¨"legacy"‿"due"‿"closed"
-{𝕊 ⋄ Fail ("invalid issue schema: " ∾ schema ∾ " (expected 'legacy', 'due', or 'closed')")}⍟(¬validSchema) @
+schemaIndex ← ⊑schema⊸≡¨schemas⊐1
+{𝕊 ⋄ Fail ("invalid issue schema: " ∾ schema ∾ " (expected 'legacy', 'due', or 'closed')")}⍟(schemaIndex≥≠schemas) @
 
 valDate ← validate.ValidateDate dateVal
 {𝕊 ⋄ Fail (1 ⊑ valDate)}⍟(¬ 0 ⊑ valDate) @
@@ -70,10 +72,7 @@ issue ← {
   details ⇐ memoVal
 }
 
-row ← ""
-{𝕊:row↩render.RenderIssueRow issue}⍟(schema≡"legacy") @
-{𝕊:row↩render.RenderIssueRowWithDue issue}⍟(schema≡"due") @
-{𝕊:row↩render.RenderIssueRowWithClosed issue}⍟(schema≡"closed") @
+row ← (schemaIndex⊑renderers) issue
 
 •Out "OK" ∾ tab ∾ "APPEND" ∾ tab ∾ "issues.tsv"
 •Out row
