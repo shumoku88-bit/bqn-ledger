@@ -5,7 +5,7 @@ export NO_COLOR=1
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
 
-work="$(mktemp -d "${TMPDIR:-/tmp}/bqn-ledger-home-selector.XXXXXX")"
+work="$(mktemp -d "${TMPDIR:-/tmp}/bqn-ledger-home-cursor.XXXXXX")"
 trap 'rm -rf "$work"' EXIT
 base="$work/household"
 cp -R fixtures/canonical-household-v1 "$base"
@@ -20,8 +20,8 @@ cat >>"$base/report.toml" <<'EOF'
 issue-due-marker = "?"
 EOF
 
-# Non-TTY callers retain the calendar contract. An explicit calendar mode is
-# identical, and BQN owns the selector key/label relation.
+# Non-TTY callers retain the calendar contract. Explicit selector/cursor
+# relations are BQN-owned and preserve configured marker meaning.
 legacy="$(tools/home-calendar "$base" 2026-01-20)"
 explicit="$(tools/home-calendar "$base" 2026-01-20 calendar)"
 [[ "$legacy" == "$explicit" ]] || {
@@ -34,10 +34,22 @@ grep -Fq $'2026-01-20\t20?  2026-01-20' <<<"$choices" || {
   printf '%s\n' "$choices" >&2
   exit 1
 }
+cells="$(tools/home-calendar "$base" 2026-01-20 cells)"
+grep -Fq $'2026-01-01\t0\t3\t 1 ' <<<"$cells" || {
+  echo 'FAIL: Home cursor cells did not preserve January 2026 matrix origin' >&2
+  printf '%s\n' "$cells" >&2
+  exit 1
+}
+grep -Fq $'2026-01-20\t3\t1\t20?' <<<"$cells" || {
+  echo 'FAIL: Home cursor cells did not retain selected-date coordinate/marker' >&2
+  printf '%s\n' "$cells" >&2
+  exit 1
+}
 
-# Exercise the terminal-only selector with the plain adapter. Day 20 is the
-# twentieth semantic choice because BQN publishes source-ordered month days.
-python3 - "$base" "$work/selector.out" <<'PY'
+# Exercise the terminal matrix cursor. Start on Jan 12, move right to Jan 13,
+# then down one week in the same weekday column to Jan 20, inspect it, and q
+# from the detail pane. Exit 130 is the existing Home/back signal.
+python3 - "$base" "$work/cursor.out" <<'PY'
 import fcntl
 import os
 import pty
@@ -56,16 +68,17 @@ if pid == 0:
     os.close(master)
     os.close(slave)
     env = os.environ.copy()
-    env["BL_SELECTOR"] = "plain"
     env["NO_COLOR"] = "1"
+    env["TERM"] = "xterm-256color"
     os.execve(
         "tools/home-calendar",
-        ["tools/home-calendar", base, "2026-01-20"],
+        ["tools/home-calendar", base, "2026-01-12"],
         env,
     )
 
 os.close(slave)
-os.write(master, b"20\n")
+# Right arrow -> Jan 13, down arrow -> Jan 20, Enter, then q in detail.
+os.write(master, b"\x1b[C\x1b[B\nq")
 output = bytearray()
 while True:
     try:
@@ -78,18 +91,20 @@ while True:
 os.close(master)
 _, status = os.waitpid(pid, 0)
 exit_status = os.waitstatus_to_exitcode(status)
-if exit_status != 0:
-    raise SystemExit(f"Home selector PTY failed with status {exit_status}")
+if exit_status not in (0, 130):
+    raise SystemExit(f"Home cursor PTY failed with status {exit_status}")
 with open(output_path, "wb") as f:
     f.write(output)
 PY
 
-out="$work/selector.out"
+out="$work/cursor.out"
 for expected in \
   '2026-01' \
   'Mo  Tu  We  Th  Fr  Sa  Su' \
+  'Home date: 2026-01-12' \
+  'Home date: 2026-01-13' \
+  'Home date: 2026-01-20' \
   '20?' \
-  '=== Home date ===' \
   '2026-01-20' \
   'Actual' \
   '(none)' \
@@ -97,10 +112,19 @@ for expected in \
   'Synthetic reminder' \
   'Fixture-only evidence'; do
   grep -Fq "$expected" "$out" || {
-    echo "FAIL: Home date selector output missing: $expected" >&2
+    echo "FAIL: Home calendar cursor output missing: $expected" >&2
     cat "$out" >&2
     exit 1
   }
 done
+
+# Cursor highlight is presentation-only reverse video layered over BQN's fixed
+# three-character cell; require that the terminal path actually emitted it.
+python3 - "$out" <<'PY'
+import sys
+raw = open(sys.argv[1], "rb").read()
+if b"\x1b[7m20?\x1b[0m" not in raw:
+    raise SystemExit("FAIL: selected Home cell was not reverse-video highlighted")
+PY
 
 echo 'check-home-calendar-selector: ok'
