@@ -64,14 +64,11 @@ result ← admission.Admit ⟨sourceLines,registryResult.registry⟩
 {𝕊 ⋄ Fail (⊑result.diagnostics).message}⍟(result.state≢"ok") @
 issues ← result.issues
 
-# Admission already proves the exact supported header. The writer needs only the
-# admitted source's physical column count to preserve 8/9/10-column shape.
+# Admission already proves the exact supported header. The writer needs only to
+# know whether the admitted physical source has the ten-column closed field.
 dataIndices ← (IsDataLine¨sourceLines) / ↕≠sourceLines
 headerFields ← loader.SplitTsvKeepEmpty (⊑dataIndices)⊑sourceLines
-columnCount ← ≠headerFields
-legacySchema ← columnCount=8
-dueSchema ← columnCount=9
-closedSchema ← columnCount=10
+closedSchema ← 10=≠headerFields
 {𝕊 ⋄ Fail "closed-aware issues.tsv requires a close date"}⍟(closedSchema ∧ argCount=4) @
 {𝕊 ⋄ Fail "eight-/nine-column issues.tsv cannot represent a close date"}⍟((¬closedSchema) ∧ argCount=5) @
 {𝕊:
