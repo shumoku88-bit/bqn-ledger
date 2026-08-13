@@ -120,4 +120,4 @@ Render ← {𝕊 relations:
   ⟨headerLine⟩∾Row¨↕relations.count
 }
 
-{Admit⇐Admit,Render⇐Render,Header⇐headerLine}
+{Admit⇐Admit,Render⇐Render,header⇐headerLine}
