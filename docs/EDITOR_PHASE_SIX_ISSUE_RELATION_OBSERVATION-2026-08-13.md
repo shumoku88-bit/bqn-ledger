@@ -45,7 +45,7 @@ The refactor removes that semantic parser. List now:
 5. uses admitted date/title/details/due/exact amount axes for output;
 6. uses admitted `source_row` for the existing human `line N` contract.
 
-The selector output shape remains unchanged. Exact amount text is rendered from admitted coefficient/scale rather than reusing unvalidated source text.
+The selector output shape remains unchanged. Exact amount text is rendered from admitted coefficient/scale rather than reusing unvalidated source text, so admitted source precision remains visible.
 
 ## Issue Close
 
@@ -53,17 +53,20 @@ Close has two different responsibilities and they must stay visibly different.
 
 ### Semantic responsibility
 
-Open-Issue selection, source-row identity, recorded date, title, details, due/closed validity, lifecycle validity, amount/currency validity, and duplicate identity now come from the admitted Issue relation.
+Open-Issue selection, source-row identity, recorded date, title, details, due/closed validity, lifecycle validity, amount/currency validity, header meaning, and duplicate identity now come from the admitted Issue relation.
 
-The command no longer owns a second row-normalization/date/lifecycle parser.
+The command no longer owns a second header/row-normalization/date/lifecycle parser.
 
 ### Physical writer responsibility
 
 The target source may still be one of three admitted historical physical shapes. Close must preserve that shape when replacing one row.
 
-Therefore the writer deliberately retains:
+Because admission already proves the exact supported header, the writer no longer compares header names itself. It observes only whether the admitted physical header has ten columns, which is the one physical fact needed to know whether a `closed` field exists.
 
-- physical header observation to distinguish 8/9/10-column output capability;
+The writer deliberately retains:
+
+- physical source-line classification to locate the admitted header row;
+- ten-column versus non-ten-column physical capability;
 - the raw selected TSV row at admitted `source_row`;
 - status-field replacement;
 - close-date insertion only for the ten-column shape;
@@ -86,7 +89,7 @@ due    -> RenderIssueRowWithDue
 closed -> RenderIssueRowWithClosed
 ```
 
-One schema index selects the renderer instead of mutating a row variable through three conditional assignments. No new renderer abstraction or Issue schema registry is introduced.
+One schema index selects the renderer through BQN Choose (`◶`) instead of mutating a row variable through three conditional assignments. No new renderer abstraction or Issue schema registry is introduced.
 
 The source-observing shell still supplies the target physical schema. Add does not gain authority to reinterpret the source itself.
 
@@ -127,7 +130,7 @@ All four Issue editor owners are reviewed.
 
 - `issue_add_cmd.bqn`: regular schema/renderer selection; existing validation/render ownership retained.
 - `issue_list_cmd.bqn`: command-local semantic parser retired in favor of canonical admitted relation.
-- `issue_close_cmd.bqn`: semantic parser retired; physical shape-preserving rewrite retained.
+- `issue_close_cmd.bqn`: semantic parser retired; minimal physical shape-preserving rewrite retained.
 - `issue_validate_cmd.bqn`: law review; mandatory post-write leaf unchanged.
 
 The normal Phase 6 cursor can advance to:
