@@ -237,6 +237,12 @@ The travel review distinguishes regular ordered diagnostic collections from muta
 
 The Account Add review also records stale four-role/TSV validation, rendering, UI, and operational-documentation residue for their proper later owner/cross-cutting lanes rather than duplicating Account meaning in shell.
 
+### Actual/Budget editor observation
+
+See `docs/EDITOR_PHASE_SIX_ACTUAL_BUDGET_OBSERVATION-2026-08-13.md`.
+
+The Actual Journal basename leaf, Budget candidate fail-closed staging, and mandatory Budget post-write validator remain deliberately unchanged. Budget Add exposes one genuinely regular collection by mapping admitted metadata tokens directly to key/value records instead of mutating an accumulator. The review also records repeated eager currency-registry setup across broader editor validation as a cross-cutting `validate.bqn` pressure rather than applying a Budget-only workaround.
+
 ### `src/editor/`
 
 - [x] `src/editor/friend_travel_source_event.bqn` — #734
@@ -248,10 +254,10 @@ The Account Add review also records stale four-role/TSV validation, rendering, U
 - [x] `src_edit/account_add_cmd.bqn` — #760
 - [x] `src_edit/account_list_cmd.bqn` — #760
 - [x] `src_edit/account_validate_cmd.bqn` — law review in #760; production unchanged
-- [ ] `src_edit/actual_journal_file_cmd.bqn`
-- [ ] `src_edit/budget_add_cmd.bqn`
-- [ ] `src_edit/budget_movement_candidate.bqn`
-- [ ] `src_edit/budget_validate_cmd.bqn`
+- [x] `src_edit/actual_journal_file_cmd.bqn` — law review; production unchanged
+- [x] `src_edit/budget_add_cmd.bqn` — regular metadata map
+- [x] `src_edit/budget_movement_candidate.bqn` — law review; fail-closed staging unchanged
+- [x] `src_edit/budget_validate_cmd.bqn` — law review; production unchanged
 - [ ] `src_edit/issue_add_cmd.bqn`
 - [ ] `src_edit/issue_close_cmd.bqn`
 - [ ] `src_edit/issue_list_cmd.bqn`
@@ -303,6 +309,6 @@ After the production BQN inventory is reviewed, selector/UI adapter consolidatio
 
 ## Current cursor
 
-`src_edit/actual_journal_file_cmd.bqn`
+`src_edit/issue_add_cmd.bqn`
 
-Resume the normal Phase 6 `src_edit/` review sequence at Actual Journal File.
+Resume the normal Phase 6 `src_edit/` review sequence at Issue Add.
