@@ -58,15 +58,16 @@ if rg -n 'config\.tsv|LEDGER_DATA_DIR|DEFAULT_BASE_DIR' tools/lib/theme.sh; then
 fi
 
 # Ordinary one-of-lines choice is now shared by the daily-entry and Plan-finish
-# workflows. Keep direct fzf/gum choice execution limited to the two specialized
-# menu runtimes that still have distinct contracts (Command Hub and report UI).
+# workflows. Match executable shell positions, not comments, diagnostics, or
+# dependency/SBOM prose that merely mentions fzf/gum.
 expected_choice_backend_owners=$(cat <<'EOF'
 tools/bl
 tools/main-ui.sh
 EOF
 )
+choice_execution_re='(^[[:space:]]*(fzf([[:space:]]|$)|gum[[:space:]]+(choose|filter)([[:space:]]|$)))|([|;][[:space:]]*(fzf([[:space:]]|$)|gum[[:space:]]+(choose|filter)([[:space:]]|$)))|(\$\([[:space:]]*(fzf([[:space:]]|$)|gum[[:space:]]+(choose|filter)([[:space:]]|$)))'
 actual_choice_backend_owners=$(
-  rg -l '(^|[[:space:]])fzf([[:space:]]|$)|(^|[[:space:]])gum[[:space:]]+(choose|filter)([[:space:]]|$)' tools \
+  rg -l "$choice_execution_re" tools \
     --glob '!tools/lib/*' \
     | sort
 )
@@ -95,8 +96,9 @@ tools/add-ui.sh
 tools/plan-finish-replenish-ui.sh
 EOF
 )
+text_input_execution_re='(^[[:space:]]*gum[[:space:]]+input([[:space:]]|$))|([|;][[:space:]]*gum[[:space:]]+input([[:space:]]|$))|(\$\([[:space:]]*gum[[:space:]]+input([[:space:]]|$))'
 actual_text_input_owners=$(
-  rg -l '(^|[[:space:]])gum[[:space:]]+input([[:space:]]|$)' tools \
+  rg -l "$text_input_execution_re" tools \
     --glob '!tools/lib/*' \
     | sort
 )
