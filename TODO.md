@@ -59,9 +59,9 @@ Validation density or file size is not itself a defect. Compactness is useful on
 
 ## Parallel Command Hub design track
 
-Interactive Command Hub information architecture is being designed separately from the BQN-native production review. See `docs/COMMAND_HUB_DRILLDOWN_DESIGN-2026-08-12.md`.
+The Command Hub interaction-type drill-down was designed and implemented separately from the BQN-native production review in #733. See `docs/COMMAND_HUB_DRILLDOWN_DESIGN-2026-08-12.md`.
 
-The design separates daily structured Editor actions, read-only Reports, and direct Source & System operations. It does not move the Phase 6 cursor, change writer authority, create a second Report catalog, or authorize runtime shell changes before the navigation hierarchy is accepted.
+The merged hierarchy separates structured Editor actions, read-only Reports, and direct Source & System operations while preserving the direct CLI contract and writer authority. It does not move or redefine the Phase 6 BQN-native review cursor.
 
 ## Phase order
 
@@ -212,7 +212,7 @@ Retired during review: `src/application/funding_scope.bqn` — #714. See `docs/F
 
 ### Fresh Issue editor observation
 
-Open PR #732 (`feat(issue): retain close lifecycle date`) extends Issue compatibility to the ten-column close-aware shape. Its focused review exposed useful Phase 6 evidence rather than a reason to jump the cursor:
+PR #732 (`feat(issue): retain close lifecycle date`) extended Issue compatibility to the ten-column close-aware shape. Its focused review exposed useful Phase 6 evidence rather than a reason to jump the cursor:
 
 - `issue_list_cmd.bqn` and `issue_close_cmd.bqn` repeat 8/9/10-column schema classification, compatibility normalization, and lifecycle validation already owned semantically by Issue admission;
 - `issue_add_cmd.bqn` selects schema-specific rendering through mutable result staging;
@@ -221,11 +221,17 @@ Open PR #732 (`feat(issue): retain close lifecycle date`) extends Issue compatib
 
 Do not manufacture an Issue-only generic TSV framework to fix this observation early. Preserve it for the normal Phase 6 owner review, where the wider Editor family can show which duplication is accidental, which shape preservation belongs to the writer boundary, and whether admitted Issue relations can replace command-local semantic re-parsing.
 
+### `src/editor/` review observation
+
+See `docs/EDITOR_PHASE_SIX_SRC_REVIEW_OBSERVATION-2026-08-12.md`.
+
+The travel review distinguishes regular ordered diagnostic collections from mutations that protect jagged source admission, evaluation/failure order, provenance-sensitive construction, or fail-closed publication. `journal_profile.bqn` remains production-unchanged because no concrete correctness, performance, or architectural defect justifies rewriting its historical parser state machine in this pass.
+
 ### `src/editor/`
 
-- [ ] `src/editor/friend_travel_source_event.bqn`
-- [ ] `src/editor/journal_profile.bqn`
-- [ ] `src/editor/travel_exchange_event.bqn`
+- [x] `src/editor/friend_travel_source_event.bqn` — #734
+- [x] `src/editor/journal_profile.bqn` — law review; production unchanged
+- [x] `src/editor/travel_exchange_event.bqn` — #734
 
 ### `src_edit/`
 
@@ -287,6 +293,6 @@ After the production BQN inventory is reviewed, selector/UI adapter consolidatio
 
 ## Current cursor
 
-`src/editor/friend_travel_source_event.bqn`
+`src_edit/account_add_cmd.bqn`
 
-Resume the normal Phase 6 Editor review sequence at Friend Travel Source Event.
+Resume the normal Phase 6 `src_edit/` review sequence at Account Add.

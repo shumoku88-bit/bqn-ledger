@@ -32,11 +32,11 @@ FractionDigits ← {𝕊 text:
   (1=≠positions) ◶ ⟨{𝕩⋄0}, {𝕩⋄((≠text)-1)-⊑positions}⟩ text
 }
 AccountDiagnostics ← {𝕊 account‿fieldName‿currency:
-  diagnostics ← empty
-  diagnostics ∾↩ AddIf ⟨¬IsSafeText account.name, Diagnostic ⟨fieldName∾"_name_invalid", fieldName, "selected account name must be nonempty and TSV-field safe"⟩⟩
-  diagnostics ∾↩ AddIf ⟨account.exists≠1, Diagnostic ⟨fieldName∾"_not_existing", fieldName, "selected account must already exist"⟩⟩
-  diagnostics ∾↩ AddIf ⟨account.currency≢currency, Diagnostic ⟨fieldName∾"_currency_invalid", fieldName, "selected account uses the wrong currency"⟩⟩
-  diagnostics
+  ∾´ ⟨
+    AddIf ⟨¬IsSafeText account.name, Diagnostic ⟨fieldName∾"_name_invalid", fieldName, "selected account name must be nonempty and TSV-field safe"⟩⟩,
+    AddIf ⟨account.exists≠1, Diagnostic ⟨fieldName∾"_not_existing", fieldName, "selected account must already exist"⟩⟩,
+    AddIf ⟨account.currency≢currency, Diagnostic ⟨fieldName∾"_currency_invalid", fieldName, "selected account uses the wrong currency"⟩⟩
+  ⟩
 }
 
 Preview ← {𝕊 request:
