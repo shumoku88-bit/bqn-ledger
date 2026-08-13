@@ -82,13 +82,11 @@ Admit ← {𝕊 transactions:
   supersededRows ← ("superseded"⊸≡¨{𝕩.kind}¨rowsList)/rowsList
   oldIds ← {𝕩.plan_id}¨supersededRows
   successorIds ← {𝕩.successor_plan_id}¨supersededRows
-  cycleStarts ← {𝕩/oldIds} HasSupersessionCycle¨ ⟨oldIds⟩‿⟨successorIds⟩
-  # The rank-polymorphic expression above is intentionally replaced below by a
-  # direct per-start characterization to keep the graph walk obvious.
   cycleFlags ← {HasSupersessionCycle ⟨𝕩,oldIds,successorIds⟩}¨oldIds
-  diagnostics ∾↩ ∾{
-    AddIf ⟨𝕨,Diagnostic ⟨"plan_supersession_cycle","supersession graph cannot contain a cycle"⟩⟩
-  }¨○<oldIds⊸∾ cycleFlags
+  {𝕊 i:
+    diagnostics ∾↩ AddIf ⟨i⊑cycleFlags,
+      Diagnostic ⟨"plan_supersession_cycle","supersession graph cannot contain a cycle"⟩⟩
+  }¨↕≠oldIds
 
   rows ← EmptyRows @
   {𝕊:
