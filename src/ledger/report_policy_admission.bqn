@@ -167,7 +167,7 @@ Admit ← {𝕊 raw:
     ValidateDateReference ⟨value,allowBeginning,pair.line⟩ ⋄ value
   }
   CheckExplicitRange ← {𝕊 from‿through‿lineNumber:
-    both ← (date.IsValid from) ∧ date.IsValid through
+    both ← (date.IsValid from) ∧ (date.IsValid through)
     {𝕊:
       reversed ← (date.Ordinal from)>date.Ordinal through
       diagnostics∾↩AddIf ⟨reversed,Diagnostic ⟨"report_policy_range_invalid",lineNumber,"Report range start must not be after its through date"⟩⟩
@@ -186,7 +186,7 @@ Admit ← {𝕊 raw:
   }⍟(0<presentationBlock.line) @
 
   calendarBlock ← OptionalOne "presentation.calendar"
-  cycleEndMarker ← "*" ⋄ planDueMarker ← "$" ⋄ issueDueMarker ← "!" ⋄ multipleMarker ← "+"
+  cycleEndMarker ← "|" ⋄ planDueMarker ← "$" ⋄ issueDueMarker ← "!" ⋄ multipleMarker ← "+"
   {𝕊:
     CheckKeys ⟨calendarBlock,empty,⟨"cycle-end-marker","plan-due-marker","issue-due-marker","multiple-marker"⟩⟩
     cycleEndMarker↩MarkerValue ⟨calendarBlock,"cycle-end-marker",cycleEndMarker⟩
