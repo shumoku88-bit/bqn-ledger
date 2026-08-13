@@ -41,6 +41,7 @@ chmod +x "$choice_tmp/fzf" "$choice_tmp/gum"
 
 [[ $(BL_UI_MODE=minimal bl_ui_choice_backend) == plain ]]
 [[ $(BL_SELECTOR=plain bl_ui_choice_backend) == plain ]]
+[[ $(PATH="$choice_tmp:$PATH" BL_SELECTOR=auto bl_ui_choice_backend) == fzf ]]
 choice_out="$(printf 'alpha\tA\nbeta\tB\n' | PATH="$choice_tmp:$PATH" BL_SELECTOR=fzf bl_ui_choose_line 'test choice')"
 [[ "$choice_out" == $'beta\tB' ]]
 choice_out="$(printf 'alpha\tA\nbeta\tB\n' | PATH="$choice_tmp:$PATH" BL_SELECTOR=gum bl_ui_choose_line 'test choice')"
