@@ -10,19 +10,21 @@ today ← •Import "date_today.bqn"
 tab ← @+9
 lf ← @+10
 frameMarker ← "HOME_CURSOR_CELLS"
+detailMarker ← "HOME_SELECTED_DETAIL"
 
 Fail ← {𝕊 code‿message:•Out "ERROR"∾tab∾code∾tab∾message ⋄ •Exit 1}
 
 args ← •args
-{𝕊:Fail ⟨"usage","expected BASE [FOCUS_DATE] [calendar|detail|choices|cells|frame|day-prev|day-next|week-prev|week-next|month-prev|month-next]"⟩}⍟((1>≠args) ∨ 3<≠args) @
+{𝕊:Fail ⟨"usage","expected BASE [FOCUS_DATE] [calendar|detail|detail-frame|choices|cells|frame|day-prev|day-next|week-prev|week-next|month-prev|month-next]"⟩}⍟((1>≠args) ∨ 3<≠args) @
 base ← 0⊑args
 focus ← today.Today @
 {𝕊:focus↩1⊑args}⍟(2≤≠args) @
 mode ← "calendar"
 {𝕊:mode↩2⊑args}⍟(3=≠args) @
-staticMode ← (mode≡"calendar") ∨ (mode≡"detail") ∨ (mode≡"choices") ∨ (mode≡"cells") ∨ mode≡"frame"
+detailMode ← (mode≡"detail") ∨ mode≡"detail-frame"
+staticMode ← (mode≡"calendar") ∨ detailMode ∨ (mode≡"choices") ∨ (mode≡"cells") ∨ mode≡"frame"
 modeValid ← staticMode ∨ navigation.ValidMove mode
-{𝕊:Fail ⟨"home_mode_invalid","third argument must be calendar, detail, choices, cells, frame, day-prev, day-next, week-prev, week-next, month-prev, or month-next"⟩}⍟(¬modeValid) @
+{𝕊:Fail ⟨"home_mode_invalid","third argument must be calendar, detail, detail-frame, choices, cells, frame, day-prev, day-next, week-prev, week-next, month-prev, or month-next"⟩}⍟(¬modeValid) @
 {𝕊:Fail ⟨"home_focus_date_invalid","FOCUS_DATE must be strict YYYY-MM-DD"⟩}⍟(¬dates.IsValid focus) @
 
 # Logical movement is pure selected-date meaning. Return before importing report,
@@ -81,6 +83,20 @@ FormatCursorFrame ← {𝕊 calendar‿calendarPolicy:
   ⟩
 }
 
+# Inspect is also one visible semantic frame. Re-publish calendar, semantic cells,
+# and complete selected-date detail from the same admitted Household observation.
+# The terminal may viewport the detail physically, but it never recombines detail
+# from a newer observation with an older calendar snapshot.
+FormatDetailFrame ← {𝕊 calendar‿calendarPolicy‿detail:
+  ∾⟨
+    home.FormatHuman ⟨calendar,calendarPolicy⟩,
+    frameMarker,lf,
+    FormatCursorCells ⟨calendar,calendarPolicy⟩,
+    detailMarker,lf,
+    home.FormatDetailHuman detail
+  ⟩
+}
+
 registryResult ← sources.Registry "config/currencies.tsv"
 {𝕊:Fail ⟨registryResult.code,registryResult.message⟩}⍟(registryResult.state≢"ok") @
 registry ← registryResult.registry
@@ -119,7 +135,8 @@ output ← home.FormatHuman ⟨calendar,policy.presentation.calendar⟩
   selected ← home.BuildDetail ⟨calendar,typedRows,planned.result,issues.result,cycle,focus⟩
   {𝕊:PrintDiagnostics selected.diagnostics}⍟(selected.state≢"ok") @
   output↩home.FormatDetailHuman selected
-}⍟(mode≡"detail") @
+  {𝕊:output↩FormatDetailFrame ⟨calendar,policy.presentation.calendar,selected⟩}⍟(mode≡"detail-frame") @
+}⍟detailMode @
 
 # Home formatters own their final LF; remove it before •Out adds the process newline.
 •Out ¯1↓output
