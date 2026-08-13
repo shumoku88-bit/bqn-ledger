@@ -181,13 +181,26 @@ Markers ← {𝕊 result‿calendar:
   codes⊏table
 }
 
-FormatHuman ← {𝕊 result‿calendar:
+# Frontend-neutral relation for one month's visible day cells. Row and column are
+# coordinates in the semantic 7-column calendar matrix, not terminal lines or
+# pixel positions. Physical layout remains frontend-owned.
+CellRelation ← {𝕊 result‿calendar:
   markers ← Markers ⟨result,calendar⟩
+  flat ← result.weekday_start+result.days.index
+  {
+    count⇐result.days.count,index⇐result.days.index,
+    date⇐result.days.date,day⇐result.days.day,
+    row⇐⌊flat÷7,column⇐7|flat,marker⇐markers
+  }
+}
+
+FormatHuman ← {𝕊 result‿calendar:
+  relation ← CellRelation ⟨result,calendar⟩
   PadDay ← {𝕊 dayValue:
     value ← •Fmt dayValue
     ((0⌈2-≠value)⥊' ')∾value
   }
-  cells ← {𝕊 i:(PadDay i⊑result.days.day)∾i⊑markers}¨result.days.index
+  cells ← {𝕊 i:(PadDay i⊑relation.day)∾i⊑relation.marker}¨relation.index
   CellFor ← {𝕊 dayIndex:
     cell ← "   "
     {𝕊:cell↩dayIndex⊑cells}⍟(dayIndex≥0) @
@@ -207,13 +220,13 @@ FormatHuman ← {𝕊 result‿calendar:
 # Choice rows are a selector adapter contract: stable date key, human label.
 # Shell code need not derive month length, markers, or date semantics.
 FormatChoices ← {𝕊 result‿calendar:
-  markers ← Markers ⟨result,calendar⟩
+  relation ← CellRelation ⟨result,calendar⟩
   rows ← {𝕊 i:
-    dayText ← •Fmt i⊑result.days.day
+    dayText ← •Fmt i⊑relation.day
     padded ← ((0⌈2-≠dayText)⥊' ')∾dayText
-    dateText ← i⊑result.days.date
-    ∾⟨dateText,tab,padded,i⊑markers,"  ",dateText,lf⟩
-  }¨result.days.index
+    dateText ← i⊑relation.date
+    ∾⟨dateText,tab,padded,i⊑relation.marker,"  ",dateText,lf⟩
+  }¨relation.index
   ∾rows
 }
 
@@ -263,4 +276,4 @@ FormatDetailHuman ← {𝕊 result:
   ⟩
 }
 
-{Build⇐Build,BuildDetail⇐BuildDetail,Markers⇐Markers,FormatHuman⇐FormatHuman,FormatChoices⇐FormatChoices,FormatDetailHuman⇐FormatDetailHuman}
+{Build⇐Build,BuildDetail⇐BuildDetail,Markers⇐Markers,CellRelation⇐CellRelation,FormatHuman⇐FormatHuman,FormatChoices⇐FormatChoices,FormatDetailHuman⇐FormatDetailHuman}

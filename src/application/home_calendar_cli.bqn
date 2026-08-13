@@ -31,19 +31,21 @@ PublicationFailure ← {𝕊 publication‿fallback:
   Fail ⟨fallback,"Home calendar dependency publication failed"⟩
 }
 
-# Structured terminal-layout relation for the thin cursor adapter. Calendar
-# semantics and marker policy are already owned by Home; this only exposes each
-# rendered day cell with its 7-column matrix coordinate.
+# Serialize the Home-owned semantic cell relation for the terminal cursor
+# adapter. Physical terminal placement stays in shell; row/column are only the
+# shared 7-column calendar matrix coordinates.
 FormatCursorCells ← {𝕊 calendar‿calendarPolicy:
-  markers ← home.Markers ⟨calendar,calendarPolicy⟩
-  flat ← calendar.weekday_start+calendar.days.index
-  rows ← ⌊flat÷7
-  cols ← 7|flat
+  relation ← home.CellRelation ⟨calendar,calendarPolicy⟩
   lines ← {𝕊 i:
-    dayText ← •Fmt i⊑calendar.days.day
+    dayText ← •Fmt i⊑relation.day
     padded ← ((0⌈2-≠dayText)⥊' ')∾dayText
-    ∾⟨i⊑calendar.days.date,tab,•Fmt i⊑rows,tab,•Fmt i⊑cols,tab,padded,i⊑markers,lf⟩
-  }¨calendar.days.index
+    ∾⟨
+      i⊑relation.date,tab,
+      •Fmt i⊑relation.row,tab,
+      •Fmt i⊑relation.column,tab,
+      padded,i⊑relation.marker,lf
+    ⟩
+  }¨relation.index
   ∾lines
 }
 
