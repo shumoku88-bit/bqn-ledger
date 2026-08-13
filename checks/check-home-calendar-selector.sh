@@ -46,8 +46,25 @@ grep -Fq $'2026-01-20\t3\t1\t20?' <<<"$cells" || {
   exit 1
 }
 
-# Adjacent-month focus is BQN-owned and does not need to open canonical source
-# observations. Day-of-month is retained when possible and clipped at month end.
+# Adjacent-day and adjacent-month focus are BQN-owned and do not need to open
+# canonical source observations. Horizontal edge movement therefore delegates
+# Gregorian continuity instead of reconstructing month lengths in shell.
+[[ "$(tools/home-calendar "$base" 2026-01-31 day-next)" == '2026-02-01' ]] || {
+  echo 'FAIL: Home next-day focus did not cross January end' >&2
+  exit 1
+}
+[[ "$(tools/home-calendar "$base" 2026-02-01 day-prev)" == '2026-01-31' ]] || {
+  echo 'FAIL: Home previous-day focus did not cross February start' >&2
+  exit 1
+}
+[[ "$(tools/home-calendar "$base" 2026-12-31 day-next)" == '2027-01-01' ]] || {
+  echo 'FAIL: Home next-day focus did not cross year end' >&2
+  exit 1
+}
+[[ "$(tools/home-calendar "$base" 2027-01-01 day-prev)" == '2026-12-31' ]] || {
+  echo 'FAIL: Home previous-day focus did not cross year start' >&2
+  exit 1
+}
 [[ "$(tools/home-calendar "$base" 2026-01-31 month-next)" == '2026-02-28' ]] || {
   echo 'FAIL: Home next-month focus did not clip January 31 to February end' >&2
   exit 1
@@ -199,6 +216,70 @@ for expected in \
   grep -Fq "$expected" "$month_out" || {
     echo "FAIL: Home month-navigation output missing: $expected" >&2
     cat "$month_out" >&2
+    exit 1
+  }
+done
+
+# Horizontal movement is a continuous date walk across month boundaries. Start
+# on Jan 31, use a real right arrow to enter Feb 1, a real left arrow to return,
+# then repeat through l/h. The month rebuild happens only at the edge.
+python3 - "$base" "$work/day-edge.out" <<'PY'
+import fcntl
+import os
+import pty
+import sys
+import termios
+
+base, output_path = sys.argv[1:3]
+master, slave = pty.openpty()
+pid = os.fork()
+if pid == 0:
+    os.setsid()
+    fcntl.ioctl(slave, termios.TIOCSCTTY, 0)
+    os.dup2(slave, 0)
+    os.dup2(slave, 1)
+    os.dup2(slave, 2)
+    os.close(master)
+    os.close(slave)
+    env = os.environ.copy()
+    env["NO_COLOR"] = "1"
+    env["TERM"] = "xterm-256color"
+    os.execve(
+        "tools/home-calendar",
+        ["tools/home-calendar", base, "2026-01-31"],
+        env,
+    )
+
+os.close(slave)
+# Right -> Feb 1, Left -> Jan 31, l -> Feb 1, h -> Jan 31, q.
+os.write(master, b"\x1b[C\x1b[Dl hq".replace(b" ", b""))
+output = bytearray()
+while True:
+    try:
+        data = os.read(master, 4096)
+        if not data:
+            break
+        output.extend(data)
+    except OSError:
+        break
+os.close(master)
+_, status = os.waitpid(pid, 0)
+exit_status = os.waitstatus_to_exitcode(status)
+if exit_status not in (0, 130):
+    raise SystemExit(f"Home continuous-day PTY failed with status {exit_status}")
+with open(output_path, "wb") as f:
+    f.write(output)
+PY
+
+day_edge_out="$work/day-edge.out"
+for expected in \
+  '2026-01' \
+  '2026-02' \
+  'Home date: 2026-01-31' \
+  'Home date: 2026-02-01'; do
+  grep -Fq "$expected" "$day_edge_out" || {
+    echo "FAIL: Home continuous-day output missing: $expected" >&2
+    cat "$day_edge_out" >&2
     exit 1
   }
 done
