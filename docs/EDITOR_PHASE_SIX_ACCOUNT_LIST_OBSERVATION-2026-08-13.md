@@ -6,16 +6,16 @@ Owner under review:
 
 - `src_edit/account_list_cmd.bqn`
 
-The review follows Account Add in the same canonical Account editor closeout because both exposed pressure from the same retired validator topology.
+The review follows Account Add in the same canonical Account editor closeout because both touch the boundary between a narrow Account command and broader historical editor helpers.
 
 Relevant boundaries read:
 
 - `src/application/account_source_adapter.bqn` for admitted canonical Accounts;
 - `src/application/editor_currency.bqn` and `src/ledger/currency_registry.bqn` for supported-currency policy;
 - `config/currencies.tsv` for current registry data;
+- `src_edit/validate.bqn::ValidateCurrency` for the existing shared validation path;
 - `tools/edit-bqn` Account List routing;
-- `checks/check-edit-bqn-account-list.sh` and multi-currency editor witnesses;
-- historical `src_edit/validate.bqn::ValidateCurrency`.
+- existing Account List and multi-currency editor witnesses.
 
 ## BQN-native result
 
@@ -33,36 +33,36 @@ Role and currency filters become boolean masks over those axes. Their conjunctio
 
 That is direct BQN data shaping. Replacing it with shell filtering, a generic selector abstraction, or row-by-row mutable accumulation would be a regression.
 
-## Concrete defect found
+## Effect-lifetime pressure found
 
-Currency filter admission was delegated to `src_edit/validate.bqn::ValidateCurrency`.
+`ValidateCurrency` is not semantically stale: current `src_edit/validate.bqn` already delegates supported-currency policy to `editor_currency.bqn`, so USD is correctly registry-supported there too.
 
-That helper is an older editor validation surface with a hard-coded JPY/ILS set, while the canonical registry currently owns JPY / ILS / USD and is already exposed to editor code by `src/application/editor_currency.bqn`.
+The problem is narrower. `validate.bqn` performs:
 
-The result was an ownership split:
-
-```text
-canonical registry says USD is supported
-Account List legacy helper says USD is invalid
+```bqn
+setup ← editorCurrency.Load @
 ```
 
-A read-only Account selector therefore could reject a valid canonical Commodity before it even inspected admitted Accounts.
+at module import time. Account List needs currency admission only when the caller supplies a nonempty currency filter. Importing the broad validator surface at command startup therefore opens the canonical currency registry even for the common unfiltered list path, where the result is never used.
+
+This is an effect-lifetime issue rather than a competing currency policy owner.
 
 ## Change
 
-Account List now admits a nonempty explicit currency filter through the canonical registry owner exposed by `editor_currency.bqn`.
+Account List now depends directly on the narrower `editor_currency.bqn` capability and calls `Load` only inside the nonempty explicit-currency branch.
 
-An empty currency argument remains semantically different from a default currency: it means **no currency filter**. Therefore Account List does not call `ResolveDefault` or silently narrow the result to the configured editor default.
+An empty currency argument remains semantically different from a default currency: it means **no currency filter**. Account List does not call `ResolveDefault` and does not silently narrow the result to the configured editor default.
 
-The registry observation is also lazy: an ordinary Account List with no currency filter does not open an additional currency-registry observation merely because that capability exists. The registry is loaded only when a caller supplies a nonempty explicit currency filter.
-
-Unsupported explicit values still fail closed with a direct diagnostic.
+When an explicit currency exists, supported/unsupported meaning still comes from the same canonical registry. The existing `unsupported currency: <key>` diagnostic text is preserved.
 
 ## Preserved behavior
 
 No change is made to:
 
 - canonical Account loading;
+- supported-currency policy;
+- USD support;
+- unsupported-currency rejection text;
 - role filtering;
 - combined role + currency filtering;
 - source order;
@@ -74,11 +74,11 @@ No change is made to:
 
 `checks/check-edit-bqn-account-list-registry.sh` adds a synthetic USD Asset and USD Expense to a canonical fixture and proves:
 
-1. `--currency USD` is admitted because USD is registry-supported;
+1. explicit USD filtering still follows canonical registry support;
 2. JPY rows do not leak into the USD result;
 3. role + currency masks compose exactly;
-4. unsupported EUR remains an error;
-5. Account List no longer depends on `validate.bqn` for currency admission.
+4. unsupported EUR retains the existing error contract;
+5. Account List no longer imports the broad `validate.bqn` surface solely for optional currency admission.
 
 The existing Account List check continues to protect role masks, all-account output, preferred-role stable partitioning, shell argument routing, and Account writer safe-publication behavior.
 
@@ -86,7 +86,7 @@ The existing Account List check continues to protect role masks, all-account out
 
 `src_edit/account_list_cmd.bqn` is reviewed.
 
-Its array filtering/stable-partition kernel is retained. The only production change is replacing the stale hard-coded currency helper with the canonical registry owner while preserving the no-filter effect lifetime.
+Its array filtering/stable-partition kernel and registry-owned currency semantics are retained. Production changes only to narrow the dependency/effect lifetime: the currency registry is observed only when an explicit currency filter actually requires it.
 
 The normal Phase 6 cursor can advance to:
 
