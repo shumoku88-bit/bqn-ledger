@@ -39,16 +39,17 @@ grep -F '    budget:unassigned    -10 JPY' "$tmp_root/dry.out" >/dev/null
 grep -F '    budget:food    10 JPY' "$tmp_root/dry.out" >/dev/null
 
 # Source-ordered metadata is a regular key/value collection after admission.
-# The BQN command maps those tokens without changing order or rendered bytes.
+# Use values admitted by the canonical Journal metadata owner; this witness
+# characterizes mapping/order, not a new permissive metadata contract.
 ./tools/edit --base "$dry" budget add \
   --date 2026-01-02 --memo metadata-map \
   --from budget:unassigned --to budget:food --amount 10 \
-  --meta note=first --meta tax=second --dry-run >"$tmp_root/meta.out"
+  --meta note=first --meta tax=business --dry-run >"$tmp_root/meta.out"
 python3 - "$tmp_root/meta.out" <<'PY'
 import sys
 text = open(sys.argv[1], encoding="utf-8").read()
 first = text.find("    ; note: first")
-second = text.find("    ; tax: second")
+second = text.find("    ; tax: business")
 if first < 0 or second < 0 or first >= second:
     raise SystemExit("FAIL: Budget metadata order/rendering changed")
 PY
