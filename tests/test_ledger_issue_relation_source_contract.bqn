@@ -137,8 +137,8 @@ result ← Admit source
 "ok" lib.AssertEq result.state
 5 lib.AssertEq result.relations.count
 ⟨"rel-001","rel-002","rel-003","rel-004","rel-005"⟩ lib.AssertEq result.relations.relation_event_id
-5⥊⟨"2026-08-13"⟩ lib.AssertEq result.relations.recorded_on
-5⥊⟨"issue-001"⟩ lib.AssertEq result.relations.issue_id
+⟨"2026-08-13","2026-08-13","2026-08-13","2026-08-13","2026-08-13"⟩ lib.AssertEq result.relations.recorded_on
+⟨"issue-001","issue-001","issue-001","issue-001","issue-001"⟩ lib.AssertEq result.relations.issue_id
 ⟨"concerns-plan","planning-withdrawn","planned-as","funded-by","realized-as"⟩ lib.AssertEq result.relations.relation_kind
 ⟨"plan-old","plan-old","plan-new","actual-transfer","actual-payment"⟩ lib.AssertEq result.relations.target_id
 ⟨"review current commitment","decision changed","replacement commitment","move funding first","payment occurred"⟩ lib.AssertEq result.relations.details
