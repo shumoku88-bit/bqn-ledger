@@ -44,6 +44,8 @@ Lane ← {𝕊 facts‿mask‿postingIndices‿accountIndices‿accountKeys‿da
 }
 
 # Input: admitted Actual Facts, admitted Envelope history, domain, start, end-exclusive.
+# A zero-width [start,start) horizon is a valid empty observation. This is useful
+# before the selected Commodity has any native Envelope Entitlement origin.
 Build ← {𝕊 facts‿history‿domain‿start‿finish:
   diagnostics ← empty
   diagnostics∾↩AddIf ⟨facts.state≢"ok",Diagnostic ⟨"facts_not_ok","Actual facts must be ok"⟩⟩
@@ -51,7 +53,7 @@ Build ← {𝕊 facts‿history‿domain‿start‿finish:
   diagnostics∾↩AddIf ⟨history.state≢"ok",Diagnostic ⟨"envelope_history_invalid","Envelope history admission must be ok"⟩⟩
   diagnostics∾↩AddIf ⟨¬Contains ⟨domain,facts.domains.code⟩,Diagnostic ⟨"domain_unknown","selected domain must occur in Actual Facts"⟩⟩
   diagnostics∾↩AddIf ⟨¬Contains ⟨"actual",facts.layers.name⟩,Diagnostic ⟨"actual_layer_unknown","Actual Facts must declare the actual layer"⟩⟩
-  diagnostics∾↩AddIf ⟨start≥finish,Diagnostic ⟨"period_range_invalid","period start must precede end_exclusive"⟩⟩
+  diagnostics∾↩AddIf ⟨start>finish,Diagnostic ⟨"period_range_invalid","period start must not follow end_exclusive"⟩⟩
 
   routing ← history.expense_routing
   routeAccountCoordinates ← facts.accounts.key⊐routing.expense_account_key

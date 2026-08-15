@@ -17,10 +17,15 @@ RouteAt ← {𝕊 planId‿day‿routing:
   {𝕊:ords←rows⊏routing.effective_ordinal ⋄ latest←⌈´ords ⋄ rs←(ords=latest)/rows ⋄ ambiguous↩1≠≠rs ⋄ {𝕊:r←⊑rs ⋄ route↩r⊑routing.route ⋄ target↩r⊑routing.target_id ⋄ sourceRow↩r⊑routing.source_row}⍟(1=≠rs) @}⍟(0<≠rows) @
   {route⇐route,target_id⇐target,source_row⇐sourceRow,ambiguous⇐ambiguous}}
 
+# [start,finish) may be zero-width when no native Entitlement origin exists yet.
+# In that case the empty horizon must remain an ordinary empty array observation,
+# not a fabricated current-Period Fulfillment.
 Build ← {𝕊 planFacts‿retirements‿actualFacts‿history‿domain‿start‿finish‿observation:
   ds←empty ⋄ ds∾↩AddIf ⟨history.state≢"ok",Diagnostic ⟨"envelope_history_invalid","Envelope history must be admitted"⟩⟩
   domainKnown←∨´0∾domain⊸≡¨actualFacts.domains.code ⋄ ds∾↩AddIf ⟨¬domainKnown,Diagnostic ⟨"domain_unknown","selected domain must occur in Actual facts"⟩⟩
-  ds∾↩AddIf ⟨(start≥finish)∨(observation<start)∨observation≥finish,Diagnostic ⟨"observation_range_invalid","require start <= observation < end_exclusive"⟩⟩
+  emptyHorizon←(start=finish)∧start=observation+1
+  rangeInvalid←(start>finish)∨((¬emptyHorizon)∧((observation<start)∨observation≥finish))
+  ds∾↩AddIf ⟨rangeInvalid,Diagnostic ⟨"observation_range_invalid","require start <= observation < end_exclusive, or the canonical empty post-observation horizon"⟩⟩
   ds∾↩AddIf ⟨planFacts.accounts.key≢actualFacts.accounts.key,Diagnostic ⟨"account_axis_mismatch","Plan and Actual must share Account axis"⟩⟩
   routeCoords←planFacts.transactions.plan_id⊐history.fulfillment_routing.plan_id
   ds∾↩AddIf ⟨¬∧´1∾routeCoords<planFacts.transactions.count,Diagnostic ⟨"fulfillment_route_plan_unknown","Fulfillment route PlanId must be admitted"⟩⟩
