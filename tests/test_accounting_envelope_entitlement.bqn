@@ -190,4 +190,114 @@ ambiguous ← entitlement.Build ⟨movements,accounts,ambiguousHousehold,"USD",s
 "error" lib.AssertEq ambiguous.state
 "budget_endpoint_ambiguous" lib.AssertEq (⊑ambiguous.diagnostics).code
 
+# Historical Nonnegative Law:
+# Case A: day 1 grant 10, day 2 release 20 => reject
+negA ← Admit Raw ⟨
+  "2026-01-01 opening-unassigned",
+  "  budget:opening       -100 USD",
+  "  budget:unassigned     100 USD","",
+  "2026-01-02 grant-food",
+  "  budget:unassigned    -10 USD",
+  "  budget:food           10 USD","",
+  "2026-01-03 over-release-food",
+  "  budget:food          -20 USD",
+  "  budget:unassigned     20 USD"
+⟩
+resA ← Build negA
+"error" lib.AssertEq resA.state
+"envelope_entitlement_negative" lib.AssertEq (⊑resA.diagnostics).code
+
+# Case B: day 1 grant 10, day 2 release 20, day 3 grant 20 => reject
+# Later restoration does not hide an earlier negative state.
+negB ← Admit Raw ⟨
+  "2026-01-01 opening-unassigned",
+  "  budget:opening       -100 USD",
+  "  budget:unassigned     100 USD","",
+  "2026-01-02 grant-food",
+  "  budget:unassigned    -10 USD",
+  "  budget:food           10 USD","",
+  "2026-01-03 over-release-food",
+  "  budget:food          -20 USD",
+  "  budget:unassigned     20 USD","",
+  "2026-01-04 later-restore-food",
+  "  budget:unassigned    -20 USD",
+  "  budget:food           20 USD"
+⟩
+resB ← Build negB
+"error" lib.AssertEq resB.state
+"envelope_entitlement_negative" lib.AssertEq (⊑resB.diagnostics).code
+
+# Even when observation day precedes future negative movement, global history fails closed.
+resBFuture ← entitlement.Build ⟨negB,accounts,household,"USD",start,finish,dates.Ordinal "2026-01-02"⟩
+"error" lib.AssertEq resBFuture.state
+"envelope_entitlement_negative" lib.AssertEq (⊑resBFuture.diagnostics).code
+
+# Case C: same effective day: release 5, grant 5 with previous 0 => accept
+# because same-day effects combine before validation.
+posC ← Admit Raw ⟨
+  "2026-01-01 opening-unassigned",
+  "  budget:opening       -100 USD",
+  "  budget:unassigned     100 USD","",
+  "2026-01-02 same-day-release-first",
+  "  budget:food           -5 USD",
+  "  budget:unassigned      5 USD","",
+  "2026-01-02 same-day-grant-second",
+  "  budget:unassigned     -5 USD",
+  "  budget:food            5 USD"
+⟩
+resC ← Build posC
+"ok" lib.AssertEq resC.state
+⟨0,0⟩ lib.AssertEq resC.managed.entitlement
+
+# Case D: source order reversed on the same day => same admission result.
+posD ← Admit Raw ⟨
+  "2026-01-01 opening-unassigned",
+  "  budget:opening       -100 USD",
+  "  budget:unassigned     100 USD","",
+  "2026-01-02 same-day-grant-first",
+  "  budget:unassigned     -5 USD",
+  "  budget:food            5 USD","",
+  "2026-01-02 same-day-release-second",
+  "  budget:food           -5 USD",
+  "  budget:unassigned      5 USD"
+⟩
+resD ← Build posD
+"ok" lib.AssertEq resD.state
+⟨0,0⟩ lib.AssertEq resD.managed.entitlement
+
+# Case E: independent Envelope histories remain independent.
+negE ← Admit Raw ⟨
+  "2026-01-01 opening-unassigned",
+  "  budget:opening       -100 USD",
+  "  budget:unassigned     100 USD","",
+  "2026-01-02 grant-food",
+  "  budget:unassigned    -50 USD",
+  "  budget:food           50 USD","",
+  "2026-01-03 over-release-transport",
+  "  budget:transport     -10 USD",
+  "  budget:unassigned     10 USD"
+⟩
+resE ← Build negE
+"error" lib.AssertEq resE.state
+"envelope_entitlement_negative" lib.AssertEq (⊑resE.diagnostics).code
+
+# Case F: legacy spent rows cannot create or repair Entitlement nonnegative state.
+negF ← Admit Raw ⟨
+  "2026-01-01 opening-unassigned",
+  "  budget:opening       -100 USD",
+  "  budget:unassigned     100 USD","",
+  "2026-01-02 grant-food",
+  "  budget:unassigned    -10 USD",
+  "  budget:food           10 USD","",
+  "2026-01-03 over-release-food",
+  "  budget:food          -20 USD",
+  "  budget:unassigned     20 USD","",
+  "2026-01-04 legacy-spent-to-food",
+  "  budget:execution     -20 USD",
+  "  budget:food           20 USD"
+⟩
+resF ← Build negF
+"error" lib.AssertEq resF.state
+"envelope_entitlement_negative" lib.AssertEq (⊑resF.diagnostics).code
+
 •Out "test_accounting_envelope_entitlement: ok"
