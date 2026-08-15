@@ -4,39 +4,15 @@ export NO_COLOR=1
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
 
-# Temporary branch-only diagnostic: expose the stock coordinates used by the
-# first Envelope Backing test. Revert this file after the failing law is fixed.
-python3 - <<'PY'
-from pathlib import Path
-p = Path('src/accounting/envelope_backing.bqn')
-s = p.read_text()
-s = s.replace(
-    '  stockFinish ← observation+1\n',
-    '  stockFinish ← observation+1\n  •Out "stockStart="∾•Fmt stockStart∾" stockFinish="∾•Fmt stockFinish∾" observation="∾•Fmt observation\n',
-    1,
-)
-p.write_text(s)
-PY
-
 echo '[1/3] BQN tests' >&2
 for test_file in tests/test_*.bqn; do
   [[ -f $test_file ]] || continue
-  run_file="$test_file"
-  debug_file=""
-  if [[ $test_file == tests/test_accounting_envelope_backing.bqn ]]; then
-    debug_file="tests/.debug-envelope-backing.bqn"
-    sed '/^"ok" lib.AssertEq result\.state$/i\•Out ∾{𝕩.code∾": "∾𝕩.message∾" | "}¨result.diagnostics' "$test_file" > "$debug_file"
-    run_file="$debug_file"
-  fi
-  if ! test_output="$(bqn "$run_file" 2>&1)"; then
-    [[ -z $debug_file ]] || rm -f "$debug_file"
+  bqn "$test_file" >/dev/null || {
     echo "FAIL: $test_file" >&2
-    printf '%s\n' "$test_output" >&2
-    annotation="$(printf '%s' "$test_output" | tail -c 3000 | tr '\n' ' ')"
-    echo "::error file=$test_file::$annotation"
+    echo "::error file=$test_file::BQN test failed"
+    bqn "$test_file"
     exit 1
-  fi
-  [[ -z $debug_file ]] || rm -f "$debug_file"
+  }
 done
 
 echo '[2/3] final report checks' >&2
