@@ -7,13 +7,22 @@ cd "$root"
 echo '[1/3] BQN tests' >&2
 for test_file in tests/test_*.bqn; do
   [[ -f $test_file ]] || continue
-  if ! test_output="$(bqn "$test_file" 2>&1)"; then
+  run_file="$test_file"
+  debug_file=""
+  if [[ $test_file == tests/test_accounting_envelope_backing.bqn ]]; then
+    debug_file="tests/.debug-envelope-backing.bqn"
+    sed '/^"ok" lib.AssertEq result\.state$/i\•Out •Fmt result.diagnostics' "$test_file" > "$debug_file"
+    run_file="$debug_file"
+  fi
+  if ! test_output="$(bqn "$run_file" 2>&1)"; then
+    [[ -z $debug_file ]] || rm -f "$debug_file"
     echo "FAIL: $test_file" >&2
     printf '%s\n' "$test_output" >&2
     annotation="$(printf '%s' "$test_output" | tail -c 3000 | tr '\n' ' ')"
     echo "::error file=$test_file::$annotation"
     exit 1
   fi
+  [[ -z $debug_file ]] || rm -f "$debug_file"
 done
 
 echo '[2/3] final report checks' >&2
