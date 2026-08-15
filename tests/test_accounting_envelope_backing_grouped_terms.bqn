@@ -83,7 +83,8 @@ result ← envelopes.Build ⟨budget,policy,household,actual,plan,"JPY",dates.Or
 ⟨6,6⟩ lib.AssertEq result.envelopes.open_plan_reserve
 ⟨4,¯1⟩ lib.AssertEq result.envelopes.post_plan_headroom
 foodConsumption ← 0⊑result.envelopes.consumption_contributors
-⟨"food-spend:0","grocery-spend:0"⟩ lib.AssertEq {𝕩.posting_id}¨foodConsumption
+# Posting-level historical routing preserves canonical Actual source order inside each Envelope.
+⟨"grocery-spend:0","food-spend:0"⟩ lib.AssertEq {𝕩.posting_id}¨foodConsumption
 foodPlans ← 0⊑result.envelopes.plan_contributors
 ⟨"plan.journal:plan_id:food-plan-a","plan.journal:plan_id:food-plan-b"⟩ lib.AssertEq {𝕩.transaction_id}¨foodPlans
 •Out "test_accounting_envelope_backing_grouped_terms: ok"

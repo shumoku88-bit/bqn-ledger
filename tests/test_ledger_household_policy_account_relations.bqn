@@ -4,6 +4,7 @@ lib ← •Import "test_lib.bqn"
 accountsAdmission ← •Import "../src/ledger/account_journal_admission.bqn"
 budgetAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
 householdAdmission ← •Import "../src/ledger/household_policy_admission.bqn"
+currentProjection ← •Import "../src/ledger/household_current_policy_projection.bqn"
 
 base ← "fixtures/ledger-facts-phase1-proof/"
 accountsResult ← accountsAdmission.Admit •FChars "../"∾base∾"accounts.journal"
@@ -11,7 +12,7 @@ accountsResult ← accountsAdmission.Admit •FChars "../"∾base∾"accounts.jo
 accounts ← accountsResult.accounts
 budget ← budgetAdmission.Admit ⟨•FChars "../"∾base∾"budget.toml",accounts⟩
 "ok" lib.AssertEq budget.state
-householdRaw ← •FChars "../"∾base∾"household.toml"
+householdRaw ← currentProjection.CurrentPolicy (•FChars "../"∾base∾"household.toml")
 
 foodIndex ← ⊑accounts.key⊐⟨"expenses:food"⟩
 transportIndex ← ⊑accounts.key⊐⟨"expenses:transport"⟩

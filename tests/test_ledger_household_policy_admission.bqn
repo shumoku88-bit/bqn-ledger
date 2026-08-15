@@ -5,6 +5,7 @@ io ← •Import "../src/application/source_io.bqn"
 accountsAdmission ← •Import "../src/ledger/account_journal_admission.bqn"
 budgetAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
 householdAdmission ← •Import "../src/ledger/household_policy_admission.bqn"
+currentProjection ← •Import "../src/ledger/household_current_policy_projection.bqn"
 base ← "fixtures/ledger-facts-phase1-proof/"
 
 accountsResult ← accountsAdmission.Admit •FChars "../"∾base∾"accounts.journal"
@@ -13,7 +14,8 @@ accounts ← accountsResult.accounts
 budget ← budgetAdmission.Admit ⟨•FChars "../"∾base∾"budget.toml",accounts⟩
 "ok" lib.AssertEq budget.state
 householdRaw ← •FChars "../"∾base∾"household.toml"
-household ← householdAdmission.Admit ⟨householdRaw,accounts,budget⟩
+currentRaw ← currentProjection.CurrentPolicy householdRaw
+household ← householdAdmission.Admit ⟨currentRaw,accounts,budget⟩
 "ok" lib.AssertEq household.state
 0 lib.AssertEq ≠household.diagnostics
 "household.toml" lib.AssertEq household.source_name
@@ -29,7 +31,7 @@ household ← householdAdmission.Admit ⟨householdRaw,accounts,budget⟩
 
 quote ← @+34 ⋄ newline ← @+10
 withMoneyRaw ← "[money]"∾⟨newline⟩∾"primary-commodity = "∾⟨quote⟩∾"JPY"∾⟨quote⟩∾⟨newline⟩∾⟨newline⟩∾householdRaw
-withMoney ← householdAdmission.Admit ⟨withMoneyRaw,accounts,budget⟩
+withMoney ← householdAdmission.Admit ⟨currentProjection.CurrentPolicy withMoneyRaw,accounts,budget⟩
 "ok" lib.AssertEq withMoney.state
 0 lib.AssertEq ≠withMoney.diagnostics
 1 lib.AssertEq withMoney.money.present
