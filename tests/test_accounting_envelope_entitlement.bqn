@@ -149,11 +149,38 @@ lowerResult ← Build lowerEffect
 # Unknown and multiply-owned movement endpoints fail closed.
 unknownHousehold ← {
   state⇐"ok",source_name⇐"household.toml",budget⇐household.budget,
-  account_policy⇐{account_key⇐accounts.key,budget_kind⇐⟨"opening","unassigned","envelope","envelope",""⟩,envelope_role⇐⟨"","unassigned","dynamic","dynamic",""⟩}
+  account_policy⇐{account_key⇐accounts.key,budget_kind⇐⟨"opening","unassigned","envelope","envelope",""⟩}
 }
 unknown ← entitlement.Build ⟨movements,accounts,unknownHousehold,"USD",start,finish,observation⟩
 "error" lib.AssertEq unknown.state
 "budget_endpoint_ambiguous" lib.AssertEq (⊑unknown.diagnostics).code
+
+# An allocation Account that still carries legacy envelope_role=execution resolves
+# cleanly as an Envelope endpoint; envelope_role is no longer an endpoint authority.
+legacyRoleExecutionHousehold ← {
+  state⇐"ok",source_name⇐"household.toml",budget⇐household.budget,
+  account_policy⇐{
+    account_key⇐accounts.key,
+    budget_kind⇐⟨"opening","unassigned","envelope","envelope","spent"⟩,
+    envelope_role⇐⟨"","unassigned","execution","dynamic","execution"⟩
+  }
+}
+legacyRoleResult ← entitlement.Build ⟨movements,accounts,legacyRoleExecutionHousehold,"USD",start,finish,observation⟩
+"ok" lib.AssertEq legacyRoleResult.state
+⟨1305,275⟩ lib.AssertEq legacyRoleResult.managed.entitlement
+
+# account_policy without envelope_role column succeeds; Entitlement does not depend on envelope_role.
+noEnvelopeRoleHousehold ← {
+  state⇐"ok",source_name⇐"household.toml",budget⇐household.budget,
+  account_policy⇐{
+    account_key⇐accounts.key,
+    budget_kind⇐⟨"opening","unassigned","envelope","envelope","spent"⟩
+  }
+}
+noRoleResult ← entitlement.Build ⟨movements,accounts,noEnvelopeRoleHousehold,"USD",start,finish,observation⟩
+"ok" lib.AssertEq noRoleResult.state
+⟨1305,275⟩ lib.AssertEq noRoleResult.managed.entitlement
+
 ambiguousHousehold ← {
   state⇐"ok",source_name⇐"household.toml",
   budget⇐{envelope_id⇐household.budget.envelope_id,allocation_account_key⇐household.budget.allocation_account_key,unassigned_account_keys⇐⟨"budget:unassigned","budget:food"⟩},
@@ -162,5 +189,228 @@ ambiguousHousehold ← {
 ambiguous ← entitlement.Build ⟨movements,accounts,ambiguousHousehold,"USD",start,finish,observation⟩
 "error" lib.AssertEq ambiguous.state
 "budget_endpoint_ambiguous" lib.AssertEq (⊑ambiguous.diagnostics).code
+
+# Historical Nonnegative Law:
+# Case A: day 1 grant 10, day 2 release 20 => reject
+negA ← Admit Raw ⟨
+  "2026-01-01 opening-unassigned",
+  "  budget:opening       -100 USD",
+  "  budget:unassigned     100 USD","",
+  "2026-01-02 grant-food",
+  "  budget:unassigned    -10 USD",
+  "  budget:food           10 USD","",
+  "2026-01-03 over-release-food",
+  "  budget:food          -20 USD",
+  "  budget:unassigned     20 USD"
+⟩
+resA ← Build negA
+"error" lib.AssertEq resA.state
+"envelope_entitlement_negative" lib.AssertEq (⊑resA.diagnostics).code
+
+# Case B: day 1 grant 10, day 2 release 20, day 3 grant 20 => reject
+# Later restoration does not hide an earlier negative state.
+negB ← Admit Raw ⟨
+  "2026-01-01 opening-unassigned",
+  "  budget:opening       -100 USD",
+  "  budget:unassigned     100 USD","",
+  "2026-01-02 grant-food",
+  "  budget:unassigned    -10 USD",
+  "  budget:food           10 USD","",
+  "2026-01-03 over-release-food",
+  "  budget:food          -20 USD",
+  "  budget:unassigned     20 USD","",
+  "2026-01-04 later-restore-food",
+  "  budget:unassigned    -20 USD",
+  "  budget:food           20 USD"
+⟩
+resB ← Build negB
+"error" lib.AssertEq resB.state
+"envelope_entitlement_negative" lib.AssertEq (⊑resB.diagnostics).code
+
+# Even when observation day precedes future negative movement, global history fails closed.
+resBFuture ← entitlement.Build ⟨negB,accounts,household,"USD",start,finish,dates.Ordinal "2026-01-02"⟩
+"error" lib.AssertEq resBFuture.state
+"envelope_entitlement_negative" lib.AssertEq (⊑resBFuture.diagnostics).code
+
+# Case C: same effective day: release 5, grant 5 with previous 0 => accept
+# because same-day effects combine before validation.
+posC ← Admit Raw ⟨
+  "2026-01-01 opening-unassigned",
+  "  budget:opening       -100 USD",
+  "  budget:unassigned     100 USD","",
+  "2026-01-02 same-day-release-first",
+  "  budget:food           -5 USD",
+  "  budget:unassigned      5 USD","",
+  "2026-01-02 same-day-grant-second",
+  "  budget:unassigned     -5 USD",
+  "  budget:food            5 USD"
+⟩
+resC ← Build posC
+"ok" lib.AssertEq resC.state
+⟨0,0⟩ lib.AssertEq resC.managed.entitlement
+
+# Case D: source order reversed on the same day => same admission result.
+posD ← Admit Raw ⟨
+  "2026-01-01 opening-unassigned",
+  "  budget:opening       -100 USD",
+  "  budget:unassigned     100 USD","",
+  "2026-01-02 same-day-grant-first",
+  "  budget:unassigned     -5 USD",
+  "  budget:food            5 USD","",
+  "2026-01-02 same-day-release-second",
+  "  budget:food           -5 USD",
+  "  budget:unassigned      5 USD"
+⟩
+resD ← Build posD
+"ok" lib.AssertEq resD.state
+⟨0,0⟩ lib.AssertEq resD.managed.entitlement
+
+# Case E: independent Envelope histories remain independent.
+negE ← Admit Raw ⟨
+  "2026-01-01 opening-unassigned",
+  "  budget:opening       -100 USD",
+  "  budget:unassigned     100 USD","",
+  "2026-01-02 grant-food",
+  "  budget:unassigned    -50 USD",
+  "  budget:food           50 USD","",
+  "2026-01-03 over-release-transport",
+  "  budget:transport     -10 USD",
+  "  budget:unassigned     10 USD"
+⟩
+resE ← Build negE
+"error" lib.AssertEq resE.state
+"envelope_entitlement_negative" lib.AssertEq (⊑resE.diagnostics).code
+
+# Case F: legacy spent rows cannot create or repair Entitlement nonnegative state.
+negF ← Admit Raw ⟨
+  "2026-01-01 opening-unassigned",
+  "  budget:opening       -100 USD",
+  "  budget:unassigned     100 USD","",
+  "2026-01-02 grant-food",
+  "  budget:unassigned    -10 USD",
+  "  budget:food           10 USD","",
+  "2026-01-03 over-release-food",
+  "  budget:food          -20 USD",
+  "  budget:unassigned     20 USD","",
+  "2026-01-04 legacy-spent-to-food",
+  "  budget:execution     -20 USD",
+  "  budget:food           20 USD"
+⟩
+resF ← Build negF
+"error" lib.AssertEq resF.state
+"envelope_entitlement_negative" lib.AssertEq (⊑resF.diagnostics).code
+
+# Witness A: visible scale-0 Entitlement plus valid future scale-2 movement
+# => current result.scale remains 0 and current coefficient unchanged.
+witnessA ← Admit Raw ⟨
+  "2026-01-01 opening-unassigned",
+  "  budget:opening       -100 USD",
+  "  budget:unassigned     100 USD","",
+  "2026-01-02 grant-food",
+  "  budget:unassigned    -10 USD",
+  "  budget:food           10 USD","",
+  "2026-01-15 future-scale-2-grant",
+  "  budget:unassigned    -5.25 USD",
+  "  budget:food           5.25 USD"
+⟩
+resWitA ← Build witnessA
+"ok" lib.AssertEq resWitA.state
+0 lib.AssertEq resWitA.scale
+⟨10,0⟩ lib.AssertEq resWitA.managed.entitlement
+90 lib.AssertEq resWitA.unassigned
+⟨10⟩ lib.AssertEq resWitA.observations.amount
+
+# Witness B: visible scale-0 Entitlement plus future unassigned-only scale-2 row
+# => current result.scale remains 0.
+witnessB ← Admit Raw ⟨
+  "2026-01-01 opening-unassigned",
+  "  budget:opening       -100 USD",
+  "  budget:unassigned     100 USD","",
+  "2026-01-02 grant-food",
+  "  budget:unassigned    -10 USD",
+  "  budget:food           10 USD","",
+  "2026-01-15 future-unassigned-seed",
+  "  budget:opening       -50.55 USD",
+  "  budget:unassigned     50.55 USD"
+⟩
+resWitB ← Build witnessB
+"ok" lib.AssertEq resWitB.state
+0 lib.AssertEq resWitB.scale
+⟨10,0⟩ lib.AssertEq resWitB.managed.entitlement
+90 lib.AssertEq resWitB.unassigned
+⟨10⟩ lib.AssertEq resWitB.observations.amount
+
+# Witness C: future scale-2 movement that makes historical Entitlement negative
+# => still fail with envelope_entitlement_negative even though it is outside the observation.
+witnessC ← Admit Raw ⟨
+  "2026-01-01 opening-unassigned",
+  "  budget:opening       -100 USD",
+  "  budget:unassigned     100 USD","",
+  "2026-01-02 grant-food",
+  "  budget:unassigned    -10 USD",
+  "  budget:food           10 USD","",
+  "2026-01-15 future-over-release",
+  "  budget:food         -10.01 USD",
+  "  budget:unassigned    10.01 USD"
+⟩
+resWitC ← Build witnessC
+"error" lib.AssertEq resWitC.state
+"envelope_entitlement_negative" lib.AssertEq (⊑resWitC.diagnostics).code
+
+# Witness D: independent Envelope with a different future scale must not alter
+# current representation of another Envelope.
+witnessD ← Admit Raw ⟨
+  "2026-01-01 opening-unassigned",
+  "  budget:opening       -100 USD",
+  "  budget:unassigned     100 USD","",
+  "2026-01-02 grant-food",
+  "  budget:unassigned    -10 USD",
+  "  budget:food           10 USD","",
+  "2026-01-15 future-transport-grant",
+  "  budget:unassigned    -5.25 USD",
+  "  budget:transport      5.25 USD"
+⟩
+resWitD ← Build witnessD
+"ok" lib.AssertEq resWitD.state
+0 lib.AssertEq resWitD.scale
+⟨10,0⟩ lib.AssertEq resWitD.managed.entitlement
+90 lib.AssertEq resWitD.unassigned
+⟨10⟩ lib.AssertEq resWitD.observations.amount
+
+# Exact-range Boundary Law:
+# 1. Same-day sum that exceeds exact range => reject with coefficient_sum_failed.
+openingRows ← ∾10⥊⟨⟨"2026-01-01 opening-food","  budget:opening -999999999999999 USD","  budget:food 999999999999999 USD",""⟩⟩
+oneMovement ← ⟨"2026-01-01 grant-food-one","  budget:opening -1 USD","  budget:food 1 USD"⟩
+largeSameDay ← Admit Raw (openingRows ∾ oneMovement)
+resLargeSameDay ← Build largeSameDay
+"error" lib.AssertEq resLargeSameDay.state
+"coefficient_sum_failed" lib.AssertEq (⊑resLargeSameDay.diagnostics).code
+
+# 2. Reversing same-day source order gives the identical rejection.
+oneMovementWithBlank ← ⟨"2026-01-01 grant-food-one","  budget:opening -1 USD","  budget:food 1 USD",""⟩
+openingRowsLast ← ∾(9⥊⟨⟨"2026-01-01 opening-food","  budget:opening -999999999999999 USD","  budget:food 999999999999999 USD",""⟩⟩) ∾ ⟨⟨"2026-01-01 opening-food","  budget:opening -999999999999999 USD","  budget:food 999999999999999 USD"⟩⟩
+largeSameDayReversed ← Admit Raw (oneMovementWithBlank ∾ openingRowsLast)
+resLargeSameDayReversed ← Build largeSameDayReversed
+"error" lib.AssertEq resLargeSameDayReversed.state
+"coefficient_sum_failed" lib.AssertEq (⊑resLargeSameDayReversed.diagnostics).code
+
+# 3. Chronological cumulative addition that exceeds exact range => reject with coefficient_sum_failed.
+largeCum ← Admit Raw ⟨
+  "2026-01-01 opening-food","  budget:opening -999999999999999 USD","  budget:food 999999999999999 USD","",
+  "2026-01-02 opening-food","  budget:opening -999999999999999 USD","  budget:food 999999999999999 USD","",
+  "2026-01-03 opening-food","  budget:opening -999999999999999 USD","  budget:food 999999999999999 USD","",
+  "2026-01-04 opening-food","  budget:opening -999999999999999 USD","  budget:food 999999999999999 USD","",
+  "2026-01-05 opening-food","  budget:opening -999999999999999 USD","  budget:food 999999999999999 USD","",
+  "2026-01-06 opening-food","  budget:opening -999999999999999 USD","  budget:food 999999999999999 USD","",
+  "2026-01-07 opening-food","  budget:opening -999999999999999 USD","  budget:food 999999999999999 USD","",
+  "2026-01-08 opening-food","  budget:opening -999999999999999 USD","  budget:food 999999999999999 USD","",
+  "2026-01-09 opening-food","  budget:opening -999999999999999 USD","  budget:food 999999999999999 USD","",
+  "2026-01-10 opening-food","  budget:opening -999999999999999 USD","  budget:food 999999999999999 USD","",
+  "2026-01-11 opening-food","  budget:opening -999999999999999 USD","  budget:food 999999999999999 USD","",
+  "2026-01-12 grant-food-one","  budget:opening -1 USD","  budget:food 1 USD"
+⟩
+resLargeCum ← Build largeCum
+"error" lib.AssertEq resLargeCum.state
+"coefficient_sum_failed" lib.AssertEq (⊑resLargeCum.diagnostics).code
 
 •Out "test_accounting_envelope_entitlement: ok"

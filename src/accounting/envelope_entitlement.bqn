@@ -13,6 +13,10 @@
 # Entitlement and unassigned observation universes.  Empty effects therefore keep
 # a scale supplied by an included unassigned movement.  [start,end) and observation
 # cutoffs exclude future rows; admitted rows before start carry the opening position.
+# Historical nonnegative validation inspects all admitted native Envelope effects
+# independently per Envelope without leaking future or cross-Envelope scale into the
+# published observation. Same-day effects are combined with canonical exact addition
+# before chronological cumulative exact validation checks the nonnegative law.
 
 scale ← •Import "../ledger/exact_scale.bqn"
 dates ← •Import "../ledger/date_ordinal.bqn"
@@ -44,7 +48,7 @@ Build ← {𝕊 movements‿accounts‿household‿domain‿start‿finish‿obs
     allocationKeys ← household.budget.allocation_account_key
     unassignedKeys ← household.budget.unassigned_account_keys
     policy ← household.account_policy ⋄ policyKeys ← policy.account_key
-    policyColumns ← ≠¨⟨policyKeys,policy.budget_kind,policy.envelope_role⟩
+    policyColumns ← ≠¨⟨policyKeys,policy.budget_kind⟩
     diagnostics∾↩AddIf ⟨¬∧´(≠policyKeys)=policyColumns,Diagnostic ⟨"budget_endpoint_policy_invalid","Household Budget endpoint policy columns must align"⟩⟩
     diagnostics∾↩AddIf ⟨(≠allocationKeys)≠envelopeCount,Diagnostic ⟨"envelope_account_mapping_invalid","Every Envelope must have one allocation Account"⟩⟩
     diagnostics∾↩AddIf ⟨(≠allocationKeys)≠≠⍷allocationKeys,Diagnostic ⟨"envelope_account_mapping_invalid","Allocation Accounts must be unique"⟩⟩
@@ -72,7 +76,7 @@ Build ← {𝕊 movements‿accounts‿household‿domain‿start‿finish‿obs
     }⍟((∧´1∾allocationKnown)∧(∧´1∾unassignedKnown)) @
 
     openingReferences ← accountKeys⊐("opening"⊸≡¨policy.budget_kind)/policyKeys
-    executionMask ← ("spent"⊸≡¨policy.budget_kind) ∨ "execution"⊸≡¨policy.envelope_role
+    executionMask ← "spent"⊸≡¨policy.budget_kind
     executionReferences ← accountKeys⊐executionMask/policyKeys
     endpointRows ← {𝕊 i:
       envelopeRows ← (allocationReferences=i)/↕envelopeCount
@@ -111,55 +115,109 @@ Build ← {𝕊 movements‿accounts‿household‿domain‿start‿finish‿obs
           release ← fromEnvelope ∧ toEndpoint=envelopeCount
           reallocation ← fromEnvelope ∧ toEnvelope
           amount ← movement.movement_coefficient ⋄ sourceScale ← movement.movement_scale ⋄ effective ← i⊑effectiveOrdinals
-          Effect ← {𝕊 target‿coefficient‿posting:{target⇐target,amount⇐coefficient,effective_ordinal⇐effective,source_event_id⇐movement.source_event_id,source_posting_index⇐posting.posting_index,source_posting_id⇐posting.posting_id,source_scale⇐sourceScale,contributor⇐PostingReference ⟨movements.source_name,posting⟩}}
+          inc ← i⊑included
+          Effect ← {𝕊 target‿coefficient‿posting:{target⇐target,amount⇐coefficient,effective_ordinal⇐effective,source_event_id⇐movement.source_event_id,source_posting_index⇐posting.posting_index,source_posting_id⇐posting.posting_id,source_scale⇐sourceScale,contributor⇐PostingReference ⟨movements.source_name,posting⟩,included⇐inc}}
           rows ← empty
-          {𝕊:rows∾↩⟨Effect ⟨toEndpoint,amount,toPosting⟩⟩}⍟((i⊑included)∧grant) @
-          {𝕊:rows∾↩⟨Effect ⟨fromEndpoint,-amount,fromPosting⟩⟩}⍟((i⊑included)∧release) @
-          {𝕊:rows∾↩⟨Effect ⟨fromEndpoint,-amount,fromPosting⟩,Effect ⟨toEndpoint,amount,toPosting⟩⟩}⍟((i⊑included)∧reallocation) @
+          {𝕊:rows∾↩⟨Effect ⟨toEndpoint,amount,toPosting⟩⟩}⍟grant @
+          {𝕊:rows∾↩⟨Effect ⟨fromEndpoint,-amount,fromPosting⟩⟩}⍟release @
+          {𝕊:rows∾↩⟨Effect ⟨fromEndpoint,-amount,fromPosting⟩,Effect ⟨toEndpoint,amount,toPosting⟩⟩}⍟reallocation @
           rows
         }¨transactionRows
         unassignedCells ← {𝕊 i:
           movement ← i⊑transactions ⋄ fromPosting‿toPosting ← movement.postings
           fromEndpoint ← i⊑endpointFrom ⋄ toEndpoint ← i⊑endpointTo
+          inc ← i⊑included
           rows ← empty
-          {𝕊:rows∾↩⟨{amount⇐movement.movement_coefficient,source_scale⇐movement.movement_scale,contributor⇐PostingReference ⟨movements.source_name,toPosting⟩}⟩}⍟((i⊑included)∧toEndpoint=envelopeCount) @
-          {𝕊:rows∾↩⟨{amount⇐-movement.movement_coefficient,source_scale⇐movement.movement_scale,contributor⇐PostingReference ⟨movements.source_name,fromPosting⟩}⟩}⍟((i⊑included)∧fromEndpoint=envelopeCount) @
+          {𝕊:rows∾↩⟨{amount⇐movement.movement_coefficient,source_scale⇐movement.movement_scale,contributor⇐PostingReference ⟨movements.source_name,toPosting⟩,included⇐inc}⟩}⍟(toEndpoint=envelopeCount) @
+          {𝕊:rows∾↩⟨{amount⇐-movement.movement_coefficient,source_scale⇐movement.movement_scale,contributor⇐PostingReference ⟨movements.source_name,fromPosting⟩,included⇐inc}⟩}⍟(fromEndpoint=envelopeCount) @
           rows
         }¨transactionRows
-        effects ← ∾effectCells ⋄ unassignedEffects ← ∾unassignedCells
-        effectTargets ← {𝕩.target}¨effects ⋄ effectAmounts ← {𝕩.amount}¨effects
-        effectDates ← {𝕩.effective_ordinal}¨effects ⋄ effectEvents ← {𝕩.source_event_id}¨effects
-        effectPostingIndices ← {𝕩.source_posting_index}¨effects ⋄ effectPostingIds ← {𝕩.source_posting_id}¨effects
-        effectScales ← {𝕩.source_scale}¨effects ⋄ effectContributors ← {𝕩.contributor}¨effects
-        unassignedAmounts ← {𝕩.amount}¨unassignedEffects ⋄ unassignedScales ← {𝕩.source_scale}¨unassignedEffects
-        unassignedContributors ← {𝕩.contributor}¨unassignedEffects
-        diagnostics∾↩AddIf ⟨¬∧´1∾effectTargets<envelopeCount,Diagnostic ⟨"envelope_identity_missing","Budget movement effect must resolve to a stable Envelope identity"⟩⟩
+        allEffects ← ∾effectCells ⋄ allUnassigned ← ∾unassignedCells
+        allTargets ← {𝕩.target}¨allEffects ⋄ allAmounts ← {𝕩.amount}¨allEffects
+        allDates ← {𝕩.effective_ordinal}¨allEffects ⋄ allScales ← {𝕩.source_scale}¨allEffects
+        allIncluded ← {𝕩.included}¨allEffects
+        allUnassignedAmounts ← {𝕩.amount}¨allUnassigned ⋄ allUnassignedScales ← {𝕩.source_scale}¨allUnassigned
+        allUnassignedIncluded ← {𝕩.included}¨allUnassigned
+        diagnostics∾↩AddIf ⟨¬∧´1∾allTargets<envelopeCount,Diagnostic ⟨"envelope_identity_missing","Budget movement effect must resolve to a stable Envelope identity"⟩⟩
 
-        targetScale ← ⌈´0∾effectScales∾unassignedScales
-        normalizedResults ← effectAmounts {scale.Normalize ⟨𝕨,𝕩,targetScale⟩}¨effectScales
-        unassignedNormalizedResults ← unassignedAmounts {scale.Normalize ⟨𝕨,𝕩,targetScale⟩}¨unassignedScales
-        normalizedOk ← ∧´1∾{𝕩.state≡"ok"}¨normalizedResults
-        unassignedOk ← ∧´1∾{𝕩.state≡"ok"}¨unassignedNormalizedResults
-        diagnostics∾↩AddIf ⟨¬normalizedOk,Diagnostic ⟨"coefficient_normalization_failed","Budget Entitlement movement cannot normalize exactly"⟩⟩
-        diagnostics∾↩AddIf ⟨¬unassignedOk,Diagnostic ⟨"coefficient_normalization_failed","Unassigned Budget movement cannot normalize exactly"⟩⟩
+        envAllAmounts ← (allTargets∾envelopeCount)⊔allAmounts
+        envAllDates ← (allTargets∾envelopeCount)⊔allDates
+        envAllScales ← (allTargets∾envelopeCount)⊔allScales
+        ValidateEnvelopeHistory ← {
+          0=≠⊑𝕩 ? ⟨1,1,0⟩ ;
+          amounts‿dates‿scales ← 𝕩
+          envScale ← ⌈´0∾scales
+          normResults ← amounts {scale.Normalize ⟨𝕨,𝕩,envScale⟩}¨ scales
+          {
+            ¬∧´1∾{𝕩.state≡"ok"}¨𝕩 ? ⟨0,1,0⟩ ;
+            normAmounts ← {𝕩.coefficient}¨𝕩
+            order ← ⍋dates
+            sdates ← order⊏dates ⋄ samounts ← order⊏normAmounts
+            dayGroups ← ((⍷sdates)⊐sdates)⊔samounts
+            daySums ← {scale.Sum (⍋𝕩)⊏𝕩}¨dayGroups
+            {
+              ¬∧´1∾{𝕩.state≡"ok"}¨𝕩 ? ⟨1,0,0⟩ ;
+              dayTotals ← {𝕩.coefficient}¨𝕩
+              cumSum ← scale.Sum dayTotals
+              {
+                𝕩.state≢"ok" ? ⟨1,0,0⟩ ;
+                prefixes ← 1↓+`0∾dayTotals
+                ⟨1, 1, ∨´0>prefixes⟩
+              } cumSum
+            } daySums
+          } normResults
+        }
+        envValidations ← {ValidateEnvelopeHistory ⟨𝕩⊑envAllAmounts,𝕩⊑envAllDates,𝕩⊑envAllScales⟩}¨↕envelopeCount
+        validationNormOk ← ∧´1∾{⊑𝕩}¨envValidations
+        validationSumOk ← ∧´1∾{1⊑𝕩}¨envValidations
+        validationNegative ← ∨´0∾{2⊑𝕩}¨envValidations
+        diagnostics∾↩AddIf ⟨¬validationNormOk,Diagnostic ⟨"coefficient_normalization_failed","Budget Entitlement movement cannot normalize exactly"⟩⟩
+        diagnostics∾↩AddIf ⟨¬validationSumOk,Diagnostic ⟨"coefficient_sum_failed","Envelope Entitlement exceeds exact range"⟩⟩
+        diagnostics∾↩AddIf ⟨validationNegative,Diagnostic ⟨"envelope_entitlement_negative","Envelope Entitlement cannot become negative in historical admission"⟩⟩
 
         {𝕊:
-          normalized ← {𝕩.coefficient}¨normalizedResults
-          unassignedNormalized ← {𝕩.coefficient}¨unassignedNormalizedResults
-          valueGroups ← (effectTargets∾envelopeCount)⊔normalized
-          contributorGroups ← (effectTargets∾envelopeCount)⊔effectContributors
-          entitlementResults ← scale.Sum¨valueGroups
-          unassignedResult ← scale.Sum unassignedNormalized
-          entitlementOk ← ∧´1∾{𝕩.state≡"ok"}¨entitlementResults
-          diagnostics∾↩AddIf ⟨¬entitlementOk,Diagnostic ⟨"coefficient_sum_failed","Envelope Entitlement exceeds exact range"⟩⟩
-          diagnostics∾↩AddIf ⟨unassignedResult.state≢"ok",Diagnostic ⟨"coefficient_sum_failed","Unassigned Budget movement exceeds exact range"⟩⟩
-          {𝕊:result↩{
-            state⇐"ok",domain⇐domain,start_ordinal⇐start,end_exclusive_ordinal⇐finish,observation_ordinal⇐observation,scale⇐targetScale,
-            managed⇐{count⇐envelopeCount,index⇐↕envelopeCount,envelope_id⇐envelopeIds,entitlement⇐{𝕩.coefficient}¨entitlementResults,contributors⇐contributorGroups},
-            observations⇐{count⇐≠effects,index⇐↕≠effects,envelope_id⇐effectTargets⊏envelopeIds,amount⇐normalized,effective_ordinal⇐effectDates,source_event_id⇐effectEvents,source_posting_index⇐effectPostingIndices,source_posting_id⇐effectPostingIds,contributors⇐effectContributors},
-            unassigned⇐unassignedResult.coefficient,unassigned_contributors⇐unassignedContributors,diagnostics⇐empty
-          }}⍟(entitlementOk ∧ unassignedResult.state≡"ok") @
-        }⍟(normalizedOk∧unassignedOk) @
+          effects ← allIncluded/allEffects
+          effectTargets ← {𝕩.target}¨effects
+          effectAmounts ← {𝕩.amount}¨effects
+          effectDates ← {𝕩.effective_ordinal}¨effects
+          effectScales ← {𝕩.source_scale}¨effects
+          effectEvents ← {𝕩.source_event_id}¨effects
+          effectPostingIndices ← {𝕩.source_posting_index}¨effects
+          effectPostingIds ← {𝕩.source_posting_id}¨effects
+          effectContributors ← {𝕩.contributor}¨effects
+
+          unassignedEffects ← allUnassignedIncluded/allUnassigned
+          unassignedAmounts ← {𝕩.amount}¨unassignedEffects
+          unassignedScales ← {𝕩.source_scale}¨unassignedEffects
+          unassignedContributors ← {𝕩.contributor}¨unassignedEffects
+
+          observationScale ← ⌈´0∾effectScales∾unassignedScales
+          normalizedObsResults ← effectAmounts {scale.Normalize ⟨𝕨,𝕩,observationScale⟩}¨effectScales
+          normalizedUnassignedObsResults ← unassignedAmounts {scale.Normalize ⟨𝕨,𝕩,observationScale⟩}¨unassignedScales
+          obsNormalizedOk ← ∧´1∾{𝕩.state≡"ok"}¨normalizedObsResults
+          unassignedObsNormalizedOk ← ∧´1∾{𝕩.state≡"ok"}¨normalizedUnassignedObsResults
+          diagnostics∾↩AddIf ⟨¬obsNormalizedOk,Diagnostic ⟨"coefficient_normalization_failed","Budget Entitlement movement cannot normalize exactly"⟩⟩
+          diagnostics∾↩AddIf ⟨¬unassignedObsNormalizedOk,Diagnostic ⟨"coefficient_normalization_failed","Unassigned Budget movement cannot normalize exactly"⟩⟩
+
+          {𝕊:
+            normalizedObsAmounts ← {𝕩.coefficient}¨normalizedObsResults
+            unassignedObsAmounts ← {𝕩.coefficient}¨normalizedUnassignedObsResults
+
+            valueGroups ← (effectTargets∾envelopeCount)⊔normalizedObsAmounts
+            contributorGroups ← (effectTargets∾envelopeCount)⊔effectContributors
+            entitlementResults ← scale.Sum¨valueGroups
+            unassignedResult ← scale.Sum unassignedObsAmounts
+            entitlementOk ← ∧´1∾{𝕩.state≡"ok"}¨entitlementResults
+            diagnostics∾↩AddIf ⟨¬entitlementOk,Diagnostic ⟨"coefficient_sum_failed","Envelope Entitlement exceeds exact range"⟩⟩
+            diagnostics∾↩AddIf ⟨unassignedResult.state≢"ok",Diagnostic ⟨"coefficient_sum_failed","Unassigned Budget movement exceeds exact range"⟩⟩
+            {𝕊:result↩{
+              state⇐"ok",domain⇐domain,start_ordinal⇐start,end_exclusive_ordinal⇐finish,observation_ordinal⇐observation,scale⇐observationScale,
+              managed⇐{count⇐envelopeCount,index⇐↕envelopeCount,envelope_id⇐envelopeIds,entitlement⇐{𝕩.coefficient}¨entitlementResults,contributors⇐contributorGroups},
+              observations⇐{count⇐≠effects,index⇐↕≠effects,envelope_id⇐effectTargets⊏envelopeIds,amount⇐normalizedObsAmounts,effective_ordinal⇐effectDates,source_event_id⇐effectEvents,source_posting_index⇐effectPostingIndices,source_posting_id⇐effectPostingIds,contributors⇐effectContributors},
+              unassigned⇐unassignedResult.coefficient,unassigned_contributors⇐unassignedContributors,diagnostics⇐empty
+            }}⍟(entitlementOk ∧ unassignedResult.state≡"ok") @
+          }⍟(obsNormalizedOk ∧ unassignedObsNormalizedOk) @
+        }⍟(0=≠diagnostics) @
       }⍟(0=≠diagnostics) @
     }⍟(0=≠diagnostics) @
   }⍟(0=≠diagnostics) @
