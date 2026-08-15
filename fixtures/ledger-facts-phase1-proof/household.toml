@@ -42,11 +42,6 @@ unassigned = ["budget:unassigned"]
 spent = ["budget:spent"]
 envelope = ["budget:food"]
 
-[account-policy.budget.envelope-role]
-unassigned = ["budget:unassigned"]
-dynamic = ["budget:food"]
-execution = ["budget:spent"]
-
 [account-policy.budget.group]
 daily = ["budget:food"]
 flex = []
