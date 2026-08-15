@@ -49,7 +49,7 @@ actualRaw ← ∾⟨
   "2026-07-31 * routed accounting before Envelope stock origin",lf,
   "    ; event-id: pre-origin",lf,"    ; layer: actual",lf,
   "    expenses:food 9 JPY",lf,"    assets:cash -9 JPY",lf,lf,
-  "2026-08-02 * previous-period consumption",lf,
+  "2026-08-02 * routed use after source opening but before first grant",lf,
   "    ; event-id: consumption",lf,"    ; layer: actual",lf,
   "    expenses:food 40 JPY",lf,"    assets:cash -40 JPY",lf,lf,
   "2026-08-03 * previous-period fulfillment",lf,
@@ -70,10 +70,10 @@ plan ← (canonicalPlan.Build ⟨planRaw,actual.accounts,registry⟩).facts
 "ok" lib.AssertEq plan.state
 
 budgetRaw ← Raw ⟨
-  "2026-08-01 seed",
+  "2026-08-01 source opening",
   "  budget:opening -100 JPY",
   "  budget:unassigned 100 JPY","",
-  "2026-08-01 allocate",
+  "2026-08-03 first Envelope grant",
   "  budget:unassigned -100 JPY",
   "  budget:food 100 JPY"
 ⟩
@@ -118,15 +118,17 @@ stockOrigin lib.AssertEq result.fulfillment_observation.start_ordinal
 ⟨30⟩ lib.AssertEq result.envelopes.ledger_remaining
 
 # The pre-origin 9 JPY Actual is routed historically but must not enter the live
-# Envelope position. If it leaked in, Consumption would be 49 and Remaining 21.
+# Envelope position. The 40 JPY Actual after source opening must enter even though
+# it precedes the first Envelope grant. Native-effect origin would incorrectly
+# erase it and report Consumption 0 / Remaining 70.
 1 lib.AssertEq result.consumption_observation.evidence.count
 "actual.journal" lib.AssertEq (⊑⊑result.envelopes.consumption_contributors).source
 
-# No native Entitlement effect through the observation means no Envelope stock
-# horizon yet. The post-observation zero-width interval is a canonical empty
-# array observation rather than a fallback to the report Period start.
+# No admitted Entitlement-source movement through the observation means no
+# Envelope stock horizon yet. The post-observation zero-width interval is a
+# canonical empty array observation rather than a fallback to report Period start.
 futureBudgetRaw ← Raw ⟨
-  "2026-09-10 seed",
+  "2026-09-10 source opening",
   "  budget:opening -100 JPY",
   "  budget:unassigned 100 JPY","",
   "2026-09-10 allocate",
