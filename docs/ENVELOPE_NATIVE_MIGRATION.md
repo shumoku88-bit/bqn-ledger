@@ -22,7 +22,7 @@ Missing historical routing never falls back to current `budget.toml` assignments
 
 `src/accounting/envelope_consumption.bqn` keeps Actual Posting/day coordinates until each Expense posting is resolved through effective historical Expense routing. Managed, explicit unmanaged, and unrouted attention evidence remain distinct. Charges and credits/refunds retain Posting provenance and route source rows.
 
-The lower observer is range-parametric. Production Envelope stock composition does not pass the report Period start as that lower bound. It passes the selected-domain native Entitlement stock origin, so Actual use after Envelope inception remains deducted across later report Periods while older accounting history stays outside the Envelope stock world.
+The lower observer is range-parametric. Production Envelope stock composition does not pass the report Period start as that lower bound. It passes the selected-domain Entitlement-source opening boundary, so Actual use after Envelope inception remains deducted across later report Periods while older accounting history stays outside the Envelope stock world.
 
 ## Plan lifecycle
 
@@ -34,7 +34,7 @@ Plan retirement evidence is admitted with `plan.journal` and carried separately 
 
 `src/accounting/envelope_fulfillment.bqn` resolves completed Plans through the Fulfillment route effective on the completion Actual day. Only `fulfills` pairs require completion-shape validation. Actual quantities are authoritative, and positive non-Expense target Postings can remain multi-posting evidence.
 
-Production stock composition observes completed Fulfillment from the same selected-domain Entitlement origin used for Consumption. A report Period boundary therefore cannot resurrect capacity already fulfilled in an earlier Period. Completion evidence before native Envelope inception remains outside stock even if routing evidence already existed.
+Production stock composition observes completed Fulfillment from the same selected-domain source opening used for Consumption. A report Period boundary therefore cannot resurrect capacity already fulfilled in an earlier Period. Completion evidence before Envelope-source inception remains outside stock even if routing evidence already existed.
 
 A later current-policy change therefore cannot rewrite historical completed Fulfillment.
 
@@ -55,14 +55,14 @@ Open Commitment intentionally follows current effective historical routing becau
 
 Historical admission validates the complete selected-domain native effect history independently of the requested report Period and observation cutoff. Same-day effects combine before the chronological cumulative nonnegative law is checked, and a future negative defect invalidates an earlier observation. Publication then cuts native effects at the observation/end coordinate and derives its exact scale only from the included observation universe. The report Period start does not reset Entitlement.
 
-For stock composition, the earliest native Entitlement effect visible through the selected-domain observation is the stock origin. If no native Entitlement effect is visible yet, Consumption and Fulfillment receive a canonical empty post-observation horizon rather than falling back to the report Period or current policy. Unknown or multiply-owned Budget endpoints fail closed. No current Budget/Expense configuration or destination Account is used as historical claim authority.
+The stock origin is deliberately broader than the first native Envelope effect. Production derives it from the earliest admitted selected-domain Entitlement-source movement visible through the observation, including opening or unassigned movement evidence that produces no native Envelope transfer. This matters when routed Actual use occurs after source inception but before the first grant: it must remain visible as negative capacity rather than disappear. If no source movement is visible yet, Consumption and Fulfillment receive a canonical empty post-observation horizon rather than falling back to the report Period or current policy. Unknown or multiply-owned Budget endpoints fail closed. No current Budget/Expense configuration or destination Account is used as historical claim authority.
 
 ## Envelope & Backing composition
 
 Production `src/accounting/envelope_backing.bqn` composes two different time horizons intentionally:
 
 ```text
-stock horizon = native Entitlement origin .. observation
+stock horizon = admitted Entitlement-source origin .. observation
 
 Entitlement
 Consumption
