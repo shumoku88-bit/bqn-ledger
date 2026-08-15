@@ -42,9 +42,7 @@ bqn tests/test_accounting_cycle_account_period.bqn >/dev/null
 bqn tests/test_accounting_cycle_comparison.bqn >/dev/null
 bqn tests/test_accounting_plan_completion_join.bqn >/dev/null
 bqn tests/test_accounting_plan_observation.bqn >/dev/null
-head -n 168 tests/test_accounting_envelope_backing.bqn > tests/.test_accounting_envelope_backing_prefix.bqn
-bqn tests/.test_accounting_envelope_backing_prefix.bqn >/dev/null
-rm tests/.test_accounting_envelope_backing_prefix.bqn
+bqn tests/test_accounting_envelope_backing.bqn >/dev/null
 bqn tests/test_accounting_envelope_consumption.bqn >/dev/null
 bqn tests/test_accounting_envelope_fulfillment.bqn >/dev/null
 bqn tests/test_accounting_envelope_commitment.bqn >/dev/null

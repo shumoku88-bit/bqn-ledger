@@ -24,15 +24,16 @@ FulfillmentRouteAt ← {𝕊 planId‿day‿routing:
 
 Build ← {𝕊 planFacts‿retirements‿actualFacts‿history‿domain‿start‿finish‿observation:
   ds←empty ⋄ ds∾↩AddIf ⟨history.state≢"ok",Diagnostic ⟨"envelope_history_invalid","Envelope history must be admitted"⟩⟩
-  domainCoord←⊑planFacts.domains.code⊐⟨domain⟩
-  ds∾↩AddIf ⟨domainCoord≥planFacts.domains.count,Diagnostic ⟨"domain_unknown","selected domain must occur in Plan facts"⟩⟩
+  domainKnown←∨´0∾domain⊸≡¨actualFacts.domains.code
+  ds∾↩AddIf ⟨¬domainKnown,Diagnostic ⟨"domain_unknown","selected domain must occur in Actual facts"⟩⟩
   ds∾↩AddIf ⟨(start≥finish)∨(observation<start)∨observation≥finish,Diagnostic ⟨"observation_range_invalid","require start <= observation < end_exclusive"⟩⟩
   ds∾↩AddIf ⟨planFacts.accounts.key≢actualFacts.accounts.key,Diagnostic ⟨"account_axis_mismatch","Plan and Actual must share Account axis"⟩⟩
   result←EmptyResult ⟨"error",domain,start,finish,observation,ds⟩
   {𝕊:
     life←planObservation.Build ⟨planFacts,retirements,actualFacts,observation⟩ ⋄ ds∾↩life.diagnostics
     {𝕊:
-      tx←life.open_transaction_indices ⋄ txMask←(tx⊏planFacts.transactions.date_ordinal)<finish ⋄ txMask∧↩domainCoord=tx⊏planFacts.transactions.domain_index ⋄ selectedTx←txMask/tx
+      tx←life.open_transaction_indices ⋄ txMask←(tx⊏planFacts.transactions.date_ordinal)<finish
+      txDomains←(tx⊏planFacts.transactions.domain_index)⊏planFacts.domains.code ⋄ txMask∧↩domain⊸≡¨txDomains ⋄ selectedTx←txMask/tx
       postingMask←(planFacts.postings.transaction_index∊selectedTx)∧planFacts.postings.coefficient>0 ⋄ postings←postingMask/planFacts.postings.index
       postingTx←postings⊏planFacts.postings.transaction_index ⋄ postingAccounts←postings⊏planFacts.postings.account_index
       roles←postingAccounts⊏planFacts.accounts.role ⋄ keys←postingAccounts⊏planFacts.accounts.key ⋄ planIds←postingTx⊏planFacts.transactions.plan_id ⋄ isExpense←"expense"⊸≡¨roles

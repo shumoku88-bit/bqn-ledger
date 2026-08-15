@@ -19,7 +19,7 @@ RouteAt ← {𝕊 planId‿day‿routing:
 
 Build ← {𝕊 planFacts‿retirements‿actualFacts‿history‿domain‿start‿finish‿observation:
   ds←empty ⋄ ds∾↩AddIf ⟨history.state≢"ok",Diagnostic ⟨"envelope_history_invalid","Envelope history must be admitted"⟩⟩
-  domainCoord←⊑planFacts.domains.code⊐⟨domain⟩ ⋄ ds∾↩AddIf ⟨domainCoord≥planFacts.domains.count,Diagnostic ⟨"domain_unknown","selected domain must occur in Plan facts"⟩⟩
+  domainKnown←∨´0∾domain⊸≡¨actualFacts.domains.code ⋄ ds∾↩AddIf ⟨¬domainKnown,Diagnostic ⟨"domain_unknown","selected domain must occur in Actual facts"⟩⟩
   ds∾↩AddIf ⟨(start≥finish)∨(observation<start)∨observation≥finish,Diagnostic ⟨"observation_range_invalid","require start <= observation < end_exclusive"⟩⟩
   ds∾↩AddIf ⟨planFacts.accounts.key≢actualFacts.accounts.key,Diagnostic ⟨"account_axis_mismatch","Plan and Actual must share Account axis"⟩⟩
   routeCoords←planFacts.transactions.plan_id⊐history.fulfillment_routing.plan_id
@@ -29,11 +29,11 @@ Build ← {𝕊 planFacts‿retirements‿actualFacts‿history‿domain‿start
     life←planObservation.Build ⟨planFacts,retirements,actualFacts,observation⟩ ⋄ ds∾↩life.diagnostics
     {𝕊:
       c←life.completed ⋄ completionDays←c.actual_transaction_index⊏actualFacts.transactions.date_ordinal
-      completedDomains←c.plan_transaction_index⊏planFacts.transactions.domain_index
+      completedDomainCodes←(c.plan_transaction_index⊏planFacts.transactions.domain_index)⊏planFacts.domains.code
       routes←{RouteAt ⟨𝕩⊑c.plan_id,𝕩⊑completionDays,history.fulfillment_routing⟩}¨c.index
       ds∾↩AddIf ⟨∨´0∾{𝕩.ambiguous}¨routes,Diagnostic ⟨"fulfillment_route_effective_ambiguous","completion-day route must be unique"⟩⟩
       routeNames←{𝕩.route}¨routes ⋄ routeTargets←{𝕩.target_id}¨routes ⋄ routeRows←{𝕩.source_row}¨routes
-      routedMask←("fulfills"⊸≡¨routeNames)∧domainCoord=completedDomains ⋄ routedMask∧↩completionDays≥start
+      routedMask←("fulfills"⊸≡¨routeNames)∧domain⊸≡¨completedDomainCodes ⋄ routedMask∧↩completionDays≥start
       routedRows←routedMask/c.index
       ShapeOk←{𝕊 row:
         pt←row⊑c.plan_transaction_index ⋄ at←row⊑c.actual_transaction_index ⋄ pp←PostingIndices ⟨planFacts,pt⟩ ⋄ ap←PostingIndices ⟨actualFacts,at⟩
