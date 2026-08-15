@@ -42,20 +42,26 @@ The two semantic views preserve physical row coordinates by replacing excluded r
 
 Older canonical fixtures without `[envelope-history]` admit explicit absence with empty history. No routing is invented from current policy.
 
-Account and Plan references deliberately remain source-local keys at this boundary. Their existence and roles belong to later cross-source Household qualification because those identity universes are owned by admitted Account / Plan evidence, not by `household.toml` parsing.
+Account and Plan references deliberately remain source-local keys at this boundary. Their existence and roles belong to cross-source Household qualification because those identity universes are owned by admitted Account / Plan evidence, not by `household.toml` parsing.
+
+## Actual Consumption cutover
+
+Historical Expense routing now owns Actual Envelope Consumption.
+
+`src/accounting/envelope_consumption.bqn` keeps the Actual Posting/day axis until each Expense posting has been joined to the effective historical route. Only then are managed postings grouped onto the stable Envelope identity axis. This preserves routing changes inside one statement period instead of erasing them through Account-first aggregation.
+
+The Consumption observation keeps three explicit lanes:
+
+- managed Expense evidence contributes to its historical Envelope;
+- explicit unmanaged evidence remains separate from routing attention;
+- missing routing remains explicit unrouted attention evidence.
+
+Refunds use the same Posting-day historical route as charges. Posting provenance and route source rows remain attached to the resulting observation. Missing historical routing never falls back to current `budget.toml` Expense assignments.
+
+Envelope/Backing consumes only the managed lane for Actual Consumption arithmetic and retains the full Consumption observation, including unrouted and unmanaged evidence. Current `budget.toml` Expense assignment remains temporarily in Envelope/Backing only as the compatibility authority for open Plan reserve, not for Actual evidence.
 
 ## Next semantic cutover
 
-The next bounded work is to qualify historical references and replace current `budget.toml` Expense assignment as the authority for Actual Envelope Consumption.
+The next bounded work is Plan fulfillment routing and the removal of current Plan-destination/Expense-assignment authority from Envelope claims.
 
-This cannot be implemented correctly by resolving one route at the report observation day. Historical routing is effective-dated per Actual evidence day. The current Envelope/Backing owner aggregates Actual movement by Account before routing, which would erase a routing change inside one statement period. The cutover therefore needs to retain or recover the Actual Posting/day relation, join each relevant Expense posting to the effective historical route at that day, then group the routed evidence onto the stable Envelope axis.
-
-After that cutover:
-
-- managed Expense evidence contributes to its historical Envelope;
-- explicit unmanaged evidence does not become unassigned routing attention;
-- missing routing becomes attention evidence;
-- current Expense assignment remains only current operational configuration;
-- no missing historical route falls back to current configuration.
-
-Plan fulfillment routing, native Fulfillment/Remaining/Commitment/Headroom, Backing ownership separation, and legacy Budget writer retirement remain later steps. They must be derived from explicit BQN relations rather than copied mechanically from another engine's implementation shape.
+That work must preserve stable PlanId evidence and distinguish open commitment from completed fulfillment. Native Fulfillment/Remaining/Commitment/Headroom, Backing ownership separation, and legacy Budget writer retirement remain later steps. They must be derived from explicit BQN relations rather than copied mechanically from another engine's implementation shape.

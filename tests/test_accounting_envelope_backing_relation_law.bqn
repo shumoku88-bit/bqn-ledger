@@ -6,7 +6,7 @@ canonicalBudget ← •Import "canonical_budget_test_facts.bqn"
 canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 budgetPolicyAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
 completion ← •Import "../src/accounting/plan_completion_join.bqn"
-envelopes ← •Import "../src/accounting/envelope_backing.bqn"
+envelopes ← •Import "envelope_backing_test_adapter.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 
 lf ← @+10 ⋄ tab ← @+9 ⋄ quote ← @+34

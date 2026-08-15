@@ -91,6 +91,7 @@ Closeout: `docs/ACCOUNTING_PHASE_ONE_REVIEW_CLOSEOUT-2026-08-11.md`.
 - [x] `src/accounting/daily_target.bqn`
 - [x] `src/accounting/date_category_flow.bqn`
 - [x] `src/accounting/envelope_backing.bqn`
+- [x] `src/accounting/envelope_consumption.bqn` — #768 (post-closeout historical Actual Consumption owner)
 - [x] `src/accounting/matrix_result.bqn`
 - [x] `src/accounting/month_account_movement.bqn`
 - [x] `src/accounting/month_category_flow.bqn`

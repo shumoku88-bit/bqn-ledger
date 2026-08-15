@@ -6,7 +6,7 @@ registryBuilder ← •Import "../src/ledger/currency_registry.bqn"
 accountsAdmission ← •Import "../src/ledger/account_journal_admission.bqn"
 planFactsBuilder ← •Import "canonical_plan_test_facts.bqn"
 budgetPolicyAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
-householdAdmission ← •Import "../src/ledger/household_policy_admission.bqn"
+householdAdmission ← •Import "current_household_policy_test_admission.bqn"
 daily ← •Import "../src/application/household_daily_scope.bqn"
 base ← "fixtures/ledger-facts-phase1-proof/"
 empty ← ⟨⟩

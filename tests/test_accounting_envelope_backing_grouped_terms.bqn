@@ -6,7 +6,7 @@ canonicalBudget ← •Import "canonical_budget_test_facts.bqn"
 canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 budgetPolicyAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
-envelopes ← •Import "../src/accounting/envelope_backing.bqn"
+envelopes ← •Import "envelope_backing_test_adapter.bqn"
 lf ← @+10 ⋄ tab ← @+9 ⋄ quote ← @+34
 JournalText ← {𝕊 lines: ∾lines∾¨lf}
 Q ← {𝕊 text: ⟨quote⟩∾text∾⟨quote⟩}
@@ -83,7 +83,8 @@ result ← envelopes.Build ⟨budget,policy,household,actual,plan,"JPY",dates.Or
 ⟨6,6⟩ lib.AssertEq result.envelopes.open_plan_reserve
 ⟨4,¯1⟩ lib.AssertEq result.envelopes.post_plan_headroom
 foodConsumption ← 0⊑result.envelopes.consumption_contributors
-⟨"food-spend:0","grocery-spend:0"⟩ lib.AssertEq {𝕩.posting_id}¨foodConsumption
+# Posting-level historical routing preserves canonical Actual source order inside each Envelope.
+⟨"grocery-spend:0","food-spend:0"⟩ lib.AssertEq {𝕩.posting_id}¨foodConsumption
 foodPlans ← 0⊑result.envelopes.plan_contributors
 ⟨"plan.journal:plan_id:food-plan-a","plan.journal:plan_id:food-plan-b"⟩ lib.AssertEq {𝕩.transaction_id}¨foodPlans
 •Out "test_accounting_envelope_backing_grouped_terms: ok"

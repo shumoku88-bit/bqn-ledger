@@ -9,6 +9,22 @@ unassigned-accounts = ["budget:unassigned"]
 id = "food"
 allocation-account = "budget:food"
 
+[envelope-history]
+identities = ["food"]
+
+[[envelope-history.expense-routing]]
+effective-from = "initial"
+expense-account = "expenses:food"
+route = "managed"
+target = "food"
+note = "initial food route"
+
+[[envelope-history.expense-routing]]
+effective-from = "initial"
+expense-account = "expenses:transport"
+route = "unmanaged"
+note = "transport explicitly outside Envelopes"
+
 [daily-target]
 
 [[daily-target.assets]]
