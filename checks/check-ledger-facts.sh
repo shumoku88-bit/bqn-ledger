@@ -43,6 +43,8 @@ bqn tests/test_accounting_cycle_comparison.bqn >/dev/null
 bqn tests/test_accounting_plan_completion_join.bqn >/dev/null
 bqn tests/test_accounting_envelope_backing.bqn >/dev/null
 bqn tests/test_accounting_envelope_consumption.bqn >/dev/null
+bqn tests/test_accounting_envelope_fulfillment.bqn >/dev/null
+bqn tests/test_accounting_envelope_commitment.bqn >/dev/null
 bqn tests/test_accounting_daily_target.bqn >/dev/null
 bqn tests/test_accounting_recent_transactions.bqn >/dev/null
 bqn tests/test_accounting_date_category_flow.bqn >/dev/null
