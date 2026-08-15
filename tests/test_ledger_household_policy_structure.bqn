@@ -27,7 +27,7 @@ valid ← householdAdmission.Admit ⟨householdRaw,accounts,budget⟩
 0 lib.AssertEq ≠valid.diagnostics
 
 # A key before the first supported section belongs to no policy block.
-outsideRaw ← "orphan = "∾Quoted "x"∾⟨lf⟩∾householdRaw
+outsideRaw ← "orphan = "∾(Quoted "x")∾⟨lf⟩∾householdRaw
 outside ← householdAdmission.Admit ⟨outsideRaw,accounts,budget⟩
 "error" lib.AssertEq outside.state
 ⟨"household_key_outside_section"⟩ lib.AssertEq Codes outside
@@ -35,7 +35,7 @@ outside ← householdAdmission.Admit ⟨outsideRaw,accounts,budget⟩
 
 # An unknown header ends any previous active block but does not establish a new
 # block. Its following key is therefore outside a supported section.
-unknownPrefix ← Rows ⟨"[mystery]","x = "∾Quoted "y"⟩
+unknownPrefix ← Rows ⟨"[mystery]","x = "∾(Quoted "y")⟩
 unknown ← householdAdmission.Admit ⟨unknownPrefix∾householdRaw,accounts,budget⟩
 "error" lib.AssertEq unknown.state
 ⟨"household_section_unsupported","household_key_outside_section"⟩ lib.AssertEq Codes unknown
@@ -44,7 +44,7 @@ unknown ← householdAdmission.Admit ⟨unknownPrefix∾householdRaw,accounts,bu
 # Current-policy projection removes only the known historical Envelope section
 # family. An unrelated unknown section must survive projection and still fail
 # closed in the strict current-policy owner.
-historySuffix ← Rows ⟨"[envelope-history]","identities = ["∾Quoted "food"∾"]","","[[envelope-history.expense-routing]]","effective-from = "∾Quoted "initial","expense-account = "∾Quoted "expenses:food","route = "∾Quoted "managed","target = "∾Quoted "food","note = "∾Quoted "synthetic"⟩
+historySuffix ← Rows ⟨"[envelope-history]","identities = ["∾(Quoted "food")∾"]","","[[envelope-history.expense-routing]]","effective-from = "∾(Quoted "initial"),"expense-account = "∾(Quoted "expenses:food"),"route = "∾(Quoted "managed"),"target = "∾(Quoted "food"),"note = "∾(Quoted "synthetic")⟩
 projectedHistory ← currentProjection.CurrentPolicy (householdRaw∾⟨lf⟩∾historySuffix)
 historyPolicy ← householdAdmission.Admit ⟨projectedHistory,accounts,budget⟩
 "ok" lib.AssertEq historyPolicy.state
