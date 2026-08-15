@@ -21,19 +21,18 @@ Build ← {𝕊 planFacts‿retirements‿actualFacts‿observation:
   validDates←dates.IsValid¨retirements.retired_on ⋄ ds∾↩AddIf ⟨¬∧´1∾validDates,Diagnostic ⟨"plan_retirement_date_invalid","Plan retirement dates must be strict Gregorian text"⟩⟩
   linkedMask←0<≠¨actualFacts.transactions.plan_id ⋄ linkedActual←linkedMask/actualFacts.transactions.index ⋄ linkedIds←linkedMask/actualFacts.transactions.plan_id ⋄ actualCoords←planIds⊐linkedIds
   ds∾↩AddIf ⟨¬∧´1∾actualCoords<planFacts.transactions.count,Diagnostic ⟨"completion_plan_unknown","Actual plan_id must name an admitted Plan"⟩⟩
+  completionCounts←{𝕊 id:+´id⊸≡¨linkedIds}¨planIds
+  ds∾↩AddIf ⟨∨´0∾completionCounts>1,Diagnostic ⟨"plan_completion_multiple_actuals","one PlanId cannot be completed by multiple Actual transactions"⟩⟩
   result←EmptyResult ⟨"error",observation,ds⟩
   {𝕊:
     completionCells←{𝕊 id:(id⊸≡¨linkedIds)/linkedActual}¨planIds
-    ds∾↩AddIf ⟨∨´0∾1<≠¨completionCells,Diagnostic ⟨"plan_completion_multiple_actuals","one PlanId cannot be completed by multiple Actual transactions"⟩⟩
-    {𝕊:
-      actualByPlan←ActualIndex¨completionCells ⋄ completedMask←{VisibleAt ⟨𝕩,actualFacts,observation⟩}¨actualByPlan
-      retirementOrdinals←dates.Ordinal¨retirements.retired_on ⋄ effectiveRows←retirementOrdinals≤observation
-      IsRetired←{𝕊 planIndex:∨´0∾(planIndex=retirementCoords)∧effectiveRows}
-      retiredMask←IsRetired¨planFacts.transactions.index ⋄ openMask←(¬completedMask)∧¬retiredMask
-      completedPlan←completedMask/planFacts.transactions.index ⋄ completedActual←completedMask/actualByPlan
-      completed←{count⇐≠completedPlan,index⇐↕≠completedPlan,plan_transaction_index⇐completedPlan,actual_transaction_index⇐completedActual,plan_id⇐completedPlan⊏planIds,plan_reference⇐{reference.Transaction ⟨planFacts,𝕩⟩}¨completedPlan,actual_reference⇐{reference.Transaction ⟨actualFacts,𝕩⟩}¨completedActual}
-      result↩{state⇐"ok",observation_ordinal⇐observation,open_transaction_indices⇐openMask/planFacts.transactions.index,retired_plan_ids⇐retiredMask/planIds,completed⇐completed,diagnostics⇐empty}
-    }⍟(0=≠ds) @
+    actualByPlan←ActualIndex¨completionCells ⋄ completedMask←{VisibleAt ⟨𝕩,actualFacts,observation⟩}¨actualByPlan
+    retirementOrdinals←dates.Ordinal¨retirements.retired_on ⋄ effectiveRows←retirementOrdinals≤observation
+    IsRetired←{𝕊 planIndex:∨´0∾(planIndex=retirementCoords)∧effectiveRows}
+    retiredMask←IsRetired¨planFacts.transactions.index ⋄ openMask←(¬completedMask)∧¬retiredMask
+    completedPlan←completedMask/planFacts.transactions.index ⋄ completedActual←completedMask/actualByPlan
+    completed←{count⇐≠completedPlan,index⇐↕≠completedPlan,plan_transaction_index⇐completedPlan,actual_transaction_index⇐completedActual,plan_id⇐completedPlan⊏planIds,plan_reference⇐{reference.Transaction ⟨planFacts,𝕩⟩}¨completedPlan,actual_reference⇐{reference.Transaction ⟨actualFacts,𝕩⟩}¨completedActual}
+    result↩{state⇐"ok",observation_ordinal⇐observation,open_transaction_indices⇐openMask/planFacts.transactions.index,retired_plan_ids⇐retiredMask/planIds,completed⇐completed,diagnostics⇐empty}
   }⍟(0=≠ds) @
   result
 }
