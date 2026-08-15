@@ -11,7 +11,7 @@ for test_file in tests/test_*.bqn; do
   debug_file=""
   if [[ $test_file == tests/test_accounting_envelope_backing.bqn ]]; then
     debug_file="tests/.debug-envelope-backing.bqn"
-    sed '/^"ok" lib.AssertEq result\.state$/i\•Out •Fmt result.diagnostics' "$test_file" > "$debug_file"
+    sed '/^"ok" lib.AssertEq result\.state$/i\•Out ∾{𝕩.code∾": "∾𝕩.message∾" | "}¨result.diagnostics' "$test_file" > "$debug_file"
     run_file="$debug_file"
   fi
   if ! test_output="$(bqn "$run_file" 2>&1)"; then
