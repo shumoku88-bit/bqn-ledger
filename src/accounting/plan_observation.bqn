@@ -29,7 +29,7 @@ Build ← {𝕊 planFacts‿retirements‿actualFacts‿observation:
       actualByPlan←ActualIndex¨completionCells ⋄ completedMask←{VisibleAt ⟨𝕩,actualFacts,observation⟩}¨actualByPlan
       retirementOrdinals←dates.Ordinal¨retirements.retired_on ⋄ effectiveRows←retirementOrdinals≤observation
       IsRetired←{𝕊 planIndex:∨´0∾(planIndex=retirementCoords)∧effectiveRows}
-      retiredMask←IsRetired¨planFacts.transactions.index ⋄ openMask←¬completedMask∧¬retiredMask
+      retiredMask←IsRetired¨planFacts.transactions.index ⋄ openMask←(¬completedMask)∧¬retiredMask
       completedPlan←completedMask/planFacts.transactions.index ⋄ completedActual←completedMask/actualByPlan
       completed←{count⇐≠completedPlan,index⇐↕≠completedPlan,plan_transaction_index⇐completedPlan,actual_transaction_index⇐completedActual,plan_id⇐completedPlan⊏planIds,plan_reference⇐{reference.Transaction ⟨planFacts,𝕩⟩}¨completedPlan,actual_reference⇐{reference.Transaction ⟨actualFacts,𝕩⟩}¨completedActual}
       result↩{state⇐"ok",observation_ordinal⇐observation,open_transaction_indices⇐openMask/planFacts.transactions.index,retired_plan_ids⇐retiredMask/planIds,completed⇐completed,diagnostics⇐empty}

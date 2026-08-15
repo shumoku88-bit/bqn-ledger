@@ -1,213 +1,73 @@
-# Pure open Plan -> observation-day routing -> Envelope Commitment relation.
-# Expense targets use historical Expense routing. Non-Expense targets require
-# explicit stable PlanId Fulfillment routing. Current budget.toml assignments are
-# intentionally not an input.
+# Open Plan -> observation-day historical routing -> Envelope Commitment.
+# Plan lifecycle is role-neutral. Expense postings use Expense routing; positive
+# non-Expense postings use stable PlanId Fulfillment routing. Current budget.toml
+# assignments are not an input.
 
-completion ← •Import "plan_completion_join.bqn"
+planObservation ← •Import "plan_observation.bqn"
 reference ← •Import "../ledger/fact_reference.bqn"
 scale ← •Import "../ledger/exact_scale.bqn"
 empty ← ⟨⟩
-
-Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
 Diagnostic ← {𝕊 code‿message:{severity⇐"error",stage⇐"accounting_envelope_commitment",code⇐code,message⇐message}}
-AddIf ← {𝕊 invalid‿diagnostic:invalid/⟨diagnostic⟩}
+AddIf ← {𝕊 bad‿d:bad/⟨d⟩}
+EmptyManaged ← {𝕊:{count⇐0,index⇐empty,envelope_id⇐empty,commitment⇐empty,plan_contributors⇐empty,posting_contributors⇐empty,route_source_rows⇐empty}}
+EmptyLane ← {𝕊:{count⇐0,index⇐empty,plan_id⇐empty,target_account_key⇐empty,coefficient⇐empty,contributors⇐empty,posting_contributors⇐empty,route_source_row⇐empty}}
+EmptyEvidence ← {𝕊:{count⇐0,index⇐empty,plan_id⇐empty,plan_date⇐empty,target_account_key⇐empty,target_role⇐empty,coefficient⇐empty,scale⇐empty,route⇐empty,target_id⇐empty,route_source_row⇐empty,plan_reference⇐empty,posting_reference⇐empty}}
+EmptyResult ← {𝕊 state‿domain‿start‿finish‿observation‿ds:{state⇐state,domain⇐domain,start_ordinal⇐start,end_exclusive_ordinal⇐finish,observation_ordinal⇐observation,scale⇐0,managed⇐EmptyManaged @,unmanaged⇐EmptyLane @,unrouted⇐EmptyLane @,evidence⇐EmptyEvidence @,diagnostics⇐ds}}
+ExpenseRouteAt ← {𝕊 key‿day‿routing:
+  mask←(key⊸≡¨routing.expense_account_key)∧(routing.initial∨routing.effective_ordinal≤day) ⋄ rows←mask/routing.index ⋄ route←"unrouted" ⋄ target←"" ⋄ sourceRow←0 ⋄ ambiguous←0
+  {𝕊:ords←rows⊏routing.effective_ordinal ⋄ latest←⌈´ords ⋄ rs←(ords=latest)/rows ⋄ ambiguous↩1≠≠rs ⋄ {𝕊:r←⊑rs ⋄ route↩r⊑routing.route ⋄ target↩r⊑routing.target_id ⋄ sourceRow↩r⊑routing.source_row}⍟(1=≠rs) @}⍟(0<≠rows) @
+  {route⇐route,target_id⇐target,source_row⇐sourceRow,ambiguous⇐ambiguous}}
+FulfillmentRouteAt ← {𝕊 planId‿day‿routing:
+  mask←(planId⊸≡¨routing.plan_id)∧routing.effective_ordinal≤day ⋄ rows←mask/routing.index ⋄ route←"none" ⋄ target←"" ⋄ sourceRow←0 ⋄ ambiguous←0
+  {𝕊:ords←rows⊏routing.effective_ordinal ⋄ latest←⌈´ords ⋄ rs←(ords=latest)/rows ⋄ ambiguous↩1≠≠rs ⋄ {𝕊:r←⊑rs ⋄ route↩r⊑routing.route ⋄ target↩r⊑routing.target_id ⋄ sourceRow↩r⊑routing.source_row}⍟(1=≠rs) @}⍟(0<≠rows) @
+  {route⇐route,target_id⇐target,source_row⇐sourceRow,ambiguous⇐ambiguous}}
 
-EmptyManaged ← {𝕊:{
-  count⇐0,index⇐empty,envelope_id⇐empty,commitment⇐empty,
-  plan_contributors⇐empty,route_source_rows⇐empty
-}}
-EmptyLane ← {𝕊:{
-  count⇐0,index⇐empty,plan_transaction_index⇐empty,plan_id⇐empty,
-  target_account_key⇐empty,coefficient⇐empty,route_source_row⇐empty,
-  contributors⇐empty
-}}
-EmptyEvidence ← {𝕊:{
-  count⇐0,index⇐empty,plan_transaction_index⇐empty,plan_id⇐empty,
-  plan_date⇐empty,target_account_key⇐empty,target_role⇐empty,
-  source_account_key⇐empty,source_role⇐empty,planned_coefficient⇐empty,
-  planned_scale⇐empty,route⇐empty,target_id⇐empty,route_source_row⇐empty,
-  plan_reference⇐empty
-}}
-EmptyResult ← {𝕊 stateValue‿domainValue‿startValue‿finishValue‿observationValue‿diagnosticsValue:{
-  state⇐stateValue,domain⇐domainValue,start_ordinal⇐startValue,
-  end_exclusive_ordinal⇐finishValue,observation_ordinal⇐observationValue,scale⇐0,
-  managed⇐EmptyManaged @,unmanaged⇐EmptyLane @,unrouted⇐EmptyLane @,
-  evidence⇐EmptyEvidence @,diagnostics⇐diagnosticsValue
-}}
-
-Build ← {𝕊 planFacts‿actualFacts‿history‿domain‿start‿finish‿observation:
-  diagnostics ← empty
-  diagnostics∾↩AddIf ⟨¬reference.SourceIs ⟨planFacts,"plan.journal"⟩,Diagnostic ⟨"plan_facts_invalid","Plan facts must be admitted from plan.journal"⟩⟩
-  diagnostics∾↩AddIf ⟨¬reference.SourceIs ⟨actualFacts,"actual.journal"⟩,Diagnostic ⟨"actual_facts_invalid","Actual facts must be admitted from actual.journal"⟩⟩
-  diagnostics∾↩AddIf ⟨history.state≢"ok",Diagnostic ⟨"envelope_history_invalid","Envelope history must be admitted before Commitment observation"⟩⟩
-  diagnostics∾↩AddIf ⟨¬Contains ⟨domain,planFacts.domains.code⟩,Diagnostic ⟨"domain_unknown","selected domain must occur in Plan facts"⟩⟩
-  diagnostics∾↩AddIf ⟨(start≥finish) ∨ (observation<start) ∨ observation≥finish,Diagnostic ⟨"observation_range_invalid","require start <= observation < end_exclusive"⟩⟩
-  diagnostics∾↩AddIf ⟨planFacts.accounts.key≢actualFacts.accounts.key,Diagnostic ⟨"account_axis_mismatch","Plan and Actual facts must share one Account axis"⟩⟩
-
-  expenseRouting ← history.expense_routing
-  expenseRouteCoordinates ← planFacts.accounts.key⊐expenseRouting.expense_account_key
-  expenseRoutesKnown ← expenseRouteCoordinates<planFacts.accounts.count
-  expenseRouteRoles ← expenseRouteCoordinates⊏planFacts.accounts.role∾⟨""⟩
-  diagnostics∾↩AddIf ⟨¬∧´1∾expenseRoutesKnown,Diagnostic ⟨"expense_route_account_unknown","historical Expense routing Account must occur in admitted Plan facts"⟩⟩
-  diagnostics∾↩AddIf ⟨∨´0∾expenseRoutesKnown ∧ ¬"expense"⊸≡¨expenseRouteRoles,Diagnostic ⟨"expense_route_account_role_invalid","historical Expense routing Account must retain Expense role"⟩⟩
-
-  fulfillmentRouting ← history.fulfillment_routing
-  fulfillmentPlanCoordinates ← planFacts.transactions.plan_id⊐fulfillmentRouting.plan_id
-  fulfillmentPlansKnown ← fulfillmentPlanCoordinates<planFacts.transactions.count
-  diagnostics∾↩AddIf ⟨¬∧´1∾fulfillmentPlansKnown,Diagnostic ⟨"fulfillment_route_plan_unknown","historical Fulfillment routing PlanId must occur in admitted Plan facts"⟩⟩
-
-  result ← EmptyResult ⟨"error",domain,start,finish,observation,diagnostics⟩
+Build ← {𝕊 planFacts‿retirements‿actualFacts‿history‿domain‿start‿finish‿observation:
+  ds←empty ⋄ ds∾↩AddIf ⟨history.state≢"ok",Diagnostic ⟨"envelope_history_invalid","Envelope history must be admitted"⟩⟩
+  domainCoord←⊑planFacts.domains.code⊐⟨domain⟩
+  ds∾↩AddIf ⟨domainCoord≥planFacts.domains.count,Diagnostic ⟨"domain_unknown","selected domain must occur in Plan facts"⟩⟩
+  ds∾↩AddIf ⟨(start≥finish)∨(observation<start)∨observation≥finish,Diagnostic ⟨"observation_range_invalid","require start <= observation < end_exclusive"⟩⟩
+  ds∾↩AddIf ⟨planFacts.accounts.key≢actualFacts.accounts.key,Diagnostic ⟨"account_axis_mismatch","Plan and Actual must share Account axis"⟩⟩
+  result←EmptyResult ⟨"error",domain,start,finish,observation,ds⟩
   {𝕊:
-    planSelection ← (planFacts.transactions.date_ordinal<finish)/planFacts.transactions.index
-    actualSelection ← (actualFacts.transactions.date_ordinal≤observation)/actualFacts.transactions.index
-    joined ← completion.Build ⟨planFacts,actualFacts,planSelection,actualSelection⟩
-    diagnostics∾↩joined.diagnostics
-    badStatus ← ∨´0∾{Contains ⟨𝕩,⟨"duplicate","ambiguous"⟩⟩}¨joined.rows.status
-    badCurrency ← ∨´0∾{¬∧´1∾𝕩}¨joined.rows.currency_matches
-    badDirection ← ∨´0∾{¬∧´1∾𝕩}¨joined.rows.direction_matches
-    diagnostics∾↩AddIf ⟨badStatus ∨ badCurrency ∨ badDirection,Diagnostic ⟨"plan_completion_conflict","Commitment completion evidence must be unique and shape-matching"⟩⟩
-
+    life←planObservation.Build ⟨planFacts,retirements,actualFacts,observation⟩ ⋄ ds∾↩life.diagnostics
     {𝕊:
-      openMask ← ("open"⊸≡¨joined.rows.status) ∧ domain⊸≡¨joined.rows.currency
-      openRows ← openMask/joined.rows.index
-      openPlanIds ← openRows⊏joined.rows.plan_id
-      targetKeys ← openRows⊏joined.rows.planned_to_account
-      sourceKeys ← openRows⊏joined.rows.planned_from_account
-      targetCoordinates ← planFacts.accounts.key⊐targetKeys
-      sourceCoordinates ← planFacts.accounts.key⊐sourceKeys
-      targetsKnown ← targetCoordinates<planFacts.accounts.count
-      sourcesKnown ← sourceCoordinates<planFacts.accounts.count
-      accountsKnown ← (∧´1∾targetsKnown) ∧ ∧´1∾sourcesKnown
-      diagnostics∾↩AddIf ⟨¬accountsKnown,Diagnostic ⟨"plan_account_unknown","open Plan source/target Accounts must occur on the admitted Account axis"⟩⟩
-
+      tx←life.open_transaction_indices ⋄ txMask←(tx⊏planFacts.transactions.date_ordinal)<finish ⋄ txMask∧↩domainCoord=tx⊏planFacts.transactions.domain_index ⋄ selectedTx←txMask/tx
+      postingMask←(planFacts.postings.transaction_index∊selectedTx)∧planFacts.postings.coefficient>0 ⋄ postings←postingMask/planFacts.postings.index
+      postingTx←postings⊏planFacts.postings.transaction_index ⋄ postingAccounts←postings⊏planFacts.postings.account_index
+      roles←postingAccounts⊏planFacts.accounts.role ⋄ keys←postingAccounts⊏planFacts.accounts.key ⋄ planIds←postingTx⊏planFacts.transactions.plan_id ⋄ isExpense←"expense"⊸≡¨roles
+      hasExpense←{𝕊 t:∨´0∾isExpense∧t=postingTx}¨selectedTx
+      HasAssetFunding←{𝕊 t:local←(t=planFacts.postings.transaction_index)/planFacts.postings.index ⋄ localRoles←(local⊏planFacts.postings.account_index)⊏planFacts.accounts.role ⋄ ∨´0∾("asset"⊸≡¨localRoles)∧(local⊏planFacts.postings.coefficient)<0}
+      ds∾↩AddIf ⟨∨´0∾hasExpense∧¬HasAssetFunding¨selectedTx,Diagnostic ⟨"expense_commitment_flow_invalid","Expense commitment requires negative Asset funding"⟩⟩
       {𝕊:
-        targetRoles ← targetCoordinates⊏planFacts.accounts.role
-        sourceRoles ← sourceCoordinates⊏planFacts.accounts.role
-        expenseTargets ← "expense"⊸≡¨targetRoles
-        invalidExpenseFlow ← expenseTargets ∧ ¬"asset"⊸≡¨sourceRoles
-        diagnostics∾↩AddIf ⟨∨´0∾invalidExpenseFlow,Diagnostic ⟨"expense_commitment_flow_invalid","positive Expense commitment requires an Asset funding source"⟩⟩
-
-        ExpenseRouteAt ← {𝕊 key:
-          eligibleMask ← (key⊸≡¨expenseRouting.expense_account_key) ∧ (expenseRouting.initial ∨ expenseRouting.effective_ordinal≤observation)
-          eligibleRows ← eligibleMask/expenseRouting.index
-          route ← "unrouted" ⋄ target ← "" ⋄ sourceRow ← 0
-          {𝕊:
-            ordinals ← eligibleRows⊏expenseRouting.effective_ordinal
-            latest ← ⌈´ordinals
-            latestRows ← (ordinals=latest)/eligibleRows
-            diagnostics∾↩AddIf ⟨1≠≠latestRows,Diagnostic ⟨"expense_route_effective_ambiguous","Expense route at observation day must be unique"⟩⟩
-            {𝕊:
-              routeRow ← ⊑latestRows
-              route↩routeRow⊑expenseRouting.route
-              target↩routeRow⊑expenseRouting.target_id
-              sourceRow↩routeRow⊑expenseRouting.source_row
-            }⍟(1=≠latestRows) @
-          }⍟(0<≠eligibleRows) @
-          {route⇐route,target_id⇐target,source_row⇐sourceRow}
-        }
-        FulfillmentRouteAt ← {𝕊 planId:
-          eligibleMask ← (planId⊸≡¨fulfillmentRouting.plan_id) ∧ fulfillmentRouting.effective_ordinal≤observation
-          eligibleRows ← eligibleMask/fulfillmentRouting.index
-          route ← "none" ⋄ target ← "" ⋄ sourceRow ← 0
-          {𝕊:
-            ordinals ← eligibleRows⊏fulfillmentRouting.effective_ordinal
-            latest ← ⌈´ordinals
-            latestRows ← (ordinals=latest)/eligibleRows
-            diagnostics∾↩AddIf ⟨1≠≠latestRows,Diagnostic ⟨"fulfillment_route_effective_ambiguous","Fulfillment route at observation day must be unique"⟩⟩
-            {𝕊:
-              routeRow ← ⊑latestRows
-              route↩routeRow⊑fulfillmentRouting.route
-              target↩routeRow⊑fulfillmentRouting.target_id
-              sourceRow↩routeRow⊑fulfillmentRouting.source_row
-            }⍟(1=≠latestRows) @
-          }⍟(0<≠eligibleRows) @
-          {route⇐route,target_id⇐target,source_row⇐sourceRow}
-        }
-        ResolveRow ← {𝕊 i:
-          (i⊑expenseTargets)◶⟨
-            {𝕊:FulfillmentRouteAt i⊑openPlanIds},
-            {𝕊:ExpenseRouteAt i⊑targetKeys}
-          ⟩ @
-        }
-        resolved ← ResolveRow¨↕≠openRows
-        routes ← {𝕩.route}¨resolved
-        routeTargets ← {𝕩.target_id}¨resolved
-        routeRows ← {𝕩.source_row}¨resolved
-        managedMask ← ("managed"⊸≡¨routes) ∨ "fulfills"⊸≡¨routes
-        unmanagedMask ← "unmanaged"⊸≡¨routes
-        unroutedMask ← "unrouted"⊸≡¨routes
-        relevantMask ← managedMask ∨ unmanagedMask ∨ unroutedMask
-        relevantRows ← relevantMask/openRows
-        relevantRoutes ← relevantMask/routes
-        relevantTargets ← relevantMask/routeTargets
-        relevantRouteRows ← relevantMask/routeRows
-        coefficients ← relevantRows⊏joined.rows.planned_coefficient
-        sourceScales ← relevantRows⊏joined.rows.planned_scale
-        targetScale ← ⌈´0∾sourceScales
-        normalizedResults ← coefficients {scale.Normalize ⟨𝕨,𝕩,targetScale⟩}¨sourceScales
-        normalizationOk ← ∧´1∾{𝕩.state≡"ok"}¨normalizedResults
-        diagnostics∾↩AddIf ⟨¬normalizationOk,Diagnostic ⟨"coefficient_normalization_failed","open Plan commitment quantities cannot normalize exactly"⟩⟩
-
+        Resolve←{𝕊 i:(i⊑isExpense)◶⟨{𝕊:FulfillmentRouteAt ⟨i⊑planIds,observation,history.fulfillment_routing⟩},{𝕊:ExpenseRouteAt ⟨i⊑keys,observation,history.expense_routing⟩}⟩ @}
+        resolved←Resolve¨↕≠postings ⋄ ds∾↩AddIf ⟨∨´0∾{𝕩.ambiguous}¨resolved,Diagnostic ⟨"commitment_route_effective_ambiguous","effective route must be unique"⟩⟩
+        routes←{𝕩.route}¨resolved ⋄ targets←{𝕩.target_id}¨resolved ⋄ sourceRows←{𝕩.source_row}¨resolved
+        managedMask←("managed"⊸≡¨routes)∨"fulfills"⊸≡¨routes ⋄ unmanagedMask←isExpense∧"unmanaged"⊸≡¨routes ⋄ unroutedMask←isExpense∧"unrouted"⊸≡¨routes ⋄ relevant←managedMask∨unmanagedMask∨unroutedMask
+        postingCoefficients←postings⊏planFacts.postings.coefficient ⋄ postingScales←postings⊏planFacts.postings.scale
+        targetScale←⌈´0∾relevant/postingScales ⋄ norms←(relevant/postingCoefficients) {scale.Normalize ⟨𝕨,𝕩,targetScale⟩}¨ relevant/postingScales
+        ds∾↩AddIf ⟨¬∧´1∾{𝕩.state≡"ok"}¨norms,Diagnostic ⟨"coefficient_normalization_failed","Commitment quantities cannot normalize exactly"⟩⟩
         {𝕊:
-          normalized ← {𝕩.coefficient}¨normalizedResults
-          relevantManagedMask ← ("managed"⊸≡¨relevantRoutes) ∨ "fulfills"⊸≡¨relevantRoutes
-          relevantUnmanagedMask ← "unmanaged"⊸≡¨relevantRoutes
-          relevantUnroutedMask ← "unrouted"⊸≡¨relevantRoutes
-          managedTargets ← relevantManagedMask/relevantTargets
-          envelopeIds ← history.registry.id
-          envelopeCoordinates ← envelopeIds⊐managedTargets
-          managedTargetsKnown ← envelopeCoordinates<≠envelopeIds
-          diagnostics∾↩AddIf ⟨¬∧´1∾managedTargetsKnown,Diagnostic ⟨"commitment_route_target_unknown","managed Commitment route must resolve to a stable Envelope identity"⟩⟩
+          normalized←{𝕩.coefficient}¨norms ⋄ relevantPostings←relevant/postings ⋄ relevantPlanIds←relevant/planIds ⋄ relevantKeys←relevant/keys ⋄ relevantTargets←relevant/targets ⋄ relevantRows←relevant/sourceRows
+          relevantManaged←relevant/managedMask ⋄ relevantUnmanaged←relevant/unmanagedMask ⋄ relevantUnrouted←relevant/unroutedMask
+          envelopeIds←history.registry.id ⋄ envelopeCoords←envelopeIds⊐relevantManaged/relevantTargets
+          ds∾↩AddIf ⟨¬∧´1∾envelopeCoords<≠envelopeIds,Diagnostic ⟨"commitment_route_target_unknown","managed route target must be a stable Envelope"⟩⟩
           {𝕊:
-            envelopeCount ← ≠envelopeIds
-            managedAmounts ← relevantManagedMask/normalized
-            amountGroups ← (envelopeCoordinates∾⟨envelopeCount⟩)⊔managedAmounts
-            amountResults ← scale.Sum¨amountGroups
-            sumsOk ← ∧´1∾{𝕩.state≡"ok"}¨amountResults
-            diagnostics∾↩AddIf ⟨¬sumsOk,Diagnostic ⟨"coefficient_sum_failed","Envelope Commitment exceeds exact range"⟩⟩
-            Lane ← {𝕊 mask:
-              rows ← mask/relevantRows
-              {
-                count⇐≠rows,index⇐↕≠rows,plan_transaction_index⇐rows⊏joined.rows.plan_transaction_index,
-                plan_id⇐rows⊏joined.rows.plan_id,target_account_key⇐rows⊏joined.rows.planned_to_account,
-                coefficient⇐mask/normalized,route_source_row⇐mask/relevantRouteRows,
-                contributors⇐rows⊏joined.rows.plan_reference
-              }
-            }
+            managedAmounts←relevantManaged/normalized ⋄ sums←{scale.Sum (envelopeCoords=𝕩)/managedAmounts}¨↕≠envelopeIds
+            ds∾↩AddIf ⟨¬∧´1∾{𝕩.state≡"ok"}¨sums,Diagnostic ⟨"coefficient_sum_failed","Envelope Commitment exceeds exact range"⟩⟩
             {𝕊:
-              managedReferences ← relevantManagedMask/(relevantRows⊏joined.rows.plan_reference)
-              planGroups ← (envelopeCoordinates∾⟨envelopeCount⟩)⊔managedReferences
-              routeSourceGroups ← (envelopeCoordinates∾⟨envelopeCount⟩)⊔relevantManagedMask/relevantRouteRows
-              managed ← {
-                count⇐envelopeCount,index⇐↕envelopeCount,envelope_id⇐envelopeIds,
-                commitment⇐{𝕩.coefficient}¨amountResults,
-                plan_contributors⇐planGroups,route_source_rows⇐routeSourceGroups
-              }
-              evidence ← {
-                count⇐≠openRows,index⇐↕≠openRows,
-                plan_transaction_index⇐openRows⊏joined.rows.plan_transaction_index,
-                plan_id⇐openPlanIds,plan_date⇐openRows⊏joined.rows.plan_date,
-                target_account_key⇐targetKeys,target_role⇐targetRoles,
-                source_account_key⇐sourceKeys,source_role⇐sourceRoles,
-                planned_coefficient⇐openRows⊏joined.rows.planned_coefficient,
-                planned_scale⇐openRows⊏joined.rows.planned_scale,
-                route⇐routes,target_id⇐routeTargets,route_source_row⇐routeRows,
-                plan_reference⇐openRows⊏joined.rows.plan_reference
-              }
-              result↩{
-                state⇐"ok",domain⇐domain,start_ordinal⇐start,end_exclusive_ordinal⇐finish,
-                observation_ordinal⇐observation,scale⇐targetScale,managed⇐managed,
-                unmanaged⇐Lane relevantUnmanagedMask,unrouted⇐Lane relevantUnroutedMask,
-                evidence⇐evidence,diagnostics⇐empty
-              }
-            }⍟sumsOk @
-          }⍟(0=≠diagnostics) @
-        }⍟normalizationOk @
-      }⍟accountsKnown @
-    }⍟(0=≠diagnostics) @
-  }⍟(0=≠diagnostics) @
-  {𝕊:result↩EmptyResult ⟨"error",domain,start,finish,observation,diagnostics⟩}⍟(0<≠diagnostics) @
-  result
+              relevantTx←relevantPostings⊏planFacts.postings.transaction_index ⋄ txRefs←{reference.Transaction ⟨planFacts,𝕩⟩}¨relevantTx ⋄ postRefs←{reference.Posting ⟨planFacts,𝕩⟩}¨relevantPostings
+              managedTxRefs←relevantManaged/txRefs ⋄ managedPostRefs←relevantManaged/postRefs ⋄ managedRows←relevantManaged/relevantRows
+              managed←{count⇐≠envelopeIds,index⇐↕≠envelopeIds,envelope_id⇐envelopeIds,commitment⇐{𝕩.coefficient}¨sums,plan_contributors⇐{(envelopeCoords=𝕩)/managedTxRefs}¨↕≠envelopeIds,posting_contributors⇐{(envelopeCoords=𝕩)/managedPostRefs}¨↕≠envelopeIds,route_source_rows⇐{(envelopeCoords=𝕩)/managedRows}¨↕≠envelopeIds}
+              Lane←{𝕊 mask:{count⇐+´mask,index⇐↕+´mask,plan_id⇐mask/relevantPlanIds,target_account_key⇐mask/relevantKeys,coefficient⇐mask/normalized,contributors⇐mask/txRefs,posting_contributors⇐mask/postRefs,route_source_row⇐mask/relevantRows}}
+              evidence←{count⇐≠postings,index⇐↕≠postings,plan_id⇐planIds,plan_date⇐postingTx⊏planFacts.transactions.date_text,target_account_key⇐keys,target_role⇐roles,coefficient⇐postingCoefficients,scale⇐postingScales,route⇐routes,target_id⇐targets,route_source_row⇐sourceRows,plan_reference⇐{reference.Transaction ⟨planFacts,𝕩⟩}¨postingTx,posting_reference⇐{reference.Posting ⟨planFacts,𝕩⟩}¨postings}
+              result↩{state⇐"ok",domain⇐domain,start_ordinal⇐start,end_exclusive_ordinal⇐finish,observation_ordinal⇐observation,scale⇐targetScale,managed⇐managed,unmanaged⇐Lane relevantUnmanaged,unrouted⇐Lane relevantUnrouted,evidence⇐evidence,diagnostics⇐empty}
+            }⍟(0=≠ds) @
+          }⍟(0=≠ds) @
+        }⍟(0=≠ds) @
+      }⍟(0=≠ds) @
+    }⍟(0=≠ds) @
+  }⍟(0=≠ds) @
+  {𝕊:result↩EmptyResult ⟨"error",domain,start,finish,observation,ds⟩}⍟(0<≠ds) @ ⋄ result
 }
-
 {Build⇐Build}
