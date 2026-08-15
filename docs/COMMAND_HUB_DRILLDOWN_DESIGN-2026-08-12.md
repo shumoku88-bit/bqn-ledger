@@ -63,8 +63,6 @@ Editor
       -> select open Plan
     Finish / actualize / replenish
       -> select open Plan
-    Retry Budget sync
-      -> select completed Plan
     Related evidence for a Plan
       -> select Plan
 
@@ -201,7 +199,7 @@ BQN Ledger
 
 The action is chosen before the Plan list appears. This is preferable to entering a generic Plan browser and then discovering available mutations.
 
-The existing Plan finish owner may continue to decide the concrete finish, Budget-sync, and optional replenishment workflow. The Hub only names the task and routes to it.
+The existing Plan finish owner decides the concrete finish and optional replenishment workflow. Plan completion does not perform Budget-sync; the Hub exposes no Budget-sync task.
 
 ### Close an Issue
 

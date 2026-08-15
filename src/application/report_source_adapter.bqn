@@ -28,19 +28,21 @@ ContextSuccess ← {𝕊 planResult‿policyResult‿householdResult‿diagnosti
     envelope_history⇐householdResult.history,diagnostics⇐diagnosticsValue
   }
 }
-CompanionFailure ← {𝕊 diagnosticsValue:{state⇐"error",plan⇐@,plan_retirements⇐@,budget⇐@,budget_policy⇐@,household⇐@,envelope_history⇐@,diagnostics⇐diagnosticsValue}}
+CompanionFailure ← {𝕊 diagnosticsValue:{state⇐"error",plan⇐@,plan_retirements⇐@,budget⇐@,budget_movements⇐@,budget_policy⇐@,household⇐@,envelope_history⇐@,diagnostics⇐diagnosticsValue}}
 CompanionSuccess ← {𝕊 context‿budgetResult‿diagnosticsValue:
   {
     state⇐"ok",plan⇐context.plan,plan_retirements⇐context.plan_retirements,
-    budget⇐budgetResult.facts,budget_policy⇐context.budget_policy,
+    budget⇐budgetResult.facts,budget_movements⇐budgetResult.movements,budget_policy⇐context.budget_policy,
     household⇐context.household,envelope_history⇐context.envelope_history,
     diagnostics⇐diagnosticsValue
   }
 }
 
 # A caller that already owns admitted Accounts defines one companion observation:
-# Plan, Budget policy, shared Household TOML semantics, and Budget movement all
-# reuse that exact Account Registry instead of independently re-reading sources.
+# Plan, Budget policy, shared Household TOML semantics, and the admitted Budget
+# movement relation all reuse that exact Account Registry instead of independently
+# re-reading sources. Generic Budget Facts remain alongside the relation for other
+# existing consumers.
 # The current Household policy and Envelope history are admitted from one raw
 # household.toml observation when Budget policy has admitted successfully.
 HouseholdContext ← {𝕊 base‿accounts‿registry:

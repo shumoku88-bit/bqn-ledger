@@ -59,7 +59,7 @@ presentation ← {negative_style⇐"minus"}
 
 evidence ← {
   registry⇐registry,actual⇐actual,plan⇐companions.plan,plan_retirements⇐companions.plan_retirements,budget⇐companions.budget,
-  budget_policy⇐companions.budget_policy,household⇐companions.household,
+  budget_movements⇐companions.budget_movements,budget_policy⇐companions.budget_policy,household⇐companions.household,
   envelope_history⇐companions.envelope_history,issue_lines⇐issueLines
 }
 RenderRow ← {𝕊 row:

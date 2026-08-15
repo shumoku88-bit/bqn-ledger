@@ -17,7 +17,7 @@ actual ← (snapshot.Build ⟨lines,•FChars "../"∾base∾"actual.journal",re
 planRaw ← •FChars "../"∾base∾"plan.journal"
 plan ← (canonicalPlan.Build ⟨planRaw,actual.accounts,registry⟩).facts
 budgetRaw ← •FChars "../"∾base∾"budget.journal"
-budget ← (canonicalBudget.Build ⟨budgetRaw,actual.accounts,registry⟩).facts
+budget ← (canonicalBudget.Build ⟨budgetRaw,actual.accounts,registry⟩).movements
 policy ← budgetPolicyAdmission.Admit ⟨•FChars "../"∾base∾"budget.toml",actual.accounts⟩
 "ok" lib.AssertEq policy.state
 household ← householdAdmission.Admit ⟨•FChars "../"∾base∾"household.toml",actual.accounts,policy⟩

@@ -27,7 +27,7 @@ The Budget owner therefore needs only the additional Household Budget movement r
 
 1. every admitted transaction has exactly two Postings;
 2. both Postings resolve to Accounts whose role is `budget`;
-3. the already-preserved Posting source order is published as `from -> to`.
+3. the already-preserved Posting source order is a negative `from` followed by a positive `to` and is published as `from -> to`.
 
 No legacy Budget allocation row and no writer policy belong here.
 
@@ -35,7 +35,7 @@ No legacy Budget allocation row and no writer policy belong here.
 
 Canonical Budget Journal admission was introduced during the canonical Budget evidence cutover in #558. Current application loading reaches this owner through `src/application/budget_source_adapter.bqn`, which first admits canonical Accounts and the canonical Journal root, then admits Budget movements before Facts projection. Canonical Budget movement candidate publication re-admits the complete proposed `budget.journal` through this same owner.
 
-The writer-side candidate owner is intentionally stricter about user intent: it accepts a positive movement amount, renders the source-ordered `from` Posting negative and `to` Posting positive, then proves that the parsed candidate exactly matches the rendered intent. That writer policy is not duplicated into read admission by this review.
+The writer-side candidate owner accepts a positive movement amount, renders the source-ordered `from` Posting negative and `to` Posting positive, then proves that the parsed candidate exactly matches the rendered intent. PR #770 follow-up made the corresponding direction a read-admission law as well, so downstream Entitlement can classify admitted endpoints without rediscovering Journal structure.
 
 ## Exact-opposite ownership observation
 
@@ -94,6 +94,7 @@ sourceTransactions
   -> postingRows
   -> binary
   -> budgetOnly
+  -> negative-from / positive-to
 ```
 
 `postingRows`, `binary`, and `budgetOnly` share the same transaction axis. Budget-specific diagnostic cells are then derived from those aligned relations and flattened once in transaction/source order.
@@ -118,7 +119,7 @@ Keep unchanged:
 - exact arithmetic and upstream exact-balance admission;
 - exactly-two-Postings Budget movement law;
 - both Postings must resolve to Budget Accounts;
-- source-order `from -> to` publication meaning;
+- negative-source / positive-destination `from -> to` publication meaning;
 - physical-fallback movement identity based on source start line;
 - Posting identities and source coordinates;
 - Transaction metadata and domain/calculation-scale evidence;
@@ -139,7 +140,7 @@ Keep unchanged:
 
 ## Review decision
 
-Treat exact opposite normalized amounts as an inherited Journal invariant, not a second Budget admission rule. Retain Budget admission as a thin semantic refinement whose visible kernel is the aligned `binary / Budget-role / source-order` transaction relation, with diagnostic publication derived structurally from that relation.
+Treat exact opposite normalized amounts as an inherited Journal invariant, not a second Budget admission rule. Retain Budget admission as a thin semantic refinement whose visible kernel is the aligned `binary / Budget-role / negative-from / positive-to` transaction relation, with diagnostic publication derived structurally from that relation.
 
 ## Closeout
 

@@ -233,7 +233,7 @@ This is a separation-of-concerns goal, not a rule to erase local diagnostics.
 - Posting reconstruction;
 - machine-readable intent publication.
 
-`src_edit/plan_budget_sync_cmd.bqn` similarly combines canonical Account/Plan/Budget/Household/Actual loading with cross-source semantic matching, Budget-envelope mapping, idempotence checking, and candidate preparation.
+The retired Plan Budget-sync path had combined canonical Account/Plan/Budget/Household/Actual loading with cross-source semantic matching, Budget-envelope mapping, idempotence checking, and candidate preparation. Plan completion now stops at Actual evidence; historical PlanId routing owns Fulfillment.
 
 The surrounding shell writers hold important publication authority and stale/rollback safety.
 
@@ -246,20 +246,13 @@ admitted Plan + completion evidence + selection
   -> Plan completion intent
 ```
 
-or:
-
-```text
-admitted Plan + Actual + Household/Budget evidence
-  -> Budget sync decision / intent
-```
-
-Names and exact boundaries must follow the domain, not these placeholder signatures.
+Names and exact boundaries must follow the domain, not these placeholder signatures. Plan completion now ends at the Actual append; historical PlanId routing owns Fulfillment rather than producing a Budget execution intent.
 
 The goal is to make the semantic transformation independently readable and testable while preserving one qualified writer path.
 
 ## Observation E: editor shell remains a deliberate migration structure
 
-`tools/edit` currently acts as a small public dispatcher that sends qualified Plan/Budget writer commands to dedicated owners and otherwise delegates to `tools/edit-bqn`.
+`tools/edit` currently acts as a small public dispatcher that sends the qualified Budget Add writer to its dedicated owner and otherwise delegates to `tools/edit-bqn`. Plan completion has no Budget publication branch.
 
 `tools/edit-bqn` is still large, but the repository already documents an extraction rule: move one coherent command group without creating a second write authority.
 

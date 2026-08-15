@@ -25,8 +25,7 @@ fi
 if [[ "${args[$i]-}" == "plan" && "${args[$((i + 1))]-}" == "finish" ]]; then
   exec bash "$DIR/plan-finish" "$@"
 fi
-if [[ "${args[$i]-}" == "budget" && "${args[$((i + 1))]-}" == "add" ]] ||
-   [[ "${args[$i]-}" == "plan" && "${args[$((i + 1))]-}" == "budget-sync" ]]; then
+if [[ "${args[$i]-}" == "budget" && "${args[$((i + 1))]-}" == "add" ]]; then
   exec bash "$DIR/budget-write" "$@"
 fi
 

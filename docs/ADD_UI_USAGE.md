@@ -57,7 +57,7 @@ tools/add-ui.sh --check
 
 候補を選んだ後、実績日・実績金額を入力する前に、選択した予定の内容、予定日、予定金額、振替、`plan_id`、行状態、選択範囲を再表示します。期限超過予定を実績化するときも、何を選択したか確認してから入力できます。
 
-実績化後は Household policy に一致する Plan を自動的に Budget sync します。次回予定を補充する場合、description・Account・amount と `recur` / `series` / `anchor` / `offset` などのschedule metadataを既定で引き継ぎ、日付だけを選べます。必要な場合だけ引き継ぎ値を変更します。
+実績化後は追記された Actual evidence が、履歴の PlanId Fulfillment routing によってEnvelopeへ観察されます。Budget execution movementの同期は行いません。次回予定を補充する場合、description・Account・amount と `recur` / `series` / `anchor` / `offset` などのschedule metadataを既定で引き継ぎ、日付だけを選べます。必要な場合だけ引き継ぎ値を変更します。
 
 Journalへの実績追記が完了する前に `Ctrl+C` を押すと、書き込まずに `add-ui` のmode選択へ戻ります。実績追記が完了した後の `Ctrl+C` は、完了済みの実績を取り消したようには扱わず、次回予定の補充だけを中止して終了します。
 

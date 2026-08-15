@@ -28,7 +28,7 @@ budgetRaw ← Raw ⟨
   "2026-01-01 seed","  budget:opening     -100 JPY","  budget:unassigned   100 JPY","",
   "2026-01-01 allocate-food","  budget:unassigned  -60 JPY","  budget:food         60 JPY"
 ⟩
-budget ← (canonicalBudget.Build ⟨budgetRaw,accounts,registry⟩).facts
+budget ← (canonicalBudget.Build ⟨budgetRaw,accounts,registry⟩).movements
 budgetPolicy ← budgetPolicyAdmission.Admit ⟨•FChars "../"∾base∾"budget.toml",accounts⟩
 "ok" lib.AssertEq budgetPolicy.state
 householdRaw ← •FChars "../"∾base∾"household.toml"

@@ -160,7 +160,7 @@ for label in \
   'Expense' 'Income' 'Transfer / move' 'Multi-posting transaction' \
   'Reverse with a compensating transaction' \
   'Add Plan' 'Edit Plan date / amount' 'Finish / actualize / replenish Plan' \
-  'Retry Budget sync for a completed Plan' 'Related Plan evidence' \
+  'Related Plan evidence' \
   'Add / move Budget' 'Add Account' 'Add Issue' 'Close Issue'; do
   require_text "$editor" "$label"
 done

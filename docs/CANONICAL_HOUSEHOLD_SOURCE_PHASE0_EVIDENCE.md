@@ -98,7 +98,6 @@ The local inventory confirmed these production-relevant paths among the legacy r
 ### Budget
 
 - `src/accounting/envelope_backing.bqn`
-- `src_edit/plan_budget_sync_cmd.bqn`
 
 ### Cycle
 

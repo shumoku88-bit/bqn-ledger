@@ -14,7 +14,7 @@ validation and canonical Journal block / retained TSV row rendering live in `src
 |---|---|---|---|
 | account | `account add`, `account list` | `tools/edit-bqn` safe append / read-only dispatch | `src_edit/account_add_cmd.bqn`, `src_edit/account_list_cmd.bqn` |
 | journal | `journal add`, `journal multi-add`, `journal list`, `journal reverse`, cleanup plan/apply | `tools/edit-bqn` | `src_edit/journal_block_add_cmd.bqn`, `src_edit/journal_list_cmd.bqn`, `src_edit/journal_native_reverse_cmd.bqn`, cleanup modules, `src_edit/journal_validate_cmd.bqn` |
-| budget | `budget add`, `plan budget-sync` | `tools/budget-write` canonical snapshot/publication authority | `src_edit/budget_add_cmd.bqn`, `src_edit/plan_budget_sync_cmd.bqn`, shared `src_edit/budget_movement_candidate.bqn` |
+| budget | `budget add` | `tools/budget-write` canonical snapshot/publication authority | `src_edit/budget_add_cmd.bqn`, shared `src_edit/budget_movement_candidate.bqn` |
 | plan read | `plan list`, `plan related` | `tools/edit-bqn` read-only dispatch | `src_edit/plan_list_cmd.bqn`, `src_edit/plan_related_cmd.bqn` |
 | plan write | `plan add`, `plan finish`, `plan edit` | dedicated canonical writers / `tools/edit-bqn` | `src_edit/plan_add_cmd.bqn`, `src_edit/plan_finish_cmd.bqn`, `src_edit/plan_edit_cmd.bqn` |
 | issue | `issue add`, `issue list`, `issue close` | `tools/lib/edit-bqn-issue.sh` | `src_edit/issue_add_cmd.bqn`, `src_edit/issue_list_cmd.bqn`, `src_edit/issue_close_cmd.bqn` |

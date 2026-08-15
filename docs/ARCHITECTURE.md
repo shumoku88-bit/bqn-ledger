@@ -43,7 +43,7 @@ Canonical ownership is:
 - Account identity, accounting type, and optional default Commodity: `accounts.journal`;
 - Actual Transaction/Posting evidence and relations: `actual.journal`;
 - Plan Transaction/Posting evidence, schedule, recurrence, and lifecycle relations: `plan.journal`;
-- ordered Budget movement evidence: `budget.journal`;
+- admitted source-ordered Budget movement relation: `budget.journal`;
 - Budget policy: `budget.toml`;
 - Household classification, Cycle, and Daily Target policy: `household.toml`;
 - report query defaults and presentation policy: `report.toml`;

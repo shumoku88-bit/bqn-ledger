@@ -104,6 +104,7 @@ Closeout: `docs/ACCOUNTING_PHASE_ONE_REVIEW_CLOSEOUT-2026-08-11.md`.
 - [x] `src/accounting/recent_transactions.bqn`
 - [x] `src/accounting/sparse_group.bqn`
 - [x] `src/accounting/sparse_pivot.bqn`
+- [ ] `src/accounting/envelope_entitlement.bqn` — native Budget movement Entitlement owner under review
 
 ## Phase 2: `src/ledger/` — complete
 
@@ -295,7 +296,6 @@ See `docs/EDITOR_PHASE_SIX_ISSUE_RELATION_OBSERVATION-2026-08-13.md`.
 - [ ] `src_edit/journal_reconstructible_identity_cleanup_cmd.bqn`
 - [ ] `src_edit/journal_validate_cmd.bqn`
 - [ ] `src_edit/plan_add_cmd.bqn`
-- [ ] `src_edit/plan_budget_sync_cmd.bqn`
 - [ ] `src_edit/plan_edit_cmd.bqn`
 - [ ] `src_edit/plan_finish_cmd.bqn`
 - [ ] `src_edit/plan_finish_validate_cmd.bqn`

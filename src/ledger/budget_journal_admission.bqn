@@ -3,8 +3,8 @@
 # Journal admission owns syntax, dates, descriptions, exact amounts, commodities,
 # Account resolution, exact balance, elision, Posting order, and source coordinates.
 # This owner adds only Household Budget movement meaning: every transaction is
-# exactly two Budget postings and source order is from then to. No legacy
-# allocation row or writer policy is involved.
+# exactly two Budget postings, with a negative source followed by its positive
+# destination. No legacy allocation row or writer policy is involved.
 
 journal ← •Import "journal_complete_admission.bqn"
 empty ← ⟨⟩
@@ -82,9 +82,15 @@ Admit ← {𝕊 raw‿accounts‿registry:
       sourceLine ← (i⊑sourceTransactions).source_start_line
       binaryInvalid ← ¬i⊑binary
       roleInvalid ← (i⊑binary) ∧ ¬i⊑budgetOnly
+      directionInvalid ← 0
+      {𝕊:
+        from‿to ← i⊑postingRows
+        directionInvalid↩(from.normalized_coefficient≥0) ∨ (to.normalized_coefficient≤0)
+      }⍟(i⊑binary) @
       binaryDiagnostic ← AddIf ⟨binaryInvalid,Diagnostic ⟨"budget_movement_requires_binary_transaction",sourceLine,"Budget movement transaction requires exactly two postings"⟩⟩
       roleDiagnostic ← AddIf ⟨roleInvalid,Diagnostic ⟨"budget_movement_posting_not_budget",sourceLine,"Budget movement postings must resolve to Budget Accounts"⟩⟩
-      binaryDiagnostic∾roleDiagnostic
+      directionDiagnostic ← AddIf ⟨directionInvalid,Diagnostic ⟨"budget_movement_direction_invalid",sourceLine,"Budget movement must put its negative source before its positive destination"⟩⟩
+      binaryDiagnostic∾roleDiagnostic∾directionDiagnostic
     }¨↕≠sourceTransactions
     diagnostics∾↩relationDiagnostics
     {𝕊:transactions↩MapTransaction¨sourceTransactions}⍟(0=≠diagnostics) @

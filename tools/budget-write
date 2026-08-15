@@ -28,18 +28,13 @@ while [[ $# -gt 0 ]]; do
 done
 set -- "${args[@]}"
 
-COMMAND_KIND=""
-if [[ "${1-}" == "budget" && "${2-}" == "add" ]]; then
-  COMMAND_KIND="add"
-elif [[ "${1-}" == "plan" && "${2-}" == "budget-sync" ]]; then
-  COMMAND_KIND="sync"
-else
-  echo 'ERROR: tools/budget-write handles only: budget add | plan budget-sync' >&2
+if [[ "${1-}" != "budget" || "${2-}" != "add" ]]; then
+  echo 'ERROR: tools/budget-write handles only: budget add' >&2
   exit 2
 fi
 shift 2
 
-DATE=""; MEMO=""; FROM=""; TO=""; AMOUNT=""; CURRENCY=""; PLAN_ID=""
+DATE=""; MEMO=""; FROM=""; TO=""; AMOUNT=""; CURRENCY=""
 META=(); DRY_RUN=0; YES=0; POST_CHECK="lint"
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -50,7 +45,6 @@ while [[ $# -gt 0 ]]; do
     --amount) AMOUNT="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
     --currency) CURRENCY="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
     --meta) META+=("$(get_opt_val "$1" "${2-}")"); shift 2 ;;
-    --id) PLAN_ID="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
     --dry-run) DRY_RUN=1; shift ;;
     --yes) YES=1; shift ;;
     --post-check) POST_CHECK="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
@@ -58,18 +52,6 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 edit_bqn_validate_post_check "$POST_CHECK"
-if [[ "$COMMAND_KIND" == "sync" && -z "$PLAN_ID" ]]; then
-  echo 'ERROR: missing required option: --id' >&2
-  exit 2
-fi
-if [[ "$COMMAND_KIND" == "sync" && ( -n "$DATE$MEMO$FROM$TO$AMOUNT$CURRENCY" || ${#META[@]} -gt 0 ) ]]; then
-  echo 'ERROR: plan budget-sync accepts only --id and publication options' >&2
-  exit 2
-fi
-if [[ "$COMMAND_KIND" == "add" && -n "$PLAN_ID" ]]; then
-  echo 'ERROR: budget add does not accept --id' >&2
-  exit 2
-fi
 
 [[ -d "$BASE_DIR" ]] || { echo "ERROR: base directory does not exist: $BASE_DIR" >&2; exit 1; }
 CANONICAL_BASE="$(cd -P "$BASE_DIR" && pwd)"
@@ -122,32 +104,19 @@ fence_initial_household
 BQN_STDERR="$(mktemp)"
 trap 'rm -f "$BQN_STDERR"' EXIT
 BQN_OUT=""
-if [[ "$COMMAND_KIND" == "add" ]]; then
-  BQN_COMMAND=(bqn src_edit/budget_add_cmd.bqn "$CANONICAL_BASE" "$DATE" "$MEMO" "$FROM" "$TO" "$AMOUNT" "$CURRENCY" "${META[@]}")
-else
-  BQN_COMMAND=(bqn src_edit/plan_budget_sync_cmd.bqn "$CANONICAL_BASE" "$PLAN_ID")
-fi
+BQN_COMMAND=(bqn src_edit/budget_add_cmd.bqn "$CANONICAL_BASE" "$DATE" "$MEMO" "$FROM" "$TO" "$AMOUNT" "$CURRENCY" "${META[@]}")
 if ! BQN_OUT="$(cd "$ROOT_DIR" && "${BQN_COMMAND[@]}" 2>"$BQN_STDERR")"; then
   [[ -n "$BQN_OUT" ]] && printf '%s\n' "$BQN_OUT" >&2
   [[ -s "$BQN_STDERR" ]] && cat "$BQN_STDERR" >&2
   exit 1
 fi
-FIRST_LINE="${BQN_OUT%%$'\n'*}"
-case "$FIRST_LINE" in
-  $'OK\tAPPLIED\t'*) fence_initial_household; printf 'Budget sync already applied: %s\n' "$PLAN_ID"; exit 0 ;;
-  $'OK\tNOT_LINKED\t'*) fence_initial_household; printf 'Budget sync not linked: %s\n' "$PLAN_ID"; exit 0 ;;
-esac
 if ! edit_bqn_split_protocol_output "$BQN_OUT"; then exit 1; fi
 if ! edit_bqn_require_append_protocol "$EDIT_BQN_PROTOCOL_FIRST_LINE" "$TARGET_FILE"; then exit 1; fi
 PAYLOAD="$EDIT_BQN_PROTOCOL_PAYLOAD"
 fence_initial_household
 
 MODE="$(edit_bqn_mode "$DRY_RUN" "$YES")"
-if [[ "$COMMAND_KIND" == "add" ]]; then
-  printf 'Budget movement append preview\n'
-else
-  printf 'Plan Budget sync preview\n'
-fi
+printf 'Budget movement append preview\n'
 printf 'Target: %s\n' "$TARGET_PATH"
 printf 'Mode: %s\n' "$MODE"
 printf 'Post-check: %s\n' "$POST_CHECK"
@@ -193,14 +162,6 @@ fi
 if [[ "$MANDATORY_OK" -eq 1 ]]; then
   STEP_OUT=""
   if ! STEP_OUT="$(cd "$ROOT_DIR" && bqn src_edit/budget_validate_cmd.bqn "$CANONICAL_BASE" 2>&1)"; then
-    MANDATORY_OK=0
-  fi
-  append_mandatory_output "$STEP_OUT"
-fi
-if [[ "$MANDATORY_OK" -eq 1 && "$COMMAND_KIND" == "sync" ]]; then
-  STEP_OUT=""
-  if ! STEP_OUT="$(cd "$ROOT_DIR" && bqn src_edit/plan_budget_sync_cmd.bqn "$CANONICAL_BASE" "$PLAN_ID" 2>&1)" || \
-     [[ "$STEP_OUT" != $'OK\tAPPLIED\t'"$PLAN_ID" ]]; then
     MANDATORY_OK=0
   fi
   append_mandatory_output "$STEP_OUT"

@@ -212,7 +212,7 @@ The result is one bounded Statement, not an import of the old Envelope ViewModel
 
 ### Coordinates
 
-Inputs include selected domain, resolved envelope horizon `H=[S,E)`, explicit observation `O`, strict Budget/Actual/Plan Facts, completion Join, Account metadata, and an owner-resolved funding scope.
+Inputs include selected domain, resolved envelope horizon `H=[S,E)`, explicit observation `O`, the admitted source-ordered Budget movement relation, strict Actual/Plan Facts, completion Join, Account metadata, and an owner-resolved funding scope.
 
 An envelope is selected only by explicit Account metadata/policy. Account-name prefixes and display labels do not establish envelope or funding membership.
 
@@ -221,7 +221,7 @@ An envelope is selected only by explicit Account metadata/policy. Account-name p
 For envelope `e`:
 
 ```text
-entitlement(e)          = signed exact Budget allocation movement mapped to e in the full horizon [S,E)
+entitlement(e)          = signed exact admitted Budget endpoint movement mapped to e through the observation day, with opening evidence before S carried into [S,E)
 actual_consumption(e)   = positive projection of mapped Actual expense-debit evidence in [S,O+1)
 actual_refunds(e)       = positive projection of mapped Actual expense-credit evidence in [S,O+1)
 ledger_remaining(e)     = entitlement - actual_consumption + actual_refunds
@@ -231,7 +231,7 @@ post_plan_headroom(e)   = ledger_remaining - open_plan_reserve
 
 P1 includes a same-day Plan when it remains open after completion evidence through O. A same-day completed Plan is excluded by the durable completion Join, so it is not reserved twice.
 
-P1 entitlement deliberately uses the full admitted horizon allocation while consumption is observation-bounded. Budget evidence before `S` is not silently carried into this horizon; a future carry-forward policy requires explicit source semantics. Negative `ledger_remaining` remains visible as overspent and is not clamped to zero.
+P1 Entitlement is observed directly from the admitted source-ordered Budget movement relation, not reconstructed from generic Budget Facts or a Budget Account closing. Opening evidence before `S` establishes the opening position; period movement is bounded by `[S,E)` and the observation day. Historical Envelope-to-spent/execution compatibility rows are inert, so Plan completion cannot decrease Remaining through a duplicate Budget execution fact. Negative `ledger_remaining` remains visible as overspent and is not clamped to zero.
 
 P1 uses `refunds` as the display name for the exact expense-credit projection. It does not yet claim that every credit is an externally sourced cash refund: an expense reclassification can also credit an expense Account. Posting and Transaction provenance is retained so a later concrete question can split `external_refund / reclassification / other_credit` without reparsing source text. That split requires an explicit transaction-counterpart or admitted classification contract; it must not be inferred from Account names. Until such a consumer is selected, the accounting definition above remains deterministic and the renderer must not describe the coordinate more strongly than “expense credits / refunds”.
 

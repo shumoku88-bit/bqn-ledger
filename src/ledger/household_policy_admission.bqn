@@ -237,9 +237,7 @@ Admit ← {𝕊 raw‿accounts‿budgetPolicy:
     diagnostics∾↩AddIf ⟨¬validId,Diagnostic ⟨"household_envelope_id_invalid",block.line,"Household envelope id must be nonempty and contain no whitespace"⟩⟩
     allocationRelation ← AccountRelations ⟨⟨allocationKey⟩,"budget",block.line⟩
     allocationValid ← ⊑allocationRelation.valid ⋄ allocationIndex ← ⊑allocationRelation.coordinates
-    destinationRelation ← AccountRelations ⟨destinationKeys,"",block.line⟩
-    destinationIndices ← destinationRelation.valid/destinationRelation.coordinates
-    {𝕊:envelopeRows∾↩⟨{id⇐id,allocation_key⇐allocationKey,allocation_index⇐allocationIndex,plan_destination_keys⇐destinationKeys,plan_destination_indices⇐destinationIndices,line⇐block.line}⟩}⍟(validId ∧ allocationValid) @
+    {𝕊:envelopeRows∾↩⟨{id⇐id,allocation_key⇐allocationKey,allocation_index⇐allocationIndex,line⇐block.line}⟩}⍟(validId ∧ allocationValid) @
   }¨Singles "budget.envelopes"
   envelopeIds ← {𝕩.id}¨envelopeRows ⋄ allocationIndices ← {𝕩.allocation_index}¨envelopeRows
   diagnostics∾↩AddIf ⟨(≠envelopeIds)≠≠⍷envelopeIds,Diagnostic ⟨"household_envelope_id_duplicate",0,"Household envelope ids must be unique"⟩⟩
@@ -247,9 +245,6 @@ Admit ← {𝕊 raw‿accounts‿budgetPolicy:
   diagnostics∾↩AddIf ⟨(≠envelopeIds)≠budgetPolicy.envelopes.count,Diagnostic ⟨"household_envelope_coordinates_incomplete",0,"Every budget.toml envelope requires Household allocation coordinates"⟩⟩
   diagnostics∾↩AddIf ⟨∨´0∾{¬Contains ⟨𝕩,budgetPolicy.envelopes.id⟩}¨envelopeIds,Diagnostic ⟨"household_envelope_unknown",0,"Household envelope coordinates must reference budget.toml"⟩⟩
   diagnostics∾↩AddIf ⟨∨´0∾{¬Contains ⟨𝕩,envelopeIds⟩}¨budgetPolicy.envelopes.id,Diagnostic ⟨"household_envelope_coordinates_missing",0,"Every budget.toml envelope requires Household coordinates"⟩⟩
-  allDestinations ← ∾{𝕩.plan_destination_indices}¨envelopeRows
-  diagnostics∾↩AddIf ⟨(≠allDestinations)≠≠⍷allDestinations,Diagnostic ⟨"household_plan_destination_duplicate",0,"One Plan destination Account may belong to only one envelope"⟩⟩
-
   dailyRows ← empty
   {𝕊 block:
     CheckKeys ⟨block,⟨"id","account"⟩,empty⟩
@@ -308,7 +303,6 @@ Admit ← {𝕊 raw‿accounts‿budgetPolicy:
     budget⇐{
       envelope_count⇐≠admittedEnvelopes,envelope_id⇐{𝕩.id}¨admittedEnvelopes,
       allocation_account_key⇐{𝕩.allocation_key}¨admittedEnvelopes,allocation_account_index⇐{𝕩.allocation_index}¨admittedEnvelopes,
-      plan_destination_account_keys⇐{𝕩.plan_destination_keys}¨admittedEnvelopes,plan_destination_account_indices⇐{𝕩.plan_destination_indices}¨admittedEnvelopes,
       unassigned_account_keys⇐ok/unassignedKeys,unassigned_account_indices⇐ok/unassignedIndices
     },
     daily_target⇐{count⇐≠admittedDaily,index⇐↕≠admittedDaily,scope_id⇐{𝕩.scope_id}¨admittedDaily,account_key⇐{𝕩.account_key}¨admittedDaily,account_index⇐{𝕩.account_index}¨admittedDaily},

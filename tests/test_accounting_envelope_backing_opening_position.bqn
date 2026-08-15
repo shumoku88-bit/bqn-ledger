@@ -18,7 +18,7 @@ companions ← sources.Companions ⟨base,actual.facts.accounts,registry⟩
 # 2026-01-02. Entitlement is a Budget position, so opening allocation evidence
 # must carry into the Cycle instead of disappearing from the statement.
 result ← envelopes.Build ⟨
-  companions.budget,companions.budget_policy,companions.household,
+  companions.budget_movements,companions.budget_policy,companions.household,
   actual.facts,companions.plan,"JPY",
   dates.Ordinal "2026-01-02",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-12"
 ⟩
