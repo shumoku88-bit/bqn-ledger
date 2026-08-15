@@ -44,7 +44,7 @@ Build ← {𝕊 movements‿accounts‿household‿domain‿start‿finish‿obs
     allocationKeys ← household.budget.allocation_account_key
     unassignedKeys ← household.budget.unassigned_account_keys
     policy ← household.account_policy ⋄ policyKeys ← policy.account_key
-    policyColumns ← ≠¨⟨policyKeys,policy.budget_kind,policy.envelope_role⟩
+    policyColumns ← ≠¨⟨policyKeys,policy.budget_kind⟩
     diagnostics∾↩AddIf ⟨¬∧´(≠policyKeys)=policyColumns,Diagnostic ⟨"budget_endpoint_policy_invalid","Household Budget endpoint policy columns must align"⟩⟩
     diagnostics∾↩AddIf ⟨(≠allocationKeys)≠envelopeCount,Diagnostic ⟨"envelope_account_mapping_invalid","Every Envelope must have one allocation Account"⟩⟩
     diagnostics∾↩AddIf ⟨(≠allocationKeys)≠≠⍷allocationKeys,Diagnostic ⟨"envelope_account_mapping_invalid","Allocation Accounts must be unique"⟩⟩
@@ -72,7 +72,7 @@ Build ← {𝕊 movements‿accounts‿household‿domain‿start‿finish‿obs
     }⍟((∧´1∾allocationKnown)∧(∧´1∾unassignedKnown)) @
 
     openingReferences ← accountKeys⊐("opening"⊸≡¨policy.budget_kind)/policyKeys
-    executionMask ← ("spent"⊸≡¨policy.budget_kind) ∨ "execution"⊸≡¨policy.envelope_role
+    executionMask ← "spent"⊸≡¨policy.budget_kind
     executionReferences ← accountKeys⊐executionMask/policyKeys
     endpointRows ← {𝕊 i:
       envelopeRows ← (allocationReferences=i)/↕envelopeCount

@@ -149,11 +149,38 @@ lowerResult ← Build lowerEffect
 # Unknown and multiply-owned movement endpoints fail closed.
 unknownHousehold ← {
   state⇐"ok",source_name⇐"household.toml",budget⇐household.budget,
-  account_policy⇐{account_key⇐accounts.key,budget_kind⇐⟨"opening","unassigned","envelope","envelope",""⟩,envelope_role⇐⟨"","unassigned","dynamic","dynamic",""⟩}
+  account_policy⇐{account_key⇐accounts.key,budget_kind⇐⟨"opening","unassigned","envelope","envelope",""⟩}
 }
 unknown ← entitlement.Build ⟨movements,accounts,unknownHousehold,"USD",start,finish,observation⟩
 "error" lib.AssertEq unknown.state
 "budget_endpoint_ambiguous" lib.AssertEq (⊑unknown.diagnostics).code
+
+# An allocation Account that still carries legacy envelope_role=execution resolves
+# cleanly as an Envelope endpoint; envelope_role is no longer an endpoint authority.
+legacyRoleExecutionHousehold ← {
+  state⇐"ok",source_name⇐"household.toml",budget⇐household.budget,
+  account_policy⇐{
+    account_key⇐accounts.key,
+    budget_kind⇐⟨"opening","unassigned","envelope","envelope","spent"⟩,
+    envelope_role⇐⟨"","unassigned","execution","dynamic","execution"⟩
+  }
+}
+legacyRoleResult ← entitlement.Build ⟨movements,accounts,legacyRoleExecutionHousehold,"USD",start,finish,observation⟩
+"ok" lib.AssertEq legacyRoleResult.state
+⟨1305,275⟩ lib.AssertEq legacyRoleResult.managed.entitlement
+
+# account_policy without envelope_role column succeeds; Entitlement does not depend on envelope_role.
+noEnvelopeRoleHousehold ← {
+  state⇐"ok",source_name⇐"household.toml",budget⇐household.budget,
+  account_policy⇐{
+    account_key⇐accounts.key,
+    budget_kind⇐⟨"opening","unassigned","envelope","envelope","spent"⟩
+  }
+}
+noRoleResult ← entitlement.Build ⟨movements,accounts,noEnvelopeRoleHousehold,"USD",start,finish,observation⟩
+"ok" lib.AssertEq noRoleResult.state
+⟨1305,275⟩ lib.AssertEq noRoleResult.managed.entitlement
+
 ambiguousHousehold ← {
   state⇐"ok",source_name⇐"household.toml",
   budget⇐{envelope_id⇐household.budget.envelope_id,allocation_account_key⇐household.budget.allocation_account_key,unassigned_account_keys⇐⟨"budget:unassigned","budget:food"⟩},
