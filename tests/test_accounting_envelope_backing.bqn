@@ -8,7 +8,7 @@ canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 budgetPolicyAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
 householdPolicyAdmission ← •Import "../src/ledger/household_policy_admission.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
-envelopes ← •Import "../src/accounting/envelope_backing.bqn"
+envelopes ← •Import "envelope_backing_test_adapter.bqn"
 base ← "fixtures/ledger-facts-phase1-proof/"
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
 lines ← loader.ReadLines base∾"accounts.tsv"
@@ -78,10 +78,13 @@ result ← envelopes.Build ⟨budget,policy,household,actual,plan,"JPY",dates.Or
 "actual.journal" lib.AssertEq (⊑result.funding_contributors).source
 "budget.journal" lib.AssertEq (⊑⊑result.envelopes.entitlement_contributors).source
 "actual.journal" lib.AssertEq (⊑⊑result.envelopes.consumption_contributors).source
+1 lib.AssertEq result.consumption_observation.unmanaged.count
+0 lib.AssertEq result.consumption_observation.unrouted.count
 
 # Budget policy keeps Account keys, not the admission-time numeric coordinate.
 # Reversing only the Account carrier used for policy admission must therefore
-# leave both Expense classification and backing-pool resolution unchanged.
+# leave current Plan assignment and backing-pool resolution unchanged. Actual
+# Consumption is independently fixed by the test's historical routing facts.
 reorderedAccounts ← {
   count⇐actual.accounts.count,index⇐actual.accounts.index,
   key⇐⌽actual.accounts.key,role⇐⌽actual.accounts.role
@@ -155,6 +158,8 @@ synthetic ← envelopes.Build ⟨syntheticBudget,syntheticPolicy,syntheticHouseh
 "under_backed" lib.AssertEq synthetic.status
 "plan.journal" lib.AssertEq (⊑⊑synthetic.envelopes.plan_contributors).source
 "actual.journal" lib.AssertEq (⊑⊑synthetic.envelopes.refund_contributors).source
+0 lib.AssertEq synthetic.consumption_observation.unrouted.count
+0 lib.AssertEq synthetic.consumption_observation.unmanaged.count
 
 emptyPlanFacts ← (canonicalPlan.Build ⟨"",syntheticActual.accounts,registry⟩).facts
 emptyPlan ← envelopes.Build ⟨syntheticBudget,syntheticPolicy,syntheticHousehold,syntheticActual,emptyPlanFacts,"JPY",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-10"⟩

@@ -7,6 +7,7 @@ canonicalBudget ← •Import "canonical_budget_test_facts.bqn"
 canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 budgetPolicyAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
 householdAdmission ← •Import "../src/ledger/household_policy_admission.bqn"
+envelopeHistoryAdmission ← •Import "../src/ledger/envelope_history_admission.bqn"
 account_admission ← •Import "../src/ledger/account_admission.bqn"
 cycleResolution ← •Import "../src/application/cycle_resolution.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
@@ -29,8 +30,11 @@ budgetRaw ← Raw ⟨
 budget ← (canonicalBudget.Build ⟨budgetRaw,accounts,registry⟩).facts
 budgetPolicy ← budgetPolicyAdmission.Admit ⟨•FChars "../"∾base∾"budget.toml",accounts⟩
 "ok" lib.AssertEq budgetPolicy.state
-household ← householdAdmission.Admit ⟨•FChars "../"∾base∾"household.toml",accounts,budgetPolicy⟩
+householdRaw ← •FChars "../"∾base∾"household.toml"
+household ← householdAdmission.Admit ⟨householdRaw,accounts,budgetPolicy⟩
 "ok" lib.AssertEq household.state
+envelopeHistory ← envelopeHistoryAdmission.Admit householdRaw
+"ok" lib.AssertEq envelopeHistory.state
 cycle10 ← cycleResolution.WithPlan ⟨household.cycle,"2026-01-10",actual,plan⟩
 "ok" lib.AssertEq cycle10.state
 cycle12 ← cycleResolution.WithPlan ⟨household.cycle,"2026-01-12",actual,plan⟩
@@ -60,7 +64,7 @@ monthly ← compose.MonthlyAccounts ⟨actual,"JPY","2026-01","2026-03"⟩
 CheckGolden ⟨monthly,"monthly-accounts","human","monthly_accounts.destination.human.txt"⟩
 dailyFlow ← compose.DailyFlow ⟨actual,budgetPolicy,household,"JPY","2026-01-01","2026-02-01","2026-01-12"⟩
 CheckGolden ⟨dailyFlow,"daily-flow","human","daily_flow.destination.human.txt"⟩
-envelopes ← compose.Envelopes ⟨budget,budgetPolicy,household,actual,plan,"JPY","2026-01-01","2026-02-01","2026-01-12"⟩
+envelopes ← compose.Envelopes ⟨budget,budgetPolicy,household,envelopeHistory,actual,plan,"JPY","2026-01-01","2026-02-01","2026-01-12"⟩
 CheckGolden ⟨envelopes,"envelopes","compact","envelope_backing.destination.compact.txt"⟩
 
 Ref ← {𝕊 id:{source⇐"synthetic",transaction_id⇐id,posting_id⇐id}}

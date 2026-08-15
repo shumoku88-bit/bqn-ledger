@@ -2,7 +2,7 @@
 
 lib ← •Import "test_lib.bqn"
 sources ← •Import "../src/application/report_source_adapter.bqn"
-envelopes ← •Import "../src/accounting/envelope_backing.bqn"
+envelopes ← •Import "envelope_backing_test_adapter.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 
 base ← "fixtures/ledger-facts-phase1-proof"

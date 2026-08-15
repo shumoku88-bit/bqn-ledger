@@ -8,7 +8,7 @@ canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 budgetPolicyAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
 householdAdmission ← •Import "../src/ledger/household_policy_admission.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
-accounting ← •Import "../src/accounting/envelope_backing.bqn"
+accounting ← •Import "envelope_backing_test_adapter.bqn"
 section ← •Import "../src/sections/envelope_backing.bqn"
 base ← "fixtures/ledger-facts-phase1-proof/"
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
