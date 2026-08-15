@@ -230,10 +230,11 @@ grep -F 'no command and no interactive terminal' "$work/no-command.err" >/dev/nu
 # Hub itself must not acquire source-write helpers or accounting interpretation.
 rg -F 'expense|income|move|multi|reverse) run_action "$1"' tools/bl >/dev/null
 for route in 'run_action plan-add' 'run_action plan-edit' 'run_action plan-finish' \
-  'run_action budget' 'run_action account-add' 'run_action issue' 'run_action issue-close' 'show_plan_budget_sync_interactive'; do
+  'run_action budget' 'run_action account-add' 'run_action issue' 'run_action issue-close'; do
   rg -F "$route" tools/bl >/dev/null
 done
 ! rg -n 'safe_(append|replace|rewrite)|APPEND_BLOCK|posting.*coefficient|accounts\.tsv|plan\.tsv|budget_alloc\.tsv|cycle\.tsv|daily_target_scope\.tsv|config\.tsv' tools/bl >/dev/null
+! rg -n 'budget-sync|plan_budget_sync|show_plan_budget_sync' tools/bl tools/edit tools/edit-bqn tools/budget-write tools/plan-finish-replenish-ui.sh >/dev/null
 ! rg -n 'choose_asset_type|--type.*account_type' tools/add-ui.sh >/dev/null
 
 # Legacy files can coexist as poison sentinels but cannot affect any route.

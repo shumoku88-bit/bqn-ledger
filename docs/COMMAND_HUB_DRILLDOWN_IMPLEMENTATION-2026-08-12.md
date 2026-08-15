@@ -32,7 +32,6 @@ Editor
     Add Plan
     Edit Plan date / amount
     Finish / actualize / replenish Plan
-    Retry Budget sync for a completed Plan
     Related Plan evidence
 
   Budget

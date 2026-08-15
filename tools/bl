@@ -39,7 +39,6 @@ Direct commands (non-TTY safe when the target command is read-only):
   plans list|all|overdue|upcoming [editor options]
   plans related [editor options] Related Plan evidence (interactive if no args)
   plans add|edit|finish          Existing selection-based writer UI
-  plans budget-sync [options]    Retry sync (selection-based without options)
   accounts list [editor options] Canonical Account inventory
   accounts balances             Account Balances report
   accounts add                  Existing Account writer UI
@@ -433,19 +432,6 @@ show_plan_related_interactive() {
   run_child "$ROOT_DIR/tools/edit" --base "$base_dir" plan related --index "$index" --actual-date "$selected_plan_date" --format tsv
 }
 
-show_plan_budget_sync_interactive() {
-  local rows selected status
-  rows="$("$ROOT_DIR/tools/edit" --base "$base_dir" plan list --all --format tsv | awk -F'\t' '$8=="CLOSED"')"
-  [[ -n $rows ]] || { echo 'No completed Plans available for Budget sync.'; return 0; }
-  set +e
-  selected="$(select_menu 'Completed Plan to sync' "$(awk -F'\t' '{print $2 "\t" $9}' <<<"$rows")")"
-  status=$?
-  set -e
-  [[ $status -eq 130 ]] && return 130
-  [[ $status -eq 0 ]] || return "$status"
-  run_child "$ROOT_DIR/tools/edit" --base "$base_dir" plan budget-sync --id "$selected"
-}
-
 prompt_value() {
   local prompt="$1" default="${2:-}" value
   if [[ -n $default ]]; then printf '%s [%s]: ' "$prompt" "$default" >&2; else printf '%s: ' "$prompt" >&2; fi
@@ -510,8 +496,6 @@ run_plan_key() {
     add) run_action plan-add ;;
     edit) run_action plan-edit ;;
     finish) run_action plan-finish ;;
-    budget-sync)
-      if [[ $# -gt 0 ]]; then "$ROOT_DIR/tools/edit" --base "$base_dir" plan budget-sync "$@"; else show_plan_budget_sync_interactive; fi ;;
     back) return 130 ;;
     *) echo "Error: unknown Plans action: $key" >&2; return 2 ;;
   esac
@@ -593,7 +577,6 @@ editor_plans_menu() {
 add	Add Plan
 edit	Edit Plan date / amount
 finish	Finish / actualize / replenish Plan
-budget-sync	Retry Budget sync for a completed Plan
 related	Related Plan evidence
 back	Back
 EOF

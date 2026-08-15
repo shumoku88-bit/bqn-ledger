@@ -24,7 +24,7 @@ This occurred across:
 - Cycle income Account validation;
 - Budget unassigned Accounts;
 - Envelope allocation Account;
-- optional Plan destination Accounts;
+- retained optional `plan-destination-accounts` syntax is accepted for physical compatibility but is not projected as semantic policy;
 - Daily Target Asset Accounts;
 - all five Account-policy axes.
 

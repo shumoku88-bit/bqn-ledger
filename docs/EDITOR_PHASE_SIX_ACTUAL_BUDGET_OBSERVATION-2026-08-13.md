@@ -67,7 +67,7 @@ Its mutation is not ordinary domain state. `Reject` records the first failure an
 6. the new transaction is checked for exact date, description, posting count/order, accounts, signed exact amounts, Commodity, and metadata round trip;
 7. only then is a payload published.
 
-Flattening this into eager whole-array evaluation merely to remove `failed↩1` would weaken or obscure fail-closed staging. The owner is also reused by Plan Budget sync, so its exact candidate law is a useful shared semantic boundary rather than Budget Add shell machinery.
+Flattening this into eager whole-array evaluation merely to remove `failed↩1` would weaken or obscure fail-closed staging. Its exact candidate law remains the Budget Add publication boundary; Plan completion no longer reuses it because completion does not publish a Budget execution movement.
 
 ## Budget Validate
 

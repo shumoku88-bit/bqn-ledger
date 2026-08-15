@@ -4,6 +4,7 @@ Status: retained production capability on native historical Consumption, Fulfill
 
 Owners:
 
+- `src/accounting/envelope_entitlement.bqn` owns source-ordered Budget Entitlement observation;
 - `src/accounting/envelope_consumption.bqn` owns Actual Expense Consumption observation;
 - `src/accounting/plan_observation.bqn` owns role-neutral Plan lifecycle observation;
 - `src/accounting/envelope_fulfillment.bqn` owns completed Plan Fulfillment;
@@ -17,7 +18,7 @@ Envelope/Backing consumes admitted Budget, Actual, Plan Facts, admitted Plan ret
 
 Ownership is intentionally split by lifetime:
 
-- Budget movement evidence supplies Entitlement compatibility evidence;
+- source-ordered Budget movement evidence supplies native Entitlement; historical Envelope-to-spent/execution compatibility rows are inert;
 - historical Expense routing supplies Actual Consumption meaning at Posting day;
 - stable PlanId + Actual completion + completion-day Fulfillment routing supplies completed Fulfillment;
 - open Plan Postings + observation-day routing supplies Commitment;
@@ -36,6 +37,7 @@ The composition remains purpose-specific rather than a generic pipeline:
 ValidateInputs
   -> ResolveOwnership
   -> PrepareEvidence
+       -> Entitlement
        -> Consumption
        -> Fulfillment
        -> Commitment
@@ -44,7 +46,7 @@ ValidateInputs
   -> public result
 ```
 
-`ResolveOwnership` now resolves structural Envelope allocation and Backing topology only. It no longer constructs a current Expense-Account-to-Envelope relation for Plan reserve.
+`ResolveOwnership` resolves structural Envelope allocation and Backing topology only. Native Entitlement resolves Budget movement endpoints separately; no current Expense-Account-to-Envelope relation or Plan destination Account is used for claims.
 
 `BuildEnvelopeTerms` aligns native observations by stable Envelope identity and performs exact reductions:
 

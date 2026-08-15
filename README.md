@@ -116,7 +116,7 @@ tools/edit-bqn --help
 tools/to-hledger "$LEDGER_DATA_DIR"
 ```
 
-Every interactive mutation displays a candidate preview and confirmation before publication. Plan Finish retains its `plan-id` provenance, performs Plan → Budget sync when Household policy maps the destination, and can replenish the next Plan while inheriting recurrence metadata.
+Every interactive mutation displays a candidate preview and confirmation before publication. Plan Finish retains its `plan-id` provenance and can replenish the next Plan while inheriting recurrence metadata. Completed Plans are observed as Envelope Fulfillment through historical PlanId routing; completion does not write a Budget execution companion.
 
 Writer qualification is separate from the canonical read-side recovery. Existing writer authority is not changed by report configuration. Writes continue to use preview, stale checks, backups, atomic replacement, and narrow post-write validation. Canonical household data remains in the separate private data repository.
 

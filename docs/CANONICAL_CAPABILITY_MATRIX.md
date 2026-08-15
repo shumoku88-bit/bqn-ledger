@@ -42,7 +42,6 @@ Classification numbers mean:
 | Account list and filters | `check-edit-bqn-account-list.sh` | editor Account export | `src_edit/account_list_cmd.bqn` | usable but hidden | yes, Accounts | yes | yes, read trial | 3 | yes | expose list; retain role/currency options for direct CLI |
 | Account add | Account writer checks; PR #564/#571 | editor Account append | canonical Account writer through `tools/add-ui.sh` | usable | yes, Accounts | yes | yes, disposable copy | 2 | yes | expose selection UI; no debt-specific semantics |
 | Budget movement | Budget writer series #569/#570 and focused checks | Budget editor | `tools/budget-write` + BQN candidate owner | usable | yes, Budget | yes | yes, disposable copy | 2 | yes | expose named route |
-| Plan → Budget sync | `check-edit-bqn-plan-budget-sync.sh`; Plan Finish integration | editor sync command | `tools/budget-write` / `src_edit/plan_budget_sync_cmd.bqn` | usable during completion and direct CLI | yes through Plan Finish | yes | yes, disposable copy | 1 | no | keep integrated flow; do not duplicate policy in Hub |
 | Issue list | issue tracker plan and `check-edit-bqn-issue-close.sh` | issue editor | `src_edit/issue_list_cmd.bqn` | usable but hidden | yes, Issues | yes | yes, read trial | 3 | yes | expose separately from report |
 | Issue add / close | issue editor checks | issue editor safe append/replace | `tools/lib/edit-bqn-issue.sh` via add UI | usable | yes, Issues | yes | yes, disposable copy | 2 | yes | expose lifecycle routes and selection |
 
