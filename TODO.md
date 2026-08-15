@@ -116,10 +116,12 @@ Closeout: `docs/LEDGER_PHASE_TWO_REVIEW_CLOSEOUT-2026-08-12.md`.
 - [x] `src/ledger/currency_registry.bqn`
 - [x] `src/ledger/cycle_admission.bqn`
 - [x] `src/ledger/date_ordinal.bqn`
+- [x] `src/ledger/envelope_history_admission.bqn` — #767 (post-closeout historical Envelope owner)
 - [x] `src/ledger/exact_decimal.bqn`
 - [x] `src/ledger/exact_scale.bqn`
 - [x] `src/ledger/fact_reference.bqn`
 - [x] `src/ledger/facts.bqn`
+- [x] `src/ledger/household_current_policy_projection.bqn` — #767 (post-closeout shared-source projection owner)
 - [x] `src/ledger/household_policy_admission.bqn`
 - [x] `src/ledger/issue_admission.bqn`
 - [x] `src/ledger/issue_relation_admission.bqn` — #764 (post-closeout non-canonical relation owner)

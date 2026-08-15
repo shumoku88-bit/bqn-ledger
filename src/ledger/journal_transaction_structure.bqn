@@ -31,14 +31,25 @@ Split ← {𝕊 sep‿text:
   (0<≠¨parts)/parts
 }
 Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
-StartsWith ← {𝕊 prefix‿text: prefix≡(≠prefix)↑text}
+StartsWith ← {𝕊 prefix‿text:
+  result ← 0
+  {𝕊: result↩prefix≡(≠prefix)↑text}⍟((≠prefix)≤≠text) @
+  result
+}
 ToNum ← {𝕊 text: +´(text-⊑"0")×10⋆⌽↕≠text}
 IsDigits ← {𝕊 text: (0<≠text) ∧ ∧´text∊"0123456789"}
 Diagnostic ← {𝕊 codeText‿lineNumber‿messageText:
   {severity⇐"error",stage⇐"ledger_journal_transaction_structure",code⇐codeText,line⇐lineNumber,message⇐messageText}
 }
 AddIf ← {𝕊 invalid‿diagnostic: invalid/⟨diagnostic⟩}
-IsDateHeader ← {𝕊 text: (10<≠text) ∧ (space=10⊑(text∾11⥊space)) ∧ dates.IsValid 10↑text}
+IsDateHeader ← {𝕊 text:
+  result ← 0
+  {𝕊:
+    separator ← space=10⊑text
+    {𝕊: result↩dates.IsValid 10↑text}⍟separator @
+  }⍟(10<≠text) @
+  result
+}
 
 ParseMetadata ← {𝕊 text‿lineNumber:
   diagnostics ← empty
