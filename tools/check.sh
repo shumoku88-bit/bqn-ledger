@@ -4,6 +4,20 @@ export NO_COLOR=1
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
 
+# Temporary branch-only diagnostic: expose the stock coordinates used by the
+# first Envelope Backing test. Revert this file after the failing law is fixed.
+python3 - <<'PY'
+from pathlib import Path
+p = Path('src/accounting/envelope_backing.bqn')
+s = p.read_text()
+s = s.replace(
+    '  stockFinish ← observation+1\n',
+    '  stockFinish ← observation+1\n  •Out "stockStart="∾•Fmt stockStart∾" stockFinish="∾•Fmt stockFinish∾" observation="∾•Fmt observation\n',
+    1,
+)
+p.write_text(s)
+PY
+
 echo '[1/3] BQN tests' >&2
 for test_file in tests/test_*.bqn; do
   [[ -f $test_file ]] || continue
