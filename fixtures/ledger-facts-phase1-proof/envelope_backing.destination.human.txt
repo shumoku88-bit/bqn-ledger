@@ -2,9 +2,9 @@
 Horizon: 2026-01-01..2026-02-01
 Observed through: 2026-01-12
 
-Envelope | Entitlement | Consumption | Credits/refunds | Remaining | Plan reserve | Headroom
----------+-------------+-------------+-----------------+-----------+--------------+---------
-food     |          60 |          30 |               0 |        30 |          200 |     -170
+Envelope | Entitlement | Consumption | Credits/refunds | Fulfillment | Remaining | Plan reserve | Headroom
+---------+-------------+-------------+-----------------+-------------+-----------+--------------+---------
+food     |          60 |          30 |               0 |           0 |        30 |          200 |     -170
 
 Backing evidence
 Coordinate                | Amount

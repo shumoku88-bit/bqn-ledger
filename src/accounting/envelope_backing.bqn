@@ -1,12 +1,12 @@
 # Pure Envelope & Backing Statement from canonical Budget/Actual/Plan evidence.
-# budget.journal owns Budget movements, historical Envelope routing owns Actual
-# Consumption, budget.toml owns current Plan/Backing policy, and household.toml
-# owns Household structural Budget Account coordinates.
+# Budget movements own Entitlement, historical routing owns Consumption,
+# Fulfillment, and Commitment, while current budget.toml owns Backing topology.
 
 period ← •Import "account_period.bqn"
 balance ← •Import "account_balance.bqn"
-completion ← •Import "plan_completion_join.bqn"
 consumption ← •Import "envelope_consumption.bqn"
+fulfillment ← •Import "envelope_fulfillment.bqn"
+commitment ← •Import "envelope_commitment.bqn"
 reference ← •Import "../ledger/fact_reference.bqn"
 scale ← •Import "../ledger/exact_scale.bqn"
 empty ← ⟨⟩
@@ -18,13 +18,13 @@ ErrorExact ← {𝕊:{state⇐"error",coefficient⇐empty}}
 
 EmptyRows ← {𝕊:{
   count⇐0,index⇐empty,account_index⇐empty,account_key⇐empty,category⇐empty,
-  entitlement⇐empty,actual_consumption⇐empty,actual_refunds⇐empty,
+  entitlement⇐empty,actual_consumption⇐empty,actual_refunds⇐empty,fulfillment⇐empty,
   ledger_remaining⇐empty,open_plan_reserve⇐empty,post_plan_headroom⇐empty,
   entitlement_contributors⇐empty,consumption_contributors⇐empty,
-  refund_contributors⇐empty,plan_contributors⇐empty
+  refund_contributors⇐empty,fulfillment_contributors⇐empty,plan_contributors⇐empty
 }}
 EmptyTotals ← {𝕊:{
-  entitlement⇐empty,actual_consumption⇐empty,actual_refunds⇐empty,
+  entitlement⇐empty,actual_consumption⇐empty,actual_refunds⇐empty,fulfillment⇐empty,
   ledger_remaining⇐empty,open_plan_reserve⇐empty,post_plan_headroom⇐empty,
   funding_balance⇐empty,signed_envelope_total⇐empty,backing_required⇐empty,
   backing_surplus⇐empty,ledger_unassigned⇐empty,reconciliation_delta⇐empty
@@ -33,7 +33,8 @@ EmptyResult ← {𝕊 state‿reason‿domain‿diagnostics:{
   state⇐state,reason⇐reason,domain⇐domain,
   start_ordinal⇐empty,end_exclusive_ordinal⇐empty,observation_ordinal⇐empty,
   scale⇐0,status⇐"",envelopes⇐EmptyRows @,totals⇐EmptyTotals @,
-  consumption_observation⇐@,funding_account_indices⇐empty,funding_contributors⇐empty,
+  consumption_observation⇐@,fulfillment_observation⇐@,commitment_observation⇐@,
+  funding_account_indices⇐empty,funding_contributors⇐empty,
   unassigned_contributors⇐empty,diagnostics⇐diagnostics
 }}
 
@@ -82,18 +83,7 @@ ResolveOwnership ← {𝕊 accounts‿budgetPolicy‿householdPolicy‿domain:
   unassignedValid ← (0<≠unassignedKeys) ∧ ∧´1∾unassignedRowsValid
   diagnostics∾↩AddIf ⟨¬unassignedValid,Diagnostic ⟨"unassigned_scope_invalid","household.toml unassigned Accounts must be selected-domain Budget Accounts"⟩⟩
 
-  # Current Expense assignments remain only as the temporary open-Plan reserve
-  # compatibility relation. Actual Consumption is owned by historical routing.
-  planExpenseKeys ← ∾budgetPolicy.envelopes.expense_account_keys
-  planExpenseEnvelopeIds ← ∾{𝕊 i:(≠i⊑budgetPolicy.envelopes.expense_account_keys)⥊⟨i⊑categories⟩}¨↕≠categories
-  planExpenseIndices ← accounts.key⊐planExpenseKeys
-  expenseKnown ← planExpenseIndices<accounts.count
-  expenseRoles ← planExpenseIndices⊏accounts.role∾⟨""⟩
-  diagnostics∾↩AddIf ⟨¬∧´1∾expenseKnown,Diagnostic ⟨"budget_policy_expense_account_unknown","budget.toml Expense Accounts must occur on the current Facts Account axis"⟩⟩
-  diagnostics∾↩AddIf ⟨∨´0∾expenseKnown ∧ ¬"expense"⊸≡¨expenseRoles,Diagnostic ⟨"budget_policy_expense_account_role_invalid","budget.toml Expense Accounts must remain Expense Accounts on the current Facts axis"⟩⟩
-
-  # Pool membership may span Commodities; resolve by key first, then project the
-  # current Account axis to the requested domain while preserving policy order.
+  # Backing topology is current policy. Envelope claim meaning is not.
   fundingKeys ← ∾budgetPolicy.backing_pools.asset_account_keys
   policyFundingIndices ← accounts.key⊐fundingKeys
   fundingKnown ← policyFundingIndices<accounts.count
@@ -105,26 +95,19 @@ ResolveOwnership ← {𝕊 accounts‿budgetPolicy‿householdPolicy‿domain:
   diagnostics∾↩AddIf ⟨0=≠fundingIndices,Diagnostic ⟨"funding_scope_invalid","budget.toml backing policy requires an Asset Account in the selected domain"⟩⟩
 
   {state⇐(0=≠diagnostics)⊑"error"‿"ok",reason⇐"",envelope_indices⇐envelopeIndices,categories⇐categories,
-   plan_expense_indices⇐planExpenseIndices,plan_expense_envelope_ids⇐planExpenseEnvelopeIds,
    funding_indices⇐fundingIndices,unassigned_indices⇐unassignedIndices,diagnostics⇐diagnostics}
 }
 
-PrepareEvidence ← {𝕊 budgetFacts‿envelopeHistory‿actualFacts‿planFacts‿domain‿start‿finish‿observation:
+PrepareEvidence ← {𝕊 budgetFacts‿envelopeHistory‿actualFacts‿planFacts‿planRetirements‿domain‿start‿finish‿observation:
   budgetPeriod ← period.Build ⟨budgetFacts,domain,"budget",start,finish⟩
   actualBalance ← balance.Build ⟨actualFacts,domain,observation⟩
   consumptionObservation ← consumption.Build ⟨actualFacts,envelopeHistory,domain,start,observation+1⟩
-  planMask ← (planFacts.transactions.date_ordinal≥observation) ∧ planFacts.transactions.date_ordinal<finish
-  planSelection ← planMask/planFacts.transactions.index
-  actualSelection ← (actualFacts.transactions.date_ordinal≤observation)/actualFacts.transactions.index
-  joined ← completion.Build ⟨planFacts,actualFacts,planSelection,actualSelection⟩
-  diagnostics ← budgetPeriod.diagnostics∾actualBalance.diagnostics∾consumptionObservation.diagnostics∾joined.diagnostics
-  badStatus ← ∨´0∾{Contains ⟨𝕩,⟨"duplicate","ambiguous"⟩⟩}¨joined.rows.status
-  badCurrency ← ∨´0∾{¬∧´1∾𝕩}¨joined.rows.currency_matches
-  badDirection ← ∨´0∾{¬∧´1∾𝕩}¨joined.rows.direction_matches
-  conflict ← badStatus ∨ badCurrency ∨ badDirection
-  diagnostics∾↩AddIf ⟨conflict,Diagnostic ⟨"plan_completion_conflict","Plan completion evidence must be unique and matching"⟩⟩
+  fulfillmentObservation ← fulfillment.Build ⟨planFacts,planRetirements,actualFacts,envelopeHistory,domain,start,finish,observation⟩
+  commitmentObservation ← commitment.Build ⟨planFacts,planRetirements,actualFacts,envelopeHistory,domain,start,finish,observation⟩
+  diagnostics ← budgetPeriod.diagnostics∾actualBalance.diagnostics∾consumptionObservation.diagnostics∾fulfillmentObservation.diagnostics∾commitmentObservation.diagnostics
   {state⇐(0=≠diagnostics)⊑"error"‿"ok",budget_period⇐budgetPeriod,actual_balance⇐actualBalance,
-   consumption_observation⇐consumptionObservation,completion_join⇐joined,diagnostics⇐diagnostics}
+   consumption_observation⇐consumptionObservation,fulfillment_observation⇐fulfillmentObservation,
+   commitment_observation⇐commitmentObservation,diagnostics⇐diagnostics}
 }
 
 NormalizeOne ← {𝕊 coefficient‿sourceScale‿targetScale:scale.Normalize ⟨coefficient,sourceScale,targetScale⟩}
@@ -134,57 +117,48 @@ SumNormalized ← {𝕊 coefficients‿sourceScale‿targetScale:
 }
 PostingReferences ← {𝕊 facts‿indices:{reference.Posting ⟨facts,𝕩⟩}¨indices}
 
-BuildEnvelopeTerms ← {𝕊 budgetFacts‿accounts‿ownership‿prepared‿domain‿targetScale:
-  budgetPeriod ← prepared.budget_period ⋄ joined ← prepared.completion_join
-  consumptionObservation ← prepared.consumption_observation ⋄ managed ← consumptionObservation.managed
+BuildEnvelopeTerms ← {𝕊 budgetFacts‿accounts‿ownership‿prepared‿targetScale:
+  budgetPeriod ← prepared.budget_period
+  consumptionObservation ← prepared.consumption_observation ⋄ consumptionManaged ← consumptionObservation.managed
+  fulfillmentObservation ← prepared.fulfillment_observation ⋄ fulfillmentManaged ← fulfillmentObservation.managed
+  commitmentObservation ← prepared.commitment_observation ⋄ commitmentManaged ← commitmentObservation.managed
   envelopeIndices ← ownership.envelope_indices ⋄ categories ← ownership.categories ⋄ envelopeCount ← ≠envelopeIndices
   budgetRows ← budgetPeriod.accounts.account_index⊐envelopeIndices
   entitlementResults ← {𝕊 row:NormalizeOne ⟨row⊑budgetPeriod.accounts.closing,budgetPeriod.scale,targetScale⟩}¨budgetRows
   entitlementIndices ← {𝕊 row:(row⊑budgetPeriod.accounts.opening_contributors)∾row⊑budgetPeriod.accounts.period_contributors}¨budgetRows
 
-  # Stable historical Envelope identity is qualified against the current report
-  # row axis here. Missing identity fails closed; current assignments never fill it.
-  managedRows ← managed.envelope_id⊐categories
-  managedKnown ← managedRows<managed.count
-  diagnostics ← AddIf ⟨¬∧´1∾managedKnown,Diagnostic ⟨"envelope_identity_missing","Current Envelope must have a stable historical Envelope identity"⟩⟩
-  consumptionValues ← managedRows⊏managed.consumption∾⟨0⟩
-  refundValues ← managedRows⊏managed.refunds∾⟨0⟩
+  consumptionRows ← consumptionManaged.envelope_id⊐categories
+  fulfillmentRows ← fulfillmentManaged.envelope_id⊐categories
+  commitmentRows ← commitmentManaged.envelope_id⊐categories
+  known ← (consumptionRows<consumptionManaged.count) ∧ (fulfillmentRows<fulfillmentManaged.count) ∧ commitmentRows<commitmentManaged.count
+  diagnostics ← AddIf ⟨¬∧´1∾known,Diagnostic ⟨"envelope_identity_missing","Current Envelope must have stable historical identity"⟩⟩
+
+  consumptionValues ← consumptionRows⊏consumptionManaged.consumption∾⟨0⟩
+  refundValues ← consumptionRows⊏consumptionManaged.refunds∾⟨0⟩
+  fulfillmentValues ← fulfillmentRows⊏fulfillmentManaged.fulfillment∾⟨0⟩
+  commitmentValues ← commitmentRows⊏commitmentManaged.commitment∾⟨0⟩
   consumptionResults ← {NormalizeOne ⟨𝕩,consumptionObservation.scale,targetScale⟩}¨consumptionValues
   refundResults ← {NormalizeOne ⟨𝕩,consumptionObservation.scale,targetScale⟩}¨refundValues
-  consumptionContributors ← managedRows⊏managed.consumption_contributors∾⟨empty⟩
-  refundContributors ← managedRows⊏managed.refund_contributors∾⟨empty⟩
+  fulfillmentResults ← {NormalizeOne ⟨𝕩,fulfillmentObservation.scale,targetScale⟩}¨fulfillmentValues
+  commitmentResults ← {NormalizeOne ⟨𝕩,commitmentObservation.scale,targetScale⟩}¨commitmentValues
 
-  # Plan reserve remains on the current assignment compatibility relation in this
-  # cutover. It is intentionally independent from Actual historical Consumption.
-  expenseIndices ← ownership.plan_expense_indices ⋄ expenseEnvelopeIds ← ownership.plan_expense_envelope_ids
-  domainMask ← domain⊸≡¨expenseIndices⊏accounts.currency
-  expenseIndices↩domainMask/expenseIndices ⋄ expenseEnvelopeIds↩domainMask/expenseEnvelopeIds
-  planAccountRows ← accounts.key⊐joined.rows.planned_to_account
-  assignmentRows ← expenseIndices⊐planAccountRows
-  assigned ← assignmentRows<≠expenseIndices
-  planEnvelopeIds ← assignmentRows⊏expenseEnvelopeIds∾⟨""⟩
-  planCoordinates ← categories⊐planEnvelopeIds
-  openMask ← ("open"⊸≡¨joined.rows.status) ∧ assigned
-  openCoordinates ← openMask/planCoordinates ⋄ planCoefficients ← openMask/joined.rows.planned_coefficient
-  planScales ← openMask/joined.rows.planned_scale
-  reserveNormalized ← planCoefficients {NormalizeOne ⟨𝕨,𝕩,targetScale⟩}¨planScales
-  planGroups ← openCoordinates∾⟨envelopeCount⟩ ⋄ reserveGroups ← planGroups⊔reserveNormalized
-  reserveResults ← {𝕊 results:
-    result ← ErrorExact @
-    {𝕊:result↩scale.Sum {𝕩.coefficient}¨results}⍟(∧´1∾{𝕩.state≡"ok"}¨results) @ ⋄ result
-  }¨reserveGroups
+  consumptionContributors ← consumptionRows⊏consumptionManaged.consumption_contributors∾⟨empty⟩
+  refundContributors ← consumptionRows⊏consumptionManaged.refund_contributors∾⟨empty⟩
+  fulfillmentContributors ← fulfillmentRows⊏fulfillmentManaged.actual_contributors∾⟨empty⟩
+  planContributors ← commitmentRows⊏commitmentManaged.plan_contributors∾⟨empty⟩
 
   entitlementOk ← {𝕩.state≡"ok"}¨entitlementResults ⋄ consumptionOk ← {𝕩.state≡"ok"}¨consumptionResults
-  refundOk ← {𝕩.state≡"ok"}¨refundResults ⋄ reserveOk ← {𝕩.state≡"ok"}¨reserveResults
-  termsOk ← entitlementOk ∧ consumptionOk ∧ refundOk ∧ reserveOk
+  refundOk ← {𝕩.state≡"ok"}¨refundResults ⋄ fulfillmentOk ← {𝕩.state≡"ok"}¨fulfillmentResults
+  commitmentOk ← {𝕩.state≡"ok"}¨commitmentResults
+  termsOk ← entitlementOk ∧ consumptionOk ∧ refundOk ∧ fulfillmentOk ∧ commitmentOk
   remainingResults ← {𝕊 i:
     result ← ErrorExact @
-    {𝕊:result↩scale.Sum ⟨(i⊑entitlementResults).coefficient,-(i⊑consumptionResults).coefficient,(i⊑refundResults).coefficient⟩}⍟(i⊑termsOk) @
+    {𝕊:result↩scale.Sum ⟨(i⊑entitlementResults).coefficient,-(i⊑consumptionResults).coefficient,(i⊑refundResults).coefficient,-(i⊑fulfillmentResults).coefficient⟩}⍟(i⊑termsOk) @
     result
   }¨↕envelopeCount
   headroomResults ← {𝕊 i:
     result ← ErrorExact @ ⋄ remaining ← i⊑remainingResults
-    {𝕊:result↩scale.Sum ⟨remaining.coefficient,-(i⊑reserveResults).coefficient⟩}⍟(remaining.state≡"ok") @ ⋄ result
+    {𝕊:result↩scale.Sum ⟨remaining.coefficient,-(i⊑commitmentResults).coefficient⟩}⍟(remaining.state≡"ok") @ ⋄ result
   }¨↕envelopeCount
   finalOk ← ({𝕩.state≡"ok"}¨remainingResults) ∧ {𝕩.state≡"ok"}¨headroomResults
   diagnostics∾↩∾{𝕊 i:
@@ -197,11 +171,12 @@ BuildEnvelopeTerms ← {𝕊 budgetFacts‿accounts‿ownership‿prepared‿dom
   {𝕊:table↩{
     count⇐envelopeCount,index⇐↕envelopeCount,account_index⇐envelopeIndices,account_key⇐envelopeIndices⊏accounts.key,category⇐categories,
     entitlement⇐{𝕩.coefficient}¨entitlementResults,actual_consumption⇐{𝕩.coefficient}¨consumptionResults,
-    actual_refunds⇐{𝕩.coefficient}¨refundResults,ledger_remaining⇐{𝕩.coefficient}¨remainingResults,
-    open_plan_reserve⇐{𝕩.coefficient}¨reserveResults,post_plan_headroom⇐{𝕩.coefficient}¨headroomResults,
+    actual_refunds⇐{𝕩.coefficient}¨refundResults,fulfillment⇐{𝕩.coefficient}¨fulfillmentResults,
+    ledger_remaining⇐{𝕩.coefficient}¨remainingResults,open_plan_reserve⇐{𝕩.coefficient}¨commitmentResults,
+    post_plan_headroom⇐{𝕩.coefficient}¨headroomResults,
     entitlement_contributors⇐{PostingReferences ⟨budgetFacts,𝕩⟩}¨entitlementIndices,
     consumption_contributors⇐consumptionContributors,refund_contributors⇐refundContributors,
-    plan_contributors⇐planGroups⊔openMask/joined.rows.plan_reference
+    fulfillment_contributors⇐fulfillmentContributors,plan_contributors⇐planContributors
   }}⍟(0=≠diagnostics) @
   {state⇐(0=≠diagnostics)⊑"error"‿"ok",table⇐table,diagnostics⇐diagnostics}
 }
@@ -209,8 +184,8 @@ BuildEnvelopeTerms ← {𝕊 budgetFacts‿accounts‿ownership‿prepared‿dom
 BuildBacking ← {𝕊 budgetFacts‿prepared‿ownership‿terms‿targetScale:
   budgetPeriod ← prepared.budget_period ⋄ actualBalance ← prepared.actual_balance ⋄ table ← terms.table
   entitlement ← table.entitlement ⋄ consumptionValues ← table.actual_consumption ⋄ refunds ← table.actual_refunds
-  remaining ← table.ledger_remaining ⋄ reserve ← table.open_plan_reserve ⋄ headroom ← table.post_plan_headroom
-  termTotals ← scale.Sum¨⟨entitlement,consumptionValues,refunds,remaining,reserve,headroom⟩
+  fulfillmentValues ← table.fulfillment ⋄ remaining ← table.ledger_remaining ⋄ reserve ← table.open_plan_reserve ⋄ headroom ← table.post_plan_headroom
+  termTotals ← scale.Sum¨⟨entitlement,consumptionValues,refunds,fulfillmentValues,remaining,reserve,headroom⟩
   fundingIndices ← ownership.funding_indices
   fundingRows ← actualBalance.accounts.account_index⊐fundingIndices
   fundingValues ← fundingRows⊏actualBalance.accounts.closing
@@ -233,10 +208,11 @@ BuildBacking ← {𝕊 budgetFacts‿prepared‿ownership‿terms‿targetScale:
       state⇐"ok",table⇐table,
       totals⇐{
         entitlement⇐0⊑totalCoefficients,actual_consumption⇐1⊑totalCoefficients,actual_refunds⇐2⊑totalCoefficients,
-        ledger_remaining⇐3⊑totalCoefficients,open_plan_reserve⇐4⊑totalCoefficients,post_plan_headroom⇐5⊑totalCoefficients,
-        funding_balance⇐fundingResult.coefficient,signed_envelope_total⇐3⊑totalCoefficients,
-        backing_required⇐backingResult.coefficient,backing_surplus⇐surplusResult.coefficient,
-        ledger_unassigned⇐unassignedResult.coefficient,reconciliation_delta⇐reconciliationResult.coefficient
+        fulfillment⇐3⊑totalCoefficients,ledger_remaining⇐4⊑totalCoefficients,open_plan_reserve⇐5⊑totalCoefficients,
+        post_plan_headroom⇐6⊑totalCoefficients,funding_balance⇐fundingResult.coefficient,
+        signed_envelope_total⇐4⊑totalCoefficients,backing_required⇐backingResult.coefficient,
+        backing_surplus⇐surplusResult.coefficient,ledger_unassigned⇐unassignedResult.coefficient,
+        reconciliation_delta⇐reconciliationResult.coefficient
       },funding_contributors⇐fundingContributors,
       unassigned_contributors⇐PostingReferences ⟨budgetFacts,unassignedPostingIndices⟩,diagnostics⇐empty
     }
@@ -244,19 +220,19 @@ BuildBacking ← {𝕊 budgetFacts‿prepared‿ownership‿terms‿targetScale:
   output
 }
 
-Build ← {𝕊 budgetFacts‿budgetPolicy‿householdPolicy‿envelopeHistory‿actualFacts‿planFacts‿domain‿start‿finish‿observation:
+Build ← {𝕊 budgetFacts‿budgetPolicy‿householdPolicy‿envelopeHistory‿actualFacts‿planFacts‿planRetirements‿domain‿start‿finish‿observation:
   diagnostics ← ValidateInputs ⟨budgetFacts,budgetPolicy,householdPolicy,envelopeHistory,actualFacts,planFacts,domain,start,finish,observation⟩
   result ← EmptyResult ⟨"error","",domain,diagnostics⟩
   {𝕊:
     ownership ← ResolveOwnership ⟨actualFacts.accounts,budgetPolicy,householdPolicy,domain⟩
     result↩EmptyResult ⟨ownership.state,ownership.reason,domain,ownership.diagnostics⟩
     {𝕊:
-      prepared ← PrepareEvidence ⟨budgetFacts,envelopeHistory,actualFacts,planFacts,domain,start,finish,observation⟩
+      prepared ← PrepareEvidence ⟨budgetFacts,envelopeHistory,actualFacts,planFacts,planRetirements,domain,start,finish,observation⟩
       result↩EmptyResult ⟨"error","",domain,prepared.diagnostics⟩
       {𝕊:
-        sourceScales ← ⟨prepared.budget_period.scale,prepared.actual_balance.scale,prepared.consumption_observation.scale⟩
-        targetScale ← ⌈´sourceScales∾prepared.completion_join.rows.planned_scale
-        terms ← BuildEnvelopeTerms ⟨budgetFacts,actualFacts.accounts,ownership,prepared,domain,targetScale⟩
+        sourceScales ← ⟨prepared.budget_period.scale,prepared.actual_balance.scale,prepared.consumption_observation.scale,prepared.fulfillment_observation.scale,prepared.commitment_observation.scale⟩
+        targetScale ← ⌈´sourceScales
+        terms ← BuildEnvelopeTerms ⟨budgetFacts,actualFacts.accounts,ownership,prepared,targetScale⟩
         result↩EmptyResult ⟨"error","",domain,terms.diagnostics⟩
         {𝕊:
           backing ← BuildBacking ⟨budgetFacts,prepared,ownership,terms,targetScale⟩
@@ -265,6 +241,7 @@ Build ← {𝕊 budgetFacts‿budgetPolicy‿householdPolicy‿envelopeHistory�
             state⇐"ok",reason⇐"",domain⇐domain,start_ordinal⇐start,end_exclusive_ordinal⇐finish,observation_ordinal⇐observation,
             scale⇐targetScale,status⇐(backing.totals.backing_surplus<0)⊑"backed"‿"under_backed",
             envelopes⇐backing.table,totals⇐backing.totals,consumption_observation⇐prepared.consumption_observation,
+            fulfillment_observation⇐prepared.fulfillment_observation,commitment_observation⇐prepared.commitment_observation,
             funding_account_indices⇐ownership.funding_indices,funding_contributors⇐backing.funding_contributors,
             unassigned_contributors⇐backing.unassigned_contributors,diagnostics⇐empty
           }}⍟(backing.state≡"ok") @

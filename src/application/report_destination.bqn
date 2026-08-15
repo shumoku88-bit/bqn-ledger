@@ -15,7 +15,7 @@ Failure ← {𝕊 keyValue‿diagnosticsValue:
 Envelopes ← {𝕊 coordinates‿evidence:
   domain‿start‿finish‿observation ← coordinates
   compose.Envelopes ⟨
-    evidence.budget,evidence.budget_policy,evidence.household,evidence.envelope_history,evidence.actual,evidence.plan,
+    evidence.budget,evidence.budget_policy,evidence.household,evidence.envelope_history,evidence.actual,evidence.plan,evidence.plan_retirements,
     domain,start,finish,observation
   ⟩
 }

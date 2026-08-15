@@ -13,15 +13,15 @@ Diagnostic ← {𝕊 code‿message:
 EmptyRows ← {𝕊:
   {
     count⇐0,index⇐empty,account_key⇐empty,category⇐empty,
-    entitlement⇐empty,actual_consumption⇐empty,actual_refunds⇐empty,
+    entitlement⇐empty,actual_consumption⇐empty,actual_refunds⇐empty,fulfillment⇐empty,
     ledger_remaining⇐empty,open_plan_reserve⇐empty,post_plan_headroom⇐empty,
     entitlement_contributors⇐empty,consumption_contributors⇐empty,
-    refund_contributors⇐empty,plan_contributors⇐empty
+    refund_contributors⇐empty,fulfillment_contributors⇐empty,plan_contributors⇐empty
   }
 }
 EmptyTotals ← {𝕊:
   {
-    entitlement⇐empty,actual_consumption⇐empty,actual_refunds⇐empty,
+    entitlement⇐empty,actual_consumption⇐empty,actual_refunds⇐empty,fulfillment⇐empty,
     ledger_remaining⇐empty,open_plan_reserve⇐empty,post_plan_headroom⇐empty,
     funding_balance⇐empty,signed_envelope_total⇐empty,backing_required⇐empty,
     backing_surplus⇐empty,ledger_unassigned⇐empty,reconciliation_delta⇐empty
@@ -58,11 +58,12 @@ Build ← {𝕊 statement‿startText‿endText‿observationText:
         envelopes⇐{
           count⇐source.count,index⇐source.index,account_key⇐source.account_key,category⇐source.category,
           entitlement⇐source.entitlement,actual_consumption⇐source.actual_consumption,
-          actual_refunds⇐source.actual_refunds,ledger_remaining⇐source.ledger_remaining,
+          actual_refunds⇐source.actual_refunds,fulfillment⇐source.fulfillment,ledger_remaining⇐source.ledger_remaining,
           open_plan_reserve⇐source.open_plan_reserve,post_plan_headroom⇐source.post_plan_headroom,
           entitlement_contributors⇐source.entitlement_contributors,
           consumption_contributors⇐source.consumption_contributors,
-          refund_contributors⇐source.refund_contributors,plan_contributors⇐source.plan_contributors
+          refund_contributors⇐source.refund_contributors,fulfillment_contributors⇐source.fulfillment_contributors,
+          plan_contributors⇐source.plan_contributors
         },
         totals⇐statement.totals,funding_account_indices⇐statement.funding_account_indices,
         funding_contributors⇐statement.funding_contributors,
@@ -82,7 +83,7 @@ FormatHuman ← {𝕊 input:
   rows ← {𝕊 i:
     ⟨i⊑result.envelopes.category⟩∾Fmt¨⟨
       i⊑result.envelopes.entitlement,i⊑result.envelopes.actual_consumption,
-      i⊑result.envelopes.actual_refunds,i⊑result.envelopes.ledger_remaining,
+      i⊑result.envelopes.actual_refunds,i⊑result.envelopes.fulfillment,i⊑result.envelopes.ledger_remaining,
       i⊑result.envelopes.open_plan_reserve,i⊑result.envelopes.post_plan_headroom
     ⟩
   }¨result.envelopes.index
@@ -99,7 +100,7 @@ FormatHuman ← {𝕊 input:
     ("Horizon: "∾result.start∾".."∾result.end_exclusive),
     ("Observed through: "∾result.observation),""
   ⟩
-  envelopeTable ← text.RenderTable ⟨⟨"Envelope","Entitlement","Consumption","Credits/refunds","Remaining","Plan reserve","Headroom"⟩,rows,⟨1,2,3,4,5,6⟩⟩
+  envelopeTable ← text.RenderTable ⟨⟨"Envelope","Entitlement","Consumption","Credits/refunds","Fulfillment","Remaining","Plan reserve","Headroom"⟩,rows,⟨1,2,3,4,5,6,7⟩⟩
   backingBlock ← lf∾"Backing evidence"∾lf∾text.RenderTable ⟨⟨"Coordinate","Amount"⟩,backingRows,⟨1⟩⟩
   statusText ← ∾{𝕩∾lf}¨⟨("Status: "∾result.status),""⟩
   ∾⟨headingText,envelopeTable,backingBlock,statusText⟩
@@ -112,6 +113,7 @@ FormatCompact ← {𝕊 result:
       " entitlement=",AmountText ⟨i⊑result.envelopes.entitlement,result.scale⟩,
       " consumption=",AmountText ⟨i⊑result.envelopes.actual_consumption,result.scale⟩,
       " refunds=",AmountText ⟨i⊑result.envelopes.actual_refunds,result.scale⟩,
+      " fulfillment=",AmountText ⟨i⊑result.envelopes.fulfillment,result.scale⟩,
       " remaining=",AmountText ⟨i⊑result.envelopes.ledger_remaining,result.scale⟩,
       " reserve=",AmountText ⟨i⊑result.envelopes.open_plan_reserve,result.scale⟩,
       " headroom=",AmountText ⟨i⊑result.envelopes.post_plan_headroom,result.scale⟩
@@ -134,6 +136,7 @@ EnvelopeJson ← {𝕊 result‿i:
     json.Pair ⟨"entitlement",json.ExactNumber ⟨i⊑result.envelopes.entitlement,result.scale⟩⟩,
     json.Pair ⟨"actual_consumption",json.ExactNumber ⟨i⊑result.envelopes.actual_consumption,result.scale⟩⟩,
     json.Pair ⟨"actual_refunds",json.ExactNumber ⟨i⊑result.envelopes.actual_refunds,result.scale⟩⟩,
+    json.Pair ⟨"fulfillment",json.ExactNumber ⟨i⊑result.envelopes.fulfillment,result.scale⟩⟩,
     json.Pair ⟨"ledger_remaining",json.ExactNumber ⟨i⊑result.envelopes.ledger_remaining,result.scale⟩⟩,
     json.Pair ⟨"open_plan_reserve",json.ExactNumber ⟨i⊑result.envelopes.open_plan_reserve,result.scale⟩⟩,
     json.Pair ⟨"post_plan_headroom",json.ExactNumber ⟨i⊑result.envelopes.post_plan_headroom,result.scale⟩⟩

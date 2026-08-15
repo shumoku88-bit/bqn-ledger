@@ -20,7 +20,8 @@ accountLines ← loader.ReadLines base∾"accounts.tsv"
 accounts ← (account_admission.Admit ⟨accountLines,registry⟩).accounts
 actual ← (snapshot.Build ⟨accountLines,•FChars "../"∾base∾"actual.journal",registry⟩).facts
 planRaw ← •FChars "../"∾base∾"plan.journal"
-plan ← (canonicalPlan.Build ⟨planRaw,accounts,registry⟩).facts
+planResult ← canonicalPlan.Build ⟨planRaw,accounts,registry⟩
+plan ← planResult.facts ⋄ planRetirements ← planResult.retirements
 lf ← @+10
 Raw ← {𝕊 lines: ∾lines∾¨lf}
 budgetRaw ← Raw ⟨
@@ -64,7 +65,7 @@ monthly ← compose.MonthlyAccounts ⟨actual,"JPY","2026-01","2026-03"⟩
 CheckGolden ⟨monthly,"monthly-accounts","human","monthly_accounts.destination.human.txt"⟩
 dailyFlow ← compose.DailyFlow ⟨actual,budgetPolicy,household,"JPY","2026-01-01","2026-02-01","2026-01-12"⟩
 CheckGolden ⟨dailyFlow,"daily-flow","human","daily_flow.destination.human.txt"⟩
-envelopes ← compose.Envelopes ⟨budget,budgetPolicy,household,envelopeHistory,actual,plan,"JPY","2026-01-01","2026-02-01","2026-01-12"⟩
+envelopes ← compose.Envelopes ⟨budget,budgetPolicy,household,envelopeHistory,actual,plan,planRetirements,"JPY","2026-01-01","2026-02-01","2026-01-12"⟩
 CheckGolden ⟨envelopes,"envelopes","compact","envelope_backing.destination.compact.txt"⟩
 
 Ref ← {𝕊 id:{source⇐"synthetic",transaction_id⇐id,posting_id⇐id}}
