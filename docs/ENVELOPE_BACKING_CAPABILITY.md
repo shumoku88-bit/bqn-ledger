@@ -1,77 +1,84 @@
 # Retained Envelope & Backing report
 
-Status: retained capability; `src/accounting/envelope_backing.bqn` architecture review completed after PRs #596–#602.
+Status: retained production capability on native historical Consumption, Fulfillment, and Commitment observation.
 
 Owners:
 
-- `src/accounting/envelope_backing.bqn` — strict evidence composition, Envelope terms, and exact Backing arithmetic;
-- `src/sections/envelope_backing.bqn` — retained human/compact/JSON semantic owner.
+- `src/accounting/envelope_consumption.bqn` owns Actual Expense Consumption observation;
+- `src/accounting/plan_observation.bqn` owns role-neutral Plan lifecycle observation;
+- `src/accounting/envelope_fulfillment.bqn` owns completed Plan Fulfillment;
+- `src/accounting/envelope_commitment.bqn` owns open Plan Commitment;
+- `src/accounting/envelope_backing.bqn` composes Envelope terms and Backing;
+- `src/sections/envelope_backing.bqn` owns retained human/compact/JSON presentation.
 
 ## Inputs and ownership
 
-`src/accounting/envelope_backing.bqn` composes admitted Budget, Actual, and Plan Facts over explicit `[start,end_exclusive)`, observation, and domain together with admitted `budget.toml` and `household.toml` policy.
+Envelope/Backing consumes admitted Budget, Actual, Plan Facts, admitted Plan retirement evidence, historical Envelope routing, current `budget.toml`, and current `household.toml` policy over explicit `[start,end_exclusive)`, observation, and domain coordinates.
 
-Ownership is key-based and re-resolved against the statement's current Actual Facts Account axis:
+Ownership is intentionally split by lifetime:
 
-- `budget.toml` owns Envelope ids, Envelope Expense Account keys, and Backing-pool Asset Account keys;
-- `household.toml` owns Envelope allocation Account keys and unassigned Budget Account keys;
-- current-Facts role and Account existence are revalidated before numeric publication;
-- Backing-pool membership may span Commodities, then the current Account axis is projected to the selected domain while preserving policy order.
+- Budget movement evidence supplies Entitlement compatibility evidence;
+- historical Expense routing supplies Actual Consumption meaning at Posting day;
+- stable PlanId + Actual completion + completion-day Fulfillment routing supplies completed Fulfillment;
+- open Plan Postings + observation-day routing supplies Commitment;
+- `household.toml` current policy supplies Envelope allocation Account and unassigned Budget Account coordinates;
+- `budget.toml` current policy supplies Backing-pool Asset Account topology.
 
-The former `src/application/funding_scope.bqn` capability was retired during the Application review after confirming it had no production consumer. It was not the ownership authority or an input route for Envelope Backing. Envelope Backing resolves its Backing Account relation from admitted `budget.toml` policy itself.
+Current Expense assignments do not backfill historical Consumption and do not determine Plan claims. Plan destination Account names are not Envelope claim authority.
 
-Missing, duplicate, unknown, wrong-role, or otherwise invalid required ownership fails closed with diagnostics. There is no supported diagnostics-free `unavailable` ownership state and missing ownership is never published as numeric zero.
+Missing, conflicting, unknown, wrong-role, or otherwise invalid required evidence fails closed. Missing historical routing is never silently converted to current configuration.
 
 ## Accounting shape
 
-The accounting owner retains named purpose-specific stages:
+The composition remains purpose-specific rather than a generic pipeline:
 
 ```text
 ValidateInputs
   -> ResolveOwnership
   -> PrepareEvidence
+       -> Consumption
+       -> Fulfillment
+       -> Commitment
   -> BuildEnvelopeTerms
   -> BuildBacking
   -> public result
 ```
 
-This staged control shape is intentional. Ownership resolution, Plan completion evidence, exact Envelope term construction, and aggregate Backing each have independent failure boundaries, so the review did not flatten them merely to resemble another kernel or introduce a generic pipeline framework.
+`ResolveOwnership` now resolves structural Envelope allocation and Backing topology only. It no longer constructs a current Expense-Account-to-Envelope relation for Plan reserve.
 
-`BuildEnvelopeTerms` keeps the array relations visible:
+`BuildEnvelopeTerms` aligns native observations by stable Envelope identity and performs exact reductions:
 
-- Envelope allocation closing balances become entitlement;
-- selected-domain Expense Accounts are grouped onto the Envelope axis for consumption and expense-credit evidence;
-- open Plan destinations are matched against the already-resolved Expense Account relation and grouped onto the same Envelope axis for reserve;
-- remaining and post-Plan headroom are exact aligned reductions.
+```text
+Remaining = Entitlement - Consumption + Refunds - Fulfillment
+Headroom  = Remaining - Commitment
+```
 
-PR #601 added the focused relation law proving that generated Envelope ids already map to valid category coordinates, that an assigned Plan destination inherits the resolved Expense role/domain/category relation, and that an unmatched Plan destination remains simply ineligible. PR #602 then removed only those proven duplicate guards from `BuildEnvelopeTerms`.
+The outward `open_plan_reserve` field remains as a compatibility label for Commitment. Fulfillment is exposed independently so Remaining does not hide why Envelope capacity changed.
 
-The result keeps entitlement, consumption, expense-credit/refund evidence, ledger remaining, open Plan reserve, and post-Plan headroom separate. It also keeps funding balance, signed Envelope total, positive Backing requirement, Backing surplus, Budget unassigned, and reconciliation delta separate.
+## Plan evidence
 
-Completion uses durable `plan_id` Join and rejects duplicate, ambiguous, currency-mismatched, or direction-mismatched evidence before numeric publication.
+Plan lifecycle is role-neutral. A Plan becomes completed through stable PlanId Actual evidence, not through Account similarity. Retirement is separate admitted evidence.
 
-P1 defines consumption as positive expense-debit evidence and `actual_refunds` as the positive projection of expense-credit evidence. The latter is an accounting-sign coordinate, not a proven economic classification: an expense reclassification may also produce a credit. Exact Posting/Transaction provenance is retained so a future selected consumer can distinguish external refund, reclassification, and other credit through an explicit counterpart/classification contract. No such distinction is inferred from Account names. The current human label `Refunds` remains shorthand for this documented “expense credits / refunds” boundary.
+Completed Fulfillment freezes routing at the completion Actual day, validates the routed Plan/Actual Account order, posting direction, and Commodity, then uses Actual quantities as authoritative evidence. Multi-posting non-Expense targets remain representable.
+
+Open Commitment instead observes effective routing at the current observation day. Expense and non-Expense target meaning therefore remain explicit and can evolve without rewriting completed history.
+
+Duplicate completion evidence and ambiguous effective routing fail at their owning observation layer with specific diagnostics rather than being reconstructed as a generic Backing conflict.
 
 ## Exactness and evidence
 
-All arithmetic normalizes exactly to one scale and fails closed at the operation that can fail. Budget, Actual, Plan, funding, and unassigned contributors remain source-qualified and deterministic.
+All Envelope arithmetic normalizes exactly and fails closed when exact reduction cannot be represented. Posting and Transaction provenance from Consumption, Fulfillment, Commitment, funding, and Budget evidence is retained through the statement.
 
-Backing remains a whole-Household selected-domain statement: current funding evidence is compared with positive Envelope remaining, then surplus, Budget unassigned, and reconciliation delta are published separately. The review did not invent pool-specific shortage/surplus semantics.
-
-Focused and synthetic proof covers grouped Expense ownership, Account-order invariance, opening position, open and completed Plan, unmatched Plan destination, refunds/expense credits, overspent remaining, under-backed funding, empty Plan, duplicate completion conflict, ownership failures, unknown domain/range, exact normalization overflow, and source-qualified contributor order.
+Backing remains a whole-Household selected-domain statement: current funding evidence is compared with positive Remaining, then Backing surplus, Budget unassigned, and reconciliation delta are published separately. Pool-specific shortage/surplus semantics are not inferred here.
 
 ## Publication
 
-The section verifies strict date text against accounting ordinals and renders one accounting result as:
+The retained section renders Human, compact, and JSON surfaces. It publishes Entitlement, Consumption, credits/refunds, Fulfillment, Remaining, Plan reserve/Commitment, and Headroom separately, followed by Backing evidence.
 
-- a human bounded Statement with Envelope terms and a separately labelled Backing evidence table;
-- compact `ledger_envelope_*` keys, including `ledger_envelope_item` rows;
-- exact-number JSON without float conversion.
+The section verifies strict date text against accounting ordinals. Exact-number JSON avoids float conversion. Backed and under-backed states remain explicit.
 
-Backed and under-backed renderer states remain tested. Production report composition continues to call the accounting owner directly; selector and terminal UI concerns remain outside this accounting capability.
+## Compatibility boundary
 
-## Review decision
+`open_plan_reserve` and the visible `Plan reserve` label are retained names only. They must not be interpreted as a second owner beside Commitment.
 
-The Envelope Backing accounting owner is review-complete under the current dense-array/subtraction policy. The successful path now exposes the retained whole-array relations without the local guards proven redundant by #601, while the staged failure boundaries, exactness, source authority, identity, provenance, and whole-Household Backing semantics are retained.
-
-The always-empty public `reason` field is not an Envelope Backing accounting-kernel law. Removing or reshaping it would be a public result/consumer compatibility decision and is deferred to the later result/section reachability audit rather than mixed into this owner review.
+Physical Budget-era names and result-shape compatibility can be retired independently later. Such cleanup must not restore current configuration or Account-name inference as historical Envelope authority.

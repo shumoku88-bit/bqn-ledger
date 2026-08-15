@@ -81,10 +81,10 @@ result ← envelopes.Build ⟨budget,policy,household,actual,plan,"JPY",dates.Or
 1 lib.AssertEq result.consumption_observation.unmanaged.count
 0 lib.AssertEq result.consumption_observation.unrouted.count
 
-# Budget policy keeps Account keys, not the admission-time numeric coordinate.
+# Budget policy keeps Backing Account keys, not admission-time numeric coordinates.
 # Reversing only the Account carrier used for policy admission must therefore
-# leave current Plan assignment and backing-pool resolution unchanged. Actual
-# Consumption is independently fixed by the test's historical routing facts.
+# leave Backing-pool resolution unchanged. Envelope claims are independently
+# fixed by explicit historical routing facts.
 reorderedAccounts ← {
   count⇐actual.accounts.count,index⇐actual.accounts.index,
   key⇐⌽actual.accounts.key,role⇐⌽actual.accounts.role
@@ -175,7 +175,7 @@ duplicateHousehold ← MakeHouseholdPolicy ⟨duplicateActual.accounts,"budget:f
 duplicateCompletion ← envelopes.Build ⟨syntheticBudget,syntheticPolicy,duplicateHousehold,duplicateActual,syntheticPlan,"JPY",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-10"⟩
 "error" lib.AssertEq duplicateCompletion.state
 0 lib.AssertEq duplicateCompletion.envelopes.count
-"plan_completion_conflict" lib.AssertEq (⊑duplicateCompletion.diagnostics).code
+"plan_completion_multiple_actuals" lib.AssertEq (⊑duplicateCompletion.diagnostics).code
 
 overflowLines ← ⟨
   Join ⟨"assets:ils","role=asset","currency=ILS"⟩,
