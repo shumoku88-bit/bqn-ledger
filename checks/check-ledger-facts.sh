@@ -41,6 +41,7 @@ bqn tests/test_accounting_cycle_resolution.bqn >/dev/null
 bqn tests/test_accounting_cycle_account_period.bqn >/dev/null
 bqn tests/test_accounting_cycle_comparison.bqn >/dev/null
 bqn tests/test_accounting_plan_completion_join.bqn >/dev/null
+bqn tests/test_accounting_plan_observation.bqn >/dev/null
 bqn tests/test_accounting_envelope_backing.bqn >/dev/null
 bqn tests/test_accounting_envelope_consumption.bqn >/dev/null
 bqn tests/test_accounting_envelope_fulfillment.bqn >/dev/null
