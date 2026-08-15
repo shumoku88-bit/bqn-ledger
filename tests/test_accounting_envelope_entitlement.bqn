@@ -300,4 +300,81 @@ resF ← Build negF
 "error" lib.AssertEq resF.state
 "envelope_entitlement_negative" lib.AssertEq (⊑resF.diagnostics).code
 
+# Witness A: visible scale-0 Entitlement plus valid future scale-2 movement
+# => current result.scale remains 0 and current coefficient unchanged.
+witnessA ← Admit Raw ⟨
+  "2026-01-01 opening-unassigned",
+  "  budget:opening       -100 USD",
+  "  budget:unassigned     100 USD","",
+  "2026-01-02 grant-food",
+  "  budget:unassigned    -10 USD",
+  "  budget:food           10 USD","",
+  "2026-01-15 future-scale-2-grant",
+  "  budget:unassigned    -5.25 USD",
+  "  budget:food           5.25 USD"
+⟩
+resWitA ← Build witnessA
+"ok" lib.AssertEq resWitA.state
+0 lib.AssertEq resWitA.scale
+⟨10,0⟩ lib.AssertEq resWitA.managed.entitlement
+90 lib.AssertEq resWitA.unassigned
+⟨10⟩ lib.AssertEq resWitA.observations.amount
+
+# Witness B: visible scale-0 Entitlement plus future unassigned-only scale-2 row
+# => current result.scale remains 0.
+witnessB ← Admit Raw ⟨
+  "2026-01-01 opening-unassigned",
+  "  budget:opening       -100 USD",
+  "  budget:unassigned     100 USD","",
+  "2026-01-02 grant-food",
+  "  budget:unassigned    -10 USD",
+  "  budget:food           10 USD","",
+  "2026-01-15 future-unassigned-seed",
+  "  budget:opening       -50.55 USD",
+  "  budget:unassigned     50.55 USD"
+⟩
+resWitB ← Build witnessB
+"ok" lib.AssertEq resWitB.state
+0 lib.AssertEq resWitB.scale
+⟨10,0⟩ lib.AssertEq resWitB.managed.entitlement
+90 lib.AssertEq resWitB.unassigned
+⟨10⟩ lib.AssertEq resWitB.observations.amount
+
+# Witness C: future scale-2 movement that makes historical Entitlement negative
+# => still fail with envelope_entitlement_negative even though it is outside the observation.
+witnessC ← Admit Raw ⟨
+  "2026-01-01 opening-unassigned",
+  "  budget:opening       -100 USD",
+  "  budget:unassigned     100 USD","",
+  "2026-01-02 grant-food",
+  "  budget:unassigned    -10 USD",
+  "  budget:food           10 USD","",
+  "2026-01-15 future-over-release",
+  "  budget:food         -10.01 USD",
+  "  budget:unassigned    10.01 USD"
+⟩
+resWitC ← Build witnessC
+"error" lib.AssertEq resWitC.state
+"envelope_entitlement_negative" lib.AssertEq (⊑resWitC.diagnostics).code
+
+# Witness D: independent Envelope with a different future scale must not alter
+# current representation of another Envelope.
+witnessD ← Admit Raw ⟨
+  "2026-01-01 opening-unassigned",
+  "  budget:opening       -100 USD",
+  "  budget:unassigned     100 USD","",
+  "2026-01-02 grant-food",
+  "  budget:unassigned    -10 USD",
+  "  budget:food           10 USD","",
+  "2026-01-15 future-transport-grant",
+  "  budget:unassigned    -5.25 USD",
+  "  budget:transport      5.25 USD"
+⟩
+resWitD ← Build witnessD
+"ok" lib.AssertEq resWitD.state
+0 lib.AssertEq resWitD.scale
+⟨10,0⟩ lib.AssertEq resWitD.managed.entitlement
+90 lib.AssertEq resWitD.unassigned
+⟨10⟩ lib.AssertEq resWitD.observations.amount
+
 •Out "test_accounting_envelope_entitlement: ok"
