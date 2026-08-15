@@ -7,12 +7,13 @@ cd "$root"
 echo '[1/3] BQN tests' >&2
 for test_file in tests/test_*.bqn; do
   [[ -f $test_file ]] || continue
-  bqn "$test_file" >/dev/null || {
+  if ! test_output="$(bqn "$test_file" 2>&1)"; then
     echo "FAIL: $test_file" >&2
-    echo "::error file=$test_file::BQN test failed"
-    bqn "$test_file"
+    printf '%s\n' "$test_output" >&2
+    annotation="$(printf '%s' "$test_output" | tail -c 3000 | tr '\n' ' ')"
+    echo "::error file=$test_file::$annotation"
     exit 1
-  }
+  fi
 done
 
 echo '[2/3] final report checks' >&2
