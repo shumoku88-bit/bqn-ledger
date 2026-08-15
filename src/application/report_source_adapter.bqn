@@ -20,20 +20,21 @@ CanonicalHouseholdShared ← {𝕊 base‿accounts‿budgetPolicy:householdSourc
 CanonicalReportPolicy ← {𝕊 base:reportPolicySource.Load base}
 
 Unavailable ← {𝕊:{state⇐"error",diagnostics⇐empty}}
-ContextFailure ← {𝕊 diagnosticsValue:{state⇐"error",plan⇐@,budget_policy⇐@,household⇐@,envelope_history⇐@,diagnostics⇐diagnosticsValue}}
+ContextFailure ← {𝕊 diagnosticsValue:{state⇐"error",plan⇐@,plan_retirements⇐@,budget_policy⇐@,household⇐@,envelope_history⇐@,diagnostics⇐diagnosticsValue}}
 ContextSuccess ← {𝕊 planResult‿policyResult‿householdResult‿diagnosticsValue:
   {
-    state⇐"ok",plan⇐planResult.facts,budget_policy⇐policyResult,
-    household⇐householdResult.current,envelope_history⇐householdResult.history,
-    diagnostics⇐diagnosticsValue
+    state⇐"ok",plan⇐planResult.facts,plan_retirements⇐planResult.retirements,
+    budget_policy⇐policyResult,household⇐householdResult.current,
+    envelope_history⇐householdResult.history,diagnostics⇐diagnosticsValue
   }
 }
-CompanionFailure ← {𝕊 diagnosticsValue:{state⇐"error",plan⇐@,budget⇐@,budget_policy⇐@,household⇐@,envelope_history⇐@,diagnostics⇐diagnosticsValue}}
+CompanionFailure ← {𝕊 diagnosticsValue:{state⇐"error",plan⇐@,plan_retirements⇐@,budget⇐@,budget_policy⇐@,household⇐@,envelope_history⇐@,diagnostics⇐diagnosticsValue}}
 CompanionSuccess ← {𝕊 context‿budgetResult‿diagnosticsValue:
   {
-    state⇐"ok",plan⇐context.plan,budget⇐budgetResult.facts,
-    budget_policy⇐context.budget_policy,household⇐context.household,
-    envelope_history⇐context.envelope_history,diagnostics⇐diagnosticsValue
+    state⇐"ok",plan⇐context.plan,plan_retirements⇐context.plan_retirements,
+    budget⇐budgetResult.facts,budget_policy⇐context.budget_policy,
+    household⇐context.household,envelope_history⇐context.envelope_history,
+    diagnostics⇐diagnosticsValue
   }
 }
 

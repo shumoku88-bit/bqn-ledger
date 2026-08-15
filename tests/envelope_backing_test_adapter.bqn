@@ -1,9 +1,9 @@
-# Test-only adapter for legacy Envelope/Backing fixtures during the historical
-# Actual Consumption cutover. Histories below are explicit fixture facts keyed
-# only by known test Account shapes. They never derive routing from budget.toml.
+# Test-only adapter for legacy Envelope/Backing fixtures during native routing cutover.
+# Historical routes are explicit fixture facts and never derive from budget.toml.
 
 core ← •Import "../src/accounting/envelope_backing.bqn"
 historyFixture ← •Import "envelope_history_test_fixture.bqn"
+empty ← ⟨⟩
 
 Has ← {𝕊 key‿keys:∨´0∾key⊸≡¨keys}
 HistoryFor ← {𝕊 facts:
@@ -15,9 +15,10 @@ HistoryFor ← {𝕊 facts:
   {𝕊:history↩historyFixture.Managed ⟨⟨"food"⟩,⟨"expenses:ils"⟩,⟨"food"⟩⟩}⍟(Has ⟨"expenses:ils",keys⟩) @
   history
 }
+EmptyRetirements ← {𝕊:{plan_id⇐empty,retired_on⇐empty}}
 
 Build ← {𝕊 budget‿policy‿household‿actual‿plan‿domain‿start‿finish‿observation:
-  core.Build ⟨budget,policy,household,HistoryFor actual,actual,plan,domain,start,finish,observation⟩
+  core.Build ⟨budget,policy,household,HistoryFor actual,actual,plan,EmptyRetirements @,domain,start,finish,observation⟩
 }
 
 {Build⇐Build,HistoryFor⇐HistoryFor}

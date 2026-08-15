@@ -2,7 +2,9 @@
 #
 # Physical basenames come from canonical_household_sources.bqn. Account identity
 # comes from accounts.journal. Root include topology is checked before Plan-specific
-# durable identity admission and generic aligned Fact projection.
+# durable identity admission and generic aligned Fact projection. Plan retirement
+# remains a Plan-owned companion relation rather than being flattened into generic
+# Transaction/Posting Facts.
 
 io ← •Import "source_io.bqn"
 sources ← •Import "canonical_household_sources.bqn"
@@ -17,14 +19,17 @@ LoadFromAccounts ← {𝕊 base‿accounts‿registry:
   raw ← io.ReadRaw (io.JoinPath ⟨base,sources.plan⟩)
   rootResult ← rootAdmission.Admit ⟨raw,sources.accounts⟩
   (rootResult.state≡"ok")◶⟨
-    {𝕊:{state⇐"error",diagnostics⇐rootResult.diagnostics}},
+    {𝕊:{state⇐"error",retirements⇐@,diagnostics⇐rootResult.diagnostics}},
     {𝕊:
       admitted ← planAdmission.Admit ⟨raw,accounts,registry⟩
       (admitted.state≡"ok")◶⟨
-        {𝕊:{state⇐"error",diagnostics⇐admitted.diagnostics}},
+        {𝕊:{state⇐"error",retirements⇐@,diagnostics⇐admitted.diagnostics}},
         {𝕊:
           projected ← facts.Project ⟨admitted,accounts⟩
-          {state⇐projected.state,facts⇐projected,diagnostics⇐projected.diagnostics}
+          {
+            state⇐projected.state,facts⇐projected,retirements⇐admitted.retirements,
+            diagnostics⇐projected.diagnostics
+          }
         }
       ⟩ @
     }
@@ -34,7 +39,7 @@ LoadFromAccounts ← {𝕊 base‿accounts‿registry:
 Load ← {𝕊 base‿registry:
   accountResult ← accountSource.Load base
   (accountResult.state≡"ok")◶⟨
-    {𝕊:{state⇐"error",diagnostics⇐accountResult.diagnostics}},
+    {𝕊:{state⇐"error",retirements⇐@,diagnostics⇐accountResult.diagnostics}},
     {𝕊:LoadFromAccounts ⟨base,accountResult.accounts,registry⟩}
   ⟩ @
 }

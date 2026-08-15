@@ -10,6 +10,7 @@
 # date, amount, description, or postings.
 
 journal ← •Import "journal_complete_admission.bqn"
+dates ← •Import "date_ordinal.bqn"
 
 space ← @+32
 tab ← @+9
@@ -97,6 +98,15 @@ LocalRetirement ← {𝕊 transaction:
     Diagnostic ⟨"plan_superseded_by_missing",transaction.source_start_line,"superseded-on requires superseded-by"⟩⟩
   diagnostics ∾↩ AddIf ⟨hasSupersededBy ∧ ¬hasSupersededOn,
     Diagnostic ⟨"plan_superseded_on_missing",transaction.source_start_line,"superseded-by requires superseded-on"⟩⟩
+
+  cancelDateValid ← 1
+  supersededDateValid ← 1
+  {𝕊:cancelDateValid↩dates.IsValid ⊑cancelValues}⍟hasCancel @
+  {𝕊:supersededDateValid↩dates.IsValid ⊑supersededOnValues}⍟hasSupersededOn @
+  diagnostics ∾↩ AddIf ⟨hasCancel ∧ ¬cancelDateValid,
+    Diagnostic ⟨"plan_retirement_date_invalid",transaction.source_start_line,"cancelled-on must be strict Gregorian YYYY-MM-DD"⟩⟩
+  diagnostics ∾↩ AddIf ⟨hasSupersededOn ∧ ¬supersededDateValid,
+    Diagnostic ⟨"plan_retirement_date_invalid",transaction.source_start_line,"superseded-on must be strict Gregorian YYYY-MM-DD"⟩⟩
 
   row ← @
   {𝕊:

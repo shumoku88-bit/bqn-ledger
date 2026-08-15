@@ -1,12 +1,10 @@
 # Envelope-native migration
 
-Status: active migration toward the shared Envelope semantics currently exercised by h-kernel.
+Status: production Plan claim observation now uses historical Envelope routing.
 
 ## Ownership direction
 
-The canonical physical source set remains unchanged. `household.toml` is one physical source with multiple semantic owners.
-
-Current Household policy and historical Envelope evidence have different lifetimes:
+The canonical physical source set remains unchanged. `household.toml` is one physical source with multiple semantic owners. Current policy and historical evidence have different lifetimes and must not reconstruct one another.
 
 ```text
 household.toml bytes
@@ -14,54 +12,59 @@ household.toml bytes
   -> historical Envelope projection      -> history admission
 ```
 
-The current-policy owner must not reinterpret or validate historical Expense/Plan routing as current configuration. Historical routing must not reconstruct missing history from current `budget.toml` assignments.
-
-## Shared source projection
-
-`src/ledger/household_current_policy_projection.bqn` recognizes only the explicit historical section family:
-
-- `[envelope-history]`
-- `[[envelope-history.expense-routing]]`
-- `[[envelope-history.fulfillment-routing]]`
-
-The two semantic views preserve physical row coordinates by replacing excluded rows with empty rows instead of deleting them. Unrelated unknown sections remain visible to the strict current-policy admission and continue to fail closed.
-
-`src/application/household_source_adapter.bqn` exposes a shared observation that reads canonical `household.toml` once, then admits current policy and historical Envelope evidence from those same bytes. Report Household context carries both results while preserving the existing Plan / Budget policy / Household evaluation and diagnostic order.
+Missing historical routing never falls back to current `budget.toml` assignments.
 
 ## Historical Envelope owner
 
-`src/ledger/envelope_history_admission.bqn` owns source-local historical meaning:
+`src/ledger/envelope_history_admission.bqn` owns stable Envelope identities plus effective-dated Expense and PlanId Fulfillment routing. Account and Plan references remain source-local keys at that boundary; cross-source existence is qualified against admitted Account and Plan evidence.
 
-- stable Envelope identities;
-- Expense routing effective coordinate, Expense Account key, managed/unmanaged decision, target identity, note, and source row;
-- fulfillment routing effective coordinate, PlanId, fulfills/not-target decision, target identity, note, and source row;
-- strict route/target shape;
-- strict effective-date syntax;
-- unique Expense-Account/effective and PlanId/effective coordinates;
-- fail-closed publication.
+## Actual Consumption
 
-Older canonical fixtures without `[envelope-history]` admit explicit absence with empty history. No routing is invented from current policy.
+`src/accounting/envelope_consumption.bqn` keeps Actual Posting/day coordinates until each Expense posting is resolved through effective historical Expense routing. Managed, explicit unmanaged, and unrouted attention evidence remain distinct. Charges and credits/refunds retain Posting provenance and route source rows.
 
-Account and Plan references deliberately remain source-local keys at this boundary. Their existence and roles belong to cross-source Household qualification because those identity universes are owned by admitted Account / Plan evidence, not by `household.toml` parsing.
+## Plan lifecycle
 
-## Actual Consumption cutover
+`src/accounting/plan_observation.bqn` owns role-neutral Plan lifecycle observation from stable PlanId, admitted retirement evidence, Actual completion evidence, and observation day. Account role, posting shape, and Envelope meaning are deliberately outside this owner.
 
-Historical Expense routing now owns Actual Envelope Consumption.
+Plan retirement evidence is admitted with `plan.journal` and carried separately as `plan_retirements`; it is not encoded into generic Facts.
 
-`src/accounting/envelope_consumption.bqn` keeps the Actual Posting/day axis until each Expense posting has been joined to the effective historical route. Only then are managed postings grouped onto the stable Envelope identity axis. This preserves routing changes inside one statement period instead of erasing them through Account-first aggregation.
+## Completed Fulfillment
 
-The Consumption observation keeps three explicit lanes:
+`src/accounting/envelope_fulfillment.bqn` resolves completed Plans through the Fulfillment route effective on the completion Actual day. Only `fulfills` pairs require completion-shape validation. Actual quantities are authoritative, and positive non-Expense target Postings can remain multi-posting evidence.
 
-- managed Expense evidence contributes to its historical Envelope;
-- explicit unmanaged evidence remains separate from routing attention;
-- missing routing remains explicit unrouted attention evidence.
+A later current-policy change therefore cannot rewrite historical completed Fulfillment.
 
-Refunds use the same Posting-day historical route as charges. Posting provenance and route source rows remain attached to the resulting observation. Missing historical routing never falls back to current `budget.toml` Expense assignments.
+## Open Commitment
 
-Envelope/Backing consumes only the managed lane for Actual Consumption arithmetic and retains the full Consumption observation, including unrouted and unmanaged evidence. Current `budget.toml` Expense assignment remains temporarily in Envelope/Backing only as the compatibility authority for open Plan reserve, not for Actual evidence.
+`src/accounting/envelope_commitment.bqn` observes open Plan Postings at the statement observation day:
 
-## Next semantic cutover
+- Expense Postings use observation-day Expense routing;
+- positive non-Expense Postings use observation-day PlanId Fulfillment routing;
+- explicit unmanaged and unrouted Expense lanes stay separate;
+- current `budget.toml` Expense assignments are not an input.
 
-The next bounded work is Plan fulfillment routing and the removal of current Plan-destination/Expense-assignment authority from Envelope claims.
+Open Commitment intentionally follows current effective historical routing because it is still intent, not frozen completion evidence.
 
-That work must preserve stable PlanId evidence and distinguish open commitment from completed fulfillment. Native Fulfillment/Remaining/Commitment/Headroom, Backing ownership separation, and legacy Budget writer retirement remain later steps. They must be derived from explicit BQN relations rather than copied mechanically from another engine's implementation shape.
+## Envelope & Backing composition
+
+Production `src/accounting/envelope_backing.bqn` now composes native observations:
+
+```text
+Entitlement
+Consumption
+Fulfillment
+Remaining  = Entitlement - Consumption + Refunds - Fulfillment
+Commitment
+Headroom   = Remaining - Commitment
+Backing
+```
+
+The retained external `open_plan_reserve` field and `Plan reserve` label are compatibility names for Commitment. They are not a separate semantic owner.
+
+Current `budget.toml` remains relevant for current Backing topology and current presentation/configuration policy. It is no longer Plan claim authority. Plan destination Account names are not used to infer Envelope meaning.
+
+## Remaining migration boundary
+
+Physical Budget-era source names and other retained compatibility vocabulary may remain until separate source/writer retirement work. They must not regain semantic authority over historical Envelope claims.
+
+Future changes should preserve exact arithmetic, stable identity, provenance, fail-closed ambiguity handling, and the distinction between historical evidence and current configuration. BQN implementations should keep the relations visible rather than mechanically copying another engine's type structure.

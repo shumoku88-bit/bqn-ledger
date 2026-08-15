@@ -35,9 +35,9 @@ routeAdmission ← route.Admit ⟨key,surface,coordinates⟩
 {𝕊:PrintDiagnostics routeAdmission.diagnostics}⍟(routeAdmission.state≢"ok") @
 catalogIndex ← routeAdmission.catalog_index ⋄ coordinates↩routeAdmission.coordinates
 
-MakeEvidence ← {𝕊 actualValue‿planValue‿budgetValue‿budgetPolicyValue‿householdValue‿envelopeHistoryValue‿issueLinesValue:
+MakeEvidence ← {𝕊 actualValue‿planValue‿planRetirementsValue‿budgetValue‿budgetPolicyValue‿householdValue‿envelopeHistoryValue‿issueLinesValue:
   {
-    registry⇐registry,actual⇐actualValue,plan⇐planValue,budget⇐budgetValue,
+    registry⇐registry,actual⇐actualValue,plan⇐planValue,plan_retirements⇐planRetirementsValue,budget⇐budgetValue,
     budget_policy⇐budgetPolicyValue,household⇐householdValue,envelope_history⇐envelopeHistoryValue,
     issue_lines⇐issueLinesValue
   }
@@ -51,20 +51,20 @@ LoadCompanions ← {𝕊:
   actual ← RequireActual @
   companions ← sources.Companions ⟨base,actual.accounts,registry⟩
   {𝕊:PrintDiagnostics companions.diagnostics}⍟(companions.state≢"ok") @
-  MakeEvidence ⟨actual,companions.plan,companions.budget,companions.budget_policy,companions.household,companions.envelope_history,empty⟩
+  MakeEvidence ⟨actual,companions.plan,companions.plan_retirements,companions.budget,companions.budget_policy,companions.household,companions.envelope_history,empty⟩
 }
 LoadActual ← {𝕊:
   actual ← RequireActual @
-  MakeEvidence ⟨actual,@,@,@,@,@,empty⟩
+  MakeEvidence ⟨actual,@,@,@,@,@,@,empty⟩
 }
 LoadContext ← {𝕊:
   actual ← RequireActual @
   context ← sources.HouseholdContext ⟨base,actual.accounts,registry⟩
   {𝕊:PrintDiagnostics context.diagnostics}⍟(context.state≢"ok") @
-  MakeEvidence ⟨actual,context.plan,@,context.budget_policy,context.household,context.envelope_history,empty⟩
+  MakeEvidence ⟨actual,context.plan,context.plan_retirements,@,context.budget_policy,context.household,context.envelope_history,empty⟩
 }
 LoadIssues ← {𝕊:
-  MakeEvidence ⟨@,@,@,@,@,@,sources.IssueLines base⟩
+  MakeEvidence ⟨@,@,@,@,@,@,@,sources.IssueLines base⟩
 }
 evidenceLoaders ← ⟨
   LoadCompanions,LoadActual,LoadActual,LoadActual,LoadActual,LoadContext,

@@ -58,7 +58,7 @@ presentation ← {negative_style⇐"minus"}
 }⍟(surface≡"human") @
 
 evidence ← {
-  registry⇐registry,actual⇐actual,plan⇐companions.plan,budget⇐companions.budget,
+  registry⇐registry,actual⇐actual,plan⇐companions.plan,plan_retirements⇐companions.plan_retirements,budget⇐companions.budget,
   budget_policy⇐companions.budget_policy,household⇐companions.household,
   envelope_history⇐companions.envelope_history,issue_lines⇐issueLines
 }

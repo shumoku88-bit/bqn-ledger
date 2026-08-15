@@ -28,6 +28,7 @@ result ← section.Build ⟨statement,"2026-01-01","2026-02-01","2026-01-12"⟩
 "backed" lib.AssertEq result.status
 1 lib.AssertEq result.envelopes.count
 30 lib.AssertEq result.totals.signed_envelope_total
+0 lib.AssertEq result.totals.fulfillment
 (•FChars "../"∾base∾"envelope_backing.destination.human.txt") lib.AssertEq section.FormatHuman result
 (•FChars "../"∾base∾"envelope_backing.destination.compact.txt") lib.AssertEq section.FormatCompact result
 (•FChars "../"∾base∾"envelope_backing.destination.json") lib.AssertEq section.FormatJson result
@@ -37,7 +38,7 @@ underStatement ← {
   scale⇐statement.scale,status⇐"under_backed",envelopes⇐statement.envelopes,
   totals⇐{
     entitlement⇐statement.totals.entitlement,actual_consumption⇐statement.totals.actual_consumption,
-    actual_refunds⇐statement.totals.actual_refunds,ledger_remaining⇐statement.totals.ledger_remaining,
+    actual_refunds⇐statement.totals.actual_refunds,fulfillment⇐statement.totals.fulfillment,ledger_remaining⇐statement.totals.ledger_remaining,
     open_plan_reserve⇐statement.totals.open_plan_reserve,post_plan_headroom⇐statement.totals.post_plan_headroom,
     funding_balance⇐¯1,signed_envelope_total⇐statement.totals.signed_envelope_total,
     backing_required⇐statement.totals.backing_required,backing_surplus⇐¯31,
