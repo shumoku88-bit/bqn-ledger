@@ -15,7 +15,8 @@
 # cutoffs exclude future rows; admitted rows before start carry the opening position.
 # Historical nonnegative validation inspects all admitted native Envelope effects
 # independently per Envelope without leaking future or cross-Envelope scale into the
-# published observation.
+# published observation. Same-day effects are combined with canonical exact addition
+# before chronological cumulative exact validation checks the nonnegative law.
 
 scale ← •Import "../ledger/exact_scale.bqn"
 dates ← •Import "../ledger/date_ordinal.bqn"
@@ -143,23 +144,35 @@ Build ← {𝕊 movements‿accounts‿household‿domain‿start‿finish‿obs
         envAllDates ← (allTargets∾envelopeCount)⊔allDates
         envAllScales ← (allTargets∾envelopeCount)⊔allScales
         ValidateEnvelopeHistory ← {
-          0=≠⊑𝕩 ? ⟨1,0⟩ ;
+          0=≠⊑𝕩 ? ⟨1,1,0⟩ ;
           amounts‿dates‿scales ← 𝕩
           envScale ← ⌈´0∾scales
           normResults ← amounts {scale.Normalize ⟨𝕨,𝕩,envScale⟩}¨ scales
           {
-            ¬∧´1∾{𝕩.state≡"ok"}¨𝕩 ? ⟨0,0⟩ ;
+            ¬∧´1∾{𝕩.state≡"ok"}¨𝕩 ? ⟨0,1,0⟩ ;
             normAmounts ← {𝕩.coefficient}¨𝕩
             order ← ⍋dates
             sdates ← order⊏dates ⋄ samounts ← order⊏normAmounts
-            dayTotals ← +´¨((⍷sdates)⊐sdates)⊔samounts
-            ⟨1, ∨´0>+`dayTotals⟩
+            dayGroups ← ((⍷sdates)⊐sdates)⊔samounts
+            daySums ← {scale.Sum (⍋𝕩)⊏𝕩}¨dayGroups
+            {
+              ¬∧´1∾{𝕩.state≡"ok"}¨𝕩 ? ⟨1,0,0⟩ ;
+              dayTotals ← {𝕩.coefficient}¨𝕩
+              cumSum ← scale.Sum dayTotals
+              {
+                𝕩.state≢"ok" ? ⟨1,0,0⟩ ;
+                prefixes ← 1↓+`0∾dayTotals
+                ⟨1, 1, ∨´0>prefixes⟩
+              } cumSum
+            } daySums
           } normResults
         }
         envValidations ← {ValidateEnvelopeHistory ⟨𝕩⊑envAllAmounts,𝕩⊑envAllDates,𝕩⊑envAllScales⟩}¨↕envelopeCount
         validationNormOk ← ∧´1∾{⊑𝕩}¨envValidations
-        validationNegative ← ∨´0∾{1⊑𝕩}¨envValidations
+        validationSumOk ← ∧´1∾{1⊑𝕩}¨envValidations
+        validationNegative ← ∨´0∾{2⊑𝕩}¨envValidations
         diagnostics∾↩AddIf ⟨¬validationNormOk,Diagnostic ⟨"coefficient_normalization_failed","Budget Entitlement movement cannot normalize exactly"⟩⟩
+        diagnostics∾↩AddIf ⟨¬validationSumOk,Diagnostic ⟨"coefficient_sum_failed","Envelope Entitlement exceeds exact range"⟩⟩
         diagnostics∾↩AddIf ⟨validationNegative,Diagnostic ⟨"envelope_entitlement_negative","Envelope Entitlement cannot become negative in historical admission"⟩⟩
 
         {𝕊:

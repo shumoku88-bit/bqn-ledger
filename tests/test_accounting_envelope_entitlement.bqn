@@ -377,4 +377,40 @@ resWitD ← Build witnessD
 90 lib.AssertEq resWitD.unassigned
 ⟨10⟩ lib.AssertEq resWitD.observations.amount
 
+# Exact-range Boundary Law:
+# 1. Same-day sum that exceeds exact range => reject with coefficient_sum_failed.
+openingRows ← ∾10⥊⟨⟨"2026-01-01 opening-food","  budget:opening -999999999999999 USD","  budget:food 999999999999999 USD",""⟩⟩
+oneMovement ← ⟨"2026-01-01 grant-food-one","  budget:opening -1 USD","  budget:food 1 USD"⟩
+largeSameDay ← Admit Raw (openingRows ∾ oneMovement)
+resLargeSameDay ← Build largeSameDay
+"error" lib.AssertEq resLargeSameDay.state
+"coefficient_sum_failed" lib.AssertEq (⊑resLargeSameDay.diagnostics).code
+
+# 2. Reversing same-day source order gives the identical rejection.
+oneMovementWithBlank ← ⟨"2026-01-01 grant-food-one","  budget:opening -1 USD","  budget:food 1 USD",""⟩
+openingRowsLast ← ∾(9⥊⟨⟨"2026-01-01 opening-food","  budget:opening -999999999999999 USD","  budget:food 999999999999999 USD",""⟩⟩) ∾ ⟨⟨"2026-01-01 opening-food","  budget:opening -999999999999999 USD","  budget:food 999999999999999 USD"⟩⟩
+largeSameDayReversed ← Admit Raw (oneMovementWithBlank ∾ openingRowsLast)
+resLargeSameDayReversed ← Build largeSameDayReversed
+"error" lib.AssertEq resLargeSameDayReversed.state
+"coefficient_sum_failed" lib.AssertEq (⊑resLargeSameDayReversed.diagnostics).code
+
+# 3. Chronological cumulative addition that exceeds exact range => reject with coefficient_sum_failed.
+largeCum ← Admit Raw ⟨
+  "2026-01-01 opening-food","  budget:opening -999999999999999 USD","  budget:food 999999999999999 USD","",
+  "2026-01-02 opening-food","  budget:opening -999999999999999 USD","  budget:food 999999999999999 USD","",
+  "2026-01-03 opening-food","  budget:opening -999999999999999 USD","  budget:food 999999999999999 USD","",
+  "2026-01-04 opening-food","  budget:opening -999999999999999 USD","  budget:food 999999999999999 USD","",
+  "2026-01-05 opening-food","  budget:opening -999999999999999 USD","  budget:food 999999999999999 USD","",
+  "2026-01-06 opening-food","  budget:opening -999999999999999 USD","  budget:food 999999999999999 USD","",
+  "2026-01-07 opening-food","  budget:opening -999999999999999 USD","  budget:food 999999999999999 USD","",
+  "2026-01-08 opening-food","  budget:opening -999999999999999 USD","  budget:food 999999999999999 USD","",
+  "2026-01-09 opening-food","  budget:opening -999999999999999 USD","  budget:food 999999999999999 USD","",
+  "2026-01-10 opening-food","  budget:opening -999999999999999 USD","  budget:food 999999999999999 USD","",
+  "2026-01-11 opening-food","  budget:opening -999999999999999 USD","  budget:food 999999999999999 USD","",
+  "2026-01-12 grant-food-one","  budget:opening -1 USD","  budget:food 1 USD"
+⟩
+resLargeCum ← Build largeCum
+"error" lib.AssertEq resLargeCum.state
+"coefficient_sum_failed" lib.AssertEq (⊑resLargeCum.diagnostics).code
+
 •Out "test_accounting_envelope_entitlement: ok"
