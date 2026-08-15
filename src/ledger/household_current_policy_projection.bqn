@@ -1,8 +1,9 @@
-# Pure current-policy view of the shared canonical household.toml source.
+# Pure semantic views of the shared canonical household.toml source.
 # Historical Envelope evidence is physically co-located in household.toml but is
-# not owned by household_policy_admission.bqn. Remove only the explicitly known
-# envelope-history sections; unrelated unknown sections remain visible and are
-# therefore still rejected by the strict current-policy owner.
+# not owned by household_policy_admission.bqn. Project the two section families
+# without changing physical row coordinates: excluded rows become empty rows.
+# Unrelated unknown sections remain in the current-policy view and are therefore
+# still rejected by the strict current-policy owner.
 
 lf ← @+10 ⋄ cr ← @+13 ⋄ space ← @+32 ⋄ tab ← @+9
 Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
@@ -12,6 +13,7 @@ TrimRight ← {𝕊 xs: ⌽TrimLeft⌽xs}
 Trim ← {TrimRight TrimLeft 𝕩}
 SplitKeepEmpty ← {𝕊 sep‿text: groups ← (+`sep=text)⊔text ⋄ {(sep≠𝕩)/𝕩}¨groups}
 FirstOrSpace ← {𝕊 text: ⊑text∾⟨space⟩}
+JoinLines ← {𝕊 lines:∾{𝕩∾⟨lf⟩}¨lines}
 
 IsHeader ← {𝕊 text:
   t ← Trim text
@@ -26,14 +28,23 @@ IsEnvelopeHistoryHeader ← {𝕊 text:
   ⟩⟩
 }
 
-CurrentPolicy ← {𝕊 raw:
-  lines ← SplitKeepEmpty ⟨lf,(cr≠raw)/raw⟩
+HistoryMask ← {𝕊 lines:
   header ← IsHeader¨lines
   segmentIds ← +`header
   historyIds ← (IsEnvelopeHistoryHeader¨lines)/segmentIds
-  historical ← {Contains ⟨𝕩,historyIds⟩}¨segmentIds
-  kept ← (¬historical)/lines
-  ∾{𝕩∾⟨lf⟩}¨kept
+  {Contains ⟨𝕩,historyIds⟩}¨segmentIds
 }
 
-{CurrentPolicy⇐CurrentPolicy}
+Views ← {𝕊 raw:
+  lines ← SplitKeepEmpty ⟨lf,(cr≠raw)/raw⟩
+  historical ← HistoryMask lines
+  indices ← ↕≠lines
+  currentLines ← {𝕊 i:(i⊑historical)⊑⟨i⊑lines,""⟩}¨indices
+  historyLines ← {𝕊 i:(¬i⊑historical)⊑⟨i⊑lines,""⟩}¨indices
+  {current⇐JoinLines currentLines,history⇐JoinLines historyLines}
+}
+
+CurrentPolicy ← {𝕊 raw:(Views raw).current}
+EnvelopeHistory ← {𝕊 raw:(Views raw).history}
+
+{CurrentPolicy⇐CurrentPolicy,EnvelopeHistory⇐EnvelopeHistory}
