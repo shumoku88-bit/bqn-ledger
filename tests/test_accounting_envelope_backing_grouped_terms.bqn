@@ -52,7 +52,7 @@ budgetRaw ← JournalText ⟨
   "2026-01-01 food","  budget:unassigned  -20 JPY","  budget:food         20 JPY","",
   "2026-01-01 transport","  budget:unassigned  -10 JPY","  budget:transport    10 JPY"
 ⟩
-budget ← (canonicalBudget.Build ⟨budgetRaw,actual.accounts,registry⟩).facts
+budget ← (canonicalBudget.Build ⟨budgetRaw,actual.accounts,registry⟩).movements
 policyRaw ← JournalText ⟨
   "[[backing-pools]]","id = "∾Q "cash","asset-accounts = ["∾(Q "assets:cash")∾"]","",
   "[[envelopes]]","id = "∾Q "food","label = "∾Q "Food","pacing = "∾Q "daily","backing-pool = "∾Q "cash","expense-accounts = ["∾(Q "expenses:food")∾", "∾(Q "expenses:groceries")∾"]","",

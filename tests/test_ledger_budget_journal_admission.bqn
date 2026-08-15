@@ -75,6 +75,14 @@ nonBudget ← budgetAdmission.Admit ⟨Raw ⟨
 "error" lib.AssertEq nonBudget.state
 lib.Assert HasCode ⟨"budget_movement_posting_not_budget",nonBudget.diagnostics⟩
 
+reversedDirection ← budgetAdmission.Admit ⟨Raw ⟨
+  "2026-08-08 Destination before source",
+  "  Budget:Food          20 JPY",
+  "  Budget:Unassigned  -20 JPY"
+⟩,accounts,registry⟩
+"error" lib.AssertEq reversedDirection.state
+lib.Assert HasCode ⟨"budget_movement_direction_invalid",reversedDirection.diagnostics⟩
+
 # Exact balance belongs to complete Journal admission. A two-Posting Budget
 # transaction that is not exact opposites never reaches Budget-specific relation
 # admission, so the historical Budget exact-opposite diagnostic is unreachable.

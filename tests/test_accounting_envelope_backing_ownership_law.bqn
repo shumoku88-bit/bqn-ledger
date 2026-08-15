@@ -25,7 +25,7 @@ budget ← (canonicalBudget.Build ⟨Raw ⟨
   "2026-01-01 allocate-food",
   "  budget:unassigned  -60 JPY",
   "  budget:food         60 JPY"
-⟩,actual.accounts,registry⟩).facts
+⟩,actual.accounts,registry⟩).movements
 policy ← budgetPolicyAdmission.Admit ⟨•FChars "../"∾base∾"budget.toml",actual.accounts⟩
 "ok" lib.AssertEq policy.state
 

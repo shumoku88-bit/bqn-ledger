@@ -1,7 +1,8 @@
 # Read-only application adapter for canonical Household Budget evidence.
-# budget.journal owns movements; budget.toml owns policy. The two admissions may
-# be requested independently so unrelated Household consumers do not depend on
-# Budget movement validity.
+# budget.journal owns its admitted source-ordered movement relation; generic Facts
+# remain an additional projection for unrelated consumers. budget.toml owns policy.
+# Policy may be requested independently so unrelated Household consumers do not
+# depend on Budget movement validity.
 
 io ← •Import "source_io.bqn"
 sources ← •Import "canonical_household_sources.bqn"
@@ -20,16 +21,16 @@ LoadPolicy ← {𝕊 base‿accounts:
 LoadFromAccounts ← {𝕊 base‿accounts‿registry:
   raw ← io.ReadRaw (io.JoinPath ⟨base,sources.budget⟩)
   rootResult ← rootAdmission.Admit ⟨raw,sources.accounts⟩
-  result ← {state⇐"error",diagnostics⇐rootResult.diagnostics}
+  result ← {state⇐"error",movements⇐@,facts⇐@,policy⇐@,diagnostics⇐rootResult.diagnostics}
   {𝕊:
     admitted ← budgetAdmission.Admit ⟨raw,accounts,registry⟩
     policy ← LoadPolicy ⟨base,accounts⟩
     diagnostics ← admitted.diagnostics∾policy.diagnostics
-    result↩{state⇐"error",diagnostics⇐diagnostics}
+    result↩{state⇐"error",movements⇐@,facts⇐@,policy⇐policy,diagnostics⇐diagnostics}
     {𝕊:
       projected ← facts.Project ⟨admitted,accounts⟩
       diagnostics↩diagnostics∾projected.diagnostics
-      result↩{state⇐projected.state,facts⇐projected,policy⇐policy,diagnostics⇐diagnostics}
+      result↩{state⇐projected.state,movements⇐admitted,facts⇐projected,policy⇐policy,diagnostics⇐diagnostics}
     }⍟((admitted.state≡"ok") ∧ policy.state≡"ok") @
   }⍟(rootResult.state≡"ok") @
   result

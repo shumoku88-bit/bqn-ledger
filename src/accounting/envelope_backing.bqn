@@ -1,6 +1,6 @@
-# Pure Envelope & Backing Statement from canonical Budget/Actual/Plan evidence.
-# Budget movements own Entitlement, historical routing owns Consumption,
-# Fulfillment, and Commitment, while current budget.toml owns Backing topology.
+# Pure Envelope & Backing Statement from admitted Budget movements and canonical
+# Actual/Plan Facts. Budget movements own Entitlement, historical routing owns
+# Consumption, Fulfillment, and Commitment, while current budget.toml owns Backing.
 
 entitlement ← •Import "envelope_entitlement.bqn"
 balance ← •Import "account_balance.bqn"
@@ -38,9 +38,9 @@ EmptyResult ← {𝕊 state‿reason‿domain‿diagnostics:{
   unassigned_contributors⇐empty,diagnostics⇐diagnostics
 }}
 
-ValidateInputs ← {𝕊 budgetFacts‿budgetPolicy‿householdPolicy‿envelopeHistory‿actualFacts‿planFacts‿domain‿start‿finish‿observation:
+ValidateInputs ← {𝕊 budgetMovements‿budgetPolicy‿householdPolicy‿envelopeHistory‿actualFacts‿planFacts‿domain‿start‿finish‿observation:
   diagnostics ← empty
-  diagnostics∾↩AddIf ⟨¬reference.SourceIs ⟨budgetFacts,"budget.journal"⟩,Diagnostic ⟨"budget_facts_invalid","Budget facts must be admitted from budget.journal"⟩⟩
+  diagnostics∾↩AddIf ⟨(budgetMovements.state≢"ok") ∨ budgetMovements.source_name≢"budget.journal",Diagnostic ⟨"budget_movements_invalid","Budget movements must be admitted from budget.journal"⟩⟩
   diagnostics∾↩AddIf ⟨(budgetPolicy.state≢"ok") ∨ budgetPolicy.source_name≢"budget.toml",Diagnostic ⟨"budget_policy_invalid","Budget policy must be admitted from budget.toml"⟩⟩
   diagnostics∾↩AddIf ⟨(householdPolicy.state≢"ok") ∨ householdPolicy.source_name≢"household.toml",Diagnostic ⟨"household_policy_invalid","Household policy must be admitted from household.toml"⟩⟩
   diagnostics∾↩AddIf ⟨envelopeHistory.state≢"ok",Diagnostic ⟨"envelope_history_invalid","Envelope history must be admitted before Envelope observation"⟩⟩
@@ -50,8 +50,8 @@ ValidateInputs ← {𝕊 budgetFacts‿budgetPolicy‿householdPolicy‿envelope
   diagnostics∾↩AddIf ⟨¬domainKnown,Diagnostic ⟨"domain_unknown","selected domain must occur in admitted Accounts"⟩⟩
   rangeInvalid ← (start≥finish) ∨ (observation<start) ∨ observation≥finish
   diagnostics∾↩AddIf ⟨rangeInvalid,Diagnostic ⟨"statement_range_invalid","require start <= observation < end_exclusive"⟩⟩
-  axesMatch ← (budgetFacts.accounts.key≡actualFacts.accounts.key) ∧ planFacts.accounts.key≡actualFacts.accounts.key
-  diagnostics∾↩AddIf ⟨¬axesMatch,Diagnostic ⟨"account_axis_mismatch","Budget, Actual, and Plan facts must share one Account axis"⟩⟩
+  axesMatch ← planFacts.accounts.key≡actualFacts.accounts.key
+  diagnostics∾↩AddIf ⟨¬axesMatch,Diagnostic ⟨"account_axis_mismatch","Actual and Plan facts must share one Account axis"⟩⟩
   diagnostics
 }
 
@@ -98,8 +98,8 @@ ResolveOwnership ← {𝕊 accounts‿budgetPolicy‿householdPolicy‿domain:
    funding_indices⇐fundingIndices,unassigned_indices⇐unassignedIndices,diagnostics⇐diagnostics}
 }
 
-PrepareEvidence ← {𝕊 budgetFacts‿envelopeHistory‿householdPolicy‿actualFacts‿planFacts‿planRetirements‿domain‿start‿finish‿observation:
-  entitlementObservation ← entitlement.Build ⟨budgetFacts,householdPolicy,domain,start,finish,observation⟩
+PrepareEvidence ← {𝕊 budgetMovements‿envelopeHistory‿householdPolicy‿actualFacts‿planFacts‿planRetirements‿domain‿start‿finish‿observation:
+  entitlementObservation ← entitlement.Build ⟨budgetMovements,actualFacts.accounts,householdPolicy,domain,start,finish,observation⟩
   actualBalance ← balance.Build ⟨actualFacts,domain,observation⟩
   consumptionObservation ← consumption.Build ⟨actualFacts,envelopeHistory,domain,start,observation+1⟩
   fulfillmentObservation ← fulfillment.Build ⟨planFacts,planRetirements,actualFacts,envelopeHistory,domain,start,finish,observation⟩
@@ -118,7 +118,7 @@ SumNormalized ← {𝕊 coefficients‿sourceScale‿targetScale:
 }
 PostingReferences ← {𝕊 facts‿indices:{reference.Posting ⟨facts,𝕩⟩}¨indices}
 
-BuildEnvelopeTerms ← {𝕊 budgetFacts‿accounts‿ownership‿prepared‿targetScale:
+BuildEnvelopeTerms ← {𝕊 accounts‿ownership‿prepared‿targetScale:
   entitlementObservation ← prepared.entitlement_observation ⋄ entitlementManaged ← entitlementObservation.managed
   consumptionObservation ← prepared.consumption_observation ⋄ consumptionManaged ← consumptionObservation.managed
   fulfillmentObservation ← prepared.fulfillment_observation ⋄ fulfillmentManaged ← fulfillmentObservation.managed
@@ -186,7 +186,7 @@ BuildEnvelopeTerms ← {𝕊 budgetFacts‿accounts‿ownership‿prepared‿tar
   {state⇐(0=≠diagnostics)⊑"error"‿"ok",table⇐table,diagnostics⇐diagnostics}
 }
 
-BuildBacking ← {𝕊 budgetFacts‿prepared‿ownership‿terms‿targetScale:
+BuildBacking ← {𝕊 prepared‿ownership‿terms‿targetScale:
   entitlementObservation ← prepared.entitlement_observation ⋄ actualBalance ← prepared.actual_balance ⋄ table ← terms.table
   entitlement ← table.entitlement ⋄ consumptionValues ← table.actual_consumption ⋄ refunds ← table.actual_refunds
   fulfillmentValues ← table.fulfillment ⋄ remaining ← table.ledger_remaining ⋄ reserve ← table.open_plan_reserve ⋄ headroom ← table.post_plan_headroom
@@ -222,22 +222,22 @@ BuildBacking ← {𝕊 budgetFacts‿prepared‿ownership‿terms‿targetScale:
   output
 }
 
-Build ← {𝕊 budgetFacts‿budgetPolicy‿householdPolicy‿envelopeHistory‿actualFacts‿planFacts‿planRetirements‿domain‿start‿finish‿observation:
-  diagnostics ← ValidateInputs ⟨budgetFacts,budgetPolicy,householdPolicy,envelopeHistory,actualFacts,planFacts,domain,start,finish,observation⟩
+Build ← {𝕊 budgetMovements‿budgetPolicy‿householdPolicy‿envelopeHistory‿actualFacts‿planFacts‿planRetirements‿domain‿start‿finish‿observation:
+  diagnostics ← ValidateInputs ⟨budgetMovements,budgetPolicy,householdPolicy,envelopeHistory,actualFacts,planFacts,domain,start,finish,observation⟩
   result ← EmptyResult ⟨"error","",domain,diagnostics⟩
   {𝕊:
     ownership ← ResolveOwnership ⟨actualFacts.accounts,budgetPolicy,householdPolicy,domain⟩
     result↩EmptyResult ⟨ownership.state,ownership.reason,domain,ownership.diagnostics⟩
     {𝕊:
-      prepared ← PrepareEvidence ⟨budgetFacts,envelopeHistory,householdPolicy,actualFacts,planFacts,planRetirements,domain,start,finish,observation⟩
+      prepared ← PrepareEvidence ⟨budgetMovements,envelopeHistory,householdPolicy,actualFacts,planFacts,planRetirements,domain,start,finish,observation⟩
       result↩EmptyResult ⟨"error","",domain,prepared.diagnostics⟩
       {𝕊:
         sourceScales ← ⟨prepared.entitlement_observation.scale,prepared.actual_balance.scale,prepared.consumption_observation.scale,prepared.fulfillment_observation.scale,prepared.commitment_observation.scale⟩
         targetScale ← ⌈´sourceScales
-        terms ← BuildEnvelopeTerms ⟨budgetFacts,actualFacts.accounts,ownership,prepared,targetScale⟩
+        terms ← BuildEnvelopeTerms ⟨actualFacts.accounts,ownership,prepared,targetScale⟩
         result↩EmptyResult ⟨"error","",domain,terms.diagnostics⟩
         {𝕊:
-          backing ← BuildBacking ⟨budgetFacts,prepared,ownership,terms,targetScale⟩
+          backing ← BuildBacking ⟨prepared,ownership,terms,targetScale⟩
           result↩EmptyResult ⟨"error","",domain,backing.diagnostics⟩
           {𝕊:result↩{
             state⇐"ok",reason⇐"",domain⇐domain,start_ordinal⇐start,end_exclusive_ordinal⇐finish,observation_ordinal⇐observation,

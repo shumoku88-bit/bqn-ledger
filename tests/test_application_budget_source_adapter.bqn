@@ -27,6 +27,10 @@ combined ← adapter.Load ⟨base,registryResult.registry⟩
 0 lib.AssertEq ≠combined.diagnostics
 1 lib.AssertEq combined.facts.transactions.count
 2 lib.AssertEq combined.facts.postings.count
+1 lib.AssertEq ≠combined.movements.transactions
+"Budget:Unassigned" lib.AssertEq (⊑combined.movements.transactions).from_account_key
+"Budget:Daily" lib.AssertEq (⊑combined.movements.transactions).to_account_key
+30000 lib.AssertEq (⊑combined.movements.transactions).movement_coefficient
 1 lib.AssertEq combined.policy.backing_pools.count
 1 lib.AssertEq combined.policy.envelopes.count
 
@@ -37,6 +41,8 @@ shared ← adapter.LoadFromAccounts ⟨base,accounts.accounts,registryResult.reg
 combined.facts.transactions.transaction_id lib.AssertEq shared.facts.transactions.transaction_id
 combined.facts.postings.posting_id lib.AssertEq shared.facts.postings.posting_id
 combined.facts.accounts.key lib.AssertEq shared.facts.accounts.key
+({𝕩.source_event_id}¨combined.movements.transactions) lib.AssertEq ({𝕩.source_event_id}¨shared.movements.transactions)
+({𝕩.posting_id}¨(⊑combined.movements.transactions).postings) lib.AssertEq ({𝕩.posting_id}¨(⊑shared.movements.transactions).postings)
 combined.policy.backing_pools.id lib.AssertEq shared.policy.backing_pools.id
 combined.policy.envelopes.id lib.AssertEq shared.policy.envelopes.id
 

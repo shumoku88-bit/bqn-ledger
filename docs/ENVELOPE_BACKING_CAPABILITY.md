@@ -4,7 +4,7 @@ Status: retained production capability on native historical Consumption, Fulfill
 
 Owners:
 
-- `src/accounting/envelope_entitlement.bqn` owns source-ordered Budget Entitlement observation;
+- `src/accounting/envelope_entitlement.bqn` owns Entitlement observation from the admitted source-ordered Budget movement relation;
 - `src/accounting/envelope_consumption.bqn` owns Actual Expense Consumption observation;
 - `src/accounting/plan_observation.bqn` owns role-neutral Plan lifecycle observation;
 - `src/accounting/envelope_fulfillment.bqn` owns completed Plan Fulfillment;
@@ -14,11 +14,11 @@ Owners:
 
 ## Inputs and ownership
 
-Envelope/Backing consumes admitted Budget, Actual, Plan Facts, admitted Plan retirement evidence, historical Envelope routing, current `budget.toml`, and current `household.toml` policy over explicit `[start,end_exclusive)`, observation, and domain coordinates.
+Envelope/Backing consumes the admitted source-ordered Budget movement relation, generic Actual/Plan Facts, admitted Plan retirement evidence, historical Envelope routing, current `budget.toml`, and current `household.toml` policy over explicit `[start,end_exclusive)`, observation, and domain coordinates. Generic Budget Facts remain available to unrelated consumers but are not on the Entitlement path.
 
 Ownership is intentionally split by lifetime:
 
-- source-ordered Budget movement evidence supplies native Entitlement; historical Envelope-to-spent/execution compatibility rows are inert;
+- the admitted source-ordered Budget movement relation supplies native Entitlement; historical Envelope-to-spent/execution compatibility rows are inert;
 - historical Expense routing supplies Actual Consumption meaning at Posting day;
 - stable PlanId + Actual completion + completion-day Fulfillment routing supplies completed Fulfillment;
 - open Plan Postings + observation-day routing supplies Commitment;
@@ -69,7 +69,7 @@ Duplicate completion evidence and ambiguous effective routing fail at their owni
 
 ## Exactness and evidence
 
-All Envelope arithmetic normalizes exactly and fails closed when exact reduction cannot be represented. Posting and Transaction provenance from Consumption, Fulfillment, Commitment, funding, and Budget evidence is retained through the statement.
+All Envelope arithmetic normalizes exactly and fails closed when exact reduction cannot be represented. Entitlement and unassigned Budget observations share one scale selected from every included coefficient in either observation. Posting and Transaction provenance from Consumption, Fulfillment, Commitment, funding, and admitted Budget movements is retained through the statement.
 
 Backing remains a whole-Household selected-domain statement: current funding evidence is compared with positive Remaining, then Backing surplus, Budget unassigned, and reconciliation delta are published separately. Pool-specific shortage/surplus semantics are not inferred here.
 

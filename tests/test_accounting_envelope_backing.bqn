@@ -53,7 +53,7 @@ budgetRaw ← Raw ⟨
   "  budget:unassigned  -60 JPY",
   "  budget:food         60 JPY"
 ⟩
-budget ← (canonicalBudget.Build ⟨budgetRaw,actual.accounts,registry⟩).facts
+budget ← (canonicalBudget.Build ⟨budgetRaw,actual.accounts,registry⟩).movements
 policyRaw ← •FChars "../"∾base∾"budget.toml"
 policy ← budgetPolicyAdmission.Admit ⟨policyRaw,actual.accounts⟩
 "ok" lib.AssertEq policy.state
@@ -140,7 +140,7 @@ syntheticRaw ← ∾⟨
 ⟩
 syntheticActual ← (snapshot.Build ⟨syntheticLines,syntheticRaw,registry⟩).facts
 syntheticPlan ← (canonicalPlan.Build ⟨Raw ⟨"2026-01-15 open-food","  ; plan-id: open-food","  expenses:food  4 JPY","  assets:cash  -4 JPY"⟩,syntheticActual.accounts,registry⟩).facts
-syntheticBudget ← (canonicalBudget.Build ⟨Raw ⟨"2026-01-01 seed","  budget:opening     -20 JPY","  budget:unassigned   20 JPY","","2026-01-01 allocate","  budget:unassigned  -20 JPY","  budget:food         20 JPY"⟩,syntheticActual.accounts,registry⟩).facts
+syntheticBudget ← (canonicalBudget.Build ⟨Raw ⟨"2026-01-01 seed","  budget:opening     -20 JPY","  budget:unassigned   20 JPY","","2026-01-01 allocate","  budget:unassigned  -20 JPY","  budget:food         20 JPY"⟩,syntheticActual.accounts,registry⟩).movements
 syntheticPolicy ← budgetPolicyAdmission.Admit ⟨policyRaw,syntheticActual.accounts⟩
 "ok" lib.AssertEq syntheticPolicy.state
 syntheticHousehold ← MakeHouseholdPolicy ⟨syntheticActual.accounts,"budget:food",⟨"budget:unassigned"⟩⟩
@@ -191,7 +191,7 @@ overflowRaw ← ∾⟨
   "2026-01-05 * fractional",lf,"    ; event-id: fractional",lf,"    ; layer: actual",lf,"    expenses:ils 0.1 ILS",lf,"    assets:ils -0.1 ILS",lf
 ⟩
 overflowActual ← (snapshot.Build ⟨overflowLines,overflowRaw,registry⟩).facts
-overflowBudget ← (canonicalBudget.Build ⟨Raw ⟨"2026-01-01 max","  budget:unassigned-ils  -999999999999999 ILS","  budget:food-ils         999999999999999 ILS"⟩,overflowActual.accounts,registry⟩).facts
+overflowBudget ← (canonicalBudget.Build ⟨Raw ⟨"2026-01-01 max","  budget:unassigned-ils  -999999999999999 ILS","  budget:food-ils         999999999999999 ILS"⟩,overflowActual.accounts,registry⟩).movements
 overflowPolicyRaw ← Raw ⟨
   "[[backing-pools]]","id = "∾(Q "cash"),"asset-accounts = ["∾(Q "assets:ils")∾"]","",
   "[[envelopes]]","id = "∾(Q "food"),"label = "∾(Q "Food"),"pacing = "∾(Q "daily"),"backing-pool = "∾(Q "cash"),"expense-accounts = ["∾(Q "expenses:ils")∾"]"

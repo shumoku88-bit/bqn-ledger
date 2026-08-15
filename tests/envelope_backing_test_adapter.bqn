@@ -31,13 +31,13 @@ TestRole ← {𝕊 key:
   result
 }
 
-Build ← {𝕊 budget‿policy‿household‿actual‿plan‿domain‿start‿finish‿observation:
+Build ← {𝕊 budgetMovements‿policy‿household‿actual‿plan‿domain‿start‿finish‿observation:
   accountKeys ← actual.accounts.key
   testHousehold ← {
     state⇐household.state,source_name⇐household.source_name,budget⇐household.budget,
     account_policy⇐{account_key⇐accountKeys,budget_kind⇐TestKind¨accountKeys,envelope_role⇐TestRole¨accountKeys}
   }
-  core.Build ⟨budget,policy,testHousehold,HistoryFor actual,actual,plan,EmptyRetirements @,domain,start,finish,observation⟩
+  core.Build ⟨budgetMovements,policy,testHousehold,HistoryFor actual,actual,plan,EmptyRetirements @,domain,start,finish,observation⟩
 }
 
 {Build⇐Build,HistoryFor⇐HistoryFor}

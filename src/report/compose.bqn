@@ -86,10 +86,10 @@ DailyFlow ← {𝕊 facts‿budgetPolicy‿householdPolicy‿domain‿start‿fi
   }⍟valid @
   output
 }
-Envelopes ← {𝕊 budgetFacts‿budgetPolicy‿householdPolicy‿envelopeHistory‿actualFacts‿planFacts‿planRetirements‿domain‿start‿finish‿observation:
+Envelopes ← {𝕊 budgetMovements‿budgetPolicy‿householdPolicy‿envelopeHistory‿actualFacts‿planFacts‿planRetirements‿domain‿start‿finish‿observation:
   output ← DateFailure "envelopes" ⋄ valid ← (dates.IsValid start) ∧ (dates.IsValid finish) ∧ dates.IsValid observation
   {𝕊:
-    accounting ← envelopeBacking.Build ⟨budgetFacts,budgetPolicy,householdPolicy,envelopeHistory,actualFacts,planFacts,planRetirements,domain,dates.Ordinal start,dates.Ordinal finish,dates.Ordinal observation⟩
+    accounting ← envelopeBacking.Build ⟨budgetMovements,budgetPolicy,householdPolicy,envelopeHistory,actualFacts,planFacts,planRetirements,domain,dates.Ordinal start,dates.Ordinal finish,dates.Ordinal observation⟩
     output↩Publish ⟨"envelopes",envelopeSection.Build ⟨accounting,start,finish,observation⟩⟩
   }⍟valid @
   output
