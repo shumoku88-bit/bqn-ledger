@@ -24,7 +24,7 @@ Build ← {𝕊 planFacts‿retirements‿actualFacts‿history‿domain‿start
   ds←empty ⋄ ds∾↩AddIf ⟨history.state≢"ok",Diagnostic ⟨"envelope_history_invalid","Envelope history must be admitted"⟩⟩
   domainKnown←∨´0∾domain⊸≡¨actualFacts.domains.code ⋄ ds∾↩AddIf ⟨¬domainKnown,Diagnostic ⟨"domain_unknown","selected domain must occur in Actual facts"⟩⟩
   emptyHorizon←(start=finish)∧start=observation+1
-  rangeInvalid←(start>finish)∨(¬emptyHorizon∧((observation<start)∨observation≥finish))
+  rangeInvalid←(start>finish)∨((¬emptyHorizon)∧((observation<start)∨observation≥finish))
   ds∾↩AddIf ⟨rangeInvalid,Diagnostic ⟨"observation_range_invalid","require start <= observation < end_exclusive, or the canonical empty post-observation horizon"⟩⟩
   ds∾↩AddIf ⟨planFacts.accounts.key≢actualFacts.accounts.key,Diagnostic ⟨"account_axis_mismatch","Plan and Actual must share Account axis"⟩⟩
   routeCoords←planFacts.transactions.plan_id⊐history.fulfillment_routing.plan_id
