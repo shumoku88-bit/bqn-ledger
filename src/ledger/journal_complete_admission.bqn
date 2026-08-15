@@ -44,9 +44,12 @@ StartsWith ← {𝕊 prefix‿text:
 }
 Contains ← {𝕊 item‿items: ∨´ 0 ∾ item⊸≡¨ items }
 IsDateHeader ← {𝕊 text:
-  enough ← 10 < ≠ text
-  separator ← IsWhitespace 10 ⊑ (text ∾ 11 ⥊ space)
-  enough ∧ separator ∧ dates.IsValid 10 ↑ text
+  result ← 0
+  {𝕊:
+    separator ← IsWhitespace 10⊑text
+    {𝕊: result↩dates.IsValid 10↑text}⍟separator @
+  }⍟(10<≠text) @
+  result
 }
 
 Diagnostic ← {𝕊 codeText‿lineNumber‿messageText:
