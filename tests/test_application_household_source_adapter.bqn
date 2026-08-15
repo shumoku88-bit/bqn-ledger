@@ -22,4 +22,17 @@ household ← householdSource.Load ⟨base,accounts.accounts,policy⟩
 ⟨"bank"⟩ lib.AssertEq household.daily_target.scope_id
 ⟨"Assets:Bank"⟩ lib.AssertEq household.daily_target.account_key
 
+# Historical Envelope evidence shares the physical household.toml source but is
+# not current Household policy. The current-policy projection must therefore
+# preserve the same admitted current meaning when history is present.
+historyBase ← "fixtures/canonical-household-envelope-history"
+withHistory ← householdSource.Load ⟨historyBase,accounts.accounts,policy⟩
+"ok" lib.AssertEq withHistory.state
+0 lib.AssertEq ≠withHistory.diagnostics
+household.cycle.definition lib.AssertEq withHistory.cycle.definition
+household.money lib.AssertEq withHistory.money
+household.budget lib.AssertEq withHistory.budget
+household.daily_target lib.AssertEq withHistory.daily_target
+household.account_policy lib.AssertEq withHistory.account_policy
+
 •Out "test_application_household_source_adapter: ok"
