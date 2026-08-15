@@ -25,16 +25,6 @@ RunCheck() {
     exit 1
   }
 }
-RunBqnTest() {
-  local test=$1
-  local output
-  if ! output=$(bqn "$test" 2>&1); then
-    echo "$output" >&2
-    output=${output//$'\n'/ }
-    echo "::error file=$test::$output" >&2
-    exit 1
-  fi
-}
 
 RunCheck checks/check-report-manifest-routing.sh
 RunCheck checks/check-report-composition.sh
@@ -52,7 +42,7 @@ bqn tests/test_accounting_cycle_account_period.bqn >/dev/null
 bqn tests/test_accounting_cycle_comparison.bqn >/dev/null
 bqn tests/test_accounting_plan_completion_join.bqn >/dev/null
 bqn tests/test_accounting_envelope_backing.bqn >/dev/null
-RunBqnTest tests/test_accounting_envelope_consumption.bqn
+bqn tests/test_accounting_envelope_consumption.bqn >/dev/null
 bqn tests/test_accounting_daily_target.bqn >/dev/null
 bqn tests/test_accounting_recent_transactions.bqn >/dev/null
 bqn tests/test_accounting_date_category_flow.bqn >/dev/null
