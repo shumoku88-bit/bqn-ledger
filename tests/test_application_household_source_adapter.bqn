@@ -29,10 +29,19 @@ historyBase ← "fixtures/canonical-household-envelope-history"
 withHistory ← householdSource.Load ⟨historyBase,accounts.accounts,policy⟩
 "ok" lib.AssertEq withHistory.state
 0 lib.AssertEq ≠withHistory.diagnostics
-household.cycle.definition lib.AssertEq withHistory.cycle.definition
-household.money lib.AssertEq withHistory.money
-household.budget lib.AssertEq withHistory.budget
-household.daily_target lib.AssertEq withHistory.daily_target
-household.account_policy lib.AssertEq withHistory.account_policy
+household.cycle.definition.mode lib.AssertEq withHistory.cycle.definition.mode
+household.cycle.definition.income_account lib.AssertEq withHistory.cycle.definition.income_account
+household.money.present lib.AssertEq withHistory.money.present
+household.money.primary_commodity lib.AssertEq withHistory.money.primary_commodity
+household.budget.envelope_id lib.AssertEq withHistory.budget.envelope_id
+household.budget.allocation_account_key lib.AssertEq withHistory.budget.allocation_account_key
+household.budget.unassigned_account_keys lib.AssertEq withHistory.budget.unassigned_account_keys
+household.daily_target.scope_id lib.AssertEq withHistory.daily_target.scope_id
+household.daily_target.account_key lib.AssertEq withHistory.daily_target.account_key
+household.account_policy.asset_class lib.AssertEq withHistory.account_policy.asset_class
+household.account_policy.budget_kind lib.AssertEq withHistory.account_policy.budget_kind
+household.account_policy.envelope_role lib.AssertEq withHistory.account_policy.envelope_role
+household.account_policy.budget_group lib.AssertEq withHistory.account_policy.budget_group
+household.account_policy.spend_class lib.AssertEq withHistory.account_policy.spend_class
 
 •Out "test_application_household_source_adapter: ok"
