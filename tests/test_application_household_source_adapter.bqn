@@ -44,4 +44,20 @@ household.account_policy.envelope_role lib.AssertEq withHistory.account_policy.e
 household.account_policy.budget_group lib.AssertEq withHistory.account_policy.budget_group
 household.account_policy.spend_class lib.AssertEq withHistory.account_policy.spend_class
 
+# The production shared observation reads one household.toml source and admits
+# both semantic owners from those bytes. Old fixtures publish explicit absence;
+# the expanded fixture publishes stable historical identity/routing evidence.
+sharedAbsent ← householdSource.LoadShared ⟨base,accounts.accounts,policy⟩
+"ok" lib.AssertEq sharedAbsent.state
+0 lib.AssertEq sharedAbsent.history.present
+0 lib.AssertEq sharedAbsent.history.registry.count
+sharedHistory ← householdSource.LoadShared ⟨historyBase,accounts.accounts,policy⟩
+"ok" lib.AssertEq sharedHistory.state
+1 lib.AssertEq sharedHistory.history.present
+⟨"Daily"⟩ lib.AssertEq sharedHistory.history.registry.id
+⟨"Expenses:Groceries"⟩ lib.AssertEq sharedHistory.history.expense_routing.expense_account_key
+⟨"managed"⟩ lib.AssertEq sharedHistory.history.expense_routing.route
+⟨"Daily"⟩ lib.AssertEq sharedHistory.history.expense_routing.target_id
+sharedHistory.current.budget.envelope_id lib.AssertEq withHistory.budget.envelope_id
+
 •Out "test_application_household_source_adapter: ok"
