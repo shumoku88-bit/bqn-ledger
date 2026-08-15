@@ -34,7 +34,7 @@ absent ← admission.Admit absentRaw
 
 # Fulfillment routing is admitted source-locally by stable PlanId text. PlanId
 # existence is deliberately left for later cross-source Household qualification.
-fulfillmentSuffix ← Lines ⟨"[[envelope-history.fulfillment-routing]]","effective-from = "∾Quoted "2026-08-15","plan-id = "∾Quoted "plan-synthetic","route = "∾Quoted "fulfills","target = "∾Quoted "Daily","note = "∾Quoted "synthetic fulfillment"⟩
+fulfillmentSuffix ← Lines ⟨"[[envelope-history.fulfillment-routing]]","effective-from = "∾(Quoted "2026-08-15"),"plan-id = "∾(Quoted "plan-synthetic"),"route = "∾(Quoted "fulfills"),"target = "∾(Quoted "Daily"),"note = "∾(Quoted "synthetic fulfillment")⟩
 withFulfillment ← admission.Admit (historyRaw∾⟨lf⟩∾fulfillmentSuffix)
 "ok" lib.AssertEq withFulfillment.state
 1 lib.AssertEq withFulfillment.fulfillment_routing.count
@@ -45,7 +45,7 @@ withFulfillment ← admission.Admit (historyRaw∾⟨lf⟩∾fulfillmentSuffix)
 
 # Historical targets are stable identities, not current labels or inferred
 # categories. Unknown target identity fails closed.
-unknownTargetSuffix ← Lines ⟨"[[envelope-history.expense-routing]]","effective-from = "∾Quoted "2026-08-15","expense-account = "∾Quoted "Expenses:Other","route = "∾Quoted "managed","target = "∾Quoted "RetiredUnknown","note = "∾Quoted "invalid target"⟩
+unknownTargetSuffix ← Lines ⟨"[[envelope-history.expense-routing]]","effective-from = "∾(Quoted "2026-08-15"),"expense-account = "∾(Quoted "Expenses:Other"),"route = "∾(Quoted "managed"),"target = "∾(Quoted "RetiredUnknown"),"note = "∾(Quoted "invalid target")⟩
 unknownTarget ← admission.Admit (historyRaw∾⟨lf⟩∾unknownTargetSuffix)
 "error" lib.AssertEq unknownTarget.state
 0 lib.AssertEq unknownTarget.registry.count
