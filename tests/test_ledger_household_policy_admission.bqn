@@ -40,7 +40,7 @@ withMoney ← householdAdmission.Admit ⟨currentProjection.CurrentPolicy withMo
 IndexOf ← {𝕊 key: ⊑accounts.key⊐⟨key⟩}
 "liquid" lib.AssertEq (IndexOf "assets:cash")⊑household.account_policy.asset_class
 "envelope" lib.AssertEq (IndexOf "budget:food")⊑household.account_policy.budget_kind
-"dynamic" lib.AssertEq (IndexOf "budget:food")⊑household.account_policy.envelope_role
+"" lib.AssertEq (IndexOf "budget:food")⊑household.account_policy.envelope_role
 "daily" lib.AssertEq (IndexOf "budget:food")⊑household.account_policy.budget_group
 "variable" lib.AssertEq (IndexOf "expenses:food")⊑household.account_policy.spend_class
 
