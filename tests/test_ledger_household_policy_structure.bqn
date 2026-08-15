@@ -9,6 +9,8 @@ currentProjection ← •Import "../src/ledger/household_current_policy_projecti
 base ← "fixtures/ledger-facts-phase1-proof/"
 lf ← @+10
 quote ← @+34
+Rows ← {𝕊 xs:∾{𝕩∾⟨lf⟩}¨xs}
+Quoted ← {𝕊 text:⟨quote⟩∾text∾⟨quote⟩}
 accountsResult ← accountsAdmission.Admit •FChars "../"∾base∾"accounts.journal"
 "ok" lib.AssertEq accountsResult.state
 accounts ← accountsResult.accounts
@@ -25,7 +27,7 @@ valid ← householdAdmission.Admit ⟨householdRaw,accounts,budget⟩
 0 lib.AssertEq ≠valid.diagnostics
 
 # A key before the first supported section belongs to no policy block.
-outsideRaw ← "orphan = "∾⟨quote⟩∾"x"∾⟨quote,lf⟩∾householdRaw
+outsideRaw ← "orphan = "∾Quoted "x"∾⟨lf⟩∾householdRaw
 outside ← householdAdmission.Admit ⟨outsideRaw,accounts,budget⟩
 "error" lib.AssertEq outside.state
 ⟨"household_key_outside_section"⟩ lib.AssertEq Codes outside
@@ -33,7 +35,7 @@ outside ← householdAdmission.Admit ⟨outsideRaw,accounts,budget⟩
 
 # An unknown header ends any previous active block but does not establish a new
 # block. Its following key is therefore outside a supported section.
-unknownPrefix ← "[mystery]"∾⟨lf⟩∾"x = "∾⟨quote⟩∾"y"∾⟨quote,lf⟩
+unknownPrefix ← Rows ⟨"[mystery]","x = "∾Quoted "y"⟩
 unknown ← householdAdmission.Admit ⟨unknownPrefix∾householdRaw,accounts,budget⟩
 "error" lib.AssertEq unknown.state
 ⟨"household_section_unsupported","household_key_outside_section"⟩ lib.AssertEq Codes unknown
@@ -42,14 +44,11 @@ unknown ← householdAdmission.Admit ⟨unknownPrefix∾householdRaw,accounts,bu
 # Current-policy projection removes only the known historical Envelope section
 # family. An unrelated unknown section must survive projection and still fail
 # closed in the strict current-policy owner.
-historySuffix ← ⟨lf⟩∾"[envelope-history]"∾⟨lf⟩∾"identities = ["∾⟨quote⟩∾"food"∾⟨quote⟩∾"]"∾⟨lf⟩∾⟨lf⟩∾
-  "[[envelope-history.expense-routing]]"∾⟨lf⟩∾"effective-from = "∾⟨quote⟩∾"initial"∾⟨quote⟩∾⟨lf⟩∾
-  "expense-account = "∾⟨quote⟩∾"expenses:food"∾⟨quote⟩∾⟨lf⟩∾"route = "∾⟨quote⟩∾"managed"∾⟨quote⟩∾⟨lf⟩∾
-  "target = "∾⟨quote⟩∾"food"∾⟨quote⟩∾⟨lf⟩∾"note = "∾⟨quote⟩∾"synthetic"∾⟨quote,lf⟩
-projectedHistory ← currentProjection.CurrentPolicy (householdRaw∾historySuffix)
+historySuffix ← Rows ⟨"[envelope-history]","identities = ["∾Quoted "food"∾"]","","[[envelope-history.expense-routing]]","effective-from = "∾Quoted "initial","expense-account = "∾Quoted "expenses:food","route = "∾Quoted "managed","target = "∾Quoted "food","note = "∾Quoted "synthetic"⟩
+projectedHistory ← currentProjection.CurrentPolicy (householdRaw∾⟨lf⟩∾historySuffix)
 historyPolicy ← householdAdmission.Admit ⟨projectedHistory,accounts,budget⟩
 "ok" lib.AssertEq historyPolicy.state
-unknownAfterHistory ← currentProjection.CurrentPolicy (householdRaw∾historySuffix∾unknownPrefix)
+unknownAfterHistory ← currentProjection.CurrentPolicy (householdRaw∾⟨lf⟩∾historySuffix∾unknownPrefix)
 projectedUnknown ← householdAdmission.Admit ⟨unknownAfterHistory,accounts,budget⟩
 "error" lib.AssertEq projectedUnknown.state
 ⟨"household_section_unsupported","household_key_outside_section"⟩ lib.AssertEq Codes projectedUnknown
