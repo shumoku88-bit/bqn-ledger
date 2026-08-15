@@ -136,8 +136,8 @@ futureBudgetRaw ← Raw ⟨
 futureBudget ← (canonicalBudget.Build ⟨futureBudgetRaw,actual.accounts,registry⟩).movements
 futureResult ← envelopes.Build ⟨futureBudget,policy,household,history,actual,plan,retirements,"JPY",reportStart,reportFinish,observation⟩
 "ok" lib.AssertEq futureResult.state
-observation+1 lib.AssertEq futureResult.consumption_observation.start_ordinal
-observation+1 lib.AssertEq futureResult.consumption_observation.end_exclusive_ordinal
+(observation+1) lib.AssertEq futureResult.consumption_observation.start_ordinal
+(observation+1) lib.AssertEq futureResult.consumption_observation.end_exclusive_ordinal
 ⟨0⟩ lib.AssertEq futureResult.envelopes.actual_consumption
 ⟨0⟩ lib.AssertEq futureResult.envelopes.fulfillment
 ⟨0⟩ lib.AssertEq futureResult.envelopes.ledger_remaining
