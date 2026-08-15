@@ -66,8 +66,7 @@ Build ← {𝕊 facts‿history‿domain‿start‿finish:
     layerIndex ← IndexOf ⟨"actual",facts.layers.name⟩
     postings ← facts.postings
     postingAccountRoles ← postings.account_index⊏facts.accounts.role
-    selectedMask ← (domainIndex=postings.domain_index) ∧ (layerIndex=postings.layer_index) ∧
-      (postings.date_ordinal≥start) ∧ (postings.date_ordinal<finish) ∧ "expense"⊸≡¨postingAccountRoles
+    selectedMask ← (domainIndex=postings.domain_index) ∧ (layerIndex=postings.layer_index) ∧ (postings.date_ordinal≥start) ∧ (postings.date_ordinal<finish) ∧ "expense"⊸≡¨postingAccountRoles
     postingIndices ← selectedMask/postings.index
     accountIndices ← selectedMask/postings.account_index
     accountKeys ← accountIndices⊏facts.accounts.key
