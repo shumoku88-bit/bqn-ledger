@@ -9,6 +9,7 @@ fulfillment ← •Import "envelope_fulfillment.bqn"
 commitment ← •Import "envelope_commitment.bqn"
 reference ← •Import "../ledger/fact_reference.bqn"
 scale ← •Import "../ledger/exact_scale.bqn"
+dates ← •Import "../ledger/date_ordinal.bqn"
 empty ← ⟨⟩
 
 Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
@@ -101,13 +102,15 @@ ResolveOwnership ← {𝕊 accounts‿budgetPolicy‿householdPolicy‿domain:
 PrepareEvidence ← {𝕊 budgetMovements‿envelopeHistory‿householdPolicy‿actualFacts‿planFacts‿planRetirements‿domain‿start‿finish‿observation:
   entitlementObservation ← entitlement.Build ⟨budgetMovements,actualFacts.accounts,householdPolicy,domain,start,finish,observation⟩
   actualBalance ← balance.Build ⟨actualFacts,domain,observation⟩
-  # Report Period is not the lower boundary of live Envelope stock. The first
-  # native Entitlement effect visible through this observation owns that opening
-  # coordinate. If no effect is visible yet, use an empty horizon immediately
-  # after the observation; no accounting fact can consume capacity before the
-  # selected Commodity enters the native Envelope world.
+  # Report Period is not the lower boundary of live Envelope stock. The admitted
+  # Entitlement source itself owns the opening coordinate, including opening or
+  # unassigned movements that create no native Envelope effect. Routed Actual use
+  # after source inception therefore remains visible even before the first grant.
+  sourceTransactions ← (domain⊸≡¨{𝕩.domain}¨budgetMovements.transactions)/budgetMovements.transactions
+  sourceOrdinals ← dates.Ordinal¨{𝕩.date}¨sourceTransactions
+  visibleSourceOrdinals ← (sourceOrdinals≤observation)/sourceOrdinals
   stockStart ← observation+1
-  {𝕊:stockStart↩⌊´entitlementObservation.observations.effective_ordinal}⍟(0<entitlementObservation.observations.count) @
+  {𝕊:stockStart↩⌊´visibleSourceOrdinals}⍟(0<≠visibleSourceOrdinals) @
   stockFinish ← observation+1
   consumptionObservation ← consumption.Build ⟨actualFacts,envelopeHistory,domain,stockStart,stockFinish⟩
   fulfillmentObservation ← fulfillment.Build ⟨planFacts,planRetirements,actualFacts,envelopeHistory,domain,stockStart,stockFinish,observation⟩
