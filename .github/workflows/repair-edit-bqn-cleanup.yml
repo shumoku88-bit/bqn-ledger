@@ -6,7 +6,7 @@ on:
       - cleanup/post-cutover-test-shells
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   generate:
@@ -55,8 +55,6 @@ jobs:
           text = text.replace('plan add, plan list, plan related, plan finish, and plan edit', 'plan list and plan related')
           text = text.replace('  plan)\n    EXPECTED_TARGET_FILE="$PLAN_FILE"\n    PREVIEW_TITLE="Plan"\n    ROW_TITLE="Plan row"\n    ;;\n', '')
 
-          # Generic add parsing serves journal/issue before its final tail. Once the
-          # plan case is removed, PLAN_ID and --id are dead only in this scoped block.
           generic_start = text.index('DATE=""\nMEMO=""\nFROM=""\nTO=""\nAMOUNT=""\nCURRENCY=""\nMETA=()\n')
           tail_start = text.rfind('TARGET_PATH="$BASE_DIR/$EXPECTED_TARGET_FILE"\n')
           if tail_start <= generic_start:
@@ -67,8 +65,6 @@ jobs:
           generic = generic.replace('if [[ "$COMMAND" != "journal" && "$COMMAND" != "plan" && -n "$CURRENCY" ]]; then\n  echo "ERROR: --currency is currently supported only for journal, Budget, and Plan add" >&2\n', 'if [[ "$COMMAND" != "journal" && -n "$CURRENCY" ]]; then\n  echo "ERROR: --currency is currently supported only for journal and Budget add" >&2\n')
           text = text[:generic_start] + generic + text[tail_start:]
 
-          # The last tail is the legacy Plan-add append implementation. All live
-          # journal/account/issue/read-only Plan routes occur before this final tail.
           tail_start = text.rfind('TARGET_PATH="$BASE_DIR/$EXPECTED_TARGET_FILE"\n')
           text = text[:tail_start].rstrip() + '\n'
 
@@ -111,6 +107,19 @@ jobs:
           PY
           bash -n generated/edit-bqn
           wc -l /tmp/edit-bqn.main generated/edit-bqn
+      - name: Apply repaired dispatcher once
+        run: |
+          install -m 755 generated/edit-bqn tools/edit-bqn
+          git diff --check
+          if git diff --quiet -- tools/edit-bqn; then
+            echo 'Dispatcher already matches repaired candidate.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tools/edit-bqn
+          git commit -m 'refactor(plan): restore live dispatcher without mutation bodies'
+          git push origin HEAD:cleanup/post-cutover-test-shells
       - name: Upload repaired candidate
         uses: actions/upload-artifact@v4
         with:
