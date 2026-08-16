@@ -2,15 +2,15 @@
 lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
-snapshot ← •Import "legacy_snapshot_fixture.bqn"
+snapshot ← •Import "canonical_snapshot_fixture.bqn"
 cycle_result ← •Import "../src/accounting/cycle_result.bqn"
 cycle_period ← •Import "../src/accounting/cycle_account_period.bqn"
 comparison ← •Import "../src/accounting/cycle_comparison.bqn"
 
 base ← "fixtures/ledger-facts-phase1-proof/"
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
-lines ← loader.ReadLines base∾"accounts.tsv"
-facts ← (snapshot.Build ⟨lines,•FChars "../"∾base∾"actual.journal",registry⟩).facts
+accountSource ← •FChars "../"∾base∾"accounts.journal"
+facts ← (snapshot.Build ⟨accountSource,•FChars "../"∾base∾"actual.journal",registry⟩).facts
 Window ← {𝕊 start‿finish‿observation:
   resolved ← cycle_result.Success ⟨"fixed",observation,start,finish,⟨⟩,⟨⟩⟩
   cycle_period.Build ⟨facts,"JPY",resolved,observation⟩
@@ -56,9 +56,12 @@ unavailable ← comparison.Build ⟨current,unavailableWindow,"aligned_elapsed"�
 0 lib.AssertEq unavailable.accounts.count
 
 lf ← @+10
-usdLines ← ⟨"assets:usd	role=asset	currency=USD","expenses:usd	role=expense	currency=USD"⟩
+usdAccounts ← ∾⟨
+  "account assets:usd",lf,"  type: Asset",lf,"  commodity: USD",lf,lf,
+  "account expenses:usd",lf,"  type: Expense",lf,"  commodity: USD",lf
+⟩
 usdRaw ← ∾⟨"commodity USD",lf,lf,"account assets:usd",lf,"    ; role: asset",lf,lf,"account expenses:usd",lf,"    ; role: expense",lf⟩
-usdFacts ← (snapshot.Build ⟨usdLines,usdRaw,registry⟩).facts
+usdFacts ← (snapshot.Build ⟨usdAccounts,usdRaw,registry⟩).facts
 UsdWindow ← {𝕊 start‿finish‿observation:
   cycle_period.Build ⟨usdFacts,"USD",cycle_result.Success ⟨"fixed",observation,start,finish,⟨⟩,⟨⟩⟩,observation⟩
 }
