@@ -1,0 +1,380 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Calendar-first Household terminal surface.
+# Household meaning and writer/report ownership remain in existing BQN/tool
+# owners. This frontend only maps physical input to logical surface coordinates
+# and dispatches the selected logical leaf.
+
+root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$root"
+
+usage() {
+  cat <<'EOF'
+Usage: tools/household-surface BASE [FOCUS_DATE]
+
+Calendar-first Household surface.
+
+Calendar focus:
+  Left/Right or h/l       previous/next day
+  Up/Down or k/j          previous/next week
+  [ / ] or PageUp/Down    previous/next month
+  Enter or Tab            move into Domain x Operation matrix
+
+Matrix focus:
+  Arrow keys or h/j/k/l   move through the matrix
+  Enter                   open the selected logical cell
+  Tab / Esc               return to Calendar focus
+
+Global:
+  i                       inspect selected-date Home detail
+  s                       Source & System
+  q                       quit
+EOF
+}
+
+if [[ $# -lt 1 || $# -gt 2 ]]; then
+  usage >&2
+  exit 2
+fi
+
+base=$1
+selected_date="${2:-$(date +%Y-%m-%d)}"
+[[ $base == /* ]] || base="$PWD/$base"
+[[ -t 0 && -t 1 ]] || {
+  echo 'Error: household-surface requires an interactive terminal' >&2
+  exit 2
+}
+
+# Load the frontend-neutral rectangular relation once. Indexed arrays keep this
+# compatible with the shell style already used by the repository.
+domain_keys=() domain_labels=() operation_keys=() operation_labels=()
+cell_enabled=() cell_labels=()
+while IFS=$'\t' read -r domain_index domain_key domain_label operation_index operation_key operation_label enabled cell_label; do
+  [[ $domain_index == domain_index ]] && continue
+  domain_keys[domain_index]="$domain_key"
+  domain_labels[domain_index]="$domain_label"
+  operation_keys[operation_index]="$operation_key"
+  operation_labels[operation_index]="$operation_label"
+  cell_index=$((domain_index * 4 + operation_index))
+  cell_enabled[cell_index]="$enabled"
+  cell_labels[cell_index]="$cell_label"
+done < <("$root/tools/household-surface-metadata")
+
+[[ ${#domain_keys[@]} -eq 6 && ${#operation_keys[@]} -eq 4 ]] || {
+  echo 'Error: Household surface metadata is incomplete' >&2
+  exit 1
+}
+
+focus_mode=calendar
+selected_domain=0
+selected_operation=0
+surface_error=''
+screen_active=0
+
+enter_screen() {
+  printf '\033[?1049h\033[?25l' >/dev/tty
+  screen_active=1
+}
+
+leave_screen() {
+  if [[ $screen_active -eq 1 ]]; then
+    printf '\033[?25h\033[?1049l' >/dev/tty
+    screen_active=0
+  fi
+}
+
+cleanup() {
+  leave_screen 2>/dev/null || true
+  [[ -z $surface_error ]] || printf '%s\n' "$surface_error" >&2
+}
+trap cleanup EXIT
+trap 'exit 130' INT TERM HUP
+
+read_key() {
+  local first='' second='' third='' fourth=''
+  IFS= read -rsn1 first </dev/tty || return 1
+  if [[ $first == $'\e' ]]; then
+    if IFS= read -rsn1 -t 0.05 second </dev/tty; then
+      if [[ $second == '[' ]] && IFS= read -rsn1 -t 0.05 third </dev/tty; then
+        case "$third" in
+          A) printf 'up\n'; return 0 ;;
+          B) printf 'down\n'; return 0 ;;
+          C) printf 'right\n'; return 0 ;;
+          D) printf 'left\n'; return 0 ;;
+          5|6)
+            if IFS= read -rsn1 -t 0.05 fourth </dev/tty && [[ $fourth == '~' ]]; then
+              [[ $third == 5 ]] && printf 'page-up\n' || printf 'page-down\n'
+              return 0
+            fi
+            ;;
+        esac
+      fi
+    fi
+    printf 'escape\n'
+  elif [[ $first == $'\t' ]]; then
+    printf 'tab\n'
+  elif [[ -z $first ]]; then
+    printf 'enter\n'
+  else
+    printf '%s\n' "$first"
+  fi
+}
+
+calendar_text() {
+  "$root/tools/home-calendar" "$base" "$selected_date" calendar
+}
+
+shift_date() {
+  local mode=$1 next status=0
+  if next="$("$root/tools/home-calendar" "$base" "$selected_date" "$mode")"; then
+    selected_date=$next
+  else
+    status=$?
+    surface_error=$next
+    return "$status"
+  fi
+}
+
+render_cell() {
+  local d=$1 o=$2 idx text enabled
+  idx=$((d * 4 + o))
+  enabled=${cell_enabled[idx]:-0}
+  text=${cell_labels[idx]:-}
+  [[ -n $text ]] || text='·'
+  if [[ $focus_mode == matrix && $d -eq $selected_domain && $o -eq $selected_operation ]]; then
+    printf '\033[7m%-13.13s\033[0m' "$text"
+  elif [[ $enabled -eq 1 ]]; then
+    printf '%-13.13s' "$text"
+  else
+    printf '%-13s' '·'
+  fi
+}
+
+render_surface() {
+  local calendar d o
+  if ! calendar="$(calendar_text)"; then
+    surface_error=$calendar
+    return 1
+  fi
+  printf '\033[H\033[2J%s\n\n' "$calendar" >/dev/tty
+  printf 'Selected date: %s    Focus: %s\n\n' "$selected_date" "$focus_mode" >/dev/tty
+  printf '%-12s' '' >/dev/tty
+  for ((o=0; o<4; o++)); do
+    printf '%-13.13s' "${operation_labels[o]}" >/dev/tty
+  done
+  printf '\n' >/dev/tty
+  for ((d=0; d<6; d++)); do
+    printf '%-12.12s' "${domain_labels[d]}" >/dev/tty
+    for ((o=0; o<4; o++)); do
+      render_cell "$d" "$o" >/dev/tty
+    done
+    printf '\n' >/dev/tty
+  done
+  printf '\n' >/dev/tty
+  if [[ $focus_mode == calendar ]]; then
+    printf 'Calendar: ←→ day  ↑↓ week  [ ] month   Enter/Tab: matrix\n' >/dev/tty
+  else
+    printf 'Matrix: arrows/hjkl move   Enter: open   Tab/Esc: calendar\n' >/dev/tty
+  fi
+  printf 'i: inspect date   s: Source & System   q: quit\n' >/dev/tty
+}
+
+pause_return() {
+  printf '\nPress Enter to return to Household surface...' >/dev/tty
+  IFS= read -r _ </dev/tty || true
+}
+
+run_child() {
+  local status=0
+  leave_screen
+  set +e
+  BL_SELECTED_DATE="$selected_date" "$@"
+  status=$?
+  set -e
+  if [[ $status -ne 0 && $status -ne 130 ]]; then
+    printf '\nCommand failed with status %s.\n' "$status" >&2
+  fi
+  pause_return
+  enter_screen
+  return 0
+}
+
+show_detail() {
+  leave_screen
+  set +e
+  "$root/tools/home-calendar" "$base" "$selected_date" detail
+  status=$?
+  set -e
+  [[ $status -eq 0 ]] || printf '\nHome detail failed with status %s.\n' "$status" >&2
+  pause_return
+  enter_screen
+}
+
+source_system_menu() {
+  local answer
+  while true; do
+    leave_screen
+    cat >/dev/tty <<'EOF'
+
+=== Source & System ===
+  1) Open canonical source
+  2) Household check
+  3) Ledger / provenance inspection
+  4) Dependency and source diagnosis
+  5) Export canonical Journals to hledger
+  6) Compact report summary
+  7) Exact compact-key query
+  8) Repository development suite
+  0) Back
+EOF
+    printf 'Select [0-8]> ' >/dev/tty
+    read -r answer </dev/tty || answer=0
+    case "$answer" in
+      0|'') enter_screen; return 0 ;;
+      1) run_child "$root/tools/bl" --base "$base" edit ;;
+      2) run_child "$root/tools/bl" --base "$base" check ;;
+      3) run_child "$root/tools/bl" --base "$base" inspect ;;
+      4) run_child "$root/tools/bl" --base "$base" doctor ;;
+      5) run_child "$root/tools/bl" --base "$base" export ;;
+      6) run_child "$root/tools/bl" --base "$base" summary ;;
+      7) run_child "$root/tools/bl" --base "$base" query ;;
+      8) run_child "$root/tools/bl" --base "$base" dev-check ;;
+      *) enter_screen; continue ;;
+    esac
+  done
+}
+
+run_logical_action() {
+  local action_key=$1 action_kind=$2
+  if [[ $action_kind == report ]]; then
+    run_child "$root/tools/bl" --base "$base" --latest "$selected_date" "$action_key"
+    return
+  fi
+  case "$action_key" in
+    journal-list) run_child "$root/tools/bl" --base "$base" journal list ;;
+    expense|income|move|multi|reverse)
+      run_child "$root/tools/bl" --base "$base" "$action_key" ;;
+    plan-list) run_child "$root/tools/bl" --base "$base" plans list ;;
+    plan-upcoming)
+      run_child "$root/tools/edit" --base "$base" plan list --temporal upcoming --as-of "$selected_date" ;;
+    plan-overdue)
+      run_child "$root/tools/edit" --base "$base" plan list --temporal overdue --as-of "$selected_date" ;;
+    plan-related) run_child "$root/tools/bl" --base "$base" plans related ;;
+    plan-add) run_child "$root/tools/bl" --base "$base" plans add ;;
+    plan-edit) run_child "$root/tools/bl" --base "$base" plans edit ;;
+    plan-finish) run_child "$root/tools/bl" --base "$base" plans finish ;;
+    budget-move) run_child "$root/tools/bl" --base "$base" budget add ;;
+    account-list) run_child "$root/tools/bl" --base "$base" accounts list ;;
+    account-add) run_child "$root/tools/bl" --base "$base" accounts add ;;
+    issue-list) run_child "$root/tools/bl" --base "$base" issues list ;;
+    issue-add) run_child "$root/tools/bl" --base "$base" issues add ;;
+    issue-close) run_child "$root/tools/bl" --base "$base" issues close ;;
+    *)
+      leave_screen
+      printf 'Unknown Household surface action: %s\n' "$action_key" >&2
+      pause_return
+      enter_screen
+      ;;
+  esac
+}
+
+open_selected_cell() {
+  local idx enabled domain operation
+  local -a action_keys=() action_labels=() action_kinds=() action_scopes=()
+  local action_index action_domain action_operation scope action_key action_label action_kind
+  local count answer
+
+  idx=$((selected_domain * 4 + selected_operation))
+  enabled=${cell_enabled[idx]:-0}
+  [[ $enabled -eq 1 ]] || return 0
+  domain=${domain_keys[selected_domain]}
+  operation=${operation_keys[selected_operation]}
+
+  while IFS=$'\t' read -r action_index action_domain action_operation scope action_key action_label action_kind; do
+    [[ $action_index == action_index ]] && continue
+    action_keys+=("$action_key")
+    action_labels+=("$action_label")
+    action_kinds+=("$action_kind")
+    action_scopes+=("$scope")
+  done < <("$root/tools/household-surface-metadata" actions "$domain" "$operation")
+
+  count=${#action_keys[@]}
+  (( count > 0 )) || return 0
+  if (( count == 1 )); then
+    run_logical_action "${action_keys[0]}" "${action_kinds[0]}"
+    return
+  fi
+
+  leave_screen
+  printf '\n=== %s × %s ===\n' "${domain_labels[selected_domain]}" "${operation_labels[selected_operation]}" >/dev/tty
+  for ((idx=0; idx<count; idx++)); do
+    printf ' %2d) %-36s [%s]\n' "$((idx + 1))" "${action_labels[idx]}" "${action_scopes[idx]}" >/dev/tty
+  done
+  printf '  0) Back\nSelect [0-%d]> ' "$count" >/dev/tty
+  read -r answer </dev/tty || answer=0
+  if [[ $answer =~ ^[0-9]+$ ]] && (( answer >= 1 && answer <= count )); then
+    enter_screen
+    run_logical_action "${action_keys[answer-1]}" "${action_kinds[answer-1]}"
+  else
+    enter_screen
+  fi
+}
+
+enter_screen
+while true; do
+  render_surface || exit $?
+  key="$(read_key)" || exit 130
+  case "$key" in
+    q|Q) exit 0 ;;
+    i|I) show_detail ;;
+    s|S) source_system_menu ;;
+    tab)
+      [[ $focus_mode == calendar ]] && focus_mode=matrix || focus_mode=calendar
+      ;;
+    escape)
+      if [[ $focus_mode == matrix ]]; then focus_mode=calendar; else exit 0; fi
+      ;;
+    enter)
+      if [[ $focus_mode == calendar ]]; then
+        focus_mode=matrix
+      else
+        open_selected_cell
+      fi
+      ;;
+    left|h|H)
+      if [[ $focus_mode == calendar ]]; then
+        shift_date day-prev || exit $?
+      else
+        selected_operation=$(((selected_operation + 3) % 4))
+      fi
+      ;;
+    right|l|L)
+      if [[ $focus_mode == calendar ]]; then
+        shift_date day-next || exit $?
+      else
+        selected_operation=$(((selected_operation + 1) % 4))
+      fi
+      ;;
+    up|k|K)
+      if [[ $focus_mode == calendar ]]; then
+        shift_date week-prev || exit $?
+      else
+        selected_domain=$(((selected_domain + 5) % 6))
+      fi
+      ;;
+    down|j|J)
+      if [[ $focus_mode == calendar ]]; then
+        shift_date week-next || exit $?
+      else
+        selected_domain=$(((selected_domain + 1) % 6))
+      fi
+      ;;
+    page-up|\[)
+      [[ $focus_mode == calendar ]] && shift_date month-prev || true
+      ;;
+    page-down|\])
+      [[ $focus_mode == calendar ]] && shift_date month-next || true
+      ;;
+  esac
+done
