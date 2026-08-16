@@ -20,15 +20,18 @@ get_default_base_dir() {
   printf '%s\n' '/__bqn-ledger-household-root-not-selected__'
 }
 
-# Physical canonical source names are fixed by the eight-source contract. This
-# helper remains only while the shell entry points are consolidated; it never
-# reads a config file and cannot redirect writer authority.
+# Physical canonical source names are fixed by the eight-source contract.
+# Account compatibility still resolves to the one canonical declaration owner.
+# Plan mutation no longer has a legacy dispatcher-owned filename coordinate:
+# dedicated tools/plan-add and tools/plan-edit own plan.journal directly. Any
+# old edit-bqn mutation path asking for DEFAULT_PLAN_FILE therefore fails closed
+# instead of acquiring canonical writer authority by accident.
 get_system_default_file() {
   local key="$1"
   local fallback="$2"
   case "$key" in
     DEFAULT_ACCOUNTS_FILE) printf 'accounts.journal\n' ;;
-    DEFAULT_PLAN_FILE) printf 'plan.journal\n' ;;
+    DEFAULT_PLAN_FILE) printf '__retired_plan_mutation_owner__\n' ;;
     *) printf '%s\n' "$fallback" ;;
   esac
 }
