@@ -68,9 +68,7 @@ extendedAccountsRaw ← •FChars "../"∾base∾"/accounts.journal"
 extendedAccountsRaw∾↩"\naccount Budget:Retired\n  type: Budget\n  commodity: JPY\n"
 extendedAccountsResult ← accountAdmission.Admit extendedAccountsRaw
 "ok" lib.AssertEq extendedAccountsResult.state
-extendedPolicy ← budgetSource.LoadPolicy ⟨base,extendedAccountsResult.accounts⟩
-"ok" lib.AssertEq extendedPolicy.state
-missingHistory ← householdSource.LoadShared ⟨"fixtures/canonical-household-retired-coordinate",extendedAccountsResult.accounts,extendedPolicy⟩
+missingHistory ← householdSource.LoadShared ⟨"fixtures/canonical-household-retired-coordinate",extendedAccountsResult.accounts,policy⟩
 "error" lib.AssertEq missingHistory.state
 1 lib.AssertEq ≠missingHistory.diagnostics
 "household_allocation_envelope_history_missing" lib.AssertEq (⊑missingHistory.diagnostics).code
