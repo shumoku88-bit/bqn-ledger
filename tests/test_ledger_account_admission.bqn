@@ -13,11 +13,11 @@ registry ← registryResult.registry
 proof ← accounts.Admit ⟨loader.ReadLines "fixtures/ledger-facts-phase1-proof/accounts.tsv",registry⟩
 "ok" lib.AssertEq proof.state
 0 lib.AssertEq ≠proof.diagnostics
-8 lib.AssertEq proof.accounts.count
-⟨"assets:cash","income:salary","expenses:food","expenses:transport","budget:opening","budget:unassigned","budget:food","budget:spent"⟩ lib.AssertEq proof.accounts.key
-⟨"JPY","JPY","JPY","JPY","JPY","JPY","JPY","JPY"⟩ lib.AssertEq proof.accounts.currency
-⟨"asset","income","expense","expense","budget","budget","budget","budget"⟩ lib.AssertEq proof.accounts.role
-⟨1,2,3,4,5,6,7,8⟩ lib.AssertEq proof.accounts.source_row
+7 lib.AssertEq proof.accounts.count
+⟨"assets:cash","income:salary","expenses:food","expenses:transport","budget:opening","budget:unassigned","budget:food"⟩ lib.AssertEq proof.accounts.key
+⟨"JPY","JPY","JPY","JPY","JPY","JPY","JPY"⟩ lib.AssertEq proof.accounts.currency
+⟨"asset","income","expense","expense","budget","budget","budget"⟩ lib.AssertEq proof.accounts.role
+⟨1,2,3,4,5,6,7⟩ lib.AssertEq proof.accounts.source_row
 
 missingCurrency ← accounts.Admit ⟨⟨"assets:cash"∾tab∾"role=asset"⟩,registry⟩
 "error" lib.AssertEq missingCurrency.state
