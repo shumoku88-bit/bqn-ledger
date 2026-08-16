@@ -4,6 +4,8 @@ set -euo pipefail
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
 work="$(mktemp -d "${TMPDIR:-/tmp}/bqn-ledger-canonical-boundary.XXXXXX")"
+stage=setup
+trap 'status=$?; echo "FAIL: Canonical Surface boundary stage=$stage status=$status" >&2; for f in "$work"/*.out "$work"/*.err; do [[ -f "$f" ]] && { echo "--- $f" >&2; cat "$f" >&2; }; done; exit $status' ERR
 trap 'rm -rf "$work"' EXIT
 base="$work/household"
 mkdir -p "$base"
@@ -36,11 +38,13 @@ sha256() {
 
 source_before="$(sha256 "$base/actual.journal")"
 
+stage=public-route
 # Public editor routing graduates Canonical Surface away from the legacy
 # monolithic dispatcher before any filesystem path is accepted.
 grep -Fq 'exec bash "$DIR/journal-canonical-surface" "$@"' tools/edit
 bash -n tools/journal-canonical-surface
 
+stage=dot-alias
 # Lexically different spelling of the canonical source must not bypass preview
 # protection. The source bytes must remain untouched on every rejection.
 if tools/edit --base "$base" journal canonical-surface-preview --output "$base/./actual.journal" >"$work/dot.out" 2>"$work/dot.err"; then
@@ -52,6 +56,7 @@ fi
   exit 1
 }
 
+stage=symlink-alias
 # A final-component symlink is never an acceptable preview artifact, even when
 # it points at the source through a different textual path.
 ln -s "$base/actual.journal" "$work/source-link.journal"
@@ -64,6 +69,7 @@ fi
   exit 1
 }
 
+stage=hardlink-alias
 # Same-inode aliases are rejected independently of path spelling. This catches
 # hard links that realpath/text equality alone cannot distinguish.
 ln "$base/actual.journal" "$work/source-hardlink.journal"
@@ -76,10 +82,14 @@ fi
   exit 1
 }
 
+stage=distinct-preview
 # A distinct caller-owned artifact remains supported and is byte-verified by
 # the BQN preview owner after semantic equivalence succeeds.
 preview="$work/preview.journal"
-tools/edit --base "$base" journal canonical-surface-preview --output "$preview" >"$work/preview.out"
+if ! tools/edit --base "$base" journal canonical-surface-preview --output "$preview" >"$work/preview.out" 2>"$work/preview.err"; then
+  cat "$work/preview.err" >&2
+  false
+fi
 [[ -f "$preview" ]]
 grep -Fq $'OK\tCANONICAL_PREVIEW\tactual.journal\t' "$work/preview.out"
 grep -Fq 'Expenses:Food    100 JPY' "$preview"
@@ -92,6 +102,7 @@ fi
   exit 1
 }
 
+stage=nested-data
 # The current Household root directly owns actual.journal. A historical nested
 # data/actual.journal must not be recovered as an alternate writer authority.
 nested="$work/nested"
@@ -103,4 +114,5 @@ if tools/edit --base "$nested" journal canonical-surface-apply --dry-run >"$work
 fi
 grep -Fq 'configured Journal is not a regular file' "$work/nested.err"
 
+stage=complete
 echo 'check-journal-canonical-surface-boundary: OK'
