@@ -2,15 +2,15 @@
 lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
-snapshot ← •Import "legacy_snapshot_fixture.bqn"
+snapshot ← •Import "canonical_snapshot_fixture.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 balance ← •Import "../src/accounting/account_balance.bqn"
 section ← •Import "../src/sections/account_balances.bqn"
 
 base ← "fixtures/ledger-facts-phase1-proof/"
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
-accountLines ← loader.ReadLines base∾"accounts.tsv"
-facts ← (snapshot.Build ⟨accountLines,•FChars "../"∾base∾"actual.journal",registry⟩).facts
+accountSource ← •FChars "../"∾base∾"accounts.journal"
+facts ← (snapshot.Build ⟨accountSource,•FChars "../"∾base∾"actual.journal",registry⟩).facts
 accountState ← balance.Build ⟨facts,"JPY",dates.Ordinal "2026-01-12"⟩
 result ← section.Build ⟨accountState,"2026-01-12"⟩
 "ok" lib.AssertEq result.state
