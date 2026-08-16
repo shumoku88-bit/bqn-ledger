@@ -1,7 +1,7 @@
 #!/usr/bin/env bqn
 lib ← •Import "test_lib.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
-snapshot ← •Import "legacy_snapshot_fixture.bqn"
+snapshot ← •Import "canonical_snapshot_fixture.bqn"
 canonicalBudget ← •Import "canonical_budget_test_facts.bqn"
 canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 budgetPolicyAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
@@ -14,15 +14,15 @@ Q ← {𝕊 text: ⟨quote⟩∾text∾⟨quote⟩}
 Join ← {𝕊 fields: out ← ⊑fields ⋄ {𝕊 field:out∾↩tab∾field}¨1↓fields ⋄ out}
 
 registry ← (registry_core.Build ⟨Join ⟨"JPY","0","¥"⟩⟩).registry
-accountLines ← ⟨
-  Join ⟨"assets:cash","role=asset","currency=JPY"⟩,
-  Join ⟨"expenses:food","role=expense","currency=JPY"⟩,
-  Join ⟨"expenses:transport","role=expense","currency=JPY"⟩,
-  Join ⟨"expenses:other","role=expense","currency=JPY"⟩,
-  Join ⟨"budget:opening","role=budget","currency=JPY"⟩,
-  Join ⟨"budget:unassigned","role=budget","currency=JPY"⟩,
-  Join ⟨"budget:food","role=budget","currency=JPY"⟩,
-  Join ⟨"budget:transport","role=budget","currency=JPY"⟩
+accountSource ← JournalText ⟨
+  "account assets:cash","  type: Asset","  commodity: JPY","",
+  "account expenses:food","  type: Expense","  commodity: JPY","",
+  "account expenses:transport","  type: Expense","  commodity: JPY","",
+  "account expenses:other","  type: Expense","  commodity: JPY","",
+  "account budget:opening","  type: Budget","  commodity: JPY","",
+  "account budget:unassigned","  type: Budget","  commodity: JPY","",
+  "account budget:food","  type: Budget","  commodity: JPY","",
+  "account budget:transport","  type: Budget","  commodity: JPY"
 ⟩
 actualRaw ← ∾⟨
   "commodity JPY",lf,lf,
@@ -35,7 +35,7 @@ actualRaw ← ∾⟨
   "account budget:food",lf,"    ; role: budget",lf,lf,
   "account budget:transport",lf,"    ; role: budget",lf
 ⟩
-actual ← (snapshot.Build ⟨accountLines,actualRaw,registry⟩).facts
+actual ← (snapshot.Build ⟨accountSource,actualRaw,registry⟩).facts
 
 planRaw ← JournalText ⟨
   "2026-01-12 food","  ; plan-id: food-plan","  expenses:food  4 JPY","  assets:cash  -4 JPY","",
