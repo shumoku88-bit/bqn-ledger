@@ -36,7 +36,6 @@ echo ""
 # ── Required dependencies ──
 echo "Required:"
 
-# CBQN
 if command -v bqn >/dev/null 2>&1; then
   ver=$(bqn --version 2>&1 | head -1)
   pass "CBQN: $ver"
@@ -61,7 +60,7 @@ echo ""
 
 # ── Canonical Household root ──
 echo "Data:"
-base_source="config/system_defaults.tsv DEFAULT_BASE_DIR"
+base_source="not selected"
 if [[ -n "${LEDGER_DATA_DIR:-}" ]]; then
   base_source="LEDGER_DATA_DIR"
 fi
