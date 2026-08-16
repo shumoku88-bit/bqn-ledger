@@ -78,17 +78,22 @@ late ← flow.Build ⟨facts,household,history,"JPY","actual",dates.Ordinal "202
 ⟨¯15⟩ lib.AssertEq late.dates.net
 ⟨10,5⟩ lib.AssertEq late.expense_groups.coefficient
 
+tab ← @+9
 scaleAccountLines ← ⟨
-  "assets:jpy\trole=asset\tcurrency=JPY",
-  "expenses:food\trole=expense\tcurrency=JPY",
-  "budget:food\trole=budget\tcurrency=JPY"
+  "assets:jpy"∾tab∾"role=asset"∾tab∾"currency=JPY",
+  "expenses:food"∾tab∾"role=expense"∾tab∾"currency=JPY",
+  "budget:food"∾tab∾"role=budget"∾tab∾"currency=JPY"
 ⟩
-scaleAccounts ← (account_admission.Admit ⟨scaleAccountLines,registry⟩).accounts
+scaleAccountResult ← account_admission.Admit ⟨scaleAccountLines,registry⟩
+"ok" lib.AssertEq scaleAccountResult.state
+scaleAccounts ← scaleAccountResult.accounts
 scalePlanRaw ← ∾{𝕩∾@+10}¨⟨
   "2026-01-10 whole","  ; plan-id: p1","  expenses:food 25 JPY","  assets:jpy -25 JPY","",
   "2026-01-10 fraction","  ; plan-id: p2","  expenses:food 12.30 JPY","  assets:jpy -12.30 JPY"
 ⟩
-scaleFacts ← (canonicalPlan.Build ⟨scalePlanRaw,scaleAccounts,registry⟩).facts
+scalePlanResult ← canonicalPlan.Build ⟨scalePlanRaw,scaleAccounts,registry⟩
+"ok" lib.AssertEq scalePlanResult.state
+scaleFacts ← scalePlanResult.facts
 scaleHousehold ← {
   state⇐"ok",source_name⇐"household.toml",
   budget⇐{envelope_id⇐⟨"food"⟩,allocation_account_key⇐⟨"budget:food"⟩}
