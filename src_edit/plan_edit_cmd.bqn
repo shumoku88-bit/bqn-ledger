@@ -27,12 +27,7 @@ Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
 Join ← {𝕊 base‿name: base∾(('/'≠¯1↑base)/"/")∾name}
 ReplaceAt ← {𝕊 index‿value‿xs: (index↑xs)∾⟨value⟩∾(index+1)↓xs}
 JoinLines ← {𝕊 xs:
-  result ← ""
-  {𝕊:
-    result↩⊑xs
-    {𝕊 line: result∾↩lf∾line}¨1↓xs
-  }⍟(0<≠xs) @
-  result
+  (0=≠xs) ◶ ⟨{𝕊:1↓∾(lf⊸∾)¨xs},{𝕊:""}⟩ @
 }
 ExactMagnitudeEqual ← {𝕊 oldCoefficient‿oldScale‿newCoefficient‿newScale:
   oldScaled ← oldCoefficient × 10⋆newScale
@@ -59,31 +54,32 @@ transactionIndices ← ↕transactionCount
 planIDs ← facts.transactions.plan_id
 completionIDs ← {𝕩.plan_id}¨actualSource.CompletionEvidence baseDir
 closedMask ← {Contains ⟨𝕩,completionIDs⟩}¨planIDs
-visibleIndices ← (¬closedMask)/transactionIndices
-{𝕊:visibleIndices↩transactionIndices}⍟showAll @
+openIndices ← (¬closedMask)/transactionIndices
+visibleIndices ← showAll ◶ ⟨{𝕊:openIndices},{𝕊:transactionIndices}⟩ @
 
-selectedIndex ← ¯1
-{𝕊:
-  {𝕊:Fail ("invalid plan index: "∾•Fmt indexVal∾" (available: 1-"∾•Fmt ≠visibleIndices∾")")}⍟((indexVal<1) ∨ indexVal>≠visibleIndices) @
-  selectedIndex↩(indexVal-1)⊑visibleIndices
-}⍟(indexVal>0) @
-{𝕊:
-  matches ← {idVal≡𝕩⊑planIDs}¨visibleIndices
-  missingMessage ← "plan_id not found or already closed: "
-  {𝕊:missingMessage↩"plan_id not found: "}⍟showAll @
-  {𝕊:Fail (missingMessage∾idVal)}⍟(1≠+´matches) @
-  selectedIndex↩⊑matches/visibleIndices
-}⍟(indexVal≤0) @
+byIndex ← indexVal>0
+selectedIndex ← byIndex ◶ ⟨
+  {𝕊:
+    matches ← {idVal≡𝕩⊑planIDs}¨visibleIndices
+    missingMessage ← showAll ◶ ⟨{𝕊:"plan_id not found or already closed: "},{𝕊:"plan_id not found: "}⟩ @
+    {𝕊:Fail (missingMessage∾idVal)}⍟(1≠+´matches) @
+    ⊑matches/visibleIndices
+  },
+  {𝕊:
+    {𝕊:Fail ("invalid plan index: "∾•Fmt indexVal∾" (available: 1-"∾•Fmt ≠visibleIndices∾")")}⍟((indexVal<1) ∨ indexVal>≠visibleIndices) @
+    (indexVal-1)⊑visibleIndices
+  }
+⟩ @
 {𝕊:Fail ("cannot edit closed plan: "∾selectedIndex⊑planIDs)}⍟(selectedIndex⊑closedMask) @
 
 targetPlanID ← selectedIndex⊑planIDs
 currentDate ← selectedIndex⊑facts.transactions.date_text
-targetDate ← currentDate
+hasDateEdit ← 0<≠dateVal
 {𝕊:
   dateCheck ← validate.ValidateDate dateVal
   {𝕊:Fail 1⊑dateCheck}⍟(¬0⊑dateCheck) @
-  targetDate↩dateVal
-}⍟(0<≠dateVal) @
+}⍟hasDateEdit @
+targetDate ← hasDateEdit ◶ ⟨{𝕊:currentDate},{𝕊:dateVal}⟩ @
 
 postingMask ← selectedIndex=facts.postings.transaction_index
 postingIndices ← postingMask/↕facts.postings.count
@@ -116,10 +112,10 @@ headerIndex ← (selectedIndex⊑facts.transactions.source_start_line)-1
 {𝕊:Fail "admitted Plan header coordinate is outside source"}⍟((headerIndex<0) ∨ headerIndex≥≠lines) @
 header ← headerIndex⊑lines
 {𝕊:Fail "admitted Plan header date does not match source coordinate"}⍟(currentDate≢10↑header) @
-dateCandidateLines ← dateChanged ◶ ⟨{lines},{ReplaceAt ⟨headerIndex,targetDate∾10↓header,lines⟩}⟩ @
+dateCandidateLines ← dateChanged ◶ ⟨{𝕊:lines},{𝕊:ReplaceAt ⟨headerIndex,targetDate∾10↓header,lines⟩}⟩ @
 
 replacementAmountTexts ← {𝕊 coefficient: ((coefficient<0)/"-")∾amountVal}¨selectedCoefficients
-expectedAmountTexts ← amountChanged ◶ ⟨{originalAmountTexts},{replacementAmountTexts}⟩ @
+expectedAmountTexts ← amountChanged ◶ ⟨{𝕊:originalAmountTexts},{𝕊:replacementAmountTexts}⟩ @
 ApplyAmount ← {𝕊 inputLines:
   replacementLineIndices ← selectedSourceLines-1
   invalidLines ← (replacementLineIndices<0) ∨ replacementLineIndices≥≠inputLines
@@ -129,7 +125,7 @@ ApplyAmount ← {𝕊 inputLines:
   first ← ReplaceAt ⟨0⊑replacementLineIndices,0⊑replacementLines,inputLines⟩
   ReplaceAt ⟨1⊑replacementLineIndices,1⊑replacementLines,first⟩
 }
-candidateLines ← amountChanged ◶ ⟨{dateCandidateLines},{ApplyAmount dateCandidateLines}⟩ @
+candidateLines ← amountChanged ◶ ⟨{𝕊:dateCandidateLines},{𝕊:ApplyAmount dateCandidateLines}⟩ @
 
 candidateRaw ← JoinLines candidateLines
 {𝕊:Fail "canonical Plan edit produced no source change"}⍟(candidateRaw≡raw) @
