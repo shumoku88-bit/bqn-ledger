@@ -1,7 +1,7 @@
 #!/usr/bin/env bqn
 lib ← •Import "test_lib.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
-snapshot ← •Import "legacy_snapshot_fixture.bqn"
+snapshot ← •Import "canonical_snapshot_fixture.bqn"
 canonicalBudget ← •Import "canonical_budget_test_facts.bqn"
 canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 budgetPolicyAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
@@ -13,15 +13,15 @@ Q ← {𝕊 text: ⟨quote⟩∾text∾⟨quote⟩}
 Join ← {𝕊 fields: out ← ⊑fields ⋄ {𝕊 field:out∾↩tab∾field}¨1↓fields ⋄ out}
 Index ← {𝕊 key‿accountFacts:⊑accountFacts.key⊐⟨key⟩}
 registry ← (registry_core.Build ⟨Join ⟨"JPY","0","¥"⟩⟩).registry
-accounts ← ⟨
-  Join ⟨"assets:cash","role=asset","currency=JPY"⟩,
-  Join ⟨"expenses:food","role=expense","currency=JPY"⟩,
-  Join ⟨"expenses:groceries","role=expense","currency=JPY"⟩,
-  Join ⟨"expenses:transport","role=expense","currency=JPY"⟩,
-  Join ⟨"budget:opening","role=budget","currency=JPY"⟩,
-  Join ⟨"budget:unassigned","role=budget","currency=JPY"⟩,
-  Join ⟨"budget:food","role=budget","currency=JPY"⟩,
-  Join ⟨"budget:transport","role=budget","currency=JPY"⟩
+accountSource ← JournalText ⟨
+  "account assets:cash","  type: Asset","  commodity: JPY","",
+  "account expenses:food","  type: Expense","  commodity: JPY","",
+  "account expenses:groceries","  type: Expense","  commodity: JPY","",
+  "account expenses:transport","  type: Expense","  commodity: JPY","",
+  "account budget:opening","  type: Budget","  commodity: JPY","",
+  "account budget:unassigned","  type: Budget","  commodity: JPY","",
+  "account budget:food","  type: Budget","  commodity: JPY","",
+  "account budget:transport","  type: Budget","  commodity: JPY"
 ⟩
 raw ← ∾⟨
   "commodity JPY",lf,lf,
@@ -40,7 +40,7 @@ raw ← ∾⟨
   "2026-01-05 * transport",lf,"    ; event-id: transport-spend",lf,"    ; layer: actual",lf,
   "    expenses:transport 5 JPY",lf,"    assets:cash -5 JPY",lf
 ⟩
-actual ← (snapshot.Build ⟨accounts,raw,registry⟩).facts
+actual ← (snapshot.Build ⟨accountSource,raw,registry⟩).facts
 planRaw ← JournalText ⟨
   "2026-01-12 food a","  ; plan-id: food-plan-a","  expenses:groceries  4 JPY","  assets:cash  -4 JPY","",
   "2026-01-13 transport","  ; plan-id: transport-plan","  expenses:transport  6 JPY","  assets:cash  -6 JPY","",
