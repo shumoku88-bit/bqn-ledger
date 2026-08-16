@@ -11,7 +11,6 @@ expenses:transport/JPY |            5
 budget:opening/JPY     |            0
 budget:unassigned/JPY  |            0
 budget:food/JPY        |            0
-budget:spent/JPY       |            0
 -----------------------+--------------
 Balanced: YES
 
