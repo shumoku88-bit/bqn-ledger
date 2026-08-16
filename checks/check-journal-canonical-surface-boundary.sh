@@ -10,22 +10,33 @@ trap 'rm -rf "$work"' EXIT
 base="$work/household"
 mkdir -p "$base"
 
+# Reuse the same admitted historical Journal shape as the established Canonical
+# Surface E2E portfolio. This check varies filesystem identity only; it does not
+# invent a second parser/source-profile witness.
 cat >"$base/accounts.journal" <<'EOF'
-account Assets:Cash
+account assets:cash
   type: Asset
   commodity: JPY
 
-account Expenses:Food
+account expenses:food
   type: Expense
   commodity: JPY
 EOF
 cat >"$base/actual.journal" <<'EOF'
+commodity JPY
+
+account assets:cash
+    ; role: asset
+
+account expenses:food
+    ; role: expense
+
 2026-08-16 * lunch
     ; event-id: event-lunch
     ; layer: actual
     ; currency: JPY
-    Expenses:Food 100 JPY
-    Assets:Cash -100 JPY
+    expenses:food 100 JPY
+    assets:cash -100 JPY
 EOF
 
 sha256() {
@@ -92,7 +103,7 @@ if ! tools/edit --base "$base" journal canonical-surface-preview --output "$prev
 fi
 [[ -f "$preview" ]]
 grep -Fq $'OK\tCANONICAL_PREVIEW\tactual.journal\t' "$work/preview.out"
-grep -Fq 'Expenses:Food    100 JPY' "$preview"
+grep -Fq 'expenses:food    100 JPY' "$preview"
 if grep -Fq '; layer: actual' "$preview" || grep -Fq '; currency: JPY' "$preview"; then
   echo 'FAIL: preview retained redundant Canonical Surface metadata' >&2
   exit 1
