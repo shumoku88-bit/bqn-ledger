@@ -51,7 +51,7 @@ StatusText ← {𝕊 row: row.closed◶⟨{𝕊:""},{𝕊:" [CLOSED]"}⟩ @}
 StatusTsv ← {𝕊 row: row.closed◶⟨{𝕊:""},{𝕊:"CLOSED"}⟩ @}
 Display ← {𝕊 index:
   row ← index⊑plans ⋄ n ← index+1
-  (•Fmt n)∾": "∾row.date∾"  "∾row.description∾"  "∾row.from_account∾" -> "∾row.to_account∾"  "∾row.amount∾(StatusText row)
+  (•Fmt n)∾": "∾row.date∾"  "∾row.description∾"  "∾row.from_account∾" -> "∾row.to_account∾"  "∾row.amount∾" "∾row.currency∾(StatusText row)
 }
 PrintText ← {𝕊 index: •Out (Display index)}
 PrintTsv ← {𝕊 index:
