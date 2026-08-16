@@ -67,7 +67,7 @@ result ← envelopes.Build ⟨budget,policy,household,actual,plan,"JPY",dates.Or
 ⟨30⟩ lib.AssertEq result.envelopes.actual_consumption
 ⟨0⟩ lib.AssertEq result.envelopes.actual_refunds
 ⟨30⟩ lib.AssertEq result.envelopes.ledger_remaining
-⟨0⟩ lib.AssertEq result.envelopes.open_plan_reserve
+⟨0⟩ lib.AssertEq result.envelopes.commitment
 ⟨30⟩ lib.AssertEq result.envelopes.post_plan_headroom
 965 lib.AssertEq result.totals.funding_balance
 30 lib.AssertEq result.totals.backing_required
@@ -152,7 +152,7 @@ synthetic ← envelopes.Build ⟨syntheticBudget,syntheticPolicy,syntheticHouseh
 ⟨30⟩ lib.AssertEq synthetic.envelopes.actual_consumption
 ⟨5⟩ lib.AssertEq synthetic.envelopes.actual_refunds
 ⟨¯5⟩ lib.AssertEq synthetic.envelopes.ledger_remaining
-⟨4⟩ lib.AssertEq synthetic.envelopes.open_plan_reserve
+⟨4⟩ lib.AssertEq synthetic.envelopes.commitment
 ⟨¯9⟩ lib.AssertEq synthetic.envelopes.post_plan_headroom
 ¯15 lib.AssertEq synthetic.totals.funding_balance
 0 lib.AssertEq synthetic.totals.backing_required
@@ -166,7 +166,7 @@ synthetic ← envelopes.Build ⟨syntheticBudget,syntheticPolicy,syntheticHouseh
 emptyPlanFacts ← (canonicalPlan.Build ⟨"",syntheticActual.accounts,registry⟩).facts
 emptyPlan ← envelopes.Build ⟨syntheticBudget,syntheticPolicy,syntheticHousehold,syntheticActual,emptyPlanFacts,"JPY",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-10"⟩
 "ok" lib.AssertEq emptyPlan.state
-⟨0⟩ lib.AssertEq emptyPlan.envelopes.open_plan_reserve
+⟨0⟩ lib.AssertEq emptyPlan.envelopes.commitment
 
 duplicateRaw ← syntheticRaw∾lf∾lf∾∾⟨
   "2026-01-09 * duplicate one",lf,"    ; event-id: duplicate-one",lf,"    ; layer: actual",lf,"    ; currency: JPY",lf,"    ; plan-id: open-food",lf,"    expenses:food 4 JPY",lf,"    assets:cash -4 JPY",lf,lf,
