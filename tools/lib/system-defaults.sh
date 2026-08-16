@@ -12,6 +12,29 @@ if [[ -n "$_caller_ledger_data_dir_set" ]]; then
 fi
 unset _caller_ledger_data_dir_set _caller_ledger_data_dir
 
+# Plan mutation has dedicated writer owners. The old monolithic edit-bqn
+# dispatcher remains a read/list and non-Plan command owner, but it must never
+# acquire Plan writer authority. Reject those commands before any source path is
+# selected or mutation candidate is constructed.
+if [[ "${BASH_SOURCE[1]##*/}" == "edit-bqn" ]]; then
+  _edit_bqn_args=("$@")
+  _edit_bqn_i=0
+  if [[ "${_edit_bqn_args[0]-}" == "--base" ]]; then
+    _edit_bqn_i=2
+  fi
+  _edit_bqn_command="${_edit_bqn_args[_edit_bqn_i]-}"
+  _edit_bqn_subcommand="${_edit_bqn_args[_edit_bqn_i+1]-}"
+  if [[ "$_edit_bqn_command" == "plan" ]]; then
+    case "$_edit_bqn_subcommand" in
+      add|edit|finish)
+        echo "ERROR: Plan mutation is owned by tools/plan-$_edit_bqn_subcommand, not tools/edit-bqn" >&2
+        return 2
+        ;;
+    esac
+  fi
+  unset _edit_bqn_args _edit_bqn_i _edit_bqn_command _edit_bqn_subcommand
+fi
+
 # Canonical Household tools have no repository data fallback. Callers may still
 # parse --base after obtaining this placeholder; if neither --base nor
 # LEDGER_DATA_DIR selects a Household, canonical admission fails closed instead
@@ -22,10 +45,8 @@ get_default_base_dir() {
 
 # Physical canonical source names are fixed by the eight-source contract.
 # Account compatibility still resolves to the one canonical declaration owner.
-# Plan mutation no longer has a legacy dispatcher-owned filename coordinate:
-# dedicated tools/plan-add and tools/plan-edit own plan.journal directly. Any
-# old edit-bqn mutation path asking for DEFAULT_PLAN_FILE therefore fails closed
-# instead of acquiring canonical writer authority by accident.
+# The Plan filename coordinate is intentionally unavailable to the retired
+# dispatcher path; dedicated Plan writers own plan.journal directly.
 get_system_default_file() {
   local key="$1"
   local fallback="$2"
