@@ -2,7 +2,7 @@
 lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
-snapshot ← •Import "legacy_snapshot_fixture.bqn"
+snapshot ← •Import "canonical_snapshot_fixture.bqn"
 cycle_result ← •Import "../src/accounting/cycle_result.bqn"
 cycle_period ← •Import "../src/accounting/cycle_account_period.bqn"
 comparison ← •Import "../src/accounting/cycle_comparison.bqn"
@@ -10,8 +10,7 @@ section ← •Import "../src/sections/cycle_comparison.bqn"
 
 base ← "fixtures/ledger-facts-phase1-proof/"
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
-lines ← loader.ReadLines base∾"accounts.tsv"
-facts ← (snapshot.Build ⟨lines,•FChars "../"∾base∾"actual.journal",registry⟩).facts
+facts ← (snapshot.Build ⟨•FChars "../"∾base∾"accounts.journal",•FChars "../"∾base∾"actual.journal",registry⟩).facts
 Window ← {𝕊 start‿finish‿observation:
   cycle_period.Build ⟨facts,"JPY",cycle_result.Success ⟨"fixed",observation,start,finish,⟨⟩,⟨⟩⟩,observation⟩
 }
