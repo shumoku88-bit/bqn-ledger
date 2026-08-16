@@ -34,11 +34,7 @@ parsed ← parser.ParseWithProfile ⟨raw, "historical_external_plan"⟩
 }⍟(parsed.state ≢ "ok") @
 
 rows ← cleanup.Build parsed.transactions
-Dash ← {𝕊 text:
-  result ← text
-  {𝕊: result ↩ "-"}⍟(0 = ≠ text) @
-  result
-}
+Dash ← {𝕊 text:(0=≠text)⊑⟨text,"-"⟩}
 
 PrintTsv ← {𝕊 row:
   •Out tab Join ⟨
@@ -56,31 +52,36 @@ PrintTsv ← {𝕊 row:
 }
 
 PrintText ← {𝕊 row:
-  out ← "#" ∾ (•Fmt row.number) ∾ " " ∾ row.classification
-  out ∾↩ " reason=" ∾ row.reason
-  out ∾↩ " event-line=" ∾ (•Fmt row.event_id_line)
-  out ∾↩ " refs=" ∾ (•Fmt row.incoming_reference_count)
-  out ∾↩ " date=" ∾ row.date
-  out ∾↩ " id=" ∾ (Dash row.event_id)
-  out ∾↩ " plan=" ∾ (Dash row.plan_id)
-  out ∾↩ " " ∾ row.description
-  •Out out
+  •Out ∾ ⟨
+    "#",•Fmt row.number," ",row.classification,
+    " reason=",row.reason,
+    " event-line=",•Fmt row.event_id_line,
+    " refs=",•Fmt row.incoming_reference_count,
+    " date=",row.date,
+    " id=",Dash row.event_id,
+    " plan=",Dash row.plan_id,
+    " ",row.description
+  ⟩
 }
 
 Count ← {𝕊 category: +´ 0 ∾ {𝕩.classification ≡ category}¨ rows}
+Summary ← {𝕊:
+  ∾ ⟨
+    "Summary total=",•Fmt ≠rows,
+    " removable=",•Fmt Count "REMOVABLE",
+    " referenced=",•Fmt Count "REFERENCED",
+    " plan-linked=",•Fmt Count "PLAN_LINKED",
+    " other-linked=",•Fmt Count "OTHER_LINKED",
+    " identity-free=",•Fmt Count "IDENTITY_FREE",
+    " not-legacy=",•Fmt Count "NOT_LEGACY"
+  ⟩
+}
 
 (format ≡ "tsv") ◶ ⟨
   {𝕊:
     •Out "Journal legacy entry-id cleanup plan"
     PrintText¨ rows
-    summary ← "Summary total=" ∾ •Fmt (≠ rows)
-    summary ∾↩ " removable=" ∾ (•Fmt Count "REMOVABLE")
-    summary ∾↩ " referenced=" ∾ (•Fmt Count "REFERENCED")
-    summary ∾↩ " plan-linked=" ∾ (•Fmt Count "PLAN_LINKED")
-    summary ∾↩ " other-linked=" ∾ (•Fmt Count "OTHER_LINKED")
-    summary ∾↩ " identity-free=" ∾ (•Fmt Count "IDENTITY_FREE")
-    summary ∾↩ " not-legacy=" ∾ (•Fmt Count "NOT_LEGACY")
-    •Out summary
+    •Out Summary @
   },
   {𝕊: PrintTsv¨ rows}
 ⟩ @
