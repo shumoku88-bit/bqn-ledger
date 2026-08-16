@@ -2,7 +2,7 @@
 lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 registryCore ← •Import "../src/ledger/currency_registry.bqn"
-snapshot ← •Import "legacy_snapshot_fixture.bqn"
+snapshot ← •Import "canonical_snapshot_fixture.bqn"
 canonicalBudget ← •Import "canonical_budget_test_facts.bqn"
 canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 budgetPolicyAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
@@ -21,13 +21,13 @@ Join ← {𝕊 fields:
 }
 
 registry ← (registryCore.Build loader.ReadLines "config/currencies.tsv").registry
-accountLines ← ⟨
-  Join ⟨"assets:cash","role=asset","currency=JPY"⟩,
-  Join ⟨"assets:savings","role=asset","currency=JPY"⟩,
-  Join ⟨"expenses:food","role=expense","currency=JPY"⟩,
-  Join ⟨"budget:opening","role=budget","currency=JPY"⟩,
-  Join ⟨"budget:unassigned","role=budget","currency=JPY"⟩,
-  Join ⟨"budget:food","role=budget","currency=JPY"⟩
+accountSource ← Raw ⟨
+  "account assets:cash","  type: Asset","  commodity: JPY","",
+  "account assets:savings","  type: Asset","  commodity: JPY","",
+  "account expenses:food","  type: Expense","  commodity: JPY","",
+  "account budget:opening","  type: Budget","  commodity: JPY","",
+  "account budget:unassigned","  type: Budget","  commodity: JPY","",
+  "account budget:food","  type: Budget","  commodity: JPY"
 ⟩
 
 actualRaw ← ∾⟨
@@ -49,7 +49,7 @@ actualRaw ← ∾⟨
   "    ; plan-id: p-save",lf,
   "    assets:savings 30 JPY",lf,"    assets:cash -30 JPY",lf
 ⟩
-actual ← (snapshot.Build ⟨accountLines,actualRaw,registry⟩).facts
+actual ← (snapshot.Build ⟨accountSource,actualRaw,registry⟩).facts
 "ok" lib.AssertEq actual.state
 
 planRaw ← Raw ⟨
