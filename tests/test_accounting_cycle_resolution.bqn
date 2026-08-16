@@ -69,6 +69,7 @@ income ← income_resolver.Resolve ⟨incomeAdmission,"2026-01-12",actualFacts,p
 ⟨"plan.journal"⟩ lib.AssertEq {𝕩.source}¨income.end_contributors
 ⟨"plan.journal:plan_id:income-next"⟩ lib.AssertEq {𝕩.transaction_id}¨income.end_contributors
 
+# Application resolver selection stays aligned with the admitted mode axis.
 selectedFixed ← cycleSelection.WithPlan ⟨fixedAdmission,"2026-01-12",actualFacts,planFacts⟩
 "fixed" lib.AssertEq selectedFixed.mode
 fixed.start lib.AssertEq selectedFixed.start
@@ -85,6 +86,7 @@ income.end_exclusive lib.AssertEq selectedIncome.end_exclusive
 ({𝕩.source}¨income.end_contributors) lib.AssertEq ({𝕩.source}¨selectedIncome.end_contributors)
 ({𝕩.transaction_id}¨income.end_contributors) lib.AssertEq ({𝕩.transaction_id}¨selectedIncome.end_contributors)
 
+# Explicit observation excludes later Actual transactions from the frontier.
 incomeAtJan10 ← income_resolver.Resolve ⟨incomeAdmission,"2026-01-10",actualFacts,planFacts⟩
 "ok" lib.AssertEq incomeAtJan10.state
 "2026-01-02" lib.AssertEq incomeAtJan10.start

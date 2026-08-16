@@ -82,6 +82,10 @@ result ← envelopes.Build ⟨budget,policy,household,actual,plan,"JPY",dates.Or
 1 lib.AssertEq result.consumption_observation.unmanaged.count
 0 lib.AssertEq result.consumption_observation.unrouted.count
 
+# Budget policy keeps Backing Account keys, not admission-time numeric coordinates.
+# Reversing only the Account carrier used for policy admission must therefore
+# leave Backing-pool resolution unchanged. Envelope claims are independently
+# fixed by explicit historical routing facts.
 reorderedAccounts ← {
   count⇐actual.accounts.count,index⇐actual.accounts.index,
   key⇐⌽actual.accounts.key,role⇐⌽actual.accounts.role
@@ -96,6 +100,9 @@ result.totals.funding_balance lib.AssertEq reordered.totals.funding_balance
 result.totals.backing_surplus lib.AssertEq reordered.totals.backing_surplus
 result.funding_account_indices lib.AssertEq reordered.funding_account_indices
 
+# Household policy owns stable sparse Account keys. Re-admitting household.toml
+# against the reversed Account carrier changes only cached dense coordinates;
+# Envelope Backing must resolve ownership keys against the current Actual axis.
 householdRaw ← •FChars "../"∾base∾"household.toml"
 reorderedHousehold ← householdPolicyAdmission.Admit ⟨householdRaw,reorderedAccounts,policy⟩
 "ok" lib.AssertEq reorderedHousehold.state

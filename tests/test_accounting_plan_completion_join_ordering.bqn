@@ -18,6 +18,7 @@ Raw ← {𝕊 lines: ∾lines∾¨lf}
 IndexOf ← {𝕊 item‿items: ⊑items⊐⟨item⟩}
 Ids ← {𝕊 references: {𝕩.transaction_id}¨references}
 
+# Two Plans are intentionally selected in reverse source order.
 planRaw ← Raw ⟨
   "2026-01-20 food-plan",
   "  ; plan-id: plan-food-2026-01",
@@ -35,6 +36,9 @@ foodPlanIndex ← IndexOf ⟨"plan-food-2026-01",planFacts.transactions.plan_id�
 transportPlanIndex ← IndexOf ⟨"plan-transport-order",planFacts.transactions.plan_id⟩
 planSelection ← ⟨transportPlanIndex,foodPlanIndex⟩
 
+# Actual selection interleaves matching evidence and unmatched durable relations.
+# The second food completion deliberately has the same semantic signature as the
+# existing proof-food-1 completion, so the food Plan remains duplicate evidence.
 actualRaw ← •FChars "../"∾base∾"actual.journal"
 orderedActualRaw ← ∾⟨
   actualRaw,lf,
@@ -80,12 +84,16 @@ ordered ← join.Build ⟨planFacts,actualFacts,planSelection,actualSelection⟩
 1 lib.AssertEq ordered.counts.duplicate
 0 lib.AssertEq ordered.counts.open
 0 lib.AssertEq ordered.counts.ambiguous
+# Outer rows preserve explicit Plan selection order, expressed by durable identity.
 ⟨"plan.journal:plan_id:plan-transport-order","plan.journal:plan_id:plan-food-2026-01"⟩ lib.AssertEq Ids ordered.rows.plan_reference
+# Each matching Actual cell preserves explicit Actual selection order.
 ⟨⟨"proof-transport-order"⟩,⟨"proof-food-order-2","proof-food-1"⟩⟩ lib.AssertEq {Ids 𝕩}¨ordered.rows.actual_references
+# The parallel evidence columns remain aligned with those durable references.
 ⟨⟨15⟩,⟨20,20⟩⟩ lib.AssertEq ordered.rows.actual_coefficients
 ⟨⟨"2026-01-18"⟩,⟨"2026-01-10","2026-01-10"⟩⟩ lib.AssertEq ordered.rows.actual_dates
 ⟨⟨1⟩,⟨1,1⟩⟩ lib.AssertEq ordered.rows.currency_matches
 ⟨⟨1⟩,⟨1,1⟩⟩ lib.AssertEq ordered.rows.direction_matches
+# Unmatched selected Actual relations preserve their own selected order.
 ⟨"unmatched-order-b","unmatched-order-a"⟩ lib.AssertEq Ids ordered.unmatched_actual_references
 
 •Out "test_accounting_plan_completion_join_ordering: ok"

@@ -53,6 +53,7 @@ completed ← join.Build ⟨planFacts,actualFacts,planSelection,actualSelection�
 "proof-food-1" lib.AssertEq (⊑⊑completed.rows.actual_references).transaction_id
 ⟨⟩ lib.AssertEq completed.unmatched_actual_references
 
+# Selection is explicit: excluding the linked Actual leaves the Plan open.
 open ← join.Build ⟨planFacts,actualFacts,⟨0⟩,⟨0,2⟩⟩
 ⟨"open"⟩ lib.AssertEq open.rows.status
 1 lib.AssertEq open.counts.open
@@ -94,6 +95,7 @@ unknown ← join.Build ⟨planFacts,unknownFacts,⟨0⟩,unknownFacts.transactio
 1 lib.AssertEq ≠unknown.unmatched_actual_references
 "unrelated-completion" lib.AssertEq (⊑unknown.unmatched_actual_references).transaction_id
 
+# Exact coefficients/scales stay source-local in a non-JPY domain.
 ilsAccountSource ← Raw ⟨
   "account assets:ils","  type: Asset","  commodity: ILS","",
   "account expenses:ils","  type: Expense","  commodity: ILS"
@@ -124,6 +126,7 @@ ilsJoined ← join.Build ⟨ilsPlan,ilsActual,⟨0⟩,⟨0⟩⟩
 ⟨⟨1125⟩⟩ lib.AssertEq ilsJoined.rows.actual_coefficients
 ⟨⟨2⟩⟩ lib.AssertEq ilsJoined.rows.actual_scales
 
+# Non-adjacent duplicate selections fail closed before evidence construction.
 selectionPlanFacts ← {state⇐"ok",sources⇐planFacts.sources,transactions⇐{index⇐⟨0,1⟩}}
 duplicatePlanSelection ← join.Build ⟨selectionPlanFacts,actualFacts,⟨0,1,0⟩,⟨⟩⟩
 "error" lib.AssertEq duplicatePlanSelection.state
@@ -139,6 +142,7 @@ duplicateActualSelection ← join.Build ⟨planFacts,actualFacts,⟨⟩,⟨0,1,0
 1 lib.AssertEq ≠duplicateActualSelection.diagnostics
 "actual_selection_duplicate" lib.AssertEq (⊑duplicateActualSelection.diagnostics).code
 
+# Swapped source families also fail closed with no rows.
 swapped ← join.Build ⟨actualFacts,planFacts,actualFacts.transactions.index,planFacts.transactions.index⟩
 "error" lib.AssertEq swapped.state
 0 lib.AssertEq swapped.rows.count
