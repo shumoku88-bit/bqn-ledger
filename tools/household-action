@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$root"
+
+usage() {
+  cat <<'EOF'
+Usage: tools/household-action --base DIR --date YYYY-MM-DD ACTION_KEY
+
+Dispatch one logical Household action to the existing direct CLI/report owner.
+This adapter owns no accounting, source, or writer meaning.
+EOF
+}
+
+base=''
+selected_date=''
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --base) [[ $# -ge 2 ]] || { usage >&2; exit 2; }; base=$2; shift 2 ;;
+    --date) [[ $# -ge 2 ]] || { usage >&2; exit 2; }; selected_date=$2; shift 2 ;;
+    -h|--help) usage; exit 0 ;;
+    --) shift; break ;;
+    -*) echo "Error: unknown option: $1" >&2; usage >&2; exit 2 ;;
+    *) break ;;
+  esac
+done
+
+[[ -n $base && -n $selected_date && $# -eq 1 ]] || { usage >&2; exit 2; }
+[[ $selected_date =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || {
+  echo 'Error: --date must be YYYY-MM-DD' >&2
+  exit 2
+}
+
+action_key=$1
+common=(--base "$base" --latest "$selected_date")
+
+run_bl() {
+  BL_SELECTED_DATE="$selected_date" "$root/tools/bl" "${common[@]}" "$@"
+}
+
+case "$action_key" in
+  journal-list) run_bl journal list ;;
+  expense|income|move|multi|reverse) run_bl "$action_key" ;;
+  plan-list) run_bl plans list ;;
+  plan-upcoming) run_bl plans upcoming ;;
+  plan-overdue) run_bl plans overdue ;;
+  plan-related) run_bl plans related ;;
+  plan-add) run_bl plans add ;;
+  plan-edit) run_bl plans edit ;;
+  plan-finish) run_bl plans finish ;;
+  budget-move) run_bl budget add ;;
+  account-list) run_bl accounts list ;;
+  account-add) run_bl accounts add ;;
+  issue-list) run_bl issues list ;;
+  issue-add) run_bl issues add ;;
+  issue-close) run_bl issues close ;;
+  *)
+    # Retained report keys are catalog-owned and validated by tools/bl/main-ui.
+    run_bl "$action_key"
+    ;;
+esac
