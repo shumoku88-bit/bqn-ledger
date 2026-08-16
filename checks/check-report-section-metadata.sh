@@ -14,14 +14,18 @@ python3 - "$work/metadata.json" <<'PY'
 import json, sys
 rows = json.load(open(sys.argv[1], encoding="utf-8"))
 assert len(rows) == 12
-assert all(list(row) == ["key", "label", "category", "owner", "human_output", "structured_output"] for row in rows)
+assert all(list(row) == ["key", "label", "category", "owner", "surface_domain", "surface_scope", "human_output", "structured_output"] for row in rows)
+assert {row["surface_domain"] for row in rows} == {"actual", "plan", "envelope", "account", "issue", "household"}
+assert {row["surface_scope"] for row in rows} == {"day", "recent", "current", "future", "cycle", "month"}
 PY
 awk -F'\t' 'NR>1{print $1}' "$work/metadata.tsv" >"$work/keys"
 bqn src/application/report_selection_cli.bqn all human >"$work/catalog-keys"
 cmp "$work/keys" "$work/catalog-keys"
-while IFS=$'\t' read -r key label category owner human structured; do
+while IFS=$'\t' read -r key label category owner surface_domain surface_scope human structured; do
   [[ $key == key ]] && continue
   [[ -n $label && $category =~ ^(accounting|household|operations)$ ]]
+  [[ $surface_domain =~ ^(actual|plan|envelope|account|issue|household)$ ]]
+  [[ $surface_scope =~ ^(day|recent|current|future|cycle|month)$ ]]
   [[ -f $owner && $human == yes && $structured == metadata ]]
 done <"$work/metadata.tsv"
 if grep -Eq $'^(snapshot|ytd|cycle|trial-balance|check|outlook|daily-trend|actual-comparison|debug)\t' "$work/metadata.tsv"; then

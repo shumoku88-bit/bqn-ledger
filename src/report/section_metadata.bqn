@@ -1,4 +1,4 @@
-# Source-independent six-field destination section metadata.
+# Source-independent destination section metadata.
 
 catalog ← •Import "catalog.bqn"
 json ← •Import "json_text.bqn"
@@ -9,15 +9,17 @@ Table ← {𝕊:
   {
     count⇐source.count,index⇐source.index,key⇐source.key,label⇐source.label,
     category⇐source.category,owner⇐source.owner,
+    surface_domain⇐source.surface_domain,surface_scope⇐source.surface_scope,
     human_output⇐source.count⥊⟨"yes"⟩,structured_output⇐source.count⥊⟨"metadata"⟩
   }
 }
 FormatTsv ← {𝕊:
   table ← Table @
-  header ← ∾⟨"key",tab,"label",tab,"category",tab,"owner",tab,"human_output",tab,"structured_output",lf⟩
+  header ← ∾⟨"key",tab,"label",tab,"category",tab,"owner",tab,"surface_domain",tab,"surface_scope",tab,"human_output",tab,"structured_output",lf⟩
   rows ← {𝕊 i:
     ∾⟨
       i⊑table.key,tab,i⊑table.label,tab,i⊑table.category,tab,i⊑table.owner,tab,
+      i⊑table.surface_domain,tab,i⊑table.surface_scope,tab,
       i⊑table.human_output,tab,i⊑table.structured_output,lf
     ⟩
   }¨table.index
@@ -31,6 +33,8 @@ FormatJson ← {𝕊:
       json.Pair ⟨"label",json.String i⊑table.label⟩,
       json.Pair ⟨"category",json.String i⊑table.category⟩,
       json.Pair ⟨"owner",json.String i⊑table.owner⟩,
+      json.Pair ⟨"surface_domain",json.String i⊑table.surface_domain⟩,
+      json.Pair ⟨"surface_scope",json.String i⊑table.surface_scope⟩,
       json.Pair ⟨"human_output",json.String i⊑table.human_output⟩,
       json.Pair ⟨"structured_output",json.String i⊑table.structured_output⟩
     ⟩
