@@ -87,7 +87,7 @@ Build ← {𝕊 movements‿accounts‿household‿domain‿start‿finish‿obs
       envelopeRows ← (allocationReferences=i)/↕envelopeCount
       unassigned ← ∨´0∾i⊸≡¨unassignedReferences
       opening ← ∨´0∾i⊸≡¨openingReferences
-      coordinates ← envelopeRows ∾ unassigned/⟨envelopeCount⟩ ∾ opening/⟨envelopeCount+1⟩
+      coordinates ← envelopeRows ∾ (unassigned/⟨envelopeCount⟩) ∾ (opening/⟨envelopeCount+1⟩)
       {1=≠𝕩 ? ⊑𝕩 ; envelopeCount+2} coordinates
     }¨↕accountCount
 
@@ -113,7 +113,7 @@ Build ← {𝕊 movements‿accounts‿household‿domain‿start‿finish‿obs
           amount ← movement.movement_coefficient ⋄ sourceScale ← movement.movement_scale ⋄ effective ← i⊑effectiveOrdinals
           inc ← i⊑included
           Effect ← {𝕊 target‿coefficient‿posting:{target⇐target,amount⇐coefficient,effective_ordinal⇐effective,source_event_id⇐movement.source_event_id,source_posting_index⇐posting.posting_index,source_posting_id⇐posting.posting_id,source_scale⇐sourceScale,contributor⇐PostingReference ⟨movements.source_name,posting⟩,included⇐inc}}
-          (fromEnvelope/⟨Effect ⟨fromEndpoint,-amount,fromPosting⟩⟩) ∾ toEnvelope/⟨Effect ⟨toEndpoint,amount,toPosting⟩⟩
+          (fromEnvelope/⟨Effect ⟨fromEndpoint,-amount,fromPosting⟩⟩) ∾ (toEnvelope/⟨Effect ⟨toEndpoint,amount,toPosting⟩⟩)
         }¨transactionRows
         unassignedCells ← {𝕊 i:
           movement ← i⊑transactions ⋄ fromPosting‿toPosting ← movement.postings
@@ -122,7 +122,7 @@ Build ← {𝕊 movements‿accounts‿household‿domain‿start‿finish‿obs
           toUnassigned ← toEndpoint=envelopeCount ⋄ fromUnassigned ← fromEndpoint=envelopeCount
           toEffect ← {amount⇐movement.movement_coefficient,source_scale⇐movement.movement_scale,contributor⇐PostingReference ⟨movements.source_name,toPosting⟩,included⇐inc}
           fromEffect ← {amount⇐-movement.movement_coefficient,source_scale⇐movement.movement_scale,contributor⇐PostingReference ⟨movements.source_name,fromPosting⟩,included⇐inc}
-          (toUnassigned/⟨toEffect⟩) ∾ fromUnassigned/⟨fromEffect⟩
+          (toUnassigned/⟨toEffect⟩) ∾ (fromUnassigned/⟨fromEffect⟩)
         }¨transactionRows
         allEffects ← ∾effectCells ⋄ allUnassigned ← ∾unassignedCells
         allTargets ← {𝕩.target}¨allEffects ⋄ allAmounts ← {𝕩.amount}¨allEffects
