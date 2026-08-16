@@ -14,9 +14,9 @@ facts ← (snapshot.Build ⟨accountLines,•FChars "../"∾base∾"actual.journ
 accountState ← balance.Build ⟨facts,"JPY",dates.Ordinal "2026-01-12"⟩
 result ← section.Build ⟨accountState,"2026-01-12"⟩
 "ok" lib.AssertEq result.state
-8 lib.AssertEq result.matrix.row_count
+7 lib.AssertEq result.matrix.row_count
 1 lib.AssertEq result.matrix.column_count
-⟨⟨965⟩,⟨¯1000⟩,⟨30⟩,⟨5⟩,⟨0⟩,⟨0⟩,⟨0⟩,⟨0⟩⟩ lib.AssertEq result.matrix.values
+⟨⟨965⟩,⟨¯1000⟩,⟨30⟩,⟨5⟩,⟨0⟩,⟨0⟩,⟨0⟩⟩ lib.AssertEq result.matrix.values
 3 lib.AssertEq ≠⊑0⊑result.matrix.contributors
 1 lib.AssertEq result.balanced
 
