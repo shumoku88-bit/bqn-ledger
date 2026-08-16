@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# tools/add-ui.sh — fuzzy transaction adder using fzf/gum
+# tools/add-ui.sh — selection UI for Household writer leaves
 #
 # Architecture (Seam Reduction):
 #   Bash handles UI, selection, and display.
@@ -28,7 +28,11 @@ usage() {
 Usage:
   tools/add-ui.sh [--base <dir>] [--check] [<mode>]
 
-Fuzzy transaction adder for everyday entries.
+Selection UI for everyday Household writer leaves.
+
+When launched from the Calendar-first Household surface, BL_SELECTED_DATE is
+an internal UI context. Date-bearing actions consume that selected date instead
+of asking for a second date. Standalone behavior remains unchanged.
 
 Modes:
   account-add   アカウント追加 (writes accounts.journal)
@@ -104,6 +108,11 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+if [[ -n "${BL_SELECTED_DATE:-}" && ! "${BL_SELECTED_DATE}" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+  shout "Error: BL_SELECTED_DATE must be YYYY-MM-DD"
+  exit 2
+fi
 
 mode=''
 if [[ -n "$mode_arg" ]]; then
@@ -287,7 +296,7 @@ select_display_lines() {
 
 # ── Date handling ──
 
-today="$(date +%Y-%m-%d)"
+today="${BL_SELECTED_DATE:-$(date +%Y-%m-%d)}"
 yesterday="$(date -v-1d +%Y-%m-%d 2>/dev/null || date -d yesterday +%Y-%m-%d)"
 tomorrow="$(date -v+1d +%Y-%m-%d 2>/dev/null || date -d tomorrow +%Y-%m-%d)"
 
@@ -309,8 +318,8 @@ choose_plan_date_key() {
 
 choose_plan_list_scope() {
   cat <<'EOF' | select_line 'plan range'
-upcoming	今日以降のOPEN予定
-overdue	期限超過のOPEN予定
+upcoming	基準日以降のOPEN予定
+overdue	基準日より前のOPEN予定
 all	すべてのOPEN予定
 EOF
 }
@@ -491,9 +500,9 @@ if [[ "$mode" == 'plan-finish' ]]; then
   case "$plan_finish_status" in
     0) return 0 ;;
     130)
-      # An explicitly invoked leaf has a caller that owns navigation (for
-      # example Command Hub). Bubble cancellation there. The standalone add-ui
-      # mode menu still loops locally when it selected Plan Finish itself.
+      # An explicitly invoked leaf has a caller that owns navigation. Bubble
+      # cancellation there. The standalone add-ui mode menu still loops locally
+      # when it selected Plan Finish itself.
       if [[ -n "$mode_arg" ]]; then
         return 130
       fi
@@ -552,6 +561,7 @@ case "$mode" in
     close_status="${close_status_line%%$'\t'*}"
     capture_or_cancel decision_memo read_tty 'Decision memo (例: 2026-07-09 解約済み。固定支出/plan化しない。)' ''
     issue_close_args=(--index "$issue_number" --status "$close_status" --decision "$decision_memo")
+    [[ -z "${BL_SELECTED_DATE:-}" ]] || issue_close_args+=(--closed-date "$BL_SELECTED_DATE")
     ;;
   expense)
     capture_or_cancel memo read_tty 'Memo/Description' ''
@@ -689,9 +699,13 @@ case "$mode" in
       shout "Failed to match selected journal row: $selected_display"; exit 1
     fi
     reverse_index="$(printf '%s\n' "$selected_row" | cut -f1)"
-    capture_or_cancel reverse_date read_tty 'Reversal date YYYY-MM-DD (empty=today)' "$today"
     reverse_args=(--index "$reverse_index")
-    [[ -n "$reverse_date" && "$reverse_date" != "$today" ]] && reverse_args+=(--date "$reverse_date")
+    if [[ -n "${BL_SELECTED_DATE:-}" ]]; then
+      reverse_args+=(--date "$BL_SELECTED_DATE")
+    else
+      capture_or_cancel reverse_date read_tty 'Reversal date YYYY-MM-DD (empty=today)' "$today"
+      [[ -n "$reverse_date" && "$reverse_date" != "$today" ]] && reverse_args+=(--date "$reverse_date")
+    fi
     ;;
   *)
     shout "Unknown mode: $mode"; exit 1 ;;
@@ -700,20 +714,24 @@ esac
 # ── Date selection (skip for edit/close/reverse modes) ──
 
 if [[ "$mode" != 'account-add' && "$mode" != 'plan-edit' && "$mode" != 'reverse' && "$mode" != 'issue-close' ]]; then
-  if [[ "$mode" == 'plan-add' ]]; then
-    capture_or_cancel date_line choose_plan_date_key
+  if [[ -n "${BL_SELECTED_DATE:-}" ]]; then
+    selected_date="$BL_SELECTED_DATE"
   else
-    capture_or_cancel date_line choose_date_key
+    if [[ "$mode" == 'plan-add' ]]; then
+      capture_or_cancel date_line choose_plan_date_key
+    else
+      capture_or_cancel date_line choose_date_key
+    fi
+    if [[ -z "$date_line" ]]; then cancel_ui; fi
+    date_key="${date_line%%$'\t'*}"
+    case "$date_key" in
+      today) selected_date="$today" ;;
+      yesterday) selected_date="$yesterday" ;;
+      tomorrow) selected_date="$tomorrow" ;;
+      other) capture_or_cancel selected_date read_tty 'Date YYYY-MM-DD' "$today" ;;
+      *) selected_date="$today" ;;
+    esac
   fi
-  if [[ -z "$date_line" ]]; then cancel_ui; fi
-  date_key="${date_line%%$'\t'*}"
-  case "$date_key" in
-    today) selected_date="$today" ;;
-    yesterday) selected_date="$yesterday" ;;
-    tomorrow) selected_date="$tomorrow" ;;
-    other) capture_or_cancel selected_date read_tty 'Date YYYY-MM-DD' "$today" ;;
-    *) selected_date="$today" ;;
-  esac
   if [[ "$mode" == 'multi' ]]; then
     if [[ -z "$memo" || ${#postings[@]} -lt 3 ]]; then
       shout 'Cancelled or missing required multi-posting value.'; exit 1
