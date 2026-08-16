@@ -173,6 +173,29 @@ Admit ← {𝕊 raw:
       diagnostics∾↩AddIf ⟨reversed,Diagnostic ⟨"report_policy_range_invalid",lineNumber,"Report range start must not be after its through date"⟩⟩
     }⍟both @
   }
+  ReportRange ← {𝕊 block:
+    rangePair ← PairValue ⟨block,"range"⟩
+    fromPair ← PairValue ⟨block,"from"⟩
+    throughPair ← PairValue ⟨block,"through"⟩
+    rangeKind ← "explicit" ⋄ from ← "" ⋄ through ← ""
+    mixed ← rangePair.found ∧ (fromPair.found ∨ throughPair.found)
+    incomplete ← ¬rangePair.found ∧ (fromPair.found ≠ throughPair.found)
+    absent ← ¬rangePair.found ∧ ¬fromPair.found ∧ ¬throughPair.found
+    diagnostics∾↩AddIf ⟨mixed,Diagnostic ⟨"report_policy_range_shape_invalid",block.line,"range cannot be combined with from or through"⟩⟩
+    diagnostics∾↩AddIf ⟨incomplete ∨ absent,Diagnostic ⟨"report_policy_range_shape_invalid",block.line,"Report range requires range or both from and through"⟩⟩
+    {𝕊:
+      value ← StringValue ⟨block,"range"⟩
+      valid ← value≡"current-cycle-to-date"
+      diagnostics∾↩AddIf ⟨¬valid,Diagnostic ⟨"report_policy_symbolic_range_invalid",rangePair.line,"Report range must be current-cycle-to-date"⟩⟩
+      {𝕊:rangeKind↩"current-cycle-to-date"}⍟valid @
+    }⍟(rangePair.found ∧ ¬mixed) @
+    {𝕊:
+      from↩StringDate ⟨block,"from",1⟩
+      through↩StringDate ⟨block,"through",0⟩
+      CheckExplicitRange ⟨from,through,block.line⟩
+    }⍟(¬rangePair.found ∧ fromPair.found ∧ throughPair.found) @
+    {range_kind⇐rangeKind,from⇐from,through⇐through}
+  }
 
   presentationBlock ← OptionalOne "presentation.amounts"
   negativeStyle ← "parentheses" ⋄ negativeColor ← "red"
@@ -201,14 +224,12 @@ Admit ← {𝕊 raw:
   balanceBlock ← RequireOne "reports.balance-sheet" ⋄ CheckKeys ⟨balanceBlock,⟨"as-of"⟩,empty⟩
   balanceAsOf ← StringDate ⟨balanceBlock,"as-of",0⟩
 
-  profitBlock ← RequireOne "reports.profit-and-loss" ⋄ CheckKeys ⟨profitBlock,⟨"from","through"⟩,empty⟩
-  profitFrom ← StringDate ⟨profitBlock,"from",1⟩ ⋄ profitThrough ← StringDate ⟨profitBlock,"through",0⟩
-  CheckExplicitRange ⟨profitFrom,profitThrough,profitBlock.line⟩
+  profitBlock ← RequireOne "reports.profit-and-loss" ⋄ CheckKeys ⟨profitBlock,empty,⟨"range","from","through"⟩⟩
+  profitRange ← ReportRange profitBlock
 
-  dailyBlock ← RequireOne "reports.daily-flow" ⋄ CheckKeys ⟨dailyBlock,⟨"from","through"⟩,⟨"max-date-columns"⟩⟩
-  dailyFrom ← StringDate ⟨dailyBlock,"from",1⟩ ⋄ dailyThrough ← StringDate ⟨dailyBlock,"through",0⟩
+  dailyBlock ← RequireOne "reports.daily-flow" ⋄ CheckKeys ⟨dailyBlock,empty,⟨"range","from","through","max-date-columns"⟩⟩
+  dailyRange ← ReportRange dailyBlock
   dailyColumns ← PositiveInteger ⟨dailyBlock,"max-date-columns",14⟩
-  CheckExplicitRange ⟨dailyFrom,dailyThrough,dailyBlock.line⟩
 
   monthlyBlock ← RequireOne "reports.monthly-accounts" ⋄ CheckKeys ⟨monthlyBlock,⟨"from","through"⟩,empty⟩
   monthlyFrom ← StringDate ⟨monthlyBlock,"from",1⟩ ⋄ monthlyThrough ← StringDate ⟨monthlyBlock,"through",0⟩
@@ -228,8 +249,8 @@ Admit ← {𝕊 raw:
     reports⇐{
       trial_balance⇐{as_of⇐trialAsOf},
       balance_sheet⇐{as_of⇐balanceAsOf},
-      profit_and_loss⇐{from⇐profitFrom,through⇐profitThrough},
-      daily_flow⇐{from⇐dailyFrom,through⇐dailyThrough,max_date_columns⇐dailyColumns},
+      profit_and_loss⇐profitRange,
+      daily_flow⇐{range_kind⇐dailyRange.range_kind,from⇐dailyRange.from,through⇐dailyRange.through,max_date_columns⇐dailyColumns},
       monthly_accounts⇐{from⇐monthlyFrom,through⇐monthlyThrough},
       recent_transactions⇐{through⇐recentThrough,count⇐recentCount}
     },
