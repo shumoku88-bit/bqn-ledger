@@ -1,10 +1,8 @@
-# Strict BQN-native admission for canonical household.toml.
-# Account identity/type remains owned by accounts.journal. General Envelope and
+# Strict BQN-native admission for canonical household.toml current policy.
+# Account identity/type remains owned by accounts.journal. Current Envelope and
 # Backing policy remains owned by budget.toml. This owner admits Household-only
-# Cycle, stable Budget allocation coordinates, Money defaults, Daily Target
-# selections, and policy axes. Current Envelope membership remains budget.toml
-# authority; allocation coordinates may outlive current membership so historical
-# budget.journal evidence remains interpretable.
+# Cycle, explicit Budget source/allocation coordinates, Money defaults, and
+# Daily Target selections. Historical routing is admitted separately.
 
 lf ← @+10 ⋄ cr ← @+13 ⋄ space ← @+32 ⋄ tab ← @+9 ⋄ quote ← @+34 ⋄ hash ← ⊑"#"
 empty ← ⟨⟩
@@ -16,8 +14,6 @@ Trim ← {TrimRight TrimLeft 𝕩}
 SplitKeepEmpty ← {𝕊 sep‿text: groups ← (+`sep=text)⊔text ⋄ {(sep≠𝕩)/𝕩}¨groups}
 FirstOrSpace ← {𝕊 text: ⊑text∾⟨space⟩}
 
-# Canonical Account arrays may span physical TOML lines. A logical row keeps
-# the first physical line for diagnostics and preserves item/source order.
 ArrayClosed ← {𝕊 text:
   inQuote ← 0 ⋄ closed ← 0
   {𝕊 c:
@@ -105,14 +101,9 @@ Admit ← {𝕊 raw‿accounts‿budgetPolicy:
 
   diagnostics ← empty ⋄ blocks ← empty
   KnownSection ← {𝕊 name: Contains ⟨name,⟨
-    "cycle","budget","budget.envelopes","money","daily-target","daily-target.assets",
-    "account-policy.assets","account-policy.budget.kind","account-policy.budget.envelope-role",
-    "account-policy.budget.group","account-policy.expenses"
+    "cycle","budget","budget.envelopes","money","daily-target","daily-target.assets"
   ⟩⟩}
 
-  # Multiline/quote state above is lexical. Once logical rows exist, section
-  # ownership is a source relation: classify headers, Scan one segment axis,
-  # then parse each source-ordered segment locally.
   indices ← ↕≠lines
   ignored ← (0=≠¨lines) ∨ hash=FirstOrSpace¨lines
   HeaderShape ← {𝕊 text:
@@ -213,12 +204,18 @@ Admit ← {𝕊 raw‿accounts‿budgetPolicy:
   diagnostics∾↩AddIf ⟨cycleMode≢"income-anchor",Diagnostic ⟨"household_cycle_mode_invalid",cycleBlock.line,"Canonical Household cycle mode must be income-anchor"⟩⟩
   AccountRelations ⟨⟨incomeKey⟩,"income",cycleBlock.line⟩
 
-  budgetBlock ← RequireOne "budget" ⋄ CheckKeys ⟨budgetBlock,⟨"unassigned-accounts"⟩,empty⟩
+  budgetBlock ← RequireOne "budget" ⋄ CheckKeys ⟨budgetBlock,⟨"opening-accounts","unassigned-accounts"⟩,empty⟩
+  openingKeys ← ArrayValue ⟨budgetBlock,"opening-accounts"⟩
   unassignedKeys ← ArrayValue ⟨budgetBlock,"unassigned-accounts"⟩
+  diagnostics∾↩AddIf ⟨0=≠openingKeys,Diagnostic ⟨"household_opening_missing",budgetBlock.line,"Household Budget policy requires at least one opening Account"⟩⟩
   diagnostics∾↩AddIf ⟨0=≠unassignedKeys,Diagnostic ⟨"household_unassigned_missing",budgetBlock.line,"Household Budget policy requires at least one unassigned Account"⟩⟩
+  diagnostics∾↩AddIf ⟨(≠openingKeys)≠≠⍷openingKeys,Diagnostic ⟨"household_opening_duplicate",budgetBlock.line,"Opening Budget Accounts must be unique"⟩⟩
   diagnostics∾↩AddIf ⟨(≠unassignedKeys)≠≠⍷unassignedKeys,Diagnostic ⟨"household_unassigned_duplicate",budgetBlock.line,"Unassigned Budget Accounts must be unique"⟩⟩
+  openingRelation ← AccountRelations ⟨openingKeys,"budget",budgetBlock.line⟩
   unassignedRelation ← AccountRelations ⟨unassignedKeys,"budget",budgetBlock.line⟩
+  openingIndices ← openingRelation.valid/openingRelation.coordinates
   unassignedIndices ← unassignedRelation.valid/unassignedRelation.coordinates
+  diagnostics∾↩AddIf ⟨∨´0∾{Contains ⟨𝕩,unassignedIndices⟩}¨openingIndices,Diagnostic ⟨"household_budget_source_overlap",budgetBlock.line,"One Budget Account cannot be both opening and unassigned"⟩⟩
 
   moneyBlocks ← Singles "money" ⋄ moneyPresent ← 1=≠moneyBlocks ⋄ primaryCommodity ← ""
   diagnostics∾↩AddIf ⟨1<≠moneyBlocks,Diagnostic ⟨"household_section_cardinality_invalid",0,"Household money section may occur at most once"⟩⟩
@@ -231,10 +228,8 @@ Admit ← {𝕊 raw‿accounts‿budgetPolicy:
 
   envelopeRows ← empty
   {𝕊 block:
-    CheckKeys ⟨block,⟨"id","allocation-account"⟩,⟨"plan-destination-accounts"⟩⟩
+    CheckKeys ⟨block,⟨"id","allocation-account"⟩,empty⟩
     id ← StringValue ⟨block,"id"⟩ ⋄ allocationKey ← StringValue ⟨block,"allocation-account"⟩
-    destinationPair ← PairValue ⟨block,"plan-destination-accounts"⟩ ⋄ destinationKeys ← empty
-    {𝕊:destinationKeys↩ArrayValue ⟨block,"plan-destination-accounts"⟩}⍟destinationPair.found @
     validId ← NoWhitespace id
     diagnostics∾↩AddIf ⟨¬validId,Diagnostic ⟨"household_envelope_id_invalid",block.line,"Household envelope id must be nonempty and contain no whitespace"⟩⟩
     allocationRelation ← AccountRelations ⟨⟨allocationKey⟩,"budget",block.line⟩
@@ -244,10 +239,10 @@ Admit ← {𝕊 raw‿accounts‿budgetPolicy:
   envelopeIds ← {𝕩.id}¨envelopeRows ⋄ allocationIndices ← {𝕩.allocation_index}¨envelopeRows
   diagnostics∾↩AddIf ⟨(≠envelopeIds)≠≠⍷envelopeIds,Diagnostic ⟨"household_envelope_id_duplicate",0,"Household envelope ids must be unique"⟩⟩
   diagnostics∾↩AddIf ⟨(≠allocationIndices)≠≠⍷allocationIndices,Diagnostic ⟨"household_allocation_account_duplicate",0,"One Budget Account may allocate only one envelope"⟩⟩
-  # Current budget.toml Envelopes must still have a stable allocation coordinate.
-  # Extra coordinates are historical identities and remain readable after the
-  # current Envelope is retired.
+  diagnostics∾↩AddIf ⟨∨´0∾{Contains ⟨𝕩,openingIndices⟩}¨allocationIndices,Diagnostic ⟨"household_allocation_source_overlap",0,"Envelope allocation Account cannot also be opening"⟩⟩
+  diagnostics∾↩AddIf ⟨∨´0∾{Contains ⟨𝕩,unassignedIndices⟩}¨allocationIndices,Diagnostic ⟨"household_allocation_unassigned_overlap",0,"Envelope allocation Account cannot also be unassigned"⟩⟩
   diagnostics∾↩AddIf ⟨∨´0∾{¬Contains ⟨𝕩,envelopeIds⟩}¨budgetPolicy.envelopes.id,Diagnostic ⟨"household_envelope_coordinates_missing",0,"Every current budget.toml envelope requires Household coordinates"⟩⟩
+
   dailyRows ← empty
   {𝕊 block:
     CheckKeys ⟨block,⟨"id","account"⟩,empty⟩
@@ -260,43 +255,7 @@ Admit ← {𝕊 raw‿accounts‿budgetPolicy:
   dailyIds ← {𝕩.scope_id}¨dailyRows
   diagnostics∾↩AddIf ⟨(≠dailyIds)≠≠⍷dailyIds,Diagnostic ⟨"daily_target_id_duplicate",0,"Daily Target selection ids must be unique"⟩⟩
 
-  axisSpec ← ⟨
-    ⟨"account-policy.assets",⟨⟨"liquid","liquid"⟩,⟨"savings","savings"⟩,⟨"investment","investment"⟩⟩,"asset"⟩,
-    ⟨"account-policy.budget.kind",⟨⟨"opening","opening"⟩,⟨"unassigned","unassigned"⟩,⟨"spent","spent"⟩,⟨"envelope","envelope"⟩⟩,"budget"⟩,
-    ⟨"account-policy.budget.envelope-role",⟨⟨"unassigned","unassigned"⟩,⟨"dynamic","dynamic"⟩,⟨"execution","execution"⟩⟩,"budget"⟩,
-    ⟨"account-policy.budget.group",⟨⟨"daily","daily"⟩,⟨"flex","flex"⟩,⟨"reserve","reserve"⟩⟩,"budget"⟩,
-    ⟨"account-policy.expenses",⟨⟨"fixed","fixed"⟩,⟨"variable","variable"⟩⟩,"expense"⟩
-  ⟩
-  axisRows ← empty
-  {𝕊 spec:
-    sectionName‿members‿expectedRole ← spec ⋄ found ← Singles sectionName
-    diagnostics∾↩AddIf ⟨1<≠found,Diagnostic ⟨"household_section_cardinality_invalid",0,"Household policy section may occur at most once"⟩⟩
-    {𝕊:
-      block ← ⊑found ⋄ CheckKeys ⟨block,{⊑𝕩}¨members,empty⟩
-      {𝕊 member:
-        keyName‿label ← member ⋄ keys ← ArrayValue ⟨block,keyName⟩
-        relation ← AccountRelations ⟨keys,expectedRole,block.line⟩
-        validIndices ← relation.valid/↕≠keys
-        axisRows∾↩{𝕊 i:{axis⇐sectionName,account_index⇐i⊑relation.coordinates,label⇐label,line⇐block.line}}¨validIndices
-      }¨members
-    }⍟(1=≠found) @
-  }¨axisSpec
-  AxisValues ← {𝕊 sectionName:
-    selected ← ({𝕩.axis≡sectionName}¨axisRows)/axisRows
-    coordinates ← {𝕩.account_index}¨selected
-    labels ← {𝕩.label}¨selected
-    diagnostics∾↩AddIf ⟨(≠coordinates)≠≠⍷coordinates,Diagnostic ⟨"household_account_axis_duplicate",0,"One Account may occur only once on one Household policy axis"⟩⟩
-    labelCoordinates ← coordinates⊐accounts.index
-    labelCoordinates⊏(labels∾⟨""⟩)
-  }
-  assetClass ← AxisValues "account-policy.assets"
-  budgetKind ← AxisValues "account-policy.budget.kind"
-  envelopeRole ← AxisValues "account-policy.budget.envelope-role"
-  budgetGroup ← AxisValues "account-policy.budget.group"
-  spendClass ← AxisValues "account-policy.expenses"
-
   ok ← 0=≠diagnostics ⋄ admittedEnvelopes ← ok/envelopeRows ⋄ admittedDaily ← ok/dailyRows
-  emptyAxis ← accounts.count⥊⟨""⟩
   cycleAdmission ← {state⇐ok⊑"error"‿"ok",diagnostics⇐diagnostics,definition⇐{
     mode⇐ok⊑""‿"incomeAnchor",start⇐"",end_exclusive⇐"",income_account⇐ok⊑""‿incomeKey,start_day⇐0,offset⇐0
   }}
@@ -306,15 +265,10 @@ Admit ← {𝕊 raw‿accounts‿budgetPolicy:
     budget⇐{
       envelope_count⇐≠admittedEnvelopes,envelope_id⇐{𝕩.id}¨admittedEnvelopes,
       allocation_account_key⇐{𝕩.allocation_key}¨admittedEnvelopes,allocation_account_index⇐{𝕩.allocation_index}¨admittedEnvelopes,
+      opening_account_keys⇐ok/openingKeys,opening_account_indices⇐ok/openingIndices,
       unassigned_account_keys⇐ok/unassignedKeys,unassigned_account_indices⇐ok/unassignedIndices
     },
     daily_target⇐{count⇐≠admittedDaily,index⇐↕≠admittedDaily,scope_id⇐{𝕩.scope_id}¨admittedDaily,account_key⇐{𝕩.account_key}¨admittedDaily,account_index⇐{𝕩.account_index}¨admittedDaily},
-    account_policy⇐{
-      account_key⇐accounts.key,
-      asset_class⇐ok⊑⟨emptyAxis,assetClass⟩,budget_kind⇐ok⊑⟨emptyAxis,budgetKind⟩,
-      envelope_role⇐ok⊑⟨emptyAxis,envelopeRole⟩,budget_group⇐ok⊑⟨emptyAxis,budgetGroup⟩,
-      spend_class⇐ok⊑⟨emptyAxis,spendClass⟩
-    },
     diagnostics⇐diagnostics
   }
 }
