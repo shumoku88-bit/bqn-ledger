@@ -7,4 +7,3 @@ id = "Daily"
 label = "Daily"
 pacing = "daily"
 backing-pool = "main"
-expense-accounts = ["Expenses:Groceries"]
