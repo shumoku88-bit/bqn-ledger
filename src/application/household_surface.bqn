@@ -1,9 +1,11 @@
 # Pure source-independent Household UI surface relation.
 #
 # The surface is not a Widget tree and owns no writer/report implementation.
-# It only states which logical operation coordinates exist for each Household
-# subject. Physical keys, terminal geometry, and command dispatch stay outside.
+# It states which logical operation coordinates and leaf actions exist for each
+# Household subject. Physical keys, terminal geometry, and command dispatch stay
+# outside. Retained report leaves are projected from the existing report catalog.
 
+reports ← •Import "../report/catalog.bqn"
 empty ← ⟨⟩
 tab ← @+9 ⋄ lf ← @+10
 
@@ -39,6 +41,62 @@ relation ← {
   enabled⇐enabled,cell_label⇐cellLabels
 }
 
+# Non-report action keys are logical UI vocabulary. Their concrete command
+# invocation remains a frontend/application-shell concern.
+commandKeys ← ⟨
+  "journal-list","expense","income","move","multi","reverse",
+  "plan-list","plan-upcoming","plan-overdue","plan-related","plan-add","plan-edit","plan-finish",
+  "budget-move","account-list","account-add","issue-list","issue-add","issue-close"
+⟩
+commandLabels ← ⟨
+  "Journal history","Expense","Income","Transfer / move","Multi-posting transaction","Reverse with a compensating transaction",
+  "Open Plans","Upcoming Plans","Overdue Plans","Related Plan evidence","Add Plan","Edit Plan date / amount","Finish / actualize / replenish Plan",
+  "Add / move Budget","Account inventory","Add Account","Open Issues","Add Issue","Close Issue"
+⟩
+commandDomains ← ⟨
+  "actual","actual","actual","actual","actual","actual",
+  "plan","plan","plan","plan","plan","plan","plan",
+  "envelope","account","account","issue","issue","issue"
+⟩
+commandOperations ← ⟨
+  "observe","add","add","add","add","resolve",
+  "observe","observe","observe","observe","add","change","resolve",
+  "add","observe","add","observe","add","resolve"
+⟩
+commandScopes ← ⟨
+  "all","selected-date","selected-date","selected-date","selected-date","selected-date",
+  "current","upcoming","overdue","selected","selected-date","selected","selected",
+  "selected-date","current","none","current","selected-date","selected"
+⟩
+
+Actions ← {𝕊:
+  reportTable ← reports.Table @
+  actionDomain ← commandDomains∾reportTable.surface_domain
+  actionOperation ← commandOperations∾reportTable.count⥊⟨"observe"⟩
+  actionScope ← commandScopes∾reportTable.surface_scope
+  actionKey ← commandKeys∾reportTable.key
+  actionLabel ← commandLabels∾reportTable.label
+  actionKind ← (≠commandKeys)⥊⟨"command"⟩ ∾ reportTable.count⥊⟨"report"⟩
+  {
+    count⇐≠actionKey,index⇐↕≠actionKey,
+    domain_key⇐actionDomain,operation_key⇐actionOperation,scope⇐actionScope,
+    action_key⇐actionKey,action_label⇐actionLabel,action_kind⇐actionKind
+  }
+}
+ActionsFor ← {𝕊 domainValue‿operationValue:
+  source ← Actions @
+  selected ← ((domainValue⊸≡¨source.domain_key) ∧ operationValue⊸≡¨source.operation_key)/source.index
+  {
+    count⇐≠selected,index⇐↕≠selected,
+    domain_key⇐selected⊏source.domain_key,
+    operation_key⇐selected⊏source.operation_key,
+    scope⇐selected⊏source.scope,
+    action_key⇐selected⊏source.action_key,
+    action_label⇐selected⊏source.action_label,
+    action_kind⇐selected⊏source.action_kind
+  }
+}
+
 Table ← {𝕊: relation}
 Domains ← {𝕊:{count⇐≠domainKeys,index⇐↕≠domainKeys,key⇐domainKeys,label⇐domainLabels}}
 Operations ← {𝕊:{count⇐≠operationKeys,index⇐↕≠operationKeys,key⇐operationKeys,label⇐operationLabels}}
@@ -64,5 +122,20 @@ FormatTsv ← {𝕊:
   }¨relation.index
   ∾⟨header,∾rows⟩
 }
+FormatActionsTsv ← {𝕊 domainValue‿operationValue:
+  table ← ActionsFor ⟨domainValue,operationValue⟩
+  header ← ∾⟨"action_index",tab,"domain_key",tab,"operation_key",tab,"scope",tab,"action_key",tab,"action_label",tab,"action_kind",lf⟩
+  rows ← {𝕊 i:
+    ∾⟨
+      •Fmt i,tab,i⊑table.domain_key,tab,i⊑table.operation_key,tab,i⊑table.scope,tab,
+      i⊑table.action_key,tab,i⊑table.action_label,tab,i⊑table.action_kind,lf
+    ⟩
+  }¨table.index
+  ∾⟨header,∾rows⟩
+}
 
-{Table⇐Table,Domains⇐Domains,Operations⇐Operations,Find⇐Find,FormatTsv⇐FormatTsv}
+{
+  Table⇐Table,Domains⇐Domains,Operations⇐Operations,Find⇐Find,
+  Actions⇐Actions,ActionsFor⇐ActionsFor,
+  FormatTsv⇐FormatTsv,FormatActionsTsv⇐FormatActionsTsv
+}
