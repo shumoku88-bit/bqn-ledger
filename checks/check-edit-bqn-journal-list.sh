@@ -31,7 +31,7 @@ before="$(sha_file "$base/actual.journal")"
 [[ "$before" == "$(sha_file "$base/actual.journal")" ]]
 [[ "$(wc -l <"$out" | tr -d ' ')" -eq 3 ]]
 awk -F '\t' 'NF != 7 {exit 1}' "$out"
-awk -F '\t' '$1==2 && $2=="2026-07-23" && $3=="Ordinary purchase" && $4=="assets:cash" && $5=="expenses:food" && $6==25 {ok=1} END{exit !ok}' "$out"
+awk -F '\t' '$1==2 && $2=="2026-07-23" && $3=="Ordinary purchase" && $4=="assets:cash" && $5=="expenses:food" && $6==25 && $7 ~ /25 JPY$/ {ok=1} END{exit !ok}' "$out"
 ! grep -q -E 'stage0-line-|completion-plan-household-001-20260724|opening-20260701-001' "$out"
 
 neg="$tmp_root/invalid-format"; cp -R data "$neg"

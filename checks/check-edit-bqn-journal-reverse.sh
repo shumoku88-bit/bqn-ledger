@@ -13,6 +13,14 @@ awk -F '\t' '$1=="OK" && $2=="REVERSE_NATIVE" && $3==2 && $4=="2026-07-23" && $5
 [[ "$(sed -n '2p' "$tmp/selector.out")" == 'expenses:food=-25' ]]
 [[ "$(sed -n '3p' "$tmp/selector.out")" == 'assets:cash=25' ]]
 
+negative="$tmp/negative-index"; cp -R "$fixture" "$negative"; before="$(sha_file "$negative/actual.journal")"
+if bqn src_edit/journal_native_reverse_cmd.bqn "$negative" "" -1 2026-07-25 >"$tmp/negative-index.out" 2>&1; then
+  echo 'FAIL: negative native Journal reverse index unexpectedly succeeded' >&2
+  exit 1
+fi
+[[ "$before" == "$(sha_file "$negative/actual.journal")" ]]; no_backup "$negative"
+grep -Fq $'ERROR\tnative Journal transaction index is out of range' "$tmp/negative-index.out"
+
 dry="$tmp/dry"; cp -R "$fixture" "$dry"; before="$(sha_file "$dry/actual.journal")"
 ./tools/edit --base "$dry" journal reverse --index 2 --date 2026-07-25 --dry-run --yes --post-check none >/dev/null
 [[ "$before" == "$(sha_file "$dry/actual.journal")" ]]; no_backup "$dry"
