@@ -8,7 +8,7 @@ usage() {
   cat <<'EOF'
 Usage: tools/household-action --base DIR --date YYYY-MM-DD ACTION_KEY
 
-Dispatch one logical Household action to the existing direct CLI/report owner.
+Dispatch one admitted logical Household action to the existing direct CLI/report owner.
 This adapter owns no accounting, source, or writer meaning.
 EOF
 }
@@ -35,8 +35,24 @@ done
 action_key=$1
 common=(--base "$base" --latest "$selected_date")
 
+action_row="$("$root/tools/household-surface-metadata" actions | \
+  awk -F'\t' -v key="$action_key" 'NR>1 && $5==key {print; found++} END {if(found!=1) exit 1}')" || {
+    echo "Error: unknown Household action: $action_key" >&2
+    exit 2
+  }
+action_kind="$(cut -f7 <<<"$action_row")"
+
 run_bl() {
   BL_SELECTED_DATE="$selected_date" "$root/tools/bl" "${common[@]}" "$@"
+}
+
+if [[ $action_kind == report ]]; then
+  run_bl "$action_key"
+  exit $?
+fi
+[[ $action_kind == command ]] || {
+  echo "Error: unsupported Household action kind: $action_kind" >&2
+  exit 2
 }
 
 case "$action_key" in
@@ -56,7 +72,7 @@ case "$action_key" in
   issue-add) run_bl issues add ;;
   issue-close) run_bl issues close ;;
   *)
-    # Retained report keys are catalog-owned and validated by tools/bl/main-ui.
-    run_bl "$action_key"
+    echo "Error: admitted command action has no dispatcher route: $action_key" >&2
+    exit 2
     ;;
 esac
