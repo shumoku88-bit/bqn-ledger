@@ -1,14 +1,14 @@
 [
-  {"key": "envelopes", "label": "Envelope & Backing", "category": "household", "owner": "src/sections/envelope_backing.bqn", "human_output": "yes", "structured_output": "metadata"},
-  {"key": "balances", "label": "Account Balances", "category": "accounting", "owner": "src/sections/account_balances.bqn", "human_output": "yes", "structured_output": "metadata"},
-  {"key": "balance-sheet", "label": "Balance Sheet", "category": "accounting", "owner": "src/sections/balance_sheet.bqn", "human_output": "yes", "structured_output": "metadata"},
-  {"key": "profit-and-loss", "label": "Profit and Loss", "category": "accounting", "owner": "src/sections/profit_and_loss.bqn", "human_output": "yes", "structured_output": "metadata"},
-  {"key": "recent", "label": "Recent Journal", "category": "operations", "owner": "src/sections/recent_journal.bqn", "human_output": "yes", "structured_output": "metadata"},
-  {"key": "planned", "label": "Planned Payments", "category": "operations", "owner": "src/sections/planned_payments.bqn", "human_output": "yes", "structured_output": "metadata"},
-  {"key": "cycle-accounts", "label": "Current-cycle Accounts", "category": "accounting", "owner": "src/sections/cycle_accounts.bqn", "human_output": "yes", "structured_output": "metadata"},
-  {"key": "cycle-comparison", "label": "Cycle Comparison", "category": "accounting", "owner": "src/sections/cycle_comparison.bqn", "human_output": "yes", "structured_output": "metadata"},
-  {"key": "monthly-accounts", "label": "Monthly Accounts", "category": "accounting", "owner": "src/sections/monthly_accounts.bqn", "human_output": "yes", "structured_output": "metadata"},
-  {"key": "daily-flow", "label": "Daily Flow", "category": "accounting", "owner": "src/sections/daily_flow.bqn", "human_output": "yes", "structured_output": "metadata"},
-  {"key": "daily-target", "label": "Daily Target", "category": "household", "owner": "src/sections/daily_target.bqn", "human_output": "yes", "structured_output": "metadata"},
-  {"key": "issues", "label": "Issues", "category": "operations", "owner": "src/sections/issues.bqn", "human_output": "yes", "structured_output": "metadata"}
+  {"key": "envelopes", "label": "Envelope & Backing", "category": "household", "owner": "src/sections/envelope_backing.bqn", "surface_domain": "envelope", "surface_scope": "cycle", "human_output": "yes", "structured_output": "metadata"},
+  {"key": "balances", "label": "Account Balances", "category": "accounting", "owner": "src/sections/account_balances.bqn", "surface_domain": "account", "surface_scope": "current", "human_output": "yes", "structured_output": "metadata"},
+  {"key": "balance-sheet", "label": "Balance Sheet", "category": "accounting", "owner": "src/sections/balance_sheet.bqn", "surface_domain": "household", "surface_scope": "current", "human_output": "yes", "structured_output": "metadata"},
+  {"key": "profit-and-loss", "label": "Profit and Loss", "category": "accounting", "owner": "src/sections/profit_and_loss.bqn", "surface_domain": "household", "surface_scope": "cycle", "human_output": "yes", "structured_output": "metadata"},
+  {"key": "recent", "label": "Recent Journal", "category": "operations", "owner": "src/sections/recent_journal.bqn", "surface_domain": "actual", "surface_scope": "recent", "human_output": "yes", "structured_output": "metadata"},
+  {"key": "planned", "label": "Planned Payments", "category": "operations", "owner": "src/sections/planned_payments.bqn", "surface_domain": "plan", "surface_scope": "future", "human_output": "yes", "structured_output": "metadata"},
+  {"key": "cycle-accounts", "label": "Current-cycle Accounts", "category": "accounting", "owner": "src/sections/cycle_accounts.bqn", "surface_domain": "account", "surface_scope": "cycle", "human_output": "yes", "structured_output": "metadata"},
+  {"key": "cycle-comparison", "label": "Cycle Comparison", "category": "accounting", "owner": "src/sections/cycle_comparison.bqn", "surface_domain": "household", "surface_scope": "cycle", "human_output": "yes", "structured_output": "metadata"},
+  {"key": "monthly-accounts", "label": "Monthly Accounts", "category": "accounting", "owner": "src/sections/monthly_accounts.bqn", "surface_domain": "account", "surface_scope": "month", "human_output": "yes", "structured_output": "metadata"},
+  {"key": "daily-flow", "label": "Daily Flow", "category": "accounting", "owner": "src/sections/daily_flow.bqn", "surface_domain": "account", "surface_scope": "day", "human_output": "yes", "structured_output": "metadata"},
+  {"key": "daily-target", "label": "Daily Target", "category": "household", "owner": "src/sections/daily_target.bqn", "surface_domain": "household", "surface_scope": "day", "human_output": "yes", "structured_output": "metadata"},
+  {"key": "issues", "label": "Issues", "category": "operations", "owner": "src/sections/issues.bqn", "surface_domain": "issue", "surface_scope": "current", "human_output": "yes", "structured_output": "metadata"}
 ]
