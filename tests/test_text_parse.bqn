@@ -5,7 +5,7 @@ parse ← •Import "../src/text/parse.bqn"
 
 •Out "Running shared text parse tests..."
 
-⟨""⟩ t.AssertEq ',' parse.SplitKeepEmpty ""
+⟨⟩ t.AssertEq ',' parse.SplitKeepEmpty ""
 ⟨"a"⟩ t.AssertEq ',' parse.SplitKeepEmpty "a"
 ⟨"a","b"⟩ t.AssertEq ',' parse.SplitKeepEmpty "a,b"
 ⟨"a","","b",""⟩ t.AssertEq ',' parse.SplitKeepEmpty "a,,b,"
