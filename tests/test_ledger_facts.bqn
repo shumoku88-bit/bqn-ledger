@@ -45,12 +45,12 @@ splitView ← 2⊑transactionView.rows
 ⟨10,5,¯15⟩ lib.AssertEq {𝕩.source_coefficient}¨splitView.postings
 ⟨"debit","debit","credit"⟩ lib.AssertEq {𝕩.side}¨splitView.postings
 lf ← @+10
-invalidAccountSource ← ∾⟨"account assets:cash",lf,"  type: Asset",lf⟩
+invalidAccountSource ← ∾⟨"account assets:cash",lf,"  commodity: JPY",lf⟩
 invalidAccountSnapshot ← snapshot.Build ⟨invalidAccountSource,rawJournal,registry⟩
 "error" lib.AssertEq invalidAccountSnapshot.state
 0 lib.AssertEq invalidAccountSnapshot.facts.transactions.count
 0 lib.AssertEq invalidAccountSnapshot.facts.postings.count
-lib.Assert ∨´{𝕩.code≡"account_currency_missing"}¨invalidAccountSnapshot.diagnostics
+lib.Assert ∨´{𝕩.code≡"account_type_missing"}¨invalidAccountSnapshot.diagnostics
 ⟨"JPY"⟩ lib.AssertEq result.domains.code
 ⟨"actual"⟩ lib.AssertEq result.layers.name
 7 lib.AssertEq result.accounts.count
@@ -121,9 +121,7 @@ lib.Assert ¬dates.IsValid "1900-02-29"
 lib.Assert ¬dates.IsValid "2026-02-30"
 1 lib.AssertEq (dates.Ordinal "2026-01-02") - dates.Ordinal "2026-01-01"
 
-emptyAccountTable ← {
-  key⇐⟨⟩,currency⇐⟨⟩,role⇐⟨⟩,type⇐⟨⟩,metadata⇐⟨⟩,source_row⇐⟨⟩
-}
+emptyAccountTable ← {key⇐⟨⟩,currency⇐⟨⟩,role⇐⟨⟩,type⇐⟨⟩,metadata⇐⟨⟩,source_row⇐⟨⟩}
 errorResult ← facts.Project ⟨{state⇐"error"},emptyAccountTable⟩
 "error" lib.AssertEq errorResult.state
 1 lib.AssertEq ≠errorResult.diagnostics
