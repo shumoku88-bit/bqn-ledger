@@ -20,12 +20,9 @@ Counts ← {𝕊 rows: {
   not_legacy⇐Count ⟨"NOT_LEGACY",rows⟩
 }}
 JoinLines ← {𝕊 lines:
-  result ← ""
-  {𝕊 i:
-    result ∾↩ >i⊑lines
-    {𝕊: result ∾↩ lf}⍟(i<¯1+≠lines) @
-  }¨ ↕≠lines
-  result
+  LinePiece ← {𝕊 i:((i>0)/⟨lf⟩) ∾ >i⊑lines}
+  pieces ← LinePiece¨ ↕≠lines
+  ∾ (⟨""⟩ ∾ pieces)
 }
 TrimIndent ← {𝕊 text:
   line ← text
@@ -79,10 +76,11 @@ BuildCandidate ← {𝕊 raw‿transactions‿planRows:
   Add ← {𝕊 code‿message: diagnostics ∾↩ ⟨Diagnostic ⟨code,message⟩⟩}
   lines ← <¨ lf util.SplitKeepEmpty raw
   {𝕊: Add ⟨"plan_count_mismatch","cleanup plan count does not match parsed transactions"⟩}⍟((≠planRows)≠≠transactions) @
-  removeLines ← empty
-  removals ← ( {𝕩.classification≡"REMOVABLE"}¨planRows)/planRows
-  {𝕊 row:
-    line ← row.event_id_line
+  removals ← ({𝕩.classification≡"REMOVABLE"}¨planRows)/planRows
+  removalLines ← {𝕩.event_id_line}¨removals
+  {𝕊 i:
+    row ← i⊑removals
+    line ← i⊑removalLines
     validLine ← (line>0) ∧ line≤≠lines
     {𝕊: Add ⟨"event_line_out_of_range","event-id line is outside raw Journal"⟩}⍟(¬validLine) @
     {𝕊:
@@ -97,15 +95,14 @@ BuildCandidate ← {𝕊 raw‿transactions‿planRows:
       }⍟validTx @
       expected ← "; event-id: "∾row.event_id
       {𝕊: Add ⟨"raw_event_line_mismatch","raw event-id line is not the exact expected metadata"⟩}⍟(expected≢TrimIndent > (line-1)⊑lines) @
-      {𝕊: Add ⟨"duplicate_removal_line","one raw line was selected more than once"⟩}⍟(line∊removeLines) @
-      {𝕊: removeLines ∾↩ line}⍟(¬line∊removeLines) @
+      {𝕊: Add ⟨"duplicate_removal_line","one raw line was selected more than once"⟩}⍟(line∊i↑removalLines) @
     }⍟validLine @
     {𝕊: Add ⟨"event_id_not_legacy","cleanup target event-id is not exact legacy shape"⟩}⍟(¬cleanup.IsLegacyEntryId row.event_id) @
-  }¨ removals
+  }¨ ↕≠removals
 
   candidate ← raw
   {𝕊:
-    kept ← (¬(1+↕≠lines)∊removeLines)/lines
+    kept ← (¬(1+↕≠lines)∊removalLines)/lines
     candidate ↩ JoinLines kept
   }⍟(0=≠diagnostics) @
   afterParsed ← {state⇐"error",transactions⇐empty,diagnostics⇐empty}
