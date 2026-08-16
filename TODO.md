@@ -284,6 +284,12 @@ See `docs/EDITOR_PHASE_SIX_JOURNAL_CLEANUP_OBSERVATION-2026-08-16.md`.
 
 #787 exposes Cleanup priority as an aligned first-match classification axis, derives the removal line relation directly from the plan, maps presentation from fields, and keeps Apply/Verify, candidate re-admission, classification transition, ordered diagnostics, and semantic equivalence as explicit safety laws.
 
+### Journal Identity Inventory observation
+
+See `docs/EDITOR_PHASE_SIX_JOURNAL_IDENTITY_INVENTORY_OBSERVATION-2026-08-17.md`.
+
+#789 maps incoming reference metadata into a regular relation, projects durable identities directly, counts distinct duplicate definitions with Occurrence Count, exposes identity classification precedence as ordered axes, preserves the privacy-safe read-only command boundary, and retires the stale claim that the pre-cleanup production aggregate is current.
+
 ### `src/editor/`
 
 - [x] `src/editor/friend_travel_source_event.bqn` — #734
@@ -314,8 +320,8 @@ See `docs/EDITOR_PHASE_SIX_JOURNAL_CLEANUP_OBSERVATION-2026-08-16.md`.
 - [x] `src_edit/journal_cleanup_plan_cmd.bqn` — #787 relation-driven presentation
 - [x] `src_edit/journal_cleanup_rewrite.bqn` — #787 removal line relation / retained candidate safety
 - [x] `src_edit/journal_cleanup_verify_cmd.bqn` — #787 law review; read-only equivalence leaf unchanged
-- [ ] `src_edit/journal_identity_inventory.bqn`
-- [ ] `src_edit/journal_identity_inventory_cmd.bqn`
+- [x] `src_edit/journal_identity_inventory.bqn` — #789 reference relation / ordered classification axes / duplicate identity law
+- [x] `src_edit/journal_identity_inventory_cmd.bqn` — #789 law review; read-only privacy-safe adapter unchanged
 - [ ] `src_edit/journal_list_cmd.bqn`
 - [ ] `src_edit/journal_native_reverse_cmd.bqn`
 - [ ] `src_edit/journal_native_source_check.bqn`
@@ -349,6 +355,6 @@ After the production BQN inventory is reviewed, selector/UI adapter consolidatio
 
 ## Current cursor
 
-`src_edit/journal_identity_inventory.bqn`
+`src_edit/journal_list_cmd.bqn`
 
-Resume the normal Phase 6 `src_edit/` review sequence at Journal Identity Inventory.
+Resume the normal Phase 6 `src_edit/` review sequence at Journal List.
