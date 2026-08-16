@@ -12,9 +12,8 @@ empty ← ⟨⟩
 Diagnostic ← {𝕊 code‿message: {code⇐code, message⇐message}}
 
 JoinLines ← {𝕊 lines:
-  0=≠lines ? "" ;
-  continuation ← {lf∾𝕩}¨ 1↓lines
-  (⊑lines) ∾ (∾continuation)
+  LinePiece ← {𝕊 i:(i=0)◶⟨{lf∾i⊑lines},{i⊑lines}⟩@}
+  ∾ (⟨""⟩ ∾ LinePiece¨ ↕≠lines)
 }
 
 MetaPairs ← {𝕊 metadata: {⟨𝕩.key, 𝕩.value⟩}¨ metadata}
