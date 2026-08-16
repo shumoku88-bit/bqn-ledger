@@ -5,8 +5,8 @@ IsLegacyEntryId ← {𝕊 text:
   (30 = ≠ text) ∧ ("entry-" ≡ 6 ↑ text) ∧ ∧´ 1 ∾ ((6 ↓ text) ∊ "0123456789abcdef")
 }
 
-OtherReasons ← ⟨"non-actual-layer","non-durable-identity","txn-id","allocation-id","actual-event-id","execution-envelope",""⟩
-ClassificationNames ← ⟨"IDENTITY_FREE","NOT_LEGACY","REFERENCED","PLAN_LINKED","OTHER_LINKED","REMOVABLE"⟩
+otherReasons ← ⟨"non-actual-layer","non-durable-identity","txn-id","allocation-id","actual-event-id","execution-envelope",""⟩
+classificationNames ← ⟨"IDENTITY_FREE","NOT_LEGACY","REFERENCED","PLAN_LINKED","OTHER_LINKED","REMOVABLE"⟩
 
 Classify ← {𝕊 tx‿allTransactions:
   incomingCount ← +´ 0 ∾ {
@@ -23,7 +23,7 @@ Classify ← {𝕊 tx‿allTransactions:
     1
   ⟩
   otherIndex ← ⊑ otherCases / ↕≠otherCases
-  otherReason ← otherIndex⊑OtherReasons
+  otherReason ← otherIndex⊑otherReasons
 
   # Cleanup priority is one ordered classification axis. The final true case
   # makes it total; first-match selection preserves the established precedence.
@@ -36,7 +36,7 @@ Classify ← {𝕊 tx‿allTransactions:
     1
   ⟩
   classificationIndex ← ⊑ classificationCases / ↕≠classificationCases
-  classification ← classificationIndex⊑ClassificationNames
+  classification ← classificationIndex⊑classificationNames
   reasons ← ⟨"no-explicit-event-id","non-legacy-event-id","actual-event-id-reference","plan-id",otherReason,"unreferenced-ordinary"⟩
   reason ← classificationIndex⊑reasons
 
@@ -60,7 +60,9 @@ Build ← {𝕊 transactions:
       reason⇐classified.reason,
       date⇐tx.date,
       description⇐tx.description,
+      identity_kind⇐tx.identity_kind,
       event_id⇐eventId,
+      legacy_event_id⇐"stage0-line-"∾•Fmt tx.source_start_line,
       event_id_line⇐eventIdLine,
       source_start_line⇐tx.source_start_line,
       incoming_reference_count⇐classified.incoming_reference_count,
