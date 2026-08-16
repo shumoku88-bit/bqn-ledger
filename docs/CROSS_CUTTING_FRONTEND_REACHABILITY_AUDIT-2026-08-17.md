@@ -44,9 +44,19 @@ This gives gum an independent current role. The question is therefore not “rem
 
 `tools/household-action` validates an action key against `HouseholdSurface.Actions` and maps that logical key to the existing direct command/report owner.
 
-The gum palette already delegates command/report actions through this shared dispatcher.
+Both current Household frontends now delegate selected logical actions through this dispatcher:
 
-The Calendar surface still contains a second `run_logical_action` case table that maps the same logical action keys to the same direct routes. This is a concrete remaining duplication and is the next code-level frontend cleanup target.
+```text
+Calendar spatial frontend
+        \
+         -> tools/household-action -> tools/bl / direct owners
+        /
+flat gum Command Palette
+```
+
+The Calendar surface no longer owns a second action-key -> command case table. It selects one admitted action key and passes the selected date and base directory to `tools/household-action`.
+
+`check-household-surface.sh` now guards this boundary and rejects a direct `tools/bl`/`tools/edit` route table inside `run_logical_action`.
 
 ## Selector adapters
 
@@ -67,9 +77,18 @@ The helper does not interpret Account, Plan, Issue, report, or writer meaning. N
 
 `tools/add-ui.sh` is live.
 
-Its explicit modes are writer-interaction leaves invoked by direct routes and Household actions. Its no-mode `choose_mode` menu remains a standalone writer shortcut. That static writer menu is not the primary Household information architecture, but it duplicates part of the logical action portfolio and should be reviewed separately after the shared dispatcher duplication is removed.
+Its explicit modes are writer-interaction leaves invoked by direct routes and Household actions. Its no-mode `choose_mode` menu remains a standalone writer shortcut. That static writer menu is not the primary Household information architecture, but it duplicates part of the logical action portfolio and is now the next frontend duplication to review.
 
 Do not replace it by blindly dumping all `HouseholdSurface.Actions`: the production action relation also contains Observe/report actions and uses logical keys such as `budget-move` / `issue-add` that intentionally differ from physical `add-ui` mode names.
+
+The next question is narrower:
+
+```text
+Should the standalone writer-shortcut portfolio be projected from one current writer-action relation,
+or is its separate compact menu still the clearest compatibility surface?
+```
+
+That decision must preserve explicit `add-ui` modes and direct editor commands regardless of the no-mode menu result.
 
 ## Retired `tui/` status directory
 
@@ -98,16 +117,16 @@ Git history retains the old frozen-TUI decision as historical evidence.
 Calendar spatial frontend             flat gum palette
  tools/household-surface              tools/household-hub-gum
           |                                 |
-          +------------- next --------------+
-                        |
-             tools/household-action
-                        |
-                    tools/bl
-                        |
-          existing direct report/editor owners
+          +---------------+-----------------+
+                          |
+               tools/household-action
+                          |
+                      tools/bl
+                          |
+            existing direct report/editor owners
 ```
 
-The `next` edge is the remaining cleanup: the Calendar frontend still duplicates the dispatcher instead of using `tools/household-action`.
+This is now the current logical action route. Physical frontends may differ without rebuilding command meaning.
 
 ## Decisions
 
@@ -115,14 +134,12 @@ The `next` edge is the remaining cleanup: the Calendar frontend still duplicates
 - keep the Calendar-first surface as the primary spatial frontend;
 - keep the flat gum palette as an optional current frontend;
 - keep fzf/gum/plain nested selector adapters while they have independent physical roles;
+- keep `tools/household-action` as the one logical action dispatcher for Household frontends;
 - retire the stale `tui/README.md` status-only directory;
-- consolidate Calendar logical-action routing onto `tools/household-action` next;
 - review the standalone `add-ui` writer menu separately rather than conflating it with the full Household action relation.
 
 ## Next cursor
 
 ```text
-tools/household-surface duplicate logical-action dispatcher
--> shared tools/household-action
--> standalone add-ui writer-menu duplication
+standalone tools/add-ui.sh writer-menu duplication
 ```
