@@ -43,11 +43,17 @@ observation ← latestActualIndex⊑actual.facts.transactions.date_text
 
 policy ← sources.CanonicalReportPolicy base
 {𝕊:PrintDiagnostics policy.diagnostics}⍟(policy.state≢"ok") @
-resolvedPolicy ← policyResolution.Resolve ⟨policy,latest,actual.facts.transactions.date_text⟩
-{𝕊:PrintDiagnostics resolvedPolicy.diagnostics}⍟(resolvedPolicy.state≢"ok") @
-
 context ← sources.HouseholdContext ⟨base,actual.facts.accounts,registry⟩
 {𝕊:PrintDiagnostics context.diagnostics}⍟(context.state≢"ok") @
+
+queryCycle ← {state⇐"unavailable",start⇐"",end_exclusive⇐""}
+{𝕊:
+  queryCycle↩cycleResolution.WithPlan ⟨context.household.cycle,latest,actual.facts,context.plan⟩
+  {𝕊:CycleFailure ⟨queryCycle,"report_current_cycle_resolution_failed"⟩}⍟(queryCycle.state≢"ok") @
+}⍟policyResolution.NeedsCurrentCycle policy @
+resolvedPolicy ← policyResolution.ResolveWithCurrentCycle ⟨policy,latest,actual.facts.transactions.date_text,queryCycle⟩
+{𝕊:PrintDiagnostics resolvedPolicy.diagnostics}⍟(resolvedPolicy.state≢"ok") @
+
 currentCycle ← cycleResolution.WithPlan ⟨context.household.cycle,observation,actual.facts,context.plan⟩
 {𝕊:CycleFailure ⟨currentCycle,"current_cycle_resolution_failed"⟩}⍟(currentCycle.state≢"ok") @
 baselineCycle ← {state⇐"unused"}
