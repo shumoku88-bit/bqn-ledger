@@ -81,7 +81,7 @@ result ← envelopes.Build ⟨budget,policy,household,actual,plan,"JPY",dates.Or
 ⟨10,5⟩ lib.AssertEq result.envelopes.actual_consumption
 ⟨0,0⟩ lib.AssertEq result.envelopes.actual_refunds
 ⟨10,5⟩ lib.AssertEq result.envelopes.ledger_remaining
-⟨6,6⟩ lib.AssertEq result.envelopes.open_plan_reserve
+⟨6,6⟩ lib.AssertEq result.envelopes.commitment
 ⟨4,¯1⟩ lib.AssertEq result.envelopes.post_plan_headroom
 foodConsumption ← 0⊑result.envelopes.consumption_contributors
 # Posting-level historical routing preserves canonical Actual source order inside each Envelope.
