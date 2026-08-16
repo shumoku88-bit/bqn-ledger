@@ -176,7 +176,7 @@ edit_bqn_apply_append_checked() {
   if [[ "$mandatory_ok" -eq 1 && "$post_ok" -eq 1 ]]; then
     return 0
   fi
-  if [[ "$post_check_owner" != "journal" && "$post_check_owner" != "account" ]]; then
+  if [[ "$post_check_owner" != "journal" && "$post_check_owner" != "account" && "$post_check_owner" != "issue" ]]; then
     return 1
   fi
 
@@ -303,7 +303,7 @@ edit_bqn_apply_replace_checked() {
   local snap_sha256="$9"
   local hook_var_name="${10:-}"
   local post_check_owner="${11:-default}"
-  local write_out backup_path
+  local write_out backup_path post_write_sha post_ok=1
 
   if [[ -n "$hook_var_name" ]]; then
     edit_bqn_run_test_hook "$hook_var_name"
@@ -313,7 +313,29 @@ edit_bqn_apply_replace_checked() {
   printf '%s\n' "$write_out"
 
   backup_path="$(awk -F': ' '$1 == "Backup" {print $2}' <<< "$write_out")"
-  run_post_check "$base_dir" "$post_check" "$target_path" "$backup_path" "$post_check_owner"
+  post_write_sha="$(_safe_write_sha256 "$target_path")"
+
+  if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && "${EDIT_BQN_TEST_FORCE_POST_CHECK_FAIL:-}" == "1" ]]; then
+    post_ok=0
+    printf 'Post-check failed.\n' >&2
+  elif ! run_post_check "$base_dir" "$post_check" "$target_path" "$backup_path" "$post_check_owner"; then
+    post_ok=0
+  fi
+  if [[ "$post_ok" -eq 1 ]]; then
+    return 0
+  fi
+
+  edit_bqn_run_test_hook EDIT_BQN_TEST_BEFORE_POSTCHECK_ROLLBACK_HOOK
+  if safe_restore_backup_checked "$target_path" "$backup_path" "$post_write_sha"; then
+    if [[ "$(_safe_write_sha256 "$target_path")" != "$snap_sha256" ]]; then
+      echo 'Rollback: restore digest mismatch; recovery required' >&2
+      return 1
+    fi
+    echo 'Rollback: restored original bytes' >&2
+    return 1
+  fi
+  echo 'Rollback: refused; target changed after replace; recovery required' >&2
+  return 1
 }
 
 edit_bqn_apply_canonical_surface_rewrite_checked() {
