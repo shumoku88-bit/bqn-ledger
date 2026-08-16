@@ -1,389 +1,68 @@
 # BQN review queue
 
-## Purpose
+## Current status
 
-Turn bqn-ledger into a place where household accounting is expressed through compact, explicit, and instructive BQN architecture and algorithms.
+The owner-by-owner production BQN review is complete as of 2026-08-17.
 
-The canonical Household source/configuration migration is the foundation. The main review line now subtracts incidental machinery while preserving admitted meaning, exact arithmetic, diagnostics, identity, provenance, evidence alignment, safe effects, and public behavior.
-
-The intended path is:
+Reviewed production roots:
 
 ```text
-strict source and request admission
-  -> bounded whole-array accounting kernel
-  -> semantic result and provenance
-  -> selector-independent command/UI boundary
+src/
+src_edit/
+tools/  (*.bqn)
 ```
 
-Terminal selectors are adapters rather than architecture owners. Accounting meaning, source mutation, report keys, and policy must not drift into selector-specific shell code.
+Phase closeouts:
 
-## Repository-resident continuation contract
+- Phase 1 `src/accounting/`: `docs/ACCOUNTING_PHASE_ONE_REVIEW_CLOSEOUT-2026-08-11.md`
+- Phase 2 `src/ledger/`: `docs/LEDGER_PHASE_TWO_REVIEW_CLOSEOUT-2026-08-12.md`
+- Phase 3 `src/sections/`: `docs/SECTIONS_PHASE_THREE_REVIEW_CLOSEOUT-2026-08-12.md`
+- Phase 4 `src/report/`: `docs/REPORT_PHASE_FOUR_REVIEW_CLOSEOUT-2026-08-12.md`
+- Phase 5 `src/application/`: `docs/APPLICATION_PHASE_FIVE_REVIEW_CLOSEOUT-2026-08-12.md`
+- Phase 6 `src/editor/` + `src_edit/`: `docs/EDITOR_PHASE_SIX_CLOSEOUT-2026-08-17.md`
+- Phase 7 remaining production BQN: `docs/PRODUCTION_BQN_PHASE_SEVEN_CLOSEOUT-2026-08-17.md`
 
-The repository defines the current review state. Chat history, remembered SHAs, and handoff prompts are conveniences only.
+There is no active production `.bqn` cursor. A future material production-BQN change should explicitly reopen the relevant review lane; this completion marker does not review future code automatically.
 
-A fresh session should:
+## Current review lane
 
-1. verify current remote `main`, relevant open PRs/branches, and CI;
-2. read this queue and the closeout/observation documents referenced by completed phases;
-3. check whether parallel work changed the active owner, direct consumers, or protected invariants;
-4. resume from the current cursor unless a concrete correctness, performance, or architectural defect justifies a cursor exception;
-5. record durable decisions and the resulting cursor in the repository before ending the session.
-
-A checked item means the owner has been reviewed under the dense-array policy and its final decision is reconstructible from current repository evidence and Git history.
-
-## Review rules
-
-Review one coherent reason-to-change at a time. A coherent end-state may cross files or layers; do not manufacture tiny PRs, temporary adapters, duplicate paths, or compatibility shims merely to keep a change small.
-
-For each owner, ask whether semantic axes, classification, Group/Pivot/Rank/Cells, structural transformation, composition, and exact reductions are visible enough. Distinguish removable machinery from protected complexity.
-
-Keep local guards when they protect a real law or evaluation boundary, including:
-
-- exact-operation failure;
-- identity/provenance selection;
-- diagnostic ordering and fail-closed publication;
-- source/writer authority;
-- optional publication whose eager evaluation changes validity or behavior.
-
-Validation density or file size is not itself a defect. Compactness is useful only when meaning becomes clearer.
-
-## Cross-cutting audit inventory
+The next work is cross-cutting repository observation rather than another semantic-owner pass.
 
 - [ ] terminal selector/input duplication and UI change locality across active shell surfaces;
 - [ ] editor/writer ownership from BQN semantic decision through machine operation to safe-write publication;
-- [ ] report/application CLI reachability and repeated effect/protocol boundaries beyond the resolved multi-report lifetime;
-- [ ] repository-wide dead-surface and reachability audit, including retained wrappers, `experiments/`, and `tui/`;
-- [ ] validation/kernel/publication separation across retained accounting and adjacent semantic owners;
-- [ ] remaining migration/compatibility residue classified without duplicating the canonical Household recovery closeout;
-- [ ] checks and tests classified as law guards, characterization evidence, or obsolete topology assumptions.
-
-## Household surface design track
-
-The interaction-type Command Hub hierarchy implemented in #733 is historical design evidence, not the current target information architecture. Its direct CLI and writer-authority boundaries remain useful, but its `Editor / Reports / Source & System` discovery tree made the Calendar and Household operations separate places a user had to remember.
-
-PR #779 supersedes that discovery hierarchy with the Calendar-first Household surface documented in `docs/HOUSEHOLD_SURFACE_MATRIX_DESIGN-2026-08-16.md`:
-
-```text
-Date × Domain × Operation × Scope
-```
-
-The visible matrix uses `Actual / Plan / Envelope / Account / Issue / Household` against `Observe / Add / Change / Resolve`; retained report placement remains catalog-owned; `Source & System` stays at the edge; and fzf/gum are not architecture owners. This track remains separate from the normal Phase 6 BQN review cursor.
-
-## Phase order
-
-1. `src/accounting/` pure accounting kernels
-2. `src/ledger/` admission, Facts, exact values, identity, and provenance
-3. `src/sections/` semantic result owners
-4. `src/report/` catalog, request, composition, and rendering
-5. `src/application/` adapters, profiles, and effect boundaries
-6. `src/editor/` and `src_edit/` rewrite and command owners
-7. remaining production BQN under `src/text/` and `tools/`, followed by selector/UI adapter consolidation
-
-The production inventory covers every `.bqn` file under `src/`, `src_edit/`, and `tools/` exactly once below. `experiments/` stays outside this production inventory and belongs to the repository-wide reachability audit.
-
-## Phase 1: `src/accounting/` — complete
-
-Closeout: `docs/ACCOUNTING_PHASE_ONE_REVIEW_CLOSEOUT-2026-08-11.md`.
-Post-closeout Entitlement review: `docs/ENVELOPE_ENTITLEMENT_REVIEW_CLOSEOUT-2026-08-16.md`.
-
-- [x] `src/accounting/account_balance.bqn`
-- [x] `src/accounting/account_period.bqn`
-- [x] `src/accounting/balance_sheet.bqn`
-- [x] `src/accounting/cycle_account_period.bqn`
-- [x] `src/accounting/cycle_calendar_month_resolution.bqn`
-- [x] `src/accounting/cycle_comparison.bqn`
-- [x] `src/accounting/cycle_fixed_resolution.bqn`
-- [x] `src/accounting/cycle_income_anchor_resolution.bqn`
-- [x] `src/accounting/cycle_result.bqn`
-- [x] `src/accounting/daily_target.bqn`
-- [x] `src/accounting/date_category_flow.bqn`
-- [x] `src/accounting/envelope_backing.bqn`
-- [x] `src/accounting/envelope_commitment.bqn` — #769 (post-closeout native Plan Commitment owner)
-- [x] `src/accounting/envelope_consumption.bqn` — #768 (post-closeout historical Actual Consumption owner)
-- [x] `src/accounting/envelope_fulfillment.bqn` — #769 (post-closeout completed Plan Fulfillment owner)
-- [x] `src/accounting/matrix_result.bqn`
-- [x] `src/accounting/month_account_movement.bqn`
-- [x] `src/accounting/month_category_flow.bqn`
-- [x] `src/accounting/plan_completion_join.bqn`
-- [x] `src/accounting/plan_observation.bqn` — #769 (post-closeout role-neutral Plan lifecycle owner)
-- [x] `src/accounting/plan_temporal_status.bqn`
-- [x] `src/accounting/profit_and_loss.bqn`
-- [x] `src/accounting/recent_transactions.bqn`
-- [x] `src/accounting/sparse_group.bqn`
-- [x] `src/accounting/sparse_pivot.bqn`
-- [x] `src/accounting/envelope_entitlement.bqn` — #784 native Budget Posting projection / historical Entitlement law review
-
-## Phase 2: `src/ledger/` — complete
-
-Closeout: `docs/LEDGER_PHASE_TWO_REVIEW_CLOSEOUT-2026-08-12.md`.
-
-- [x] `src/ledger/account_admission.bqn`
-- [x] `src/ledger/account_journal_admission.bqn`
-- [x] `src/ledger/amount_text.bqn`
-- [x] `src/ledger/budget_journal_admission.bqn`
-- [x] `src/ledger/budget_policy_admission.bqn`
-- [x] `src/ledger/canonical_journal_root_admission.bqn`
-- [x] `src/ledger/companion_admission.bqn`
-- [x] `src/ledger/config_admission.bqn`
-- [x] `src/ledger/currency_registry.bqn`
-- [x] `src/ledger/cycle_admission.bqn`
-- [x] `src/ledger/date_ordinal.bqn`
-- [x] `src/ledger/envelope_history_admission.bqn` — #767 (post-closeout historical Envelope owner)
-- [x] `src/ledger/exact_decimal.bqn`
-- [x] `src/ledger/exact_scale.bqn`
-- [x] `src/ledger/fact_reference.bqn`
-- [x] `src/ledger/facts.bqn`
-- [x] `src/ledger/household_current_policy_projection.bqn` — #767 (post-closeout shared-source projection owner)
-- [x] `src/ledger/household_policy_admission.bqn`
-- [x] `src/ledger/issue_admission.bqn`
-- [x] `src/ledger/issue_relation_admission.bqn` — #764 (post-closeout non-canonical relation owner)
-- [x] `src/ledger/journal_complete_admission.bqn`
-- [x] `src/ledger/journal_posting_text.bqn`
-- [x] `src/ledger/journal_single_domain_admission.bqn`
-- [x] `src/ledger/journal_transaction_structure.bqn`
-- [x] `src/ledger/plan_journal_admission.bqn`
-- [x] `src/ledger/plan_snapshot.bqn`
-- [x] `src/ledger/report_policy_admission.bqn`
-- [x] `src/ledger/snapshot.bqn`
-- [x] `src/ledger/transaction_rows.bqn`
-
-## Phase 3: `src/sections/` — complete
-
-Closeout: `docs/SECTIONS_PHASE_THREE_REVIEW_CLOSEOUT-2026-08-12.md`.
-
-- [x] `src/sections/account_balances.bqn` — #684
-- [x] `src/sections/balance_sheet.bqn` — #685
-- [x] `src/sections/cycle_accounts.bqn` — #686
-- [x] `src/sections/cycle_comparison.bqn` — #686
-- [x] `src/sections/daily_flow.bqn` — #687
-- [x] `src/sections/daily_target.bqn` — #689
-- [x] `src/sections/envelope_backing.bqn` — #689
-- [x] `src/sections/home_calendar.bqn` — #736 (BQN-native semantic matrix introduced after Phase 3 closeout)
-- [x] `src/sections/issues.bqn` — #687
-- [x] `src/sections/monthly_accounts.bqn` — #687
-- [x] `src/sections/planned_payments.bqn` — #690
-- [x] `src/sections/profit_and_loss.bqn` — #687
-- [x] `src/sections/recent_journal.bqn` — #688
-- [x] `src/sections/trial_balance.bqn` — #688
-
-## Phase 4: `src/report/` — complete
-
-Closeout: `docs/REPORT_PHASE_FOUR_REVIEW_CLOSEOUT-2026-08-12.md`.
-
-- [x] `src/report/catalog.bqn` — #692
-- [x] `src/report/catalog_text.bqn` — #692
-- [x] `src/report/compose.bqn` — #696
-- [x] `src/report/json_text.bqn` — #697 (law review; production unchanged)
-- [x] `src/report/render.bqn` — #693
-- [x] `src/report/request.bqn` — #692
-- [x] `src/report/section_metadata.bqn` — #692
-- [x] `src/report/text.bqn` — #694
-
-## Phase 5: `src/application/` — complete
-
-Closeout: `docs/APPLICATION_PHASE_FIVE_REVIEW_CLOSEOUT-2026-08-12.md`.
-
-Retired during review: `src/application/funding_scope.bqn` — #714. See `docs/FUNDING_SCOPE_REVIEW_OBSERVATION-2026-08-12.md`.
-
-- [x] `src/application/account_source_adapter.bqn` — #699
-- [x] `src/application/actual_source_adapter.bqn` — #701 (effect-lifetime law review; production unchanged), #713 shared-Account capability
-- [x] `src/application/budget_source_adapter.bqn` — #702 (capability-lifetime law review; production unchanged), #717 shared-Account capability
-- [x] `src/application/canonical_household_sources.bqn` — #703
-- [x] `src/application/config_rows.bqn` — #704
-- [x] `src/application/current_report_batch_cli.bqn` — #705 (effect-lifetime law review; production unchanged)
-- [x] `src/application/current_report_profile_cli.bqn` — #705 (effect-lifetime law review; production unchanged)
-- [x] `src/application/current_report_requests.bqn` — #705
-- [x] `src/application/cycle_resolution.bqn` — #706
-- [x] `src/application/daily_scope_adapter.bqn` — #707
-- [x] `src/application/daily_scope_admission.bqn` — #707
-- [x] `src/application/date_today.bqn` — #709 (clock-boundary law review; production unchanged)
-- [x] `src/application/editor_actual.bqn` — #710
-- [x] `src/application/editor_currency.bqn` — #712
-- [x] `src/application/editor_plan_rows.bqn` — #713
-- [x] `src/application/home_calendar_cli.bqn` — #738 (post-closeout Home observation adapter)
-- [x] `src/application/home_navigation.bqn` — #757 (post-closeout Home logical navigation owner)
-- [x] `src/application/household_surface.bqn` — #779 (post-closeout Calendar-first Domain × Operation relation and logical action projection)
-- [x] `src/application/household_surface_cli.bqn` — #779 (source-independent surface metadata leaf)
-- [x] `src/application/household_daily_scope.bqn` — #715
-- [x] `src/application/household_source_adapter.bqn` — #716 (source-boundary law review; production unchanged)
-- [x] `src/application/ledger_check_cli.bqn` — #717 (readiness effect-lifetime review; production unchanged)
-- [x] `src/application/ledger_inspect_cli.bqn` — #718
-- [x] `src/application/plan_source_adapter.bqn` — #713 (shared-Account capability; normal review complete on revisit)
-- [x] `src/application/report_destination.bqn` — #719
-- [x] `src/application/report_destination_cli.bqn` — #720
-- [x] `src/application/report_domain_cli.bqn` — #721
-- [x] `src/application/report_domain_selection.bqn` — #721
-- [x] `src/application/report_metadata_cli.bqn` — #722
-- [x] `src/application/report_policy_resolution.bqn` — #723
-- [x] `src/application/report_policy_source_adapter.bqn` — #724 (boundary law review; production unchanged)
-- [x] `src/application/report_presentation_cli.bqn` — #725 (boundary review; production unchanged)
-- [x] `src/application/report_request_cli.bqn` — #725 (boundary review; production unchanged)
-- [x] `src/application/report_route.bqn` — #719 coordinate publication, #726 schema relation / source residue retirement
-- [x] `src/application/report_route_plan.bqn` — #726
-- [x] `src/application/report_route_plan_cli.bqn` — #726 (effect-only leaf; production unchanged)
-- [x] `src/application/report_selection_cli.bqn` — #727 (boundary law review; production unchanged)
-- [x] `src/application/report_source_adapter.bqn` — #717 shared Account lifetime, #728 result relation review
-- [x] `src/application/source_io.bqn` — #729
-
-## Phase 6: `src/editor/` and `src_edit/` — complete
-
-Closeout: `docs/EDITOR_PHASE_SIX_CLOSEOUT-2026-08-17.md`.
-
-### Fresh Issue editor observation
-
-PR #732 (`feat(issue): retain close lifecycle date`) extended Issue compatibility to the ten-column close-aware shape. Its focused review exposed useful Phase 6 evidence rather than a reason to jump the cursor:
-
-- `issue_list_cmd.bqn` and `issue_close_cmd.bqn` repeat 8/9/10-column schema classification, compatibility normalization, and lifecycle validation already owned semantically by Issue admission;
-- `issue_add_cmd.bqn` selects schema-specific rendering through mutable result staging;
-- `issue_close_cmd.bqn` retains row-local mutation while changing status, close date, and decision text;
-- `src/sections/issues.bqn` and `src_edit/render.bqn` remain comparatively direct relation/projection surfaces.
-
-Do not manufacture an Issue-only generic TSV framework to fix this observation early. Preserve it for the normal Phase 6 owner review, where the wider Editor family can show which duplication is accidental, which shape preservation belongs to the writer boundary, and whether admitted Issue relations can replace command-local semantic re-parsing.
-
-### `src/editor/` review observation
-
-See `docs/EDITOR_PHASE_SIX_SRC_REVIEW_OBSERVATION-2026-08-12.md`.
-
-The travel review distinguishes regular ordered diagnostic collections from mutations that protect jagged source admission, evaluation/failure order, provenance-sensitive construction, or fail-closed publication. `journal_profile.bqn` remains production-unchanged because no concrete correctness, performance, or architectural defect justifies rewriting its historical parser state machine in this pass.
-
-### Canonical Account editor observations
-
-- Account Add: `docs/EDITOR_PHASE_SIX_ACCOUNT_ADD_OBSERVATION-2026-08-13.md`.
-- Account List: `docs/EDITOR_PHASE_SIX_ACCOUNT_LIST_OBSERVATION-2026-08-13.md`.
-- Account Validate: `docs/EDITOR_PHASE_SIX_ACCOUNT_VALIDATE_OBSERVATION-2026-08-13.md`.
-
-#760 keeps the existing BQN-native Account relations, registry-owned currency meaning, and writer safety; adds the missing Account namespace-suffix gate; narrows Account List so the currency registry is observed only when an explicit currency filter requires it; and leaves the mandatory post-write Account validation leaf deliberately unchanged.
-
-The Account Add review also records stale four-role/TSV validation, rendering, UI, and operational-documentation residue for their proper later owner/cross-cutting lanes rather than duplicating Account meaning in shell.
-
-### Actual/Budget editor observation
-
-See `docs/EDITOR_PHASE_SIX_ACTUAL_BUDGET_OBSERVATION-2026-08-13.md`.
-
-The Actual Journal basename leaf, Budget candidate fail-closed staging, and mandatory Budget post-write validator remain deliberately unchanged. Budget Add exposes one genuinely regular collection by mapping admitted metadata tokens directly to key/value records instead of mutating an accumulator. The review also records repeated eager currency-registry setup across broader editor validation as a cross-cutting `validate.bqn` pressure rather than applying a Budget-only workaround.
-
-### Issue editor relation observation
-
-See `docs/EDITOR_PHASE_SIX_ISSUE_RELATION_OBSERVATION-2026-08-13.md`.
-
-#763 moves Issue List and the semantic side of Issue Close onto canonical Issue admission while preserving the writer's historical 8/9/10-column physical shape. Issue Add selects its admitted schema renderer through BQN Choose (`◶`), and Issue Validate remains the mandatory post-write admission leaf. Physical `source_row` remains explicit evidence, including through comments, source notes, and blank lines.
-
-### Journal Block Add observation
-
-See `docs/EDITOR_PHASE_SIX_JOURNAL_BLOCK_ADD_OBSERVATION-2026-08-16.md`.
-
-#785 maps regular Posting/metadata input collections, delegates scale conversion to the shared exact-scale owner, and keeps complete-Journal re-admission, candidate source-boundary proof, identity/provenance comparison, source-ending transport, and shell safe-write publication as explicit writer laws.
-
-### Canonical Surface observation
-
-See `docs/EDITOR_PHASE_SIX_JOURNAL_CANONICAL_SURFACE_OBSERVATION-2026-08-16.md`.
-
-#786 shares one physical Posting-line observation between plan/rewrite, exposes Canonical classification as an aligned coordinate, maps/filter rewrites the whole line relation, retains final-LF and ordered equivalence guards, and seals the public filesystem identity/snapshot/publication boundary in `tools/journal-canonical-surface`.
-
-### Journal Cleanup observation
-
-See `docs/EDITOR_PHASE_SIX_JOURNAL_CLEANUP_OBSERVATION-2026-08-16.md`.
-
-#787 exposes Cleanup priority as an aligned first-match classification axis, derives the removal line relation directly from the plan, maps presentation from fields, and keeps Apply/Verify, candidate re-admission, classification transition, ordered diagnostics, and semantic equivalence as explicit safety laws.
-
-### Journal Identity Inventory observation
-
-See `docs/EDITOR_PHASE_SIX_JOURNAL_IDENTITY_INVENTORY_OBSERVATION-2026-08-17.md`.
-
-#789 maps incoming reference metadata into a regular relation, projects durable identities directly, counts distinct duplicate definitions with Occurrence Count, exposes identity classification precedence as ordered axes, preserves the privacy-safe read-only command boundary, and retires the stale claim that the pre-cleanup production aggregate is current.
-
-### Native Journal command observation
-
-See `docs/EDITOR_PHASE_SIX_JOURNAL_NATIVE_COMMAND_OBSERVATION-2026-08-17.md`.
-
-#790 maps Journal List presentation without mutable string staging, keeps the seven-column selector contract while making commodity visible in the human display, makes native reverse selection explicit and fail-closed, and reuses the shared exact-scale primitive inside the mandatory source validator while retaining independent complete-source candidate proof.
-
-### Journal tail closeout
-
-See `docs/EDITOR_PHASE_SIX_JOURNAL_TAIL_CLOSEOUT-2026-08-17.md`.
-
-The completed 2026-07-24 Reconstructible Identity Cleanup runtime is retired rather than polished into a standing cleanup authority. Its completion record and Git history retain the migration evidence. `journal_validate_cmd.bqn` remains the narrow canonical Actual post-write validator and is production-unchanged after law review.
-
-Retired during this review:
-
-- `src_edit/journal_reconstructible_identity_cleanup.bqn`
-- `src_edit/journal_reconstructible_identity_cleanup_cmd.bqn`
-
-### Canonical Plan command observation
-
-See `docs/EDITOR_PHASE_SIX_PLAN_COMMAND_OBSERVATION-2026-08-17.md`.
-
-#792 maps Plan Add metadata/block construction, exposes Add/Edit/Finish selection and optional-input coordinates without introducing a generic selector framework, removes dead TSV Plan-ID readers, preserves Plan Edit source-coordinate candidate proof and Plan Finish completion intent boundaries, keeps the nine-column Plan List contract while retaining commodity in the human display, and leaves Related / Finish Validate / Plan Validate production-unchanged after law review.
-
-### Phase 6 validation/render tail
-
-See `docs/EDITOR_PHASE_SIX_CLOSEOUT-2026-08-17.md`.
-
-#793 removes tests-only Account/Journal TSV renderers while retaining live Issue physical renderers, restores `validate.bqn` to a genuinely pure caller-policy predicate owner, guards that purity in repository checks, and leaves the two Travel Add effect leaves production-unchanged after law review.
-
-### `src/editor/`
-
-- [x] `src/editor/friend_travel_source_event.bqn` — #734
-- [x] `src/editor/journal_profile.bqn` — law review; production unchanged
-- [x] `src/editor/travel_exchange_event.bqn` — #734
-
-### `src_edit/`
-
-- [x] `src_edit/account_add_cmd.bqn` — #760
-- [x] `src_edit/account_list_cmd.bqn` — #760
-- [x] `src_edit/account_validate_cmd.bqn` — law review in #760; production unchanged
-- [x] `src_edit/actual_journal_file_cmd.bqn` — law review; production unchanged
-- [x] `src_edit/budget_add_cmd.bqn` — regular metadata map
-- [x] `src_edit/budget_movement_candidate.bqn` — law review; fail-closed staging unchanged
-- [x] `src_edit/budget_validate_cmd.bqn` — law review; production unchanged
-- [x] `src_edit/issue_add_cmd.bqn` — #763 schema/renderer relation
-- [x] `src_edit/issue_close_cmd.bqn` — #763 admitted semantics with physical shape-preserving rewrite
-- [x] `src_edit/issue_list_cmd.bqn` — #763 admitted Issue relation
-- [x] `src_edit/issue_validate_cmd.bqn` — law review in #763; mandatory post-write leaf unchanged
-- [x] `src_edit/journal_block_add_cmd.bqn` — #785 regular input relations / complete-Journal writer safety
-- [x] `src_edit/journal_canonical_surface_apply_cmd.bqn` — #786 candidate artifact protocol / filesystem effect boundary
-- [x] `src_edit/journal_canonical_surface_plan.bqn` — #786 shared physical line observation / aligned classification
-- [x] `src_edit/journal_canonical_surface_plan_cmd.bqn` — #786 relation-driven presentation
-- [x] `src_edit/journal_canonical_surface_preview_cmd.bqn` — #786 verified preview artifact
-- [x] `src_edit/journal_canonical_surface_rewrite.bqn` — #786 shared observation / map-filter rewrite / equivalence law
-- [x] `src_edit/journal_cleanup_apply_cmd.bqn` — #787 law review; candidate artifact leaf unchanged
-- [x] `src_edit/journal_cleanup_plan.bqn` — #787 aligned priority classification
-- [x] `src_edit/journal_cleanup_plan_cmd.bqn` — #787 relation-driven presentation
-- [x] `src_edit/journal_cleanup_rewrite.bqn` — #787 removal line relation / retained candidate safety
-- [x] `src_edit/journal_cleanup_verify_cmd.bqn` — #787 law review; read-only equivalence leaf unchanged
-- [x] `src_edit/journal_identity_inventory.bqn` — #789 reference relation / ordered classification axes / duplicate identity law
-- [x] `src_edit/journal_identity_inventory_cmd.bqn` — #789 law review; read-only privacy-safe adapter unchanged
-- [x] `src_edit/journal_list_cmd.bqn` — #790 relation-driven Account Join / commodity-aware display
-- [x] `src_edit/journal_native_reverse_cmd.bqn` — #790 explicit selector law / negative-index fail-closed
-- [x] `src_edit/journal_native_source_check.bqn` — #790 expected Posting relation / shared exact-scale primitive / mandatory validator law
-- [x] `src_edit/journal_validate_cmd.bqn` — Journal tail law review; strict canonical Actual validation leaf unchanged
-- [x] `src_edit/plan_add_cmd.bqn` — #792 relation-driven canonical candidate construction
-- [x] `src_edit/plan_edit_cmd.bqn` — #792 explicit selector/date coordinates / source-coordinate rewrite laws retained
-- [x] `src_edit/plan_finish_cmd.bqn` — #792 explicit open-Plan selector / completion intent retained
-- [x] `src_edit/plan_finish_validate_cmd.bqn` — #792 law review; completion-link leaf unchanged
-- [x] `src_edit/plan_id.bqn` — #792 current identity generator/validator; dead TSV readers removed
-- [x] `src_edit/plan_list_cmd.bqn` — #792 stable nine-column contract / commodity-aware display
-- [x] `src_edit/plan_related_cmd.bqn` — #792 law review; relation fallback unchanged
-- [x] `src_edit/plan_validate_cmd.bqn` — #792 law review; canonical Plan validation leaf unchanged
-- [x] `src_edit/render.bqn` — #793 live Issue physical renderers only; dead Account/Journal TSV renderers removed
-- [x] `src_edit/travel_exchange_add_cmd.bqn` — #793 law review; semantic-owner effect leaf unchanged
-- [x] `src_edit/travel_friend_add_cmd.bqn` — #793 law review; semantic-owner effect leaf unchanged
-- [x] `src_edit/validate.bqn` — #793 pure caller-policy validation owner / dead compatibility APIs removed
-
-## Phase 7: remaining production BQN and selector/UI adapters
-
-### `src/text/`
-
-- [ ] `src/text/parse.bqn`
-
-### `tools/` BQN
-
-- [ ] `tools/bqn-dump.bqn`
-
-After the production BQN inventory is reviewed, selector/UI adapter consolidation and shell/tool families remain governed by the cross-cutting audit inventory rather than pretending every shell wrapper is a BQN semantic owner.
+- [ ] report/application CLI reachability and repeated effect/protocol boundaries;
+- [ ] repository-wide dead-surface and reachability audit, including retained wrappers;
+- [ ] `experiments/` reachability: classify active experiment, historical evidence, or removable residue;
+- [ ] `tui/` reachability and documentation drift;
+- [ ] Calendar-first Household surface versus older Command Hub / TUI documentation;
+- [ ] gum and shell action/selection duplication versus `HouseholdSurface.Actions`;
+- [ ] remaining migration/compatibility residue outside completed canonical Household recovery;
+- [ ] checks/tests classification: current law guard, historical characterization, or obsolete topology assumption.
+
+## Known starting observations
+
+Re-verify these against actual remote state before acting:
+
+- `tui/README.md` has historically described a frozen TUI and older Command Hub shape and may now be stale.
+- `experiments/bqn/add_ui_action_catalog.*` explored shell action declarations as a BQN relation; current `HouseholdSurface.Actions` may have superseded that experiment.
+- dedicated checks/workflows around completed experiments may now be historical residue rather than active product gates.
+
+Do not delete or rewrite these surfaces from memory. Observe current consumers and reachability first.
+
+## Continuation contract
+
+A fresh session should:
+
+1. verify actual remote `main`, open PRs, relevant heads, and CI;
+2. read the closeout document for the lane being revisited;
+3. observe reachability and ownership before editing;
+4. distinguish current law from historical evidence;
+5. prefer retirement of dead compatibility/runtime surfaces over polishing them into permanent architecture;
+6. keep canonical accounting meaning, exact arithmetic, identity, provenance, and writer safety unchanged unless a concrete defect requires otherwise;
+7. record durable decisions in repository docs before ending the lane.
 
 ## Current cursor
 
-`src/text/parse.bqn`
-
-Resume the normal Phase 7 production BQN review at the shared text parser.
+```text
+cross-cutting shell / UI / experiments / documentation reachability audit
+```
