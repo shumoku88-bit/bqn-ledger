@@ -18,7 +18,7 @@ HistoryFor ← {𝕊 facts:
 }
 EmptyRetirements ← {𝕊:{plan_id⇐empty,retired_on⇐empty}}
 
-SourceKeys ← {𝕊 candidates‿keys: ({𝕩∊candidates}¨keys)/keys}
+SourceKeys ← {𝕊 candidates‿keys: ({Has ⟨𝕩,candidates⟩}¨keys)/keys}
 
 Build ← {𝕊 budgetMovements‿policy‿household‿actual‿plan‿domain‿start‿finish‿observation:
   accountKeys ← actual.accounts.key
