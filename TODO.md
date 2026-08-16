@@ -35,27 +35,28 @@ The next work is cross-cutting repository observation rather than another semant
 - [x] `experiments/` reachability: promoted action-catalog and sparse classify-once probes retired; current negative evidence retained. See `docs/CROSS_CUTTING_EXPERIMENT_REACHABILITY_AUDIT-2026-08-17.md`.
 - [x] `tui/` reachability and documentation drift: status-only stale directory retired. See `docs/CROSS_CUTTING_FRONTEND_REACHABILITY_AUDIT-2026-08-17.md`.
 - [x] Calendar-first Household surface versus older Command Hub / TUI documentation: current spatial + flat-palette frontend portfolio recorded in `docs/PRODUCTION_EDITOR_DIRECTION.md` and the frontend audit.
-- [ ] gum and shell action/selection duplication versus `HouseholdSurface.Actions`;
+- [ ] shell action/selection duplication versus `HouseholdSurface.Actions`: spatial and gum frontends now share `tools/household-action`; standalone `add-ui` writer menu remains to review.
 - [ ] remaining migration/compatibility residue outside completed canonical Household recovery;
 - [ ] checks/tests classification: current law guard, historical characterization, or obsolete topology assumption.
 
 ## Current frontend state
 
-Current logical frontend authority is `HouseholdSurface`:
+Logical frontend authority is:
 
 ```text
-Domain × Operation × Actions
+HouseholdSurface Domain × Operation × Actions
+              -> tools/household-action
+              -> tools/bl / existing direct owners
 ```
 
-Physical consumers are intentionally plural:
+Both current Household frontends now converge on that route:
 
 - `tools/household-surface`: Calendar-first spatial terminal frontend;
-- `tools/household-hub-gum`: optional flat searchable palette;
-- `tools/lib/ui-choice.sh`: nested opaque-line fzf/gum/plain selector adapter.
+- `tools/household-hub-gum`: optional flat searchable palette.
 
-`tools/household-action` is the shared logical action dispatcher used by the gum palette. The Calendar frontend still duplicates that routing in its local `run_logical_action` case table; that is the next concrete cleanup target.
+Nested opaque-line choice remains independently adapter-owned by `tools/lib/ui-choice.sh` (`fzf` / `gum` / `plain`).
 
-`tools/add-ui.sh` remains a writer interaction helper. Its standalone no-mode writer menu is a later, narrower duplication question and must not be conflated with the full Household action relation.
+`tools/add-ui.sh` remains a writer interaction helper. Its standalone no-mode writer menu is now the next narrower duplication question. Do not replace it by dumping the whole Household action relation: that relation includes read/report actions and uses frontend-neutral logical keys that intentionally differ from writer mode names.
 
 ## Continuation contract
 
@@ -72,8 +73,7 @@ A fresh session should:
 ## Current cursor
 
 ```text
-tools/household-surface duplicate run_logical_action routing
--> tools/household-action shared dispatcher
+standalone tools/add-ui.sh writer-menu duplication
 ```
 
-After that consolidation, review the standalone `tools/add-ui.sh` writer menu and selector duplication separately.
+Decide whether that no-mode compatibility menu should remain an independent compact writer shortcut or be projected from a smaller current writer-action relation. Explicit `add-ui` modes and direct editor commands are not candidates for removal in this audit.
