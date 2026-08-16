@@ -102,8 +102,8 @@ RewriteSingleLine ← {𝕊 line:
   pInfo ← plan.AnalyzePostingLine line
   mInfo ← plan.AnalyzeMetaLine line
 
-  canonicalPosting ← "    " ∾ pInfo.account ∾ "    " ∾ pInfo.amount_part
-  canonicalPosting ← pInfo.has_cr ⊑ ⟨canonicalPosting,canonicalPosting∾cr⟩
+  canonicalPostingBase ← "    " ∾ pInfo.account ∾ "    " ∾ pInfo.amount_part
+  canonicalPosting ← pInfo.has_cr ⊑ ⟨canonicalPostingBase,canonicalPostingBase∾cr⟩
   rewrittenLine ← pInfo.is_posting ⊑ ⟨line,canonicalPosting⟩
 
   {is_remove⇐mInfo.is_redundant, line⇐rewrittenLine}
