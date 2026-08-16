@@ -1,5 +1,6 @@
-# Test-only adapter for legacy Envelope/Backing fixtures during native routing cutover.
-# Historical routes are explicit fixture facts and never derive from budget.toml.
+# Test-only adapter for focused Envelope/Backing fixtures.
+# Historical routes are explicit fixture facts and Budget endpoint roles are
+# projected into the new canonical opening/unassigned/allocation relation.
 
 core ← •Import "../src/accounting/envelope_backing.bqn"
 historyFixture ← •Import "envelope_history_test_fixture.bqn"
@@ -16,26 +17,25 @@ HistoryFor ← {𝕊 facts:
   history
 }
 EmptyRetirements ← {𝕊:{plan_id⇐empty,retired_on⇐empty}}
-HasKey ← {𝕊 key‿keys:∨´0∾key⊸≡¨keys}
-TestKind ← {𝕊 key:
-  result ← "envelope"
-  {𝕊:result↩"opening"}⍟(HasKey ⟨key,⟨"budget:opening","budget:opening-ils","Budget:Opening"⟩⟩) @
-  {𝕊:result↩"unassigned"}⍟(HasKey ⟨key,⟨"budget:unassigned","budget:unassigned-ils","Budget:Unassigned"⟩⟩) @
-  {𝕊:result↩"spent"}⍟(HasKey ⟨key,⟨"budget:spent","budget:spent-ils","Budget:Spent"⟩⟩) @
-  result
-}
-TestRole ← {𝕊 key:
-  result ← "dynamic"
-  {𝕊:result↩"unassigned"}⍟(HasKey ⟨key,⟨"budget:unassigned","budget:unassigned-ils","Budget:Unassigned"⟩⟩) @
-  {𝕊:result↩"execution"}⍟(HasKey ⟨key,⟨"budget:spent","budget:spent-ils","Budget:Spent"⟩⟩) @
-  result
-}
+
+SourceKeys ← {𝕊 candidates‿keys: ({𝕩∊candidates}¨keys)/keys}
 
 Build ← {𝕊 budgetMovements‿policy‿household‿actual‿plan‿domain‿start‿finish‿observation:
   accountKeys ← actual.accounts.key
+  openingKeys ← SourceKeys ⟨⟨"budget:opening","budget:opening-ils","Budget:Opening"⟩,accountKeys⟩
+  unassignedKeys ← SourceKeys ⟨⟨"budget:unassigned","budget:unassigned-ils","Budget:Unassigned"⟩,accountKeys⟩
+  openingIndices ← actual.accounts.key⊐openingKeys
+  unassignedIndices ← actual.accounts.key⊐unassignedKeys
   testHousehold ← {
-    state⇐household.state,source_name⇐household.source_name,budget⇐household.budget,
-    account_policy⇐{account_key⇐accountKeys,budget_kind⇐TestKind¨accountKeys,envelope_role⇐TestRole¨accountKeys}
+    state⇐household.state,source_name⇐household.source_name,
+    budget⇐{
+      envelope_count⇐household.budget.envelope_count,
+      envelope_id⇐household.budget.envelope_id,
+      allocation_account_key⇐household.budget.allocation_account_key,
+      allocation_account_index⇐household.budget.allocation_account_index,
+      opening_account_keys⇐openingKeys,opening_account_indices⇐openingIndices,
+      unassigned_account_keys⇐unassignedKeys,unassigned_account_indices⇐unassignedIndices
+    }
   }
   core.Build ⟨budgetMovements,policy,testHousehold,HistoryFor actual,actual,plan,EmptyRetirements @,domain,start,finish,observation⟩
 }
