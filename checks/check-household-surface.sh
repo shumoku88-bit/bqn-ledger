@@ -43,6 +43,12 @@ awk -F'\t' 'NR>1 && $5=="actual" && $6=="recent" && $1=="recent"{a=1}
              NR>1 && $5=="household" && $1=="balance-sheet"{h=1}
              END{exit !(a&&p&&e&&m&&i&&h)}' "$work/reports.tsv"
 
+# Frontends may request either all logical actions or one exact surface cell.
+./tools/household-surface-metadata actions >"$work/all-actions.tsv"
+head -n1 "$work/all-actions.tsv" | grep -Fx $'action_index\tdomain_key\toperation_key\tscope\taction_key\taction_label\taction_kind' >/dev/null
+grep -F $'expense\tExpense\tcommand' "$work/all-actions.tsv" >/dev/null
+grep -F $'balance-sheet\tBalance Sheet\treport' "$work/all-actions.tsv" >/dev/null
+
 ./tools/household-surface-metadata actions actual add >"$work/actual-add.tsv"
 [[ "$(awk 'END{print NR}' "$work/actual-add.tsv")" == 5 ]]
 for action in expense income move multi; do
@@ -59,7 +65,7 @@ if ./tools/household-surface-metadata actions actual >"$work/invalid.out" 2>&1; 
   echo 'FAIL: incomplete action coordinate succeeded' >&2
   exit 1
 fi
-grep -F 'expected no arguments or: actions DOMAIN OPERATION' "$work/invalid.out" >/dev/null
+grep -F 'expected no arguments, actions, or: actions DOMAIN OPERATION' "$work/invalid.out" >/dev/null
 
 # The primary surface is raw-terminal spatial navigation, not a fuzzy selector.
 if rg -n 'fzf|gum' tools/household-surface >/dev/null; then
