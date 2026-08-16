@@ -30,7 +30,7 @@ The next work is cross-cutting repository observation rather than another semant
 
 - [x] terminal selector/input duplication and UI change locality across active shell surfaces: Household frontends share one logical dispatcher; nested selectors remain opaque physical adapters; writer shortcut membership is parity-checked. See `docs/CROSS_CUTTING_FRONTEND_REACHABILITY_AUDIT-2026-08-17.md`.
 - [x] editor/writer ownership from BQN semantic decision through machine operation to safe-write publication. See `docs/CROSS_CUTTING_WRITER_EFFECT_AUDIT-2026-08-17.md`.
-- [ ] report/application CLI reachability and repeated effect/protocol boundaries;
+- [x] report/application CLI reachability and repeated effect/protocol boundaries. See `docs/CROSS_CUTTING_REPORT_CLI_AUDIT-2026-08-17.md`.
 - [ ] repository-wide dead-surface and reachability audit, including retained wrappers;
 - [x] `experiments/` reachability: promoted action-catalog and sparse classify-once probes retired; current negative evidence retained. See `docs/CROSS_CUTTING_EXPERIMENT_REACHABILITY_AUDIT-2026-08-17.md`.
 - [x] `tui/` reachability and documentation drift: status-only stale directory retired. See `docs/CROSS_CUTTING_FRONTEND_REACHABILITY_AUDIT-2026-08-17.md`.
@@ -38,6 +38,23 @@ The next work is cross-cutting repository observation rather than another semant
 - [x] shell action/selection duplication versus `HouseholdSurface.Actions`: spatial/gum frontends share `tools/household-action`; standalone `add-ui` writer membership is parity-checked against non-Observe command Actions.
 - [ ] remaining migration/compatibility residue outside completed canonical Household recovery;
 - [ ] checks/tests classification: current law guard, historical characterization, or obsolete topology assumption.
+
+## Current report state
+
+Report meaning remains BQN/application-owned:
+
+```text
+catalog / request / route / evidence / composition / rendering
+                           -> shell process/cache/presentation
+```
+
+The report CLI audit found no second shell-owned report catalog or route owner in `report`, `report-all`, `report-cache`, `report-section-metadata`, `report-summary`, `query`, or `main-ui.sh`.
+
+One concrete cache defect was fixed. `main-ui.sh` used to maintain a hand-written list of Household/report dependency filenames and omitted `config/currencies.tsv`, even though the report application path reads that registry. Preview cache invalidation now uses conservative physical observation of all files under the selected Household base plus repository `src/` and `config/`; it no longer owns a semantic dependency list.
+
+`check-report-cache-invalidation.sh` requires that shape and proves that changing only the currency-registry observation advances the preview-cache generation token.
+
+Historically named `command-hub-cache-refresh` / `command-hub-preview` remain live report-presentation helpers and are not dead solely because their names predate the Calendar-first frontend. Their naming belongs to the repository-wide reachability/dead-surface lane.
 
 ## Current writer state
 
@@ -75,7 +92,7 @@ A fresh session should:
 ## Current cursor
 
 ```text
-report/application CLI reachability and repeated effect/protocol boundaries
+repository-wide dead-surface and reachability audit
 ```
 
-Observe active report entrypoints, metadata/route leaves, shell wrappers, and any duplicate protocol/effect owners before editing. Keep report catalog/request/composition meaning in the existing BQN owners.
+Start with definition-level residue and historically named wrappers, but classify current consumers before deleting or renaming anything. Known candidates include legacy no-caller safe-write API definitions; current `command-hub-*` report helpers are reachable and therefore require a naming/ownership decision rather than blind removal.
