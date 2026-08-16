@@ -19,7 +19,7 @@ while [ -L "$SOURCE" ]; do
   SOURCE="$(readlink "$SOURCE")"
   [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
 done
-SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd)"
 ROOT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 cd "$ROOT_DIR"
 
@@ -36,6 +36,11 @@ Usage:
   tools/plan-finish-replenish-ui.sh [--base <dir>] [--check]
 
 Finish one open plan, then optionally create a follow-up plan from it.
+
+When launched from the Calendar-first Household surface, BL_SELECTED_DATE is
+an internal UI context: it becomes the Plan-list observation date and the
+actualization date without asking for the same date again. Standalone behavior
+is unchanged and uses the local day.
 
 Replenishment choices:
   - do nothing
@@ -73,6 +78,11 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+if [[ -n "${BL_SELECTED_DATE:-}" && ! "${BL_SELECTED_DATE}" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+  shout "Error: BL_SELECTED_DATE must be YYYY-MM-DD"
+  exit 2
+fi
+
 ensure_canonical_report_base "$base_dir"
 
 finish_applied=0
@@ -96,8 +106,8 @@ select_line() {
 
 choose_plan_list_scope() {
   cat <<'EOF' | select_line 'plan range'
-upcoming	今日以降のOPEN予定
-overdue	期限超過のOPEN予定
+upcoming	基準日以降のOPEN予定
+overdue	基準日より前のOPEN予定
 all	すべてのOPEN予定
 EOF
 }
@@ -211,7 +221,7 @@ if [[ "$preflight" -eq 1 ]]; then
   exit 1
 fi
 
-today="$(date +%Y-%m-%d)"
+today="${BL_SELECTED_DATE:-$(date +%Y-%m-%d)}"
 if ! plan_scope_line="$(choose_plan_list_scope)"; then
   return_to_add_menu
 fi
@@ -263,7 +273,12 @@ plan_series=""
 inherited_plan_meta=()
 
 show_selected_plan
-if ! actual_date="$(read_tty 'Actual date YYYY-MM-DD' "$today")"; then return_to_add_menu; fi
+if [[ -n "${BL_SELECTED_DATE:-}" ]]; then
+  actual_date="$BL_SELECTED_DATE"
+  printf 'Actual date: %s (Household selected date)\n' "$actual_date" >&2
+else
+  if ! actual_date="$(read_tty 'Actual date YYYY-MM-DD' "$today")"; then return_to_add_menu; fi
+fi
 if ! actual_amount="$(read_tty 'Actual amount' "$plan_amount")"; then return_to_add_menu; fi
 
 selector_args=()
@@ -320,7 +335,7 @@ for line in "${related_out[@]}"; do
       ;;
     ROW)
       date_f="$(field 2 "$line")"
-      related_lines+=("$(field 2 "$line")	$(field 3 "$line")	$(field 4 "$line") -> $(field 5 "$line")	$(field 6 "$line")	$(field 7 "$line")")
+      related_lines+=("$(field 2 "$line")\t$(field 3 "$line")\t$(field 4 "$line") -> $(field 5 "$line")\t$(field 6 "$line")\t$(field 7 "$line")")
       if [[ -z "$latest_related_date" || "$date_f" > "$latest_related_date" ]]; then
         latest_related_date="$date_f"
       fi

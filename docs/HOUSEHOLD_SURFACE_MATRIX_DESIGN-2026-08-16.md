@@ -26,9 +26,9 @@ Household       •       ·       ·        ·
 
 `Scope` is projected after an Observe coordinate is chosen. It is not another permanent top-level hierarchy.
 
-## Why the old hierarchy is being retired
+## Why the old hierarchy is retired
 
-The implemented Command Hub currently begins with:
+The historical Command Hub began with:
 
 ```text
 Editor
@@ -37,9 +37,9 @@ Source & System
 Exit
 ```
 
-That arrangement makes implementation categories visible before the Household subject a person actually has in mind. As the hierarchy grew, finding an operation required remembering which branch owned it. Interactive Home/Calendar also remained a distinct entrance, so the user had to carry more than one navigation map.
+That arrangement made implementation categories visible before the Household subject a person actually had in mind. As the hierarchy grew, finding an operation required remembering which branch owned it. Interactive Home/Calendar also remained a distinct entrance, so the user had to carry more than one navigation map.
 
-The new surface makes stable position do the memory work:
+The Household surface makes stable position do the memory work:
 
 - Plan is always the Plan row;
 - Observe is always the Observe column;
@@ -73,7 +73,7 @@ Empty cells are meaningful. The matrix must not invent generic CRUD operations m
 
 The twelve retained reports remain owned by `src/report/catalog.bqn`.
 
-The catalog now publishes two navigation coordinates:
+The catalog publishes two navigation coordinates:
 
 ```text
 surface_domain
@@ -99,7 +99,7 @@ The first placement is:
 | Daily Target | Household | day |
 | Issues | Issue | current |
 
-The surface must project these coordinates from the report catalog. It must not create a second list of report keys.
+The surface projects these coordinates from the report catalog. It does not create a second list of report keys.
 
 ## Non-report leaves
 
@@ -150,7 +150,7 @@ Household × Observe
   catalog reports whose surface_domain = household
 ```
 
-The direct CLI routes remain stable. The surface is an additional navigation projection over established owners, not a replacement writer/report implementation.
+The direct CLI routes remain stable. The surface is a navigation projection over established owners, not a replacement writer/report implementation.
 
 ## Calendar ownership
 
@@ -164,26 +164,39 @@ selected date + logical move -> next selected date
 
 Physical terminal index, key packets, mouse coordinates, and drawing geometry remain frontend concerns.
 
-The desired ordinary frame is one Household observation surface, not a Command Hub header plus an unrelated selector underneath it.
+At cutover, the selected Date is carried into date-bearing writer leaves as UI context. This prevents a user from selecting one date in the Calendar and then being asked to choose the same date again inside a writer. The context does not become canonical authority: writer and admission owners still validate and publish the resulting explicit date.
 
-## gum and fzf
+Date consumption is domain-specific rather than mechanically attached to every cell:
+
+- Actual Add and Resolve consume the selected date;
+- Plan Add, Change observation, and Resolve consume the selected date where applicable;
+- Envelope movement consumes the selected date;
+- Issue Add and close consume the selected date when the source schema can represent it;
+- Account Add is atemporal and does not consume a Calendar date.
+
+Standalone writer entry remains unchanged when no Household selected-date context exists.
+
+## gum, fzf, and report paging
 
 Neither gum nor fzf owns the primary Household surface.
 
 The matrix is spatial. Flattening it into a one-dimensional fuzzy selector destroys useful positional meaning.
 
-Target architecture:
+Current architecture:
 
 ```text
 Calendar + matrix = primary UI
 fzf              = optional search / high-cardinality target accelerator
-gum              = no required role
+gum              = no required primary-surface role
 plain input       = always sufficient
+less -S           = wide report reading / horizontal scrolling
 ```
 
 fzf may remain useful when selecting among many Plans, Accounts, transactions, or search results. It must not define the information architecture.
 
-If no independent gum use remains after the surface cutover, gum should be removed rather than retained as a compatibility shell.
+Wide report navigation is a separate presentation capability. `tools/main-ui.sh` uses `less -SRFX` in an interactive terminal when `less` is available. The `-S` option keeps long lines unwrapped so the user can move horizontally. Removing gum therefore does not imply losing horizontal report scrolling.
+
+If no independent gum use remains after the surface cutover, gum should be removed rather than retained as a compatibility shell. That decision should come from an actual remaining-use audit, not from preserving the historical selector stack.
 
 ## Source & System
 
@@ -221,15 +234,17 @@ thin physical frontend
 
 A future terminal implementation, native BQN presentation, or raylib frontend should consume the same logical coordinates without reimplementing accounting, date arithmetic, report placement, or lifecycle meaning.
 
-## Cutover sequence
+## Cutover status
 
-1. Publish the pure Domain × Operation surface relation.
-2. Add `surface_domain / surface_scope` to the existing report catalog and qualify the placement.
-3. Build one terminal surface over the existing Home Calendar relation and existing direct command routes.
-4. Make the no-argument `bl` entrance use that surface.
-5. Keep direct CLI commands stable.
-6. Retire the old `Editor / Reports` discovery hierarchy after parity is characterized.
-7. Re-evaluate fzf/gum usage from what actually remains, not from historical dependency.
+The cutover sequence is now represented directly in repository owners rather than left as a future migration plan:
+
+1. **complete** — pure Domain × Operation surface relation is published;
+2. **complete** — `surface_domain / surface_scope` are catalog-owned and qualified;
+3. **complete** — terminal surface consumes Home Calendar navigation and direct action routes;
+4. **complete in #780** — no-command `bl` enters the Household surface directly;
+5. **preserved** — explicit direct CLI commands remain stable;
+6. **complete in #780** — the old `Editor / Reports` discovery hierarchy is removed from `tools/bl` rather than retained as duplicate navigation authority;
+7. **next audit** — re-evaluate actual remaining fzf/gum use and remove only dependencies whose independent role has disappeared.
 
 ## Non-goals
 

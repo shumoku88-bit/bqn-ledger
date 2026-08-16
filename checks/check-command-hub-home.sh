@@ -5,7 +5,7 @@ export NO_COLOR=1
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
 
-work="$(mktemp -d "${TMPDIR:-/tmp}/bqn-ledger-command-hub-home.XXXXXX")"
+work="$(mktemp -d "${TMPDIR:-/tmp}/bqn-ledger-household-entry.XXXXXX")"
 trap 'rm -rf "$work"' EXIT
 base="$work/household"
 cp -R fixtures/canonical-household-v1 "$base"
@@ -21,10 +21,11 @@ issue-due-marker = "?"
 EOF
 
 bash -n tools/bl
+bash -n tools/household-surface
 
 direct="$(tools/home-calendar "$base" 2026-01-20)"
-hub_direct="$(tools/bl --base "$base" home 2026-01-20)"
-[[ "$hub_direct" == "$direct" ]] || {
+bl_direct="$(tools/bl --base "$base" home 2026-01-20)"
+[[ "$bl_direct" == "$direct" ]] || {
   echo 'FAIL: tools/bl home differs from canonical Home calendar command' >&2
   exit 1
 }
@@ -50,6 +51,7 @@ if pid == 0:
     env = os.environ.copy()
     env["BL_SELECTOR"] = "plain"
     env["NO_COLOR"] = "1"
+    env["TERM"] = "xterm-256color"
     os.execve(
         "tools/bl",
         ["tools/bl", "--base", base, "--latest", "2026-01-20"],
@@ -57,7 +59,7 @@ if pid == 0:
     )
 
 os.close(slave)
-os.write(master, b"4\n")
+os.write(master, b"q")
 output = bytearray()
 while True:
     try:
@@ -71,7 +73,7 @@ os.close(master)
 _, status = os.waitpid(pid, 0)
 exit_status = os.waitstatus_to_exitcode(status)
 if exit_status != 0:
-    raise SystemExit(f"Command Hub Home PTY failed with status {exit_status}")
+    raise SystemExit(f"Household entry PTY failed with status {exit_status}")
 with open(output_path, "wb") as f:
     f.write(output)
 PY
@@ -81,28 +83,33 @@ for expected in \
   '2026-01' \
   'Mo  Tu  We  Th  Fr  Sa  Su' \
   '20?' \
-  'Editor' 'Reports' 'Source & System' 'Exit'; do
+  'Selected date: 2026-01-20' \
+  'Focus: calendar' \
+  'Actual' 'Plan' 'Envelope' 'Account' 'Issue' 'Household' \
+  'Observe' 'Add' 'Change' 'Resolve' \
+  'Journal' 'Record' 'Reverse' 'Backing' 'Reports' \
+  's: Source & System'; do
   grep -Fq "$expected" "$out" || {
-    echo "FAIL: Command Hub Home entrance missing: $expected" >&2
+    echo "FAIL: Household entrance missing: $expected" >&2
     cat "$out" >&2
     exit 1
   }
 done
 
-# Home is an observation header, not a fifth interaction category.
-if grep -Eq '^[[:space:]]*[0-9]+\)[[:space:]]+Home[[:space:]]*$' "$out"; then
-  echo 'FAIL: Home became a selectable top-level category' >&2
-  cat "$out" >&2
+for retired in 'BQN-Ledger Command Hub' '=== Editor ===' 'Select [0-4]>' '  Editor' '  Exit'; do
+  if grep -Fq "$retired" "$out"; then
+    echo "FAIL: retired hierarchical Hub surface remains visible: $retired" >&2
+    cat "$out" >&2
+    exit 1
+  fi
+done
+
+# `bl` owns entry routing only; Calendar meaning/rendering remains delegated.
+grep -Fq 'exec "$ROOT_DIR/tools/household-surface"' tools/bl
+grep -Fq 'tools/home-calendar' tools/household-surface
+if grep -Fq 'run_interactive_hub' tools/bl; then
+  echo 'FAIL: retired hierarchical interactive Hub owner remains in tools/bl' >&2
   exit 1
 fi
-grep -Fq 'Select [0-4]>' "$out" || {
-  echo 'FAIL: Command Hub top menu no longer has exactly four choices' >&2
-  cat "$out" >&2
-  exit 1
-}
-
-# The shell remains an adapter: Home meaning and rendering stay delegated.
-grep -Fq 'tools/home-calendar' tools/bl
-grep -Fq 'select_menu "BQN-Ledger Command Hub' tools/bl
 
 echo 'check-command-hub-home: OK'
