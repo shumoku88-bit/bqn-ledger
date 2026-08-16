@@ -57,11 +57,17 @@ Validation density or file size is not itself a defect. Compactness is useful on
 - [ ] remaining migration/compatibility residue classified without duplicating the canonical Household recovery closeout;
 - [ ] checks and tests classified as law guards, characterization evidence, or obsolete topology assumptions.
 
-## Parallel Command Hub design track
+## Household surface design track
 
-The Command Hub interaction-type drill-down was designed and implemented separately from the BQN-native production review in #733. See `docs/COMMAND_HUB_DRILLDOWN_DESIGN-2026-08-12.md`.
+The interaction-type Command Hub hierarchy implemented in #733 is historical design evidence, not the current target information architecture. Its direct CLI and writer-authority boundaries remain useful, but its `Editor / Reports / Source & System` discovery tree made the Calendar and Household operations separate places a user had to remember.
 
-The merged hierarchy separates structured Editor actions, read-only Reports, and direct Source & System operations while preserving the direct CLI contract and writer authority. It does not move or redefine the Phase 6 BQN-native review cursor.
+PR #779 supersedes that discovery hierarchy with the Calendar-first Household surface documented in `docs/HOUSEHOLD_SURFACE_MATRIX_DESIGN-2026-08-16.md`:
+
+```text
+Date × Domain × Operation × Scope
+```
+
+The visible matrix uses `Actual / Plan / Envelope / Account / Issue / Household` against `Observe / Add / Change / Resolve`; retained report placement remains catalog-owned; `Source & System` stays at the edge; and fzf/gum are not architecture owners. This track remains separate from the normal Phase 6 BQN review cursor.
 
 ## Phase order
 
@@ -195,6 +201,8 @@ Retired during review: `src/application/funding_scope.bqn` — #714. See `docs/F
 - [x] `src/application/editor_plan_rows.bqn` — #713
 - [x] `src/application/home_calendar_cli.bqn` — #738 (post-closeout Home observation adapter)
 - [x] `src/application/home_navigation.bqn` — #757 (post-closeout Home logical navigation owner)
+- [x] `src/application/household_surface.bqn` — #779 (post-closeout Calendar-first Domain × Operation relation and logical action projection)
+- [x] `src/application/household_surface_cli.bqn` — #779 (source-independent surface metadata leaf)
 - [x] `src/application/household_daily_scope.bqn` — #715
 - [x] `src/application/household_source_adapter.bqn` — #716 (source-boundary law review; production unchanged)
 - [x] `src/application/ledger_check_cli.bqn` — #717 (readiness effect-lifetime review; production unchanged)
