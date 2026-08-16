@@ -8,7 +8,8 @@ householdAdmission ← •Import "../src/ledger/household_policy_admission.bqn"
 currentProjection ← •Import "../src/ledger/household_current_policy_projection.bqn"
 base ← "fixtures/ledger-facts-phase1-proof/"
 
-accountsResult ← accountsAdmission.Admit •FChars "../"∾base∾"accounts.journal"
+accountsRaw ← •FChars "../"∾base∾"accounts.journal"
+accountsResult ← accountsAdmission.Admit accountsRaw
 "ok" lib.AssertEq accountsResult.state
 accounts ← accountsResult.accounts
 budget ← budgetAdmission.Admit ⟨•FChars "../"∾base∾"budget.toml",accounts⟩
@@ -36,6 +37,22 @@ withMoney ← householdAdmission.Admit ⟨currentProjection.CurrentPolicy withMo
 0 lib.AssertEq ≠withMoney.diagnostics
 1 lib.AssertEq withMoney.money.present
 "JPY" lib.AssertEq withMoney.money.primary_commodity
+
+# Current Envelope membership and stable allocation coordinates are different
+# relations. A retired coordinate remains readable after it leaves budget.toml.
+extendedAccountsRaw ← accountsRaw∾"\naccount budget:retired\n  type: Budget\n  commodity: JPY\n"
+extendedAccountsResult ← accountsAdmission.Admit extendedAccountsRaw
+"ok" lib.AssertEq extendedAccountsResult.state
+extendedAccounts ← extendedAccountsResult.accounts
+extendedBudget ← budgetAdmission.Admit ⟨•FChars "../"∾base∾"budget.toml",extendedAccounts⟩
+"ok" lib.AssertEq extendedBudget.state
+retiredCoordinate ← "\n[[budget.envelopes]]\nid = \"retired\"\nallocation-account = \"budget:retired\"\n"
+withRetired ← householdAdmission.Admit ⟨currentProjection.CurrentPolicy (householdRaw∾retiredCoordinate),extendedAccounts,extendedBudget⟩
+"ok" lib.AssertEq withRetired.state
+0 lib.AssertEq ≠withRetired.diagnostics
+⟨"food","retired"⟩ lib.AssertEq withRetired.budget.envelope_id
+⟨"budget:food","budget:retired"⟩ lib.AssertEq withRetired.budget.allocation_account_key
+⟨"food"⟩ lib.AssertEq extendedBudget.envelopes.id
 
 IndexOf ← {𝕊 key: ⊑accounts.key⊐⟨key⟩}
 "liquid" lib.AssertEq (IndexOf "assets:cash")⊑household.account_policy.asset_class
