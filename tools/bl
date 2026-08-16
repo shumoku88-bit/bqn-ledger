@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# tools/bl - canonical Household Command Hub.
-# This script owns only navigation, selection, and presentation. Accounting,
-# admission, and publication remain in the existing report/editor/tool owners.
+# tools/bl - canonical Household entrypoint and direct-command router.
+#
+# With no command, the Calendar-first Household surface is the only interactive
+# information architecture. With an explicit command, this file routes to the
+# existing report/editor/tool owner without acquiring accounting or publication
+# meaning itself.
 
 SOURCE="${BASH_SOURCE[0]}"
 while [[ -L "$SOURCE" ]]; do
@@ -22,13 +25,13 @@ source "$ROOT_DIR/tools/lib/ui-preferences.sh"
 usage() {
   cat <<'EOF'
 Usage:
-  tools/bl [--base DIR] [command [subcommand] [args...]]
+  tools/bl [--base DIR] [--domain COMMODITY] [--latest YYYY-MM-DD] [command [subcommand] [args...]]
 
-Interactive Command Hub:
-  Home             Read-only calendar observation above the interaction choices
-  Editor           Structured Household changes
-  Reports          Read-only semantic reports
-  Source & System  Raw canonical sources, diagnostics, export, and maintenance
+Interactive Household surface (no command):
+  Calendar + Domain × Operation × Scope
+  Domain:     Actual / Plan / Envelope / Account / Issue / Household
+  Operation:  Observe / Add / Change / Resolve
+  Source & System remains an edge utility from the Household surface.
 
 Direct commands (non-TTY safe when the target command is read-only):
   home [YYYY-MM-DD]              Home calendar for one focus month
@@ -62,7 +65,11 @@ Direct command groups:
 Options:
   --base DIR                     Canonical eight-file Household root
   --domain COMMODITY             Explicit report domain
-  --latest YYYY-MM-DD            Deterministic current-report / Home focus date
+  --latest YYYY-MM-DD            Deterministic report / initial Calendar focus date
+
+Finished reports are displayed by tools/main-ui.sh. When `less` is available in
+an interactive terminal it uses `less -SRFX`, so wide report lines remain
+horizontally scrollable independently of fzf/gum selector availability.
 EOF
 }
 
@@ -102,8 +109,18 @@ COLOR_RESET="$ESC_RESET"
 
 print_header() { printf '%b=== %s ===%b\n' "$COLOR_HEADER" "$1" "$COLOR_RESET"; }
 
+ui_date() {
+  if [[ -n "${BL_SELECTED_DATE:-}" ]]; then
+    printf '%s\n' "$BL_SELECTED_DATE"
+  elif [[ -n "$latest_override" ]]; then
+    printf '%s\n' "$latest_override"
+  else
+    date +%Y-%m-%d
+  fi
+}
+
 select_menu() {
-  local prompt="$1" lines="$2" header="${3:-}" selector selection status=0 key='' label='' header_text=''
+  local prompt="$1" lines="$2" header="${3:-}" selector selection status=0 key='' header_text=''
   selector="$(bl_selector_preference 2>/dev/null || echo auto)"
   if [[ "${BL_UI_MODE:-}" == minimal ]]; then
     selector=plain
@@ -136,7 +153,7 @@ select_menu() {
     printf '%s\n' "$key"
   else
     local -a keys=() labels=()
-    local count=0 i answer
+    local count=0 i answer label
     while IFS=$'\t' read -r key label; do
       [[ -n $key ]] || continue
       keys+=("$key")
@@ -166,9 +183,6 @@ select_menu() {
 
 run_child() {
   local status=0
-  # Capture failure in conditional position so this helper never mutates the
-  # caller's errexit state before returning status 130 (logical Back) or another
-  # child status to the owning submenu.
   if "$@"; then
     return 0
   else
@@ -182,32 +196,10 @@ run_child() {
   return "$status"
 }
 
-home_focus_date() {
-  if [[ -n $latest_override ]]; then
-    printf '%s\n' "$latest_override"
-  else
-    date +%Y-%m-%d
-  fi
-}
-
 run_home() {
   local focus="${1:-}"
-  [[ -n $focus ]] || focus="$(home_focus_date)"
+  [[ -n $focus ]] || focus="$(ui_date)"
   run_child "$ROOT_DIR/tools/home-calendar" "$base_dir" "$focus"
-}
-
-home_header() {
-  local focus output status=0
-  focus="$(home_focus_date)"
-  set +e
-  output="$("$ROOT_DIR/tools/home-calendar" "$base_dir" "$focus" 2>&1)"
-  status=$?
-  set -e
-  if [[ $status -eq 0 ]]; then
-    printf '%s\n' "$output"
-  else
-    printf '[Home unavailable for %s]\n%s\n' "$focus" "$output"
-  fi
 }
 
 run_action() {
@@ -290,127 +282,22 @@ run_edit_menu() {
   done
 }
 
-report_lines() {
-  printf 'preview\t★ プレビュー閲覧 (矢印キー [←/→] で連続プレビュー)\n'
-  printf 'all\tAll twelve reports\n'
-  "$ROOT_DIR/tools/report-section-metadata" | awk -F'\t' 'NR>1 {print $1 "\t" $2}'
-  printf 'back\tBack\n'
-}
-
-select_reports_menu() {
-  local prompt="$1" lines="$2" selector selection status=0 key='' label='' cache_dir=''
-  selector="$(bl_selector_preference 2>/dev/null || echo auto)"
-  if [[ "${BL_UI_MODE:-}" == minimal ]]; then
-    selector=plain
-  elif [[ $selector == auto ]]; then
-    if command -v fzf >/dev/null 2>&1; then selector=fzf
-    elif command -v gum >/dev/null 2>&1; then selector=gum
-    else selector=plain
-    fi
-  fi
-
-  if [[ $IS_TTY -eq 1 && $selector == fzf ]]; then
-    cache_dir="$(run_child "$ROOT_DIR/tools/main-ui.sh" --base "$base_dir" prepare-cache 2>/dev/null || true)"
-    local preview_win
-    preview_win="$(bl_fzf_preview_window 2>/dev/null || echo 'right:50%')"
-    set +e
-    if [[ -n $cache_dir && -d $cache_dir ]]; then
-      selection="$(printf '%s\n' "$lines" | fzf --prompt="$prompt> " --delimiter=$'\t' --with-nth=2.. --height=80% --reverse --exit-0 --ansi \
-        --preview "BL_THEME='${BL_THEME:-nord}' COLOR_FORCE=1 '$ROOT_DIR/tools/command-hub-preview' '$cache_dir' {1} | BL_THEME='${BL_THEME:-nord}' COLOR_FORCE=1 REPORT_NEGATIVE_COLOR='${report_negative_color:-red}' '$ROOT_DIR/tools/lib/color-filter'" \
-        --preview-window "$preview_win")"
-    else
-      selection="$(printf '%s\n' "$lines" | fzf --prompt="$prompt> " --delimiter=$'\t' --with-nth=2.. --reverse --exit-0)"
-    fi
-    status=$?
-    set -e
-    [[ $status -eq 0 && -n $selection ]] || return 130
-    printf '%s\n' "${selection%%$'\t'*}"
-  else
-    select_menu "$prompt" "$lines"
-  fi
-}
-
 run_reports() {
-  local key="${1:-}" status
-  if [[ -z $key ]]; then
-    [[ $IS_TTY -eq 1 ]] || { echo 'Error: reports requires KEY outside an interactive terminal' >&2; return 2; }
-    while true; do
-      set +e
-      key="$(select_reports_menu 'Reports' "$(report_lines)")"
-      status=$?
-      set -e
-      [[ $status -eq 130 ]] && return 0
-      [[ $status -eq 0 ]] || return "$status"
-      [[ $key == back ]] && return 0
-      run_reports "$key" || true
-      [[ $IS_TTY -eq 1 ]] && printf '\n'
-    done
-    return 0
-  fi
+  local key="${1:-}"
   local -a ui_args=(--base "$base_dir")
   [[ -z $domain_override ]] || ui_args+=(--domain "$domain_override")
   [[ -z $latest_override ]] || ui_args+=(--latest "$latest_override")
-  if [[ $key == preview || $key == browse ]]; then
+
+  if [[ -z $key ]]; then
+    [[ $IS_TTY -eq 1 ]] || { echo 'Error: reports requires KEY outside an interactive terminal' >&2; return 2; }
+    run_child "$ROOT_DIR/tools/main-ui.sh" "${ui_args[@]}" select
+  elif [[ $key == preview || $key == browse ]]; then
     run_child "$ROOT_DIR/tools/main-ui.sh" "${ui_args[@]}" preview
   elif [[ $key == all || $key == report ]]; then
     run_child "$ROOT_DIR/tools/main-ui.sh" "${ui_args[@]}" report
   else
     run_child "$ROOT_DIR/tools/main-ui.sh" "${ui_args[@]}" "$key"
   fi
-}
-
-report_group_menu() {
-  cat <<'EOF'
-household	Household
-accounting	Accounting
-operations	Activity
-all	All reports
-preview	Sequential preview
-back	Back
-EOF
-}
-
-report_group_lines() {
-  local category="$1"
-  "$ROOT_DIR/tools/report-section-metadata" |
-    awk -F'\t' -v category="$category" 'NR>1 && $3==category {print $1 "\t" $2}'
-  printf 'back\tBack\n'
-}
-
-run_report_group() {
-  local category="$1" title="$2" key status
-  while true; do
-    set +e
-    key="$(select_reports_menu "$title" "$(report_group_lines "$category")")"
-    status=$?
-    set -e
-    [[ $status -eq 130 ]] && return 0
-    [[ $status -eq 0 ]] || return "$status"
-    [[ $key == back ]] && return 0
-    run_reports "$key" || true
-    [[ $IS_TTY -eq 1 ]] && printf '\n'
-  done
-}
-
-run_reports_hub() {
-  local key status
-  while true; do
-    set +e
-    key="$(select_menu 'Reports' "$(report_group_menu)")"
-    status=$?
-    set -e
-    [[ $status -eq 130 ]] && return 0
-    [[ $status -eq 0 ]] || { echo 'Invalid selection.' >&2; continue; }
-    case "$key" in
-      household) run_report_group household Household ;;
-      accounting) run_report_group accounting Accounting ;;
-      operations) run_report_group operations Activity ;;
-      all) run_reports all || true ;;
-      preview) run_reports preview || true ;;
-      back) return 0 ;;
-    esac
-    [[ $IS_TTY -eq 1 ]] && printf '\n'
-  done
 }
 
 show_plan_related_interactive() {
@@ -472,8 +359,6 @@ run_query_interactive() {
   fi
 }
 
-# Direct-command handlers remain stable even though the interactive Hub is
-# grouped by interaction type.
 run_record_key() {
   case "$1" in
     expense|income|move|multi|reverse) run_action "$1" ;;
@@ -490,7 +375,7 @@ run_plan_key() {
     list) "$ROOT_DIR/tools/edit" --base "$base_dir" plan list "$@" ;;
     all) "$ROOT_DIR/tools/edit" --base "$base_dir" plan list --all "$@" ;;
     overdue|upcoming)
-      "$ROOT_DIR/tools/edit" --base "$base_dir" plan list --temporal "$key" --as-of "$(date +%Y-%m-%d)" "$@" ;;
+      "$ROOT_DIR/tools/edit" --base "$base_dir" plan list --temporal "$key" --as-of "$(ui_date)" "$@" ;;
     related)
       if [[ $# -gt 0 ]]; then "$ROOT_DIR/tools/edit" --base "$base_dir" plan related "$@"; else show_plan_related_interactive; fi ;;
     add) run_action plan-add ;;
@@ -550,148 +435,14 @@ run_operation_key() {
   esac
 }
 
-editor_menu() {
-  cat <<'EOF'
-journal	Journal
-plans	Plans
-budget	Budget
-accounts	Accounts
-issues	Issues
-back	Back
-EOF
-}
-
-editor_journal_menu() {
-  cat <<'EOF'
-expense	Expense
-income	Income
-move	Transfer / move
-multi	Multi-posting transaction
-reverse	Reverse with a compensating transaction
-back	Back
-EOF
-}
-
-editor_plans_menu() {
-  cat <<'EOF'
-add	Add Plan
-edit	Edit Plan date / amount
-finish	Finish / actualize / replenish Plan
-related	Related Plan evidence
-back	Back
-EOF
-}
-
-editor_budget_menu() {
-  cat <<'EOF'
-add	Add / move Budget
-back	Back
-EOF
-}
-
-editor_accounts_menu() {
-  cat <<'EOF'
-add	Add Account
-back	Back
-EOF
-}
-
-editor_issues_menu() {
-  cat <<'EOF'
-add	Add Issue
-close	Close Issue
-back	Back
-EOF
-}
-
-source_system_menu() {
-  cat <<'EOF'
-open-source	Open canonical source
-check	Household check
-inspect	Ledger / provenance inspection
-doctor	Dependency and source diagnosis
-export	Export canonical Journals to hledger
-summary	Compact report summary
-query	Exact compact-key query (advanced)
-dev-check	Repository development suite
-back	Back
-EOF
-}
-
-top_menu() {
-  cat <<'EOF'
-editor	Editor
-reports	Reports
-source-system	Source & System
-exit	Exit
-EOF
-}
-
-run_interactive_submenu() {
-  local title="$1" list_fn="$2" handler="$3" key status
-  while true; do
-    set +e
-    key="$(select_menu "$title" "$("$list_fn")")"
-    status=$?
-    set -e
-    [[ $status -eq 130 ]] && return 0
-    [[ $status -eq 0 ]] || { echo 'Invalid selection.' >&2; continue; }
-    [[ $key == back ]] && return 0
-    set +e
-    "$handler" "$key"
-    status=$?
-    set -e
-    [[ $status -eq 130 ]] || [[ $status -eq 0 ]] || true
-    [[ $IS_TTY -eq 1 ]] && printf '\n'
-  done
-}
-
-run_editor_key() {
-  case "$1" in
-    journal) run_interactive_submenu Journal editor_journal_menu run_record_key ;;
-    plans) run_interactive_submenu Plans editor_plans_menu run_plan_key ;;
-    budget) run_interactive_submenu Budget editor_budget_menu run_budget_key ;;
-    accounts) run_interactive_submenu Accounts editor_accounts_menu run_account_key ;;
-    issues) run_interactive_submenu Issues editor_issues_menu run_issue_key ;;
-    back) return 130 ;;
-    *) echo "Error: unknown Editor area: $1" >&2; return 2 ;;
-  esac
-}
-
-run_editor_hub() {
-  run_interactive_submenu Editor editor_menu run_editor_key
-}
-
-run_source_system_hub() {
-  run_interactive_submenu 'Source & System' source_system_menu run_operation_key
-}
-
-run_interactive_hub() {
-  local key status home
-  [[ $IS_TTY -eq 1 ]] || { echo 'Error: no command and no interactive terminal; use tools/bl --help' >&2; return 2; }
-  # Keep the navigation shell alive while the active selector/child receives
-  # Ctrl-C. External children reset this caught signal to their normal default.
-  trap ':' INT
-  while true; do
-    home="$(home_header)"
-    set +e
-    key="$(select_menu "BQN-Ledger Command Hub ($base_dir)" "$(top_menu)" "$home")"
-    status=$?
-    set -e
-    [[ $status -eq 130 ]] && return 0
-    [[ $status -eq 0 ]] || { echo 'Invalid selection.' >&2; continue; }
-    case "$key" in
-      editor) run_editor_hub ;;
-      reports) run_reports_hub ;;
-      source-system) run_source_system_hub ;;
-      exit) return 0 ;;
-    esac
-  done
-}
-
 if [[ $# -eq 0 ]]; then
-  run_interactive_hub
-  exit $?
+  [[ $IS_TTY -eq 1 ]] || { echo 'Error: no command and no interactive terminal; use tools/bl --help' >&2; exit 2; }
+  focus="$(ui_date)"
+  if [[ -n $domain_override ]]; then
+    REPORT_DOMAIN="$domain_override" exec "$ROOT_DIR/tools/household-surface" "$base_dir" "$focus"
+  else
+    exec "$ROOT_DIR/tools/household-surface" "$base_dir" "$focus"
+  fi
 fi
 
 cmd="$1"; shift
