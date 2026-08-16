@@ -178,9 +178,11 @@ Admit ← {𝕊 raw:
     fromPair ← PairValue ⟨block,"from"⟩
     throughPair ← PairValue ⟨block,"through"⟩
     rangeKind ← "explicit" ⋄ from ← "" ⋄ through ← ""
-    mixed ← rangePair.found ∧ (fromPair.found ∨ throughPair.found)
-    incomplete ← ¬rangePair.found ∧ (fromPair.found ≠ throughPair.found)
-    absent ← ¬rangePair.found ∧ ¬fromPair.found ∧ ¬throughPair.found
+    hasRange ← rangePair.found
+    explicitCount ← fromPair.found+throughPair.found
+    mixed ← (1=hasRange) ∧ (0<explicitCount)
+    incomplete ← (0=hasRange) ∧ (1=explicitCount)
+    absent ← (0=hasRange) ∧ (0=explicitCount)
     diagnostics∾↩AddIf ⟨mixed,Diagnostic ⟨"report_policy_range_shape_invalid",block.line,"range cannot be combined with from or through"⟩⟩
     diagnostics∾↩AddIf ⟨incomplete ∨ absent,Diagnostic ⟨"report_policy_range_shape_invalid",block.line,"Report range requires range or both from and through"⟩⟩
     {𝕊:
@@ -188,12 +190,12 @@ Admit ← {𝕊 raw:
       valid ← value≡"current-cycle-to-date"
       diagnostics∾↩AddIf ⟨¬valid,Diagnostic ⟨"report_policy_symbolic_range_invalid",rangePair.line,"Report range must be current-cycle-to-date"⟩⟩
       {𝕊:rangeKind↩"current-cycle-to-date"}⍟valid @
-    }⍟(rangePair.found ∧ ¬mixed) @
+    }⍟((1=hasRange) ∧ ¬mixed) @
     {𝕊:
       from↩StringDate ⟨block,"from",1⟩
       through↩StringDate ⟨block,"through",0⟩
       CheckExplicitRange ⟨from,through,block.line⟩
-    }⍟(¬rangePair.found ∧ fromPair.found ∧ throughPair.found) @
+    }⍟((0=hasRange) ∧ (2=explicitCount)) @
     {range_kind⇐rangeKind,from⇐from,through⇐through}
   }
 
