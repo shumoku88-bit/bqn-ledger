@@ -1,7 +1,6 @@
 #!/usr/bin/env bqn
 
 lib ← •Import "test_lib.bqn"
-io ← •Import "../src/application/source_io.bqn"
 accountsAdmission ← •Import "../src/ledger/account_journal_admission.bqn"
 budgetAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
 householdAdmission ← •Import "../src/ledger/household_policy_admission.bqn"
@@ -31,9 +30,7 @@ household ← householdAdmission.Admit ⟨currentRaw,accounts,budget⟩
 ⟨"assets:cash"⟩ lib.AssertEq household.daily_target.account_key
 
 quote ← @+34 ⋄ newline ← @+10
-Lines ← {𝕊 xs: ∾{𝕩∾⟨newline⟩}¨xs}
-Quoted ← {𝕊 text: ⟨quote⟩∾text∾⟨quote⟩}
-withMoneyRaw ← "[money]"∾⟨newline⟩∾"primary-commodity = "∾Quoted "JPY"∾⟨newline⟩∾⟨newline⟩∾householdRaw
+withMoneyRaw ← "[money]"∾⟨newline⟩∾"primary-commodity = "∾⟨quote⟩∾"JPY"∾⟨quote⟩∾⟨newline⟩∾⟨newline⟩∾householdRaw
 withMoney ← householdAdmission.Admit ⟨currentProjection.CurrentPolicy withMoneyRaw,accounts,budget⟩
 "ok" lib.AssertEq withMoney.state
 0 lib.AssertEq ≠withMoney.diagnostics
@@ -41,20 +38,20 @@ withMoney ← householdAdmission.Admit ⟨currentProjection.CurrentPolicy withMo
 "JPY" lib.AssertEq withMoney.money.primary_commodity
 
 # Current Envelope membership and stable allocation coordinates are different
-# relations. A retired coordinate remains readable after it leaves budget.toml.
-extendedAccountsRaw ← accountsRaw∾Lines ⟨"","account budget:retired","  type: Budget","  commodity: JPY"⟩
-extendedAccountsResult ← accountsAdmission.Admit extendedAccountsRaw
-"ok" lib.AssertEq extendedAccountsResult.state
-extendedAccounts ← extendedAccountsResult.accounts
-extendedBudget ← budgetAdmission.Admit ⟨•FChars "../"∾base∾"budget.toml",extendedAccounts⟩
-"ok" lib.AssertEq extendedBudget.state
-retiredCoordinate ← Lines ⟨"","[[budget.envelopes]]","id = "∾Quoted "retired","allocation-account = "∾Quoted "budget:retired"⟩
-withRetired ← householdAdmission.Admit ⟨currentProjection.CurrentPolicy (householdRaw∾retiredCoordinate),extendedAccounts,extendedBudget⟩
+# relations. The canonical retired-coordinate fixture keeps Daily current in
+# budget.toml while household.toml retains both Daily and Retired coordinates.
+retiredBase ← "../fixtures/canonical-household-retired-coordinate/"
+retiredAccountsResult ← accountsAdmission.Admit (•FChars retiredBase∾"accounts.journal")
+"ok" lib.AssertEq retiredAccountsResult.state
+retiredBudget ← budgetAdmission.Admit ⟨•FChars retiredBase∾"budget.toml",retiredAccountsResult.accounts⟩
+"ok" lib.AssertEq retiredBudget.state
+retiredHouseholdRaw ← •FChars retiredBase∾"household.toml"
+withRetired ← householdAdmission.Admit ⟨currentProjection.CurrentPolicy retiredHouseholdRaw,retiredAccountsResult.accounts,retiredBudget⟩
 "ok" lib.AssertEq withRetired.state
 0 lib.AssertEq ≠withRetired.diagnostics
-⟨"food","retired"⟩ lib.AssertEq withRetired.budget.envelope_id
-⟨"budget:food","budget:retired"⟩ lib.AssertEq withRetired.budget.allocation_account_key
-⟨"food"⟩ lib.AssertEq extendedBudget.envelopes.id
+⟨"Daily","Retired"⟩ lib.AssertEq withRetired.budget.envelope_id
+⟨"Budget:Daily","Budget:Retired"⟩ lib.AssertEq withRetired.budget.allocation_account_key
+⟨"Daily"⟩ lib.AssertEq retiredBudget.envelopes.id
 
 IndexOf ← {𝕊 key: ⊑accounts.key⊐⟨key⟩}
 "liquid" lib.AssertEq (IndexOf "assets:cash")⊑household.account_policy.asset_class
