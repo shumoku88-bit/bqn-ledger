@@ -56,7 +56,8 @@ Household ← {𝕊 envelopeIds‿allocationIndices‿openingIndices‿unassigne
 Build ← {𝕊 policyValue‿householdValue:
   envelopes.Build ⟨budget,policyValue,householdValue,actual,plan,"JPY",start,finish,observation⟩
 }
-AssertOwnershipError ← {𝕊 expectedCode‿result:
+AssertOwnershipError ← {𝕊 label‿expectedCode‿result:
+  •Out "ownership law: "∾label
   "error" lib.AssertEq result.state
   "" lib.AssertEq result.reason
   0 lib.AssertEq result.envelopes.count
@@ -65,16 +66,16 @@ AssertOwnershipError ← {𝕊 expectedCode‿result:
 
 # Every missing or ambiguous Envelope relation fails before numeric publication.
 missingMapping ← Build ⟨policy,Household ⟨⟨⟩,⟨⟩,⟨openingBudget⟩,⟨unassignedBudget⟩⟩⟩
-AssertOwnershipError ⟨"envelope_account_mapping_invalid",missingMapping⟩
+AssertOwnershipError ⟨"missing mapping","envelope_account_mapping_invalid",missingMapping⟩
 
 duplicateMapping ← Build ⟨policy,Household ⟨⟨"food","food"⟩,⟨foodBudget,foodBudget⟩,⟨openingBudget⟩,⟨unassignedBudget⟩⟩⟩
-AssertOwnershipError ⟨"envelope_account_mapping_invalid",duplicateMapping⟩
+AssertOwnershipError ⟨"duplicate mapping","envelope_account_mapping_invalid",duplicateMapping⟩
 
 invalidAllocationRole ← Build ⟨policy,Household ⟨⟨"food"⟩,⟨foodExpense⟩,⟨openingBudget⟩,⟨unassignedBudget⟩⟩⟩
-AssertOwnershipError ⟨"envelope_account_mapping_invalid",invalidAllocationRole⟩
+AssertOwnershipError ⟨"invalid allocation role","envelope_account_mapping_invalid",invalidAllocationRole⟩
 
 missingUnassigned ← Build ⟨policy,Household ⟨⟨"food"⟩,⟨foodBudget⟩,⟨openingBudget⟩,⟨⟩⟩⟩
-AssertOwnershipError ⟨"unassigned_scope_invalid",missingUnassigned⟩
+AssertOwnershipError ⟨"missing unassigned","unassigned_scope_invalid",missingUnassigned⟩
 
 # Stable Household keys, not admission-time numeric caches, name current Accounts.
 missingAllocationKeyHousehold ← {
@@ -90,7 +91,7 @@ missingAllocationKeyHousehold ← {
   }
 }
 missingAllocationKey ← Build ⟨policy,missingAllocationKeyHousehold⟩
-AssertOwnershipError ⟨"envelope_account_mapping_invalid",missingAllocationKey⟩
+AssertOwnershipError ⟨"missing allocation key","envelope_account_mapping_invalid",missingAllocationKey⟩
 
 missingUnassignedKeyHousehold ← {
   state⇐"ok",source_name⇐"household.toml",
@@ -105,7 +106,7 @@ missingUnassignedKeyHousehold ← {
   }
 }
 missingUnassignedKey ← Build ⟨policy,missingUnassignedKeyHousehold⟩
-AssertOwnershipError ⟨"unassigned_scope_invalid",missingUnassignedKey⟩
+AssertOwnershipError ⟨"missing unassigned key","unassigned_scope_invalid",missingUnassignedKey⟩
 
 missingFundingPolicy ← {
   state⇐"ok",source_name⇐"budget.toml",
@@ -113,6 +114,6 @@ missingFundingPolicy ← {
   envelopes⇐policy.envelopes
 }
 missingFunding ← Build ⟨missingFundingPolicy,Household ⟨⟨"food"⟩,⟨foodBudget⟩,⟨openingBudget⟩,⟨unassignedBudget⟩⟩⟩
-AssertOwnershipError ⟨"budget_policy_asset_account_unknown",missingFunding⟩
+AssertOwnershipError ⟨"missing funding key","budget_policy_asset_account_unknown",missingFunding⟩
 
 •Out "test_accounting_envelope_backing_ownership_law: ok"
