@@ -1,0 +1,119 @@
+name: repair-edit-bqn-cleanup
+
+on:
+  push:
+    branches:
+      - cleanup/post-cutover-test-shells
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Generate repaired dispatcher from merged main baseline
+        env:
+          BASE_SHA: dba902779fee18003bd6fa5f924fca98e289775f
+        run: |
+          git show "$BASE_SHA:tools/edit-bqn" > /tmp/edit-bqn.main
+          python3 - <<'PY'
+          from pathlib import Path
+
+          source = Path('/tmp/edit-bqn.main').read_text(encoding='utf-8')
+          text = source
+
+          text = text.replace('PLAN_FILE="$(get_system_default_file DEFAULT_PLAN_FILE plan.tsv)"\n', '')
+          for line in [
+              '  tools/edit-bqn [--base DIR] plan add --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount DECIMAL [--currency CODE] [--meta key=value ...] [--id plan-YYYY-MM-DD-series] [--dry-run] [--yes] [--post-check none|lint|full]\n',
+              '  tools/edit-bqn [--base DIR] plan finish [--index NUMBER] [--id PLAN_ID] --actual-date YYYY-MM-DD [--actual-amount DECIMAL] [--dry-run] [--yes] [--post-check none|lint|full]\n',
+              '  tools/edit-bqn [--base DIR] plan edit [--index NUMBER] [--id PLAN_ID] [--date YYYY-MM-DD] [--amount DECIMAL] [--all] [--dry-run] [--yes] [--post-check none|lint|full]\n',
+          ]:
+              text = text.replace(line, '')
+          text = text.replace('`budget add`, `issue add/list/close`, and `plan add/list/related/finish/edit`)', '`budget add`, `issue add/list/close`, and `plan list/related`)')
+          text = text.replace('account add/list, journal add/multi-add, budget/plan/issue add, explicit-path journal-block add, travel friend/exchange add, issue list/close, journal list/cleanup-plan/cleanup-apply/reverse, and plan list/related/finish/edit', 'account add/list, journal add/multi-add, budget add, issue add/list/close, explicit-path journal-block add, travel friend/exchange add, journal list/cleanup-plan/cleanup-apply/reverse, and plan list/related')
+
+          def remove_between(value, start, end):
+              a = value.index(start)
+              b = value.index(end, a)
+              return value[:a] + value[b:]
+
+          text = remove_between(
+              text,
+              'if [[ "$1" == "plan" && "$2" == "edit" ]]; then\n',
+              'if [[ "$1" == "plan" && "$2" == "finish" ]]; then\n',
+          )
+          text = remove_between(
+              text,
+              'if [[ "$1" == "plan" && "$2" == "finish" ]]; then\n',
+              'if [[ "$1" == "plan" && "$2" == "list" ]]; then\n',
+          )
+
+          text = text.replace('plan add, plan list, plan related, plan finish, and plan edit', 'plan list and plan related')
+          text = text.replace('  plan)\n    EXPECTED_TARGET_FILE="$PLAN_FILE"\n    PREVIEW_TITLE="Plan"\n    ROW_TITLE="Plan row"\n    ;;\n', '')
+
+          # Generic add parsing serves journal/issue before its final tail. Once the
+          # plan case is removed, PLAN_ID and --id are dead only in this scoped block.
+          generic_start = text.index('DATE=""\nMEMO=""\nFROM=""\nTO=""\nAMOUNT=""\nCURRENCY=""\nMETA=()\n')
+          tail_start = text.rfind('TARGET_PATH="$BASE_DIR/$EXPECTED_TARGET_FILE"\n')
+          if tail_start <= generic_start:
+              raise SystemExit('final legacy Plan-add tail not found after generic parser')
+          generic = text[generic_start:tail_start]
+          generic = generic.replace('PLAN_ID=""\n', '')
+          generic = generic.replace('    --id) PLAN_ID="$(get_opt_val "$1" "${2-}")"; shift 2 ;;\n', '')
+          generic = generic.replace('if [[ "$COMMAND" != "journal" && "$COMMAND" != "plan" && -n "$CURRENCY" ]]; then\n  echo "ERROR: --currency is currently supported only for journal, Budget, and Plan add" >&2\n', 'if [[ "$COMMAND" != "journal" && -n "$CURRENCY" ]]; then\n  echo "ERROR: --currency is currently supported only for journal and Budget add" >&2\n')
+          text = text[:generic_start] + generic + text[tail_start:]
+
+          # The last tail is the legacy Plan-add append implementation. All live
+          # journal/account/issue/read-only Plan routes occur before this final tail.
+          tail_start = text.rfind('TARGET_PATH="$BASE_DIR/$EXPECTED_TARGET_FILE"\n')
+          text = text[:tail_start].rstrip() + '\n'
+
+          forbidden = [
+              'DEFAULT_PLAN_FILE',
+              'src_edit/plan_add_cmd.bqn',
+              'src_edit/plan_edit_cmd.bqn',
+              'src_edit/plan_finish_cmd.bqn',
+              'tools/edit-bqn [--base DIR] plan add',
+              'tools/edit-bqn [--base DIR] plan edit',
+              'tools/edit-bqn [--base DIR] plan finish',
+          ]
+          found = [item for item in forbidden if item in text]
+          if found:
+              raise SystemExit(f'forbidden Plan mutation residue: {found}')
+
+          required = [
+              'journal-block" && "$2" == "add"',
+              'account" && "$2" == "add"',
+              'account" && "$2" == "list"',
+              'journal" && "$2" == "list"',
+              'journal" && "$2" == "reverse"',
+              'journal" && "$2" == "cleanup-apply"',
+              'plan" && "$2" == "list"',
+              'plan" && "$2" == "related"',
+              'issue" && "$2" == "list"',
+              'issue" && "$2" == "close"',
+              'handle_edit_bqn_issue_add',
+              'handle_edit_bqn_travel_friend_add',
+              'handle_edit_bqn_travel_exchange_add',
+          ]
+          missing = [item for item in required if item not in text]
+          if missing:
+              raise SystemExit(f'live dispatcher route lost: {missing}')
+          if len(text.splitlines()) < 650:
+              raise SystemExit(f'dispatcher unexpectedly short: {len(text.splitlines())} lines')
+
+          Path('generated').mkdir(exist_ok=True)
+          Path('generated/edit-bqn').write_text(text, encoding='utf-8')
+          PY
+          bash -n generated/edit-bqn
+          wc -l /tmp/edit-bqn.main generated/edit-bqn
+      - name: Upload repaired candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: repaired-edit-bqn
+          path: generated/edit-bqn
+          if-no-files-found: error
