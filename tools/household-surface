@@ -3,8 +3,8 @@ set -euo pipefail
 
 # Calendar-first Household terminal surface.
 # Household meaning and writer/report ownership remain in existing BQN/tool
-# owners. This frontend only maps physical input to logical surface coordinates
-# and dispatches the selected logical leaf.
+# owners. This frontend maps physical input to logical surface coordinates and
+# retains one admitted Home month frame while the user navigates within it.
 
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
@@ -46,8 +46,7 @@ selected_date="${2:-$(date +%Y-%m-%d)}"
   exit 2
 }
 
-# Load the frontend-neutral rectangular relation once. Indexed arrays keep this
-# compatible with the shell style already used by the repository.
+# Load the frontend-neutral rectangular relation once.
 domain_keys=() domain_labels=() operation_keys=() operation_labels=()
 cell_enabled=() cell_labels=()
 while IFS=$'\t' read -r domain_index domain_key domain_label operation_index operation_key operation_label enabled cell_label; do
@@ -72,6 +71,18 @@ selected_operation=0
 surface_error=''
 screen_active=0
 
+# Home frame cache. BQN owns the rendered Calendar and semantic CellRelation.
+# The shell retains that publication until navigation crosses its visible month
+# or a writer returns and the Household must be observed again.
+frame_separator=$'\nHOME_CURSOR_CELLS\n'
+calendar=''
+dates=()
+rows=()
+cols=()
+texts=()
+selected_index=0
+max_row=0
+
 enter_screen() {
   printf '\033[?1049h\033[?25l' >/dev/tty
   screen_active=1
@@ -91,26 +102,123 @@ cleanup() {
 trap cleanup EXIT
 trap 'exit 130' INT TERM HUP
 
+run_home() {
+  local focus=$1 mode=$2
+  "$root/tools/home-calendar" "$base" "$focus" "$mode"
+}
+
+apply_calendar_frame() {
+  local focus=$1 frame_text=$2 next_calendar next_cells
+  local date_value row_value col_value cell_value index
+  local next_selected_index=-1 next_max_row=0
+  local -a next_dates=() next_rows=() next_cols=() next_texts=()
+
+  [[ $frame_text == *"$frame_separator"* ]] || return 1
+  next_calendar="${frame_text%%"$frame_separator"*}"
+  next_cells="${frame_text#*"$frame_separator"}"
+
+  while IFS=$'\t' read -r date_value row_value col_value cell_value; do
+    [[ -n $date_value ]] || continue
+    index=${#next_dates[@]}
+    next_dates+=("$date_value")
+    next_rows+=("$row_value")
+    next_cols+=("$col_value")
+    next_texts+=("$cell_value")
+    [[ $date_value == "$focus" ]] && next_selected_index=$index
+    (( row_value > next_max_row )) && next_max_row=$row_value
+  done <<<"$next_cells"
+
+  ((${#next_dates[@]} > 0)) || return 1
+  (( next_selected_index >= 0 )) || return 1
+
+  calendar=$next_calendar
+  dates=("${next_dates[@]}")
+  rows=("${next_rows[@]}")
+  cols=("${next_cols[@]}")
+  texts=("${next_texts[@]}")
+  selected_date=$focus
+  selected_index=$next_selected_index
+  max_row=$next_max_row
+}
+
+load_calendar() {
+  local focus=$1 frame status=0
+  if frame="$(run_home "$focus" frame)"; then
+    :
+  else
+    status=$?
+    surface_error=$frame
+    return "$status"
+  fi
+  if ! apply_calendar_frame "$focus" "$frame"; then
+    surface_error='Error: Household surface received an invalid Home frame'
+    return 1
+  fi
+}
+
+select_date() {
+  local target=$1 i
+  for ((i=0; i<${#dates[@]}; i++)); do
+    if [[ ${dates[i]} == "$target" ]]; then
+      selected_date=$target
+      selected_index=$i
+      return 0
+    fi
+  done
+  load_calendar "$target"
+}
+
+shift_date() {
+  local mode=$1 next status=0
+  if next="$(run_home "$selected_date" "$mode")"; then
+    :
+  else
+    status=$?
+    surface_error=$next
+    return "$status"
+  fi
+  select_date "$next"
+}
+
+# Accept both normal CSI arrows and SS3 arrows used by some terminal/tmux modes.
 read_key() {
   local first='' second='' third='' fourth=''
   IFS= read -rsn1 first </dev/tty || return 1
   if [[ $first == $'\e' ]]; then
-    if IFS= read -rsn1 -t 0.05 second </dev/tty; then
-      if [[ $second == '[' ]] && IFS= read -rsn1 -t 0.05 third </dev/tty; then
+    if ! IFS= read -rsn1 -t 0.15 second </dev/tty; then
+      printf 'escape\n'
+      return 0
+    fi
+    case "$second" in
+      '[')
+        if ! IFS= read -rsn1 -t 0.15 third </dev/tty; then
+          printf 'escape\n'
+          return 0
+        fi
         case "$third" in
           A) printf 'up\n'; return 0 ;;
           B) printf 'down\n'; return 0 ;;
           C) printf 'right\n'; return 0 ;;
           D) printf 'left\n'; return 0 ;;
           5|6)
-            if IFS= read -rsn1 -t 0.05 fourth </dev/tty && [[ $fourth == '~' ]]; then
+            if IFS= read -rsn1 -t 0.15 fourth </dev/tty && [[ $fourth == '~' ]]; then
               [[ $third == 5 ]] && printf 'page-up\n' || printf 'page-down\n'
               return 0
             fi
             ;;
         esac
-      fi
-    fi
+        ;;
+      O)
+        if IFS= read -rsn1 -t 0.15 third </dev/tty; then
+          case "$third" in
+            A) printf 'up\n'; return 0 ;;
+            B) printf 'down\n'; return 0 ;;
+            C) printf 'right\n'; return 0 ;;
+            D) printf 'left\n'; return 0 ;;
+          esac
+        fi
+        ;;
+    esac
     printf 'escape\n'
   elif [[ $first == $'\t' ]]; then
     printf 'tab\n'
@@ -118,21 +226,6 @@ read_key() {
     printf 'enter\n'
   else
     printf '%s\n' "$first"
-  fi
-}
-
-calendar_text() {
-  "$root/tools/home-calendar" "$base" "$selected_date" calendar
-}
-
-shift_date() {
-  local mode=$1 next status=0
-  if next="$("$root/tools/home-calendar" "$base" "$selected_date" "$mode")"; then
-    selected_date=$next
-  else
-    status=$?
-    surface_error=$next
-    return "$status"
   fi
 }
 
@@ -152,12 +245,18 @@ render_cell() {
 }
 
 render_surface() {
-  local calendar d o
-  if ! calendar="$(calendar_text)"; then
-    surface_error=$calendar
-    return 1
+  local d o row col line column footer
+  row=${rows[selected_index]}
+  col=${cols[selected_index]}
+  line=$((3 + row))
+  column=$((1 + 4 * col))
+  footer=$((4 + max_row))
+
+  printf '\033[H\033[2J%s\n' "$calendar" >/dev/tty
+  if [[ $focus_mode == calendar ]]; then
+    printf '\033[%d;%dH\033[7m%s\033[0m' "$line" "$column" "${texts[selected_index]}" >/dev/tty
   fi
-  printf '\033[H\033[2J%s\n\n' "$calendar" >/dev/tty
+  printf '\033[%d;1H\033[J' "$footer" >/dev/tty
   printf 'Selected date: %s    Focus: %s\n\n' "$selected_date" "$focus_mode" >/dev/tty
   printf '%-12s' '' >/dev/tty
   for ((o=0; o<4; o++)); do
@@ -186,7 +285,7 @@ pause_return() {
 }
 
 run_child() {
-  local status=0
+  local status=0 refresh_status=0
   leave_screen
   set +e
   BL_SELECTED_DATE="$selected_date" "$@"
@@ -196,11 +295,20 @@ run_child() {
     printf '\nCommand failed with status %s.\n' "$status" >&2
   fi
   pause_return
+  set +e
+  load_calendar "$selected_date"
+  refresh_status=$?
+  set -e
+  if [[ $refresh_status -ne 0 ]]; then
+    enter_screen
+    return "$refresh_status"
+  fi
   enter_screen
   return 0
 }
 
 show_detail() {
+  local status=0
   leave_screen
   set +e
   "$root/tools/home-calendar" "$base" "$selected_date" detail
@@ -253,13 +361,10 @@ run_logical_action() {
   fi
   case "$action_key" in
     journal-list) run_child "$root/tools/bl" --base "$base" journal list ;;
-    expense|income|move|multi|reverse)
-      run_child "$root/tools/bl" --base "$base" "$action_key" ;;
+    expense|income|move|multi|reverse) run_child "$root/tools/bl" --base "$base" "$action_key" ;;
     plan-list) run_child "$root/tools/bl" --base "$base" plans list ;;
-    plan-upcoming)
-      run_child "$root/tools/edit" --base "$base" plan list --temporal upcoming --as-of "$selected_date" ;;
-    plan-overdue)
-      run_child "$root/tools/edit" --base "$base" plan list --temporal overdue --as-of "$selected_date" ;;
+    plan-upcoming) run_child "$root/tools/edit" --base "$base" plan list --temporal upcoming --as-of "$selected_date" ;;
+    plan-overdue) run_child "$root/tools/edit" --base "$base" plan list --temporal overdue --as-of "$selected_date" ;;
     plan-related) run_child "$root/tools/bl" --base "$base" plans related ;;
     plan-add) run_child "$root/tools/bl" --base "$base" plans add ;;
     plan-edit) run_child "$root/tools/bl" --base "$base" plans edit ;;
@@ -321,9 +426,19 @@ open_selected_cell() {
   fi
 }
 
+set +e
+load_calendar "$selected_date"
+status=$?
+set -e
+if [[ $status -ne 0 ]]; then
+  [[ -z $surface_error ]] || printf '%s\n' "$surface_error" >&2
+  surface_error=''
+  exit "$status"
+fi
+
 enter_screen
 while true; do
-  render_surface || exit $?
+  render_surface
   key="$(read_key)" || exit 130
   case "$key" in
     q|Q) exit 0 ;;
@@ -343,32 +458,16 @@ while true; do
       fi
       ;;
     left|h|H)
-      if [[ $focus_mode == calendar ]]; then
-        shift_date day-prev || exit $?
-      else
-        selected_operation=$(((selected_operation + 3) % 4))
-      fi
+      if [[ $focus_mode == calendar ]]; then shift_date day-prev; else selected_operation=$(((selected_operation + 3) % 4)); fi
       ;;
     right|l|L)
-      if [[ $focus_mode == calendar ]]; then
-        shift_date day-next || exit $?
-      else
-        selected_operation=$(((selected_operation + 1) % 4))
-      fi
+      if [[ $focus_mode == calendar ]]; then shift_date day-next; else selected_operation=$(((selected_operation + 1) % 4)); fi
       ;;
     up|k|K)
-      if [[ $focus_mode == calendar ]]; then
-        shift_date week-prev || exit $?
-      else
-        selected_domain=$(((selected_domain + 5) % 6))
-      fi
+      if [[ $focus_mode == calendar ]]; then shift_date week-prev; else selected_domain=$(((selected_domain + 5) % 6)); fi
       ;;
     down|j|J)
-      if [[ $focus_mode == calendar ]]; then
-        shift_date week-next || exit $?
-      else
-        selected_domain=$(((selected_domain + 1) % 6))
-      fi
+      if [[ $focus_mode == calendar ]]; then shift_date week-next; else selected_domain=$(((selected_domain + 1) % 6)); fi
       ;;
     page-up|\[)
       [[ $focus_mode == calendar ]] && shift_date month-prev || true

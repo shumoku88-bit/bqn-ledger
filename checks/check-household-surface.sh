@@ -67,6 +67,16 @@ if rg -n 'fzf|gum' tools/household-surface >/dev/null; then
   exit 1
 fi
 
+# Rendering must consume the retained Home frame. Re-running the full Home
+# publication from render_surface would restore the per-key latency regression.
+grep -Fq 'frame_separator=' tools/household-surface
+grep -Fq 'apply_calendar_frame()' tools/household-surface
+grep -Fq 'load_calendar()' tools/household-surface
+if sed -n '/^render_surface()/,/^}/p' tools/household-surface | rg -n 'run_home|home-calendar|load_calendar' >/dev/null; then
+  echo 'FAIL: Household surface rendering re-observes Home instead of using the retained frame' >&2
+  exit 1
+fi
+
 python3 - "$root/fixtures/ledger-facts-phase1-proof" "$work/tty.out" <<'PY'
 import fcntl
 import os
@@ -94,8 +104,8 @@ if pid == 0:
         env,
     )
 os.close(slave)
-# next day, enter matrix, move to Plan/Add coordinate without opening it, quit
-os.write(master, b"\x1b[C\t\x1b[B\x1b[Cq")
+# SS3 right-arrow must work too; then enter matrix and move to Plan/Add.
+os.write(master, b"\x1bOC\t\x1b[B\x1b[Cq")
 output = bytearray()
 while True:
     try:
@@ -128,6 +138,14 @@ for text in \
     exit 1
   }
 done
+
+# Calendar focus visibly tracks the selected cell, rather than changing only a
+# footer string that can look like ignored input on a slow terminal.
+grep -Fq $'\033[7m17' "$work/tty.out" || {
+  echo 'FAIL: selected Calendar date is not visibly highlighted' >&2
+  cat "$work/tty.out" >&2
+  exit 1
+}
 
 if rg -n 'fzf|gum|ANSI|escape sequence|mouse' src/application/household_surface.bqn >/dev/null; then
   echo 'FAIL: physical frontend vocabulary leaked into Household surface semantics' >&2
