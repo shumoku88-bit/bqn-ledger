@@ -5,6 +5,7 @@ admission ← •Import "../src/ledger/journal_complete_admission.bqn"
 accountSource ← •Import "../src/application/account_source_adapter.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 decimal ← •Import "../src/ledger/exact_decimal.bqn"
+scale ← •Import "../src/ledger/exact_scale.bqn"
 editorCurrency ← •Import "../src/application/editor_currency.bqn"
 setup ← editorCurrency.Load @
 dates ← •Import "../src/ledger/date_ordinal.bqn"
@@ -76,11 +77,9 @@ PostingRecord ← {𝕊 text:
 parsedPostings ← PostingRecord¨ postingArgs
 calculationScale ← ⌈´ {𝕩.source_scale}¨ parsedPostings
 NormalizePosting ← {𝕊 posting:
-  zeros ← calculationScale - posting.source_scale
-  magnitude ← decimal.Parse ((•Fmt | posting.source_coefficient) ∾ zeros ⥊ '0')
-  {𝕊⋄Fail ⟨"posting_amount_invalid", "posting amount cannot normalize exactly"⟩}⍟(magnitude.state ≢ "ok") @
-  normalized ← (1 - 2 × posting.source_coefficient < 0) × magnitude.coefficient
-  {account_key⇐posting.account_key, amount_text⇐posting.amount_text, source_coefficient⇐posting.source_coefficient, source_scale⇐posting.source_scale, normalized_coefficient⇐normalized, commodity⇐posting.commodity}
+  normalized ← scale.Normalize ⟨posting.source_coefficient,posting.source_scale,calculationScale⟩
+  {𝕊⋄Fail ⟨"posting_amount_invalid", "posting amount cannot normalize exactly"⟩}⍟(normalized.state ≢ "ok") @
+  {account_key⇐posting.account_key, amount_text⇐posting.amount_text, source_coefficient⇐posting.source_coefficient, source_scale⇐posting.source_scale, normalized_coefficient⇐normalized.coefficient, commodity⇐posting.commodity}
 }
 postings ← NormalizePosting¨ parsedPostings
 {𝕊⋄Fail ⟨"event_unbalanced", "normalized posting amounts must sum exactly to zero"⟩}⍟(0 ≠ +´ {𝕩.normalized_coefficient}¨ postings) @
