@@ -57,7 +57,7 @@ checks=(
   check-home-calendar.sh check-home-calendar-selector.sh check-home-logical-navigation.sh
   check-home-single-observation-frame.sh check-home-single-observation-detail-frame.sh check-home-narrow-terminal.sh
   check-workflow-drift.sh check-structured-ui-boundary.sh check-ui-preferences.sh
-  check-safe-replace-line.sh check-safe-rewrite-checked.sh check-bash-safety.sh
+  check-safe-replace-line.sh check-safe-rewrite-checked.sh check-writer-effect-ownership.sh check-bash-safety.sh
   check-source-io-ownership.sh check-source-io-unreadable.sh check-editor-config-ownership.sh
   check-editor-actual-ownership.sh check-editor-account-ownership.sh check-editor-currency-ownership.sh
   check-editor-runtime-boundary.sh check-absolute-links.sh
