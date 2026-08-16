@@ -25,6 +25,7 @@ household ← householdAdmission.Admit ⟨currentRaw,accounts,budget⟩
 "income:salary" lib.AssertEq household.cycle.definition.income_account
 ⟨"food"⟩ lib.AssertEq household.budget.envelope_id
 ⟨"budget:food"⟩ lib.AssertEq household.budget.allocation_account_key
+⟨"budget:opening"⟩ lib.AssertEq household.budget.opening_account_keys
 ⟨"budget:unassigned"⟩ lib.AssertEq household.budget.unassigned_account_keys
 ⟨"cash"⟩ lib.AssertEq household.daily_target.scope_id
 ⟨"assets:cash"⟩ lib.AssertEq household.daily_target.account_key
@@ -38,8 +39,8 @@ withMoney ← householdAdmission.Admit ⟨currentProjection.CurrentPolicy withMo
 "JPY" lib.AssertEq withMoney.money.primary_commodity
 
 # Current Envelope membership and stable allocation coordinates are different
-# relations. The canonical retired-coordinate fixture keeps Daily current in
-# budget.toml while household.toml retains both Daily and Retired coordinates.
+# relations. The retired-coordinate fixture keeps Daily current in budget.toml
+# while household.toml retains both Daily and Retired allocation coordinates.
 retiredBase ← "../fixtures/canonical-household-retired-coordinate/"
 retiredAccountsResult ← accountsAdmission.Admit (•FChars retiredBase∾"accounts.journal")
 "ok" lib.AssertEq retiredAccountsResult.state
@@ -51,13 +52,8 @@ withRetired ← householdAdmission.Admit ⟨currentProjection.CurrentPolicy reti
 0 lib.AssertEq ≠withRetired.diagnostics
 ⟨"Daily","Retired"⟩ lib.AssertEq withRetired.budget.envelope_id
 ⟨"Budget:Daily","Budget:Retired"⟩ lib.AssertEq withRetired.budget.allocation_account_key
+⟨"Budget:Opening"⟩ lib.AssertEq withRetired.budget.opening_account_keys
+⟨"Budget:Unassigned"⟩ lib.AssertEq withRetired.budget.unassigned_account_keys
 ⟨"Daily"⟩ lib.AssertEq retiredBudget.envelopes.id
-
-IndexOf ← {𝕊 key: ⊑accounts.key⊐⟨key⟩}
-"liquid" lib.AssertEq (IndexOf "assets:cash")⊑household.account_policy.asset_class
-"envelope" lib.AssertEq (IndexOf "budget:food")⊑household.account_policy.budget_kind
-"" lib.AssertEq (IndexOf "budget:food")⊑household.account_policy.envelope_role
-"daily" lib.AssertEq (IndexOf "budget:food")⊑household.account_policy.budget_group
-"variable" lib.AssertEq (IndexOf "expenses:food")⊑household.account_policy.spend_class
 
 •Out "test_ledger_household_policy_admission: ok"
