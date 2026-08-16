@@ -84,7 +84,7 @@ result ← envelopes.Build ⟨
   dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-10"
 ⟩
 "ok" lib.AssertEq result.state
-⟨4,6⟩ lib.AssertEq result.envelopes.open_plan_reserve
+⟨4,6⟩ lib.AssertEq result.envelopes.commitment
 ⟨"food","transport"⟩ lib.AssertEq result.envelopes.category
 ⟨"other-plan"⟩ lib.AssertEq result.commitment_observation.unrouted.plan_id
 ⟨"expenses:other"⟩ lib.AssertEq result.commitment_observation.unrouted.target_account_key
