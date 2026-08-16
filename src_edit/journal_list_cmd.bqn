@@ -10,12 +10,15 @@ Fail ← {𝕊 msg: •Out "ERROR"∾tab∾msg ⋄ •Exit 1}
 {𝕊: Fail "usage: journal_list_cmd.bqn <baseDir> <format: tsv|text>"}⍟(2≠≠args) @
 baseDir ← 0⊑args ⋄ format ← 1⊑args
 {𝕊: Fail ("invalid format: "∾format∾" (expected 'tsv' or 'text')")}⍟(¬∨´format⊸≡¨"tsv"‿"text") @
-Join ← {𝕊 xs: out←"" ⋄ {out∾↩𝕩∾","}¨xs ⋄ (0<≠out) ? ¯1↓out ; ""}
+Join ← {
+  sep ← 𝕨
+  (0=≠𝕩) ◶ ⟨{1↓∾(sep⊸∾)¨𝕩}, {""}⟩ 𝕩
+}
 Make ← {𝕊 tx:
   debits←({𝕩.side≡"debit"}¨tx.postings)/tx.postings
   credits←({𝕩.side≡"credit"}¨tx.postings)/tx.postings
   amount←+´0∾{𝕩.coefficient}¨debits
-  ⟨tx.date_text,tx.description,Join {𝕩.account_key}¨credits,Join {𝕩.account_key}¨debits,amount_text.Format ⟨amount,tx.calculation_scale⟩⟩
+  ⟨tx.date_text,tx.description,"," Join {𝕩.account_key}¨credits,"," Join {𝕩.account_key}¨debits,amount_text.Format ⟨amount,tx.calculation_scale⟩⟩
 }
 rows ← Make¨actual_source.LoadTransactionRows baseDir
 Display ← {𝕊 index:
