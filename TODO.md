@@ -307,6 +307,12 @@ Retired during this review:
 - `src_edit/journal_reconstructible_identity_cleanup.bqn`
 - `src_edit/journal_reconstructible_identity_cleanup_cmd.bqn`
 
+### Canonical Plan command observation
+
+See `docs/EDITOR_PHASE_SIX_PLAN_COMMAND_OBSERVATION-2026-08-17.md`.
+
+#792 maps Plan Add metadata/block construction, exposes Add/Edit/Finish selection and optional-input coordinates without introducing a generic selector framework, removes dead TSV Plan-ID readers, preserves Plan Edit source-coordinate candidate proof and Plan Finish completion intent boundaries, keeps the nine-column Plan List contract while retaining commodity in the human display, and leaves Related / Finish Validate / Plan Validate production-unchanged after law review.
+
 ### `src/editor/`
 
 - [x] `src/editor/friend_travel_source_event.bqn` — #734
@@ -343,14 +349,14 @@ Retired during this review:
 - [x] `src_edit/journal_native_reverse_cmd.bqn` — #790 explicit selector law / negative-index fail-closed
 - [x] `src_edit/journal_native_source_check.bqn` — #790 expected Posting relation / shared exact-scale primitive / mandatory validator law
 - [x] `src_edit/journal_validate_cmd.bqn` — Journal tail law review; strict canonical Actual validation leaf unchanged
-- [ ] `src_edit/plan_add_cmd.bqn`
-- [ ] `src_edit/plan_edit_cmd.bqn`
-- [ ] `src_edit/plan_finish_cmd.bqn`
-- [ ] `src_edit/plan_finish_validate_cmd.bqn`
-- [ ] `src_edit/plan_id.bqn`
-- [ ] `src_edit/plan_list_cmd.bqn`
-- [ ] `src_edit/plan_related_cmd.bqn`
-- [ ] `src_edit/plan_validate_cmd.bqn`
+- [x] `src_edit/plan_add_cmd.bqn` — #792 relation-driven canonical candidate construction
+- [x] `src_edit/plan_edit_cmd.bqn` — #792 explicit selector/date coordinates / source-coordinate rewrite laws retained
+- [x] `src_edit/plan_finish_cmd.bqn` — #792 explicit open-Plan selector / completion intent retained
+- [x] `src_edit/plan_finish_validate_cmd.bqn` — #792 law review; completion-link leaf unchanged
+- [x] `src_edit/plan_id.bqn` — #792 current identity generator/validator; dead TSV readers removed
+- [x] `src_edit/plan_list_cmd.bqn` — #792 stable nine-column contract / commodity-aware display
+- [x] `src_edit/plan_related_cmd.bqn` — #792 law review; relation fallback unchanged
+- [x] `src_edit/plan_validate_cmd.bqn` — #792 law review; canonical Plan validation leaf unchanged
 - [ ] `src_edit/render.bqn`
 - [ ] `src_edit/travel_exchange_add_cmd.bqn`
 - [ ] `src_edit/travel_friend_add_cmd.bqn`
@@ -370,6 +376,6 @@ After the production BQN inventory is reviewed, selector/UI adapter consolidatio
 
 ## Current cursor
 
-`src_edit/plan_add_cmd.bqn`
+`src_edit/render.bqn`
 
-Resume the normal Phase 6 `src_edit/` review sequence at Plan Add.
+Resume the normal Phase 6 `src_edit/` review sequence at Render.
