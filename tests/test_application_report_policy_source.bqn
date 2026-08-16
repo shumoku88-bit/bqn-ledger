@@ -4,7 +4,6 @@ lib ← •Import "test_lib.bqn"
 source ← •Import "../src/application/report_policy_source_adapter.bqn"
 
 policy ← source.Load "fixtures/canonical-household-v1"
-{𝕊 diagnostic:•Out diagnostic.code∾": "∾diagnostic.message}¨policy.diagnostics
 "ok" lib.AssertEq policy.state
 "report.toml" lib.AssertEq policy.source_name
 "minus" lib.AssertEq policy.presentation.negative_style
