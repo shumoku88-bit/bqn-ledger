@@ -34,7 +34,7 @@ PY
 # is no longer active in budget.toml.
 ./tools/ledger-check "$base" >/dev/null
 
-before="$(shasum -a 256 "$base/budget.journal" | awk '{print $1}')"
+cp "$base/budget.journal" "$tmp_root/budget-before.journal"
 if ./tools/edit --base "$base" budget add \
   --date 2026-01-02 --memo should-not-revive-retired-envelope \
   --from budget:unassigned --to budget:retired --amount 10 --dry-run \
@@ -44,8 +44,10 @@ if ./tools/edit --base "$base" budget add \
 fi
 grep -F 'Budget movement cannot use retired Envelope allocation Account: budget:retired -> retired' "$tmp_root/out" >/dev/null
 
-after="$(shasum -a 256 "$base/budget.journal" | awk '{print $1}')"
-[[ "$before" == "$after" ]] || { echo 'FAIL: rejected retired Envelope write changed budget.journal' >&2; exit 1; }
+cmp -s "$tmp_root/budget-before.journal" "$base/budget.journal" || {
+  echo 'FAIL: rejected retired Envelope write changed budget.journal' >&2
+  exit 1
+}
 if [[ -d "$base/.backup" ]] && find "$base/.backup" -type f | grep -q .; then
   echo 'FAIL: rejected retired Envelope write created a backup' >&2
   exit 1
