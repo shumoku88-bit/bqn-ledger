@@ -21,17 +21,30 @@ owners ← ⟨
   "src/sections/daily_flow.bqn","src/sections/daily_target.bqn","src/sections/issues.bqn"
 ⟩
 shapes ← ⟨"statement","matrix","statement","statement","list","list_card","matrix","matrix","matrix","matrix","card_projection","list"⟩
+# Household Surface coordinates are presentation/navigation metadata only.
+# They let the UI project the retained report catalog by the subject a person
+# is observing instead of owning a second hierarchical report taxonomy.
+surfaceDomains ← ⟨
+  "envelope","account","household","household","actual","plan",
+  "account","household","account","account","household","issue"
+⟩
+surfaceScopes ← ⟨
+  "cycle","current","current","cycle","recent","future",
+  "cycle","cycle","month","day","day","current"
+⟩
 human ← 12⥊1
 compact ← ⟨1,1,0,0,1,1,0,0,0,0,1,0⟩
 json ← ⟨1,1,0,0,0,1,0,0,0,0,0,0⟩
 
 relation ← {
   count⇐≠keys,index⇐↕≠keys,key⇐keys,label⇐labels,category⇐categories,owner⇐owners,shape⇐shapes,
+  surface_domain⇐surfaceDomains,surface_scope⇐surfaceScopes,
   human⇐human,compact⇐compact,json⇐json
 }
 Row ← {𝕊 i:
   {
     key⇐i⊑relation.key,label⇐i⊑relation.label,category⇐i⊑relation.category,owner⇐i⊑relation.owner,shape⇐i⊑relation.shape,
+    surface_domain⇐i⊑relation.surface_domain,surface_scope⇐i⊑relation.surface_scope,
     human⇐i⊑relation.human,compact⇐i⊑relation.compact,json⇐i⊑relation.json
   }
 }
