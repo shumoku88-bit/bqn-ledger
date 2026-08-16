@@ -31,13 +31,23 @@ The next work is cross-cutting repository observation rather than another semant
 - [x] terminal selector/input duplication and UI change locality across active shell surfaces: Household frontends share one logical dispatcher; nested selectors remain opaque physical adapters; writer shortcut membership is parity-checked. See `docs/CROSS_CUTTING_FRONTEND_REACHABILITY_AUDIT-2026-08-17.md`.
 - [x] editor/writer ownership from BQN semantic decision through machine operation to safe-write publication. See `docs/CROSS_CUTTING_WRITER_EFFECT_AUDIT-2026-08-17.md`.
 - [x] report/application CLI reachability and repeated effect/protocol boundaries. See `docs/CROSS_CUTTING_REPORT_CLI_AUDIT-2026-08-17.md`.
-- [ ] repository-wide dead-surface and reachability audit, including retained wrappers;
+- [x] repository-wide dead-surface and reachability audit, including retained wrappers. See `docs/CROSS_CUTTING_DEAD_SURFACE_AUDIT-2026-08-17.md`.
 - [x] `experiments/` reachability: promoted action-catalog and sparse classify-once probes retired; current negative evidence retained. See `docs/CROSS_CUTTING_EXPERIMENT_REACHABILITY_AUDIT-2026-08-17.md`.
 - [x] `tui/` reachability and documentation drift: status-only stale directory retired. See `docs/CROSS_CUTTING_FRONTEND_REACHABILITY_AUDIT-2026-08-17.md`.
 - [x] Calendar-first Household surface versus older Command Hub / TUI documentation: current spatial + flat-palette frontend portfolio recorded in `docs/PRODUCTION_EDITOR_DIRECTION.md` and the frontend audit.
 - [x] shell action/selection duplication versus `HouseholdSurface.Actions`: spatial/gum frontends share `tools/household-action`; standalone `add-ui` writer membership is parity-checked against non-Observe command Actions.
 - [ ] remaining migration/compatibility residue outside completed canonical Household recovery;
 - [ ] checks/tests classification: current law guard, historical characterization, or obsolete topology assumption.
+
+## Dead-surface result
+
+The reachability pass retired executable residue rather than old-looking names indiscriminately:
+
+- `tools/src-next-import-graph` is removed because it only scanned the already-retired `src_next/` topology and has no current devtool consumer;
+- legacy `safe_append`, `safe_rewrite`, and `safe_create_checked` definitions are removed after the writer audit proved there are no active callers;
+- `safe-write.sh` now exposes the current caller-snapshot checked/exclusive publication model only.
+
+Historically named `tools/command-hub-cache-refresh` and `tools/command-hub-preview` remain because `main-ui.sh` still uses them for current report preview caching. `tools/edit` also remains a live public router. `check-dead-surface-reachability.sh` guards both retirement and retention decisions so a broad filename purge cannot silently delete current adapters.
 
 ## Current report state
 
@@ -53,8 +63,6 @@ The report CLI audit found no second shell-owned report catalog or route owner i
 One concrete cache defect was fixed. `main-ui.sh` used to maintain a hand-written list of Household/report dependency filenames and omitted `config/currencies.tsv`, even though the report application path reads that registry. Preview cache invalidation now uses conservative physical observation of all files under the selected Household base plus repository `src/` and `config/`; it no longer owns a semantic dependency list.
 
 `check-report-cache-invalidation.sh` requires that shape and proves that changing only the currency-registry observation advances the preview-cache generation token.
-
-Historically named `command-hub-cache-refresh` / `command-hub-preview` remain live report-presentation helpers and are not dead solely because their names predate the Calendar-first frontend. Their naming belongs to the repository-wide reachability/dead-surface lane.
 
 ## Current writer state
 
@@ -75,8 +83,6 @@ The writer audit fixed two Issue-specific exceptions:
 - first `issues.tsv` publication is now exclusive and cannot overwrite a concurrent first writer;
 - failed Issue append/replace/create post-checks now restore the exact observed bytes or remove the still-owned newly-created file.
 
-Legacy `safe_append`, `safe_rewrite`, and `safe_create_checked` definitions have no active callers and are guarded against reuse. Their definition-level removal belongs to the repository-wide dead-surface cleanup rather than current writer authority.
-
 ## Continuation contract
 
 A fresh session should:
@@ -92,7 +98,7 @@ A fresh session should:
 ## Current cursor
 
 ```text
-repository-wide dead-surface and reachability audit
+remaining migration / compatibility residue outside completed canonical Household recovery
 ```
 
-Start with definition-level residue and historically named wrappers, but classify current consumers before deleting or renaming anything. Known candidates include legacy no-caller safe-write API definitions; current `command-hub-*` report helpers are reachable and therefore require a naming/ownership decision rather than blind removal.
+Classify intentional current compatibility separately from historical migration scaffolding. Do not remove Issue 8/9/10-column or other compatibility merely because it is old if current admitted/writer behavior still depends on it.

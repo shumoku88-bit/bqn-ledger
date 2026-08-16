@@ -1,13 +1,9 @@
 #!/usr/bin/env bash
-# tools/lib/safe-write.sh — atomic TSV append with backup and stale check
+# tools/lib/safe-write.sh — checked atomic publication primitives
 #
-# Replicates the BQN editor's writeSingleFileAtomic + appendRowContent behavior.
-# This file is sourced by shell dispatchers, not executed directly.
-#
-# Usage:
-#   source tools/lib/safe-write.sh
-#   safe_append <target_file> <row_tsv> [--backup-dir <dir>]
-#   safe_rewrite <target_file> <full_content> <backup_path>
+# This file is sourced by shell effect owners, not executed directly. Callers
+# capture source observations before semantic validation/preview and publish
+# through the checked APIs below; filesystem mechanics stay here.
 
 set -euo pipefail
 
@@ -54,8 +50,8 @@ _safe_write_snapshot() {
 }
 
 # Print a tab-separated snapshot token: size, mtime, sha256.
-# Callers can capture this before validation/preview and pass it to
-# safe_append_checked immediately before writing.
+# Callers can capture this before validation/preview and pass it to the checked
+# publication primitive immediately before writing.
 safe_snapshot_token() {
   local path="$1"
   _safe_write_snapshot "$path"
@@ -141,95 +137,7 @@ _create_backup() {
   cp -p "$source_path" "$backup_path"
 }
 
-# ── Atomic write ────────────────────────────────────────────────
-
-# Append a single row to a TSV file atomically.
-# Handles trailing newline (adds one if missing).
-#
-# Usage: safe_append <target_file> <row_tsv>
-# Assumes snapshot has been taken via _safe_write_snapshot.
-safe_append() {
-  local target="$1"
-  local row="$2"
-  local base_dir
-  base_dir="$(cd "$(dirname "$target")" && pwd)"
-  local filename
-  filename="$(basename "$target")"
-  local backup_path
-  backup_path="$(_choose_backup_path "$base_dir" "$filename")"
-
-  # Take snapshot
-  _safe_write_snapshot "$target"
-
-  # Create backup
-  _create_backup "$target" "$backup_path"
-
-  # Stale check
-  if ! _safe_write_check_stale; then
-    return 1
-  fi
-
-  # Build proposed content: original + ensure trailing newline + row + newline
-  local tmp_file
-  tmp_file="$(mktemp "${target}.tmp-XXXXXX")"
-  # shellcheck disable=SC2064
-  trap "rm -f '$tmp_file'" EXIT
-
-  # Copy original content
-  cat "$target" > "$tmp_file"
-
-  # Ensure trailing newline before appending
-  if [[ -s "$tmp_file" ]] && [[ "$(_safe_write_last_byte_hex "$tmp_file")" != "0a" ]]; then
-    printf '\n' >> "$tmp_file"
-  fi
-
-  # Append the new row
-  printf '%s\n' "$row" >> "$tmp_file"
-
-  # Atomic rename
-  mv "$tmp_file" "$target"
-  trap - EXIT
-
-  # Print results
-  printf 'Wrote: %s\n' "$target"
-  printf 'Backup: %s\n' "$backup_path"
-}
-
-# Create a new file atomically if it still does not exist.
-#
-# Usage: safe_create_checked <target_file> <content>
-# This is used for optional append-only source files such as issues.tsv.
-# Existing files must use safe_append_checked so a backup and stale check exist.
-safe_create_checked() {
-  local target="$1"
-  local content="$2"
-  local target_dir
-  target_dir="$(dirname "$target")"
-
-  if [[ -e "$target" ]]; then
-    echo "ERROR: file $target is stale; it appeared during editing" >&2
-    return 1
-  fi
-
-  mkdir -p "$target_dir"
-  local tmp_file
-  tmp_file="$(mktemp "${target}.tmp-XXXXXX")"
-  # shellcheck disable=SC2064
-  trap "rm -f '$tmp_file'" EXIT
-
-  printf '%s' "$content" > "$tmp_file"
-
-  if [[ -e "$target" ]]; then
-    echo "ERROR: file $target is stale; it appeared during editing" >&2
-    return 1
-  fi
-
-  mv "$tmp_file" "$target"
-  trap - EXIT
-
-  printf 'Wrote: %s\n' "$target"
-  printf 'Backup: none (created new file)\n'
-}
+# ── Checked atomic publication ──────────────────────────────────
 
 # Create a new file without replacing a concurrently-created target.
 # The parent directory must already exist. A same-filesystem hard link publishes
@@ -538,38 +446,6 @@ safe_rewrite_checked() {
   fi
   mv "$tmp_file" "$target"
   trap - EXIT
-  printf 'Wrote: %s\n' "$target"
-  printf 'Backup: %s\n' "$backup_path"
-}
-
-# Rewrite a file atomically (for plan edit).
-# Usage: safe_rewrite <target_file> <new_content_file> <backup_path>
-safe_rewrite() {
-  local target="$1"
-  local new_content_file="$2"
-  local backup_path="$3"
-
-  # Take snapshot
-  _safe_write_snapshot "$target"
-
-  # Create backup
-  _create_backup "$target" "$backup_path"
-
-  # Stale check
-  if ! _safe_write_check_stale; then
-    return 1
-  fi
-
-  # Atomic rename
-  local tmp_file
-  tmp_file="$(mktemp "${target}.tmp-XXXXXX")"
-  # shellcheck disable=SC2064
-  trap "rm -f '$tmp_file'" EXIT
-
-  cp "$new_content_file" "$tmp_file"
-  mv "$tmp_file" "$target"
-  trap - EXIT
-
   printf 'Wrote: %s\n' "$target"
   printf 'Backup: %s\n' "$backup_path"
 }
