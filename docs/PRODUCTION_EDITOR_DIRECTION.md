@@ -1,120 +1,171 @@
 # Production Editor Direction
 
 Status: current policy / architecture direction
-Owner: editor
+Owner: editor / frontend boundary
 Canonical: yes
-Exit: revise if the production write-path ownership changes.
+Exit: revise if production write-path or logical frontend ownership changes.
 
-## Status
+## Core decision
 
-- BQN editor production path is complete for current daily commands in both explicit TSV compatibility mode and native Journal mode.
-- `tools/edit` is the stable public command surface and thin wrapper.
-- `tools/edit-bqn` is the active BQN write path.
-- `src_edit` is the BQN editor subsystem that validates edit intent and renders write operations.
-- `tools/check.sh` includes the current BQN editor checks and unit coverage.
+The durable write path is:
 
-## Decision
+```text
+frontend interaction
+  -> existing direct command
+  -> tools/edit
+  -> tools/edit-bqn / src_edit semantic candidate
+  -> shell safe-write publication
+  -> mandatory post-write admission
+```
 
-- `src_edit` owns edit validation and protocol rendering.
-- `tools/edit-bqn` owns daily editor dispatch and machine-readable write protocols.
-- `tools/edit` stays as the user-facing shell entrypoint and delegates to `tools/edit-bqn`.
-- No Go editor remains in the active daily write path.
+BQN owns admitted meaning and candidate validation. Shell owns bounded byte movement and physical terminal interaction. Frontends do not parse canonical sources or acquire writer authority.
 
-## Editor architecture
+## Current Household frontends
+
+There is no separate `tui/` implementation owner.
+
+The current frontend portfolio is intentionally plural over shared logical coordinates:
+
+### `tools/bl`
+
+- canonical Household entrypoint and direct-command router;
+- no command enters the Calendar-first Household surface;
+- explicit commands remain stable for scripts, direct use, and frontend delegation;
+- does not own accounting or publication meaning.
+
+### `tools/household-surface`
+
+- primary spatial terminal frontend;
+- displays Calendar + Domain × Operation;
+- consumes `HouseholdSurface` metadata and selected-date context;
+- physical key reading, alternate-screen drawing, and terminal geometry stay shell-owned;
+- must not reconstruct accounting/report semantics.
+
+### `tools/household-hub-gum`
+
+- optional flat searchable Command Palette;
+- consumes the same `HouseholdSurface.Actions` relation as the spatial frontend;
+- Calendar, reports, logical actions, and Source & System utilities are sibling palette destinations rather than a second taxonomy;
+- gum is a physical delivery choice, not semantic authority.
+
+### `tools/household-action`
+
+- shared logical Household action dispatcher;
+- validates `ACTION_KEY` against `HouseholdSurface.Actions` before routing;
+- maps logical command/report actions to existing direct owners;
+- owns no canonical source, accounting, or write semantics.
+
+A physical frontend should delegate through this action boundary rather than maintain a second logical-action routing catalog.
+
+## Writer interaction leaves
 
 ### `tools/add-ui.sh`
-- Responsible for current user interaction, mode selection, optional fzf / gum / numbered adapters, text input, and account selection.
-- Calls `tools/edit`.
-- Does not own Journal/TSV write semantics.
-- Its selector implementation is replaceable; editor intent and machine-readable results must remain usable by a future UI without reproducing BQN validation or shell publication logic.
+
+- interaction helper for existing writer leaves;
+- explicit modes are used by Household/direct routing;
+- standalone no-mode selection remains a writer-shortcut menu, not the primary Household information architecture;
+- account/Plan/Issue candidate data comes from BQN/editor exports;
+- calls `tools/edit` and does not own Journal/TSV write semantics.
 
 ### `tools/plan-finish-replenish-ui.sh`
-- Optional interactive helper for the recurring-plan workflow.
-- Finishes a selected plan through `tools/edit plan finish`, then optionally creates the follow-up plan through `tools/edit plan add`.
-- Displays related open future plans using `tools/edit plan related`; the BQN editor owns relation-key semantics.
-- Must not parse source TSV metadata itself, change low-level source TSV contracts, or own accounting semantics.
+
+- optional orchestration of existing `plan finish` and `plan add` commands;
+- relation semantics remain BQN-owned;
+- not a new write primitive.
+
+## Editor owners
 
 ### `tools/edit`
-- Public command surface for daily editor operations.
-- Preserves CLI compatibility for current commands.
-- Delegates immediately to `tools/edit-bqn`.
+
+Stable user-facing editor command surface. Delegates to `tools/edit-bqn`.
 
 ### `tools/edit-bqn`
-- Active BQN + shell editor entry point.
-- Applies append and replace operations through validated machine-readable protocols.
-- `journal add/multi-add/list/reverse` and `plan finish` target the BQN-resolved `ACTUAL_JOURNAL_FILE`; there is no Actual TSV route, dual write, or fallback.
-- Must stay small and predictable; no ad-hoc business logic.
 
-### `src_edit`
-- Parses command-level edit intent.
-- Validates date / amount / account / metadata contracts.
-- Renders append rows, replace plans, or other edit operations.
-- Must not become the report engine.
+Active BQN + shell editor dispatcher. Applies admitted machine-readable append/replace protocols and stays free of ad-hoc accounting policy.
+
+### `src_edit/`
+
+Owns command-level validation, semantic candidate construction, exact source-coordinate evidence where required, and post-write validation leaves. It does not own report/UI architecture.
 
 ### `tools/lib/safe-write.sh`
-- Responsible for backup, temp files, atomic rename, stale checks, expected old row checks, and post-check invocation.
-- Must not own ledger/accounting meaning.
 
-## Command classes
+Owns backup/temp/stale guards/atomic replacement/post-check mechanics. It must not own ledger meaning.
 
-### Append-only
-- `account add`
-- `journal add`（Journal modeではnative transaction block）
-- `travel friend add` (dedicated pending source event; no journal projection)
-- `travel exchange add` (dedicated two-amount source event; no journal projection or rate)
-- `budget add`
-- `plan add`
-- `issue add`
+## Selector adapters
 
-### Read-only selector
-- `plan list`
-- `plan related`
+`tools/lib/ui-choice.sh` exposes one opaque-line selection boundary. `fzf`, `gum`, and plain numbered input are interchangeable physical backends selected through `tools/lib/ui-preferences.sh`.
 
-### Derived append
-- `plan finish`（Journal modeでは`plan-id`付きnative actual transaction）
-- `journal reverse`
+Current roles are distinct:
 
-### Interactive orchestration
-- `tools/plan-finish-replenish-ui.sh` composes `plan finish` and `plan add` for replenishment; it is not a new write primitive.
+```text
+Calendar-first Household surface
+  raw-terminal spatial navigation
 
-### Exact replace
-- `plan edit`
+gum Command Palette
+  optional flat searchable frontend
 
-Append-only commands are the lowest-risk path. Plan completion appends only the Actual evidence; Envelope Fulfillment observes that evidence through historical PlanId routing, so completion does not publish a Budget execution companion. Optional travel source first-write uses exclusive staged creation rather than production bootstrap or parent-directory creation. Derived append and exact replace rely on explicit old-row / line-number safety.
+fzf / gum / plain selector
+  nested or high-cardinality opaque-line choice
+```
+
+Neither fzf nor gum defines Household information architecture. Their presence is justified only by a current physical interaction role.
+
+Finished reports use `tools/main-ui.sh`; interactive `less -SRFX` remains the wide-report reader independently of selector backend.
+
+## Writer classes
+
+Append-only:
+
+- Account Add
+- native Journal Add / Multi Add
+- Budget movement
+- Plan Add
+- Issue Add
+- Travel friend/exchange source events
+
+Derived append:
+
+- Plan Finish -> Actual completion evidence
+- Journal Reverse -> compensating Actual transaction
+
+Exact replace:
+
+- Plan Edit
+- Issue Close where the Issue physical shape permits it
+
+Interactive orchestration is not a new writer class. It composes the established primitives above.
 
 ## Safety model
 
-1. Build the candidate row or edit operation.
-2. Validate before touching source TSV.
-3. Apply through a small shell safe-write function.
-4. Run post-checks after write.
-5. Keep large corrections visible rather than hiding them behind silent mutation.
-
-BQN should be the place where ledger meaning is checked. Shell should be the place where bytes are moved safely.
+1. Observe canonical/admitted source state through the owning BQN/application boundary.
+2. Build and validate the intended candidate before publication.
+3. Publish only through the bounded shell safe-write owner.
+4. Re-admit/validate after write where the command contract requires it.
+5. Keep corrections and provenance visible rather than hiding them behind silent mutation.
 
 ## UI replaceability
 
-`fzf`, `gum`, and numbered prompts are current delivery choices, not editor architecture. UI modernization may replace or remove one of these adapters after comparing daily usability, dependency cost, preview behavior, cancellation, and failure visibility. Such a change must consume existing typed or machine-readable editor/report surfaces and must not become a second source parser, accounting owner, or writer.
+A future terminal implementation, native BQN presentation, raylib frontend, HTML client, or conversational client should consume current logical/action surfaces and direct command protocols rather than reproduce source parsing, accounting, report placement, date arithmetic, or writer logic.
 
-Selector replacement is separate from accounting-kernel simplification. Kernel work should preserve a neutral boundary; UI implementation should be reviewed as its own coherent change when the main queue reaches the relevant command owners, unless a concrete UI defect needs an earlier isolated fix.
+Frontend replacement therefore should usually change only:
+
+```text
+physical input / drawing / choice
+  + logical-action adapter
+```
+
+not:
+
+```text
+canonical sources / accounting / writer authority
+```
 
 ## Acceptance criteria
 
-- Existing qualified daily operations remain reachable through at least one documented interactive path and through their direct command surfaces.
-- `tools/edit` command compatibility is preserved for daily commands.
+- no-command `tools/bl` remains one Calendar-first Household entrance;
+- direct commands remain stable;
+- multiple physical frontends may consume the same logical action relation;
+- logical actions do not gain duplicate routing owners without an explicit reason;
+- selectors remain opaque-line adapters rather than semantic parsers;
+- canonical source writes remain BQN-centered and shell-safe;
 - `tools/check.sh` passes.
-- No canonical source format change is required merely to replace a UI adapter.
-- The daily path stays BQN-centered and shell-safe.
-
-## Language guidance
-
-Use language like:
-- production BQN editor path
-- stable daily write path
-- shell dispatcher with BQN validation
-- thin shell wrapper
-
-Avoid language like:
-- Go fallback
-- legacy daily write path
-- experimental main editor path

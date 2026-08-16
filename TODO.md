@@ -33,17 +33,29 @@ The next work is cross-cutting repository observation rather than another semant
 - [ ] report/application CLI reachability and repeated effect/protocol boundaries;
 - [ ] repository-wide dead-surface and reachability audit, including retained wrappers;
 - [x] `experiments/` reachability: promoted action-catalog and sparse classify-once probes retired; current negative evidence retained. See `docs/CROSS_CUTTING_EXPERIMENT_REACHABILITY_AUDIT-2026-08-17.md`.
-- [ ] `tui/` reachability and documentation drift;
-- [ ] Calendar-first Household surface versus older Command Hub / TUI documentation;
+- [x] `tui/` reachability and documentation drift: status-only stale directory retired. See `docs/CROSS_CUTTING_FRONTEND_REACHABILITY_AUDIT-2026-08-17.md`.
+- [x] Calendar-first Household surface versus older Command Hub / TUI documentation: current spatial + flat-palette frontend portfolio recorded in `docs/PRODUCTION_EDITOR_DIRECTION.md` and the frontend audit.
 - [ ] gum and shell action/selection duplication versus `HouseholdSurface.Actions`;
 - [ ] remaining migration/compatibility residue outside completed canonical Household recovery;
 - [ ] checks/tests classification: current law guard, historical characterization, or obsolete topology assumption.
 
-## Current experiment state
+## Current frontend state
 
-`experiments/bqn/` now retains only the Cells/Rank matrix-result experiment and its note as negative evidence. Its conclusion still matches current `src/accounting/matrix_result.bqn`: the alternative preserves behavior but obscures a small fixed-field assembly.
+Current logical frontend authority is `HouseholdSurface`:
 
-Promoted experiments are no longer executable second implementations. Git history and the cross-cutting audit document retain their evidence.
+```text
+Domain × Operation × Actions
+```
+
+Physical consumers are intentionally plural:
+
+- `tools/household-surface`: Calendar-first spatial terminal frontend;
+- `tools/household-hub-gum`: optional flat searchable palette;
+- `tools/lib/ui-choice.sh`: nested opaque-line fzf/gum/plain selector adapter.
+
+`tools/household-action` is the shared logical action dispatcher used by the gum palette. The Calendar frontend still duplicates that routing in its local `run_logical_action` case table; that is the next concrete cleanup target.
+
+`tools/add-ui.sh` remains a writer interaction helper. Its standalone no-mode writer menu is a later, narrower duplication question and must not be conflated with the full Household action relation.
 
 ## Continuation contract
 
@@ -60,7 +72,8 @@ A fresh session should:
 ## Current cursor
 
 ```text
-tui/README.md + active tools/bl/add-ui path + Calendar-first surface documentation
+tools/household-surface duplicate run_logical_action routing
+-> tools/household-action shared dispatcher
 ```
 
-Observe before editing: keep live frontend adapters distinct from stale architectural descriptions. After documentation/reachability is aligned, inspect shell-owned action/selection duplication against `HouseholdSurface.Actions`.
+After that consolidation, review the standalone `tools/add-ui.sh` writer menu and selector duplication separately.
