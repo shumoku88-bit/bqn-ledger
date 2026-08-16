@@ -53,6 +53,7 @@ checks=(
   check-edit-bqn-plan-list.sh check-edit-bqn-plan-related.sh check-edit-bqn-plan-add.sh
   check-edit-bqn-plan-edit.sh check-edit-bqn-plan-finish.sh
   check-plan-finish-replenish-ui.sh check-command-hub-recovery.sh check-command-hub-drilldown.sh check-command-hub-home.sh
+  check-household-surface.sh
   check-home-calendar.sh check-home-calendar-selector.sh check-home-logical-navigation.sh
   check-home-single-observation-frame.sh check-home-single-observation-detail-frame.sh check-home-narrow-terminal.sh
   check-workflow-drift.sh check-structured-ui-boundary.sh check-ui-preferences.sh
