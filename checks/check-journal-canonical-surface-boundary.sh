@@ -54,6 +54,8 @@ stage=public-route
 # monolithic dispatcher before any filesystem path is accepted.
 grep -Fq 'exec bash "$DIR/journal-canonical-surface" "$@"' tools/edit
 bash -n tools/journal-canonical-surface
+plan_out="$(tools/edit --base "$base" journal canonical-surface-plan --format tsv)"
+grep -Fq $'transactions\t1' <<<"$plan_out"
 
 stage=dot-alias
 # Lexically different spelling of the canonical source must not bypass preview
@@ -112,6 +114,33 @@ fi
   echo 'FAIL: distinct preview modified canonical Journal' >&2
   exit 1
 }
+
+stage=public-dry-run
+dry_out="$(tools/edit --base "$base" journal canonical-surface-apply --dry-run --post-check none)"
+grep -Fq 'Dry-run only. No files were modified.' <<<"$dry_out"
+[[ "$(sha256 "$base/actual.journal")" == "$source_before" ]] || {
+  echo 'FAIL: public Canonical dry-run modified source' >&2
+  exit 1
+}
+
+stage=public-apply
+apply_base="$work/apply-household"
+cp -R "$base" "$apply_base"
+apply_before="$(sha256 "$apply_base/actual.journal")"
+tools/edit --base "$apply_base" journal canonical-surface-apply --apply --yes --post-check none >"$work/apply.out" 2>"$work/apply.err"
+apply_after="$(sha256 "$apply_base/actual.journal")"
+[[ "$apply_before" != "$apply_after" ]] || {
+  echo 'FAIL: public Canonical apply did not rewrite noncanonical source' >&2
+  exit 1
+}
+grep -Fq 'Mandatory canonical surface equivalence: OK' "$work/apply.out"
+grep -Fq 'expenses:food    100 JPY' "$apply_base/actual.journal"
+if grep -Fq '; layer: actual' "$apply_base/actual.journal" || grep -Fq '; currency: JPY' "$apply_base/actual.journal"; then
+  echo 'FAIL: public Canonical apply retained redundant metadata' >&2
+  exit 1
+fi
+noop_out="$(tools/edit --base "$apply_base" journal canonical-surface-apply --dry-run --post-check none)"
+grep -Fq 'Journal is already canonical. No files were modified.' <<<"$noop_out"
 
 stage=nested-data
 # The current Household root directly owns actual.journal. A historical nested
