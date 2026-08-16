@@ -30,13 +30,22 @@ text += '''\n[[budget.envelopes]]\nid = "retired"\nallocation-account = "budget:
 p.write_text(text, encoding="utf-8")
 PY
 
-# Historical/stable coordinates are valid source evidence even when the Envelope
-# is no longer active in budget.toml.
+cat >>"$base/budget.journal" <<'EOF'
+
+2026-01-05 historical-retired-grant
+  budget:unassigned  -10 JPY
+  budget:retired      10 JPY
+EOF
+
+# Historical/stable coordinates and old movements remain valid source evidence
+# after the Envelope leaves current budget.toml membership. Production reporting
+# must still admit that history while presenting only current Envelopes.
 ./tools/ledger-check "$base" >/dev/null
+./tools/report-all "$base" JPY compact 2026-01-31 >/dev/null
 
 cp "$base/budget.journal" "$tmp_root/budget-before.journal"
 if ./tools/edit --base "$base" budget add \
-  --date 2026-01-02 --memo should-not-revive-retired-envelope \
+  --date 2026-01-31 --memo should-not-revive-retired-envelope \
   --from budget:unassigned --to budget:retired --amount 10 --dry-run \
   >"$tmp_root/out" 2>&1; then
   echo 'FAIL: Budget Add accepted a retired Envelope allocation Account' >&2
