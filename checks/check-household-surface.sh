@@ -40,6 +40,24 @@ awk -F'\t' 'NR>1 && $5=="actual" && $6=="recent" && $1=="recent"{a=1}
              NR>1 && $5=="household" && $1=="balance-sheet"{h=1}
              END{exit !(a&&p&&e&&m&&i&&h)}' "$work/reports.tsv"
 
+./tools/household-surface-metadata actions actual add >"$work/actual-add.tsv"
+[[ "$(awk 'END{print NR}' "$work/actual-add.tsv")" == 5 ]]
+for action in expense income move multi; do
+  grep -Eq $'^[0-9]+\tactual\tadd\tselected-date\t'"$action"$'\t' "$work/actual-add.tsv"
+done
+./tools/household-surface-metadata actions plan observe >"$work/plan-observe.tsv"
+grep -F $'planned\tPlanned Payments\treport' "$work/plan-observe.tsv" >/dev/null
+grep -F $'plan-related\tRelated Plan evidence\tcommand' "$work/plan-observe.tsv" >/dev/null
+./tools/household-surface-metadata actions household observe >"$work/household-observe.tsv"
+grep -F $'daily-target\tDaily Target\treport' "$work/household-observe.tsv" >/dev/null
+grep -F $'balance-sheet\tBalance Sheet\treport' "$work/household-observe.tsv" >/dev/null
+
+if ./tools/household-surface-metadata actions actual >"$work/invalid.out" 2>&1; then
+  echo 'FAIL: incomplete action coordinate succeeded' >&2
+  exit 1
+fi
+grep -F 'expected no arguments or: actions DOMAIN OPERATION' "$work/invalid.out" >/dev/null
+
 if rg -n 'fzf|gum|ANSI|escape sequence|mouse' src/application/household_surface.bqn >/dev/null; then
   echo 'FAIL: physical frontend vocabulary leaked into Household surface semantics' >&2
   exit 1
