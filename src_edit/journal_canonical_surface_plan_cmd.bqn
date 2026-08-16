@@ -10,50 +10,51 @@ loader ← •Import "../src/application/source_io.bqn"
 canonical ← •Import "../src/application/canonical_household_sources.bqn"
 
 relPath ← canonical.actual
-absPath ← baseDir ∾ "/" ∾ relPath
-raw ← loader.ReadRaw absPath
-
+raw ← loader.ReadRaw loader.JoinPath ⟨baseDir,relPath⟩
 res ← plan.Build raw
 
 lf ← @+10
 tab ← @+9
 NumStr ← •Fmt
+JoinLines ← {𝕊 lines:
+  0=≠lines ? "" ;
+  (⊑lines) ∾ (∾{lf∾𝕩}¨1↓lines)
+}
+Metric ← {𝕊 key‿value:key∾tab∾NumStr value}
 
 {𝕊:
-  {𝕊:
-    out ← "metric" ∾ tab ∾ "value"
-    out ∾↩ lf ∾ "transactions" ∾ tab ∾ NumStr res.transactions
-    out ∾↩ lf ∾ "postings" ∾ tab ∾ NumStr res.postings
-    out ∾↩ lf ∾ "single_space_postings" ∾ tab ∾ NumStr res.single_space_postings
-    out ∾↩ lf ∾ "multi_space_postings" ∾ tab ∾ NumStr res.multi_space_postings
-    out ∾↩ lf ∾ "layer_actual_metadata" ∾ tab ∾ NumStr res.layer_actual_metadata
-    out ∾↩ lf ∾ "currency_jpy_metadata" ∾ tab ∾ NumStr res.currency_jpy_metadata
-    out ∾↩ lf ∾ "canonical_transactions" ∾ tab ∾ NumStr res.canonical_transactions
-    out ∾↩ lf ∾ "spacing_only_transactions" ∾ tab ∾ NumStr res.spacing_only_transactions
-    out ∾↩ lf ∾ "redundant_metadata_only_transactions" ∾ tab ∾ NumStr res.redundant_metadata_only_transactions
-    out ∾↩ lf ∾ "spacing_and_redundant_metadata_transactions" ∾ tab ∾ NumStr res.spacing_and_redundant_metadata_transactions
-    out ∾↩ lf ∾ "unsupported_transactions" ∾ tab ∾ NumStr res.unsupported_transactions
-    •Out out
-  }⍟(format ≡ "tsv") @
-
-  {𝕊:
-    out ← "Canonical Journal Surface 001 Plan"
-    out ∾↩ lf ∾ "Source: " ∾ relPath
-    out ∾↩ lf ∾ "Status: " ∾ res.state
-    out ∾↩ lf ∾ "Transactions: " ∾ NumStr res.transactions
-    out ∾↩ lf ∾ "Postings: " ∾ NumStr res.postings
-    out ∾↩ lf ∾ "Single-space postings: " ∾ NumStr res.single_space_postings
-    out ∾↩ lf ∾ "Multi-space postings: " ∾ NumStr res.multi_space_postings
-    out ∾↩ lf ∾ "Layer:actual metadata: " ∾ NumStr res.layer_actual_metadata
-    out ∾↩ lf ∾ "Currency:JPY metadata: " ∾ NumStr res.currency_jpy_metadata
-    out ∾↩ lf ∾ "Transactions breakdown:"
-    out ∾↩ lf ∾ "  Canonical: " ∾ NumStr res.canonical_transactions
-    out ∾↩ lf ∾ "  Spacing-only: " ∾ NumStr res.spacing_only_transactions
-    out ∾↩ lf ∾ "  Redundant-metadata-only: " ∾ NumStr res.redundant_metadata_only_transactions
-    out ∾↩ lf ∾ "  Spacing-and-redundant-metadata: " ∾ NumStr res.spacing_and_redundant_metadata_transactions
-    out ∾↩ lf ∾ "  Unsupported: " ∾ NumStr res.unsupported_transactions
-    •Out out
-  }⍟(format ≡ "text") @
+  tsvLines ← ⟨
+    "metric" ∾ tab ∾ "value",
+    Metric ⟨"transactions",res.transactions⟩,
+    Metric ⟨"postings",res.postings⟩,
+    Metric ⟨"single_space_postings",res.single_space_postings⟩,
+    Metric ⟨"multi_space_postings",res.multi_space_postings⟩,
+    Metric ⟨"layer_actual_metadata",res.layer_actual_metadata⟩,
+    Metric ⟨"currency_jpy_metadata",res.currency_jpy_metadata⟩,
+    Metric ⟨"canonical_transactions",res.canonical_transactions⟩,
+    Metric ⟨"spacing_only_transactions",res.spacing_only_transactions⟩,
+    Metric ⟨"redundant_metadata_only_transactions",res.redundant_metadata_only_transactions⟩,
+    Metric ⟨"spacing_and_redundant_metadata_transactions",res.spacing_and_redundant_metadata_transactions⟩,
+    Metric ⟨"unsupported_transactions",res.unsupported_transactions⟩
+  ⟩
+  textLines ← ⟨
+    "Canonical Journal Surface 001 Plan",
+    "Source: " ∾ relPath,
+    "Status: " ∾ res.state,
+    "Transactions: " ∾ NumStr res.transactions,
+    "Postings: " ∾ NumStr res.postings,
+    "Single-space postings: " ∾ NumStr res.single_space_postings,
+    "Multi-space postings: " ∾ NumStr res.multi_space_postings,
+    "Layer:actual metadata: " ∾ NumStr res.layer_actual_metadata,
+    "Currency:JPY metadata: " ∾ NumStr res.currency_jpy_metadata,
+    "Transactions breakdown:",
+    "  Canonical: " ∾ NumStr res.canonical_transactions,
+    "  Spacing-only: " ∾ NumStr res.spacing_only_transactions,
+    "  Redundant-metadata-only: " ∾ NumStr res.redundant_metadata_only_transactions,
+    "  Spacing-and-redundant-metadata: " ∾ NumStr res.spacing_and_redundant_metadata_transactions,
+    "  Unsupported: " ∾ NumStr res.unsupported_transactions
+  ⟩
+  •Out JoinLines ((format≡"tsv")⊑⟨textLines,tsvLines⟩)
 }⍟(res.state ≡ "ok") @
 
 {𝕊:
