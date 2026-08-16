@@ -28,6 +28,7 @@ for check in \
   checks/check-canonical-report-policy-cutover.sh \
   checks/check-current-report-profile.sh \
   checks/check-current-report-batch.sh \
+  checks/check-json-clock-independence.sh \
   checks/check-report-cache.sh \
   checks/check-report-cache-invalidation.sh \
   checks/check-report-section-metadata.sh \
@@ -43,14 +44,14 @@ done
 
 echo '[3/3] repository/editor/tool checks' >&2
 checks=(
-  check-bqn-review-queue.sh
+  check-bqn-review-queue.sh check-check-test-classification.sh
   check-canonical-household-source-topology.sh check-doctor-canonical-household.sh
   check-devtools.sh check-devtools-negative.sh check-edit-bqn-account-list.sh check-edit-bqn-account-add-contract.sh check-edit-bqn-account-list-registry.sh
   check-edit-bqn-budget-add.sh check-budget-retired-envelope-write.sh check-edit-bqn-journal-add.sh check-edit-bqn-journal-block-add.sh check-edit-bqn-journal-native-source-scale.sh check-edit-bqn-currency-m2.sh
   check-edit-bqn-travel-friend-add.sh check-travel-exchange-pure.sh check-edit-bqn-travel-exchange-add.sh
   check-edit-bqn-issue-close.sh check-issue-due-compatibility.sh check-edit-bqn-journal-list.sh check-edit-bqn-journal-cleanup-plan.sh
   check-edit-bqn-journal-cleanup-apply.sh check-edit-bqn-journal-canonical-surface.sh check-journal-canonical-surface-boundary.sh
-  check-edit-bqn-journal-reverse.sh
+  check-edit-bqn-journal-event-identity-inventory.sh check-edit-bqn-journal-reverse.sh
   check-edit-bqn-plan-list.sh check-edit-bqn-plan-related.sh check-edit-bqn-plan-add.sh
   check-edit-bqn-plan-edit.sh check-edit-bqn-plan-finish.sh
   check-plan-finish-replenish-ui.sh check-command-hub-recovery.sh check-command-hub-drilldown.sh check-command-hub-home.sh
