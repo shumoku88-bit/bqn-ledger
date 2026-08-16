@@ -4,17 +4,17 @@ lib ← •Import "test_lib.bqn"
 admission ← •Import "../src/ledger/journal_complete_admission.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
-account_admission ← •Import "../src/ledger/account_admission.bqn"
+account_admission ← •Import "../src/ledger/account_journal_admission.bqn"
 facts ← •Import "../src/ledger/facts.bqn"
-snapshot ← •Import "legacy_snapshot_fixture.bqn"
+snapshot ← •Import "canonical_snapshot_fixture.bqn"
 transaction_rows ← •Import "../src/ledger/transaction_rows.bqn"
 amount_text ← •Import "../src/ledger/amount_text.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 
 base ← "fixtures/ledger-facts-phase1-proof/"
-accountLines ← loader.ReadLines base∾"accounts.tsv"
+accountSource ← •FChars "../"∾base∾"accounts.journal"
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
-strictAccounts ← account_admission.Admit ⟨accountLines,registry⟩
+strictAccounts ← account_admission.Admit accountSource
 rawJournal ← •FChars "../"∾base∾"actual.journal"
 admitted ← admission.Admit ⟨rawJournal,strictAccounts.accounts,registry⟩
 admittedAccounts ← strictAccounts.accounts
@@ -27,7 +27,7 @@ result ← facts.Project ⟨admitted,admittedAccounts⟩
 ⟨"actual.journal"⟩ lib.AssertEq result.sources.name
 ⟨0,0,0⟩ lib.AssertEq result.transactions.source_index
 ⟨0,0,0,0,0,0,0⟩ lib.AssertEq result.postings.source_index
-canonicalSnapshot ← snapshot.Build ⟨accountLines,rawJournal,registry⟩
+canonicalSnapshot ← snapshot.Build ⟨accountSource,rawJournal,registry⟩
 "ok" lib.AssertEq canonicalSnapshot.state
 0 lib.AssertEq ≠canonicalSnapshot.diagnostics
 result.transactions.transaction_id lib.AssertEq canonicalSnapshot.facts.transactions.transaction_id
@@ -44,7 +44,9 @@ splitView ← 2⊑transactionView.rows
 ⟨"expenses:food","expenses:transport","assets:cash"⟩ lib.AssertEq {𝕩.account_key}¨splitView.postings
 ⟨10,5,¯15⟩ lib.AssertEq {𝕩.source_coefficient}¨splitView.postings
 ⟨"debit","debit","credit"⟩ lib.AssertEq {𝕩.side}¨splitView.postings
-invalidAccountSnapshot ← snapshot.Build ⟨⟨"assets:cash"∾(@+9)∾"role=asset"⟩,rawJournal,registry⟩
+lf ← @+10
+invalidAccountSource ← ∾⟨"account assets:cash",lf,"  type: Asset",lf⟩
+invalidAccountSnapshot ← snapshot.Build ⟨invalidAccountSource,rawJournal,registry⟩
 "error" lib.AssertEq invalidAccountSnapshot.state
 0 lib.AssertEq invalidAccountSnapshot.facts.transactions.count
 0 lib.AssertEq invalidAccountSnapshot.facts.postings.count
@@ -58,7 +60,7 @@ strictAccounts.accounts.role lib.AssertEq result.accounts.role
 strictAccounts.accounts.type lib.AssertEq result.accounts.type
 strictAccounts.accounts.metadata lib.AssertEq result.accounts.metadata
 strictAccounts.accounts.source_row lib.AssertEq result.accounts.source_row
-⟨1,2,3,4,5,6,7⟩ lib.AssertEq result.accounts.source_row
+⟨1,5,9,13,17,21,25⟩ lib.AssertEq result.accounts.source_row
 
 3 lib.AssertEq result.transactions.count
 ⟨0,1,2⟩ lib.AssertEq result.transactions.index
@@ -180,7 +182,6 @@ lib.Assert ∨´ {𝕩.code ≡ "account_key_duplicate"}¨ duplicateAccountResul
 0 lib.AssertEq duplicateAccountResult.transactions.count
 0 lib.AssertEq duplicateAccountResult.postings.count
 
-lf ← @+10
 currencyMismatchRaw ← ∾⟨
   "commodity JPY"∾lf,""∾lf,
   "account assets:cash"∾lf,""∾lf,
@@ -194,7 +195,7 @@ currencyMismatch ← admission.Admit ⟨currencyMismatchRaw,strictAccounts.accou
 "error" lib.AssertEq currencyMismatch.state
 lib.Assert ∨´{𝕩.code≡"transaction_currency_mismatch"}¨currencyMismatch.diagnostics
 0 lib.AssertEq ≠currencyMismatch.transactions
-invalidJournalSnapshot ← snapshot.Build ⟨accountLines,currencyMismatchRaw,registry⟩
+invalidJournalSnapshot ← snapshot.Build ⟨accountSource,currencyMismatchRaw,registry⟩
 "error" lib.AssertEq invalidJournalSnapshot.state
 0 lib.AssertEq invalidJournalSnapshot.facts.transactions.count
 0 lib.AssertEq invalidJournalSnapshot.facts.postings.count
