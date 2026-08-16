@@ -9,11 +9,11 @@ base="$work/household"
 mkdir -p "$base"
 
 cat >"$base/accounts.journal" <<'EOF'
-account assets:cash
+account Assets:Cash
   type: Asset
   commodity: JPY
 
-account expenses:food
+account Expenses:Food
   type: Expense
   commodity: JPY
 EOF
@@ -22,8 +22,8 @@ cat >"$base/actual.journal" <<'EOF'
     ; event-id: event-lunch
     ; layer: actual
     ; currency: JPY
-    expenses:food 100 JPY
-    assets:cash -100 JPY
+    Expenses:Food 100 JPY
+    Assets:Cash -100 JPY
 EOF
 
 sha256() {
@@ -82,7 +82,7 @@ preview="$work/preview.journal"
 tools/edit --base "$base" journal canonical-surface-preview --output "$preview" >"$work/preview.out"
 [[ -f "$preview" ]]
 grep -Fq $'OK\tCANONICAL_PREVIEW\tactual.journal\t' "$work/preview.out"
-grep -Fq 'expenses:food    100 JPY' "$preview"
+grep -Fq 'Expenses:Food    100 JPY' "$preview"
 if grep -Fq '; layer: actual' "$preview" || grep -Fq '; currency: JPY' "$preview"; then
   echo 'FAIL: preview retained redundant Canonical Surface metadata' >&2
   exit 1
