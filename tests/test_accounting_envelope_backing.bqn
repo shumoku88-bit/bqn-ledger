@@ -2,7 +2,7 @@
 lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
-snapshot ← •Import "legacy_snapshot_fixture.bqn"
+snapshot ← •Import "canonical_snapshot_fixture.bqn"
 canonicalBudget ← •Import "canonical_budget_test_facts.bqn"
 canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 budgetPolicyAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
@@ -11,8 +11,8 @@ dates ← •Import "../src/ledger/date_ordinal.bqn"
 envelopes ← •Import "envelope_backing_test_adapter.bqn"
 base ← "fixtures/ledger-facts-phase1-proof/"
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
-lines ← loader.ReadLines base∾"accounts.tsv"
-actual ← (snapshot.Build ⟨lines,•FChars "../"∾base∾"actual.journal",registry⟩).facts
+accountSource ← •FChars "../"∾base∾"accounts.journal"
+actual ← (snapshot.Build ⟨accountSource,•FChars "../"∾base∾"actual.journal",registry⟩).facts
 lf ← @+10
 tab ← @+9
 quote ← @+34
@@ -123,13 +123,13 @@ invalidRange ← envelopes.Build ⟨budget,policy,household,actual,plan,"JPY",da
 "error" lib.AssertEq invalidRange.state
 "statement_range_invalid" lib.AssertEq (⊑invalidRange.diagnostics).code
 
-syntheticLines ← ⟨
-  Join ⟨"assets:cash","role=asset","currency=JPY"⟩,
-  Join ⟨"income:salary","role=income","currency=JPY"⟩,
-  Join ⟨"expenses:food","role=expense","currency=JPY"⟩,
-  Join ⟨"budget:opening","role=budget","currency=JPY"⟩,
-  Join ⟨"budget:unassigned","role=budget","currency=JPY"⟩,
-  Join ⟨"budget:food","role=budget","currency=JPY"⟩
+syntheticAccountSource ← Raw ⟨
+  "account assets:cash","  type: Asset","  commodity: JPY","",
+  "account income:salary","  type: Income","  commodity: JPY","",
+  "account expenses:food","  type: Expense","  commodity: JPY","",
+  "account budget:opening","  type: Budget","  commodity: JPY","",
+  "account budget:unassigned","  type: Budget","  commodity: JPY","",
+  "account budget:food","  type: Budget","  commodity: JPY"
 ⟩
 syntheticRaw ← ∾⟨
   "commodity JPY",lf,lf,"account assets:cash",lf,"    ; role: asset",lf,lf,
@@ -140,7 +140,7 @@ syntheticRaw ← ∾⟨
   "2026-01-05 * spend",lf,"    ; event-id: spend",lf,"    ; layer: actual",lf,"    expenses:food 30 JPY",lf,"    assets:cash -30 JPY",lf,lf,
   "2026-01-08 * refund",lf,"    ; event-id: refund",lf,"    ; layer: actual",lf,"    assets:cash 5 JPY",lf,"    expenses:food -5 JPY",lf
 ⟩
-syntheticActual ← (snapshot.Build ⟨syntheticLines,syntheticRaw,registry⟩).facts
+syntheticActual ← (snapshot.Build ⟨syntheticAccountSource,syntheticRaw,registry⟩).facts
 syntheticPlan ← (canonicalPlan.Build ⟨Raw ⟨"2026-01-15 open-food","  ; plan-id: open-food","  expenses:food  4 JPY","  assets:cash  -4 JPY"⟩,syntheticActual.accounts,registry⟩).facts
 syntheticBudget ← (canonicalBudget.Build ⟨Raw ⟨"2026-01-01 seed","  budget:opening     -20 JPY","  budget:unassigned   20 JPY","","2026-01-01 allocate","  budget:unassigned  -20 JPY","  budget:food         20 JPY"⟩,syntheticActual.accounts,registry⟩).movements
 syntheticPolicy ← budgetPolicyAdmission.Admit ⟨policyRaw,syntheticActual.accounts⟩
@@ -172,20 +172,20 @@ duplicateRaw ← syntheticRaw∾lf∾lf∾∾⟨
   "2026-01-09 * duplicate one",lf,"    ; event-id: duplicate-one",lf,"    ; layer: actual",lf,"    ; currency: JPY",lf,"    ; plan-id: open-food",lf,"    expenses:food 4 JPY",lf,"    assets:cash -4 JPY",lf,lf,
   "2026-01-09 * duplicate two",lf,"    ; event-id: duplicate-two",lf,"    ; layer: actual",lf,"    ; currency: JPY",lf,"    ; plan-id: open-food",lf,"    expenses:food 4 JPY",lf,"    assets:cash -4 JPY",lf
 ⟩
-duplicateActual ← (snapshot.Build ⟨syntheticLines,duplicateRaw,registry⟩).facts
+duplicateActual ← (snapshot.Build ⟨syntheticAccountSource,duplicateRaw,registry⟩).facts
 duplicateHousehold ← MakeHouseholdPolicy ⟨duplicateActual.accounts,"budget:food",⟨"budget:opening"⟩,⟨"budget:unassigned"⟩⟩
 duplicateCompletion ← envelopes.Build ⟨syntheticBudget,syntheticPolicy,duplicateHousehold,duplicateActual,syntheticPlan,"JPY",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-10"⟩
 "error" lib.AssertEq duplicateCompletion.state
 0 lib.AssertEq duplicateCompletion.envelopes.count
 "plan_completion_multiple_actuals" lib.AssertEq (⊑duplicateCompletion.diagnostics).code
 
-overflowLines ← ⟨
-  Join ⟨"assets:ils","role=asset","currency=ILS"⟩,
-  Join ⟨"income:ils","role=income","currency=ILS"⟩,
-  Join ⟨"expenses:ils","role=expense","currency=ILS"⟩,
-  Join ⟨"budget:opening-ils","role=budget","currency=ILS"⟩,
-  Join ⟨"budget:unassigned-ils","role=budget","currency=ILS"⟩,
-  Join ⟨"budget:food-ils","role=budget","currency=ILS"⟩
+overflowAccountSource ← Raw ⟨
+  "account assets:ils","  type: Asset","  commodity: ILS","",
+  "account income:ils","  type: Income","  commodity: ILS","",
+  "account expenses:ils","  type: Expense","  commodity: ILS","",
+  "account budget:opening-ils","  type: Budget","  commodity: ILS","",
+  "account budget:unassigned-ils","  type: Budget","  commodity: ILS","",
+  "account budget:food-ils","  type: Budget","  commodity: ILS"
 ⟩
 overflowRaw ← ∾⟨
   "commodity ILS",lf,lf,"account assets:ils",lf,"    ; role: asset",lf,lf,
@@ -194,7 +194,7 @@ overflowRaw ← ∾⟨
   "account budget:food-ils",lf,"    ; role: budget",lf,lf,
   "2026-01-05 * fractional",lf,"    ; event-id: fractional",lf,"    ; layer: actual",lf,"    expenses:ils 0.1 ILS",lf,"    assets:ils -0.1 ILS",lf
 ⟩
-overflowActual ← (snapshot.Build ⟨overflowLines,overflowRaw,registry⟩).facts
+overflowActual ← (snapshot.Build ⟨overflowAccountSource,overflowRaw,registry⟩).facts
 overflowBudget ← (canonicalBudget.Build ⟨Raw ⟨"2026-01-01 max","  budget:unassigned-ils  -999999999999999 ILS","  budget:food-ils         999999999999999 ILS"⟩,overflowActual.accounts,registry⟩).movements
 overflowPolicyRaw ← Raw ⟨
   "[[backing-pools]]","id = "∾(Q "cash"),"asset-accounts = ["∾(Q "assets:ils")∾"]","",

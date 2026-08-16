@@ -1,10 +1,10 @@
-# Test-only compatibility fixture for historical accounts.tsv based snapshots.
+# Test-only fixture for snapshots built from canonical Account Journal evidence.
 #
 # Production Snapshot ownership starts from already-admitted canonical Account
-# evidence. Older accounting/section fixtures still use accounts.tsv rows; keep
-# that qualification convenience here rather than in src/ledger/snapshot.bqn.
+# evidence. Tests that need a compact in-memory path may admit accounts.journal
+# here, then pass that Account observation to the Snapshot owner.
 
-accountAdmission ← •Import "../src/ledger/account_admission.bqn"
+accountAdmission ← •Import "../src/ledger/account_journal_admission.bqn"
 snapshot ← •Import "../src/ledger/snapshot.bqn"
 empty ← ⟨⟩
 
@@ -19,8 +19,8 @@ EmptyFacts ← {𝕊:
   }
 }
 
-Build ← {𝕊 accountLines‿rawJournal‿registry:
-  accountResult ← accountAdmission.Admit ⟨accountLines,registry⟩
+Build ← {𝕊 accountSource‿rawJournal‿registry:
+  accountResult ← accountAdmission.Admit accountSource
   diagnostics ← accountResult.diagnostics
   result ← {state⇐"error",facts⇐EmptyFacts @,diagnostics⇐diagnostics}
   {𝕊:

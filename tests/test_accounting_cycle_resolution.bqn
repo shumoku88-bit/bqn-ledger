@@ -3,8 +3,8 @@
 lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
-account_admission ← •Import "../src/ledger/account_admission.bqn"
-snapshot ← •Import "legacy_snapshot_fixture.bqn"
+account_admission ← •Import "../src/ledger/account_journal_admission.bqn"
+snapshot ← •Import "canonical_snapshot_fixture.bqn"
 canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 cycle_admission ← •Import "../src/ledger/cycle_admission.bqn"
 cycleSelection ← •Import "../src/application/cycle_resolution.bqn"
@@ -14,10 +14,10 @@ income_resolver ← •Import "../src/accounting/cycle_income_anchor_resolution.
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 
 base ← "fixtures/ledger-facts-phase1-proof/"
-accountLines ← loader.ReadLines base∾"accounts.tsv"
+accountSource ← •FChars "../"∾base∾"accounts.journal"
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
-accounts ← (account_admission.Admit ⟨accountLines,registry⟩).accounts
-actualFacts ← (snapshot.Build ⟨accountLines,•FChars "../"∾base∾"actual.journal",registry⟩).facts
+accounts ← (account_admission.Admit accountSource).accounts
+actualFacts ← (snapshot.Build ⟨accountSource,•FChars "../"∾base∾"actual.journal",registry⟩).facts
 lf ← @+10
 tab ← @+9
 Raw ← {𝕊 lines: ∾lines∾¨lf}

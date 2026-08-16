@@ -2,13 +2,13 @@
 lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
-snapshot ← •Import "legacy_snapshot_fixture.bqn"
+snapshot ← •Import "canonical_snapshot_fixture.bqn"
 monthly ← •Import "../src/accounting/month_account_movement.bqn"
 
 base ← "fixtures/ledger-facts-phase1-proof/"
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
-lines ← loader.ReadLines base∾"accounts.tsv"
-facts ← (snapshot.Build ⟨lines,•FChars "../"∾base∾"actual.journal",registry⟩).facts
+accountSource ← •FChars "../"∾base∾"accounts.journal"
+facts ← (snapshot.Build ⟨accountSource,•FChars "../"∾base∾"actual.journal",registry⟩).facts
 result ← monthly.Build ⟨facts,"JPY","2026-01","2026-03"⟩
 "ok" lib.AssertEq result.state
 ⟨"2026-01","2026-02"⟩ lib.AssertEq result.months
@@ -25,14 +25,14 @@ result ← monthly.Build ⟨facts,"JPY","2026-01","2026-03"⟩
 ⟨⟨⟩,⟨⟩,⟨⟩,⟨⟩,⟨⟩,⟨⟩,⟨⟩⟩ lib.AssertEq 1⊑result.matrix.contributors
 
 lf ← @+10
-BuildDomain ← {𝕊 currency‿accountLines‿raw:
-  domainFacts ← (snapshot.Build ⟨accountLines,raw,registry⟩).facts
+BuildDomain ← {𝕊 currency‿accountSourceValue‿raw:
+  domainFacts ← (snapshot.Build ⟨accountSourceValue,raw,registry⟩).facts
   monthly.Build ⟨domainFacts,currency,"2026-03","2026-05"⟩
 }
-ilsLines ← ⟨
-  "assets:ils	role=asset	currency=ILS",
-  "expenses:a-ils	role=expense	currency=ILS",
-  "expenses:b-ils	role=expense	currency=ILS"
+ilsAccounts ← ∾⟨
+  "account assets:ils",lf,"  type: Asset",lf,"  commodity: ILS",lf,lf,
+  "account expenses:a-ils",lf,"  type: Expense",lf,"  commodity: ILS",lf,lf,
+  "account expenses:b-ils",lf,"  type: Expense",lf,"  commodity: ILS",lf
 ⟩
 ilsRaw ← ∾⟨
   "commodity ILS",lf,lf,"account assets:ils",lf,"    ; role: asset",lf,lf,
@@ -43,7 +43,7 @@ ilsRaw ← ∾⟨
   "2026-03-02 * b",lf,"    ; event-id: ils-b",lf,"    ; layer: actual",lf,
   "    expenses:b-ils 0.05 ILS",lf,"    assets:ils -0.05 ILS",lf
 ⟩
-ils ← BuildDomain ⟨"ILS",ilsLines,ilsRaw⟩
+ils ← BuildDomain ⟨"ILS",ilsAccounts,ilsRaw⟩
 "ok" lib.AssertEq ils.state
 2 lib.AssertEq ils.scale
 ils.matrix.scale lib.AssertEq ils.scale
@@ -63,7 +63,7 @@ interleavedRaw ← ∾⟨
   "2026-04-02 * April A",lf,"    ; event-id: interleaved-april-a",lf,"    ; layer: actual",lf,
   "    expenses:a-ils 7 ILS",lf,"    assets:ils -7 ILS",lf
 ⟩
-interleaved ← BuildDomain ⟨"ILS",ilsLines,interleavedRaw⟩
+interleaved ← BuildDomain ⟨"ILS",ilsAccounts,interleavedRaw⟩
 "ok" lib.AssertEq interleaved.state
 ⟨"2026-03","2026-04"⟩ lib.AssertEq interleaved.months
 ⟨0,0,0⟩ lib.AssertEq 0⊑interleaved.matrix.values
@@ -78,9 +78,12 @@ marchExpenseA ← 1⊑0⊑interleaved.matrix.contributors
 ⟨⟩ lib.AssertEq 2⊑0⊑interleaved.matrix.contributors
 ⟨"interleaved-april-b:0"⟩ lib.AssertEq {𝕩.posting_id}¨2⊑1⊑interleaved.matrix.contributors
 
-usdLines ← ⟨"assets:usd	role=asset	currency=USD","expenses:usd	role=expense	currency=USD"⟩
+usdAccounts ← ∾⟨
+  "account assets:usd",lf,"  type: Asset",lf,"  commodity: USD",lf,lf,
+  "account expenses:usd",lf,"  type: Expense",lf,"  commodity: USD",lf
+⟩
 usdRaw ← ∾⟨"commodity USD",lf,lf,"account assets:usd",lf,"    ; role: asset",lf,lf,"account expenses:usd",lf,"    ; role: expense",lf⟩
-usd ← BuildDomain ⟨"USD",usdLines,usdRaw⟩
+usd ← BuildDomain ⟨"USD",usdAccounts,usdRaw⟩
 "ok" lib.AssertEq usd.state
 0 lib.AssertEq usd.scale
 ⟨⟨0,0⟩,⟨0,0⟩⟩ lib.AssertEq usd.matrix.values

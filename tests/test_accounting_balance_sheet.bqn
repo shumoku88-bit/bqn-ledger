@@ -2,13 +2,14 @@
 lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 registryCore ← •Import "../src/ledger/currency_registry.bqn"
-snapshot ← •Import "legacy_snapshot_fixture.bqn"
+snapshot ← •Import "canonical_snapshot_fixture.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 balanceSheet ← •Import "../src/accounting/balance_sheet.bqn"
 
 base ← "fixtures/ledger-facts-phase1-proof/"
 registry ← (registryCore.Build loader.ReadLines "config/currencies.tsv").registry
-facts ← (snapshot.Build ⟨loader.ReadLines base∾"accounts.tsv",•FChars "../"∾base∾"actual.journal",registry⟩).facts
+accountSource ← •FChars "../"∾base∾"accounts.journal"
+facts ← (snapshot.Build ⟨accountSource,•FChars "../"∾base∾"actual.journal",registry⟩).facts
 result ← balanceSheet.Build ⟨facts,"JPY",dates.Ordinal "2026-01-12"⟩
 "ok" lib.AssertEq result.state
 ⟨"assets:cash"⟩ lib.AssertEq result.assets.account_key
@@ -25,13 +26,14 @@ result ← balanceSheet.Build ⟨facts,"JPY",dates.Ordinal "2026-01-12"⟩
 1 lib.AssertEq result.balanced
 4 lib.AssertEq ≠result.unclosed_result_contributors
 
-syntheticAccounts ← ⟨
-  "assets:cash	role=asset	currency=JPY",
-  "assets:savings	role=asset	currency=JPY",
-  "liabilities:debt	role=liability	currency=JPY",
-  "equity:opening	role=equity	currency=JPY",
-  "income:salary	role=income	currency=JPY",
-  "expenses:food	role=expense	currency=JPY"
+lf ← @+10
+syntheticAccounts ← ∾⟨
+  "account assets:cash",lf,"  type: Asset",lf,"  commodity: JPY",lf,lf,
+  "account assets:savings",lf,"  type: Asset",lf,"  commodity: JPY",lf,lf,
+  "account liabilities:debt",lf,"  type: Liability",lf,"  commodity: JPY",lf,lf,
+  "account equity:opening",lf,"  type: Equity",lf,"  commodity: JPY",lf,lf,
+  "account income:salary",lf,"  type: Income",lf,"  commodity: JPY",lf,lf,
+  "account expenses:food",lf,"  type: Expense",lf,"  commodity: JPY",lf
 ⟩
 syntheticLines ← ⟨
   "commodity JPY","",
@@ -45,7 +47,7 @@ syntheticLines ← ⟨
   "2026-01-02 * food on debt","    ; event-id: food","    ; layer: actual","    ; currency: JPY","    expenses:food 30 JPY","    liabilities:debt -30 JPY","",
   "2026-01-03 * salary","    ; event-id: salary","    ; layer: actual","    ; currency: JPY","    assets:cash 50 JPY","    income:salary -50 JPY"
 ⟩
-syntheticRaw ← ∾{𝕩∾(@+10)}¨syntheticLines
+syntheticRaw ← ∾{𝕩∾lf}¨syntheticLines
 syntheticFacts ← (snapshot.Build ⟨syntheticAccounts,syntheticRaw,registry⟩).facts
 synthetic ← balanceSheet.Build ⟨syntheticFacts,"JPY",dates.Ordinal "2026-01-03"⟩
 "ok" lib.AssertEq synthetic.state
@@ -66,12 +68,12 @@ synthetic ← balanceSheet.Build ⟨syntheticFacts,"JPY",dates.Ordinal "2026-01-
 190 lib.AssertEq synthetic.total_liabilities_and_equity
 ⟨"salary:1","food:0"⟩ lib.AssertEq {𝕩.posting_id}¨synthetic.unclosed_result_contributors
 
-budgetRaw ← (•FChars "../"∾base∾"actual.journal")∾(@+10)∾∾{𝕩∾(@+10)}¨⟨
+budgetRaw ← (•FChars "../"∾base∾"actual.journal")∾lf∾∾{𝕩∾lf}¨⟨
   "2026-01-13 * unsupported budget balance",
   "    ; event-id: budget-balance","    ; layer: actual","    ; currency: JPY",
   "    budget:food 10 JPY","    assets:cash -10 JPY"
 ⟩
-budgetFacts ← (snapshot.Build ⟨loader.ReadLines base∾"accounts.tsv",budgetRaw,registry⟩).facts
+budgetFacts ← (snapshot.Build ⟨accountSource,budgetRaw,registry⟩).facts
 budgetRejected ← balanceSheet.Build ⟨budgetFacts,"JPY",dates.Ordinal "2026-01-13"⟩
 "error" lib.AssertEq budgetRejected.state
 "unsupported_role_balance" lib.AssertEq (⊑budgetRejected.diagnostics).code

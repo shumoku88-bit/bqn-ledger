@@ -2,7 +2,7 @@
 
 lib ← •Import "test_lib.bqn"
 registryCore ← •Import "../src/ledger/currency_registry.bqn"
-snapshot ← •Import "legacy_snapshot_fixture.bqn"
+snapshot ← •Import "canonical_snapshot_fixture.bqn"
 canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 observation ← •Import "../src/accounting/plan_observation.bqn"
@@ -10,9 +10,14 @@ lf ← @+10 ⋄ tab ← @+9
 Raw ← {𝕊 lines:∾{𝕩∾⟨lf⟩}¨lines}
 Join ← {𝕊 fields:out←⊑fields ⋄ {𝕊 field:out∾↩tab∾field}¨1↓fields ⋄ out}
 registry ← (registryCore.Build ⟨Join ⟨"JPY","0","¥"⟩⟩).registry
-accountLines ← ⟨Join ⟨"assets:cash","role=asset","currency=JPY"⟩,Join ⟨"assets:savings","role=asset","currency=JPY"⟩,Join ⟨"expenses:food","role=expense","currency=JPY"⟩,Join ⟨"expenses:books","role=expense","currency=JPY"⟩⟩
+accountSource ← Raw ⟨
+  "account assets:cash","  type: Asset","  commodity: JPY","",
+  "account assets:savings","  type: Asset","  commodity: JPY","",
+  "account expenses:food","  type: Expense","  commodity: JPY","",
+  "account expenses:books","  type: Expense","  commodity: JPY"
+⟩
 actualRaw ← Raw ⟨"commodity JPY","","account assets:cash","    ; role: asset","","account assets:savings","    ; role: asset","","account expenses:food","    ; role: expense","","account expenses:books","    ; role: expense","","2026-01-10 * explicit completion with unrelated shape","    ; event-id: complete-actual","    ; layer: actual","    ; plan-id: completed-plan","    assets:savings 5 JPY","    assets:cash -5 JPY","","2026-01-20 * future completion","    ; event-id: future-actual","    ; layer: actual","    ; plan-id: future-plan","    assets:savings 2 JPY","    assets:cash -2 JPY"⟩
-actual ← (snapshot.Build ⟨accountLines,actualRaw,registry⟩).facts
+actual ← (snapshot.Build ⟨accountSource,actualRaw,registry⟩).facts
 planRaw ← Raw ⟨"2026-01-20 old multi posting","  ; plan-id: old-plan","  ; superseded-on: 2026-01-12","  ; superseded-by: new-plan","  expenses:food 3 JPY","  expenses:books 2 JPY","  assets:cash -5 JPY","","2026-01-20 replacement","  ; plan-id: new-plan","  expenses:food 4 JPY","  assets:cash -4 JPY","","2026-01-08 completed multi posting","  ; plan-id: completed-plan","  expenses:food 3 JPY","  expenses:books 2 JPY","  assets:cash -5 JPY","","2026-01-20 future completion plan","  ; plan-id: future-plan","  assets:savings 2 JPY","  assets:cash -2 JPY"⟩
 planResult ← canonicalPlan.Build ⟨planRaw,actual.accounts,registry⟩
 "ok" lib.AssertEq planResult.state
@@ -38,12 +43,12 @@ afterFuture ← observation.Build ⟨plan,retirements,actual,jan21⟩
 # Lifecycle relation is explicit identity, not posting resemblance.
 0 lib.AssertEq ≠before.diagnostics
 unknownRaw ← actualRaw∾Raw ⟨"","2026-01-09 * unknown relation","    ; event-id: unknown-actual","    ; layer: actual","    ; plan-id: missing-plan","    assets:savings 1 JPY","    assets:cash -1 JPY"⟩
-unknownActual ← (snapshot.Build ⟨accountLines,unknownRaw,registry⟩).facts
+unknownActual ← (snapshot.Build ⟨accountSource,unknownRaw,registry⟩).facts
 unknown ← observation.Build ⟨plan,retirements,unknownActual,jan15⟩
 "error" lib.AssertEq unknown.state
 "completion_plan_unknown" lib.AssertEq (⊑unknown.diagnostics).code
 duplicateRaw ← actualRaw∾Raw ⟨"","2026-01-30 * second completion","    ; event-id: duplicate-actual","    ; layer: actual","    ; plan-id: completed-plan","    assets:savings 5 JPY","    assets:cash -5 JPY"⟩
-duplicateActual ← (snapshot.Build ⟨accountLines,duplicateRaw,registry⟩).facts
+duplicateActual ← (snapshot.Build ⟨accountSource,duplicateRaw,registry⟩).facts
 duplicate ← observation.Build ⟨plan,retirements,duplicateActual,jan11⟩
 "error" lib.AssertEq duplicate.state
 "plan_completion_multiple_actuals" lib.AssertEq (⊑duplicate.diagnostics).code

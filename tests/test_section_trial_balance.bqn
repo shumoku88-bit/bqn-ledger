@@ -3,7 +3,7 @@
 lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
-snapshot ← •Import "legacy_snapshot_fixture.bqn"
+snapshot ← •Import "canonical_snapshot_fixture.bqn"
 cycle_admission ← •Import "../src/ledger/cycle_admission.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 account_period ← •Import "../src/accounting/account_period.bqn"
@@ -11,7 +11,7 @@ section ← •Import "../src/sections/trial_balance.bqn"
 
 base ← "fixtures/ledger-facts-phase1-proof/"
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
-facts ← (snapshot.Build ⟨loader.ReadLines base∾"accounts.tsv",•FChars "../"∾base∾"actual.journal",registry⟩).facts
+facts ← (snapshot.Build ⟨•FChars "../"∾base∾"accounts.journal",•FChars "../"∾base∾"actual.journal",registry⟩).facts
 cycle ← cycle_admission.Admit ⟨loader.ReadLines base∾"cycle.tsv",facts.accounts⟩
 start ← dates.Ordinal cycle.definition.start
 end ← dates.Ordinal cycle.definition.end_exclusive

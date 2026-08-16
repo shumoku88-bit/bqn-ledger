@@ -2,7 +2,7 @@
 
 lib ← •Import "test_lib.bqn"
 registryCore ← •Import "../src/ledger/currency_registry.bqn"
-snapshot ← •Import "legacy_snapshot_fixture.bqn"
+snapshot ← •Import "canonical_snapshot_fixture.bqn"
 canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 historyFixture ← •Import "envelope_history_test_fixture.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
@@ -11,18 +11,18 @@ lf ← @+10 ⋄ tab ← @+9
 Raw ← {𝕊 lines:∾{𝕩∾⟨lf⟩}¨lines}
 Join ← {𝕊 fields:out←⊑fields ⋄ {𝕊 field:out∾↩tab∾field}¨1↓fields ⋄ out}
 registry ← (registryCore.Build ⟨Join ⟨"JPY","0","¥"⟩⟩).registry
-accountLines ← ⟨
-  Join ⟨"assets:cash","role=asset","currency=JPY"⟩,
-  Join ⟨"assets:savings","role=asset","currency=JPY"⟩,
-  Join ⟨"assets:investment","role=asset","currency=JPY"⟩,
-  Join ⟨"expenses:food","role=expense","currency=JPY"⟩
+accountSource ← Raw ⟨
+  "account assets:cash","  type: Asset","  commodity: JPY","",
+  "account assets:savings","  type: Asset","  commodity: JPY","",
+  "account assets:investment","  type: Asset","  commodity: JPY","",
+  "account expenses:food","  type: Expense","  commodity: JPY"
 ⟩
 actualRaw ← Raw ⟨
   "commodity JPY","","account assets:cash","    ; role: asset","","account assets:savings","    ; role: asset","","account assets:investment","    ; role: asset","","account expenses:food","    ; role: expense","",
   "2026-01-10 * completed savings target","    ; event-id: save-actual","    ; layer: actual","    ; plan-id: save-1","    assets:savings 5 JPY","    assets:investment 7 JPY","    assets:cash -12 JPY","",
   "2026-01-10 * completed expense target","    ; event-id: food-actual","    ; layer: actual","    ; plan-id: food-1","    expenses:food 5 JPY","    assets:cash -5 JPY"
 ⟩
-actual ← (snapshot.Build ⟨accountLines,actualRaw,registry⟩).facts
+actual ← (snapshot.Build ⟨accountSource,actualRaw,registry⟩).facts
 planRaw ← Raw ⟨
   "2026-01-10 savings target","  ; plan-id: save-1","  assets:savings 4 JPY","  assets:investment 6 JPY","  assets:cash -10 JPY","",
   "2026-01-10 expense target","  ; plan-id: food-1","  expenses:food 5 JPY","  assets:cash -5 JPY"
@@ -54,7 +54,7 @@ unknown ← fulfillment.Build ⟨plan,retirements,actual,unknownRoute,"JPY",star
 "error" lib.AssertEq unknown.state
 "fulfillment_route_plan_unknown" lib.AssertEq (⊑unknown.diagnostics).code
 unknownActualRaw ← actualRaw∾Raw ⟨"","2026-01-11 * unknown completion","    ; event-id: ghost-actual","    ; layer: actual","    ; plan-id: ghost-plan","    assets:savings 3 JPY","    assets:cash -3 JPY"⟩
-unknownActual ← (snapshot.Build ⟨accountLines,unknownActualRaw,registry⟩).facts
+unknownActual ← (snapshot.Build ⟨accountSource,unknownActualRaw,registry⟩).facts
 unknownCompletion ← fulfillment.Build ⟨plan,retirements,unknownActual,history,"JPY",start,finish,jan15⟩
 "error" lib.AssertEq unknownCompletion.state
 "completion_plan_unknown" lib.AssertEq (⊑unknownCompletion.diagnostics).code

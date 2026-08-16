@@ -2,13 +2,13 @@
 lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
-snapshot ← •Import "legacy_snapshot_fixture.bqn"
+snapshot ← •Import "canonical_snapshot_fixture.bqn"
 recent ← •Import "../src/accounting/recent_transactions.bqn"
 
 base ← "fixtures/ledger-facts-phase1-proof/"
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
-accountLines ← loader.ReadLines base∾"accounts.tsv"
-facts ← (snapshot.Build ⟨accountLines,•FChars "../"∾base∾"actual.journal",registry⟩).facts
+accountSource ← •FChars "../"∾base∾"accounts.journal"
+facts ← (snapshot.Build ⟨accountSource,•FChars "../"∾base∾"actual.journal",registry⟩).facts
 Ids ← {𝕊 references: {𝕩.transaction_id}¨references}
 result ← recent.Build ⟨facts,10⟩
 "ok" lib.AssertEq result.state
@@ -29,13 +29,16 @@ invalid ← recent.Build ⟨facts,0⟩
 "limit_invalid" lib.AssertEq (⊑invalid.diagnostics).code
 
 lf ← @+10
-emptyLines ← ⟨"assets:empty	role=asset	currency=JPY","expenses:empty	role=expense	currency=JPY"⟩
+emptyAccounts ← ∾⟨
+  "account assets:empty",lf,"  type: Asset",lf,"  commodity: JPY",lf,lf,
+  "account expenses:empty",lf,"  type: Expense",lf,"  commodity: JPY",lf
+⟩
 emptyRaw ← ∾⟨
   "commodity JPY",lf,lf,
   "account assets:empty",lf,"    ; role: asset",lf,lf,
   "account expenses:empty",lf,"    ; role: expense",lf
 ⟩
-emptyFacts ← (snapshot.Build ⟨emptyLines,emptyRaw,registry⟩).facts
+emptyFacts ← (snapshot.Build ⟨emptyAccounts,emptyRaw,registry⟩).facts
 emptyResult ← recent.Build ⟨emptyFacts,10⟩
 "ok" lib.AssertEq emptyResult.state
 0 lib.AssertEq emptyResult.rows.count

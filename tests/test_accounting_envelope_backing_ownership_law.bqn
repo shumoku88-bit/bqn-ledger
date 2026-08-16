@@ -2,7 +2,7 @@
 lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
-snapshot ← •Import "legacy_snapshot_fixture.bqn"
+snapshot ← •Import "canonical_snapshot_fixture.bqn"
 canonicalBudget ← •Import "canonical_budget_test_facts.bqn"
 canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 budgetPolicyAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
@@ -11,8 +11,8 @@ envelopes ← •Import "envelope_backing_test_adapter.bqn"
 
 base ← "fixtures/ledger-facts-phase1-proof/"
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
-accountLines ← loader.ReadLines base∾"accounts.tsv"
-actual ← (snapshot.Build ⟨accountLines,•FChars "../"∾base∾"actual.journal",registry⟩).facts
+accountSource ← •FChars "../"∾base∾"accounts.journal"
+actual ← (snapshot.Build ⟨accountSource,•FChars "../"∾base∾"actual.journal",registry⟩).facts
 lf ← @+10
 Raw ← {𝕊 lines: ∾lines∾¨lf}
 AccountIndex ← {𝕊 key‿accounts: ⊑accounts.key⊐⟨key⟩}

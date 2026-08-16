@@ -2,14 +2,13 @@
 lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
-snapshot ← •Import "legacy_snapshot_fixture.bqn"
+snapshot ← •Import "canonical_snapshot_fixture.bqn"
 monthly ← •Import "../src/accounting/month_account_movement.bqn"
 section ← •Import "../src/sections/monthly_accounts.bqn"
 
 base ← "fixtures/ledger-facts-phase1-proof/"
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
-lines ← loader.ReadLines base∾"accounts.tsv"
-facts ← (snapshot.Build ⟨lines,•FChars "../"∾base∾"actual.journal",registry⟩).facts
+facts ← (snapshot.Build ⟨•FChars "../"∾base∾"accounts.journal",•FChars "../"∾base∾"actual.journal",registry⟩).facts
 result ← section.Build monthly.Build ⟨facts,"JPY","2026-01","2026-03"⟩
 "ok" lib.AssertEq result.state
 2 lib.AssertEq result.matrix.row_count

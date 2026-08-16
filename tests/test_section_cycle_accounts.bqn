@@ -2,8 +2,8 @@
 lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
-account_admission ← •Import "../src/ledger/account_admission.bqn"
-snapshot ← •Import "legacy_snapshot_fixture.bqn"
+account_admission ← •Import "../src/ledger/account_journal_admission.bqn"
+snapshot ← •Import "canonical_snapshot_fixture.bqn"
 cycle_admission ← •Import "../src/ledger/cycle_admission.bqn"
 fixed_resolver ← •Import "../src/accounting/cycle_fixed_resolution.bqn"
 cycle_period ← •Import "../src/accounting/cycle_account_period.bqn"
@@ -11,9 +11,9 @@ section ← •Import "../src/sections/cycle_accounts.bqn"
 
 base ← "fixtures/ledger-facts-phase1-proof/"
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
-accountLines ← loader.ReadLines base∾"accounts.tsv"
-accounts ← (account_admission.Admit ⟨accountLines,registry⟩).accounts
-facts ← (snapshot.Build ⟨accountLines,•FChars "../"∾base∾"actual.journal",registry⟩).facts
+accountSource ← •FChars "../"∾base∾"accounts.journal"
+accounts ← (account_admission.Admit accountSource).accounts
+facts ← (snapshot.Build ⟨accountSource,•FChars "../"∾base∾"actual.journal",registry⟩).facts
 cycle ← fixed_resolver.Resolve cycle_admission.Admit ⟨loader.ReadLines base∾"cycle.tsv",accounts⟩
 accounting ← cycle_period.Build ⟨facts,"JPY",cycle,"2026-01-10"⟩
 result ← section.Build accounting

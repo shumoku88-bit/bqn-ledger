@@ -3,8 +3,8 @@
 lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
-snapshot ← •Import "legacy_snapshot_fixture.bqn"
-account_admission ← •Import "../src/ledger/account_admission.bqn"
+snapshot ← •Import "canonical_snapshot_fixture.bqn"
+account_admission ← •Import "../src/ledger/account_journal_admission.bqn"
 canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 cycle_admission ← •Import "../src/ledger/cycle_admission.bqn"
@@ -13,7 +13,8 @@ period ← •Import "../src/accounting/account_period.bqn"
 
 base ← "fixtures/ledger-facts-phase1-proof/"
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
-facts ← (snapshot.Build ⟨loader.ReadLines base∾"accounts.tsv",•FChars "../"∾base∾"actual.journal",registry⟩).facts
+accountSource ← •FChars "../"∾base∾"accounts.journal"
+facts ← (snapshot.Build ⟨accountSource,•FChars "../"∾base∾"actual.journal",registry⟩).facts
 cycle ← cycle_admission.Admit ⟨loader.ReadLines base∾"cycle.tsv",facts.accounts⟩
 "ok" lib.AssertEq cycle.state
 start ← dates.Ordinal cycle.definition.start
@@ -59,11 +60,12 @@ normalized ← scale.Normalize ⟨¯12,0,2⟩
 "error" lib.AssertEq (scale.Normalize ⟨9007199254740991,0,1⟩).state
 "error" lib.AssertEq (scale.Sum ⟨9007199254740991,2⟩).state
 
-scaleAccountLines ← ⟨
-  "assets:jpy	role=asset	currency=JPY",
-  "expenses:jpy	role=expense	currency=JPY"
+lf ← @+10
+scaleAccountSource ← ∾⟨
+  "account assets:jpy",lf,"  type: Asset",lf,"  commodity: JPY",lf,lf,
+  "account expenses:jpy",lf,"  type: Expense",lf,"  commodity: JPY",lf
 ⟩
-scaleAccounts ← (account_admission.Admit ⟨scaleAccountLines,registry⟩).accounts
+scaleAccounts ← (account_admission.Admit scaleAccountSource).accounts
 scalePlanRaw ← ∾{𝕩∾@+10}¨⟨
   "2026-01-10 whole","  ; plan-id: p1","  expenses:jpy 25 JPY","  assets:jpy -25 JPY","",
   "2026-01-11 fraction","  ; plan-id: p2","  expenses:jpy 12.30 JPY","  assets:jpy -12.30 JPY"
@@ -77,15 +79,14 @@ scalePeriod ← period.Build ⟨scaleFacts,"JPY","plan",start,end⟩
 ¯373 lib.AssertEq scalePeriod.totals.credit_movement
 1 lib.AssertEq scalePeriod.totals.balanced
 
-lf ← @+10
-BuildActualPeriod ← {𝕊 currency‿accountLines‿raw‿firstDate‿lastDate:
-  domainFacts ← (snapshot.Build ⟨accountLines,raw,registry⟩).facts
+BuildActualPeriod ← {𝕊 currency‿accountSourceValue‿raw‿firstDate‿lastDate:
+  domainFacts ← (snapshot.Build ⟨accountSourceValue,raw,registry⟩).facts
   period.Build ⟨domainFacts,currency,"actual",dates.Ordinal firstDate,dates.Ordinal lastDate⟩
 }
-periodAccountLines ← ⟨
-  "assets:ils	role=asset	currency=ILS",
-  "expenses:a-ils	role=expense	currency=ILS",
-  "expenses:b-ils	role=expense	currency=ILS"
+periodAccountSource ← ∾⟨
+  "account assets:ils",lf,"  type: Asset",lf,"  commodity: ILS",lf,lf,
+  "account expenses:a-ils",lf,"  type: Expense",lf,"  commodity: ILS",lf,lf,
+  "account expenses:b-ils",lf,"  type: Expense",lf,"  commodity: ILS",lf
 ⟩
 periodRaw ← ∾⟨
   "commodity ILS",lf,lf,"account assets:ils",lf,"    ; role: asset",lf,lf,
@@ -102,7 +103,7 @@ periodRaw ← ∾⟨
   "2026-03-03 * Period A second",lf,"    ; event-id: period-a-second",lf,"    ; layer: actual",lf,
   "    expenses:a-ils -7 ILS",lf,"    assets:ils 7 ILS",lf
 ⟩
-characterized ← BuildActualPeriod ⟨"ILS",periodAccountLines,periodRaw,"2026-03-01","2026-04-01"⟩
+characterized ← BuildActualPeriod ⟨"ILS",periodAccountSource,periodRaw,"2026-03-01","2026-04-01"⟩
 "ok" lib.AssertEq characterized.state
 ⟨"assets:ils","expenses:a-ils","expenses:b-ils"⟩ lib.AssertEq characterized.accounts.account_key
 ⟨0,0,0⟩ lib.AssertEq characterized.accounts.opening
@@ -121,15 +122,15 @@ characterized ← BuildActualPeriod ⟨"ILS",periodAccountLines,periodRaw,"2026-
 0 lib.AssertEq characterized.totals.closing
 1 lib.AssertEq characterized.totals.balanced
 
-emptyAccountLines ← ⟨
-  "assets:usd	role=asset	currency=USD",
-  "expenses:usd	role=expense	currency=USD"
+emptyAccountSource ← ∾⟨
+  "account assets:usd",lf,"  type: Asset",lf,"  commodity: USD",lf,lf,
+  "account expenses:usd",lf,"  type: Expense",lf,"  commodity: USD",lf
 ⟩
 emptyRaw ← ∾⟨
   "commodity USD",lf,lf,"account assets:usd",lf,"    ; role: asset",lf,lf,
   "account expenses:usd",lf,"    ; role: expense",lf
 ⟩
-emptyPeriod ← BuildActualPeriod ⟨"USD",emptyAccountLines,emptyRaw,"2026-03-01","2026-04-01"⟩
+emptyPeriod ← BuildActualPeriod ⟨"USD",emptyAccountSource,emptyRaw,"2026-03-01","2026-04-01"⟩
 "ok" lib.AssertEq emptyPeriod.state
 2 lib.AssertEq emptyPeriod.accounts.count
 ⟨0,0⟩ lib.AssertEq emptyPeriod.accounts.opening

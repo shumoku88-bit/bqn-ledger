@@ -3,24 +3,18 @@
 lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
-account_admission ← •Import "../src/ledger/account_admission.bqn"
-snapshot ← •Import "legacy_snapshot_fixture.bqn"
+account_admission ← •Import "../src/ledger/account_journal_admission.bqn"
+snapshot ← •Import "canonical_snapshot_fixture.bqn"
 canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 join ← •Import "../src/accounting/plan_completion_join.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 
 base ← "fixtures/ledger-facts-phase1-proof/"
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
-accountLines ← loader.ReadLines base∾"accounts.tsv"
-accounts ← (account_admission.Admit ⟨accountLines,registry⟩).accounts
+accountSource ← •FChars "../"∾base∾"accounts.journal"
+accounts ← (account_admission.Admit accountSource).accounts
 lf ← @+10
-tab ← @+9
 Raw ← {𝕊 lines: ∾lines∾¨lf}
-TsvLine ← {𝕊 fields:
-  out ← ⊑fields
-  {𝕊 field: out∾↩tab∾field}¨1↓fields
-  out
-}
 planRaw ← Raw ⟨
   "2026-01-20 food-plan",
   "  ; plan-id: plan-food-2026-01",
@@ -29,7 +23,7 @@ planRaw ← Raw ⟨
 ⟩
 planFacts ← (canonicalPlan.Build ⟨planRaw,accounts,registry⟩).facts
 actualRaw ← •FChars "../"∾base∾"actual.journal"
-BuildActualFacts ← {𝕊 raw: (snapshot.Build ⟨accountLines,raw,registry⟩).facts}
+BuildActualFacts ← {𝕊 raw: (snapshot.Build ⟨accountSource,raw,registry⟩).facts}
 actualFacts ← BuildActualFacts actualRaw
 
 startOrdinal ← dates.Ordinal "2026-01-01"
@@ -102,11 +96,11 @@ unknown ← join.Build ⟨planFacts,unknownFacts,⟨0⟩,unknownFacts.transactio
 "unrelated-completion" lib.AssertEq (⊑unknown.unmatched_actual_references).transaction_id
 
 # Exact coefficients/scales stay source-local in a non-JPY domain.
-ilsAccountLines ← ⟨
-  TsvLine ⟨"assets:ils","role=asset","currency=ILS"⟩,
-  TsvLine ⟨"expenses:ils","role=expense","currency=ILS"⟩
+ilsAccountSource ← Raw ⟨
+  "account assets:ils","  type: Asset","  commodity: ILS","",
+  "account expenses:ils","  type: Expense","  commodity: ILS"
 ⟩
-ilsAccounts ← (account_admission.Admit ⟨ilsAccountLines,registry⟩).accounts
+ilsAccounts ← (account_admission.Admit ilsAccountSource).accounts
 ilsPlanRaw ← Raw ⟨
   "2026-03-20 service",
   "  ; plan-id: ils-service",
@@ -125,7 +119,7 @@ ilsRaw ← ∾⟨
   "    expenses:ils 11.25 ILS",lf,
   "    assets:ils -11.25 ILS",lf
 ⟩
-ilsActual ← (snapshot.Build ⟨ilsAccountLines,ilsRaw,registry⟩).facts
+ilsActual ← (snapshot.Build ⟨ilsAccountSource,ilsRaw,registry⟩).facts
 ilsJoined ← join.Build ⟨ilsPlan,ilsActual,⟨0⟩,⟨0⟩⟩
 ⟨123⟩ lib.AssertEq ilsJoined.rows.planned_coefficient
 ⟨1⟩ lib.AssertEq ilsJoined.rows.planned_scale
@@ -133,10 +127,7 @@ ilsJoined ← join.Build ⟨ilsPlan,ilsActual,⟨0⟩,⟨0⟩⟩
 ⟨⟨2⟩⟩ lib.AssertEq ilsJoined.rows.actual_scales
 
 # Non-adjacent duplicate selections fail closed before evidence construction.
-selectionPlanFacts ← {
-  state⇐"ok",sources⇐planFacts.sources,
-  transactions⇐{index⇐⟨0,1⟩}
-}
+selectionPlanFacts ← {state⇐"ok",sources⇐planFacts.sources,transactions⇐{index⇐⟨0,1⟩}}
 duplicatePlanSelection ← join.Build ⟨selectionPlanFacts,actualFacts,⟨0,1,0⟩,⟨⟩⟩
 "error" lib.AssertEq duplicatePlanSelection.state
 0 lib.AssertEq duplicatePlanSelection.rows.count

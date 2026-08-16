@@ -3,15 +3,15 @@
 lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
-account_admission ← •Import "../src/ledger/account_admission.bqn"
-snapshot ← •Import "legacy_snapshot_fixture.bqn"
+account_admission ← •Import "../src/ledger/account_journal_admission.bqn"
+snapshot ← •Import "canonical_snapshot_fixture.bqn"
 canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 join ← •Import "../src/accounting/plan_completion_join.bqn"
 
 base ← "fixtures/ledger-facts-phase1-proof/"
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
-accountLines ← loader.ReadLines base∾"accounts.tsv"
-accounts ← (account_admission.Admit ⟨accountLines,registry⟩).accounts
+accountSource ← •FChars "../"∾base∾"accounts.journal"
+accounts ← (account_admission.Admit accountSource).accounts
 lf ← @+10
 empty ← ⟨⟩
 Raw ← {𝕊 lines: ∾lines∾¨lf}
@@ -67,7 +67,7 @@ orderedActualRaw ← ∾⟨
   "    expenses:transport 4 JPY",lf,
   "    assets:cash -4 JPY",lf
 ⟩
-actualFacts ← (snapshot.Build ⟨accountLines,orderedActualRaw,registry⟩).facts
+actualFacts ← (snapshot.Build ⟨accountSource,orderedActualRaw,registry⟩).facts
 "ok" lib.AssertEq actualFacts.state
 foodSecondIndex ← IndexOf ⟨"proof-food-order-2",actualFacts.transactions.transaction_id⟩
 unmatchedBIndex ← IndexOf ⟨"unmatched-order-b",actualFacts.transactions.transaction_id⟩
@@ -84,25 +84,15 @@ ordered ← join.Build ⟨planFacts,actualFacts,planSelection,actualSelection⟩
 1 lib.AssertEq ordered.counts.duplicate
 0 lib.AssertEq ordered.counts.open
 0 lib.AssertEq ordered.counts.ambiguous
-
 # Outer rows preserve explicit Plan selection order, expressed by durable identity.
-⟨
-  "plan.journal:plan_id:plan-transport-order",
-  "plan.journal:plan_id:plan-food-2026-01"
-⟩ lib.AssertEq Ids ordered.rows.plan_reference
-
+⟨"plan.journal:plan_id:plan-transport-order","plan.journal:plan_id:plan-food-2026-01"⟩ lib.AssertEq Ids ordered.rows.plan_reference
 # Each matching Actual cell preserves explicit Actual selection order.
-⟨
-  ⟨"proof-transport-order"⟩,
-  ⟨"proof-food-order-2","proof-food-1"⟩
-⟩ lib.AssertEq {Ids 𝕩}¨ordered.rows.actual_references
-
+⟨⟨"proof-transport-order"⟩,⟨"proof-food-order-2","proof-food-1"⟩⟩ lib.AssertEq {Ids 𝕩}¨ordered.rows.actual_references
 # The parallel evidence columns remain aligned with those durable references.
 ⟨⟨15⟩,⟨20,20⟩⟩ lib.AssertEq ordered.rows.actual_coefficients
 ⟨⟨"2026-01-18"⟩,⟨"2026-01-10","2026-01-10"⟩⟩ lib.AssertEq ordered.rows.actual_dates
 ⟨⟨1⟩,⟨1,1⟩⟩ lib.AssertEq ordered.rows.currency_matches
 ⟨⟨1⟩,⟨1,1⟩⟩ lib.AssertEq ordered.rows.direction_matches
-
 # Unmatched selected Actual relations preserve their own selected order.
 ⟨"unmatched-order-b","unmatched-order-a"⟩ lib.AssertEq Ids ordered.unmatched_actual_references
 

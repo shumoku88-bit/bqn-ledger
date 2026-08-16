@@ -2,7 +2,7 @@
 lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 registryBuilder ← •Import "../src/ledger/currency_registry.bqn"
-snapshot ← •Import "legacy_snapshot_fixture.bqn"
+snapshot ← •Import "canonical_snapshot_fixture.bqn"
 canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 admission ← •Import "../src/application/daily_scope_admission.bqn"
 adapter ← •Import "../src/application/daily_scope_adapter.bqn"
@@ -18,8 +18,8 @@ Raw ← {𝕊 lines: ∾lines∾¨lf}
 
 base ← "fixtures/ledger-facts-phase1-proof/"
 registry ← (registryBuilder.Build loader.ReadLines "config/currencies.tsv").registry
-accountLines ← loader.ReadLines base∾"accounts.tsv"
-actual ← (snapshot.Build ⟨accountLines,•FChars "../"∾base∾"actual.journal",registry⟩).facts
+accountSource ← •FChars "../"∾base∾"accounts.journal"
+actual ← (snapshot.Build ⟨accountSource,•FChars "../"∾base∾"actual.journal",registry⟩).facts
 planRaw ← Raw ⟨
   "2026-01-15 rent",
   "  ; plan-id: plan-rent-daily-target",
