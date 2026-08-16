@@ -35,7 +35,7 @@ The next work is cross-cutting repository observation rather than another semant
 - [x] `experiments/` reachability: promoted action-catalog and sparse classify-once probes retired; current negative evidence retained. See `docs/CROSS_CUTTING_EXPERIMENT_REACHABILITY_AUDIT-2026-08-17.md`.
 - [x] `tui/` reachability and documentation drift: status-only stale directory retired. See `docs/CROSS_CUTTING_FRONTEND_REACHABILITY_AUDIT-2026-08-17.md`.
 - [x] Calendar-first Household surface versus older Command Hub / TUI documentation: current spatial + flat-palette frontend portfolio recorded in `docs/PRODUCTION_EDITOR_DIRECTION.md` and the frontend audit.
-- [ ] shell action/selection duplication versus `HouseholdSurface.Actions`: spatial and gum frontends now share `tools/household-action`; standalone `add-ui` writer menu remains to review.
+- [x] shell action/selection duplication versus `HouseholdSurface.Actions`: spatial/gum frontends share `tools/household-action`; standalone `add-ui` writer membership is parity-checked against non-Observe command Actions.
 - [ ] remaining migration/compatibility residue outside completed canonical Household recovery;
 - [ ] checks/tests classification: current law guard, historical characterization, or obsolete topology assumption.
 
@@ -49,14 +49,14 @@ HouseholdSurface Domain × Operation × Actions
               -> tools/bl / existing direct owners
 ```
 
-Both current Household frontends now converge on that route:
+Physical presentation remains plural without duplicating that logical route:
 
 - `tools/household-surface`: Calendar-first spatial terminal frontend;
-- `tools/household-hub-gum`: optional flat searchable palette.
+- `tools/household-hub-gum`: optional flat searchable palette;
+- `tools/lib/ui-choice.sh`: nested opaque-line fzf/gum/plain selector adapter;
+- `tools/add-ui.sh`: compact standalone writer-only shortcut plus explicit writer modes.
 
-Nested opaque-line choice remains independently adapter-owned by `tools/lib/ui-choice.sh` (`fzf` / `gum` / `plain`).
-
-`tools/add-ui.sh` remains a writer interaction helper. Its standalone no-mode writer menu is now the next narrower duplication question. Do not replace it by dumping the whole Household action relation: that relation includes read/report actions and uses frontend-neutral logical keys that intentionally differ from writer mode names.
+The `add-ui` menu is deliberately not the whole Household taxonomy. Its twelve physical modes correspond exactly to current `command` actions whose operation is not `observe`, with only two physical aliases: `budget -> budget-move` and `issue -> issue-add`. Repository checks require that parity.
 
 ## Continuation contract
 
@@ -73,7 +73,7 @@ A fresh session should:
 ## Current cursor
 
 ```text
-standalone tools/add-ui.sh writer-menu duplication
+editor / writer effect ownership across active shell publication paths
 ```
 
-Decide whether that no-mode compatibility menu should remain an independent compact writer shortcut or be projected from a smaller current writer-action relation. Explicit `add-ui` modes and direct editor commands are not candidates for removal in this audit.
+Trace candidate construction -> machine protocol -> backup/stale guard -> atomic publication -> mandatory post-write admission, and look for duplicated writer authority or compatibility shells outside the established safe-write owner.
