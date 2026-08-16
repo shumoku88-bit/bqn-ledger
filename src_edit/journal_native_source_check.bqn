@@ -5,13 +5,13 @@ admission ← •Import "../src/ledger/journal_complete_admission.bqn"
 accountSource ← •Import "../src/application/account_source_adapter.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 decimal ← •Import "../src/ledger/exact_decimal.bqn"
+scale ← •Import "../src/ledger/exact_scale.bqn"
 editorCurrency ← •Import "../src/application/editor_currency.bqn"
 setup ← editorCurrency.Load @
 
 args ← •args
 tab ← @+9
 space ← @+32
-empty ← ⟨⟩
 Fail ← {𝕊 code‿message: •Out "ERROR"∾tab∾code∾tab∾message ⋄ •Exit 1}
 TrimLeft ← {𝕊 xs: (+´ ∧` (xs = space)) ↓ xs}
 TrimRight ← {𝕊 xs: ((≠ xs) - +´ ∧` ((⌽ xs) = space)) ↑ xs}
@@ -28,11 +28,10 @@ description ← 3⊑args
 identityMode ← 4⊑args
 eventId ← 5⊑args
 candidateOrdinalText ← 6⊑args
-argIndex ← 7
-currency ← "JPY"
-currencyMarker ← argIndex ⊑ args
-{𝕊: currency ↩ 9 ↓ currencyMarker ⋄ argIndex +↩ 1}⍟("currency=" ≡ 9 ↑ currencyMarker) @
-postingArgs ← argIndex↓args
+currencyMarker ← 7⊑args
+hasCurrencyMarker ← "currency=" ≡ 9 ↑ currencyMarker
+currency ← hasCurrencyMarker ⊑ ⟨"JPY",9 ↓ currencyMarker⟩
+postingArgs ← (7 + hasCurrencyMarker) ↓ args
 policy ← setup.Policy currency
 {𝕊⋄Fail ⟨"currency_unsupported", "transaction currency must be admitted by registry"⟩}⍟(policy.state≢"ok") @
 
@@ -46,8 +45,7 @@ validOrdinal ← (isOk ◶ ⟨ {0}, {(0 ≤ parsedOrdinal.coefficient) ∧ candi
 {𝕊⋄Fail ⟨"candidate_ordinal_invalid", "candidate ordinal must be a canonical nonnegative exact integer"⟩}⍟(¬ validOrdinal) @
 candidateOrdinal ← parsedOrdinal.coefficient
 
-expected ← empty
-{𝕊 text:
+ExpectedPosting ← {𝕊 text:
   equalMask ← '=' = text
   {𝕊⋄Fail ⟨"expected_posting_invalid", "expected posting protocol is malformed"⟩}⍟(1 ≠ +´ equalMask) @
   i ← ⊑ equalMask / ↕≠text
@@ -61,18 +59,17 @@ expected ← empty
   {𝕊⋄Fail ⟨"expected_posting_invalid", "expected posting precision exceeds currency policy"⟩}⍟((0≤policy.max_fraction_digits) ∧ parsedAmount.scale>policy.max_fraction_digits) @
   coefficient ← (1-2×negative) × parsedAmount.coefficient
   {𝕊⋄Fail ⟨"expected_posting_invalid", "expected posting amount is zero"⟩}⍟(0=coefficient) @
-  expected ∾↩ ⟨{account_key⇐account, amount_text⇐amountText, source_coefficient⇐coefficient, source_scale⇐parsedAmount.scale, normalized_coefficient⇐0, commodity⇐currency}⟩
-}¨postingArgs
-{𝕊⋄Fail ⟨"expected_posting_invalid", "expected candidate requires at least two postings"⟩}⍟(2>≠expected) @
-calculationScale ← ⌈´ {𝕩.source_scale}¨ expected
-Normalize ← {𝕊 posting:
-  zeros ← calculationScale-posting.source_scale
-  magnitude ← decimal.Parse ((•Fmt |posting.source_coefficient)∾zeros⥊'0')
-  {𝕊⋄Fail ⟨"expected_posting_invalid", "expected posting cannot normalize exactly"⟩}⍟(magnitude.state≢"ok") @
-  normalized ← (1-2×posting.source_coefficient<0)×magnitude.coefficient
-  {account_key⇐posting.account_key, amount_text⇐posting.amount_text, source_coefficient⇐posting.source_coefficient, source_scale⇐posting.source_scale, normalized_coefficient⇐normalized, commodity⇐posting.commodity}
+  {account_key⇐account, amount_text⇐amountText, source_coefficient⇐coefficient, source_scale⇐parsedAmount.scale, normalized_coefficient⇐0, commodity⇐currency}
 }
-expected ↩ Normalize¨expected
+parsedExpected ← ExpectedPosting¨postingArgs
+{𝕊⋄Fail ⟨"expected_posting_invalid", "expected candidate requires at least two postings"⟩}⍟(2>≠parsedExpected) @
+calculationScale ← ⌈´ {𝕩.source_scale}¨ parsedExpected
+Normalize ← {𝕊 posting:
+  normalized ← scale.Normalize ⟨posting.source_coefficient,posting.source_scale,calculationScale⟩
+  {𝕊⋄Fail ⟨"expected_posting_invalid", "expected posting cannot normalize exactly"⟩}⍟(normalized.state≢"ok") @
+  {account_key⇐posting.account_key, amount_text⇐posting.amount_text, source_coefficient⇐posting.source_coefficient, source_scale⇐posting.source_scale, normalized_coefficient⇐normalized.coefficient, commodity⇐posting.commodity}
+}
+expected ← Normalize¨parsedExpected
 {𝕊⋄Fail ⟨"expected_posting_invalid", "expected candidate requires balanced postings"⟩}⍟(0≠+´{𝕩.normalized_coefficient}¨expected) @
 
 accountResult ← accountSource.Load base
