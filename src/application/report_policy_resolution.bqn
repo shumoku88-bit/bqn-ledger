@@ -10,7 +10,7 @@ empty ← ⟨⟩
 
 Diagnostic ← {𝕊 code‿message:{severity⇐"error",stage⇐"application_report_policy_resolution",code⇐code,message⇐message}}
 AddIf ← {𝕊 invalid‿diagnostic:invalid/⟨diagnostic⟩}
-NoCurrentCycle ← {state⇐"unavailable",start⇐"",end_exclusive⇐""}
+noCurrentCycle ← {state⇐"unavailable",start⇐"",end_exclusive⇐""}
 
 ResolveEnd ← {𝕊 reference‿latest:
   (reference≡"latest")◶⟨{𝕊:reference},{𝕊:latest}⟩ @
@@ -48,8 +48,7 @@ CurrentCycleDiagnostics ← {𝕊 policy‿latest‿currentCycle:
       diagnostics∾↩AddIf ⟨¬valid,Diagnostic ⟨"report_current_cycle_context_invalid","resolved Household Cycle must contain strict Gregorian boundaries"⟩⟩
       {𝕊:
         latestOrdinal ← dates.Ordinal latest
-        inside ← (dates.Ordinal currentCycle.start)≤latestOrdinal
-          ∧ latestOrdinal<dates.Ordinal currentCycle.end_exclusive
+        inside ← ((dates.Ordinal currentCycle.start)≤latestOrdinal) ∧ latestOrdinal<dates.Ordinal currentCycle.end_exclusive
         diagnostics∾↩AddIf ⟨¬inside,Diagnostic ⟨"report_current_cycle_observation_outside_period","latest Report date must occur inside the resolved current Cycle"⟩⟩
       }⍟(valid ∧ dates.IsValid latest) @
     }⍟available @
@@ -133,7 +132,7 @@ ResolveWithCurrentCycle ← {𝕊 policy‿latest‿journalDates‿currentCycle:
   ⟩ @
 }
 Resolve ← {𝕊 policy‿latest‿journalDates:
-  ResolveWithCurrentCycle ⟨policy,latest,journalDates,NoCurrentCycle⟩
+  ResolveWithCurrentCycle ⟨policy,latest,journalDates,noCurrentCycle⟩
 }
 
 {Resolve⇐Resolve,ResolveWithCurrentCycle⇐ResolveWithCurrentCycle,NeedsCurrentCycle⇐NeedsCurrentCycle}
