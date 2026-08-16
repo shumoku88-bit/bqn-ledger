@@ -1,5 +1,5 @@
 --- Ledger Envelope & Backing ---
-ledger_envelope_item: food entitlement=60 consumption=30 refunds=0 fulfillment=0 remaining=30 reserve=200 headroom=-170
+ledger_envelope_item: food entitlement=60 consumption=30 refunds=0 fulfillment=0 remaining=30 commitment=200 headroom=-170
 ledger_envelope_funding_balance: 965
 ledger_envelope_signed_total: 30
 ledger_envelope_backing_required: 30
