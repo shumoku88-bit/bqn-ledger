@@ -74,7 +74,7 @@ policy ← setup.Policy currency
 checks ← ⟨
   validate.ValidateDate dateVal,
   validate.ValidateNoTabNewline "memo"‿memoVal,
-  validate.ValidateExactAmountForCurrency currency‿amountVal,
+  validate.ValidateExactAmountForPolicy ⟨currency,policy,amountVal⟩,
   validate.ValidateMeta metaTokens,
   validate.ValidateNoCurrencyMeta metaTokens
 ⟩
