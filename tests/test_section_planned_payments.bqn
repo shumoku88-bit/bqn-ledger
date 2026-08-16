@@ -3,8 +3,8 @@
 lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
-account_admission ← •Import "../src/ledger/account_admission.bqn"
-snapshot ← •Import "legacy_snapshot_fixture.bqn"
+account_admission ← •Import "../src/ledger/account_journal_admission.bqn"
+snapshot ← •Import "canonical_snapshot_fixture.bqn"
 canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 cycle_admission ← •Import "../src/ledger/cycle_admission.bqn"
 fixed_cycle ← •Import "../src/accounting/cycle_fixed_resolution.bqn"
@@ -12,10 +12,10 @@ section ← •Import "../src/sections/planned_payments.bqn"
 
 base ← "fixtures/ledger-facts-phase1-proof/"
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
-accountLines ← loader.ReadLines base∾"accounts.tsv"
-accounts ← (account_admission.Admit ⟨accountLines,registry⟩).accounts
+accountSource ← •FChars "../"∾base∾"accounts.journal"
+accounts ← (account_admission.Admit accountSource).accounts
 actualRaw ← •FChars "../"∾base∾"actual.journal"
-actualFacts ← (snapshot.Build ⟨accountLines,actualRaw,registry⟩).facts
+actualFacts ← (snapshot.Build ⟨accountSource,actualRaw,registry⟩).facts
 lf ← @+10
 Raw ← {𝕊 lines: ∾lines∾¨lf}
 planRaw ← •FChars "../"∾base∾"plan.journal"
@@ -115,7 +115,7 @@ pastCompletedActualRaw ← ∾⟨
   "    assets:cash -50 JPY",lf
 ⟩
 pastCompletedPlanFacts ← (canonicalPlan.Build ⟨pastCompletedPlanRaw,accounts,registry⟩).facts
-pastCompletedActualFacts ← (snapshot.Build ⟨accountLines,pastCompletedActualRaw,registry⟩).facts
+pastCompletedActualFacts ← (snapshot.Build ⟨accountSource,pastCompletedActualRaw,registry⟩).facts
 pastResult ← section.Build ⟨pastCompletedPlanFacts,pastCompletedActualFacts,cycle,"2026-01-12"⟩
 "ok" lib.AssertEq pastResult.state
 0 lib.AssertEq pastResult.rows.count
@@ -129,7 +129,7 @@ duplicateRaw ← ∾⟨
   "    expenses:food 20 JPY",lf,
   "    assets:cash -20 JPY",lf
 ⟩
-duplicateActual ← (snapshot.Build ⟨accountLines,duplicateRaw,registry⟩).facts
+duplicateActual ← (snapshot.Build ⟨accountSource,duplicateRaw,registry⟩).facts
 duplicateResult ← section.Build ⟨planFacts,duplicateActual,cycle,"2026-01-12"⟩
 "error" lib.AssertEq duplicateResult.state
 0 lib.AssertEq duplicateResult.rows.count
