@@ -44,7 +44,7 @@ This gives gum an independent current role. The question is therefore not “rem
 
 `tools/household-action` validates an action key against `HouseholdSurface.Actions` and maps that logical key to the existing direct command/report owner.
 
-Both current Household frontends now delegate selected logical actions through this dispatcher:
+Both current Household frontends delegate selected logical actions through this dispatcher:
 
 ```text
 Calendar spatial frontend
@@ -56,7 +56,7 @@ flat gum Command Palette
 
 The Calendar surface no longer owns a second action-key -> command case table. It selects one admitted action key and passes the selected date and base directory to `tools/household-action`.
 
-`check-household-surface.sh` now guards this boundary and rejects a direct `tools/bl`/`tools/edit` route table inside `run_logical_action`.
+`check-household-surface.sh` guards this boundary and rejects a direct `tools/bl`/`tools/edit` route table inside `run_logical_action`.
 
 ## Selector adapters
 
@@ -75,20 +75,37 @@ The helper does not interpret Account, Plan, Issue, report, or writer meaning. N
 
 ## Writer interaction helper
 
-`tools/add-ui.sh` is live.
+`tools/add-ui.sh` is live and remains intentionally separate from the full Household surface.
 
-Its explicit modes are writer-interaction leaves invoked by direct routes and Household actions. Its no-mode `choose_mode` menu remains a standalone writer shortcut. That static writer menu is not the primary Household information architecture, but it duplicates part of the logical action portfolio and is now the next frontend duplication to review.
+Its explicit modes are writer-interaction leaves invoked by direct routes and Household actions. Its no-mode `choose_mode` menu is retained as a compact standalone writer shortcut rather than promoted into a second Household taxonomy.
 
-Do not replace it by blindly dumping all `HouseholdSurface.Actions`: the production action relation also contains Observe/report actions and uses logical keys such as `budget-move` / `issue-add` that intentionally differ from physical `add-ui` mode names.
-
-The next question is narrower:
+The portfolio is now tied to current logical action meaning by a repository law:
 
 ```text
-Should the standalone writer-shortcut portfolio be projected from one current writer-action relation,
-or is its separate compact menu still the clearest compatibility surface?
+HouseholdSurface.Actions
+  where action_kind = command
+  and operation_key != observe
 ```
 
-That decision must preserve explicit `add-ui` modes and direct editor commands regardless of the no-mode menu result.
+produces exactly twelve current writer actions.
+
+The physical `add-ui` modes represent that same twelve-action set. Two local aliases remain deliberate:
+
+```text
+budget -> budget-move
+issue  -> issue-add
+```
+
+`check-command-hub-drilldown.sh` projects both sets, normalizes those two physical aliases, and requires exact equality.
+
+This keeps useful separation:
+
+- BQN/application relation owns which writer actions currently exist;
+- `add-ui` owns its compact localized labels and physical mode names;
+- explicit `add-ui` modes remain stable for direct callers;
+- the no-mode menu cannot silently gain or lose a writer action relative to `HouseholdSurface.Actions`.
+
+There is therefore no reason to generate the menu from the whole Household action relation or to remove the standalone writer shortcut merely to eliminate textual duplication.
 
 ## Retired `tui/` status directory
 
@@ -124,9 +141,15 @@ Calendar spatial frontend             flat gum palette
                       tools/bl
                           |
             existing direct report/editor owners
+
+standalone writer shortcut
+  tools/add-ui.sh
+        |
+  exact writer-action portfolio
+  checked against non-Observe command Actions
 ```
 
-This is now the current logical action route. Physical frontends may differ without rebuilding command meaning.
+Physical frontends may differ without rebuilding Household command meaning.
 
 ## Decisions
 
@@ -135,11 +158,20 @@ This is now the current logical action route. Physical frontends may differ with
 - keep the flat gum palette as an optional current frontend;
 - keep fzf/gum/plain nested selector adapters while they have independent physical roles;
 - keep `tools/household-action` as the one logical action dispatcher for Household frontends;
-- retire the stale `tui/README.md` status-only directory;
-- review the standalone `add-ui` writer menu separately rather than conflating it with the full Household action relation.
+- keep the standalone `add-ui` no-mode menu as a writer-only physical view, with its action membership checked against `HouseholdSurface.Actions`;
+- retire the stale `tui/README.md` status-only directory.
+
+## Frontend reachability result
+
+The concrete action/navigation duplication identified at the start of this audit is now bounded:
+
+- logical Household actions have one semantic relation;
+- current Household frontends share one logical dispatcher;
+- nested selector backends are opaque physical adapters;
+- the standalone writer menu is a deliberate narrower view whose membership is parity-checked rather than an independent semantic catalog.
 
 ## Next cursor
 
 ```text
-standalone tools/add-ui.sh writer-menu duplication
+editor / writer effect ownership across active shell publication paths
 ```
