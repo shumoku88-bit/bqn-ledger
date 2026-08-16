@@ -1,8 +1,10 @@
 # Strict BQN-native admission for canonical household.toml.
 # Account identity/type remains owned by accounts.journal. General Envelope and
 # Backing policy remains owned by budget.toml. This owner admits Household-only
-# Cycle, Budget structural coordinates, Money defaults, Daily Target selections,
-# and policy axes.
+# Cycle, stable Budget allocation coordinates, Money defaults, Daily Target
+# selections, and policy axes. Current Envelope membership remains budget.toml
+# authority; allocation coordinates may outlive current membership so historical
+# budget.journal evidence remains interpretable.
 
 lf ← @+10 ⋄ cr ← @+13 ⋄ space ← @+32 ⋄ tab ← @+9 ⋄ quote ← @+34 ⋄ hash ← ⊑"#"
 empty ← ⟨⟩
@@ -242,9 +244,10 @@ Admit ← {𝕊 raw‿accounts‿budgetPolicy:
   envelopeIds ← {𝕩.id}¨envelopeRows ⋄ allocationIndices ← {𝕩.allocation_index}¨envelopeRows
   diagnostics∾↩AddIf ⟨(≠envelopeIds)≠≠⍷envelopeIds,Diagnostic ⟨"household_envelope_id_duplicate",0,"Household envelope ids must be unique"⟩⟩
   diagnostics∾↩AddIf ⟨(≠allocationIndices)≠≠⍷allocationIndices,Diagnostic ⟨"household_allocation_account_duplicate",0,"One Budget Account may allocate only one envelope"⟩⟩
-  diagnostics∾↩AddIf ⟨(≠envelopeIds)≠budgetPolicy.envelopes.count,Diagnostic ⟨"household_envelope_coordinates_incomplete",0,"Every budget.toml envelope requires Household allocation coordinates"⟩⟩
-  diagnostics∾↩AddIf ⟨∨´0∾{¬Contains ⟨𝕩,budgetPolicy.envelopes.id⟩}¨envelopeIds,Diagnostic ⟨"household_envelope_unknown",0,"Household envelope coordinates must reference budget.toml"⟩⟩
-  diagnostics∾↩AddIf ⟨∨´0∾{¬Contains ⟨𝕩,envelopeIds⟩}¨budgetPolicy.envelopes.id,Diagnostic ⟨"household_envelope_coordinates_missing",0,"Every budget.toml envelope requires Household coordinates"⟩⟩
+  # Current budget.toml Envelopes must still have a stable allocation coordinate.
+  # Extra coordinates are historical identities and remain readable after the
+  # current Envelope is retired.
+  diagnostics∾↩AddIf ⟨∨´0∾{¬Contains ⟨𝕩,envelopeIds⟩}¨budgetPolicy.envelopes.id,Diagnostic ⟨"household_envelope_coordinates_missing",0,"Every current budget.toml envelope requires Household coordinates"⟩⟩
   dailyRows ← empty
   {𝕊 block:
     CheckKeys ⟨block,⟨"id","account"⟩,empty⟩
