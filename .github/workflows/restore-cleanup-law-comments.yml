@@ -1,0 +1,77 @@
+name: restore-cleanup-law-comments
+
+on:
+  push:
+    branches:
+      - cleanup/post-cutover-test-shells
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore law comments only
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          edits = {
+            'tests/test_accounting_cycle_resolution.bqn': [
+              ('selectedFixed ←', '# Application resolver selection stays aligned with the admitted mode axis.\n'),
+              ('incomeAtJan10 ←', '# Explicit observation excludes later Actual transactions from the frontier.\n'),
+            ],
+            'tests/test_accounting_plan_completion_join.bqn': [
+              ('open ← join.Build', '# Selection is explicit: excluding the linked Actual leaves the Plan open.\n'),
+              ('ilsAccountSource ←', '# Exact coefficients/scales stay source-local in a non-JPY domain.\n'),
+              ('selectionPlanFacts ←', '# Non-adjacent duplicate selections fail closed before evidence construction.\n'),
+              ('swapped ← join.Build', '# Swapped source families also fail closed with no rows.\n'),
+            ],
+            'tests/test_accounting_plan_completion_join_ordering.bqn': [
+              ('planRaw ←', '# Two Plans are intentionally selected in reverse source order.\n'),
+              ('actualRaw ←', '# Actual selection interleaves matching evidence and unmatched durable relations.\n# The second food completion deliberately has the same semantic signature as the\n# existing proof-food-1 completion, so the food Plan remains duplicate evidence.\n'),
+              ('⟨"plan.journal:plan_id:plan-transport-order"', '# Outer rows preserve explicit Plan selection order, expressed by durable identity.\n'),
+              ('⟨⟨"proof-transport-order"⟩', '# Each matching Actual cell preserves explicit Actual selection order.\n'),
+              ('⟨⟨15⟩,⟨20,20⟩⟩', '# The parallel evidence columns remain aligned with those durable references.\n'),
+              ('⟨"unmatched-order-b","unmatched-order-a"⟩', '# Unmatched selected Actual relations preserve their own selected order.\n'),
+            ],
+            'tests/test_accounting_envelope_backing.bqn': [
+              ('reorderedAccounts ←', '# Budget policy keeps Backing Account keys, not admission-time numeric coordinates.\n# Reversing only the Account carrier used for policy admission must therefore\n# leave Backing-pool resolution unchanged. Envelope claims are independently\n# fixed by explicit historical routing facts.\n'),
+              ('householdRaw ←', '# Household policy owns stable sparse Account keys. Re-admitting household.toml\n# against the reversed Account carrier changes only cached dense coordinates;\n# Envelope Backing must resolve ownership keys against the current Actual axis.\n'),
+            ],
+          }
+
+          changed = []
+          for filename, insertions in edits.items():
+            p = Path(filename)
+            text = p.read_text(encoding='utf-8')
+            original = text
+            for marker, comment in insertions:
+              if comment.rstrip() in text:
+                continue
+              if text.count(marker) != 1:
+                raise SystemExit(f'{filename}: expected one marker {marker!r}, got {text.count(marker)}')
+              text = text.replace(marker, comment + marker, 1)
+            if text != original:
+              p.write_text(text, encoding='utf-8')
+              changed.append(filename)
+
+          expected = set(edits)
+          if changed and set(changed) != expected:
+            raise SystemExit(f'partial comment restoration: {changed}')
+          PY
+          git diff --check
+          if git diff --quiet; then
+            echo 'Law comments already restored.'
+            exit 0
+          fi
+          changed="$(git diff --name-only)"
+          expected=$'tests/test_accounting_cycle_resolution.bqn\ntests/test_accounting_envelope_backing.bqn\ntests/test_accounting_plan_completion_join.bqn\ntests/test_accounting_plan_completion_join_ordering.bqn'
+          test "$changed" = "$expected"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tests/test_accounting_cycle_resolution.bqn tests/test_accounting_envelope_backing.bqn tests/test_accounting_plan_completion_join.bqn tests/test_accounting_plan_completion_join_ordering.bqn
+          git commit -m 'test: restore retained law commentary'
+          git push origin HEAD:cleanup/post-cutover-test-shells
