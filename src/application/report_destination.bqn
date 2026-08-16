@@ -58,7 +58,7 @@ MonthlyAccounts ← {𝕊 coordinates‿evidence:
 DailyFlow ← {𝕊 coordinates‿evidence:
   domain‿start‿finish‿observation ← coordinates
   compose.DailyFlow ⟨
-    evidence.actual,evidence.budget_policy,evidence.household,domain,start,finish,observation
+    evidence.actual,evidence.household,evidence.envelope_history,domain,start,finish,observation
   ⟩
 }
 DailyTarget ← {𝕊 coordinates‿evidence:
