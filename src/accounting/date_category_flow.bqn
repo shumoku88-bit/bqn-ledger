@@ -1,6 +1,7 @@
-# Pure selected-domain/layer date × Account and dynamic-category accounting flow.
-# budget.toml owns Envelope-to-Expense assignment; household.toml owns each
-# Envelope's structural Budget Account. Account identity/type stays in Facts.
+# Pure selected-domain/layer date × Account and historically routed category flow.
+# Stable Envelope category identity comes from household.toml allocation coordinates.
+# Expense-to-Envelope meaning is resolved from explicit routing history at each
+# Posting day. Current budget.toml policy is intentionally not an input.
 
 scale ← •Import "../ledger/exact_scale.bqn"
 sparse ← •Import "sparse_group.bqn"
@@ -33,51 +34,46 @@ FailureResult ← {𝕊 domainCode‿layerName‿startOrdinal‿endOrdinal‿dia
 }
 
 # Shallow capability admission owns request coordinates and cross-source relations.
-Admit ← {𝕊 factSet‿budgetPolicy‿householdPolicy‿domainCode‿layerName‿startOrdinal‿endOrdinal:
+Admit ← {𝕊 factSet‿householdPolicy‿history‿domainCode‿layerName‿startOrdinal‿endOrdinal:
   diagnostics ← empty
   diagnostics ∾↩ AddIf ⟨factSet.state≢"ok",Diagnostic ⟨"facts_not_ok","canonical facts must be ok"⟩⟩
-  diagnostics ∾↩ AddIf ⟨(budgetPolicy.state≢"ok") ∨ budgetPolicy.source_name≢"budget.toml",Diagnostic ⟨"budget_policy_invalid","date/category flow requires admitted budget.toml policy"⟩⟩
   diagnostics ∾↩ AddIf ⟨(householdPolicy.state≢"ok") ∨ householdPolicy.source_name≢"household.toml",Diagnostic ⟨"household_policy_invalid","date/category flow requires admitted household.toml policy"⟩⟩
+  diagnostics ∾↩ AddIf ⟨history.state≢"ok",Diagnostic ⟨"envelope_history_invalid","date/category flow requires admitted Envelope history"⟩⟩
   diagnostics ∾↩ AddIf ⟨¬Contains ⟨domainCode,factSet.domains.code⟩,Diagnostic ⟨"domain_unknown","selected domain must occur in Domain facts"⟩⟩
   diagnostics ∾↩ AddIf ⟨¬Contains ⟨layerName,factSet.layers.name⟩,Diagnostic ⟨"layer_unknown","selected layer must occur in Layer facts"⟩⟩
   diagnostics ∾↩ AddIf ⟨startOrdinal≥endOrdinal,Diagnostic ⟨"period_range_invalid","period start must precede end_exclusive"⟩⟩
-  diagnostics ∾↩ AddIf ⟨householdPolicy.account_policy.account_key≢factSet.accounts.key,Diagnostic ⟨"account_axis_mismatch","Household policy and Facts must share one Account axis"⟩⟩
 
   domainIndex ← 0 ⋄ layerIndex ← 0
   accountIndices ← empty ⋄ envelopeLabels ← empty ⋄ envelopeIndices ← empty
-  expenseIndices ← empty ⋄ expenseEnvelopeIds ← empty
+  routing ← history.expense_routing
   {𝕊:
     accounts ← factSet.accounts
     domainIndex↩IndexOf ⟨domainCode,factSet.domains.code⟩
     layerIndex↩IndexOf ⟨layerName,factSet.layers.name⟩
     accountIndices↩(domainCode⊸≡¨accounts.currency)/accounts.index
 
-    envelopeLabels↩budgetPolicy.envelopes.id
+    envelopeLabels↩householdPolicy.budget.envelope_id
+    envelopeIndices↩householdPolicy.budget.allocation_account_index
+    diagnostics ∾↩ AddIf ⟨(≠envelopeLabels)≠≠envelopeIndices,Diagnostic ⟨"household_envelope_coordinates_missing","Every stable Envelope identity requires one allocation Account"⟩⟩
     diagnostics ∾↩ AddIf ⟨Contains ⟨"other",envelopeLabels⟩,Diagnostic ⟨"envelope_category_reserved","other is reserved for unmatched expenses"⟩⟩
-
-    householdRows ← householdPolicy.budget.envelope_id⊐envelopeLabels
-    householdKnown ← ∧´1∾householdRows<≠householdPolicy.budget.envelope_id
-    diagnostics ∾↩ AddIf ⟨¬householdKnown,Diagnostic ⟨"household_envelope_coordinates_missing","Every budget.toml Envelope requires household.toml allocation coordinates"⟩⟩
-    envelopeIndices↩householdRows⊏householdPolicy.budget.allocation_account_index∾⟨¯1⟩
     envelopeRoles ← envelopeIndices⊏accounts.role∾⟨""⟩
     envelopeCurrencies ← envelopeIndices⊏accounts.currency∾⟨""⟩
-    diagnostics ∾↩ AddIf ⟨householdKnown ∧ ∨´0∾{𝕩≢"budget"}¨envelopeRoles,Diagnostic ⟨"envelope_account_role_invalid","Household Envelope allocation Accounts require Budget type"⟩⟩
-    diagnostics ∾↩ AddIf ⟨householdKnown ∧ ∨´0∾{𝕩≢domainCode}¨envelopeCurrencies,Diagnostic ⟨"envelope_account_domain_invalid","Household Envelope allocation Accounts must belong to the selected domain"⟩⟩
+    diagnostics ∾↩ AddIf ⟨∨´0∾{𝕩≢"budget"}¨envelopeRoles,Diagnostic ⟨"envelope_account_role_invalid","Household Envelope allocation Accounts require Budget type"⟩⟩
+    diagnostics ∾↩ AddIf ⟨∨´0∾{𝕩≢domainCode}¨envelopeCurrencies,Diagnostic ⟨"envelope_account_domain_invalid","Household Envelope allocation Accounts must belong to the selected domain"⟩⟩
 
-    expenseKeys ← ∾budgetPolicy.envelopes.expense_account_keys
-    expenseEnvelopeIds↩∾{𝕊 i:(≠i⊑budgetPolicy.envelopes.expense_account_keys)⥊⟨i⊑envelopeLabels⟩}¨↕≠envelopeLabels
-    expenseIndices↩accounts.key⊐expenseKeys
-    expenseKnown ← expenseIndices<accounts.count
-    expenseRoles ← expenseIndices⊏accounts.role∾⟨""⟩
-    diagnostics ∾↩ AddIf ⟨¬∧´1∾expenseKnown,Diagnostic ⟨"budget_policy_expense_account_unknown","budget.toml Expense Accounts must occur on the current Facts Account axis"⟩⟩
-    diagnostics ∾↩ AddIf ⟨∨´0∾expenseKnown ∧ ¬"expense"⊸≡¨expenseRoles,Diagnostic ⟨"budget_policy_expense_account_role_invalid","budget.toml Expense Accounts must remain Expense Accounts on the current Facts axis"⟩⟩
+    routeCoordinates ← accounts.key⊐routing.expense_account_key
+    routeKnown ← routeCoordinates<accounts.count
+    routeRoles ← routeCoordinates⊏accounts.role∾⟨""⟩
+    diagnostics ∾↩ AddIf ⟨¬∧´1∾routeKnown,Diagnostic ⟨"expense_route_account_unknown","historical Expense routing Account must occur on the current Facts Account axis"⟩⟩
+    diagnostics ∾↩ AddIf ⟨∨´0∾routeKnown ∧ ¬"expense"⊸≡¨routeRoles,Diagnostic ⟨"expense_route_account_role_invalid","historical Expense routing Account must remain an Expense Account"⟩⟩
+    managedTargets ← ("managed"⊸≡¨routing.route)/routing.target_id
+    diagnostics ∾↩ AddIf ⟨∨´0∾{¬Contains ⟨𝕩,envelopeLabels⟩}¨managedTargets,Diagnostic ⟨"expense_route_target_unknown","managed historical route must resolve to a stable Household Envelope identity"⟩⟩
   }⍟(0=≠diagnostics) @
 
   {
     state⇐(0=≠diagnostics)⊑"error"‿"ok",diagnostics⇐diagnostics,
     domain_index⇐domainIndex,layer_index⇐layerIndex,account_indices⇐accountIndices,
-    envelope_labels⇐envelopeLabels,envelope_indices⇐envelopeIndices,
-    expense_indices⇐expenseIndices,expense_envelope_ids⇐expenseEnvelopeIds
+    envelope_labels⇐envelopeLabels,envelope_indices⇐envelopeIndices,routing⇐routing
   }
 }
 
@@ -98,14 +94,6 @@ Kernel ← {𝕊 factSet‿admitted‿domainCode‿layerName‿startOrdinal‿en
     role⇐admitted.account_indices⊏accounts.role
   }
 
-  expenseCoordinates ← envelopeLabels⊐admitted.expense_envelope_ids
-  assignmentRows ← admitted.expense_indices⊐accounts.index
-  assigned ← assignmentRows<≠admitted.expense_indices
-  assignedCategories ← assignmentRows⊏expenseCoordinates∾⟨≠envelopeLabels⟩
-  accountExpenseMask ← "expense"⊸≡¨accounts.role
-  baseCategories ← ((≠envelopeLabels)×accountExpenseMask)-¬accountExpenseMask
-  accountCategory ← (assigned×assignedCategories)+(¬assigned)×baseCategories
-
   transactions ← factSet.transactions
   transactionMask ← (admitted.domain_index=transactions.domain_index) ∧ (admitted.layer_index=transactions.layer_index) ∧ (transactions.date_ordinal≥startOrdinal) ∧ transactions.date_ordinal<endOrdinal
   transactionDates ← transactionMask/transactions.date_ordinal
@@ -115,15 +103,45 @@ Kernel ← {𝕊 factSet‿admitted‿domainCode‿layerName‿startOrdinal‿en
 
   postings ← factSet.postings
   postingRoles ← postings.account_index⊏accounts.role
-  postingCategories ← postings.account_index⊏accountCategory
   postingMask ← (admitted.domain_index=postings.domain_index) ∧ (admitted.layer_index=postings.layer_index) ∧ (postings.date_ordinal≥startOrdinal) ∧ postings.date_ordinal<endOrdinal
   selectedFactIndices ← postingMask/postings.index
   selectedDates ← postingMask/postings.date_ordinal
   selectedAccounts ← postingMask/postings.account_index
   selectedRoles ← postingMask/postingRoles
-  selectedCategories ← postingMask/postingCategories
+  selectedKeys ← selectedAccounts⊏accounts.key
   selectedCoefficients ← postingMask/postings.coefficient
   selectedScales ← postingMask/postings.scale
+
+  # Resolve one historical route per selected Expense Posting. Non-Expense
+  # postings use a sentinel and do not participate in category grouping.
+  routing ← admitted.routing
+  RouteCategory ← {𝕊 i:
+    role ← i⊑selectedRoles
+    category ← ¯1
+    {𝕊:
+      key ← i⊑selectedKeys ⋄ day ← i⊑selectedDates
+      eligibleMask ← (key⊸≡¨routing.expense_account_key) ∧ (routing.initial ∨ routing.effective_ordinal≤day)
+      eligibleRows ← eligibleMask/routing.index
+      {𝕊:
+        ordinals ← eligibleRows⊏routing.effective_ordinal
+        latest ← ⌈´ordinals
+        latestRows ← (ordinals=latest)/eligibleRows
+        unique ← 1=≠latestRows
+        {𝕊:
+          row ← ⊑latestRows
+          managed ← row⊑routing.route≡"managed"
+          target ← row⊑routing.target_id
+          {𝕊:category↩IndexOf ⟨target,envelopeLabels⟩}⍟managed @
+          {𝕊:category↩≠envelopeLabels}⍟(¬managed) @
+        }⍟unique @
+        {𝕊:category↩≠envelopeLabels}⍟(¬unique) @
+      }⍟(0<≠eligibleRows) @
+      {𝕊:category↩≠envelopeLabels}⍟(0=≠eligibleRows) @
+    }⍟(role≡"expense") @
+    category
+  }
+  selectedCategories ← RouteCategory¨↕≠selectedAccounts
+
   amountScale ← ⌈´0∾selectedScales
   normalizedResults ← selectedCoefficients {scale.Normalize ⟨𝕨,𝕩,amountScale⟩}¨selectedScales
   normalizationOk ← ∧´1∾{𝕩.state≡"ok"}¨normalizedResults
@@ -183,10 +201,10 @@ Kernel ← {𝕊 factSet‿admitted‿domainCode‿layerName‿startOrdinal‿en
   result
 }
 
-# Input: Facts, admitted Budget policy, admitted Household policy, domain/layer,
+# Input: Facts, admitted Household policy, admitted Envelope history, domain/layer,
 # start ordinal, and end-exclusive ordinal.
-Build ← {𝕊 factSet‿budgetPolicy‿householdPolicy‿domainCode‿layerName‿startOrdinal‿endOrdinal:
-  admitted ← Admit ⟨factSet,budgetPolicy,householdPolicy,domainCode,layerName,startOrdinal,endOrdinal⟩
+Build ← {𝕊 factSet‿householdPolicy‿history‿domainCode‿layerName‿startOrdinal‿endOrdinal:
+  admitted ← Admit ⟨factSet,householdPolicy,history,domainCode,layerName,startOrdinal,endOrdinal⟩
   result ← FailureResult ⟨domainCode,layerName,startOrdinal,endOrdinal,admitted.diagnostics⟩
   {𝕊:result↩Kernel ⟨factSet,admitted,domainCode,layerName,startOrdinal,endOrdinal⟩}⍟(admitted.state≡"ok") @
   result
