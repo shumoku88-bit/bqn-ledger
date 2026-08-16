@@ -39,7 +39,7 @@ underStatement ← {
   totals⇐{
     entitlement⇐statement.totals.entitlement,actual_consumption⇐statement.totals.actual_consumption,
     actual_refunds⇐statement.totals.actual_refunds,fulfillment⇐statement.totals.fulfillment,ledger_remaining⇐statement.totals.ledger_remaining,
-    open_plan_reserve⇐statement.totals.open_plan_reserve,post_plan_headroom⇐statement.totals.post_plan_headroom,
+    commitment⇐statement.totals.commitment,post_plan_headroom⇐statement.totals.post_plan_headroom,
     funding_balance⇐¯1,signed_envelope_total⇐statement.totals.signed_envelope_total,
     backing_required⇐statement.totals.backing_required,backing_surplus⇐¯31,
     ledger_unassigned⇐statement.totals.ledger_unassigned,reconciliation_delta⇐¯71
