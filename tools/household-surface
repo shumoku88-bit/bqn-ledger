@@ -354,34 +354,8 @@ EOF
 }
 
 run_logical_action() {
-  local action_key=$1 action_kind=$2
-  if [[ $action_kind == report ]]; then
-    run_child "$root/tools/bl" --base "$base" --latest "$selected_date" "$action_key"
-    return
-  fi
-  case "$action_key" in
-    journal-list) run_child "$root/tools/bl" --base "$base" journal list ;;
-    expense|income|move|multi|reverse) run_child "$root/tools/bl" --base "$base" "$action_key" ;;
-    plan-list) run_child "$root/tools/bl" --base "$base" plans list ;;
-    plan-upcoming) run_child "$root/tools/edit" --base "$base" plan list --temporal upcoming --as-of "$selected_date" ;;
-    plan-overdue) run_child "$root/tools/edit" --base "$base" plan list --temporal overdue --as-of "$selected_date" ;;
-    plan-related) run_child "$root/tools/bl" --base "$base" plans related ;;
-    plan-add) run_child "$root/tools/bl" --base "$base" plans add ;;
-    plan-edit) run_child "$root/tools/bl" --base "$base" plans edit ;;
-    plan-finish) run_child "$root/tools/bl" --base "$base" plans finish ;;
-    budget-move) run_child "$root/tools/bl" --base "$base" budget add ;;
-    account-list) run_child "$root/tools/bl" --base "$base" accounts list ;;
-    account-add) run_child "$root/tools/bl" --base "$base" accounts add ;;
-    issue-list) run_child "$root/tools/bl" --base "$base" issues list ;;
-    issue-add) run_child "$root/tools/bl" --base "$base" issues add ;;
-    issue-close) run_child "$root/tools/bl" --base "$base" issues close ;;
-    *)
-      leave_screen
-      printf 'Unknown Household surface action: %s\n' "$action_key" >&2
-      pause_return
-      enter_screen
-      ;;
-  esac
+  local action_key=$1
+  run_child "$root/tools/household-action" --base "$base" --date "$selected_date" "$action_key"
 }
 
 open_selected_cell() {
