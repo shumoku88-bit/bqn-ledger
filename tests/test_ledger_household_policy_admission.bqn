@@ -1,14 +1,14 @@
 #!/usr/bin/env bqn
 
 lib ← •Import "test_lib.bqn"
-io ← •Import "../src/application/source_io.bqn"
 accountsAdmission ← •Import "../src/ledger/account_journal_admission.bqn"
 budgetAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
 householdAdmission ← •Import "../src/ledger/household_policy_admission.bqn"
 currentProjection ← •Import "../src/ledger/household_current_policy_projection.bqn"
 base ← "fixtures/ledger-facts-phase1-proof/"
 
-accountsResult ← accountsAdmission.Admit •FChars "../"∾base∾"accounts.journal"
+accountsRaw ← •FChars "../"∾base∾"accounts.journal"
+accountsResult ← accountsAdmission.Admit accountsRaw
 "ok" lib.AssertEq accountsResult.state
 accounts ← accountsResult.accounts
 budget ← budgetAdmission.Admit ⟨•FChars "../"∾base∾"budget.toml",accounts⟩
@@ -36,6 +36,22 @@ withMoney ← householdAdmission.Admit ⟨currentProjection.CurrentPolicy withMo
 0 lib.AssertEq ≠withMoney.diagnostics
 1 lib.AssertEq withMoney.money.present
 "JPY" lib.AssertEq withMoney.money.primary_commodity
+
+# Current Envelope membership and stable allocation coordinates are different
+# relations. The canonical retired-coordinate fixture keeps Daily current in
+# budget.toml while household.toml retains both Daily and Retired coordinates.
+retiredBase ← "../fixtures/canonical-household-retired-coordinate/"
+retiredAccountsResult ← accountsAdmission.Admit (•FChars retiredBase∾"accounts.journal")
+"ok" lib.AssertEq retiredAccountsResult.state
+retiredBudget ← budgetAdmission.Admit ⟨•FChars retiredBase∾"budget.toml",retiredAccountsResult.accounts⟩
+"ok" lib.AssertEq retiredBudget.state
+retiredHouseholdRaw ← •FChars retiredBase∾"household.toml"
+withRetired ← householdAdmission.Admit ⟨currentProjection.CurrentPolicy retiredHouseholdRaw,retiredAccountsResult.accounts,retiredBudget⟩
+"ok" lib.AssertEq withRetired.state
+0 lib.AssertEq ≠withRetired.diagnostics
+⟨"Daily","Retired"⟩ lib.AssertEq withRetired.budget.envelope_id
+⟨"Budget:Daily","Budget:Retired"⟩ lib.AssertEq withRetired.budget.allocation_account_key
+⟨"Daily"⟩ lib.AssertEq retiredBudget.envelopes.id
 
 IndexOf ← {𝕊 key: ⊑accounts.key⊐⟨key⟩}
 "liquid" lib.AssertEq (IndexOf "assets:cash")⊑household.account_policy.asset_class

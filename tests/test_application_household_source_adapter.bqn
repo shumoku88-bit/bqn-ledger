@@ -60,4 +60,17 @@ sharedHistory ← householdSource.LoadShared ⟨historyBase,accounts.accounts,po
 ⟨"Daily"⟩ lib.AssertEq sharedHistory.history.expense_routing.target_id
 sharedHistory.current.budget.envelope_id lib.AssertEq withHistory.budget.envelope_id
 
+# A stable allocation coordinate may outlive current budget.toml membership, but
+# once historical Envelope evidence is present its identity must remain in the
+# stable history registry. This fails closed before production composition.
+retiredBase ← "fixtures/canonical-household-retired-coordinate"
+retiredAccounts ← accountSource.Load retiredBase
+"ok" lib.AssertEq retiredAccounts.state
+retiredPolicy ← budgetSource.LoadPolicy ⟨retiredBase,retiredAccounts.accounts⟩
+"ok" lib.AssertEq retiredPolicy.state
+missingHistory ← householdSource.LoadShared ⟨retiredBase,retiredAccounts.accounts,retiredPolicy⟩
+"error" lib.AssertEq missingHistory.state
+1 lib.AssertEq ≠missingHistory.diagnostics
+"household_allocation_envelope_history_missing" lib.AssertEq (⊑missingHistory.diagnostics).code
+
 •Out "test_application_household_source_adapter: ok"
