@@ -44,7 +44,7 @@ fi
 grep -Fq -- '--date must be YYYY-MM-DD' "$work/invalid.err"
 
 for key in journal-list expense plan-finish budget-move account-add issue-close; do
-  grep -Fq "$key)" tools/household-action || {
+  grep -Fq "$key" tools/household-action || {
     echo "FAIL: shared Household dispatcher is missing $key" >&2
     exit 1
   }
