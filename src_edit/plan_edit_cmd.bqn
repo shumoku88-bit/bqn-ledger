@@ -95,7 +95,8 @@ amountChanged ← 0
 parsedAmount ← @
 {𝕊:
   {𝕊:Fail "Plan amount edit requires exactly two Postings"}⍟(2≠postingCount) @
-  amountCheck ← validate.ValidateExactAmountForCurrency currency‿amountVal
+  policy ← setup.Policy currency
+  amountCheck ← validate.ValidateExactAmountForPolicy ⟨currency,policy,amountVal⟩
   {𝕊:Fail 1⊑amountCheck}⍟(¬0⊑amountCheck) @
   parsedAmount↩decimal.Parse amountVal
   {𝕊:Fail "Plan edit amount must be strictly positive"}⍟((parsedAmount.state≢"ok") ∨ parsedAmount.coefficient≤0) @

@@ -64,7 +64,8 @@ description ← selectedIndex⊑facts.transactions.description
 hasOverride ← 0<≠actualAmount
 {𝕊:
   {𝕊:Fail "actual amount override requires exactly two Plan Postings"}⍟(2≠postingCount) @
-  amountCheck ← validate.ValidateExactAmountForCurrency currency‿actualAmount
+  policy ← setup.Policy currency
+  amountCheck ← validate.ValidateExactAmountForPolicy ⟨currency,policy,actualAmount⟩
   {𝕊:Fail 1⊑amountCheck}⍟(¬0⊑amountCheck) @
   parsed ← decimal.Parse actualAmount
   {𝕊:Fail "actual amount must be strictly positive"}⍟((parsed.state≢"ok") ∨ parsed.coefficient≤0) @

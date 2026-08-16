@@ -225,7 +225,9 @@ Retired during review: `src/application/funding_scope.bqn` — #714. See `docs/F
 - [x] `src/application/report_source_adapter.bqn` — #717 shared Account lifetime, #728 result relation review
 - [x] `src/application/source_io.bqn` — #729
 
-## Phase 6: `src/editor/` and `src_edit/`
+## Phase 6: `src/editor/` and `src_edit/` — complete
+
+Closeout: `docs/EDITOR_PHASE_SIX_CLOSEOUT-2026-08-17.md`.
 
 ### Fresh Issue editor observation
 
@@ -313,6 +315,12 @@ See `docs/EDITOR_PHASE_SIX_PLAN_COMMAND_OBSERVATION-2026-08-17.md`.
 
 #792 maps Plan Add metadata/block construction, exposes Add/Edit/Finish selection and optional-input coordinates without introducing a generic selector framework, removes dead TSV Plan-ID readers, preserves Plan Edit source-coordinate candidate proof and Plan Finish completion intent boundaries, keeps the nine-column Plan List contract while retaining commodity in the human display, and leaves Related / Finish Validate / Plan Validate production-unchanged after law review.
 
+### Phase 6 validation/render tail
+
+See `docs/EDITOR_PHASE_SIX_CLOSEOUT-2026-08-17.md`.
+
+#793 removes tests-only Account/Journal TSV renderers while retaining live Issue physical renderers, restores `validate.bqn` to a genuinely pure caller-policy predicate owner, guards that purity in repository checks, and leaves the two Travel Add effect leaves production-unchanged after law review.
+
 ### `src/editor/`
 
 - [x] `src/editor/friend_travel_source_event.bqn` — #734
@@ -357,10 +365,10 @@ See `docs/EDITOR_PHASE_SIX_PLAN_COMMAND_OBSERVATION-2026-08-17.md`.
 - [x] `src_edit/plan_list_cmd.bqn` — #792 stable nine-column contract / commodity-aware display
 - [x] `src_edit/plan_related_cmd.bqn` — #792 law review; relation fallback unchanged
 - [x] `src_edit/plan_validate_cmd.bqn` — #792 law review; canonical Plan validation leaf unchanged
-- [ ] `src_edit/render.bqn`
-- [ ] `src_edit/travel_exchange_add_cmd.bqn`
-- [ ] `src_edit/travel_friend_add_cmd.bqn`
-- [ ] `src_edit/validate.bqn`
+- [x] `src_edit/render.bqn` — #793 live Issue physical renderers only; dead Account/Journal TSV renderers removed
+- [x] `src_edit/travel_exchange_add_cmd.bqn` — #793 law review; semantic-owner effect leaf unchanged
+- [x] `src_edit/travel_friend_add_cmd.bqn` — #793 law review; semantic-owner effect leaf unchanged
+- [x] `src_edit/validate.bqn` — #793 pure caller-policy validation owner / dead compatibility APIs removed
 
 ## Phase 7: remaining production BQN and selector/UI adapters
 
@@ -376,6 +384,6 @@ After the production BQN inventory is reviewed, selector/UI adapter consolidatio
 
 ## Current cursor
 
-`src_edit/render.bqn`
+`src/text/parse.bqn`
 
-Resume the normal Phase 6 `src_edit/` review sequence at Render.
+Resume the normal Phase 7 production BQN review at the shared text parser.

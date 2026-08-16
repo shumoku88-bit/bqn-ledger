@@ -69,7 +69,7 @@ dateCheck ← validate.ValidateDate dateVal
 memoCheck ← validate.ValidateNoTabNewline "memo"‿memoVal
 {𝕊:Fail 1⊑memoCheck}⍟(¬0⊑memoCheck) @
 {𝕊:Fail "Plan description must be nonempty in canonical plan.journal"}⍟(0=≠memoVal) @
-amountCheck ← validate.ValidateExactAmountForCurrency currency‿amountVal
+amountCheck ← validate.ValidateExactAmountForPolicy ⟨currency,policy,amountVal⟩
 {𝕊:Fail 1⊑amountCheck}⍟(¬0⊑amountCheck) @
 metaCheck ← validate.ValidateMeta metaTokens
 {𝕊:Fail 1⊑metaCheck}⍟(¬0⊑metaCheck) @

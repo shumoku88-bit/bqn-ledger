@@ -6,7 +6,7 @@ cd "$root"
 
 queue=TODO.md
 production_roots=(src src_edit tools)
-cursor_scope=src_edit
+cursor_scope=src/text
 
 actual="$(mktemp)"
 listed="$(mktemp)"

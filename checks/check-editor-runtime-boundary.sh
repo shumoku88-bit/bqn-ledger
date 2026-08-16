@@ -9,6 +9,10 @@ fi
 if rg -n '•FChars|•file|•SH|•Out|•Exit|Today|GetTime' src/editor --glob '*.bqn' >/dev/null; then
   echo 'FAIL: pure editor semantic owners gained I/O, process, or clock behavior' >&2; exit 1
 fi
+if rg -n 'editor_currency|source_io|•FChars|•file|•SH|•Out|•Exit|Today|GetTime' \
+  src_edit/validate.bqn >/dev/null; then
+  echo 'FAIL: pure edit validation regained source/policy/effect ownership' >&2; exit 1
+fi
 if rg -n 'journal_posting_ir_stage2a|account_key\.bqn|PostingRowEquivalent' \
   src_edit/journal_canonical_surface_rewrite.bqn >/dev/null; then
   echo 'FAIL: canonical rewrite retained old Posting IR/Account compatibility' >&2; exit 1
