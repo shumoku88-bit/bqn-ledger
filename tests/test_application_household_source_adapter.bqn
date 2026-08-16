@@ -64,7 +64,7 @@ sharedHistory.current.budget.envelope_id lib.AssertEq withHistory.budget.envelop
 # A stable allocation coordinate may outlive current budget.toml membership, but
 # once historical Envelope evidence is present its identity must remain in the
 # stable history registry. This fails closed before production composition.
-extendedAccountsRaw ← •FChars base∾"/accounts.journal"
+extendedAccountsRaw ← •FChars "../"∾base∾"/accounts.journal"
 extendedAccountsRaw∾↩"\naccount Budget:Retired\n  type: Budget\n  commodity: JPY\n"
 extendedAccountsResult ← accountAdmission.Admit extendedAccountsRaw
 "ok" lib.AssertEq extendedAccountsResult.state
