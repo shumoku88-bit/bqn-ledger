@@ -123,9 +123,14 @@ BuildCandidate ← {𝕊 raw:
   keep ← ¬ {𝕩.is_remove}¨ rewritten
   newLines ← keep / {𝕩.line}¨ rewritten
 
-  candidateBase ← JoinLines newLines
+  candidateRaw ← JoinLines newLines
   hasFinalLf ← (0 < ≠raw) ∧ (lf = ¯1⊑raw)
-  candidateRaw ← candidateBase ∾ (hasFinalLf/⟨lf⟩)
+  {FB:
+    {FB2: candidateRaw ∾↩ lf}⍟((0 = ≠candidateRaw) ∨ (lf ≠ ¯1⊑candidateRaw)) @
+  }⍟hasFinalLf @
+  {FB:
+    {FB2: candidateRaw ↩ ¯1↓candidateRaw}⍟((0 < ≠candidateRaw) ∧ (lf = ¯1⊑candidateRaw)) @
+  }⍟(¬hasFinalLf) @
 
   eqResult ← VerifyEquivalent ⟨raw, candidateRaw⟩
   diagnostics ∾↩ eqResult.diagnostics
