@@ -190,8 +190,8 @@ Retired during review: `src/application/funding_scope.bqn` — #714. See `docs/F
 - [x] `src/application/budget_source_adapter.bqn` — #702 (capability-lifetime law review; production unchanged), #717 shared-Account capability
 - [x] `src/application/canonical_household_sources.bqn` — #703
 - [x] `src/application/config_rows.bqn` — #704
-- [x] `src/application/current_report_batch_cli.bqn` — #705 (effect-lifetime review; production unchanged)
-- [x] `src/application/current_report_profile_cli.bqn` — #705 (effect-lifetime review; production unchanged)
+- [x] `src/application/current_report_batch_cli.bqn` — #705 (effect-lifetime law review; production unchanged)
+- [x] `src/application/current_report_profile_cli.bqn` — #705 (effect-lifetime law review; production unchanged)
 - [x] `src/application/current_report_requests.bqn` — #705
 - [x] `src/application/cycle_resolution.bqn` — #706
 - [x] `src/application/daily_scope_adapter.bqn` — #707
@@ -296,6 +296,17 @@ See `docs/EDITOR_PHASE_SIX_JOURNAL_NATIVE_COMMAND_OBSERVATION-2026-08-17.md`.
 
 #790 maps Journal List presentation without mutable string staging, keeps the seven-column selector contract while making commodity visible in the human display, makes native reverse selection explicit and fail-closed, and reuses the shared exact-scale primitive inside the mandatory source validator while retaining independent complete-source candidate proof.
 
+### Journal tail closeout
+
+See `docs/EDITOR_PHASE_SIX_JOURNAL_TAIL_CLOSEOUT-2026-08-17.md`.
+
+The completed 2026-07-24 Reconstructible Identity Cleanup runtime is retired rather than polished into a standing cleanup authority. Its completion record and Git history retain the migration evidence. `journal_validate_cmd.bqn` remains the narrow canonical Actual post-write validator and is production-unchanged after law review.
+
+Retired during this review:
+
+- `src_edit/journal_reconstructible_identity_cleanup.bqn`
+- `src_edit/journal_reconstructible_identity_cleanup_cmd.bqn`
+
 ### `src/editor/`
 
 - [x] `src/editor/friend_travel_source_event.bqn` — #734
@@ -331,9 +342,7 @@ See `docs/EDITOR_PHASE_SIX_JOURNAL_NATIVE_COMMAND_OBSERVATION-2026-08-17.md`.
 - [x] `src_edit/journal_list_cmd.bqn` — #790 relation-driven Account Join / commodity-aware display
 - [x] `src_edit/journal_native_reverse_cmd.bqn` — #790 explicit selector law / negative-index fail-closed
 - [x] `src_edit/journal_native_source_check.bqn` — #790 expected Posting relation / shared exact-scale primitive / mandatory validator law
-- [ ] `src_edit/journal_reconstructible_identity_cleanup.bqn`
-- [ ] `src_edit/journal_reconstructible_identity_cleanup_cmd.bqn`
-- [ ] `src_edit/journal_validate_cmd.bqn`
+- [x] `src_edit/journal_validate_cmd.bqn` — Journal tail law review; strict canonical Actual validation leaf unchanged
 - [ ] `src_edit/plan_add_cmd.bqn`
 - [ ] `src_edit/plan_edit_cmd.bqn`
 - [ ] `src_edit/plan_finish_cmd.bqn`
@@ -361,6 +370,6 @@ After the production BQN inventory is reviewed, selector/UI adapter consolidatio
 
 ## Current cursor
 
-`src_edit/journal_reconstructible_identity_cleanup.bqn`
+`src_edit/plan_add_cmd.bqn`
 
-Resume the normal Phase 6 `src_edit/` review sequence at Journal Reconstructible Identity Cleanup.
+Resume the normal Phase 6 `src_edit/` review sequence at Plan Add.
