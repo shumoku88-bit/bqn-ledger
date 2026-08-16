@@ -295,8 +295,11 @@ run_child() {
     printf '\nCommand failed with status %s.\n' "$status" >&2
   fi
   pause_return
-  if ! load_calendar "$selected_date"; then
-    refresh_status=$?
+  set +e
+  load_calendar "$selected_date"
+  refresh_status=$?
+  set -e
+  if [[ $refresh_status -ne 0 ]]; then
     enter_screen
     return "$refresh_status"
   fi
@@ -305,6 +308,7 @@ run_child() {
 }
 
 show_detail() {
+  local status=0
   leave_screen
   set +e
   "$root/tools/home-calendar" "$base" "$selected_date" detail
@@ -422,8 +426,11 @@ open_selected_cell() {
   fi
 }
 
-if ! load_calendar "$selected_date"; then
-  status=$?
+set +e
+load_calendar "$selected_date"
+status=$?
+set -e
+if [[ $status -ne 0 ]]; then
   [[ -z $surface_error ]] || printf '%s\n' "$surface_error" >&2
   surface_error=''
   exit "$status"
