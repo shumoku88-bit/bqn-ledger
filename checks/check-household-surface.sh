@@ -5,6 +5,9 @@ cd "$root"
 work="$(mktemp -d "${TMPDIR:-/tmp}/bqn-ledger-household-surface.XXXXXX")"
 trap 'rm -rf "$work"' EXIT
 
+bash -n tools/household-surface
+[[ -x tools/household-surface ]]
+
 ./tools/household-surface-metadata >"$work/surface.tsv"
 [[ "$(wc -l <"$work/surface.tsv" | tr -d ' ')" == 25 ]]
 head -n1 "$work/surface.tsv" | grep -Fx $'domain_index\tdomain_key\tdomain_label\toperation_index\toperation_key\toperation_label\tenabled\tcell_label' >/dev/null
@@ -57,6 +60,74 @@ if ./tools/household-surface-metadata actions actual >"$work/invalid.out" 2>&1; 
   exit 1
 fi
 grep -F 'expected no arguments or: actions DOMAIN OPERATION' "$work/invalid.out" >/dev/null
+
+# The primary surface is raw-terminal spatial navigation, not a fuzzy selector.
+if rg -n 'fzf|gum' tools/household-surface >/dev/null; then
+  echo 'FAIL: primary Household surface depends on fzf/gum' >&2
+  exit 1
+fi
+
+python3 - "$root/fixtures/ledger-facts-phase1-proof" "$work/tty.out" <<'PY'
+import fcntl
+import os
+import pty
+import sys
+import termios
+
+base, output_path = sys.argv[1:3]
+master, slave = pty.openpty()
+pid = os.fork()
+if pid == 0:
+    os.setsid()
+    fcntl.ioctl(slave, termios.TIOCSCTTY, 0)
+    os.dup2(slave, 0)
+    os.dup2(slave, 1)
+    os.dup2(slave, 2)
+    os.close(master)
+    os.close(slave)
+    env = os.environ.copy()
+    env["NO_COLOR"] = "1"
+    env["TERM"] = "xterm-256color"
+    os.execve(
+        "tools/household-surface",
+        ["tools/household-surface", base, "2026-08-16"],
+        env,
+    )
+os.close(slave)
+# next day, enter matrix, move to Plan/Add coordinate without opening it, quit
+os.write(master, b"\x1b[C\t\x1b[B\x1b[Cq")
+output = bytearray()
+while True:
+    try:
+        data = os.read(master, 4096)
+        if not data:
+            break
+        output.extend(data)
+    except OSError:
+        break
+os.close(master)
+_, status = os.waitpid(pid, 0)
+exit_status = os.waitstatus_to_exitcode(status)
+if exit_status != 0:
+    raise SystemExit(f"Household surface PTY failed with status {exit_status}")
+with open(output_path, "wb") as f:
+    f.write(output)
+PY
+
+for text in \
+  'Selected date: 2026-08-16' \
+  'Selected date: 2026-08-17' \
+  'Focus: calendar' \
+  'Focus: matrix' \
+  'Actual' 'Plan' 'Envelope' 'Account' 'Issue' 'Household' \
+  'Observe' 'Add' 'Change' 'Resolve' \
+  'Journal' 'Record' 'Reverse' 'Backing' 'Reports'; do
+  grep -Fq "$text" "$work/tty.out" || {
+    echo "FAIL: Household surface PTY output missing: $text" >&2
+    cat "$work/tty.out" >&2
+    exit 1
+  }
+done
 
 if rg -n 'fzf|gum|ANSI|escape sequence|mouse' src/application/household_surface.bqn >/dev/null; then
   echo 'FAIL: physical frontend vocabulary leaked into Household surface semantics' >&2
