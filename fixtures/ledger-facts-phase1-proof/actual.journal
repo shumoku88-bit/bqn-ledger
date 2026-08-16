@@ -21,9 +21,6 @@ account budget:unassigned
 account budget:food
     ; role: budget
 
-account budget:spent
-    ; role: budget
-
 2026-01-02 * salary
     ; event-id: proof-salary-1
     ; layer: actual

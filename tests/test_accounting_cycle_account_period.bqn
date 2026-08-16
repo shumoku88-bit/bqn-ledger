@@ -20,22 +20,20 @@ partial ← cycle_accounts.Build ⟨facts,"JPY",cycle,"2026-01-10"⟩
 "ok" lib.AssertEq partial.state
 "2026-01-01" lib.AssertEq partial.cycle_start
 "2026-02-01" lib.AssertEq partial.cycle_end_exclusive
-8 lib.AssertEq partial.accounts.count
-⟨1000,0,20,0,0,0,0,0⟩ lib.AssertEq partial.accounts.debit_movement
-⟨¯20,¯1000,0,0,0,0,0,0⟩ lib.AssertEq partial.accounts.credit_movement
-⟨980,¯1000,20,0,0,0,0,0⟩ lib.AssertEq partial.accounts.closing
+7 lib.AssertEq partial.accounts.count
+⟨1000,0,20,0,0,0,0⟩ lib.AssertEq partial.accounts.debit_movement
+⟨¯20,¯1000,0,0,0,0,0⟩ lib.AssertEq partial.accounts.credit_movement
+⟨980,¯1000,20,0,0,0,0⟩ lib.AssertEq partial.accounts.closing
 1 lib.AssertEq partial.totals.balanced
 "actual.journal" lib.AssertEq (⊑0⊑partial.accounts.debit_contributors).source
 2 lib.AssertEq ≠0⊑partial.accounts.closing_contributors
 
 full ← cycle_accounts.Build ⟨facts,"JPY",cycle,"2026-01-31"⟩
 "ok" lib.AssertEq full.state
-⟨965,¯1000,30,5,0,0,0,0⟩ lib.AssertEq full.accounts.closing
+⟨965,¯1000,30,5,0,0,0⟩ lib.AssertEq full.accounts.closing
 1035 lib.AssertEq full.totals.debit_movement
 ¯1035 lib.AssertEq full.totals.credit_movement
 
-# Both opening and observed-period evidence are nonempty for cash.
-# Closing contributors must preserve opening-first, then period source order.
 shiftedCycle ← cycle_result.Success ⟨"fixed","2026-01-12","2026-01-11","2026-02-01",⟨⟩,⟨⟩⟩
 shifted ← cycle_accounts.Build ⟨facts,"JPY",shiftedCycle,"2026-01-12"⟩
 "ok" lib.AssertEq shifted.state

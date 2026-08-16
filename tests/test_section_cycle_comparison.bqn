@@ -19,7 +19,7 @@ current ← Window ⟨"2026-01-01","2026-02-01","2026-01-10"⟩
 baseline ← Window ⟨"2025-12-22","2026-01-22","2025-12-31"⟩
 result ← section.Build comparison.Build ⟨current,baseline,"aligned_elapsed"⟩
 "ok" lib.AssertEq result.state
-8 lib.AssertEq result.matrix.row_count
+7 lib.AssertEq result.matrix.row_count
 3 lib.AssertEq result.matrix.column_count
 ⟨"current_movement","baseline_movement","difference"⟩ lib.AssertEq result.matrix.column_coordinates
 ⟨980,0,980⟩ lib.AssertEq 0⊑result.matrix.values

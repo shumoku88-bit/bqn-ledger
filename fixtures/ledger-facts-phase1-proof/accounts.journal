@@ -25,7 +25,3 @@ account budget:unassigned
 account budget:food
   type: Budget
   commodity: JPY
-
-account budget:spent
-  type: Budget
-  commodity: JPY

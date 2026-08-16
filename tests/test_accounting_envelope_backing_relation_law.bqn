@@ -5,7 +5,6 @@ snapshot ← •Import "legacy_snapshot_fixture.bqn"
 canonicalBudget ← •Import "canonical_budget_test_facts.bqn"
 canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 budgetPolicyAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
-completion ← •Import "../src/accounting/plan_completion_join.bqn"
 envelopes ← •Import "envelope_backing_test_adapter.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 
@@ -20,10 +19,10 @@ accountLines ← ⟨
   Join ⟨"expenses:food","role=expense","currency=JPY"⟩,
   Join ⟨"expenses:transport","role=expense","currency=JPY"⟩,
   Join ⟨"expenses:other","role=expense","currency=JPY"⟩,
-  Join ⟨"budget:opening","role=budget","kind=opening","currency=JPY"⟩,
-  Join ⟨"budget:unassigned","role=budget","kind=unassigned","currency=JPY"⟩,
-  Join ⟨"budget:food","role=budget","kind=envelope","budget=food","currency=JPY"⟩,
-  Join ⟨"budget:transport","role=budget","kind=envelope","budget=transport","currency=JPY"⟩
+  Join ⟨"budget:opening","role=budget","currency=JPY"⟩,
+  Join ⟨"budget:unassigned","role=budget","currency=JPY"⟩,
+  Join ⟨"budget:food","role=budget","currency=JPY"⟩,
+  Join ⟨"budget:transport","role=budget","currency=JPY"⟩
 ⟩
 actualRaw ← ∾⟨
   "commodity JPY",lf,lf,
@@ -52,55 +51,42 @@ budgetRaw ← JournalText ⟨
 budget ← (canonicalBudget.Build ⟨budgetRaw,actual.accounts,registry⟩).movements
 policyRaw ← JournalText ⟨
   "[[backing-pools]]","id = "∾Q "cash","asset-accounts = ["∾(Q "assets:cash")∾"]","",
-  "[[envelopes]]","id = "∾Q "food","label = "∾Q "Food","pacing = "∾Q "daily","backing-pool = "∾Q "cash","expense-accounts = ["∾(Q "expenses:food")∾"]","",
-  "[[envelopes]]","id = "∾Q "transport","label = "∾Q "Transport","pacing = "∾Q "flex","backing-pool = "∾Q "cash","expense-accounts = ["∾(Q "expenses:transport")∾"]"
+  "[[envelopes]]","id = "∾Q "food","label = "∾Q "Food","pacing = "∾Q "daily","backing-pool = "∾Q "cash","",
+  "[[envelopes]]","id = "∾Q "transport","label = "∾Q "Transport","pacing = "∾Q "flex","backing-pool = "∾Q "cash"
 ⟩
 policy ← budgetPolicyAdmission.Admit ⟨policyRaw,actual.accounts⟩
 "ok" lib.AssertEq policy.state
 
-# The admitted Expense relation is constructed from the Envelope axis itself.
-# Therefore every generated Envelope id already has a valid category coordinate.
-categories ← policy.envelopes.id
-expenseKeys ← ∾policy.envelopes.expense_account_keys
-expenseEnvelopeIds ← ∾{𝕊 i:(≠i⊑policy.envelopes.expense_account_keys)⥊⟨i⊑categories⟩}¨↕≠categories
-expenseIndices ← actual.accounts.key⊐expenseKeys
-expenseCoordinates ← categories⊐expenseEnvelopeIds
-1 lib.AssertEq ∧´1∾expenseCoordinates<≠categories
+# Historical routing, not current budget.toml, is the only Expense -> Envelope relation.
+history ← envelopes.HistoryFor actual
+"ok" lib.AssertEq history.state
+⟨"food","transport"⟩ lib.AssertEq history.registry.id
+⟨"expenses:food","expenses:transport"⟩ lib.AssertEq history.expense_routing.expense_account_key
+⟨"managed","managed"⟩ lib.AssertEq history.expense_routing.route
+⟨"food","transport"⟩ lib.AssertEq history.expense_routing.target_id
 
-# Plan completion publishes destination Account keys. Matching one against the
-# resolved Expense relation implies current Expense role, selected domain, and
-# a valid Envelope coordinate without a second independent lookup contract.
-joined ← completion.Build ⟨plan,actual,plan.transactions.index,actual.transactions.index⟩
-"ok" lib.AssertEq joined.state
-planAccountRows ← actual.accounts.key⊐joined.rows.planned_to_account
-assignmentRows ← expenseIndices⊐planAccountRows
-assigned ← assignmentRows<≠expenseIndices
-⟨1,1,0⟩ lib.AssertEq assigned
-assignedPlanRows ← assigned/planAccountRows
-⟨"expense","expense"⟩ lib.AssertEq assignedPlanRows⊏actual.accounts.role
-⟨"JPY","JPY"⟩ lib.AssertEq assignedPlanRows⊏actual.accounts.currency
-assignedEnvelopeIds ← (assigned/assignmentRows)⊏expenseEnvelopeIds
-assignedCoordinates ← categories⊐assignedEnvelopeIds
-1 lib.AssertEq ∧´1∾assignedCoordinates<≠categories
-⟨"expenses:other"⟩ lib.AssertEq (¬assigned)/joined.rows.planned_to_account
-
-# An unmatched open Plan remains merely ineligible for Envelope reserve. It is
-# not an ownership error and contributes no amount to either Envelope.
+# An Expense Plan with no historical route remains merely unrouted. It does not
+# become owned by an Envelope because a current policy happens to exist.
 household ← {
   state⇐"ok",source_name⇐"household.toml",
   budget⇐{
     envelope_id⇐⟨"food","transport"⟩,
     allocation_account_key⇐⟨"budget:food","budget:transport"⟩,
-    unassigned_account_keys⇐⟨"budget:unassigned"⟩
-  },
-  account_policy⇐{account_key⇐actual.accounts.key}
+    allocation_account_index⇐actual.accounts.key⊐⟨"budget:food","budget:transport"⟩,
+    opening_account_keys⇐⟨"budget:opening"⟩,
+    opening_account_indices⇐actual.accounts.key⊐⟨"budget:opening"⟩,
+    unassigned_account_keys⇐⟨"budget:unassigned"⟩,
+    unassigned_account_indices⇐actual.accounts.key⊐⟨"budget:unassigned"⟩
+  }
 }
 result ← envelopes.Build ⟨
   budget,policy,household,actual,plan,"JPY",
   dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-10"
 ⟩
 "ok" lib.AssertEq result.state
-⟨4,6⟩ lib.AssertEq result.envelopes.open_plan_reserve
+⟨4,6⟩ lib.AssertEq result.envelopes.commitment
 ⟨"food","transport"⟩ lib.AssertEq result.envelopes.category
+⟨"other-plan"⟩ lib.AssertEq result.commitment_observation.unrouted.plan_id
+⟨"expenses:other"⟩ lib.AssertEq result.commitment_observation.unrouted.target_account_key
 
 •Out "test_accounting_envelope_backing_relation_law: ok"

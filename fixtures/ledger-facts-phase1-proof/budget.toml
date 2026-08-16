@@ -7,4 +7,3 @@ id = "food"
 label = "Food"
 pacing = "daily"
 backing-pool = "cash"
-expense-accounts = ["expenses:food"]

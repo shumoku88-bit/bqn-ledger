@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Load local defaults without overriding an explicit caller-selected Household.
+# Load local Household selection without overriding an explicit caller choice.
 _caller_ledger_data_dir_set="${LEDGER_DATA_DIR+x}"
 _caller_ledger_data_dir="${LEDGER_DATA_DIR-}"
 if [[ -f ".env" ]]; then
@@ -12,45 +12,49 @@ if [[ -n "$_caller_ledger_data_dir_set" ]]; then
 fi
 unset _caller_ledger_data_dir_set _caller_ledger_data_dir
 
-# Resolve system defaults from config/system_defaults.tsv
-
-get_default_base_dir() {
-  local defaults_file="config/system_defaults.tsv"
-  local fallback="data"
-  if [[ -f "$defaults_file" ]]; then
-    local val
-    val=$(awk -F'\t' '$1 == "DEFAULT_BASE_DIR" { print $2 }' "$defaults_file")
-    if [[ -n "$val" ]]; then
-      printf '%s\n' "$val"
-      return 0
-    fi
+# Plan mutation has dedicated writer owners. The old monolithic edit-bqn
+# dispatcher remains a read/list and non-Plan command owner, but it must never
+# acquire Plan writer authority. Reject those commands before any source path is
+# selected or mutation candidate is constructed.
+if [[ "${BASH_SOURCE[1]##*/}" == "edit-bqn" ]]; then
+  _edit_bqn_args=("$@")
+  _edit_bqn_i=0
+  if [[ "${_edit_bqn_args[0]-}" == "--base" ]]; then
+    _edit_bqn_i=2
   fi
-  printf '%s\n' "$fallback"
+  _edit_bqn_command="${_edit_bqn_args[_edit_bqn_i]-}"
+  _edit_bqn_subcommand="${_edit_bqn_args[_edit_bqn_i+1]-}"
+  if [[ "$_edit_bqn_command" == "plan" ]]; then
+    case "$_edit_bqn_subcommand" in
+      add|edit|finish)
+        echo "ERROR: Plan mutation is owned by tools/plan-$_edit_bqn_subcommand, not tools/edit-bqn" >&2
+        return 2
+        ;;
+    esac
+  fi
+  unset _edit_bqn_args _edit_bqn_i _edit_bqn_command _edit_bqn_subcommand
+fi
+
+# Canonical Household tools have no repository data fallback. Callers may still
+# parse --base after obtaining this placeholder; if neither --base nor
+# LEDGER_DATA_DIR selects a Household, canonical admission fails closed instead
+# of silently entering the repository's historical sample data.
+get_default_base_dir() {
+  printf '%s\n' '/__bqn-ledger-household-root-not-selected__'
 }
 
+# Physical canonical source names are fixed by the eight-source contract.
+# Account compatibility still resolves to the one canonical declaration owner.
+# The Plan filename coordinate is intentionally unavailable to the retired
+# dispatcher path; dedicated Plan writers own plan.journal directly.
 get_system_default_file() {
   local key="$1"
   local fallback="$2"
-
-  # Account physical ownership is canonical and is no longer configurable.
-  # tools/edit-bqn is the only shell caller for DEFAULT_ACCOUNTS_FILE; keep the
-  # old key from redirecting Account writes while the remaining writer defaults
-  # are migrated source by source.
-  if [[ "$key" == "DEFAULT_ACCOUNTS_FILE" ]]; then
-    printf 'accounts.journal\n'
-    return 0
-  fi
-
-  local defaults_file="config/system_defaults.tsv"
-  if [[ -f "$defaults_file" ]]; then
-    local val
-    val=$(awk -F'\t' -v k="$key" '$1 == k { print $2 }' "$defaults_file")
-    if [[ -n "$val" ]]; then
-      printf '%s\n' "$val"
-      return 0
-    fi
-  fi
-  printf '%s\n' "$fallback"
+  case "$key" in
+    DEFAULT_ACCOUNTS_FILE) printf 'accounts.journal\n' ;;
+    DEFAULT_PLAN_FILE) printf '__retired_plan_mutation_owner__\n' ;;
+    *) printf '%s\n' "$fallback" ;;
+  esac
 }
 
 canonical_report_base_missing_required() {
@@ -79,7 +83,8 @@ ensure_canonical_report_base() {
   if [[ ${#missing[@]} -eq 0 ]]; then
     return 0
   fi
-  echo "Error: canonical Household root is not usable for reports: $base_dir" >&2
+  echo "Error: canonical Household root is not usable: $base_dir" >&2
+  echo "Set LEDGER_DATA_DIR or pass --base DIR with all eight canonical sources." >&2
   echo "Missing required canonical file(s): ${missing[*]}" >&2
   return 1
 }

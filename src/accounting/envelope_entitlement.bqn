@@ -4,19 +4,22 @@
 #   movements: source-ordered admitted Budget transaction cells; each cell owns
 #     one from/to endpoint, positive exact coefficient/scale, and two Postings;
 #   accounts: the shared admitted Account relation used by Budget admission;
-#   household: stable Envelope ids plus Account-policy endpoint classification.
-# Endpoint coordinates are Envelope order followed by unassigned, opening, and
-# legacy execution.  Each movement produces a ragged cell of zero, one, or two
-# Envelope effects and at most one unassigned effect; joining those cells retains
-# movement order, while Group retains canonical Envelope order and trailing empties.
+#   household: stable Envelope allocation plus explicit opening/unassigned source
+#     coordinates.
+# Endpoint coordinates are Envelope order followed by unassigned and opening.
+# Each movement produces a ragged cell of zero, one, or two Envelope effects and
+# at most one unassigned effect; joining those cells retains movement order, while
+# Group retains canonical Envelope order and trailing empties.
 # Every published coefficient is normalized to one scale chosen from both the
-# Entitlement and unassigned observation universes.  Empty effects therefore keep
-# a scale supplied by an included unassigned movement.  [start,end) and observation
+# Entitlement and unassigned observation universes. Empty effects therefore keep
+# a scale supplied by an included unassigned movement. [start,end) and observation
 # cutoffs exclude future rows; admitted rows before start carry the opening position.
 # Historical nonnegative validation inspects all admitted native Envelope effects
 # independently per Envelope without leaking future or cross-Envelope scale into the
 # published observation. Same-day effects are combined with canonical exact addition
 # before chronological cumulative exact validation checks the nonnegative law.
+# An empty canonical budget.journal is valid: it establishes no stock origin and
+# publishes zero claims until an explicit opening movement is written.
 
 scale ← •Import "../ledger/exact_scale.bqn"
 dates ← •Import "../ledger/date_ordinal.bqn"
@@ -38,7 +41,8 @@ Build ← {𝕊 movements‿accounts‿household‿domain‿start‿finish‿obs
   diagnostics ← empty
   diagnostics∾↩AddIf ⟨(movements.state≢"ok") ∨ movements.source_name≢"budget.journal",Diagnostic ⟨"budget_movements_invalid","Budget movements must be admitted from budget.journal"⟩⟩
   diagnostics∾↩AddIf ⟨(household.state≢"ok") ∨ household.source_name≢"household.toml",Diagnostic ⟨"household_policy_invalid","Household policy must be admitted from household.toml"⟩⟩
-  diagnostics∾↩AddIf ⟨¬Contains ⟨domain,movements.declared_domains⟩,Diagnostic ⟨"domain_unknown","selected domain must occur in admitted Budget movements"⟩⟩
+  hasMovements ← 0<≠movements.transactions
+  diagnostics∾↩AddIf ⟨hasMovements ∧ ¬Contains ⟨domain,movements.declared_domains⟩,Diagnostic ⟨"domain_unknown","selected domain must occur in admitted Budget movements when movements exist"⟩⟩
   diagnostics∾↩AddIf ⟨(start≥finish) ∨ observation<start ∨ observation≥finish,Diagnostic ⟨"statement_range_invalid","require start <= observation < end_exclusive"⟩⟩
 
   result ← EmptyResult ⟨"error",domain,start,finish,observation,diagnostics⟩
@@ -46,49 +50,47 @@ Build ← {𝕊 movements‿accounts‿household‿domain‿start‿finish‿obs
     accountKeys ← accounts.key ⋄ accountCount ← accounts.count
     envelopeIds ← household.budget.envelope_id ⋄ envelopeCount ← ≠envelopeIds
     allocationKeys ← household.budget.allocation_account_key
+    openingKeys ← household.budget.opening_account_keys
     unassignedKeys ← household.budget.unassigned_account_keys
-    policy ← household.account_policy ⋄ policyKeys ← policy.account_key
-    policyColumns ← ≠¨⟨policyKeys,policy.budget_kind⟩
-    diagnostics∾↩AddIf ⟨¬∧´(≠policyKeys)=policyColumns,Diagnostic ⟨"budget_endpoint_policy_invalid","Household Budget endpoint policy columns must align"⟩⟩
     diagnostics∾↩AddIf ⟨(≠allocationKeys)≠envelopeCount,Diagnostic ⟨"envelope_account_mapping_invalid","Every Envelope must have one allocation Account"⟩⟩
     diagnostics∾↩AddIf ⟨(≠allocationKeys)≠≠⍷allocationKeys,Diagnostic ⟨"envelope_account_mapping_invalid","Allocation Accounts must be unique"⟩⟩
+    diagnostics∾↩AddIf ⟨(≠openingKeys)≠≠⍷openingKeys,Diagnostic ⟨"opening_scope_invalid","Opening Accounts must be unique"⟩⟩
     diagnostics∾↩AddIf ⟨(≠unassignedKeys)≠≠⍷unassignedKeys,Diagnostic ⟨"unassigned_scope_invalid","Unassigned Accounts must be unique"⟩⟩
 
     allocationReferences ← accountKeys⊐allocationKeys
+    openingReferences ← accountKeys⊐openingKeys
     unassignedReferences ← accountKeys⊐unassignedKeys
-    policyReferences ← accountKeys⊐policyKeys
     allocationKnown ← allocationReferences<accountCount
+    openingKnown ← openingReferences<accountCount
     unassignedKnown ← unassignedReferences<accountCount
-    policyKnown ← policyReferences<accountCount
     diagnostics∾↩AddIf ⟨¬∧´1∾allocationKnown,Diagnostic ⟨"envelope_account_unknown","Envelope allocation Account must occur in admitted Accounts"⟩⟩
+    diagnostics∾↩AddIf ⟨¬∧´1∾openingKnown,Diagnostic ⟨"opening_account_unknown","Opening Account must occur in admitted Accounts"⟩⟩
     diagnostics∾↩AddIf ⟨¬∧´1∾unassignedKnown,Diagnostic ⟨"unassigned_account_unknown","Unassigned Account must occur in admitted Accounts"⟩⟩
-    diagnostics∾↩AddIf ⟨¬∧´1∾policyKnown,Diagnostic ⟨"budget_endpoint_account_unknown","Household Budget endpoint Account must occur in admitted Accounts"⟩⟩
 
     {𝕊:
       allocationRoles ← allocationReferences⊏accounts.role∾⟨""⟩
       allocationCurrencies ← allocationReferences⊏accounts.currency∾⟨""⟩
+      openingRoles ← openingReferences⊏accounts.role∾⟨""⟩
+      openingCurrencies ← openingReferences⊏accounts.currency∾⟨""⟩
       unassignedRoles ← unassignedReferences⊏accounts.role∾⟨""⟩
       unassignedCurrencies ← unassignedReferences⊏accounts.currency∾⟨""⟩
       diagnostics∾↩AddIf ⟨¬∧´1∾("budget"⊸≡¨allocationRoles),Diagnostic ⟨"envelope_account_role_invalid","Envelope allocation Account must be Budget"⟩⟩
       diagnostics∾↩AddIf ⟨¬∧´1∾(domain⊸≡¨allocationCurrencies),Diagnostic ⟨"envelope_account_domain_invalid","Envelope allocation Account must be in the selected domain"⟩⟩
+      diagnostics∾↩AddIf ⟨¬∧´1∾("budget"⊸≡¨openingRoles),Diagnostic ⟨"opening_account_role_invalid","Opening Account must be Budget"⟩⟩
+      diagnostics∾↩AddIf ⟨¬∧´1∾(domain⊸≡¨openingCurrencies),Diagnostic ⟨"opening_account_domain_invalid","Opening Account must be in the selected domain"⟩⟩
       diagnostics∾↩AddIf ⟨¬∧´1∾("budget"⊸≡¨unassignedRoles),Diagnostic ⟨"unassigned_account_role_invalid","Unassigned Account must be Budget"⟩⟩
       diagnostics∾↩AddIf ⟨¬∧´1∾(domain⊸≡¨unassignedCurrencies),Diagnostic ⟨"unassigned_account_domain_invalid","Unassigned Account must be in the selected domain"⟩⟩
-    }⍟((∧´1∾allocationKnown)∧(∧´1∾unassignedKnown)) @
+    }⍟((∧´1∾allocationKnown)∧(∧´1∾openingKnown)∧(∧´1∾unassignedKnown)) @
 
-    openingReferences ← accountKeys⊐("opening"⊸≡¨policy.budget_kind)/policyKeys
-    executionMask ← "spent"⊸≡¨policy.budget_kind
-    executionReferences ← accountKeys⊐executionMask/policyKeys
     endpointRows ← {𝕊 i:
       envelopeRows ← (allocationReferences=i)/↕envelopeCount
       unassigned ← ∨´0∾i⊸≡¨unassignedReferences
       opening ← ∨´0∾i⊸≡¨openingReferences
-      execution ← ∨´0∾i⊸≡¨executionReferences
-      memberships ← (0<≠envelopeRows)+unassigned+opening+execution
-      endpoint ← envelopeCount+3
+      memberships ← (0<≠envelopeRows)+unassigned+opening
+      endpoint ← envelopeCount+2
       {𝕊:endpoint↩⊑envelopeRows}⍟((memberships=1)∧(0<≠envelopeRows)) @
       {𝕊:endpoint↩envelopeCount}⍟((memberships=1)∧unassigned) @
       {𝕊:endpoint↩envelopeCount+1}⍟((memberships=1)∧opening) @
-      {𝕊:endpoint↩envelopeCount+2}⍟((memberships=1)∧execution) @
       endpoint
     }¨↕accountCount
 
@@ -99,9 +101,9 @@ Build ← {𝕊 movements‿accounts‿household‿domain‿start‿finish‿obs
       toAccounts ← accountKeys⊐{𝕩.to_account_key}¨transactions
       accountKnown ← (fromAccounts<accountCount) ∧ toAccounts<accountCount
       diagnostics∾↩AddIf ⟨¬∧´1∾accountKnown,Diagnostic ⟨"budget_endpoint_account_unknown","Budget movement endpoint must occur in admitted Accounts"⟩⟩
-      endpointFrom ← fromAccounts⊏endpointRows∾⟨envelopeCount+3⟩
-      endpointTo ← toAccounts⊏endpointRows∾⟨envelopeCount+3⟩
-      endpointKnown ← (endpointFrom<envelopeCount+3) ∧ endpointTo<envelopeCount+3
+      endpointFrom ← fromAccounts⊏endpointRows∾⟨envelopeCount+2⟩
+      endpointTo ← toAccounts⊏endpointRows∾⟨envelopeCount+2⟩
+      endpointKnown ← (endpointFrom<envelopeCount+2) ∧ endpointTo<envelopeCount+2
       diagnostics∾↩AddIf ⟨¬∧´1∾endpointKnown,Diagnostic ⟨"budget_endpoint_ambiguous","Every Budget movement endpoint must resolve to one Envelope or source endpoint"⟩⟩
 
       {𝕊:
@@ -145,14 +147,14 @@ Build ← {𝕊 movements‿accounts‿household‿domain‿start‿finish‿obs
         envAllScales ← (allTargets∾envelopeCount)⊔allScales
         ValidateEnvelopeHistory ← {
           0=≠⊑𝕩 ? ⟨1,1,0⟩ ;
-          amounts‿dates‿scales ← 𝕩
+          amounts‿effectDatesAll‿scales ← 𝕩
           envScale ← ⌈´0∾scales
           normResults ← amounts {scale.Normalize ⟨𝕨,𝕩,envScale⟩}¨ scales
           {
             ¬∧´1∾{𝕩.state≡"ok"}¨𝕩 ? ⟨0,1,0⟩ ;
             normAmounts ← {𝕩.coefficient}¨𝕩
-            order ← ⍋dates
-            sdates ← order⊏dates ⋄ samounts ← order⊏normAmounts
+            order ← ⍋effectDatesAll
+            sdates ← order⊏effectDatesAll ⋄ samounts ← order⊏normAmounts
             dayGroups ← ((⍷sdates)⊐sdates)⊔samounts
             daySums ← {scale.Sum (⍋𝕩)⊏𝕩}¨dayGroups
             {

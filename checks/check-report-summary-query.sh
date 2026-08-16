@@ -34,8 +34,7 @@ printf '%s\n' \
   'expenses:transport/JPY 5' \
   'budget:opening/JPY 0' \
   'budget:unassigned/JPY 0' \
-  'budget:food/JPY 0' \
-  'budget:spent/JPY 0' >"$work/expected-balances"
+  'budget:food/JPY 0' >"$work/expected-balances"
 ./tools/query "$fixture" JPY ledger_balance 2026-01-12 >"$work/balances"
 Compare "$work/balances" "$work/expected-balances" 'ledger_balance query mismatch'
 ./tools/query "$fixture" JPY ledger_daily_target_amount 2026-01-12 >"$work/daily-target"

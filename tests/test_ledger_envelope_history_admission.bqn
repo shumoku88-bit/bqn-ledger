@@ -7,7 +7,9 @@ lf ← @+10 ⋄ quote ← @+34
 Lines ← {𝕊 xs:∾{𝕩∾⟨lf⟩}¨xs}
 Quoted ← {𝕊 text:⟨quote⟩∾text∾⟨quote⟩}
 
-historyRaw ← •FChars "../fixtures/canonical-household-envelope-history/household.toml"
+# The canonical fixture itself carries explicit clean-epoch history. Historical
+# admission no longer depends on a parallel migration-era Household fixture.
+historyRaw ← •FChars "../fixtures/canonical-household-v1/household.toml"
 history ← admission.Admit historyRaw
 "ok" lib.AssertEq history.state
 1 lib.AssertEq history.present
@@ -22,10 +24,9 @@ history ← admission.Admit historyRaw
 ⟨"Daily"⟩ lib.AssertEq history.expense_routing.target_id
 0 lib.AssertEq history.fulfillment_routing.count
 
-# Expansion remains compatible with canonical fixtures that predate the shared
-# history section. Absence is explicit and publishes no invented routing.
-absentRaw ← •FChars "../fixtures/canonical-household-v1/household.toml"
-absent ← admission.Admit absentRaw
+# A source with no Envelope history publishes explicit absence and invents no
+# registry or routing evidence.
+absent ← admission.Admit ""
 "ok" lib.AssertEq absent.state
 0 lib.AssertEq absent.present
 0 lib.AssertEq absent.registry.count

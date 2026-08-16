@@ -1,9 +1,9 @@
-# Strict BQN-native admission for the retained budget.toml policy subset.
+# Strict BQN-native admission for current budget.toml Envelope and Backing policy.
 #
-# Canonical policy syntax is the deterministic shape shared with h-kernel:
+# Canonical syntax is the deterministic shape shared with h-kernel:
 # [[backing-pools]] with id + asset-accounts, and [[envelopes]] with
-# id + label + pacing + backing-pool + expense-accounts. This module owns no
-# path, writer, fallback, or Household allocation-account policy.
+# id + label + pacing + backing-pool. Expense routing is historical evidence
+# owned by household.toml, never reconstructed from this current policy.
 
 lf ← @+10
 cr ← @+13
@@ -23,9 +23,6 @@ SplitKeepEmpty ← {𝕊 sep‿text: groups ← (+`sep=text)⊔text ⋄ {(sep≠
 NoWhitespace ← {𝕊 value: (0<≠value) ∧ ¬∨´0∾IsWhitespace¨value}
 FirstOrSpace ← {𝕊 text: ⊑text∾⟨space⟩}
 
-# One physical key/value row may carry a TOML string array over several lines.
-# The logical row retains the first physical line for diagnostics; quoted ']'
-# characters do not close the array, and source order is unchanged.
 ArrayClosed ← {𝕊 text:
   inQuote ← 0 ⋄ escaped ← 0 ⋄ closed ← 0
   {𝕊 c:
@@ -153,9 +150,6 @@ Admit ← {𝕊 raw‿accounts:
   }¨↕≠physicalLines
   {𝕊:lines∾↩⟨pendingText⟩ ⋄ lineRows∾↩⟨pendingRow⟩}⍟pending @
 
-  # Once quote-aware logical rows exist, table structure is an aligned source
-  # relation: classify canonical headers, Scan one table coordinate, then Group
-  # source indices into the outside-prefix and ordered table segments.
   indices ← ↕≠lines
   ignored ← (0=≠¨lines) ∨ hash=FirstOrSpace¨lines
   poolHeader ← {𝕩≡"[[backing-pools]]"}¨lines
@@ -214,7 +208,7 @@ Admit ← {𝕊 raw‿accounts:
   pools ← empty ⋄ envelopes ← empty
   {𝕊 block:
     poolBlock ← block.kind≡"backing-pool"
-    allowed ← poolBlock⊑⟨⟨"id","label","pacing","backing-pool","expense-accounts"⟩,⟨"id","asset-accounts"⟩⟩
+    allowed ← poolBlock⊑⟨⟨"id","label","pacing","backing-pool"⟩,⟨"id","asset-accounts"⟩⟩
     keys ← {𝕩.key}¨block.pairs
     diagnostics∾↩AddIf ⟨(≠keys)≠≠⍷keys,Diagnostic ⟨"budget_policy_key_duplicate",block.line,"policy table keys must be unique"⟩⟩
     diagnostics∾↩AddIf ⟨∨´0∾{¬Contains ⟨𝕩,allowed⟩}¨keys,Diagnostic ⟨"budget_policy_key_unsupported",block.line,"policy table contains an unsupported key"⟩⟩
@@ -236,9 +230,8 @@ Admit ← {𝕊 raw‿accounts:
       labelPair ← PairValue ⟨block,"label"⟩ ⋄ labelParsed ← ParseString labelPair.text
       pacingPair ← PairValue ⟨block,"pacing"⟩ ⋄ pacingParsed ← ParseString pacingPair.text
       poolPair ← PairValue ⟨block,"backing-pool"⟩ ⋄ poolParsed ← ParseString poolPair.text
-      expensePair ← PairValue ⟨block,"expense-accounts"⟩ ⋄ expenseParsed ← ParseStringArray expensePair.text
-      parsed ← ⟨idParsed,labelParsed,pacingParsed,poolParsed,expenseParsed⟩
-      pairLines ← ⟨idPair.line,labelPair.line,pacingPair.line,poolPair.line,expensePair.line⟩
+      parsed ← ⟨idParsed,labelParsed,pacingParsed,poolParsed⟩
+      pairLines ← ⟨idPair.line,labelPair.line,pacingPair.line,poolPair.line⟩
       {𝕊 j: diagnostics∾↩AtLine ⟨j⊑parsed,j⊑pairLines⟩}¨↕≠parsed
       validId ← idParsed.ok ∧ NoWhitespace idParsed.value
       validLabel ← labelParsed.ok ∧ (0<≠labelParsed.value) ∧ labelParsed.value≡Trim labelParsed.value
@@ -251,7 +244,7 @@ Admit ← {𝕊 raw‿accounts:
       allOk ← ∧´{𝕩.ok}¨parsed
       {𝕊:envelopes∾↩⟨{
         id⇐idParsed.value,label⇐labelParsed.value,pacing⇐pacingParsed.value,
-        backing_pool⇐poolParsed.value,expense_account_keys⇐expenseParsed.values,line⇐block.line
+        backing_pool⇐poolParsed.value,line⇐block.line
       }⟩}⍟(allOk ∧ validId ∧ validLabel ∧ validPacing ∧ validPool) @
     }⍟((¬poolBlock) ∧ blockClean) @
   }¨blocks
@@ -263,7 +256,6 @@ Admit ← {𝕊 raw‿accounts:
   diagnostics∾↩AddIf ⟨(≠envelopeIds)≠≠⍷envelopeIds,Diagnostic ⟨"envelope_id_duplicate",0,"envelope ids must be unique"⟩⟩
   diagnostics∾↩AddIf ⟨(≠labels)≠≠⍷labels,Diagnostic ⟨"envelope_label_duplicate",0,"envelope labels must be unique"⟩⟩
 
-  # Resolve each Envelope backing-pool reference once onto the declared pool axis.
   envelopePoolKeys ← {𝕩.backing_pool}¨envelopes
   poolCoordinates ← poolIds⊐envelopePoolKeys
   poolKnown ← poolCoordinates<≠poolIds
@@ -271,34 +263,11 @@ Admit ← {𝕊 raw‿accounts:
     Diagnostic ⟨"envelope_backing_pool_unknown",envelope.line,"envelope must reference a declared backing pool"⟩
   }¨(¬poolKnown)/envelopes
 
-  # Flatten the ragged policy Account lists while retaining the owning block line
-  # for every key. Classify each key once against the canonical Account axis;
-  # diagnostic cells then restore the existing key-major publication order.
-  expenseLists ← {𝕩.expense_account_keys}¨envelopes
   assetLists ← {𝕩.asset_account_keys}¨pools
-  expenseCounts ← ≠¨expenseLists
   assetCounts ← ≠¨assetLists
-  expenseKeys ← ∾expenseLists
   assetKeys ← ∾assetLists
-  expenseLines ← expenseCounts/({𝕩.line}¨envelopes)
   assetLines ← assetCounts/({𝕩.line}¨pools)
-  diagnostics∾↩AddIf ⟨(≠expenseKeys)≠≠⍷expenseKeys,Diagnostic ⟨"expense_account_assignment_duplicate",0,"one Expense Account may belong to only one envelope"⟩⟩
   diagnostics∾↩AddIf ⟨(≠assetKeys)≠≠⍷assetKeys,Diagnostic ⟨"asset_account_membership_duplicate",0,"one Asset Account may belong to only one backing pool"⟩⟩
-
-  expenseAccountIndices ← accounts.key⊐expenseKeys
-  expenseKnown ← expenseAccountIndices<accounts.count
-  expenseRoles ← expenseAccountIndices⊏(accounts.role∾⟨""⟩)
-  expenseRoleValid ← {𝕩≡"expense"}¨expenseRoles
-  expenseWrongRole ← expenseKnown ∧ ¬expenseRoleValid
-  expenseDiagnostics ← ∾⟨empty⟩∾{𝕊 i:
-    line ← i⊑expenseLines
-    known ← i⊑expenseKnown
-    wrongRole ← i⊑expenseWrongRole
-    unknownDiagnostic ← AddIf ⟨¬known,Diagnostic ⟨"budget_policy_expense_account_unknown",line,"Envelope Expense Account must be declared"⟩⟩
-    roleDiagnostic ← AddIf ⟨wrongRole,Diagnostic ⟨"budget_policy_expense_account_role_invalid",line,"Envelope Expense Account must have Expense type"⟩⟩
-    unknownDiagnostic∾roleDiagnostic
-  }¨↕≠expenseKeys
-  diagnostics∾↩expenseDiagnostics
 
   assetAccountIndices ← accounts.key⊐assetKeys
   assetKnown ← assetAccountIndices<accounts.count
@@ -326,8 +295,7 @@ Admit ← {𝕊 raw‿accounts:
     envelopes⇐{
       count⇐≠admittedEnvelopes,index⇐↕≠admittedEnvelopes,id⇐{𝕩.id}¨admittedEnvelopes,
       label⇐{𝕩.label}¨admittedEnvelopes,pacing⇐{𝕩.pacing}¨admittedEnvelopes,
-      backing_pool⇐{𝕩.backing_pool}¨admittedEnvelopes,
-      expense_account_keys⇐{𝕩.expense_account_keys}¨admittedEnvelopes
+      backing_pool⇐{𝕩.backing_pool}¨admittedEnvelopes
     },
     diagnostics⇐diagnostics
   }

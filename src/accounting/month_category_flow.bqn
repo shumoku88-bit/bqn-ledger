@@ -1,5 +1,6 @@
 # Pure calendar-month rollup of presentation-neutral date/category flow evidence.
-# Reuses canonical Budget/Household category policy, exact scale, and contributor Posting indices.
+# Reuses stable Household category identity, historical Expense routing, exact
+# scale, and contributor Posting indices.
 
 byDate ← •Import "date_category_flow.bqn"
 sparse ← •Import "sparse_group.bqn"
@@ -38,8 +39,8 @@ Kernel ← {𝕊 daily‿domainCode‿layerName‿startOrdinal‿endOrdinal:
 }
 
 # Input is the same explicit query accepted by date_category_flow.Build.
-Build ← {𝕊 factSet‿budgetPolicy‿householdPolicy‿domainCode‿layerName‿startOrdinal‿endOrdinal:
-  daily ← byDate.Build ⟨factSet,budgetPolicy,householdPolicy,domainCode,layerName,startOrdinal,endOrdinal⟩
+Build ← {𝕊 factSet‿householdPolicy‿history‿domainCode‿layerName‿startOrdinal‿endOrdinal:
+  daily ← byDate.Build ⟨factSet,householdPolicy,history,domainCode,layerName,startOrdinal,endOrdinal⟩
   result ← FailureResult ⟨domainCode,layerName,startOrdinal,endOrdinal,daily.diagnostics⟩
   {𝕊: result↩Kernel ⟨daily,domainCode,layerName,startOrdinal,endOrdinal⟩}⍟(daily.state≡"ok") @
   result

@@ -6,6 +6,7 @@ actualSource ← •Import "../src/application/actual_source_adapter.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
 budgetPolicyAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
 householdAdmission ← •Import "current_household_policy_test_admission.bqn"
+envelopeHistoryAdmission ← •Import "../src/ledger/envelope_history_admission.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 flow ← •Import "../src/accounting/date_category_flow.bqn"
 section ← •Import "../src/sections/daily_flow.bqn"
@@ -17,13 +18,16 @@ actualResult ← actualSource.Load ⟨base,registry⟩
 facts ← actualResult.facts
 budgetPolicy ← budgetPolicyAdmission.Admit ⟨•FChars "../"∾base∾"budget.toml",facts.accounts⟩
 "ok" lib.AssertEq budgetPolicy.state
-household ← householdAdmission.Admit ⟨•FChars "../"∾base∾"household.toml",facts.accounts,budgetPolicy⟩
+householdRaw ← •FChars "../"∾base∾"household.toml"
+household ← householdAdmission.Admit ⟨householdRaw,facts.accounts,budgetPolicy⟩
 "ok" lib.AssertEq household.state
+history ← envelopeHistoryAdmission.Admit householdRaw
+"ok" lib.AssertEq history.state
 startText ← "2026-01-01"
 endText ← "2026-02-01"
 start ← dates.Ordinal startText
 end ← dates.Ordinal endText
-accounting ← flow.Build ⟨facts,budgetPolicy,household,"JPY","actual",start,end⟩
+accounting ← flow.Build ⟨facts,household,history,"JPY","actual",start,end⟩
 result ← section.Build ⟨accounting,startText,endText,"2026-01-12"⟩
 
 "ok" lib.AssertEq result.state
@@ -100,7 +104,7 @@ emptyFacts ← {
     coefficient⇐⟨⟩,scale⇐⟨⟩,side⇐⟨⟩,source_line⇐⟨⟩
   },sources⇐facts.sources,domains⇐facts.domains,accounts⇐facts.accounts,layers⇐facts.layers,diagnostics⇐⟨⟩
 }
-emptyAccounting ← flow.Build ⟨emptyFacts,budgetPolicy,household,"JPY","actual",start,end⟩
+emptyAccounting ← flow.Build ⟨emptyFacts,household,history,"JPY","actual",start,end⟩
 "ok" lib.AssertEq emptyAccounting.state
 0 lib.AssertEq emptyAccounting.dates.count
 emptyResult ← section.Build ⟨emptyAccounting,startText,endText,startText⟩

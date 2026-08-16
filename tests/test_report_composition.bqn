@@ -63,7 +63,7 @@ comparison ← compose.CycleComparison ⟨actual,"JPY",cycle10,"2026-01-10",cycl
 CheckGolden ⟨comparison,"cycle-comparison","human","cycle_comparison.destination.human.txt"⟩
 monthly ← compose.MonthlyAccounts ⟨actual,"JPY","2026-01","2026-03"⟩
 CheckGolden ⟨monthly,"monthly-accounts","human","monthly_accounts.destination.human.txt"⟩
-dailyFlow ← compose.DailyFlow ⟨actual,budgetPolicy,household,"JPY","2026-01-01","2026-02-01","2026-01-12"⟩
+dailyFlow ← compose.DailyFlow ⟨actual,household,envelopeHistory,"JPY","2026-01-01","2026-02-01","2026-01-12"⟩
 CheckGolden ⟨dailyFlow,"daily-flow","human","daily_flow.destination.human.txt"⟩
 envelopes ← compose.Envelopes ⟨budget,budgetPolicy,household,envelopeHistory,actual,plan,planRetirements,"JPY","2026-01-01","2026-02-01","2026-01-12"⟩
 CheckGolden ⟨envelopes,"envelopes","compact","envelope_backing.destination.compact.txt"⟩

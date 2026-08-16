@@ -23,12 +23,12 @@ result ← period.Build ⟨facts,"JPY","actual",start,end⟩
 "ok" lib.AssertEq result.state
 0 lib.AssertEq ≠result.diagnostics
 0 lib.AssertEq result.scale
-8 lib.AssertEq result.accounts.count
+7 lib.AssertEq result.accounts.count
 facts.accounts.key lib.AssertEq result.accounts.account_key
-(8⥊0) lib.AssertEq result.accounts.opening
-⟨1000,0,30,5,0,0,0,0⟩ lib.AssertEq result.accounts.debit_movement
-⟨¯35,¯1000,0,0,0,0,0,0⟩ lib.AssertEq result.accounts.credit_movement
-⟨965,¯1000,30,5,0,0,0,0⟩ lib.AssertEq result.accounts.closing
+(7⥊0) lib.AssertEq result.accounts.opening
+⟨1000,0,30,5,0,0,0⟩ lib.AssertEq result.accounts.debit_movement
+⟨¯35,¯1000,0,0,0,0,0⟩ lib.AssertEq result.accounts.credit_movement
+⟨965,¯1000,30,5,0,0,0⟩ lib.AssertEq result.accounts.closing
 0 lib.AssertEq result.totals.opening
 1035 lib.AssertEq result.totals.debit_movement
 ¯1035 lib.AssertEq result.totals.credit_movement
@@ -41,10 +41,10 @@ facts.accounts.key lib.AssertEq result.accounts.account_key
 
 late ← period.Build ⟨facts,"JPY","actual",dates.Ordinal "2026-01-11",end⟩
 "ok" lib.AssertEq late.state
-⟨980,¯1000,20,0,0,0,0,0⟩ lib.AssertEq late.accounts.opening
-⟨0,0,10,5,0,0,0,0⟩ lib.AssertEq late.accounts.debit_movement
-⟨¯15,0,0,0,0,0,0,0⟩ lib.AssertEq late.accounts.credit_movement
-⟨965,¯1000,30,5,0,0,0,0⟩ lib.AssertEq late.accounts.closing
+⟨980,¯1000,20,0,0,0,0⟩ lib.AssertEq late.accounts.opening
+⟨0,0,10,5,0,0,0⟩ lib.AssertEq late.accounts.debit_movement
+⟨¯15,0,0,0,0,0,0⟩ lib.AssertEq late.accounts.credit_movement
+⟨965,¯1000,30,5,0,0,0⟩ lib.AssertEq late.accounts.closing
 ⟨0,3⟩ lib.AssertEq 0⊑late.accounts.opening_contributors
 ⟨6⟩ lib.AssertEq 0⊑late.accounts.credit_contributors
 0 lib.AssertEq late.totals.opening

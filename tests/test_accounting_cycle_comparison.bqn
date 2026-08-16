@@ -21,8 +21,8 @@ result ← comparison.Build ⟨current,baseline,"aligned_elapsed"⟩
 "ok" lib.AssertEq result.state
 10 lib.AssertEq result.current_day_count
 10 lib.AssertEq result.baseline_day_count
-⟨980,¯1000,20,0,0,0,0,0⟩ lib.AssertEq result.accounts.current_movement
-(8⥊0) lib.AssertEq result.accounts.baseline_movement
+⟨980,¯1000,20,0,0,0,0⟩ lib.AssertEq result.accounts.current_movement
+(7⥊0) lib.AssertEq result.accounts.baseline_movement
 result.accounts.current_movement lib.AssertEq result.accounts.difference
 1 lib.AssertEq result.totals.balanced
 "actual.journal" lib.AssertEq (⊑0⊑result.accounts.current_contributors).source
@@ -35,7 +35,7 @@ complete ← comparison.Build ⟨completeCurrent,completeBaseline,"complete_cycl
 "ok" lib.AssertEq complete.state
 31 lib.AssertEq complete.current_day_count
 28 lib.AssertEq complete.baseline_day_count
-⟨965,¯1000,30,5,0,0,0,0⟩ lib.AssertEq complete.accounts.difference
+⟨965,¯1000,30,5,0,0,0⟩ lib.AssertEq complete.accounts.difference
 
 misalignedBaseline ← Window ⟨"2025-12-22","2026-01-22","2025-12-30"⟩
 misaligned ← comparison.Build ⟨current,misalignedBaseline,"aligned_elapsed"⟩
@@ -71,7 +71,6 @@ mixedDomain ← comparison.Build ⟨current,usdBaseline,"aligned_elapsed"⟩
 "error" lib.AssertEq mixedDomain.state
 lib.Assert ∨´"comparison_domain_mismatch"⊸≡¨{𝕩.code}¨mixedDomain.diagnostics
 
-# Exact cross-scale normalization without adding currency display precision.
 ref ← {source⇐"actual.journal",posting_id⇐"p",transaction_id⇐"t"}
 Synthetic ← {𝕊 scaleValue‿movementValues:
   {

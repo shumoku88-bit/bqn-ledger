@@ -1,13 +1,12 @@
 # Destination report portfolio contract
 
-Status: Portfolio Contract P1 selected implementation baseline
-Date: 2026-07-28
-Decision authority: `REPORT_PORTFOLIO_DECISION.md`
-Current production: `tools/report` → strict `src/` composition
+Status: current production contract  
+Updated: 2026-08-16  
+Current production: `tools/report` -> strict `src/` composition
 
-## 1. Static destination catalog
+## Static destination catalog
 
-The destination catalog has these keys in this order:
+The destination catalog is source-independent and has these keys in this order:
 
 ```text
 envelopes
@@ -24,85 +23,61 @@ daily-target
 issues
 ```
 
-| key | label | shape | human | compact | JSON |
+| key | label | primary shape | human | compact | JSON |
 |---|---|---|---:|---:|---:|
-| `envelopes` | Envelope & Backing | bounded Statement: Cards + Matrix/List evidence | yes | yes | yes |
+| `envelopes` | Envelope & Backing | Statement + evidence | yes | yes | yes |
 | `balances` | Account Balances | Account Matrix | yes | yes | yes |
-| `balance-sheet` | Balance Sheet | classified position Statement | yes | no | no |
-| `profit-and-loss` | Profit and Loss | classified period Statement | yes | no | no |
+| `balance-sheet` | Balance Sheet | position Statement | yes | no | no |
+| `profit-and-loss` | Profit and Loss | period Statement | yes | no | no |
 | `recent` | Recent Journal | Transaction List | yes | yes | no |
-| `planned` | Planned Payments | Plan List + total Card | yes | yes | yes |
-| `cycle-accounts` | Current-cycle Accounts | Account × measure Matrix | yes | no | no |
-| `cycle-comparison` | Cycle Comparison | Account × comparison Matrix | yes | no | no |
-| `monthly-accounts` | Monthly Accounts | Month × Account Matrix | yes | no | no |
-| `daily-flow` | Daily Flow | Date × Account Matrix | yes | no | no |
-| `daily-target` | Daily Target | evidence-bearing Card/Projection | yes | yes | no |
+| `planned` | Planned Payments | Plan List + totals | yes | yes | yes |
+| `cycle-accounts` | Current-cycle Accounts | Account x measure Matrix | yes | no | no |
+| `cycle-comparison` | Cycle Comparison | Account x comparison Matrix | yes | no | no |
+| `monthly-accounts` | Monthly Accounts | Month x Account Matrix | yes | no | no |
+| `daily-flow` | Daily Flow | Date x Account Matrix | yes | no | no |
+| `daily-target` | Daily Target | evidence-bearing projection | yes | yes | no |
 | `issues` | Issues | source-ordered List | yes | no | no |
 
-“No” means unsupported, not an empty renderer. Unsupported JSON is a nonzero CLI error. Compact output contains only registered compact owners; Matrix reports are not flattened into ad-hoc key floods.
+Unsupported surfaces fail explicitly. Listing catalog metadata does not read Household sources.
 
-The catalog is static and source-independent. Listing keys/metadata does not read household sources. Full and cache output iterate this catalog but build one requested result at a time.
-
-Daily Flow answers one bounded question: for explicit Actual period `[start,end_exclusive)` and observation, how did each active non-Budget Account move on each observed date? The column axis follows admitted Account order, excludes Budget-role Accounts, and omits Accounts whose cells are all zero throughout the period. Specific expense Accounts remain visible instead of disappearing into Budget categories. Semantic cells retain canonical Posting signs and contributors; human presentation reverses income and expense signs so inflow is positive and outflow is negative. Its production surface is human-only.
-
-## 2. Shared result rules
+## Shared laws
 
 All monetary report results obey:
 
-- one explicit supported currency domain per result;
+- one explicit supported Commodity domain per result;
 - exact coefficient/scale arithmetic;
-- no FX conversion or cross-domain total;
-- half-open periods `[start,end_exclusive)`;
-- explicit observation/target coordinates at the use-case boundary;
-- source-qualified Transaction/Posting contributors where money is derived;
+- no implicit FX conversion or cross-domain total;
+- half-open periods `[start,end_exclusive)` where a period is required;
+- explicit observation / target coordinates at the application boundary;
+- source-qualified Transaction / Posting contributors for derived money;
 - `unavailable` and `error` never become numeric zero or a valid-looking empty report;
-- a valid admitted empty source may produce a normal empty/zero result where the report contract says so.
+- a valid admitted empty source may produce a normal empty or zero result where its report contract permits it.
 
-Human signs are presentation policy. Result coefficients remain canonical Posting signs unless a named measure explicitly projects consumption/income into a positive display measure.
+Human signs are presentation policy. Semantic results keep canonical Posting signs unless a named measure explicitly projects another sign meaning.
 
-## 3. Account Balances
+## Account Balances
 
-### Question
-
-What is the exact Actual-layer balance of every admitted Account in one selected domain at observation `O`?
-
-### Coordinates
+At observation `O`, Account Balances publishes the exact Actual closing of every admitted Account in the selected domain:
 
 ```text
-row axis     = all Accounts in admitted Account order whose currency = selected domain
-column axis  = closing
-window       = all Actual Postings with date <= O
+closing(account,O) = exact sum of Actual Posting coefficients through O
 ```
 
-Zero-posting Accounts remain rows. `O` is explicit to the use case; the normal daily composition may choose the latest admitted Actual date, or period start for valid empty Actual, but the accounting builder does not choose it.
+Zero-posting Accounts remain rows. Every balance retains its Posting contributors.
 
-### Measure and provenance
+## Balance Sheet and Profit and Loss
+
+Balance Sheet is an observation-bounded position statement over explicit Asset, Liability, and Equity roles. Because current journals do not require closing entries, accumulated Income/Expense result is exposed explicitly rather than silently folded into another Account.
+
+Profit and Loss is a half-open-period movement statement over explicit Income and Expense roles:
 
 ```text
-closing(account,O) = exact sum of selected Actual Posting coefficients through O
+net income = total income - total expenses
 ```
 
-Each cell retains contributing Posting references. Result totals are separated by accounting role if supplied by the section; there is no cross-role sign reinterpretation in the accounting capability.
+Both remain Actual-only, one-domain results with source-qualified evidence. Detailed statement laws are owned by `FINANCIAL_STATEMENTS.md`.
 
-### Empty/error
-
-A valid empty Actual source returns every selected-domain Account with exact zero closing and no contributors. Unknown domain, invalid observation, rejected Facts, or exact overflow returns no numeric table.
-
-## 3A. Balance Sheet and Profit and Loss
-
-Balance Sheet is an observation-bounded position statement over explicit `asset`, `liability`, and `equity` roles. Because current journals do not require closing entries, it exposes an exact `unclosed accumulated result` derived from Income/Expense closing balances and proves `assets = liabilities + equity`. A nonzero Actual balance in an unsupported role fails closed.
-
-Profit and Loss is a half-open-period movement statement over explicit `income` and `expense` roles. It publishes positive-normalized income and expense measures plus `net income = total income - total expenses`; abnormal debits/credits remain negative rather than being inferred into another class.
-
-Both are Actual-only, one-domain, human-only results with source-qualified Posting contributors. The current semantics and the decisions deliberately left open—closing policy, reporting year, classification depth, comparative policy, formal adjustments, and structured surfaces—are in [`FINANCIAL_STATEMENTS.md`](FINANCIAL_STATEMENTS.md).
-
-## 4. Current-cycle Accounts
-
-### Question
-
-How has every Account moved from resolved cycle start through observation `O`?
-
-### Period
+## Current-cycle Accounts
 
 For resolved cycle `C=[S,E)` and `S <= O < E`:
 
@@ -110,300 +85,127 @@ For resolved cycle `C=[S,E)` and `S <= O < E`:
 observed end = min(O + 1 day, E)
 opening      = Actual Postings before S
 period       = Actual Postings in [S, observed end)
-```
 
-### Matrix
-
-```text
-row axis    = all Accounts in selected domain, admitted order
-column axis = opening | debit | credit | movement | closing
-```
-
-Canonical measures:
-
-```text
-debit    = signed exact sum of debit Postings in period
-credit   = signed exact sum of credit Postings in period
 movement = debit + credit
 closing  = opening + movement
 ```
 
-Credit remains negative in the semantic result. Renderers may label it clearly but do not silently absolute-value the stored measure. Every cell retains Posting contributors; closing contributors are opening plus period contributors.
+The row axis is the selected-domain Account axis in admitted order. Semantic credit stays signed; display normalization belongs to rendering.
 
-This replaces the daily-report need previously split across Cycle and Trial Balance. A full-cycle developer Trial Balance is a preset/tool over the same capability, not a required portfolio route.
+## Cycle Comparison
 
-## 5. Cycle Comparison
-
-### Question
-
-How does per-Account movement in one explicit current window compare with one explicit baseline window?
-
-### Input windows
-
-The report accepts two already-resolved windows:
+Cycle Comparison consumes two already-resolved windows and never searches the source for a vaguely similar prior period.
 
 ```text
-current  = [current_start,current_end_exclusive)
-baseline = [baseline_start,baseline_end_exclusive)
-comparison_policy = aligned_elapsed | complete_cycles
-```
-
-- `aligned_elapsed` requires equal day counts and is the normal active-cycle comparison;
-- `complete_cycles` requires two complete resolved cycles but not equal calendar labels;
-- the report never searches source rows for a “similar” prior period;
-- unavailable previous income-anchor evidence produces `unavailable`, not a zero baseline.
-
-### Matrix
-
-```text
-row axis    = all Accounts in selected domain, admitted order
-column axis = current_movement | baseline_movement | difference
-
 difference = current_movement - baseline_movement
 ```
 
-Each measure retains its own window contributors. Difference contributors are source-qualified union evidence, while its arithmetic keeps current and baseline coefficients distinguishable in the result.
+Unavailable baseline evidence remains unavailable, not zero.
 
-Counts, ratios, and increased/decreased labels are not part of P1. They may be added only for a demonstrated retained question; the old Actual Comparison lanes/statuses are not inherited automatically.
+## Monthly Accounts
 
-## 6. Monthly Accounts
+Monthly Accounts groups exact Actual movement by explicit calendar-month range. Semantic rows are ascending calendar months and columns are Accounts in admitted order. Zero months and zero Account cells remain representable without fabricating evidence.
 
-### Question
+## Daily Flow
 
-What was each Account’s net movement in each calendar month of one explicit month range?
+Daily Flow answers how active non-Budget Accounts moved on each observed date in one explicit Actual period. The result keeps Account-level evidence rather than replacing Expense Accounts with Envelope display categories.
 
-### Matrix
+Its lower accounting capability may also expose dynamic Expense categories for other consumers. That category meaning comes only from explicit `ExpenseRoutingHistory`; current `budget.toml`, Account names, prefixes, and labels are not historical routing authority. Detailed ownership is in `DATE_CATEGORY_FLOW_CAPABILITY.md`.
+
+## Envelope & Backing
+
+Envelope & Backing composes owners with deliberately different lifetimes:
+
+- `budget.journal`: ordered Entitlement movement evidence;
+- `household.toml [budget]`: explicit opening / unassigned Budget Account coordinates;
+- `household.toml [[budget.envelopes]]`: stable allocation Account -> Envelope identity coordinates;
+- `household.toml [envelope-history]`: stable Envelope identities and explicit Expense / Fulfillment routing history;
+- Actual and Plan Journals: accounting, Plan, and completion evidence;
+- `budget.toml`: current Envelope definition / presentation and current Backing topology only.
+
+No Account-name inference, destination-Account inference, current Expense assignment, `spent`, or `execution` compatibility participates.
+
+A clean Envelope epoch may start with an empty canonical `budget.journal`. Before the first explicit Entitlement-source movement, no stock origin or initial money is inferred from Actual balances.
+
+Live stock terms use the Entitlement-source origin through observation rather than resetting at the report Period:
 
 ```text
-semantic row axis    = calendar month YYYY-MM, ascending
-semantic column axis = all Accounts in selected domain, admitted order
-human row axis       = Accounts in admitted order
-human column axis    = calendar months, ascending
-measure              = signed exact Actual movement in that calendar month
+stock horizon = Entitlement-source origin .. O
+
+Remaining(e)
+  = Entitlement(e)
+  - Consumption(e)
+  + Refunds(e)
+  - Fulfillment(e)
+
+Headroom(e)
+  = Remaining(e)
+  - Commitment(e)
 ```
 
-Input month range is `[first_month,last_month_exclusive)` and is not inferred from “today”. Months with no selected Postings remain explicit zero rows/cells with no contributors. The semantic Matrix includes zero-posting Accounts. Human rendering transposes only presentation; it does not transpose or rebuild the accounting result or contributor coordinates.
+Consumption comes from Actual Expense evidence plus historical Expense routing. Fulfillment comes from completed Plan/Actual evidence plus historical PlanId routing. Commitment is the current open Plan claim and is published directly as `commitment`; there is no reserve compatibility alias.
 
-P1 intentionally selects movement only. Monthly closing, debit/credit submatrices, role summaries, and YTD cards are not silently bundled. A later concrete consumer may add a separate bounded result after its semantics are reviewed.
+Negative Remaining and Headroom remain visible evidence and are not clamped.
 
-## 6A. Daily Flow
-
-### Question
-
-How did each active non-Budget Account move on each observed date in one explicit Actual period?
+Backing is orthogonal to Envelope capacity:
 
 ```text
-semantic row axis    = selected transaction dates, ascending, plus observation when absent
-semantic column axis = active non-Budget Accounts in selected-domain admitted order
-human row axis       = selected dates, ascending
-human column axis    = active non-Budget Accounts in admitted order
-measure              = signed exact Actual movement on that date
-```
+funding_balance       = exact Actual closing at O of current Backing Asset Accounts
+signed_envelope_total = sum Remaining across current Envelopes
+backing_required      = sum max(Remaining,0)
+backing_surplus       = funding_balance - backing_required
 
-The observation remains an explicit zero row when no transaction occurs on it. Budget-role Accounts are never report columns; every other Account is omitted only when all of its period cells are zero. An Account with offsetting nonzero movements remains visible. Semantic coefficients keep canonical Posting signs and each occupied cell retains its Posting contributors. Human output keeps Date rows and Account columns, reversing income and expense Account signs only. This preserves the familiar positive-inflow/negative-outflow reading while exposing individual Accounts such as specific purchases. Asset, liability, and equity Account signs remain canonical.
-
-## 7. Envelope & Backing
-
-### Question
-
-What does each envelope currently claim, what has consumed it, what open Plans depend on it, and is the positive claim backed by admitted funding assets?
-
-The result is one bounded Statement, not an import of the old Envelope ViewModel.
-
-### Coordinates
-
-Inputs include selected domain, resolved envelope horizon `H=[S,E)`, explicit observation `O`, the admitted source-ordered Budget movement relation, strict Actual/Plan Facts, completion Join, Account metadata, and an owner-resolved funding scope.
-
-An envelope is selected only by explicit Account metadata/policy. Account-name prefixes and display labels do not establish envelope or funding membership.
-
-### Per-envelope terms
-
-For envelope `e`:
-
-```text
-entitlement(e)          = signed exact admitted Budget endpoint movement mapped to e through the observation day, with opening evidence before S carried into [S,E)
-actual_consumption(e)   = positive projection of mapped Actual expense-debit evidence in [S,O+1)
-actual_refunds(e)       = positive projection of mapped Actual expense-credit evidence in [S,O+1)
-ledger_remaining(e)     = entitlement - actual_consumption + actual_refunds
-open_plan_reserve(e)    = exact open Plan outflows mapped to e with O <= due < E
-post_plan_headroom(e)   = ledger_remaining - open_plan_reserve
-```
-
-P1 includes a same-day Plan when it remains open after completion evidence through O. A same-day completed Plan is excluded by the durable completion Join, so it is not reserved twice.
-
-P1 Entitlement is observed directly from the admitted source-ordered Budget movement relation, not reconstructed from generic Budget Facts or a Budget Account closing. Opening evidence before `S` establishes the opening position; period movement is bounded by `[S,E)` and the observation day. Historical Envelope-to-spent/execution compatibility rows are inert, so Plan completion cannot decrease Remaining through a duplicate Budget execution fact. Negative `ledger_remaining` remains visible as overspent and is not clamped to zero.
-
-P1 uses `refunds` as the display name for the exact expense-credit projection. It does not yet claim that every credit is an externally sourced cash refund: an expense reclassification can also credit an expense Account. Posting and Transaction provenance is retained so a later concrete question can split `external_refund / reclassification / other_credit` without reparsing source text. That split requires an explicit transaction-counterpart or admitted classification contract; it must not be inferred from Account names. Until such a consumer is selected, the accounting definition above remains deterministic and the renderer must not describe the coordinate more strongly than “expense credits / refunds”.
-
-### Backing terms
-
-```text
-funding_balance         = exact Actual closing at O of owner-admitted funding Accounts
-signed_envelope_total   = sum ledger_remaining across active envelopes
-backing_required        = sum max(ledger_remaining,0) across active envelopes
-backing_surplus         = funding_balance - backing_required
-```
-
-Status:
-
-```text
-backed       when backing_surplus >= 0
-under_backed when backing_surplus < 0
-unavailable  when funding/envelope ownership or required evidence is absent/ambiguous
-error        when supplied evidence is contradictory, mixed-domain, duplicated, or invalid
-```
-
-Budget-ledger unassigned is a separate reconciliation coordinate:
-
-```text
 ledger_unassigned
-reconciliation_delta = backing_surplus - ledger_unassigned
+reconciliation_delta  = backing_surplus - ledger_unassigned
 ```
 
-`reconciliation_delta=0` is informative but not required for `backed`; the Budget ledger and funding assets are different evidence systems. They must never be labeled as one number.
+`reconciliation_delta = 0` is informative, not an invariant equating Budget evidence with Asset balances. Detailed current laws are in `ENVELOPE_BACKING_CAPABILITY.md`.
 
-Open Plan reserve is shown per envelope and in totals. It is not deducted a second time from `funding_balance`; Daily Target owns obligation deduction and reservation provenance.
+## Planned Payments
 
-### Evidence
+Planned Payments publishes open Plans only. Stable PlanId plus Actual completion evidence decides completion; Account similarity does not. It retains temporal classification, exact single-domain totals, and source evidence. The detailed contract is in `PLANNED_PAYMENTS_SECTION.md`.
 
-The result retains funding Account contributors, Budget entitlement contributors, Actual consumption/refund contributors, open Plan/Actual completion references, and any reconciliation Account contributors. Invalid evidence publishes no partial backing amount.
+## Recent Journal
 
-## 8. Planned Payments
+Recent Journal returns the latest positive bounded count of admitted Actual Transactions in physical source order, newest first. Multi-Posting lanes remain arrays rather than fabricated single from/to Accounts. A valid empty Actual source returns an empty List.
 
-The implemented contract in `PLANNED_PAYMENTS_SECTION.md` remains selected:
+## Issues
 
-- unpaid Plan projection only (completed Plans excluded from result);
-- date-ordered Plan selection & full-evidence Actual completion join;
-- temporal classification (`overdue`, `current_cycle`, `future_cycles`);
-- as-of relative status (`future / due / overdue`);
-- duplicate/ambiguous completion refusal;
-- exact single-domain group totals (`current_cycle_total`, `due_through_cycle_total`, `overdue_total`, `future_cycles_total`);
-- human/compact/JSON from one open-only result.
+Issues is a source-ordered List over admitted Issue rows. It is a Household notebook surface, not an accounting Fact, Envelope claim, or monetary obligation. Editor Issue commands and report admission share the same source meaning rather than parsing rendered report text.
 
-Its final key remains `planned`; destination compact prefix remains `ledger_planned_payment`.
+## Daily Target
 
-## 9. Recent Journal
-
-### Question and List
-
-What are the latest `N` admitted Actual Transactions in physical source order?
-
-```text
-selection = final N Transactions, then newest first
-fields    = date, description, credit Account keys, debit Account keys,
-            exact debit total, currency, transaction reference, Posting contributors
-```
-
-`N` is an explicit positive bounded input. Multi-posting lanes remain arrays; they are not collapsed into a fabricated single from/to Account. Each Transaction must stay one domain. A valid empty Actual source returns an empty List, not an unavailable report.
-
-Final key is `recent`. Compact payload is explicitly tab-delimited:
-
-```text
-ledger_recent_journal: DATE<TAB>CURRENCY<TAB>AMOUNT<TAB>CREDIT_ACCOUNTS<TAB>DEBIT_ACCOUNTS<TAB>DESCRIPTION
-```
-
-## 10. Issues
-
-Issues is a source-ordered List over admitted issue rows. It does not become an accounting Fact or monetary obligation.
-
-Current admission uses the exact header and field order:
-
-```text
-issue_id | status | date | due | category | title | amount | currency | details
-```
-
-(tab-separated in the source). The exact legacy header without `due` remains bounded migration compatibility and normalizes missing evidence to `undetermined`. Required evidence is durable unique issue identity, source row/reference, `open | resolved | dropped` status, optional strict recorded date, three-way due (`YYYY-MM-DD | none | undetermined`), required category/title, optional exact amount paired with explicit currency, and optional details. Default human selection is open issues only and retains due meaning. Absent/header-only source is valid empty evidence. Invalid issue admission is `error`; no valid-looking partial List is returned.
-
-Editor issue list/close/add workflows remain separate source commands and must share admission semantics rather than parse report text.
-
-## 11. Daily Target
-
-### Question
-
-At explicit observation `O`, through exclusive target date `T`, what daily amount is supported by owner-admitted assets after admitted unsettled obligations are deducted exactly once?
-
-P1 adopts the evidence model and safety ordering from `DAILY_CAPACITY_MINIMAL_INPUT_RESULT_CONTRACT.md`, generalized from cycle end to explicit `T`.
-
-### Horizon and evidence
-
-```text
-horizon = [O,T)
-O < T
-remaining_days = T - O
-```
-
-Inputs are one proven arithmetic domain, owner-resolved asset scope, owner-resolved obligation scope, and reservation provenance. Included obligations are open and due before `T`; overdue open obligations remain included.
-
-A virtual envelope claim held inside selected asset balances does not prove an obligation is outside the asset basis. `excluded_from_asset_basis` reduces obligation deduction only with exact per-obligation reservation provenance. Aggregate Envelope/Plan equality is diagnostic, not sufficient provenance.
-
-Expected future income may be displayed as separate evidence but does not increase P1 safe capacity. A later income-inclusive projection requires its own admission and uncertainty contract.
-
-### Arithmetic
+Daily Target projects safe daily capacity from explicit observation `O` through exclusive target date `T` using owner-admitted Asset and unsettled-obligation evidence.
 
 ```text
 eligible_assets
-  = sum included asset balances
+  = sum included Asset balances
 
 gross_obligations
-  = sum included open obligation amounts
-
-already_excluded
-  = sum proven excluded_from_asset_basis
+  = sum included open obligations
 
 obligation_deduction
-  = gross_obligations - already_excluded
+  = gross_obligations - proven already-excluded amounts
 
 capacity_balance
   = eligible_assets - obligation_deduction
 ```
 
-When `capacity_balance >= 0`:
+Only explicit reservation provenance may reduce obligation deduction. Aggregate equality with an Envelope or Plan is not sufficient proof.
 
-```text
-state = ok
-daily_target = floor(capacity_balance / remaining_days)
-daily_shortfall = 0
-```
+## Time and composition
 
-When `capacity_balance < 0`:
+Application composition captures or resolves time and passes explicit coordinates inward. Accounting and section modules do not read the clock.
 
-```text
-state = deficit
-daily_target = 0
-daily_shortfall = ceiling((-capacity_balance) / remaining_days)
-```
+Canonical report composition reads admitted owners from one Household root. A report must not re-read legacy source names, reinterpret current configuration as historical evidence, or build a parallel report-specific Household model.
 
-`unavailable/error` has no calculation. Result retains normalized asset, obligation, exclusion, and reservation references. Compact prefix is `ledger_daily_target`.
+## Evolution law
 
-## 12. CLI time coordinates
+When a report changes:
 
-Destination report composition exposes explicit options rather than Outlook-specific names:
-
-```text
---as-of YYYY-MM-DD
---target-date YYYY-MM-DD
-```
-
-- `--as-of` applies only to retained reports with observation semantics;
-- if omitted in an interactive daily command, composition captures system date once and passes it explicitly;
-- deterministic tests/cache generation supply it explicitly;
-- `--target-date` applies only to `daily-target`; if omitted, the resolved cycle end is the composition default and is still passed explicitly;
-- accounting/section modules never read the clock.
-
-Old `--outlook-as-of` is removed atomically with `outlook`; it is not aliased.
-
-## 13. Implementation order
-
-Selected dependency order:
-
-1. Account Balances — direct Actual Facts and Account table;
-2. Recent Journal — direct Transaction/Posting List;
-3. Current-cycle Accounts — existing Account-period capability;
-4. Monthly Accounts — bounded calendar grouping;
-5. Cycle Comparison — two explicit period results;
-6. Envelope & Backing — Budget/Actual/Plan composition;
-7. Daily Target — funding/obligation evidence and reservation provenance;
-8. Issues — strict issue admission/List, independently schedulable;
-9. composition/routing cutover after all retained surfaces and removal actions are ready.
-
-Planned Payments is already a destination proof and remains in the catalog. This order may be sliced reversibly, but no old report ViewModel becomes a dependency of a retained report.
+- preserve exactness, identity, provenance, and source order;
+- establish the semantic owner before adding a field or route;
+- do not keep completed migration aliases in current result shapes;
+- do not turn presentation names into domain authority;
+- do not infer missing historical evidence from current policy;
+- keep completed implementation sequences and retired compatibility history in Git rather than this current contract.

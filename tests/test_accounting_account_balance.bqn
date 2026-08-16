@@ -13,8 +13,8 @@ accountLines ← loader.ReadLines base∾"accounts.tsv"
 facts ← (snapshot.Build ⟨accountLines,•FChars "../"∾base∾"actual.journal",registry⟩).facts
 result ← balance.Build ⟨facts,"JPY",dates.Ordinal "2026-01-12"⟩
 "ok" lib.AssertEq result.state
-8 lib.AssertEq result.accounts.count
-⟨965,¯1000,30,5,0,0,0,0⟩ lib.AssertEq result.accounts.closing
+7 lib.AssertEq result.accounts.count
+⟨965,¯1000,30,5,0,0,0⟩ lib.AssertEq result.accounts.closing
 0 lib.AssertEq result.scale
 1 lib.AssertEq result.balanced
 3 lib.AssertEq ≠0⊑result.accounts.contributors
@@ -27,7 +27,7 @@ cashContributorIds ← {𝕩.posting_id}¨⊑result.accounts.contributors
 cashPostingIds lib.AssertEq cashContributorIds
 
 atJan10 ← balance.Build ⟨facts,"JPY",dates.Ordinal "2026-01-10"⟩
-⟨980,¯1000,20,0,0,0,0,0⟩ lib.AssertEq atJan10.accounts.closing
+⟨980,¯1000,20,0,0,0,0⟩ lib.AssertEq atJan10.accounts.closing
 
 lf ← @+10
 BuildDomain ← {𝕊 currency‿accountText‿raw:

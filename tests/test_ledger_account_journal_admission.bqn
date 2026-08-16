@@ -12,12 +12,12 @@ Codes ← {𝕊 diagnostics: {𝕩.code}¨diagnostics }
 proof ← accounts.Admit loader.ReadRaw "fixtures/canonical-household-v1/accounts.journal"
 "ok" lib.AssertEq proof.state
 0 lib.AssertEq ≠proof.diagnostics
-6 lib.AssertEq proof.accounts.count
-⟨"Assets:Bank","Equity:Opening","Income:Salary","Expenses:Groceries","Budget:Unassigned","Budget:Daily"⟩ lib.AssertEq proof.accounts.key
-⟨"Asset","Equity","Income","Expense","Budget","Budget"⟩ lib.AssertEq proof.accounts.type
-⟨"asset","equity","income","expense","budget","budget"⟩ lib.AssertEq proof.accounts.role
-⟨"JPY","JPY","JPY","JPY","JPY","JPY"⟩ lib.AssertEq proof.accounts.currency
-⟨1,5,9,13,17,21⟩ lib.AssertEq proof.accounts.source_row
+7 lib.AssertEq proof.accounts.count
+⟨"Assets:Bank","Equity:Opening","Income:Salary","Expenses:Groceries","Budget:Opening","Budget:Unassigned","Budget:Daily"⟩ lib.AssertEq proof.accounts.key
+⟨"Asset","Equity","Income","Expense","Budget","Budget","Budget"⟩ lib.AssertEq proof.accounts.type
+⟨"asset","equity","income","expense","budget","budget","budget"⟩ lib.AssertEq proof.accounts.role
+⟨"JPY","JPY","JPY","JPY","JPY","JPY","JPY"⟩ lib.AssertEq proof.accounts.currency
+⟨1,5,9,13,17,21,25⟩ lib.AssertEq proof.accounts.source_row
 
 optionalCommodity ← accounts.Admit Raw ⟨
   "account Assets:Cash",
@@ -66,7 +66,7 @@ writerCandidate ← writerRaw
 writerCandidate∾↩writerBlock∾⟨lf⟩
 writerRoundTrip ← accounts.Admit writerCandidate
 "ok" lib.AssertEq writerRoundTrip.state
-7 lib.AssertEq writerRoundTrip.accounts.count
+8 lib.AssertEq writerRoundTrip.accounts.count
 writerIndex ← writerRoundTrip.accounts.count-1
 "Income:Friend-Settlement" lib.AssertEq writerIndex⊑writerRoundTrip.accounts.key
 "income" lib.AssertEq writerIndex⊑writerRoundTrip.accounts.role

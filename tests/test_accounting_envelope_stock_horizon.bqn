@@ -19,23 +19,15 @@ Join ← {𝕊 fields:
   {𝕊 field:out∾↩tab∾field}¨1↓fields
   out
 }
-Has ← {𝕊 item‿items:∨´0∾item⊸≡¨items}
-Kind ← {𝕊 key:
-  result ← ""
-  {𝕊:result↩"opening"}⍟(key≡"budget:opening") @
-  {𝕊:result↩"unassigned"}⍟(key≡"budget:unassigned") @
-  {𝕊:result↩"envelope"}⍟(key≡"budget:food") @
-  result
-}
 
 registry ← (registryCore.Build loader.ReadLines "config/currencies.tsv").registry
 accountLines ← ⟨
-  Join ⟨"assets:cash","role=asset","type=liquid","currency=JPY"⟩,
-  Join ⟨"assets:savings","role=asset","type=savings","currency=JPY"⟩,
+  Join ⟨"assets:cash","role=asset","currency=JPY"⟩,
+  Join ⟨"assets:savings","role=asset","currency=JPY"⟩,
   Join ⟨"expenses:food","role=expense","currency=JPY"⟩,
-  Join ⟨"budget:opening","role=budget","kind=opening","currency=JPY"⟩,
-  Join ⟨"budget:unassigned","role=budget","kind=unassigned","currency=JPY"⟩,
-  Join ⟨"budget:food","role=budget","kind=envelope","currency=JPY"⟩
+  Join ⟨"budget:opening","role=budget","currency=JPY"⟩,
+  Join ⟨"budget:unassigned","role=budget","currency=JPY"⟩,
+  Join ⟨"budget:food","role=budget","currency=JPY"⟩
 ⟩
 
 actualRaw ← ∾⟨
@@ -90,10 +82,11 @@ household ← {
     envelope_id⇐⟨"food"⟩,
     allocation_account_key⇐⟨"budget:food"⟩,
     allocation_account_index⇐actual.accounts.key⊐⟨"budget:food"⟩,
+    opening_account_keys⇐⟨"budget:opening"⟩,
+    opening_account_indices⇐actual.accounts.key⊐⟨"budget:opening"⟩,
     unassigned_account_keys⇐⟨"budget:unassigned"⟩,
     unassigned_account_indices⇐actual.accounts.key⊐⟨"budget:unassigned"⟩
-  },
-  account_policy⇐{account_key⇐actual.accounts.key,budget_kind⇐Kind¨actual.accounts.key}
+  }
 }
 
 baseHistory ← historyFixture.Managed ⟨⟨"food"⟩,⟨"expenses:food"⟩,⟨"food"⟩⟩

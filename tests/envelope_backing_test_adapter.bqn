@@ -1,5 +1,7 @@
-# Test-only adapter for legacy Envelope/Backing fixtures during native routing cutover.
-# Historical routes are explicit fixture facts and never derive from budget.toml.
+# Test-only adapter for focused Envelope/Backing fixtures.
+# Historical routes are explicit fixture facts. Household ownership is passed
+# through unchanged so tests exercise the canonical opening/unassigned/allocation
+# contract without Account-name inference or compatibility reconstruction.
 
 core ← •Import "../src/accounting/envelope_backing.bqn"
 historyFixture ← •Import "envelope_history_test_fixture.bqn"
@@ -16,28 +18,9 @@ HistoryFor ← {𝕊 facts:
   history
 }
 EmptyRetirements ← {𝕊:{plan_id⇐empty,retired_on⇐empty}}
-HasKey ← {𝕊 key‿keys:∨´0∾key⊸≡¨keys}
-TestKind ← {𝕊 key:
-  result ← "envelope"
-  {𝕊:result↩"opening"}⍟(HasKey ⟨key,⟨"budget:opening","budget:opening-ils","Budget:Opening"⟩⟩) @
-  {𝕊:result↩"unassigned"}⍟(HasKey ⟨key,⟨"budget:unassigned","budget:unassigned-ils","Budget:Unassigned"⟩⟩) @
-  {𝕊:result↩"spent"}⍟(HasKey ⟨key,⟨"budget:spent","budget:spent-ils","Budget:Spent"⟩⟩) @
-  result
-}
-TestRole ← {𝕊 key:
-  result ← "dynamic"
-  {𝕊:result↩"unassigned"}⍟(HasKey ⟨key,⟨"budget:unassigned","budget:unassigned-ils","Budget:Unassigned"⟩⟩) @
-  {𝕊:result↩"execution"}⍟(HasKey ⟨key,⟨"budget:spent","budget:spent-ils","Budget:Spent"⟩⟩) @
-  result
-}
 
 Build ← {𝕊 budgetMovements‿policy‿household‿actual‿plan‿domain‿start‿finish‿observation:
-  accountKeys ← actual.accounts.key
-  testHousehold ← {
-    state⇐household.state,source_name⇐household.source_name,budget⇐household.budget,
-    account_policy⇐{account_key⇐accountKeys,budget_kind⇐TestKind¨accountKeys,envelope_role⇐TestRole¨accountKeys}
-  }
-  core.Build ⟨budgetMovements,policy,testHousehold,HistoryFor actual,actual,plan,EmptyRetirements @,domain,start,finish,observation⟩
+  core.Build ⟨budgetMovements,policy,household,HistoryFor actual,actual,plan,EmptyRetirements @,domain,start,finish,observation⟩
 }
 
 {Build⇐Build,HistoryFor⇐HistoryFor}

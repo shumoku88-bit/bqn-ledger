@@ -78,10 +78,10 @@ CycleComparison ← {𝕊 facts‿domain‿currentCycle‿currentObservation‿b
 MonthlyAccounts ← {𝕊 facts‿domain‿firstMonth‿lastMonthExclusive:
   Publish ⟨"monthly-accounts",monthlySection.Build monthMovement.Build ⟨facts,domain,firstMonth,lastMonthExclusive⟩⟩
 }
-DailyFlow ← {𝕊 facts‿budgetPolicy‿householdPolicy‿domain‿start‿finish‿observation:
+DailyFlow ← {𝕊 facts‿householdPolicy‿envelopeHistory‿domain‿start‿finish‿observation:
   output ← DateFailure "daily-flow" ⋄ valid ← (dates.IsValid start) ∧ (dates.IsValid finish) ∧ dates.IsValid observation
   {𝕊:
-    accounting ← dateCategoryFlow.Build ⟨facts,budgetPolicy,householdPolicy,domain,"actual",dates.Ordinal start,dates.Ordinal finish⟩
+    accounting ← dateCategoryFlow.Build ⟨facts,householdPolicy,envelopeHistory,domain,"actual",dates.Ordinal start,dates.Ordinal finish⟩
     output↩Publish ⟨"daily-flow",dailyFlowSection.Build ⟨accounting,start,finish,observation⟩⟩
   }⍟valid @
   output

@@ -14,14 +14,14 @@ Join ← {𝕊 fields: out ← ⊑fields ⋄ {𝕊 field:out∾↩tab∾field}¨
 Index ← {𝕊 key‿accountFacts:⊑accountFacts.key⊐⟨key⟩}
 registry ← (registry_core.Build ⟨Join ⟨"JPY","0","¥"⟩⟩).registry
 accounts ← ⟨
-  Join ⟨"assets:cash","role=asset","type=liquid","currency=JPY"⟩,
-  Join ⟨"expenses:food","role=expense","budget=food","currency=JPY"⟩,
-  Join ⟨"expenses:groceries","role=expense","budget=food","currency=JPY"⟩,
-  Join ⟨"expenses:transport","role=expense","budget=transport","currency=JPY"⟩,
-  Join ⟨"budget:opening","role=budget","kind=opening","currency=JPY"⟩,
-  Join ⟨"budget:unassigned","role=budget","kind=unassigned","currency=JPY"⟩,
-  Join ⟨"budget:food","role=budget","kind=envelope","budget=food","currency=JPY"⟩,
-  Join ⟨"budget:transport","role=budget","kind=envelope","budget=transport","currency=JPY"⟩
+  Join ⟨"assets:cash","role=asset","currency=JPY"⟩,
+  Join ⟨"expenses:food","role=expense","currency=JPY"⟩,
+  Join ⟨"expenses:groceries","role=expense","currency=JPY"⟩,
+  Join ⟨"expenses:transport","role=expense","currency=JPY"⟩,
+  Join ⟨"budget:opening","role=budget","currency=JPY"⟩,
+  Join ⟨"budget:unassigned","role=budget","currency=JPY"⟩,
+  Join ⟨"budget:food","role=budget","currency=JPY"⟩,
+  Join ⟨"budget:transport","role=budget","currency=JPY"⟩
 ⟩
 raw ← ∾⟨
   "commodity JPY",lf,lf,
@@ -55,8 +55,8 @@ budgetRaw ← JournalText ⟨
 budget ← (canonicalBudget.Build ⟨budgetRaw,actual.accounts,registry⟩).movements
 policyRaw ← JournalText ⟨
   "[[backing-pools]]","id = "∾Q "cash","asset-accounts = ["∾(Q "assets:cash")∾"]","",
-  "[[envelopes]]","id = "∾Q "food","label = "∾Q "Food","pacing = "∾Q "daily","backing-pool = "∾Q "cash","expense-accounts = ["∾(Q "expenses:food")∾", "∾(Q "expenses:groceries")∾"]","",
-  "[[envelopes]]","id = "∾Q "transport","label = "∾Q "Transport","pacing = "∾Q "flex","backing-pool = "∾Q "cash","expense-accounts = ["∾(Q "expenses:transport")∾"]"
+  "[[envelopes]]","id = "∾Q "food","label = "∾Q "Food","pacing = "∾Q "daily","backing-pool = "∾Q "cash","",
+  "[[envelopes]]","id = "∾Q "transport","label = "∾Q "Transport","pacing = "∾Q "flex","backing-pool = "∾Q "cash"
 ⟩
 policy ← budgetPolicyAdmission.Admit ⟨policyRaw,actual.accounts⟩
 "ok" lib.AssertEq policy.state
@@ -66,10 +66,11 @@ household ← {
     envelope_id⇐⟨"food","transport"⟩,
     allocation_account_key⇐⟨"budget:food","budget:transport"⟩,
     allocation_account_index⇐{Index ⟨𝕩,actual.accounts⟩}¨⟨"budget:food","budget:transport"⟩,
+    opening_account_keys⇐⟨"budget:opening"⟩,
+    opening_account_indices⇐⟨Index ⟨"budget:opening",actual.accounts⟩⟩,
     unassigned_account_keys⇐⟨"budget:unassigned"⟩,
     unassigned_account_indices⇐⟨Index ⟨"budget:unassigned",actual.accounts⟩⟩
-  },
-  account_policy⇐{account_key⇐actual.accounts.key}
+  }
 }
 result ← envelopes.Build ⟨budget,policy,household,actual,plan,"JPY",dates.Ordinal "2026-01-01",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-10"⟩
 "ok" lib.AssertEq result.state
@@ -80,7 +81,7 @@ result ← envelopes.Build ⟨budget,policy,household,actual,plan,"JPY",dates.Or
 ⟨10,5⟩ lib.AssertEq result.envelopes.actual_consumption
 ⟨0,0⟩ lib.AssertEq result.envelopes.actual_refunds
 ⟨10,5⟩ lib.AssertEq result.envelopes.ledger_remaining
-⟨6,6⟩ lib.AssertEq result.envelopes.open_plan_reserve
+⟨6,6⟩ lib.AssertEq result.envelopes.commitment
 ⟨4,¯1⟩ lib.AssertEq result.envelopes.post_plan_headroom
 foodConsumption ← 0⊑result.envelopes.consumption_contributors
 # Posting-level historical routing preserves canonical Actual source order inside each Envelope.
