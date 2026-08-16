@@ -2,15 +2,14 @@
 lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
-account_admission ← •Import "../src/ledger/account_admission.bqn"
-snapshot ← •Import "legacy_snapshot_fixture.bqn"
+snapshot ← •Import "canonical_snapshot_fixture.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 balance ← •Import "../src/accounting/account_balance.bqn"
 
 base ← "fixtures/ledger-facts-phase1-proof/"
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
-accountLines ← loader.ReadLines base∾"accounts.tsv"
-facts ← (snapshot.Build ⟨accountLines,•FChars "../"∾base∾"actual.journal",registry⟩).facts
+accountSource ← •FChars "../"∾base∾"accounts.journal"
+facts ← (snapshot.Build ⟨accountSource,•FChars "../"∾base∾"actual.journal",registry⟩).facts
 result ← balance.Build ⟨facts,"JPY",dates.Ordinal "2026-01-12"⟩
 "ok" lib.AssertEq result.state
 7 lib.AssertEq result.accounts.count
@@ -30,16 +29,14 @@ atJan10 ← balance.Build ⟨facts,"JPY",dates.Ordinal "2026-01-10"⟩
 ⟨980,¯1000,20,0,0,0,0⟩ lib.AssertEq atJan10.accounts.closing
 
 lf ← @+10
-BuildDomain ← {𝕊 currency‿accountText‿raw:
-  lines ← accountText
-  admittedAccounts ← (account_admission.Admit ⟨lines,registry⟩).accounts
-  domainFacts ← (snapshot.Build ⟨lines,raw,registry⟩).facts
+BuildDomain ← {𝕊 currency‿accountSourceValue‿raw:
+  domainFacts ← (snapshot.Build ⟨accountSourceValue,raw,registry⟩).facts
   balance.Build ⟨domainFacts,currency,dates.Ordinal "2026-03-02"⟩
 }
-ilsLines ← ⟨
-  "assets:ils	role=asset	type=liquid	currency=ILS",
-  "expenses:a-ils	role=expense	currency=ILS",
-  "expenses:b-ils	role=expense	currency=ILS"
+ilsAccounts ← ∾⟨
+  "account assets:ils",lf,"  type: Asset",lf,"  commodity: ILS",lf,lf,
+  "account expenses:a-ils",lf,"  type: Expense",lf,"  commodity: ILS",lf,lf,
+  "account expenses:b-ils",lf,"  type: Expense",lf,"  commodity: ILS",lf
 ⟩
 ilsRaw ← ∾⟨
   "commodity ILS",lf,lf,
@@ -51,7 +48,7 @@ ilsRaw ← ∾⟨
   "2026-03-02 * b",lf,"    ; event-id: ils-b",lf,"    ; layer: actual",lf,
   "    expenses:b-ils 0.05 ILS",lf,"    assets:ils -0.05 ILS",lf
 ⟩
-ils ← BuildDomain ⟨"ILS",ilsLines,ilsRaw⟩
+ils ← BuildDomain ⟨"ILS",ilsAccounts,ilsRaw⟩
 "ok" lib.AssertEq ils.state
 2 lib.AssertEq ils.scale
 ⟨¯1235,1230,5⟩ lib.AssertEq ils.accounts.closing
@@ -61,8 +58,11 @@ emptyRaw ← ∾⟨
   "account assets:usd",lf,"    ; role: asset",lf,lf,
   "account expenses:usd",lf,"    ; role: expense",lf
 ⟩
-emptyLines ← ⟨"assets:usd	role=asset	currency=USD","expenses:usd	role=expense	currency=USD"⟩
-empty ← BuildDomain ⟨"USD",emptyLines,emptyRaw⟩
+emptyAccounts ← ∾⟨
+  "account assets:usd",lf,"  type: Asset",lf,"  commodity: USD",lf,lf,
+  "account expenses:usd",lf,"  type: Expense",lf,"  commodity: USD",lf
+⟩
+empty ← BuildDomain ⟨"USD",emptyAccounts,emptyRaw⟩
 "ok" lib.AssertEq empty.state
 ⟨0,0⟩ lib.AssertEq empty.accounts.closing
 ⟨⟨⟩,⟨⟩⟩ lib.AssertEq empty.accounts.contributors
