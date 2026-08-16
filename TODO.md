@@ -32,29 +32,25 @@ The next work is cross-cutting repository observation rather than another semant
 - [ ] editor/writer ownership from BQN semantic decision through machine operation to safe-write publication;
 - [ ] report/application CLI reachability and repeated effect/protocol boundaries;
 - [ ] repository-wide dead-surface and reachability audit, including retained wrappers;
-- [ ] `experiments/` reachability: classify active experiment, historical evidence, or removable residue;
+- [x] `experiments/` reachability: promoted action-catalog and sparse classify-once probes retired; current negative evidence retained. See `docs/CROSS_CUTTING_EXPERIMENT_REACHABILITY_AUDIT-2026-08-17.md`.
 - [ ] `tui/` reachability and documentation drift;
 - [ ] Calendar-first Household surface versus older Command Hub / TUI documentation;
 - [ ] gum and shell action/selection duplication versus `HouseholdSurface.Actions`;
 - [ ] remaining migration/compatibility residue outside completed canonical Household recovery;
 - [ ] checks/tests classification: current law guard, historical characterization, or obsolete topology assumption.
 
-## Known starting observations
+## Current experiment state
 
-Re-verify these against actual remote state before acting:
+`experiments/bqn/` now retains only the Cells/Rank matrix-result experiment and its note as negative evidence. Its conclusion still matches current `src/accounting/matrix_result.bqn`: the alternative preserves behavior but obscures a small fixed-field assembly.
 
-- `tui/README.md` has historically described a frozen TUI and older Command Hub shape and may now be stale.
-- `experiments/bqn/add_ui_action_catalog.*` explored shell action declarations as a BQN relation; current `HouseholdSurface.Actions` may have superseded that experiment.
-- dedicated checks/workflows around completed experiments may now be historical residue rather than active product gates.
-
-Do not delete or rewrite these surfaces from memory. Observe current consumers and reachability first.
+Promoted experiments are no longer executable second implementations. Git history and the cross-cutting audit document retain their evidence.
 
 ## Continuation contract
 
 A fresh session should:
 
 1. verify actual remote `main`, open PRs, relevant heads, and CI;
-2. read the closeout document for the lane being revisited;
+2. read the closeout/audit document for the lane being revisited;
 3. observe reachability and ownership before editing;
 4. distinguish current law from historical evidence;
 5. prefer retirement of dead compatibility/runtime surfaces over polishing them into permanent architecture;
@@ -64,5 +60,7 @@ A fresh session should:
 ## Current cursor
 
 ```text
-cross-cutting shell / UI / experiments / documentation reachability audit
+tui/README.md + active tools/bl/add-ui path + Calendar-first surface documentation
 ```
+
+Observe before editing: keep live frontend adapters distinct from stale architectural descriptions. After documentation/reachability is aligned, inspect shell-owned action/selection duplication against `HouseholdSurface.Actions`.
