@@ -29,7 +29,7 @@ Build ← {𝕊 budgetMovements‿policy‿household‿actual‿plan‿domain‿
   testHousehold ← {
     state⇐household.state,source_name⇐household.source_name,
     budget⇐{
-      envelope_count⇐household.budget.envelope_count,
+      envelope_count⇐≠household.budget.envelope_id,
       envelope_id⇐household.budget.envelope_id,
       allocation_account_key⇐household.budget.allocation_account_key,
       allocation_account_index⇐household.budget.allocation_account_index,
