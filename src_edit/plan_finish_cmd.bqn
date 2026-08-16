@@ -37,16 +37,18 @@ completionIDs ← {𝕩.plan_id}¨completionEvidence
 closedMask ← {Contains ⟨𝕩,completionIDs⟩}¨planIDs
 openIndices ← (¬closedMask)/transactionIndices
 
-selectedIndex ← ¯1
-{𝕊:
-  {𝕊:Fail ("invalid plan index: "∾•Fmt indexVal∾" (available: 1-"∾•Fmt ≠openIndices∾")")}⍟((indexVal<1) ∨ indexVal>≠openIndices) @
-  selectedIndex↩(indexVal-1)⊑openIndices
-}⍟(indexVal>0) @
-{𝕊:
-  matches ← {idVal≡𝕩⊑planIDs}¨openIndices
-  {𝕊:Fail ("plan_id not found or already completed: "∾idVal)}⍟(1≠+´matches) @
-  selectedIndex↩⊑matches/openIndices
-}⍟(indexVal≤0) @
+byIndex ← indexVal>0
+selectedIndex ← byIndex ◶ ⟨
+  {𝕊:
+    matches ← {idVal≡𝕩⊑planIDs}¨openIndices
+    {𝕊:Fail ("plan_id not found or already completed: "∾idVal)}⍟(1≠+´matches) @
+    ⊑matches/openIndices
+  },
+  {𝕊:
+    {𝕊:Fail ("invalid plan index: "∾•Fmt indexVal∾" (available: 1-"∾•Fmt ≠openIndices∾")")}⍟((indexVal<1) ∨ indexVal>≠openIndices) @
+    (indexVal-1)⊑openIndices
+  }
+⟩ @
 
 targetPlanID ← selectedIndex⊑planIDs
 {𝕊:Fail ("plan_id already completed: "∾targetPlanID)}⍟(Contains ⟨targetPlanID,completionIDs⟩) @

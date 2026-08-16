@@ -15,13 +15,15 @@ setup ← editorCurrency.Load @
 args ← •args
 tab ← @+9
 lf ← @+10
-empty ← ⟨⟩
 
 Fail ← {𝕊 msg:
   •Out "ERROR" ∾ tab ∾ msg
   •Exit 1
 }
 Join ← {𝕊 base‿name: base∾(('/'≠¯1↑base)/"/")∾name}
+JoinLines ← {𝕊 lines:
+  (0=≠lines) ◶ ⟨{𝕊:1↓∾(lf⊸∾)¨lines},{𝕊:""}⟩ @
+}
 Unique ← {𝕊 xs: ((xs⊐xs)=↕≠xs)/xs}
 
 {𝕊:Fail "usage: plan_add_cmd.bqn <baseDir> <date> <memo> <from> <to> <amount> <planID-or-empty> <currency-or-empty> [meta...]"}⍟(8>≠args) @
@@ -50,12 +52,13 @@ fromCommodity ← fromIndex⊑accounts.currency
 toCommodity ← toIndex⊑accounts.currency
 knownCommodities ← (0<≠¨fromCommodity‿toCommodity)/(fromCommodity‿toCommodity)
 uniqueKnown ← Unique knownCommodities
-
-currency ← explicitCurrency
-{𝕊:
-  {𝕊:Fail "--currency is required when selected Accounts do not imply exactly one Commodity"}⍟(1≠≠uniqueKnown) @
-  currency↩⊑uniqueKnown
-}⍟(0=≠currency) @
+currency ← (0=≠explicitCurrency) ◶ ⟨
+  {𝕊:explicitCurrency},
+  {𝕊:
+    {𝕊:Fail "--currency is required when selected Accounts do not imply exactly one Commodity"}⍟(1≠≠uniqueKnown) @
+    ⊑uniqueKnown
+  }
+⟩ @
 policy ← setup.Policy currency
 {𝕊:Fail ("unsupported currency: "∾currency)}⍟(policy.state≢"ok") @
 {𝕊:Fail ("from account Commodity differs from selected currency: "∾fromVal)}⍟((0<≠fromCommodity) ∧ fromCommodity≢currency) @
@@ -82,10 +85,8 @@ nativeAliases ← ⟨
   "income-budget","daily-target-id","reservation-id","reservation-amount","reservation-commodity"
 ⟩
 NormalizeKey ← {𝕊 key:
-  result ← key
   i ← ⊑aliases⊐⟨key⟩
-  {𝕊:result↩i⊑nativeAliases}⍟(i<≠aliases) @
-  result
+  (i<≠aliases) ◶ ⟨{𝕊:key},{𝕊:i⊑nativeAliases}⟩ @
 }
 allowedMeta ← ⟨
   "action","receipt-id","tax","biz","invoice","note","due-on","receipt","txn-id",
@@ -93,8 +94,7 @@ allowedMeta ← ⟨
   "execution-envelope","allocation-id","agreement-id","daily-target-id",
   "reservation-id","reservation-amount","reservation-commodity"
 ⟩
-metadata ← empty
-{𝕊 token:
+ParseMetadata ← {𝕊 token:
   equalMask ← '='=token
   {𝕊:Fail "each --meta item must contain exactly one key=value pair"}⍟(1≠+´equalMask) @
   p ← ⊑equalMask/↕≠token
@@ -102,8 +102,9 @@ metadata ← empty
   value ← (p+1)↓token
   {𝕊:Fail "--meta plan_id/plan-id is not allowed; use --id"}⍟(key≡"plan-id") @
   {𝕊:Fail ("metadata key is not admitted for canonical Plan: "∾key)}⍟(¬∨´0∾key⊸≡¨allowedMeta) @
-  metadata∾↩⟨{key⇐key,value⇐value}⟩
-}¨metaTokens
+  {key⇐key,value⇐value}
+}
+metadata ← ParseMetadata¨metaTokens
 metadataKeys ← {𝕩.key}¨metadata
 {𝕊:Fail "metadata keys must be unique after canonical key normalization"}⍟((≠metadataKeys)≠≠⍷metadataKeys) @
 
@@ -116,31 +117,29 @@ planIDs ← {𝕩.plan_id}¨existing.transactions
 completionIDs ← {𝕩.plan_id}¨actualSource.CompletionEvidence baseDir
 existingIDs ← Unique (0<≠¨planIDs∾completionIDs)/(planIDs∾completionIDs)
 
-finalPlanID ← ""
-{𝕊:
-  idCheck ← plan_id.ValidatePlanIDFormat planIdArg
-  {𝕊:Fail ("invalid plan_id: "∾planIdArg)}⍟(¬0⊑idCheck) @
-  {𝕊:Fail ("plan_id already exists: "∾planIdArg)}⍟(∨´0∾planIdArg⊸≡¨existingIDs) @
-  finalPlanID↩planIdArg
-}⍟(0<≠planIdArg) @
-{𝕊:
-  finalPlanID↩plan_id.GeneratePlanID {date⇐dateVal,memo⇐memoVal,meta⇐metaTokens,existing_ids⇐existingIDs}
-}⍟(0=≠planIdArg) @
+hasExplicitPlanID ← 0<≠planIdArg
+finalPlanID ← hasExplicitPlanID ◶ ⟨
+  {𝕊:plan_id.GeneratePlanID {date⇐dateVal,memo⇐memoVal,meta⇐metaTokens,existing_ids⇐existingIDs}},
+  {𝕊:
+    idCheck ← plan_id.ValidatePlanIDFormat planIdArg
+    {𝕊:Fail ("invalid plan_id: "∾planIdArg)}⍟(¬0⊑idCheck) @
+    {𝕊:Fail ("plan_id already exists: "∾planIdArg)}⍟(∨´0∾planIdArg⊸≡¨existingIDs) @
+    planIdArg
+  }
+⟩ @
 
 metadataLines ← {"    ; "∾𝕩.key∾": "∾𝕩.value}¨metadata
-blockLines ← ⟨dateVal∾" "∾memoVal,"    ; plan-id: "∾finalPlanID⟩
-blockLines ∾↩ metadataLines
-blockLines ∾↩ ⟨"  "∾fromVal∾"  -"∾amountVal∾" "∾currency,"  "∾toVal∾"  "∾amountVal∾" "∾currency⟩
-block ← ⊑blockLines
-{𝕊 line:block∾↩lf∾line}¨1↓blockLines
+blockLines ← ⟨dateVal∾" "∾memoVal,"    ; plan-id: "∾finalPlanID⟩ ∾ metadataLines ∾ ⟨
+  "  "∾fromVal∾"  -"∾amountVal∾" "∾currency,
+  "  "∾toVal∾"  "∾amountVal∾" "∾currency
+⟩
+block ← JoinLines blockLines
 
 rawCount ← ≠raw
 endsOne ← (0<rawCount) ∧ lf=¯1⊑raw
 endsTwo ← (1<rawCount) ∧ (lf=¯1⊑raw) ∧ lf=¯2⊑raw
-transportPayload ← block
-{𝕊:transportPayload↩lf∾block}⍟(¬endsTwo) @
-transportBase ← raw
-{𝕊:transportBase↩raw∾lf}⍟(¬endsOne) @
+transportPayload ← endsTwo ◶ ⟨{𝕊:lf∾block},{𝕊:block}⟩ @
+transportBase ← endsOne ◶ ⟨{𝕊:raw∾lf},{𝕊:raw}⟩ @
 proposedRaw ← transportBase∾transportPayload∾lf
 
 proposedRoot ← rootAdmission.Admit ⟨proposedRaw,canonical.accounts⟩

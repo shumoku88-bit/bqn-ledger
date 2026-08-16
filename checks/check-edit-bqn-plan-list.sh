@@ -7,7 +7,6 @@ set -euo pipefail
 
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
-
 tmp_root="$(mktemp -d)"
 trap 'rm -rf "$tmp_root"' EXIT
 base="$tmp_root/canonical"
@@ -26,10 +25,10 @@ awk -F '\t' '$8 != "" && $8 != "CLOSED" { print "bad status on line " NR ": " $8
 
 # The completed groceries Plan is hidden by default; salary remains open.
 [[ $(wc -l <"$tmp_root/default.tsv" | tr -d ' ') -eq 1 ]]
-awk -F '\t' '$1=="1" && $2=="plan-salary" && $3=="2026-02-05" && $4=="Planned salary" && $5=="Income:Salary" && $6=="Assets:Bank" && $7=="50000" && $8=="" {found=1} END {exit found?0:1}' "$tmp_root/default.tsv"
+awk -F '\t' '$1=="1" && $2=="plan-salary" && $3=="2026-02-05" && $4=="Planned salary" && $5=="Income:Salary" && $6=="Assets:Bank" && $7=="50000" && $8=="" && $9 ~ /50000 JPY$/ {found=1} END {exit found?0:1}' "$tmp_root/default.tsv"
 
 # --all exposes completion derived from canonical Actual plan-id linkage.
-awk -F '\t' '$2=="plan-groceries" && $3=="2026-01-15" && $8=="CLOSED" {found=1} END {exit found?0:1}' "$tmp_root/all.tsv"
+awk -F '\t' '$2=="plan-groceries" && $3=="2026-01-15" && $8=="CLOSED" && $9 ~ / JPY \[CLOSED\]$/ {found=1} END {exit found?0:1}' "$tmp_root/all.tsv"
 awk -F '\t' '$2=="plan-salary" && $8=="" {found=1} END {exit found?0:1}' "$tmp_root/all.tsv"
 
 # A legacy Plan TSV is not an editor read authority anymore.

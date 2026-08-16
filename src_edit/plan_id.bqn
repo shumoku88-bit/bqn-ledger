@@ -51,15 +51,15 @@ ValidatePlanIDFormat ⇐ {
   prefixOk ← "plan-" StartsWith planID
   parts ← prefixOk ◶ ⟨ { 𝕊 ⋄ ⟨⟩ }, { 𝕊 ⋄ '-' loader.SplitKeepEmpty planID } ⟩ @
   lenOk ← prefixOk ◶ ⟨ { 𝕊 ⋄ 0 }, { 𝕊 ⋄ 5 ≤ ≠ parts } ⟩ @
-  
+
   dateStr ← lenOk ◶ ⟨ { 𝕊 ⋄ "" }, { 𝕊 ⋄ (1⊑parts) ∾ "-" ∾ (2⊑parts) ∾ "-" ∾ (3⊑parts) } ⟩ @
   dateCheck ← lenOk ◶ ⟨ { 𝕊 ⋄ ⟨0, ""⟩ }, { 𝕊 ⋄ validate.ValidateDate dateStr } ⟩ @
   dateOk ← lenOk ◶ ⟨ { 𝕊 ⋄ 0 }, { 𝕊 ⋄ 0 ⊑ dateCheck } ⟩ @
-  
+
   seriesParts ← lenOk ◶ ⟨ { 𝕊 ⋄ ⟨⟩ }, { 𝕊 ⋄ 4 ↓ parts } ⟩ @
   series ← lenOk ◶ ⟨ { 𝕊 ⋄ "" }, { 𝕊 ⋄ "-" Join seriesParts } ⟩ @
   seriesOk ← lenOk ◶ ⟨ { 𝕊 ⋄ 0 }, { 𝕊 ⋄ 0 < ≠ series } ⟩ @
-  
+
   {
     (¬ prefixOk) ? ⟨0, "plan_id must start with 'plan-': " ∾ planID⟩ ;
     (¬ lenOk) ? ⟨0, "plan_id must have format plan-YYYY-MM-DD-series: " ∾ planID⟩ ;
@@ -69,33 +69,7 @@ ValidatePlanIDFormat ⇐ {
   }
 }
 
-# ExtractPlanId: extract plan_id from metadata or return "".
-ExtractPlanId ⇐ {𝕊 line:
-  flds ← loader.SplitTsvKeepEmpty line
-  lenOk ← 5 < ≠ flds
-  meta ← lenOk ◶ ⟨ { 𝕊 ⋄ ⟨⟩ }, { 𝕊 ⋄ 5 ↓ flds } ⟩ @
-  IsPlanId ← { (8 ≤ ≠ 𝕩) ? "plan_id=" StartsWith 𝕩 ; 0 }
-  cand ← lenOk ◶ ⟨ { 𝕊 ⋄ ⟨⟩ }, { 𝕊 ⋄ IsPlanId¨ meta } ⟩ @
-  has ← lenOk ◶ ⟨ { 𝕊 ⋄ 0 }, { 𝕊 ⋄ ∨´ cand } ⟩ @
-  val ← has ◶ ⟨ { 𝕊 ⋄ "" }, { 𝕊 ⋄ 8 ↓ (⊑ (cand / ↕ ≠ meta)) ⊑ meta } ⟩ @
-  has ◶ ⟨ { 𝕊 ⋄ "" }, { 𝕊 ⋄ val } ⟩ @
-}
-
-# LoadExistingPlanIDs: load all plan IDs from plan.tsv and native Journal.
-# Args: 𝕩 is namespace with plan_path and journal_path
-# Returns: list of plan ID strings
-LoadExistingPlanIDs ⇐ {
-  planLines ← loader.ReadLinesOptional 𝕩.plan_path
-  journalLines ← loader.ReadLinesOptional 𝕩.journal_path
-  planIDs ← ExtractPlanId¨ planLines
-  journalIDs ← ExtractPlanId¨ journalLines
-  # Filter out empty IDs and de-duplicate
-  allIDs ← planIDs ∾ journalIDs
-  nonEmpty ← (0 < ≠¨ allIDs) / allIDs
-  (0 = ≠ nonEmpty) ◶ ⟨ { 𝕊 ⋄ ((nonEmpty ⊐ nonEmpty) = ↕ ≠ nonEmpty) / nonEmpty}, { 𝕊 ⋄ ⟨⟩ } ⟩ @
-}
-
-# GeneratePlanID: generate a unique plan ID.
+# GeneratePlanID: generate a unique plan ID from current canonical Plan inputs.
 # Args: 𝕩 is namespace with date, memo, meta, existing_ids (list of strings)
 # Returns: generated plan ID string
 GeneratePlanID ⇐ {
@@ -107,15 +81,15 @@ GeneratePlanID ⇐ {
   source ← (0 < ≠ series) ◶ ⟨ { 𝕊 ⋄ opts.memo }, { 𝕊 ⋄ series } ⟩ @
   slug ← Slugify source
   base ← "plan-" ∾ opts.date ∾ "-" ∾ slug
-  
+
   exists ← ∨´ base ⊸ ≡¨ opts.existing_ids
-  
-  # Find next non-colliding index
+
+  # Find next non-colliding index.
   FindNext ← {𝕊 i:
     Pad2 ← { s ← •Fmt 𝕩 ⋄ ((0 ⌈ 2-≠s)⥊'0') ∾ s }
     candidate ← base ∾ "-" ∾ Pad2 i
     (¬ (∨´ candidate ⊸ ≡¨ opts.existing_ids)) ◶ ⟨ { 𝕊 ⋄ FindNext i+1 }, { 𝕊 ⋄ candidate } ⟩ @
   }
-  
+
   exists ◶ ⟨ { 𝕊 ⋄ base }, { 𝕊 ⋄ FindNext 2 } ⟩ @
 }
