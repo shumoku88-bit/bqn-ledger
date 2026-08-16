@@ -28,7 +28,7 @@ LoadShared ← {𝕊 base‿accounts‿budgetPolicy:
   {𝕊:
     missing ← {¬Contains ⟨𝕩,history.registry.id⟩}¨current.budget.envelope_id
     referenceDiagnostics↩Diagnostic¨missing/current.budget.envelope_id
-  }⍟((current.state≡"ok") ∧ history.state≡"ok") @
+  }⍟((current.state≡"ok") ∧ (history.state≡"ok") ∧ history.present) @
   diagnostics ← current.diagnostics∾history.diagnostics∾referenceDiagnostics
   ok ← (current.state≡"ok") ∧ (history.state≡"ok") ∧ 0=≠referenceDiagnostics
   ok◶⟨
