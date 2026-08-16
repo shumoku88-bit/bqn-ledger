@@ -32,7 +32,8 @@ household ← householdAdmission.Admit ⟨currentRaw,accounts,budget⟩
 
 quote ← @+34 ⋄ newline ← @+10
 Lines ← {𝕊 xs: ∾{𝕩∾⟨newline⟩}¨xs}
-withMoneyRaw ← "[money]"∾⟨newline⟩∾"primary-commodity = "∾⟨quote⟩∾"JPY"∾⟨quote⟩∾⟨newline⟩∾⟨newline⟩∾householdRaw
+Quoted ← {𝕊 text: ⟨quote⟩∾text∾⟨quote⟩}
+withMoneyRaw ← "[money]"∾⟨newline⟩∾"primary-commodity = "∾Quoted "JPY"∾⟨newline⟩∾⟨newline⟩∾householdRaw
 withMoney ← householdAdmission.Admit ⟨currentProjection.CurrentPolicy withMoneyRaw,accounts,budget⟩
 "ok" lib.AssertEq withMoney.state
 0 lib.AssertEq ≠withMoney.diagnostics
@@ -47,7 +48,7 @@ extendedAccountsResult ← accountsAdmission.Admit extendedAccountsRaw
 extendedAccounts ← extendedAccountsResult.accounts
 extendedBudget ← budgetAdmission.Admit ⟨•FChars "../"∾base∾"budget.toml",extendedAccounts⟩
 "ok" lib.AssertEq extendedBudget.state
-retiredCoordinate ← Lines ⟨"","[[budget.envelopes]]","id = \"retired\"","allocation-account = \"budget:retired\""⟩
+retiredCoordinate ← Lines ⟨"","[[budget.envelopes]]","id = "∾Quoted "retired","allocation-account = "∾Quoted "budget:retired"⟩
 withRetired ← householdAdmission.Admit ⟨currentProjection.CurrentPolicy (householdRaw∾retiredCoordinate),extendedAccounts,extendedBudget⟩
 "ok" lib.AssertEq withRetired.state
 0 lib.AssertEq ≠withRetired.diagnostics
