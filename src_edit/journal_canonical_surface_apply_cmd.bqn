@@ -10,28 +10,28 @@ loader ← •Import "../src/application/source_io.bqn"
 canonical ← •Import "../src/application/canonical_household_sources.bqn"
 
 relPath ← canonical.actual
-sourcePath ← baseDir ∾ "/" ∾ relPath
-
+sourcePath ← loader.JoinPath ⟨baseDir,relPath⟩
 raw ← loader.ReadRaw sourcePath
 res ← rewrite.BuildCandidate raw
 
 tab ← @+9
-NumStr ← •Fmt
+Join ← {𝕊 fields:1↓∾(tab⊸∾)¨fields}
 
 {FB:
   isNoop ← res.candidate_raw ≡ raw
-  {𝕊:
-    •Out "OK" ∾ tab ∾ "CANONICAL_NOOP" ∾ tab ∾ relPath
-  }⍟isNoop @
+  {𝕊:•Out Join ⟨"OK","CANONICAL_NOOP",relPath⟩}⍟isNoop @
   {FB2:
     candidateFilePath •FChars res.candidate_raw
-    out ← "OK" ∾ tab ∾ "CANONICAL_REWRITE" ∾ tab ∾ relPath
+    {𝕊:
+      •Out "ERROR: canonical candidate write mismatch"
+      •Exit 1
+    }⍟((loader.ReadRaw candidateFilePath) ≢ res.candidate_raw) @
     spacingFixCount ← res.plan_before.spacing_only_transactions + res.plan_before.spacing_and_redundant_metadata_transactions
     redundantMetaCount ← res.plan_before.layer_actual_metadata + res.plan_before.currency_jpy_metadata
-    out ∾↩ tab ∾ NumStr spacingFixCount
-    out ∾↩ tab ∾ NumStr redundantMetaCount
-    out ∾↩ tab ∾ NumStr res.plan_before.transactions
-    •Out out
+    •Out Join ⟨
+      "OK","CANONICAL_REWRITE",relPath,
+      •Fmt spacingFixCount,•Fmt redundantMetaCount,•Fmt res.plan_before.transactions
+    ⟩
   }⍟(¬isNoop) @
 }⍟(res.state ≡ "ok") @
 
