@@ -10,12 +10,13 @@ space ← @+32
 empty ← ⟨⟩
 
 TrimIndent ← {𝕊 line:
+  hasCr ← (0<≠line) ∧ cr=¯1⊑(line ∾ " ")
   l ← line
-  {𝕊: l ↩ ¯1↓l}⍟((0<≠l) ∧ cr=¯1⊑(l ∾ " ")) @
+  {𝕊: l ↩ ¯1↓l}⍟hasCr @
   prefix ← ∧` (l=space)
   indentCount ← +´prefix
   trimmed ← indentCount↓l
-  {indent_count⇐indentCount, trimmed⇐trimmed}
+  {indent_count⇐indentCount, trimmed⇐trimmed, has_cr⇐hasCr}
 }
 
 AnalyzePostingLine ← {𝕊 line:
@@ -26,24 +27,27 @@ AnalyzePostingLine ← {𝕊 line:
 
   spaceIndices ← (space = trimmed) / ↕≠trimmed
   hasSpace ← isPosting ∧ (0 < ≠spaceIndices)
+  separatorIndex ← ⊑ (spaceIndices ∾ ⟨0⟩)
+  separatorTail ← separatorIndex ↓ trimmed
+  spaceLen ← +´ ∧` (space = separatorTail)
 
-  p1 ← 0
-  {𝕊: p1 ↩ ⊑ spaceIndices}⍟hasSpace @
-  rem ← p1 ↓ trimmed
-  spaceLen ← 0
-  {𝕊: spaceLen ↩ +´ ∧` (space = rem)}⍟hasSpace @
-
-  isSingleSpace ← isPosting ∧ (1 = spaceLen)
-  isMultiSpace ← isPosting ∧ (1 < spaceLen)
-  isCanonical ← isPosting ∧ (4 = indentCount) ∧ (4 = spaceLen)
+  isSingleSpace ← isPosting ∧ hasSpace ∧ (1 = spaceLen)
+  isMultiSpace ← isPosting ∧ hasSpace ∧ (1 < spaceLen)
+  isCanonical ← isPosting ∧ hasSpace ∧ (4 = indentCount) ∧ (4 = spaceLen)
+  account ← separatorIndex ↑ trimmed
+  amountPart ← (separatorIndex + spaceLen) ↓ trimmed
 
   {
     is_posting⇐isPosting,
     indent_count⇐indentCount,
+    separator_index⇐separatorIndex,
     space_len⇐spaceLen,
     is_canonical⇐isCanonical,
     is_single_space⇐isSingleSpace,
-    is_multi_space⇐isMultiSpace
+    is_multi_space⇐isMultiSpace,
+    account⇐account,
+    amount_part⇐amountPart,
+    has_cr⇐parsed.has_cr
   }
 }
 
@@ -92,16 +96,15 @@ ClassifyTransaction ← {
   redundantMetaCount ← +´ 0 ∾ isRedundantList
   unsupportedCount ← 0
 
-  both ← (0 < spacingFixCount) ∧ (0 < redundantMetaCount)
-  spacingOnly ← (0 < spacingFixCount) ∧ (0 = redundantMetaCount)
-  metaOnly ← (0 = spacingFixCount) ∧ (0 < redundantMetaCount)
-
-  classification ← "canonical"
-  {FB:
-    {𝕊: classification ↩ "spacing_and_redundant_metadata"}⍟both @
-    {𝕊: classification ↩ "spacing_only"}⍟spacingOnly @
-    {𝕊: classification ↩ "redundant_metadata_only"}⍟metaOnly @
-  }⍟(0 = unsupportedCount) @
+  hasSpacingFix ← 0 < spacingFixCount
+  hasRedundantMeta ← 0 < redundantMetaCount
+  classificationIndex ← hasSpacingFix + 2 × hasRedundantMeta
+  classification ← classificationIndex ⊑ ⟨
+    "canonical",
+    "spacing_only",
+    "redundant_metadata_only",
+    "spacing_and_redundant_metadata"
+  ⟩
 
   {
     classification⇐classification,
