@@ -33,13 +33,13 @@ actualAdd ← surface.ActionsFor ⟨"actual","add"⟩
 ⟨"expense","income","move","multi"⟩ lib.AssertEq actualAdd.action_key
 planObserve ← surface.ActionsFor ⟨"plan","observe"⟩
 5 lib.AssertEq planObserve.count
-1 lib.AssertEq "planned"∊planObserve.action_key
+1 lib.AssertEq ∨´"planned"⊸≡¨planObserve.action_key
 accountObserve ← surface.ActionsFor ⟨"account","observe"⟩
 5 lib.AssertEq accountObserve.count
-1 lib.AssertEq "monthly-accounts"∊accountObserve.action_key
+1 lib.AssertEq ∨´"monthly-accounts"⊸≡¨accountObserve.action_key
 householdObserve ← surface.ActionsFor ⟨"household","observe"⟩
 4 lib.AssertEq householdObserve.count
-1 lib.AssertEq "daily-target"∊householdObserve.action_key
+1 lib.AssertEq ∨´"daily-target"⊸≡¨householdObserve.action_key
 0 lib.AssertEq (surface.ActionsFor ⟨"household","add"⟩).count
 
 •Out "test_household_surface: ok"
