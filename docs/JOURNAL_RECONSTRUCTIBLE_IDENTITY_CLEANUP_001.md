@@ -1,15 +1,17 @@
 # Journal Reconstructible Identity Cleanup 001
 
-Status: completion record
+Status: historical completion record; runtime retired after completion
 Owner: journal-identity
-Canonical: yes
+Canonical: historical evidence
 Date: 2026-07-24
 
 ## 1. Scope
 
-This document records the design, implementation, verification, and production application protocol for the safe cleanup of 390 reconstructible migration-derived event identities (`event-id` metadata lines) from the production Journal.
+This document records the design, implementation, verification, and production application protocol for the completed cleanup of 390 reconstructible migration-derived event identities (`event-id` metadata lines) from the production Journal.
 
 No additional provenance investigation was conducted. No non-migration, functional, purchase-shaped, or completion identity was removed.
+
+The cleanup has already been applied. The dedicated executable cleanup runtime was later retired during the Phase 6 BQN-native re-baseline because it represented a completed one-shot migration rather than an ongoing Journal capability. This document is the durable record of that transformation.
 
 ## 2. Inventory Aggregate Boundary (390 / 12 / 2 / 6)
 
@@ -29,21 +31,23 @@ After cleanup:
 - Preserved purchase-shaped identities: 2 (explicit operator inputs)
 - Removed event-id lines: 390
 
-## 3. Selection Rule
+## 3. Selection Rule Used by the Completed Migration
 
-Selection reuses the existing `src_edit/journal_identity_inventory.bqn` semantic classification owner rather than implementing a duplicate classifier. A transaction is selected for removal if and only if all of the following hold:
-1. Transaction carries an explicit `event-id` metadata line.
-2. `event-id` belongs to the verified canonical migration family (`TEXTUAL_OTHER` lexical family, `legacy:` prefix, or `TSV_MIGRATION_CANDIDATE`).
-3. Transaction carries no functional links (`has_functional_link` is false; disposition is not `KEEP_FUNCTIONAL`).
-4. `event-id` is not a purchase-shaped explicit input (`purchase-` prefix).
-5. `event-id` is not a plan completion identity (`completion-` / `plan-` prefix).
-6. `event-id` has no incoming reference links (`incoming_reference_count` is 0).
+The migration reused the then-current `src_edit/journal_identity_inventory.bqn` semantic classification owner rather than implementing a completely separate inventory parser. A transaction was selected for removal if and only if all of the following held:
+1. Transaction carried an explicit `event-id` metadata line.
+2. `event-id` belonged to the admitted migration family (`TEXTUAL_OTHER` lexical family, `legacy:` prefix, or `TSV_MIGRATION_CANDIDATE`).
+3. Transaction carried no functional links (`has_functional_link` false; disposition not `KEEP_FUNCTIONAL`).
+4. `event-id` was not a purchase-shaped explicit input (`purchase-` prefix).
+5. `event-id` was not a plan completion identity (`completion-` / `plan-` prefix).
+6. `event-id` had no incoming reference links (`incoming_reference_count` 0).
 
-The target removal count must equal exactly 390. Any candidate generation with fewer than 389 or more than 391 removable transactions fails closed.
+The production application required the observed removable count to equal exactly 390. Any other count failed closed.
+
+This rule is historical migration evidence. It is not a standing authorization to infer current identity meaning from prefixes or to delete future Journal metadata.
 
 ## 4. Byte-Preserving Transformation
 
-The cleanup transformation does not re-render or re-format the Journal. Original bytes are preserved line-by-line, and only the 390 targeted `; event-id: ...` metadata lines are omitted.
+The cleanup transformation did not re-render or re-format the Journal. Original bytes were preserved line-by-line, and only the 390 targeted `; event-id: ...` metadata lines were omitted.
 
 Preserved byte-for-byte:
 - Transaction and posting order
@@ -52,24 +56,26 @@ Preserved byte-for-byte:
 - Account keys, amounts, commodities, layers, and non-event-id metadata
 - Final trailing newline
 
-Expected diff:
+Applied diff:
 - Omitted lines: exactly 390
 - Added lines: 0
 - Modified non-event-id lines: 0
 
 ## 5. Allowed Identity and Provenance Delta
 
-The transformation allows only the following identity and provenance changes for the 390 cleaned transactions:
-- `source_event_id` becomes absent (falls back to Stage 1 physical line identifier).
-- `event-id` metadata line becomes absent.
-- `posting_id` changes from durable identity-based form (`legacy:...:N`) to physical fallback form (`stage0-line-L:N`).
-- Provenance carriers derived from `source_event_id` reflect the identity-free status.
+The transformation allowed only the following identity and provenance changes for the 390 cleaned transactions:
+- `source_event_id` became absent and therefore fell back to the physical line identifier available at that time.
+- `event-id` metadata line became absent.
+- `posting_id` changed from durable identity-based form to physical fallback form.
+- Provenance carriers derived from `source_event_id` reflected the identity-free status.
 
-Accounting amounts, posting indices, transaction ordering, business links (`txn-id`, `plan-id`), and report calculations remain completely unchanged.
+Accounting amounts, posting indices, transaction ordering, business links (`txn-id`, `plan-id`), and report calculations remained unchanged.
+
+The exact names of historical fallback identifiers are implementation-history details, not current identity contracts.
 
 ## 6. Accounting and Report Parity
 
-Semantic parity was verified between the baseline and candidate Journals across all pipeline stages:
+Semantic parity was verified between the baseline and candidate Journals across the pipeline then in production:
 - Stage 1 Parser
 - Account Resolver
 - Stage 2A Posting IR
@@ -77,54 +83,83 @@ Semantic parity was verified between the baseline and candidate Journals across 
 - TBDS (Trial Balance Data Set)
 - Trial Balance
 - Balances
-- All canonical production reports
+- canonical production reports
 
-Transaction counts, dates, descriptions, posting counts, account keys, signed amounts, currencies, balances, Cube values, TBDS values, and report section totals match 1:1.
+Transaction counts, dates, descriptions, posting counts, account keys, signed amounts, currencies, balances, Cube values, TBDS values, and report section totals matched 1:1 for the migration evidence.
 
-## 7. Command Interface and Atomic Operations
+## 7. Historical Command Interface and Atomic Operations
 
-Surface:
-- Pure semantic owner: `src_edit/journal_reconstructible_identity_cleanup.bqn`
-- Command adapter: `src_edit/journal_reconstructible_identity_cleanup_cmd.bqn`
-- CLI tool: `tools/journal-identity-cleanup`
+The completed migration originally used:
+- pure semantic owner: `src_edit/journal_reconstructible_identity_cleanup.bqn`
+- command adapter: `src_edit/journal_reconstructible_identity_cleanup_cmd.bqn`
+- CLI wrapper: `tools/journal-identity-cleanup`
 
-Modes:
-- `inspect [INPUT]`: Read-only analysis displaying privacy-safe aggregates only (no private IDs, descriptions, accounts, or amounts).
-- `candidate INPUT OUTPUT [EXPECTED_REMOVAL_COUNT]`: Generates candidate raw text, completely validates semantic parity and line removal, writes to a temporary sibling file (`OUTPUT.tmp.PID.RAND`), and performs an atomic rename (`mv`) to publish `OUTPUT`. Fails if `OUTPUT` already exists or removal count mismatch.
-- `apply INPUT EXPECTED_SHA256 EXPECTED_REMOVAL_COUNT`: Verifies `INPUT` current SHA-256 matches `EXPECTED_SHA256`, builds and validates candidate, re-verifies `INPUT` SHA-256 immediately before publish, writes to temporary sibling, and atomically renames (`mv`) to overwrite `INPUT`. Partial writes are prohibited.
+Historical modes were:
+- `inspect [INPUT]`: read-only privacy-safe aggregate analysis;
+- `candidate INPUT OUTPUT [EXPECTED_REMOVAL_COUNT]`: byte-preserving candidate generation and validation before atomic candidate publication;
+- `apply INPUT EXPECTED_SHA256 EXPECTED_REMOVAL_COUNT`: SHA-guarded candidate generation, pre-publish recheck, and atomic replacement.
+
+These paths are intentionally no longer present on current `main`. Git history retains the executable implementation if the migration itself must ever be audited.
 
 ## 8. Verification Evidence
 
-Public synthetic test suite:
+The migration was originally covered by:
 - `tests/test_journal_reconstructible_identity_cleanup.bqn`
 - `checks/check-journal-reconstructible-identity-cleanup.sh`
 
-Verified test cases:
-- 1 removable migration identity without functional link
-- 1 migration identity with functional link (preserved)
-- 1 completion identity with functional link (preserved)
-- 2 purchase-shaped explicit identities (preserved)
-- 1 identity-free transaction (multi-posting, Unicode description, comment lines, metadata before/after `event-id`)
-- Final newline preservation
-- Failure paths: removal count mismatch, input SHA mismatch, existing candidate output file, malformed Journal
+The evidence included:
+- removable migration identity without a functional link;
+- migration identity with a functional link preserved;
+- completion identity with a functional link preserved;
+- purchase-shaped explicit identities preserved;
+- identity-free multi-posting transaction with Unicode/comments/metadata preserved;
+- final newline preservation;
+- removal count mismatch rejection;
+- input SHA mismatch rejection;
+- existing candidate output rejection;
+- malformed Journal rejection;
+- candidate/apply publication guards.
 
-## 9. Production Application Gate
+Those executable replay tests were retired together with the one-shot runtime. Ongoing Journal safety is now guarded by the active admission, writer, canonical-surface, cleanup-plan, list/reverse, and mandatory source-validation portfolios rather than by repeatedly replaying this historical production migration.
 
-The public implementation must be merged into `shumoku88-bit/bqn-ledger` `main` before any application to private production data (`shumoku88-bit/ledger-data`).
+## 9. Production Application Record
 
-Production application requirements:
-- Private repository clean (except 2 pre-existing untracked backup files)
-- Pre-apply production Journal SHA-256: `66e336fdbb95cf202420b701add7910b19205ffd8cd663e52268d9d5c594d80c`
-- Pre-apply production byte size: `59179`
-- Apply via `tools/journal-identity-cleanup apply`
-- Post-apply Git diff: `data/actual.journal` modified only (-390 lines, +0 lines)
-- Post-apply fast-forward merge into private `main` and remote push
+The public implementation was merged before application to the private production data.
+
+The application gate recorded:
+- pre-apply production Journal SHA-256: `66e336fdbb95cf202420b701add7910b19205ffd8cd663e52268d9d5c594d80c`
+- pre-apply production byte size: `59179`
+- post-apply Journal diff limited to the 390 approved event-id removals
+- 410 transactions preserved
+- explicit event identities reduced from 404 to 14
+- identity-free transactions increased from 6 to 396
+
+These values are historical evidence only. They must not be treated as current private Household state.
 
 ## 10. Non-Authorization of Wider Metadata Cleanup
 
-This cleanup is strictly limited to the 390 non-functional migration event-id lines. It does NOT authorize:
-- Deletion of any of the 12 functional identities
-- Deletion of any of the 2 purchase-shaped identities
-- Removal of any non-event-id metadata (`note`, `biz`, `tax`, `receipt-id`, etc.)
-- Re-rendering of Journal transactions
-- Any wider metadata cleanup, which requires a separate explicit specification.
+This completed cleanup authorized only the 390 observed non-functional migration event-id lines. It did NOT authorize:
+- deletion of the 12 retained functional identities;
+- deletion of the 2 retained purchase-shaped identities;
+- removal of non-event-id metadata (`note`, `biz`, `tax`, `receipt-id`, etc.);
+- re-rendering of Journal transactions;
+- future deletion based on current configuration or lexical prefix alone;
+- any wider metadata cleanup without a separate explicit specification.
+
+## 11. Runtime Retirement
+
+During the 2026-08-17 Phase 6 BQN-native review, repository reachability showed that the dedicated cleanup runtime was no longer part of the normal Journal dispatcher or Household surface. Its remaining live references were its own wrapper, replay tests/check, TODO inventory, and this completion record.
+
+Because the production migration was complete, retaining that executable path created a second kind of authority: historical cleanup assumptions such as the 390-count gate and prefix exceptions remained runnable even though they no longer described an ongoing domain capability.
+
+The re-baseline therefore retired:
+
+```text
+src_edit/journal_reconstructible_identity_cleanup.bqn
+src_edit/journal_reconstructible_identity_cleanup_cmd.bqn
+tools/journal-identity-cleanup
+tests/test_journal_reconstructible_identity_cleanup.bqn
+checks/check-journal-reconstructible-identity-cleanup.sh
+```
+
+The completed migration remains reconstructible from this document and Git history. Future Journal cleanup must start from current admitted semantics and current evidence rather than invoking this retired epoch-specific migration.
