@@ -2,12 +2,10 @@
 # Pure validation functions for edit operations.
 #
 # All functions return ⟨1, ""⟩ on success or ⟨0, "error message"⟩ on failure.
-# This module has no side effects and does not read files.
+# This module has no side effects and does not read files or load editor policy.
 
 date ← •Import "../src/ledger/date_ordinal.bqn"
 dec ← •Import "../src/ledger/exact_decimal.bqn"
-editorCurrency ← •Import "../src/application/editor_currency.bqn"
-setup ← editorCurrency.Load @
 
 # ── Date validation ─────────────────────────────────────────────
 
@@ -31,28 +29,18 @@ ValidateDate ⇐ {
   }
 }
 
-# ── Currency and amount validation ──────────────────────────────
-
-IsSupportedCurrency ⇐ { setup.IsSupportedCurrency 𝕩 }
-
-ValidateCurrency ⇐ {
-  currency ← 𝕩
-  {
-    (0 = ≠ currency) ? ⟨0, "currency must be explicit or resolvable from DEFAULT_CURRENCY"⟩ ;
-    (¬ IsSupportedCurrency currency) ? ⟨0, "unsupported currency: " ∾ currency⟩ ;
-    ⟨1, ""⟩
-  }
-}
+# ── Amount validation ───────────────────────────────────────────
 
 FractionDigits ← {
   s ← 𝕩
   positions ← ('.' = s) / ↕ ≠ s
-  count ← 0
-  {𝕊: count ↩ ((≠ s) - 1) - ⊑ positions } ⍟ (1 = ≠ positions) @
-  count
+  (1 = ≠ positions) ◶ ⟨
+    { 𝕊 ⋄ 0 },
+    { 𝕊 ⋄ ((≠ s) - 1) - ⊑ positions }
+  ⟩ @
 }
 
-# Existing integer-only validator remains the owner for budget/plan/issue paths.
+# Integer-only validator retained for the Issue TSV input contract.
 ValidateAmount ⇐ {
   s ← 𝕩
   digits ← "0123456789"
@@ -68,11 +56,10 @@ ValidateAmount ⇐ {
   }
 }
 
-# Journal M2 path: exact decimal source text, with lexical precision policy owned
-# by currency_setup. A negative max_fraction_digits means no finite lexical cap.
-ValidateExactAmountForCurrency ⇐ {
-  currency ‿ amount ← 𝕩
-  policy ← setup.Policy currency
+# Exact decimal lexical validation against a caller-owned admitted currency
+# policy. Policy acquisition is intentionally outside this pure module.
+ValidateExactAmountForPolicy ⇐ {
+  currency ‿ policy ‿ amount ← 𝕩
   parsed ← dec.Parse amount
   fractionDigits ← FractionDigits amount
   hasFiniteLimit ← 0 ≤ policy.max_fraction_digits
@@ -91,59 +78,6 @@ ValidateNoTabNewline ⇐ {
   name ‿ value ← 𝕩
   tab ← @+9 ⋄ lf ← @+10 ⋄ cr ← @+13
   { (∨´ value ∊ tab‿lf‿cr) ? ⟨0, name ∾ " must not contain TAB or newline"⟩ ; ⟨1, ""⟩ }
-}
-
-# ── Account validation ─────────────────────────────────────────
-
-ValidateAccount ⇐ {
-  name ‿ acct ‿ accountList ← 𝕩
-  {
-    (0 = ≠ acct) ? ⟨0, "unknown " ∾ name ∾ " account: (empty)"⟩ ;
-    ¬ (∨´ acct ⊸ ≡¨ accountList) ? ⟨0, "unknown " ∾ name ∾ " account: " ∾ acct⟩ ;
-    ⟨1, ""⟩
-  }
-}
-
-ValidateAccountCurrency ⇐ {
-  name ‿ acct ‿ selectedCurrency ‿ accountList ‿ accountCurrencies ← 𝕩
-  idx ← ⊑ accountList ⊐ ⟨acct⟩
-  n ← ≠ accountList
-  actual ← idx ⊑ (accountCurrencies ∾ ⟨""⟩)
-  {
-    (idx ≥ n) ? ⟨0, "unknown " ∾ name ∾ " account: " ∾ acct⟩ ;
-    (actual ≢ selectedCurrency) ? ⟨0, name ∾ " account currency mismatch: " ∾ acct ∾ " is " ∾ actual ∾ ", selected " ∾ selectedCurrency⟩ ;
-    ⟨1, ""⟩
-  }
-}
-
-ValidateAccountAdd ⇐ {
-  name ← 𝕩.name
-  role ← 𝕩.role
-  type ← 𝕩.type
-  currency ← 𝕩.currency
-  accounts ← 𝕩.accounts
-  roles ← "asset"‿"liability"‿"income"‿"expense"
-  prefixes ← "assets:"‿"liabilities:"‿"income:"‿"expenses:"
-  roleMask ← role ⊸ ≡¨ roles
-  roleOk ← ∨´ roleMask
-  prefix ← roleOk ◶ ⟨ {𝕊 ⋄ ""}, {𝕊 ⋄ ⊑ roleMask / prefixes} ⟩ @
-  prefixOk ← (≠prefix) ≤ ≠name
-  prefixOk ∧↩ prefix ≡ (≠prefix) ↑ name
-  suffixOk ← prefixOk ∧ (≠prefix) < ≠name
-  typeOk ← (0 = ≠type) ∨ ((role ≡ "asset") ∧ (∨´ type ⊸ ≡¨ "liquid"‿"savings"‿"invest"))
-  fieldCheck ← ValidateNoTabNewline "account name"‿name
-  currencyCheck ← ValidateCurrency currency
-  {
-    (¬ ⊑fieldCheck) ? fieldCheck ;
-    (¬ ⊑currencyCheck) ? currencyCheck ;
-    (0 = ≠name) ? ⟨0, "account name must not be empty"⟩ ;
-    (∨´ name ⊸ ≡¨ accounts) ? ⟨0, "account already exists: " ∾ name⟩ ;
-    (¬roleOk) ? ⟨0, "invalid account role: " ∾ role⟩ ;
-    (¬prefixOk) ? ⟨0, "account namespace must match role=" ∾ role ∾ ": " ∾ name⟩ ;
-    (¬suffixOk) ? ⟨0, "account name must include a name after namespace: " ∾ name⟩ ;
-    (¬typeOk) ? ⟨0, "invalid account type for role=" ∾ role ∾ ": " ∾ type⟩ ;
-    ⟨1, ""⟩
-  }
 }
 
 # ── Metadata validation ────────────────────────────────────────
@@ -182,53 +116,4 @@ ValidateNoCurrencyMeta ⇐ {
   prefix ← "currency="
   hasCurrency ← ∨´ 0 ∾ ({ (≠prefix) ≤ ≠𝕩 ? prefix ≡ (≠prefix) ↑ 𝕩 ; 0 }¨ tokens)
   { hasCurrency ? ⟨0, "currency metadata is owned by --currency/default selection"⟩ ; ⟨1, ""⟩ }
-}
-
-# ── Post-check mode validation ─────────────────────────────────
-
-ValidatePostCheckMode ⇐ {
-  mode ← 𝕩
-  { (∨´ mode ⊸ ≡¨ "lint"‿"none"‿"full") ? ⟨1, ""⟩ ; ⟨0, "invalid --post-check mode: " ∾ mode⟩ }
-}
-
-# ── Combined validation for add operations ─────────────────────
-
-# Integer-only owner retained for budget and plan add operations.
-ValidateJournalLikeAdd ⇐ {
-  checks ← ⟨
-    ValidateDate 𝕩.date
-    ValidateNoTabNewline "memo"‿𝕩.memo
-    ValidateNoTabNewline "from"‿𝕩.from
-    ValidateNoTabNewline "to"‿𝕩.to
-    ValidateNoTabNewline "amount"‿𝕩.amount
-    ValidateAccount "from"‿𝕩.from‿𝕩.accounts
-    ValidateAccount "to"‿𝕩.to‿𝕩.accounts
-    ValidateAmount 𝕩.amount
-    ValidateMeta 𝕩.meta
-  ⟩
-  errors ← (¬ ⊑¨ checks) / 1⊸⊑¨ checks
-  hasErrors ← 0 < ≠ errors
-  { hasErrors ? ⟨0, ⊑ errors⟩ ; ⟨1, ""⟩ }
-}
-
-# M2 journal-only exact-decimal and account-currency contract.
-ValidateCurrencyJournalAdd ⇐ {
-  checks ← ⟨
-    ValidateDate 𝕩.date
-    ValidateNoTabNewline "memo"‿𝕩.memo
-    ValidateNoTabNewline "from"‿𝕩.from
-    ValidateNoTabNewline "to"‿𝕩.to
-    ValidateNoTabNewline "amount"‿𝕩.amount
-    ValidateCurrency 𝕩.currency
-    ValidateAccount "from"‿𝕩.from‿𝕩.accounts
-    ValidateAccount "to"‿𝕩.to‿𝕩.accounts
-    ValidateAccountCurrency "from"‿𝕩.from‿𝕩.currency‿𝕩.accounts‿𝕩.account_currencies
-    ValidateAccountCurrency "to"‿𝕩.to‿𝕩.currency‿𝕩.accounts‿𝕩.account_currencies
-    ValidateExactAmountForCurrency 𝕩.currency‿𝕩.amount
-    ValidateMeta 𝕩.meta
-    ValidateNoCurrencyMeta 𝕩.meta
-  ⟩
-  errors ← (¬ ⊑¨ checks) / 1⊸⊑¨ checks
-  hasErrors ← 0 < ≠ errors
-  { hasErrors ? ⟨0, ⊑ errors⟩ ; ⟨1, ""⟩ }
 }
