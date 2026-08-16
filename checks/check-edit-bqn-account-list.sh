@@ -41,7 +41,7 @@ if [[ -n "$actual_missing_role" ]]; then
 fi
 
 actual_all="$(./tools/edit --base "$list_base" account list)"
-for account in 'Assets:Bank' 'Equity:Opening' 'Income:Salary' 'Expenses:Groceries' 'Budget:Unassigned' 'Budget:Daily'; do
+for account in 'Assets:Bank' 'Equity:Opening' 'Income:Salary' 'Expenses:Groceries' 'Budget:Opening' 'Budget:Unassigned' 'Budget:Daily'; do
   if ! grep -Fxq "$account" <<< "$actual_all"; then
     echo "FAIL: canonical account list missing $account" >&2
     printf '%s\n' "$actual_all" >&2
@@ -50,7 +50,7 @@ for account in 'Assets:Bank' 'Equity:Opening' 'Income:Salary' 'Expenses:Grocerie
 done
 
 preferred_expense="$(./tools/edit --base "$list_base" account list --prefer-role expense)"
-expected_preferred_expense=$'Expenses:Groceries\nAssets:Bank\nEquity:Opening\nIncome:Salary\nBudget:Unassigned\nBudget:Daily'
+expected_preferred_expense=$'Expenses:Groceries\nAssets:Bank\nEquity:Opening\nIncome:Salary\nBudget:Opening\nBudget:Unassigned\nBudget:Daily'
 if [[ "$preferred_expense" != "$expected_preferred_expense" ]]; then
   echo "FAIL: canonical account list --prefer-role expense must stably place expenses first" >&2
   printf '%s\n' "$preferred_expense" >&2
@@ -106,8 +106,9 @@ if ./tools/edit --base "$tmp" account add --name 'Assets:Savings2' --role asset 
 fi
 grep -Fq 'Household classification belongs in household.toml' "$out_dir/account-add-type.out"
 
-# The old system default cannot redirect Account writes back to accounts.tsv.
-grep -Fq $'DEFAULT_ACCOUNTS_FILE\taccounts.tsv' config/system_defaults.tsv
+# There is no source-default manifest that can redirect Account writes back to
+# legacy files. A synthetic legacy file beside the canonical source stays inert.
+[[ ! -e config/system_defaults.tsv ]] || { echo 'FAIL: retired source-default manifest still exists' >&2; exit 1; }
 second_preview="$(./tools/edit --base "$tmp" account add --name 'Expenses:Utilities' --role expense --currency JPY --dry-run --post-check none)"
 grep -Fq '/accounts.journal' <<<"$second_preview"
 ! grep -Fq '/accounts.tsv' <<<"$second_preview"
