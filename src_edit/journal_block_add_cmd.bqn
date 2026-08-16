@@ -5,6 +5,7 @@ admission ← •Import "../src/ledger/journal_complete_admission.bqn"
 accountSource ← •Import "../src/application/account_source_adapter.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 decimal ← •Import "../src/ledger/exact_decimal.bqn"
+scale ← •Import "../src/ledger/exact_scale.bqn"
 editorCurrency ← •Import "../src/application/editor_currency.bqn"
 setup ← editorCurrency.Load @
 dates ← •Import "../src/ledger/date_ordinal.bqn"
@@ -13,7 +14,6 @@ args ← •args
 tab ← @+9
 lf ← @+10
 space ← @+32
-empty ← ⟨⟩
 
 Fail ← {𝕊 code‿message:
   •Out "ERROR" ∾ tab ∾ code ∾ tab ∾ message
@@ -34,10 +34,10 @@ dateText ← 2 ⊑ args
 description ← 3 ⊑ args
 identityMode ← 4 ⊑ args
 eventId ← 5 ⊑ args
-argIndex ← 6
-currency ← "JPY"
-currencyMarker ← argIndex ⊑ args
-{𝕊: currency ↩ 9 ↓ currencyMarker ⋄ argIndex +↩ 1}⍟("currency=" ≡ 9 ↑ currencyMarker) @
+currencyMarker ← 6 ⊑ args
+hasCurrencyMarker ← "currency=" ≡ 9 ↑ currencyMarker
+currency ← hasCurrencyMarker ⊑ ⟨"JPY",9 ↓ currencyMarker⟩
+argIndex ← 6 + hasCurrencyMarker
 policy ← setup.Policy currency
 {𝕊⋄Fail ⟨"currency_unsupported", "transaction currency must be admitted by registry"⟩}⍟(policy.state ≢ "ok") @
 postingCountText ← argIndex⊑args
@@ -54,8 +54,7 @@ metadataArgs ← (argIndex+1+postingCount)↓args
 {𝕊⋄Fail ⟨"event_id_invalid", "event-id must be nonempty and must not contain unsafe control input"⟩}⍟((identityMode ≡ "durable") ∧ ((0 = ≠ Trim eventId) ∨ (UnsafeText eventId) ∨ eventId ≢ Trim eventId)) @
 {𝕊⋄Fail ⟨"posting_count_invalid", "at least two --posting values are required"⟩}⍟(2 > ≠ postingArgs) @
 
-postings ← empty
-{𝕊 text:
+PostingRecord ← {𝕊 text:
   equalMask ← '=' = text
   {𝕊⋄Fail ⟨"posting_shape_invalid", "each posting must contain exactly one ACCOUNT=SIGNED_DECIMAL pair"⟩}⍟(1 ≠ +´ equalMask) @
   equalIndex ← ⊑ equalMask / ↕ ≠ text
@@ -73,23 +72,21 @@ postings ← empty
   {𝕊⋄Fail ⟨"posting_amount_zero", "posting amount must be nonzero"⟩}⍟(0 = coefficient) @
   leadingZero ← (1 < ≠ unsigned) ∧ ('0' = ⊑ unsigned) ∧ ('.' ≠ 1 ⊑ unsigned ∾ " ")
   {𝕊⋄Fail ⟨"posting_amount_invalid", "posting amount must not contain a leading zero or explicit plus sign"⟩}⍟leadingZero @
-  postings ∾↩ ⟨{account_key⇐account, amount_text⇐amountText, source_coefficient⇐coefficient, source_scale⇐parsedAmount.scale, normalized_coefficient⇐0, commodity⇐currency}⟩
-}¨ postingArgs
-calculationScale ← ⌈´ {𝕩.source_scale}¨ postings
-NormalizePosting ← {𝕊 posting:
-  zeros ← calculationScale - posting.source_scale
-  magnitude ← decimal.Parse ((•Fmt | posting.source_coefficient) ∾ zeros ⥊ '0')
-  {𝕊⋄Fail ⟨"posting_amount_invalid", "posting amount cannot normalize exactly"⟩}⍟(magnitude.state ≢ "ok") @
-  normalized ← (1 - 2 × posting.source_coefficient < 0) × magnitude.coefficient
-  {account_key⇐posting.account_key, amount_text⇐posting.amount_text, source_coefficient⇐posting.source_coefficient, source_scale⇐posting.source_scale, normalized_coefficient⇐normalized, commodity⇐posting.commodity}
+  {account_key⇐account, amount_text⇐amountText, source_coefficient⇐coefficient, source_scale⇐parsedAmount.scale, normalized_coefficient⇐0, commodity⇐currency}
 }
-postings ↩ NormalizePosting¨ postings
+parsedPostings ← PostingRecord¨ postingArgs
+calculationScale ← ⌈´ {𝕩.source_scale}¨ parsedPostings
+NormalizePosting ← {𝕊 posting:
+  normalized ← scale.Normalize ⟨posting.source_coefficient,posting.source_scale,calculationScale⟩
+  {𝕊⋄Fail ⟨"posting_amount_invalid", "posting amount cannot normalize exactly"⟩}⍟(normalized.state ≢ "ok") @
+  {account_key⇐posting.account_key, amount_text⇐posting.amount_text, source_coefficient⇐posting.source_coefficient, source_scale⇐posting.source_scale, normalized_coefficient⇐normalized.coefficient, commodity⇐posting.commodity}
+}
+postings ← NormalizePosting¨ parsedPostings
 {𝕊⋄Fail ⟨"event_unbalanced", "normalized posting amounts must sum exactly to zero"⟩}⍟(0 ≠ +´ {𝕩.normalized_coefficient}¨ postings) @
 
 legacyKeys ← ⟨"tax","biz","invoice","note","due_on","receipt","txn_id","party","plan_id","trip_id","payment","cashflow","currency","recur","series"⟩
 nativeKeys ← ⟨"tax","biz","invoice","note","due-on","receipt","txn-id","party","plan-id","trip-id","payment","cashflow","currency","recur","series"⟩
-metadata ← empty
-{𝕊 text:
+MetadataRecord ← {𝕊 text:
   equalMask ← '='=text
   {𝕊⋄Fail ⟨"metadata_shape_invalid", "each metadata item must contain exactly one key=value pair"⟩}⍟(1≠+´equalMask) @
   equalIndex ← ⊑equalMask/↕≠text
@@ -97,8 +94,9 @@ metadata ← empty
   keyIndex ← ⊑legacyKeys⊐⟨key⟩
   {𝕊⋄Fail ⟨"metadata_key_invalid", "metadata key is not supported by the native Journal profile"⟩}⍟(keyIndex=≠legacyKeys) @
   {𝕊⋄Fail ⟨"metadata_value_invalid", "metadata value must be nonempty and structurally safe"⟩}⍟((0=≠value)∨(UnsafeText value)∨(value≢Trim value)) @
-  metadata ∾↩ ⟨{key⇐keyIndex⊑nativeKeys,value⇐value}⟩
-}¨metadataArgs
+  {key⇐keyIndex⊑nativeKeys,value⇐value}
+}
+metadata ← MetadataRecord¨ metadataArgs
 metadataKeys ← {𝕩.key}¨metadata
 hasPlanLink ← ∨´ 0 ∾ "plan-id"⊸≡¨ metadataKeys
 isReverse ← "[reverse]" ≡ 9 ↑ description
@@ -128,8 +126,8 @@ postingLines ← {"    " ∾ 𝕩.account_key ∾ "    " ∾ 𝕩.amount_text �
 metadataLines ← {"    ; "∾𝕩.key∾": "∾𝕩.value}¨metadata
 headerLines ← effectiveDurable ◶ ⟨{⟨dateText ∾ " * " ∾ description⟩}, {⟨dateText ∾ " * " ∾ description, "    ; event-id: " ∾ eventId⟩}⟩ @
 blockLines ← headerLines ∾ metadataLines ∾ postingLines
-block ← ⊑ blockLines
-{𝕊 line: block ∾↩ lf ∾ line}¨ 1 ↓ blockLines
+continuationLines ← {lf∾𝕩}¨ 1↓blockLines
+block ← (⊑blockLines) ∾ (∾continuationLines)
 
 rawCount ← ≠ raw
 endsOne ← (0 < rawCount) ∧ lf = ¯1 ⊑ raw

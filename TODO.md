@@ -84,6 +84,7 @@ The production inventory covers every `.bqn` file under `src/`, `src_edit/`, and
 ## Phase 1: `src/accounting/` — complete
 
 Closeout: `docs/ACCOUNTING_PHASE_ONE_REVIEW_CLOSEOUT-2026-08-11.md`.
+Post-closeout Entitlement review: `docs/ENVELOPE_ENTITLEMENT_REVIEW_CLOSEOUT-2026-08-16.md`.
 
 - [x] `src/accounting/account_balance.bqn`
 - [x] `src/accounting/account_period.bqn`
@@ -110,7 +111,7 @@ Closeout: `docs/ACCOUNTING_PHASE_ONE_REVIEW_CLOSEOUT-2026-08-11.md`.
 - [x] `src/accounting/recent_transactions.bqn`
 - [x] `src/accounting/sparse_group.bqn`
 - [x] `src/accounting/sparse_pivot.bqn`
-- [ ] `src/accounting/envelope_entitlement.bqn` — native Budget movement Entitlement owner under review
+- [x] `src/accounting/envelope_entitlement.bqn` — #784 native Budget Posting projection / historical Entitlement law review
 
 ## Phase 2: `src/ledger/` — complete
 
@@ -265,6 +266,12 @@ See `docs/EDITOR_PHASE_SIX_ISSUE_RELATION_OBSERVATION-2026-08-13.md`.
 
 #763 moves Issue List and the semantic side of Issue Close onto canonical Issue admission while preserving the writer's historical 8/9/10-column physical shape. Issue Add selects its admitted schema renderer through BQN Choose (`◶`), and Issue Validate remains the mandatory post-write admission leaf. Physical `source_row` remains explicit evidence, including through comments, source notes, and blank lines.
 
+### Journal Block Add observation
+
+See `docs/EDITOR_PHASE_SIX_JOURNAL_BLOCK_ADD_OBSERVATION-2026-08-16.md`.
+
+#785 maps regular Posting/metadata input collections, delegates scale conversion to the shared exact-scale owner, and keeps complete-Journal re-admission, candidate source-boundary proof, identity/provenance comparison, source-ending transport, and shell safe-write publication as explicit writer laws.
+
 ### `src/editor/`
 
 - [x] `src/editor/friend_travel_source_event.bqn` — #734
@@ -284,7 +291,7 @@ See `docs/EDITOR_PHASE_SIX_ISSUE_RELATION_OBSERVATION-2026-08-13.md`.
 - [x] `src_edit/issue_close_cmd.bqn` — #763 admitted semantics with physical shape-preserving rewrite
 - [x] `src_edit/issue_list_cmd.bqn` — #763 admitted Issue relation
 - [x] `src_edit/issue_validate_cmd.bqn` — law review in #763; mandatory post-write leaf unchanged
-- [ ] `src_edit/journal_block_add_cmd.bqn`
+- [x] `src_edit/journal_block_add_cmd.bqn` — #785 regular input relations / complete-Journal writer safety
 - [ ] `src_edit/journal_canonical_surface_apply_cmd.bqn`
 - [ ] `src_edit/journal_canonical_surface_plan.bqn`
 - [ ] `src_edit/journal_canonical_surface_plan_cmd.bqn`
@@ -330,6 +337,6 @@ After the production BQN inventory is reviewed, selector/UI adapter consolidatio
 
 ## Current cursor
 
-`src_edit/journal_block_add_cmd.bqn`
+`src_edit/journal_canonical_surface_apply_cmd.bqn`
 
-Resume the normal Phase 6 `src_edit/` review sequence at Journal Block Add.
+Resume the normal Phase 6 `src_edit/` review sequence at Journal Canonical Surface Apply.
