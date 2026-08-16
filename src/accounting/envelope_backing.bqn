@@ -20,13 +20,13 @@ ErrorExact ← {𝕊:{state⇐"error",coefficient⇐empty}}
 EmptyRows ← {𝕊:{
   count⇐0,index⇐empty,account_index⇐empty,account_key⇐empty,category⇐empty,
   entitlement⇐empty,actual_consumption⇐empty,actual_refunds⇐empty,fulfillment⇐empty,
-  ledger_remaining⇐empty,open_plan_reserve⇐empty,post_plan_headroom⇐empty,
+  ledger_remaining⇐empty,commitment⇐empty,post_plan_headroom⇐empty,
   entitlement_contributors⇐empty,entitlement_observations⇐empty,consumption_contributors⇐empty,
   refund_contributors⇐empty,fulfillment_contributors⇐empty,plan_contributors⇐empty
 }}
 EmptyTotals ← {𝕊:{
   entitlement⇐empty,actual_consumption⇐empty,actual_refunds⇐empty,fulfillment⇐empty,
-  ledger_remaining⇐empty,open_plan_reserve⇐empty,post_plan_headroom⇐empty,
+  ledger_remaining⇐empty,commitment⇐empty,post_plan_headroom⇐empty,
   funding_balance⇐empty,signed_envelope_total⇐empty,backing_required⇐empty,
   backing_surplus⇐empty,ledger_unassigned⇐empty,reconciliation_delta⇐empty
 }}
@@ -187,7 +187,7 @@ BuildEnvelopeTerms ← {𝕊 accounts‿ownership‿prepared‿targetScale:
     count⇐envelopeCount,index⇐↕envelopeCount,account_index⇐envelopeIndices,account_key⇐envelopeIndices⊏accounts.key,category⇐categories,
     entitlement⇐{𝕩.coefficient}¨entitlementResults,actual_consumption⇐{𝕩.coefficient}¨consumptionResults,
     actual_refunds⇐{𝕩.coefficient}¨refundResults,fulfillment⇐{𝕩.coefficient}¨fulfillmentResults,
-    ledger_remaining⇐{𝕩.coefficient}¨remainingResults,open_plan_reserve⇐{𝕩.coefficient}¨commitmentResults,
+    ledger_remaining⇐{𝕩.coefficient}¨remainingResults,commitment⇐{𝕩.coefficient}¨commitmentResults,
     post_plan_headroom⇐{𝕩.coefficient}¨headroomResults,
     entitlement_contributors⇐entitlementContributors,
     entitlement_observations⇐entitlementObservation.observations,
@@ -200,8 +200,8 @@ BuildEnvelopeTerms ← {𝕊 accounts‿ownership‿prepared‿targetScale:
 BuildBacking ← {𝕊 prepared‿ownership‿terms‿targetScale:
   entitlementObservation ← prepared.entitlement_observation ⋄ actualBalance ← prepared.actual_balance ⋄ table ← terms.table
   entitlement ← table.entitlement ⋄ consumptionValues ← table.actual_consumption ⋄ refunds ← table.actual_refunds
-  fulfillmentValues ← table.fulfillment ⋄ remaining ← table.ledger_remaining ⋄ reserve ← table.open_plan_reserve ⋄ headroom ← table.post_plan_headroom
-  termTotals ← scale.Sum¨⟨entitlement,consumptionValues,refunds,fulfillmentValues,remaining,reserve,headroom⟩
+  fulfillmentValues ← table.fulfillment ⋄ remaining ← table.ledger_remaining ⋄ commitmentValues ← table.commitment ⋄ headroom ← table.post_plan_headroom
+  termTotals ← scale.Sum¨⟨entitlement,consumptionValues,refunds,fulfillmentValues,remaining,commitmentValues,headroom⟩
   fundingIndices ← ownership.funding_indices
   fundingRows ← actualBalance.accounts.account_index⊐fundingIndices
   fundingValues ← fundingRows⊏actualBalance.accounts.closing
@@ -221,7 +221,7 @@ BuildBacking ← {𝕊 prepared‿ownership‿terms‿targetScale:
       state⇐"ok",table⇐table,
       totals⇐{
         entitlement⇐0⊑totalCoefficients,actual_consumption⇐1⊑totalCoefficients,actual_refunds⇐2⊑totalCoefficients,
-        fulfillment⇐3⊑totalCoefficients,ledger_remaining⇐4⊑totalCoefficients,open_plan_reserve⇐5⊑totalCoefficients,
+        fulfillment⇐3⊑totalCoefficients,ledger_remaining⇐4⊑totalCoefficients,commitment⇐5⊑totalCoefficients,
         post_plan_headroom⇐6⊑totalCoefficients,funding_balance⇐fundingResult.coefficient,
         signed_envelope_total⇐4⊑totalCoefficients,backing_required⇐backingResult.coefficient,
         backing_surplus⇐surplusResult.coefficient,ledger_unassigned⇐unassignedResult.coefficient,
