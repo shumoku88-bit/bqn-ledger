@@ -289,19 +289,19 @@ prepare_cache() {
   cache_dir="${TMPDIR:-/tmp}/bqn-ledger-cache-${sanitized_path}-${report_domain}-${cache_date}"
   mkdir -p "$cache_dir"
 
-  local src_files=(
-    "$base_abs/accounts.journal" "$base_abs/actual.journal" "$base_abs/plan.journal" "$base_abs/budget.journal"
-    "$base_abs/budget.toml" "$base_abs/household.toml" "$base_abs/report.toml" "$base_abs/issues.tsv"
-  )
-  while IFS= read -r -d '' f; do src_files+=("$f"); done < <(find "$ROOT_DIR/src" -name "*.bqn" -print0)
-  [[ ! -f "$ROOT_DIR/config/report_labels.tsv" ]] || src_files+=("$ROOT_DIR/config/report_labels.tsv")
+  # Cache invalidation is deliberately conservative physical observation, not a
+  # second shell-owned list of canonical Report dependencies. Any file under the
+  # selected Household root, production BQN source, or repository configuration
+  # may affect a current report or its presentation. Extra refreshes are safe;
+  # missing a new dependency is not.
+  local src_files=()
+  while IFS= read -r -d '' f; do src_files+=("$f"); done < <(find "$base_abs" -type f -print0)
+  while IFS= read -r -d '' f; do src_files+=("$f"); done < <(find "$ROOT_DIR/src" "$ROOT_DIR/config" -type f -print0)
 
   max_src_mtime=0
   for f in "${src_files[@]}"; do
-    if [[ -f "$f" ]]; then
-      if stat -f %m "$f" >/dev/null 2>&1; then mtime=$(stat -f %m "$f"); else mtime=$(stat -c %Y "$f"); fi
-      (( mtime <= max_src_mtime )) || max_src_mtime=$mtime
-    fi
+    if stat -f %m "$f" >/dev/null 2>&1; then mtime=$(stat -f %m "$f"); else mtime=$(stat -c %Y "$f"); fi
+    (( mtime <= max_src_mtime )) || max_src_mtime=$mtime
   done
 
   local cache_ok=0 cache_key_count cache_has_all key
