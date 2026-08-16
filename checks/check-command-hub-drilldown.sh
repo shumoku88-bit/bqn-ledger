@@ -39,6 +39,21 @@ if BL_SELECTED_DATE=not-a-date tools/add-ui.sh --base "$base" --check >"$work/in
 fi
 grep -Fq 'BL_SELECTED_DATE must be YYYY-MM-DD' "$work/invalid.err"
 
+# Standalone add-ui is intentionally a compact writer-only shortcut rather than
+# a second Household taxonomy. Its physical modes must nevertheless cover
+# exactly the current non-Observe command actions. Two names are local physical
+# aliases: budget -> budget-move and issue -> issue-add.
+tools/household-surface-metadata actions \
+  | awk -F'\t' 'NR>1 && $7=="command" && $3!="observe" {print $5}' \
+  | sort >"$work/logical-writers"
+sed -n '/^choose_mode()/,/^}/p' tools/add-ui.sh \
+  | awk -F'\t' 'index($0,"\t") {print $1}' \
+  | sed -e 's/^budget$/budget-move/' -e 's/^issue$/issue-add/' \
+  | sort >"$work/add-ui-writers"
+[[ "$(wc -l <"$work/logical-writers" | tr -d ' ')" == 12 ]]
+[[ "$(wc -l <"$work/add-ui-writers" | tr -d ' ')" == 12 ]]
+cmp "$work/logical-writers" "$work/add-ui-writers"
+
 # Non-mutating Plan observation proves that the same selected Date reaches an
 # explicit direct route when it is used as a temporal observation coordinate.
 BL_SELECTED_DATE=2026-01-13 tools/bl --base "$base" plans upcoming --format tsv >"$work/bl-plan"
