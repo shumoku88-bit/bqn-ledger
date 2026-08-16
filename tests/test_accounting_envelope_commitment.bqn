@@ -2,7 +2,7 @@
 
 lib ← •Import "test_lib.bqn"
 registryCore ← •Import "../src/ledger/currency_registry.bqn"
-snapshot ← •Import "legacy_snapshot_fixture.bqn"
+snapshot ← •Import "canonical_snapshot_fixture.bqn"
 canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
 historyFixture ← •Import "envelope_history_test_fixture.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
@@ -11,9 +11,15 @@ lf ← @+10 ⋄ tab ← @+9
 Raw ← {𝕊 lines:∾{𝕩∾⟨lf⟩}¨lines}
 Join ← {𝕊 fields:out←⊑fields ⋄ {𝕊 field:out∾↩tab∾field}¨1↓fields ⋄ out}
 registry ← (registryCore.Build ⟨Join ⟨"JPY","0","¥"⟩⟩).registry
-accountLines ← ⟨Join ⟨"assets:cash","role=asset","currency=JPY"⟩,Join ⟨"assets:savings","role=asset","currency=JPY"⟩,Join ⟨"expenses:food","role=expense","currency=JPY"⟩,Join ⟨"expenses:transport","role=expense","currency=JPY"⟩,Join ⟨"expenses:other","role=expense","currency=JPY"⟩⟩
+accountSource ← Raw ⟨
+  "account assets:cash","  type: Asset","  commodity: JPY","",
+  "account assets:savings","  type: Asset","  commodity: JPY","",
+  "account expenses:food","  type: Expense","  commodity: JPY","",
+  "account expenses:transport","  type: Expense","  commodity: JPY","",
+  "account expenses:other","  type: Expense","  commodity: JPY"
+⟩
 actualRaw ← Raw ⟨"commodity JPY","","account assets:cash","    ; role: asset","","account assets:savings","    ; role: asset","","account expenses:food","    ; role: expense","","account expenses:transport","    ; role: expense","","account expenses:other","    ; role: expense","","2026-01-10 * completed food","    ; event-id: completed-food-actual","    ; layer: actual","    ; plan-id: completed-food","    expenses:food 4 JPY","    assets:cash -4 JPY"⟩
-actual ← (snapshot.Build ⟨accountLines,actualRaw,registry⟩).facts
+actual ← (snapshot.Build ⟨accountSource,actualRaw,registry⟩).facts
 planRaw ← Raw ⟨
   "2026-01-09 completed food","  ; plan-id: completed-food","  expenses:food 4 JPY","  assets:cash -4 JPY","",
   "2026-01-20 open food","  ; plan-id: open-food","  expenses:food 5 JPY","  assets:cash -5 JPY","",
