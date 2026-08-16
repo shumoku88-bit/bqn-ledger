@@ -103,11 +103,28 @@ handle_edit_bqn_issue_add() {
   if [[ "$TARGET_EXISTS" -eq 1 ]]; then
     edit_bqn_apply_append_checked "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256" "" issue
   else
-    local WRITE_OUT BACKUP_PATH
-    WRITE_OUT="$(safe_create_checked "$TARGET_PATH" $'issue_id\tstatus\tdate\tdue\tclosed\tcategory\ttitle\tamount\tcurrency\tdetails\n'"$PAYLOAD"$'\n')"
+    local WRITE_OUT BACKUP_PATH POST_WRITE_SHA POST_OK
+    WRITE_OUT="$(safe_create_exclusive_checked "$TARGET_PATH" $'issue_id\tstatus\tdate\tdue\tclosed\tcategory\ttitle\tamount\tcurrency\tdetails\n'"$PAYLOAD")"
     printf '%s\n' "$WRITE_OUT"
     BACKUP_PATH="$(awk -F': ' '$1 == "Backup" {print $2}' <<< "$WRITE_OUT")"
-    run_post_check "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$BACKUP_PATH" issue
+    POST_WRITE_SHA="$(_safe_write_sha256 "$TARGET_PATH")"
+    POST_OK=1
+    if [[ "${BQN_LEDGER_TEST_MODE:-}" == "1" && "${EDIT_BQN_TEST_FORCE_POST_CHECK_FAIL:-}" == "1" ]]; then
+      printf 'Post-check failed.\n' >&2
+      POST_OK=0
+    elif ! run_post_check "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$BACKUP_PATH" issue; then
+      POST_OK=0
+    fi
+    if [[ "$POST_OK" -eq 1 ]]; then
+      return 0
+    fi
+    edit_bqn_run_test_hook EDIT_BQN_TEST_BEFORE_POSTCHECK_ROLLBACK_HOOK
+    if safe_remove_created_checked "$TARGET_PATH" "$POST_WRITE_SHA"; then
+      echo 'Rollback: removed created Issue source' >&2
+      return 1
+    fi
+    echo 'Rollback: refused; created Issue source changed after publication; recovery required' >&2
+    return 1
   fi
 }
 

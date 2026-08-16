@@ -28,8 +28,8 @@ There is no active production `.bqn` cursor. A future material production-BQN ch
 
 The next work is cross-cutting repository observation rather than another semantic-owner pass.
 
-- [ ] terminal selector/input duplication and UI change locality across active shell surfaces;
-- [ ] editor/writer ownership from BQN semantic decision through machine operation to safe-write publication;
+- [x] terminal selector/input duplication and UI change locality across active shell surfaces: Household frontends share one logical dispatcher; nested selectors remain opaque physical adapters; writer shortcut membership is parity-checked. See `docs/CROSS_CUTTING_FRONTEND_REACHABILITY_AUDIT-2026-08-17.md`.
+- [x] editor/writer ownership from BQN semantic decision through machine operation to safe-write publication. See `docs/CROSS_CUTTING_WRITER_EFFECT_AUDIT-2026-08-17.md`.
 - [ ] report/application CLI reachability and repeated effect/protocol boundaries;
 - [ ] repository-wide dead-surface and reachability audit, including retained wrappers;
 - [x] `experiments/` reachability: promoted action-catalog and sparse classify-once probes retired; current negative evidence retained. See `docs/CROSS_CUTTING_EXPERIMENT_REACHABILITY_AUDIT-2026-08-17.md`.
@@ -39,24 +39,26 @@ The next work is cross-cutting repository observation rather than another semant
 - [ ] remaining migration/compatibility residue outside completed canonical Household recovery;
 - [ ] checks/tests classification: current law guard, historical characterization, or obsolete topology assumption.
 
-## Current frontend state
+## Current writer state
 
-Logical frontend authority is:
+Active publication follows one recurring boundary:
 
 ```text
-HouseholdSurface Domain × Operation × Actions
-              -> tools/household-action
-              -> tools/bl / existing direct owners
+BQN/application observation
+  -> candidate / intent
+  -> shell checked publication
+  -> mandatory validation
+  -> digest-guarded rollback on failure
 ```
 
-Physical presentation remains plural without duplicating that logical route:
+`tools/lib/safe-write.sh` owns the physical primitives. `tools/lib/edit-bqn-common.sh` owns shared protocol application; Plan Add/Edit/Finish, Budget, and Canonical Journal Surface retain dedicated effect wrappers only where they protect stronger observation/fence laws.
 
-- `tools/household-surface`: Calendar-first spatial terminal frontend;
-- `tools/household-hub-gum`: optional flat searchable palette;
-- `tools/lib/ui-choice.sh`: nested opaque-line fzf/gum/plain selector adapter;
-- `tools/add-ui.sh`: compact standalone writer-only shortcut plus explicit writer modes.
+The writer audit fixed two Issue-specific exceptions:
 
-The `add-ui` menu is deliberately not the whole Household taxonomy. Its twelve physical modes correspond exactly to current `command` actions whose operation is not `observe`, with only two physical aliases: `budget -> budget-move` and `issue -> issue-add`. Repository checks require that parity.
+- first `issues.tsv` publication is now exclusive and cannot overwrite a concurrent first writer;
+- failed Issue append/replace/create post-checks now restore the exact observed bytes or remove the still-owned newly-created file.
+
+Legacy `safe_append`, `safe_rewrite`, and `safe_create_checked` definitions have no active callers and are guarded against reuse. Their definition-level removal belongs to the repository-wide dead-surface cleanup rather than current writer authority.
 
 ## Continuation contract
 
@@ -73,7 +75,7 @@ A fresh session should:
 ## Current cursor
 
 ```text
-editor / writer effect ownership across active shell publication paths
+report/application CLI reachability and repeated effect/protocol boundaries
 ```
 
-Trace candidate construction -> machine protocol -> backup/stale guard -> atomic publication -> mandatory post-write admission, and look for duplicated writer authority or compatibility shells outside the established safe-write owner.
+Observe active report entrypoints, metadata/route leaves, shell wrappers, and any duplicate protocol/effect owners before editing. Keep report catalog/request/composition meaning in the existing BQN owners.

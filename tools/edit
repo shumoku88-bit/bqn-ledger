@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Public editor dispatcher. Canonical writer slices may graduate here before the
-# older monolithic implementation is retired command-by-command.
+# Public editor dispatcher.
+#
+# Stronger canonical publication slices with additional observation/fence laws
+# have dedicated shell effect owners below. Remaining editor commands use the
+# shared tools/edit-bqn path. This file is routing only: it owns no accounting,
+# candidate construction, source mutation algorithm, or validation semantics.
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
