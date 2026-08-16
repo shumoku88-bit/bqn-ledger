@@ -3,6 +3,8 @@
 loader ← •Import "../src/application/source_io.bqn"
 canonical ← •Import "../src/application/canonical_household_sources.bqn"
 accountSource ← •Import "../src/application/account_source_adapter.bqn"
+budgetSource ← •Import "../src/application/budget_source_adapter.bqn"
+householdSource ← •Import "../src/application/household_source_adapter.bqn"
 candidate ← •Import "budget_movement_candidate.bqn"
 validate ← •Import "validate.bqn"
 editorCurrency ← •Import "../src/application/editor_currency.bqn"
@@ -13,6 +15,7 @@ tab ← @+9
 Fail ← {𝕊 msg: •Out "ERROR"∾tab∾msg ⋄ •Exit 1}
 Join ← {𝕊 base‿name: base∾(('/'≠¯1↑base)/"/")∾name}
 Unique ← {𝕊 xs: ((xs⊐xs)=↕≠xs)/xs}
+Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
 
 {𝕊:Fail "usage: budget_add_cmd.bqn <baseDir> <date> <memo> <from> <to> <amount> <currency-or-empty> [meta...]"}⍟(7>≠args) @
 baseDir ← 0⊑args
@@ -27,6 +30,11 @@ metaTokens ← 7↓args
 accountResult ← accountSource.Load baseDir
 {𝕊:Fail "canonical accounts.journal rejected"}⍟(accountResult.state≢"ok") @
 accounts ← accountResult.accounts
+budgetPolicy ← budgetSource.LoadPolicy ⟨baseDir,accounts⟩
+{𝕊:Fail "canonical budget.toml rejected"}⍟(budgetPolicy.state≢"ok") @
+household ← householdSource.LoadShared ⟨baseDir,accounts,budgetPolicy⟩
+{𝕊:Fail "canonical household.toml rejected"}⍟(household.state≢"ok") @
+stableBudget ← household.current.budget
 
 ResolveBudgetAccount ← {𝕊 account:
   mask ← account⊸≡¨accounts.key
@@ -35,8 +43,18 @@ ResolveBudgetAccount ← {𝕊 account:
   {𝕊:Fail ("Budget movement account is not type Budget: "∾account)}⍟((index⊑accounts.role)≢"budget") @
   index
 }
+RejectRetiredAllocation ← {𝕊 account:
+  matches ← account⊸≡¨stableBudget.allocation_account_key
+  {𝕊:
+    coordinate ← ⊑matches/↕stableBudget.envelope_count
+    envelope ← coordinate⊑stableBudget.envelope_id
+    {𝕊:Fail ("Budget movement cannot use retired Envelope allocation Account: "∾account∾" -> "∾envelope)}⍟(¬Contains ⟨envelope,budgetPolicy.envelopes.id⟩) @
+  }⍟(1=+´matches) @
+}
 fromIndex ← ResolveBudgetAccount fromVal
 toIndex ← ResolveBudgetAccount toVal
+RejectRetiredAllocation fromVal
+RejectRetiredAllocation toVal
 {𝕊:Fail "Budget movement from/to Accounts must differ"}⍟(fromVal≡toVal) @
 fromCommodity ← fromIndex⊑accounts.currency
 toCommodity ← toIndex⊑accounts.currency
