@@ -18,6 +18,21 @@ inventory ← •Import "../src_edit/journal_identity_inventory.bqn"
 "OTHER" lib.AssertEq (inventory.ClassifyLexicalFamily "___")
 "OPAQUE_HEX" lib.AssertEq (inventory.ClassifyLexicalFamily "12345")
 
+# Provenance is also one ordered classification axis. A native tx- prefix keeps
+# precedence over a simultaneous Plan link, matching the established classifier.
+precedenceTx ← {identity_kind⇐"durable", source_event_id⇐"tx-123456", plan_id⇐"plan-2026-07-15-wifi"}
+precedenceResult ← inventory.ClassifyProvenance ⟨precedenceTx,"PREFIXED_HEX"⟩
+"NATIVE_EDITOR_CANDIDATE" lib.AssertEq (0 ⊑ precedenceResult)
+"inferred_from_prefix" lib.AssertEq (1 ⊑ precedenceResult)
+
+# Empty relations are valid inventory input and must not require accumulator
+# sentinels or special caller handling.
+emptyInv ← inventory.BuildInventory ⟨⟩
+0 lib.AssertEq (≠ emptyInv.rows)
+0 lib.AssertEq emptyInv.duplicate_identity_definitions
+0 lib.AssertEq emptyInv.dangling_references
+0 lib.AssertEq emptyInv.self_references
+
 # ─── 2. Privacy canary fixture ───
 # Synthetic fixture with easily-searchable private canary values.
 # These MUST NOT appear in summary or redacted TSV output.
@@ -194,7 +209,8 @@ r9 ← 8 ⊑ rows
 # No self-references
 0 lib.AssertEq (inv.self_references)
 
-# Test duplicate detection with synthetic duplicate fixture
+# Occurrence Count should count one duplicate identity definition even if the
+# same identity occurs three times. It marks the second occurrence exactly once.
 dupTxs ← ⟨
   {
     date⇐"2026-07-01", status_marker⇐"*", description⇐"dup1", layer_name⇐"actual",
@@ -205,6 +221,11 @@ dupTxs ← ⟨
     date⇐"2026-07-02", status_marker⇐"*", description⇐"dup2", layer_name⇐"actual",
     identity_kind⇐"durable", source_event_id⇐"shared_id", plan_id⇐"", txn_id⇐"",
     allocation_id⇐"", actual_event_id⇐"", execution_envelope⇐"", postings⇐⟨⟩, metadata⇐⟨{key⇐"event-id", value⇐"shared_id", source_line⇐10}⟩, source_start_line⇐9
+  },
+  {
+    date⇐"2026-07-03", status_marker⇐"*", description⇐"dup3", layer_name⇐"actual",
+    identity_kind⇐"durable", source_event_id⇐"shared_id", plan_id⇐"", txn_id⇐"",
+    allocation_id⇐"", actual_event_id⇐"", execution_envelope⇐"", postings⇐⟨⟩, metadata⇐⟨{key⇐"event-id", value⇐"shared_id", source_line⇐15}⟩, source_start_line⇐14
   }
 ⟩
 dupInv ← inventory.BuildInventory dupTxs
