@@ -11,7 +11,6 @@ expenses:transport/JPY |            0 |            5 |            0 |           
 budget:opening/JPY     |            0 |            0 |            0 |            0 
 budget:unassigned/JPY  |            0 |            0 |            0 |            0 
 budget:food/JPY        |            0 |            0 |            0 |            0 
-budget:spent/JPY       |            0 |            0 |            0 |            0 
 -----------------------+--------------+--------------+--------------+--------------
 Total                  |            0 |         1035 |        -1035 |            0 
 
