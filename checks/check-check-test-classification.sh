@@ -4,8 +4,9 @@ set -euo pipefail
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
 
-# Historical migration audit: retired config.tsv / src-next budget-style probe.
+# Historical migration audits built on retired source topologies stay retired.
 [[ ! -e checks/audit-budget-style-explicit.sh ]]
+[[ ! -e checks/check-israel-ils-usable-vertical-slice.sh ]]
 
 # bqn-eval positive/negative behavior is already qualified through
 # devtools-check.sh + check-devtools-negative.sh. Do not restore a duplicate
@@ -13,6 +14,12 @@ cd "$root"
 [[ ! -e checks/check-bqn-eval.sh ]]
 grep -Fq 'bqn-eval liveness' tools/devtools-check.sh
 grep -Fq 'Testing tools/bqn-eval negative paths' checks/check-devtools-negative.sh
+
+# The current currency editor qualification is canonical-source aware. Legacy
+# TSV presence is observed only to prove it is not a writer authority.
+grep -Fq 'fixtures/editor-currency-m2' checks/check-edit-bqn-currency-m2.sh
+grep -Fq 'accounts.journal' checks/check-edit-bqn-currency-m2.sh
+grep -Fq 'legacy accounts.tsv' checks/check-edit-bqn-currency-m2.sh
 
 # Coverage output is an evidence inventory, not a manually maintained claim that
 # a module is or is not tested. The old map contained retired/nonexistent owner
