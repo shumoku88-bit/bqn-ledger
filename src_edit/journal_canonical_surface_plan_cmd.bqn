@@ -17,8 +17,8 @@ lf ← @+10
 tab ← @+9
 NumStr ← •Fmt
 JoinLines ← {𝕊 lines:
-  0=≠lines ? "" ;
-  (⊑lines) ∾ (∾{lf∾𝕩}¨1↓lines)
+  LinePiece ← {𝕊 i:(i=0)◶⟨{lf∾i⊑lines},{i⊑lines}⟩@}
+  ∾ (⟨""⟩ ∾ LinePiece¨ ↕≠lines)
 }
 Metric ← {𝕊 key‿value:key∾tab∾NumStr value}
 
