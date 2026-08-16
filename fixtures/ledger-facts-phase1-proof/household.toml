@@ -3,6 +3,7 @@ mode = "income-anchor"
 income-account = "income:salary"
 
 [budget]
+opening-accounts = ["budget:opening"]
 unassigned-accounts = ["budget:unassigned"]
 
 [[budget.envelopes]]
@@ -30,26 +31,3 @@ note = "transport explicitly outside Envelopes"
 [[daily-target.assets]]
 id = "cash"
 account = "assets:cash"
-
-[account-policy.assets]
-liquid = ["assets:cash"]
-savings = []
-investment = []
-
-[account-policy.budget.kind]
-opening = ["budget:opening"]
-unassigned = ["budget:unassigned"]
-spent = ["budget:spent"]
-envelope = ["budget:food"]
-
-[account-policy.budget.group]
-daily = ["budget:food"]
-flex = []
-reserve = ["budget:unassigned"]
-
-[account-policy.expenses]
-fixed = []
-variable = [
-  "expenses:food",
-  "expenses:transport",
-]
