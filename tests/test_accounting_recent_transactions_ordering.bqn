@@ -3,13 +3,13 @@
 lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
-snapshot ← •Import "legacy_snapshot_fixture.bqn"
+snapshot ← •Import "canonical_snapshot_fixture.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 recent ← •Import "../src/accounting/recent_transactions.bqn"
 
 base ← "fixtures/ledger-facts-phase1-proof/"
 registry ← (registry_core.Build loader.ReadLines "config/currencies.tsv").registry
-accountLines ← loader.ReadLines base∾"accounts.tsv"
+accountSource ← •FChars "../"∾base∾"accounts.journal"
 lf ← @+10
 baseRaw ← •FChars "../"∾base∾"actual.journal"
 
@@ -44,7 +44,7 @@ orderedRaw ← ∾⟨
   "    expenses:food 3 JPY",lf,
   "    assets:cash -3 JPY",lf
 ⟩
-facts ← (snapshot.Build ⟨accountLines,orderedRaw,registry⟩).facts
+facts ← (snapshot.Build ⟨accountSource,orderedRaw,registry⟩).facts
 "ok" lib.AssertEq facts.state
 Ids ← {𝕊 references: {𝕩.transaction_id}¨references}
 
