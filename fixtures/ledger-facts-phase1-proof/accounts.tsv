@@ -5,4 +5,3 @@ expenses:transport	role=expense	budget=transport	group=daily	currency=JPY
 budget:opening	role=budget	kind=opening	currency=JPY
 budget:unassigned	role=budget	kind=unassigned	currency=JPY
 budget:food	role=budget	kind=envelope	budget=food	group=daily	envelope_role=dynamic	currency=JPY
-budget:spent	role=budget	kind=spent	currency=JPY
