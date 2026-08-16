@@ -104,7 +104,7 @@ handle_edit_bqn_issue_add() {
     edit_bqn_apply_append_checked "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256" "" issue
   else
     local WRITE_OUT BACKUP_PATH
-    WRITE_OUT="$(safe_create_checked "$TARGET_PATH" $'issue_id\tstatus\tdate\tdue\tclosed\tcategory\ttitle\tamount\tcurrency\tdetails\n'"$PAYLOAD"$'\n')"
+    WRITE_OUT="$(safe_create_exclusive_checked "$TARGET_PATH" $'issue_id\tstatus\tdate\tdue\tclosed\tcategory\ttitle\tamount\tcurrency\tdetails\n'"$PAYLOAD")"
     printf '%s\n' "$WRITE_OUT"
     BACKUP_PATH="$(awk -F': ' '$1 == "Backup" {print $2}' <<< "$WRITE_OUT")"
     run_post_check "$BASE_DIR" "$POST_CHECK" "$TARGET_PATH" "$BACKUP_PATH" issue
