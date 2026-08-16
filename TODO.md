@@ -290,6 +290,12 @@ See `docs/EDITOR_PHASE_SIX_JOURNAL_IDENTITY_INVENTORY_OBSERVATION-2026-08-17.md`
 
 #789 maps incoming reference metadata into a regular relation, projects durable identities directly, counts distinct duplicate definitions with Occurrence Count, exposes identity classification precedence as ordered axes, preserves the privacy-safe read-only command boundary, and retires the stale claim that the pre-cleanup production aggregate is current.
 
+### Native Journal command observation
+
+See `docs/EDITOR_PHASE_SIX_JOURNAL_NATIVE_COMMAND_OBSERVATION-2026-08-17.md`.
+
+#790 maps Journal List presentation without mutable string staging, keeps the seven-column selector contract while making commodity visible in the human display, makes native reverse selection explicit and fail-closed, and reuses the shared exact-scale primitive inside the mandatory source validator while retaining independent complete-source candidate proof.
+
 ### `src/editor/`
 
 - [x] `src/editor/friend_travel_source_event.bqn` — #734
@@ -322,9 +328,9 @@ See `docs/EDITOR_PHASE_SIX_JOURNAL_IDENTITY_INVENTORY_OBSERVATION-2026-08-17.md`
 - [x] `src_edit/journal_cleanup_verify_cmd.bqn` — #787 law review; read-only equivalence leaf unchanged
 - [x] `src_edit/journal_identity_inventory.bqn` — #789 reference relation / ordered classification axes / duplicate identity law
 - [x] `src_edit/journal_identity_inventory_cmd.bqn` — #789 law review; read-only privacy-safe adapter unchanged
-- [ ] `src_edit/journal_list_cmd.bqn`
-- [ ] `src_edit/journal_native_reverse_cmd.bqn`
-- [ ] `src_edit/journal_native_source_check.bqn`
+- [x] `src_edit/journal_list_cmd.bqn` — #790 relation-driven Account Join / commodity-aware display
+- [x] `src_edit/journal_native_reverse_cmd.bqn` — #790 explicit selector law / negative-index fail-closed
+- [x] `src_edit/journal_native_source_check.bqn` — #790 expected Posting relation / shared exact-scale primitive / mandatory validator law
 - [ ] `src_edit/journal_reconstructible_identity_cleanup.bqn`
 - [ ] `src_edit/journal_reconstructible_identity_cleanup_cmd.bqn`
 - [ ] `src_edit/journal_validate_cmd.bqn`
@@ -355,6 +361,6 @@ After the production BQN inventory is reviewed, selector/UI adapter consolidatio
 
 ## Current cursor
 
-`src_edit/journal_list_cmd.bqn`
+`src_edit/journal_reconstructible_identity_cleanup.bqn`
 
-Resume the normal Phase 6 `src_edit/` review sequence at Journal List.
+Resume the normal Phase 6 `src_edit/` review sequence at Journal Reconstructible Identity Cleanup.
