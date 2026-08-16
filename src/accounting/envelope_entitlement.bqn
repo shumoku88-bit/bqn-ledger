@@ -7,9 +7,10 @@
 #   household: stable Envelope allocation plus explicit opening/unassigned source
 #     coordinates.
 # Endpoint coordinates are Envelope order followed by unassigned and opening.
-# Each movement produces a ragged cell of zero, one, or two Envelope effects and
-# at most one unassigned effect; joining those cells retains movement order, while
-# Group retains canonical Envelope order and trailing empties.
+# Each movement projects its source/destination Postings directly onto the Envelope
+# axis: an Envelope source contributes a negative effect and an Envelope destination
+# contributes a positive effect. Joining those cells retains movement and Posting
+# order, while Group retains canonical Envelope order and trailing empties.
 # Every published coefficient is normalized to one scale chosen from both the
 # Entitlement and unassigned observation universes. Empty effects therefore keep
 # a scale supplied by an included unassigned movement. [start,end) and observation
@@ -86,12 +87,8 @@ Build ← {𝕊 movements‿accounts‿household‿domain‿start‿finish‿obs
       envelopeRows ← (allocationReferences=i)/↕envelopeCount
       unassigned ← ∨´0∾i⊸≡¨unassignedReferences
       opening ← ∨´0∾i⊸≡¨openingReferences
-      memberships ← (0<≠envelopeRows)+unassigned+opening
-      endpoint ← envelopeCount+2
-      {𝕊:endpoint↩⊑envelopeRows}⍟((memberships=1)∧(0<≠envelopeRows)) @
-      {𝕊:endpoint↩envelopeCount}⍟((memberships=1)∧unassigned) @
-      {𝕊:endpoint↩envelopeCount+1}⍟((memberships=1)∧opening) @
-      endpoint
+      coordinates ← envelopeRows ∾ (unassigned/⟨envelopeCount⟩) ∾ (opening/⟨envelopeCount+1⟩)
+      {1=≠𝕩 ? ⊑𝕩 ; envelopeCount+2} coordinates
     }¨↕accountCount
 
     {𝕊:
@@ -113,26 +110,19 @@ Build ← {𝕊 movements‿accounts‿household‿domain‿start‿finish‿obs
           movement ← i⊑transactions ⋄ fromPosting‿toPosting ← movement.postings
           fromEndpoint ← i⊑endpointFrom ⋄ toEndpoint ← i⊑endpointTo
           fromEnvelope ← fromEndpoint<envelopeCount ⋄ toEnvelope ← toEndpoint<envelopeCount
-          grant ← ((fromEndpoint=envelopeCount) ∨ fromEndpoint=envelopeCount+1) ∧ toEnvelope
-          release ← fromEnvelope ∧ toEndpoint=envelopeCount
-          reallocation ← fromEnvelope ∧ toEnvelope
           amount ← movement.movement_coefficient ⋄ sourceScale ← movement.movement_scale ⋄ effective ← i⊑effectiveOrdinals
           inc ← i⊑included
           Effect ← {𝕊 target‿coefficient‿posting:{target⇐target,amount⇐coefficient,effective_ordinal⇐effective,source_event_id⇐movement.source_event_id,source_posting_index⇐posting.posting_index,source_posting_id⇐posting.posting_id,source_scale⇐sourceScale,contributor⇐PostingReference ⟨movements.source_name,posting⟩,included⇐inc}}
-          rows ← empty
-          {𝕊:rows∾↩⟨Effect ⟨toEndpoint,amount,toPosting⟩⟩}⍟grant @
-          {𝕊:rows∾↩⟨Effect ⟨fromEndpoint,-amount,fromPosting⟩⟩}⍟release @
-          {𝕊:rows∾↩⟨Effect ⟨fromEndpoint,-amount,fromPosting⟩,Effect ⟨toEndpoint,amount,toPosting⟩⟩}⍟reallocation @
-          rows
+          (fromEnvelope/⟨Effect ⟨fromEndpoint,-amount,fromPosting⟩⟩) ∾ (toEnvelope/⟨Effect ⟨toEndpoint,amount,toPosting⟩⟩)
         }¨transactionRows
         unassignedCells ← {𝕊 i:
           movement ← i⊑transactions ⋄ fromPosting‿toPosting ← movement.postings
           fromEndpoint ← i⊑endpointFrom ⋄ toEndpoint ← i⊑endpointTo
           inc ← i⊑included
-          rows ← empty
-          {𝕊:rows∾↩⟨{amount⇐movement.movement_coefficient,source_scale⇐movement.movement_scale,contributor⇐PostingReference ⟨movements.source_name,toPosting⟩,included⇐inc}⟩}⍟(toEndpoint=envelopeCount) @
-          {𝕊:rows∾↩⟨{amount⇐-movement.movement_coefficient,source_scale⇐movement.movement_scale,contributor⇐PostingReference ⟨movements.source_name,fromPosting⟩,included⇐inc}⟩}⍟(fromEndpoint=envelopeCount) @
-          rows
+          toUnassigned ← toEndpoint=envelopeCount ⋄ fromUnassigned ← fromEndpoint=envelopeCount
+          toEffect ← {amount⇐movement.movement_coefficient,source_scale⇐movement.movement_scale,contributor⇐PostingReference ⟨movements.source_name,toPosting⟩,included⇐inc}
+          fromEffect ← {amount⇐-movement.movement_coefficient,source_scale⇐movement.movement_scale,contributor⇐PostingReference ⟨movements.source_name,fromPosting⟩,included⇐inc}
+          (toUnassigned/⟨toEffect⟩) ∾ (fromUnassigned/⟨fromEffect⟩)
         }¨transactionRows
         allEffects ← ∾effectCells ⋄ allUnassigned ← ∾unassignedCells
         allTargets ← {𝕩.target}¨allEffects ⋄ allAmounts ← {𝕩.amount}¨allEffects
