@@ -2,7 +2,7 @@
 
 ## Current status
 
-The owner-by-owner production BQN review is complete as of 2026-08-17.
+The 2026-08-17 owner-by-owner production BQN review and its cross-cutting re-baseline are complete.
 
 Reviewed production roots:
 
@@ -22,62 +22,94 @@ Phase closeouts:
 - Phase 6 `src/editor/` + `src_edit/`: `docs/EDITOR_PHASE_SIX_CLOSEOUT-2026-08-17.md`
 - Phase 7 remaining production BQN: `docs/PRODUCTION_BQN_PHASE_SEVEN_CLOSEOUT-2026-08-17.md`
 
-There is no active production `.bqn` cursor. A future material production-BQN change should explicitly reopen the relevant review lane; this completion marker does not review future code automatically.
+Cross-cutting audits:
 
-## Current review lane
+- frontend/action reachability: `docs/CROSS_CUTTING_FRONTEND_REACHABILITY_AUDIT-2026-08-17.md`
+- writer/effect ownership: `docs/CROSS_CUTTING_WRITER_EFFECT_AUDIT-2026-08-17.md`
+- report/application CLI: `docs/CROSS_CUTTING_REPORT_CLI_AUDIT-2026-08-17.md`
+- experiments: `docs/CROSS_CUTTING_EXPERIMENT_REACHABILITY_AUDIT-2026-08-17.md`
+- dead surfaces/reachability: `docs/CROSS_CUTTING_DEAD_SURFACE_AUDIT-2026-08-17.md`
+- compatibility/history: `docs/CROSS_CUTTING_COMPATIBILITY_AUDIT-2026-08-17.md`
+- checks/tests: `docs/CROSS_CUTTING_CHECK_TEST_CLASSIFICATION_AUDIT-2026-08-17.md`
 
-The next work is cross-cutting repository observation rather than another semantic-owner pass.
+There is no active review cursor from this re-baseline. A future material change should reopen the lane whose responsibility changed rather than treating this completion marker as review of future code.
 
-- [x] terminal selector/input duplication and UI change locality across active shell surfaces: Household frontends share one logical dispatcher; nested selectors remain opaque physical adapters; writer shortcut membership is parity-checked. See `docs/CROSS_CUTTING_FRONTEND_REACHABILITY_AUDIT-2026-08-17.md`.
-- [x] editor/writer ownership from BQN semantic decision through machine operation to safe-write publication. See `docs/CROSS_CUTTING_WRITER_EFFECT_AUDIT-2026-08-17.md`.
-- [x] report/application CLI reachability and repeated effect/protocol boundaries. See `docs/CROSS_CUTTING_REPORT_CLI_AUDIT-2026-08-17.md`.
-- [x] repository-wide dead-surface and reachability audit, including retained wrappers. See `docs/CROSS_CUTTING_DEAD_SURFACE_AUDIT-2026-08-17.md`.
-- [x] `experiments/` reachability: promoted action-catalog and sparse classify-once probes retired; current negative evidence retained. See `docs/CROSS_CUTTING_EXPERIMENT_REACHABILITY_AUDIT-2026-08-17.md`.
-- [x] `tui/` reachability and documentation drift: status-only stale directory retired. See `docs/CROSS_CUTTING_FRONTEND_REACHABILITY_AUDIT-2026-08-17.md`.
-- [x] Calendar-first Household surface versus older Command Hub / TUI documentation: current spatial + flat-palette frontend portfolio recorded in `docs/PRODUCTION_EDITOR_DIRECTION.md` and the frontend audit.
-- [x] shell action/selection duplication versus `HouseholdSurface.Actions`: spatial/gum frontends share `tools/household-action`; standalone `add-ui` writer membership is parity-checked against non-Observe command Actions.
-- [x] remaining migration/compatibility residue outside completed canonical Household recovery: no further runtime deletion justified; retained compatibility is bounded current admission/history behavior. See `docs/CROSS_CUTTING_COMPATIBILITY_AUDIT-2026-08-17.md`.
-- [ ] checks/tests classification: current law guard, historical characterization, or obsolete topology assumption.
+## Completed cross-cutting queue
 
-## Compatibility result
+- [x] terminal selector/input duplication and UI change locality across active shell surfaces;
+- [x] editor/writer ownership from BQN semantic decision through machine operation to safe-write publication;
+- [x] report/application CLI reachability and repeated effect/protocol boundaries;
+- [x] repository-wide dead-surface and reachability audit, including retained wrappers;
+- [x] `experiments/` reachability and promotion/negative-evidence classification;
+- [x] `tui/` reachability and documentation drift;
+- [x] Calendar-first Household surface versus older Command Hub / TUI documentation;
+- [x] shell action/selection duplication versus `HouseholdSurface.Actions`;
+- [x] remaining migration/compatibility residue outside completed canonical Household recovery;
+- [x] checks/tests classification: full-suite law, transitive law, standalone characterization, duplicate characterization, or obsolete topology evidence.
 
-The remaining older shapes are not a second canonical source topology.
+## Final qualification model
 
-Retired TSV/config authorities remain forbidden by the canonical Household cutover checks. Current bounded compatibility is retained where it still has an explicit consumer and normalization law:
+`tools/check.sh` is the qualification authority.
 
-- Issue 8/9/10-column physical shapes normalize into one current lifecycle relation;
-- Plan Related may fall back from explicit `series` metadata to older admitted Plan identity/shape evidence;
-- historical Journal parsing is selected explicitly by profile and is not current writer admission;
-- Plan cancellation/supersession metadata is current lifecycle history, not migration residue.
+Evidence is now classified by responsibility and reachability rather than by filename:
 
-No hidden fallback reconstructs historical meaning from current configuration. Removing these paths would require a separate source/history migration with evidence that the older admitted observations no longer exist; this audit does not infer that precondition.
+```text
+full-suite current law guard
+transitive current law guard
+standalone characterization
+retired duplicate characterization
+retired migration/topology characterization
+```
 
-## Dead-surface result
+Current examples:
 
-The reachability pass retired executable residue rather than old-looking names indiscriminately:
+- Identity Inventory CLI/privacy and JSON clock-independence are direct full-suite guards;
+- repository-index integrity remains a transitive guard owned by devtools qualification;
+- the large Phase-1 proof fixture remains deliberate standalone characterization;
+- duplicate `check-bqn-eval.sh` is retired because devtool positive/negative checks own that law;
+- retired Budget-style, legacy ILS vertical-slice, report-label/src_next, and old Hub UI-smoke checks no longer masquerade as current evidence.
 
-- `tools/src-next-import-graph` is removed because it only scanned the already-retired `src_next/` topology and has no current devtool consumer;
-- legacy `safe_append`, `safe_rewrite`, and `safe_create_checked` definitions are removed after the writer audit proved there are no active callers;
-- `safe-write.sh` now exposes the current caller-snapshot checked/exclusive publication model only.
+`tools/coverage` is now a qualification evidence inventory rather than a fixed pseudo-coverage map. It does not call transitive/integration-tested modules “untested”.
 
-Historically named `tools/command-hub-cache-refresh` and `tools/command-hub-preview` remain because `main-ui.sh` still uses them for current report preview caching. `tools/edit` also remains a live public router. `check-dead-surface-reachability.sh` guards both retirement and retention decisions so a broad filename purge cannot silently delete current adapters.
+## Stable boundaries reached by this re-baseline
+
+```text
+canonical/admitted meaning
+        BQN/application owners
+                |
+                v
+logical actions / candidate intent / report requests
+                |
+                v
+bounded shell frontend / process / publication effects
+                |
+                v
+mandatory observation and guarded rollback
+```
+
+The review also established these repository rules:
+
+- promoted executable experiments retire once production owns their laws;
+- useful negative experiment evidence may remain;
+- old names do not imply dead reachability;
+- retired source topology does not return as hidden fallback or characterization authority;
+- current bounded compatibility is retained when active admitted evidence still requires it;
+- tests are kept or retired by what they prove and how they are reached.
 
 ## Continuation contract
 
 A fresh session should:
 
 1. verify actual remote `main`, open PRs, relevant heads, and CI;
-2. read the closeout/audit document for the lane being revisited;
-3. observe reachability and ownership before editing;
-4. distinguish current law from historical evidence;
+2. identify the concrete responsibility changed by new work;
+3. reopen only the relevant owner/cross-cutting lane;
+4. distinguish current law from historical evidence before editing;
 5. prefer retirement of dead compatibility/runtime surfaces over polishing them into permanent architecture;
-6. keep canonical accounting meaning, exact arithmetic, identity, provenance, and writer safety unchanged unless a concrete defect requires otherwise;
-7. record durable decisions in repository docs before ending the lane.
+6. keep canonical accounting meaning, exact arithmetic, identity, provenance, writer safety, and current historical evidence unchanged unless a concrete defect requires otherwise;
+7. record durable decisions in repository docs when a lane is reopened.
 
 ## Current cursor
 
 ```text
-checks/tests classification: current law guard vs historical characterization vs obsolete topology assumption
+none — re-baseline complete
 ```
-
-Start from actual qualification reachability, not check filenames. In particular, old `command-hub-*` names may still guard current Calendar/palette/report behavior, while a check that only replays retired topology should be classified as obsolete even if it still passes.
