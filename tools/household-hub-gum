@@ -14,6 +14,7 @@ Usage: tools/household-hub-gum [--base DIR] [--date YYYY-MM-DD] [--list]
 
 Flat searchable gum Command Palette for the Household application.
 Calendar is a sibling destination, not the Hub's information architecture.
+Nested selectors retain the user's independent BL_SELECTOR preference.
 EOF
 }
 
@@ -37,7 +38,7 @@ done
 
 build_palette() {
   local action_index domain operation scope key label kind
-  printf 'meta:calendar\tCalendar                                      Date / browse\n'
+  printf 'meta:calendar\tBrowse Calendar                               Date / browse\n'
   printf 'meta:reports\tBrowse Reports                                Reports / preview + search\n'
   while IFS=$'\t' read -r action_index domain operation scope key label kind; do
     [[ $action_index == action_index ]] && continue
@@ -69,7 +70,7 @@ command -v gum >/dev/null 2>&1 || {
 }
 
 run_bl() {
-  BL_SELECTOR=gum BL_SELECTED_DATE="$selected_date" \
+  BL_SELECTED_DATE="$selected_date" \
     "$root/tools/bl" --base "$base" --latest "$selected_date" "$@"
 }
 
@@ -98,7 +99,7 @@ dispatch() {
     meta:query) run_bl query ;;
     meta:dev-check) run_bl dev-check ;;
     action:*)
-      BL_SELECTOR=gum "$root/tools/household-action" \
+      "$root/tools/household-action" \
         --base "$base" --date "$selected_date" "${key#action:}"
       ;;
     *)
