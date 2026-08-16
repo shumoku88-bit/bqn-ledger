@@ -50,7 +50,7 @@ queryCycle ← {state⇐"unavailable",start⇐"",end_exclusive⇐""}
 {𝕊:
   queryCycle↩cycleResolution.WithPlan ⟨context.household.cycle,latest,actual.facts,context.plan⟩
   {𝕊:CycleFailure ⟨queryCycle,"report_current_cycle_resolution_failed"⟩}⍟(queryCycle.state≢"ok") @
-}⍟policyResolution.NeedsCurrentCycle policy @
+}⍟(policyResolution.NeedsCurrentCycle policy) @
 resolvedPolicy ← policyResolution.ResolveWithCurrentCycle ⟨policy,latest,actual.facts.transactions.date_text,queryCycle⟩
 {𝕊:PrintDiagnostics resolvedPolicy.diagnostics}⍟(resolvedPolicy.state≢"ok") @
 
