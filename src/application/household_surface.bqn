@@ -72,11 +72,11 @@ commandScopes ← ⟨
 Actions ← {𝕊:
   reportTable ← reports.Table @
   actionDomain ← commandDomains∾reportTable.surface_domain
-  actionOperation ← commandOperations∾reportTable.count⥊⟨"observe"⟩
+  actionOperation ← commandOperations∾(reportTable.count⥊⟨"observe"⟩)
   actionScope ← commandScopes∾reportTable.surface_scope
   actionKey ← commandKeys∾reportTable.key
   actionLabel ← commandLabels∾reportTable.label
-  actionKind ← (≠commandKeys)⥊⟨"command"⟩ ∾ reportTable.count⥊⟨"report"⟩
+  actionKind ← ((≠commandKeys)⥊⟨"command"⟩)∾(reportTable.count⥊⟨"report"⟩)
   {
     count⇐≠actionKey,index⇐↕≠actionKey,
     domain_key⇐actionDomain,operation_key⇐actionOperation,scope⇐actionScope,
