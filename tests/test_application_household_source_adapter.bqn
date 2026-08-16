@@ -49,10 +49,12 @@ household.account_policy.spend_class lib.AssertEq withHistory.account_policy.spe
 # both semantic owners from those bytes. Old fixtures publish explicit absence;
 # the expanded fixture publishes stable historical identity/routing evidence.
 sharedAbsent ← householdSource.LoadShared ⟨base,accounts.accounts,policy⟩
+•Out "adapter-debug sharedAbsent="∾sharedAbsent.state
 "ok" lib.AssertEq sharedAbsent.state
 0 lib.AssertEq sharedAbsent.history.present
 0 lib.AssertEq sharedAbsent.history.registry.count
 sharedHistory ← householdSource.LoadShared ⟨historyBase,accounts.accounts,policy⟩
+•Out "adapter-debug sharedHistory="∾sharedHistory.state
 "ok" lib.AssertEq sharedHistory.state
 1 lib.AssertEq sharedHistory.history.present
 ⟨"Daily"⟩ lib.AssertEq sharedHistory.history.registry.id
@@ -67,8 +69,10 @@ sharedHistory.current.budget.envelope_id lib.AssertEq withHistory.budget.envelop
 extendedAccountsRaw ← •FChars "../"∾base∾"/accounts.journal"
 extendedAccountsRaw∾↩"\naccount Budget:Retired\n  type: Budget\n  commodity: JPY\n"
 extendedAccountsResult ← accountAdmission.Admit extendedAccountsRaw
+•Out "adapter-debug extendedAccounts="∾extendedAccountsResult.state
 "ok" lib.AssertEq extendedAccountsResult.state
 missingHistory ← householdSource.LoadShared ⟨"fixtures/canonical-household-retired-coordinate",extendedAccountsResult.accounts,policy⟩
+•Out "adapter-debug missingHistory="∾missingHistory.state
 "error" lib.AssertEq missingHistory.state
 1 lib.AssertEq ≠missingHistory.diagnostics
 "household_allocation_envelope_history_missing" lib.AssertEq (⊑missingHistory.diagnostics).code
