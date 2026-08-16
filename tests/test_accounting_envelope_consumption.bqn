@@ -2,7 +2,7 @@
 
 loader ← •Import "../src/application/source_io.bqn"
 registryCore ← •Import "../src/ledger/currency_registry.bqn"
-snapshot ← •Import "legacy_snapshot_fixture.bqn"
+snapshot ← •Import "canonical_snapshot_fixture.bqn"
 historyAdmission ← •Import "../src/ledger/envelope_history_admission.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 consumption ← •Import "../src/accounting/envelope_consumption.bqn"
@@ -17,7 +17,7 @@ AssertEq ← {
 
 base ← "fixtures/ledger-facts-phase1-proof/"
 registry ← (registryCore.Build loader.ReadLines "config/currencies.tsv").registry
-accountLines ← loader.ReadLines base∾"accounts.tsv"
+accountSource ← •FChars "../"∾base∾"accounts.journal"
 actualRaw ← •FChars "../"∾base∾"actual.journal"
 refundRaw ← Raw ⟨
   "",
@@ -28,7 +28,7 @@ refundRaw ← Raw ⟨
   "    assets:cash 4 JPY",
   "    expenses:food -4 JPY"
 ⟩
-actual ← (snapshot.Build ⟨accountLines,actualRaw∾refundRaw,registry⟩).facts
+actual ← (snapshot.Build ⟨accountSource,actualRaw∾refundRaw,registry⟩).facts
 "ok" AssertEq actual.state
 
 historyRaw ← Raw ⟨
