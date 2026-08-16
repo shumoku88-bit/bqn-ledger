@@ -36,8 +36,21 @@ The next work is cross-cutting repository observation rather than another semant
 - [x] `tui/` reachability and documentation drift: status-only stale directory retired. See `docs/CROSS_CUTTING_FRONTEND_REACHABILITY_AUDIT-2026-08-17.md`.
 - [x] Calendar-first Household surface versus older Command Hub / TUI documentation: current spatial + flat-palette frontend portfolio recorded in `docs/PRODUCTION_EDITOR_DIRECTION.md` and the frontend audit.
 - [x] shell action/selection duplication versus `HouseholdSurface.Actions`: spatial/gum frontends share `tools/household-action`; standalone `add-ui` writer membership is parity-checked against non-Observe command Actions.
-- [ ] remaining migration/compatibility residue outside completed canonical Household recovery;
+- [x] remaining migration/compatibility residue outside completed canonical Household recovery: no further runtime deletion justified; retained compatibility is bounded current admission/history behavior. See `docs/CROSS_CUTTING_COMPATIBILITY_AUDIT-2026-08-17.md`.
 - [ ] checks/tests classification: current law guard, historical characterization, or obsolete topology assumption.
+
+## Compatibility result
+
+The remaining older shapes are not a second canonical source topology.
+
+Retired TSV/config authorities remain forbidden by the canonical Household cutover checks. Current bounded compatibility is retained where it still has an explicit consumer and normalization law:
+
+- Issue 8/9/10-column physical shapes normalize into one current lifecycle relation;
+- Plan Related may fall back from explicit `series` metadata to older admitted Plan identity/shape evidence;
+- historical Journal parsing is selected explicitly by profile and is not current writer admission;
+- Plan cancellation/supersession metadata is current lifecycle history, not migration residue.
+
+No hidden fallback reconstructs historical meaning from current configuration. Removing these paths would require a separate source/history migration with evidence that the older admitted observations no longer exist; this audit does not infer that precondition.
 
 ## Dead-surface result
 
@@ -48,40 +61,6 @@ The reachability pass retired executable residue rather than old-looking names i
 - `safe-write.sh` now exposes the current caller-snapshot checked/exclusive publication model only.
 
 Historically named `tools/command-hub-cache-refresh` and `tools/command-hub-preview` remain because `main-ui.sh` still uses them for current report preview caching. `tools/edit` also remains a live public router. `check-dead-surface-reachability.sh` guards both retirement and retention decisions so a broad filename purge cannot silently delete current adapters.
-
-## Current report state
-
-Report meaning remains BQN/application-owned:
-
-```text
-catalog / request / route / evidence / composition / rendering
-                           -> shell process/cache/presentation
-```
-
-The report CLI audit found no second shell-owned report catalog or route owner in `report`, `report-all`, `report-cache`, `report-section-metadata`, `report-summary`, `query`, or `main-ui.sh`.
-
-One concrete cache defect was fixed. `main-ui.sh` used to maintain a hand-written list of Household/report dependency filenames and omitted `config/currencies.tsv`, even though the report application path reads that registry. Preview cache invalidation now uses conservative physical observation of all files under the selected Household base plus repository `src/` and `config/`; it no longer owns a semantic dependency list.
-
-`check-report-cache-invalidation.sh` requires that shape and proves that changing only the currency-registry observation advances the preview-cache generation token.
-
-## Current writer state
-
-Active publication follows one recurring boundary:
-
-```text
-BQN/application observation
-  -> candidate / intent
-  -> shell checked publication
-  -> mandatory validation
-  -> digest-guarded rollback on failure
-```
-
-`tools/lib/safe-write.sh` owns the physical primitives. `tools/lib/edit-bqn-common.sh` owns shared protocol application; Plan Add/Edit/Finish, Budget, and Canonical Journal Surface retain dedicated effect wrappers only where they protect stronger observation/fence laws.
-
-The writer audit fixed two Issue-specific exceptions:
-
-- first `issues.tsv` publication is now exclusive and cannot overwrite a concurrent first writer;
-- failed Issue append/replace/create post-checks now restore the exact observed bytes or remove the still-owned newly-created file.
 
 ## Continuation contract
 
@@ -98,7 +77,7 @@ A fresh session should:
 ## Current cursor
 
 ```text
-remaining migration / compatibility residue outside completed canonical Household recovery
+checks/tests classification: current law guard vs historical characterization vs obsolete topology assumption
 ```
 
-Classify intentional current compatibility separately from historical migration scaffolding. Do not remove Issue 8/9/10-column or other compatibility merely because it is old if current admitted/writer behavior still depends on it.
+Start from actual qualification reachability, not check filenames. In particular, old `command-hub-*` names may still guard current Calendar/palette/report behavior, while a check that only replays retired topology should be classified as obsolete even if it still passes.
