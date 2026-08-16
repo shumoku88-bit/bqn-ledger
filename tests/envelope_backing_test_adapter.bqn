@@ -1,6 +1,7 @@
 # Test-only adapter for focused Envelope/Backing fixtures.
-# Historical routes are explicit fixture facts and Budget endpoint roles are
-# projected into the new canonical opening/unassigned/allocation relation.
+# Historical routes are explicit fixture facts. Household ownership is passed
+# through unchanged so tests exercise the canonical opening/unassigned/allocation
+# contract without Account-name inference or compatibility reconstruction.
 
 core ← •Import "../src/accounting/envelope_backing.bqn"
 historyFixture ← •Import "envelope_history_test_fixture.bqn"
@@ -18,26 +19,8 @@ HistoryFor ← {𝕊 facts:
 }
 EmptyRetirements ← {𝕊:{plan_id⇐empty,retired_on⇐empty}}
 
-SourceKeys ← {𝕊 candidates‿keys: ({Has ⟨𝕩,candidates⟩}¨keys)/keys}
-
 Build ← {𝕊 budgetMovements‿policy‿household‿actual‿plan‿domain‿start‿finish‿observation:
-  accountKeys ← actual.accounts.key
-  openingKeys ← SourceKeys ⟨⟨"budget:opening","budget:opening-ils","Budget:Opening"⟩,accountKeys⟩
-  unassignedKeys ← SourceKeys ⟨⟨"budget:unassigned","budget:unassigned-ils","Budget:Unassigned"⟩,accountKeys⟩
-  openingIndices ← actual.accounts.key⊐openingKeys
-  unassignedIndices ← actual.accounts.key⊐unassignedKeys
-  testHousehold ← {
-    state⇐household.state,source_name⇐household.source_name,
-    budget⇐{
-      envelope_count⇐≠household.budget.envelope_id,
-      envelope_id⇐household.budget.envelope_id,
-      allocation_account_key⇐household.budget.allocation_account_key,
-      allocation_account_index⇐household.budget.allocation_account_index,
-      opening_account_keys⇐openingKeys,opening_account_indices⇐openingIndices,
-      unassigned_account_keys⇐unassignedKeys,unassigned_account_indices⇐unassignedIndices
-    }
-  }
-  core.Build ⟨budgetMovements,policy,testHousehold,HistoryFor actual,actual,plan,EmptyRetirements @,domain,start,finish,observation⟩
+  core.Build ⟨budgetMovements,policy,household,HistoryFor actual,actual,plan,EmptyRetirements @,domain,start,finish,observation⟩
 }
 
 {Build⇐Build,HistoryFor⇐HistoryFor}
