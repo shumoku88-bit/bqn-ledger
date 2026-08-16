@@ -9,8 +9,8 @@ policy ← {
   reports⇐{
     trial_balance⇐{as_of⇐"latest"},
     balance_sheet⇐{as_of⇐"2026-01-12"},
-    profit_and_loss⇐{from⇐"beginning",through⇐"latest"},
-    daily_flow⇐{from⇐"2026-01-01",through⇐"latest",max_date_columns⇐5},
+    profit_and_loss⇐{range_kind⇐"explicit",from⇐"beginning",through⇐"latest"},
+    daily_flow⇐{range_kind⇐"explicit",from⇐"2026-01-01",through⇐"latest",max_date_columns⇐5},
     monthly_accounts⇐{from⇐"beginning",through⇐"2026-01-12"},
     recent_transactions⇐{through⇐"latest",count⇐5}
   }
@@ -33,6 +33,33 @@ resolved ← resolution.Resolve ⟨policy,"2026-01-13",⟨"2026-01-10","2026-01-
 "2026-01-13" lib.AssertEq resolved.recent_transactions.through
 5 lib.AssertEq resolved.recent_transactions.count
 "minus" lib.AssertEq resolved.presentation.negative_style
+0 lib.AssertEq resolution.NeedsCurrentCycle policy
+
+symbolicPolicy ← {
+  state⇐"ok",presentation⇐policy.presentation,
+  reports⇐{
+    trial_balance⇐policy.reports.trial_balance,
+    balance_sheet⇐policy.reports.balance_sheet,
+    profit_and_loss⇐{range_kind⇐"current-cycle-to-date",from⇐"",through⇐""},
+    daily_flow⇐{range_kind⇐"current-cycle-to-date",from⇐"",through⇐"",max_date_columns⇐5},
+    monthly_accounts⇐policy.reports.monthly_accounts,
+    recent_transactions⇐policy.reports.recent_transactions
+  }
+}
+currentCycle ← {state⇐"ok",start⇐"2026-01-05",end_exclusive⇐"2026-01-20"}
+1 lib.AssertEq resolution.NeedsCurrentCycle symbolicPolicy
+missingCycle ← resolution.Resolve ⟨symbolicPolicy,"2026-01-13",⟨"2026-01-02"⟩⟩
+"error" lib.AssertEq missingCycle.state
+⟨"report_current_cycle_context_required"⟩ lib.AssertEq Codes missingCycle.diagnostics
+symbolicResolved ← resolution.ResolveWithCurrentCycle ⟨symbolicPolicy,"2026-01-13",⟨"2026-01-02"⟩,currentCycle⟩
+"ok" lib.AssertEq symbolicResolved.state
+"2026-01-05" lib.AssertEq symbolicResolved.profit_and_loss.from
+"2026-01-13" lib.AssertEq symbolicResolved.profit_and_loss.through
+"2026-01-05" lib.AssertEq symbolicResolved.daily_flow.from
+"2026-01-13" lib.AssertEq symbolicResolved.daily_flow.through
+outsideCycle ← resolution.ResolveWithCurrentCycle ⟨symbolicPolicy,"2026-01-20",⟨"2026-01-02"⟩,currentCycle⟩
+"error" lib.AssertEq outsideCycle.state
+⟨"report_current_cycle_observation_outside_period"⟩ lib.AssertEq Codes outsideCycle.diagnostics
 
 emptyBeginning ← resolution.Resolve ⟨policy,"2026-01-13",⟨"2026-02-01"⟩⟩
 "ok" lib.AssertEq emptyBeginning.state
@@ -63,8 +90,8 @@ reversedPolicy ← {
   reports⇐{
     trial_balance⇐policy.reports.trial_balance,
     balance_sheet⇐policy.reports.balance_sheet,
-    profit_and_loss⇐{from⇐"2026-02-01",through⇐"latest"},
-    daily_flow⇐{from⇐"2026-02-02",through⇐"latest",max_date_columns⇐5},
+    profit_and_loss⇐{range_kind⇐"explicit",from⇐"2026-02-01",through⇐"latest"},
+    daily_flow⇐{range_kind⇐"explicit",from⇐"2026-02-02",through⇐"latest",max_date_columns⇐5},
     monthly_accounts⇐{from⇐"2026-02-03",through⇐"latest"},
     recent_transactions⇐policy.reports.recent_transactions
   }
