@@ -20,8 +20,10 @@ valid ← admission.Admit io.ReadRaw "fixtures/canonical-household-v1/report.tom
 5 lib.AssertEq valid.presentation.daily_flow_max_date_columns
 "latest" lib.AssertEq valid.reports.trial_balance.as_of
 "latest" lib.AssertEq valid.reports.balance_sheet.as_of
+"explicit" lib.AssertEq valid.reports.profit_and_loss.range_kind
 "2026-01-01" lib.AssertEq valid.reports.profit_and_loss.from
 "latest" lib.AssertEq valid.reports.profit_and_loss.through
+"explicit" lib.AssertEq valid.reports.daily_flow.range_kind
 "2026-01-01" lib.AssertEq valid.reports.daily_flow.from
 "latest" lib.AssertEq valid.reports.daily_flow.through
 5 lib.AssertEq valid.reports.daily_flow.max_date_columns
@@ -43,6 +45,65 @@ withoutPresentation ← admission.Admit Raw ⟨
 "red" lib.AssertEq withoutPresentation.presentation.negative_color
 14 lib.AssertEq withoutPresentation.presentation.daily_flow_max_date_columns
 7 lib.AssertEq withoutPresentation.reports.recent_transactions.count
+
+symbolic ← admission.Admit Raw ⟨
+  "[reports.trial-balance]",Pair ⟨"as-of","latest"⟩,"",
+  "[reports.balance-sheet]",Pair ⟨"as-of","latest"⟩,"",
+  "[reports.profit-and-loss]",Pair ⟨"range","current-cycle-to-date"⟩,"",
+  "[reports.daily-flow]",Pair ⟨"range","current-cycle-to-date"⟩,"max-date-columns = 7","",
+  "[reports.monthly-accounts]",Pair ⟨"from","beginning"⟩,Pair ⟨"through","latest"⟩,"",
+  "[reports.recent-transactions]",Pair ⟨"through","latest"⟩,"count = 5"
+⟩
+"ok" lib.AssertEq symbolic.state
+"current-cycle-to-date" lib.AssertEq symbolic.reports.profit_and_loss.range_kind
+"" lib.AssertEq symbolic.reports.profit_and_loss.from
+"" lib.AssertEq symbolic.reports.profit_and_loss.through
+"current-cycle-to-date" lib.AssertEq symbolic.reports.daily_flow.range_kind
+7 lib.AssertEq symbolic.reports.daily_flow.max_date_columns
+
+mixedRange ← admission.Admit Raw ⟨
+  "[reports.trial-balance]",Pair ⟨"as-of","latest"⟩,"",
+  "[reports.balance-sheet]",Pair ⟨"as-of","latest"⟩,"",
+  "[reports.profit-and-loss]",Pair ⟨"range","current-cycle-to-date"⟩,Pair ⟨"from","2026-01-01"⟩,Pair ⟨"through","latest"⟩,"",
+  "[reports.daily-flow]",Pair ⟨"from","beginning"⟩,Pair ⟨"through","latest"⟩,"",
+  "[reports.monthly-accounts]",Pair ⟨"from","beginning"⟩,Pair ⟨"through","latest"⟩,"",
+  "[reports.recent-transactions]",Pair ⟨"through","latest"⟩,"count = 5"
+⟩
+"error" lib.AssertEq mixedRange.state
+lib.Assert HasCode ⟨"report_policy_range_shape_invalid",mixedRange.diagnostics⟩
+
+incompleteRange ← admission.Admit Raw ⟨
+  "[reports.trial-balance]",Pair ⟨"as-of","latest"⟩,"",
+  "[reports.balance-sheet]",Pair ⟨"as-of","latest"⟩,"",
+  "[reports.profit-and-loss]",Pair ⟨"from","2026-01-01"⟩,"",
+  "[reports.daily-flow]",Pair ⟨"from","beginning"⟩,Pair ⟨"through","latest"⟩,"",
+  "[reports.monthly-accounts]",Pair ⟨"from","beginning"⟩,Pair ⟨"through","latest"⟩,"",
+  "[reports.recent-transactions]",Pair ⟨"through","latest"⟩,"count = 5"
+⟩
+"error" lib.AssertEq incompleteRange.state
+lib.Assert HasCode ⟨"report_policy_range_shape_invalid",incompleteRange.diagnostics⟩
+
+unknownSymbolicRange ← admission.Admit Raw ⟨
+  "[reports.trial-balance]",Pair ⟨"as-of","latest"⟩,"",
+  "[reports.balance-sheet]",Pair ⟨"as-of","latest"⟩,"",
+  "[reports.profit-and-loss]",Pair ⟨"range","current-month"⟩,"",
+  "[reports.daily-flow]",Pair ⟨"range","current-cycle-to-date"⟩,"",
+  "[reports.monthly-accounts]",Pair ⟨"from","beginning"⟩,Pair ⟨"through","latest"⟩,"",
+  "[reports.recent-transactions]",Pair ⟨"through","latest"⟩,"count = 5"
+⟩
+"error" lib.AssertEq unknownSymbolicRange.state
+lib.Assert HasCode ⟨"report_policy_symbolic_range_invalid",unknownSymbolicRange.diagnostics⟩
+
+monthlySymbolicRange ← admission.Admit Raw ⟨
+  "[reports.trial-balance]",Pair ⟨"as-of","latest"⟩,"",
+  "[reports.balance-sheet]",Pair ⟨"as-of","latest"⟩,"",
+  "[reports.profit-and-loss]",Pair ⟨"range","current-cycle-to-date"⟩,"",
+  "[reports.daily-flow]",Pair ⟨"range","current-cycle-to-date"⟩,"",
+  "[reports.monthly-accounts]",Pair ⟨"range","current-cycle-to-date"⟩,"",
+  "[reports.recent-transactions]",Pair ⟨"through","latest"⟩,"count = 5"
+⟩
+"error" lib.AssertEq monthlySymbolicRange.state
+lib.Assert HasCode ⟨"report_policy_key_unsupported",monthlySymbolicRange.diagnostics⟩
 
 sourceFilename ← admission.Admit Raw ⟨
   "[presentation.amounts]",Pair ⟨"negative-style","minus"⟩,"",
