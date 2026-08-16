@@ -22,7 +22,7 @@ awk -F'\t' 'NR>1 {seen[$5]++} END {for (k in seen) if (seen[k] != 1) exit 1}' "$
 # The gum frontend is a flat command palette. Calendar and system utilities are
 # siblings around the logical action relation rather than taxonomy submenus.
 tools/household-hub-gum --base "$base" --date 2026-08-16 --list >"$work/palette.tsv"
-grep -Fq $'meta:calendar\tCalendar' "$work/palette.tsv"
+grep -Fq $'meta:calendar\tBrowse Calendar' "$work/palette.tsv"
 grep -Fq $'meta:reports\tBrowse Reports' "$work/palette.tsv"
 grep -Fq $'action:expense\tExpense' "$work/palette.tsv"
 grep -Fq $'action:balance-sheet\tBalance Sheet' "$work/palette.tsv"
