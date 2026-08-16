@@ -7,8 +7,6 @@
 # Provenance may be verified, inferred, or unknown.
 # Reconstructibility is not deletion authorization.
 
-util ← •Import "../src/text/parse.bqn"
-
 lf ← @+10
 tab ← @+9
 
@@ -22,6 +20,8 @@ Join ← {
   (0 = ≠ 𝕩) ◶ ⟨{ 1 ↓ ∾ (sep⊸∾)¨ 𝕩 }, { "" }⟩ 𝕩
 }
 
+FirstTrueIndex ← {⊑ 𝕩 / ↕ ≠ 𝕩}
+
 IsLegacyEntryId ← {𝕊 id:
   (30 = ≠ id) ∧ ("entry-" ≡ 6 ↑ id) ∧ ∧´ 1 ∾ ((6 ↓ id) ∊ "0123456789abcdef")
 }
@@ -32,48 +32,28 @@ IsHex ← {𝕊 text:
 
 HasPrefix ← { 𝕨 ≡ (≠ 𝕨) ↑ 𝕩 }
 
-# Lexical family is a syntax observation only.
+lexicalFamilies ← ⟨"NONE","LEGACY_ENTRY_24HEX","PREFIXED_HEX","PREFIXED_OTHER","OPAQUE_HEX","TEXTUAL_OTHER","OTHER"⟩
+
+# Lexical family is a syntax observation only. The ordered case axis is the
+# classification law; the final true case makes it total.
 # TEXTUAL_OTHER means the ID contains alphabetic characters and no dashes;
 # it does not prove the ID carries human-readable or business-meaningful content.
 ClassifyLexicalFamily ← {𝕊 id:
-  (0 = ≠ id) ◶ ⟨
-    {𝕊:
-      isLegacy ← IsLegacyEntryId id
-      isLegacy ◶ ⟨
-        {𝕊:
-          hasDash ← 0 < +´ 0 ∾ '-' = id
-          hasDash ◶ ⟨
-            {𝕊:
-              isOpaque ← IsHex id
-              isOpaque ◶ ⟨
-                {𝕊:
-                  hasAlpha ← 0 < +´ 0 ∾ id ∊ "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                  hasAlpha ◶ ⟨{𝕊:"OTHER"}, {𝕊:"TEXTUAL_OTHER"}⟩ @
-                },
-                {𝕊:"OPAQUE_HEX"}
-              ⟩ @
-            },
-            {𝕊:
-              dashIndices ← (id = '-') / ↕ ≠ id
-              firstDash ← ⊑ dashIndices
-              prefix ← (firstDash + 1) ↑ id
-              suffix ← (firstDash + 1) ↓ id
-              isSuffixHex ← IsHex suffix
-              isSuffixHex ◶ ⟨{𝕊:"PREFIXED_OTHER"}, {𝕊:"PREFIXED_HEX"}⟩ @
-            }
-          ⟩ @
-        },
-        {𝕊:"LEGACY_ENTRY_24HEX"}
-      ⟩ @
-    },
-    {𝕊:"NONE"}
-  ⟩ @
-}
-
-GetMetaVal ← {
-  key ← 𝕨 ⋄ metadata ← 𝕩
-  matching ← ({key ≡ 𝕩.key}¨ metadata) / metadata
-  (0 = ≠ matching) ◶ ⟨{𝕊:(⊑ matching).value}, {𝕊:""}⟩ @
+  dashIndices ← (id = '-') / ↕ ≠ id
+  firstDash ← ⊑ (dashIndices ∾ 0)
+  suffix ← (firstDash + 1) ↓ id
+  hasDash ← 0 < ≠ dashIndices
+  hasAlpha ← 0 < +´ 0 ∾ id ∊ "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+  lexicalCases ← ⟨
+    0 = ≠ id,
+    IsLegacyEntryId id,
+    hasDash ∧ IsHex suffix,
+    hasDash,
+    IsHex id,
+    hasAlpha,
+    1
+  ⟩
+  (FirstTrueIndex lexicalCases) ⊑ lexicalFamilies
 }
 
 HasMetaKey ← {
@@ -81,32 +61,35 @@ HasMetaKey ← {
   0 < +´ 0 ∾ {k ≡ 𝕩.key}¨ 𝕩
 }
 
-# Extracts incoming reference info across all transactions
+# Extract incoming reference rows across all transactions. Each transaction
+# maps its admitted metadata to zero or more reference rows; Join only flattens
+# the resulting regular relation.
 BuildReferenceIndex ← {𝕊 transactions:
   recognizedRefKeys ← "actual-event-id" ‿ "source-event-id" ‿ "original-event-id" ‿ "reversal-of" ‿ "parent-event-id" ‿ "related-event-id"
-  # Returns list of {target_id, ref_key, source_ordinal, source_layer}
-  refs ← ⟨⟩
-  {𝕊 idx:
+  referenceParts ← {𝕊 idx:
     tx ← idx ⊑ transactions
-    # Check all metadata items
-    {𝕊 meta:
-      key ← meta.key
-      val ← meta.value
-      isRefKey ← 0 < +´ 0 ∾ {key ≡ 𝕩}¨ recognizedRefKeys
-      {𝕊:
-        refs ∾↩ ⟨{
-          target_id⇐val,
-          ref_key⇐key,
-          source_ordinal⇐idx + 1,
-          source_layer⇐tx.layer_name
-        }⟩
-      }⍟(isRefKey ∧ (0 < ≠ val)) @
+    referenceMask ← {𝕊 meta:
+      isRefKey ← 0 < +´ 0 ∾ {meta.key ≡ 𝕩}¨ recognizedRefKeys
+      isRefKey ∧ (0 < ≠ meta.value)
     }¨ tx.metadata
+    referenceMetadata ← referenceMask / tx.metadata
+    {𝕊 meta:
+      {
+        target_id⇐meta.value,
+        ref_key⇐meta.key,
+        source_ordinal⇐idx + 1,
+        source_layer⇐tx.layer_name
+      }
+    }¨ referenceMetadata
   }¨ ↕ ≠ transactions
-  refs
+  nonEmptyParts ← ({0 < ≠ 𝕩}¨ referenceParts) / referenceParts
+  (0 = ≠ nonEmptyParts) ◶ ⟨
+    {𝕊:∾ nonEmptyParts},
+    {𝕊:⟨⟩}
+  ⟩ @
 }
 
-# Provenance classification.
+# Provenance classification. Case order is the precedence law.
 # Provenance confidence is always one of:
 #   "not_applicable"    — identity-free transaction
 #   "not_verified"      — no evidence of generation pipeline
@@ -114,35 +97,26 @@ BuildReferenceIndex ← {𝕊 transactions:
 #   "inferred_from_plan_link" — plan-id presence suggests plan completion pipeline
 ClassifyProvenance ← {𝕊 tx‿lexFamily:
   id ← tx.source_event_id
-  (tx.identity_kind ≡ "physical_fallback") ◶ ⟨
-    {𝕊:
-      (lexFamily ≡ "LEGACY_ENTRY_24HEX") ◶ ⟨
-        {𝕊:
-          ("tx-" HasPrefix id) ◶ ⟨
-            {𝕊:
-              (("friend-" HasPrefix id) ∨ ("exchange-" HasPrefix id) ∨ ("israel-" HasPrefix id)) ◶ ⟨
-                {𝕊:
-                  ("reverse-" HasPrefix id) ◶ ⟨
-                    {𝕊:
-                      (("plan-" HasPrefix id) ∨ (0 < ≠ tx.plan_id)) ◶ ⟨
-                        {𝕊:⟨"UNKNOWN", "not_verified"⟩},
-                        {𝕊:⟨"PLAN_COMPLETION_CANDIDATE", "inferred_from_plan_link"⟩}
-                      ⟩ @
-                    },
-                    {𝕊:⟨"REVERSE_COMMAND_CANDIDATE", "inferred_from_prefix"⟩}
-                  ⟩ @
-                },
-                {𝕊:⟨"TRAVEL_EDITOR_CANDIDATE", "inferred_from_prefix"⟩}
-              ⟩ @
-            },
-            {𝕊:⟨"NATIVE_EDITOR_CANDIDATE", "inferred_from_prefix"⟩}
-          ⟩ @
-        },
-        {𝕊:⟨"TSV_MIGRATION_CANDIDATE", "inferred_from_prefix"⟩}
-      ⟩ @
-    },
-    {𝕊:⟨"IDENTITY_FREE", "not_applicable"⟩}
-  ⟩ @
+  isTravel ← ("friend-" HasPrefix id) ∨ ("exchange-" HasPrefix id) ∨ ("israel-" HasPrefix id)
+  provenanceCases ← ⟨
+    tx.identity_kind ≡ "physical_fallback",
+    lexFamily ≡ "LEGACY_ENTRY_24HEX",
+    "tx-" HasPrefix id,
+    isTravel,
+    "reverse-" HasPrefix id,
+    ("plan-" HasPrefix id) ∨ (0 < ≠ tx.plan_id),
+    1
+  ⟩
+  provenanceResults ← ⟨
+    ⟨"IDENTITY_FREE", "not_applicable"⟩,
+    ⟨"TSV_MIGRATION_CANDIDATE", "inferred_from_prefix"⟩,
+    ⟨"NATIVE_EDITOR_CANDIDATE", "inferred_from_prefix"⟩,
+    ⟨"TRAVEL_EDITOR_CANDIDATE", "inferred_from_prefix"⟩,
+    ⟨"REVERSE_COMMAND_CANDIDATE", "inferred_from_prefix"⟩,
+    ⟨"PLAN_COMPLETION_CANDIDATE", "inferred_from_plan_link"⟩,
+    ⟨"UNKNOWN", "not_verified"⟩
+  ⟩
+  (FirstTrueIndex provenanceCases) ⊑ provenanceResults
 }
 
 # Reconstructibility classification.
@@ -155,77 +129,44 @@ ClassifyProvenance ← {𝕊 tx‿lexFamily:
 #   the generating algorithm is identified,
 #   all required inputs remain available.
 ClassifyReconstructibility ← {𝕊 tx‿provenanceClass‿lexFamily:
-  (tx.identity_kind ≡ "physical_fallback") ◶ ⟨
-    {𝕊:
-      (provenanceClass ≡ "REVERSE_COMMAND_CANDIDATE") ◶ ⟨
-        {𝕊:
-          (lexFamily ≡ "LEGACY_ENTRY_24HEX") ◶ ⟨
-            {𝕊:
-              ((provenanceClass ≡ "PLAN_COMPLETION_CANDIDATE") ∨ (provenanceClass ≡ "NATIVE_EDITOR_CANDIDATE") ∨ (provenanceClass ≡ "TRAVEL_EDITOR_CANDIDATE")) ◶ ⟨
-                {𝕊:"UNKNOWN"},
-                {𝕊:"LIKELY_RECONSTRUCTIBLE"}
-              ⟩ @
-            },
-            {𝕊:"NOT_RECONSTRUCTIBLE"}
-          ⟩ @
-        },
-        {𝕊:"NOT_RECONSTRUCTIBLE"}
-      ⟩ @
-    },
-    {𝕊:"IDENTITY_FREE"}
-  ⟩ @
+  likely ← (provenanceClass ≡ "PLAN_COMPLETION_CANDIDATE") ∨ (provenanceClass ≡ "NATIVE_EDITOR_CANDIDATE") ∨ (provenanceClass ≡ "TRAVEL_EDITOR_CANDIDATE")
+  reconstructibilityCases ← ⟨
+    tx.identity_kind ≡ "physical_fallback",
+    provenanceClass ≡ "REVERSE_COMMAND_CANDIDATE",
+    lexFamily ≡ "LEGACY_ENTRY_24HEX",
+    likely,
+    1
+  ⟩
+  reconstructibilityNames ← ⟨"IDENTITY_FREE","NOT_RECONSTRUCTIBLE","NOT_RECONSTRUCTIBLE","LIKELY_RECONSTRUCTIBLE","UNKNOWN"⟩
+  (FirstTrueIndex reconstructibilityCases) ⊑ reconstructibilityNames
 }
 
 ClassifyDisposition ← {𝕊 tx‿incomingCount‿hasFunctionalLink‿reconstructibility:
-  (tx.identity_kind ≡ "physical_fallback") ◶ ⟨
-    {𝕊:
-      (incomingCount > 0) ◶ ⟨
-        {𝕊:
-          hasFunctionalLink ◶ ⟨
-            {𝕊:
-              (reconstructibility ≡ "NOT_RECONSTRUCTIBLE") ◶ ⟨
-                {𝕊:
-                  ((reconstructibility ≡ "PROVEN_RECONSTRUCTIBLE") ∨ (reconstructibility ≡ "LIKELY_RECONSTRUCTIBLE")) ◶ ⟨
-                    {𝕊:"REVIEW_UNKNOWN"},
-                    {𝕊:"REVIEW_RECONSTRUCTIBLE"}
-                  ⟩ @
-                },
-                {𝕊:"KEEP_NONRECONSTRUCTIBLE"}
-              ⟩ @
-            },
-            {𝕊:"KEEP_FUNCTIONAL"}
-          ⟩ @
-        },
-        {𝕊:"KEEP_REFERENCED"}
-      ⟩ @
-    },
-    {𝕊:"IDENTITY_FREE"}
-  ⟩ @
+  reconstructible ← (reconstructibility ≡ "PROVEN_RECONSTRUCTIBLE") ∨ (reconstructibility ≡ "LIKELY_RECONSTRUCTIBLE")
+  dispositionCases ← ⟨
+    tx.identity_kind ≡ "physical_fallback",
+    incomingCount > 0,
+    hasFunctionalLink,
+    reconstructibility ≡ "NOT_RECONSTRUCTIBLE",
+    reconstructible,
+    1
+  ⟩
+  dispositionNames ← ⟨"IDENTITY_FREE","KEEP_REFERENCED","KEEP_FUNCTIONAL","KEEP_NONRECONSTRUCTIBLE","REVIEW_RECONSTRUCTIBLE","REVIEW_UNKNOWN"⟩
+  (FirstTrueIndex dispositionCases) ⊑ dispositionNames
 }
 
 BuildInventory ← {𝕊 transactions:
   refIndex ← BuildReferenceIndex transactions
 
-  # Compute duplicate identity definitions:
-  # Count event IDs that appear on more than one durable transaction
-  durableIds ← ⟨⟩
-  {𝕊 idx:
-    tx ← idx ⊑ transactions
-    isDurable ← tx.identity_kind ≡ "durable"
-    {𝕊: durableIds ∾↩ ⟨tx.source_event_id⟩}⍟isDurable @
-  }¨ ↕ ≠ transactions
-  # Count unique IDs that appear more than once
-  dupCount ← 0
-  {𝕊 i:
-    thisId ← i ⊑ durableIds
-    # Only count on first occurrence to avoid double-counting
-    isFirst ← i = ⊑ (thisId⊸≡¨ durableIds) / ↕ ≠ durableIds
-    occurrences ← +´ 0 ∾ thisId⊸≡¨ durableIds
-    {𝕊: dupCount +↩ 1}⍟(isFirst ∧ (occurrences > 1)) @
-  }¨ ↕ ≠ durableIds
+  # Durable event identities are one aligned projection of the transaction
+  # relation. Occurrence Count marks the second appearance of each duplicated
+  # identity exactly once, so the sum counts duplicate identity definitions.
+  durableMask ← {𝕩.identity_kind ≡ "durable"}¨ transactions
+  durableIds ← durableMask / {𝕩.source_event_id}¨ transactions
+  dupCount ← +´ 0 ∾ 1 = ⊒ durableIds
 
   # Compute dangling references: references targeting IDs not defined as any durable event-id
-  danglingCount ← +´ 0 ∾ {¬ ∨´ (𝕩.target_id)⊸≡¨ durableIds}¨ refIndex
+  danglingCount ← +´ 0 ∾ {¬ ∨´ 0 ∾ (𝕩.target_id)⊸≡¨ durableIds}¨ refIndex
 
   # Compute self-references: references where source_ordinal's event-id equals target_id
   selfRefCount ← +´ 0 ∾ {
