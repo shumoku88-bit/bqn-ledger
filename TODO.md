@@ -278,6 +278,12 @@ See `docs/EDITOR_PHASE_SIX_JOURNAL_CANONICAL_SURFACE_OBSERVATION-2026-08-16.md`.
 
 #786 shares one physical Posting-line observation between plan/rewrite, exposes Canonical classification as an aligned coordinate, maps/filter rewrites the whole line relation, retains final-LF and ordered equivalence guards, and seals the public filesystem identity/snapshot/publication boundary in `tools/journal-canonical-surface`.
 
+### Journal Cleanup observation
+
+See `docs/EDITOR_PHASE_SIX_JOURNAL_CLEANUP_OBSERVATION-2026-08-16.md`.
+
+#787 exposes Cleanup priority as an aligned first-match classification axis, derives the removal line relation directly from the plan, maps presentation from fields, and keeps Apply/Verify, candidate re-admission, classification transition, ordered diagnostics, and semantic equivalence as explicit safety laws.
+
 ### `src/editor/`
 
 - [x] `src/editor/friend_travel_source_event.bqn` — #734
@@ -303,11 +309,11 @@ See `docs/EDITOR_PHASE_SIX_JOURNAL_CANONICAL_SURFACE_OBSERVATION-2026-08-16.md`.
 - [x] `src_edit/journal_canonical_surface_plan_cmd.bqn` — #786 relation-driven presentation
 - [x] `src_edit/journal_canonical_surface_preview_cmd.bqn` — #786 verified preview artifact
 - [x] `src_edit/journal_canonical_surface_rewrite.bqn` — #786 shared observation / map-filter rewrite / equivalence law
-- [ ] `src_edit/journal_cleanup_apply_cmd.bqn`
-- [ ] `src_edit/journal_cleanup_plan.bqn`
-- [ ] `src_edit/journal_cleanup_plan_cmd.bqn`
-- [ ] `src_edit/journal_cleanup_rewrite.bqn`
-- [ ] `src_edit/journal_cleanup_verify_cmd.bqn`
+- [x] `src_edit/journal_cleanup_apply_cmd.bqn` — #787 law review; candidate artifact leaf unchanged
+- [x] `src_edit/journal_cleanup_plan.bqn` — #787 aligned priority classification
+- [x] `src_edit/journal_cleanup_plan_cmd.bqn` — #787 relation-driven presentation
+- [x] `src_edit/journal_cleanup_rewrite.bqn` — #787 removal line relation / retained candidate safety
+- [x] `src_edit/journal_cleanup_verify_cmd.bqn` — #787 law review; read-only equivalence leaf unchanged
 - [ ] `src_edit/journal_identity_inventory.bqn`
 - [ ] `src_edit/journal_identity_inventory_cmd.bqn`
 - [ ] `src_edit/journal_list_cmd.bqn`
@@ -343,6 +349,6 @@ After the production BQN inventory is reviewed, selector/UI adapter consolidatio
 
 ## Current cursor
 
-`src_edit/journal_cleanup_apply_cmd.bqn`
+`src_edit/journal_identity_inventory.bqn`
 
-Resume the normal Phase 6 `src_edit/` review sequence at the Journal Cleanup family.
+Resume the normal Phase 6 `src_edit/` review sequence at Journal Identity Inventory.
