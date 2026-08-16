@@ -1,12 +1,12 @@
 # Journal Event Identity Inventory 002
 
-Status: current identity inventory and classification contract
+Status: current classification contract; historical production snapshot retained
 Owner: journal-identity
 Canonical: yes
 
 ## Overview
 
-This inventory presents a multi-axis breakdown of all transaction identities (`event-id` metadata) in the Canonical production Journal (`actual.journal`).
+This inventory presents a multi-axis breakdown of transaction identities (`event-id` metadata) in an admitted Canonical Journal observation.
 
 Rather than forcing event IDs into a single binary deletion classification, this tool evaluates identities along seven orthogonal axes:
 1. **Presence**: `IDENTITY_FREE` vs `EXPLICIT_EVENT_ID`
@@ -19,11 +19,13 @@ Rather than forcing event IDs into a single binary deletion classification, this
 6. **Reconstructibility**: Deterministic regenerability (`IDENTITY_FREE`, `PROVEN_RECONSTRUCTIBLE`, `LIKELY_RECONSTRUCTIBLE`, `NOT_RECONSTRUCTIBLE`, `UNKNOWN`). This classification does not authorize deletion. `LIKELY_RECONSTRUCTIBLE` means only that a possible reconstruction path has been identified; exact deterministic regeneration has not been verified. `PROVEN_RECONSTRUCTIBLE` requires: same inputs produce the same ID, the generating algorithm is identified, and all required inputs remain available.
 7. **Deletion Disposition**: Recommended disposition (`IDENTITY_FREE`, `KEEP_REFERENCED`, `KEEP_FUNCTIONAL`, `KEEP_NONRECONSTRUCTIBLE`, `REVIEW_RECONSTRUCTIBLE`, `REVIEW_UNKNOWN`). Deletion disposition NEVER outputs `DELETE`. `REVIEW_UNKNOWN` does not mean removable. `KEEP_FUNCTIONAL` is conservative retention.
 
-No production event-id was deleted.
+The inventory owner is read-only and does not delete Journal identities. A later, separately specified cleanup used this classification evidence to remove exactly 390 approved migration-derived `event-id` metadata lines. See `JOURNAL_RECONSTRUCTIBLE_IDENTITY_CLEANUP_001.md` for that completed transformation and its verification boundary.
 
 ---
 
-## Production Inventory Aggregate
+## Historical Production Inventory Aggregate
+
+The following aggregate is the **pre-cleanup observation recorded by Inventory 002**. It is retained as historical evidence and must not be interpreted as the current private Household state after the later cleanup.
 
 ```text
 transactions: 410
@@ -45,6 +47,8 @@ REVIEW_UNKNOWN: 392
 KEEP_FUNCTIONAL: 12
 ```
 
+The cleanup completion record documents the later transition from 404 explicit identities / 6 identity-free transactions to 14 explicit identities / 396 identity-free transactions while preserving all 410 transactions. This document intentionally does not invent a newer private-data aggregate beyond that recorded evidence.
+
 ---
 
 ## Command Usage
@@ -61,19 +65,21 @@ tools/edit [--base DIR] journal identity-inventory --format tsv
 
 ## Privacy Boundary
 
-- No production Journal modification.
-- No private event ID, description, account, amount, or link value committed.
+- Inventory execution does not modify the Journal.
+- No private event ID, description, account, amount, or link value is emitted by the supported summary/TSV formats.
 - Summary output is aggregate-only.
 - TSV output is redacted (no event-id, description, account, amount, plan-id, or txn-id values).
 - Unredacted stdout output is not provided (`private-tsv` format removed).
 
 ---
 
-## Key Findings
+## Historical Findings From the Pre-cleanup Observation
 
-1. **Zero Removable Legacy 24-Hex Entry IDs**: All 404 durable event IDs in production are non-legacy. 401 IDs fall into the textual lexical family; 3 into prefixed-other.
-2. **Zero Incoming Reference Dependencies**: No actual layer transactions are targeted by incoming reference metadata.
-3. **Zero Duplicate or Dangling References**: No duplicate identity definitions or dangling references exist in production.
-4. **12 Functional Link Transactions**: 12 transactions carry functional links (`plan-id`, `txn-id`, `series`, `recur`, `income-budget`) requiring retention (`KEEP_FUNCTIONAL`).
-5. **392 Review Unknown Transactions**: 392 transactions have text-shaped event IDs with no incoming references or outgoing functional links; their reconstructibility requires further pipeline tracing before any future decision (`REVIEW_UNKNOWN`).
-6. **All Provenance is Inferred or Unknown**: No provenance has been verified against actual generator implementation or migration manifests. 7 transactions have inferred provenance (plan completion candidate); 397 have unknown provenance.
+These findings describe the pre-cleanup Inventory 002 snapshot above. They are not assertions about the current private Household Journal after the later cleanup.
+
+1. **Zero Removable Legacy 24-Hex Entry IDs**: All 404 durable event IDs in that observation were non-legacy. 401 IDs fell into the textual lexical family; 3 into prefixed-other.
+2. **Zero Incoming Reference Dependencies**: No actual layer transactions were targeted by incoming reference metadata in that observation.
+3. **Zero Duplicate or Dangling References**: No duplicate identity definitions or dangling references were observed.
+4. **12 Functional Link Transactions**: 12 transactions carried functional links (`plan-id`, `txn-id`, `series`, `recur`, `income-budget`) requiring conservative retention (`KEEP_FUNCTIONAL`).
+5. **392 Review Unknown Transactions**: 392 transactions had text-shaped event IDs with no incoming references or outgoing functional links and therefore required further evidence before any deletion decision.
+6. **All Provenance Was Inferred or Unknown**: No provenance had been verified against actual generator implementation or migration manifests. 7 transactions had inferred provenance (plan completion candidate); 397 had unknown provenance.
