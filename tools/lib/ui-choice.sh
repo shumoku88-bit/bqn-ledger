@@ -31,6 +31,7 @@ bl_ui_choice_backend() {
 bl_ui_choose_line() {
   local prompt="$1"
   local -a lines=()
+  local -a gum_args=()
   local line selector idx ans
 
   while IFS= read -r line; do
@@ -49,7 +50,12 @@ bl_ui_choose_line() {
         fzf --prompt="$prompt> " --height=40% --reverse --select-1 --exit-0
       ;;
     gum)
-      printf '%s\n' "${lines[@]}" | gum filter --placeholder="$prompt"
+      # Theme is physical terminal presentation. Callers that already loaded the
+      # shared theme may publish GUM_FILTER_ARGS; otherwise gum defaults remain.
+      if declare -p GUM_FILTER_ARGS >/dev/null 2>&1; then
+        gum_args=("${GUM_FILTER_ARGS[@]}")
+      fi
+      printf '%s\n' "${lines[@]}" | gum filter "${gum_args[@]}" --placeholder="$prompt"
       ;;
     plain)
       printf '=== %s ===\n' "$prompt" >&2
