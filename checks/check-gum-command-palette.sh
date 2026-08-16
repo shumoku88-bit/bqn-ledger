@@ -36,12 +36,17 @@ if rg -n 'actual\.journal|plan\.journal|budget\.journal|accounts\.journal|househ
   exit 1
 fi
 
-# Invalid UI Date context is rejected before dispatch.
+# Invalid UI Date context and unknown logical actions fail before dispatch.
 if tools/household-action --base "$base" --date nope expense >"$work/invalid.out" 2>"$work/invalid.err"; then
   echo 'FAIL: household-action accepted an invalid date' >&2
   exit 1
 fi
 grep -Fq -- '--date must be YYYY-MM-DD' "$work/invalid.err"
+if tools/household-action --base "$base" --date 2026-08-16 check >"$work/unknown.out" 2>"$work/unknown.err"; then
+  echo 'FAIL: household-action accepted an action outside HouseholdSurface.Actions' >&2
+  exit 1
+fi
+grep -Fq 'unknown Household action: check' "$work/unknown.err"
 
 for key in journal-list expense plan-finish budget-move account-add issue-close; do
   grep -Fq "$key" tools/household-action || {
