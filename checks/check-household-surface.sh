@@ -7,6 +7,7 @@ trap 'rm -rf "$work"' EXIT
 
 bash -n tools/household-surface
 [[ -x tools/household-surface ]]
+[[ -x tools/household-action ]]
 
 ./tools/household-surface-metadata >"$work/surface.tsv"
 [[ "$(wc -l <"$work/surface.tsv" | tr -d ' ')" == 25 ]]
@@ -70,6 +71,15 @@ grep -F 'expected no arguments, actions, or: actions DOMAIN OPERATION' "$work/in
 # The primary surface is raw-terminal spatial navigation, not a fuzzy selector.
 if rg -n 'fzf|gum' tools/household-surface >/dev/null; then
   echo 'FAIL: primary Household surface depends on fzf/gum' >&2
+  exit 1
+fi
+
+# Logical action routing is shared with every other Household frontend. The
+# spatial surface selects an admitted action key but does not own a second
+# action-key -> direct-command case table.
+grep -Fq 'run_child "$root/tools/household-action" --base "$base" --date "$selected_date" "$action_key"' tools/household-surface
+if sed -n '/^run_logical_action()/,/^}/p' tools/household-surface | rg -n 'tools/(bl|edit)|case .*action_key' >/dev/null; then
+  echo 'FAIL: Household spatial surface regained duplicate logical action routing' >&2
   exit 1
 fi
 
