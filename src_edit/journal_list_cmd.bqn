@@ -18,12 +18,12 @@ Make ← {𝕊 tx:
   debits←({𝕩.side≡"debit"}¨tx.postings)/tx.postings
   credits←({𝕩.side≡"credit"}¨tx.postings)/tx.postings
   amount←+´0∾{𝕩.coefficient}¨debits
-  ⟨tx.date_text,tx.description,"," Join {𝕩.account_key}¨credits,"," Join {𝕩.account_key}¨debits,amount_text.Format ⟨amount,tx.calculation_scale⟩⟩
+  ⟨tx.date_text,tx.description,"," Join {𝕩.account_key}¨credits,"," Join {𝕩.account_key}¨debits,amount_text.Format ⟨amount,tx.calculation_scale⟩,tx.domain⟩
 }
 rows ← Make¨actual_source.LoadTransactionRows baseDir
 Display ← {𝕊 index:
   n←index+1 ⋄ f←index⊑rows
-  (•Fmt n)∾": "∾(0⊑f)∾"  "∾(1⊑f)∾"  "∾(2⊑f)∾"→"∾(3⊑f)∾"  "∾(4⊑f)
+  (•Fmt n)∾": "∾(0⊑f)∾"  "∾(1⊑f)∾"  "∾(2⊑f)∾"→"∾(3⊑f)∾"  "∾(4⊑f)∾" "∾(5⊑f)
 }
 PrintTsv ← {𝕊 index:
   n←index+1 ⋄ f←index⊑rows
