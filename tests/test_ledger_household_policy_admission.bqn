@@ -31,6 +31,7 @@ household ← householdAdmission.Admit ⟨currentRaw,accounts,budget⟩
 ⟨"assets:cash"⟩ lib.AssertEq household.daily_target.account_key
 
 quote ← @+34 ⋄ newline ← @+10
+Lines ← {𝕊 xs: ∾{𝕩∾⟨newline⟩}¨xs}
 withMoneyRaw ← "[money]"∾⟨newline⟩∾"primary-commodity = "∾⟨quote⟩∾"JPY"∾⟨quote⟩∾⟨newline⟩∾⟨newline⟩∾householdRaw
 withMoney ← householdAdmission.Admit ⟨currentProjection.CurrentPolicy withMoneyRaw,accounts,budget⟩
 "ok" lib.AssertEq withMoney.state
@@ -40,13 +41,13 @@ withMoney ← householdAdmission.Admit ⟨currentProjection.CurrentPolicy withMo
 
 # Current Envelope membership and stable allocation coordinates are different
 # relations. A retired coordinate remains readable after it leaves budget.toml.
-extendedAccountsRaw ← accountsRaw∾"\naccount budget:retired\n  type: Budget\n  commodity: JPY\n"
+extendedAccountsRaw ← accountsRaw∾Lines ⟨"","account budget:retired","  type: Budget","  commodity: JPY"⟩
 extendedAccountsResult ← accountsAdmission.Admit extendedAccountsRaw
 "ok" lib.AssertEq extendedAccountsResult.state
 extendedAccounts ← extendedAccountsResult.accounts
 extendedBudget ← budgetAdmission.Admit ⟨•FChars "../"∾base∾"budget.toml",extendedAccounts⟩
 "ok" lib.AssertEq extendedBudget.state
-retiredCoordinate ← "\n[[budget.envelopes]]\nid = \"retired\"\nallocation-account = \"budget:retired\"\n"
+retiredCoordinate ← Lines ⟨"","[[budget.envelopes]]","id = \"retired\"","allocation-account = \"budget:retired\""⟩
 withRetired ← householdAdmission.Admit ⟨currentProjection.CurrentPolicy (householdRaw∾retiredCoordinate),extendedAccounts,extendedBudget⟩
 "ok" lib.AssertEq withRetired.state
 0 lib.AssertEq ≠withRetired.diagnostics
