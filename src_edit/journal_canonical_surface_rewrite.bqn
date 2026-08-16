@@ -7,18 +7,13 @@ plan ← •Import "journal_canonical_surface_plan.bqn"
 
 lf ← @+10
 cr ← @+13
-space ← @+32
 empty ← ⟨⟩
 
 Diagnostic ← {𝕊 code‿message: {code⇐code, message⇐message}}
 
 JoinLines ← {𝕊 lines:
-  result ← ""
-  {𝕊 i:
-    result ∾↩ >i⊑lines
-    {𝕊: result ∾↩ lf}⍟(i<¯1+≠lines) @
-  }¨ ↕≠lines
-  result
+  LinePiece ← {𝕊 i:(i=0)◶⟨{lf∾i⊑lines},{i⊑lines}⟩@}
+  ∾ (⟨""⟩ ∾ LinePiece¨ ↕≠lines)
 }
 
 MetaPairs ← {𝕊 metadata: {⟨𝕩.key, 𝕩.value⟩}¨ metadata}
@@ -106,31 +101,11 @@ RewriteSingleLine ← {𝕊 line:
   pInfo ← plan.AnalyzePostingLine line
   mInfo ← plan.AnalyzeMetaLine line
 
-  isRemove ← mInfo.is_redundant
-  newLine ← line
+  canonicalPostingBase ← "    " ∾ pInfo.account ∾ "    " ∾ pInfo.amount_part
+  canonicalPosting ← pInfo.has_cr ⊑ ⟨canonicalPostingBase,canonicalPostingBase∾cr⟩
+  rewrittenLine ← pInfo.is_posting ⊑ ⟨line,canonicalPosting⟩
 
-  {FB:
-    hasCr ← (0 < ≠line) ∧ (cr = ¯1⊑(line ∾ " "))
-    l ← line
-    {FB2: l ↩ ¯1↓l}⍟hasCr @
-    parsed ← plan.TrimIndent l
-    trimmed ← parsed.trimmed
-
-    spaceIndices ← (space = trimmed) / ↕≠trimmed
-    p1 ← 0
-    {FB3: p1 ↩ ⊑ spaceIndices}⍟(0 < ≠spaceIndices) @
-    rem ← p1 ↓ trimmed
-    spaceLen ← 0
-    {FB4: spaceLen ↩ +´ ∧` (space = rem)}⍟(0 < ≠spaceIndices) @
-
-    account ← p1 ↑ trimmed
-    amountPart ← (p1 + spaceLen) ↓ trimmed
-
-    newLine ↩ "    " ∾ account ∾ "    " ∾ amountPart
-    {FB5: newLine ∾↩ cr}⍟hasCr @
-  }⍟(pInfo.is_posting) @
-
-  {is_remove⇐isRemove, line⇐newLine}
+  {is_remove⇐mInfo.is_redundant, line⇐rewrittenLine}
 }
 
 BuildCandidate ← {𝕊 raw:
@@ -143,12 +118,9 @@ BuildCandidate ← {𝕊 raw:
 
   cleaned ← (cr ≠ raw) / raw
   lines ← lf util.SplitKeepEmpty cleaned
-
-  newLines ← empty
-  {𝕊 line:
-    res ← RewriteSingleLine line
-    {FB: newLines ∾↩ ⟨res.line⟩}⍟(¬ res.is_remove) @
-  }¨ lines
+  rewritten ← RewriteSingleLine¨ lines
+  keep ← ¬ {𝕩.is_remove}¨ rewritten
+  newLines ← keep / {𝕩.line}¨ rewritten
 
   candidateRaw ← JoinLines newLines
   hasFinalLf ← (0 < ≠raw) ∧ (lf = ¯1⊑raw)

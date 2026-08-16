@@ -28,5 +28,12 @@ fi
 if [[ "${args[$i]-}" == "budget" && "${args[$((i + 1))]-}" == "add" ]]; then
   exec bash "$DIR/budget-write" "$@"
 fi
+if [[ "${args[$i]-}" == "journal" ]]; then
+  case "${args[$((i + 1))]-}" in
+    canonical-surface-plan|canonical-surface-preview|canonical-surface-apply)
+      exec bash "$DIR/journal-canonical-surface" "$@"
+      ;;
+  esac
+fi
 
 exec "$DIR/edit-bqn" "$@"

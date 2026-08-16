@@ -1,0 +1,200 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Canonical Journal Surface 001 shell/effect owner.
+# BQN owns classification, rewrite semantics, equivalence, and candidate bytes.
+# This shell owns filesystem identity, caller-owned artifacts, snapshots,
+# confirmation, safe publication, post-checks, and rollback.
+
+DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd -- "$DIR/.." && pwd)"
+# shellcheck source=tools/lib/system-defaults.sh
+source "$DIR/lib/system-defaults.sh"
+# shellcheck source=tools/lib/safe-write.sh
+source "$DIR/lib/safe-write.sh"
+# shellcheck source=tools/lib/edit-bqn-common.sh
+source "$DIR/lib/edit-bqn-common.sh"
+
+BASE_DIR="${LEDGER_DATA_DIR:-$(get_default_base_dir)}"
+
+usage() {
+  cat <<'USAGE' >&2
+Usage:
+  tools/journal-canonical-surface [--base DIR] journal canonical-surface-plan [--format tsv|text]
+  tools/journal-canonical-surface [--base DIR] journal canonical-surface-preview --output OUTPUT_PATH
+  tools/journal-canonical-surface [--base DIR] journal canonical-surface-apply [--dry-run | --apply] [--yes] [--post-check none|lint|full]
+USAGE
+}
+
+args=("$@")
+i=0
+while (( i < ${#args[@]} )); do
+  case "${args[$i]}" in
+    --base)
+      [[ $((i + 1)) -lt ${#args[@]} ]] || { echo 'ERROR: missing value for --base' >&2; exit 2; }
+      BASE_DIR="${args[$((i + 1))]}"
+      i=$((i + 2))
+      ;;
+    --)
+      i=$((i + 1))
+      break
+      ;;
+    *) break ;;
+  esac
+done
+set -- "${args[@]:$i}"
+
+[[ $# -ge 2 && "$1" == "journal" ]] || { usage; exit 2; }
+command=$2
+shift 2
+
+resolve_canonical_actual() {
+  local component
+  ACTUAL_FILE="$(cd "$ROOT_DIR" && bqn src_edit/actual_journal_file_cmd.bqn "$BASE_DIR")"
+  [[ -n "$ACTUAL_FILE" ]] || { echo 'ERROR: invalid configured Journal file' >&2; return 1; }
+  [[ -d "$BASE_DIR" ]] || { echo "ERROR: base directory does not exist: $BASE_DIR" >&2; return 1; }
+  [[ "$ACTUAL_FILE" != /* ]] || { echo 'ERROR: configured Journal path is unsafe' >&2; return 1; }
+
+  CANONICAL_BASE="$(cd -P "$BASE_DIR" && pwd)"
+  TARGET_PATH="$CANONICAL_BASE"
+  IFS='/' read -r -a source_components <<< "$ACTUAL_FILE"
+  for component in "${source_components[@]}"; do
+    [[ -z "$component" || "$component" == "." ]] && continue
+    [[ "$component" != ".." ]] || { echo 'ERROR: configured Journal path is unsafe' >&2; return 1; }
+    TARGET_PATH="$TARGET_PATH/$component"
+    [[ ! -L "$TARGET_PATH" ]] || { echo 'ERROR: configured Journal symlink paths are rejected' >&2; return 1; }
+  done
+
+  # The canonical Household root directly owns actual.journal. There is no
+  # historical nested data/ recovery path at this writer boundary.
+  [[ -f "$TARGET_PATH" ]] || { echo 'ERROR: configured Journal is not a regular file' >&2; return 1; }
+  case "$TARGET_PATH" in
+    "$CANONICAL_BASE"/*) ;;
+    *) echo 'ERROR: configured Journal resolves outside --base' >&2; return 1 ;;
+  esac
+}
+
+resolve_preview_output() {
+  local requested=$1 candidate parent name canonical_parent
+  [[ -n "$requested" ]] || { echo 'ERROR: preview output path must be nonempty' >&2; return 1; }
+
+  if [[ "$requested" == /* ]]; then
+    candidate=$requested
+  else
+    # Preserve the historical low-level command convention: relative preview
+    # outputs are interpreted from the repository root where BQN is executed.
+    candidate="$ROOT_DIR/$requested"
+  fi
+
+  parent="$(dirname -- "$candidate")"
+  name="$(basename -- "$candidate")"
+  [[ -d "$parent" ]] || { echo "ERROR: preview output directory does not exist: $parent" >&2; return 1; }
+  canonical_parent="$(cd -P "$parent" && pwd)"
+  OUTPUT_PATH="$canonical_parent/$name"
+
+  [[ ! -L "$OUTPUT_PATH" ]] || { echo 'ERROR: preview output symlink paths are rejected' >&2; return 1; }
+  [[ "$OUTPUT_PATH" != "$TARGET_PATH" ]] || { echo 'ERROR: preview output aliases the canonical Journal' >&2; return 1; }
+  if [[ -e "$OUTPUT_PATH" ]]; then
+    [[ ! -d "$OUTPUT_PATH" ]] || { echo 'ERROR: preview output path is a directory' >&2; return 1; }
+    [[ ! "$OUTPUT_PATH" -ef "$TARGET_PATH" ]] || { echo 'ERROR: preview output aliases the canonical Journal' >&2; return 1; }
+  fi
+}
+
+case "$command" in
+  canonical-surface-plan)
+    FORMAT=text
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --format) FORMAT="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+        *) echo "ERROR: unknown journal canonical-surface-plan argument: $1" >&2; exit 2 ;;
+      esac
+    done
+    case "$FORMAT" in tsv|text) ;; *) echo "ERROR: invalid format: $FORMAT (expected 'tsv' or 'text')" >&2; exit 2 ;; esac
+    resolve_canonical_actual
+    exec bqn "$ROOT_DIR/src_edit/journal_canonical_surface_plan_cmd.bqn" "$CANONICAL_BASE" "$FORMAT"
+    ;;
+
+  canonical-surface-preview)
+    OUTPUT_REQUEST=""
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --output) OUTPUT_REQUEST="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+        *) echo "ERROR: unknown journal canonical-surface-preview argument: $1" >&2; exit 2 ;;
+      esac
+    done
+    [[ -n "$OUTPUT_REQUEST" ]] || { echo 'ERROR: missing required option: --output' >&2; exit 2; }
+    resolve_canonical_actual
+    resolve_preview_output "$OUTPUT_REQUEST"
+    exec bqn "$ROOT_DIR/src_edit/journal_canonical_surface_preview_cmd.bqn" "$CANONICAL_BASE" "$OUTPUT_PATH"
+    ;;
+
+  canonical-surface-apply)
+    HAS_DRY_RUN=0
+    HAS_APPLY=0
+    YES=0
+    POST_CHECK=lint
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --dry-run) HAS_DRY_RUN=1; shift ;;
+        --apply) HAS_APPLY=1; shift ;;
+        --yes) YES=1; shift ;;
+        --post-check) POST_CHECK="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
+        *) echo "ERROR: unknown journal canonical-surface-apply argument: $1" >&2; exit 2 ;;
+      esac
+    done
+    [[ ! ("$HAS_DRY_RUN" -eq 1 && "$HAS_APPLY" -eq 1) ]] || { echo 'ERROR: cannot specify both --dry-run and --apply' >&2; exit 2; }
+    [[ ! ("$YES" -eq 1 && "$HAS_APPLY" -eq 0) ]] || { echo 'ERROR: --yes requires --apply' >&2; exit 2; }
+    DRY_RUN=1
+    [[ "$HAS_APPLY" -eq 1 ]] && DRY_RUN=0
+    edit_bqn_validate_post_check "$POST_CHECK"
+    resolve_canonical_actual
+
+    SNAPSHOT_TOKEN="$(safe_snapshot_token "$TARGET_PATH")"
+    IFS=$'\t' read -r SNAP_SIZE SNAP_MTIME SNAP_SHA256 <<< "$SNAPSHOT_TOKEN"
+    CANDIDATE_FILE="$(mktemp "${TMPDIR:-/tmp}/bqn-ledger-canonical-candidate.XXXXXX")"
+    BQN_STDERR="$(mktemp "${TMPDIR:-/tmp}/bqn-ledger-canonical-stderr.XXXXXX")"
+    trap 'rm -f "$CANDIDATE_FILE" "$BQN_STDERR"' EXIT
+
+    BQN_OUT=""
+    if ! BQN_OUT="$(bqn "$ROOT_DIR/src_edit/journal_canonical_surface_apply_cmd.bqn" "$CANONICAL_BASE" "$CANDIDATE_FILE" 2>"$BQN_STDERR")"; then
+      [[ -n "$BQN_OUT" ]] && printf '%s\n' "$BQN_OUT" >&2
+      [[ -s "$BQN_STDERR" ]] && cat "$BQN_STDERR" >&2
+      exit 1
+    fi
+
+    IFS=$'\t' read -r STATUS OP PROTOCOL_FILE SPACING_FIX_COUNT META_REMOVE_COUNT TOTAL_COUNT EXTRA <<< "$BQN_OUT"
+    [[ "$STATUS" == "OK" && "$(basename "$PROTOCOL_FILE")" == "$(basename "$ACTUAL_FILE")" && -z "${EXTRA:-}" ]] || { echo 'ERROR: invalid canonical prepare protocol header' >&2; exit 1; }
+    [[ "$OP" == "CANONICAL_REWRITE" || "$OP" == "CANONICAL_NOOP" ]] || { echo 'ERROR: invalid canonical prepare operation' >&2; exit 1; }
+    if [[ "$OP" == "CANONICAL_NOOP" ]]; then
+      [[ -z "${SPACING_FIX_COUNT:-}${META_REMOVE_COUNT:-}${TOTAL_COUNT:-}" ]] || { echo 'ERROR: invalid canonical no-op protocol' >&2; exit 1; }
+      echo 'Journal is already canonical. No files were modified.'
+      exit 0
+    fi
+    [[ "$SPACING_FIX_COUNT" =~ ^[0-9]+$ && "$META_REMOVE_COUNT" =~ ^[0-9]+$ && "$TOTAL_COUNT" =~ ^[0-9]+$ && -f "$CANDIDATE_FILE" ]] || { echo 'ERROR: incomplete canonical rewrite protocol' >&2; exit 1; }
+
+    _safe_write_check_expected_snapshot "$TARGET_PATH" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256" || exit 1
+    MODE="$(edit_bqn_mode "$DRY_RUN" "$YES")"
+    printf 'Journal canonical surface preview\nTarget: %s\nMode: %s\nPost-check: %s\nSpacing fix transactions: %s\nMetadata removals: %s\n' \
+      "$TARGET_PATH" "$MODE" "$POST_CHECK" "$SPACING_FIX_COUNT" "$META_REMOVE_COUNT"
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+      echo 'Dry-run only. No files were modified.'
+      exit 0
+    fi
+    if [[ "$YES" -eq 0 ]]; then
+      printf 'Canonicalize Journal surface? [y/N]: '
+      REPLY=""
+      read -r REPLY || true
+      case "$REPLY" in y|Y|yes|YES) ;; *) echo 'Cancelled. No files were modified.'; exit 0 ;; esac
+    fi
+
+    edit_bqn_apply_canonical_surface_rewrite_checked \
+      "$CANONICAL_BASE" "$POST_CHECK" "$TARGET_PATH" "$CANDIDATE_FILE" \
+      "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256"
+    ;;
+
+  *)
+    echo "ERROR: unsupported Canonical Surface command: $command" >&2
+    usage
+    exit 2
+    ;;
+esac

@@ -272,6 +272,12 @@ See `docs/EDITOR_PHASE_SIX_JOURNAL_BLOCK_ADD_OBSERVATION-2026-08-16.md`.
 
 #785 maps regular Posting/metadata input collections, delegates scale conversion to the shared exact-scale owner, and keeps complete-Journal re-admission, candidate source-boundary proof, identity/provenance comparison, source-ending transport, and shell safe-write publication as explicit writer laws.
 
+### Canonical Surface observation
+
+See `docs/EDITOR_PHASE_SIX_JOURNAL_CANONICAL_SURFACE_OBSERVATION-2026-08-16.md`.
+
+#786 shares one physical Posting-line observation between plan/rewrite, exposes Canonical classification as an aligned coordinate, maps/filter rewrites the whole line relation, retains final-LF and ordered equivalence guards, and seals the public filesystem identity/snapshot/publication boundary in `tools/journal-canonical-surface`.
+
 ### `src/editor/`
 
 - [x] `src/editor/friend_travel_source_event.bqn` — #734
@@ -292,11 +298,11 @@ See `docs/EDITOR_PHASE_SIX_JOURNAL_BLOCK_ADD_OBSERVATION-2026-08-16.md`.
 - [x] `src_edit/issue_list_cmd.bqn` — #763 admitted Issue relation
 - [x] `src_edit/issue_validate_cmd.bqn` — law review in #763; mandatory post-write leaf unchanged
 - [x] `src_edit/journal_block_add_cmd.bqn` — #785 regular input relations / complete-Journal writer safety
-- [ ] `src_edit/journal_canonical_surface_apply_cmd.bqn`
-- [ ] `src_edit/journal_canonical_surface_plan.bqn`
-- [ ] `src_edit/journal_canonical_surface_plan_cmd.bqn`
-- [ ] `src_edit/journal_canonical_surface_preview_cmd.bqn`
-- [ ] `src_edit/journal_canonical_surface_rewrite.bqn`
+- [x] `src_edit/journal_canonical_surface_apply_cmd.bqn` — #786 candidate artifact protocol / filesystem effect boundary
+- [x] `src_edit/journal_canonical_surface_plan.bqn` — #786 shared physical line observation / aligned classification
+- [x] `src_edit/journal_canonical_surface_plan_cmd.bqn` — #786 relation-driven presentation
+- [x] `src_edit/journal_canonical_surface_preview_cmd.bqn` — #786 verified preview artifact
+- [x] `src_edit/journal_canonical_surface_rewrite.bqn` — #786 shared observation / map-filter rewrite / equivalence law
 - [ ] `src_edit/journal_cleanup_apply_cmd.bqn`
 - [ ] `src_edit/journal_cleanup_plan.bqn`
 - [ ] `src_edit/journal_cleanup_plan_cmd.bqn`
@@ -337,6 +343,6 @@ After the production BQN inventory is reviewed, selector/UI adapter consolidatio
 
 ## Current cursor
 
-`src_edit/journal_canonical_surface_apply_cmd.bqn`
+`src_edit/journal_cleanup_apply_cmd.bqn`
 
-Resume the normal Phase 6 `src_edit/` review sequence at Journal Canonical Surface Apply.
+Resume the normal Phase 6 `src_edit/` review sequence at the Journal Cleanup family.
