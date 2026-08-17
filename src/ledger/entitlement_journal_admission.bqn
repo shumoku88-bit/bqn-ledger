@@ -72,7 +72,7 @@ AddIf ← {𝕊 invalid‿diagnostic: invalid/⟨diagnostic⟩}
 ParseLine ← {𝕊 line‿row‿envelopeHistory‿currencyRegistry:
   trimmedLine ← Trim line
   first ← FirstOrSpace trimmedLine
-  ignored ← (0=≠trimmedLine) ∨ first=semicolon ∨ first=hash
+  ignored ← ∨´⟨0=≠trimmedLine,first=semicolon,first=hash⟩
   words ← empty
   {𝕊: words↩space parse.Split NormalizeTokenWhitespace trimmedLine}⍟(¬ignored) @
   wordCount ← ≠words
