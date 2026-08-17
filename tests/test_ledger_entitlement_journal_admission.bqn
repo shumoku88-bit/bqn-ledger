@@ -6,6 +6,7 @@ dates ← •Import "../src/ledger/date_ordinal.bqn"
 entitlementAdmission ← •Import "../src/ledger/entitlement_journal_admission.bqn"
 
 lf ← @+10
+tab ← @+9
 Raw ← {𝕊 lines: ∾lines∾¨lf}
 registry ← (registryCore.Build io.ReadLines "config/currencies.tsv").registry
 
@@ -65,7 +66,7 @@ accountIndependent ← entitlementAdmission.Admit ⟨Raw ⟨
 "ok" lib.AssertEq accountIndependent.state
 ⟨"Assets:Cash"⟩ lib.AssertEq accountIndependent.transfers.to
 
-# 4. Same-day transfer order and combination
+# 4. Same-day effects combine before historical nonnegative validation.
 sameDay ← Admit ⟨
   "2026-01-01 origin USD",
   "2026-01-01 transfer unallocated -> food 50 USD",
@@ -75,7 +76,44 @@ sameDay ← Admit ⟨
 "ok" lib.AssertEq sameDay.state
 3 lib.AssertEq sameDay.transfers.count
 
-# 5. Duplicate origin for same commodity fails closed
+# Source order must not manufacture a same-day intermediate negative state.
+# The debit appears before the grant, but the day closes food at +30 USD.
+sameDayDebitFirst ← Admit ⟨
+  "2026-01-01 origin USD",
+  "2026-01-01 transfer food -> transport 20 USD",
+  "2026-01-01 transfer unallocated -> food 50 USD"
+⟩
+"ok" lib.AssertEq sameDayDebitFirst.state
+2 lib.AssertEq sameDayDebitFirst.transfers.count
+
+# 5. Memo lexical semantics match the shared canonical contract.
+bareMemo ← Admit ⟨
+  "2026-01-01 origin USD bare origin memo"
+⟩
+"ok" lib.AssertEq bareMemo.state
+"bare origin memo" lib.AssertEq ⊑bareMemo.origins.memo
+
+decoratedMemo ← Admit ⟨
+  "2026-01-01 origin USD ; decorated origin memo"
+⟩
+"ok" lib.AssertEq decoratedMemo.state
+"decorated origin memo" lib.AssertEq ⊑decoratedMemo.origins.memo
+
+internalMemo ← Admit ⟨
+  "2026-01-01 origin USD clean ; epoch # one",
+  "2026-01-01 transfer unallocated -> food 10 USD payment ; revised # kept"
+⟩
+"ok" lib.AssertEq internalMemo.state
+"clean ; epoch # one" lib.AssertEq ⊑internalMemo.origins.memo
+"payment ; revised # kept" lib.AssertEq ⊑internalMemo.transfers.memo
+
+tabSeparated ← Admit ⟨
+  "2026-01-01"∾⟨tab⟩∾"origin"∾⟨tab⟩∾"USD ; tab separated memo"
+⟩
+"ok" lib.AssertEq tabSeparated.state
+"tab separated memo" lib.AssertEq ⊑tabSeparated.origins.memo
+
+# 6. Duplicate origin for same commodity fails closed
 dupOrigin ← Admit ⟨
   "2026-01-01 origin USD ; first",
   "2026-01-02 origin USD ; duplicate"
@@ -83,14 +121,14 @@ dupOrigin ← Admit ⟨
 "error" lib.AssertEq dupOrigin.state
 "entitlement_origin_duplicate" lib.AssertEq (⊑dupOrigin.diagnostics).code
 
-# 6. Transfer without origin fails closed
+# 7. Transfer without origin fails closed
 missingOrigin ← Admit ⟨
   "2026-01-01 transfer unallocated -> food 50 USD"
 ⟩
 "error" lib.AssertEq missingOrigin.state
 "entitlement_origin_missing" lib.AssertEq (⊑missingOrigin.diagnostics).code
 
-# 7. Transfer before origin fails closed
+# 8. Transfer before origin fails closed
 transferBeforeOrigin ← Admit ⟨
   "2026-01-05 origin USD",
   "2026-01-02 transfer unallocated -> food 50 USD"
@@ -98,14 +136,14 @@ transferBeforeOrigin ← Admit ⟨
 "error" lib.AssertEq transferBeforeOrigin.state
 "entitlement_origin_after_transfer" lib.AssertEq (⊑transferBeforeOrigin.diagnostics).code
 
-# 8. Unknown commodity fails closed
+# 9. Unknown commodity fails closed
 unknownComm ← Admit ⟨
   "2026-01-01 origin XYZ"
 ⟩
 "error" lib.AssertEq unknownComm.state
 "entitlement_commodity_unknown" lib.AssertEq (⊑unknownComm.diagnostics).code
 
-# 9. Unknown envelope identity fails closed
+# 10. Unknown envelope identity fails closed
 unknownEnvelope ← Admit ⟨
   "2026-01-01 origin USD",
   "2026-01-01 transfer unallocated -> luxury 50 USD"
@@ -113,7 +151,7 @@ unknownEnvelope ← Admit ⟨
 "error" lib.AssertEq unknownEnvelope.state
 "envelope_id_unknown" lib.AssertEq (⊑unknownEnvelope.diagnostics).code
 
-# 10. Same endpoint fails closed
+# 11. Same endpoint fails closed
 sameEndpoint ← Admit ⟨
   "2026-01-01 origin USD",
   "2026-01-01 transfer food -> food 50 USD"
@@ -121,7 +159,7 @@ sameEndpoint ← Admit ⟨
 "error" lib.AssertEq sameEndpoint.state
 "entitlement_transfer_same_endpoint" lib.AssertEq (⊑sameEndpoint.diagnostics).code
 
-# 11. Zero amount fails closed
+# 12. Zero amount fails closed
 zeroAmount ← Admit ⟨
   "2026-01-01 origin USD",
   "2026-01-01 transfer unallocated -> food 0 USD"
@@ -129,7 +167,7 @@ zeroAmount ← Admit ⟨
 "error" lib.AssertEq zeroAmount.state
 "entitlement_transfer_amount_invalid" lib.AssertEq (⊑zeroAmount.diagnostics).code
 
-# 12. Negative amount fails closed
+# 13. Negative amount fails closed
 negAmount ← Admit ⟨
   "2026-01-01 origin USD",
   "2026-01-01 transfer unallocated -> food -50 USD"
@@ -137,7 +175,7 @@ negAmount ← Admit ⟨
 "error" lib.AssertEq negAmount.state
 "entitlement_transfer_amount_invalid" lib.AssertEq (⊑negAmount.diagnostics).code
 
-# 13. Historical nonnegative law violation fails closed
+# 14. Historical nonnegative law violation across days fails closed
 negativeEntitlement ← Admit ⟨
   "2026-01-01 origin USD",
   "2026-01-01 transfer unallocated -> food 20 USD",
@@ -146,7 +184,7 @@ negativeEntitlement ← Admit ⟨
 "error" lib.AssertEq negativeEntitlement.state
 "envelope_entitlement_negative" lib.AssertEq (⊑negativeEntitlement.diagnostics).code
 
-# 14. Forbidden source keywords fail closed
+# 15. Forbidden source keywords fail closed
 forbiddenAlloc ← Admit ⟨
   "2026-01-01 origin USD",
   "2026-01-01 alloc unallocated -> food 50 USD"
@@ -181,7 +219,7 @@ prefixLessTransfer ← Admit ⟨
 "error" lib.AssertEq prefixLessTransfer.state
 "entitlement_syntax_invalid" lib.AssertEq (⊑prefixLessTransfer.diagnostics).code
 
-# 15. Invalid date fails closed
+# 16. Invalid date fails closed
 badDate ← Admit ⟨
   "2026-02-31 origin USD"
 ⟩
