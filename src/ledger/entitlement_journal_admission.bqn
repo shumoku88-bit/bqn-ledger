@@ -29,6 +29,13 @@
 #   - Referenced <EnvelopeId> must exist in stable historical identity universe
 #   - Same-day effects combined before cumulative non-negative validation
 #   - unallocated does not have a stored balance pool
+#
+# Lexical memo law shared with h-kernel:
+#   - blank lines and trimmed whole-line # / ; comments are ignored
+#   - space and tab separate required source tokens
+#   - every token after the required fields belongs to memo provenance
+#   - one leading ';' on that memo is optional decoration and is stripped
+#   - later ';' and '#' characters remain literal memo evidence
 
 parse ← •Import "../text/parse.bqn"
 decimal ← •Import "exact_decimal.bqn"
@@ -39,6 +46,8 @@ lf ← @+10
 cr ← @+13
 space ← @+32
 tab ← @+9
+semicolon ← ⊑ ";"
+hash ← ⊑ "#"
 empty ← ⟨⟩
 sourceName ← "entitlement.journal"
 
@@ -47,6 +56,13 @@ IsWhitespace ← {𝕊 c: (c=space) ∨ c=tab}
 TrimLeft ← {𝕊 xs: prefix ← ∧`IsWhitespace¨xs ⋄ (+´prefix)↓xs}
 TrimRight ← {𝕊 xs: ⌽TrimLeft⌽xs}
 Trim ← {TrimRight TrimLeft 𝕩}
+FirstOrSpace ← {𝕊 text: ⊑ text∾⟨space⟩}
+NormalizeTokenWhitespace ← {𝕊 text: {(𝕩=tab) ? space ; 𝕩}¨text}
+MemoFrom ← {𝕊 words‿offset:
+  memo ← Trim ∾{" "∾𝕩}¨offset↓words
+  {𝕊: memo↩Trim 1↓memo}⍟(semicolon=FirstOrSpace memo) @
+  memo
+}
 
 Diagnostic ← {𝕊 codeText‿lineNumber‿messageText:
   {severity⇐"error",stage⇐"ledger_entitlement_journal_admission",code⇐codeText,line⇐lineNumber,message⇐messageText}
@@ -54,13 +70,11 @@ Diagnostic ← {𝕊 codeText‿lineNumber‿messageText:
 AddIf ← {𝕊 invalid‿diagnostic: invalid/⟨diagnostic⟩}
 
 ParseLine ← {𝕊 line‿row‿envelopeHistory‿currencyRegistry:
-  semicolon ← ⊑ ";"
-  hash ← ⊑ "#"
-  commentMask ← (line=semicolon) ∨ line=hash
-  pos ← ⊑ (commentMask/↕≠line) ∾ ⟨≠line⟩
-  codePart ← Trim pos↑line
-  memoPart ← Trim (pos+1)↓line
-  words ← space parse.Split codePart
+  trimmedLine ← Trim line
+  first ← FirstOrSpace trimmedLine
+  ignored ← (0=≠trimmedLine) ∨ first=semicolon ∨ first=hash
+  words ← empty
+  {𝕊: words↩space parse.Split NormalizeTokenWhitespace trimmedLine}⍟(¬ignored) @
   wordCount ← ≠words
   result ← {kind⇐"empty", origin⇐@, transfer⇐@, diagnostics⇐empty}
 
@@ -83,10 +97,7 @@ ParseLine ← {𝕊 line‿row‿envelopeHistory‿currencyRegistry:
         commValid ↩ policy.state ≡ "ok"
         diagnostics ∾↩ AddIf ⟨¬commValid, Diagnostic ⟨"entitlement_commodity_unknown",row,"StockOrigin commodity must be registry-supported"⟩⟩
       }⍟shapeValid @
-      extraMemo ← Trim ∾{" "∾𝕩}¨3↓words
-      fullMemo ← extraMemo
-      {𝕊: fullMemo ↩ memoPart}⍟((0<≠memoPart) ∧ (0=≠extraMemo)) @
-      {𝕊: fullMemo ↩ extraMemo∾" ; "∾memoPart}⍟((0<≠memoPart) ∧ (0<≠extraMemo)) @
+      fullMemo ← MemoFrom ⟨words,3⟩
       originItem ← @
       {𝕊:
         originItem ↩ {
@@ -127,10 +138,7 @@ ParseLine ← {𝕊 line‿row‿envelopeHistory‿currencyRegistry:
         policy ← currencyRegistry.Policy commodity
         commValid ← policy.state ≡ "ok"
         diagnostics ∾↩ AddIf ⟨¬commValid, Diagnostic ⟨"entitlement_commodity_unknown",row,"transfer commodity must be registry-supported"⟩⟩
-        extraMemo ← Trim ∾{" "∾𝕩}¨7↓words
-        fullMemo ← extraMemo
-        {𝕊: fullMemo ↩ memoPart}⍟((0<≠memoPart) ∧ (0=≠extraMemo)) @
-        {𝕊: fullMemo ↩ extraMemo∾" ; "∾memoPart}⍟((0<≠memoPart) ∧ (0<≠extraMemo)) @
+        fullMemo ← MemoFrom ⟨words,7⟩
         {𝕊:
           transferItem ↩ {
             date⇐dateStr,
