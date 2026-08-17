@@ -10,27 +10,20 @@ historyAdmission ← •Import "../ledger/envelope_history_admission.bqn"
 projection ← •Import "../ledger/household_current_policy_projection.bqn"
 canonical ← •Import "canonical_household_sources.bqn"
 empty ← ⟨⟩
-Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
-Diagnostic ← {𝕊 id:{severity⇐"error",stage⇐"household_source_adapter",code⇐"household_allocation_envelope_history_missing",line⇐0,message⇐"Stable Household allocation Envelope identity is missing from envelope-history.identities: "∾id}}
 
-Read ← {𝕊 base:io.ReadRaw (io.JoinPath ⟨base,canonical.householdPolicy⟩)}
-Current ← {𝕊 raw‿accounts‿budgetPolicy:admission.Admit ⟨projection.CurrentPolicy raw,accounts,budgetPolicy⟩}
+Read ← {𝕊 base: io.ReadRaw (io.JoinPath ⟨base,canonical.householdPolicy⟩)}
+Current ← {𝕊 raw‿accounts: admission.Admit ⟨projection.CurrentPolicy raw,accounts⟩}
 
-Load ← {𝕊 base‿accounts‿budgetPolicy:
-  Current ⟨Read base,accounts,budgetPolicy⟩
+Load ← {𝕊 base‿accounts:
+  Current ⟨Read base,accounts⟩
 }
 
-LoadShared ← {𝕊 base‿accounts‿budgetPolicy:
+LoadShared ← {𝕊 base‿accounts:
   raw ← Read base
-  current ← Current ⟨raw,accounts,budgetPolicy⟩
+  current ← Current ⟨raw,accounts⟩
   history ← historyAdmission.Admit raw
-  referenceDiagnostics ← empty
-  {𝕊:
-    missing ← {¬Contains ⟨𝕩,history.registry.id⟩}¨current.budget.envelope_id
-    referenceDiagnostics↩Diagnostic¨missing/current.budget.envelope_id
-  }⍟((current.state≡"ok") ∧ (history.state≡"ok") ∧ history.present) @
-  diagnostics ← current.diagnostics∾history.diagnostics∾referenceDiagnostics
-  ok ← (current.state≡"ok") ∧ (history.state≡"ok") ∧ 0=≠referenceDiagnostics
+  diagnostics ← current.diagnostics ∾ history.diagnostics
+  ok ← (current.state≡"ok") ∧ history.state≡"ok"
   ok◶⟨
     {𝕊:{state⇐"error",current⇐@,history⇐@,diagnostics⇐diagnostics}},
     {𝕊:{state⇐"ok",current⇐current,history⇐history,diagnostics⇐empty}}

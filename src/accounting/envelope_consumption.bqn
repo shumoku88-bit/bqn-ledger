@@ -1,6 +1,6 @@
 # Pure Actual Posting -> historical Expense route -> Envelope Consumption relation.
 # Routing is resolved at each Posting day before any Account or Envelope grouping.
-# Current budget.toml Expense assignments are intentionally not an input.
+# Current envelope.toml Expense assignments are intentionally not an input.
 
 scale ← •Import "../ledger/exact_scale.bqn"
 reference ← •Import "../ledger/fact_reference.bqn"

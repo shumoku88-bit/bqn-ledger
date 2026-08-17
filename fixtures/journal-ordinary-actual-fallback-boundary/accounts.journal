@@ -13,11 +13,3 @@ account expenses:food
 account expenses:household
   type: Expense
   commodity: JPY
-
-account budget:daily
-  type: Budget
-  commodity: JPY
-
-account budget:spent:daily
-  type: Budget
-  commodity: JPY

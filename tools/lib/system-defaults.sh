@@ -34,8 +34,8 @@ get_system_default_file() {
 canonical_report_base_missing_required() {
   local base_dir="$1"
   local required=(
-    accounts.journal actual.journal plan.journal budget.journal
-    budget.toml household.toml report.toml issues.tsv
+    accounts.journal actual.journal plan.journal entitlement.journal
+    envelope.toml household.toml report.toml issues.tsv
   )
   local file missing=()
 

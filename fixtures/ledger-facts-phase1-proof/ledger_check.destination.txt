@@ -2,7 +2,8 @@ ledger_check	state	ok
 ledger_check	actual_transactions	3
 ledger_check	actual_postings	7
 ledger_check	plan_transactions	3
-ledger_check	budget_transactions	2
+ledger_check	entitlement_origins	1
+ledger_check	entitlement_transfers	1
 ledger_check	cycle_mode	incomeAnchor
 ledger_check	issues	3
 ledger_check	daily_scope_rows	2

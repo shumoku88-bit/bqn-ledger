@@ -68,15 +68,7 @@ synthetic ← balanceSheet.Build ⟨syntheticFacts,"JPY",dates.Ordinal "2026-01-
 190 lib.AssertEq synthetic.total_liabilities_and_equity
 ⟨"salary:1","food:0"⟩ lib.AssertEq {𝕩.posting_id}¨synthetic.unclosed_result_contributors
 
-budgetRaw ← (•FChars "../"∾base∾"actual.journal")∾lf∾∾{𝕩∾lf}¨⟨
-  "2026-01-13 * unsupported budget balance",
-  "    ; event-id: budget-balance","    ; layer: actual","    ; currency: JPY",
-  "    budget:food 10 JPY","    assets:cash -10 JPY"
-⟩
-budgetFacts ← (snapshot.Build ⟨accountSource,budgetRaw,registry⟩).facts
-budgetRejected ← balanceSheet.Build ⟨budgetFacts,"JPY",dates.Ordinal "2026-01-13"⟩
-"error" lib.AssertEq budgetRejected.state
-"unsupported_role_balance" lib.AssertEq (⊑budgetRejected.diagnostics).code
+
 
 rejected ← balanceSheet.Build ⟨facts,"USD",dates.Ordinal "2026-01-12"⟩
 "error" lib.AssertEq rejected.state

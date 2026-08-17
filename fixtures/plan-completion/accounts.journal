@@ -37,27 +37,3 @@ account expenses:rent
 account expenses:misc
   type: Expense
   commodity: JPY
-
-account budget:opening
-  type: Budget
-  commodity: JPY
-
-account budget:unassigned
-  type: Budget
-  commodity: JPY
-
-account budget:daily
-  type: Budget
-  commodity: JPY
-
-account budget:flex
-  type: Budget
-  commodity: JPY
-
-account budget:reserve
-  type: Budget
-  commodity: JPY
-
-account budget:spent
-  type: Budget
-  commodity: JPY

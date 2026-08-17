@@ -1,7 +1,7 @@
 #!/usr/bin/env bqn
 
 lib ← •Import "test_lib.bqn"
-policyAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
+policyAdmission ← •Import "../src/ledger/envelope_policy_admission.bqn"
 
 lf ← @+10
 quote ← @+34
@@ -18,7 +18,7 @@ accounts ← {
   role⇐⟨"asset","asset","expense","asset"⟩
 }
 
-# Current budget.toml owns only Envelope definition/presentation and Backing.
+# Current envelope.toml owns only Envelope definition/presentation and Backing.
 validRaw ← Raw ⟨
   "[[backing-pools]]",
   "id = "∾(Q "cash"),
@@ -37,7 +37,7 @@ validRaw ← Raw ⟨
 valid ← policyAdmission.Admit ⟨validRaw,accounts⟩
 "ok" lib.AssertEq valid.state
 0 lib.AssertEq ≠valid.diagnostics
-"budget.toml" lib.AssertEq valid.source_name
+"envelope.toml" lib.AssertEq valid.source_name
 1 lib.AssertEq valid.backing_pools.count
 ⟨"cash"⟩ lib.AssertEq valid.backing_pools.id
 ⟨⟨"Assets:Cash","Assets:Savings"⟩⟩ lib.AssertEq valid.backing_pools.asset_account_keys
@@ -68,7 +68,17 @@ retiredExpenseAssignment ← policyAdmission.Admit ⟨Raw ⟨
   "expense-accounts = ["∾(Q "Expenses:Food")∾"]"
 ⟩,accounts⟩
 "error" lib.AssertEq retiredExpenseAssignment.state
-lib.Assert HasCode ⟨"budget_policy_key_unsupported",retiredExpenseAssignment.diagnostics⟩
+lib.Assert HasCode ⟨"envelope_policy_key_unsupported",retiredExpenseAssignment.diagnostics⟩
+
+# unallocated is the native Entitlement boundary endpoint, never a current
+# Envelope identity.
+reservedEnvelope ← policyAdmission.Admit ⟨Raw ⟨
+  "[[backing-pools]]","id = "∾(Q "cash"),"asset-accounts = ["∾(Q "Assets:Cash")∾"]","",
+  "[[envelopes]]","id = "∾(Q "unallocated"),"label = "∾(Q "Reserved"),
+  "pacing = "∾(Q "daily"),"backing-pool = "∾(Q "cash")
+⟩,accounts⟩
+"error" lib.AssertEq reservedEnvelope.state
+lib.Assert HasCode ⟨"envelope_id_reserved",reservedEnvelope.diagnostics⟩
 
 # A multiline logical key/value row owns the first physical source coordinate.
 malformedMultiline ← policyAdmission.Admit ⟨Raw ⟨
@@ -80,8 +90,8 @@ malformedMultiline ← policyAdmission.Admit ⟨Raw ⟨
   "pacing = "∾(Q "daily"),"backing-pool = "∾(Q "cash")
 ⟩,accounts⟩
 "error" lib.AssertEq malformedMultiline.state
-lib.Assert HasCode ⟨"budget_policy_string_invalid",malformedMultiline.diagnostics⟩
-3 lib.AssertEq LineForCode ⟨"budget_policy_string_invalid",malformedMultiline.diagnostics⟩
+lib.Assert HasCode ⟨"envelope_policy_string_invalid",malformedMultiline.diagnostics⟩
+3 lib.AssertEq LineForCode ⟨"envelope_policy_string_invalid",malformedMultiline.diagnostics⟩
 
 outsideTable ← policyAdmission.Admit ⟨Raw ⟨
   "id = "∾(Q "orphan"),
@@ -90,15 +100,15 @@ outsideTable ← policyAdmission.Admit ⟨Raw ⟨
   "pacing = "∾(Q "daily"),"backing-pool = "∾(Q "cash")
 ⟩,accounts⟩
 "error" lib.AssertEq outsideTable.state
-lib.Assert HasCode ⟨"budget_policy_key_outside_table",outsideTable.diagnostics⟩
-1 lib.AssertEq LineForCode ⟨"budget_policy_key_outside_table",outsideTable.diagnostics⟩
+lib.Assert HasCode ⟨"envelope_policy_key_outside_table",outsideTable.diagnostics⟩
+1 lib.AssertEq LineForCode ⟨"envelope_policy_key_outside_table",outsideTable.diagnostics⟩
 
 wrongRole ← policyAdmission.Admit ⟨Raw ⟨
   "[[backing-pools]]","id = "∾(Q "cash"),"asset-accounts = ["∾(Q "Expenses:Food")∾"]","",
   "[[envelopes]]","id = "∾(Q "food"),"label = "∾(Q "Food"),"pacing = "∾(Q "daily"),"backing-pool = "∾(Q "cash")
 ⟩,accounts⟩
 "error" lib.AssertEq wrongRole.state
-lib.Assert HasCode ⟨"budget_policy_asset_account_role_invalid",wrongRole.diagnostics⟩
+lib.Assert HasCode ⟨"envelope_policy_asset_account_role_invalid",wrongRole.diagnostics⟩
 
 unknownPool ← policyAdmission.Admit ⟨Raw ⟨
   "[[backing-pools]]","id = "∾(Q "cash"),"asset-accounts = ["∾(Q "Assets:Cash")∾"]","",
@@ -107,4 +117,4 @@ unknownPool ← policyAdmission.Admit ⟨Raw ⟨
 "error" lib.AssertEq unknownPool.state
 lib.Assert HasCode ⟨"envelope_backing_pool_unknown",unknownPool.diagnostics⟩
 
-•Out "test_ledger_budget_policy_admission: ok"
+•Out "test_ledger_envelope_policy_admission: ok"

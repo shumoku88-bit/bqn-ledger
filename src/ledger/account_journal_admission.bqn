@@ -16,8 +16,8 @@ colon ← ⊑ ":"
 empty ← ⟨⟩
 upperAlphabet ← "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 lowerAlphabet ← "abcdefghijklmnopqrstuvwxyz"
-accountTypes ← ⟨"asset","liability","equity","income","expense","budget"⟩
-canonicalTypes ← ⟨"Asset","Liability","Equity","Income","Expense","Budget"⟩
+accountTypes ← ⟨"asset","liability","equity","income","expense"⟩
+canonicalTypes ← ⟨"Asset","Liability","Equity","Income","Expense"⟩
 
 IndexOf ← {𝕊 item‿items: ⊑ items ⊐ ⟨item⟩ }
 IsWhitespace ← {𝕊 c: (c=space) ∨ c=tab }
@@ -140,7 +140,7 @@ Admit ← {𝕊 raw:
           typeCount+↩1
           {𝕊: AddError Diagnostic ⟨"account_type_duplicate",row,"account declaration must contain exactly one type or role"⟩}⍟(1<typeCount) @
           parsedType ← TypeValue value
-          {𝕊: AddError Diagnostic ⟨"account_type_invalid",row,"account type must be Asset, Liability, Equity, Income, Expense, or Budget"⟩}⍟(¬parsedType.ok) @
+          {𝕊: AddError Diagnostic ⟨"account_type_invalid",row,"account type must be Asset, Liability, Equity, Income, or Expense"⟩}⍟(¬parsedType.ok) @
           {𝕊: accountType↩parsedType.type ⋄ accountRole↩parsedType.role}⍟(parsedType.ok ∧ 1=typeCount) @
         }⍟((key≡"type") ∨ key≡"role") @
         {𝕊:

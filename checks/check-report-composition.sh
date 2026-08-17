@@ -22,6 +22,8 @@ fi
 
 ./tools/report "$fixture" envelopes compact JPY 2026-01-01 2026-02-01 2026-01-12 >"$tmp/envelopes"
 cmp "$tmp/envelopes" "$fixture/envelope_backing.destination.compact.txt"
+./tools/report "$fixture" envelopes json JPY 2026-01-01 2026-02-01 2026-01-12 >"$tmp/envelopes-json"
+cmp "$tmp/envelopes-json" "$fixture/envelope_backing.destination.json"
 ./tools/report "$fixture" balances human JPY 2026-01-12 >"$tmp/balances"
 cmp "$tmp/balances" "$fixture/account_balances.destination.human.txt"
 ./tools/report "$fixture" balance-sheet human JPY 2026-01-12 >"$tmp/balance-sheet"
@@ -40,6 +42,14 @@ cmp "$tmp/comparison" "$fixture/cycle_comparison.destination.human.txt"
 cmp "$tmp/monthly" "$fixture/monthly_accounts.destination.human.txt"
 ./tools/report "$fixture" daily-flow human JPY 2026-01-01 2026-02-01 2026-01-12 >"$tmp/daily-flow"
 cmp "$tmp/daily-flow" "$fixture/daily_flow.destination.human.txt"
+if rg -n 'Budget unassigned|budget:|ledger_unassigned|reconciliation_delta|"account": ""' \
+  "$tmp/envelopes" "$tmp/envelopes-json" "$tmp/balances" "$tmp/daily-flow"; then
+  echo 'FAIL: accounting report retained a Budget/Account projection axis' >&2
+  exit 1
+fi
+grep -F '"stock_origin": {"present": true' "$tmp/envelopes-json" >/dev/null
+grep -F '"memo": "phase-one clean epoch"' "$tmp/envelopes-json" >/dev/null
+grep -F '"source_event_id": "entitlement.journal:line:1"' "$tmp/envelopes-json" >/dev/null
 ./tools/report "$fixture" daily-target human JPY 2026-01-12 2026-01-22 >"$tmp/daily-target"
 cmp "$tmp/daily-target" "$fixture/daily_target.application.human.txt"
 ./tools/report "$fixture" issues human >"$tmp/issues"

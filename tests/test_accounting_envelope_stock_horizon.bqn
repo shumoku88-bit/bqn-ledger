@@ -3,9 +3,9 @@ lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 registryCore ← •Import "../src/ledger/currency_registry.bqn"
 snapshot ← •Import "canonical_snapshot_fixture.bqn"
-canonicalBudget ← •Import "canonical_budget_test_facts.bqn"
+entitlementAdmission ← •Import "../src/ledger/entitlement_journal_admission.bqn"
 canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
-budgetPolicyAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
+envelopePolicyAdmission ← •Import "../src/ledger/envelope_policy_admission.bqn"
 historyFixture ← •Import "envelope_history_test_fixture.bqn"
 envelopes ← •Import "../src/accounting/envelope_backing.bqn"
 dates ← •Import "../src/ledger/date_ordinal.bqn"
@@ -14,20 +14,11 @@ lf ← @+10
 tab ← @+9
 
 Raw ← {𝕊 lines: ∾lines∾¨lf}
-Join ← {𝕊 fields:
-  out ← ⊑fields
-  {𝕊 field:out∾↩tab∾field}¨1↓fields
-  out
-}
-
 registry ← (registryCore.Build loader.ReadLines "config/currencies.tsv").registry
 accountSource ← Raw ⟨
   "account assets:cash","  type: Asset","  commodity: JPY","",
   "account assets:savings","  type: Asset","  commodity: JPY","",
-  "account expenses:food","  type: Expense","  commodity: JPY","",
-  "account budget:opening","  type: Budget","  commodity: JPY","",
-  "account budget:unassigned","  type: Budget","  commodity: JPY","",
-  "account budget:food","  type: Budget","  commodity: JPY"
+  "account expenses:food","  type: Expense","  commodity: JPY"
 ⟩
 
 actualRaw ← ∾⟨
@@ -35,9 +26,6 @@ actualRaw ← ∾⟨
   "account assets:cash",lf,"    ; role: asset",lf,lf,
   "account assets:savings",lf,"    ; role: asset",lf,lf,
   "account expenses:food",lf,"    ; role: expense",lf,lf,
-  "account budget:opening",lf,"    ; role: budget",lf,lf,
-  "account budget:unassigned",lf,"    ; role: budget",lf,lf,
-  "account budget:food",lf,"    ; role: budget",lf,lf,
   "2026-07-31 * routed accounting before Envelope stock origin",lf,
   "    ; event-id: pre-origin",lf,"    ; layer: actual",lf,
   "    expenses:food 9 JPY",lf,"    assets:cash -9 JPY",lf,lf,
@@ -61,45 +49,29 @@ planRaw ← Raw ⟨
 plan ← (canonicalPlan.Build ⟨planRaw,actual.accounts,registry⟩).facts
 "ok" lib.AssertEq plan.state
 
-budgetRaw ← Raw ⟨
-  "2026-08-01 source opening",
-  "  budget:opening -100 JPY",
-  "  budget:unassigned 100 JPY","",
-  "2026-08-03 first Envelope grant",
-  "  budget:unassigned -100 JPY",
-  "  budget:food 100 JPY"
-⟩
-budget ← (canonicalBudget.Build ⟨budgetRaw,actual.accounts,registry⟩).movements
-"ok" lib.AssertEq budget.state
-
-policyRaw ← •FChars "../fixtures/ledger-facts-phase1-proof/budget.toml"
-policy ← budgetPolicyAdmission.Admit ⟨policyRaw,actual.accounts⟩
+policyRaw ← •FChars "../fixtures/ledger-facts-phase1-proof/envelope.toml"
+policy ← envelopePolicyAdmission.Admit ⟨policyRaw,actual.accounts⟩
 "ok" lib.AssertEq policy.state
-
-household ← {
-  state⇐"ok",source_name⇐"household.toml",
-  budget⇐{
-    envelope_id⇐⟨"food"⟩,
-    allocation_account_key⇐⟨"budget:food"⟩,
-    allocation_account_index⇐actual.accounts.key⊐⟨"budget:food"⟩,
-    opening_account_keys⇐⟨"budget:opening"⟩,
-    opening_account_indices⇐actual.accounts.key⊐⟨"budget:opening"⟩,
-    unassigned_account_keys⇐⟨"budget:unassigned"⟩,
-    unassigned_account_indices⇐actual.accounts.key⊐⟨"budget:unassigned"⟩
-  }
-}
 
 baseHistory ← historyFixture.Managed ⟨⟨"food"⟩,⟨"expenses:food"⟩,⟨"food"⟩⟩
 history ← historyFixture.WithFulfillment ⟨
   baseHistory,⟨"2026-07-01"⟩,⟨"p-save"⟩,⟨"fulfills"⟩,⟨"food"⟩
 ⟩
+
+entitlementRaw ← Raw ⟨
+  "2026-08-01 origin JPY",
+  "2026-08-03 transfer unallocated -> food 100 JPY ; first Envelope grant"
+⟩
+entitlement ← entitlementAdmission.Admit ⟨entitlementRaw,history,registry⟩
+"ok" lib.AssertEq entitlement.state
+
 retirements ← {plan_id⇐empty,retired_on⇐empty}
 reportStart ← dates.Ordinal "2026-09-01"
 reportFinish ← dates.Ordinal "2026-10-01"
 observation ← dates.Ordinal "2026-09-02"
 stockOrigin ← dates.Ordinal "2026-08-01"
 
-result ← envelopes.Build ⟨budget,policy,household,history,actual,plan,retirements,"JPY",reportStart,reportFinish,observation⟩
+result ← envelopes.Build ⟨entitlement,policy,history,actual,plan,retirements,"JPY",reportStart,reportFinish,observation⟩
 "ok" lib.AssertEq result.state
 reportStart lib.AssertEq result.start_ordinal
 reportFinish lib.AssertEq result.end_exclusive_ordinal
@@ -112,27 +84,25 @@ stockOrigin lib.AssertEq result.fulfillment_observation.start_ordinal
 
 # The pre-origin 9 JPY Actual is routed historically but must not enter the live
 # Envelope position. The 40 JPY Actual after source opening must enter even though
-# it precedes the first Envelope grant. Native-effect origin would incorrectly
-# erase it and report Consumption 0 / Remaining 70.
+# it precedes the first Envelope grant.
 1 lib.AssertEq result.consumption_observation.evidence.count
 "actual.journal" lib.AssertEq (⊑⊑result.envelopes.consumption_contributors).source
 
-# No admitted Entitlement-source movement through the observation means no
+# No admitted StockOrigin through the observation means no
 # Envelope stock horizon yet. The post-observation zero-width interval is a
 # canonical empty array observation rather than a fallback to report Period start.
-futureBudgetRaw ← Raw ⟨
-  "2026-09-10 source opening",
-  "  budget:opening -100 JPY",
-  "  budget:unassigned 100 JPY","",
-  "2026-09-10 allocate",
-  "  budget:unassigned -100 JPY",
-  "  budget:food 100 JPY"
+futureEntitlementRaw ← Raw ⟨
+  "2026-09-10 origin JPY",
+  "2026-09-10 transfer unallocated -> food 100 JPY ; future grant"
 ⟩
-futureBudget ← (canonicalBudget.Build ⟨futureBudgetRaw,actual.accounts,registry⟩).movements
-futureResult ← envelopes.Build ⟨futureBudget,policy,household,history,actual,plan,retirements,"JPY",reportStart,reportFinish,observation⟩
+futureEntitlement ← entitlementAdmission.Admit ⟨futureEntitlementRaw,history,registry⟩
+"ok" lib.AssertEq futureEntitlement.state
+futureResult ← envelopes.Build ⟨futureEntitlement,policy,history,actual,plan,retirements,"JPY",reportStart,reportFinish,observation⟩
 "ok" lib.AssertEq futureResult.state
 (observation+1) lib.AssertEq futureResult.consumption_observation.start_ordinal
 (observation+1) lib.AssertEq futureResult.consumption_observation.end_exclusive_ordinal
 ⟨0⟩ lib.AssertEq futureResult.envelopes.actual_consumption
 ⟨0⟩ lib.AssertEq futureResult.envelopes.fulfillment
 ⟨0⟩ lib.AssertEq futureResult.envelopes.ledger_remaining
+
+•Out "test_accounting_envelope_stock_horizon: ok"

@@ -1,9 +1,9 @@
-# Strict BQN-native admission for current budget.toml Envelope and Backing policy.
+# Strict BQN-native admission for current envelope.toml Envelope and Backing policy.
 #
 # Canonical syntax is the deterministic shape shared with h-kernel:
 # [[backing-pools]] with id + asset-accounts, and [[envelopes]] with
-# id + label + pacing + backing-pool. Expense routing is historical evidence
-# owned by household.toml, never reconstructed from this current policy.
+# id + label + pacing + backing-pool. Expense and Fulfillment routing history is
+# owned by household.toml [envelope-history], never reconstructed from this current policy.
 
 lf ← @+10
 cr ← @+13
@@ -13,6 +13,7 @@ quote ← @+34
 slash ← @+92
 hash ← ⊑"#"
 empty ← ⟨⟩
+sourceName ← "envelope.toml"
 
 Contains ← {𝕊 item‿items: ∨´0∾item⊸≡¨items}
 IsWhitespace ← {𝕊 c: (c=space) ∨ c=tab}
@@ -39,11 +40,11 @@ ArrayClosed ← {𝕊 text:
       {𝕊:closed↩1}⍟(c=']') @
     }⍟(¬wasInQuote) @
   }¨text
-  closed ∧ ¬inQuote ∧ ¬escaped
+  closed ∧ (¬inQuote) ∧ ¬escaped
 }
 
 Diagnostic ← {𝕊 codeText‿lineNumber‿messageText:
-  {severity⇐"error",stage⇐"ledger_budget_policy_admission",code⇐codeText,line⇐lineNumber,message⇐messageText}
+  {severity⇐"error",stage⇐"ledger_envelope_policy_admission",code⇐codeText,line⇐lineNumber,message⇐messageText}
 }
 AddIf ← {𝕊 invalid‿diagnostic: invalid/⟨diagnostic⟩}
 
@@ -53,7 +54,7 @@ ParseString ← {𝕊 text:
   first ← FirstOrSpace t
   last ← FirstOrSpace ⌽t
   enclosed ← (2≤≠t) ∧ (quote=first) ∧ quote=last
-  diagnostics∾↩AddIf ⟨¬enclosed,Diagnostic ⟨"budget_policy_string_invalid",0,"policy string value must be quoted"⟩⟩
+  diagnostics∾↩AddIf ⟨¬enclosed,Diagnostic ⟨"envelope_policy_string_invalid",0,"policy string value must be quoted"⟩⟩
   {𝕊:
     body ← ¯1↓1↓t
     escaped ← 0 ⋄ invalid ← 0
@@ -71,7 +72,7 @@ ParseString ← {𝕊 text:
       }⍟(¬escaped) @
     }¨body
     invalid ∨↩ escaped
-    diagnostics∾↩AddIf ⟨invalid,Diagnostic ⟨"budget_policy_string_escape_invalid",0,"policy string contains an unsupported escape or quote"⟩⟩
+    diagnostics∾↩AddIf ⟨invalid,Diagnostic ⟨"envelope_policy_string_escape_invalid",0,"policy string contains an unsupported escape or quote"⟩⟩
   }⍟enclosed @
   {ok⇐0=≠diagnostics,value⇐(0=≠diagnostics)/value,diagnostics⇐diagnostics}
 }
@@ -101,12 +102,12 @@ ParseStringArray ← {𝕊 text:
   first ← FirstOrSpace t
   last ← FirstOrSpace ⌽t
   enclosed ← (2≤≠t) ∧ ('['=first) ∧ ']'=last
-  diagnostics∾↩AddIf ⟨¬enclosed,Diagnostic ⟨"budget_policy_array_invalid",0,"policy Account list must use a TOML array"⟩⟩
+  diagnostics∾↩AddIf ⟨¬enclosed,Diagnostic ⟨"envelope_policy_array_invalid",0,"policy Account list must use a TOML array"⟩⟩
   {𝕊:
     inner ← Trim ¯1↓1↓t
     {𝕊:
       split ← SplitArrayItems inner
-      diagnostics∾↩AddIf ⟨split.invalid,Diagnostic ⟨"budget_policy_array_invalid",0,"policy Account list has unbalanced quoting"⟩⟩
+      diagnostics∾↩AddIf ⟨split.invalid,Diagnostic ⟨"envelope_policy_array_invalid",0,"policy Account list has unbalanced quoting"⟩⟩
       {𝕊 part:
         parsed ← ParseString part
         diagnostics∾↩parsed.diagnostics
@@ -164,12 +165,12 @@ Admit ← {𝕊 raw‿accounts:
     diagnostics ← empty
     pair ← @
     equals ← '='=line
-    diagnostics∾↩AddIf ⟨1≠+´equals,Diagnostic ⟨"budget_policy_key_shape_invalid",row,"policy row requires exactly one equals separator"⟩⟩
+    diagnostics∾↩AddIf ⟨1≠+´equals,Diagnostic ⟨"envelope_policy_key_shape_invalid",row,"policy row requires exactly one equals separator"⟩⟩
     {𝕊:
       p ← ⊑equals/↕≠line
       key ← Trim p↑line ⋄ value ← Trim (p+1)↓line
       validPair ← (0<≠key) ∧ 0<≠value
-      diagnostics∾↩AddIf ⟨¬validPair,Diagnostic ⟨"budget_policy_key_shape_invalid",row,"policy key and value must be nonempty"⟩⟩
+      diagnostics∾↩AddIf ⟨¬validPair,Diagnostic ⟨"envelope_policy_key_shape_invalid",row,"policy key and value must be nonempty"⟩⟩
       {𝕊:pair↩{key⇐key,text⇐value,line⇐row}}⍟validPair @
     }⍟(1=+´equals) @
     {diagnostics⇐diagnostics,pair⇐pair}
@@ -193,7 +194,7 @@ Admit ← {𝕊 raw‿accounts:
       {𝕊:
         outside ← (¬segment⊏ignored)/segment
         diagnostics∾↩{𝕊 sourceIndex:
-          Diagnostic ⟨"budget_policy_key_outside_table",sourceIndex⊑lineRows,"policy key must occur inside a canonical array-of-tables block"⟩
+          Diagnostic ⟨"envelope_policy_key_outside_table",sourceIndex⊑lineRows,"policy key must occur inside a canonical array-of-tables block"⟩
         }¨outside
       }⍟(¬tableSegment) @
     }⍟(0<≠segment) @
@@ -210,9 +211,9 @@ Admit ← {𝕊 raw‿accounts:
     poolBlock ← block.kind≡"backing-pool"
     allowed ← poolBlock⊑⟨⟨"id","label","pacing","backing-pool"⟩,⟨"id","asset-accounts"⟩⟩
     keys ← {𝕩.key}¨block.pairs
-    diagnostics∾↩AddIf ⟨(≠keys)≠≠⍷keys,Diagnostic ⟨"budget_policy_key_duplicate",block.line,"policy table keys must be unique"⟩⟩
-    diagnostics∾↩AddIf ⟨∨´0∾{¬Contains ⟨𝕩,allowed⟩}¨keys,Diagnostic ⟨"budget_policy_key_unsupported",block.line,"policy table contains an unsupported key"⟩⟩
-    diagnostics∾↩AddIf ⟨∨´0∾{¬Contains ⟨𝕩,keys⟩}¨allowed,Diagnostic ⟨"budget_policy_key_missing",block.line,"policy table is missing a required key"⟩⟩
+    diagnostics∾↩AddIf ⟨(≠keys)≠≠⍷keys,Diagnostic ⟨"envelope_policy_key_duplicate",block.line,"policy table keys must be unique"⟩⟩
+    diagnostics∾↩AddIf ⟨∨´0∾{¬Contains ⟨𝕩,allowed⟩}¨keys,Diagnostic ⟨"envelope_policy_key_unsupported",block.line,"policy table contains an unsupported key"⟩⟩
+    diagnostics∾↩AddIf ⟨∨´0∾{¬Contains ⟨𝕩,keys⟩}¨allowed,Diagnostic ⟨"envelope_policy_key_missing",block.line,"policy table is missing a required key"⟩⟩
     blockClean ← 0=≠diagnostics
     {𝕊:
       idPair ← PairValue ⟨block,"id"⟩ ⋄ idParsed ← ParseString idPair.text
@@ -233,11 +234,14 @@ Admit ← {𝕊 raw‿accounts:
       parsed ← ⟨idParsed,labelParsed,pacingParsed,poolParsed⟩
       pairLines ← ⟨idPair.line,labelPair.line,pacingPair.line,poolPair.line⟩
       {𝕊 j: diagnostics∾↩AtLine ⟨j⊑parsed,j⊑pairLines⟩}¨↕≠parsed
-      validId ← idParsed.ok ∧ NoWhitespace idParsed.value
+      shapedId ← idParsed.ok ∧ NoWhitespace idParsed.value
+      reservedId ← idParsed.ok ∧ idParsed.value≡"unallocated"
+      validId ← shapedId ∧ ¬reservedId
       validLabel ← labelParsed.ok ∧ (0<≠labelParsed.value) ∧ labelParsed.value≡Trim labelParsed.value
       validPacing ← pacingParsed.ok ∧ Contains ⟨pacingParsed.value,⟨"daily","flex"⟩⟩
       validPool ← poolParsed.ok ∧ NoWhitespace poolParsed.value
-      diagnostics∾↩AddIf ⟨¬validId,Diagnostic ⟨"envelope_id_invalid",idPair.line,"envelope id must be nonempty and contain no whitespace"⟩⟩
+      diagnostics∾↩AddIf ⟨¬shapedId,Diagnostic ⟨"envelope_id_invalid",idPair.line,"envelope id must be nonempty and contain no whitespace"⟩⟩
+      diagnostics∾↩AddIf ⟨reservedId,Diagnostic ⟨"envelope_id_reserved",idPair.line,"unallocated is a reserved Entitlement boundary endpoint, not an Envelope id"⟩⟩
       diagnostics∾↩AddIf ⟨¬validLabel,Diagnostic ⟨"envelope_label_invalid",labelPair.line,"envelope label must be nonempty without surrounding whitespace"⟩⟩
       diagnostics∾↩AddIf ⟨¬validPacing,Diagnostic ⟨"envelope_pacing_invalid",pacingPair.line,"envelope pacing must be daily or flex"⟩⟩
       diagnostics∾↩AddIf ⟨¬validPool,Diagnostic ⟨"envelope_backing_pool_invalid",poolPair.line,"backing pool reference must be nonempty and contain no whitespace"⟩⟩
@@ -249,8 +253,8 @@ Admit ← {𝕊 raw‿accounts:
     }⍟((¬poolBlock) ∧ blockClean) @
   }¨blocks
 
-  diagnostics∾↩AddIf ⟨0=≠pools,Diagnostic ⟨"budget_policy_backing_pools_missing",0,"budget.toml requires at least one backing pool"⟩⟩
-  diagnostics∾↩AddIf ⟨0=≠envelopes,Diagnostic ⟨"budget_policy_envelopes_missing",0,"budget.toml requires at least one spendable envelope"⟩⟩
+  diagnostics∾↩AddIf ⟨0=≠pools,Diagnostic ⟨"envelope_policy_backing_pools_missing",0,"envelope.toml requires at least one backing pool"⟩⟩
+  diagnostics∾↩AddIf ⟨0=≠envelopes,Diagnostic ⟨"envelope_policy_envelopes_missing",0,"envelope.toml requires at least one spendable envelope"⟩⟩
   poolIds ← {𝕩.id}¨pools ⋄ envelopeIds ← {𝕩.id}¨envelopes ⋄ labels ← {𝕩.label}¨envelopes
   diagnostics∾↩AddIf ⟨(≠poolIds)≠≠⍷poolIds,Diagnostic ⟨"backing_pool_id_duplicate",0,"backing pool ids must be unique"⟩⟩
   diagnostics∾↩AddIf ⟨(≠envelopeIds)≠≠⍷envelopeIds,Diagnostic ⟨"envelope_id_duplicate",0,"envelope ids must be unique"⟩⟩
@@ -278,8 +282,8 @@ Admit ← {𝕊 raw‿accounts:
     line ← i⊑assetLines
     known ← i⊑assetKnown
     wrongRole ← i⊑assetWrongRole
-    unknownDiagnostic ← AddIf ⟨¬known,Diagnostic ⟨"budget_policy_asset_account_unknown",line,"Backing pool Asset Account must be declared"⟩⟩
-    roleDiagnostic ← AddIf ⟨wrongRole,Diagnostic ⟨"budget_policy_asset_account_role_invalid",line,"Backing pool Account must have Asset type"⟩⟩
+    unknownDiagnostic ← AddIf ⟨¬known,Diagnostic ⟨"envelope_policy_asset_account_unknown",line,"Backing pool Asset Account must be declared"⟩⟩
+    roleDiagnostic ← AddIf ⟨wrongRole,Diagnostic ⟨"envelope_policy_asset_account_role_invalid",line,"Backing pool Account must have Asset type"⟩⟩
     unknownDiagnostic∾roleDiagnostic
   }¨↕≠assetKeys
   diagnostics∾↩assetDiagnostics
@@ -287,7 +291,7 @@ Admit ← {𝕊 raw‿accounts:
   ok ← 0=≠diagnostics
   admittedPools ← ok/pools ⋄ admittedEnvelopes ← ok/envelopes
   {
-    state⇐ok⊑"error"‿"ok",source_name⇐"budget.toml",
+    state⇐ok⊑"error"‿"ok",source_name⇐sourceName,
     backing_pools⇐{
       count⇐≠admittedPools,index⇐↕≠admittedPools,id⇐{𝕩.id}¨admittedPools,
       asset_account_keys⇐{𝕩.asset_account_keys}¨admittedPools

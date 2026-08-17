@@ -22,16 +22,15 @@ result ← section.Build ⟨accountState,cycle.definition.start,cycle.definition
 0 lib.AssertEq ≠result.diagnostics
 "JPY" lib.AssertEq result.domain
 "actual" lib.AssertEq result.layer
-7 lib.AssertEq result.matrix.row_count
+4 lib.AssertEq result.matrix.row_count
 4 lib.AssertEq result.matrix.column_count
 ⟨"opening","debit_movement","credit_movement","closing"⟩ lib.AssertEq result.matrix.column_coordinates
-⟨0,1,2,3,4,5,6⟩ lib.AssertEq result.matrix.row_coordinates
+⟨0,1,2,3⟩ lib.AssertEq result.matrix.row_coordinates
 ⟨
   ⟨0,1000,¯35,965⟩,
   ⟨0,0,¯1000,¯1000⟩,
   ⟨0,30,0,30⟩,
-  ⟨0,5,0,5⟩,
-  ⟨0,0,0,0⟩,⟨0,0,0,0⟩,⟨0,0,0,0⟩
+  ⟨0,5,0,5⟩
 ⟩ lib.AssertEq result.matrix.values
 ⟨⟩ lib.AssertEq 0⊑0⊑result.matrix.contributors
 ⟨0⟩ lib.AssertEq 1⊑0⊑result.matrix.contributors

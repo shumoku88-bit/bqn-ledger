@@ -3,18 +3,6 @@ commodity JPY
 account assets:bank
     ; role: asset
 
-account budget:opening
-    ; kind: opening
-
-account budget:spent
-    ; kind: spent
-
-account budget:一般生活
-    ; kind: envelope
-
-account budget:食費
-    ; kind: envelope
-
 account equity:opening-balances
     ; role: equity
 
@@ -23,11 +11,9 @@ account expenses:家賃
 
 account expenses:日用品
     ; role: expense
-    ; default-envelope: budget:一般生活
 
 account expenses:食費
     ; role: expense
-    ; default-envelope: budget:食費
 
 account income:年金
     ; role: income

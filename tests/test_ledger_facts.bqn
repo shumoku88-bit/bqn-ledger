@@ -53,21 +53,21 @@ invalidAccountSnapshot ← snapshot.Build ⟨invalidAccountSource,rawJournal,reg
 lib.Assert ∨´{𝕩.code≡"account_type_missing"}¨invalidAccountSnapshot.diagnostics
 ⟨"JPY"⟩ lib.AssertEq result.domains.code
 ⟨"actual"⟩ lib.AssertEq result.layers.name
-7 lib.AssertEq result.accounts.count
+4 lib.AssertEq result.accounts.count
 strictAccounts.accounts.key lib.AssertEq result.accounts.key
 strictAccounts.accounts.currency lib.AssertEq result.accounts.currency
 strictAccounts.accounts.role lib.AssertEq result.accounts.role
 strictAccounts.accounts.type lib.AssertEq result.accounts.type
 strictAccounts.accounts.metadata lib.AssertEq result.accounts.metadata
 strictAccounts.accounts.source_row lib.AssertEq result.accounts.source_row
-⟨1,5,9,13,17,21,25⟩ lib.AssertEq result.accounts.source_row
+⟨1,5,9,13⟩ lib.AssertEq result.accounts.source_row
 
 3 lib.AssertEq result.transactions.count
 ⟨0,1,2⟩ lib.AssertEq result.transactions.index
 ⟨"proof-salary-1","proof-food-1","proof-split-1"⟩ lib.AssertEq result.transactions.transaction_id
 ⟨"durable","durable","durable"⟩ lib.AssertEq result.transactions.identity_kind
-⟨24,31,39⟩ lib.AssertEq result.transactions.source_start_line
-⟨29,37,45⟩ lib.AssertEq result.transactions.source_end_line
+⟨15,22,30⟩ lib.AssertEq result.transactions.source_start_line
+⟨20,28,36⟩ lib.AssertEq result.transactions.source_end_line
 ⟨"2026-01-02","2026-01-10","2026-01-12"⟩ lib.AssertEq result.transactions.date_text
 "***" lib.AssertEq result.transactions.status_marker
 ⟨"event-id","layer","currency"⟩ lib.AssertEq {𝕩.key}¨0⊑result.transactions.metadata
@@ -88,7 +88,7 @@ strictAccounts.accounts.source_row lib.AssertEq result.accounts.source_row
 ⟨1000,¯1000,20,¯20,10,5,¯15⟩ lib.AssertEq result.postings.coefficient
 ⟨0,0,0,0,0,0,0⟩ lib.AssertEq result.postings.scale
 ⟨"debit","credit","debit","credit","debit","debit","credit"⟩ lib.AssertEq result.postings.side
-⟨28,29,36,37,43,44,45⟩ lib.AssertEq result.postings.source_line
+⟨19,20,27,28,34,35,36⟩ lib.AssertEq result.postings.source_line
 ⟨"proof-salary-1:0","proof-salary-1:1","proof-food-1:0","proof-food-1:1","proof-split-1:0","proof-split-1:1","proof-split-1:2"⟩ lib.AssertEq result.postings.posting_id
 
 {result.transactions.count lib.AssertEq ≠𝕩}¨ ⟨

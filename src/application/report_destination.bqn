@@ -15,7 +15,7 @@ Failure ← {𝕊 keyValue‿diagnosticsValue:
 Envelopes ← {𝕊 coordinates‿evidence:
   domain‿start‿finish‿observation ← coordinates
   compose.Envelopes ⟨
-    evidence.budget_movements,evidence.budget_policy,evidence.household,evidence.envelope_history,evidence.actual,evidence.plan,evidence.plan_retirements,
+    evidence.entitlement,evidence.envelope_policy,evidence.envelope_history,evidence.actual,evidence.plan,evidence.plan_retirements,
     domain,start,finish,observation
   ⟩
 }
@@ -58,7 +58,7 @@ MonthlyAccounts ← {𝕊 coordinates‿evidence:
 DailyFlow ← {𝕊 coordinates‿evidence:
   domain‿start‿finish‿observation ← coordinates
   compose.DailyFlow ⟨
-    evidence.actual,evidence.household,evidence.envelope_history,domain,start,finish,observation
+    evidence.actual,evidence.envelope_history,domain,start,finish,observation
   ⟩
 }
 DailyTarget ← {𝕊 coordinates‿evidence:

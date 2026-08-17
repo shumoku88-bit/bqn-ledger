@@ -10,7 +10,7 @@ trap 'rm -rf "$work"' EXIT
 base="$work/root"
 mkdir "$base"
 
-canonical=(accounts.journal actual.journal plan.journal budget.journal budget.toml household.toml report.toml issues.tsv)
+canonical=(accounts.journal actual.journal plan.journal entitlement.journal envelope.toml household.toml report.toml issues.tsv)
 for name in "${canonical[@]}"; do cp "$fixture/$name" "$base/$name"; done
 
 # Add only canonical evidence required to make Cycle Comparison observable in the
@@ -49,13 +49,13 @@ EOF
 mapfile -t names < <(find "$base" -maxdepth 1 -type f -printf '%f\n' 2>/dev/null || find "$base" -maxdepth 1 -type f -exec basename {} \;)
 [[ ${#names[@]} -eq 8 ]] || { echo "FAIL: canonical Report proof root does not contain exactly eight files" >&2; printf '%s\n' "${names[@]}" >&2; exit 1; }
 for name in "${canonical[@]}"; do [[ -f "$base/$name" ]]; done
-for legacy in accounts.tsv plan.tsv budget_alloc.tsv cycle.tsv daily_target_scope.tsv config.tsv report_manifests.tsv report_all_human.tsv report_all_compact.tsv; do
+for legacy in accounts.tsv plan.tsv budget_alloc.tsv cycle.tsv daily_target_scope.tsv config.tsv report_manifests.tsv report_all_human.tsv report_all_compact.tsv budget.journal budget.toml; do
   [[ ! -e "$base/$legacy" ]] || { echo "FAIL: legacy Report input exists in canonical proof root: $legacy" >&2; exit 1; }
 done
 
 bqn src/application/current_report_profile_cli.bqn "$base" JPY human 2026-01-13 >"$work/current.tsv"
 [[ $(tail -n +2 "$work/current.tsv" | wc -l | tr -d ' ') -eq 12 ]]
-if grep -Eq '(^|\t)(actual\.journal|plan\.journal|budget\.journal|issues\.tsv|.*\.tsv)(\t|$)' "$work/current.tsv"; then
+if grep -Eq '(^|\t)(actual\.journal|plan\.journal|entitlement\.journal|issues\.tsv|.*\.tsv)(\t|$)' "$work/current.tsv"; then
   echo 'FAIL: generated current Report requests contain physical source coordinates' >&2
   cat "$work/current.tsv" >&2
   exit 1

@@ -12,10 +12,10 @@ facts ← (snapshot.Build ⟨•FChars "../"∾base∾"accounts.journal",•FCha
 result ← section.Build monthly.Build ⟨facts,"JPY","2026-01","2026-03"⟩
 "ok" lib.AssertEq result.state
 2 lib.AssertEq result.matrix.row_count
-7 lib.AssertEq result.matrix.column_count
+4 lib.AssertEq result.matrix.column_count
 ⟨"2026-01","2026-02"⟩ lib.AssertEq result.matrix.row_coordinates
 facts.accounts.index lib.AssertEq result.matrix.column_coordinates
-⟨965,¯1000,30,5,0,0,0⟩ lib.AssertEq 0⊑result.matrix.values
+⟨965,¯1000,30,5⟩ lib.AssertEq 0⊑result.matrix.values
 "actual.journal" lib.AssertEq (⊑0⊑0⊑result.matrix.contributors).source
 human ← section.FormatHuman result
 (•FChars "../"∾base∾"monthly_accounts.destination.human.txt") lib.AssertEq human

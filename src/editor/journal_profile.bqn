@@ -484,39 +484,6 @@ Parse ← {𝕊 raw:
   ParseWithProfile ⟨raw, "strict_self_contained"⟩
 }
 
-ResolveEnvelopeDefaults ← {𝕊 transaction‿accounts:
-  diagnostics ← empty
-  assignments ← empty
-  positivePostings ← ({0 < 𝕩.delta}¨ transaction.postings) / transaction.postings
-
-  {𝕊 posting:
-    matching ← ({posting.account_key ≡ 𝕩.account_key}¨ accounts) / accounts
-    diagnostics ∾↩ AddIf ⟨1 ≠ ≠ matching, Diagnostic ⟨"default_account_target_invalid", posting.source_line, "posting account must match exactly one declaration"⟩⟩
-
-    {𝕊:
-      account ← ⊑ matching
-      {𝕊:
-        envelope ← account.default_envelope
-        diagnostics ∾↩ AddIf ⟨0 = ≠ envelope, Diagnostic ⟨"default_envelope_missing", posting.source_line, "expense account requires default-envelope when no explicit override is supplied"⟩⟩
-        remainingAccount ← "budget:" ∾ envelope
-        spentAccount ← "budget:spent:" ∾ envelope
-        envelopeKnown ← (HasAccount ⟨remainingAccount, accounts⟩) ∧ HasAccount ⟨spentAccount, accounts⟩
-        diagnostics ∾↩ AddIf ⟨(0 < ≠ envelope) ∧ (¬ envelopeKnown), Diagnostic ⟨"default_envelope_unknown", posting.source_line, "default-envelope must resolve to declared budget remaining and spent accounts"⟩⟩
-        {𝕊:
-          assignments ∾↩ ⟨{
-            account_key⇐posting.account_key,
-            envelope⇐envelope,
-            amount⇐posting.delta,
-            posting_id⇐posting.posting_id
-          }⟩
-        }⍟((0 < ≠ envelope) ∧ envelopeKnown) @
-      }⍟(account.role ≡ "expense") @
-    }⍟(1 = ≠ matching) @
-  }¨ positivePostings
-
-  {state⇐(0 = ≠ diagnostics) ⊑ "error"‿"ok", diagnostics⇐diagnostics, assignments⇐assignments}
-}
-
 BuildMatrix ← {𝕊 transactions‿boxedAccountKeys:
   {
     transaction ← 𝕩
@@ -532,6 +499,5 @@ BuildMatrix ← {𝕊 transactions‿boxedAccountKeys:
   Parse⇐Parse,
   ParseWithProfile⇐ParseWithProfile,
   LegacyMetadataValueValid⇐LegacyMetadataValueValid,
-  ResolveEnvelopeDefaults⇐ResolveEnvelopeDefaults,
   BuildMatrix⇐BuildMatrix
 }

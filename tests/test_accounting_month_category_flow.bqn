@@ -4,8 +4,6 @@ lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 actualSource ← •Import "../src/application/actual_source_adapter.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
-budgetPolicyAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
-householdAdmission ← •Import "current_household_policy_test_admission.bqn"
 historyAdmission ← •Import "../src/ledger/envelope_history_admission.bqn"
 historyFixture ← •Import "envelope_history_test_fixture.bqn"
 account_admission ← •Import "../src/ledger/account_admission.bqn"
@@ -20,18 +18,13 @@ base ← "fixtures/ledger-facts-phase1-proof/"
 actualResult ← actualSource.Load ⟨base,registry⟩
 "ok" lib.AssertEq actualResult.state
 actualFacts ← actualResult.facts
-budgetRaw ← •FChars "../"∾base∾"budget.toml"
-budgetPolicy ← budgetPolicyAdmission.Admit ⟨budgetRaw,actualFacts.accounts⟩
-"ok" lib.AssertEq budgetPolicy.state
 householdRaw ← •FChars "../"∾base∾"household.toml"
-household ← householdAdmission.Admit ⟨householdRaw,actualFacts.accounts,budgetPolicy⟩
-"ok" lib.AssertEq household.state
 history ← historyAdmission.Admit householdRaw
 "ok" lib.AssertEq history.state
 jan ← dates.Ordinal "2026-01-01"
 feb ← dates.Ordinal "2026-02-01"
 mar ← dates.Ordinal "2026-03-01"
-actual ← monthly.Build ⟨actualFacts,household,history,"JPY","actual",jan,feb⟩
+actual ← monthly.Build ⟨actualFacts,history,"JPY","actual",jan,feb⟩
 "ok" lib.AssertEq actual.state
 ⟨"2026-01"⟩ lib.AssertEq actual.months.label
 ⟨"food","other"⟩ lib.AssertEq actual.categories.label
@@ -42,8 +35,7 @@ tab ← @+9
 accountLines ← ⟨
   "assets:cash"∾tab∾"role=asset"∾tab∾"currency=JPY",
   "expenses:food"∾tab∾"role=expense"∾tab∾"currency=JPY",
-  "expenses:transport"∾tab∾"role=expense"∾tab∾"currency=JPY",
-  "budget:food"∾tab∾"role=budget"∾tab∾"currency=JPY"
+  "expenses:transport"∾tab∾"role=expense"∾tab∾"currency=JPY"
 ⟩
 accountResult ← account_admission.Admit ⟨accountLines,registry⟩
 "ok" lib.AssertEq accountResult.state
@@ -58,17 +50,13 @@ planRaw ← ∾{𝕩∾@+10}¨⟨
 planResult ← canonicalPlan.Build ⟨planRaw,accounts,registry⟩
 "ok" lib.AssertEq planResult.state
 planFacts ← planResult.facts
-planHousehold ← {
-  state⇐"ok",source_name⇐"household.toml",
-  budget⇐{envelope_id⇐⟨"food"⟩,allocation_account_key⇐⟨"budget:food"⟩}
-}
 planHistory ← historyFixture.Initial ⟨
   ⟨"food"⟩,
   ⟨"expenses:food","expenses:transport"⟩,
   ⟨"managed","unmanaged"⟩,
   ⟨"food",""⟩
 ⟩
-result ← monthly.Build ⟨planFacts,planHousehold,planHistory,"JPY","plan",jan,mar⟩
+result ← monthly.Build ⟨planFacts,planHistory,"JPY","plan",jan,mar⟩
 
 "ok" lib.AssertEq result.state
 0 lib.AssertEq ≠result.diagnostics
@@ -107,13 +95,13 @@ overflowFacts ← {
     scale⇐62⥊0
   }
 }
-dailyOverflow ← byDate.Build ⟨overflowFacts,planHousehold,planHistory,"JPY","plan",jan,feb⟩
+dailyOverflow ← byDate.Build ⟨overflowFacts,planHistory,"JPY","plan",jan,feb⟩
 "ok" lib.AssertEq dailyOverflow.state
 0 lib.AssertEq ≠dailyOverflow.diagnostics
 (31⥊dailyAmount) lib.AssertEq dailyOverflow.expense_groups.coefficient
 
 HasCode ← {𝕊 code‿diagnostics: ∨´0∾code⊸≡¨{𝕩.code}¨diagnostics}
-monthlyOverflow ← monthly.Build ⟨overflowFacts,planHousehold,planHistory,"JPY","plan",jan,feb⟩
+monthlyOverflow ← monthly.Build ⟨overflowFacts,planHistory,"JPY","plan",jan,feb⟩
 "error" lib.AssertEq monthlyOverflow.state
 1 lib.AssertEq HasCode ⟨"group_sum_failed",monthlyOverflow.diagnostics⟩
 0 lib.AssertEq monthlyOverflow.scale
@@ -122,7 +110,7 @@ monthlyOverflow ← monthly.Build ⟨overflowFacts,planHousehold,planHistory,"JP
 0 lib.AssertEq monthlyOverflow.expense_groups.count
 
 CheckRejected ← {𝕊 domain‿layer‿s‿e:
-  rejected ← monthly.Build ⟨planFacts,planHousehold,planHistory,domain,layer,s,e⟩
+  rejected ← monthly.Build ⟨planFacts,planHistory,domain,layer,s,e⟩
   "error" lib.AssertEq rejected.state
   0 lib.AssertEq rejected.months.count
   0 lib.AssertEq rejected.categories.count

@@ -2,14 +2,6 @@
 mode = "income-anchor"
 income-account = "income:salary"
 
-[budget]
-opening-accounts = ["budget:opening"]
-unassigned-accounts = ["budget:unassigned"]
-
-[[budget.envelopes]]
-id = "food"
-allocation-account = "budget:food"
-
 [envelope-history]
 identities = ["food"]
 

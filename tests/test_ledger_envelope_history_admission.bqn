@@ -33,6 +33,14 @@ absent ← admission.Admit ""
 0 lib.AssertEq absent.expense_routing.count
 0 lib.AssertEq absent.fulfillment_routing.count
 
+# The Entitlement boundary endpoint is reserved and cannot collide with a stable
+# Envelope identity.
+reservedIdentity ← admission.Admit Lines ⟨
+  "[envelope-history]","identities = ["∾(Quoted "unallocated")∾"]"
+⟩
+"error" lib.AssertEq reservedIdentity.state
+"envelope_history_identity_reserved" lib.AssertEq (⊑reservedIdentity.diagnostics).code
+
 # Routing evidence cannot exist without the stable identity root.
 routeOnly ← Lines ⟨"[[envelope-history.expense-routing]]","effective-from = "∾(Quoted "initial"),"expense-account = "∾(Quoted "Expenses:Groceries"),"route = "∾(Quoted "managed"),"target = "∾(Quoted "Daily"),"note = "∾(Quoted "missing root")⟩
 missingRoot ← admission.Admit routeOnly

@@ -15,10 +15,10 @@ companions ← sources.Companions ⟨base,actual.facts.accounts,registry⟩
 "ok" lib.AssertEq companions.state
 
 # The allocation is dated 2026-01-01 while the income-anchored Cycle starts on
-# 2026-01-02. Entitlement is a Budget position, so opening allocation evidence
+# 2026-01-02. Entitlement is a position, so opening allocation evidence
 # must carry into the Cycle instead of disappearing from the statement.
 result ← envelopes.Build ⟨
-  companions.budget_movements,companions.budget_policy,companions.household,
+  companions.entitlement,companions.envelope_policy,
   actual.facts,companions.plan,"JPY",
   dates.Ordinal "2026-01-02",dates.Ordinal "2026-02-01",dates.Ordinal "2026-01-12"
 ⟩
@@ -28,8 +28,6 @@ result ← envelopes.Build ⟨
 ⟨30⟩ lib.AssertEq result.envelopes.ledger_remaining
 30 lib.AssertEq result.totals.backing_required
 935 lib.AssertEq result.totals.backing_surplus
-40 lib.AssertEq result.totals.ledger_unassigned
-895 lib.AssertEq result.totals.reconciliation_delta
-"budget.journal" lib.AssertEq (⊑⊑result.envelopes.entitlement_contributors).source
+"entitlement.journal" lib.AssertEq (⊑⊑result.envelopes.entitlement_contributors).source
 
 •Out "test_accounting_envelope_backing_opening_position: ok"

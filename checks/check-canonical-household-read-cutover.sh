@@ -10,12 +10,12 @@ trap 'rm -rf "$tmp"' EXIT
 
 # Exactly the canonical Household source topology is sufficient for retained reads.
 cp "$fixture/accounts.journal" "$fixture/actual.journal" "$fixture/plan.journal" \
-  "$fixture/budget.journal" "$fixture/budget.toml" "$fixture/household.toml" \
+  "$fixture/entitlement.journal" "$fixture/envelope.toml" "$fixture/household.toml" \
   "$fixture/report.toml" "$fixture/issues.tsv" "$tmp/"
 
-expected=(accounts.journal actual.journal plan.journal budget.journal budget.toml household.toml report.toml issues.tsv)
+expected=(accounts.journal actual.journal plan.journal entitlement.journal envelope.toml household.toml report.toml issues.tsv)
 for name in "${expected[@]}"; do [[ -f "$tmp/$name" ]] || { echo "FAIL: canonical source missing: $name" >&2; exit 1; }; done
-for legacy in accounts.tsv cycle.tsv daily_target_scope.tsv budget_alloc.tsv config.tsv plan.tsv report_manifests.tsv report_all_human.tsv report_all_compact.tsv; do
+for legacy in accounts.tsv cycle.tsv daily_target_scope.tsv budget_alloc.tsv config.tsv plan.tsv budget.journal budget.toml report_manifests.tsv report_all_human.tsv report_all_compact.tsv; do
   [[ ! -e "$tmp/$legacy" ]] || { echo "FAIL: legacy source leaked into canonical-only root: $legacy" >&2; exit 1; }
 done
 

@@ -12,15 +12,6 @@ account expenses:food
 account expenses:transport
     ; role: expense
 
-account budget:opening
-    ; role: budget
-
-account budget:unassigned
-    ; role: budget
-
-account budget:food
-    ; role: budget
-
 2026-01-02 * salary
     ; event-id: proof-salary-1
     ; layer: actual

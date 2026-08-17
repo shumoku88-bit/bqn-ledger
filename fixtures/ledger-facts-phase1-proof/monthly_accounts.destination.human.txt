@@ -7,9 +7,6 @@ assets:cash/JPY        |     965 |       0 |         965
 income:salary/JPY      |   -1000 |       0 |       -1000
 expenses:food/JPY      |      30 |       0 |          30
 expenses:transport/JPY |       5 |       0 |           5
-budget:opening/JPY     |       0 |       0 |           0
-budget:unassigned/JPY  |       0 |       0 |           0
-budget:food/JPY        |       0 |       0 |           0
 Month total            |       0 |       0 |           0
 Balanced by month: YES
 
