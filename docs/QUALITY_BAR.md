@@ -33,7 +33,7 @@ UI や launcher は作ってよいが、目的は販売可能なプロダクト�
 
 ### 1. Canonical Household source protection
 
-base directory配下のcanonical eight-file Household rootが正データである。Budget movementは`budget.journal`、Budget policyは`budget.toml`が所有する。公開repoのdataは匿名sandbox、実運用データは`LEDGER_DATA_DIR`で外出しする。
+base directory配下のcanonical eight-file Household rootが正データである。StockOriginとnative Endpoint transferは`entitlement.journal`、current EnvelopeとBacking policyは`envelope.toml`、stable identityとhistorical routingは`household.toml`が所有する。公開repoのdataは匿名sandbox、実運用データは`LEDGER_DATA_DIR`で外出しする。
 
 - AI は明示指示なしに実データ TSV を編集しない。
 - 書き込みは approved editor path を通す。

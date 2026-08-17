@@ -9,7 +9,7 @@ Exit: revise when journal-like metadata contracts change
 - 長期の方針: `docs/ENGINEERING_ROADMAP.md` (Phase 2)
 - 表記ルール（キーの命名など）: `docs/CONVENTIONS.md`
 
-Canonical `actual.journal` / `plan.journal` / `budget.journal` はnative Journal transaction metadataを使います。Budget movementのTSV routeはありません。
+Canonical `actual.journal` / `plan.journal` はnative Journal transaction metadataを使います。Envelope EntitlementはAccount Postingではなく、別ownerの`entitlement.journal`がstrict StockOrigin / Transfer grammarを所有します。
 
 ## source TSVの基本フォーマット（必須: 5列）
 
@@ -167,9 +167,16 @@ native Journal transaction metadata: ; plan-id: plan-2026-07-15-gpt-plus
 
 現時点では、`txn_id` ごとの一覧・束表示は専用ツールの現行入口としては固定していません。必要になったら、native Journalを直接壊さないread-only helperとして追加します。
 
-## Budget Account classification
+## Entitlement source provenance
 
-Budget Account identity/typeは`accounts.journal`が所有します。`opening` / `unassigned` / `spent` / `envelope`や`dynamic` / `execution`等のHousehold classificationは`household.toml`が所有し、Budget policyは`budget.toml`が所有します。旧Account TSV metadataをcanonical Account declarationへ移植しません。
+EnvelopeはAccountではなく、`accounts.journal`にBudget roleはありません。`entitlement.journal`は次の2形式だけを許可します。
+
+```text
+YYYY-MM-DD origin COMMODITY [memo]
+YYYY-MM-DD transfer FROM -> TO QUANTITY COMMODITY [memo]
+```
+
+`memo`、source line、source event identityはStockOrigin / Transfer evidenceとして保持されます。任意Journal metadata、Budget Account classification、`alloc` / `move` / `release` aliasはsource syntaxへ書きません。UIはEndpoint方向からそれらの表示語彙を使って構いません。
 
 ## 現行の追記ツールでのメタ指定
 

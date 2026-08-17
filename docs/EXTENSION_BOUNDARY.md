@@ -15,7 +15,7 @@ Extensions may consume canonical machine exports and report outputs. Extensions 
 In short:
 
 ```text
-base directory TSV / config TSV
+canonical Household sources / repository configuration
   -> BQN canonical engine
   -> canonical report / machine exports
   -> optional read-only adapters and downstream tools
@@ -27,17 +27,17 @@ The extension point is downstream of canonical output, not inside canonical mean
 
 The following areas are not plugin surfaces:
 
-- source TSV meaning and the first five-column journal-like contract
-- `accounts.tsv` role interpretation
-- `budget.journal` movement and `budget.toml` / `household.toml` envelope semantics
-- `cycle.tsv` boundary interpretation
-- `plan.tsv` completion semantics
+- canonical Journal and Entitlement source meaning
+- `accounts.journal` accounting role interpretation
+- `entitlement.journal` StockOrigin/Transfer laws and `envelope.toml` / `household.toml` Envelope semantics
+- `household.toml` Cycle and historical routing interpretation
+- `plan.journal` completion semantics
 - Posting IR construction
 - TBDS semantics
 - Canonical Daily Cube shape
 - Canonical Daily Cube layer meanings
 - section status semantics (`OK / WARN / ERROR / SKIPPED / UNAVAILABLE`)
-- direct writes to base directory source TSV
+- direct writes to canonical Household sources
 
 These are part of the engine contract. Changing them should be treated as a core design change, not an extension.
 
@@ -61,8 +61,8 @@ These extensions must be replaceable. Removing an extension must not make the ca
 
 Do not add extension points that:
 
-- reinterpret source TSV rows before BQN validation
-- change account roles or budget mapping from outside the source/config TSV contracts
+- reinterpret canonical source rows before BQN validation
+- change Account roles, stable Envelope identities, or historical routing outside their source owners
 - inject custom cycle logic into canonical reports
 - change Posting IR, TBDS, Cube axes, or layer meanings
 - make report correctness depend on a plugin being installed

@@ -5,7 +5,7 @@ Owner: editor
 Canonical: yes
 Exit: keep current while `tools/edit` and `tools/add-ui.sh` remain the daily write paths.
 
-BQN-Ledgerのcanonical Household rootにあるAccount / Actual / Plan / Budget JournalとIssuesを安全に表示・編集・完了処理するための、BQN製エディタ（`tools/edit` / `tools/edit-bqn`）および日常記帳UI（`tools/add-ui.sh`）の使い方説明書です。通常の入口は`tools/bl`です。
+BQN-Ledgerのcanonical Household rootにあるAccount / Actual / Plan / Entitlement sourceとIssuesを安全に表示・編集・完了処理するための、BQN製エディタ（`tools/edit` / `tools/edit-bqn`）および日常記帳UI（`tools/add-ui.sh`）の使い方説明書です。通常の入口は`tools/bl`です。
 
 ## 1. 基本コンセプト：秤（はかり）と手袋
 
@@ -36,7 +36,7 @@ BQN Editor は会計エンジンとしての計算（残高や封筒の残金計
 3.  **`multi` (複数ポスティング)**: 1取引につき3件以上の勘定と符号付き金額を入力します。費用などの増加は正、支払口座の減少は負とし、全Postingの合計をゼロにします（例: 費用600、費用150、支払口座-750）。canonical `actual.journal`へPosting orderを保って安全追記します。
 4.  **`move` (資金移動)**: 資産口座間の振替をcanonical `actual.journal`へ追記。
 5.  **`income` (収入)**: 収入元から資産口座への入金をcanonical `actual.journal`へ追記。
-6.  **`budget` (予算移動)**: Budget Account間の移動（例: `budget:unassigned` $\rightarrow$ `budget:daily`）をcanonical `budget.journal`へ追記します。memo候補は`config/ui_budget_memo_presets.tsv`で管理します。
+6.  **`budget` / `entitlement` (Entitlement transfer)**: `unallocated`またはcurrent `EnvelopeId`のEndpoint間を移動し、canonical `entitlement.journal`へ常に`transfer`行として追記します。`budget`はUI aliasです。memo候補は`config/ui_budget_memo_presets.tsv`で管理します。
 7.  **`plan-add` (予定の追加)**: 未来の支払い予定を `plan.journal` に安全追記。必要なら `series` を入力でき、`plan-id` は自動生成。
 8.  **`plan-edit` (予定の日付・金額修正)**: 未完了予定を選び、`date` / `amount` だけを差分プレビュー付きで修正。
 9.  **`plan-finish` (予定の実績化)**: `plan.journal` の予定をcanonical `actual.journal`へ `plan-id` 付き実績として追記し、必要なら次回予定も追加。
@@ -74,9 +74,9 @@ BQN Editor は会計エンジンとしての計算（残高や封筒の残金計
 ./tools/edit account add --name 'assets:PayPay' --role asset --type liquid
 ```
 
-`role` は `asset|liability|income|expense`、名前空間はそれぞれ `assets:|liabilities:|income:|expenses:` に一致する必要があります。重複、空の名前部分、矛盾する名前空間、asset以外への `type=`、未知のtypeは書き込み前に拒否されます。通常の追記と同様に `--dry-run`、`--yes`、`--post-check` を利用できます。
+`role` は `asset|liability|equity|income|expense`、名前空間はそれぞれ `assets:|liabilities:|equity:|income:|expenses:` に一致する必要があります。Budget roleはcanonical Account axisに存在しません。重複、空の名前部分、矛盾する名前空間、未知のroleは書き込み前に拒否されます。通常の追記と同様に `--dry-run`、`--yes`、`--post-check` を利用できます。
 
-### ジャーナル・予算の安全追記 (`journal add` / `journal reverse` / `budget add`)
+### Journal / Entitlement の安全追記 (`journal add` / `journal reverse` / `entitlement transfer`)
 ```bash
 # 支出の安全追記
 ./tools/edit journal add --date 2026-06-20 --memo "コンビニ" --from assets:cash --to expenses:food --amount 500
@@ -89,8 +89,12 @@ BQN Editor は会計エンジンとしての計算（残高や封筒の残金計
 ./tools/edit journal reverse --index 12 --date 2026-06-21
 ./tools/edit journal reverse --id txn-2026-06-20-super --date 2026-06-21
 
-# 予算配賦の安全追記
-./tools/edit budget add --date 2026-06-20 --memo "alloc" --from budget:unassigned --to budget:daily --amount 10000
+# Native Entitlement transfer（budget addは同じwriterへのUI alias）
+./tools/edit entitlement transfer --date 2026-06-20 --memo "allocation" \
+  --from unallocated --to daily --amount 10000
+
+# Commodity StockOrigin（Commodityごと0または1件）
+./tools/edit entitlement origin --date 2026-06-20 --currency JPY --memo "clean epoch"
 
 # 予定の安全追記（plan_id は未指定なら自動生成）
 ./tools/edit plan add --date 2026-06-24 --memo "google-one" --from assets:smbc --to expenses:AIサブスク --amount 1450 --meta series=google-one
@@ -231,13 +235,13 @@ Israel旅行中に友人がILSで立て替えた観測事実は、ordinary journ
 
 ## 5. BQN Editorが保証する安全書き込み機能
 
-書き込みを伴うコマンド（`account add`、`journal add`、`journal multi-add`、`journal reverse`、`travel friend add`、`travel exchange add`、`budget add`、`plan add`、`plan finish --apply`、`plan edit`、`issue add`）を実行する際、BQN Editorは以下の安全機構を自動で走らせます。
+書き込みを伴うコマンド（`account add`、`journal add`、`journal multi-add`、`journal reverse`、`travel friend add`、`travel exchange add`、`entitlement transfer/origin`、`plan add`、`plan finish --apply`、`plan edit`、`issue add`）を実行する際、BQN Editorは以下の安全機構を自動で走らせます。
 
 1.  **事前バリデーション**: canonical Account admission、日付、exact amount、Commodity、metadata、complete candidate sourceを構造検査します。
 2.  **プレビューと確認**: 追記または編集される正確なTSV行を画面に出力し、ユーザーが明示的に `y` または `yes` と入力しない限り書き込みません（`--yes` 指定時を除く）。
 3.  **自動バックアップ**: 置き換えを実行する直前に、対象ディレクトリ内の `.backup/YYYYMMDD-HHMMSS/<ファイル名>` にオリジナルデータを退避します。
 4.  **安全な置き換え**: 追記や編集はBashスクリプト連携で安全に行い、編集中にデータが破損しないように努めます。
-5.  **事後チェック (Post-write check)**: 書き込み直後に自動で確認を実行します。native Journalの既定 `--post-check lint` は`src_edit/journal_validate_cmd.bqn`でexplicit config、strict Accounts、configured Journal、canonical Transaction rowsだけをfail closedに検査します。Plan/Budget/report contextはJournal writeのpost-checkへ含めません。`--post-check full` は別の広い検証modeとして `./tools/check.sh` を実行します。Journal post-check失敗時は、post-write digestが一致する場合だけbackupからoriginal bytesへ自動rollbackし、後続writerが変更した場合はrollbackを拒否してrecovery-requiredを表示します。
+5.  **事後チェック (Post-write check)**: 書き込み直後に自動で確認を実行します。native Journalの既定 `--post-check lint` は`src_edit/journal_validate_cmd.bqn`でstrict Accountsとcanonical Transaction rowsをfail closedに検査します。Plan/Entitlement/report contextはJournal writeのpost-checkへ含めません。Entitlement writerはproposed `entitlement.journal`全体とcanonical Householdを再admitします。`--post-check full` は別の広い検証modeとして `./tools/check.sh` を実行します。失敗時はpost-write digestが一致する場合だけbackupからoriginal bytesへ自動rollbackし、後続writerが変更した場合はrollbackを拒否してrecovery-requiredを表示します。
 
 ---
 

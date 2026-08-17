@@ -9,7 +9,7 @@ This experiment prepares a stable bundle of household-ledger material that an AI
 The first goal is not to make the BQN engine draw arbitrary art. The first goal is to preserve meaning and provenance while giving a renderer enough material to create a changing scene.
 
 ```text
-accounting source TSVs
+canonical Household sources
   -> existing BQN interpretation
   -> structured section exports + selected human sections
                                       \
@@ -23,7 +23,7 @@ Different meanings remain different.
 
 - `actual.journal` remains the Actual household-event source.
 - `plan.journal` remains future expected events.
-- `budget.journal` remains ordered Budget movement evidence; `budget.toml` remains policy.
+- `entitlement.journal` remains native StockOrigin/Transfer evidence; `envelope.toml` remains current Envelope/Backing policy.
 - issues remain unresolved/decision-tracking material.
 - weather is external context.
 - the ASCII garden is a derived presentation.

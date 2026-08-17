@@ -6,7 +6,7 @@ Canonical: no; canonical path: `docs/ENGINEERING_ROADMAP.md`
 Exit: archive when the currency-awareness campaign closes or when a current currency contract replaces this plan
 Date: 2026-07-08
 
-Source-model note: legacy TSV references below are historical campaign evidence, not current runtime instructions. Current Household ingress uses canonical Journals, including `plan.journal` and `budget.journal`.
+Source-model note: legacy TSV references below are historical campaign evidence, not current runtime instructions. Current Household ingress uses `plan.journal` plus native `entitlement.journal`; Entitlement is not an Account Journal.
 
 ## Purpose
 

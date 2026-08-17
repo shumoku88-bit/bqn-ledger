@@ -9,7 +9,7 @@ Baseline reviewed: `main` at `399088cb480031ce085ec3b1223d2733119852e0`
 
 The only Household runtime authority in this matrix is:
 
-`accounts.journal`, `actual.journal`, `plan.journal`, `budget.journal`, `budget.toml`, `household.toml`, `report.toml`, and `issues.tsv`.
+`accounts.journal`, `actual.journal`, `plan.journal`, `entitlement.journal`, `envelope.toml`, `household.toml`, `report.toml`, and `issues.tsv`.
 
 Repository `config/currencies.tsv` is application configuration, not a ninth Household source. Historical TSV and travel-event files are evidence only and are not Command Hub fallback inputs.
 
@@ -41,7 +41,7 @@ Classification numbers mean:
 | Destructive Journal edit/delete | historical write-scope plans classify it candidate/forbidden; no implemented daily owner | none | none | intentionally absent | no | n/a | n/a | 6 | no | correction remains reverse/compensating entry |
 | Account list and filters | `check-edit-bqn-account-list.sh` | editor Account export | `src_edit/account_list_cmd.bqn` | usable but hidden | yes, Accounts | yes | yes, read trial | 3 | yes | expose list; retain role/currency options for direct CLI |
 | Account add | Account writer checks; PR #564/#571 | editor Account append | canonical Account writer through `tools/add-ui.sh` | usable | yes, Accounts | yes | yes, disposable copy | 2 | yes | expose selection UI; no debt-specific semantics |
-| Budget movement | Budget writer series #569/#570 and focused checks | Budget editor | `tools/budget-write` + BQN candidate owner | usable | yes, Budget | yes | yes, disposable copy | 2 | yes | expose named route |
+| Entitlement StockOrigin / transfer | native Entitlement law and writer checks | Entitlement editor | `tools/entitlement-write` + BQN candidate/admission owners | usable | yes, Budget/Entitlement UI | yes | public disposable fixtures | 1 | no | keep native Endpoint writer; Budget is UI vocabulary only |
 | Issue list | issue tracker plan and `check-edit-bqn-issue-close.sh` | issue editor | `src_edit/issue_list_cmd.bqn` | usable but hidden | yes, Issues | yes | yes, read trial | 3 | yes | expose separately from report |
 | Issue add / close | issue editor checks | issue editor safe append/replace | `tools/lib/edit-bqn-issue.sh` via add UI | usable | yes, Issues | yes | yes, disposable copy | 2 | yes | expose lifecycle routes and selection |
 

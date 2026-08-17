@@ -16,7 +16,7 @@ They are separate retained reports because position at an instant and performanc
 
 ## Inputs and ownership
 
-Both reports consume strict canonical Actual Transaction/Posting Facts for one currency domain. They do not read Plan, Budget allocation, Issues, Daily Target policy, a clock, or inferred Account-name prefixes.
+Both reports consume strict canonical Actual Transaction/Posting Facts for one currency domain. They do not read Plan, Entitlement, Envelope policy/history, Issues, Daily Target policy, a clock, or inferred Account-name prefixes.
 
 Account classification comes only from admitted Account `role` metadata:
 
@@ -25,7 +25,7 @@ Balance Sheet      asset | liability | equity
 Profit and Loss    income | expense
 ```
 
-`role=budget` is not a financial-statement class. A nonzero Actual balance in any unsupported role makes Balance Sheet unavailable with an error rather than silently disappearing from the equation.
+Canonical Account admission permits only Asset, Liability, Equity, Income, and Expense roles. A synthetic/noncanonical Fact with a nonzero unsupported role makes Balance Sheet unavailable rather than silently disappearing from the equation.
 
 All arithmetic uses exact coefficient/scale operations. Account rows and derived totals retain source-qualified Posting contributors.
 
@@ -43,7 +43,7 @@ net income     = total income - total expenses
 
 A debit to an income Account or credit to an expense Account therefore remains visible as a negative amount rather than being reclassified by Account name or counterpart inference.
 
-The current report is human-only. It has no Budget/Actual comparison, monthly columns, ratios, tax adjustment, or retained-earnings transfer.
+The current report is human-only. It has no Envelope/Actual comparison, monthly columns, ratios, tax adjustment, or retained-earnings transfer.
 
 ## Balance Sheet contract
 

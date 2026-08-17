@@ -11,7 +11,7 @@ This document selects the next narrow Stage 2 meaning after a concrete consumer 
 
 This slice is docs-only. It does not authorize runtime, test, fixture, source TSV, metadata schema, editor, or report changes.
 
-Source-model note: TSV references below are historical stage evidence, not current runtime instructions. Current Plan and Budget ingress are `plan.journal` and `budget.journal`.
+Source-model note: TSV references below are historical stage evidence, not current runtime instructions. Current Plan ingress is `plan.journal`; native Envelope Entitlement ingress is `entitlement.journal`.
 
 ## 1. Question
 

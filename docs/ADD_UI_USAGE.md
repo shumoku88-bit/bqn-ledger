@@ -5,7 +5,7 @@ Owner: editor / UI
 Canonical: yes
 Exit: revise while `tools/add-ui.sh` remains the Command Hub action UI
 
-通常利用は `tools/bl --base <household-root>` から始めます。`tools/add-ui.sh` は Command Hub のRecord / Plan / Budget / Account / Issue操作が開く日常入力UIです。
+通常利用は `tools/bl --base <household-root>` から始めます。`tools/add-ui.sh` は Command Hub のRecord / Plan / Entitlement / Account / Issue操作が開く日常入力UIです。画面上の「Budget」はnative Entitlement transferを選ぶUI語彙です。
 
 fzf / gum / 番号選択で項目を選び、最後の追記だけを BQN editor (`tools/edit`) に委譲します。通常利用では `tools/edit-bqn` と shell safe-write が裏で動きます。
 
@@ -43,10 +43,10 @@ tools/add-ui.sh --check
 | `multi` | 1取引に3件以上のポスティングを入力 | `actual.journal` | `tools/edit journal multi-add` |
 | `move` | 資金移動 (`assets:` → `assets:`) | `actual.journal` | `tools/edit journal add` |
 | `income` | 収入 (`income:` → `assets:`) | `actual.journal` | `tools/edit journal add` |
-| `budget` | Budget movement | `budget.journal` | `tools/edit budget add` |
+| `budget` / `entitlement` | Endpoint間のEntitlement transfer | `entitlement.journal` | `tools/edit entitlement transfer`（`budget add`はUI alias） |
 | `plan-add` | 予定の追加 | `plan.journal` | `tools/edit plan add` |
 | `plan-edit` | 予定の日付・金額修正 | `plan.journal` | `tools/edit plan edit` |
-| `plan-finish` | 予定の実績化・Budget連携・任意の次回補充 | `actual.journal`, 必要時 `budget.journal` / `plan.journal` | qualified Plan workflow |
+| `plan-finish` | 予定の実績化・任意の次回補充 | `actual.journal`, 必要時 `plan.journal` | qualified Plan workflow |
 | `reverse` | 仕訳取消（反対仕訳追記） | `actual.journal` | `tools/edit journal reverse` |
 | `issue` | Issues & Decisions の追加 | `issues.tsv` | `tools/edit issue add` |
 | `issue-close` | Issues & Decisions を閉じる | `issues.tsv` | `tools/edit issue close` |
@@ -98,14 +98,14 @@ tools/edit journal add \
   --amount 1200
 ```
 
-予算配賦:
+Entitlement配賦:
 
 ```sh
-tools/edit budget add \
+tools/edit entitlement transfer \
   --date 2026-06-19 \
-  --memo alloc \
-  --from "budget:未配分" \
-  --to "budget:食費" \
+  --memo allocation \
+  --from unallocated \
+  --to food \
   --amount 3000
 ```
 
@@ -138,7 +138,9 @@ tools/edit journal add \
 
 ## 注意
 
-- Budget movement の source of truth は `budget.journal` です。`budget.toml` は policy であり transaction store ではありません。
+- Entitlementのsource of truthは`entitlement.journal`です。source行は`origin`または`transfer`だけで、`alloc` / `move` / `release`はUI表示語彙です。
+- Endpointは`unallocated`またはstable `EnvelopeId`です。Entitlement writerは任意`--meta`を受け取らず、memoだけをsource provenanceとして保存します。
+- Current Envelope / Backing policyは`envelope.toml`、stable identityとhistorical routingは`household.toml`が所有します。
 - `tools/add-ui.sh --check` は read-only preflight です。入力UIが壊れていないか先に確認できます。
 - `tools/add-ui.sh <mode>` は mode selector をスキップするだけです。unknown mode は usage を表示して nonzero で終了します。
 - `tools/add-ui.sh` は承認済み範囲の single-file append だけを行います。

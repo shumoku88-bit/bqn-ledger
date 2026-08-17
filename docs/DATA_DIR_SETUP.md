@@ -26,14 +26,14 @@ A usable Household root contains exactly these physical owners:
 accounts.journal
 actual.journal
 plan.journal
-budget.journal
-budget.toml
+entitlement.journal
+envelope.toml
 household.toml
 report.toml
 issues.tsv
 ```
 
-There is no Budget or Actual TSV route, fallback, or dual write. `budget.journal` owns movements; `budget.toml` owns Budget policy.
+There is no Budget source fallback, dual source, or Account-to-Envelope adapter. `entitlement.journal` owns explicit StockOrigin and native Endpoint transfers; `envelope.toml` owns current Envelope and Backing policy.
 
 For `tools/bl`, the effective base directory is resolved with explicit intent winning over defaults:
 

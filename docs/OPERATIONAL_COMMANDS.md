@@ -23,9 +23,9 @@ The command requires and strictly admits the canonical eight-file source set:
 - `accounts.journal` for Account identity/type/default Commodity;
 - `actual.journal` for Actual transactions and relations;
 - `plan.journal` for Plan transactions and lifecycle evidence;
-- `budget.journal` for ordered Budget movement evidence;
-- `budget.toml` for Budget policy;
-- `household.toml` for Household classification, Cycle, and Daily Target policy;
+- `entitlement.journal` for explicit StockOrigin and native Envelope Endpoint transfers;
+- `envelope.toml` for current Envelope membership/presentation and Backing policy;
+- `household.toml` for stable Envelope identities, historical routing, Cycle, money, and Daily Target policy;
 - `report.toml` for Report query and presentation policy;
 - `issues.tsv` for the Household notebook.
 

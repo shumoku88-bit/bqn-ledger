@@ -18,8 +18,8 @@ The production Household root has exactly eight physical sources:
 accounts.journal
 actual.journal
 plan.journal
-budget.journal
-budget.toml
+entitlement.journal
+envelope.toml
 household.toml
 report.toml
 issues.tsv
@@ -32,7 +32,7 @@ The repository-owned `config/currencies.tsv` is application configuration, not p
 ## Ownership
 
 - `src/application/` — canonical source I/O adapters, typed policy loading, current-request composition, readiness and inspection CLIs.
-- `src/ledger/` — Account, Journal, Plan, Budget, Issues, currency, exact-decimal admission, Transaction/Posting Facts, and provenance.
+- `src/ledger/` — Account, Journal, Plan, Entitlement, Envelope policy/history, Issues, currency, exact-decimal admission, Transaction/Posting Facts, and provenance.
 - `src/accounting/` — period balances, grouping/pivot, cycle resolution/comparison, Plan completion, Envelope backing, Daily Target, and recent transactions.
 - `src/sections/` — the twelve retained report results and human/compact/JSON renderers.
 - `src/report/` — final catalog/order/surfaces, request validation, result dispatch, metadata, and text/JSON primitives.
@@ -43,11 +43,13 @@ Canonical ownership is:
 - Account identity, accounting type, and optional default Commodity: `accounts.journal`;
 - Actual Transaction/Posting evidence and relations: `actual.journal`;
 - Plan Transaction/Posting evidence, schedule, recurrence, and lifecycle relations: `plan.journal`;
-- admitted source-ordered Budget movement relation: `budget.journal`;
-- Budget policy: `budget.toml`;
-- Household classification, Cycle, and Daily Target policy: `household.toml`;
+- explicit Commodity StockOrigin and source-ordered native Endpoint transfers: `entitlement.journal`;
+- current Envelope membership/presentation and Backing policy: `envelope.toml`;
+- stable Envelope identities, historical Expense/Fulfillment routing, Cycle, money, and Daily Target policy: `household.toml`;
 - report query defaults and presentation policy: `report.toml`;
 - non-accounting Household notebook: `issues.tsv`.
+
+`unallocated` is an Entitlement boundary endpoint, not an Account or stored balance. Entitlement admission depends on the stable Envelope identity universe, not the Account registry. Current Envelope membership never reconstructs historical routing.
 
 No report section reads files or the clock. No accounting capability imports a section or composition owner. Native multi-posting transactions remain first-class and are never flattened into two-account compatibility rows.
 
