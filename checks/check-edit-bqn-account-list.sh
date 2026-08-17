@@ -41,7 +41,7 @@ if [[ -n "$actual_missing_role" ]]; then
 fi
 
 actual_all="$(./tools/edit --base "$list_base" account list)"
-for account in 'Assets:Bank' 'Equity:Opening' 'Income:Salary' 'Expenses:Groceries' 'Budget:Opening' 'Budget:Unassigned' 'Budget:Daily'; do
+for account in 'Assets:Bank' 'Equity:Opening' 'Income:Salary' 'Expenses:Groceries'; do
   if ! grep -Fxq "$account" <<< "$actual_all"; then
     echo "FAIL: canonical account list missing $account" >&2
     printf '%s\n' "$actual_all" >&2
@@ -50,7 +50,7 @@ for account in 'Assets:Bank' 'Equity:Opening' 'Income:Salary' 'Expenses:Grocerie
 done
 
 preferred_expense="$(./tools/edit --base "$list_base" account list --prefer-role expense)"
-expected_preferred_expense=$'Expenses:Groceries\nAssets:Bank\nEquity:Opening\nIncome:Salary\nBudget:Opening\nBudget:Unassigned\nBudget:Daily'
+expected_preferred_expense=$'Expenses:Groceries\nAssets:Bank\nEquity:Opening\nIncome:Salary'
 if [[ "$preferred_expense" != "$expected_preferred_expense" ]]; then
   echo "FAIL: canonical account list --prefer-role expense must stably place expenses first" >&2
   printf '%s\n' "$preferred_expense" >&2

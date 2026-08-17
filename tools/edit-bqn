@@ -2,7 +2,7 @@
 # tools/edit-bqn — BQN-backed editor entry point.
 #
 # Current scope: daily commands (`account add/list`, `journal add/list/cleanup-plan/cleanup-apply/reverse`,
-# `budget add`, `issue add/list/close`, and `plan list/related`),
+# `entitlement transfer/origin`, `issue add/list/close`, and `plan list/related`),
 # the separate explicit-path `journal-block add`, and dedicated travel source-event commands.
 # `tools/edit` is the public wrapper that delegates here.
 #
@@ -34,11 +34,13 @@ Usage:
   tools/edit-bqn [--base DIR] journal-block add [--identity ordinary|durable] --journal-file FILE --date YYYY-MM-DD --description DESCRIPTION [--event-id EVENT_ID] [--currency CODE] --posting ACCOUNT=SIGNED_DECIMAL --posting ACCOUNT=SIGNED_DECIMAL [--posting ACCOUNT=SIGNED_DECIMAL ...] [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] journal add --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount DECIMAL [--currency CODE] [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] journal multi-add --date YYYY-MM-DD --description DESCRIPTION [--currency CODE] --posting ACCOUNT=SIGNED_DECIMAL --posting ACCOUNT=SIGNED_DECIMAL [--posting ACCOUNT=SIGNED_DECIMAL ...] [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
-  tools/edit-bqn [--base DIR] budget add  --date YYYY-MM-DD --memo MEMO --from ACCOUNT --to ACCOUNT --amount DECIMAL [--currency CODE] [--meta key=value ...] [--dry-run] [--yes] [--post-check none|lint|full]
+  tools/edit-bqn [--base DIR] entitlement transfer --date YYYY-MM-DD --memo MEMO --from unallocated|ENVELOPE_ID --to unallocated|ENVELOPE_ID --amount DECIMAL [--currency CODE] [--dry-run] [--yes] [--post-check none|lint|full]
+  tools/edit-bqn [--base DIR] entitlement origin --date YYYY-MM-DD --currency CODE [--memo MEMO] [--dry-run] [--yes] [--post-check none|lint|full]
+  tools/edit-bqn [--base DIR] budget add --date YYYY-MM-DD --memo MEMO --from unallocated|ENVELOPE_ID --to unallocated|ENVELOPE_ID --amount DECIMAL [--currency CODE] [--dry-run] [--yes] [--post-check none|lint|full]  # UI alias
   tools/edit-bqn [--base DIR] issue add [--date YYYY-MM-DD] [--status open|resolved|dropped] --title TITLE [--amount INT] [--memo MEMO] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] issue list [--format tsv|text]
   tools/edit-bqn [--base DIR] issue close --index NUMBER [--status resolved|dropped] --decision MEMO [--dry-run] [--yes] [--post-check none|lint|full]
-  tools/edit-bqn [--base DIR] account add --name ACCOUNT --role asset|liability|income|expense [--type liquid|savings|invest] [--currency CODE] [--dry-run] [--yes] [--post-check none|lint|full]
+  tools/edit-bqn [--base DIR] account add --name ACCOUNT --role asset|liability|equity|income|expense [--currency CODE] [--dry-run] [--yes] [--post-check none|lint|full]
   tools/edit-bqn [--base DIR] account list [--role ROLE] [--currency CODE] [--prefer-role ROLE]
   tools/edit-bqn [--base DIR] journal list [--format tsv|text]
   tools/edit-bqn [--base DIR] journal canonical-surface-plan [--format tsv|text]
@@ -53,7 +55,7 @@ Usage:
   tools/edit-bqn [--base DIR] travel friend add --date YYYY-MM-DD --party PARTY --item ITEM --amount DECIMAL --currency ILS --payer friend --trip-id israel-2026 --source-event-id ID [--dry-run] [--yes]
   tools/edit-bqn [--base DIR] travel exchange add --date YYYY-MM-DD --memo MEMO --source-account ACCOUNT --source-amount AMOUNT --source-currency JPY|ILS --target-account ACCOUNT --target-amount AMOUNT --target-currency ILS|JPY --exchange-id ID --trip-id israel-2026 [--dry-run] [--yes]
 
-Current scope: BQN editor daily commands (account add/list, journal add/multi-add, budget add, issue add/list/close, explicit-path journal-block add, travel friend/exchange add, journal list/cleanup-plan/cleanup-apply/reverse, and plan list/related).
+Current scope: BQN editor daily commands (account add/list, journal add/multi-add, Entitlement transfer/origin, issue add/list/close, explicit-path journal-block add, travel friend/exchange add, journal list/cleanup-plan/cleanup-apply/reverse, and plan list/related).
 USAGE
 }
 
@@ -82,10 +84,10 @@ if [[ $# -lt 2 ]]; then
   exit 2
 fi
 
-# Direct Budget Add callers enter the same canonical writer used by the public
-# tools/edit route; Plan completion has no Budget publication branch.
-if [[ "$1" == "budget" && "$2" == "add" ]]; then
-  exec bash "$ROOT_DIR/tools/budget-write" --base "$BASE_DIR" "$@"
+if [[ ( "$1" == "entitlement" && ( "$2" == "transfer" || "$2" == "origin" || "$2" == "add" ) ) || \
+      ( "$1" == "budget" && ( "$2" == "add" || "$2" == "move" ) ) || \
+      ( "$1" == "envelope" && ( "$2" == "transfer" || "$2" == "origin" ) ) ]]; then
+  exec bash "$ROOT_DIR/tools/entitlement-write" --base "$BASE_DIR" "$@"
 fi
 
 if [[ "$1" == "travel" && "$2" == "friend" && "${3-}" == "add" ]]; then
@@ -668,7 +670,7 @@ if [[ "$1" == "issue" && "$2" == "close" ]]; then
 fi
 
 if [[ "$2" != "add" ]]; then
-  echo "ERROR: tools/edit-bqn currently supports only: account list, journal add/multi-add, journal list, journal reverse, budget add, issue add/list/close, plan list and plan related" >&2
+  echo "ERROR: tools/edit-bqn currently supports only: account list/add, journal commands, Entitlement transfer/origin, issue commands, and Plan commands" >&2
   usage
   exit 2
 fi
@@ -685,7 +687,7 @@ case "$COMMAND" in
     ROW_TITLE="Issue row"
     ;;
   *)
-    echo "ERROR: tools/edit-bqn currently supports only: account list, journal add/multi-add, journal list, journal reverse, budget add, issue add/list/close, plan list and plan related" >&2
+    echo "ERROR: tools/edit-bqn currently supports only: account list/add, journal commands, Entitlement transfer/origin, issue commands, and Plan commands" >&2
     usage
     exit 2
     ;;

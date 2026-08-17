@@ -11,7 +11,8 @@ fi
 # Commands that observe currency policy must do so through the application owner.
 # Pure validate.bqn is intentionally absent: callers pass an already-admitted policy.
 for file in \
-  src_edit/account_add_cmd.bqn src_edit/budget_add_cmd.bqn \
+  src_edit/account_add_cmd.bqn src_edit/entitlement_add_cmd.bqn \
+  src_edit/entitlement_origin_cmd.bqn src_edit/entitlement_validate_cmd.bqn \
   src_edit/journal_block_add_cmd.bqn src_edit/journal_native_source_check.bqn \
   src_edit/plan_add_cmd.bqn src_edit/plan_edit_cmd.bqn \
   src_edit/plan_finish_cmd.bqn; do

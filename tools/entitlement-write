@@ -10,10 +10,10 @@ source "$ROOT_DIR/tools/lib/safe-write.sh"
 source "$ROOT_DIR/tools/lib/edit-bqn-common.sh"
 
 BASE_DIR="${LEDGER_DATA_DIR:-$(get_default_base_dir)}"
-TARGET_FILE="budget.journal"
+TARGET_FILE="entitlement.journal"
 CANONICAL_FILES=(
-  accounts.journal actual.journal plan.journal budget.journal
-  budget.toml household.toml report.toml issues.tsv
+  accounts.journal actual.journal plan.journal entitlement.journal
+  envelope.toml household.toml report.toml issues.tsv
 )
 
 args=()
@@ -28,14 +28,23 @@ while [[ $# -gt 0 ]]; do
 done
 set -- "${args[@]}"
 
-if [[ "${1-}" != "budget" || "${2-}" != "add" ]]; then
-  echo 'ERROR: tools/budget-write handles only: budget add' >&2
+SUBCOMMAND=""
+if [[ "${1-}" == "entitlement" && ( "${2-}" == "transfer" || "${2-}" == "add" ) ]] || \
+   [[ "${1-}" == "budget" && ( "${2-}" == "add" || "${2-}" == "move" ) ]] || \
+   [[ "${1-}" == "envelope" && "${2-}" == "transfer" ]]; then
+  SUBCOMMAND="transfer"
+  shift 2
+elif [[ "${1-}" == "entitlement" && "${2-}" == "origin" ]] || \
+     [[ "${1-}" == "envelope" && "${2-}" == "origin" ]]; then
+  SUBCOMMAND="origin"
+  shift 2
+else
+  echo 'ERROR: tools/entitlement-write handles: entitlement transfer|origin' >&2
   exit 2
 fi
-shift 2
 
 DATE=""; MEMO=""; FROM=""; TO=""; AMOUNT=""; CURRENCY=""
-META=(); DRY_RUN=0; YES=0; POST_CHECK="lint"
+DRY_RUN=0; YES=0; POST_CHECK="lint"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --date) DATE="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
@@ -44,11 +53,10 @@ while [[ $# -gt 0 ]]; do
     --to) TO="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
     --amount) AMOUNT="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
     --currency) CURRENCY="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
-    --meta) META+=("$(get_opt_val "$1" "${2-}")"); shift 2 ;;
     --dry-run) DRY_RUN=1; shift ;;
     --yes) YES=1; shift ;;
     --post-check) POST_CHECK="$(get_opt_val "$1" "${2-}")"; shift 2 ;;
-    *) echo "ERROR: unknown Budget write option: $1" >&2; exit 2 ;;
+    *) echo "ERROR: unknown Entitlement write option: $1" >&2; exit 2 ;;
   esac
 done
 edit_bqn_validate_post_check "$POST_CHECK"
@@ -71,10 +79,10 @@ for file in "${CANONICAL_FILES[@]}"; do
   HOUSEHOLD_SHA+=("$sha")
 done
 
-budget_index=3
-SNAP_SIZE="${HOUSEHOLD_SIZE[$budget_index]}"
-SNAP_MTIME="${HOUSEHOLD_MTIME[$budget_index]}"
-SNAP_SHA256="${HOUSEHOLD_SHA[$budget_index]}"
+entitlement_index=3
+SNAP_SIZE="${HOUSEHOLD_SIZE[$entitlement_index]}"
+SNAP_MTIME="${HOUSEHOLD_MTIME[$entitlement_index]}"
+SNAP_SHA256="${HOUSEHOLD_SHA[$entitlement_index]}"
 
 fence_initial_household() {
   local i file path
@@ -86,10 +94,10 @@ fence_initial_household() {
   done
 }
 
-fence_nonbudget_household() {
+fence_nonentitlement_household() {
   local i file path
   for i in "${!CANONICAL_FILES[@]}"; do
-    [[ "$i" -eq "$budget_index" ]] && continue
+    [[ "$i" -eq "$entitlement_index" ]] && continue
     file="${CANONICAL_FILES[$i]}"
     path="$CANONICAL_BASE/$file"
     _safe_write_check_expected_snapshot \
@@ -104,7 +112,12 @@ fence_initial_household
 BQN_STDERR="$(mktemp)"
 trap 'rm -f "$BQN_STDERR"' EXIT
 BQN_OUT=""
-BQN_COMMAND=(bqn src_edit/budget_add_cmd.bqn "$CANONICAL_BASE" "$DATE" "$MEMO" "$FROM" "$TO" "$AMOUNT" "$CURRENCY" "${META[@]}")
+if [[ "$SUBCOMMAND" == "transfer" ]]; then
+  BQN_COMMAND=(bqn src_edit/entitlement_add_cmd.bqn "$CANONICAL_BASE" "$DATE" "$MEMO" "$FROM" "$TO" "$AMOUNT" "$CURRENCY")
+else
+  BQN_COMMAND=(bqn src_edit/entitlement_origin_cmd.bqn "$CANONICAL_BASE" "$DATE" "$MEMO" "$CURRENCY")
+fi
+
 if ! BQN_OUT="$(cd "$ROOT_DIR" && "${BQN_COMMAND[@]}" 2>"$BQN_STDERR")"; then
   [[ -n "$BQN_OUT" ]] && printf '%s\n' "$BQN_OUT" >&2
   [[ -s "$BQN_STDERR" ]] && cat "$BQN_STDERR" >&2
@@ -116,11 +129,11 @@ PAYLOAD="$EDIT_BQN_PROTOCOL_PAYLOAD"
 fence_initial_household
 
 MODE="$(edit_bqn_mode "$DRY_RUN" "$YES")"
-printf 'Budget movement append preview\n'
+printf 'Entitlement %s append preview\n' "$SUBCOMMAND"
 printf 'Target: %s\n' "$TARGET_PATH"
 printf 'Mode: %s\n' "$MODE"
 printf 'Post-check: %s\n' "$POST_CHECK"
-printf 'Budget transaction:\n%s\n' "$PAYLOAD"
+printf 'Entitlement line:\n%s\n' "$PAYLOAD"
 if [[ "$DRY_RUN" -eq 1 ]]; then
   printf 'Dry-run only. No files were modified.\n'
   exit 0
@@ -130,7 +143,7 @@ if [[ "$YES" -eq 0 ]] && ! confirm_append; then
   exit 0
 fi
 
-edit_bqn_run_test_hook EDIT_BQN_TEST_BEFORE_BUDGET_APPEND_HOOK
+edit_bqn_run_test_hook EDIT_BQN_TEST_BEFORE_ENTITLEMENT_APPEND_HOOK
 fence_initial_household
 WRITE_OUT=""
 if ! WRITE_OUT="$(safe_append_checked "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$SNAP_MTIME" "$SNAP_SHA256")"; then
@@ -138,7 +151,7 @@ if ! WRITE_OUT="$(safe_append_checked "$TARGET_PATH" "$PAYLOAD" "$SNAP_SIZE" "$S
 fi
 printf '%s\n' "$WRITE_OUT"
 BACKUP_PATH="$(awk -F': ' '$1 == "Backup" {print $2}' <<< "$WRITE_OUT")"
-[[ -f "$BACKUP_PATH" ]] || { echo 'ERROR: checked Budget append did not report one backup' >&2; exit 1; }
+[[ -f "$BACKUP_PATH" ]] || { echo 'ERROR: checked Entitlement append did not report one backup' >&2; exit 1; }
 POST_WRITE_SHA="$(_safe_write_sha256 "$TARGET_PATH")"
 
 append_mandatory_output() {
@@ -151,17 +164,17 @@ append_mandatory_output() {
 MANDATORY_OK=1
 MANDATORY_OUT=""
 STEP_OUT=""
-if ! fence_nonbudget_household; then
+if ! fence_nonentitlement_household; then
   MANDATORY_OK=0
-  append_mandatory_output 'canonical Household source changed during Budget publication'
+  append_mandatory_output 'canonical Household source changed during Entitlement publication'
 fi
-if [[ "$MANDATORY_OK" -eq 1 && "${BQN_LEDGER_TEST_MODE:-}" == "1" && "${EDIT_BQN_TEST_FORCE_BUDGET_POST_CHECK_FAIL:-}" == "1" ]]; then
+if [[ "$MANDATORY_OK" -eq 1 && "${BQN_LEDGER_TEST_MODE:-}" == "1" && "${EDIT_BQN_TEST_FORCE_ENTITLEMENT_POST_CHECK_FAIL:-}" == "1" ]]; then
   MANDATORY_OK=0
-  append_mandatory_output 'forced canonical Budget post-admission failure'
+  append_mandatory_output 'forced canonical Entitlement post-admission failure'
 fi
 if [[ "$MANDATORY_OK" -eq 1 ]]; then
   STEP_OUT=""
-  if ! STEP_OUT="$(cd "$ROOT_DIR" && bqn src_edit/budget_validate_cmd.bqn "$CANONICAL_BASE" 2>&1)"; then
+  if ! STEP_OUT="$(cd "$ROOT_DIR" && bqn src_edit/entitlement_validate_cmd.bqn "$CANONICAL_BASE" 2>&1)"; then
     MANDATORY_OK=0
   fi
   append_mandatory_output "$STEP_OUT"
@@ -173,19 +186,19 @@ if [[ "$MANDATORY_OK" -eq 1 ]]; then
   fi
   append_mandatory_output "$STEP_OUT"
 fi
-if [[ "$MANDATORY_OK" -eq 1 ]] && ! fence_nonbudget_household; then
+if [[ "$MANDATORY_OK" -eq 1 ]] && ! fence_nonentitlement_household; then
   MANDATORY_OK=0
-  append_mandatory_output 'canonical Household source changed before Budget validation finished'
+  append_mandatory_output 'canonical Household source changed before Entitlement validation finished'
 fi
 if [[ "$MANDATORY_OK" -eq 1 && "$(_safe_write_sha256 "$TARGET_PATH")" != "$POST_WRITE_SHA" ]]; then
   MANDATORY_OK=0
-  append_mandatory_output 'Budget source changed after canonical validation'
+  append_mandatory_output 'Entitlement source changed after canonical validation'
 fi
 
 if [[ "$MANDATORY_OK" -eq 1 ]]; then
-  printf 'Mandatory Budget validation: OK\n%s\n' "$MANDATORY_OUT"
+  printf 'Mandatory Entitlement validation: OK\n%s\n' "$MANDATORY_OUT"
 else
-  printf 'Mandatory Budget validation: FAILED\n%s\n' "$MANDATORY_OUT" >&2
+  printf 'Mandatory Entitlement validation: FAILED\n%s\n' "$MANDATORY_OUT" >&2
 fi
 
 OPTIONAL_OK=1
@@ -200,13 +213,13 @@ elif [[ "$MANDATORY_OK" -eq 1 ]]; then
   printf 'Additional check: none (%s mode)\n' "$POST_CHECK"
 fi
 
-if [[ "$MANDATORY_OK" -eq 1 && "$OPTIONAL_OK" -eq 1 ]] && ! fence_nonbudget_household; then
+if [[ "$MANDATORY_OK" -eq 1 && "$OPTIONAL_OK" -eq 1 ]] && ! fence_nonentitlement_household; then
   MANDATORY_OK=0
-  append_mandatory_output 'canonical Household source changed before Budget publication returned'
+  append_mandatory_output 'canonical Household source changed before Entitlement publication returned'
 fi
 if [[ "$MANDATORY_OK" -eq 1 && "$OPTIONAL_OK" -eq 1 && "$(_safe_write_sha256 "$TARGET_PATH")" != "$POST_WRITE_SHA" ]]; then
   MANDATORY_OK=0
-  append_mandatory_output 'Budget source changed before publication returned'
+  append_mandatory_output 'Entitlement source changed before publication returned'
 fi
 if [[ "$MANDATORY_OK" -eq 1 && "$OPTIONAL_OK" -eq 1 ]]; then
   exit 0
@@ -218,7 +231,7 @@ if safe_restore_backup_checked "$TARGET_PATH" "$BACKUP_PATH" "$POST_WRITE_SHA"; 
     echo 'Rollback: restore digest mismatch; recovery required' >&2
     exit 1
   fi
-  echo 'Rollback: restored original Budget bytes' >&2
+  echo 'Rollback: restored original Entitlement bytes' >&2
   exit 1
 fi
 echo 'Rollback: refused; target changed after append; recovery required' >&2
