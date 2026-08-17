@@ -13,15 +13,3 @@ account Income:Salary
 account Expenses:Groceries
   type: Expense
   commodity: JPY
-
-account Budget:Opening
-  type: Budget
-  commodity: JPY
-
-account Budget:Unassigned
-  type: Budget
-  commodity: JPY
-
-account Budget:Daily
-  type: Budget
-  commodity: JPY

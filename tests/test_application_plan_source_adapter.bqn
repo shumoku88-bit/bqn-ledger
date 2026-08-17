@@ -18,7 +18,7 @@ result ← adapter.Load ⟨base,registryResult.registry⟩
 0 lib.AssertEq ≠result.diagnostics
 2 lib.AssertEq result.facts.transactions.count
 4 lib.AssertEq result.facts.postings.count
-7 lib.AssertEq result.facts.accounts.count
+4 lib.AssertEq result.facts.accounts.count
 1 lib.AssertEq result.facts.domains.count
 ⟨"JPY"⟩ lib.AssertEq result.facts.domains.code
 ⟨"plan"⟩ lib.AssertEq result.facts.layers.name
@@ -27,7 +27,7 @@ result ← adapter.Load ⟨base,registryResult.registry⟩
 ⟨"durable_relation","durable_relation"⟩ lib.AssertEq result.facts.transactions.identity_kind
 ⟨"plan.journal:plan_id:plan-groceries","plan.journal:plan_id:plan-salary"⟩ lib.AssertEq result.facts.transactions.transaction_id
 ⟨"Planned groceries","Planned salary"⟩ lib.AssertEq result.facts.transactions.description
-⟨"Assets:Bank","Equity:Opening","Income:Salary","Expenses:Groceries","Budget:Opening","Budget:Unassigned","Budget:Daily"⟩ lib.AssertEq result.facts.accounts.key
+⟨"Assets:Bank","Equity:Opening","Income:Salary","Expenses:Groceries"⟩ lib.AssertEq result.facts.accounts.key
 
 firstMetadata ← ⊑result.facts.transactions.metadata
 ⟨"plan-id","daily-target-id"⟩ lib.AssertEq {𝕩.key}¨firstMetadata

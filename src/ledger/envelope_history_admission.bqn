@@ -161,6 +161,7 @@ Admit ← {𝕊 raw:
     diagnostics∾↩AddIf ⟨0=≠identities,Diagnostic ⟨"envelope_history_identity_missing",root.line,"Envelope history requires at least one stable identity"⟩⟩
     diagnostics∾↩AddIf ⟨∨´0∾0=≠¨identities,Diagnostic ⟨"envelope_history_identity_empty",root.line,"Envelope identities must be nonempty"⟩⟩
     diagnostics∾↩AddIf ⟨(≠identities)≠≠⍷identities,Diagnostic ⟨"envelope_history_identity_duplicate",root.line,"Envelope identities must be unique"⟩⟩
+    diagnostics∾↩AddIf ⟨Contains ⟨"unallocated",identities⟩,Diagnostic ⟨"envelope_history_identity_reserved",root.line,"unallocated is a reserved Entitlement boundary endpoint, not an Envelope identity"⟩⟩
   }⍟present @
 
   ParseExpense ← {𝕊 block:

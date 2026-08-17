@@ -13,7 +13,7 @@ The durable write path is:
 frontend interaction
   -> existing direct command
   -> tools/edit
-  -> tools/edit-bqn / src_edit semantic candidate
+  -> dedicated writer / src_edit semantic candidate
   -> shell safe-write publication
   -> mandatory post-write admission
 ```
@@ -118,7 +118,7 @@ Append-only:
 
 - Account Add
 - native Journal Add / Multi Add
-- Budget movement
+- native Entitlement StockOrigin / Transfer
 - Plan Add
 - Issue Add
 - Travel friend/exchange source events

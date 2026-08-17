@@ -17,7 +17,7 @@ It is separate from report code on purpose:
 ```text
 src/        strict admission, accounting, and retained report runtime
 src_edit/   receive edit intent -> validate/render edit operation
-tools/lib/  safely apply bytes to source TSV
+tools/lib/  safely apply bytes to canonical sources
 ```
 
 The editor subsystem should not make reports, and the report subsystem should not mutate source data.
@@ -34,7 +34,8 @@ tools/edit journal reverse ...
 tools/edit travel friend add ...
 tools/edit travel exchange add ...
 tools/edit account list [--role ROLE] [--currency CODE] [--prefer-role ROLE]
-tools/edit budget add ...
+tools/edit entitlement transfer ...
+tools/edit entitlement origin ...
 tools/edit plan list --format tsv
 tools/edit plan related ... --actual-date YYYY-MM-DD --format tsv
 tools/edit plan add ...
@@ -48,8 +49,8 @@ tools/edit issue add ...
 BQN code here may:
 
 - validate command inputs
-- read the configured native Journal and source TSV files needed to understand an edit
-- render candidate native Journal blocks or TSV rows
+- read the canonical source observations needed to understand an edit
+- render candidate native Journal blocks, Entitlement lines, or retained TSV rows
 - render machine-readable edit operations
 - reject invalid dates, amounts, accounts, metadata, and plan selectors
 
@@ -62,6 +63,7 @@ Dispatcher boundary note: see `docs/EDIT_BQN_DISPATCHER.md` for the current shel
 - `account list` is a read-only account candidate export for UI shell wrappers; account role metadata interpretation stays in BQN. `--prefer-role` applies a stable presentation partition, preserving source order within the preferred and remaining groups.
 - `journal list` is a read-only native Journal transaction export for reverse-selection UI; formatting stays in BQN.
 - `journal reverse` is handled by `src_edit/journal_native_reverse_cmd.bqn`; reverse validation and native block rendering stay in BQN.
+- `entitlement transfer/origin` render only the strict native grammar, re-admit the complete candidate source, and never project through Accounts.
 - Native Journal `--post-check lint` is owned by `journal_validate_cmd.bqn`; parser, account parity, Posting IR, and integrated context fail closed.
 - `issue add` has a small dedicated parser because its CLI and new-file semantics differ; its shell handler is split into `tools/lib/edit-bqn-issue.sh`.
 - `travel friend add` validates all existing and candidate source events through `src/editor/friend_travel_source_event.bqn`; shell only transports arguments and applies exclusive-create/checked-append/recovery bytes.

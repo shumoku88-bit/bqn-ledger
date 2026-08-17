@@ -74,7 +74,7 @@ result ← consumption.Build ⟨actual,history,"JPY",dates.Ordinal "2026-01-01",
 "actual.journal" AssertEq (⊑result.unmanaged.contributors).source
 
 # Missing history is attention evidence. It never falls back to a current
-# budget.toml assignment because current policy is not an input to this owner.
+# envelope.toml assignment because current policy is not an input to this owner.
 missingTransportRaw ← Raw ⟨
   "[envelope-history]",
   "identities = ["∾(Q "food")∾", "∾(Q "travel")∾"]",

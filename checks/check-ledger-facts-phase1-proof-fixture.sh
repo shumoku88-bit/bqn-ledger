@@ -14,42 +14,41 @@ bqn tests/test_section_cycle_accounts.bqn >/dev/null
 bqn tests/test_section_cycle_comparison.bqn >/dev/null
 bqn tests/test_section_envelope_backing.bqn >/dev/null
 bqn tests/test_section_daily_target.bqn >/dev/null
+bqn tests/test_section_daily_flow.bqn >/dev/null
 bqn tests/test_section_issues.bqn >/dev/null
 bqn tests/test_report_catalog_request.bqn >/dev/null
 bqn tests/test_report_composition.bqn >/dev/null
 bqn tests/test_section_monthly_accounts.bqn >/dev/null
+bqn tests/test_section_trial_balance.bqn >/dev/null
 
-trial=$(tools/report "$base" --section trial-balance --no-color)
-destination_trial=$(cat "$base/trial_balance.destination.human.txt")
-[[ "$trial" == "$destination_trial" ]]
-grep -Eq '^assets:cash/JPY +\| +0 +\| +1000 +\| +-35 +\| +965 ' <<<"$trial"
-grep -Eq '^income:salary/JPY +\| +0 +\| +0 +\| +-1000 +\| +-1000 ' <<<"$trial"
-grep -Eq '^expenses:food/JPY +\| +0 +\| +30 +\| +0 +\| +30 ' <<<"$trial"
-grep -Eq '^expenses:transport/JPY +\| +0 +\| +5 +\| +0 +\| +5 ' <<<"$trial"
-grep -Eq '^Total +\| +0 +\| +1035 +\| +-1035 +\| +0 ' <<<"$trial"
-grep -Fq 'Zero-sum check (debit=credit): OK' <<<"$trial"
+# Retained report surfaces use semantic coordinates and stay byte-stable against
+# the same golden witness the standalone section owners already protect.
+./tools/report "$base" envelopes compact JPY 2026-01-01 2026-02-01 2026-01-12 \
+  | cmp - "$base/envelope_backing.destination.compact.txt"
+./tools/report "$base" balances human JPY 2026-01-12 \
+  | cmp - "$base/account_balances.destination.human.txt"
+./tools/report "$base" recent human 2026-01-12 10 \
+  | cmp - "$base/recent_journal.destination.human.txt"
+./tools/report "$base" daily-flow human JPY 2026-01-01 2026-02-01 2026-01-12 \
+  | cmp - "$base/daily_flow.destination.human.txt"
+./tools/report "$base" planned human 2026-01-12 \
+  | cmp - "$base/planned_payments.destination.human.txt"
 
-recent=$(tools/report "$base" --section recent --no-color)
+recent=$(./tools/report "$base" recent human 2026-01-12 10)
 grep -Fq 'expenses:food,expenses:transport | split purchase' <<<"$recent"
 [[ $(grep -Ec '^2026-01-(02|10|12) ' <<<"$recent") -eq 3 ]]
 
-daily=$(tools/report "$base" --section daily-flow --no-color)
-destination_daily=$(cat "$base/daily_flow.destination.human.txt")
-[[ "${daily//¯/-}" == "$destination_daily" ]]
-grep -Fq 'date       |     income |       food |      other |        net' <<<"$daily"
-grep -Fq $'2026-01-12 |          0 |        ¯10 |         ¯5 |        ¯15' <<<"$daily"
+daily=$(./tools/report "$base" daily-flow human JPY 2026-01-01 2026-02-01 2026-01-12)
+grep -Fq 'date       | assets:cash/JPY | income:salary/JPY | expenses:food/JPY | expenses:transport/JPY' <<<"$daily"
+grep -Fq $'2026-01-12 |             -15 |                 0 |               -10 |                     -5' <<<"$daily"
 
-balances=$(tools/report "$base" --section balances --no-color)
-grep -Fq 'Currency view: JPY (ledger default)' <<<"$balances"
-grep -Eq '^assets:cash/JPY +\| +965$' <<<"$balances"
+balances=$(./tools/report "$base" balances human JPY 2026-01-12)
+grep -Fq 'Currency: JPY' <<<"$balances"
+grep -Eq '^assets:cash/JPY        \|          965$' <<<"$balances"
 
-planned_human=$(tools/report "$base" --section planned --no-color)
-destination_planned_human=$(cat "$base/planned_payments.destination.human.txt")
-[[ "$planned_human" == "$destination_planned_human" ]]
-
-planned=$(tools/report "$base" --section planned --format json --no-color)
+planned_json=$(./tools/report "$base" planned json 2026-01-12)
 destination_planned_json=$(cat "$base/planned_payments.destination.json")
-[[ "$planned" == "$destination_planned_json" ]]
+[[ "$planned_json" == "$destination_planned_json" ]]
 python3 -c '
 import json, sys
 value = json.load(sys.stdin)
@@ -58,11 +57,17 @@ assert value["current_cycle_total"] == 200
 assert value["due_through_cycle_total"] == 200
 assert value["overdue_total"] == 0
 assert value["future_cycles_total"] == 1000
-' <<<"$planned"
+' <<<"$planned_json"
 
-sections=$(tools/report "$base" --list-sections --no-color)
-[[ $(wc -l <<<"$sections" | tr -d ' ') -eq 15 ]]
-grep -q $'^trial-balance\t== Trial Balance (actual layer) ==$' <<<"$sections"
-grep -q $'^daily-flow\t== Daily Flow ==$' <<<"$sections"
+# The retained catalog exposes twelve semantic report keys; retired report
+# section aliases such as trial-balance are not selectable report coordinates.
+sections=$(bqn src/application/report_selection_cli.bqn all human)
+[[ $(wc -l <<<"$sections" | tr -d ' ') -eq 12 ]]
+grep -qx 'envelopes' <<<"$sections"
+grep -qx 'balances' <<<"$sections"
+grep -qx 'recent' <<<"$sections"
+grep -qx 'planned' <<<"$sections"
+grep -qx 'daily-flow' <<<"$sections"
+! grep -qx 'trial-balance' <<<"$sections"
 
 echo "check-ledger-facts-phase1-proof-fixture: OK"

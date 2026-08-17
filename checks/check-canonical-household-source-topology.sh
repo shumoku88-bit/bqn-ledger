@@ -10,13 +10,15 @@ canonical=(
   accounts.journal
   actual.journal
   plan.journal
-  budget.journal
-  budget.toml
+  entitlement.journal
+  envelope.toml
   household.toml
   report.toml
   issues.tsv
 )
 legacy=(
+  budget.journal
+  budget.toml
   accounts.tsv
   plan.tsv
   budget_alloc.tsv

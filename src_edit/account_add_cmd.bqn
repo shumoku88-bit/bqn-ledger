@@ -11,9 +11,9 @@ editorCurrency ← •Import "../src/application/editor_currency.bqn"
 setup ← editorCurrency.Load @
 
 args ← •args ⋄ tab ← @+9 ⋄ lf ← @+10 ⋄ space ← @+32
-roles ← ⟨"asset","liability","equity","income","expense","budget"⟩
-types ← ⟨"Asset","Liability","Equity","Income","Expense","Budget"⟩
-prefixes ← ⟨"assets:","liabilities:","equity:","income:","expenses:","budget:"⟩
+roles ← ⟨"asset","liability","equity","income","expense"⟩
+types ← ⟨"Asset","Liability","Equity","Income","Expense"⟩
+prefixes ← ⟨"assets:","liabilities:","equity:","income:","expenses:"⟩
 upper ← "ABCDEFGHIJKLMNOPQRSTUVWXYZ" ⋄ lower ← "abcdefghijklmnopqrstuvwxyz"
 IndexOf ← {𝕊 item‿items: ⊑ items⊐⟨item⟩}
 AsciiLowerChar ← {𝕊 c:
@@ -33,7 +33,7 @@ Fail ← {𝕊 msg: •Out "ERROR"∾tab∾msg ⋄ •Exit 1}
 base ← 0⊑args ⋄ name ← Trim 1⊑args ⋄ role ← 2⊑args ⋄ legacyType ← 3⊑args ⋄ explicitCurrency ← Trim 4⊑args
 {𝕊:Fail "legacy --type Household classification belongs in household.toml; omit --type"}⍟(0<≠legacyType) @
 roleIndex ← IndexOf ⟨role,roles⟩
-{𝕊:Fail "role must be asset, liability, equity, income, expense, or budget"}⍟(roleIndex≥≠roles) @
+{𝕊:Fail "role must be asset, liability, equity, income, or expense"}⍟(roleIndex≥≠roles) @
 {𝕊:Fail "account name must be nonempty"}⍟(0=≠name) @
 prefix ← roleIndex⊑prefixes
 {𝕊:Fail "account namespace does not match role: "∾name∾" vs "∾role}⍟(AsciiLower prefix≢AsciiLower (≠prefix)↑name) @

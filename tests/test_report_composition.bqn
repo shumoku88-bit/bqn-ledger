@@ -3,9 +3,9 @@ lib ← •Import "test_lib.bqn"
 loader ← •Import "../src/application/source_io.bqn"
 registry_core ← •Import "../src/ledger/currency_registry.bqn"
 snapshot ← •Import "canonical_snapshot_fixture.bqn"
-canonicalBudget ← •Import "canonical_budget_test_facts.bqn"
+entitlementAdmission ← •Import "../src/ledger/entitlement_journal_admission.bqn"
 canonicalPlan ← •Import "canonical_plan_test_facts.bqn"
-budgetPolicyAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
+envelopePolicyAdmission ← •Import "../src/ledger/envelope_policy_admission.bqn"
 householdAdmission ← •Import "current_household_policy_test_admission.bqn"
 envelopeHistoryAdmission ← •Import "../src/ledger/envelope_history_admission.bqn"
 account_admission ← •Import "../src/ledger/account_journal_admission.bqn"
@@ -23,19 +23,19 @@ planRaw ← •FChars "../"∾base∾"plan.journal"
 planResult ← canonicalPlan.Build ⟨planRaw,accounts,registry⟩
 plan ← planResult.facts ⋄ planRetirements ← planResult.retirements
 lf ← @+10
-Raw ← {𝕊 lines: ∾lines∾¨lf}
-budgetRaw ← Raw ⟨
-  "2026-01-01 seed","  budget:opening     -100 JPY","  budget:unassigned   100 JPY","",
-  "2026-01-01 allocate-food","  budget:unassigned  -60 JPY","  budget:food         60 JPY"
-⟩
-budget ← (canonicalBudget.Build ⟨budgetRaw,accounts,registry⟩).movements
-budgetPolicy ← budgetPolicyAdmission.Admit ⟨•FChars "../"∾base∾"budget.toml",accounts⟩
-"ok" lib.AssertEq budgetPolicy.state
+
 householdRaw ← •FChars "../"∾base∾"household.toml"
-household ← householdAdmission.Admit ⟨householdRaw,accounts,budgetPolicy⟩
+household ← householdAdmission.Admit ⟨householdRaw,accounts⟩
 "ok" lib.AssertEq household.state
 envelopeHistory ← envelopeHistoryAdmission.Admit householdRaw
 "ok" lib.AssertEq envelopeHistory.state
+
+entitlementRaw ← •FChars "../"∾base∾"entitlement.journal"
+entitlement ← entitlementAdmission.Admit ⟨entitlementRaw,envelopeHistory,registry⟩
+"ok" lib.AssertEq entitlement.state
+envelopePolicy ← envelopePolicyAdmission.Admit ⟨•FChars "../"∾base∾"envelope.toml",accounts⟩
+"ok" lib.AssertEq envelopePolicy.state
+
 cycle10 ← cycleResolution.WithPlan ⟨household.cycle,"2026-01-10",actual,plan⟩
 "ok" lib.AssertEq cycle10.state
 cycle12 ← cycleResolution.WithPlan ⟨household.cycle,"2026-01-12",actual,plan⟩
@@ -63,9 +63,9 @@ comparison ← compose.CycleComparison ⟨actual,"JPY",cycle10,"2026-01-10",cycl
 CheckGolden ⟨comparison,"cycle-comparison","human","cycle_comparison.destination.human.txt"⟩
 monthly ← compose.MonthlyAccounts ⟨actual,"JPY","2026-01","2026-03"⟩
 CheckGolden ⟨monthly,"monthly-accounts","human","monthly_accounts.destination.human.txt"⟩
-dailyFlow ← compose.DailyFlow ⟨actual,household,envelopeHistory,"JPY","2026-01-01","2026-02-01","2026-01-12"⟩
+dailyFlow ← compose.DailyFlow ⟨actual,envelopeHistory,"JPY","2026-01-01","2026-02-01","2026-01-12"⟩
 CheckGolden ⟨dailyFlow,"daily-flow","human","daily_flow.destination.human.txt"⟩
-envelopes ← compose.Envelopes ⟨budget,budgetPolicy,household,envelopeHistory,actual,plan,planRetirements,"JPY","2026-01-01","2026-02-01","2026-01-12"⟩
+envelopes ← compose.Envelopes ⟨entitlement,envelopePolicy,envelopeHistory,actual,plan,planRetirements,"JPY","2026-01-01","2026-02-01","2026-01-12"⟩
 CheckGolden ⟨envelopes,"envelopes","compact","envelope_backing.destination.compact.txt"⟩
 
 Ref ← {𝕊 id:{source⇐"synthetic",transaction_id⇐id,posting_id⇐id}}

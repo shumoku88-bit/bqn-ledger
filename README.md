@@ -20,11 +20,20 @@ The retained read side uses these eight physical sources:
 - `accounts.journal`
 - `actual.journal`
 - `plan.journal`
-- `budget.journal`
-- `budget.toml`
+- `entitlement.journal`
+- `envelope.toml`
 - `household.toml`
 - `report.toml`
 - `issues.tsv`
+
+`entitlement.journal` has exactly two source fact forms:
+
+```text
+YYYY-MM-DD origin COMMODITY [memo]
+YYYY-MM-DD transfer FROM -> TO QUANTITY COMMODITY [memo]
+```
+
+Transfer endpoints are `unallocated` or a stable `EnvelopeId`. `unallocated` is a boundary, not an Account or stored balance. Current Envelope presentation/membership and Backing policy live in `envelope.toml`; stable Envelope identities and historical Expense/Fulfillment routing live in `household.toml`.
 
 `report.toml` owns current report query defaults and presentation policy. It does not name physical source files. Report requests carry semantic coordinates such as domain and dates; canonical source identity is resolved internally from the Household root.
 
@@ -106,11 +115,15 @@ See [`docs/CANONICAL_CAPABILITY_MATRIX.md`](docs/CANONICAL_CAPABILITY_MATRIX.md)
 
 ## Editing and export
 
-The Command Hub routes ordinary two-Posting and multi-Posting entries, Plan add/edit/finish/replenishment, Budget movements, and Account creation to the qualified canonical writers. Low-level commands remain available for automation:
+The Command Hub routes ordinary two-Posting and multi-Posting entries, Plan add/edit/finish/replenishment, native Entitlement transfers, and Account creation to the qualified canonical writers. Low-level commands remain available for automation:
 
 ```sh
 tools/add-ui.sh
 tools/edit-bqn --help
+
+# Native Entitlement endpoint transfer
+tools/edit --base "$LEDGER_DATA_DIR" entitlement transfer \
+  --date 2026-01-31 --from unallocated --to food --amount 1000 --memo allocation --dry-run
 
 # Copy the canonical Journal surface for hledger (no legacy TSV input)
 tools/to-hledger "$LEDGER_DATA_DIR"

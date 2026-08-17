@@ -1,6 +1,6 @@
 # Canonical ledger fact schema
 
-Status: current canonical Actual/Plan/Budget Facts with explicit Domain/Layer semantics
+Status: current canonical Actual/Plan Facts with explicit Domain/Layer semantics
 Owner: canonical Journal admissions / `src/ledger/facts.bqn`
 Public evidence: `fixtures/ledger-facts-phase1-proof/`
 
@@ -113,7 +113,7 @@ A numeric amount is the pair `(coefficient, scale)`. Consumers never combine row
 
 ### Source table
 
-`index`, `name`; one independently admitted Fact result has one explicit physical source even when it is empty: `actual.journal`, `plan.journal`, or `budget.journal`. Transaction and Posting Facts carry `source_index=0`. Cross-source consumers retain source-qualified durable references rather than treating snapshot-local indices from different Fact results as interchangeable.
+`index`, `name`; one independently admitted Transaction/Posting Fact result has one explicit physical source even when it is empty: `actual.journal` or `plan.journal`. Transaction and Posting Facts carry `source_index=0`. Native `entitlement.journal` is a separate StockOrigin/Transfer relation and is not projected into accounting Postings. Cross-source consumers retain source-qualified durable references rather than treating snapshot-local indices from different Fact results as interchangeable.
 
 ### Domain table
 
@@ -125,17 +125,17 @@ Canonical `src/ledger/account_journal_admission.bqn` admits Account identity, ac
 
 The Fact table exposes aligned `index`, `key`, `currency`, `role`, `type`, `metadata`, and `source_row` columns in admitted Account order, including Accounts with no Postings. Posting Facts join by Account index and require a declared Account Commodity, when present, to match the Transaction domain.
 
-Household-only classifications such as Asset liquidity class, Budget kind/group/envelope role, Expense spend class, Envelope allocation coordinates, Cycle, and Daily Target policy are not Account Fact columns. They are independently admitted from `household.toml` / `budget.toml` by their named policy owners and remain explicit cross-source evidence where required.
+Household-only classifications such as Asset selection, stable Envelope identity, historical Expense/Fulfillment routing, Cycle, and Daily Target policy are not Account Fact columns. They are independently admitted from `household.toml` / `envelope.toml` by their named policy owners and remain explicit cross-source evidence where required. The Account Fact axis has only Asset, Liability, Equity, Income, and Expense roles.
 
 ### Layer table
 
 `index`, `name`; order follows canonical admission's explicit `declared_layers`. Transaction layers must occur in that table. A valid empty source still retains its source-layer contract without fabricating a Transaction or Posting.
 
-## Retained legacy Plan/Budget proof boundary
+## Retained legacy Plan proof boundary
 
 `plan_snapshot.Build ⟨planLines,admittedAccounts,registry⟩` remains a legacy/test Plan-only proof surface, and the retained companion admission family can still prove historical TSV compatibility. Those helpers are not the production Household source authority.
 
-Production canonical Plan/Budget application adapters admit `plan.journal` / `budget.journal`, reuse the same narrow Account coordinates, and project the resulting Transaction/Posting evidence through `facts.Project`. Source-family identity remains explicit in the Source table and durable Transaction identity/provenance.
+Production canonical Plan admission reads `plan.journal`, reuses the accounting Account axis, and projects Transaction/Posting evidence through `facts.Project`. Entitlement admission instead publishes native StockOrigin and Transfer arrays against stable Envelope identities; it never receives Account coordinates.
 
 ## Required invariants
 
@@ -157,12 +157,11 @@ Production canonical Plan/Budget application adapters admit `plan.journal` / `bu
 The retained public fixture proves:
 
 ```text
-3 transactions
-7 Actual postings
-1 Plan transaction / 2 postings
-2 Budget transactions / 4 postings
+3 Actual transactions / 7 postings
+3 Plan transactions / 6 postings
+1 native Entitlement StockOrigin / 1 Transfer (outside the Fact schema)
 1 three-posting split transaction
-8 admitted accounts (including zero-posting Budget accounts)
+4 admitted accounting Accounts
 1 JPY domain
 1 actual layer
 exact transaction zero sums

@@ -1,20 +1,21 @@
 --- Ledger Envelope & Backing ---
+ledger_envelope_origin_present: 1
+ledger_envelope_origin_date: 2026-01-01
+ledger_envelope_origin_commodity: JPY
+ledger_envelope_origin_memo: phase-one clean epoch
+ledger_envelope_origin_source_event_id: entitlement.journal:line:1
+ledger_envelope_origin_source_line: 1
 ledger_envelope_item: food entitlement=60 consumption=30 refunds=0 fulfillment=0 remaining=30 commitment=200 headroom=-170
 ledger_envelope_funding_balance: 965
 ledger_envelope_signed_total: 30
 ledger_envelope_backing_required: 30
 ledger_envelope_backing_surplus: 935
-ledger_envelope_ledger_unassigned: 40
-ledger_envelope_reconciliation_delta: 895
 ledger_envelope_status: backed
 --- Ledger Account Balances ---
 ledger_balance: assets:cash/JPY 965
 ledger_balance: income:salary/JPY -1000
 ledger_balance: expenses:food/JPY 30
 ledger_balance: expenses:transport/JPY 5
-ledger_balance: budget:opening/JPY 0
-ledger_balance: budget:unassigned/JPY 0
-ledger_balance: budget:food/JPY 0
 --- Ledger Recent Journal ---
 ledger_recent_journal: 2026-01-12	JPY	15	assets:cash	expenses:food,expenses:transport	split purchase
 ledger_recent_journal: 2026-01-10	JPY	20	assets:cash	expenses:food	completed food plan

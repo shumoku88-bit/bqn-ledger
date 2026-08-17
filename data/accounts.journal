@@ -21,19 +21,3 @@ account income:年金
 account equity:opening-balances
   type: Equity
   commodity: JPY
-
-account budget:食費
-  type: Budget
-  commodity: JPY
-
-account budget:一般生活
-  type: Budget
-  commodity: JPY
-
-account budget:opening
-  type: Budget
-  commodity: JPY
-
-account budget:spent
-  type: Budget
-  commodity: JPY

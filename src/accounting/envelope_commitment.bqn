@@ -1,6 +1,6 @@
 # Open Plan -> observation-day historical routing -> Envelope Commitment.
 # Plan lifecycle is role-neutral. Expense postings use Expense routing; positive
-# non-Expense postings use stable PlanId Fulfillment routing. Current budget.toml
+# non-Expense postings use stable PlanId Fulfillment routing. Current envelope.toml
 # assignments are not an input.
 
 planObservation ← •Import "plan_observation.bqn"

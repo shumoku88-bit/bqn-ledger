@@ -21,13 +21,14 @@ Owner: maintainer / format / validation
 - `income:*`   : 収入源
 - `expenses:*` : 費用カテゴリ
 - `equity:*`   : 開始残高 / 純資産勘定
-- `budget:*`   : 封筒 / 予算レイヤの慣用名前空間。identity/typeは`accounts.journal`、具体的な分類とpolicyは`household.toml` / `budget.toml`が所有します。
+
+EnvelopeはAccountではありません。stable `EnvelopeId` は `household.toml [envelope-history]`、current membership / presentationは`envelope.toml`が所有し、`budget:*` Account namespaceはcanonical accounting axisに存在しません。
 
 ### 推奨ルール
 
 - 勘定科目名は空であってはなりません。
 - 勘定科目名は一意でなければなりません（重複している場合、strict admission/readiness checks で検出対象になります）。
-- 勘定科目数にハードコードされた上限はありません（`accounts.tsv` から動的に決定されます）。重複は `checks/check-src-next-lint.sh` などの検査で検出対象になります。
+- 勘定科目数にハードコードされた上限はありません（`accounts.journal` から動的に決定されます）。重複はstrict Account admissionで拒否されます。
 - プレフィックスおよびキーにはASCII文字を推奨します。プレフィックスの後ろは日本語でも問題ありません。
   - 例: `expenses:食費`
 
@@ -50,12 +51,18 @@ Owner: maintainer / format / validation
 - `system_today` より未来のActual取引は入力エラーとして拒否されます。将来予定は `plan.tsv` に記述します。
 - Actual取引のTSV形式、fallback、dual writeはありません。
 
-### canonical Plan / Budget Journal
+### canonical Plan / Entitlement sources
 
-- `plan.journal`はPlan transaction、`budget.journal`はordered Budget movement evidenceを所有します。
-- 通常のJournal admissionがdate、description、Account resolution、Commodity、exact amount、balancing、metadata、Posting order、provenanceをfail closedで検査します。
-- Budget transactionはexactly two Budget Postingsで、source orderは`from → to`、resolved amountsはexact oppositesです。
-- Account identity/type/optional default Commodityは`accounts.journal`、Envelope policyは`budget.toml`、allocation/spent/classification coordinatesは`household.toml`が所有します。物理basenameは`src/application/canonical_household_sources.bqn`だけが定義します。
+- `plan.journal`はPlan transactionを所有し、通常のJournal admissionがdate、Account resolution、Commodity、exact amount、balancing、metadata、Posting order、provenanceをfail closedで検査します。
+- `entitlement.journal`は次の2形式だけを所有します。
+
+  ```text
+  YYYY-MM-DD origin COMMODITY [memo]
+  YYYY-MM-DD transfer FROM -> TO QUANTITY COMMODITY [memo]
+  ```
+
+- Endpointは`unallocated`またはstable `EnvelopeId`です。`unallocated`はAccountでもstored balanceでもありません。
+- Account identity/type/optional default Commodityは`accounts.journal`、current Envelope / Backing policyは`envelope.toml`、stable Envelope identityとhistorical Expense/Fulfillment routingは`household.toml`が所有します。物理basenameは`src/application/canonical_household_sources.bqn`だけが定義します。
 
 ## メタデータ規約 (Metadata conventions)
 

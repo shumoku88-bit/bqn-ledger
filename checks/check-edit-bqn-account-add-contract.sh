@@ -17,7 +17,7 @@ sha_file() {
 accounts="$base/accounts.journal"
 before="$(sha_file "$accounts")"
 
-# The canonical Account declaration owner has six roles on one aligned
+# The canonical Account declaration owner has five roles on one aligned
 # role/type/namespace axis. Dry-run every role through the public writer path.
 while IFS=$'\t' read -r role name expected_type; do
   out="$(tools/edit --base "$base" account add \
@@ -40,7 +40,6 @@ liability	liabilities:review-liability	Liability
 equity	equity:review-equity	Equity
 income	income:review-income	Income
 expense	expenses:review-expense	Expense
-budget	budget:review-budget	Budget
 EOF
 
 [[ "$(sha_file "$accounts")" == "$before" ]] || {
@@ -88,5 +87,9 @@ expect_fail_unchanged legacy-type \
 expect_fail_unchanged namespace-mismatch \
   'account namespace does not match role' \
   --name 'assets:not-income' --role income --currency JPY
+
+expect_fail_unchanged retired-budget-role \
+  'role must be asset, liability, equity, income, or expense' \
+  --name 'budget:retired' --role budget --currency JPY
 
 echo 'check-edit-bqn-account-add-contract: ok'

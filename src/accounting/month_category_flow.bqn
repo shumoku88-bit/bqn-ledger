@@ -7,7 +7,7 @@ sparse ← •Import "sparse_group.bqn"
 empty ← ⟨⟩
 
 EmptyMonths ← {𝕊: {count⇐0,index⇐empty,label⇐empty} }
-EmptyCategories ← {𝕊: {count⇐0,index⇐empty,label⇐empty,kind⇐empty,envelope_account_index⇐empty} }
+EmptyCategories ← {𝕊: {count⇐0,index⇐empty,label⇐empty,kind⇐empty} }
 FailureResult ← {𝕊 domainCode‿layerName‿startOrdinal‿endOrdinal‿diagnosticsValue:
   {
     state⇐"error",domain⇐domainCode,layer⇐layerName,
@@ -39,8 +39,8 @@ Kernel ← {𝕊 daily‿domainCode‿layerName‿startOrdinal‿endOrdinal:
 }
 
 # Input is the same explicit query accepted by date_category_flow.Build.
-Build ← {𝕊 factSet‿householdPolicy‿history‿domainCode‿layerName‿startOrdinal‿endOrdinal:
-  daily ← byDate.Build ⟨factSet,householdPolicy,history,domainCode,layerName,startOrdinal,endOrdinal⟩
+Build ← {𝕊 factSet‿history‿domainCode‿layerName‿startOrdinal‿endOrdinal:
+  daily ← byDate.Build ⟨factSet,history,domainCode,layerName,startOrdinal,endOrdinal⟩
   result ← FailureResult ⟨domainCode,layerName,startOrdinal,endOrdinal,daily.diagnostics⟩
   {𝕊: result↩Kernel ⟨daily,domainCode,layerName,startOrdinal,endOrdinal⟩}⍟(daily.state≡"ok") @
   result

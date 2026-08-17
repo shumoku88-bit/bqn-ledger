@@ -18,13 +18,13 @@ result ← adapter.Load ⟨base,registryResult.registry⟩
 0 lib.AssertEq ≠result.diagnostics
 4 lib.AssertEq result.facts.transactions.count
 8 lib.AssertEq result.facts.postings.count
-7 lib.AssertEq result.facts.accounts.count
+4 lib.AssertEq result.facts.accounts.count
 1 lib.AssertEq result.facts.domains.count
 ⟨"JPY"⟩ lib.AssertEq result.facts.domains.code
 ⟨"actual"⟩ lib.AssertEq result.facts.layers.name
 ⟨3,7,11,16⟩ lib.AssertEq result.facts.transactions.source_start_line
 ⟨"Opening","Salary","Groceries","Planned groceries completed"⟩ lib.AssertEq result.facts.transactions.description
-⟨"Assets:Bank","Equity:Opening","Income:Salary","Expenses:Groceries","Budget:Opening","Budget:Unassigned","Budget:Daily"⟩ lib.AssertEq result.facts.accounts.key
+⟨"Assets:Bank","Equity:Opening","Income:Salary","Expenses:Groceries"⟩ lib.AssertEq result.facts.accounts.key
 ⟨"100000","","50000","","-5000","","-4000",""⟩ lib.AssertEq result.facts.postings.amount_text
 
 # A wider application lifetime may admit Accounts once and reuse that exact

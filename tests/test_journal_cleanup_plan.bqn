@@ -36,16 +36,16 @@ Expected ← {
   refs lib.AssertEq row.incoming_reference_count
   planId lib.AssertEq row.plan_id
 }
-Expected ⟨0, "NOT_LEGACY", "non-legacy-event-id", "opening-20260701-001", 22, 21, 0, ""⟩
-Expected ⟨1, "REMOVABLE", "unreferenced-ordinary", "entry-0123456789abcdef01234567", 27, 26, 0, ""⟩
-Expected ⟨2, "REFERENCED", "actual-event-id-reference", "entry-aaaaaaaaaaaaaaaaaaaaaaaa", 34, 33, 1, ""⟩
-Expected ⟨3, "NOT_LEGACY", "non-legacy-event-id", "budget-companion-household-001", 39, 38, 0, ""⟩
-Expected ⟨4, "PLAN_LINKED", "plan-id", "entry-bbbbbbbbbbbbbbbbbbbbbbbb", 46, 45, 0, "plan-legacy-household-001"⟩
+Expected ⟨0, "NOT_LEGACY", "non-legacy-event-id", "opening-20260701-001", 16, 15, 0, ""⟩
+Expected ⟨1, "REMOVABLE", "unreferenced-ordinary", "entry-0123456789abcdef01234567", 21, 20, 0, ""⟩
+Expected ⟨2, "PLAN_LINKED", "plan-id", "entry-aaaaaaaaaaaaaaaaaaaaaaaa", 28, 27, 0, "plan-legacy-household-002"⟩
+Expected ⟨3, "NOT_LEGACY", "non-legacy-event-id", "ordinary-household-001", 34, 33, 0, ""⟩
+Expected ⟨4, "PLAN_LINKED", "plan-id", "entry-bbbbbbbbbbbbbbbbbbbbbbbb", 39, 38, 0, "plan-legacy-household-001"⟩
 
 Count ← {𝕊 category: +´ 0 ∾ {𝕩.classification ≡ category}¨ rows}
 1 lib.AssertEq Count "REMOVABLE"
-1 lib.AssertEq Count "REFERENCED"
-1 lib.AssertEq Count "PLAN_LINKED"
+0 lib.AssertEq Count "REFERENCED"
+2 lib.AssertEq Count "PLAN_LINKED"
 0 lib.AssertEq Count "OTHER_LINKED"
 0 lib.AssertEq Count "IDENTITY_FREE"
 2 lib.AssertEq Count "NOT_LEGACY"
@@ -58,7 +58,7 @@ identityRow ← 1 ⊑ identityRows
 "no-explicit-event-id" lib.AssertEq identityRow.reason
 "" lib.AssertEq identityRow.event_id
 0 lib.AssertEq identityRow.event_id_line
-26 lib.AssertEq identityRow.source_start_line
+20 lib.AssertEq identityRow.source_start_line
 0 lib.AssertEq identityRow.incoming_reference_count
 lib.Assert ¬ "stage0-line-" ≡ 12 ↑ identityRow.event_id
 

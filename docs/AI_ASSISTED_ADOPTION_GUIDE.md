@@ -104,14 +104,14 @@ A usable base is one canonical Household root:
 accounts.journal
 actual.journal
 plan.journal
-budget.journal
-budget.toml
+entitlement.journal
+envelope.toml
 household.toml
 report.toml
 issues.tsv
 ```
 
-Preserve canonical Journal and typed policy contracts. Prefer empty, valid Journals over fabricated transactions.
+Preserve canonical Journal, native Entitlement, and typed policy contracts. Prefer empty valid sources or an explicit origin-only Entitlement epoch over fabricated transactions.
 
 Before applying the draft, show the user:
 

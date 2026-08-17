@@ -17,7 +17,7 @@ base="$tmp/dry"; make_base "$base"; before="$(sha "$base/actual.journal")"; file
 ./tools/edit --base "$base" journal cleanup-apply --dry-run >"$tmp/wrapper.out"
 ./tools/edit-bqn --base "$base" journal cleanup-apply --dry-run >"$tmp/direct.out"
 cmp -s "$tmp/wrapper.out" "$tmp/direct.out" || { echo 'FAIL: wrapper parity' >&2; exit 1; }
-grep -Fqx 'Removal count: 1' "$tmp/wrapper.out"; grep -Fqx '#2 date=2026-07-10 id=entry-0123456789abcdef01234567 event-line=27 Legacy ordinary groceries' "$tmp/wrapper.out"
+grep -Fqx 'Removal count: 1' "$tmp/wrapper.out"; grep -Fqx '#2 date=2026-07-10 id=entry-0123456789abcdef01234567 event-line=21 Legacy ordinary groceries' "$tmp/wrapper.out"
 [[ "$(sha "$base/actual.journal")" == "$before" && "$(backup_count "$base")" == 0 ]] || { echo 'FAIL: dry-run changed data' >&2; exit 1; }
 diff -u "$tmp/files.before" <(files "$base")
 

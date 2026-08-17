@@ -22,7 +22,7 @@ after ← parser.ParseWithProfile ⟨built.candidate_raw,profile⟩
 "ok" lib.AssertEq after.state
 "ok" lib.AssertEq (rewrite.VerifyEquivalent ⟨before.transactions,after.transactions,rows⟩).state
 ⟨"note","currency"⟩ lib.AssertEq {𝕩.key}¨(1⊑after.transactions).metadata
-⟨"opening-20260701-001","entry-aaaaaaaaaaaaaaaaaaaaaaaa","budget-companion-household-001","entry-bbbbbbbbbbbbbbbbbbbbbbbb"⟩ lib.AssertEq {𝕩.source_event_id}¨0‿2‿3‿4⊏after.transactions
+⟨"opening-20260701-001","entry-aaaaaaaaaaaaaaaaaaaaaaaa","ordinary-household-001","entry-bbbbbbbbbbbbbbbbbbbbbbbb"⟩ lib.AssertEq {𝕩.source_event_id}¨0‿2‿3‿4⊏after.transactions
 
 lf ← @+10
 legacy ← "entry-cccccccccccccccccccccccc"

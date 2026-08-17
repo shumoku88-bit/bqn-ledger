@@ -5,15 +5,15 @@ sources ← •Import "../src/application/canonical_household_sources.bqn"
 ! "accounts.journal" ≡ sources.accounts
 ! "actual.journal" ≡ sources.actual
 ! "plan.journal" ≡ sources.plan
-! "budget.journal" ≡ sources.budget
-! "budget.toml" ≡ sources.budgetPolicy
+! "entitlement.journal" ≡ sources.entitlement
+! "envelope.toml" ≡ sources.envelopePolicy
 ! "household.toml" ≡ sources.householdPolicy
 ! "report.toml" ≡ sources.reportPolicy
 ! "issues.tsv" ≡ sources.issues
 
 names ← ⟨
-  sources.accounts,sources.actual,sources.plan,sources.budget,
-  sources.budgetPolicy,sources.householdPolicy,sources.reportPolicy,sources.issues
+  sources.accounts,sources.actual,sources.plan,sources.entitlement,
+  sources.envelopePolicy,sources.householdPolicy,sources.reportPolicy,sources.issues
 ⟩
 ! (≠names) = ≠⍷names
 

@@ -5,7 +5,6 @@ io ← •Import "../src/application/source_io.bqn"
 registryBuilder ← •Import "../src/ledger/currency_registry.bqn"
 accountsAdmission ← •Import "../src/ledger/account_journal_admission.bqn"
 planFactsBuilder ← •Import "canonical_plan_test_facts.bqn"
-budgetPolicyAdmission ← •Import "../src/ledger/budget_policy_admission.bqn"
 householdAdmission ← •Import "current_household_policy_test_admission.bqn"
 daily ← •Import "../src/application/household_daily_scope.bqn"
 base ← "fixtures/ledger-facts-phase1-proof/"
@@ -18,10 +17,7 @@ accountsResult ← accountsAdmission.Admit •FChars "../"∾base∾"accounts.jo
 "ok" lib.AssertEq accountsResult.state
 accounts ← accountsResult.accounts
 planResult ← planFactsBuilder.Build ⟨•FChars "../"∾base∾"plan.journal",accounts,registry⟩
-"ok" lib.AssertEq planResult.state
-budgetPolicy ← budgetPolicyAdmission.Admit ⟨•FChars "../"∾base∾"budget.toml",accounts⟩
-"ok" lib.AssertEq budgetPolicy.state
-household ← householdAdmission.Admit ⟨•FChars "../"∾base∾"household.toml",accounts,budgetPolicy⟩
+household ← householdAdmission.Admit ⟨•FChars "../"∾base∾"household.toml",accounts⟩
 "ok" lib.AssertEq household.state
 
 result ← daily.Build ⟨household,planResult.facts,registry⟩

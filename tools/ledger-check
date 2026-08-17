@@ -9,7 +9,7 @@ root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 base=$1
 [[ $base == /* ]] || base="$PWD/$base"
 
-for name in accounts.journal actual.journal plan.journal budget.journal budget.toml household.toml report.toml issues.tsv; do
+for name in accounts.journal actual.journal plan.journal entitlement.journal envelope.toml household.toml report.toml issues.tsv; do
   [[ -f $base/$name && -r $base/$name ]] \
     || { printf 'ERROR\tsource_unreadable\trequired canonical source is not readable: %s\n' "$name" >&2; exit 1; }
 done

@@ -53,23 +53,23 @@ cmp "$tmp/balances" "$fixture/account_balances.destination.human.txt"
 # Evidence-lifetime laws use temporary reductions of the existing canonical fixture.
 # They do not introduce a second fixture topology.
 cp -R "$fixture" "$tmp/actual-only"
-rm -f "$tmp/actual-only/plan.journal" "$tmp/actual-only/budget.journal" \
-  "$tmp/actual-only/budget.toml" "$tmp/actual-only/household.toml" "$tmp/actual-only/issues.tsv"
+rm -f "$tmp/actual-only/plan.journal" "$tmp/actual-only/entitlement.journal" \
+  "$tmp/actual-only/envelope.toml" "$tmp/actual-only/household.toml" "$tmp/actual-only/issues.tsv"
 bqn "$cli" "$tmp/actual-only" balances human JPY 2026-01-12 >"$tmp/actual-only.out"
 cmp "$tmp/actual-only.out" "$fixture/account_balances.destination.human.txt"
 
 cp -R "$fixture" "$tmp/context-only"
-rm -f "$tmp/context-only/budget.journal" "$tmp/context-only/issues.tsv"
+rm -f "$tmp/context-only/entitlement.journal" "$tmp/context-only/issues.tsv"
 bqn "$cli" "$tmp/context-only" planned human 2026-01-12 >"$tmp/context-only.out"
 [[ -s "$tmp/context-only.out" ]] || {
-  echo 'FAIL: planned destination produced no output without Budget movement source' >&2
+  echo 'FAIL: planned destination produced no output without Entitlement movement source' >&2
   exit 1
 }
 
 cp -R "$fixture" "$tmp/issues-only"
 rm -f "$tmp/issues-only/accounts.journal" "$tmp/issues-only/actual.journal" \
-  "$tmp/issues-only/plan.journal" "$tmp/issues-only/budget.journal" \
-  "$tmp/issues-only/budget.toml" "$tmp/issues-only/household.toml"
+  "$tmp/issues-only/plan.journal" "$tmp/issues-only/entitlement.journal" \
+  "$tmp/issues-only/envelope.toml" "$tmp/issues-only/household.toml"
 bqn "$cli" "$tmp/issues-only" issues human >"$tmp/issues-only.out"
 [[ -s "$tmp/issues-only.out" ]] || {
   echo 'FAIL: issues destination produced no output without accounting sources' >&2

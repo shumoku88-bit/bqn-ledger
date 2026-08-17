@@ -1,7 +1,6 @@
 #!/usr/bin/env bqn
 # Integration witness: production report source and destination adapters carry the
-# admitted Budget movement relation to Envelope Entitlement. Generic Budget Facts
-# exist on Companions but are deliberately absent from this report evidence value.
+# admitted Entitlement relation to Envelope Entitlement and Backing.
 
 lib ← •Import "test_lib.bqn"
 sources ← •Import "../src/application/report_source_adapter.bqn"
@@ -16,18 +15,18 @@ actualResult ← sources.CanonicalActual ⟨base,registry⟩
 actual ← actualResult.facts
 companions ← sources.Companions ⟨base,actual.accounts,registry⟩
 "ok" lib.AssertEq companions.state
-"budget.journal" lib.AssertEq companions.budget_movements.source_name
-2 lib.AssertEq ≠companions.budget_movements.transactions
-2 lib.AssertEq companions.budget.transactions.count
+"entitlement.journal" lib.AssertEq companions.entitlement.source_name
+1 lib.AssertEq companions.entitlement.origins.count
+1 lib.AssertEq companions.entitlement.transfers.count
 
-evidenceWithoutBudgetFacts ← {
+evidence ← {
   registry⇐registry,actual⇐actual,plan⇐companions.plan,plan_retirements⇐companions.plan_retirements,
-  budget_movements⇐companions.budget_movements,budget_policy⇐companions.budget_policy,
+  entitlement⇐companions.entitlement,envelope_policy⇐companions.envelope_policy,
   household⇐companions.household,envelope_history⇐companions.envelope_history,issue_lines⇐⟨⟩
 }
-composition ← destination.Build ⟨0,⟨"JPY","2026-01-01","2026-02-01","2026-01-12"⟩,evidenceWithoutBudgetFacts⟩
+composition ← destination.Build ⟨0,⟨"JPY","2026-01-01","2026-02-01","2026-01-12"⟩,evidence⟩
 "ok" lib.AssertEq composition.state
 ⟨60⟩ lib.AssertEq composition.result.envelopes.entitlement
-"budget.journal" lib.AssertEq (⊑⊑composition.result.envelopes.entitlement_contributors).source
+"entitlement.journal" lib.AssertEq (⊑⊑composition.result.envelopes.entitlement_contributors).source
 
 •Out "test_application_report_envelope_movement_wiring: ok"

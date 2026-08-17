@@ -13,15 +13,3 @@ account expenses:food
 account expenses:transport
   type: Expense
   commodity: JPY
-
-account budget:opening
-  type: Budget
-  commodity: JPY
-
-account budget:unassigned
-  type: Budget
-  commodity: JPY
-
-account budget:food
-  type: Budget
-  commodity: JPY

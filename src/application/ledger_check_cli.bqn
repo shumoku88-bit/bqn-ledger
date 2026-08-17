@@ -27,7 +27,8 @@ reportPolicy ← sources.CanonicalReportPolicy base
 •Out "ledger_check"∾tab∾"actual_transactions"∾tab∾•Fmt actual.facts.transactions.count
 •Out "ledger_check"∾tab∾"actual_postings"∾tab∾•Fmt actual.facts.postings.count
 •Out "ledger_check"∾tab∾"plan_transactions"∾tab∾•Fmt companions.plan.transactions.count
-•Out "ledger_check"∾tab∾"budget_transactions"∾tab∾•Fmt companions.budget.transactions.count
+•Out "ledger_check"∾tab∾"entitlement_origins"∾tab∾•Fmt companions.entitlement.origins.count
+•Out "ledger_check"∾tab∾"entitlement_transfers"∾tab∾•Fmt companions.entitlement.transfers.count
 •Out "ledger_check"∾tab∾"cycle_mode"∾tab∾companions.household.cycle.definition.mode
 •Out "ledger_check"∾tab∾"issues"∾tab∾•Fmt issues.issues.count
 •Out "ledger_check"∾tab∾"daily_scope_rows"∾tab∾•Fmt daily.rows.count

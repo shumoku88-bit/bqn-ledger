@@ -46,13 +46,13 @@ snapshot "$base" "$tmp_root/before-snapshot"
 assert_snapshot "$base" "$tmp_root/before-snapshot"
 [ "$(wc -l <"$tmp_root/plan.tsv" | tr -d ' ')" -eq 5 ] || { echo "FAIL: expected 5 TSV rows" >&2; exit 1; }
 awk -F '\t' 'NF != 10 { print "FAIL: TSV row " NR " has " NF " fields" > "/dev/stderr"; exit 1 }' "$tmp_root/plan.tsv"
-expected_row=$'2\tREMOVABLE\tunreferenced-ordinary\t2026-07-10\tLegacy ordinary groceries\tentry-0123456789abcdef01234567\t27\t26\t0\t-'
+expected_row=$'2\tREMOVABLE\tunreferenced-ordinary\t2026-07-10\tLegacy ordinary groceries\tentry-0123456789abcdef01234567\t21\t20\t0\t-'
 grep -Fqx "$expected_row" "$tmp_root/plan.tsv" || { echo "FAIL: removable row mismatch" >&2; exit 1; }
 awk -F '\t' '
-  NR==1 && $2=="NOT_LEGACY" && $7==22 && $8==21 { opening=1 }
-  NR==3 && $2=="REFERENCED" && $7==34 && $8==33 && $9==1 { referenced=1 }
-  NR==4 && $2=="NOT_LEGACY" && $7==39 && $8==38 { companion=1 }
-  NR==5 && $2=="PLAN_LINKED" && $7==46 && $8==45 && $9==0 && $10=="plan-legacy-household-001" { plan=1 }
+  NR==1 && $2=="NOT_LEGACY" && $7==16 && $8==15 { opening=1 }
+  NR==3 && $2=="PLAN_LINKED" && $7==28 && $8==27 && $9==0 && $10=="plan-legacy-household-002" { referenced=1 }
+  NR==4 && $2=="NOT_LEGACY" && $7==34 && $8==33 { companion=1 }
+  NR==5 && $2=="PLAN_LINKED" && $7==39 && $8==38 && $9==0 && $10=="plan-legacy-household-001" { plan=1 }
   END { exit (opening && referenced && companion && plan) ? 0 : 1 }
 ' "$tmp_root/plan.tsv" || { echo "FAIL: TSV classification/order/line contract mismatch" >&2; exit 1; }
 if grep -E 'stage0-line-|:0|:1|posting_id' "$tmp_root/plan.tsv"; then echo "FAIL: internal identity leaked in TSV" >&2; exit 1; fi
@@ -64,7 +64,7 @@ assert_snapshot "$base" "$tmp_root/before-snapshot"
 ./tools/edit-bqn --base "$base" journal cleanup-plan --format text >"$tmp_root/plan.txt"
 assert_snapshot "$base" "$tmp_root/before-snapshot"
 [ "$(head -n 1 "$tmp_root/plan.txt")" = "Journal legacy entry-id cleanup plan" ] || { echo "FAIL: text header mismatch" >&2; exit 1; }
-grep -Fqx 'Summary total=5 removable=1 referenced=1 plan-linked=1 other-linked=0 identity-free=0 not-legacy=2' "$tmp_root/plan.txt" || { echo "FAIL: text summary mismatch" >&2; exit 1; }
+grep -Fqx 'Summary total=5 removable=1 referenced=0 plan-linked=2 other-linked=0 identity-free=0 not-legacy=2' "$tmp_root/plan.txt" || { echo "FAIL: text summary mismatch" >&2; exit 1; }
 [ "$(grep -c '^#[1-5] ' "$tmp_root/plan.txt")" -eq 5 ] || { echo "FAIL: text transaction count mismatch" >&2; exit 1; }
 ./tools/edit-bqn --base "$base" journal cleanup-plan >"$tmp_root/default.txt"
 cmp -s "$tmp_root/plan.txt" "$tmp_root/default.txt" || { echo "FAIL: default format is not text" >&2; exit 1; }
@@ -83,7 +83,7 @@ identity_base="$tmp_root/identity-free"
 make_base "$identity_base" fixtures/journal-legacy-entry-id-removal-boundary/after-unreferenced.journal
 snapshot "$identity_base" "$tmp_root/identity-snapshot"
 ./tools/edit-bqn --base "$identity_base" journal cleanup-plan --format tsv >"$tmp_root/identity.tsv"
-awk -F '\t' 'NR==2 && $2=="IDENTITY_FREE" && $6=="-" && $7==0 && $8==26 && $9==0 { found=1 } END { exit found ? 0 : 1 }' "$tmp_root/identity.tsv" || { echo "FAIL: identity-free row mismatch" >&2; exit 1; }
+awk -F '\t' 'NR==2 && $2=="IDENTITY_FREE" && $6=="-" && $7==0 && $8==20 && $9==0 { found=1 } END { exit found ? 0 : 1 }' "$tmp_root/identity.tsv" || { echo "FAIL: identity-free row mismatch" >&2; exit 1; }
 ! grep -q 'stage0-line-' "$tmp_root/identity.tsv" || { echo "FAIL: fallback identity leaked" >&2; exit 1; }
 assert_snapshot "$identity_base" "$tmp_root/identity-snapshot"
 

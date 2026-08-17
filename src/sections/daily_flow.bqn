@@ -1,4 +1,4 @@
-# Destination Date × active non-Budget Account Daily Flow Matrix.
+# Destination Date × active accounting Account Daily Flow Matrix.
 # Accounting evidence is supplied; observation and rendering remain section-local.
 
 pivot ← •Import "../accounting/sparse_pivot.bqn"
@@ -66,7 +66,7 @@ Build ← {𝕊 flow‿periodStartText‿periodEndText‿asOfText:
     diagnostics ∾↩ accountMatrix.diagnostics
     {𝕊:
       active ← {𝕊 column: ∨´0∾{0≠column⊑𝕩}¨accountMatrix.matrix.values}¨flow.accounts.index
-      visible ← active ∧ ¬"budget"⊸≡¨flow.accounts.role
+      visible ← active
       visibleIndices ← visible/flow.accounts.index
       visibleRoles ← visible/flow.accounts.role
       visibleMatrix ← matrixResult.Build ⟨

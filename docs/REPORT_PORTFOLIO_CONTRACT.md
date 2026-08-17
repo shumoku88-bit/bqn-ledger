@@ -108,26 +108,24 @@ Monthly Accounts groups exact Actual movement by explicit calendar-month range. 
 
 ## Daily Flow
 
-Daily Flow answers how active non-Budget Accounts moved on each observed date in one explicit Actual period. The result keeps Account-level evidence rather than replacing Expense Accounts with Envelope display categories.
+Daily Flow answers how active accounting Accounts moved on each observed date in one explicit Actual period. The canonical Account axis contains only Asset, Liability, Equity, Income, and Expense roles. The result keeps Account-level evidence rather than replacing Expense Accounts with Envelope display categories.
 
-Its lower accounting capability may also expose dynamic Expense categories for other consumers. That category meaning comes only from explicit `ExpenseRoutingHistory`; current `budget.toml`, Account names, prefixes, and labels are not historical routing authority. Detailed ownership is in `DATE_CATEGORY_FLOW_CAPABILITY.md`.
+Its lower accounting capability may also expose dynamic Expense categories for other consumers. That category meaning comes only from explicit `ExpenseRoutingHistory`; current `envelope.toml`, Account names, prefixes, and labels are not historical routing authority. Detailed ownership is in `DATE_CATEGORY_FLOW_CAPABILITY.md`.
 
 ## Envelope & Backing
 
 Envelope & Backing composes owners with deliberately different lifetimes:
 
-- `budget.journal`: ordered Entitlement movement evidence;
-- `household.toml [budget]`: explicit opening / unassigned Budget Account coordinates;
-- `household.toml [[budget.envelopes]]`: stable allocation Account -> Envelope identity coordinates;
+- `entitlement.journal`: explicit StockOrigin and source-ordered native Endpoint transfers;
 - `household.toml [envelope-history]`: stable Envelope identities and explicit Expense / Fulfillment routing history;
 - Actual and Plan Journals: accounting, Plan, and completion evidence;
-- `budget.toml`: current Envelope definition / presentation and current Backing topology only.
+- `envelope.toml`: current Envelope membership/presentation and current Backing topology only.
 
-No Account-name inference, destination-Account inference, current Expense assignment, `spent`, or `execution` compatibility participates.
+No Account-name inference, destination-Account inference, current Expense assignment, Account-to-Envelope adapter, `spent`, or `execution` compatibility participates. `unallocated` is a boundary Endpoint, not an Account or stored balance.
 
-A clean Envelope epoch may start with an empty canonical `budget.journal`. Before the first explicit Entitlement-source movement, no stock origin or initial money is inferred from Actual balances.
+A clean Envelope epoch may start with an empty canonical `entitlement.journal`, and an origin-only Commodity is valid. Before an explicit StockOrigin, no origin or initial money is inferred from Actual balances or current configuration.
 
-Live stock terms use the Entitlement-source origin through observation rather than resetting at the report Period:
+Live stock terms use the explicit Commodity StockOrigin through observation rather than resetting at the report Period. StockOrigin date, memo, and source provenance remain report evidence:
 
 ```text
 stock horizon = Entitlement-source origin .. O
@@ -154,12 +152,9 @@ funding_balance       = exact Actual closing at O of current Backing Asset Accou
 signed_envelope_total = sum Remaining across current Envelopes
 backing_required      = sum max(Remaining,0)
 backing_surplus       = funding_balance - backing_required
-
-ledger_unassigned
-reconciliation_delta  = backing_surplus - ledger_unassigned
 ```
 
-`reconciliation_delta = 0` is informative, not an invariant equating Budget evidence with Asset balances. Detailed current laws are in `ENVELOPE_BACKING_CAPABILITY.md`.
+Native Entitlement does not publish an Unallocated balance or reconciliation field. Detailed current laws are in `ENVELOPE_BACKING_CAPABILITY.md`.
 
 ## Planned Payments
 

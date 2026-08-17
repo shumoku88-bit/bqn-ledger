@@ -12,49 +12,38 @@ mkdir -p "$base"
 cp -R "$fixture"/. "$base"/
 rm -f "$base/budget_alloc.tsv" "$base/accounts.tsv" "$base/config.tsv"
 
-cat >>"$base/accounts.journal" <<'EOF'
-
-account budget:retired
-  type: Budget
-  commodity: JPY
-EOF
-
 python3 - "$base/household.toml" <<'PY'
 from pathlib import Path
 import sys
 p = Path(sys.argv[1])
 text = p.read_text(encoding="utf-8")
 text = text.replace('identities = ["food"]', 'identities = ["food", "retired"]')
-text = text.replace('envelope = ["budget:food"]', 'envelope = ["budget:food", "budget:retired"]')
-text += '''\n[[budget.envelopes]]\nid = "retired"\nallocation-account = "budget:retired"\n'''
 p.write_text(text, encoding="utf-8")
 PY
 
-cat >>"$base/budget.journal" <<'EOF'
+cat >>"$base/entitlement.journal" <<'EOF'
 
-2026-01-05 historical-retired-grant
-  budget:unassigned  -10 JPY
-  budget:retired      10 JPY
+2026-01-05 transfer unallocated -> retired 10 JPY historical-retired-grant
 EOF
 
 # Historical/stable coordinates and old movements remain valid source evidence
-# after the Envelope leaves current budget.toml membership. Production reporting
+# after the Envelope leaves current envelope.toml membership. Production reporting
 # must still admit that history while presenting only current Envelopes.
 ./tools/ledger-check "$base" >/dev/null
 ./tools/report-all "$base" JPY compact 2026-01-31 >/dev/null
 
-cp "$base/budget.journal" "$tmp_root/budget-before.journal"
-if ./tools/edit --base "$base" budget add \
+cp "$base/entitlement.journal" "$tmp_root/entitlement-before.journal"
+if ./tools/edit --base "$base" entitlement add \
   --date 2026-01-31 --memo should-not-revive-retired-envelope \
-  --from budget:unassigned --to budget:retired --amount 10 --dry-run \
+  --from unallocated --to retired --amount 10 --dry-run \
   >"$tmp_root/out" 2>&1; then
-  echo 'FAIL: Budget Add accepted a retired Envelope allocation Account' >&2
+  echo 'FAIL: Entitlement Add accepted a retired Envelope' >&2
   exit 1
 fi
-grep -F 'Budget movement cannot use retired Envelope allocation Account: budget:retired -> retired' "$tmp_root/out" >/dev/null
+grep -F 'cannot write Entitlement transfer to retired Envelope: retired' "$tmp_root/out" >/dev/null
 
-cmp -s "$tmp_root/budget-before.journal" "$base/budget.journal" || {
-  echo 'FAIL: rejected retired Envelope write changed budget.journal' >&2
+cmp -s "$tmp_root/entitlement-before.journal" "$base/entitlement.journal" || {
+  echo 'FAIL: rejected retired Envelope write changed entitlement.journal' >&2
   exit 1
 }
 if [[ -d "$base/.backup" ]] && find "$base/.backup" -type f | grep -q .; then
@@ -62,4 +51,4 @@ if [[ -d "$base/.backup" ]] && find "$base/.backup" -type f | grep -q .; then
   exit 1
 fi
 
-echo 'check-budget-retired-envelope-write: OK'
+echo 'check-entitlement-retired-envelope-write: OK'

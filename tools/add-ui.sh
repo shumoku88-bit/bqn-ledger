@@ -40,7 +40,7 @@ Modes:
   multi         native Journal transaction with 3+ signed postings (total = 0)
   move          assets -> assets    (writes selected actual source)
   income        income -> assets    (writes selected actual source)
-  budget        budget -> budget    (writes budget.journal)
+  budget        entitlement transfer (writes entitlement.journal)
   plan-add      assets -> expenses  (writes plan.journal)
   plan-edit     date/amount         (edits plan.journal)
   plan-finish                       (plan -> journal, optional next plan)
@@ -145,6 +145,18 @@ accounts() {
   "$ROOT_DIR/tools/edit" "${args[@]}"
 }
 
+envelopes() {
+  printf 'unallocated\tunallocated\n'
+  if [[ -f "$base_dir/envelope.toml" ]]; then
+    sed -nE 's/^[[:space:]]*id[[:space:]]*=[[:space:]]*"([^"]+)"/\1\t\1/p' "$base_dir/envelope.toml"
+  fi
+}
+
+select_envelope() {
+  local prompt="$1"
+  envelopes | select_line "$prompt"
+}
+
 run_preflight() {
   local failures=0 warnings=0 count role f
 
@@ -155,7 +167,7 @@ run_preflight() {
   printf 'add-ui preflight\n'
   printf 'base: %s\n' "$base_dir"
 
-  for f in accounts.journal actual.journal plan.journal budget.journal budget.toml household.toml report.toml issues.tsv; do
+  for f in accounts.journal actual.journal plan.journal entitlement.journal envelope.toml household.toml report.toml issues.tsv; do
     if [[ -f "$base_dir/$f" ]]; then
       ok "$f"
     else
@@ -183,13 +195,6 @@ run_preflight() {
       fail_check "role=$role has no candidates"
     fi
   done
-
-  count="$(accounts budget | awk 'END { print NR + 0 }')"
-  if [[ "$count" -gt 0 ]]; then
-    ok "role=budget candidates: $count"
-  else
-    warn_check "role=budget has no candidates; budget mode may be unavailable"
-  fi
 
   if "$ROOT_DIR/tools/edit" --base "$base_dir" plan list --format tsv >/dev/null; then
     ok "tools/edit plan list --format tsv"
@@ -333,7 +338,7 @@ expense	支出 assets -> expenses
 multi	複数ポスティング (native Journal)
 move	資金移動 assets -> assets
 income	収入 income -> assets
-budget	予算配賦 budget -> budget
+budget	Entitlement transfer (unallocated / Envelope)
 plan-add	予定の追加 assets -> expenses
 plan-edit	予定の日付・金額修正
 plan-finish	予定の実績化 + 次回予定補充
@@ -607,12 +612,13 @@ case "$mode" in
     capture_or_cancel memo read_tty 'Memo/Description' 'income'
     capture_or_cancel meta choose_meta
     ;;
-  budget)
+  budget|entitlement)
     capture_or_cancel memo choose_budget_memo
-    capture_or_cancel from select_account 'budget' 'from budget'
-    capture_or_cancel to select_account 'budget' 'to budget'
+    capture_or_cancel from_line select_envelope 'from envelope'
+    from="${from_line%%$'\t'*}"
+    capture_or_cancel to_line select_envelope 'to envelope'
+    to="${to_line%%$'\t'*}"
     capture_or_cancel amt read_tty 'Amount' ''
-    capture_or_cancel meta choose_meta
     ;;
   plan-add)
     capture_or_cancel memo read_tty 'Memo/Description' ''
@@ -780,7 +786,7 @@ elif [[ "$mode" == 'issue' ]]; then
   )
 else
   target='journal'
-  [[ "$mode" == 'budget' ]] && target='budget'
+  [[ "$mode" == 'budget' || "$mode" == 'entitlement' ]] && target='entitlement'
   [[ "$mode" == 'plan-add' ]] && target='plan'
   cmd=(
     "$ROOT_DIR/tools/edit" --base "$base_dir" "$target" add
@@ -792,7 +798,7 @@ else
   )
 fi
 
-if [[ "$mode" != 'account-add' && "$mode" != 'plan-edit' && "$mode" != 'reverse' && "$mode" != 'issue' && "$mode" != 'issue-close' && -n "$meta" ]]; then
+if [[ "$mode" != 'account-add' && "$mode" != 'plan-edit' && "$mode" != 'reverse' && "$mode" != 'issue' && "$mode" != 'issue-close' && "$mode" != 'budget' && "$mode" != 'entitlement' && -n "$meta" ]]; then
   for token in $meta; do
     [[ -n "$token" ]] && cmd+=(--meta "$token")
   done

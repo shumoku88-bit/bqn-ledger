@@ -12,7 +12,7 @@ Diagnostic ← {𝕊 code‿message:
 }
 EmptyRows ← {𝕊:
   {
-    count⇐0,index⇐empty,account_key⇐empty,category⇐empty,
+    count⇐0,index⇐empty,envelope_id⇐empty,
     entitlement⇐empty,actual_consumption⇐empty,actual_refunds⇐empty,fulfillment⇐empty,
     ledger_remaining⇐empty,commitment⇐empty,post_plan_headroom⇐empty,
     entitlement_contributors⇐empty,consumption_contributors⇐empty,
@@ -24,15 +24,15 @@ EmptyTotals ← {𝕊:
     entitlement⇐empty,actual_consumption⇐empty,actual_refunds⇐empty,fulfillment⇐empty,
     ledger_remaining⇐empty,commitment⇐empty,post_plan_headroom⇐empty,
     funding_balance⇐empty,signed_envelope_total⇐empty,backing_required⇐empty,
-    backing_surplus⇐empty,ledger_unassigned⇐empty,reconciliation_delta⇐empty
+    backing_surplus⇐empty
   }
 }
+EmptyOrigin ← {𝕊: {present⇐0,date⇐"",date_ordinal⇐0,commodity⇐"",memo⇐"",source_event_id⇐"",source_line⇐0}}
 EmptyResult ← {𝕊 state‿reason‿diagnostics:
   {
     state⇐state,reason⇐reason,domain⇐"",start⇐"",end_exclusive⇐"",observation⇐"",
-    scale⇐0,status⇐"",envelopes⇐EmptyRows @,totals⇐EmptyTotals @,
-    funding_account_indices⇐empty,funding_contributors⇐empty,
-    unassigned_contributors⇐empty,diagnostics⇐diagnostics
+    scale⇐0,status⇐"",origin⇐EmptyOrigin @,envelopes⇐EmptyRows @,totals⇐EmptyTotals @,
+    funding_account_indices⇐empty,funding_contributors⇐empty,diagnostics⇐diagnostics
   }
 }
 
@@ -55,8 +55,9 @@ Build ← {𝕊 statement‿startText‿endText‿observationText:
       result↩{
         state⇐"ok",reason⇐"",domain⇐statement.domain,start⇐startText,end_exclusive⇐endText,
         observation⇐observationText,scale⇐statement.scale,status⇐statement.status,
+        origin⇐statement.entitlement_observation.origin,
         envelopes⇐{
-          count⇐source.count,index⇐source.index,account_key⇐source.account_key,category⇐source.category,
+          count⇐source.count,index⇐source.index,envelope_id⇐source.envelope_id,
           entitlement⇐source.entitlement,actual_consumption⇐source.actual_consumption,
           actual_refunds⇐source.actual_refunds,fulfillment⇐source.fulfillment,ledger_remaining⇐source.ledger_remaining,
           commitment⇐source.commitment,post_plan_headroom⇐source.post_plan_headroom,
@@ -66,8 +67,7 @@ Build ← {𝕊 statement‿startText‿endText‿observationText:
           plan_contributors⇐source.plan_contributors
         },
         totals⇐statement.totals,funding_account_indices⇐statement.funding_account_indices,
-        funding_contributors⇐statement.funding_contributors,
-        unassigned_contributors⇐statement.unassigned_contributors,diagnostics⇐empty
+        funding_contributors⇐statement.funding_contributors,diagnostics⇐empty
       }
     }⍟(0=≠diagnostics) @
     {𝕊:result↩EmptyResult ⟨"error","",diagnostics⟩}⍟(0<≠diagnostics) @
@@ -76,12 +76,20 @@ Build ← {𝕊 statement‿startText‿endText‿observationText:
 }
 
 AmountText ← {𝕊 value‿scaleValue: amount.Format ⟨value,scaleValue⟩}
+OriginHuman ← {𝕊 origin:
+  value ← "Stock origin: none"
+  {𝕊:
+    memo ← "" ⋄ {𝕊:memo↩" ; "∾origin.memo}⍟(0<≠origin.memo) @
+    value↩"Stock origin: "∾origin.date∾" "∾origin.commodity∾memo∾" ["∾origin.source_event_id∾"]"
+  }⍟origin.present @
+  value
+}
 FormatHuman ← {𝕊 input:
   result ← input ⋄ style ← "minus"
   {𝕊: result↩0⊑input ⋄ style↩(1⊑input).negative_style}⍟((0<≡input) ∧ (2=≠input)) @
   Fmt ← {𝕊 coeff: text.FormatAmount ⟨coeff,result.scale,style⟩}
   rows ← {𝕊 i:
-    ⟨i⊑result.envelopes.category⟩∾Fmt¨⟨
+    ⟨i⊑result.envelopes.envelope_id⟩∾Fmt¨⟨
       i⊑result.envelopes.entitlement,i⊑result.envelopes.actual_consumption,
       i⊑result.envelopes.actual_refunds,i⊑result.envelopes.fulfillment,i⊑result.envelopes.ledger_remaining,
       i⊑result.envelopes.commitment,i⊑result.envelopes.post_plan_headroom
@@ -91,14 +99,12 @@ FormatHuman ← {𝕊 input:
     ⟨"Funding balance",Fmt result.totals.funding_balance⟩,
     ⟨"Signed envelope total",Fmt result.totals.signed_envelope_total⟩,
     ⟨"Positive backing required",Fmt result.totals.backing_required⟩,
-    ⟨"Backing surplus",Fmt result.totals.backing_surplus⟩,
-    ⟨"Budget unassigned",Fmt result.totals.ledger_unassigned⟩,
-    ⟨"Reconciliation delta",Fmt result.totals.reconciliation_delta⟩
+    ⟨"Backing surplus",Fmt result.totals.backing_surplus⟩
   ⟩
   headingText ← ∾{𝕩∾lf}¨⟨
     "== Envelope & Backing ==",
     ("Horizon: "∾result.start∾".."∾result.end_exclusive),
-    ("Observed through: "∾result.observation),""
+    ("Observed through: "∾result.observation),OriginHuman result.origin,""
   ⟩
   envelopeTable ← text.RenderTable ⟨⟨"Envelope","Entitlement","Consumption","Credits/refunds","Fulfillment","Remaining","Commitment","Headroom"⟩,rows,⟨1,2,3,4,5,6,7⟩⟩
   backingBlock ← lf∾"Backing evidence"∾lf∾text.RenderTable ⟨⟨"Coordinate","Amount"⟩,backingRows,⟨1⟩⟩
@@ -109,7 +115,7 @@ FormatHuman ← {𝕊 input:
 FormatCompact ← {𝕊 result:
   itemLines ← {𝕊 i:
     ∾⟨
-      "ledger_envelope_item: ",i⊑result.envelopes.category,
+      "ledger_envelope_item: ",i⊑result.envelopes.envelope_id,
       " entitlement=",AmountText ⟨i⊑result.envelopes.entitlement,result.scale⟩,
       " consumption=",AmountText ⟨i⊑result.envelopes.actual_consumption,result.scale⟩,
       " refunds=",AmountText ⟨i⊑result.envelopes.actual_refunds,result.scale⟩,
@@ -121,18 +127,24 @@ FormatCompact ← {𝕊 result:
   }¨result.envelopes.index
   pairs ← ⟨
     ⟨"funding_balance",result.totals.funding_balance⟩,⟨"signed_total",result.totals.signed_envelope_total⟩,
-    ⟨"backing_required",result.totals.backing_required⟩,⟨"backing_surplus",result.totals.backing_surplus⟩,
-    ⟨"ledger_unassigned",result.totals.ledger_unassigned⟩,⟨"reconciliation_delta",result.totals.reconciliation_delta⟩
+    ⟨"backing_required",result.totals.backing_required⟩,⟨"backing_surplus",result.totals.backing_surplus⟩
   ⟩
   pairLines ← {𝕊 pair: "ledger_envelope_"∾(0⊑pair)∾": "∾AmountText ⟨1⊑pair,result.scale⟩}¨pairs
-  lines ← ⟨"--- Ledger Envelope & Backing ---"⟩∾itemLines∾pairLines∾⟨"ledger_envelope_status: "∾result.status⟩
+  originLines ← ⟨
+    "ledger_envelope_origin_present: "∾•Fmt result.origin.present,
+    "ledger_envelope_origin_date: "∾result.origin.date,
+    "ledger_envelope_origin_commodity: "∾result.origin.commodity,
+    "ledger_envelope_origin_memo: "∾result.origin.memo,
+    "ledger_envelope_origin_source_event_id: "∾result.origin.source_event_id,
+    "ledger_envelope_origin_source_line: "∾•Fmt result.origin.source_line
+  ⟩
+  lines ← ⟨"--- Ledger Envelope & Backing ---"⟩∾originLines∾itemLines∾pairLines∾⟨"ledger_envelope_status: "∾result.status⟩
   ∾{𝕩∾lf}¨lines
 }
 
 EnvelopeJson ← {𝕊 result‿i:
   json.Object ⟨
-    json.Pair ⟨"category",json.String i⊑result.envelopes.category⟩,
-    json.Pair ⟨"account",json.String i⊑result.envelopes.account_key⟩,
+    json.Pair ⟨"envelope_id",json.String i⊑result.envelopes.envelope_id⟩,
     json.Pair ⟨"entitlement",json.ExactNumber ⟨i⊑result.envelopes.entitlement,result.scale⟩⟩,
     json.Pair ⟨"actual_consumption",json.ExactNumber ⟨i⊑result.envelopes.actual_consumption,result.scale⟩⟩,
     json.Pair ⟨"actual_refunds",json.ExactNumber ⟨i⊑result.envelopes.actual_refunds,result.scale⟩⟩,
@@ -142,6 +154,16 @@ EnvelopeJson ← {𝕊 result‿i:
     json.Pair ⟨"post_plan_headroom",json.ExactNumber ⟨i⊑result.envelopes.post_plan_headroom,result.scale⟩⟩
   ⟩
 }
+OriginJson ← {𝕊 origin:
+  json.Object ⟨
+    json.Pair ⟨"present",json.Boolean origin.present⟩,
+    json.Pair ⟨"date",json.String origin.date⟩,
+    json.Pair ⟨"commodity",json.String origin.commodity⟩,
+    json.Pair ⟨"memo",json.String origin.memo⟩,
+    json.Pair ⟨"source_event_id",json.String origin.source_event_id⟩,
+    json.Pair ⟨"source_line",json.ExactNumber ⟨origin.source_line,0⟩⟩
+  ⟩
+}
 FormatJson ← {𝕊 result:
   totals ← result.totals
   (json.Object ⟨
@@ -149,13 +171,12 @@ FormatJson ← {𝕊 result:
     json.Pair ⟨"start",json.String result.start⟩,
     json.Pair ⟨"end_exclusive",json.String result.end_exclusive⟩,
     json.Pair ⟨"observation",json.String result.observation⟩,
+    json.Pair ⟨"stock_origin",OriginJson result.origin⟩,
     json.Pair ⟨"envelopes",json.Array {EnvelopeJson ⟨result,𝕩⟩}¨result.envelopes.index⟩,
     json.Pair ⟨"funding_balance",json.ExactNumber ⟨totals.funding_balance,result.scale⟩⟩,
     json.Pair ⟨"signed_envelope_total",json.ExactNumber ⟨totals.signed_envelope_total,result.scale⟩⟩,
     json.Pair ⟨"backing_required",json.ExactNumber ⟨totals.backing_required,result.scale⟩⟩,
     json.Pair ⟨"backing_surplus",json.ExactNumber ⟨totals.backing_surplus,result.scale⟩⟩,
-    json.Pair ⟨"ledger_unassigned",json.ExactNumber ⟨totals.ledger_unassigned,result.scale⟩⟩,
-    json.Pair ⟨"reconciliation_delta",json.ExactNumber ⟨totals.reconciliation_delta,result.scale⟩⟩,
     json.Pair ⟨"status",json.String result.status⟩
   ⟩)∾lf
 }

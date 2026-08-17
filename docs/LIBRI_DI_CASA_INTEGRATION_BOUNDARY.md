@@ -56,12 +56,12 @@ Do not turn the current Shell/BQN editor into a universal persistence framework 
 
 ### Source role is not source format
 
-Current Facts identify strict sources such as `actual.journal`, `plan.journal`, and `budget.journal`. Several accounting capabilities use those identities as admission guards. This is safe for the current runtime but must not become a permanent claim that confirmed evidence can only have one physical encoding.
+Current Facts identify strict sources such as `actual.journal` and `plan.journal`; native Entitlement evidence separately identifies `entitlement.journal`. Several accounting capabilities use those identities as admission guards. This is safe for the current runtime but must not become a permanent claim that confirmed evidence can only have one physical encoding.
 
 A future admitted source boundary must distinguish at least:
 
 ```text
-semantic role    confirmed Actual, Plan, Budget, or another reviewed role
+semantic role    confirmed Actual, Plan, Entitlement, or another reviewed role
 physical format  Native Journal, libri-di-casa export, or another adapter format
 source identity  versioned file/export/store identity
 record identity  durable event, Transaction, and Posting identifiers
@@ -92,7 +92,7 @@ A future boundary must explicitly define:
 
 ### No premature book mapping
 
-Current Plan, Budget, Issues, and Daily Target scope must not be silently equated with `Ricordanze`, `Inventario`, or another historically named book. Each mapping requires a concrete record question and an explicit ownership decision. Similar labels do not prove identical lifecycle or authority.
+Current Plan, Entitlement, Issues, and Daily Target scope must not be silently equated with `Ricordanze`, `Inventario`, or another historically named book. Each mapping requires a concrete record question and an explicit ownership decision. Similar labels do not prove identical lifecycle or authority.
 
 ## Known seams to improve before integration
 

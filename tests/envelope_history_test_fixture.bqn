@@ -1,6 +1,6 @@
 # Explicit historical Envelope evidence for accounting tests.
 # Tests name stable Envelope identities and routing facts directly; this helper
-# never derives history from current budget.toml assignments.
+# never derives history from current envelope.toml assignments.
 
 dates ← •Import "../src/ledger/date_ordinal.bqn"
 empty ← ⟨⟩

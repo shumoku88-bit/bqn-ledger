@@ -78,18 +78,18 @@ CycleComparison ← {𝕊 facts‿domain‿currentCycle‿currentObservation‿b
 MonthlyAccounts ← {𝕊 facts‿domain‿firstMonth‿lastMonthExclusive:
   Publish ⟨"monthly-accounts",monthlySection.Build monthMovement.Build ⟨facts,domain,firstMonth,lastMonthExclusive⟩⟩
 }
-DailyFlow ← {𝕊 facts‿householdPolicy‿envelopeHistory‿domain‿start‿finish‿observation:
+DailyFlow ← {𝕊 facts‿envelopeHistory‿domain‿start‿finish‿observation:
   output ← DateFailure "daily-flow" ⋄ valid ← (dates.IsValid start) ∧ (dates.IsValid finish) ∧ dates.IsValid observation
   {𝕊:
-    accounting ← dateCategoryFlow.Build ⟨facts,householdPolicy,envelopeHistory,domain,"actual",dates.Ordinal start,dates.Ordinal finish⟩
+    accounting ← dateCategoryFlow.Build ⟨facts,envelopeHistory,domain,"actual",dates.Ordinal start,dates.Ordinal finish⟩
     output↩Publish ⟨"daily-flow",dailyFlowSection.Build ⟨accounting,start,finish,observation⟩⟩
   }⍟valid @
   output
 }
-Envelopes ← {𝕊 budgetMovements‿budgetPolicy‿householdPolicy‿envelopeHistory‿actualFacts‿planFacts‿planRetirements‿domain‿start‿finish‿observation:
+Envelopes ← {𝕊 entitlement‿envelopePolicy‿envelopeHistory‿actualFacts‿planFacts‿planRetirements‿domain‿start‿finish‿observation:
   output ← DateFailure "envelopes" ⋄ valid ← (dates.IsValid start) ∧ (dates.IsValid finish) ∧ dates.IsValid observation
   {𝕊:
-    accounting ← envelopeBacking.Build ⟨budgetMovements,budgetPolicy,householdPolicy,envelopeHistory,actualFacts,planFacts,planRetirements,domain,dates.Ordinal start,dates.Ordinal finish,dates.Ordinal observation⟩
+    accounting ← envelopeBacking.Build ⟨entitlement,envelopePolicy,envelopeHistory,actualFacts,planFacts,planRetirements,domain,dates.Ordinal start,dates.Ordinal finish,dates.Ordinal observation⟩
     output↩Publish ⟨"envelopes",envelopeSection.Build ⟨accounting,start,finish,observation⟩⟩
   }⍟valid @
   output

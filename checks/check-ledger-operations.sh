@@ -45,6 +45,21 @@ if ./tools/ledger-check "$work/invalid-report" >"$work/invalid-report.out" 2>&1;
 fi
 ! grep -F $'ledger_check\tstate\tok' "$work/invalid-report.out" >/dev/null || Fail 'invalid canonical Report policy published ok state'
 
+cp -R "$fixture" "$work/unstable-current-envelope"
+cat >>"$work/unstable-current-envelope/envelope.toml" <<'EOF'
+
+[[envelopes]]
+id = "not-in-history"
+label = "Missing stable identity"
+pacing = "daily"
+backing-pool = "cash"
+EOF
+if ./tools/ledger-check "$work/unstable-current-envelope" >"$work/unstable-current-envelope.out" 2>&1; then
+  Fail 'ledger-check accepted a current Envelope absent from stable history'
+fi
+grep -F 'current_envelope_identity_missing' "$work/unstable-current-envelope.out" >/dev/null \
+  || Fail 'missing current/stable Envelope compatibility diagnostic'
+
 if ./tools/ledger-check "$fixture" legacy-source >/dev/null 2>&1; then
   Fail 'ledger-check accepted a legacy source coordinate'
 fi
@@ -64,12 +79,12 @@ if rg -n 'accounts\.tsv|plan\.tsv|budget_alloc\.tsv|cycle\.tsv|daily_target_scop
   Fail 'operational command still exposes a retired Household source coordinate'
 fi
 
-# Readiness is one admitted Account observation. Plan and Budget companions must
+# Readiness is one admitted Account observation. Plan companion must
 # reuse the Account Registry supplied by the already-admitted Actual observation.
 grep -Fq 'planResult ← planSource.LoadFromAccounts ⟨base,accounts,registry⟩' src/application/report_source_adapter.bqn \
   || Fail 'HouseholdContext re-reads Accounts instead of sharing the readiness observation'
-grep -Fq 'budgetResult ← budgetSource.LoadFromAccounts ⟨base,accounts,registry⟩' src/application/report_source_adapter.bqn \
-  || Fail 'Companions re-reads Accounts instead of sharing the readiness observation'
+grep -Fq 'CanonicalEntitlement ⟨base,context.envelope_history,registry⟩' src/application/report_source_adapter.bqn \
+  || Fail 'Companions does not load entitlement'
 if grep -Fq '↩' src/application/report_source_adapter.bqn; then
   Fail 'Report source adapter reintroduced mutable result or diagnostic staging'
 fi

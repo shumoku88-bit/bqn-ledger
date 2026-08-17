@@ -1,28 +1,12 @@
 # Report composition
 
-Status: production static catalog, individual routes, fail-closed `all`, and atomic cache publication.
+Status: production static catalog, semantic request routes, fail-closed current batch, and atomic cache publication.
 
 ## Static catalog owner
 
 `src/report/catalog.bqn` is the only destination catalog owner. It contains exactly twelve retained keys in final order and declares label, bounded result shape, and supported human/compact/JSON surfaces.
 
-Catalog listing is source-independent. `catalog.Table` and `catalog_text.FormatTsv` perform no source reads, clock access, context construction, or report calculation. The deterministic public listing is `fixtures/ledger-facts-phase1-proof/report_catalog.destination.tsv`.
-
-## Request admission
-
-`src/report/request.bqn` validates only final keys and final surfaces:
-
-```text
-human | compact | json
-```
-
-Unknown legacy keys fail with `report_key_unknown`; they are not aliases. A known report requested through an unsupported surface fails with `report_surface_unsupported`; it does not return an empty renderer.
-
-`all` is a composition selector, not a thirteenth catalog entry:
-
-- `all + human` selects all twelve entries in catalog order;
-- `all + compact` selects only registered compact owners in catalog order;
-- `all + json` is unsupported because there is no aggregate JSON schema.
+Catalog listing is source-independent. Unknown legacy keys are rejected rather than translated.
 
 Registered compact owners are:
 
@@ -36,140 +20,85 @@ daily-target
 
 ## One-result composition
 
-`src/report/compose.bqn` exports twelve named functions rather than one universal request context:
+`src/report/compose.bqn` exports twelve named functions rather than one universal context:
 
 ```text
 Balances          Actual Facts, domain, observation
 BalanceSheet      Actual Facts, domain, observation
 ProfitAndLoss     Actual Facts, domain, period
-Recent            Actual Facts, limit
+Recent            Actual Facts, limit / through
 Planned           Plan Facts, Actual Facts, resolved cycle, observation
 CycleAccounts     Actual Facts, domain, resolved cycle, observation
-CycleComparison   Actual Facts, domain, two explicit cycle windows/observations, policy
+CycleComparison   Actual Facts, domain, two cycle windows/observations, policy
 MonthlyAccounts   Actual Facts, domain, first month, last exclusive month
-DailyFlow        Actual Facts, domain, period, observation
-Envelopes         Budget/Actual/Plan Facts, domain, horizon, observation, funding indices
-DailyTarget       observation, target, domain, owner asset scope, obligation scope
+DailyFlow         Actual Facts, EnvelopeHistory, domain, period, observation
+Envelopes         Entitlement, current Envelope policy, EnvelopeHistory,
+                  Actual/Plan Facts, Plan retirements, domain/horizon/observation
+DailyTarget       observation, target, domain, owner asset/obligation scope
 Issues            already-read issue lines, currency registry
 ```
 
-Each function composes existing accounting and section owners and publishes exactly one bounded result. Error/unavailable results contain no partial report; unavailable reason is preserved. No function accepts paths, clock, CLI arguments, unrelated report coordinates, or another report's result.
+Each function publishes exactly one bounded semantic result. Error/unavailable results contain no partial report. No composition function accepts source paths, a clock, physical source basenames, or another report's rendered text.
 
-`src/report/render.bqn` dispatches only a successful one-result composition through the surface already admitted by `request.bqn`. Unsupported surfaces fail before a formatter is called. The dispatcher imports all static section owners but does not build them.
+The Envelope composition receives native StockOrigin/Transfer evidence. It does not receive Budget Accounts or an Account-to-Envelope projection. StockOrigin provenance remains in the section result and JSON/compact evidence.
 
-Public composition tests invoke every named composer and compare its rendering with the existing destination golden, proving that composition adds no second semantic owner.
+## Request admission and rendering
 
-`all` iteration will repeatedly invoke this same one-result boundary and concatenate supported renderings; it will not widen an individual result or construct an all-report record.
-
-## Key-first I/O and production CLI
-
-Application-only `source_io.bqn` and `report_source_adapter.bqn` own read-only file access. Core ledger/accounting/sections/report modules do not import them. `tools/report` admits key and surface before its BQN entry reads household evidence and currently wires:
+`src/report/request.bqn` validates one retained key and surface:
 
 ```text
-envelopes         Accounts/Actual + explicit Plan/Budget + funding Account keys
-balances          accounts.tsv + explicit Journal basename
-balance-sheet     Accounts/Actual + explicit observation
-profit-and-loss   Accounts/Actual + explicit half-open period
-recent            accounts.tsv + explicit Journal basename
-planned           Accounts/Actual + explicit Plan and Cycle basenames
-cycle-accounts     Accounts/Actual + explicit Cycle; Plan only for incomeAnchor
-cycle-comparison   Accounts/Actual + two explicit Cycle definitions; Plan only for incomeAnchor
-monthly-accounts   accounts.tsv + explicit Journal basename
-daily-flow         Accounts/Actual + explicit period and observation
-daily-target       Accounts/Actual + explicit Plan + strict ownership/linkage TSV
-issues             explicit strict Issue TSV basename
+human | compact | json
 ```
 
-All coordinates and basenames are explicit. Safe Journal/TSV basenames reject separators; there is no path fallback. Cycle definitions are strictly admitted before mode-specific resolution. Fixed/calendarMonth requests do not read Plan; incomeAnchor requires it. Comparison admits separate current/baseline definitions and rejects differing modes. Selective-source tests prove Recent works with Accounts/Actual only, fixed Cycle Accounts adds only Cycle, Planned does not require Budget, incomeAnchor fails without Plan, Envelope rejects non-asset funding, Daily Target needs no Budget/Cycle source, Issues works without Accounts/Actual, and unknown/unsupported requests fail even when the base path does not exist.
+A known key on an unsupported surface fails before rendering. `all` is a catalog selection, not a thirteenth semantic result, and aggregate JSON is unsupported.
 
-Envelope funding ownership is admitted from one or more explicit Account keys. Keys must be unique, admitted, same-domain, and `role=asset`; names/prefixes never classify funding.
+`src/report/render.bqn` dispatches only a successful one-result composition through the already-admitted surface.
 
-Daily Target uses the exact seven-column application source:
+## Application I/O boundary
+
+`src/application/report_source_adapter.bqn` owns canonical read composition over the eight-file Household root:
 
 ```text
-kind | scope_id | account_key | plan_id | excluded_amount | currency | reservation_ref
+accounts.journal
+actual.journal
+plan.journal
+entitlement.journal
+envelope.toml
+household.toml
+report.toml
+issues.tsv
 ```
 
-Asset rows link durable scope identity to an admitted asset Account. Obligation rows link durable scope identity to a canonical Plan `plan_id`; amount/date/currency and completion status come from Plan/Actual evidence rather than the policy row. Positive exclusion requires exact currency and unique reservation reference. The adapter builds assets from observed Account balances and obligations from durable completion Join, preserving contributors. Completed or outside-horizon obligations remain evidenced but are excluded from calculation; overdue open obligations remain included.
+It admits Accounts once, reuses the same Account observation for Actual/Plan/Backing policy, admits stable Envelope history separately from current Envelope policy, and loads Entitlement against the stable identity universe. Every current `envelope.toml` identity must occur in that stable universe.
 
-The production CLI supports all twelve keys individually. An individual request may alternatively pass `--manifest REQUEST_MANIFEST`; after key/surface admission, the application selects exactly one matching row and then invokes the same individual source/preflight/composition path. Missing, duplicate, malformed, or surface-mismatched rows fail before household source reads. This gives UI/cache callers a bounded explicit-coordinate route without inventing a shared report context.
+Physical basenames never enter report request coordinates. `tools/report` accepts only semantic domain/date/count/policy coordinates and resolves canonical source owners internally.
 
-## Fail-closed `all`
+Key-specific source needs remain bounded:
 
-`all` accepts one explicit TSV command manifest:
+- Actual-only accounting reports need Accounts + Actual;
+- Planned needs Plan, Actual, and Cycle resolution;
+- Daily Flow needs Actual plus historical Expense routing, not current Envelope membership;
+- Envelope & Backing needs Actual/Plan, Entitlement, current Envelope/Backing policy, and stable history;
+- Issues needs Issues plus the repository Currency registry.
 
-```text
-key | surface | arguments
-```
+## Current report batch
 
-Each row contains the argv for one existing individual route; there is no cross-report coordinate schema. `report_selection_cli.bqn` derives the expected keys from `request.Validate ⟨"all",surface⟩`. The runner requires exact count, catalog order, and one shared admitted surface, then invokes `tools/report` for every row. Output is buffered and published only after all rows succeed.
+`tools/report-all BASE DOMAIN SURFACE [LATEST]` resolves typed current requests from canonical `report.toml` and one canonical Household observation. The generated request rows are in-memory protocol, not a caller-supplied manifest or alternate source authority.
 
-Consequences:
+`src/application/current_report_batch_cli.bqn` admits the complete selected request set, buffers every result, and publishes only after the batch succeeds. Human selects all twelve catalog entries; compact selects the five registered compact owners; aggregate JSON remains unsupported.
 
-- human iterates all twelve keys;
-- compact iterates the five registered compact owners;
-- aggregate JSON remains explicitly unsupported;
-- malformed, missing, reordered, or failing rows publish no partial report;
-- `all` cannot introduce alternate accounting or rendering behavior.
-
-The shell wrapper first runs pure request admission, resolves relative base against caller cwd, validates safe basenames, and returns stable `source_unreadable` diagnostics before BQN source I/O. Its former duplicate implemented-key whitelist has been removed; the static catalog remains authoritative.
-
-No Account-name inference or fabricated default fills ownership. All coordinates remain explicit, so no clock is currently injected. The production route keeps these coordinates explicit.
-
-## Compact summary and exact query
-
-`tools/report-summary BASE COMPACT_MANIFEST` runs the compact subset through the same fail-closed catalog-order `all` route. Its stdout is exactly the concatenation of the five compact-owning section renderers; it has no alternate calculation or universal summary result.
-
-`tools/query` owns the final query contract. It recognizes only exact `ledger_[a-z0-9_]+` keys, returns every repeated value in summary order, and offers exact `--list`/unique `--keys` enumeration. It does not expose regex filtering, old-key translation, or human-heading parsing. No old-key or generation-named forwarding route exists.
+`tools/report-summary BASE DOMAIN [LATEST]` is the compact current batch. `tools/query` recognizes exact `ledger_[a-z0-9_]+` keys from that summary; it does not translate old keys or parse human headings.
 
 ## Source-independent metadata
 
-`src/report/section_metadata.bqn` derives the retained six-field metadata directly from `catalog.bqn`:
+`src/report/section_metadata.bqn` derives labels, categories, owners, and surfaces directly from the static catalog. `tools/report-section-metadata` reads no Household source or clock.
 
-```text
-key | label | category | owner | human_output | structured_output
-```
+## Cache publication
 
-TSV and JSON preserve final catalog order, point owners to `src/sections`, and contain no retired operational/report keys. `tools/report-section-metadata` is the UI-independent production exporter. It reads no base, household source, clock, labels file, or the retired report runtime; it is the production metadata owner.
+`tools/report-cache` stages the twelve human section bodies plus `all.txt`, publishes `.section-keys`, removes stale report bodies, and writes `.cache-timestamp` last. A failed refresh preserves the prior complete generation.
 
-## Destination cache publication
-
-`tools/report-cache` accepts explicit base, cache directory, decimal generation token, and the human all-request manifest. It derives the twelve section keys from the catalog selection, admits the complete manifest before source reads, and writes each body by invoking the same individual route once. `all.txt` is the byte concatenation of those staged bodies.
-
-The staged manifest is exactly:
-
-```text
-envelopes
-balances
-balance-sheet
-profit-and-loss
-recent
-planned
-cycle-accounts
-cycle-comparison
-monthly-accounts
-daily-flow
-daily-target
-issues
-all
-```
-
-An exclusive PID lock rejects concurrent publication and recovers an abandoned lock. Publication atomically renames the twelve bodies and canonical `.section-keys`, removes stale `.txt` files absent from the new manifest, and renames `.cache-timestamp` last as the generation commit marker. Failure before publication leaves the prior generation untouched; malformed manifest and invalid generation-token proofs preserve prior timestamp/all bytes. Non-cache files are not removed.
-
-`tools/command-hub-cache-refresh` publishes the production cache through `tools/report-cache`.
+The cache is presentation state, never a source of accounting meaning.
 
 ## Cutover boundary
 
-Production now uses `tools/report` → strict `src/` composition. No retired alias, dual key, or forwarding wrapper exists.
-
-The production UI uses the configured human manifest as an admitted current-profile template. `current_report_profile_cli.bqn` reads its already-declared sources, admits Actual/Plan/Cycle evidence, resolves one latest-Actual observation without a wall clock, and emits a temporary complete concrete manifest. Current-cycle horizons, P/L end-exclusive, aligned baseline observation, and Monthly Accounts end-exclusive month derive from that one coordinate; Daily Target target, Monthly Accounts first month, source basenames, domain, funding scope, and other nonvolatile policy remain explicit template values.
-
-Direct `tools/report` and historical `all` continue to consume concrete rows without current-profile resolution. `report_manifest_admission.bqn` still admits unique, non-empty, safe, different human/compact basenames from a separately supplied config file; it does not add routing keys to strict ledger `config.tsv` or perform fallback discovery.
-
-Before atomic cutover:
-
-1. public one-request composition and deterministic CLI behavior must pass;
-2. operational check/debug ownership must be separated;
-3. external compact/query/cache consumers must be confirmed with moko;
-4. private Issues/source readiness requires separate explicit authorization;
-5. old routes, keys, cache entries, metadata, callers, tests, and compatibility runtime are removed in one change.
+Production uses strict `src/` composition only. There is no source fallback, request-manifest execution input, old-key forwarding, Budget source adapter, dual canonical source, or hidden Account-to-Envelope projection.

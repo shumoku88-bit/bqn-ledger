@@ -29,8 +29,10 @@ fi
 if [[ "${args[$i]-}" == "plan" && "${args[$((i + 1))]-}" == "finish" ]]; then
   exec bash "$DIR/plan-finish" "$@"
 fi
-if [[ "${args[$i]-}" == "budget" && "${args[$((i + 1))]-}" == "add" ]]; then
-  exec bash "$DIR/budget-write" "$@"
+if [[ ( "${args[$i]-}" == "entitlement" && ( "${args[$((i + 1))]-}" == "transfer" || "${args[$((i + 1))]-}" == "origin" || "${args[$((i + 1))]-}" == "add" ) ) || \
+      ( "${args[$i]-}" == "budget" && ( "${args[$((i + 1))]-}" == "add" || "${args[$((i + 1))]-}" == "move" ) ) || \
+      ( "${args[$i]-}" == "envelope" && ( "${args[$((i + 1))]-}" == "transfer" || "${args[$((i + 1))]-}" == "origin" ) ) ]]; then
+  exec bash "$DIR/entitlement-write" "$@"
 fi
 if [[ "${args[$i]-}" == "journal" ]]; then
   case "${args[$((i + 1))]-}" in

@@ -1,6 +1,7 @@
 == Envelope & Backing ==
 Horizon: 2026-01-01..2026-02-01
 Observed through: 2026-01-12
+Stock origin: 2026-01-01 JPY ; phase-one clean epoch [entitlement.journal:line:1]
 
 Envelope | Entitlement | Consumption | Credits/refunds | Fulfillment | Remaining | Commitment | Headroom
 ---------+-------------+-------------+-----------------+-------------+-----------+------------+---------
@@ -13,7 +14,5 @@ Funding balance           |    965
 Signed envelope total     |     30
 Positive backing required |     30
 Backing surplus           |    935
-Budget unassigned         |     40
-Reconciliation delta      |    895
 Status: backed
 

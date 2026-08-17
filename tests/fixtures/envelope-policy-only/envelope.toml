@@ -1,9 +1,9 @@
 [[backing-pools]]
-id = "cash"
+id = "main"
 asset-accounts = ["Assets:Bank"]
 
 [[envelopes]]
 id = "Daily"
 label = "Daily"
 pacing = "daily"
-backing-pool = "cash"
+backing-pool = "main"

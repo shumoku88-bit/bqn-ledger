@@ -12,17 +12,17 @@ facts ← (snapshot.Build ⟨accountSource,•FChars "../"∾base∾"actual.jour
 result ← monthly.Build ⟨facts,"JPY","2026-01","2026-03"⟩
 "ok" lib.AssertEq result.state
 ⟨"2026-01","2026-02"⟩ lib.AssertEq result.months
-7 lib.AssertEq result.matrix.column_count
+4 lib.AssertEq result.matrix.column_count
 (result.matrix.column_coordinates⊏facts.accounts.key) lib.AssertEq result.account_keys
-⟨965,¯1000,30,5,0,0,0⟩ lib.AssertEq 0⊑result.matrix.values
-(7⥊0) lib.AssertEq 1⊑result.matrix.values
+⟨965,¯1000,30,5⟩ lib.AssertEq 0⊑result.matrix.values
+(4⥊0) lib.AssertEq 1⊑result.matrix.values
 ⟨0,0⟩ lib.AssertEq result.totals.month
-⟨965,¯1000,30,5,0,0,0⟩ lib.AssertEq result.totals.account
+⟨965,¯1000,30,5⟩ lib.AssertEq result.totals.account
 0 lib.AssertEq result.totals.grand
 1 lib.AssertEq result.totals.balanced
 (∧´1∾result.totals.month=0) lib.AssertEq result.totals.balanced
 "actual.journal" lib.AssertEq (⊑0⊑0⊑result.matrix.contributors).source
-⟨⟨⟩,⟨⟩,⟨⟩,⟨⟩,⟨⟩,⟨⟩,⟨⟩⟩ lib.AssertEq 1⊑result.matrix.contributors
+⟨⟨⟩,⟨⟩,⟨⟩,⟨⟩⟩ lib.AssertEq 1⊑result.matrix.contributors
 
 lf ← @+10
 BuildDomain ← {𝕊 currency‿accountSourceValue‿raw:

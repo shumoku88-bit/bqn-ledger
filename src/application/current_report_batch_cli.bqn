@@ -58,8 +58,8 @@ presentation ← {negative_style⇐"minus"}
 }⍟(surface≡"human") @
 
 evidence ← {
-  registry⇐registry,actual⇐actual,plan⇐companions.plan,plan_retirements⇐companions.plan_retirements,budget⇐companions.budget,
-  budget_movements⇐companions.budget_movements,budget_policy⇐companions.budget_policy,household⇐companions.household,
+  registry⇐registry,actual⇐actual,plan⇐companions.plan,plan_retirements⇐companions.plan_retirements,entitlement⇐companions.entitlement,
+  envelope_policy⇐companions.envelope_policy,household⇐companions.household,
   envelope_history⇐companions.envelope_history,issue_lines⇐issueLines
 }
 RenderRow ← {𝕊 row:

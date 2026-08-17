@@ -9,9 +9,6 @@ assets:cash/JPY        |              980 |                 0 |        980
 income:salary/JPY      |            -1000 |                 0 |      -1000
 expenses:food/JPY      |               20 |                 0 |         20
 expenses:transport/JPY |                0 |                 0 |          0
-budget:opening/JPY     |                0 |                 0 |          0
-budget:unassigned/JPY  |                0 |                 0 |          0
-budget:food/JPY        |                0 |                 0 |          0
 Total                  |                0 |                 0 |          0
 Balanced: YES
 

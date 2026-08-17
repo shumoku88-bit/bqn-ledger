@@ -2,92 +2,93 @@
 
 Status: current operational guide
 Owner: docs
-Canonical: no; canonical path: docs/DATA_DIR_SETUP.md
+Canonical: no; canonical path: `docs/DATA_DIR_SETUP.md`
 Exit: revise when the public demo fixture or command path changes
 
-This document is a small public demo path for BQN Ledger.
-
-It uses fixture data only. Do not use real household data, real account names, private file paths, or screenshots with private balances when preparing public demos or application material.
+This document is a small public demo path for BQN Ledger. It uses synthetic fixture data only. Do not use real household data, real account names, private file paths, or screenshots with private balances.
 
 ## What this demo shows
 
-BQN Ledger keeps source data as human-readable TSV, derives reports with BQN, and routes daily writes through a small BQN editor.
+1. Eight human-readable canonical Household sources.
+2. BQN report generation as a derived view.
+3. Safe editor preview/write paths.
+4. Native Envelope Entitlement without Budget Accounts.
 
-The demo shows three layers:
-
-1. TSV source data as the visible ground.
-2. BQN report generation as the derived view.
-3. BQN editor preview/write path as the protected input route.
-
-## 1. Read a fixture report
+## 1. Read fixture reports
 
 ```bash
-tools/report fixtures/editor-golden
+tools/report fixtures/ledger-facts-phase1-proof balances human JPY 2026-01-12
+tools/report fixtures/ledger-facts-phase1-proof envelopes human JPY \
+  2026-01-01 2026-02-01 2026-01-12
 ```
 
-Expected meaning:
-
-- `fixtures/editor-golden` is the demo base directory.
-- `tools/report` is the daily production report wrapper.
-- The report is derived from fixture TSV files, not from private data.
+The report is derived from the fixture Household root, not private data or hidden application state.
 
 ## 2. Read the machine summary
 
 ```bash
-tools/report-summary fixtures/editor-golden
+tools/report-summary fixtures/ledger-facts-phase1-proof JPY 2026-01-12
+tools/query fixtures/ledger-facts-phase1-proof JPY ledger_envelope_backing_surplus 2026-01-12
 ```
 
-Expected meaning:
+Compact output is useful for regression checks and bounded external inspection.
 
-- This is the compact machine-readable summary path.
-- It is useful for regression checks, AI review, and external inspection.
-
-## 3. Inspect source TSV files
+## 3. Inspect the canonical sources
 
 ```bash
-ls fixtures/editor-golden
-cat fixtures/editor-golden/actual.journal
-cat fixtures/editor-golden/plan.tsv
-cat fixtures/canonical-household-v1/budget.journal
-cat fixtures/editor-golden/accounts.tsv
-cat fixtures/editor-golden/cycle.tsv
+ls fixtures/ledger-facts-phase1-proof
+cat fixtures/ledger-facts-phase1-proof/accounts.journal
+cat fixtures/ledger-facts-phase1-proof/actual.journal
+cat fixtures/ledger-facts-phase1-proof/plan.journal
+cat fixtures/ledger-facts-phase1-proof/entitlement.journal
+cat fixtures/ledger-facts-phase1-proof/envelope.toml
+cat fixtures/ledger-facts-phase1-proof/household.toml
 ```
 
-Expected meaning:
+The canonical topology is:
 
-- The source of truth is still plain TSV.
-- Reports are derived from these files rather than hidden application state.
+```text
+accounts.journal
+actual.journal
+plan.journal
+entitlement.journal
+envelope.toml
+household.toml
+report.toml
+issues.tsv
+```
 
-## 4. Try the BQN editor in a scratch directory
+`entitlement.journal` contains only:
+
+```text
+YYYY-MM-DD origin COMMODITY [memo]
+YYYY-MM-DD transfer FROM -> TO QUANTITY COMMODITY [memo]
+```
+
+## 4. Try the editor in a scratch directory
 
 ```bash
-mkdir -p sandbox
-cp fixtures/plan-completion/*.tsv sandbox/
-./tools/edit --base sandbox plan list
-./tools/edit --base sandbox plan finish --index 1 --actual-date 2026-01-12
+sandbox=$(mktemp -d)
+cp -R fixtures/ledger-facts-phase1-proof/. "$sandbox"/
+
+tools/edit --base "$sandbox" entitlement transfer \
+  --date 2026-01-13 --from unallocated --to food \
+  --amount 5 --memo demo --dry-run
+
+tools/edit --base "$sandbox" journal add \
+  --date 2026-01-13 --from assets:cash --to expenses:food \
+  --amount 1 --memo demo --dry-run
+
+rm -rf "$sandbox"
 ```
 
-Expected meaning:
+Dry-run shows the exact candidate without modifying source bytes or creating a backup. A real append uses confirmation, stale-source fencing, complete candidate admission, backup, post-publication validation, and guarded rollback.
 
-- The preview command shows the write that would happen.
-- Without `--apply`, it does not write the finished entry.
-- This demonstrates the review-before-write path.
-
-## 5. Run the check suite
+## 5. Run public qualification
 
 ```bash
 tools/check.sh
+tools/coverage
 ```
 
-Expected meaning:
-
-- Unit tests, golden fixtures, section checks, repo hygiene checks, and editor tests are grouped behind one maintainer command.
-- This is the main safety net before merging report or editor changes.
-
-## Public demo rule
-
-For public demos, applications, screenshots, and issue reports:
-
-- Use `fixtures/` or the public `data/` sandbox.
-- Do not show real balances, real household data, real account names, private paths, tokens, or local machine identifiers.
-- Prefer command output that can be recreated from committed fixture files.
+These commands operate on repository code and synthetic fixtures. They do not require private household data.

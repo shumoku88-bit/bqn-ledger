@@ -5,14 +5,13 @@ Owner: `src/accounting/date_category_flow.bqn`
 
 ## Boundary
 
-`date_category_flow.Build ⟨facts,householdPolicy,envelopeHistory,domain,layer,startOrdinal,endExclusiveOrdinal⟩` consumes admitted Facts, current Household allocation coordinates, explicit historical Envelope routing, and query coordinates.
+`date_category_flow.Build ⟨facts,envelopeHistory,domain,layer,startOrdinal,endExclusiveOrdinal⟩` consumes admitted Facts, explicit historical Envelope routing, and query coordinates.
 
-It does not read source files, `budget.toml`, the clock, report policy, sections, or presentation state.
+It does not read source files, current Household policy, `envelope.toml`, the clock, report policy, sections, or presentation state.
 
 ```text
 admitted Facts
-  + stable allocation coordinates
-  + ExpenseRoutingHistory
+  + stable Envelope identity / ExpenseRoutingHistory
   + explicit query
     -> selected Posting array kernel
     -> exact semantic result + contributor evidence
@@ -23,20 +22,19 @@ admitted Facts
 Category meaning is not Account metadata and is not current Envelope configuration.
 
 - Account Facts own Account identity, accounting role, and Commodity.
-- `household.toml [[budget.envelopes]]` owns stable allocation Account -> Envelope identity coordinates.
 - `EnvelopeHistory` owns stable Envelope identities and effective-dated Expense routing.
-- Date Category Flow owns the synthetic trailing `other` presentation-neutral category for selected Expense evidence that is not managed by a current result Envelope.
+- Date Category Flow owns the synthetic trailing `other` presentation-neutral category for selected Expense evidence that is not managed by an Envelope.
 
 For a successful build:
 
-1. stable allocation coordinates are resolved against the current Facts Account axis;
+1. historical Expense Account keys resolve against the current Facts Account axis;
 2. historical Expense routing is observed at each Posting day;
-3. managed Expense Postings map through stable Envelope identity;
-4. non-managed or otherwise non-envelope Expense evidence remains outside managed Envelope categories and is represented by the trailing `other` result coordinate;
+3. managed Expense Postings map directly to a stable `EnvelopeId`;
+4. non-managed or otherwise non-envelope Expense evidence is represented by the trailing `other` result coordinate;
 5. non-Expense Accounts remain outside the expense-category coordinate space;
 6. Income is reduced independently from explicit Income Postings.
 
-No Account prefix, display label, `budget.toml` Expense assignment, or current-config fallback participates.
+There is no allocation Account coordinate or Account-to-Envelope projection in the category relation. No Account prefix, display label, current `envelope.toml`, or current-config fallback participates.
 
 Missing or conflicting historical routing is never reconstructed from current policy. Invalid cross-source references fail closed at admission or capability validation.
 
@@ -60,8 +58,7 @@ The presentation-neutral result contains:
 
 - sorted selected transaction dates;
 - per-date Income and net coefficients plus contributors;
-- managed Envelope categories in stable current result order plus trailing `other`;
-- each managed category's allocation Account coordinate;
+- stable Envelope IDs in registry order plus trailing `other`;
 - sparse Date × Category Expense groups;
 - complete selected-domain Account axis in canonical Facts order;
 - sparse Date × Account groups;
@@ -74,7 +71,7 @@ A sparse group exists when Postings contribute to a coordinate even when the exa
 
 `src/accounting/month_category_flow.bqn` consumes Date × Category evidence and performs Month-axis reduction.
 
-`src/sections/daily_flow.bqn` consumes Date × Account evidence, applies observation/period checks, selects active non-Budget Account columns, pivots sparse groups, and owns display labels/sign presentation. It does not recompute routing or Account classification.
+`src/sections/daily_flow.bqn` consumes Date × Account evidence, applies observation/period checks, selects active accounting Account columns, pivots sparse groups, and owns display labels/sign presentation. It does not recompute routing or Account classification.
 
 ## Focused proof
 
@@ -86,9 +83,8 @@ A sparse group exists when Postings contribute to a coordinate even when the exa
 - mixed-scale exact normalization;
 - later-period selection;
 - independent Date × Account evidence;
-- Account admission-order invariance through stable keys;
 - explicit historical routing behavior;
-- missing/invalid Envelope allocation coordinates;
+- missing/invalid historical Account and Envelope references;
 - unknown domain/layer and invalid period;
 - empty semantic tables on error.
 

@@ -47,7 +47,7 @@ checks=(
   check-bqn-review-queue.sh check-check-test-classification.sh
   check-canonical-household-source-topology.sh check-doctor-canonical-household.sh
   check-devtools.sh check-devtools-negative.sh check-edit-bqn-account-list.sh check-edit-bqn-account-add-contract.sh check-edit-bqn-account-list-registry.sh
-  check-edit-bqn-budget-add.sh check-budget-retired-envelope-write.sh check-edit-bqn-journal-add.sh check-edit-bqn-journal-block-add.sh check-edit-bqn-journal-native-source-scale.sh check-edit-bqn-currency-m2.sh
+  check-edit-bqn-entitlement-add.sh check-entitlement-retired-envelope-write.sh check-edit-bqn-journal-add.sh check-edit-bqn-journal-block-add.sh check-edit-bqn-journal-native-source-scale.sh check-edit-bqn-currency-m2.sh
   check-edit-bqn-travel-friend-add.sh check-travel-exchange-pure.sh check-edit-bqn-travel-exchange-add.sh
   check-edit-bqn-issue-close.sh check-issue-due-compatibility.sh check-edit-bqn-journal-list.sh check-edit-bqn-journal-cleanup-plan.sh
   check-edit-bqn-journal-cleanup-apply.sh check-edit-bqn-journal-canonical-surface.sh check-journal-canonical-surface-boundary.sh

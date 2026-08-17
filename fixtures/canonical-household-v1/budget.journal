@@ -1,5 +1,0 @@
-include accounts.journal
-
-2026-01-01 * Allocate Daily
-  Budget:Unassigned  -30000 JPY
-  Budget:Daily  30000 JPY

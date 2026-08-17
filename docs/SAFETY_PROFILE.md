@@ -36,9 +36,9 @@ Exit: revise when safety invariants or responsibility boundaries change
 
 | 範囲 | 扱い |
 |---|---|
-| `data/*.tsv` | 正データ。AIとレポートエンジンは原則直接変更しない。 |
+| canonical Household root | 正データ。AIとレポートエンジンは原則直接変更しない。 |
 | BQN report engine | 読み取り、検査、派生ビュー、レポート生成を担当する。 |
-| BQN editor | 明示操作に基づく安全な TSV 追記・編集経路を担当する。 |
+| BQN editor | 明示操作に基づく安全なcanonical source追記・編集経路を担当する。 |
 | shell / gum / fzf | 表示、選択、検索、入力補助に徹する。 |
 | docs / fixtures / tests | 契約と回帰確認を固定する。 |
 
@@ -46,7 +46,7 @@ Exit: revise when safety invariants or responsibility boundaries change
 
 ### 1. Canonical Household sources are source of truth
 
-`accounts.journal`, `actual.journal`, `plan.journal`, `budget.journal`, `budget.toml`, `household.toml`, `report.toml`, `issues.tsv`が正データまたはpolicyです。
+`accounts.journal`, `actual.journal`, `plan.journal`, `entitlement.journal`, `envelope.toml`, `household.toml`, `report.toml`, `issues.tsv`が正データまたはpolicyです。
 
 BQN レポートエンジンはこれらを読んで派生値を作るだけで、正データを直接変更しません。
 変更が必要な場合は、人間の確認、または専用 editor の明示操作を通します。
@@ -59,9 +59,10 @@ BQN レポートエンジンはこれらを読んで派生値を作るだけで�
 
 - 日付形式が壊れている。
 - 金額が整数円ではない。
-- `accounts.tsv` に存在しない account が使われている。
-- 必須列が列ずれしている。
-- `cycle.tsv` の区間が重複または逆転している。
+- `accounts.journal` に存在しない Account が使われている。
+- Entitlement transferにStockOriginまたはstable Envelope identityがない。
+- source構造や必須列が壊れている。
+- Cycle区間が逆転している。
 - Cube の Layer 契約に反する projection がある。
 
 この場合は、明示的な error / warning / skipped を出します。
@@ -81,12 +82,12 @@ BQN レポートエンジンはこれらを読んで派生値を作るだけで�
 
 - 未知 account を自動で作る。
 - 日付欠損を実行日に置き換える。
-- 欠損 budget group を勝手に daily にする。
-- plan / actual / budget の Layer を曖昧に混ぜる。
+- 欠損StockOriginやEnvelope historyをcurrent policyから推論する。
+- Plan / Actual / Entitlementのsource roleを曖昧に混ぜる。
 
 ### 4. Deterministic report
 
-同じ TSV と同じ引数からは、同じレポートを出します。
+同じcanonical sourcesと同じ引数からは、同じレポートを出します。
 
 特に `as_of` は、実行中に各モジュールが勝手に `Today` を読むのではなく、入口で決めて渡します。
 現在時刻が必要な export は、`system_now` / `generated_at` / `data_cutoff` などの意味を先に決めてから導入します。
@@ -133,19 +134,18 @@ Event IR -> Projection IR -> Day × Account × Layer -> report / export
 
 - `data/*.tsv` の先頭5列を壊さない。
 - 空列を保持する必要がある読み込みでは `SplitKeepEmpty` を使う。
-- 未定義 account を許さない。
-- 金額は整数円。
-- 実データ TSV は AI が明示指示なしに編集しない。
+- 未定義 Accountを許さない。
+- 金額はregistry precision内のexact decimalとする。
+- 実データsourceはAIが明示指示なしに編集しない。
 
 ### Cube invariant
 
 - Canonical Daily Cube の shape は `Day × Account × Layer` に固定する。
 - 店舗、memo、カテゴリ、任意タグを Cube 軸に増やさない。
-- `actual` はconfigured native Journal由来。
-- `plan` は `plan.tsv` 由来。
-- `budget` movement evidenceは`budget.journal`由来。
+- `actual` はcanonical `actual.journal`由来。
+- `plan` はcanonical `plan.journal`由来。
+- EntitlementはCube/Account Layerへ投影せず、`entitlement.journal`のnative StockOrigin/Transfer relationとして保持する。
 - `forecast` は予約 Layer として扱い、未実装時は安全にゼロまたは unavailable とする。
-- `budget:*` account の Actual layer はゼロである。
 
 ### Time invariant
 
@@ -156,7 +156,7 @@ Event IR -> Projection IR -> Day × Account × Layer -> report / export
 
 ### Report execution invariant
 
-- source TSV (`data/*.tsv`)、config TSV (`data/config.tsv`, `config/system_defaults.tsv`, `config/default_config.tsv`, `config/meta_schema.tsv`) と `src/**/*.bqn` で canonical report / export を生成できる。
+- canonical Household 8 sources、repository configuration、`src/**/*.bqn`でcanonical report / exportを生成できる。
 - BQN editor, shell UI, gum/fzf, cache/helper-generated files を canonical report calculation の必須依存にしない。
 - shell script で BQN-only 経路をテストすることは許容する。ただし守る対象は、レポート計算そのものが BQN と source/config TSV だけで完結すること。
 

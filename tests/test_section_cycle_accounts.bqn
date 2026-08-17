@@ -18,7 +18,7 @@ cycle ← fixed_resolver.Resolve cycle_admission.Admit ⟨loader.ReadLines base�
 accounting ← cycle_period.Build ⟨facts,"JPY",cycle,"2026-01-10"⟩
 result ← section.Build accounting
 "ok" lib.AssertEq result.state
-7 lib.AssertEq result.matrix.row_count
+4 lib.AssertEq result.matrix.row_count
 5 lib.AssertEq result.matrix.column_count
 ⟨"opening","debit","credit","movement","closing"⟩ lib.AssertEq result.matrix.column_coordinates
 ⟨0,1000,¯20,980,980⟩ lib.AssertEq 0⊑result.matrix.values

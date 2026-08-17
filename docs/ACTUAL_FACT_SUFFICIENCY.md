@@ -12,7 +12,7 @@ Remaining gaps are capabilities or other source families, not missing Actual mon
 
 - rejected-source diagnostics stay on `snapshot.diagnostics`, outside successful fact columns;
 - cycle and observation coordinates are explicit capability inputs;
-- strict Plan/Budget companions are independently admitted and projected through the same Fact schema;
+- strict Plan facts and native Entitlement relations are independently admitted; Entitlement is not projected through the Account Fact schema;
 - Source table/index is present now that incomeAnchor and completion are real cross-source consumers;
 - remaining report grouping, selection, and presentation views are derived capabilities rather than Fact columns.
 
@@ -53,13 +53,13 @@ Remaining gaps are capabilities or other source families, not missing Actual mon
 | `balances` | cumulative selected-domain account balances | Posting facts + Account table | selected domain and presentation policy |
 | `cycle` | income-event dates and in-cycle Actual totals | Transaction date + income-account Posting selection | cycle definition and Plan evidence |
 | `trial-balance` | opening/debit/credit/closing by account | Posting date/account/layer/domain/side/coefficient | explicit period/layer/domain |
-| `envelopes` | Actual expense movements and liquid balances | Posting facts + Account metadata | Budget and Plan facts, household policy |
+| `envelopes` | Actual Expense movement and Backing Asset balances | Posting facts + Account metadata | Entitlement relation, Plan facts, Envelope policy/history |
 | `planned` | Actual completion relationships and amounts | Transaction `plan_id`, date, Posting sides/amounts | Plan facts and observation |
 | `recent` | source-ordered transaction descriptions and posting lanes | Transaction facts joined to ordered Postings | display limit |
-| `check` | admitted/rejected counts and metadata readiness | fact counts + snapshot diagnostics | Plan/Budget/config diagnostics |
+| `check` | admitted/rejected counts and metadata readiness | fact counts + snapshot diagnostics | Plan/Entitlement/Envelope/Household diagnostics |
 | `outlook` | cumulative Actual snapshot and admitted income anchors | Posting facts + Transaction identity/date | Plan, Envelope, cycle, observation |
 | `daily-trend` | row-date Actual replay and income coordinates | Posting date/account/layer/domain/coefficient | Plan reserve facts and row observation |
-| `daily-flow` | date × active non-Budget Accounts | Posting facts + admitted Account order/roles | cycle/date policy |
+| `daily-flow` | date × active accounting Accounts | Posting facts + admitted Account order/roles | cycle/date policy |
 | `actual-comparison` | two explicit windows, account lanes, source-row counts | Posting date/account/side/coefficient/source line | observation and baseline policy |
 | `debug` | source balance, identity, zero-sum, provenance | all fact/side-table columns + diagnostics | diagnostic formatting only |
 
@@ -95,6 +95,6 @@ Every independently admitted fact result has one explicit Source row and aligned
 
 ## Migration progress from this evidence
 
-Completed destination capabilities now include strict Actual/Plan/Budget Facts, Account periods, date/month category grouping and Pivot, Trial Balance and Daily Flow Matrix sections, pure cycle resolution, and durable Plan completion Join. Legacy base-oriented completion remains only with current runtime callers until section cutover.
+Completed destination capabilities now include strict Actual/Plan Facts, native Entitlement admission, Account periods, date/month category grouping and Pivot, Trial Balance and Daily Flow Matrix sections, pure cycle resolution, and durable Plan completion Join.
 
 The current report remains production until each consumer and its output contract move atomically.
